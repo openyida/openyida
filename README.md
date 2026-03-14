@@ -95,32 +95,14 @@ AI 生成灯谜图片，用户猜答案，猜错了有 AI 幽默提示。
 
 ---
 
-## OpenClaw / Claude Code 集成
+## OpenClaw / Claude Code
 
-如需在 OpenClaw 或 Claude Code 中使用这些技能，可通过 ClawHub 安装 [openyida-openclaw-skill](https://github.com/openyida/openyida-openclaw-skill)：
+通过 [openyida-openclaw-skill](https://github.com/openyida/openyida-openclaw-skill) 在 OpenClaw / Claude Code 中使用这些技能。
 
+安装：
 ```bash
 npx playbooks add skill openyida/openyida-openclaw-skill
 ```
-
-安装后可直接对话触发技能，如：
-- "帮我搭建一个考勤应用"
-- "帮我提一个需求：希望支持 xxx"
-
-### 支持的技能
-
-| 技能 | 用途 |
-|------|------|
-| yida-app | 完整应用开发流程 |
-| yida-login | 扫码登录 |
-| yida-logout | 退出登录 |
-| yida-create-app | 创建应用 |
-| yida-create-page | 创建自定义页面 |
-| yida-create-form-page | 创建表单 |
-| yida-custom-page | 编写页面代码 |
-| yida-publish-page | 发布页面 |
-| yida-get-schema | 获取表单 Schema |
-| yida-issue | 一句话提需求 |
 
 ---
 
