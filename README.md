@@ -95,6 +95,7 @@ AI 生成灯谜图片，用户猜答案，猜错了有 AI 幽默提示。
 
 ---
 
+<<<<<<< HEAD
 ## OpenClaw / Claude Code
 
 通过 [yida-app](https://clawhub.ai/nicky1108/yida-app) 在 OpenClaw / Claude Code 中使用这些技能。
