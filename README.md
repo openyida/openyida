@@ -97,11 +97,11 @@ AI 生成灯谜图片，用户猜答案，猜错了有 AI 幽默提示。
 
 ## OpenClaw / Claude Code
 
-通过 [openyida-openclaw-skill](https://github.com/openyida/openyida-openclaw-skill) 在 OpenClaw / Claude Code 中使用这些技能。
+通过 [yida-app](https://clawhub.ai/nicky1108/yida-app) 在 OpenClaw / Claude Code 中使用这些技能。
 
 安装：
 ```bash
-npx clawhub@latest install openyida/openyida-openclaw-skill
+npx clawhub@latest install nicky1108/yida-app
 ```
 
 ---
