@@ -101,7 +101,7 @@ AI 生成灯谜图片，用户猜答案，猜错了有 AI 幽默提示。
 
 安装：
 ```bash
-npx playbooks add skill openyida/openyida-openclaw-skill
+npx clawhub@latest install openyida/openyida-openclaw-skill
 ```
 
 ---
