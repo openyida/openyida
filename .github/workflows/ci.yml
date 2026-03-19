@@ -36,7 +36,7 @@ jobs:
     - name: Check JavaScript syntax
       run: |
         node --check bin/yida.js
-        for f in lib/*.js; do node --check "$f"; done
+        for f in lib/*.js lib/locales/*.js; do node --check "$f"; done
         echo "All JS files passed syntax check"
 
   test:

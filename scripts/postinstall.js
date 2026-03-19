@@ -1,11 +1,21 @@
 #!/usr/bin/env node
 /**
- * postinstall 钩子：npm install -g openyida 后自动配置 IDE 集成
+ * postinstall hook: auto-configure IDE integration after `npm install -g openyida`
  *
- * 在各 AI 工具的 skills/ 目录下创建指向 npm 包内 yida-skills/ 的软链接，
- * 各工具通过扫描该目录自动发现技能包，无需额外配置。
+ * Creates a symlink named "yida-skills" directly inside each AI tool's config
+ * directory, pointing to the yida-skills/ folder inside this package.
+ * Each tool discovers the skill pack by scanning its own config directory.
  *
- * 支持的工具：Claude Code / OpenCode / Aone Copilot / Cursor / Qoder / iFlow / 悟空
+ * Supported tools: Claude Code / OpenCode / Aone Copilot / Cursor / Qoder / iFlow / Wukong
+ *
+ * Symlink layout (no extra "skills/" subdirectory needed):
+ *   ~/.claude/yida-skills          → <package>/yida-skills
+ *   ~/.opencode/yida-skills        → <package>/yida-skills
+ *   ~/.aone_copilot/yida-skills    → <package>/yida-skills
+ *   ~/.cursor/yida-skills          → <package>/yida-skills
+ *   ~/.qoder/yida-skills           → <package>/yida-skills
+ *   ~/.iflow/yida-skills           → <package>/yida-skills
+ *   ~/.real/yida-skills            → <package>/yida-skills  (Wukong)
  */
 
 "use strict";
@@ -19,14 +29,14 @@ const SKILLS_DIR = path.join(PACKAGE_ROOT, "yida-skills");
 const HOME_DIR = os.homedir();
 
 /**
- * 静默执行，不抛错
+ * Run fn silently — never throws.
  */
 function safeExec(fn) {
   try { fn(); } catch { /* ignore */ }
 }
 
 /**
- * 确保目录存在
+ * Ensure a directory exists (mkdir -p).
  */
 function ensureDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
@@ -35,27 +45,25 @@ function ensureDir(dirPath) {
 }
 
 /**
- * 在指定 IDE skills 目录下创建/更新指向 yida-skills/ 的软链接。
- * 软链接名固定为 "yida-skills"，各 IDE 通过此名称识别技能包。
- * 若目标路径已是正确的软链接则跳过；
- * 若是错误的软链接或实际目录/文件，则删除后重新创建软链接。
+ * Create (or update) a "yida-skills" symlink directly inside `ideConfigDir`.
+ *
+ * - If the symlink already points to the correct target → skip.
+ * - If it points elsewhere or is a real file/dir → remove and recreate.
  */
-function installSymlink(ideSkillsDir) {
-  const symlinkPath = path.join(ideSkillsDir, "yida-skills");
+function installSymlink(ideConfigDir) {
+  const symlinkPath = path.join(ideConfigDir, "yida-skills");
 
-  ensureDir(ideSkillsDir);
+  ensureDir(ideConfigDir);
 
-  // 检查目标路径是否已存在
   let existingStat = null;
-  try { existingStat = fs.lstatSync(symlinkPath); } catch { /* 不存在，继续创建 */ }
+  try { existingStat = fs.lstatSync(symlinkPath); } catch { /* does not exist, will create */ }
 
   if (existingStat) {
     if (existingStat.isSymbolicLink()) {
       const currentTarget = fs.readlinkSync(symlinkPath);
-      if (currentTarget === SKILLS_DIR) return; // 已正确链接，跳过
-      fs.unlinkSync(symlinkPath); // 旧链接指向错误，删除后重建
+      if (currentTarget === SKILLS_DIR) return; // already correct, skip
+      fs.unlinkSync(symlinkPath);
     } else {
-      // 是实际目录或文件，删除后创建软链接
       fs.rmSync(symlinkPath, { recursive: true, force: true });
     }
   }
@@ -63,53 +71,53 @@ function installSymlink(ideSkillsDir) {
   fs.symlinkSync(SKILLS_DIR, symlinkPath, "junction");
 }
 
-// ── 1. 软链接集成（各 IDE skills 目录）────────────────────────────────
+// ── 1. Symlink integration (each tool's config root) ──────────────────
 
 // Claude Code
 safeExec(() => {
-  installSymlink(path.join(HOME_DIR, ".claude", "skills"));
+  installSymlink(path.join(HOME_DIR, ".claude"));
 });
 
 // OpenCode
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, ".opencode"))) {
-    installSymlink(path.join(HOME_DIR, ".opencode", "skills"));
+    installSymlink(path.join(HOME_DIR, ".opencode"));
   }
 });
 
 // Aone Copilot
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, ".aone_copilot"))) {
-    installSymlink(path.join(HOME_DIR, ".aone_copilot", "skills"));
+    installSymlink(path.join(HOME_DIR, ".aone_copilot"));
   }
 });
 
 // Cursor
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, ".cursor"))) {
-    installSymlink(path.join(HOME_DIR, ".cursor", "skills"));
+    installSymlink(path.join(HOME_DIR, ".cursor"));
   }
 });
 
 // Qoder
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, ".qoder"))) {
-    installSymlink(path.join(HOME_DIR, ".qoder", "skills"));
+    installSymlink(path.join(HOME_DIR, ".qoder"));
   }
 });
 
 // iFlow
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, ".iflow"))) {
-    installSymlink(path.join(HOME_DIR, ".iflow", "skills"));
+    installSymlink(path.join(HOME_DIR, ".iflow"));
   }
 });
 
-// ── 2. 悟空（Wukong）集成 ────────────────────────────────────────────
+// ── 2. Wukong integration ─────────────────────────────────────────────
 
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, ".real"))) {
-    installSymlink(path.join(HOME_DIR, ".real", ".skills"));
+    installSymlink(path.join(HOME_DIR, ".real"));
   }
 });
 

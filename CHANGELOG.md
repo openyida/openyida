@@ -2,10 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+> **版本规则**：从 v2026.03.19 起，版本号采用日期格式 `vYYYY.MM.DD`，每次发布以当天日期为版本号，Git tag 格式为 `v2026.03.19`，npm 包版本格式为 `2026.03.19`。
 
 ## [Unreleased]
+
+## [2026.03.19] - 2026-03-19
+
+### Added
+- 多语言 README 支持（13 种语言）：简体中文、繁體中文（台灣/香港）、日本語、한국어、Français、Deutsch、Español、Português、Tiếng Việt、हिन्दी、العربية
+- i18n 国际化扩展：新增 ko、fr、de、es、pt、vi、hi、ar、zh-TW 语言包，支持 12 种语言
+- CI 新增 `concurrency` 配置（自动取消重复运行）和 `permissions: contents: read` 最小权限声明
+- README 顶部添加封面图和 Vernor Vinge 引言
+
+### Changed
+- 版本号规则改为日期格式（`vYYYY.MM.DD`），告别语义化版本
+- README.md 改为英文作为默认语言，原中文内容迁移至 `README.zh-CN.md`
 
 ## [1.0.0-beta.0] - 2026-03-18
 

@@ -4,58 +4,58 @@
 
 | Version | Supported          |
 |---------|--------------------|
-| 1.x     | ✅ Active support   |
-| < 1.0   | ❌ No longer supported |
+| 2026.x  | ✅ Active support   |
+| < 2026  | ❌ No longer supported |
 
 ## Reporting a Vulnerability
 
-**请勿通过公开的 GitHub Issue 报告安全漏洞。**
+**Please do not report security vulnerabilities through public GitHub Issues.**
 
-如果你发现了安全漏洞，请通过以下方式私密报告：
+If you discover a security vulnerability, please report it privately through one of the following channels:
 
-1. **GitHub Security Advisories（推荐）**
-   前往 [Security Advisories](https://github.com/openyida/openyida/security/advisories/new) 创建私密安全报告。
+1. **GitHub Security Advisories (recommended)**
+   Go to [Security Advisories](https://github.com/openyida/openyida/security/advisories/new) to create a private security report.
 
-2. **邮件报告**
-   发送邮件至维护者，标题请注明 `[SECURITY] OpenYida`。
+2. **Email**
+   Send an email to the maintainers with the subject line `[SECURITY] OpenYida`.
 
-## 响应流程
+## Response Timeline
 
-| 阶段 | 时间 |
-|------|------|
-| 确认收到报告 | 48 小时内 |
-| 初步评估与分类 | 5 个工作日内 |
-| 修复方案与补丁发布 | 视严重程度，通常 1–2 周 |
-| 公开披露 | 修复发布后 |
+| Stage | Timeframe |
+|-------|-----------|
+| Acknowledgement | Within 48 hours |
+| Initial assessment and triage | Within 5 business days |
+| Fix and patch release | Typically 1–2 weeks depending on severity |
+| Public disclosure | After the fix is released |
 
-## 漏洞披露原则
+## Disclosure Policy
 
-- 我们遵循 **负责任披露（Responsible Disclosure）** 原则
-- 在修复发布前，请勿公开漏洞细节
-- 修复发布后，我们会在 CHANGELOG 和 GitHub Release 中说明安全修复内容
-- 对有效的安全报告，我们会在 README 贡献者列表中致谢（除非报告者要求匿名）
+- We follow the **Responsible Disclosure** principle
+- Please do not disclose vulnerability details publicly before a fix is released
+- After a fix is released, we will document the security fix in the CHANGELOG and GitHub Release notes
+- For valid security reports, we will credit the reporter in the README contributors section (unless anonymity is requested)
 
-## 安全最佳实践
+## Security Best Practices
 
-使用 OpenYida 时，请注意以下安全事项：
+When using OpenYida, please keep the following in mind:
 
-- **登录凭证**：Cookie 缓存存储在本地 `project/.cache/cookies.json`，请勿将此文件提交到版本控制
-- **`.gitignore`**：项目默认已忽略 `.cache/` 目录，请勿手动移除此规则
-- **依赖安全**：定期运行 `npm audit` 检查依赖漏洞
-- **环境隔离**：生产环境和开发环境使用不同的宜搭账号
+- **Credentials**: Cookie cache is stored locally at `project/.cache/cookies.json` — do not commit this file to version control
+- **`.gitignore`**: The project ignores `.cache/` by default — do not remove this rule manually
+- **Dependency security**: Run `npm audit` regularly to check for dependency vulnerabilities
+- **Environment isolation**: Use separate Yida accounts for production and development environments
 
-## 范围
+## Scope
 
-以下类型的安全问题在本政策范围内：
+The following types of issues are in scope for this policy:
 
-- 认证和授权绕过
-- Cookie / 凭证泄露
-- 代码注入或远程代码执行
-- 依赖链中的已知漏洞
-- 敏感信息意外暴露
+- Authentication and authorization bypass
+- Cookie / credential leakage
+- Code injection or remote code execution
+- Known vulnerabilities in the dependency chain
+- Accidental exposure of sensitive information
 
-以下不在范围内：
+The following are out of scope:
 
-- 社会工程攻击
-- 物理攻击
-- 已在公开 Issue 中讨论的非安全性 Bug
+- Social engineering attacks
+- Physical attacks
+- Non-security bugs already discussed in public Issues
