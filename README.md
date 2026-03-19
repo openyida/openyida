@@ -1,6 +1,10 @@
 <div align="center">
 
+![OpenYida](https://img.alicdn.com/imgextra/i4/O1CN017uyK3q1UUfbv7Z8oh_!!6000000002521-2-tps-2648-1382.png)
+
 # 🚀 OpenYida
+
+> *"We are on the verge of the Singularity"* — Vernor Vinge
 
 **Build Yida low-code apps with AI — zero config, instant deploy.**
 
