@@ -626,68 +626,7 @@ this.forceUpdate();
 
    > **生成代码时的自检清单**：检查 `renderJsx` 中所有 `onClick`、`onChange`、`onSubmit` 等事件属性，确保每一个都是 `(e) => { this.xxx(e) }` 形式，不存在任何 `onClick={this.xxx}` 的写法。
 
-3. **外部 JS 库引入**：宜搭不支持直接引用外部 CDN，必须通过 `this.utils.loadScript(url)` 动态加载。外部库需使用 `g.alicdn.com/code/lib` 下的地址。支持四种加载模式：
-
-   - **单库加载**：直接传入 URL，在 `.then()` 中使用库，`.catch()` 处理加载失败：
-     ```javascript
-     export function didMount() {
-       this.utils.loadScript('https://g.alicdn.com/code/lib/echarts/5.4.3/echarts.min.js')
-         .then(() => {
-           const chart = echarts.init(this.$('div_kchart'));
-           chart.setOption({ /* ... */ });
-         })
-         .catch(() => {
-           this.utils.toast({ title: '库加载失败，请刷新重试', type: 'error' });
-         });
-     }
-     ```
-
-   - **多库链式加载**（有依赖顺序时使用）：
-     ```javascript
-     export function didMount() {
-       this.utils.loadScript('https://g.alicdn.com/code/lib/echarts/5.4.3/echarts.min.js')
-         .then(() => this.utils.loadScript('https://g.alicdn.com/code/lib/echarts/5.4.3/theme/macarons.js'))
-         .then(() => {
-           const chart = echarts.init(this.$('div_kchart'), 'macarons');
-         })
-         .catch(() => {
-           this.utils.toast({ title: '库加载失败，请刷新重试', type: 'error' });
-         });
-     }
-     ```
-
-   - **Combo 组合加载**（推荐，减少 HTTP 请求）：使用 `??` 语法一次性加载多个文件，路径间用逗号分隔：
-     ```javascript
-     export function didMount() {
-       const comboUrl = 'https://g.alicdn.com/??code/lib/echarts/5.4.3/echarts.min.js,code/lib/echarts/5.4.3/theme/macarons.js,code/lib/moment/2.29.4/moment.min.js';
-       this.utils.loadScript(comboUrl)
-         .then(() => {
-           const chart = echarts.init(this.$('div_kchart'), 'macarons');
-         })
-         .catch(() => {
-           this.utils.toast({ title: '库加载失败，请刷新重试', type: 'error' });
-         });
-     }
-     ```
-
-   - **防重复加载**：通过检查全局变量避免重复加载（页面重渲染时 `didMount` 可能多次触发）：
-     ```javascript
-     export function didMount() {
-       if (window.echarts) {
-         this.initChart();
-         return;
-       }
-       this.utils.loadScript('https://g.alicdn.com/code/lib/echarts/5.4.3/echarts.min.js')
-         .then(() => { this.initChart(); })
-         .catch(() => { this.utils.toast({ title: '库加载失败', type: 'error' }); });
-     }
-     export function initChart() {
-       const chart = echarts.init(this.$('div_kchart'));
-       chart.setOption({ /* ... */ });
-     }
-     ```
-
-   完整的常用库地址和更多示例参考 [yida-api.md](../../reference/yida-api.md) 的「loadScript」章节。
+3. **外部 JS 库引入**：宜搭不支持直接引用外部 CDN，必须通过 `this.utils.loadScript(url)` 动态加载，外部库需使用 `g.alicdn.com/code/lib` 下的地址。详见 [yida-api.md](../../reference/yida-api.md) 的「loadScript」章节，包含常用库地址、Combo 组合加载语法和完整示例。
 
 4. **输入法组合输入处理**：使用 `_isComposing` 标记配合 `compositionstart` / `compositionend` 事件，正确处理中文输入法的组合输入状态，避免输入过程中触发提交
 4. **定时器清理**：在 `didUnmount` 中必须清理所有通过 `setInterval` / `setTimeout` 创建的定时器，防止内存泄漏
