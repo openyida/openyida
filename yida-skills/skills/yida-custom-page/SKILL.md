@@ -1,21 +1,5 @@
----
-name: yida-custom-page
-description: 宜搭自定义页面开发技能，包含宜搭表单 JS API 调用（增删改查/流程/工具类共 27 个）、React 16 JSX 组件开发规范、状态管理模式与编码约束。
-license: MIT
-compatibility:
-  - opencode
-  - claude-code
-metadata:
-  audience: developers
-  workflow: yida-development
-  version: 1.0.0
-  tags:
-    - yida
-    - low-code
-    - react
-    - custom-page
----
 
+---
 # 宜搭自定义页面开发技能
 
 ## 概述
@@ -1111,15 +1095,13 @@ openyida publish <源文件路径> <appType> <formUuid>
 2. 通过代码动态构建完整的 Schema JSON，将 `source` 和 `compiled` 填入 `actions.module`
 3. 调用 `yida-login` 获取登录态（Cookie 持久化，首次需扫码登录）
 4. 通过 HTTP POST 调用 `saveFormSchema` 接口保存 Schema
-
 ### 仅编译（不发布）
 
 ```bash
-openyida publish <源文件路径> <appType> <formUuid>
+node lib/babel-transform/index.js <源文件路径>
 ```
 
-输入 JSX 源文件，输出编译压缩后的 `<name>.compile.js`（与源文件同目录）。
-
+输入 JSX 源文件，输出编译压缩后的 `<name>.js`（写入 `project/pages/dist/`），不执行发布。
 ---
 
 ## 素材
