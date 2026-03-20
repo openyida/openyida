@@ -40,28 +40,27 @@ coverage/
 # AI 工具配置（保留 CLAUDE.md）
 .claude/*
 !.claude/CLAUDE.md
-
 # ── openyida 用户工作区 ────────────────────────────
 # 根目录临时缓存（AI 生成的中间文件，不入库）
 .cache/
 
 # 登录态 & Schema 缓存（敏感信息，不入库）
-project/.cache/*
-!project/.cache/.gitkeep
-!project/.cache/demo-*
+openyida/.cache/*
+!openyida/.cache/.gitkeep
+!openyida/.cache/demo-*
 
 # 登录态缓存（敏感信息，不入库）
 .cache/
 **/cookies.json
 
 # 自定义页面编译产物
-project/pages/dist/*
-!project/pages/dist/.gitkeep
+openyida/pages/dist/*
+!openyida/pages/dist/.gitkeep
 
 # 用户自定义页面源码（保留 demo 示例）
-project/pages/src/*
-!project/pages/src/demo-*
+openyida/pages/src/*
+!openyida/pages/src/demo-*
 
 # 需求文档（保留 demo 示例）
-project/prd/*
-!project/prd/demo-*
+openyida/prd/*
+!openyida/prd/demo-*
