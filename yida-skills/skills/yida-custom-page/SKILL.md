@@ -876,9 +876,19 @@ this.utils.yida.searchFormDatas({
 | `openPage` | 打开新页面 | 页面跳转、外链打开 |
 | `router.push` | 页面路由跳转工具 | 页面路由跳转、避免新开页面 |
 | `previewImage` | 图片预览 | 图片查看、多图轮播 |
-| `loadScript` | 动态加载脚本 | 引入第三方库（如二维码生成） |
+| `loadScript` | 动态加载脚本 | 引入第三方库（如 ECharts、QRCode） |
 
 完整参数说明和示例请参考 [yida-api.md](../../reference/yida-api.md) 的「工具类 API」章节。
+
+---
+
+## 外部 JS 库引入
+
+宜搭不支持直接在页面中引用外部 CDN，必须通过 `this.utils.loadScript(url)` 动态加载。外部库需使用 `g.alicdn.com/code/lib` 下的地址，支持单库加载、链式依赖加载、Combo 组合加载（推荐）和防重复加载等模式。
+
+完整的常用库地址、加载示例和最佳实践请参考 [yida-api.md](../../reference/yida-api.md) 的「loadScript」章节。
+
+---
 
 ## 素材资源指南
 
