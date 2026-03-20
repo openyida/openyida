@@ -31,6 +31,19 @@
  *   openyida import <file> [name]                       导入迁移包，在目标环境重建应用
  *   openyida get-permission <appType> <formUuid>        查询表单权限配置
  *   openyida save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  保存表单权限配置
+ *   openyida connector list [选项]                       列出 HTTP 连接器
+ *   openyida connector create "名称" "域名" --operations <file> [选项]  创建连接器
+ *   openyida connector detail <connector-id>             查看连接器详情
+ *   openyida connector delete <connector-id> [--force]  删除连接器
+ *   openyida connector add-action --operations <file> --connector-id <id> [--confirm]  添加执行动作
+ *   openyida connector list-actions <connector-id>       列出执行动作
+ *   openyida connector delete-action <connector-id> <operation-id> [--force]  删除执行动作
+ *   openyida connector test --connector-id <id> --action <actionId> [选项]  测试执行动作
+ *   openyida connector list-connections <connector-id>   列出鉴权账号
+ *   openyida connector create-connection <connector-id> <name> [选项]  创建鉴权账号
+ *   openyida connector smart-create --curl "curl命令" [选项]  智能创建连接器
+ *   openyida connector parse-api [选项]                  解析接口信息
+ *   openyida connector gen-template [输出路径]            生成接口文档模板
  */
 
 "use strict";
@@ -77,6 +90,19 @@ openyida - 宜搭命令行工具
     --auto-submit                                              自动判断并提交工单或 VOC
   get-permission <appType> <formUuid>                          查询表单权限配置
   save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  保存表单权限配置
+  connector list [选项]                                          列出 HTTP 连接器
+  connector create "名称" "域名" --operations <file> [选项]      创建连接器
+  connector detail <connector-id>                               查看连接器详情
+  connector delete <connector-id> [--force]                     删除连接器
+  connector add-action --operations <file> --connector-id <id>  添加执行动作到连接器
+  connector list-actions <connector-id>                         列出执行动作
+  connector delete-action <connector-id> <operation-id>         删除执行动作
+  connector test --connector-id <id> --action <actionId>        测试执行动作
+  connector list-connections <connector-id>                     列出鉴权账号
+  connector create-connection <connector-id> <name> [选项]      创建鉴权账号
+  connector smart-create --curl "curl命令" [选项]               智能创建连接器
+  connector parse-api [选项]                                    解析接口信息
+  connector gen-template [输出路径]                              生成接口文档模板
 
 示例：
   openyida login
@@ -432,6 +458,62 @@ async function main() {
     case 'cdn-refresh': {
       const { run: runCdnRefresh } = require('../lib/cdn-refresh');
       await runCdnRefresh(args);
+      break;
+    }
+
+    case 'connector': {
+      const subCommand = args[0];
+      const subArgs = args.slice(1);
+
+      const connectorSubCommands = {
+        'list':              '../lib/connector-list',
+        'create':            '../lib/connector-create',
+        'detail':            '../lib/connector-detail',
+        'delete':            '../lib/connector-delete',
+        'add-action':        '../lib/connector-add-action',
+        'list-actions':      '../lib/connector-list-actions',
+        'delete-action':     '../lib/connector-delete-action',
+        'test':              '../lib/connector-test',
+        'list-connections':  '../lib/connector-list-connections',
+        'create-connection': '../lib/connector-create-connection',
+        'smart-create':      '../lib/connector-smart-create',
+        'parse-api':         '../lib/connector-parse-api',
+        'gen-template':      '../lib/connector-gen-template',
+      };
+
+      if (!subCommand || subCommand === '--help' || subCommand === '-h') {
+        console.log(`
+用法: openyida connector <子命令> [参数]
+
+子命令:
+  list                                         列出 HTTP 连接器
+  create "名称" "域名" --operations <file>      创建连接器
+  detail <connector-id>                        查看连接器详情
+  delete <connector-id> [--force]              删除连接器
+  add-action --operations <file> --connector-id <id>  添加执行动作
+  list-actions <connector-id>                  列出执行动作
+  delete-action <connector-id> <operation-id>  删除执行动作
+  test --connector-id <id> --action <actionId> 测试执行动作
+  list-connections <connector-id>              列出鉴权账号
+  create-connection <connector-id> <name>      创建鉴权账号
+  smart-create --curl "curl命令"               智能创建连接器
+  parse-api [选项]                             解析接口信息
+  gen-template [输出路径]                       生成接口文档模板
+
+使用 openyida connector <子命令> --help 查看详细帮助
+`);
+        break;
+      }
+
+      const modulePath = connectorSubCommands[subCommand];
+      if (!modulePath) {
+        console.error(`未知的 connector 子命令: ${subCommand}`);
+        console.error('使用 openyida connector --help 查看可用子命令');
+        process.exit(1);
+      }
+
+      const { run: runConnector } = require(modulePath);
+      await runConnector(subArgs);
       break;
     }
 
