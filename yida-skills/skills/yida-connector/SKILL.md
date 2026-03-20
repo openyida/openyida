@@ -487,35 +487,8 @@ openyida connector gen-template ./my-api-doc.md
 ```
 yida-connector/
 ├── SKILL.md                          # 本文档
-├── scripts/
-│   ├── common.js                     # 公共工具模块（登录态、API 请求等）
-│   │
-│   ├── 连接器管理
-│   ├── list-connectors.js            # 列出所有连接器
-│   ├── create-connector.js           # 创建/更新连接器
-│   ├── get-connector-detail.js       # 获取连接器详情
-│   ├── delete-connector.js           # 删除连接器
-│   ├── add-action-to-connector.js    # 添加动作到已有连接器（智能匹配）
-│   │
-│   ├── 执行动作管理
-│   ├── list-actions.js               # 列出执行动作
-│   ├── create-action.js              # 创建执行动作
-│   ├── delete-action.js              # 删除执行动作
-│   ├── test-action.js                # 测试执行动作（传统方式）
-│   ├── test-connector.js             # 测试连接器（推荐）
-│   │
-│   ├── 鉴权账号管理
-│   ├── list-connections.js           # 列出鉴权账号
-│   ├── create-connection.js          # 创建鉴权账号
-│   │
-│   └── 智能创建工具
-│   ├── smart-create-connector.js     # 智能创建连接器（三阶段流程）
-│   ├── parse-api-info.js             # 解析 curl 命令或接口文档
-│   └── generate-api-template.js      # 生成接口文档模板
-│
 ├── templates/
 │   └── api-document-template.md      # 接口文档模板
-│
 └── examples/
     ├── operations-yida-attachment.json    # 示例：宜搭附件连接器动作配置
     ├── operations-search-formdata.json    # 示例：搜索表单数据动作配置

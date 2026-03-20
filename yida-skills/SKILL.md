@@ -130,8 +130,8 @@ openyida copy
 | `yida-login` | `skills/yida-login/SKILL.md` | 登录态管理（通常自动触发） | `openyida login` |
 | `yida-logout` | `skills/yida-logout/SKILL.md` | 退出登录 / 切换账号 | `openyida logout` |
 | `yida-create-app` | `skills/yida-create-app/SKILL.md` | 创建应用，获取 appType | `openyida create-app "<名称>"` |
-| `yida-create-page` | `skills/yida-create-page/SKILL.md` | 创建自定义页面，获取 formUuid | `openyida create-page <appType> "<页面名>"` |
-| `yida-create-form-page` | `skills/yida-create-form-page/SKILL.md` | 创建/更新表单页面 | `openyida create-form create <appType> "<表单名>" <字段JSON>` |
+| `yida-create-page` | `skills/yida-create-page/SKILL.md` | 创建自定义页面，获取 formUuid | `openyida create-page <appType> "<页面名>" [--datasource <json>]` |
+| `yida-create-form-page` | `skills/yida-create-form-page/SKILL.md` | 创建/更新表单页面 | `openyida create-form create <appType> "<表单名>" <字段JSON> [--datasource <json>]` |
 | `yida-get-schema` | `skills/yida-get-schema/SKILL.md` | 获取表单 Schema，确认字段 ID | `openyida get-schema <appType> <formUuid>` |
 | `yida-custom-page` | `skills/yida-custom-page/SKILL.md` | 编写自定义页面 JSX 代码规范 | **必须完整的学习完 SKILL.md** |
 | `yida-publish-page` | `skills/yida-publish-page/SKILL.md` | 编译并发布自定义页面 | `openyida publish <源文件路径> <appType> <formUuid>` |
@@ -212,7 +212,10 @@ openyida copy
 
 **Q：如何查看已有表单的字段 ID？** 使用 `openyida get-schema <appType> <formUuid>` 获取 Schema，详见 `yida-get-schema` 技能。
 
-**Q：如何更新已有表单字段？** 使用 `yida-create-form-page` 的 update 模式，详见 `skills/yida-create-form-page/SKILL.md`。
+**Q：如何更新已有表单字段？** 使用 `yida-create-form-page` 的 update 模式，详见 `skills/yida-create-form-page/SKILL.md`：
+```bash
+openyida create-form update <appType> <formUuid> '[{"action":"add","field":{"type":"TextField","label":"新字段"}}]'
+```
 
 **Q：发布时提示 corpId 不匹配？**
 
@@ -221,3 +224,9 @@ openyida copy
 openyida logout
 openyida login
 ```
+
+**Q：如何在表单/页面中使用连接器调用外部接口？**
+
+参考 `reference/connector-datasource.md`，了解连接器数据源的定义方式和 JS 调用规范。支持 HTTP 连接器、宜搭内置连接器、第三方连接器等多种类型，在表单页面和自定义页面中均可使用：
+- 通过 `--datasource` 参数在创建表单/页面时注入连接器数据源
+- 在 JS 中通过 `this.dataSourceMap.<名称>.load({ inputs: JSON.stringify({...}) })` 调用

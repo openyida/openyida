@@ -50,6 +50,10 @@ project/.cache/*
 !project/.cache/.gitkeep
 !project/.cache/demo-*
 
+# 登录态缓存（敏感信息，不入库）
+.cache/
+**/cookies.json
+
 # 自定义页面编译产物
 project/pages/dist/*
 !project/pages/dist/.gitkeep
