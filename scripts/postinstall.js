@@ -2,20 +2,23 @@
 /**
  * postinstall hook: auto-configure IDE integration after `npm install -g openyida`
  *
- * Creates a symlink named "yida-skills" directly inside each AI tool's config
- * directory, pointing to the yida-skills/ folder inside this package.
+ * Copies the yida-skills/ folder into each AI tool's config directory.
  * Each tool discovers the skill pack by scanning its own config directory.
+ *
+ * Uses file copy instead of symlink to avoid first-run skill loading failures
+ * caused by some AI tools (e.g. Claude Code) not resolving symlinks on initial scan.
+ * See: https://github.com/openyida/openyida/issues/186
  *
  * Supported tools: Claude Code / OpenCode / Aone Copilot / Cursor / Qoder / iFlow / Wukong
  *
- * Symlink layout (no extra "skills/" subdirectory needed):
- *   ~/.claude/yida-skills          → <package>/yida-skills
- *   ~/.opencode/yida-skills        → <package>/yida-skills
- *   ~/.aone_copilot/yida-skills    → <package>/yida-skills
- *   ~/.cursor/yida-skills          → <package>/yida-skills
- *   ~/.qoder/yida-skills           → <package>/yida-skills
- *   ~/.iflow/yida-skills           → <package>/yida-skills
- *   ~/.real/yida-skills            → <package>/yida-skills  (Wukong)
+ * Layout (no extra "skills/" subdirectory needed):
+ *   ~/.claude/yida-skills          ← <package>/yida-skills (copy)
+ *   ~/.opencode/yida-skills        ← <package>/yida-skills (copy)
+ *   ~/.aone_copilot/yida-skills    ← <package>/yida-skills (copy)
+ *   ~/.cursor/yida-skills          ← <package>/yida-skills (copy)
+ *   ~/.qoder/yida-skills           ← <package>/yida-skills (copy)
+ *   ~/.iflow/yida-skills           ← <package>/yida-skills (copy)
+ *   ~/.real/yida-skills            ← <package>/yida-skills (copy, Wukong)
  */
 
 "use strict";
@@ -45,73 +48,91 @@ function ensureDir(dirPath) {
 }
 
 /**
- * Create (or update) a "yida-skills" symlink directly inside `ideConfigDir`.
- *
- * - If the symlink already points to the correct target → skip.
- * - If it points elsewhere or is a real file/dir → remove and recreate.
+ * Recursively copy a directory, overwriting existing files.
  */
-function installSymlink(ideConfigDir) {
-  const symlinkPath = path.join(ideConfigDir, "yida-skills");
+function copyDirRecursive(src, dest) {
+  if (!fs.existsSync(src)) return;
+  fs.mkdirSync(dest, { recursive: true });
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+/**
+ * Install yida-skills by copying files into `ideConfigDir`.
+ *
+ * Uses file copy instead of symlink to ensure AI tools can always
+ * discover skills on the first run (fixes #186).
+ *
+ * - If an old symlink exists → remove it first, then copy.
+ * - If a real directory exists → remove and do a clean copy.
+ */
+function installSkills(ideConfigDir) {
+  const destPath = path.join(ideConfigDir, "yida-skills");
 
   ensureDir(ideConfigDir);
 
   let existingStat = null;
-  try { existingStat = fs.lstatSync(symlinkPath); } catch { /* does not exist, will create */ }
+  try { existingStat = fs.lstatSync(destPath); } catch { /* does not exist, will create */ }
 
   if (existingStat) {
     if (existingStat.isSymbolicLink()) {
-      const currentTarget = fs.readlinkSync(symlinkPath);
-      if (currentTarget === SKILLS_DIR) return; // already correct, skip
-      fs.unlinkSync(symlinkPath);
+      // Remove old symlink left by previous versions
+      fs.unlinkSync(destPath);
     } else {
-      fs.rmSync(symlinkPath, { recursive: true, force: true });
+      fs.rmSync(destPath, { recursive: true, force: true });
     }
   }
 
-  fs.symlinkSync(SKILLS_DIR, symlinkPath, "junction");
+  copyDirRecursive(SKILLS_DIR, destPath);
 }
 
-// ── 1. Symlink integration (each tool's config root) ──────────────────
+// ── 1. Skills installation (copy to each tool's config root) ─────────
 
 // Claude Code
 safeExec(() => {
-  if (fs.existsSync(path.join(HOME_DIR, ".claude"))) {
-    installSymlink(path.join(HOME_DIR, ".claude"));
-  }
+  installSkills(path.join(HOME_DIR, ".claude"));
 });
 
 // OpenCode
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, ".opencode"))) {
-    installSymlink(path.join(HOME_DIR, ".opencode"));
+    installSkills(path.join(HOME_DIR, ".opencode"));
   }
 });
 
 // Aone Copilot
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, ".aone_copilot"))) {
-    installSymlink(path.join(HOME_DIR, ".aone_copilot"));
+    installSkills(path.join(HOME_DIR, ".aone_copilot"));
   }
 });
 
 // Cursor
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, ".cursor"))) {
-    installSymlink(path.join(HOME_DIR, ".cursor"));
+    installSkills(path.join(HOME_DIR, ".cursor"));
   }
 });
 
 // Qoder
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, ".qoder"))) {
-    installSymlink(path.join(HOME_DIR, ".qoder"));
+    installSkills(path.join(HOME_DIR, ".qoder"));
   }
 });
 
 // iFlow
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, ".iflow"))) {
-    installSymlink(path.join(HOME_DIR, ".iflow"));
+    installSkills(path.join(HOME_DIR, ".iflow"));
   }
 });
 
@@ -119,7 +140,7 @@ safeExec(() => {
 
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, ".real"))) {
-    installSymlink(path.join(HOME_DIR, ".real"));
+    installSkills(path.join(HOME_DIR, ".real"));
   }
 });
 

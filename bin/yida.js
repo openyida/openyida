@@ -417,6 +417,71 @@ async function main() {
       break;
     }
 
+    case 'connector': {
+      const subCommand = args[0];
+      const subArgs = args.slice(1);
+
+      const connectorSubCommands = {
+        'list':              '../lib/connector-list',
+        'create':            '../lib/connector-create',
+        'detail':            '../lib/connector-detail',
+        'delete':            '../lib/connector-delete',
+        'add-action':        '../lib/connector-add-action',
+        'list-actions':      '../lib/connector-list-actions',
+        'delete-action':     '../lib/connector-delete-action',
+        'test':              '../lib/connector-test',
+        'list-connections':  '../lib/connector-list-connections',
+        'create-connection': '../lib/connector-create-connection',
+        'smart-create':      '../lib/connector-smart-create',
+        'parse-api':         '../lib/connector-parse-api',
+        'gen-template':      '../lib/connector-gen-template',
+      };
+
+      if (!subCommand || subCommand === '--help' || subCommand === '-h') {
+        console.log(`
+用法: openyida connector <子命令> [参数]
+
+子命令:
+  list                                         列出 HTTP 连接器
+  create "名称" "域名" --operations <file>      创建连接器
+  detail <connector-id>                        查看连接器详情
+  delete <connector-id> [--force]              删除连接器
+  add-action --operations <file> --connector-id <id>  添加执行动作
+  list-actions <connector-id>                  列出执行动作
+  delete-action <connector-id> <operation-id>  删除执行动作
+  test --connector-id <id> --action <actionId> 测试执行动作
+  list-connections <connector-id>              列出鉴权账号
+  create-connection <connector-id> <name>      创建鉴权账号
+  smart-create --curl "curl命令"               智能创建连接器
+  parse-api [选项]                             解析接口信息
+  gen-template [输出路径]                       生成接口文档模板
+
+使用 openyida connector <子命令> --help 查看详细帮助
+`);
+        break;
+      }
+
+      const modulePath = connectorSubCommands[subCommand];
+      if (!modulePath) {
+        console.error(`未知的 connector 子命令: ${subCommand}`);
+        console.error('使用 openyida connector --help 查看可用子命令');
+        process.exit(1);
+      }
+
+      const { run: runConnector } = require(modulePath);
+      await runConnector(subArgs);
+      break;
+    }
+
+    case 'query-data': {
+      if (args.length < 2) {
+        console.error('用法：openyida query-data <appType> <formUuid> [--page N] [--size N] [--search-json JSON] [--inst-id ID]');
+        process.exit(1);
+      }
+      const { run: runQueryData } = require('../lib/query-data');
+      await runQueryData(args);
+      break;
+    }
     default: {
       console.error(t('cli.unknown_command', command));
       console.error(t('cli.run_help'));
