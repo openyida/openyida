@@ -1,45 +1,24 @@
-
 ---
+name: yida-custom-page
+description: 宜搭自定义页面开发规范，包含 JSX 编码约束、状态管理、API 调用和设计规范。
+license: MIT
+compatibility:
+  - opencode
+  - claude-code
+metadata:
+  audience: developers
+  workflow: yida-development
+  version: 1.1.0
+  tags:
+    - yida
+    - low-code
+    - react
+    - custom-page
+---
+
 # 宜搭自定义页面开发技能
 
-## 概述
-
-本技能提供在阿里宜搭低代码平台上开发**自定义页面**的完整能力，涵盖从编码到部署的全流程：
-
-| 能力 | 说明 |
-| --- | --- |
-| **表单数据操作** | 通过宜搭前端 JS API（`this.utils.yida.*`）对表单数据进行增删改查 |
-| **JSX 组件开发** | 编写 React 16 兼容的 JSX 代码，实现个性化定制页面 |
-| **AI 能力集成** | 调用大模型 AI 接口（`/query/intelligent/txtFromAI.json`）实现智能文本生成 |
-| **自动编译部署** | 通过工具链将源码编译、压缩，并自动合并到宜搭 Schema 中保存 |
-
-## 何时使用
-
-当以下场景发生时使用此技能：
-- 用户需要开发自定义展示页面（非表单）
-- 用户需要实现复杂的页面交互逻辑
-- 用户需要调用宜搭 JS API 进行数据操作
-- 已有自定义页面，需要编写或修改 JSX 代码
-
-## 使用示例
-
-> **注意**：编译和发布功能由 `yida-publish-page` 技能提供，此处仅作流程说明。
-
-### 示例 1：编译源码
-**场景**：将 JSX 源码编译为宜搭可用的格式
-**依赖**：需先安装 yida-publish-page 依赖
-**命令**：
-```bash
-# openyida 已包含所有依赖，无需单独安装
-node babel-transform/transform.js pages/src/my-page.js
-```
-
-### 示例 2：发布页面
-**场景**：编译并发布自定义页面到宜搭平台
-**命令**：
-```bash
-openyida publish pages/src/my-page.js APP_XXX FORM-XXX
-```
+开发宜搭自定义页面时使用此技能，涵盖 JSX 编码规范、状态管理、`this.utils.yida.*` API 调用和页面发布。
 
 ---
 
