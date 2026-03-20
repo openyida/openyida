@@ -29,6 +29,21 @@
  *   openyida doctor [选项]                              检查环境依赖，诊断应用问题
  *   openyida export <appType> [output]                  导出应用所有表单 Schema（生成迁移包）
  *   openyida import <file> [name]                       导入迁移包，在目标环境重建应用
+ *   openyida get-permission <appType> <formUuid>        查询表单权限配置
+ *   openyida save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  保存表单权限配置
+ *   openyida connector list [选项]                       列出 HTTP 连接器
+ *   openyida connector create "名称" "域名" --operations <file> [选项]  创建连接器
+ *   openyida connector detail <connector-id>             查看连接器详情
+ *   openyida connector delete <connector-id> [--force]  删除连接器
+ *   openyida connector add-action --operations <file> --connector-id <id> [--confirm]  添加执行动作
+ *   openyida connector list-actions <connector-id>       列出执行动作
+ *   openyida connector delete-action <connector-id> <operation-id> [--force]  删除执行动作
+ *   openyida connector test --connector-id <id> --action <actionId> [选项]  测试执行动作
+ *   openyida connector list-connections <connector-id>   列出鉴权账号
+ *   openyida connector create-connection <connector-id> <name> [选项]  创建鉴权账号
+ *   openyida connector smart-create --curl "curl命令" [选项]  智能创建连接器
+ *   openyida connector parse-api [选项]                  解析接口信息
+ *   openyida connector gen-template [输出路径]            生成接口文档模板
  */
 
 "use strict";
@@ -73,11 +88,35 @@ openyida - 宜搭命令行工具
     --create-ticket                                            根据诊断结果创建工单
     --create-voc                                               创建 VOC（需求反馈）
     --auto-submit                                              自动判断并提交工单或 VOC
+  auth status                                                  查看当前登录状态
+  auth login                                                   执行登录
+  auth refresh                                                 刷新登录态
+  auth logout                                                  退出登录
+  org list                                                     列出可访问的组织
+  org switch --corp-id <corpId>                                切换组织（无需重新登录）
+  get-permission <appType> <formUuid>                          查询表单权限配置
+  save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  保存表单权限配置
+  configure-process <appType> <formUuid> <processDefinitionFile> [processCode]  配置并发布流程
+  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>  创建流程表单（一体化）
+  create-process <appType> --formUuid <formUuid> <processDefinitionFile>         复用已有表单创建流程
+  connector list [选项]                                          列出 HTTP 连接器
+  connector create "名称" "域名" --operations <file> [选项]      创建连接器
+  connector detail <connector-id>                               查看连接器详情
+  connector delete <connector-id> [--force]                     删除连接器
+  connector add-action --operations <file> --connector-id <id>  添加执行动作到连接器
+  connector list-actions <connector-id>                         列出执行动作
+  connector delete-action <connector-id> <operation-id>         删除执行动作
+  connector test --connector-id <id> --action <actionId>        测试执行动作
+  connector list-connections <connector-id>                     列出鉴权账号
+  connector create-connection <connector-id> <name> [选项]      创建鉴权账号
+  connector smart-create --curl "curl命令" [选项]               智能创建连接器
+  connector parse-api [选项]                                    解析接口信息
+  connector gen-template [输出路径]                              生成接口文档模板
 
 示例：
   openyida login
   openyida logout
-  openyida create-app "考勤管理"
+  openyida create-app "考勤管理" "员工考勤系统" "xian-daka" "#00B853" "red"
   openyida create-page APP_XXX "游戏主页"
   openyida create-form create APP_XXX "员工信息" fields.json
   openyida create-form update APP_XXX FORM-XXX '[{"action":"add","field":{"type":"TextField","label":"备注"}}]'
@@ -95,6 +134,9 @@ openyida - 宜搭命令行工具
   openyida doctor --create-ticket                 创建工单
   openyida doctor --create-voc                    创建 VOC
   openyida doctor --auto-submit                   自动判断并提交
+  openyida configure-process APP_XXX FORM-YYY process-def.json
+  openyida create-process APP_XXX "订单处理表" fields.json process-def.json
+  openyida create-process APP_XXX --formUuid FORM-YYY process-def.json
 `);
   console.log(t('cli.help'));
 }
