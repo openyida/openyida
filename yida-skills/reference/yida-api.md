@@ -974,23 +974,141 @@ export function someFunctionName() {
 
 ### loadScript
 
-**描述**：动态加载远程 JavaScript 脚本。
+**描述**：动态加载远程 JavaScript 脚本。宜搭不支持直接在页面中引用外部 CDN，必须通过此 API 动态加载。
 
 **参数**：
 
 | 参数名 | 类型 | 是否必填 | 说明 |
 | :--- | :--- | :--- | :--- |
-| url | String | 是 | 脚本 URL 地址 |
+| url | String | 是 | 脚本 URL 地址，推荐使用 `g.alicdn.com/code/lib` 下的地址 |
 
-**返回值**：`Promise` - 加载完成后 resolve
+**返回值**：`Promise` - 加载完成后 resolve，加载失败时 reject
 
-**请求示例**：
+---
+
+#### 外部 JS 库仓库地址
+
+宜搭的外部引用仓库需要使用 `g.alicdn.com/code/lib` 下的地址，常用库示例：
+
+| 库 | URL |
+| :--- | :--- |
+| ECharts 5.4.3 | `https://g.alicdn.com/code/lib/echarts/5.4.3/echarts.min.js` |
+| ECharts macarons 主题 | `https://g.alicdn.com/code/lib/echarts/5.4.3/theme/macarons.js` |
+| ECharts dark 主题 | `https://g.alicdn.com/code/lib/echarts/5.4.3/theme/dark.js` |
+| moment.js 2.29.4 | `https://g.alicdn.com/code/lib/moment/2.29.4/moment.min.js` |
+| QRCode.js 1.0.0 | `https://g.alicdn.com/code/lib/qrcodejs/1.0.0/qrcode.min.js` |
+
+---
+
+#### Combo 组合加载（推荐）
+
+`g.alicdn.com` 支持 Combo 语法，可以**一次请求加载多个文件**，减少 HTTP 请求数量，提升加载速度。
+
+**语法格式**：使用 `??` 作为分隔符，多个文件路径用逗号 `,` 连接：
+
+```
+https://g.alicdn.com/??路径1,路径2,路径3
+```
+
+**示例**：
+
+```javascript
+// 一次性加载 ECharts 主库 + macarons 主题 + moment.js
+const comboUrl = 'https://g.alicdn.com/??code/lib/echarts/5.4.3/echarts.min.js,code/lib/echarts/5.4.3/theme/macarons.js,code/lib/moment/2.29.4/moment.min.js';
+```
+
+> Combo 功能由 Tengine（阿里巴巴基于 Nginx 开发的 Web 服务器）提供支持，注意路径中不包含域名部分。
+
+---
+
+#### 使用示例
+
+**示例 1：单库加载（带错误处理）**
+
+```javascript
+export function didMount() {
+  this.utils.loadScript('https://g.alicdn.com/code/lib/echarts/5.4.3/echarts.min.js')
+    .then(() => {
+      const chart = echarts.init(this.$('div_kchart'));
+      chart.setOption({
+        title: { text: '示例图表' },
+        xAxis: { data: ['A', 'B', 'C'] },
+        yAxis: {},
+        series: [{ type: 'bar', data: [10, 20, 30] }],
+      });
+    })
+    .catch(() => {
+      this.utils.toast({ title: '库加载失败，请刷新重试', type: 'error' });
+    });
+}
+```
+
+**示例 2：多库依赖加载（链式调用）**
+
+当库之间存在依赖关系时（如主题依赖主库），使用链式 `.then()` 保证加载顺序：
+
+```javascript
+export function didMount() {
+  this.utils.loadScript('https://g.alicdn.com/code/lib/echarts/5.4.3/echarts.min.js')
+    .then(() => this.utils.loadScript('https://g.alicdn.com/code/lib/echarts/5.4.3/theme/macarons.js'))
+    .then(() => {
+      const chart = echarts.init(this.$('div_kchart'), 'macarons');
+    })
+    .catch(() => {
+      this.utils.toast({ title: '库加载失败，请刷新重试', type: 'error' });
+    });
+}
+```
+
+**示例 3：Combo 组合加载（推荐，减少请求数）**
+
+```javascript
+export function didMount() {
+  const comboUrl = 'https://g.alicdn.com/??code/lib/echarts/5.4.3/echarts.min.js,code/lib/echarts/5.4.3/theme/macarons.js,code/lib/moment/2.29.4/moment.min.js';
+  this.utils.loadScript(comboUrl)
+    .then(() => {
+      const chart = echarts.init(this.$('div_kchart'), 'macarons');
+      chart.setOption({ /* ... */ });
+    })
+    .catch(() => {
+      this.utils.toast({ title: '库加载失败，请刷新重试', type: 'error' });
+    });
+}
+```
+
+**示例 4：防止重复加载**
+
+页面可能因重渲染多次触发 `didMount`，通过检查全局变量避免重复加载：
+
+```javascript
+export function didMount() {
+  if (window.echarts) {
+    this.initChart();
+    return;
+  }
+
+  this.utils.loadScript('https://g.alicdn.com/code/lib/echarts/5.4.3/echarts.min.js')
+    .then(() => {
+      this.initChart();
+    })
+    .catch(() => {
+      this.utils.toast({ title: '库加载失败，请刷新重试', type: 'error' });
+    });
+}
+
+export function initChart() {
+  const chart = echarts.init(this.$('div_kchart'));
+  chart.setOption({ /* ... */ });
+}
+```
+
+**示例 5：加载 QRCode 生成二维码**
 
 ```javascript
 export function didMount() {
   this.utils.loadScript('https://g.alicdn.com/code/lib/qrcodejs/1.0.0/qrcode.min.js')
     .then(() => {
-      const qrcode = new QRCode(document.getElementById('qrcode'), {
+      new QRCode(document.getElementById('qrcode'), {
         text: 'https://www.aliwork.com',
         width: 128,
         height: 128,
@@ -998,6 +1116,9 @@ export function didMount() {
         colorLight: '#ffffff',
         correctLevel: QRCode.CorrectLevel.H,
       });
+    })
+    .catch(() => {
+      this.utils.toast({ title: '二维码库加载失败', type: 'error' });
     });
 }
 ```
