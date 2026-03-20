@@ -16,7 +16,7 @@
  *   openyida auth logout                                退出登录
  *   openyida org list                                   列出可访问的组织
  *   openyida org switch --corp-id <corpId>              切换组织（无需重新登录）
- *   openyida create-app "<名称>" [desc] [icon] [color] [themeColor]  创建应用
+ *   openyida create-app "<名称>" [desc] [icon] [color]  创建应用
  *   openyida create-page <appType> "<页面名>"            创建自定义页面
  *   openyida create-form create <appType> "<表单名>" <字段JSON> [--layout <布局>] [--theme <主题>] [--label-align <对齐>]  创建表单页面
  *   openyida create-form update <appType> <formUuid> <修改JSON>  更新表单页面
@@ -29,21 +29,6 @@
  *   openyida doctor [选项]                              检查环境依赖，诊断应用问题
  *   openyida export <appType> [output]                  导出应用所有表单 Schema（生成迁移包）
  *   openyida import <file> [name]                       导入迁移包，在目标环境重建应用
- *   openyida get-permission <appType> <formUuid>        查询表单权限配置
- *   openyida save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  保存表单权限配置
- *   openyida connector list [选项]                       列出 HTTP 连接器
- *   openyida connector create "名称" "域名" --operations <file> [选项]  创建连接器
- *   openyida connector detail <connector-id>             查看连接器详情
- *   openyida connector delete <connector-id> [--force]  删除连接器
- *   openyida connector add-action --operations <file> --connector-id <id> [--confirm]  添加执行动作
- *   openyida connector list-actions <connector-id>       列出执行动作
- *   openyida connector delete-action <connector-id> <operation-id> [--force]  删除执行动作
- *   openyida connector test --connector-id <id> --action <actionId> [选项]  测试执行动作
- *   openyida connector list-connections <connector-id>   列出鉴权账号
- *   openyida connector create-connection <connector-id> <name> [选项]  创建鉴权账号
- *   openyida connector smart-create --curl "curl命令" [选项]  智能创建连接器
- *   openyida connector parse-api [选项]                  解析接口信息
- *   openyida connector gen-template [输出路径]            生成接口文档模板
  */
 
 "use strict";
@@ -70,7 +55,7 @@ openyida - 宜搭命令行工具
   copy [--force]                                               复制 project 工作目录到当前 AI 工具环境
   login                                                        登录态管理（优先缓存，否则扫码）
   logout                                                       退出登录 / 切换账号
-  create-app "<名称>" [描述] [图标] [颜色] [主题色]             创建应用，输出 appType
+  create-app "<名称>" [描述] [图标] [颜色]                      创建应用，输出 appType
   create-page <appType> "<页面名>"                             创建自定义页面，输出 pageId
   create-form create <appType> "<表单名>" <字段JSON> [--layout <布局>] [--theme <主题>] [--label-align <对齐>]  创建表单页面
   create-form update <appType> <formUuid> <修改JSON>           更新表单页面
@@ -88,36 +73,11 @@ openyida - 宜搭命令行工具
     --create-ticket                                            根据诊断结果创建工单
     --create-voc                                               创建 VOC（需求反馈）
     --auto-submit                                              自动判断并提交工单或 VOC
-  auth status                                                  查看当前登录状态
-  auth login                                                   执行登录
-  auth refresh                                                 刷新登录态
-  auth logout                                                  退出登录
-  org list                                                     列出可访问的组织
-  org switch --corp-id <corpId>                                切换组织（无需重新登录）
-  get-permission <appType> <formUuid>                          查询表单权限配置
-  save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  保存表单权限配置
-  configure-process <appType> <formUuid> <processDefinitionFile> [processCode]  配置并发布流程
-  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>  创建流程表单（一体化）
-  create-process <appType> --formUuid <formUuid> <processDefinitionFile>         复用已有表单创建流程
-  connector list [选项]                                          列出 HTTP 连接器
-  connector create "名称" "域名" --operations <file> [选项]      创建连接器
-  connector detail <connector-id>                               查看连接器详情
-  connector delete <connector-id> [--force]                     删除连接器
-  connector add-action --operations <file> --connector-id <id>  添加执行动作到连接器
-  connector list-actions <connector-id>                         列出执行动作
-  connector delete-action <connector-id> <operation-id>         删除执行动作
-  connector test --connector-id <id> --action <actionId>        测试执行动作
-  connector list-connections <connector-id>                     列出鉴权账号
-  connector create-connection <connector-id> <name> [选项]      创建鉴权账号
-  connector smart-create --curl "curl命令" [选项]               智能创建连接器
-  connector parse-api [选项]                                    解析接口信息
-  connector gen-template [输出路径]                              生成接口文档模板
 
 示例：
   openyida login
   openyida logout
   openyida create-app "考勤管理"
-  openyida create-app "考勤管理" "员工考勤系统" "xian-daka" "#00B853" "red"
   openyida create-page APP_XXX "游戏主页"
   openyida create-form create APP_XXX "员工信息" fields.json
   openyida create-form update APP_XXX FORM-XXX '[{"action":"add","field":{"type":"TextField","label":"备注"}}]'
@@ -127,9 +87,6 @@ openyida - 宜搭命令行工具
   openyida save-share-config APP_XXX FORM-XXX /o/myapp y n
   openyida get-page-config APP_XXX FORM-XXX
   openyida update-form-config APP_XXX FORM-XXX false "页面标题"
-  openyida configure-process APP_XXX FORM-YYY process-def.json
-  openyida create-process APP_XXX "订单处理表" fields.json process-def.json
-  openyida create-process APP_XXX --formUuid FORM-YYY process-def.json
   openyida doctor                                 完整诊断
   openyida doctor --fix                           诊断并自动修复
   openyida doctor --production --app APP_XXX      线上应用诊断
@@ -430,49 +387,18 @@ async function main() {
       break;
     }
 
-    case 'get-permission': {
-      if (args.length < 2) {
-        console.error(t('cli.get_permission_usage'));
-        console.error(t('cli.get_permission_example'));
-        process.exit(1);
-      }
-      const { run: runGetPermission } = require('../lib/get-permission');
-      await runGetPermission(args);
+    case 'create-report': {
+      const { run } = require('../lib/create-report');
+      await run(args);
       break;
     }
 
-    case 'save-permission': {
-      if (args.length < 2) {
-        console.error(t('cli.save_permission_usage'));
-        console.error(t('cli.save_permission_example'));
-        process.exit(1);
-      }
-      const { run: runSavePermission } = require('../lib/save-permission');
-      await runSavePermission(args);
+    case 'append-chart': {
+      const { run } = require('../lib/report/append');
+      await run(args);
       break;
     }
 
-    case 'configure-process': {
-      if (args.length < 3) {
-        console.error(t('cli.configure_process_usage'));
-        console.error(t('cli.configure_process_example'));
-        process.exit(1);
-      }
-      const { run: runConfigureProcess } = require('../lib/configure-process');
-      await runConfigureProcess(args);
-      break;
-    }
-
-    case 'create-process': {
-      if (args.length < 2) {
-        console.error(t('cli.create_process_usage'));
-        console.error(t('cli.create_process_example'));
-        process.exit(1);
-      }
-      const { run: runCreateProcess } = require('../lib/create-process');
-      await runCreateProcess(args);
-      break;
-    }
     case 'cdn-config': {
       const { run: runCdnConfig } = require('../lib/cdn-config-cmd');
       await runCdnConfig(args);
@@ -488,62 +414,6 @@ async function main() {
     case 'cdn-refresh': {
       const { run: runCdnRefresh } = require('../lib/cdn-refresh');
       await runCdnRefresh(args);
-      break;
-    }
-
-    case 'connector': {
-      const subCommand = args[0];
-      const subArgs = args.slice(1);
-
-      const connectorSubCommands = {
-        'list':              '../lib/connector-list',
-        'create':            '../lib/connector-create',
-        'detail':            '../lib/connector-detail',
-        'delete':            '../lib/connector-delete',
-        'add-action':        '../lib/connector-add-action',
-        'list-actions':      '../lib/connector-list-actions',
-        'delete-action':     '../lib/connector-delete-action',
-        'test':              '../lib/connector-test',
-        'list-connections':  '../lib/connector-list-connections',
-        'create-connection': '../lib/connector-create-connection',
-        'smart-create':      '../lib/connector-smart-create',
-        'parse-api':         '../lib/connector-parse-api',
-        'gen-template':      '../lib/connector-gen-template',
-      };
-
-      if (!subCommand || subCommand === '--help' || subCommand === '-h') {
-        console.log(`
-用法: openyida connector <子命令> [参数]
-
-子命令:
-  list                                         列出 HTTP 连接器
-  create "名称" "域名" --operations <file>      创建连接器
-  detail <connector-id>                        查看连接器详情
-  delete <connector-id> [--force]              删除连接器
-  add-action --operations <file> --connector-id <id>  添加执行动作
-  list-actions <connector-id>                  列出执行动作
-  delete-action <connector-id> <operation-id>  删除执行动作
-  test --connector-id <id> --action <actionId> 测试执行动作
-  list-connections <connector-id>              列出鉴权账号
-  create-connection <connector-id> <name>      创建鉴权账号
-  smart-create --curl "curl命令"               智能创建连接器
-  parse-api [选项]                             解析接口信息
-  gen-template [输出路径]                       生成接口文档模板
-
-使用 openyida connector <子命令> --help 查看详细帮助
-`);
-        break;
-      }
-
-      const modulePath = connectorSubCommands[subCommand];
-      if (!modulePath) {
-        console.error(`未知的 connector 子命令: ${subCommand}`);
-        console.error('使用 openyida connector --help 查看可用子命令');
-        process.exit(1);
-      }
-
-      const { run: runConnector } = require(modulePath);
-      await runConnector(subArgs);
       break;
     }
 
