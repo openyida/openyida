@@ -16,7 +16,7 @@
  *   openyida auth logout                                退出登录
  *   openyida org list                                   列出可访问的组织
  *   openyida org switch --corp-id <corpId>              切换组织（无需重新登录）
- *   openyida create-app "<名称>" [desc] [icon] [color]  创建应用
+ *   openyida create-app "<名称>" [desc] [icon] [color] [themeColor]  创建应用
  *   openyida create-page <appType> "<页面名>"            创建自定义页面
  *   openyida create-form create <appType> "<表单名>" <字段JSON> [--layout <布局>] [--theme <主题>] [--label-align <对齐>]  创建表单页面
  *   openyida create-form update <appType> <formUuid> <修改JSON>  更新表单页面
@@ -70,7 +70,7 @@ openyida - 宜搭命令行工具
   copy [--force]                                               复制 project 工作目录到当前 AI 工具环境
   login                                                        登录态管理（优先缓存，否则扫码）
   logout                                                       退出登录 / 切换账号
-  create-app "<名称>" [描述] [图标] [颜色]                      创建应用，输出 appType
+  create-app "<名称>" [描述] [图标] [颜色] [主题色]             创建应用，输出 appType
   create-page <appType> "<页面名>"                             创建自定义页面，输出 pageId
   create-form create <appType> "<表单名>" <字段JSON> [--layout <布局>] [--theme <主题>] [--label-align <对齐>]  创建表单页面
   create-form update <appType> <formUuid> <修改JSON>           更新表单页面
@@ -116,6 +116,7 @@ openyida - 宜搭命令行工具
 示例：
   openyida login
   openyida logout
+  openyida create-app "考勤管理"
   openyida create-app "考勤管理" "员工考勤系统" "xian-daka" "#00B853" "red"
   openyida create-page APP_XXX "游戏主页"
   openyida create-form create APP_XXX "员工信息" fields.json
@@ -126,6 +127,9 @@ openyida - 宜搭命令行工具
   openyida save-share-config APP_XXX FORM-XXX /o/myapp y n
   openyida get-page-config APP_XXX FORM-XXX
   openyida update-form-config APP_XXX FORM-XXX false "页面标题"
+  openyida configure-process APP_XXX FORM-YYY process-def.json
+  openyida create-process APP_XXX "订单处理表" fields.json process-def.json
+  openyida create-process APP_XXX --formUuid FORM-YYY process-def.json
   openyida doctor                                 完整诊断
   openyida doctor --fix                           诊断并自动修复
   openyida doctor --production --app APP_XXX      线上应用诊断
@@ -134,9 +138,6 @@ openyida - 宜搭命令行工具
   openyida doctor --create-ticket                 创建工单
   openyida doctor --create-voc                    创建 VOC
   openyida doctor --auto-submit                   自动判断并提交
-  openyida configure-process APP_XXX FORM-YYY process-def.json
-  openyida create-process APP_XXX "订单处理表" fields.json process-def.json
-  openyida create-process APP_XXX --formUuid FORM-YYY process-def.json
 `);
   console.log(t('cli.help'));
 }
@@ -568,6 +569,7 @@ async function main() {
       await runQueryData(args);
       break;
     }
+
     default: {
       console.error(t('cli.unknown_command', command));
       console.error(t('cli.run_help'));
