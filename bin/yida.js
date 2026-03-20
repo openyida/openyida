@@ -387,6 +387,50 @@ async function main() {
       break;
     }
 
+    case 'get-permission': {
+      if (args.length < 2) {
+        console.error(t('cli.get_permission_usage'));
+        console.error(t('cli.get_permission_example'));
+        process.exit(1);
+      }
+      const { run: runGetPermission } = require('../lib/get-permission');
+      await runGetPermission(args);
+      break;
+    }
+
+    case 'save-permission': {
+      if (args.length < 2) {
+        console.error(t('cli.save_permission_usage'));
+        console.error(t('cli.save_permission_example'));
+        process.exit(1);
+      }
+      const { run: runSavePermission } = require('../lib/save-permission');
+      await runSavePermission(args);
+      break;
+    }
+
+    case 'configure-process': {
+      if (args.length < 3) {
+        console.error(t('cli.configure_process_usage'));
+        console.error(t('cli.configure_process_example'));
+        process.exit(1);
+      }
+      const { run: runConfigureProcess } = require('../lib/configure-process');
+      await runConfigureProcess(args);
+      break;
+    }
+
+    case 'create-process': {
+      if (args.length < 2) {
+        console.error(t('cli.create_process_usage'));
+        console.error(t('cli.create_process_example'));
+        process.exit(1);
+      }
+      const { run: runCreateProcess } = require('../lib/create-process');
+      await runCreateProcess(args);
+      break;
+    }
+
     case 'create-report': {
       const { run } = require('../lib/create-report');
       await run(args);
