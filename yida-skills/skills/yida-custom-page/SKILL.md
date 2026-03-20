@@ -750,6 +750,60 @@ this.forceUpdate();
 
     完整示例代码见：[`examples/tabs-visibility-control.js`](./examples/tabs-visibility-control.js)
 
+### 17. 字段 ID 语义化别名约定
+
+宜搭表单字段 ID 通常是随机字符串（如 `textField_k8j2n3m4`），直接在代码中使用可读性差、维护困难。**推荐在文件顶部统一定义字段别名常量**，在代码中始终使用别名引用字段 ID。
+
+**约定规范**：
+
+```javascript
+// ✅ 推荐：在文件顶部统一定义字段别名
+// 字段 ID 来自 openyida get-schema 的输出，或 .cache/<项目名>-schema.json
+var FIELDS = {
+  userName: 'textField_k8j2n3m4',       // 姓名
+  department: 'selectField_a3b9c1d2',    // 部门
+  applyDate: 'dateField_x7y2z5w1',       // 申请日期
+  amount: 'numberField_p4q8r3s6',        // 金额
+  status: 'radioField_m1n5o9p3',         // 审批状态
+  remark: 'textareaField_v2w6x1y4',      // 备注
+};
+
+// ✅ 使用别名引用字段，代码清晰易读
+this.utils.yida.searchFormDatas({
+  formUuid: 'FORM-XXX',
+  searchFieldJson: JSON.stringify({
+    [FIELDS.department]: '研发部',
+    [FIELDS.status]: '待审批',
+  }),
+  currentPage: 1,
+  pageSize: 20,
+});
+
+// ✅ 构建提交数据时使用别名
+var formDataJson = {};
+formDataJson[FIELDS.userName] = _customState.inputName;
+formDataJson[FIELDS.department] = _customState.selectedDept;
+formDataJson[FIELDS.amount] = _customState.inputAmount;
+```
+
+**❌ 避免的写法**：
+
+```javascript
+// ❌ 直接在业务逻辑中散落字段 ID，难以维护
+this.utils.yida.searchFormDatas({
+  formUuid: 'FORM-XXX',
+  searchFieldJson: JSON.stringify({
+    selectField_a3b9c1d2: '研发部',   // 这是什么字段？
+    radioField_m1n5o9p3: '待审批',    // 完全看不懂
+  }),
+});
+```
+
+**AI 生成代码时的规则**：
+1. 获取表单 Schema 后，**必须先在文件顶部定义 `FIELDS` 常量**，将所有用到的字段 ID 映射为语义化名称
+2. 后续所有代码中**禁止直接写字段 ID 字符串**，统一通过 `FIELDS.xxx` 引用
+3. `FIELDS` 的 key 使用 camelCase 命名，与字段的中文含义对应
+
 ---
 
 ## API 参考

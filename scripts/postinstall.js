@@ -75,7 +75,9 @@ function installSymlink(ideConfigDir) {
 
 // Claude Code
 safeExec(() => {
-  installSymlink(path.join(HOME_DIR, ".claude"));
+  if (fs.existsSync(path.join(HOME_DIR, ".claude"))) {
+    installSymlink(path.join(HOME_DIR, ".claude"));
+  }
 });
 
 // OpenCode

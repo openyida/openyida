@@ -289,7 +289,25 @@ openyida configure-process "APP_XXX" "FORM-YYY" process-definition.json
 }
 ```
 
-### 示例 4：带跳转规则的审批流程
+### 示例 4：配置自定义详情页（解决钉钉工作通知链接问题）
+
+```json
+{
+  "processDetailUrl": "https://mson55.aliwork.com/alibaba/web/APP_XXX/inst/taskDetail.htm?customPage=true&pageId=PAGE-YYY",
+  "processMobileDetailUrl": "https://mson55.aliwork.com/alibaba/mobile/APP_XXX/inst/detail/taskDetail/",
+  "nodes": [
+    {
+      "type": "approval",
+      "name": "主管审批",
+      "approver": "originator"
+    }
+  ]
+}
+```
+
+配置 `processDetailUrl` 后，钉钉工作通知推送的链接将直接指向自定义详情页，而不再是原生 `taskDetail.htm`。
+
+### 示例 5：带跳转规则的审批流程
 
 ```json
 {
