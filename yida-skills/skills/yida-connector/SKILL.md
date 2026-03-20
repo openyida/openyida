@@ -42,91 +42,87 @@ metadata:
 | 阿里云 API 网关 | `AliyunApiGateway` | 阿里云 API 网关鉴权 | `--app-code` |
 | 钉钉零信任网关 | `DingTrustGW` | 钉钉零信任网关鉴权 | `--app-key`, `--app-secret` |
 
-## 脚本列表
+## CLI 命令列表
 
 ### 连接器管理
-- `list-connectors.js` - 列出所有连接器
-- `create-connector.js` - 创建/更新连接器
-- `get-connector-detail.js` - 获取连接器详情
-- `delete-connector.js` - 删除连接器
-- `add-action-to-connector.js` - 添加执行动作到已有连接器（智能匹配）
+- `openyida connector list` - 列出所有连接器
+- `openyida connector create` - 创建/更新连接器
+- `openyida connector detail` - 获取连接器详情
+- `openyida connector delete` - 删除连接器
+- `openyida connector add-action` - 添加执行动作到已有连接器（智能匹配）
 
 ### 执行动作管理
-- `list-actions.js` - 列出连接器的执行动作
-- `create-action.js` - 创建执行动作
-- `delete-action.js` - 删除执行动作
-- `test-action.js` - 测试执行动作（传统方式）
-- `test-connector.js` - 测试连接器（推荐）
+- `openyida connector list-actions` - 列出连接器的执行动作
+- `openyida connector create-action` - 创建执行动作
+- `openyida connector delete-action` - 删除执行动作
+- `openyida connector test` - 测试连接器（推荐）
 
 ### 鉴权账号管理
-- `list-connections.js` - 列出鉴权账号
-- `create-connection.js` - 创建鉴权账号
+- `openyida connector list-connections` - 列出鉴权账号
+- `openyida connector create-connection` - 创建鉴权账号
 
 ### 智能创建工具
-- `smart-create-connector.js` - 智能创建连接器（三阶段流程）
-- `parse-api-info.js` - 解析 curl 命令或接口文档
-- `generate-api-template.js` - 生成接口文档模板
-
-### 公共模块
-- `common.js` - 公共工具模块（登录态、API 请求等）
+- `openyida connector smart-create` - 智能创建连接器（三阶段流程）
+- `openyida connector parse-api` - 解析 curl 命令或接口文档
+- `openyida connector gen-template` - 生成接口文档模板
 
 ## 使用示例
 
 ### 示例 1：列出所有连接器
 ```bash
-node scripts/list-connectors.js
+openyida connector list
 ```
 
 ### 示例 2：创建连接器
 
 **无身份验证：**
 ```bash
-node scripts/create-connector.js "测试API" "api.example.com"
+openyida connector create "测试API" "api.example.com"
 ```
 
 **基本身份验证：**
 ```bash
-node scripts/create-connector.js "内部系统" "internal.company.com" \
+openyida connector create "内部系统" "internal.company.com" \
   --auth "基本身份验证" --username admin --password 123456
 ```
 
 **API 密钥（Header 方式）：**
 ```bash
-node scripts/create-connector.js "第三方API" "api.example.com" \
+openyida connector create "第三方API" "api.example.com" \
   --auth "API密钥" --api-key-label "Authorization" --api-key-name "X-API-Key"
 ```
 
 **API 密钥（Query 方式）：**
 ```bash
-node scripts/create-connector.js "第三方API" "api.example.com" \
+openyida connector create "第三方API" "api.example.com" \
   --auth "API密钥" --api-key-label "Token" --api-key-name "token" --api-key-location QUERY
 ```
 
 **钉钉开放平台验证：**
 ```bash
-node scripts/create-connector.js "钉钉API" "api.dingtalk.com" \
+openyida connector create "钉钉API" "api.dingtalk.com" \
   --auth "钉钉开放平台验证" --app-key "your-app-key" --app-secret "your-app-secret"
 ```
 
 **阿里云 API 网关：**
 ```bash
-node scripts/create-connector.js "阿里云API" "api.aliyun.com" \
+openyida connector create "阿里云API" "api.aliyun.com" \
   --auth "阿里云API网关"
 ```
 
 **钉钉零信任网关：**
 ```bash
-node scripts/create-connector.js "零信任API" "trust.dingtalk.com" \
+openyida connector create "零信任API" "trust.dingtalk.com" \
   --auth "钉钉零信任网关"
 ```
 
 ### 示例 3：更新连接器（添加 openyida 元数据）
 ```bash
 # 为现有连接器添加 openyida 元数据（保留原描述）
-node scripts/create-connector.js --id 910241
+openyida connector create --id 910241
 
 # 更新连接器描述（完全替换）
-node scripts/create-connector.js \
+openyida connector create \
   --id 910241 \
   --desc "新的描述内容"
 ```
@@ -144,43 +140,43 @@ node scripts/create-connector.js \
 
 ### 示例 4：获取连接器详情
 ```bash
-node scripts/get-connector-detail.js <connector-id>
+openyida connector detail <connector-id>
 ```
 
 ### 示例 5：列出鉴权账号
 ```bash
-node scripts/list-connections.js <connector-id>
+openyida connector list-connections <connector-id>
 ```
 
 ### 示例 6：创建鉴权账号
 
 **基本身份验证：**
 ```bash
-node scripts/create-connection.js 910264 "测试账号" \
+openyida connector create-connection 910264 "测试账号" \
   --username "nameceshi" --password "pwdceshi"
 ```
 
 **API 密钥：**
 ```bash
-node scripts/create-connection.js 910258 "生产密钥" \
+openyida connector create-connection 910258 "生产密钥" \
   --api-key "sk-xxxxxxxx"
 ```
 
 **钉钉开放平台：**
 ```bash
-node scripts/create-connection.js 910244 "钉钉账号" \
+openyida connector create-connection 910244 "钉钉账号" \
   --app-key "dingxxx" --app-secret "xxx"
 ```
 
 **阿里云 API 网关：**
 ```bash
-node scripts/create-connection.js 910264 "阿里云账号" \
+openyida connector create-connection 910264 "阿里云账号" \
   --app-code "your-app-code"
 ```
 
 **钉钉零信任网关：**
 ```bash
-node scripts/create-connection.js 910264 "零信任账号" \
+openyida connector create-connection 910264 "零信任账号" \
   --app-key "ak" --app-secret "sk"
 ```
 
@@ -193,54 +189,34 @@ node scripts/create-connection.js 910264 "零信任账号" \
 
 ```bash
 # 第一步：智能匹配，展示候选连接器列表（必须先执行这步，停下来让用户确认）
-node scripts/add-action-to-connector.js \
+openyida connector add-action \
   --operations ./new-action.json \
   --host api.dingtalk.com
 
 # 第二步：用户确认后，追加到指定连接器（需用户明确确认后才能执行）
-node scripts/add-action-to-connector.js \
+openyida connector add-action \
   --operations ./new-action.json \
   --connector-id 910244
 
 # 或者：用户选择新建连接器
-node scripts/create-connector.js "新连接器名称" "api.dingtalk.com" \
+openyida connector create "新连接器名称" "api.dingtalk.com" \
   --auth "API密钥" --operations ./new-action.json
 ```
 
-> **智能匹配**: 脚本会根据域名和鉴权方式自动筛选可复用的连接器，避免重复创建。
+> **智能匹配**: 命令会根据域名和鉴权方式自动筛选可复用的连接器，避免重复创建。
 
-### 示例 8：测试执行动作（传统方式）
-
-**有鉴权的连接器（需要 connection-id）：**
-```bash
-# 测试连接
-node scripts/test-action.js 910244 testConnection 25967
-
-# 测试获取附件临时免登地址
-node scripts/test-action.js 910244 getTemporaryUrl 25967 \
-  --params '{"path":{"appType":"APP_XXX"},"query":{"fileUrl":"https://..."}}'
-```
-
-**无鉴权的连接器（不需要 connection-id）：**
-```bash
-node scripts/test-action.js 910258 sendDeviceAlarm \
-  --params '{"body":[{"name":"测试告警"}]}'
-```
-
-### 示例 9：测试连接器（推荐）
-
-使用 `test-connector.js` 进行更便捷的测试：
+### 示例 8：测试连接器
 
 **基本测试：**
 ```bash
-node scripts/test-connector.js \
+openyida connector test \
   --connector-id 910296 \
   --action dataQuery_queryThroughView.json
 ```
 
 **带参数测试：**
 ```bash
-node scripts/test-connector.js \
+openyida connector test \
   --connector-id 910296 \
   --action dataQuery_queryThroughView.json \
   --params '{"appType": "APP_XXX", "formUuid": "FORM_XXX"}'
@@ -248,7 +224,7 @@ node scripts/test-connector.js \
 
 **使用指定认证账号测试：**
 ```bash
-node scripts/test-connector.js \
+openyida connector test \
   --connector-id 910296 \
   --action dataQuery_queryThroughView.json \
   --account-id 12345
@@ -291,7 +267,7 @@ node scripts/test-connector.js \
 ### 方式 1：使用 curl 命令快速创建
 
 ```bash
-node scripts/smart-create-connector.js \
+openyida connector smart-create \
   --curl "curl 'https://api.dingtalk.com/v1.0/hrm/rosters' -H 'Authorization: Bearer xxx'" \
   --name "钉钉花名册连接器" \
   --desc "查询钉钉员工花名册"
@@ -308,10 +284,10 @@ node scripts/smart-create-connector.js \
 
 ```bash
 # 解析 curl 命令
-node scripts/parse-api-info.js --curl "curl命令"
+openyida connector parse-api --curl "curl命令"
 
 # 解析接口文档
-node scripts/parse-api-info.js --doc ./api-doc.md
+openyida connector parse-api --doc ./api-doc.md
 ```
 
 ### 方式 3：使用接口文档模板
@@ -320,10 +296,10 @@ node scripts/parse-api-info.js --doc ./api-doc.md
 
 ```bash
 # 生成模板到当前目录
-node scripts/generate-api-template.js
+openyida connector gen-template
 
 # 生成到指定路径
-node scripts/generate-api-template.js ./my-api-doc.md
+openyida connector gen-template ./my-api-doc.md
 ```
 
 模板包含以下信息收集项：
