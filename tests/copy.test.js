@@ -493,7 +493,7 @@ describe("installSkillsToAllAgents 行为", () => {
     expect(stats.isSymbolicLink()).toBe(true);
   });
 
-  test("Claude Code 使用 .claude 作为 skills 目录（AGENT_SKILLS_DIR_OVERRIDES 映射）", () => {
+  test("Claude Code 使用 .claudecode 作为 skills 目录", () => {
     if (process.platform === "win32") return;
 
     const { installSkillsToAllAgents } = require("../lib/core/copy");
@@ -511,11 +511,10 @@ describe("installSkillsToAllAgents 行为", () => {
 
     expect(results).toHaveLength(1);
     expect(results[0].success).toBe(true);
-    // 软链应在 ~/.claude/skills/yida-skills，而非 ~/.claudecode/skills/yida-skills
-    const correctDest = path.join(tmpDir, "fake-home", ".claude", "skills", "yida-skills");
-    const wrongDest = path.join(tmpDir, "fake-home", ".claudecode", "skills", "yida-skills");
-    expect(fs.existsSync(correctDest)).toBe(true);
-    expect(fs.existsSync(wrongDest)).toBe(false);
+    // 软链在 ~/.claudecode/skills/yida-skills
+    const expectedDest = path.join(tmpDir, "fake-home", ".claudecode", "skills", "yida-skills");
+    expect(fs.existsSync(expectedDest)).toBe(true);
+    expect(results[0].dest).toBe(expectedDest);
   });
 
   test("多个工具时，返回每个工具的安装结果", () => {
@@ -540,8 +539,7 @@ describe("installSkillsToAllAgents 行为", () => {
     expect(results[0].type).toBe("wukong-cleanup");
     expect(results[1].type).toBe("symlink");
     expect(results[2].type).toBe("symlink");
-    // Claude Code 的 dest 应指向 .claude 目录
-    expect(results[2].dest).toContain(".claude");
-    expect(results[2].dest).not.toContain(".claudecode");
+    // Claude Code 的 dest 使用 .claudecode 目录
+    expect(results[2].dest).toContain(".claudecode");
   });
 });
