@@ -485,6 +485,31 @@ async function main() {
       break;
     }
 
+    case 'integration': {
+      const subCommand = args[0];
+
+      if (!subCommand || subCommand === '--help' || subCommand === '-h') {
+        console.error('用法: openyida integration <子命令> [参数]');
+        console.error('');
+        console.error('子命令：');
+        console.error('  create <appType> <formUuid> <flowName> [选项]   创建集成&自动化（逻辑流）');
+        console.error('');
+        console.error('示例：');
+        console.error('  openyida integration create APP_XXX FORM-XXX "新增记录通知" --receivers user123 --publish');
+        break;
+      }
+
+      if (subCommand === 'create') {
+        const { run: runIntegration } = require('../lib/integration/integration-create');
+        await runIntegration(args);
+      } else {
+        console.error(`未知的 integration 子命令: ${subCommand}`);
+        console.error('使用 openyida integration --help 查看可用子命令');
+        process.exit(1);
+      }
+      break;
+    }
+
     default: {
       console.error(t('cli.unknown_command', command));
       console.error(t('cli.run_help'));
