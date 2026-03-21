@@ -263,3 +263,285 @@ describe("resolveDestBaseFromEnv 逻辑验证", () => {
     expect(destBase).toBe(process.cwd());
   });
 });
+
+// ── removePath 行为测试 ───────────────────────────────────────────────
+
+describe("removePath 行为", () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "yida-removepath-test-"));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test("目标是普通目录时，删除成功并返回 true", () => {
+    const { removePath } = require("../lib/core/copy");
+    const targetDir = path.join(tmpDir, "to-remove");
+    fs.mkdirSync(targetDir);
+    fs.writeFileSync(path.join(targetDir, "file.txt"), "content");
+
+    const result = removePath(targetDir, false);
+
+    expect(result).toBe(true);
+    expect(fs.existsSync(targetDir)).toBe(false);
+  });
+
+  test("目标是软链接时，删除软链接本身而不影响源目录", () => {
+    if (process.platform === "win32") return;
+
+    const { removePath } = require("../lib/core/copy");
+    const sourceDir = path.join(tmpDir, "source");
+    const linkPath = path.join(tmpDir, "link");
+    fs.mkdirSync(sourceDir);
+    fs.writeFileSync(path.join(sourceDir, "SKILL.md"), "content");
+    fs.symlinkSync(sourceDir, linkPath, "dir");
+
+    const result = removePath(linkPath, false);
+
+    expect(result).toBe(true);
+    expect(fs.existsSync(linkPath)).toBe(false);
+    // 源目录不受影响
+    expect(fs.existsSync(sourceDir)).toBe(true);
+    expect(fs.existsSync(path.join(sourceDir, "SKILL.md"))).toBe(true);
+  });
+
+  test("目标路径不存在时，返回 false（非静默模式）", () => {
+    const { removePath } = require("../lib/core/copy");
+    const nonExistentPath = path.join(tmpDir, "non-existent");
+
+    const result = removePath(nonExistentPath, false);
+
+    expect(result).toBe(false);
+  });
+
+  test("目标路径不存在时，静默模式也返回 false", () => {
+    const { removePath } = require("../lib/core/copy");
+    const nonExistentPath = path.join(tmpDir, "non-existent");
+
+    const result = removePath(nonExistentPath, true);
+
+    expect(result).toBe(false);
+  });
+
+  test("悬空软链接（目标不存在）时，删除软链接本身并返回 true", () => {
+    if (process.platform === "win32") return;
+
+    const { removePath } = require("../lib/core/copy");
+    const danglingLinkPath = path.join(tmpDir, "dangling-link");
+    const nonExistentTarget = path.join(tmpDir, "does-not-exist");
+    // 创建悬空软链（目标不存在）
+    fs.symlinkSync(nonExistentTarget, danglingLinkPath, "dir");
+
+    const result = removePath(danglingLinkPath, true);
+
+    expect(result).toBe(true);
+    // 软链接本身已被删除
+    expect(fs.existsSync(danglingLinkPath)).toBe(false);
+    try {
+      fs.lstatSync(danglingLinkPath);
+      expect(true).toBe(false); // 不应到达这里
+    } catch {
+      // 预期：lstatSync 抛出异常，说明软链接已被删除
+    }
+  });
+});
+
+// ── createSymlink 行为测试 ────────────────────────────────────────────
+
+describe("createSymlink 行为", () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "yida-createsymlink-test-"));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test("源目录不存在时，返回 false", () => {
+    const { createSymlink } = require("../lib/core/copy");
+    const nonExistentSource = path.join(tmpDir, "non-existent-source");
+    const destLink = path.join(tmpDir, "link");
+
+    const result = createSymlink(nonExistentSource, destLink);
+
+    expect(result).toBe(false);
+    expect(fs.existsSync(destLink)).toBe(false);
+  });
+
+  test("成功创建软链接，返回 true", () => {
+    if (process.platform === "win32") return;
+
+    const { createSymlink } = require("../lib/core/copy");
+    const sourceDir = path.join(tmpDir, "source");
+    const destLink = path.join(tmpDir, "link");
+    fs.mkdirSync(sourceDir);
+    fs.writeFileSync(path.join(sourceDir, "SKILL.md"), "content");
+
+    const result = createSymlink(sourceDir, destLink);
+
+    expect(result).toBe(true);
+    const stats = fs.lstatSync(destLink);
+    expect(stats.isSymbolicLink()).toBe(true);
+    expect(fs.readlinkSync(destLink)).toBe(sourceDir);
+  });
+
+  test("目标软链接已存在时，先删除再重新创建", () => {
+    if (process.platform === "win32") return;
+
+    const { createSymlink } = require("../lib/core/copy");
+    const sourceDir = path.join(tmpDir, "source");
+    const oldSourceDir = path.join(tmpDir, "old-source");
+    const destLink = path.join(tmpDir, "link");
+    fs.mkdirSync(sourceDir);
+    fs.mkdirSync(oldSourceDir);
+    // 先创建一个指向旧目录的软链
+    fs.symlinkSync(oldSourceDir, destLink, "dir");
+
+    const result = createSymlink(sourceDir, destLink);
+
+    expect(result).toBe(true);
+    // 软链接现在指向新的源目录
+    expect(fs.readlinkSync(destLink)).toBe(sourceDir);
+  });
+
+  test("目标是普通目录时，先删除再创建软链接", () => {
+    if (process.platform === "win32") return;
+
+    const { createSymlink } = require("../lib/core/copy");
+    const sourceDir = path.join(tmpDir, "source");
+    const destLink = path.join(tmpDir, "link");
+    fs.mkdirSync(sourceDir);
+    // 目标位置已有一个普通目录
+    fs.mkdirSync(destLink);
+    fs.writeFileSync(path.join(destLink, "old.txt"), "old content");
+
+    const result = createSymlink(sourceDir, destLink);
+
+    expect(result).toBe(true);
+    const stats = fs.lstatSync(destLink);
+    expect(stats.isSymbolicLink()).toBe(true);
+  });
+});
+
+// ── installSkillsToAllAgents 行为测试 ─────────────────────────────────
+
+describe("installSkillsToAllAgents 行为", () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "yida-install-test-"));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test("悟空工具：清理已有软链，不创建新软链", () => {
+    if (process.platform === "win32") return;
+
+    const { installSkillsToAllAgents } = require("../lib/core/copy");
+    const sourceDir = path.join(tmpDir, "yida-skills");
+    const wukongSkillsDir = path.join(tmpDir, "fake-home", ".real", "skills");
+    const wukongLink = path.join(wukongSkillsDir, "yida-skills");
+    fs.mkdirSync(sourceDir);
+    fs.mkdirSync(wukongSkillsDir, { recursive: true });
+    // 预先创建一个软链
+    fs.symlinkSync(sourceDir, wukongLink, "dir");
+
+    // 通过 mock os.homedir 指向临时目录
+    const originalHomedir = os.homedir;
+    os.homedir = () => path.join(tmpDir, "fake-home");
+
+    const results = installSkillsToAllAgents(sourceDir, [
+      { dirName: ".real", displayName: "悟空（Wukong）" },
+    ]);
+
+    os.homedir = originalHomedir;
+
+    expect(results).toHaveLength(1);
+    expect(results[0].type).toBe("wukong-cleanup");
+    // 软链已被清理
+    expect(fs.existsSync(wukongLink)).toBe(false);
+  });
+
+  test("非悟空工具：创建软链接到 skills 目录", () => {
+    if (process.platform === "win32") return;
+
+    const { installSkillsToAllAgents } = require("../lib/core/copy");
+    const sourceDir = path.join(tmpDir, "yida-skills");
+    fs.mkdirSync(sourceDir);
+
+    const originalHomedir = os.homedir;
+    os.homedir = () => path.join(tmpDir, "fake-home");
+
+    const results = installSkillsToAllAgents(sourceDir, [
+      { dirName: ".aone_copilot", displayName: "Aone Copilot" },
+    ]);
+
+    os.homedir = originalHomedir;
+
+    expect(results).toHaveLength(1);
+    expect(results[0].type).toBe("symlink");
+    expect(results[0].success).toBe(true);
+    const destLink = path.join(tmpDir, "fake-home", ".aone_copilot", "skills", "yida-skills");
+    const stats = fs.lstatSync(destLink);
+    expect(stats.isSymbolicLink()).toBe(true);
+  });
+
+  test("Claude Code 使用 .claude 作为 skills 目录（AGENT_SKILLS_DIR_OVERRIDES 映射）", () => {
+    if (process.platform === "win32") return;
+
+    const { installSkillsToAllAgents } = require("../lib/core/copy");
+    const sourceDir = path.join(tmpDir, "yida-skills");
+    fs.mkdirSync(sourceDir);
+
+    const originalHomedir = os.homedir;
+    os.homedir = () => path.join(tmpDir, "fake-home");
+
+    const results = installSkillsToAllAgents(sourceDir, [
+      { dirName: ".claudecode", displayName: "Claude Code" },
+    ]);
+
+    os.homedir = originalHomedir;
+
+    expect(results).toHaveLength(1);
+    expect(results[0].success).toBe(true);
+    // 软链应在 ~/.claude/skills/yida-skills，而非 ~/.claudecode/skills/yida-skills
+    const correctDest = path.join(tmpDir, "fake-home", ".claude", "skills", "yida-skills");
+    const wrongDest = path.join(tmpDir, "fake-home", ".claudecode", "skills", "yida-skills");
+    expect(fs.existsSync(correctDest)).toBe(true);
+    expect(fs.existsSync(wrongDest)).toBe(false);
+  });
+
+  test("多个工具时，返回每个工具的安装结果", () => {
+    if (process.platform === "win32") return;
+
+    const { installSkillsToAllAgents } = require("../lib/core/copy");
+    const sourceDir = path.join(tmpDir, "yida-skills");
+    fs.mkdirSync(sourceDir);
+
+    const originalHomedir = os.homedir;
+    os.homedir = () => path.join(tmpDir, "fake-home");
+
+    const results = installSkillsToAllAgents(sourceDir, [
+      { dirName: ".real", displayName: "悟空（Wukong）" },
+      { dirName: ".aone_copilot", displayName: "Aone Copilot" },
+      { dirName: ".claudecode", displayName: "Claude Code" },
+    ]);
+
+    os.homedir = originalHomedir;
+
+    expect(results).toHaveLength(3);
+    expect(results[0].type).toBe("wukong-cleanup");
+    expect(results[1].type).toBe("symlink");
+    expect(results[2].type).toBe("symlink");
+    // Claude Code 的 dest 应指向 .claude 目录
+    expect(results[2].dest).toContain(".claude");
+    expect(results[2].dest).not.toContain(".claudecode");
+  });
+});
