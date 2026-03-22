@@ -25,7 +25,17 @@
     "postinstall": "node scripts/postinstall.js",
     "contributors": "node scripts/update-contributors.js"
   },
-  "keywords": ["yida", "aliwork", "dingtalk", "cli", "openyida", "low-code", "ai", "qoder", "wukong"],
+  "keywords": [
+    "yida",
+    "aliwork",
+    "dingtalk",
+    "cli",
+    "openyida",
+    "low-code",
+    "ai",
+    "qoder",
+    "wukong"
+  ],
   "author": "OpenYida Contributors",
   "license": "MIT",
   "repository": {
@@ -37,7 +47,7 @@
   },
   "homepage": "https://github.com/openyida/openyida#readme",
   "dependencies": {
-    "@babel/standalone": "^7.15.1",
+    "@babel/standalone": "^7.29.2",
     "playwright": "^1.40.0",
     "qrcode": "^1.5.4",
     "uglify-js": "^3.19.3"

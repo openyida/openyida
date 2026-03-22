@@ -426,6 +426,8 @@ openyida publish <源文件路径> <appType> <formUuid>
 - didUnmount 函数
 - renderJsx 函数
 
+> ⚠️ **关键约束：`renderJsx` 的每个 `return` 分支都必须包含 `<div style={{ display: 'none' }}>{this.state.timestamp}</div>`**，否则 `forceUpdate` 调用 `this.setState({ timestamp })` 后，React 无法检测到输出变化，`renderJsx` 不会被重新执行，页面将无法更新。这是宜搭渲染引擎触发重渲染的核心机制。
+
 以下是一个完整自定义页面示例，包含状态管理、生命周期钩子、渲染函数
 
 ```jsx
