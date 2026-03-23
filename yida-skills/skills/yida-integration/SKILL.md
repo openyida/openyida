@@ -1,3 +1,22 @@
+---
+name: yida-integration
+description: 宜搭集成&自动化（逻辑流）管理技能，用于创建表单事件触发的自动化逻辑流，支持钉钉工作通知、跨表数据操作、条件分支等多节点组合场景。
+license: MIT
+compatibility:
+  - opencode
+  - claude-code
+metadata:
+  audience: developers
+  workflow: yida-integration-management
+  version: 1.0.0
+  tags:
+    - yida
+    - integration
+    - automation
+    - logicflow
+    - notification
+---
+
 # yida-integration — 宜搭集成&自动化（逻辑流）技能
 
 本技能用于在宜搭平台创建「集成&自动化」（逻辑流），支持场景：**表单事件触发 → 多节点组合处理 → 钉钉工作通知 / 数据操作**。
