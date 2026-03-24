@@ -7,14 +7,13 @@ import {
   requestWithAutoLogin,
 } from '../core/utils';
 
-import { CHART_COMPONENT_MAP } from './constants';
+import { CHART_COMPONENT_MAP , genNodeId, genFieldId } from './constants';
 import {
   buildReportSchema,
   buildSelectFilter,
   buildFilterContainer,
   injectFilterLinkage,
 } from './chart-builder';
-import { genNodeId, genFieldId } from './constants';
 import { createBlankReport, saveReportSchema } from './http';
 
 // ── 参数解析 ──────────────────────────────────────────

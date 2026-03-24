@@ -10,7 +10,7 @@
  *   --confirm              确认执行（不加此参数时仅展示预览）
  */
 
-import fs from "fs";
+import fs from 'fs';
 import {
   getAuthRef,
   printTable,
@@ -55,21 +55,21 @@ function parseArgs(args: string[]): AddActionOptions {
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case "--help":
-      case "-h":
+      case '--help':
+      case '-h':
         showUsage();
         process.exit(0);
         break;
-      case "--operations":
+      case '--operations':
         options.operationsFile = args[++i];
         break;
-      case "--host":
+      case '--host':
         options.hostFilter = args[++i];
         break;
-      case "--connector-id":
+      case '--connector-id':
         options.connectorId = args[++i];
         break;
-      case "--confirm":
+      case '--confirm':
         options.confirm = true;
         break;
     }
@@ -79,7 +79,7 @@ function parseArgs(args: string[]): AddActionOptions {
 }
 
 async function run(args: string[]): Promise<void> {
-  if (!args || args.length === 0 || args[0] === "--help" || args[0] === "-h") {
+  if (!args || args.length === 0 || args[0] === '--help' || args[0] === '-h') {
     showUsage();
     process.exit(0);
   }
@@ -87,18 +87,18 @@ async function run(args: string[]): Promise<void> {
   const options = parseArgs(args);
 
   if (!options.operationsFile) {
-    console.error("❌ 请提供 --operations 参数");
+    console.error('❌ 请提供 --operations 参数');
     process.exit(1);
   }
 
   const authRef = getAuthRef();
 
-  console.log("🔧 添加执行动作到连接器\n");
+  console.log('🔧 添加执行动作到连接器\n');
 
   // 读取执行动作配置
   let newOperations: any[];
   try {
-    const opsContent = fs.readFileSync(options.operationsFile, "utf-8");
+    const opsContent = fs.readFileSync(options.operationsFile, 'utf-8');
     newOperations = JSON.parse(opsContent);
     if (!Array.isArray(newOperations)) {
       newOperations = [newOperations];
@@ -127,8 +127,8 @@ async function run(args: string[]): Promise<void> {
     const detail = await getConnectorDetail(connector.connectorName!, authRef);
     targetConnector = { ...connector, detail };
 
-    const existingOps = JSON.parse(targetConnector.detail.operations || "[]");
-    console.log("📋 即将追加到以下连接器:");
+    const existingOps = JSON.parse(targetConnector.detail.operations || '[]');
+    console.log('📋 即将追加到以下连接器:');
     console.log(`   名称: ${targetConnector.displayName}`);
     console.log(`   ID: ${targetConnector.id}`);
     console.log(`   域名: ${targetConnector.detail.host}`);
@@ -137,13 +137,13 @@ async function run(args: string[]): Promise<void> {
     console.log();
 
     if (!options.confirm) {
-      console.log("⚠️  请确认是否继续追加？如需继续请添加 --confirm 参数:");
+      console.log('⚠️  请确认是否继续追加？如需继续请添加 --confirm 参数:');
       console.log(`   openyida connector add-action --operations ${options.operationsFile} --connector-id ${options.connectorId} --confirm`);
       return;
     }
   } else {
     // 智能匹配
-    console.log("🔍 正在查找匹配的连接器...\n");
+    console.log('🔍 正在查找匹配的连接器...\n');
     const { connectors } = await listConnectors({ pageSize: 100 }, authRef);
 
     // 按 host 过滤
@@ -152,28 +152,28 @@ async function run(args: string[]): Promise<void> {
       : connectors;
 
     if (matching.length === 0) {
-      console.log("📭 未找到匹配的连接器");
-      console.log("\n💡 建议: 使用 openyida connector create 创建新连接器");
+      console.log('📭 未找到匹配的连接器');
+      console.log('\n💡 建议: 使用 openyida connector create 创建新连接器');
       process.exit(1);
     }
 
     console.log(`✅ 找到 ${matching.length} 个连接器:\n`);
-    const headers = ["序号", "ID", "名称", "域名"];
-    const rows = matching.map((connector, index) => [index + 1, connector.id, connector.displayName, connector.host || "-"]);
+    const headers = ['序号', 'ID', '名称', '域名'];
+    const rows = matching.map((connector, index) => [index + 1, connector.id, connector.displayName, connector.host || '-']);
     printTable(headers, rows);
 
-    console.log("\n💡 请使用 --connector-id 参数指定要更新的连接器:");
+    console.log('\n💡 请使用 --connector-id 参数指定要更新的连接器:');
     console.log(`   openyida connector add-action --operations ${options.operationsFile} --connector-id ${matching[0].id}`);
     return;
   }
 
   // 合并执行动作
-  const existingOperations = JSON.parse(targetConnector.detail.operations || "[]");
+  const existingOperations = JSON.parse(targetConnector.detail.operations || '[]');
   const existingIds = new Set(existingOperations.map((op: any) => op.operationId));
   const duplicates = newOperations.filter((op: any) => existingIds.has(op.operationId));
 
   if (duplicates.length > 0) {
-    console.log("⚠️  警告: 以下动作 ID 已存在，将被覆盖:");
+    console.log('⚠️  警告: 以下动作 ID 已存在，将被覆盖:');
     duplicates.forEach((op: any) => console.log(`   - ${op.operationId}`));
     console.log();
   }
@@ -190,28 +190,28 @@ async function run(args: string[]): Promise<void> {
   await saveConnector({
     operations: JSON.stringify(mergedOperations),
     displayName: targetConnector.detail.displayName,
-    iconUrl: targetConnector.detail.iconUrl || "chaxun%%#FFA200",
+    iconUrl: targetConnector.detail.iconUrl || 'chaxun%%#FFA200',
     connectorDesc: updatedDesc,
     host: targetConnector.detail.host,
-    baseUrl: targetConnector.detail.baseUrl || "/",
-    scheme: targetConnector.detail.scheme || "https",
-    tongxunluTemplateId: targetConnector.detail.tongxunluTemplateId || "",
-    faasTemplateId: targetConnector.detail.faasTemplateId || "0",
-    securitySchemes: targetConnector.detail.securitySchemes || "{}",
-    connectorMode: "5",
+    baseUrl: targetConnector.detail.baseUrl || '/',
+    scheme: targetConnector.detail.scheme || 'https',
+    tongxunluTemplateId: targetConnector.detail.tongxunluTemplateId || '',
+    faasTemplateId: targetConnector.detail.faasTemplateId || '0',
+    securitySchemes: targetConnector.detail.securitySchemes || '{}',
+    connectorMode: '5',
     id: targetConnector.id,
     connectorName: targetConnector.connectorName,
-    category: "http",
+    category: 'http',
   }, authRef);
 
-  console.log("✅ 执行动作添加成功!");
+  console.log('✅ 执行动作添加成功!');
   console.log(`\n连接器: ${targetConnector.displayName} (ID: ${targetConnector.id})`);
   console.log(`现在共有 ${mergedOperations.length} 个执行动作`);
 
-  console.log("\n执行动作列表:");
+  console.log('\n执行动作列表:');
   mergedOperations.forEach((operation, index) => {
     const isNew = newOperations.find((newOp: any) => newOp.operationId === operation.operationId);
-    const marker = isNew ? " [新增]" : "";
+    const marker = isNew ? ' [新增]' : '';
     console.log(`  ${index + 1}. ${operation.operationId}: ${operation.summary}${marker}`);
   });
 }

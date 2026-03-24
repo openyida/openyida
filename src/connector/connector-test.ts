@@ -41,21 +41,21 @@ function parseArgs(args: string[]): TestOptions {
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case "--help":
-      case "-h":
+      case '--help':
+      case '-h':
         showUsage();
         process.exit(0);
         break;
-      case "--connector-id":
+      case '--connector-id':
         options.connectorId = args[++i];
         break;
-      case "--action":
+      case '--action':
         options.actionId = args[++i];
         break;
-      case "--params":
+      case '--params':
         options.params = args[++i];
         break;
-      case "--account-id":
+      case '--account-id':
         options.accountId = args[++i];
         break;
     }
@@ -70,12 +70,12 @@ function buildTestParams(operation: any, userParams?: string): { header: Record<
   if (operation.parameters) {
     if (operation.parameters.header) {
       operation.parameters.header.forEach((headerParam: any) => {
-        params.header[headerParam.name] = headerParam.value || "";
+        params.header[headerParam.name] = headerParam.value || '';
       });
     }
     if (operation.parameters.query) {
       operation.parameters.query.forEach((queryParam: any) => {
-        params.query[queryParam.name] = queryParam.value || "";
+        params.query[queryParam.name] = queryParam.value || '';
       });
     }
     if (operation.parameters.body && operation.parameters.body.default) {
@@ -93,7 +93,7 @@ function buildTestParams(operation: any, userParams?: string): { header: Record<
       Object.assign(params.query, userParamsObj);
       Object.assign(params.body, userParamsObj);
     } catch (e: any) {
-      console.warn("⚠️  参数解析失败，使用默认值:", e.message);
+      console.warn('⚠️  参数解析失败，使用默认值:', e.message);
     }
   }
 
@@ -101,7 +101,7 @@ function buildTestParams(operation: any, userParams?: string): { header: Record<
 }
 
 async function run(args: string[]): Promise<void> {
-  if (!args || args.length === 0 || args[0] === "--help" || args[0] === "-h") {
+  if (!args || args.length === 0 || args[0] === '--help' || args[0] === '-h') {
     showUsage();
     process.exit(0);
   }
@@ -109,7 +109,7 @@ async function run(args: string[]): Promise<void> {
   const options = parseArgs(args);
 
   if (!options.connectorId || !options.actionId) {
-    console.error("❌ 请提供 --connector-id 和 --action 参数");
+    console.error('❌ 请提供 --connector-id 和 --action 参数');
     showUsage();
     process.exit(1);
   }
@@ -127,7 +127,7 @@ async function run(args: string[]): Promise<void> {
 
   // 找到对应的执行动作
   let operations = detail.operations || [];
-  if (typeof operations === "string") {
+  if (typeof operations === 'string') {
     try {
       operations = JSON.parse(operations);
     } catch (e) {
@@ -138,43 +138,43 @@ async function run(args: string[]): Promise<void> {
   const operation = operations.find((op: any) => op.operationId === options.actionId);
   if (!operation) {
     console.error(`\n❌ 未找到执行动作: ${options.actionId}`);
-    console.log("\n可用的执行动作:");
+    console.log('\n可用的执行动作:');
     operations.forEach((op: any, index: number) => {
       console.log(`  ${index + 1}. ${op.operationId}: ${op.summary}`);
     });
     process.exit(1);
   }
 
-  console.log("\n📋 执行动作信息");
-  console.log("──────────────────────────────────────────────────");
+  console.log('\n📋 执行动作信息');
+  console.log('──────────────────────────────────────────────────');
   console.log(`动作ID: ${operation.operationId}`);
   console.log(`动作名称: ${operation.summary}`);
   console.log(`请求方法: ${operation.method.toUpperCase()}`);
   console.log(`请求路径: ${operation.url}`);
-  console.log("──────────────────────────────────────────────────\n");
+  console.log('──────────────────────────────────────────────────\n');
 
   // 检查是否需要认证账号
   const authAccounts = await listConnections(connector.connectorName!, authRef);
   if (authAccounts.length > 0 && !options.accountId) {
-    console.log("💡 该连接器需要认证账号，可用的账号:");
+    console.log('💡 该连接器需要认证账号，可用的账号:');
     authAccounts.forEach((account, index) => {
-      console.log(`  ${index + 1}. ${account.id}: ${account.displayName || account.authName || "未命名"}`);
+      console.log(`  ${index + 1}. ${account.id}: ${account.displayName || account.authName || '未命名'}`);
     });
-    console.log("\n请使用 --account-id 参数指定账号");
+    console.log('\n请使用 --account-id 参数指定账号');
     return;
   }
 
   // 构建测试参数
   const testParams = buildTestParams(operation, options.params);
 
-  console.log("📤 请求参数");
-  console.log("──────────────────────────────────────────────────");
-  console.log("Headers:", JSON.stringify(testParams.header, null, 2));
-  console.log("Query:", JSON.stringify(testParams.query, null, 2));
-  console.log("Body:", JSON.stringify(testParams.body, null, 2));
-  console.log("──────────────────────────────────────────────────\n");
+  console.log('📤 请求参数');
+  console.log('──────────────────────────────────────────────────');
+  console.log('Headers:', JSON.stringify(testParams.header, null, 2));
+  console.log('Query:', JSON.stringify(testParams.query, null, 2));
+  console.log('Body:', JSON.stringify(testParams.body, null, 2));
+  console.log('──────────────────────────────────────────────────\n');
 
-  console.log("🚀 正在发送测试请求...\n");
+  console.log('🚀 正在发送测试请求...\n');
 
   const result = await testConnector({
     connectorId: options.connectorId,
@@ -182,34 +182,34 @@ async function run(args: string[]): Promise<void> {
     header: testParams.header,
     query: testParams.query,
     body: testParams.body,
-    authId: options.accountId || "",
+    authId: options.accountId || '',
   }, authRef);
 
-  console.log("📥 响应结果");
-  console.log("═══════════════════════════════════════════════════\n");
+  console.log('📥 响应结果');
+  console.log('═══════════════════════════════════════════════════\n');
 
   if (result.hasError) {
-    console.error("❌ 测试失败:", result.errorMsg || "未知错误");
+    console.error('❌ 测试失败:', result.errorMsg || '未知错误');
     if (result.content) {
-      console.log("\n错误详情:", JSON.stringify(result.content, null, 2));
+      console.log('\n错误详情:', JSON.stringify(result.content, null, 2));
     }
   } else {
-    console.log("✅ 测试成功!\n");
+    console.log('✅ 测试成功!\n');
 
     const response = result.content;
 
     if (response && response.statusCode) {
-      const statusEmoji = response.statusCode >= 200 && response.statusCode < 300 ? "✅" : "⚠️";
+      const statusEmoji = response.statusCode >= 200 && response.statusCode < 300 ? '✅' : '⚠️';
       console.log(`${statusEmoji} HTTP 状态: ${response.statusCode}`);
     }
 
     if (response && response.headers) {
-      console.log("\n📋 响应头:");
+      console.log('\n📋 响应头:');
       console.log(JSON.stringify(response.headers, null, 2).substring(0, 500));
     }
 
     if (response && response.body) {
-      console.log("\n📄 响应体:");
+      console.log('\n📄 响应体:');
       try {
         const bodyObj = JSON.parse(response.body);
         console.log(JSON.stringify(bodyObj, null, 2));
@@ -223,7 +223,7 @@ async function run(args: string[]): Promise<void> {
     }
   }
 
-  console.log("\n═══════════════════════════════════════════════════");
+  console.log('\n═══════════════════════════════════════════════════');
 }
 
 export { run };

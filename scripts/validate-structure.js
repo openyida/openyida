@@ -50,11 +50,11 @@ if (fs.existsSync(skillsDir)) {
 }
 
 function countSourceFiles(dir) {
-  var count = 0;
-  if (!fs.existsSync(dir)) return count;
-  var entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (var i = 0; i < entries.length; i++) {
-    var entry = entries[i];
+  let count = 0;
+  if (!fs.existsSync(dir)) {return count;}
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
     if (entry.isDirectory()) {
       count += countSourceFiles(path.join(dir, entry.name));
     } else if (entry.name.endsWith('.ts') || entry.name.endsWith('.js')) {
@@ -64,8 +64,8 @@ function countSourceFiles(dir) {
   return count;
 }
 // Count TypeScript sources (src/) or compiled JS (lib/) — whichever exists
-var srcCount = countSourceFiles('src');
-var libCount = countSourceFiles('lib');
+const srcCount = countSourceFiles('src');
+const libCount = countSourceFiles('lib');
 if (srcCount > 0) {
   console.log('src/ modules (TypeScript): ' + srcCount);
 }

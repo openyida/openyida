@@ -4,8 +4,8 @@
  * 用法：openyida connector gen-template [输出路径]
  */
 
-import fs from "fs";
-import path from "path";
+import fs from 'fs';
+import path from 'path';
 
 function showUsage(): void {
   console.log(`
@@ -149,21 +149,21 @@ curl 'https://api.example.com/path' \\
 }
 
 async function run(args: string[]): Promise<void> {
-  if (args && (args[0] === "--help" || args[0] === "-h")) {
+  if (args && (args[0] === '--help' || args[0] === '-h')) {
     showUsage();
     process.exit(0);
   }
 
-  const outputPath = (args && args[0]) || "./api-document-template.md";
+  const outputPath = (args && args[0]) || './api-document-template.md';
   const template = generateTemplate();
 
   try {
-    fs.writeFileSync(outputPath, template, "utf-8");
-    console.log("✅ 接口文档模板已生成！");
+    fs.writeFileSync(outputPath, template, 'utf-8');
+    console.log('✅ 接口文档模板已生成！');
     console.log(`📄 文件路径: ${path.resolve(outputPath)}`);
-    console.log("\n💡 请将您的接口信息填写到模板中，然后发送给 AI。");
+    console.log('\n💡 请将您的接口信息填写到模板中，然后发送给 AI。');
   } catch (error: any) {
-    console.error("❌ 生成失败:", error.message);
+    console.error('❌ 生成失败:', error.message);
     process.exit(1);
   }
 }

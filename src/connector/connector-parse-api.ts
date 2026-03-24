@@ -10,7 +10,7 @@
  *   --format <format>      输出格式: json, table（默认: table）
  */
 
-import fs from "fs";
+import fs from 'fs';
 import { parseCurl, detectAuthType } from './curl-parser';
 import { parseAPIDoc, convertToOperationConfig } from './doc-parser';
 
@@ -44,25 +44,25 @@ function showUsage(): void {
 }
 
 function parseArgs(args: string[]): ParseApiOptions {
-  const options: ParseApiOptions = { format: "table" };
+  const options: ParseApiOptions = { format: 'table' };
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case "--help":
-      case "-h":
+      case '--help':
+      case '-h':
         showUsage();
         process.exit(0);
         break;
-      case "--curl":
+      case '--curl':
         options.curl = args[++i];
         break;
-      case "--doc":
+      case '--doc':
         options.doc = args[++i];
         break;
-      case "--output":
+      case '--output':
         options.output = args[++i];
         break;
-      case "--format":
+      case '--format':
         options.format = args[++i];
         break;
     }
@@ -71,20 +71,20 @@ function parseArgs(args: string[]): ParseApiOptions {
   return options;
 }
 
-function printSchema(schema: any, indent: string = ""): void {
-  if (schema.type === "object" && schema.properties) {
+function printSchema(schema: any, indent: string = ''): void {
+  if (schema.type === 'object' && schema.properties) {
     for (const [key, value] of Object.entries(schema.properties)) {
       const typedValue = value as any;
-      const type = typedValue.type || "any";
-      const desc = typedValue.description ? ` - ${typedValue.description}` : "";
+      const type = typedValue.type || 'any';
+      const desc = typedValue.description ? ` - ${typedValue.description}` : '';
       console.log(`${indent}${key}: ${type}${desc}`);
 
-      if (typedValue.type === "object" && typedValue.properties) {
-        printSchema(typedValue, indent + "  ");
-      } else if (typedValue.type === "array" && typedValue.items) {
+      if (typedValue.type === 'object' && typedValue.properties) {
+        printSchema(typedValue, indent + '  ');
+      } else if (typedValue.type === 'array' && typedValue.items) {
         console.log(`${indent}  []:`);
-        if (typedValue.items.type === "object") {
-          printSchema(typedValue.items, indent + "    ");
+        if (typedValue.items.type === 'object') {
+          printSchema(typedValue.items, indent + '    ');
         } else {
           console.log(`${indent}    ${typedValue.items.type}`);
         }
@@ -94,10 +94,10 @@ function printSchema(schema: any, indent: string = ""): void {
 }
 
 function generateTableReport(curlData: any, docData: any, operationConfig: any): void {
-  console.log("\n📋 接口信息解析报告\n");
-  console.log("═══════════════════════════════════════════════════\n");
+  console.log('\n📋 接口信息解析报告\n');
+  console.log('═══════════════════════════════════════════════════\n');
 
-  console.log("【基本信息】");
+  console.log('【基本信息】');
   if (docData?.basicInfo?.title) {
     console.log(`  接口名称: ${docData.basicInfo.title}`);
   }
@@ -106,19 +106,19 @@ function generateTableReport(curlData: any, docData: any, operationConfig: any):
   }
   console.log();
 
-  console.log("【服务器信息】");
-  const protocol = curlData?.protocol || docData?.serverInfo?.protocol || "https";
-  const host = curlData?.host || docData?.serverInfo?.host || "（未识别）";
-  const urlPath = curlData?.path || docData?.serverInfo?.path || "";
-  const method = curlData?.method || docData?.serverInfo?.method || "GET";
+  console.log('【服务器信息】');
+  const protocol = curlData?.protocol || docData?.serverInfo?.protocol || 'https';
+  const host = curlData?.host || docData?.serverInfo?.host || '（未识别）';
+  const urlPath = curlData?.path || docData?.serverInfo?.path || '';
+  const method = curlData?.method || docData?.serverInfo?.method || 'GET';
   console.log(`  协议: ${protocol.toUpperCase()}`);
   console.log(`  Host: ${host}`);
   console.log(`  路径: ${urlPath}`);
   console.log(`  方法: ${method}`);
   console.log();
 
-  console.log("【鉴权信息】");
-  let authType = "无身份验证";
+  console.log('【鉴权信息】');
+  let authType = '无身份验证';
   if (curlData) {
     const auth = detectAuthType(curlData.headers);
     authType = auth.type;
@@ -130,16 +130,16 @@ function generateTableReport(curlData: any, docData: any, operationConfig: any):
 
   const headers = curlData?.headers || docData?.requestInfo?.headers || [];
   if (Object.keys(headers).length > 0 || (Array.isArray(headers) && headers.length > 0)) {
-    console.log("【请求头】");
+    console.log('【请求头】');
     if (Array.isArray(headers)) {
       headers.forEach(header => {
-        const required = header.required ? " [必填]" : "";
+        const required = header.required ? ' [必填]' : '';
         console.log(`  ${header.name}: ${header.type}${required}`);
       });
     } else {
       for (const [key, value] of Object.entries(headers)) {
-        const maskedValue = key.toLowerCase().includes("auth") || key.toLowerCase().includes("token")
-          ? String(value).substring(0, 20) + "..."
+        const maskedValue = key.toLowerCase().includes('auth') || key.toLowerCase().includes('token')
+          ? String(value).substring(0, 20) + '...'
           : String(value);
         console.log(`  ${key}: ${maskedValue}`);
       }
@@ -147,30 +147,30 @@ function generateTableReport(curlData: any, docData: any, operationConfig: any):
     console.log();
   }
 
-  console.log("【响应格式】");
+  console.log('【响应格式】');
   if (docData?.responseInfo?.schema) {
-    console.log("  已解析响应 Schema:");
-    printSchema(docData.responseInfo.schema, "  ");
+    console.log('  已解析响应 Schema:');
+    printSchema(docData.responseInfo.schema, '  ');
   } else if (operationConfig?.responses) {
-    console.log("  响应类型:", operationConfig.responses.type || "object");
+    console.log('  响应类型:', operationConfig.responses.type || 'object');
   } else {
-    console.log("  未找到响应格式定义");
+    console.log('  未找到响应格式定义');
   }
   console.log();
 
-  console.log("═══════════════════════════════════════════════════\n");
-  console.log("💡 下一步建议:\n");
-  console.log("  1. 确认以上信息是否正确");
-  console.log("  2. 确认后，使用以下命令创建连接器:");
+  console.log('═══════════════════════════════════════════════════\n');
+  console.log('💡 下一步建议:\n');
+  console.log('  1. 确认以上信息是否正确');
+  console.log('  2. 确认后，使用以下命令创建连接器:');
   console.log();
-  console.log(`     openyida connector smart-create \\`);
+  console.log('     openyida connector smart-create \\');
   console.log(`       --curl "curl '${protocol}://${host}${urlPath}'" \\`);
-  console.log(`       --name "${docData?.basicInfo?.title || "API连接器"}"`);
+  console.log(`       --name "${docData?.basicInfo?.title || 'API连接器'}"`);
   console.log();
 }
 
 async function run(args: string[]): Promise<void> {
-  if (!args || args.length === 0 || args[0] === "--help" || args[0] === "-h") {
+  if (!args || args.length === 0 || args[0] === '--help' || args[0] === '-h') {
     showUsage();
     process.exit(0);
   }
@@ -182,7 +182,7 @@ async function run(args: string[]): Promise<void> {
   let operationConfig = null;
 
   if (options.curl) {
-    console.log("🔍 正在解析 curl 命令...");
+    console.log('🔍 正在解析 curl 命令...');
     curlData = parseCurl(options.curl);
   }
 
@@ -192,18 +192,18 @@ async function run(args: string[]): Promise<void> {
       docData = parseAPIDoc(options.doc);
       operationConfig = convertToOperationConfig(docData);
     } catch (error: any) {
-      console.error("❌ 文档解析失败:", error.message);
+      console.error('❌ 文档解析失败:', error.message);
       process.exit(1);
     }
   }
 
   if (!curlData && !docData) {
-    console.error("❌ 请提供 --curl 或 --doc 参数");
+    console.error('❌ 请提供 --curl 或 --doc 参数');
     showUsage();
     process.exit(1);
   }
 
-  if (options.format === "json") {
+  if (options.format === 'json') {
     const report = {
       serverInfo: {
         protocol: curlData?.protocol || docData?.serverInfo?.protocol,

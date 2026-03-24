@@ -690,9 +690,9 @@ function findBlockEnd(lines: string[], startLine: number): number {
   let depth = 0;
   for (let index = startLine; index < lines.length; index++) {
     for (const char of lines[index]) {
-      if (char === '{') depth++;
-      if (char === '}') depth--;
-      if (depth === 0 && index > startLine) return index;
+      if (char === '{') {depth++;}
+      if (char === '}') {depth--;}
+      if (depth === 0 && index > startLine) {return index;}
     }
   }
   return lines.length - 1;
@@ -1025,7 +1025,7 @@ export class HealthMonitor {
   }
 
   calculateHealthScore(summary: DiagnosticSummary): number {
-    if (summary.total === 0) return 100;
+    if (summary.total === 0) {return 100;}
     const passRate = summary.passed / summary.total;
     const errorPenalty = summary.errorCount * 10;
     const warningPenalty = summary.warningCount * 3;

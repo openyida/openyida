@@ -130,7 +130,7 @@ class MarkdownParser extends BaseDocParser {
       const url = new URL(urlMatch[1]);
       this.result.serverInfo.protocol = url.protocol.replace(':', '');
       this.result.serverInfo.host = url.hostname;
-      this.result.serverInfo.basePath = url.pathname.replace(/\/[^\/]+$/, '') || '/';
+      this.result.serverInfo.basePath = url.pathname.replace(/\/[^/]+$/, '') || '/';
       this.result.serverInfo.path = url.pathname;
     }
 
@@ -177,7 +177,7 @@ class MarkdownParser extends BaseDocParser {
 
   private parseRequestBody(): void {
     const bodySection = this.extractSection('请求体', '响应');
-    if (!bodySection) return;
+    if (!bodySection) {return;}
 
     const jsonMatch = bodySection.match(/```json\s*([\s\S]*?)```/);
     if (jsonMatch) {
@@ -206,7 +206,7 @@ class MarkdownParser extends BaseDocParser {
 
   private parseResponseSchema(): void {
     const responseSection = this.extractSection('响应', '错误码');
-    if (!responseSection) return;
+    if (!responseSection) {return;}
 
     const jsonMatch = responseSection.match(/```json\s*([\s\S]*?)```/);
     if (jsonMatch) {
@@ -225,7 +225,7 @@ class MarkdownParser extends BaseDocParser {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
 
-      if (!line || line.match(/^#/) || line.includes('HTTP 状态码')) continue;
+      if (!line || line.match(/^#/) || line.includes('HTTP 状态码')) {continue;}
 
       if (line && !line.includes(':') && !line.includes('{')) {
         const nextLine = lines[i + 1] ? lines[i + 1].trim() : '';
@@ -347,7 +347,7 @@ class MarkdownParser extends BaseDocParser {
 
   private extractSection(startMarker: string, endMarker: string): string | null {
     const startIndex = this.content.indexOf(startMarker);
-    if (startIndex === -1) return null;
+    if (startIndex === -1) {return null;}
 
     let endIndex = this.content.length;
     if (endMarker) {
@@ -366,7 +366,7 @@ class MarkdownParser extends BaseDocParser {
 
     const tableLines = lines.filter(line => line.includes('|'));
 
-    if (tableLines.length < 2) return results;
+    if (tableLines.length < 2) {return results;}
 
     const headerLine = tableLines[0];
     const headers = headerLine.split('|').map(h => h.trim()).filter(h => h);

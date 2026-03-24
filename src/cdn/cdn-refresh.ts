@@ -208,7 +208,7 @@ export async function performRefresh(options: ParseArgsResult): Promise<RefreshR
   try {
     console.log(t('cdn.querying_quota'));
     results.quota = await describeRefreshQuota(cdnClient);
-    console.log(t('cdn.quota_info', 
+    console.log(t('cdn.quota_info',
       results.quota.UrlQuota,
       results.quota.UrlRemain,
       results.quota.DirQuota,

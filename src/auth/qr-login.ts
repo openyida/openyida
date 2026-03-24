@@ -157,7 +157,7 @@ function cookieHeaderToObjects(
     .filter(Boolean)
     .map((pair) => {
       const eqIndex = pair.indexOf('=');
-      if (eqIndex < 0) return null;
+      if (eqIndex < 0) {return null;}
       return {
         name: pair.slice(0, eqIndex).trim(),
         value: pair.slice(eqIndex + 1).trim(),
@@ -173,7 +173,7 @@ function cookieHeaderToObjects(
 async function renderQrCodeInTerminal(url: string): Promise<void> {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let qrcode: { toString(url: string, opts: Record<string, unknown>): Promise<string> } | null | any = null;
+    let qrcode: { toString(url: string, opts: Record<string, unknown>): Promise<string> } | null | any = null;
     try {
       qrcode = require('qrcode') as typeof qrcode;
     } catch {
@@ -274,12 +274,12 @@ async function pollQrCodeStatus(
       continue;
     }
 
-    if (!parsed.success) continue;
+    if (!parsed.success) {continue;}
 
     const { status, authCode } = parsed.content || {};
 
     if (status === 'scanned') {
-      if (onWaiting) onWaiting('scanned');
+      if (onWaiting) {onWaiting('scanned');}
     } else if (status === 'confirmed' && authCode) {
       return { authCode, cookieHeader };
     } else if (status === 'expired') {
@@ -555,7 +555,7 @@ export async function qrLogin(options: QrLoginOptions = {}): Promise<LoginResult
   console.error('');
   console.error(t('qr_login.login_success'));
   console.error(t('login.csrf_ok', csrfToken.slice(0, 16)));
-  if (corpId) console.error(t('login.corp_id_ok', corpId));
+  if (corpId) {console.error(t('login.corp_id_ok', corpId));}
   console.error(SEP);
 
   return {

@@ -7,7 +7,9 @@ node_modules/
 dist/
 *.tgz
 
-# TypeScript 编译产物（lib/ 下由 tsc 生成，不入库）
+# TypeScript 编译产物
+# lib/*.js 入库以便 clone 后直接使用
+# 仅忽略 source maps 和类型声明文件（减小仓库体积）
 lib/**/*.d.ts
 lib/**/*.d.ts.map
 lib/**/*.js.map

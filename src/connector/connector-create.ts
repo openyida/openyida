@@ -20,7 +20,7 @@
  *   --operations <file>        执行动作配置文件 (JSON 格式，创建时必填)
  */
 
-import fs from "fs";
+import fs from 'fs';
 import {
   getAuthRef,
   buildConnectorDesc,
@@ -79,29 +79,29 @@ function showUsage(): void {
 }
 
 const AUTH_TYPE_MAP: Record<string, string> = {
-  "无身份验证": "NONE",
-  "基本身份验证": "BASIC",
-  "API密钥": "API_KEY",
-  "钉钉开放平台验证": "DINGTALK",
-  "阿里云API网关": "ALIYUN",
-  "钉钉零信任网关": "DINGTRUST",
+  '无身份验证': 'NONE',
+  '基本身份验证': 'BASIC',
+  'API密钥': 'API_KEY',
+  '钉钉开放平台验证': 'DINGTALK',
+  '阿里云API网关': 'ALIYUN',
+  '钉钉零信任网关': 'DINGTRUST',
 };
 
 function parseArgs(args: string[]): CreateOptions {
-  const idIndex = args.indexOf("--id");
+  const idIndex = args.indexOf('--id');
   const isUpdateMode = idIndex !== -1;
 
   if (!isUpdateMode) {
     if (args.length < 2) {
-      console.error("❌ 错误: 创建连接器需要提供名称和域名");
+      console.error('❌ 错误: 创建连接器需要提供名称和域名');
       showUsage();
       process.exit(1);
     }
-    if (args[0].startsWith("--")) {
+    if (args[0].startsWith('--')) {
       console.error(`❌ 错误: 第一个参数 "${args[0]}" 看起来是一个选项，应该是连接器名称`);
       process.exit(1);
     }
-    if (args[1].startsWith("--")) {
+    if (args[1].startsWith('--')) {
       console.error(`❌ 错误: 第二个参数 "${args[1]}" 看起来是一个选项，应该是域名`);
       process.exit(1);
     }
@@ -112,53 +112,53 @@ function parseArgs(args: string[]): CreateOptions {
     connectorId: isUpdateMode ? args[idIndex + 1] : null,
     name: isUpdateMode ? null : args[0],
     baseUrl: isUpdateMode ? null : args[1],
-    authType: "NONE",
-    apiKeyLocation: "HEADER",
-    apiKeyName: "X-API-Key",
-    icon: "chaxun%%#FFA200",
+    authType: 'NONE',
+    apiKeyLocation: 'HEADER',
+    apiKeyName: 'X-API-Key',
+    icon: 'chaxun%%#FFA200',
   };
 
   for (let i = isUpdateMode ? 0 : 2; i < args.length; i++) {
     switch (args[i]) {
-      case "--help":
-      case "-h":
+      case '--help':
+      case '-h':
         showUsage();
         process.exit(0);
         break;
-      case "--id":
+      case '--id':
         options.connectorId = args[++i];
         break;
-      case "--auth":
+      case '--auth':
         options.authType = AUTH_TYPE_MAP[args[++i]] || args[i].toUpperCase();
         break;
-      case "--username":
+      case '--username':
         options.username = args[++i];
         break;
-      case "--password":
+      case '--password':
         options.password = args[++i];
         break;
-      case "--api-key-label":
+      case '--api-key-label':
         options.apiKeyLabel = args[++i];
         break;
-      case "--api-key-name":
+      case '--api-key-name':
         options.apiKeyName = args[++i];
         break;
-      case "--api-key-location":
+      case '--api-key-location':
         options.apiKeyLocation = args[++i]?.toUpperCase();
         break;
-      case "--app-key":
+      case '--app-key':
         options.appKey = args[++i];
         break;
-      case "--app-secret":
+      case '--app-secret':
         options.appSecret = args[++i];
         break;
-      case "--desc":
+      case '--desc':
         options.description = args[++i];
         break;
-      case "--icon":
+      case '--icon':
         options.icon = args[++i];
         break;
-      case "--operations":
+      case '--operations':
         options.operationsFile = args[++i];
         break;
     }
@@ -169,62 +169,62 @@ function parseArgs(args: string[]): CreateOptions {
 
 function buildSecuritySchemes(options: CreateOptions): string {
   switch (options.authType) {
-    case "BASIC":
+    case 'BASIC':
       return JSON.stringify({
         BasicAuth: {
-          username: options.username || "用户名",
-          password: options.password || "密码",
-          type: "http",
-          scheme: "basic",
+          username: options.username || '用户名',
+          password: options.password || '密码',
+          type: 'http',
+          scheme: 'basic',
         },
       });
-    case "API_KEY":
+    case 'API_KEY':
       return JSON.stringify({
         ApiKeyAuth: {
-          label: options.apiKeyLabel || "API Key",
-          name: options.apiKeyName || "X-API-Key",
-          location: options.apiKeyLocation === "QUERY" ? "query" : "header",
+          label: options.apiKeyLabel || 'API Key',
+          name: options.apiKeyName || 'X-API-Key',
+          location: options.apiKeyLocation === 'QUERY' ? 'query' : 'header',
         },
       });
-    case "DINGTALK":
+    case 'DINGTALK':
       if (!options.appKey || !options.appSecret) {
-        throw new Error("钉钉鉴权需要提供 --app-key 和 --app-secret");
+        throw new Error('钉钉鉴权需要提供 --app-key 和 --app-secret');
       }
       return JSON.stringify({ DingAuth: {} });
-    case "ALIYUN":
+    case 'ALIYUN':
       return JSON.stringify({ AliyunApiGateway: {} });
-    case "DINGTRUST":
+    case 'DINGTRUST':
       return JSON.stringify({ DingTrustGW: {} });
-    case "NONE":
+    case 'NONE':
     default:
-      return "{}";
+      return '{}';
   }
 }
 
 function parseBaseUrl(url: string): { scheme: string; host: string; basePath: string } {
   try {
-    const urlWithScheme = url.match(/^https?:\/\//) ? url : "https://" + url;
+    const urlWithScheme = url.match(/^https?:\/\//) ? url : 'https://' + url;
     const parsed = new URL(urlWithScheme);
     return {
-      scheme: parsed.protocol.replace(":", ""),
+      scheme: parsed.protocol.replace(':', ''),
       host: parsed.hostname,
-      basePath: "/",
+      basePath: '/',
     };
   } catch (e) {
     return {
-      scheme: "https",
-      host: url.replace(/^https?:\/\//, "").replace(/\/.*$/, ""),
-      basePath: "/",
+      scheme: 'https',
+      host: url.replace(/^https?:\/\//, '').replace(/\/.*$/, ''),
+      basePath: '/',
     };
   }
 }
 
 function generateConnectorName(): string {
-  return "Http_" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  return 'Http_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
 async function run(args: string[]): Promise<void> {
-  if (!args || args.length === 0 || args[0] === "--help" || args[0] === "-h") {
+  if (!args || args.length === 0 || args[0] === '--help' || args[0] === '-h') {
     showUsage();
     process.exit(0);
   }
@@ -234,63 +234,63 @@ async function run(args: string[]): Promise<void> {
 
   // 更新模式
   if (options.isUpdateMode) {
-    console.log(`🔧 正在更新连接器...\n`);
+    console.log('🔧 正在更新连接器...\n');
     console.log(`连接器 ID: ${options.connectorId}\n`);
 
     const connector = await findConnectorById(options.connectorId!, authRef);
     if (!connector) {
-      console.error("❌ 未找到该连接器");
+      console.error('❌ 未找到该连接器');
       process.exit(1);
     }
 
     console.log(`找到连接器: ${connector.displayName}`);
-    console.log(`当前描述: ${connector.connectorDesc || "(空)"}\n`);
+    console.log(`当前描述: ${connector.connectorDesc || '(空)'}\n`);
 
     const detail = await getConnectorDetail(connector.connectorName!, authRef);
-    const currentOperations = JSON.parse(detail.operations || "[]");
+    const currentOperations = JSON.parse(detail.operations || '[]');
     const newDesc = buildConnectorDesc(options.description || null, connector.connectorDesc || null, authRef, currentOperations);
 
     await saveConnector({
-      operations: detail.operations || "[]",
+      operations: detail.operations || '[]',
       displayName: detail.displayName,
-      iconUrl: detail.iconUrl || "chaxun%%#FFA200",
+      iconUrl: detail.iconUrl || 'chaxun%%#FFA200',
       connectorDesc: newDesc,
       host: detail.host,
-      baseUrl: detail.baseUrl || "/",
-      scheme: detail.scheme || "https",
-      tongxunluTemplateId: detail.tongxunluTemplateId ?? "",
-      faasTemplateId: detail.faasTemplateId || "0",
-      securitySchemes: detail.securitySchemes || "{}",
-      connectorMode: detail.connectorMode || "5",
+      baseUrl: detail.baseUrl || '/',
+      scheme: detail.scheme || 'https',
+      tongxunluTemplateId: detail.tongxunluTemplateId ?? '',
+      faasTemplateId: detail.faasTemplateId || '0',
+      securitySchemes: detail.securitySchemes || '{}',
+      connectorMode: detail.connectorMode || '5',
       id: options.connectorId ?? undefined,
       connectorName: connector.connectorName,
-      category: detail.category || "http",
+      category: detail.category || 'http',
     }, authRef);
 
-    console.log("✅ 连接器更新成功!");
-    console.log("\n新描述:");
+    console.log('✅ 连接器更新成功!');
+    console.log('\n新描述:');
     console.log(newDesc);
     return;
   }
 
   // 创建模式
-  console.log("🔧 正在创建连接器...\n");
+  console.log('🔧 正在创建连接器...\n');
   console.log(`名称: ${options.name}`);
   console.log(`基础域名: ${options.baseUrl}`);
   console.log(`鉴权方式: ${options.authType}`);
 
   if (!options.operationsFile) {
-    console.error("❌ 错误: 创建连接器必须提供 --operations 参数");
-    console.error("宜搭平台不允许创建没有执行动作的连接器");
+    console.error('❌ 错误: 创建连接器必须提供 --operations 参数');
+    console.error('宜搭平台不允许创建没有执行动作的连接器');
     process.exit(1);
   }
 
   let operations: any[];
   try {
-    const opsContent = fs.readFileSync(options.operationsFile, "utf-8");
+    const opsContent = fs.readFileSync(options.operationsFile, 'utf-8');
     operations = JSON.parse(opsContent);
     if (!Array.isArray(operations) || operations.length === 0) {
-      console.error("❌ 错误: operations 文件不能为空数组");
+      console.error('❌ 错误: operations 文件不能为空数组');
       process.exit(1);
     }
     console.log(`✓ 已加载 ${operations.length} 个执行动作`);
@@ -312,12 +312,12 @@ async function run(args: string[]): Promise<void> {
     host: urlInfo.host,
     baseUrl: urlInfo.basePath,
     scheme: urlInfo.scheme,
-    tongxunluTemplateId: "",
-    faasTemplateId: "0",
+    tongxunluTemplateId: '',
+    faasTemplateId: '0',
     securitySchemes,
-    connectorMode: "5",
+    connectorMode: '5',
     connectorName,
-    category: "http",
+    category: 'http',
   }, authRef);
 
   const connectorId = saveResult.connectorId;
@@ -325,7 +325,7 @@ async function run(args: string[]): Promise<void> {
     ? `https://yidalogin.aliwork.com/platformManage/customConnectorFactory/update?id=${connectorId}&connectorName=${connectorName}&mode=http`
     : null;
 
-  console.log("\n✅ 连接器创建成功!");
+  console.log('\n✅ 连接器创建成功!');
   if (connectorId) {
     console.log(`\nID: ${connectorId}`);
   }
@@ -335,8 +335,8 @@ async function run(args: string[]): Promise<void> {
   if (detailUrl) {
     console.log(`\n🔗 查看连接器:\n   ${detailUrl}`);
   } else {
-    console.log("\n💡 下一步: 查看连接器列表获取 ID");
-    console.log("   openyida connector list");
+    console.log('\n💡 下一步: 查看连接器列表获取 ID');
+    console.log('   openyida connector list');
   }
 }
 

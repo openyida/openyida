@@ -9,7 +9,7 @@ import {
   httpPost,
 } from '../core/utils';
 
-import { CHART_COMPONENT_MAP } from './constants';
+import { CHART_COMPONENT_MAP , genNodeId, genFieldId, randomId } from './constants';
 import {
   buildDataSetModelMap,
   buildUserConfigWithFields,
@@ -19,7 +19,6 @@ import {
   buildExportData,
   buildLink,
 } from './chart-builder';
-import { genNodeId, genFieldId, randomId } from './constants';
 
 // ── HTTP：获取已有报表 Schema ─────────────────────────
 // GET 用 /alibaba/web/ 路径

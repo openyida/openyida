@@ -44,33 +44,33 @@ function showUsage(): void {
 
 function parseArgs(args: string[]): ListOptions {
   const options: ListOptions = {
-    keyword: "",
-    type: "mine",
-    startDate: "",
-    endDate: "",
+    keyword: '',
+    type: 'mine',
+    startDate: '',
+    endDate: '',
     pageSize: 100,
   };
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case "--help":
-      case "-h":
+      case '--help':
+      case '-h':
         showUsage();
         process.exit(0);
         break;
-      case "--keyword":
+      case '--keyword':
         options.keyword = args[++i];
         break;
-      case "--type":
+      case '--type':
         options.type = args[++i];
         break;
-      case "--start-date":
+      case '--start-date':
         options.startDate = args[++i];
         break;
-      case "--end-date":
+      case '--end-date':
         options.endDate = args[++i];
         break;
-      case "--page-size":
+      case '--page-size':
         options.pageSize = parseInt(args[++i]) || 100;
         break;
     }
@@ -83,39 +83,39 @@ async function run(args: string[]): Promise<void> {
   const options = parseArgs(args || []);
   const authRef = getAuthRef();
 
-  console.log("🔍 正在获取连接器列表...\n");
+  console.log('🔍 正在获取连接器列表...\n');
 
-  if (options.keyword) console.log(`关键字: ${options.keyword}`);
-  if (options.type) console.log(`类型: ${options.type}`);
-  if (options.startDate) console.log(`开始日期: ${options.startDate}`);
-  if (options.endDate) console.log(`结束日期: ${options.endDate}`);
+  if (options.keyword) {console.log(`关键字: ${options.keyword}`);}
+  if (options.type) {console.log(`类型: ${options.type}`);}
+  if (options.startDate) {console.log(`开始日期: ${options.startDate}`);}
+  if (options.endDate) {console.log(`结束日期: ${options.endDate}`);}
 
   const { connectors, total } = await listConnectors(options, authRef);
 
   if (connectors.length === 0) {
-    console.log("📭 暂无连接器");
+    console.log('📭 暂无连接器');
     return;
   }
 
   console.log(`✅ 找到 ${total || connectors.length} 个连接器\n`);
 
-  const headers = ["ID", "显示名称", "连接器名", "描述", "创建人"];
+  const headers = ['ID', '显示名称', '连接器名', '描述', '创建人'];
   const rows = connectors.map(connector => [
-    connector.id || "-",
-    connector.displayName || "-",
-    connector.connectorName || "-",
+    connector.id || '-',
+    connector.displayName || '-',
+    connector.connectorName || '-',
     connector.connectorDesc
       ? connector.connectorDesc.length > 15
-        ? connector.connectorDesc.substring(0, 15) + "..."
+        ? connector.connectorDesc.substring(0, 15) + '...'
         : connector.connectorDesc
-      : "-",
-    connector.creator || "-",
+      : '-',
+    connector.creator || '-',
   ]);
 
   printTable(headers, rows);
 
-  console.log("\n💡 提示: 使用以下命令查看详情:");
-  console.log("   openyida connector detail <connector-id>");
+  console.log('\n💡 提示: 使用以下命令查看详情:');
+  console.log('   openyida connector detail <connector-id>');
 }
 
 export { run };

@@ -88,7 +88,7 @@ function generateChildList(schema: JsonSchema, operationId: string, parentKey: s
  * 从 JSON Schema 生成示例数据
  */
 function generateExample(schema: JsonSchema | null): any {
-  if (!schema) return null;
+  if (!schema) {return null;}
 
   switch (schema.type) {
     case 'string':

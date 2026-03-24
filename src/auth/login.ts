@@ -144,7 +144,7 @@ export function ensureLogin(): LoginResult {
     if (csrfToken) {
       console.error(t('login.using_cache'));
       console.error(t('login.csrf_ok', csrfToken.slice(0, 16)));
-      if (corpId) console.error(t('login.corp_id_ok', corpId));
+      if (corpId) {console.error(t('login.corp_id_ok', corpId));}
       const baseUrl = resolveBaseUrl(cookieData);
       return {
         csrf_token: csrfToken,
@@ -286,7 +286,7 @@ const { URL } = require('url');
     saveCookieCache(result.cookies, result.base_url);
 
     console.error(t('login.csrf_ok', csrfToken.slice(0, 16)));
-    if (corpId) console.error(t('login.corp_id_ok', corpId));
+    if (corpId) {console.error(t('login.corp_id_ok', corpId));}
 
     return {
       csrf_token: csrfToken,
