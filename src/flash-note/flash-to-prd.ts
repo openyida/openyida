@@ -22,6 +22,7 @@ import {
   httpPost,
   requestWithAutoLogin,
 } from '../core/utils';
+import { t } from '../core/i18n';
 import type {
   AuthRef,
   YidaApiResponse,
@@ -54,14 +55,14 @@ async function readFlashNoteContent(filePath: string | null): Promise<string> {
   if (filePath) {
     const absolutePath = path.resolve(filePath);
     if (!fs.existsSync(absolutePath)) {
-      throw new Error(`文件不存在：${absolutePath}`);
+      throw new Error(t('flash_to_prd.file_not_found', absolutePath));
     }
     return fs.readFileSync(absolutePath, 'utf-8');
   }
 
   return new Promise((resolve, reject) => {
     if (process.stdin.isTTY) {
-      reject(new Error('未提供闪记内容。请使用 --file 指定文件，或通过管道传入内容。'));
+      reject(new Error(t('flash_to_prd.no_input')));
       return;
     }
 
@@ -70,7 +71,7 @@ async function readFlashNoteContent(filePath: string | null): Promise<string> {
     process.stdin.on('data', (chunk: string) => { data += chunk; });
     process.stdin.on('end', () => {
       if (!data.trim()) {
-        reject(new Error('标准输入内容为空'));
+        reject(new Error(t('flash_to_prd.stdin_empty')));
         return;
       }
       resolve(data);
@@ -97,8 +98,8 @@ async function callAI(prompt: string, maxTokens: number, authRef: AuthRef): Prom
   }, authRef);
 
   if (!response || !response.success) {
-    const errorMsg = response ? response.errorMsg || '未知错误' : '请求失败';
-    throw new Error(`AI 接口调用失败：${errorMsg}`);
+    const errorMsg = response ? response.errorMsg || 'unknown error' : 'request failed';
+    throw new Error(t('flash_to_prd.ai_error', errorMsg));
   }
 
   const content = response.content as AiTextContent;
@@ -137,35 +138,35 @@ function loadPromptBuilder(): PromptBuilderModule {
   );
 
   if (fs.existsSync(skillsModulePath)) {
-    console.error('✅ 已加载内置 Prompt 模块');
+    console.error(t('flash_to_prd.module_loaded_builtin'));
     return require(skillsModulePath) as PromptBuilderModule;
   }
 
   if (fs.existsSync(localModulePath)) {
-    console.error(`✅ 已加载本地 Prompt 模块：${localModulePath}`);
+    console.error(t('flash_to_prd.module_loaded_local', localModulePath));
     return require(localModulePath) as PromptBuilderModule;
   }
 
-  console.error('❌ 未找到 build-flash-note-prompt.js 模块');
-  console.error(`  尝试路径 1：${skillsModulePath}`);
-  console.error(`  尝试路径 2：${localModulePath}`);
+  console.error(t('flash_to_prd.module_not_found'));
+  console.error(t('flash_to_prd.module_path_tried', '1', skillsModulePath));
+  console.error(t('flash_to_prd.module_path_tried', '2', localModulePath));
   process.exit(1);
 }
 
 // ── 帮助信息 ──────────────────────────────────────────
 
 function printHelp(): void {
-  console.error('用法：openyida flash-to-prd --file <闪记文件路径> [--name <项目名>]');
-  console.error('      openyida flash-to-prd --name <项目名>  （从标准输入读取）');
+  console.error(t('flash_to_prd.help_usage'));
+  console.error(t('flash_to_prd.help_usage2'));
   console.error('');
-  console.error('参数：');
-  console.error('  --file, -f <路径>       闪记文本文件路径（支持 .txt / .md）');
-  console.error('  --name, -n <名称>       项目名称（可选，默认从闪记内容中自动提取）');
-  console.error('  --max-tokens <数量>     AI 最大输出 token 数（默认 8000）');
+  console.error(t('flash_to_prd.help_args_title'));
+  console.error(t('flash_to_prd.help_arg_file'));
+  console.error(t('flash_to_prd.help_arg_name'));
+  console.error(t('flash_to_prd.help_arg_max_tokens'));
   console.error('');
-  console.error('示例：');
-  console.error('  openyida flash-to-prd --file ./meeting-notes.txt --name "设备巡检系统"');
-  console.error('  cat meeting.txt | openyida flash-to-prd --name "设备巡检系统"');
+  console.error(t('flash_to_prd.help_examples_title'));
+  console.error(t('flash_to_prd.help_example1'));
+  console.error(t('flash_to_prd.help_example2'));
 }
 
 // ── 主逻辑 ────────────────────────────────────────────
@@ -180,11 +181,11 @@ export async function run(args: string[]): Promise<void> {
 
   const SEP = '='.repeat(50);
   console.error(SEP);
-  console.error('📋 钉钉闪记转 PRD');
+  console.error(t('flash_to_prd.title'));
   console.error(SEP);
 
   // Step 1: 读取闪记内容
-  console.error('\n[Step 1] 读取闪记内容...');
+  console.error('\n' + t('flash_to_prd.step_read'));
   let rawFlashNote: string;
   try {
     rawFlashNote = await readFlashNoteContent(parsed.file);
@@ -192,16 +193,16 @@ export async function run(args: string[]): Promise<void> {
     console.error(`❌ ${(err as Error).message}`);
     process.exit(1);
   }
-  console.error(`✅ 读取成功，原文 ${rawFlashNote.length} 字`);
+  console.error(t('flash_to_prd.read_success', String(rawFlashNote.length)));
 
   // Step 2: 加载 Prompt 构建模块
-  console.error('\n[Step 2] 加载 Prompt 构建模块...');
+  console.error('\n' + t('flash_to_prd.step_load_module'));
   const promptBuilder = loadPromptBuilder();
 
   // Step 3: 预处理 + 会议识别
-  console.error('\n[Step 3] 预处理 + 会议识别...');
+  console.error('\n' + t('flash_to_prd.step_preprocess'));
   const cleanedText = promptBuilder.preprocessFlashNote(rawFlashNote);
-  console.error(`  预处理：${rawFlashNote.length} 字 → ${cleanedText.length} 字`);
+  console.error(t('flash_to_prd.preprocess_result', String(rawFlashNote.length), String(cleanedText.length)));
 
   const { meta: meetingMeta, bodyText: metaStrippedText } = promptBuilder.extractMeetingMeta(cleanedText);
   const { sections: a1Sections, remainingText: dialogueText } = promptBuilder.extractA1Summary(metaStrippedText);
@@ -209,25 +210,25 @@ export async function run(args: string[]): Promise<void> {
 
   const metaCount = Object.keys(meetingMeta).length;
   const metaTitle = meetingMeta.title ? `（${meetingMeta.title}）` : '';
-  console.error(`  会议元信息：${metaCount} 项${metaTitle}`);
+  console.error(t('flash_to_prd.meeting_meta', String(metaCount), metaTitle));
 
   const sectionTitles = a1Sections.length > 0
     ? `（${a1Sections.map(section => section.title).join('、')}）`
     : '';
-  console.error(`  A1 摘要段落：${a1Sections.length} 段${sectionTitles}`);
+  console.error(t('flash_to_prd.a1_sections', String(a1Sections.length), sectionTitles));
 
   const roleCount = speakers.filter(speaker => speaker.role).length;
-  const roleInfo = roleCount > 0 ? `（含角色标注 ${roleCount} 位）` : '';
-  console.error(`  发言人识别：${speakers.length} 位${roleInfo}`);
+  const roleInfo = roleCount > 0 ? t('flash_to_prd.speakers_with_role', String(roleCount)) : '';
+  console.error(t('flash_to_prd.speakers', String(speakers.length), roleInfo));
 
   const meetingContext = promptBuilder.buildMeetingContext(meetingMeta, a1Sections, speakers);
   const mainText = dialogueText || cleanedText;
 
   // Step 4: 登录态检查
-  console.error('\n[Step 4] 检查登录态...');
+  console.error('\n' + t('flash_to_prd.step_login'));
   let cookieData = loadCookieData();
   if (!cookieData) {
-    console.error('  未检测到登录态，触发登录...');
+    console.error(t('flash_to_prd.no_login'));
     cookieData = triggerLogin();
   }
 
@@ -237,10 +238,10 @@ export async function run(args: string[]): Promise<void> {
     baseUrl: resolveBaseUrl(cookieData),
     cookieData,
   };
-  console.error(`✅ 登录态就绪（${authRef.baseUrl}）`);
+  console.error(t('flash_to_prd.login_ready', authRef.baseUrl));
 
   // Step 5: 构建 Prompt 并调用 AI
-  console.error('\n[Step 5] 调用 AI 生成 PRD...');
+  console.error('\n' + t('flash_to_prd.step_ai'));
   const segments = promptBuilder.splitIntoSegments(mainText);
   let prdContent: string;
 
@@ -249,10 +250,10 @@ export async function run(args: string[]): Promise<void> {
       projectName: parsed.name || undefined,
       meetingContext: meetingContext || undefined,
     });
-    console.error(`  单段模式，Prompt 长度：${prompt.length} 字`);
+    console.error(t('flash_to_prd.single_segment', String(prompt.length)));
     prdContent = await callAI(prompt, parsed.maxTokens, authRef);
   } else {
-    console.error(`  多段模式，共 ${segments.length} 段`);
+    console.error(t('flash_to_prd.multi_segment', String(segments.length)));
     const segmentResults: string[] = [];
 
     for (let index = 0; index < segments.length; index++) {
@@ -262,17 +263,17 @@ export async function run(args: string[]): Promise<void> {
         totalSegments: segments.length,
         meetingContext: index === 0 ? (meetingContext || undefined) : undefined,
       });
-      console.error(`  提取第 ${index + 1}/${segments.length} 段（${segmentPrompt.length} 字）...`);
+      console.error(t('flash_to_prd.extracting_segment', String(index + 1), String(segments.length), String(segmentPrompt.length)));
       const result = await callAI(segmentPrompt, parsed.maxTokens, authRef);
       segmentResults.push(result);
     }
 
-    console.error('  合并分段结果...');
+    console.error(t('flash_to_prd.merging_segments'));
     const mergePrompt = promptBuilder.buildMergePrompt(segmentResults, parsed.name);
     prdContent = await callAI(mergePrompt, parsed.maxTokens, authRef);
   }
 
-  console.error('✅ PRD 生成成功');
+  console.error(t('flash_to_prd.ai_success'));
 
   // Step 6: 确定项目名称并写入文件
   const projectName = parsed.name || extractProjectNameFromPrd(prdContent);
@@ -301,12 +302,12 @@ export async function run(args: string[]): Promise<void> {
 
   const SEP2 = '='.repeat(50);
   console.error('\n' + SEP2);
-  console.error('✅ 闪记转 PRD 完成');
-  console.error(`  项目名称：${projectName}`);
-  console.error(`  输出文件：${prdFilePath}`);
-  console.error(`  文件大小：${prdContent.length} 字`);
+  console.error(t('flash_to_prd.done'));
+  console.error(t('flash_to_prd.done_project', projectName));
+  console.error(t('flash_to_prd.done_file', prdFilePath));
+  console.error(t('flash_to_prd.done_size', String(prdContent.length)));
   if (metaCount > 0 || a1Sections.length > 0) {
-    console.error(`  会议识别：元信息 ${metaCount} 项，A1 摘要 ${a1Sections.length} 段，发言人 ${speakers.length} 位`);
+    console.error(t('flash_to_prd.done_meeting', String(metaCount), String(a1Sections.length), String(speakers.length)));
   }
   console.error(SEP2);
 
