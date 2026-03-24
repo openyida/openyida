@@ -78,6 +78,17 @@ function parseArgs(args: string[]): AddActionOptions {
   return options;
 }
 
+/**
+ * 规范化执行动作配置
+ * 确保 method 字段为小写，兼容宜搭平台要求
+ */
+function normalizeOperations(operations: any[]): any[] {
+  return operations.map(op => ({
+    ...op,
+    method: op.method ? op.method.toLowerCase() : 'get',
+  }));
+}
+
 async function run(args: string[]): Promise<void> {
   if (!args || args.length === 0 || args[0] === '--help' || args[0] === '-h') {
     showUsage();
@@ -103,6 +114,8 @@ async function run(args: string[]): Promise<void> {
     if (!Array.isArray(newOperations)) {
       newOperations = [newOperations];
     }
+    // 规范化 operations，确保 method 字段为小写
+    newOperations = normalizeOperations(newOperations);
     console.log(`✓ 已加载 ${newOperations.length} 个执行动作`);
     newOperations.forEach((operation, index) => {
       console.log(`  [${index + 1}] ${operation.operationId}: ${operation.summary}`);

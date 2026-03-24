@@ -223,6 +223,17 @@ function generateConnectorName(): string {
   return 'Http_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
+/**
+ * 规范化执行动作配置
+ * 确保 method 字段为小写，兼容宜搭平台要求
+ */
+function normalizeOperations(operations: any[]): any[] {
+  return operations.map(op => ({
+    ...op,
+    method: op.method ? op.method.toLowerCase() : 'get',
+  }));
+}
+
 async function run(args: string[]): Promise<void> {
   if (!args || args.length === 0 || args[0] === '--help' || args[0] === '-h') {
     showUsage();
@@ -293,6 +304,8 @@ async function run(args: string[]): Promise<void> {
       console.error('❌ 错误: operations 文件不能为空数组');
       process.exit(1);
     }
+    // 规范化 operations，确保 method 字段为小写
+    operations = normalizeOperations(operations);
     console.log(`✓ 已加载 ${operations.length} 个执行动作`);
   } catch (e: any) {
     console.error(`❌ 读取执行动作配置文件失败: ${e.message}`);
