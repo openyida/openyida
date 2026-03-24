@@ -489,6 +489,12 @@ async function main() {
       break;
     }
 
+    case 'flash-to-prd': {
+      const { run: runFlashToPrd } = require('../lib/flash-note/flash-to-prd');
+      await runFlashToPrd(args);
+      break;
+    }
+
     case 'integration': {
       const subCommand = args[0];
 
