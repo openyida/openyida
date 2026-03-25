@@ -1,6 +1,6 @@
 {
   "name": "openyida",
-  "version": "2026.03.24",
+  "version": "2026.03.24-1",
   "description": "OpenYida CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
   "bin": {
     "openyida": "./bin/yida.js",
@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "eslint": "^8.50.0",
+    "eslint-plugin-import": "^2.32.0",
     "jest": "^29.7.0"
   },
   "jest": {
