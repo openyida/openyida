@@ -520,18 +520,27 @@ var wrongSharedKey = { 'filter-aaa-bbb-ccc-ddd': ['已完成'] };
 报表接口返回的 `meta[].aliasName` 可能是 **i18n 对象**（`{"zh_CN":"项目总数","type":"i18n"}`）而非纯字符串。必须做类型判断并提取 `zh_CN` 字段：
 
 ```javascript
-// ✅ 正确：解析 i18n 对象
+// ✅ 正确：解析 i18n 对象（支持 JS 对象和 JSON 字符串两种形式）
 var parseI18nName = function(nameValue) {
   if (!nameValue) return '';
-  if (typeof nameValue === 'string') return nameValue;
   if (typeof nameValue === 'object' && nameValue.zh_CN) return nameValue.zh_CN;
+  if (typeof nameValue === 'string') {
+    // aliasName 可能是 JSON 字符串形式的 i18n 对象，如 '{"zh_CN":"总任务数","type":"i18n"}'
+    if (nameValue.indexOf('{') === 0 && nameValue.indexOf('zh_CN') > -1) {
+      try {
+        var parsed = JSON.parse(nameValue);
+        if (parsed && parsed.zh_CN) return parsed.zh_CN;
+      } catch (e) { /* 非合法 JSON，返回原字符串 */ }
+    }
+    return nameValue;
+  }
   return String(nameValue);
 };
 
 // 使用示例
 var indicatorName = parseI18nName(meta.aliasName);  // → "项目总数"
 
-// ❌ 错误：直接使用 meta.aliasName → 显示为 "[object Object]"
+// ❌ 错误：直接使用 meta.aliasName → 显示为 "[object Object]" 或 '{"zh_CN":"总任务数","type":"i18n"}'
 var wrongName = meta.aliasName;
 ```
 

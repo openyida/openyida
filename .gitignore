@@ -65,3 +65,16 @@ openyida/pages/src/*
 # 需求文档（保留 demo 示例）
 openyida/prd/*
 !openyida/prd/demo-*
+
+# ── 当前项目本地工程文件 ────────────────────────────
+# 自定义页面源码（保留 demo 示例）
+project/pages/src/*
+!project/pages/src/demo-*
+
+# 需求文档和报表配置（保留 demo 示例）
+project/prd/*
+!project/prd/demo-*
+
+# 临时文件
+tmp_*.py
+*-report.json
