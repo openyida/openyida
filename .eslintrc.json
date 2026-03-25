@@ -29,6 +29,7 @@
   "ignorePatterns": [
     "node_modules/",
     "project/pages/dist/",
-    "**/*.compile.js"
+    "**/*.compile.js",
+    "lib/core/babel-transform/"
   ]
 }
