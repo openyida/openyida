@@ -50,6 +50,7 @@ openyida/
 │   │   ├── configure-process.js   # 配置并发布流程规则
 │   │   └── create-process.js      # 创建流程表单（一体化）
 │   ├── connector/           # HTTP 连接器管理
+│   │   ├── api.js                 # 连接器 API 请求封装
 │   │   ├── connector-list.js
 │   │   ├── connector-create.js
 │   │   ├── connector-detail.js
@@ -62,7 +63,12 @@ openyida/
 │   │   ├── connector-create-connection.js
 │   │   ├── connector-smart-create.js
 │   │   ├── connector-parse-api.js
-│   │   └── connector-gen-template.js
+│   │   ├── connector-gen-template.js
+│   │   ├── curl-parser.js         # cURL 命令解析
+│   │   ├── doc-parser.js          # API 文档解析
+│   │   ├── response-parser.js     # 响应结构解析
+│   │   ├── action-generator.js    # Action 自动生成
+│   │   └── desc-generator.js      # 描述自动生成
 │   ├── cdn/                 # CDN / OSS 管理
 │   │   ├── cdn-config.js          # CDN 配置读写
 │   │   ├── cdn-config-cmd.js      # CDN 配置命令
@@ -75,6 +81,7 @@ openyida/
 │       ├── chart-builder.js       # 图表 Schema 构建
 │       ├── http.js                # 报表 HTTP 请求封装
 │       └── constants.js           # 常量与 ID 生成工具
+│   └── data-management.js   # 表单数据管理（增删改查）
 ├── project/
 │   ├── config.json          # 应用配置（appType、pageId 等）
 │   └── pages/               # 自定义页面源码目录
@@ -83,7 +90,9 @@ openyida/
 │   ├── skills/              # 子技能目录（每个 skill 自包含 SKILL.md + references/）
 │   └── reference/           # 跨 skill 共享参考文档（yida-api、model-api、query-condition-guide）
 └── scripts/
-    └── postinstall.js       # 安装后脚本（环境检测 + 配置注入）
+    ├── postinstall.js       # 安装后脚本（环境检测 + 配置注入）
+    ├── validate-ci.sh       # CI 校验脚本
+    └── validate-structure.js # 项目结构校验
 ```
 
 ## 关键约定
