@@ -254,7 +254,7 @@ openyida data query tasks "APP_XXX" --type todo --page 1 --size 10
 ```text
 yida-data-management/
 ├── SKILL.md
-└── reference/
+└── references/
     ├── api-matrix.md
     ├── data-format-guide.md
     └── verified-endpoints.md

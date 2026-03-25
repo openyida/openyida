@@ -67,7 +67,7 @@ openyida publish <源文件路径> <appType> <formUuid>
 
 ## 核心约束速查
 
-> 完整编码规范详见 [编码指南](../../reference/coding-guide.md)，以下仅列出最关键的约束。
+> 完整编码规范详见 [编码指南](references/coding-guide.md)，以下仅列出最关键的约束。
 
 | # | 约束 | 说明 |
 |---|------|------|

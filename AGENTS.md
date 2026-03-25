@@ -109,6 +109,13 @@ openyida/
 - 发布前通过 `lib/babel-transform/` 进行 Babel 编译
 - 编译产物输出到 `project/pages/dist/`
 
+### yida-skills 架构规范
+- **入口文件** `yida-skills/SKILL.md` 是索引表，列出所有子技能和共享参考文档
+- **每个子技能**位于 `yida-skills/skills/<skill-name>/` 目录下，包含独立的 `SKILL.md`
+- **专属参考文档**放在各 skill 的 `references/` 目录下（复数形式），实现自包含
+- **跨 skill 共享文档**保留在 `yida-skills/reference/` 目录下（`yida-api.md`、`model-api.md`、`query-condition-guide.md`）
+- 新增子技能时，同步更新 `yida-skills/SKILL.md` 的索引表
+
 ## 开发注意事项
 
 1. **不要修改 `yida-skills/` 下的文档**，除非是在更新技能描述
@@ -123,7 +130,13 @@ openyida/
 1. 在 `lib/` 下创建 `new-command.js`
 2. 在 `bin/yida.js` 中注册命令路由
 3. 在 `README.md` 的 CLI 命令一览表中添加说明
-4. 在 `yida-skills/SKILL.md` 中更新技能描述
+4. 在 `yida-skills/SKILL.md` 中更新技能描述（索引表中添加新行）
+
+### 添加新子技能
+1. 在 `yida-skills/skills/` 下创建 `<skill-name>/SKILL.md`
+2. 若有专属参考文档，放在 `<skill-name>/references/` 目录下
+3. 在 `yida-skills/SKILL.md` 的索引表中添加新行
+4. 在 `AGENTS.md` 中无需额外更新（索引表自动覆盖）
 
 ### 调试登录问题
 - 检查 `lib/login.js` 中的 Cookie 缓存逻辑

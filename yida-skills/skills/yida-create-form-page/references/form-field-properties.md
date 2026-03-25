@@ -366,4 +366,4 @@ formula 是对象格式，不是字符串：
 
 其中 `<escapedRuleJson>` 是 `{ "type": "custom", "value": <serialNumberRule数组> }` 的 JSON 字符串，需对双引号转义（`"` → `\"`）。
 
-> 详细用法参考 `../reference/serial-number-field.md`
+> 详细用法参考 `serial-number-field.md`
