@@ -1,131 +1,76 @@
 ---
 name: yida-process-rule
-description: 宜搭流程规则配置技能，通过调用流程设计器 API 实现流程的创建、配置（条件分支、嵌套分支、审批节点、字段权限、抄送节点、跳转规则）、保存和发布。
-license: MIT
-compatibility:
-  - opencode
-  - claude-code
-metadata:
-  audience: developers
-  workflow: yida-development
-  version: 1.0.0
-  tags:
-    - yida
-    - low-code
-    - process
-    - workflow
-    - approval
+description: 宜搭流程规则配置。支持审批节点、条件分支、嵌套分支、字段权限、抄送节点、跳转规则。
 ---
 
-# 宜搭流程规则配置技能
+# 流程规则配置
 
-## 概述
-
-本技能描述如何通过流程设计器 API 为宜搭流程表单配置审批流程。支持审批节点、条件分支、嵌套分支、字段权限、抄送节点、跳转规则等完整的流程配置能力。
-
-## 何时使用
-
-当以下场景发生时使用此技能：
-- 用户需要为已有的流程表单配置审批流程
-- 用户需要修改已有流程的审批规则
-- 用户需要配置条件分支、嵌套分支等复杂流程
-- 已通过 `yida-create-form-page` 创建表单后，需要配置流程规则
-
-> **提示**：如果需要一步到位创建表单 + 配置流程，请使用 `yida-create-process` 技能。
-
-## 使用方式
+## 命令
 
 ```bash
 openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode]
 ```
 
-**参数说明**：
-
 | 参数 | 必填 | 说明 |
-| --- | --- | --- |
-| `appType` | 是 | 应用 ID，如 `APP_XXX` |
-| `formUuid` | 是 | 表单 UUID，如 `FORM-XXX` |
+|------|------|------|
+| `appType` | 是 | 应用 ID |
+| `formUuid` | 是 | 表单 UUID |
 | `processDefinitionFile` | 是 | 流程定义 JSON 文件路径 |
-| `processCode` | 否 | 流程 Code，如 `TPROC--XXX`。不传则自动获取 |
+| `processCode` | 否 | 流程 Code，不传则自动获取 |
 
-**示例**：
-
-```bash
-openyida configure-process "APP_XXX" "FORM-YYY" process-definition.json
-```
-
-**输出**：日志输出到 stderr，JSON 结果输出到 stdout：
+## 输出
 
 ```json
-{
-  "success": true,
-  "processCode": "TPROC--XXX",
-  "processId": "83145794990",
-  "processVersion": 2,
-  "appType": "APP_XXX",
-  "formUuid": "FORM-YYY"
-}
+{"success":true,"processCode":"TPROC--XXX","processId":"83145794990","processVersion":2,"appType":"APP_XXX","formUuid":"FORM-YYY"}
 ```
 
 ## 流程定义 JSON 格式
 
-流程定义文件描述审批流程的节点结构，脚本会自动转换为宜搭平台需要的 `processJson` 和 `viewJson`。
-
 ### 节点类型
 
 | 类型 | 说明 | 必填属性 |
-| --- | --- | --- |
+|------|------|----------|
 | `approval` | 审批节点 | `name`, `approver` |
-| `route` | 条件分支路由 | `conditions` |
+| `route` | 条件分支 | `conditions` |
 | `carbon` | 抄送节点 | `name`, `approver` |
 
-### 审批节点属性
+### 审批节点
 
 | 属性 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `type` | String | 是 | 固定 `"approval"` |
+|------|------|------|------|
+| `type` | String | 是 | `"approval"` |
 | `name` | String | 是 | 节点名称 |
-| `approver` | String | 是 | 审批人，目前支持 `"originator"`（发起人） |
+| `approver` | String | 是 | 审批人，支持 `"originator"` |
 | `description` | String | 否 | 节点描述 |
 | `formConfig` | Object | 否 | 字段权限配置 |
 | `routeRules` | Array | 否 | 跳转规则 |
 
-### 条件分支属性
+### 条件分支
 
-| 属性 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `type` | String | 是 | 固定 `"route"` |
-| `conditions` | Array | 是 | 条件列表 |
-
-### 条件定义
-
-| 属性 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `name` | String | 是 | 条件名称 |
-| `rules` | Array | 是 | 条件规则列表 |
-| `logic` | String | 否 | 规则逻辑，`"AND"`（默认）或 `"OR"` |
-| `childNodes` | Array | 否 | 条件满足时执行的子节点列表 |
-
-### 条件规则
-
-| 属性 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `fieldId` | String | 是 | 字段 ID，如 `selectField_xxx` |
-| `fieldName` | String | 是 | 字段名称 |
-| `op` | String | 是 | 操作符 |
-| `value` | String/Array | 是 | 比较值 |
-| `componentType` | String | 是 | 字段组件类型 |
+```json
+{
+  "type": "route",
+  "conditions": [
+    {
+      "name": "金额大于1000",
+      "logic": "AND",
+      "rules": [{ "fieldId": "numberField_xxx", "fieldName": "金额", "op": "GreaterThan", "value": "1000", "componentType": "NumberField" }],
+      "childNodes": [{ "type": "approval", "name": "财务审批", "approver": "originator" }]
+    }
+  ]
+}
+```
 
 ### 支持的操作符
 
 | 操作符 | 说明 | 适用类型 |
-| --- | --- | --- |
-| `Equal` | 等于 | 所有类型 |
-| `NotEqual` | 不等于 | 所有类型 |
+|--------|------|----------|
+| `Equal` | 等于 | 所有 |
+| `NotEqual` | 不等于 | 所有 |
 | `Contains` | 包含 | TextField |
 | `NotContain` | 不包含 | TextField |
-| `IsEmpty` | 为空 | 所有类型 |
-| `IsNotEmpty` | 不为空 | 所有类型 |
+| `IsEmpty` | 为空 | 所有 |
+| `IsNotEmpty` | 不为空 | 所有 |
 | `GreaterThan` | 大于 | NumberField |
 | `GreaterThanOrEqual` | 大于等于 | NumberField |
 | `LessThan` | 小于 | NumberField |
@@ -133,7 +78,7 @@ openyida configure-process "APP_XXX" "FORM-YYY" process-definition.json
 | `In` | 属于 | SelectField, RadioField |
 | `NotIn` | 不属于 | SelectField, RadioField |
 
-### 字段权限配置（formConfig）
+### 字段权限（formConfig）
 
 ```json
 {
@@ -147,7 +92,7 @@ openyida configure-process "APP_XXX" "FORM-YYY" process-definition.json
 ```
 
 | fieldBehavior | 说明 |
-| --- | --- |
+|---------------|------|
 | `NORMAL` | 可编辑 |
 | `READONLY` | 只读 |
 | `HIDDEN` | 隐藏 |
@@ -155,133 +100,37 @@ openyida configure-process "APP_XXX" "FORM-YYY" process-definition.json
 ### 跳转规则（routeRules）
 
 ```json
-{
-  "routeRules": [
-    { "when": "disagree", "jumpTo": "部门主管审核" }
-  ]
-}
+{ "routeRules": [{ "when": "disagree", "jumpTo": "部门主管审核" }] }
 ```
 
-`jumpTo` 的值为目标审批节点的 `name`，或 `"结束"` 表示跳到流程结束。
+`jumpTo` 为目标节点 `name`，或 `"结束"`。
 
-## AI 自动生成流程特性（必须遵守）
+## AI 自动生成流程特性
 
-当 AI 根据用户需求生成流程定义 JSON 时，**必须自动分析并生成字段权限和跳转规则**。详细规范请参考 [AI 自动生成流程定义规范](references/process-ai-rules.md)。
+生成流程定义 JSON 时，**必须自动分析并生成**：
 
-**核心要点**：
-- 🔐 **字段权限**：每个审批节点只允许编辑与其职责相关的字段，其他设为 READONLY/HIDDEN
-- 🔄 **跳转规则**：自动识别回退/循环场景（不合格、退回、驳回等），配置 `routeRules`
-- 📋 **检查清单**：生成前必须逐项检查 8 个要点（详见参考文档）
+1. **🔐 字段权限**：每个审批节点只允许编辑相关字段，其他设为 READONLY/HIDDEN
+2. **🔄 跳转规则**：识别回退/循环语义，自动配置 `routeRules`
 
----
+详见 [AI 自动生成流程定义规范](references/process-ai-rules.md)。
 
-## 使用示例
+## 示例
 
-### 示例 1：简单审批流程
+### 简单审批
+
+```json
+{ "nodes": [{ "type": "approval", "name": "主管审批", "approver": "originator" }] }
+```
+
+### 条件分支 + 抄送
 
 ```json
 {
   "nodes": [
-    {
-      "type": "approval",
-      "name": "主管审批",
-      "approver": "originator"
-    }
-  ]
-}
-```
-
-流程：`发起 → 主管审批 → 结束`
-
-### 示例 2：带条件分支的审批流程
-
-```json
-{
-  "nodes": [
-    {
-      "type": "route",
-      "conditions": [
-        {
-          "name": "金额大于1000",
-          "rules": [
-            {
-              "fieldId": "numberField_xxx",
-              "op": "GreaterThan",
-              "value": "1000",
-              "componentType": "NumberField",
-              "fieldName": "金额"
-            }
-          ],
-          "childNodes": [
-            { "type": "approval", "name": "财务审批", "approver": "originator" }
-          ]
-        }
-      ]
-    },
+    { "type": "route", "conditions": [{ "name": "金额大于1000", "rules": [{ "fieldId": "numberField_xxx", "op": "GreaterThan", "value": "1000", "componentType": "NumberField", "fieldName": "金额" }], "childNodes": [{ "type": "approval", "name": "财务审批", "approver": "originator" }] }] },
     { "type": "carbon", "name": "抄送通知", "approver": "originator" }
   ]
 }
 ```
 
-流程：`发起 → 条件分支（金额>1000 → 财务审批 / 其他 → 直接通过） → 抄送通知 → 结束`
-
-### 示例 3：嵌套分支 + 字段权限 + 跳转规则
-
-展示嵌套条件分支、字段权限配置和跳转规则的完整示例。`openyida configure-process "APP_XXX" "FORM-YYY" examples/nested-branch.json`
-
-### 示例 4：配置自定义详情页（解决钉钉工作通知链接问题）
-
-配置 `processDetailUrl` 后，钉钉工作通知推送的链接将直接指向自定义详情页。`openyida configure-process "APP_XXX" "FORM-YYY" examples/custom-detail-page.json`
-
-### 示例 5：带跳转规则的审批流程
-
-展示拒绝时跳回前序节点的配置，支持不合格→重新处理等场景。`openyida configure-process "APP_XXX" "FORM-YYY" examples/route-rules.json`
-
-## 工作流程
-
-```
-读取登录态（.cache/cookies.json）
-    ↓
-读取流程定义 JSON
-    ↓
-获取 processCode（自动或手动传入）
-    ├─ switchFormType 转为流程表单
-    ├─ getAppPlatFormParam 提取 processCode（推荐）
-    └─ getFormSchema 正则匹配（备用）
-    ↓
-查询流程版本列表
-    ↓
-创建新流程版本草稿
-    ↓
-构建 processJson + viewJson
-    ↓
-saveProcessById 保存流程
-    ↓
-publishProcessById 发布流程
-    ↓
-输出结果 JSON
-```
-
-## 前置依赖
-
-- Node.js ≥ 16
-- 项目根目录存在 `.cache/cookies.json`（首次运行会自动触发扫码登录）
-
-## 文件结构
-
-```
-yida-process-rule/
-└── SKILL.md                    # 本文档
-```
-
-## 与其他技能配合
-
-| 步骤 | 技能 | 说明 |
-| --- | --- | --- |
-| 1 | `yida-create-app` | 创建应用，获取 `appType` |
-| 2 | `yida-create-form-page` | 创建表单，获取 `formUuid` 和字段 ID |
-| 3 | **本技能** | 配置表单的流程规则 |
-| 4 | `yida-custom-page` | 编写自定义页面代码 |
-| 5 | `yida-publish-page` | 发布自定义页面 |
-
-> **快捷方式**：使用 `yida-create-process` 技能可一键完成步骤 2-3（创建表单 + 配置流程）。
+> 一步到位创建表单 + 配置流程，请使用 `yida-create-process`。

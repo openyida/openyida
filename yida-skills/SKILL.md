@@ -1,25 +1,8 @@
 ---
 name: yida
 description: >
-  宜搭 AI 应用开发总入口技能。通过 AI 智能体 + 宜搭低代码平台，实现一句话生成完整应用。
-  包含应用创建、表单设计、自定义页面开发、页面发布、流程配置、数据管理等完整开发流程。
-  当用户提到"宜搭"、"yida"、"低代码"、"创建应用"、"创建表单"、"发布页面"、"搭建"、"系统"等关键词时，使用此技能。
-license: MIT
-compatibility:
-  - opencode
-  - claude-code
-  - qoder
-  - wukong
-metadata:
-  audience: developers
-  workflow: yida-development
-  version: 4.0.0
-  tags:
-    - yida
-    - low-code
-    - app
-    - form
-    - custom-page
+  宜搭低代码平台 AI 开发入口。一句话生成完整应用：创建应用、表单设计、自定义页面、流程配置、数据管理。
+  当用户提到"宜搭"、"yida"、"低代码"、"创建应用"、"创建表单"、"发布页面"、"搭建"、"系统"时触发。
 ---
 
 # 宜搭 AI 应用开发指南
