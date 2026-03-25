@@ -174,18 +174,6 @@ openyida data query tasks <appType> --type cc --page 1 --size 20
 | `getDoneTasksInApp` | GET | `/dingtalk/web/{appType}/v1/task/getDoneTasksInApp.json` | 已完成任务 |
 | `getNotifyMeTasksInApp` | GET | `/dingtalk/web/{appType}/v1/task/getNotifyMeTasksInApp.json` | 抄送我的任务 |
 
-常用参数：
-- `currentPage`
-- `pageSize`
-- `keyword`
-
-常见返回字段：
-- `result.totalCount`
-- `result.currentPage`
-- `result.data[]`
-- `result.data[].taskId`
-- `result.data[].processInstanceId`
-
 ## 数据格式
 
 ### 查询条件 `searchFieldJson`

@@ -214,50 +214,10 @@ openyida create-form create "<appType>" "<表单名称>" .cache/fields.json
 
 #### 5.3 将表单信息写入 prd 文档和 .cache 临时文件
 
-**写入 prd 文档**（只记录业务语义信息，不记录 Schema ID）：
+- **prd 文档**：记录业务语义信息（字段名称、类型、说明），不记录 Schema ID
+- **`.cache/<项目名>-schema.json`**：记录 Schema ID（`appType`、`formUuid`、`fieldId`），供编码时读取
 
-```markdown
-## 页面与表单配置
-
-### 图片生成表（表单页面）
-
-| 字段名称 | 字段类型 | 说明 |
-| --- | --- | --- |
-| 词语 | TextField / 单行文本 | 必填 |
-| 图片地址 | TextField / 单行文本 | 选填 |
-| 用户ID | TextField / 单行文本 | 系统字段，自动填充 |
-| 用户名 | TextField / 单行文本 | 系统字段，自动填充 |
-
-### 首页（自定义页面）
-
-展示图片生成结果，支持关键词搜索。
-```
-
-**写入 `.cache/<项目名>-schema.json`**（记录 Schema ID，供编码时读取）：
-
-```json
-{
-  "appType": "APP_XXXXXX",
-  "pages": {
-    "图片生成表": {
-      "formUuid": "FORM-XXXXXX",
-      "fields": {
-        "词语": "textField_xxxxxxxx",
-        "图片地址": "textField_xxxxxxxx",
-        "用户ID": "textField_xxxxxxxx",
-        "用户名": "textField_xxxxxxxx"
-      }
-    },
-    "首页": {
-      "formUuid": "FORM-XXXXXX"
-    }
-  }
-}
-```
-
-> ⚠️ **重要**：每次创建或修改表单/自定义页面后，必须同步更新：
-> 1. **prd 文档**：更新对应页面/表单的字段名称、类型、说明
-> 2. **`.cache/<项目名>-schema.json`**：更新对应的 `formUuid` 和 `fieldId`
+> ⚠️ **重要**：每次创建或修改表单/自定义页面后，必须同步更新 prd 文档和 `.cache/<项目名>-schema.json`
 
 > 详见 `yida-create-form-page` 技能文档。
 
@@ -375,20 +335,6 @@ A：直接重新执行 `yida-publish` 命令即可，会覆盖已有 Schema。
 
 ## 文件结构约定
 
-```
-项目根目录/
-├── README.md                # 用来判断根目录路径，必须存在
-├── config.json              # 全局配置（loginUrl、defaultBaseUrl）
-├── .cache/
-│   └── cookies.json         # 登录态缓存和其他临时文件（运行时自动生成）
-├── pages/src/
-│   └── <项目名>.js          # 自定义页面源码
-├── pages/dist/
-│   └── <项目名>.js          # 自定义页面编译后的代码
-├── prd/
-│   └── <项目名>.md          # 需求文档（含所有配置信息）
-└── .claude/
-    └── skills/              # 各子技能目录
-```
+项目根目录包含：`README.md`、`config.json`、`.cache/`（登录态缓存）、`pages/src/`（源码）、`pages/dist/`（编译后代码）、`prd/`（需求文档）。
 
-> - **临时文件写在当前工程根目录的 .cache 文件夹中，如果没有就创建一个文件夹，注意不要写在系统的其他文件夹中**
+> 详见 `AGENTS.md` 中的完整项目结构说明。

@@ -143,334 +143,41 @@ node scripts/create-connector.js \
 > ```
 
 ### 示例 4：获取连接器详情
-```bash
-node scripts/get-connector-detail.js <connector-id>
-```
+获取指定连接器的详细信息。`node scripts/get-connector-detail.js <connector-id>`
 
 ### 示例 5：列出鉴权账号
-```bash
-node scripts/list-connections.js <connector-id>
-```
+列出指定连接器的所有鉴权账号。`node scripts/list-connections.js <connector-id>`
 
 ### 示例 6：创建鉴权账号
-
-**基本身份验证：**
-```bash
-node scripts/create-connection.js 910264 "测试账号" \
-  --username "nameceshi" --password "pwdceshi"
-```
-
-**API 密钥：**
-```bash
-node scripts/create-connection.js 910258 "生产密钥" \
-  --api-key "sk-xxxxxxxx"
-```
-
-**钉钉开放平台：**
-```bash
-node scripts/create-connection.js 910244 "钉钉账号" \
-  --app-key "dingxxx" --app-secret "xxx"
-```
-
-**阿里云 API 网关：**
-```bash
-node scripts/create-connection.js 910264 "阿里云账号" \
-  --app-code "your-app-code"
-```
-
-**钉钉零信任网关：**
-```bash
-node scripts/create-connection.js 910264 "零信任账号" \
-  --app-key "ak" --app-secret "sk"
-```
+支持基本身份验证、API 密钥、钉钉开放平台、阿里云 API 网关、钉钉零信任网关等多种鉴权方式。`node scripts/create-connection.js <connector-id> "账号名称" [鉴权参数]`
 
 ### 示例 7：添加执行动作到已有连接器（智能匹配）
-
-> **⚠️ 重要工作流规范（必须严格遵守）**：
-> 1. **必须先执行第一步**展示匹配列表，**停下来询问用户**是追加到已有连接器还是新建，**不能直接带 `--connector-id` 跳过用户确认**
-> 2. 即使用户之前已经说过要追加到某个连接器，也必须先展示匹配结果让用户再次确认，才能执行第二步
-> 3. 如果未找到匹配连接器，展示"未找到匹配连接器"并询问用户是否新建
-
-```bash
-# 第一步：智能匹配，展示候选连接器列表（必须先执行这步，停下来让用户确认）
-node scripts/add-action-to-connector.js \
-  --operations ./new-action.json \
-  --host api.dingtalk.com
-
-# 第二步：用户确认后，追加到指定连接器（需用户明确确认后才能执行）
-node scripts/add-action-to-connector.js \
-  --operations ./new-action.json \
-  --connector-id 910244
-
-# 或者：用户选择新建连接器
-node scripts/create-connector.js "新连接器名称" "api.dingtalk.com" \
-  --auth "API密钥" --operations ./new-action.json
-```
-
-> **智能匹配**: 脚本会根据域名和鉴权方式自动筛选可复用的连接器，避免重复创建。
+根据域名和鉴权方式智能匹配已有连接器，避免重复创建。必须先展示匹配列表让用户确认，再执行追加操作。`node scripts/add-action-to-connector.js --operations ./new-action.json --host api.dingtalk.com`
 
 ### 示例 8：测试执行动作（传统方式）
-
-**有鉴权的连接器（需要 connection-id）：**
-```bash
-# 测试连接
-node scripts/test-action.js 910244 testConnection 25967
-
-# 测试获取附件临时免登地址
-node scripts/test-action.js 910244 getTemporaryUrl 25967 \
-  --params '{"path":{"appType":"APP_XXX"},"query":{"fileUrl":"https://..."}}'
-```
-
-**无鉴权的连接器（不需要 connection-id）：**
-```bash
-node scripts/test-action.js 910258 sendDeviceAlarm \
-  --params '{"body":[{"name":"测试告警"}]}'
-```
+测试连接器的执行动作，支持有鉴权和无鉴权的连接器。`node scripts/test-action.js <connector-id> <action-id> [参数]`
 
 ### 示例 9：测试连接器（推荐）
-
-使用 `test-connector.js` 进行更便捷的测试：
-
-**基本测试：**
-```bash
-node scripts/test-connector.js \
-  --connector-id 910296 \
-  --action dataQuery_queryThroughView.json
-```
-
-**带参数测试：**
-```bash
-node scripts/test-connector.js \
-  --connector-id 910296 \
-  --action dataQuery_queryThroughView.json \
-  --params '{"appType": "APP_XXX", "formUuid": "FORM_XXX"}'
-```
-
-**使用指定认证账号测试：**
-```bash
-node scripts/test-connector.js \
-  --connector-id 910296 \
-  --action dataQuery_queryThroughView.json \
-  --account-id 12345
-```
-
-功能特点：
-- 自动获取连接器配置和默认参数
-- 显示完整的请求和响应信息
-- 支持自定义测试参数
-- 自动检测需要的认证账号
+使用 `test-connector.js` 进行更便捷的测试，自动获取连接器配置和默认参数，支持自定义测试参数和指定认证账号。`node scripts/test-connector.js --connector-id <id> --action <action-file> [参数]`
 
 ## 智能创建连接器（推荐）
 
-智能创建采用三阶段工作流程，让连接器创建更加高效和准确：
-
-### 三阶段工作流程
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   阶段 1: 解析   │ → │   阶段 2: 匹配   │ → │   阶段 3: 配置   │
-│  自动解析接口信息 │    │  智能匹配已有连接器│    │  生成配置并测试  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-**阶段 1 - 信息收集与解析**
-- 解析 curl 命令，提取协议、Host、路径、方法、鉴权方式
-- 自动识别 6 种鉴权方式
-- 过滤浏览器自动添加的 headers，保留业务参数
-
-**阶段 2 - 智能匹配与选择**
-- 根据 Host 和鉴权方式查找已有连接器
-- 显示匹配列表供用户选择
-- 支持追加到已有连接器或新建
-
-**阶段 3 - 配置与测试**
-- 自动生成执行动作配置
-- 生成有意义的动作名称和描述
-- 提供三种测试方式（自动测试、平台测试、表单测试）
-
-### 方式 1：使用 curl 命令快速创建
+智能创建采用三阶段流程：**解析**（提取接口信息）→ **匹配**（查找已有连接器）→ **配置**（生成动作并测试）。
 
 ```bash
-node scripts/smart-create-connector.js \
-  --curl "curl 'https://api.dingtalk.com/v1.0/hrm/rosters' -H 'Authorization: Bearer xxx'" \
-  --name "钉钉花名册连接器" \
-  --desc "查询钉钉员工花名册"
-```
+# 方式 1：从 curl 命令创建（推荐）
+node scripts/smart-create-connector.js --curl "curl 'https://api.dingtalk.com/v1.0/hrm/rosters' -H 'Authorization: Bearer xxx'" --name "钉钉花名册连接器"
 
-执行后将输出：
-1. 解析结果（协议、Host、方法、鉴权方式）
-2. 匹配的已有连接器列表（如有）
-3. 生成的配置信息（动作名称、描述、参数）
-4. 下一步操作命令（创建或追加）
-5. 测试策略建议
-
-### 方式 2：解析已有信息
-
-```bash
-# 解析 curl 命令
-node scripts/parse-api-info.js --curl "curl命令"
-
-# 解析接口文档
+# 方式 2：解析接口文档
 node scripts/parse-api-info.js --doc ./api-doc.md
-```
 
-### 方式 3：使用接口文档模板
-
-当提供的信息不足以创建连接器时，生成模板让用户填写：
-
-```bash
-# 生成模板到当前目录
+# 方式 3：生成接口文档模板（信息不足时）
 node scripts/generate-api-template.js
-
-# 生成到指定路径
-node scripts/generate-api-template.js ./my-api-doc.md
 ```
-
-模板包含以下信息收集项：
-- 基本信息（接口名称、提供方、文档链接）
-- 服务器信息（协议、Host、BaseUrl）
-- 鉴权方式（6种方式可选）
-- 执行动作列表（方法、路径、参数、响应）
-- 请求示例（curl）
-
-填写完成后，将文档发送给我，我将为您创建连接器。
 
 ## 执行动作配置文件格式
 
-> **字段说明**：
-> - `label`：字段在宜搭界面上显示的"显示名称"，应根据接口文档含义填写中文名称
-> - `desc`：字段的详细描述，用于 hover 提示
-> - `__level`：字段层级，顶层字段填 `0`
-> - `hidden`：是否在界面上隐藏该字段，默认 `false`
-
-> **inputs 分组规则**：
-> - `Headers`：请求头参数（`Content-Type` 等）
-> - `Query`：URL 查询参数（GET 接口的参数、POST 接口中需要放在 query 的参数如 `access_token`）
-> - `Path`：路径变量（URL 中 `{variable}` 形式的参数）
-> - `Body`：请求体参数（POST/PUT 接口的 JSON body）
->
-> **GET 接口处理规则**：GET 接口没有 Body，所有业务参数放在 `Query` 分组中，`inputs` 只包含 `Headers` 和 `Query`，`parameters` 只有 `header` 和 `query` 字段，无 `body`。
->
-> **access_token 在 query 的处理**：当接口的 `access_token` 通过 URL query 传递时，若连接器已配置 `ApiKeyAuth`（`in: query`），则 `access_token` 由鉴权账号自动注入，**不需要**在 inputs 中重复添加。若接口有其他 query 参数（如 `pubaccId`），则单独放在 `Query` 分组中。
-
-> **连接器描述规则**：
-> - 描述应为**一句话总结**，概括连接器的核心用途，而**不是**列出动作名称
-> - 示例：`支持向 diwork 群组发送文本消息` 而非 `动作列表: 群组发送文本消息`
-> - 描述由 `buildConnectorDesc` 函数根据 operations 自动生成，无需手动填写
-
-```json
-[
-  {
-    "id": "operation-id",
-    "operationId": "actionName",
-    "summary": "动作名称",
-    "description": "动作描述",
-    "url": "v1.0/api/path",
-    "method": "post",
-    "inputs": [
-      {
-        "childList": [
-          {
-            "componentName": "TextField",
-            "defaultValue": "application/json",
-            "desc": "Content-Type",
-            "name": "Content-Type",
-            "required": false
-          }
-        ],
-        "desc": "请求头",
-        "name": "Headers",
-        "paramType": "Object",
-        "required": false
-      },
-      {
-        "defaultValue": "{}",
-        "desc": "请求体",
-        "name": "Body",
-        "paramType": "Object",
-        "required": false,
-        "childList": [
-          {
-            "componentName": "TextField",
-            "name": "fieldName",
-            "label": "字段显示名称",
-            "desc": "字段含义描述",
-            "required": true,
-            "__level": 0,
-            "hidden": false
-          }
-        ]
-      }
-    ],
-    "parameters": {
-      "header": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        }
-      ],
-      "body": {
-        "default": "{}"
-      }
-    },
-    "responses": {
-      "type": "object",
-      "properties": {
-        "fieldName": { "type": "string", "description": "fieldName" }
-      }
-    },
-    "outputs": [
-      {
-        "defaultValue": "{\n    \"fieldName\": \"value\"\n}",
-        "desc": "响应体结构",
-        "name": "Response",
-        "paramType": "Object",
-        "required": false,
-        "childList": [
-          {
-            "_key": "actionName%fieldName",
-            "name": "fieldName",
-            "paramType": "String",
-            "children": [],
-            "childList": [],
-            "__level": 0,
-            "hidden": false,
-            "label": "字段显示名称"
-          }
-        ]
-      }
-    ],
-    "origin": true
-  }
-]
-
-> **outputs childList 字段说明**：
-> - `_key`：格式为 `operationId%fieldName`，如 `sendServiceTxt%flag`
-> - `paramType`：字段类型，`String` / `Number` / `Boolean`（注意：outputs 用 `paramType` 而非 `componentName`，两者不能混用）
-> - `children`：固定为空数组 `[]`
-> - `childList`：固定为空数组 `[]`（叶子节点无子字段）
-> - `outputs defaultValue`：应填写接口返回的真实响应示例 JSON 字符串
-
-> **responses JSON Schema 说明**：
-> - `type` 固定为 `"object"`（小写）
-> - `properties` 中每个字段的 `type` 也用小写：`"string"` / `"number"` / `"boolean"`
-> - 接口无返回字段时：`"properties": {}`
-> - 接口有返回字段时，每个字段格式为：`"fieldName": { "type": "string", "description": "fieldName" }`
-> - 示例（有返回字段）：
->   ```json
->   {
->     "type": "object",
->     "properties": {
->       "msg": { "type": "string", "description": "msg" },
->       "flag": { "type": "string", "description": "flag" }
->     }
->   }
->   ```
-> - 示例（无返回字段）：
->   ```json
->   { "type": "object", "properties": {} }
->   ```
-```
+详细的执行动作配置文件格式、字段说明、inputs 分组规则、outputs 格式等，请参考 [连接器执行动作配置文件格式](../../reference/connector-action-format.md)。
 
 ## 技术细节
 
