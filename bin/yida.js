@@ -49,7 +49,7 @@
  *   openyida append-chart <appType> <reportId> <图表定义JSON或文件路径>    向已有报表追加图表
  */
 
-"use strict";
+'use strict';
 
 const { checkUpdate } = require('../lib/core/check-update');
 const { version: currentVersion } = require('../package.json');
@@ -165,7 +165,7 @@ function handleFirstRunGuide() {
   const FIRST_RUN_FLAG = path.join(OPENYIDA_DIR, 'first-run-done');
 
   // 已运行过，跳过引导
-  if (fs.existsSync(FIRST_RUN_FLAG)) return;
+  if (fs.existsSync(FIRST_RUN_FLAG)) {return;}
 
   // 写入标记，避免重复展示
   try {

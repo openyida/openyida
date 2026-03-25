@@ -1,0 +1,10 @@
+[
+  {"type": "TextField", "label": "项目名称"},
+  {"type": "TextField", "label": "项目类型", "placeholder": "宾馆/物业/商业综合体"},
+  {"type": "TextField", "label": "项目地址"},
+  {"type": "TextField", "label": "负责人"},
+  {"type": "TextField", "label": "联系电话"},
+  {"type": "NumberField", "label": "客房或户数"},
+  {"type": "TextField", "label": "项目状态", "placeholder": "运营中/筹建中/维修中"},
+  {"type": "TextareaField", "label": "项目简介"}
+]
