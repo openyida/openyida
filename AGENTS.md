@@ -79,9 +79,9 @@ openyida/
 │   ├── config.json          # 应用配置（appType、pageId 等）
 │   └── pages/               # 自定义页面源码目录
 ├── yida-skills/
-│   ├── SKILL.md             # 技能入口（AI 工具读取此文件获取能力描述）
-│   ├── skills/              # 子技能目录
-│   └── reference/           # 宜搭 API 参考文档
+│   ├── SKILL.md             # 技能入口（索引表，列出所有子技能）
+│   ├── skills/              # 子技能目录（每个 skill 自包含 SKILL.md + references/）
+│   └── reference/           # 跨 skill 共享参考文档（yida-api、model-api、query-condition-guide）
 └── scripts/
     └── postinstall.js       # 安装后脚本（环境检测 + 配置注入）
 ```
