@@ -166,7 +166,7 @@ openyida configure-process "APP_XXX" "FORM-YYY" process-definition.json
 
 ## AI 自动生成流程特性（必须遵守）
 
-当 AI 根据用户需求生成流程定义 JSON 时，**必须自动分析并生成字段权限和跳转规则**。详细规范请参考 [AI 自动生成流程定义规范](../../reference/process-ai-rules.md)。
+当 AI 根据用户需求生成流程定义 JSON 时，**必须自动分析并生成字段权限和跳转规则**。详细规范请参考 [AI 自动生成流程定义规范](references/process-ai-rules.md)。
 
 **核心要点**：
 - 🔐 **字段权限**：每个审批节点只允许编辑与其职责相关的字段，其他设为 READONLY/HIDDEN

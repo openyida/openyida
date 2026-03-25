@@ -144,7 +144,7 @@ openyida create-form update "APP_xxx" "FORM-yyy" changes.json
 | `associationForm` | Object | 条件必填 | 关联表单配置对象，`AssociationFormField` 必填，详见下方说明 |
 ### 各字段类型默认属性
 
-各字段类型创建时自动设置的特有默认属性，请参考 [表单字段属性参考](../../reference/form-field-properties.md)。
+各字段类型创建时自动设置的特有默认属性，请参考 [表单字段属性参考](references/form-field-properties.md)。
 
 
 ## 修改定义 JSON 格式（update 模式）

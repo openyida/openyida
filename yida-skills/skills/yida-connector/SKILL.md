@@ -177,7 +177,7 @@ node scripts/generate-api-template.js
 
 ## 执行动作配置文件格式
 
-详细的执行动作配置文件格式、字段说明、inputs 分组规则、outputs 格式等，请参考 [连接器执行动作配置文件格式](../../reference/connector-action-format.md)。
+详细的执行动作配置文件格式、字段说明、inputs 分组规则、outputs 格式等，请参考 [连接器执行动作配置文件格式](references/connector-action-format.md)。
 
 ## 技术细节
 

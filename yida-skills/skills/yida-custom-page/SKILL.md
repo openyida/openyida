@@ -176,7 +176,7 @@ openyida publish <源文件路径> <appType> <formUuid>
 | --- | --- |
 | [编码指南](../../reference/coding-guide.md) | 运行环境约束、文件结构模板、状态管理、17 条编码注意事项 |
 | [设计规范](../../reference/design-system.md) | 色彩系统、圆角/字体/间距规范、组件样式模板、设计反模式 |
-| [素材资源指南](../../reference/assets-guide.md) | 图片/音乐/Icon 素材库推荐、CDN 安全规范 |
+| [素材资源指南](references/assets-guide.md) | 图片/音乐/Icon 素材库推荐、CDN 安全规范 |
 | [宜搭 API 参考](../../reference/yida-api.md) | 表单数据操作、流程操作、工具类 API 完整参数说明 |
 | [大模型 API](../../reference/model-api.md) | AI 文本生成接口参数说明和示例 |
 | [查询条件指南](../../reference/query-condition-guide.md) | searchFieldJson 查询条件构建指南 |
