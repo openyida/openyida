@@ -54,23 +54,7 @@ jobs:
               line = line.strip()
               if not line:
                   continue
-              match = re.match(r'^(.+?)\s+<(.+?)>
-
-      - name: Commit and push if changed
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          if git diff --quiet README.md; then
-            echo "✅ README.md 无变化，无需提交"
-            exit 0
-          fi
-
-          git add README.md
-          git commit -m "chore: 自动更新 README contributors [skip ci]"
-          git push origin main
-          echo "🚀 已推送更新到 main 分支"
-, line)
+              match = re.match(r'^(.+?)\s+<(.+?)>' + '$', line)
               if not match:
                   continue
               name, email = match.group(1), match.group(2).lower()
