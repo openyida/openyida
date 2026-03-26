@@ -231,6 +231,7 @@ describe("checkLoginOnly 独立测试", () => {
 describe("findProjectRoot 环境检测", () => {
   let originalEnv;
   let originalCwd;
+  const dirsToCleanup = [];
 
   beforeEach(() => {
     originalEnv = { ...process.env };
@@ -240,6 +241,15 @@ describe("findProjectRoot 环境检测", () => {
   afterEach(() => {
     process.env = originalEnv;
     process.chdir(originalCwd);
+    // 清理临时目录（必须在 chdir 回原目录之后，否则 Windows 上会 EBUSY）
+    for (const dirPath of dirsToCleanup) {
+      try {
+        fs.rmSync(dirPath, { recursive: true, force: true });
+      } catch (_cleanupError) {
+        // 忽略清理失败
+      }
+    }
+    dirsToCleanup.length = 0;
   });
 
   test("Qoder 环境下返回 cwd/project", () => {
@@ -247,6 +257,7 @@ describe("findProjectRoot 环境检测", () => {
     const testDir = path.join(os.tmpdir(), `qoder-test-${Date.now()}`);
     const projectDir = path.join(testDir, "project");
     fs.mkdirSync(projectDir, { recursive: true });
+    dirsToCleanup.push(testDir);
     process.chdir(testDir);
 
     const { findProjectRoot: findRoot } = require("../lib/core/utils");
@@ -255,8 +266,6 @@ describe("findProjectRoot 环境检测", () => {
     // macOS 上 /var 会被解析为 /private/var,使用 fs.realpathSync 统一比较
     expect(fs.realpathSync(root)).toBe(fs.realpathSync(projectDir));
     expect(fs.existsSync(root)).toBe(true);
-
-    fs.rmSync(testDir, { recursive: true, force: true });
   });
 
   test("悟空环境下返回 ~/.real/workspace/project", () => {
@@ -265,13 +274,12 @@ describe("findProjectRoot 环境检测", () => {
     const wukongProject = path.join(homeDir, ".real", "workspace", "project");
 
     fs.mkdirSync(wukongProject, { recursive: true });
+    dirsToCleanup.push(path.join(homeDir, ".real"));
 
     const { findProjectRoot: findRoot } = require("../lib/core/utils");
     const root = findRoot();
     
     expect(root).toBe(wukongProject);
-
-    fs.rmSync(path.join(homeDir, ".real"), { recursive: true, force: true });
   });
 
   test("未检测到环境时返回 cwd", () => {
