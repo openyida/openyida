@@ -81,13 +81,15 @@ openyida copy
 | **yida-custom-page** | [`skills/yida-custom-page/SKILL.md`](skills/yida-custom-page/SKILL.md) | JSX 编码规范、API 调用、状态管理 |
 | **yida-density** | [`skills/yida-density/SKILL.md`](skills/yida-density/SKILL.md) | 信息密度设计规范（紧凑/舒适/宽松） |
 | **yida-table-form** | [`skills/yida-table-form/SKILL.md`](skills/yida-table-form/SKILL.md) | 表格形式批量表单提交 |
+| **yida-ppt-slider** | [`skills/yida-ppt-slider/SKILL.md`](skills/yida-ppt-slider/SKILL.md) | PPT 幻灯片页面开发（演讲/路演/培训） |
 
 ### 连接器与报表
 
 | 技能 | 路径 | 说明 |
 |------|------|------|
 | **yida-connector** | [`skills/yida-connector/SKILL.md`](skills/yida-connector/SKILL.md) | HTTP 连接器管理（创建/测试/智能生成） |
-| **yida-report** | [`skills/yida-report/SKILL.md`](skills/yida-report/SKILL.md) | 创建报表、追加图表 |
+| **yida-create-report** | [`skills/yida-create-report/SKILL.md`](skills/yida-create-report/SKILL.md) | 创建宜搭报表、追加图表 |
+| **yida-chart** | [`skills/yida-chart/SKILL.md`](skills/yida-chart/SKILL.md) | ECharts 高级报表（定制化数据大屏） |
 
 ### 配置与认证
 
