@@ -235,6 +235,34 @@ async function main() {
     process.exit(0);
   }
 
+  // ── 对话记录：自动记录每次命令执行 ──
+  // 排除不需要记录的命令（help、version、env、export-conversation 本身）
+  const SKIP_LOG_COMMANDS = ['env', 'copy', 'export-conversation'];
+  let finishLog = null;
+  if (command && !SKIP_LOG_COMMANDS.includes(command)) {
+    try {
+      const { logCommandStart } = require('../lib/core/conversation-logger');
+      finishLog = logCommandStart(command, args);
+    } catch {
+      // 日志模块加载失败不影响主流程
+    }
+  }
+
+  // 捕获 stdout 输出用于日志记录
+  let capturedOutput = '';
+  const originalStdoutWrite = process.stdout.write;
+  if (finishLog) {
+    process.stdout.write = function(chunk, encoding, callback) {
+      const text = typeof chunk === 'string' ? chunk : chunk.toString();
+      if (capturedOutput.length < 2000) {
+        capturedOutput += text;
+      }
+      return originalStdoutWrite.apply(process.stdout, arguments);
+    };
+  }
+
+  try {
+
   switch (command) {
     case 'env': {
       const { run } = require('../lib/core/env');
@@ -590,11 +618,37 @@ async function main() {
       break;
     }
 
+    case 'export-conversation': {
+      const { run: runExportConv } = require('../lib/core/export-conversation');
+      await runExportConv(args);
+      break;
+    }
+
     default: {
       console.error(t('cli.unknown_command', command));
       console.error(t('cli.run_help'));
       process.exit(1);
     }
+  }
+
+  // 记录命令执行成功
+  if (finishLog) {
+    process.stdout.write = originalStdoutWrite;
+    finishLog(capturedOutput, true);
+  }
+
+  } catch (commandError) {
+    // 记录命令执行失败
+    if (finishLog) {
+      process.stdout.write = originalStdoutWrite;
+      try {
+        const { logError } = require('../lib/core/conversation-logger');
+        logError(command, commandError.message);
+      } catch {
+        // 日志记录失败不影响错误抛出
+      }
+    }
+    throw commandError;
   }
 }
 
