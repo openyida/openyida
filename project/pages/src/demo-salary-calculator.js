@@ -556,42 +556,6 @@ export function renderJsx() {
     },
   };
 
-  // ---- 事件处理 ----
-
-  function handleSalaryChange(e) {
-    _customState.monthlySalary = parseFloat(e.target.value) || 0;
-  }
-
-  function handleCityChange(e) {
-    _customState.city = e.target.value;
-    triggerCalculate();
-  }
-
-  function handleBonusSlider(e) {
-    _customState.bonusMonths = parseFloat(e.target.value);
-    triggerCalculate();
-  }
-
-  function handlePFRateChange(e) {
-    _customState.providentFundRate = parseFloat(e.target.value) || 0.12;
-    triggerCalculate();
-  }
-
-  function handleSSBaseChange(e) {
-    _customState.socialSecurityBase = e.target.value;
-    triggerCalculate();
-  }
-
-  function handleSpecialDeductionChange(field, e) {
-    _customState[field] = parseFloat(e.target.value) || 0;
-  }
-
-  function handleSupplementPFChange(e) {
-    _customState.supplementProvidentFund = parseFloat(e.target.value) || 0;
-  }
-
-
-
   // ---- 计算进度条宽度 ----
 
   var cityOptions = Object.keys(CITY_DATA).map(function(key) {
@@ -629,7 +593,7 @@ export function renderJsx() {
               style={styles.input}
               defaultValue={state.monthlySalary}
               placeholder="例如：25000"
-              onChange={function(e) { _customState.monthlySalary = parseFloat(e.target.value) || 0; }}
+              onChange={(e) => { _customState.monthlySalary = parseFloat(e.target.value) || 0; }}
               onBlur={(e) => { this.handleCalculate(); }}
             />
           </div>
@@ -653,7 +617,7 @@ export function renderJsx() {
                 step="0.5"
                 style={styles.slider}
                 defaultValue={state.bonusMonths}
-                onChange={(e) => { _customState.bonusMonths = parseFloat(e.target.value); this.triggerCalculate(); }}
+                onChange={(e) => { _customState.bonusMonths = parseFloat(e.target.value) || 0; this.triggerCalculate(); }}
               />
               <span style={styles.sliderValue}>{state.bonusMonths}月</span>
             </div>
@@ -684,8 +648,15 @@ export function renderJsx() {
               <div style={styles.fieldGroup}>
                 <label style={styles.label}>公积金比例：<span style={{ color: '#10B981', fontWeight: 700 }}>{Math.round((state.providentFundRate || 0.12) * 100)}%</span></label>
                 <div style={styles.sliderRow}>
-                defaultValue={state.providentFundRate}
-                onChange={(e) => { _customState.providentFundRate = parseFloat(e.target.value) || 0.12; this.triggerCalculate(); }}
+                  <input
+                    type="range"
+                    min="0.05"
+                    max="0.12"
+                    step="0.01"
+                    style={styles.slider}
+                    defaultValue={state.providentFundRate}
+                    onChange={(e) => { _customState.providentFundRate = parseFloat(e.target.value) || 0.12; this.triggerCalculate(); }}
+                  />
                   <span style={styles.sliderValue}>{Math.round((state.providentFundRate || 0.12) * 100)}%</span>
                 </div>
               </div>
@@ -710,7 +681,7 @@ export function renderJsx() {
                   style={styles.input}
                   defaultValue={state.childEducation}
                   placeholder="0（每孩每月最高2000）"
-                  onChange={function(e) { _customState.childEducation = parseFloat(e.target.value) || 0; }}
+                  onChange={(e) => { _customState.childEducation = parseFloat(e.target.value) || 0; }}
                   onBlur={(e) => { this.handleCalculate(); }}
                 />
               </div>
@@ -722,7 +693,7 @@ export function renderJsx() {
                   style={styles.input}
                   defaultValue={state.housingLoan}
                   placeholder="0（每月最高1000）"
-                  onChange={function(e) { _customState.housingLoan = parseFloat(e.target.value) || 0; }}
+                  onChange={(e) => { _customState.housingLoan = parseFloat(e.target.value) || 0; }}
                   onBlur={(e) => { this.handleCalculate(); }}
                 />
               </div>
@@ -734,7 +705,7 @@ export function renderJsx() {
                   style={styles.input}
                   defaultValue={state.elderCare}
                   placeholder="0（每月最高3000）"
-                  onChange={function(e) { _customState.elderCare = parseFloat(e.target.value) || 0; }}
+                  onChange={(e) => { _customState.elderCare = parseFloat(e.target.value) || 0; }}
                   onBlur={(e) => { this.handleCalculate(); }}
                 />
               </div>
@@ -746,7 +717,7 @@ export function renderJsx() {
                   style={styles.input}
                   defaultValue={state.supplementProvidentFund}
                   placeholder="0"
-                  onChange={function(e) { _customState.supplementProvidentFund = parseFloat(e.target.value) || 0; }}
+                  onChange={(e) => { _customState.supplementProvidentFund = parseFloat(e.target.value) || 0; }}
                   onBlur={(e) => { this.handleCalculate(); }}
                 />
               </div>

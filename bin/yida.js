@@ -263,317 +263,317 @@ async function main() {
 
   try {
 
-  switch (command) {
-    case 'env': {
-      const { run } = require('../lib/core/env');
-      run();
-      break;
-    }
-
-    case 'copy': {
-      const { run } = require('../lib/core/copy');
-      run();
-      break;
-    }
-
-    case 'login': {
-      const { ensureLogin, checkLoginOnly } = require('../lib/auth/login');
-      if (args[0] === '--check-only') {
-        const result = checkLoginOnly();
-        console.log(JSON.stringify(result, null, 2));
-      } else if (args[0] === '--qr') {
-        const { qrLogin } = require('../lib/auth/qr-login');
-        const result = await qrLogin();
-        console.log(JSON.stringify(result));
-      } else {
-        const result = ensureLogin();
-        console.log(JSON.stringify(result));
+    switch (command) {
+      case 'env': {
+        const { run } = require('../lib/core/env');
+        run();
+        break;
       }
-      break;
-    }
 
-    case 'logout': {
-      const { logout } = require('../lib/auth/login');
-      logout();
-      break;
-    }
-
-    case 'auth': {
-      const subCommand = args[0];
-      const { authStatus, authLogin, authRefresh, authLogout } = require('../lib/auth/auth');
-
-      if (subCommand === 'status') {
-        authStatus();
-      } else if (subCommand === 'login') {
-        authLogin({ type: 'qrcode' });
-      } else if (subCommand === 'refresh') {
-        authRefresh();
-      } else if (subCommand === 'logout') {
-        authLogout();
-      } else {
-        console.error(t('cli.auth_usage'));
-        console.error(t('cli.auth_example'));
-        process.exit(1);
+      case 'copy': {
+        const { run } = require('../lib/core/copy');
+        run();
+        break;
       }
-      break;
-    }
 
-    case 'org': {
-      const subCommand = args[0];
-      const { listOrganizations, switchOrganization, interactiveSwitch } = require('../lib/auth/org');
-      const { loadCookieData } = require('../lib/core/utils');
-
-      if (subCommand === 'list') {
-        const cookieData = loadCookieData();
-        if (!cookieData || !cookieData.cookies) {
-          console.error(t('org.no_login'));
-          process.exit(1);
-        }
-        await listOrganizations(cookieData);
-      } else if (subCommand === 'switch') {
-        const cookieData = loadCookieData();
-        if (!cookieData || !cookieData.cookies) {
-          console.error(t('org.no_login'));
-          process.exit(1);
-        }
-
-        // 解析 --corp-id 参数
-        const corpIdIndex = args.indexOf('--corp-id');
-        if (corpIdIndex !== -1 && args[corpIdIndex + 1]) {
-          const targetCorpId = args[corpIdIndex + 1];
-          await switchOrganization(targetCorpId, cookieData);
+      case 'login': {
+        const { ensureLogin, checkLoginOnly } = require('../lib/auth/login');
+        if (args[0] === '--check-only') {
+          const result = checkLoginOnly();
+          console.log(JSON.stringify(result, null, 2));
+        } else if (args[0] === '--qr') {
+          const { qrLogin } = require('../lib/auth/qr-login');
+          const result = await qrLogin();
+          console.log(JSON.stringify(result));
         } else {
-          // 交互式选择
-          await interactiveSwitch(cookieData);
+          const result = ensureLogin();
+          console.log(JSON.stringify(result));
         }
-      } else {
-        console.error(t('cli.org_usage'));
-        console.error(t('cli.org_example'));
-        process.exit(1);
+        break;
       }
-      break;
-    }
 
-    case 'create-app': {
-      const { run } = require('../lib/app/create-app');
-      await run(args);
-      break;
-    }
+      case 'logout': {
+        const { logout } = require('../lib/auth/login');
+        logout();
+        break;
+      }
 
-    case 'create-page': {
-      const { run } = require('../lib/app/create-page');
-      await run(args);
-      break;
-    }
+      case 'auth': {
+        const subCommand = args[0];
+        const { authStatus, authLogin, authRefresh, authLogout } = require('../lib/auth/auth');
 
-    case 'create-form': {
+        if (subCommand === 'status') {
+          authStatus();
+        } else if (subCommand === 'login') {
+          authLogin({ type: 'qrcode' });
+        } else if (subCommand === 'refresh') {
+          authRefresh();
+        } else if (subCommand === 'logout') {
+          authLogout();
+        } else {
+          console.error(t('cli.auth_usage'));
+          console.error(t('cli.auth_example'));
+          process.exit(1);
+        }
+        break;
+      }
+
+      case 'org': {
+        const subCommand = args[0];
+        const { listOrganizations, switchOrganization, interactiveSwitch } = require('../lib/auth/org');
+        const { loadCookieData } = require('../lib/core/utils');
+
+        if (subCommand === 'list') {
+          const cookieData = loadCookieData();
+          if (!cookieData || !cookieData.cookies) {
+            console.error(t('org.no_login'));
+            process.exit(1);
+          }
+          await listOrganizations(cookieData);
+        } else if (subCommand === 'switch') {
+          const cookieData = loadCookieData();
+          if (!cookieData || !cookieData.cookies) {
+            console.error(t('org.no_login'));
+            process.exit(1);
+          }
+
+          // 解析 --corp-id 参数
+          const corpIdIndex = args.indexOf('--corp-id');
+          if (corpIdIndex !== -1 && args[corpIdIndex + 1]) {
+            const targetCorpId = args[corpIdIndex + 1];
+            await switchOrganization(targetCorpId, cookieData);
+          } else {
+          // 交互式选择
+            await interactiveSwitch(cookieData);
+          }
+        } else {
+          console.error(t('cli.org_usage'));
+          console.error(t('cli.org_example'));
+          process.exit(1);
+        }
+        break;
+      }
+
+      case 'create-app': {
+        const { run } = require('../lib/app/create-app');
+        await run(args);
+        break;
+      }
+
+      case 'create-page': {
+        const { run } = require('../lib/app/create-page');
+        await run(args);
+        break;
+      }
+
+      case 'create-form': {
       // create-form.js 通过 process.argv.slice(2) 读取参数，注入子命令及其参数
-      process.argv = [process.argv[0], process.argv[1], ...args];
-      require('../lib/app/create-form');
-      break;
-    }
+        process.argv = [process.argv[0], process.argv[1], ...args];
+        require('../lib/app/create-form');
+        break;
+      }
 
-    case 'get-schema': {
-      const { run } = require('../lib/app/get-schema');
-      await run(args);
-      break;
-    }
+      case 'get-schema': {
+        const { run } = require('../lib/app/get-schema');
+        await run(args);
+        break;
+      }
 
-    case 'publish': {
+      case 'publish': {
       // 参数顺序：<源文件路径> <appType> <formUuid>
       // publish.js 内部读取顺序：argv[2]=appType, argv[3]=formUuid, argv[4]=sourceFile
-      if (args.length < 3) {
-        console.error(t('cli.publish_usage'));
-        console.error(t('cli.publish_example'));
-        process.exit(1);
+        if (args.length < 3) {
+          console.error(t('cli.publish_usage'));
+          console.error(t('cli.publish_example'));
+          process.exit(1);
+        }
+        const [sourceFile, appType, formUuid] = args;
+        process.argv = [process.argv[0], process.argv[1], appType, formUuid, sourceFile];
+        require('../lib/app/publish');
+        break;
       }
-      const [sourceFile, appType, formUuid] = args;
-      process.argv = [process.argv[0], process.argv[1], appType, formUuid, sourceFile];
-      require('../lib/app/publish');
-      break;
-    }
 
-    case 'verify-short-url': {
-      if (args.length < 3) {
-        console.error(t('cli.verify_usage'));
-        console.error(t('cli.verify_example'));
-        process.exit(1);
+      case 'verify-short-url': {
+        if (args.length < 3) {
+          console.error(t('cli.verify_usage'));
+          console.error(t('cli.verify_example'));
+          process.exit(1);
+        }
+        process.argv = [process.argv[0], process.argv[1], ...args];
+        require('../lib/page-config/verify-short-url');
+        break;
       }
-      process.argv = [process.argv[0], process.argv[1], ...args];
-      require('../lib/page-config/verify-short-url');
-      break;
-    }
 
-    case 'save-share-config': {
-      if (args.length < 4) {
-        console.error(t('cli.share_usage'));
-        console.error(t('cli.share_example'));
-        process.exit(1);
+      case 'save-share-config': {
+        if (args.length < 4) {
+          console.error(t('cli.share_usage'));
+          console.error(t('cli.share_example'));
+          process.exit(1);
+        }
+        process.argv = [process.argv[0], process.argv[1], ...args];
+        require('../lib/page-config/save-share-config');
+        break;
       }
-      process.argv = [process.argv[0], process.argv[1], ...args];
-      require('../lib/page-config/save-share-config');
-      break;
-    }
 
-    case 'get-page-config': {
-      if (args.length < 2) {
-        console.error(t('cli.page_config_usage'));
-        console.error(t('cli.page_config_example'));
-        process.exit(1);
+      case 'get-page-config': {
+        if (args.length < 2) {
+          console.error(t('cli.page_config_usage'));
+          console.error(t('cli.page_config_example'));
+          process.exit(1);
+        }
+        process.argv = [process.argv[0], process.argv[1], ...args];
+        require('../lib/page-config/get-page-config');
+        break;
       }
-      process.argv = [process.argv[0], process.argv[1], ...args];
-      require('../lib/page-config/get-page-config');
-      break;
-    }
 
-    case 'update-form-config': {
-      if (args.length < 4) {
-        console.error(t('cli.form_config_usage'));
-        console.error(t('cli.form_config_example'));
-        process.exit(1);
+      case 'update-form-config': {
+        if (args.length < 4) {
+          console.error(t('cli.form_config_usage'));
+          console.error(t('cli.form_config_example'));
+          process.exit(1);
+        }
+        process.argv = [process.argv[0], process.argv[1], ...args];
+        require('../lib/app/update-form-config');
+        break;
       }
-      process.argv = [process.argv[0], process.argv[1], ...args];
-      require('../lib/app/update-form-config');
-      break;
-    }
 
-    case 'data': {
-      if (args.length < 2) {
-        console.error('用法: openyida data <action> <resource> [args] [options]');
-        console.error('示例: openyida data query form APP_XXX FORM_XXX --page 1 --size 20');
-        process.exit(1);
+      case 'data': {
+        if (args.length < 2) {
+          console.error('用法: openyida data <action> <resource> [args] [options]');
+          console.error('示例: openyida data query form APP_XXX FORM_XXX --page 1 --size 20');
+          process.exit(1);
+        }
+        const { run: runDataManagement } = require('../lib/data-management');
+        await runDataManagement(args);
+        break;
       }
-      const { run: runDataManagement } = require('../lib/data-management');
-      await runDataManagement(args);
-      break;
-    }
 
-    case 'doctor': {
-      const { run } = require('../lib/core/doctor');
-      await run(args);
-      break;
-    }
-
-    case 'export': {
-      if (args.length < 1) {
-        console.error(t('cli.export_usage'));
-        console.error(t('cli.export_example1'));
-        console.error(t('cli.export_example2'));
-        process.exit(1);
+      case 'doctor': {
+        const { run } = require('../lib/core/doctor');
+        await run(args);
+        break;
       }
-      const { run: runExport } = require('../lib/app/export-app');
-      await runExport(args);
-      break;
-    }
 
-    case 'import': {
-      if (args.length < 1) {
-        console.error(t('cli.import_usage'));
-        console.error(t('cli.import_example1'));
-        console.error(t('cli.import_example2'));
-        process.exit(1);
+      case 'export': {
+        if (args.length < 1) {
+          console.error(t('cli.export_usage'));
+          console.error(t('cli.export_example1'));
+          console.error(t('cli.export_example2'));
+          process.exit(1);
+        }
+        const { run: runExport } = require('../lib/app/export-app');
+        await runExport(args);
+        break;
       }
-      const { run: runImport } = require('../lib/app/import-app');
-      await runImport(args);
-      break;
-    }
 
-    case 'get-permission': {
-      if (args.length < 2) {
-        console.error(t('cli.get_permission_usage'));
-        console.error(t('cli.get_permission_example'));
-        process.exit(1);
+      case 'import': {
+        if (args.length < 1) {
+          console.error(t('cli.import_usage'));
+          console.error(t('cli.import_example1'));
+          console.error(t('cli.import_example2'));
+          process.exit(1);
+        }
+        const { run: runImport } = require('../lib/app/import-app');
+        await runImport(args);
+        break;
       }
-      const { run: runGetPermission } = require('../lib/permission/get-permission');
-      await runGetPermission(args);
-      break;
-    }
 
-    case 'save-permission': {
-      if (args.length < 2) {
-        console.error(t('cli.save_permission_usage'));
-        console.error(t('cli.save_permission_example'));
-        process.exit(1);
+      case 'get-permission': {
+        if (args.length < 2) {
+          console.error(t('cli.get_permission_usage'));
+          console.error(t('cli.get_permission_example'));
+          process.exit(1);
+        }
+        const { run: runGetPermission } = require('../lib/permission/get-permission');
+        await runGetPermission(args);
+        break;
       }
-      const { run: runSavePermission } = require('../lib/permission/save-permission');
-      await runSavePermission(args);
-      break;
-    }
 
-    case 'configure-process': {
-      if (args.length < 3) {
-        console.error(t('cli.configure_process_usage'));
-        console.error(t('cli.configure_process_example'));
-        process.exit(1);
+      case 'save-permission': {
+        if (args.length < 2) {
+          console.error(t('cli.save_permission_usage'));
+          console.error(t('cli.save_permission_example'));
+          process.exit(1);
+        }
+        const { run: runSavePermission } = require('../lib/permission/save-permission');
+        await runSavePermission(args);
+        break;
       }
-      const { run: runConfigureProcess } = require('../lib/process/configure-process');
-      await runConfigureProcess(args);
-      break;
-    }
 
-    case 'create-process': {
-      if (args.length < 2) {
-        console.error(t('cli.create_process_usage'));
-        console.error(t('cli.create_process_example'));
-        process.exit(1);
+      case 'configure-process': {
+        if (args.length < 3) {
+          console.error(t('cli.configure_process_usage'));
+          console.error(t('cli.configure_process_example'));
+          process.exit(1);
+        }
+        const { run: runConfigureProcess } = require('../lib/process/configure-process');
+        await runConfigureProcess(args);
+        break;
       }
-      const { run: runCreateProcess } = require('../lib/process/create-process');
-      await runCreateProcess(args);
-      break;
-    }
 
-    case 'create-report': {
-      const { run } = require('../lib/report/create-report');
-      await run(args);
-      break;
-    }
+      case 'create-process': {
+        if (args.length < 2) {
+          console.error(t('cli.create_process_usage'));
+          console.error(t('cli.create_process_example'));
+          process.exit(1);
+        }
+        const { run: runCreateProcess } = require('../lib/process/create-process');
+        await runCreateProcess(args);
+        break;
+      }
 
-    case 'append-chart': {
-      const { run } = require('../lib/report/append');
-      await run(args);
-      break;
-    }
+      case 'create-report': {
+        const { run } = require('../lib/report/create-report');
+        await run(args);
+        break;
+      }
 
-    case 'cdn-config': {
-      const { run: runCdnConfig } = require('../lib/cdn/cdn-config-cmd');
-      await runCdnConfig(args);
-      break;
-    }
+      case 'append-chart': {
+        const { run } = require('../lib/report/append');
+        await run(args);
+        break;
+      }
 
-    case 'cdn-upload': {
-      const { run: runCdnUpload } = require('../lib/cdn/cdn-upload');
-      await runCdnUpload(args);
-      break;
-    }
+      case 'cdn-config': {
+        const { run: runCdnConfig } = require('../lib/cdn/cdn-config-cmd');
+        await runCdnConfig(args);
+        break;
+      }
 
-    case 'cdn-refresh': {
-      const { run: runCdnRefresh } = require('../lib/cdn/cdn-refresh');
-      await runCdnRefresh(args);
-      break;
-    }
+      case 'cdn-upload': {
+        const { run: runCdnUpload } = require('../lib/cdn/cdn-upload');
+        await runCdnUpload(args);
+        break;
+      }
 
-    case 'connector': {
-      const subCommand = args[0];
-      const subArgs = args.slice(1);
+      case 'cdn-refresh': {
+        const { run: runCdnRefresh } = require('../lib/cdn/cdn-refresh');
+        await runCdnRefresh(args);
+        break;
+      }
 
-      const connectorSubCommands = {
-        'list':              '../lib/connector/connector-list',
-        'create':            '../lib/connector/connector-create',
-        'detail':            '../lib/connector/connector-detail',
-        'delete':            '../lib/connector/connector-delete',
-        'add-action':        '../lib/connector/connector-add-action',
-        'list-actions':      '../lib/connector/connector-list-actions',
-        'delete-action':     '../lib/connector/connector-delete-action',
-        'test':              '../lib/connector/connector-test',
-        'list-connections':  '../lib/connector/connector-list-connections',
-        'create-connection': '../lib/connector/connector-create-connection',
-        'smart-create':      '../lib/connector/connector-smart-create',
-        'parse-api':         '../lib/connector/connector-parse-api',
-        'gen-template':      '../lib/connector/connector-gen-template',
-      };
+      case 'connector': {
+        const subCommand = args[0];
+        const subArgs = args.slice(1);
 
-      if (!subCommand || subCommand === '--help' || subCommand === '-h') {
-        console.log(`
+        const connectorSubCommands = {
+          'list':              '../lib/connector/connector-list',
+          'create':            '../lib/connector/connector-create',
+          'detail':            '../lib/connector/connector-detail',
+          'delete':            '../lib/connector/connector-delete',
+          'add-action':        '../lib/connector/connector-add-action',
+          'list-actions':      '../lib/connector/connector-list-actions',
+          'delete-action':     '../lib/connector/connector-delete-action',
+          'test':              '../lib/connector/connector-test',
+          'list-connections':  '../lib/connector/connector-list-connections',
+          'create-connection': '../lib/connector/connector-create-connection',
+          'smart-create':      '../lib/connector/connector-smart-create',
+          'parse-api':         '../lib/connector/connector-parse-api',
+          'gen-template':      '../lib/connector/connector-gen-template',
+        };
+
+        if (!subCommand || subCommand === '--help' || subCommand === '-h') {
+          console.log(`
 用法: openyida connector <子命令> [参数]
 
 子命令:
@@ -593,49 +593,49 @@ async function main() {
 
 使用 openyida connector <子命令> --help 查看详细帮助
 `);
+          break;
+        }
+
+        const modulePath = connectorSubCommands[subCommand];
+        if (!modulePath) {
+          console.error(`未知的 connector 子命令: ${subCommand}`);
+          console.error('使用 openyida connector --help 查看可用子命令');
+          process.exit(1);
+        }
+
+        const { run: runConnector } = require(modulePath);
+        await runConnector(subArgs);
         break;
       }
 
-      const modulePath = connectorSubCommands[subCommand];
-      if (!modulePath) {
-        console.error(`未知的 connector 子命令: ${subCommand}`);
-        console.error('使用 openyida connector --help 查看可用子命令');
-        process.exit(1);
+      case 'query-data': {
+        if (args.length < 2) {
+          console.error('用法：openyida query-data <appType> <formUuid> [--page N] [--size N] [--search-json JSON] [--inst-id ID]');
+          process.exit(1);
+        }
+        const { run: runQueryData } = require('../lib/core/query-data');
+        await runQueryData(args);
+        break;
       }
 
-      const { run: runConnector } = require(modulePath);
-      await runConnector(subArgs);
-      break;
-    }
+      case 'export-conversation': {
+        const { run: runExportConv } = require('../lib/core/export-conversation');
+        await runExportConv(args);
+        break;
+      }
 
-    case 'query-data': {
-      if (args.length < 2) {
-        console.error('用法：openyida query-data <appType> <formUuid> [--page N] [--size N] [--search-json JSON] [--inst-id ID]');
+      default: {
+        console.error(t('cli.unknown_command', command));
+        console.error(t('cli.run_help'));
         process.exit(1);
       }
-      const { run: runQueryData } = require('../lib/core/query-data');
-      await runQueryData(args);
-      break;
     }
 
-    case 'export-conversation': {
-      const { run: runExportConv } = require('../lib/core/export-conversation');
-      await runExportConv(args);
-      break;
+    // 记录命令执行成功
+    if (finishLog) {
+      process.stdout.write = originalStdoutWrite;
+      finishLog(capturedOutput, true);
     }
-
-    default: {
-      console.error(t('cli.unknown_command', command));
-      console.error(t('cli.run_help'));
-      process.exit(1);
-    }
-  }
-
-  // 记录命令执行成功
-  if (finishLog) {
-    process.stdout.write = originalStdoutWrite;
-    finishLog(capturedOutput, true);
-  }
 
   } catch (commandError) {
     // 记录命令执行失败
