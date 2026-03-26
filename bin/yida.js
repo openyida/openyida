@@ -580,6 +580,31 @@ async function main() {
       break;
     }
 
+    case 'flash-to-prd': {
+      const { run: runFlashToPrd } = require('../lib/flash-note/flash-to-prd');
+      await runFlashToPrd(args);
+      break;
+    }
+
+    case 'integration': {
+      const subCommand = args[0];
+
+      if (!subCommand || subCommand === '--help' || subCommand === '-h') {
+        console.error(t('cli.integration_help'));
+        break;
+      }
+
+      if (subCommand === 'create') {
+        const { run: runIntegration } = require('../lib/integration/integration-create');
+        await runIntegration(args);
+      } else {
+        console.error(t('cli.integration_unknown', subCommand));
+        console.error(t('cli.integration_help_hint'));
+        process.exit(1);
+      }
+      break;
+    }
+
     case 'query-data': {
       if (args.length < 2) {
         console.error('用法：openyida query-data <appType> <formUuid> [--page N] [--size N] [--search-json JSON] [--inst-id ID]');
