@@ -480,7 +480,7 @@ buildDataSetEntry({
     buildFieldDefinition({
       alias: 'date',                  // 字段别名（fieldKey）
       aliasName: '日期',              // 字段显示名称
-      isDim: true,                    // true=维度，false=度量
+      isDim: false,                   // ⚠️ 固定为 false（宜搭报表引擎要求所有字段 isDim 均为 false）
       dataType: 'DATE',              // STRING | NUMBER | DATE | BOOLEAN | ARRAY
       aggregateType: 'NONE',         // NONE | SUM | AVG | COUNT | MAX | MIN | COUNT_DISTINCT
       timeGranularityType: 'DAY',    // YEAR | QUARTER | MONTH | WEEK | DAY | HOUR | MINUTE | null
@@ -534,7 +534,7 @@ buildSchema.lineChart({
     line_dataset: buildDataSetEntry({
       cubeCode: 'your_cube_code',
       fieldDefinitionList: [
-        buildFieldDefinition({ alias: 'date', aliasName: '日期', isDim: true, dataType: 'DATE', timeGranularityType: 'DAY' }),
+        buildFieldDefinition({ alias: 'date', aliasName: '日期', isDim: false, dataType: 'DATE', timeGranularityType: 'DAY' }),
         buildFieldDefinition({ alias: 'sales', aliasName: '销售额', isDim: false, dataType: 'NUMBER', aggregateType: 'SUM' }),
       ],
       fieldList: ['date', 'sales'],
@@ -558,7 +558,7 @@ buildSchema.pieChart({
     pie_dataset: buildDataSetEntry({
       cubeCode: 'your_cube_code',
       fieldDefinitionList: [
-        buildFieldDefinition({ alias: 'category', aliasName: '类别', isDim: true, dataType: 'STRING' }),
+        buildFieldDefinition({ alias: 'category', aliasName: '类别', isDim: false, dataType: 'STRING' }),
         buildFieldDefinition({ alias: 'amount', aliasName: '金额', isDim: false, dataType: 'NUMBER', aggregateType: 'SUM' }),
       ],
       fieldList: ['category', 'amount'],
@@ -579,8 +579,8 @@ buildSchema.table({
     table: buildDataSetEntry({
       cubeCode: 'your_cube_code',
       fieldDefinitionList: [
-        buildFieldDefinition({ alias: 'name', aliasName: '姓名', isDim: true, dataType: 'STRING' }),
-        buildFieldDefinition({ alias: 'dept', aliasName: '部门', isDim: true, dataType: 'STRING' }),
+        buildFieldDefinition({ alias: 'name', aliasName: '姓名', isDim: false, dataType: 'STRING' }),
+        buildFieldDefinition({ alias: 'dept', aliasName: '部门', isDim: false, dataType: 'STRING' }),
         buildFieldDefinition({ alias: 'sales', aliasName: '销售额', isDim: false, dataType: 'NUMBER', aggregateType: 'SUM' }),
       ],
       fieldList: ['name', 'dept', 'sales'],

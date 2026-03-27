@@ -382,6 +382,14 @@ export function loadECharts() {
 5. **筛选刷新**：使用 `setOption(option, true)` 原地更新，禁止 `dispose()` 重建
 6. **日期筛选**：`searchFormDatas` 的日期筛选需要毫秒时间戳数组，不能传日期字符串
 7. **样式内联**：所有样式通过 JS 对象定义，不使用外部 CSS
+8. **CSS 渐变必须用 `background`**：`backgroundColor` 只接受纯色值，不支持 `linear-gradient()` 等渐变。使用渐变时必须用 `background` 属性，否则浏览器会忽略该值导致背景变白：
+   ```javascript
+   // ✅ 正确
+   style={{ background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}
+   // ❌ 错误：backgroundColor 不支持渐变，会被浏览器忽略
+   style={{ backgroundColor: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}
+   ```
+9. **表单详情页跳转 URL**：从明细表格点击跳转到表单详情页时，必须使用宜搭标准 URL 格式 `/{appType}/formDetail/{formUuid}?formInstId={formInstId}`，不要使用 `/d/` 等非标准路径
 
 ---
 
