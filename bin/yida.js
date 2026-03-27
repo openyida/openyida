@@ -119,6 +119,11 @@ openyida - 宜搭命令行工具
   connector gen-template [输出路径]                              生成接口文档模板
   create-report <appType> "<报表名称>" <图表定义JSON或文件路径>   创建宜搭报表
   append-chart <appType> <reportId> <图表定义JSON或文件路径>      向已有报表追加图表
+  export-conversation [选项]                                      导出 AI 对话记录
+    --output, -o <path>                                           指定输出文件路径
+    --input, -i <file>                                            指定输入对话文件
+    --latest                                                      只导出最新对话（默认）
+    --list                                                        列出可用的对话记录
 
 示例：
   openyida login
@@ -149,6 +154,9 @@ openyida - 宜搭命令行工具
   openyida doctor --create-ticket                 创建工单
   openyida doctor --create-voc                    创建 VOC
   openyida doctor --auto-submit                   自动判断并提交
+  openyida export-conversation                   导出当前对话记录
+  openyida export-conversation -o output.md     指定输出路径
+  openyida export-conversation --list            列出可用对话
 `);
   console.log(t('cli.help'));
 }
@@ -595,6 +603,25 @@ async function main() {
       }
       const { run: runQueryData } = require('../lib/core/query-data');
       await runQueryData(args);
+      break;
+    }
+
+    case 'export-conversation': {
+      const { exportConversation } = require('../lib/conversation/export-conversation');
+      // 解析选项
+      const options = {};
+      for (let i = 0; i < args.length; i++) {
+        if (args[i] === '--output' || args[i] === '-o') {
+          options.output = args[++i];
+        } else if (args[i] === '--input' || args[i] === '-i') {
+          options.input = args[++i];
+        } else if (args[i] === '--latest') {
+          options.latest = true;
+        } else if (args[i] === '--list') {
+          options.list = true;
+        }
+      }
+      await exportConversation(options);
       break;
     }
 

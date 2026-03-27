@@ -97,6 +97,12 @@ openyida copy
 | **yida-logout** | [`skills/yida-logout/SKILL.md`](skills/yida-logout/SKILL.md) | 退出登录 / 切换账号 |
 | **yida-page-config** | [`skills/yida-page-config/SKILL.md`](skills/yida-page-config/SKILL.md) | 页面公开访问 / 组织内分享配置 |
 
+### 工具
+
+| 技能 | 路径 | 说明 |
+|------|------|------|
+| **yida-export-conversation** | [`skills/yida-export-conversation/SKILL.md`](skills/yida-export-conversation/SKILL.md) | 导出 AI 对话记录 |
+
 ### 共享参考文档
 
 | 文档 | 路径 | 说明 |
