@@ -1,0 +1,19 @@
+{
+  "filters": [
+    {
+      "title": "时间范围",
+      "cubeCode": "FORM_ECCF67D4CC994968B2675C9CBD0F04A536P0",
+      "valueField": { "fieldCode": "dateField_ozj67i07t", "aliasName": "预计成交日期", "dataType": "DATE" },
+      "labelField": { "fieldCode": "dateField_ozj67i07t", "aliasName": "预计成交日期", "dataType": "DATE" },
+      "linkTo": [1, 4, 5]
+    }
+  ],
+  "charts": [
+    { "type": "indicator", "title": "客户总数", "cubeCode": "FORM_48FB56AFA31E43B09BDE30B7165D3E92D7WT" },
+    { "type": "funnel", "title": "商机销售漏斗", "cubeCode": "FORM_ECCF67D4CC994968B2675C9CBD0F04A536P0" },
+    { "type": "line", "title": "月度合同趋势", "cubeCode": "FORM_66D473275377454DB51AC8577788E536UB4R" },
+    { "type": "pie", "title": "客户类型分布", "cubeCode": "FORM_48FB56AFA31E43B09BDE30B7165D3E92D7WT" },
+    { "type": "bar", "title": "销售业绩排名", "cubeCode": "FORM_ECCF67D4CC994968B2675C9CBD0F04A536P0" },
+    { "type": "pivot", "title": "客户级别×商机阶段", "cubeCode": "FORM_ECCF67D4CC994968B2675C9CBD0F04A536P0" }
+  ]
+}

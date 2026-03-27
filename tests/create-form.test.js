@@ -64,7 +64,7 @@ describe("buildFormSchema FormContainer structure", () => {
     const formSchemaFunction = extractFunctionBody(sourceCode, "buildFormSchema");
     expect(formSchemaFunction).toBeDefined();
 
-    const formContainerMatches = formSchemaFunction.match(/componentName:\s*"FormContainer"/g) || [];
+    const formContainerMatches = formSchemaFunction.match(/componentName:\s*['"]FormContainer['"]/g) || [];
     expect(formContainerMatches.length).toBe(1);
   });
 
@@ -72,11 +72,11 @@ describe("buildFormSchema FormContainer structure", () => {
     const formSchemaFunction = extractFunctionBody(sourceCode, "buildFormSchema");
     expect(formSchemaFunction).toBeDefined();
 
-    const rootContentIndex = formSchemaFunction.indexOf('"RootContent"');
+    const rootContentIndex = formSchemaFunction.search(/['"]RootContent['"]/);
     expect(rootContentIndex).toBeGreaterThan(-1);
 
     const afterRootContent = formSchemaFunction.slice(rootContentIndex);
-    const formContainerCount = (afterRootContent.match(/componentName:\s*"FormContainer"/g) || []).length;
+    const formContainerCount = (afterRootContent.match(/componentName:\s*['"]FormContainer['"]/g) || []).length;
     expect(formContainerCount).toBe(1);
   });
 });

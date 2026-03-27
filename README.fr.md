@@ -77,22 +77,36 @@ Crée une application de calcul de salaire personnel
 ## Commandes CLI
 
 ```bash
-openyida env                  # Détecter l'environnement IA actuel et le statut de connexion
-openyida login                # Se connecter à Yida (cache en priorité, sinon QR code)
-openyida logout               # Se déconnecter / changer de compte
+openyida append-chart         # Ajouter un graphique à un rapport existant
+openyida auth                 # Gestion du statut de connexion (status/login/refresh/logout)
+openyida cdn-config           # Configurer l'upload d'images CDN (Aliyun OSS + CDN)
+openyida cdn-refresh          # Rafraîchir le cache CDN
+openyida cdn-upload           # Uploader des images vers le CDN
+openyida configure-process    # Configurer et publier les règles de processus
+openyida connector            # Gestion des connecteurs HTTP
 openyida copy                 # Initialiser le répertoire project pour l'outil IA actuel
 openyida create-app           # Créer une application Yida
-openyida create-page          # Créer une page d'affichage personnalisée
 openyida create-form          # Créer / mettre à jour une page de formulaire
-openyida get-schema           # Récupérer le schéma de formulaire
-openyida publish              # Compiler et publier une page personnalisée
-openyida verify-short-url     # Vérifier si une URL courte est accessible
-openyida save-share-config    # Sauvegarder la config d'accès public / partage
+openyida create-page          # Créer une page d'affichage personnalisée
+openyida create-process       # Créer un formulaire de processus (intégré)
+openyida create-report        # Créer un rapport Yida
+openyida data                 # Gestion unifiée des données (formulaire/processus/tâche/sous-formulaire)
+openyida doctor               # Diagnostic d'environnement et réparation automatique
+openyida env                  # Détecter l'environnement IA actuel et le statut de connexion
+openyida export               # Exporter le package de migration d'application
 openyida get-page-config      # Consulter la config d'accès public / partage d'une page
+openyida get-permission       # Consulter la configuration des permissions du formulaire
+openyida get-schema           # Récupérer le schéma de formulaire
+openyida import               # Importer le package de migration pour reconstruire l'application
+openyida login                # Se connecter à Yida (cache en priorité, sinon QR code)
+openyida logout               # Se déconnecter / changer de compte
+openyida org                  # Gestion des organisations (list/switch)
+openyida publish              # Compiler et publier une page personnalisée
+openyida query-data           # Consulter les données d'instance de formulaire
+openyida save-permission      # Sauvegarder la configuration des permissions du formulaire
+openyida save-share-config    # Sauvegarder la config d'accès public / partage
 openyida update-form-config   # Mettre à jour la configuration du formulaire
-openyida cdn-config           # Configurer l'upload d'images CDN (Aliyun OSS + CDN)
-openyida cdn-upload           # Uploader des images vers le CDN
-openyida cdn-refresh          # Rafraîchir le cache CDN
+openyida verify-short-url     # Vérifier si une URL courte est accessible
 ```
 
 ---

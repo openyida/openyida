@@ -1,0 +1,22 @@
+{
+  "nodes": [
+    {
+      "type": "approval",
+      "name": "直属主管审批",
+      "approver": "originator",
+      "description": "直属主管审批报销申请"
+    },
+    {
+      "type": "approval",
+      "name": "财务审核",
+      "approver": "originator",
+      "description": "财务部门审核报销金额"
+    },
+    {
+      "type": "approval",
+      "name": "出纳确认",
+      "approver": "originator",
+      "description": "出纳确认并安排付款"
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+[
+  {
+    "type": "SerialNumberField",
+    "label": "报销单号",
+    "serialNumberRule": [
+      {
+        "ruleType": "character",
+        "content": "EXP-",
+        "dateFormat": "yyyyMMdd",
+        "timeZone": "+8",
+        "resetPeriod": "noClean",
+        "digitCount": 4,
+        "isFixed": true,
+        "initialValue": 1,
+        "isFixedTips": "",
+        "resetPeriodTips": "",
+        "formField": "",
+        "__sid": "item_char_exp",
+        "__sid__": "serial_char_exp",
+        "__hide_delete__": false
+      },
+      {
+        "ruleType": "date",
+        "content": "",
+        "dateFormat": "yyyyMMdd",
+        "timeZone": "+8",
+        "resetPeriod": "noClean",
+        "digitCount": 4,
+        "isFixed": true,
+        "initialValue": 1,
+        "isFixedTips": "",
+        "resetPeriodTips": "",
+        "formField": "",
+        "__sid": "item_date_yyyymmdd",
+        "__sid__": "serial_date_yyyymmdd",
+        "__hide_delete__": false
+      },
+      {
+        "ruleType": "character",
+        "content": "-",
+        "dateFormat": "yyyyMMdd",
+        "timeZone": "+8",
+        "resetPeriod": "noClean",
+        "digitCount": 4,
+        "isFixed": true,
+        "initialValue": 1,
+        "isFixedTips": "",
+        "resetPeriodTips": "",
+        "formField": "",
+        "__sid": "item_char_dash",
+        "__sid__": "serial_char_dash",
+        "__hide_delete__": false
+      },
+      {
+        "ruleType": "autoCount",
+        "content": "",
+        "dateFormat": "yyyyMMdd",
+        "timeZone": "+8",
+        "resetPeriod": "noClean",
+        "digitCount": 4,
+        "isFixed": true,
+        "initialValue": 1,
+        "isFixedTips": "",
+        "resetPeriodTips": "",
+        "formField": "",
+        "__sid": "item_auto_count",
+        "__sid__": "serial_auto_count",
+        "__hide_delete__": true
+      }
+    ],
+    "serialNumPreview": "EXP-20260327-0001"
+  },
+  {
+    "type": "EmployeeField",
+    "label": "申请人",
+    "required": true
+  },
+  {
+    "type": "DepartmentSelectField",
+    "label": "所属部门",
+    "required": true
+  },
+  {
+    "type": "AssociationFormField",
+    "label": "关联客户",
+    "required": false,
+    "multiple": false,
+    "hasClear": true,
+    "isShowSearchBar": true,
+    "associationForm": {
+      "formUuid": "FORM-48FB56AFA31E43B09BDE30B7165D3E92D7WT",
+      "appType": "APP_MRNQXYA404IHD2P6JHSD",
+      "mainFieldId": "textField_l1h42qsqz",
+      "mainFieldLabel": "客户名称",
+      "mainComponentName": "TextField",
+      "tableShowType": "custom",
+      "customTableFields": ["textField_l1h42qsqz"]
+    }
+  },
+  {
+    "type": "SelectField",
+    "label": "报销类型",
+    "required": true,
+    "dataSource": [
+      {"text": {"zh_CN": "差旅", "en_US": "差旅", "type": "i18n"}, "value": "差旅"},
+      {"text": {"zh_CN": "招待", "en_US": "招待", "type": "i18n"}, "value": "招待"},
+      {"text": {"zh_CN": "办公", "en_US": "办公", "type": "i18n"}, "value": "办公"},
+      {"text": {"zh_CN": "交通", "en_US": "交通", "type": "i18n"}, "value": "交通"},
+      {"text": {"zh_CN": "其他", "en_US": "其他", "type": "i18n"}, "value": "其他"}
+    ]
+  },
+  {
+    "type": "TableField",
+    "label": "报销明细",
+    "children": [
+      {"type": "DateField", "label": "消费日期", "required": true},
+      {
+        "type": "SelectField",
+        "label": "费用类别",
+        "required": true,
+        "dataSource": [
+          {"text": {"zh_CN": "餐饮", "en_US": "餐饮", "type": "i18n"}, "value": "餐饮"},
+          {"text": {"zh_CN": "交通", "en_US": "交通", "type": "i18n"}, "value": "交通"},
+          {"text": {"zh_CN": "住宿", "en_US": "住宿", "type": "i18n"}, "value": "住宿"},
+          {"text": {"zh_CN": "办公", "en_US": "办公", "type": "i18n"}, "value": "办公"},
+          {"text": {"zh_CN": "其他", "en_US": "其他", "type": "i18n"}, "value": "其他"}
+        ]
+      },
+      {"type": "NumberField", "label": "金额", "required": true},
+      {"type": "TextField", "label": "说明"}
+    ]
+  },
+  {
+    "type": "NumberField",
+    "label": "报销总额",
+    "required": true
+  },
+  {
+    "type": "TextareaField",
+    "label": "报销说明"
+  }
+]

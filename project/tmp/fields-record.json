@@ -1,0 +1,27 @@
+[
+  {
+    "type": "TextField",
+    "label": "关联工单编号"
+  },
+  {
+    "type": "TextField",
+    "label": "处理人"
+  },
+  {
+    "type": "TextField",
+    "label": "处理时间"
+  },
+  {
+    "type": "TextField",
+    "label": "处理动作",
+    "placeholder": "受理/转派/处理/回访/关闭"
+  },
+  {
+    "type": "TextareaField",
+    "label": "处理说明"
+  },
+  {
+    "type": "TextField",
+    "label": "下一步计划"
+  }
+]

@@ -1031,7 +1031,7 @@ export function renderJsx() {
                   type="text"
                   placeholder="请输入您的姓名"
                   defaultValue=""
-                  onChange={function(e) { _customState.formName = e.target.value; }}
+                  onChange={(e) => { _customState.formName = e.target.value; }}
                 />
               </div>
 
@@ -1043,7 +1043,7 @@ export function renderJsx() {
                   type="text"
                   placeholder="请输入您的公司名称"
                   defaultValue=""
-                  onChange={function(e) { _customState.formCompany = e.target.value; }}
+                  onChange={(e) => { _customState.formCompany = e.target.value; }}
                 />
               </div>
 
@@ -1053,7 +1053,7 @@ export function renderJsx() {
                   id="field-position"
                   style={styles.formSelect}
                   defaultValue="请选择"
-                  onChange={function(e) { _customState.formPosition = e.target.value; }}
+                  onChange={(e) => { _customState.formPosition = e.target.value; }}
                 >
                   <option value="请选择" disabled>请选择您的职位</option>
                   <option value="CEO/创始人">CEO / 创始人</option>
@@ -1073,7 +1073,7 @@ export function renderJsx() {
                   type="email"
                   placeholder="请输入企业邮箱"
                   defaultValue=""
-                  onChange={function(e) { _customState.formEmail = e.target.value; }}
+                  onChange={(e) => { _customState.formEmail = e.target.value; }}
                 />
               </div>
 

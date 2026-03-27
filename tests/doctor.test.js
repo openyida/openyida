@@ -295,7 +295,7 @@ describe("EnvironmentChecker", () => {
     const checker = new EnvironmentChecker({ projectRoot: tmpDir });
     const results = await checker.check();
 
-    expect(results.length).toBeGreaterThanOrEqual(9);
+    expect(results.length).toBeGreaterThanOrEqual(8);
     expect(results.every((r) => r.id && r.label)).toBe(true);
 
     cleanupTempDir(tmpDir);

@@ -1,0 +1,67 @@
+{
+  "nodes": [
+    {
+      "type": "approval",
+      "name": "直属主管审批",
+      "approver": "originator",
+      "description": "直属主管审批报销申请",
+      "formConfig": {
+        "behaviorList": [
+          { "fieldId": "serialNumberField_pmft1yjbt", "fieldBehavior": "READONLY" },
+          { "fieldId": "employeeField_pmft2ms01", "fieldBehavior": "READONLY" },
+          { "fieldId": "departmentSelectField_pmft38ssf", "fieldBehavior": "READONLY" },
+          { "fieldId": "associationFormField_pmft46blw", "fieldBehavior": "READONLY" },
+          { "fieldId": "selectField_pmft5pnst", "fieldBehavior": "READONLY" },
+          { "fieldId": "tableField_pmft6o4k2", "fieldBehavior": "READONLY" },
+          { "fieldId": "numberField_pmfubrlhz", "fieldBehavior": "READONLY" },
+          { "fieldId": "textareaField_pmfuccrzp", "fieldBehavior": "READONLY" }
+        ]
+      },
+      "routeRules": [
+        { "when": "disagree", "jumpTo": "发起人" }
+      ]
+    },
+    {
+      "type": "approval",
+      "name": "财务审核",
+      "approver": "originator",
+      "description": "财务部门审核报销金额",
+      "formConfig": {
+        "behaviorList": [
+          { "fieldId": "serialNumberField_pmft1yjbt", "fieldBehavior": "READONLY" },
+          { "fieldId": "employeeField_pmft2ms01", "fieldBehavior": "READONLY" },
+          { "fieldId": "departmentSelectField_pmft38ssf", "fieldBehavior": "READONLY" },
+          { "fieldId": "associationFormField_pmft46blw", "fieldBehavior": "READONLY" },
+          { "fieldId": "selectField_pmft5pnst", "fieldBehavior": "READONLY" },
+          { "fieldId": "tableField_pmft6o4k2", "fieldBehavior": "READONLY" },
+          { "fieldId": "numberField_pmfubrlhz", "fieldBehavior": "READONLY" },
+          { "fieldId": "textareaField_pmfuccrzp", "fieldBehavior": "NORMAL" }
+        ]
+      },
+      "routeRules": [
+        { "when": "disagree", "jumpTo": "发起人" }
+      ]
+    },
+    {
+      "type": "approval",
+      "name": "出纳确认",
+      "approver": "originator",
+      "description": "出纳确认并安排付款",
+      "formConfig": {
+        "behaviorList": [
+          { "fieldId": "serialNumberField_pmft1yjbt", "fieldBehavior": "READONLY" },
+          { "fieldId": "employeeField_pmft2ms01", "fieldBehavior": "READONLY" },
+          { "fieldId": "departmentSelectField_pmft38ssf", "fieldBehavior": "READONLY" },
+          { "fieldId": "associationFormField_pmft46blw", "fieldBehavior": "READONLY" },
+          { "fieldId": "selectField_pmft5pnst", "fieldBehavior": "READONLY" },
+          { "fieldId": "tableField_pmft6o4k2", "fieldBehavior": "READONLY" },
+          { "fieldId": "numberField_pmfubrlhz", "fieldBehavior": "READONLY" },
+          { "fieldId": "textareaField_pmfuccrzp", "fieldBehavior": "READONLY" }
+        ]
+      },
+      "routeRules": [
+        { "when": "disagree", "jumpTo": "发起人" }
+      ]
+    }
+  ]
+}
