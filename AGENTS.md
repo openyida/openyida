@@ -50,6 +50,7 @@ openyida/
 │   │   ├── configure-process.js   # 配置并发布流程规则
 │   │   └── create-process.js      # 创建流程表单（一体化）
 │   ├── connector/           # HTTP 连接器管理
+│   │   ├── api.js                 # 连接器 API 请求封装
 │   │   ├── connector-list.js
 │   │   ├── connector-create.js
 │   │   ├── connector-detail.js
@@ -62,7 +63,12 @@ openyida/
 │   │   ├── connector-create-connection.js
 │   │   ├── connector-smart-create.js
 │   │   ├── connector-parse-api.js
-│   │   └── connector-gen-template.js
+│   │   ├── connector-gen-template.js
+│   │   ├── curl-parser.js         # cURL 命令解析
+│   │   ├── doc-parser.js          # API 文档解析
+│   │   ├── response-parser.js     # 响应结构解析
+│   │   ├── action-generator.js    # Action 自动生成
+│   │   └── desc-generator.js      # 描述自动生成
 │   ├── cdn/                 # CDN / OSS 管理
 │   │   ├── cdn-config.js          # CDN 配置读写
 │   │   ├── cdn-config-cmd.js      # CDN 配置命令
@@ -75,15 +81,18 @@ openyida/
 │       ├── chart-builder.js       # 图表 Schema 构建
 │       ├── http.js                # 报表 HTTP 请求封装
 │       └── constants.js           # 常量与 ID 生成工具
+│   └── data-management.js   # 表单数据管理（增删改查）
 ├── project/
 │   ├── config.json          # 应用配置（appType、pageId 等）
 │   └── pages/               # 自定义页面源码目录
 ├── yida-skills/
-│   ├── SKILL.md             # 技能入口（AI 工具读取此文件获取能力描述）
-│   ├── skills/              # 子技能目录
-│   └── reference/           # 宜搭 API 参考文档
+│   ├── SKILL.md             # 技能入口（索引表，列出所有子技能）
+│   ├── skills/              # 子技能目录（每个 skill 自包含 SKILL.md + references/）
+│   └── reference/           # 跨 skill 共享参考文档（yida-api、model-api、query-condition-guide）
 └── scripts/
-    └── postinstall.js       # 安装后脚本（环境检测 + 配置注入）
+    ├── postinstall.js       # 安装后脚本（环境检测 + 配置注入）
+    ├── validate-ci.sh       # CI 校验脚本
+    └── validate-structure.js # 项目结构校验
 ```
 
 ## 关键约定
@@ -109,6 +118,13 @@ openyida/
 - 发布前通过 `lib/babel-transform/` 进行 Babel 编译
 - 编译产物输出到 `project/pages/dist/`
 
+### yida-skills 架构规范
+- **入口文件** `yida-skills/SKILL.md` 是索引表，列出所有子技能和共享参考文档
+- **每个子技能**位于 `yida-skills/skills/<skill-name>/` 目录下，包含独立的 `SKILL.md`
+- **专属参考文档**放在各 skill 的 `references/` 目录下（复数形式），实现自包含
+- **跨 skill 共享文档**保留在 `yida-skills/reference/` 目录下（`yida-api.md`、`model-api.md`、`query-condition-guide.md`）
+- 新增子技能时，同步更新 `yida-skills/SKILL.md` 的索引表
+
 ## 开发注意事项
 
 1. **不要修改 `yida-skills/` 下的文档**，除非是在更新技能描述
@@ -123,7 +139,13 @@ openyida/
 1. 在 `lib/` 下创建 `new-command.js`
 2. 在 `bin/yida.js` 中注册命令路由
 3. 在 `README.md` 的 CLI 命令一览表中添加说明
-4. 在 `yida-skills/SKILL.md` 中更新技能描述
+4. 在 `yida-skills/SKILL.md` 中更新技能描述（索引表中添加新行）
+
+### 添加新子技能
+1. 在 `yida-skills/skills/` 下创建 `<skill-name>/SKILL.md`
+2. 若有专属参考文档，放在 `<skill-name>/references/` 目录下
+3. 在 `yida-skills/SKILL.md` 的索引表中添加新行
+4. 在 `AGENTS.md` 中无需额外更新（索引表自动覆盖）
 
 ### 调试登录问题
 - 检查 `lib/login.js` 中的 Cookie 缓存逻辑

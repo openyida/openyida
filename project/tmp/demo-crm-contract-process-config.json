@@ -1,0 +1,193 @@
+{
+  "nodes": [
+    {
+      "type": "route",
+      "conditions": [
+        {
+          "name": "小额合同(≤5万)",
+          "logic": "AND",
+          "rules": [
+            {
+              "fieldId": "numberField_rvie67pbf",
+              "fieldName": "合同金额",
+              "op": "LessThanOrEqual",
+              "value": "50000",
+              "componentType": "NumberField"
+            }
+          ],
+          "childNodes": [
+            {
+              "type": "approval",
+              "name": "部门经理审批",
+              "approver": "originator",
+              "formConfig": {
+                "behaviorList": [
+                  { "fieldId": "textField_rvid2vb2q", "fieldBehavior": "READONLY" },
+                  { "fieldId": "associationFormField_rvid3fcwr", "fieldBehavior": "READONLY" },
+                  { "fieldId": "associationFormField_rvie4ik5d", "fieldBehavior": "READONLY" },
+                  { "fieldId": "selectField_rvie5xxfu", "fieldBehavior": "READONLY" },
+                  { "fieldId": "numberField_rvie67pbf", "fieldBehavior": "READONLY" },
+                  { "fieldId": "dateField_rvie7xoex", "fieldBehavior": "READONLY" },
+                  { "fieldId": "cascadeDateField_rvie8y12a", "fieldBehavior": "READONLY" },
+                  { "fieldId": "employeeField_rvie9zghg", "fieldBehavior": "READONLY" },
+                  { "fieldId": "attachmentField_rviead1gl", "fieldBehavior": "NORMAL" },
+                  { "fieldId": "textareaField_rviebrf62", "fieldBehavior": "READONLY" }
+                ]
+              },
+              "routeRules": [
+                { "when": "disagree", "jumpTo": "发起人" }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "中额合同(5万-20万)",
+          "logic": "AND",
+          "rules": [
+            {
+              "fieldId": "numberField_rvie67pbf",
+              "fieldName": "合同金额",
+              "op": "GreaterThan",
+              "value": "50000",
+              "componentType": "NumberField"
+            },
+            {
+              "fieldId": "numberField_rvie67pbf",
+              "fieldName": "合同金额",
+              "op": "LessThanOrEqual",
+              "value": "200000",
+              "componentType": "NumberField"
+            }
+          ],
+          "childNodes": [
+            {
+              "type": "approval",
+              "name": "部门经理审批",
+              "approver": "originator",
+              "formConfig": {
+                "behaviorList": [
+                  { "fieldId": "textField_rvid2vb2q", "fieldBehavior": "READONLY" },
+                  { "fieldId": "associationFormField_rvid3fcwr", "fieldBehavior": "READONLY" },
+                  { "fieldId": "associationFormField_rvie4ik5d", "fieldBehavior": "READONLY" },
+                  { "fieldId": "selectField_rvie5xxfu", "fieldBehavior": "READONLY" },
+                  { "fieldId": "numberField_rvie67pbf", "fieldBehavior": "READONLY" },
+                  { "fieldId": "dateField_rvie7xoex", "fieldBehavior": "READONLY" },
+                  { "fieldId": "cascadeDateField_rvie8y12a", "fieldBehavior": "READONLY" },
+                  { "fieldId": "employeeField_rvie9zghg", "fieldBehavior": "READONLY" },
+                  { "fieldId": "attachmentField_rviead1gl", "fieldBehavior": "NORMAL" },
+                  { "fieldId": "textareaField_rviebrf62", "fieldBehavior": "READONLY" }
+                ]
+              },
+              "routeRules": [
+                { "when": "disagree", "jumpTo": "发起人" }
+              ]
+            },
+            {
+              "type": "approval",
+              "name": "财务审批",
+              "approver": "originator",
+              "formConfig": {
+                "behaviorList": [
+                  { "fieldId": "textField_rvid2vb2q", "fieldBehavior": "READONLY" },
+                  { "fieldId": "associationFormField_rvid3fcwr", "fieldBehavior": "READONLY" },
+                  { "fieldId": "associationFormField_rvie4ik5d", "fieldBehavior": "READONLY" },
+                  { "fieldId": "selectField_rvie5xxfu", "fieldBehavior": "READONLY" },
+                  { "fieldId": "numberField_rvie67pbf", "fieldBehavior": "READONLY" },
+                  { "fieldId": "dateField_rvie7xoex", "fieldBehavior": "READONLY" },
+                  { "fieldId": "cascadeDateField_rvie8y12a", "fieldBehavior": "READONLY" },
+                  { "fieldId": "employeeField_rvie9zghg", "fieldBehavior": "READONLY" },
+                  { "fieldId": "attachmentField_rviead1gl", "fieldBehavior": "NORMAL" },
+                  { "fieldId": "textareaField_rviebrf62", "fieldBehavior": "READONLY" }
+                ]
+              },
+              "routeRules": [
+                { "when": "disagree", "jumpTo": "发起人" }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "大额合同(>20万)",
+          "logic": "AND",
+          "rules": [
+            {
+              "fieldId": "numberField_rvie67pbf",
+              "fieldName": "合同金额",
+              "op": "GreaterThan",
+              "value": "200000",
+              "componentType": "NumberField"
+            }
+          ],
+          "childNodes": [
+            {
+              "type": "approval",
+              "name": "部门经理审批",
+              "approver": "originator",
+              "formConfig": {
+                "behaviorList": [
+                  { "fieldId": "textField_rvid2vb2q", "fieldBehavior": "READONLY" },
+                  { "fieldId": "associationFormField_rvid3fcwr", "fieldBehavior": "READONLY" },
+                  { "fieldId": "associationFormField_rvie4ik5d", "fieldBehavior": "READONLY" },
+                  { "fieldId": "selectField_rvie5xxfu", "fieldBehavior": "READONLY" },
+                  { "fieldId": "numberField_rvie67pbf", "fieldBehavior": "READONLY" },
+                  { "fieldId": "dateField_rvie7xoex", "fieldBehavior": "READONLY" },
+                  { "fieldId": "cascadeDateField_rvie8y12a", "fieldBehavior": "READONLY" },
+                  { "fieldId": "employeeField_rvie9zghg", "fieldBehavior": "READONLY" },
+                  { "fieldId": "attachmentField_rviead1gl", "fieldBehavior": "NORMAL" },
+                  { "fieldId": "textareaField_rviebrf62", "fieldBehavior": "READONLY" }
+                ]
+              },
+              "routeRules": [
+                { "when": "disagree", "jumpTo": "发起人" }
+              ]
+            },
+            {
+              "type": "approval",
+              "name": "财务审批",
+              "approver": "originator",
+              "formConfig": {
+                "behaviorList": [
+                  { "fieldId": "textField_rvid2vb2q", "fieldBehavior": "READONLY" },
+                  { "fieldId": "associationFormField_rvid3fcwr", "fieldBehavior": "READONLY" },
+                  { "fieldId": "associationFormField_rvie4ik5d", "fieldBehavior": "READONLY" },
+                  { "fieldId": "selectField_rvie5xxfu", "fieldBehavior": "READONLY" },
+                  { "fieldId": "numberField_rvie67pbf", "fieldBehavior": "READONLY" },
+                  { "fieldId": "dateField_rvie7xoex", "fieldBehavior": "READONLY" },
+                  { "fieldId": "cascadeDateField_rvie8y12a", "fieldBehavior": "READONLY" },
+                  { "fieldId": "employeeField_rvie9zghg", "fieldBehavior": "READONLY" },
+                  { "fieldId": "attachmentField_rviead1gl", "fieldBehavior": "NORMAL" },
+                  { "fieldId": "textareaField_rviebrf62", "fieldBehavior": "READONLY" }
+                ]
+              },
+              "routeRules": [
+                { "when": "disagree", "jumpTo": "发起人" }
+              ]
+            },
+            {
+              "type": "approval",
+              "name": "总经理审批",
+              "approver": "originator",
+              "formConfig": {
+                "behaviorList": [
+                  { "fieldId": "textField_rvid2vb2q", "fieldBehavior": "READONLY" },
+                  { "fieldId": "associationFormField_rvid3fcwr", "fieldBehavior": "READONLY" },
+                  { "fieldId": "associationFormField_rvie4ik5d", "fieldBehavior": "READONLY" },
+                  { "fieldId": "selectField_rvie5xxfu", "fieldBehavior": "READONLY" },
+                  { "fieldId": "numberField_rvie67pbf", "fieldBehavior": "READONLY" },
+                  { "fieldId": "dateField_rvie7xoex", "fieldBehavior": "READONLY" },
+                  { "fieldId": "cascadeDateField_rvie8y12a", "fieldBehavior": "READONLY" },
+                  { "fieldId": "employeeField_rvie9zghg", "fieldBehavior": "READONLY" },
+                  { "fieldId": "attachmentField_rviead1gl", "fieldBehavior": "NORMAL" },
+                  { "fieldId": "textareaField_rviebrf62", "fieldBehavior": "READONLY" }
+                ]
+              },
+              "routeRules": [
+                { "when": "disagree", "jumpTo": "发起人" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

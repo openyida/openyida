@@ -77,22 +77,36 @@ npm install -g openyida
 ## CLI 指令一覽
 
 ```bash
-openyida env                  # 偵測目前 AI 工具環境和登入狀態
-openyida login                # 登入宜搭（優先快取，否則掃碼）
-openyida logout               # 登出 / 切換帳號
+openyida append-chart         # 向已有報表追加圖表
+openyida auth                 # 登入狀態管理（status/login/refresh/logout）
+openyida cdn-config           # 設定 CDN 圖片上傳（阿里雲 OSS + CDN）
+openyida cdn-refresh          # 重新整理 CDN 快取
+openyida cdn-upload           # 上傳圖片到 CDN
+openyida configure-process    # 設定並發布流程規則
+openyida connector            # HTTP 連接器管理
 openyida copy                 # 初始化 project 工作目錄到目前 AI 工具環境
 openyida create-app           # 建立宜搭應用
-openyida create-page          # 建立自訂展示頁面
 openyida create-form          # 建立 / 更新表單頁面
-openyida get-schema           # 取得表單 Schema
-openyida publish              # 編譯並發布自訂頁面
-openyida verify-short-url     # 驗證短網址是否可用
-openyida save-share-config    # 儲存公開存取 / 分享設定
+openyida create-page          # 建立自訂展示頁面
+openyida create-process       # 建立流程表單（一體化）
+openyida create-report        # 建立宜搭報表
+openyida data                 # 統一資料管理（表單/流程/任務/子表單）
+openyida doctor               # 環境診斷與自動修復
+openyida env                  # 偵測目前 AI 工具環境和登入狀態
+openyida export               # 匯出應用遷移包
 openyida get-page-config      # 查詢頁面公開存取 / 分享設定
+openyida get-permission       # 查詢表單權限設定
+openyida get-schema           # 取得表單 Schema
+openyida import               # 匯入遷移包，重建應用
+openyida login                # 登入宜搭（優先快取，否則掃碼）
+openyida logout               # 登出 / 切換帳號
+openyida org                  # 組織管理（list/switch）
+openyida publish              # 編譯並發布自訂頁面
+openyida query-data           # 查詢表單實例資料
+openyida save-permission      # 儲存表單權限設定
+openyida save-share-config    # 儲存公開存取 / 分享設定
 openyida update-form-config   # 更新表單設定
-openyida cdn-config           # 設定 CDN 圖片上傳（阿里雲 OSS + CDN）
-openyida cdn-upload           # 上傳圖片到 CDN
-openyida cdn-refresh          # 重新整理 CDN 快取
+openyida verify-short-url     # 驗證短網址是否可用
 ```
 
 ---

@@ -77,22 +77,36 @@ CRM 시스템 구축해줘
 ## CLI 명령어 목록
 
 ```bash
-openyida env                  # 현재 AI 도구 환경 및 로그인 상태 확인
-openyida login                # Yida 로그인 (캐시 우선, 없으면 QR 코드)
-openyida logout               # 로그아웃 / 계정 전환
+openyida append-chart         # 기존 보고서에 차트 추가
+openyida auth                 # 로그인 상태 관리 (status/login/refresh/logout)
+openyida cdn-config           # CDN 이미지 업로드 설정 (Aliyun OSS + CDN)
+openyida cdn-refresh          # CDN 캐시 갱신
+openyida cdn-upload           # CDN에 이미지 업로드
+openyida configure-process    # 프로세스 규칙 설정 및 배포
+openyida connector            # HTTP 커넥터 관리
 openyida copy                 # 현재 AI 도구 환경에 project 디렉토리 초기화
 openyida create-app           # Yida 앱 생성
-openyida create-page          # 커스텀 표시 페이지 생성
 openyida create-form          # 폼 페이지 생성 / 업데이트
-openyida get-schema           # 폼 스키마 가져오기
-openyida publish              # 커스텀 페이지 컴파일 및 배포
-openyida verify-short-url     # 단축 URL 사용 가능 여부 확인
-openyida save-share-config    # 공개 접근 / 공유 설정 저장
+openyida create-page          # 커스텀 표시 페이지 생성
+openyida create-process       # 프로세스 폼 생성 (통합형)
+openyida create-report        # Yida 보고서 생성
+openyida data                 # 통합 데이터 관리 (폼/프로세스/작업/서브폼)
+openyida doctor               # 환경 진단 및 자동 복구
+openyida env                  # 현재 AI 도구 환경 및 로그인 상태 확인
+openyida export               # 앱 마이그레이션 패키지 내보내기
 openyida get-page-config      # 페이지 공개 접근 / 공유 설정 조회
+openyida get-permission       # 폼 권한 설정 조회
+openyida get-schema           # 폼 스키마 가져오기
+openyida import               # 마이그레이션 패키지 가져와 앱 재구축
+openyida login                # Yida 로그인 (캐시 우선, 없으면 QR 코드)
+openyida logout               # 로그아웃 / 계정 전환
+openyida org                  # 조직 관리 (list/switch)
+openyida publish              # 커스텀 페이지 컴파일 및 배포
+openyida query-data           # 폼 인스턴스 데이터 조회
+openyida save-permission      # 폼 권한 설정 저장
+openyida save-share-config    # 공개 접근 / 공유 설정 저장
 openyida update-form-config   # 폼 설정 업데이트
-openyida cdn-config           # CDN 이미지 업로드 설정 (Aliyun OSS + CDN)
-openyida cdn-upload           # CDN에 이미지 업로드
-openyida cdn-refresh          # CDN 캐시 갱신
+openyida verify-short-url     # 단축 URL 사용 가능 여부 확인
 ```
 
 ---

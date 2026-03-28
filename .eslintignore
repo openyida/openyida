@@ -1,0 +1,12 @@
+# Generated/third-party code
+project/pages/src/
+project/pages/dist/
+
+# Temporary files
+project/tmp/
+
+# PRD documents
+project/prd/
+
+# Qoder agent files
+.qoder/

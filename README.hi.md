@@ -77,22 +77,36 @@ CRM सिस्टम बनाओ
 ## CLI कमांड
 
 ```bash
-openyida env                  # वर्तमान AI टूल वातावरण और लॉगिन स्थिति का पता लगाएं
-openyida login                # Yida में लॉगिन करें (कैश प्राथमिकता, अन्यथा QR कोड)
-openyida logout               # लॉगआउट / खाता बदलें
+openyida append-chart         # मौजूदा रिपोर्ट में चार्ट जोड़ें
+openyida auth                 # लॉगिन स्थिति प्रबंधन (status/login/refresh/logout)
+openyida cdn-config           # CDN इमेज अपलोड कॉन्फ़िगर करें (Aliyun OSS + CDN)
+openyida cdn-refresh          # CDN कैश रिफ्रेश करें
+openyida cdn-upload           # CDN पर इमेज अपलोड करें
+openyida configure-process    # प्रोसेस नियम कॉन्फ़िगर और प्रकाशित करें
+openyida connector            # HTTP कनेक्टर प्रबंधन
 openyida copy                 # वर्तमान AI टूल के लिए project डायरेक्टरी इनिशियलाइज़ करें
 openyida create-app           # Yida ऐप बनाएं
-openyida create-page          # कस्टम डिस्प्ले पेज बनाएं
 openyida create-form          # फ़ॉर्म पेज बनाएं / अपडेट करें
-openyida get-schema           # फ़ॉर्म स्कीमा प्राप्त करें
-openyida publish              # कस्टम पेज कंपाइल और प्रकाशित करें
-openyida verify-short-url     # शॉर्ट URL उपलब्ध है या नहीं जांचें
-openyida save-share-config    # सार्वजनिक एक्सेस / शेयरिंग कॉन्फ़िग सहेजें
+openyida create-page          # कस्टम डिस्प्ले पेज बनाएं
+openyida create-process       # प्रोसेस फ़ॉर्म बनाएं (एकीकृत)
+openyida create-report        # Yida रिपोर्ट बनाएं
+openyida data                 # एकीकृत डेटा प्रबंधन (फ़ॉर्म/प्रोसेस/टास्क/सबफ़ॉर्म)
+openyida doctor               # वातावरण निदान और स्वचालित मरम्मत
+openyida env                  # वर्तमान AI टूल वातावरण और लॉगिन स्थिति का पता लगाएं
+openyida export               # ऐप माइग्रेशन पैकेज निर्यात करें
 openyida get-page-config      # पेज की सार्वजनिक एक्सेस / शेयरिंग कॉन्फ़िग देखें
+openyida get-permission       # फ़ॉर्म अनुमति कॉन्फ़िगरेशन देखें
+openyida get-schema           # फ़ॉर्म स्कीमा प्राप्त करें
+openyida import               # माइग्रेशन पैकेज आयात करके ऐप पुनर्निर्माण करें
+openyida login                # Yida में लॉगिन करें (कैश प्राथमिकता, अन्यथा QR कोड)
+openyida logout               # लॉगआउट / खाता बदलें
+openyida org                  # संगठन प्रबंधन (list/switch)
+openyida publish              # कस्टम पेज कंपाइल और प्रकाशित करें
+openyida query-data           # फ़ॉर्म इंस्टेंस डेटा क्वेरी करें
+openyida save-permission      # फ़ॉर्म अनुमति कॉन्फ़िगरेशन सहेजें
+openyida save-share-config    # सार्वजनिक एक्सेस / शेयरिंग कॉन्फ़िग सहेजें
 openyida update-form-config   # फ़ॉर्म कॉन्फ़िगरेशन अपडेट करें
-openyida cdn-config           # CDN इमेज अपलोड कॉन्फ़िगर करें (Aliyun OSS + CDN)
-openyida cdn-upload           # CDN पर इमेज अपलोड करें
-openyida cdn-refresh          # CDN कैश रिफ्रेश करें
+openyida verify-short-url     # शॉर्ट URL उपलब्ध है या नहीं जांचें
 ```
 
 ---

@@ -629,7 +629,7 @@ export function renderJsx() {
               style={styles.input}
               defaultValue={state.monthlySalary}
               placeholder="例如：25000"
-              onChange={function(e) { _customState.monthlySalary = parseFloat(e.target.value) || 0; }}
+              onChange={(e) => { _customState.monthlySalary = parseFloat(e.target.value) || 0; }}
               onBlur={(e) => { this.handleCalculate(); }}
             />
           </div>
@@ -710,7 +710,7 @@ export function renderJsx() {
                   style={styles.input}
                   defaultValue={state.childEducation}
                   placeholder="0（每孩每月最高2000）"
-                  onChange={function(e) { _customState.childEducation = parseFloat(e.target.value) || 0; }}
+                  onChange={(e) => { _customState.childEducation = parseFloat(e.target.value) || 0; }}
                   onBlur={(e) => { this.handleCalculate(); }}
                 />
               </div>
@@ -722,7 +722,7 @@ export function renderJsx() {
                   style={styles.input}
                   defaultValue={state.housingLoan}
                   placeholder="0（每月最高1000）"
-                  onChange={function(e) { _customState.housingLoan = parseFloat(e.target.value) || 0; }}
+                  onChange={(e) => { _customState.housingLoan = parseFloat(e.target.value) || 0; }}
                   onBlur={(e) => { this.handleCalculate(); }}
                 />
               </div>
@@ -734,7 +734,7 @@ export function renderJsx() {
                   style={styles.input}
                   defaultValue={state.elderCare}
                   placeholder="0（每月最高3000）"
-                  onChange={function(e) { _customState.elderCare = parseFloat(e.target.value) || 0; }}
+                  onChange={(e) => { _customState.elderCare = parseFloat(e.target.value) || 0; }}
                   onBlur={(e) => { this.handleCalculate(); }}
                 />
               </div>
@@ -746,7 +746,7 @@ export function renderJsx() {
                   style={styles.input}
                   defaultValue={state.supplementProvidentFund}
                   placeholder="0"
-                  onChange={function(e) { _customState.supplementProvidentFund = parseFloat(e.target.value) || 0; }}
+                  onChange={(e) => { _customState.supplementProvidentFund = parseFloat(e.target.value) || 0; }}
                   onBlur={(e) => { this.handleCalculate(); }}
                 />
               </div>

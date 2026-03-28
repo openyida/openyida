@@ -4,11 +4,13 @@
     "node": true
   },
   "extends": "eslint:recommended",
+  "plugins": ["import"],
   "parserOptions": {
     "ecmaVersion": 2021,
     "sourceType": "commonjs"
   },
   "rules": {
+    "import/no-unresolved": ["error", { "commonjs": true, "ignore": ["@alicloud/", "ali-oss", "qrcode", "playwright", "uglify-js", "glob"] }],
     "indent": ["error", 2, { "SwitchCase": 1 }],
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single", { "avoidEscape": true }],
@@ -27,6 +29,7 @@
   "ignorePatterns": [
     "node_modules/",
     "project/pages/dist/",
-    "**/*.compile.js"
+    "**/*.compile.js",
+    "lib/core/babel-transform/"
   ]
 }

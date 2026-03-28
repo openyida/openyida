@@ -77,22 +77,36 @@ npm install -g openyida
 ## أوامر CLI
 
 ```bash
-openyida env                  # اكتشاف بيئة أداة الذكاء الاصطناعي الحالية وحالة تسجيل الدخول
-openyida login                # تسجيل الدخول إلى Yida (الذاكرة المؤقتة أولاً، وإلا رمز QR)
-openyida logout               # تسجيل الخروج / تبديل الحساب
+openyida append-chart         # إضافة رسم بياني إلى تقرير موجود
+openyida auth                 # إدارة حالة تسجيل الدخول (status/login/refresh/logout)
+openyida cdn-config           # إعداد رفع الصور إلى CDN (Aliyun OSS + CDN)
+openyida cdn-refresh          # تحديث ذاكرة CDN المؤقتة
+openyida cdn-upload           # رفع الصور إلى CDN
+openyida configure-process    # تكوين ونشر قواعد العملية
+openyida connector            # إدارة موصل HTTP
 openyida copy                 # تهيئة دليل project لأداة الذكاء الاصطناعي الحالية
 openyida create-app           # إنشاء تطبيق Yida
-openyida create-page          # إنشاء صفحة عرض مخصصة
 openyida create-form          # إنشاء / تحديث صفحة نموذج
-openyida get-schema           # جلب مخطط النموذج
-openyida publish              # تجميع ونشر صفحة مخصصة
-openyida verify-short-url     # التحقق من إمكانية الوصول إلى رابط مختصر
-openyida save-share-config    # حفظ إعدادات الوصول العام / المشاركة
+openyida create-page          # إنشاء صفحة عرض مخصصة
+openyida create-process       # إنشاء نموذج عملية (متكامل)
+openyida create-report        # إنشاء تقرير Yida
+openyida data                 # إدارة البيانات الموحدة (نموذج/عملية/مهمة/نموذج فرعي)
+openyida doctor               # تشخيص البيئة والإصلاح التلقائي
+openyida env                  # اكتشاف بيئة أداة الذكاء الاصطناعي الحالية وحالة تسجيل الدخول
+openyida export               # تصدير حزمة ترحيل التطبيق
 openyida get-page-config      # الاستعلام عن إعدادات الوصول العام / المشاركة لصفحة
+openyida get-permission       # الاستعلام عن إعدادات أذونات النموذج
+openyida get-schema           # جلب مخطط النموذج
+openyida import               # استيراد حزمة الترحيل لإعادة بناء التطبيق
+openyida login                # تسجيل الدخول إلى Yida (الذاكرة المؤقتة أولاً، وإلا رمز QR)
+openyida logout               # تسجيل الخروج / تبديل الحساب
+openyida org                  # إدارة المنظمة (list/switch)
+openyida publish              # تجميع ونشر صفحة مخصصة
+openyida query-data           # الاستعلام عن بيانات نموذج النماذج
+openyida save-permission      # حفظ إعدادات أذونات النموذج
+openyida save-share-config    # حفظ إعدادات الوصول العام / المشاركة
 openyida update-form-config   # تحديث إعدادات النموذج
-openyida cdn-config           # إعداد رفع الصور إلى CDN (Aliyun OSS + CDN)
-openyida cdn-upload           # رفع الصور إلى CDN
-openyida cdn-refresh          # تحديث ذاكرة CDN المؤقتة
+openyida verify-short-url     # التحقق من إمكانية الوصول إلى رابط مختصر
 ```
 
 ---

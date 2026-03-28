@@ -50,10 +50,10 @@ if (fs.existsSync(skillsDir)) {
 }
 
 function countJsFiles(dir) {
-  var count = 0;
-  var entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (var i = 0; i < entries.length; i++) {
-    var entry = entries[i];
+  let count = 0;
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
     if (entry.isDirectory()) {
       count += countJsFiles(path.join(dir, entry.name));
     } else if (entry.name.endsWith('.js')) {
