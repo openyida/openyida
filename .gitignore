@@ -61,6 +61,8 @@ project/pages/dist/*
 
 # 用户自定义页面源码（保留 demo 示例）
 project/pages/src/*
+project/pages/assets/*
+project/pages/tmp/*
 !project/pages/src/demo-*
 
 # 需求文档（保留 demo 示例）

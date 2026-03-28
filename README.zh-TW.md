@@ -92,12 +92,16 @@ openyida create-process       # 建立流程表單（一體化）
 openyida create-report        # 建立宜搭報表
 openyida data                 # 統一資料管理（表單/流程/任務/子表單）
 openyida doctor               # 環境診斷與自動修復
+openyida dws <command> [args]                              # 釘釘 CLI（通訊錄/日程/待辦/審批等）
 openyida env                  # 偵測目前 AI 工具環境和登入狀態
 openyida export               # 匯出應用遷移包
+openyida export-conversation [format]                      # 匯出 AI 對話歷史
+openyida flash-to-prd <appType> [options]                  # 閃念筆記轉 PRD（支援會議識別）
 openyida get-page-config      # 查詢頁面公開存取 / 分享設定
 openyida get-permission       # 查詢表單權限設定
 openyida get-schema           # 取得表單 Schema
 openyida import               # 匯入遷移包，重建應用
+openyida integration create <appType> [options]             # 建立整合與自動化流程
 openyida login                # 登入宜搭（優先快取，否則掃碼）
 openyida logout               # 登出 / 切換帳號
 openyida org                  # 組織管理（list/switch）
@@ -105,6 +109,7 @@ openyida publish              # 編譯並發布自訂頁面
 openyida query-data           # 查詢表單實例資料
 openyida save-permission      # 儲存表單權限設定
 openyida save-share-config    # 儲存公開存取 / 分享設定
+openyida task-center [filter]                              # 全域任務中心（待辦/已建立/已處理/抄送/提交）
 openyida update-form-config   # 更新表單設定
 openyida verify-short-url     # 驗證短網址是否可用
 ```

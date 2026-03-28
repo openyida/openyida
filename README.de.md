@@ -92,19 +92,24 @@ openyida create-process       # Prozessformular erstellen (integriert)
 openyida create-report        # Yida-Bericht erstellen
 openyida data                 # Einheitliche Datenverwaltung (Formular/Prozess/Aufgabe/Unterformular)
 openyida doctor               # Umgebungsdiagnose und automatische Reparatur
+openyida dws <command> [args]                              # DingTalk CLI（Kontakte/Kalender/ToDo/Genehmigung usw.）
 openyida env                  # Aktuelle KI-Tool-Umgebung und Login-Status erkennen
 openyida export               # App-Migrationspaket exportieren
+openyida export-conversation [format]                      # AI-Konversationsverlauf exportieren
+openyida flash-to-prd <appType> [options]                  # Flash-Notiz zu PRD（unterstützt Meeting-Erkennung）
 openyida get-page-config      # Öffentlichen Zugang / Freigabe-Konfiguration einer Seite abfragen
 openyida get-permission       # Formular-Berechtigungskonfiguration abfragen
 openyida get-schema           # Formular-Schema abrufen
 openyida import               # Migrationspaket importieren und App neu erstellen
-openyida login                # Bei Yida anmelden (Cache bevorzugt, sonst QR-Code)
+openyida integration create <appType> [options]             # Integration & Automatisierungsflow erstellen
+openyida login                # Bei Yida anmelden（Cache bevorzugt, sonst QR-Code）
 openyida logout               # Abmelden / Konto wechseln
 openyida org                  # Organisationsverwaltung (list/switch)
 openyida publish              # Benutzerdefinierte Seite kompilieren und veröffentlichen
 openyida query-data           # Formularinstanzdaten abfragen
 openyida save-permission      # Formular-Berechtigungskonfiguration speichern
 openyida save-share-config    # Öffentlichen Zugang / Freigabe-Konfiguration speichern
+openyida task-center [filter]                              # Globales Aufgabencenter（ToDo/Erstellt/Verarbeitet/CC/Übermittelt）
 openyida update-form-config   # Formularkonfiguration aktualisieren
 openyida verify-short-url     # Prüfen ob eine Kurz-URL erreichbar ist
 ```

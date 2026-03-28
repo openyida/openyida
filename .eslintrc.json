@@ -26,6 +26,16 @@
     "no-trailing-spaces": "error",
     "eol-last": ["error", "always"]
   },
+  "overrides": [
+    {
+      "files": ["tests/**/*.test.js"],
+      "env": {
+        "es2021": true,
+        "node": true,
+        "jest": true
+      }
+    }
+  ],
   "ignorePatterns": [
     "node_modules/",
     "project/pages/dist/",

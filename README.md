@@ -92,12 +92,16 @@ openyida create-process       # Create a process form (integrated)
 openyida create-report        # Create a Yida report
 openyida data                 # Unified data management (form/process/task/subform)
 openyida doctor               # Environment diagnostics and auto-repair
+openyida dws <command> [args]                              # DingTalk CLI (Contacts/Calendar/Todo/Approval, etc.)
 openyida env                  # Detect current AI tool environment and login status
 openyida export               # Export application migration package
+openyida export-conversation [format]                      # Export AI conversation history
+openyida flash-to-prd <appType> [options]                  # Flash note to PRD (supports meeting recognition)
 openyida get-page-config      # Query page public access / sharing config
 openyida get-permission       # Query form permission configuration
 openyida get-schema           # Fetch form schema
 openyida import               # Import migration package to rebuild application
+openyida integration create <appType> [options]             # Create integration & automation flow
 openyida login                # Log in to Yida (uses cache, falls back to QR code)
 openyida logout               # Log out / switch account
 openyida org                  # Organization management (list/switch)
@@ -105,6 +109,7 @@ openyida publish              # Compile and publish a custom page
 openyida query-data           # Query form instance data
 openyida save-permission      # Save form permission configuration
 openyida save-share-config    # Save public access / sharing config
+openyida task-center [filter]                              # Global task center (Todo/Created/Processed/CC/Submit)
 openyida update-form-config   # Update form configuration
 openyida verify-short-url     # Verify if a short URL is accessible
 ```

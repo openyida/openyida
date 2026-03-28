@@ -92,19 +92,24 @@ openyida create-process       # إنشاء نموذج عملية (متكامل)
 openyida create-report        # إنشاء تقرير Yida
 openyida data                 # إدارة البيانات الموحدة (نموذج/عملية/مهمة/نموذج فرعي)
 openyida doctor               # تشخيص البيئة والإصلاح التلقائي
+openyida dws <command> [args]                              # DingTalk CLI（جهات الاتصال/التقويم/المهام/الموافقة، إلخ）
 openyida env                  # اكتشاف بيئة أداة الذكاء الاصطناعي الحالية وحالة تسجيل الدخول
 openyida export               # تصدير حزمة ترحيل التطبيق
+openyida export-conversation [format]                      # تصدير سجل محادثة AI
+openyida flash-to-prd <appType> [options]                  # تحويل الملاحظة السريعة إلى PRD（يدعم التعرف على الاجتماعات）
 openyida get-page-config      # الاستعلام عن إعدادات الوصول العام / المشاركة لصفحة
 openyida get-permission       # الاستعلام عن إعدادات أذونات النموذج
 openyida get-schema           # جلب مخطط النموذج
 openyida import               # استيراد حزمة الترحيل لإعادة بناء التطبيق
-openyida login                # تسجيل الدخول إلى Yida (الذاكرة المؤقتة أولاً، وإلا رمز QR)
+openyida integration create <appType> [options]             # إنشاء التكامل وتدفق الأتمتة
+openyida login                # تسجيل الدخول إلى Yida（الذاكرة المؤقتة أولاً، وإلا رمز QR）
 openyida logout               # تسجيل الخروج / تبديل الحساب
 openyida org                  # إدارة المنظمة (list/switch)
 openyida publish              # تجميع ونشر صفحة مخصصة
 openyida query-data           # الاستعلام عن بيانات نموذج النماذج
 openyida save-permission      # حفظ إعدادات أذونات النموذج
 openyida save-share-config    # حفظ إعدادات الوصول العام / المشاركة
+openyida task-center [filter]                              # مركز المهام العالمي（المهام/المنشأة/المعالجة/نسخة/إرسال）
 openyida update-form-config   # تحديث إعدادات النموذج
 openyida verify-short-url     # التحقق من إمكانية الوصول إلى رابط مختصر
 ```

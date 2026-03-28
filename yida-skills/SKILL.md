@@ -102,7 +102,7 @@ openyida copy
 | `yida-create-form-page` | `skills/yida-create-form-page/SKILL.md` | 创建/更新表单页面 | `openyida create-form create <appType> "<表单名>" <字段JSON> [--datasource <json>]` |
 | `yida-get-schema` | `skills/yida-get-schema/SKILL.md` | 获取表单 Schema，确认字段 ID | `openyida get-schema <appType> <formUuid>` |
 | `yida-custom-page` | `skills/yida-custom-page/SKILL.md` | 编写自定义页面 JSX 代码规范。子目录包含：`SKILL.md`（编译规范）、`yida-assets-guide.md`（素材资源）、`examples/`（示例代码） | **必须完整学习 `skills/yida-custom-page/SKILL.md`** |
-| `yida-compile` | `skills/yida-custom-page/SKILL.md` | 仅编译 JSX 源码（Babel + UglifyJS），不发布，无需登录，用于本地预检语法 | `openyida compile <源文件路径>` |
+| `yida-compile` | `skills/yida-custom-page/SKILL.md` | （yida-custom-page 子功能）仅编译 JSX 源码，不发布，用于本地预检语法 | `openyida compile <源文件路径>` |
 | `yida-publish-page` | `skills/yida-publish-page/SKILL.md` | 编译并发布自定义页面 | `openyida publish <源文件路径> <appType> <formUuid>` |
 | `yida-page-config` | `skills/yida-page-config/SKILL.md` | 页面公开访问/组织内分享配置 | `openyida verify-short-url <appType> <formUuid> <url>` |
 | `yida-form-permission` | `skills/yida-form-permission/SKILL.md` | 表单权限配置（字段/数据/操作权限） | `openyida get-permission <appType> <formUuid>` |
@@ -115,8 +115,14 @@ openyida copy
 | `yida-integration` | `skills/yida-integration/SKILL.md` | 集成&自动化（逻辑流）：表单事件触发 → 消息通知/数据操作 | `openyida integration create <appType> <formUuid> "<名称>"` |
 | `yida-process-rule` | `skills/yida-process-rule/SKILL.md` | 为已有流程表单配置审批流程规则（条件分支/嵌套分支/字段权限） | `openyida configure-process <appType> <formUuid> <定义文件>` |
 | `yida-table-form` | `skills/yida-table-form/SKILL.md` | 表格形式批量表单提交（动态增删行/Excel 粘贴导入/批量提交） | 详见技能文档 |
+| `yida-create-process` | `skills/yida-create-process/SKILL.md` | 流程表单一体化创建（创建表单→转流程→配置流程） | `openyida create-process <appType> --formUuid <formUuid> <流程定义>` |
 | `yida-ppt-slider` | `skills/yida-ppt-slider/SKILL.md` | PPT 幻灯片页面开发（演讲/路演/培训，仅限宜搭平台内） | 详见技能文档 |
+| `yida-flash-note-to-prd` | `skills/yida-flash-note-to-prd/SKILL.md` | 钉钉闪记转高质量 Prompt（会议纪要→结构化 PRD） | `openyida flash-to-prd --file <闪记文件>` |
+| `yida-export-conversation` | `skills/yida-export-conversation/SKILL.md` | 导出 AI 对话记录（生成 Markdown 文档） | `openyida export-conversation` |
 | `yida-formula` | `skills/yida-formula/SKILL.md` | 公式字段编写规范（函数速查、字段引用、18 个常见场景示例） | 详见技能文档 |
+| `yida-report` | `skills/yida-report/SKILL.md` | 宜搭原生报表技能，创建内置报表页面（16 种图表/表格/筛选器） | `openyida create-report <appType> "<报表名>" <图表JSON>` |
+| `yida-chatbot` | `skills/yida-chatbot/SKILL.md` | AI 对话浮窗组件（独立使用或注入已有页面，支持 12 种 AI 模型） | 详见技能文档 |
+| `large-file-write` | `skills/large-file-write/SKILL.md` | 大文件写入技能（解决 heredoc 截断问题，可靠写入大块内容） | 详见技能文档 |
 
 > **执行任何子技能前，必须先完整读取其 SKILL.md**，不要凭记忆猜测参数格式。
 
@@ -159,6 +165,8 @@ openyida copy
 | **yida-density** | [`skills/yida-density/SKILL.md`](skills/yida-density/SKILL.md) | 信息密度设计规范（紧凑/舒适/宽松） |
 | **yida-table-form** | [`skills/yida-table-form/SKILL.md`](skills/yida-table-form/SKILL.md) | 表格形式批量表单提交 |
 | **yida-ppt-slider** | [`skills/yida-ppt-slider/SKILL.md`](skills/yida-ppt-slider/SKILL.md) | PPT 幻灯片页面开发（演讲/路演/培训） |
+| **yida-chatbot** | [`skills/yida-chatbot/SKILL.md`](skills/yida-chatbot/SKILL.md) | AI 对话浮窗组件（独立使用或注入已有页面） |
+
 
 ### 4. 配置信息分两处存储
 ### 连接器与报表
@@ -167,6 +175,7 @@ openyida copy
 |------|------|------|
 | **yida-connector** | [`skills/yida-connector/SKILL.md`](skills/yida-connector/SKILL.md) | HTTP 连接器管理（创建/测试/智能生成） |
 | **yida-create-report** | [`skills/yida-create-report/SKILL.md`](skills/yida-create-report/SKILL.md) | 创建宜搭报表、追加图表 |
+| **yida-report** | [`skills/yida-report/SKILL.md`](skills/yida-report/SKILL.md) | 宜搭原生报表技能（16 种图表/表格/筛选器，可作为 yida-chart 数据源） |
 | **yida-chart** | [`skills/yida-chart/SKILL.md`](skills/yida-chart/SKILL.md) | ECharts 高级报表（定制化数据大屏） |
 
 ### 配置与认证
@@ -182,7 +191,9 @@ openyida copy
 
 | 技能 | 路径 | 说明 |
 |------|------|------|
+| **yida-flash-note-to-prd** | [`skills/yida-flash-note-to-prd/SKILL.md`](skills/yida-flash-note-to-prd/SKILL.md) | 钉钉闪记转高质量 Prompt |
 | **yida-export-conversation** | [`skills/yida-export-conversation/SKILL.md`](skills/yida-export-conversation/SKILL.md) | 导出 AI 对话记录 |
+| **large-file-write** | [`skills/large-file-write/SKILL.md`](skills/large-file-write/SKILL.md) | 大文件写入技能（解决 heredoc 截断问题） |
 
 ### 共享参考文档
 

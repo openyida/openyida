@@ -92,19 +92,24 @@ openyida create-process       # Criar um formulário de processo (integrado)
 openyida create-report        # Criar um relatório Yida
 openyida data                 # Gerenciamento de dados unificado (formulário/processo/tarefa/subformulário)
 openyida doctor               # Diagnóstico de ambiente e reparo automático
+openyida dws <command> [args]                              # DingTalk CLI（Contatos/Calendário/Tarefas/Aprovação, etc.）
 openyida env                  # Detectar o ambiente da ferramenta IA atual e status de login
 openyida export               # Exportar pacote de migração de aplicativo
+openyida export-conversation [format]                      # Exportar histórico de conversação AI
+openyida flash-to-prd <appType> [options]                  # Nota flash para PRD（suporta reconhecimento de reuniões）
 openyida get-page-config      # Consultar configuração de acesso público / compartilhamento de uma página
 openyida get-permission       # Consultar configuração de permissões do formulário
 openyida get-schema           # Obter o schema do formulário
 openyida import               # Importar pacote de migração para reconstruir aplicativo
-openyida login                # Fazer login no Yida (cache primeiro, senão QR code)
+openyida integration create <appType> [options]             # Criar integração e fluxo de automação
+openyida login                # Fazer login no Yida（cache primeiro, senão QR code）
 openyida logout               # Fazer logout / trocar conta
 openyida org                  # Gerenciamento de organização (list/switch)
 openyida publish              # Compilar e publicar uma página personalizada
 openyida query-data           # Consultar dados de instância de formulário
 openyida save-permission      # Salvar configuração de permissões do formulário
 openyida save-share-config    # Salvar configuração de acesso público / compartilhamento
+openyida task-center [filter]                              # Centro de tarefas global（Tarefas/Criadas/Processadas/CC/Enviadas）
 openyida update-form-config   # Atualizar configuração do formulário
 openyida verify-short-url     # Verificar se uma URL curta está acessível
 ```

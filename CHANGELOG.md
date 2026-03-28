@@ -13,6 +13,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - 发布自定义页面前自动检查代码规范，发现问题时提前拦截，避免发布后页面崩溃
 - 新增 `--skip-lint` 参数，可跳过发布前的自动检查
+- 新增 `dws` 命令：集成钉钉 CLI（通讯录/日历/待办/审批等）
+- 新增 `export-conversation` 命令：导出 AI 对话记录
+- 新增 `flash-to-prd` 命令：闪记转高质量 prompt（支持会议识别）
+- 新增 `integration` 命令：集成 & 自动化逻辑流
+- 新增 `task-center` 命令：全局任务中心（待办/我创建的/我已处理/抄送/代提交）
 
 ### Fixed
 - 修复 3 个示例页面中按钮点击等交互事件无法正常工作的问题

@@ -92,12 +92,16 @@ openyida create-process       # 创建流程表单（一体化）
 openyida create-report        # 创建宜搭报表
 openyida data                 # 统一数据管理（表单/流程/任务/子表单）
 openyida doctor               # 环境诊断与自动修复
+openyida dws <command> [args]                              # 钉钉 CLI（通讯录/日程/待办/审批等）
 openyida env                  # 检测当前 AI 工具环境和登录态
 openyida export               # 导出应用迁移包
+openyida export-conversation [format]                      # 导出 AI 对话历史
+openyida flash-to-prd <appType> [options]                  # 闪念笔记转 PRD（支持会议识别）
 openyida get-page-config      # 查询页面公开访问 / 分享配置
 openyida get-permission       # 查询表单权限配置
 openyida get-schema           # 获取表单 Schema
 openyida import               # 导入迁移包，重建应用
+openyida integration create <appType> [options]             # 创建集成与自动化流程
 openyida login                # 登录宜搭（优先缓存，否则扫码）
 openyida logout               # 退出登录 / 切换账号
 openyida org                  # 组织管理（list/switch）
@@ -105,6 +109,7 @@ openyida publish              # 编译并发布自定义页面
 openyida query-data           # 查询表单实例数据
 openyida save-permission      # 保存表单权限配置
 openyida save-share-config    # 保存公开访问 / 分享配置
+openyida task-center [filter]                              # 全局任务中心（待办/已创建/已处理/抄送/提交）
 openyida update-form-config   # 更新表单配置
 openyida verify-short-url     # 验证短链接 URL 是否可用
 ```

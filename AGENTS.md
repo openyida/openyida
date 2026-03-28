@@ -24,6 +24,7 @@ openyida/
 │   │   ├── check-update.js  # 版本检测（每天一次）
 │   │   ├── doctor.js        # 环境诊断与自动修复
 │   │   ├── query-data.js    # 查询表单实例数据
+│   │   ├── task-center.js   # 全局任务中心（待办/我创建的/我已处理/抄送/代提交）
 │   │   └── babel-transform/ # Babel 编译器（用于自定义页面）
 │   ├── auth/                # 登录认证模块
 │   │   ├── login.js         # 宜搭登录（Cookie 缓存 + 扫码）
@@ -49,6 +50,16 @@ openyida/
 │   ├── process/             # 流程管理
 │   │   ├── configure-process.js   # 配置并发布流程规则
 │   │   └── create-process.js      # 创建流程表单（一体化）
+│   ├── conversation/        # AI 对话管理
+│   │   ├── collector.js     # 对话记录收集
+│   │   ├── formatter.js     # 对话格式化
+│   │   └── export-conversation.js  # 导出对话记录
+│   ├── flash-note/          # 闪记转 PRD
+│   │   └── flash-to-prd.js  # 闪记转高质量 prompt（支持会议识别）
+│   ├── dws/                 # 钉钉 CLI 集成
+│   │   └── dws-wrapper.js   # 钉钉 CLI 包装器（通讯录/日历/待办/审批等）
+│   ├── integration/         # 集成 & 自动化
+│   │   └── integration-create.js  # 创建集成逻辑流
 │   ├── connector/           # HTTP 连接器管理
 │   │   ├── api.js                 # 连接器 API 请求封装
 │   │   ├── connector-list.js
@@ -74,13 +85,13 @@ openyida/
 │   │   ├── cdn-config-cmd.js      # CDN 配置命令
 │   │   ├── cdn-upload.js          # 上传图片到 OSS/CDN
 │   │   └── cdn-refresh.js         # 刷新 CDN 缓存
-│   └── report/              # 宜搭报表管理
-│       ├── create-report.js       # 创建报表（入口）
-│       ├── index.js               # 创建报表主流程
-│       ├── append.js              # 向已有报表追加图表
-│       ├── chart-builder.js       # 图表 Schema 构建
-│       ├── http.js                # 报表 HTTP 请求封装
-│       └── constants.js           # 常量与 ID 生成工具
+│   ├── report/              # 宜搭报表管理
+│   │   ├── create-report.js       # 创建报表（入口）
+│   │   ├── index.js               # 创建报表主流程
+│   │   ├── append.js              # 向已有报表追加图表
+│   │   ├── chart-builder.js       # 图表 Schema 构建
+│   │   ├── http.js                # 报表 HTTP 请求封装
+│   │   └── constants.js           # 常量与 ID 生成工具
 │   └── data-management.js   # 表单数据管理（增删改查）
 ├── project/
 │   ├── config.json          # 应用配置（appType、pageId 等）

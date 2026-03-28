@@ -92,19 +92,24 @@ openyida create-process       # Tạo biểu mẫu quy trình (tích hợp)
 openyida create-report        # Tạo báo cáo Yida
 openyida data                 # Quản lý dữ liệu thống nhất (biểu mẫu/quy trình/nhiệm vụ/biểu mẫu con)
 openyida doctor               # Chẩn đoán môi trường và sửa chữa tự động
+openyida dws <command> [args]                              # DingTalk CLI（Danh bạ/Lịch/Việc cần làm/Phê duyệt, v.v.）
 openyida env                  # Phát hiện môi trường công cụ AI hiện tại và trạng thái đăng nhập
 openyida export               # Xuất gói di chuyển ứng dụng
+openyida export-conversation [format]                      # Xuất lịch sử hội thoại AI
+openyida flash-to-prd <appType> [options]                  # Ghi chú nhanh sang PRD（hỗ trợ nhận diện cuộc họp）
 openyida get-page-config      # Truy vấn cấu hình truy cập công khai / chia sẻ của trang
 openyida get-permission       # Truy vấn cấu hình quyền biểu mẫu
 openyida get-schema           # Lấy schema biểu mẫu
 openyida import               # Nhập gói di chuyển để xây dựng lại ứng dụng
-openyida login                # Đăng nhập Yida (ưu tiên cache, nếu không có thì dùng QR code)
+openyida integration create <appType> [options]             # Tạo tích hợp và luồng tự động hóa
+openyida login                # Đăng nhập Yida（ưu tiên cache, nếu không có thì dùng QR code）
 openyida logout               # Đăng xuất / chuyển tài khoản
 openyida org                  # Quản lý tổ chức (list/switch)
 openyida publish              # Biên dịch và xuất bản trang tùy chỉnh
 openyida query-data           # Truy vấn dữ liệu phiên bản biểu mẫu
 openyida save-permission      # Lưu cấu hình quyền biểu mẫu
 openyida save-share-config    # Lưu cấu hình truy cập công khai / chia sẻ
+openyida task-center [filter]                              # Trung tâm tác vụ toàn cục（Việc cần làm/Đã tạo/Đã xử lý/CC/Gửi）
 openyida update-form-config   # Cập nhật cấu hình biểu mẫu
 openyida verify-short-url     # Kiểm tra URL rút gọn có khả dụng không
 ```

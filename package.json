@@ -20,8 +20,8 @@
   "scripts": {
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "lint": "eslint bin/ lib/ scripts/ --ext .js",
-    "lint:fix": "eslint bin/ lib/ scripts/ --ext .js --fix",
+    "lint": "eslint bin/ lib/ scripts/ tests/ --ext .js",
+    "lint:fix": "eslint bin/ lib/ scripts/ tests/ --ext .js --fix",
     "postinstall": "node scripts/postinstall.js"
   },
   "keywords": [

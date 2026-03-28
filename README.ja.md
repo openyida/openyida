@@ -92,12 +92,16 @@ openyida create-process       # プロセスフォームを作成（統合型）
 openyida create-report        # Yidaレポートを作成
 openyida data                 # 統一データ管理（フォーム/プロセス/タスク/サブフォーム）
 openyida doctor               # 環境診断と自動修復
+openyida dws <command> [args]                              # 钉钉 CLI（連絡先/カレンダー/ToDo/承認など）
 openyida env                  # 現在のAIツール環境とログイン状態を確認
 openyida export               # アプリ移行パッケージをエクスポート
+openyida export-conversation [format]                      # AI対話履歴をエクスポート
+openyida flash-to-prd <appType> [options]                  # フラッシュノートをPRDに変換（会議認識対応）
 openyida get-page-config      # ページの公開アクセス / 共有設定を照会
 openyida get-permission       # フォーム権限設定を照会
 openyida get-schema           # フォームスキーマを取得
 openyida import               # 移行パッケージをインポートしてアプリを再構築
+openyida integration create <appType> [options]             # 統合と自動化フローを作成
 openyida login                # Yidaにログイン（キャッシュ優先、なければQRコード）
 openyida logout               # ログアウト / アカウント切り替え
 openyida org                  # 組織管理（list/switch）
@@ -105,6 +109,7 @@ openyida publish              # カスタムページをコンパイルして公
 openyida query-data           # フォームインスタンスデータを照会
 openyida save-permission      # フォーム権限設定を保存
 openyida save-share-config    # 公開アクセス / 共有設定を保存
+openyida task-center [filter]                              # グローバルタスクセンター（ToDo/作成済み/処理済み/CC/提出）
 openyida update-form-config   # フォーム設定を更新
 openyida verify-short-url     # 短縮URLが利用可能か確認
 ```
