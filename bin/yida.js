@@ -45,8 +45,9 @@
  *   openyida connector smart-create --curl "curl命令" [选项]  智能创建连接器
  *   openyida connector parse-api [选项]                  解析接口信息
  *   openyida connector gen-template [输出路径]            生成接口文档模板
- *   openyida create-report <appType> "<报表名称>" <图表定义JSON或文件路径>  创建宜搭报表
- *   openyida append-chart <appType> <reportId> <图表定义JSON或文件路径>    向已有报表追加图表
+ *   openyida dws <command> [args]                        钉钉 CLI（通讯录/日历/待办/审批等）
+ *   openyida create-report <appType> "<报表名称>" <图表定义 JSON 或文件路径>  创建宜搭报表
+ *   openyida append-chart <appType> <reportId> <图表定义 JSON 或文件路径>    向已有报表追加图表
  */
 
 "use strict";
@@ -116,8 +117,9 @@ openyida - 宜搭命令行工具
   connector smart-create --curl "curl命令" [选项]               智能创建连接器
   connector parse-api [选项]                                    解析接口信息
   connector gen-template [输出路径]                              生成接口文档模板
-  create-report <appType> "<报表名称>" <图表定义JSON或文件路径>   创建宜搭报表
-  append-chart <appType> <reportId> <图表定义JSON或文件路径>      向已有报表追加图表
+  dws <command> [args]                                          钉钉 CLI（通讯录/日历/待办/审批等）
+  create-report <appType> "<报表名称>" <图表定义 JSON 或文件路径>   创建宜搭报表
+  append-chart <appType> <reportId> <图表定义 JSON 或文件路径>      向已有报表追加图表
 
 示例：
   openyida login
@@ -134,6 +136,9 @@ openyida - 宜搭命令行工具
   openyida get-page-config APP_XXX FORM-XXX
   openyida update-form-config APP_XXX FORM-XXX false "页面标题"
   openyida data query form APP_XXX FORM-XXX --page 1 --size 20
+  openyida dws contact user search --keyword "悟空"
+  openyida dws calendar event list
+  openyida dws todo task create --title "任务"
   openyida create-report APP_XXX "销售报表" charts.json
   openyida append-chart APP_XXX REPORT-XXX charts.json
   openyida configure-process APP_XXX FORM-YYY process-def.json
@@ -587,6 +592,12 @@ async function main() {
       }
       const { run: runQueryData } = require('../lib/core/query-data');
       await runQueryData(args);
+      break;
+    }
+
+    case 'dws': {
+      const { run: runDws } = require('../lib/dws/dws-wrapper');
+      await runDws(args);
       break;
     }
 

@@ -7,6 +7,11 @@ node_modules/
 dist/
 *.tgz
 
+# TypeScript build outputs
+**/*.d.ts
+**/*.js.map
+**/*.d.ts.map
+
 # logs
 npm-debug.log*
 yarn-debug.log*
