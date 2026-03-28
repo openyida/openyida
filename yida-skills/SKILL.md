@@ -68,7 +68,6 @@ openyida copy
 | `yida-create-form-page` | `skills/yida-create-form-page/SKILL.md` | 创建/更新表单页面 | `openyida create-form create <appType> "<表单名>" <字段JSON> [--datasource <json>]` |
 | `yida-get-schema` | `skills/yida-get-schema/SKILL.md` | 获取表单 Schema，确认字段 ID | `openyida get-schema <appType> <formUuid>` |
 | `yida-custom-page` | `skills/yida-custom-page/SKILL.md` | 编写自定义页面 JSX 代码规范。子目录包含：`SKILL.md`（编译规范）、`yida-assets-guide.md`（素材资源）、`examples/`（示例代码） | **必须完整学习 `skills/yida-custom-page/SKILL.md`** |
-| `yida-compile` | `skills/yida-custom-page/SKILL.md` | （yida-custom-page 子功能）仅编译 JSX 源码，不发布，用于本地预检语法 | `openyida compile <源文件路径>` |
 | `yida-publish-page` | `skills/yida-publish-page/SKILL.md` | 编译并发布自定义页面 | `openyida publish <源文件路径> <appType> <formUuid>` |
 | `yida-page-config` | `skills/yida-page-config/SKILL.md` | 页面公开访问/组织内分享配置 | `openyida verify-short-url <appType> <formUuid> <url>` |
 | `yida-form-permission` | `skills/yida-form-permission/SKILL.md` | 表单权限配置（字段/数据/操作权限） | `openyida get-permission <appType> <formUuid>` |
