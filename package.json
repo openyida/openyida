@@ -1,6 +1,6 @@
 {
   "name": "openyida",
-  "version": "2026.03.28",
+  "version": "2026.03.28-1",
   "description": "OpenYida CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
   "bin": {
     "openyida": "./bin/yida.js",
