@@ -1,0 +1,60 @@
+[
+  {
+    "type": "TextField",
+    "label": "工单编号"
+  },
+  {
+    "type": "TextField",
+    "label": "所属项目",
+    "placeholder": "宾馆或物业名称"
+  },
+  {
+    "type": "TextField",
+    "label": "投诉人姓名"
+  },
+  {
+    "type": "TextField",
+    "label": "联系电话"
+  },
+  {
+    "type": "TextField",
+    "label": "投诉类型",
+    "placeholder": "服务态度/设施故障/环境卫生/噪音扰民/安全隐患/其他"
+  },
+  {
+    "type": "TextField",
+    "label": "紧急程度",
+    "placeholder": "紧急/一般/低"
+  },
+  {
+    "type": "TextareaField",
+    "label": "投诉内容"
+  },
+  {
+    "type": "TextField",
+    "label": "投诉渠道",
+    "placeholder": "前台/电话/A1扫码/线上"
+  },
+  {
+    "type": "TextField",
+    "label": "工单状态",
+    "placeholder": "待受理/处理中/已解决/已关闭"
+  },
+  {
+    "type": "TextField",
+    "label": "受理人"
+  },
+  {
+    "type": "TextField",
+    "label": "创建时间"
+  },
+  {
+    "type": "TextareaField",
+    "label": "处理结果"
+  },
+  {
+    "type": "TextField",
+    "label": "满意度",
+    "placeholder": "非常满意/满意/一般/不满意"
+  }
+]

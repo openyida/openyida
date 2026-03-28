@@ -295,7 +295,7 @@ describe("EnvironmentChecker", () => {
     const checker = new EnvironmentChecker({ projectRoot: tmpDir });
     const results = await checker.check();
 
-    expect(results.length).toBeGreaterThanOrEqual(9);
+    expect(results.length).toBeGreaterThanOrEqual(8);
     expect(results.every((r) => r.id && r.label)).toBe(true);
 
     cleanupTempDir(tmpDir);
@@ -448,12 +448,12 @@ describe("FixEngine", () => {
     const fixEngine = new FixEngine({ projectRoot: tmpDir });
 
     const issues = [
-      { id: "env-playwright", fixType: "command", fixCommand: "pip install playwright", severity: "error" },
+      { id: "env-playwright", fixType: "command", fixCommand: "npm install playwright && npx playwright install chromium", severity: "error" },
     ];
 
     await fixEngine.autoFix(issues);
     expect(fixEngine.fixResults[0].fixed).toBe(false);
-    expect(fixEngine.fixResults[0].message).toContain("pip install playwright");
+    expect(fixEngine.fixResults[0].message).toContain("npm install playwright");
 
     cleanupTempDir(tmpDir);
   });
@@ -479,7 +479,7 @@ describe("FixEngine", () => {
 describe("ReportGenerator", () => {
   const mockResults = [
     { id: "a", label: "Node.js", passed: true, severity: "info" },
-    { id: "b", label: "Python", passed: false, severity: "error", message: "版本过低" },
+    { id: "b", label: "Playwright", passed: false, severity: "error", message: "未安装" },
   ];
   const mockSummary = { total: 2, passed: 1, errorCount: 1, warningCount: 0, infoCount: 1, autoFixable: 0 };
 

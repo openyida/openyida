@@ -1,0 +1,112 @@
+[
+  {
+    "id": "operation-crm-get-users",
+    "operationId": "getExternalUsers",
+    "summary": "获取外部客户列表",
+    "description": "从外部CRM系统获取客户用户列表",
+    "url": "users",
+    "method": "get",
+    "inputs": [
+      {
+        "childList": [
+          {
+            "componentName": "TextField",
+            "defaultValue": "application/json",
+            "desc": "Content-Type",
+            "name": "Content-Type",
+            "required": false
+          }
+        ],
+        "desc": "请求头",
+        "name": "Headers",
+        "paramType": "Object",
+        "required": false
+      }
+    ],
+    "parameters": {
+      "header": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    },
+    "responses": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "description": "用户ID"
+        },
+        "name": {
+          "type": "string",
+          "description": "用户名称"
+        },
+        "email": {
+          "type": "string",
+          "description": "邮箱地址"
+        },
+        "phone": {
+          "type": "string",
+          "description": "电话号码"
+        },
+        "company": {
+          "type": "object",
+          "description": "公司信息"
+        }
+      }
+    },
+    "outputs": [
+      {
+        "defaultValue": "[\n  {\n    \"id\": 1,\n    \"name\": \"Leanne Graham\",\n    \"email\": \"Sincere@april.biz\",\n    \"phone\": \"1-770-736-8031 x56442\"\n  }\n]",
+        "desc": "响应体结构",
+        "name": "Response",
+        "paramType": "Object",
+        "required": false,
+        "childList": [
+          {
+            "_key": "getExternalUsers%id",
+            "name": "id",
+            "paramType": "Number",
+            "children": [],
+            "childList": [],
+            "__level": 0,
+            "hidden": false,
+            "label": "用户ID"
+          },
+          {
+            "_key": "getExternalUsers%name",
+            "name": "name",
+            "paramType": "String",
+            "children": [],
+            "childList": [],
+            "__level": 0,
+            "hidden": false,
+            "label": "用户名称"
+          },
+          {
+            "_key": "getExternalUsers%email",
+            "name": "email",
+            "paramType": "String",
+            "children": [],
+            "childList": [],
+            "__level": 0,
+            "hidden": false,
+            "label": "邮箱地址"
+          },
+          {
+            "_key": "getExternalUsers%phone",
+            "name": "phone",
+            "paramType": "String",
+            "children": [],
+            "childList": [],
+            "__level": 0,
+            "hidden": false,
+            "label": "电话号码"
+          }
+        ]
+      }
+    ],
+    "origin": true
+  }
+]

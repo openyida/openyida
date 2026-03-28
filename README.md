@@ -77,22 +77,36 @@ Create a personal salary calculator app
 ## CLI Commands
 
 ```bash
-openyida env                  # Detect current AI tool environment and login status
-openyida login                # Log in to Yida (uses cache, falls back to QR code)
-openyida logout               # Log out / switch account
+openyida append-chart         # Append chart to an existing report
+openyida auth                 # Login status management (status/login/refresh/logout)
+openyida cdn-config           # Configure CDN image upload (Aliyun OSS + CDN)
+openyida cdn-refresh          # Refresh CDN cache
+openyida cdn-upload           # Upload images to CDN
+openyida configure-process    # Configure and publish process rules
+openyida connector            # HTTP connector management
 openyida copy                 # Initialize project working directory for current AI tool
 openyida create-app           # Create a Yida application
-openyida create-page          # Create a custom display page
 openyida create-form          # Create / update a form page
-openyida get-schema           # Fetch form schema
-openyida publish              # Compile and publish a custom page
-openyida verify-short-url     # Verify if a short URL is accessible
-openyida save-share-config    # Save public access / sharing config
+openyida create-page          # Create a custom display page
+openyida create-process       # Create a process form (integrated)
+openyida create-report        # Create a Yida report
+openyida data                 # Unified data management (form/process/task/subform)
+openyida doctor               # Environment diagnostics and auto-repair
+openyida env                  # Detect current AI tool environment and login status
+openyida export               # Export application migration package
 openyida get-page-config      # Query page public access / sharing config
+openyida get-permission       # Query form permission configuration
+openyida get-schema           # Fetch form schema
+openyida import               # Import migration package to rebuild application
+openyida login                # Log in to Yida (uses cache, falls back to QR code)
+openyida logout               # Log out / switch account
+openyida org                  # Organization management (list/switch)
+openyida publish              # Compile and publish a custom page
+openyida query-data           # Query form instance data
+openyida save-permission      # Save form permission configuration
+openyida save-share-config    # Save public access / sharing config
 openyida update-form-config   # Update form configuration
-openyida cdn-config           # Configure CDN image upload (Aliyun OSS + CDN)
-openyida cdn-upload           # Upload images to CDN
-openyida cdn-refresh          # Refresh CDN cache
+openyida verify-short-url     # Verify if a short URL is accessible
 ```
 
 ---

@@ -1,0 +1,44 @@
+{
+  "物业项目台账": {
+    "formUuid": "FORM-EA35B36972954BC19BB06332B93D33AE5KIQ",
+    "fields": {
+      "项目名称": "textField_ujy0178gu",
+      "项目类型": "textField_ujy02reru",
+      "项目地址": "textField_ujy0374lu",
+      "负责人": "textField_ujy04gi6j",
+      "联系电话": "textField_ujy05jx18",
+      "客房或户数": "numberField_ujy06pceo",
+      "项目状态": "textField_ujy073a1m",
+      "项目简介": "textareaField_ujy08es80"
+    }
+  },
+  "客诉工单": {
+    "formUuid": "FORM-58048BF199A6457290320438AE2689A0249W",
+    "fields": {
+      "工单编号": "textField_vr2a1wyx1",
+      "所属项目": "textField_vr2a2jyys",
+      "投诉人姓名": "textField_vr2a3mocj",
+      "联系电话": "textField_vr2a4dpku",
+      "投诉类型": "textField_vr2a5v9pf",
+      "紧急程度": "textField_vr2a6h0zt",
+      "投诉内容": "textareaField_vr2a7rt8x",
+      "投诉渠道": "textField_vr2a8blo1",
+      "工单状态": "textField_vr2a9dslb",
+      "受理人": "textField_vr2bacqfv",
+      "创建时间": "textField_vr2bbedr5",
+      "处理结果": "textareaField_vr2bcu48j",
+      "满意度": "textField_vr2bd6fkt"
+    }
+  },
+  "工单处理记录": {
+    "formUuid": "FORM-1A6614670DF347208AA96E6C8E3051880RAY",
+    "fields": {
+      "关联工单编号": "textField_w8js1vqqm",
+      "处理人": "textField_w8js2l8n6",
+      "处理时间": "textField_w8js3l3n5",
+      "处理动作": "textField_w8js4q5q2",
+      "处理说明": "textareaField_w8js5rc95",
+      "下一步计划": "textField_w8js6xues"
+    }
+  }
+}

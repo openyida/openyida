@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.03.26] - 2026-03-26
+
+### Added
+- 发布自定义页面前自动检查代码规范，发现问题时提前拦截，避免发布后页面崩溃
+- 新增 `--skip-lint` 参数，可跳过发布前的自动检查
+
+### Fixed
+- 修复 3 个示例页面中按钮点击等交互事件无法正常工作的问题
+- 修复创建流程表单时内部路径引用错误导致命令失败的问题
+- 修复代码风格检查错误、测试用例失败和安全漏洞
+- 清理多个模块中无用的代码引用
+
+### Documentation
+- 补全 13 种语言版本 README 中遗漏的 14 个命令说明
+- 补全帮助信息中缺失的 `query-data` 命令
+- 完善连接器技能文档中的模板引用说明
+
+### i18n
+- 新增发布预检功能的 11 种语言翻译
+
 ## [2026.03.24] - 2026-03-24
 
 ### Added
@@ -71,6 +91,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - 优化 Babel 编译错误提示信息
 - 修复 `SKILL.md` 编号问题
 
-[Unreleased]: https://github.com/openyida/openyida/compare/v1.0.0-beta.0...HEAD
+[Unreleased]: https://github.com/openyida/openyida/compare/v2026.03.26...HEAD
+[2026.03.26]: https://github.com/openyida/openyida/compare/v2026.03.24...v2026.03.26
+[2026.03.24]: https://github.com/openyida/openyida/compare/v2026.03.19...v2026.03.24
+[2026.03.19]: https://github.com/openyida/openyida/compare/v1.0.0-beta.0...v2026.03.19
 [1.0.0-beta.0]: https://github.com/openyida/openyida/compare/v0.1.0...v1.0.0-beta.0
 [0.1.0]: https://github.com/openyida/openyida/releases/tag/v0.1.0

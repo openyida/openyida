@@ -77,22 +77,36 @@ CRMシステムを構築して
 ## CLIコマンド一覧
 
 ```bash
-openyida env                  # 現在のAIツール環境とログイン状態を確認
-openyida login                # Yidaにログイン（キャッシュ優先、なければQRコード）
-openyida logout               # ログアウト / アカウント切り替え
+openyida append-chart         # 既存レポートにチャートを追加
+openyida auth                 # ログイン状態管理（status/login/refresh/logout）
+openyida cdn-config           # CDN画像アップロードを設定（Aliyun OSS + CDN）
+openyida cdn-refresh          # CDNキャッシュを更新
+openyida cdn-upload           # CDNに画像をアップロード
+openyida configure-process    # プロセスルールを設定・公開
+openyida connector            # HTTPコネクタ管理
 openyida copy                 # 現在のAIツール環境にprojectディレクトリを初期化
 openyida create-app           # Yidaアプリを作成
-openyida create-page          # カスタム表示ページを作成
 openyida create-form          # フォームページを作成 / 更新
-openyida get-schema           # フォームスキーマを取得
-openyida publish              # カスタムページをコンパイルして公開
-openyida verify-short-url     # 短縮URLが利用可能か確認
-openyida save-share-config    # 公開アクセス / 共有設定を保存
+openyida create-page          # カスタム表示ページを作成
+openyida create-process       # プロセスフォームを作成（統合型）
+openyida create-report        # Yidaレポートを作成
+openyida data                 # 統一データ管理（フォーム/プロセス/タスク/サブフォーム）
+openyida doctor               # 環境診断と自動修復
+openyida env                  # 現在のAIツール環境とログイン状態を確認
+openyida export               # アプリ移行パッケージをエクスポート
 openyida get-page-config      # ページの公開アクセス / 共有設定を照会
+openyida get-permission       # フォーム権限設定を照会
+openyida get-schema           # フォームスキーマを取得
+openyida import               # 移行パッケージをインポートしてアプリを再構築
+openyida login                # Yidaにログイン（キャッシュ優先、なければQRコード）
+openyida logout               # ログアウト / アカウント切り替え
+openyida org                  # 組織管理（list/switch）
+openyida publish              # カスタムページをコンパイルして公開
+openyida query-data           # フォームインスタンスデータを照会
+openyida save-permission      # フォーム権限設定を保存
+openyida save-share-config    # 公開アクセス / 共有設定を保存
 openyida update-form-config   # フォーム設定を更新
-openyida cdn-config           # CDN画像アップロードを設定（Aliyun OSS + CDN）
-openyida cdn-upload           # CDNに画像をアップロード
-openyida cdn-refresh          # CDNキャッシュを更新
+openyida verify-short-url     # 短縮URLが利用可能か確認
 ```
 
 ---

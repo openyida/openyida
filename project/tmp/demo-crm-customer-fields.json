@@ -1,0 +1,145 @@
+[
+  {
+    "type": "SerialNumberField",
+    "label": "客户编号",
+    "serialNumberRule": [
+      {
+        "ruleType": "character",
+        "content": "CUS-",
+        "dateFormat": "yyyyMMdd",
+        "timeZone": "+8",
+        "resetPeriod": "noClean",
+        "digitCount": 4,
+        "isFixed": true,
+        "initialValue": 1,
+        "isFixedTips": "",
+        "resetPeriodTips": "",
+        "formField": "",
+        "__sid": "item_char_cus",
+        "__sid__": "serial_char_cus",
+        "__hide_delete__": false
+      },
+      {
+        "ruleType": "date",
+        "content": "",
+        "dateFormat": "yyyyMMdd",
+        "timeZone": "+8",
+        "resetPeriod": "noClean",
+        "digitCount": 4,
+        "isFixed": true,
+        "initialValue": 1,
+        "isFixedTips": "",
+        "resetPeriodTips": "",
+        "formField": "",
+        "__sid": "item_date",
+        "__sid__": "serial_date",
+        "__hide_delete__": false
+      },
+      {
+        "ruleType": "character",
+        "content": "-",
+        "dateFormat": "yyyyMMdd",
+        "timeZone": "+8",
+        "resetPeriod": "noClean",
+        "digitCount": 4,
+        "isFixed": true,
+        "initialValue": 1,
+        "isFixedTips": "",
+        "resetPeriodTips": "",
+        "formField": "",
+        "__sid": "item_char_dash",
+        "__sid__": "serial_char_dash",
+        "__hide_delete__": false
+      },
+      {
+        "ruleType": "autoCount",
+        "content": "",
+        "dateFormat": "yyyyMMdd",
+        "timeZone": "+8",
+        "resetPeriod": "noClean",
+        "digitCount": 4,
+        "isFixed": true,
+        "initialValue": 1,
+        "isFixedTips": "",
+        "resetPeriodTips": "",
+        "formField": "",
+        "__sid": "item_auto",
+        "__sid__": "serial_auto",
+        "__hide_delete__": true
+      }
+    ],
+    "serialNumPreview": "CUS-20260327-0001"
+  },
+  {
+    "type": "TextField",
+    "label": "客户名称",
+    "required": true
+  },
+  {
+    "type": "RadioField",
+    "label": "客户类型",
+    "dataSource": [
+      { "text": { "zh_CN": "企业客户", "en_US": "企业客户", "type": "i18n" }, "value": "企业客户", "sid": "serial_type_1" },
+      { "text": { "zh_CN": "个人客户", "en_US": "个人客户", "type": "i18n" }, "value": "个人客户", "sid": "serial_type_2" }
+    ]
+  },
+  {
+    "type": "SelectField",
+    "label": "客户级别",
+    "dataSource": [
+      { "text": { "zh_CN": "A级", "en_US": "A级", "type": "i18n" }, "value": "A级", "sid": "serial_level_1" },
+      { "text": { "zh_CN": "B级", "en_US": "B级", "type": "i18n" }, "value": "B级", "sid": "serial_level_2" },
+      { "text": { "zh_CN": "C级", "en_US": "C级", "type": "i18n" }, "value": "C级", "sid": "serial_level_3" },
+      { "text": { "zh_CN": "D级", "en_US": "D级", "type": "i18n" }, "value": "D级", "sid": "serial_level_4" }
+    ]
+  },
+  {
+    "type": "TextField",
+    "label": "联系人"
+  },
+  {
+    "type": "TextField",
+    "label": "联系电话"
+  },
+  {
+    "type": "TextField",
+    "label": "联系邮箱"
+  },
+  {
+    "type": "AddressField",
+    "label": "公司地址"
+  },
+  {
+    "type": "EmployeeField",
+    "label": "负责人"
+  },
+  {
+    "type": "MultiSelectField",
+    "label": "客户来源",
+    "mode": "multiple",
+    "dataSource": [
+      { "text": { "zh_CN": "官网", "en_US": "官网", "type": "i18n" }, "value": "官网", "sid": "serial_source_1" },
+      { "text": { "zh_CN": "展会", "en_US": "展会", "type": "i18n" }, "value": "展会", "sid": "serial_source_2" },
+      { "text": { "zh_CN": "转介绍", "en_US": "转介绍", "type": "i18n" }, "value": "转介绍", "sid": "serial_source_3" },
+      { "text": { "zh_CN": "广告", "en_US": "广告", "type": "i18n" }, "value": "广告", "sid": "serial_source_4" },
+      { "text": { "zh_CN": "电话", "en_US": "电话", "type": "i18n" }, "value": "电话", "sid": "serial_source_5" }
+    ]
+  },
+  {
+    "type": "TextareaField",
+    "label": "备注"
+  },
+  {
+    "type": "AttachmentField",
+    "label": "相关附件"
+  },
+  {
+    "type": "TableField",
+    "label": "联系人明细",
+    "children": [
+      { "type": "TextField", "label": "姓名" },
+      { "type": "TextField", "label": "职位" },
+      { "type": "TextField", "label": "电话" }
+    ]
+  }
+]

@@ -637,7 +637,7 @@ export function renderHeader() {
             <div style={{ padding: '8px 16px', background: 'rgba(46,213,115,0.15)', border: '1px solid rgba(46,213,115,0.3)', borderRadius: '20px', fontSize: '13px', color: COLORS.success }}>
               ● 数据实时同步
             </div>
-            <div style={{ padding: '8px 16px', background: COLORS.accentGlow, border: '1px solid rgba(0,212,255,0.3)', borderRadius: '20px', fontSize: '13px', color: COLORS.accent, cursor: 'pointer' }} onClick={function() { self.loadAllData(); }}>
+            <div style={{ padding: '8px 16px', background: COLORS.accentGlow, border: '1px solid rgba(0,212,255,0.3)', borderRadius: '20px', fontSize: '13px', color: COLORS.accent, cursor: 'pointer' }} onClick={(e) => { this.loadAllData(); }}>
               🔄 刷新数据
             </div>
           </div>
@@ -714,7 +714,7 @@ export function renderTabBar() {
                 fontWeight: isActive ? '600' : '400',
                 transition: 'all 0.2s',
               }}
-              onClick={function() { self.setCustomState({ activeTab: tab.key }); setTimeout(function() { self.initCurrentTabChart(); }, 150); }}
+              onClick={(e) => { this.setCustomState({ activeTab: tab.key }); setTimeout(() => { this.initCurrentTabChart(); }, 150); }}
             >
               {tab.label}
             </div>
@@ -835,7 +835,7 @@ export function renderCompanyView() {
                 position: 'relative',
                 overflow: 'hidden',
               }}
-              onClick={function() { self.setCustomState({ expandedCard: isExpanded ? null : index }); }}
+              onClick={(e) => { this.setCustomState({ expandedCard: isExpanded ? null : index }); }}
             >
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, ' + ratingColor + ', transparent)' }}></div>
 
