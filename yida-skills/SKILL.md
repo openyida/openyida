@@ -73,6 +73,7 @@ openyida copy
 |------|------|------|
 | **yida-create-process** | [`skills/yida-create-process/SKILL.md`](skills/yida-create-process/SKILL.md) | 一键创建流程表单（创建+转流程+配置） |
 | **yida-process-rule** | [`skills/yida-process-rule/SKILL.md`](skills/yida-process-rule/SKILL.md) | 流程规则配置（条件分支/审批节点/字段权限） |
+| **yida-integration** | [`skills/yida-integration/SKILL.md`](skills/yida-integration/SKILL.md) | 创建集成&自动化逻辑流（触发事件/通知/数据操作） |
 
 ### 自定义页面开发
 
