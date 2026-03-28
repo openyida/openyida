@@ -27,6 +27,7 @@
  *   openyida get-page-config <appType> <formUuid>       查询页面公开访问/分享配置
  *   openyida update-form-config <appType> <formUuid> <isRenderNav> <title>  更新表单配置
  *   openyida data <action> <resource> [args]            统一数据管理（表单/流程/任务/子表单）
+ *   openyida task-center <type> [--page N] [--size N] [--keyword TEXT]  全局任务中心（待办/我创建的/我已处理/抄送/代提交）
  *   openyida doctor [选项]                              检查环境依赖，诊断应用问题
  *   openyida export <appType> [output]                  导出应用所有表单 Schema（生成迁移包）
  *   openyida import <file> [name]                       导入迁移包，在目标环境重建应用
@@ -48,6 +49,9 @@
  *   openyida integration create <appType> <formUuid> <flowName> [选项]  创建集成&自动化逻辑流
  *   openyida create-report <appType> "<报表名称>" <图表定义JSON或文件路径>  创建宜搭报表
  *   openyida append-chart <appType> <reportId> <图表定义JSON或文件路径>    向已有报表追加图表
+ *   openyida dws <command> [args]                        钉钉 CLI（通讯录/日历/待办/审批等）
+ *   openyida create-report <appType> "<报表名称>" <图表定义 JSON 或文件路径>  创建宜搭报表
+ *   openyida append-chart <appType> <reportId> <图表定义 JSON 或文件路径>    向已有报表追加图表
  */
 
 'use strict';
@@ -118,6 +122,9 @@ openyida - 宜搭命令行工具
   connector smart-create --curl "curl命令" [选项]               智能创建连接器
   connector parse-api [选项]                                    解析接口信息
   connector gen-template [输出路径]                              生成接口文档模板
+  dws <command> [args]                                          钉钉 CLI（通讯录/日历/待办/审批等）
+  create-report <appType> "<报表名称>" <图表定义 JSON 或文件路径>   创建宜搭报表
+  append-chart <appType> <reportId> <图表定义 JSON 或文件路径>      向已有报表追加图表
   create-report <appType> "<报表名称>" <图表定义JSON或文件路径>   创建宜搭报表
   append-chart <appType> <reportId> <图表定义JSON或文件路径>      向已有报表追加图表
   export-conversation [选项]                                      导出 AI 对话记录
@@ -141,6 +148,9 @@ openyida - 宜搭命令行工具
   openyida get-page-config APP_XXX FORM-XXX
   openyida update-form-config APP_XXX FORM-XXX false "页面标题"
   openyida data query form APP_XXX FORM-XXX --page 1 --size 20
+  openyida dws contact user search --keyword "悟空"
+  openyida dws calendar event list
+  openyida dws todo task create --title "任务"
   openyida query-data APP_XXX FORM-XXX --page 1 --size 10
   openyida create-report APP_XXX "销售报表" charts.json
   openyida append-chart APP_XXX REPORT-XXX charts.json
@@ -378,7 +388,8 @@ async function main() {
         appType, formUuid, sourceFile,
         ...(skipLint ? ['--skip-lint'] : [])
       ];
-      require('../lib/app/publish');
+      const publishMain = require('../lib/app/publish');
+      await publishMain();
       break;
     }
 
@@ -597,6 +608,32 @@ async function main() {
       break;
     }
 
+    case 'flash-to-prd': {
+      const { run: runFlashToPrd } = require('../lib/flash-note/flash-to-prd');
+      await runFlashToPrd(args);
+      break;
+    }
+
+    case 'integration': {
+      const subCommand = args[0];
+      const subArgs = args.slice(1);  // 路由层消费 subCommand，传递剩余参数
+
+      if (!subCommand || subCommand === '--help' || subCommand === '-h') {
+        console.error(t('cli.integration_help'));
+        break;
+      }
+
+      if (subCommand === 'create') {
+        const { run: runIntegration } = require('../lib/integration/integration-create');
+        await runIntegration(subArgs);
+      } else {
+        console.error(t('cli.integration_unknown', subCommand));
+        console.error(t('cli.integration_help_hint'));
+        process.exit(1);
+      }
+      break;
+    }
+
     case 'query-data': {
       if (args.length < 2) {
         console.error('用法：openyida query-data <appType> <formUuid> [--page N] [--size N] [--search-json JSON] [--inst-id ID]');
@@ -607,6 +644,11 @@ async function main() {
       break;
     }
 
+    case 'dws': {
+      const { run: runDws } = require('../lib/dws/dws-wrapper');
+      await runDws(args);
+      break;
+    }
     case 'export-conversation': {
       const { exportConversation } = require('../lib/conversation/export-conversation');
       // 解析选项
@@ -629,6 +671,9 @@ async function main() {
     case 'integration': {
       const { run: runIntegration } = require('../lib/integration/integration-create');
       await runIntegration(args);
+    case 'task-center': {
+      const { run: runTaskCenter } = require('../lib/core/task-center');
+      await runTaskCenter(args);
       break;
     }
 

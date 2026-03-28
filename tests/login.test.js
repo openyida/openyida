@@ -275,6 +275,10 @@ describe('findProjectRoot 环境检测', () => {
     // macOS 上 /var 会被解析为 /private/var,使用 fs.realpathSync 统一比较
     expect(fs.realpathSync(root)).toBe(fs.realpathSync(projectDir));
     expect(fs.existsSync(root)).toBe(true);
+
+    // Windows 上需要先切回原目录，否则 testDir 被占用导致 EBUSY
+    process.chdir(originalCwd);
+    fs.rmSync(testDir, { recursive: true, force: true });
   });
 
   test('悟空环境下返回 ~/.real/workspace/project', () => {
