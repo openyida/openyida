@@ -137,8 +137,7 @@ openyida copy
 | 技能 | 路径 | 说明 |
 |------|------|------|
 | **yida-connector** | [`skills/yida-connector/SKILL.md`](skills/yida-connector/SKILL.md) | HTTP 连接器管理（创建/测试/智能生成） |
-| **yida-create-report** | [`skills/yida-create-report/SKILL.md`](skills/yida-create-report/SKILL.md) | 创建宜搭报表、追加图表 |
-| **yida-report** | [`skills/yida-report/SKILL.md`](skills/yida-report/SKILL.md) | 宜搭原生报表技能（16 种图表/表格/筛选器，可作为 yida-chart 数据源） |
+| **yida-report** | [`skills/yida-report/SKILL.md`](skills/yida-report/SKILL.md) | 创建宜搭原生报表（16 种图表/表格/筛选器，可作为 yida-chart 数据源） |
 | **yida-chart** | [`skills/yida-chart/SKILL.md`](skills/yida-chart/SKILL.md) | ECharts 高级报表（定制化数据大屏） |
 
 ### 配置与认证
