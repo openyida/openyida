@@ -26,6 +26,7 @@
  *   openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]  保存公开访问/分享配置
  *   openyida get-page-config <appType> <formUuid>       查询页面公开访问/分享配置
  *   openyida update-form-config <appType> <formUuid> <isRenderNav> <title>  更新表单配置
+ *   openyida update-app <appType> --name "新名称" [--desc "描述"] [--icon "图标"]  更新应用信息
  *   openyida data <action> <resource> [args]            统一数据管理（表单/流程/任务/子表单）
  *   openyida task-center <type> [--page N] [--size N] [--keyword TEXT]  全局任务中心（待办/我创建的/我已处理/抄送/代提交）
  *   openyida doctor [选项]                              检查环境依赖，诊断应用问题
@@ -86,6 +87,7 @@ openyida - 宜搭命令行工具
   save-share-config <appType> <formUuid> <url> <isOpen> [auth] 保存公开访问/分享配置
   get-page-config <appType> <formUuid>                         查询页面公开访问/分享配置
   update-form-config <appType> <formUuid> <isRenderNav> <title> 更新表单配置
+  update-app <appType> --name "新名称" [--desc "描述"] [--icon "图标"] 更新应用信息
   data <action> <resource> [args]                              统一数据管理（表单/流程/任务/子表单）
   doctor [选项]                                                检查环境依赖，诊断应用问题
     --fix / --repair                                           诊断并自动修复
@@ -429,6 +431,17 @@ async function main() {
       }
       process.argv = [process.argv[0], process.argv[1], ...args];
       require('../lib/app/update-form-config');
+      break;
+    }
+
+    case 'update-app': {
+      if (args.length < 2) {
+        console.error(t('cli.update_app_usage'));
+        console.error(t('cli.update_app_example'));
+        process.exit(1);
+      }
+      const { run: runUpdateApp } = require('../lib/app/update-app');
+      await runUpdateApp(args);
       break;
     }
 
