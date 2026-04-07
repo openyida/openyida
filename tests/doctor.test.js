@@ -71,7 +71,20 @@ function createTempProject(options = {}) {
 }
 
 function cleanupTempDir(tmpDir) {
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  try {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  } catch (error) {
+    // Windows 上文件句柄释放较慢，EBUSY 时延迟重试一次
+    if (error.code === 'EBUSY' || error.code === 'EPERM') {
+      setTimeout(() => {
+        try {
+          fs.rmSync(tmpDir, { recursive: true, force: true });
+        } catch {
+          // 清理失败不影响测试结果，静默忽略
+        }
+      }, 200);
+    }
+  }
 }
 
 // ── DiagnosticEngine ──────────────────────────────────
