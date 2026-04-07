@@ -49,7 +49,8 @@ openyida/
 │   │   └── save-permission.js     # 保存表单权限配置
 │   ├── process/             # 流程管理
 │   │   ├── configure-process.js   # 配置并发布流程规则
-│   │   └── create-process.js      # 创建流程表单（一体化）
+│   │   ├── create-process.js      # 创建流程表单（一体化）
+│   │   └── preview-process.js     # 流程预览（可视化流程图 + 高亮当前节点）
 │   ├── conversation/        # AI 对话管理
 │   │   ├── collector.js     # 对话记录收集
 │   │   ├── formatter.js     # 对话格式化
