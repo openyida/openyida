@@ -171,6 +171,7 @@ var _customState = {
   raceTimer: null,
   raceIndex: 0,
   raceFinished: false,
+  echartsInitTimer: null,
 };
 
 // ── 中国历代经济全球排名数据（GDP 估算，单位：亿 1990 国际元）──
@@ -663,6 +664,12 @@ function _advanceRaceSegment(chart) {
   var frame = 0;
 
   _customState.raceYearTimer = setInterval(function() {
+    // 防御：chart 已被销毁时立即停止
+    if (!_customState.echartsInstance || _customState.echartsInstance !== chart) {
+      clearInterval(_customState.raceYearTimer);
+      _customState.raceYearTimer = null;
+      return;
+    }
     frame++;
     var progress = frame / totalFrames;
     // 线性插值每个实体的数值
@@ -906,6 +913,11 @@ function _showReplayButton(chart) {
 
 // 重新播放
 function _replayRace(chart) {
+  // 先清理旧的播放定时器，防止多个 interval 并行
+  if (_customState.raceYearTimer) {
+    clearInterval(_customState.raceYearTimer);
+    _customState.raceYearTimer = null;
+  }
   _customState.raceIndex = 0;
   _customState.raceFinished = false;
   var isDark = _customState.darkMode;
@@ -914,6 +926,10 @@ function _replayRace(chart) {
 }
 
 function _destroyEchartsRace() {
+  if (_customState.echartsInitTimer) {
+    clearTimeout(_customState.echartsInitTimer);
+    _customState.echartsInitTimer = null;
+  }
   if (_customState.raceYearTimer) {
     clearInterval(_customState.raceYearTimer);
     _customState.raceYearTimer = null;
@@ -926,6 +942,8 @@ function _destroyEchartsRace() {
     _customState.echartsInstance.dispose();
     _customState.echartsInstance = null;
   }
+  _customState.raceIndex = 0;
+  _customState.raceFinished = false;
 }
 
 export function didUnmount() {
@@ -1010,7 +1028,13 @@ export function renderJsx() {
   }
 
   // ── 每次渲染后检测是否需要初始化/销毁 ECharts ──
-  setTimeout(function() { _tryInitEchartsRace(); }, 100);
+  if (_customState.echartsInitTimer) {
+    clearTimeout(_customState.echartsInitTimer);
+  }
+  _customState.echartsInitTimer = setTimeout(function() {
+    _customState.echartsInitTimer = null;
+    _tryInitEchartsRace();
+  }, 100);
 
   // ── 导航栏样式（默认隐藏，鼠标移到底部显示）──
   var navStyle = {
