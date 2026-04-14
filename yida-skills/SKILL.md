@@ -1,6 +1,6 @@
 ---
 name: yida-skills
-description: "宜搭低代码平台 AI 开发入口。一句话生成完整应用：创建应用、表单设计、自定义页面、流程配置、数据管理。当用户提到「宜搭」「yida」「低代码」「创建应用」「创建表单」「发布页面」「搭建」「系统」「应用」时触发。"
+description: "宜搭低代码平台 AI 开发助手。适用于一切业务数字化需求：创建登记表/申请表/信息收集表、设计审批流程、搭建数据报表/数据大屏、开发自定义页面、管理表单数据、闪记转PRD/会议纪要提取需求/需求文档生成、导出对话记录、编写公式/计算字段、配置连接器/外部API接入、设置权限/公开分享、集成自动化。当用户想要创建任何形式的表单、系统、页面、流程、报表，或提到员工管理、客户管理、费用报销、考勤打卡、项目管理等业务场景时触发。也适用于「宜搭」「yida」「低代码」「创建应用」「发布页面」「搭建系统」「PRD」「闪记」「会议记录」「对话导出」「公式」「连接器」「权限」「分享」「集成自动化」等关键词场景。"
 metadata:
   version: 2026.04.02
 ---
@@ -22,14 +22,37 @@ metadata:
 - 每个子技能执行前，必须完整读取其 SKILL.md，不得凭记忆猜测参数
 - 业务语义信息写入 `prd/<项目名>.md`，Schema ID 写入 `.cache/<项目名>-schema.json`
 - 超过 100 行的大文件写入，使用 `large-file-write` 技能，禁止用 heredoc
+- 在悟空环境中（`AGENT_WORK_ROOT` 包含 `.real`），执行任何 npm/node/npx 命令前，必须先设置 `export PATH="$HOME/.real/.bin/node/bin:$PATH"`，确保使用悟空自带的 node 环境
 
 ---
 
 ## ⚡ 首要步骤（每次必须先执行）
 
+**macOS / Linux：**
+
 ```bash
+# 0. 悟空环境：确保使用悟空自带的 node/npm（避免权限问题）
+if [ -n "$AGENT_WORK_ROOT" ] && echo "$AGENT_WORK_ROOT" | grep -q '.real'; then
+  export PATH="$HOME/.real/.bin/node/bin:$PATH"
+fi
+
 # 1. 确保 openyida 已安装（未安装则自动安装，已安装则跳过）
 openyida -v 2>/dev/null || npm install -g openyida@latest
+
+# 2. 一键诊断并自动修复：环境检测 + project 目录初始化
+openyida doctor --fix
+```
+
+**Windows (PowerShell)：**
+
+```powershell
+# 0. 悟空环境：确保使用悟空自带的 node/npm（避免权限问题）
+if ($env:AGENT_WORK_ROOT -and $env:AGENT_WORK_ROOT -match '\.real') {
+  $env:PATH = "$env:USERPROFILE\.real\.bin\node\bin;$env:PATH"
+}
+
+# 1. 确保 openyida 已安装（未安装则自动安装，已安装则跳过）
+try { openyida -v } catch { npm install -g openyida@latest }
 
 # 2. 一键诊断并自动修复：环境检测 + project 目录初始化
 openyida doctor --fix
@@ -41,6 +64,7 @@ openyida doctor --fix
 
 根据用户描述，快速定位应使用的子技能：
 
+用户提到"查询应用列表/我的应用/有哪些应用" → `openyida yida-app-list`（直接执行，无需子技能）
 用户提到"创建应用/新建系统/搭建平台" → 先读 `yida-app` 了解全流程，再用 `yida-create-app`
 用户提到"创建表单/新增字段/更新表单" → `yida-create-form-page`
 用户提到"自定义页面/JSX/React/可视化大屏" → `yida-custom-page` + `yida-publish-page`
@@ -54,6 +78,7 @@ openyida doctor --fix
 用户提到"登录/Cookie 失效/切换账号" → `yida-login` 或 `yida-logout`
 用户提到"公式/计算字段/函数" → `yida-formula`
 用户提到"闪记/会议纪要/PRD" → `yida-flash-note-to-prd`
+用户提到"Sequence/主键冲突/自增ID错误" → `yida-db-seq-fix`
 
 **关键区分**：
 - `yida-report`（宜搭原生报表页面，16 种内置图表）vs `yida-chart`（ECharts 自定义大屏，依赖 yida-report 作数据源）
@@ -88,6 +113,7 @@ openyida doctor --fix
 2. corpId 不匹配 → 询问用户是否切换组织，执行 `openyida logout && openyida login`
 3. 命令执行失败 → 检查参数格式是否与子技能 SKILL.md 一致，不要猜测参数
 4. 发布失败 → 确认 `openyida env` 环境检测通过，检查 Babel 编译产物
+5. **技能检索失败（search_skills 未返回预期技能）→ 不得直接输出执行结果或编造执行过程**。必须先查阅上方「意图判断决策树」手动定位子技能路径，再通过 `use_skill` 激活对应技能后执行。若仍无法确定技能，停止执行并向用户说明，询问补充信息。
 
 ---
 
@@ -100,6 +126,8 @@ openyida doctor --fix
 | 技能 | 路径 | 说明 |
 |------|------|------|
 | **yida-app** | [`skills/yida-app/SKILL.md`](skills/yida-app/SKILL.md) | 完整应用开发全流程编排（从零到一，创建应用前必读） |
+| **app-list** | `openyida yida-app-list [--size N]` | 查询我的应用列表，返回 appName / appType / systemLink（直接执行，无需子技能） |
+| **sample** | `openyida sample <skill> <name>` | 输出代码示例/模板到 `.cache/samples/<name>.js`，再用 `read_file` 读取（`--list` 查看所有可用示例） |
 | **yida-create-app** | [`skills/yida-create-app/SKILL.md`](skills/yida-create-app/SKILL.md) | 创建应用，获取 appType |
 | **yida-create-page** | [`skills/yida-create-page/SKILL.md`](skills/yida-create-page/SKILL.md) | 创建自定义展示页面，获取 formUuid |
 | **yida-publish-page** | [`skills/yida-publish-page/SKILL.md`](skills/yida-publish-page/SKILL.md) | 编译并发布自定义页面 |
@@ -130,7 +158,6 @@ openyida doctor --fix
 | **yida-density** | [`skills/yida-density/SKILL.md`](skills/yida-density/SKILL.md) | 信息密度设计规范（紧凑/舒适/宽松） |
 | **yida-table-form** | [`skills/yida-table-form/SKILL.md`](skills/yida-table-form/SKILL.md) | 表格形式批量表单提交 |
 | **yida-ppt-slider** | [`skills/yida-ppt-slider/SKILL.md`](skills/yida-ppt-slider/SKILL.md) | PPT 幻灯片页面开发（演讲/路演/培训） |
-| **yida-chatbot** | [`skills/yida-chatbot/SKILL.md`](skills/yida-chatbot/SKILL.md) | AI 对话浮窗组件（独立使用或注入已有页面，支持 12 种 AI 模型） |
 
 ### 连接器与报表
 
@@ -154,6 +181,7 @@ openyida doctor --fix
 |------|------|------|
 | **yida-flash-note-to-prd** | [`skills/yida-flash-note-to-prd/SKILL.md`](skills/yida-flash-note-to-prd/SKILL.md) | 钉钉闪记转高质量 Prompt |
 | **yida-export-conversation** | [`skills/yida-export-conversation/SKILL.md`](skills/yida-export-conversation/SKILL.md) | 导出 AI 对话记录 |
+| **yida-db-seq-fix** | [`skills/yida-db-seq-fix/SKILL.md`](skills/yida-db-seq-fix/SKILL.md) | PostgreSQL Sequence 自动修复（检测并修复主键冲突问题） |
 | **large-file-write** | [`skills/large-file-write/SKILL.md`](skills/large-file-write/SKILL.md) | 大文件写入（解决 heredoc 截断问题） |
 
 ### 共享参考文档

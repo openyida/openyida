@@ -101,6 +101,7 @@ openyida create-process       # Create a process form (integrated)
 openyida create-report        # Create a Yida report
 openyida process preview      # Preview process instance (generate visual flowchart)
 openyida data                 # Unified data management (form/process/task/subform)
+openyida data check <appType> <formUuid> <rules.json> [options]  # Detect anomalous records in process forms based on custom rules
 openyida doctor               # Environment diagnostics and auto-repair
 openyida dws <command> [args]                              # DingTalk CLI (Contacts/Calendar/Todo/Approval, etc.)
 openyida env                  # Detect current AI tool environment and login status
@@ -206,6 +207,7 @@ Thanks to everyone who has contributed to OpenYida! Read the [Contributing Guide
   <a href="https://github.com/liug0911"><img src="https://avatars.githubusercontent.com/u/1578814?v=4&s=48" width="48" height="48" alt="LIUG" title="LIUG"/></a>
   <a href="https://github.com/sunliz-xiuli"><img src="https://avatars.githubusercontent.com/u/76982855?v=4&s=48" width="48" height="48" alt="sunliz-xiuli" title="sunliz-xiuli"/></a>
   <a href="https://github.com/M12REDX"><img src="https://avatars.githubusercontent.com/u/22703542?v=4&s=48" width="48" height="48" alt="M12REDX" title="M12REDX"/></a>
+  <a href="https://github.com/key-668"><img src="https://avatars.githubusercontent.com/u/270536058?v=4&s=48" width="48" height="48" alt="再不喝汽水" title="再不喝汽水"/></a>
 </p>
 
 ---

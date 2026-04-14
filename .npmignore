@@ -6,6 +6,7 @@
 tests/
 scripts/validate-*.js
 scripts/validate-*.sh
+.aone_copilot
 
 # Documentation (included via package.json "files")
 AGENTS.md

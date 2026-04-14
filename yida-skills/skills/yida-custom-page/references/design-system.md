@@ -2,6 +2,10 @@
 
 > 宜搭自定义页面**只能使用内联 style 对象**，不能使用 CSS 文件、Tailwind、shadcn/ui 等外部样式方案。以下规范已针对此约束做了适配，直接用 JS 对象定义样式即可。
 
+> 原因：宜搭自定义页面运行在沙箱环境中，代码必须在单个 JS 文件内完成，无法加载外部 CSS 文件或使用 `<style>` 标签。所有样式必须通过 JavaScript 对象 + `style` 属性实现。
+
+> **响应式适配**：所有样式应根据 `this.utils.isMobile()` 判断设备类型后分别应用 PC 端和移动端的样式值。下文组件样式模板中标注了 mobile/pc 差异。
+
 ## 设计哲学
 
 参考 `frontend-design`、`elegant-design`、`design-systems` 等业界主流设计 skill 的核心原则，结合宜搭约束，遵循以下优先级：

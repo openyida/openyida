@@ -28,7 +28,7 @@
 
 ## Icon 素材
 
-> 优先使用 `this.utils.loadStyleSheet(url)` 加载 CSS 图标库，详见 [yida-api.md](./yida-api.md) 的「loadStyleSheet」章节。
+> 优先使用 `this.utils.loadStyleSheet(url)` 加载 CSS 图标库，详见 [yida-api.md](../../../references/yida-api.md) 的「loadStyleSheet」章节。
 
 | 图标库 | 授权方式 | 推荐场景 |
 | --- | --- | --- |
@@ -80,7 +80,7 @@ function renderIcon(iconPath, size, color) {
 > 引用来源不明的第三方 CDN 链接（如随意从搜索结果或论坛复制的 JS/CSS 链接）存在严重安全隐患：
 >
 > - **网络劫持风险**：不可信 CDN 可能被中间人攻击，注入恶意脚本，导致用户数据泄露或页面被篡改
-> - **供应链攻击**：第三方 CDN 资源随时可能被替换为恶意内容，且难以察觉（2024年曾发生木马化 jQuery 通过知名免费 CDN 传播的真实案例）
+> - **供应链攻击**：第三方 CDN 资源随时可能被替换为恶意内容，且难以察觉
 > - **服务不稳定**：免费 CDN 可能随时宕机或 SSL 证书过期，导致页面资源加载失败
 
 **安全规范：**
@@ -89,7 +89,7 @@ function renderIcon(iconPath, size, color) {
   - `cdnjs.cloudflare.com` — Cloudflare 官方维护，支持 SRI 完整性校验，国内可访问
   - `unpkg.com` — npm 官方镜像，适合加载 npm 包资源，国内可访问
 - ✅ 引用第三方 CDN 资源时，建议添加 `integrity` 属性（SRI 校验），防止资源被篡改
-- ❌ **禁止使用 `cdn.jsdelivr.net`**：2024年发生过木马化 jQuery 供应链攻击事件，且有 SSL 证书过期记录，存在安全风险
+- ❌ **禁止使用 `cdn.jsdelivr.net`**：cdn.jsdelivr.net 存在已知安全风险，禁止在生产环境使用。优先选择阿里云 CDN 或项目已配置的 CDN 域名。
 - ❌ **禁止使用 `fonts.googleapis.com`**：国内大陆无法访问，字体资源需下载到本地后上传自有 CDN
 - ❌ 禁止引用来源不明的 CDN 地址，即使该链接当前可以正常访问
 - ❌ 禁止直接使用从搜索引擎、论坛、博客中复制的 CDN 链接，需先核实来源

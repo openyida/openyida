@@ -1,6 +1,6 @@
 ---
 name: yida-integration
-description: 宜搭集成&自动化（逻辑流）技能，用于在宜搭平台创建「集成&自动化」逻辑流，支持表单事件触发、多节点组合处理（消息通知/数据新增/查询/更新/条件分支）等场景。
+description: 宜搭集成&自动化配置技能。支持创建/查询/开启/关闭集成自动化，包括消息通知、新增数据、获取数据、更新数据、条件分支等节点。不适用于：配置审批流程（应使用 yida-process-rule），或直接操作表单数据（应使用 yida-data-management）。
 ---
 
 # yida-integration — 宜搭集成&自动化（逻辑流）技能
@@ -13,6 +13,7 @@ description: 宜搭集成&自动化（逻辑流）技能，用于在宜搭平台
 
 ## 严格要求 (MUST DO)
 
+- **创建/发布前必须确认**：执行集成自动化创建或发布操作前，必须向用户展示逻辑流配置摘要（触发条件、节点列表、通知对象），获得用户明确同意后再执行
 - 创建前先确认触发表单的 formUuid 和相关字段 ID
 - 创建成功后记录逻辑流 ID 到 `.cache/<项目名>-schema.json`
 
@@ -23,6 +24,29 @@ description: 宜搭集成&自动化（逻辑流）技能，用于在宜搭平台
 | 表单提交后自动通知 | "自动通知"、"数据变更触发"、"集成&自动化" |
 | 数据操作自动化 | "自动新增"、"自动更新"、"逻辑流" |
 | 人工审批流程 | → 改用 `yida-process-rule` |
+
+## 异常处理
+
+| 异常场景 | 处理方式 |
+|---------|----------|
+| formUuid 不存在 | 不得编造，必须从已有记录或 `yida-get-schema` 获取 |
+| 逻辑流创建失败 | 检查节点配置格式，确认触发表单和目标表单存在 |
+| 通知接收人为空 | 必须指定至少一个 userId，不得留空 |
+| 变量引用格式错误 | 确认使用 `#{fieldId-ComponentType}#` 格式 |
+| 发布失败 | 检查逻辑流配置完整性，确认登录态有效 |
+
+## Agent 错误处理策略
+
+当 Agent 执行本技能遇到错误时，必须遵循以下默认行为：
+
+| 错误类型 | 默认处理策略 |
+|---------|-------------|
+| 命令执行失败 | 停止执行，向用户展示错误信息，询问是否重试或调整参数 |
+| 参数缺失（appType/formUuid/userId 等） | 主动询问用户补充，不得猜测或编造 |
+| 权限不足 / 登录态失效 | 停止执行，提示用户执行 `openyida auth status` 检查登录态 |
+| 节点配置格式错误 | 停止执行，展示错误详情，引导用户参照文档修正配置 |
+| 网络超时 | 重试 1 次，仍失败则停止并提示用户检查网络 |
+| 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |
 
 ---
 
@@ -441,136 +465,13 @@ trigger
 
 ---
 
-## 字段赋值 valueType 规律总结
+## 变量引用与字段赋值
 
-在 `assignments`（字段赋值）中，`valueType` 决定了 `value` 的解析方式：
-
-| `valueType` | 含义 | `value` 格式示例 |
-| --- | --- | --- |
-| `processVar` | 引用触发表单的字段值 | `"textField_mmq4ldti"`（直接写字段 ID） |
-| `literal` | 固定值（字符串/数字） | `"固定文本"` 或 `0` |
-| `column` | 公式计算 | `"CONCATENATE(#{fieldId_a},#{fieldId_b})"` |
-| `column` | 引用上游节点字段值 | `"${nodeId}.fieldId"` |
-| `column` | 引用上游节点字段并运算 | `"${nodeId}.numberField_xxx+1"` |
-
-> ⚠️ 公式中引用字段变量格式为 `#{fieldId}`（不带组件类型），与消息通知中的 `#{fieldId-ComponentType}#` 不同。
-
----
-
-## 变量引用格式对照
-
-| 使用场景 | 格式 | 示例 |
-| --- | --- | --- |
-| 消息通知标题/内容 | `#{fieldId-ComponentType}#` | `#{textField_abc-TextField}#` |
-| 公式中引用触发表单字段 | `#{fieldId}` | `#{textField_abc}` |
-| 赋值中引用触发表单字段 | `processVar` + `fieldId` | `valueType: "processVar", value: "textField_abc"` |
-| 赋值中引用上游节点字段 | `column` + `${nodeId}.fieldId` | `"${node_xxx}.numberField_abc"` |
-| 条件中引用上游节点字段 | `${nodeId}.fieldId`（作为 `id`） | `"id": "${node_xxx}.employeeField_abc"` |
+> 📖 字段赋值 valueType 规律和变量引用格式对照详见 [references/integration-node-schemas.md](references/integration-node-schemas.md)。
 
 ## 接口说明
 
-### saveProcess（保存 / 发布逻辑流）
-
-> 保存和发布使用**同一个接口**，通过 `isOnline` 参数区分。
-
-- **地址**：`POST /alibaba/web/{appType}/query/simpleProcess/saveProcess.json`
-- **Content-Type**：`application/x-www-form-urlencoded`
-- **参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `_csrf_token` | String | 是 | CSRF Token |
-| `formUuid` | String | 是 | 关联表单 UUID |
-| `isLogic` | String | 是 | 固定 `"true"` |
-| `isOnline` | String | 是 | `"false"`=保存草稿（未开启），`"true"`=发布生效（已开启） |
-| `json` | String (JSON) | 是 | 节点定义 JSON 字符串 |
-| `viewJson` | String (JSON) | 是 | 画布 Schema JSON 字符串 |
-| `processCode` | String | 是 | 逻辑流唯一标识，格式 `LPROC-xxx`（自动生成或由用户传入） |
-| `needReportLine` | String | 是 | 固定 `"y"` |
-
-- **返回值**：
-
-```json
-{ "success": true }
-```
-
----
-
-### listLogicflows（查询逻辑流列表）
-
-- **地址**：`GET /alibaba/web/{appType}/query/appLogicflowBinding/listflow.json`
-- **Query 参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `appType` | String | 是 | 应用 ID |
-| `key` | String | 否 | 按自动化名称关键字模糊搜索，空字符串=不过滤 |
-| `formUuid` | String | 否 | 按触发表单 UUID 过滤，空字符串=不过滤 |
-| `status` | String | 否 | 按状态过滤：`y`=开启，`n`=关闭，空字符串=全部 |
-| `pageIndex` | Number | 是 | 页码，从 1 开始 |
-| `pageSize` | Number | 是 | 每页条数，**最大 10**（超出会报参数校验失败） |
-| `type` | String | 是 | 固定 `"1"` |
-
-- **返回值结构**：
-
-```json
-{
-  "content": {
-    "data": [
-      {
-        "formUuid": "FORM-XXX",
-        "formTitle": "表单A",
-        "flowList": [
-          {
-            "processCode": "LPROC-XXX",
-            "name": "自动化名称",
-            "status": "y",
-            "formUuid": "FORM-XXX",
-            "eventName": "表单创建成功",
-            "lastAction": "启用",
-            "gmtModified": "2026-03-21 15:00:00"
-          }
-        ]
-      }
-    ],
-    "totalCount": 3,
-    "hasMore": false
-  }
-}
-```
-
-> ⚠️ `totalCount` 是表单分组数（不是自动化总数），每个分组内的 `flowList` 才是具体的自动化列表。
-
----
-
-### switchLogicflow（开启 / 关闭逻辑流）
-
-- **地址**：`POST /alibaba/web/{appType}/query/formLogicflowBinding/switchflow.json`
-- **Content-Type**：`application/x-www-form-urlencoded`
-- **参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `_csrf_token` | String | 是 | CSRF Token |
-| `processCode` | String | 是 | 逻辑流唯一标识（`LPROC-xxx` 格式） |
-| `formUuid` | String | 是 | 触发表单 UUID |
-| `enable` | String | 是 | `"y"`=开启，`"n"`=关闭 |
-| `type` | String | 是 | 固定 `"1"` |
-
-- **返回值**：
-
-```json
-{
-  "content": {
-    "processCode": "LPROC-XXX",
-    "name": "自动化名称",
-    "status": "n"
-  },
-  "success": true
-}
-```
-
-> ⚠️ 若目标逻辑流已处于目标状态（如已关闭再次关闭），接口仍返回 `success: true`，不会报错。
+> 📖 saveProcess、listLogicflows、switchLogicflow 接口的完整参数和返回值结构详见 [references/integration-node-schemas.md](references/integration-node-schemas.md)。
 
 ## 前置依赖
 
@@ -595,6 +496,18 @@ lib/
    - 字符串拼接：`CONCATENATE(#{fieldId_a},#{fieldId_b})`
    - 数值运算：`${nodeId}.numberField_xxx+1`
 
+## 触发条件
+
+**正向触发**：
+- "配置集成自动化"、"数据联动"、"自动触发"
+- "表单提交后自动发消息"、"自动新增数据"
+- "配置逻辑流"、"自动化规则"
+
+**不适用场景（不要触发）**：
+- 配置审批流程 → `yida-process-rule`
+- 直接操作表单数据（增删改查）→ `yida-data-management`
+- 配置 HTTP 连接器 → `yida-connector`
+
 ## 注意事项
 
 - `--receivers` 填写的是宜搭/钉钉用户 ID（`userId`），不是姓名
@@ -602,3 +515,34 @@ lib/
 - `processCode` 格式为 `LPROC-` 加 38 位大写字母数字，不传则自动随机生成
 - 保存（草稿）和发布使用**同一个接口** `saveProcess`，通过 `isOnline` 参数区分
 - 错误码处理：接口返回 `errorCode: "TIANSHU_000030"`（csrf 校验失败）时，脚本会自动刷新 token 后重试；`errorCode: "307"`（登录过期）时，会自动重新登录后重试
+- **本技能不读写 memory**：集成逻辑流配置通过 CLI 命令写入宜搭平台，processCode 等信息输出到 stdout，不依赖跨会话的 memory 状态
+
+## 异常处理
+
+| 异常场景 | 处理方式 |
+|---------|----------|
+| 创建集成失败 | 检查 appType 和 formUuid 是否正确，确认登录态有效 |
+| fieldId 不存在 | 先执行 `openyida get-schema` 获取真实 fieldId |
+| 开启/关闭失败 | 先查询获取 integrationId，不能手写猜测 |
+| 消息通知未发送 | 确认触发条件已在宜搭管理后台配置，检查接收人 userId 格式 |
+| CSRF 校验失败（TIANSHU_000030） | 脚本自动刷新 token 后重试，无需手动干预 |
+| 登录过期（307） | 脚本自动重新登录后重试，无需手动干预 |
+| userId 格式错误 | 确认使用宜搭/钉钉用户 ID（数字字符串），非姓名 |
+| 发布失败但保存成功 | 检查 `published` 字段，可能是权限问题，建议在宜搭后台手动发布 |
+| 网络超时 | 检查网络连接，等待后重试 |
+
+## Agent 错误处理策略
+
+当 Agent 执行本技能遇到错误时，必须遵循以下默认行为：
+
+| 错误类型 | 默认处理策略 |
+|---------|-------------|
+| 命令执行失败 | 停止执行，向用户展示完整错误信息，询问是否重试或调整参数 |
+| 参数格式错误 | 停止执行，提示正确的参数格式，引导用户修正 |
+| 登录态失效 | 提示用户执行 `openyida login` 重新登录（脚本通常自动处理） |
+| processCode 缺失 | 停止执行，不得编造，提示用户重新执行命令 |
+| fieldId 不存在 | 停止执行，提示用户先执行 `yida-get-schema` 获取真实 ID |
+| userId 格式错误 | 停止执行，提示用户提供正确的宜搭/钉钉用户 ID |
+| 用户拒绝确认 | 停止执行，询问用户是否需要调整配置 |
+| 发布失败 | 展示错误信息，建议用户在宜搭后台手动发布或检查权限 |
+| 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |
