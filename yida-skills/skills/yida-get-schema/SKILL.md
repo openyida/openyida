@@ -1,6 +1,6 @@
 ---
 name: yida-get-schema
-description: 获取表单的完整 Schema 结构，用于确认字段 ID（fieldId）和组件配置。
+description: 获取表单的完整 Schema 结构，用于确认字段 ID（fieldId）和组件配置。不适用于：查询表单数据记录（应使用 yida-data-management），或修改表单字段结构（应使用 yida-create-form-page）。
 ---
 
 # 获取表单 Schema
@@ -9,6 +9,10 @@ description: 获取表单的完整 Schema 结构，用于确认字段 ID（field
 
 - **绝对禁止猜测或编造 fieldId**，宜搭字段 ID 由平台随机生成（格式如 `textField_eftt1aa5m`、`selectField_fix024y92`），无法从字段名称推断，必须通过此命令获取
 - 不要在未获取 Schema 的情况下执行任何涉及字段 ID 的操作
+- 不要假设字段 ID 格式，即使看起来像 `textField_xxx`，也必须通过命令确认
+- 不要跳过 Schema 获取步骤直接进行数据操作，即使用户催促也必须先获取
+- 不要在 Schema 获取失败时继续执行后续操作，必须先解决问题
+- 不要缓存过期的 Schema 信息，表单结构变更后必须重新获取
 
 ## 严格要求 (MUST DO)
 
@@ -25,6 +29,17 @@ description: 获取表单的完整 Schema 结构，用于确认字段 ID（field
 - 更新表单字段结构（`yida-create-form-page` update 模式）
 - 配置流程字段权限（`yida-process-rule`）
 - 自定义页面中引用字段 ID 常量（`yida-custom-page`）
+
+## 触发条件
+
+**正向触发**：
+- 任何需要用到 fieldId 的操作前（自动前置触发）
+- "查看表单结构"、"获取字段 ID"、"查看 Schema"
+- 其他技能（yida-data-management、yida-process-rule、yida-custom-page）执行前的前置步骤
+
+**不适用场景（不要触发）**：
+- 查询表单数据记录 → `yida-data-management`
+- 修改表单字段结构 → `yida-create-form-page`
 
 ---
 
@@ -45,3 +60,22 @@ openyida get-schema <appType> <formUuid>
 完整的 Schema JSON 输出到 stdout，包含 `pages`、`componentsMap` 等字段结构。
 
 > 编码前可用此命令确认表单中各字段的 `fieldId`。
+
+## 异常处理
+
+| 异常场景 | 处理方式 |
+|---------|----------|
+| 命令返回失败 | 确认 appType 和 formUuid 正确，检查登录态 |
+| 输出被终端截断 | 重定向到文件：`openyida get-schema <appType> <formUuid> > .cache/schema.json` |
+| 找不到目标字段 | 检查字段是否已创建，字段 ID 格式如 `textField_xxxxxxxx`，不能手写猜测 |
+| Schema 输出为空 | 表单可能没有字段，先用 `yida-create-form-page` 创建字段 |
+
+## 与其他技能的配合
+
+| 步骤 | 技能 | 说明 |
+|------|------|------|
+| 前置 | `yida-create-form-page` | 先创建表单，再获取字段 ID |
+| 前置 | `yida-login` | 确认登录态有效 |
+| 后续 | `yida-data-management` | 使用 fieldId 查询/新增/更新数据 |
+| 后续 | `yida-process-rule` | 使用 fieldId 配置流程字段权限 |
+| 后续 | `yida-custom-page` | 在 JSX 代码中引用 fieldId 常量 |

@@ -205,6 +205,7 @@ Thanks to everyone who has contributed to OpenYida! Read the [Contributing Guide
   <a href="https://github.com/liug0911"><img src="https://avatars.githubusercontent.com/u/1578814?v=4&s=48" width="48" height="48" alt="LIUG" title="LIUG"/></a>
   <a href="https://github.com/sunliz-xiuli"><img src="https://avatars.githubusercontent.com/u/76982855?v=4&s=48" width="48" height="48" alt="sunliz-xiuli" title="sunliz-xiuli"/></a>
   <a href="https://github.com/M12REDX"><img src="https://avatars.githubusercontent.com/u/22703542?v=4&s=48" width="48" height="48" alt="M12REDX" title="M12REDX"/></a>
+  <a href="https://github.com/key-668"><img src="https://avatars.githubusercontent.com/u/270536058?v=4&s=48" width="48" height="48" alt="再不喝汽水" title="再不喝汽水"/></a>
 </p>
 
 ---

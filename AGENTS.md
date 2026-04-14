@@ -31,7 +31,15 @@ openyida/
 │   │   ├── auth.js          # 登录态管理（status/login/refresh/logout）
 │   │   ├── org.js           # 组织管理（列出/切换组织）
 │   │   └── qr-login.js      # 终端二维码扫码登录
+│   ├── samples/             # 代码示例/模板（通过 openyida sample 命令输出到工作目录）
+│   │   ├── yida-chart/            # ECharts 图表示例（7个）
+│   │   ├── yida-custom-page/      # 自定义页面模板（2个）
+│   │   ├── yida-create-app/       # 应用创建模板（1个）
+│   │   ├── yida-data-management/  # 表单字段模板（1个）
+│   │   ├── yida-density/          # 密度切换示例（1个）
+│   │   └── yida-table-form/       # 表格表单示例（1个）
 │   ├── app/                 # 应用 / 表单 / 页面管理
+│   │   ├── app-list.js      # yida-app-list：查询我的应用列表（名称/appType/地址）
 │   │   ├── create-app.js    # 创建宜搭应用
 │   │   ├── create-page.js   # 创建自定义展示页面
 │   │   ├── create-form.js   # 创建 / 更新表单页面
@@ -128,6 +136,10 @@ openyida/
 - `lib/core/utils.js` 的 `detectActiveTool()` 直接读取 `AGENT_WORK_ROOT` 作为工作区根目录
 - `openyida copy` 在**空目录**时会直接把 `project/` 内容铺入工作区（不创建 `project/` 子目录层级）
 - 悟空通过手动上传技能包，`postinstall` 不会自动安装 `yida-skills/`
+- 悟空自带 node/npm 路径：macOS/Linux 为 `~/.real/.bin/node/bin/`，Windows 为 `%USERPROFILE%\.real\.bin\node\bin\`。执行任何 `npm`/`node`/`npx` 命令前**必须**先设置 PATH：
+  - macOS/Linux：`export PATH="$HOME/.real/.bin/node/bin:$PATH"`
+  - Windows (PowerShell)：`$env:PATH = "$env:USERPROFILE\.real\.bin\node\bin;$env:PATH"`
+  否则可能调用到本地系统 node 导致权限报错
 
 ### 自定义页面
 - 源码位于 `project/pages/src/`，使用 React + 宜搭 SDK

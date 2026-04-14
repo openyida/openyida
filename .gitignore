@@ -29,6 +29,7 @@ yarn.lock
 *.swo
 *.dia~
 .happypack
+.aone_copilot
 
 # OS
 .DS_Store

@@ -1,244 +1,108 @@
 ---
 name: yida-custom-page
-description: 宜搭自定义页面 JSX 开发规范。React 16 类组件模式，宜搭 JS API 调用，状态管理与编码约束。
+description: 宜搭自定义页面 JSX 开发规范。React 16 类组件模式，宜搭 JS API 调用，状态管理与编码约束。不适用于：原生表单页面开发（无需 JSX），或发布页面（编写完成后需使用 yida-publish-page 发布）。
 ---
 
 # 自定义页面开发
 
-## 严格禁止 (NEVER DO)
+## 核心规则
 
-- 不要使用 React Hooks（`useState`、`useEffect`），必须使用类组件模式（React 16）
-- 不要使用 `import/require` 引入模块，禁止 ES Module 语法
-- 不要在 `<input>` 上使用 `value` 受控模式，必须用 `defaultValue` + `onChange` 写入 `_customState`
-- 不要在 `renderJsx` 中直接修改 state 触发重渲染，必须调用 `this.forceUpdate()`
-- 不要在 `didUnmount` 中遗漏清理定时器/事件监听，否则内存泄漏
-- 不要在 API 调用中省略 `.catch()`，所有异步调用必须有错误处理
-- 禁止猜测或手写字段 ID（fieldId）：宜搭字段 ID 由平台随机生成（如 `textField_k8j2n3m4`），无法从字段名称推断，必须通过 `openyida get-schema` 获取后再写入代码，不得凭经验编造
+### 致命规则（FATAL）
 
-## 严格要求 (MUST DO)
+违反会导致页面崩溃或运行时报错：
 
-- 所有需要 `this` 的方法必须用 `export function` 定义，不得用箭头函数定义顶层方法
-- 事件绑定必须用箭头函数包裹：`onClick={(e) => { this.handleClick(e) }}`
-- 所有样式通过 JS 对象 + `style` 属性内联，禁止外部 CSS 文件
-- 分页接口 `pageSize` 不得超过 100
-- 第三方库必须通过 `this.utils.loadScript` 加载 CDN 脚本，不得 `import`
-- 所有 API 调用必须 `.catch()` 并调用 `this.utils.toast` 提示用户
-- 编写页面前必须先执行 `openyida get-schema` 获取所有涉及表单的真实字段 ID，将字段 ID 映射保存到 `.cache/<项目名>-schema.json`，再在文件顶部定义 `FIELDS` 常量，后续代码统一通过 `FIELDS.xxx` 引用，禁止在业务逻辑中散落字段 ID 字符串
+1. **React 16 类组件**：禁止使用 Hooks（`useState`、`useEffect`），必须使用类组件模式
+2. **export function 定义方法**：所有需要 `this` 的方法必须用 `export function` 定义，不得用箭头函数或函数表达式
+3. **事件绑定箭头函数包裹**：`onClick={(e) => { this.handleClick(e) }}`，严禁 `onClick={this.handleClick}`
+4. **.map()/.filter() 回调用箭头函数**：`.map((item) => ...)`，禁止 `.map(function(item) {...})`，否则回调内 `this` 丢失
+5. **输入框非受控模式**：`<input>` 用 `defaultValue` + `onChange` 写入 `_customState`，禁止 `value` 受控模式
+6. **禁止 import/require**：第三方库通过 `this.utils.loadScript` 加载 CDN 脚本
+7. **字段 ID 必须通过 get-schema 获取**：执行 `openyida get-schema <appType> <formUuid>` 获取真实 fieldId，文件顶部定义 `FIELDS` 常量映射字段别名，禁止猜测或手写
+8. **所有 API 调用必须 .catch()**：异常通过 `this.utils.toast({ title: message, type: 'error' })` 提示用户
+
+### 重要规则（IMPORTANT）
+
+影响代码质量和用户体验：
+
+1. **代码生成前确认功能摘要**：详见 [编码指南 编注 0](references/coding-guide.md)
+2. **pageSize ≤ 100**：分页接口 `searchFormDatas` 等的 `pageSize` 最大 100
+3. **didUnmount 清理定时器**：在 `didUnmount` 中清理所有 `setInterval`/`setTimeout`，防止内存泄漏
+4. **样式内联**：所有样式通过 JS 对象 + `style` 属性，渐变用 `background` 不用 `backgroundColor`
+5. **DateField 时间戳格式**：日期字段值必须是时间戳（毫秒），不能是字符串
+6. **forceUpdate 后延迟操作 DOM**：`forceUpdate()` 后 DOM 不会立即更新，需 `setTimeout` 延迟访问新 DOM 元素
+7. **多端适配**：使用 `this.utils.isMobile()` 判断设备类型，适配 PC 和移动端
+8. **输入法组合输入处理**：使用 `_isComposing` 标记配合 `compositionstart`/`compositionend` 事件，避免输入过程中触发提交
+9. **iframe 嵌入表单 URL**：数据列表用 `workbench/{formUuid}?iframe=true`，禁止用 `formDetail`
+10. **Tabs 显隐控制**：下拉值变更后自动回退到第一个可见 Tab，内容区用 `display: none` 保留 DOM
+
+> 每条规则的代码示例、反模式和常见错误见 [编码指南](references/coding-guide.md)（编写代码前强制必读）。
 
 ## 适用场景
 
-| 用户意图 | 触发条件 |
-|---------|---------|
-| 开发自定义展示页面 | "自定义页面"、"JSX 页面"、"自定义组件" |
-| 需要宜搭 JS API | 调用 `this.utils.yida.*` 读写表单数据 |
-| 复杂交互逻辑 | 状态管理、事件处理、动态渲染 |
+**正向触发**：
+- 开发自定义展示页面（"自定义页面"、"JSX 页面"、"自定义组件"）
+- 需要调用 `this.utils.yida.*` 读写表单数据
+- 复杂交互逻辑（状态管理、事件处理、动态渲染）
 
----
+**不适用（应使用其他技能）**：
 
+| 场景 | 应使用技能 |
+|------|-----------|
+| 原生表单页面开发 | `yida-create-form-page` |
+| 发布已编写的页面 | `yida-publish-page` |
+| 批量表格录入 | `yida-table-form` |
+| PPT 幻灯片 | `yida-ppt-slider` |
+
+## 异常处理
+
+| 异常场景 | 处理方式 |
+|---------|----------|
+| 使用了 React Hooks | 改为类组件模式（React 16 不支持 Hooks） |
+| 字段 ID 不确定 | 执行 `openyida get-schema` 获取真实 fieldId |
+| `forceUpdate is not a function` | 检查 `this` 绑定，确认方法用 `export function` 定义 |
+| API 调用无响应 | 确认 `.catch()` 错误处理，检查登录态 |
+| 发布后页面空白 | 检查 `renderJsx` 是否正确导出，查看浏览器控制台 |
 
 ## 快速开始
 
-```bash
-openyida create-page <appType> <页面标题>     # 创建页面
-# 在 project/pages/src/ 下编写 JSX
-openyida publish <源文件> <appType> <formUuid>  # 发布
-```
-
-## 核心约束
-
-| # | 约束 | 说明 |
-|---|------|------|
-| 1 | **React 16** | 禁止 Hooks（useState/useEffect），类组件模式 |
-| 2 | **单文件** | 所有代码写在一个 `.js` 文件中 |
-| 3 | **export function** | 所有需要 `this` 的方法必须用 `export function` 定义 |
-| 4 | **事件绑定** | 必须箭头函数包裹：`onClick={(e) => { this.handleClick(e) }}` |
-| 5 | **非受控输入** | `<input>` 用 `defaultValue`，onChange 写入 `_customState` |
-| 6 | **内联样式** | 所有样式通过 JS 对象 + `style` 属性 |
-| 7 | **pageSize ≤ 100** | 分页接口最大 100 |
-| 8 | **ES2015** | 禁止 import/require |
-| 9 | **定时器清理** | didUnmount 中清理所有 setInterval/setTimeout |
-| 10 | **错误处理** | 所有 API 调用必须 .catch() 并 toast 提示 |
-
-> 完整编码规范详见 [编码指南](references/coding-guide.md)。
-
-## API 速查
-
-### 表单数据（`this.utils.yida.<方法>(params)`）
-**编译流程**：
-
-```
-源文件(.js) → babel-transform (Babel 转换) → UglifyJS (压缩) → <name>.compile.js
-```
-
-### 部署到宜搭
+以创建「员工信息查询页」为例，完整流程如下：
 
 ```bash
-openyida publish <源文件路径> <appType> <formUuid>
+# Step 1：获取表单 Schema，确认字段 ID
+openyida get-schema APP_XXX FORM-EMPLOYEE > .cache/employee-schema.json 2>&1
+
+# Step 2：创建自定义页面
+openyida create-page APP_XXX "员工信息查询"
+# 输出：formUuid = FORM-QUERY001
+
+# Step 3：编写页面代码
+# 基于官方模板编写，先获取模板：openyida sample yida-custom-page custom-page-template
+# 在 project/pages/src/employee-query.js 中编写
+
+# Step 4：发布页面
+openyida publish project/pages/src/employee-query.js APP_XXX FORM-QUERY001
 ```
 
-**部署流程**：
+预期输出：
 
+```json
+{
+  "success": true,
+  "pageUrl": "https://www.aliwork.com/APP_XXX/custom/FORM-QUERY001"
+}
 ```
-编译源码（Babel + UglifyJS） → 代码动态构建 Schema JSON（填入 source/compiled）
-→ 调用 yida-login 获取登录态（Cookie 持久化） → 调用 saveFormSchema 接口保存
-```
 
-**参数说明**：
-
-| 参数 | 说明 | 示例 |
-| --- | --- | --- |
-| `appType` | 应用 ID | `APP_XXX` |
-| `formUuid` | 表单 ID | `FORM-XXX` |
-| `源文件路径` | 源码文件路径 | `pages/src/xxx.js` |
-
-> `baseUrl` 无需手动传入，`openyida` 会自动获取登录态并从中读取 `base_url`。
-
----
+**关键说明**：
+- **Step 1** 的 get-schema 输出包含所有字段的 fieldId，在代码中必须使用 `FIELDS` 常量映射这些 ID
+  - get-schema 输出的 JSON 中，每个字段的 `fieldId`（如 `textField_k8j2n3m4`）即是代码中 `FIELDS` 常量应映射的值
+- **Step 3** 的页面代码必须遵循 [编码指南](references/coding-guide.md) 的全部 19 条编码注意事项
+- 完整代码模板通过 `openyida sample yida-custom-page custom-page-template` 获取
 
 ## 开发规范
 
-> **以下规范是编写宜搭自定义页面代码的核心约束，必须严格遵守。**
+> 编写页面代码前**必须完整阅读** [编码指南](references/coding-guide.md)，包含文件结构模板、状态管理模式、生命周期钩子、全局变量及全部 19 条编码注意事项。
 
-### 运行环境与约束
-
-宜搭自定义页面的 JSX 组件本质上是 **React 类组件中的 render 方法**，而非独立的 React 组件。因此存在以下关键约束：
-
-| 约束 | 说明 |
-| --- | --- |
-| **React 版本** | 必须兼容 **React 16**，禁止使用 Hooks（`useState`、`useEffect` 等） |
-| **单文件** | 所有代码写在一个文件中（如 `index.js`）|
-| **三方包引入** | 禁止使用 `import/require` 语法，如需使用第三方库，必须通过 `this.utils.loadScript` 加载 CDN 脚本，参考 [yida-api.md](../../references/yida-api.md) 的「工具类 API」章节。|
-| **函数导出格式** | 使用 `export function xxx() {}` 格式导出函数 |
-| **样式** | 所有 css 必须写在 renderJsx 的方法中，通过 style 的方式引入 |
-| **`this` 上下文** | 所有导出函数中的 `this` 指向宜搭页面的 React 类实例 |
-| **禁止使用 `this.setState` 管理业务状态** | `this.setState` 已被覆盖，仅用于 `forceUpdate`（通过更新 `timestamp`） |
-| **JavaScript 版本** | 使用 ES2015 (ES6) 语法，不能高于 ES2015 版本 |
-| **必须定义 renderJsx 函数** | renderJsx 是宜搭自定义页面核心渲染函数，也是入口函数，必须严格定义，不要改为其他名称 |
-
-### 文件结构
-
-**一个完整的宜搭自定义页面源文件必须包含：**
-- `_customState` 变量
-- getCustomState 函数
-- setCustomState 函数
-- forceUpdate 函数
-- didMount 函数
-- didUnmount 函数
-- renderJsx 函数
-
-以下是一个完整自定义页面示例，包含状态管理、生命周期钩子、渲染函数
-
-```jsx
-// ============================================================
-// 状态管理
-// ============================================================
-
-const _customState = {
-  // 在此定义所有业务状态的初始值
-  count: 0,
-  loading: false,
-};
-
-/**
- * 获取状态
- * @param {string} [key] - 传入 key 返回单个值，不传返回全部状态的浅拷贝
- */
-export function getCustomState(key) {
-  if (key) {
-    return _customState[key];
-  }
-  return { ..._customState };
-}
-
-/**
- * 设置状态（合并更新，自动触发重新渲染）
- * @param {Object} newState - 需要更新的状态键值对
- */
-export function setCustomState(newState) {
-  Object.keys(newState).forEach(function(key) {
-    _customState[key] = newState[key];
-  });
-  this.forceUpdate();
-}
-
-/**
- * 强制重新渲染（通过更新 timestamp 触发 React 重渲染）
- */
-export function forceUpdate() {
-  this.setState({ timestamp: new Date().getTime() });
-}
-
-// ============================================================
-// 生命周期
-// ============================================================
-
-/**
- * 页面加载完成时调用
- * 用于：初始化数据、启动定时器、绑定事件等
- */
-export function didMount() {
-  // 初始化逻辑
-}
-
-/**
- * 页面卸载时调用
- * 用于：清理定时器、解绑事件、释放资源等
- */
-export function didUnmount() {
-  // 清理逻辑
-}
-
-export function handleSubmit(e) {
-  this.setCustomState({ submitted: true });
-  this.utils.toast({ title: '提交成功', type: 'success' });
-}
-// ============================================================
-// 渲染
-// ============================================================
-
-/**
- * 页面渲染函数（等同于 React 类组件的 render 方法）
- * 注意：必须包含隐藏的 timestamp div 以支持 forceUpdate 机制
- */
-export function renderJsx() {
-  const { timestamp } = this.state;
-
-  return (
-    <div>
-      {/* 必须保留：用于触发重新渲染 */}
-      <div style={{ display: "none" }}>{timestamp}</div>
-
-      {/* 页面内容写在这里 */}
-      <div onClick={(e) => {this.handleSubmit(e)}>提交</div>
-    </div>
-  );
-}
-```
-
-### 状态管理使用方式
-
-```javascript
-// 获取全部状态（返回浅拷贝）
-const state = this.getCustomState();
-
-// 获取单个状态值
-const count = this.getCustomState('count');
-
-// 设置状态并自动触发重新渲染
-this.setCustomState({ count: count + 1, loading: true });
-
-// 仅触发重新渲染（不修改状态）
-this.forceUpdate();
-```
-
-### 生命周期钩子
-
-| 钩子函数 | 触发时机 | 典型用途 |
-| --- | --- | --- |
-| `didMount()` | 页面 DOM 加载渲染完毕 | 初始化数据加载、启动定时器、绑定事件 |
-| `didUnmount()` | 页面节点从 DOM 移除 | 清理 `setInterval` / `setTimeout`、解绑事件 |
-
-### 全局变量
+## 官方示例模板
 
 | 变量 | 类型 | 说明 |
 | --- | --- | --- |
@@ -454,7 +318,7 @@ this.forceUpdate();
 
     完整示例代码见：[`examples/tabs-visibility-control.js`](./examples/tabs-visibility-control.js)
 
-### 17. 字段 ID 语义化别名约定
+17. 字段 ID 语义化别名约定
 
 宜搭表单字段 ID 通常是随机字符串（如 `textField_k8j2n3m4`），直接在代码中使用可读性差、维护困难。**推荐在文件顶部统一定义字段别名常量**，在代码中始终使用别名引用字段 ID。
 
@@ -490,30 +354,21 @@ formDataJson[FIELDS.userName] = _customState.inputName;
 formDataJson[FIELDS.department] = _customState.selectedDept;
 formDataJson[FIELDS.amount] = _customState.inputAmount;
 ```
+代码编写前，执行以下命令获取示例模板，再用 `read_file` 完整读取：
 
-**❌ 避免的写法**：
-
-```javascript
-// ❌ 直接在业务逻辑中散落字段 ID，难以维护
-this.utils.yida.searchFormDatas({
-  formUuid: 'FORM-XXX',
-  searchFieldJson: JSON.stringify({
-    selectField_a3b9c1d2: '研发部',   // 这是什么字段？
-    radioField_m1n5o9p3: '待审批',    // 完全看不懂
-  }),
-});
+```bash
+openyida sample yida-custom-page custom-page-template   # 完整页面模板（didMount/renderJsx/状态管理/API调用）
+openyida sample yida-custom-page design-tokens          # 设计 token 参考（颜色/间距/字体规范）
 ```
 
-**AI 生成代码时的规则**：
-1. 获取表单 Schema 后，**必须先在文件顶部定义 `FIELDS` 常量**，将所有用到的字段 ID 映射为语义化名称
-2. 后续所有代码中**禁止直接写字段 ID 字符串**，统一通过 `FIELDS.xxx` 引用
-3. `FIELDS` 的 key 使用 camelCase 命名，与字段的中文含义对应
+## 常见场景示例
 
----
+- 自定义页面附件上传：见 [AttachmentField 上传指南](references/attachment-upload-guide.md)
+- 对应最小代码示例：见 [attachment-upload.js](examples/attachment-upload.js)
 
 ## API 速查
 
-`### 表单数据（`this.utils.yida.<方法>(params)`）
+### 表单数据（`this.utils.yida.<方法>(params)`）
 
 | 方法 | 说明 | 必填参数 |
 |------|------|----------|
@@ -543,9 +398,9 @@ this.utils.yida.searchFormDatas({
 | `isMobile` | 判断移动端 |
 | `openPage` | 打开新页面 |
 | `router.push` | 路由跳转 |
-| `loadScript` | 动态加载脚本 |`
+| `loadScript` | 动态加载脚本 |
 
-> **使用前必须阅读 [yida-api.md](../../references/yida-api.md) 查询详细的参数，禁止猜测参数**。
+> **上表为常用 API 速查，完整 API 列表见 [yida-api.md](../../references/yida-api.md)。使用前必须阅读完整参数文档，禁止猜测参数。**
 
 ### 大模型 AI 接口
 
@@ -557,14 +412,20 @@ this.utils.yida.searchFormDatas({
 
 **主要参数**：`_csrf_token`（CSRF 令牌）、`prompt`（提示词）、`skill`（技能类型，如 `ToText`）、`maxTokens`（最大返回 token 数）
 
-> **使用前必须阅读 [model-api.md](../../references/model-api.md)查询详细的参数，禁止猜测参数**。
-
----
+> **使用前必须阅读 [model-api.md](../../references/model-api.md) 查询详细的参数，禁止猜测参数**。
 
 ## 参考文档
 
-| 文档 | 说明 |
-|------|------|
-| [编码指南](references/coding-guide.md) | 文件结构模板、状态管理、17 条编码注意事项 |
-| [设计规范](references/design-system.md) | 色彩系统、圆角/字体/间距、组件样式模板 |
-| [素材资源](references/assets-guide.md) | 图片/音乐/Icon 素材库、CDN 安全规范 |
+| 文档 | 覆盖范围 | 何时阅读 |
+|------|---------|---------|
+| **本技能文档** | | |
+| [编码指南](references/coding-guide.md) | 文件结构模板、状态管理、生命周期、19 条编码规范 | 编写任何页面代码前必读 |
+| [设计规范](references/design-system.md) | 色彩/圆角/字体/间距系统、7 类组件样式模板、8 条反模式 | 实现 UI 样式时必读 |
+| [素材资源](references/assets-guide.md) | 图片/音乐/Icon 素材库、CDN 安全规范 | 需要引入图片、图标、音效时阅读 |
+| **全局共享文档** | | |
+| [宜搭 API](../../references/yida-api.md) | 表单/流程/工具 API 完整参数文档 | 调用 `this.utils.yida.*` 前必读 |
+| [大模型 API](../../references/model-api.md) | AI 文本生成接口参数 | 调用 `txtFromAI` 前必读 |
+
+## 注意事项
+
+- 本技能不读写 memory，所有页面状态（`_customState`）仅在当前页面会话内有效，刷新页面后重置，不跨会话持久化

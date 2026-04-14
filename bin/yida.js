@@ -16,6 +16,9 @@
  *   openyida auth logout                                退出登录
  *   openyida org list                                   列出可访问的组织
  *   openyida org switch --corp-id <corpId>              切换组织（无需重新登录）
+ *   openyida sample --list                                      列出所有可用代码示例/模板
+ *   openyida sample <skill> <name> [--output <路径>]            输出代码示例到工作目录（默认 .cache/samples/<name>.js）
+ *   openyida yida-app-list [--size <每页数量>]                  查询我的应用列表（名称/appType/地址）
  *   openyida create-app "<名称>" [desc] [icon] [color] [colour] [navTheme] [layout]  创建应用
  *   openyida create-page <appType> "<页面名>"            创建自定义页面
  *   openyida create-form create <appType> "<表单名>" <字段JSON> [--layout <布局>] [--theme <主题>] [--label-align <对齐>]  创建表单页面
@@ -30,6 +33,11 @@
  *   openyida data <action> <resource> [args]            统一数据管理（表单/流程/任务/子表单）
  *   openyida task-center <type> [--page N] [--size N] [--keyword TEXT]  全局任务中心（待办/我创建的/我已处理/抄送/代提交）
  *   openyida doctor [选项]                              检查环境依赖，诊断应用问题
+ *   openyida db-index --form <formUuid>                 检测专属数据库索引
+ *   openyida db-index --form <formUuid> --suggest       获取索引建议
+ *   openyida db-index --app <appType> --list            查看所有表单索引概览
+ *   openyida db-seq-fix                                 检查 Sequence 起始值
+ *   openyida db-seq-fix --fix                           自动修复 Sequence 起始值
  *   openyida export <appType> [output]                  导出应用所有表单 Schema（生成迁移包）
  *   openyida import <file> [name]                       导入迁移包，在目标环境重建应用
  *   openyida get-permission <appType> <formUuid>        查询表单权限配置
@@ -244,6 +252,18 @@ async function main() {
       break;
     }
 
+    case 'sample': {
+      const { run: runSample } = require('../lib/core/sample');
+      await runSample(args);
+      break;
+    }
+
+    case 'yida-app-list': {
+      const { run: runAppList } = require('../lib/app/app-list');
+      await runAppList(args);
+      break;
+    }
+
     case 'create-app': {
       const { run } = require('../lib/app/create-app');
       await run(args);
@@ -358,6 +378,18 @@ async function main() {
 
     case 'doctor': {
       const { run } = require('../lib/core/doctor');
+      await run(args);
+      break;
+    }
+
+    case 'db-index': {
+      const { run } = require('../lib/db/db-index');
+      await run(args);
+      break;
+    }
+
+    case 'db-seq-fix': {
+      const { run } = require('../lib/db/db-seq-fix');
       await run(args);
       break;
     }

@@ -10,7 +10,7 @@
 | --- | --- |
 | **React 版本** | 必须兼容 **React 16**，禁止使用 Hooks（`useState`、`useEffect` 等） |
 | **单文件** | 所有代码写在一个文件中（如 `index.js`）|
-| **三方包引入** | 禁止使用 `import/require` 语法，如需使用第三方库，必须通过 `this.utils.loadScript` 加载 CDN 脚本，参考 [yida-api.md](./yida-api.md) 的「工具类 API」章节。|
+| **三方包引入** | 禁止使用 `import/require` 语法，如需使用第三方库，必须通过 `this.utils.loadScript` 加载 CDN 脚本，参考 [yida-api.md](../../../references/yida-api.md) 的「工具类 API」章节。|
 | **函数导出格式** | 使用 `export function xxx() {}` 格式导出函数 |
 | **样式** | 所有 css 必须写在 renderJsx 的方法中，通过 style 的方式引入 |
 | **`this` 上下文** | 所有导出函数中的 `this` 指向宜搭页面的 React 类实例 |
@@ -78,95 +78,36 @@ searchFieldJson: JSON.stringify(searchCondition);
 - didUnmount 函数
 - renderJsx 函数
 
-以下是一个完整自定义页面示例，包含状态管理、生命周期钩子、渲染函数
-
 ```jsx
-// ============================================================
-// 状态管理
-// ============================================================
-
-const _customState = {
+// ── 状态管理 ──────────────────────────────────────────
+var _customState = {
   // 在此定义所有业务状态的初始值
-  count: 0,
-  loading: false,
 };
 
-/**
- * 获取状态
- * @param {string} [key] - 传入 key 返回单个值，不传返回全部状态的浅拷贝
- */
-export function getCustomState(key) {
-  if (key) {
-    return _customState[key];
-  }
-  return { ..._customState };
-}
+export function getCustomState(key) { /* 传 key 返回单值，不传返回浅拷贝 */ }
+export function setCustomState(newState) { /* 合并更新 + this.forceUpdate() */ }
+export function forceUpdate() { this.setState({ timestamp: new Date().getTime() }); }
 
-/**
- * 设置状态（合并更新，自动触发重新渲染）
- * @param {Object} newState - 需要更新的状态键值对
- */
-export function setCustomState(newState) {
-  Object.keys(newState).forEach(function(key) {
-    _customState[key] = newState[key];
-  });
-  this.forceUpdate();
-}
+// ── 生命周期 ──────────────────────────────────────────
+export function didMount() { /* 初始化数据、启动定时器 */ }
+export function didUnmount() { /* 清理定时器、解绑事件 */ }
 
-/**
- * 强制重新渲染（通过更新 timestamp 触发 React 重渲染）
- */
-export function forceUpdate() {
-  this.setState({ timestamp: new Date().getTime() });
-}
+// ── 业务方法（必须用 export function）─────────────────
+export function loadData() { /* this.utils.yida.searchFormDatas(...) */ }
 
-// ============================================================
-// 生命周期
-// ============================================================
-
-/**
- * 页面加载完成时调用
- * 用于：初始化数据、启动定时器、绑定事件等
- */
-export function didMount() {
-  // 初始化逻辑
-}
-
-/**
- * 页面卸载时调用
- * 用于：清理定时器、解绑事件、释放资源等
- */
-export function didUnmount() {
-  // 清理逻辑
-}
-
-export function handleSubmit(e) {
-  this.setCustomState({ submitted: true });
-  this.utils.toast({ title: '提交成功', type: 'success' });
-}
-
-// ============================================================
-// 渲染
-// ============================================================
-
-/**
- * 页面渲染函数（等同于 React 类组件的 render 方法）
- * 注意：必须包含隐藏的 timestamp div 以支持 forceUpdate 机制
- */
+// ── 渲染（页面入口）──────────────────────────────────
 export function renderJsx() {
-  const { timestamp } = this.state;
-
   return (
     <div>
-      {/* 必须保留：用于触发重新渲染 */}
-      <div style={{ display: "none" }}>{timestamp}</div>
-
-      {/* 页面内容写在这里 */}
-      <div onClick={(e) => {this.handleSubmit(e)}}>提交</div>
+      {/* 必须保留：触发 forceUpdate 重渲染 */}
+      <div style= display: "none" >{this.state.timestamp}</div>
+      {/* 页面内容 */}
     </div>
   );
 }
 ```
+
+> 完整可运行模板通过 `openyida sample yida-custom-page custom-page-template` 获取。
 
 ---
 
@@ -209,6 +150,16 @@ this.forceUpdate();
 ---
 
 ## 编码注意事项
+
+### 编注 0：代码生成前确认功能摘要
+
+生成页面代码前，AI 必须先向用户展示以下内容并获得确认：
+
+1. **功能摘要**：页面的核心功能列表（如"筛选 + 列表 + 详情跳转"）
+2. **关键配置**：使用的 formUuid、FIELDS 映射、API 调用方式
+3. **交互设计**：主要用户操作流程
+
+确认后再开始编码，避免大量返工。
 
 ### 1. 自定义方法必须用 `export function` 定义
 
@@ -282,7 +233,7 @@ export function renderJsx() {
 
 ### 6. 样式方式
 
-所有样式通过 JavaScript 对象定义（内联样式），在 `renderJsx` 中通过 `style` 属性应用，不使用外部 CSS 文件。
+所有样式通过 JavaScript 对象定义（内联样式），在 `renderJsx` 中通过 `style` 属性应用，不使用外部 CSS 文件。详细的设计系统和组件样式模板见 [设计规范](design-system.md)。
 
 ### 7. 异步操作
 
@@ -320,6 +271,12 @@ dateField_xxx: '2024-01-15'
 dateField_xxx: new Date().getTime()
 ```
 
+### 10.1 AttachmentField 上传不是直接写 File
+
+在自定义页面中，`AttachmentField` 不能直接写浏览器 `File` 对象，也不能写普通文本。正确做法是先走 `ossSign -> OSS 直传 -> AttachmentField 对象数组` 的链路，再在 `saveFormData` 时提交。
+
+详见：[AttachmentField 上传指南](./attachment-upload-guide.md)
+
 ### 11. 多端适配
 
 宜搭自定义页面会在 PC 端和移动端同时展示，使用 `this.utils.isMobile()` 判断设备类型：
@@ -342,13 +299,38 @@ var styles = {
 };
 ```
 
+> 完整的响应式页面容器样式（含 isMobile 判断）见 [设计规范](design-system.md) 的「页面容器」部分。
+
 ### 13. 性能优化
 
 - 不要在每次 `onChange` 都调用 `setCustomState`，可直接写入 `_customState` 静默更新
 - 只在需要触发重渲染时才调用 `forceUpdate`
 - 在 `renderJsx` 顶部定义事件处理函数，避免每次渲染都创建新的内联函数
 
-### 14. 调试技巧
+### 14. forceUpdate() 后的 DOM 渲染时序
+
+`forceUpdate()` 调用 `this.setState()` 后，React 会在**下一个微任务**中重新渲染组件。这意味着 `forceUpdate()` 之后**同步代码中无法立即访问新渲染的 DOM 元素**。
+
+**典型错误场景**：异步数据加载完成后设置 `loading=false` 并调用 `forceUpdate()`，然后立即尝试操作新出现的 DOM 元素（如 `document.getElementById('chart-container')`），此时 DOM 还未更新，返回 `null`。
+
+```javascript
+// ❌ 错误：forceUpdate 后立即操作新 DOM
+_customState.loading = false;
+self.forceUpdate();
+var container = document.getElementById('my-chart');  // null！DOM 还没更新
+
+// ✅ 正确：延迟一帧等待 React 完成 DOM 更新
+_customState.loading = false;
+self.forceUpdate();
+setTimeout(function () {
+  var container = document.getElementById('my-chart');  // 此时 DOM 已存在
+  if (container) { /* 初始化图表等操作 */ }
+}, 100);
+```
+
+> **适用场景**：ECharts 图表初始化、Canvas 绑定、第三方库挂载等需要操作 DOM 的场景。详见 [`yida-chart` 技能](../../yida-chart/SKILL.md)的「图表渲染时序」章节。
+
+### 15. 调试技巧
 
 ```javascript
 // 打印当前状态到控制台
@@ -358,7 +340,7 @@ console.log('当前状态:', _customState);
 this.utils.toast({ title: '调试信息', type: 'info' });
 ```
 
-### 15. iframe 嵌入表单 URL 规范
+### 16. iframe 嵌入表单 URL 规范
 
 在自定义页面中通过 iframe 嵌入宜搭表单时，需使用正确的 URL 格式：
 
@@ -378,7 +360,7 @@ const listUrl = `${baseUrl}/${appType}/workbench/${formUuid}?iframe=true`;
 
 > `viewUuid` 可选，从宜搭「数据管理」→「报表视图」页面的 URL 中获取，不传则使用默认视图。
 
-### 16. 下拉选项控制选项卡（Tabs）表格页显示/隐藏
+### 17. 下拉选项控制选项卡（Tabs）表格页显示/隐藏
 
 当页面中存在选项卡组件包含多个表格页，需要根据下拉选择框的值动态控制特定表格页的显示或隐藏时，使用状态驱动的条件渲染实现。
 
@@ -389,7 +371,7 @@ const listUrl = `${baseUrl}/${appType}/workbench/${formUuid}?iframe=true`;
 - Tab 内容区使用 `display: none` 而非条件渲染，保留 DOM 避免 iframe 重复加载
 - 所有 Tab 均被隐藏时展示兜底提示，提升用户体验
 
-### 17. 字段 ID 语义化别名约定
+### 18. 字段 ID 语义化别名约定
 
 宜搭表单字段 ID 通常是随机字符串（如 `textField_k8j2n3m4`），直接在代码中使用可读性差、维护困难。**推荐在文件顶部统一定义字段别名常量**，在代码中始终使用别名引用字段 ID。
 
