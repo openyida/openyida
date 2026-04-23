@@ -103,22 +103,46 @@ function enforcePassphraseCheck(passphrase) {
 // ── 权限校验 ──────────────────────────────────────────────────
 
 function enforceCorpIdCheck(cookieData) {
-  const corpId = cookieData.corp_id || '';
+  // 从 utils 返回的顶层属性获取 corpId
+  const corpIdFromUtils = cookieData.corp_id || '';
 
-  if (!corpId) {
+  // 独立从 cookies 数组中二次提取 corpId，防止 utils 层被篡改或缓存不一致
+  const corpIdFromCookieArray = extractCorpIdFromCookies(cookieData.cookies);
+
+  // 两个来源都必须存在
+  if (!corpIdFromUtils && !corpIdFromCookieArray) {
     console.error('⛔ 权限校验失败：无法从登录态中提取 corpId。');
     console.error('请先执行 openyida login 登录后重试。');
     process.exit(1);
   }
 
+  // 两个来源必须一致（防篡改）
+  if (corpIdFromUtils && corpIdFromCookieArray && corpIdFromUtils !== corpIdFromCookieArray) {
+    console.error('⛔ 权限校验失败：登录态数据不一致，疑似被篡改。');
+    console.error('请执行 openyida logout 后重新登录。');
+    process.exit(1);
+  }
+
+  // 以两个来源中可用的值为准
+  const corpId = corpIdFromUtils || corpIdFromCookieArray;
+
   if (!ALLOWED_CORP_IDS.includes(corpId)) {
+    // 不输出真实 corpId，防止信息泄露
     console.error('⛔ 权限校验失败：当前组织无权使用此技能。');
     console.error('本技能仅限内部技术支持团队使用，如需使用请联系管理员。');
-    console.error(`当前 corpId: ${corpId}`);
     process.exit(1);
   }
 
   console.error(`✅ 权限校验通过 (corpId: ${corpId.substring(0, 20)}...)`);
+}
+
+/**
+ * 独立从 cookies 数组中提取 corp_id，不依赖 utils 的解析结果
+ */
+function extractCorpIdFromCookies(cookies) {
+  if (!Array.isArray(cookies)) return '';
+  const corpCookie = cookies.find((c) => c.name === 'corp_id');
+  return corpCookie ? corpCookie.value : '';
 }
 
 // ── HTTP 请求 ─────────────────────────────────────────────────
@@ -264,17 +288,13 @@ async function main() {
 
   const [queryType, paramValue] = remainingArgs;
 
-  // Step 1: 加载登录态
+  // Step 1: 加载登录态（不自动触发登录，防止通过重新登录绕过 corpId 校验）
   const utils = findOpenyidaUtils();
-  let cookieData = utils.loadCookieData();
+  const cookieData = utils.loadCookieData();
 
   if (!cookieData || !cookieData.cookies || cookieData.cookies.length === 0) {
-    console.error('🔑 未检测到登录态，触发登录...');
-    cookieData = utils.triggerLogin();
-  }
-
-  if (!cookieData || !cookieData.cookies) {
-    console.error('⛔ 无法获取有效登录态');
+    console.error('⛔ 权限校验失败：未检测到登录态。');
+    console.error('请先执行 openyida login 登录到授权组织后重试。');
     process.exit(1);
   }
 
