@@ -2,6 +2,9 @@
 project/pages/src/
 project/pages/dist/
 
+# Sample templates may use browser/ES module syntax for Yida pages
+lib/samples/
+
 # Temporary files
 project/tmp/
 

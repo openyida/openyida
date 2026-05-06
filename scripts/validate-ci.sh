@@ -1,24 +1,30 @@
 #!/bin/bash
-set -e
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
 
 echo "=== Step 1: Install dependencies ==="
-npm install --ignore-scripts
+npm ci --ignore-scripts
 
 echo ""
 echo "=== Step 2: Validate project structure ==="
-node scripts/validate-structure.js
+npm run check:structure
 
 echo ""
 echo "=== Step 3: Check JavaScript syntax ==="
-node --check bin/yida.js && echo "  ✓ bin/yida.js"
-for f in lib/*.js; do
-  node --check "$f" && echo "  ✓ $f"
-done
-echo "All JS files passed syntax check"
+npm run check:syntax
 
 echo ""
-echo "=== Step 4: Run tests ==="
-npm test
+echo "=== Step 4: Run lint ==="
+npm run lint
+
+echo ""
+echo "=== Step 5: Run tests ==="
+npm run test:unit -- --runInBand
+
+echo ""
+echo "=== Step 6: Validate npm package contents ==="
+npm run check:package
 
 echo ""
 echo "=== All checks passed! ==="

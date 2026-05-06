@@ -89,6 +89,34 @@ describe('fetchLatestVersion', () => {
     expect(version).toBeNull();
   });
 
+  test('请求和 socket 使用 unref，避免更新检查阻塞 CLI 退出', async () => {
+    const socket = { unref: jest.fn() };
+    const mockResponse = {
+      on: jest.fn((event, handler) => {
+        if (event === 'data') {handler(JSON.stringify({ version: '9.9.9' }));}
+        if (event === 'end') {handler();}
+        return mockResponse;
+      }),
+    };
+    const mockReq = {
+      on: jest.fn((event, handler) => {
+        if (event === 'socket') {handler(socket);}
+        return mockReq;
+      }),
+      destroy: jest.fn(),
+      unref: jest.fn(),
+    };
+    jest.spyOn(https, 'get').mockImplementation((url, opts, callback) => {
+      callback(mockResponse);
+      return mockReq;
+    });
+
+    await fetchLatestVersion();
+
+    expect(mockReq.unref).toHaveBeenCalled();
+    expect(socket.unref).toHaveBeenCalled();
+  });
+
   test('响应非 JSON 时返回 null', async () => {
     mockHttpsSuccess('not-json');
     const version = await fetchLatestVersion();

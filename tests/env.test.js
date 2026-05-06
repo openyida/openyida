@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const { detectEnvironment, detectLoginStatus } = require('../lib/core/env');
+const { run, detectEnvironment, detectLoginStatus } = require('../lib/core/env');
 
 // ── detectEnvironment ─────────────────────────────────────────────────
 
@@ -158,5 +158,44 @@ describe('detectLoginStatus', () => {
 
     const result = detectLoginStatus(tmpDir);
     expect(result.baseUrl).toBe('https://custom.aliwork.com');
+  });
+});
+
+// ── run ───────────────────────────────────────────────────────────────
+
+describe('run', () => {
+  test('无活跃 AI 工具时，使用 findProjectRoot 检测 project 登录态', () => {
+    const workspaceRoot = path.join(os.tmpdir(), `yida-env-run-${Date.now()}`);
+    const projectRoot = path.join(workspaceRoot, 'project');
+    const cacheDir = path.join(projectRoot, '.cache');
+    const originalCwd = process.cwd();
+    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const stdoutSpy = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+    fs.mkdirSync(cacheDir, { recursive: true });
+    fs.writeFileSync(path.join(projectRoot, 'config.json'), '{}', 'utf-8');
+    fs.writeFileSync(path.join(cacheDir, 'cookies.json'), JSON.stringify({
+      cookies: [
+        { name: 'tianshu_csrf_token', value: 'tok_from_project' },
+        { name: 'tianshu_corp_user', value: 'corpABC_user456' },
+      ],
+      base_url: 'https://www.aliwork.com',
+    }), 'utf-8');
+
+    try {
+      process.chdir(workspaceRoot);
+      run();
+    } finally {
+      process.chdir(originalCwd);
+      fs.rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+
+    const output = stdoutSpy.mock.calls.map((call) => call.join('')).join('');
+    consoleLogSpy.mockRestore();
+    stdoutSpy.mockRestore();
+
+    expect(output).toContain('Base URL');
+    expect(output).toContain('corpABC');
+    expect(output).toContain('tok_from_project'.slice(0, 16));
   });
 });

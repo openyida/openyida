@@ -1,0 +1,38 @@
+name: Nightly Smoke
+
+on:
+  schedule:
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Real Yida Smoke
+    runs-on: ubuntu-latest
+    env:
+      OPENYIDA_SMOKE_COOKIES_BASE64: ${{ secrets.OPENYIDA_SMOKE_COOKIES_BASE64 }}
+      OPENYIDA_SMOKE_APP_TYPE: ${{ secrets.OPENYIDA_SMOKE_APP_TYPE }}
+      OPENYIDA_SMOKE_FORM_UUID: ${{ secrets.OPENYIDA_SMOKE_FORM_UUID }}
+      OPENYIDA_SMOKE_BASE_URL: ${{ secrets.OPENYIDA_SMOKE_BASE_URL }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci --ignore-scripts
+
+    - name: Run real-environment smoke
+      run: node scripts/nightly-smoke.js

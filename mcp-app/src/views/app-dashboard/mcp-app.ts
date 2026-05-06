@@ -37,45 +37,114 @@ function getIconEmoji(name: string): string {
 
 function render(apps: AppInfo[]): void {
   const root = document.getElementById("root")!;
+  root.replaceChildren();
 
   if (!apps || apps.length === 0) {
-    root.innerHTML = `<div class="empty">No applications found.</div>`;
+    root.append(createMessage("empty", "No applications found."));
     return;
   }
 
-  const header = `
-    <div class="header">
-      <h2>🚀 Yida Applications</h2>
-      <span class="badge">${apps.length}</span>
-    </div>
-  `;
+  const header = document.createElement("div");
+  header.className = "header";
 
-  const cards = apps
-    .map(
-      (app, index) => `
-    <div class="card" onclick="window.open('${app.systemLink}', '_blank')">
-      <div class="card-header">
-        <div class="icon-circle" style="background:${app.iconColor || getColor(index)}">
-          ${getIconEmoji(app.appName)}
-        </div>
-        <div>
-          <div class="app-name">${escapeHtml(app.appName)}</div>
-          <div class="app-type">${escapeHtml(app.appType)}</div>
-        </div>
-      </div>
-      ${app.systemLink ? `<a class="app-link" href="${app.systemLink}" target="_blank">Open →</a>` : ""}
-    </div>
-  `,
-    )
-    .join("");
+  const title = document.createElement("h2");
+  title.textContent = "🚀 Yida Applications";
 
-  root.innerHTML = `${header}<div class="grid">${cards}</div>`;
+  const badge = document.createElement("span");
+  badge.className = "badge";
+  badge.textContent = String(apps.length);
+
+  header.append(title, badge);
+
+  const grid = document.createElement("div");
+  grid.className = "grid";
+
+  apps.forEach((app, index) => {
+    grid.append(createAppCard(app, index));
+  });
+
+  root.append(header, grid);
 }
 
-function escapeHtml(text: string): string {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+function createAppCard(app: AppInfo, index: number): HTMLElement {
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const safeUrl = getSafeHttpUrl(app.systemLink);
+  if (safeUrl) {
+    card.addEventListener("click", (event) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("a")) {
+        return;
+      }
+      window.open(safeUrl, "_blank", "noopener,noreferrer");
+    });
+  }
+
+  const cardHeader = document.createElement("div");
+  cardHeader.className = "card-header";
+
+  const iconCircle = document.createElement("div");
+  iconCircle.className = "icon-circle";
+  iconCircle.style.background = getSafeColor(app.iconColor) || getColor(index);
+  iconCircle.textContent = getIconEmoji(app.appName || "");
+
+  const textWrap = document.createElement("div");
+
+  const appName = document.createElement("div");
+  appName.className = "app-name";
+  appName.textContent = app.appName || "(unnamed)";
+
+  const appType = document.createElement("div");
+  appType.className = "app-type";
+  appType.textContent = app.appType || "";
+
+  textWrap.append(appName, appType);
+  cardHeader.append(iconCircle, textWrap);
+  card.append(cardHeader);
+
+  if (safeUrl) {
+    const link = document.createElement("a");
+    link.className = "app-link";
+    link.href = safeUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "Open →";
+    card.append(link);
+  }
+
+  return card;
+}
+
+function createMessage(className: string, message: string): HTMLElement {
+  const element = document.createElement("div");
+  element.className = className;
+  element.textContent = message;
+  return element;
+}
+
+function getSafeHttpUrl(value: string): string | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function getSafeColor(value: string | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  return /^#[0-9a-f]{3,8}$/i.test(value) ? value : null;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 // ── MCP App 生命周期 ──
@@ -93,13 +162,13 @@ app.ontoolresult = (result) => {
     }
   } catch (error) {
     const root = document.getElementById("root")!;
-    root.innerHTML = `<div class="empty">Failed to parse app data: ${error}</div>`;
+    root.replaceChildren(createMessage("empty", `Failed to parse app data: ${getErrorMessage(error)}`));
   }
 };
 
 app.ontoolinput = () => {
   const root = document.getElementById("root")!;
-  root.innerHTML = `<div class="loading">Fetching applications...</div>`;
+  root.replaceChildren(createMessage("loading", "Fetching applications..."));
 };
 
 app.onteardown = async () => ({ state: {} });

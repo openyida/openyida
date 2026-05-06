@@ -15,7 +15,7 @@ interface ReportData {
   formUuid: string;
 }
 
-type ChartType = "bar" | "line" | "pie" | "scatter";
+type ChartType = "bar" | "line" | "pie";
 
 let currentData: ReportData | null = null;
 // Active chart type is managed via renderChart's parameter
@@ -24,9 +24,10 @@ let currentData: ReportData | null = null;
 
 function renderChart(data: ReportData, chartType: ChartType): void {
   const root = document.getElementById("root")!;
+  root.replaceChildren();
 
   if (!data.data || data.data.length === 0) {
-    root.innerHTML = `<div class="loading">No data available for chart.</div>`;
+    root.append(createMessage("loading", "No data available for chart."));
     return;
   }
 
@@ -45,34 +46,9 @@ function renderChart(data: ReportData, chartType: ChartType): void {
 
   const maxValue = Math.max(...values, 1);
 
-  // 渲染 HTML
-  root.innerHTML = `
-    <div class="header">
-      <h2>📊 ${escapeHtml(data.title)}</h2>
-      <div class="chart-type-selector">
-        ${(["bar", "line", "pie"] as ChartType[])
-          .map(
-            (type) =>
-              `<button class="chart-type-btn ${type === chartType ? "active" : ""}" data-type="${type}">${type.charAt(0).toUpperCase() + type.slice(1)}</button>`,
-          )
-          .join("")}
-      </div>
-    </div>
-    <canvas id="chart-canvas" width="800" height="360"></canvas>
-    <div class="data-summary">${records.length} records · ${data.appType} / ${data.formUuid}</div>
-  `;
-
-  // 绑定切换事件
-  document.querySelectorAll(".chart-type-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (currentData) {
-        renderChart(currentData, (btn as HTMLElement).dataset.type as ChartType);
-      }
-    });
-  });
+  const { canvas } = createChartShell(root, data, records.length, chartType);
 
   // Canvas 绘图
-  const canvas = document.getElementById("chart-canvas") as HTMLCanvasElement;
   const ctx = canvas.getContext("2d")!;
   const width = canvas.width;
   const height = canvas.height;
@@ -93,6 +69,51 @@ function renderChart(data: ReportData, chartType: ChartType): void {
   } else if (chartType === "pie") {
     drawPieChart(ctx, labels, values, width, height, colors);
   }
+}
+
+function createChartShell(
+  root: HTMLElement,
+  data: ReportData,
+  recordCount: number,
+  chartType: ChartType,
+): { canvas: HTMLCanvasElement } {
+  const header = document.createElement("div");
+  header.className = "header";
+
+  const title = document.createElement("h2");
+  title.textContent = `📊 ${data.title || "Report Chart"}`;
+
+  const selector = document.createElement("div");
+  selector.className = "chart-type-selector";
+
+  (["bar", "line", "pie"] as ChartType[]).forEach((type) => {
+    const button = document.createElement("button");
+    button.className = `chart-type-btn${type === chartType ? " active" : ""}`;
+    button.type = "button";
+    button.dataset.type = type;
+    button.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+    button.addEventListener("click", () => {
+      if (currentData) {
+        renderChart(currentData, type);
+      }
+    });
+    selector.append(button);
+  });
+
+  header.append(title, selector);
+
+  const canvas = document.createElement("canvas");
+  canvas.id = "chart-canvas";
+  canvas.width = 800;
+  canvas.height = 360;
+
+  const summary = document.createElement("div");
+  summary.className = "data-summary";
+  summary.textContent = `${recordCount} records · ${data.appType} / ${data.formUuid}`;
+
+  root.append(header, canvas, summary);
+
+  return { canvas };
 }
 
 function drawBarChart(
@@ -231,10 +252,19 @@ function drawPieChart(
   });
 }
 
-function escapeHtml(text: string): string {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+function normalizeChartType(value: string): ChartType {
+  return value === "line" || value === "pie" ? value : "bar";
+}
+
+function createMessage(className: string, message: string): HTMLElement {
+  const element = document.createElement("div");
+  element.className = className;
+  element.textContent = message;
+  return element;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 // ── MCP App 生命周期 ──
@@ -248,17 +278,17 @@ app.ontoolresult = (result) => {
     );
     if (textContent && "text" in textContent) {
       currentData = JSON.parse(textContent.text as string) as ReportData;
-      renderChart(currentData, (currentData.chartType as ChartType) || "bar");
+      renderChart(currentData, normalizeChartType(currentData.chartType));
     }
   } catch (error) {
     const root = document.getElementById("root")!;
-    root.innerHTML = `<div class="loading">Failed to parse chart data: ${error}</div>`;
+    root.replaceChildren(createMessage("loading", `Failed to parse chart data: ${getErrorMessage(error)}`));
   }
 };
 
 app.ontoolinput = () => {
   const root = document.getElementById("root")!;
-  root.innerHTML = `<div class="loading">Fetching report data...</div>`;
+  root.replaceChildren(createMessage("loading", "Fetching report data..."));
 };
 
 app.onteardown = async () => ({ state: {} });

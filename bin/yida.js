@@ -16,6 +16,7 @@
  *   openyida auth logout                                退出登录
  *   openyida org list                                   列出可访问的组织
  *   openyida org switch --corp-id <corpId>              切换组织（无需重新登录）
+ *   openyida app-list [--size N]                        查询我的应用列表
  *   openyida create-app "<名称>" [desc] [icon] [color] [colour] [navTheme] [layout]  创建应用
  *   openyida create-page <appType> "<页面名>"            创建自定义页面
  *   openyida create-form create <appType> "<表单名>" <字段JSON> [--layout <布局>] [--theme <主题>] [--label-align <对齐>]  创建表单页面
@@ -64,6 +65,7 @@ const { warn, fail } = require('../lib/core/chalk');
 
 // 异步检查更新，fire-and-forget，不阻塞主流程
 const updateCheckPromise = checkUpdate(currentVersion);
+updateCheckPromise.catch(() => {});
 
 const command = process.argv[2];
 const args = process.argv.slice(3);
@@ -113,6 +115,7 @@ function printHelp() {
 
   // ── 应用管理 ──
   renderGroup(t('help.group_app'), [
+    ['app-list [--size N]',                  t('help.cmd_app_list')],
     ['create-app "<name>" [options]',          t('help.cmd_create_app')],
     ['update-app <appType> --name "..."',      t('help.cmd_update_app')],
     ['export <appType> [output]',              t('help.cmd_export')],
@@ -294,7 +297,7 @@ async function main() {
     case 'login': {
       const { ensureLogin, checkLoginOnly } = require('../lib/auth/login');
       if (args[0] === '--check-only') {
-        const result = checkLoginOnly();
+        const result = checkLoginOnly({ includeSecrets: args.includes('--with-cookies') });
         console.log(JSON.stringify(result, null, 2));
       } else if (args[0] === '--qr') {
         const { qrLogin } = require('../lib/auth/qr-login');
@@ -366,6 +369,12 @@ async function main() {
         warn(t('cli.org_example'));
         process.exit(1);
       }
+      break;
+    }
+
+    case 'app-list': {
+      const { run } = require('../lib/app/app-list');
+      await run(args);
       break;
     }
 
@@ -737,7 +746,6 @@ async function main() {
 }
 
 main()
-  .then(() => updateCheckPromise)
   .catch((err) => {
     warn(t('cli.exec_failed', err.message));
     process.exit(1);

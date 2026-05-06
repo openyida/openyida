@@ -14,8 +14,8 @@ permissions:
   contents: read
 
 jobs:
-  lint:
-    name: Lint
+  validation:
+    name: Validation
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -27,22 +27,33 @@ jobs:
         node-version: '20'
         cache: 'npm'
 
-    - name: Install dependencies
-      run: npm install --ignore-scripts
+    - name: Run unified validation
+      run: npm run check:ci
 
-    - name: Validate project structure
-      run: node scripts/validate-structure.js
+  mcp-app:
+    name: MCP App Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - name: Check JavaScript syntax
-      run: |
-        node --check bin/yida.js
-        find lib -name "*.js" | while read f; do node --check "$f"; done
-        echo "All JS files passed syntax check"
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: mcp-app/package-lock.json
+
+    - name: Install MCP app dependencies
+      run: npm --prefix mcp-app ci
+
+    - name: Build MCP app
+      run: npm --prefix mcp-app run build
 
   test:
     name: Test (Node ${{ matrix.node-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    needs: lint
+    needs: validation
     strategy:
       fail-fast: false
       matrix:
@@ -74,7 +85,7 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm install --ignore-scripts
+      run: npm ci --ignore-scripts
 
     - name: Run tests
-      run: npm test
+      run: npm run test:unit

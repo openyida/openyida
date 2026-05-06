@@ -20,9 +20,14 @@
   ],
   "scripts": {
     "test": "jest",
+    "test:unit": "jest",
     "test:coverage": "jest --coverage",
-    "lint": "eslint bin/ lib/ agent/ scripts/ tests/ --ext .js",
-    "lint:fix": "eslint bin/ lib/ agent/ scripts/ tests/ --ext .js --fix",
+    "lint": "eslint bin/ lib/ scripts/ tests/ --ext .js",
+    "lint:fix": "eslint bin/ lib/ scripts/ tests/ --ext .js --fix",
+    "check:structure": "node scripts/validate-structure.js",
+    "check:syntax": "node scripts/check-syntax.js",
+    "check:package": "npm pack --dry-run",
+    "check:ci": "bash scripts/validate-ci.sh",
     "postinstall": "node scripts/postinstall.js"
   },
   "keywords": [

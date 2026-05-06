@@ -82,7 +82,7 @@ function cleanupTempDir(tmpDir) {
           fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
           return;
         } catch (err) {
-          if (attempt === maxRetries - 1) return; // 最后一次仍失败则静默忽略
+          if (attempt === maxRetries - 1) {return;} // 最后一次仍失败则静默忽略
         }
       }
     }

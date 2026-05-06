@@ -224,6 +224,35 @@ describe('checkLoginOnly 独立测试', () => {
     const { checkLoginOnly } = require('../lib/auth/login');
     expect(typeof checkLoginOnly).toBe('function');
   });
+
+  test('checkLoginOnly 默认不返回完整 cookies', () => {
+    const testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-login-only-'));
+    const projectDir = path.join(testDir, 'project');
+    const cacheDir = path.join(projectDir, '.cache');
+    fs.mkdirSync(cacheDir, { recursive: true });
+    fs.writeFileSync(path.join(projectDir, 'config.json'), '{}', 'utf-8');
+    fs.writeFileSync(path.join(cacheDir, 'cookies-public.json'), JSON.stringify({
+      cookies: [
+        { name: 'tianshu_csrf_token', value: '1234567890abcdef' },
+        { name: 'tianshu_corp_user', value: 'corp_user' },
+      ],
+      base_url: 'https://www.aliwork.com',
+    }), 'utf-8');
+
+    const originalCwd = process.cwd();
+    process.chdir(testDir);
+    try {
+      const { checkLoginOnly } = require('../lib/auth/login');
+      const result = checkLoginOnly();
+      expect(result.status).toBe('ok');
+      expect(result.csrf_token).toBe('12345678…');
+      expect(result.cookies).toBeUndefined();
+      expect(result.cookies_count).toBe(2);
+    } finally {
+      process.chdir(originalCwd);
+      fs.rmSync(testDir, { recursive: true, force: true });
+    }
+  });
 });
 
 //─ findProjectRoot 环境检测───────────────────────
@@ -283,7 +312,7 @@ describe('findProjectRoot 环境检测', () => {
 
   test('悟空环境下返回 AGENT_WORK_ROOT/workspace/project', () => {
     // AGENT_WORK_ROOT 指向 ~/.real/users/user-{uuid}/，workspace 在其下
-    const agentWorkRoot = path.join(os.tmpdir(), `.real`, `users`, `user-test-${Date.now()}`);
+    const agentWorkRoot = path.join(os.tmpdir(), '.real', 'users', `user-test-${Date.now()}`);
     process.env.AGENT_WORK_ROOT = agentWorkRoot;
     const wukongProject = path.join(agentWorkRoot, 'workspace', 'project');
 
@@ -311,12 +340,39 @@ describe('findProjectRoot 环境检测', () => {
       return originalExistsSync(p);
     };
 
+    const testDir = path.join(os.tmpdir(), `plain-cwd-test-${Date.now()}`);
+    fs.mkdirSync(testDir, { recursive: true });
+    dirsToCleanup.push(testDir);
+    process.chdir(testDir);
+
     const { findProjectRoot: findRoot } = require('../lib/core/utils');
     const root = findRoot();
 
     fs.existsSync = originalExistsSync;
 
-    expect(root).toBe(originalCwd);
+    expect(fs.realpathSync(root)).toBe(fs.realpathSync(testDir));
+  });
+
+  test('未检测到环境但 cwd/project/config.json 存在时返回 cwd/project', () => {
+    const testDir = path.join(os.tmpdir(), `nested-project-test-${Date.now()}`);
+    const projectDir = path.join(testDir, 'project');
+    fs.mkdirSync(projectDir, { recursive: true });
+    fs.writeFileSync(path.join(projectDir, 'config.json'), '{}', 'utf-8');
+    dirsToCleanup.push(testDir);
+    process.chdir(testDir);
+
+    const originalExistsSync = fs.existsSync;
+    fs.existsSync = (p) => {
+      if (p.includes('.aone_copilot')) {return false;}
+      return originalExistsSync(p);
+    };
+
+    const { findProjectRoot: findRoot } = require('../lib/core/utils');
+    const root = findRoot();
+
+    fs.existsSync = originalExistsSync;
+
+    expect(fs.realpathSync(root)).toBe(fs.realpathSync(projectDir));
   });
 });
 

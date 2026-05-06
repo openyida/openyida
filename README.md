@@ -87,6 +87,7 @@ Create a personal salary calculator app
 
 ```bash
 openyida append-chart         # Append chart to an existing report
+openyida app-list             # List my Yida applications
 openyida auth                 # Login status management (status/login/refresh/logout)
 openyida cdn-config           # Configure CDN image upload (Aliyun OSS + CDN)
 openyida cdn-refresh          # Refresh CDN cache

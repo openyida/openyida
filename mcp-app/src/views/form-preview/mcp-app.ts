@@ -42,43 +42,75 @@ function getFieldVisual(componentName: string): { emoji: string; color: string }
 
 function render(data: SchemaData): void {
   const root = document.getElementById("root")!;
+  root.replaceChildren();
 
   if (!data.fields || data.fields.length === 0) {
-    root.innerHTML = `<div class="loading">No fields found in this form.</div>`;
+    root.append(createMessage("loading", "No fields found in this form."));
     return;
   }
 
-  const header = `
-    <div class="header">
-      <h2>📋 Form Schema Preview</h2>
-    </div>
-    <div class="meta">${escapeHtml(data.appType)} / ${escapeHtml(data.formUuid)} · ${data.fields.length} fields</div>
-    <br/>
-  `;
+  const header = document.createElement("div");
+  header.className = "header";
 
-  const fieldCards = data.fields
-    .map((field) => {
-      const visual = getFieldVisual(field.componentName);
-      return `
-      <div class="field-card">
-        <div class="field-icon" style="background:${visual.color}">${visual.emoji}</div>
-        <div class="field-info">
-          <div class="field-label">${escapeHtml(field.label || "(unnamed)")}</div>
-          <div class="field-meta">${escapeHtml(field.fieldId)}</div>
-        </div>
-        <span class="field-type-badge">${escapeHtml(field.componentName)}</span>
-      </div>
-    `;
-    })
-    .join("");
+  const title = document.createElement("h2");
+  title.textContent = "📋 Form Schema Preview";
+  header.append(title);
 
-  root.innerHTML = `${header}<div class="field-list">${fieldCards}</div>`;
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent = `${data.appType} / ${data.formUuid} · ${data.fields.length} fields`;
+
+  const spacer = document.createElement("br");
+  const fieldList = document.createElement("div");
+  fieldList.className = "field-list";
+
+  data.fields.forEach((field) => {
+    fieldList.append(createFieldCard(field));
+  });
+
+  root.append(header, meta, spacer, fieldList);
 }
 
-function escapeHtml(text: string): string {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+function createFieldCard(field: FieldInfo): HTMLElement {
+  const visual = getFieldVisual(field.componentName);
+  const card = document.createElement("div");
+  card.className = "field-card";
+
+  const icon = document.createElement("div");
+  icon.className = "field-icon";
+  icon.style.background = visual.color;
+  icon.textContent = visual.emoji;
+
+  const info = document.createElement("div");
+  info.className = "field-info";
+
+  const label = document.createElement("div");
+  label.className = "field-label";
+  label.textContent = field.label || "(unnamed)";
+
+  const meta = document.createElement("div");
+  meta.className = "field-meta";
+  meta.textContent = field.fieldId || "";
+
+  const badge = document.createElement("span");
+  badge.className = "field-type-badge";
+  badge.textContent = field.componentName || "Unknown";
+
+  info.append(label, meta);
+  card.append(icon, info, badge);
+
+  return card;
+}
+
+function createMessage(className: string, message: string): HTMLElement {
+  const element = document.createElement("div");
+  element.className = className;
+  element.textContent = message;
+  return element;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 // ── MCP App 生命周期 ──
@@ -96,13 +128,13 @@ app.ontoolresult = (result) => {
     }
   } catch (error) {
     const root = document.getElementById("root")!;
-    root.innerHTML = `<div class="loading">Failed to parse schema: ${error}</div>`;
+    root.replaceChildren(createMessage("loading", `Failed to parse schema: ${getErrorMessage(error)}`));
   }
 };
 
 app.ontoolinput = () => {
   const root = document.getElementById("root")!;
-  root.innerHTML = `<div class="loading">Fetching form schema...</div>`;
+  root.replaceChildren(createMessage("loading", "Fetching form schema..."));
 };
 
 app.onteardown = async () => ({ state: {} });
