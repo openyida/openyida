@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+- Codex 登录模式：`openyida login` 在 Codex 环境下缓存优先，缺少有效缓存时引导使用 Codex 内置浏览器登录，无需安装 Playwright 或额外 Chromium
+- 终端二维码登录支持钉钉 OAuth 二维码链路，并支持 `openyida login --qr --corp-id <corpId>` 显式选择多组织账号的目标组织
+- 自定义页面生成与本地校验命令：`generate-page`、`check-page`、`compile`
+
+### Fixed
+- 终端二维码渲染不再带警告前缀，避免破坏 QRCode 对齐
+- 修复钉钉 OAuth 多组织账号扫码后停在 `chooseOrganization` 的登录凭证换取流程
+
+### Documentation
+- README 新增 Codex Support 说明，补充 Codex 登录、终端 QR 回退和多组织登录用法
+- 更新 AGENTS / CLAUDE / CONTRIBUTING / SECURITY 中的 Codex、登录态和本地校验说明
+
 ## [2026.04.20] - 2026-04-20
 
 ### Fixed
@@ -166,7 +179,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - 优化 Babel 编译错误提示信息
 - 修复 `SKILL.md` 编号问题
 
-[Unreleased]: https://github.com/openyida/openyida/compare/v2026.03.26...HEAD
+[Unreleased]: https://github.com/openyida/openyida/compare/v2026.04.20...HEAD
+[2026.04.20]: https://github.com/openyida/openyida/compare/v2026.04.02-beta.12...v2026.04.20
+[2026.04.02-beta.12]: https://github.com/openyida/openyida/compare/v2026.04.01...v2026.04.02-beta.12
+[2026.04.01]: https://github.com/openyida/openyida/compare/v2026.03.28...v2026.04.01
+[2026.03.28]: https://github.com/openyida/openyida/compare/v2026.03.26...v2026.03.28
 [2026.03.26]: https://github.com/openyida/openyida/compare/v2026.03.24...v2026.03.26
 [2026.03.24]: https://github.com/openyida/openyida/compare/v2026.03.19...v2026.03.24
 [2026.03.19]: https://github.com/openyida/openyida/compare/v1.0.0-beta.0...v2026.03.19

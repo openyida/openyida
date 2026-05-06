@@ -1,6 +1,6 @@
 # OpenYida — AI Agent 开发指引
 
-本文件为 AI 编程助手（Claude Code、Aone Copilot、Cursor、OpenCode、Qoder、悟空 等）提供项目上下文，帮助 AI 更准确地理解项目结构和开发规范。
+本文件为 AI 编程助手（Codex、Claude Code、Aone Copilot、Cursor、OpenCode、Qoder、悟空 等）提供项目上下文，帮助 AI 更准确地理解项目结构和开发规范。
 
 ## 项目简介
 
@@ -20,7 +20,7 @@ openyida/
 │   │   ├── chalk.js         # 终端彩色输出公共样式模块（统一 chalk 风格）
 │   │   ├── i18n.js          # 国际化支持
 │   │   ├── locales/         # 语言包（zh、en、zh-TW、ja、ko、fr、de、es、pt、ar、hi、vi）
-│   │   ├── env.js           # 检测 AI 工具环境（Claude/Cursor/Copilot/Qoder/悟空 等）
+│   │   ├── env.js           # 检测 AI 工具环境（Codex/Claude/Cursor/Copilot/Qoder/悟空 等）
 │   │   ├── env-cmd.js       # env 命令入口（显示当前环境信息）
 │   │   ├── env-manager.js   # 多环境配置管理（私有化部署多环境切换）
 │   │   ├── copy.js          # 初始化 project 工作目录
@@ -33,8 +33,9 @@ openyida/
 │   │   ├── task-center.js   # 全局任务中心（待办/我创建的/我已处理/抄送/代提交）
 │   │   └── babel-transform/ # Babel 编译器（用于自定义页面）
 │   ├── auth/                # 登录认证模块
-│   │   ├── login.js         # 宜搭登录（Cookie 缓存 + 扫码）
+│   │   ├── login.js         # 宜搭登录（Cookie 缓存 + 浏览器扫码）
 │   │   ├── auth.js          # 登录态管理（status/login/refresh/logout）
+│   │   ├── codex-login.js   # Codex 内置浏览器登录引导
 │   │   ├── org.js           # 组织管理（列出/切换组织）
 │   │   └── qr-login.js      # 终端二维码扫码登录
 │   ├── samples/             # 代码示例/模板（通过 openyida sample 命令输出到工作目录）
@@ -50,6 +51,9 @@ openyida/
 │   │   ├── create-page.js   # 创建自定义展示页面
 │   │   ├── create-form.js   # 创建 / 更新表单页面
 │   │   ├── get-schema.js    # 获取表单 Schema
+│   │   ├── generate-page.js # 基于模板生成自定义页面源码
+│   │   ├── check-page.js    # 自定义页面规范检查
+│   │   ├── compile.js       # 本地编译自定义页面
 │   │   ├── publish.js       # 编译并发布自定义页面（Babel 转译）
 │   │   ├── export-app.js    # 导出应用（生成迁移包）
 │   │   ├── import-app.js    # 导入迁移包，重建应用
@@ -136,9 +140,15 @@ openyida/
 - 参考 `yida-skills/references/yida-api.md` 了解完整 API 列表
 
 ### 环境检测
-- `lib/env.js` 负责检测当前运行的 AI 工具环境
-- 支持环境：Claude Code、Aone Copilot、Cursor、OpenCode、Qoder、悟空
+- `lib/core/env.js` 负责检测当前运行的 AI 工具环境
+- 支持环境：Codex、Claude Code、Aone Copilot、Cursor、OpenCode、Qoder、悟空
 - 不同环境的 Cookie 提取方式不同（CDP 协议 / 文件读取 / 扫码）
+
+### Codex 特殊说明
+- Codex 环境下 `openyida login` 默认缓存优先；没有有效缓存时进入 Codex 内置浏览器登录模式（等同 `openyida login --codex`）
+- Codex 登录模式不依赖 Playwright 或额外 Chromium
+- 如需测试终端二维码链路，显式使用 `openyida login --qr`
+- 多组织账号测试终端二维码登录时，优先传入 `--corp-id <corpId>`，不要由 AI 代理代替用户选择组织
 
 ### 悟空（Wukong）特殊说明
 - 悟空工作区路径含动态 uuid：`~/.real/users/{uuid}/workspace/`，通过 `AGENT_WORK_ROOT` 环境变量获取
@@ -167,7 +177,7 @@ openyida/
 1. **不要修改 `yida-skills/` 下的文档**，除非是在更新技能描述
 2. **新增 CLI 命令**时，同步更新 `README.md` 的命令一览表
 3. **登录态**存储在本地缓存，不要在代码中硬编码任何凭证
-4. **测试**：运行 `npm test` 执行 `tests/` 下的单元测试
+4. **测试**：优先运行 `npm run check:ci`，窄范围修改可先运行相关 Jest 用例
 5. **JS 语法检查**：`node --check <file>` 验证语法正确性
 6. **终端输出样式**：统一使用 `lib/core/chalk.js` 提供的公共样式模块，不要在各命令文件中单独 `require('chalk')` 并自定义颜色
 7. **国际化**：新增用户可见的文案时，需同步在 `lib/core/locales/` 下所有 12 个语言包中添加对应 key
@@ -188,5 +198,5 @@ openyida/
 4. 在 `AGENTS.md` 中无需额外更新（索引表自动覆盖）
 
 ### 调试登录问题
-- 检查 `lib/login.js` 中的 Cookie 缓存逻辑
+- 检查 `lib/auth/login.js`、`lib/auth/codex-login.js`、`lib/auth/qr-login.js` 中的登录与 Cookie 缓存逻辑
 - 使用 `openyida env` 确认当前环境检测是否正确

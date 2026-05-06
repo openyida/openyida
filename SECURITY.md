@@ -39,8 +39,9 @@ If you discover a security vulnerability, please report it privately through one
 
 When using OpenYida, please keep the following in mind:
 
-- **Credentials**: Cookie cache is stored locally at `project/.cache/cookies.json` — do not commit this file to version control
+- **Credentials**: Cookie cache is stored locally under `project/.cache/` (for example `cookies.json` or environment-specific `cookies-*.json`) — do not commit these files to version control
 - **`.gitignore`**: The project ignores `.cache/` by default — do not remove this rule manually
+- **Login artifacts**: Do not share QR login URLs, terminal output containing cookies, or Codex browser session data in public Issues or PRs
 - **Dependency security**: Run `npm audit` regularly to check for dependency vulnerabilities
 - **Environment isolation**: Use separate Yida accounts for production and development environments
 

@@ -8,7 +8,7 @@
 
 **Build Yida low-code apps with AI — zero config, instant deploy.**
 
-[Get Started](#get-started) · [CLI Commands](#cli-commands) · [Demo](https://www.aliwork.com/o/OpenYidaAppShowcase) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md)
+[Get Started](#get-started) · [Codex Support](#codex-support) · [CLI Commands](#cli-commands) · [Demo](https://www.aliwork.com/o/OpenYidaAppShowcase) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md)
 
 [![npm version](https://img.shields.io/npm/v/openyida?color=brightgreen&label=npm)](https://www.npmjs.com/package/openyida)
 [![npm downloads](https://img.shields.io/npm/dm/openyida?color=blue)](https://www.npmjs.com/package/openyida)
@@ -60,6 +60,32 @@ Create a personal salary calculator app
 | [Visual Studio Code](https://code.visualstudio.com/) | ✅ Full support |
 | [Qoder](https://qoder.com) | ✅ Full support |
 | [Wukong](https://dingtalk.com/wukong) | ✅ Full support |
+
+---
+
+## Codex Support
+
+OpenYida runs directly in Codex. It detects the Codex environment and uses Codex-friendly login behavior by default:
+
+```bash
+openyida env
+openyida login
+```
+
+In Codex, `openyida login` first reuses cached credentials. If no valid cache exists, it enters Codex browser login mode, so you can sign in with the Codex in-app browser without installing Playwright or a separate Chromium.
+
+```bash
+openyida login --codex
+```
+
+If you specifically want terminal QR login, use `--qr`. For accounts with multiple DingTalk/Yida organizations, pass `--corp-id` to choose the organization explicitly instead of relying on an interactive prompt:
+
+```bash
+openyida login --qr
+openyida login --qr --corp-id dingxxxxxxxx
+```
+
+After login, continue using normal OpenYida commands from the Codex terminal, for example `openyida create-app`, `openyida generate-page`, `openyida compile`, and `openyida publish`.
 
 ---
 
@@ -118,8 +144,10 @@ openyida get-schema           # Fetch form schema
 openyida generate-page        # Generate a custom page from curated templates
 openyida import               # Import migration package to rebuild application
 openyida integration create <appType> [options]             # Create integration & automation flow
-openyida login                # Log in to Yida (uses cache, falls back to QR code)
-openyida login --codex        # Codex login mode (in-app browser, no Playwright)
+openyida login                # Log in to Yida (Codex uses in-app browser when needed)
+openyida login --codex        # Force Codex in-app browser login (no Playwright)
+openyida login --qr           # Force terminal QR login
+openyida login --qr --corp-id <corpId>  # Terminal QR login with explicit organization
 openyida logout               # Log out / switch account
 openyida org                  # Organization management (list/switch)
 openyida publish              # Compile and publish a custom page
@@ -211,23 +239,7 @@ Scan the QR code to join the OpenYida user group on DingTalk for the latest upda
 
 Thanks to everyone who has contributed to OpenYida! Read the [Contributing Guide](./CONTRIBUTING.md) to get involved.
 
-<p align="left">
-  <a href="https://github.com/yize"><img src="https://avatars.githubusercontent.com/u/1578814?v=4&s=48" width="48" height="48" alt="九神" title="九神"/></a>
-  <a href="https://github.com/alex-mm"><img src="https://avatars.githubusercontent.com/u/3302053?v=4&s=48" width="48" height="48" alt="天晟" title="天晟"/></a>
-  <a href="https://github.com/nicky1108"><img src="https://avatars.githubusercontent.com/u/4279283?v=4&s=48" width="48" height="48" alt="nicky1108" title="nicky1108"/></a>
-  <a href="https://github.com/angelinheys"><img src="https://avatars.githubusercontent.com/u/49426983?v=4&s=48" width="48" height="48" alt="angelinheys" title="angelinheys"/></a>
-  <a href="https://github.com/yipengmu"><img src="https://avatars.githubusercontent.com/u/3232735?v=4&s=48" width="48" height="48" alt="yipengmu" title="yipengmu"/></a>
-  <a href="https://github.com/Waawww"><img src="https://avatars.githubusercontent.com/u/31886449?v=4&s=48" width="48" height="48" alt="Waawww" title="Waawww"/></a>
-  <a href="https://github.com/kangjiano"><img src="https://avatars.githubusercontent.com/u/54129385?v=4&s=48" width="48" height="48" alt="kangjiano" title="kangjiano"/></a>
-  <a href="https://github.com/ElZe98"><img src="https://avatars.githubusercontent.com/u/35736727?v=4&s=48" width="48" height="48" alt="ElZe98" title="ElZe98"/></a>
-  <a href="https://github.com/OAHyuhao"><img src="https://avatars.githubusercontent.com/u/99954323?v=4&s=48" width="48" height="48" alt="OAHyuhao" title="OAHyuhao"/></a>
-  <a href="https://github.com/xiaofu704"><img src="https://avatars.githubusercontent.com/u/209416122?v=4&s=48" width="48" height="48" alt="xiaofu704" title="xiaofu704"/></a>
-  <a href="https://github.com/guchenglin111"><img src="https://avatars.githubusercontent.com/u/10860875?v=4&s=48" width="48" height="48" alt="guchenglin111" title="guchenglin111"/></a>
-  <a href="https://github.com/liug0911"><img src="https://avatars.githubusercontent.com/u/1578814?v=4&s=48" width="48" height="48" alt="LIUG" title="LIUG"/></a>
-  <a href="https://github.com/sunliz-xiuli"><img src="https://avatars.githubusercontent.com/u/76982855?v=4&s=48" width="48" height="48" alt="sunliz-xiuli" title="sunliz-xiuli"/></a>
-  <a href="https://github.com/M12REDX"><img src="https://avatars.githubusercontent.com/u/22703542?v=4&s=48" width="48" height="48" alt="M12REDX" title="M12REDX"/></a>
-  <a href="https://github.com/key-668"><img src="https://avatars.githubusercontent.com/u/270536058?v=4&s=48" width="48" height="48" alt="再不喝汽水" title="再不喝汽水"/></a>
-</p>
+<p align="left"><a href="https://github.com/yize"><img src="https://avatars.githubusercontent.com/u/1578814?v=4&s=40" width="40" height="40" alt="九神" title="九神"/></a><a href="https://github.com/alex-mm"><img src="https://avatars.githubusercontent.com/u/3302053?v=4&s=40" width="40" height="40" alt="天晟" title="天晟"/></a><a href="https://github.com/nicky1108"><img src="https://avatars.githubusercontent.com/u/4279283?v=4&s=40" width="40" height="40" alt="nicky1108" title="nicky1108"/></a><a href="https://github.com/angelinheys"><img src="https://avatars.githubusercontent.com/u/49426983?v=4&s=40" width="40" height="40" alt="angelinheys" title="angelinheys"/></a><a href="https://github.com/yipengmu"><img src="https://avatars.githubusercontent.com/u/3232735?v=4&s=40" width="40" height="40" alt="yipengmu" title="yipengmu"/></a><a href="https://github.com/Waawww"><img src="https://avatars.githubusercontent.com/u/31886449?v=4&s=40" width="40" height="40" alt="Waawww" title="Waawww"/></a><a href="https://github.com/kangjiano"><img src="https://avatars.githubusercontent.com/u/54129385?v=4&s=40" width="40" height="40" alt="kangjiano" title="kangjiano"/></a><a href="https://github.com/ElZe98"><img src="https://avatars.githubusercontent.com/u/35736727?v=4&s=40" width="40" height="40" alt="ElZe98" title="ElZe98"/></a><a href="https://github.com/OAHyuhao"><img src="https://avatars.githubusercontent.com/u/99954323?v=4&s=40" width="40" height="40" alt="OAHyuhao" title="OAHyuhao"/></a><a href="https://github.com/xiaofu704"><img src="https://avatars.githubusercontent.com/u/209416122?v=4&s=40" width="40" height="40" alt="xiaofu704" title="xiaofu704"/></a><a href="https://github.com/guchenglin111"><img src="https://avatars.githubusercontent.com/u/10860875?v=4&s=40" width="40" height="40" alt="guchenglin111" title="guchenglin111"/></a><a href="https://github.com/liug0911"><img src="https://avatars.githubusercontent.com/u/1578814?v=4&s=40" width="40" height="40" alt="LIUG" title="LIUG"/></a><a href="https://github.com/sunliz-xiuli"><img src="https://avatars.githubusercontent.com/u/76982855?v=4&s=40" width="40" height="40" alt="sunliz-xiuli" title="sunliz-xiuli"/></a><a href="https://github.com/M12REDX"><img src="https://avatars.githubusercontent.com/u/22703542?v=4&s=40" width="40" height="40" alt="M12REDX" title="M12REDX"/></a><a href="https://github.com/key-668"><img src="https://avatars.githubusercontent.com/u/270536058?v=4&s=40" width="40" height="40" alt="再不喝汽水" title="再不喝汽水"/></a></p>
 
 ---
 

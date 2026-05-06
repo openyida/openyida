@@ -35,21 +35,22 @@ cd openyida
 # 2. Install dependencies
 npm install
 
-# 3. Install Playwright (required for login)
+# 3. Optional: install Playwright for local browser login outside Codex
 npx playwright install chromium
 
 # 4. Link globally for local debugging
 npm link
 
-# 5. Run tests
-npm test
+# 5. Run the full local CI check
+npm run check:ci
 ```
+
+Codex contributors do not need Playwright for the default login path. In Codex, use `openyida login` or `openyida login --codex` to hand off login to the Codex in-app browser. For terminal QR verification, use `openyida login --qr --corp-id <corpId>` when the account belongs to multiple organizations.
 
 ## PR Checklist
 
 - [ ] Tested the relevant feature with a real Yida account locally
-- [ ] All tests pass: `npm test`
-- [ ] JS syntax check passes: `node --check bin/yida.js && for f in lib/*.js lib/locales/*.js; do node --check "$f"; done`
+- [ ] Full local CI passes: `npm run check:ci`
 - [ ] PR description clearly explains what changed and why
 - [ ] Screenshots or recordings attached if there are UI/behavior changes
 
@@ -79,6 +80,7 @@ chore: upgrade dependencies
 - Use meaningful English names for variables and functions; avoid abbreviations
 - Handle errors completely — don't silently swallow exceptions
 - When adding a new command, update the CLI command table in `README.md`
+- When adding user-visible text, update all locale files under `lib/core/locales/`
 
 ## Project Structure
 
@@ -86,9 +88,9 @@ chore: upgrade dependencies
 openyida/
 ├── bin/yida.js          # CLI entry point, command routing
 ├── lib/                 # Command implementation modules
-│   ├── env.js           # Environment detection
-│   ├── login.js         # Login management
-│   ├── create-app.js    # Create application
+│   ├── core/            # Environment detection, i18n, utilities
+│   ├── auth/            # Login, Codex login, QR login, organizations
+│   ├── app/             # Application, form, page commands
 │   └── ...
 ├── project/             # User workspace template
 │   ├── config.json      # App configuration
@@ -101,7 +103,7 @@ openyida/
 
 ## AI / Vibe-Coded PRs Welcome! 🤖
 
-PRs assisted by Claude Code, Cursor, Aone Copilot, or any other AI tool are fully welcome!
+PRs assisted by Codex, Claude Code, Cursor, Aone Copilot, OpenCode, Wukong, or any other AI tool are fully welcome!
 Please mention which AI tool you used in the PR description.
 
 ## License

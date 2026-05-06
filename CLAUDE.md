@@ -17,9 +17,11 @@ node --check lib/xxx.js  # 语法检查
 | 文件 | 用途 |
 |------|------|
 | `bin/yida.js` | CLI 入口，所有命令在此注册 |
-| `lib/env.js` | AI 工具环境检测 |
-| `lib/login.js` | 宜搭登录 + Cookie 缓存 |
-| `lib/utils.js` | 公共工具函数 |
+| `lib/core/env.js` | AI 工具环境检测 |
+| `lib/core/utils.js` | 公共工具函数 |
+| `lib/auth/login.js` | 宜搭浏览器登录 + Cookie 缓存 |
+| `lib/auth/codex-login.js` | Codex 内置浏览器登录引导 |
+| `lib/auth/qr-login.js` | 终端二维码登录 |
 | `project/config.json` | 应用配置（appType、pageId） |
 | `yida-skills/SKILL.md` | AI 技能入口文档 |
 
@@ -29,7 +31,15 @@ node --check lib/xxx.js  # 语法检查
 - Node.js 原生 API 优先，尽量不引入新依赖
 - 错误处理：`console.error()` + `process.exit(1)`
 - 新增命令需同步更新 `README.md` 的命令一览表
-- **推送 tag 前必须本地跑 `npm test` 确认全量单测通过**，避免 CI 因测试失败而中断发布
+- 新增用户可见文案需同步更新 `lib/core/locales/` 下所有语言包
+- **推送 tag 前必须本地跑 `npm run check:ci` 确认全量校验通过**，避免 CI 因测试失败而中断发布
+
+## Codex 特殊说明
+
+- Codex 环境下 `openyida login` 默认缓存优先；无有效缓存时进入 Codex 内置浏览器登录模式
+- `openyida login --codex` 不需要 Playwright 或额外 Chromium
+- 测试终端二维码链路时使用 `openyida login --qr`
+- 多组织账号请显式传 `openyida login --qr --corp-id <corpId>`；不要由 AI 代理代替用户选择组织
 
 ## 悟空（Wukong）特殊说明
 
@@ -45,3 +55,4 @@ node --check lib/xxx.js  # 语法检查
 - 不要引入需要编译的依赖（项目是纯 JS，无构建步骤）
 - 不要直接推送 main 分支
 - 不要硬编码悟空工作区路径，必须通过 `AGENT_WORK_ROOT` 读取
+- 不要硬编码 Cookie、CSRF Token、corpId 等登录凭证或用户身份上下文
