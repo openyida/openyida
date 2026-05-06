@@ -4,10 +4,11 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
+const NPM_BIN = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 describe('npm package smoke', () => {
   test('dry-run package includes runtime assets and excludes local-only files', () => {
-    const output = execFileSync('npm', ['pack', '--dry-run', '--json'], {
+    const output = execFileSync(NPM_BIN, ['pack', '--dry-run', '--json'], {
       cwd: ROOT,
       encoding: 'utf8',
       timeout: 30000,
