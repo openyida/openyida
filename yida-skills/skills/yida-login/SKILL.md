@@ -45,6 +45,16 @@ description: 宜搭登录态管理。扫码登录，Cookie 持久化到 .cache/c
 openyida login
 ```
 
+### Codex 登录模式
+
+在 Codex 中不要安装 Playwright，也不要把 `--codex` 降级成终端二维码接口。Codex 登录应使用内置浏览器：
+
+```bash
+openyida login --codex
+```
+
+该命令返回 `login_url` handoff。收到 handoff 后，用 Codex in-app browser 打开 `login_url`，让用户用钉钉扫码并等待跳转到宜搭工作台。若后续 CLI 仍缺少 `.cache/cookies*.json`，说明当前环境缺少 Codex 浏览器 Cookie 导出桥接能力，不要手动编造或写入 Cookie。
+
 ## 输出
 
 ```json

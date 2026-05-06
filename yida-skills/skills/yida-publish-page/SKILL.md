@@ -14,6 +14,7 @@ description: 将 JSX 源码编译发布到宜搭自定义页面。Babel 转 ES5 
 ## 严格要求 (MUST DO)
 
 - 发布前确认 JSX 源码已通过 `yida-custom-page` 规范编写
+- 发布前优先执行 `openyida check-page <源文件路径>` 和 `openyida compile <源文件路径>`，提前发现普通 React 写法、Hooks、事件绑定等宜搭运行时问题
 - 发布前确认 `openyida env` 检测通过，登录态有效
 - corpId 不匹配时，必须询问用户是否切换组织，不得强行发布
 - **本技能不读写 memory**：发布操作通过 CLI 命令写入宜搭平台，不依赖跨会话的 memory 状态
@@ -45,7 +46,7 @@ openyida publish <源文件路径> <appType> <formUuid>
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
-| `源文件路径` | 是 | JSX 源码路径，如 `pages/src/my-page.js` |
+| `源文件路径` | 是 | JSX 源码路径，如 `pages/src/my-page.jsx` |
 | `appType` | 是 | 应用 ID |
 | `formUuid` | 是 | 自定义页面 ID |
 

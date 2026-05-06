@@ -184,6 +184,11 @@ describe('detectActiveTool Windows 路径兼容', () => {
     delete process.env.OPENCODE;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
+    delete process.env.CODEX_SHELL;
+    delete process.env.CODEX_CI;
+    delete process.env.CODEX_THREAD_ID;
+    delete process.env.CODEX_HOME;
+    delete process.env.__CFBundleIdentifier;
     delete process.env.CURSOR_TRACE_ID;
     process.env.AGENT_WORK_ROOT = '/home/user/.real/workspace';
     const result = detectActiveTool();
@@ -196,6 +201,11 @@ describe('detectActiveTool Windows 路径兼容', () => {
     delete process.env.OPENCODE;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
+    delete process.env.CODEX_SHELL;
+    delete process.env.CODEX_CI;
+    delete process.env.CODEX_THREAD_ID;
+    delete process.env.CODEX_HOME;
+    delete process.env.__CFBundleIdentifier;
     delete process.env.CURSOR_TRACE_ID;
     // Windows 风格路径，包含 path.join(".real") 的结果
     process.env.AGENT_WORK_ROOT = 'C:\\Users\\user\\.real\\workspace';

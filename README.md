@@ -29,7 +29,7 @@
 npm install -g openyida
 ```
 
-**Zero config, works out of the box.** After installation, just chat in Claude Code / OpenCode / Aone Copilot:
+**Zero config, works out of the box.** After installation, just chat in Codex / Claude Code / OpenCode / Aone Copilot:
 
 ### Wukong Installation
 
@@ -52,6 +52,7 @@ Create a personal salary calculator app
 
 | Tool | Status |
 |------|--------|
+| [Codex](https://openai.com/codex/) | ✅ Full support |
 | [Claude Code](https://claude.ai/code) | ✅ Full support |
 | [Aone Copilot](https://copilot.code.alibaba-inc.com) | ✅ Full support |
 | [OpenCode](https://opencode.ai) | ✅ Full support |
@@ -92,8 +93,10 @@ openyida auth                 # Login status management (status/login/refresh/lo
 openyida cdn-config           # Configure CDN image upload (Aliyun OSS + CDN)
 openyida cdn-refresh          # Refresh CDN cache
 openyida cdn-upload           # Upload images to CDN
+openyida check-page           # Check a custom page against Yida runtime rules
 openyida configure-process    # Configure and publish process rules
 openyida connector            # HTTP connector management
+openyida compile              # Compile a custom page locally without publishing
 openyida copy                 # Initialize project working directory for current AI tool
 openyida create-app           # Create a Yida application
 openyida create-form          # Create / update a form page
@@ -112,19 +115,34 @@ openyida flash-to-prd <appType> [options]                  # Flash note to PRD (
 openyida get-page-config      # Query page public access / sharing config
 openyida get-permission       # Query form permission configuration
 openyida get-schema           # Fetch form schema
+openyida generate-page        # Generate a custom page from curated templates
 openyida import               # Import migration package to rebuild application
 openyida integration create <appType> [options]             # Create integration & automation flow
 openyida login                # Log in to Yida (uses cache, falls back to QR code)
+openyida login --codex        # Codex login mode (in-app browser, no Playwright)
 openyida logout               # Log out / switch account
 openyida org                  # Organization management (list/switch)
 openyida publish              # Compile and publish a custom page
 openyida query-data           # Query form instance data
+openyida sample               # Output code samples/templates
 openyida save-permission      # Save form permission configuration
 openyida save-share-config    # Save public access / sharing config
 openyida task-center [filter]                              # Global task center (Todo/Created/Processed/CC/Submit)
 openyida update-form-config   # Update form configuration
 openyida verify-short-url     # Verify if a short URL is accessible
 ```
+
+---
+
+## AI Page Generation
+
+For custom pages, prefer structured specs over hand-written JSX when possible. `generate-page` normalizes a small spec into a Page IR, renders a curated React 16-compatible `.jsx` template, writes a `.openyida-page.json` manifest next to the source, then runs the Yida page linter and optional local compile.
+
+```bash
+openyida generate-page product-homepage --spec page.json --output pages/src/home.jsx --compile
+```
+
+The manifest makes follow-up edits faster: AI agents can update blocks such as `hero`, `feature-grid`, `metric-strip`, `roadmap`, and `cta`, then regenerate instead of rewriting a large JSX file by hand.
 
 ---
 

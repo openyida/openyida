@@ -8,7 +8,8 @@
  * 命令列表：
  *   openyida env                                        检测当前 AI 工具环境和登录态
  *   openyida copy [--force]                             复制 project 工作目录到当前 AI 工具环境
- *   openyida login [--qr]                               登录态管理（--qr 使用终端二维码扫码）
+ *   openyida sample [--list]                             输出代码示例/模板
+ *   openyida login [--qr|--codex] [--corp-id <corpId>]  登录态管理（--qr 使用终端二维码，--codex 使用 Codex 内置浏览器）
  *   openyida logout                                     退出登录
  *   openyida auth status                                查看当前登录状态
  *   openyida auth login                                 执行登录
@@ -22,6 +23,9 @@
  *   openyida create-form create <appType> "<表单名>" <字段JSON> [--layout <布局>] [--theme <主题>] [--label-align <对齐>]  创建表单页面
  *   openyida create-form update <appType> <formUuid> <修改JSON>  更新表单页面
  *   openyida get-schema <appType> <formUuid>            获取表单 Schema
+ *   openyida generate-page <template> [--spec file]      基于高质量模板生成自定义页面
+ *   openyida check-page <源文件路径> [--json]             检查自定义页面是否符合宜搭规范
+ *   openyida compile <源文件路径>                        只编译自定义页面，不发布
  *   openyida publish <源文件路径> <appType> <formUuid>   编译并发布自定义页面
  *   openyida verify-short-url <appType> <formUuid> <url>           验证短链接 URL 是否可用
  *   openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]  保存公开访问/分享配置
@@ -106,7 +110,7 @@ function printHelp() {
 
   // ── 环境 & 认证 ──
   renderGroup(t('help.group_auth'), [
-    ['login [--qr]',                          t('help.cmd_login')],
+    ['login [--qr|--codex] [--corp-id <corpId>]', t('help.cmd_login')],
     ['logout',                                 t('help.cmd_logout')],
     ['auth <status|login|refresh|logout>',     t('help.cmd_auth')],
     ['org <list|switch>',                      t('help.cmd_org')],
@@ -128,6 +132,9 @@ function printHelp() {
     ['create-form update <appType> ...',       t('help.cmd_update_form')],
     ['get-schema <appType> <formUuid>',        t('help.cmd_get_schema')],
     ['create-page <appType> "<name>"',         t('help.cmd_create_page')],
+    ['generate-page <template>',               t('help.cmd_generate_page')],
+    ['check-page <src>',                       t('help.cmd_check_page')],
+    ['compile <src>',                           t('help.cmd_compile')],
     ['publish <src> <appType> <formUuid>',     t('help.cmd_publish')],
     ['update-form-config <appType> ...',       t('help.cmd_update_form_config')],
   ]);
@@ -179,6 +186,7 @@ function printHelp() {
   // ── 工具 ──
   renderGroup(t('help.group_utility'), [
     ['copy [--force]',                         t('help.cmd_copy')],
+    ['sample [--list]',                        t('help.cmd_sample')],
     ['doctor [--fix]',                         t('help.cmd_doctor')],
     ['update',                                 t('help.cmd_update')],
     ['export-conversation [options]',          t('help.cmd_export_conversation')],
@@ -269,6 +277,49 @@ function handleFirstRunGuide() {
   console.log('');
 }
 
+function printLoginResult(result) {
+  if (result && result.status === 'need_codex_browser_login') {
+    console.log(JSON.stringify({
+      status: result.status,
+      can_auto_use: false,
+      browser: result.browser,
+      login_url: result.login_url,
+      message: result.message,
+    }));
+    return;
+  }
+
+  const summary = {
+    ok: true,
+    base_url: result && result.base_url,
+    corp_id: result && result.corp_id,
+    user_id: result && result.user_id,
+    csrf_token: result && result.csrf_token ? `${result.csrf_token.slice(0, 16)}...` : undefined,
+    cookies_count: Array.isArray(result && result.cookies) ? result.cookies.length : 0,
+  };
+  console.log(JSON.stringify(summary));
+}
+
+function isCodexEnvironment() {
+  const { detectActiveTool } = require('../lib/core/utils');
+  const activeTool = detectActiveTool();
+  return !!activeTool && activeTool.tool === 'codex';
+}
+
+function shouldUseCodexLogin(cliArgs) {
+  if (cliArgs.includes('--qr')) {return false;}
+  if (cliArgs.includes('--codex')) {return true;}
+  return isCodexEnvironment();
+}
+
+function getArgValue(cliArgs, name) {
+  const index = cliArgs.indexOf(name);
+  if (index === -1 || !cliArgs[index + 1] || cliArgs[index + 1].startsWith('--')) {
+    return null;
+  }
+  return cliArgs[index + 1];
+}
+
 async function main() {
   if (!command || command === '--help' || command === '-h') {
     handleFirstRunGuide();
@@ -294,15 +345,34 @@ async function main() {
       break;
     }
 
+    case 'sample': {
+      const { run } = require('../lib/core/sample');
+      await run(args);
+      break;
+    }
+
     case 'login': {
       const { ensureLogin, checkLoginOnly } = require('../lib/auth/login');
       if (args[0] === '--check-only') {
         const result = checkLoginOnly({ includeSecrets: args.includes('--with-cookies') });
         console.log(JSON.stringify(result, null, 2));
-      } else if (args[0] === '--qr') {
+      } else if (args.includes('--codex')) {
+        const { codexLogin } = require('../lib/auth/codex-login');
+        const result = await codexLogin();
+        printLoginResult(result);
+      } else if (args.includes('--qr')) {
         const { qrLogin } = require('../lib/auth/qr-login');
-        const result = await qrLogin();
+        const result = await qrLogin({ corpId: getArgValue(args, '--corp-id') });
         console.log(JSON.stringify(result));
+      } else if (shouldUseCodexLogin(args)) {
+        const cachedResult = checkLoginOnly({ includeSecrets: true });
+        if (cachedResult.status === 'ok') {
+          printLoginResult(cachedResult);
+        } else {
+          const { codexLogin } = require('../lib/auth/codex-login');
+          const result = await codexLogin();
+          printLoginResult(result);
+        }
       } else {
         const result = ensureLogin();
         console.log(JSON.stringify(result));
@@ -323,7 +393,8 @@ async function main() {
       if (subCommand === 'status') {
         authStatus();
       } else if (subCommand === 'login') {
-        authLogin({ type: 'qrcode' });
+        const loginType = shouldUseCodexLogin(args) ? 'codex' : 'qrcode';
+        await authLogin({ type: loginType });
       } else if (subCommand === 'refresh') {
         authRefresh();
       } else if (subCommand === 'logout') {
@@ -405,6 +476,29 @@ async function main() {
 
     case 'get-schema': {
       const { run } = require('../lib/app/get-schema');
+      await run(args);
+      break;
+    }
+
+    case 'generate-page': {
+      const { run } = require('../lib/app/generate-page');
+      await run(args);
+      break;
+    }
+
+    case 'check-page': {
+      const { run } = require('../lib/app/check-page');
+      await run(args);
+      break;
+    }
+
+    case 'compile': {
+      if (args.length < 1) {
+        warn(t('cli.compile_usage'));
+        warn(t('cli.compile_example'));
+        process.exit(1);
+      }
+      const { run } = require('../lib/app/compile');
       await run(args);
       break;
     }

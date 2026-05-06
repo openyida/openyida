@@ -9,6 +9,7 @@
  *
  * 正确的 skills 安装路径（所有工具统一使用 skills/ 子目录）：
  *   ~/.claude/skills/yida-skills/          ← <package>/yida-skills (copy)
+ *   ~/.codex/skills/yida-skills/           ← <package>/yida-skills (copy)
  *   ~/.opencode/skills/yida-skills/        ← <package>/yida-skills (copy)
  *   ~/.aone_copilot/skills/yida-skills/    ← <package>/yida-skills (copy)
  *   ~/.cursor/skills/yida-skills/          ← <package>/yida-skills (copy)
@@ -103,6 +104,13 @@ safeExec(() => {
   installSkillsToTool(path.join(HOME_DIR, '.claude'));
 });
 
+// Codex — 仅在已安装时安装
+safeExec(() => {
+  if (fs.existsSync(path.join(HOME_DIR, '.codex'))) {
+    installSkillsToTool(path.join(HOME_DIR, '.codex'));
+  }
+});
+
 // OpenCode — 仅在已安装时安装
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, '.opencode'))) {
@@ -187,7 +195,7 @@ function printWelcomeGuide(isFirstInstall) {
   console.log('');
   console.log(`${BOLD}${CYAN}  🚀 开启 AI 问答模式${RESET}`);
   console.log(
-    '  在 Claude Code / Aone Copilot / Cursor 等 AI 工具中直接对话：',
+    '  在 Codex / Claude Code / Aone Copilot / Cursor 等 AI 工具中直接对话：',
   );
   console.log('');
 
@@ -208,7 +216,7 @@ function printWelcomeGuide(isFirstInstall) {
   console.log(`${BOLD}${BLUE}  📖 基础使用步骤${RESET}`);
   console.log('');
   console.log(
-    `  ${BOLD}Step 1${RESET}  打开你的 AI 编程工具（Claude Code / Cursor 等）`,
+    `  ${BOLD}Step 1${RESET}  打开你的 AI 编程工具（Codex / Claude Code / Cursor 等）`,
   );
   console.log(`  ${BOLD}Step 2${RESET}  直接用自然语言描述你想要的应用`);
   console.log(

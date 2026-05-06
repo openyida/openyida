@@ -213,6 +213,11 @@ describe('detectActiveTool', () => {
     delete process.env.OPENCODE;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
+    delete process.env.CODEX_SHELL;
+    delete process.env.CODEX_CI;
+    delete process.env.CODEX_THREAD_ID;
+    delete process.env.CODEX_HOME;
+    delete process.env.__CFBundleIdentifier;
     delete process.env.CURSOR_TRACE_ID;
     delete process.env.AGENT_WORK_ROOT;
     delete process.env.TERM_PROGRAM;
@@ -245,14 +250,25 @@ describe('detectActiveTool', () => {
   test('QODER_IDE 环境变量时检测为 Qoder（优先级最高）', () => {
     process.env.QODER_IDE = '1';
     process.env.CLAUDE_CODE = '1';
+    process.env.CODEX_SHELL = '1';
     const result = detectActiveTool();
     expect(result.tool).toBe('qoder');
+  });
+
+  test('CODEX_SHELL 环境变量时检测为 Codex', () => {
+    process.env.CODEX_SHELL = '1';
+    const result = detectActiveTool();
+    expect(result).not.toBeNull();
+    expect(result.tool).toBe('codex');
+    expect(result.displayName).toBe('Codex');
+    expect(result.dirName).toBe('.codex');
   });
 
   test('AGENT_WORK_ROOT 包含 .real 时检测为悟空', () => {
     delete process.env.CLAUDE_CODE;
     delete process.env.OPENCODE;
     delete process.env.QODER_IDE;
+    delete process.env.CODEX_SHELL;
     delete process.env.CURSOR_TRACE_ID;
     process.env.AGENT_WORK_ROOT = '/home/user/.real/workspace';
     const result = detectActiveTool();
@@ -265,6 +281,11 @@ describe('detectActiveTool', () => {
     delete process.env.OPENCODE;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
+    delete process.env.CODEX_SHELL;
+    delete process.env.CODEX_CI;
+    delete process.env.CODEX_THREAD_ID;
+    delete process.env.CODEX_HOME;
+    delete process.env.__CFBundleIdentifier;
     delete process.env.CURSOR_TRACE_ID;
     delete process.env.AGENT_WORK_ROOT;
     process.env.TERM_PROGRAM = 'vscode';
@@ -289,6 +310,11 @@ describe('detectActiveTool', () => {
     delete process.env.OPENCODE;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
+    delete process.env.CODEX_SHELL;
+    delete process.env.CODEX_CI;
+    delete process.env.CODEX_THREAD_ID;
+    delete process.env.CODEX_HOME;
+    delete process.env.__CFBundleIdentifier;
     delete process.env.CURSOR_TRACE_ID;
     delete process.env.AGENT_WORK_ROOT;
     delete process.env.TERM_PROGRAM;

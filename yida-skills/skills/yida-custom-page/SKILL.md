@@ -75,12 +75,17 @@ openyida get-schema APP_XXX FORM-EMPLOYEE > .cache/employee-schema.json 2>&1
 openyida create-page APP_XXX "员工信息查询"
 # 输出：formUuid = FORM-QUERY001
 
-# Step 3：编写页面代码
-# 基于官方模板编写，先获取模板：openyida sample yida-custom-page custom-page-template
-# 在 project/pages/src/employee-query.js 中编写
+# Step 3：生成/编写页面代码
+# 优先使用 spec/blocks 生成高质量页面：openyida generate-page product-homepage --spec page.json --output project/pages/src/employee-query.jsx
+# 需要手动参考模板时：openyida sample yida-custom-page custom-page-template
+# 在 project/pages/src/employee-query.jsx 中编写
 
-# Step 4：发布页面
-openyida publish project/pages/src/employee-query.js APP_XXX FORM-QUERY001
+# Step 4：本地规范检查 + 编译校验（不发布）
+openyida check-page project/pages/src/employee-query.jsx
+openyida compile project/pages/src/employee-query.jsx
+
+# Step 5：发布页面
+openyida publish project/pages/src/employee-query.jsx APP_XXX FORM-QUERY001
 ```
 
 预期输出：
@@ -96,6 +101,7 @@ openyida publish project/pages/src/employee-query.js APP_XXX FORM-QUERY001
 - **Step 1** 的 get-schema 输出包含所有字段的 fieldId，在代码中必须使用 `FIELDS` 常量映射这些 ID
   - get-schema 输出的 JSON 中，每个字段的 `fieldId`（如 `textField_k8j2n3m4`）即是代码中 `FIELDS` 常量应映射的值
 - **Step 3** 的页面代码必须遵循 [编码指南](references/coding-guide.md) 的全部 19 条编码注意事项
+- 优先通过 `openyida generate-page product-homepage --spec page.json --output pages/src/home.jsx --compile` 生成高质量页面骨架；生成器会写入 `.openyida-page.json` 结构化 manifest，后续改版优先改 spec/blocks 再重新生成 JSX
 - 完整代码模板通过 `openyida sample yida-custom-page custom-page-template` 获取
 
 ## 开发规范
@@ -358,7 +364,10 @@ formDataJson[FIELDS.amount] = _customState.inputAmount;
 
 ```bash
 openyida sample yida-custom-page custom-page-template   # 完整页面模板（didMount/renderJsx/状态管理/API调用）
+openyida sample yida-custom-page product-homepage       # 产品/项目首页轻量模板（支持 --var KEY=VALUE）
 openyida sample yida-custom-page design-tokens          # 设计 token 参考（颜色/间距/字体规范）
+openyida generate-page product-homepage --spec page.json --output pages/src/home.jsx --compile  # 基于 spec/blocks 生成首页并本地编译
+openyida check-page pages/src/home.jsx --json          # 输出机器可读的规范检查结果
 ```
 
 ## 常见场景示例

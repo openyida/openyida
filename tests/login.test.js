@@ -270,6 +270,11 @@ describe('findProjectRoot 环境检测', () => {
     delete process.env.OPENCODE;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
+    delete process.env.CODEX_SHELL;
+    delete process.env.CODEX_CI;
+    delete process.env.CODEX_THREAD_ID;
+    delete process.env.CODEX_HOME;
+    delete process.env.__CFBundleIdentifier;
     delete process.env.CURSOR_TRACE_ID;
     delete process.env.AGENT_WORK_ROOT;
     delete process.env.TERM_PROGRAM;
@@ -310,6 +315,24 @@ describe('findProjectRoot 环境检测', () => {
     fs.rmSync(testDir, { recursive: true, force: true });
   });
 
+  test('Codex 环境下返回 cwd/project', () => {
+    process.env.CODEX_SHELL = '1';
+    const testDir = path.join(os.tmpdir(), `codex-test-${Date.now()}`);
+    const projectDir = path.join(testDir, 'project');
+    fs.mkdirSync(projectDir, { recursive: true });
+    dirsToCleanup.push(testDir);
+    process.chdir(testDir);
+
+    const { findProjectRoot: findRoot } = require('../lib/core/utils');
+    const root = findRoot();
+
+    expect(fs.realpathSync(root)).toBe(fs.realpathSync(projectDir));
+    expect(fs.existsSync(root)).toBe(true);
+
+    process.chdir(originalCwd);
+    fs.rmSync(testDir, { recursive: true, force: true });
+  });
+
   test('悟空环境下返回 AGENT_WORK_ROOT/workspace/project', () => {
     // AGENT_WORK_ROOT 指向 ~/.real/users/user-{uuid}/，workspace 在其下
     const agentWorkRoot = path.join(os.tmpdir(), '.real', 'users', `user-test-${Date.now()}`);
@@ -328,6 +351,7 @@ describe('findProjectRoot 环境检测', () => {
   test('未检测到环境时返回 cwd', () => {
     delete process.env.QODER_IDE;
     delete process.env.CLAUDE_CODE;
+    delete process.env.CODEX_SHELL;
     delete process.env.AGENT_WORK_ROOT;
     delete process.env.OPENCODE;
     delete process.env.CURSOR_TRACE_ID;
@@ -388,6 +412,11 @@ describe('detectActiveTool', () => {
     delete process.env.OPENCODE;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
+    delete process.env.CODEX_SHELL;
+    delete process.env.CODEX_CI;
+    delete process.env.CODEX_THREAD_ID;
+    delete process.env.CODEX_HOME;
+    delete process.env.__CFBundleIdentifier;
     delete process.env.CURSOR_TRACE_ID;
     delete process.env.AGENT_WORK_ROOT;
     delete process.env.TERM_PROGRAM;
@@ -407,6 +436,17 @@ describe('detectActiveTool', () => {
     expect(tool.tool).toBe('qoder');
     expect(tool.displayName).toBe('Qoder');
     expect(tool.dirName).toBe('.qoder');
+  });
+
+  test('Codex 环境识别', () => {
+    process.env.CODEX_SHELL = '1';
+    const { detectActiveTool: detectTool } = require('../lib/core/utils');
+
+    const tool = detectTool();
+    expect(tool).not.toBeNull();
+    expect(tool.tool).toBe('codex');
+    expect(tool.displayName).toBe('Codex');
+    expect(tool.dirName).toBe('.codex');
   });
 
   test('Claude Code 环境识别', () => {
@@ -432,6 +472,7 @@ describe('detectActiveTool', () => {
   test('无任何环境标识时返回 null', () => {
     delete process.env.QODER_IDE;
     delete process.env.CLAUDE_CODE;
+    delete process.env.CODEX_SHELL;
     delete process.env.AGENT_WORK_ROOT;
     delete process.env.OPENCODE;
     delete process.env.CURSOR_TRACE_ID;
