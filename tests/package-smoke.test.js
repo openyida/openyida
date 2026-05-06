@@ -11,6 +11,7 @@ describe('npm package smoke', () => {
     const result = spawnSync(NPM_BIN, ['pack', '--dry-run', '--json'], {
       cwd: ROOT,
       encoding: 'utf8',
+      shell: process.platform === 'win32',
       timeout: 30000,
     });
     if (result.status !== 0 || result.error) {
