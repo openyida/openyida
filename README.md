@@ -48,6 +48,8 @@ npm install -g openyida
 
 OpenYida requires Node.js 18 or later. The package exposes both `openyida` and `yida` commands.
 
+If Codex is already installed, OpenYida also imports a local Codex plugin during postinstall. Restart Codex after installation, then type `@宜搭` or `@openyida` in the composer to attach the OpenYida context.
+
 ### 2. Check Your Environment
 
 Run this from the AI coding workspace where you want OpenYida to operate:
@@ -285,6 +287,8 @@ The `yida-skills/` directory contains agent-facing instructions and references f
 | `yida-skills/references/` | Shared Yida API, model API, and query-condition references |
 
 When OpenYida is used inside a supported AI coding environment, these skills help the agent choose the right command sequence and file conventions.
+
+For Codex, `npm install -g openyida` additionally creates a local plugin marketplace under `~/.openyida/codex-plugin` and enables `openyida@openyida` in `~/.codex/config.toml` when Codex is detected. This makes OpenYida show up in Codex's `@` plugin menu as **宜搭** after Codex reloads.
 
 ## Examples
 

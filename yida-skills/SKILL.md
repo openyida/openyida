@@ -77,8 +77,21 @@ npm install -g openyida@latest
 **在执行任何宜搭操作前，必须先运行环境检测命令**，确认当前 AI 工具环境和登录态：
 
 ```bash
-openyida env
+openyida env --json
+openyida login --check-only --json
 ```
+
+`openyida env --json` 用于确认当前 AI 工具、项目根目录、配置文件和登录态拆解项；`openyida login --check-only --json` 只读取本地登录缓存，不触发登录、不打开浏览器、不创建任何资源。
+
+**悟空（Wukong）降级规则**：如果在悟空环境中本地命令执行入口连续失败，不要继续重试，也不要判断为 OpenYida 登录失败。进入人工协同诊断模式，请用户在可用终端执行以下低风险命令并贴回输出：
+
+```bash
+openyida -v
+openyida env --json
+openyida login --check-only --json
+```
+
+在拿到上述输出并确认 `loggedIn/can_auto_use`、`csrf_token_found`、`corp_id_found`、`base_url_found` 等关键项前，禁止创建应用、页面、表单或发布页面等会产生真实宜搭资源的操作。
 
 **输出解读**：
 
@@ -88,7 +101,7 @@ openyida env
 | 当前生效环境 | 显示项目根目录路径 |
 | 登录态检测 | 显示是否已登录、域名、组织 ID |
 
-> **若显示"未登录"，自动执行 `openyida login`，无需手动操作。**。
+> **若显示"未登录"，先执行 `openyida login` 获取 browser handoff 登录 URL；完成浏览器登录后，必须再次执行 `openyida login --check-only --json` 验证缓存写入。不要在只读验证通过前执行真实资源创建。**
 
 ---
 

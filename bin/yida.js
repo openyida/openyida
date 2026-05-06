@@ -206,6 +206,7 @@ function printLoginResult(result) {
   if (result && result.status === 'need_codex_browser_login') {
     console.log(JSON.stringify({
       status: result.status,
+      handoff_type: result.handoff_type || 'browser',
       can_auto_use: false,
       browser: result.browser,
       login_url: result.login_url,

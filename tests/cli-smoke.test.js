@@ -141,7 +141,13 @@ describe('CLI offline smoke', () => {
     expect(parsed).toHaveProperty('ok', true);
     expect(parsed).toHaveProperty('system.node');
     expect(parsed).toHaveProperty('active.projectRoot');
+    expect(parsed).toHaveProperty('active.projectRootExists');
+    expect(parsed).toHaveProperty('active.hasConfig');
     expect(parsed).toHaveProperty('login.loggedIn');
+    expect(parsed).toHaveProperty('login.diagnostics.cookieFileFound');
+    expect(parsed).toHaveProperty('login.diagnostics.csrfTokenFound');
+    expect(parsed).toHaveProperty('login.diagnostics.corpIdFound');
+    expect(parsed).toHaveProperty('login.diagnostics.baseUrlFound');
   });
 
   test('env list routes to multi-environment management command', () => {
@@ -237,6 +243,7 @@ describe('CLI offline smoke', () => {
       const parsed = JSON.parse(output.trim());
       expect(parsed).toMatchObject({
         status: 'need_codex_browser_login',
+        handoff_type: 'browser',
         browser: 'wukong',
         login_url: 'https://example.test/workPlatform',
         can_auto_use: false,
@@ -287,10 +294,44 @@ describe('CLI offline smoke', () => {
       const parsed = JSON.parse(output.trim());
       expect(parsed).toMatchObject({
         status: 'need_codex_browser_login',
+        handoff_type: 'browser',
         browser: 'wukong',
         login_url: 'https://example.test/workPlatform',
         can_auto_use: false,
       });
+    } finally {
+      fs.rmSync(wukong.base, { recursive: true, force: true });
+    }
+  });
+
+  test('login --check-only exposes Wukong read-only diagnostics', () => {
+    const wukong = createWukongWorkRoot();
+    const cacheDir = path.join(wukong.projectDir, '.cache');
+    fs.mkdirSync(cacheDir, { recursive: true });
+    fs.writeFileSync(path.join(cacheDir, 'cookies-public.json'), JSON.stringify({
+      cookies: [
+        { name: 'tianshu_csrf_token', value: 'wukong-check-token-1234567890' },
+        { name: 'tianshu_corp_user', value: 'corp_wukongCheckUser' },
+      ],
+      base_url: 'https://www.aliwork.com',
+    }), 'utf8');
+
+    try {
+      const output = runOkWithEnv(['login', '--check-only'], {
+        AGENT_WORK_ROOT: wukong.agentWorkRoot,
+        OPENYIDA_ENV: 'public',
+      }, wukong.projectDir);
+      const parsed = JSON.parse(output.trim());
+      expect(parsed).toMatchObject({
+        status: 'ok',
+        can_auto_use: true,
+        corp_id: 'corp',
+        user_id: 'wukongCheckUser',
+      });
+      expect(parsed).toHaveProperty('diagnostics.isWukong', true);
+      expect(parsed).toHaveProperty('diagnostics.csrf_token_found', true);
+      expect(parsed).toHaveProperty('diagnostics.corp_id_found', true);
+      expect(parsed).toHaveProperty('diagnostics.base_url_found', true);
     } finally {
       fs.rmSync(wukong.base, { recursive: true, force: true });
     }
