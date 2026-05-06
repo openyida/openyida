@@ -68,4 +68,22 @@ describe('codexLogin', () => {
     expect(chalk.warn).toHaveBeenCalledTimes(1);
     expect(result.status).toBe('need_codex_browser_login');
   });
+
+  test('Qoder 环境下返回内置浏览器登录 handoff，browser 为 qoder', async () => {
+    delete process.env.CODEX_SHELL;
+    delete process.env.CODEX_CI;
+    delete process.env.CODEX_THREAD_ID;
+    delete process.env.CODEX_HOME;
+    process.env.QODER_IDE = '1';
+
+    const result = await codexLogin();
+
+    expect(result).toMatchObject({
+      status: 'need_codex_browser_login',
+      browser: 'qoder',
+      login_url: 'https://www.aliwork.com/workPlatform',
+      can_auto_use: false,
+    });
+    expect(chalk.warn).not.toHaveBeenCalled();
+  });
 });

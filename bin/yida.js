@@ -9,7 +9,7 @@
  *   openyida env                                        检测当前 AI 工具环境和登录态
  *   openyida copy [--force]                             复制 project 工作目录到当前 AI 工具环境
  *   openyida sample [--list]                             输出代码示例/模板
- *   openyida login [--qr|--codex] [--corp-id <corpId>]  登录态管理（--qr 使用终端二维码，--codex 使用 Codex 内置浏览器）
+ *   openyida login [--qr|--browser] [--corp-id <corpId>]  登录态管理（--qr 使用终端二维码，--browser 使用内置浏览器）
  *   openyida logout                                     退出登录
  *   openyida auth status                                查看当前登录状态
  *   openyida auth login                                 执行登录
@@ -110,7 +110,7 @@ function printHelp() {
 
   // ── 环境 & 认证 ──
   renderGroup(t('help.group_auth'), [
-    ['login [--qr|--codex] [--corp-id <corpId>]', t('help.cmd_login')],
+    ['login [--qr|--browser] [--corp-id <corpId>]', t('help.cmd_login')],
     ['logout',                                 t('help.cmd_logout')],
     ['auth <status|login|refresh|logout>',     t('help.cmd_auth')],
     ['org <list|switch>',                      t('help.cmd_org')],
@@ -300,16 +300,16 @@ function printLoginResult(result) {
   console.log(JSON.stringify(summary));
 }
 
-function isCodexEnvironment() {
+function isBrowserHandoffEnvironment() {
   const { detectActiveTool } = require('../lib/core/utils');
   const activeTool = detectActiveTool();
-  return !!activeTool && activeTool.tool === 'codex';
+  return !!activeTool && (activeTool.tool === 'codex' || activeTool.tool === 'qoder');
 }
 
-function shouldUseCodexLogin(cliArgs) {
+function shouldUseBrowserHandoffLogin(cliArgs) {
   if (cliArgs.includes('--qr')) {return false;}
-  if (cliArgs.includes('--codex')) {return true;}
-  return isCodexEnvironment();
+  if (cliArgs.includes('--browser') || cliArgs.includes('--codex') || cliArgs.includes('--qoder')) {return true;}
+  return isBrowserHandoffEnvironment();
 }
 
 function getArgValue(cliArgs, name) {
@@ -356,7 +356,7 @@ async function main() {
       if (args[0] === '--check-only') {
         const result = checkLoginOnly({ includeSecrets: args.includes('--with-cookies') });
         console.log(JSON.stringify(result, null, 2));
-      } else if (args.includes('--codex')) {
+      } else if (args.includes('--browser') || args.includes('--codex') || args.includes('--qoder')) {
         const { codexLogin } = require('../lib/auth/codex-login');
         const result = await codexLogin();
         printLoginResult(result);
@@ -364,7 +364,7 @@ async function main() {
         const { qrLogin } = require('../lib/auth/qr-login');
         const result = await qrLogin({ corpId: getArgValue(args, '--corp-id') });
         console.log(JSON.stringify(result));
-      } else if (shouldUseCodexLogin(args)) {
+      } else if (shouldUseBrowserHandoffLogin(args)) {
         const cachedResult = checkLoginOnly({ includeSecrets: true });
         if (cachedResult.status === 'ok') {
           printLoginResult(cachedResult);
@@ -393,7 +393,7 @@ async function main() {
       if (subCommand === 'status') {
         authStatus();
       } else if (subCommand === 'login') {
-        const loginType = shouldUseCodexLogin(args) ? 'codex' : 'qrcode';
+        const loginType = shouldUseBrowserHandoffLogin(args) ? 'browser' : 'qrcode';
         await authLogin({ type: loginType });
       } else if (subCommand === 'refresh') {
         authRefresh();
