@@ -158,22 +158,37 @@ openyida copy
 
 ## 子技能速查
 
-> 每个子技能均有独立的 SKILL.md，执行前请读取对应文档获取详细参数说明。
+> 每个子技能均有独立的 SKILL.md。执行时先选定一个最匹配的子技能，只读取该子技能文档；references 按文档提示按需读取，避免一次性加载全量文档。
 
 | 技能 | SKILL.md 路径 | 用途 | 典型命令 |
 |------|--------------|------|---------|
+| `yida-app` | `skills/yida-app/SKILL.md` | 完整应用开发编排 | 详见 SKILL.md |
 | `yida-login` | `skills/yida-login/SKILL.md` | 登录态管理（通常自动触发） | `openyida login` |
 | `yida-logout` | `skills/yida-logout/SKILL.md` | 退出登录 / 切换账号 | `openyida logout` |
 | `yida-create-app` | `skills/yida-create-app/SKILL.md` | 创建应用，获取 appType | `openyida create-app "<名称>"` |
 | `yida-create-page` | `skills/yida-create-page/SKILL.md` | 创建自定义页面，获取 formUuid | `openyida create-page <appType> "<页面名>"` |
 | `yida-create-form-page` | `skills/yida-create-form-page/SKILL.md` | 创建/更新表单页面 | `openyida create-form create <appType> "<表单名>" <字段JSON>` |
+| `yida-create-process` | `skills/yida-create-process/SKILL.md` | 创建流程表单并配置流程 | `openyida create-process <appType> "<表单名>" <字段JSON> <流程JSON>` |
 | `yida-get-schema` | `skills/yida-get-schema/SKILL.md` | 获取表单 Schema，确认字段 ID | `openyida get-schema <appType> <formUuid>` |
 | `yida-custom-page` | `skills/yida-custom-page/SKILL.md` | 编写自定义页面 JSX 代码规范 | 详见 SKILL.md |
 | `yida-publish-page` | `skills/yida-publish-page/SKILL.md` | 编译并发布自定义页面 | `openyida publish <源文件路径> <appType> <formUuid>` |
 | `yida-page-config` | `skills/yida-page-config/SKILL.md` | 页面公开访问/组织内分享配置 | `openyida verify-short-url <appType> <formUuid> <url>` |
+| `yida-form-permission` | `skills/yida-form-permission/SKILL.md` | 表单权限查询与保存 | `openyida get-permission <appType> <formUuid>` |
+| `yida-data-management` | `skills/yida-data-management/SKILL.md` | 表单/流程/任务数据查询与变更 | `openyida data query form <appType> <formUuid>` |
+| `yida-table-form` | `skills/yida-table-form/SKILL.md` | 表格形态批量录入页面 | 详见 SKILL.md |
+| `yida-process-rule` | `skills/yida-process-rule/SKILL.md` | 配置流程规则、审批节点和字段权限 | `openyida configure-process <appType> <formUuid> <流程JSON>` |
+| `yida-integration` | `skills/yida-integration/SKILL.md` | 集成自动化逻辑流 | `openyida integration create <appType> <配置JSON>` |
+| `yida-connector` | `skills/yida-connector/SKILL.md` | HTTP 连接器创建、测试与动作管理 | `openyida connector smart-create <配置>` |
 | `yida-chart` | `skills/yida-chart/SKILL.md` | 报表可视化（ECharts 图表 + 数据聚合） | 详见 SKILL.md |
 | `yida-report` | `skills/yida-report/SKILL.md` | 宜搭原生报表创建（标准报表） | `openyida create-report <appType> "<名称>" <配置>` |
-| `yida-ppt` | `skills/yida-ppt/SKILL.md` | PPT/演示文稿开发（深色科技风+Canvas粒子+电影级转场+玻璃态卡片） | 详见 SKILL.md |
+| `yida-density` | `skills/yida-density/SKILL.md` | 列表/表格页面信息密度选择 | 详见 SKILL.md |
+| `yida-formula` | `skills/yida-formula/SKILL.md` | 公式字段和赋值规则配置 | 详见 SKILL.md |
+| `yida-db-seq-fix` | `skills/yida-db-seq-fix/SKILL.md` | PostgreSQL sequence 漂移修复 | `openyida db-seq-fix <配置>` |
+| `yida-export-conversation` | `skills/yida-export-conversation/SKILL.md` | 导出 AI 对话记录 | `openyida export-conversation` |
+| `yida-flash-note-to-prd` | `skills/yida-flash-note-to-prd/SKILL.md` | 闪记/会议纪要转 PRD prompt | `openyida flash-to-prd <文件>` |
+| `yida-ppt-slider` | `skills/yida-ppt-slider/SKILL.md` | 宜搭全屏幻灯片页面 | 详见 SKILL.md |
+| `yida-ppt` | `skills/yida-ppt/SKILL.md` | 已废弃，改用 `yida-ppt-slider` | 详见 SKILL.md |
+| `large-file-write` | `skills/large-file-write/SKILL.md` | 大文件可靠写入辅助技能 | 详见 SKILL.md |
 
 ---
 
@@ -183,14 +198,23 @@ openyida copy
 
 每个子技能的详细参数、注意事项、示例均在其 SKILL.md 中。**执行任何子技能前，必须先读取对应的 SKILL.md**，不要凭记忆猜测参数格式。
 
-### 2. corpId 一致性检查（必须遵守）
+### 2. 执行成功率与性能规则（必须遵守）
+
+- **只读必要文档**：先根据用户意图选定 1 个主技能；只有该技能明确要求时，才读取对应 `references/` 文档，禁止一次性读取全部技能文档。
+- **优先复用缓存**：已创建的 `appType`、`formUuid`、`fieldId`、`reportId` 优先从 `.cache/<项目名>-schema.json` 读取；缺失或不确定时再执行 `openyida get-schema`。
+- **先本地校验再发布**：自定义页面发布前运行 `openyida check-page <源文件路径>` 和 `openyida compile <源文件路径>`；JSON 配置写入文件后先做 JSON 解析校验，再调用平台命令。
+- **避免无效重试**：同一命令失败后，先根据错误信息检查登录态、组织、参数和字段 ID；不要无修改地连续重试超过 1 次。
+- **数据性能优先**：统计/聚合类需求优先使用 `yida-report` 原生报表服务端聚合；不要在自定义页面前端分页拉取大量表单数据后自行聚合。
+- **模板优先**：自定义页面、表单字段、报表配置等复杂产物优先使用 `openyida sample` 或现有示例生成骨架，再做最小改动。
+
+### 3. corpId 一致性检查（必须遵守）
 
 在创建页面前，**必须对比 prd 文档中的 corpId 与 `.cache/cookies.json` 中的 corpId 是否一致**：
 
 - **一致** → 继续执行
 - **不一致** → 询问用户：重新登录到正确组织，还是在当前组织新建应用？
 
-### 3. 配置信息分两处存储
+### 4. 配置信息分两处存储
 
 | 信息类型 | 存储位置 | 内容示例 |
 |---------|---------|---------|
@@ -199,11 +223,11 @@ openyida copy
 
 > **prd 文档不记录 `formUuid`、`fieldId` 等 ID**，这些写入 `.cache/` 临时文件。
 
-### 4. 临时文件规范
+### 5. 临时文件规范
 
 所有临时文件（cookies、schema 缓存等）**必须写在项目根目录的 `.cache/` 文件夹中**，不要写在系统其他位置。
 
-### 5. 报表优化/美化提示规则（必须遵守）
+### 6. 报表优化/美化提示规则（必须遵守）
 
 当用户提到"优化"、"美化"、"更好看"、"不够漂亮"等与报表视觉效果相关的关键词时，**必须先询问用户**选择以下哪种方案：
 

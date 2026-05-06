@@ -251,17 +251,17 @@ export function renderJsx() {
   var theme = THEME_CONFIG[state.themeMode] || THEME_CONFIG.light;
 
   var handlePrev = function() {
-    if (state.currentIndex > 0) { 
-      state.currentIndex--; 
+    if (state.currentIndex > 0) {
+      state.currentIndex--;
       window.location.hash = state.currentIndex + 1;
-      self.forceUpdate(); 
+      self.forceUpdate();
     }
   };
   var handleNext = function() {
-    if (state.currentIndex < SLIDES.length - 1) { 
-      state.currentIndex++; 
+    if (state.currentIndex < SLIDES.length - 1) {
+      state.currentIndex++;
       window.location.hash = state.currentIndex + 1;
-      self.forceUpdate(); 
+      self.forceUpdate();
     }
   };
   var handleToggleFullscreen = function() {

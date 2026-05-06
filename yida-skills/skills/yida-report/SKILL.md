@@ -105,12 +105,12 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 
 ### 概述
 
-宜搭提供了原生报表组件库 `vc-yida-report`，包含 **16 种**开箱即用的报表组件，涵盖图表、表格、筛选器、指标卡等。通过 Schema 构建脚本 `build-yida-report-schema.js` 可以快速生成报表页面的完整 Schema，无需手写配置。
+宜搭提供了原生报表组件库 `vc-yida-report`，包含 **16 种**开箱即用的报表组件，涵盖图表、表格、筛选器、指标卡等。Agent 应通过 `openyida create-report` 传入结构化图表配置，由 CLI 内部构建并发布 Schema，不要尝试读取或手写 `build-yida-report-schema.js`。
 
 - **组件库地址**：`//g.alicdn.com/code/npm/@ali/vc-yida-report/1.0.101/pc.js`
 - **全局挂载**：`window.YidaReport`
-- **Schema 构建脚本**：[`build-yida-report-schema.js`](./build-yida-report-schema.js)
-- **组件详细文档**：[`references/vc-yida-report-components-doc.md`](../../references/vc-yida-report-components-doc.md)
+- **创建入口**：`openyida create-report <appType> "<报表名称>" <配置JSON文件路径>`
+- **字段配置参考**：[`report-field-config-guide.md`](../../references/report-field-config-guide.md)
 
 ### 组件总览
 

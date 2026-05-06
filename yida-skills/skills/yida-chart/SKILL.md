@@ -1284,9 +1284,7 @@ export function formatDate(timestamp) {
 
 原生报表的 Schema 构建（vc-yida-report 组件库、`build-yida-report-schema.js` 构建脚本）已迁移至 **`yida-report`** 技能文档中。
 
-如需创建或更新原生报表，请调用 `yida-report` 技能。相关参考：
-- **Schema 构建脚本**：[`build-yida-report-schema.js`](./build-yida-report-schema.js)
-- **组件详细文档**：[`references/vc-yida-report-components-doc.md`](../../references/vc-yida-report-components-doc.md)
+如需创建或更新原生报表，请调用 `yida-report` 技能，并通过 `openyida create-report <appType> "<报表名称>" <配置JSON文件路径>` 让 CLI 内部生成 Schema。不要尝试读取 `build-yida-report-schema.js` 或 `vc-yida-report-components-doc.md`，这两个文件不随技能包提供。
 
 ---
 

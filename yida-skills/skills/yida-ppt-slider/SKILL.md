@@ -212,7 +212,7 @@ var SLIDES = [
 // ── 幻灯片内容渲染 ───────────────────────────────────────────
 export function renderSlideContent(slide, accent, isMobile) {
   var type = slide.type;
-  
+
   // 根据 type 返回对应的 JSX
   // 使用 isMobile 参数进行多端适配
   // ...
@@ -226,7 +226,7 @@ export function renderJsx() {
   var accent = slide.accent || '#d97706';
   var isMobile = this.utils.isMobile();  // ✅ 使用宜搭提供的工具方法
   var total = SLIDES.length;
-  
+
   // 在顶部定义事件处理函数，避免每次渲染创建新的内联函数
   var handlePrev = function() {
     if (state.currentIndex > 0) {
@@ -234,19 +234,19 @@ export function renderJsx() {
       this.forceUpdate();  // ✅ 使用 forceUpdate 触发重渲染
     }
   }.bind(this);
-  
+
   var handleNext = function() {
     if (state.currentIndex < total - 1) {
       state.currentIndex++;
       this.forceUpdate();
     }
   }.bind(this);
-  
+
   var handleGoTo = function(index) {
     state.currentIndex = index;
     this.forceUpdate();
   }.bind(this);
-  
+
   // ... 渲染逻辑
 }
 ```
@@ -262,7 +262,7 @@ export function renderJsx() {
 componentDidMount: function() {
   // 初始化幻灯片总数
   _customState.total = SLIDES.length;
-  
+
   // 键盘翻页事件（支持演讲笔的 PageDown/PageUp）
   this._handleKeyDown = function(e) {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') {
@@ -271,21 +271,21 @@ componentDidMount: function() {
       this.handlePrev();
     }
   }.bind(this);
-  
+
   document.addEventListener('keydown', this._handleKeyDown);
-  
+
   // 触摸滑动支持（移动端）
   this._touchStartX = 0;
   this._handleTouchStart = function(e) {
     this._touchStartX = e.changedTouches[0].screenX;
   }.bind(this);
-  
+
   this._handleTouchEnd = function(e) {
     var touchEndX = e.changedTouches[0].screenX;
     if (this._touchStartX - touchEndX > 50) this.handleNext();
     if (touchEndX - this._touchStartX > 50) this.handlePrev();
   }.bind(this);
-  
+
   document.addEventListener('touchstart', this._handleTouchStart);
   document.addEventListener('touchend', this._handleTouchEnd);
 },
@@ -366,11 +366,11 @@ var isMobile = this.utils.isMobile();
 
 // 条件样式
 var styles = {
-  container: { 
+  container: {
     padding: isMobile ? '20px 16px' : '48px 80px',
     minHeight: '100vh',
   },
-  title: { 
+  title: {
     fontSize: isMobile ? '24px' : '38px',
     fontWeight: '800',
     color: '#1a1a2e',
@@ -887,9 +887,9 @@ export function renderSlideContent(slide, accent, isMobile) {
             </p>
           )}
         </div>
-        
+
         {/* ECharts 容器 */}
-        <div 
+        <div
           id="echarts-race-container"
           style={{
             flex: 1,
@@ -898,9 +898,9 @@ export function renderSlideContent(slide, accent, isMobile) {
             position: 'relative',
           }}
         />
-        
+
         {/* 加载 ECharts 脚本 */}
-        <script 
+        <script
           src="https://g.alicdn.com/code/lib/echarts/5.6.0/echarts.min.js"
           onLoad={function() {
             self.initBarChartRace();
@@ -1356,13 +1356,13 @@ export function renderJsx() {
 
 ```javascript
 // 使用 objectFit: 'contain' 确保图片完整显示，不裁剪
-<img src={slide.imageUrl} style={{ 
-  maxWidth: '100%', 
-  maxHeight: '100%', 
-  width: 'auto', 
-  height: 'auto', 
+<img src={slide.imageUrl} style={{
+  maxWidth: '100%',
+  maxHeight: '100%',
+  width: 'auto',
+  height: 'auto',
   objectFit: 'contain',
-  display: 'block' 
+  display: 'block'
 }} />
 ```
 
@@ -1423,14 +1423,14 @@ openyida publish project/pages/src/<文件名>.js <appType> <formUuid>
 
 ## 常见问题
 
-**Q：图片显示不全？**  
+**Q：图片显示不全？**
 A：使用 `objectFit: 'contain'` 而不是 `cover`，确保图片完整显示。
 
-**Q：移动端文字太小？**  
+**Q：移动端文字太小？**
 A：为移动端单独设置更大的字体大小，使用 `isPortraitMobile` 条件判断。
 
-**Q：演讲笔无法翻页？**  
+**Q：演讲笔无法翻页？**
 A：确保监听了 `PageDown` 和 `PageUp` 键盘事件。
 
-**Q：分页点太多？**  
+**Q：分页点太多？**
 A：使用动态计算只显示部分分页点，当前页居中。

@@ -32,7 +32,7 @@ export function renderJsx() {
     hover:        'var(--color-brand1-9)',  // 通用悬停背景色，用于列表行 hover、菜单项 hover
     active:       'var(--color-brand1-9)',  // 通用激活/按下态，点击时的视觉反馈
     disabled:     'var(--color-brand1-8)',  // 禁用态颜色，用于不可操作的按钮、控件
-    primaryLight: 'var(--color-brand1-2)',  // 主色浅背景，用于选中行底色、标签高亮背景    
+    primaryLight: 'var(--color-brand1-2)',  // 主色浅背景，用于选中行底色、标签高亮背景
 
     // 语义色
     success:        '#52C41A',
@@ -297,11 +297,11 @@ empty: {
 
 > 参考 `frontend-design` skill 的 anti-patterns 清单，结合宜搭场景整理：
 
-❌ **禁止使用纯灰白 + 无边框的平淡布局**，至少加 `boxShadow` 或 `border` 区分层次  
-❌ **禁止所有文字都用同一颜色**，主文字/次要文字/辅助文字应有明显区分  
-❌ **禁止按钮没有视觉反馈**，hover/active 状态要有颜色变化  
-❌ **禁止间距随意**，所有 margin/padding 必须是 4px 的倍数  
-❌ **禁止卡片没有圆角**，统一使用 `borderRadius: '8px'`  
-❌ **禁止忽略空状态**，列表/数据为空时必须有友好提示  
-❌ **禁止忽略加载状态**，异步操作必须有 loading 反馈  
-❌ **禁止移动端不适配**，所有页面必须用 `isMobile` 做响应式处理  
+❌ **禁止使用纯灰白 + 无边框的平淡布局**，至少加 `boxShadow` 或 `border` 区分层次
+❌ **禁止所有文字都用同一颜色**，主文字/次要文字/辅助文字应有明显区分
+❌ **禁止按钮没有视觉反馈**，hover/active 状态要有颜色变化
+❌ **禁止间距随意**，所有 margin/padding 必须是 4px 的倍数
+❌ **禁止卡片没有圆角**，统一使用 `borderRadius: '8px'`
+❌ **禁止忽略空状态**，列表/数据为空时必须有友好提示
+❌ **禁止忽略加载状态**，异步操作必须有 loading 反馈
+❌ **禁止移动端不适配**，所有页面必须用 `isMobile` 做响应式处理

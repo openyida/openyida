@@ -199,9 +199,9 @@ jobs:
 
               print(f"  ✨ 新贡献者: {login}")
               avatar_url_v4 = re.sub(r'\?v=\d+', '?v=4', contributor["avatar_url"])
-              avatar_48 = f"{avatar_url_v4}&s=48"
+              avatar_40 = f"{avatar_url_v4}&s=40"
               new_html_parts.append(
-                  f'<a href="{contributor["html_url"]}"><img src="{avatar_48}" width="48" height="48" alt="{login}" title="{login}"/></a>'
+                  f'<a href="{contributor["html_url"]}"><img align="left" src="{avatar_40}" width="40" height="40" alt="{login}" title="{login}"/></a>'
               )
 
           if not new_html_parts:
@@ -210,17 +210,18 @@ jobs:
 
           print(f"\n📝 添加 {len(new_html_parts)} 位新贡献者到 README...")
 
-          new_html_str = " " + " ".join(new_html_parts)
-          pattern = r'(##\s+贡献者.*?<p align="left">)(.*?)(</p>)'
+          new_html_str = "\n".join(new_html_parts)
+          pattern = r'(##\s+(?:Contributors|贡献者).*?<p align="left">\n?)(.*?)(\n?<br clear="left" */>\n?</p>)'
 
           def replacer(m):
               existing_block = m.group(2).rstrip()
-              return m.group(1) + existing_block + new_html_str + "\n" + m.group(3)
+              separator = "\n" if existing_block else ""
+              return m.group(1) + existing_block + separator + new_html_str + m.group(3)
 
           updated_content = re.sub(pattern, replacer, readme_content, flags=re.DOTALL)
 
           if updated_content == readme_content:
-              print("⚠️  未找到 contributors 区域（## 贡献者 + <p align=\"left\">），跳过更新")
+              print("⚠️  未找到 contributors 区域（## Contributors/贡献者 + <p align=\"left\"> + <br clear=\"left\" />），跳过更新")
               sys.exit(0)
 
           with open("README.md", "w", encoding="utf-8") as f:

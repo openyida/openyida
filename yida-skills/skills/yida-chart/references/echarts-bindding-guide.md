@@ -159,13 +159,13 @@ filterKey 嵌套在组件的 `props.dataSetModelMap.<dataSetKey>.dataViewQueryMo
 ```javascript
 // ✅ 正确：每个组件有独立的 filterKey
 var REPORT_COMPONENTS = {
-  indicator: { 
+  indicator: {
     cid: 'node_aaa', cname: '客户总数',
     className: 'YoushuSimpleIndicatorCard',
     dataSetKey: 'youshuData',
     filterKey: 'filter-k2wu-qq5l-fibv-dthq',
   },
-  pie: { 
+  pie: {
     cid: 'node_bbb', cname: '行业分布',
     className: 'YoushuPieChart',
     dataSetKey: 'chartData',

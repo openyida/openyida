@@ -169,12 +169,13 @@ openyida publish project/pages/src/employee-query.jsx APP_XXX FORM-QUERY001
    }
    ```
 
-   > **生成代码时的自检清单**：检查 `renderJsx` 中所有 `onClick`、`onChange`、`onSubmit` 等事件属性，确保每一个都是 `(e) => { this.xxx(e) }` 形式，不存在任何 `onClick={this.xxx}` 的写法。
+     > **生成代码时的自检清单**：检查 `renderJsx` 中所有 `onClick`、`onChange`、`onSubmit` 等事件属性，确保每一个都是 `(e) => { this.xxx(e) }` 形式，不存在任何 `onClick={this.xxx}` 的写法。
 
-   // ❌ 错误③：在 .map(function(){}) 普通函数回调中使用箭头函数事件处理器，this 已在 function 回调里丢失，箭头函数捕获的 this 是 undefined！
-   export function renderJsx() {
-     return (
-       <div>
+     ```javascript
+     // ❌ 错误③：在 .map(function(){}) 普通函数回调中使用箭头函数事件处理器，this 已在 function 回调里丢失，箭头函数捕获的 this 是 undefined！
+     export function renderJsx() {
+       return (
+         <div>
          {quickBtns.map(function(btn, idx) {
            return (
              <button
@@ -295,7 +296,7 @@ openyida publish project/pages/src/employee-query.jsx APP_XXX FORM-QUERY001
     this.utils.toast({ title: '调试信息', type: 'info' });
     ```
 
-15. **iframe 嵌入表单 URL 规范**：在自定义页面中通过 iframe 嵌入宜搭表单时，需使用正确的 URL 格式：
+16. **iframe 嵌入表单 URL 规范**：在自定义页面中通过 iframe 嵌入宜搭表单时，需使用正确的 URL 格式：
 
     | 场景 | URL 格式 |
     |------|----------|
@@ -313,7 +314,7 @@ openyida publish project/pages/src/employee-query.jsx APP_XXX FORM-QUERY001
 
     > `viewUuid` 可选，从宜搭「数据管理」→「报表视图」页面的 URL 中获取，不传则使用默认视图。
 
-16. **下拉选项控制选项卡（Tabs）表格页显示/隐藏**：当页面中存在选项卡组件包含多个表格页，需要根据下拉选择框的值动态控制特定表格页的显示或隐藏时，使用状态驱动的条件渲染实现。
+17. **下拉选项控制选项卡（Tabs）表格页显示/隐藏**：当页面中存在选项卡组件包含多个表格页，需要根据下拉选择框的值动态控制特定表格页的显示或隐藏时，使用状态驱动的条件渲染实现。
 
     **实现要点**：
     - 用 `_customState.selectedType` 记录下拉选中值，`onChange` 时调用 `setCustomState` 触发重渲染
@@ -322,9 +323,9 @@ openyida publish project/pages/src/employee-query.jsx APP_XXX FORM-QUERY001
     - Tab 内容区使用 `display: none` 而非条件渲染，保留 DOM 避免 iframe 重复加载
     - 所有 Tab 均被隐藏时展示兜底提示，提升用户体验
 
-    完整示例代码见：[`examples/tabs-visibility-control.js`](./examples/tabs-visibility-control.js)
+    该场景按上述状态机规则实现即可；当前技能包不提供单独示例文件，避免尝试读取不存在的 `examples/tabs-visibility-control.js`。
 
-17. 字段 ID 语义化别名约定
+18. 字段 ID 语义化别名约定
 
 宜搭表单字段 ID 通常是随机字符串（如 `textField_k8j2n3m4`），直接在代码中使用可读性差、维护困难。**推荐在文件顶部统一定义字段别名常量**，在代码中始终使用别名引用字段 ID。
 

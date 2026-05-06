@@ -257,7 +257,7 @@
 
 **原因**: 字段配置格式错误导致 Schema 构建失败
 
-**解决**: 
+**解决**:
 1. 检查所有 SelectField/RadioField 是否加了 `_value` 后缀
 2. 检查 DateField 是否使用了原始 fieldCode
 3. 检查 `dataType` 是否与字段类型匹配

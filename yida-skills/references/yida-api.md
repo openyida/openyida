@@ -811,7 +811,7 @@ export function closeDialog() {
     title: '处理中',
     content: '请稍候...',
   });
-  
+
   // 3秒后自动关闭
   setTimeout(() => dialog.hide(), 3000);
 }
@@ -1174,7 +1174,7 @@ this.utils.router.push('https://www.example.com', {}, false);
    ```javascript
    // 跳转时传参
    this.utils.router.push('FORM-XXX', { orderId: '123', action: 'edit' }, false);
-   
+
    // 目标页面获取参数
    export function didMount() {
      const orderId = this.state.urlParams.orderId;  // '123'
@@ -1240,7 +1240,7 @@ export function previewImg() {
   this.utils.previewImage({
     current: 'https://img.alicdn.com/tfs/TB1xxx.png',
   });
-  
+
   // 多图预览
   this.utils.previewImage({
     current: 'https://img.alicdn.com/tfs/TB1xxx.png',
@@ -1289,7 +1289,7 @@ export function showLoadingToast() {
     type: 'loading',
     size: 'large',
   });
-  
+
   // 3秒后关闭
   setTimeout(close, 3000);
 }
@@ -1302,3 +1302,4 @@ export function showError() {
     duration: 3000,
   });
 }
+```
