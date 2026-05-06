@@ -12,6 +12,7 @@ const {
   isCsrfTokenExpired,
   loadCookieData,
   detectActiveTool,
+  resolveWukongWorkspaceRoot,
 } = require('../lib/core/utils');
 
 // ── extractInfoFromCookies ────────────────────────────────────────────
@@ -273,7 +274,20 @@ describe('detectActiveTool', () => {
     process.env.AGENT_WORK_ROOT = '/home/user/.real/workspace';
     const result = detectActiveTool();
     expect(result.tool).toBe('wukong');
-    expect(result.workspaceRoot).toContain('project');
+    expect(result.workspaceRoot).toBe('/home/user/.real/workspace');
+  });
+
+  test('resolveWukongWorkspaceRoot 优先使用已有 config.json 的真实工作区', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wukong-root-'));
+    const workspace = path.join(root, 'workspace');
+    fs.mkdirSync(workspace, { recursive: true });
+    fs.writeFileSync(path.join(workspace, 'config.json'), '{}', 'utf8');
+
+    try {
+      expect(resolveWukongWorkspaceRoot(root)).toBe(workspace);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
   });
 
   test('TERM_PROGRAM=vscode 且有 .aone_copilot 目录时检测为 Aone Copilot', () => {

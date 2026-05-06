@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const { run, detectEnvironment, detectLoginStatus } = require('../lib/core/env');
+const { run, detectEnvironment, detectLoginStatus, buildEnvironmentSnapshot } = require('../lib/core/env');
 
 // ── detectEnvironment ─────────────────────────────────────────────────
 
@@ -46,11 +46,11 @@ describe('detectEnvironment', () => {
     }
   });
 
-  test('悟空工具的 workspaceRoot 指向 .real/workspace/project', () => {
+  test('悟空工具的 workspaceRoot 指向 .real/workspace', () => {
     const { results } = detectEnvironment();
     const wukong = results.find((item) => item.dirName === '.real');
     if (wukong) {
-      expect(wukong.workspaceRoot).toContain(path.join('.real', 'workspace', 'project'));
+      expect(wukong.workspaceRoot).toContain(path.join('.real', 'workspace'));
     }
   });
 
@@ -164,6 +164,32 @@ describe('detectLoginStatus', () => {
 // ── run ───────────────────────────────────────────────────────────────
 
 describe('run', () => {
+  test('--json 输出机器可读环境快照', () => {
+    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    let output;
+
+    try {
+      run(['--json']);
+      output = consoleLogSpy.mock.calls.map((call) => call.join('')).join('');
+    } finally {
+      consoleLogSpy.mockRestore();
+    }
+
+    const parsed = JSON.parse(output);
+    expect(parsed).toHaveProperty('ok', true);
+    expect(parsed).toHaveProperty('system.node');
+    expect(parsed).toHaveProperty('active.projectRoot');
+    expect(parsed).toHaveProperty('login.loggedIn');
+  });
+
+  test('buildEnvironmentSnapshot 不返回明文 csrf token', () => {
+    const snapshot = buildEnvironmentSnapshot();
+    expect(snapshot).toHaveProperty('login.csrfToken');
+    if (snapshot.login.csrfToken) {
+      expect(snapshot.login.csrfToken.endsWith('...')).toBe(true);
+    }
+  });
+
   test('无活跃 AI 工具时，使用 findProjectRoot 检测 project 登录态', () => {
     const workspaceRoot = path.join(os.tmpdir(), `yida-env-run-${Date.now()}`);
     const projectRoot = path.join(workspaceRoot, 'project');

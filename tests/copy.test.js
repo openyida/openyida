@@ -221,9 +221,9 @@ describe('resolveDestBaseFromEnv 逻辑验证', () => {
   const os = require('os');
   const path = require('path');
 
-  test('悟空环境且有 activeProjectRoot 时，返回其父目录', () => {
-    const activeProjectRoot = path.join(os.homedir(), '.real', 'workspace', 'project');
-    const expectedBase = path.join(os.homedir(), '.real', 'workspace');
+  test('悟空环境且 activeProjectRoot 是扁平工作区时，返回工作区本身', () => {
+    const activeProjectRoot = path.join(os.homedir(), '.real', 'workspace');
+    const expectedBase = activeProjectRoot;
 
     // 模拟 resolveDestBaseFromEnv 的核心逻辑
     const activeToolName = '悟空（Wukong）';
@@ -233,7 +233,9 @@ describe('resolveDestBaseFromEnv 逻辑验证', () => {
 
     let destBase;
     if (isWukong) {
-      destBase = activeProjectRoot ? path.dirname(activeProjectRoot) : path.join(os.homedir(), '.real', 'workspace');
+      destBase = activeProjectRoot
+        ? (path.basename(activeProjectRoot) === 'project' ? path.dirname(activeProjectRoot) : activeProjectRoot)
+        : path.join(os.homedir(), '.real', 'workspace');
     } else if (activeToolName) {
       destBase = process.cwd();
     }
@@ -252,7 +254,9 @@ describe('resolveDestBaseFromEnv 逻辑验证', () => {
     const activeProjectRoot = null;
     let destBase;
     if (isWukong) {
-      destBase = activeProjectRoot ? path.dirname(activeProjectRoot) : path.join(os.homedir(), '.real', 'workspace');
+      destBase = activeProjectRoot
+        ? (path.basename(activeProjectRoot) === 'project' ? path.dirname(activeProjectRoot) : activeProjectRoot)
+        : path.join(os.homedir(), '.real', 'workspace');
     }
 
     expect(destBase).toBe(expectedBase);

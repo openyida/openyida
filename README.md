@@ -54,9 +54,12 @@ Run this from the AI coding workspace where you want OpenYida to operate:
 
 ```bash
 openyida env
+openyida env --json
+openyida commands --json
 ```
 
-OpenYida detects the active agent environment, workspace path, login state, and organization context.
+OpenYida detects the active agent environment, workspace path, login state, and organization context. Use `--json` when an agent needs a stable machine-readable snapshot.
+`openyida commands --json` emits the command manifest used by the CLI help, so agents can inspect available routes without scraping terminal output.
 
 ### 3. Log In
 
@@ -64,12 +67,14 @@ OpenYida detects the active agent environment, workspace path, login state, and 
 openyida login
 ```
 
-In Codex and Qoder, OpenYida uses the built-in browser handoff when no valid cached login exists. For terminal QR login, use:
+In Codex, Qoder, and Wukong, OpenYida uses the built-in browser handoff when no valid cached login exists. For terminal QR login, use:
 
 ```bash
 openyida login --qr
 openyida login --qr --corp-id dingxxxxxxxx
 ```
+
+OpenYida does not install Playwright by default. The default login paths are cached Cookie reuse, terminal QR login, and AI-tool browser handoff.
 
 ### 4. Build With an AI Agent
 
@@ -195,7 +200,9 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida env` | Detect the active AI tool environment and login state |
+| `openyida env [--json]` | Detect the active AI tool environment and login state |
+| `openyida env <list\|show\|switch\|add\|remove>` | Manage public/private Yida environment profiles |
+| `openyida commands [--json]` | Emit the machine-readable command manifest |
 | `openyida login [--qr\|--browser] [--corp-id <corpId>]` | Log in to Yida |
 | `openyida logout` | Log out or switch account |
 | `openyida auth <status\|login\|refresh\|logout>` | Manage login status |
@@ -338,7 +345,7 @@ Useful checks:
 | `npm run check:structure` | Validate project structure |
 | `npm run check:package` | Validate npm package contents |
 
-When adding new CLI commands, register them in `bin/yida.js`, add user-facing documentation here, and keep agent skills in `yida-skills/` aligned when the workflow changes.
+When adding new CLI commands, register the route in `bin/yida.js`, add it to `lib/core/command-manifest.js`, update user-facing documentation here, and keep agent skills in `yida-skills/` aligned when the workflow changes.
 
 ## Security and Configuration
 

@@ -86,4 +86,22 @@ describe('codexLogin', () => {
     });
     expect(chalk.warn).not.toHaveBeenCalled();
   });
+
+  test('悟空环境下返回内置浏览器登录 handoff，browser 为 wukong', async () => {
+    delete process.env.CODEX_SHELL;
+    delete process.env.CODEX_CI;
+    delete process.env.CODEX_THREAD_ID;
+    delete process.env.CODEX_HOME;
+    process.env.AGENT_WORK_ROOT = '/tmp/.real/users/user-test';
+
+    const result = await codexLogin();
+
+    expect(result).toMatchObject({
+      status: 'need_codex_browser_login',
+      browser: 'wukong',
+      login_url: 'https://www.aliwork.com/workPlatform',
+      can_auto_use: false,
+    });
+    expect(chalk.warn).not.toHaveBeenCalled();
+  });
 });

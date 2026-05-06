@@ -36,7 +36,7 @@ afterEach(() => {
 
 describe('SUPPORTED_LANGUAGES', () => {
   test('包含所有预期语言代码', () => {
-    const expected = ['zh', 'zh-TW', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'pt', 'vi', 'hi', 'ar'];
+    const expected = ['zh', 'zh-HK', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'pt', 'vi', 'hi', 'ar'];
     expect(SUPPORTED_LANGUAGES).toEqual(expected);
   });
 
@@ -53,9 +53,14 @@ describe('setLanguage / getLanguage', () => {
     expect(getLanguage()).toBe('en');
   });
 
-  test('切换到繁体中文后 getLanguage 返回 zh-TW', () => {
+  test('切换到繁体中文后 getLanguage 返回 zh-HK', () => {
+    setLanguage('zh-HK');
+    expect(getLanguage()).toBe('zh-HK');
+  });
+
+  test('旧 zh-TW 输入会兼容映射到 zh-HK', () => {
     setLanguage('zh-TW');
-    expect(getLanguage()).toBe('zh-TW');
+    expect(getLanguage()).toBe('zh-HK');
   });
 
   test('设置不支持的语言时不生效，保持原语言', () => {
@@ -86,14 +91,14 @@ describe('detectLanguage', () => {
     expect(detectLanguage()).toBe('en');
   });
 
-  test('OPENYIDA_LANG=zh-TW 时检测为 zh-TW', () => {
-    process.env.OPENYIDA_LANG = 'zh-TW';
-    expect(detectLanguage()).toBe('zh-TW');
+  test('OPENYIDA_LANG=zh-HK 时检测为 zh-HK', () => {
+    process.env.OPENYIDA_LANG = 'zh-HK';
+    expect(detectLanguage()).toBe('zh-HK');
   });
 
-  test('OPENYIDA_LANG=zh-HK 时映射为 zh-TW', () => {
-    process.env.OPENYIDA_LANG = 'zh-HK';
-    expect(detectLanguage()).toBe('zh-TW');
+  test('OPENYIDA_LANG=zh-TW 时兼容映射为 zh-HK', () => {
+    process.env.OPENYIDA_LANG = 'zh-TW';
+    expect(detectLanguage()).toBe('zh-HK');
   });
 
   test('OPENYIDA_LANG=en-US 时提取主语言代码 en', () => {
@@ -113,11 +118,18 @@ describe('detectLanguage', () => {
     expect(detectLanguage()).toBe('ko');
   });
 
-  test('系统 LANG=zh_TW.UTF-8 时检测为 zh-TW', () => {
+  test('系统 LANG=zh_HK.UTF-8 时检测为 zh-HK', () => {
+    delete process.env.OPENYIDA_LANG;
+    process.env.LANG = 'zh_HK.UTF-8';
+    delete process.env.LC_ALL;
+    expect(detectLanguage()).toBe('zh-HK');
+  });
+
+  test('系统 LANG=zh_TW.UTF-8 时兼容映射为 zh-HK', () => {
     delete process.env.OPENYIDA_LANG;
     process.env.LANG = 'zh_TW.UTF-8';
     delete process.env.LC_ALL;
-    expect(detectLanguage()).toBe('zh-TW');
+    expect(detectLanguage()).toBe('zh-HK');
   });
 
   test('LC_ALL 优先于 LANG', () => {

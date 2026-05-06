@@ -293,6 +293,19 @@ describe('EnvironmentChecker', () => {
     cleanupTempDir(tmpDir);
   });
 
+  test('checkOptionalBrowserLogin 未安装 Playwright 时仍通过', () => {
+    const tmpDir = createTempProject();
+    const checker = new EnvironmentChecker({ projectRoot: tmpDir });
+    const result = checker.checkOptionalBrowserLogin();
+
+    expect(result.id).toBe('env-playwright');
+    expect(result.passed).toBe(true);
+    expect(result.severity).toBe('info');
+    expect(result.fixType).toBeNull();
+
+    cleanupTempDir(tmpDir);
+  });
+
   test('check 返回所有检查结果', async () => {
     const tmpDir = createTempProject();
     const checker = new EnvironmentChecker({ projectRoot: tmpDir });

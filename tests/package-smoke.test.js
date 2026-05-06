@@ -2,11 +2,17 @@
 
 const path = require('path');
 const { spawnSync } = require('child_process');
+const packageJson = require('../package.json');
 
 const ROOT = path.join(__dirname, '..');
 const NPM_BIN = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 describe('npm package smoke', () => {
+  test('runtime dependencies stay lightweight for agent installs', () => {
+    expect(packageJson.dependencies).not.toHaveProperty('playwright');
+    expect(packageJson.dependencies).not.toHaveProperty('playwright-core');
+  });
+
   test('dry-run package includes runtime assets and excludes local-only files', () => {
     const result = spawnSync(NPM_BIN, ['pack', '--dry-run', '--json'], {
       cwd: ROOT,

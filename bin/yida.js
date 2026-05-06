@@ -5,74 +5,72 @@
  * 安装：npm install -g openyida
  * 用法：openyida <命令> [参数]（别名：yida）
  *
- * 命令列表：
- *   openyida env                                        检测当前 AI 工具环境和登录态
- *   openyida copy [--force]                             复制 project 工作目录到当前 AI 工具环境
- *   openyida sample [--list]                             输出代码示例/模板
- *   openyida login [--qr|--browser] [--corp-id <corpId>]  登录态管理（--qr 使用终端二维码，--browser 使用内置浏览器）
- *   openyida logout                                     退出登录
- *   openyida auth status                                查看当前登录状态
- *   openyida auth login                                 执行登录
- *   openyida auth refresh                               刷新登录态
- *   openyida auth logout                                退出登录
- *   openyida org list                                   列出可访问的组织
- *   openyida org switch --corp-id <corpId>              切换组织（无需重新登录）
- *   openyida app-list [--size N]                        查询我的应用列表
- *   openyida create-app "<名称>" [desc] [icon] [color] [colour] [navTheme] [layout]  创建应用
- *   openyida create-page <appType> "<页面名>"            创建自定义页面
- *   openyida create-form create <appType> "<表单名>" <字段JSON> [--layout <布局>] [--theme <主题>] [--label-align <对齐>]  创建表单页面
- *   openyida create-form update <appType> <formUuid> <修改JSON>  更新表单页面
- *   openyida get-schema <appType> <formUuid>            获取表单 Schema
- *   openyida generate-page <template> [--spec file]      基于高质量模板生成自定义页面
- *   openyida check-page <源文件路径> [--json]             检查自定义页面是否符合宜搭规范
- *   openyida compile <源文件路径>                        只编译自定义页面，不发布
- *   openyida publish <源文件路径> <appType> <formUuid>   编译并发布自定义页面
- *   openyida verify-short-url <appType> <formUuid> <url>           验证短链接 URL 是否可用
- *   openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]  保存公开访问/分享配置
- *   openyida get-page-config <appType> <formUuid>       查询页面公开访问/分享配置
- *   openyida update-form-config <appType> <formUuid> <isRenderNav> <title>  更新表单配置
- *   openyida update-app <appType> --name "新名称" [--desc "描述"] [--icon "图标"]  更新应用信息
- *   openyida data <action> <resource> [args]            统一数据管理（表单/流程/任务/子表单）
- *   openyida task-center <type> [--page N] [--size N] [--keyword TEXT]  全局任务中心（待办/我创建的/我已处理/抄送/代提交）
- *   openyida doctor [选项]                              检查环境依赖，诊断应用问题
- *   openyida export <appType> [output]                  导出应用所有表单 Schema（生成迁移包）
- *   openyida import <file> [name]                       导入迁移包，在目标环境重建应用
- *   openyida get-permission <appType> <formUuid>        查询表单权限配置
- *   openyida save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  保存表单权限配置
- *   openyida process preview <appType> <processInstanceId> [--output <path>]  预览流程实例（生成可视化流程图）
- *   openyida connector list [选项]                       列出 HTTP 连接器
- *   openyida connector create "名称" "域名" --operations <file> [选项]  创建连接器
- *   openyida connector detail <connector-id>             查看连接器详情
- *   openyida connector delete <connector-id> [--force]  删除连接器
- *   openyida connector add-action --operations <file> --connector-id <id> [--confirm]  添加执行动作
- *   openyida connector list-actions <connector-id>       列出执行动作
- *   openyida connector delete-action <connector-id> <operation-id> [--force]  删除执行动作
- *   openyida connector test --connector-id <id> --action <actionId> [选项]  测试执行动作
- *   openyida connector list-connections <connector-id>   列出鉴权账号
- *   openyida connector create-connection <connector-id> <name> [选项]  创建鉴权账号
- *   openyida connector smart-create --curl "curl命令" [选项]  智能创建连接器
- *   openyida connector parse-api [选项]                  解析接口信息
- *   openyida connector gen-template [输出路径]            生成接口文档模板
- *   openyida integration create <appType> <formUuid> <flowName> [选项]  创建集成&自动化逻辑流
- *   openyida create-report <appType> "<报表名称>" <图表定义JSON或文件路径>  创建宜搭报表
- *   openyida append-chart <appType> <reportId> <图表定义JSON或文件路径>    向已有报表追加图表
- *   openyida dws <command> [args]                        钉钉 CLI（通讯录/日历/待办/审批等）
- *   openyida update                                       检查并更新 openyida 到最新版本
+ * 命令清单维护在 lib/core/command-manifest.js，供 help 和 agent JSON 共用。
  */
 
 'use strict';
 
-const { checkUpdate } = require('../lib/core/check-update');
 const { version: currentVersion } = require('../package.json');
 const { t } = require('../lib/core/i18n');
-const { warn, fail } = require('../lib/core/chalk');
-
-// 异步检查更新，fire-and-forget，不阻塞主流程
-const updateCheckPromise = checkUpdate(currentVersion);
-updateCheckPromise.catch(() => {});
+const { warn } = require('../lib/core/chalk');
+const { COMMAND_GROUPS, buildCommandManifest } = require('../lib/core/command-manifest');
 
 const command = process.argv[2];
 const args = process.argv.slice(3);
+
+function isAgentEnvironment(env) {
+  return !!(
+    env.CODEX_SHELL ||
+    env.CODEX_CI ||
+    env.CODEX_THREAD_ID ||
+    env.CODEX_HOME ||
+    env.CLAUDE_CODE ||
+    env.OPENCODE ||
+    env.QODER_IDE ||
+    env.QODER_AGENT ||
+    env.CURSOR_TRACE_ID ||
+    env.AGENT_WORK_ROOT ||
+    env.OPENYIDA_AGENT_MODE ||
+    (env.__CFBundleIdentifier || '').toLowerCase().includes('codex')
+  );
+}
+
+function shouldRunUpdateCheck() {
+  if (process.env.OPENYIDA_SKIP_UPDATE_CHECK || process.env.NO_UPDATE_NOTIFIER) {
+    return false;
+  }
+  if (process.env.CI || isAgentEnvironment(process.env)) {
+    return false;
+  }
+  if (!process.stderr.isTTY) {
+    return false;
+  }
+  if (!command || command === '--help' || command === '-h' || command === '--version' || command === '-v') {
+    return false;
+  }
+  if (command === 'commands') {
+    return false;
+  }
+  if (args.includes('--json') || args.includes('--check-only')) {
+    return false;
+  }
+  return true;
+}
+
+function maybeCheckForUpdate() {
+  if (!shouldRunUpdateCheck()) {
+    return;
+  }
+  const { checkUpdate } = require('../lib/core/check-update');
+  checkUpdate(currentVersion).catch(() => {});
+}
+
+maybeCheckForUpdate();
+
+function shouldUseEnvManagement(argsList) {
+  const subCommand = argsList[0];
+  return !!subCommand && subCommand !== '--json';
+}
 
 function printHelp() {
   const RESET   = '\x1b[0m';
@@ -94,7 +92,12 @@ function printHelp() {
     const maxCmdLen = Math.max(...commands.map(([cmd]) => cmd.length));
     const padWidth = Math.min(maxCmdLen + 2, 50);
     for (const [cmd, desc] of commands) {
-      console.log(`    ${GREEN}${cmd.padEnd(padWidth)}${RESET}${DIM}${desc}${RESET}`);
+      if (cmd.length >= padWidth) {
+        console.log(`    ${GREEN}${cmd}${RESET}`);
+        console.log(`      ${DIM}${desc}${RESET}`);
+      } else {
+        console.log(`    ${GREEN}${cmd.padEnd(padWidth)}${RESET}${DIM}${desc}${RESET}`);
+      }
     }
   }
 
@@ -108,90 +111,12 @@ function printHelp() {
   console.log(`  ${DIM}${t('help.alias')}${RESET}  yida`);
   console.log(SEP);
 
-  // ── 环境 & 认证 ──
-  renderGroup(t('help.group_auth'), [
-    ['login [--qr|--browser] [--corp-id <corpId>]', t('help.cmd_login')],
-    ['logout',                                 t('help.cmd_logout')],
-    ['auth <status|login|refresh|logout>',     t('help.cmd_auth')],
-    ['org <list|switch>',                      t('help.cmd_org')],
-    ['env',                                    t('help.cmd_env')],
-  ]);
-
-  // ── 应用管理 ──
-  renderGroup(t('help.group_app'), [
-    ['app-list [--size N]',                  t('help.cmd_app_list')],
-    ['create-app "<name>" [options]',          t('help.cmd_create_app')],
-    ['update-app <appType> --name "..."',      t('help.cmd_update_app')],
-    ['export <appType> [output]',              t('help.cmd_export')],
-    ['import <file> [name]',                   t('help.cmd_import')],
-  ]);
-
-  // ── 表单 & 页面 ──
-  renderGroup(t('help.group_form'), [
-    ['create-form create <appType> ...',       t('help.cmd_create_form')],
-    ['create-form update <appType> ...',       t('help.cmd_update_form')],
-    ['get-schema <appType> <formUuid>',        t('help.cmd_get_schema')],
-    ['create-page <appType> "<name>"',         t('help.cmd_create_page')],
-    ['generate-page <template>',               t('help.cmd_generate_page')],
-    ['check-page <src>',                       t('help.cmd_check_page')],
-    ['compile <src>',                           t('help.cmd_compile')],
-    ['publish <src> <appType> <formUuid>',     t('help.cmd_publish')],
-    ['update-form-config <appType> ...',       t('help.cmd_update_form_config')],
-  ]);
-
-  // ── 数据 & 权限 ──
-  renderGroup(t('help.group_data'), [
-    ['data <action> <resource> [args]',        t('help.cmd_data')],
-    ['task-center <type> [options]',           t('help.cmd_task_center')],
-    ['get-permission <appType> <formUuid>',    t('help.cmd_get_permission')],
-    ['save-permission <appType> <formUuid> ...', t('help.cmd_save_permission')],
-  ]);
-
-  // ── 流程 ──
-  renderGroup(t('help.group_process'), [
-    ['configure-process <appType> ...',        t('help.cmd_configure_process')],
-    ['create-process <appType> ...',           t('help.cmd_create_process')],
-    ['process preview <appType> ...',          t('help.cmd_process_preview')],
-  ]);
-
-  // ── 页面配置 & 分享 ──
-  renderGroup(t('help.group_share'), [
-    ['verify-short-url <appType> ...',         t('help.cmd_verify_url')],
-    ['save-share-config <appType> ...',        t('help.cmd_save_share')],
-    ['get-page-config <appType> <formUuid>',   t('help.cmd_get_page_config')],
-  ]);
-
-  // ── 报表 ──
-  renderGroup(t('help.group_report'), [
-    ['create-report <appType> "<name>" ...',   t('help.cmd_create_report')],
-    ['append-chart <appType> <reportId> ...',  t('help.cmd_append_chart')],
-  ]);
-
-  // ── 连接器 ──
-  renderGroup(t('help.group_connector'), [
-    ['connector list',                         t('help.cmd_connector_list')],
-    ['connector create "name" "domain" ...',   t('help.cmd_connector_create')],
-    ['connector detail <id>',                  t('help.cmd_connector_detail')],
-    ['connector delete <id>',                  t('help.cmd_connector_delete')],
-    ['connector smart-create --curl "..."',    t('help.cmd_connector_smart')],
-    ['connector <sub-command> --help',         t('help.cmd_connector_more')],
-  ]);
-
-  // ── 集成 & 钉钉 ──
-  renderGroup(t('help.group_integration'), [
-    ['integration create <appType> ...',       t('help.cmd_integration')],
-    ['dws <command> [args]',                   t('help.cmd_dws')],
-  ]);
-
-  // ── 工具 ──
-  renderGroup(t('help.group_utility'), [
-    ['copy [--force]',                         t('help.cmd_copy')],
-    ['sample [--list]',                        t('help.cmd_sample')],
-    ['doctor [--fix]',                         t('help.cmd_doctor')],
-    ['update',                                 t('help.cmd_update')],
-    ['export-conversation [options]',          t('help.cmd_export_conversation')],
-    ['cdn-config / cdn-upload / cdn-refresh',  t('help.cmd_cdn')],
-  ]);
+  for (const group of COMMAND_GROUPS) {
+    renderGroup(
+      t(group.titleKey),
+      group.commands.map(entry => [entry.usage, t(entry.descriptionKey)])
+    );
+  }
 
   // ── 快速上手 ──
   console.log(SEP);
@@ -303,12 +228,12 @@ function printLoginResult(result) {
 function isBrowserHandoffEnvironment() {
   const { detectActiveTool } = require('../lib/core/utils');
   const activeTool = detectActiveTool();
-  return !!activeTool && (activeTool.tool === 'codex' || activeTool.tool === 'qoder');
+  return !!activeTool && (activeTool.tool === 'codex' || activeTool.tool === 'qoder' || activeTool.tool === 'wukong');
 }
 
 function shouldUseBrowserHandoffLogin(cliArgs) {
   if (cliArgs.includes('--qr')) {return false;}
-  if (cliArgs.includes('--browser') || cliArgs.includes('--codex') || cliArgs.includes('--qoder')) {return true;}
+  if (cliArgs.includes('--browser') || cliArgs.includes('--codex') || cliArgs.includes('--qoder') || cliArgs.includes('--wukong')) {return true;}
   return isBrowserHandoffEnvironment();
 }
 
@@ -333,9 +258,20 @@ async function main() {
   }
 
   switch (command) {
+    case 'commands': {
+      const manifest = buildCommandManifest({ t, version: currentVersion });
+      console.log(JSON.stringify(manifest, null, 2));
+      break;
+    }
+
     case 'env': {
-      const { run } = require('../lib/core/env');
-      run();
+      if (shouldUseEnvManagement(args)) {
+        const { run } = require('../lib/core/env-cmd');
+        await run(args);
+      } else {
+        const { run } = require('../lib/core/env');
+        run(args);
+      }
       break;
     }
 
@@ -352,11 +288,11 @@ async function main() {
     }
 
     case 'login': {
-      const { ensureLogin, checkLoginOnly } = require('../lib/auth/login');
+      const { checkLoginOnly } = require('../lib/auth/login');
       if (args[0] === '--check-only') {
         const result = checkLoginOnly({ includeSecrets: args.includes('--with-cookies') });
         console.log(JSON.stringify(result, null, 2));
-      } else if (args.includes('--browser') || args.includes('--codex') || args.includes('--qoder')) {
+      } else if (args.includes('--browser') || args.includes('--codex') || args.includes('--qoder') || args.includes('--wukong')) {
         const { codexLogin } = require('../lib/auth/codex-login');
         const result = await codexLogin();
         printLoginResult(result);
@@ -374,7 +310,13 @@ async function main() {
           printLoginResult(result);
         }
       } else {
-        const result = ensureLogin();
+        const cachedResult = checkLoginOnly({ includeSecrets: true });
+        if (cachedResult.status === 'ok') {
+          printLoginResult(cachedResult);
+          break;
+        }
+        const { qrLogin } = require('../lib/auth/qr-login');
+        const result = await qrLogin({ corpId: getArgValue(args, '--corp-id') });
         console.log(JSON.stringify(result));
       }
       break;
@@ -394,7 +336,7 @@ async function main() {
         authStatus();
       } else if (subCommand === 'login') {
         const loginType = shouldUseBrowserHandoffLogin(args) ? 'browser' : 'qrcode';
-        await authLogin({ type: loginType });
+        await authLogin({ type: loginType, corpId: getArgValue(args, '--corp-id') });
       } else if (subCommand === 'refresh') {
         authRefresh();
       } else if (subCommand === 'logout') {

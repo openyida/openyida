@@ -333,13 +333,26 @@ describe('findProjectRoot 环境检测', () => {
     fs.rmSync(testDir, { recursive: true, force: true });
   });
 
-  test('悟空环境下返回 AGENT_WORK_ROOT/workspace/project', () => {
-    // AGENT_WORK_ROOT 指向 ~/.real/users/user-{uuid}/，workspace 在其下
-    const agentWorkRoot = path.join(os.tmpdir(), '.real', 'users', `user-test-${Date.now()}`);
+  test('悟空环境下优先返回 AGENT_WORK_ROOT 工作区', () => {
+    const agentWorkRoot = path.join(os.tmpdir(), '.real', 'users', `user-test-${Date.now()}`, 'workspace');
     process.env.AGENT_WORK_ROOT = agentWorkRoot;
+
+    fs.mkdirSync(agentWorkRoot, { recursive: true });
+    dirsToCleanup.push(path.join(os.tmpdir(), '.real'));
+
+    const { findProjectRoot: findRoot } = require('../lib/core/utils');
+    const root = findRoot();
+
+    expect(root).toBe(agentWorkRoot);
+  });
+
+  test('悟空旧路径形态下可识别 AGENT_WORK_ROOT/workspace/project', () => {
+    const agentWorkRoot = path.join(os.tmpdir(), '.real', 'users', `user-test-${Date.now()}`);
     const wukongProject = path.join(agentWorkRoot, 'workspace', 'project');
+    process.env.AGENT_WORK_ROOT = agentWorkRoot;
 
     fs.mkdirSync(wukongProject, { recursive: true });
+    fs.writeFileSync(path.join(wukongProject, 'config.json'), '{}', 'utf-8');
     dirsToCleanup.push(path.join(os.tmpdir(), '.real'));
 
     const { findProjectRoot: findRoot } = require('../lib/core/utils');

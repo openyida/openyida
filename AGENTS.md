@@ -19,7 +19,7 @@ openyida/
 │   │   ├── utils.js         # 公共工具函数（Cookie、HTTP、路径等）
 │   │   ├── chalk.js         # 终端彩色输出公共样式模块（统一 chalk 风格）
 │   │   ├── i18n.js          # 国际化支持
-│   │   ├── locales/         # 语言包（zh、en、zh-TW、ja、ko、fr、de、es、pt、ar、hi、vi）
+│   │   ├── locales/         # 语言包（zh、en、zh-HK、ja、ko、fr、de、es、pt、ar、hi、vi）
 │   │   ├── env.js           # 检测 AI 工具环境（Codex/Claude/Cursor/Copilot/Qoder/悟空 等）
 │   │   ├── env-cmd.js       # env 命令入口（显示当前环境信息）
 │   │   ├── env-manager.js   # 多环境配置管理（私有化部署多环境切换）

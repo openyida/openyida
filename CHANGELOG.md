@@ -133,7 +133,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - 多语言 README 支持（13 种语言）：简体中文、繁體中文（台灣/香港）、日本語、한국어、Français、Deutsch、Español、Português、Tiếng Việt、हिन्दी、العربية
-- i18n 国际化扩展：新增 ko、fr、de、es、pt、vi、hi、ar、zh-TW 语言包，支持 12 种语言
+- i18n 国际化扩展：新增 ko、fr、de、es、pt、vi、hi、ar、zh-HK 语言包，支持 12 种语言
 - CI 新增 `concurrency` 配置（自动取消重复运行）和 `permissions: contents: read` 最小权限声明
 - README 顶部添加封面图和 Vernor Vinge 引言
 

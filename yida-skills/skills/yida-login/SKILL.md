@@ -45,15 +45,20 @@ description: 宜搭登录态管理。扫码登录，Cookie 持久化到 .cache/c
 openyida login
 ```
 
-### Codex 登录模式
+默认登录路径不需要 Playwright：优先复用缓存；Codex、Qoder、悟空使用内置浏览器 handoff；其他终端环境使用二维码登录。
 
-在 Codex 中不要安装 Playwright，也不要把 `--codex` 降级成终端二维码接口。Codex 登录应使用内置浏览器：
+### 内置浏览器登录模式
+
+在 Codex、Qoder、悟空中不要安装 Playwright，也不要降级成终端二维码接口。没有有效缓存时，登录应使用宿主自带的内置浏览器：
 
 ```bash
+openyida login --browser
 openyida login --codex
+openyida login --qoder
+openyida login --wukong
 ```
 
-该命令返回 `login_url` handoff。收到 handoff 后，用 Codex in-app browser 打开 `login_url`，让用户用钉钉扫码并等待跳转到宜搭工作台。若后续 CLI 仍缺少 `.cache/cookies*.json`，说明当前环境缺少 Codex 浏览器 Cookie 导出桥接能力，不要手动编造或写入 Cookie。
+这些命令返回 `login_url` handoff。收到 handoff 后，用当前宿主的 in-app browser 打开 `login_url`，让用户用钉钉扫码并等待跳转到宜搭工作台。若后续 CLI 仍缺少 `.cache/cookies*.json`，说明当前环境缺少浏览器 Cookie 导出桥接能力，不要手动编造或写入 Cookie。
 
 ## 输出
 
