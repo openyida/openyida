@@ -160,6 +160,7 @@ openyida app-list --size 20
 openyida create-form create APP_XXX "Customer" fields.json
 openyida create-form update APP_XXX FORM_XXX changes.json
 openyida get-schema APP_XXX FORM_XXX
+openyida get-schema APP_XXX --all --output-dir .cache/schemas
 ```
 
 ### Custom Page Development
@@ -228,7 +229,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida create-form create <appType> "<name>" <fields.json>` | Create a form page |
 | `openyida create-form update <appType> <formUuid> <changes.json>` | Update a form page |
 | `openyida list-forms <appType> [--keyword <text>]` | List forms in an application |
-| `openyida get-schema <appType> <formUuid>` | Fetch form schema |
+| `openyida get-schema <appType> <formUuid\|--all>` | Fetch one form schema or batch export all schemas |
 | `openyida create-page <appType> "<name>"` | Create a custom display page |
 | `openyida generate-page <template> [--spec file]` | Generate custom page source from templates |
 | `openyida check-page <sourceFile> [--json]` | Check page compatibility with Yida runtime rules |
@@ -269,6 +270,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida copy [--force]` | Initialize the local `project/` workspace |
 | `openyida sample [--list]` | Emit sample templates |
 | `openyida doctor [--fix]` | Diagnose and repair environment issues |
+| `openyida formula evaluate <formula\|file> [--schema file]` | Static-check formula syntax and field references |
 | `openyida update` | Update OpenYida through npm |
 | `openyida export-conversation [options]` | Export AI conversation history |
 | `openyida flash-to-prd --file <path> --name "<project>"` | Convert flash notes or meeting notes into a PRD prompt |

@@ -182,7 +182,7 @@ openyida copy
 | `yida-create-page` | `skills/yida-create-page/SKILL.md` | 创建自定义页面，获取 formUuid | `openyida create-page <appType> "<页面名>"` |
 | `yida-create-form-page` | `skills/yida-create-form-page/SKILL.md` | 创建/更新表单页面 | `openyida create-form create <appType> "<表单名>" <字段JSON>` |
 | `yida-create-process` | `skills/yida-create-process/SKILL.md` | 创建流程表单并配置流程 | `openyida create-process <appType> "<表单名>" <字段JSON> <流程JSON>` |
-| `yida-get-schema` | `skills/yida-get-schema/SKILL.md` | 获取表单 Schema，确认字段 ID | `openyida get-schema <appType> <formUuid>` |
+| `yida-get-schema` | `skills/yida-get-schema/SKILL.md` | 获取单个/全部表单 Schema，确认字段 ID | `openyida get-schema <appType> <formUuid>` |
 | `yida-custom-page` | `skills/yida-custom-page/SKILL.md` | 编写自定义页面 JSX 代码规范 | 详见 SKILL.md |
 | `yida-publish-page` | `skills/yida-publish-page/SKILL.md` | 编译并发布自定义页面 | `openyida publish <源文件路径> <appType> <formUuid>` |
 | `yida-page-config` | `skills/yida-page-config/SKILL.md` | 页面公开访问/组织内分享配置 | `openyida verify-short-url <appType> <formUuid> <url>` |
@@ -196,6 +196,8 @@ openyida copy
 | `yida-report` | `skills/yida-report/SKILL.md` | 宜搭原生报表创建（标准报表） | `openyida create-report <appType> "<名称>" <配置>` |
 | `yida-density` | `skills/yida-density/SKILL.md` | 列表/表格页面信息密度选择 | 详见 SKILL.md |
 | `yida-formula` | `skills/yida-formula/SKILL.md` | 公式字段和赋值规则配置 | 详见 SKILL.md |
+| `yida-formula-evaluate` | `skills/yida-formula-evaluate/SKILL.md` | 静态检查公式语法和字段引用 | `openyida formula evaluate <公式或文件>` |
+| `yida-voc` | `skills/yida-voc/SKILL.md` | 需求/故障/性能反馈 VOC 信息整理 | 详见 SKILL.md |
 | `yida-db-seq-fix` | `skills/yida-db-seq-fix/SKILL.md` | PostgreSQL sequence 漂移修复 | `openyida db-seq-fix <配置>` |
 | `yida-export-conversation` | `skills/yida-export-conversation/SKILL.md` | 导出 AI 对话记录 | `openyida export-conversation` |
 | `yida-flash-note-to-prd` | `skills/yida-flash-note-to-prd/SKILL.md` | 闪记/会议纪要转 PRD prompt | `openyida flash-to-prd <文件>` |

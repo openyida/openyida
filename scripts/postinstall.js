@@ -224,7 +224,7 @@ openyida copy
 | 创建自定义页面 | \`../yida-create-page/SKILL.md\` |
 | 创建 / 更新表单页面 | \`../yida-create-form-page/SKILL.md\` |
 | 创建流程表单 | \`../yida-create-process/SKILL.md\` |
-| 获取表单 Schema | \`../yida-get-schema/SKILL.md\` |
+| 获取单个 / 全部表单 Schema | \`../yida-get-schema/SKILL.md\` |
 | 自定义页面 JSX 开发 | \`../yida-custom-page/SKILL.md\` |
 | 发布自定义页面 | \`../yida-publish-page/SKILL.md\` |
 | 页面公开访问 / 分享配置 | \`../yida-page-config/SKILL.md\` |
@@ -236,6 +236,8 @@ openyida copy
 | 图表页面 | \`../yida-chart/SKILL.md\` |
 | 原生报表 | \`../yida-report/SKILL.md\` |
 | 公式字段 | \`../yida-formula/SKILL.md\` |
+| 公式静态检查 | \`../yida-formula-evaluate/SKILL.md\` |
+| VOC 反馈整理 | \`../yida-voc/SKILL.md\` |
 | 闪记 / 会议纪要转 PRD | \`../yida-flash-note-to-prd/SKILL.md\` |
 
 ## 执行规则

@@ -423,6 +423,20 @@ async function main() {
       break;
     }
 
+    case 'formula': {
+      const subCommand = args[0];
+      const subArgs = args.slice(1);
+      if (subCommand === 'evaluate' || subCommand === 'check') {
+        const { run } = require('../lib/formula/evaluate');
+        await run(subArgs);
+      } else {
+        warn(t('cli.formula_usage'));
+        warn(t('cli.formula_example'));
+        process.exit(1);
+      }
+      break;
+    }
+
     case 'generate-page': {
       const { run } = require('../lib/app/generate-page');
       await run(args);
