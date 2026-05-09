@@ -4,7 +4,8 @@
 node_modules/
 
 # build output
-dist/
+/dist/
+mcp-app/dist/
 *.tgz
 
 # TypeScript build outputs
@@ -46,10 +47,12 @@ coverage/
 # AI 工具配置（保留 CLAUDE.md）
 .claude/*
 !.claude/CLAUDE.md
+.qoder/plans/
 
 
 # 根目录缓存（临时文件，不入库）
 .cache/
+!project/.cache/
 # ── openyida 用户工作区 ────────────────────────────
 # 登录态 & Schema 缓存（敏感信息，不入库）
 project/.cache/*
@@ -57,6 +60,8 @@ project/.cache/*
 !project/.cache/demo-*
 
 # 自定义页面编译产物
+/pages/
+project/pages/build/*
 project/pages/dist/*
 !project/pages/dist/.gitkeep
 
@@ -67,8 +72,9 @@ project/pages/tmp/*
 !project/pages/src/demo-*
 
 # 需求文档（保留 demo 示例）
+/prd/
 project/prd/*
 !project/prd/demo-*
 
 project/tmp/
-examples/
+/examples/

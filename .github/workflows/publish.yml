@@ -28,6 +28,12 @@ jobs:
         find lib -name "*.js" -not -path "*/node_modules/*" -not -path "*/babel-transform/*" | while read f; do node --check "$f"; done
         echo "All JS files passed syntax check"
 
+    - name: Validate skills
+      run: npm run check:skills
+
+    - name: Build Wukong skills package
+      run: npm run build:skills
+
     - name: Run tests
       run: npm test
 
@@ -66,19 +72,6 @@ jobs:
           console.log('Updated package.json version to $VERSION');
         "
 
-    - name: Sync version to SKILL.md
-      run: |
-        TAG="${{ github.ref_name }}"
-        VERSION="${TAG#v}"
-        echo "Updating SKILL.md version to $VERSION"
-        node -e "
-          const fs = require('fs');
-          let content = fs.readFileSync('yida-skills/SKILL.md', 'utf8');
-          content = content.replace(/^(\s*version:\s*)([^\n]+)/m, '\$1$VERSION');
-          fs.writeFileSync('yida-skills/SKILL.md', content);
-          console.log('Updated SKILL.md version to $VERSION');
-        "
-
     - name: Determine npm tag
       id: npm-tag
       run: |
@@ -94,17 +87,22 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-    - name: Package yida-skills.zip
+    - name: Build Wukong skills package
+      run: npm run build:skills
+
+    - name: Package openyida-skills.zip
       run: |
-        zip -r yida-skills.zip yida-skills/ -x "*.DS_Store"
-        echo "Packaged yida-skills.zip ($(du -sh yida-skills.zip | cut -f1))"
+        cd dist/skills
+        zip -r ../../openyida-skills.zip openyida/ -x "*.DS_Store"
+        cd ../..
+        echo "Packaged openyida-skills.zip ($(du -sh openyida-skills.zip | cut -f1))"
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ github.ref_name }}
         name: ${{ github.ref_name }}
-        files: yida-skills.zip
+        files: openyida-skills.zip
         prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') || contains(github.ref_name, '-rc') }}
         body: |
           ## 安装 / 更新
@@ -115,12 +113,9 @@ jobs:
 
           安装后即可在 Claude Code / OpenCode / Aone Copilot / Cursor / Qoder / 悟空 中直接使用，零配置。
 
-          ## yida-skills 技能包
+          ## OpenYida 悟空技能包
 
-          下载 `yida-skills.zip` 可手动解压到项目目录使用，或通过以下命令自动安装：
-
-          ```bash
-          openyida copy -skills
-          ```
+          下载 `openyida-skills.zip` 后，在悟空技能中心通过「上传技能」导入。该包按悟空 SKILL.md 规范生成：
+          根目录为 `openyida/`，只包含一个根 `SKILL.md`，长文档和子能力放在 `references/` 中。
 
         generate_release_notes: true

@@ -8,14 +8,32 @@ const { spawnSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const BIN = path.join(ROOT, 'bin', 'yida.js');
-const REQUIRED_ENV = [
+const BASE_REQUIRED_ENV = [
   'OPENYIDA_SMOKE_COOKIES_BASE64',
   'OPENYIDA_SMOKE_APP_TYPE',
-  'OPENYIDA_SMOKE_FORM_UUID',
 ];
 
-function hasRequiredConfig() {
-  const missing = REQUIRED_ENV.filter((name) => !process.env[name]);
+function getSmokeConfig(env = process.env) {
+  const missing = BASE_REQUIRED_ENV.filter((name) => !env[name]);
+  const hasFormSmoke = Boolean(env.OPENYIDA_SMOKE_FORM_UUID);
+  const hasPageSmoke = Boolean(env.OPENYIDA_SMOKE_PAGE_UUID);
+  if (!hasFormSmoke && !hasPageSmoke) {
+    missing.push('OPENYIDA_SMOKE_FORM_UUID or OPENYIDA_SMOKE_PAGE_UUID');
+  }
+  if (env.OPENYIDA_SMOKE_PAGE_SOURCE && !hasPageSmoke) {
+    missing.push('OPENYIDA_SMOKE_PAGE_UUID');
+  }
+  return {
+    missing,
+    appType: env.OPENYIDA_SMOKE_APP_TYPE,
+    formUuid: env.OPENYIDA_SMOKE_FORM_UUID,
+    pageUuid: env.OPENYIDA_SMOKE_PAGE_UUID,
+    pageSource: env.OPENYIDA_SMOKE_PAGE_SOURCE,
+  };
+}
+
+function hasRequiredConfig(env = process.env) {
+  const { missing } = getSmokeConfig(env);
   if (missing.length > 0) {
     console.log(`Skipping real-environment smoke; missing: ${missing.join(', ')}`);
     return false;
@@ -23,14 +41,14 @@ function hasRequiredConfig() {
   return true;
 }
 
-function decodeCookieData() {
-  const raw = Buffer.from(process.env.OPENYIDA_SMOKE_COOKIES_BASE64, 'base64').toString('utf8');
+function decodeCookieData(env = process.env) {
+  const raw = Buffer.from(env.OPENYIDA_SMOKE_COOKIES_BASE64, 'base64').toString('utf8');
   const parsed = JSON.parse(raw);
   const cookieData = Array.isArray(parsed) ? { cookies: parsed } : parsed;
   if (!Array.isArray(cookieData.cookies) || cookieData.cookies.length === 0) {
     throw new Error('OPENYIDA_SMOKE_COOKIES_BASE64 must decode to a cookie array or an object with cookies');
   }
-  cookieData.base_url = process.env.OPENYIDA_SMOKE_BASE_URL || cookieData.base_url || 'https://www.aliwork.com';
+  cookieData.base_url = env.OPENYIDA_SMOKE_BASE_URL || cookieData.base_url || 'https://www.aliwork.com';
   return cookieData;
 }
 
@@ -44,13 +62,13 @@ function writeCookieCache(cookieData) {
   );
 }
 
-function runCli(args) {
+function runCli(args, env = process.env) {
   console.log(`Running: openyida ${args.join(' ')}`);
   const result = spawnSync(process.execPath, [BIN, ...args], {
     cwd: ROOT,
     encoding: 'utf8',
     env: {
-      ...process.env,
+      ...env,
       OPENYIDA_LANG: 'zh',
       CI: '1',
     },
@@ -67,28 +85,50 @@ function runCli(args) {
   console.log(`OK: openyida ${args[0]} (${outputLength} stdout chars)`);
 }
 
-function run() {
-  if (!hasRequiredConfig()) {
+function run(options = {}) {
+  const env = options.env || process.env;
+  const executeCli = options.runCli || runCli;
+  const persistCookieCache = options.writeCookieCache || writeCookieCache;
+  if (!hasRequiredConfig(env)) {
     return;
   }
 
-  const cookieData = decodeCookieData();
-  writeCookieCache(cookieData);
+  const config = getSmokeConfig(env);
+  const cookieData = decodeCookieData(env);
+  persistCookieCache(cookieData);
 
-  const appType = process.env.OPENYIDA_SMOKE_APP_TYPE;
-  const formUuid = process.env.OPENYIDA_SMOKE_FORM_UUID;
+  executeCli(['login', '--check-only'], env);
+  executeCli(['app-list', '--size', '1'], env);
 
-  runCli(['login', '--check-only']);
-  runCli(['app-list', '--size', '1']);
-  runCli(['get-schema', appType, formUuid]);
-  runCli(['data', 'query', 'form', appType, formUuid, '--size', '1']);
+  if (config.pageUuid) {
+    executeCli(['get-schema', config.appType, config.pageUuid], env);
+    if (config.pageSource) {
+      executeCli(['publish', config.pageSource, config.appType, config.pageUuid, '--health-check', '--no-open'], env);
+    }
+  }
+
+  if (config.formUuid) {
+    executeCli(['get-schema', config.appType, config.formUuid], env);
+    executeCli(['data', 'query', 'form', config.appType, config.formUuid, '--size', '1'], env);
+  }
 
   console.log('Nightly real-environment smoke passed');
 }
 
-try {
-  run();
-} catch (error) {
-  console.error(error.message);
-  process.exit(1);
+if (require.main === module) {
+  try {
+    run();
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
 }
+
+module.exports = {
+  decodeCookieData,
+  getSmokeConfig,
+  hasRequiredConfig,
+  run,
+  runCli,
+  writeCookieCache,
+};

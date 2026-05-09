@@ -63,4 +63,32 @@ describe('sample templates', () => {
     expect(minifyResult.error).toBeUndefined();
     expect(minifyResult.code.length).toBeGreaterThan(1000);
   });
+
+  test('todo-mvc sample supports variables and compiles', async () => {
+    const outputPath = path.join(tmpDir, 'todo-mvc.oyd.jsx');
+
+    await run([
+      'yida-custom-page',
+      'todo-mvc',
+      '--output',
+      outputPath,
+      '--var',
+      'TODO_TITLE=团队待办',
+      '--var',
+      'TODO_PLACEHOLDER=输入任务并按 Enter',
+    ]);
+
+    const source = fs.readFileSync(outputPath, 'utf-8');
+    expect(source).toContain("title: '团队待办'");
+    expect(source).toContain("placeholder: '输入任务并按 Enter'");
+    expect(source).toContain('export function renderJsx()');
+    expect(source).not.toContain('{{TODO_TITLE}}');
+
+    const babelResult = babelTransform(source, {}, false, { RE_VERSION: '7.4.0' });
+    expect(babelResult.error).toBeNull();
+
+    const minifyResult = UglifyJS.minify(babelResult.compiled);
+    expect(minifyResult.error).toBeUndefined();
+    expect(minifyResult.code.length).toBeGreaterThan(1000);
+  });
 });

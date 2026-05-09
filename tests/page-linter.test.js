@@ -55,4 +55,63 @@ export function loadRows() {
     expect(errorRules).toContain('page-size-limit');
     expect(warningRules).toContain('yida-api-catch');
   });
+
+  test('allows function callbacks that do not use this and supports line-level disables', () => {
+    const source = `
+export function renderJsx() {
+  var rows = [{ name: 'A' }];
+  var names = rows.map(function(row) { return row.name; });
+  // openyida-lint-disable-next-line array-callback-function
+  var buttons = rows.map(function(row) { return <button onClick={(e) => { this.open(row); }}>{row.name}</button>; });
+  return <div>{names.join(',')}{buttons}</div>;
+}
+`;
+
+    const result = lintYidaSource(source, '/tmp/function-callbacks.jsx');
+    const errorRules = result.errors.map(issue => issue.rule);
+
+    expect(errorRules).not.toContain('array-callback-function');
+  });
+
+  test('blocks legacy ECharts China map script loading', () => {
+    const source = `
+export function renderJsx() {
+  return <div />;
+}
+
+export function didMount() {
+  this.utils.loadScript('https://cdn.example.com/echarts/map/js/china.js');
+}
+`;
+
+    const result = lintYidaSource(source, '/tmp/map.jsx');
+    const errorRules = result.errors.map(issue => issue.rule);
+
+    expect(errorRules).toContain('echarts-legacy-map-china');
+  });
+
+  test('warns about rich text label formatter functions in ECharts options', () => {
+    const source = `
+export function renderJsx() {
+  return <div />;
+}
+
+export function renderChart() {
+  var option = {
+    series: [{
+      label: {
+        formatter: function(params) { return '{name|' + params.name + '}'; },
+        rich: { name: { fontWeight: 700 } },
+      },
+    }],
+  };
+  this.chart.setOption(option);
+}
+`;
+
+    const result = lintYidaSource(source, '/tmp/rich-label.jsx');
+    const warningRules = result.warnings.map(issue => issue.rule);
+
+    expect(warningRules).toContain('echarts-rich-label-formatter');
+  });
 });

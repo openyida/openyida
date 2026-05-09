@@ -716,7 +716,7 @@ function _renderRaceFrame(chart, keyframeIdx, values, chinaLabel, displayYear, i
     });
   }
   // 按值排序（小的在下，大的在上）
-  pairs.sort(function(a, b) { return a.value - b.value; });
+  pairs = _.sortBy(pairs, 'value');
 
   var categories = [];
   var barData = [];
@@ -961,11 +961,11 @@ export function didUnmount() {
 
 export function getCustomState(key) {
   if (key) return _customState[key];
-  return Object.assign({}, _customState);
+  return _.clone(_customState);
 }
 
 export function setCustomState(newState) {
-  Object.assign(_customState, newState);
+  _.assign(_customState, newState);
   this.forceUpdate();
 }
 

@@ -130,4 +130,60 @@ describe('generate-page command', () => {
     expect(manifest.blocks[1].items[0].title).toBe('服务目录');
     expect(fs.statSync(compiledPath).size).toBeGreaterThan(1000);
   });
+
+  test('generates and compiles a TodoMVC interaction page from a spec file', () => {
+    const specPath = path.join(tmpDir, 'todo-page.json');
+    fs.writeFileSync(specPath, JSON.stringify({
+      template: 'todo-mvc',
+      output: 'pages/src/team-todos.oyd.jsx',
+      title: '团队待办',
+      subtitle: '验证事件、状态、循环渲染和本地持久化',
+      placeholder: '输入任务并按 Enter',
+      storageKey: 'openyida.team.todos',
+      todos: [
+        { content: '确认字段模型', done: false },
+        { content: '发布到宜搭测试应用', done: true },
+      ],
+      compile: true,
+    }, null, 2), 'utf8');
+
+    execFileSync(process.execPath, [BIN, 'generate-page', '--spec', specPath], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+
+    const sourcePath = path.join(tmpDir, 'pages', 'src', 'team-todos.oyd.jsx');
+    const buildPath = path.join(tmpDir, 'pages', 'build', 'team-todos.yida.jsx');
+    const compiledPath = path.join(tmpDir, 'pages', 'dist', 'team-todos.yida.js');
+    const manifestPath = path.join(tmpDir, 'pages', 'src', 'team-todos.oyd.openyida-page.json');
+
+    expect(fs.existsSync(sourcePath)).toBe(true);
+    expect(fs.existsSync(buildPath)).toBe(true);
+    expect(fs.existsSync(compiledPath)).toBe(true);
+    expect(fs.existsSync(manifestPath)).toBe(true);
+
+    const source = fs.readFileSync(sourcePath, 'utf8');
+    expect(source).toContain('@openyida-template todo-mvc');
+    expect(source).toContain("title: '团队待办'");
+    expect(source).toContain('确认字段模型');
+    expect(source).toContain('window.localStorage.setItem');
+    expect(source).not.toContain('{{TODO_TITLE}}');
+
+    const built = fs.readFileSync(buildPath, 'utf8');
+    expect(built).toContain('export function renderJsx()');
+    expect(built).toContain('this.state && this.state.timestamp');
+
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    expect(manifest.blocks.map((block) => block.type)).toEqual([
+      'todo-shell',
+      'todo-list',
+      'todo-actions',
+      'persistence',
+    ]);
+    expect(manifest.blocks[1].items).toHaveLength(2);
+    expect(manifest.blocks[3].storageKey).toBe('openyida.team.todos');
+    expect(fs.statSync(compiledPath).size).toBeGreaterThan(1000);
+  });
 });

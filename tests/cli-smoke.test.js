@@ -97,6 +97,7 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('commands [--json]');
     expect(output).toContain('sample [--list]');
     expect(output).toContain('generate-page <template>');
+    expect(output).toContain('build-page <sourceFile>');
     expect(output).toContain('check-page <src>');
     expect(output).toContain('compile <src>');
   });
@@ -123,6 +124,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('login');
     expect(commands).toContain('create-form.create');
     expect(commands).toContain('list-forms');
+    expect(commands).toContain('build-page');
     expect(commands).toContain('connector.smart-create');
     expect(commands).toContain('commands');
     expect(parsed.commands.find(entry => entry.id === 'commands')).toMatchObject({
@@ -136,6 +138,7 @@ describe('CLI offline smoke', () => {
     const output = runOk(['sample', '--list']);
     expect(output).toContain('yida-custom-page');
     expect(output).toContain('product-homepage');
+    expect(output).toContain('todo-mvc');
   });
 
   test('connector --help renders subcommands without network access', () => {

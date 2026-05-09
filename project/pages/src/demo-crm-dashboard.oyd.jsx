@@ -68,7 +68,7 @@ var _customState = {
 
 export function getCustomState(key) {
   if (key) return _customState[key];
-  return Object.assign({}, _customState);
+  return _.clone(_customState);
 }
 
 export function setCustomState(newState) {
@@ -519,7 +519,7 @@ export function renderRecentOpportunities(d) {
             </thead>
             <tbody>
               {opportunities.map(function(item, index) {
-                var formData = item.formData || {};
+                var formData = _.get(item, 'formData', {});
                 var name = formData[FIELDS.opportunityName] || '-';
                 var stage = formData[FIELDS.opportunityStage] || '-';
                 var amount = formData[FIELDS.expectedAmount];

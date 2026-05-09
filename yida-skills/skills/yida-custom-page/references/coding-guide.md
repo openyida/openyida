@@ -8,15 +8,57 @@
 
 | 约束 | 说明 |
 | --- | --- |
-| **React 版本** | 必须兼容 **React 16**，禁止使用 Hooks（`useState`、`useEffect` 等） |
-| **单文件** | 所有代码写在一个文件中（如 `index.js`）|
+| **React 版本** | 宜搭运行时是 **React 16 类组件模型**。原生页面禁止 Hooks；OpenYida `.oyd.jsx` authoring 模式可有限使用 `useState` 与 `useEffect(..., [])`，发布前会降级 |
+| **单文件** | 所有代码写在一个文件中（推荐 `project/pages/src/<页面名>.oyd.jsx`）|
 | **三方包引入** | 禁止使用 `import/require` 语法，如需使用第三方库，必须通过 `this.utils.loadScript` 加载 CDN 脚本，参考 [yida-api.md](../../../references/yida-api.md) 的「工具类 API」章节。|
-| **函数导出格式** | 使用 `export function xxx() {}` 格式导出函数 |
+| **内置 lodash** | 宜搭页面运行时已全局加载 **lodash 4.6.1**（`window._`），可直接使用 `_.get`、`_.groupBy`、`_.cloneDeep` 等，无需 `loadScript`。详见下方「内置 lodash 使用指引」 |
+| **函数导出格式** | 原生写法使用 `export function xxx() {}`；现代 authoring 写法使用 `export default function Page()`，由 OpenYida 编译为原生导出函数 |
 | **样式** | 所有 css 必须写在 renderJsx 的方法中，通过 style 的方式引入 |
 | **`this` 上下文** | 所有导出函数中的 `this` 指向宜搭页面的 React 类实例 |
 | **禁止使用 `this.setState` 管理业务状态** | `this.setState` 已被覆盖，仅用于 `forceUpdate`（通过更新 `timestamp`） |
 | **JavaScript 版本** | 使用 ES2015 (ES6) 语法，不能高于 ES2015 版本。**注意**：即使是 ES6 语法，部分特性也会导致静默失败，详见下方「JS 引擎兼容性限制」 |
-| **必须定义 renderJsx 函数** | renderJsx 是宜搭自定义页面核心渲染函数，也是入口函数，必须严格定义，不要改为其他名称 |
+| **必须定义页面入口** | 原生写法必须定义 `renderJsx`；`.oyd.jsx` authoring 写法必须定义 `export default function Page()` |
+
+---
+
+## 内置 lodash 使用指引
+
+宜搭页面运行时已全局加载 **lodash 4.6.1**（CDN: `https://g.alicdn.com/platform/c/lodash/4.6.1/lodash.min.js`），通过 `window._` 直接可用，**无需 `this.utils.loadScript` 加载**。
+
+### 推荐使用场景
+
+生成自定义页面代码时，遇到以下数据处理需求**优先使用 lodash**，不要手写实现：
+
+| 需求 | lodash 写法 | 替代的手写写法 |
+| --- | --- | --- |
+| 按字段分组 | `_.groupBy(list, 'type')` | 手写 `reduce` + 对象累加 |
+| 去重 | `_.uniq(arr)` / `_.uniqBy(arr, 'id')` | 手写 `filter` + `indexOf` |
+| 安全取值 | `_.get(obj, 'a.b.c', defaultVal)` | 多层 `&&` 判断 |
+| 安全赋值 | `_.set(obj, 'a.b.c', val)` | 逐层判断并创建对象 |
+| 深拷贝 | `_.cloneDeep(obj)` | `JSON.parse(JSON.stringify(obj))` |
+| 排序 | `_.sortBy(list, 'date')` | 手写 `sort` 比较函数 |
+| 扁平化 | `_.flatten(arr)` / `_.flattenDeep(arr)` | 手写递归 concat |
+| 对象 pick/omit | `_.pick(obj, ['a','b'])` / `_.omit(obj, ['c'])` | 手写循环复制 |
+| 防抖/节流 | `_.debounce(fn, 300)` / `_.throttle(fn, 300)` | 手写 `setTimeout` 管理 |
+| 按键索引 | `_.keyBy(list, 'id')` | 手写 `reduce` 构建 map |
+
+### 注意事项
+
+1. **版本是 4.6.1**，不是最新版，但常用 API 均已支持
+2. **直接用 `_` 即可**，不需要声明 `var _ = window._`（已是全局变量）
+3. 不要把 lodash 和「计算属性名」禁令搞混——`_.groupBy` 返回的对象用方括号**读取**属性是安全的，禁止的是**字面量**中的 `{ [key]: value }` 写法
+
+```javascript
+// ✅ 正确：lodash groupBy + 方括号读取
+var grouped = _.groupBy(orders, 'status');
+var pendingOrders = grouped['待审批'] || [];
+
+// ✅ 正确：安全取值，避免层层 && 判断
+var city = _.get(record, 'formData.addressField.city', '未知');
+
+// ✅ 正确：深拷贝替代 JSON.parse(JSON.stringify(...))
+var snapshot = _.cloneDeep(_customState);
+```
 
 ---
 
@@ -97,10 +139,12 @@ export function loadData() { /* this.utils.yida.searchFormDatas(...) */ }
 
 // ── 渲染（页面入口）──────────────────────────────────
 export function renderJsx() {
+  var self = this;
+  var timestamp = this.state && this.state.timestamp;
   return (
     <div>
       {/* 必须保留：触发 forceUpdate 重渲染 */}
-      <div style= display: "none" >{this.state.timestamp}</div>
+      <div style={{ display: 'none' }}>{timestamp}</div>
       {/* 页面内容 */}
     </div>
   );
@@ -108,6 +152,7 @@ export function renderJsx() {
 ```
 
 > 完整可运行模板通过 `openyida sample yida-custom-page custom-page-template` 获取。
+> 原生 `renderJsx` 的每个 `return` 分支都必须包含隐藏 timestamp 节点；`.oyd.jsx` 兼容构建会自动补齐，但手写模板时仍建议显式保留。
 
 ---
 
@@ -193,7 +238,7 @@ const loadStatistics = function() {
 
 ### 2.【严格禁止】事件绑定必须使用箭头函数包裹
 
-在 `renderJsx` 中绑定任何事件处理器（`onClick`、`onChange`、`onSubmit` 等）时，**必须且只能**使用箭头函数 `(e) => { this.方法名(e) }` 的形式，**严禁**直接写 `this.方法名` 作为事件处理器，否则 `this` 会丢失导致运行时报错：
+在 `renderJsx` 中绑定任何事件处理器（`onClick`、`onChange`、`onSubmit` 等）时，推荐先在函数顶部定义 `var self = this`，再使用箭头函数 `(e) => { self.方法名(e) }`。**严禁**直接写 `this.方法名` 或 `.bind(this)` 作为事件处理器，否则容易在宜搭运行时丢失上下文：
 
 ```javascript
 export function handleSubmit(e) {
@@ -201,9 +246,10 @@ export function handleSubmit(e) {
   this.utils.toast({ title: '提交成功', type: 'success' });
 }
 
-// ✅ 正确：箭头函数包裹，this 正确捕获
+// ✅ 正确：renderJsx 顶部固定 self，箭头函数包裹
 export function renderJsx() {
-  return <button onClick={(e) => { this.handleSubmit(e); }}>提交</button>;
+  var self = this;
+  return <button onClick={(e) => { self.handleSubmit(e); }}>提交</button>;
 }
 
 // ❌ 错误①：直接传方法引用，this 丢失，运行时报错，绝对禁止！
@@ -217,7 +263,7 @@ export function renderJsx() {
 }
 ```
 
-> **生成代码时的自检清单**：检查 `renderJsx` 中所有 `onClick`、`onChange`、`onSubmit` 等事件属性，确保每一个都是 `(e) => { this.xxx(e) }` 形式，不存在任何 `onClick={this.xxx}` 的写法。
+> **生成代码时的自检清单**：检查 `renderJsx` 中所有 `onClick`、`onChange`、`onSubmit` 等事件属性，确保每一个都是 `(e) => { self.xxx(e) }` 形式，不存在任何 `onClick={this.xxx}` 或 `.bind(this)` 的写法。
 
 ### 3. 输入法组合输入处理
 
@@ -230,6 +276,8 @@ export function renderJsx() {
 ### 5. 错误处理
 
 所有 API 调用（`this.utils.yida.*`、`fetch`）必须使用 `.catch()` 处理异常，并通过 `this.utils.toast({ title: message, type: 'error' })` 向用户展示错误提示。
+
+列表、工作台、看板页面不要让首屏只依赖线上接口成功。默认状态应提供空态或演示数据；接口失败、超时或返回结构异常时，必须把 `loading` 置回 `false` 并保留可操作页面，避免页面长期显示“加载中...”。
 
 ### 6. 样式方式
 

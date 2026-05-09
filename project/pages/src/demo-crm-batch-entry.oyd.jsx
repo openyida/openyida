@@ -121,7 +121,7 @@ function clearDraft() {
 
 export function getCustomState(key) {
   if (key) return _customState[key];
-  return Object.assign({}, _customState);
+  return _.clone(_customState);
 }
 
 export function setCustomState(newState) {

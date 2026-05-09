@@ -1,0 +1,13 @@
+date,warehouse,sku,category,opening_stock,inbound,outbound,ending_stock,unit_cost,sales_last_7d,stockout_risk
+2026-04-01,Shanghai,A1001,Skincare,3200,800,612,3388,126,1480,low
+2026-04-01,Shanghai,A1002,Skincare,1180,300,246,1234,168,642,medium
+2026-04-01,Guangzhou,A1003,Skincare,820,0,213,607,180,903,high
+2026-04-01,Shanghai,B2001,Home,510,200,76,634,385,244,medium
+2026-04-01,Guangzhou,B2002,Home,430,120,88,462,412,268,high
+2026-04-02,Shanghai,A1001,Skincare,3388,0,681,2707,126,1549,medium
+2026-04-02,Shanghai,A1002,Skincare,1234,0,251,983,168,661,medium
+2026-04-02,Guangzhou,A1003,Skincare,607,300,226,681,180,924,high
+2026-04-02,Shanghai,B2001,Home,634,0,83,551,385,251,medium
+2026-04-02,Guangzhou,B2002,Home,462,0,91,371,412,274,high
+2026-04-03,Shanghai,A1001,Skincare,2707,600,701,2606,126,1610,medium
+2026-04-03,Guangzhou,A1003,Skincare,681,0,238,443,180,949,high

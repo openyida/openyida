@@ -75,4 +75,34 @@ describe('page IR', () => {
       text: '少写 JSX，多填结构。',
     });
   });
+
+  test('normalizes TodoMVC specs into interaction blocks', () => {
+    const ir = normalizePageSpec({
+      template: 'todo-mvc',
+      title: '团队待办',
+      storageKey: 'openyida.team.todos',
+      todos: [
+        { content: '设计字段模型', done: false },
+        { title: '发布页面', status: 'completed' },
+      ],
+    });
+    const variables = buildTemplateVariablesFromIr(ir);
+
+    expect(ir.template).toBe('todo-mvc');
+    expect(ir.blocks.map((block) => block.type)).toEqual([
+      'todo-shell',
+      'todo-list',
+      'todo-actions',
+      'persistence',
+    ]);
+    expect(ir.blocks[0].title).toBe('团队待办');
+    expect(ir.blocks[3].storageKey).toBe('openyida.team.todos');
+    expect(ir.blocks[1].items[1]).toMatchObject({
+      content: '发布页面',
+      done: true,
+    });
+    expect(variables.TODO_TITLE).toBe('团队待办');
+    expect(variables.OPENYIDA_BLOCKS).toBe('todo-shell,todo-list,todo-actions,persistence');
+    expect(JSON.parse(variables.TODO_ITEMS_JSON.replace(/\\\\/g, '\\'))).toHaveLength(2);
+  });
 });

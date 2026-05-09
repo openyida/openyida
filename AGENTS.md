@@ -117,10 +117,11 @@ openyida/
 │   ├── config.json          # 应用配置（appType、pageId 等）
 │   └── pages/               # 自定义页面源码目录
 ├── yida-skills/
-│   ├── SKILL.md             # 技能入口（索引表，列出所有子技能）
+│   ├── SKILL.md             # 源码态技能入口（索引表，列出所有子技能）
 │   ├── skills/              # 子技能目录（每个 skill 自包含 SKILL.md + references/）
 │   └── references/           # 跨 skill 共享参考文档（yida-api、model-api、query-condition-guide）
 └── scripts/
+    ├── build-skills-package.js # 生成悟空可上传的 dist/skills/openyida 技能包
     ├── postinstall.js       # 安装后脚本（环境检测 + 配置注入）
     ├── validate-ci.sh       # CI 校验脚本
     └── validate-structure.js # 项目结构校验
@@ -155,6 +156,7 @@ openyida/
 - `lib/core/utils.js` 的 `detectActiveTool()` 直接读取 `AGENT_WORK_ROOT` 作为工作区根目录
 - `openyida copy` 在**空目录**时会直接把 `project/` 内容铺入工作区（不创建 `project/` 子目录层级）
 - 悟空通过手动上传技能包，`postinstall` 不会自动安装 `yida-skills/`
+- 悟空发布包由 `npm run build:skills` 生成到 `dist/skills/openyida/`。该包只保留一个根 `SKILL.md`，frontmatter 只能包含 `name` 和 `description`，子技能文档会被转换到 `references/subskills/`。
 - 悟空自带 node/npm 路径：macOS/Linux 为 `~/.real/.bin/node/bin/`，Windows 为 `%USERPROFILE%\.real\.bin\node\bin\`。执行任何 `npm`/`node`/`npx` 命令前**必须**先设置 PATH：
   - macOS/Linux：`export PATH="$HOME/.real/.bin/node/bin:$PATH"`
   - Windows (PowerShell)：`$env:PATH = "$env:USERPROFILE\.real\.bin\node\bin;$env:PATH"`
@@ -166,11 +168,13 @@ openyida/
 - 编译产物输出到 `project/pages/dist/`
 
 ### yida-skills 架构规范
-- **入口文件** `yida-skills/SKILL.md` 是索引表，列出所有子技能和共享参考文档
+- **源码目录** 保持为 `yida-skills/`，便于与历史安装路径和 Codex/OpenYida 插件兼容；对外发布的悟空 zip 使用生成目录 `dist/skills/openyida/`
+- **入口文件** `yida-skills/SKILL.md` 是索引表，列出所有子技能和共享参考文档；为兼容悟空上传规范，根 frontmatter 只能包含 `name` 和 `description`
 - **每个子技能**位于 `yida-skills/skills/<skill-name>/` 目录下，包含独立的 `SKILL.md`
 - **专属参考文档**放在各 skill 的 `references/` 目录下（复数形式），实现自包含
 - **跨 skill 共享文档**保留在 `yida-skills/references/` 目录下（`yida-api.md`、`model-api.md`、`query-condition-guide.md`）
 - 新增子技能时，同步更新 `yida-skills/SKILL.md` 的索引表
+- 修改技能结构后运行 `npm run check:skills` 和 `npm run build:skills`，确认源码态和悟空发布态都正确
 
 ## 开发注意事项
 

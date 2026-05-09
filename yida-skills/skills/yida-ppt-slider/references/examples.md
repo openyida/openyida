@@ -234,8 +234,8 @@ export function didUnmount() {
   }
 }
 
-export function getCustomState(key) { if (key) return _customState[key]; return Object.assign({}, _customState); }
-export function setCustomState(newState) { Object.assign(_customState, newState); this.forceUpdate(); }
+export function getCustomState(key) { if (key) return _customState[key]; return _.clone(_customState); }
+export function setCustomState(newState) { _.assign(_customState, newState); this.forceUpdate(); }
 export function forceUpdate() { this.setState({ timestamp: new Date().getTime() }); }
 ```
 

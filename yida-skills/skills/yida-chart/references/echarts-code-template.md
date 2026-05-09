@@ -29,11 +29,11 @@ var _customState = {
 
 export function getCustomState(key) {
   if (key) return _customState[key];
-  return Object.assign({}, _customState);
+  return _.clone(_customState);
 }
 
 export function setCustomState(newState) {
-  Object.assign(_customState, newState);
+  _.assign(_customState, newState);
   this.forceUpdate();
 }
 
@@ -72,6 +72,8 @@ export function renderJsx() {
 | **必须使用阿里 CDN** | `https://g.alicdn.com/code/lib/echarts/5.6.0/echarts.min.js` |
 | **禁止使用 cdnjs.cloudflare.com** | 宜搭环境（aliwork.com）对 cloudflare CDN 有安全策略限制，会加载失败 |
 | **必须锁定版本 5.6.0** | 禁止使用 `latest` 或其他未验证版本 |
+
+> 💡 **lodash 无需加载**：宜搭页面运行时已全局加载 lodash 4.6.1（`window._`），可直接使用 `_.groupBy`、`_.sortBy`、`_.get`、`_.cloneDeep` 等处理图表数据，无需 `loadScript`。
 
 ## 函数声明规则
 
@@ -305,7 +307,22 @@ export function createChart(domId) {
   if (!container) { console.warn('图表容器不存在: ' + domId); return null; }
   var existingInstance = window.echarts.getInstanceByDom(container);
   if (existingInstance) { existingInstance.dispose(); }
-  return window.echarts.init(container);
+  var chart = window.echarts.init(container);
+  var rawSetOption = chart.setOption.bind(chart);
+  var firstOptionApplied = false;
+  chart.setOption = function(option, notMerge) {
+    rawSetOption(option, notMerge);
+    if (!firstOptionApplied) {
+      firstOptionApplied = true;
+      setTimeout(function() {
+        if (window.echarts.getInstanceByDom(container) === chart) {
+          chart.resize();
+          rawSetOption(option, true);
+        }
+      }, 120);
+    }
+  };
+  return chart;
 }
 
 export function didUnmount() {
@@ -341,7 +358,7 @@ export function bindChartResize() {
 
 ## 图表 setOption 原地更新（禁止 dispose 重建）
 
-筛选刷新时，**禁止 `dispose()` 后重新 `init()`**，这会导致图表闪烁。应使用 `setOption(option, true)` 原地更新：
+筛选刷新时，**禁止 `dispose()` 后重新 `init()`**，这会导致图表闪烁。应使用 `setOption(option, true)` 原地更新。首次初始化必须使用上方 `createChart()`，它会在首个 `setOption` 后延迟执行 `resize()` + `setOption(option, true)`，规避宜搭 CSS layout 尚未稳定导致 series 不绘制的问题：
 
 ```javascript
 export function renderPieChart() {
@@ -351,11 +368,15 @@ export function renderPieChart() {
   if (_chartInstances.pie) {
     _chartInstances.pie.setOption(option, true);
   } else {
-    _chartInstances.pie = window.echarts.init(container);
-    _chartInstances.pie.setOption(option);
+    _chartInstances.pie = this.createChart('pie-chart');
+    if (_chartInstances.pie) {
+      _chartInstances.pie.setOption(option, true);
+    }
   }
 }
 ```
+
+> ⚠️ `label.formatter` 返回 rich text 模板在宜搭自定义页面环境不稳定，`check-page` 会给出警告。优先使用普通 formatter 字符串，或预先在数据中生成标签文本。
 
 ## 筛选触发 → 局部刷新（最佳实践）
 

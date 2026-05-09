@@ -270,7 +270,19 @@ function getArgValue(cliArgs, name) {
   return cliArgs[index + 1];
 }
 
+// 解析全局 --quiet 开关：从 args 中剔除并设置 YIDA_QUIET=1，让 chalk.js
+// 的所有装饰输出（banner/step/info/...）变 no-op，AI 即可直接 `... --quiet | jq`。
+function applyQuietFlag() {
+  const idx = args.indexOf('--quiet');
+  if (idx !== -1) {
+    process.env.YIDA_QUIET = '1';
+    args.splice(idx, 1);
+  }
+}
+
 async function main() {
+  applyQuietFlag();
+
   if (!command || command === '--help' || command === '-h') {
     handleFirstRunGuide();
     printHelp();
@@ -503,6 +515,12 @@ async function main() {
       break;
     }
 
+    case 'build-page': {
+      const { run } = require('../lib/app/build-page');
+      await run(args);
+      break;
+    }
+
     case 'check-page': {
       const { run } = require('../lib/app/check-page');
       await run(args);
@@ -523,8 +541,9 @@ async function main() {
     case 'publish': {
       // 参数顺序：<源文件路径> <appType> <formUuid>
       // publish.js 内部读取顺序：argv[2]=appType, argv[3]=formUuid, argv[4]=sourceFile
-      const skipLint = args.includes('--skip-lint');
-      const filteredArgs = args.filter(arg => arg !== '--skip-lint');
+      const passThroughFlags = new Set(['--skip-lint', '--health-check', '--check', '--open', '--no-open', '--compat', '--modern']);
+      const forwardedFlags = args.filter(arg => passThroughFlags.has(arg));
+      const filteredArgs = args.filter(arg => !passThroughFlags.has(arg));
       if (filteredArgs.length < 3) {
         warn(t('cli.publish_usage'));
         warn(t('cli.publish_example'));
@@ -534,7 +553,7 @@ async function main() {
       process.argv = [
         process.argv[0], process.argv[1],
         appType, formUuid, sourceFile,
-        ...(skipLint ? ['--skip-lint'] : [])
+        ...forwardedFlags
       ];
       const publishMain = require('../lib/app/publish');
       await publishMain();
@@ -804,6 +823,15 @@ async function main() {
       if (subCommand === 'create') {
         const { run: runIntegration } = require('../lib/integration/integration-create');
         await runIntegration(subArgs);
+      } else if (subCommand === 'list') {
+        const { runList } = require('../lib/integration/integration-list');
+        await runList(subArgs);
+      } else if (subCommand === 'enable') {
+        const { runEnable } = require('../lib/integration/integration-list');
+        await runEnable(subArgs);
+      } else if (subCommand === 'disable') {
+        const { runDisable } = require('../lib/integration/integration-list');
+        await runDisable(subArgs);
       } else {
         warn(t('cli.integration_unknown', subCommand));
         warn(t('cli.integration_help_hint'));
@@ -839,6 +867,12 @@ async function main() {
     case 'task-center': {
       const { run: runTaskCenter } = require('../lib/core/task-center');
       await runTaskCenter(args);
+      break;
+    }
+
+    case 'batch': {
+      const { run: runBatch } = require('../lib/core/batch');
+      await runBatch(args);
       break;
     }
 

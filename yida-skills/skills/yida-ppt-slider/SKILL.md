@@ -988,7 +988,8 @@ export function initBarChartRace() {
         value: values[index],
         itemStyle: { color: entity.color },
       };
-    }).sort(function(a, b) { return b.value - a.value; });
+    });
+    data = _.orderBy(data, 'value', 'desc');
 
     var option = {
       grid: { top: '10%', right: '15%', bottom: '15%', left: '15%' },

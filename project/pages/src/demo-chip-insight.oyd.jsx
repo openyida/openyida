@@ -24,7 +24,7 @@ var _customState = {
 
 export function getCustomState(key) {
   if (key) return _customState[key];
-  return Object.assign({}, _customState);
+  return _.clone(_customState);
 }
 
 export function setCustomState(newState) {
@@ -87,20 +87,20 @@ export function loadAllData() {
     var companyRaw = (results[1] && results[1].data) || [];
     var sentimentRaw = (results[2] && results[2].data) || [];
 
-    var marketList = marketRaw.map(function(item) {
-      var fd = item.formData || {};
+    var marketList = _.sortBy(marketRaw.map(function(item) {
+      var fd = _.get(item, 'formData', {});
       return { year: fd[MF.year] || '', marketSize: fd[MF.marketSize] || 0, growth: fd[MF.growth] || '', aiSize: fd[MF.aiSize] || 0, aiRatio: fd[MF.aiRatio] || '', note: fd[MF.note] || '' };
-    }).sort(function(a, b) { return a.year < b.year ? -1 : 1; });
+    }), 'year');
 
-    var companyList = companyRaw.map(function(item) {
-      var fd = item.formData || {};
+    var companyList = _.orderBy(companyRaw.map(function(item) {
+      var fd = _.get(item, 'formData', {});
       return { name: fd[CF.name] || '', marketCap: fd[CF.marketCap] || 0, revenue: fd[CF.revenue] || 0, aiRevenue: fd[CF.aiRevenue] || 0, share: fd[CF.share] || '', product: fd[CF.product] || '', techRoute: fd[CF.techRoute] || '', rating: fd[CF.rating] || '' };
-    }).sort(function(a, b) { return b.marketCap - a.marketCap; });
+    }), 'marketCap', 'desc');
 
-    var sentimentList = sentimentRaw.map(function(item) {
-      var fd = item.formData || {};
+    var sentimentList = _.orderBy(sentimentRaw.map(function(item) {
+      var fd = _.get(item, 'formData', {});
       return { title: fd[SF.title] || '', category: fd[SF.category] || '', impact: fd[SF.impact] || '', date: fd[SF.date] || 0, summary: fd[SF.summary] || '', analysis: fd[SF.analysis] || '', source: fd[SF.source] || '' };
-    }).sort(function(a, b) { return (b.date || 0) - (a.date || 0); });
+    }), 'date', 'desc');
 
     self.setCustomState({
       loading: false,
@@ -658,7 +658,7 @@ export function renderKPICards() {
 
   var latestMarket = marketData.length > 0 ? marketData[marketData.length - 1] : {};
   var prevMarket = marketData.length > 1 ? marketData[marketData.length - 2] : {};
-  var totalMarketCap = companyData.reduce(function(sum, item) { return sum + (item.marketCap || 0); }, 0);
+  var totalMarketCap = _.sumBy(companyData, 'marketCap');
   var criticalNews = sentimentData.filter(function(item) { return item.impact === '重大'; }).length;
 
   var kpis = [

@@ -99,6 +99,8 @@ var cardStyle = {
 
 ## 常用图表配置模板
 
+> ⚠️ `label.formatter` 返回 rich text 模板在宜搭自定义页面环境不稳定。需要强调标签时，优先使用普通 formatter 字符串、`label.color/fontWeight` 等样式，或在数据处理阶段预先拼好展示文本。
+
 ### 柱状图
 
 ```javascript

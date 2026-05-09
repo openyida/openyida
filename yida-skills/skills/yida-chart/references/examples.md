@@ -19,13 +19,13 @@ openyida env
 openyida get-schema APP_KNILKT41DC5XXR5D4QEC REPORT-QA666SC1J3U3TFO9GM9MJ5400RIW3W83SUYMM5 > .cache/report-schema-output.txt 2>&1
 
 # Step 3：创建自定义展示页面
-openyida create-page APP_KNILKT41DC5XXR5D4QEC "任务数据看板"
+openyida create-page APP_KNILKT41DC5XXR5D4QEC "任务数据看板" --mode dashboard
 
 # Step 4：编写 ECharts 页面代码（参考 yida-custom-page 规范）
 # 输出到 project/pages/src/task-dashboard.js
 
 # Step 5：发布页面
-openyida publish project/pages/src/task-dashboard.js APP_KNILKT41DC5XXR5D4QEC FORM-XXXXXXXX
+openyida publish project/pages/src/task-dashboard.js APP_KNILKT41DC5XXR5D4QEC FORM-XXXXXXXX --health-check
 ```
 
 ### 输出
@@ -128,11 +128,16 @@ export function initBarChart() {
   if (!container || typeof echarts === 'undefined') return;
   var chart = echarts.init(container);
   var data = _customState.chartData || [];
-  chart.setOption({
+  var option = {
     xAxis: { type: 'category', data: data.map(function(d) { return d.dim; }) },
     yAxis: { type: 'value' },
     series: [{ type: 'bar', data: data.map(function(d) { return d.measure; }) }],
-  });
+  };
+  chart.setOption(option, true);
+  setTimeout(function() {
+    chart.resize();
+    chart.setOption(option, true);
+  }, 120);
   window.addEventListener('resize', function() { chart.resize(); });
 }
 
@@ -151,8 +156,8 @@ export function renderJsx() {
   );
 }
 
-export function getCustomState(key) { if (key) return _customState[key]; return Object.assign({}, _customState); }
-export function setCustomState(newState) { Object.assign(_customState, newState); this.forceUpdate(); }
+export function getCustomState(key) { if (key) return _customState[key]; return _.clone(_customState); }
+export function setCustomState(newState) { _.assign(_customState, newState); this.forceUpdate(); }
 export function forceUpdate() { this.setState({ timestamp: new Date().getTime() }); }
 ```
 

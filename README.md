@@ -155,7 +155,7 @@ openyida/
 │   ├── report/                 # Yida report and chart generation
 │   └── samples/                # Templates emitted by openyida sample
 ├── project/                    # Default workspace template for generated Yida projects
-├── yida-skills/                # Agent skills and Yida API references
+├── yida-skills/                # Source skill docs and Yida API references
 └── scripts/                    # CI, packaging, and installation helpers
 ```
 
@@ -176,14 +176,16 @@ openyida get-schema APP_XXX --all --output-dir .cache/schemas
 ### Custom Page Development
 
 ```bash
-openyida create-page APP_XXX "Dashboard"
-openyida generate-page product-homepage --spec page.json --output pages/src/home.jsx --compile
-openyida check-page pages/src/home.jsx
-openyida compile pages/src/home.jsx
-openyida publish pages/src/home.jsx APP_XXX FORM_XXX
+openyida create-page APP_XXX "Dashboard" --mode dashboard
+openyida generate-page product-homepage --spec page.json --output pages/src/home.oyd.jsx --compile
+openyida generate-page todo-mvc --output pages/src/todo-mvc.oyd.jsx --compile
+openyida check-page pages/src/home.oyd.jsx
+openyida compile pages/src/home.oyd.jsx
+openyida publish pages/src/home.oyd.jsx APP_XXX FORM_XXX
 ```
 
 `generate-page` turns a structured spec into a Page IR, renders a curated React 16-compatible template, writes a `.openyida-page.json` manifest, and optionally compiles the result. The manifest makes follow-up AI edits safer because agents can update known blocks instead of rewriting a large JSX file by hand.
+Built-in templates currently include `product-homepage` for product/portal pages and `todo-mvc` for a full interaction smoke page covering events, custom state, list rendering, editing, filtering, and localStorage persistence.
 
 ### Workflow, Data, and Permissions
 
@@ -240,13 +242,15 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 |---------|-------------|
 | `openyida create-form create <appType> "<name>" <fields.json> [--open\|--no-open]` | Create a form page |
 | `openyida create-form update <appType> <formUuid> <changes.json> [--open\|--no-open]` | Update a form page |
+| `openyida create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | Append options to a SelectField/RadioField/CheckboxField/MultiSelectField |
 | `openyida list-forms <appType> [--keyword <text>]` | List forms in an application |
-| `openyida get-schema <appType> <formUuid\|--all>` | Fetch one form schema or batch export all schemas |
-| `openyida create-page <appType> "<name>" [--open\|--no-open]` | Create a custom display page |
-| `openyida generate-page <template> [--spec file]` | Generate custom page source from templates |
-| `openyida check-page <sourceFile> [--json]` | Check page compatibility with Yida runtime rules |
-| `openyida compile <sourceFile>` | Compile a custom page locally |
-| `openyida publish <sourceFile> <appType> <formUuid> [--open\|--no-open]` | Compile and publish a custom page |
+| `openyida get-schema <appType> <formUuid\|--all> [--field <labelOrFieldId>]` | Fetch one form schema, batch export all, or pick a single field's full props |
+| `openyida create-page <appType> "<name>" [--mode dashboard] [--open\|--no-open]` | Create a custom display page; dashboard mode hides top/workbench chrome |
+| `openyida generate-page <template> [--spec file]` | Generate custom page source from templates (`product-homepage`, `todo-mvc`) |
+| `openyida build-page <sourceFile> [--output file\|--write]` | Build/fix Yida-compatible page source from OpenYida authoring JSX |
+| `openyida check-page <sourceFile> [--compat] [--json]` | Check page compatibility; `.oyd.jsx` is compatibility-built before linting |
+| `openyida compile <sourceFile> [--compat]` | Compile a custom page locally; `.oyd.jsx` sources are compatibility-built first |
+| `openyida publish <sourceFile> <appType> <formUuid> [--compat] [--health-check] [--open\|--no-open]` | Compile and publish a custom page |
 | `openyida update-form-config <appType> <formUuid> <isRenderNav> <title>` | Update page/form display configuration |
 
 ### Data, Permissions, and Sharing
@@ -273,6 +277,9 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida append-chart <appType> <reportId> <charts.json> [--open\|--no-open]` | Append a chart to an existing report |
 | `openyida connector <sub-command>` | Manage HTTP connectors, actions, tests, and auth accounts |
 | `openyida integration create <appType> <formUuid> <flowName> [options]` | Create an integration automation flow |
+| `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | List automation flows in an app, optionally filtered by form/status |
+| `openyida integration enable <appType> <formUuid> <processCode>` | Enable an automation flow |
+| `openyida integration disable <appType> <formUuid> <processCode>` | Disable an automation flow |
 | `openyida dws <command> [args]` | Access DingTalk CLI capabilities such as contacts, calendar, todo, and approval |
 
 ### Utilities
@@ -289,18 +296,23 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida cdn-config` | Configure image upload to Aliyun OSS/CDN |
 | `openyida cdn-upload <image-path>` | Upload an image to CDN |
 | `openyida cdn-refresh [options]` | Refresh CDN cache |
+| `openyida batch <file> [--stop-on-error] [--json]` | Run multiple commands from a file (one login, sequential execution) |
+| `openyida batch --commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run inline batch commands |
 
 ## Agent Skills
 
-The `yida-skills/` directory contains agent-facing instructions and references for common Yida workflows. It is organized as a small skill library:
+The `yida-skills/` directory is the source skill library used by OpenYida during development. Release assets for Wukong are generated into the standard single-skill shape under `dist/skills/openyida/` by `npm run build:skills`.
 
 | Path | Purpose |
 |------|---------|
 | `yida-skills/SKILL.md` | Entry point and skill index |
 | `yida-skills/skills/` | Self-contained sub-skills for app, form, process, page, data, and integration work |
 | `yida-skills/references/` | Shared Yida API, model API, and query-condition references |
+| `dist/skills/openyida/` | Generated Wukong upload package root; contains one root `SKILL.md` and reference-only subskill docs |
 
 When OpenYida is used inside a supported AI coding environment, these skills help the agent choose the right command sequence and file conventions.
+
+For Wukong manual import, upload the generated `openyida-skills.zip` release asset. The package follows Wukong's custom skill rules: folder name and `frontmatter.name` are both `openyida`, root frontmatter only contains `name` and `description`, and long references live under `references/`.
 
 For Codex, `npm install -g openyida` additionally creates a local plugin marketplace under `~/.openyida/codex-plugin` and enables `openyida@openyida` in `~/.codex/config.toml` when Codex is detected. This makes OpenYida show up in Codex's `@` plugin menu as **宜搭** after Codex reloads.
 

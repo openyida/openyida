@@ -58,6 +58,8 @@ describe('parseArgs', () => {
       concurrency: 6,
       retries: 2,
       keyword: '客户',
+      field: '',
+      json: false,
     });
   });
 

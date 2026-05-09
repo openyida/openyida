@@ -82,6 +82,8 @@ openyida get-page-config <appType> <formUuid>
 openyida update-form-config <appType> <formUuid> false "<页面标题>"
 ```
 
+> 看板/驾驶舱新建页面优先使用 `openyida create-page <appType> "<页面名>" --mode dashboard`，会一步完成导航隐藏并输出无左侧工作台栏的沉浸式 URL。
+
 ## URL 格式
 
 - 公开访问：`/o/xxx`，组织内分享：`/s/xxx`

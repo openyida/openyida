@@ -130,3 +130,33 @@ function extractFunctionBody(source, functionName) {
   }
   return null;
 }
+
+// ── add-option 模式 parseArgs 测试 ──────────────────
+
+describe('add-option mode in source code', () => {
+  test('parseArgs recognizes add-option mode', () => {
+    expect(sourceCode).toContain("mode === 'add-option'");
+    expect(sourceCode).toContain("if (mode === 'add-option')");
+  });
+
+  test('mainAddOption function is defined', () => {
+    expect(sourceCode).toContain('async function mainAddOption(');
+  });
+
+  test('main routes to mainAddOption for add-option mode', () => {
+    expect(sourceCode).toContain("parsedArgs.mode === 'add-option'");
+    expect(sourceCode).toContain('mainAddOption(parsedArgs');
+  });
+
+  test('add-option validates OPTION_FIELD_TYPES', () => {
+    expect(sourceCode).toContain('OPTION_FIELD_TYPES.indexOf(targetComponent.componentName)');
+  });
+
+  test('add-option deduplicates options by value', () => {
+    expect(sourceCode).toContain('existingValues.has(optionText)');
+  });
+
+  test('add-option appends to existing dataSource', () => {
+    expect(sourceCode).toContain('existingDataSource.push(newItem)');
+  });
+});

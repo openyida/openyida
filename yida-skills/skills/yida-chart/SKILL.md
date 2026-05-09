@@ -239,6 +239,7 @@ fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
 
 > ⚠️ **地图安全要求**：
 > - **必须**使用阿里云 DataV 提供的官方 GeoJSON 数据，确保地图边界合规
+> - **禁止**加载旧版内置中国地图脚本或旧 map chart 包；ECharts 5.x 已废弃内置地图包
 > - 省份名称需使用全称（如"北京市"、"广东省"、"内蒙古自治区"），与 GeoJSON 中的 `name` 字段匹配
 > - 示例中提供了 `normalizeProvinceName()` 函数，自动将简称转换为全称
 
@@ -246,6 +247,7 @@ fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
 > - **必须**使用上述可信 CDN 之一，**禁止**使用来源不明的第三方 URL
 > - **必须**锁定版本号（如 `5.6.0`），**禁止**使用 `latest` 或不带版本的 URL
 > - **推荐**优先使用阿里 CDN（`g.alicdn.com`），在宜搭环境中加载速度最快
+> - ECharts `label.formatter` 返回 rich text 模板在宜搭自定义页面环境不稳定；优先使用普通 formatter 字符串或预处理标签文本
 
 ### 加载方式
 
@@ -318,11 +320,11 @@ var _customState = {
 
 export function getCustomState(key) {
   if (key) return _customState[key];
-  return Object.assign({}, _customState);
+  return _.clone(_customState);
 }
 
 export function setCustomState(newState) {
-  Object.assign(_customState, newState);
+  _.assign(_customState, newState);
   this.forceUpdate();
 }
 
@@ -875,7 +877,22 @@ export function createChart(domId) {
   if (existingInstance) {
     existingInstance.dispose();
   }
-  return window.echarts.init(container);
+  var chart = window.echarts.init(container);
+  var rawSetOption = chart.setOption.bind(chart);
+  var firstOptionApplied = false;
+  chart.setOption = function(option, notMerge) {
+    rawSetOption(option, notMerge);
+    if (!firstOptionApplied) {
+      firstOptionApplied = true;
+      setTimeout(function() {
+        if (window.echarts.getInstanceByDom(container) === chart) {
+          chart.resize();
+          rawSetOption(option, true);
+        }
+      }, 120);
+    }
+  };
+  return chart;
 }
 
 /**
@@ -1145,7 +1162,7 @@ export function refreshAllData() {
 
 ### 图表 setOption 原地更新（禁止 dispose 重建）
 
-筛选刷新时，**禁止 `dispose()` 后重新 `init()`**，这会导致图表闪烁。应使用 `setOption(option, true)` 原地更新：
+筛选刷新时，**禁止 `dispose()` 后重新 `init()`**，这会导致图表闪烁。应使用 `setOption(option, true)` 原地更新。首次初始化使用上方 `createChart()`，它会在首个 `setOption` 后延迟执行 `resize()` + `setOption(option, true)`，规避宜搭 CSS layout 尚未稳定导致 series 不绘制的问题：
 
 ```javascript
 export function renderPieChart() {
@@ -1158,8 +1175,10 @@ export function renderPieChart() {
   if (_chartInstances.pie) {
     _chartInstances.pie.setOption(option, true);  // 第二个参数 true 表示不合并，完全替换
   } else {
-    _chartInstances.pie = window.echarts.init(container);
-    _chartInstances.pie.setOption(option);
+    _chartInstances.pie = this.createChart('pie-chart');
+    if (_chartInstances.pie) {
+      _chartInstances.pie.setOption(option, true);
+    }
   }
 }
 ```
@@ -1410,8 +1429,8 @@ Step 8: 输出 ECharts 自定义页面访问链接
 
 代码中缺少宜搭自定义页面必需的 `forceUpdate` 函数定义。必须在代码中包含以下三个函数：
 ```javascript
-export function getCustomState(key) { if (key) return _customState[key]; return Object.assign({}, _customState); }
-export function setCustomState(newState) { Object.assign(_customState, newState); this.forceUpdate(); }
+export function getCustomState(key) { if (key) return _customState[key]; return _.clone(_customState); }
+export function setCustomState(newState) { _.assign(_customState, newState); this.forceUpdate(); }
 export function forceUpdate() { this.setState({ timestamp: new Date().getTime() }); }
 ```
 详见上方「ECharts 页面代码必备结构」章节。

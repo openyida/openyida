@@ -105,4 +105,69 @@ describe('integration process builder', () => {
     expect(processJson.nodes.map((node) => node.type)).toEqual(['trigger', 'finish']);
     expect(processJson.nodes[0].nextId).toEqual(['end']);
   });
+
+  test('buildProcessJson inserts innerConnector node when connectorId + actionId provided (对齐真实"待办"payload)', () => {
+    const processJson = buildProcessJson({
+      processCode: 'LPROC-TEST',
+      formUuid: 'FORM-TODO',
+      appType: 'APP-TODO',
+      formEventTypes: ['insert'],
+      toUsers: [],
+      nodeIds: ['trigger', 'connector', 'end'],
+      hasMessageNode: false,
+      connectorId: 'G-CONN-1016B8AEBED50B01B8D00009',
+      actionId: 'G-ACT-1016B8B1911A0B01B8D0000I',
+      connectorAssignments: [
+        { column: 'unionId', valueType: 'processVar', value: 'employeeField_xxx' },
+        { column: 'subject', valueType: 'processVar', value: 'textareaField_xxx' },
+        { column: 'creatorId', valueType: 'processVar', value: 'form_inst_modifier' },
+      ],
+    });
+
+    expect(processJson.nodes.map((n) => n.type)).toEqual(['trigger', 'innerConnector', 'finish']);
+    expect(processJson.nodes[0].nextId).toEqual(['connector']);
+    expect(processJson.nodes[1].nextId).toEqual(['end']);
+
+    const inputs = processJson.nodes[1].props.inputs;
+    expect(inputs.connectorId).toBe('G-CONN-1016B8AEBED50B01B8D00009');
+    expect(inputs.actionId).toBe('G-ACT-1016B8B1911A0B01B8D0000I');
+    expect(inputs.url).toBe('');
+    expect(inputs.method).toBe('');
+    expect(inputs.assignments).toHaveLength(3);
+    expect(inputs.assignments[0]).toEqual({
+      column: 'unionId',
+      valueType: 'processVar',
+      value: 'employeeField_xxx',
+      assignments: [],
+    });
+  });
+
+  test('buildProcessJson chains dataRetrieve → innerConnector → sendMessage when all present', () => {
+    const processJson = buildProcessJson({
+      processCode: 'LPROC-TEST',
+      formUuid: 'FORM-A',
+      appType: 'APP-A',
+      formEventTypes: ['insert'],
+      toUsers: [{ userId: 'u1', userName: '' }],
+      nodeIds: ['trigger', 'data', 'connector', 'message', 'end'],
+      dataFormUuid: 'FORM-B',
+      dataConditions: [{ bFieldId: 'field_b', bFieldName: 'B', aFieldId: 'field_a' }],
+      hasMessageNode: true,
+      connectorId: 'G-CONN-TEST',
+      actionId: 'G-ACT-TEST',
+      connectorAssignments: [{ column: 'subject', valueType: 'literal', value: '测试待办' }],
+    });
+
+    expect(processJson.nodes.map((n) => n.type)).toEqual([
+      'trigger',
+      'dataRetrieve',
+      'innerConnector',
+      'sendMessage',
+      'finish',
+    ]);
+    expect(processJson.nodes[0].nextId).toEqual(['data']);
+    expect(processJson.nodes[1].nextId).toEqual(['connector']);
+    expect(processJson.nodes[2].nextId).toEqual(['message']);
+    expect(processJson.nodes[3].nextId).toEqual(['end']);
+  });
 });
