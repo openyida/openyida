@@ -366,10 +366,11 @@ describe('interactiveLogin 浏览器优先级', () => {
     const result = loginModule.interactiveLogin();
 
     expect(cdpModule.cdpBrowserLogin).toHaveBeenCalledTimes(1);
-    expect(childProcess.execSync).toHaveBeenCalledWith(
-      expect.stringMatching(/^node ".+openyida-login-.+\.js"$/),
-      expect.objectContaining({ timeout: 660000 })
-    );
+    const playwrightScriptCall = childProcess.execSync.mock.calls.find(([cmd]) => (
+      /^node ".+openyida-login-.+\.js"$/.test(cmd)
+    ));
+    expect(playwrightScriptCall).toBeTruthy();
+    expect(playwrightScriptCall[1]).toEqual(expect.objectContaining({ timeout: 660000 }));
     expect(result).toMatchObject({
       csrf_token: 'pw-token-1234567890',
       corp_id: 'corp',
