@@ -262,6 +262,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida task-center <type> [options]` | Query todo, created, processed, CC, or proxy-submitted tasks |
 | `openyida get-permission <appType> <formUuid>` | Query form permission configuration |
 | `openyida save-permission <appType> <formUuid> [options]` | Save form permission configuration |
+| `openyida corp-manager <sub-command>` | Manage platform admins, sub-admins, app admins, and address book visibility |
 | `openyida verify-short-url <appType> <formUuid> <url>` | Verify a short URL |
 | `openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]` | Save public access or sharing configuration |
 | `openyida get-page-config <appType> <formUuid>` | Query public access or sharing configuration |

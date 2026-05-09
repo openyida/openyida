@@ -104,6 +104,7 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('create-form');
     expect(output).toContain('list-forms');
     expect(output).toContain('connector');
+    expect(output).toContain('corp-manager');
     expect(output).toContain('dws');
     expect(output).toContain('commands [--json]');
     expect(output).toContain('sample [--list]');
@@ -137,6 +138,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('list-forms');
     expect(commands).toContain('build-page');
     expect(commands).toContain('connector.smart-create');
+    expect(commands).toContain('corp-manager');
     expect(commands).toContain('commands');
     expect(parsed.commands.find(entry => entry.id === 'commands')).toMatchObject({
       usage: 'openyida commands [--json]',
@@ -515,6 +517,7 @@ describe('CLI offline smoke', () => {
       { args: ['get-page-config'], expected: 'get-page-config' },
       { args: ['process', 'preview'], expected: 'process preview' },
       { args: ['connector', 'missing-subcommand'], expected: 'connector' },
+      { args: ['corp-manager', 'list'], expected: 'corp-manager' },
     ];
 
     for (const item of cases) {

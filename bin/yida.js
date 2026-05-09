@@ -827,6 +827,12 @@ async function main() {
       break;
     }
 
+    case 'corp-manager': {
+      const { run: runCorpManager } = require('../lib/corp-manager/corp-manager');
+      await runCorpManager(args);
+      break;
+    }
+
     case 'flash-to-prd': {
       const { run: runFlashToPrd } = require('../lib/flash-note/flash-to-prd');
       await runFlashToPrd(args);

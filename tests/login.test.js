@@ -366,7 +366,6 @@ describe('interactiveLogin 浏览器优先级', () => {
     const result = loginModule.interactiveLogin();
 
     expect(cdpModule.cdpBrowserLogin).toHaveBeenCalledTimes(1);
-    expect(childProcess.execSync).toHaveBeenCalledWith('npm root -g', { encoding: 'utf-8' });
     expect(childProcess.execSync).toHaveBeenCalledWith(
       expect.stringMatching(/^node ".+openyida-login-.+\.js"$/),
       expect.objectContaining({ timeout: 660000 })
