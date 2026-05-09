@@ -173,7 +173,7 @@ openyida copy
 | `yida-form-permission` | `skills/yida-form-permission/SKILL.md` | 表单权限查询与保存 | `openyida get-permission <appType> <formUuid>` |
 | `yida-form-detail` | `skills/yida-form-detail/SKILL.md` | 表单详情页 formDetail 样式优化 | 详见 SKILL.md |
 | `yida-data-management` | `skills/yida-data-management/SKILL.md` | 表单/流程/任务数据查询与变更 | `openyida data query form <appType> <formUuid>` |
-| `yida-corp-efficiency` | `skills/yida-corp-efficiency/SKILL.md` | 平台管理企业效能概览、效能指标、学习成果和通知群动作 | `openyida corp-efficiency` |
+| `yida-corp-efficiency` | `skills/yida-corp-efficiency/SKILL.md` | 平台管理企业效能概览、查看明细报表、报表接口模板、学习成果和通知群动作 | `openyida corp-efficiency` |
 | `yida-table-form` | `skills/yida-table-form/SKILL.md` | 表格形态批量录入页面 | 详见 SKILL.md |
 | `yida-process-rule` | `skills/yida-process-rule/SKILL.md` | 配置流程规则、审批节点和字段权限 | `openyida configure-process <appType> <formUuid> <流程JSON>` |
 | `yida-integration` | `skills/yida-integration/SKILL.md` | 集成自动化逻辑流（创建/列表/启停） | `openyida integration <create\|list\|enable\|disable> ...` |

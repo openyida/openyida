@@ -12,6 +12,7 @@ jest.mock('../lib/core/utils', () => ({
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn(),
+  detectActiveTool: jest.fn(() => ({ tool: 'codex' })),
 }));
 
 jest.mock('../lib/core/chalk', () => ({
@@ -25,6 +26,10 @@ const {
   parseWorkbenchContent,
   formatOverview,
   sanitizeCommodityInfo,
+  buildCertificationDetailReportUrl,
+  buildReportApiInfo,
+  flattenDetailTargets,
+  selectDetailTarget,
 } = require('../lib/corp-efficiency/corp-efficiency');
 const utils = require('../lib/core/utils');
 
@@ -118,11 +123,23 @@ describe('corp-efficiency overview', () => {
     expect(output.overview.saveAppDevMoney).toBe(50000);
     expect(output.learning.completeAuthNumber).toBe(12);
     expect(output.performance.metrics[0]).toMatchObject({
+      key: 'performance.1',
+      type: 'performance',
       title: '应用数',
       data: 20,
       standardData: 10,
       detailReportFullUrl: 'https://www.aliwork.com/APP_TEST/preview/REPORT_TEST?isPreview=true',
+      report: {
+        appType: 'APP_TEST',
+        reportId: 'REPORT_TEST',
+      },
     });
+    expect(output.details.learning[0]).toMatchObject({
+      key: 'lowcodeCertification',
+      title: '低代码开发者认证人数',
+      data: 12,
+    });
+    expect(output.details.learning[0].detailReportFullUrl).toContain('REPORT-QQ866JB164A81S0X764WJ97ATDKI33SCLP5EL3');
     expect(JSON.stringify(output)).not.toContain('secret-token');
 
     mock.log.mockRestore();
@@ -143,6 +160,76 @@ describe('corp-efficiency overview', () => {
     mock.log.mockRestore();
     mock.error.mockRestore();
     mockExit.mockRestore();
+  });
+});
+
+describe('corp-efficiency detail commands', () => {
+  test('details 列出学习认证和效能指标明细入口，并带报表接口模板', async () => {
+    utils.httpGet
+      .mockResolvedValueOnce({ success: true, content: mockEfficacyData })
+      .mockResolvedValueOnce({ success: true, content: mockWorkbenchContent })
+      .mockResolvedValueOnce({ success: true, content: mockCommodityInfo });
+    const mock = mockConsole();
+
+    await run(['details']);
+
+    const output = JSON.parse(mock.log.mock.calls[0][0]);
+    expect(output.totalCount).toBe(2);
+    expect(output.details[0]).toMatchObject({
+      targetIndex: 1,
+      key: 'lowcodeCertification',
+      type: 'learning',
+      reportApi: {
+        type: 'yida-native-report',
+      },
+    });
+    expect(output.details[1]).toMatchObject({
+      targetIndex: 2,
+      key: 'performance.1',
+      title: '应用数',
+      reportApi: {
+        data: {
+          path: '/alibaba/web/APP_TEST/visual/visualizationDataRpc/getDataAsync.json',
+        },
+      },
+    });
+
+    mock.log.mockRestore();
+    mock.error.mockRestore();
+  });
+
+  test('detail 可按标题选择明细并输出浏览器交接信息', async () => {
+    utils.httpGet
+      .mockResolvedValueOnce({ success: true, content: mockEfficacyData })
+      .mockResolvedValueOnce({ success: true, content: mockWorkbenchContent })
+      .mockResolvedValueOnce({ success: true, content: mockCommodityInfo });
+    const mock = mockConsole();
+
+    await run(['detail', '--title', '应用数', '--open']);
+
+    const output = JSON.parse(mock.log.mock.calls[0][0]);
+    expect(output.detail).toMatchObject({
+      key: 'performance.1',
+      title: '应用数',
+      reportApi: {
+        schema: {
+          path: '/alibaba/web/APP_TEST/query/formdesign/getLatestFormWithNavNew.json',
+        },
+        data: {
+          query: {
+            _api: 'EDataService.getDataAsync',
+          },
+        },
+      },
+    });
+    expect(output.frontendBehavior.permissionFallback.title).toBe('效能分析明细');
+    expect(output.browser_handoff).toMatchObject({
+      status: 'open_url',
+      url: 'https://www.aliwork.com/APP_TEST/preview/REPORT_TEST?isPreview=true',
+    });
+
+    mock.log.mockRestore();
+    mock.error.mockRestore();
   });
 });
 
@@ -239,5 +326,32 @@ describe('corp-efficiency helpers', () => {
       raw: true,
     });
     expect(JSON.stringify(output)).not.toContain('secret-token');
+    expect(flattenDetailTargets(output.details)).toHaveLength(2);
+  });
+
+  test('明细报表辅助函数解析 URL 和选择入口', () => {
+    const url = buildCertificationDetailReportUrl(12);
+    expect(url).toContain('data=12');
+
+    const reportApi = buildReportApiInfo({
+      appType: 'APP_TEST',
+      pageId: 'REPORT_TEST',
+      prdId: '2558050',
+      isPreview: 'true',
+    });
+    expect(reportApi.data.path).toBe('/alibaba/web/APP_TEST/visual/visualizationDataRpc/getDataAsync.json');
+    expect(reportApi.data.bodyTemplate).toMatchObject({
+      pageName: 'report',
+      pageId: 'REPORT_TEST',
+      prdId: '2558050',
+    });
+
+    const targets = flattenDetailTargets({
+      performance: [
+        { key: 'performance.1', type: 'performance', title: '应用数', performanceIndex: 1, detailReportFullUrl: 'https://example.com/report' },
+      ],
+    });
+    expect(selectDetailTarget(targets, { title: '应用数' })).toMatchObject({ key: 'performance.1' });
+    expect(selectDetailTarget(targets, { index: '1' })).toMatchObject({ key: 'performance.1' });
   });
 });
