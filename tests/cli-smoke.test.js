@@ -101,6 +101,7 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('OpenYida');
     expect(output).toContain('env [--json]');
     expect(output).toContain('login [--qr|--agent-qr|--codex|--browser] [--corp-id <corpId>]');
+    expect(output).toContain('corp-efficiency');
     expect(output).toContain('create-form');
     expect(output).toContain('list-forms');
     expect(output).toContain('connector');
@@ -133,6 +134,7 @@ describe('CLI offline smoke', () => {
     expect(parsed).toHaveProperty('version', version);
     expect(commands).toContain('env');
     expect(commands).toContain('login');
+    expect(commands).toContain('corp-efficiency');
     expect(commands).toContain('create-form.create');
     expect(commands).toContain('list-forms');
     expect(commands).toContain('build-page');
