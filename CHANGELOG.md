@@ -8,6 +8,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.5.12] - 2026-05-12
+
+### Highlights
+- 这是 2026-05-12 的正式版发布，包含平台权限管理、A2A 本地 Adapter 预览能力、GitHub 协作模板优化，以及对应的 CLI / Agent 发现能力补齐。
+- `openyida corp-manager` 扩展平台管理能力，可用于企业成员搜索、管理员维护和通讯录可见性配置。
+- 新增本地只读 A2A 1.0 预览 Adapter，为后续 Agent-to-Agent 集成提供标准 Agent Card、消息发送和任务查询基础能力。
+
+### Added
+- 新增 `openyida corp-manager` 平台权限管理命令，支持搜索企业成员、查询应用/平台/子管理员列表，以及新增或移除管理员。
+- `corp-manager` 支持通讯录可见性配置查询与更新，可用于查看和调整全员可见、管理员可见等平台通讯录权限。
+- 新增 `yida-corp-manager` 子技能，并同步注册 CLI 路由、命令清单、README 和 12 种语言的帮助文案。
+- 新增 `openyida a2a <serve|agent-card>` 命令，支持启动本地只读 A2A Adapter 或输出 Agent Card。
+- A2A Adapter 支持 Agent Card 发现、健康检查、`message:send`、任务查询和任务取消；默认绑定 `127.0.0.1`，不读取或返回 Cookie，不创建或修改真实宜搭资源。
+
+### Changed
+- 优化 GitHub Issue 和 PR 模板，补充复现信息、环境诊断、变更清单、测试验证、兼容性风险和 DWS / 钉钉 CLI 集成检查项。
+
+### Tests
+- 新增 `corp-manager` API 与 CLI smoke 测试，覆盖用户搜索、管理员管理、通讯录配置和命令发现等核心路径。
+- 新增 A2A Agent Card、`message:send`、任务查询和 unsupported streaming 的离线测试，并补充 CLI smoke 覆盖。
+
 ## [2026.5.12-beta.1] - 2026-05-12
 
 ### Added
@@ -251,7 +272,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - 优化 Babel 编译错误提示信息
 - 修复 `SKILL.md` 编号问题
 
-[Unreleased]: https://github.com/openyida/openyida/compare/v2026.5.12-beta.1...HEAD
+[Unreleased]: https://github.com/openyida/openyida/compare/v2026.5.12...HEAD
+[2026.5.12]: https://github.com/openyida/openyida/compare/v2026.5.9...v2026.5.12
 [2026.5.12-beta.1]: https://github.com/openyida/openyida/compare/v2026.5.9...v2026.5.12-beta.1
 [2026.5.9]: https://github.com/openyida/openyida/compare/v2026.04.20...v2026.5.9
 [2026.5.9-beta.9]: https://github.com/openyida/openyida/compare/v2026.5.9-beta.8...v2026.5.9-beta.9
