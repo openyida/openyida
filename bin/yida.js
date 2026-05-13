@@ -655,6 +655,12 @@ async function main() {
       break;
     }
 
+    case 'basic-info': {
+      const { run: runBasicInfo } = require('../lib/basic-info/basic-info');
+      await runBasicInfo(args);
+      break;
+    }
+
     case 'doctor': {
       const { run } = require('../lib/core/doctor');
       await run(args);
