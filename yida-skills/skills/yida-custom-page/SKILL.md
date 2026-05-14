@@ -79,7 +79,7 @@ openyida create-page APP_XXX "员工信息查询"
 # 输出：formUuid = FORM-QUERY001
 
 # Step 3：生成/编写页面代码
-# 优先使用 spec/blocks 生成高质量页面：openyida generate-page product-homepage --spec page.json --output project/pages/src/employee-query.oyd.jsx
+# 优先使用 spec/blocks 生成高质量页面：openyida generate-page product-homepage --spec .cache/openyida/page-specs/employee-query.json --output project/pages/src/employee-query.oyd.jsx
 # 需要完整交互样板时：openyida generate-page todo-mvc --output project/pages/src/todo-mvc.oyd.jsx --compile
 # 需要手动参考模板时：openyida sample yida-custom-page custom-page-template
 # 在 project/pages/src/employee-query.oyd.jsx 中编写
@@ -105,7 +105,8 @@ openyida publish project/pages/src/employee-query.oyd.jsx APP_XXX FORM-QUERY001
 - **Step 1** 的 get-schema 输出包含所有字段的 fieldId，在代码中必须使用 `FIELDS` 常量映射这些 ID
   - get-schema 输出的 JSON 中，每个字段的 `fieldId`（如 `textField_k8j2n3m4`）即是代码中 `FIELDS` 常量应映射的值
 - **Step 3** 的页面代码必须遵循 [编码指南](references/coding-guide.md) 的全部 19 条编码注意事项
-- 优先通过 `openyida generate-page product-homepage --spec page.json --output pages/src/home.oyd.jsx --compile` 生成高质量页面骨架；需要验证事件、状态、循环渲染、编辑和 localStorage 时使用 `openyida generate-page todo-mvc --output pages/src/todo-mvc.oyd.jsx --compile`
+- 优先通过 `openyida generate-page product-homepage --spec .cache/openyida/page-specs/home.json --output pages/src/home.oyd.jsx --compile` 生成高质量页面骨架；需要验证事件、状态、循环渲染、编辑和 localStorage 时使用 `openyida generate-page todo-mvc --output pages/src/todo-mvc.oyd.jsx --compile`
+- 页面生成 spec、接口调试 JSON、一次性验证脚本等临时工件必须放在 `.cache/openyida/` 下；不要在仓库根目录生成 `page.json`、`data.json` 或脚本文件
 - `generate-page` 会写入 `.openyida-page.json` 结构化 manifest，后续改版优先改 spec/blocks 再重新生成 JSX
 - ECharts 中国地图必须走 `fetch(DataV GeoJSON) -> echarts.registerMap('china', geoJson)`；不要加载旧版内置中国地图脚本。`check-page` 会拦截该类旧写法。
 - ECharts `label.formatter` 返回 rich text 模板在宜搭自定义页面环境不稳定；优先使用普通 formatter 字符串，或在数据处理阶段预先拼好标签文本。
@@ -379,7 +380,7 @@ openyida sample yida-custom-page custom-page-template   # 完整页面模板（d
 openyida sample yida-custom-page product-homepage       # 产品/项目首页轻量模板（支持 --var KEY=VALUE）
 openyida sample yida-custom-page todo-mvc               # TodoMVC 完整交互模板（事件/状态/循环/本地存储）
 openyida sample yida-custom-page design-tokens          # 设计 token 参考（颜色/间距/字体规范）
-openyida generate-page product-homepage --spec page.json --output pages/src/home.oyd.jsx --compile  # 基于 spec/blocks 生成首页并本地编译
+openyida generate-page product-homepage --spec .cache/openyida/page-specs/home.json --output pages/src/home.oyd.jsx --compile  # 基于 spec/blocks 生成首页并本地编译
 openyida generate-page todo-mvc --output pages/src/todo-mvc.oyd.jsx --compile  # 生成官方 TodoMVC 风格交互样板
 openyida check-page pages/src/home.oyd.jsx --json      # 输出机器可读的规范检查结果；.oyd.jsx 会先兼容构建
 ```

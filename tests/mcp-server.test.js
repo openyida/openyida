@@ -6,6 +6,10 @@ const {
   sanitizeLoginResult,
   selectYidaLoginOrganization,
 } = require('../lib/mcp/server');
+const {
+  createTaskStore,
+  handleA2aRequest,
+} = require('../lib/a2a/server');
 
 describe('OpenYida MCP server helpers', () => {
   test('builds MCP elicitation schema for organization single-select', () => {
@@ -121,5 +125,61 @@ describe('OpenYida MCP server helpers', () => {
       selected_corp: null,
       csrf_token: 'abcdefghijklmnop...',
     });
+  });
+});
+
+describe('OpenYida A2A local adapter helpers', () => {
+  test('serves Agent Card discovery without login state', async () => {
+    const response = await handleA2aRequest({
+      method: 'GET',
+      url: '/.well-known/agent-card.json',
+    });
+    const body = JSON.parse(response.body);
+
+    expect(response.statusCode).toBe(200);
+    expect(body).toMatchObject({
+      protocolVersion: '1.0',
+      name: 'OpenYida Local Adapter',
+      capabilities: {
+        streaming: false,
+        pushNotifications: false,
+      },
+    });
+    expect(body.skills.map(skill => skill.id)).toContain('openyida.command_manifest');
+  });
+
+  test('handles message:send and stores completed task', async () => {
+    const taskStore = createTaskStore();
+    const response = await handleA2aRequest({
+      method: 'POST',
+      url: '/message:send',
+    }, JSON.stringify({
+      message: {
+        role: 'user',
+        parts: [{ kind: 'text', text: 'commands' }],
+      },
+    }), { taskStore });
+    const task = JSON.parse(response.body);
+
+    expect(response.statusCode).toBe(200);
+    expect(task.status.state).toBe('completed');
+    expect(task.artifacts[0].parts[1].data.manifest.name).toBe('openyida');
+
+    const getResponse = await handleA2aRequest({
+      method: 'GET',
+      url: `/tasks/${task.id}`,
+    }, '', { taskStore });
+    expect(JSON.parse(getResponse.body).id).toBe(task.id);
+  });
+
+  test('returns unsupported capability for streaming routes', async () => {
+    const response = await handleA2aRequest({
+      method: 'POST',
+      url: '/message:stream',
+    });
+    const body = JSON.parse(response.body);
+
+    expect(response.statusCode).toBe(501);
+    expect(body.error.code).toBe('UNSUPPORTED_CAPABILITY');
   });
 });

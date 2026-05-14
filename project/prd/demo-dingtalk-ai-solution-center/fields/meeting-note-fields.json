@@ -1,0 +1,17 @@
+[
+  { "type": "SerialNumberField", "label": "纪要编号" },
+  { "type": "TextField", "label": "客户名称", "required": true },
+  { "type": "EmployeeField", "label": "负责SA", "required": true },
+  { "type": "DateField", "label": "会议时间", "required": true, "format": "YYYY-MM-DD HH:mm" },
+  { "type": "SelectField", "label": "来源", "options": ["钉钉会议", "钉钉闪记", "手工录入", "客户邮件", "其他"] },
+  { "type": "TextareaField", "label": "原始纪要", "required": true },
+  { "type": "TextareaField", "label": "AI需求摘要", "placeholder": "行业、痛点、角色、流程、系统边界" },
+  { "type": "TextareaField", "label": "客户异议", "placeholder": "价格、集成、安全、交付周期等异议" },
+  { "type": "TextareaField", "label": "推荐方案理由" },
+  { "type": "TableField", "label": "会后待办", "children": [
+    { "type": "TextField", "label": "待办事项" },
+    { "type": "EmployeeField", "label": "负责人" },
+    { "type": "DateField", "label": "截止日期" },
+    { "type": "SelectField", "label": "状态", "options": ["未开始", "进行中", "已完成", "已逾期"] }
+  ] }
+]

@@ -1,0 +1,20 @@
+[
+  { "type": "SerialNumberField", "label": "拜访编号" },
+  { "type": "TextField", "label": "客户名称", "required": true },
+  { "type": "EmployeeField", "label": "负责SA", "required": true },
+  { "type": "DateField", "label": "拜访时间", "required": true, "format": "YYYY-MM-DD HH:mm" },
+  { "type": "SelectField", "label": "拜访类型", "options": ["初访", "需求访谈", "方案演示", "Demo演示", "商务沟通", "交付评估", "主管陪访"] },
+  { "type": "SelectField", "label": "拜访状态", "required": true, "options": ["待准备", "已准备", "已拜访待纪要", "待客户反馈", "方案确认中", "Demo已演示", "转交付", "暂缓/风险"] },
+  { "type": "TextareaField", "label": "拜访目标", "required": true, "placeholder": "本次拜访希望推进的关键事项" },
+  { "type": "SelectField", "label": "推荐方案", "options": ["制造业设备巡检与异常闭环", "零售门店巡检与整改闭环", "物业报修与服务评价", "教育招生线索转化", "物流车辆调度与异常上报", "政企督办事项闭环"] },
+  { "type": "SelectField", "label": "Demo状态", "options": ["未创建", "已创建", "已演示", "需改版", "已废弃"] },
+  { "type": "MultiSelectField", "label": "风险标签", "options": ["预算", "决策链", "竞品介入", "无下一步", "Demo未跟进", "交付边界", "系统集成复杂"] },
+  { "type": "TextareaField", "label": "拜访纪要", "placeholder": "可粘贴钉钉闪记或会后总结" },
+  { "type": "TextareaField", "label": "AI需求摘要", "placeholder": "由悟空提炼客户需求、异议和下一步动作" },
+  { "type": "TableField", "label": "下一步动作", "children": [
+    { "type": "TextField", "label": "事项" },
+    { "type": "EmployeeField", "label": "负责人" },
+    { "type": "DateField", "label": "截止时间" },
+    { "type": "SelectField", "label": "状态", "options": ["未开始", "进行中", "已完成", "已逾期"] }
+  ] }
+]

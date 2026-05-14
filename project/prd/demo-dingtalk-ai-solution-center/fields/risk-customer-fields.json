@@ -1,0 +1,14 @@
+[
+  { "type": "SerialNumberField", "label": "风险编号" },
+  { "type": "TextField", "label": "客户名称", "required": true },
+  { "type": "EmployeeField", "label": "负责SA", "required": true },
+  { "type": "SelectField", "label": "风险等级", "required": true, "options": ["高风险", "中风险", "低风险", "已解除"] },
+  { "type": "MultiSelectField", "label": "风险类型", "options": ["预算不明确", "决策链缺失", "竞品介入", "无下一步", "Demo未跟进", "交付边界不清", "集成复杂", "客户停滞"] },
+  { "type": "SelectField", "label": "当前阶段", "options": ["初访", "需求确认", "方案演示", "Demo/POC", "商务推进", "交付评估", "暂缓"] },
+  { "type": "TextareaField", "label": "风险原因", "required": true },
+  { "type": "TextareaField", "label": "AI建议动作" },
+  { "type": "RadioField", "label": "需要主管介入", "options": ["是", "否"] },
+  { "type": "EmployeeField", "label": "协同负责人" },
+  { "type": "DateField", "label": "处理截止日期" },
+  { "type": "SelectField", "label": "处理状态", "options": ["待处理", "处理中", "已缓解", "已关闭"] }
+]

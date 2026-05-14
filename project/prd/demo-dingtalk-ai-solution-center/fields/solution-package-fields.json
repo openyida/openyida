@@ -1,0 +1,20 @@
+[
+  { "type": "SerialNumberField", "label": "方案编号" },
+  { "type": "TextField", "label": "方案名称", "required": true },
+  { "type": "SelectField", "label": "行业", "required": true, "options": ["制造", "零售", "地产物业", "教育", "物流供应链", "政企", "医疗健康", "金融服务", "通用"] },
+  { "type": "MultiSelectField", "label": "适用场景", "options": ["巡检", "督办", "工单", "CRM", "审批", "报表", "集成", "AI助理", "经营看板"] },
+  { "type": "SelectField", "label": "成熟度等级", "required": true, "options": ["S-可直接演示交付", "A-可演示需少量客户化", "B-可参考需补资产", "C-概念待完善"] },
+  { "type": "NumberField", "label": "成熟度评分", "placeholder": "0-100" },
+  { "type": "NumberField", "label": "OpenYida覆盖度", "placeholder": "0-100" },
+  { "type": "TextareaField", "label": "客户问题", "placeholder": "这个方案解决哪些客户问题" },
+  { "type": "TextareaField", "label": "价值主张", "placeholder": "面向客户的价值表达" },
+  { "type": "TextareaField", "label": "应用蓝图", "placeholder": "表单、流程、报表、权限、连接器、自定义页面" },
+  { "type": "TableField", "label": "悟空Prompt", "children": [
+    { "type": "SelectField", "label": "Prompt类型", "options": ["需求分析", "行业方案", "话术生成", "异议处理", "PRD生成", "方案质检"] },
+    { "type": "TextField", "label": "Prompt名称" },
+    { "type": "TextareaField", "label": "Prompt内容" }
+  ] },
+  { "type": "MultiSelectField", "label": "交付资产", "options": ["客户PPT", "演示话术", "PRD", "FAQ", "验收清单", "交付计划", "风险说明"] },
+  { "type": "EmployeeField", "label": "方案Owner" },
+  { "type": "SelectField", "label": "状态", "options": ["草稿", "评审中", "已发布", "需更新", "已下线"] }
+]

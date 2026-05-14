@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>钉钉 AI 解决方案中心</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #eaf0f6;
+      color: #172033;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", Arial, sans-serif;
+    }
+    button, textarea { font: inherit; }
+    .shell { min-height: 100vh; display: block; }
+    .sidebar { background: #162033; color: #fff; padding: 22px 16px; position: fixed; top: 0; left: 0; width: 236px; height: 100vh; overflow-y: auto; z-index: 20; }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .brand-mark { width: 36px; height: 36px; border-radius: 8px; background: #2f6fed; display: grid; place-items: center; font-weight: 900; }
+    .brand-title { font-size: 16px; font-weight: 800; }
+    .brand-sub { font-size: 11px; color: rgba(255,255,255,.55); margin-top: 2px; }
+    .nav { display: grid; gap: 6px; }
+    .nav button {
+      height: 42px; border: 0; border-radius: 8px; background: transparent; color: rgba(255,255,255,.78);
+      display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 8px; padding: 0 10px;
+      text-align: left; cursor: pointer;
+    }
+    .nav button.active { background: #24324b; color: #fff; }
+    .nav i { width: 24px; height: 24px; border-radius: 7px; background: rgba(255,255,255,.1); display: grid; place-items: center; font-style: normal; font-size: 12px; }
+    .nav button.active i { background: #2f6fed; }
+    .content { padding: 18px; min-width: 0; margin-left: 236px; }
+    .topbar {
+      min-height: 64px; background: #fff; border: 1px solid #dde5f0; border-radius: 8px; padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px;
+    }
+    .top-title { font-size: 18px; font-weight: 900; }
+    .top-sub { color: #6b7280; font-size: 12px; margin-top: 4px; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .chip { height: 28px; line-height: 28px; border-radius: 8px; padding: 0 10px; background: #eef6ff; color: #1d4ed8; font-size: 12px; font-weight: 800; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: start; }
+    .main { display: grid; gap: 14px; min-width: 0; }
+    .hero {
+      min-height: 172px; border-radius: 8px; padding: 24px; color: #fff;
+      background: linear-gradient(135deg, #0f766e 0%, #2563eb 58%, #6d28d9 100%);
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+    }
+    .eyebrow { color: #4b8bff; font-size: 12px; font-weight: 900; margin-bottom: 8px; }
+    .hero .eyebrow { color: rgba(255,255,255,.72); }
+    h1, h2, p { margin: 0; }
+    .hero h1 { font-size: 34px; line-height: 1.18; font-weight: 900; margin-bottom: 10px; }
+    .hero p { color: rgba(255,255,255,.86); line-height: 1.6; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .primary, .secondary {
+      height: 36px; border-radius: 8px; padding: 0 14px; font-size: 13px; font-weight: 900; cursor: pointer; white-space: nowrap;
+    }
+    .primary { border: 0; background: #2563eb; color: #fff; }
+    .secondary { border: 1px solid #cbd5e1; background: #fff; color: #1f2937; }
+    .panel { background: #fff; border: 1px solid #dde5f0; border-radius: 8px; padding: 16px; }
+    .section-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+    .section-title { font-size: 17px; font-weight: 900; line-height: 1.3; }
+    .status { height: 26px; line-height: 26px; border-radius: 8px; padding: 0 10px; background: #ecfdf5; color: #047857; font-size: 12px; font-weight: 900; white-space: nowrap; }
+    textarea {
+      width: 100%; min-height: 92px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; resize: vertical;
+      color: #1f2937; background: #f8fafc; outline: none; line-height: 1.6;
+    }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .metric { background: #fff; border: 1px solid #dde5f0; border-radius: 8px; padding: 14px; min-height: 124px; }
+    .metric-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .metric-icon { width: 30px; height: 30px; border-radius: 8px; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 900; }
+    .metric-delta { font-size: 12px; color: #64748b; font-weight: 800; }
+    .metric-value { font-size: 30px; line-height: 1; font-weight: 900; margin-bottom: 8px; }
+    .metric-label { font-size: 13px; color: #64748b; }
+    .pipeline, .assets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .step, .asset, .solution, .industry, .material, .prompt {
+      border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; padding: 12px;
+    }
+    .step-num { width: 32px; height: 24px; line-height: 24px; border-radius: 7px; background: #dbeafe; color: #1d4ed8; text-align: center; font-size: 12px; font-weight: 900; margin-bottom: 10px; }
+    .mini-title { font-size: 14px; font-weight: 900; margin-bottom: 6px; }
+    .muted { font-size: 12px; color: #64748b; line-height: 1.55; }
+    .two { display: grid; grid-template-columns: .92fr 1.08fr; gap: 14px; align-items: start; }
+    .industries { display: grid; gap: 8px; }
+    .industry { width: 100%; text-align: left; cursor: pointer; background: #fff; }
+    .industry.active, .solution.active { border-color: #2563eb; background: #eff6ff; box-shadow: 0 8px 22px rgba(37,99,235,.12); }
+    .industry b { display: block; margin-bottom: 4px; }
+    .solutions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .solution { min-height: 152px; text-align: left; cursor: pointer; background: #fff; }
+    .solution-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .grade { min-width: 26px; height: 24px; line-height: 24px; border-radius: 7px; color: #fff; text-align: center; font-size: 12px; font-weight: 900; }
+    .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .tag { height: 22px; line-height: 22px; border-radius: 7px; background: #f1f5f9; color: #475569; padding: 0 7px; font-size: 11px; font-weight: 800; }
+    .detail-head { display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 16px; margin-bottom: 16px; }
+    .detail-title { font-size: 22px; line-height: 1.3; font-weight: 900; margin-bottom: 8px; }
+    .score { border: 1px solid #dde5f0; border-radius: 8px; min-height: 86px; display: grid; place-items: center; background: #f8fafc; text-align: center; }
+    .score b { display: block; font-size: 28px; color: #059669; }
+    .side { background: #fff; border: 1px solid #dde5f0; border-radius: 8px; padding: 16px; display: grid; gap: 16px; position: sticky; top: 18px; }
+    .assistant-head { display: flex; justify-content: space-between; align-items: center; }
+    .avatar { width: 38px; height: 38px; border-radius: 8px; background: #6d28d9; color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 900; }
+    .suggestion { border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; }
+    .radar { display: grid; gap: 8px; }
+    .radar-row { display: grid; grid-template-columns: 58px 1fr 28px; align-items: center; gap: 8px; font-size: 12px; }
+    .bar { height: 7px; border-radius: 4px; background: #e2e8f0; overflow: hidden; }
+    .fill { display: block; height: 100%; border-radius: 4px; background: #059669; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .build-grid, .prompt-grid, .material-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .material-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .visit-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .visit-layout, .manager-layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 14px; align-items: start; }
+    .visit-card { border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; padding: 12px; margin-bottom: 10px; }
+    .visit-card-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+    .pill { height: 24px; line-height: 24px; border-radius: 7px; padding: 0 8px; background: #ecfdf5; color: #047857; font-size: 12px; font-weight: 900; white-space: nowrap; }
+    .funnel-row { display: grid; grid-template-columns: 72px 1fr 36px; gap: 10px; align-items: center; margin-bottom: 12px; font-size: 12px; }
+    .funnel-track { height: 10px; border-radius: 5px; background: #e2e8f0; overflow: hidden; }
+    .funnel-fill { display: block; height: 100%; border-radius: 5px; background: #2563eb; }
+    .team-head, .team-row { display: grid; grid-template-columns: minmax(150px, 1.2fr) repeat(4, 64px) minmax(92px, .8fr); gap: 8px; align-items: center; }
+    .team-head { padding: 0 10px 8px; color: #64748b; font-size: 12px; font-weight: 900; }
+    .team-row { border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; padding: 10px; margin-bottom: 8px; font-size: 13px; font-weight: 800; }
+    .health { height: 7px; border-radius: 4px; background: #e2e8f0; overflow: hidden; display: inline-block; width: 60%; margin-right: 6px; vertical-align: middle; }
+    .health span { display: block; height: 100%; background: #059669; border-radius: 4px; }
+    .risk-row { border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; padding: 12px; display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 10px; }
+    .task { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #f8fafc; margin-top: 8px; }
+    .check { width: 24px; height: 24px; border-radius: 50%; background: #dcfce7; color: #047857; display: grid; place-items: center; font-weight: 900; }
+    @media (max-width: 1100px) {
+      .shell { display: block; }
+      .sidebar { display: none; }
+      .content { margin-left: 0; }
+      .grid, .two, .build-grid, .visit-layout, .manager-layout { grid-template-columns: 1fr; }
+      .side { position: static; }
+      .metrics, .pipeline, .assets, .material-grid, .visit-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 720px) {
+      html, body { width: 100%; max-width: 100vw; overflow-x: hidden; }
+      .shell { width: 100vw; max-width: 100vw; overflow-x: hidden; }
+      .content { width: 100vw; max-width: 100vw; padding: 12px; overflow-x: hidden; }
+      .grid, .main, .panel, .topbar, .hero, .metric { min-width: 0; max-width: 100%; }
+      .topbar { flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 10px; padding: 12px; overflow: hidden; }
+      .chips { justify-content: flex-start; width: 100%; }
+      .hero { display: block; min-height: auto; padding: 20px; overflow: visible; }
+      .metrics, .pipeline, .assets, .solutions, .prompt-grid, .material-grid, .visit-metrics { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 28px; line-height: 1.22; word-break: break-word; }
+      .hero p { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">钉</div>
+        <div><div class="brand-title">AI 解决方案中心</div><div class="brand-sub">SA Solution Hub</div></div>
+      </div>
+      <nav class="nav">
+        <button class="active" data-view="workbench"><i>⌘</i><span>工作台</span></button>
+        <button data-view="visits"><i>日</i><span>客户拜访</span><b>9</b></button>
+        <button data-view="manager"><i>盘</i><span>主管看板</span><b>3</b></button>
+        <button data-view="workbench"><i>▦</i><span>行业地图</span></button>
+        <button data-view="workbench"><i>□</i><span>方案包</span><b>S</b></button>
+        <button data-view="prompts"><i>✦</i><span>悟空 Prompt</span></button>
+        <button data-view="build"><i>▶</i><span>OpenYida 搭建</span></button>
+        <button data-view="materials"><i>↗</i><span>客户材料</span></button>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div><div class="top-title">SA AI 作战台</div><div class="top-sub">需求诊断、客户拜访、团队大盘、Demo 搭建、材料生成</div></div>
+        <div class="chips"><span class="chip">悟空已接入</span><span class="chip">OpenYida 可搭建</span></div>
+      </header>
+
+      <section id="workbench" class="view active">
+        <div class="grid">
+          <div class="main">
+            <section class="hero">
+              <div>
+                <div class="eyebrow">悟空 × OpenYida</div>
+                <h1>钉钉 AI 解决方案中心</h1>
+                <p>输入客户需求，生成可演示、可交付、可复用的行业方案。</p>
+              </div>
+              <div class="actions"><button class="primary" id="diagnoseBtn">生成推荐方案</button><button class="secondary" data-view="build">创建宜搭样板</button></div>
+            </section>
+
+            <section class="panel">
+              <div class="section-head"><div><div class="eyebrow">客户需求诊断</div><h2 class="section-title">从会议纪要到方案包</h2></div><span class="status" id="status">待诊断</span></div>
+              <textarea id="need">客户是一家 1500 人制造企业，想用钉钉和宜搭解决设备巡检、异常上报、维修派单、管理驾驶舱的问题，现场希望 30 分钟看到可演示 Demo。</textarea>
+              <div class="actions"><button class="primary" id="diagnoseBtn2">AI 诊断</button><button class="secondary" data-view="materials">生成客户材料</button><button class="secondary" data-view="build">OpenYida 搭建</button></div>
+            </section>
+
+            <section class="metrics">
+              <div class="metric"><div class="metric-top"><span class="metric-icon" style="background:#2563eb">搭</span><span class="metric-delta">+6 本周</span></div><div class="metric-value">24</div><div class="metric-label">可一键搭建方案</div></div>
+              <div class="metric"><div class="metric-top"><span class="metric-icon" style="background:#059669">方</span><span class="metric-delta">S/A 级</span></div><div class="metric-value">68</div><div class="metric-label">高复用方案包</div></div>
+              <div class="metric"><div class="metric-top"><span class="metric-icon" style="background:#7c3aed">AI</span><span class="metric-delta">+32</span></div><div class="metric-value">186</div><div class="metric-label">悟空 Prompt</div></div>
+              <div class="metric"><div class="metric-top"><span class="metric-icon" style="background:#d97706">审</span><span class="metric-delta">需处理</span></div><div class="metric-value">17</div><div class="metric-label">SA 共创待审</div></div>
+            </section>
+
+            <section class="panel">
+              <div class="section-head"><div><div class="eyebrow">闭环工作流</div><h2 class="section-title">SA 从需求到演示的 4 步</h2></div></div>
+              <div class="pipeline">
+                <div class="step"><div class="step-num">01</div><div class="mini-title">识别需求</div><div class="muted">悟空提炼业务痛点、角色和系统边界。</div></div>
+                <div class="step"><div class="step-num">02</div><div class="mini-title">匹配方案</div><div class="muted">按行业、场景和成熟度推荐可复用方案包。</div></div>
+                <div class="step"><div class="step-num">03</div><div class="mini-title">搭建 Demo</div><div class="muted">OpenYida 创建表单、流程、报表和演示数据。</div></div>
+                <div class="step"><div class="step-num">04</div><div class="mini-title">交付材料</div><div class="muted">生成客户版方案、话术、FAQ 和 PRD。</div></div>
+              </div>
+            </section>
+
+            <section class="two">
+              <div class="panel">
+                <div class="section-head"><div><div class="eyebrow">行业作战地图</div><h2 class="section-title">按客户场景找切入点</h2></div></div>
+                <div class="industries" id="industries"></div>
+              </div>
+              <div class="panel">
+                <div class="section-head"><div><div class="eyebrow">推荐方案</div><h2 class="section-title">可执行方案包</h2></div></div>
+                <div class="solutions" id="solutions"></div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="detail-head">
+                <div><div class="eyebrow">当前方案</div><div class="detail-title" id="detailTitle"></div><p class="muted" id="detailDesc"></p></div>
+                <div class="score"><div><b id="detailScore"></b><span class="muted">成熟度</span></div></div>
+              </div>
+              <div class="assets">
+                <div class="asset"><div class="mini-title">应用蓝图</div><div class="muted">4 张表单、2 条流程、1 个首页、1 个经营看板。</div></div>
+                <div class="asset"><div class="mini-title">悟空 Prompt</div><div class="muted">需求分析、方案改写、演示话术、异议处理。</div></div>
+                <div class="asset"><div class="mini-title">OpenYida 动作</div><div class="muted">创建应用、生成页面、发布看板、准备演示数据。</div></div>
+                <div class="asset"><div class="mini-title">交付资产</div><div class="muted">客户版方案、PRD、FAQ、验收清单和风险说明。</div></div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="side">
+            <div class="assistant-head"><div><div class="eyebrow">AI 方案助理</div><h2 class="section-title">下一步建议</h2></div><span class="avatar">AI</span></div>
+            <div class="suggestion"><div class="mini-title">推荐动作</div><div class="muted" id="suggestion"></div></div>
+            <div><div class="mini-title">我的方案包</div><div class="muted">制造巡检客户包 · 8 项</div><div class="muted">门店巡检复用包 · 6 项</div><div class="muted">政企督办演示包 · 5 项</div></div>
+            <div class="radar">
+              <div class="mini-title">成熟度雷达</div>
+              <div class="radar-row"><span>行业匹配</span><span class="bar"><span class="fill" style="width:94%"></span></span><b>94</b></div>
+              <div class="radar-row"><span>可演示</span><span class="bar"><span class="fill" style="width:90%"></span></span><b>90</b></div>
+              <div class="radar-row"><span>可交付</span><span class="bar"><span class="fill" style="width:86%"></span></span><b>86</b></div>
+              <div class="radar-row"><span>AI 化</span><span class="bar"><span class="fill" style="width:88%"></span></span><b>88</b></div>
+              <div class="radar-row"><span>可搭建</span><span class="bar"><span class="fill" style="width:92%"></span></span><b>92</b></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="visits" class="view panel">
+        <div class="section-head"><div><div class="eyebrow">SA 客户拜访</div><h1>把每次拜访变成可经营资产</h1></div><div class="chips"><span class="chip">示例数据</span><button class="primary" data-view="workbench">生成拜访方案包</button></div></div>
+        <div class="visit-metrics">
+          <div class="metric"><div class="metric-value">42</div><div class="metric-label">本周客户拜访</div><div class="metric-delta">+18% 环比</div></div>
+          <div class="metric"><div class="metric-value">87%</div><div class="metric-label">拜访前准备率</div><div class="metric-delta">目标 85%</div></div>
+          <div class="metric"><div class="metric-value">91%</div><div class="metric-label">会后纪要沉淀</div><div class="metric-delta">自动生成 28 份</div></div>
+          <div class="metric"><div class="metric-value">76%</div><div class="metric-label">下一步明确率</div><div class="metric-delta">9 个待补齐</div></div>
+        </div>
+        <div class="visit-layout">
+          <div class="panel">
+            <div class="section-head"><div><div class="eyebrow">本周拜访计划</div><h2 class="section-title">拜访前准备、会后纪要、下一步动作</h2></div><span class="status">9 个待处理</span></div>
+            <div class="visit-card"><div class="visit-card-head"><div><b>华东精密制造</b><div class="muted">今天 14:00 · 林晨 · 方案演示</div></div><span class="pill">已准备</span></div><div class="muted">演示设备巡检异常闭环，确认维修派单和驾驶舱指标。</div><div class="tags"><span class="tag">设备巡检</span><span class="tag">Demo 已创建</span><span class="tag">决策链</span></div></div>
+            <div class="visit-card"><div class="visit-card-head"><div><b>北方连锁零售</b><div class="muted">明天 10:30 · 周岚 · 需求确认</div></div><span class="pill" style="background:#fef3c7;color:#b45309">待准备</span></div><div class="muted">梳理门店巡检、整改督办和区域排行诉求。</div><div class="tags"><span class="tag">门店巡检</span><span class="tag">Demo 待创建</span><span class="tag">预算</span></div></div>
+            <div class="visit-card"><div class="visit-card-head"><div><b>政务协同中心</b><div class="muted">周五 16:00 · 陈越 · POC 评估</div></div><span class="pill" style="background:#fee2e2;color:#b91c1c">需支持</span></div><div class="muted">确认督办事项闭环、领导驾驶舱和数据权限边界。</div><div class="tags"><span class="tag">政企督办</span><span class="tag">需改版</span><span class="tag">交付边界</span></div></div>
+          </div>
+          <div class="panel">
+            <div class="section-head"><div><div class="eyebrow">拜访推进漏斗</div><h2 class="section-title">从初访到 Demo 复盘</h2></div></div>
+            <div class="funnel-row"><span>初访</span><span class="funnel-track"><span class="funnel-fill" style="width:92%"></span></span><b>36</b></div>
+            <div class="funnel-row"><span>需求确认</span><span class="funnel-track"><span class="funnel-fill" style="width:72%;background:#0f766e"></span></span><b>24</b></div>
+            <div class="funnel-row"><span>方案演示</span><span class="funnel-track"><span class="funnel-fill" style="width:58%;background:#7c3aed"></span></span><b>18</b></div>
+            <div class="funnel-row"><span>Demo/POC</span><span class="funnel-track"><span class="funnel-fill" style="width:42%;background:#d97706"></span></span><b>11</b></div>
+            <div class="suggestion"><div class="mini-title">AI 拜访建议</div><div class="muted">本周高价值拜访集中在制造和政企，建议优先准备设备巡检、督办闭环两个可演示 Demo；3 个客户缺少明确下一步。</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="manager" class="view panel">
+        <div class="section-head"><div><div class="eyebrow">SA 主管看板</div><h1>团队大盘、个人状态、客户风险一屏看清</h1></div><div class="chips"><span class="chip">示例数据</span><span class="status">接表单后自动刷新</span></div></div>
+        <div class="visit-metrics">
+          <div class="metric"><div class="metric-value">126</div><div class="metric-label">活跃客户</div><div class="metric-delta">+14 本周</div></div>
+          <div class="metric"><div class="metric-value">31</div><div class="metric-label">方案演示</div><div class="metric-delta">转阶段 12</div></div>
+          <div class="metric"><div class="metric-value">19</div><div class="metric-label">Demo 创建</div><div class="metric-delta">5 个未演示</div></div>
+          <div class="metric"><div class="metric-value">8</div><div class="metric-label">高风险客户</div><div class="metric-delta">3 个需陪访</div></div>
+        </div>
+        <div class="manager-layout">
+          <div class="panel">
+            <div class="section-head"><div><div class="eyebrow">个人状态</div><h2 class="section-title">SA 推进质量排行</h2></div></div>
+            <div class="team-head"><div>SA</div><div>客户</div><div>拜访</div><div>Demo</div><div>逾期</div><div>健康</div></div>
+            <div class="team-row"><div><b>林晨</b><div class="muted">制造 · 高价值客户</div></div><div>18</div><div>9</div><div>5</div><div>1</div><div><span class="health"><span style="width:92%"></span></span>92</div></div>
+            <div class="team-row"><div><b>周岚</b><div class="muted">零售 · 门店巡检</div></div><div>15</div><div>8</div><div>3</div><div style="color:#dc2626">3</div><div><span class="health"><span style="width:78%"></span></span>78</div></div>
+            <div class="team-row"><div><b>陈越</b><div class="muted">政企 · 督办协同</div></div><div>12</div><div>6</div><div>4</div><div style="color:#dc2626">2</div><div><span class="health"><span style="width:82%"></span></span>82</div></div>
+            <div class="team-row"><div><b>孟琪</b><div class="muted">教育 · 招生转化</div></div><div>11</div><div>4</div><div>1</div><div style="color:#dc2626">4</div><div><span class="health"><span style="width:66%"></span></span>66</div></div>
+          </div>
+          <div class="panel">
+            <div class="section-head"><div><div class="eyebrow">风险客户</div><h2 class="section-title">需要主管介入的机会</h2></div></div>
+            <div class="risk-row"><div><b>华东精密制造</b><div class="muted">高价值客户，已演示 Demo，但决策链缺少 IT 和生产负责人。</div></div><span class="pill" style="background:#fee2e2;color:#b91c1c">需陪访</span></div>
+            <div class="risk-row"><div><b>政务协同中心</b><div class="muted">POC 范围扩大，交付边界不清，建议行业专家介入。</div></div><span class="pill" style="background:#fee2e2;color:#b91c1c">高风险</span></div>
+            <div class="risk-row"><div><b>北方连锁零售</b><div class="muted">预算周期不明确，门店侧需求强但总部 owner 未确认。</div></div><span class="pill">待推进</span></div>
+            <div class="suggestion"><div class="mini-title">AI 管理建议</div><div class="muted">建议主管本周陪访「华东精密制造」，并安排行业专家支持「政务督办项目」。</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="build" class="view panel">
+        <div class="section-head"><div><div class="eyebrow">OpenYida 搭建任务</div><h1>把方案变成可运行 Demo</h1></div><button class="primary" data-view="workbench">回到推荐方案</button></div>
+        <div class="build-grid">
+          <div>
+            <h2 class="section-title">样板应用生成</h2>
+            <div class="task"><span class="check">✓</span><div><b>创建样板应用</b><div class="muted">创建「制造业设备巡检 AI Demo」应用空间。</div></div><span class="muted">20s</span></div>
+            <div class="task"><span class="check">✓</span><div><b>生成核心表单</b><div class="muted">设备台账、巡检任务、异常上报、维修工单。</div></div><span class="muted">2min</span></div>
+            <div class="task"><span class="check">✓</span><div><b>配置流程规则</b><div class="muted">异常分派、维修处理、验收评价。</div></div><span class="muted">3min</span></div>
+            <div class="task"><span class="check">·</span><div><b>发布管理看板</b><div class="muted">异常趋势、响应时效、产线排行。</div></div><span class="muted">2min</span></div>
+          </div>
+          <div class="panel">
+            <h2 class="section-title">生成结果</h2>
+            <p class="muted" style="margin-top:12px">已准备应用蓝图：4 张表单、2 条流程、1 个经营看板、1 套演示数据、6 条悟空 Prompt。</p>
+            <div class="actions"><button class="primary" data-view="materials">生成客户材料</button><button class="secondary" data-view="prompts">查看 Prompt</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="prompts" class="view panel">
+        <div class="section-head"><div><div class="eyebrow">悟空 Prompt 资产库</div><h1>让每个方案都能被 AI 复用</h1></div></div>
+        <div class="prompt-grid" id="promptsGrid"></div>
+      </section>
+
+      <section id="materials" class="view panel">
+        <div class="section-head"><div><div class="eyebrow">客户材料</div><h1>一键生成客户版交付包</h1></div></div>
+        <div class="material-grid">
+          <div class="material"><div class="mini-title">客户版方案 PPT</div><div class="muted">自动生成 12 页客户沟通版材料。</div></div>
+          <div class="material"><div class="mini-title">20 分钟演示话术</div><div class="muted">按开场、痛点、演示、总结组织。</div></div>
+          <div class="material"><div class="mini-title">PRD 草稿</div><div class="muted">字段、流程、权限、报表和验收标准。</div></div>
+          <div class="material"><div class="mini-title">客户 FAQ</div><div class="muted">覆盖安全、集成、交付、后续扩展。</div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const industries = [
+      ['manufacturing', '制造', '18 个方案 · 7 个可搭建'],
+      ['retail', '零售', '12 个方案 · 4 个可搭建'],
+      ['property', '地产物业', '9 个方案 · 3 个可搭建'],
+      ['education', '教育', '8 个方案 · 2 个可搭建'],
+      ['logistics', '物流供应链', '10 个方案 · 4 个可搭建'],
+      ['government', '政企', '11 个方案 · 3 个可搭建']
+    ];
+    const solutions = [
+      ['inspection', 'S', '#059669', 92, '制造业设备巡检与异常闭环', '巡检、异常上报、维修派单、管理驾驶舱。', '适合有设备点检、产线巡检、维修响应和现场异常闭环诉求的制造企业，演示重点是从移动端上报到管理端看板。', ['制造', '可搭建', '高复用']],
+      ['store', 'A', '#2563eb', 86, '零售门店巡检与整改闭环', '门店检查、整改派发、区域排行、复盘报告。', '适合直营或加盟门店管理场景，强调总部标准下发、门店执行、问题整改和区域管理。', ['零售', '移动端', '督办']],
+      ['repair', 'A', '#2563eb', 84, '物业报修与服务评价', '住户报修、工单派发、维修反馈、满意度看板。', '适合园区、物业和后勤服务场景，客户能直观看到服务闭环和体验提升。', ['物业', '服务', '工单']],
+      ['admission', 'B', '#d97706', 78, '教育招生线索转化', '线索录入、跟进提醒、转化漏斗、招生分析。', '适合招生、销售和客户运营团队，适合作为 CRM 轻量化切入场景。', ['教育', 'CRM', '漏斗']]
+    ];
+    const prompts = [
+      ['客户需求分析', '从会议纪要中提炼行业、痛点、角色、流程和系统边界。'],
+      ['行业方案生成', '按客户行业生成价值主张、应用蓝图和演示路径。'],
+      ['客户话术改写', '把内部方案转成客户听得懂的业务语言。'],
+      ['异议处理', '围绕价格、交付周期、数据安全、系统集成生成回应。'],
+      ['PRD 生成', '将确认后的方案转为需求、字段、流程和验收标准。'],
+      ['方案质检', '检查方案是否具备可演示、可交付、可复用条件。']
+    ];
+    let selected = 'inspection';
+    function showView(id) {
+      document.querySelectorAll('.view').forEach(el => el.classList.toggle('active', el.id === id));
+      document.querySelectorAll('[data-view]').forEach(el => el.classList.toggle('active', el.dataset.view === id));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function renderIndustries() {
+      const wrap = document.getElementById('industries');
+      wrap.innerHTML = industries.map((item, idx) => `<button class="industry ${idx === 0 ? 'active' : ''}" data-industry="${item[0]}"><b>${item[1]}</b><span class="muted">${item[2]}</span></button>`).join('');
+      wrap.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+        wrap.querySelectorAll('button').forEach(item => item.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('status').textContent = '行业已切换';
+      }));
+    }
+    function renderSolutions() {
+      const wrap = document.getElementById('solutions');
+      wrap.innerHTML = solutions.map(item => `
+        <button class="solution ${item[0] === selected ? 'active' : ''}" data-solution="${item[0]}">
+          <div class="solution-head"><span class="grade" style="background:${item[2]}">${item[1]}</span><span class="muted">${item[3]} 分</span></div>
+          <div class="mini-title">${item[4]}</div><div class="muted">${item[5]}</div>
+          <div class="tags">${item[7].map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+        </button>`).join('');
+      wrap.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+        selected = btn.dataset.solution;
+        renderSolutions();
+        renderDetail();
+        document.getElementById('status').textContent = '方案已选择';
+      }));
+    }
+    function renderDetail() {
+      const item = solutions.find(row => row[0] === selected) || solutions[0];
+      document.getElementById('detailTitle').textContent = item[4];
+      document.getElementById('detailDesc').textContent = item[6];
+      document.getElementById('detailScore').textContent = item[3];
+      document.getElementById('suggestion').textContent = `优先用「${item[4]}」打开客户沟通，现场演示以异常闭环和管理驾驶舱为主，避免一开始展开过多表单细节。`;
+    }
+    function renderPrompts() {
+      document.getElementById('promptsGrid').innerHTML = prompts.map(item => `<div class="prompt"><div class="mini-title">${item[0]}</div><div class="muted">${item[1]}</div></div>`).join('');
+    }
+    document.querySelectorAll('[data-view]').forEach(btn => btn.addEventListener('click', () => showView(btn.dataset.view)));
+    document.getElementById('diagnoseBtn').addEventListener('click', () => { selected = 'inspection'; renderSolutions(); renderDetail(); document.getElementById('status').textContent = '已生成'; });
+    document.getElementById('diagnoseBtn2').addEventListener('click', () => { selected = 'inspection'; renderSolutions(); renderDetail(); document.getElementById('status').textContent = '已生成'; });
+    renderIndustries();
+    renderSolutions();
+    renderDetail();
+    renderPrompts();
+  </script>
+</body>
+</html>

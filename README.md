@@ -168,8 +168,8 @@ openyida create-app "CRM"
 openyida create-app --name "CRM" --desc "Customer management" --theme deepBlue
 openyida app-list --size 20
 openyida corp-efficiency
-openyida create-form create APP_XXX "Customer" fields.json
-openyida create-form update APP_XXX FORM_XXX changes.json
+openyida create-form create APP_XXX "Customer" .cache/openyida/forms/customer-fields.json
+openyida create-form update APP_XXX FORM_XXX .cache/openyida/forms/customer-changes.json
 openyida get-schema APP_XXX FORM_XXX
 openyida get-schema APP_XXX --all --output-dir .cache/schemas
 ```
@@ -178,7 +178,7 @@ openyida get-schema APP_XXX --all --output-dir .cache/schemas
 
 ```bash
 openyida create-page APP_XXX "Dashboard" --mode dashboard
-openyida generate-page product-homepage --spec page.json --output pages/src/home.oyd.jsx --compile
+openyida generate-page product-homepage --spec .cache/openyida/page-specs/home.json --output pages/src/home.oyd.jsx --compile
 openyida generate-page todo-mvc --output pages/src/todo-mvc.oyd.jsx --compile
 openyida check-page pages/src/home.oyd.jsx
 openyida compile pages/src/home.oyd.jsx
@@ -191,14 +191,50 @@ Built-in templates currently include `product-homepage` for product/portal pages
 ### Workflow, Data, and Permissions
 
 ```bash
-openyida create-process APP_XXX "Purchase Request" fields.json process.json
-openyida configure-process APP_XXX FORM_XXX process.json
-openyida process preview APP_XXX PROC_INST_XXX --output process.html
+openyida create-process APP_XXX "Purchase Request" .cache/openyida/process/fields.json .cache/openyida/process/process.json
+openyida configure-process APP_XXX FORM_XXX .cache/openyida/process/process.json
+openyida process preview APP_XXX PROC_INST_XXX --output .cache/openyida/process/process.html
 openyida data query form APP_XXX FORM_XXX --page 1 --size 20
+openyida data create form APP_XXX FORM_XXX --data-file .cache/openyida/data-import/record.json
 openyida get-permission APP_XXX FORM_XXX
 ```
 
 When creating or updating test data with `openyida data`, Yida date fields must use 13-digit millisecond timestamps, for example `"dateField_xxx": 1719705600000`. Do not submit `YYYY-MM-DD` strings for `DateField` or `CascadeDateField` values.
+Temporary JSON, CSV, and one-off import scripts should live under `.cache/openyida/` so generated run artifacts do not clutter the repository root.
+
+### Real Environment E2E
+
+Most checks should stay offline, but OpenYida also includes an explicit real-environment smoke path for release and nightly validation:
+
+```bash
+OPENYIDA_E2E=1 npm run test:e2e:real
+OPENYIDA_E2E=1 npm run test:e2e:real:full
+npm run test:e2e:real:skills
+```
+
+The runner creates a disposable app, form, and custom page with an `OY_E2E_*` prefix, then verifies login, app listing, schema fetch, data query, and page publish. It writes a registry to `project/.cache/e2e-real/` so created resources can be audited later. To inject CI cookies without relying on a local login cache, pass `OPENYIDA_E2E_COOKIES_BASE64` as a base64 encoded cookie array or `{ "cookies": [...] }` object.
+
+`test:e2e:real:full` extends the smoke path into a broad deterministic feature matrix: auth/env, app update, form update and option mutation, page build/compile/generate/publish, data create/get/update/query, permission read, page config and short URL check, report create/append, dashboard skill verification, export/import, batch, task-center, formula/doctor/sample/CDN config, and local connector parsing/template generation. AI-backed commands such as `flash-to-prd` are available as the optional `ai` stage because they depend on remote model availability.
+
+`test:e2e:real:skills` enforces coverage for every directory under `yida-skills/skills/`. Each skill must be classified as real E2E, offline/unit, opt-in, or deprecated with an explicit reason. This prevents new skills from quietly bypassing the real-environment test plan.
+
+Each successful full run leaves a human-inspectable result app in the target organization. The final step publishes a dedicated `Full E2E Dashboard` custom page, renames the app to `OY_E2E_*_PASSED` by default, and prints direct links for the app, form, dashboard page, and report; the same links are saved under `resultApp` in the registry JSON.
+
+Useful options:
+
+| Env var | Purpose |
+|---------|---------|
+| `OPENYIDA_E2E_PREFIX` | Override the disposable resource name prefix |
+| `OPENYIDA_E2E_CORP_ID` | Switch to the dedicated test organization before creating resources |
+| `OPENYIDA_E2E_RESULT_APP_NAME` | Override the final app name shown as the full-run result |
+| `OPENYIDA_E2E_BASE_URL` | Override the Yida base URL for private deployments |
+| `OPENYIDA_E2E_FIELDS_FILE` | Use a custom form fields fixture |
+| `OPENYIDA_E2E_PAGE_SOURCE` | Use a custom page source for publish verification |
+| `OPENYIDA_E2E_SKIP_PUBLISH=1` | Skip custom page creation and publish |
+| `OPENYIDA_E2E_REGISTRY_DIR` | Write registries outside `project/.cache/e2e-real/` |
+| `OPENYIDA_E2E_FULL_STAGES` | Comma-separated stage list for `test:e2e:real:full`; use `all` or omit for the default broad matrix |
+
+Use `npm run test:e2e:real:cleanup` to list recorded disposable resources. OpenYida does not yet expose a safe app/form deletion command, so cleanup is intentionally a registry-backed audit step rather than an automatic destructive action.
 
 ### Connectors, Integrations, and Reports
 
@@ -206,8 +242,8 @@ When creating or updating test data with `openyida data`, Yida date fields must 
 openyida connector smart-create --curl "curl https://api.example.com/users"
 openyida connector list
 openyida integration create APP_XXX FORM_XXX "Sync customer data"
-openyida create-report APP_XXX "Sales Dashboard" charts.json
-openyida append-chart APP_XXX REPORT_XXX chart.json
+openyida create-report APP_XXX "Sales Dashboard" .cache/openyida/reports/charts.json
+openyida append-chart APP_XXX REPORT_XXX .cache/openyida/reports/chart.json
 ```
 
 ## CLI Reference
@@ -262,8 +298,10 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida data <action> <resource> [args]` | Unified data management for forms, processes, tasks, and subforms |
 | `openyida data check <appType> <formUuid> <rules.json>` | Detect anomalous process-form records |
 | `openyida task-center <type> [options]` | Query todo, created, processed, CC, or proxy-submitted tasks |
+| `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, fixed-domain records, and domain settings |
 | `openyida get-permission <appType> <formUuid>` | Query form permission configuration |
 | `openyida save-permission <appType> <formUuid> [options]` | Save form permission configuration |
+| `openyida corp-manager <sub-command>` | Manage platform admins, sub-admins, app admins, and address book visibility |
 | `openyida verify-short-url <appType> <formUuid> <url>` | Verify a short URL |
 | `openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]` | Save public access or sharing configuration |
 | `openyida get-page-config <appType> <formUuid>` | Query public access or sharing configuration |
@@ -283,6 +321,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida integration enable <appType> <formUuid> <processCode>` | Enable an automation flow |
 | `openyida integration disable <appType> <formUuid> <processCode>` | Disable an automation flow |
 | `openyida dws <command> [args]` | Access DingTalk CLI capabilities such as contacts, calendar, todo, and approval |
+| `openyida dingtalk-link <url> [--target fullScreen] [--legacy-scheme] [--json]` | Generate DingTalk AppLink URLs for opening pages in DingTalk; use `--legacy-scheme` only when old `dingtalk://` links are required |
 
 ### Utilities
 
@@ -295,6 +334,8 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida update` | Update OpenYida through npm |
 | `openyida export-conversation [options]` | Export AI conversation history |
 | `openyida flash-to-prd --file <path> --name "<project>"` | Convert flash notes or meeting notes into a PRD prompt |
+| `openyida ai text --prompt "..."` | Call Yida's text generation AI API |
+| `openyida ai image --file <image> --app-type APP_XXX` | Upload an image and call the image recognition connector |
 | `openyida cdn-config` | Configure image upload to Aliyun OSS/CDN |
 | `openyida cdn-upload <image-path>` | Upload an image to CDN |
 | `openyida cdn-refresh [options]` | Refresh CDN cache |

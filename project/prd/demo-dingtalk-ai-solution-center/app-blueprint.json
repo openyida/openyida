@@ -1,0 +1,84 @@
+{
+  "name": "钉钉 AI 解决方案中心",
+  "description": "面向钉钉 SA 的 AI 方案生产、客户拜访经营和主管大盘样板应用。",
+  "theme": "deepBlue",
+  "entryPage": "project/pages/src/demo-dingtalk-ai-solution-center.oyd.jsx",
+  "builder": "project/prd/demo-dingtalk-ai-solution-center/build-solution-center.js",
+  "formConfigGenerator": "project/prd/demo-dingtalk-ai-solution-center/generate-form-config.js",
+  "seeder": "project/prd/demo-dingtalk-ai-solution-center/seed-solution-center.js",
+  "forms": [
+    {
+      "key": "customer",
+      "title": "客户档案",
+      "type": "receipt",
+      "fieldsFile": "fields/customer-fields.json",
+      "purpose": "沉淀客户基础信息、商机阶段、负责 SA、重点诉求和客户状态。"
+    },
+    {
+      "key": "visit",
+      "title": "客户拜访",
+      "type": "receipt",
+      "fieldsFile": "fields/visit-fields.json",
+      "purpose": "记录拜访计划、拜访准备、纪要摘要、Demo 状态、风险标签和下一步动作。"
+    },
+    {
+      "key": "solutionPackage",
+      "title": "方案包",
+      "type": "receipt",
+      "fieldsFile": "fields/solution-package-fields.json",
+      "purpose": "沉淀可复用行业方案、成熟度、OpenYida 覆盖度、Prompt 和交付资产。"
+    },
+    {
+      "key": "demoInstance",
+      "title": "Demo 实例",
+      "type": "receipt",
+      "fieldsFile": "fields/demo-instance-fields.json",
+      "purpose": "跟踪 OpenYida 创建的样板应用、页面地址、搭建任务、演示反馈和改版状态。"
+    },
+    {
+      "key": "meetingNote",
+      "title": "拜访纪要",
+      "type": "receipt",
+      "fieldsFile": "fields/meeting-note-fields.json",
+      "purpose": "承接钉钉会议/闪记，生成客户需求摘要、异议和会后待办。"
+    },
+    {
+      "key": "weeklyReport",
+      "title": "SA 周报",
+      "type": "receipt",
+      "fieldsFile": "fields/sa-weekly-report-fields.json",
+      "purpose": "按人和周期汇总客户数、拜访数、准备率、纪要率、下一步明确率和主管支持需求。"
+    },
+    {
+      "key": "riskCustomer",
+      "title": "风险客户",
+      "type": "receipt",
+      "fieldsFile": "fields/risk-customer-fields.json",
+      "purpose": "记录高风险客户、风险类型、AI 建议动作、主管介入和处理状态。"
+    }
+  ],
+  "recommendedPages": [
+    {
+      "title": "AI 解决方案中心首页",
+      "source": "project/pages/src/demo-dingtalk-ai-solution-center.oyd.jsx",
+      "purpose": "SA 工作台、客户拜访、主管看板、方案包、OpenYida 搭建和客户材料。"
+    }
+  ],
+  "automationIdeas": [
+    {
+      "name": "会后纪要生成待办",
+      "trigger": "客户拜访.拜访状态 = 已拜访待纪要",
+      "action": "调用悟空 Prompt 生成 AI 需求摘要和下一步动作，再写入拜访纪要/会后待办。"
+    },
+    {
+      "name": "风险客户升级",
+      "trigger": "风险客户.风险等级 = 高风险 或 客户拜访.风险标签 包含 无下一步",
+      "action": "通知 SA 主管，并在主管看板中进入需要介入清单。"
+    },
+    {
+      "name": "Demo 超期提醒",
+      "trigger": "Demo 实例.状态 = 已创建 且 7 天内未填写最近演示时间",
+      "action": "生成钉钉待办，提醒 SA 安排客户演示或归档 Demo。"
+    }
+  ]
+}

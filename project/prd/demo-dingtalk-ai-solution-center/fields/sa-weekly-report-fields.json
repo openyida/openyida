@@ -1,0 +1,17 @@
+[
+  { "type": "SerialNumberField", "label": "周报编号" },
+  { "type": "EmployeeField", "label": "SA", "required": true },
+  { "type": "CascadeDateField", "label": "统计周期", "required": true },
+  { "type": "NumberField", "label": "活跃客户数" },
+  { "type": "NumberField", "label": "本周拜访数" },
+  { "type": "NumberField", "label": "方案演示数" },
+  { "type": "NumberField", "label": "Demo创建数" },
+  { "type": "NumberField", "label": "高风险客户数" },
+  { "type": "NumberField", "label": "拜访前准备率", "placeholder": "0-100" },
+  { "type": "NumberField", "label": "会后纪要沉淀率", "placeholder": "0-100" },
+  { "type": "NumberField", "label": "下一步明确率", "placeholder": "0-100" },
+  { "type": "TextareaField", "label": "本周重点进展" },
+  { "type": "TextareaField", "label": "本周风险与阻塞" },
+  { "type": "TextareaField", "label": "下周重点计划" },
+  { "type": "TextareaField", "label": "需要主管支持" }
+]

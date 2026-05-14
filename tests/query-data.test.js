@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const { run } = require('../lib/core/query-data');
 
 // ── 工具函数 mock ─────────────────────────────────────────────────────
@@ -211,6 +214,49 @@ describe('run() query form', () => {
     mockExit.mockRestore();
     mockError.mockRestore();
   });
+
+  test('传入 --search-file 时读取文件作为查询条件', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-search-'));
+    const searchPath = path.join(tmpDir, 'search.json');
+    fs.writeFileSync(searchPath, JSON.stringify([{ key: 'field_1', value: 'value' }]), 'utf-8');
+
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: { totalCount: 1, data: [] },
+    });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--search-file', searchPath]);
+      expect(utils.httpGet).toHaveBeenCalledTimes(1);
+      expect(utils.httpGet.mock.calls[0][2]).toMatchObject({
+        searchFieldJson: '[{"key":"field_1","value":"value"}]',
+      });
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+      mockLog.mockRestore();
+      mockError.mockRestore();
+    }
+  });
+
+  test('同时传入 --search-json 和 --search-file 时打印错误并退出', async () => {
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit(1)');
+    });
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(
+      run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--search-json', '[]', '--search-file', '.cache/openyida/search.json'])
+    ).rejects.toThrow('process.exit(1)');
+    expect(mockExit).toHaveBeenCalledWith(1);
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('不能同时使用'));
+
+    mockExit.mockRestore();
+    mockError.mockRestore();
+  });
 });
 
 // ── get form（--inst-id）场景 ─────────────────────────────────────────
@@ -285,6 +331,32 @@ describe('run() create form', () => {
 
     mockLog.mockRestore();
     mockError.mockRestore();
+  });
+
+  test('传入 --data-file 时读取文件作为创建数据', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-data-'));
+    const dataPath = path.join(tmpDir, 'data.json');
+    fs.writeFileSync(dataPath, JSON.stringify({ textField_1: 'from-file' }), 'utf-8');
+
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpPost.mockResolvedValue({
+      success: true,
+      content: { formInstId: 'INST-FILE' },
+    });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-file', dataPath]);
+      expect(utils.httpPost).toHaveBeenCalledTimes(1);
+      expect(decodeURIComponent(utils.httpPost.mock.calls[0][2])).toContain('formDataJson={"textField_1":"from-file"}');
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('"success": true'));
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+      mockLog.mockRestore();
+      mockError.mockRestore();
+    }
   });
 
   test('缺少 --data-json 时打印错误并退出', async () => {

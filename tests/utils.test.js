@@ -143,6 +143,110 @@ describe('isCsrfTokenExpired', () => {
   });
 });
 
+// ── requestWithAutoLogin ──────────────────────────────────────────────
+
+describe('requestWithAutoLogin', () => {
+  function loadUtilsWithLoginMock(loginMock) {
+    jest.resetModules();
+    jest.doMock('../lib/core/i18n', () => ({
+      t: (key, ...args) => (args.length ? `${key}: ${args.join(', ')}` : key),
+    }));
+    jest.doMock('../lib/core/chalk', () => ({
+      warn: jest.fn(),
+    }));
+    jest.doMock('../lib/auth/login', () => loginMock);
+    return require('../lib/core/utils');
+  }
+
+  afterEach(() => {
+    jest.dontMock('../lib/core/i18n');
+    jest.dontMock('../lib/core/chalk');
+    jest.dontMock('../lib/auth/login');
+    jest.resetModules();
+  });
+
+  test('登录失效时强制跳过缓存重新登录并重试一次', async () => {
+    const newCookieData = {
+      csrf_token: 'fresh-token',
+      cookies: [{ name: 'tianshu_csrf_token', value: 'fresh-token' }],
+      base_url: 'https://fresh.aliwork.com',
+    };
+    const ensureLogin = jest.fn(() => newCookieData);
+    const utils = loadUtilsWithLoginMock({
+      ensureLogin,
+      refreshCsrfFromCache: jest.fn(),
+    });
+
+    const authRef = {
+      csrfToken: 'old-token',
+      cookies: [{ name: 'tianshu_csrf_token', value: 'old-token' }],
+      baseUrl: 'https://www.aliwork.com',
+    };
+    const requestFn = jest.fn()
+      .mockResolvedValueOnce({ __needLogin: true })
+      .mockResolvedValueOnce({ success: true });
+
+    const result = await utils.requestWithAutoLogin(requestFn, authRef);
+
+    expect(ensureLogin).toHaveBeenCalledWith({ force: true });
+    expect(requestFn).toHaveBeenCalledTimes(2);
+    expect(authRef.csrfToken).toBe('fresh-token');
+    expect(authRef.cookies).toBe(newCookieData.cookies);
+    expect(authRef.baseUrl).toBe('https://fresh.aliwork.com');
+    expect(result).toEqual({ success: true });
+  });
+
+  test('csrf 刷新失败时升级为强制重新登录', async () => {
+    const newCookieData = {
+      csrf_token: 'fresh-token',
+      cookies: [{ name: 'tianshu_csrf_token', value: 'fresh-token' }],
+      base_url: 'https://www.aliwork.com',
+    };
+    const ensureLogin = jest.fn(() => newCookieData);
+    const refreshCsrfFromCache = jest.fn(() => null);
+    const utils = loadUtilsWithLoginMock({
+      ensureLogin,
+      refreshCsrfFromCache,
+    });
+    const requestFn = jest.fn()
+      .mockResolvedValueOnce({ __csrfExpired: true })
+      .mockResolvedValueOnce({ success: true });
+
+    const result = await utils.requestWithAutoLogin(requestFn, {
+      csrfToken: 'old-token',
+      cookies: [{ name: 'tianshu_csrf_token', value: 'old-token' }],
+      baseUrl: 'https://www.aliwork.com',
+    });
+
+    expect(refreshCsrfFromCache).toHaveBeenCalledTimes(1);
+    expect(ensureLogin).toHaveBeenCalledWith({ force: true });
+    expect(requestFn).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({ success: true });
+  });
+
+  test('强制重新登录失败时返回明确失败结果，不再用旧 Cookie 重试', async () => {
+    const ensureLogin = jest.fn(() => null);
+    const utils = loadUtilsWithLoginMock({
+      ensureLogin,
+      refreshCsrfFromCache: jest.fn(),
+    });
+    const requestFn = jest.fn().mockResolvedValueOnce({ __needLogin: true });
+
+    const result = await utils.requestWithAutoLogin(requestFn, {
+      csrfToken: 'old-token',
+      cookies: [{ name: 'tianshu_csrf_token', value: 'old-token' }],
+      baseUrl: 'https://www.aliwork.com',
+    });
+
+    expect(ensureLogin).toHaveBeenCalledWith({ force: true });
+    expect(requestFn).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({
+      success: false,
+      __needLogin: true,
+    });
+  });
+});
+
 // ── loadCookieData ────────────────────────────────────────────────────
 
 describe('loadCookieData', () => {

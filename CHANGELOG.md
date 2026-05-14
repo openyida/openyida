@@ -8,6 +8,89 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.5.13] - 2026-05-13
+
+### Highlights
+- 这是 2026-05-13 的正式版发布，包含宜搭 AI 文生文/识图 CLI、钉钉 AppLink 生成器、组织基础信息查询，以及钉钉 AI 解决方案中心示例资产。
+- 登录与多环境 Cookie 管理继续增强，支持更清晰的强制重登、浏览器登录和多环境缓存隔离行为。
+- Agent 生成的字段配置、报表配置、流程配置、导入数据和一次性脚本统一约束到 `.cache/openyida/`，减少仓库根目录临时文件噪音。
+
+### Added
+- 新增 `openyida ai text` 与 `openyida ai image`，支持调用宜搭 AI 文生文、图片上传和识图连接器能力。
+- 新增 `openyida dingtalk-link`，支持生成 DingTalk AppLink，并保留 legacy scheme 兼容选项。
+- 新增 `openyida basic-info` 与 `yida-basic-info` 技能，用于查询组织基本信息、容量、额度和域名等平台管理信息。
+- 新增钉钉 AI 解决方案中心示例 PRD、表单字段、种子数据、自定义页面源码、预览 HTML 和本地 runner。
+- `openyida data` 支持 `--data-file` 与 `--search-file`，便于从 `.cache/openyida/` 读取导入数据和查询条件。
+
+### Changed
+- 优化登录入口：`--agent-qr` 与 `--browser` 明确走强制登录链路，AI 工具环境下可按工具类型控制 Playwright 兜底。
+- 多环境配置支持更稳健的 base URL 解析、Cookie 文件隔离和旧缓存迁移。
+- README、帮助文案和技能文档统一推荐将临时 JSON / CSV / JS / Python 工件写入 `.cache/openyida/`。
+
+### Tests
+- 新增 AI、basic-info、DingTalk AppLink、file-based data 参数、多环境 Cookie、QR 登录和强制重登相关测试。
+- 更新 e2e 技能覆盖矩阵，纳入 `yida-basic-info`。
+
+## [2026.5.12] - 2026-05-12
+
+### Highlights
+- 这是 2026-05-12 的正式版发布，包含平台权限管理、A2A 本地 Adapter 预览能力、GitHub 协作模板优化，以及对应的 CLI / Agent 发现能力补齐。
+- `openyida corp-manager` 扩展平台管理能力，可用于企业成员搜索、管理员维护和通讯录可见性配置。
+- 新增本地只读 A2A 1.0 预览 Adapter，为后续 Agent-to-Agent 集成提供标准 Agent Card、消息发送和任务查询基础能力。
+
+### Added
+- 新增 `openyida corp-manager` 平台权限管理命令，支持搜索企业成员、查询应用/平台/子管理员列表，以及新增或移除管理员。
+- `corp-manager` 支持通讯录可见性配置查询与更新，可用于查看和调整全员可见、管理员可见等平台通讯录权限。
+- 新增 `yida-corp-manager` 子技能，并同步注册 CLI 路由、命令清单、README 和 12 种语言的帮助文案。
+- 新增 `openyida a2a <serve|agent-card>` 命令，支持启动本地只读 A2A Adapter 或输出 Agent Card。
+- A2A Adapter 支持 Agent Card 发现、健康检查、`message:send`、任务查询和任务取消；默认绑定 `127.0.0.1`，不读取或返回 Cookie，不创建或修改真实宜搭资源。
+
+### Changed
+- 优化 GitHub Issue 和 PR 模板，补充复现信息、环境诊断、变更清单、测试验证、兼容性风险和 DWS / 钉钉 CLI 集成检查项。
+
+### Tests
+- 新增 `corp-manager` API 与 CLI smoke 测试，覆盖用户搜索、管理员管理、通讯录配置和命令发现等核心路径。
+- 新增 A2A Agent Card、`message:send`、任务查询和 unsupported streaming 的离线测试，并补充 CLI smoke 覆盖。
+
+## [2026.5.12-beta.1] - 2026-05-12
+
+### Added
+- 新增 `openyida corp-manager` 平台权限管理命令，支持搜索企业成员、查询应用/平台/子管理员列表，以及新增或移除管理员。
+- `corp-manager` 支持通讯录可见性配置查询与更新，可用于查看和调整全员可见、管理员可见等平台通讯录权限。
+- 新增 `yida-corp-manager` 子技能，并同步注册 CLI 路由、命令清单、README 和 12 种语言的帮助文案。
+
+### Tests
+- 新增 `corp-manager` API 与 CLI smoke 测试，覆盖用户搜索、管理员管理、通讯录配置和命令发现等核心路径。
+
+## [2026.5.9] - 2026-05-09
+
+### Highlights
+- 这是面向 AI 编程工具和悟空技能分发的一次正式版发布，重点提升登录链路稳定性、自定义页面开发体验，以及技能包发布的一致性。
+- `openyida login` 在 Codex / Qoder / 悟空 / Claude Code / OpenCode / Cursor 等 AI 工具中更易用：优先复用本地浏览器 CDP 登录能力，不可用时自动回退到可在对话框中展示的二维码 handoff。
+- 悟空技能包发布链路标准化，`npm run build:skills` 与 GitHub Release 使用同一份 `openyida-skills.zip` 产物，降低本地构建和线上发布不一致的风险。
+
+### Added
+- 新增 Codex 登录模式：在有缓存时优先复用 Cookie，无有效缓存时引导使用内置浏览器或二维码 handoff 完成登录。
+- 新增终端二维码登录链路，支持钉钉 OAuth 扫码，并可通过 `openyida login --qr --corp-id <corpId>` 显式选择多组织账号的目标组织。
+- 新增自定义页面生成与本地校验命令：`generate-page`、`check-page`、`compile`，用于更完整地覆盖页面开发到发布前检查的流程。
+- 新增通用 AI 对话框二维码命令别名：`openyida login --agent-qr` 和 `openyida login --agent-poll`，并继续兼容旧的 `--codex-qr` / `--codex-poll`。
+
+### Changed
+- `openyida login --browser` 改为优先使用本地 Chrome / Edge / Chromium CDP 登录，CDP 不可用时再使用 Playwright 兜底。
+- AI 工具中的默认登录策略调整为本地 CDP 优先、对话框二维码 handoff 兜底，减少对本地桌面浏览器、Playwright 或远程服务器图形环境的依赖。
+- 对话框二维码 handoff 增加 `qr_image_markdown` 和 `agent_response_markdown`，便于不同 AI 工具直接在聊天框中渲染二维码。
+- `npm run build:skills` 现在会同时生成悟空可直接上传的 `openyida-skills.zip`，GitHub Release 也复用该构建产物作为附件。
+
+### Fixed
+- 修复 Qoder 登录模式在缺少环境变量时误回退成 Codex 文案的问题，并明确提示如需 CLI Cookie 应使用 `openyida login --browser`。
+- 修复终端二维码渲染带警告前缀导致 QRCode 对齐异常的问题。
+- 修复钉钉 OAuth 多组织账号在 `chooseOrganization`、`corpId` 传递、`confirm_auth` 参数和二次换凭证流程中的多处稳定性问题。
+- 修复直接执行 `openyida login` 时，扫码后选择组织又要求再次扫码的问题。
+
+### Documentation
+- README 增加 Codex Support 说明，补充 Codex 登录、终端 QR 回退和多组织登录用法。
+- 更新 AGENTS / CLAUDE / CONTRIBUTING / SECURITY 中关于 Codex、登录态和本地校验的说明。
+
 ## [2026.5.9-beta.9] - 2026-05-09
 
 ### Changed
@@ -212,7 +295,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - 优化 Babel 编译错误提示信息
 - 修复 `SKILL.md` 编号问题
 
-[Unreleased]: https://github.com/openyida/openyida/compare/v2026.04.20...HEAD
+[Unreleased]: https://github.com/openyida/openyida/compare/v2026.5.13...HEAD
+[2026.5.13]: https://github.com/openyida/openyida/compare/v2026.5.12...v2026.5.13
+[2026.5.12]: https://github.com/openyida/openyida/compare/v2026.5.9...v2026.5.12
+[2026.5.12-beta.1]: https://github.com/openyida/openyida/compare/v2026.5.9...v2026.5.12-beta.1
+[2026.5.9]: https://github.com/openyida/openyida/compare/v2026.04.20...v2026.5.9
+[2026.5.9-beta.9]: https://github.com/openyida/openyida/compare/v2026.5.9-beta.8...v2026.5.9-beta.9
+[2026.5.9-beta.8]: https://github.com/openyida/openyida/compare/v2026.5.9-beta.7...v2026.5.9-beta.8
+[2026.5.9-beta.7]: https://github.com/openyida/openyida/compare/v2026.5.9-beta.6...v2026.5.9-beta.7
+[2026.5.9-beta.6]: https://github.com/openyida/openyida/compare/v2026.5.9-beta.5...v2026.5.9-beta.6
+[2026.5.9-beta.5]: https://github.com/openyida/openyida/compare/v2026.04.20...v2026.5.9-beta.5
 [2026.04.20]: https://github.com/openyida/openyida/compare/v2026.04.02-beta.12...v2026.04.20
 [2026.04.02-beta.12]: https://github.com/openyida/openyida/compare/v2026.04.01...v2026.04.02-beta.12
 [2026.04.01]: https://github.com/openyida/openyida/compare/v2026.03.28...v2026.04.01

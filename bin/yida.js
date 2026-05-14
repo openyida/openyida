@@ -123,7 +123,7 @@ function printHelp() {
   console.log(`\n  ${BOLD}${CYAN}${t('help.quickstart_title')}${RESET}`);
   console.log(`    ${DIM}${RESET} openyida login`);
   console.log(`    ${DIM}${RESET} openyida create-app "${t('help.quickstart_app_name')}"`);
-  console.log(`    ${DIM}${RESET} openyida create-form create APP_XXX "${t('help.quickstart_form_name')}" fields.json`);
+  console.log(`    ${DIM}${RESET} openyida create-form create APP_XXX "${t('help.quickstart_form_name')}" .cache/openyida/forms/fields.json`);
   console.log(`    ${DIM}${RESET} openyida dws contact user search --keyword "张三"`);
   console.log('');
   console.log(`  ${DIM}${t('help.docs')} https://openyida.ai  ·  https://github.com/openyida/openyida${RESET}`);
@@ -262,6 +262,15 @@ function shouldUseAgentLogin(cliArgs) {
   return isAgentConversationEnvironment();
 }
 
+function shouldUsePlaywrightFallbackInAgentLogin() {
+  const { detectActiveTool } = require('../lib/core/utils');
+  const activeTool = detectActiveTool();
+  if (activeTool && activeTool.tool === 'wukong') {
+    return true;
+  }
+  return process.env.OPENYIDA_AGENT_PLAYWRIGHT_FALLBACK === '1';
+}
+
 function shouldUseCodexQrLogin(cliArgs) {
   if (cliArgs.includes('--codex-qr') || cliArgs.includes('--agent-qr')) {return true;}
   return false;
@@ -312,6 +321,12 @@ async function main() {
       break;
     }
 
+    case 'a2a': {
+      const { run } = require('../lib/a2a/cmd');
+      await run(args);
+      break;
+    }
+
     case 'env': {
       if (shouldUseEnvManagement(args)) {
         const { run } = require('../lib/core/env-cmd');
@@ -355,23 +370,13 @@ async function main() {
         const result = checkLoginOnly({ includeSecrets: args.includes('--with-cookies') });
         console.log(JSON.stringify(result, null, 2));
       } else if (shouldUseCodexQrLogin(args)) {
-        const cachedResult = checkLoginOnly({ includeSecrets: true });
-        if (cachedResult.status === 'ok') {
-          printLoginResult(cachedResult);
-        } else {
-          const { startCodexQrLogin } = require('../lib/auth/qr-login');
-          const result = await startCodexQrLogin({ corpId: getArgValue(args, '--corp-id') });
-          printLoginResult(result);
-        }
+        const { startCodexQrLogin } = require('../lib/auth/qr-login');
+        const result = await startCodexQrLogin({ corpId: getArgValue(args, '--corp-id') });
+        printLoginResult(result);
       } else if (args.includes('--browser')) {
-        const cachedResult = checkLoginOnly({ includeSecrets: true });
-        if (cachedResult.status === 'ok') {
-          printLoginResult(cachedResult);
-        } else {
-          const { interactiveLogin } = require('../lib/auth/login');
-          const result = interactiveLogin();
-          printLoginResult(result);
-        }
+        const { interactiveLogin } = require('../lib/auth/login');
+        const result = interactiveLogin({ force: true });
+        printLoginResult(result);
       } else if (args.includes('--qoder') || args.includes('--wukong')) {
         const { codexLogin } = require('../lib/auth/codex-login');
         const result = await codexLogin({ tool: args.includes('--qoder') ? 'qoder' : 'wukong' });
@@ -386,7 +391,9 @@ async function main() {
           printLoginResult(cachedResult);
         } else {
           const { interactiveLogin } = require('../lib/auth/login');
-          const browserResult = interactiveLogin({ playwrightFallback: false });
+          const browserResult = interactiveLogin({
+            playwrightFallback: shouldUsePlaywrightFallbackInAgentLogin(),
+          });
           if (browserResult) {
             printLoginResult(browserResult);
           } else {
@@ -654,6 +661,12 @@ async function main() {
       break;
     }
 
+    case 'basic-info': {
+      const { run: runBasicInfo } = require('../lib/basic-info/basic-info');
+      await runBasicInfo(args);
+      break;
+    }
+
     case 'doctor': {
       const { run } = require('../lib/core/doctor');
       await run(args);
@@ -833,9 +846,21 @@ async function main() {
       break;
     }
 
+    case 'corp-manager': {
+      const { run: runCorpManager } = require('../lib/corp-manager/corp-manager');
+      await runCorpManager(args);
+      break;
+    }
+
     case 'flash-to-prd': {
       const { run: runFlashToPrd } = require('../lib/flash-note/flash-to-prd');
       await runFlashToPrd(args);
+      break;
+    }
+
+    case 'ai': {
+      const { run: runAI } = require('../lib/ai/ai');
+      await runAI(args);
       break;
     }
 
@@ -873,6 +898,13 @@ async function main() {
       await runDws(args);
       break;
     }
+
+    case 'dingtalk-link': {
+      const { run: runDingTalkLink } = require('../lib/dingtalk/dingtalk-link');
+      await runDingTalkLink(args);
+      break;
+    }
+
     case 'export-conversation': {
       const { exportConversation } = require('../lib/conversation/export-conversation');
       // 解析选项

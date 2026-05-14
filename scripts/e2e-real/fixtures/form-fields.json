@@ -1,0 +1,18 @@
+[
+  {
+    "type": "TextField",
+    "label": "E2E Text",
+    "required": true,
+    "placeholder": "Created by OpenYida real E2E"
+  },
+  {
+    "type": "NumberField",
+    "label": "E2E Number",
+    "placeholder": "123"
+  },
+  {
+    "type": "SelectField",
+    "label": "E2E Status",
+    "options": ["New", "Done"]
+  }
+]

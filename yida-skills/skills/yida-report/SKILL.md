@@ -18,6 +18,7 @@ description: "宜搭原生报表技能，用于创建宜搭平台内置的原生
 - 普通"报表"、"统计"需求默认使用本技能，不要直接跳到 `yida-chart`
 - 调用报表数据 API 前必须确认 `reportId` 和 `datasetId` 来自真实报表
 - 解析报表数据时必须处理 `data.rows` 为空的情况，避免页面崩溃
+- 报表配置 JSON 需要落盘时，必须写入 `.cache/openyida/<项目名>/`，例如 `.cache/openyida/pm/pm-report-team.json`；不要在仓库根目录生成 `*-report*.json`
 - 本技能不读写 memory，报表配置通过 `openyida create-report` 命令写入宜搭平台，不依赖跨会话的 memory 状态
 
 ## 适用场景
@@ -380,6 +381,7 @@ console.log(JSON.stringify(reportPageSchema, null, 2));
 
 ```bash
 openyida create-report <appType> "<报表名称>" <配置JSON文件路径>
+# 配置文件路径示例：.cache/openyida/<项目名>/<报表名>-report.json
 ```
 
 **⚠️ 第二个参数是报表名称，必须使用业务含义的中文名称**（如"任务管理数据报表"），不要传 formUuid。

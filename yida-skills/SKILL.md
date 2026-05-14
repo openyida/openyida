@@ -3,7 +3,7 @@ name: openyida
 description: >
   宜搭 AI 应用开发总入口技能。通过有 AI Coding 能力的智能体（悟空/Claude/Open Code 等）+ 宜搭低代码平台，实现一句话生成完整应用。
   包含应用创建、表单设计、自定义页面开发、页面发布、登录态管理等完整开发流程。
-  当用户提到"宜搭"、"yida"、"低代码"、"创建应用"、"创建表单"、"发布页面"、"搭建"、"系统"、等关键词时，使用此技能；以下情况不要触发：只是在讨论通用前端/后端代码、非宜搭平台产品、或只需要解释概念而不操作宜搭资源。
+  当用户提到"宜搭"、"yida"、"低代码"、"创建应用"、"创建表单"、"发布页面"、"搭建"、"系统"等关键词时，使用此技能；以下情况不要触发：只是讨论通用前端/后端代码、非宜搭平台产品、或只需要解释概念而不操作宜搭资源。
 ---
 
 # 宜搭 AI 应用开发指南
@@ -85,7 +85,7 @@ openyida login --check-only --json
 | 当前生效环境 | 显示项目根目录路径 |
 | 登录态检测 | 显示是否已登录、域名、组织 ID |
 
-> **若显示"未登录"，先执行 `openyida login`。AI 对话框环境中默认先尝试本地 CDP 浏览器登录；若返回二维码 handoff，必须在对话框直接渲染 `qr_image_markdown`，或原样粘贴 `agent_response_markdown`；不要只展示 `qr_image_file` 路径或 `qr_url`。用户用钉钉扫码确认后执行 `poll_command` 写入 CLI Cookie 缓存。页面登录完成后必须再次执行 `openyida login --check-only --json` 验证缓存写入。不要在只读验证通过前执行真实资源创建。**
+> **若显示"未登录"，先执行 `openyida login`。Codex 中默认返回内置浏览器 handoff：用 Browser Use 打开 `login_url`，让钉钉/宜搭页面承接扫码和组织选择。若 Browser Use 不能直接打开外部 URL，先打开临时本地 redirect 页面再跳转到 `login_url`。页面登录完成后必须再次执行 `openyida login --check-only --json` 验证缓存写入。不要在只读验证通过前执行真实资源创建。**
 
 ---
 
@@ -170,7 +170,9 @@ openyida copy
 | `yida-custom-page` | `skills/yida-custom-page/SKILL.md` | 编写自定义页面 JSX 代码规范 | 详见 SKILL.md |
 | `yida-publish-page` | `skills/yida-publish-page/SKILL.md` | 编译并发布自定义页面 | `openyida publish <源文件路径> <appType> <formUuid> [--health-check]` |
 | `yida-page-config` | `skills/yida-page-config/SKILL.md` | 页面公开访问/组织内分享配置 | `openyida verify-short-url <appType> <formUuid> <url>` |
+| `yida-basic-info` | `skills/yida-basic-info/SKILL.md` | 组织基本信息、资源容量、额度和域名设置查询 | `openyida basic-info overview` |
 | `yida-form-permission` | `skills/yida-form-permission/SKILL.md` | 表单权限查询与保存 | `openyida get-permission <appType> <formUuid>` |
+| `yida-corp-manager` | `skills/yida-corp-manager/SKILL.md` | 平台管理员、应用管理员、子管理员与通讯录权限 | `openyida corp-manager <子命令>` |
 | `yida-form-detail` | `skills/yida-form-detail/SKILL.md` | 表单详情页 formDetail 样式优化 | 详见 SKILL.md |
 | `yida-data-management` | `skills/yida-data-management/SKILL.md` | 表单/流程/任务数据查询与变更 | `openyida data query form <appType> <formUuid>` |
 | `yida-corp-efficiency` | `skills/yida-corp-efficiency/SKILL.md` | 平台管理企业效能概览、查看明细报表、报表接口模板、学习成果和通知群动作 | `openyida corp-efficiency` |
@@ -188,6 +190,7 @@ openyida copy
 | `yida-db-seq-fix` | `skills/yida-db-seq-fix/SKILL.md` | PostgreSQL sequence 漂移修复 | `openyida db-seq-fix <配置>` |
 | `yida-export-conversation` | `skills/yida-export-conversation/SKILL.md` | 导出 AI 对话记录 | `openyida export-conversation` |
 | `yida-flash-note-to-prd` | `skills/yida-flash-note-to-prd/SKILL.md` | 闪记/会议纪要转 PRD prompt | `openyida flash-to-prd <文件>` |
+| `yida-ai` | — | 宜搭 AI 文生文与识图接口调用 | `openyida ai text --prompt "..."` / `openyida ai image --file <图片> --app-type APP_XXX` |
 | `yida-ppt-slider` | `skills/yida-ppt-slider/SKILL.md` | 宜搭全屏幻灯片页面 | 详见 SKILL.md |
 | `yida-ppt` | `skills/yida-ppt/SKILL.md` | 已废弃，改用 `yida-ppt-slider` | 详见 SKILL.md |
 | `yida-batch` | — | 批量命令编排（一次登录，多命令顺序执行） | `openyida batch <file> --json` 或 `openyida batch --commands "cmd1;cmd2"` |
@@ -228,7 +231,18 @@ openyida copy
 
 ### 5. 临时文件规范
 
-所有临时文件（cookies、schema 缓存等）**必须写在项目根目录的 `.cache/` 文件夹中**，不要写在系统其他位置。
+所有临时文件（cookies、schema 缓存、字段配置、报表配置、流程配置、导入数据、一次性脚本等）**必须写在项目根目录的 `.cache/` 文件夹中**，不要写到仓库根目录，也不要写在系统其他位置。
+
+推荐路径：
+
+| 工件类型 | 推荐位置 |
+|---------|---------|
+| Schema / ID 映射 | `.cache/<项目名>-schema.json` |
+| 表单字段 / 报表 / 流程配置 | `.cache/openyida/<项目名>/` |
+| 批量导入数据 JSON / JSONL / CSV | `.cache/openyida/data-import/` |
+| 一次性 Python / JS 执行脚本 | `.cache/openyida/scripts/` |
+
+> 若只是为了调用 `openyida` 命令临时生成的 `*.json`、`*.js`、`*.py`、`*.csv` 文件，一律放入 `.cache/openyida/` 子目录；只有需要长期维护的 PRD、页面源码或示例资源才写入 `prd/`、`pages/src/`、`project/` 等正式目录。
 
 ### 6. 报表优化/美化提示规则（必须遵守）
 

@@ -212,6 +212,7 @@ describe('saveCookieCache 文件写入', () => {
 
 describe('cdp-browser-login 工具函数', () => {
   const { deriveBaseUrl, findBrowserExecutable } = require('../lib/auth/cdp-browser-login');
+  const { deriveBaseUrlFromUrl } = require('../lib/core/env-manager');
   const originalChromePath = process.env.OPENYIDA_CHROME_PATH;
 
   afterEach(() => {
@@ -229,6 +230,30 @@ describe('cdp-browser-login 工具函数', () => {
     ], 'https://www.aliwork.com/workPlatform');
 
     expect(result).toBe('https://custom.aliwork.com');
+  });
+
+  test('deriveBaseUrl 支持阿里内网宜搭服务域名', () => {
+    const result = deriveBaseUrl([
+      { name: 'tianshu_csrf_token', domain: '.alibaba-inc.com' },
+      { name: 'yida_user_cookie', domain: 'yida-group.alibaba-inc.com' },
+    ], 'https://yida-group.alibaba-inc.com/workPlatform');
+
+    expect(result).toBe('https://yida-group.alibaba-inc.com');
+  });
+
+  test('deriveBaseUrl 不把 alibaba-inc 父域误判成服务地址', () => {
+    const result = deriveBaseUrl([
+      { name: 'tianshu_csrf_token', domain: '.alibaba-inc.com' },
+    ], 'https://yida-group.alibaba-inc.com/workPlatform');
+
+    expect(result).toBe('https://yida-group.alibaba-inc.com');
+  });
+
+  test('deriveBaseUrlFromUrl 忽略钉钉 OAuth 域名并保留内网登录入口', () => {
+    expect(deriveBaseUrlFromUrl(
+      'https://yida-group.alibaba-inc.com/workPlatform',
+      'https://login.dingtalk.com/oauth2/challenge'
+    )).toBe('https://yida-group.alibaba-inc.com');
   });
 
   test('deriveBaseUrl 在无专属域名时回退到登录 URL origin', () => {
@@ -389,6 +414,35 @@ describe('interactiveLogin 浏览器优先级', () => {
     expect(cdpModule.cdpBrowserLogin).toHaveBeenCalledTimes(1);
     expect(childProcess.execSync).not.toHaveBeenCalled();
     expect(result).toBeNull();
+  });
+
+  test('ensureLogin force=true 时跳过本地缓存重新登录', () => {
+    fs.mkdirSync(path.join(tmpDir, '.cache'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.cache', 'cookies-public.json'), JSON.stringify({
+      cookies: [
+        { name: 'tianshu_csrf_token', value: 'stale-token-1234567890' },
+        { name: 'tianshu_corp_user', value: 'corp_staleUser' },
+      ],
+      base_url: 'https://stale.aliwork.com',
+    }), 'utf8');
+
+    const { loginModule, cdpModule } = loadLoginWithMocks(() => ({
+      cookies: [
+        { name: 'tianshu_csrf_token', value: 'fresh-token-1234567890' },
+        { name: 'tianshu_corp_user', value: 'corp_freshUser' },
+      ],
+      base_url: 'https://fresh.aliwork.com',
+    }));
+
+    const result = loginModule.ensureLogin({ force: true });
+
+    expect(cdpModule.cdpBrowserLogin).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({
+      csrf_token: 'fresh-token-1234567890',
+      corp_id: 'corp',
+      user_id: 'freshUser',
+      base_url: 'https://fresh.aliwork.com',
+    });
   });
 });
 

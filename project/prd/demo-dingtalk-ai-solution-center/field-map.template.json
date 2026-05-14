@@ -1,0 +1,117 @@
+{
+  "customer": {
+    "formTitle": "客户档案",
+    "formUuid": "FORM_CUSTOMER_XXX",
+    "fields": {
+      "customerName": { "label": "客户名称", "fieldId": "textField_xxx" },
+      "industry": { "label": "行业", "fieldId": "selectField_xxx" },
+      "customerSize": { "label": "客户规模", "fieldId": "selectField_xxx" },
+      "region": { "label": "客户区域", "fieldId": "selectField_xxx" },
+      "owner": { "label": "负责SA", "fieldId": "employeeField_xxx" },
+      "stage": { "label": "商机阶段", "fieldId": "selectField_xxx" },
+      "amount": { "label": "预计商机金额", "fieldId": "numberField_xxx" },
+      "intentLevel": { "label": "客户意向等级", "fieldId": "selectField_xxx" },
+      "demands": { "label": "重点诉求", "fieldId": "multiSelectField_xxx" },
+      "pain": { "label": "客户痛点", "fieldId": "textareaField_xxx" },
+      "decisionChain": { "label": "决策链成熟度", "fieldId": "selectField_xxx" },
+      "status": { "label": "客户状态", "fieldId": "selectField_xxx" }
+    }
+  },
+  "visit": {
+    "formTitle": "客户拜访",
+    "formUuid": "FORM_VISIT_XXX",
+    "fields": {
+      "customerName": { "label": "客户名称", "fieldId": "textField_xxx" },
+      "owner": { "label": "负责SA", "fieldId": "employeeField_xxx" },
+      "visitTime": { "label": "拜访时间", "fieldId": "dateField_xxx" },
+      "visitType": { "label": "拜访类型", "fieldId": "selectField_xxx" },
+      "visitStatus": { "label": "拜访状态", "fieldId": "selectField_xxx" },
+      "goal": { "label": "拜访目标", "fieldId": "textareaField_xxx" },
+      "solution": { "label": "推荐方案", "fieldId": "selectField_xxx" },
+      "demoStatus": { "label": "Demo状态", "fieldId": "selectField_xxx" },
+      "riskTags": { "label": "风险标签", "fieldId": "multiSelectField_xxx" },
+      "aiSummary": { "label": "AI需求摘要", "fieldId": "textareaField_xxx" },
+      "nextActions": { "label": "下一步动作", "fieldId": "tableField_xxx" }
+    }
+  },
+  "solutionPackage": {
+    "formTitle": "方案包",
+    "formUuid": "FORM_SOLUTION_XXX",
+    "fields": {
+      "solutionName": { "label": "方案名称", "fieldId": "textField_xxx" },
+      "industry": { "label": "行业", "fieldId": "selectField_xxx" },
+      "scenarios": { "label": "适用场景", "fieldId": "multiSelectField_xxx" },
+      "maturityLevel": { "label": "成熟度等级", "fieldId": "selectField_xxx" },
+      "maturityScore": { "label": "成熟度评分", "fieldId": "numberField_xxx" },
+      "openyidaCoverage": { "label": "OpenYida覆盖度", "fieldId": "numberField_xxx" },
+      "customerProblem": { "label": "客户问题", "fieldId": "textareaField_xxx" },
+      "valueProp": { "label": "价值主张", "fieldId": "textareaField_xxx" },
+      "blueprint": { "label": "应用蓝图", "fieldId": "textareaField_xxx" },
+      "prompts": { "label": "悟空Prompt", "fieldId": "tableField_xxx" },
+      "assets": { "label": "交付资产", "fieldId": "multiSelectField_xxx" },
+      "owner": { "label": "方案Owner", "fieldId": "employeeField_xxx" },
+      "status": { "label": "状态", "fieldId": "selectField_xxx" }
+    }
+  },
+  "demoInstance": {
+    "formTitle": "Demo 实例",
+    "formUuid": "FORM_DEMO_XXX",
+    "fields": {
+      "demoName": { "label": "Demo名称", "fieldId": "textField_xxx" },
+      "customerName": { "label": "客户名称", "fieldId": "textField_xxx" },
+      "solution": { "label": "关联方案", "fieldId": "textField_xxx" },
+      "creator": { "label": "创建人", "fieldId": "employeeField_xxx" },
+      "status": { "label": "Demo状态", "fieldId": "selectField_xxx" },
+      "duration": { "label": "创建耗时", "fieldId": "numberField_xxx" },
+      "createdAt": { "label": "创建时间", "fieldId": "dateField_xxx" },
+      "lastDemoAt": { "label": "最近演示时间", "fieldId": "dateField_xxx" },
+      "feedback": { "label": "演示反馈", "fieldId": "textareaField_xxx" }
+    }
+  },
+  "meetingNote": {
+    "formTitle": "拜访纪要",
+    "formUuid": "FORM_NOTE_XXX",
+    "fields": {
+      "customerName": { "label": "客户名称", "fieldId": "textField_xxx" },
+      "owner": { "label": "负责SA", "fieldId": "employeeField_xxx" },
+      "meetingTime": { "label": "会议时间", "fieldId": "dateField_xxx" },
+      "source": { "label": "来源", "fieldId": "selectField_xxx" },
+      "rawNote": { "label": "原始纪要", "fieldId": "textareaField_xxx" },
+      "aiSummary": { "label": "AI需求摘要", "fieldId": "textareaField_xxx" },
+      "objections": { "label": "客户异议", "fieldId": "textareaField_xxx" },
+      "recommendReason": { "label": "推荐方案理由", "fieldId": "textareaField_xxx" },
+      "todos": { "label": "会后待办", "fieldId": "tableField_xxx" }
+    }
+  },
+  "riskCustomer": {
+    "formTitle": "风险客户",
+    "formUuid": "FORM_RISK_XXX",
+    "fields": {
+      "customerName": { "label": "客户名称", "fieldId": "textField_xxx" },
+      "owner": { "label": "负责SA", "fieldId": "employeeField_xxx" },
+      "level": { "label": "风险等级", "fieldId": "selectField_xxx" },
+      "riskTypes": { "label": "风险类型", "fieldId": "multiSelectField_xxx" },
+      "stage": { "label": "当前阶段", "fieldId": "selectField_xxx" },
+      "reason": { "label": "风险原因", "fieldId": "textareaField_xxx" },
+      "aiAction": { "label": "AI建议动作", "fieldId": "textareaField_xxx" },
+      "needManager": { "label": "需要主管介入", "fieldId": "radioField_xxx" },
+      "status": { "label": "处理状态", "fieldId": "selectField_xxx" }
+    }
+  },
+  "weeklyReport": {
+    "formTitle": "SA 周报",
+    "formUuid": "FORM_WEEKLY_XXX",
+    "fields": {
+      "owner": { "label": "SA", "fieldId": "employeeField_xxx" },
+      "activeCustomers": { "label": "活跃客户数", "fieldId": "numberField_xxx" },
+      "visits": { "label": "本周拜访数", "fieldId": "numberField_xxx" },
+      "solutionDemos": { "label": "方案演示数", "fieldId": "numberField_xxx" },
+      "demoCreates": { "label": "Demo创建数", "fieldId": "numberField_xxx" },
+      "riskCustomers": { "label": "高风险客户数", "fieldId": "numberField_xxx" },
+      "prepRate": { "label": "拜访前准备率", "fieldId": "numberField_xxx" },
+      "noteRate": { "label": "会后纪要沉淀率", "fieldId": "numberField_xxx" },
+      "nextStepRate": { "label": "下一步明确率", "fieldId": "numberField_xxx" },
+      "supportNeeded": { "label": "需要主管支持", "fieldId": "textareaField_xxx" }
+    }
+  }
+}

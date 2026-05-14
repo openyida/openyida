@@ -443,4 +443,18 @@ describe('DingTalk OAuth organization selection', () => {
       cookieHeader: 'sid=next',
     });
   });
+
+  test('derives internal Yida base URL from Alibaba intranet OAuth redirect', () => {
+    expect(__test__.deriveAliworkBaseUrl(
+      'https://www.aliwork.com',
+      'https://yida-group.alibaba-inc.com/workPlatform'
+    )).toBe('https://yida-group.alibaba-inc.com');
+  });
+
+  test('keeps configured base URL when redirect is not a Yida service host', () => {
+    expect(__test__.deriveAliworkBaseUrl(
+      'https://yida.company.example',
+      'https://login.dingtalk.com/oauth2/challenge'
+    )).toBe('https://yida.company.example');
+  });
 });

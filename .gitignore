@@ -76,6 +76,8 @@ project/pages/tmp/*
 /prd/
 project/prd/*
 !project/prd/demo-*
+project/prd/demo-*/*.local.json
+project/prd/demo-*/*.local.js
 
 project/tmp/
 /examples/

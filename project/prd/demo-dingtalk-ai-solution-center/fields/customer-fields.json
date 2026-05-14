@@ -1,0 +1,16 @@
+[
+  { "type": "SerialNumberField", "label": "客户编号" },
+  { "type": "TextField", "label": "客户名称", "required": true, "placeholder": "请输入客户全称" },
+  { "type": "SelectField", "label": "行业", "required": true, "options": ["制造", "零售", "地产物业", "教育", "物流供应链", "政企", "医疗健康", "金融服务", "其他"] },
+  { "type": "SelectField", "label": "客户规模", "options": ["100人以下", "100-500人", "500-2000人", "2000-10000人", "10000人以上"] },
+  { "type": "SelectField", "label": "客户区域", "options": ["华东", "华南", "华北", "华中", "西南", "西北", "东北", "海外"] },
+  { "type": "EmployeeField", "label": "负责SA", "required": true },
+  { "type": "SelectField", "label": "商机阶段", "required": true, "options": ["初访", "需求确认", "方案演示", "Demo/POC", "商务推进", "交付评估", "已赢单", "暂缓"] },
+  { "type": "NumberField", "label": "预计商机金额", "placeholder": "单位：万元" },
+  { "type": "SelectField", "label": "客户意向等级", "options": ["S-重点推进", "A-高意向", "B-可培育", "C-低意向", "D-暂缓"] },
+  { "type": "MultiSelectField", "label": "重点诉求", "options": ["流程提效", "数据看板", "移动协同", "AI 助理", "系统集成", "权限治理", "客户经营", "现场管理"] },
+  { "type": "TextareaField", "label": "客户痛点", "placeholder": "记录客户当前业务问题、组织问题和系统问题" },
+  { "type": "SelectField", "label": "决策链成熟度", "options": ["未识别", "业务Owner明确", "IT参与", "老板/高层参与", "采购/法务参与", "决策链完整"] },
+  { "type": "DateField", "label": "最近拜访日期" },
+  { "type": "SelectField", "label": "客户状态", "options": ["活跃推进", "待跟进", "高风险", "已转交付", "暂缓", "关闭"] }
+]
