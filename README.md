@@ -276,6 +276,7 @@ Environment selectors such as `--env intl`, `--intl`, `--overseas`, `--global`, 
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency metrics, detail report entries, and related notification actions |
 | `openyida create-app "<name>"\|--name <name> [options] [--open\|--no-open]` | Create an application and output `appType` |
 | `openyida update-app <appType> --name "..."` | Update application metadata |
+| `openyida app-permission <get\|set\|add\|remove\|search-user> ...` | Manage app primary admins, data admins, and developer members |
 | `openyida export <appType> [output]` | Export an application migration package |
 | `openyida import <file> [name]` | Import a migration package into a target environment |
 

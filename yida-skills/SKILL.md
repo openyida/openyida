@@ -172,6 +172,7 @@ openyida copy
 | `yida-page-config` | `skills/yida-page-config/SKILL.md` | 页面公开访问/组织内分享配置 | `openyida verify-short-url <appType> <formUuid> <url>` |
 | `yida-basic-info` | `skills/yida-basic-info/SKILL.md` | 组织基本信息、资源容量、额度和域名设置查询 | `openyida basic-info overview` |
 | `yida-form-permission` | `skills/yida-form-permission/SKILL.md` | 表单权限查询与保存 | `openyida get-permission <appType> <formUuid>` |
+| `yida-app-permission` | `skills/yida-app-permission/SKILL.md` | 应用级管理员设置（主管理员/数据管理员/开发成员） | `openyida app-permission get <appType>` |
 | `yida-corp-manager` | `skills/yida-corp-manager/SKILL.md` | 平台管理员、应用管理员、子管理员与通讯录权限 | `openyida corp-manager <子命令>` |
 | `yida-form-detail` | `skills/yida-form-detail/SKILL.md` | 表单详情页 formDetail 样式优化 | 详见 SKILL.md |
 | `yida-data-management` | `skills/yida-data-management/SKILL.md` | 表单/流程/任务数据查询与变更 | `openyida data query form <appType> <formUuid>` |

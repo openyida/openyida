@@ -692,6 +692,12 @@ async function main() {
       break;
     }
 
+    case 'app-permission': {
+      const { run: runAppPermission } = require('../lib/app-permission/app-permission');
+      await runAppPermission(args);
+      break;
+    }
+
     case 'data': {
       if (args.length < 2) {
         warn('用法: openyida data <action> <resource> [args] [options]');
