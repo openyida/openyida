@@ -4,17 +4,17 @@
 
 ## 先说清楚边界
 
-- 不要假设自定义页面能直接 `import` 宜搭内部表单组件；当前规范下应使用原生 JSX 元素和内联样式组合。
+- 不要假设自定义页面能直接 `import` 宜搭内部表单组件；当前规范下应使用原生 JSX 元素、Tailwind `className` 和必要的内联兜底样式组合。
 - 不要把字段中文名当作 `fieldId`；字段 ID 必须来自 `openyida get-schema`。
 - 不要把原生表单页面的组件配置 JSON 直接复制到自定义页面 JSX；两者不是同一个运行面。
 - 如果确有平台内置选择器、上传器等 API，必须先由用户提供官方示例或在目标环境验证，再写入代码。
 
 ## 组件实现原则
 
-1. **原生控件优先**：输入、选择、筛选、表格、按钮用 `<input>`、`<select>`、`<textarea>`、`<button>`、`<table>` 等 JSX 元素组合。
+1. **Tailwind 视觉优先**：面向用户的控件默认用 Tailwind utility className 组合，并保留必要的 `style` 兜底；页面默认开启 Tailwind preflight，消除浏览器原生控件默认边框。
 2. **非受控输入**：输入类控件使用 `defaultValue` + `onChange` 写入 `_customState`，避免 `value` 受控模式导致输入卡顿或无法输入。
 3. **字段值按接口格式保存**：DateField 使用毫秒时间戳；选择/成员/部门等字段以平台数据实际结构为准，未验证时只存 ID 或文本，不伪装复杂对象。
-4. **样式内联**：使用 JS 对象和 `style`，不要依赖外部 CSS、CSS Modules 或构建期能力。
+4. **禁用可见原生下拉**：用户可见的单选下拉不要使用 `<select>`；用 `button + menu + option` 自定义下拉，避免浏览器原生控件观感不一致。
 5. **移动端考虑触控尺寸**：按钮和输入框高度建议不小于 36px，表格在移动端改为卡片列表或横向滚动。
 
 ## 通用状态写入
@@ -67,17 +67,146 @@ export function setDraftField(key, value) {
 
 选项值必须来自业务配置或已有数据，不要猜测平台选项对象结构。自定义页面批量提交时，先用简单值或经验证的对象结构。
 
+面向用户的下拉交互默认使用自定义下拉组件，不使用原生 `<select>`。组件状态放在 `_customState.openDropdown`，字段值通过 `setDraftField` 写入草稿。
+
+```javascript
+export function findOption(options, value) {
+  var matched = options.filter((option) => option.value === value);
+  return matched[0] || null;
+}
+
+export function toggleDropdown(key) {
+  var nextOpen = _customState.openDropdown === key ? '' : key;
+  _customState.openDropdown = nextOpen;
+  this.forceUpdate();
+}
+
+export function chooseDropdown(key, value) {
+  this.setDraftField(key, value);
+  _customState.openDropdown = '';
+  this.forceUpdate();
+}
+```
+
 ```jsx
-<select
-  defaultValue={(record.formData && record.formData[FIELDS.status]) || ''}
-  onChange={(e) => { this.setDraftField(FIELDS.status, e.target.value); }}
-  style={styles.input}
->
-  <option value="">全部状态</option>
-  {statusOptions.map((option) => (
-    <option key={option.value} value={option.value}>{option.label}</option>
-  ))}
-</select>
+export function renderDropdown(key, options, value, placeholder) {
+  var self = this;
+  var open = _customState.openDropdown === key;
+  var selected = this.findOption(options, value);
+
+  return (
+    <div className="relative w-full" style={styles.dropdownWrap}>
+      <button
+        type="button"
+        className="oyd-select-trigger flex h-10 w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 text-left text-sm text-slate-800 shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+        style={styles.selectTrigger}
+        aria-expanded={open}
+        onClick={(e) => { self.toggleDropdown(key); }}
+      >
+        <span className={selected ? 'truncate text-slate-800' : 'truncate text-slate-400'}>
+          {selected ? selected.label : placeholder}
+        </span>
+        <span className="ml-2 text-xs text-slate-400">v</span>
+      </button>
+
+      {open && (
+        <div
+          className="oyd-select-menu absolute z-30 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
+          style={styles.selectMenu}
+          role="listbox"
+        >
+          {options.map((option) => {
+            var active = option.value === value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={active
+                  ? 'oyd-select-option oyd-select-option-active flex w-full items-center justify-between rounded-md bg-blue-50 px-3 py-2 text-left text-sm font-medium text-blue-700'
+                  : 'oyd-select-option flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50'}
+                style={active ? styles.optionActive : styles.option}
+                onClick={(e) => { self.chooseDropdown(key, option.value); }}
+              >
+                <span>{option.label}</span>
+                {active && <span className="text-xs">selected</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+在 `renderJsx` 中调用：
+
+```jsx
+{this.renderDropdown(
+  FIELDS.status,
+  statusOptions,
+  (record.formData && record.formData[FIELDS.status]) || '',
+  '全部状态'
+)}
+```
+
+兜底样式示例（Tailwind 未加载时仍可用）：
+
+```javascript
+var styles = {
+  dropdownWrap: { position: 'relative', width: '100%' },
+  selectTrigger: {
+    width: '100%',
+    minHeight: 38,
+    border: '1px solid #D0D5DD',
+    borderRadius: 6,
+    background: '#fff',
+    padding: '0 12px',
+    textAlign: 'left',
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    fontFamily: 'inherit',
+    boxShadow: '0 6px 14px rgba(15,23,42,.06)',
+  },
+  selectMenu: {
+    position: 'absolute',
+    zIndex: 30,
+    marginTop: 6,
+    width: '100%',
+    background: '#fff',
+    border: '1px solid #E4E7EC',
+    borderRadius: 10,
+    padding: 6,
+    boxShadow: '0 16px 32px rgba(16,24,40,.14)',
+  },
+  option: {
+    width: '100%',
+    minHeight: 36,
+    padding: '8px 12px',
+    textAlign: 'left',
+    background: '#fff',
+    border: 0,
+    borderRadius: 8,
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    fontFamily: 'inherit',
+    cursor: 'pointer',
+  },
+  optionActive: {
+    width: '100%',
+    minHeight: 36,
+    padding: '8px 12px',
+    textAlign: 'left',
+    background: '#EFF6FF',
+    border: 0,
+    borderRadius: 8,
+    color: '#1D4ED8',
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    fontFamily: 'inherit',
+    cursor: 'pointer',
+  },
+};
 ```
 
 ## DateField
@@ -126,16 +255,15 @@ export function dateInputToTimestamp(value) {
 - 展示场景：优先展示接口返回的名称字段；没有名称时展示 ID。
 
 ```jsx
-<select
-  defaultValue={(record.formData && record.formData[FIELDS.owner]) || ''}
-  onChange={(e) => { this.setDraftField(FIELDS.owner, e.target.value); }}
-  style={styles.input}
->
-  <option value="">请选择负责人</option>
-  {ownerOptions.map((user) => (
-    <option key={user.userId} value={user.userId}>{user.name || user.userId}</option>
-  ))}
-</select>
+{this.renderDropdown(
+  FIELDS.owner,
+  ownerOptions.map((user) => ({
+    value: user.userId,
+    label: user.name || user.userId,
+  })),
+  (record.formData && record.formData[FIELDS.owner]) || '',
+  '请选择负责人'
+)}
 ```
 
 ## ImageField / AttachmentField

@@ -14,7 +14,10 @@
 | EmployeeField | 人员选择（提交人、审批人等） |
 | DepartmentSelectField | 部门选择 |
 | AttachmentField | 附件上传（文件、图片等） |
+| ImageField | 图片上传 |
 | RadioField | 单选按钮（是/否、性别等少量选项） |
 | CheckboxField | 复选框 |
-| CascadeSelectField | 级联选择（省市区等） |
+| AddressField | 地址 |
 | TableField | 子表单/明细（订单明细、费用明细等） |
+| AssociationFormField | 稳定关联其他表单记录 |
+| SerialNumberField | 流水号/业务编号 |

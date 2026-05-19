@@ -84,11 +84,11 @@ function renderIcon(iconPath, size, color) {
 > - **服务不稳定**：免费 CDN 可能随时宕机或 SSL 证书过期，导致页面资源加载失败
 
 **安全规范：**
-- ✅ 仅使用以下经过验证的可信 CDN：
-  - 阿里云 CDN（`alicdn.com`）— 国内访问最稳定，适合生产环境，**首选**
-  - `cdnjs.cloudflare.com` — Cloudflare 官方维护，支持 SRI 完整性校验，国内可访问
-  - `unpkg.com` — npm 官方镜像，适合加载 npm 包资源，国内可访问
+- ✅ 生产默认只推荐阿里云 CDN（`g.alicdn.com` / `alicdn.com`）或客户企业自托管 CDN，国内访问最稳定，适合宜搭客户环境
+- ✅ 引用 `g.alicdn.com` 资源前必须验证 URL 返回 `200` 且 `content-type` 符合资源类型；不要把未验证路径写入模板
+- ✅ Tailwind browser 默认使用已验证地址：`https://g.alicdn.com/code/lib/tailwindcss-browser/0.0.0-insiders.fed6c6a/index.global.min.js`
 - ✅ 引用第三方 CDN 资源时，建议添加 `integrity` 属性（SRI 校验），防止资源被篡改
+- ⚠️ `cdnjs.cloudflare.com`、`unpkg.com` 等海外 CDN 只能作为本地调试或路径排查参考，不要写入默认生成模板，避免客户网络慢或不可达
 - ❌ **禁止使用 `cdn.jsdelivr.net`**：cdn.jsdelivr.net 存在已知安全风险，禁止在生产环境使用。优先选择阿里云 CDN 或项目已配置的 CDN 域名。
 - ❌ **禁止使用 `fonts.googleapis.com`**：国内大陆无法访问，字体资源需下载到本地后上传自有 CDN
 - ❌ 禁止引用来源不明的 CDN 地址，即使该链接当前可以正常访问

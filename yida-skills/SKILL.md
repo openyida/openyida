@@ -137,6 +137,7 @@ openyida copy
 [Step 1] 创建应用 → openyida create-app          → 获得 appType
               ↓
 [Step 2] 需求分析 → 写入 prd/<项目名>.md
+              ↓      （必须包含 MVP 边界、角色权限、核心旅程、状态机、数据约束、验收标准）
               ↓
 [Step 3] 创建自定义页面 → openyida create-page    → 获得 formUuid（看板用 --mode dashboard）
               ↓
@@ -231,6 +232,19 @@ openyida copy
 | Schema ID | `.cache/<项目名>-schema.json` | `appType`、`formUuid`、`fieldId` |
 
 > **prd 文档不记录 `formUuid`、`fieldId` 等 ID**，这些写入 `.cache/` 临时文件。
+
+### 4.1 PRD 质量门槛（必须遵守）
+
+`prd/<项目名>.md` 不是普通需求摘要，必须能直接驱动后续技能执行。创建或评审 PRD 时至少包含：
+
+- MVP 范围与版本边界：V1 必做、V1 不做、V2 候选
+- 目标用户与权限：角色、入口、可执行操作
+- 核心用户旅程：用户完成关键任务的步骤和成功标准
+- 页面与表单配置：业务语义字段，不写 `formUuid`/`fieldId`
+- 流程与状态机：状态、允许操作、下一状态、操作角色
+- 数据关联与约束：唯一性、关联关系、冲突校验、并发/重复提交风险
+- 交互与验收标准：用可验证标准描述“好用”
+- OpenYida 落地约束：Schema 写 `.cache/<项目名>-schema.json`，发布前 `check-page` + `compile`
 
 ### 5. 临时文件规范
 

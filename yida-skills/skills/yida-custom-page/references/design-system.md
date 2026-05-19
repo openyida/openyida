@@ -1,8 +1,8 @@
 # 宜搭自定义页面设计规范
 
-> 宜搭自定义页面**只能使用内联 style 对象**，不能使用 CSS 文件、Tailwind、shadcn/ui 等外部样式方案。以下规范已针对此约束做了适配，直接用 JS 对象定义样式即可。
+> 宜搭自定义页面默认使用 Tailwind utility `className` 组织视觉层，并保留内联 `style` 兜底。不能使用 CSS 文件、CSS Modules、shadcn/ui 或构建期样式方案。
 
-> 原因：宜搭自定义页面运行在沙箱环境中，代码必须在单个 JS 文件内完成，无法加载外部 CSS 文件或使用 `<style>` 标签。所有样式必须通过 JavaScript 对象 + `style` 属性实现。
+> 原因：宜搭自定义页面运行在单文件环境中，不能像普通 React 项目一样 `import` CSS。Tailwind 通过 `@tailwindcss/browser` 运行时脚本加载，默认使用已验证的 `g.alicdn.com` 地址，并开启 preflight 重置原生控件外观；关键控件仍要有 JavaScript `style` 兜底。
 
 > **响应式适配**：所有样式应根据 `this.utils.isMobile()` 判断设备类型后分别应用 PC 端和移动端的样式值。下文组件样式模板中标注了 mobile/pc 差异。
 

@@ -90,6 +90,62 @@ export function didMount() {
     expect(errorRules).toContain('echarts-legacy-map-china');
   });
 
+  test('blocks ES6 computed property names that silently break Yida runtime', () => {
+    const source = `
+export function renderJsx() {
+  return <div />;
+}
+
+export function setDraftField(key, value) {
+  this.setCustomState({ [key]: value });
+}
+
+export function loadRows() {
+  this.utils.yida.searchFormDatas({
+    formUuid: 'FORM-XXX',
+    searchFieldJson: JSON.stringify({ [FIELDS.department]: '研发部' }),
+  }).catch(function() {});
+}
+`;
+
+    const result = lintYidaSource(source, '/tmp/computed-property.jsx');
+    const errorRules = result.errors.map(issue => issue.rule);
+    const computedErrors = result.errors.filter(issue => issue.rule === 'computed-property');
+
+    expect(errorRules).toContain('computed-property');
+    expect(computedErrors).toHaveLength(2);
+  });
+
+  test('warns about native select controls in visible custom page UI', () => {
+    const source = `
+export function renderJsx() {
+  return (
+    <div>
+      <select defaultValue="" onChange={(e) => { this.choose(e.target.value); }}>
+        <option value="">全部状态</option>
+      </select>
+    </div>
+  );
+}
+`;
+
+    const result = lintYidaSource(source, '/tmp/native-select.jsx');
+    const warningRules = result.warnings.map(issue => issue.rule);
+
+    expect(warningRules).toContain('native-select-ui');
+  });
+
+  test('custom page template uses verified Tailwind preflight and custom dropdown reset', () => {
+    const sourcePath = path.join(__dirname, '..', 'lib', 'samples', 'yida-custom-page', 'custom-page-template.js');
+    const source = fs.readFileSync(sourcePath, 'utf-8');
+
+    expect(source).toContain('https://g.alicdn.com/code/lib/tailwindcss-browser/0.0.0-insiders.fed6c6a/index.global.min.js');
+    expect(source).toContain('@import "tailwindcss/preflight";');
+    expect(source).toContain('oyd-select-option');
+    expect(source).toContain('appearance:none;-webkit-appearance:none;font-family:inherit');
+    expect(source).not.toContain('<select');
+  });
+
   test('warns about rich text label formatter functions in ECharts options', () => {
     const source = `
 export function renderJsx() {

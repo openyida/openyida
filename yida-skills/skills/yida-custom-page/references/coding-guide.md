@@ -10,14 +10,115 @@
 | --- | --- |
 | **React 版本** | 宜搭运行时是 **React 16 类组件模型**。原生页面禁止 Hooks；OpenYida `.oyd.jsx` authoring 模式可有限使用 `useState` 与 `useEffect(..., [])`，发布前会降级 |
 | **单文件** | 所有代码写在一个文件中（推荐 `project/pages/src/<页面名>.oyd.jsx`）|
-| **三方包引入** | 禁止使用 `import/require` 语法，如需使用第三方库，必须通过 `this.utils.loadScript` 加载 CDN 脚本，参考 [yida-api.md](../../../references/yida-api.md) 的「工具类 API」章节。|
+| **三方包引入** | 禁止使用 `import/require` 语法，如需使用第三方库，必须通过 `this.utils.loadScript` 加载 CDN 脚本，参考 [yida-api.md](../../../references/yida-api.md) 的「工具类 API」章节。Tailwind 属于默认视觉层，按下方「Tailwind 引入规范」处理 |
 | **内置 lodash** | 宜搭页面运行时已全局加载 **lodash 4.6.1**（`window._`），可直接使用 `_.get`、`_.groupBy`、`_.cloneDeep` 等，无需 `loadScript`。详见下方「内置 lodash 使用指引」 |
 | **函数导出格式** | 原生写法使用 `export function xxx() {}`；现代 authoring 写法使用 `export default function Page()`，由 OpenYida 编译为原生导出函数 |
-| **样式** | 所有 css 必须写在 renderJsx 的方法中，通过 style 的方式引入 |
+| **样式** | 默认使用 Tailwind utility `className` 组织视觉层；关键尺寸、容器兜底和 Tailwind 加载失败兜底可继续使用 `style` 对象。禁止 `import` CSS、CSS Modules 或构建期样式能力 |
 | **`this` 上下文** | 所有导出函数中的 `this` 指向宜搭页面的 React 类实例 |
 | **禁止使用 `this.setState` 管理业务状态** | `this.setState` 已被覆盖，仅用于 `forceUpdate`（通过更新 `timestamp`） |
 | **JavaScript 版本** | 使用 ES2015 (ES6) 语法，不能高于 ES2015 版本。**注意**：即使是 ES6 语法，部分特性也会导致静默失败，详见下方「JS 引擎兼容性限制」 |
 | **必须定义页面入口** | 原生写法必须定义 `renderJsx`；`.oyd.jsx` authoring 写法必须定义 `export default function Page()` |
+
+---
+
+## Tailwind 引入规范
+
+自定义页面没有本地构建链路，不能像普通 React 项目一样 `import './tailwind.css'`。默认使用 Tailwind utility className 组织视觉层；运行时脚本只能来自已验证的 `g.alicdn.com` 或企业自托管地址。不要默认写 `cdn.tailwindcss.com`、`jsdelivr`、`unpkg` 等海外 CDN，避免客户网络慢或不可达。
+
+### 推荐策略
+
+| 方式 | 适用场景 | 约束 |
+| --- | --- | --- |
+| 页面内 `loadScript` 固定版本 | 默认生成、自定义页面快速交付 | 默认使用已验证的 `g.alicdn.com` 地址；加载失败必须有基础样式兜底 |
+| OpenYida npm 包内置/托管资产 | 私有化、生产稳定性、企业内网 | npm 包里的文件不能被宜搭页面直接 `import`，需要 CLI 嵌入 CSS、上传 CDN，或发布到可公网/内网访问的固定 URL |
+
+### 运行时代码模板
+
+```javascript
+// 已验证的 g.alicdn.com 地址；私有化/内网环境可替换为企业自托管地址
+var TAILWIND_CDN = 'https://g.alicdn.com/code/lib/tailwindcss-browser/0.0.0-insiders.fed6c6a/index.global.min.js';
+
+export function ensureTailwind() {
+  var self = this;
+
+  if (window.__openyidaTailwindReady) {
+    return Promise.resolve();
+  }
+  if (window.__openyidaTailwindLoading) {
+    return window.__openyidaTailwindLoading;
+  }
+
+  if (!TAILWIND_CDN) {
+    self.injectTailwindFallback();
+    return Promise.resolve();
+  }
+
+  self.injectTailwindSource();
+
+  window.__openyidaTailwindLoading = self.utils.loadScript(TAILWIND_CDN)
+    .then(function() {
+      window.__openyidaTailwindReady = true;
+      self.forceUpdate();
+    })
+    .catch(function() {
+      window.__openyidaTailwindFailed = true;
+      self.injectTailwindFallback();
+      self.forceUpdate();
+    });
+
+  return window.__openyidaTailwindLoading;
+}
+
+export function injectTailwindSource() {
+  if (document.getElementById('openyida-tailwind-source')) {
+    return;
+  }
+
+  var style = document.createElement('style');
+  style.id = 'openyida-tailwind-source';
+  style.type = 'text/tailwindcss';
+  style.innerHTML = [
+    '@import "tailwindcss/theme";',
+    '@import "tailwindcss/preflight";',
+    '@import "tailwindcss/utilities";',
+    '@theme { --color-brand: #2F6FED; }',
+  ].join('\n');
+  document.head.appendChild(style);
+}
+
+export function injectTailwindFallback() {
+  if (document.getElementById('openyida-tailwind-fallback')) {
+    return;
+  }
+
+  var style = document.createElement('style');
+  style.id = 'openyida-tailwind-fallback';
+  style.innerHTML = [
+    '.oyd-btn,.oyd-select-trigger,.oyd-select-option{appearance:none;-webkit-appearance:none;font-family:inherit;}',
+    '.oyd-btn{height:36px;border-radius:6px;border:1px solid #D0D5DD;background:#fff;padding:0 12px;font-size:14px;cursor:pointer;}',
+    '.oyd-btn-primary{background:#2F6FED;border-color:#2F6FED;color:#fff;}',
+    '.oyd-select-trigger{height:38px;border-radius:6px;border:1px solid #D0D5DD;background:#fff;padding:0 12px;font-size:14px;text-align:left;box-shadow:0 6px 14px rgba(15,23,42,.06);}',
+    '.oyd-select-menu{position:absolute;z-index:30;margin-top:6px;width:100%;padding:6px;border:1px solid #E4E7EC;border-radius:10px;background:#fff;box-shadow:0 16px 32px rgba(16,24,40,.14);}',
+    '.oyd-select-option{width:100%;min-height:36px;border:0;border-radius:8px;background:#fff;padding:0 10px;text-align:left;font-size:14px;cursor:pointer;}',
+    '.oyd-select-option-active{background:#EFF6FF;color:#1D4ED8;font-weight:600;}',
+  ].join('');
+  document.head.appendChild(style);
+}
+
+export function didMount() {
+  this.ensureTailwind();
+  this.loadData();
+}
+```
+
+### 生成约束
+
+1. Tailwind URL 必须写成常量，只能填写已验证的 `g.alicdn.com`、企业 OSS/CDN 或 OpenYida 托管地址。
+2. 禁止默认写海外 CDN；如果目标环境不能访问默认 `g.alicdn.com` 地址，替换为企业自托管地址，或保留空字符串并依赖 fallback 样式。
+3. 使用 `@tailwindcss/browser` 时，通过 `style[type="text/tailwindcss"]` 默认导入 `tailwindcss/theme`、`tailwindcss/preflight` 和 `tailwindcss/utilities`。自定义页面可以接受 reset，preflight 能消除浏览器原生 button/select 黑色边框等默认外观；只有用户明确要求宿主页面完全隔离时才关闭 preflight，并必须手动重置按钮/下拉样式。
+4. `className` 使用完整静态类名字符串；不要拼 `bg-` + color 这类动态类名。
+5. Tailwind 加载失败时仍要能看到可用页面：关键容器保留 `style` 兜底，通用按钮/下拉增加 `oyd-*` fallback class。
+6. 用户可见的下拉、菜单、分段控件默认用 Tailwind 自定义组件；不要用原生 `<select>`。
 
 ---
 
@@ -66,14 +167,16 @@ var snapshot = _.cloneDeep(_customState);
 
 宜搭自定义页面的 JS 引擎存在以下已知兼容性问题，**所有问题均无控制台报错**，必须严格规避：
 
-### 1. 禁止使用 ES6 计算属性名 `{ [key]: value }` — 严重
+### 1. 禁止使用 ES6 计算属性名 `{ [key]: value }` — 阻塞
 
 使用计算属性名会导致**整个模块加载失败**，`didMount` 不执行，页面空白，控制台无任何错误信息。
+`openyida check-page` 会以 `computed-property` error 阻塞，编译/发布前必须改掉。
 
 ```javascript
 // ❌ 严禁：计算属性名，导致模块加载失败
 var obj = { [fieldId]: value };
 searchFieldJson: JSON.stringify({ [FIELDS.department]: '研发部' });
+this.setCustomState({ [key]: value });
 
 // ✅ 正确：ES5 写法
 var obj = {};
@@ -84,6 +187,11 @@ var searchCondition = {};
 searchCondition[FIELDS.department] = '研发部';
 searchCondition[FIELDS.status] = '待审批';
 searchFieldJson: JSON.stringify(searchCondition);
+
+// ✅ 正确：动态 setCustomState 先构造对象
+var nextState = {};
+nextState[key] = value;
+this.setCustomState(nextState);
 ```
 
 ### 2. 禁止在 `.then()` 回调中使用 `String.padStart()` — 严重
@@ -105,7 +213,7 @@ searchFieldJson: JSON.stringify(searchCondition);
 });
 ```
 
-> **自检规则**：生成代码时，检查所有 `.then(function(res) { ... })` 回调，确保：① 无计算属性名；② 无 `padStart`/`padEnd`。建议将复杂的回调逻辑提取到独立的 `export function` 中，保持回调简洁。
+> **自检规则**：生成代码时，检查所有动态对象构造和 `.then(function(res) { ... })` 回调，确保：① 无计算属性名；② 无 `padStart`/`padEnd`。特别注意 `setCustomState({ [key]: value })` 和 `JSON.stringify({ [FIELDS.xxx]: value })` 两种写法。建议将复杂的回调逻辑提取到独立的 `export function` 中，保持回调简洁。
 
 ---
 

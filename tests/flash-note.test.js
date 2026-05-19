@@ -80,6 +80,12 @@ describe('flash note to PRD prompt builder', () => {
     expect(prompt).toContain('CRM');
     expect(prompt).toContain('制造业');
     expect(prompt).toContain('客户档案');
+    expect(prompt).toContain('MVP 范围与版本边界');
+    expect(prompt).toContain('目标用户与权限');
+    expect(prompt).toContain('流程与状态机');
+    expect(prompt).toContain('数据关联与约束');
+    expect(prompt).toContain('OpenYida 落地约束');
+    expect(prompt).not.toContain('CascadeSelectField');
   });
 
   test('flashNoteToPrd uses provided AI caller and returns generated content', async () => {
