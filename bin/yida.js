@@ -579,6 +579,12 @@ async function main() {
       break;
     }
 
+    case 'nav-group': {
+      const { run } = require('../lib/app/nav-group');
+      await run(args);
+      break;
+    }
+
     case 'get-schema': {
       const { run } = require('../lib/app/get-schema');
       await run(args);
