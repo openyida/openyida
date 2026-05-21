@@ -717,6 +717,12 @@ async function main() {
       break;
     }
 
+    case 'externalize-form': {
+      const { run } = require('../lib/app/externalize-form');
+      await run(args);
+      break;
+    }
+
     case 'update-form-config': {
       if (args.length < 4) {
         warn(t('cli.form_config_usage'));

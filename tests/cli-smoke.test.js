@@ -129,6 +129,20 @@ describe('CLI offline smoke', () => {
     expect(output).not.toContain('读取登录态');
   });
 
+  test('app-list --help renders usage without requiring login', () => {
+    const result = runAny(['app-list', '--help']);
+    expect(result.status).toBe(0);
+    expect(result.output).toContain('openyida app-list');
+    expect(result.output).not.toContain('读取登录态');
+  });
+
+  test('externalize-form --help renders usage without requiring login', () => {
+    const result = runAny(['externalize-form', '--help']);
+    expect(result.status).toBe(0);
+    expect(result.output).toContain('openyida externalize-form');
+    expect(result.output).not.toContain('读取登录态');
+  });
+
   test('commands --json renders machine-readable command manifest', () => {
     const output = runOk(['commands', '--json']);
     const parsed = JSON.parse(output);
@@ -151,6 +165,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('corp-manager');
     expect(commands).toContain('agent-center');
     expect(commands).toContain('dingtalk-link');
+    expect(commands).toContain('externalize-form');
     expect(commands).toContain('commands');
     expect(commands).toContain('a2a');
     expect(commands).toContain('ai');
@@ -172,6 +187,11 @@ describe('CLI offline smoke', () => {
     expect(parsed.commands.find(entry => entry.id === 'ai')).toMatchObject({
       usage: 'openyida ai <text|image> [options]',
       output: 'text|json',
+      requires_login: true,
+    });
+    expect(parsed.commands.find(entry => entry.id === 'externalize-form')).toMatchObject({
+      usage: 'openyida externalize-form <appType> <formUuid> [--schema-file file]',
+      output: 'json|markdown',
       requires_login: true,
     });
   });

@@ -49,6 +49,17 @@ beforeEach(() => {
 // ── 正常查询：单页 ────────────────────────────────────────────────────
 
 describe('run() 正常查询', () => {
+  test('--help 只输出用法，不读取登录态', async () => {
+    const mockWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {});
+
+    await run(['--help']);
+
+    expect(utils.loadCookieData).not.toHaveBeenCalled();
+    expect(mockWrite).toHaveBeenCalledWith(expect.stringContaining('openyida app-list'));
+
+    mockWrite.mockRestore();
+  });
+
   test('单页结果：正确输出 JSON 到 stdout', async () => {
     const apps = [
       makeApp(),

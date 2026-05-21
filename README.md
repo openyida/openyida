@@ -340,6 +340,9 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 | `openyida verify-short-url <appType> <formUuid> <url>` | Verify a short URL |
 | `openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]` | Save public access or sharing configuration |
 | `openyida get-page-config <appType> <formUuid>` | Query public access or sharing configuration |
+| `openyida externalize-form <appType> <formUuid> [--schema-file file]` | Assess public-access blockers and generate external-safe mirror fields |
+
+`openyida externalize-form` is useful when a form contains fields such as `AssociationFormField`, `EmployeeField`, or `DepartmentSelectField` that depend on internal organization permissions. It produces a report plus optional `--mirror-fields-output` JSON that can be used with `openyida create-form create` to build a separate public intake form while keeping the internal form and its association fields private.
 
 ### Workflow, Reports, and Integrations
 
