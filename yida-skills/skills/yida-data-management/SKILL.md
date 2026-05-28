@@ -69,10 +69,13 @@ openyida data create form <appType> <formUuid> --data-json '<json>' [--resolve-a
 openyida data create form <appType> <formUuid> --data-file .cache/openyida/data-import/record.json [--resolve-aliases]
 openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --data-json '<json>' [--resolve-aliases]
 openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --data-file .cache/openyida/data-import/patch.json [--resolve-aliases]
+openyida data batch-update form <appType> --file .cache/openyida/data-import/batch-update.json [--max 30] [--form-uuid <formUuid>] [--resolve-aliases] [--stop-on-error]
 openyida data query subform <appType> <formUuid> --inst-id <formInstId> --table-field-id <fieldId|alias> [--resolve-aliases]
 ```
 
 当 JSON 使用宜搭组件别名作为 key 时，追加 `--resolve-aliases`，OpenYida 会先读取表单 Schema 中的 `componentAlias.items`，再将别名转换为真实 `fieldId` 后调用数据接口。更新类命令若要解析别名，必须额外传 `--form-uuid <formUuid>`。
+
+批量更新文件必须是数组，每条记录包含 `formInstId` 和 `formData`。命令会顺序调用表单更新接口，默认最多 30 条；超过 `--max` 会直接拦截，并输出总数、成功数、失败数和每条记录结果。该能力不是事务，已成功的记录不会自动回滚。
 
 ### 流程实例
 
@@ -202,7 +205,7 @@ openyida sample yida-data-management form-field-template   # 表单字段定义�
 - `pageSize` 最大 100，QPS 限制约 40 次/秒
 - `searchFieldJson` 和 `dynamicOrder` 必须传字符串
 - 字段 ID 通过 `openyida get-schema` 获取，不要手写猜测
-- 批量脚本可以用 Python `subprocess` 调用 `openyida data ...`，也可以用 JS 复用 Node 工具；脚本必须放在 `.cache/openyida/scripts/`，导入数据放在 `.cache/openyida/data-import/`
+- 批量更新优先使用 `openyida data batch-update form ... --max 30`；更复杂的批处理脚本必须放在 `.cache/openyida/scripts/`，导入数据放在 `.cache/openyida/data-import/`
 
 ## 异常处理
 
