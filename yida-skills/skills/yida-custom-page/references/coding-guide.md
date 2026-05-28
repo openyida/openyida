@@ -23,6 +23,23 @@
 
 ---
 
+## 外部 JS 库加载规范
+
+除 Tailwind 视觉层外，ECharts、QRCode、moment 等第三方库都必须通过 `this.utils.loadScript(url)` 加载，不能写 `import`、`require`、`<script>` 字符串或动态创建未经校验的脚本标签。
+
+生成自定义页面代码时遵守以下规则：
+
+1. URL 优先使用已验证的 `g.alicdn.com` 地址或企业自托管地址；写入模板前先用 `curl -sI <url>` 验证返回 200。
+2. 库 URL 写成文件顶部常量，便于私有化环境替换；不要把版本号散落在业务函数里。
+3. 每个库封装一个 `ensureXxx()` 方法，先检查 `window.xxx`，再复用 `window.__openyidaXxxLoading` Promise，避免重复插入脚本。
+4. 有依赖顺序的库必须链式加载，例如先加载 ECharts 主库，再加载主题或插件。
+5. 同域多个 JS 资源可使用 `https://g.alicdn.com/??path1,path2` Combo 地址合并请求；Combo 只用于 JS，CSS 仍通过 `loadStyleSheet`。
+6. `.catch()` 中必须恢复页面状态，例如设置 `loading: false` 或展示可用空态，并用 `this.utils.toast({ type: 'error' })` 给用户明确反馈。
+
+完整模板、常用库版本、Combo 组合加载和错误处理示例见 [yida-api.md](../../../references/yida-api.md) 的 `loadScript` 章节。
+
+---
+
 ## Tailwind 引入规范
 
 自定义页面没有本地构建链路，不能像普通 React 项目一样 `import './tailwind.css'`。默认使用 Tailwind utility className 组织视觉层；运行时脚本只能来自已验证的 `g.alicdn.com` 或企业自托管地址。不要默认写 `cdn.tailwindcss.com`、`jsdelivr`、`unpkg` 等海外 CDN，避免客户网络慢或不可达。

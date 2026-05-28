@@ -16,7 +16,7 @@ description: 宜搭自定义页面 JSX 开发规范。React 16 宜搭原生 expo
 3. **事件绑定箭头函数包裹**：`renderJsx` 顶部先写 `var self = this`，事件使用 `onClick={(e) => { self.handleClick(e) }}`，严禁 `onClick={this.handleClick}` 或 `.bind(this)`
 4. **.map()/.filter() 回调用箭头函数**：`.map((item) => ...)`，禁止 `.map(function(item) {...})`，否则回调内 `this` 丢失；`.oyd.jsx` 构建会尝试自动修复，但生成时仍应直接写正确形式
 5. **输入框非受控模式**：`<input>` 用 `defaultValue` + `onChange` 写入 `_customState`，禁止 `value` 受控模式
-6. **禁止 import/require**：第三方库通过 `this.utils.loadScript` 加载 CDN 脚本
+6. **禁止 import/require**：第三方库通过 `this.utils.loadScript` 加载已验证的 CDN 脚本；封装 `ensureXxx()` 复用加载 Promise，按依赖顺序加载，并在 `.catch()` 中恢复页面状态
 7. **字段 ID 必须通过 get-schema 获取**：执行 `openyida get-schema <appType> <formUuid>` 获取真实 fieldId，文件顶部定义 `FIELDS` 常量映射字段别名，禁止猜测或手写
 8. **所有 API 调用必须 .catch()**：异常通过 `this.utils.toast({ title: message, type: 'error' })` 提示用户
 9. **renderJsx 每个 return 分支必须渲染 timestamp**：`<div style={{ display: 'none' }}>{this.state && this.state.timestamp}</div>`；`.oyd.jsx` 构建会自动补齐，但生成原生写法时仍必须显式写出
