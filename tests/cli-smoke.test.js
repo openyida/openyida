@@ -171,6 +171,11 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('ai-form-setting');
     expect(commands).toContain('build-page');
     expect(commands).toContain('connector.smart-create');
+    expect(commands).toContain('integration.create');
+    expect(commands).toContain('integration.list');
+    expect(commands).toContain('integration.enable');
+    expect(commands).toContain('integration.disable');
+    expect(commands).toContain('integration.check');
     expect(commands).toContain('corp-manager');
     expect(commands).toContain('agent-center');
     expect(commands).toContain('dingtalk-link');
@@ -211,6 +216,21 @@ describe('CLI offline smoke', () => {
     });
     expect(parsed.commands.find(entry => entry.id === 'ai-form-setting')).toMatchObject({
       usage: 'openyida ai-form-setting <get|fields|models|enable|disable|save> <appType> ...',
+      output: 'json',
+      requires_login: true,
+    });
+    expect(parsed.commands.find(entry => entry.id === 'integration.list')).toMatchObject({
+      usage: 'openyida integration list <appType> [--form-uuid <uuid>] [--status y|n] [--json]',
+      output: 'json',
+      requires_login: true,
+    });
+    expect(parsed.commands.find(entry => entry.id === 'integration.enable')).toMatchObject({
+      usage: 'openyida integration enable <appType> <formUuid> <processCode>',
+      output: 'json',
+      requires_login: true,
+    });
+    expect(parsed.commands.find(entry => entry.id === 'integration.disable')).toMatchObject({
+      usage: 'openyida integration disable <appType> <formUuid> <processCode>',
       output: 'json',
       requires_login: true,
     });
