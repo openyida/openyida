@@ -109,6 +109,7 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('corp-efficiency');
     expect(output).toContain('create-form');
     expect(output).toContain('list-forms');
+    expect(output).toContain('er <appType>');
     expect(output).toContain('aggregate-table');
     expect(output).toContain('ai-form-setting');
     expect(output).toContain('connector');
@@ -148,6 +149,13 @@ describe('CLI offline smoke', () => {
     expect(result.output).not.toContain('读取登录态');
   });
 
+  test('er --help renders usage without requiring login', () => {
+    const result = runAny(['er', '--help']);
+    expect(result.status).toBe(0);
+    expect(result.output).toContain('openyida er');
+    expect(result.output).not.toContain('读取登录态');
+  });
+
   test('commands --json renders machine-readable command manifest', () => {
     const output = runOk(['commands', '--json']);
     const parsed = JSON.parse(output);
@@ -167,6 +175,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('add-validation');
     expect(commands).toContain('create-form.bind-datasource');
     expect(commands).toContain('list-forms');
+    expect(commands).toContain('er');
     expect(commands).toContain('aggregate-table');
     expect(commands).toContain('ai-form-setting');
     expect(commands).toContain('build-page');
@@ -213,6 +222,11 @@ describe('CLI offline smoke', () => {
     expect(parsed.commands.find(entry => entry.id === 'aggregate-table')).toMatchObject({
       usage: 'openyida aggregate-table <list|create-empty|inspect|preview|save|publish|status> <appType> ...',
       output: 'json',
+      requires_login: true,
+    });
+    expect(parsed.commands.find(entry => entry.id === 'er')).toMatchObject({
+      usage: 'openyida er <appType> [--format mermaid|json] [--output file] [--include-system] [--include-pages]',
+      output: 'text|json',
       requires_login: true,
     });
     expect(parsed.commands.find(entry => entry.id === 'ai-form-setting')).toMatchObject({

@@ -674,6 +674,12 @@ async function main() {
       break;
     }
 
+    case 'er': {
+      const { run } = require('../lib/app/er');
+      await run(args);
+      break;
+    }
+
     case 'formula': {
       const subCommand = args[0];
       const subArgs = args.slice(1);
