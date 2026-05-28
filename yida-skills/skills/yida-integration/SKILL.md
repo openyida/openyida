@@ -13,9 +13,10 @@ description: 宜搭集成&自动化配置技能。支持创建/查询/开启/关
 
 ## 严格要求 (MUST DO)
 
-- **创建/发布前必须确认**：执行集成自动化创建或发布操作前，必须向用户展示逻辑流配置摘要（触发条件、节点列表、通知对象），获得用户明确同意后再执行
+- **创建/发布/启停前必须确认**：执行集成自动化创建、发布、开启或关闭操作前，必须向用户展示逻辑流配置摘要或目标逻辑流信息，获得用户明确同意后再执行
 - 创建前先确认触发表单的 formUuid 和相关字段 ID
 - 创建成功后记录逻辑流 ID 到 `.cache/<项目名>-schema.json`
+- 只读查询优先使用 `openyida integration list ... --json`，不要为了确认是否存在逻辑流而进入页面手工查找
 
 ## 适用场景
 
@@ -62,11 +63,17 @@ description: 宜搭集成&自动化配置技能。支持创建/查询/开启/关
 - 可选：条件分支，根据上游节点数据有无 / 字段值走不同分支
 - 通知内容和标题支持引用表单字段变量（`#{fieldId-ComponentType}#` 格式）
 - 支持保存为草稿（未开启状态）或直接发布（开启状态）
+- 支持列出应用内逻辑流，并按表单、启停状态或关键词筛选
+- 支持开启 / 关闭已有逻辑流
+- 支持检查集成自动化异常运行日志
 
 ## 命令格式
 
 ```bash
 openyida integration create <appType> <formUuid> <flowName> [选项]
+openyida integration list <appType> [--form-uuid <uuid>] [--status y|n] [--key <kw>] [--page <n>] [--size <n>] [--json]
+openyida integration enable <appType> <formUuid> <processCode>
+openyida integration disable <appType> <formUuid> <processCode>
 openyida integration check <appType...> [--json] [--output result.xlsx] [--no-progress]
 ```
 
@@ -96,6 +103,26 @@ openyida integration check <appType...> [--json] [--output result.xlsx] [--no-pr
 | `--add-data-form-uuid <formUuid>` | 不启用 | 新增数据节点的目标表单 UUID，传入后在通知节点之后插入 AddDataNode |
 | `--add-data-assignment <targetFieldId:valueType:value>` | 无 | 新增数据的字段赋值，可多次传入；格式：`目标字段ID:valueType:value`，valueType 可选 `processVar`（引用触发表单字段）/ `literal`（固定值）/ `column`（公式） |
 | `--publish` | 不发布 | 加此标志则保存后立即发布（开启状态），否则仅保存为草稿 |
+
+### 查询与启停
+
+```bash
+# 查询应用下全部集成自动化，输出 JSON 摘要
+openyida integration list APP_XXX --json
+
+# 查询指定表单下已开启的集成自动化
+openyida integration list APP_XXX --form-uuid FORM-XXX --status y --json
+
+# 开启已有逻辑流
+openyida integration enable APP_XXX FORM-XXX LPROC-XXX
+
+# 关闭已有逻辑流
+openyida integration disable APP_XXX FORM-XXX LPROC-XXX
+```
+
+- `list --json` 输出扁平数组，字段包含 `formUuid`、`formName`、`processCode`、`name`、`status`、`gmtModified`、`modifier`。
+- `status` 使用宜搭接口值：`y` 表示启用，`n` 表示停用。
+- `enable` / `disable` 是真实状态变更操作，执行前必须向用户确认目标应用、表单、逻辑流名称或 `processCode`。
 
 ### 示例
 
@@ -194,6 +221,12 @@ openyida integration check APP_XXX APP_YYY --output project/output/自动化异�
 5. 调用 `saveProcess` 接口（`isOnline=false`）保存为草稿
 6. 若指定 `--publish`，再次调用 `saveProcess` 接口（`isOnline=true`）发布生效
 
+### 查询 / 启停流程
+
+1. 读取 `.cache/cookies.json` 获取登录态（不存在则触发扫码登录）
+2. `list` 调用 `appLogicflowBinding/listflow.json` 查询应用内逻辑流，可按 `formUuid`、`status`、`key` 筛选
+3. `enable` / `disable` 调用 `formLogicflowBinding/switchflow.json` 修改逻辑流状态
+
 > ⚠️ **必须先调用 `createLogicflow.json` 新建绑定关系**，再调用 `saveProcess` 写入内容。直接调用 `saveProcess` 无法创建新逻辑流，只能覆盖更新已有逻辑流。
 
 ## 逻辑流节点结构
@@ -236,7 +269,10 @@ trigger -> dataRetrieve -> route -> condition -> dataUpdate/dataCreate -> finish
 ```
 lib/
 └── integration/
-    └── integration-create.js    # integration create 子命令实现
+    ├── integration-api.js       # 集成自动化 API 封装
+    ├── integration-create.js    # integration create 子命令实现
+    ├── integration-list.js      # integration list / enable / disable 子命令实现
+    └── integration-check.js     # integration check 子命令实现
 ```
 
 ## 与其他技能配合
@@ -245,7 +281,8 @@ lib/
 2. **创建表单页面** → 使用 `yida-create-form-page` 技能获取 `formUuid`
 3. **查询字段 ID** → 使用 `yida-get-schema` 技能获取 `fieldId` 和 `ComponentType`，用于构建字段变量引用
 4. **创建集成&自动化** → 本技能，传入 `appType` 和 `formUuid`
-5. **公式计算** → 当需要在赋值中使用复杂公式（如 `CONCATENATE`、`IF`、`SUM` 等）时，参考 `yida-formula` 技能（独立技能，待完善）；目前已支持基础公式：
+5. **查询 / 启停自动化** → 本技能，优先使用 `integration list --json` 获取真实 `processCode` 后再执行 `enable` / `disable`
+6. **公式计算** → 当需要在赋值中使用复杂公式（如 `CONCATENATE`、`IF`、`SUM` 等）时，参考 `yida-formula` 技能（独立技能，待完善）；目前已支持基础公式：
    - 字符串拼接：`CONCATENATE(#{fieldId_a},#{fieldId_b})`
    - 数值运算：`${nodeId}.numberField_xxx+1`
 
@@ -266,6 +303,7 @@ lib/
 - `--receivers` 填写的是宜搭/钉钉用户 ID（`userId`），不是姓名
 - 触发事件使用 API 内部名称：`insert`（新增）、`update`（更新）、`delete`（删除）、`comment`（评论），也支持别名 `create`
 - `processCode` 格式为 `LPROC-` 加 38 位大写字母数字，不传则自动随机生成
+- `enable` / `disable` 必须传入已有 `processCode`，推荐先用 `integration list <appType> --json` 查询确认
 - 保存（草稿）和发布使用**同一个接口** `saveProcess`，通过 `isOnline` 参数区分
 - 错误码处理：接口返回 `errorCode: "TIANSHU_000030"`（csrf 校验失败）时，脚本会自动刷新 token 后重试；`errorCode: "307"`（登录过期）时，会自动重新登录后重试
 - **本技能不读写 memory**：集成逻辑流配置通过 CLI 命令写入宜搭平台，processCode 等信息输出到 stdout，不依赖跨会话的 memory 状态
