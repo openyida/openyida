@@ -1044,6 +1044,8 @@ this.utils.loadScript('https://g.alicdn.com/code/lib/echarts/5.5.0/echarts.min.j
 this.utils.loadScript({ src: '...', type: 'css' })
 ```
 
+`openyida check-page` 会对 `loadScript(...css)` 给出 `loadscript-css-file` warning，对 `loadStyleSheet(...js)` 给出 `loadstylesheet-js-file` warning。JS 资源使用 `loadScript`，CSS 资源使用 `loadStyleSheet`。
+
 **2. `g.alicdn.com` CDN 版本必须验证**
 
 `g.alicdn.com` 是阿里 CDN 镜像，不是所有 npm 版本都有镜像。使用前**必须通过 `curl` 验证版本是否存在**：

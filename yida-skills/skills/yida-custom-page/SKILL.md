@@ -117,6 +117,7 @@ openyida publish project/pages/src/employee-query.oyd.jsx APP_XXX FORM-QUERY001
 - 自定义页面默认使用 Tailwind utility className 组织视觉层；Tailwind 运行时脚本必须写成可替换常量，默认使用已验证的 `https://g.alicdn.com/code/lib/tailwindcss-browser/0.0.0-insiders.fed6c6a/index.global.min.js`，并通过 `style[type="text/tailwindcss"]` 导入 `theme + preflight + utilities`。私有化环境可替换为企业自托管地址。不要默认写 `cdn.tailwindcss.com`、`jsdelivr`、`unpkg` 等海外 CDN。
 - 用户可见下拉框不要用浏览器原生 `<select>`。`check-page` 会提示 `native-select-ui` warning；除非是隐藏调试控件或用户明确要求原生控件，否则改为 [组件指南](references/component-jsx-guide.md) 的自定义下拉。
 - 动态字段写入不要用 ES6 计算属性名。`this.setCustomState({ [key]: value })`、`JSON.stringify({ [FIELDS.status]: '待审批' })` 都会被 `check-page` 以 `computed-property` error 拦截；生成时直接写 `var obj = {}; obj[key] = value;`。
+- 外部 JS/CSS 资源必须按类型加载。`check-page` 会对公共海外 CDN 给出 `external-script-public-cdn` warning，对 `loadScript(...css)` 给出 `loadscript-css-file` warning，对 `loadStyleSheet(...js)` 给出 `loadstylesheet-js-file` warning。
 - ECharts 中国地图必须走 `fetch(DataV GeoJSON) -> echarts.registerMap('china', geoJson)`；不要加载旧版内置中国地图脚本。`check-page` 会拦截该类旧写法。
 - ECharts `label.formatter` 返回 rich text 模板在宜搭自定义页面环境不稳定；优先使用普通 formatter 字符串，或在数据处理阶段预先拼好标签文本。
 - `check-page` 支持行级禁用：`// openyida-lint-disable-line <rule>` 或 `// openyida-lint-disable-next-line <rule>`。只在确认该行不会触发宜搭运行时问题时使用。
