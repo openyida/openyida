@@ -612,6 +612,120 @@ describe('run() update form alias resolution', () => {
   });
 });
 
+describe('run() batch-update form', () => {
+  function writeBatchFile(records) {
+    const tmpFile = path.join(os.tmpdir(), 'openyida-batch-update-' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.json');
+    fs.writeFileSync(tmpFile, JSON.stringify(records), 'utf8');
+    return tmpFile;
+  }
+
+  test('按文件顺序批量更新并输出汇总结果', async () => {
+    const batchFile = writeBatchFile([
+      { formInstId: 'INST-001', formData: { textField_status: '已处理' } },
+      { formInstId: 'INST-002', formData: { textField_status: '已关闭' } },
+    ]);
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpPost
+      .mockResolvedValueOnce({ success: true, content: { formInstId: 'INST-001' } })
+      .mockResolvedValueOnce({ success: true, content: { formInstId: 'INST-002' } });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await run(['batch-update', 'form', 'APP_XXX', '--file', batchFile, '--max', '2']);
+
+    expect(utils.httpPost).toHaveBeenCalledTimes(2);
+    expect(utils.httpPost.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/v1/form/updateFormData.json');
+    expect(decodeURIComponent(utils.httpPost.mock.calls[0][2])).toContain('formInstId=INST-001');
+    expect(decodeURIComponent(utils.httpPost.mock.calls[1][2])).toContain('formInstId=INST-002');
+    const output = JSON.parse(mockLog.mock.calls[0][0]);
+    expect(output).toMatchObject({
+      success: true,
+      total: 2,
+      attempted: 2,
+      successCount: 2,
+      failureCount: 0,
+      max: 2,
+    });
+
+    fs.unlinkSync(batchFile);
+    mockLog.mockRestore();
+    mockError.mockRestore();
+  });
+
+  test('记录数超过 --max 时拦截且不发送请求', async () => {
+    const batchFile = writeBatchFile([
+      { formInstId: 'INST-001', formData: { textField_status: '已处理' } },
+      { formInstId: 'INST-002', formData: { textField_status: '已关闭' } },
+    ]);
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit(1)');
+    });
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(run(['batch-update', 'form', 'APP_XXX', '--file', batchFile, '--max', '1'])).rejects.toThrow('process.exit(1)');
+
+    expect(utils.httpPost).not.toHaveBeenCalled();
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('超过上限 1'));
+
+    fs.unlinkSync(batchFile);
+    mockExit.mockRestore();
+    mockError.mockRestore();
+  });
+
+  test('--stop-on-error 遇到失败后停止后续记录', async () => {
+    const batchFile = writeBatchFile([
+      { formInstId: 'INST-001', formData: { textField_status: '已处理' } },
+      { formInstId: 'INST-002', formData: { textField_status: '已关闭' } },
+      { formInstId: 'INST-003', formData: { textField_status: '已取消' } },
+    ]);
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpPost
+      .mockResolvedValueOnce({ success: true, content: { formInstId: 'INST-001' } })
+      .mockResolvedValueOnce({ success: false, errorMsg: '更新失败' });
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit(1)');
+    });
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(run(['batch-update', 'form', 'APP_XXX', '--file', batchFile, '--stop-on-error'])).rejects.toThrow('process.exit(1)');
+
+    expect(utils.httpPost).toHaveBeenCalledTimes(2);
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('"success": false'));
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('"total": 3'));
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('"attempted": 2'));
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('"successCount": 1'));
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('"failureCount": 1'));
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('"stoppedOnError": true'));
+
+    fs.unlinkSync(batchFile);
+    mockExit.mockRestore();
+    mockError.mockRestore();
+  });
+
+  test('--resolve-aliases 会转换每条记录的 formData 字段别名', async () => {
+    const batchFile = writeBatchFile([
+      { formInstId: 'INST-001', formData: { phone: '123' } },
+    ]);
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet.mockResolvedValueOnce(buildAliasSchema());
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await run(['batch-update', 'form', 'APP_XXX', '--file', batchFile, '--form-uuid', 'FORM-XXX', '--resolve-aliases']);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(decodeURIComponent(utils.httpPost.mock.calls[0][2])).toContain('updateFormDataJson={"textField_phone":"123"}');
+
+    fs.unlinkSync(batchFile);
+    mockLog.mockRestore();
+    mockError.mockRestore();
+  });
+});
+
 describe('run() query subform alias resolution', () => {
   test('--resolve-aliases 会把子表组件别名转换为 tableFieldId', async () => {
     utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));

@@ -197,6 +197,7 @@ openyida configure-process APP_XXX FORM_XXX .cache/openyida/process/process.json
 openyida process preview APP_XXX PROC_INST_XXX --output .cache/openyida/process/process.html
 openyida data query form APP_XXX FORM_XXX --page 1 --size 20
 openyida data create form APP_XXX FORM_XXX --data-file .cache/openyida/data-import/record.json
+openyida data batch-update form APP_XXX --file .cache/openyida/data-import/batch-update.json --max 30
 openyida get-permission APP_XXX FORM_XXX
 ```
 
@@ -335,7 +336,7 @@ Form field definitions can include `alias` or `componentAlias` to populate Yida 
 
 | Command | Description |
 |---------|-------------|
-| `openyida data <action> <resource> [args]` | Unified data management for forms, processes, tasks, and subforms; form queries support `--all`, `--form-uuid` subform hydration, and `--resolve-aliases` for component alias JSON keys |
+| `openyida data <action> <resource> [args]` | Unified data management for forms, processes, tasks, and subforms; form queries support `--all`, form updates support guarded `batch-update`, and JSON inputs support `--resolve-aliases` for component alias keys |
 | `openyida data check <appType> <formUuid> <rules.json>` | Detect anomalous process-form records |
 | `openyida task-center <type> [options]` | Query todo, created, processed, CC, or proxy-submitted tasks |
 | `openyida agent-center <sub-command>` | Manage Yida process delegation and departure delegation |
