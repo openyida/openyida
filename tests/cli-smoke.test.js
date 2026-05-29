@@ -205,6 +205,7 @@ describe('CLI offline smoke', () => {
       output: 'text|json',
       requires_login: false,
     });
+    expect(parsed.commands.find(entry => entry.id === 'integration.create').usage).toContain('--spec file.json');
     expect(parsed.commands.find(entry => entry.id === 'externalize-form')).toMatchObject({
       usage: 'openyida externalize-form <appType> <formUuid> [--schema-file file]',
       output: 'json|markdown',
