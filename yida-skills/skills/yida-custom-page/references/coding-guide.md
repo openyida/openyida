@@ -36,7 +36,7 @@
 5. 同域多个 JS 资源可使用 `https://g.alicdn.com/??path1,path2` Combo 地址合并请求；Combo 只用于 JS，CSS 仍通过 `loadStyleSheet`。
 6. `.catch()` 中必须恢复页面状态，例如设置 `loading: false` 或展示可用空态，并用 `this.utils.toast({ type: 'error' })` 给用户明确反馈。
 
-`openyida check-page` 会对公共海外 CDN 给出 `external-script-public-cdn` warning，对 `loadScript(...css)` 给出 `loadscript-css-file` warning，对 `loadStyleSheet(...js)` 给出 `loadstylesheet-js-file` warning。确认企业网络可用时可用行级注释禁用对应 warning，但默认模板不要禁用。
+`openyida check-page` 会对公共海外 CDN 给出 `external-resource-public-cdn` warning，对 `loadScript(...css)` 给出 `loadscript-css-file` warning，对 `loadStyleSheet(...js)` 给出 `loadstylesheet-js-file` warning。确认企业网络可用时可用行级注释禁用对应 warning，但默认模板不要禁用。
 
 完整模板、常用库版本、Combo 组合加载和错误处理示例见 [yida-api.md](../../../references/yida-api.md) 的 `loadScript` 章节。
 
