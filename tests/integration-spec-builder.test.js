@@ -217,6 +217,112 @@ describe('integration spec builder', () => {
     expect(route.childNodes[0].props.conditions.rules).toHaveLength(2);
   });
 
+  test('does not use duplicate display names as node aliases', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          { type: 'sendMessage', name: 'Notify', content: 'first' },
+          { type: 'sendMessage', name: 'Notify', content: 'second' },
+        ],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+    });
+
+    const messages = built.processJson.nodes.filter((node) => node.type === 'sendMessage');
+    expect(messages).toHaveLength(2);
+    expect(messages[0].nodeId).not.toBe(messages[1].nodeId);
+    expect(messages[0].nextId).toEqual([messages[1].nodeId]);
+    expect(messages[0].nextId).not.toEqual([messages[0].nodeId]);
+    expect(built.nodeIdMap).not.toHaveProperty('Notify');
+  });
+
+  test('rejects duplicate explicit node aliases', () => {
+    expect(() => buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          { id: 'notify', type: 'sendMessage', content: 'first' },
+          { id: 'notify', type: 'sendMessage', content: 'second' },
+        ],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+    })).toThrow(/Duplicate integration spec node alias: notify/);
+  });
+
+  test('does not use duplicate route branch names as aliases', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          {
+            type: 'route',
+            branches: [
+              {
+                name: 'Matched',
+                conditions: [{ fieldId: 'textField_a', opCode: 'ExistValue' }],
+                nodes: [{ type: 'sendMessage', content: 'first' }],
+              },
+              {
+                name: 'Matched',
+                conditions: [{ fieldId: 'textField_b', opCode: 'ExistValue' }],
+                nodes: [{ type: 'sendMessage', content: 'second' }],
+              },
+            ],
+          },
+        ],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+    });
+
+    const route = built.processJson.nodes.find((node) => node.type === 'route');
+    expect(route.nextId).toHaveLength(3);
+    expect(new Set(route.nextId).size).toBe(3);
+    expect(route.nextId).not.toContain(undefined);
+    expect(built.nodeIdMap).not.toHaveProperty('Matched');
+  });
+
+  test('resolves node references inside dataRetrieve conditions', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          { id: 'self', type: 'getSelf' },
+          {
+            id: 'lookup',
+            type: 'dataRetrieve',
+            formUuid: 'FORM-B',
+            conditions: [
+              {
+                fieldId: 'textField_b',
+                value: '${self}.textField_a',
+              },
+            ],
+          },
+        ],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+    });
+
+    const lookup = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.lookup);
+    expect(lookup.props.condition.rules[0]).toMatchObject({
+      id: 'textField_b',
+      value: `\${${built.nodeIdMap.self}}.textField_a`,
+    });
+  });
+
   test('resolveNodeRefs replaces spec aliases only inside ${alias}', () => {
     const context = {
       aliasToNodeId: new Map([['self', 'node-self']]),
