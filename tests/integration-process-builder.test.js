@@ -11,6 +11,7 @@ const {
   mapEventTypes,
   buildDataRetrieveCondition,
   buildDataCreateAssignments,
+  buildInitiateApprovalAssignments,
   buildProcessJson,
 } = require('../lib/integration/integration-process-builder');
 const { buildViewJson } = require('../lib/integration/integration-view-builder');
@@ -79,6 +80,24 @@ describe('integration process builder', () => {
       { column: 'numberField_count', valueType: 'literal', value: 12, assignments: [] },
       { column: 'textField_name', valueType: 'processVar', value: 'form_inst_creator', assignments: [] },
     ]);
+  });
+
+  test('buildInitiateApprovalAssignments matches designer payload shape', () => {
+    const assignments = [
+      { column: 'textField_process', valueType: 'literal', value: 'hello' },
+      { column: 'numberField_count', valueType: 'literal', value: '7' },
+    ];
+
+    expect(buildInitiateApprovalAssignments(assignments, { includeRequired: false })).toEqual([
+      { column: 'textField_process', valueType: 'literal', value: 'hello' },
+      { column: 'numberField_count', valueType: 'literal', value: 7 },
+    ]);
+    expect(buildInitiateApprovalAssignments(assignments, { includeRequired: true })[0]).toMatchObject({
+      column: 'textField_process',
+      valueType: 'literal',
+      value: 'hello',
+      required: false,
+    });
   });
 
   test('buildProcessJson links trigger, data, add-data, message, and finish nodes in order', () => {
@@ -218,5 +237,92 @@ describe('integration process builder', () => {
     expect(processJson.nodes[1].nextId).toEqual(['connector']);
     expect(processJson.nodes[2].nextId).toEqual(['message']);
     expect(processJson.nodes[3].nextId).toEqual(['end']);
+  });
+
+  test('buildProcessJson inserts initiateApproval node with captured designer rules', () => {
+    const processJson = buildProcessJson({
+      processCode: 'LPROC-PARENT',
+      formUuid: 'FORM-A',
+      appType: 'APP-A',
+      formEventTypes: ['insert'],
+      toUsers: [],
+      nodeIds: ['trigger', 'approval', 'end'],
+      hasMessageNode: false,
+      initiateApprovalFormUuid: 'FORM-PROCESS-B',
+      initiateApprovalFormName: 'Process B',
+      initiateApprovalInitiator: {
+        type: 'select_user',
+        value: '{"id":"user-1","label":"Alice","type":"employee"}',
+      },
+      initiateApprovalAssignments: [
+        { column: 'textField_b', valueType: 'literal', value: 'created-by-openyida' },
+      ],
+    });
+
+    expect(processJson.nodes.map((node) => node.type)).toEqual(['trigger', 'initiateApproval', 'finish']);
+    expect(processJson.nodes[0].nextId).toEqual(['approval']);
+    expect(processJson.nodes[1]).toMatchObject({
+      type: 'initiateApproval',
+      nodeId: 'approval',
+      nextId: ['end'],
+      props: {
+        type: 'single',
+        formUuid: 'FORM-PROCESS-B',
+        processCode: 'LPROC-PARENT',
+        appType: 'APP-A',
+        initiator: {
+          type: 'select_user',
+          value: '{"id":"user-1","label":"Alice","type":"employee"}',
+        },
+        assignments: [
+          { column: 'textField_b', valueType: 'literal', value: 'created-by-openyida' },
+        ],
+      },
+    });
+    expect(processJson.nodes[1].props.description).toContain('Process B');
+  });
+
+  test('buildViewJson renders InitiateApprovalNode with required flags for the designer', () => {
+    const viewJson = buildViewJson({
+      processCode: 'LPROC-PARENT',
+      formUuid: 'FORM-A',
+      appType: 'APP-A',
+      formEventTypes: ['insert'],
+      toUsers: [],
+      nodeIds: ['canvas', 'trigger', 'approval', 'end'],
+      hasMessageNode: false,
+      initiateApprovalFormUuid: 'FORM-PROCESS-B',
+      initiateApprovalFormName: 'Process B',
+      initiateApprovalInitiator: {
+        type: 'select_user',
+        value: '{"id":"user-1","label":"Alice","type":"employee"}',
+      },
+      initiateApprovalAssignments: [
+        { column: 'textField_b', valueType: 'literal', value: 'created-by-openyida' },
+      ],
+    });
+
+    expect(viewJson.schema.children.map((node) => node.componentName)).toEqual([
+      'StartNode',
+      'InitiateApprovalNode',
+      'EndNode',
+    ]);
+    const approvalNode = viewJson.schema.children[1];
+    expect(approvalNode.props.nodeName).toBe('InitiateApprovalNode');
+    expect(approvalNode.props.signAction).toBe('one_by_one');
+    expect(approvalNode.props.initiateApprovalRules).toMatchObject({
+      type: 'single',
+      formUuid: 'FORM-PROCESS-B',
+      processCode: 'LPROC-PARENT',
+      appType: 'APP-A',
+      assignments: [
+        {
+          column: 'textField_b',
+          valueType: 'literal',
+          value: 'created-by-openyida',
+          required: false,
+        },
+      ],
+    });
   });
 });

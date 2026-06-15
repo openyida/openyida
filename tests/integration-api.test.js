@@ -7,11 +7,28 @@ jest.mock('../lib/core/utils', () => ({
 }));
 
 const { httpGet } = require('../lib/core/utils');
-const { listFormLogicflows, listLogicflowLogs } = require('../lib/integration/integration-api');
+const { createYidaClient } = require('../lib/core/yida-client');
+const { getFormSchema, listFormLogicflows, listLogicflowLogs } = require('../lib/integration/integration-api');
+
+jest.mock('../lib/core/yida-client', () => ({
+  createYidaClient: jest.fn(),
+}));
 
 describe('integration api', () => {
   beforeEach(() => {
     httpGet.mockReset();
+    createYidaClient.mockReset();
+    createYidaClient.mockReturnValue({
+      get: jest.fn(async (path, query, options) => {
+        const auth = {
+          baseUrl: 'https://example.com',
+          csrfToken: 'csrf-token',
+          cookies: [],
+        };
+        const resolvedQuery = typeof query === 'function' ? query(auth) : query;
+        return httpGet(auth.baseUrl, path, resolvedQuery, auth.cookies, options);
+      }),
+    });
   });
 
   test('listLogicflowLogs sends the frontend status filter for exception logs', async () => {
@@ -76,5 +93,60 @@ describe('integration api', () => {
       formUuid: 'FORM_TEST',
     });
     expect(options).toEqual({ silentStatus: true });
+  });
+
+  test('getFormSchema extracts nested field components from V5 containers only', async () => {
+    const mockGet = jest.fn().mockResolvedValue({
+      success: true,
+      content: JSON.stringify({
+        pages: [
+          {
+            componentsTree: [
+              {
+                componentName: 'Page',
+                children: [
+                  {
+                    componentName: 'RootContent',
+                    children: [
+                      {
+                        componentName: 'FormContainer',
+                        props: {
+                          fieldId: 'formContainer_wrapper',
+                        },
+                        children: [
+                          {
+                            componentName: 'TextField',
+                            props: {
+                              fieldId: 'textField_name',
+                              label: { zh_CN: '名称' },
+                            },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }),
+    });
+    createYidaClient.mockReturnValue({ get: mockGet });
+
+    const fields = await getFormSchema({
+      baseUrl: 'https://example.com',
+      csrfToken: 'csrf-token',
+      cookies: [],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_TARGET',
+    });
+
+    expect(fields).toHaveLength(1);
+    expect(fields[0]).toMatchObject({
+      componentName: 'TextField',
+      props: { fieldId: 'textField_name' },
+    });
   });
 });

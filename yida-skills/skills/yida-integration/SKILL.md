@@ -99,8 +99,11 @@ openyida integration check <appType...> [--json] [--output result.xlsx] [--no-pr
 | `--get-self-query-field <field>` | `pid` | 覆盖左侧查询系统字段；仅在确认平台查询字段名不同后使用 |
 | `--data-form-uuid <formUuid>` | 不启用 | 获取单条数据节点的目标表单 UUID（B 表单），传入后在触发节点和通知节点之间插入 GetSingleDataNode |
 | `--data-condition <bFieldId:bFieldName:aFieldId[:componentType[:opCode[:valueType]]]>` | 无 | 获取单条数据的过滤条件，可多次传入；格式：`B表单字段ID:B表单字段名:A表单字段ID[:组件类型[:操作符[:值类型]]]`，组件类型默认 `TextField`，操作符默认 `Contain` |
-| `--add-data-form-uuid <formUuid>` | 不启用 | 新增数据节点的目标表单 UUID，传入后在通知节点之后插入 AddDataNode |
+| `--add-data-form-uuid <formUuid>` | 不启用 | 新增数据节点的目标表单 UUID，传入后在通知节点之后插入 AddDataNode；目标必须是普通表单（如 `formType=receipt`），不能是流程表单（`formType=process`） |
 | `--add-data-assignment <targetFieldId:valueType:value>` | 无 | 新增数据的字段赋值，可多次传入；格式：`目标字段ID:valueType:value`，valueType 可选 `processVar`（引用触发表单字段）/ `literal`（固定值）/ `column`（公式） |
+| `--initiate-approval-form-uuid <formUuid>` | 不启用 | 发起审批节点的目标流程表单 UUID；当 B 是流程表单（`formType=process`）时必须使用它，不要用 `--add-data-form-uuid` |
+| `--initiate-approval-initiator-user <userId[:name]>` | 无 | 发起审批的发起人，格式如 `01376266634908:张三`；使用发起审批节点时必填 |
+| `--initiate-approval-assignment <targetFieldId:valueType:value>` | 无 | 发起审批时写入目标流程表单字段的赋值规则，可多次传入；格式同 `--add-data-assignment` |
 | `--publish` | 不发布 | 加此标志则保存后立即发布（开启状态），否则仅保存为草稿 |
 
 ### 示例
@@ -152,6 +155,17 @@ openyida integration create APP_XXX FORM-A-XXX "表单A新增后同步到表单B
   --add-data-assignment "textField_b1:processVar:textField_a1" \
   --add-data-assignment "numberField_b2:literal:0" \
   --add-data-assignment "textareaField_b3:column:CONCATENATE(#{textField_a1},#{textField_a2})" \
+  --publish
+
+# A 流程审批完成后，发起 B 流程审批（B 是流程表单时使用）
+openyida integration create APP_XXX FORM-A-XXX "A审批完成后发起B流程" \
+  --events processFinish \
+  --approval-actions agree \
+  --get-self \
+  --initiate-approval-form-uuid FORM-PROCESS-B-XXX \
+  --initiate-approval-initiator-user "01376266634908:张三" \
+  --initiate-approval-assignment "textField_b1:processVar:textField_a1" \
+  --initiate-approval-assignment "textareaField_b2:literal:自动发起" \
   --publish
 ```
 
