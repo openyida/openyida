@@ -174,6 +174,7 @@ openyida copy
 | `yida-get-schema` | `skills/yida-get-schema/SKILL.md` | 获取单个/全部表单 Schema，确认字段 ID | `openyida get-schema <appType> <formUuid>` |
 | `yida-custom-page` | `skills/yida-custom-page/SKILL.md` | 编写自定义页面 JSX 代码规范 | 详见 SKILL.md |
 | `yida-publish-page` | `skills/yida-publish-page/SKILL.md` | 编译并发布自定义页面 | `openyida publish <源文件路径> <appType> <formUuid> [--health-check]` |
+| `yida-openyida-publish-guard` | `skills/yida-openyida-publish-guard/SKILL.md` | 发布既有自定义页面前拉取线上 schema 并对比现状，避免本地旧代码覆盖设计器即时修改 | `openyida get-schema <appType> <formUuid> --json` |
 | `yida-page-config` | `skills/yida-page-config/SKILL.md` | 页面公开访问/组织内分享配置 | `openyida verify-short-url <appType> <formUuid> <url>` |
 | `yida-basic-info` | `skills/yida-basic-info/SKILL.md` | 组织基本信息、资源容量、额度和域名设置查询 | `openyida basic-info overview` |
 | `yida-nav-group` | `skills/yida-nav-group/SKILL.md` | 应用左侧导航分组管理（查询/创建/重命名/删除/移动/显隐） | `openyida nav-group list <appType>` |

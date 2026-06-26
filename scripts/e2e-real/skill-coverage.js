@@ -43,6 +43,7 @@ const SKILL_COVERAGE = {
   'yida-login': { level: 'real-e2e', stages: ['auth'], commands: ['login --check-only --json'] },
   'yida-logout': { level: 'offline-unit', tests: ['login/auth unit coverage'], reason: 'real logout would destroy the shared E2E session' },
   'yida-nav-group': { level: 'offline-unit', tests: ['tests/nav-group.test.js'], reason: 'navigation grouping mutates app sidebar order; unit coverage validates payloads and tree operations until a dedicated cleanup-safe nav stage exists' },
+  'yida-openyida-publish-guard': { level: 'offline-unit', tests: ['skill metadata and packaging validation'], reason: 'publish guard is an agent workflow safety rule for comparing live schema before publish; real page publish behavior remains covered by yida-publish-page E2E stages' },
   'yida-page-config': { level: 'real-e2e', stages: ['share'], commands: ['get-page-config', 'verify-short-url', 'save-share-config'] },
   'yida-ppt': { level: 'deprecated', reason: 'skill is deprecated in favor of yida-ppt-slider' },
   'yida-ppt-slider': { level: 'offline-unit', reason: 'presentation-style custom page skill should be validated by page generation/check-page fixtures' },
