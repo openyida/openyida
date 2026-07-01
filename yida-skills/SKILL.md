@@ -172,6 +172,7 @@ openyida copy
 | `yida-create-process` | `skills/yida-create-process/SKILL.md` | 创建流程表单并配置流程 | `openyida create-process <appType> "<表单名>" <字段JSON> <流程JSON>` |
 | `yida-aggregate-table` | — | 聚合表（virtualView）列表、创建空白页、读取配置、预览、保存草稿和发布 | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> ...` |
 | `yida-get-schema` | `skills/yida-get-schema/SKILL.md` | 获取单个/全部表单 Schema，确认字段 ID | `openyida get-schema <appType> <formUuid>` |
+| `yida-sync-online` | `skills/yida-sync-online/SKILL.md` | 线上设计器改动后拉取 Schema/配置，对比本地缓存、PRD 和源码字段映射并输出风险影响 | 详见 SKILL.md |
 | `yida-custom-page` | `skills/yida-custom-page/SKILL.md` | 编写自定义页面 JSX 代码规范 | 详见 SKILL.md |
 | `yida-publish-page` | `skills/yida-publish-page/SKILL.md` | 编译并发布自定义页面 | `openyida publish <源文件路径> <appType> <formUuid> [--health-check]` |
 | `yida-page-config` | `skills/yida-page-config/SKILL.md` | 页面公开访问/组织内分享配置 | `openyida verify-short-url <appType> <formUuid> <url>` |
