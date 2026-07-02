@@ -101,6 +101,9 @@ openyida integration check <appType...> [--json] [--output result.xlsx] [--no-pr
 | `--data-condition <bFieldId:bFieldName:aFieldId[:componentType[:opCode[:valueType]]]>` | 无 | 获取单条数据的过滤条件，可多次传入；格式：`B表单字段ID:B表单字段名:A表单字段ID[:组件类型[:操作符[:值类型]]]`，组件类型默认 `TextField`，操作符默认 `Contain` |
 | `--add-data-form-uuid <formUuid>` | 不启用 | 新增数据节点的目标表单 UUID，传入后在通知节点之后插入 AddDataNode |
 | `--add-data-assignment <targetFieldId:valueType:value>` | 无 | 新增数据的字段赋值，可多次传入；格式：`目标字段ID:valueType:value`，valueType 可选 `processVar`（引用触发表单字段）/ `literal`（固定值）/ `column`（公式） |
+| `--connector-mode <mode>` | 自动推断 | 连接器类型；HTTP 自定义连接器使用 `5`，`connectorId` 以 `Http_` 开头时会自动按 `5` 处理 |
+| `--connection-id <id>` | 空 | HTTP 连接器鉴权连接 ID；HTTP 连接器建议传入，否则设计器右侧配置面板可能无法加载连接实例详情 |
+| `--connector-display-name <name>` | `--connector-name` | 连接器展示名称，用于设计器画布和右侧配置面板 |
 | `--publish` | 不发布 | 加此标志则保存后立即发布（开启状态），否则仅保存为草稿 |
 
 ### 示例
@@ -153,6 +156,21 @@ openyida integration create APP_XXX FORM-A-XXX "表单A新增后同步到表单B
   --add-data-assignment "numberField_b2:literal:0" \
   --add-data-assignment "textareaField_b3:column:CONCATENATE(#{textField_a1},#{textField_a2})" \
   --publish
+```
+
+### HTTP 连接器节点
+
+自定义 HTTP 连接器（`connectorId` 形如 `Http_xxx`）需要按 HTTP 连接器类型保存，否则设计器画布可能能显示节点，但右侧配置面板加载详情失败。创建这类节点时建议显式传入：
+
+```bash
+openyida integration create APP_XXX FORM-XXX "调用 HTTP 连接器" \
+  --connector-id Http_xxx \
+  --action-id publish_month_qs \
+  --connector-mode 5 \
+  --connection-id 28336 \
+  --connector-name Http_xxx \
+  --connector-display-name "加福加德BI后端" \
+  --connector-assignment "month:processVar:textField_month"
 ```
 
 ## 字段变量引用格式
