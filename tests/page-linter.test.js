@@ -124,6 +124,43 @@ export function didMount() {
     expect(errorRules).toContain('echarts-legacy-map-china');
   });
 
+  test('warns about risky external resource loading', () => {
+    const source = `
+export function renderJsx() {
+  return <div />;
+}
+
+var JSDELIVR_ECHARTS_CDN = 'https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js';
+var JSDELIVR_NORMALIZE_CDN = 'https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css';
+var NORMALIZE_CSS_URL = 'https://g.alicdn.com/code/lib/normalize/8.0.1/normalize.css';
+var ECHARTS_JS_URL = 'https://g.alicdn.com/code/lib/echarts/5.5.0/echarts.min.js';
+var COMBO_WITH_CSS_URL = 'https://g.alicdn.com/code/lib/??normalize/8.0.1/normalize.css,echarts/5.5.0/echarts.min.js';
+var COMBO_WITH_JS_URL = 'https://g.alicdn.com/code/lib/??normalize/8.0.1/normalize.css,echarts/5.5.0/echarts.min.js';
+
+export function didMount() {
+  var self = this;
+  self.utils.loadScript(JSDELIVR_ECHARTS_CDN);
+  self.utils.loadStyleSheet(JSDELIVR_NORMALIZE_CDN);
+  self.utils.loadScript(NORMALIZE_CSS_URL);
+  self.utils.loadStyleSheet(ECHARTS_JS_URL);
+  self.utils.loadScript(COMBO_WITH_CSS_URL);
+  self.utils.loadStyleSheet(COMBO_WITH_JS_URL);
+  self.utils.loadScript(ECHARTS_JS_URL);
+  self.utils.loadStyleSheet(NORMALIZE_CSS_URL);
+}
+`;
+
+    const result = lintYidaSource(source, '/tmp/external-resources.jsx');
+    const warningRules = result.warnings.map(issue => issue.rule);
+
+    expect(warningRules).toContain('external-resource-public-cdn');
+    expect(warningRules).toContain('loadscript-css-file');
+    expect(warningRules).toContain('loadstylesheet-js-file');
+    expect(warningRules.filter(rule => rule === 'external-resource-public-cdn')).toHaveLength(2);
+    expect(warningRules.filter(rule => rule === 'loadscript-css-file')).toHaveLength(2);
+    expect(warningRules.filter(rule => rule === 'loadstylesheet-js-file')).toHaveLength(2);
+  });
+
   test('blocks ES6 computed property names that silently break Yida runtime', () => {
     const source = `
 export function renderJsx() {

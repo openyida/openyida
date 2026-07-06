@@ -16,7 +16,7 @@ description: 宜搭自定义页面 JSX 开发规范。React 16 宜搭原生 expo
 3. **事件绑定箭头函数包裹**：`renderJsx` 顶部先写 `var self = this`，事件使用 `onClick={(e) => { self.handleClick(e) }}`，严禁 `onClick={this.handleClick}` 或 `.bind(this)`
 4. **.map()/.filter() 回调用箭头函数**：`.map((item) => ...)`，禁止 `.map(function(item) {...})`，否则回调内 `this` 丢失；`.oyd.jsx` 构建会尝试自动修复，但生成时仍应直接写正确形式
 5. **输入框非受控模式**：`<input>` 用 `defaultValue` + `onChange` 写入 `_customState`，禁止 `value` 受控模式
-6. **禁止 import/require**：第三方库通过 `this.utils.loadScript` 加载 CDN 脚本
+6. **禁止 import/require**：第三方库通过 `this.utils.loadScript` 加载已验证的 CDN 脚本；封装 `ensureXxx()` 复用加载 Promise，按依赖顺序加载，并在 `.catch()` 中恢复页面状态
 7. **字段 ID 必须通过 get-schema 获取**：执行 `openyida get-schema <appType> <formUuid>` 获取真实 fieldId，文件顶部定义 `FIELDS` 常量映射字段别名，禁止猜测或手写
 8. **所有 API 调用必须 .catch()**：异常通过 `this.utils.toast({ title: message, type: 'error' })` 提示用户
 9. **renderJsx 每个 return 分支必须渲染 timestamp**：`<div style={{ display: 'none' }}>{this.state && this.state.timestamp}</div>`；`.oyd.jsx` 构建会自动补齐，但生成原生写法时仍必须显式写出
@@ -131,6 +131,7 @@ openyida publish project/pages/src/employee-query.oyd.jsx APP_XXX FORM-QUERY001
 - 自定义页面默认使用 Tailwind utility className 组织视觉层；Tailwind 运行时脚本必须写成可替换常量，默认使用已验证的 `https://g.alicdn.com/code/lib/tailwindcss-browser/0.0.0-insiders.fed6c6a/index.global.min.js`，并通过 `style[type="text/tailwindcss"]` 导入 `theme + preflight + utilities`。私有化环境可替换为企业自托管地址。不要默认写 `cdn.tailwindcss.com`、`jsdelivr`、`unpkg` 等海外 CDN。
 - 用户可见下拉框不要用浏览器原生 `<select>`。`check-page` 会提示 `native-select-ui` warning；除非是隐藏调试控件或用户明确要求原生控件，否则改为 [组件指南](references/component-jsx-guide.md) 的自定义下拉。
 - 动态字段写入不要用 ES6 计算属性名。`this.setCustomState({ [key]: value })`、`JSON.stringify({ [FIELDS.status]: '待审批' })` 都会被 `check-page` 以 `computed-property` error 拦截；生成时直接写 `var obj = {}; obj[key] = value;`。
+- 外部 JS/CSS 资源必须按类型加载。`check-page` 会对公共海外 CDN 给出 `external-resource-public-cdn` warning，对 `loadScript(...css)` 给出 `loadscript-css-file` warning，对 `loadStyleSheet(...js)` 给出 `loadstylesheet-js-file` warning。
 - ECharts 中国地图必须走 `fetch(DataV GeoJSON) -> echarts.registerMap('china', geoJson)`；不要加载旧版内置中国地图脚本。`check-page` 会拦截该类旧写法。
 - ECharts `label.formatter` 返回 rich text 模板在宜搭自定义页面环境不稳定；优先使用普通 formatter 字符串，或在数据处理阶段预先拼好标签文本。
 - `check-page` 支持行级禁用：`// openyida-lint-disable-line <rule>` 或 `// openyida-lint-disable-next-line <rule>`。只在确认该行不会触发宜搭运行时问题时使用。

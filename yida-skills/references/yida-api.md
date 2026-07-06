@@ -1044,6 +1044,8 @@ this.utils.loadScript('https://g.alicdn.com/code/lib/echarts/5.5.0/echarts.min.j
 this.utils.loadScript({ src: '...', type: 'css' })
 ```
 
+`openyida check-page` 会对 `loadScript(...css)` 给出 `loadscript-css-file` warning，对 `loadStyleSheet(...js)` 给出 `loadstylesheet-js-file` warning。JS 资源使用 `loadScript`，CSS 资源使用 `loadStyleSheet`。
+
 **2. `g.alicdn.com` CDN 版本必须验证**
 
 `g.alicdn.com` 是阿里 CDN 镜像，不是所有 npm 版本都有镜像。使用前**必须通过 `curl` 验证版本是否存在**：
@@ -1058,10 +1060,116 @@ curl -sI 'https://g.alicdn.com/code/lib/echarts/5.5.0/echarts.min.js' | head -1
 | 库 | 可用版本 | CDN URL |
 | --- | --- | --- |
 | ECharts | 5.5.0 | `https://g.alicdn.com/code/lib/echarts/5.5.0/echarts.min.js` |
+| ECharts macarons 主题 | 5.5.0 | `https://g.alicdn.com/code/lib/echarts/5.5.0/theme/macarons.js` |
+| moment.js | 2.29.4 | `https://g.alicdn.com/code/lib/moment.js/2.29.4/moment.min.js` |
 | QRCode.js | 1.0.0 | `https://g.alicdn.com/code/lib/qrcodejs/1.0.0/qrcode.min.js` |
 | QRCode | 1.5.1 | `https://g.alicdn.com/code/lib/qrcode/1.5.1/qrcode.min.js` |
 
 > ⚠️ **典型踩坑**：ECharts 5.5.1 在 `g.alicdn.com` 上不存在（404），必须使用 5.5.0。AI 生成代码时容易使用最新版本号，但 CDN 镜像可能未同步，务必先验证。
+
+**3. 推荐使用一次性加载守卫，避免重复插入 `<script>`**
+
+自定义页面可能因为 `forceUpdate`、Tab 切换或重新进入而重复执行 `didMount` 相关逻辑。加载第三方库时应复用全局 Promise，避免同一个脚本被多次插入：
+
+```javascript
+var ECHARTS_CDN = 'https://g.alicdn.com/code/lib/echarts/5.5.0/echarts.min.js';
+
+export function ensureECharts() {
+  var self = this;
+
+  if (window.echarts) {
+    return Promise.resolve(window.echarts);
+  }
+  if (window.__openyidaEChartsLoading) {
+    return window.__openyidaEChartsLoading;
+  }
+
+  window.__openyidaEChartsLoading = self.utils.loadScript(ECHARTS_CDN)
+    .then(function() {
+      return window.echarts;
+    })
+    .catch(function(error) {
+      window.__openyidaEChartsLoading = null;
+      self.utils.toast({ title: 'ECharts 加载失败，请稍后重试', type: 'error' });
+      throw error;
+    });
+
+  return window.__openyidaEChartsLoading;
+}
+
+export function didMount() {
+  this.ensureECharts()
+    .then(() => {
+      this.renderChart();
+    })
+    .catch(() => {
+      this.setCustomState({ chartLoadFailed: true, loading: false });
+    });
+}
+```
+
+**4. 多库有依赖顺序时，按顺序链式加载**
+
+主题、插件或语言包依赖主库时，必须先加载主库，再加载扩展文件：
+
+```javascript
+var ECHARTS_CDN = 'https://g.alicdn.com/code/lib/echarts/5.5.0/echarts.min.js';
+var MACARONS_THEME_CDN = 'https://g.alicdn.com/code/lib/echarts/5.5.0/theme/macarons.js';
+
+export function ensureMacaronsECharts() {
+  var self = this;
+
+  if (window.__openyidaMacaronsReady) {
+    return Promise.resolve(window.echarts);
+  }
+
+  return self.utils.loadScript(ECHARTS_CDN)
+    .then(function() {
+      return self.utils.loadScript(MACARONS_THEME_CDN);
+    })
+    .then(function() {
+      window.__openyidaMacaronsReady = true;
+      return window.echarts;
+    })
+    .catch(function(error) {
+      self.utils.toast({ title: '图表库加载失败，请刷新页面重试', type: 'error' });
+      throw error;
+    });
+}
+```
+
+**5. 多个 `g.alicdn.com` 资源可使用 Combo 合并请求**
+
+`g.alicdn.com` 支持 Combo 语法，用 `??` 开始资源列表，用英文逗号分隔多个路径。`??` 后面的资源路径不要以 `/` 开头：
+
+```javascript
+var CHART_COMBO_CDN = 'https://g.alicdn.com/??code/lib/echarts/5.5.0/echarts.min.js,code/lib/echarts/5.5.0/theme/macarons.js,code/lib/moment.js/2.29.4/moment.min.js';
+
+export function ensureChartLibraries() {
+  var self = this;
+
+  if (window.echarts && window.moment && window.__openyidaChartComboReady) {
+    return Promise.resolve();
+  }
+  if (window.__openyidaChartComboLoading) {
+    return window.__openyidaChartComboLoading;
+  }
+
+  window.__openyidaChartComboLoading = self.utils.loadScript(CHART_COMBO_CDN)
+    .then(function() {
+      window.__openyidaChartComboReady = true;
+    })
+    .catch(function(error) {
+      window.__openyidaChartComboLoading = null;
+      self.utils.toast({ title: '外部图表依赖加载失败，请检查网络或 CDN 地址', type: 'error' });
+      throw error;
+    });
+
+  return window.__openyidaChartComboLoading;
+}
+```
+
+> Combo 适合加载同一域名下的一组 JS 文件。若某个库需要对应 CSS，请继续使用 `loadStyleSheet` 单独加载 CSS；不要把 CSS 文件传给 `loadScript`。
 
 ---
 
