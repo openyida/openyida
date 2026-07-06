@@ -390,7 +390,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida integration create <appType> ...` | Create integration automation flow |
+| `openyida integration create <appType> ... [--spec file.json]` | Create integration automation flow |
 | `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
 | `openyida integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
 | `openyida integration disable <appType> <formUuid> <processCode>` | Disable integration automation flow |

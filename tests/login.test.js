@@ -551,6 +551,7 @@ describe('interactiveLogin 浏览器优先级', () => {
     delete process.env.OPENYIDA_ASSUME_DESKTOP;
     delete process.env.OPENYIDA_FORCE_TERMINAL_QR;
     delete process.env.OPENYIDA_AGENT_PLAYWRIGHT_FALLBACK;
+    delete process.env.YIDA_AUTH_ENABLED;
   }
 
   function loadLoginWithMocks(cdpImpl, execSyncImpl) {
@@ -703,6 +704,35 @@ describe('interactiveLogin 浏览器优先级', () => {
       base_url: 'https://fresh.aliwork.com',
     });
   });
+
+  test('YIDA_AUTH_ENABLED=true 时 force=true 也只读取注入缓存', () => {
+    fs.mkdirSync(path.join(tmpDir, '.cache'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.cache', 'cookies-public.json'), JSON.stringify({
+      cookies: [
+        { name: 'sid', value: 'cookie-only' },
+      ],
+      csrf_token: 'injected-token-1234567890',
+      corp_id: 'corp-injected',
+      user_id: 'user-injected',
+      base_url: 'https://www.aliwork.com',
+    }), 'utf8');
+    process.env.YIDA_AUTH_ENABLED = 'true';
+
+    const { loginModule, cdpModule, childProcess } = loadLoginWithMocks(() => {
+      throw new Error('interactive login should not run');
+    });
+
+    const result = loginModule.ensureLogin({ force: true });
+
+    expect(cdpModule.cdpBrowserLogin).not.toHaveBeenCalled();
+    expect(childProcess.execSync).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      csrf_token: 'injected-token-1234567890',
+      corp_id: 'corp-injected',
+      user_id: 'user-injected',
+      base_url: 'https://www.aliwork.com',
+    });
+  });
 });
 
 //─ checkLoginOnly 测试────────────────────────────
@@ -803,6 +833,7 @@ describe('authLogin 登录优先级', () => {
       resolveBaseUrl: jest.fn(),
       detectActiveTool: jest.fn(() => ({ tool: 'opencode' })),
       hasDesktopEnvironment: jest.fn(() => true),
+      isInjectedAuthMode: jest.fn(() => false),
     }));
     jest.doMock('../lib/core/chalk', () => ({
       info: jest.fn(),

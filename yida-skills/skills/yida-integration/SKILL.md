@@ -94,6 +94,7 @@ openyida integration check <appType...> [--json] [--output result.xlsx] [--no-pr
 | `--approval-node-ids <nodeId,...>` | 空 | 当 `--events activityTask` 时必填；审批节点 ID，多个用逗号分隔 |
 | `--trigger-condition <fieldId:fieldName:opCode:value[:componentType[:valueType]]>` | 空 | 触发器过滤条件，可多次传入；示例：`radioField_xxx:采购类型:Equal:材料采购:RadioField:literal` |
 | `--trigger-recursively` | 关闭 | 允许自动触发，对应设计器里的“允许自动触发” |
+| `--spec <file.json>` | 不启用 | 使用结构化编排文件创建复杂自动化，支持 `getSelf`、`dataRetrieve`、`dataCreate`、`dataUpdate`、`route`、`sendMessage`、`connector` |
 | `--get-self` | 关闭 | 自动插入“获取自身”节点：来源表单为当前触发表，过滤条件为 `pid 等于 字段 __masterdata_form_inst_id` |
 | `--get-self-field <field>` | `__masterdata_form_inst_id` | 覆盖右侧触发事件系统字段；仅在确认环境变量名不同后使用 |
 | `--get-self-query-field <field>` | `pid` | 覆盖左侧查询系统字段；仅在确认平台查询字段名不同后使用 |
@@ -158,19 +159,68 @@ openyida integration create APP_XXX FORM-A-XXX "表单A新增后同步到表单B
   --publish
 ```
 
-### HTTP 连接器节点
+### 结构化编排 `--spec`
 
-自定义 HTTP 连接器（`connectorId` 形如 `Http_xxx`）需要按 HTTP 连接器类型保存，否则设计器画布可能能显示节点，但右侧配置面板加载详情失败。创建这类节点时建议显式传入：
+复杂自动化优先使用 `--spec`，不要手写 `saveProcess` payload。spec 的节点可以用 `id` 作为别名，后续用 `${别名}.fieldId` 引用上游节点输出，OpenYida 会在保存前替换成真实 `node_xxx`。
+
+```json
+{
+  "events": ["insert"],
+  "nodes": [
+    { "id": "self", "type": "getSelf" },
+    {
+      "id": "branch",
+      "type": "route",
+      "branches": [
+        {
+          "id": "hasSelf",
+          "name": "已获取自身",
+          "conditions": [
+            {
+              "fieldId": "${self}.pid",
+              "fieldName": "表单实例ID",
+              "opCode": "ExistValue",
+              "componentType": "TextField"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "updateSelf",
+              "type": "dataUpdate",
+              "source": "self",
+              "assignments": [
+                {
+                  "column": "textareaField_result",
+                  "valueType": "literal",
+                  "value": "已处理"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fallback",
+          "name": "其他情况",
+          "default": true,
+          "nodes": [
+            {
+              "id": "notice",
+              "type": "sendMessage",
+              "title": "未获取到记录",
+              "content": "获取自身节点无匹配结果，请检查过滤条件。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
 
 ```bash
-openyida integration create APP_XXX FORM-XXX "调用 HTTP 连接器" \
-  --connector-id Http_xxx \
-  --action-id publish_month_qs \
-  --connector-mode 5 \
-  --connection-id 28336 \
-  --connector-name Http_xxx \
-  --connector-display-name "加福加德BI后端" \
-  --connector-assignment "month:processVar:textField_month"
+openyida integration create APP_XXX FORM-XXX "获取自身后分支更新" \
+  --spec project/integration/get-self-update.json \
+  --publish
 ```
 
 ## 字段变量引用格式

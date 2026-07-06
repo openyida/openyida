@@ -44,6 +44,7 @@ function cliEnv() {
     MULERUN_CHAT_ID: '',
     MULE_DATA_DIR: '',
     OPENYIDA_AGENT_MODE: '',
+    YIDA_AUTH_ENABLED: '',
     OPENYIDA_ASSUME_DESKTOP: '',
     OPENYIDA_FORCE_TERMINAL_QR: '',
     __CFBundleIdentifier: '',
@@ -207,6 +208,7 @@ describe('CLI offline smoke', () => {
       output: 'text|json',
       requires_login: false,
     });
+    expect(parsed.commands.find(entry => entry.id === 'integration.create').usage).toContain('--spec file.json');
     expect(parsed.commands.find(entry => entry.id === 'externalize-form')).toMatchObject({
       usage: 'openyida externalize-form <appType> <formUuid> [--schema-file file]',
       output: 'json|markdown',
@@ -497,6 +499,60 @@ describe('CLI offline smoke', () => {
         base_url: 'https://www.aliwork.com',
         corp_id: 'corp',
         user_id: 'cachedUser',
+        cookies_count: 2,
+      });
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('YIDA_AUTH_ENABLED=true login only checks injected cookie cache', () => {
+    const workspace = createCodexWorkspace();
+    try {
+      const output = runOkWithEnv(['login'], {
+        CODEX_SHELL: '1',
+        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_ENV: 'public',
+      }, workspace);
+      const parsed = JSON.parse(output.trim());
+      expect(parsed).toMatchObject({
+        status: 'not_logged_in',
+        can_auto_use: false,
+      });
+      expect(parsed.message).toContain('injected Cookie cache');
+      expect(parsed).toHaveProperty('diagnostics.authMode', 'injected');
+      expect(parsed).not.toHaveProperty('handoff_type');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('YIDA_AUTH_ENABLED=true login accepts top-level injected auth fields', () => {
+    const workspace = createCodexWorkspace();
+    const cacheDir = path.join(workspace, 'project', '.cache');
+    fs.mkdirSync(cacheDir, { recursive: true });
+    fs.writeFileSync(path.join(cacheDir, 'cookies-public.json'), JSON.stringify({
+      cookies: [
+        { name: 'sid', value: 'cookie-only' },
+      ],
+      csrf_token: 'injected-token-1234567890',
+      corp_id: 'corp-injected',
+      user_id: 'user-injected',
+      base_url: 'https://www.aliwork.com',
+    }), 'utf8');
+
+    try {
+      const output = runOkWithEnv(['login'], {
+        CODEX_SHELL: '1',
+        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_ENV: 'public',
+      }, workspace);
+      const parsed = JSON.parse(output.trim());
+      expect(parsed).toMatchObject({
+        ok: true,
+        base_url: 'https://www.aliwork.com',
+        corp_id: 'corp-injected',
+        user_id: 'user-injected',
         cookies_count: 2,
       });
     } finally {

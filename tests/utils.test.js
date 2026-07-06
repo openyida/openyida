@@ -51,6 +51,18 @@ describe('extractInfoFromCookies', () => {
     expect(result.corpId).toBe('corpId');
   });
 
+  test('兼容云版注入的 csrf/corp/user cookie 名称', () => {
+    const cookies = [
+      { name: 'china_csrf_token', value: 'china-token' },
+      { name: 'corpId', value: 'corp-cloud' },
+      { name: 'staffId', value: 'user-cloud' },
+    ];
+    const result = extractInfoFromCookies(cookies);
+    expect(result.csrfToken).toBe('china-token');
+    expect(result.corpId).toBe('corp-cloud');
+    expect(result.userId).toBe('user-cloud');
+  });
+
   test('空数组时全部返回 null', () => {
     const result = extractInfoFromCookies([]);
     expect(result.csrfToken).toBeNull();
@@ -350,6 +362,43 @@ describe('requestWithAutoLogin', () => {
       __needLogin: true,
     });
   });
+
+  test('YIDA_AUTH_ENABLED=true 时登录失效不触发交互式重新登录', async () => {
+    const originalYidaAuthEnabled = process.env.YIDA_AUTH_ENABLED;
+    process.env.YIDA_AUTH_ENABLED = 'true';
+
+    try {
+      const ensureLogin = jest.fn(() => {
+        throw new Error('should not call ensureLogin in injected auth mode');
+      });
+      const utils = loadUtilsWithLoginMock({
+        ensureLogin,
+        refreshCsrfFromCache: jest.fn(),
+      });
+      const requestFn = jest.fn().mockResolvedValueOnce({ __needLogin: true });
+
+      const result = await utils.requestWithAutoLogin(requestFn, {
+        csrfToken: 'old-token',
+        cookies: [{ name: 'tianshu_csrf_token', value: 'old-token' }],
+        baseUrl: 'https://www.aliwork.com',
+      });
+
+      expect(ensureLogin).not.toHaveBeenCalled();
+      expect(requestFn).toHaveBeenCalledTimes(1);
+      expect(result).toMatchObject({
+        success: false,
+        __needLogin: true,
+        errorCode: 'INJECTED_AUTH_REQUIRED',
+      });
+      expect(result.errorMsg).toContain('not_logged_in');
+    } finally {
+      if (originalYidaAuthEnabled === undefined) {
+        delete process.env.YIDA_AUTH_ENABLED;
+      } else {
+        process.env.YIDA_AUTH_ENABLED = originalYidaAuthEnabled;
+      }
+    }
+  });
 });
 
 // ── loadCookieData ────────────────────────────────────────────────────
@@ -392,6 +441,23 @@ describe('loadCookieData', () => {
     const result = loadCookieData(tmpDir);
     expect(result.csrf_token).toBe('mytoken');
     expect(result.base_url).toBe('https://custom.aliwork.com');
+  });
+
+  test('读取云版注入格式时使用顶层 csrf/corp/user 字段', () => {
+    const data = {
+      cookies: [{ name: 'sid', value: 'cookie-only' }],
+      csrf_token: 'top-level-token',
+      corp_id: 'corp-top',
+      user_id: 'user-top',
+      base_url: 'https://www.aliwork.com',
+    };
+    fs.writeFileSync(cookieFile, JSON.stringify(data), 'utf-8');
+
+    const result = loadCookieData(tmpDir);
+    expect(result.csrf_token).toBe('top-level-token');
+    expect(result.corp_id).toBe('corp-top');
+    expect(result.user_id).toBe('user-top');
+    expect(result.cookies).toContainEqual({ name: 'tianshu_csrf_token', value: 'top-level-token' });
   });
 
   test('文件不存在时返回 null', () => {
