@@ -79,6 +79,35 @@ describe('analyzeFormula', () => {
     expect(codes).toContain('fullwidth_punctuation');
   });
 
+  test('flags subtable-prefixed field refs as blocking errors without a schema', () => {
+    const result = analyzeFormula(
+      'ROUND(#{tableField_la9kndlbf.numberField_la9ksqdmp} * #{tableField_la9kndlbf.numberField_la9ktacd8}, 2)'
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'field_ref_subtable_prefix',
+        level: 'error',
+        suggestion: 'numberField_la9ksqdmp',
+      }),
+      expect.objectContaining({
+        code: 'field_ref_subtable_prefix',
+        level: 'error',
+        suggestion: 'numberField_la9ktacd8',
+      }),
+    ]));
+  });
+
+  test('accepts the de-prefixed subtable field ref', () => {
+    const result = analyzeFormula(
+      'ROUND(#{numberField_la9ksqdmp} * #{numberField_la9ktacd8}, 2)'
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.diagnostics.some(item => item.code === 'field_ref_subtable_prefix')).toBe(false);
+  });
+
   test('detects unbalanced field refs and parentheses', () => {
     const result = analyzeFormula('IF(#{numberField_total, "x"');
     const codes = result.diagnostics.map(item => item.code);

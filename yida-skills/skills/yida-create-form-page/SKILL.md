@@ -129,6 +129,74 @@ openyida create-form patch <appType> <formUuid> <patchJsonOrFile>
 
 patch 模式是高级能力：执行前必须先 `openyida get-schema <appType> <formUuid> --json` 确认现有结构，补丁文件必须写在 `.cache/openyida/<项目名>/` 下。
 
+### 自定义校验函数（customValidate）
+
+通过 patch 模式的 `field-props` 给字段绑定自定义校验函数。支持两种写法：
+
+**写法一：直接在组件自定义函数中写完整逻辑（推荐）**
+
+不依赖 JS 面板，校验逻辑自包含在字段的 validation 中：
+
+```json
+[
+  {
+    "action": "field-props",
+    "fieldId": "numberField_xxx",
+    "props": {
+      "validation": [
+        {
+          "type": "customValidate",
+          "param": {
+            "source": "function validateRule(value) {\n  var values = (this.item && this.item.values) || {};\n  var stock = Number(values.numberField_yyy) || 0;\n  return Number(value) <= stock;\n}",
+            "type": "js",
+            "error": {}
+          },
+          "message": { "zh_CN": "领用数量不能超过当前库存", "en_US": "Quantity cannot exceed current stock", "type": "i18n" }
+        }
+      ]
+    }
+  }
+]
+```
+
+> `compiled` 字段可省略，系统会自动从 `source` 编译生成。
+
+**写法二：桥接调用 JS 面板函数**
+
+先通过 `actions-module` 将函数写入 JS 面板，再在字段自定义函数中通过 `this.xxx()` 调用：
+
+```json
+[
+  {
+    "action": "actions-module",
+    "source": "export function validateOutboundQty(value) {\n  var values = (this.item && this.item.values) || {};\n  var stock = Number(values.numberField_yyy) || 0;\n  return Number(value) <= stock;\n}"
+  },
+  {
+    "action": "field-props",
+    "fieldId": "numberField_xxx",
+    "props": {
+      "validation": [
+        {
+          "type": "customValidate",
+          "param": {
+            "source": "function validateRule(value) {\n  return this.validateOutboundQty(value);\n}",
+            "type": "js",
+            "error": {}
+          },
+          "message": { "zh_CN": "领用数量不能超过当前库存", "en_US": "Quantity cannot exceed current stock", "type": "i18n" }
+        }
+      ]
+    }
+  }
+]
+```
+
+**关键规则：**
+- `param` 必须是 `{ source, type: "js", error: {} }` 格式，**不能用** `{ actionType, actionName }` 或 `{ type: "JSExpression" }` 格式
+- `source` 中的函数名必须是 `validateRule`
+- 函数返回 `true` 表示校验通过，`false` 表示校验失败
+- 子表内字段通过 `this.item.values` 获取同行其他字段的值
+
 ## rule 模式（字段联动与自动赋值）
 
 常见字段联动不用直接写底层 Schema Patch，使用 rule 模式：

@@ -69,7 +69,7 @@ OpenYida detects the active agent environment, workspace path, login state, and 
 openyida login
 ```
 
-In Codex, QoderWork, Qoder, Wukong, Claude Code, OpenCode, Cursor, and other detected AI tools, OpenYida first tries local Chrome/Edge/Chromium CDP when no valid cached login exists. If local CDP is unavailable, it falls back to an AI-dialog QR handoff. The agent should render `qr_image_markdown` or paste `agent_response_markdown` directly in the conversation so the QR code is visible, then run `poll_command` after the user scans it with DingTalk. If image rendering is unavailable, fall back to `qr_url`. The explicit `openyida login --browser` command still prefers CDP first and uses Playwright as an optional browser fallback.
+In Codex, QoderWork, Qoder, Wukong, Claude Code, MuleRun, OpenCode, Cursor, and other detected AI tools, OpenYida first tries local Chrome/Edge/Chromium CDP when no valid cached login exists. If local CDP is unavailable, it falls back to an AI-dialog QR handoff. The agent should render `qr_image_markdown` or paste `agent_response_markdown` directly in the conversation so the QR code is visible, then run `poll_command` after the user scans it with DingTalk. If image rendering is unavailable, fall back to `qr_url`. The explicit `openyida login --browser` command still prefers CDP first and uses Playwright as an optional browser fallback.
 
 When the user names a target Yida entry URL, pass it to the login command so OpenYida can select the matching environment and cookie file. For example, Alibaba intranet Yida uses `cookies-alibaba.json`:
 
@@ -126,6 +126,7 @@ export PATH="$HOME/.real/.bin/node/bin:$PATH"
 |------|---------|
 | [Codex](https://openai.com/codex/) | Full support |
 | [Claude Code](https://claude.ai/code) | Full support |
+| [MuleRun](https://mulerun.com) | Full support |
 | [Aone Copilot](https://copilot.code.alibaba-inc.com) | Full support |
 | [OpenCode](https://opencode.ai) | Full support |
 | [Cursor](https://cursor.com/) | Full support |
@@ -389,7 +390,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida integration create <appType> ...` | Create integration automation flow |
+| `openyida integration create <appType> ... [--spec file.json]` | Create integration automation flow |
 | `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
 | `openyida integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
 | `openyida integration disable <appType> <formUuid> <processCode>` | Disable integration automation flow |

@@ -292,7 +292,7 @@ describe('validation mode in source code', () => {
 
   test('smart validation emits native customValidate functions without submit hooks', () => {
     expect(sourceCode).toContain('function buildCustomValidateParam');
-    expect(sourceCode).toContain("type: 'JSExpression'");
+    expect(sourceCode).toContain("type: 'js'");
     expect(sourceCode).toContain('function validateRule(value, currentRule)');
     expect(sourceCode).toContain("=== 'idCard'");
     expect(sourceCode).toContain("=== 'bankCard'");

@@ -15,6 +15,7 @@
  *   ~/.aone_copilot/skills/yida-skills/    ← <package>/yida-skills (copy)
  *   ~/.cursor/skills/yida-skills/          ← <package>/yida-skills (copy)
  *   ~/.qoder/skills/yida-skills/           ← <package>/yida-skills (copy)
+ *   ~/.mulerun/skills/yida-skills/          ← <package>/yida-skills (copy)
  *
  * 悟空（Wukong）通过手动上传技能，不在此安装。
  */
@@ -433,6 +434,13 @@ safeExec(() => {
   }
 });
 
+// MuleRun — 仅在已安装时安装
+safeExec(() => {
+  if (fs.existsSync(path.join(HOME_DIR, '.mulerun'))) {
+    installSkillsToTool(path.join(HOME_DIR, '.mulerun'));
+  }
+});
+
 // 悟空（Wukong）— 跳过安装，只清理旧版遗留
 safeExec(() => {
   cleanupLegacy(path.join(HOME_DIR, '.real', 'yida-skills'));
@@ -490,7 +498,7 @@ function printWelcomeGuide(isFirstInstall, hasCodexPlugin) {
   console.log('');
   console.log(`${BOLD}${CYAN}  🚀 开启 AI 问答模式${RESET}`);
   console.log(
-    '  在 Codex / Claude Code / Aone Copilot / Cursor 等 AI 工具中直接对话：',
+    '  在 Codex / Claude Code / MuleRun / Aone Copilot / Cursor 等 AI 工具中直接对话：',
   );
   console.log('');
 
@@ -511,7 +519,7 @@ function printWelcomeGuide(isFirstInstall, hasCodexPlugin) {
   console.log(`${BOLD}${BLUE}  📖 基础使用步骤${RESET}`);
   console.log('');
   console.log(
-    `  ${BOLD}Step 1${RESET}  打开你的 AI 编程工具（Codex / Claude Code / Cursor 等）`,
+    `  ${BOLD}Step 1${RESET}  打开你的 AI 编程工具（Codex / Claude Code / MuleRun / Cursor 等）`,
   );
   console.log(`  ${BOLD}Step 2${RESET}  直接用自然语言描述你想要的应用`);
   console.log(

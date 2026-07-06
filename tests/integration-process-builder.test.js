@@ -210,6 +210,33 @@ describe('integration process builder', () => {
     });
   });
 
+  test('buildProcessJson inserts httpConnector node when connectorMode is 5', () => {
+    const processJson = buildProcessJson({
+      processCode: 'LPROC-TEST',
+      formUuid: 'FORM-HTTP',
+      appType: 'APP-HTTP',
+      formEventTypes: ['insert'],
+      toUsers: [],
+      nodeIds: ['trigger', 'connector', 'end'],
+      hasMessageNode: false,
+      connectorId: 'Http_2ed1618fdc744a288e5cb52bc02e462f',
+      actionId: 'publish_month_qs',
+      connectorMode: 5,
+      connectionId: '28336',
+      connectorAssignments: [
+        { column: 'month', valueType: 'processVar', value: 'textField_month' },
+      ],
+    });
+
+    expect(processJson.nodes.map((n) => n.type)).toEqual(['trigger', 'httpConnector', 'finish']);
+    expect(processJson.nodes[1].props.inputs).toMatchObject({
+      connectorId: 'Http_2ed1618fdc744a288e5cb52bc02e462f',
+      actionId: 'publish_month_qs',
+      connectionId: '28336',
+      connectorMode: 5,
+    });
+  });
+
   test('buildProcessJson chains dataRetrieve → innerConnector → sendMessage when all present', () => {
     const processJson = buildProcessJson({
       processCode: 'LPROC-TEST',
@@ -323,6 +350,43 @@ describe('integration process builder', () => {
           required: false,
         },
       ],
+    });
+  });
+
+  test('buildViewJson keeps HTTP connector metadata for the designer side panel', () => {
+    const viewJson = buildViewJson({
+      processCode: 'LPROC-TEST',
+      formUuid: 'FORM-HTTP',
+      appType: 'APP-HTTP',
+      formEventTypes: ['insert'],
+      toUsers: [],
+      nodeIds: ['canvas', 'trigger', 'connector', 'end'],
+      hasMessageNode: false,
+      connectorId: 'Http_2ed1618fdc744a288e5cb52bc02e462f',
+      actionId: 'publish_month_qs',
+      connectorMode: 5,
+      connectionId: '28336',
+      connectorName: 'Http_2ed1618fdc744a288e5cb52bc02e462f',
+      connectorDisplayName: '加福加德BI后端',
+      connectorAssignments: [
+        { column: 'month', valueType: 'processVar', value: 'textField_month' },
+      ],
+    });
+
+    const connectorNode = viewJson.schema.children.find((node) => node.componentName === 'ConnectorNode');
+    expect(connectorNode.props.name).toBe('加福加德BI后端');
+    expect(connectorNode.props.connectorRules).toMatchObject({
+      connectorId: 'Http_2ed1618fdc744a288e5cb52bc02e462f',
+      actionId: 'publish_month_qs',
+      connectionId: '28336',
+      connector: {
+        connectorId: 'Http_2ed1618fdc744a288e5cb52bc02e462f',
+        connectorName: 'Http_2ed1618fdc744a288e5cb52bc02e462f',
+        mode: 5,
+        connectorMode: 5,
+        name: '加福加德BI后端',
+        displayName: '加福加德BI后端',
+      },
     });
   });
 });

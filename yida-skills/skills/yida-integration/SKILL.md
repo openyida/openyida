@@ -94,6 +94,7 @@ openyida integration check <appType...> [--json] [--output result.xlsx] [--no-pr
 | `--approval-node-ids <nodeId,...>` | 空 | 当 `--events activityTask` 时必填；审批节点 ID，多个用逗号分隔 |
 | `--trigger-condition <fieldId:fieldName:opCode:value[:componentType[:valueType]]>` | 空 | 触发器过滤条件，可多次传入；示例：`radioField_xxx:采购类型:Equal:材料采购:RadioField:literal` |
 | `--trigger-recursively` | 关闭 | 允许自动触发，对应设计器里的“允许自动触发” |
+| `--spec <file.json>` | 不启用 | 使用结构化编排文件创建复杂自动化，支持 `getSelf`、`dataRetrieve`、`dataCreate`、`dataUpdate`、`route`、`sendMessage`、`connector` |
 | `--get-self` | 关闭 | 自动插入“获取自身”节点：来源表单为当前触发表，过滤条件为 `pid 等于 字段 __masterdata_form_inst_id` |
 | `--get-self-field <field>` | `__masterdata_form_inst_id` | 覆盖右侧触发事件系统字段；仅在确认环境变量名不同后使用 |
 | `--get-self-query-field <field>` | `pid` | 覆盖左侧查询系统字段；仅在确认平台查询字段名不同后使用 |
@@ -104,6 +105,9 @@ openyida integration check <appType...> [--json] [--output result.xlsx] [--no-pr
 | `--initiate-approval-form-uuid <formUuid>` | 不启用 | 发起审批节点的目标流程表单 UUID；当 B 是流程表单（`formType=process`）时必须使用它，不要用 `--add-data-form-uuid` |
 | `--initiate-approval-initiator-user <userId[:name]>` | 无 | 发起审批的发起人，格式如 `01376266634908:张三`；使用发起审批节点时必填 |
 | `--initiate-approval-assignment <targetFieldId:valueType:value>` | 无 | 发起审批时写入目标流程表单字段的赋值规则，可多次传入；格式同 `--add-data-assignment` |
+| `--connector-mode <mode>` | 自动推断 | 连接器类型；HTTP 自定义连接器使用 `5`，`connectorId` 以 `Http_` 开头时会自动按 `5` 处理 |
+| `--connection-id <id>` | 空 | HTTP 连接器鉴权连接 ID；HTTP 连接器建议传入，否则设计器右侧配置面板可能无法加载连接实例详情 |
+| `--connector-display-name <name>` | `--connector-name` | 连接器展示名称，用于设计器画布和右侧配置面板 |
 | `--publish` | 不发布 | 加此标志则保存后立即发布（开启状态），否则仅保存为草稿 |
 
 ### 示例
@@ -166,6 +170,70 @@ openyida integration create APP_XXX FORM-A-XXX "A审批完成后发起B流程" \
   --initiate-approval-initiator-user "01376266634908:张三" \
   --initiate-approval-assignment "textField_b1:processVar:textField_a1" \
   --initiate-approval-assignment "textareaField_b2:literal:自动发起" \
+  --publish
+```
+
+### 结构化编排 `--spec`
+
+复杂自动化优先使用 `--spec`，不要手写 `saveProcess` payload。spec 的节点可以用 `id` 作为别名，后续用 `${别名}.fieldId` 引用上游节点输出，OpenYida 会在保存前替换成真实 `node_xxx`。
+
+```json
+{
+  "events": ["insert"],
+  "nodes": [
+    { "id": "self", "type": "getSelf" },
+    {
+      "id": "branch",
+      "type": "route",
+      "branches": [
+        {
+          "id": "hasSelf",
+          "name": "已获取自身",
+          "conditions": [
+            {
+              "fieldId": "${self}.pid",
+              "fieldName": "表单实例ID",
+              "opCode": "ExistValue",
+              "componentType": "TextField"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "updateSelf",
+              "type": "dataUpdate",
+              "source": "self",
+              "assignments": [
+                {
+                  "column": "textareaField_result",
+                  "valueType": "literal",
+                  "value": "已处理"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fallback",
+          "name": "其他情况",
+          "default": true,
+          "nodes": [
+            {
+              "id": "notice",
+              "type": "sendMessage",
+              "title": "未获取到记录",
+              "content": "获取自身节点无匹配结果，请检查过滤条件。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+```bash
+openyida integration create APP_XXX FORM-XXX "获取自身后分支更新" \
+  --spec project/integration/get-self-update.json \
   --publish
 ```
 

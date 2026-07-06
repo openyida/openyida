@@ -30,6 +30,8 @@ describe('codexLogin', () => {
     delete process.env.QODERCLI_INTEGRATION_MODE;
     delete process.env.CURSOR_TRACE_ID;
     delete process.env.AGENT_WORK_ROOT;
+    delete process.env.MULERUN_CHAT_ID;
+    delete process.env.MULE_DATA_DIR;
     delete process.env.TERM_PROGRAM;
     delete process.env.VSCODE_GIT_ASKPASS_NODE;
     delete process.env.CODEX_CI;

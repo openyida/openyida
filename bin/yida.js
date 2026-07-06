@@ -27,6 +27,8 @@ function isAgentEnvironment(env) {
     env.CODEX_HOME ||
     env.CLAUDE_CODE ||
     env.CLAUDE_CODE_ENTRYPOINT ||
+    env.MULERUN_CHAT_ID ||
+    env.MULE_DATA_DIR ||
     env.OPENCODE ||
     env.OPENCODE_CLIENT ||
     env.QODER_IDE ||
@@ -212,6 +214,16 @@ function handleFirstRunGuide() {
 function printLoginResult(result) {
   noteLoginCommandResult(result);
 
+  if (!result) {
+    console.log(JSON.stringify({
+      ok: false,
+      status: 'login_failed',
+      can_auto_use: false,
+      error: 'login_failed',
+    }));
+    return;
+  }
+
   if (result && (result.status === 'need_qr_scan' || result.status === 'need_corp_selection')) {
     console.log(JSON.stringify(result));
     return;
@@ -240,6 +252,11 @@ function printLoginResult(result) {
       if (result[key]) {handoff[key] = result[key];}
     });
     console.log(JSON.stringify(handoff));
+    return;
+  }
+
+  if (result.status && result.status !== 'ok' && !result.csrf_token) {
+    console.log(JSON.stringify(result));
     return;
   }
 
@@ -540,6 +557,7 @@ async function main() {
     case 'login': {
       const { checkLoginOnly } = require('../lib/auth/login');
       const loginArgs = applyLoginEnvironmentFlags(args, { inferTargetUrl: true });
+      const { isInjectedAuthMode } = require('../lib/core/utils');
       if (loginArgs.includes('--agent-poll') || loginArgs.includes('--codex-poll')) {
         const sessionFile = getArgValue(loginArgs, '--agent-poll') || getArgValue(loginArgs, '--codex-poll');
         const { pollCodexQrLogin } = require('../lib/auth/qr-login');
@@ -554,9 +572,12 @@ async function main() {
           corpId: getArgValue(loginArgs, '--corp-id'),
         });
         printLoginResult(result);
-      } else if (loginArgs[0] === '--check-only') {
+      } else if (loginArgs.includes('--check-only')) {
         const result = checkLoginOnly({ includeSecrets: loginArgs.includes('--with-cookies') });
         console.log(JSON.stringify(result, null, 2));
+      } else if (isInjectedAuthMode()) {
+        const result = checkLoginOnly({ includeSecrets: true });
+        printLoginResult(result);
       } else if (shouldUseCodexQrLogin(loginArgs)) {
         const { startCodexQrLogin } = require('../lib/auth/qr-login');
         const result = await startCodexQrLogin({ corpId: getArgValue(loginArgs, '--corp-id') });
