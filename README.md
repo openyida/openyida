@@ -343,8 +343,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida logout` | Logout / switch account |
 | `openyida auth <status\|login\|refresh\|logout>` | Login state management |
 | `openyida org <list\|switch>` | Organization management (list / switch) |
-| `openyida env [--json]` | Detect AI tool environment & login state |
-| `openyida env <setup\|list\|show\|switch\|add\|remove>` | Manage public/private Yida environment profiles |
+| `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | Detect AI tool environment & login state |
 
 ### App Management
 
@@ -469,8 +468,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida update` | Check and update to latest version |
 | `openyida export-conversation [options]` | Export AI conversation records |
 | `openyida feedback <setup\|url\|dismiss\|status> [options]` | Configure experience feedback form and local reminder state |
-| `openyida batch <file> [--stop-on-error] [--json]` | Run OpenYida commands in batch |
-| `openyida batch --commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run OpenYida commands in batch |
+| `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run OpenYida commands in batch |
 | `openyida flash-to-prd --file <path> --name "<project>"` | Convert flash notes or meeting notes to a PRD prompt |
 | `openyida ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
 | `openyida cdn-config [options]` | Configure CDN / OSS upload |

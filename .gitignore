@@ -49,6 +49,7 @@ coverage/
 .claude/*
 !.claude/CLAUDE.md
 .qoder/
+mydocs/
 
 
 # 根目录缓存（临时文件，不入库）
