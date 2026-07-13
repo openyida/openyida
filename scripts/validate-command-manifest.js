@@ -7,6 +7,7 @@ const path = require('path');
 const {
   COMMAND_GROUPS,
   flattenCommandManifest,
+  listCommandPermissionIds,
   listCommandSideEffectIds,
 } = require('../lib/core/command-manifest');
 
@@ -140,6 +141,62 @@ function validateSideEffects(commands) {
   }
 }
 
+function validatePermissions(commands) {
+  const allowedModes = new Set(['allow', 'ask', 'deny']);
+  const allowedEffects = new Set(['read', 'write', 'external', 'destructive', 'unknown']);
+  const commandIds = new Set(commands.map(entry => entry.id));
+
+  for (const permissionId of listCommandPermissionIds()) {
+    if (!commandIds.has(permissionId)) {
+      errors.push(`Permission metadata references unknown command id: ${permissionId}`);
+    }
+  }
+
+  for (const entry of commands) {
+    const permission = entry.permission;
+    if (!permission || typeof permission !== 'object') {
+      errors.push(`Command manifest id "${entry.id}" is missing permission metadata`);
+      continue;
+    }
+    if (!allowedModes.has(permission.mode)) {
+      errors.push(`Command manifest id "${entry.id}" has invalid permission.mode "${permission.mode}"`);
+    }
+    if (!allowedEffects.has(permission.effect)) {
+      errors.push(`Command manifest id "${entry.id}" has invalid permission.effect "${permission.effect}"`);
+    }
+    if (permission.mode === 'ask' && permission.effect !== 'destructive') {
+      errors.push(`Command manifest id "${entry.id}" permission.mode ask must use permission.effect destructive`);
+    }
+    if (permission.effect === 'destructive' && permission.mode !== 'ask') {
+      errors.push(`Command manifest id "${entry.id}" permission.effect destructive must use permission.mode ask`);
+    }
+    if (permission.mode === 'allow' && permission.effect === 'unknown' && permission.action_dependent !== true) {
+      errors.push(`Command manifest id "${entry.id}" permission.mode allow with unknown effect must be action-dependent`);
+    }
+    if (entry.sideEffect && entry.sideEffect.kind === 'mixed') {
+      if (permission.action_dependent !== true) {
+        errors.push(`Command manifest id "${entry.id}" mixed permission.action_dependent must be true`);
+      }
+      if (!Array.isArray(permission.read_actions)) {
+        errors.push(`Command manifest id "${entry.id}" mixed permission.read_actions must be an array`);
+      }
+      if (!Array.isArray(permission.ask_actions)) {
+        errors.push(`Command manifest id "${entry.id}" mixed permission.ask_actions must be an array`);
+      }
+      if (permission.mode === 'allow' && !Object.prototype.hasOwnProperty.call(permission, 'ask_actions')) {
+        errors.push(`Command manifest id "${entry.id}" mixed allow permission must explicitly define ask_actions`);
+      }
+    }
+    if (Array.isArray(permission.ask_actions)) {
+      for (const action of permission.ask_actions) {
+        if (typeof action !== 'string' || !action.trim()) {
+          errors.push(`Command manifest id "${entry.id}" permission.ask_actions entries must be non-empty strings`);
+        }
+      }
+    }
+  }
+}
+
 function run() {
   const commands = flattenCommandManifest();
 
@@ -148,6 +205,7 @@ function run() {
   validateRouterCoverage(commands);
   validateReadmeCoverage(commands);
   validateSideEffects(commands);
+  validatePermissions(commands);
 
   if (errors.length > 0) {
     console.error('Command manifest validation failed:');

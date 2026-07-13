@@ -177,13 +177,43 @@ describe('CLI offline smoke', () => {
         action_dependent: expect.stringContaining('mixed commands'),
       },
     });
+    expect(parsed.permission_schema).toMatchObject({
+      version: 1,
+      modes: {
+        allow: expect.stringContaining('Allowed by the current OpenYida agent policy'),
+        ask: expect.stringContaining('Requires user confirmation'),
+      },
+      effects: {
+        read: expect.stringContaining('Reads'),
+        unknown: expect.stringContaining('Action-dependent'),
+      },
+    });
     expect(parsed.summary).toMatchObject({
       command_count: parsed.commands.length,
       group_count: parsed.groups.length,
     });
     expect(parsed.summary.side_effect_counts.remote_write).toBeGreaterThan(0);
+    expect(parsed.summary.permission_mode_counts.allow).toBeGreaterThan(0);
+    expect(parsed.summary.permission_mode_counts.ask).toBeGreaterThan(0);
     expect(parsed.summary.read_only_command_ids).toContain('agent-capabilities');
     expect(parsed.summary.mutating_command_ids).toContain('create-app');
+    expect(parsed.summary.allow_command_ids).toEqual(expect.arrayContaining([
+      'agent-capabilities',
+      'commands',
+      'app-list',
+      'create-app',
+      'publish',
+      'login',
+      'connector.list',
+      'integration.list',
+      'integration.enable',
+      'basic-info',
+      'formula.evaluate',
+    ]));
+    expect(parsed.summary.ask_command_ids).toEqual([
+      'connector.delete',
+      'connector.delete-action',
+    ]);
     expect(parsed.summary.core_workflows.full_app_fast_build).toMatchObject({
       mode: 'fast_build',
       default_page_skill_id: 'yida-custom-page',
@@ -314,6 +344,44 @@ describe('CLI offline smoke', () => {
       read_actions: ['default', '--dry-run'],
       mutating_actions: ['--fix'],
     });
+    expect(commandById.commands.permission).toMatchObject({
+      mode: 'allow',
+      effect: 'read',
+    });
+    expect(commandById['connector.list'].permission).toMatchObject({
+      mode: 'allow',
+      effect: 'read',
+    });
+    expect(commandById['connector.delete'].permission).toMatchObject({
+      mode: 'ask',
+      effect: 'destructive',
+    });
+    expect(commandById.login.permission).toMatchObject({
+      mode: 'allow',
+      effect: 'external',
+    });
+    expect(commandById['integration.enable'].permission).toMatchObject({
+      mode: 'allow',
+      effect: 'write',
+    });
+    expect(commandById['integration.disable'].permission).toMatchObject({
+      mode: 'allow',
+      effect: 'write',
+    });
+    expect(commandById['basic-info'].permission).toMatchObject({
+      mode: 'allow',
+      effect: 'unknown',
+      action_dependent: true,
+      read_actions: expect.arrayContaining(['overview', 'domain']),
+      ask_actions: [],
+    });
+    expect(commandById['app-permission'].permission).toMatchObject({
+      mode: 'allow',
+      effect: 'unknown',
+      action_dependent: true,
+      read_actions: expect.arrayContaining(['get', 'search-user']),
+      ask_actions: ['remove'],
+    });
   });
 
   test('agent-capabilities --json renders one-shot agent snapshot', () => {
@@ -337,6 +405,14 @@ describe('CLI offline smoke', () => {
       group_count: parsed.command_manifest.groups.length,
     });
     expect(parsed.commands.side_effect_counts.remote_write).toBeGreaterThan(0);
+    expect(parsed.commands.permission_mode_counts.allow).toBeGreaterThan(0);
+    expect(parsed.commands.permission_mode_counts.ask).toBeGreaterThan(0);
+    expect(parsed.commands.allow_command_ids).toContain('agent-capabilities');
+    expect(parsed.commands.allow_command_ids).toContain('create-app');
+    expect(parsed.commands.ask_command_ids).toEqual([
+      'connector.delete',
+      'connector.delete-action',
+    ]);
     expect(parsed.commands.read_only_command_ids).toContain('agent-capabilities');
     expect(parsed.commands.core_workflows.full_app_fast_build).toMatchObject({
       mode: 'fast_build',
@@ -370,6 +446,13 @@ describe('CLI offline smoke', () => {
         mixed: expect.stringContaining('Action-dependent command'),
       },
     });
+    expect(parsed.command_manifest.permission_schema).toMatchObject({
+      version: 1,
+      modes: {
+        allow: expect.stringContaining('Allowed by the current OpenYida agent policy'),
+        ask: expect.stringContaining('Requires user confirmation'),
+      },
+    });
     expect(parsed.command_manifest.summary.command_count).toBe(parsed.command_manifest.commands.length);
     expect(parsed.login).toHaveProperty('status');
     expect(parsed.login).not.toHaveProperty('cookies');
@@ -384,15 +467,27 @@ describe('CLI offline smoke', () => {
       kind: 'remote_write',
       mutates_yida: true,
     });
+    expect(commandById['create-app'].permission).toMatchObject({
+      mode: 'allow',
+      effect: 'write',
+    });
     expect(commandById['app-list'].side_effect).toMatchObject({
       kind: 'remote_read',
       mutates_yida: false,
       mutates_local: false,
     });
+    expect(commandById['app-list'].permission).toMatchObject({
+      mode: 'allow',
+      effect: 'read',
+    });
     expect(commandById['formula.evaluate'].side_effect).toMatchObject({
       kind: 'local_read',
       mutates_yida: false,
       mutates_local: false,
+    });
+    expect(commandById['formula.evaluate'].permission).toMatchObject({
+      mode: 'allow',
+      effect: 'read',
     });
     expect(commandById['check-page'].side_effect).toMatchObject({
       kind: 'local_read',
@@ -447,6 +542,19 @@ describe('CLI offline smoke', () => {
       kind: 'mixed',
       mutates_yida: true,
       mutates_local: false,
+    });
+    expect(commandById['connector.delete'].permission).toMatchObject({
+      mode: 'ask',
+      effect: 'destructive',
+    });
+    expect(commandById['integration.list'].permission).toMatchObject({
+      mode: 'allow',
+      effect: 'read',
+    });
+    expect(commandById['basic-info'].permission).toMatchObject({
+      mode: 'allow',
+      action_dependent: true,
+      ask_actions: [],
     });
   });
 
