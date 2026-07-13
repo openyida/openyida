@@ -113,6 +113,25 @@ function actionMatches(restArgs, action) {
   return tokens.length > 0 && tokens.every((token, index) => restArgs[index] === token);
 }
 
+function patternMatches(restArgs, pattern) {
+  if (!pattern || typeof pattern !== 'object') {
+    return false;
+  }
+  if (pattern.type === 'argv_contains_any') {
+    const text = restArgs.join(' ').toLowerCase();
+    return (pattern.values || []).some(value => text.includes(String(value).toLowerCase()));
+  }
+  if (pattern.type === 'option_value_excludes_any') {
+    const optionIndex = restArgs.indexOf(pattern.option);
+    if (optionIndex === -1 || !restArgs[optionIndex + 1]) {
+      return false;
+    }
+    const value = String(restArgs[optionIndex + 1]).toLowerCase();
+    return !(pattern.values || []).some(item => value.includes(String(item).toLowerCase()));
+  }
+  return false;
+}
+
 function classifyManifestInvocation(commands, args) {
   const entry = resolveManifestCommand(commands, args);
   if (!entry) {
@@ -126,7 +145,13 @@ function classifyManifestInvocation(commands, args) {
   if ((permission.ask_actions || []).some(action => actionMatches(restArgs, action))) {
     return { entry, decision: 'ask' };
   }
+  if ((permission.ask_patterns || []).some(pattern => patternMatches(restArgs, pattern))) {
+    return { entry, decision: 'ask' };
+  }
   if ((permission.preauthorized_actions || []).some(action => actionMatches(restArgs, action))) {
+    return { entry, decision: 'allow' };
+  }
+  if ((permission.preauthorized_patterns || []).some(pattern => patternMatches(restArgs, pattern))) {
     return { entry, decision: 'allow' };
   }
   if ((permission.read_actions || []).some(action => actionMatches(restArgs, action))) {
@@ -225,6 +250,8 @@ describe('CLI offline smoke', () => {
       },
       fields: {
         preauthorized_actions: expect.stringContaining('pre-authorized'),
+        preauthorized_patterns: expect.stringContaining('Structured argument matchers'),
+        ask_patterns: expect.stringContaining('Structured argument matchers'),
         unknown_action_mode: expect.stringContaining('unrecognized actions'),
       },
     });
@@ -299,6 +326,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('agent-center');
     expect(commands).toContain('integration.diagnose');
     expect(commands).toContain('dingtalk-link');
+    expect(commands).toContain('export');
     expect(commands).toContain('externalize-form');
     expect(commands).toContain('db-seq-fix');
     expect(commands).toContain('commands');
@@ -400,6 +428,11 @@ describe('CLI offline smoke', () => {
       mutates_local: true,
       action_dependent: true,
     });
+    expect(commandById.export.side_effect).toMatchObject({
+      kind: 'local_write',
+      mutates_yida: false,
+      mutates_local: true,
+    });
     expect(commandById.commands.permission).toMatchObject({
       mode: 'allow',
       effect: 'read',
@@ -451,6 +484,29 @@ describe('CLI offline smoke', () => {
       ask_actions: ['remove'],
       unknown_action_mode: 'ask',
     });
+    expect(commandById.batch.permission).toMatchObject({
+      mode: 'allow',
+      effect: 'unknown',
+      action_dependent: true,
+      preauthorized_actions: [],
+      ask_actions: [],
+      preauthorized_patterns: [{
+        type: 'option_value_excludes_any',
+        option: '--commands',
+        values: ['delete', 'remove'],
+        description: expect.any(String),
+      }],
+      ask_patterns: [{
+        type: 'argv_contains_any',
+        values: ['delete', 'remove'],
+        description: expect.any(String),
+      }],
+      unknown_action_mode: 'ask',
+    });
+    expect(commandById.export.permission).toMatchObject({
+      mode: 'allow',
+      effect: 'write',
+    });
     expect(classifyManifestInvocation(parsed.commands, ['env', 'switch'])).toMatchObject({
       entry: { id: 'env' },
       decision: 'allow',
@@ -473,6 +529,22 @@ describe('CLI offline smoke', () => {
     });
     expect(classifyManifestInvocation(parsed.commands, ['agent-center', 'archive'])).toMatchObject({
       entry: { id: 'agent-center' },
+      decision: 'ask',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['export', 'APP_1', 'out.zip'])).toMatchObject({
+      entry: { id: 'export' },
+      decision: 'allow',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['batch', '--commands', 'openyida app-list'])).toMatchObject({
+      entry: { id: 'batch' },
+      decision: 'allow',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['batch', '--commands', 'openyida data delete form APP_1'])).toMatchObject({
+      entry: { id: 'batch' },
+      decision: 'ask',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['batch', 'commands.txt'])).toMatchObject({
+      entry: { id: 'batch' },
       decision: 'ask',
     });
     expect(classifyManifestInvocation(parsed.commands, ['data', 'delete'])).toMatchObject({

@@ -161,6 +161,10 @@ function validatePermissions(commands) {
   const allowedModes = new Set(['allow', 'ask', 'deny']);
   const allowedEffects = new Set(['read', 'write', 'external', 'destructive', 'unknown']);
   const allowedUnknownActionModes = new Set(['ask']);
+  const allowedPatternTypes = new Set([
+    'argv_contains_any',
+    'option_value_excludes_any',
+  ]);
   const commandIds = new Set(commands.map(entry => entry.id));
 
   for (const permissionId of listCommandPermissionIds()) {
@@ -200,8 +204,14 @@ function validatePermissions(commands) {
       if (!Array.isArray(permission.preauthorized_actions)) {
         errors.push(`Command manifest id "${entry.id}" mixed permission.preauthorized_actions must be an array`);
       }
+      if (!Array.isArray(permission.preauthorized_patterns)) {
+        errors.push(`Command manifest id "${entry.id}" mixed permission.preauthorized_patterns must be an array`);
+      }
       if (!Array.isArray(permission.ask_actions)) {
         errors.push(`Command manifest id "${entry.id}" mixed permission.ask_actions must be an array`);
+      }
+      if (!Array.isArray(permission.ask_patterns)) {
+        errors.push(`Command manifest id "${entry.id}" mixed permission.ask_patterns must be an array`);
       }
       if (!allowedUnknownActionModes.has(permission.unknown_action_mode)) {
         errors.push(`Command manifest id "${entry.id}" mixed permission.unknown_action_mode must be ask`);
@@ -210,6 +220,8 @@ function validatePermissions(commands) {
         const coveredActions = new Set([
           ...permission.preauthorized_actions,
           ...permission.ask_actions,
+          ...collectPatternCovers(permission.preauthorized_patterns),
+          ...collectPatternCovers(permission.ask_patterns),
         ]);
         for (const action of entry.sideEffect.mutating_actions || []) {
           if (typeof action === 'string' && action.startsWith('depends on ')) {
@@ -231,11 +243,59 @@ function validatePermissions(commands) {
         }
       }
     }
+    validatePatternList(entry.id, 'preauthorized_patterns', permission.preauthorized_patterns, allowedPatternTypes);
     if (Array.isArray(permission.ask_actions)) {
       for (const action of permission.ask_actions) {
         if (typeof action !== 'string' || !action.trim()) {
           errors.push(`Command manifest id "${entry.id}" permission.ask_actions entries must be non-empty strings`);
         }
+      }
+    }
+    validatePatternList(entry.id, 'ask_patterns', permission.ask_patterns, allowedPatternTypes);
+  }
+}
+
+function collectPatternCovers(patterns) {
+  if (!Array.isArray(patterns)) {
+    return [];
+  }
+  return patterns.flatMap(pattern => {
+    if (!pattern || typeof pattern !== 'object') {
+      return [];
+    }
+    if (Array.isArray(pattern.covers)) {
+      return pattern.covers;
+    }
+    return pattern.covers ? [pattern.covers] : [];
+  });
+}
+
+function validatePatternList(commandId, fieldName, patterns, allowedPatternTypes) {
+  if (!Array.isArray(patterns)) {
+    return;
+  }
+  for (const pattern of patterns) {
+    if (!pattern || typeof pattern !== 'object' || Array.isArray(pattern)) {
+      errors.push(`Command manifest id "${commandId}" permission.${fieldName} entries must be objects`);
+      continue;
+    }
+    if (!allowedPatternTypes.has(pattern.type)) {
+      errors.push(`Command manifest id "${commandId}" permission.${fieldName} has invalid pattern type "${pattern.type}"`);
+    }
+    if (typeof pattern.description !== 'string' || !pattern.description.trim()) {
+      errors.push(`Command manifest id "${commandId}" permission.${fieldName} entries must include description`);
+    }
+    if (pattern.type === 'argv_contains_any') {
+      if (!Array.isArray(pattern.values) || pattern.values.length === 0) {
+        errors.push(`Command manifest id "${commandId}" permission.${fieldName} argv_contains_any.values must be a non-empty array`);
+      }
+    }
+    if (pattern.type === 'option_value_excludes_any') {
+      if (typeof pattern.option !== 'string' || !pattern.option.trim()) {
+        errors.push(`Command manifest id "${commandId}" permission.${fieldName} option_value_excludes_any.option must be a non-empty string`);
+      }
+      if (!Array.isArray(pattern.values) || pattern.values.length === 0) {
+        errors.push(`Command manifest id "${commandId}" permission.${fieldName} option_value_excludes_any.values must be a non-empty array`);
       }
     }
   }
