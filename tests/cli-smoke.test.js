@@ -99,6 +99,42 @@ function runAny(args) {
   };
 }
 
+function resolveManifestCommand(commands, args) {
+  return commands
+    .filter(entry => entry.path.every((token, index) => args[index] === token))
+    .sort((left, right) => right.path.length - left.path.length)[0] || null;
+}
+
+function actionMatches(restArgs, action) {
+  if (action === 'default') {
+    return restArgs.length === 0;
+  }
+  const tokens = String(action).split(/\s+/).filter(Boolean);
+  return tokens.length > 0 && tokens.every((token, index) => restArgs[index] === token);
+}
+
+function classifyManifestInvocation(commands, args) {
+  const entry = resolveManifestCommand(commands, args);
+  if (!entry) {
+    return { entry: null, decision: 'ask' };
+  }
+  const permission = entry.permission || {};
+  if (!permission.action_dependent) {
+    return { entry, decision: permission.mode };
+  }
+  const restArgs = args.slice(entry.path.length);
+  if ((permission.ask_actions || []).some(action => actionMatches(restArgs, action))) {
+    return { entry, decision: 'ask' };
+  }
+  if ((permission.preauthorized_actions || []).some(action => actionMatches(restArgs, action))) {
+    return { entry, decision: 'allow' };
+  }
+  if ((permission.read_actions || []).some(action => actionMatches(restArgs, action))) {
+    return { entry, decision: 'allow' };
+  }
+  return { entry, decision: permission.unknown_action_mode || permission.mode };
+}
+
 describe('CLI offline smoke', () => {
   test('--version prints package version without requiring login', () => {
     expect(runOk(['--version']).trim()).toBe(version);
@@ -107,7 +143,7 @@ describe('CLI offline smoke', () => {
   test('--help renders top-level command groups', () => {
     const output = runOk(['--help']);
     expect(output).toContain('OpenYida');
-    expect(output).toContain('env [--json]');
+    expect(output).toContain('env [--json|setup|list|show|switch|add|remove] [options]');
     expect(output).toContain('login [target-url] [--qr|--agent-qr|--codex|--browser] [--env <name>|--intl|--overseas|--global|--yidaapps|--alibaba] [--corp-id <corpId>]');
     expect(output).toContain('corp-efficiency');
     expect(output).toContain('create-form');
@@ -187,6 +223,10 @@ describe('CLI offline smoke', () => {
         read: expect.stringContaining('Reads'),
         unknown: expect.stringContaining('Action-dependent'),
       },
+      fields: {
+        preauthorized_actions: expect.stringContaining('pre-authorized'),
+        unknown_action_mode: expect.stringContaining('unrecognized actions'),
+      },
     });
     expect(parsed.summary).toMatchObject({
       command_count: parsed.commands.length,
@@ -197,6 +237,7 @@ describe('CLI offline smoke', () => {
     expect(parsed.summary.permission_mode_counts.ask).toBeGreaterThan(0);
     expect(parsed.summary.read_only_command_ids).toContain('agent-capabilities');
     expect(parsed.summary.mutating_command_ids).toContain('create-app');
+    expect(new Set(parsed.commands.map(entry => entry.path.join(' '))).size).toBe(parsed.commands.length);
     expect(parsed.summary.allow_command_ids).toEqual(expect.arrayContaining([
       'agent-capabilities',
       'commands',
@@ -238,6 +279,7 @@ describe('CLI offline smoke', () => {
       default_data_contract: expect.stringContaining('this.dataSourceMap'),
     });
     expect(commands).toContain('env');
+    expect(commands).not.toContain('env-management');
     expect(commands).toContain('login');
     expect(commands).toContain('corp-efficiency');
     expect(commands).toContain('nav-group');
@@ -263,6 +305,9 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('agent-capabilities');
     expect(commands).toContain('a2a');
     expect(commands).toContain('ai');
+    expect(commands).toContain('batch');
+    expect(commands).not.toContain('batch.file');
+    expect(commands).not.toContain('batch.inline');
     expect(parsed.commands.find(entry => entry.id === 'a2a')).toMatchObject({
       usage: 'openyida a2a <serve|agent-card> [options]',
       output: 'text|json',
@@ -314,6 +359,11 @@ describe('CLI offline smoke', () => {
       output: 'json',
       requires_login: true,
     });
+    expect(parsed.commands.find(entry => entry.id === 'env')).toMatchObject({
+      usage: 'openyida env [--json|setup|list|show|switch|add|remove] [options]',
+      output: 'text|json',
+      requires_login: false,
+    });
     expect(commandById['check-page'].side_effect).toMatchObject({
       kind: 'local_read',
       mutates_yida: false,
@@ -344,6 +394,12 @@ describe('CLI offline smoke', () => {
       read_actions: ['default', '--dry-run'],
       mutating_actions: ['--fix'],
     });
+    expect(commandById.batch.side_effect).toMatchObject({
+      kind: 'mixed',
+      mutates_yida: true,
+      mutates_local: true,
+      action_dependent: true,
+    });
     expect(commandById.commands.permission).toMatchObject({
       mode: 'allow',
       effect: 'read',
@@ -373,14 +429,59 @@ describe('CLI offline smoke', () => {
       effect: 'unknown',
       action_dependent: true,
       read_actions: expect.arrayContaining(['overview', 'domain']),
+      preauthorized_actions: ['domain set'],
       ask_actions: [],
+      unknown_action_mode: 'ask',
     });
     expect(commandById['app-permission'].permission).toMatchObject({
       mode: 'allow',
       effect: 'unknown',
       action_dependent: true,
       read_actions: expect.arrayContaining(['get', 'search-user']),
+      preauthorized_actions: ['set', 'add'],
       ask_actions: ['remove'],
+      unknown_action_mode: 'ask',
+    });
+    expect(commandById.env.permission).toMatchObject({
+      mode: 'allow',
+      effect: 'unknown',
+      action_dependent: true,
+      read_actions: expect.arrayContaining(['default', '--json', 'list', 'show']),
+      preauthorized_actions: ['setup', 'switch', 'add'],
+      ask_actions: ['remove'],
+      unknown_action_mode: 'ask',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['env', 'switch'])).toMatchObject({
+      entry: { id: 'env' },
+      decision: 'allow',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['env', 'remove'])).toMatchObject({
+      entry: { id: 'env' },
+      decision: 'ask',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['db-seq-fix', '--fix'])).toMatchObject({
+      entry: { id: 'db-seq-fix' },
+      decision: 'allow',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['doctor', '--fix'])).toMatchObject({
+      entry: { id: 'doctor' },
+      decision: 'allow',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['agent-center', 'cancel'])).toMatchObject({
+      entry: { id: 'agent-center' },
+      decision: 'allow',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['agent-center', 'archive'])).toMatchObject({
+      entry: { id: 'agent-center' },
+      decision: 'ask',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['data', 'delete'])).toMatchObject({
+      entry: { id: 'data' },
+      decision: 'ask',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['app-permission', 'remove'])).toMatchObject({
+      entry: { id: 'app-permission' },
+      decision: 'ask',
     });
   });
 
@@ -510,7 +611,7 @@ describe('CLI offline smoke', () => {
       mutates_local: false,
       action_dependent: true,
     });
-    expect(commandById['batch.file'].side_effect).toMatchObject({
+    expect(commandById.batch.side_effect).toMatchObject({
       kind: 'mixed',
       mutates_yida: true,
       mutates_local: true,
@@ -554,7 +655,9 @@ describe('CLI offline smoke', () => {
     expect(commandById['basic-info'].permission).toMatchObject({
       mode: 'allow',
       action_dependent: true,
+      preauthorized_actions: ['domain set'],
       ask_actions: [],
+      unknown_action_mode: 'ask',
     });
   });
 

@@ -62,6 +62,22 @@ function validateUniqueIds(commands) {
   }
 }
 
+function commandPathKey(entry) {
+  return (entry.path || []).join(' ');
+}
+
+function validateUniquePaths(commands) {
+  const seen = new Map();
+  for (const entry of commands) {
+    const key = commandPathKey(entry);
+    if (seen.has(key)) {
+      errors.push(`Duplicate command manifest path "${key}" for ids "${seen.get(key)}" and "${entry.id}"`);
+    } else {
+      seen.set(key, entry.id);
+    }
+  }
+}
+
 function validateRouterCoverage(commands) {
   const routerCases = collectRouterCases();
   const manifestRoots = collectManifestRoots(commands);
@@ -144,6 +160,7 @@ function validateSideEffects(commands) {
 function validatePermissions(commands) {
   const allowedModes = new Set(['allow', 'ask', 'deny']);
   const allowedEffects = new Set(['read', 'write', 'external', 'destructive', 'unknown']);
+  const allowedUnknownActionModes = new Set(['ask']);
   const commandIds = new Set(commands.map(entry => entry.id));
 
   for (const permissionId of listCommandPermissionIds()) {
@@ -180,11 +197,38 @@ function validatePermissions(commands) {
       if (!Array.isArray(permission.read_actions)) {
         errors.push(`Command manifest id "${entry.id}" mixed permission.read_actions must be an array`);
       }
+      if (!Array.isArray(permission.preauthorized_actions)) {
+        errors.push(`Command manifest id "${entry.id}" mixed permission.preauthorized_actions must be an array`);
+      }
       if (!Array.isArray(permission.ask_actions)) {
         errors.push(`Command manifest id "${entry.id}" mixed permission.ask_actions must be an array`);
       }
-      if (permission.mode === 'allow' && !Object.prototype.hasOwnProperty.call(permission, 'ask_actions')) {
-        errors.push(`Command manifest id "${entry.id}" mixed allow permission must explicitly define ask_actions`);
+      if (!allowedUnknownActionModes.has(permission.unknown_action_mode)) {
+        errors.push(`Command manifest id "${entry.id}" mixed permission.unknown_action_mode must be ask`);
+      }
+      if (Array.isArray(permission.preauthorized_actions) && Array.isArray(permission.ask_actions)) {
+        const coveredActions = new Set([
+          ...permission.preauthorized_actions,
+          ...permission.ask_actions,
+        ]);
+        for (const action of entry.sideEffect.mutating_actions || []) {
+          if (typeof action === 'string' && action.startsWith('depends on ')) {
+            continue;
+          }
+          if (!coveredActions.has(action)) {
+            errors.push(`Command manifest id "${entry.id}" mutating action "${action}" must appear in permission.preauthorized_actions or permission.ask_actions`);
+          }
+          if (/\\b(delete|remove)\\b/i.test(action) && !permission.ask_actions.includes(action)) {
+            errors.push(`Command manifest id "${entry.id}" delete/remove action "${action}" must appear in permission.ask_actions`);
+          }
+        }
+      }
+    }
+    if (Array.isArray(permission.preauthorized_actions)) {
+      for (const action of permission.preauthorized_actions) {
+        if (typeof action !== 'string' || !action.trim()) {
+          errors.push(`Command manifest id "${entry.id}" permission.preauthorized_actions entries must be non-empty strings`);
+        }
       }
     }
     if (Array.isArray(permission.ask_actions)) {
@@ -201,6 +245,7 @@ function run() {
   const commands = flattenCommandManifest();
 
   validateUniqueIds(commands);
+  validateUniquePaths(commands);
   validateGroupReferences();
   validateRouterCoverage(commands);
   validateReadmeCoverage(commands);
