@@ -3,8 +3,7 @@
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'csrf' })),
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://customer.yidaapps.com'),
   httpGet: jest.fn(),
@@ -24,14 +23,18 @@ const {
   upsertI18nItem,
 } = require('../lib/i18n-management/i18n-management');
 
-const mockCookieData = {
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
   csrf_token: 'csrf',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf' }],
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
 });
 
 describe('i18n-management helpers', () => {

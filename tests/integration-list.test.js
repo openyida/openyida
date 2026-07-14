@@ -6,14 +6,17 @@ jest.mock('../lib/integration/integration-api', () => ({
   switchLogicflow: jest.fn(),
 }));
 
-// Mock loadCookieData 和 triggerLogin，避免文件系统/交互式登录依赖
+// Mock loadAuthData 和 triggerLogin，避免文件系统/交互式登录依赖
 jest.mock('../lib/core/utils', () => {
   const real = jest.requireActual('../lib/core/utils');
   return {
     ...real,
-    loadCookieData: jest.fn(() => ({
+    loadAuthData: jest.fn(() => ({
+      auth_mode: 'token',
+      auth_source: 'token',
+      corp_id: 'corp-1',
+      user_id: 'user-1',
       csrf_token: 'fake-csrf',
-      cookies: [{ name: 'tb_token', value: 'fake' }],
       base_url: 'https://www.aliwork.com',
     })),
     triggerLogin: jest.fn(),

@@ -29,7 +29,6 @@ function getConfig(env = process.env, date = new Date()) {
     pageSource: env.OPENYIDA_E2E_PAGE_SOURCE || DEFAULT_PAGE_SOURCE,
     registryDir: env.OPENYIDA_E2E_REGISTRY_DIR || DEFAULT_REGISTRY_DIR,
     baseUrl: env.OPENYIDA_E2E_BASE_URL,
-    cookiesBase64: env.OPENYIDA_E2E_COOKIES_BASE64,
     corpId: env.OPENYIDA_E2E_CORP_ID,
     skipPublish: env.OPENYIDA_E2E_SKIP_PUBLISH === '1',
   };
@@ -41,29 +40,6 @@ function ensureEnabled(config) {
     return false;
   }
   return true;
-}
-
-function decodeCookieData(config) {
-  if (!config.cookiesBase64) {return null;}
-  const raw = Buffer.from(config.cookiesBase64, 'base64').toString('utf8');
-  const parsed = JSON.parse(raw);
-  const cookieData = Array.isArray(parsed) ? { cookies: parsed } : parsed;
-  if (!Array.isArray(cookieData.cookies) || cookieData.cookies.length === 0) {
-    throw new Error('OPENYIDA_E2E_COOKIES_BASE64 must decode to a cookie array or an object with cookies');
-  }
-  cookieData.base_url = config.baseUrl || cookieData.base_url || 'https://www.aliwork.com';
-  return cookieData;
-}
-
-function writeCookieCache(cookieData) {
-  if (!cookieData) {return;}
-  const cacheDir = path.join(ROOT, 'project', '.cache');
-  fs.mkdirSync(cacheDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(cacheDir, 'cookies-public.json'),
-    JSON.stringify(cookieData, null, 2),
-    'utf8'
-  );
 }
 
 function createRegistry(config) {
@@ -181,7 +157,6 @@ function run(options = {}) {
   const env = options.env || process.env;
   const config = options.config || getConfig(env);
   const executeCli = options.runCli || runCli;
-  const persistCookieCache = options.writeCookieCache || writeCookieCache;
   const registryFactory = options.createRegistry || createRegistry;
   const persistRegistry = options.writeRegistry || writeRegistry;
   const trackResource = options.addResource || addResource;
@@ -197,7 +172,6 @@ function run(options = {}) {
     throw new Error(`E2E page source not found: ${config.pageSource}`);
   }
 
-  persistCookieCache(decodeCookieData(config));
   const { registry, registryPath } = registryFactory(config);
 
   function runStep(name, args) {
@@ -209,9 +183,6 @@ function run(options = {}) {
 
   try {
     requireSuccess('login check', runStep('login', ['login', '--check-only', '--json']));
-    if (config.corpId) {
-      runStep('org-switch', ['org', 'switch', '--corp-id', config.corpId]);
-    }
     runStep('app-list', ['app-list', '--size', '1']);
 
     const app = requireSuccess('create app', runStep('create-app', [
@@ -282,12 +253,10 @@ if (require.main === module) {
 module.exports = {
   addResource,
   createRegistry,
-  decodeCookieData,
   extractJsonObjects,
   getConfig,
   parseLastJson,
   run,
   runCli,
   writeRegistry,
-  writeCookieCache,
 };

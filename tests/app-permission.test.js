@@ -3,7 +3,7 @@
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
@@ -20,14 +20,18 @@ const {
   run,
 } = require('../lib/app-permission/app-permission');
 
-const mockCookieData = {
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
   csrf_token: 'csrf',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf' }],
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
 });
 
 describe('app-permission api', () => {
@@ -52,7 +56,6 @@ describe('app-permission api', () => {
       'https://www.aliwork.com',
       '/APP_1/query/app/getAppIncludingAecpInfo.json',
       expect.objectContaining({ appKey: 'APP_1', _csrf_token: 'csrf' }),
-      mockCookieData.cookies,
     );
     expect(result).toMatchObject({
       success: true,
@@ -81,7 +84,6 @@ describe('app-permission api', () => {
       'https://www.aliwork.com',
       '/APP_1/query/app/updateAppAdmin.json',
       expect.any(String),
-      mockCookieData.cookies,
     );
     expect(body).toMatchObject({
       adminType: 'DEV',

@@ -8,7 +8,7 @@ const { run } = require('../lib/core/query-data');
 // ── 工具函数 mock ─────────────────────────────────────────────────────
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
@@ -18,9 +18,13 @@ jest.mock('../lib/core/utils', () => ({
 
 const utils = require('../lib/core/utils');
 
-const mockCookieData = {
-  cookies: [{ name: 'tianshu_csrf_token', value: 'tok123' }],
+const mockAuthData = {
   csrf_token: 'tok123',
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
 };
 
 async function expectCliError(promise, message, exitCode = 1) {
@@ -86,7 +90,7 @@ function buildAliasSchema() {
 beforeEach(() => {
   jest.clearAllMocks();
   // 默认已登录
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
 });
 
 // ── 参数校验 ──────────────────────────────────────────────────────────
@@ -108,15 +112,15 @@ describe('run() 参数校验', () => {
 // ── 未登录场景 ────────────────────────────────────────────────────────
 
 describe('run() 未登录场景', () => {
-  test('loadCookieData 返回 null 时尝试 triggerLogin，仍失败则打印错误并退出', async () => {
-    utils.loadCookieData.mockReturnValue(null);
+  test('loadAuthData 返回 null 时尝试 triggerLogin，仍失败则打印错误并退出', async () => {
+    utils.loadAuthData.mockReturnValue(null);
     utils.triggerLogin.mockReturnValue(null);
 
     await expectCliError(run(['query', 'form', 'APP_XXX', 'FORM-XXX']), '无法获取有效登录态');
   });
 
-  test('loadCookieData 返回无 cookies 字段时尝试 triggerLogin，仍失败则退出', async () => {
-    utils.loadCookieData.mockReturnValue({ csrf_token: 'tok' }); // 无 cookies 字段
+  test('loadAuthData 返回不可用对象时尝试 triggerLogin，仍失败则退出', async () => {
+    utils.loadAuthData.mockReturnValue({});
     utils.triggerLogin.mockReturnValue(null);
 
     await expectCliError(run(['query', 'form', 'APP_XXX', 'FORM-XXX']), '无法获取有效登录态');

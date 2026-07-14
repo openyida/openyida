@@ -1,10 +1,9 @@
 'use strict';
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'csrf', corpId: 'corp', userId: 'user' })),
   httpGet: jest.fn(),
   requestWithAutoLogin: jest.fn(),
 }));
@@ -16,9 +15,13 @@ jest.mock('../lib/core/i18n', () => ({
 const utils = require('../lib/core/utils');
 const { run } = require('../lib/permission/get-permission');
 
-const mockCookieData = {
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
   csrf_token: 'csrf',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf' }],
 };
 
 describe('get-permission command regression', () => {
@@ -28,7 +31,7 @@ describe('get-permission command regression', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    utils.loadCookieData.mockReturnValue(mockCookieData);
+    utils.loadAuthData.mockReturnValue(mockAuthData);
     utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
     utils.httpGet.mockResolvedValue({ success: true, content: { formPermit: [] } });
     mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -71,8 +74,7 @@ describe('get-permission command regression', () => {
         _csrf_token: 'csrf',
         formUuid: 'FORM-1',
         appType: 'APP-1',
-      }),
-      mockCookieData.cookies
+      })
     );
     const output = JSON.parse(mockLog.mock.calls[0][0]);
     expect(output).toMatchObject({
@@ -91,8 +93,8 @@ describe('get-permission command regression', () => {
   });
 
   test('missing login cache triggers login before requestWithAutoLogin', async () => {
-    utils.loadCookieData.mockReturnValueOnce(null);
-    utils.triggerLogin.mockReturnValueOnce(mockCookieData);
+    utils.loadAuthData.mockReturnValueOnce(null);
+    utils.triggerLogin.mockReturnValueOnce(mockAuthData);
 
     await run(['APP-1', 'FORM-1']);
 

@@ -76,17 +76,25 @@ const API_MAP = Object.freeze({
 
 // ── openyida utils 动态定位 ───────────────────────────────────
 
-function findOpenyidaUtils() {
+function findOpenyidaModule(relativePath) {
   try {
     const openyidaBin = require('child_process')
       .execSync('which openyida', { encoding: 'utf-8' })
       .trim();
     const nodeModulesRoot = path.resolve(path.dirname(openyidaBin), '..', 'lib', 'node_modules');
-    return require(path.join(nodeModulesRoot, 'openyida', 'lib', 'core', 'utils.js'));
+    return require(path.join(nodeModulesRoot, 'openyida', relativePath));
   } catch {
     console.error('⛔ 无法定位 openyida 工具，请确认已安装：npm install -g openyida');
     process.exit(1);
   }
+}
+
+function findOpenyidaUtils() {
+  return findOpenyidaModule(path.join('lib', 'core', 'utils.js'));
+}
+
+function findOpenyidaTokenAuth() {
+  return findOpenyidaModule(path.join('lib', 'auth', 'token-auth.js'));
 }
 
 // ── 口令校验 ──────────────────────────────────────────────────
@@ -102,29 +110,14 @@ function enforcePassphraseCheck(passphrase) {
 
 // ── 权限校验 ──────────────────────────────────────────────────
 
-function enforceCorpIdCheck(cookieData) {
-  // 从 utils 返回的顶层属性获取 corpId
-  const corpIdFromUtils = cookieData.corp_id || '';
+function enforceCorpIdCheck(authData) {
+  const corpId = authData && authData.corp_id ? authData.corp_id : '';
 
-  // 独立从 cookies 数组中二次提取 corpId，防止 utils 层被篡改或缓存不一致
-  const corpIdFromCookieArray = extractCorpIdFromCookies(cookieData.cookies);
-
-  // 两个来源都必须存在
-  if (!corpIdFromUtils && !corpIdFromCookieArray) {
+  if (!corpId) {
     console.error('⛔ 权限校验失败：无法从登录态中提取 corpId。');
     console.error('请先执行 openyida login 登录后重试。');
     process.exit(1);
   }
-
-  // 两个来源必须一致（防篡改）
-  if (corpIdFromUtils && corpIdFromCookieArray && corpIdFromUtils !== corpIdFromCookieArray) {
-    console.error('⛔ 权限校验失败：登录态数据不一致，疑似被篡改。');
-    console.error('请执行 openyida logout 后重新登录。');
-    process.exit(1);
-  }
-
-  // 以两个来源中可用的值为准
-  const corpId = corpIdFromUtils || corpIdFromCookieArray;
 
   if (!ALLOWED_CORP_IDS.includes(corpId)) {
     // 不输出真实 corpId，防止信息泄露
@@ -136,34 +129,14 @@ function enforceCorpIdCheck(cookieData) {
   console.error(`✅ 权限校验通过 (corpId: ${corpId.substring(0, 20)}...)`);
 }
 
-/**
- * 独立从 cookies 数组中提取 corp_id，不依赖 utils 的解析结果
- */
-function extractCorpIdFromCookies(cookies) {
-  if (!Array.isArray(cookies)) return '';
-  const corpCookie = cookies.find((c) => c.name === 'corp_id');
-  return corpCookie ? corpCookie.value : '';
-}
-
 // ── HTTP 请求 ─────────────────────────────────────────────────
 
-function slsPost(baseUrl, requestPath, bodyParams, cookies) {
+function slsPost(baseUrl, requestPath, bodyParams, bearerToken) {
   return new Promise((resolve, reject) => {
     const parsedUrl = new URL(baseUrl);
-    const requestHost = parsedUrl.hostname;
-
-    const filteredCookies = cookies.filter((c) => {
-      const cookieDomain = (c.domain || '').replace(/^\./, '');
-      return requestHost === cookieDomain || requestHost.endsWith('.' + cookieDomain);
-    });
-
-    const cookieHeader = filteredCookies.map((c) => c.name + '=' + c.value).join('; ');
-    const csrfCookie = filteredCookies.find((c) => c.name === 'tianshu_csrf_token');
-    const csrfToken = csrfCookie ? csrfCookie.value : '';
 
     const postBody = querystring.stringify({
       ...bodyParams,
-      _csrf_token: csrfToken,
       _stamp: String(Date.now()),
     });
 
@@ -178,9 +151,8 @@ function slsPost(baseUrl, requestPath, bodyParams, cookies) {
         Accept: 'application/json, text/plain, */*',
         Origin: baseUrl,
         Referer: baseUrl + REFERER_PATH,
-        Cookie: cookieHeader,
+        Authorization: `Bearer ${bearerToken}`,
         'x-requested-with': 'XMLHttpRequest',
-        global_csrf_token: csrfToken,
       },
       timeout: 30000,
     };
@@ -209,14 +181,14 @@ function slsPost(baseUrl, requestPath, bodyParams, cookies) {
 
 // ── TraceId 查询 ──────────────────────────────────────────────
 
-async function queryByTraceId(traceId, baseUrl, cookies) {
+async function queryByTraceId(traceId, baseUrl, bearerToken) {
   const apis = API_MAP.traceId;
   const apiNames = ['上下文日志', '系统异常日志', '业务日志'];
   const results = {};
 
   for (let i = 0; i < apis.length; i++) {
     console.error(`\n📡 查询 ${apiNames[i]}...`);
-    const result = await slsPost(baseUrl, apis[i], { traceId }, cookies);
+    const result = await slsPost(baseUrl, apis[i], { traceId }, bearerToken);
     console.error(`   success: ${result.success}, errorCode: ${result.errorCode || 'none'}`);
     results[apiNames[i]] = result;
   }
@@ -226,7 +198,7 @@ async function queryByTraceId(traceId, baseUrl, cookies) {
 
 // ── 通用查询 ──────────────────────────────────────────────────
 
-async function queryGeneric(queryType, paramsJson, baseUrl, cookies) {
+async function queryGeneric(queryType, paramsJson, baseUrl, bearerToken) {
   const apis = API_MAP[queryType];
   if (!apis) {
     console.error(`⛔ 未知的查询类型: ${queryType}`);
@@ -245,7 +217,7 @@ async function queryGeneric(queryType, paramsJson, baseUrl, cookies) {
   const results = {};
   for (const api of apis) {
     console.error(`\n📡 查询 ${api}...`);
-    const result = await slsPost(baseUrl, api, params, cookies);
+    const result = await slsPost(baseUrl, api, params, bearerToken);
     console.error(`   success: ${result.success}, errorCode: ${result.errorCode || 'none'}`);
     results[api] = result;
   }
@@ -290,26 +262,27 @@ async function main() {
 
   // Step 1: 加载登录态（不自动触发登录，防止通过重新登录绕过 corpId 校验）
   const utils = findOpenyidaUtils();
-  const cookieData = utils.loadCookieData();
+  const authData = utils.loadAuthData();
 
-  if (!cookieData || !cookieData.cookies || cookieData.cookies.length === 0) {
+  if (!authData || authData.auth_mode !== 'token') {
     console.error('⛔ 权限校验失败：未检测到登录态。');
     console.error('请先执行 openyida login 登录到授权组织后重试。');
     process.exit(1);
   }
 
   // Step 2: 权限校验（硬编码，不可绕过）
-  enforceCorpIdCheck(cookieData);
+  enforceCorpIdCheck(authData);
 
-  const baseUrl = utils.resolveBaseUrl(cookieData);
-  const cookies = cookieData.cookies;
+  const baseUrl = utils.resolveBaseUrl(authData);
+  const { getAccessToken } = findOpenyidaTokenAuth();
+  const bearerToken = await getAccessToken();
 
   // Step 3: 执行查询
   let output;
   if (queryType === 'traceId') {
-    output = await queryByTraceId(paramValue, baseUrl, cookies);
+    output = await queryByTraceId(paramValue, baseUrl, bearerToken);
   } else {
-    output = await queryGeneric(queryType, paramValue, baseUrl, cookies);
+    output = await queryGeneric(queryType, paramValue, baseUrl, bearerToken);
   }
 
   // Step 4: 输出结果（JSON 到 stdout）

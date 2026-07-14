@@ -1,7 +1,7 @@
 'use strict';
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://example.yida.test'),
   httpPost: jest.fn(),
@@ -16,10 +16,13 @@ const { createAuthRef, createYidaClient } = require('../lib/core/yida-client');
 describe('yida-client', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    utils.loadCookieData.mockReturnValue({
+    utils.loadAuthData.mockReturnValue({
       csrf_token: 'csrf123',
-      cookies: [{ name: 'sid', value: 'cookie-value' }],
       base_url: 'https://example.yida.test',
+      auth_mode: 'token',
+      auth_source: 'token',
+      corp_id: 'corp-1',
+      user_id: 'user-1',
     });
     utils.httpGet.mockResolvedValue({ success: true, method: 'get' });
     utils.httpPost.mockResolvedValue({ success: true, method: 'post' });
@@ -32,16 +35,22 @@ describe('yida-client', () => {
     expect(authRef).toMatchObject({
       csrfToken: 'csrf123',
       baseUrl: 'https://example.yida.test',
+      authMode: 'token',
+      authSource: 'token',
+      corpId: 'corp-1',
+      userId: 'user-1',
     });
-    expect(authRef.cookies).toHaveLength(1);
+    expect(authRef).not.toHaveProperty('cookies');
+    expect(authRef).not.toHaveProperty('cookieData');
     expect(utils.triggerLogin).not.toHaveBeenCalled();
   });
 
   test('falls back to login when cache is missing', () => {
-    utils.loadCookieData.mockReturnValue(null);
+    utils.loadAuthData.mockReturnValue(null);
     utils.triggerLogin.mockReturnValue({
       csrf_token: 'fresh',
-      cookies: [{ name: 'sid', value: 'fresh-cookie' }],
+      auth_mode: 'token',
+      auth_source: 'token',
     });
 
     const authRef = createAuthRef();
@@ -59,8 +68,7 @@ describe('yida-client', () => {
     expect(utils.httpGet).toHaveBeenCalledWith(
       'https://example.yida.test',
       '/query/path.json',
-      { page: 1 },
-      [{ name: 'sid', value: 'cookie-value' }]
+      { page: 1 }
     );
   });
 
@@ -72,8 +80,7 @@ describe('yida-client', () => {
     expect(utils.httpPost).toHaveBeenCalledWith(
       'https://example.yida.test',
       '/save/path.json',
-      'name=Ada%20Lovelace',
-      [{ name: 'sid', value: 'cookie-value' }]
+      'name=Ada%20Lovelace'
     );
   });
 
@@ -97,7 +104,6 @@ describe('yida-client', () => {
       'https://example.yida.test',
       '/save/path.json?_csrf_token=csrf123',
       { name: 'Ada Lovelace' },
-      [{ name: 'sid', value: 'cookie-value' }],
       { csrfToken: 'csrf123', referer: 'https://example.yida.test/settings' }
     );
   });

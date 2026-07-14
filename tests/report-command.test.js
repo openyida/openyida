@@ -3,10 +3,9 @@
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://demo.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'csrf-token', corpId: 'corp-1', userId: 'user-1' })),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
@@ -24,10 +23,19 @@ const appendReport = require('../lib/report/append');
 
 const authRef = {
   csrfToken: 'csrf-token',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf-token' }],
   baseUrl: 'https://demo.aliwork.com',
+  authMode: 'token',
+  authSource: 'token',
   corpId: 'corp-1',
-  cookieData: { corp_id: 'corp-1' },
+  userId: 'user-1',
+  authData: {
+    csrf_token: 'csrf-token',
+    base_url: 'https://demo.aliwork.com',
+    auth_mode: 'token',
+    auth_source: 'token',
+    corp_id: 'corp-1',
+    user_id: 'user-1',
+  },
 };
 
 const chartConfig = [{
@@ -58,11 +66,13 @@ describe('report command helpers', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    utils.loadCookieData.mockReturnValue({
+    utils.loadAuthData.mockReturnValue({
       csrf_token: authRef.csrfToken,
-      cookies: authRef.cookies,
       base_url: authRef.baseUrl,
+      auth_mode: 'token',
+      auth_source: 'token',
       corp_id: 'corp-1',
+      user_id: 'user-1',
     });
     utils.requestWithAutoLogin.mockImplementation((requestFn, ref) => requestFn(ref));
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});

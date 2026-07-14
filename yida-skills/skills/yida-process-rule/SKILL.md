@@ -419,7 +419,7 @@ OpenYida 会自动兼容常见别名：
 ## 前置依赖
 
 - Node.js ≥ 16
-- 项目根目录存在 `.cache/cookies.json`（首次运行会自动触发扫码登录）
+- 项目根目录存在有效 token session（通过 `openyida login` 获取）
 
 ## 文件结构
 

@@ -8,10 +8,8 @@ const path = require('path');
 const {
   addResource,
   createRegistry,
-  decodeCookieData,
   getConfig,
   runCli,
-  writeCookieCache,
   writeRegistry,
 } = require('./runner');
 const { validateSkillCoverage } = require('./skill-coverage');
@@ -999,8 +997,8 @@ function commandNames(commands) {
 function recordConfiguredStageResults(registry, registryPath, config, context, workDir) {
   const stageDefinitions = {
     auth: {
-      commands: ['commands', 'env', 'login', 'org-switch', 'org-list'],
-      summary: config.corpId ? `Login and organization checked for corpId ${config.corpId}` : 'Login and organization checked',
+      commands: ['commands', 'env', 'login'],
+      summary: config.corpId ? `Token login checked for corpId ${config.corpId}` : 'Token login checked',
       resources: [],
     },
     app: {
@@ -1108,7 +1106,6 @@ function run(options = {}) {
   const env = options.env || process.env;
   const config = options.config || getFullConfig(env);
   const executeCli = options.runCli || runCli;
-  const persistCookieCache = options.writeCookieCache || writeCookieCache;
   const registryFactory = options.createRegistry || createRegistry;
   const persistRegistry = options.writeRegistry || writeRegistry;
   const trackResource = options.addResource || addResource;
@@ -1120,7 +1117,6 @@ function run(options = {}) {
     return { skipped: true };
   }
 
-  persistCookieCache(decodeCookieData(config));
   const { registry, registryPath } = registryFactory(config);
   registry.suite = 'full';
   registry.stages = config.stages;
@@ -1161,10 +1157,6 @@ function run(options = {}) {
       runStep('commands', ['commands', '--json']);
       runStep('env', ['env', '--json']);
       runStep('login', ['login', '--check-only', '--json']);
-      if (config.corpId) {
-        runStep('org-switch', ['org', 'switch', '--corp-id', config.corpId], { allowNoJson: true });
-      }
-      runStep('org-list', ['org', 'list'], { allowNoJson: true });
     }
 
     if (hasStage(config.stages, 'app')) {

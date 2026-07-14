@@ -6,7 +6,7 @@ const path = require('path');
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://demo.aliwork.com'),
   findProjectRoot: jest.fn(),
@@ -32,11 +32,11 @@ const {
 
 const authRef = {
   csrfToken: 'csrf-token',
-  cookies: [
-    { name: 'tianshu_csrf_token', value: 'csrf-token', domain: '.aliwork.com' },
-    { name: 'tianshu_app_type', value: 'APP_COOKIE', domain: '.aliwork.com' },
-  ],
   baseUrl: 'https://demo.aliwork.com',
+  authMode: 'token',
+  authSource: 'token',
+  corpId: 'corp-1',
+  userId: 'user-1',
 };
 
 describe('openyida ai command helpers', () => {
@@ -48,10 +48,13 @@ describe('openyida ai command helpers', () => {
     originalFetch = global.fetch;
     jest.clearAllMocks();
     utils.findProjectRoot.mockReturnValue(tmpDir);
-    utils.loadCookieData.mockReturnValue({
+    utils.loadAuthData.mockReturnValue({
       csrf_token: authRef.csrfToken,
-      cookies: authRef.cookies,
       base_url: authRef.baseUrl,
+      auth_mode: 'token',
+      auth_source: 'token',
+      corp_id: 'corp-1',
+      user_id: 'user-1',
     });
   });
 
@@ -104,10 +107,9 @@ describe('openyida ai command helpers', () => {
 
     expect(result).toMatchObject({ success: true, content: 'true' });
     expect(utils.httpPost).toHaveBeenCalledTimes(1);
-    const [baseUrl, requestPath, postData, cookies] = utils.httpPost.mock.calls[0];
+    const [baseUrl, requestPath, postData] = utils.httpPost.mock.calls[0];
     expect(baseUrl).toBe('https://demo.aliwork.com');
     expect(requestPath).toBe('/query/intelligent/txtFromAI.json');
-    expect(cookies).toBe(authRef.cookies);
     expect(querystring.parse(postData)).toMatchObject({
       _csrf_token: 'csrf-token',
       prompt: '检查文本',
@@ -247,8 +249,10 @@ describe('openyida ai command helpers', () => {
     expect(result).toMatchObject({
       csrfToken: 'csrf-token',
       baseUrl: 'https://custom.example.com',
+      authMode: 'token',
+      authSource: 'token',
     });
-    expect(result.cookies).toBe(authRef.cookies);
+    expect(result).not.toHaveProperty('cookies');
   });
 
   test('run returns help and unknown subcommands without process.exit', async () => {
@@ -259,7 +263,7 @@ describe('openyida ai command helpers', () => {
 
     try {
       await expect(run(['--help'])).resolves.toEqual({ help: true });
-      expect(utils.loadCookieData).not.toHaveBeenCalled();
+      expect(utils.loadAuthData).not.toHaveBeenCalled();
 
       await expect(run(['missing'])).rejects.toMatchObject({
         isCliError: true,

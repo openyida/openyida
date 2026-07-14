@@ -1,9 +1,12 @@
 'use strict';
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(() => ({
+  loadAuthData: jest.fn(() => ({
+    auth_mode: 'token',
+    auth_source: 'token',
+    corp_id: 'corp-1',
+    user_id: 'user-1',
     csrf_token: 'csrf-token',
-    cookies: [],
     base_url: 'https://example.com',
   })),
   triggerLogin: jest.fn(),

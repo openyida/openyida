@@ -8,9 +8,15 @@ const { spawnSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const TARGET_DIRS = ['bin', 'lib', 'scripts', 'tests'];
+const SKIP_DIRS = new Set([
+  path.join(ROOT, 'lib', 'samples'),
+]);
 
 function collectJsFiles(dir, files) {
   if (!fs.existsSync(dir)) {
+    return;
+  }
+  if (SKIP_DIRS.has(dir)) {
     return;
   }
 

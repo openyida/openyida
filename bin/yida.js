@@ -211,6 +211,38 @@ function handleFirstRunGuide() {
   console.log('');
 }
 
+const TOKEN_OUTPUT_SECRET_KEYS = new Set([
+  'access_token',
+  'accessToken',
+  'refresh_token',
+  'refreshToken',
+  'ai_app_user_auth_token',
+  'aiAppUserAuthToken',
+  'tianshu_csrf_token',
+  'tianshuCsrfToken',
+  'csrf_token',
+  'csrfToken',
+]);
+
+function maskSensitiveAuthOutput(value) {
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+  const { maskToken } = require('../lib/auth/token-store');
+  if (Array.isArray(value)) {
+    return value.map((item) => maskSensitiveAuthOutput(item));
+  }
+  const output = {};
+  Object.entries(value).forEach(([key, item]) => {
+    if (TOKEN_OUTPUT_SECRET_KEYS.has(key)) {
+      output[key] = maskToken(item);
+    } else {
+      output[key] = maskSensitiveAuthOutput(item);
+    }
+  });
+  return output;
+}
+
 function printLoginResult(result) {
   noteLoginCommandResult(result);
 
@@ -224,49 +256,21 @@ function printLoginResult(result) {
     return;
   }
 
-  if (result && (result.status === 'need_qr_scan' || result.status === 'need_corp_selection')) {
-    console.log(JSON.stringify(result));
-    return;
-  }
-
-  if (result && result.status === 'need_codex_browser_login') {
-    const handoff = {
-      status: result.status,
-      handoff_type: result.handoff_type || 'browser',
-      can_auto_use: false,
-      browser: result.browser,
-      login_url: result.login_url,
-      message: result.message,
-    };
-    [
-      'agent_action',
-      'browser_open_strategy',
-      'browser_use_local_redirect_fallback',
-      'required_agent_tool',
-      'required_runtime_tool',
-      'cookie_export_file',
-      'cookie_file',
-      'post_login_check_command',
-      'fallback_command',
-    ].forEach((key) => {
-      if (result[key]) {handoff[key] = result[key];}
-    });
-    console.log(JSON.stringify(handoff));
-    return;
-  }
-
-  if (result.status && result.status !== 'ok' && !result.csrf_token) {
-    console.log(JSON.stringify(result));
-    return;
-  }
-
+  const tokenUsable = result.can_auto_use !== false && !!result.access_token;
   const summary = {
-    ok: true,
-    base_url: result && result.base_url,
-    corp_id: result && result.corp_id,
-    user_id: result && result.user_id,
-    csrf_token: result && result.csrf_token ? `${result.csrf_token.slice(0, 16)}...` : undefined,
-    cookies_count: Array.isArray(result && result.cookies) ? result.cookies.length : (result.cookies_count || 0),
+    ok: tokenUsable,
+    status: result.status || (tokenUsable ? 'ok' : 'token_not_issued'),
+    auth_mode: 'token',
+    can_auto_use: tokenUsable,
+    token_type: result.token_type || 'Bearer',
+    access_token: maskSensitiveAuthOutput({ access_token: result.access_token }).access_token,
+    expires_at: result.expires_at ? new Date(result.expires_at).toISOString() : undefined,
+    base_url: result.base_url,
+    corp_id: result.corp_id,
+    user_id: result.user_id,
+    user_name: result.user_name,
+    message: result.message,
+    raw: tokenUsable ? undefined : result.raw,
   };
   console.log(JSON.stringify(summary));
 }
@@ -277,15 +281,11 @@ function noteLoginCommandResult(result) {
     let status = 'failed';
     let reason = 'login_failed';
 
-    if (result && (result.csrf_token || (result.status === 'ok' && result.can_auto_use))) {
+    const tokenLoginOk = result && result.auth_mode === 'token' &&
+      (result.access_token || (result.status === 'ok' && result.can_auto_use));
+    if (result && (tokenLoginOk || (result.status === 'ok' && result.can_auto_use))) {
       status = 'success';
       reason = 'login_ok';
-    } else if (result && result.status === 'need_qr_scan') {
-      status = 'need_qr_scan';
-      reason = 'need_qr_scan';
-    } else if (result && result.status === 'need_codex_browser_login') {
-      status = 'need_browser_login';
-      reason = 'need_browser_login';
     } else if (result && result.status === 'need_corp_selection') {
       status = 'success';
       reason = 'need_corp_selection';
@@ -304,40 +304,6 @@ function noteLoginCommandResult(result) {
   } catch {
     // Login feedback tracking is best-effort and must not affect CLI output.
   }
-}
-
-function isAgentConversationEnvironment() {
-  const { detectActiveTool } = require('../lib/core/utils');
-  return !!detectActiveTool() || process.env.OPENYIDA_AGENT_MODE === '1';
-}
-
-function shouldUseBrowserHandoffLogin(cliArgs) {
-  if (cliArgs.includes('--qr') || cliArgs.includes('--codex-qr') || cliArgs.includes('--agent-qr')) {return false;}
-  if (cliArgs.includes('--browser') || cliArgs.includes('--codex') || cliArgs.includes('--qoder') || cliArgs.includes('--wukong')) {return true;}
-  return false;
-}
-
-function shouldUseAgentLogin(cliArgs) {
-  if (cliArgs.includes('--qr') || cliArgs.includes('--codex-qr') || cliArgs.includes('--agent-qr')) {return false;}
-  if (shouldUseBrowserHandoffLogin(cliArgs)) {return false;}
-  return isAgentConversationEnvironment();
-}
-
-function shouldUsePlaywrightFallbackInAgentLogin() {
-  const { hasDesktopEnvironment } = require('../lib/core/utils');
-  return hasDesktopEnvironment() || process.env.OPENYIDA_AGENT_PLAYWRIGHT_FALLBACK === '1';
-}
-
-function shouldUseLocalBrowserLogin(options = {}) {
-  const { hasLocalBrowserLoginCapability } = require('../lib/auth/login');
-  return hasLocalBrowserLoginCapability({
-    playwrightFallback: options.playwrightFallback,
-  });
-}
-
-function shouldUseCodexQrLogin(cliArgs) {
-  if (cliArgs.includes('--codex-qr') || cliArgs.includes('--agent-qr')) {return true;}
-  return false;
 }
 
 function getArgValue(cliArgs, name) {
@@ -414,11 +380,9 @@ function applyLoginEnvironmentFlags(cliArgs, options = {}) {
     '--intranet': 'alibaba',
   };
   const valuePassthroughFlags = new Set([
-    '--agent-poll',
-    '--codex-poll',
-    '--agent-select',
-    '--codex-select',
     '--corp-id',
+    '--client-id',
+    '--user-id',
   ]);
   const targetUrlFlags = new Set([
     '--endpoint',
@@ -563,129 +527,42 @@ async function main() {
     }
 
     case 'login': {
-      const { checkLoginOnly } = require('../lib/auth/login');
       const loginArgs = applyLoginEnvironmentFlags(args, { inferTargetUrl: true });
-      const { isEnvAuthMode } = require('../lib/core/utils');
-      if (loginArgs.includes('--agent-poll') || loginArgs.includes('--codex-poll')) {
-        const sessionFile = getArgValue(loginArgs, '--agent-poll') || getArgValue(loginArgs, '--codex-poll');
-        const { pollCodexQrLogin } = require('../lib/auth/qr-login');
-        const result = await pollCodexQrLogin(sessionFile, {
-          corpId: getArgValue(loginArgs, '--corp-id'),
-        });
-        printLoginResult(result);
-      } else if (loginArgs.includes('--agent-select') || loginArgs.includes('--codex-select')) {
-        const sessionFile = getArgValue(loginArgs, '--agent-select') || getArgValue(loginArgs, '--codex-select');
-        const { selectCodexQrCorp } = require('../lib/auth/qr-login');
-        const result = await selectCodexQrCorp(sessionFile, {
-          corpId: getArgValue(loginArgs, '--corp-id'),
-        });
-        printLoginResult(result);
-      } else if (loginArgs.includes('--check-only')) {
-        const result = checkLoginOnly({ includeSecrets: loginArgs.includes('--with-cookies') });
-        console.log(JSON.stringify(result, null, 2));
-      } else if (isEnvAuthMode()) {
-        const result = checkLoginOnly({ includeSecrets: true });
-        printLoginResult(result);
-      } else if (shouldUseCodexQrLogin(loginArgs)) {
-        const { startCodexQrLogin } = require('../lib/auth/qr-login');
-        const result = await startCodexQrLogin({ corpId: getArgValue(loginArgs, '--corp-id') });
-        printLoginResult(result);
-      } else if (loginArgs.includes('--browser')) {
-        const { interactiveLogin } = require('../lib/auth/login');
-        const result = interactiveLogin({ force: true });
-        printLoginResult(result);
-      } else if (loginArgs.includes('--qoder') || loginArgs.includes('--wukong')) {
-        const { codexLogin } = require('../lib/auth/codex-login');
-        const result = await codexLogin({ tool: loginArgs.includes('--qoder') ? 'qoder' : 'wukong' });
-        printLoginResult(result);
-      } else if (loginArgs.includes('--qr')) {
-        const { qrLogin } = require('../lib/auth/qr-login');
-        const result = await qrLogin({ corpId: getArgValue(loginArgs, '--corp-id') });
-        printLoginResult(result);
-      } else if (shouldUseAgentLogin(loginArgs)) {
-        const cachedResult = checkLoginOnly({ includeSecrets: true });
-        if (cachedResult.status === 'ok') {
-          printLoginResult(cachedResult);
-        } else {
-          const { interactiveLogin } = require('../lib/auth/login');
-          const playwrightFallback = shouldUsePlaywrightFallbackInAgentLogin();
-          const browserResult = shouldUseLocalBrowserLogin({ playwrightFallback })
-            ? interactiveLogin({ playwrightFallback })
-            : null;
-          if (browserResult) {
-            printLoginResult(browserResult);
-          } else {
-            const { startCodexQrLogin } = require('../lib/auth/qr-login');
-            const result = await startCodexQrLogin({ corpId: getArgValue(loginArgs, '--corp-id') });
-            printLoginResult(result);
-          }
-        }
-      } else if (shouldUseBrowserHandoffLogin(loginArgs)) {
-        const cachedResult = checkLoginOnly({ includeSecrets: true });
-        if (cachedResult.status === 'ok') {
-          printLoginResult(cachedResult);
-        } else {
-          const { codexLogin } = require('../lib/auth/codex-login');
-          const result = await codexLogin({ tool: loginArgs.includes('--codex') ? 'codex' : undefined });
-          printLoginResult(result);
-        }
+      const { tokenLogin, tokenStatus } = require('../lib/auth/token-auth');
+      if (loginArgs.includes('--check-only')) {
+        console.log(JSON.stringify(tokenStatus(), null, 2));
       } else {
-        const cachedResult = checkLoginOnly({ includeSecrets: true });
-        if (cachedResult.status === 'ok') {
-          printLoginResult(cachedResult);
-          break;
-        }
-        if (shouldUseLocalBrowserLogin({ playwrightFallback: true })) {
-          const { interactiveLogin } = require('../lib/auth/login');
-          const browserResult = interactiveLogin({ playwrightFallback: true });
-          if (browserResult) {
-            printLoginResult(browserResult);
-            break;
-          }
-        }
-        const { qrLogin } = require('../lib/auth/qr-login');
-        const result = await qrLogin({ corpId: getArgValue(loginArgs, '--corp-id') });
+        const result = await tokenLogin({
+          clientId: getArgValue(loginArgs, '--client-id'),
+          quiet: loginArgs.includes('--quiet'),
+        });
         printLoginResult(result);
       }
       break;
     }
 
     case 'logout': {
-      const { logout } = require('../lib/auth/login');
-      logout();
+      const { tokenLogout } = require('../lib/auth/token-auth');
+      console.log(JSON.stringify(await tokenLogout(), null, 2));
       break;
     }
 
     case 'auth': {
       const subCommand = args[0];
-      const { authStatus, authLogin, authRefresh, authLogout } = require('../lib/auth/auth');
-
+      const authArgs = applyLoginEnvironmentFlags(args.slice(1), { inferTargetUrl: true });
+      const { tokenLogin, tokenLogout, tokenRefresh, tokenStatus } = require('../lib/auth/token-auth');
       if (subCommand === 'status') {
-        authStatus();
+        console.log(JSON.stringify(tokenStatus(), null, 2));
       } else if (subCommand === 'login') {
-        const authArgs = applyLoginEnvironmentFlags(args.slice(1), { inferTargetUrl: true });
-        let loginType = 'qrcode';
-        if (authArgs.includes('--codex')) {
-          loginType = 'codex';
-        } else if (authArgs.includes('--qoder')) {
-          loginType = 'qoder';
-        } else if (authArgs.includes('--wukong')) {
-          loginType = 'wukong';
-        } else if (authArgs.includes('--browser')) {
-          loginType = 'browser';
-        }
-        const result = await authLogin({
-          type: loginType,
-          corpId: getArgValue(authArgs, '--corp-id'),
-          forceTerminalQr: authArgs.includes('--qr'),
+        const result = await tokenLogin({
+          clientId: getArgValue(authArgs, '--client-id'),
+          quiet: authArgs.includes('--quiet'),
         });
-        if (result) {
-          printLoginResult(result);
-        }
+        printLoginResult(result);
       } else if (subCommand === 'refresh') {
-        authRefresh();
+        console.log(JSON.stringify(maskSensitiveAuthOutput(await tokenRefresh()), null, 2));
       } else if (subCommand === 'logout') {
-        authLogout();
+        console.log(JSON.stringify(await tokenLogout(), null, 2));
       } else {
         throwCliUsage(t('cli.auth_usage'), t('cli.auth_example'));
       }
@@ -693,34 +570,9 @@ async function main() {
     }
 
     case 'org': {
-      const subCommand = args[0];
-      const { listOrganizations, switchOrganization, interactiveSwitch } = require('../lib/auth/org');
-      const { loadCookieData } = require('../lib/core/utils');
-
-      if (subCommand === 'list') {
-        const cookieData = loadCookieData();
-        if (!cookieData || !cookieData.cookies) {
-          throwNeedLogin(t('org.no_login'));
-        }
-        await listOrganizations(cookieData);
-      } else if (subCommand === 'switch') {
-        const cookieData = loadCookieData();
-        if (!cookieData || !cookieData.cookies) {
-          throwNeedLogin(t('org.no_login'));
-        }
-
-        // 解析 --corp-id 参数
-        const corpIdIndex = args.indexOf('--corp-id');
-        if (corpIdIndex !== -1 && args[corpIdIndex + 1]) {
-          const targetCorpId = args[corpIdIndex + 1];
-          await switchOrganization(targetCorpId, cookieData);
-        } else {
-          // 交互式选择
-          await interactiveSwitch(cookieData);
-        }
-      } else {
-        throwCliUsage(t('cli.org_usage'), t('cli.org_example'));
-      }
+      const orgArgs = applyLoginEnvironmentFlags(args, { inferTargetUrl: true });
+      const { run } = require('../lib/auth/org');
+      await run(orgArgs);
       break;
     }
 

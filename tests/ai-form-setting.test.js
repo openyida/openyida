@@ -6,7 +6,7 @@ const path = require('path');
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
@@ -26,14 +26,18 @@ const {
   run,
 } = require('../lib/process/ai-form-setting');
 
-const mockCookieData = {
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
   csrf_token: 'csrf-token',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf-token' }],
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
   utils.httpPostJson.mockResolvedValue({ success: true, content: { version: 3 } });
   process.env.YIDA_QUIET = '1';
 });
@@ -172,8 +176,7 @@ describe('ai-form-setting run', () => {
     expect(utils.httpPost).toHaveBeenCalledWith(
       'https://www.aliwork.com',
       '/APP_XXX/query/aiApprove/updateAIApproveStatus.json',
-      expect.stringContaining('status=AUTO'),
-      mockCookieData.cookies
+      expect.stringContaining('status=AUTO')
     );
     const postData = utils.httpPost.mock.calls[0][2];
     expect(querystring.parse(postData)).toMatchObject({
@@ -218,7 +221,6 @@ describe('ai-form-setting run', () => {
         'https://www.aliwork.com',
         '/APP_XXX/query/aiApprove/saveOrUpdateAIApproveConfig.json?_csrf_token=csrf-token',
         expect.objectContaining({ formUuid: 'FORM_XXX' }),
-        mockCookieData.cookies,
         {
           csrfToken: 'csrf-token',
           referer: 'https://www.aliwork.com/APP_XXX/admin/FORM_XXX/settings/aiFormSetting',

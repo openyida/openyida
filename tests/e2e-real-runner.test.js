@@ -3,16 +3,11 @@
 const path = require('path');
 
 const {
-  decodeCookieData,
   extractJsonObjects,
   getConfig,
   parseLastJson,
   run,
 } = require('../scripts/e2e-real/runner');
-
-function encodeCookieData(cookieData) {
-  return Buffer.from(JSON.stringify(cookieData), 'utf8').toString('base64');
-}
 
 describe('real E2E runner', () => {
   test('stays opt-in by default', () => {
@@ -21,18 +16,6 @@ describe('real E2E runner', () => {
     expect(config.enabled).toBe(false);
     expect(config.missing).toEqual(['OPENYIDA_E2E=1']);
     expect(config.prefix).toBe('OY_E2E_20260511000000');
-  });
-
-  test('decodes optional cookie payload and applies base url override', () => {
-    const cookieData = decodeCookieData({
-      cookiesBase64: encodeCookieData([{ name: 'sid', value: '1' }]),
-      baseUrl: 'https://example.test',
-    });
-
-    expect(cookieData).toEqual({
-      cookies: [{ name: 'sid', value: '1' }],
-      base_url: 'https://example.test',
-    });
   });
 
   test('extracts the last JSON object from decorated CLI output', () => {
@@ -72,7 +55,6 @@ describe('real E2E runner', () => {
     const result = run({
       env: { OPENYIDA_E2E: '1' },
       config,
-      writeCookieCache: () => {},
       createRegistry: () => ({ registry, registryPath: '/tmp/openyida-e2e-test/OY_E2E_TEST.json' }),
       writeRegistry: () => {},
       addResource: (currentRegistry, registryPath, resource) => {
@@ -93,7 +75,6 @@ describe('real E2E runner', () => {
     expect(result.skipped).toBe(false);
     expect(calls).toEqual([
       ['login', '--check-only', '--json', '--quiet'],
-      ['org', 'switch', '--corp-id', 'ding-test-corp', '--quiet'],
       ['app-list', '--size', '1', '--quiet'],
       ['create-app', 'OY_E2E_TEST_App', '--desc', 'OpenYida real E2E disposable app', '--no-open', '--quiet'],
       ['create-form', 'create', 'APP_E2E', 'OY_E2E_TEST_Form', config.fieldsFile, '--no-open', '--quiet'],

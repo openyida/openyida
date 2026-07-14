@@ -66,27 +66,20 @@ OpenYida detects the active agent environment, workspace path, login state, orga
 openyida login
 ```
 
-In Codex, QoderWork, Qoder, Wukong, Claude Code, MuleRun, OpenCode, Cursor, and other detected AI tools, OpenYida first tries local Chrome/Edge/Chromium CDP when no valid cached login exists. If local CDP is unavailable, it falls back to an AI-dialog QR handoff. The agent should render `qr_image_markdown` or paste `agent_response_markdown` directly in the conversation so the QR code is visible, then run `poll_command` after the user scans it with DingTalk. If image rendering is unavailable, fall back to `qr_url`. The explicit `openyida login --browser` command still prefers CDP first and uses Playwright as an optional browser fallback.
+OpenYida login defaults to OAuth token mode. It opens the DingTalk OAuth authorization page, receives the local loopback callback, exchanges `code` / `authCode` with the Yida server, and stores `access_token` / `refresh_token` in the current project cache.
 
-When the user names a target Yida entry URL, pass it to the login command so OpenYida can select the matching environment and cookie file. For example, Alibaba intranet Yida uses `cookies-alibaba.json`:
+When the user names a target Yida entry URL, pass it to the login command so OpenYida can select the matching environment and token session file. For example, Alibaba intranet Yida uses `auth-token-alibaba.json`:
 
 ```bash
 openyida login https://yida-group.alibaba-inc.com/
 openyida login --alibaba
 ```
 
-The explicit QR polling command remains available:
+For token status checks, use:
 
 ```bash
-openyida login --agent-qr
-```
-
-For terminal QR login, use:
-
-```bash
-openyida login --qr
-openyida login --qr --corp-id dingxxxxxxxx
 openyida login --check-only --json
+openyida auth status
 ```
 
 OpenYida does not install Playwright by default.
@@ -239,7 +232,7 @@ OPENYIDA_E2E=1 OPENYIDA_E2E_FULL_STAGES=auth,app,form,process npm run test:e2e:r
 npm run test:e2e:real:skills
 ```
 
-The runner creates a disposable app, form, and custom page with an `OY_E2E_*` prefix, then verifies login, app listing, schema fetch, data query, and page publish. It writes a registry to `project/.cache/e2e-real/` so created resources can be audited later. To inject CI cookies without relying on a local login cache, pass `OPENYIDA_E2E_COOKIES_BASE64` as a base64 encoded cookie array or `{ "cookies": [...] }` object.
+The runner creates a disposable app, form, and custom page with an `OY_E2E_*` prefix, then verifies token login, app listing, schema fetch, data query, and page publish. It writes a registry to `project/.cache/e2e-real/` so created resources can be audited later. Run `openyida login` for the target environment before starting the real E2E runner.
 
 `test:e2e:real:full` extends the smoke path into a broad deterministic feature matrix: auth/env, app update, form update and option mutation, page build/compile/generate/publish, data create/get/update/query, permission read, page config and short URL check, report create/append, dashboard skill verification, export/import, batch, task-center, formula/doctor/sample/CDN config, and local connector parsing/template generation. AI-backed commands such as `flash-to-prd` are available as the optional `ai` stage because they depend on remote model availability. Workflow mutation is available as the opt-in `process` stage; it creates and republishes a workflow on the disposable E2E form and records advanced official-node fixtures for review.
 
@@ -339,11 +332,11 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida login [target-url] [--qr\|--agent-qr\|--codex\|--browser] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--corp-id <corpId>]` | Login (cache first, --browser or --agent-qr when needed) |
-| `openyida logout` | Logout / switch account |
-| `openyida auth <status\|login\|refresh\|logout>` | Login state management |
-| `openyida org <list\|switch>` | Organization management (list / switch) |
-| `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | Detect AI tool environment & login state |
+| `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>]` | Login with OAuth token mode |
+| `openyida logout` | Logout / clear token |
+| `openyida auth <status\|login\|refresh\|logout>` | Token login state management |
+| `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | Organization management (list / switch by OAuth re-login) |
+| `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | Detect AI tool environment & token login state |
 
 ### App Management
 
@@ -585,9 +578,9 @@ When adding new CLI commands, register the route in `bin/yida.js`, add it to `li
 
 ## Security and Configuration
 
-- Login cookies are cached locally and should never be hard-coded into source files.
+- OAuth token sessions are cached locally and should never be hard-coded into source files.
 - Private deployment environments are managed through `lib/core/env-manager.js`.
-- Yida API requests should use the active environment base URL and authenticated cookies.
+- Yida API requests should use the active environment base URL and Bearer token auth.
 - For multi-organization accounts, prefer explicit `--corp-id` values in non-interactive automation.
 
 ## Community

@@ -134,11 +134,11 @@ describe('bridge HTTP protocol', () => {
         can_auto_use: false,
         diagnostics: {
           projectRoot: '/secret/project',
-          cookieFile: '/secret/cookies.json',
+          tokenFile: '/secret/auth-token-public.json',
           currentEnv: 'public',
-          cookieFileFound: true,
-          csrf_token_found: false,
-          failure_reason: 'cookie_cache_missing',
+          tokenFileFound: true,
+          tokenFound: false,
+          failure_reason: 'not_logged_in',
         },
       }),
       readFeedbackConfig: () => ({
@@ -200,8 +200,8 @@ describe('bridge HTTP protocol', () => {
     expect(JSON.stringify(login.body)).not.toContain('/secret');
     expect(login.body.login.diagnostics).toMatchObject({
       currentEnv: 'public',
-      cookieFileFound: true,
-      csrf_token_found: false,
+      tokenFileFound: true,
+      tokenFound: false,
     });
   });
 
@@ -409,7 +409,7 @@ describe('bridge HTTP protocol', () => {
     expect(loginBody.statusCode).toBe(200);
     expect(loginBody.login.diagnostics).toMatchObject({
       currentEnv: 'public',
-      cookieFileFound: true,
+      tokenFileFound: true,
     });
     expect(JSON.stringify(loginBody)).not.toContain('/secret');
   });

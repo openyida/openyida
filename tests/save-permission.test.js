@@ -3,10 +3,9 @@
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'csrf', corpId: 'corp', userId: 'user' })),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn(),
@@ -19,9 +18,13 @@ jest.mock('../lib/core/i18n', () => ({
 const utils = require('../lib/core/utils');
 const { run } = require('../lib/permission/save-permission');
 
-const mockCookieData = {
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
   csrf_token: 'csrf',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf' }],
 };
 
 describe('save-permission command', () => {
@@ -31,7 +34,7 @@ describe('save-permission command', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    utils.loadCookieData.mockReturnValue(mockCookieData);
+    utils.loadAuthData.mockReturnValue(mockAuthData);
     utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
     mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
     mockError = jest.spyOn(console, 'error').mockImplementation(() => {});

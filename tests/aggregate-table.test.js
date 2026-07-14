@@ -3,7 +3,7 @@
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
@@ -30,14 +30,18 @@ const {
   run,
 } = require('../lib/aggregate-table/aggregate-table');
 
-const mockCookieData = {
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
   csrf_token: 'csrf-token',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf-token' }],
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
   process.env.YIDA_QUIET = '1';
 });
 
@@ -154,8 +158,7 @@ describe('aggregate-table run', () => {
       1,
       'https://www.aliwork.com',
       '/dingtalk/web/APP_XXX/query/virtualview/show.json',
-      expect.stringContaining('_csrf_token=csrf-token'),
-      mockCookieData.cookies
+      expect.stringContaining('_csrf_token=csrf-token')
     );
     const createPostData = utils.httpPost.mock.calls[1][2];
     expect(querystring.parse(createPostData)).toMatchObject({

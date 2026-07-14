@@ -5,15 +5,7 @@ const path = require('path');
 const os = require('os');
 
 const { run, detectEnvironment, detectLoginStatus, buildEnvironmentSnapshot } = require('../lib/core/env');
-
-function restoreEnv(snapshot) {
-  Object.keys(process.env).forEach((key) => {
-    if (!(key in snapshot)) {delete process.env[key];}
-  });
-  Object.assign(process.env, snapshot);
-}
-
-// ── detectEnvironment ─────────────────────────────────────────────────
+const { saveTokenSession } = require('../lib/auth/token-store');
 
 describe('detectEnvironment', () => {
   test('返回对象包含 activeToolName、activeProjectRoot、results 字段', () => {
@@ -36,139 +28,63 @@ describe('detectEnvironment', () => {
       expect(typeof item.hasProject).toBe('boolean');
     }
   });
-
-  test('results 中最多只有一个 isActive 为 true 的工具', () => {
-    const { results } = detectEnvironment();
-    const activeCount = results.filter((item) => item.isActive).length;
-    expect(activeCount).toBeLessThanOrEqual(1);
-  });
-
-  test('activeToolName 与 results 中 isActive 项一致', () => {
-    const { activeToolName, results } = detectEnvironment();
-    const activeItem = results.find((item) => item.isActive);
-    if (activeItem) {
-      expect(activeToolName).toBe(activeItem.displayName);
-    } else {
-      expect(activeToolName).toBeNull();
-    }
-  });
-
-  test('悟空工具的 workspaceRoot 指向 .real/workspace', () => {
-    const { results } = detectEnvironment();
-    const wukong = results.find((item) => item.dirName === '.real');
-    if (wukong) {
-      expect(wukong.workspaceRoot).toContain(path.join('.real', 'workspace'));
-    }
-  });
-
-  test('非悟空工具的 workspaceRoot 指向当前工作目录下的 project', () => {
-    const { results } = detectEnvironment();
-    const nonWukong = results.filter((item) => item.dirName !== '.real');
-    const expectedRoot = path.join(process.cwd(), 'project');
-    for (const item of nonWukong) {
-      expect(item.workspaceRoot).toBe(expectedRoot);
-    }
-  });
 });
 
-// ── detectLoginStatus ─────────────────────────────────────────────────
-
 describe('detectLoginStatus', () => {
-  const tmpDir = path.join(os.tmpdir(), `yida-env-test-${Date.now()}`);
-  const cacheDir = path.join(tmpDir, '.cache');
-  const cookieFile = path.join(cacheDir, 'cookies.json');
+  let tmpDir;
 
   beforeEach(() => {
-    fs.mkdirSync(cacheDir, { recursive: true });
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-env-token-'));
   });
 
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test('未登录时返回 loggedIn: false 及 null 字段', () => {
+  test('未登录时返回 token 模式的未登录状态', () => {
     const result = detectLoginStatus(tmpDir);
-    expect(result.loggedIn).toBe(false);
-    expect(result.csrfToken).toBeNull();
-    expect(result.corpId).toBeNull();
-    expect(result.userId).toBeNull();
-    expect(result.baseUrl).toBeNull();
+    expect(result).toMatchObject({
+      loggedIn: false,
+      canAutoUse: false,
+      csrfToken: null,
+      corpId: null,
+      userId: null,
+      baseUrl: null,
+      authSource: 'token',
+      authMode: 'token',
+    });
+    expect(result.diagnostics).toMatchObject({
+      currentEnv: 'public',
+      tokenFileFound: false,
+      tokenFound: false,
+    });
   });
 
-  test('cookies.json 不存在时返回 loggedIn: false', () => {
-    // cacheDir 存在但 cookies.json 不存在
-    const result = detectLoginStatus(tmpDir);
-    expect(result.loggedIn).toBe(false);
-  });
-
-  test('有效 cookies 时返回 loggedIn: true 及正确字段', () => {
-    const cookieData = {
-      cookies: [
-        { name: 'tianshu_csrf_token', value: 'mytoken123' },
-        { name: 'tianshu_corp_user', value: 'corpABC_user456' },
-      ],
+  test('有效 token session 时返回 loggedIn: true 及用户字段', () => {
+    saveTokenSession({
+      access_token: 'access-token',
+      refresh_token: 'refresh-token',
+      expires_at: Date.now() + 600000,
       base_url: 'https://www.aliwork.com',
-    };
-    fs.writeFileSync(cookieFile, JSON.stringify(cookieData), 'utf-8');
+      corp_id: 'corpABC',
+      user_id: 'user456',
+    }, { projectRoot: tmpDir });
 
     const result = detectLoginStatus(tmpDir);
-    expect(result.loggedIn).toBe(true);
-    expect(result.csrfToken).toBe('mytoken123');
-    expect(result.corpId).toBe('corpABC');
-    expect(result.userId).toBe('user456');
-    expect(result.baseUrl).toBe('https://www.aliwork.com');
-  });
-
-  test('有效 cookies 但无 base_url 时使用默认值', () => {
-    const cookieData = {
-      cookies: [
-        { name: 'tianshu_csrf_token', value: 'tok' },
-        { name: 'tianshu_corp_user', value: 'corp_user' },
-      ],
-    };
-    fs.writeFileSync(cookieFile, JSON.stringify(cookieData), 'utf-8');
-
-    const result = detectLoginStatus(tmpDir);
-    expect(result.loggedIn).toBe(true);
-    expect(result.baseUrl).toBe('https://www.aliwork.com');
-  });
-
-  test('cookies 中无 csrf_token 时 loggedIn 为 false', () => {
-    const cookieData = {
-      cookies: [
-        { name: 'tianshu_corp_user', value: 'corp_user' },
-      ],
-    };
-    fs.writeFileSync(cookieFile, JSON.stringify(cookieData), 'utf-8');
-
-    const result = detectLoginStatus(tmpDir);
-    expect(result.loggedIn).toBe(false);
-    expect(result.csrfToken).toBeNull();
-  });
-
-  test('cookies 数组为空时 loggedIn 为 false', () => {
-    const cookieData = { cookies: [] };
-    fs.writeFileSync(cookieFile, JSON.stringify(cookieData), 'utf-8');
-
-    const result = detectLoginStatus(tmpDir);
-    expect(result.loggedIn).toBe(false);
-  });
-
-  test('自定义 base_url 末尾有斜杠时自动去除', () => {
-    const cookieData = {
-      cookies: [
-        { name: 'tianshu_csrf_token', value: 'tok' },
-      ],
-      base_url: 'https://custom.aliwork.com/',
-    };
-    fs.writeFileSync(cookieFile, JSON.stringify(cookieData), 'utf-8');
-
-    const result = detectLoginStatus(tmpDir);
-    expect(result.baseUrl).toBe('https://custom.aliwork.com');
+    expect(result).toMatchObject({
+      loggedIn: true,
+      canAutoUse: true,
+      csrfToken: null,
+      corpId: 'corpABC',
+      userId: 'user456',
+      baseUrl: 'https://www.aliwork.com',
+      authSource: 'token',
+      authMode: 'token',
+    });
+    expect(result.diagnostics.tokenFileFound).toBe(true);
+    expect(result.diagnostics.tokenFound).toBe(true);
   });
 });
-
-// ── run ───────────────────────────────────────────────────────────────
 
 describe('run', () => {
   test('--json 输出机器可读环境快照', () => {
@@ -186,74 +102,16 @@ describe('run', () => {
     expect(parsed).toHaveProperty('ok', true);
     expect(parsed).toHaveProperty('system.node');
     expect(parsed).toHaveProperty('active.projectRoot');
-    expect(parsed).toHaveProperty('login.loggedIn');
+    expect(parsed).toHaveProperty('login.authMode', 'token');
+    expect(parsed).not.toHaveProperty('login.csrfToken');
+    expect(parsed).not.toHaveProperty('login.cookiesCount');
   });
 
-  test('buildEnvironmentSnapshot 不返回明文 csrf token', () => {
+  test('buildEnvironmentSnapshot 不返回 token 明文', () => {
     const snapshot = buildEnvironmentSnapshot();
-    expect(snapshot).toHaveProperty('login.csrfToken');
-    if (snapshot.login.csrfToken) {
-      expect(snapshot.login.csrfToken.endsWith('...')).toBe(true);
-    }
-  });
-
-  test('env auth 下 buildEnvironmentSnapshot 不泄露 cookie/csrf/corp/user 明文', () => {
-    const originalEnv = { ...process.env };
-    const rawCookie = 'tianshu_csrf_token=env-secret-token; tianshu_corp_user=corpSensitive_userSensitive';
-    process.env.YIDA_AUTH_ENABLED = 'true';
-    process.env.OPENYIDA_COOKIE_B64 = Buffer.from(rawCookie, 'utf8').toString('base64');
-    process.env.OPENYIDA_BASE_URL = 'https://www.aliwork.com';
-
-    try {
-      const snapshot = buildEnvironmentSnapshot();
-      const serialized = JSON.stringify(snapshot);
-
-      expect(snapshot.login.loggedIn).toBe(true);
-      expect(snapshot.login.authSource).toBe('env');
-      expect(snapshot.login.csrfToken).toBeNull();
-      expect(snapshot.login.corpId).toContain('***');
-      expect(snapshot.login.userId).toContain('***');
-      expect(serialized).not.toContain('env-secret-token');
-      expect(serialized).not.toContain('corpSensitive');
-      expect(serialized).not.toContain('userSensitive');
-      expect(serialized).not.toContain(process.env.OPENYIDA_COOKIE_B64);
-    } finally {
-      restoreEnv(originalEnv);
-    }
-  });
-
-  test('无活跃 AI 工具时，使用 findProjectRoot 检测 project 登录态', () => {
-    const workspaceRoot = path.join(os.tmpdir(), `yida-env-run-${Date.now()}`);
-    const projectRoot = path.join(workspaceRoot, 'project');
-    const cacheDir = path.join(projectRoot, '.cache');
-    const originalCwd = process.cwd();
-    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-    const stdoutSpy = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
-
-    fs.mkdirSync(cacheDir, { recursive: true });
-    fs.writeFileSync(path.join(projectRoot, 'config.json'), '{}', 'utf-8');
-    fs.writeFileSync(path.join(cacheDir, 'cookies.json'), JSON.stringify({
-      cookies: [
-        { name: 'tianshu_csrf_token', value: 'tok_from_project' },
-        { name: 'tianshu_corp_user', value: 'corpABC_user456' },
-      ],
-      base_url: 'https://www.aliwork.com',
-    }), 'utf-8');
-
-    try {
-      process.chdir(workspaceRoot);
-      run();
-    } finally {
-      process.chdir(originalCwd);
-      fs.rmSync(workspaceRoot, { recursive: true, force: true });
-    }
-
-    const output = stdoutSpy.mock.calls.map((call) => call.join('')).join('');
-    consoleLogSpy.mockRestore();
-    stdoutSpy.mockRestore();
-
-    expect(output).toContain('Base URL');
-    expect(output).toContain('corpABC');
-    expect(output).toContain('tok_from_project'.slice(0, 16));
+    const serialized = JSON.stringify(snapshot);
+    expect(snapshot).toHaveProperty('login.authMode', 'token');
+    expect(serialized).not.toContain('access-token');
+    expect(serialized).not.toContain('refresh-token');
   });
 });

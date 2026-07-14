@@ -7,79 +7,22 @@ const http = require('http');
 
 // 测试目标模块
 const {
-  extractInfoFromCookies,
   resolveBaseUrl,
   isLoginExpired,
   isCsrfTokenExpired,
-  loadCookieData,
+  loadAuthData,
   detectActiveTool,
   hasDesktopEnvironment,
   resolveWukongWorkspaceRoot,
   httpPost,
   httpPostJson,
   httpGet,
+  requestWithAutoLogin,
 } = require('../lib/core/utils');
 
-// ── extractInfoFromCookies ────────────────────────────────────────────
-
-describe('extractInfoFromCookies', () => {
-  test('正常提取 csrfToken、corpId、userId', () => {
-    const cookies = [
-      { name: 'tianshu_csrf_token', value: 'abc123' },
-      { name: 'tianshu_corp_user', value: 'dingCorpId_userId999' },
-    ];
-    const result = extractInfoFromCookies(cookies);
-    expect(result.csrfToken).toBe('abc123');
-    expect(result.corpId).toBe('dingCorpId');
-    expect(result.userId).toBe('userId999');
-  });
-
-  test('corpId 中包含多个下划线时，以最后一个为分隔符', () => {
-    const cookies = [
-      { name: 'tianshu_corp_user', value: 'corp_with_underscores_userId' },
-    ];
-    const result = extractInfoFromCookies(cookies);
-    expect(result.corpId).toBe('corp_with_underscores');
-    expect(result.userId).toBe('userId');
-  });
-
-  test('缺少 csrf_token 时返回 null', () => {
-    const cookies = [
-      { name: 'tianshu_corp_user', value: 'corpId_userId' },
-    ];
-    const result = extractInfoFromCookies(cookies);
-    expect(result.csrfToken).toBeNull();
-    expect(result.corpId).toBe('corpId');
-  });
-
-  test('兼容云版注入的 csrf/corp/user cookie 名称', () => {
-    const cookies = [
-      { name: 'china_csrf_token', value: 'china-token' },
-      { name: 'corpId', value: 'corp-cloud' },
-      { name: 'staffId', value: 'user-cloud' },
-    ];
-    const result = extractInfoFromCookies(cookies);
-    expect(result.csrfToken).toBe('china-token');
-    expect(result.corpId).toBe('corp-cloud');
-    expect(result.userId).toBe('user-cloud');
-  });
-
-  test('空数组时全部返回 null', () => {
-    const result = extractInfoFromCookies([]);
-    expect(result.csrfToken).toBeNull();
-    expect(result.corpId).toBeNull();
-    expect(result.userId).toBeNull();
-  });
-
-  test('tianshu_corp_user 无下划线时 corpId 和 userId 均为 null', () => {
-    const cookies = [
-      { name: 'tianshu_corp_user', value: 'nounderscore' },
-    ];
-    const result = extractInfoFromCookies(cookies);
-    expect(result.corpId).toBeNull();
-    expect(result.userId).toBeNull();
-  });
-});
+jest.mock('../lib/auth/token-auth', () => ({
+  getAccessToken: jest.fn(() => 'test-access-token'),
+}));
 
 // ── hasDesktopEnvironment ─────────────────────────────────────────────
 
@@ -106,21 +49,21 @@ describe('hasDesktopEnvironment', () => {
 // ── resolveBaseUrl ────────────────────────────────────────────────────
 
 describe('resolveBaseUrl', () => {
-  test('从 cookieData 中读取 base_url 并去除末尾斜杠', () => {
-    const cookieData = { base_url: 'https://www.aliwork.com/' };
-    expect(resolveBaseUrl(cookieData)).toBe('https://www.aliwork.com');
+  test('从 authData 中读取 base_url 并去除末尾斜杠', () => {
+    const authData = { base_url: 'https://www.aliwork.com/' };
+    expect(resolveBaseUrl(authData)).toBe('https://www.aliwork.com');
   });
 
   test('base_url 无末尾斜杠时原样返回', () => {
-    const cookieData = { base_url: 'https://www.aliwork.com' };
-    expect(resolveBaseUrl(cookieData)).toBe('https://www.aliwork.com');
+    const authData = { base_url: 'https://www.aliwork.com' };
+    expect(resolveBaseUrl(authData)).toBe('https://www.aliwork.com');
   });
 
-  test('cookieData 为 null 时返回默认值', () => {
+  test('authData 为 null 时返回默认值', () => {
     expect(resolveBaseUrl(null)).toBe('https://www.aliwork.com');
   });
 
-  test('cookieData 无 base_url 时返回默认值', () => {
+  test('authData 无 base_url 时返回默认值', () => {
     expect(resolveBaseUrl({})).toBe('https://www.aliwork.com');
   });
 
@@ -129,8 +72,8 @@ describe('resolveBaseUrl', () => {
   });
 
   test('去除多个末尾斜杠', () => {
-    const cookieData = { base_url: 'https://www.aliwork.com///' };
-    expect(resolveBaseUrl(cookieData)).toBe('https://www.aliwork.com');
+    const authData = { base_url: 'https://www.aliwork.com///' };
+    expect(resolveBaseUrl(authData)).toBe('https://www.aliwork.com');
   });
 
   test('登录缓存中的实际 base_url 优先于内置非默认环境域名', () => {
@@ -140,8 +83,8 @@ describe('resolveBaseUrl', () => {
     delete process.env.OPENYIDA_ENDPOINT;
 
     try {
-      const cookieData = { base_url: 'https://yida-aliyun.alibaba-inc.com/home' };
-      expect(resolveBaseUrl(cookieData)).toBe('https://yida-aliyun.alibaba-inc.com');
+      const authData = { base_url: 'https://yida-aliyun.alibaba-inc.com/home' };
+      expect(resolveBaseUrl(authData)).toBe('https://yida-aliyun.alibaba-inc.com');
     } finally {
       if (originalEnv === undefined) {
         delete process.env.OPENYIDA_ENV;
@@ -233,9 +176,7 @@ describe('http redirect login detection', () => {
     const port = await listen(server);
 
     try {
-      const result = await httpPost(`http://127.0.0.1:${port}`, '/bad', '', [
-        { name: 'tianshu_csrf_token', value: 'tok' },
-      ], { silentStatus: true });
+      const result = await httpPost(`http://127.0.0.1:${port}`, '/bad', '', { silentStatus: true });
 
       expect(result).toMatchObject({
         __needLogin: true,
@@ -256,9 +197,7 @@ describe('http redirect login detection', () => {
     const port = await listen(server);
 
     try {
-      const result = await httpGet(`http://127.0.0.1:${port}`, '/bad', { a: 1 }, [
-        { name: 'tianshu_csrf_token', value: 'tok' },
-      ], { silentStatus: true });
+      const result = await httpGet(`http://127.0.0.1:${port}`, '/bad', { a: 1 }, { silentStatus: true });
 
       expect(result).toMatchObject({
         __needLogin: true,
@@ -278,9 +217,7 @@ describe('http redirect login detection', () => {
     const port = await listen(server);
 
     try {
-      const result = await httpGet(`http://127.0.0.1:${port}`, '/bad', { a: 1 }, [
-        { name: 'tianshu_csrf_token', value: 'tok' },
-      ], { silentStatus: true });
+      const result = await httpGet(`http://127.0.0.1:${port}`, '/bad', { a: 1 }, { silentStatus: true });
 
       expect(result).toMatchObject({
         __needLogin: true,
@@ -299,9 +236,7 @@ describe('http redirect login detection', () => {
     const port = await listen(server);
 
     try {
-      const result = await httpPostJson(`http://127.0.0.1:${port}`, '/bad', {}, [
-        { name: 'tianshu_csrf_token', value: 'tok' },
-      ], { silentStatus: true });
+      const result = await httpPostJson(`http://127.0.0.1:${port}`, '/bad', {}, { silentStatus: true });
 
       expect(result).toMatchObject({
         __needLogin: true,
@@ -316,218 +251,95 @@ describe('http redirect login detection', () => {
 // ── requestWithAutoLogin ──────────────────────────────────────────────
 
 describe('requestWithAutoLogin', () => {
-  function loadUtilsWithLoginMock(loginMock) {
-    jest.resetModules();
-    jest.doMock('../lib/core/i18n', () => ({
-      t: (key, ...args) => (args.length ? `${key}: ${args.join(', ')}` : key),
-    }));
-    jest.doMock('../lib/core/chalk', () => ({
-      warn: jest.fn(),
-    }));
-    jest.doMock('../lib/auth/login', () => loginMock);
-    return require('../lib/core/utils');
-  }
+  test('csrf 失败在 token-only 模式下直接返回明确错误', async () => {
+    const requestFn = jest.fn().mockResolvedValueOnce({ __csrfExpired: true });
 
-  afterEach(() => {
-    jest.dontMock('../lib/core/i18n');
-    jest.dontMock('../lib/core/chalk');
-    jest.dontMock('../lib/auth/login');
-    jest.resetModules();
-  });
-
-  test('登录失效时强制跳过缓存重新登录并重试一次', async () => {
-    const newCookieData = {
-      csrf_token: 'fresh-token',
-      cookies: [{ name: 'tianshu_csrf_token', value: 'fresh-token' }],
-      base_url: 'https://fresh.aliwork.com',
-    };
-    const ensureLogin = jest.fn(() => newCookieData);
-    const utils = loadUtilsWithLoginMock({
-      ensureLogin,
-      refreshCsrfFromCache: jest.fn(),
-    });
-
-    const authRef = {
-      csrfToken: 'old-token',
-      cookies: [{ name: 'tianshu_csrf_token', value: 'old-token' }],
+    const result = await requestWithAutoLogin(requestFn, {
+      csrfToken: 'openyida_cli_bearer',
       baseUrl: 'https://www.aliwork.com',
-    };
-    const requestFn = jest.fn()
-      .mockResolvedValueOnce({ __needLogin: true })
-      .mockResolvedValueOnce({ success: true });
-
-    const result = await utils.requestWithAutoLogin(requestFn, authRef);
-
-    expect(ensureLogin).toHaveBeenCalledWith({ force: true });
-    expect(requestFn).toHaveBeenCalledTimes(2);
-    expect(authRef.csrfToken).toBe('fresh-token');
-    expect(authRef.cookies).toBe(newCookieData.cookies);
-    expect(authRef.baseUrl).toBe('https://fresh.aliwork.com');
-    expect(result).toEqual({ success: true });
-  });
-
-  test('csrf 刷新失败时升级为强制重新登录', async () => {
-    const newCookieData = {
-      csrf_token: 'fresh-token',
-      cookies: [{ name: 'tianshu_csrf_token', value: 'fresh-token' }],
-      base_url: 'https://www.aliwork.com',
-    };
-    const ensureLogin = jest.fn(() => newCookieData);
-    const refreshCsrfFromCache = jest.fn(() => null);
-    const utils = loadUtilsWithLoginMock({
-      ensureLogin,
-      refreshCsrfFromCache,
-    });
-    const requestFn = jest.fn()
-      .mockResolvedValueOnce({ __csrfExpired: true })
-      .mockResolvedValueOnce({ success: true });
-
-    const result = await utils.requestWithAutoLogin(requestFn, {
-      csrfToken: 'old-token',
-      cookies: [{ name: 'tianshu_csrf_token', value: 'old-token' }],
-      baseUrl: 'https://www.aliwork.com',
+      authMode: 'token',
+      authSource: 'token',
     });
 
-    expect(refreshCsrfFromCache).toHaveBeenCalledTimes(1);
-    expect(ensureLogin).toHaveBeenCalledWith({ force: true });
-    expect(requestFn).toHaveBeenCalledTimes(2);
-    expect(result).toEqual({ success: true });
-  });
-
-  test('强制重新登录失败时返回明确失败结果，不再用旧 Cookie 重试', async () => {
-    const ensureLogin = jest.fn(() => null);
-    const utils = loadUtilsWithLoginMock({
-      ensureLogin,
-      refreshCsrfFromCache: jest.fn(),
-    });
-    const requestFn = jest.fn().mockResolvedValueOnce({ __needLogin: true });
-
-    const result = await utils.requestWithAutoLogin(requestFn, {
-      csrfToken: 'old-token',
-      cookies: [{ name: 'tianshu_csrf_token', value: 'old-token' }],
-      baseUrl: 'https://www.aliwork.com',
-    });
-
-    expect(ensureLogin).toHaveBeenCalledWith({ force: true });
     expect(requestFn).toHaveBeenCalledTimes(1);
     expect(result).toMatchObject({
       success: false,
       __needLogin: true,
+      errorCode: 'TOKEN_AUTH_REQUIRED',
     });
   });
 
-  test('YIDA_AUTH_ENABLED=true 时登录失效不触发交互式重新登录', async () => {
-    const originalYidaAuthEnabled = process.env.YIDA_AUTH_ENABLED;
-    process.env.YIDA_AUTH_ENABLED = 'true';
+  test('登录失效且 refresh 失败时不回退到 cookie 登录', async () => {
+    jest.resetModules();
+    const tokenRefresh = jest.fn(() => {
+      throw new Error('refresh failed');
+    });
+    jest.doMock('../lib/auth/token-auth', () => ({ tokenRefresh }));
+    const utils = require('../lib/core/utils');
+    const requestFn = jest.fn().mockResolvedValueOnce({ __needLogin: true });
 
-    try {
-      const ensureLogin = jest.fn(() => {
-        throw new Error('should not call ensureLogin in injected auth mode');
-      });
-      const utils = loadUtilsWithLoginMock({
-        ensureLogin,
-        refreshCsrfFromCache: jest.fn(),
-      });
-      const requestFn = jest.fn().mockResolvedValueOnce({ __needLogin: true });
+    const result = await utils.requestWithAutoLogin(requestFn, {
+      csrfToken: 'openyida_cli_bearer',
+      baseUrl: 'https://www.aliwork.com',
+      authMode: 'token',
+      authSource: 'token',
+    });
 
-      const result = await utils.requestWithAutoLogin(requestFn, {
-        csrfToken: 'old-token',
-        cookies: [{ name: 'tianshu_csrf_token', value: 'old-token' }],
-        baseUrl: 'https://www.aliwork.com',
-      });
-
-      expect(ensureLogin).not.toHaveBeenCalled();
-      expect(requestFn).toHaveBeenCalledTimes(1);
-      expect(result).toMatchObject({
-        success: false,
-        __needLogin: true,
-        errorCode: 'INJECTED_AUTH_REQUIRED',
-      });
-      expect(result.errorMsg).toContain('not_logged_in');
-    } finally {
-      if (originalYidaAuthEnabled === undefined) {
-        delete process.env.YIDA_AUTH_ENABLED;
-      } else {
-        process.env.YIDA_AUTH_ENABLED = originalYidaAuthEnabled;
-      }
-    }
+    expect(tokenRefresh).toHaveBeenCalledTimes(1);
+    expect(requestFn).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({
+      success: false,
+      __needLogin: true,
+      errorCode: 'TOKEN_AUTH_REQUIRED',
+    });
+    jest.dontMock('../lib/auth/token-auth');
+    jest.resetModules();
   });
 });
 
-// ── loadCookieData ────────────────────────────────────────────────────
+// ── loadAuthData ──────────────────────────────────────────────────────
 
-describe('loadCookieData', () => {
-  const tmpDir = path.join(os.tmpdir(), `yida-test-${Date.now()}`);
-  const cacheDir = path.join(tmpDir, '.cache');
-  const cookieFile = path.join(cacheDir, 'cookies.json');
+describe('loadAuthData', () => {
+  let tmpDir;
 
   beforeEach(() => {
-    fs.mkdirSync(cacheDir, { recursive: true });
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-utils-'));
   });
 
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test('读取数组格式的 cookies.json', () => {
-    const cookies = [
-      { name: 'tianshu_csrf_token', value: 'token123' },
-      { name: 'tianshu_corp_user', value: 'corpA_user1' },
-    ];
-    fs.writeFileSync(cookieFile, JSON.stringify(cookies), 'utf-8');
-
-    const result = loadCookieData(tmpDir);
-    expect(result).not.toBeNull();
-    expect(result.csrf_token).toBe('token123');
-    expect(result.corp_id).toBe('corpA');
-    expect(result.user_id).toBe('user1');
-    expect(result.base_url).toBe('https://www.aliwork.com');
-  });
-
-  test('读取对象格式的 cookies.json（含 base_url）', () => {
-    const data = {
-      cookies: [{ name: 'tianshu_csrf_token', value: 'mytoken' }],
-      base_url: 'https://custom.aliwork.com',
-    };
-    fs.writeFileSync(cookieFile, JSON.stringify(data), 'utf-8');
-
-    const result = loadCookieData(tmpDir);
-    expect(result.csrf_token).toBe('mytoken');
-    expect(result.base_url).toBe('https://custom.aliwork.com');
-  });
-
-  test('读取云版注入格式时使用顶层 csrf/corp/user 字段', () => {
-    const data = {
-      cookies: [{ name: 'sid', value: 'cookie-only' }],
-      csrf_token: 'top-level-token',
-      corp_id: 'corp-top',
-      user_id: 'user-top',
+  test('读取 token session 并返回 authRef 可用结构', () => {
+    const { saveTokenSession } = require('../lib/auth/token-store');
+    saveTokenSession({
+      access_token: 'access-token',
+      refresh_token: 'refresh-token',
+      expires_at: Date.now() + 600000,
       base_url: 'https://www.aliwork.com',
-    };
-    fs.writeFileSync(cookieFile, JSON.stringify(data), 'utf-8');
+      corp_id: 'corpA',
+      user_id: 'user1',
+    }, { projectRoot: tmpDir });
 
-    const result = loadCookieData(tmpDir);
-    expect(result.csrf_token).toBe('top-level-token');
-    expect(result.corp_id).toBe('corp-top');
-    expect(result.user_id).toBe('user-top');
-    expect(result.cookies).toContainEqual({ name: 'tianshu_csrf_token', value: 'top-level-token' });
+    const result = loadAuthData(tmpDir);
+    expect(result).toMatchObject({
+      csrf_token: 'openyida_cli_bearer',
+      corp_id: 'corpA',
+      user_id: 'user1',
+      base_url: 'https://www.aliwork.com',
+      auth_source: 'token',
+      auth_mode: 'token',
+    });
   });
 
-  test('文件不存在时返回 null', () => {
-    const result = loadCookieData(tmpDir);
-    expect(result).toBeNull();
-  });
+  test('没有 token session 时返回 null，不读取旧 cookies.json', () => {
+    const cacheDir = path.join(tmpDir, '.cache');
+    fs.mkdirSync(cacheDir, { recursive: true });
+    fs.writeFileSync(path.join(cacheDir, 'cookies.json'), JSON.stringify([
+      { name: 'tianshu_csrf_token', value: 'unsafe-cookie-token' },
+    ]), 'utf-8');
 
-  test('文件内容为空时返回 null', () => {
-    fs.writeFileSync(cookieFile, '', 'utf-8');
-    const result = loadCookieData(tmpDir);
-    expect(result).toBeNull();
-  });
-
-  test('文件内容为非法 JSON 时返回 null', () => {
-    fs.writeFileSync(cookieFile, 'not-json', 'utf-8');
-    const result = loadCookieData(tmpDir);
-    expect(result).toBeNull();
+    expect(loadAuthData(tmpDir)).toBeNull();
   });
 });
 

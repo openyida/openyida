@@ -52,12 +52,6 @@ function createTempProject(options = {}) {
     }
   }
 
-  if (options.cookies) {
-    const cacheDir = path.join(tmpDir, '.cache');
-    fs.mkdirSync(cacheDir, { recursive: true });
-    fs.writeFileSync(path.join(cacheDir, 'cookies.json'), JSON.stringify(options.cookies), 'utf-8');
-  }
-
   if (options.errorLogs) {
     const errorLogDir = path.join(tmpDir, '.cache', 'error-logs');
     fs.mkdirSync(errorLogDir, { recursive: true });
@@ -268,7 +262,7 @@ describe('EnvironmentChecker', () => {
     cleanupTempDir(tmpDir);
   });
 
-  test('checkLoginStatus 无 cookies 时报警告', () => {
+  test('checkLoginStatus 无 token session 时报警告', () => {
     const tmpDir = createTempProject();
     const checker = new EnvironmentChecker({ projectRoot: tmpDir });
     const result = checker.checkLoginStatus();
@@ -280,10 +274,18 @@ describe('EnvironmentChecker', () => {
     cleanupTempDir(tmpDir);
   });
 
-  test('checkLoginStatus 有有效 cookies 时通过', () => {
-    const tmpDir = createTempProject({
-      cookies: [{ name: 'tianshu_csrf_token', value: 'token123' }],
-    });
+  test('checkLoginStatus 有有效 token session 时通过', () => {
+    const tmpDir = createTempProject();
+    const { saveTokenSession } = require('../lib/auth/token-store');
+    saveTokenSession({
+      access_token: 'access-token',
+      refresh_token: 'refresh-token',
+      expires_at: Date.now() + 600000,
+      base_url: 'https://www.aliwork.com',
+      corp_id: 'corp-1',
+      user_id: 'user-1',
+      can_auto_use: true,
+    }, { projectRoot: tmpDir });
     const checker = new EnvironmentChecker({ projectRoot: tmpDir });
     const result = checker.checkLoginStatus();
 

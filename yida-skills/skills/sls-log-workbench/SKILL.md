@@ -51,7 +51,7 @@ metadata:
 
 ### 防绕过
 
-- corpId 必须来自 OpenYida 登录态或 Cookie 缓存，不接受用户口述。
+- corpId 必须来自 OpenYida token 登录态，不接受用户口述。
 - 不允许先展示部分信息再校验。
 - 不允许跳过脚本层校验。
 - 所有日志查询必须通过 `sls-query.js`，脚本内部会权威校验 corpId 和口令；模型只判断首词是否存在，不自行判断口令正确性。

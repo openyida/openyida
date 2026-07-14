@@ -5,9 +5,8 @@ const { run } = require('../lib/app/app-list');
 // ── 工具函数 mock ─────────────────────────────────────────────────────
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'tok123', userId: 'user001' })),
   httpGet: jest.fn(),
   triggerLogin: jest.fn(),
   requestWithAutoLogin: jest.fn(),
@@ -19,8 +18,13 @@ jest.mock('../lib/core/i18n', () => ({
 
 const utils = require('../lib/core/utils');
 
-const mockCookieData = {
-  cookies: [{ name: 'tianshu_csrf_token', value: 'tok123', domain: 'www.aliwork.com' }],
+const mockAuthData = {
+  csrf_token: 'openyida_cli_bearer',
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
 };
 
 const makeApp = (overrides = {}) => ({
@@ -32,16 +36,14 @@ const makeApp = (overrides = {}) => ({
 
 const mockAuth = {
   baseUrl: 'https://www.aliwork.com',
-  cookies: mockCookieData.cookies,
   csrfToken: 'tok123',
   userId: 'user001',
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
   utils.resolveBaseUrl.mockReturnValue('https://www.aliwork.com');
-  utils.extractInfoFromCookies.mockReturnValue({ csrfToken: 'tok123', userId: 'user001' });
   // requestWithAutoLogin 默认透传执行 requestFn
   utils.requestWithAutoLogin.mockImplementation((requestFn) => requestFn(mockAuth));
 });
@@ -54,7 +56,7 @@ describe('run() 正常查询', () => {
 
     await run(['--help']);
 
-    expect(utils.loadCookieData).not.toHaveBeenCalled();
+    expect(utils.loadAuthData).not.toHaveBeenCalled();
     expect(mockWrite).toHaveBeenCalledWith(expect.stringContaining('openyida app-list'));
 
     mockWrite.mockRestore();
@@ -159,9 +161,9 @@ describe('run() 空列表', () => {
 // ── 未登录场景 ────────────────────────────────────────────────────────
 
 describe('run() 未登录场景', () => {
-  test('loadCookieData 返回 null 时调用 triggerLogin', async () => {
-    utils.loadCookieData.mockReturnValue(null);
-    utils.triggerLogin.mockReturnValue(mockCookieData);
+  test('loadAuthData 返回 null 时调用 triggerLogin', async () => {
+    utils.loadAuthData.mockReturnValue(null);
+    utils.triggerLogin.mockReturnValue(mockAuthData);
 
     utils.httpGet.mockResolvedValueOnce({
       success: true,

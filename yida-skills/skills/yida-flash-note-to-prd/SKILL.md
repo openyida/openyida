@@ -321,7 +321,7 @@ Prompt 生成后，可无缝衔接宜搭应用开发流程：
 ## 前置依赖
 
 - Node.js ≥ 16
-- 已登录宜搭（`.cache/cookies.json` 存在且有效），用于调用 AI 接口
+- 已登录宜搭（存在有效 `.cache/auth-token-<env>.json`），用于调用 AI 接口
 
 ---
 

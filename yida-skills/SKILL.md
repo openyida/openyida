@@ -8,7 +8,7 @@ description: >
 
 # 宜搭 AI 应用开发指南
 
-通过有 AI Coding 能力的智能体（悟空/Claude/Open Code 等）+ 宜搭低代码平台，实现一句话生成完整应用。所有操作通过 **`openyida`** CLI 统一执行，命令自动读取 `.cache/cookies.json`，Cookie 失效时自动触发登录，无需手动登录。
+通过有 AI Coding 能力的智能体（悟空/Claude/Open Code 等）+ 宜搭低代码平台，实现一句话生成完整应用。所有操作通过 **`openyida`** CLI 统一执行，命令自动读取 `.cache/auth-token-<env>.json`，并在业务请求中携带 `Authorization: Bearer <access_token>`；token 不可用时执行 `openyida login` 重新登录。
 
 ---
 
@@ -37,7 +37,7 @@ description: >
 | `login.status` 不是 `ok` 且 `login.can_auto_use` 不是 true | 未登录 → `openyida login`（指定入口带 URL 或 flag） |
 | `active.projectRootExists` 为 false | 无工作目录 → `openyida copy` 初始化 |
 
-**👉 环境异常、登录失败、悟空降级、Codex handoff 等特殊分支 → [references/setup-and-env.md](references/setup-and-env.md)。正常 `agent-capabilities` 通过时不要默认读取该 reference。**
+**👉 环境异常、登录失败、悟空降级、OAuth token 登录异常等特殊分支 → [references/setup-and-env.md](references/setup-and-env.md)。正常 `agent-capabilities` 通过时不要默认读取该 reference。**
 
 ---
 
@@ -145,7 +145,7 @@ description: >
 ### 致命规则（FATAL，违反即失败/报错）
 
 1. **技能加载唯一入口**：执行任何子技能前，支持 `use_skill` 的宿主必须调用 `use_skill("<技能名>", "<本阶段目的>")` 加载对应技能；不要用 `Read` / `read_file` / `cat` 读取 SKILL.md 路径，不凭记忆猜参数格式。
-2. **corpId 一致性检查**：创建页面前对比 prd 与 `.cache/cookies.json` 的 corpId，不一致必须询问用户（重新登录 or 当前组织新建）。
+2. **corpId 一致性检查**：创建页面前对比 prd 与 token session 中的 corpId，不一致必须询问用户（重新登录 or 当前组织新建）。
 3. **发布前本地校验**：native `.oyd.jsx` / `.jsx` 页面发布前跑 `openyida check-page` + `openyida compile`；Code Canvas `.canvas.jsx` 不跑这两个 native 检查，改由 `openyida publish` 的 Canvas 编译阶段或 `compileCanvasLocal` 快检校验；JSON 配置写盘后先解析校验，再调用平台命令。
 4. **命令输入文件禁止 shell 写入**：当 OpenYida 命令需要 JSON/YAML/CSV/config/script 文件参数时，先使用当前 agent 运行时提供的结构化文件写入工具（如 create_file / Write / file edit tool）创建文件，再把路径传给命令；禁止用 shell heredoc、`cat`/`echo`/`printf`/`tee` 加输出重定向，或把命令 stdout 重定向成业务文件。
 
@@ -183,7 +183,7 @@ description: >
 
 | 文档 | 覆盖范围 | 何时阅读 |
 |------|---------|---------|
-| [环境准备与登录检测](references/setup-and-env.md) | 环境依赖、env 解读、多环境登录、悟空降级、Codex handoff、project 初始化 | 环境异常或登录问题时 |
+| [环境准备与登录检测](references/setup-and-env.md) | 环境依赖、env 解读、多环境 token 登录、悟空降级、project 初始化 | 环境异常或登录问题时 |
 | [核心规则详解](references/development-rules.md) | 成功率清单、PRD 门槛、临时文件、报表美化、corpId | 编写 PRD / 规范执行前 |
 | [字段类型 / URL 规则](references/field-and-url-reference.md) | 表单字段类型速查、应用 URL 拼接规则 | 建表单 / 拼访问链接时 |
 | [宜搭 API](references/yida-api.md) | 宜搭 API 完整参数 | 调用 API 前 |

@@ -44,7 +44,6 @@ function cliEnv() {
     MULERUN_CHAT_ID: '',
     MULE_DATA_DIR: '',
     OPENYIDA_AGENT_MODE: '',
-    YIDA_AUTH_ENABLED: '',
     OPENYIDA_ASSUME_DESKTOP: '',
     OPENYIDA_FORCE_TERMINAL_QR: '',
     __CFBundleIdentifier: '',
@@ -169,7 +168,8 @@ describe('CLI offline smoke', () => {
     const output = runOk(['--help']);
     expect(output).toContain('OpenYida');
     expect(output).toContain('env [--json|setup|list|show|switch|add|remove] [options]');
-    expect(output).toContain('login [target-url] [--qr|--agent-qr|--codex|--browser] [--env <name>|--intl|--overseas|--global|--yidaapps|--alibaba] [--corp-id <corpId>]');
+    expect(output).toContain('login [target-url] [--env <name>|--intl|--overseas|--global|--yidaapps|--alibaba] [--client-id <clientId>] [--endpoint <url>]');
+    expect(output).toContain('org <list|switch> [--json] [--corp-id <corpId>]');
     expect(output).toContain('corp-efficiency');
     expect(output).toContain('create-form');
     expect(output).toContain('list-forms');
@@ -308,6 +308,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('env');
     expect(commands).not.toContain('env-management');
     expect(commands).toContain('login');
+    expect(commands).toContain('org');
     expect(commands).toContain('corp-efficiency');
     expect(commands).toContain('nav-group');
     expect(commands).toContain('create-form.create');
@@ -482,6 +483,14 @@ describe('CLI offline smoke', () => {
       read_actions: expect.arrayContaining(['default', '--json', 'list', 'show']),
       preauthorized_actions: ['setup', 'switch', 'add'],
       ask_actions: ['remove'],
+      unknown_action_mode: 'ask',
+    });
+    expect(commandById.org.permission).toMatchObject({
+      mode: 'allow',
+      effect: 'unknown',
+      action_dependent: true,
+      read_actions: ['list'],
+      preauthorized_actions: ['switch'],
       unknown_action_mode: 'ask',
     });
     expect(commandById.batch.permission).toMatchObject({
@@ -771,8 +780,8 @@ describe('CLI offline smoke', () => {
     expect(parsed).toHaveProperty('active.projectRootExists');
     expect(parsed).toHaveProperty('active.hasConfig');
     expect(parsed).toHaveProperty('login.loggedIn');
-    expect(parsed).toHaveProperty('login.diagnostics.cookieFileFound');
-    expect(parsed).toHaveProperty('login.diagnostics.csrfTokenFound');
+    expect(parsed).toHaveProperty('login.diagnostics.tokenFileFound');
+    expect(parsed).toHaveProperty('login.diagnostics.tokenFound');
     expect(parsed).toHaveProperty('login.diagnostics.corpIdFound');
     expect(parsed).toHaveProperty('login.diagnostics.baseUrlFound');
   });
@@ -785,7 +794,7 @@ describe('CLI offline smoke', () => {
       }, workspace);
       const parsed = JSON.parse(output);
       expect(parsed).toHaveProperty('login.diagnostics.currentEnv', 'intl');
-      expect(parsed.login.diagnostics.configuredCookieFile).toContain('cookies-intl.json');
+      expect(parsed.login.diagnostics.currentEnv).toBe('intl');
     } finally {
       fs.rmSync(workspace, { recursive: true, force: true });
     }
@@ -804,8 +813,8 @@ describe('CLI offline smoke', () => {
       }, workspace);
       const parsed = JSON.parse(output);
       expect(parsed.status).toBe('not_logged_in');
-      expect(parsed.diagnostics.currentEnv).toBe('alibaba');
-      expect(parsed.diagnostics.cookieFile).toContain('cookies-alibaba.json');
+      expect(parsed.auth_mode).toBe('token');
+      expect(parsed.token_file).toContain('auth-token-alibaba.json');
     } finally {
       fs.rmSync(workspace, { recursive: true, force: true });
     }
@@ -824,8 +833,8 @@ describe('CLI offline smoke', () => {
       }, workspace);
       const parsed = JSON.parse(output);
       expect(parsed.status).toBe('not_logged_in');
-      expect(parsed.diagnostics.currentEnv).toBe('intl');
-      expect(parsed.diagnostics.cookieFile).toContain('cookies-intl.json');
+      expect(parsed.auth_mode).toBe('token');
+      expect(parsed.token_file).toContain('auth-token-intl.json');
     } finally {
       fs.rmSync(workspace, { recursive: true, force: true });
     }
@@ -858,438 +867,22 @@ describe('CLI offline smoke', () => {
     }
   });
 
-  test('login falls back to QR handoff in Codex environment when CDP is unavailable and no desktop is present', () => {
+  test('login --check-only reports token status without legacy cookie handoff', () => {
     const workspace = createCodexWorkspace();
     try {
-      const output = runOkWithEnv(['login'], {
+      const output = runOkWithEnv(['login', '--check-only'], {
         CODEX_SHELL: '1',
         OPENYIDA_ENV: 'public',
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-        OPENYIDA_DISABLE_CDP_LOGIN: '1',
-        OPENYIDA_CODEX_QR_FAKE: '1',
       }, workspace);
       const parsed = JSON.parse(output.trim());
       expect(parsed).toMatchObject({
-        status: 'need_qr_scan',
-        handoff_type: 'qr',
-        can_auto_use: false,
-      });
-      expect(parsed.qr_url).toContain('https://login.example.test/qr');
-      expect(parsed.qr_image_file).toContain('test-session.png');
-      expect(parsed.qr_image_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.qr_image_markdown).toContain('test-session.png');
-      expect(parsed.agent_response_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.agent_response_markdown).toContain('poll_command:');
-      expect(parsed.poll_command).toContain('openyida login --agent-poll');
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('login falls back to QR handoff in Qoder environment when CDP is unavailable and no desktop is present', () => {
-    const workspace = createCodexWorkspace();
-    try {
-      const output = runOkWithEnv(['login'], {
-        QODER_IDE: '1',
-        OPENYIDA_ENV: 'public',
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-        OPENYIDA_DISABLE_CDP_LOGIN: '1',
-        OPENYIDA_CODEX_QR_FAKE: '1',
-      }, workspace);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        status: 'need_qr_scan',
-        handoff_type: 'qr',
-        can_auto_use: false,
-      });
-      expect(parsed.qr_url).toContain('https://login.example.test/qr');
-      expect(parsed.qr_image_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.agent_response_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.poll_command).toContain('openyida login --agent-poll');
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('login falls back to QR handoff in Claude Code environment when CDP is unavailable and no desktop is present', () => {
-    const workspace = createCodexWorkspace();
-    try {
-      const output = runOkWithEnv(['login'], {
-        CLAUDE_CODE: '1',
-        OPENYIDA_ENV: 'public',
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-        OPENYIDA_DISABLE_CDP_LOGIN: '1',
-        OPENYIDA_CODEX_QR_FAKE: '1',
-      }, workspace);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        status: 'need_qr_scan',
-        handoff_type: 'qr',
-        can_auto_use: false,
-      });
-      expect(parsed.qr_image_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.agent_response_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.poll_command).toContain('openyida login --agent-poll');
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('login falls back to QR handoff in OpenCode environment when CDP is unavailable and no desktop is present', () => {
-    const workspace = createCodexWorkspace();
-    try {
-      const output = runOkWithEnv(['login'], {
-        OPENCODE_CLIENT: 'cli',
-        OPENYIDA_ENV: 'public',
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-        OPENYIDA_DISABLE_CDP_LOGIN: '1',
-        OPENYIDA_CODEX_QR_FAKE: '1',
-      }, workspace);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        status: 'need_qr_scan',
-        handoff_type: 'qr',
-        can_auto_use: false,
-      });
-      expect(parsed.qr_image_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.agent_response_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.poll_command).toContain('openyida login --agent-poll');
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('auth login uses QR handoff in OpenCode environment when CDP is unavailable and no desktop is present', () => {
-    const workspace = createCodexWorkspace();
-    try {
-      const output = runOkWithEnv(['auth', 'login'], {
-        OPENCODE_CLIENT: 'cli',
-        OPENYIDA_ENV: 'public',
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-        OPENYIDA_DISABLE_CDP_LOGIN: '1',
-        OPENYIDA_CODEX_QR_FAKE: '1',
-      }, workspace);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        status: 'need_qr_scan',
-        handoff_type: 'qr',
-        can_auto_use: false,
-      });
-      expect(parsed.agent_response_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.poll_command).toContain('openyida login --agent-poll');
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('login uses cached CLI credentials before Codex browser handoff', () => {
-    const workspace = createCodexWorkspace();
-    const cacheDir = path.join(workspace, 'project', '.cache');
-    fs.mkdirSync(cacheDir, { recursive: true });
-    fs.writeFileSync(path.join(cacheDir, 'cookies-public.json'), JSON.stringify({
-      cookies: [
-        { name: 'tianshu_csrf_token', value: 'cached-token-1234567890' },
-        { name: 'tianshu_corp_user', value: 'corp_cachedUser' },
-      ],
-      base_url: 'https://www.aliwork.com',
-    }), 'utf8');
-
-    try {
-      const output = runOkWithEnv(['login'], {
-        CODEX_SHELL: '1',
-        OPENYIDA_ENV: 'public',
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-      }, workspace);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        ok: true,
-        base_url: 'https://www.aliwork.com',
-        corp_id: 'corp',
-        user_id: 'cachedUser',
-        cookies_count: 2,
-      });
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('YIDA_AUTH_ENABLED=true login only checks env cookie', () => {
-    const workspace = createCodexWorkspace();
-    try {
-      const output = runOkWithEnv(['login'], {
-        CODEX_SHELL: '1',
-        YIDA_AUTH_ENABLED: 'true',
-        OPENYIDA_ENV: 'public',
-      }, workspace);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
+        auth_mode: 'token',
         status: 'not_logged_in',
         can_auto_use: false,
       });
-      expect(parsed.message).toContain('No env Cookie');
-      expect(parsed).toHaveProperty('diagnostics.authMode', 'env');
-      expect(parsed).toHaveProperty('diagnostics.failure_reason', 'env_cookie_missing');
       expect(parsed).not.toHaveProperty('handoff_type');
     } finally {
       fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('OPENYIDA_COOKIE_B64 login accepts env cookie and ignores stale cache', () => {
-    const workspace = createCodexWorkspace();
-    const cacheDir = path.join(workspace, 'project', '.cache');
-    fs.mkdirSync(cacheDir, { recursive: true });
-    fs.writeFileSync(path.join(cacheDir, 'cookies-public.json'), JSON.stringify({
-      cookies: [
-        { name: 'sid', value: 'cookie-only' },
-      ],
-      csrf_token: 'stale-token-1234567890',
-      corp_id: 'corp-stale',
-      user_id: 'user-stale',
-      base_url: 'https://stale.aliwork.com',
-    }), 'utf8');
-    const rawCookie = 'tianshu_csrf_token=env-token-1234567890; tianshu_corp_user=corpInjected_userInjected';
-
-    try {
-      const output = runOkWithEnv(['login'], {
-        CODEX_SHELL: '1',
-        YIDA_AUTH_ENABLED: 'true',
-        OPENYIDA_COOKIE_B64: Buffer.from(rawCookie, 'utf8').toString('base64'),
-        OPENYIDA_BASE_URL: 'https://www.aliwork.com',
-        OPENYIDA_ENV: 'public',
-      }, workspace);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        ok: true,
-        base_url: 'https://www.aliwork.com',
-        cookies_count: 2,
-      });
-      expect(parsed.corp_id).toContain('***');
-      expect(parsed.user_id).toContain('***');
-      expect(JSON.stringify(parsed)).not.toContain('env-token-1234567890');
-      expect(JSON.stringify(parsed)).not.toContain('corpInjected');
-      expect(JSON.stringify(parsed)).not.toContain('userInjected');
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('login --codex explicitly returns Codex browser handoff', () => {
-    const workspace = createCodexWorkspace();
-    try {
-      const output = runOkWithEnv(['login', '--codex'], {
-        CODEX_SHELL: '1',
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-      }, workspace);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        status: 'need_codex_browser_login',
-        handoff_type: 'browser',
-        browser: 'codex',
-        login_url: 'https://example.test/workPlatform',
-        can_auto_use: false,
-      });
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('login --agent-qr returns QR handoff', () => {
-    const workspace = createCodexWorkspace();
-    try {
-      const output = runOkWithEnv(['login', '--agent-qr'], {
-        CODEX_SHELL: '1',
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-        OPENYIDA_CODEX_QR_FAKE: '1',
-      }, workspace);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        status: 'need_qr_scan',
-        handoff_type: 'qr',
-        can_auto_use: false,
-      });
-      expect(parsed.qr_url).toContain('https://login.example.test/qr');
-      expect(parsed.qr_image_file).toContain('test-session.png');
-      expect(parsed.qr_image_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.agent_response_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.poll_command).toContain('openyida login --agent-poll');
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('login --agent-qr keeps explicit corpId in QR poll command', () => {
-    const workspace = createCodexWorkspace();
-    try {
-      const output = runOkWithEnv(['login', '--agent-qr', '--corp-id', 'ding-main'], {
-        CODEX_SHELL: '1',
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-        OPENYIDA_CODEX_QR_FAKE: '1',
-      }, workspace);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed.poll_command).toContain('openyida login --agent-poll');
-      expect(parsed.poll_command).toMatch(/--corp-id ['"]ding-main['"]/);
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('login --agent-qr bypasses cached credentials for forced re-login', () => {
-    const workspace = createCodexWorkspace();
-    const cacheDir = path.join(workspace, 'project', '.cache');
-    fs.mkdirSync(cacheDir, { recursive: true });
-    fs.writeFileSync(path.join(cacheDir, 'cookies-public.json'), JSON.stringify({
-      cookies: [
-        { name: 'tianshu_csrf_token', value: 'cached-token-1234567890' },
-        { name: 'tianshu_corp_user', value: 'corp_cachedUser' },
-      ],
-      base_url: 'https://www.aliwork.com',
-    }), 'utf8');
-
-    try {
-      const output = runOkWithEnv(['login', '--agent-qr'], {
-        CODEX_SHELL: '1',
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-        OPENYIDA_CODEX_QR_FAKE: '1',
-      }, workspace);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        status: 'need_qr_scan',
-        handoff_type: 'qr',
-        can_auto_use: false,
-      });
-      expect(parsed.qr_url).toContain('https://login.example.test/qr');
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('login returns QR handoff in Wukong cloud when local browser login is unavailable', () => {
-    const wukong = createWukongWorkRoot();
-    try {
-      const output = runOkWithEnv(['login'], {
-        AGENT_WORK_ROOT: wukong.agentWorkRoot,
-        OPENYIDA_ENV: 'public',
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-        OPENYIDA_DISABLE_CDP_LOGIN: '1',
-        OPENYIDA_DISABLE_PLAYWRIGHT_LOGIN: '1',
-        OPENYIDA_CODEX_QR_FAKE: '1',
-      }, wukong.projectDir);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        status: 'need_qr_scan',
-        handoff_type: 'qr',
-        can_auto_use: false,
-      });
-      expect(parsed.qr_url).toContain('https://login.example.test/qr');
-      expect(parsed.browser_login_command).toContain('openyida login --browser');
-      expect(parsed.agent_response_markdown).toContain('openyida login --browser');
-    } finally {
-      fs.rmSync(wukong.base, { recursive: true, force: true });
-    }
-  });
-
-  test('login uses cached CLI credentials before Wukong browser handoff', () => {
-    const wukong = createWukongWorkRoot();
-    const cacheDir = path.join(wukong.projectDir, '.cache');
-    fs.mkdirSync(cacheDir, { recursive: true });
-    fs.writeFileSync(path.join(cacheDir, 'cookies-public.json'), JSON.stringify({
-      cookies: [
-        { name: 'tianshu_csrf_token', value: 'wukong-cached-token-1234567890' },
-        { name: 'tianshu_corp_user', value: 'corp_wukongUser' },
-      ],
-      base_url: 'https://www.aliwork.com',
-    }), 'utf8');
-
-    try {
-      const output = runOkWithEnv(['login'], {
-        AGENT_WORK_ROOT: wukong.agentWorkRoot,
-        OPENYIDA_ENV: 'public',
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-      }, wukong.projectDir);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        ok: true,
-        base_url: 'https://www.aliwork.com',
-        corp_id: 'corp',
-        user_id: 'wukongUser',
-        cookies_count: 2,
-      });
-    } finally {
-      fs.rmSync(wukong.base, { recursive: true, force: true });
-    }
-  });
-
-  test('login --wukong explicitly returns Wukong browser handoff', () => {
-    const wukong = createWukongWorkRoot();
-    try {
-      const output = runOkWithEnv(['login', '--wukong'], {
-        AGENT_WORK_ROOT: wukong.agentWorkRoot,
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-      }, wukong.projectDir);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        status: 'need_codex_browser_login',
-        handoff_type: 'browser',
-        browser: 'wukong',
-        login_url: 'https://example.test/workPlatform',
-        can_auto_use: false,
-      });
-    } finally {
-      fs.rmSync(wukong.base, { recursive: true, force: true });
-    }
-  });
-
-  test('login --qoder explicitly returns Qoder browser handoff', () => {
-    const workspace = createCodexWorkspace();
-    try {
-      const output = runOkWithEnv(['login', '--qoder'], {
-        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
-      }, workspace);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        status: 'need_codex_browser_login',
-        handoff_type: 'browser',
-        browser: 'qoder',
-        login_url: 'https://example.test/workPlatform',
-        can_auto_use: false,
-      });
-      expect(parsed.message).toContain('Qoder');
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('login --check-only exposes Wukong read-only diagnostics', () => {
-    const wukong = createWukongWorkRoot();
-    const cacheDir = path.join(wukong.projectDir, '.cache');
-    fs.mkdirSync(cacheDir, { recursive: true });
-    fs.writeFileSync(path.join(cacheDir, 'cookies-public.json'), JSON.stringify({
-      cookies: [
-        { name: 'tianshu_csrf_token', value: 'wukong-check-token-1234567890' },
-        { name: 'tianshu_corp_user', value: 'corp_wukongCheckUser' },
-      ],
-      base_url: 'https://www.aliwork.com',
-    }), 'utf8');
-
-    try {
-      const output = runOkWithEnv(['login', '--check-only'], {
-        AGENT_WORK_ROOT: wukong.agentWorkRoot,
-        OPENYIDA_ENV: 'public',
-      }, wukong.projectDir);
-      const parsed = JSON.parse(output.trim());
-      expect(parsed).toMatchObject({
-        status: 'ok',
-        can_auto_use: true,
-        corp_id: 'corp',
-        user_id: 'wukongCheckUser',
-      });
-      expect(parsed).toHaveProperty('diagnostics.isWukong', true);
-      expect(parsed).toHaveProperty('diagnostics.csrf_token_found', true);
-      expect(parsed).toHaveProperty('diagnostics.corp_id_found', true);
-      expect(parsed).toHaveProperty('diagnostics.base_url_found', true);
-    } finally {
-      fs.rmSync(wukong.base, { recursive: true, force: true });
     }
   });
 

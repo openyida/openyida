@@ -1,14 +1,9 @@
 'use strict';
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({
-    csrfToken: 'csrf-token',
-    corpId: 'ding-corp',
-    userId: 'user-1',
-  })),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn(),
@@ -33,14 +28,23 @@ const {
 } = require('../lib/corp-efficiency/corp-efficiency');
 const utils = require('../lib/core/utils');
 
-const mockCookieData = {
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf-token', domain: 'www.aliwork.com' }],
+const mockAuthData = {
+  csrf_token: 'openyida_cli_bearer',
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'ding-corp',
+  user_id: 'user-1',
 };
 
 const mockAuth = {
   baseUrl: 'https://www.aliwork.com',
-  cookies: mockCookieData.cookies,
-  csrfToken: 'csrf-token',
+  csrfToken: 'openyida_cli_bearer',
+  authMode: 'token',
+  authSource: 'token',
+  corpId: 'ding-corp',
+  userId: 'user-1',
+  authData: mockAuthData,
 };
 
 const mockEfficacyData = {
@@ -86,13 +90,8 @@ const mockCommodityInfo = {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
   utils.resolveBaseUrl.mockReturnValue('https://www.aliwork.com');
-  utils.extractInfoFromCookies.mockReturnValue({
-    csrfToken: 'csrf-token',
-    corpId: 'ding-corp',
-    userId: 'user-1',
-  });
   utils.requestWithAutoLogin.mockImplementation((requestFn) => requestFn(mockAuth));
 });
 

@@ -10,10 +10,9 @@ jest.mock('child_process', () => ({
 }));
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'csrf-token', corpId: 'corp-1', userId: 'user-1' })),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
@@ -34,9 +33,11 @@ const configureProcess = require('../lib/process/configure-process');
 const createProcess = require('../lib/process/create-process');
 const previewProcess = require('../lib/process/preview-process');
 
-const mockCookieData = {
+const mockAuthData = {
+  auth_mode: 'token',
+  auth_source: 'token',
+  user_id: 'user-1',
   csrf_token: 'csrf-token',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf-token' }],
   base_url: 'https://www.aliwork.com',
   corp_id: 'corp-1',
 };
@@ -48,7 +49,7 @@ describe('small process commands', () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-process-small-'));
     jest.clearAllMocks();
-    utils.loadCookieData.mockReturnValue(mockCookieData);
+    utils.loadAuthData.mockReturnValue(mockAuthData);
     utils.findProjectRoot.mockReturnValue(tmpDir);
     utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
     childProcess.execSync.mockReturnValue('');

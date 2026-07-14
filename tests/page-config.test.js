@@ -3,10 +3,9 @@
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'tok123', corpId: 'corp', userId: 'user' })),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn(),
@@ -17,8 +16,12 @@ const getPageConfig = require('../lib/page-config/get-page-config');
 const saveShareConfig = require('../lib/page-config/save-share-config');
 const verifyShortUrl = require('../lib/page-config/verify-short-url');
 
-const mockCookieData = {
-  cookies: [{ name: 'tianshu_csrf_token', value: 'tok123' }],
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
   csrf_token: 'tok123',
 };
 
@@ -27,7 +30,7 @@ let errorSpy;
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
   utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
   logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});

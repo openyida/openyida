@@ -1,14 +1,9 @@
 'use strict';
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({
-    csrfToken: 'csrf-token',
-    corpId: 'ding-test',
-    userId: 'user-test',
-  })),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn(),
@@ -17,9 +12,13 @@ jest.mock('../lib/core/utils', () => ({
 const utils = require('../lib/core/utils');
 const basicInfo = require('../lib/basic-info/basic-info');
 
-const mockCookieData = {
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
   csrf_token: 'cookie-csrf',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'cookie-csrf', domain: 'www.aliwork.com' }],
 };
 
 function mockSuccess(content) {
@@ -79,7 +78,7 @@ describe('basic-info command', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    utils.loadCookieData.mockReturnValue(mockCookieData);
+    utils.loadAuthData.mockReturnValue(mockAuthData);
     utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
     mockPathResponses();
     mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});

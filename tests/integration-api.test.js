@@ -23,10 +23,9 @@ describe('integration api', () => {
         const auth = {
           baseUrl: 'https://example.com',
           csrfToken: 'csrf-token',
-          cookies: [],
         };
         const resolvedQuery = typeof query === 'function' ? query(auth) : query;
-        return httpGet(auth.baseUrl, path, resolvedQuery, auth.cookies, options);
+        return httpGet(auth.baseUrl, path, resolvedQuery, options);
       }),
     });
   });
@@ -44,7 +43,6 @@ describe('integration api', () => {
     const result = await listLogicflowLogs({
       baseUrl: 'https://example.com',
       csrfToken: 'csrf-token',
-      cookies: [],
     }, {
       appType: 'APP_TEST',
       processCode: 'LPROC-TEST',
@@ -55,7 +53,7 @@ describe('integration api', () => {
 
     expect(result.totalCount).toBe(1);
     expect(httpGet).toHaveBeenCalledTimes(1);
-    const [, path, query,, options] = httpGet.mock.calls[0];
+    const [, path, query, options] = httpGet.mock.calls[0];
     expect(path).toBe('/alibaba/web/APP_TEST/query/formLogicflowBinding/listLog.json');
     expect(query).toMatchObject({
       _api: 'Connector.listLog',
@@ -79,14 +77,13 @@ describe('integration api', () => {
     await listFormLogicflows({
       baseUrl: 'https://example.com',
       csrfToken: 'csrf-token',
-      cookies: [],
     }, {
       appType: 'APP_TEST',
       formUuid: 'FORM_TEST',
       type: '1',
     });
 
-    const [, path, query,, options] = httpGet.mock.calls[0];
+    const [, path, query, options] = httpGet.mock.calls[0];
     expect(path).toBe('/alibaba/web/APP_TEST/query/formLogicflowBinding/listflow.json');
     expect(query).toMatchObject({
       _api: 'Connector.getTriggerList',
@@ -137,7 +134,6 @@ describe('integration api', () => {
     const fields = await getFormSchema({
       baseUrl: 'https://example.com',
       csrfToken: 'csrf-token',
-      cookies: [],
     }, {
       appType: 'APP_TEST',
       formUuid: 'FORM_TARGET',
