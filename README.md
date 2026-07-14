@@ -55,10 +55,10 @@ If Codex is already installed, OpenYida also imports a local Codex plugin during
 Run this from the AI coding workspace where you want OpenYida to operate:
 
 ```bash
-openyida agent-capabilities --json
+openyida agent-capabilities --summary-json
 ```
 
-OpenYida detects the active agent environment, workspace path, login state, organization context, command manifest, and side-effect hints in one machine-readable snapshot. `openyida commands --json` remains available when an agent only needs the command manifest.
+OpenYida returns a compact machine-readable summary with the version, login state, workspace/cache paths, and command manifest digest. `openyida agent-capabilities --json` is the full diagnostic snapshot, and `openyida commands --json` remains available when an agent only needs the command manifest.
 
 ### 3. Log In
 
@@ -457,7 +457,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | Command | Description |
 |---------|-------------|
 | `openyida commands [--json]` | Output machine-readable command manifest |
-| `openyida agent-capabilities [--json]` | Output one-shot agent capability snapshot |
+| `openyida agent-capabilities [--json] [--summary-json\|--compact]` | Output one-shot agent capability snapshot |
 | `openyida a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start OpenYida local web bridge service |
 | `openyida copy [--force]` | Copy project working directory |

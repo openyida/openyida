@@ -347,7 +347,7 @@ describe('CLI offline smoke', () => {
       requires_login: false,
     });
     expect(parsed.commands.find(entry => entry.id === 'agent-capabilities')).toMatchObject({
-      usage: 'openyida agent-capabilities [--json]',
+      usage: 'openyida agent-capabilities [--json] [--summary-json|--compact]',
       output: 'json',
       requires_login: false,
     });
@@ -557,6 +557,42 @@ describe('CLI offline smoke', () => {
     });
   });
 
+  test('agent-capabilities --summary-json renders compact preflight snapshot', () => {
+    const output = runOk(['agent-capabilities', '--summary-json']);
+    const parsed = JSON.parse(output);
+    const compactAlias = JSON.parse(runOk(['agent-capabilities', '--json', '--compact']));
+    const manifest = JSON.parse(runOk(['commands', '--json']));
+
+    expect(compactAlias).toEqual(parsed);
+    expect(parsed).toMatchObject({
+      schema_version: 1,
+      name: 'openyida-agent-capabilities-summary',
+      version,
+      login: {
+        status: expect.any(String),
+        can_auto_use: expect.any(Boolean),
+      },
+      workdir: expect.any(String),
+      workdir_exists: expect.any(Boolean),
+      cache_dir: expect.any(String),
+      openyida_task_cache_dir: expect.any(String),
+      command_manifest_digest_algorithm: 'sha256',
+      command_count: manifest.summary.command_count,
+      full_capabilities_command: 'openyida agent-capabilities --json',
+    });
+    expect(parsed.command_manifest_digest).toMatch(/^[a-f0-9]{64}$/);
+    expect(parsed.cache_dir).toBe(path.join(parsed.workdir, '.cache'));
+    expect(parsed.openyida_task_cache_dir).toBe(path.join(parsed.workdir, '.cache', 'openyida'));
+    expect(parsed).not.toHaveProperty('system');
+    expect(parsed).not.toHaveProperty('active');
+    expect(parsed).not.toHaveProperty('recommended');
+    expect(parsed).not.toHaveProperty('commands');
+    expect(parsed).not.toHaveProperty('command_manifest');
+    expect(parsed.login).not.toHaveProperty('diagnostics');
+    expect(parsed.login).not.toHaveProperty('cookies');
+    expect(parsed.login).not.toHaveProperty('csrf_token');
+  });
+
   test('agent-capabilities --json renders one-shot agent snapshot', () => {
     const output = runOk(['agent-capabilities', '--json']);
     const parsed = JSON.parse(output);
@@ -613,6 +649,8 @@ describe('CLI offline smoke', () => {
       mode: 'fast_build',
       completion_contract: expect.stringContaining('Create app'),
     });
+    expect(parsed.recommended.preflight_command).toBe('openyida agent-capabilities --summary-json');
+    expect(parsed.recommended.full_capabilities_command).toBe('openyida agent-capabilities --json');
     expect(parsed.command_manifest.side_effect_schema).toMatchObject({
       version: 1,
       kinds: {
@@ -630,7 +668,8 @@ describe('CLI offline smoke', () => {
     expect(parsed.login).toHaveProperty('status');
     expect(parsed.login).not.toHaveProperty('cookies');
     expect(parsed.login).not.toHaveProperty('csrf_token');
-    expect(parsed.sideEffects.read_only_preflight).toContain('openyida agent-capabilities --json');
+    expect(parsed.sideEffects.read_only_preflight).toContain('openyida agent-capabilities --summary-json');
+    expect(parsed.sideEffects.read_only_preflight).not.toContain('openyida agent-capabilities --json');
     expect(parsed.sideEffects.completion_contracts.full_app).toContain('creating the app');
     expect(parsed.sideEffects.fast_build_data_contract).toContain('this.dataSourceMap');
     const commandIds = parsed.command_manifest.commands.map(entry => entry.id);

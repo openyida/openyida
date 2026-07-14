@@ -26,7 +26,9 @@ description: >
 
 > ⚡ **前置门槛**：确认 openyida 已安装、Node/npm 依赖达标、登录态就绪。**未通过只读验证前，禁止创建应用/页面/表单或发布等任何真实资源操作。**
 
-**怎么做**：优先跑一次 `openyida agent-capabilities --json`。该命令一次返回 version、cwd、AI 工具环境、推荐工作目录、登录态摘要、commands、command count、sideEffects 和默认 `fast_build` 契约，避免反复 `which openyida`、`openyida --version`、`openyida --help`、`openyida env`、`login --check-only`。
+**怎么做**：优先跑一次 `openyida agent-capabilities --summary-json`。该 compact 命令只返回 version、`login.status`、`login.can_auto_use`、`workdir`、`workdir_exists`、`cache_dir`、`openyida_task_cache_dir`、`command_count` 和 `command_manifest_digest` 等 agent 必需字段，避免 stdout 过大导致宿主 offload 或误判未读到结果，也避免反复 `which openyida`、`openyida --version`、`openyida --help`、`openyida env`、`login --check-only`。
+
+`openyida agent-capabilities --json` 是 full capabilities，只在命令契约排障、manifest 差异诊断或深度调试时使用；不要把 full capabilities 放进 `fast_build` 默认链路。
 
 若当前 OpenYida 版本还没有 `agent-capabilities`，退回跑 `openyida env --json` 和 `openyida login --check-only --json`。旧版本地 agent 不需要认识 `skills-index.json`，也不需要支持 `agent-capabilities` 才能继续执行。
 
@@ -35,7 +37,7 @@ description: >
 | 命令跑不了（`command not found`） | openyida 未安装 → `npm install -g openyida` |
 | Node/npm 版本不达标 | 先升级 Node（≥16）再装/升级 openyida |
 | `login.status` 不是 `ok` 且 `login.can_auto_use` 不是 true | 未登录 → `openyida login`（指定入口带 URL 或 flag） |
-| `active.projectRootExists` 为 false | 无工作目录 → `openyida copy` 初始化 |
+| `workdir_exists` / `active.projectRootExists` 为 false | 无工作目录 → `openyida copy` 初始化 |
 
 **👉 环境异常、登录失败、悟空降级、Codex handoff 等特殊分支 → [references/setup-and-env.md](references/setup-and-env.md)。正常 `agent-capabilities` 通过时不要默认读取该 reference。**
 

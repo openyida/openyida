@@ -206,10 +206,12 @@ description: >
 在执行任何会创建、修改或发布真实宜搭资源的操作前，先运行只读检查：
 
 \`\`\`bash
-openyida agent-capabilities --json
+openyida agent-capabilities --summary-json
 \`\`\`
 
-该命令一次返回版本、当前工作目录、AI 工具环境、登录态摘要和命令清单，避免反复探测 \`which\`、\`--version\`、\`--help\`、\`env\` 和 \`login --check-only\`。
+该 compact 命令一次返回版本、登录态摘要、工作目录、缓存目录和命令 manifest digest，避免大 JSON 被宿主 offload，也避免反复探测 \`which\`、\`--version\`、\`--help\`、\`env\` 和 \`login --check-only\`。
+
+\`openyida agent-capabilities --json\` 是 full capabilities，只用于命令契约排障或深度诊断；不要放进完整应用 \`fast_build\` 默认链路。
 
 如果 \`openyida\` 不存在，先提醒用户需要安装，或在用户同意后执行：
 

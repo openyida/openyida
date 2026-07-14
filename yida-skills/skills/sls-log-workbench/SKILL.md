@@ -32,7 +32,7 @@ metadata:
 ### 使用前置校验
 
 1. 检查用户当前消息是否提供第一个词作为授权口令；同一会话首次通过脚本校验后可复用。
-2. 运行 `openyida env --json` 或 `openyida agent-capabilities --json`，读取当前登录态 corpId。
+2. 运行 `openyida env --json` 读取当前登录态 corpId；只需确认登录状态时可用 `openyida agent-capabilities --summary-json`。
 3. corpId 必须精确匹配 `ding328fe145009a4328f2c783f7214b6d69`。
 4. 任一校验失败，立即终止，不打开页面、不调用 API、不展示部分查询信息。
 
