@@ -5,6 +5,7 @@ const os = require('os');
 const path = require('path');
 const { execFileSync, spawnSync } = require('child_process');
 const { version } = require('../package.json');
+const { buildCommandManifestDigest } = require('../lib/core/agent-capabilities');
 
 const ROOT = path.join(__dirname, '..');
 const BIN = path.join(ROOT, 'bin', 'yida.js');
@@ -591,6 +592,71 @@ describe('CLI offline smoke', () => {
     expect(parsed.login).not.toHaveProperty('diagnostics');
     expect(parsed.login).not.toHaveProperty('cookies');
     expect(parsed.login).not.toHaveProperty('csrf_token');
+  });
+
+  test('agent-capabilities command manifest digest canonicalizes object keys', () => {
+    const manifest = {
+      schema_version: 1,
+      command_prefix: 'openyida',
+      summary: {
+        command_count: 1,
+        group_count: 1,
+        side_effect_counts: {
+          remote_write: 0,
+          local_read: 1,
+        },
+        permission_mode_counts: {
+          ask: 0,
+          allow: 1,
+        },
+        core_workflows: {
+          full_app_fast_build: {
+            required_command_ids: ['agent-capabilities'],
+            mode: 'fast_build',
+          },
+        },
+      },
+      commands: [{
+        id: 'agent-capabilities',
+        usage: 'openyida agent-capabilities [--json] [--summary-json|--compact]',
+        requires_login: false,
+        output: 'json',
+        side_effect: { kind: 'local_read' },
+        permission: { mode: 'allow', effect: 'read' },
+      }],
+    };
+    const reorderedManifest = {
+      command_prefix: 'openyida',
+      schema_version: 1,
+      commands: [{
+        permission: { effect: 'read', mode: 'allow' },
+        side_effect: { kind: 'local_read' },
+        output: 'json',
+        requires_login: false,
+        usage: 'openyida agent-capabilities [--json] [--summary-json|--compact]',
+        id: 'agent-capabilities',
+      }],
+      summary: {
+        core_workflows: {
+          full_app_fast_build: {
+            mode: 'fast_build',
+            required_command_ids: ['agent-capabilities'],
+          },
+        },
+        permission_mode_counts: {
+          allow: 1,
+          ask: 0,
+        },
+        side_effect_counts: {
+          local_read: 1,
+          remote_write: 0,
+        },
+        group_count: 1,
+        command_count: 1,
+      },
+    };
+
+    expect(buildCommandManifestDigest(reorderedManifest)).toBe(buildCommandManifestDigest(manifest));
   });
 
   test('agent-capabilities --json renders one-shot agent snapshot', () => {

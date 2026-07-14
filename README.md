@@ -58,7 +58,7 @@ Run this from the AI coding workspace where you want OpenYida to operate:
 openyida agent-capabilities --summary-json
 ```
 
-OpenYida returns a compact machine-readable summary with the version, login state, workspace/cache paths, and command manifest digest. `openyida agent-capabilities --json` is the full diagnostic snapshot, and `openyida commands --json` remains available when an agent only needs the command manifest.
+OpenYida returns a compact machine-readable summary with the version, login state, workspace/cache paths, and command manifest digest. `openyida agent-capabilities --json` is the full diagnostic snapshot, where compact `workdir` maps to `active.projectRoot` and `workdir_exists` maps to `active.projectRootExists`. `openyida commands --json` remains available when an agent only needs the command manifest.
 
 ### 3. Log In
 

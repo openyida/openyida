@@ -213,6 +213,8 @@ openyida agent-capabilities --summary-json
 
 \`openyida agent-capabilities --json\` 是 full capabilities，只用于命令契约排障或深度诊断；不要放进完整应用 \`fast_build\` 默认链路。
 
+字段映射：compact 输出的 \`workdir\` 对应 full capabilities 的 \`active.projectRoot\`；\`workdir_exists\` 对应 \`active.projectRootExists\`。
+
 如果 \`openyida\` 不存在，先提醒用户需要安装，或在用户同意后执行：
 
 \`\`\`bash

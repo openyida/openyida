@@ -16,6 +16,7 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('openyida agent-capabilities --summary-json');
     expect(skill).toContain('`openyida agent-capabilities --json` 是 full capabilities');
     expect(skill).toContain('不要把 full capabilities 放进 `fast_build` 默认链路');
+    expect(skill).toContain('`workdir` 对应 full capabilities 的 `active.projectRoot`');
     expect(skill).not.toContain('优先跑一次 `openyida agent-capabilities --json`');
   });
 

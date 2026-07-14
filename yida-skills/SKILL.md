@@ -30,6 +30,8 @@ description: >
 
 `openyida agent-capabilities --json` 是 full capabilities，只在命令契约排障、manifest 差异诊断或深度调试时使用；不要把 full capabilities 放进 `fast_build` 默认链路。
 
+字段映射：compact 输出的 `workdir` 对应 full capabilities 的 `active.projectRoot`；`workdir_exists` 对应 `active.projectRootExists`。
+
 若当前 OpenYida 版本还没有 `agent-capabilities`，退回跑 `openyida env --json` 和 `openyida login --check-only --json`。旧版本地 agent 不需要认识 `skills-index.json`，也不需要支持 `agent-capabilities` 才能继续执行。
 
 | 检测结果 | 处理 |
