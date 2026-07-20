@@ -16,6 +16,10 @@ SECURITY.md
 CHANGELOG.md
 
 # Project artifacts (user-generated, not needed in npm package)
+dist/
+tmp/
+*.tgz
+openyida-skills.zip
 project/.cache/
 project/pages/dist/
 project/pages/src/*.js
