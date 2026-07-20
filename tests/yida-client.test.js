@@ -64,6 +64,16 @@ describe('yida-client', () => {
     );
   });
 
+  test('getOnce sends one read without auto-login replay', async () => {
+    utils.httpGet.mockResolvedValue({ __needLogin: true });
+    const client = createYidaClient();
+
+    await expect(client.getOnce('/query/path.json', { page: 1 })).resolves.toEqual({ __needLogin: true });
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+    expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
+  });
+
   test('encodes POST form body and wraps it with auto-login handling', async () => {
     const client = createYidaClient();
     const result = await client.postForm('/save/path.json', { name: 'Ada Lovelace' });
@@ -82,6 +92,36 @@ describe('yida-client', () => {
     await client.postForm('/save/path.json', auth => ({ _csrf_token: auth.csrfToken, name: 'Ada' }));
 
     expect(utils.httpPost.mock.calls[0][2]).toBe('_csrf_token=csrf123&name=Ada');
+  });
+
+  test.each([
+    ['login expiry', { __needLogin: true }],
+    ['CSRF expiry', { __csrfExpired: true }],
+    ['ordinary failure', { success: false, errorCode: 'FAILED' }],
+  ])('postFormOnce sends exactly once on %s', async (label, response) => {
+    utils.httpPost.mockResolvedValue(response);
+    const client = createYidaClient();
+
+    await expect(client.postFormOnce('/save/path.json', auth => ({
+      _csrf_token: auth.csrfToken,
+      name: 'Ada',
+    }))).resolves.toEqual(response);
+
+    expect(label).toBeTruthy();
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
+  });
+
+  test('postFormOnce rejects missing write auth before transport', async () => {
+    const client = createYidaClient({ authRef: {
+      baseUrl: 'https://example.yida.test',
+      cookies: [],
+    } });
+
+    await expect(client.postFormOnce('/save/path.json', {})).rejects.toMatchObject({
+      code: 'YIDA_WRITE_AUTH_NOT_READY',
+    });
+    expect(utils.httpPost).not.toHaveBeenCalled();
   });
 
   test('posts JSON bodies with auth-aware paths and referers', async () => {

@@ -32,6 +32,7 @@ describe('configure-process detail urls', () => {
       ],
     }, 'TPROC-TEST', 'FORM-TEST', 'https://www.aliwork.com', 'APP_TEST');
 
+    expect(Object.keys(result).sort()).toEqual(['processJson', 'viewJson']);
     expect(result.processJson.props.processDetailUrl).toBe('https://www.aliwork.com/o/custom-detail?source=process');
     expect(result.processJson.props.processMobileDetailUrl).toBe('https://www.aliwork.com/o/custom-detail?source=process&formInstId=');
   });

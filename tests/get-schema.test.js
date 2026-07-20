@@ -63,6 +63,8 @@ describe('parseArgs', () => {
       concurrency: 6,
       retries: 2,
       keyword: '客户',
+      compact: false,
+      fields: [],
       field: '',
       json: false,
       summaryJson: false,
@@ -71,6 +73,27 @@ describe('parseArgs', () => {
 
   test('keeps existing single form mode', () => {
     expect(parseArgs(['APP_XXX', 'FORM-AAA']).formUuid).toBe('FORM-AAA');
+  });
+
+  test('parses and deduplicates compact field queries', () => {
+    expect(parseArgs([
+      'APP_XXX',
+      'FORM-AAA',
+      '--compact',
+      '--resolve-fields',
+      '姓名, 状态',
+      '--resolve-fields',
+      '姓名，订单明细/商品名称',
+    ])).toMatchObject({
+      compact: true,
+      fields: ['姓名', '状态', '订单明细/商品名称'],
+    });
+
+    expect(parseArgs(['APP_XXX', 'FORM-AAA', '--field', '姓名'])).toMatchObject({
+      compact: false,
+      field: '姓名',
+      fields: [],
+    });
   });
 
   test('parses compact field-map aliases', () => {
@@ -365,6 +388,123 @@ describe('run --all', () => {
     expect(output.summaryOnly).toBe(true);
     expect(output.forms[0]).toHaveProperty('fieldSummary');
     expect(output.forms[0]).not.toHaveProperty('schema');
+    mockLog.mockRestore();
+  });
+});
+
+describe('run compact compatibility', () => {
+  test('compact stdout only contains requested safe field metadata', async () => {
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: {
+        internalEndpoint: '/private/schema/path',
+        pages: [
+          {
+            componentsTree: [
+              {
+                componentName: 'FormContainer',
+                children: [
+                  {
+                    componentName: 'TextField',
+                    props: {
+                      fieldId: 'textField_name',
+                      label: '姓名',
+                      valueType: 'custom',
+                      cookie: 'SECRET_COOKIE',
+                      headers: { authorization: 'SECRET_TOKEN' },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    await run(['APP_XXX', 'FORM-A', '--compact', '--resolve-fields', '姓名,不存在']);
+
+    const rawOutput = mockLog.mock.calls[mockLog.mock.calls.length - 1][0];
+    const output = JSON.parse(rawOutput);
+    expect(output).toMatchObject({
+      kind: 'yida_schema_field_resolution',
+      contractVersion: 1,
+      resource: { appType: 'APP_XXX', formUuid: 'FORM-A' },
+      missingFields: ['不存在'],
+      ambiguousFields: [],
+    });
+    expect(output.fields).toHaveLength(1);
+    expect(output.fields[0]).toMatchObject({
+      query: '姓名',
+      label: '姓名',
+      fieldId: 'textField_name',
+      componentType: 'TextField',
+      path: ['textField_name'],
+      labelPath: ['姓名'],
+      parentFieldId: null,
+    });
+    expect(output.resource.schemaHash).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(rawOutput).not.toContain('SECRET_COOKIE');
+    expect(rawOutput).not.toContain('SECRET_TOKEN');
+    expect(rawOutput).not.toContain('/private/schema/path');
+    expect(output).not.toHaveProperty('content');
+    mockLog.mockRestore();
+  });
+
+  test('keeps the legacy --field output structure unchanged', async () => {
+    const props = {
+      fieldId: 'textField_name',
+      label: '姓名',
+      valueType: 'custom',
+      legacyMarker: { keep: true },
+    };
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: {
+        pages: [
+          {
+            componentsTree: [
+              {
+                componentName: 'FormContainer',
+                children: [{ componentName: 'TextField', props }],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    await run(['APP_XXX', 'FORM-A', '--field', '姓名']);
+
+    const output = JSON.parse(mockLog.mock.calls[mockLog.mock.calls.length - 1][0]);
+    expect(output).toEqual({
+      componentName: 'TextField',
+      fieldId: 'textField_name',
+      alias: '',
+      label: '姓名',
+      props,
+    });
+    expect(output).not.toHaveProperty('kind');
+    mockLog.mockRestore();
+  });
+
+  test('keeps the complete server result unchanged without compact flags', async () => {
+    const serverResult = {
+      success: true,
+      content: {
+        pages: [],
+        compatibilityMarker: { keep: true },
+      },
+    };
+    utils.httpGet.mockResolvedValue(serverResult);
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    await run(['APP_XXX', 'FORM-A']);
+
+    const output = JSON.parse(mockLog.mock.calls[mockLog.mock.calls.length - 1][0]);
+    expect(output).toEqual(serverResult);
     mockLog.mockRestore();
   });
 });

@@ -28,9 +28,14 @@ jest.mock('../lib/process/configure-process', () => ({
   run: jest.fn(async () => ({ success: true })),
 }));
 
+jest.mock('../lib/app/create-form', () => ({
+  createFormForLegacyProcess: jest.fn(),
+}));
+
 const childProcess = require('child_process');
 const utils = require('../lib/core/utils');
 const configureProcess = require('../lib/process/configure-process');
+const createForm = require('../lib/app/create-form');
 const createProcess = require('../lib/process/create-process');
 const previewProcess = require('../lib/process/preview-process');
 
@@ -67,9 +72,8 @@ describe('small process commands', () => {
     utils.httpGet.mockResolvedValueOnce({
       success: true,
       content: {
-        formNavigationList: [
-          { formUuid: 'FORM_1', processCode: 'TPROC_1' },
-        ],
+        appType: 'APP_XXX',
+        procCode: 'TPROC_1',
       },
     });
 
@@ -82,6 +86,7 @@ describe('small process commands', () => {
       processCode: 'TPROC_1',
     });
     expect(utils.httpPost.mock.calls[0][1]).toContain('/APP_XXX/query/formdesign/switchFormType.json');
+    expect(utils.httpGet.mock.calls[0][1]).toContain('/APP_XXX/query/formProcBinding/getBindingByFormUuid.json');
     expect(querystring.parse(utils.httpPost.mock.calls[0][2])).toMatchObject({
       _csrf_token: 'csrf-token',
       toFormType: 'process',
@@ -89,6 +94,173 @@ describe('small process commands', () => {
     });
     expect(configureProcess.run).toHaveBeenCalledWith(['APP_XXX', 'FORM_1', processDefPath, 'TPROC_1']);
     expect(JSON.parse(logSpy.mock.calls[0][0])).toEqual(result);
+  });
+
+  test('create-process creates a form through the JS bridge without invoking the CLI subprocess', async () => {
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    const processDefPath = path.join(tmpDir, 'process.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([{ type: 'TextField', label: '姓名' }]), 'utf8');
+    fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }), 'utf8');
+    createForm.createFormForLegacyProcess.mockResolvedValueOnce({
+      success: true,
+      appType: 'APP_XXX',
+      formUuid: 'FORM_CREATED',
+      formTitle: '流程表单',
+      fieldCount: 1,
+      configResult: { success: false, errorMsg: 'legacy warning' },
+    });
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+    utils.httpGet.mockResolvedValueOnce({
+      success: true,
+      content: {
+        appType: 'APP_XXX',
+        procCode: 'TPROC_CREATED',
+      },
+    });
+
+    const result = await createProcess.run([
+      'APP_XXX',
+      '流程表单',
+      fieldsPath,
+      processDefPath,
+    ]);
+
+    expect(createForm.createFormForLegacyProcess).toHaveBeenCalledWith(
+      expect.objectContaining({ baseUrl: 'https://www.aliwork.com' }),
+      {
+        appType: 'APP_XXX',
+        formTitle: '流程表单',
+        fieldsJsonFile: fieldsPath,
+      }
+    );
+    expect(childProcess.execSync).not.toHaveBeenCalled();
+    expect(configureProcess.run).toHaveBeenCalledWith([
+      'APP_XXX',
+      'FORM_CREATED',
+      processDefPath,
+      'TPROC_CREATED',
+    ]);
+    expect(result).toEqual({
+      success: true,
+      formUuid: 'FORM_CREATED',
+      formTitle: '流程表单',
+      appType: 'APP_XXX',
+      fieldCount: 1,
+      processCode: 'TPROC_CREATED',
+      url: 'https://www.aliwork.com/APP_XXX/workbench/FORM_CREATED',
+    });
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(logSpy.mock.calls[0][0])).toEqual(result);
+  });
+
+  test('create-process strips legacy guard args before parsing', () => {
+    const parsed = createProcess.parseArgs([
+      'APP_XXX',
+      '--schema-state',
+      '.cache/openyida/state.v1.json',
+      '--formUuid',
+      'FORM_1',
+      'process.json',
+      '--resource-context={"form":{"formUuid":"FORM_1"}}',
+    ]);
+
+    expect(parsed).toMatchObject({
+      appType: 'APP_XXX',
+      existingFormUuid: 'FORM_1',
+      processDefinitionFile: 'process.json',
+    });
+    expect(parsed.legacyGuardOptions.statePaths).toEqual(['.cache/openyida/state.v1.json']);
+    expect(parsed.legacyGuardOptions.contextInputs).toHaveLength(1);
+  });
+
+  test('create-process guard blocks bound form and process create contexts', async () => {
+    const processDefPath = path.join(tmpDir, 'process.json');
+    fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }), 'utf8');
+
+    await expect(createProcess.run([
+      'APP_XXX',
+      '--formUuid',
+      'FORM_1',
+      processDefPath,
+      '--resource-context',
+      JSON.stringify({
+        form: {
+          formUuid: 'FORM_1',
+          allowCreate: false,
+        },
+      }),
+    ])).rejects.toMatchObject({
+      code: 'LEGACY_RESOURCE_CONTEXT_CONFLICT',
+    });
+
+    await expect(createProcess.run([
+      'APP_XXX',
+      '流程表单',
+      'fields.json',
+      processDefPath,
+      '--resource-context',
+      JSON.stringify({
+        process: {
+          processCode: 'TPROC_BOUND',
+          allowCreate: false,
+        },
+      }),
+    ])).rejects.toMatchObject({
+      code: 'LEGACY_RESOURCE_CONTEXT_CONFLICT',
+    });
+
+    expect(utils.httpPost).not.toHaveBeenCalled();
+    expect(configureProcess.run).not.toHaveBeenCalled();
+  });
+
+  test('create-process carries explicit guard context into configure-process update guard', async () => {
+    const statePath = path.join(tmpDir, 'state.v1.json');
+    const processDefPath = path.join(tmpDir, 'process.json');
+    fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }), 'utf8');
+    fs.writeFileSync(statePath, JSON.stringify({
+      kind: 'openyida_resource_state',
+      contractVersion: 1,
+      revision: 1,
+      resources: {
+        process: {
+          approval: {
+            bindings: {
+              processCode: 'TPROC_1',
+            },
+          },
+        },
+      },
+    }), 'utf8');
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+    utils.httpGet.mockResolvedValueOnce({
+      success: true,
+      content: {
+        appType: 'APP_XXX',
+        procCode: 'TPROC_1',
+      },
+    });
+
+    await expect(createProcess.run([
+      'APP_XXX',
+      '--formUuid',
+      'FORM_1',
+      processDefPath,
+      '--schema-state',
+      statePath,
+      '--resource-context',
+      JSON.stringify({
+        process: {
+          processCode: 'TPROC_1',
+          schemaManaged: true,
+        },
+      }),
+    ])).rejects.toMatchObject({
+      code: 'LEGACY_SCHEMA_MANAGED_GUARD',
+    });
+
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+    expect(configureProcess.run).not.toHaveBeenCalled();
   });
 
   test('preview-process writes an HTML preview and returns metadata', async () => {

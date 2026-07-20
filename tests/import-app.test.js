@@ -24,6 +24,75 @@ describe('import-app helpers', () => {
     expect(JSON.parse(displayPayload.title).zh_CN).toBe('Imported Page');
   });
 
+  test.each([
+    ['login expiry', { __needLogin: true }],
+    ['CSRF expiry', { __csrfExpired: true }],
+    ['redirect', { __needLogin: true, __httpStatus: 302 }],
+    ['ordinary failure', { success: false, errorCode: 'FAILED' }],
+  ])('import Schema save sends exactly once on %s', async (label, response) => {
+    jest.resetModules();
+    const httpPost = jest.fn().mockResolvedValue(response);
+    const requestWithAutoLogin = jest.fn((requestFn, authRef) => requestFn(authRef));
+    jest.doMock('../lib/core/utils', () => ({
+      loadCookieData: jest.fn(),
+      triggerLogin: jest.fn(),
+      resolveBaseUrl: jest.fn(() => 'https://example.test'),
+      httpGet: jest.fn(),
+      httpPost,
+      requestWithAutoLogin,
+    }));
+    const isolated = require('../lib/app/import-app').__test__;
+
+    await expect(isolated.saveFormSchema(
+      'APP_XXX',
+      'FORM_XXX',
+      { pages: [] },
+      { baseUrl: 'https://example.test', csrfToken: 'csrf', cookies: [] },
+      'receipt',
+      100
+    )).resolves.toEqual(response);
+
+    expect(label).toBeTruthy();
+    expect(httpPost).toHaveBeenCalledTimes(1);
+    expect(requestWithAutoLogin).not.toHaveBeenCalled();
+    jest.dontMock('../lib/core/utils');
+    jest.resetModules();
+  });
+
+  test('import Schema save rejects missing auth or revision before transport', async () => {
+    jest.resetModules();
+    const httpPost = jest.fn();
+    jest.doMock('../lib/core/utils', () => ({
+      loadCookieData: jest.fn(),
+      triggerLogin: jest.fn(),
+      resolveBaseUrl: jest.fn(() => 'https://example.test'),
+      httpGet: jest.fn(),
+      httpPost,
+      requestWithAutoLogin: jest.fn(),
+    }));
+    const isolated = require('../lib/app/import-app').__test__;
+
+    await expect(isolated.saveFormSchema(
+      'APP_XXX',
+      'FORM_XXX',
+      { pages: [] },
+      { baseUrl: 'https://example.test', cookies: [] },
+      'receipt',
+      100
+    )).rejects.toMatchObject({ code: 'IMPORT_SCHEMA_WRITE_PRECHECK_FAILED' });
+    await expect(isolated.saveFormSchema(
+      'APP_XXX',
+      'FORM_XXX',
+      { pages: [] },
+      { baseUrl: 'https://example.test', csrfToken: 'csrf', cookies: [] },
+      'receipt'
+    )).rejects.toMatchObject({ code: 'SCHEMA_REMOTE_READ_FAILED' });
+
+    expect(httpPost).not.toHaveBeenCalled();
+    jest.dontMock('../lib/core/utils');
+    jest.resetModules();
+  });
+
   test('adapts app and form identifiers inside exported schema content', () => {
     const schema = {
       pages: [{ id: 'FORM-OLD', props: { appType: 'APP_OLD' } }],

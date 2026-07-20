@@ -1,8 +1,10 @@
 'use strict';
 
 const fs = require('fs');
+const https = require('https');
 const os = require('os');
 const path = require('path');
+const { EventEmitter } = require('events');
 
 jest.mock('../lib/app/form-navigation', () => ({
   fetchFormPageList: jest.fn(),
@@ -16,6 +18,7 @@ const {
   extractPageDataSource,
   findDuplicateSourceMismatches,
   mergePageDataSource,
+  sendSaveRequestOnce,
   verifyPublishTarget,
 } = require('../lib/app/publish');
 
@@ -136,5 +139,72 @@ describe('publish prechecks', () => {
 
     expect(pageDataSource.online.map((item) => item.name)).toEqual(['orders', 'urlParams', 'timestamp']);
     expect(pageDataSource.list.map((item) => item.name)).toEqual(['orders', 'urlParams', 'timestamp']);
+  });
+
+  test.each([
+    ['login expiry', { success: false, errorCode: '307' }],
+    ['CSRF expiry', { success: false, errorCode: 'TIANSHU_000030' }],
+    ['redirect response', { success: false, errorCode: '302' }],
+    ['ordinary failure', { success: false, errorCode: 'FAILED' }],
+  ])('legacy publish Schema transport sends once on %s', async (label, responseBody) => {
+    const previousQuiet = process.env.YIDA_QUIET;
+    process.env.YIDA_QUIET = '1';
+    const requestSpy = jest.spyOn(https, 'request').mockImplementation((options, callback) => {
+      const response = new EventEmitter();
+      response.statusCode = label === 'redirect response' ? 302 : 200;
+      const request = new EventEmitter();
+      request.write = jest.fn();
+      request.end = jest.fn(() => {
+        callback(response);
+        response.emit('data', JSON.stringify(responseBody));
+        response.emit('end');
+      });
+      return request;
+    });
+
+    try {
+      await sendSaveRequestOnce(
+        'csrf',
+        [{ name: 'session', value: 'private' }],
+        JSON.stringify({ pages: [] }),
+        'https://example.test',
+        'APP_XXX',
+        'FORM_XXX',
+        100
+      );
+      expect(requestSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      requestSpy.mockRestore();
+      if (previousQuiet === undefined) {
+        delete process.env.YIDA_QUIET;
+      } else {
+        process.env.YIDA_QUIET = previousQuiet;
+      }
+    }
+  });
+
+  test('legacy publish Schema transport rejects missing auth or revision before request', async () => {
+    const requestSpy = jest.spyOn(https, 'request');
+
+    await expect(sendSaveRequestOnce(
+      '',
+      [],
+      JSON.stringify({ pages: [] }),
+      'https://example.test',
+      'APP_XXX',
+      'FORM_XXX',
+      100
+    )).rejects.toMatchObject({ code: 'PUBLISH_SCHEMA_WRITE_PRECHECK_FAILED' });
+    await expect(Promise.resolve().then(() => sendSaveRequestOnce(
+      'csrf',
+      [],
+      JSON.stringify({ pages: [] }),
+      'https://example.test',
+      'APP_XXX',
+      'FORM_XXX'
+    ))).rejects.toMatchObject({ code: 'SCHEMA_REMOTE_READ_FAILED' });
+
+    expect(requestSpy).not.toHaveBeenCalled();
+    requestSpy.mockRestore();
   });
 });
