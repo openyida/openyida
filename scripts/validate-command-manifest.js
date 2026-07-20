@@ -13,7 +13,10 @@ const {
 
 const ROOT = path.resolve(__dirname, '..');
 const ROUTER_FILE = path.join(ROOT, 'bin/yida.js');
-const README_FILE = path.join(ROOT, 'README.md');
+const README_FILES = [
+  path.join(ROOT, 'README.md'),
+  path.join(ROOT, 'README_zhCN.md'),
+];
 
 const errors = [];
 
@@ -96,13 +99,15 @@ function validateRouterCoverage(commands) {
 }
 
 function validateReadmeCoverage(commands) {
-  const readme = fs.readFileSync(README_FILE, 'utf8');
   const visibleRoots = new Set(commands.filter(entry => !entry.hidden).map(entry => entry.path[0]));
 
-  for (const root of [...visibleRoots].sort()) {
-    const pattern = new RegExp(`openyida\\s+${escapeRegExp(root)}(\\s|\`|$)`);
-    if (!pattern.test(readme)) {
-      errors.push(`${toRelative(README_FILE)}: visible command root "${root}" is missing from CLI reference`);
+  for (const readmeFile of README_FILES) {
+    const readme = fs.readFileSync(readmeFile, 'utf8');
+    for (const root of [...visibleRoots].sort()) {
+      const pattern = new RegExp(`openyida\\s+${escapeRegExp(root)}(\\s|\`|$)`);
+      if (!pattern.test(readme)) {
+        errors.push(`${toRelative(readmeFile)}: visible command root "${root}" is missing from CLI reference`);
+      }
     }
   }
 }

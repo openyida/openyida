@@ -3,10 +3,9 @@
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'tok123', corpId: 'corp', userId: 'user' })),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn(),
@@ -17,9 +16,12 @@ const getPageConfig = require('../lib/page-config/get-page-config');
 const saveShareConfig = require('../lib/page-config/save-share-config');
 const verifyShortUrl = require('../lib/page-config/verify-short-url');
 
-const mockCookieData = {
-  cookies: [{ name: 'tianshu_csrf_token', value: 'tok123' }],
-  csrf_token: 'tok123',
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
 };
 
 let logSpy;
@@ -27,7 +29,7 @@ let errorSpy;
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
   utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
   logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -68,7 +70,6 @@ describe('get-page-config', () => {
     expect(utils.httpPost.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/query/formdesign/getShareConfig.json');
     expect(querystring.parse(utils.httpPost.mock.calls[0][2])).toMatchObject({
       _api: 'Share.getShareConfig',
-      _csrf_token: 'tok123',
       formUuid: 'FORM_XXX',
     });
     expect(result).toEqual({
@@ -100,7 +101,6 @@ describe('verify-short-url', () => {
     expect(utils.httpGet.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/query/formdesign/verifyShortUrl.json');
     expect(utils.httpGet.mock.calls[0][2]).toMatchObject({
       _api: 'App.verifyShortUrlForm',
-      _csrf_token: 'tok123',
       formUuid: 'FORM_XXX',
       openUrl: '/o/new-page',
     });
@@ -159,7 +159,6 @@ describe('save-share-config', () => {
     const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
     expect(body).toMatchObject({
       _api: 'Share.saveShareConfig',
-      _csrf_token: 'tok123',
       formUuid: 'FORM_XXX',
       openUrl: '/o/public-page',
       isOpen: 'y',

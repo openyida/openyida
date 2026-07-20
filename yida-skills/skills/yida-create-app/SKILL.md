@@ -35,7 +35,7 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 
 用户说"从零创建应用"、"新建另一个系统"、"新建应用并返回 appType"，且 resource context 没有目标 app 时使用此技能。
 创建应用后，通常需要继续执行：创建/更新表单（`yida-create-form-page`）→ 创建或复用页面（`yida-create-page` / existing page）→ 发布页面（`yida-publish-page`）。
-后续如果需要自定义页面，默认走 native 兼容链路：源码写到 `project/pages/src/<页面名>.oyd.jsx`，先 `openyida check-page` / `openyida compile`，再 `openyida publish`。Code Canvas 尚未全量，只有用户明确要求或已确认当前组织/页面支持时才走 `.canvas.jsx` 链路。
+后续如果需要自定义页面，默认走 Code Canvas 链路：源码写到 `project/pages/src/<页面名>.canvas.jsx`，通过 Canvas 编译链路发布。用户明确要求普通自定义页面 JSX/Jsx 组件链路，或页面强依赖普通自定义页实例桥（`this.$(fieldId)`、`this.utils.yida.*`、`this.dataSourceMap`、表单提交或字段双向绑定深度耦合）时，选择 `.oyd.jsx` / `.jsx` 并执行 `openyida check-page` / `openyida compile`。
 
 ---
 
@@ -52,10 +52,26 @@ openyida create-app <appName> [description] [icon] [iconColor] [colour] [navThem
 | `icon` | 否 | `xian-yingyong` | 图标标识（见下方图标表） |
 | `iconColor` | 否 | `#0089FF` | 图标背景色 |
 | `colour` | 否 | `deepBlue` | 主题色（见下方主题色表） |
-| `navTheme` | 否 | `dark` | 导航风格：`dark`（深色）/ `light`（浅色） |
-| `layoutDirection` | 否 | `slide` | 导航布局：`slide`（侧边栏）/ `ver`（L 型顶导） |
+| `navTheme` | 否 | 不传 | 导航风格：仅用户明确要求时传 `dark`（深色）/ `light`（浅色） |
+| `layoutDirection` | 否 | 不传 | 导航布局：仅用户明确要求时传 `slide`（侧边栏）/ `ver`（L 型顶导） |
+
+## 行业默认创建建议
+
+如果用户只说“创建一个律所/茶叶官网/数据大屏应用”，不要直接使用通用默认壳。先按行业选择图标、主题色和首屏自定义页模板：
+
+| 场景语义 | create-app 推荐参数 | 创建后的首屏页面 |
+|------|------|------|
+| 律所、律师、法律服务、法务合规 | `xian-falv #5C72FF greyBlue` | `official-homepage`，走专业服务官网叙事 |
+| 茶叶、茶园、生态、环保、健康品牌 | `xian-diqiu #00B853 teal` | `official-homepage`，走品牌官网叙事 |
+| 数据大屏、实时监控、预警系统、态势屏、水质/IoT | `xian-baogao #14A9FF greyBlue` | `data-screen`，走沉浸式指挥舱 |
+| 咨询、审计、会计、投顾、企业服务 | `xian-qiye #5C72FF royalBlue` | `official-homepage` 或工作台，按用户目标选择 |
+| 普通内部管理、CRM、OA、项目管理 | 可使用默认或用户指定参数 | `product-homepage --scene workbench` |
+
+CLI 已内置上述行业推断：当用户没有显式传 `icon/iconColor/colour` 时，会根据应用名和描述自动补齐；`navTheme/layoutDirection` 默认不传，只有用户明确要求时才传。显式参数始终优先。
 
 **主题色（colour）可选值**：
+
+默认不要把黑色、深灰或灰黑中性色作为普通应用主题色。创建业务系统、工作台、门户、数据管理类应用时，优先选择蓝、青、绿、紫、橙等有品牌识别度的主题；`black` 仅在用户明确要求暗色模式、高对比、奢侈品牌或极简黑色视觉时使用，`greyBlue` 也只在工业制造、技术工程等稳重场景下使用。
 
 | 值 | 颜色 | 适合场景 |
 |------|------|------|
@@ -111,7 +127,7 @@ openyida sample yida-create-app ipd-app-template   # 完整应用创建示例（
 ## 创建后交付约定
 
 - 将 `appType`、页面 `formUuid`、表单 `fieldId` 写入 `.cache/<项目名>-schema.json`，PRD 只保留业务语义。
-- 自定义页面源码统一使用 `.oyd.jsx`，事件绑定、timestamp 隐藏节点、loading 兜底遵循 `yida-custom-page` 规范。
+- 自定义页面源码默认使用 `.canvas.jsx`，通过 `yida-canvas-custom-page` / `openyida generate-page` 生成并走 Canvas 编译发布；明确要求普通自定义页面 JSX/Jsx 组件链路，或强依赖普通自定义页实例桥时才使用 `.oyd.jsx` / `.jsx`，并遵循 `yida-custom-page` 的事件绑定、timestamp 隐藏节点、loading 兜底等规范。
 - 造测试数据或修旧数据时，可以用 Python 或 JS 编写 `.cache/` 下的一次性脚本；优先选择更快更清晰的方式，但字段 ID 和记录 ID 必须来自真实查询。
 
 ## 异常处理

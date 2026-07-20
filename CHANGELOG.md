@@ -6,7 +6,144 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **版本规则**：从 v2026.03.19 起，版本号采用日期格式 `vYYYY.MM.DD`，每次发布以当天日期为版本号，Git tag 格式为 `v2026.03.19`，npm 包版本格式为 `2026.03.19`。
 
-## [Unreleased]
+## 说明
+
+海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
+
+
+## [2026.7.19] - 2026-07-20
+
+### Highlights
+- Skill 评测体系扩展：新增多维评测、并行执行、覆盖率、Junit 报告、历史记录、dashboard 控制台和 Skill-as-Evaluator，提升技能发布前的质量判断能力。
+- CLI 语言包从「全量内置」调整为「核心中英内置 + 非中英按需加载」，降低 npm 默认包体积，同时保留小语种扩展能力。
+- 继续收口高频业务模块的错误退出方式，减少可复用模块内直接 `process.exit(...)` 对测试、批处理、MCP/A2A 嵌入调用的影响。
+- 优化 OpenYida 技能路由与技能文档结构，补充机器可读路由提示，并拆分过长的报表技能文档，降低 Agent 加载成本。
+
+### Added
+- 新增 `yida-skill-evaluator` 等技能与参考文档，补齐应用 UIUX、数据绑定、主题和测评工作流。
+- 新增可选 CLI 语言包目录 `locales-extra/core/`，用于存放 `zh-HK`、`ja`、`ko`、`fr`、`de`、`es`、`pt`、`ar`、`hi`、`vi` 等非核心语言包；可通过 `OPENYIDA_LOCALE_DIR` 指向外部语言包目录按需启用。
+- 新增 `lib/core/command-errors.js`，提供 `CliError`/usage/error 抛错辅助方法，供可复用业务模块统一错误处理。
+- 新增 `docs/project-risk-and-optimization-2026-07-19.md`，记录当前项目风险点、已完成优化和后续治理建议。
+- 新增 `yida-skills/skills/yida-report/references/schema-builder-details.md`，承载报表 Schema 构建细节、组件示例和低频参考内容。
+
+### Changed
+- CLI 发布包默认只内置核心界面语言 `zh` / `en`，降低默认安装体积；其他 CLI UI 语言包不随 npm 包默认分发，运行时按 `OPENYIDA_LANG` + `OPENYIDA_LOCALE_DIR` 加载。
+- 国际化运行时回退链路调整为「目标语言 -> en -> zh」；非中英可选语言包已补齐结构缺失，便于真实用户使用某语种时单独校对和分发。
+- `app-list`、`list-forms`、`create-app`、`create-page`、`get-schema`、`get-form-config`、`i18n-management`、`corp-manager`、`agent-center`、`formula` 等高频业务模块改为抛错交由 CLI 入口统一处理，减少业务层直接退出。
+- `yida-skills/skills-index.json` 补充 `positive_signals`、`negative_signals`、`command_ids`、`done_when` 等机器路由字段，降低表单结构、数据管理、Canvas 页面和 UIUX 等高混淆技能的误路由概率。
+- `yida-skills/SKILL.md` 同步补充技能索引读取策略和路由提示，要求先用索引快速判断，再按需读取单个子技能文档。
+- `yida-report/SKILL.md` 从长文档拆为主流程文档 + `references/schema-builder-details.md`，主文档保留路由信号、必要步骤和完成标准。
+- `README.md`、`README_zhCN.md`、`docs/capabilities.md` 补充 CLI 语言包按需加载说明，并对齐当前 OAuth token 登录和功能清单说明。
+
+### Removed
+- 清理旧的 demo 源码、构建产物和演示 CSV 数据，减少发布包中的历史示例噪音。
+- 移除旧 `docs/custom-page-solutions.md`，相关说明已迁移到 README、能力清单与各技能参考文档。
+- 从默认 npm 发布内容中移除非中英 CLI UI 语言包，保留在源码态 `locales-extra/core/` 作为可选语言包。
+
+### Fixed
+- 修复 Jest 全量测试结束后的 open-handle / worker 未优雅退出提示：`scripts/eval/parallel.js` 统一 child process timeout 清理，避免 spawn 原生 timeout 与自定义 timeout 叠加。
+- 修复 `tests/utils.test.js`、`tests/token-auth.test.js` 中本地 HTTP server 未等待 `close` 完成的问题，避免测试资源释放滞后。
+- 补齐 `en` 顶层历史 key 和非中英可选语言包结构缺失，`npm run check:i18n` 中核心语言与可选语言均达到缺失 0。
+- `npm pack --dry-run` 的 package smoke 测试增加核心语言包、能力文档和可选语言包排除校验，并放宽超时时间，减少 CI 假失败。
+
+### Tests
+- 新增或扩展 asset、safe-json、generate-page、page-ir、page-linter、canvas-compile、create-form、CLI smoke、package smoke、i18n、skill contract 和 eval 系列测试。
+- 新增 Skill eval CI workflow、命令文档校验、i18n 棘轮校验和发布包体积校验适配，覆盖本次 UI 生成与技能评测链路。
+- 补充业务模块抛错、可选语言加载、技能索引机器路由字段、长技能文档校验、package smoke 和 Jest open-handle 相关回归测试。
+- 验证 `npm test` 默认并行模式下 111 个 suite / 1303 个用例全绿，且不再出现 Jest open-handle 或 worker 退出提示。
+
+## [2026.7.18-2] - 2026-07-19
+
+### Changed
+- 优化 `openyida login` 与 `openyida bridge` 的浏览器登录体验：新增跨平台默认浏览器检测。
+
+### Tests
+- `tests/oauth-loopback.test.js`：新增默认浏览器检测（依赖可注入）、三平台新窗口命令、未知/不支持浏览器回退等用例，共 20 个用例。
+- 新增 `tests/check-release-risks.test.js`：覆盖 HARD 反模式命中、注释/字符串误判排除，以及「当前 `lib/` 源码零 HARD 反模式」的仓库守卫。
+- `tests/check-release-risks.test.js`：补充普通业务枚举值 `open` 不触发 soft warning 的回归用例。
+- `tests/process-small.test.js`：补充流程预览三端打开命令与路径 argv 传递用例。
+- `npm run check:structure`：新增锁文件版本一致性校验。
+
+
+## [2026.7.18-1] - 2026-07-18
+
+### Fixed
+- 修复 Windows 下 `openyida login` 无法登录的问题：拉起浏览器时改用 `rundll32 url.dll,FileProtocolHandler`，不再经过 `cmd /c start`。此前 cmd.exe 会把 OAuth URL 中的 `&` 当作命令分隔符，导致 URL 在第一个 `&` 处被截断，`client_id`、`response_type`、`scope`、`state` 全部丢失，钉钉登录页报「参数无效：clientId is blank」。macOS/Linux 不受影响，因此该问题仅在 Windows 用户侧出现。
+- 同步修复 `openyida bridge` 页面唤起在 Windows 下的相同缺陷：bridge 页面 URL 通过 hash 片段携带的 `oy_bridge_url`、`oy_bridge_token` 参数会被 `cmd /c start` 在 `&` 处截断，导致 bridge 配对回连信息丢失、配对失败。现与登录链路复用同一套浏览器拉起逻辑（`resolveBrowserLauncher`），行为统一。
+
+
+## [2026.7.18] - 2026-07-18
+
+### Highlights
+
+- 自定义页面与应用生成继续强化双链路能力：默认使用 Code Canvas `.canvas.jsx` 生成与发布，只有在页面明确依赖普通自定义页面实例桥时才走 `.oyd.jsx` / native JSX。
+- 自定义页面补充门户类组件与宜搭运行态组件支持，覆盖门户导航、成员/部门选择、附件上传和图片上传等常见业务门户场景。
+- 页面生成链路从模板输出升级为「UIUX 决策 + 页面 IR + 主题 profile + 素材状态」的产品化流程，提升 AI 一次生成工作台、看板、列表、详情页和官网落地页的稳定性。
+- 表单创建能力增强，支持更丰富的布局组件、主题配置、字段属性、规则和增量更新，便于生成更接近真实业务的表单结构。
+- ![表单支持分割线示例1](https://img.alicdn.com/imgextra/i2/O1CN01b66Noa1OpqFXJ42ZN_!!6000000001755-0-tps-3024-1370.jpg)
+
+### Added
+- `openyida generate-page` 新增多套 Code Canvas 页面模板，覆盖官网/落地页、数据大屏、驾驶舱、工作台、业务列表、详情页、分栏详情、门户壳、待办清单，以及成员/部门/上传组件验证场景。
+- 新增 `openyida asset` 素材命令，支持素材能力检测、图片 URL 校验、素材解析回填、CDN 转存/镜像和素材来源引导，帮助官网/落地页生成前确认素材可用性。
+- 自定义页面新增门户组件、门户导航壳、成员、部门、附件上传、图片上传等宜搭运行态组件的 Code Canvas 桥接文档与模板，并补充 native JSX 链路下的组件使用指引。
+- 新增自定义页面支持宜搭组件（JSX 与 Canvas）示意截图，展示门户、成员/部门、上传、导航壳等组件在双链路下的效果；示例页面见下：
+
+  - ![自定义页面截图1](https://img.alicdn.com/imgextra/i2/O1CN01ivyoA01VoC8RsfVkJ_!!6000000002699-2-tps-3840-4798.png)
+  - ![自定义页面截图2](https://img.alicdn.com/imgextra/i1/O1CN01ykxr161F2X4A4GkuC_!!6000000000429-2-tps-3840-2320.png)
+  - ![自定义页面截图3](https://img.alicdn.com/imgextra/i1/O1CN01PPLkQV1f8eMmITj52_!!6000000003962-2-tps-3840-2506.png)
+  - ![自定义页面截图7](https://img.alicdn.com/imgextra/i2/O1CN016lbFwu1zNZaMLnCwG_!!6000000006702-2-tps-3840-1916.png)
+  - ![自定义页面截图8](https://img.alicdn.com/imgextra/i1/O1CN01b6oO2u1gSdGJeC9Cy_!!6000000004141-2-tps-3840-2256.png)
+  - ![自定义页面截图10](https://img.alicdn.com/imgextra/i1/O1CN01fxmCH81xG7uq7hfjU_!!6000000006415-2-tps-3840-4316.png)
+  - ![自定义页面截图11](https://img.alicdn.com/imgextra/i1/O1CN01gyslBU1WkMR4Pcw4k_!!6000000002826-0-tps-3840-1916.jpg)
+- 新增 `yida-app-uiux`、`yida-canvas-data-binding`、`yida-theme` 等子技能，并扩展 `yida-page-uiux` 的多页面应用蓝图、导航、主题、素材和场景化页面设计参考。
+- 新增中文版 README 与多份设计、发布和 Code Canvas 能力规划文档，补充当前能力清单与开发规则说明。
+
+
+### Changed
+- 优化 yida-skills 技能树与路由描述，明确完整应用、页面 UIUX、Code Canvas、native JSX、数据绑定、主题和发布等子技能的协作边界。
+- 自定义页面主链路调整为先做 UIUX 视觉方向决策，再默认使用 Code Canvas 生成与发布；仅在页面强依赖 `this.$(...)`、`this.utils.yida.*`、`dataSourceMap` 等原生实例桥时使用 native JSX 链路。
+- `create-form` 拆分为参数解析、字段定义读取、Schema 构建、补丁、规则、校验和数据源绑定模块，增强表单布局、主题、分组组件和增量更新能力。
+- `generate-page` 引入页面 IR、主题 profile/scope、素材状态、模板推断和本地 Canvas 编译输出，提升 AI 从需求到页面源码的一次生成稳定性。
+- CLI 入口、命令清单、首次复制、脚本校验和 npm 包体积规则同步适配新增的 asset、Canvas、表单与技能包内容。
+- Code Canvas 编译、发布、页面 lint、示例模板和技能路由持续优化，增强数据接口、导航壳、门户组件和运行态组件的一致性。
+- 打磨 native 自定义页面控件视觉：统一输入框 hover / focus 态，修复下拉浅色选中态与控件焦点样式，减少默认蓝色描边干扰。
+- 对齐并美化「数据管理」场景的 native 与 Code Canvas 示例（设备台账 / 多维表风格），同步优化图表、密度切换和官网 / 落地页等自定义页面样例，详见 [`docs/demo-page-samples.md`](docs/demo-page-samples.md)。
+
+### Removed
+- 移除旧的 `docs/custom-page-solutions.md`，相关页面链路和组件使用说明已迁移到 README、能力清单和 yida-skills。
+
+### Tests
+- 新增或扩展 asset、safe-json、generate-page、page-ir、page-linter、canvas-compile、create-form、CLI smoke、package smoke 和 skill contract 测试，覆盖本次页面生成、素材、表单和命令路由调整。
+
+## [2026.7.17-3] - 2026-07-17
+
+### Fixed
+- refresh token 换取新 access token 时，如果服务端未返回业务 `base_url`，继续保留本地 token session 中已有的业务域名，避免刷新后业务请求错误落到认证 endpoint。
+
+## [2026.7.17-2] - 2026-07-17
+
+### Fixed
+- 业务请求遇到 access token 失效时，自动使用本地 refresh token 刷新 access token 并重试原请求；仅 refresh token 也失效时才提示重新 OAuth 登录。
+- refresh token 换取新 access token 时使用当前环境的认证 endpoint，并保留服务端返回的业务 `base_url` 写入本地 token session。
+- 移除 CLI 业务请求中显式拼接 `_csrf_token` 的逻辑，运行态只向宜搭服务端传递 `Authorization: Bearer <access_token>`。
+
+## [2026.7.14-2] - 2026-07-14
+
+### Highlights
+- 登录鉴权从本地 Cookie / 二维码模式切换为钉钉 OAuth loopback + 宜搭 CLI token 模式，后续业务请求统一通过 `Authorization: Bearer <access_token>` 进入宜搭服务端鉴权。
+- 本版本面向国内 `aliwork.com` 链路；海外版宜搭暂无法通过新的 OAuth token 方式登录。需要继续使用海外版宜搭的用户，请安装低于 `2026.7.14-2` 的版本，例如 `npm install -g openyida@2026.7.13`。
+
+### Changed
+- `openyida login`、`openyida auth` 默认进入 token 登录态管理，不再要求 CLI 感知或保存 `ai_app_user_auth_token`、`tianshu_csrf_token` 等 Web Cookie。
+- 所有宜搭 HTTP API 调用统一从本地 token session 读取 `base_url` 和 access token，并由请求层自动封装 Bearer 鉴权头。
+- `openyida org list` 改为通过 token 请求 `/query/userservice/listCorpInfos.json` 获取可访问组织；`openyida org switch --corp-id <corpId>` 通过 OAuth 重新登录并校验目标组织。
+- MCP Server、批处理、环境诊断、技能文档和命令清单同步使用 token 登录态语义。
+
+### Removed
+- 移除旧 Cookie 登录、二维码登录、Codex 浏览器登录和相关 Cookie 缓存链路，降低本地明文 Cookie 持久化风险。
+
+### Tests
+- 更新 CLI、请求层、登录态、MCP、环境诊断和各业务命令的离线测试，覆盖 token session 读取、刷新、登出、组织列表和 Bearer 请求封装。
 
 ## [2026.7.8] - 2026-07-08
 

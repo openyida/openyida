@@ -24,9 +24,11 @@
 
 在 `renderJsx` 顶部定义语义色彩对象，全页复用：
 
-> **主色说明**：宜搭平台已内置品牌色 CSS 变量（色阶 `--color-brand1-1` 最浅 → `--color-brand1-6` 主色 → `--color-brand1-10` 最深）。**所有主色/强调/链接/选中/info/标签系一律走平台变量，不要硬编码蓝色**，页面才能跟随 App 主题自动适配。只有语义色（成功/警告/错误）固定不随主题变，保证语义稳定。
+> **主色说明**：真实业务页宜搭平台已内置品牌色 CSS 变量（色阶 `--color-brand1-1` 最浅 → `--color-brand1-6` 主色 → `--color-brand1-10` 最深）。业务页主色/强调/链接/选中/info/标签系默认走平台变量，不要硬编码蓝色，页面才能跟随 App 主题自动适配。官方 sample / 示例展示应用例外：它是样板库，必须自带页面级固定主题和差异化色盘，不要直接继承宿主 App 主题。只有语义色（成功/警告/错误）固定不随主题变，保证语义稳定。普通 native 自定义页的下拉选中项、提示块这类 light 模式大面积浅底，应优先使用页面级 `--oyd-control-selected-bg` / `--oyd-control-info-bg` 低透明度 token，避免宿主主题把浅色解析成过深背景。
 >
-> **前提是导航可见**：跟随品牌主色是为了跟应用框架融合。若页面隐藏了应用导航（`isRenderNav=false`，沉浸/独立/门户/大屏），主色相可自立、不必严格跟品牌（由 `yida-page-uiux` 的 Step 0 决策）——但**语义色仍固定、去 AI 味红线仍生效**。拿不准就按「跟随品牌」这个更安全的默认走。
+> **默认 light 模式不要灰黑主题**：业务协同表、数据管理页、录入表、工作台和门户在用户未说明暗色/高对比时，禁止用 `#111827`、近黑边框、近黑按钮、灰黑大阴影作为主题色。正文可以使用深色保证可读性，但强调、选中、按钮、焦点和批量操作必须使用品牌色或 sample 自带主题色，边框使用浅色品牌混合。
+>
+> **前提是导航可见且是真实业务页**：跟随品牌主色是为了跟应用框架融合。若页面隐藏了应用导航（`isRenderNav=false`，沉浸/独立/门户/大屏），主色相可自立、不必严格跟品牌（由 `yida-page-uiux` 的 Step 0 决策）。若是 `lib/samples/**` 或官方 sample 展示应用，也必须自立主色相，不继承宿主 App 主题——但**语义色仍固定、去 AI 味红线仍生效**。
 >
 > ⚠️ **常见错误**：把 `primaryHover` 设成 `brand1-1`（最浅档）会让填充主按钮 hover 时「泛白」；把 `hover` 设成 `brand1-9`（深档）当行 hover 底会让行「变暗」。填充按钮 hover 要比主色**亮一档**（`brand1-5`）、按下**深一档**（`brand1-7`）；通用浅色 hover 底用 `brand1-1`。
 
@@ -40,6 +42,8 @@ export function renderJsx() {
     active:        'var(--color-brand1-2)',  // 通用浅色激活/按下底
     disabled:      'var(--color-brand1-3)',  // 禁用态：浅、去饱和
     primaryLight:  'var(--color-brand1-2)',  // 主色浅背景：选中行底色、标签高亮背景
+    controlSelectedBg: 'var(--oyd-control-selected-bg, rgba(47,111,237,.08))', // native 控件选中浅底
+    controlInfoBg:     'var(--oyd-control-info-bg, rgba(47,111,237,.08))',     // native 提示块浅底
 
     // 语义色（固定，不随主题变）
     success:        '#52C41A',
@@ -230,12 +234,18 @@ input: {
   border: '1px solid #E5E6EB',
   borderRadius: '6px',
   fontSize: '14px',
+  fontWeight: 400,
   color: '#1D2129',
   background: '#FFFFFF',
   outline: 'none',
+  boxShadow: 'none',
+  appearance: 'none',
+  WebkitAppearance: 'none',
   boxSizing: 'border-box',
 },
 ```
+
+页面需要同时保留 native 控件 reset（例如 `openyida-native-control-reset`），统一 input/textarea/select/自定义下拉的 `:focus` 边框和 ring。不要依赖浏览器默认 focus 样式，也不要使用会显得突兀的黑色粗边。reset 的 id 与 CSS 作用域必须匹配：通用 `.oyd-page` reset 可以刷新同名 style；自定义页面作用域必须使用页面专属 style id，避免其它 native 页已注入同名 style 后导致本页下拉菜单、SVG 勾选标记和按钮 reset 失效。
 
 ### 标签/徽章
 
@@ -317,6 +327,7 @@ empty: {
 ### 去 AI 味反模式（与 `../../yida-page-uiux/` 对齐，实现前先定视觉方向）
 
 ❌ **禁蓝紫 AI 万能渐变背景**：不要用 `#6366f1→#a855f7` 一类蓝紫渐变当区块/卡片底；主色走平台品牌变量，强调靠语义色/点缀色而非渐变。
+❌ **禁灰黑默认主题 / 黑色操作边框**：普通 light 页面不要用 `#111827`、近黑描边、近黑主按钮、灰黑重阴影制造质感；业务表格和协同列表的边框用浅色品牌混合，主操作和选中态使用 App 品牌色或 sample 自带主题色。
 ❌ **禁彩色发光阴影 / 半透明彩色 blob / 渐变文字**：阴影用中性色低透明度（如 `rgba(0,0,0,.06)`），不要彩色光晕；不要背景漂浮彩色模糊球，不要文字渐变。
 ❌ **禁每个卡片/章节标题前配一枚装饰线性图标**：这是最典型的 AI 味。图标只用在功能处（按钮/状态/导航），标题纯文字；同页只用一套图标风格。
 ❌ **严禁 emoji（FATAL）**：页面渲染的任何位置（标题/按钮/标签/状态/空态/图表标题）一律不得出现 emoji（😀🚀✅⚠️📦📊 等），JS 注释也不留装饰符号（←→✓）。需要图标用功能性内联 SVG，需要状态用文字 + 语义色标签。emoji 跨端不一致且是最明显的 AI 味来源。

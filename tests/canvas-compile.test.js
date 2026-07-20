@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
+
 const {
   compileCanvas,
   compileCanvasLocal,
@@ -39,11 +42,127 @@ function stubReactWindow(extra) {
   return Object.assign({ React, __calls: calls }, extra || {});
 }
 
+class StubReactComponent {
+  constructor(props) {
+    this.props = props || {};
+    this.state = {};
+  }
+
+  setState(nextState) {
+    this.state = Object.assign(
+      {},
+      this.state,
+      typeof nextState === 'function' ? nextState(this.state, this.props) : nextState
+    );
+  }
+}
+
+function stubCanvasSampleWindow() {
+  const React = {
+    Component: StubReactComponent,
+    createElement: (type, props, ...children) => ({
+      type: typeof type === 'function' ? type.name || 'anon' : String(type),
+      props: props || {},
+      children,
+    }),
+    Fragment: 'Fragment',
+    useMemo: (fn) => fn(),
+    useState: (value) => [typeof value === 'function' ? value() : value, () => {}],
+    useEffect: () => {},
+    useRef: (value) => ({ current: value }),
+  };
+  const Typography = { Title: 'Title', Text: 'Text', Paragraph: 'Paragraph' };
+  const antd = {
+    ConfigProvider: 'ConfigProvider',
+    Button: 'Button',
+    Input: Object.assign('Input', { Search: 'Input.Search' }),
+    Select: 'Select',
+    Table: 'Table',
+    Tag: 'Tag',
+    Typography,
+    Card: 'Card',
+    Space: 'Space',
+    Progress: 'Progress',
+    Segmented: 'Segmented',
+  };
+  const chartNames = [
+    'AreaChart',
+    'Area',
+    'BarChart',
+    'Bar',
+    'RadarChart',
+    'Radar',
+    'PolarGrid',
+    'PolarAngleAxis',
+    'CartesianGrid',
+    'LineChart',
+    'Line',
+    'ResponsiveContainer',
+    'Tooltip',
+    'XAxis',
+    'YAxis',
+  ];
+  const Recharts = Object.fromEntries(chartNames.map((name) => [name, name]));
+  const ahooks = { useMemoizedFn: (fn) => fn };
+  const localStorage = {
+    getItem: () => null,
+    setItem: () => undefined,
+    removeItem: () => undefined,
+  };
+  return {
+    React,
+    antd,
+    Recharts,
+    ahooks,
+    localStorage,
+    document: {
+      body: {},
+      documentElement: {},
+      createElement: () => ({ style: {}, setAttribute() {}, appendChild() {} }),
+    },
+    getComputedStyle: () => ({ getPropertyValue: () => '' }),
+  };
+}
+
+function renderCanvasRuntime(runtimeCode, stubWindow) {
+  const wrapped = `${runtimeCode}\nreturn typeof YidaComp !== "undefined" ? YidaComp : (typeof exports !== "undefined" && exports.default);`;
+  // eslint-disable-next-line no-new-func
+  const factory = new Function('window', wrapped);
+  const Comp = factory(stubWindow);
+  if (typeof Comp !== 'function') {
+    throw new Error('YidaComp is not a function');
+  }
+  return Comp({});
+}
+
+function collectVisibleStrings(node, result = [], insideStyle = false) {
+  if (node === null || node === undefined || typeof node === 'boolean') {
+    return result;
+  }
+  if (typeof node === 'string' || typeof node === 'number') {
+    if (!insideStyle) {
+      result.push(String(node));
+    }
+    return result;
+  }
+  if (Array.isArray(node)) {
+    node.forEach((item) => collectVisibleStrings(item, result, insideStyle));
+    return result;
+  }
+  if (typeof node === 'object') {
+    const nextInsideStyle = insideStyle || node.type === 'style';
+    collectVisibleStrings(node.children || [], result, nextInsideStyle);
+  }
+  return result;
+}
+
 describe('extractImportedModules', () => {
   test('collects bare package names, skips relative/absolute, dedups & sorts', () => {
     const code = `
       import React from 'react';
       import { Button } from 'antd';
+      /* require('fs') and import('left-pad') in comments must not be counted */
+      // require('path')
       import './local.css';
       import '/abs/thing';
       const d = require('d3');
@@ -153,6 +272,164 @@ describe('compileCanvasLocal', () => {
     const win = stubReactWindow();
     const Comp = assembleRuntime(runtimeCode, win);
     expect(Comp({ name: 'z' }).type).toBe('b');
+  });
+
+  test('compiles the recommended dashboard starter sample', () => {
+    const samplePath = path.join(
+      __dirname,
+      '..',
+      'lib',
+      'samples',
+      'yida-canvas-custom-page',
+      'dashboard-starter.canvas.jsx'
+    );
+    const src = fs.readFileSync(samplePath, 'utf8');
+    const { runtimeCode, importedModules } = compileCanvasLocal(src);
+    const mods = JSON.parse(importedModules);
+
+    expect(mods).toEqual(expect.arrayContaining([
+      'ahooks',
+      'antd',
+      'react',
+      'recharts',
+    ]));
+    expect(mods).not.toContain('lucide-react');
+    expect(mods).not.toContain('fs');
+    expect(runtimeCode).toMatch(/window\.antd/);
+    expect(runtimeCode).toMatch(/window\.Recharts/);
+    expect(runtimeCode).toMatch(/window\.ahooks/);
+    expect(runtimeCode).toMatch(/YidaComp\s*=/);
+    expect(runtimeCode).not.toMatch(/\bimport\s/);
+    expect(runtimeCode).not.toMatch(/\bexport\s/);
+  });
+
+  test('compiles the portal native components bridge sample', () => {
+    const samplePath = path.join(
+      __dirname,
+      '..',
+      'lib',
+      'samples',
+      'yida-canvas-custom-page',
+      'portal-native-components.canvas.jsx'
+    );
+    const src = fs.readFileSync(samplePath, 'utf8');
+    const { runtimeCode, importedModules } = compileCanvasLocal(src);
+    const mods = JSON.parse(importedModules);
+
+    expect(mods).toEqual(['react']);
+    expect(runtimeCode).toMatch(/window\.YidaNativeComponents/);
+    expect(runtimeCode).toMatch(/window\.Deep/);
+    expect(runtimeCode).toMatch(/window\.DeepYida/);
+    expect(runtimeCode).toMatch(/YidaComp\s*=/);
+    expect(runtimeCode).not.toMatch(/\bimport\s/);
+    expect(runtimeCode).not.toMatch(/\bexport\s/);
+    expect(runtimeCode).not.toMatch(/@ali\/deep/);
+    expect(runtimeCode).not.toMatch(/@ali\/vc-deep-yida/);
+  });
+
+  test('compiles the native components smoke sample', () => {
+    const samplePath = path.join(
+      __dirname,
+      '..',
+      'lib',
+      'samples',
+      'yida-canvas-custom-page',
+      'native-components-smoke.canvas.jsx'
+    );
+    const src = fs.readFileSync(samplePath, 'utf8');
+    const { runtimeCode, importedModules } = compileCanvasLocal(src);
+    const mods = JSON.parse(importedModules);
+
+    expect(mods).toEqual(['react']);
+    expect(runtimeCode).toMatch(/window\.Deep/);
+    expect(runtimeCode).toMatch(/window\.DeepYida/);
+    expect(runtimeCode).toMatch(/window\.YidaNativeComponents/);
+    expect(runtimeCode).toMatch(/DataManageViews/);
+    expect(runtimeCode).toMatch(/formUuid/);
+    expect(runtimeCode).toMatch(/YidaComp\s*=/);
+    expect(runtimeCode).not.toMatch(/\bimport\s/);
+    expect(runtimeCode).not.toMatch(/\bexport\s/);
+    expect(runtimeCode).not.toMatch(/@ali\/deep/);
+    expect(runtimeCode).not.toMatch(/@ali\/vc-deep-yida/);
+  });
+
+  test('keeps the official homepage sample self-contained and photographic', () => {
+    const samplePath = path.join(
+      __dirname,
+      '..',
+      'lib',
+      'samples',
+      'yida-canvas-custom-page',
+      'official-homepage.canvas.jsx'
+    );
+    const source = fs.readFileSync(samplePath, 'utf8');
+    const embeddedPhotos = source.match(/data:image\/jpeg;base64/g) || [];
+    const { runtimeCode, importedModules } = compileCanvasLocal(source);
+
+    expect(embeddedPhotos.length).toBeGreaterThanOrEqual(3);
+    expect(source).not.toContain('data:image/svg+xml');
+    expect(source).toMatch(/oy-hero-photo/);
+    expect(source).toMatch(/oy-blend-grid/);
+    expect(source).toMatch(/oy-story-photo/);
+    expect(source).toMatch(/oy-store-band/);
+    expect(JSON.parse(importedModules)).toEqual(['antd', 'react']);
+    expect(runtimeCode).not.toMatch(/window\.ahooks/);
+    expect(runtimeCode).toMatch(/YidaComp\s*=/);
+  });
+
+  test('all Canvas samples are raw-publish safe', () => {
+    const samplesDir = path.join(__dirname, '..', 'lib', 'samples', 'yida-canvas-custom-page');
+    const sampleFiles = fs.readdirSync(samplesDir)
+      .filter((name) => name.endsWith('.canvas.jsx'))
+      .sort();
+
+    expect(sampleFiles.length).toBeGreaterThan(0);
+
+    const previousGlobals = {
+      document: global.document,
+      getComputedStyle: global.getComputedStyle,
+      fetch: global.fetch,
+      URLSearchParams: global.URLSearchParams,
+      AbortController: global.AbortController,
+      localStorage: global.localStorage,
+      window: global.window,
+    };
+
+    try {
+      for (const filename of sampleFiles) {
+        const sourcePath = path.join(samplesDir, filename);
+        const source = fs.readFileSync(sourcePath, 'utf8');
+
+        expect(source).not.toContain("JSON.parse('{{");
+
+        const { runtimeCode } = compileCanvasLocal(source);
+        const stubWindow = stubCanvasSampleWindow();
+        global.document = stubWindow.document;
+        global.getComputedStyle = stubWindow.getComputedStyle;
+        global.fetch = () => Promise.reject(new Error('fetch should not run in raw sample smoke'));
+        global.URLSearchParams = URLSearchParams;
+        global.AbortController = class {
+          constructor() { this.signal = {}; }
+          abort() {}
+        };
+        global.localStorage = stubWindow.localStorage;
+        global.window = stubWindow;
+
+        const rendered = renderCanvasRuntime(runtimeCode, stubWindow);
+        expect(rendered).toBeTruthy();
+
+        const visibleText = collectVisibleStrings(rendered).join('\n');
+        expect(visibleText).not.toMatch(/\{\{(?!OPENYIDA_CANVAS_CONTROL_CSS)[A-Z0-9_]+\}\}/);
+      }
+    } finally {
+      global.document = previousGlobals.document;
+      global.getComputedStyle = previousGlobals.getComputedStyle;
+      global.fetch = previousGlobals.fetch;
+      global.URLSearchParams = previousGlobals.URLSearchParams;
+      global.AbortController = previousGlobals.AbortController;
+      global.localStorage = previousGlobals.localStorage;
+      global.window = previousGlobals.window;
+    }
   });
 });
 

@@ -5,9 +5,8 @@ const { run } = require('../lib/app/app-list');
 // ── 工具函数 mock ─────────────────────────────────────────────────────
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'tok123', userId: 'user001' })),
   httpGet: jest.fn(),
   triggerLogin: jest.fn(),
   requestWithAutoLogin: jest.fn(),
@@ -19,8 +18,12 @@ jest.mock('../lib/core/i18n', () => ({
 
 const utils = require('../lib/core/utils');
 
-const mockCookieData = {
-  cookies: [{ name: 'tianshu_csrf_token', value: 'tok123', domain: 'www.aliwork.com' }],
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
 };
 
 const makeApp = (overrides = {}) => ({
@@ -32,16 +35,13 @@ const makeApp = (overrides = {}) => ({
 
 const mockAuth = {
   baseUrl: 'https://www.aliwork.com',
-  cookies: mockCookieData.cookies,
-  csrfToken: 'tok123',
   userId: 'user001',
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
   utils.resolveBaseUrl.mockReturnValue('https://www.aliwork.com');
-  utils.extractInfoFromCookies.mockReturnValue({ csrfToken: 'tok123', userId: 'user001' });
   // requestWithAutoLogin 默认透传执行 requestFn
   utils.requestWithAutoLogin.mockImplementation((requestFn) => requestFn(mockAuth));
 });
@@ -54,7 +54,7 @@ describe('run() 正常查询', () => {
 
     await run(['--help']);
 
-    expect(utils.loadCookieData).not.toHaveBeenCalled();
+    expect(utils.loadAuthData).not.toHaveBeenCalled();
     expect(mockWrite).toHaveBeenCalledWith(expect.stringContaining('openyida app-list'));
 
     mockWrite.mockRestore();
@@ -159,9 +159,9 @@ describe('run() 空列表', () => {
 // ── 未登录场景 ────────────────────────────────────────────────────────
 
 describe('run() 未登录场景', () => {
-  test('loadCookieData 返回 null 时调用 triggerLogin', async () => {
-    utils.loadCookieData.mockReturnValue(null);
-    utils.triggerLogin.mockReturnValue(mockCookieData);
+  test('loadAuthData 返回 null 时调用 triggerLogin', async () => {
+    utils.loadAuthData.mockReturnValue(null);
+    utils.triggerLogin.mockReturnValue(mockAuthData);
 
     utils.httpGet.mockResolvedValueOnce({
       success: true,
@@ -185,54 +185,39 @@ describe('run() 未登录场景', () => {
 // ── API 失败场景 ──────────────────────────────────────────────────────
 
 describe('run() API 失败场景', () => {
-  test('API 返回 success=false 时打印错误并以 exit code 1 退出', async () => {
+  test('API 返回 success=false 时抛出 CliError', async () => {
     utils.httpGet.mockResolvedValueOnce({
       success: false,
       errorMsg: '权限不足',
     });
 
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
     const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    await expect(run([])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('权限不足'));
+    await expect(run([])).rejects.toThrow('权限不足');
+    expect(mockError).not.toHaveBeenCalled();
 
-    mockExit.mockRestore();
     mockError.mockRestore();
   });
 
-  test('requestWithAutoLogin 抛出异常时打印错误并以 exit code 1 退出', async () => {
+  test('requestWithAutoLogin 抛出异常时抛出 CliError', async () => {
     utils.requestWithAutoLogin.mockRejectedValue(new Error('网络超时'));
 
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
     const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    await expect(run([])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('网络超时'));
+    await expect(run([])).rejects.toThrow('网络超时');
+    expect(mockError).not.toHaveBeenCalled();
 
-    mockExit.mockRestore();
     mockError.mockRestore();
   });
 
   test('API 返回登录失效内部标记时输出明确错误', async () => {
     utils.httpGet.mockResolvedValueOnce({ __needLogin: true });
 
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
     const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    await expect(run([])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('登录态已失效'));
+    await expect(run([])).rejects.toThrow('登录态已失效');
+    expect(mockError).not.toHaveBeenCalled();
 
-    mockExit.mockRestore();
     mockError.mockRestore();
   });
 });

@@ -3,10 +3,9 @@
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'csrf', corpId: 'corp', userId: 'user' })),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn(),
@@ -19,9 +18,12 @@ jest.mock('../lib/core/i18n', () => ({
 const utils = require('../lib/core/utils');
 const { run } = require('../lib/permission/save-permission');
 
-const mockCookieData = {
-  csrf_token: 'csrf',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf' }],
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
 };
 
 describe('save-permission command', () => {
@@ -31,7 +33,7 @@ describe('save-permission command', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    utils.loadCookieData.mockReturnValue(mockCookieData);
+    utils.loadAuthData.mockReturnValue(mockAuthData);
     utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
     mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
     mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -74,7 +76,6 @@ describe('save-permission command', () => {
     expect(utils.httpPost).toHaveBeenCalledTimes(1);
     const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
     expect(body).toMatchObject({
-      _csrf_token: 'csrf',
       formUuid: 'FORM-1',
       packageUuid: 'pkg-1',
       fieldPermit: '{"fieldRange":"CUSTOM","fields":{"textField_a":"READONLY"}}',
@@ -109,7 +110,6 @@ describe('save-permission command', () => {
     const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
     expect(body.packageUuid).toBeUndefined();
     expect(body).toMatchObject({
-      _csrf_token: 'csrf',
       formUuid: 'FORM-1',
       fieldPermit: '{"fieldRange":"CUSTOM","fields":{"textField_a":"READONLY"}}',
     });

@@ -60,9 +60,9 @@ description: 配置已有流程表单审批规则；schema-managed 流程由根�
 - 用户需要为已有的流程表单配置审批流程
 - 用户需要修改已有流程的审批规则
 - 用户需要配置条件分支、嵌套分支等复杂流程
-- 已通过 `yida-create-form-page` 创建表单后，需要配置流程规则
+- 已有流程表单需要补充或固化流程规则
 
-## 与 yida-create-process 的区别
+## 前提
 
 | 场景 | 使用技能 |
 |------|---------|
@@ -71,6 +71,8 @@ description: 配置已有流程表单审批规则；schema-managed 流程由根�
 | **从零创建**：没有目标表单/流程，需要新建表单 + 配置审批流程 | **yida-create-process** |
 
 > 简单判断：有没有现成的流程表单？有 → 本技能；没有 → `yida-create-process`。
+
+执行本技能前需要已经有目标流程表单、`appType`、`formUuid`、字段 ID 和必要的审批人 / 条件信息。
 
 ## 使用方式
 
@@ -379,12 +381,11 @@ OpenYida 会自动兼容常见别名：
 
 完整支持清单、连接器示例、数据 / 消息 / 代码节点示例和透传规则详见 [references/official-component-nodes.md](references/official-component-nodes.md)。
 
-关键边界：
+透传规则：
 
 - 常规审批/办理/抄送、条件/并行分支优先用本文件中的简化 DSL。
 - 连接器、数据、消息、邮件、Groovy/JavaScript、子流程、卡片、循环、AI 等节点使用真实组件 props 透传，并按线上设计器规则转换 `processJson.props`。
 - 不认识的节点类型会直接报错，不会静默跳过，避免生成断链流程。
-- 从零创建复杂集成自动化时优先使用 `yida-integration`；本技能用于流程表单规则里需要高级组件节点、或已有真实节点配置需要固化的场景。
 
 ## AI 自动生成流程特性（必须遵守）
 
@@ -432,7 +433,7 @@ OpenYida 会自动兼容常见别名：
 ## 前置依赖
 
 - Node.js ≥ 16
-- 项目根目录存在 `.cache/cookies.json`（首次运行会自动触发扫码登录）
+- 项目根目录存在有效 token session（通过 `openyida login` 获取）
 
 ## 文件结构
 

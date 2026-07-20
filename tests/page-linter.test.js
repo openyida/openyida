@@ -187,15 +187,43 @@ export function renderJsx() {
     expect(warningRules).toContain('iframe-self-navigation');
   });
 
-  test('custom page template uses verified Tailwind preflight and custom dropdown reset', () => {
+  test('custom page template uses verified Tailwind preflight and native control reset', () => {
     const sourcePath = path.join(__dirname, '..', 'lib', 'samples', 'yida-custom-page', 'custom-page-template.js');
     const source = fs.readFileSync(sourcePath, 'utf-8');
 
     expect(source).toContain('https://g.alicdn.com/code/lib/tailwindcss-browser/0.0.0-insiders.fed6c6a/index.global.min.js');
     expect(source).toContain('@import "tailwindcss/preflight";');
+    expect(source).toContain('openyida-native-control-reset');
+    expect(source).toContain("var style = document.getElementById('openyida-native-control-reset');");
+    expect(source).not.toContain("if (document.getElementById('openyida-native-control-reset'))");
+    expect(source).toContain('--oyd-control-focus-ring');
+    expect(source).toContain('--oyd-control-selected-bg');
+    expect(source).toContain('--oyd-control-info-bg');
+    expect(source).toContain('oyd-page');
+    expect(source).toContain('oyd-input');
     expect(source).toContain('oyd-select-option');
+    expect(source).toContain('oyd-select-arrow');
+    expect(source).toContain('oyd-select-check');
+    expect(source).toContain('oyd-select-check{width:14px!important;height:14px!important');
+    expect(source).toContain('oyd-select-option-active{background:var(--oyd-control-selected-bg');
     expect(source).toContain('appearance:none;-webkit-appearance:none;font-family:inherit');
+    expect(source).not.toContain('oyd-select-option-active{background:var(--color-brand1-1');
+    expect(source).not.toContain("background: 'var(--color-brand1-1, #EFF6FF)'");
+    expect(source).not.toContain('focus:border-blue-400');
+    expect(source).not.toContain('focus:ring-blue-100');
     expect(source).not.toContain('<select');
+  });
+
+  test('native select warning explains the custom dropdown affordance contract', () => {
+    const zh = require('../lib/core/locales/zh').publish.lint_native_select_ui;
+    const en = require('../lib/core/locales/en').publish.lint_native_select_ui;
+
+    expect(zh).toContain('下箭头');
+    expect(zh).toContain('选中标记');
+    expect(zh).toContain('SelectField');
+    expect(en).toContain('arrow');
+    expect(en).toContain('selected marker');
+    expect(en).toContain('SelectField');
   });
 
   test('warns about rich text label formatter functions in ECharts options', () => {
@@ -390,5 +418,72 @@ export function loadRows() {
     const errorResult = lintYidaSource(errorSource, '/tmp/pagesize-error.jsx');
     expect(errorResult.errors.map(issue => issue.rule)).toContain('page-size-limit');
     expect(errorResult.warnings.map(issue => issue.rule)).not.toContain('page-size-recommend');
+  });
+
+  test('flags direct searchFormDatas.json misuse (POST / pageNumber / no content unwrap)', () => {
+    const badSource = `
+export function YidaComp() {
+  return fetch('/dingtalk/web/APP_X/v1/form/searchFormDatas.json', {
+    method: 'POST',
+    body: JSON.stringify({ formUuid: 'FORM-X', pageNumber: 1, pageSize: 50 })
+  }).then(function (res) { return res.json(); }).then(function (json) {
+    return json.data || [];
+  });
+}
+`;
+    const badResult = lintYidaSource(badSource, '/tmp/searchformdata-bad.canvas.jsx');
+    const badRules = badResult.errors.concat(badResult.warnings).map(issue => issue.rule);
+    expect(badRules).toContain('searchformdata-http-post');
+    expect(badRules).toContain('searchformdata-http-pagenumber');
+    expect(badRules).toContain('searchformdata-http-unwrap');
+    expect(badResult.errors.map(issue => issue.rule)).toContain('searchformdata-http-post');
+  });
+
+  test('accepts correct GET + query + content unwrap searchFormDatas.json usage', () => {
+    const goodSource = `
+export function YidaComp() {
+  var qs = new URLSearchParams({ formUuid: 'FORM-X', appType: 'APP_X', currentPage: '1', pageSize: '50', searchFieldJson: '{}' }).toString();
+  return fetch('/dingtalk/web/APP_X/v1/form/searchFormDatas.json?' + qs, {
+    method: 'GET'
+  }).then(function (res) { return res.json(); }).then(function (json) {
+    return (json.content && json.content.data) || json.data || [];
+  });
+}
+`;
+    const goodResult = lintYidaSource(goodSource, '/tmp/searchformdata-good.canvas.jsx');
+    const goodRules = goodResult.errors.concat(goodResult.warnings).map(issue => issue.rule);
+    expect(goodRules).not.toContain('searchformdata-http-post');
+    expect(goodRules).not.toContain('searchformdata-http-pagenumber');
+    expect(goodRules).not.toContain('searchformdata-http-unwrap');
+  });
+
+  test('does not flag comments mentioning POST / pageNumber near the endpoint', () => {
+    const commentedSource = `
+export function YidaComp() {
+  // 注意：searchFormDatas.json 不能用 POST，也不要写 pageNumber，用 currentPage。
+  var qs = new URLSearchParams({ formUuid: 'FORM-X', appType: 'APP_X', currentPage: String(binding.pageNumber || 1), pageSize: '50', searchFieldJson: '{}' }).toString();
+  return fetch('/dingtalk/web/APP_X/v1/form/searchFormDatas.json?' + qs, { method: 'GET' })
+    .then(function (res) { return res.json(); })
+    .then(function (json) { return (json.content && json.content.data) || []; });
+}
+`;
+    const result = lintYidaSource(commentedSource, '/tmp/searchformdata-commented.canvas.jsx');
+    const rules = result.errors.concat(result.warnings).map(issue => issue.rule);
+    expect(rules).not.toContain('searchformdata-http-post');
+    expect(rules).not.toContain('searchformdata-http-pagenumber');
+    expect(rules).not.toContain('searchformdata-http-unwrap');
+  });
+
+  test('ignores native pages using this.utils.yida.searchFormDatas method', () => {
+    const nativeSource = `
+export function loadRows() {
+  return this.utils.yida.searchFormDatas({ formUuid: 'FORM-X', pageSize: 50 });
+}
+`;
+    const result = lintYidaSource(nativeSource, '/tmp/native.jsx');
+    const rules = result.errors.concat(result.warnings).map(issue => issue.rule);
+    expect(rules).not.toContain('searchformdata-http-post');
+    expect(rules).not.toContain('searchformdata-http-pagenumber');
+    expect(rules).not.toContain('searchformdata-http-unwrap');
   });
 });

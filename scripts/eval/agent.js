@@ -4,23 +4,74 @@
 
 /**
  * 唯一的 headless agent 封装。路由测评、真实生成与截图打分共用此模块，
- * 都通过本地 `claude -p` 运行时完成，无需独立 vision API key。
+ * 都通过本地无头 agent（`claude -p` / `qodercli -p` 等）运行时完成，无需独立 vision API key。
  *
- * claude CLI 缺失时返回 { available:false }，调用方据此优雅降级。
+ * agent 命令可通过环境变量 OPENYIDA_EVAL_AGENT_CMD 切换（默认 claude；阿里内网可设为 qodercli）。
+ * 不同 agent 的 JSON 信封格式一致（{type:'result', result, is_error}），故解析逻辑通用；
+ * 仅权限模式/工具白名单的 flag 写法不同，由 AGENT_ADAPTERS 抹平。
+ *
+ * agent CLI 缺失时返回 { available:false }，调用方据此优雅降级。
  */
 
 const { spawnSync } = require('child_process');
 
 /**
- * 检测本地是否可用 claude CLI。
+ * 各 agent CLI 的差异适配表（键为命令 basename）。
+ * 信封解析对所有 agent 通用，这里只描述「开放工具执行权限」时的 flag 差异。
  */
-function isAgentAvailable(command = 'claude') {
+const AGENT_ADAPTERS = {
+  claude: {
+    permissionBypass: ['--permission-mode', 'bypassPermissions'],
+    allowedTools: (tools) => ((tools && tools.length) ? ['--allowedTools', ...tools] : []),
+  },
+  qodercli: {
+    permissionBypass: ['--permission-mode', 'bypass_permissions'],
+    allowedTools: (tools) => (tools || []).flatMap((t) => ['--allowed-tools', t]),
+  },
+};
+
+/**
+ * 取命令的 basename（去掉路径与 .exe/.cmd/.sh 后缀），用于匹配 adapter。
+ */
+function agentBasename(command) {
+  return String(command || '').split(/[\\/]/).pop().replace(/\.(exe|cmd|sh)$/i, '');
+}
+
+/**
+ * 解析当前应使用的 agent 命令：环境变量 OPENYIDA_EVAL_AGENT_CMD 优先，默认 claude。
+ */
+function resolveAgentCommand(env = process.env) {
+  const c = env && env.OPENYIDA_EVAL_AGENT_CMD;
+  return (typeof c === 'string' && c.trim()) ? c.trim() : 'claude';
+}
+
+/**
+ * 取指定命令对应的 adapter；未知命令回退到 claude 风格。
+ */
+function getAgentAdapter(command) {
+  return AGENT_ADAPTERS[agentBasename(command)] || AGENT_ADAPTERS.claude;
+}
+
+/**
+ * 检测本地是否可用 agent CLI。
+ * 结果按命令缓存于进程内：同一次评测会对每条用例调用 runAgent，
+ * 若每次都 spawn 一个 `--version` 探测子进程，开销可占总耗时相当比例。
+ * 缓存后每个 agent 命令在整个进程只探测一次。
+ */
+const _availabilityCache = new Map();
+function isAgentAvailable(command = resolveAgentCommand(), useCache = true) {
+  if (useCache && _availabilityCache.has(command)) {
+    return _availabilityCache.get(command);
+  }
+  let ok = false;
   try {
     const probe = spawnSync(command, ['--version'], { encoding: 'utf8', timeout: 15000 });
-    return probe.status === 0;
+    ok = probe.status === 0;
   } catch {
-    return false;
+    ok = false;
   }
+  _availabilityCache.set(command, ok);
+  return ok;
 }
 
 /**
@@ -72,7 +123,7 @@ function extractJsonObject(text) {
  * @returns {{available:boolean, ok:boolean, text:string|null, json:object|null, raw:string|null, error:string|null}}
  */
 function runAgent(options = {}) {
-  const command = options.command || 'claude';
+  const command = options.command || resolveAgentCommand();
   const timeout = options.timeoutMs || 180000;
   const spawn = options.spawn || spawnSync;
 
@@ -142,6 +193,10 @@ function runAgent(options = {}) {
 }
 
 module.exports = {
+  AGENT_ADAPTERS,
+  agentBasename,
+  resolveAgentCommand,
+  getAgentAdapter,
   isAgentAvailable,
   extractJsonObject,
   runAgent,

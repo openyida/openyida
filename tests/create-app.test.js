@@ -1,7 +1,7 @@
 'use strict';
 
 const querystring = require('querystring');
-const { parseCreateAppArgs } = require('../lib/app/create-app');
+const { parseCreateAppArgs, inferAppDefaults, buildCreateAppPayload } = require('../lib/app/create-app');
 const { createAppResource, updateAppResource } = require('../lib/app/services/app-service');
 
 describe('create-app argument parsing', () => {
@@ -41,9 +41,61 @@ describe('create-app argument parsing', () => {
       colour: 'deepBlue',
       icon: 'xian-yingyong',
       iconColor: '#0089FF',
-      navTheme: 'dark',
-      layoutDirection: 'slide',
+      navTheme: null,
+      layoutDirection: null,
       locale: 'ja_JP',
+    });
+  });
+
+  test('creates normal apps by default', () => {
+    expect(parseCreateAppArgs(['--name', '普通应用'])).toMatchObject({
+      appName: '普通应用',
+    });
+  });
+
+  test('infers legal-service app shell defaults from app name', () => {
+    const parsed = parseCreateAppArgs([
+      '--name', '恒信律师事务所',
+      '--desc', '面向企业客户的法律服务官网和案件管理入口',
+    ]);
+
+    expect(parsed).toMatchObject({
+      appName: '恒信律师事务所',
+      icon: 'xian-falv',
+      iconColor: '#5C72FF',
+      colour: 'greyBlue',
+      navTheme: null,
+      layoutDirection: null,
+      industry: 'legal',
+    });
+  });
+
+  test('infers tea and ecology app shell defaults', () => {
+    expect(inferAppDefaults('云山茶叶官网', '绿色茶园品牌展示')).toMatchObject({
+      icon: 'xian-diqiu',
+      iconColor: '#00B853',
+      colour: 'teal',
+      industry: 'tea-ecology',
+    });
+  });
+
+  test('explicit options override inferred industry defaults', () => {
+    const parsed = parseCreateAppArgs([
+      '--name', '水质情况实时监控预警系统',
+      '--icon', 'xian-diannao',
+      '--icon-color', '#8F66FF',
+      '--theme', 'black',
+      '--nav-theme', 'dark',
+      '--layout', 'ver',
+    ]);
+
+    expect(parsed).toMatchObject({
+      icon: 'xian-diannao',
+      iconColor: '#8F66FF',
+      colour: 'black',
+      navTheme: 'dark',
+      layoutDirection: 'ver',
+      industry: 'command-screen',
     });
   });
 
@@ -53,6 +105,48 @@ describe('create-app argument parsing', () => {
 
   test('rejects unsupported locales', () => {
     expect(() => parseCreateAppArgs(['--name', 'CRM', '--locale', 'ko_KR'])).toThrow('Unsupported locale: ko_KR');
+  });
+
+  test('rejects custom theme names because --theme only accepts platform presets', () => {
+    expect(() => parseCreateAppArgs(['--name', 'CRM', '--theme', 'vibrantOrange']))
+      .toThrow('Unsupported theme: vibrantOrange');
+  });
+
+  test('builds registerApp payload with normal app group', () => {
+    const params = parseCreateAppArgs(['--name', '普通宜搭应用', '--desc', '来自 OpenYida']);
+    const payload = buildCreateAppPayload(
+      params,
+      { csrfToken: 'csrf-token' },
+      'zh_CN',
+      'n',
+      'n'
+    );
+
+    expect(payload).toMatchObject({
+      _csrf_token: 'csrf-token',
+      group: 'ALL',
+      openExclusive: 'n',
+      openPhysicColumn: 'n',
+    });
+    expect(payload).not.toHaveProperty('navTheme');
+    expect(payload).not.toHaveProperty('layoutDirection');
+    expect(JSON.parse(payload.appName)).toMatchObject({ zh_CN: '普通宜搭应用' });
+  });
+
+  test('includes nav theme and layout direction only when explicitly provided', () => {
+    const params = parseCreateAppArgs(['--name', '普通宜搭应用', '--nav-theme', 'light', '--layout', 'ver']);
+    const payload = buildCreateAppPayload(
+      params,
+      { csrfToken: 'csrf-token' },
+      'zh_CN',
+      'n',
+      'n'
+    );
+
+    expect(payload).toMatchObject({
+      navTheme: 'light',
+      layoutDirection: 'ver',
+    });
   });
 });
 

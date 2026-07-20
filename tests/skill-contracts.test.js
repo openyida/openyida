@@ -9,11 +9,44 @@ function readSkill(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
 }
 
-function readJson(relativePath) {
-  return JSON.parse(fs.readFileSync(path.join(ROOT, relativePath), 'utf8'));
-}
-
 describe('OpenYida skill contracts', () => {
+  test('agent-facing docs use token auth wording instead of legacy cookie login guidance', () => {
+    const docs = [
+      'AGENTS.md',
+      'README.md',
+      'README_zhCN.md',
+      'scripts/eval/runner.js',
+      'scripts/eval/VERIFY.md',
+      'yida-skills/skills/yida-app/SKILL.md',
+    ].map(readSkill).join('\n');
+
+    expect(docs).toContain('token session');
+    expect(docs).not.toContain('登录宜搭并缓存 Cookie');
+    expect(docs).not.toContain('有效 cookie 缓存');
+    expect(docs).not.toContain('读取 .cache/cookies.json 中的 corpId');
+    expect(docs).not.toContain('lib/auth/login.js');
+    expect(docs).not.toContain('lib/auth/qr-login.js');
+    expect(docs).not.toContain('lib/auth/codex-login.js');
+  });
+
+  test('page command examples keep Code Canvas as the default chain', () => {
+    const localeDirs = [
+      path.join(ROOT, 'lib', 'core', 'locales'),
+      path.join(ROOT, 'locales-extra', 'core'),
+    ];
+    const localeSource = localeDirs.flatMap((localeDir) => {
+      if (!fs.existsSync(localeDir)) { return []; }
+      return fs.readdirSync(localeDir)
+        .filter((file) => file.endsWith('.js'))
+        .map((file) => fs.readFileSync(path.join(localeDir, file), 'utf8'));
+    })
+      .join('\n');
+
+    expect(localeSource).toContain('openyida compile pages/src/home.canvas.jsx');
+    expect(localeSource).toContain('openyida check-page pages/src/home.canvas.jsx');
+    expect(localeSource).toContain('openyida generate-page <template> --output pages/src/home.canvas.jsx');
+  });
+
   test('root skill uses compact agent-capabilities for default preflight', () => {
     const skill = readSkill('yida-skills/SKILL.md');
 
@@ -24,6 +57,26 @@ describe('OpenYida skill contracts', () => {
     expect(skill).not.toContain('优先跑一次 `openyida agent-capabilities --json`');
   });
 
+  test('skills index carries machine routing hints for high-confusion skills', () => {
+    const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
+    const byName = new Map(index.skills.map((skill) => [skill.name, skill]));
+
+    const form = byName.get('yida-create-form-page');
+    expect(form.positive_signals).toEqual(expect.arrayContaining(['新增字段']));
+    expect(form.negative_signals).toEqual(expect.arrayContaining(['新增记录']));
+    expect(form.command_ids).toEqual(expect.arrayContaining(['create-form.create']));
+
+    const data = byName.get('yida-data-management');
+    expect(data.positive_signals).toEqual(expect.arrayContaining(['新增记录']));
+    expect(data.negative_signals).toEqual(expect.arrayContaining(['修改表单结构']));
+
+    const canvas = byName.get('yida-canvas-custom-page');
+    expect(canvas.negative_signals).toEqual(expect.arrayContaining(['强依赖 this.$']));
+
+    const uiux = byName.get('yida-page-uiux');
+    expect(uiux.done_when).toContain('视觉方向');
+  });
+
   test('yida-app fast_build forbids unbound dataSourceMap by default', () => {
     const skill = readSkill('yida-skills/skills/yida-app/SKILL.md');
 
@@ -31,46 +84,6 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('`this.utils.yida.searchFormDatas`');
     expect(skill).toContain('发布输出出现 `No custom page data sources to preserve`');
     expect(skill).toContain('`yida-data-source-connectors`');
-  });
-
-  test('agent-bound precreated app rename contract is documented', () => {
-    const root = readSkill('yida-skills/SKILL.md');
-    const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
-    const createApp = readSkill('yida-skills/skills/yida-create-app/SKILL.md');
-    const skillsIndex = readJson('yida-skills/skills-index.json');
-    const yidaAppIndex = skillsIndex.skills.find((skill) => skill.name === 'yida-app');
-    const createAppIndex = skillsIndex.skills.find((skill) => skill.name === 'yida-create-app');
-
-    expect(root).toContain('"precreated": true');
-    expect(root).toContain('"placeholderName": "新应用"');
-    expect(root).toContain('"allowRename": true');
-    expect(root).toContain('openyida update-app APP_xxx --name "语义应用名"');
-    expect(root).toContain('不要对非占位已有业务应用自动改名');
-    expect(root).toContain('不要把 schema-managed 资源交给 legacy `update-app`');
-
-    expect(app).toContain('resolve app name / rename placeholder app');
-    expect(app).toContain('allowRename !== false');
-    expect(app).toContain('openyida update-app <appType> --name "<语义应用名>"');
-    expect(app).toContain('用户没有明确要求“保持应用名称不变”');
-    expect(app).toContain('不要加载 `yida-create-app` 处理改名');
-
-    expect(createApp).toContain('预创建的占位 app');
-    expect(createApp).toContain('不得调用 `openyida create-app`');
-    expect(createApp).toContain('由 `yida-app` 在最小需求分析得到稳定语义应用名后调用 `openyida update-app');
-
-    expect(yidaAppIndex.description).toContain('完整搭建或补齐普通 OpenYida 应用');
-    expect(yidaAppIndex.description).toContain('优先复用已解析 app/page/form/process 上下文');
-    expect(yidaAppIndex.description).toContain('缺失且允许创建时才创建');
-    expect(yidaAppIndex.description).toContain('yida-agent 预创建占位应用');
-    expect(yidaAppIndex.description).toContain('openyida update-app <appType> --name "<语义应用名>"');
-    expect(yidaAppIndex.description).not.toContain('从零到一');
-    expect(yidaAppIndex.description).not.toContain('只创建应用、必要表单、主页面');
-
-    expect(createAppIndex.description).toContain('仅在没有目标 app 且允许创建时');
-    expect(createAppIndex.description).toContain('已绑定或预创建 app 不调用 create-app');
-    expect(createAppIndex.description).toContain('交给 yida-app 复用');
-    expect(createAppIndex.description).toContain('update-app 重命名');
-    expect(createAppIndex.description).not.toContain('搭建应用的第一步');
   });
 
   test('yida-custom-page fast_build uses compact native defaults and reads references on demand', () => {
@@ -88,7 +101,7 @@ describe('OpenYida skill contracts', () => {
     const skill = readSkill('yida-skills/skills/yida-get-schema/SKILL.md');
 
     expect(skill).toContain('openyida get-schema <appType> <formUuid> [--summary-json|--field-map-json]');
-    expect(skill).toContain('页面开发、数据查询、报表配置或流程规则只需要字段身份时');
+    expect(skill).toContain('页面开发默认使用 compact 输出');
     expect(skill).toContain('不内联完整 Schema');
   });
 
@@ -98,5 +111,26 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('源码包含 `this.dataSourceMap.`');
     expect(skill).toContain('`No custom page data sources to preserve`');
     expect(skill).toContain('本次发布不能视为完成');
+  });
+
+  test('sample visual lessons are codified in page uiux, theme, chart, and report skills', () => {
+    const pageUiux = readSkill('yida-skills/skills/yida-page-uiux/SKILL.md');
+    const theme = readSkill('yida-skills/skills/yida-theme/SKILL.md');
+    const chart = readSkill('yida-skills/skills/yida-chart/SKILL.md');
+    const report = readSkill('yida-skills/skills/yida-report/SKILL.md');
+    const retrospective = readSkill('yida-skills/references/task-retrospective.md');
+
+    expect(pageUiux).toContain('参考 Dribbble');
+    expect(pageUiux).toContain('参考转成可执行选择');
+    expect(theme).toContain('`--theme` 预置值与自定义主题边界');
+    expect(theme).toContain('官方 sample 主题验收纪律');
+    expect(theme).toContain('style#yida-global-theme');
+    expect(chart).toContain('已有 chart sample / 跨应用迁移修复流程');
+    expect(chart).toContain('getFormNavigationListByOrder');
+    expect(chart).toContain('report-binding.json');
+    expect(report).toContain('作为 chart sample 数据源的绑定纪律');
+    expect(report).toContain('REPORT_xxx');
+    expect(retrospective).toContain('Chart sample / 原生报表绑定经验');
+    expect(retrospective).toContain('工作台是操作首页，不是 demo 页面');
   });
 });

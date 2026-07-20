@@ -3,7 +3,7 @@
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
@@ -30,14 +30,17 @@ const {
   run,
 } = require('../lib/aggregate-table/aggregate-table');
 
-const mockCookieData = {
-  csrf_token: 'csrf-token',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf-token' }],
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
   process.env.YIDA_QUIET = '1';
 });
 
@@ -47,11 +50,10 @@ afterEach(() => {
 
 describe('aggregate-table helpers', () => {
   test('buildCreateEmptyPostData creates a virtualView placeholder payload', () => {
-    const parsed = querystring.parse(buildCreateEmptyPostData('csrf-1', '客户聚合表'));
+    const parsed = querystring.parse(buildCreateEmptyPostData('客户聚合表'));
     const title = JSON.parse(parsed.title);
 
     expect(parsed).toMatchObject({
-      _csrf_token: 'csrf-1',
       formType: 'receipt',
       isVirtualView: 'y',
     });
@@ -96,7 +98,7 @@ describe('aggregate-table helpers', () => {
   });
 
   test('buildDesignPostData preserves blank gmtModified for first draft save', () => {
-    const parsed = querystring.parse(buildDesignPostData('csrf-1', 'FORM-VIEW', {
+    const parsed = querystring.parse(buildDesignPostData('FORM-VIEW', {
       formUuid: 'FORM-VIEW',
       relationForms: [],
       relationships: [],
@@ -107,7 +109,6 @@ describe('aggregate-table helpers', () => {
     }, null));
 
     expect(parsed).toMatchObject({
-      _csrf_token: 'csrf-1',
       formUuid: 'FORM-VIEW',
       gmtModified: '',
     });
@@ -126,7 +127,6 @@ describe('aggregate-table run', () => {
     await run(['list', 'APP_XXX', '--json']);
 
     expect(fetchFormPageList).toHaveBeenCalledWith('APP_XXX', expect.objectContaining({
-      csrfToken: 'csrf-token',
       baseUrl: 'https://www.aliwork.com',
     }));
     expect(mockLog).toHaveBeenCalledWith(JSON.stringify([
@@ -154,8 +154,7 @@ describe('aggregate-table run', () => {
       1,
       'https://www.aliwork.com',
       '/dingtalk/web/APP_XXX/query/virtualview/show.json',
-      expect.stringContaining('_csrf_token=csrf-token'),
-      mockCookieData.cookies
+      ''
     );
     const createPostData = utils.httpPost.mock.calls[1][2];
     expect(querystring.parse(createPostData)).toMatchObject({

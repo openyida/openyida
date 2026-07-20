@@ -1,7 +1,7 @@
 'use strict';
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
   triggerLogin: jest.fn(),
@@ -11,14 +11,17 @@ jest.mock('../lib/core/utils', () => ({
 const utils = require('../lib/core/utils');
 const { filterForms, parseArgs, run } = require('../lib/app/list-forms');
 
-const mockCookieData = {
-  cookies: [{ name: 'tianshu_csrf_token', value: 'tok123' }],
-  csrf_token: 'tok123',
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
 });
 
 describe('parseArgs', () => {
@@ -73,17 +76,12 @@ describe('run', () => {
     mockError.mockRestore();
   });
 
-  test('参数不足时打印用法并退出', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
+  test('参数不足时抛出用法错误', async () => {
     const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    await expect(run([])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('list-forms'));
+    await expect(run([])).rejects.toThrow('list-forms');
+    expect(mockError).not.toHaveBeenCalled();
 
-    mockExit.mockRestore();
     mockError.mockRestore();
   });
 });

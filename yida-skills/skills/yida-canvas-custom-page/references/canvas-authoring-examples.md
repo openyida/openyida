@@ -66,7 +66,7 @@ export default YidaComp;
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-// 读平台品牌色（跑在真 window，getComputedStyle 可直接解析），缺失时退默认蓝
+// 读平台品牌色（跑在真 window，getComputedStyle 可直接解析），缺失时退宜搭应用主题默认主色
 function readBrandColor(level, fallback) {
   try {
     var v = getComputedStyle(document.documentElement)
@@ -76,7 +76,7 @@ function readBrandColor(level, fallback) {
 }
 
 function YidaComp(props) {
-  var brand = readBrandColor(6, '#1677ff');
+  var brand = readBrandColor(6, '#6b7cab');
   var data = [
     { name: '1月', value: 120 },
     { name: '2月', value: 200 },

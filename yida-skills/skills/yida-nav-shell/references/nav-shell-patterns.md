@@ -2,7 +2,7 @@
 
 当页面隐藏了应用导航（`isRenderNav=false`，见 [yida-page-uiux Step 0 导航形态判定](../../yida-page-uiux/workflow/step-0-nav-shape.md)），页面要**自带导航壳**接管应用级导航。本文件是 B 端常见导航形态的选型 + 骨架 + 代码示例目录。挑一种主形态，可与标签页叠加做二级导航。
 
-> 这里给**方向 + 骨架 + 可直接改的代码示例**。示例以 native（`_customState` + inline style）为主，因为最自包含、两条链路都能读；每种形态附一句 **Canvas（antd）等价件**。落地时：native 交 `yida-custom-page`，Canvas 交 `yida-canvas-custom-page`。
+> 这里给**方向 + 骨架 + 可直接改的代码示例**。示例以普通自定义页面（`_customState` + inline style）为主，因为最自包含、两条链路都能读；每种形态附一句 **Canvas（antd）等价件**。落地时：普通自定义页面交 `yida-custom-page`，Canvas 交 `yida-canvas-custom-page`。
 
 ## 选型速查
 
@@ -28,7 +28,7 @@
 
 导航壳 = 一个自定义页内切多个视图。两条链路的做法：
 
-- **native**：状态存 `_customState.activeView`，点击 `this.setCustomState({ activeView: key })`，`renderJsx` 里按 `activeView` 分支渲染内容区。
+- **普通自定义页面**：状态存 `_customState.activeView`，点击 `this.setCustomState({ activeView: key })`，`renderJsx` 里按 `activeView` 分支渲染内容区。
 - **Canvas**：`var v = React.useState('home')`，或用 URL hash（`window.location.hash` + `hashchange` 监听，`useEffect` 注册并 cleanup）做可分享/可后退的视图切换。
 - **跨页跳转**（跳到别的自定义页/表单）：用 [field-and-url-reference.md](../../../references/field-and-url-reference.md) 的模板拼 URL，目标自定义页必须带 `?isRenderNav=false` 保持沉浸；不要假设应用导航还在。不要只调用 `router.push(formUuid, {}, false)`，它无法表达完整的隐藏导航 URL 和业务参数。
 
@@ -89,7 +89,7 @@ export function openNavItem(item) {
 **何时用**：顶级模块 5–12，需要常驻导航。**Canvas 等价**：antd `Layout` + `Layout.Sider` + `Menu`（`mode="inline"`）。
 
 ```jsx
-// native：_customState.activeView / collapsed；styles 见下，主色可用品牌变量或自定主色
+// 普通自定义页面：_customState.activeView / collapsed；styles 见下，主色可用品牌变量或自定主色
 var NAV = [
   { key: 'overview', label: '概览', icon: ICONS.dashboard },
   { key: 'orders',   label: '订单', icon: ICONS.list },
@@ -295,7 +295,7 @@ export function renderTabs() {
 - 选中态一眼可辨（主色条/下划线 + 字重），不是只靠淡变色。
 - 导航项 = 功能性 SVG + 文字，同页一套图标风格，无 emoji、无每项装饰图标。
 - 顶部/侧边有应用名或面包屑，用户知道「在哪、能去哪」，不是孤零零一个返回按钮。
-- 内容区按 `activeView` 切换（native `_customState` / Canvas `useState`/hash），切换有状态、可回来。
+- 内容区按 `activeView` 切换（普通自定义页面 `_customState` / Canvas `useState`/hash），切换有状态、可回来。
 - 宿主页已执行 `openyida update-form-config <appType> <formUuid> false "<标题>"`，宜搭原导航不再出现。
 - 跨页跳转用 URL 模板拼；目标自定义页带 `?isRenderNav=false`，导航项的 `params` 没丢。
 - 移动端：侧边→抽屉、顶部→汉堡、浮动→底部胶囊，走 `isMobile` 响应式。

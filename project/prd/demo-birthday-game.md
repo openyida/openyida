@@ -1,5 +1,14 @@
 # 生日祝福小游戏 需求文档
 
+## 应用配置
+
+| 配置项 | 值 |
+| --- | --- |
+| appType | APP_E7XOCO3C5LJEYZHA67I0 |
+| corpId | ding5d17e3add038d44535c2f4657eb6378f |
+| baseUrl | https://xmtrf1.aliwork.com |
+
+
 ## 功能需求
 
 ### 核心功能

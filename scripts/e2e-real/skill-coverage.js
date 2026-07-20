@@ -12,10 +12,12 @@ const SKILL_COVERAGE = {
   'sls-log-workbench': { level: 'offline-unit', tests: ['skill metadata and packaging validation'], reason: 'internal support-only SLS tooling is guarded by passphrase and corp whitelist; shared real E2E must not query production logs' },
   'yida-app': { level: 'real-e2e', stages: ['app', 'form', 'page', 'data', 'report', 'dashboard'] },
   'yida-app-permission': { level: 'offline-unit', tests: ['tests/app-permission.test.js'], reason: 'app admin mutations affect real application access; shared real E2E only validates safe read paths' },
+  'yida-app-uiux': { level: 'offline-unit', tests: ['skill metadata and packaging validation', 'routing eval scenarios'], reason: 'application experience blueprint skill produces planning output before resource creation; validate routing and packaging rather than mutating Yida resources' },
   'yida-basic-info': { level: 'offline-unit', tests: ['tests/basic-info.test.js'], reason: 'basic-info reads org admin metadata and can update domains; unit coverage avoids mutating shared real org settings' },
   'yida-business-rule': { level: 'opt-in', reason: 'business association rules mutate form event configuration; validate in a dedicated real-form/UI stage before adding to deterministic shared E2E' },
   'yida-canvas-custom-page': { level: 'offline-unit', tests: ['skill metadata and packaging validation'], reason: 'Code Canvas authoring skill has no dedicated CLI command; runtimeCode/importedModules are produced by the platform compile service and a YidaCodeCanvas schema cannot be published via openyida, so shared real E2E validates skill metadata and routing rather than mutating a real page' },
-  'yida-canvas-upgrade': { level: 'offline-unit', tests: ['skill metadata and packaging validation'], reason: 'native-to-Code-Canvas migration skill emits source/report artifacts but has no CLI publish path for YidaCodeCanvas; validated via skill metadata and routing until a Canvas publish stage exists' },
+  'yida-canvas-data-binding': { level: 'offline-unit', tests: ['skill metadata and packaging validation', 'routing eval scenarios', 'tests/generate-page.test.js'], reason: 'Canvas data binding skill defines DataBridge/source-contract authoring guardrails; real form reads and published page verification are covered by page generation and opt-in publish scenarios' },
+  'yida-canvas-upgrade': { level: 'offline-unit', tests: ['skill metadata and packaging validation'], reason: 'ordinary custom page to Code Canvas migration skill emits source/report artifacts but has no CLI publish path for YidaCodeCanvas; validated via skill metadata and routing until a Canvas publish stage exists' },
   'yida-chart': { level: 'real-e2e', stages: ['report', 'dashboard'], tests: ['report chart config generation'] },
   'yida-connector': { level: 'offline', stages: ['connector-local'], commands: ['connector gen-template', 'connector parse-api'] },
   'yida-connector-safe-actions': { level: 'offline', stages: ['connector-local'], commands: ['connector parse-api', 'connector test --action <operationId>'], reason: 'skill documents conservative HTTP connector action generation and repair workflow; shared E2E should validate local parsing without mutating tenant connectors' },
@@ -54,6 +56,8 @@ const SKILL_COVERAGE = {
   'yida-publish-page': { level: 'real-e2e', stages: ['page', 'dashboard'], commands: ['publish --health-check'] },
   'yida-report': { level: 'real-e2e', stages: ['report'], commands: ['create-report', 'append-chart'] },
   'yida-table-form': { level: 'offline-unit', reason: 'table-form custom page template should be validated with check-page fixture before real publish stage is added' },
+  'yida-theme': { level: 'offline-unit', tests: ['tests/create-form.test.js', 'tests/generate-page.test.js', 'tests/page-ir.test.js'], reason: 'application theme tokens can affect app shell, form runtime and page rendering; shared real E2E should validate generated theme payloads and page/theme inference without mutating tenant-wide theme config' },
+  'yida-skill-evaluator': { level: 'offline-unit', tests: ['skill metadata and packaging validation', 'eval test suites'], reason: 'evaluator skill reads and scores other skills; no Yida API mutation' },
   'yida-voc': { level: 'offline-unit', reason: 'VOC formatting skill is local text transformation, not Yida API mutation' },
 };
 

@@ -15,6 +15,7 @@
     --bg-grad: radial-gradient(1200px 600px at 80% -10%, #f7efe2 0%, var(--bg) 55%);
     --header-bg: rgba(247,239,226,.7); --scroll: rgba(141,123,105,.4); --scroll-hover: rgba(141,123,105,.62);
     --shadow: 0 6px 22px rgba(120,84,52,.14);
+    --blue: #4a90d9; --red: #d95050;
   }
   :root[data-theme="dark"] {
     --bg: #1c1613; --bg2: #241b16; --panel: #2b211b; --panel2: #342720;
@@ -25,6 +26,7 @@
     --bg-grad: radial-gradient(1200px 600px at 80% -10%, #2a201a 0%, var(--bg) 55%);
     --header-bg: rgba(28,22,19,.65); --scroll: rgba(179,157,136,.32); --scroll-hover: rgba(179,157,136,.55);
     --shadow: 0 6px 24px rgba(0,0,0,.4);
+    --blue: #6ab0ff; --red: #ff7070;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -32,7 +34,7 @@
     background: var(--bg-grad); color: var(--fg); transition: background .25s, color .25s; }
   code, pre, .mono { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace; }
 
-  /* 滚动条:轨道透明,只留半透明滑块 */
+  /* 滚动条 */
   * { scrollbar-width: thin; scrollbar-color: var(--scroll) transparent; }
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -83,7 +85,7 @@
     background: var(--accent-bg); border: 1px solid var(--border2); color: var(--fg); }
   .detail .d-purpose b { color: var(--accent); }
 
-  /* 概览（未选任务时的默认视图，讲清整套测评思路） */
+  /* 概览 */
   .ov h2 { font-size: 17px; margin: 0 0 6px; }
   .ov .lead { color: var(--muted); font-size: 13px; margin-bottom: 16px; max-width: 760px; }
   .ov .lead b { color: var(--fg); }
@@ -137,6 +139,18 @@
   pre#out .err { color: var(--fail); }
   pre#out .hint { color: var(--muted); }
 
+  /* Progress bar */
+  .progress-bar { height: 3px; background: var(--border); border-radius: 2px; margin: 8px 18px 0; overflow: hidden; }
+  .progress-bar .fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width .3s ease; border-radius: 2px; }
+  .progress-bar.running .fill { animation: progress-indeterminate 1.5s infinite; width: 30%; }
+  @keyframes progress-indeterminate {
+    0% { margin-left: -30%; }
+    100% { margin-left: 100%; }
+  }
+  .progress-bar.done .fill { width: 100%; }
+  .progress-bar.fail .fill { width: 100%; background: var(--fail); }
+
   #prompts { padding: 16px 18px; }
   .pblock { margin-bottom: 22px; }
   .pblock h3 { font-size: 14px; margin: 0 0 4px; }
@@ -152,9 +166,55 @@
   pre.tmpl-body { margin: 8px 0 0; padding: 12px 14px; background: var(--bg2); border: 1px solid var(--border);
     border-radius: 10px; white-space: pre-wrap; word-break: break-word; font-size: 12px; color: var(--fg); max-height: 360px; overflow: auto; }
   .pnone { color: var(--muted); font-size: 13px; }
+
+  /* Reports pane */
+  #reports { padding: 16px 18px; }
+  .report-list { list-style: none; padding: 0; margin: 0; }
+  .report-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 8px;
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
+    transition: border-color .15s; }
+  .report-item:hover { border-color: var(--accent); }
+  .report-item .r-icon { font-size: 18px; flex: none; }
+  .report-item .r-name { font-weight: 600; font-size: 13px; flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .report-item .r-meta { font-size: 11px; color: var(--muted); flex: none; }
+  .report-item .r-badge { font-size: 10px; padding: 2px 8px; border-radius: 12px;
+    background: var(--accent-bg); color: var(--accent); font-weight: 700; flex: none; }
+
+  /* Pipeline result card */
+  .pipe-card { margin: 14px 0; padding: 14px 16px; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; }
+  .pipe-card h3 { margin: 0 0 10px; font-size: 14px; }
+  .pipe-steps { display: grid; gap: 6px; }
+  .pipe-step { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px;
+    font-size: 12.5px; background: var(--panel); }
+  .pipe-step .p-icon { font-size: 14px; flex: none; }
+  .pipe-step .p-name { flex: 1; font-weight: 600; }
+  .pipe-step .p-score { color: var(--accent); font-weight: 700; flex: none; }
+  .pipe-step .p-detail { color: var(--muted); font-size: 11px; flex: none; max-width: 260px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Scorecard grid */
+  .scorecard { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .sc-item { padding: 8px 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    display: flex; align-items: center; gap: 8px; }
+  .sc-item .sc-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .sc-item .sc-bar .sc-fill { height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .sc-item .sc-label { font-size: 11px; color: var(--muted); flex: none; min-width: 90px; }
+  .sc-item .sc-val { font-size: 12px; font-weight: 700; flex: none; min-width: 36px; text-align: right; }
+
+  /* Suggestion card */
+  .sug-card { margin-top: 12px; }
+  .sug-item { padding: 8px 12px; margin-bottom: 6px; background: var(--panel); border-radius: 8px;
+    border-left: 3px solid var(--muted); font-size: 12.5px; }
+  .sug-item.blocker { border-left-color: var(--danger); }
+  .sug-item.critical { border-left-color: var(--fail); }
+  .sug-item.high { border-left-color: var(--warn); }
+  .sug-item .sug-title { font-weight: 600; margin-bottom: 4px; }
+  .sug-item .sug-detail { color: var(--muted); font-size: 11.5px; }
 </style>
 <script>
-  // 尽早应用主题，避免刷新时闪一下默认色。默认浅色暖咖。
   (function () {
     try { var t = localStorage.getItem('eval-theme'); if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
   })();
@@ -173,10 +233,12 @@
   <aside class="sidebar" id="sidebar"></aside>
   <section class="main">
     <div class="detail" id="detail"><span class="empty">加载中…</span></div>
+    <div class="progress-bar" id="progress"><div class="fill"></div></div>
 
     <div class="tabs">
       <div class="tab active" data-tab="output" id="tab-output">运行输出</div>
       <div class="tab" data-tab="prompts" id="tab-prompts">提示词 <span class="count" id="prompt-count"></span></div>
+      <div class="tab" data-tab="reports" id="tab-reports">📊 报告</div>
       <span class="tab-actions">
         <span class="badge" id="status">空闲</span>
         <button class="mini" id="report">📊 最新报告</button>
@@ -186,8 +248,11 @@
     </div>
 
     <div class="panes">
-      <div class="pane" id="pane-output"><pre id="out"><span class="hint">选择任务并点「运行」。危险任务（红色）会在你的宜搭组织创建一次性资源，需先 openyida login。</span></pre></div>
+      <div class="pane" id="pane-output"><pre id="out"><span class="hint">选择任务并点「运行」。危险任务（红色）会在你的宜搭组织创建一次性资源，需先 openyida login。
+
+💡 新功能: 点击「📊 报告」标签页查看所有历史报告，或点击「全自动闭环 · Pipeline」运行完整评测流水线。</span></pre></div>
       <div class="pane hidden" id="pane-prompts"><div id="prompts"><span class="pnone">选择一个任务查看它使用的提示词。</span></div></div>
+      <div class="pane hidden" id="pane-reports"><div id="reports"><span class="pnone">加载报告列表…</span></div></div>
     </div>
   </section>
 </div>
@@ -199,7 +264,10 @@
   const detail = document.getElementById('detail');
   const promptsEl = document.getElementById('prompts');
   const promptCount = document.getElementById('prompt-count');
+  const reportsEl = document.getElementById('reports');
+  const progressBar = document.getElementById('progress');
   let es = null, runId = null, selected = null, prompts = {}, running = false, allTasks = [];
+  let lineCount = 0;
 
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => (
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -211,11 +279,23 @@
     span.textContent = text + '\n';
     out.appendChild(span);
     out.scrollTop = out.scrollHeight;
+    lineCount++;
+    // Auto-detect pipeline progress from output
+    if (text.includes('[pipeline] Step')) {
+      const m = text.match(/Step (\d+)\/(\d+)/);
+      if (m) {
+        const pct = (parseInt(m[1]) / parseInt(m[2])) * 100;
+        progressBar.querySelector('.fill').style.width = pct + '%';
+        progressBar.className = 'progress-bar';
+      }
+    }
   }
   function showTab(name) {
     document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === name));
     document.getElementById('pane-output').classList.toggle('hidden', name !== 'output');
     document.getElementById('pane-prompts').classList.toggle('hidden', name !== 'prompts');
+    document.getElementById('pane-reports').classList.toggle('hidden', name !== 'reports');
+    if (name === 'reports') { loadReports(); }
   }
 
   function renderOverview() {
@@ -232,14 +312,80 @@
     detail.innerHTML =
       '<div class="ov">'
       + '<h2>这套控制台在测什么？</h2>'
-      + '<div class="lead">openyida 技能的本事是<b>“路由 + 编排”</b>：从 ~50 个子技能里<b>选对一个</b>，'
+      + '<div class="lead">openyida 技能的本事是<b>"路由 + 编排"</b>：从 ~50 个子技能里<b>选对一个</b>，'
       + '再引导 agent <b>把宜搭应用真的建出来</b>。这里的每个任务回答同一个问题的不同侧面——'
       + '<b>改了 <code>yida-skills/SKILL.md</code> 之后，技能是变好了还是变差了？</b>'
       + '按从便宜到昂贵排列，点任意任务看详情与提示词。</div>'
       + '<div class="steps">' + steps + '</div>'
-      + '<div class="tip"><b>建议顺序：</b>改完技能 → 先跑「逻辑自检 / 路由测评」（快、零副作用）→ 视情况再跑「真实生成」看端到端效果；'
+      + '<div class="tip"><b>建议顺序：</b>改完技能 → 先跑「全自动闭环 Pipeline」一键评测（快、零副作用）→ 视情况再跑「真实生成」看端到端效果；'
       + '若真实生成失败，用「工具管道基线」排查到底是 agent 还是工具的问题。</div>'
       + '</div>';
+
+    // Try loading latest pipeline result for quick view
+    loadPipelinePreview();
+  }
+
+  function loadPipelinePreview() {
+    fetch('/api/pipeline-latest?skill=yida-dashboard').then(r => r.ok ? r.json() : null).then(data => {
+      if (!data || !data.steps) return;
+      const container = detail.querySelector('.ov');
+      if (!container) return;
+
+      let html = '<div class="pipe-card"><h3>📊 最近一次 Pipeline 结果</h3>';
+      html += '<div class="pipe-steps">';
+      for (const s of data.steps) {
+        const icon = s.status === 'pass' ? '✅' : s.status === 'fail' ? '❌' : s.status === 'warn' ? '⚠️' : '⏭️';
+        html += '<div class="pipe-step">'
+          + '<span class="p-icon">' + icon + '</span>'
+          + '<span class="p-name">' + esc(s.step) + '</span>'
+          + (s.score !== null ? '<span class="p-score">' + Number(s.score).toFixed(1) + '</span>' : '')
+          + '<span class="p-detail">' + esc(s.detail) + '</span>'
+          + '</div>';
+      }
+      html += '</div>';
+
+      if (data.scorecard) {
+        html += '<div class="scorecard">';
+        const dims = data.scorecard.dimensions || {};
+        for (const [k, v] of Object.entries(dims)) {
+          const score = v.score !== null ? v.score : 0;
+          const color = score >= 80 ? 'var(--ok)' : score >= 60 ? 'var(--warn)' : 'var(--fail)';
+          html += '<div class="sc-item">'
+            + '<span class="sc-label">' + esc(k) + '</span>'
+            + '<div class="sc-bar"><div class="sc-fill" style="width:' + score + '%;background:' + color + '"></div></div>'
+            + '<span class="sc-val" style="color:' + color + '">' + (v.score !== null ? v.score.toFixed(0) : '-') + '</span>'
+            + '</div>';
+        }
+        html += '</div>';
+
+        // Gate status
+        html += '<div style="margin-top:10px;font-size:13px;font-weight:700;">';
+        html += '总分：' + (data.scorecard.overall !== null ? data.scorecard.overall.toFixed(1) : 'n/a') + '/100 ';
+        html += data.scorecard.gate === 'pass'
+          ? '<span style="color:var(--ok)">✅ 准出通过</span>'
+          : '<span style="color:var(--fail)">❌ 准出未通过</span>';
+        html += '</div>';
+      }
+
+      if (data.suggestions && data.suggestions.length > 0) {
+        html += '<div class="sug-card"><div style="font-weight:600;font-size:12px;margin-bottom:6px;">📋 优化建议</div>';
+        for (const sg of data.suggestions.slice(0, 3)) {
+          html += '<div class="sug-item ' + (sg.priority || '') + '">'
+            + '<div class="sug-title">[' + esc(sg.priority) + '] ' + esc(sg.label)
+            + (sg.score !== null ? ' — ' + sg.score.toFixed(1) + '分' : '') + '</div>';
+          if (sg.suggestions) {
+            html += '<div class="sug-detail">' + sg.suggestions.map(s => '• ' + esc(s)).join('<br>') + '</div>';
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+
+      html += '<div style="font-size:11px;color:var(--muted);margin-top:8px;">运行于 ' + esc(data.startedAt || '') + '</div>';
+      html += '</div>';
+
+      container.insertAdjacentHTML('beforeend', html);
+    }).catch(() => {});
   }
 
   function renderDetail() {
@@ -296,6 +442,57 @@
     promptsEl.innerHTML = html || '<span class="pnone">无提示词。</span>';
   }
 
+  function loadReports() {
+    reportsEl.innerHTML = '<span class="pnone">加载报告列表…</span>';
+    fetch('/api/reports').then(r => r.json()).then(list => {
+      if (!list || list.length === 0) {
+        reportsEl.innerHTML = '<span class="pnone">还没有报告。请先运行一个评测任务。</span>';
+        return;
+      }
+      let html = '<ul class="report-list">';
+      for (const r of list) {
+        const icon = r.type === 'html' ? '🌐' : (r.name.includes('pipeline') ? '🔄' : '📄');
+        const time = new Date(r.mtime).toLocaleString('zh-CN');
+        const size = r.size > 1024 ? (r.size / 1024).toFixed(1) + 'KB' : r.size + 'B';
+        html += '<li class="report-item" data-path="' + esc(r.path) + '" data-type="' + esc(r.type) + '">'
+          + '<span class="r-icon">' + icon + '</span>'
+          + '<span class="r-name">' + esc(r.name) + '</span>'
+          + '<span class="r-badge">' + esc(r.type) + '</span>'
+          + '<span class="r-meta">' + esc(size) + ' · ' + esc(time) + '</span>'
+          + '</li>';
+      }
+      html += '</ul>';
+      reportsEl.innerHTML = html;
+
+      // Click handler
+      reportsEl.querySelectorAll('.report-item').forEach(el => {
+        el.onclick = () => {
+          const p = el.getAttribute('data-path');
+          const t = el.getAttribute('data-type');
+          if (t === 'html') {
+            window.open('/api/report-content?path=' + encodeURIComponent(p), '_blank');
+          } else {
+            // Show JSON in output pane
+            fetch('/api/report-content?path=' + encodeURIComponent(p))
+              .then(r => r.text())
+              .then(text => {
+                showTab('output');
+                out.innerHTML = '';
+                try {
+                  const obj = JSON.parse(text);
+                  append(JSON.stringify(obj, null, 2));
+                } catch (e) {
+                  append(text);
+                }
+              });
+          }
+        };
+      });
+    }).catch(e => {
+      reportsEl.innerHTML = '<span class="pnone">加载报告失败: ' + esc(e.message) + '</span>';
+    });
+  }
+
   function selectTask(t, btn) {
     selected = t;
     document.querySelectorAll('button.task').forEach((b) => b.classList.remove('sel'));
@@ -314,9 +511,12 @@
     if (t.danger && !confirm('该任务会在你的宜搭组织创建真实的一次性资源，确认运行？\n\n' + t.label)) return;
     if (es) es.close();
     out.innerHTML = '';
+    lineCount = 0;
     showTab('output');
     running = true;
     setStatus('运行中', 'running');
+    progressBar.className = 'progress-bar running';
+    progressBar.querySelector('.fill').style.width = '';
     disableTasks(true); stopBtn.disabled = false;
     renderDetail();
     append('▶ ' + t.label);
@@ -328,9 +528,11 @@
       const code = JSON.parse(e.data).code;
       append('\n— 退出码 ' + code + ' —');
       setStatus(code === 0 ? '通过' : '失败 (code ' + code + ')', code === 0 ? 'ok' : 'fail');
+      progressBar.className = 'progress-bar ' + (code === 0 ? 'done' : 'fail');
+      progressBar.querySelector('.fill').style.width = '100%';
       finish();
     });
-    es.onerror = () => { append('\n[连接中断]', true); setStatus('中断', 'fail'); finish(); };
+    es.onerror = () => { append('\n[连接中断]', true); setStatus('中断', 'fail'); progressBar.className = 'progress-bar fail'; finish(); };
   }
   function finish() { if (es) es.close(); es = null; runId = null; running = false; disableTasks(false); stopBtn.disabled = true; renderDetail(); }
 
@@ -352,7 +554,7 @@
   themeBtn.onclick = () => applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
 
   stopBtn.onclick = () => { if (runId) fetch('/stop?id=' + encodeURIComponent(runId)); append('\n[已请求停止]', true); };
-  document.getElementById('clear').onclick = () => { out.innerHTML = ''; };
+  document.getElementById('clear').onclick = () => { out.innerHTML = ''; lineCount = 0; };
   document.getElementById('report').onclick = () => { window.open('/report', '_blank'); };
   document.getElementById('overview-btn').onclick = () => showOverview();
   document.querySelectorAll('.tab').forEach((tab) => { tab.onclick = () => showTab(tab.dataset.tab); });

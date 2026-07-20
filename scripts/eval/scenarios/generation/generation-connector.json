@@ -1,0 +1,20 @@
+[
+  {
+    "id": "dingtalk-notification-connector",
+    "prompt": "帮我创建一个钉钉消息通知连接器，通过HTTP调用钉钉群机器人Webhook接口，实现在宜搭应用中自动发送钉钉群消息通知",
+    "expectedFeatures": {
+      "minTargets": 1,
+      "keywords": ["钉钉", "连接器"]
+    },
+    "note": "HTTP连接器场景，对接钉钉机器人API发送消息"
+  },
+  {
+    "id": "weather-api-connector",
+    "prompt": "创建一个天气查询连接器，调用外部天气API获取指定城市的实时天气数据，包括温度、湿度和天气状况",
+    "expectedFeatures": {
+      "minTargets": 1,
+      "keywords": ["天气", "连接器"]
+    },
+    "note": "外部API集成连接器场景，查询第三方数据源"
+  }
+]

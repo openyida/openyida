@@ -10,7 +10,7 @@ const {
 // ── 工具函数 mock ─────────────────────────────────────────────────────
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
   httpPost: jest.fn(),

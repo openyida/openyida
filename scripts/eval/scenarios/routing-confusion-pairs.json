@@ -1,0 +1,146 @@
+[
+  {
+    "id": "confusion-field-structure-vs-schema-1",
+    "prompt": "帮我给员工表加一个手机号字段",
+    "expectedSkill": "yida-create-form-page",
+    "group": "易混淆-字段vs结构vs数据vs样式",
+    "confusionPair": true,
+    "note": "改字段结构 → create-form-page（不是 get-schema / data-management / form-detail）"
+  },
+  {
+    "id": "confusion-field-structure-vs-schema-2",
+    "prompt": "帮我看看员工表的字段结构和字段ID",
+    "expectedSkill": "yida-get-schema",
+    "group": "易混淆-字段vs结构vs数据vs样式",
+    "confusionPair": true,
+    "note": "只读查 Schema → get-schema（不是 create-form-page / data-management）"
+  },
+  {
+    "id": "confusion-field-structure-vs-schema-3",
+    "prompt": "帮我把员工表里张三的手机号改成138xxxx1234",
+    "expectedSkill": "yida-data-management",
+    "group": "易混淆-字段vs结构vs数据vs样式",
+    "confusionPair": true,
+    "note": "改数据记录 → data-management（不是 create-form-page / get-schema）"
+  },
+  {
+    "id": "confusion-field-structure-vs-schema-4",
+    "prompt": "把员工表单详情页改成卡片化布局，美化一下样式",
+    "expectedSkill": "yida-form-detail",
+    "group": "易混淆-字段vs结构vs数据vs样式",
+    "confusionPair": true,
+    "note": "详情页 CSS 美化 → form-detail（不是 create-form-page / data-management）"
+  },
+  {
+    "id": "confusion-formula-vs-integration-vs-business-1",
+    "prompt": "帮我在金额字段写个公式，自动算出税额等于金额乘以0.13",
+    "expectedSkill": "yida-formula",
+    "group": "易混淆-公式vs编排vs跨表",
+    "confusionPair": true,
+    "note": "字段实时计算 → formula（不是 integration / business-rule）"
+  },
+  {
+    "id": "confusion-formula-vs-integration-vs-business-2",
+    "prompt": "表单提交后自动把状态为已完成的记录同步到归档表",
+    "expectedSkill": "yida-integration",
+    "group": "易混淆-公式vs编排vs跨表",
+    "confusionPair": true,
+    "note": "提交后逻辑编排 → integration（不是 formula / business-rule）"
+  },
+  {
+    "id": "confusion-formula-vs-integration-vs-business-3",
+    "prompt": "表单提交后用 UPSERT 函数往汇总统计表插入一条聚合记录",
+    "expectedSkill": "yida-business-rule",
+    "group": "易混淆-公式vs编排vs跨表",
+    "confusionPair": true,
+    "note": "跨表高级函数 INSERT/UPDATE/DELETE → business-rule（不是 formula / integration）"
+  },
+  {
+    "id": "confusion-create-vs-modify-process-1",
+    "prompt": "帮我从零创建一个出差审批流程表单，需要主管和HR两级审批",
+    "expectedSkill": "yida-create-process",
+    "group": "易混淆-建流程vs改流程",
+    "confusionPair": true,
+    "note": "从零建流程表单 → create-process（不是 process-rule）"
+  },
+  {
+    "id": "confusion-create-vs-modify-process-2",
+    "prompt": "已有的报销流程需要调整，金额超过5000的要增加财务总监审批节点",
+    "expectedSkill": "yida-process-rule",
+    "group": "易混淆-建流程vs改流程",
+    "confusionPair": true,
+    "note": "改已有流程规则 → process-rule（不是 create-process）"
+  },
+  {
+    "id": "confusion-permission-level-1",
+    "prompt": "帮我给整个组织添加一个平台子管理员",
+    "expectedSkill": "yida-corp-manager",
+    "group": "易混淆-权限层级",
+    "confusionPair": true,
+    "note": "组织级权限 → corp-manager（不是 app-permission / form-permission / page-config）"
+  },
+  {
+    "id": "confusion-permission-level-2",
+    "prompt": "给这个CRM应用添加一个开发成员",
+    "expectedSkill": "yida-app-permission",
+    "group": "易混淆-权限层级",
+    "confusionPair": true,
+    "note": "应用级权限 → app-permission（不是 corp-manager / form-permission）"
+  },
+  {
+    "id": "confusion-permission-level-3",
+    "prompt": "给员工信息表新建一个权限组，研发部只能看本部门的数据",
+    "expectedSkill": "yida-form-permission",
+    "group": "易混淆-权限层级",
+    "confusionPair": true,
+    "note": "表单级权限 → form-permission（不是 corp-manager / app-permission / page-config）"
+  },
+  {
+    "id": "confusion-permission-level-4",
+    "prompt": "把这个报表页面设置成公开访问，不需要登录就能看",
+    "expectedSkill": "yida-page-config",
+    "group": "易混淆-权限层级",
+    "confusionPair": true,
+    "note": "页面级公开访问 → page-config（不是 corp-manager / app-permission / form-permission）"
+  },
+  {
+    "id": "confusion-nav-platform-vs-shell-1",
+    "prompt": "帮我把应用左侧导航重新排序，把看板放到表单前面",
+    "expectedSkill": "yida-nav-group",
+    "group": "易混淆-平台导航vs页面导航壳",
+    "confusionPair": true,
+    "note": "平台左侧菜单排序 → nav-group（不是 nav-shell）"
+  },
+  {
+    "id": "confusion-nav-platform-vs-shell-2",
+    "prompt": "页面隐藏应用导航后，在页面里用 JSX 自己写一个侧边栏导航壳来切换不同视图",
+    "expectedSkill": "yida-nav-shell",
+    "group": "易混淆-平台导航vs页面导航壳",
+    "confusionPair": true,
+    "note": "页面内自建导航壳 → nav-shell（不是 nav-group）"
+  },
+  {
+    "id": "confusion-canvas-vs-native-vs-upgrade-1",
+    "prompt": "帮我用 React hooks 和 Canvas 做一个带实时搜索和交互筛选的数据列表页",
+    "expectedSkill": "yida-canvas-custom-page",
+    "group": "易混淆-Canvas选型",
+    "confusionPair": true,
+    "note": "现代 React 交互页 → canvas-custom-page（不是 custom-page / canvas-upgrade）"
+  },
+  {
+    "id": "confusion-canvas-vs-native-vs-upgrade-2",
+    "prompt": "这个表单提交页深度依赖 this.utils.yida 和 dataSourceMap，走 native 链路写",
+    "expectedSkill": "yida-custom-page",
+    "group": "易混淆-Canvas选型",
+    "confusionPair": true,
+    "note": "强依赖原生实例桥 → custom-page (native)（不是 canvas-custom-page / canvas-upgrade）"
+  },
+  {
+    "id": "confusion-canvas-vs-native-vs-upgrade-3",
+    "prompt": "我有一个老的 .oyd.jsx 自定义页面想升级到 Code Canvas 新链路",
+    "expectedSkill": "yida-canvas-upgrade",
+    "group": "易混淆-Canvas选型",
+    "confusionPair": true,
+    "note": "已有 .oyd.jsx 迁移 → canvas-upgrade（不是 canvas-custom-page / custom-page）"
+  }
+]

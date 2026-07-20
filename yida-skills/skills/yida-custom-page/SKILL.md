@@ -1,11 +1,11 @@
 ---
 name: yida-custom-page
-description: 宜搭 native 自定义页面 JSX 开发规范（React 16 宜搭原生 export function renderJsx 模式、宜搭 JS API、状态管理与编码约束）。这是默认兼容链路，适合完整应用 fast_build、未确认 Code Canvas 能力的组织，以及强依赖 this.$(fieldId)、this.utils.yida.*、dataSourceMap 的页面。
+description: 宜搭普通自定义页面 JSX / Jsx 组件开发规范（React 16 宜搭原生 export function renderJsx 模式、宜搭 JS API、状态管理与编码约束）。当用户明确要求 JSX/Jsx 组件链路、普通自定义页面，或页面强依赖 this.$(fieldId)、this.utils.yida.*、dataSourceMap、表单提交/字段双向绑定深度耦合时使用。
 ---
 
 # 自定义页面开发
 
-> **先确认链路**：Code Canvas 在宜搭平台侧尚未全量。自定义页面默认走 native 兼容链路 `yida-custom-page`（`.oyd.jsx` + `check-page` / `compile` / `publish`）。只有用户明确要求 Code Canvas / 代码画布，已有页面 Schema 是 `YidaCodeCanvas`，或已确认当前组织/页面支持 Canvas 时，才切到 `yida-canvas-custom-page`；把已有 native 页升级到 Canvas 走 `yida-canvas-upgrade`。
+> **先确认链路**：普通自定义页面 JSX/Jsx 组件链路走本技能，发布后落到平台 `Jsx` 组件；Code Canvas 链路走 `yida-canvas-custom-page`，发布后落到 `YidaCodeCanvas` 组件。两者是并列页面实现链路，不要把本技能描述成 Code Canvas 的备用链路。已有普通自定义页面升级到 Code Canvas 时才走 `yida-canvas-upgrade`。
 
 ## Resource-First 页面开发
 
@@ -42,11 +42,11 @@ description: 宜搭 native 自定义页面 JSX 开发规范（React 16 宜搭原
 
 影响代码质量和用户体验：
 
-0. **视觉方向按需加载**：单点页面美化、用户明确要求好看/去 AI 味，或 `yida-app` 进入 `deep_design` 时，调用 `use_skill("yida-page-uiux", "确定自定义页面视觉方向")` 完成「视觉方向决策」。`yida-app fast_build` 默认不加载该技能，直接使用克制的 MVP 工作台/列表/入口布局，禁 emoji、少装饰、主色跟随 App 品牌即可。
+0. **视觉方向按需加载**：单点页面美化、用户明确要求好看/去 AI 味，或 `yida-app` 进入 `deep_design` 时，调用 `use_skill("yida-page-uiux", "确定自定义页面视觉方向")` 完成「视觉方向决策」。`yida-app fast_build` 默认不加载该技能，直接使用克制的 MVP 工作台/列表/入口布局，禁 emoji、少装饰、真实业务页主色跟随 App 品牌即可；`lib/samples/**` 和官方 sample 展示应用例外，必须使用页面级独立主题。
 1. **代码生成前确认功能摘要**：详见 [编码指南 编注 0](references/coding-guide.md)
 2. **pageSize 推荐 50，最大 100**：列表/看板默认 `pageSize: 50`；分页接口 `searchFormDatas` 等的 `pageSize` 最大 100
 3. **didUnmount 清理定时器**：在 `didUnmount` 中清理所有 `setInterval`/`setTimeout`，防止内存泄漏
-4. **默认 Tailwind 风格层**：面向用户的自定义页面默认使用 Tailwind utility className 组织视觉层，并默认导入 Tailwind preflight 重置原生控件外观；运行时脚本只允许使用已验证的 `g.alicdn.com` 或企业自托管地址，未配置有效地址时走内联兜底样式
+4. **默认 Tailwind 风格层 + native 控件 reset**：面向用户的自定义页面默认使用 Tailwind utility className 组织视觉层，并默认导入 Tailwind preflight；同时必须保留 `openyida-native-control-reset` 或等效页面级样式，覆盖 input/textarea/select/自定义下拉的 focus、appearance、font-weight 和 shadow，避免浏览器黑色粗边。reset 使用 `.oyd-page` 通用作用域时可以复用全局 id，但不能因为同名 style 已存在就跳过更新；如果页面使用 `.oyd-grade-page`、`.oyd-data-page` 等自定义作用域，style id 必须页面专属，避免多 native 页面切换时下拉选项和 SVG 勾选样式丢失。运行时脚本只允许使用已验证的 `g.alicdn.com` 或企业自托管地址，未配置有效地址时走内联兜底样式
 5. **DateField 时间戳格式**：日期字段值必须是时间戳（毫秒），不能是字符串
 6. **forceUpdate 后延迟操作 DOM**：`forceUpdate()` 后 DOM 不会立即更新，ECharts/Canvas/第三方组件初始化必须放入 `setTimeout` 或 `requestAnimationFrame`
 7. **多端适配**：使用 `this.utils.isMobile()` 判断设备类型，适配 PC 和移动端
@@ -54,9 +54,10 @@ description: 宜搭 native 自定义页面 JSX 开发规范（React 16 宜搭原
 9. **iframe 嵌入表单 URL**：数据列表用 `workbench/{formUuid}?iframe=true`，禁止用 `formDetail`
 10. **Tabs 显隐控制**：下拉值变更后自动回退到第一个可见 Tab，内容区用 `display: none` 保留 DOM
 11. **加载态必须可恢复**：列表/看板页默认保留空态或演示数据；接口失败、超时或返回异常时必须把 `loading` 置回 `false`，不要只渲染“正在加载...”挡住整页
-12. **禁止可见原生下拉**：筛选、预约、审批等用户可见下拉交互不要使用 `<select>`；使用 Tailwind className 组合 `button + menu + option` 的自定义下拉组件
+12. **禁止可见原生下拉**：筛选、预约、审批等用户可见下拉交互不要使用 `<select>`；普通自定义页也不要把表单设计器里的 `SelectField` 当 React 筛选组件直接渲染。默认使用 Tailwind className 组合 `button + menu + option` 的自定义下拉组件，并带 `.oyd-select-arrow` 下箭头、`.oyd-select-check` 选中标记和页面级 focus reset；light 模式下选中项整块背景必须用 `--oyd-control-selected-bg` 这类低透明度浅色 token，不要直接用 `--color-brand1-1`
 13. **严禁 emoji**：页面渲染出来的任何位置（标题、按钮、标签、状态、空态文案、图表标题等）**一律禁止出现 emoji**（😀🚀✅⚠️📦📊 等一切彩色符号字符）。需要图标一律用功能性内联 SVG（见 `skills/yida-page-uiux` 图标策略）；需要状态标记用文字 + 语义色标签。emoji 是最明显的 AI 味来源之一，且跨端显示不一致。JS 注释里也不要留装饰性符号。
-14. **发布前必须跑检查链路**：先执行 `openyida check-page <file>` 和 `openyida compile <file>`；若出现 warning/error，按规则修复后再发布
+14. **light 页面禁灰黑主题**：普通业务列表、协同表、录入表、工作台和门户默认不要用近黑按钮、近黑描边、灰黑重阴影作为主题；主操作、选中态、筛选焦点和批量操作使用品牌色或 sample 自带主题色，边框用浅色品牌混合。只有用户明确要求暗色/高对比时才使用深色主视觉。
+15. **发布前必须跑检查链路**：先执行 `openyida check-page <file>` 和 `openyida compile <file>`；若出现 warning/error，按规则修复后再发布
 
 > 每条规则的代码示例、反模式和常见错误见 [编码指南](references/coding-guide.md)；`fast_build` 默认先遵守本技能正文，不预读长 reference，只有 check-page 报错、复杂交互、`deep_design` 或正文覆盖不了的问题时才读取。
 > 运行时易错点、`check-page` 规则和兼容层自动修复边界见 [运行时护栏](references/runtime-guardrails.md)，按需读取。
@@ -97,9 +98,9 @@ openyida get-schema APP_XXX FORM-EMPLOYEE
 # 只有没有目标页面且允许新增时才执行：
 openyida create-page APP_XXX "员工信息查询"
 
-# Step 3：生成/编写页面代码
+# Step 3：生成/编写普通自定义页面 JSX 代码
 openyida sample yida-custom-page custom-page-template
-# 在 project/pages/src/employee-query.oyd.jsx 中编写；复杂页面优先使用 generate-page
+# 在 project/pages/src/employee-query.oyd.jsx 中编写；Code Canvas 页面使用 yida-canvas-custom-page / .canvas.jsx
 
 # Step 4：本地规范检查 + 编译校验（不发布）
 openyida check-page project/pages/src/employee-query.oyd.jsx
@@ -113,6 +114,7 @@ openyida publish project/pages/src/employee-query.oyd.jsx APP_XXX FORM-QUERY001
 - **Step 1** 的 get-schema 输出包含所有字段的 fieldId，在代码中必须使用 `FIELDS` 常量映射这些 ID
 - **Step 2** 默认复用已有页面 context 并跳过 `openyida create-page`；但本轮用户明确指定另一个页面时先切换目标，不能唯一识别时询问；只有页面缺失且允许新增时才执行创建命令
 - **Step 3** 的页面代码必须遵循本技能正文；[编码指南](references/coding-guide.md) 和 [运行时护栏](references/runtime-guardrails.md) 在 check-page 报错、复杂交互、`deep_design` 或正文覆盖不了时读取
+- 注意：`openyida generate-page` 默认生成 Code Canvas `.canvas.jsx`；明确需要普通自定义页面 JSX/Jsx 组件链路时输出 `.oyd.jsx` 或加 `--native`
 - 优先通过 `openyida generate-page ... --compile` 生成高质量骨架；需要完整交互样板时使用 `todo-mvc`
 - 页面生成 spec、接口调试 JSON、一次性验证脚本等临时工件必须用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/` 下；不要在仓库根目录、系统临时目录或 `.cache/` 顶层生成 `page.json`、`data.json` 或脚本文件
 - `check-page` 支持行级禁用：`// openyida-lint-disable-line <rule>` 或 `// openyida-lint-disable-next-line <rule>`。只在确认该行不会触发宜搭运行时问题时使用。
@@ -171,8 +173,8 @@ openyida sample yida-custom-page custom-page-template   # 完整页面模板（d
 openyida sample yida-custom-page product-homepage       # 产品/项目首页轻量模板（支持 --var KEY=VALUE）
 openyida sample yida-custom-page todo-mvc               # TodoMVC 完整交互模板（事件/状态/循环/本地存储）
 openyida sample yida-custom-page design-tokens          # 设计 token 参考（颜色/间距/字体规范）
-openyida generate-page product-homepage --spec .cache/openyida/<项目名或任务名>/page-specs/home.json --output pages/src/home.oyd.jsx --compile  # 基于 spec/blocks 生成首页并本地编译
-openyida generate-page todo-mvc --output pages/src/todo-mvc.oyd.jsx --compile  # 生成官方 TodoMVC 风格交互样板
+openyida generate-page product-homepage --spec .cache/openyida/<项目名或任务名>/page-specs/home.json --output pages/src/home.oyd.jsx --native --compile  # 基于 spec/blocks 生成首页并本地编译
+openyida generate-page todo-mvc --output pages/src/todo-mvc.oyd.jsx --native --compile  # 生成官方 TodoMVC 风格交互样板
 openyida check-page pages/src/home.oyd.jsx --json      # 输出机器可读的规范检查结果；.oyd.jsx 会先兼容构建
 ```
 

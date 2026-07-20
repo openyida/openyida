@@ -66,19 +66,66 @@
     "note": "从零多步骤全流程 → yida-app 编排"
   },
   {
+    "id": "full-app-milk-tea-multipage",
+    "prompt": "基于奶茶品牌场景从零创建一个应用，面向消费者有官网首页，面向经销商有经营数据看板",
+    "expectedSkill": "yida-app",
+    "note": "从零多页面应用 → yida-app 编排，内部再走 app/page UIUX 与 Canvas"
+  },
+  {
+    "id": "app-uiux-blueprint",
+    "prompt": "这个应用需要官网、数据大屏、工作台、列表和详情页，先帮我规划角色路径、页面组合和导航分组",
+    "expectedSkill": "yida-app-uiux",
+    "note": "多页面应用体验蓝图 → yida-app-uiux"
+  },
+  {
+    "id": "page-uiux-landing-too-plain",
+    "prompt": "这个律所官网首页太像工作台卡片堆了，先重新思考 UI 视觉方向和素材策略",
+    "expectedSkill": "yida-page-uiux",
+    "note": "写代码前的单页视觉方向决策 → yida-page-uiux"
+  },
+  {
+    "id": "page-uiux-screen-impact",
+    "prompt": "水质实时监控预警系统的数据大屏不够惊艳，先给我重新设计视觉方向",
+    "expectedSkill": "yida-page-uiux",
+    "note": "数据大屏视觉方向而非报表创建 → yida-page-uiux"
+  },
+  {
+    "id": "canvas-custom-page-split-pane",
+    "prompt": "用 Code Canvas 给我生成一个左列表右详情的工单处理台页面",
+    "expectedSkill": "yida-canvas-custom-page",
+    "note": "Code Canvas 自定义页实现 → yida-canvas-custom-page"
+  },
+  {
+    "id": "canvas-data-binding-zero-rows",
+    "prompt": "Code Canvas 看板页面接了表单数据但列表一直显示 0 条，帮我排查 dataBinding 和同源 fetch",
+    "expectedSkill": "yida-canvas-data-binding",
+    "note": "Canvas 真实数据接入与 DataBridge 排查 → yida-canvas-data-binding"
+  },
+  {
+    "id": "nav-shell-portal",
+    "prompt": "自定义页隐藏应用导航后，需要页面内自带多入口门户导航壳，并且跳转时保留 isRenderNav=false",
+    "expectedSkill": "yida-nav-shell",
+    "note": "页面内自绘导航壳 → yida-nav-shell"
+  },
+  {
+    "id": "form-detail-beautify",
+    "prompt": "这个表单详情页 formDetail 太丑了，帮我注入样式优化详情页卡片和字段展示",
+    "expectedSkill": "yida-form-detail",
+    "note": "表单详情页 schema 注入 Html/CSS → yida-form-detail"
+  },
+  {
     "id": "full-app-visitor-fast-build",
     "prompt": "帮我搭建一个访客系统，按默认方案搭建，不要追问，直接创建",
     "expectedSkill": "yida-app",
     "expectedMode": "fast_build",
     "forbiddenDefaultSkills": [
       "yida-page-uiux",
-      "yida-canvas-custom-page",
       "yida-data-source-connectors",
       "yida-data-management",
       "yida-nav-group",
       "yida-dashboard"
     ],
-    "note": "默认方案/不要追问/直接创建 → yida-app fast_build；Canvas、UIUX、数据源、示例数据、导航整理均为 optionalAfterDone"
+    "note": "默认方案/不要追问/直接创建 → yida-app fast_build；默认页面实现走 Canvas，但 UIUX、数据源深接、示例数据、导航整理均为 optionalAfterDone"
   },
   {
     "id": "table-form",

@@ -1,6 +1,16 @@
 'use strict';
 
-const { t, getLanguage, setLanguage, detectLanguage, SUPPORTED_LANGUAGES } = require('../lib/core/i18n');
+const {
+  t,
+  getLanguage,
+  setLanguage,
+  detectLanguage,
+  SUPPORTED_LANGUAGES,
+  CORE_LANGUAGES,
+  OPTIONAL_LANGUAGES,
+  getAvailableLanguages,
+  loadLocaleForLanguage,
+} = require('../lib/core/i18n');
 
 // ── 测试前后还原语言和环境变量 ────────────────────────────────────────
 
@@ -42,6 +52,12 @@ describe('SUPPORTED_LANGUAGES', () => {
 
   test('共 12 种语言', () => {
     expect(SUPPORTED_LANGUAGES).toHaveLength(12);
+  });
+
+  test('核心语言默认内置，其他语言按需加载', () => {
+    expect(CORE_LANGUAGES).toEqual(['zh', 'en']);
+    expect(OPTIONAL_LANGUAGES).toContain('ja');
+    expect(getAvailableLanguages()).toEqual(expect.arrayContaining(['zh', 'en']));
   });
 });
 
@@ -206,5 +222,46 @@ describe('t()', () => {
     const result = t('env.title');
     expect(typeof result).toBe('string');
     expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+// ── t() 兼底链：当前语言 → en → zh ────────────────────────
+
+describe('t() 兼底链', () => {
+  const zhDict = loadLocaleForLanguage('zh');
+  const enDict = loadLocaleForLanguage('en');
+
+  test('非中英语言缺失 key 时优先回退到英文而非中文', () => {
+    // integration.create_usage：ja 缺失，en 存在，zh 存在且与 en 不同
+    const zhVal = zhDict.integration.create_usage;
+    const enVal = enDict.integration.create_usage;
+    expect(zhVal).not.toBe(enVal); // 前提：两者确实不同
+    setLanguage('ja');
+    const result = t('integration.create_usage');
+    expect(result).toBe(enVal);
+    expect(result).not.toBe(zhVal);
+  });
+
+  test('可选语言补齐后不再穿透回退到 zh', () => {
+    const jaDict = loadLocaleForLanguage('ja');
+    expect(typeof zhDict.auth_usage).toBe('string');
+    expect(typeof enDict.auth_usage).toBe('string');
+    expect(jaDict.auth_usage).toBe(enDict.auth_usage);
+    setLanguage('ja');
+    const result = t('auth_usage');
+    expect(result).toBe(jaDict.auth_usage);
+    expect(result).not.toBe(zhDict.auth_usage);
+  });
+
+  test('en 顶层历史 key 已补齐', () => {
+    setLanguage('en');
+    const result = t('auth_usage');
+    expect(result).toBe(enDict.auth_usage);
+    expect(result).not.toBe(zhDict.auth_usage);
+  });
+
+  test('所有语言都缺失时返回 key 本身', () => {
+    setLanguage('ja');
+    expect(t('non.existent.key.xyz')).toBe('non.existent.key.xyz');
   });
 });

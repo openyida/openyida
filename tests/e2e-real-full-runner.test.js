@@ -115,7 +115,6 @@ describe('full real E2E runner', () => {
     run({
       env: { OPENYIDA_E2E: '1' },
       config,
-      writeCookieCache: () => {},
       createRegistry: () => ({ registry, registryPath: '/tmp/openyida-e2e-full-test/OY_E2E_FULL.json' }),
       writeRegistry: () => {},
       addResource: (currentRegistry, registryPath, resource) => {
@@ -137,7 +136,6 @@ describe('full real E2E runner', () => {
       },
     });
 
-    expect(calls).toContainEqual(['org', 'switch', '--corp-id', 'ding-test-corp', '--quiet']);
     expect(calls).toContainEqual(['update-app', 'APP_FULL', '--name', 'OY_E2E_FULL_App_Renamed', '--quiet']);
     expect(calls.some((args) => args[0] === 'create-page' && args[2] === 'OY_E2E_FULL_Dashboard')).toBe(true);
     expect(calls.some((args) => args[0] === 'create-page' && args[2] === 'OY_E2E_FULL_DashboardSkill')).toBe(true);
@@ -205,7 +203,6 @@ describe('full real E2E runner', () => {
     run({
       env: { OPENYIDA_E2E: '1' },
       config,
-      writeCookieCache: () => {},
       createRegistry: () => ({ registry, registryPath: '/tmp/openyida-e2e-full-test/OY_E2E_PROC.json' }),
       writeRegistry: () => {},
       addResource: (currentRegistry, registryPath, resource) => {

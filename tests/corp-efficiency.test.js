@@ -1,14 +1,9 @@
 'use strict';
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({
-    csrfToken: 'csrf-token',
-    corpId: 'ding-corp',
-    userId: 'user-1',
-  })),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn(),
@@ -33,14 +28,21 @@ const {
 } = require('../lib/corp-efficiency/corp-efficiency');
 const utils = require('../lib/core/utils');
 
-const mockCookieData = {
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf-token', domain: 'www.aliwork.com' }],
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'ding-corp',
+  user_id: 'user-1',
 };
 
 const mockAuth = {
   baseUrl: 'https://www.aliwork.com',
-  cookies: mockCookieData.cookies,
-  csrfToken: 'csrf-token',
+  authMode: 'token',
+  authSource: 'token',
+  corpId: 'ding-corp',
+  userId: 'user-1',
+  authData: mockAuthData,
 };
 
 const mockEfficacyData = {
@@ -86,13 +88,8 @@ const mockCommodityInfo = {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
   utils.resolveBaseUrl.mockReturnValue('https://www.aliwork.com');
-  utils.extractInfoFromCookies.mockReturnValue({
-    csrfToken: 'csrf-token',
-    corpId: 'ding-corp',
-    userId: 'user-1',
-  });
   utils.requestWithAutoLogin.mockImplementation((requestFn) => requestFn(mockAuth));
 });
 
@@ -146,20 +143,15 @@ describe('corp-efficiency overview', () => {
     mock.error.mockRestore();
   });
 
-  test('API 失败时输出错误并退出', async () => {
+  test('API 失败时抛出 CliError', async () => {
     utils.httpGet.mockResolvedValueOnce({ success: false, errorMsg: '权限不足' });
     const mock = mockConsole();
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
 
-    await expect(run([])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-    expect(mock.error).toHaveBeenCalledWith(expect.stringContaining('权限不足'));
+    await expect(run([])).rejects.toThrow('权限不足');
+    expect(mock.error).not.toHaveBeenCalled();
 
     mock.log.mockRestore();
     mock.error.mockRestore();
-    mockExit.mockRestore();
   });
 });
 
@@ -269,17 +261,13 @@ describe('corp-efficiency groups', () => {
 describe('corp-efficiency notify', () => {
   test('没有 --yes 时不会发送通知', async () => {
     const mock = mockConsole();
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
 
-    await expect(run(['notify', '--cid', 'cid-1', '--type', 'noticeStudy'])).rejects.toThrow('process.exit(1)');
+    await expect(run(['notify', '--cid', 'cid-1', '--type', 'noticeStudy'])).rejects.toThrow('--yes');
     expect(utils.httpPost).not.toHaveBeenCalled();
-    expect(mock.error).toHaveBeenCalledWith(expect.stringContaining('--yes'));
+    expect(mock.error).not.toHaveBeenCalled();
 
     mock.log.mockRestore();
     mock.error.mockRestore();
-    mockExit.mockRestore();
   });
 
   test('带 --yes 时发送学习通知', async () => {

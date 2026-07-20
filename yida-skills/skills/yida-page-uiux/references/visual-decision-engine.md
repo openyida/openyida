@@ -5,10 +5,10 @@
 
 ## 宜搭关键约束（与通用引擎的差异，务必先读）
 
-1. **主色不可自由换**：宜搭已内置品牌色 CSS 变量（`var(--color-brand1-6)` 等），主色随平台主题走。**不要硬编码主色相、不要另选一个主题色**。差异化改由下面 5 个维度承载。
+1. **真实业务页主色不可自由换**：宜搭已内置品牌色 CSS 变量（`var(--color-brand1-6)` 等），导航可见的真实业务页主色随平台主题走。**不要硬编码主色相、不要另选一个主题色**。差异化改由下面 5 个维度承载。官方 sample / 示例展示应用例外：它是样板库，必须每页自带独立主题色，不能被宿主 App 主题统一染色。
 2. **字体不可用 Google Fonts**：禁 `fonts.googleapis.com`（大陆不可达）。放弃「Inter vs Plus Jakarta」这类字体选型，改用**系统中文字体栈** + 字重/字号对比/字间距/`tabular-nums` 造性格。仅允许 `g.alicdn.com` 上已验证的字体。
 3. **B 端为主**：自定义页多为看板/列表/工具/详情，不是营销落地页。装饰要克制、服务于信息，不堆砌。
-4. **纯方向**：本引擎只帮你选方向，不产出色值/像素。具体数值到 `../../yida-custom-page/references/design-system.md` 取。
+4. **纯方向**：本引擎只帮你选方向，不产出 JSX。Code Canvas 落地时，具体 token 和组件实现到 `../../yida-canvas-custom-page/references/canvas-design-system.md` 取；普通自定义页面 JSX/Jsx 组件链路读 `../../yida-custom-page/references/design-system.md`。
 
 ---
 

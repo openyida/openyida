@@ -1,0 +1,22 @@
+[
+  {
+    "id": "product-showcase-page",
+    "prompt": "帮我做一个产品展示自定义页面，以卡片画廊的方式展示产品图片和介绍，支持按分类筛选和关键词搜索，页面要适配手机端",
+    "expectedFeatures": {
+      "minTargets": 1,
+      "targetTypes": ["page"],
+      "keywords": ["产品", "展示"]
+    },
+    "note": "自定义页面场景，需要筛选、搜索和响应式布局能力"
+  },
+  {
+    "id": "team-introduction-page",
+    "prompt": "创建一个团队介绍自定义页面，用卡片形式展示每位成员的头像、姓名、职位角色、技能标签和联系方式",
+    "expectedFeatures": {
+      "minTargets": 1,
+      "targetTypes": ["page"],
+      "keywords": ["团队", "成员"]
+    },
+    "note": "自定义页面场景，展示人员信息卡片布局"
+  }
+]

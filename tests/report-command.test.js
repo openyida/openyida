@@ -3,10 +3,9 @@
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://demo.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'csrf-token', corpId: 'corp-1', userId: 'user-1' })),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
@@ -23,11 +22,18 @@ const createReport = require('../lib/report/index');
 const appendReport = require('../lib/report/append');
 
 const authRef = {
-  csrfToken: 'csrf-token',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf-token' }],
   baseUrl: 'https://demo.aliwork.com',
+  authMode: 'token',
+  authSource: 'token',
   corpId: 'corp-1',
-  cookieData: { corp_id: 'corp-1' },
+  userId: 'user-1',
+  authData: {
+    base_url: 'https://demo.aliwork.com',
+    auth_mode: 'token',
+    auth_source: 'token',
+    corp_id: 'corp-1',
+    user_id: 'user-1',
+  },
 };
 
 const chartConfig = [{
@@ -59,11 +65,12 @@ describe('report command helpers', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    utils.loadCookieData.mockReturnValue({
-      csrf_token: authRef.csrfToken,
-      cookies: authRef.cookies,
+    utils.loadAuthData.mockReturnValue({
       base_url: authRef.baseUrl,
+      auth_mode: 'token',
+      auth_source: 'token',
       corp_id: 'corp-1',
+      user_id: 'user-1',
     });
     utils.requestWithAutoLogin.mockImplementation((requestFn, ref) => requestFn(ref));
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -83,12 +90,10 @@ describe('report command helpers', () => {
 
     expect(utils.httpPost.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/query/formdesign/saveFormSchemaInfo.json');
     expect(querystring.parse(utils.httpPost.mock.calls[0][2])).toMatchObject({
-      _csrf_token: 'csrf-token',
       formType: 'report',
     });
     expect(utils.httpPost.mock.calls[1][1]).toBe('/dingtalk/web/APP_XXX/_view/query/formdesign/saveFormSchema.json');
     expect(querystring.parse(utils.httpPost.mock.calls[1][2])).toMatchObject({
-      _csrf_token: 'csrf-token',
       formUuid: 'REPORT_1',
       schemaVersion: 'V5',
       importSchema: 'true',

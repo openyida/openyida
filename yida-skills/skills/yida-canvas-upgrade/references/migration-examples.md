@@ -4,7 +4,7 @@
 
 ## 转换模式示例
 
-普通页面（native `.oyd.jsx`，`_customState` + `forceUpdate` + `renderJsx`）：
+普通自定义页面（`.oyd.jsx`，`_customState` + `forceUpdate` + `renderJsx`）：
 
 ```jsx
 var _customState = { count: 0 };

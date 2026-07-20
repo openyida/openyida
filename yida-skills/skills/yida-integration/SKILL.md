@@ -31,7 +31,6 @@ description: Standalone 创建/管理宜搭集成自动化；如果请求来自 
 |---------|---------|
 | 表单提交后自动通知 | "自动通知"、"数据变更触发"、"集成&自动化" |
 | 数据操作自动化 | "自动新增"、"自动更新"、"逻辑流" |
-| 人工审批流程 | → 改用 `yida-process-rule` |
 
 ## 异常处理
 
@@ -314,7 +313,7 @@ openyida integration diagnose --file project/tickets/automation-error.txt --json
 
 ## 调用流程
 
-1. 读取 `.cache/cookies.json` 获取登录态（不存在则触发扫码登录）
+1. 读取 token session 获取登录态（不存在则提示执行 `openyida login`）
 2. 若未传入 `--process-code`，调用 `createLogicflow.json` 接口新建绑定关系，获取真实 `processCode`
 3. 生成各节点 ID（`node_xxx` 格式，随机生成）
 4. 根据用户传入的节点配置，构建 `json` 参数（节点定义）和 `viewJson` 参数（画布 Schema）
@@ -356,7 +355,7 @@ trigger -> dataRetrieve -> route -> condition -> dataUpdate/dataCreate -> finish
 ## 前置依赖
 
 - Node.js
-- 项目根目录存在 `.cache/cookies.json`（首次运行会自动触发扫码登录）
+- 项目根目录存在有效 token session（通过 `openyida login` 获取）
 
 ## 文件结构
 
@@ -365,16 +364,6 @@ lib/
 └── integration/
     └── integration-create.js    # integration create 子命令实现
 ```
-
-## 与其他技能配合
-
-1. **创建应用** → 使用 `yida-create-app` 技能获取 `appType`
-2. **创建表单页面** → 使用 `yida-create-form-page` 技能获取 `formUuid`
-3. **查询字段 ID** → 使用 `yida-get-schema` 技能获取 `fieldId` 和 `ComponentType`，用于构建字段变量引用
-4. **创建集成&自动化** → 本技能，传入 `appType` 和 `formUuid`
-5. **公式计算** → 当需要在赋值中使用复杂公式（如 `CONCATENATE`、`IF`、`SUM` 等）时，参考 `yida-formula` 技能（独立技能，待完善）；目前已支持基础公式：
-   - 字符串拼接：`CONCATENATE(#{fieldId_a},#{fieldId_b})`
-   - 数值运算：`${nodeId}.numberField_xxx+1`
 
 ## 触发条件
 
@@ -389,5 +378,5 @@ lib/
 - 触发事件使用 API 内部名称：`insert`（新增）、`update`（更新）、`delete`（删除）、`comment`（评论），也支持别名 `create`
 - `processCode` 格式为 `LPROC-` 加 38 位大写字母数字，不传则自动随机生成
 - 保存（草稿）和发布使用**同一个接口** `saveProcess`，通过 `isOnline` 参数区分
-- 错误码处理：接口返回 `errorCode: "TIANSHU_000030"`（csrf 校验失败）时，脚本会自动刷新 token 后重试；`errorCode: "307"`（登录过期）时，会自动重新登录后重试
+- 错误码处理：接口返回 token 过期或登录失效时，CLI 会优先使用 `refresh_token` 刷新后重试；refresh 失败时提示重新执行 `openyida login`
 - **本技能不读写 memory**：集成逻辑流配置通过 CLI 命令写入宜搭平台，processCode 等信息输出到 stdout，不依赖跨会话的 memory 状态

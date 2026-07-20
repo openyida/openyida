@@ -8,7 +8,7 @@
 - `prototype.tsx` 的物料配置也只声明这四个属性，**没有** `dataSource` / `dataSourceMap` 绑定。
 - 代码经 `new Function` 包裹执行，wrapper 只注入 `window`（`iframeWindow` / `parentWindow`），**不注入 `this` 上下文**。因此 `YidaComp` 是普通 React 函数组件，**`this.utils.yida.*`、`this.dataSourceMap`、`export function didMount()` 等普通页面契约都不可用**。
 - 代码执行后必须返回 `YidaComp`、`YidaComp.default` 或组件函数。
-- Canvas 要读宜搭数据，只能在组件内**自写 HTTP 调用**（fetch 宜搭开放 API / 连接器）或依赖 props 注入，即“自己补一座数据桥”。需要平台数据桥的数据驱动页请回退 `yida-custom-page`。
+- Canvas 要读宜搭数据，只能在组件内**自写 HTTP 调用**（fetch 宜搭开放 API / 连接器）或依赖 props 注入，即“自己补一座数据桥”。如果用户明确要求普通自定义页面 JSX/Jsx 组件链路，或页面强依赖普通自定义页实例桥（`this.utils.yida.*`、`this.dataSourceMap`、`this.$(fieldId)` 双向绑定、流程提交深度耦合），选择 `yida-custom-page`。
 
 > 📦 依赖白名单表、windowAlias 映射、编译端点，以及「预发正常、线上 `antd is not defined`」根因与物料侧修复方向已拆到 [dependencies-and-cdn.md](dependencies-and-cdn.md)。
 

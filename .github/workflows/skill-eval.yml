@@ -1,0 +1,173 @@
+# OpenYida Skill Eval CI — Manual / Nightly / Release 评测
+#
+# 触发场景:
+#   1. Local PR: 提 PR 前在本地按需运行 npm run eval:*，GitHub 不默认自动触发
+#   2. Nightly: 每日 02:00 UTC 全量评测 (comprehensive + baseline)
+#   3. Release: tag v* 推送前运行准出门槛检查 (pipeline)
+#   4. Manual: 通过 workflow_dispatch 手动运行指定评测
+#
+# 安全原则:
+#   - 不硬编码 Cookie/Token/凭证
+#   - API Key 通过 GitHub Secrets 注入
+#   - 不直接推送 main/master 分支
+
+name: Skill Eval
+
+on:
+  schedule:
+    # Nightly: 02:00 UTC (10:00 北京时间)
+    - cron: '0 2 * * *'
+
+  push:
+    tags:
+      - 'v*'
+
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '评测模式 (doc-quality | routing | comprehensive | pipeline | baseline | all)'
+        required: false
+        default: 'pipeline'
+      skill:
+        description: '目标技能名称 (如 yida-dashboard)'
+        required: false
+        default: ''
+
+concurrency:
+  group: skill-eval-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════
+  # Job 1: Unit tests — gate for scheduled/manual/release eval jobs
+  # ═══════════════════════════════════════════════════════════════
+  unit-tests:
+    name: '🧪 单元测试'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test -- --colors=false
+        env:
+          CI: true
+
+  # Job 2: Nightly — full evaluation suite
+  # ═══════════════════════════════════════════════════════════════
+  nightly-eval:
+    name: '🌙 Nightly 全量评测'
+    needs: unit-tests
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'all')
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        skill: [yida-dashboard, yida-report, yida-create-process]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+
+      - name: Pipeline eval — ${{ matrix.skill }}
+        run: |
+          npm run eval:pipeline -- \
+            --skill ${{ matrix.skill }} \
+            --format junit
+        continue-on-error: true
+
+      - name: Upload eval reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-nightly-${{ matrix.skill }}
+          path: project/.cache/eval/
+          retention-days: 30
+
+      # Publish JUnit results
+      - name: Publish Test Results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'Eval Results — ${{ matrix.skill }}'
+          path: 'project/.cache/eval/**/*.xml'
+          reporter: java-junit
+        continue-on-error: true
+
+  # ═══════════════════════════════════════════════════════════════
+  # Job 3: Release Gate — strict pipeline before publish
+  # ═══════════════════════════════════════════════════════════════
+  release-gate:
+    name: '🚀 Release 准出门槛'
+    needs: unit-tests
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        skill: [yida-dashboard, yida-report, yida-create-process]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+
+      # Full pipeline — exit code 1 on gate failure blocks the release
+      - name: Pipeline gate — ${{ matrix.skill }}
+        run: |
+          npm run eval:pipeline -- \
+            --skill ${{ matrix.skill }} \
+            --format junit
+
+      - name: Upload release eval reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-release-${{ matrix.skill }}
+          path: project/.cache/eval/
+          retention-days: 90
+
+  # ═══════════════════════════════════════════════════════════════
+  # Job 4: Manual Dispatch — custom eval
+  # ═══════════════════════════════════════════════════════════════
+  manual-eval:
+    name: '🔧 手动评测'
+    needs: unit-tests
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode != 'all'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+
+      - name: Run eval
+        run: |
+          MODE="${{ github.event.inputs.mode }}"
+          SKILL="${{ github.event.inputs.skill }}"
+          ARGS="--mode $MODE"
+          if [ -n "$SKILL" ]; then
+            ARGS="$ARGS --skill $SKILL"
+          fi
+          node scripts/eval/runner.js $ARGS
+        continue-on-error: true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-manual
+          path: project/.cache/eval/
+          retention-days: 14

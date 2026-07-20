@@ -1,7 +1,7 @@
 'use strict';
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://example.yida.test'),
   httpPost: jest.fn(),
@@ -16,10 +16,12 @@ const { createAuthRef, createYidaClient } = require('../lib/core/yida-client');
 describe('yida-client', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    utils.loadCookieData.mockReturnValue({
-      csrf_token: 'csrf123',
-      cookies: [{ name: 'sid', value: 'cookie-value' }],
+    utils.loadAuthData.mockReturnValue({
       base_url: 'https://example.yida.test',
+      auth_mode: 'token',
+      auth_source: 'token',
+      corp_id: 'corp-1',
+      user_id: 'user-1',
     });
     utils.httpGet.mockResolvedValue({ success: true, method: 'get' });
     utils.httpPost.mockResolvedValue({ success: true, method: 'post' });
@@ -30,23 +32,27 @@ describe('yida-client', () => {
     const authRef = createAuthRef();
 
     expect(authRef).toMatchObject({
-      csrfToken: 'csrf123',
       baseUrl: 'https://example.yida.test',
+      authMode: 'token',
+      authSource: 'token',
+      corpId: 'corp-1',
+      userId: 'user-1',
     });
-    expect(authRef.cookies).toHaveLength(1);
+    expect(authRef).not.toHaveProperty('cookies');
+    expect(authRef).not.toHaveProperty('cookieData');
     expect(utils.triggerLogin).not.toHaveBeenCalled();
   });
 
   test('falls back to login when cache is missing', () => {
-    utils.loadCookieData.mockReturnValue(null);
+    utils.loadAuthData.mockReturnValue(null);
     utils.triggerLogin.mockReturnValue({
-      csrf_token: 'fresh',
-      cookies: [{ name: 'sid', value: 'fresh-cookie' }],
+      auth_mode: 'token',
+      auth_source: 'token',
     });
 
     const authRef = createAuthRef();
 
-    expect(authRef.csrfToken).toBe('fresh');
+    expect(authRef.authMode).toBe('token');
     expect(utils.triggerLogin).toHaveBeenCalledTimes(1);
   });
 
@@ -59,8 +65,7 @@ describe('yida-client', () => {
     expect(utils.httpGet).toHaveBeenCalledWith(
       'https://example.yida.test',
       '/query/path.json',
-      { page: 1 },
-      [{ name: 'sid', value: 'cookie-value' }]
+      { page: 1 }
     );
   });
 
@@ -82,16 +87,15 @@ describe('yida-client', () => {
     expect(utils.httpPost).toHaveBeenCalledWith(
       'https://example.yida.test',
       '/save/path.json',
-      'name=Ada%20Lovelace',
-      [{ name: 'sid', value: 'cookie-value' }]
+      'name=Ada%20Lovelace'
     );
   });
 
   test('can build request params from the current auth ref', async () => {
     const client = createYidaClient();
-    await client.postForm('/save/path.json', auth => ({ _csrf_token: auth.csrfToken, name: 'Ada' }));
+    await client.postForm('/save/path.json', auth => ({ userId: auth.userId, name: 'Ada' }));
 
-    expect(utils.httpPost.mock.calls[0][2]).toBe('_csrf_token=csrf123&name=Ada');
+    expect(utils.httpPost.mock.calls[0][2]).toBe('userId=user-1&name=Ada');
   });
 
   test.each([
@@ -127,7 +131,7 @@ describe('yida-client', () => {
   test('posts JSON bodies with auth-aware paths and referers', async () => {
     const client = createYidaClient();
     const result = await client.postJson(
-      auth => `/save/path.json?_csrf_token=${auth.csrfToken}`,
+      auth => `/save/path.json?userId=${auth.userId}`,
       { name: 'Ada Lovelace' },
       auth => ({ referer: `${auth.baseUrl}/settings` })
     );
@@ -135,10 +139,9 @@ describe('yida-client', () => {
     expect(result).toEqual({ success: true, method: 'post-json' });
     expect(utils.httpPostJson).toHaveBeenCalledWith(
       'https://example.yida.test',
-      '/save/path.json?_csrf_token=csrf123',
+      '/save/path.json?userId=user-1',
       { name: 'Ada Lovelace' },
-      [{ name: 'sid', value: 'cookie-value' }],
-      { csrfToken: 'csrf123', referer: 'https://example.yida.test/settings' }
+      { referer: 'https://example.yida.test/settings' }
     );
   });
 });

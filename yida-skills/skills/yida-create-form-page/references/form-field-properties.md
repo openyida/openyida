@@ -18,6 +18,106 @@
 
 ---
 
+## 表单展示/布局组件
+
+展示/布局组件按 `vc-deep-yida` 表单版原型中的真实字段生成，不使用未确认的组件名。默认用 `Divider` 做章节标题和分隔，用 `ColumnContainer` 做左右/多列布局；普通分组不要使用 `GroupContainer` / `PageSection`，只有需要折叠、边框、整块隐藏、整块权限或平台分组容器语义时再使用。
+
+### 布局决策规则
+
+默认表单是单列。不要为了“更高级”默认把整表改成双列，也不要用 `GroupContainer` / `PageSection` 做普通分组。
+
+- 默认单列：字段较少、流程表单、移动端优先、长文本、说明、附件、地址、子表、审批意见、需要逐项认真填写的字段。
+- 局部多列：短字段且天然成对或成组时使用 `ColumnContainer`，例如开始/结束日期、姓名/工号、部门/岗位、金额/币种、联系人/电话。
+- 全局 `--layout double`：只有用户明确要求“整个表单双列”时才使用；一般更推荐在字段 JSON 内用 `ColumnContainer` 做局部多列。
+- 语义分组：按业务含义分段，不按字段数量平均分。常见分组包括“基本信息”“业务信息”“时间计划”“补充材料”“审批信息”。
+
+推荐结构：
+
+```text
+Divider > ColumnContainer > Field
+Divider > Field
+```
+
+### 主题规则
+
+表单布局组件应跟随运行态主题变量。本参考只说明字段 JSON 如何消费主题，以及 `Divider` 出现时 OpenYida 必须执行的主题样式注入规则。
+
+生成建议：
+
+- 默认 `Divider` 使用主题模式：不写 `colorType` 或写 `"theme"`。
+- 不要为了“更好看”给每个 Divider 随机写 `backgroundColor` / `secondaryColor`。
+- 只有用户明确指定颜色时，才使用 `colorType: "custom"` 并写 `backgroundColor`、`secondaryColor`、`titleColor`。
+- 表单中出现 `Divider` 时，OpenYida 会注入 `style#yida-global-theme`，并尽可能同步到当前页面和同源 `window.top`。
+
+### Divider
+
+映射到 `componentName: "Divider"`。
+
+样式推荐顺序以宜搭历史 AI 应用工具 `dingtalk-ai-app` 的企业表单建议为优先，再按当前 CLI 支持的 `Divider.props.type` 白名单生成：
+
+1. 默认推荐 `bold-with-thin`，适合企业级业务表单的章节标题。普通场景不要写 `dividerType`，OpenYida 会默认写入 `props.type: "bold-with-thin"`。
+2. `double-color-trapezoid`，适合需要更强品牌识别和区块视觉权重的表单。
+3. `left-dot-title`，适合轻量分组、字段较密但不希望分割线太重的表单。
+4. `solid` / `dashed` / `thick` / `dotted` 等纯线型样式只用于低调分隔、兼容兜底或用户明确指定线型。
+5. `multi-parallelograms-end` 来自 `dingtalk-ai-app` 的门户/强分区场景经验，只在用户明确要求门户、强分区、流程阶段强调或已有线上表单已使用该样式时显式使用。
+
+生成 Schema 时默认写入 `props.type: "bold-with-thin"`。只有在用户明确指定样式时才通过 `dividerType` 覆盖 `props.type`。同一张表单中的 `Divider` 必须保持同一个 `props.type`，避免章节样式跳变。如果是修改已有表单，先看线上 Schema 中 Divider 的原始 `props.type`，属于上述支持清单或强分区特殊值时优先复用。
+
+执行规则：表单中出现 `Divider` 时，OpenYida 必须注入运行时主题样式 `style#yida-global-theme`，并尽可能同步到当前页面和同源 `window.top`。
+
+| 属性 | 默认值 | 说明 |
+| --- | --- | --- |
+| `behavior` | `"NORMAL"` | 默认状态，支持 `"NORMAL"` / `"HIDDEN"` |
+| `dividerType` | `"bold-with-thin"` | 写入 vc 的 `props.type`；优先级：`bold-with-thin` → `double-color-trapezoid` → `left-dot-title` → `solid` / `dashed` / `thick` / `dotted`；强分区特殊场景可显式用 `multi-parallelograms-end` |
+| `showTitle` | `true` | 是否显示标题 |
+| `title` | `"标题"` | 分割线标题，写入 `props.title` |
+| `description` | `""` | 标题描述，写入 `props.description` |
+| `tips` | `""` | 标题提示，写入 `props.tips` |
+| `colorType` | `"theme"` | 配色类型，支持 `"theme"` / `"custom"` |
+| `backgroundColor` | `"#0089ff"` | 自定义主题色 |
+| `titleColor` | `"#171a1d"` | 自定义标题色 |
+| `secondaryColor` | `"#cce5ff"` | 自定义背景/辅助色 |
+
+### ColumnContainer
+
+映射到 `componentName: "ColumnsLayout"`，内部生成 `Column` 子节点。`children` 按列传二维数组。
+
+| 属性 | 默认值 | 说明 |
+| --- | --- | --- |
+| `layout` | `"6:6"` | 12 栅格布局比例，例如 `"12"`、`"6:6"`、`"4:4:4"`、`"3:9"` |
+| `columnGap` | `"16px"` | 相邻列间距，写入 `props.columnGap` |
+| `rowGap` | `"16px"` | 多行场景行间距，写入 `props.rowGap` |
+| `display` | `"VERTICAL"` | 移动端排列方式，支持 `"VERTICAL"` / `"HORIZONTAL"` |
+| `mobileRowGap` | `"0px"` | 移动端垂直布局行间距 |
+| `children` | `[]` | 二维数组，每个子数组是一列内的字段或展示组件 |
+
+### GroupContainer / PageSection
+
+`GroupContainer` 是 `PageSection` 的别名，映射到 `componentName: "PageSection"`。标题写入 `props.title`，不会写 `props.label`。
+
+默认不要为了普通字段分段而使用本组件。普通分段应写成 `Divider` + 后续字段，横向字段排布应写成 `Divider` + `ColumnContainer`。只有当整块内容需要作为一个容器被折叠、加边框、整体隐藏或承接平台分组样式时，才使用 `GroupContainer` / `PageSection`。
+
+| 属性 | 默认值 | 说明 |
+| --- | --- | --- |
+| `behavior` | `"NORMAL"` | 默认状态，支持 `"NORMAL"` / `"HIDDEN"` |
+| `label` / `title` | `"分组"` | 分组标题，写入 `props.title` |
+| `showHeader` | `true` | 是否显示头部 |
+| `tooltip` / `tips` | `""` | 用户提示，写入 `props.tooltip` |
+| `showHeadDivider` | `true` | 是否显示头部分割线 |
+| `sectionHeaderStyle` | `"origin"` | 分组头部样式 |
+| `sectionHeaderBgColor` | `"#0089ff"` | 头部背景配色 |
+| `sectionHeaderTitleColor` | `"#171A1D"` | 标题颜色 |
+| `pcStyle` | `{ "value": "origin" }` | PC 端布局样式 |
+| `showBorder` | `false` | PC 端显示边框 |
+| `withMargin` | `false` | PC 端外边距 |
+| `withPadding` | `true` | PC 端内边距 |
+| `mobileStyle` | `{ "value": "origin" }` | Mobile 端布局样式 |
+| `showBorderMobile` | `false` | Mobile 端显示边框 |
+| `withMarginMobile` | `false` | Mobile 端外边距 |
+| `withPaddingMobile` | `false` | Mobile 端内边距 |
+
+---
+
 ## TextField / TextareaField
 
 单行文本和多行文本字段。

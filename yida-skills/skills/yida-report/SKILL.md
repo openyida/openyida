@@ -18,15 +18,18 @@ description: "Standalone 创建宜搭原生报表；如果请求来自 Schema-as
 - 不要将本技能与 `yida-chart` 混淆：本技能负责创建原生报表（数据源），`yida-chart` 负责 ECharts 可视化
 - 不要在没有原生报表的情况下直接使用 ECharts，ECharts 必须依赖原生报表作为数据源
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成报表配置 JSON
+- 不要把其他应用的 `REPORT_xxx`、`prdId/topicId`、`cid` 复制给当前应用的 chart sample 或 ECharts 页面
 
 ## 严格要求 (MUST DO)
 
 - **创建/发布前必须确认**：执行报表创建或发布操作前，必须向用户展示报表配置摘要（图表类型、数据源、字段映射），获得用户明确同意后再执行
 - 普通"报表"、"统计"需求默认使用本技能，不要直接跳到 `yida-chart`
+- 报表作为 ECharts / sample 数据源时，必须创建或同步到消费页面所在的同一个 `appType`；跨应用迁移必须重新创建/同步报表并替换绑定
 - 参考官方示例时先确认 schema 证据：只有 `formType: "report"` 或组件树出现 `Youshu*` 报表组件时才按原生报表处理；`report` 标签但默认页是 `receipt` 或自定义页时，先判断是否只是数据准备页或看板页
-- 调用报表数据 API 前必须确认 `reportId` 和 `datasetId` 来自真实报表
+- 调用报表数据 API 前必须确认 `reportId`、`cid`、`dataSetKey`、`filterKey` 来自当前应用真实报表 Schema
 - 解析报表数据时必须处理 `data.rows` 为空的情况，避免页面崩溃
 - 报表配置 JSON 需要落盘时，必须用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`，例如 `<projectRoot>/.cache/openyida/pm/pm-report-team.json`；不要在仓库根目录、系统临时目录或 `.cache/` 顶层生成 `*-report*.json`
+- 为 chart sample / ECharts 页面创建报表后，必须同步写入 `<projectRoot>/.cache/openyida/<任务名>/report-binding.json`，记录数据源表单、`REPORT_xxx`、组件 `cid`、`className`、`dataSetKey`、`filterKey`
 - 本技能不读写 memory，报表配置通过 `openyida create-report` 命令写入宜搭平台，不依赖跨会话的 memory 状态
 
 ## 适用场景
@@ -74,7 +77,17 @@ description: "Standalone 创建宜搭原生报表；如果请求来自 Schema-as
 ECharts 自定义页面（前端渲染）
 ```
 
-官方示例中心的报表范式是“原生报表先聚合，自定义页面后增强”。因此，除非用户明确要做高级视觉看板，否则先创建或复用原生报表；只有在已有报表提供聚合数据后，再让 `yida-chart` 或 `yida-custom-page` 承担展示层。
+官方示例中心的报表范式是“原生报表先聚合，自定义页面后增强”。因此，除非用户明确要做高级视觉看板，否则先创建或复用原生报表；只有在已有报表提供聚合数据后，再让 `yida-chart` 或 `yida-canvas-custom-page` 承担展示层。展示层如果明确要求普通自定义页面 JSX/Jsx 组件链路，或强依赖普通自定义页实例桥，再选择 `yida-custom-page`。
+
+### 作为 chart sample 数据源的绑定纪律
+
+官方 sample 或 ECharts 页面出现 `no permission for the report` 时，优先怀疑页面绑定了旧应用报表。修复顺序必须是：
+
+1. 在当前 Samples / 当前业务应用内创建或同步数据源表单与原生报表。
+2. `openyida get-schema <appType> <REPORT_xxx> --json` 回读新报表 Schema。
+3. 从 `componentsTree` 提取真实 `node_oc...` 形式的 `cid`、`componentName/className`、`dataSetModelMap` key 和组件级 `filterKey`。
+4. ECharts 页面通过 `getFormNavigationListByOrder` 按 `REPORT_xxx` 动态拿 `topicId/prdId`，不要硬编码旧 `prdId`。
+5. 把绑定关系落到 `.cache/openyida/<任务名>/report-binding.json`，再补 Jest / grep 断言，禁止旧 `REPORT_xxx`、旧 appType、旧 cid 回流。
 
 **为什么不用 `searchFormDatas` 前端聚合？**
 
@@ -144,241 +157,9 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 | `YoushuTimeFilter` | 时间筛选器 | `buildSchema.timeFilter()` | 筛选 |
 | `YoushuInputFilter` | 区间筛选器 | `buildSchema.inputFilter()` | 筛选 |
 
-### 核心工具函数
+### Schema 构建细节参考
 
-Schema 构建脚本提供以下核心函数，使用前需先引入：
-
-```javascript
-const {
-  buildSchema,           // 各组件 Schema 构建器
-  buildDataSetEntry,     // 构建数据集配置
-  buildFieldDefinition,  // 构建字段定义
-  buildFilterItem,       // 构建过滤条件
-  buildOrderByItem,      // 构建排序项
-  generateComponentId,   // 生成唯一组件 ID
-} = require('./build-yida-report-schema');
-```
-
-### 数据集配置（dataSetModelMap）
-
-所有报表组件通过 `dataSetModelMap` 配置数据源，每个数据集由 `buildDataSetEntry` 构建：
-
-```javascript
-buildDataSetEntry({
-  cubeCode: 'your_cube_code',        // 数据集 cubeCode（必填）
-  fieldDefinitionList: [              // 字段定义列表
-    buildFieldDefinition({
-      alias: 'date',                  // 字段别名（fieldKey）
-      aliasName: '日期',              // 字段显示名称
-      isDim: true,                    // true=维度，false=度量
-      dataType: 'DATE',              // STRING | NUMBER | DATE | BOOLEAN | ARRAY
-      aggregateType: 'NONE',         // NONE | SUM | AVG | COUNT | MAX | MIN | COUNT_DISTINCT
-      timeGranularityType: 'DAY',    // YEAR | QUARTER | MONTH | WEEK | DAY | HOUR | MINUTE | null
-    }),
-    buildFieldDefinition({
-      alias: 'sales',
-      aliasName: '销售额',
-      isDim: false,
-      dataType: 'NUMBER',
-      aggregateType: 'SUM',
-    }),
-  ],
-  fieldList: ['date', 'sales'],       // 查询字段别名列表
-  filterList: [],                     // 过滤条件列表
-  orderByList: [                      // 排序列表
-    buildOrderByItem('date', 'ASC'),  // ASC | DESC
-  ],
-  limit: 1000,                        // 数据条数限制
-  // 以下为筛选器专用参数
-  cubeCodes: ['your_cube_code'],      // cubeCode 数组（筛选器使用）
-  valueField: ['field_alias'],        // 值字段数组（筛选器使用）
-  labelField: ['field_alias'],        // 显示字段数组（筛选器使用）
-})
-```
-
-### 常用组件 Schema 构建示例
-
-#### 指标卡
-
-```javascript
-buildSchema.simpleIndicatorCard({
-  dataSetModelMap: {
-    kpi_dataset: buildDataSetEntry({
-      cubeCode: 'your_cube_code',
-      fieldDefinitionList: [
-        buildFieldDefinition({ alias: 'total_sales', aliasName: '总销售额', isDim: false, dataType: 'NUMBER', aggregateType: 'SUM' }),
-        buildFieldDefinition({ alias: 'order_count', aliasName: '订单数', isDim: false, dataType: 'NUMBER', aggregateType: 'COUNT' }),
-      ],
-      fieldList: ['total_sales', 'order_count'],
-    })
-  },
-  settings: { columnCount: 4, columnCountForH5: 2 }
-})
-```
-
-#### 折线图
-
-```javascript
-buildSchema.lineChart({
-  dataSetModelMap: {
-    line_dataset: buildDataSetEntry({
-      cubeCode: 'your_cube_code',
-      fieldDefinitionList: [
-        buildFieldDefinition({ alias: 'date', aliasName: '日期', isDim: true, dataType: 'DATE', timeGranularityType: 'DAY' }),
-        buildFieldDefinition({ alias: 'sales', aliasName: '销售额', isDim: false, dataType: 'NUMBER', aggregateType: 'SUM' }),
-      ],
-      fieldList: ['date', 'sales'],
-      orderByList: [buildOrderByItem('date', 'ASC')],
-    })
-  },
-  settings: {
-    titleConfig: { label: '销售趋势' },
-    height: 400,
-    smooth: true,
-    drillDown: false,
-  }
-})
-```
-
-#### 饼图（环形图）
-
-```javascript
-buildSchema.pieChart({
-  dataSetModelMap: {
-    pie_dataset: buildDataSetEntry({
-      cubeCode: 'your_cube_code',
-      fieldDefinitionList: [
-        buildFieldDefinition({ alias: 'category', aliasName: '类别', isDim: true, dataType: 'STRING' }),
-        buildFieldDefinition({ alias: 'amount', aliasName: '金额', isDim: false, dataType: 'NUMBER', aggregateType: 'SUM' }),
-      ],
-      fieldList: ['category', 'amount'],
-    })
-  },
-  settings: {
-    titleConfig: { label: '销售占比' },
-    innerRadius: 0.6,  // >0 为环形图
-  }
-})
-```
-
-#### 基础表格（明细表）
-
-```javascript
-buildSchema.table({
-  dataSetModelMap: {
-    table: buildDataSetEntry({
-      cubeCode: 'your_cube_code',
-      fieldDefinitionList: [
-        buildFieldDefinition({ alias: 'name', aliasName: '姓名', isDim: true, dataType: 'STRING' }),
-        buildFieldDefinition({ alias: 'dept', aliasName: '部门', isDim: true, dataType: 'STRING' }),
-        buildFieldDefinition({ alias: 'sales', aliasName: '销售额', isDim: false, dataType: 'NUMBER', aggregateType: 'SUM' }),
-      ],
-      fieldList: ['name', 'dept', 'sales'],
-      orderByList: [buildOrderByItem('sales', 'DESC')],
-    })
-  },
-  settings: {
-    fixedHeader: true,
-    theme: 'border',
-    maxBodyHeight: 500,
-    pagination: {
-      pageSize: 20,
-      showPageSelect: true,
-      pageSizeList: [10, 20, 50, 100],
-    }
-  }
-})
-```
-
-#### 筛选器（下拉 + 时间 + 区间）
-
-```javascript
-// 下拉筛选器
-buildSchema.selectFilter({
-  dataSetModelMap: {
-    selectFilter: buildDataSetEntry({
-      cubeCode: 'your_cube_code',
-      cubeCodes: ['your_cube_code'],
-      fieldDefinitionList: [
-        buildFieldDefinition({ alias: 'dept_id', aliasName: '部门ID', isDim: true, dataType: 'STRING' }),
-        buildFieldDefinition({ alias: 'dept_name', aliasName: '部门名称', isDim: true, dataType: 'STRING' }),
-      ],
-      fieldList: ['dept_id', 'dept_name'],
-      valueField: ['dept_id'],
-      labelField: ['dept_name'],
-    })
-  },
-  settings: { labelConfig: { label: '部门' }, mode: 'multiple', showLabel: true }
-})
-
-// 时间筛选器
-buildSchema.timeFilter({
-  dataSetModelMap: {
-    filterData: buildDataSetEntry({
-      cubeCode: 'your_cube_code',
-      cubeCodes: ['your_cube_code'],
-      fieldDefinitionList: [
-        buildFieldDefinition({ alias: 'create_date', aliasName: '创建日期', isDim: true, dataType: 'DATE', timeGranularityType: 'DAY' }),
-      ],
-      fieldList: ['create_date'],
-      valueField: ['create_date'],
-    })
-  },
-  settings: { labelConfig: { label: '日期范围' }, mode: 'range', dataConfig: { queryType: 'Between' } }
-})
-```
-
-### 完整报表页面 Schema 构建示例
-
-以下示例展示如何组合多个组件构建一个完整的报表页面：
-
-```javascript
-const {
-  buildSchema, buildDataSetEntry, buildFieldDefinition, buildOrderByItem,
-} = require('./build-yida-report-schema');
-
-const CUBE_CODE = 'your_cube_code_here';
-
-const reportPageSchema = buildSchema.pageHeader({
-  titleContent: '销售数据看板',
-  titleTip: '数据每日 08:00 更新',
-  children: [
-    buildSchema.topFilterContainer({
-      showTag: true,
-      children: [
-        buildSchema.timeFilter({ /* 时间筛选器配置 */ }),
-        buildSchema.selectFilter({ /* 下拉筛选器配置 */ }),
-      ],
-    }),
-    buildSchema.simpleIndicatorCard({ /* 指标卡配置 */ }),
-    buildSchema.lineChart({ /* 折线图配置 */ }),
-    buildSchema.table({ /* 明细表格配置 */ }),
-  ],
-});
-
-console.log(JSON.stringify(reportPageSchema, null, 2));
-```
-
-### 通用 settings 配置参考
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `titleConfig.label` | `string` | 组件标题 |
-| `height` | `number` | 组件高度（默认 300） |
-| `colorType` | `string` | 颜色类型，`default` 或 `CUSTOM_COLOR` |
-| `customColor` | `string` | 自定义颜色，逗号分隔 |
-| `drillDown` | `boolean` | 是否开启下钻（默认 false） |
-| `limit` | `number` | 数据条数限制（默认 1000） |
-
-### 各图表组件特有配置
-
-| 组件 | 特有配置 | 说明 |
-|------|---------|------|
-| **折线图** | `smooth`, `isStack`, `isPercent` | 平滑曲线、堆叠、百分比堆叠 |
-| **饼图** | `innerRadius` | 内半径（>0 为环形图） |
-| **条形图** | `isStack`, `isPercent` | 堆叠、百分比堆叠 |
-| **仪表盘** | `min`, `max`, `range` | 最小值、最大值、区间配置 |
-| **基础表格** | `fixedHeader`, `theme`, `pagination` | 固定表头、风格、分页 |
+普通报表创建优先使用 `openyida create-report <appType> "<报表名称>" <配置JSON文件路径>`，由 CLI 内部构建并发布 Schema。需要查看构建函数、组件示例、settings 字段或完整页面组合示例时，再读取 [references/schema-builder-details.md](references/schema-builder-details.md)。
 
 ---
 

@@ -11,7 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const { runAgent } = require('./agent');
+const { runAgent, resolveAgentCommand } = require('./agent');
 
 const DEFAULT_RUBRIC = {
   scale: '1-10',
@@ -20,6 +20,8 @@ const DEFAULT_RUBRIC = {
     { key: 'dataIntegrity', label: '数据呈现完整性', desc: '图表/字段/数值是否完整渲染，无空白或加载失败' },
     { key: 'requirementFit', label: '与需求契合度', desc: '页面内容是否覆盖预期业务场景' },
     { key: 'usability', label: '可用性', desc: '信息层级、可读性、交互入口是否合理' },
+    { key: 'cliCorrectness', label: 'CLI 调用正确性', desc: '命令参数是否正确、顺序是否合理、无冗余调用' },
+    { key: 'outputCompliance', label: '输出规范性', desc: '输出格式是否符合 SKILL.md 定义的规范' },
   ],
 };
 
@@ -41,7 +43,7 @@ function buildScorePrompt({ screenshotPath, url, stage, rubric = DEFAULT_RUBRIC 
     dims,
     '',
     '只输出一个 JSON 对象，不要其它文字，形如：',
-    '{"overall": 8, "dimensions": {"layout": 8, "dataIntegrity": 7, "requirementFit": 9, "usability": 8}, "comment": "一句话点评"}',
+    '{"overall": 8, "dimensions": {"layout": 8, "dataIntegrity": 7, "requirementFit": 9, "usability": 8, "cliCorrectness": 8, "outputCompliance": 9}, "comment": "一句话点评"}',
   ].filter(Boolean).join('\n');
 }
 
@@ -60,6 +62,7 @@ function autoScoreScreenshots(options = {}) {
 
   const scores = [];
   let anyUnavailable = false;
+  const agentCmd = resolveAgentCommand();
 
   for (const shot of screenshots) {
     const prompt = buildScorePrompt({
@@ -77,7 +80,7 @@ function autoScoreScreenshots(options = {}) {
         screenshot: shot.path,
         auto: null,
         human: null,
-        note: 'claude CLI 不可用，已跳过自动打分',
+        note: `${agentCmd} CLI 不可用，已跳过自动打分`,
       });
       continue;
     }
@@ -86,7 +89,7 @@ function autoScoreScreenshots(options = {}) {
       url: shot.url,
       screenshot: shot.path,
       auto: res.json
-        ? { ...res.json, model: 'claude -p', rubric: rubric.scale }
+        ? { ...res.json, model: `${agentCmd} -p`, rubric: rubric.scale }
         : { error: '无法从 agent 输出解析评分 JSON', raw: res.text ? res.text.slice(0, 500) : null },
       human: null,
     });

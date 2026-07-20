@@ -3,7 +3,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { SUPPORTED_LANGUAGES, t } = require('../lib/core/i18n');
+const { SUPPORTED_LANGUAGES, loadLocaleForLanguage, t } = require('../lib/core/i18n');
 const {
   formatProgressBar,
   sanitizeSheetName,
@@ -136,7 +136,8 @@ describe('integration check', () => {
 
   test('all locale packs include integration check messages', () => {
     for (const language of SUPPORTED_LANGUAGES) {
-      const locale = require(`../lib/core/locales/${language}`);
+      const locale = loadLocaleForLanguage(language);
+      expect(locale).toBeTruthy();
       expect(locale.help.cmd_integration_check).toEqual(expect.any(String));
       for (const key of integrationCheckLocaleKeys) {
         expect(locale.integration_check[key]).toEqual(expect.any(String));

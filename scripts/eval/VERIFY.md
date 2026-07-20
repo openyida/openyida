@@ -25,10 +25,12 @@ npm run eval:dashboard          # 默认 http://127.0.0.1:4500
 # 自定义端口: EVAL_DASHBOARD_PORT=4567 npm run eval:dashboard
 ```
 
-- 左侧「安全任务」(单测、路由测评)无副作用,直接点。
+- 左侧「安全任务」(单测、路由测评、Pipeline、Baseline)无副作用,直接点。
 - 左侧「真实链路」(红色,端到端建资源)点击会弹确认框,需先 `openyida login`。
 - 仅监听 `127.0.0.1`,任务是白名单固定命令,不接受任意命令输入。
 - 注意:控制台用**启动它的那个 Node 版本**跑子进程,务必先 `nvm use 20`。
+- **报告标签页**:点击顶部「📊 报告」可浏览所有历史评测报告(JSON/HTML),点击直接查看内容。
+- **Pipeline 预览**:首页自动展示最近一次 Pipeline 评测结果的评分卡和优化建议。
 
 ---
 
@@ -48,11 +50,28 @@ npx jest tests/eval-config.test.js tests/eval-guardrail.test.js tests/eval-manif
 npm test
 ```
 
-- 预期:`891 passed`(80 suites)。
+- 预期:`1278 passed`(104 suites)。
 
 ---
 
-## 第 2 步:路由测评(选对子技能吗,无真实资源,需要 `claude` CLI)
+## 第 2 步:全自动闭环 Pipeline(推荐首选,无真实资源)
+
+> 目的:一键串联「静态校验 → 路由测试 → 安全合规 → 覆盖度 → 多维评分 → Gate 判定 → 自动优化建议」全流程闭环。
+
+```bash
+npm run eval:pipeline -- --skill yida-dashboard
+# 加 JUnit 报告: --format junit
+```
+
+验证点:
+- 输出 6 个步骤的 PASS/FAIL/WARN/SKIP 状态。
+- 产出 `project/.cache/eval/pipeline/<run-id>/pipeline-report.json` 和 `suggestions.md`。
+- 当综合评分 Gate = fail 时,自动生成按优先级排序的优化建议(blocker > critical > high > medium)。
+- 退出码:Gate 通过 = 0,不通过 = 1(CI 红线)。
+
+---
+
+## 第 3 步:路由测评(选对子技能吗,无真实资源,需要 `claude` CLI)
 
 > 目的:测 agent 能否从 ~50 个子技能里**选对一个**——这是 SKILL.md 最核心的能力。
 
@@ -71,12 +90,28 @@ npm run eval:routing
 
 ---
 
-## 第 3 步:工具管道基线 + 截图 + 人工打分模板(真实链路,opt-in)
+## 第 4 步:A/B 基线对比(Baseline,无真实资源)
+
+> 目的:对比 with_skill / without_skill 两种模式的评测结果,量化 Skill 的实际价值贡献。
+
+```bash
+npm run eval:baseline -- --skill yida-dashboard
+# 加 JUnit 报告: --format junit
+```
+
+验证点:
+- 输出 with_skill 和 without_skill 的 pass rate、时间和 delta。
+- 产出 benchmark 报告和双线雷达图 SVG。
+- 使用 YAML 评测用例(优先)或 JSON scenarios(降级)。
+
+---
+
+## 第 5 步:工具管道基线 + 截图 + 人工打分模板(真实链路,opt-in)
 
 > 目的(对照基线):**不经过 agent**,用固定命令把「建应用→发布→截图→打分」整条管道跑通,
-> 确认基础设施本身没坏。当第 5 步「真实生成」失败时,先看这条是否绿,就能区分是 agent 还是工具的问题。
+> 确认基础设施本身没坏。当第 7 步「真实生成」失败时,先看这条是否绿,就能区分是 agent 还是工具的问题。
 
-**会在宜搭组织里真的创建一次性应用**,需 `OPENYIDA_E2E=1` + 有效 cookie 缓存(先 `openyida login`)。
+**会在宜搭组织里真的创建一次性应用**,需 `OPENYIDA_E2E=1` + 有效 token session（先 `openyida login`，再用 `openyida login --check-only --json` 验证）。
 
 ```bash
 OPENYIDA_E2E=1 npm run eval:e2e -- --skill yida-dashboard --screenshot
@@ -93,7 +128,7 @@ OPENYIDA_E2E=1 npm run eval:e2e -- --skill yida-dashboard --screenshot
 
 ---
 
-## 第 4 步:端到端 + 本地 agent 自动打分
+## 第 6 步:端到端 + 本地 agent 自动打分
 
 ```bash
 OPENYIDA_E2E=1 npm run eval:e2e -- --skill yida-dashboard --screenshot --auto-score
@@ -105,13 +140,13 @@ OPENYIDA_E2E=1 npm run eval:e2e -- --skill yida-dashboard --screenshot --auto-sc
 
 ---
 
-## 第 5 步:真实生成 —— 自然语言 → agent 真实生成应用(真实链路,opt-in)
+## 第 7 步:真实生成 —— 自然语言 → agent 真实生成应用(真实链路,opt-in)
 
 > 目的:最接近真实用户的端到端测评——测「一句话能否真生成可用应用」(选对 + 真做对 + 做得好不好)。
 
 把一句「帮我创建一个订单管理系统」喂给本地 `claude -p`,**让它自己读懂 openyida 技能、
 自己决定并真的执行 CLI 命令**产出真实应用,再复用截图 + 打分 + HTML 报告链路。
-与第 3 步「工具管道基线」的区别:基线是确定性 CLI(固定命名直接调命令、不经过 agent),
+与第 5 步「工具管道基线」的区别:基线是确定性 CLI(固定命名直接调命令、不经过 agent),
 本步走自然语言、由 agent 自主编排。
 
 ```bash
@@ -128,7 +163,7 @@ OPENYIDA_E2E=1 npm run eval:generate -- --screenshot
 - 控制台(第 0 步)「📊 查看最新报告」会自动包含「真实生成」的最新报告。
 - 降级:`claude` 不可用 → 整批标 `agent-unavailable`;Playwright 缺失 → 跳过截图;均不崩。
 
-## 第 6 步:三类测评一起跑
+## 第 8 步:三类测评一起跑
 
 ```bash
 OPENYIDA_E2E=1 npm run eval:all -- --skill yida-dashboard --screenshot
@@ -143,20 +178,65 @@ OPENYIDA_E2E=1 npm run eval:all -- --skill yida-dashboard --screenshot
 
 | Flag | 作用 |
 |------|------|
-| `--mode e2e\|routing\|generate\|all` | 跑哪几层(默认 `e2e`;`all` = 路由+端到端+生成) |
-| `--skill <name>` | 限定 e2e 只跑某子技能;stages 经 `SKILL_COVERAGE` 矩阵反查 |
+| `--mode e2e\|routing\|generate\|pipeline\|baseline\|comprehensive\|all` | 跑哪几层 |
+| `--skill <name>` | 限定评测目标子技能 |
 | `--stages a,b` | 显式指定 stage,覆盖 skill 反查 |
 | `--screenshot` / `--no-screenshot` | 是否截发布页(默认开;Playwright 缺失则跳过) |
 | `--auto-score` / `--no-auto-score` | 是否用本地 `claude -p` 给截图打分(默认关 → 仅人工模板) |
 | `--scenarios <dir>` | 路由测评 golden 集目录(默认 `scripts/eval/scenarios`) |
 | `--gen-scenarios <dir>` | 真实生成 golden 集目录(默认 `scripts/eval/scenarios/generation`) |
+| `--baseline` / `--no-baseline` | 是否启用 A/B 对比(baseline 模式下默认开) |
+| `--format junit` | 额外生成 JUnit XML 报告(CI 集成用) |
+| `--fix` | pipeline 模式下尝试自动修复(实验性) |
+
+---
+
+## Skill-as-Evaluator(自然语言触发评测)
+
+可以通过 openyida 的 `yida-skill-evaluator` 子技能用自然语言触发评测:
+
+```
+评测一下 yida-dashboard 技能
+```
+
+Agent 会自动运行 Pipeline 评测并输出结构化报告,包含评分卡、准出判定和优化建议。
+
+---
+
+## CI 自动化
+
+项目配置了 `.github/workflows/skill-eval.yml`,支持三种自动触发:
+
+| 场景 | 触发条件 | 评测范围 |
+|------|----------|----------|
+| PR | `yida-skills/` 或 `scripts/eval/` 变更 | 静态 + 安全 + 覆盖度 + 变更技能的综合评测 |
+| Nightly | 每日 10:00 北京时间 | 全量 pipeline 评测(含 JUnit) |
+| Release | tag `v*` 推送 | 严格 pipeline 准出门槛(失败阻断发布) |
+| 手动 | workflow_dispatch | 自定义模式和技能 |
 
 ---
 
 ## 最小验证组合
 
-只想快速确认 harness 没问题:跑 **第 1 步**(单测)+ **第 2 步**(路由测评)即可——
-前者证明逻辑对,后者证明能真正驱动 agent 路由,都不动宜搭线上资源。
+只想快速确认 harness 没问题:跑 **第 1 步**(单测)+ **第 2 步**(Pipeline)即可——
+前者证明逻辑对,后者证明全流程闭环正常,都不动宜搭线上资源。
+
+---
+
+## 评测模式一览
+
+| 模式 | 命令 | 说明 | 副作用 |
+|------|------|------|--------|
+| pipeline | `eval:pipeline -- --skill <name>` | 全自动闭环(推荐) | 无 |
+| doc-quality | `eval:doc-quality` | 文档规范性 | 无 |
+| routing | `eval:routing` | 路由准确率 | 无(需 agent CLI) |
+| safety | `eval:safety` | 安全合规 | 无 |
+| coverage | `eval:coverage` | 覆盖度 | 无 |
+| comprehensive | `eval:comprehensive -- --skill <name>` | 10 维度评分 | 无 |
+| baseline | `eval:baseline -- --skill <name>` | A/B 基线对比 | 无 |
+| e2e | `eval:e2e` | 工具管道基线 | **创建真实资源** |
+| generate | `eval:generate` | 真实生成 | **创建真实资源** |
+| all | `eval:all` | 路由+e2e+生成 | **创建真实资源** |
 
 ---
 

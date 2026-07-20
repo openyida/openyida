@@ -86,7 +86,7 @@ function normalizeSkillList(value) {
 }
 
 /**
- * 评测单条 scenario。
+ * 评测单条 scenario（支持 mustNotTrigger 反例检测）。
  */
 function evaluateScenario(options = {}) {
   const { scenario, routingContext, skillNames } = options;
@@ -109,7 +109,7 @@ function evaluateScenario(options = {}) {
     };
   }
 
-  // agent 可用但本次调用失败（如未登录 / 配额 / API 错误）——区别于“拿到回答但解析不出技能”。
+  // agent 可用但本次调用失败（如未登录 / 配额 / API 错误）——区别于”拿到回答但解析不出技能”。
   if (!res.ok && !res.json) {
     return {
       id: scenario.id,
@@ -132,9 +132,18 @@ function evaluateScenario(options = {}) {
   const defaultLoadSkills = normalizeSkillList(res.json && res.json.defaultLoadSkills);
   const forbiddenDefaultSkillHits = normalizeSkillList(scenario.forbiddenDefaultSkills)
     .filter(skillName => defaultLoadSkills.includes(skillName));
+
+  // mustNotTrigger: for negative/disambiguation scenarios, check the selected skill
+  // is NOT in the mustNotTrigger list
+  const mustNotTrigger = normalizeSkillList(scenario.mustNotTrigger);
+  const mustNotTriggerViolations = actual && mustNotTrigger.length
+    ? mustNotTrigger.filter(s => normalizeSkill(actual) === s)
+    : [];
+
   const hit = skillHit
     && (modeHit !== false)
-    && forbiddenDefaultSkillHits.length === 0;
+    && forbiddenDefaultSkillHits.length === 0
+    && mustNotTriggerViolations.length === 0;
 
   return {
     id: scenario.id,
@@ -145,6 +154,7 @@ function evaluateScenario(options = {}) {
     modeHit,
     defaultLoadSkills,
     forbiddenDefaultSkillHits,
+    mustNotTriggerViolations,
     reason: res.json ? res.json.reason : null,
     hit,
     status: actual === null ? 'unparsed' : 'ok',
@@ -181,13 +191,23 @@ function summarize(results = []) {
 }
 
 /**
- * 跑整套路由测评。
+ * 跑整套路由测评（支持 --runs 多轮稳定性、--skill 技能过滤）。
  */
 function runRoutingEval(options = {}) {
   const scenariosDir = options.scenariosDir;
-  const scenarios = options.scenarios || loadScenarios(scenariosDir);
+  let scenarios = options.scenarios || loadScenarios(scenariosDir);
   const routingContext = options.routingContext || loadRoutingContext(options.skillMdPath);
   const skillNames = options.skillNames || listSkillNames();
+  const runs = options.runs || 1;
+
+  // Skill filter: only run scenarios whose expectedSkill matches
+  if (options.skill) {
+    const filterSkill = normalizeSkill(options.skill);
+    scenarios = scenarios.filter((s) =>
+      normalizeSkill(s.expectedSkill) === filterSkill
+      || (s.mustNotTrigger && s.mustNotTrigger.some((m) => normalizeSkill(m) === filterSkill))
+    );
+  }
 
   const results = scenarios.map((scenario) => evaluateScenario({
     scenario,
@@ -198,9 +218,49 @@ function runRoutingEval(options = {}) {
     cwd: options.cwd,
   }));
 
+  // Multi-run stability: repeat each scenario `runs` times and compute consistency
+  let stability = null;
+  if (runs > 1) {
+    const stabilityResults = [];
+    for (const scenario of scenarios) {
+      const runResults = [];
+      for (let r = 0; r < runs; r++) {
+        const result = evaluateScenario({
+          scenario,
+          routingContext,
+          skillNames,
+          runAgent: options.runAgent,
+          timeoutMs: options.timeoutMs,
+          cwd: options.cwd,
+        });
+        runResults.push(result);
+      }
+      const evaluated = runResults.filter((r) => r.status === 'ok');
+      const actuals = evaluated.map((r) => normalizeSkill(r.actual));
+      const allSame = actuals.length > 0 && actuals.every((a) => a === actuals[0]);
+      stabilityResults.push({
+        id: scenario.id,
+        runs: runResults.length,
+        evaluated: evaluated.length,
+        consistent: allSame,
+        actuals,
+      });
+    }
+    const consistentCount = stabilityResults.filter((s) => s.consistent).length;
+    const evaluatedCount = stabilityResults.filter((s) => s.evaluated > 0).length;
+    stability = {
+      runs,
+      scenarios: stabilityResults.length,
+      consistent: consistentCount,
+      consistencyRate: evaluatedCount > 0 ? +(consistentCount / evaluatedCount).toFixed(4) : null,
+      details: stabilityResults,
+    };
+  }
+
   return {
     summary: summarize(results),
     results,
+    stability,
     scenariosDir,
   };
 }
@@ -215,3 +275,70 @@ module.exports = {
   summarize,
   runRoutingEval,
 };
+
+
+// ---------------------------------------------------------------------------
+// Parallel/Batch routing (async entry)
+// ---------------------------------------------------------------------------
+
+/**
+ * Async routing evaluation with batching + parallel + caching.
+ *
+ * Drop-in replacement for runRoutingEval when performance matters.
+ * Falls back to serial mode if parallel module is missing.
+ *
+ * @param {object} options — same as runRoutingEval, plus:
+ * @param {number} [options.batchSize=5]  — scenarios per batch prompt
+ * @param {number} [options.concurrency=4] — max parallel processes
+ * @param {boolean} [options.useCache=true] — use result cache
+ * @param {function} [options.onProgress] — callback(completed, total)
+ * @returns {Promise<{summary, results, stability?, scenariosDir, stats?}>}
+ */
+async function runRoutingEvalAsync(options = {}) {
+  let parallel;
+  try { parallel = require('./parallel'); } catch (_e) { parallel = null; }
+
+  // Fallback to serial
+  if (!parallel) {
+    return runRoutingEval(options);
+  }
+
+  const scenariosDir = options.scenariosDir;
+  let scenarios = options.scenarios || loadScenarios(scenariosDir);
+  const routingContext = options.routingContext || loadRoutingContext(options.skillMdPath);
+  const skillNames = options.skillNames || listSkillNames();
+
+  // Skill filter
+  if (options.skill) {
+    const filterSkill = normalizeSkill(options.skill);
+    scenarios = scenarios.filter((s) =>
+      normalizeSkill(s.expectedSkill) === filterSkill
+      || (s.mustNotTrigger && s.mustNotTrigger.some((m) => normalizeSkill(m) === filterSkill))
+    );
+  }
+
+  const { resolveAgentCommand } = require('./agent');
+  const agentCommand = options.agentCommand || resolveAgentCommand();
+
+  const { results, stats } = await parallel.runParallelRouting({
+    scenarios,
+    routingContext,
+    skillNames,
+    agentCommand,
+    batchSize: options.batchSize || 5,
+    concurrency: options.concurrency || 4,
+    timeoutMs: options.timeoutMs || 120000,
+    useCache: options.useCache !== false,
+    onProgress: options.onProgress,
+  });
+
+  return {
+    summary: summarize(results),
+    results,
+    stability: null,
+    scenariosDir,
+    stats,
+  };
+}
+
+module.exports.runRoutingEvalAsync = runRoutingEvalAsync;

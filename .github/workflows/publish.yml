@@ -58,19 +58,18 @@ jobs:
     - name: Install dependencies
       run: npm install --ignore-scripts
 
-    - name: Sync version from tag to package.json
+    - name: Sync version from tag to package manifests
       run: |
         TAG="${{ github.ref_name }}"
         # 去掉前缀 'v'，支持 v2026.04.01 和 2026.04.01 两种格式
         VERSION="${TAG#v}"
-        echo "Tag: $TAG → Version: $VERSION"
-        node -e "
-          const fs = require('fs');
-          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-          pkg.version = '$VERSION';
-          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-          console.log('Updated package.json version to $VERSION');
-        "
+        CURRENT=$(node -p "require('./package.json').version")
+        echo "Tag: $TAG → Version: $VERSION (current: $CURRENT)"
+        if [ "$CURRENT" != "$VERSION" ]; then
+          npm version "$VERSION" --no-git-tag-version
+        else
+          echo "Version already matches, skipping npm version"
+        fi
 
     - name: Determine npm tag
       id: npm-tag

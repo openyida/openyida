@@ -20,6 +20,10 @@ const SKILLS_INDEX_ENTRY_ALLOWED_FIELDS = new Set([
   'category',
   'tags',
   'aliases',
+  'positive_signals',
+  'negative_signals',
+  'command_ids',
+  'done_when',
   'priority',
   'requires',
   'capabilities',
@@ -215,6 +219,38 @@ function validateSkillsIndex(skillDirNames) {
     errors.push(toRelative(SKILLS_INDEX_FILE) + ': skills must be an array');
     return;
   }
+  if (!Array.isArray(index.route_groups) || index.route_groups.length === 0) {
+    errors.push(toRelative(SKILLS_INDEX_FILE) + ': route_groups must be a non-empty array');
+    return;
+  }
+
+  const routeGroupNames = new Set();
+  for (let i = 0; i < index.route_groups.length; i++) {
+    const group = index.route_groups[i];
+    const groupLabel = toRelative(SKILLS_INDEX_FILE) + ': route_groups[' + i + ']';
+    if (!group || typeof group !== 'object' || Array.isArray(group)) {
+      errors.push(groupLabel + ': entry must be an object');
+      continue;
+    }
+    if (!group.name || typeof group.name !== 'string') {
+      errors.push(groupLabel + ': missing string field "name"');
+    } else if (!group.name.startsWith('yida-skills/')) {
+      errors.push(groupLabel + ': name must start with "yida-skills/"');
+    } else if (routeGroupNames.has(group.name)) {
+      errors.push(groupLabel + ': duplicate route group "' + group.name + '"');
+    } else {
+      routeGroupNames.add(group.name);
+    }
+    if (!group.display_name || typeof group.display_name !== 'string') {
+      errors.push(groupLabel + ': missing string field "display_name"');
+    }
+    if (!group.description || typeof group.description !== 'string') {
+      errors.push(groupLabel + ': missing string field "description"');
+    }
+    if (!Array.isArray(group.signals) || group.signals.length === 0) {
+      errors.push(groupLabel + ': signals must be a non-empty array');
+    }
+  }
 
   const expectedPaths = new Set(skillDirNames.map(function(skillDirName) {
     return 'skills/' + skillDirName + '/SKILL.md';
@@ -298,6 +334,8 @@ function validateSkillsIndex(skillDirNames) {
     }
     if (!entry.category || typeof entry.category !== 'string') {
       errors.push(entryLabel + ': missing string field "category"');
+    } else if (!routeGroupNames.has(entry.category)) {
+      errors.push(entryLabel + ': category "' + entry.category + '" must reference route_groups[].name');
     }
     if (!Array.isArray(entry.tags) || entry.tags.length === 0) {
       errors.push(entryLabel + ': tags must be a non-empty array');

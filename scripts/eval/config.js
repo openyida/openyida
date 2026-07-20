@@ -27,9 +27,10 @@ const DEFAULTS = {
   autoScore: false,
   scenariosDir: DEFAULT_SCENARIOS_DIR,
   generationScenarios: DEFAULT_GENERATION_DIR,
+  agentCommand: 'claude', // headless agent CLI；阿里内网可设为 qodercli
 };
 
-const VALID_MODES = ['e2e', 'routing', 'generate', 'all'];
+const VALID_MODES = ['e2e', 'routing', 'generate', 'doc-quality', 'safety', 'coverage', 'comprehensive', 'baseline', 'pipeline', 'all'];
 
 // full-runner 的 stage 规范顺序（与 scripts/e2e-real/full-runner.js 的
 // DEFAULT_STAGES + EXTENDED_STAGES 保持一致）。仅用于把展开后的 stages 排回正确顺序。
@@ -140,14 +141,38 @@ function parseArgs(argv = []) {
       out.scenariosDir = takeValue();
     } else if (arg === '--gen-scenarios' || arg.startsWith('--gen-scenarios=')) {
       out.generationScenarios = takeValue();
+    } else if (arg === '--agent-cmd' || arg.startsWith('--agent-cmd=')) {
+      out.agentCommand = takeValue();
     } else if (arg === '--screenshot') {
       out.screenshot = true;
     } else if (arg === '--no-screenshot') {
       out.screenshot = false;
+    } else if (arg === '--runs' || arg.startsWith('--runs=')) {
+      out.runs = parseInt(takeValue(), 10) || 1;
     } else if (arg === '--auto-score') {
       out.autoScore = true;
     } else if (arg === '--no-auto-score') {
       out.autoScore = false;
+    } else if (arg === '--baseline') {
+      out.baseline = true;
+    } else if (arg === '--no-baseline') {
+      out.baseline = false;
+    } else if (arg === '--fix') {
+      out.fix = true;
+    } else if (arg === '--parallel') {
+      out.parallel = true;
+    } else if (arg === '--no-parallel') {
+      out.parallel = false;
+    } else if (arg === '--batch-size' || arg.startsWith('--batch-size=')) {
+      out.batchSize = parseInt(takeValue(), 10) || 5;
+    } else if (arg === '--concurrency' || arg.startsWith('--concurrency=')) {
+      out.concurrency = parseInt(takeValue(), 10) || 4;
+    } else if (arg === '--no-cache') {
+      out.useCache = false;
+    } else if (arg === '--format' || arg.startsWith('--format=')) {
+      const fmt = takeValue();
+      if (!out.formats) { out.formats = []; }
+      out.formats.push(fmt);
     } else {
       out.rest.push(arg);
     }
@@ -178,6 +203,7 @@ function readEnvConfig(env = process.env) {
   if (env.OPENYIDA_EVAL_STAGES) {cfg.stages = env.OPENYIDA_EVAL_STAGES;}
   if (env.OPENYIDA_EVAL_SCENARIOS) {cfg.scenariosDir = env.OPENYIDA_EVAL_SCENARIOS;}
   if (env.OPENYIDA_EVAL_GEN_SCENARIOS) {cfg.generationScenarios = env.OPENYIDA_EVAL_GEN_SCENARIOS;}
+  if (env.OPENYIDA_EVAL_AGENT_CMD) {cfg.agentCommand = env.OPENYIDA_EVAL_AGENT_CMD;}
   if (env.OPENYIDA_EVAL_SCREENSHOT !== undefined) {
     cfg.screenshot = toBool(env.OPENYIDA_EVAL_SCREENSHOT, undefined);
   }
@@ -214,10 +240,21 @@ function resolveConfig(options = {}) {
     mode: pick('mode'),
     skill: pick('skill') || null,
     stages: pick('stages') || null,
+    runs: parseInt(pick('runs'), 10) || 1,
     screenshot: toBool(pick('screenshot'), DEFAULTS.screenshot),
     autoScore: toBool(pick('autoScore'), DEFAULTS.autoScore),
     scenariosDir: pick('scenariosDir'),
     generationScenarios: pick('generationScenarios'),
+    agentCommand: pick('agentCommand') || DEFAULTS.agentCommand,
+    // 并行/批量/缓存与产物开关：此前遗漏未透传，导致 --parallel/--batch-size/
+    // --concurrency/--no-cache/--fix/--format/--baseline 被静默忽略（评测退化为串行）。
+    parallel: pick('parallel'),
+    batchSize: pick('batchSize'),
+    concurrency: pick('concurrency'),
+    useCache: pick('useCache'),
+    fix: pick('fix'),
+    baseline: pick('baseline'),
+    formats: pick('formats'),
     rest: cli.rest,
   };
 
@@ -225,7 +262,7 @@ function resolveConfig(options = {}) {
     throw new Error(`未知 --mode "${config.mode}"，可选：${VALID_MODES.join(', ')}`);
   }
 
-  // skill → stages 反查（仅在需要跑 e2e 链路时生效；routing / generate 不按 stage 过滤）
+  // skill → stages 反查（仅在需要跑 e2e 链路时生效；routing / generate / doc-quality / coverage 不按 stage 过滤）
   config.skillMapping = null;
   if (config.skill && (config.mode === 'e2e' || config.mode === 'all')) {
     config.skillMapping = mapSkillToStages(config.skill, coverage);

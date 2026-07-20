@@ -340,3 +340,26 @@ describe('forceCopyDir 行为', () => {
     expect(fs.readFileSync(path.join(destDir, 'fresh.txt'), 'utf8')).toBe('fresh');
   });
 });
+
+describe('project 工作区基础目录', () => {
+  const { _internal } = require('../lib/core/copy');
+
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yida-project-dirs-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('补齐源码目录但不创建本地缓存和构建产物目录', () => {
+    _internal.ensureProjectWorkspaceDirs(tmpDir);
+
+    expect(fs.existsSync(path.join(tmpDir, 'pages', 'src'))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, '.cache'))).toBe(false);
+    expect(fs.existsSync(path.join(tmpDir, 'pages', 'build'))).toBe(false);
+    expect(fs.existsSync(path.join(tmpDir, 'pages', 'dist'))).toBe(false);
+  });
+});

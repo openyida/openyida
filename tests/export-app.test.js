@@ -5,10 +5,9 @@ const os = require('os');
 const path = require('path');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'tok123', corpId: 'corp', userId: 'user' })),
   httpGet: jest.fn(),
   requestWithAutoLogin: jest.fn(),
 }));
@@ -21,9 +20,12 @@ const utils = require('../lib/core/utils');
 const { fetchFormPageList } = require('../lib/app/form-navigation');
 const { run, fetchFormSchema } = require('../lib/app/export-app');
 
-const mockCookieData = {
-  cookies: [{ name: 'tianshu_csrf_token', value: 'tok123' }],
-  csrf_token: 'tok123',
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
 };
 
 let logSpy;
@@ -31,7 +33,7 @@ let errorSpy;
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
   utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
   logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -59,7 +61,6 @@ describe('export-app', () => {
       const exported = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
 
       expect(fetchFormPageList).toHaveBeenCalledWith('APP_XXX', expect.objectContaining({
-        csrfToken: 'tok123',
         baseUrl: 'https://www.aliwork.com',
       }));
       expect(utils.httpGet).toHaveBeenCalledTimes(2);
@@ -95,8 +96,6 @@ describe('export-app', () => {
     });
 
     const result = await fetchFormSchema('APP_XXX', 'FORM_MISSING', {
-      csrfToken: 'tok123',
-      cookies: mockCookieData.cookies,
       baseUrl: 'https://www.aliwork.com',
     });
 

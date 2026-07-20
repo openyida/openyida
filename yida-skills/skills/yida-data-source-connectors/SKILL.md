@@ -1,34 +1,26 @@
 ---
 name: yida-data-source-connectors
-description: 自定义页面接入连接器或远程 API 的数据源规范。通过设计器"数据源"面板创建数据源，在页面代码中使用 this.dataSourceMap.<name>.load() 调用。适用于自定义页面、Dashboard、大屏需要读取外部接口数据时。
+description: 宜搭普通自定义页面接入连接器或远程 API 的设计器数据源规范。通过设计器“数据源”面板创建数据源，在页面代码中使用 this.dataSourceMap.<name>.load() 调用。适用于普通自定义页面、Dashboard、大屏需要读取外部接口数据时。
 ---
 
 # 宜搭连接器数据源接入规范
 
 ## 核心规则
 
-在宜搭应用页面里调用连接器操作或远程 API 时，必须先在设计器“数据源”面板创建对应的数据源，再在页面代码里通过 `this.dataSourceMap.<数据源名>.load()` 调用。
+在宜搭普通自定义页面里调用连接器操作或远程 API 时，必须先在设计器“数据源”面板创建对应的数据源，再在页面代码里通过 `this.dataSourceMap.<数据源名>.load()` 调用。
 
-禁止在自定义页面里直接用 `fetch`、`XMLHttpRequest`、`/query/newconnector/testConnector.json`、`ConnectorFactory.testConnector` 或手写远程 URL 绕过设计器数据源。例外只允许用于一次性本地诊断，不得发布到正式页面 Schema。
+禁止在普通自定义页面里直接用 `fetch`、`XMLHttpRequest`、`/query/newconnector/testConnector.json`、`ConnectorFactory.testConnector` 或手写远程 URL 绕过设计器数据源。
 
 官方示例中心的 schema 回读规律见 [官方示例中心 Schema 范式](../../references/official-example-schema-patterns.md)。其中连接器调用有时会被平台归一为 `REMOTE + /query/publicService/invokeService.json + serviceInfo.connectorInfo`，因此验收时既看设计器数据源是否存在，也要识别这种归一形态。
 
 ## 适用场景
 
-- 自定义页面、Dashboard、数据大屏读取外部系统接口。
+- 普通自定义页面、Dashboard、数据大屏读取外部系统接口。
 - 页面需要调用宜搭 HTTP 连接器动作，例如获取 token、查询设备列表、查询状态、提交指令。
 - 用户要求“把连接器操作添加到页面数据源”“左侧数据源里要能看到连接器”“远程 API 不要写死在 JSX 里”。
 - 修复页面一直卡在“加载中”，且原因是代码绕过数据源直接请求连接器或外部域名。
 
 > ⚠️ 子表内嵌明细只返回 50 行，应使用 `openyida data query subform` 按 `formInstId + tableFieldId` 分页查询，不要为此新建连接器数据源。
-
-## 与其他技能的分工
-
-- 创建 HTTP 连接器本体、账号、动作列表：使用 `yida-connector`。
-- 从 API 文件或后端 Controller 生成安全动作 JSON：使用 `yida-connector-safe-actions`。
-- 查询表单、流程、任务或子表数据：使用 `yida-data-management`。
-- 编写自定义页面 UI 和生命周期：使用 `yida-custom-page`。
-- 发布页面：使用 `yida-publish-page`，发布后确认数据源仍被保留或补回。
 
 ## 实施流程
 

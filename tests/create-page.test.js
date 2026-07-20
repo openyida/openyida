@@ -14,7 +14,7 @@ describe('create-page locale handling', () => {
   });
 
   test('buildPageInfoPostData fills Japanese title instead of null', () => {
-    const parsed = querystring.parse(buildPageInfoPostData('csrf', 'FORM_X', '経営ダッシュボード', false));
+    const parsed = querystring.parse(buildPageInfoPostData('FORM_X', '経営ダッシュボード', false));
     const title = JSON.parse(parsed.title);
 
     expect(title).toMatchObject({

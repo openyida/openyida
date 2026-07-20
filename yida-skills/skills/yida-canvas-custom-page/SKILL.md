@@ -1,71 +1,145 @@
 ---
 name: yida-canvas-custom-page
-description: 宜搭 Code Canvas / 代码画布自定义页面开发规范。Code Canvas 尚未在宜搭平台全量，只有用户明确要求代码画布、已有页面为 YidaCodeCanvas，或已确认当前组织/页面支持 Canvas 时使用；默认兼容链路仍是 yida-custom-page。
+description: 宜搭 Code Canvas / 代码画布自定义页面开发规范，是自定义页面的默认链路。用于现代 React 交互、hooks 状态、可视化、AI 生成、官网、看板、工作台、列表、详情或需要崩溃隔离的页面（真 React18 + runtimeCode + importedModules）。也覆盖用户明确提到 code canvas、代码画布、YidaCodeCanvas、runtimeCode、importedModules，或在 Code Canvas 中使用门户、数据管理视图、成员、部门、上传等宜搭运行态组件的场景。
 ---
 
 # 宜搭 Code Canvas 自定义页面开发
 
 ## 核心定位
 
-Code Canvas 是宜搭的**代码画布自定义页面链路**：以 `YidaCodeCanvas` 物料为承载，用户写标准 React18 函数组件源码，编译为 `runtimeCode` + 依赖清单（OpenYida CLI 本地用 Babel 完成），运行时按依赖白名单加载资源并 `new Function` 执行，渲染出真正的 React 组件。相较宜搭原生 `.oyd.jsx` 页面，它提供现代 hooks 写法、组件级崩溃隔离（ErrorBoundary）、Tailwind 运行时样式，适合现代交互 / 可视化 / AI 生成页面。
+Code Canvas 是宜搭的代码画布自定义页面链路：以 `YidaCodeCanvas` 物料为承载，用户写标准 React18 函数组件源码，OpenYida 本地编译为 `runtimeCode` + `importedModules`，运行时按依赖白名单加载资源并执行 `YidaComp`。
 
-> **可用性边界**：Code Canvas 组件在宜搭平台侧尚未全量。完整应用 `fast_build` 和未确认 Canvas 能力的组织默认使用 `yida-custom-page` native 链路；本技能只在用户明确要求、已有页面是 `YidaCodeCanvas`，或已确认当前组织/页面支持 Canvas 时使用。
+相较普通 `.oyd.jsx` 自定义页，Code Canvas 更适合：
 
-运行链路（源码核实自 `vc-deep-yida` 物料）：
+- 现代 React hooks 交互、图表、动效、复杂状态。
+- AI 首次生成页面：官网、看板、工作台、列表、详情、门户壳。
+- 需要组件级崩溃隔离和更现代前端体验的页面。
+- 只需要通过 HTTP / 连接器读写数据的页面。
+- 需要在 Canvas 内受控接入门户、成员、部门、上传等宜搭运行态组件的页面。
 
-1. 编译阶段把用户 React 源码转译为 `runtimeCode` + 依赖清单 `importedModules`（OpenYida CLI **本地用 Babel 完成**：JSX/TS → ES5、`import` 改写成 `window.<别名>` 引用、`export default` 收敛为 `YidaComp`，依赖名正则抽取）。
-2. `YidaCodeCanvas` 运行时按依赖别名表把 `importedModules` 命中的白名单依赖加载 CDN 资源到 `window[windowAlias]`。
-3. `runtimeCode` 在宿主页真实 `window` 中 `new Function` 执行，返回 `YidaComp` / `YidaComp.default` / 组件函数并渲染。
+如果用户明确要求普通自定义页面 JSX/Jsx 组件链路，或页面强依赖普通自定义页实例桥，则选择 `yida-custom-page`：例如 `this.$(fieldId)` 双向绑定、`this.utils.yida.*`、`this.dataSourceMap`、提交流程深度耦合等。
 
-本技能处理从零编写 Code Canvas 页面。宜搭原生 `.oyd.jsx` 页面的 `export function renderJsx()`、`_customState`、`this.utils.yida.*`、`openyida publish` 规范由 `yida-custom-page` 负责；把已有原生页面迁移到 Code Canvas 链路由 `yida-canvas-upgrade` 负责。
+## 运行时事实
 
-## 先判断能不能用 Code Canvas
+- Canvas 源码写成 `.canvas.jsx` / `.canvas.tsx`，`openyida publish` 会自动走 Canvas 链路。
+- `runtimeCode` 在宿主页真实 `window` 中执行，入口必须返回 `YidaComp` / `YidaComp.default` / 组件函数。
+- Canvas 组件没有普通页面实例上下文；数据读写通过 fetch、开放 API、连接器代理或显式 props 数据桥完成。
+- 第三方依赖走白名单；React、antd、ahooks、d3、recharts、Radix、framer-motion 等可按规则 import。
+- 宜搭运行态组件通过“原生组件桥 + fallback + 值归一化”接入；不改 `vc-deep-yida` 时，以宿主已存在的 `window.Deep` / `window.DeepYida` 探测为主，`window.YidaNativeComponents` 仅作为兼容入口。需要嵌入门户数据管理视图时探测 `DataManageViews`，并显式传入目标表单 `form.value/formUuid`。
 
-| 证据 | 判断 |
+> 依赖白名单和运行时细节见 [dependencies-and-cdn.md](references/dependencies-and-cdn.md) 与 [employeefield-verification.md](references/employeefield-verification.md)。
+
+## 使用决策
+
+| 需求 | 推荐做法 |
 | --- | --- |
-| 用户明确要求 Code Canvas / 代码画布 / runtimeCode / importedModules | 使用本技能 |
-| 已确认当前组织/页面支持 `YidaCodeCanvas`，且需要现代 React 交互 / hooks 状态 / 可视化 / AI 生成 / 崩溃隔离 | 使用本技能 |
-| 页面 Schema 或组件树里有 `componentName: "YidaCodeCanvas"` | 使用本技能 |
-| 需求明确是“从 OpenYida 原链路升级/迁移到 Canvas” | 切到 `yida-canvas-upgrade` |
-| 未确认 Canvas 能力，或只是完整应用 `fast_build` 的主入口页 | 使用 `yida-custom-page` |
-| 只需通过开放 API（HTTP）读写宜搭数据，但未确认 Canvas 能力 | 使用 `yida-custom-page`；不要为了 HTTP 数据读取默认切 Canvas |
-| 强依赖原生实例数据桥：表单内字段双向绑定 `this.$(fieldId)`、`this.utils.yida.*`、`dataSourceMap`、提交流程深度耦合 | 使用 `yida-custom-page`（该实例桥仅 native 免费提供） |
-| 需要字段结构、公式、联动、权限、报表、流程 | 切到对应配置型技能，不用 Code Canvas 承载 |
+| 官网、看板、工作台、列表、详情、门户壳 | 使用本技能，按页面类型生成 `.canvas.jsx` |
+| 需要开放 API / 连接器读写数据 | 使用本技能，在 `YidaComp` 内自建 HTTP 数据桥 |
+| 需要门户 topBanner / quickEntry / 数据卡片 | 使用本技能，按“门户组件桥”接入，必要时 fallback 自绘 |
+| 需要成员、部门、附件上传、图片上传 | 使用本技能，按“宜搭组件桥”接入并归一化值 |
+| 需要字段结构、公式、联动、权限、报表、流程 | 使用对应配置型技能承载，Canvas 只做展示和事件分发 |
+| 深度依赖普通页 `this` 实例桥 | 选择 `yida-custom-page` |
+| 强依赖普通自定义页实例数据桥：表单内字段双向绑定 `this.$(fieldId)`、`this.utils.yida.*`、`dataSourceMap`、提交流程深度耦合 | 使用 `yida-custom-page`（该实例桥由普通自定义页面提供） |
 
-OpenYida CLI 已支持发布 `YidaCodeCanvas` 页面：把 Code Canvas 源码写成 `.canvas.jsx`（推荐 `project/pages/src/<页面名>.canvas.jsx`），执行 `openyida publish <源文件> <appType> <formUuid>` 即自动走 Canvas 链路——`.canvas.jsx` 扩展名会被识别，CLI **本地用 Babel 编译**出 `runtimeCode` + `importedModules`（无需在线编译服务、无需登录态即可完成编译），构造 `YidaCodeCanvas` 组件的 Schema 并保存。扩展名不规范但确为 Canvas 源码时，加 `--canvas` 显式指定。**不要**把 Canvas 源码用普通 `.oyd.jsx`/`.jsx` 走 native 链路发布（会被 Babel 兼容编译器当 `renderJsx` 处理而失败）。
+## 两类特殊组件场景
 
-## 运行时事实（速记）
+### 1. 门户组件、topBanner 与数据卡片
 
-- `runtimeCode` 在宿主页真实 `window` 中 `new Function` 执行（`fn(window, window)`），执行后必须返回 `YidaComp` / `YidaComp.default` / 组件函数。
-- 物料只透传 `code / runtimeCode / importedModules / pageType`，无 `this` 上下文、无 `dataSourceMap` 数据桥；`this.utils.yida.*`、`didMount()` 等普通页契约都不可用。
-- 宿主 window 全局不是数据桥：`__yida_plugin_runtime__` 是插件扩展点管理器、`__VcDeepYidaUtils__` 只是 `{ VuMicroUtils }`，也无 `window.Deep` 字段组件。不要指望从 window 直接拿表单数据。
-- **读宜搭数据 = 自建 HTTP 桥**：在 `YidaComp` 内 `fetch` 调宜搭开放 API 或已配置连接器代理（同源带 cookie），自行处理 appType / formUuid / 鉴权；这是 Canvas 唯一干净的数据读写路径。
-- 依赖走白名单（React、ReactDOM、antd、ahooks、d3、recharts、Radix、lucide-react、framer-motion…）；新增依赖须被 CLI 编译识别（能抽入 `importedModules`）、有 window alias 映射、CSS 可加载。白名单无 yida-utils / `@ali/deep` / 原生字段组件，不能 `import`。
-- `EmployeeField` 等宜搭原生字段组件不能因表单支持同名字段就默认可用，必须先做最小验证；缺证据时降级为 antd/自定义控件，只存已知 userId / unionId。
+需要门户展示能力时，优先用 `portal-shell-home` 或 `portal-native-components` 示例作为起点；需要确认运行态组件清单时先跑 `native-components-smoke`：
 
-> 📖 运行时事实、原生组件判断、EmployeeField JSX 示例与验收清单 → [references/employeefield-verification.md](references/employeefield-verification.md)
-> 📦 依赖白名单、windowAlias / CDN、antd/dayjs `is not defined` 根因与物料侧修复 → [references/dependencies-and-cdn.md](references/dependencies-and-cdn.md)
-> 🔌 在 `YidaComp` 内自写 HTTP 桥读写宜搭数据（连接器代理 / 同源 fetch / 可复用 hook）→ [references/data-bridge-guide.md](references/data-bridge-guide.md)
-> 🎨 主色跟随 App 品牌：antd `ConfigProvider.colorPrimary` / Tailwind CSS 变量 / 图表配色的落地写法 → [references/canvas-design-system.md](references/canvas-design-system.md)
+```bash
+openyida generate-page portal-shell-home --theme-profile yida-app-theme --theme-scope page --output project/pages/src/portal-shell-home.canvas.jsx --compile
+openyida sample yida-canvas-custom-page native-components-smoke --output project/pages/src/native-components-smoke.canvas.jsx
+openyida sample yida-canvas-custom-page portal-native-components --output project/pages/src/portal-native-components.canvas.jsx
+```
 
-## 视觉方向：按需定方向
+组件选择建议：
 
-单点页面美化、用户明确要求好看/去 AI 味，或 `yida-app` 进入 `deep_design` 时，再调用 `use_skill("yida-page-uiux", "确定 Code Canvas 页面的视觉方向")`。`yida-app fast_build` 默认不加载 `yida-page-uiux`：直接使用克制的 MVP 工作台/列表/入口布局，禁 emoji、少装饰、主色跟随 App 品牌即可。
+- `PortalTopBanner`、`PortalQuickEntry`：优先接入，适合门户首页的 Banner 和快捷入口。
+- `QuickAccessCard`、`RecentlyUsedCard`：先做运行态验证，再用于动态门户卡片。
+- `DataCard`、`PortalContainer`：依赖门户上下文、数据卡片配置和样式变量，作为增强能力谨慎启用。
 
-Canvas 这套栈（React18 + antd + Tailwind）怎么把「主色跟随 App 品牌」落地由 [references/canvas-design-system.md](references/canvas-design-system.md) 负责。一句话记忆：**CSS 变量 `var(--color-brand1-*)` 对普通 DOM / Tailwind 直接可用（Canvas 跑在真 window、节点在宿主树内会级联）；antd token 和图表颜色是 JS 消费，需用 `getComputedStyle` 把品牌色解析成真实色值再喂进去。** 语义色（成功/警告/错误）保持固定，不随主题变。
+做法：从 `window.Deep`、`window.DeepYida` 探测组件；若环境已有 `window.YidaNativeComponents` 也可兼容读取。探测失败时使用 Canvas 自绘卡片，页面仍保持可用。
 
-## 编码规则
+### 2. 成员、部门、上传组件
 
-1. **不要写普通页面契约**：不要写 `export function renderJsx()`、`didMount()`、`this.forceUpdate()`、`this.utils.yida.*`，除非已验证 Code Canvas props 中提供等价能力。
-2. **入口必须明确**：源码必须导出或返回 `YidaComp`；不要只定义局部组件却不导出。
-3. **依赖必须可追踪**：所有 import 都要能出现在编译结果 `dependencies` 中；不在白名单的依赖不要交付。
-4. **状态按 React 组件写法处理**：Code Canvas 组件用标准 React hooks 写法（本地 Babel 编译支持）；不要套用普通自定义页 `_customState` 模式。
-5. **副作用要清理**：使用 `useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
-6. **不要绕过数据源治理**：调用连接器或远程 API 时，优先通过平台已配置数据源或传入 props；不要在组件中硬编码外部 URL、Cookie、CSRF。
-7. **先验收依赖，再扩展业务**：原生组件、上传、组织搜索、弹层类能力必须先做最小验证页，确认可用后再写复杂业务页面。
-8. **主色跟随 App 品牌，勿硬编码蓝**：antd 页面在最外层包 `ConfigProvider`，`token.colorPrimary` 用 `getComputedStyle` 读平台 `--color-brand1-6` 解析出的真实色值；Tailwind / 普通 DOM 直接用 `var(--color-brand1-*)`；图表颜色同样读品牌色。语义色（成功/警告/错误）保持固定。禁止散落 `#1677ff` / `bg-blue-500` 等硬编码蓝。详见 [references/canvas-design-system.md](references/canvas-design-system.md)。
+需要数据管理视图、成员、部门、附件上传、图片上传时，使用原生组件桥从宿主运行态探测 `@ali/deep` / `vc-deep-yida` 已挂载组件：
 
-> 📖 最小 `YidaComp`、副作用清理、recharts 图表、数据拉取组件等 vetted 脚手架模板 → [references/canvas-authoring-examples.md](references/canvas-authoring-examples.md)
+```bash
+openyida sample yida-canvas-custom-page native-components-smoke --output project/pages/src/native-components-smoke.canvas.jsx
+openyida sample yida-canvas-custom-page portal-native-components --output project/pages/src/portal-native-components.canvas.jsx
+```
+
+组件选择建议：
+
+- `EmployeeField`：优先验证和接入，记录真实 `onChange` 结构。
+- `DepartmentSelectField`：验证部门搜索、弹层、权限提示、单选/多选后启用。
+- `AttachmentField` / `ImageField`：验证 OSS 签名、上传权限、预览、删除、失败提示后启用。
+
+做法：原生组件只负责交互输入；页面业务状态保存归一化后的成员、部门、文件结构；提交仍通过 fetch / 连接器 / 开放 API 完成。组件条件未满足时 fallback 到 Canvas 自绘输入、搜索或链接录入。
+
+> 详细桥接规则、值结构和验收清单见 [native-components-bridge.md](references/native-components-bridge.md)。
+
+## 核心规则
+
+### 致命规则（FATAL）
+
+1. **Canvas 入口明确**：源码必须导出或返回 `YidaComp`，并把主组件作为默认导出或 `YidaComp` 暴露。
+2. **发布链路正确**：Canvas 源码使用 `.canvas.jsx` / `.canvas.tsx`，或发布时显式加 `--canvas`。
+3. **依赖可加载**：普通 import 只使用 Code Canvas 白名单依赖；宜搭运行态组件走原生组件桥。
+4. **不使用普通页实例契约**：Canvas 中不写 `renderJsx()`、`didMount()`、`this.forceUpdate()`、`this.utils.yida.*`、`this.dataSourceMap`。
+5. **副作用清理**：`useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
+6. **交互控件必须受控且真正驱动数据**：凡是暗示“会改变下方数据/视图”的控件（筛选 `Select`、搜索 `Input`/`Input.Search`、周期切换、`Tabs`/`Segmented`、批量/重置 `Button` 等），禁止只写 `defaultValue` 当装饰。必须用 `useState` 建立受控状态、绑定 `onChange`/`onClick`，并让 `Table`/列表/卡片的数据源经过基于该状态的 `useMemo` 派生过滤后再渲染。**反例（会导致“点了筛选下面数据不变”）**：把固定 `seedRows` 直接喂给 `<Table dataSource={rows} />`，同时摆一排 `defaultValue` 且无 `onChange` 的筛选控件。切换筛选后若可能让当前选中项失效，需回退选中态（如 `selected < filteredRows.length ? selected : 0`）。
+
+### 重要规则（IMPORTANT）
+
+1. **数据桥显式化**：通过 fetch、连接器或开放 API 读写数据，避免在页面里硬编码 Cookie、CSRF 或密钥。
+2. **组件增强可降级**：门户、成员、部门、上传组件都要 feature detect 和 fallback，组件缺失时页面不白屏。
+3. **值先归一化**：成员、部门、文件的原始返回值只作为 `raw` 调试，业务 payload 使用统一结构。
+4. **业务页主色跟随应用主题，sample 例外**：真实业务页默认读取 `--color-brand1-*` 与 `--color-group`，避免硬编码蓝色；但 `lib/samples/**` 和官方 sample 展示应用必须自带页面级固定主题（`followRuntimeTheme: false` 或等价 CSS 变量），每个 sample 使用不同色相，不允许被宿主应用主题统一染成黑灰。
+5. **先验证再扩展业务**：原生组件、上传、组织搜索、弹层类能力先做 smoke 页面，确认 PC/移动端都可用后再承载复杂业务。
+6. **模板占位符必须可直发**：Canvas sample / generate-page 模板要同时支持“生成器替换变量”和“sample 原样发布”。禁止写 `JSON.parse('{{FEATURES_JSON}}')` 这类裸解析；JSON 占位符必须用 `parseTemplateJson(raw, fallback)`，展示文案占位符必须用 `withFallback` / `applyPageFallbacks` 兜底，确保未替换时不会运行期崩溃，也不会把 `{{BRAND_NAME}}`、`{{HERO_TEXT}}`、`{{OPENYIDA_RESEARCH_LEVEL}}` 等直接显示到页面。
+7. **light 页面禁灰黑主题**：业务列表、协同表、数据管理页、工作台和门户默认不要用 `#111827` 这类近黑色做按钮、描边、选中态或大阴影；主操作、选中态、筛选焦点和批量操作使用品牌色或 sample 自带主题色，边框用浅色品牌混合。只有用户明确要求暗色大屏/夜间模式/高对比风格时才使用深色主视觉。
+8. **门户运行态组件要补必需 props 和局部降级**：`QuickAccessCard` / `RecentlyUsedCard` 必须传 `theme="row-white"` 等必需 props，避免运行态读取 `theme.includes(...)` 报错；所有门户/字段/上传增强组件外层加局部 ErrorBoundary，单个组件不兼容时只降级该块，不让整页进入 Canvas 错误态。
+9. **自定义主题必须页面内注入**：`--theme` 只接受平台预置 key；如果页面设计使用非预置主题（例如活力橙、深玫红、自定义暗黑金），Canvas 页面必须在自身源码中注入 `style#yida-global-theme` 或等价 scoped CSS vars，并在根节点设置 `data-theme-scope="page"`。官方 sample 每个页面都要做，避免宿主应用 `black` 主题把页面染成黑灰。
+
+## 模板占位符防回归
+
+Canvas 模板有两条真实使用链路：
+
+- `openyida generate-page ...`：变量会被生成器替换。
+- `openyida sample ...` 或官方 sample 展示应用：源码可能被原样发布。
+
+因此模板源码必须满足：
+
+- 原始 sample 经过 `compileCanvasLocal` 能通过。
+- 原始 sample 执行 `YidaComp()` 不应抛错。
+- 可见渲染内容不得泄漏 `{{...}}` 占位符。
+- 源码不得包含 `JSON.parse('{{...}}')`；用安全解析函数接默认数据。
+
+改 Canvas sample 后运行：
+
+```bash
+npx jest tests/canvas-compile.test.js tests/generate-page.test.js --runInBand
+```
+
+## Sample 改造沉淀纪律
+
+批量优化 `lib/samples/**` 或官方 sample 展示应用时，不能只按当前模板微调颜色。每个 sample 都要形成可复用经验：
+
+- **先读复盘规范**：如果用户要求总结上轮经验、继续优化官方 sample、同步到官方 Samples 应用，或多次基于截图纠正页面质量，先读全局 [任务复盘与沉淀规范](../../references/task-retrospective.md)，再判断要补模板、测试、CLI 还是 skill。
+- **先看参考再动手**：用户要求“高级、Dribbble、好看、像产品/官网/详情页/数据表”时，先参考 Dribbble 的同类构图和免费可商用素材站的真实图片，再抽象成布局、层次、色彩和数据密度原则；不要照搬单个作品。
+- **说清参考转译**：交付 sample 改造时要用 1-2 句话说明参考被转译成了什么，例如“详情页采用对象 hero + sticky 元信息 + 时间线结构”、“数据管理页采用多维表工具栏 + 分组行 + 彩色标签密集表格”。不要只说“已参考 Dribbble”。
+- **每页独立主题**：sample 页默认 `themeScope=page` 或等价固定 CSS 变量；业务列表、详情、门户、工作台、官网、数据管理、大屏要有不同色相和不同信息节奏，不被宿主应用主题统一染色。
+- **非预置主题不走 `--theme`**：`deepBlue/podBlue/.../black` 这些平台 key 才能传给 `--theme`；自己设计的主题色要写到页面 `style#yida-global-theme` / scoped token 中，并确保每个 sample 页面都有这段注入。
+- **数据要像真实业务**：列表、详情、数据管理、工作台、大屏必须模拟足够丰富的数据、状态、筛选、趋势、分组、时间线或指标，不要只放 3 个卡片和空泛文案。
+- **工作台不是 demo 壳**：工作台页面要铺满应用内容区，侧栏/导航/主面板形成真实产品首页；禁止用 `max-width + margin: 0 auto + 外层 padding` 做居中展示框，也不要把 `dribbble research`、`sample`、`workbench + operation` 这类设计过程词露给用户。
+- **数据大屏地图要稳定**：大屏中心态势图如果是地图，不能只依赖外部 ECharts CDN / GeoJSON 成功后才显示；优先探测宜搭宿主地图组件（如 `YoushuMap` / `ChinaMap` / `MapChart` 等），并提供内置区域地图组件兜底。禁止把“地图组件暂不可用”作为正常展示态暴露给用户。
+- **截图问题要反哺模板**：用户指出导航未覆盖、地图抽象、颜色不好、内容不丰富、产品首页不像首页等问题时，不只修当前 JSX；如果属于模板共性，补到 sample 模板、测试或本技能规则。
+- **官网实景化不是只换 Hero**：强视觉官网至少形成“场景 Hero + 产品/服务 + 过程/空间”的摄影故事，品牌色从真实材质提取，section 要覆盖真实产品、制作/服务过程与到店/使用情境。具体按 `yida-page-uiux/references/landing/realistic-brand-homepage.md` 执行。
+- **交互要真的联动数据**：改完带筛选/搜索/切换的 sample，必须实际验证“改筛选 → 下方列表/表格/卡片数据发生变化”，不能只看 `compileCanvasLocal` 编译通过。装饰性 `defaultValue` 控件（无 `onChange`、数据源恒为固定 `seedRows`）视为缺陷，等同“按钮点了没反应”。
+- **线上发布后回读**：发布到官方 sample 应用后，用 `get-schema` 回读确认 `YidaCodeCanvas/runtimeCode` 已更新，必要时检查页面 class/关键文案/关键区块存在。
+- **CLI 缺口要落盘**：如果改造过程中发现 CLI 行为“回包成功但未生效”、缺少 sample 注册、缺少模板类型或测试覆盖，应优先补 CLI/测试，而不是只用一次性脚本绕过。
 
 ## 开发流程
 
@@ -77,42 +151,52 @@ openyida login --check-only --json
 # 2. 如需新页面，先创建空白自定义页拿 formUuid
 openyida create-page <appType> "<页面名>"
 
-# 3. 编写 Code Canvas 源码，写成 .canvas.jsx（推荐 project/pages/src/<页面名>.canvas.jsx）
-#    只用白名单依赖；入口导出/返回 YidaComp；副作用带 cleanup。
+# 3. 生成或复制 Canvas 源码
+openyida generate-page workbench-home --theme-profile yida-app-theme --theme-scope page --output project/pages/src/workbench-home.canvas.jsx --compile
+openyida generate-page dashboard-overview --theme-profile yida-app-theme --theme-scope page --output project/pages/src/dashboard-overview.canvas.jsx --compile
+openyida generate-page portal-shell-home --theme-profile yida-app-theme --theme-scope page --output project/pages/src/portal-shell-home.canvas.jsx --compile
+openyida sample yida-canvas-custom-page native-components-smoke --output project/pages/src/native-components-smoke.canvas.jsx
+openyida sample yida-canvas-custom-page portal-native-components --output project/pages/src/portal-native-components.canvas.jsx
 
-# 4. 本地预检：不要用 openyida check-page/compile 校验 Canvas，它们当前是 native 页面检查器。
-#    Canvas 预检以 publish 的 Code Canvas 编译阶段为准；需要离线快检时可调用 lib/app/canvas-compile。
-node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/<页面名>.canvas.jsx','utf8'); const out=compileCanvasLocal(src); console.log(out.importedModules)"
+# 4. 本地 Canvas 快检
+node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/<页面名>.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
 
-# 5. 发布：.canvas.jsx 自动走 Canvas 链路，CLI 本地用 Babel 编译出
-#    runtimeCode + importedModules，构造 YidaCodeCanvas Schema 保存。
+# 5. 发布
 openyida publish project/pages/src/<页面名>.canvas.jsx <appType> <formUuid>
-#    扩展名不规范但确为 Canvas 源码时，显式加 --canvas。
 
-# 6. 发布后回读 Schema 验收：确认组件树存在 YidaCodeCanvas，且 runtimeCode 非空
-openyida get-schema <appType> <formUuid>
+# 6. 发布后回读 Schema 验收
+openyida get-schema <appType> <formUuid> > .cache/openyida/<页面名>-schema.json
 ```
+
+`openyida check-page` / `openyida compile` 当前面向普通自定义页面 `.oyd.jsx` / `.jsx`；Canvas 以 `compileCanvasLocal` 和 `openyida publish .canvas.jsx` 的 Canvas 编译阶段为准。
 
 如需保存完整 Schema，使用 create_file / Write / file edit tool 创建 `<projectRoot>/.cache/openyida/<页面名或任务名>/<页面名>-schema.json`；从 workspace 根执行后续命令时路径加 `project/` 前缀。不要把 `openyida` stdout 通过 shell 重定向保存成 JSON。
 
-## 与其他技能分工
+## 模板速查
 
-| 需求 | 使用 |
+| 场景 | 命令 |
 | --- | --- |
-| 普通 `.oyd.jsx` 自定义页 | `yida-custom-page` |
-| 发布 Canvas 页（`.canvas.jsx` → `openyida publish` 自动走 Canvas 链路） | 本技能开发流程 step 4 |
-| 编译并发布 native `.oyd.jsx`/`.jsx` 页面 | `yida-publish-page` |
-| 创建空白自定义页面 | `yida-create-page` |
-| 用户明确要求通过设计器数据源调用连接器 | `yida-data-source-connectors`；`fast_build` 不默认加载 |
-| 创建或管理 HTTP 连接器 | `yida-connector` |
-| 配表单字段结构，如真正的 EmployeeField 字段 | `yida-create-form-page` |
+| 工作台 | `openyida generate-page workbench-home --theme-profile yida-app-theme --output project/pages/src/workbench.canvas.jsx --compile` |
+| 看板 | `openyida generate-page dashboard-overview --theme-profile yida-app-theme --output project/pages/src/dashboard.canvas.jsx --compile` |
+| 列表 | `openyida generate-page business-list --theme-profile yida-app-theme --output project/pages/src/list.canvas.jsx --compile` |
+| 详情 | `openyida generate-page detail-profile --theme-profile yida-app-theme --output project/pages/src/detail.canvas.jsx --compile` |
+| 门户壳 | `openyida generate-page portal-shell-home --theme-profile yida-app-theme --output project/pages/src/portal.canvas.jsx --compile` |
+| 原生组件 smoke | `openyida sample yida-canvas-custom-page native-components-smoke --output project/pages/src/native-components-smoke.canvas.jsx` |
+| 门户 + 宜搭组件桥 | `openyida sample yida-canvas-custom-page portal-native-components --output project/pages/src/portal-native-components.canvas.jsx` |
+| 官网 | `openyida generate-page official-homepage --theme-profile yida-app-theme --output project/pages/src/official-home.canvas.jsx --compile` |
+| 数据大屏 | `openyida generate-page data-screen --theme-profile yida-app-theme --output project/pages/src/data-screen.canvas.jsx --compile` |
 
-## 常见误区
+## 参考文档
 
-| 误区 | 正确处理 |
-| --- | --- |
-| 看到表单支持 `EmployeeField`，就在 Code Canvas 写 `<EmployeeField />` | 先验证依赖映射、CSS、上下文和 `onChange` 结构 |
-| 把 Code Canvas 源码用 `.oyd.jsx`/`.jsx` 发布 | native 链路会走 Babel 兼容编译器当 `renderJsx` 处理而失败；Canvas 源码要写成 `.canvas.jsx`（或加 `--canvas`），`openyida publish` 会自动走 Canvas 链路生成 `YidaCodeCanvas` Schema |
-| 在 Code Canvas 中照搬 `this.utils.yida.searchFormDatas` | Code Canvas 组件没有普通页面实例契约；先看 props 或数据源注入方式 |
-| 依赖加载失败后继续写业务 | 先补依赖 alias/CDN 或降级到已支持组件 |
-| 用 `openyida check-page` / `openyida compile` 校验 `.canvas.jsx` | 这两个命令当前面向 native `.oyd.jsx`，会误报 Hook / default export 限制；Canvas 用 `compileCanvasLocal` 离线快检，最终以 `openyida publish .canvas.jsx` 的 Code Canvas 编译阶段为准 |
+| 文档 | 覆盖范围 | 何时阅读 |
+| --- | --- | --- |
+| [page-generation-guide.md](references/page-generation-guide.md) | 模板路由、官网素材、themeScope、Page Spec、primitives | 生成页面前必读 |
+| [native-components-bridge.md](references/native-components-bridge.md) | 门户、成员、部门、上传组件桥接和值归一化 | 需要宜搭运行态组件时必读 |
+| [dependencies-and-cdn.md](references/dependencies-and-cdn.md) | 依赖白名单、windowAlias、CDN、antd/dayjs 问题 | 新增依赖或排查依赖加载时必读 |
+| [employeefield-verification.md](references/employeefield-verification.md) | 运行时事实、原生组件验证、EmployeeField 验收 | 验证成员/字段组件时阅读 |
+| [data-bridge-guide.md](references/data-bridge-guide.md) | Canvas 内自建 HTTP 数据桥 | 接入真实数据时阅读 |
+| [canvas-design-system.md](references/canvas-design-system.md) | App 主题色、antd token、控件焦点/下拉 reset、图表配色 | 写样式和主题时阅读 |
+| [component-library-guide.md](references/component-library-guide.md) | 开源组件库推荐组合和禁用清单 | 选择 UI/图表依赖时阅读 |
+| [canvas-authoring-examples.md](references/canvas-authoring-examples.md) | 最小组件、hooks、副作用、图表示例 | 手写 Canvas 代码时阅读 |
+| [真实品牌官网 Playbook](../yida-page-uiux/references/landing/realistic-brand-homepage.md) | 实景素材组、材质配色、品牌旅程、Sample 无 CDN 兜底和视觉验收 | 生成或改造强视觉官网时必读 |
+| [任务复盘与沉淀规范](../../references/task-retrospective.md) | 官方 sample 改造经验、Dribbble 转译、页面级主题、发布回读、CLI/skill 反哺 | sample 批量优化、截图纠错、用户要求总结经验时阅读 |

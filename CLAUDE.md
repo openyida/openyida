@@ -29,7 +29,7 @@ node --check lib/xxx.js  # 语法检查
 
 - 模块系统：**CommonJS**（`require` / `module.exports`），不使用 ESM
 - Node.js 原生 API 优先，尽量不引入新依赖
-- 错误处理：`console.error()` + `process.exit(1)`
+- 错误处理：可复用业务模块应抛出 `CliError` 或普通 `Error`，由 `bin/yida.js` 统一处理退出码；**不要在可复用业务模块里新增 `process.exit(...)`**（仅 `bin/yida.js` 顶层入口和纯交互式命令可保留）。此约定以 `AGENTS.md` 为准。
 - 新增命令需同步更新 `README.md` 的命令一览表
 - 新增用户可见文案需同步更新 `lib/core/locales/` 下所有语言包
 - **推送 tag 前必须本地跑 `npm run check:ci` 确认全量校验通过**，避免 CI 因测试失败而中断发布

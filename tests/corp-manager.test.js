@@ -3,7 +3,7 @@
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
@@ -21,14 +21,17 @@ const {
   saveAddressBookVisible,
 } = require('../lib/corp-manager/api');
 
-const mockCookieData = {
-  csrf_token: 'csrf',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf' }],
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
 });
 
 describe('corp-manager api', () => {
@@ -59,7 +62,6 @@ describe('corp-manager api', () => {
       'https://www.aliwork.com',
       '/query/userservice/searchUsersOrDepts.json',
       expect.objectContaining({ key: '余浩', option: 'employee' }),
-      mockCookieData.cookies,
     );
     expect(result.users).toEqual([
       expect.objectContaining({

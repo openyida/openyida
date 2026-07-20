@@ -71,6 +71,30 @@ export function ensureTailwind() {
   return window.__openyidaTailwindLoading;
 }
 
+export function injectNativeControlReset() {
+  var style = document.getElementById('openyida-native-control-reset');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'openyida-native-control-reset';
+    document.head.appendChild(style);
+  }
+
+  style.innerHTML = [
+    '.oyd-page{--oyd-control-border:#D0D5DD;--oyd-control-hover:var(--color-brand1-4,#8BB8FF);--oyd-control-focus:var(--color-brand1-6,#2F6FED);--oyd-control-focus-ring:rgba(47,111,237,.14);--oyd-control-selected-bg:rgba(47,111,237,.08);--oyd-control-info-bg:rgba(47,111,237,.08);}',
+    '.oyd-page input,.oyd-page textarea,.oyd-page select,.oyd-page .oyd-input,.oyd-page .oyd-select-trigger{appearance:none;-webkit-appearance:none;font-family:inherit;font-weight:400;color:#1D2939;outline:none!important;box-shadow:none;}',
+    '.oyd-page input,.oyd-page textarea,.oyd-page select,.oyd-page .oyd-input{border:1px solid var(--oyd-control-border);border-radius:6px;background:#fff;}',
+    '.oyd-page input:hover,.oyd-page textarea:hover,.oyd-page select:hover,.oyd-page .oyd-input:hover,.oyd-page .oyd-select-trigger:hover{border-color:var(--oyd-control-hover)!important;}',
+    '.oyd-page input:focus,.oyd-page textarea:focus,.oyd-page select:focus,.oyd-page .oyd-input:focus,.oyd-page .oyd-select-trigger:focus{border-color:var(--oyd-control-focus)!important;outline:none!important;box-shadow:0 0 0 3px var(--oyd-control-focus-ring)!important;}',
+    '.oyd-page .oyd-select-trigger[aria-expanded="true"]{border-color:var(--oyd-control-focus)!important;box-shadow:0 0 0 3px var(--oyd-control-focus-ring)!important;}',
+    '.oyd-page .oyd-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;}',
+    '.oyd-page .oyd-select-trigger-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+    '.oyd-page .oyd-select-arrow{width:14px!important;height:14px!important;color:#667085;transition:transform .16s ease,color .16s ease;flex:0 0 14px;display:block;}',
+    '.oyd-page .oyd-select-trigger[aria-expanded="true"] .oyd-select-arrow{transform:rotate(180deg);color:var(--oyd-control-focus);}',
+    '.oyd-page .oyd-select-option{display:flex;align-items:center;justify-content:space-between;gap:8px;}',
+    '.oyd-page .oyd-select-check{width:14px!important;height:14px!important;color:var(--oyd-control-focus);flex:0 0 14px;display:block;}',
+  ].join('');
+}
+
 export function injectTailwindSource() {
   if (document.getElementById('openyida-tailwind-source')) {
     return;
@@ -96,18 +120,24 @@ export function injectTailwindFallback() {
   var style = document.createElement('style');
   style.id = 'openyida-tailwind-fallback';
   style.innerHTML = [
-    '.oyd-btn,.oyd-select-trigger,.oyd-select-option{appearance:none;-webkit-appearance:none;font-family:inherit;}',
+    '.oyd-btn,.oyd-input,.oyd-select-trigger,.oyd-select-option{appearance:none;-webkit-appearance:none;font-family:inherit;font-weight:400;}',
     '.oyd-btn{height:36px;border-radius:6px;border:1px solid #D0D5DD;background:#fff;padding:0 12px;font-size:14px;cursor:pointer;}',
     '.oyd-btn-primary{background:var(--color-brand1-6,#2F6FED);border-color:var(--color-brand1-6,#2F6FED);color:#fff;}',
-    '.oyd-select-trigger{height:38px;border-radius:6px;border:1px solid #D0D5DD;background:#fff;padding:0 12px;font-size:14px;text-align:left;box-shadow:0 6px 14px rgba(15,23,42,.06);}',
+    '.oyd-input{border:1px solid #D0D5DD;border-radius:6px;background:#fff;box-shadow:none;}',
+    '.oyd-select-trigger{height:38px;border-radius:6px;border:1px solid #D0D5DD;background:#fff;padding:0 10px 0 12px;font-size:14px;text-align:left;box-shadow:none;display:flex;align-items:center;justify-content:space-between;gap:8px;color:#1D2939;}',
+    '.oyd-select-trigger-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+    '.oyd-select-arrow{width:14px!important;height:14px!important;color:#667085;transition:transform .16s ease,color .16s ease;flex:0 0 14px;display:block;}',
+    '.oyd-select-trigger[aria-expanded="true"] .oyd-select-arrow{transform:rotate(180deg);color:var(--color-brand1-6,#2F6FED);}',
     '.oyd-select-menu{position:absolute;z-index:30;margin-top:6px;width:100%;padding:6px;border:1px solid #E4E7EC;border-radius:10px;background:#fff;box-shadow:0 16px 32px rgba(16,24,40,.14);}',
-    '.oyd-select-option{width:100%;min-height:36px;border:0;border-radius:8px;background:#fff;padding:0 10px;text-align:left;font-size:14px;cursor:pointer;}',
-    '.oyd-select-option-active{background:var(--color-brand1-1,#EFF6FF);color:var(--color-brand1-6,#1D4ED8);font-weight:600;}',
+    '.oyd-select-option{width:100%;min-height:36px;border:0;border-radius:8px;background:#fff;padding:0 10px;text-align:left;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;color:#1D2939;}',
+    '.oyd-select-option-active{background:var(--oyd-control-selected-bg,#EFF6FF);color:var(--color-brand1-6,#1D4ED8);font-weight:600;}',
+    '.oyd-select-check{width:14px!important;height:14px!important;color:var(--color-brand1-6,#1D4ED8);flex:0 0 14px;display:block;}',
   ].join('');
   document.head.appendChild(style);
 }
 
 export function didMount() {
+  this.injectNativeControlReset();
   this.ensureTailwind();
   this.loadData();
 }
@@ -117,9 +147,9 @@ export function didMount() {
 
 1. Tailwind URL 必须写成常量，只能填写已验证的 `g.alicdn.com`、企业 OSS/CDN 或 OpenYida 托管地址。
 2. 禁止默认写海外 CDN；如果目标环境不能访问默认 `g.alicdn.com` 地址，替换为企业自托管地址，或保留空字符串并依赖 fallback 样式。
-3. 使用 `@tailwindcss/browser` 时，通过 `style[type="text/tailwindcss"]` 默认导入 `tailwindcss/theme`、`tailwindcss/preflight` 和 `tailwindcss/utilities`。自定义页面可以接受 reset，preflight 能消除浏览器原生 button/select 黑色边框等默认外观；只有用户明确要求宿主页面完全隔离时才关闭 preflight，并必须手动重置按钮/下拉样式。
+3. 使用 `@tailwindcss/browser` 时，通过 `style[type="text/tailwindcss"]` 默认导入 `tailwindcss/theme`、`tailwindcss/preflight` 和 `tailwindcss/utilities`。自定义页面可以接受 reset，但仍必须注入 native control reset，兜住 input/textarea/select/自定义下拉的 focus 边框、font-weight、appearance 和 shadow；只有用户明确要求宿主页面完全隔离时才关闭 preflight，并必须手动重置按钮/输入框/下拉样式。
 4. `className` 使用完整静态类名字符串；不要拼 `bg-` + color 这类动态类名。
-5. Tailwind 加载失败时仍要能看到可用页面：关键容器保留 `style` 兜底，通用按钮/下拉增加 `oyd-*` fallback class。
+5. Tailwind 加载失败时仍要能看到可用页面：关键容器保留 `style` 兜底，通用按钮/输入框/下拉增加 `oyd-*` fallback class。
 6. 用户可见的下拉、菜单、分段控件默认用 Tailwind 自定义组件；不要用原生 `<select>`。
 
 ---

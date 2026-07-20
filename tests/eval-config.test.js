@@ -113,4 +113,42 @@ describe('eval config', () => {
     expect(() => resolveConfig({ argv: ['--mode', 'wat'], env: {}, fileConfig: {}, coverage }))
       .toThrow(/未知 --mode/);
   });
+
+  test('doc-quality 和 coverage 是合法 mode', () => {
+    const c1 = resolveConfig({ argv: ['--mode', 'doc-quality'], env: {}, fileConfig: {}, coverage });
+    expect(c1.mode).toBe('doc-quality');
+    const c2 = resolveConfig({ argv: ['--mode', 'coverage'], env: {}, fileConfig: {}, coverage });
+    expect(c2.mode).toBe('coverage');
+  });
+
+  test('doc-quality 模式不做 skill→stage 反查', () => {
+    const config = resolveConfig({
+      argv: ['--mode', 'doc-quality', '--skill', 'yida-dashboard'],
+      env: {}, fileConfig: {}, coverage,
+    });
+    expect(config.skillMapping).toBeNull();
+    expect(config.resolvedStages).toBeNull();
+  });
+
+  test('agentCommand 默认 claude', () => {
+    const config = resolveConfig({ argv: [], env: {}, fileConfig: {}, coverage });
+    expect(config.agentCommand).toBe('claude');
+  });
+
+  test('--agent-cmd 覆盖默认，且优先级高于 env', () => {
+    const config = resolveConfig({
+      argv: ['--agent-cmd', 'qodercli'],
+      env: { OPENYIDA_EVAL_AGENT_CMD: 'claude' },
+      fileConfig: {},
+      coverage,
+    });
+    expect(config.agentCommand).toBe('qodercli');
+  });
+
+  test('OPENYIDA_EVAL_AGENT_CMD 环境变量生效', () => {
+    const config = resolveConfig({
+      argv: [], env: { OPENYIDA_EVAL_AGENT_CMD: 'qodercli' }, fileConfig: {}, coverage,
+    });
+    expect(config.agentCommand).toBe('qodercli');
+  });
 });

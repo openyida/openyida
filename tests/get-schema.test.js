@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
@@ -31,14 +31,17 @@ const {
   run,
 } = require('../lib/app/get-schema');
 
-const mockCookieData = {
-  cookies: [{ name: 'tianshu_csrf_token', value: 'tok123' }],
-  csrf_token: 'tok123',
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
   utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
 });
 
@@ -314,7 +317,7 @@ describe('fetchSchemaRecord', () => {
     const record = await fetchSchemaRecord(
       'APP_XXX',
       { formUuid: 'FORM-A', formName: '客户信息' },
-      { csrfToken: 'tok123', cookies: [] },
+      { authMode: 'token', authSource: 'token' },
       1
     );
 

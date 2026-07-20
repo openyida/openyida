@@ -1,0 +1,22 @@
+[
+  {
+    "id": "reimbursement-approval-process",
+    "prompt": "帮我搭建一个费用报销审批流程，员工提交报销单后先由直属主管审核，主管通过后再交给财务部门最终审批",
+    "expectedFeatures": {
+      "appType": "流程",
+      "minTargets": 1,
+      "keywords": ["报销", "审批"]
+    },
+    "note": "多级审批流程场景，包含提交→主管审核→财务审批三个节点"
+  },
+  {
+    "id": "equipment-request-process",
+    "prompt": "创建一个设备申领审批流程，员工填写设备需求后由IT部门审批，审批通过后仓库进行发放确认",
+    "expectedFeatures": {
+      "appType": "流程",
+      "minTargets": 1,
+      "keywords": ["设备", "审批"]
+    },
+    "note": "设备申领流程场景，涉及跨部门审批与发放确认环节"
+  }
+]

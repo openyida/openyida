@@ -1,0 +1,22 @@
+[
+  {
+    "id": "hr-analytics-dashboard",
+    "prompt": "帮我做一个人力资源数据看板，需要展示公司总人数、各部门人员分布占比、近一年的离职率变化趋势图",
+    "expectedFeatures": {
+      "minTargets": 1,
+      "targetTypes": ["dashboard"],
+      "keywords": ["人力", "离职率"]
+    },
+    "note": "HR数据看板场景，需要饼图、折线图等多种图表组件"
+  },
+  {
+    "id": "project-management-dashboard",
+    "prompt": "创建一个项目管理看板，展示各项目当前状态、里程碑完成进度和团队资源分配情况，方便管理层全局掌控项目进展",
+    "expectedFeatures": {
+      "minTargets": 1,
+      "targetTypes": ["dashboard"],
+      "keywords": ["项目", "进度"]
+    },
+    "note": "项目管理看板场景，涵盖状态汇总、进度跟踪与资源视图"
+  }
+]

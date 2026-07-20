@@ -25,7 +25,12 @@ const TASKS = {
     bin: 'npx',
     args: ['jest', 'tests/eval-config.test.js', 'tests/eval-guardrail.test.js',
       'tests/eval-manifest.test.js', 'tests/eval-routing.test.js',
-      'tests/eval-report.test.js', 'tests/eval-generate.test.js', '--colors=false'],
+      'tests/eval-report.test.js', 'tests/eval-generate.test.js',
+      'tests/eval-doc-quality.test.js', 'tests/eval-coverage.test.js',
+      'tests/eval-safety.test.js', 'tests/eval-step-completeness.test.js',
+      'tests/eval-output-validity.test.js', 'tests/eval-efficiency.test.js',
+      'tests/eval-radar-chart.test.js', 'tests/eval-comprehensive.test.js',
+      '--colors=false'],
   },
   'unit-all': {
     label: '回归自检 · 全量单测',
@@ -36,14 +41,50 @@ const TASKS = {
     bin: 'npx',
     args: ['jest', '--colors=false'],
   },
-  routing: {
-    label: '选对子技能吗 · 路由测评',
-    purpose: '测 agent 能否从 ~50 个子技能里「选对那一个」。这是 SKILL.md 最核心的能力，改完技能文档先看它有没有变差。',
-    description: '真实调用本地 claude -p，把每条自然语言请求跑一遍，只看它选中哪个子技能，与 golden 集比对，算命中率/混淆对。不创建宜搭资源、不需要登录，秒级、可高频跑。需本机有 claude CLI。',
+  'doc-quality': {
+    label: '文档规范性 · 静态评测',
+    purpose: '检查所有 SKILL.md 是否符合 frontmatter / sections / references / examples / disambiguation 规范。',
+    description: '纯静态分析，无副作用。扫描所有技能文档的规范性和可维护性，输出评分和改进建议。',
     group: 'safe',
     danger: false,
     bin: 'npm',
-    args: ['run', 'eval:routing'],
+    args: ['run', 'eval:doc-quality'],
+  },
+  safety: {
+    label: '安全合规 · 凭证泄漏检测',
+    purpose: '检查 Agent 输出中是否存在凭证泄漏、命令白名单越权等安全问题。',
+    description: '静态检查 Agent 命令和输出中的凭证模式、命令白名单、corpId 一致性等。独立模式下以空数据运行基础检查。',
+    group: 'safe',
+    danger: false,
+    bin: 'npm',
+    args: ['run', 'eval:safety'],
+  },
+  coverage: {
+    label: '覆盖度 · 测评体系完整性',
+    purpose: '度量测评体系本身的完整性——技能覆盖率、分类覆盖率、引用覆盖率。',
+    description: '分析 routing scenarios 覆盖了多少技能、多少分类，以及技能间引用关系的覆盖度。',
+    group: 'safe',
+    danger: false,
+    bin: 'npm',
+    args: ['run', 'eval:coverage'],
+  },
+  comprehensive: {
+    label: '综合评测 · 10 维度评分卡',
+    purpose: '对指定技能执行全部 10 个维度的评测，生成评分卡、雷达图和趋势分析。',
+    description: '依次运行文档质量、路由准确率、安全合规、步骤完成率、输出有效性等维度，汇总为加权总分和准出门槛判定。需指定 --skill。',
+    group: 'safe',
+    danger: false,
+    bin: 'npm',
+    args: ['run', 'eval:comprehensive', '--', '--skill', 'yida-dashboard'],
+  },
+  routing: {
+    label: '选对子技能吗 · 路由测评',
+    purpose: '测 agent 能否从 ~50 个子技能里「选对那一个」。这是 SKILL.md 最核心的能力，改完技能文档先看它有没有变差。',
+    description: '真实调用本地 headless agent（如 qodercli / claude），把每条自然语言请求跑一遍，只看它选中哪个子技能，与 golden 集比对，算命中率/混淆对。不创建宜搭资源、不需要宜搭登录，秒级、可高频跑。需本机有已登录的 agent CLI。默认启用并行批量模式。',
+    group: 'safe',
+    danger: false,
+    bin: 'npm',
+    args: ['run', 'eval:routing', '--', '--parallel'],
   },
   e2e: {
     label: '工具管道基线 · 固定命令端到端',
@@ -58,7 +99,7 @@ const TASKS = {
   'e2e-score': {
     label: '工具管道基线 + 自动打分',
     purpose: '在“管道基线”之上，再验证「截图自动打分」这一环也能跑通。',
-    description: '在固定命令端到端基础上，用多模态 claude -p 对截图按 rubric 自动打分。会创建真实宜搭资源。',
+    description: '在固定命令端到端基础上，用多模态 headless agent 对截图按 rubric 自动打分。会创建真实宜搭资源。',
     group: 'danger',
     danger: true,
     bin: 'npm',
@@ -68,12 +109,30 @@ const TASKS = {
   generate: {
     label: '真实生成质量 · 自然语言建应用',
     purpose: '最接近真实用户的端到端测评：把一句自然语言喂给 agent，让它自己读技能、自己决定并真的执行 CLI 把应用建出来，再截图打分。测的是「选对 + 真做对 + 做得好不好」的整体效果。',
-    description: '把「帮我创建一个订单管理系统」这类自然语言喂给 claude -p，让它自主读技能 + 真的执行 CLI 产出真实应用，再截图。最慢、有副作用，适合发版前/大改动后跑。会创建真实宜搭资源，需已认证 agent。',
+    description: '把「帮我创建一个订单管理系统」这类自然语言喂给 headless agent（如 qodercli / claude），让它自主读技能 + 真的执行 CLI 产出真实应用，再截图。最慢、有副作用，适合发版前/大改动后跑。会创建真实宜搭资源，需已认证 agent。默认启用并行模式。',
     group: 'danger',
     danger: true,
     bin: 'npm',
-    args: ['run', 'eval:generate', '--', '--screenshot'],
+    args: ['run', 'eval:generate', '--', '--screenshot', '--parallel'],
     env: { OPENYIDA_E2E: '1' },
+  },
+  pipeline: {
+    label: '全自动闭环 · Pipeline',
+    purpose: '一键串联「静态校验 → 路由测试 → 安全合规 → 覆盖度 → 多维评分 → Gate 判定 → 自动优化建议」全流程闭环，输出评分卡和改进建议。',
+    description: '全自动评测闭环。依次运行所有评测步骤，最终给出准出判定和优化建议列表。不创建真实资源，纯静态+路由级评测。需指定 --skill。',
+    group: 'safe',
+    danger: false,
+    bin: 'npm',
+    args: ['run', 'eval:pipeline', '--', '--skill', 'yida-dashboard', '--format', 'junit'],
+  },
+  baseline: {
+    label: 'A/B 基线对比 · Baseline',
+    purpose: '对比 with_skill 和 without_skill 两种模式的评测结果，量化 Skill 的实际价值贡献。',
+    description: '运行 A/B 对比评测，生成 benchmark 报告和双线雷达图。需 YAML 评测用例或 JSON scenarios 作为输入。需指定 --skill。',
+    group: 'safe',
+    danger: false,
+    bin: 'npm',
+    args: ['run', 'eval:baseline', '--', '--skill', 'yida-dashboard'],
   },
 };
 
@@ -99,10 +158,16 @@ function serveIndex(res) {
 const TASK_PROMPTS = {
   'unit-eval': [],
   'unit-all': [],
+  'doc-quality': [],
+  safety: [],
+  coverage: [],
+  comprehensive: ['comprehensive'],
   routing: ['routing'],
   e2e: ['e2e-cli'],
   'e2e-score': ['e2e-cli', 'scoring'],
   generate: ['generation', 'scoring'],
+  pipeline: ['comprehensive'],
+  baseline: ['comprehensive'],
 };
 
 function serveInfo(res) {
@@ -137,7 +202,7 @@ function collectPrompts() {
     });
     out.routing = {
       title: '路由测评 · 提示词（测“选对子技能吗”）',
-      desc: '把每条自然语言请求 + 路由说明喂给 claude -p，让它只回答“该选哪个子技能”，与 golden 集比对。不创建任何资源。',
+      desc: '把每条自然语言请求 + 路由说明喂给 headless agent（如 qodercli / claude），让它只回答“该选哪个子技能”，与 golden 集比对。不创建任何资源。',
       scenarios,
       template,
     };
@@ -156,7 +221,7 @@ function collectPrompts() {
     });
     out.generation = {
       title: '真实生成 · 提示词（测“自然语言能否真建出应用”）',
-      desc: '把一句自然语言喂给 claude -p，让它自己读懂 openyida 技能、真的执行 CLI 命令产出真实应用。下面是每条 golden 用例的需求原文，以及外层包装模板。',
+      desc: '把一句自然语言喂给 headless agent（如 qodercli / claude），让它自己读懂 openyida 技能、真的执行 CLI 命令产出真实应用。下面是每条 golden 用例的需求原文，以及外层包装模板。',
       scenarios,
       template,
     };
@@ -168,7 +233,7 @@ function collectPrompts() {
     const score = require('../score');
     out.scoring = {
       title: '截图自动打分提示词（--auto-score 时使用）',
-      desc: '逐张已发布页面截图喂给多模态 claude -p，按 rubric 打 1–10 分。不开自动分则只生成人工打分模板。',
+      desc: '逐张已发布页面截图喂给多模态 headless agent，按 rubric 打 1–10 分。不开自动分则只生成人工打分模板。',
       template: score.buildScorePrompt({
         screenshotPath: '<截图绝对路径>',
         url: '<已发布页面 URL>',
@@ -180,7 +245,13 @@ function collectPrompts() {
   // 工具管道基线：无自然语言提示词
   out['e2e-cli'] = {
     title: '工具管道基线 · 无自然语言提示词',
-    desc: '这条是“对照基线”：直接按固定命名调用 openyida 的 create-* / publish 等命令，只验证「CLI 链路 + 截图 + 打分」这套管道本身通不通，刻意不经过 agent、不发任何自然语言提示词。\n想看「帮我创建一个订单管理系统」这类带场景的自然语言提示词，请选左侧「真实生成 · 自然语言建应用」——那一类才是把需求喂给 agent、由它自主编排 CLI。',
+    desc: '这条是”对照基线”：直接按固定命名调用 openyida 的 create-* / publish 等命令，只验证「CLI 链路 + 截图 + 打分」这套管道本身通不通，刻意不经过 agent、不发任何自然语言提示词。\n想看「帮我创建一个订单管理系统」这类带场景的自然语言提示词，请选左侧「真实生成 · 自然语言建应用」——那一类才是把需求喂给 agent、由它自主编排 CLI。',
+  };
+
+  // 综合评测
+  out.comprehensive = {
+    title: '综合评测 · 10 维度评分卡',
+    desc: '对指定技能执行 10 个维度的评测（规范性、可维护性、路由准确率、生成质量、安全合规、效率、稳定性、覆盖度、步骤完成率、输出有效性），汇总为加权总分和准出门槛判定。输出 JSON 评分卡和 SVG 雷达图。',
   };
 
   return out;
@@ -275,6 +346,7 @@ function findLatestReport() {
   const bases = [
     path.join(ROOT, 'project', '.cache', 'e2e-real'),
     path.join(ROOT, 'project', '.cache', 'eval', 'generate'),
+    path.join(ROOT, 'project', '.cache', 'eval'),
   ];
   let best = null;
   for (const base of bases) {
@@ -315,6 +387,114 @@ function stopRun(res, runId) {
   return send(res, 404, 'application/json', JSON.stringify({ stopped: false }));
 }
 
+// List all available eval reports (JSON + HTML)
+function serveReportList(res) {
+  const reports = [];
+  const evalDir = path.join(ROOT, 'project', '.cache', 'eval');
+  const scanDirs = [
+    evalDir,
+    path.join(evalDir, 'comprehensive'),
+    path.join(evalDir, 'pipeline'),
+    path.join(evalDir, 'generate'),
+    path.join(ROOT, 'project', '.cache', 'e2e-real'),
+  ];
+  for (const base of scanDirs) {
+    try {
+      if (!fs.existsSync(base)) { continue; }
+      const entries = fs.readdirSync(base);
+      for (const name of entries) {
+        const full = path.join(base, name);
+        const stat = fs.statSync(full);
+        if (stat.isFile() && (name.endsWith('.json') || name.endsWith('.html'))) {
+          reports.push({
+            name: name,
+            path: full,
+            type: name.endsWith('.html') ? 'html' : 'json',
+            size: stat.size,
+            mtime: stat.mtimeMs,
+            dir: path.relative(ROOT, base),
+          });
+        } else if (stat.isDirectory()) {
+          // Look for reports inside subdirectories
+          try {
+            for (const sub of fs.readdirSync(full)) {
+              if (sub.endsWith('.json') || sub.endsWith('.html')) {
+                const subFull = path.join(full, sub);
+                const subStat = fs.statSync(subFull);
+                reports.push({
+                  name: name + '/' + sub,
+                  path: subFull,
+                  type: sub.endsWith('.html') ? 'html' : 'json',
+                  size: subStat.size,
+                  mtime: subStat.mtimeMs,
+                  dir: path.relative(ROOT, full),
+                });
+              }
+            }
+          } catch { /* ignore */ }
+        }
+      }
+    } catch { /* ignore */ }
+  }
+  reports.sort(function (a, b) { return b.mtime - a.mtime; });
+  // Limit to top 50
+  const top = reports.slice(0, 50).map(function (r) {
+    return { name: r.name, type: r.type, size: r.size, mtime: r.mtime, dir: r.dir, path: r.path };
+  });
+  send(res, 200, 'application/json; charset=utf-8', JSON.stringify(top));
+}
+
+// Serve report content by path (only files inside project/.cache/)
+function serveReportContent(res, filePath) {
+  if (!filePath) {
+    return send(res, 400, 'text/plain; charset=utf-8', 'missing path parameter');
+  }
+  // Security: only allow paths inside project/.cache/
+  const resolved = path.resolve(filePath);
+  const allowed = path.join(ROOT, 'project', '.cache');
+  if (!resolved.startsWith(allowed)) {
+    return send(res, 403, 'text/plain; charset=utf-8', 'forbidden');
+  }
+  if (!fs.existsSync(resolved)) {
+    return send(res, 404, 'text/plain; charset=utf-8', 'not found');
+  }
+  const ext = path.extname(resolved);
+  const mimeType = ext === '.html' ? 'text/html; charset=utf-8'
+    : ext === '.json' ? 'application/json; charset=utf-8'
+      : ext === '.xml' ? 'application/xml; charset=utf-8'
+        : ext === '.svg' ? 'image/svg+xml' : 'text/plain; charset=utf-8';
+  fs.readFile(resolved, 'utf8', function (err, content) {
+    if (err) { return send(res, 500, 'text/plain; charset=utf-8', 'read error'); }
+    return send(res, 200, mimeType, content);
+  });
+}
+
+// Serve latest pipeline result for a skill
+function servePipelineLatest(res, skill) {
+  const pipelineDir = path.join(ROOT, 'project', '.cache', 'eval', 'pipeline');
+  if (!fs.existsSync(pipelineDir)) {
+    return send(res, 404, 'application/json; charset=utf-8', JSON.stringify({ error: 'no pipeline results' }));
+  }
+  let best = null;
+  try {
+    for (const name of fs.readdirSync(pipelineDir)) {
+      if (skill && !name.startsWith(skill + '-')) { continue; }
+      const reportFile = path.join(pipelineDir, name, 'pipeline-report.json');
+      if (fs.existsSync(reportFile)) {
+        const mtime = fs.statSync(reportFile).mtimeMs;
+        if (!best || mtime > best.mtime) { best = { path: reportFile, mtime: mtime }; }
+      }
+    }
+  } catch { /* ignore */ }
+  if (!best) {
+    return send(res, 404, 'application/json; charset=utf-8', JSON.stringify({ error: 'no pipeline results for ' + (skill || 'any') }));
+  }
+  return fs.readFile(best.path, 'utf8', function (err, content) {
+    if (err) { return send(res, 500, 'text/plain; charset=utf-8', 'read error'); }
+    return send(res, 200, 'application/json; charset=utf-8', content);
+  });
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${HOST}:${PORT}`);
   if (url.pathname === '/') {
@@ -334,6 +514,15 @@ const server = http.createServer((req, res) => {
   }
   if (url.pathname === '/stop') {
     return stopRun(res, url.searchParams.get('id'));
+  }
+  if (url.pathname === '/api/reports') {
+    return serveReportList(res);
+  }
+  if (url.pathname === '/api/report-content') {
+    return serveReportContent(res, url.searchParams.get('path'));
+  }
+  if (url.pathname === '/api/pipeline-latest') {
+    return servePipelineLatest(res, url.searchParams.get('skill'));
   }
   return send(res, 404, 'text/plain; charset=utf-8', 'Not Found');
 });

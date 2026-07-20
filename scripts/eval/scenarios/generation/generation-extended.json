@@ -1,0 +1,98 @@
+[
+  {
+    "id": "crm-system",
+    "prompt": "帮我搭建一个完整的客户管理系统，包括客户信息录入、联系人管理、商机跟踪和销售看板",
+    "expectedFeatures": {
+      "minTargets": 2,
+      "targetTypes": ["page"],
+      "keywords": ["客户", "CRM"]
+    },
+    "note": "全量流程：应用+多表单+看板页面，测 yida-app 完整编排能力"
+  },
+  {
+    "id": "inventory-tracker",
+    "prompt": "做一个库存管理系统，能扫码录入商品信息、查看库存数量和生成库存报表",
+    "expectedFeatures": {
+      "minTargets": 2,
+      "targetTypes": ["page"],
+      "keywords": ["库存"]
+    },
+    "note": "应用+表单+自定义页面+报表，测多资源协同生成"
+  },
+  {
+    "id": "approval-workflow",
+    "prompt": "搭建一个采购审批系统，采购金额5万以上需要总经理审批，5万以下部门经理审批即可",
+    "expectedFeatures": {
+      "appType": "流程",
+      "minTargets": 1,
+      "keywords": ["采购", "审批"]
+    },
+    "note": "流程表单+条件分支，测 create-process + process-rule 联动"
+  },
+  {
+    "id": "connector-integration",
+    "prompt": "创建一个对接企业微信API的HTTP连接器，配置好鉴权账号并添加发送消息的执行动作",
+    "expectedFeatures": {
+      "minTargets": 0,
+      "keywords": ["连接器", "API"]
+    },
+    "note": "连接器全链路：smart-create + create-connection + add-action"
+  },
+  {
+    "id": "data-dashboard",
+    "prompt": "已有一个订单管理表单，帮我做一个销售经营数据看板，展示月度销售额趋势、订单状态分布和客户排行",
+    "expectedFeatures": {
+      "minTargets": 1,
+      "targetTypes": ["dashboard"],
+      "keywords": ["销售", "看板"]
+    },
+    "note": "基于已有数据做看板，测 yida-dashboard/yida-chart 生成质量"
+  },
+  {
+    "id": "form-permission-setup",
+    "prompt": "给员工信息表配置权限，HR部门可以查看全部数据，部门经理只能看本部门的数据，普通员工只能看自己的数据",
+    "expectedFeatures": {
+      "minTargets": 0,
+      "keywords": ["权限", "数据范围"]
+    },
+    "note": "多权限组+数据范围配置，测 yida-form-permission"
+  },
+  {
+    "id": "i18n-upgrade",
+    "prompt": "把现有的客户管理应用升级为中英双语，自动翻译表单字段标签和选择项",
+    "expectedFeatures": {
+      "minTargets": 0,
+      "keywords": ["多语言", "翻译"]
+    },
+    "note": "多语言配置升级，测 yida-i18n 全链路"
+  },
+  {
+    "id": "table-batch-entry",
+    "prompt": "做一个像Excel一样可以批量录入员工考勤记录的页面，支持动态增删行和一次性提交",
+    "expectedFeatures": {
+      "minTargets": 1,
+      "targetTypes": ["page"],
+      "keywords": ["考勤", "批量"]
+    },
+    "note": "表格表单页面，测 yida-table-form 生成"
+  },
+  {
+    "id": "ppt-presentation",
+    "prompt": "做一个年度技术总结的全屏幻灯片页面，包含5-8页，支持键盘翻页",
+    "expectedFeatures": {
+      "minTargets": 1,
+      "targetTypes": ["page"],
+      "keywords": ["幻灯片", "技术总结"]
+    },
+    "note": "全屏幻灯片页面，测 yida-ppt-slider 生成"
+  },
+  {
+    "id": "nav-reorganize",
+    "prompt": "把应用导航重新整理，把数据看板放到最前面作为应用门面，数据录入表单放在后面，并添加分组标题",
+    "expectedFeatures": {
+      "minTargets": 0,
+      "keywords": ["导航", "分组"]
+    },
+    "note": "导航分组重排，测 yida-nav-group 排序能力"
+  }
+]

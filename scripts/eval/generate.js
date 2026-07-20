@@ -24,7 +24,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const { runAgent, extractJsonObject } = require('./agent');
+const { runAgent, extractJsonObject, resolveAgentCommand, getAgentAdapter } = require('./agent');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const DEFAULT_SKILL_MD = path.join(ROOT, 'yida-skills', 'SKILL.md');
@@ -240,17 +240,20 @@ function checkExpectedFeatures(result = {}, expected = {}) {
 }
 
 /**
- * 真实生成 agent 运行器：用 `claude -p` 开放工具执行权限，cwd 指向仓库根。
+ * 真实生成 agent 运行器：用当前 agent（claude / qodercli）开放工具执行权限，cwd 指向仓库根。
  * 单测里会用注入的假运行器替换它，永远不会真的执行。
  */
 function defaultGenerationAgent(options = {}) {
+  const command = options.command || resolveAgentCommand();
+  const adapter = getAgentAdapter(command);
   const extraArgs = [
-    '--permission-mode', 'bypassPermissions',
-    '--allowedTools', 'Bash', 'Read', 'Write',
+    ...adapter.permissionBypass,
+    ...adapter.allowedTools(['Bash', 'Read', 'Write']),
     '--add-dir', ROOT,
   ];
   return runAgent({
     prompt: options.prompt,
+    command,
     cwd: ROOT,
     timeoutMs: options.timeoutMs || 600000,
     extraArgs,
@@ -360,3 +363,51 @@ module.exports = {
   summarizeGeneration,
   runGenerationEval,
 };
+
+
+// ---------------------------------------------------------------------------
+// Parallel generation evaluation (async entry)
+// ---------------------------------------------------------------------------
+
+/**
+ * Async generation evaluation with parallelism.
+ *
+ * @param {object} options — same as runGenerationEval, plus:
+ * @param {number} [options.concurrency=2] — max parallel agent processes
+ * @param {function} [options.onProgress] — callback(completed, total)
+ * @returns {Promise<{summary, results, stats?}>}
+ */
+async function runGenerationEvalAsync(options = {}) {
+  let parallel;
+  try { parallel = require('./parallel'); } catch (_e) { parallel = null; }
+
+  // Fallback to serial
+  if (!parallel) {
+    return runGenerationEval(options);
+  }
+
+  const scenarios = options.scenarios || loadGenerationScenarios(options.scenarioPath);
+  const skillContext = options.skillContext !== undefined
+    ? options.skillContext
+    : loadSkillContext(options.skillMdPath);
+
+  const { resolveAgentCommand } = require('./agent');
+  const agentCommand = options.agentCommand || resolveAgentCommand();
+
+  const { results, stats } = await parallel.runParallelGeneration({
+    scenarios,
+    skillContext,
+    agentCommand,
+    concurrency: options.concurrency || 2,
+    timeoutMs: options.timeoutMs || 600000,
+    onProgress: options.onProgress,
+  });
+
+  return {
+    summary: summarizeGeneration(results),
+    results,
+    stats,
+  };
+}
+
+module.exports.runGenerationEvalAsync = runGenerationEvalAsync;

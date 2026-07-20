@@ -7,12 +7,10 @@ description: 将 OpenYida 原普通自定义页面链路升级/迁移为宜搭 C
 
 ## 核心定位
 
-本技能是**存量页面迁移链路**：把已有的 OpenYida 原生自定义页转换到 Code Canvas 链路，产出等价的 React18 函数组件源码并承载到 `YidaCodeCanvas`。
+本技能是**存量页面迁移链路**：把已有的 OpenYida 普通自定义页面转换到 Code Canvas 链路，产出等价的 React18 函数组件源码并承载到 `YidaCodeCanvas`。
 
-- 源链路：OpenYida 原生自定义页，通常是 `project/pages/src/*.oyd.jsx`、`export function renderJsx()`、`_customState`、`this.utils.yida.*`，`openyida publish` 发布为 `Jsx` 组件。
+- 源链路：OpenYida 普通自定义页面，通常是 `project/pages/src/*.oyd.jsx`、`export function renderJsx()`、`_customState`、`this.utils.yida.*`，`openyida publish` 发布为 `Jsx` 组件。
 - 目标链路：宜搭 Code Canvas，页面 Schema 中承载 `YidaCodeCanvas` 组件，组件属性包含 `code`、`runtimeCode`、`importedModules`，运行时执行 `YidaComp`。
-
-从零新写 Code Canvas 页面切到 `yida-canvas-custom-page`；继续维护原生 OpenYida 页面切到 `yida-custom-page`。
 
 ## 迁移前必须确认
 
@@ -38,7 +36,7 @@ description: 将 OpenYida 原普通自定义页面链路升级/迁移为宜搭 C
 | `this.dataSourceMap.*` | 需要确认 Code Canvas props 是否透传数据源；未验证前不要迁移为可运行承诺 |
 | `this.utils.toast/dialog/router` | 改为 antd Message/Modal 或由 props 注入的能力；需验证 |
 | 字段组件如 `EmployeeField` | 按 `yida-canvas-custom-page` 的依赖映射规则先做最小验证 |
-| `openyida publish` | 仍是最终发布方式：native 源码发普通 `Jsx` 页面，`.canvas.jsx` 源码（或加 `--canvas`）发 `YidaCodeCanvas` 页面。迁移就是把源码改写成 `.canvas.jsx` 后重新 `publish` |
+| `openyida publish` | 仍是最终发布方式：普通自定义页面源码发 `Jsx` 页面，`.canvas.jsx` 源码（或加 `--canvas`）发 `YidaCodeCanvas` 页面。迁移就是把源码改写成 `.canvas.jsx` 后重新 `publish` |
 
 ## 输出产物位置
 

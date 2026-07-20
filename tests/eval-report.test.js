@@ -46,4 +46,30 @@ describe('eval report', () => {
     expect(html).toContain('&lt;script&gt;');
     expect(html).toContain('自动打分失败');
   });
+
+  test('浏览器未下载时顶部统一提示，卡片用友好文案', () => {
+    const html = renderEvalReportHtml({
+      screenshots: [
+        { stage: 'app', url: 'https://x/a', ok: false, skipped: 'browser-missing', path: null },
+        { stage: 'dashboard', url: 'https://x/b', ok: false, skipped: 'browser-missing', path: null },
+      ],
+    });
+    // 顶部提示只出现一次，带修复命令
+    expect(html).toContain('npx playwright install chromium');
+    expect(html).toContain('页面截图未生成');
+    // 卡片用友好中文，而非原始横幅；但保留原始码供排查
+    expect(html).toContain('Playwright 浏览器未下载');
+    expect(html).toContain('data-skip="browser-missing"');
+  });
+
+  test('截图错误信息压成单行摘要，不把整段横幅堆进卡片', () => {
+    const banner = "browserType.launch: Executable doesn't exist at /x/chrome\n\u2554══╗\n║ Please run npx playwright install ║\n╚══╝";
+    const html = renderEvalReportHtml({
+      screenshots: [{ stage: 'app', url: 'https://x/a', ok: false, error: banner, path: null }],
+    });
+    // 只保留第一行（单引号会被 HTML 转义），不包含框线字符
+    expect(html).toContain('Executable doesn');
+    expect(html).not.toContain('╔');
+    expect(html).not.toContain('Please run npx playwright install');
+  });
 });

@@ -265,40 +265,28 @@ fast_build 页面源码默认不得使用 \`this.dataSourceMap.*\`，除非本�
 
 不要默认加载 \`yida-page-uiux\`、\`yida-data-source-connectors\`、\`yida-data-management\`、\`yida-nav-group\`、\`yida-dashboard\`，也不要默认做示例数据、导航整理、截图验收、公开访问、长 PRD 或深读 references；这些只在用户明确要求或 \`full_demo\` / \`deep_design\` 时执行。
 
-## 子技能索引
+## 子技能目录
 
-根据用户意图选择最匹配的子技能。支持 \`use_skill\` / \`search_skills\` 的宿主中，必须调用 \`use_skill("<技能名>", "<本次目的>")\` 加载子技能；不要用 Read / read_file / cat 读取 SKILL.md 路径，也不要猜测 .skills、插件缓存或 workspace/project/.skills。\`skills-index.json\` 仅供 yida-agent 或同构宿主机器发现，不支持该索引的宿主忽略它。完全没有 \`use_skill\` 的本地工具，才允许按根技能路由表选定技能，并按 \`skills/<技能名>/SKILL.md\` 定位当前阶段唯一必要的 SKILL.md，禁止并发批量读取多个 SKILL.md。
+根据用户意图先命中一个大类目录，再选择最匹配的子技能。支持 \`use_skill\` / \`search_skills\` 的宿主中，必须调用 \`use_skill("<技能名>", "<本次目的>")\` 加载子技能；不要用 Read / read_file / cat 读取 SKILL.md 路径，也不要猜测 .skills、插件缓存或 workspace/project/.skills。\`skills-index.json\` 的 \`route_groups\` 与下表一致，供 yida-agent 或同构宿主做机器路由。机器路由推荐顺序：先用 \`route_groups[].signals\` 命中 \`yida-skills/<area>\` 大类，只在该 \`category\` 下用 skill 的 description/tags/signals 精排，再调用 \`use_skill\`。完全没有 \`use_skill\` 的本地工具，才允许按根技能路由表选定技能，并按 \`skills/<技能名>/SKILL.md\` 定位当前阶段唯一必要的 SKILL.md，禁止并发批量读取多个 SKILL.md。
 
-| 意图 | 子技能 |
-| --- | --- |
-| 完整应用开发编排（默认 \`fast_build\`：创建应用、核心表单、主页面、发布并返回 URL） | \`yida-app\` |
-| 登录态管理 | \`yida-login\` |
-| 退出登录 / 切换账号 | \`yida-logout\` |
-| 创建应用 | \`yida-create-app\` |
-| 创建自定义页面 | \`yida-create-page\` |
-| 创建 / 更新表单页面 | \`yida-create-form-page\` |
-| 创建流程表单 | \`yida-create-process\` |
-| 获取单个 / 全部表单 Schema | \`yida-get-schema\` |
-| 自定义页面 JSX 开发 | \`yida-custom-page\` |
-| 发布自定义页面 | \`yida-publish-page\` |
-| 页面公开访问 / 分享配置 | \`yida-page-config\` |
-| 表单权限 | \`yida-form-permission\` |
-| 数据查询与管理 | \`yida-data-management\` |
-| 流程规则 | \`yida-process-rule\` |
-| 集成自动化 | \`yida-integration\` |
-| HTTP 连接器 | \`yida-connector\` |
-| 图表页面 | \`yida-chart\` |
-| 原生报表 | \`yida-report\` |
-| 公式字段 | \`yida-formula\` |
-| 公式静态检查 | \`yida-formula-evaluate\` |
-| VOC 反馈整理 | \`yida-voc\` |
-| 闪记 / 会议纪要转 PRD | \`yida-flash-note-to-prd\` |
+| 大类目录 | 第一层意图信号 | 子技能 |
+| --- | --- | --- |
+| \`yida-skills/context\` | 登录、退出、组织信息、Schema、fieldId、只读预检 | \`yida-login\`, \`yida-logout\`, \`yida-basic-info\`, \`yida-get-schema\`, \`yida-corp-efficiency\` |
+| \`yida-skills/app\` | 从零搭应用、应用蓝图、导航、主题、多语言 | \`yida-app\`, \`yida-create-app\`, \`yida-app-uiux\`, \`yida-nav-group\`, \`yida-theme\`, \`yida-i18n\` |
+| \`yida-skills/form\` | 表单字段、公式、校验、业务规则、详情页、批量录入、数据记录 | \`yida-create-form-page\`, \`yida-formula\`, \`yida-formula-evaluate\`, \`yida-business-rule\`, \`yida-form-detail\`, \`yida-table-form\`, \`yida-data-management\` |
+| \`yida-skills/process\` | 审批、流程表单、流程规则、代理人 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\` |
+| \`yida-skills/page\` | 自定义展示页、Code Canvas、普通自定义页面 JSX/Jsx 组件、发布、页面视觉、导航壳、PPT | \`yida-create-page\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-page-uiux\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\`, \`yida-ppt\` |
+| \`yida-skills/analytics\` | 报表、统计、图表、ECharts、看板、驾驶舱 | \`yida-report\`, \`yida-chart\`, \`yida-dashboard\` |
+| \`yida-skills/integration\` | 连接器、外部 API、数据源、集成自动化 | \`yida-integration\`, \`yida-connector\`, \`yida-connector-safe-actions\`, \`yida-data-source-connectors\` |
+| \`yida-skills/access\` | 平台/应用/表单/页面权限、公开访问、分享 | \`yida-corp-manager\`, \`yida-app-permission\`, \`yida-form-permission\`, \`yida-page-config\` |
+| \`yida-skills/ops\` | SLS、日志、traceId、Sequence、VOC | \`sls-log-workbench\`, \`yida-db-seq-fix\`, \`yida-voc\` |
+| \`yida-skills/agent\` | 导出对话、会议纪要/闪记转 PRD | \`yida-export-conversation\`, \`yida-flash-note-to-prd\` |
 
 ## 执行规则
 
 - 不要编造 \`appType\`、\`formUuid\`、\`fieldId\`、\`reportId\`；必须从命令输出、缓存或 schema 中读取。
 - 同一命令失败后，根据错误信息检查登录态、组织、参数和字段 ID；不要无修改地连续重试。
-- native 自定义页面发布前先运行 \`openyida check-page\` 和 \`openyida compile\`；Code Canvas \`.canvas.jsx\` 页面不跑这两个 native 检查，使用 \`openyida publish\` 的 Canvas 编译阶段或 \`compileCanvasLocal\` 快检。
+- 普通自定义页面 \`.oyd.jsx\` / \`.jsx\` 发布前先运行 \`openyida check-page\` 和 \`openyida compile\`；Code Canvas \`.canvas.jsx\` 页面不跑这两个普通自定义页面检查，使用 \`openyida publish\` 的 Canvas 编译阶段或 \`compileCanvasLocal\` 快检。
 - JSON 配置写入文件后先解析校验，再调用会修改平台资源的命令。
 - 新增用户可见文案或 CLI 行为时，遵循当前 OpenYida 仓库的 \`AGENTS.md\` 开发规范。
 `;

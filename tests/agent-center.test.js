@@ -3,7 +3,7 @@
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
@@ -26,14 +26,17 @@ const {
   parseTimestamp,
 } = require('../lib/agent-center/agent-center');
 
-const mockCookieData = {
-  csrf_token: 'csrf',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf' }],
+const mockAuthData = {
+  base_url: 'https://www.aliwork.com',
+  auth_mode: 'token',
+  auth_source: 'token',
+  corp_id: 'corp-1',
+  user_id: 'user-1',
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.loadAuthData.mockReturnValue(mockAuthData);
 });
 
 describe('agent-center api', () => {
@@ -73,7 +76,6 @@ describe('agent-center api', () => {
         pageSize: '5',
         status: 'EFF',
       }),
-      mockCookieData.cookies,
     );
     expect(result).toMatchObject({
       totalCount: 1,
@@ -173,7 +175,6 @@ describe('agent-center api', () => {
         agentTaskUuid: 'Agent_4',
         agentType: 'DEPARTURE',
       }),
-      mockCookieData.cookies,
     );
     expect(result).toMatchObject({ success: true, agentUuid: 'Agent_4', agentType: 'DEPARTURE' });
   });

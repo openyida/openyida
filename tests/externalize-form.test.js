@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
@@ -212,7 +212,7 @@ describe('run', () => {
       fieldsFile,
     ]);
 
-    expect(utils.loadCookieData).not.toHaveBeenCalled();
+    expect(utils.loadAuthData).not.toHaveBeenCalled();
     expect(fs.existsSync(reportFile)).toBe(true);
     expect(fs.existsSync(fieldsFile)).toBe(true);
     const report = JSON.parse(fs.readFileSync(reportFile, 'utf-8'));
@@ -229,7 +229,7 @@ describe('run', () => {
   test('--help prints usage without login', async () => {
     const mockErrorWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {});
     await run(['--help']);
-    expect(utils.loadCookieData).not.toHaveBeenCalled();
+    expect(utils.loadAuthData).not.toHaveBeenCalled();
     expect(mockErrorWrite).toHaveBeenCalledWith(expect.stringContaining('externalize-form'));
     mockErrorWrite.mockRestore();
   });

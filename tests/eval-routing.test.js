@@ -187,7 +187,7 @@ describe('eval routing', () => {
     expect(r.forbiddenDefaultSkillHits).toEqual([]);
   });
 
-  test('evaluateScenario 把默认链路加载 UIUX / Canvas / 数据源判为未命中', () => {
+  test('evaluateScenario 允许 fast_build 默认加载 Canvas，但加载 UIUX / 数据源判为未命中', () => {
     const fakeAgent = () => ({
       available: true,
       json: {
@@ -202,7 +202,7 @@ describe('eval routing', () => {
         prompt: '帮我搭建一个访客系统，按默认方案搭建，不要追问，直接创建',
         expectedSkill: 'yida-app',
         expectedMode: 'fast_build',
-        forbiddenDefaultSkills: ['yida-page-uiux', 'yida-canvas-custom-page', 'yida-data-source-connectors'],
+        forbiddenDefaultSkills: ['yida-page-uiux', 'yida-data-source-connectors'],
       },
       routingContext: 'doc',
       skillNames: ['yida-app', 'yida-page-uiux', 'yida-data-source-connectors'],
@@ -210,7 +210,7 @@ describe('eval routing', () => {
     });
 
     expect(r.hit).toBe(false);
-    expect(r.forbiddenDefaultSkillHits).toEqual(['yida-page-uiux', 'yida-canvas-custom-page', 'yida-data-source-connectors']);
+    expect(r.forbiddenDefaultSkillHits).toEqual(['yida-page-uiux', 'yida-data-source-connectors']);
   });
 
   test('evaluateScenario 未命中与 agent 不可用', () => {
@@ -283,12 +283,19 @@ describe('eval score', () => {
   });
 
   test('autoScoreScreenshots 用注入 agent 打分', () => {
-    const shots = [{ stage: 'dashboard', url: 'u', ok: true, path: '/tmp/a.png' }];
-    const fakeAgent = () => ({ available: true, json: { overall: 8, comment: '不错' } });
-    const { available, scores } = autoScoreScreenshots({ screenshots: shots, runAgent: fakeAgent });
-    expect(available).toBe(true);
-    expect(scores[0].auto.overall).toBe(8);
-    expect(scores[0].auto.model).toBe('claude -p');
+    // 隔离 ambient OPENYIDA_EVAL_AGENT_CMD，确定性断言默认 agent（不受控制台/CI 启动环境影响）
+    const saved = process.env.OPENYIDA_EVAL_AGENT_CMD;
+    delete process.env.OPENYIDA_EVAL_AGENT_CMD;
+    try {
+      const shots = [{ stage: 'dashboard', url: 'u', ok: true, path: '/tmp/a.png' }];
+      const fakeAgent = () => ({ available: true, json: { overall: 8, comment: '不错' } });
+      const { available, scores } = autoScoreScreenshots({ screenshots: shots, runAgent: fakeAgent });
+      expect(available).toBe(true);
+      expect(scores[0].auto.overall).toBe(8);
+      expect(scores[0].auto.model).toBe('claude -p');
+    } finally {
+      if (saved === undefined) { delete process.env.OPENYIDA_EVAL_AGENT_CMD; } else { process.env.OPENYIDA_EVAL_AGENT_CMD = saved; }
+    }
   });
 
   test('autoScoreScreenshots 在 agent 不可用时降级', () => {

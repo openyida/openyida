@@ -5,7 +5,7 @@ description: 宜搭表单业务关联规则与高级函数配置。用于在表�
 
 # yida-business-rule — 业务关联规则高级函数
 
-## 适用边界
+## 适用范围
 
 业务关联规则是宜搭表单设置里的旧式/低频跨表联动能力。用户明确提到以下意图时使用本技能：
 
@@ -13,16 +13,6 @@ description: 宜搭表单业务关联规则与高级函数配置。用于在表�
 - "高级函数"、"INSERT"、"UPDATE"、"DELETE"、"UPSERT"
 - "要在表单设置里配 upsert/update/delete/insert"
 - 明确不想用集成自动化，而要用公式函数做跨表增删改
-
-默认建议：
-
-| 场景 | 使用技能 |
-|------|---------|
-| 字段显隐联动、字段 onChange 自动赋值 | `yida-create-form-page` 的 `create-form rule` |
-| 常规提交后跨表联动、长期维护、节点编排 | `yida-integration` |
-| 用户明确要求高级函数/业务关联规则 | **本技能** |
-| 字段默认值、计算字段、自定义校验 | `yida-formula` |
-| 查询/新增/更新已有表单数据记录 | `yida-data-management` |
 
 ## 配置入口
 

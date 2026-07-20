@@ -41,6 +41,21 @@ if (!nodeEngine) {
 }
 console.log('engines.node: ' + nodeEngine);
 
+if (fs.existsSync('package-lock.json')) {
+  const packageLock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+  const lockVersions = [
+    ['package-lock.json version', packageLock.version],
+    ['package-lock root package version', packageLock.packages && packageLock.packages[''] && packageLock.packages[''].version],
+  ];
+  for (const pair of lockVersions) {
+    if (pair[1] !== packageJson.version) {
+      console.error(`${pair[0]} (${pair[1] || 'missing'}) does not match package.json version (${packageJson.version})`);
+      process.exit(1);
+    }
+  }
+  console.log('package-lock version: ' + packageLock.version);
+}
+
 const skillsDir = 'yida-skills/skills';
 if (fs.existsSync(skillsDir)) {
   const skills = fs.readdirSync(skillsDir).filter(function(name) {

@@ -25,7 +25,8 @@ description: 创建自定义展示页面（display 类型）并返回 formUuid�
 
 - **创建前必须确认**：单点创建页面时，执行创建命令前必须向用户确认页面名称和目标应用。由 `yida-app fast_build` 编排且用户已说“默认方案 / 不要追问 / 直接创建”时，合理命名并直接创建，不再二次追问。
 - 创建成功后，将 formUuid 记录到 `.cache/<项目名>-schema.json`
-- 创建页面后，必须继续执行 `yida-custom-page`（默认兼容链路）或 `yida-canvas-custom-page`（用户明确要求或已确认支持 Canvas 时）编写 JSX 代码，再用 `yida-publish-page` 发布
+- 创建页面后，必须继续选择一个页面实现链路编写页面源码，再用 `yida-publish-page` 发布：Code Canvas 链路用 `yida-canvas-custom-page`；普通自定义页面 JSX/Jsx 组件链路用 `yida-custom-page`
+- 用户明确要求 JSX / Jsx 组件 / 普通自定义页，或页面强依赖 `this.$`、`this.utils.yida.*`、`this.dataSourceMap` 时，创建后进入 `yida-custom-page`；涉及成员、部门、附件上传或图片上传时必须读取 `component-jsx-guide.md`，上传还必须读取 `attachment-upload-guide.md`
 - **本技能不读写 memory**：formUuid 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
 ## 适用场景
@@ -64,7 +65,8 @@ openyida create-page <appType> <pageName> [--mode dashboard]
 {"success":true,"pageId":"FORM-XXX","pageName":"驾驶舱","appType":"APP_XXX","mode":"dashboard","chromeless":true,"url":"{base_url}/APP_XXX/custom/FORM-XXX?isRenderNav=false","workbenchUrl":"{base_url}/APP_XXX/workbench/FORM-XXX"}
 ```
 
-> 创建后默认使用 `yida-custom-page` 编写 `.oyd.jsx` 代码，并通过 `openyida check-page` / `openyida compile` / `openyida publish` 发布；Code Canvas 仅在用户明确要求或已确认支持时使用。
+> 创建后根据用户意图选择并列链路：Code Canvas 链路编写 `.canvas.jsx` 并发布为 `YidaCodeCanvas`；普通自定义页面 JSX/Jsx 组件链路编写 `.oyd.jsx` / `.jsx`，发布为平台 `Jsx` 组件，并执行 `openyida check-page` / `openyida compile` / `openyida publish`。
+> 如果用户说的是 JSX/Jsx 组件，按 `yida-custom-page` 处理：成员/部门选择器不得编造未验证平台组件；附件/图片上传必须验证 OSS 签名、权限、预览和失败提示。
 > 如需创建表单页面（带字段的数据收集页），请使用 `yida-create-form-page`。
 
 ## 异常处理

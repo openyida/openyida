@@ -1,0 +1,50 @@
+{
+  "base": "zh",
+  "basePathCount": 1392,
+  "locales": {
+    "ar": {
+      "missing": 697,
+      "typeMismatch": 0
+    },
+    "de": {
+      "missing": 697,
+      "typeMismatch": 0
+    },
+    "en": {
+      "missing": 7,
+      "typeMismatch": 0
+    },
+    "es": {
+      "missing": 697,
+      "typeMismatch": 0
+    },
+    "fr": {
+      "missing": 697,
+      "typeMismatch": 0
+    },
+    "hi": {
+      "missing": 697,
+      "typeMismatch": 0
+    },
+    "ja": {
+      "missing": 396,
+      "typeMismatch": 0
+    },
+    "ko": {
+      "missing": 696,
+      "typeMismatch": 0
+    },
+    "pt": {
+      "missing": 697,
+      "typeMismatch": 0
+    },
+    "vi": {
+      "missing": 697,
+      "typeMismatch": 0
+    },
+    "zh-HK": {
+      "missing": 356,
+      "typeMismatch": 0
+    }
+  }
+}

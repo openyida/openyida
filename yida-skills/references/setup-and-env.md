@@ -8,7 +8,7 @@
 
 ```bash
 openyida env --json                  # 环境快照：装没装 / AI 工具 / project / 登录态
-openyida login --check-only --json   # 只读登录缓存，不触发登录、不建资源
+openyida login --check-only --json   # 只读 token 登录态，不触发登录、不建资源
 ```
 
 | # | 检查项 | 判断依据 | 未通过时处理 |
@@ -16,9 +16,9 @@ openyida login --check-only --json   # 只读登录缓存，不触发登录、�
 | 1 | openyida 是否安装 | `env` 能跑并返回 `{"ok": true}` = 已装 | 报 `command not found` / 非零退出 → `npm install -g openyida`（先确认 Node ≥16） |
 | 2 | openyida 版本 | `env` 能跑但报错 / 行为异常 = 版本过旧 | `npm install -g openyida@latest` 后重试；仍异常 → `openyida doctor` 逐项体检 |
 | 3 | Node 版本 | 需 **Node.js ≥ 16**；`env` 只报告 `system.node`，不做校验 | 安装或运行报版本错 → 先升级 Node，再装/升级 openyida |
-| 4 | 登录态 | `login.loggedIn` 为 true = 已登录 | 为 false → `openyida login`；指定入口须带 URL 或 flag（见「多环境登录」），勿退化成裸 `openyida login` |
+| 4 | 登录态 | `login.loggedIn` 为 true 或 `login.status=ok` = 已登录 | 为 false → `openyida login`；指定入口须带 URL 或 flag（见「多环境登录」），勿退化成裸 `openyida login` |
 | 5 | project 工作目录 | `active.projectRootExists` 为 true | 为 false → `openyida copy`（非悟空工具须先 `cd` 到工程根目录，见「初始化 project」） |
-| 6 | 特殊环境 | 悟空 / Codex | 悟空命令连续失败 → 转人工诊断；Codex → 内置浏览器 handoff（见对应章节） |
+| 6 | 特殊环境 | 悟空 / Codex | 悟空命令连续失败 → 转人工诊断；Codex → 使用默认 OAuth token 登录（见对应章节） |
 
 ## 命令速查
 
@@ -30,8 +30,9 @@ npm install -g openyida@latest     # 更新到最新（命令报错多因版本�
 | 命令 | 定位 | 何时用 |
 |------|------|--------|
 | `env --json` | 机器可读快照：装没装 / 工具 / project / 登录 | 每次操作前（主命令）。恒返回 `ok:true`，`system.node` 仅报告不校验 |
-| `login --check-only --json` | 只读登录态，不触发登录/不建资源 | 登录 / Codex handoff 后二次验证缓存写入 |
-| `doctor` | 人读深度体检：校验 Node ≥16（ERROR）、npm ≥7（WARNING）、config.json、登录态、网络、浏览器登录；支持 `--fix` / `--report`，无 `--json` | `env` 报错或行为异常时排查 |
+| `login --check-only --json` | 只读 token 登录态，不触发登录/不建资源 | 登录后二次验证 token session 写入 |
+| `auth status` / `auth refresh` | 查看或刷新 token 登录态 | access token 过期、业务命令鉴权失败时 |
+| `doctor` | 人读深度体检：校验 Node ≥16（ERROR）、npm ≥7（WARNING）、config.json、token 登录态、网络；支持 `--fix` / `--report`，无 `--json` | `env` 报错或行为异常时排查 |
 
 ## env --json 关键字段
 
@@ -55,16 +56,16 @@ npm install -g openyida@latest     # 更新到最新（命令报错多因版本�
 
 ## 多环境登录
 
-登录指定入口时命令必须带该 URL 或环境 flag，否则会落到默认公有云 `www.aliwork.com` / `cookies-public.json`。例如阿里内网 `https://yida-group.alibaba-inc.com/`：
+登录指定入口时命令必须带该 URL、`--endpoint` 或环境 flag，否则会落到默认公有云 `www.aliwork.com` / `auth-token-public.json`。例如阿里内网 `https://yida-group.alibaba-inc.com/`：
 
 ```bash
 openyida login https://yida-group.alibaba-inc.com/
 openyida login --alibaba                              # 等价简写
 ```
 
-## Codex 浏览器登录 handoff
+## Codex / Agent token 登录
 
-Codex 默认返回内置浏览器 handoff：用 Browser Use 打开 `login_url`，由钉钉/宜搭页面承接扫码和组织选择；若 Browser Use 不能直接打开外部 URL，先开临时本地 redirect 页再跳转。登录完成后**必须**再执行 `openyida login --check-only --json` 验证缓存写入，验证通过前不得创建真实资源。
+当前登录默认是 OAuth token 模式：`openyida login` 会打开钉钉 OAuth 授权页，用户完成登录后回调到本机 loopback 地址，CLI 换取并保存 `access_token` / `refresh_token`。Codex 或其他 agent 环境中不要再走旧 Cookie / QR handoff，也不要手动导出 Cookie。登录完成后**必须**再执行 `openyida login --check-only --json` 或 `openyida auth status` 验证 token session 写入，验证通过前不得创建真实资源。
 
 ## 悟空（Wukong）降级规则
 
@@ -76,7 +77,7 @@ openyida env --json
 openyida login --check-only --json
 ```
 
-确认 `loggedIn` / `can_auto_use`、`csrf_token_found`、`corp_id_found`、`base_url_found` 等关键项前，禁止创建任何真实宜搭资源。
+确认 `loggedIn` / `can_auto_use`、`auth_mode=token`、`corp_id`、`base_url` 等关键项前，禁止创建任何真实宜搭资源。
 
 ## 初始化 project 工作目录
 

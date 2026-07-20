@@ -1,9 +1,9 @@
 ---
 name: yida-nav-shell
 description: >
-  宜搭自定义页面「页面内导航壳」形态目录。当自定义页隐藏了应用导航（isRenderNav=false，沉浸式/独立页/门户首页/大屏/分享页）后，应用框架的导航消失，页面要用 JSX 自绘一套导航接管应用级导航。提供侧边栏/顶部/顶部+侧边混合/浮动胶囊/标签页五种 B 端导航形态的选型、骨架、native + Canvas 代码示例、多视图切换机制与带 URL 参数的跨页跳转规范。
+  宜搭自定义页面「页面内导航壳」形态目录。当自定义页隐藏了应用导航（isRenderNav=false，沉浸式/独立页/门户首页/大屏/分享页）后，应用框架的导航消失，页面要用 JSX 自绘一套导航接管应用级导航。提供侧边栏/顶部/顶部+侧边混合/浮动胶囊/标签页五种 B 端导航形态的选型、骨架、普通自定义页面 + Canvas 代码示例、多视图切换机制与带 URL 参数的跨页跳转规范。
   当用户要求「给这个自定义页/沉浸式页面/门户/大屏 加个导航（侧边/顶部/浮动/标签）」「自定义导航」「导航隐藏了页面自己怎么做导航」「一个页面切多个视图」时触发。
-  注意：本技能是**页面内 JSX 自绘导航壳**；若用户要的是**平台左侧菜单/导航分组**（真实导航树、增删分组、排序菜单项），那是 yida-nav-group，不是本技能。
+  注意：本技能只描述**页面内 JSX 自绘导航壳**，不处理平台真实导航树配置。
 ---
 
 # yida-nav-shell — 页面内自绘导航壳
@@ -12,20 +12,9 @@ description: >
 
 自定义页**隐藏应用导航**（`isRenderNav=false`）后，宜搭框架的左侧/顶部导航消失，页面即整个视口。此时页面要**自己画一套导航**接管应用级导航——这就是「导航壳」。本技能是导航壳的**形态选型 + 骨架 + 代码示例**目录。
 
-> **一句话**：`yida-page-uiux` 定视觉方向（Step 0 判定导航是否隐藏）→ 本技能选**导航壳形态**并给骨架 → `yida-custom-page`(native) / `yida-canvas-custom-page`(Canvas) 落地 JSX。
-
-## 边界：和 yida-nav-group 划清（重要）
-
-| 诉求 | 归谁 |
-|---|---|
-| 页面里用 JSX 画侧边/顶部/浮动导航，隐藏应用导航后自建导航 | **本技能 yida-nav-shell** |
-| 管理宜搭应用**左侧菜单树 / 导航分组**：新建/重命名/删除分组、移动排序表单页面、隐藏导航项 | **yida-nav-group**（平台导航，CLI 操作 navUuid） |
-
-用户说「加个导航」时先分清是哪一种：要**平台菜单项**→ nav-group；要**页面内导航组件**（尤其页面已隐藏应用导航）→ 本技能。
-
 ## 前置：先确认导航确实隐藏
 
-导航壳的前提是应用导航已隐藏。是否隐藏、以及隐藏时的主色/视觉策略，由 `yida-page-uiux` 的 [Step 0 导航形态判定](../yida-page-uiux/workflow/step-0-nav-shape.md) 决定：
+导航壳的前提是应用导航已隐藏。是否隐藏、以及隐藏时的主色/视觉策略，按 [Step 0 导航形态判定](../yida-page-uiux/workflow/step-0-nav-shape.md) 决定：
 
 - 发布时 `openyida update-form-config <appType> <formUuid> false "<标题>"`（`isRenderNav=false`），或访问带 `?isRenderNav=false`。
 - 导航**未**隐藏（默认）时无需自建导航壳，应用导航负责跨页跳转——此时一般不用本技能。
@@ -48,17 +37,17 @@ description: >
 | **浮动导航（悬浮胶囊/Dock）** | 沉浸/大屏/展示页，chrome 要极简，导航不常驻 | 3–6 | 底部胶囊/收起 |
 | **标签页** | 一个模块内切同级视图（常叠加在上面几种之上） | 2–8 | 横向滚动标签 |
 
-每种形态的 ASCII 骨架、选中态纪律、移动端收敛、native + Canvas 代码示例、自查清单见 [references/nav-shell-patterns.md](references/nav-shell-patterns.md)。
+每种形态的 ASCII 骨架、选中态纪律、移动端收敛、普通自定义页面 + Canvas 代码示例、自查清单见 [references/nav-shell-patterns.md](references/nav-shell-patterns.md)。
 
 ## 多视图切换机制（导航壳的核心）
 
 导航壳 = 一个自定义页内切多个视图。两条链路：
 
-- **native**：状态存 `_customState.activeView`，点击 `this.setCustomState({ activeView: key })`，`renderJsx` 里按 `activeView` 分支渲染内容区。
+- **普通自定义页面**：状态存 `_customState.activeView`，点击 `this.setCustomState({ activeView: key })`，`renderJsx` 里按 `activeView` 分支渲染内容区。
 - **Canvas**：`React.useState`，或用 URL hash（`window.location.hash` + `hashchange`，`useEffect` 注册并 cleanup）做可分享/可后退的视图切换。
 - **跨页跳转**：跳到别的自定义页/表单时，用 [field-and-url-reference.md](../../references/field-and-url-reference.md) 的模板拼 URL，并显式合并导航项参数。隐藏导航壳跳自定义页时，目标必须带 `?isRenderNav=false` 保持沉浸；别假设应用导航还在。
 
-### URL 构造模板（native）
+### URL 构造模板（普通自定义页面）
 
 ```jsx
 var BASE_URL = 'https://www.aliwork.com';
@@ -114,6 +103,6 @@ export function openNavItem(item) {
 
 | 文档 | 覆盖范围 | 何时阅读 |
 |------|---------|---------|
-| [导航壳形态目录](references/nav-shell-patterns.md) | 五形态 ASCII 骨架 + 选中态 + 移动端 + native/Canvas 代码 + 多视图切换 + 自查清单 | 选定形态、要骨架/代码时 |
+| [导航壳形态目录](references/nav-shell-patterns.md) | 五形态 ASCII 骨架 + 选中态 + 移动端 + 普通自定义页面/Canvas 代码 + 多视图切换 + 自查清单 | 选定形态、要骨架/代码时 |
 | [yida-page-uiux Step 0](../yida-page-uiux/workflow/step-0-nav-shape.md) | 导航是否隐藏的判定法 + 隐藏时主色/视觉策略分叉 | 动手前确认导航形态时 |
 | [字段与 URL 参考](../../references/field-and-url-reference.md) | 隐藏导航 `isRenderNav=false`、跨页跳转 URL 模板 | 拼跨页跳转 URL 时 |

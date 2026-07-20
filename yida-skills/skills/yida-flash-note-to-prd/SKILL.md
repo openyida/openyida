@@ -277,32 +277,6 @@ cat meeting.txt | openyida flash-to-prd --name <项目名>
 
 ---
 
-## 与其他技能配合
-
-Prompt 生成后，可无缝衔接宜搭应用开发流程：
-
-```
-闪记（文本/图片）→ [本技能] → prd/<项目名>.md（高质量 prompt）
-                                    ↓
-                          [yida-create-app] → 创建应用
-                                    ↓
-                          [yida-create-form-page] → 创建表单
-                                    ↓
-                          [yida-custom-page] → 开发自定义页面
-                                    ↓
-                          [yida-publish-page] → 发布上线
-```
-
-| 后续技能 | 用途 | 从 prompt 中获取的信息 |
-|---------|------|----------------------|
-| `yida-create-app` | 创建宜搭应用 | 项目名称 |
-| `yida-create-form-page` | 创建表单 | 字段设计（字段名、类型、必填、选项） |
-| `yida-create-process` | 配置审批流程 | 流程设计（节点、审批人、条件） |
-| `yida-custom-page` | 开发自定义页面 | 功能模块、页面布局需求 |
-| `yida-report` | 创建报表 | 数据报表需求 |
-
----
-
 ## OpenYida PRD 质量门槛
 
 生成或评审 `prd/<项目名>.md` 时，必须检查以下内容；缺失时写入「待确认事项」，不要假装已经明确：
@@ -321,7 +295,7 @@ Prompt 生成后，可无缝衔接宜搭应用开发流程：
 ## 前置依赖
 
 - Node.js ≥ 16
-- 已登录宜搭（`.cache/cookies.json` 存在且有效），用于调用 AI 接口
+- 已登录宜搭（存在有效 `.cache/auth-token-<env>.json`），用于调用 AI 接口
 
 ---
 

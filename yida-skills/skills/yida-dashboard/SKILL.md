@@ -15,36 +15,21 @@ metadata:
 
 # 宜搭 Dashboard 经营看板技能
 
-## 定位与分工
+## 核心定位
 
 本技能负责**完整 Dashboard 产品化交付**——不只是一个图表，而是一个可以直接给高管看、可以通过「saveFormData → 集成自动化 → 待办2.0 连接器」创建真实钉钉待办、可以截图发群、可以隐藏导航并生成组织内短链的**单屏经营驾驶舱**。
-
-| 技能 | 定位 | 输出物 |
-|------|------|-------|
-| `yida-dashboard`（本技能） | 看板整体结构 + 交互闭环 + 视觉主题 + 发布链路 | 一个可交付的看板页面 |
-| `yida-chart` | 单个 ECharts 图表的实现细节（CDN/setOption/原地更新等） | 图表代码片段 |
-| `yida-report` | 宜搭原生报表（作为数据源） | REPORT-xxx 页面 |
-| `yida-integration` | 集成自动化 + 连接器调用节点（派单闭环后端） | LPROC-xxx 已发布流 |
-| `yida-custom-page` | 自定义页面基础规范（_customState/forceUpdate/var 兼容等） | JSX 代码规范 |
-
-**依赖关系**：`yida-dashboard` → 调用 `yida-chart` 出图 → 依赖 `yida-report` 提供聚合数据 → 全部落在 `yida-custom-page` 的运行时之内。
 
 ---
 
 ## 何时触发
 
-用户说以下任一关键词，直接用本技能（不要回退到 yida-chart 或 yida-report 做单图）：
+用户说以下任一关键词，直接用本技能：
 
 - 看板 / 驾驶舱 / 大屏 / Dashboard / 数据大屏
 - 经营看板 / 业务看板 / 管理驾驶舱 / 经营驾驶舱 / 领导驾驶舱
 - 高层汇报 / 高管汇报 / 给老板看 / 给集团汇报
 - 指标卡截图 / 卡片截图分享
 - 组织内短链 + 隐藏导航 + 钉钉待办 组合出现
-
-**反例（不用本技能）**：
-- 只想美化一个单独图表 → `yida-chart`
-- 只想出一个统计报表 → `yida-report`
-- 批量录入数据 → `yida-table-form`
 
 ---
 

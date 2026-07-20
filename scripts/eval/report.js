@@ -51,6 +51,23 @@ function statusBadge(status) {
   return `<span class="badge" style="color:${color};background:${bg}">${label}</span>`;
 }
 
+// 已知跳过码 -> 友好中文描述（避免把原始错误横幅堆到卡片里）。
+const SKIP_LABELS = {
+  'playwright-missing': '未安装 Playwright（截图为软依赖）',
+  'browser-missing': 'Playwright 浏览器未下载',
+};
+
+/**
+ * 把可能跨多行/带框线的错误信息压成可读的单行摘要。
+ */
+function cleanMessage(msg, max = 160) {
+  const first = String(msg === undefined || msg === null ? '' : msg)
+    .split('\n')[0]
+    .replace(/[\u2500-\u257f]/g, '') // 去掉制表符框线字符
+    .trim();
+  return first.length > max ? `${first.slice(0, max)}…` : first;
+}
+
 /**
  * 渲染单张截图 + 打分卡片。
  * @param {object} shot 截图项 {stage,type,url,ok,path,skipped,error}
@@ -68,10 +85,15 @@ function renderCard(shot, score, rubric, index) {
   if (dataUri) {
     media = `<a href="${escapeHtml(shot.url || '#')}" target="_blank" rel="noreferrer"><img class="shot" src="${dataUri}" alt="${title}"></a>`;
   } else {
-    const reason = shot.skipped
-      ? `已跳过：${escapeHtml(shot.skipped)}`
-      : (shot.error ? `截取失败：${escapeHtml(shot.error)}` : '无截图');
-    media = `<div class="shot placeholder">${reason}</div>`;
+    if (shot.skipped) {
+      const label = SKIP_LABELS[shot.skipped] || cleanMessage(shot.skipped);
+      // 保留原始跳过码到 data-skip，便于排查与测试断言。
+      media = `<div class="shot placeholder" data-skip="${escapeHtml(shot.skipped)}">已跳过：${escapeHtml(label)}</div>`;
+    } else if (shot.error) {
+      media = `<div class="shot placeholder">截取失败：${escapeHtml(cleanMessage(shot.error))}</div>`;
+    } else {
+      media = '<div class="shot placeholder">无截图</div>';
+    }
   }
 
   // 自动打分块
@@ -158,6 +180,22 @@ function renderEvalReportHtml(options = {}) {
     ? screenshots.map((shot, i) => renderCard(shot, scoreByUrl.get(shot.url), rubric, i + 1)).join('\n')
     : '<p class="muted">本次没有可截图/打分的已发布页面目标。</p>';
 
+  // 若所有截图都因环境原因（浏览器/Playwright 缺失）被跳过，顶部统一提示一次，不再逐卡片刷屏。
+  const envSkipCodes = new Set(['browser-missing', 'playwright-missing']);
+  const envSkips = screenshots.filter((s) => envSkipCodes.has(s.skipped));
+  let noticeHtml = '';
+  if (screenshots.length && envSkips.length === screenshots.length) {
+    const browserMissing = envSkips.some((s) => s.skipped === 'browser-missing');
+    const cause = browserMissing
+      ? 'Playwright 已安装，但缺少浏览器二进制文件。'
+      : '未安装 Playwright（截图为软依赖）。';
+    noticeHtml = `<div class="notice">
+      <span class="notice-ico">ⓘ</span>
+      <div><b>页面截图未生成</b>：${cause}
+      执行 <code>npx playwright install chromium</code> 后重新运行评测即可生成截图；<b>护栏、打分与报告其余内容不受影响</b>。</div>
+    </div>`;
+  }
+
   const chips = [
     `<span class="chip">模式 <b>${escapeHtml(config.mode || 'e2e')}</b></span>`,
     `<span class="chip">子技能 <b>${escapeHtml(config.skill || '全链路')}</b></span>`,
@@ -213,6 +251,11 @@ function renderEvalReportHtml(options = {}) {
   .comment { margin: 8px 0 0; color: #4b5563; font-style: italic; }
   .score.auto.err { background: #fef3f2; border-color: #fdd; color: #b42318; }
   .score.human { margin-top: 8px; color: #374151; }
+  .notice { display: flex; gap: 10px; align-items: flex-start; background: #fff7ed; border: 1px solid #fed7aa;
+            border-radius: 8px; padding: 12px 14px; margin: 0 0 16px; color: #92400e; font-size: 13px; line-height: 1.7; }
+  .notice-ico { flex: none; font-size: 15px; line-height: 1.5; }
+  .notice code { background: #fffdf7; border: 1px solid #fed7aa; border-radius: 4px; padding: 1px 6px;
+                 font-size: 12px; color: #b45309; }
   .muted { color: #9aa1ad; }
   footer { padding: 20px 32px 48px; color: #9aa1ad; font-size: 12px; max-width: 1100px; margin: 0 auto; }
 </style>
@@ -231,6 +274,7 @@ function renderEvalReportHtml(options = {}) {
   </table>
 
   <h2>页面截图与打分（${screenshots.length}）</h2>
+  ${noticeHtml}
   <div class="grid">
     ${cards}
   </div>

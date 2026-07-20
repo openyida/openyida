@@ -6,14 +6,14 @@ const path = require('path');
 const querystring = require('querystring');
 
 jest.mock('child_process', () => ({
-  execSync: jest.fn(() => ''),
+  spawnSync: jest.fn(() => ({ status: 0 })),
+  execSync: jest.fn(),
 }));
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'csrf-token', corpId: 'corp-1', userId: 'user-1' })),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
@@ -39,9 +39,10 @@ const createForm = require('../lib/app/create-form');
 const createProcess = require('../lib/process/create-process');
 const previewProcess = require('../lib/process/preview-process');
 
-const mockCookieData = {
-  csrf_token: 'csrf-token',
-  cookies: [{ name: 'tianshu_csrf_token', value: 'csrf-token' }],
+const mockAuthData = {
+  auth_mode: 'token',
+  auth_source: 'token',
+  user_id: 'user-1',
   base_url: 'https://www.aliwork.com',
   corp_id: 'corp-1',
 };
@@ -53,10 +54,10 @@ describe('small process commands', () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-process-small-'));
     jest.clearAllMocks();
-    utils.loadCookieData.mockReturnValue(mockCookieData);
+    utils.loadAuthData.mockReturnValue(mockAuthData);
     utils.findProjectRoot.mockReturnValue(tmpDir);
     utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
-    childProcess.execSync.mockReturnValue('');
+    childProcess.spawnSync.mockReturnValue({ status: 0 });
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
@@ -88,7 +89,6 @@ describe('small process commands', () => {
     expect(utils.httpPost.mock.calls[0][1]).toContain('/APP_XXX/query/formdesign/switchFormType.json');
     expect(utils.httpGet.mock.calls[0][1]).toContain('/APP_XXX/query/formProcBinding/getBindingByFormUuid.json');
     expect(querystring.parse(utils.httpPost.mock.calls[0][2])).toMatchObject({
-      _csrf_token: 'csrf-token',
       toFormType: 'process',
       formUuid: 'FORM_1',
     });
@@ -291,7 +291,25 @@ describe('small process commands', () => {
     expect(fs.readFileSync(outputPath, 'utf8')).toContain('PROC_INST_1');
     expect(utils.httpGet.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/v1/process/getInstanceById.json');
     expect(utils.httpGet.mock.calls[1][1]).toBe('/dingtalk/web/APP_XXX/v1/process/getOperationRecords.json');
-    expect(childProcess.execSync).toHaveBeenCalled();
+    expect(childProcess.spawnSync).toHaveBeenCalled();
+    const [, args] = childProcess.spawnSync.mock.calls[0];
+    expect(args[args.length - 1]).toBe(outputPath);
+  });
+
+  test('preview browser launcher passes local file paths as argv', () => {
+    const filePath = 'C:\\tmp\\preview & report.html';
+    expect(previewProcess.resolvePreviewBrowserLauncher(filePath, 'darwin')).toEqual({
+      command: 'open',
+      args: [filePath],
+    });
+    expect(previewProcess.resolvePreviewBrowserLauncher(filePath, 'win32')).toEqual({
+      command: 'rundll32',
+      args: ['url.dll,FileProtocolHandler', filePath],
+    });
+    expect(previewProcess.resolvePreviewBrowserLauncher(filePath, 'linux')).toEqual({
+      command: 'xdg-open',
+      args: [filePath],
+    });
   });
 
   test('usage errors reject as CliError instead of exiting', async () => {

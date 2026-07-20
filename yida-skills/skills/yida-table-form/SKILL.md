@@ -38,14 +38,6 @@ description: 表格形态批量表单提交页面开发。支持动态增删行�
 
 > ⚠️ 表格表单在移动端体验差，移动端场景建议使用标准表单。
 
-**与相邻技能的边界**：
-| 场景 | 使用技能 |
-|------|---------|
-| 批量录入同类数据（Excel 式编辑） | **本技能** |
-| 单条数据录入（标准表单） | 标准表单页面或 `yida-custom-page` |
-| 需要审批的流程表单 | `yida-create-process` |
-| 数据查询和展示 | `yida-data-management` 或 `yida-report` |
-
 ## 异常处理
 
 | 异常场景 | 处理方式 |
@@ -174,11 +166,3 @@ openyida sample yida-table-form table-form-batch-submit   # 完整表格表单�
 ## 注意事项
 
 - **本技能不读写 memory**：表格表单的草稿数据通过 `localStorage` 在浏览器本地持久化，不依赖跨会话的 memory 状态
-
-## 与其他技能配合
-
-| 步骤 | 技能 | 说明 |
-| --- | --- | --- |
-| 1 | `yida-get-schema` | 获取表单字段 ID，填入 `COLUMNS` 配置 |
-| 2 | **本技能** | 编写表格表单页面代码 |
-| 3 | `yida-publish-page` | 发布自定义页面 |

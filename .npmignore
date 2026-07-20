@@ -4,6 +4,8 @@
 .eslintrc.json
 .gitattributes
 tests/
+scripts/e2e-real/
+scripts/eval/
 scripts/validate-*.js
 scripts/validate-*.sh
 .aone_copilot

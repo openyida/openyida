@@ -1,0 +1,805 @@
+[
+  {
+    "id": "sls-log-pos-1",
+    "prompt": "帮我查一下 SLS 日志，看看昨天下午 3 点到 5 点这个应用的报错信息",
+    "expectedSkill": "sls-log-workbench",
+    "type": "positive",
+    "note": "SLS 日志查询排查"
+  },
+  {
+    "id": "sls-log-pos-2",
+    "prompt": "线上有个接口 500 了，帮我去日志工作台查一下错误堆栈",
+    "expectedSkill": "sls-log-workbench",
+    "type": "positive",
+    "note": "线上排错需要查日志"
+  },
+  {
+    "id": "sls-log-neg-1",
+    "prompt": "帮我整理一下最近用户反馈的问题清单",
+    "expectedSkill": "yida-voc",
+    "mustNotTrigger": ["sls-log-workbench"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "用户反馈整理是 VOC，不是日志查询"
+  },
+
+  {
+    "id": "agent-center-pos-1",
+    "prompt": "帮我设置一下流程代理，我下周请假需要别人帮我审批",
+    "expectedSkill": "yida-agent-center",
+    "type": "positive",
+    "note": "流程代理/审批委托"
+  },
+  {
+    "id": "agent-center-pos-2",
+    "prompt": "查看一下我当前有哪些代理审批的配置",
+    "expectedSkill": "yida-agent-center",
+    "type": "positive",
+    "note": "查看代理中心配置"
+  },
+  {
+    "id": "agent-center-neg-1",
+    "prompt": "帮我配置一下审批流程的条件规则，金额大于 5000 走总监审批",
+    "expectedSkill": "yida-process-rule",
+    "mustNotTrigger": ["yida-agent-center"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "审批规则配置是 process-rule，不是代理中心"
+  },
+
+  {
+    "id": "app-neg-1",
+    "prompt": "帮我新建一个空白应用，名字叫「采购管理」",
+    "expectedSkill": "yida-create-app",
+    "mustNotTrigger": ["yida-app"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "只创建应用壳子 → create-app，不是从零搭建完整应用"
+  },
+
+  {
+    "id": "app-permission-pos-1",
+    "prompt": "把张三添加为这个应用的管理员",
+    "expectedSkill": "yida-app-permission",
+    "type": "positive",
+    "note": "应用级管理员设置"
+  },
+  {
+    "id": "app-permission-pos-2",
+    "prompt": "帮我看一下这个应用目前都有哪些管理员",
+    "expectedSkill": "yida-app-permission",
+    "type": "positive",
+    "note": "查看应用管理员列表"
+  },
+  {
+    "id": "app-permission-neg-1",
+    "prompt": "帮我设置一下这个表单的权限组，让销售部只能看自己提交的数据",
+    "expectedSkill": "yida-form-permission",
+    "mustNotTrigger": ["yida-app-permission"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "表单级数据权限 → form-permission，不是应用管理员"
+  },
+
+  {
+    "id": "basic-info-pos-1",
+    "prompt": "查一下我们组织的 corpId 和组织名称",
+    "expectedSkill": "yida-basic-info",
+    "type": "positive",
+    "note": "组织基本信息查询"
+  },
+  {
+    "id": "basic-info-pos-2",
+    "prompt": "当前登录的组织信息是什么？帮我看看组织 ID",
+    "expectedSkill": "yida-basic-info",
+    "type": "positive",
+    "note": "查看当前组织信息"
+  },
+  {
+    "id": "basic-info-neg-1",
+    "prompt": "帮我查看一下公司最近一个月的宜搭使用数据和效能报告",
+    "expectedSkill": "yida-corp-efficiency",
+    "mustNotTrigger": ["yida-basic-info"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "效能数据 → corp-efficiency，不是基本信息查询"
+  },
+
+  {
+    "id": "business-rule-pos-1",
+    "prompt": "帮我写一个业务关联规则，当部门字段选择「技术部」时自动填充审批人",
+    "expectedSkill": "yida-business-rule",
+    "type": "positive",
+    "note": "业务关联规则配置"
+  },
+  {
+    "id": "business-rule-pos-2",
+    "prompt": "我想用高级函数实现：当金额字段变化时，自动计算税额并回填",
+    "expectedSkill": "yida-business-rule",
+    "type": "positive",
+    "note": "高级函数联动"
+  },
+  {
+    "id": "business-rule-neg-1",
+    "prompt": "帮我写一个公式，计算子表单里所有金额的合计",
+    "expectedSkill": "yida-formula",
+    "mustNotTrigger": ["yida-business-rule"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "纯公式计算 → formula，不是业务关联规则"
+  },
+
+  {
+    "id": "canvas-custom-page-pos-1",
+    "prompt": "帮我用 Canvas 开发一个自定义的数据看板页面，要用代码写",
+    "expectedSkill": "yida-canvas-custom-page",
+    "type": "positive",
+    "note": "Code Canvas 自定义页面开发"
+  },
+  {
+    "id": "canvas-custom-page-pos-2",
+    "prompt": "我要在 Canvas 页面里写 JSX 实现一个复杂的交互表格",
+    "expectedSkill": "yida-canvas-custom-page",
+    "type": "positive",
+    "note": "Canvas 页面代码开发"
+  },
+  {
+    "id": "canvas-custom-page-neg-1",
+    "prompt": "我有一个老的自定义页面，想升级成 Canvas 类型",
+    "expectedSkill": "yida-canvas-upgrade",
+    "mustNotTrigger": ["yida-canvas-custom-page"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "升级到 Canvas → canvas-upgrade，不是在 Canvas 上开发"
+  },
+
+  {
+    "id": "canvas-upgrade-pos-1",
+    "prompt": "这个页面还是老版本的自定义页面，帮我升级到 Canvas 架构",
+    "expectedSkill": "yida-canvas-upgrade",
+    "type": "positive",
+    "note": "普通自定义页面升级为 Canvas"
+  },
+  {
+    "id": "canvas-upgrade-pos-2",
+    "prompt": "把现有的 native 自定义页面迁移为 Code Canvas 页面",
+    "expectedSkill": "yida-canvas-upgrade",
+    "type": "positive",
+    "note": "迁移到 Canvas 架构"
+  },
+
+  {
+    "id": "chart-pos-1",
+    "prompt": "帮我用 ECharts 做一个柱状图加折线图的组合图表",
+    "expectedSkill": "yida-chart",
+    "type": "positive",
+    "note": "ECharts 高级可视化"
+  },
+  {
+    "id": "chart-neg-1",
+    "prompt": "帮我搭一个实时数据大屏，领导层可以随时查看 KPI",
+    "expectedSkill": "yida-dashboard",
+    "mustNotTrigger": ["yida-chart"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "数据大屏/KPI 看板 → dashboard，不是单个 ECharts 图表"
+  },
+
+  {
+    "id": "connector-pos-1",
+    "prompt": "帮我创建一个 HTTP 连接器，对接我们内部的 ERP 系统接口",
+    "expectedSkill": "yida-connector",
+    "type": "positive",
+    "note": "创建 HTTP 连接器"
+  },
+  {
+    "id": "connector-neg-1",
+    "prompt": "我要在自定义页面的数据源里接入一个已有的连接器",
+    "expectedSkill": "yida-data-source-connectors",
+    "mustNotTrigger": ["yida-connector"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "页面数据源接入连接器 → data-source-connectors，不是创建连接器"
+  },
+
+  {
+    "id": "connector-safe-actions-pos-1",
+    "prompt": "我有一段调用钉钉开放 API 的代码，帮我自动生成连接器执行动作",
+    "expectedSkill": "yida-connector-safe-actions",
+    "type": "positive",
+    "note": "从代码生成连接器执行动作"
+  },
+  {
+    "id": "connector-safe-actions-neg-1",
+    "prompt": "帮我给这个连接器添加 OAuth2 鉴权配置",
+    "expectedSkill": "yida-connector",
+    "mustNotTrigger": ["yida-connector-safe-actions"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "连接器鉴权配置 → connector 管理，不是生成执行动作"
+  },
+
+  {
+    "id": "corp-efficiency-pos-1",
+    "prompt": "帮我拉一下公司这个季度宜搭平台的使用情况和效能数据",
+    "expectedSkill": "yida-corp-efficiency",
+    "type": "positive",
+    "note": "企业效能数据查询"
+  },
+  {
+    "id": "corp-efficiency-pos-2",
+    "prompt": "查一下我们企业有多少活跃应用、活跃用户数",
+    "expectedSkill": "yida-corp-efficiency",
+    "type": "positive",
+    "note": "企业平台使用统计"
+  },
+
+  {
+    "id": "corp-manager-pos-1",
+    "prompt": "帮我把李四设置为宜搭平台管理员",
+    "expectedSkill": "yida-corp-manager",
+    "type": "positive",
+    "note": "平台级权限管理"
+  },
+  {
+    "id": "corp-manager-pos-2",
+    "prompt": "查看一下当前宜搭平台的管理员列表和权限分配",
+    "expectedSkill": "yida-corp-manager",
+    "type": "positive",
+    "note": "平台管理员查询"
+  },
+  {
+    "id": "corp-manager-neg-1",
+    "prompt": "帮我把王五设为「采购管理」这个应用的管理员",
+    "expectedSkill": "yida-app-permission",
+    "mustNotTrigger": ["yida-corp-manager"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "应用级管理员 → app-permission，不是平台级管理"
+  },
+
+  {
+    "id": "create-app-pos-1",
+    "prompt": "帮我新建一个宜搭应用，名字叫「员工培训」",
+    "expectedSkill": "yida-create-app",
+    "type": "positive",
+    "note": "创建空白应用"
+  },
+  {
+    "id": "create-app-pos-2",
+    "prompt": "我要创建一个新的宜搭应用，应用类型选普通应用",
+    "expectedSkill": "yida-create-app",
+    "type": "positive",
+    "note": "创建新应用"
+  },
+
+  {
+    "id": "create-form-page-pos-1",
+    "prompt": "帮我创建一个请假申请表单，包含请假类型、开始日期、结束日期字段",
+    "expectedSkill": "yida-create-form-page",
+    "type": "positive",
+    "note": "创建表单页面"
+  },
+  {
+    "id": "create-form-page-pos-2",
+    "prompt": "给现有的报销表单加几个字段：发票号码、报销金额、附件上传",
+    "expectedSkill": "yida-create-form-page",
+    "type": "positive",
+    "note": "更新表单字段"
+  },
+  {
+    "id": "create-form-page-neg-1",
+    "prompt": "帮我创建一个带审批节点的出差申请流程",
+    "expectedSkill": "yida-create-process",
+    "mustNotTrigger": ["yida-create-form-page"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "带审批流程 → create-process，不是单纯表单"
+  },
+
+  {
+    "id": "create-page-pos-1",
+    "prompt": "帮我创建一个自定义展示页面，用来展示公司公告",
+    "expectedSkill": "yida-create-page",
+    "type": "positive",
+    "note": "创建自定义展示页面"
+  },
+  {
+    "id": "create-page-pos-2",
+    "prompt": "新建一个数据展示页面，不需要表单提交功能",
+    "expectedSkill": "yida-create-page",
+    "type": "positive",
+    "note": "纯展示页面创建"
+  },
+  {
+    "id": "create-page-neg-1",
+    "prompt": "帮我用 Canvas 代码写一个高度定制的交互页面",
+    "expectedSkill": "yida-canvas-custom-page",
+    "mustNotTrigger": ["yida-create-page"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "代码定制页面 → canvas-custom-page，不是普通展示页面"
+  },
+
+  {
+    "id": "create-process-pos-1",
+    "prompt": "帮我做一个采购审批流程，要走三级审批",
+    "expectedSkill": "yida-create-process",
+    "type": "positive",
+    "note": "创建带审批的流程表单"
+  },
+
+  {
+    "id": "custom-page-pos-1",
+    "prompt": "帮我用 native 方式开发一个自定义页面，用 JSX 写组件",
+    "expectedSkill": "yida-custom-page",
+    "type": "positive",
+    "note": "native 自定义页面 JSX 开发"
+  },
+  {
+    "id": "custom-page-pos-2",
+    "prompt": "我要在原生自定义页面里手写 JSX 实现一个可拖拽排序的列表",
+    "expectedSkill": "yida-custom-page",
+    "type": "positive",
+    "note": "native 页面 JSX 开发"
+  },
+  {
+    "id": "custom-page-neg-1",
+    "prompt": "帮我在 Code Canvas 页面里开发一个复杂的仪表盘",
+    "expectedSkill": "yida-canvas-custom-page",
+    "mustNotTrigger": ["yida-custom-page"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "Code Canvas 页面 → canvas-custom-page，不是 native 自定义页面"
+  },
+
+  {
+    "id": "dashboard-pos-1",
+    "prompt": "帮我做一个管理层用的数据驾驶舱，实时展示各部门 KPI",
+    "expectedSkill": "yida-dashboard",
+    "type": "positive",
+    "note": "管理驾驶舱/数据大屏"
+  },
+
+  {
+    "id": "data-management-pos-1",
+    "prompt": "帮我查一下这个表单最近 7 天提交的所有数据",
+    "expectedSkill": "yida-data-management",
+    "type": "positive",
+    "note": "数据查询"
+  },
+  {
+    "id": "data-management-pos-2",
+    "prompt": "帮我批量更新这些订单记录的状态字段为「已完成」",
+    "expectedSkill": "yida-data-management",
+    "type": "positive",
+    "note": "数据批量更新"
+  },
+  {
+    "id": "data-management-neg-1",
+    "prompt": "帮我查一下这个表单有哪些字段，字段类型分别是什么",
+    "expectedSkill": "yida-get-schema",
+    "mustNotTrigger": ["yida-data-management"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "查字段结构 → get-schema，不是查数据"
+  },
+
+  {
+    "id": "data-source-connectors-pos-1",
+    "prompt": "我要在自定义页面的数据源里调用已有的连接器接口",
+    "expectedSkill": "yida-data-source-connectors",
+    "type": "positive",
+    "note": "自定义页面数据源接入连接器"
+  },
+  {
+    "id": "data-source-connectors-pos-2",
+    "prompt": "帮我在页面数据源配置里绑定连接器的执行动作，用来获取外部数据",
+    "expectedSkill": "yida-data-source-connectors",
+    "type": "positive",
+    "note": "页面数据源绑定连接器"
+  },
+
+  {
+    "id": "db-seq-fix-pos-1",
+    "prompt": "数据库 sequence 不对了，表单提交报主键冲突，帮我修复一下",
+    "expectedSkill": "yida-db-seq-fix",
+    "type": "positive",
+    "note": "PostgreSQL Sequence 修复"
+  },
+  {
+    "id": "db-seq-fix-pos-2",
+    "prompt": "PostgreSQL 的自增序列值落后了导致插入失败，帮我重置 sequence",
+    "expectedSkill": "yida-db-seq-fix",
+    "type": "positive",
+    "note": "PG sequence 重置"
+  },
+
+  {
+    "id": "density-pos-1",
+    "prompt": "这个页面内容太松散了，帮我优化一下信息密度，让一屏能看到更多内容",
+    "expectedSkill": "yida-density",
+    "type": "positive",
+    "note": "页面信息密度设计"
+  },
+  {
+    "id": "density-pos-2",
+    "prompt": "页面布局太空旷，帮我调整一下间距和排布，提高信息密度",
+    "expectedSkill": "yida-density",
+    "type": "positive",
+    "note": "调整页面布局密度"
+  },
+  {
+    "id": "density-neg-1",
+    "prompt": "帮我确定一下这个自定义页面的整体视觉风格和配色方案",
+    "expectedSkill": "yida-page-uiux",
+    "mustNotTrigger": ["yida-density"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "视觉风格决策 → page-uiux，不是信息密度调整"
+  },
+
+  {
+    "id": "export-conversation-pos-1",
+    "prompt": "帮我把这次 AI 对话记录导出来保存一下",
+    "expectedSkill": "yida-export-conversation",
+    "type": "positive",
+    "note": "导出 AI 对话记录"
+  },
+  {
+    "id": "export-conversation-pos-2",
+    "prompt": "把刚才的聊天内容导出成文件，我要发给同事参考",
+    "expectedSkill": "yida-export-conversation",
+    "type": "positive",
+    "note": "导出对话内容"
+  },
+
+  {
+    "id": "flash-note-to-prd-pos-1",
+    "prompt": "我有一份产品讨论的闪记，帮我转化成正式的需求文档",
+    "expectedSkill": "yida-flash-note-to-prd",
+    "type": "positive",
+    "note": "闪记转 PRD"
+  },
+
+  {
+    "id": "form-detail-pos-1",
+    "prompt": "表单详情页太丑了，帮我优化一下样式布局",
+    "expectedSkill": "yida-form-detail",
+    "type": "positive",
+    "note": "表单详情页样式优化"
+  },
+  {
+    "id": "form-detail-pos-2",
+    "prompt": "提交后的表单详情展示页需要美化一下，字段排列和标签样式都要调",
+    "expectedSkill": "yida-form-detail",
+    "type": "positive",
+    "note": "详情页样式调整"
+  },
+  {
+    "id": "form-detail-neg-1",
+    "prompt": "帮我给这个表单新增几个字段，加上「联系电话」和「备注」",
+    "expectedSkill": "yida-create-form-page",
+    "mustNotTrigger": ["yida-form-detail"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "新增表单字段 → create-form-page，不是详情页样式"
+  },
+
+  {
+    "id": "form-permission-pos-1",
+    "prompt": "帮我设置表单权限，让普通员工只能查看自己提交的数据",
+    "expectedSkill": "yida-form-permission",
+    "type": "positive",
+    "note": "表单权限组管理"
+  },
+  {
+    "id": "form-permission-pos-2",
+    "prompt": "帮我给销售部创建一个权限组，只允许查看和编辑本部门数据",
+    "expectedSkill": "yida-form-permission",
+    "type": "positive",
+    "note": "按部门设置数据权限"
+  },
+
+  {
+    "id": "formula-pos-1",
+    "prompt": "帮我写一个宜搭公式，根据入职日期计算工龄年数",
+    "expectedSkill": "yida-formula",
+    "type": "positive",
+    "note": "表单公式编写"
+  },
+  {
+    "id": "formula-pos-2",
+    "prompt": "我需要一个公式实现：如果状态是「已审批」则显示审批日期，否则显示空",
+    "expectedSkill": "yida-formula",
+    "type": "positive",
+    "note": "条件公式编写"
+  },
+  {
+    "id": "formula-neg-1",
+    "prompt": "帮我检查一下这个公式写得对不对，语法有没有错误",
+    "expectedSkill": "yida-formula-evaluate",
+    "mustNotTrigger": ["yida-formula"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "公式语法检查 → formula-evaluate，不是编写公式"
+  },
+
+  {
+    "id": "formula-evaluate-pos-1",
+    "prompt": "帮我验证一下这个公式语法对不对：CONCATENATE(姓名, \"(\", 工号, \")\")",
+    "expectedSkill": "yida-formula-evaluate",
+    "type": "positive",
+    "note": "公式语法静态检查"
+  },
+  {
+    "id": "formula-evaluate-pos-2",
+    "prompt": "跑一下公式检查，看看 IF(金额>1000, \"大额\", \"小额\") 这个写法有没有问题",
+    "expectedSkill": "yida-formula-evaluate",
+    "type": "positive",
+    "note": "公式语法校验"
+  },
+
+  {
+    "id": "get-schema-pos-1",
+    "prompt": "帮我导出这个表单的 Schema 结构，包括所有字段的 componentName",
+    "expectedSkill": "yida-get-schema",
+    "type": "positive",
+    "note": "获取表单 Schema 结构"
+  },
+
+  {
+    "id": "i18n-pos-1",
+    "prompt": "我们应用要支持英文版，帮我配置多语言",
+    "expectedSkill": "yida-i18n",
+    "type": "positive",
+    "note": "应用多语言管理"
+  },
+  {
+    "id": "i18n-pos-2",
+    "prompt": "帮我给这个宜搭应用添加日语和英语的国际化翻译",
+    "expectedSkill": "yida-i18n",
+    "type": "positive",
+    "note": "国际化翻译配置"
+  },
+
+  {
+    "id": "integration-pos-1",
+    "prompt": "帮我配置一个集成自动化，当表单提交时自动发钉钉通知给审批人",
+    "expectedSkill": "yida-integration",
+    "type": "positive",
+    "note": "集成与自动化配置"
+  },
+  {
+    "id": "integration-pos-2",
+    "prompt": "设置一个自动化规则：订单状态变为「已发货」时自动更新库存表",
+    "expectedSkill": "yida-integration",
+    "type": "positive",
+    "note": "自动化联动规则"
+  },
+  {
+    "id": "integration-neg-1",
+    "prompt": "帮我创建一个 HTTP 连接器对接外部物流系统",
+    "expectedSkill": "yida-connector",
+    "mustNotTrigger": ["yida-integration"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "创建连接器 → connector，不是集成自动化"
+  },
+
+  {
+    "id": "login-pos-1",
+    "prompt": "帮我登录宜搭",
+    "expectedSkill": "yida-login",
+    "type": "positive",
+    "note": "宜搭登录"
+  },
+  {
+    "id": "login-pos-2",
+    "prompt": "我要扫码登录宜搭平台",
+    "expectedSkill": "yida-login",
+    "type": "positive",
+    "note": "扫码登录"
+  },
+  {
+    "id": "login-neg-1",
+    "prompt": "帮我退出当前宜搭账号，换一个组织重新登",
+    "expectedSkill": "yida-logout",
+    "mustNotTrigger": ["yida-login"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "退出/切换账号 → logout，不是登录"
+  },
+
+  {
+    "id": "logout-pos-1",
+    "prompt": "帮我注销当前登录状态",
+    "expectedSkill": "yida-logout",
+    "type": "positive",
+    "note": "退出登录"
+  },
+
+  {
+    "id": "nav-group-pos-1",
+    "prompt": "帮我整理一下应用左侧导航栏的分组，把表单和报表分开归类",
+    "expectedSkill": "yida-nav-group",
+    "type": "positive",
+    "note": "应用导航分组管理"
+  },
+  {
+    "id": "nav-group-pos-2",
+    "prompt": "给应用导航菜单加一个「数据分析」分组，把看板和报表放进去",
+    "expectedSkill": "yida-nav-group",
+    "type": "positive",
+    "note": "导航菜单分组"
+  },
+  {
+    "id": "nav-group-neg-1",
+    "prompt": "帮我给自定义页面画一个顶部导航栏和侧边栏壳子",
+    "expectedSkill": "yida-nav-shell",
+    "mustNotTrigger": ["yida-nav-group"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "自定义导航壳绘制 → nav-shell，不是应用导航分组"
+  },
+
+  {
+    "id": "nav-shell-pos-1",
+    "prompt": "帮我给这个自定义页面绘制一个带顶栏和侧边栏的导航壳",
+    "expectedSkill": "yida-nav-shell",
+    "type": "positive",
+    "note": "自定义页面导航壳绘制"
+  },
+  {
+    "id": "nav-shell-pos-2",
+    "prompt": "我要在 Canvas 页面里实现一个通用的页面框架布局，包含 header 和 sider",
+    "expectedSkill": "yida-nav-shell",
+    "type": "positive",
+    "note": "页面框架导航布局"
+  },
+
+  {
+    "id": "openyida-publish-guard-pos-1",
+    "prompt": "发布前帮我检查一下线上页面的状态，确认没有冲突",
+    "expectedSkill": "yida-openyida-publish-guard",
+    "type": "positive",
+    "note": "发布前线上状态检查"
+  },
+  {
+    "id": "openyida-publish-guard-pos-2",
+    "prompt": "帮我做一下发布前的预检，看看线上版本和本地有没有差异",
+    "expectedSkill": "yida-openyida-publish-guard",
+    "type": "positive",
+    "note": "发布预检"
+  },
+  {
+    "id": "openyida-publish-guard-neg-1",
+    "prompt": "代码写好了，帮我编译发布到线上",
+    "expectedSkill": "yida-publish-page",
+    "mustNotTrigger": ["yida-openyida-publish-guard"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "实际发布 → publish-page，不是发布前检查"
+  },
+
+  {
+    "id": "page-config-pos-1",
+    "prompt": "帮我把这个报表页面设成免登录公开访问，生成分享链接",
+    "expectedSkill": "yida-page-config",
+    "type": "positive",
+    "note": "页面公开访问/分享配置"
+  },
+
+  {
+    "id": "page-uiux-pos-1",
+    "prompt": "帮我确定一下这个自定义页面应该走什么视觉方向，科技感还是简约风",
+    "expectedSkill": "yida-page-uiux",
+    "type": "positive",
+    "note": "自定义页面视觉方向决策"
+  },
+  {
+    "id": "page-uiux-pos-2",
+    "prompt": "这个页面的整体 UI 风格该怎么定？帮我出个设计方案",
+    "expectedSkill": "yida-page-uiux",
+    "type": "positive",
+    "note": "页面 UI/UX 设计决策"
+  },
+  {
+    "id": "page-uiux-neg-1",
+    "prompt": "页面内容排列太稀疏了，帮我收紧间距提高信息密度",
+    "expectedSkill": "yida-density",
+    "mustNotTrigger": ["yida-page-uiux"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "信息密度调整 → density，不是视觉方向决策"
+  },
+
+  {
+    "id": "process-rule-pos-1",
+    "prompt": "帮我配置审批流程规则：报销金额超过 1 万需要财务总监审批",
+    "expectedSkill": "yida-process-rule",
+    "type": "positive",
+    "note": "流程审批规则配置"
+  },
+  {
+    "id": "process-rule-pos-2",
+    "prompt": "帮我设置审批流的条件分支，不同部门走不同的审批链路",
+    "expectedSkill": "yida-process-rule",
+    "type": "positive",
+    "note": "审批条件分支配置"
+  },
+  {
+    "id": "process-rule-neg-1",
+    "prompt": "帮我创建一个新的报销审批流程表单",
+    "expectedSkill": "yida-create-process",
+    "mustNotTrigger": ["yida-process-rule"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "创建新流程 → create-process，不是配置审批规则"
+  },
+
+  {
+    "id": "publish-page-pos-1",
+    "prompt": "页面代码改好了，帮我重新编译发布一下",
+    "expectedSkill": "yida-publish-page",
+    "type": "positive",
+    "note": "编译并发布自定义页面"
+  },
+
+  {
+    "id": "report-pos-1",
+    "prompt": "帮我用宜搭原生报表功能给这张订单表做一个统计报表",
+    "expectedSkill": "yida-report",
+    "type": "positive",
+    "note": "宜搭原生报表创建"
+  },
+  {
+    "id": "report-neg-1",
+    "prompt": "我要做一个领导用的经营看板，要能产品化交付",
+    "expectedSkill": "yida-dashboard",
+    "mustNotTrigger": ["yida-report"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "经营看板产品化 → dashboard，不是普通报表"
+  },
+
+  {
+    "id": "ppt-slider-pos-1",
+    "prompt": "帮我做一个产品发布会用的全屏演示幻灯片",
+    "expectedSkill": "yida-ppt-slider",
+    "type": "positive",
+    "note": "全屏幻灯片页面"
+  },
+
+  {
+    "id": "table-form-pos-1",
+    "prompt": "我需要一个类似 Excel 的批量录入页面，一次录入多条库存数据",
+    "expectedSkill": "yida-table-form",
+    "type": "positive",
+    "note": "表格批量录入"
+  },
+
+  {
+    "id": "voc-pos-1",
+    "prompt": "帮我整理一下最近一个月用户提的反馈和建议，分类汇总",
+    "expectedSkill": "yida-voc",
+    "type": "positive",
+    "note": "VOC 用户反馈整理"
+  },
+  {
+    "id": "voc-pos-2",
+    "prompt": "把最近的 VOC 用户之声数据拉出来看看，有哪些高频问题",
+    "expectedSkill": "yida-voc",
+    "type": "positive",
+    "note": "VOC 数据分析"
+  },
+  {
+    "id": "voc-neg-1",
+    "prompt": "帮我查一下线上日志，看看有没有报错",
+    "expectedSkill": "sls-log-workbench",
+    "mustNotTrigger": ["yida-voc"],
+    "type": "negative",
+    "category": "disambiguation",
+    "note": "查日志 → sls-log-workbench，不是用户反馈"
+  }
+]

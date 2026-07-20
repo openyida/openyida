@@ -198,24 +198,9 @@ openyida create-form update <appType> <formUuid> '[
 ✅ POST /dingtalk/web/{appType}/query/punchFormDataProvider/saveFormData.json
 ```
 
-### 坑 7：cookies.json 格式
+### 坑 7：不要手动拼鉴权参数
 
-openyida 的 `.cache/cookies.json` 中，cookies 是**数组**格式，不是字符串：
-
-```json
-{
-  "cookies": [
-    {"name": "cna", "value": "xxx", "domain": ".aliwork.com", "path": "/"},
-    {"name": "tianshu_csrf_token", "value": "xxx", "domain": ".aliwork.com", "path": "/"}
-  ],
-  "base_url": "https://www.aliwork.com"
-}
-```
-
-使用时需要拼接：
-```javascript
-var cookieStr = cookies.map(ck => ck.name + '=' + ck.value).join('; ');
-```
+OpenYida CLI 默认使用 OAuth token 登录态，业务 HTTP 请求由 `httpPost` / `httpPostJson` / `httpGet` 等工具自动携带 `Authorization: Bearer <access_token>`。技能或脚本不要手动读取 Cookie、拼接 Cookie Header，或把 `_csrf_token` 写入请求参数。
 
 ### 坑 8：不要用 fallback 逻辑
 
@@ -247,7 +232,6 @@ const { httpPost } = require('lib/utils.js');
 const querystring = require('querystring');
 
 const postData = querystring.stringify({
-  _csrf_token: csrfToken,
   formUuid: FORM_UUID,
   formDataJson: JSON.stringify({
     textField_xxx: '项目名称',
@@ -256,10 +240,10 @@ const postData = querystring.stringify({
   }),
 });
 
-await httpPost(baseUrl, `/dingtalk/web/${APP_TYPE}/query/punchFormDataProvider/saveFormData.json`, postData, cookies);
+await httpPost(baseUrl, `/dingtalk/web/${APP_TYPE}/query/punchFormDataProvider/saveFormData.json`, postData);
 ```
 
-**注意**：`cookies` 参数是数组格式 `[{name, value, domain, path}]`，`httpPost` 内部会自动拼接。
+**注意**：不要手动传 Cookie 或 `_csrf_token`；OpenYida 请求工具会根据本地 token session 自动注入 Bearer token。
 
 ---
 

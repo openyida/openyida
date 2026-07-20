@@ -1,0 +1,247 @@
+[
+  {
+    "id": "create-app-only",
+    "prompt": "帮我新建一个宜搭应用，只要拿到 appType",
+    "expectedSkill": "yida-create-app",
+    "group": "应用与登录",
+    "note": "只需创建应用拿 appType → create-app"
+  },
+  {
+    "id": "login-manual",
+    "prompt": "我需要手动触发一次登录，获取最新 Cookie",
+    "expectedSkill": "yida-login",
+    "group": "应用与登录",
+    "note": "手动触发登录 → login"
+  },
+  {
+    "id": "create-page-blank",
+    "prompt": "在应用里新建一个空白自定义页面，拿到 formUuid",
+    "expectedSkill": "yida-create-page",
+    "group": "页面与表单",
+    "note": "创建空白自定义页面 → create-page"
+  },
+  {
+    "id": "create-form-fields",
+    "prompt": "帮我创建一个员工信息登记表，包含姓名、工号、部门、入职日期字段",
+    "expectedSkill": "yida-create-form-page",
+    "group": "页面与表单",
+    "note": "创建表单并定义字段结构 → create-form-page"
+  },
+  {
+    "id": "page-uiux-visual",
+    "prompt": "写页面代码前先帮我定一下视觉方向，这是一个管理后台工作台",
+    "expectedSkill": "yida-page-uiux",
+    "group": "页面与表单",
+    "note": "定视觉方向去 AI 味 → page-uiux"
+  },
+  {
+    "id": "canvas-custom-page-hooks",
+    "prompt": "用 Code Canvas 写一个带 hooks 状态管理的交互式数据展示页",
+    "expectedSkill": "yida-canvas-custom-page",
+    "group": "页面与表单",
+    "note": "Code Canvas 现代交互页 → canvas-custom-page"
+  },
+  {
+    "id": "native-custom-page-binding",
+    "prompt": "这个页面需要用 this.$(fieldId) 绑定表单字段，走 native 链路写",
+    "expectedSkill": "yida-custom-page",
+    "group": "页面与表单",
+    "note": "强依赖原生实例数据桥 → custom-page (native)"
+  },
+  {
+    "id": "canvas-upgrade-migration",
+    "prompt": "把现有的 .oyd.jsx 页面迁移升级到 Code Canvas 链路",
+    "expectedSkill": "yida-canvas-upgrade",
+    "group": "页面与表单",
+    "note": "已有 .oyd.jsx 迁到 Canvas → canvas-upgrade"
+  },
+  {
+    "id": "nav-shell-sidebar",
+    "prompt": "页面要隐藏应用导航，在页面内自建侧边栏导航壳",
+    "expectedSkill": "yida-nav-shell",
+    "group": "页面与表单",
+    "note": "页面内自建导航壳 → nav-shell"
+  },
+  {
+    "id": "publish-guard-check",
+    "prompt": "发布这个已有页面前先检查下线上设计器有没有新改动",
+    "expectedSkill": "yida-openyida-publish-guard",
+    "group": "页面与表单",
+    "note": "发布前检查线上状态 → openyida-publish-guard"
+  },
+  {
+    "id": "aggregate-table-list",
+    "prompt": "帮我列一下当前应用有哪些聚合表",
+    "expectedSkill": "openyida aggregate-table",
+    "group": "页面与表单",
+    "note": "聚合表操作 → aggregate-table CLI"
+  },
+  {
+    "id": "data-source-connector-page",
+    "prompt": "自定义页面里怎么通过数据源面板调用已有的连接器接口",
+    "expectedSkill": "yida-data-source-connectors",
+    "group": "连接器",
+    "note": "页面数据源调连接器 → data-source-connectors"
+  },
+  {
+    "id": "data-query-records",
+    "prompt": "帮我查一下这个订单表单最近 10 条数据记录",
+    "expectedSkill": "yida-data-management",
+    "group": "数据与公式",
+    "note": "查数据记录 → data-management"
+  },
+  {
+    "id": "formula-calc-field",
+    "prompt": "帮我写个公式，让金额字段自动等于单价乘以数量",
+    "expectedSkill": "yida-formula",
+    "group": "数据与公式",
+    "note": "字段实时计算公式 → formula"
+  },
+  {
+    "id": "formula-check-syntax",
+    "prompt": "检查一下这个公式语法对不对：CONCATENATE(姓名, '-', 工号)",
+    "expectedSkill": "yida-formula-evaluate",
+    "group": "数据与公式",
+    "note": "公式语法静态检查 → formula-evaluate"
+  },
+  {
+    "id": "business-rule-cross-table",
+    "prompt": "表单提交后要自动往另一张表插入一条汇总记录",
+    "expectedSkill": "yida-business-rule",
+    "group": "数据与公式",
+    "note": "提交后跨表高级函数 → business-rule"
+  },
+  {
+    "id": "process-rule-modify",
+    "prompt": "修改已有请假流程，加一个条件分支：3天以上需要总监审批",
+    "expectedSkill": "yida-process-rule",
+    "group": "流程与自动化",
+    "note": "改已有流程 → process-rule"
+  },
+  {
+    "id": "integration-auto-notify",
+    "prompt": "帮我创建一个自动化：表单提交后自动发钉钉通知",
+    "expectedSkill": "yida-integration",
+    "group": "流程与自动化",
+    "note": "提交后逻辑编排 → integration"
+  },
+  {
+    "id": "agent-center-query",
+    "prompt": "帮我查一下当前有哪些在职流程代理人",
+    "expectedSkill": "yida-agent-center",
+    "group": "流程与自动化",
+    "note": "流程代理人管理 → agent-center"
+  },
+  {
+    "id": "ai-form-setting-query",
+    "prompt": "查一下流程表单的 AI 审批配置和可用模型",
+    "expectedSkill": "openyida ai-form-setting",
+    "group": "流程与自动化",
+    "note": "AI 审批配置查询 → ai-form-setting CLI"
+  },
+  {
+    "id": "corp-manager-query",
+    "prompt": "帮我查一下当前组织的平台管理员列表",
+    "expectedSkill": "yida-corp-manager",
+    "group": "权限与访问",
+    "note": "组织级权限管理 → corp-manager"
+  },
+  {
+    "id": "app-permission-add",
+    "prompt": "给这个应用添加一个数据管理员",
+    "expectedSkill": "yida-app-permission",
+    "group": "权限与访问",
+    "note": "单应用级权限 → app-permission"
+  },
+  {
+    "id": "form-permission-group",
+    "prompt": "帮表单创建一个权限组，只允许部门经理查看全部数据",
+    "expectedSkill": "yida-form-permission",
+    "group": "权限与访问",
+    "note": "单表单级权限 → form-permission"
+  },
+  {
+    "id": "nav-group-reorder",
+    "prompt": "把应用左侧导航重新分组，看板放最前面",
+    "expectedSkill": "yida-nav-group",
+    "group": "应用配置与平台",
+    "note": "平台左侧菜单分组 → nav-group"
+  },
+  {
+    "id": "form-detail-style",
+    "prompt": "美化一下表单详情页的样式，用卡片化布局",
+    "expectedSkill": "yida-form-detail",
+    "group": "应用配置与平台",
+    "note": "CSS 美化详情页 → form-detail"
+  },
+  {
+    "id": "density-switch",
+    "prompt": "这个列表页面太挤了，切换到宽松密度模式",
+    "expectedSkill": "yida-density",
+    "group": "应用配置与平台",
+    "note": "信息密度切换 → density"
+  },
+  {
+    "id": "i18n-config",
+    "prompt": "帮应用配置多语言，添加英文和日文支持",
+    "expectedSkill": "yida-i18n",
+    "group": "应用配置与平台",
+    "note": "应用多语言 → i18n"
+  },
+  {
+    "id": "basic-info-query",
+    "prompt": "查一下当前组织的版本信息和剩余额度",
+    "expectedSkill": "yida-basic-info",
+    "group": "应用配置与平台",
+    "note": "组织版本/容量查询 → basic-info"
+  },
+  {
+    "id": "corp-efficiency-query",
+    "prompt": "看一下企业效能数据，低代码学习成果怎么样",
+    "expectedSkill": "yida-corp-efficiency",
+    "group": "应用配置与平台",
+    "note": "企业效能数据 → corp-efficiency"
+  },
+  {
+    "id": "export-conversation-md",
+    "prompt": "把当前这段 AI 对话导出成 Markdown 文档保存",
+    "expectedSkill": "yida-export-conversation",
+    "group": "辅助工具",
+    "note": "对话导出 → export-conversation"
+  },
+  {
+    "id": "voc-feedback",
+    "prompt": "帮我整理一份故障反馈材料，要提交给宜搭平台",
+    "expectedSkill": "yida-voc",
+    "group": "辅助工具",
+    "note": "反馈材料整理 → voc"
+  },
+  {
+    "id": "sls-log-trace",
+    "prompt": "帮我查一下这个 traceId 对应的流程执行日志",
+    "expectedSkill": "sls-log-workbench",
+    "group": "辅助工具",
+    "note": "SLS 日志查询 → sls-log-workbench"
+  },
+  {
+    "id": "db-seq-fix-conflict",
+    "prompt": "数据库主键序列冲突了，帮我检测并修复",
+    "expectedSkill": "yida-db-seq-fix",
+    "group": "辅助工具",
+    "note": "Sequence 修复 → db-seq-fix"
+  },
+  {
+    "id": "ai-text-generate",
+    "prompt": "调用宜搭 AI 帮我生成一段产品介绍文案",
+    "expectedSkill": "openyida ai",
+    "group": "辅助工具",
+    "note": "AI 文生文 → ai CLI"
+  },
+  {
+    "id": "batch-execute-commands",
+    "prompt": "帮我批量执行这 5 条 openyida 命令",
+    "expectedSkill": "openyida batch",
+    "group": "辅助工具",
+    "note": "批量命令执行 → batch CLI"
+  }
+]

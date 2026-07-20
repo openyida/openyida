@@ -16,7 +16,7 @@ openyida/
 │   └── yida.js              # CLI 入口，解析命令并路由到 lib/
 ├── lib/
 │   ├── core/                # 核心基础模块
-│   │   ├── utils.js         # 公共工具函数（Cookie、HTTP、路径等）
+│   │   ├── utils.js         # 公共工具函数（Token、HTTP、路径等）
 │   │   ├── chalk.js         # 终端彩色输出公共样式模块（统一 chalk 风格）
 │   │   ├── i18n.js          # 国际化支持
 │   │   ├── locales/         # 语言包（zh、en、zh-HK、ja、ko、fr、de、es、pt、ar、hi、vi）
@@ -33,11 +33,10 @@ openyida/
 │   │   ├── task-center.js   # 全局任务中心（待办/我创建的/我已处理/抄送/代提交）
 │   │   └── babel-transform/ # Babel 编译器（用于自定义页面）
 │   ├── auth/                # 登录认证模块
-│   │   ├── login.js         # 宜搭登录（Cookie 缓存 + 浏览器扫码）
-│   │   ├── auth.js          # 登录态管理（status/login/refresh/logout）
-│   │   ├── codex-login.js   # Codex 内置浏览器登录引导
-│   │   ├── org.js           # 组织管理（列出/切换组织）
-│   │   └── qr-login.js      # 终端二维码扫码登录
+│   │   ├── token-auth.js    # OAuth loopback + token 登录态管理
+│   │   ├── token-store.js   # 本地 token session 存储
+│   │   ├── oauth-loopback.js # OAuth 回调监听与授权码换取
+│   │   └── org.js           # 组织管理（列出/切换组织）
 │   ├── basic-info/          # 企业基础信息查询（版本 / 授权 / 域名）
 │   │   └── basic-info.js    # 企业版本、授权信息与域名管理
 │   ├── bridge/              # 浏览器桥接服务（本地 HTTP 代理连接宜搭页面）
@@ -169,37 +168,36 @@ openyida/
 - `routing.js` + `scenarios/`：**路由测评（选对子技能吗）**——把自然语言 prompt 跑一遍，比对选中的子技能与 golden 集，算命中率/混淆对。无副作用、不建资源。
 - `generate.js` + `scenarios/generation/`：**真实生成（自然语言建应用）**——把「帮我创建一个订单管理系统」这类自然语言喂给 `claude -p`，让它**自主读技能 + 真的执行 CLI** 产出真实应用，再复用截图 + 打分 + 报告链路。测「端到端：一句话能否真生成可用应用」。与「工具管道基线」（确定性 CLI、固定命名、不经过 agent）的区别是 agent 自主编排。agent 运行器可注入，单测永不碰真实 CLI/不建资源。
 - `guardrail.js`：纯函数护栏——任何资源变更命令出现前必须先有成功的 `login --check-only`，否则红线 fail。
-- `screenshot.js`：动态解析 Playwright（软依赖），注入 cookie 缓存截发布页；缺失则跳过。
+- `screenshot.js`：动态解析 Playwright（软依赖），注入 token session 截发布页；缺失则跳过。
 - `score.js`：调本地多模态 `claude -p` 对截图按 rubric 打分；不开自动分则只生成 `scoring.md` 人工模板。
 - `report.js`：把护栏 + 截图 + 打分渲染成自包含 `eval-report.html`（截图 base64 内联，单文件可分享），与 `scoring.md` 并列产出。
 - `manifest.js` + `runner.js`：把 eval 结果**增量回写**进现有 `acceptance-manifest.json` 的 `eval` 段，不另起产物；真实生成产物落 `project/.cache/eval/generate/gen-<时间戳>/`。其中 `runner.js` 的「工具管道基线（端到端）」用固定命令验证「建应用→截图→打分」管道本身健康，是排查 agent vs 工具问题的对照基线。
 - `dashboard/`：零依赖本地控制台（`npm run eval:dashboard` → `http://127.0.0.1:4500`），按钮触发 + SSE 实时流式输出，首页「ℹ︎ 测评思路」概览讲清各任务目的，「📊 查看最新报告」打开最新 `eval-report.html`。
 
-命令：`npm run eval:routing`、`npm run eval:e2e`、`npm run eval:generate`、`npm run eval:all`、`npm run eval:dashboard`（端到端 / 生成需 `OPENYIDA_E2E=1` + cookie 缓存 + 已认证 agent）。`all` = 路由测评 + 工具管道基线 + 真实生成。纯函数逻辑由 `tests/eval-*.test.js` 覆盖，进 CI。
+命令：`npm run eval:routing`、`npm run eval:e2e`、`npm run eval:generate`、`npm run eval:all`、`npm run eval:dashboard`（端到端 / 生成需 `OPENYIDA_E2E=1` + 有效 token session + 已认证 agent）。`all` = 路由测评 + 工具管道基线 + 真实生成。纯函数逻辑由 `tests/eval-*.test.js` 覆盖，进 CI。
 
 ## 关键约定
 
 ### 命令实现规范
 - 每个 CLI 命令对应 `lib/` 下一个独立的 `.js` 文件
-- 所有命令通过 `bin/yida.js` 统一路由，新增命令需在此注册
-- 命令函数导出为 `module.exports = async function commandName(args) {}`
-- 错误处理：使用 `process.exit(1)` 退出，错误信息输出到 `stderr`
+- 所有命令通过 `bin/yida.js` 统一路由，新增命令需在命令清单和路由中注册
+- 命令函数导出为 `module.exports = async function commandName(args) {}` 或 `{ run }`
+- 错误处理：新增/改造的业务模块应抛出 `CliError` 或普通 `Error`，由 `bin/yida.js` 统一处理退出码；不要在可复用业务模块里新增 `process.exit(...)`
 
 ### 宜搭 API 调用
-- 所有宜搭 API 调用需携带 Cookie（从 `login.js` 获取缓存）
+- 所有宜搭 API 调用需通过 `loadAuthData` / `createAuthRef` 读取 token session，并由 HTTP 工具自动注入 `Authorization: Bearer <access_token>`
 - API 基础路径：`https://www.aliwork.com`
 - 参考 `yida-skills/references/yida-api.md` 了解完整 API 列表
 
 ### 环境检测
 - `lib/core/env.js` 负责检测当前运行的 AI 工具环境
 - 支持环境：Codex、Claude Code、Aone Copilot、Cursor、OpenCode、Qoder、悟空
-- 不同环境的 Cookie 提取方式不同（CDP 协议 / 文件读取 / 扫码）
+- 不同环境会影响工作区路径、浏览器可用性和 agent 能力；登录态统一走 OAuth token session，不再依赖 Cookie 提取
 
 ### Codex 特殊说明
-- Codex 环境下 `openyida login` 默认缓存优先；没有有效缓存时优先使用本地 Chrome / Edge / Chromium CDP 登录，CDP 不可用时返回 AI 对话框二维码 handoff
-- Codex 默认登录不依赖 Playwright；显式 `openyida login --browser` 时 CDP 不可用才使用 Playwright 兜底
-- 如需测试终端二维码链路，显式使用 `openyida login --qr`；如需强制 AI 对话框二维码 handoff，使用 `openyida login --agent-qr`
-- 多组织账号测试终端二维码登录时，优先传入 `--corp-id <corpId>`，不要由 AI 代理代替用户选择组织
+- Codex 环境下 `openyida login` 仍使用 OAuth loopback + token session；登录完成后用 `openyida login --check-only --json` 或 `openyida auth status` 验证
+- 不要引导用户导出浏览器 Cookie、使用旧二维码 handoff，或手写 `.cache/cookies.json`
+- 多组织账号测试时，优先传入 `--corp-id <corpId>`，不要由 AI 代理代替用户选择组织
 
 ### 悟空（Wukong）特殊说明
 - 悟空工作区路径含动态 uuid：`~/.real/users/{uuid}/workspace/`，通过 `AGENT_WORK_ROOT` 环境变量获取
@@ -234,7 +232,7 @@ openyida/
 4. **测试**：优先运行 `npm run check:ci`，窄范围修改可先运行相关 Jest 用例
 5. **JS 语法检查**：`node --check <file>` 验证语法正确性
 6. **终端输出样式**：统一使用 `lib/core/chalk.js` 提供的公共样式模块，不要在各命令文件中单独 `require('chalk')` 并自定义颜色
-7. **国际化**：新增用户可见的文案时，需同步在 `lib/core/locales/` 下所有 12 个语言包中添加对应 key
+7. **国际化**：新增用户可见的文案时，需以 `zh` 为基准同步到 `lib/core/locales/` 下所有 12 个语言包（至少补齐 `en`，它是运行时缺失兜底链 `当前语言 → en → zh` 的中转轴）。CI 通过 `npm run check:i18n`（棘轮模式）拦截**新增**漂移；本地可用 `npm run check:i18n:audit` 看完整缺失清单，补齐后运行 `npm run check:i18n:baseline` 收紧基线（`scripts/i18n-baseline.json`）
 8. **私有化部署**：多环境配置通过 `lib/core/env-manager.js` 管理，不要在命令文件中硬编码 API 域名
 
 ## 常见任务示例
@@ -252,5 +250,5 @@ openyida/
 4. 在 `AGENTS.md` 中无需额外更新（索引表自动覆盖）
 
 ### 调试登录问题
-- 检查 `lib/auth/login.js`、`lib/auth/codex-login.js`、`lib/auth/qr-login.js` 中的登录与 Cookie 缓存逻辑
-- 使用 `openyida env` 确认当前环境检测是否正确
+- 检查 `lib/auth/token-auth.js`、`lib/auth/token-store.js`、`lib/auth/oauth-loopback.js` 中的 OAuth token 登录与缓存逻辑
+- 使用 `openyida env`、`openyida login --check-only --json` 或 `openyida auth status` 确认当前环境与 token session 是否正确

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "employee-directory-form",
+    "prompt": "帮我创建一个员工通讯录表单，包含姓名、部门、手机号、邮箱和个人头像字段，方便公司统一管理员工信息",
+    "expectedFeatures": {
+      "minTargets": 1,
+      "targetTypes": ["page"],
+      "keywords": ["员工", "通讯录"]
+    },
+    "note": "表单数据录入场景，涵盖文本、图片上传等多种字段类型"
+  },
+  {
+    "id": "inventory-management-form",
+    "prompt": "我需要一个库存管理表单，能够录入物品名称、SKU编号、所属分类、供应商信息和当前库存数量，支持库存的增减记录",
+    "expectedFeatures": {
+      "minTargets": 1,
+      "targetTypes": ["page"],
+      "keywords": ["库存", "物品"]
+    },
+    "note": "库存管理数据录入场景，包含数值、分类选择等字段"
+  }
+]

@@ -16,6 +16,8 @@ Welcome to OpenYida! 🎉 Thank you for your interest in contributing.
   GitHub: [@alex-mm](https://github.com/alex-mm)
 - **nicky1108** — OpenClaw integration, skill extensions
   GitHub: [@nicky1108](https://github.com/nicky1108)
+- **fryaninc** — Core development, user issue support, skill maintenance
+  GitHub: [@fryaninc](https://github.com/fryaninc)
 
 ## Ways to Contribute
 

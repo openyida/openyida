@@ -9,19 +9,9 @@ description: "ECharts 高级可视化报表。依赖宜搭原生报表 getDataAs
 
 | 用户意图 | 正确处理 |
 |---------|---------|
-| 普通"报表"、"统计"、标准图表 | 改用 `yida-report` |
 | "更美观"、"高级"、"定制化"、"ECharts"、"数据大屏" | 使用本技能 |
 | 用户提供已有报表 URL，希望美化展示 | 使用本技能的方案 C |
 | 多表关联分析 | 当前不支持，先澄清或拆成单表报表 |
-
-## 与 yida-report 的分工
-
-| 技能 | 定位 | 产物 |
-|------|------|------|
-| `yida-report` | 创建宜搭原生报表，配置聚合图表和接口 | 原生报表页面 |
-| `yida-chart` | 基于原生报表数据，用 ECharts 做自定义可视化 | ECharts 自定义页面 |
-
-> ECharts 高级报表必须先有原生报表作为数据源；没有原生报表时，先调用 `yida-report` 创建。
 
 ## 核心规则
 
@@ -41,6 +31,7 @@ description: "ECharts 高级可视化报表。依赖宜搭原生报表 getDataAs
 3. **更新时双页面同步**：需求变化时先更新原生报表 Schema，再更新 ECharts 页面和绑定关系。
 4. **明细表走表单数据接口**：仅数据明细表可用 `this.utils.yida.searchFormDatas`，聚合图表仍走报表接口。
 5. **遵循自定义页面规范**：状态、生命周期、事件绑定、发布前校验按 `yida-custom-page` 执行。
+6. **当前应用报表绑定优先**：修复或迁移官方 sample / 现有 ECharts 页面时，不要复用其它应用的 `REPORT_xxx`、`prdId/topicId` 或 `cid`。必须在当前 app 内创建或同步原生报表，再批量替换绑定。
 
 ## 方案选择
 
@@ -72,6 +63,19 @@ openyida check-page project/pages/src/<页面名>.oyd.jsx
 # Step 6: 发布并验证
 openyida publish project/pages/src/<页面名>.oyd.jsx <appType> <echartsFormUuid> --health-check
 ```
+
+### 已有 chart sample / 跨应用迁移修复流程
+
+当页面报错 `no permission for the report`、图表数据加载失败，或发现源码里绑定的 `REPORT_xxx` 属于旧应用时，按下面流程修复：
+
+1. `openyida list-forms <当前appType> --json` 确认当前应用是否已有 `formType=report`；没有则先用 `yida-create-form-page` 创建数据源表单，按业务场景写入示例数据，再用 `yida-report` 创建原生报表。
+2. `openyida get-schema <当前appType> <新REPORT_xxx> --json`，从 `componentsTree` 提取所有 `Youshu*` 组件的 `id`、`componentName`、`props.dataSetModelMap` key、`dataViewQueryModel.filterList[].filterKey` 和标题。
+3. 页面常量只保留 `REPORT_FORM_UUID` / `REPORT_UUID`，`prdId/topicId` 必须通过 `getFormNavigationListByOrder` 按该 `REPORT` 动态获取。
+4. 每个组件绑定使用真实 schema 值：`cid` 使用 `node_oc...`，`className` 使用 `YoushuTable` / `YoushuSimpleIndicatorCard` 等，表格 `dataSetKey` 以 schema 为准（常见 `table`），指标卡常见 `youshuData`。
+5. `filterKey` 必须按组件记录，例如 `statusTableStatus`、`budgetTableStatus`。不要把字段级的 `status` 当作多个组件通用的 filterKey。
+6. 写入 `.cache/openyida/<任务名>/report-binding.json`，记录数据源表单、新报表、组件映射和绑定的 ECharts 页面。
+7. 增加防回归测试：grep 或 Jest 断言源码不再包含旧 `REPORT`、旧 `prdId`、旧 appType 和旧 cid 前缀。
+8. 执行 `openyida check-page`、`openyida compile`、`openyida publish ... --health-check`，最后跑 `git diff --check`。
 
 ## 报表参数速查
 
@@ -128,6 +132,8 @@ openyida publish project/pages/src/<页面名>.oyd.jsx <appType> <echartsFormUui
 - [ ] 已通过 `openyida get-schema` 获取 Schema 文件
 - [ ] 已提取每个图表组件的 `cid`、`className`、`dataSetKey`、`filterKey`、`cname`
 - [ ] `prdId` 通过导航接口动态获取，不硬编码
+- [ ] 页面绑定的 `REPORT_xxx` 属于当前 app，不是旧样例应用或其它应用
+- [ ] `filterKey` 按组件记录，未把同一字段的筛选 key 跨组件复用
 - [ ] 聚合图表不使用 `searchFormDatas` 做前端聚合
 - [ ] `renderJsx` 所有分支都有隐藏 timestamp div
 - [ ] `didUnmount` 清理 ECharts 实例、resize 监听和定时器

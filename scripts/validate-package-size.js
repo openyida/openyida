@@ -7,9 +7,12 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const MAX_TARBALL_BYTES = 1536 * 1024;
-const MAX_UNPACKED_BYTES = 4608 * 1024;
-const MAX_ENTRY_COUNT = 350;
+// Budgets are ratchets that track legitimate content growth (12 locale packs,
+// samples, skills). Raise them intentionally when new content is justified; the
+// per-file cap stays fixed to catch accidental large-blob embeds.
+const MAX_TARBALL_BYTES = 1792 * 1024;
+const MAX_UNPACKED_BYTES = 5632 * 1024;
+const MAX_ENTRY_COUNT = 420;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 function formatBytes(bytes) {
@@ -28,12 +31,20 @@ function fail(message) {
   process.exit(1);
 }
 
+function resolveNpmBin() {
+  if (process.env.OPENYIDA_NPM_BIN) {
+    return process.env.OPENYIDA_NPM_BIN;
+  }
+  return process.platform === 'win32' ? 'npm.cmd' : 'npm';
+}
+
 function runNpmPackDryRun() {
   const shouldCreateCache = !process.env.OPENYIDA_NPM_CACHE;
   const npmCache = shouldCreateCache
     ? fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-npm-cache-'))
     : process.env.OPENYIDA_NPM_CACHE;
-  const result = spawnSync('npm', ['pack', '--dry-run', '--json'], {
+  const npmBin = resolveNpmBin();
+  const result = spawnSync(npmBin, ['pack', '--dry-run', '--json'], {
     encoding: 'utf8',
     env: { ...process.env, npm_config_cache: npmCache, NPM_CONFIG_CACHE: npmCache },
     stdio: 'pipe',
@@ -42,9 +53,18 @@ function runNpmPackDryRun() {
     fs.rmSync(npmCache, { recursive: true, force: true });
   }
 
+  if (result.error) {
+    fail(`failed to run ${npmBin}: ${result.error.message}. Set OPENYIDA_NPM_BIN to a valid npm executable if npm is not on PATH.`);
+  }
+
+  if (result.status === null) {
+    fail(`${npmBin} pack --dry-run exited without a status${result.signal ? ` (signal: ${result.signal})` : ''}`);
+  }
+
   if (result.status !== 0) {
-    process.stderr.write(result.stderr || result.stdout);
-    process.exit(result.status || 1);
+    const output = result.stderr || result.stdout || `${npmBin} pack --dry-run failed with status ${result.status}\n`;
+    process.stderr.write(output);
+    process.exit(result.status);
   }
 
   try {

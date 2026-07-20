@@ -6,10 +6,9 @@ const path = require('path');
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
-  loadCookieData: jest.fn(),
+  loadAuthData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'tok123', corpId: 'corp', userId: 'user' })),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn(),
@@ -139,9 +138,12 @@ describe('flash-to-prd CLI command', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    utils.loadCookieData.mockReturnValue({
-      cookies: [{ name: 'tianshu_csrf_token', value: 'tok123' }],
-      csrf_token: 'tok123',
+    utils.loadAuthData.mockReturnValue({
+      base_url: 'https://www.aliwork.com',
+      auth_mode: 'token',
+      auth_source: 'token',
+      corp_id: 'corp',
+      user_id: 'user',
     });
     utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
     utils.httpPost.mockResolvedValue({
@@ -172,16 +174,15 @@ describe('flash-to-prd CLI command', () => {
 
   test('callAI posts through yida-client and returns generated text', async () => {
     const result = await callAI('生成 PRD', 2048, {
-      csrfToken: 'tok123',
-      cookies: [{ name: 'sid', value: 'cookie' }],
       baseUrl: 'https://www.aliwork.com',
+      authMode: 'token',
+      authSource: 'token',
     });
 
     expect(result).toContain('CRM');
     expect(utils.httpPost).toHaveBeenCalledTimes(1);
     expect(utils.httpPost.mock.calls[0][1]).toBe('/query/intelligent/txtFromAI.json');
     expect(querystring.parse(utils.httpPost.mock.calls[0][2])).toMatchObject({
-      _csrf_token: 'tok123',
       prompt: '生成 PRD',
       maxTokens: '2048',
       skill: 'ToText',
@@ -195,9 +196,9 @@ describe('flash-to-prd CLI command', () => {
     });
 
     await expect(callAI('生成 PRD', 2048, {
-      csrfToken: 'tok123',
-      cookies: [{ name: 'sid', value: 'cookie' }],
       baseUrl: 'https://www.aliwork.com',
+      authMode: 'token',
+      authSource: 'token',
     })).rejects.toMatchObject({
       isCliError: true,
       code: 'FLASH_NOTE_AI_ERROR',

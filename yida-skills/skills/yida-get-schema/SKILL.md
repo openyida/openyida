@@ -20,6 +20,7 @@ description: 确定性解析表单字段 ID（fieldId）和子表路径；agent 
 
 - **凡是需要用到字段 ID（fieldId）的操作，必须先执行此命令**，不得跳过
 - 页面开发、数据查询、报表配置或流程规则只需要字段身份时，先执行 `openyida get-schema <appType> <formUuid> --compact --resolve-fields "<字段1,字段2>"`，不要拉取完整 Schema
+- 页面开发默认使用 compact 输出，只读取必要字段契约，不内联完整 Schema
 - 执行 compact 查询后，只消费唯一命中的 `fields[]`；`missingFields` 或 `ambiguousFields` 非空时停止，不得猜测或继续写操作
 - 只有用户明确需要完整组件 props、布局结构、字段数据源配置，或 compact/summary 无法排障时，才执行不带 `--compact`/`--summary-json` 的完整 Schema 输出；拿到完整 Schema 后只读取必要片段，不内联完整 Schema
 - 已有 `<projectRoot>/.cache/<项目名>-schema.json` 等 standalone ID 映射文件可显式复用；目标字段缺失、重名、结构已变或无法确认新鲜度时，必须重新执行 compact 查询
@@ -171,13 +172,3 @@ Agent compact 模式输出共享 contract，不包含完整 Schema 或 props：
 | 找不到目标字段 | 查看 `missingFields`，确认字段已创建后重新查询；不能手写猜测 fieldId |
 | 同名字段无法唯一确定 | 查看 `ambiguousFields[].matches[].labelPath` 和稳定 `path`，使用完整路径或 fieldId 重新查询；不得默认取第一个 |
 | Schema 输出为空 | 表单可能没有字段，先用 `yida-create-form-page` 创建字段 |
-
-## 与其他技能的配合
-
-| 步骤 | 技能 | 说明 |
-|------|------|------|
-| 前置 | `yida-create-form-page` | 先创建表单，再获取字段 ID |
-| 前置 | `yida-login` | 确认登录态有效 |
-| 后续 | `yida-data-management` | 使用 fieldId 查询/新增/更新数据 |
-| 后续 | `yida-process-rule` | 使用 fieldId 配置流程字段权限 |
-| 后续 | `yida-custom-page` | 在 JSX 代码中引用 fieldId 常量 |

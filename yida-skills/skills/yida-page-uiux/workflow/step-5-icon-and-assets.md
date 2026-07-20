@@ -6,7 +6,7 @@
 
 **默认方案：内联 SVG 语义集（零依赖、无死链）**
 
-- 维护一份「语义 → SVG path」映射表 + `renderIcon(name, size, color)` 助手（骨架复用 `../../yida-custom-page/references/assets-guide.md` 已有的 `renderIcon`）。
+- 维护一份「语义 → SVG path」映射表 + `renderIcon(name, size, color)` 助手；Code Canvas 链路交给 `yida-canvas-custom-page` 时以内联 React 组件实现；普通自定义页面 JSX/Jsx 组件链路复用 `../../yida-custom-page/references/assets-guide.md` 的 `renderIcon` 骨架。
 - 描边粗细 / 端点风格随 Step 4 的视觉方向统一（细线=克制高端；2px 圆头=温暖亲和）。
 - 常用 B 端语义清单：`search 搜索 / filter 筛选 / add 新建 / edit 编辑 / delete 删除 / more 更多 / arrow 箭头 / check 完成 / warning 告警 / user 用户 / calendar 日期 / export 导出 / refresh 刷新 / setting 设置`。同页只用一套风格。
 
@@ -25,7 +25,7 @@
 
 ## 素材（图片/音效）
 
-需要图片/音效时，参考 `../../yida-custom-page/references/assets-guide.md`：优先无署名素材库（Unsplash/Pexels/Pixabay/Mixkit），生产资源上自有 CDN，遵守 CDN 安全规范（只用 `g.alicdn.com`/`alicdn.com` 或企业自托管，禁 `fonts.googleapis.com`/`cdn.jsdelivr.net`/来源不明 CDN）。
+需要图片/音效时，先参考 `../references/asset-workflow.md` 和对应 scene 的素材工作流，把素材状态写入 Page Spec；生产资源上自有 CDN，遵守 CDN 安全规范（只用 `g.alicdn.com`/`alicdn.com` 或企业自托管，禁 `fonts.googleapis.com`/`cdn.jsdelivr.net`/来源不明 CDN）。普通自定义页面 JSX/Jsx 组件链路再补读 `../../yida-custom-page/references/assets-guide.md`。
 
 ## 产出
 

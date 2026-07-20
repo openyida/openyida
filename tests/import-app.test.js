@@ -12,15 +12,15 @@ describe('import-app helpers', () => {
     expect(__test__.normalizeImportFormType('')).toBe('receipt');
 
     const displayPayload = querystring.parse(
-      __test__.buildCreateFormPostData('csrf-1', 'Imported Page', 'display')
+      __test__.buildCreateFormPostData('Imported Page', 'display')
     );
     const reportPayload = querystring.parse(
-      __test__.buildCreateFormPostData('csrf-1', 'Imported Report', 'report')
+      __test__.buildCreateFormPostData('Imported Report', 'report')
     );
 
     expect(displayPayload.formType).toBe('display');
     expect(reportPayload.formType).toBe('report');
-    expect(displayPayload._csrf_token).toBe('csrf-1');
+    expect(displayPayload).not.toHaveProperty('_csrf_token');
     expect(JSON.parse(displayPayload.title).zh_CN).toBe('Imported Page');
   });
 

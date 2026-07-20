@@ -18,6 +18,8 @@ OpenYida connects AI coding agents with Yida's low-code platform, so developers 
 
 **Documentation:** [English](https://openyida.ai/docs/en) · [简体中文](https://openyida.ai/docs) · [繁體中文](https://openyida.ai/docs/zh-Hant/) · [日本語](https://openyida.ai/docs/ja/) · [한국어](https://openyida.ai/docs/ko/) · [Français](https://openyida.ai/docs/fr/) · [Deutsch](https://openyida.ai/docs/de/) · [Español](https://openyida.ai/docs/es/) · [Português](https://openyida.ai/docs/pt/) · [Tiếng Việt](https://openyida.ai/docs/vi/) · [हिन्दी](https://openyida.ai/docs/hi/) · [العربية](https://openyida.ai/docs/ar/)
 
+[English README](./README.md) · [简体中文 README](./README_zhCN.md)
+
 </div>
 
 ---
@@ -66,27 +68,20 @@ OpenYida returns a compact machine-readable summary with the version, login stat
 openyida login
 ```
 
-In Codex, QoderWork, Qoder, Wukong, Claude Code, MuleRun, OpenCode, Cursor, and other detected AI tools, OpenYida first tries local Chrome/Edge/Chromium CDP when no valid cached login exists. If local CDP is unavailable, it falls back to an AI-dialog QR handoff. The agent should render `qr_image_markdown` or paste `agent_response_markdown` directly in the conversation so the QR code is visible, then run `poll_command` after the user scans it with DingTalk. If image rendering is unavailable, fall back to `qr_url`. The explicit `openyida login --browser` command still prefers CDP first and uses Playwright as an optional browser fallback.
+OpenYida login defaults to OAuth token mode. It opens the DingTalk OAuth authorization page, receives the local loopback callback, exchanges `code` / `authCode` with the Yida server, and stores `access_token` / `refresh_token` in the current project cache.
 
-When the user names a target Yida entry URL, pass it to the login command so OpenYida can select the matching environment and cookie file. For example, Alibaba intranet Yida uses `cookies-alibaba.json`:
+When the user names a target Yida entry URL, pass it to the login command so OpenYida can select the matching environment and token session file. For example, Alibaba intranet Yida uses `auth-token-alibaba.json`:
 
 ```bash
 openyida login https://yida-group.alibaba-inc.com/
 openyida login --alibaba
 ```
 
-The explicit QR polling command remains available:
+For token status checks, use:
 
 ```bash
-openyida login --agent-qr
-```
-
-For terminal QR login, use:
-
-```bash
-openyida login --qr
-openyida login --qr --corp-id dingxxxxxxxx
 openyida login --check-only --json
+openyida auth status
 ```
 
 OpenYida does not install Playwright by default.
@@ -154,7 +149,7 @@ openyida/
 ├── bin/yida.js                 # CLI entry and command routing
 ├── lib/
 │   ├── app/                    # Application, form, page, import/export commands
-│   ├── auth/                   # Login, QR login, browser handoff, organization switch
+│   ├── auth/                   # OAuth token login, token session storage, organization switch
 │   ├── connector/              # HTTP connector lifecycle and smart creation
 │   ├── core/                   # Environment detection, i18n, diagnostics, data commands
 │   ├── process/                # Process form creation, configuration, preview
@@ -183,19 +178,28 @@ openyida get-schema APP_XXX FORM_XXX --compact --resolve-fields "Customer Name,S
 openyida get-schema APP_XXX --all --output-dir .cache/schemas
 ```
 
+Form definitions support 19 business field types plus verified `@ali/vc-deep-yida` presentation/layout components. Prefer `Divider` for section titles and `ColumnContainer` (mapped to `ColumnsLayout` + `Column`) for multi-column layout; use `GroupContainer` / `PageSection` only when an actual grouping container is needed.
+
 ### Custom Page Development
 
 ```bash
 openyida create-page APP_XXX "Dashboard" --mode dashboard
-openyida generate-page product-homepage --spec .cache/openyida/page-specs/home.json --output pages/src/home.oyd.jsx --compile
-openyida generate-page todo-mvc --output pages/src/todo-mvc.oyd.jsx --compile
-openyida check-page pages/src/home.oyd.jsx
-openyida compile pages/src/home.oyd.jsx
-openyida publish pages/src/home.oyd.jsx APP_XXX FORM_XXX
+openyida generate-page product-homepage --scene workbench --theme-profile yida-app-theme --theme-scope page --spec .cache/openyida/page-specs/home.json --output pages/src/home.canvas.jsx --compile
+openyida generate-page official-homepage --theme-profile yida-app-theme --spec .cache/openyida/page-specs/official-home.json --resolve-assets --upload-assets --output pages/src/official-home.canvas.jsx --compile
+openyida generate-page data-screen --theme-profile yida-app-theme --output pages/src/data-screen.canvas.jsx --compile
+openyida generate-page split-pane-detail --theme-profile yida-app-theme --output pages/src/split-pane-detail.canvas.jsx --compile
+openyida generate-page portal-shell-home --theme-profile yida-app-theme --output pages/src/portal-shell-home.canvas.jsx --compile
+openyida sample yida-canvas-custom-page dashboard-starter --output pages/src/dashboard-starter.canvas.jsx
+openyida sample yida-canvas-custom-page native-components-smoke --output pages/src/native-components-smoke.canvas.jsx
+openyida sample yida-canvas-custom-page portal-native-components --output pages/src/portal-native-components.canvas.jsx
+openyida generate-page todo-mvc --output pages/src/todo-mvc.canvas.jsx --compile
+openyida publish pages/src/home.canvas.jsx APP_XXX FORM_XXX
 ```
 
-`generate-page` turns a structured spec into a Page IR, renders a curated React 16-compatible template, writes a `.openyida-page.json` manifest, and optionally compiles the result. The manifest makes follow-up AI edits safer because agents can update known blocks instead of rewriting a large JSX file by hand.
-Built-in templates currently include `product-homepage` for product/portal pages and `todo-mvc` for a full interaction smoke page covering events, custom state, list rendering, editing, filtering, and localStorage persistence.
+`generate-page` turns a structured spec into a Page IR, renders a curated template, writes a `.openyida-page.json` manifest, and optionally compiles the result. Code Canvas is the default output (`.canvas.jsx`); pass `--native` or output `.oyd.jsx` only when the page must use the 普通自定义页面 JSX/Jsx 组件链路. Pass `--scene workbench|dashboard|list|detail|landing|screen` and `--theme-profile <name-or-json>` / `--visual-profile <name-or-json>` to preserve the visual direction decision in both source comments and the manifest. The user-facing default theme profile is `yida-app-theme`, which follows Yida application theme styling, compact business density, and layered 12/8/6/4 radii. `--theme-scope page` only injects theme variables into the generated page root; `--theme-scope app` additionally calls `window.__YIDA__.updateShellConfig({ themeConfig })` so the application shell can adopt the same theme. Landing pages should declare `spec.assets.heroImage` / `productImages`; use `--resolve-assets` to verify public image URLs and `--upload-assets` to mirror local or verified external images to CDN when CDN is configured. Use `--offline-assets` only for draft/offline gating. The manifest makes follow-up AI edits safer because agents can update known blocks and visual constraints instead of rewriting a large JSX file by hand.
+Built-in templates currently include `official-homepage` for brand/law-firm/product official sites, `data-screen` for immersive monitoring screens, `dashboard-overview` for business dashboards, `workbench-home` for task/entry workbenches, `business-list` for list management pages, `detail-profile` for single-object detail pages, `split-pane-detail` for left-list/right-detail processing consoles, `portal-shell-home` for in-page portal shells, `native-components-smoke` for runtime probing existing Yida host components without changing `vc-deep-yida`, `portal-native-components` for runtime-bridged portal, member, department, and upload components, `product-homepage` for legacy workbench-style pages, and `todo-mvc` for a full interaction smoke page covering events, custom state, list rendering, editing, filtering, and localStorage persistence.
+
+For member, department, attachment, and image upload components, choose the page chain first. Code Canvas pages should start with `native-components-smoke` or `portal-native-components` and follow `yida-canvas-custom-page/references/native-components-bridge.md` for feature detection, fallback, and value normalization. 普通自定义页面 JSX/Jsx pages should use `.oyd.jsx`, read `yida-custom-page/references/component-jsx-guide.md`, and read `attachment-upload-guide.md` when upload fields are involved.
 
 ### Workflow, Data, and Permissions
 
@@ -241,7 +245,7 @@ npm run test:e2e:real:schema-source
 npm run test:e2e:real:skills
 ```
 
-The runner creates a disposable app, form, and custom page with an `OY_E2E_*` prefix, then verifies login, app listing, schema fetch, data query, and page publish. It writes a registry to `project/.cache/e2e-real/` so created resources can be audited later. To inject CI cookies without relying on a local login cache, pass `OPENYIDA_E2E_COOKIES_BASE64` as a base64 encoded cookie array or `{ "cookies": [...] }` object.
+The runner creates a disposable app, form, and custom page with an `OY_E2E_*` prefix, then verifies token login, app listing, schema fetch, data query, and page publish. It writes a registry to `project/.cache/e2e-real/` so created resources can be audited later. Run `openyida login` for the target environment before starting the real E2E runner.
 
 `test:e2e:real:full` extends the smoke path into a broad deterministic feature matrix: auth/env, app update, form update and option mutation, page build/compile/generate/publish, data create/get/update/query, permission read, page config and short URL check, report create/append, dashboard skill verification, export/import, batch, task-center, formula/doctor/sample/CDN config, and local connector parsing/template generation. AI-backed commands such as `flash-to-prd` are available as the optional `ai` stage because they depend on remote model availability. Workflow mutation is available as the opt-in `process` stage; it creates and republishes a workflow on the disposable E2E form and records advanced official-node fixtures for review.
 
@@ -277,11 +281,25 @@ The E2E paths above prove the *CLI* works. The eval harness under `scripts/eval/
 # the selected sub-skill against the golden set.
 npm run eval:routing
 
+# Doc quality — static analysis of all SKILL.md files (standards + maintainability).
+npm run eval:doc-quality
+
+# Safety — credential leak detection, command whitelist, corpId consistency.
+npm run eval:safety
+
+# Coverage — how much of the skill/category/reference space is covered by scenarios.
+npm run eval:coverage
+
+# Comprehensive — 10-dimension scorecard for a single skill (doc quality, routing,
+# safety, step completeness, output validity, efficiency, stability, coverage).
+# Outputs a JSON scorecard, SVG radar chart, and trend analysis.
+npm run eval:comprehensive -- --skill yida-dashboard
+
 # Tool-pipeline baseline (end-to-end) — wraps the real-environment runner for one
 # sub-skill, adds guardrail assertions, screenshots the published page, and writes a
 # human scoring template. Runs deterministic CLI commands (no agent) so it serves as
 # a control that proves the build→publish→screenshot→score plumbing itself works.
-# Requires OPENYIDA_E2E=1 and a valid cookie cache.
+# Requires OPENYIDA_E2E=1 and a valid token session.
 OPENYIDA_E2E=1 npm run eval:e2e -- --skill yida-dashboard --screenshot
 
 # Same, plus automatic screenshot scoring via the local multimodal `claude -p`.
@@ -302,15 +320,19 @@ OPENYIDA_E2E=1 npm run eval:all -- --skill yida-dashboard --screenshot
 # that runs the tasks above on click. Binds to 127.0.0.1 only; tasks are a fixed
 # whitelist. Use the Node version you start it with, so run `nvm use 20` first.
 npm run eval:dashboard          # http://127.0.0.1:4500
+
+# You can also run eval directly via the CLI:
+openyida eval --mode comprehensive --skill yida-dashboard
 ```
 
 Configuration precedence is `CLI flag > env (OPENYIDA_EVAL_*) > scripts/eval/eval.config.json > defaults`.
 
 | Flag | Purpose |
 |------|---------|
-| `--mode e2e\|routing\|generate\|all` | Which evals to run (default `e2e`; `all` = routing + tool-pipeline baseline + real generation) |
+| `--mode e2e\|routing\|generate\|doc-quality\|safety\|coverage\|comprehensive\|all` | Which evals to run (default `e2e`) |
 | `--skill <name>` | Restrict the e2e run to one sub-skill; stages are reverse-looked-up from the `SKILL_COVERAGE` matrix |
 | `--stages a,b` | Explicit stage list, overriding the skill reverse-lookup |
+| `--runs N` | Multi-run stability: repeat routing N times, report consistency rate |
 | `--screenshot` / `--no-screenshot` | Capture the published page (default on; skipped gracefully if Playwright is absent) |
 | `--auto-score` / `--no-auto-score` | Score screenshots with the local `claude -p` agent (default off → human template only) |
 | `--scenarios <dir>` | Routing golden-set directory (default `scripts/eval/scenarios`) |
@@ -345,11 +367,11 @@ Schema-as-Code Phase 1 manages app, form, process, and native/default display pa
 
 | Command | Description |
 |---------|-------------|
-| `openyida login [target-url] [--qr\|--agent-qr\|--codex\|--browser] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--corp-id <corpId>]` | Login (cache first, --browser or --agent-qr when needed) |
-| `openyida logout` | Logout / switch account |
-| `openyida auth <status\|login\|refresh\|logout>` | Login state management |
-| `openyida org <list\|switch>` | Organization management (list / switch) |
-| `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | Detect AI tool environment & login state |
+| `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>]` | Login with OAuth token mode |
+| `openyida logout` | Logout / clear token |
+| `openyida auth <status\|login\|refresh\|logout>` | Token login state management |
+| `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | Organization management (list / switch by OAuth re-login) |
+| `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | Detect AI tool environment & token login state |
 
 ### App Management
 
@@ -388,6 +410,7 @@ Schema-as-Code Phase 1 manages app, form, process, and native/default display pa
 | `openyida compile <src>` | Compile custom page locally |
 | `openyida publish <src> <appType> <formUuid> [--health-check] [--force] [--canvas] [--open\|--no-open]` | Compile and publish custom page |
 | `openyida update-form-config <appType> ...` | Update form configuration |
+| `openyida get-form-config <appType> <formUuid> [--json]` | Query form configuration |
 
 ### Schema-as-Code
 
@@ -477,6 +500,7 @@ Schema-as-Code Phase 1 manages app, form, process, and native/default display pa
 | `openyida copy [--force]` | Copy project working directory |
 | `openyida sample [--list]` | Output code samples/templates |
 | `openyida doctor [--fix]` | Environment diagnostics & auto-fix |
+| `openyida eval --mode <mode> [--skill <name>] [--runs N]` | Multi-dimensional skill evaluation (doc quality, routing accuracy, safety, etc.) |
 | `openyida db-seq-fix [--fix]` | Detect and repair PostgreSQL sequence drift |
 | `openyida formula evaluate <formula\|file> [--schema file]` | Static-check Yida formula syntax and field refs |
 | `openyida update` | Check and update to latest version |
@@ -485,6 +509,7 @@ Schema-as-Code Phase 1 manages app, form, process, and native/default display pa
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run OpenYida commands in batch |
 | `openyida flash-to-prd --file <path> --name "<project>"` | Convert flash notes or meeting notes to a PRD prompt |
 | `openyida ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
+| `openyida asset <status\|verify-url\|resolve\|generate> [options]` | Detect asset capability / verify image URLs / resolve materials |
 | `openyida cdn-config [options]` | Configure CDN / OSS upload |
 | `openyida cdn-upload <image-path>` | Upload image to CDN |
 | `openyida cdn-refresh [options]` | Refresh CDN cache |
@@ -493,11 +518,15 @@ Schema-as-Code Phase 1 manages app, form, process, and native/default display pa
 
 ### CLI Notes
 
+`openyida asset resolve --hero <path-or-url> --product <path-or-url> --require-hero --upload-assets --json` is the preferred preflight for homepage visuals. It verifies public image URLs, uploads local images when CDN is configured, mirrors verified external images to CDN when `--upload-assets` is passed, and returns `materialStatus: final|draft|none` so agents do not claim an unfinished visual page is final.
+
 #### Environment and Localization
 
 Environment selectors such as `--env intl`, `--intl`, `--overseas`, `--global`, and `--yidaapps` can be used on login-required commands to choose the target Yida environment for that run. The `intl` preset uses `https://www.yidaapps.com` as the built-in Global YiDA entrypoint (not the bare `https://yidaapps.com` domain) and DingTalk International OAuth at `https://login.dingtalk.io`; business API requests still use the authenticated environment `baseUrl`, so customer custom subdomains are supported.
 
 For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation commands, or set `OPENYIDA_CONTENT_LOCALE`. OpenYida writes YiDA resource names with `zh_CN`, `en_US`, and `ja_JP` values so Global YiDA does not fall back to Chinese-only metadata.
+
+The CLI package ships the core UI languages `zh` and `en` by default. Other CLI UI language packs are optional: keep or install files such as `ja.js` / `fr.js` in an external directory and point `OPENYIDA_LOCALE_DIR` to that directory, then set `OPENYIDA_LANG=ja`. If an optional language pack is unavailable, OpenYida falls back through `en -> zh`.
 
 #### Forms and Pages
 
@@ -599,9 +628,9 @@ When adding new CLI commands, register the route in `bin/yida.js`, add it to `li
 
 ## Security and Configuration
 
-- Login cookies are cached locally and should never be hard-coded into source files.
+- OAuth token sessions are cached locally and should never be hard-coded into source files.
 - Private deployment environments are managed through `lib/core/env-manager.js`.
-- Yida API requests should use the active environment base URL and authenticated cookies.
+- Yida API requests should use the active environment base URL and Bearer token auth.
 - For multi-organization accounts, prefer explicit `--corp-id` values in non-interactive automation.
 
 ## Community
