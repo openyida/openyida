@@ -4,15 +4,6 @@
   "entry": "openyida",
   "skills": [
     {
-      "name": "large-file-write",
-      "path": "skills/large-file-write/SKILL.md",
-      "display_name": "大文件可靠写入",
-      "description": "解决 heredoc 或 shell 命令写入大文件内容被截断的问题。优先使用 agent 结构化文件写入工具；超大文件可用该工具创建 Node.js payload 后执行。适用于需要可靠写入超过 100 行文本文件时。",
-      "category": "agent/tool",
-      "tags": ["大文件", "写入", "结构化文件", "heredoc"],
-      "aliases": ["大文件写入"]
-    },
-    {
       "name": "sls-log-workbench",
       "path": "skills/sls-log-workbench/SKILL.md",
       "display_name": "SLS 日志查询工作台",

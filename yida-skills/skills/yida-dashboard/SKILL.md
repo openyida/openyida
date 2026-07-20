@@ -129,7 +129,7 @@ metadata:
 7. **禁止在看板内直接 fetch 钉钉 OpenAPI 或写 accessToken**：必须通过集成自动化后端托管连接器鉴权
 8. **禁止 cdnjs.cloudflare.com**：宜搭环境被拦截，ECharts / html2canvas 统一用 `g.alicdn.com`
 9. **禁止缺少 `.sl-no-capture` 标记或写无事件截图按钮**：截图按钮本身要被 html2canvas 排除，且必须有真实 `onClick`；静态状态胶囊、筛选展示项、截图占位标签一律用 `span/div`
-10. **禁止 2300 行一口气写到单个 create_file**：超过 1000 行用 `large-file-write` 技能或分批 append；Windows 下也禁止用 `Get-Content -Raw | ConvertTo-Json` 处理大 `.oyd.jsx`
+10. **禁止 2300 行一口气写到单个 create_file**：超过 1000 行必须用结构化文件写入工具分批创建/追加；Windows 下也禁止用 `Get-Content -Raw | ConvertTo-Json` 处理大 `.oyd.jsx`
 11. **禁止集成自动化 priority 入参用 processVar 透传 RadioField/SelectField 的选项值**：连接器要求 Number(10/20/30/40)，正常方案必须 `priority:processVar:<priorityNum NumberField 字段 ID>`；`literal:10` 只能作为临时回滚止血方案，否则 UI 优先级选项会失效
 
 ---

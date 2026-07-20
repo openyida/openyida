@@ -152,7 +152,7 @@ description: >
 ## 技能路由（单一 / 增量任务）
 
 > 选定 **1 个**最匹配的项执行。表**按业务域分组**，每组内既可能是 skill 也可能是 CLI：
-> - 行名为 `yida-xxx` / `sls-log-workbench` / `large-file-write` 的是 **skill** → 在支持 `use_skill` 的宿主中调用 `use_skill("<技能名>", "<本次目的>")` 加载后执行；
+> - 行名为 `yida-xxx` / `sls-log-workbench` 的是 **skill** → 在支持 `use_skill` 的宿主中调用 `use_skill("<技能名>", "<本次目的>")` 加载后执行；
 > - 行名为 `openyida xxx` 并标 **`CLI`** 的**无 SKILL.md** → 识别到诉求直接执行命令、**不要当 skill 去 read**。
 >
 > 按分组 +「何时选择」内联区别对号入座即可。
@@ -216,7 +216,6 @@ description: >
 | | 加载子技能 `yida-voc` | 整理故障/需求反馈材料 |
 | | 加载子技能 `sls-log-workbench` | SLS 平台问题日志查询 |
 | | 加载子技能 `yida-db-seq-fix` | PostgreSQL 主键冲突 / Sequence 修复 |
-| | 加载子技能 `large-file-write` | 可靠写入 100+ 行大文件 |
 | | `openyida ai` `CLI` | 调用宜搭 AI 通用能力：文生文（文本生成）/ 识图（图片识别） |
 | | `openyida batch` `CLI` | 批量顺序执行多条 OpenYida 命令（读 tasks 文件，支持 `--json --quiet`） |
 

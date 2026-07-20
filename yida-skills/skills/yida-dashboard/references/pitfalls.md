@@ -233,7 +233,7 @@ class 名建议用项目前缀（`sl-` / `sc-` 等），不要直接 `.no-captur
 
 **正确做法**：
 - **> 1000 行**必须分批：第一次 `create_file`（覆盖），后续 `append=true` + 提供 `continuation_context`
-- 或使用 `large-file-write` 技能
+- 或使用当前 agent 的结构化文件写入工具创建 Node.js payload 后分段写入
 - 分批时按**语义边界**切分（常量块 → 函数块 → renderJsx 块），不要在一个函数中间切
 - Windows 下不要用 `Get-Content -Raw | ConvertTo-Json` 把大 `.oyd.jsx` 转成 patch 文件；这会制造多份转义副本并可能耗尽内存
 

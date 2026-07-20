@@ -9,7 +9,6 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const SKILLS_DIR = path.join(ROOT, 'yida-skills', 'skills');
 
 const SKILL_COVERAGE = {
-  'large-file-write': { level: 'offline', tests: ['write fixture generation uses fs APIs in runner tests'] },
   'sls-log-workbench': { level: 'offline-unit', tests: ['skill metadata and packaging validation'], reason: 'internal support-only SLS tooling is guarded by passphrase and corp whitelist; shared real E2E must not query production logs' },
   'yida-app': { level: 'real-e2e', stages: ['app', 'form', 'page', 'data', 'report', 'dashboard'] },
   'yida-app-permission': { level: 'offline-unit', tests: ['tests/app-permission.test.js'], reason: 'app admin mutations affect real application access; shared real E2E only validates safe read paths' },
