@@ -496,6 +496,37 @@ describe('loadCookieData', () => {
     expect(result.base_url).toBe('https://custom.aliwork.com');
   });
 
+  test('仓库外 projectRoot 缺少缓存时读取全局 OpenYida 缓存', () => {
+    const originalCacheDir = process.env.OPENYIDA_CACHE_DIR;
+    const globalCacheDir = path.join(tmpDir, 'global-openyida-cache');
+    const outsideRoot = path.join(tmpDir, 'outside-workspace');
+    const data = {
+      cookies: [
+        { name: 'tianshu_csrf_token', value: 'global-token' },
+        { name: 'tianshu_corp_user', value: 'corpGlobal_userGlobal' },
+      ],
+      base_url: 'https://global.aliwork.com',
+    };
+    process.env.OPENYIDA_CACHE_DIR = globalCacheDir;
+    fs.mkdirSync(globalCacheDir, { recursive: true });
+    fs.writeFileSync(path.join(globalCacheDir, 'cookies-public.json'), JSON.stringify(data), 'utf-8');
+
+    try {
+      const result = loadCookieData(outsideRoot);
+      expect(result).not.toBeNull();
+      expect(result.csrf_token).toBe('global-token');
+      expect(result.corp_id).toBe('corpGlobal');
+      expect(result.user_id).toBe('userGlobal');
+      expect(result.base_url).toBe('https://global.aliwork.com');
+    } finally {
+      if (originalCacheDir === undefined) {
+        delete process.env.OPENYIDA_CACHE_DIR;
+      } else {
+        process.env.OPENYIDA_CACHE_DIR = originalCacheDir;
+      }
+    }
+  });
+
   test('读取云版注入格式时使用顶层 csrf/corp/user 字段', () => {
     const data = {
       cookies: [{ name: 'sid', value: 'cookie-only' }],
