@@ -55,9 +55,18 @@ describe('build-skills-package', () => {
 
       expect(fs.existsSync(path.join(outDir, 'SKILL.md'))).toBe(true);
       expect(fs.existsSync(path.join(outDir, 'skills-index.json'))).toBe(true);
+      expect(fs.existsSync(path.join(outDir, 'references', 'schema-as-code-phase1.md'))).toBe(true);
+      expect(fs.readFileSync(path.join(outDir, 'SKILL.md'), 'utf8')).toContain(
+        'references/schema-as-code-phase1.md'
+      );
+      expect(fs.readFileSync(
+        path.join(outDir, 'references', 'subskills', 'yida-app', 'README.md'),
+        'utf8'
+      )).toContain('references/schema-as-code-phase1.md');
 
       const entryNames = listZipEntryNames(zipOut);
       expect(entryNames).toContain('openyida/SKILL.md');
+      expect(entryNames).toContain('openyida/references/schema-as-code-phase1.md');
       expect(entryNames).not.toContain('openyida/skills-index.json');
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });

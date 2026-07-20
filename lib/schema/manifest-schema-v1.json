@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://openyida.ai/schemas/openyida-app-manifest-v1.json",
+  "type": "object",
+  "required": ["kind", "schemaVersion", "app"],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "openyida_app_manifest"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "app": {
+      "$ref": "#/definitions/app"
+    },
+    "forms": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/form"
+      }
+    },
+    "processes": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/process"
+      }
+    },
+    "pages": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/page"
+      }
+    }
+  },
+  "definitions": {
+    "app": {
+      "type": "object",
+      "required": ["key", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "form": {
+      "type": "object",
+      "required": ["title", "fields"],
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mode": {
+          "enum": ["receipt", "process"]
+        },
+        "dependsOn": {
+          "$ref": "#/definitions/dependencyList"
+        },
+        "fields": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/definitions/field"
+          }
+        }
+      }
+    },
+    "field": {
+      "type": "object",
+      "required": ["type", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "type": "string", "minLength": 1 },
+              {
+                "type": "object",
+                "required": ["label", "value"],
+                "additionalProperties": false,
+                "properties": {
+                  "label": { "type": "string", "minLength": 1 },
+                  "value": { "type": "string", "minLength": 1 }
+                }
+              }
+            ]
+          }
+        },
+        "form": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dependsOn": {
+          "$ref": "#/definitions/dependencyList"
+        },
+        "children": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/definitions/field"
+          }
+        }
+      }
+    },
+    "process": {
+      "type": "object",
+      "required": ["form", "nodes"],
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/processNode"
+          }
+        }
+      }
+    },
+    "page": {
+      "type": "object",
+      "required": ["title", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dependsOn": {
+          "$ref": "#/definitions/dependencyList"
+        }
+      }
+    },
+    "processNode": {
+      "type": "object",
+      "required": ["key", "type", "name", "approver"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approver": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "dependencyList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  }
+}
