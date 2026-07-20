@@ -52,9 +52,11 @@ describe('schema source e2e runner', () => {
 
   test('creates a temp launcher that executes the checkout bin/yida.js', () => {
     const launcher = createLauncher(tempDir);
-    const result = spawnSync(launcher.launcherPath, ['--version'], {
+    const command = launcher.commandPath || launcher.launcherPath;
+    const result = spawnSync(command, ['--version'], {
       cwd: tempDir,
       encoding: 'utf8',
+      shell: process.platform === 'win32' && /\.cmd$/i.test(command),
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 10000,
     });

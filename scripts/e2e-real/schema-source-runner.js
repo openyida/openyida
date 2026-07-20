@@ -58,6 +58,10 @@ function assertPathInside(child, parent, label) {
   return childReal;
 }
 
+function toPortableRelative(root, target) {
+  return path.relative(root, target).replace(/\\/g, '/');
+}
+
 function readSourceSkillEvidence(skillRoot = SOURCE_SKILL_ROOT) {
   const rootReal = fs.realpathSync(skillRoot);
   const expectedRoot = fs.realpathSync(SOURCE_SKILL_ROOT);
@@ -82,14 +86,14 @@ function readSourceSkillEvidence(skillRoot = SOURCE_SKILL_ROOT) {
     const realPath = assertPathInside(filePath, skillRoot, 'Skill file');
     const content = fs.readFileSync(realPath, 'utf8');
     return {
-      file: path.relative(ROOT, realPath),
+      file: toPortableRelative(ROOT, realPath),
       sha256: sha256(content),
       bytes: Buffer.byteLength(content),
     };
   });
 
   return {
-    root: path.relative(ROOT, rootReal),
+    root: toPortableRelative(ROOT, rootReal),
     files: evidence,
   };
 }
@@ -137,9 +141,19 @@ if (result.error) {
 process.exit(result.status === null ? 1 : result.status);
 `;
   fs.writeFileSync(launcherPath, launcher, { encoding: 'utf8', mode: 0o755 });
-  fs.copyFileSync(launcherPath, path.join(binDir, 'yida'));
-  fs.chmodSync(path.join(binDir, 'yida'), 0o755);
-  return { binDir, launcherPath, tracePath };
+  const yidaPath = path.join(binDir, 'yida');
+  fs.copyFileSync(launcherPath, yidaPath);
+  fs.chmodSync(yidaPath, 0o755);
+
+  let commandPath = launcherPath;
+  if (process.platform === 'win32') {
+    commandPath = path.join(binDir, 'openyida.cmd');
+    const command = `@echo off\r\n"${process.execPath}" "${launcherPath}" %*\r\n`;
+    fs.writeFileSync(commandPath, command, 'utf8');
+    fs.writeFileSync(path.join(binDir, 'yida.cmd'), command, 'utf8');
+  }
+
+  return { binDir, commandPath, launcherPath, tracePath };
 }
 
 function buildEnv(workspace, launcher) {
@@ -149,6 +163,7 @@ function buildEnv(workspace, launcher) {
     ...process.env,
     PATH: `${launcher.binDir}${path.delimiter}${process.env.PATH || ''}`,
     NODE_OPTIONS: `--require=${MOCK_PRELOAD}`,
+    OPENYIDA_SCHEMA_SOURCE_E2E_LAUNCHER: launcher.commandPath || launcher.launcherPath,
     OPENYIDA_SCHEMA_SOURCE_E2E_MOCK: '1',
     OPENYIDA_SCHEMA_SOURCE_MOCK_DB: mockDbPath,
     OPENYIDA_LANG: 'en',
@@ -439,10 +454,12 @@ function assertNoSensitiveStdio(text, label) {
 }
 
 function runCommand(commandEnv, workspace, args, options = {}) {
-  const result = spawnSync('openyida', args, {
+  const command = commandEnv.OPENYIDA_SCHEMA_SOURCE_E2E_LAUNCHER || 'openyida';
+  const result = spawnSync(command, args, {
     cwd: workspace,
     env: commandEnv,
     encoding: 'utf8',
+    shell: process.platform === 'win32' && /\.cmd$/i.test(command),
     timeout: options.timeoutMs || DEFAULT_TIMEOUT_MS,
     stdio: ['ignore', 'pipe', 'pipe'],
     maxBuffer: 16 * 1024 * 1024,
@@ -949,7 +966,7 @@ function assertLauncherTrace(tracePath, launcherPath) {
   return {
     commandCount: trace.length,
     launcherSha256: sha256(fs.realpathSync(launcherPath)),
-    sourceBin: path.relative(ROOT, sourceBinReal),
+    sourceBin: toPortableRelative(ROOT, sourceBinReal),
     sourceBinSha256: hashFile(sourceBinReal),
     firstCommand: summarizeArgs(trace[0].argv),
     lastCommand: summarizeArgs(trace[trace.length - 1].argv),
@@ -1309,7 +1326,7 @@ function run(options = {}) {
     startedAt: new Date().toISOString(),
     source: {
       cli: {
-        bin: path.relative(ROOT, fs.realpathSync(SOURCE_BIN)),
+        bin: toPortableRelative(ROOT, fs.realpathSync(SOURCE_BIN)),
         binSha256: hashFile(SOURCE_BIN),
       },
       skills: readSourceSkillEvidence(),
