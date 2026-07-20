@@ -250,6 +250,26 @@ function printLoginResult(result) {
     return;
   }
 
+  const authMode = result.auth_mode || result.authMode || 'token';
+  if (authMode !== 'token') {
+    const usable = result.can_auto_use !== false && result.status === 'ok';
+    const summary = {
+      ok: usable,
+      status: result.status || (usable ? 'ok' : 'not_logged_in'),
+      auth_mode: authMode,
+      auth_source: result.auth_source || result.authSource,
+      can_auto_use: usable,
+      base_url: result.base_url,
+      corp_id: result.corp_id,
+      user_id: result.user_id,
+      cookie_count: result.cookie_count,
+      failure_reason: result.failure_reason,
+      message: result.message,
+    };
+    console.log(JSON.stringify(summary));
+    return;
+  }
+
   const tokenUsable = result.can_auto_use !== false && !!result.access_token;
   const summary = {
     ok: tokenUsable,
@@ -516,10 +536,13 @@ async function main() {
 
     case 'login': {
       const loginArgs = applyLoginEnvironmentFlags(args, { inferTargetUrl: true });
-      const { tokenLogin, tokenStatus } = require('../lib/auth/token-auth');
+      const { getAuthStatus, isEnvAuthMode } = require('../lib/core/utils');
       if (loginArgs.includes('--check-only')) {
-        console.log(JSON.stringify(tokenStatus(), null, 2));
+        console.log(JSON.stringify(getAuthStatus(), null, 2));
+      } else if (isEnvAuthMode()) {
+        printLoginResult(getAuthStatus());
       } else {
+        const { tokenLogin } = require('../lib/auth/token-auth');
         const result = await tokenLogin({
           clientId: getArgValue(loginArgs, '--client-id'),
           quiet: loginArgs.includes('--quiet'),
@@ -538,17 +561,31 @@ async function main() {
     case 'auth': {
       const subCommand = args[0];
       const authArgs = applyLoginEnvironmentFlags(args.slice(1), { inferTargetUrl: true });
-      const { tokenLogin, tokenLogout, tokenRefresh, tokenStatus } = require('../lib/auth/token-auth');
+      const { getAuthStatus, isEnvAuthMode } = require('../lib/core/utils');
+      const { tokenLogin, tokenLogout, tokenRefresh } = require('../lib/auth/token-auth');
       if (subCommand === 'status') {
-        console.log(JSON.stringify(tokenStatus(), null, 2));
+        console.log(JSON.stringify(getAuthStatus(), null, 2));
       } else if (subCommand === 'login') {
-        const result = await tokenLogin({
-          clientId: getArgValue(authArgs, '--client-id'),
-          quiet: authArgs.includes('--quiet'),
-        });
+        const result = isEnvAuthMode()
+          ? getAuthStatus()
+          : await tokenLogin({
+            clientId: getArgValue(authArgs, '--client-id'),
+            quiet: authArgs.includes('--quiet'),
+          });
         printLoginResult(result);
       } else if (subCommand === 'refresh') {
-        console.log(JSON.stringify(maskSensitiveAuthOutput(await tokenRefresh()), null, 2));
+        if (isEnvAuthMode()) {
+          const status = getAuthStatus();
+          console.log(JSON.stringify({
+            ...status,
+            refresh_supported: false,
+            message: status.status === 'ok'
+              ? 'cookie auth is host-injected; auth refresh is not supported. Refresh or reinject OPENYIDA_COOKIE_B64 in the host.'
+              : status.message,
+          }, null, 2));
+        } else {
+          console.log(JSON.stringify(maskSensitiveAuthOutput(await tokenRefresh()), null, 2));
+        }
       } else if (subCommand === 'logout') {
         console.log(JSON.stringify(await tokenLogout(), null, 2));
       } else {

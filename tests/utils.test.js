@@ -500,11 +500,14 @@ describe('loadCookieData', () => {
 describe('loadAuthData', () => {
   let tmpDir;
   let originalAuthEnabled;
+  let originalCookieB64;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-utils-'));
     originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
+    originalCookieB64 = process.env.OPENYIDA_COOKIE_B64;
     delete process.env.YIDA_AUTH_ENABLED;
+    delete process.env.OPENYIDA_COOKIE_B64;
   });
 
   afterEach(() => {
@@ -512,6 +515,11 @@ describe('loadAuthData', () => {
       delete process.env.YIDA_AUTH_ENABLED;
     } else {
       process.env.YIDA_AUTH_ENABLED = originalAuthEnabled;
+    }
+    if (originalCookieB64 === undefined) {
+      delete process.env.OPENYIDA_COOKIE_B64;
+    } else {
+      process.env.OPENYIDA_COOKIE_B64 = originalCookieB64;
     }
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
@@ -547,7 +555,23 @@ describe('loadAuthData', () => {
     expect(loadAuthData(tmpDir)).toBeNull();
   });
 
-  test('YIDA_AUTH_ENABLED=true 时临时回退读取 Cookie 缓存', () => {
+  test('YIDA_AUTH_ENABLED=true 时读取 OPENYIDA_COOKIE_B64 注入 Cookie', () => {
+    process.env.YIDA_AUTH_ENABLED = 'true';
+    process.env.OPENYIDA_COOKIE_B64 = Buffer.from(
+      'tianshu_csrf_token=legacy-csrf; tianshu_corp_user=corpLegacy_userLegacy',
+      'utf8'
+    ).toString('base64');
+
+    expect(loadAuthData(tmpDir)).toMatchObject({
+      auth_mode: 'cookie',
+      auth_source: 'env',
+      csrf_token: 'legacy-csrf',
+      corp_id: 'corpLegacy',
+      user_id: 'userLegacy',
+    });
+  });
+
+  test('YIDA_AUTH_ENABLED=true 时不再读取旧 cookies.json 文件', () => {
     const cacheDir = path.join(tmpDir, '.cache');
     fs.mkdirSync(cacheDir, { recursive: true });
     fs.writeFileSync(path.join(cacheDir, 'cookies.json'), JSON.stringify([
@@ -555,14 +579,22 @@ describe('loadAuthData', () => {
       { name: 'tianshu_corp_user', value: 'corpLegacy_userLegacy' },
     ]), 'utf-8');
     process.env.YIDA_AUTH_ENABLED = 'true';
+    delete process.env.OPENYIDA_COOKIE_B64;
 
-    expect(loadAuthData(tmpDir)).toMatchObject({
-      auth_mode: 'cookie',
-      auth_source: 'cookie',
-      csrf_token: 'legacy-csrf',
-      corp_id: 'corpLegacy',
-      user_id: 'userLegacy',
-    });
+    expect(loadAuthData(tmpDir)).toBeNull();
+  });
+
+  test('YIDA_AUTH_ENABLED=true 且 OPENYIDA_COOKIE_B64 非法时不回退 cookies.json', () => {
+    const cacheDir = path.join(tmpDir, '.cache');
+    fs.mkdirSync(cacheDir, { recursive: true });
+    fs.writeFileSync(path.join(cacheDir, 'cookies.json'), JSON.stringify([
+      { name: 'tianshu_csrf_token', value: 'legacy-csrf' },
+      { name: 'tianshu_corp_user', value: 'corpLegacy_userLegacy' },
+    ]), 'utf-8');
+    process.env.YIDA_AUTH_ENABLED = 'true';
+    process.env.OPENYIDA_COOKIE_B64 = 'not-base64';
+
+    expect(loadAuthData(tmpDir)).toBeNull();
   });
 });
 

@@ -9,7 +9,9 @@ const {
   SOURCE_BIN,
   SOURCE_SKILL_ROOT,
   assertNoSensitiveStdio,
+  buildEnv,
   createLauncher,
+  ensureWorkspace,
   crmManifest,
   isUnsupportedPayload,
   readSourceSkillEvidence,
@@ -62,6 +64,19 @@ describe('schema source e2e runner', () => {
     const trace = fs.readFileSync(launcher.tracePath, 'utf8').trim().split(/\r?\n/).map((line) => JSON.parse(line));
     expect(fs.realpathSync(trace[0].sourceBin)).toBe(fs.realpathSync(SOURCE_BIN));
     expect(trace[0].argv).toEqual(['--version']);
+  });
+
+  test('injects schema source auth through OPENYIDA_COOKIE_B64 instead of cookies.json', () => {
+    ensureWorkspace(tempDir);
+    const launcher = createLauncher(tempDir);
+    const env = buildEnv(tempDir, launcher);
+
+    expect(env).toMatchObject({
+      YIDA_AUTH_ENABLED: 'true',
+      OPENYIDA_BASE_URL: 'https://source-e2e.example.test',
+    });
+    expect(Buffer.from(env.OPENYIDA_COOKIE_B64, 'base64').toString('utf8')).toContain('tianshu_csrf_token=csrf-source-e2e');
+    expect(fs.existsSync(path.join(tempDir, '.cache', 'cookies.json'))).toBe(false);
   });
 
   test('crm scenario matrix covers four-resource create, update, noop, and deferred boundaries', () => {

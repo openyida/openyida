@@ -8,7 +8,7 @@ description: >
 
 # 宜搭 AI 应用开发指南
 
-通过有 AI Coding 能力的智能体（悟空/Claude/Open Code 等）+ 宜搭低代码平台，实现一句话搭建或修改完整应用。所有操作通过 **`openyida`** CLI 统一执行，默认读取 `.cache/auth-token-<env>.json`，并在业务请求中携带 `Authorization: Bearer <access_token>`；token 不可用时执行 `openyida login` 重新登录。yida-agent 旧链路临时兼容 `YIDA_AUTH_ENABLED=true` 的 Cookie 注入模式，未显式开启时不要依赖 `.cache/cookies.json`。
+通过有 AI Coding 能力的智能体（悟空/Claude/Open Code 等）+ 宜搭低代码平台，实现一句话搭建或修改完整应用。所有操作通过 **`openyida`** CLI 统一执行。IF 未设置 `YIDA_AUTH_ENABLED=true`：默认 OAuth token，token 不可用才执行 `openyida login`。IF `YIDA_AUTH_ENABLED=true`：仅使用 `OPENYIDA_COOKIE_B64` 注入 Cookie；注入失败必须 STOP，禁止 `openyida login` / `openyida auth refresh`，禁止读 `.cache/cookies*.json`。
 
 ---
 
@@ -38,7 +38,8 @@ description: >
 |---------|------|
 | 命令跑不了（`command not found`） | openyida 未安装 → `npm install -g openyida` |
 | Node/npm 版本不达标 | 先升级 Node（≥16）再装/升级 openyida |
-| `login.status` 不是 `ok` 且 `login.can_auto_use` 不是 true | 未登录 → `openyida login`（指定入口带 URL 或 flag） |
+| `login.auth_mode=token` 且未登录 | `openyida login`（指定入口带 URL 或 flag） |
+| `login.auth_mode=cookie` 且未登录 | STOP；宿主必须注入有效 `OPENYIDA_COOKIE_B64`；禁止 `openyida login` / `openyida auth refresh`；禁止读 `.cache/cookies*.json` |
 | `workdir_exists` / `active.projectRootExists` 为 false | 无工作目录 → `openyida copy` 初始化 |
 
 **👉 环境异常、登录失败、悟空降级、OAuth token 登录异常等特殊分支 → [references/setup-and-env.md](references/setup-and-env.md)。正常 `agent-capabilities` 通过时不要默认读取该 reference。**
@@ -216,7 +217,7 @@ description: >
 ### 致命规则（FATAL，违反即失败/报错）
 
 1. **技能加载唯一入口**：执行任何子技能前，支持 `use_skill` 的宿主必须调用 `use_skill("<技能名>", "<本阶段目的>")` 加载对应技能；不要用 `Read` / `read_file` / `cat` 读取 SKILL.md 路径，不凭记忆猜参数格式。
-2. **corpId 一致性检查**：创建或发布页面前对比 prd/resource context 与当前 auth context（token session；`YIDA_AUTH_ENABLED=true` 时为 Cookie 注入）的 corpId，不一致必须询问用户（重新登录到目标组织，或确认在当前组织继续操作已解析资源/缺失资源）。
+2. **corpId 一致性检查**：创建或发布页面前对比 prd/resource context 与当前 auth context（默认 token session；仅 `YIDA_AUTH_ENABLED=true` + `OPENYIDA_COOKIE_B64` 时为 Cookie 注入）的 corpId，不一致必须询问用户（重新登录到目标组织，或确认在当前组织继续操作已解析资源/缺失资源）。
 3. **发布前本地校验**：普通自定义页面 `.oyd.jsx` / `.jsx` 发布前跑 `openyida check-page` + `openyida compile`；Code Canvas `.canvas.jsx` 不跑这两个普通自定义页面检查，改由 `openyida publish` 的 Canvas 编译阶段或 `compileCanvasLocal` 快检校验；JSON 配置写盘后先解析校验，再调用平台命令。
 4. **命令输入文件禁止 shell 写入**：当 OpenYida 命令需要 JSON/YAML/CSV/config/script 文件参数时，先使用当前 agent 运行时提供的结构化文件写入工具（如 create_file / Write / file edit tool）创建文件，再把路径传给命令；禁止用 shell heredoc、`cat`/`echo`/`printf`/`tee` 加输出重定向，或把命令 stdout 重定向成业务文件。
 

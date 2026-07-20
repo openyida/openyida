@@ -1508,6 +1508,126 @@ describe('schema apply command and recovery state machine', () => {
       fs.rmSync(outside, { recursive: true, force: true });
     }
   });
+
+  test('form post-write readback retries on SCHEMA_REMOTE_READ_FAILED and succeeds', async () => {
+    const manifestFile = writeManifest();
+    const normalized = normalizeManifest(manifest());
+    const initialState = emptyState(normalized);
+    const firstPlan = planFor(normalized, initialState);
+    let readAttempts = 0;
+    const harness = createRemoteHarness({
+      readFormSchema(context, input, remote) {
+        readAttempts++;
+        const value = remote.forms[input.formUuid];
+        if (!value) {
+          const error = new Error('form read failed');
+          error.code = 'FORM_SCHEMA_READ_FAILED';
+          throw error;
+        }
+        // Simulate delayed indexing: first 2 reads fail
+        if (readAttempts <= 2) {
+          const error = new Error('form read failed');
+          error.code = 'FORM_SCHEMA_READ_FAILED';
+          throw error;
+        }
+        return value;
+      },
+    });
+
+    const result = await runApply(manifestFile, firstPlan.planId, harness);
+
+    expect(result.payload).toMatchObject({
+      success: true,
+      counts: { create: 2 },
+    });
+    // create:form doesn't call readFormSchema, post-write retries 3 times (2 fail + 1 success)
+    expect(readAttempts).toBe(3);
+  });
+
+  test('form post-write readback honors command retry config and throws last error', async () => {
+    const manifestFile = writeManifest();
+    const normalized = normalizeManifest(manifest());
+    const initialState = emptyState(normalized);
+    const firstPlan = planFor(normalized, initialState);
+    let readAttempts = 0;
+    const harness = createRemoteHarness({
+      readFormSchema(context, input, remote) {
+        readAttempts++;
+        const error = new Error('form read failed');
+        error.code = 'FORM_SCHEMA_READ_FAILED';
+        throw error;
+      },
+    });
+
+    const result = await runApply(manifestFile, firstPlan.planId, harness, {
+      formPostWriteReadbackRetry: { maxAttempts: 3, delayMs: 0 },
+    });
+
+    expect(result.payload).toMatchObject({
+      success: false,
+      // retry 耗尽后抛出的 read 错误会被 post-write verification catch
+      // 统一转成 SCHEMA_RECONCILIATION_REQUIRED（applier.js finalizeOrdinaryResult）
+      error: { code: 'SCHEMA_RECONCILIATION_REQUIRED' },
+    });
+    expect(readAttempts).toBe(3);
+  });
+
+  test('form post-write readback does not retry on non-retryable errors', async () => {
+    const manifestFile = writeManifest();
+    const normalized = normalizeManifest(manifest());
+    const initialState = emptyState(normalized);
+    const firstPlan = planFor(normalized, initialState);
+    let readAttempts = 0;
+    const harness = createRemoteHarness({
+      readFormSchema(context, input, remote) {
+        readAttempts++;
+        const value = remote.forms[input.formUuid];
+        if (!value) {
+          const error = new Error('form read failed');
+          error.code = 'FORM_SCHEMA_READ_FAILED';
+          throw error;
+        }
+        // Throw a non-retryable error (JIT conflict)
+        const error = new Error('JIT conflict');
+        error.code = 'SCHEMA_APPLY_JIT_CONFLICT';
+        error.details = { resourceType: 'form', key: 'visitor' };
+        throw error;
+      },
+    });
+
+    const result = await runApply(manifestFile, firstPlan.planId, harness, {
+      formPostWriteReadbackRetry: { maxAttempts: 3, delayMs: 10 },
+    });
+
+    expect(result.payload.success).toBe(false);
+    // JIT conflict is not retryable: only 1 post-write read attempt
+    expect(readAttempts).toBe(1);
+  });
+
+  test('app create skips post-write readback via projectOperationResult', async () => {
+    const manifestFile = writeManifest();
+    const normalized = normalizeManifest(manifest());
+    const initialState = emptyState(normalized);
+    const firstPlan = planFor(normalized, initialState);
+    let appReadAttempts = 0;
+    const harness = createRemoteHarness({
+      readApp(context, input, remote) {
+        appReadAttempts++;
+        if (!remote.app || remote.app.appType !== input.appType) {
+          const error = new Error('missing app');
+          error.code = 'APP_READ_NOT_FOUND';
+          throw error;
+        }
+        return { ...remote.app };
+      },
+    });
+
+    const result = await runApply(manifestFile, firstPlan.planId, harness);
+
+    expect(result.payload.success).toBe(true);
+    // App projectOperationResult returns projection from desired state, no remote readback needed
+    expect(appReadAttempts).toBe(0);
+  });
 });
 
 function findFieldComponent(schema, fieldId) {

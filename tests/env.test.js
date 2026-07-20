@@ -32,12 +32,28 @@ describe('detectEnvironment', () => {
 
 describe('detectLoginStatus', () => {
   let tmpDir;
+  let originalAuthEnabled;
+  let originalCookieB64;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-env-token-'));
+    originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
+    originalCookieB64 = process.env.OPENYIDA_COOKIE_B64;
+    delete process.env.YIDA_AUTH_ENABLED;
+    delete process.env.OPENYIDA_COOKIE_B64;
   });
 
   afterEach(() => {
+    if (originalAuthEnabled === undefined) {
+      delete process.env.YIDA_AUTH_ENABLED;
+    } else {
+      process.env.YIDA_AUTH_ENABLED = originalAuthEnabled;
+    }
+    if (originalCookieB64 === undefined) {
+      delete process.env.OPENYIDA_COOKIE_B64;
+    } else {
+      process.env.OPENYIDA_COOKIE_B64 = originalCookieB64;
+    }
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
@@ -82,9 +98,56 @@ describe('detectLoginStatus', () => {
     expect(result.diagnostics.tokenFileFound).toBe(true);
     expect(result.diagnostics.tokenFound).toBe(true);
   });
+
+  test('YIDA_AUTH_ENABLED=true 时返回 cookie 兼容登录状态', () => {
+    process.env.YIDA_AUTH_ENABLED = 'true';
+    process.env.OPENYIDA_COOKIE_B64 = Buffer.from(
+      'tianshu_csrf_token=legacy-csrf; tianshu_corp_user=corpCookie_userCookie',
+      'utf8'
+    ).toString('base64');
+
+    const result = detectLoginStatus(tmpDir);
+    expect(result).toMatchObject({
+      loggedIn: true,
+      canAutoUse: true,
+      corpId: 'corpCookie',
+      userId: 'userCookie',
+      authSource: 'env',
+      authMode: 'cookie',
+    });
+    expect(result.diagnostics).toMatchObject({
+      authMode: 'cookie',
+      cookieFound: true,
+      csrfFound: true,
+      tokenFound: false,
+    });
+  });
 });
 
 describe('run', () => {
+  let originalAuthEnabled;
+  let originalCookieB64;
+
+  beforeEach(() => {
+    originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
+    originalCookieB64 = process.env.OPENYIDA_COOKIE_B64;
+    delete process.env.YIDA_AUTH_ENABLED;
+    delete process.env.OPENYIDA_COOKIE_B64;
+  });
+
+  afterEach(() => {
+    if (originalAuthEnabled === undefined) {
+      delete process.env.YIDA_AUTH_ENABLED;
+    } else {
+      process.env.YIDA_AUTH_ENABLED = originalAuthEnabled;
+    }
+    if (originalCookieB64 === undefined) {
+      delete process.env.OPENYIDA_COOKIE_B64;
+    } else {
+      process.env.OPENYIDA_COOKIE_B64 = originalCookieB64;
+    }
+  });
+
   test('--json 输出机器可读环境快照', () => {
     const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     let output;

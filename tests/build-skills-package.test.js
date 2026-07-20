@@ -56,17 +56,35 @@ describe('build-skills-package', () => {
       expect(fs.existsSync(path.join(outDir, 'SKILL.md'))).toBe(true);
       expect(fs.existsSync(path.join(outDir, 'skills-index.json'))).toBe(true);
       expect(fs.existsSync(path.join(outDir, 'references', 'schema-as-code-phase1.md'))).toBe(true);
-      expect(fs.readFileSync(path.join(outDir, 'SKILL.md'), 'utf8')).toContain(
-        'references/schema-as-code-phase1.md'
-      );
+      const generatedRootSkill = fs.readFileSync(path.join(outDir, 'SKILL.md'), 'utf8');
+      expect(generatedRootSkill).toContain('OPENYIDA_COOKIE_B64');
+      expect(generatedRootSkill).toContain('禁止 `openyida login` / `openyida auth refresh`');
       expect(fs.readFileSync(
         path.join(outDir, 'references', 'subskills', 'yida-app', 'README.md'),
         'utf8'
-      )).toContain('references/schema-as-code-phase1.md');
+      )).toContain('fast_build');
+      const generatedSetupGuide = fs.readFileSync(
+        path.join(outDir, 'references', 'setup-and-env.md'),
+        'utf8'
+      );
+      expect(generatedSetupGuide).toContain('auth_mode=cookie');
+      expect(generatedSetupGuide).toContain('STOP; host must inject `OPENYIDA_COOKIE_B64`');
+      expect(generatedSetupGuide).toContain('Never run `openyida auth refresh` in cookie mode');
+      const generatedLoginSkill = fs.readFileSync(
+        path.join(outDir, 'references', 'subskills', 'yida-login', 'README.md'),
+        'utf8'
+      );
+      expect(generatedLoginSkill).toContain('OPENYIDA_COOKIE_B64');
+      expect(generatedLoginSkill).toContain('不要再执行 `openyida login` 触发 OAuth');
+      expect(generatedLoginSkill).toContain('不要查找本地 `.cache/cookies*.json`');
+      expect(generatedLoginSkill).not.toContain('本地兼容缓存');
+      expect(generatedLoginSkill).not.toContain('兼容缓存的 Cookie/CSRF');
 
       const entryNames = listZipEntryNames(zipOut);
       expect(entryNames).toContain('openyida/SKILL.md');
       expect(entryNames).toContain('openyida/references/schema-as-code-phase1.md');
+      expect(entryNames).toContain('openyida/references/setup-and-env.md');
+      expect(entryNames).toContain('openyida/references/subskills/yida-login/README.md');
       expect(entryNames).not.toContain('openyida/skills-index.json');
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });

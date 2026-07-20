@@ -47,6 +47,9 @@ function cliEnv() {
     OPENYIDA_AGENT_MODE: '',
     OPENYIDA_ASSUME_DESKTOP: '',
     OPENYIDA_FORCE_TERMINAL_QR: '',
+    YIDA_AUTH_ENABLED: '',
+    OPENYIDA_COOKIE_B64: '',
+    OPENYIDA_BASE_URL: '',
     __CFBundleIdentifier: '',
   };
 }
@@ -75,6 +78,19 @@ function createCodexWorkspace() {
   fs.mkdirSync(projectDir, { recursive: true });
   fs.writeFileSync(path.join(projectDir, 'config.json'), '{}', 'utf8');
   return workspace;
+}
+
+function encodeCookieHeader(cookieHeader) {
+  return Buffer.from(cookieHeader, 'utf8').toString('base64');
+}
+
+function writeIgnoredLegacyCookieCache(workspace) {
+  const cacheDir = path.join(workspace, 'project', '.cache');
+  fs.mkdirSync(cacheDir, { recursive: true });
+  fs.writeFileSync(path.join(cacheDir, 'cookies.json'), JSON.stringify([
+    { name: 'tianshu_csrf_token', value: 'file-csrf' },
+    { name: 'tianshu_corp_user', value: 'corpFile_userFile' },
+  ]), 'utf8');
 }
 
 function runAny(args) {
@@ -978,6 +994,169 @@ describe('CLI offline smoke', () => {
         can_auto_use: false,
       });
       expect(parsed).not.toHaveProperty('handoff_type');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('YIDA_AUTH_ENABLED=true reports cookie auth status and does not start OAuth login', () => {
+    const workspace = createCodexWorkspace();
+    const env = {
+      CODEX_SHELL: '1',
+      OPENYIDA_ENV: 'public',
+      YIDA_AUTH_ENABLED: 'true',
+      OPENYIDA_COOKIE_B64: encodeCookieHeader(
+        'tianshu_csrf_token=legacy-csrf; tianshu_corp_user=corpLegacy_userLegacy'
+      ),
+    };
+
+    try {
+      const checkOnly = JSON.parse(runOkWithEnv(['login', '--check-only', '--json'], env, workspace));
+      expect(checkOnly).toMatchObject({
+        auth_mode: 'cookie',
+        auth_source: 'env',
+        status: 'ok',
+        can_auto_use: true,
+        corp_id: 'corpLegacy',
+        user_id: 'userLegacy',
+      });
+      expect(checkOnly).not.toHaveProperty('cookies');
+      expect(checkOnly).not.toHaveProperty('csrf_token');
+
+      const loginOutput = runOkWithEnv(['login', '--json'], env, workspace);
+      expect(loginOutput).not.toContain('login.dingtalk.com/oauth2/auth');
+      const login = JSON.parse(loginOutput);
+      expect(login).toMatchObject({
+        auth_mode: 'cookie',
+        status: 'ok',
+        can_auto_use: true,
+      });
+
+      const authStatus = JSON.parse(runOkWithEnv(['auth', 'status', '--json'], env, workspace));
+      expect(authStatus).toMatchObject({
+        auth_mode: 'cookie',
+        status: 'ok',
+        can_auto_use: true,
+      });
+
+      const refresh = JSON.parse(runOkWithEnv(['auth', 'refresh', '--json'], env, workspace));
+      expect(refresh).toMatchObject({
+        auth_mode: 'cookie',
+        auth_source: 'env',
+        status: 'ok',
+        can_auto_use: true,
+        refresh_supported: false,
+      });
+      expect(refresh).not.toHaveProperty('access_token');
+      expect(refresh).not.toHaveProperty('refresh_token');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('YIDA_AUTH_ENABLED=true is visible in env and agent-capabilities preflight output', () => {
+    const workspace = createCodexWorkspace();
+    const env = {
+      CODEX_SHELL: '1',
+      OPENYIDA_ENV: 'public',
+      YIDA_AUTH_ENABLED: 'true',
+      OPENYIDA_COOKIE_B64: encodeCookieHeader(
+        'tianshu_csrf_token=legacy-csrf; tianshu_corp_user=corpLegacy_userLegacy'
+      ),
+    };
+
+    try {
+      const envSnapshot = JSON.parse(runOkWithEnv(['env', '--json'], env, workspace));
+      expect(envSnapshot.login).toMatchObject({
+        loggedIn: true,
+        canAutoUse: true,
+        authSource: 'env',
+        authMode: 'cookie',
+        corpId: 'corpLegacy',
+        userId: 'userLegacy',
+      });
+      expect(envSnapshot.login).not.toHaveProperty('cookies');
+      expect(envSnapshot.login).not.toHaveProperty('csrfToken');
+      expect(envSnapshot.login.diagnostics).toMatchObject({
+        authMode: 'cookie',
+        cookieFound: true,
+        csrfFound: true,
+      });
+
+      const summary = JSON.parse(runOkWithEnv(['agent-capabilities', '--summary-json'], env, workspace));
+      expect(summary.login).toMatchObject({
+        auth_mode: 'cookie',
+        auth_source: 'env',
+        status: 'ok',
+        can_auto_use: true,
+      });
+      expect(summary.login).not.toHaveProperty('cookies');
+      expect(summary.login).not.toHaveProperty('csrf_token');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('YIDA_AUTH_ENABLED=true ignores legacy cookies.json when OPENYIDA_COOKIE_B64 is missing', () => {
+    const workspace = createCodexWorkspace();
+    writeIgnoredLegacyCookieCache(workspace);
+    try {
+      const parsed = JSON.parse(runOkWithEnv(['login', '--check-only', '--json'], {
+        CODEX_SHELL: '1',
+        OPENYIDA_ENV: 'public',
+        YIDA_AUTH_ENABLED: 'true',
+      }, workspace));
+      expect(parsed).toMatchObject({
+        auth_mode: 'cookie',
+        auth_source: 'env',
+        status: 'not_logged_in',
+        can_auto_use: false,
+        cookie_count: 0,
+        failure_reason: 'env_cookie_missing',
+      });
+      expect(parsed).not.toHaveProperty('csrf_token');
+      expect(parsed).not.toHaveProperty('cookies');
+
+      const refresh = JSON.parse(runOkWithEnv(['auth', 'refresh', '--json'], {
+        CODEX_SHELL: '1',
+        OPENYIDA_ENV: 'public',
+        YIDA_AUTH_ENABLED: 'true',
+      }, workspace));
+      expect(refresh).toMatchObject({
+        auth_mode: 'cookie',
+        auth_source: 'env',
+        status: 'not_logged_in',
+        can_auto_use: false,
+        refresh_supported: false,
+        failure_reason: 'env_cookie_missing',
+      });
+      expect(refresh).not.toHaveProperty('access_token');
+      expect(refresh).not.toHaveProperty('refresh_token');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('YIDA_AUTH_ENABLED=true reports invalid OPENYIDA_COOKIE_B64 without reading cookies.json', () => {
+    const workspace = createCodexWorkspace();
+    writeIgnoredLegacyCookieCache(workspace);
+    try {
+      const parsed = JSON.parse(runOkWithEnv(['login', '--check-only', '--json'], {
+        CODEX_SHELL: '1',
+        OPENYIDA_ENV: 'public',
+        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_COOKIE_B64: 'not-base64',
+      }, workspace));
+      expect(parsed).toMatchObject({
+        auth_mode: 'cookie',
+        auth_source: 'env',
+        status: 'not_logged_in',
+        can_auto_use: false,
+        cookie_count: 0,
+        failure_reason: 'env_cookie_decode_failed',
+      });
+      expect(parsed).not.toHaveProperty('csrf_token');
+      expect(parsed).not.toHaveProperty('cookies');
     } finally {
       fs.rmSync(workspace, { recursive: true, force: true });
     }

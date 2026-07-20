@@ -19,6 +19,7 @@ const SENSITIVE_STDIO_PATTERNS = Object.freeze([
   /csrf-source-e2e/i,
   /corpSourceE2E/i,
   /userSourceE2E/i,
+  /OPENYIDA_COOKIE_B64/i,
   /APP_SOURCE_E2E_/,
   /FORM_SOURCE_E2E_/,
   /TPROC_SOURCE_E2E_/,
@@ -26,6 +27,14 @@ const SENSITIVE_STDIO_PATTERNS = Object.freeze([
   /\b(text|number|date|select|textarea|employee|table|associationForm)Field_[A-Za-z0-9_-]+/,
   /componentsTree/,
 ]);
+
+const MOCK_COOKIE_DATA = Object.freeze({
+  base_url: 'https://source-e2e.example.test',
+  cookies: [
+    { name: 'tianshu_csrf_token', value: 'csrf-source-e2e', domain: 'source-e2e.example.test' },
+    { name: 'tianshu_corp_user', value: 'corpSourceE2E_userSourceE2E', domain: 'source-e2e.example.test' },
+  ],
+});
 
 function nowStamp(date = new Date()) {
   return date.toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
@@ -89,13 +98,13 @@ function ensureWorkspace(workspace) {
   fs.mkdirSync(workspace, { recursive: true, mode: 0o700 });
   fs.writeFileSync(path.join(workspace, 'config.json'), `${JSON.stringify({ schemaSourceE2e: true }, null, 2)}\n`, 'utf8');
   fs.mkdirSync(path.join(workspace, '.cache'), { recursive: true, mode: 0o700 });
-  fs.writeFileSync(path.join(workspace, '.cache', 'cookies.json'), `${JSON.stringify({
-    base_url: 'https://source-e2e.example.test',
-    cookies: [
-      { name: 'tianshu_csrf_token', value: 'csrf-source-e2e', domain: 'source-e2e.example.test' },
-      { name: 'tianshu_corp_user', value: 'corpSourceE2E_userSourceE2E', domain: 'source-e2e.example.test' },
-    ],
-  }, null, 2)}\n`, 'utf8');
+}
+
+function cookieHeaderFromData(cookieData) {
+  return (cookieData.cookies || [])
+    .filter((cookie) => cookie && cookie.name && cookie.value)
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join('; ');
 }
 
 function createLauncher(workspace) {
@@ -135,6 +144,7 @@ process.exit(result.status === null ? 1 : result.status);
 
 function buildEnv(workspace, launcher) {
   const mockDbPath = path.join(workspace, 'mock-remote.json');
+  const cookieHeader = cookieHeaderFromData(MOCK_COOKIE_DATA);
   return {
     ...process.env,
     PATH: `${launcher.binDir}${path.delimiter}${process.env.PATH || ''}`,
@@ -143,6 +153,9 @@ function buildEnv(workspace, launcher) {
     OPENYIDA_SCHEMA_SOURCE_MOCK_DB: mockDbPath,
     OPENYIDA_LANG: 'en',
     OPENYIDA_SKIP_UPDATE_CHECK: '1',
+    YIDA_AUTH_ENABLED: 'true',
+    OPENYIDA_COOKIE_B64: Buffer.from(cookieHeader, 'utf8').toString('base64'),
+    OPENYIDA_BASE_URL: MOCK_COOKIE_DATA.base_url,
     NO_UPDATE_NOTIFIER: '1',
     YIDA_QUIET: '1',
     CI: '1',
@@ -258,6 +271,57 @@ function automationManifest() {
         title: '客户提交后通知销售',
         trigger: { form: 'customerProfile', event: 'submit' },
         actions: [{ type: 'dingTalkNotify', target: 'salesGroup', content: '新客户档案' }],
+      },
+    },
+  };
+}
+
+function mixedModeManifest() {
+  return {
+    kind: 'openyida_app_manifest',
+    schemaVersion: 1,
+    app: {
+      key: 'opsSystem',
+      name: '运维工单系统',
+    },
+    forms: {
+      deviceRegistry: {
+        title: '设备台账',
+        fields: {
+          deviceName: {
+            type: 'TextField',
+            label: '设备名称',
+            required: true,
+          },
+          deviceModel: {
+            type: 'TextField',
+            label: '设备型号',
+          },
+        },
+      },
+      changeApproval: {
+        title: '变更审批',
+        mode: 'process',
+        fields: {
+          changeTitle: {
+            type: 'TextField',
+            label: '变更标题',
+            required: true,
+          },
+          changeReason: {
+            type: 'TextareaField',
+            label: '变更原因',
+            required: true,
+          },
+        },
+      },
+    },
+    processes: {
+      changeFlow: {
+        form: 'changeApproval',
+        nodes: [
+          { key: 'opsReview', type: 'approval', name: '运维审批', approver: 'originator' },
+        ],
       },
     },
   };
@@ -1075,6 +1139,156 @@ function runMockContractProbe(commandEnv, workspace) {
   }
 }
 
+function assertMixedModeBindings(statePath, dbPath) {
+  const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+  const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+  const apps = Object.values(db.apps || {});
+  const forms = Object.values(db.forms || {});
+  const processes = Object.values(db.processes || {});
+  if (apps.length !== 1 || forms.length !== 2 || processes.length !== 1) {
+    throw new Error('mixed-mode mock remote DB must contain exactly one app, two forms, and one process');
+  }
+  const appState = state.resources && state.resources.app && state.resources.app.opsSystem;
+  const receiptState = state.resources && state.resources.form && state.resources.form.deviceRegistry;
+  const processFormState = state.resources && state.resources.form && state.resources.form.changeApproval;
+  const processState = state.resources && state.resources.process && state.resources.process.changeFlow;
+  if (!appState || !receiptState || !processFormState || !processState) {
+    throw new Error('mixed-mode state must include app, receipt form, process form, and process resources');
+  }
+  const [app] = apps;
+  const receiptForm = forms.find(form => form.formUuid === receiptState.bindings.formUuid);
+  const processForm = forms.find(form => form.formUuid === processFormState.bindings.formUuid);
+  const [processResource] = processes;
+  if (
+    appState.bindings.appType !== app.appType ||
+    !receiptForm || receiptForm.appType !== app.appType ||
+    !processForm || processForm.appType !== app.appType
+  ) {
+    throw new Error('mixed-mode state identity bindings do not match the mock remote resources');
+  }
+  if (receiptForm.mode !== 'receipt' || receiptForm.processCode !== null || receiptState.bindings.processCode !== undefined) {
+    throw new Error('mixed-mode receipt form must stay unbound from any process');
+  }
+  if (
+    processForm.mode !== 'process' ||
+    !processForm.processCode ||
+    processForm.processCode !== processResource.processCode ||
+    processFormState.bindings.processCode !== processResource.processCode ||
+    processFormState.lastApplied.mode !== 'process'
+  ) {
+    throw new Error('mixed-mode process form must be bound to the created process');
+  }
+  if (
+    processState.bindings.appType !== app.appType ||
+    processState.bindings.formUuid !== processForm.formUuid ||
+    processState.bindings.processCode !== processResource.processCode ||
+    processState.bindings.processId !== processResource.active.processId ||
+    processState.bindings.processVersion !== processResource.active.processVersion ||
+    processResource.active.processVersion !== 1 ||
+    processResource.draft !== null ||
+    JSON.stringify(processResource.historical.map(identity => identity.processVersion)) !== JSON.stringify([0])
+  ) {
+    throw new Error('mixed-mode process version or form ownership evidence is inconsistent');
+  }
+  if (
+    !isPlainRecord(processResource.activeProcessJson) ||
+    !isSha256(processResource.activeProcessJsonHash) ||
+    stableObjectHash(processResource.activeProcessJson) !== processResource.activeProcessJsonHash
+  ) {
+    throw new Error('mixed-mode process payload hash does not match the source managed definition');
+  }
+  assertFieldBindingRelationships(
+    receiptState.bindings.fieldBindings,
+    receiptForm.content,
+    (receiptState.lastApplied.fields || []).map(field => field.semanticPath),
+    'mixed-mode receipt form'
+  );
+  assertFieldBindingRelationships(
+    processFormState.bindings.fieldBindings,
+    processForm.content,
+    (processFormState.lastApplied.fields || []).map(field => field.semanticPath),
+    'mixed-mode process form'
+  );
+  assertProcessNodeBindingRelationships(
+    processState.bindings.nodeBindings,
+    processState.lastApplied.nodes,
+    processResource.activeProcessJson,
+    'mixed-mode process'
+  );
+  const writeCalls = countCalls(db.calls, name => /^(create|update|convert|save|publish):/.test(name));
+  const expectedWriteCalls = {
+    'create:app': 1,
+    'create:form': 2,
+    'create:process-draft': 1,
+    'publish:process': 1,
+    'save:process': 1,
+  };
+  if (JSON.stringify(writeCalls) !== JSON.stringify(expectedWriteCalls)) {
+    throw new Error(`mixed-mode mock write calls differ from the lifecycle contract: ${JSON.stringify(writeCalls)}`);
+  }
+  if ((db.networkAttempts || []).length !== 0) {
+    throw new Error('mixed-mode lifecycle attempted a blocked network primitive');
+  }
+  return {
+    identitiesMatchRemote: true,
+    receiptFormMode: receiptForm.mode,
+    processFormMode: processForm.mode,
+    processFormBoundToProcess: true,
+    processVersion: processResource.active.processVersion,
+    exactWriteCalls: writeCalls,
+    networkAttempts: 0,
+  };
+}
+
+function runMixedModeLifecycle() {
+  const rawWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-schema-mixed-e2e-'));
+  fs.mkdirSync(rawWorkspace, { recursive: true, mode: 0o700 });
+  const workspace = fs.realpathSync(rawWorkspace);
+  try {
+    ensureWorkspace(workspace);
+    const launcher = createLauncher(workspace);
+    const commandEnv = buildEnv(workspace, launcher);
+    const statePath = path.join(workspace, '.cache', 'openyida', 'schema-source', 'state.v1.json');
+    const manifestPath = path.join(workspace, 'manifests', 'mixed-mode.json');
+    writeJson(manifestPath, mixedModeManifest());
+
+    const validation = runSchemaValidate(commandEnv, workspace, manifestPath);
+    const plan = runSchemaPlan(commandEnv, workspace, manifestPath, statePath);
+    assertExactCounts(plan, planCounts(4, 0, 0), 'mixed-mode plan');
+    const apply = runSchemaApply(commandEnv, workspace, manifestPath, statePath, plan.planId);
+    assertExactCounts(apply, applyCounts(4, 0, 0), 'mixed-mode apply');
+    const journal = assertCompletedJournal(
+      statePath,
+      plan,
+      'mixed-mode',
+      commandEnv.OPENYIDA_SCHEMA_SOURCE_MOCK_DB
+    );
+
+    const confirmPlan = runSchemaPlan(commandEnv, workspace, manifestPath, statePath);
+    assertNoop(confirmPlan, 'mixed-mode confirm plan', 4);
+    const confirmApply = runSchemaApply(commandEnv, workspace, manifestPath, statePath, confirmPlan.planId);
+    assertNoop(confirmApply, 'mixed-mode confirm apply', 4, 'apply');
+
+    return {
+      id: 'mixed-mode-manifest',
+      prompt: '同一个应用同时搭建普通表单和流程表单（receipt + process form + process）',
+      status: 'applied',
+      manifestHash: validation.manifestHash,
+      planId: plan.planId,
+      counts: {
+        plan: plan.counts,
+        apply: apply.counts,
+        confirmPlan: confirmPlan.counts,
+        confirmApply: confirmApply.counts,
+      },
+      journal,
+      ...assertMixedModeBindings(statePath, commandEnv.OPENYIDA_SCHEMA_SOURCE_MOCK_DB),
+    };
+  } finally {
+    fs.rmSync(rawWorkspace, { recursive: true, force: true });
+  }
+}
+
 function writeResult(resultDir, summary) {
   fs.mkdirSync(resultDir, { recursive: true });
   const resultPath = path.join(resultDir, `${summary.runId}.json`);
@@ -1146,6 +1360,7 @@ function run(options = {}) {
     summary.launcher = assertLauncherTrace(launcher.tracePath, launcher.launcherPath);
     summary.state = assertStateAndBindings(workspace, statePath, commandEnv.OPENYIDA_SCHEMA_SOURCE_MOCK_DB);
     summary.processMockContracts = runMockContractProbe(commandEnv, workspace);
+    summary.mixedMode = runMixedModeLifecycle();
     summary.finishedAt = new Date().toISOString();
     summary.status = 'passed';
     return summary;
@@ -1177,6 +1392,7 @@ if (require.main === module) {
         status: scenario.status,
         phase: scenario.phase,
       })),
+      mixedMode: summary.mixedMode ? summary.mixedMode.status : null,
       result: path.join(resultDir, `${summary.runId}.json`),
     }));
   } catch (error) {
@@ -1198,6 +1414,7 @@ module.exports = {
   assertNoSensitiveStdio,
   buildEnv,
   createLauncher,
+  ensureWorkspace,
   isUnsupportedPayload,
   readSourceSkillEvidence,
   run,

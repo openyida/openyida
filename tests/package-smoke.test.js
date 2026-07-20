@@ -73,6 +73,9 @@ describe('npm package smoke', () => {
       expect(files).toContain('docs/capabilities.md');
       expect(files).toContain('project/config.json');
       expect(files).toContain('yida-skills/SKILL.md');
+      expect(files).toContain('yida-skills/references/setup-and-env.md');
+      expect(files).toContain('yida-skills/skills/yida-login/SKILL.md');
+      expect(files).toContain('yida-skills/skills-index.json');
       expect(files).toContain('scripts/postinstall.js');
       expect(files).toContain('lib/samples/yida-canvas-custom-page/dashboard-starter.canvas.jsx');
 

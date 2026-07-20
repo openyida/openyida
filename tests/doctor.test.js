@@ -294,6 +294,41 @@ describe('EnvironmentChecker', () => {
     cleanupTempDir(tmpDir);
   });
 
+  test('checkLoginStatus 在 Cookie 注入模式下不提示 token 登录', () => {
+    const originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
+    const originalCookieB64 = process.env.OPENYIDA_COOKIE_B64;
+    const tmpDir = createTempProject();
+    try {
+      process.env.YIDA_AUTH_ENABLED = 'true';
+      delete process.env.OPENYIDA_COOKIE_B64;
+      const checker = new EnvironmentChecker({ projectRoot: tmpDir });
+      const result = checker.checkLoginStatus();
+
+      expect(result).toMatchObject({
+        id: 'env-login',
+        passed: false,
+        severity: 'warning',
+        fixType: null,
+        fixCommand: null,
+      });
+      expect(result.label).toContain('Cookie 注入');
+      expect(result.message).toContain('OPENYIDA_COOKIE_B64');
+      expect(result.message).not.toContain('openyida login');
+    } finally {
+      if (originalAuthEnabled === undefined) {
+        delete process.env.YIDA_AUTH_ENABLED;
+      } else {
+        process.env.YIDA_AUTH_ENABLED = originalAuthEnabled;
+      }
+      if (originalCookieB64 === undefined) {
+        delete process.env.OPENYIDA_COOKIE_B64;
+      } else {
+        process.env.OPENYIDA_COOKIE_B64 = originalCookieB64;
+      }
+      cleanupTempDir(tmpDir);
+    }
+  });
+
   test('checkOptionalBrowserLogin 未安装 Playwright 时仍通过', () => {
     const tmpDir = createTempProject();
     const checker = new EnvironmentChecker({ projectRoot: tmpDir });

@@ -413,4 +413,60 @@ describe('bridge HTTP protocol', () => {
     });
     expect(JSON.stringify(loginBody)).not.toContain('/secret');
   });
+
+  test('default login check reports cookie inject mode without token wording', async () => {
+    const originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
+    const originalCookieB64 = process.env.OPENYIDA_COOKIE_B64;
+    try {
+      process.env.YIDA_AUTH_ENABLED = 'true';
+      process.env.OPENYIDA_COOKIE_B64 = Buffer.from(
+        'tianshu_csrf_token=bridge-csrf; tianshu_corp_user=corpBridge_userBridge',
+        'utf8'
+      ).toString('base64');
+      const baseUrl = await startBridgeServer({
+        host: '127.0.0.1',
+        port: 0,
+        explicitPort: true,
+        origin,
+        pageUrl: 'https://demo.aliwork.com/s/openyida',
+        pairingToken: 'pair-token',
+        accessToken: 'access-token',
+      }).then((server) => {
+        started = server;
+        return server.localBaseUrl;
+      });
+
+      const pair = await requestJson(baseUrl, {
+        path: '/v1/pair',
+        method: 'POST',
+        origin,
+        body: { token: 'pair-token' },
+      });
+      const login = await requestJson(baseUrl, {
+        path: '/v1/actions/login/check',
+        method: 'POST',
+        origin,
+        token: pair.body.token,
+      });
+      expect(login.body.login).toMatchObject({
+        authMode: 'cookie',
+        status: 'ok',
+        canAutoUse: true,
+        loggedIn: true,
+      });
+      expect(JSON.stringify(login.body.login)).not.toContain('auth-token');
+      expect(JSON.stringify(login.body.login)).not.toContain('bridge-csrf');
+    } finally {
+      if (originalAuthEnabled === undefined) {
+        delete process.env.YIDA_AUTH_ENABLED;
+      } else {
+        process.env.YIDA_AUTH_ENABLED = originalAuthEnabled;
+      }
+      if (originalCookieB64 === undefined) {
+        delete process.env.OPENYIDA_COOKIE_B64;
+      } else {
+        process.env.OPENYIDA_COOKIE_B64 = originalCookieB64;
+      }
+    }
+  });
 });

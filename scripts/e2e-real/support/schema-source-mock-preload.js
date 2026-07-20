@@ -247,7 +247,7 @@ function installMockServices() {
       compiled.schema.gmtModified = 100;
 
       const db = readDb();
-      db.forms[formUuid] = {
+      const form = {
         appType: input.appType,
         formUuid,
         mode: input.formType === 'process' ? 'process' : 'receipt',
@@ -255,6 +255,9 @@ function installMockServices() {
         title: input.definition && input.definition.title || '',
         content: compiled.schema,
       };
+      db.forms[formUuid] = form;
+      // Mirrors the real platform: creating a blank process form binds a procCode immediately.
+      const processCode = form.mode === 'process' ? ensureProcessBinding(db, form) : null;
       writeDb(db);
 
       if (typeof context.checkpointCreateIdentity === 'function') {
@@ -272,6 +275,7 @@ function installMockServices() {
         schema: compiled.schema,
         fieldBindings: compiled.fieldBindings,
         fieldBindingComponents: compiled.fieldBindingComponents,
+        ...(processCode ? { processCode } : {}),
         schemaResult: { success: true, content: compiled.schema },
       };
     };
