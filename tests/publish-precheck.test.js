@@ -13,6 +13,7 @@ jest.mock('../lib/app/form-navigation', () => ({
 const { fetchFormPageList } = require('../lib/app/form-navigation');
 const {
   buildDefaultPageDataSource,
+  buildCanvasSchemaContent,
   buildSchemaContent,
   countCustomPageDataSources,
   extractPageDataSource,
@@ -139,6 +140,35 @@ describe('publish prechecks', () => {
 
     expect(pageDataSource.online.map((item) => item.name)).toEqual(['orders', 'urlParams', 'timestamp']);
     expect(pageDataSource.list.map((item) => item.name)).toEqual(['orders', 'urlParams', 'timestamp']);
+  });
+
+  test('keeps Canvas publish Schema builder export compatible', () => {
+    const previousQuiet = process.env.YIDA_QUIET;
+    process.env.YIDA_QUIET = '1';
+    let schema;
+    try {
+      schema = JSON.parse(buildCanvasSchemaContent(
+        'export default function Page() { return React.createElement("div", null, "ok"); }',
+        'var YidaComp = function Page(){ return window.React.createElement("div", null, "ok"); };',
+        '["react"]',
+        'FORM-CANVAS'
+      ));
+    } finally {
+      if (previousQuiet === undefined) {
+        delete process.env.YIDA_QUIET;
+      } else {
+        process.env.YIDA_QUIET = previousQuiet;
+      }
+    }
+
+    expect(schema.pages[0].componentsTree[0].children[0]).toMatchObject({
+      componentName: 'YidaCodeCanvas',
+      props: {
+        code: expect.stringContaining('export default function Page'),
+        runtimeCode: expect.stringContaining('YidaComp'),
+        importedModules: '["react"]',
+      },
+    });
   });
 
   test.each([

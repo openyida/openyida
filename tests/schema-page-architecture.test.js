@@ -26,9 +26,13 @@ describe('live page architecture surface', () => {
 
     expect(relative).toContain('lib/schema/resource-registry.js');
     expect(relative).toContain('lib/schema/adapters/page-adapter.js');
+    expect(relative).toContain('lib/schema/page-canvas-foundation.js');
     expect(relative).toContain('lib/schema/page-source-loader.js');
     expect(relative).toContain('lib/schema/page-foundation.js');
     expect(relative).toContain('lib/schema/page-data-source-builder.js');
+    expect(relative).toContain('lib/app/canvas-compile.js');
+    expect(relative).toContain('lib/app/services/canvas-page-compiler.js');
+    expect(relative).toContain('lib/app/services/canvas-page-schema-builder.js');
     expect(relative).toContain('lib/app/services/native-page-schema-builder.js');
     expect(relative).toContain('lib/app/services/native-page-compiler.js');
     expect(relative).toContain('lib/app/services/page-resource-service.js');
@@ -62,6 +66,7 @@ describe('live page architecture surface', () => {
       .sort();
 
     expect(modules).toEqual([
+      'page-canvas-foundation.js',
       'page-data-source-builder.js',
       'page-foundation.js',
       'page-source-loader.js',

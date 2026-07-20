@@ -10,21 +10,26 @@ const {
   mergePageDataSource,
 } = require('../lib/app/services/native-page-schema-builder');
 const { compileNativePageSource } = require('../lib/app/services/native-page-compiler');
+const { compileCanvasPageSource } = require('../lib/app/services/canvas-page-compiler');
 const {
+  buildDataSourceOnlyCanvasPagePatch,
   buildDataSourceOnlyNativePagePatch,
   computeDataSourceOnlyShellFingerprint,
   createDataSourceOnlyShellProfile,
   projectDataSourceOnlyShell,
 } = require('../lib/schema/page-data-source-builder');
+const { projectCanvasPageSchema } = require('../lib/schema/page-canvas-foundation');
 const { loadPageSource } = require('../lib/schema/page-source-loader');
 const { hashStable } = require('../lib/schema/state-store');
 
 const PAGE_TITLE = 'Synthetic Page';
 const PAGE_BINDING = 'FORM-SYNTHETIC';
 const SOURCE = 'export default function Page() { return <div>Offline</div>; }\n';
+const CANVAS_SOURCE = 'import React from "react";\nexport default function Page() { return <div>Canvas</div>; }\n';
 
 describe('native page data-source shell builder', () => {
   let compiledPage;
+  let compiledCanvasPage;
   let initialProfile;
   let initialSchema;
   let workspace;
@@ -34,7 +39,11 @@ describe('native page data-source shell builder', () => {
     const sourcePath = path.join(workspace, 'pages', 'home.oyd.jsx');
     fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
     fs.writeFileSync(sourcePath, SOURCE, 'utf8');
+    fs.writeFileSync(path.join(workspace, 'pages', 'home.canvas.jsx'), CANVAS_SOURCE, 'utf8');
     compiledPage = compileNativePageSource(loadPageSource('pages/home.oyd.jsx', {
+      workspaceRoot: workspace,
+    }));
+    compiledCanvasPage = compileCanvasPageSource(loadPageSource('pages/home.canvas.jsx', {
       workspaceRoot: workspace,
     }));
     initialSchema = makeInitialSchema();
@@ -153,6 +162,38 @@ describe('native page data-source shell builder', () => {
     expect(extractPageDataSource(patch.schema)).toEqual(expected);
     expect(patch.initialDataSourceHash).toBe(hashStable(initial));
     expect(patch.preparedDataSourceHash).toBe(hashStable(expected));
+  });
+
+  test('builds a deterministic Canvas patch from the approved initial shell', () => {
+    const patch = buildDataSourceOnlyCanvasPagePatch({
+      compiledPage: compiledCanvasPage,
+      expectedInitialRemoteSchemaHash: remoteSchemaHash(initialSchema),
+      formUuid: PAGE_BINDING,
+      observedFormType: 'display',
+      observedTitle: PAGE_TITLE,
+      operationId: hashStable({ operation: 'page:create:canvas' }),
+      remoteSchema: initialSchema,
+      shellProfile: initialProfile,
+    });
+    const projection = projectCanvasPageSchema({
+      observedFormType: 'display',
+      observedTitle: PAGE_TITLE,
+      schema: patch.schema,
+    });
+
+    expect(patch).toMatchObject({
+      initialRemoteSchemaHash: remoteSchemaHash(initialSchema),
+      preparedRemoteSchemaHash: projection.remoteSchemaHash,
+    });
+    expect(Object.isFrozen(patch)).toBe(true);
+    expect(Object.isFrozen(patch.schema)).toBe(true);
+    expect(projection.managed).toEqual({
+      compiledHash: compiledCanvasPage.compiledHash,
+      formType: 'display',
+      profile: 'canvas/default',
+      sourceHash: compiledCanvasPage.sourceHash,
+      title: PAGE_TITLE,
+    });
   });
 
   test('rejects stale full-Schema hash and observed identity drift', () => {

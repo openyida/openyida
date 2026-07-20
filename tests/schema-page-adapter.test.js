@@ -27,6 +27,8 @@ const { createServerRevisionConflict } = require('../lib/schema/server-revision'
 
 const SOURCE_ONE = 'export default function Page() { return <div>One</div>; }\n';
 const SOURCE_TWO = 'export default function Page() { return <div>Two</div>; }\n';
+const CANVAS_SOURCE_ONE = 'import React from "react";\nexport default function Page() { return <div>Canvas one</div>; }\n';
+const CANVAS_SOURCE_TWO = 'import React from "react";\nexport default function Page() { return <div>Canvas two</div>; }\n';
 
 describe('minimal page resource adapter lifecycle', () => {
   let calls;
@@ -109,6 +111,25 @@ describe('minimal page resource adapter lifecycle', () => {
     });
   });
 
+  test('normalizes Canvas page source under a separate profile', () => {
+    writeCanvasSource(CANVAS_SOURCE_ONE);
+    const normalized = normalize('Home', 'pages/home.canvas.jsx');
+    const page = normalized.normalized.resources.find(resource => resource.resourceType === 'page');
+
+    expect(page).toMatchObject({
+      key: 'home',
+      source: 'pages/home.canvas.jsx',
+      dependsOn: ['app:demoApp'],
+      desired: {
+        formType: 'display',
+        profile: 'canvas/default',
+        title: 'Home',
+        sourceHash: expect.stringMatching(/^sha256:/),
+        compiledHash: expect.stringMatching(/^sha256:/),
+      },
+    });
+  });
+
   test('strict State validation rejects incomplete page identity bindings', () => {
     const state = createEmptyState(environment, { registry });
     expect(() => upsertResourceState(state, {
@@ -167,6 +188,52 @@ describe('minimal page resource adapter lifecycle', () => {
     expect(calls.create).toBe(1);
     expect(calls.save).toBe(2);
     expect(remotePage.schema.serverOnly).toEqual(preserved.serverOnly);
+  });
+
+  test('creates and updates Canvas pages without rediscovering or duplicating remote identity', async () => {
+    writeCanvasSource(CANVAS_SOURCE_ONE);
+    const first = normalize('Home', 'pages/home.canvas.jsx');
+    const firstState = writeAppState(first);
+    const firstPlan = await planFor(first, firstState);
+
+    const created = await runApply(first, firstPlan.planId);
+
+    expect(created).toMatchObject({ success: true, counts: { create: 1, noop: 1 } });
+    expect(calls).toEqual({ create: 1, read: 2, save: 1 });
+    expect(remotePage.schema.pages[0].componentsTree[0].children[0]).toMatchObject({
+      componentName: 'YidaCodeCanvas',
+      props: {
+        code: CANVAS_SOURCE_ONE,
+        runtimeCode: expect.stringContaining('YidaComp'),
+        importedModules: expect.any(String),
+      },
+    });
+
+    const committed = readState(statePath, { environment, registry });
+    expect(committed.resources.page.home).toMatchObject({
+      bindings: {
+        appType: 'APP-SYNTHETIC',
+        formUuid: 'FORM-SYNTHETIC-PAGE',
+      },
+      lastApplied: first.normalized.resources.find(resource => resource.resourceType === 'page').desired,
+    });
+
+    remotePage.schema.serverOnly = { enabled: true };
+    writeCanvasSource(CANVAS_SOURCE_TWO);
+    const second = normalize('Home', 'pages/home.canvas.jsx');
+    const updatePlan = await planFor(second, committed);
+    expect(updatePlan.changes.find(change => change.resourceType === 'page')).toMatchObject({
+      operation: 'update',
+      reasonCode: 'PAGE_SOURCE_CHANGED',
+    });
+
+    const updated = await runApply(second, updatePlan.planId);
+
+    expect(updated.counts.update).toBe(1);
+    expect(calls.create).toBe(1);
+    expect(calls.save).toBe(2);
+    expect(remotePage.schema.serverOnly).toEqual({ enabled: true });
+    expect(remotePage.schema.pages[0].componentsTree[0].children[0].props.code).toBe(CANVAS_SOURCE_TWO);
   });
 
   test('title update is a stable conflict and performs zero page writes', async () => {
@@ -305,27 +372,27 @@ describe('minimal page resource adapter lifecycle', () => {
     }, { fsImpl: fs, registry, services });
   }
 
-  function normalize(title = 'Home') {
-    return normalizeManifest(pageManifest(title), {
+  function normalize(title = 'Home', source = 'pages/home.oyd.jsx') {
+    return normalizeManifest(pageManifest(title, source), {
       fsImpl: fs,
       registry,
       workspaceRoot: workspace,
     });
   }
 
-  function writeManifest(title = 'Home') {
+  function writeManifest(title = 'Home', source = 'pages/home.oyd.jsx') {
     const target = path.join(workspace, 'app.yida.json');
-    fs.writeFileSync(target, JSON.stringify(pageManifest(title)), 'utf8');
+    fs.writeFileSync(target, JSON.stringify(pageManifest(title, source)), 'utf8');
     return target;
   }
 
-  function pageManifest(title) {
+  function pageManifest(title, source) {
     return {
       kind: 'openyida_app_manifest',
       schemaVersion: 1,
       app: { key: 'demoApp', name: 'Demo' },
       pages: {
-        home: { title, source: 'pages/home.oyd.jsx' },
+        home: { title, source },
       },
     };
   }
@@ -352,6 +419,12 @@ describe('minimal page resource adapter lifecycle', () => {
 
   function writeSource(content) {
     const target = path.join(workspace, 'pages', 'home.oyd.jsx');
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, content, 'utf8');
+  }
+
+  function writeCanvasSource(content) {
+    const target = path.join(workspace, 'pages', 'home.canvas.jsx');
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.writeFileSync(target, content, 'utf8');
   }

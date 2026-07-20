@@ -11,6 +11,16 @@ const {
   compileNativePageSource,
 } = require('../lib/app/services/native-page-compiler');
 const {
+  compileCanvasPageSource,
+} = require('../lib/app/services/canvas-page-compiler');
+const {
+  buildCanvasPageSchemaContent,
+} = require('../lib/app/services/canvas-page-schema-builder');
+const {
+  buildCanvasPageSchemaPatch,
+  projectCanvasPageSchema,
+} = require('../lib/schema/page-canvas-foundation');
+const {
   buildNativePageSchemaPatch,
   compareNativePageWrite,
   computeNativePageShellFingerprint,
@@ -21,6 +31,7 @@ const { normalizeManifest } = require('../lib/schema/normalize-manifest');
 const { createDefaultRegistry } = require('../lib/schema/resource-registry');
 
 const SOURCE = 'export default function Page() { return <div>Hello</div>; }\n';
+const CANVAS_SOURCE = 'import React from "react";\nexport default function Page() { return <div>Canvas</div>; }\n';
 
 describe('SAC-09A offline page foundation', () => {
   let approvedShellProfile;
@@ -59,6 +70,13 @@ describe('SAC-09A offline page foundation', () => {
     return compileNativePageSource(load(relativePath));
   }
 
+  function compileCanvas(relativePath = 'pages/home.canvas.jsx') {
+    if (!fs.existsSync(path.join(workspace, relativePath))) {
+      writeSource(relativePath, CANVAS_SOURCE);
+    }
+    return compileCanvasPageSource(load(relativePath));
+  }
+
   test('loads a workspace-relative regular UTF-8 source', () => {
     writeSource('pages/home.oyd.jsx');
 
@@ -66,6 +84,7 @@ describe('SAC-09A offline page foundation', () => {
 
     expect(loaded).toEqual({
       byteLength: Buffer.byteLength(SOURCE),
+      profile: 'native/default',
       relativePath: 'pages/home.oyd.jsx',
       source: SOURCE,
       sourceHash: expect.stringMatching(/^sha256:[a-f0-9]{64}$/),
@@ -208,13 +227,23 @@ describe('SAC-09A offline page foundation', () => {
     }));
   });
 
-  test('rejects Canvas and non-native source profiles', () => {
-    writeSource('pages/home.canvas.jsx');
+  test('loads Canvas source profiles and rejects unsupported source profiles', () => {
+    writeSource('pages/home.canvas.jsx', CANVAS_SOURCE);
+    writeSource('pages/home.canvas.tsx', CANVAS_SOURCE);
+    writeSource('pages/home.canvas.js', CANVAS_SOURCE);
     writeSource('pages/home.tsx');
 
-    expect(() => load('pages/home.canvas.jsx')).toThrow(expect.objectContaining({
-      code: 'SCHEMA_PAGE_SOURCE_PROFILE_UNSUPPORTED',
-    }));
+    expect(load('pages/home.canvas.jsx')).toMatchObject({
+      profile: 'canvas/default',
+      relativePath: 'pages/home.canvas.jsx',
+      source: CANVAS_SOURCE,
+    });
+    expect(load('pages/home.canvas.tsx')).toMatchObject({
+      profile: 'canvas/default',
+    });
+    expect(load('pages/home.canvas.js')).toMatchObject({
+      profile: 'canvas/default',
+    });
     expect(() => load('pages/home.tsx')).toThrow(expect.objectContaining({
       code: 'SCHEMA_PAGE_SOURCE_PROFILE_UNSUPPORTED',
     }));
@@ -268,6 +297,108 @@ describe('SAC-09A offline page foundation', () => {
     expect(() => compileNativePageSource(load('pages/empty.jsx'))).toThrow(expect.objectContaining({
       code: 'SCHEMA_PAGE_SOURCE_COMPILE_FAILED',
     }));
+  });
+
+  test('Canvas compiler is deterministic, trusted, silent, and creates no filesystem artifact', () => {
+    writeSource('pages/home.canvas.jsx', CANVAS_SOURCE);
+    const loaded = load('pages/home.canvas.jsx');
+    const stdoutSpy = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    let first;
+    let second;
+
+    try {
+      first = compileCanvasPageSource(loaded);
+      second = compileCanvasPageSource(loaded);
+    } finally {
+      stdoutSpy.mockRestore();
+      stderrSpy.mockRestore();
+      consoleLogSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
+    }
+
+    expect(first).toEqual(second);
+    expect(first).toMatchObject({
+      compiledHash: expect.stringMatching(/^sha256:[a-f0-9]{64}$/),
+      importedModules: expect.any(String),
+      profile: 'canvas/default',
+      runtimeCode: expect.stringContaining('YidaComp'),
+      source: CANVAS_SOURCE,
+      sourceHash: loaded.sourceHash,
+    });
+    expect(JSON.parse(first.importedModules)).toContain('react');
+    expect(stdoutSpy).not.toHaveBeenCalled();
+    expect(stderrSpy).not.toHaveBeenCalled();
+    expect(consoleLogSpy).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(fs.existsSync(path.join(workspace, 'pages', 'dist'))).toBe(false);
+    expect(fs.existsSync(path.join(workspace, 'pages', 'build'))).toBe(false);
+    expect(() => compileCanvasPageSource({
+      relativePath: 'pages/home.canvas.jsx',
+      source: CANVAS_SOURCE,
+    })).toThrow(expect.objectContaining({
+      code: 'SCHEMA_PAGE_SOURCE_INVALID',
+    }));
+  });
+
+  test('projects saved Canvas pages from YidaCodeCanvas props without native shell fingerprints', () => {
+    const compiledPage = compileCanvas();
+    const firstSchema = makeCanvasSavedSchema(compiledPage, {
+      canvasId: 'canvas-random-a',
+      modifiedTime: 100,
+      pageClassName: 'page_randoma',
+      pageId: 'page-random-a',
+    });
+    const secondSchema = makeCanvasSavedSchema(compiledPage, {
+      canvasId: 'canvas-random-b',
+      modifiedTime: 999,
+      pageClassName: 'page_randomb',
+      pageId: 'page-random-b',
+      reverseChildren: true,
+    });
+
+    const first = projectCanvas(firstSchema);
+    const second = projectCanvas(secondSchema);
+
+    expect(first.managed).toEqual(second.managed);
+    expect(first.managed).toMatchObject({
+      compiledHash: compiledPage.compiledHash,
+      formType: 'display',
+      profile: 'canvas/default',
+      sourceHash: compiledPage.sourceHash,
+      title: 'Home',
+    });
+    expect(first.managedHash).toBe(second.managedHash);
+    expect(first.remoteSchemaHash).not.toBe(second.remoteSchemaHash);
+  });
+
+  test('patches only Canvas managed props and preserves unmanaged Schema content', () => {
+    const compiledPage = compileCanvas();
+    writeSource('pages/other.canvas.jsx', CANVAS_SOURCE.replace('Canvas', 'Next'));
+    const nextCompiled = compileCanvas('pages/other.canvas.jsx');
+    const schema = makeCanvasSavedSchema(compiledPage);
+    schema.vendorExtension = { keep: true };
+    const original = JSON.parse(JSON.stringify(schema));
+
+    const patch = buildCanvasPageSchemaPatch({
+      compiledPage: nextCompiled,
+      desiredTitle: 'Home',
+      expectedRemoteSchemaHash: projectCanvas(schema).remoteSchemaHash,
+      observedFormType: 'display',
+      observedTitle: 'Home',
+      remoteSchema: schema,
+    });
+
+    expect(schema).toEqual(original);
+    expect(patch.schema.vendorExtension).toEqual({ keep: true });
+    const canvas = findComponent(patch.schema.pages[0].componentsTree, 'YidaCodeCanvas');
+    expect(canvas.props.code).toBe(nextCompiled.source);
+    expect(canvas.props.runtimeCode).toBe(nextCompiled.runtimeCode);
+    expect(canvas.props.importedModules).toBe(nextCompiled.importedModules);
+    expect(patch.managed).toEqual(projectCanvas(patch.schema).managed);
+    expect(patch.schema.actions.module.source).toBe(original.actions.module.source);
   });
 
   test('random node identity, timestamps, and component order do not affect managed projection', () => {
@@ -722,6 +853,15 @@ describe('SAC-09A offline page foundation', () => {
       ...overrides,
     });
   }
+
+  function projectCanvas(schema, overrides = {}) {
+    return projectCanvasPageSchema({
+      observedFormType: 'display',
+      observedTitle: 'Home',
+      schema,
+      ...overrides,
+    });
+  }
 });
 
 function makeShellSchema(options = {}) {
@@ -811,6 +951,36 @@ function makeSavedSchema(compiledPage, options = {}) {
   schema.actions.module.source = compiledPage.source;
   schema.actions.module.compiled = compiledPage.compiled;
   return schema;
+}
+
+function makeCanvasSavedSchema(compiledPage, options = {}) {
+  const schema = JSON.parse(buildCanvasPageSchemaContent(
+    compiledPage.source,
+    compiledPage.runtimeCode,
+    compiledPage.importedModules,
+    'FORM-CANVAS',
+    {
+      nextNodeId: tokenFactory([
+        options.pageId || 'page-node',
+        options.canvasId || 'canvas-node',
+      ]),
+      nextSuffix: tokenFactory([options.pageClassName || 'fixture']),
+    }
+  ));
+  schema.modifiedTime = options.modifiedTime || 1;
+  if (options.pageClassName) {
+    schema.pages[0].componentsTree[0].props.className = options.pageClassName;
+  }
+  if (options.reverseChildren) {
+    schema.pages[0].componentsMap.reverse();
+    schema.pages[0].componentsTree[0].children.reverse();
+  }
+  return schema;
+}
+
+function tokenFactory(values) {
+  let index = 0;
+  return () => values[index++] || values[values.length - 1] || 'token';
 }
 
 function findComponent(value, componentName) {
