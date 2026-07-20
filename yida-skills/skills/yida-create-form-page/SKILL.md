@@ -1,9 +1,21 @@
 ---
 name: yida-create-form-page
-description: 表单页面创建与更新，支持 19 种字段类型（文本、选择、日期、子表、关联表单等）、联动规则和数据源绑定。适用于新建表单、设计表单结构、添加或修改表单字段。
+description: 表单页面创建与更新，支持 19 种字段类型、联动规则和数据源绑定；schema-managed 表单由根技能或明确 context 路由到 schema workflow。
 ---
 
 # 表单页面创建与更新
+
+> 资源边界：本技能只处理普通 OpenYida 资源；若根技能、上下文或 CLI guard 显示目标是 schema-managed，停止本技能并走 schema workflow；目标不明时回到根技能确认。
+
+## Resource-First create/update 判定
+
+执行本技能前必须先解析 app/form resource context：
+
+- 已有目标 `formUuid`、表单 URL、bound form，或 workspace cache/config 中可确认的 standalone form 时，字段结构诉求默认走 update/patch/rule/bind-datasource 模式；不要再 create 同名或同类表单。
+- bound form/page 只是默认候选，不是锁定目标；如果当前会话绑定表单或页面 A，但用户本轮明确要求修改 B 的字段，必须先解析 B 对应的表单 `formUuid`。B 能唯一解析时改 B；B 无法唯一解析或字段归属不清时问用户；禁止默认改 A。
+- 已有目标 app 但缺少业务数据表，且用户明确要求“增加客户表 / 新建订单表 / 新增数据收集入口”等，才使用 create 模式创建新表单。
+- 用户给页面 URL 或自定义页面 `formUuid` 且诉求是优化页面 UI 时，改走 `yida-custom-page` + `yida-publish-page`；不要创建表单。
+- 多个表单候选时按根技能来源优先级选择；同级冲突、字段目标不明或无法判断要改哪张表时才问用户。
 
 ## 严格禁止 (NEVER DO)
 
@@ -11,6 +23,7 @@ description: 表单页面创建与更新，支持 19 种字段类型（文本、
 - 不要在 update 模式中使用猜测的 fieldId，必须先用 `yida-get-schema` 获取
 - 不要用此命令操作数据记录（增删改查），应使用 `yida-data-management`
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成字段、变更、补丁、规则、数据源 JSON 文件
+- 已有目标表单且用户是改字段/联动/属性时，不要创建新表单；必须走 update/patch/rule/bind-datasource。
 
 ## 严格要求 (MUST DO)
 
@@ -31,10 +44,11 @@ description: 表单页面创建与更新，支持 19 种字段类型（文本、
 
 ## 适用场景
 
-用户需要"创建表单"、"新增字段"、"修改表单结构"时使用。
+用户需要"创建表单"、"新增字段"、"修改表单结构"时使用；先按 resource context 判定 create 还是 update。
 
 **关键区分**：
-- 修改表单结构（字段增删改）→ 本技能 update 模式
+- 已有目标表单，修改表单结构（字段增删改）→ 本技能 update 模式
+- 已有目标应用但缺少目标数据表，新增数据收集入口 → 本技能 create 模式
 - 操作表单中的数据记录 → `yida-data-management`
 
 ## 触发条件
@@ -46,12 +60,14 @@ description: 表单页面创建与更新，支持 19 种字段类型（文本、
 - "给表单设计器 Schema 打补丁"、"配置 OpenYida 尚未封装的字段属性/动作"
 - "字段显示/隐藏联动"、"字段值变化自动赋值"、"onChange 自动带出"
 - "搜索选择字段绑定数据源"、"下拉字段远程搜索"、"选择字段从接口加载选项"
-- 已有 appType，需要在应用下建立数据收集入口
+- 已有 appType，需要在应用下建立新的数据收集入口，且没有既有目标 form context
 
 ---
 
 
 ## create 模式
+
+仅当目标表单缺失且用户意图允许新增数据收集入口时使用。已有 `formUuid` / 表单 URL / bound form 时禁止使用 create 模式。
 
 ```bash
 openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout double|card] [--theme compact|comfortable] [--label-align top|left]
@@ -73,6 +89,8 @@ openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout d
 ```
 
 ## update 模式
+
+已有 `formUuid` / 表单 URL / bound form 时优先使用本模式；修改字段前必须用 `openyida get-schema` 确认字段 ID 和当前结构。
 
 ```bash
 openyida create-form update <appType> <formUuid> <changesJsonOrFile>

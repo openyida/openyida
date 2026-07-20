@@ -9,6 +9,10 @@ function readSkill(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
 }
 
+function readJson(relativePath) {
+  return JSON.parse(fs.readFileSync(path.join(ROOT, relativePath), 'utf8'));
+}
+
 describe('OpenYida skill contracts', () => {
   test('root skill uses compact agent-capabilities for default preflight', () => {
     const skill = readSkill('yida-skills/SKILL.md');
@@ -29,6 +33,46 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('`yida-data-source-connectors`');
   });
 
+  test('agent-bound precreated app rename contract is documented', () => {
+    const root = readSkill('yida-skills/SKILL.md');
+    const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
+    const createApp = readSkill('yida-skills/skills/yida-create-app/SKILL.md');
+    const skillsIndex = readJson('yida-skills/skills-index.json');
+    const yidaAppIndex = skillsIndex.skills.find((skill) => skill.name === 'yida-app');
+    const createAppIndex = skillsIndex.skills.find((skill) => skill.name === 'yida-create-app');
+
+    expect(root).toContain('"precreated": true');
+    expect(root).toContain('"placeholderName": "新应用"');
+    expect(root).toContain('"allowRename": true');
+    expect(root).toContain('openyida update-app APP_xxx --name "语义应用名"');
+    expect(root).toContain('不要对非占位已有业务应用自动改名');
+    expect(root).toContain('不要把 schema-managed 资源交给 legacy `update-app`');
+
+    expect(app).toContain('resolve app name / rename placeholder app');
+    expect(app).toContain('allowRename !== false');
+    expect(app).toContain('openyida update-app <appType> --name "<语义应用名>"');
+    expect(app).toContain('用户没有明确要求“保持应用名称不变”');
+    expect(app).toContain('不要加载 `yida-create-app` 处理改名');
+
+    expect(createApp).toContain('预创建的占位 app');
+    expect(createApp).toContain('不得调用 `openyida create-app`');
+    expect(createApp).toContain('由 `yida-app` 在最小需求分析得到稳定语义应用名后调用 `openyida update-app');
+
+    expect(yidaAppIndex.description).toContain('完整搭建或补齐普通 OpenYida 应用');
+    expect(yidaAppIndex.description).toContain('优先复用已解析 app/page/form/process 上下文');
+    expect(yidaAppIndex.description).toContain('缺失且允许创建时才创建');
+    expect(yidaAppIndex.description).toContain('yida-agent 预创建占位应用');
+    expect(yidaAppIndex.description).toContain('openyida update-app <appType> --name "<语义应用名>"');
+    expect(yidaAppIndex.description).not.toContain('从零到一');
+    expect(yidaAppIndex.description).not.toContain('只创建应用、必要表单、主页面');
+
+    expect(createAppIndex.description).toContain('仅在没有目标 app 且允许创建时');
+    expect(createAppIndex.description).toContain('已绑定或预创建 app 不调用 create-app');
+    expect(createAppIndex.description).toContain('交给 yida-app 复用');
+    expect(createAppIndex.description).toContain('update-app 重命名');
+    expect(createAppIndex.description).not.toContain('搭建应用的第一步');
+  });
+
   test('yida-custom-page fast_build uses compact native defaults and reads references on demand', () => {
     const skill = readSkill('yida-skills/skills/yida-custom-page/SKILL.md');
 
@@ -44,7 +88,7 @@ describe('OpenYida skill contracts', () => {
     const skill = readSkill('yida-skills/skills/yida-get-schema/SKILL.md');
 
     expect(skill).toContain('openyida get-schema <appType> <formUuid> [--summary-json|--field-map-json]');
-    expect(skill).toContain('页面开发默认使用 compact 输出');
+    expect(skill).toContain('页面开发、数据查询、报表配置或流程规则只需要字段身份时');
     expect(skill).toContain('不内联完整 Schema');
   });
 

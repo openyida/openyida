@@ -1,9 +1,21 @@
 ---
 name: yida-publish-page
-description: 将 JSX 源码编译发布到宜搭自定义页面。Babel 转 ES5 + UglifyJS 压缩 + Schema 构建 + saveFormSchema 接口部署。适用于自定义页面代码编写完成后的编译和发布。
+description: 自定义页面 JSX 编译发布技能；schema-managed 页面由根技能或明确 context 路由到 schema workflow。
 ---
 
 # 发布自定义页面
+
+> 资源边界：本技能只处理普通 OpenYida 资源；若根技能、上下文或 CLI guard 显示目标是 schema-managed，停止本技能并走 schema workflow；目标不明时回到根技能确认。
+
+## Resource-First 发布目标
+
+发布前必须先解析目标页面 context；本技能优先服务已有页面：
+
+- 用户说“优化这个页面 URL / 修改这个页面 / 重新发布 / 覆盖现有页面”并提供页面 URL、`formUuid`、bound page 或 workspace 中可确认的 display page 时，直接把该页面作为发布目标，不创建 app/page。
+- bound page 是默认发布候选，不是强制目标；如果当前会话绑定页面 A，而用户本轮明确指定页面 B，必须先解析 B。B 有唯一 URL / display `formUuid` 时发布到 B；B 只有名称或描述且无法唯一匹配时先问用户；不要静默发布到 A。
+- 只有无法解析目标页面，且用户明确要新增一个页面容器时，才回到 `yida-create-page` 创建缺失 display page；已有 appType 不代表需要新建 app。
+- 发布目标必须是 `formType=display` 的自定义页面；普通表单、流程表单、数据底表的 `formUuid` 不能作为 `openyida publish` 第三个参数。
+- 多个页面候选按根技能来源优先级选择；同级冲突或无法判断页面类型时才问用户或执行只读 `list-forms` 确认。
 
 ## 严格禁止 (NEVER DO)
 
@@ -11,6 +23,7 @@ description: 将 JSX 源码编译发布到宜搭自定义页面。Babel 转 ES5 
 - 不要把 AI 生成的普通 React 项目代码直接发布；源码应使用 OpenYida 页面源码格式：native 用 `.oyd.jsx` 并通过 `check-page` / `compile` 预检，Code Canvas 用 `.canvas.jsx` 并通过 `publish` 的 Canvas 编译阶段校验
 - 不要在宜搭原生 `export function renderJsx()` 页面里手写 Hooks；如确需 `useState/useEffect`，必须使用 `.oyd.jsx` 的 `export default function Page()` authoring 模式，让 OpenYida 兼容编译器降级
 - 不要编造 appType 和 formUuid，必须从已有记录或命令返回中获取
+- 用户已给页面 URL / `formUuid` / bound page 时，不要先创建新 app 或新 page；直接确认目标并发布到已有页面。
 
 ## 严格要求 (MUST DO)
 
@@ -26,13 +39,14 @@ description: 将 JSX 源码编译发布到宜搭自定义页面。Babel 转 ES5 
 
 ## 适用场景
 
-编写完自定义页面 JSX 代码后，执行此技能将代码编译发布到宜搭平台。
+编写完自定义页面 JSX 代码后，执行此技能将代码编译发布到宜搭平台。已有页面 URL / `formUuid` / bound page 时，默认发布到该已有页面。
 通常在 `yida-custom-page`（native 页面）或 `yida-canvas-custom-page`（Code Canvas 页面）之后执行。
 
 ## 触发条件
 
 **正向触发**：
 - "发布页面"、"上线页面"、"部署页面"
+- "优化这个页面 URL"、"修改现有页面后重新发布"
 - `yida-custom-page` 或 `yida-canvas-custom-page` 代码编写完成后的下一步
 - "编译发布"、"把代码发布到宜搭"
 
@@ -117,7 +131,7 @@ body { background-color: #f2f3f5; }
 ## 注意事项
 
 - 发布目标地址由 `.cache/cookies.json` 中的 `base_url` 决定
-- 碰到组织 corpId 不匹配时，询问用户是否创建新应用发布
+- 碰到组织 corpId 不匹配时，询问用户是重新登录到目标组织，还是确认在当前组织继续发布到已解析页面；不要通过新建应用规避不匹配
 - **编写源码前必须先加载对应页面子技能**：native 页面调用 `use_skill("yida-custom-page", "编写宜搭自定义页面 JSX")`；Code Canvas 页面调用 `use_skill("yida-canvas-custom-page", "编写 Code Canvas 自定义页面")`。原生 `renderJsx` 写法不要使用 Hooks，现代 native authoring 写法必须走 `.oyd.jsx` 兼容编译；Canvas 源码写成 `.canvas.jsx`
 
 ## 异常处理
@@ -153,14 +167,14 @@ body { background-color: #f2f3f5; }
 本技能在完整开发流程中的位置：
 
 ```
-yida-create-app → yida-create-page → yida-custom-page / yida-canvas-custom-page → [本技能] yida-publish-page
-                                                               ↑
-                                                          编写 JSX 代码
+resolve existing page or create missing page → yida-custom-page / yida-canvas-custom-page → [本技能] yida-publish-page
+                                                                                 ↑
+                                                                            编写 JSX 代码
 ```
 
 | 相关技能 | 关系说明 |
 |---------|----------|
-| `yida-create-page` | 前置技能，创建自定义页面容器，获取 formUuid |
+| `yida-create-page` | 可选前置技能，仅在目标 display page 缺失且允许新增时创建页面容器，获取 formUuid |
 | `yida-custom-page` | native 前置技能，编写 `.oyd.jsx` / `.jsx` 源码 |
 | `yida-canvas-custom-page` | Code Canvas 前置技能，编写 `.canvas.jsx` 源码 |
 | `yida-create-form-page` | 无关，用于创建表单页面，不需要本技能发布 |

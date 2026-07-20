@@ -7,6 +7,16 @@ description: 宜搭 native 自定义页面 JSX 开发规范（React 16 宜搭原
 
 > **先确认链路**：Code Canvas 在宜搭平台侧尚未全量。自定义页面默认走 native 兼容链路 `yida-custom-page`（`.oyd.jsx` + `check-page` / `compile` / `publish`）。只有用户明确要求 Code Canvas / 代码画布，已有页面 Schema 是 `YidaCodeCanvas`，或已确认当前组织/页面支持 Canvas 时，才切到 `yida-canvas-custom-page`；把已有 native 页升级到 Canvas 走 `yida-canvas-upgrade`。
 
+## Resource-First 页面开发
+
+编写页面源码前，先按根技能解析目标 app/page/form context：
+
+- 已有页面 URL、display `formUuid`、bound page 或 workspace cache/config 中可确认的自定义页面时，直接为该页面编写/修改源码，并交给 `yida-publish-page` 发布；不要先调用 `yida-create-page`。
+- bound page 只是默认页面，不是锁定目标；如果当前会话绑定页面 A，但用户本轮明确说要修改页面 B，先解析 B 的 URL / display `formUuid` / 页面名称。B 能唯一解析时改 B；B 无法唯一解析时询问用户；禁止静默把需求发布到 A。
+- 完整应用 `fast_build` 如果已有 bound app/page，主页面源码直接落到该页面；只在缺少主入口 display page 且用户意图允许新增时创建页面容器。
+- 用户只说“优化这个页面 URL / 修改现有页面 / 重新发布”时，本技能与 `yida-publish-page` 配合即可完成，不创建 app/page。
+- 如果用户给的是普通表单 `formUuid`，页面源码只能把它作为数据源或入口链接使用；不能把数据表单 ID 当作发布目标。
+
 ## 核心规则
 
 ### 致命规则（FATAL）
@@ -71,7 +81,7 @@ description: 宜搭 native 自定义页面 JSX 开发规范（React 16 宜搭原
 
 ## 快速开始
 
-以创建「员工信息查询页」为例，完整流程如下：
+以开发「员工信息查询页」为例，完整流程如下：
 
 1. 获取表单 Schema，确认字段 ID：
 
@@ -82,7 +92,9 @@ openyida get-schema APP_XXX FORM-EMPLOYEE
 如需保存完整 Schema，使用 create_file / Write / file edit tool 创建 `<projectRoot>/.cache/openyida/employee-query/employee-schema.json`；ID 映射仍写 `<projectRoot>/.cache/employee-query-schema.json`。
 
 ```bash
-# Step 2：创建自定义页面
+# Step 2：确认或补齐自定义页面发布目标
+# 已有页面 URL / display formUuid 时直接复用该 formUuid，例如 FORM-QUERY001。
+# 只有没有目标页面且允许新增时才执行：
 openyida create-page APP_XXX "员工信息查询"
 
 # Step 3：生成/编写页面代码
@@ -99,6 +111,7 @@ openyida publish project/pages/src/employee-query.oyd.jsx APP_XXX FORM-QUERY001
 
 **关键说明**：
 - **Step 1** 的 get-schema 输出包含所有字段的 fieldId，在代码中必须使用 `FIELDS` 常量映射这些 ID
+- **Step 2** 默认复用已有页面 context 并跳过 `openyida create-page`；但本轮用户明确指定另一个页面时先切换目标，不能唯一识别时询问；只有页面缺失且允许新增时才执行创建命令
 - **Step 3** 的页面代码必须遵循本技能正文；[编码指南](references/coding-guide.md) 和 [运行时护栏](references/runtime-guardrails.md) 在 check-page 报错、复杂交互、`deep_design` 或正文覆盖不了时读取
 - 优先通过 `openyida generate-page ... --compile` 生成高质量骨架；需要完整交互样板时使用 `todo-mvc`
 - 页面生成 spec、接口调试 JSON、一次性验证脚本等临时工件必须用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/` 下；不要在仓库根目录、系统临时目录或 `.cache/` 顶层生成 `page.json`、`data.json` 或脚本文件
@@ -106,7 +119,7 @@ openyida publish project/pages/src/employee-query.oyd.jsx APP_XXX FORM-QUERY001
 
 ## fast_build 默认页面模板
 
-完整应用 `fast_build` 生成主页面时，默认选择以下轻量闭环之一：
+完整应用 `fast_build` 编写或更新主页面时，默认选择以下轻量闭环之一：
 
 1. 入口型页面：展示表单入口、核心流程说明、少量统计占位和快捷按钮，不执行真实列表查询。
 2. 内置数据 API 页面：用 `this.utils.yida.searchFormDatas` 查询已创建表单，用 `this.utils.yida.saveFormData` 做快速新增；所有失败路径恢复 `loading: false` 并展示空态。

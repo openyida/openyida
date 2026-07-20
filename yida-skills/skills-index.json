@@ -34,7 +34,7 @@
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
-      "description": "从零到一搭建完整宜搭应用的流程编排技能。默认 fast_build 只创建应用、必要表单、主页面、发布并输出链接；不默认使用未绑定 dataSourceMap，导航、示例数据和深度设计按需后置。",
+      "description": "完整搭建或补齐普通 OpenYida 应用的流程编排技能。默认 fast_build 优先复用已解析 app/page/form/process 上下文，缺失且允许创建时才创建应用、表单或页面；yida-agent 预创建占位应用在语义名称稳定后通过 openyida update-app <appType> --name \"<语义应用名>\" 重命名；不默认使用未绑定 dataSourceMap，导航、示例数据和深度设计按需后置。",
       "category": "yida/app",
       "tags": ["宜搭", "完整应用", "搭建", "管理系统", "访客系统"],
       "aliases": ["完整应用", "应用搭建", "管理系统搭建"]
@@ -133,7 +133,7 @@
       "name": "yida-create-app",
       "path": "skills/yida-create-app/SKILL.md",
       "display_name": "创建宜搭应用",
-      "description": "创建宜搭应用并返回 appType。搭建应用的第一步。",
+      "description": "仅在没有目标 app 且允许创建时创建宜搭应用并返回 appType。已绑定或预创建 app 不调用 create-app，应交给 yida-app 复用，并在需要时通过 update-app 重命名。",
       "category": "yida/app",
       "tags": ["创建应用", "appType", "应用初始化"],
       "aliases": ["新建应用"]

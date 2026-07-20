@@ -1,14 +1,14 @@
 ---
 name: openyida
 description: >
-  宜搭 AI 应用开发总入口技能。通过有 AI Coding 能力的智能体（悟空/Claude/Open Code 等）+ 宜搭低代码平台，实现一句话生成完整应用。
-  包含应用创建、表单设计、自定义页面开发、页面发布、登录态管理等完整开发流程。
+  宜搭 AI 应用开发总入口技能。通过有 AI Coding 能力的智能体（悟空/Claude/Open Code 等）+ 宜搭低代码平台，实现一句话搭建或修改完整应用。
+  包含资源上下文解析、应用创建/复用、表单设计/更新、自定义页面开发、页面发布、登录态管理等完整开发流程。
   当用户提到"宜搭"、"yida"、"低代码"、"创建应用"、"创建表单"、"发布页面"、"搭建"、"系统"等关键词时，使用此技能；以下情况不要触发：只是讨论通用前端/后端代码、非宜搭平台产品、或只需要解释概念而不操作宜搭资源。
 ---
 
 # 宜搭 AI 应用开发指南
 
-通过有 AI Coding 能力的智能体（悟空/Claude/Open Code 等）+ 宜搭低代码平台，实现一句话生成完整应用。所有操作通过 **`openyida`** CLI 统一执行，命令自动读取 `.cache/cookies.json`，Cookie 失效时自动触发登录，无需手动登录。
+通过有 AI Coding 能力的智能体（悟空/Claude/Open Code 等）+ 宜搭低代码平台，实现一句话搭建或修改完整应用。所有操作通过 **`openyida`** CLI 统一执行，命令自动读取 `.cache/cookies.json`，Cookie 失效时自动触发登录，无需手动登录。
 
 ---
 
@@ -45,26 +45,103 @@ description: >
 
 ---
 
-## 第二步：意图路由（先判断「全量搭建」还是「单一任务」）
+## 执行路径：schema-managed 与 direct/standalone
 
-> ⚡ **环境就绪后，先判断用户诉求属于哪一类，再走对应路线**：从零搭一个完整应用，还是对已有资源做单点改动。选错会导致多余步骤或回退；歧义时简短确认一次即可。
+在选择完整应用或单一任务技能前，先判断本次写操作属于哪条执行合同。Agent 只做轻量路由；`schema` 子命令自身强制 validate/plan/apply 与 `planId`，legacy 写命令仅对明确传入的 schema-managed context/state 做最小 fail-closed guard。上下文不足以判断时，先只读确认或询问用户，不由 Agent 猜测 ownership。
+
+| 路径 | 何时选择 | 执行方式 |
+|------|----------|----------|
+| `schema-managed` | 用户提供 Schema-as-Code manifest、要求 `schema validate/plan/apply`，或 CLI/context 明确目标身份来自 Schema-as-Code state | 走 `openyida schema validate <manifest> --json --quiet` → `openyida schema plan <manifest> --state <path> --json --quiet` → 用户审阅本次 `planId` → `openyida schema apply <manifest> --state <path> --plan-id <reviewed-planId> --json --quiet` |
+| `direct/standalone` | 没有 manifest/state 管理关系，或用户明确要求 standalone legacy 命令 | 走下方 Resource-First direct workflow：先解析已有资源，再 create missing only / update / publish |
+
+`.cache/<项目名>-schema.json` 只是 direct/standalone 的 ID 映射，不等于 Schema-as-Code state。路径不明确时先只读确认或询问用户；不要通过新建同类资源规避不确定性。
+
+---
+
+## 路由前置：resolve_resource_context
+
+> Resource-First Workflow：进入 direct/standalone 路径后，任何完整搭建或单点任务都先解析目标资源上下文，再判断是新建、补齐、修改还是发布。不要把 `create-app` / `create-page` / `create-form` 当作默认动作。
+
+### 资源解析顺序
+
+按以下优先级选择 app/page/form/process，上游来源更明确时覆盖下游来源：
+
+1. 本轮用户明确给出的 `appType`、`formUuid`、应用 URL、页面 URL、流程标识或页面/表单上下文；
+2. agent 或宿主注入的当前任务 resource context；
+3. workspace 中的 `project/config.json`、`.cache/<项目名>-schema.json`、`.cache/openyida/**` 等 standalone cache/config；
+4. 当前会话历史中已创建或已确认的资源；
+5. 无资源且用户明确说“从零创建 / 新建另一个 / 创建新应用或新页面”时，允许创建缺失资源；
+6. 仍有多个同优先级候选、当前轮显式资源互相冲突，或无法判断目标时，才 `ask_human`。
+
+**本轮显式目标覆盖注入上下文**：agent / 宿主注入的 bound app/page/form 只是默认候选，不是锁定目标。若当前会话绑定页面 A，但用户本轮明确给出页面 B 的 URL、`formUuid`、页面名称或其他可识别线索，必须重新解析 B；B 能唯一解析时切换到 B，B 不能唯一解析时 `ask_human`，禁止静默回落到 A。
+
+可选的 agent 注入协议如下；本地 agent 不支持时忽略，不作为运行前置：
+
+```json
+{
+  "kind": "openyida_resource_context",
+  "version": 1,
+  "app": {
+    "appType": "APP_xxx",
+    "source": "explicit_prompt|url|agent_bound|workspace_cache",
+    "precreated": true,
+    "placeholderName": "新应用",
+    "allowCreate": false,
+    "allowRename": true
+  },
+  "page": { "formUuid": "FORM_xxx", "source": "explicit_prompt|url|agent_bound|workspace_cache", "allowCreate": false },
+  "form": { "formUuid": "FORM_xxx", "source": "explicit_prompt|url|workspace_cache", "allowCreate": false }
+}
+```
+
+`precreated` 表示该 app 由 agent / 宿主提前创建并绑定到本轮任务；`placeholderName` 是宿主创建时的占位名；`allowRename` 控制 OpenYida 是否可在语义名稳定后修正应用名称。这些字段都是 direct/standalone 的可选提示：缺失时按普通已有资源处理，不作为运行前置。
+
+**预创建占位 app 改名**：当 `app.source === "agent_bound"`，且满足 `precreated === true` 或当前名称 / `placeholderName` 命中“新应用 / 未命名 / 占位 / APP_xxx”等占位样式，并且 `allowRename !== false`、用户没有明确要求保留原应用名称、目标不是 schema-managed、已从本轮需求确定稳定语义应用名时，`yida-app` 应复用该 `appType` 并调用 `openyida update-app APP_xxx --name "语义应用名"`。该动作只修正 agent 预创建占位应用名称；不要按标题发现/adopt 其他应用，不要 cleanup orphan，不要对非占位已有业务应用自动改名，不要让 `yida-create-app` 参与改名，也不要把 schema-managed 资源交给 legacy `update-app`。
+
+### create-or-update 判定
+
+- 已解析到目标 app 时，默认在该 app 内修改、补齐或发布，不执行 `yida-create-app`；只有用户明确要求“新建另一个应用”并确认目标组织后才创建新 app。
+- 已解析到目标自定义页面 URL / `formUuid` / bound page 时，默认写源码并发布到该页面，不执行 `yida-create-page`；只有缺少目标 display page 且本次意图允许新增页面时才创建。
+- 已解析到目标表单 `formUuid` 时，字段结构诉求默认走 `yida-create-form-page` 的 update/patch/rule/bind-datasource 模式，不创建同名或同类表单。
+- 已解析到目标流程表单 / `processCode` 时，默认走 `yida-process-rule` 配置/更新流程，不从零执行 `yida-create-process`。
+- 完整应用 `fast_build` 也遵守本规则：`resolve app → resolve forms → resolve main page → create missing resources only → update/publish`。
+
+验收心智模型：
+
+| 场景 | 正确动作 |
+|------|----------|
+| `帮我搭建访客系统` + bound app/page | 不 create app/page；直接在已有 app/page 内补表单、写页面并发布 |
+| `在 APP_xxx 里增加客户表和回访页面` | 不 create app；允许按缺口 create form/page |
+| `优化这个页面 URL` | 不 create app/page；直接进入 custom-page + publish existing page |
+| bound 页面 A，但用户说“修复页面 B 的 xx 字段” | 先解析页面/表单 B；B 有 URL/formUuid 时改 B，只有 B 无法唯一识别时询问用户，不能默认改 A |
+| `从零创建一个 CRM 应用` 且无 context | 允许 create app/form/page 并发布 |
+| 多个 app/page 候选 | 按来源优先级选；同级冲突或目标不明才问人 |
+
+> 该 resource context 是 direct/standalone 路径的前置解析；schema-managed 路径仍以 schema CLI 的 validate/plan/apply 结果为准。legacy direct 命令的 guard 只覆盖明确 schema-managed context/state，不替代这里的资源前置解析。
+
+---
+
+## 第二步：意图路由（先判断「完整搭建」还是「单一任务」）
+
+> 环境和 resource context 就绪后，先判断用户诉求属于哪一类，再走对应路线：完整搭建/补齐一个应用，还是对已有资源做单点改动。选错会导致多余步骤或回退；歧义时简短确认一次即可。
 
 | 用户诉求信号 | 判定 | 走哪条路线 |
 |------------|------|-----------|
-| 创建/搭建/做一个 + 应用/系统/管理系统；或明确表达从零开始 | **全量搭建** | 加载子技能 `yida-app`，由它执行完整应用 workflow |
+| 创建/搭建/做一个 + 应用/系统/管理系统；或已有 app/page 需要补成完整系统 | **完整搭建 / 补齐** | 加载子技能 `yida-app`，由它执行 create-or-update workflow |
 | 对已有应用/表单/页面的单点操作（加字段、查改数据、配公式、建报表、改权限、发布、美化…） | **单一 / 增量任务** | 到 [技能路由](#技能路由单一--增量任务) 选定 **1 个**，加载对应子技能执行，不回退流程 |
 
 ---
 
-## 完整开发流程（全量搭建）
+## 完整开发流程（完整搭建 / 补齐）
 
-> 📌 仅当第二步判定为「全量搭建」时进入；单一/增量任务请跳「技能路由」。
+> 📌 仅当第二步判定为「完整搭建 / 补齐」时进入；单一/增量任务请跳「技能路由」。
 > 加载子技能 `yida-app`，由它负责完整应用 workflow、阶段子技能加载、关键 ID 流转、PRD 与 schema cache 约束。
-> 用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，`yida-app` 选择 `fast_build`：创建应用、必要表单、主页面、发布并输出链接。
+> 用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，`yida-app` 选择 `fast_build`：先解析并复用已有资源，只创建缺失且允许创建的应用/表单/页面，最后发布并输出链接。
+> `yida-app fast_build` 是 direct/standalone 编排，仅在上方执行路径选择为 direct/standalone 时使用。
 
-**默认链路**：`fast_build` 必须只做 `创建应用 → 核心表单 → 主页面 → 编写主页面源码 → 发布 → 返回访问链接`。不要因为应用名里有“看板 / 系统 / 管理”就升级到 `deep_design` 或 `full_demo`。
+**默认链路**：`fast_build` 必须只做 `resolve app → resolve forms → resolve main page → create missing resources only → 编写/更新主页面源码 → 发布 → 返回访问链接`。不要因为应用名里有“看板 / 系统 / 管理”就升级到 `deep_design` 或 `full_demo`。
 
-**fast_build 默认加载边界**：只加载 `yida-app` 和当前阶段必需的子技能：`yida-create-app`、`yida-create-form-page`、`yida-create-page`、`yida-custom-page`、`yida-publish-page`。Code Canvas 尚未全量，只有用户明确要求、已有页面为 `YidaCodeCanvas`，或已确认当前组织/页面支持时才加载 `yida-canvas-custom-page`。不要默认加载 `yida-page-uiux`、`yida-data-source-connectors`、`yida-data-management`、`yida-nav-group`、`yida-dashboard`，也不要默认深读 `references/`。
+**fast_build 默认加载边界**：只加载 `yida-app` 和当前阶段必需的子技能。`yida-create-app`、`yida-create-page`、`yida-create-form-page` 只有在目标资源缺失且本次意图允许创建时才加载；已有资源时直接加载 `yida-create-form-page` 的 update 分支、`yida-custom-page` 和 `yida-publish-page` 等当前阶段技能。Code Canvas 尚未全量，只有用户明确要求、已有页面为 `YidaCodeCanvas`，或已确认当前组织/页面支持时才加载 `yida-canvas-custom-page`。不要默认加载 `yida-page-uiux`、`yida-data-source-connectors`、`yida-data-management`、`yida-nav-group`、`yida-dashboard`，也不要默认深读 `references/`。
 
 **doneWhen**：`yida-app` 发布主页面成功并输出可访问 URL。到这里默认完成；不要发布后继续 TaskCreate、重复读技能或继续规划。
 
@@ -91,19 +168,20 @@ description: >
 
 | 分组 | 加载目标 | 何时选择（关键区别已内联） |
 |------|------|--------------------------|
-| **应用与登录** | 加载子技能 `yida-app` | 从零搭建整个应用；默认 `fast_build`，发布主页面拿到 URL 即完成 |
-| | 加载子技能 `yida-create-app` | 只需创建应用、拿 appType |
+| **应用与登录** | 加载子技能 `yida-app` | 完整搭建或补齐一个 standalone 应用；默认 `fast_build`，复用已解析资源，发布主页面拿到 URL 即完成 |
+| | 加载子技能 `yida-create-app` | 仅在没有目标 app 且用户意图允许新建应用时创建并拿 appType；已有 appType/应用 URL/bound app 时禁止创建 |
+| | `openyida update-app` `CLI` | 仅由 `yida-app` 在 agent_bound / precreated 占位 app 语义名确定后修正应用名称，或用户明确要求修改当前 app 信息时直接执行；不是子技能，不用于发现或接管其他应用 |
 | | 加载子技能 `yida-login` | 手动触发登录（通常自动触发） |
 | | 加载子技能 `yida-logout` | 切换账号或组织 |
-| **页面与表单** | 加载子技能 `yida-create-page` | 创建空白自定义页面拿 formUuid，后续写 JSX |
-| | 加载子技能 `yida-create-form-page` | 创建/更新表单、增删改**字段结构**（普通表单，无审批） |
-| | 加载子技能 `yida-create-process` | 从零建**带审批**流程表单（表单还不存在，一步到位） |
+| **页面与表单** | 加载子技能 `yida-create-page` | 仅在目标 display page 缺失且用户意图允许新增页面时创建空白自定义页面；已有页面 URL/formUuid/bound page 时禁止创建 |
+| | 加载子技能 `yida-create-form-page` | 创建/更新表单、增删改**字段结构**（已有 form 走 update；已有 app 中新增数据表才 create） |
+| | 加载子技能 `yida-create-process` | 仅在无既有流程/表单上下文且用户要从零建**带审批**流程表单时使用；已有 form/process 先配置或转换现有资源 |
 | | 加载子技能 `yida-page-uiux` | 单点页面美化、用户明确要求视觉方向/去 AI 味，或 `yida-app` 进入 `deep_design` 时使用；`fast_build` 不默认加载 |
 | | 加载子技能 `yida-custom-page` | **自定义页面默认兼容链路**：native `.oyd.jsx`，适合完整应用 `fast_build` 和未确认 Canvas 能力的组织 |
 | | 加载子技能 `yida-canvas-custom-page` | Code Canvas 可选链路：用户明确要求代码画布、已有页面为 `YidaCodeCanvas`，或已确认当前组织/页面支持 Canvas 时使用 |
 | | 加载子技能 `yida-canvas-upgrade` | 将已有普通 `.oyd.jsx` / `Jsx` 页面升级迁移到 Code Canvas / `YidaCodeCanvas` 链路；仅在目标组织支持 Canvas 时执行 |
 | | 加载子技能 `yida-nav-shell` | 自定义页**隐藏应用导航**（`isRenderNav=false`，沉浸/门户/大屏/分享）后，页面内用 JSX 自绘侧边/顶部/浮动/标签导航壳；发布后要配置隐藏原导航，跨页导航项要拼完整 URL 并合并 `isRenderNav=false` / `corpid` / 业务参数（**区别** `yida-nav-group` 平台左侧菜单分组：那是真实导航树，本项是页面内自建导航） |
-| | 加载子技能 `yida-publish-page` | JSX 写完后编译并发布 |
+| | 加载子技能 `yida-publish-page` | JSX 写完后编译并发布；已有页面 URL/formUuid 时直接发布到该目标，不创建新页面 |
 | | 加载子技能 `yida-openyida-publish-guard` | 发布已有自定义页面前检查线上设计器状态，避免本地旧源码覆盖用户在线改动 |
 | | 加载子技能 `yida-table-form` | Excel 式表格批量录入提交 |
 | | 加载子技能 `yida-ppt-slider` | 全屏幻灯片页面（分享/路演/培训/演示） |
@@ -119,7 +197,7 @@ description: >
 | | 加载子技能 `yida-formula` | 配在**字段属性**上的实时计算/默认值/校验 |
 | | 加载子技能 `yida-formula-evaluate` | 公式语法与字段引用静态检查 |
 | | 加载子技能 `yida-business-rule` | 提交后**跨表**高级函数 INSERT/UPDATE/DELETE |
-| **流程与自动化** | 加载子技能 `yida-process-rule` | **改已有**流程节点/分支/字段权限（表单已存在） |
+| **流程与自动化** | 加载子技能 `yida-process-rule` | **改已有**流程节点/分支/字段权限（表单或流程已存在） |
 | | 加载子技能 `yida-integration` | 提交后**逻辑编排**（图形化自动化流，推荐） |
 | | 加载子技能 `yida-agent-center` | 流程代理（在职/离职代理人） |
 | | `openyida ai-form-setting` `CLI` | 流程表单 AI 审批提示：`models` 查模型 · `fields` 查可插入字段（TEXT/IMAGE/ATTACHMENT）· `get` 查配置 |
@@ -149,24 +227,25 @@ description: >
 ### 致命规则（FATAL，违反即失败/报错）
 
 1. **技能加载唯一入口**：执行任何子技能前，支持 `use_skill` 的宿主必须调用 `use_skill("<技能名>", "<本阶段目的>")` 加载对应技能；不要用 `Read` / `read_file` / `cat` 读取 SKILL.md 路径，不凭记忆猜参数格式。
-2. **corpId 一致性检查**：创建页面前对比 prd 与 `.cache/cookies.json` 的 corpId，不一致必须询问用户（重新登录 or 当前组织新建）。
+2. **corpId 一致性检查**：创建或发布页面前对比 prd/resource context 与 `.cache/cookies.json` 的 corpId，不一致必须询问用户（重新登录到目标组织，或确认在当前组织继续操作已解析资源/缺失资源）。
 3. **发布前本地校验**：native `.oyd.jsx` / `.jsx` 页面发布前跑 `openyida check-page` + `openyida compile`；Code Canvas `.canvas.jsx` 不跑这两个 native 检查，改由 `openyida publish` 的 Canvas 编译阶段或 `compileCanvasLocal` 快检校验；JSON 配置写盘后先解析校验，再调用平台命令。
 4. **命令输入文件禁止 shell 写入**：当 OpenYida 命令需要 JSON/YAML/CSV/config/script 文件参数时，先使用当前 agent 运行时提供的结构化文件写入工具（如 create_file / Write / file edit tool）创建文件，再把路径传给命令；禁止用 shell heredoc、`cat`/`echo`/`printf`/`tee` 加输出重定向，或把命令 stdout 重定向成业务文件。
 
 ### 重要规则（IMPORTANT，影响质量/性能/可维护性）
 
 1. **按阶段加载必要技能**：按意图选 1 个主技能；完整应用按阶段加载当下唯一需要的子技能，禁止并发批量读取多个 `SKILL.md` 或预读未来阶段技能。
-2. **优先复用缓存**：`appType`/`formUuid`/`fieldId` 优先从 `.cache/<项目名>-schema.json` 读，缺失再 `get-schema`。
-3. **模板优先**：复杂产物先用 `openyida sample` 或现有示例生成骨架，再做最小改动。
-4. **配置承载优先于代码**：字段/公式/联动/报表/审批/集成交给对应技能，自定义页面只做展示与胶水。
-5. **数据性能优先**：统计聚合用 `yida-report` 服务端聚合，不在前端拉全量后自行聚合。
-6. **避免无效重试**：失败先查登录态/组织/参数/字段 ID，无修改不连续重试超 1 次。
-7. **配置分两处存**：业务语义 → `prd/<项目名>.md`；Schema ID → `.cache/<项目名>-schema.json`（prd 不记 ID）。
-8. **临时文件入 project `.cache/`**：OpenYida 业务中间文件写入 `<projectRoot>/.cache/openyida/<项目名或任务名>/`；Schema ID 映射仍写 `<projectRoot>/.cache/<项目名>-schema.json`。从 workspace 根执行命令时使用 `project/.cache/...`，从 project 工作目录内执行时使用 `.cache/...`；不要写仓库根目录或系统临时目录。
-9. **报表美化先问方案**：用户说"优化/美化报表"时先问选原生报表(`yida-report`)还是 ECharts(`yida-chart`)。
-10. **按 schema 证据选技能**：先看 `formType`、组件树、`dataSource.online`；`receipt/process/report` 分别落到表单/流程/报表技能。
-11. **官方示例范式优先**：蒸馏官方示例时先理解脱敏 schema 承载方式，不凭截图/标题/视觉判断。
-12. **默认完成即停止**：完整应用默认以发布成功并输出 URL 为 doneWhen；UIUX、数据源深读、示例数据、导航、截图、TaskCreate 和深度设计都是 optionalAfterDone。
+2. **Resource-First**：任何 legacy 写操作前先解析本轮显式资源、agent bound context、workspace cache/config、历史上下文；已有目标资源时默认修改/补齐/发布，只有目标缺失且意图允许创建时才加载 create 类技能。
+3. **优先复用 direct 映射**：仅对 direct/standalone 资源，已有 `.cache/<项目名>-schema.json` 中可确认新鲜的 `appType`/`formUuid`/`fieldId` 可复用；该文件不是 Schema-as-Code state，也不是远端真相。字段缺失、重名或结构变化时执行 `get-schema --compact --resolve-fields`，不得猜测。
+4. **模板优先**：复杂产物先用 `openyida sample` 或现有示例生成骨架，再做最小改动。
+5. **配置承载优先于代码**：字段/公式/联动/报表/审批/集成交给对应技能，自定义页面只做展示与胶水。
+6. **数据性能优先**：统计聚合用 `yida-report` 服务端聚合，不在前端拉全量后自行聚合。
+7. **避免无效重试**：失败先查登录态/组织/参数/字段 ID，无修改不连续重试超 1 次。
+8. **配置分两处存**：业务语义 → `prd/<项目名>.md`；Schema ID → `.cache/<项目名>-schema.json`（prd 不记 ID）。
+9. **临时文件入 project `.cache/`**：OpenYida 业务中间文件写入 `<projectRoot>/.cache/openyida/<项目名或任务名>/`；Schema ID 映射仍写 `<projectRoot>/.cache/<项目名>-schema.json`。从 workspace 根执行命令时使用 `project/.cache/...`，从 project 工作目录内执行时使用 `.cache/...`；不要写仓库根目录或系统临时目录。
+10. **报表美化先问方案**：用户说"优化/美化报表"时先问选原生报表(`yida-report`)还是 ECharts(`yida-chart`)。
+11. **按 schema 证据选技能**：先看 `formType`、组件树、`dataSource.online`；`receipt/process/report` 分别落到表单/流程/报表技能。
+12. **官方示例范式优先**：蒸馏官方示例时先理解脱敏 schema 承载方式，不凭截图/标题/视觉判断。
+13. **默认完成即停止**：完整应用默认以发布成功并输出 URL 为 doneWhen；UIUX、数据源深读、示例数据、导航、截图、TaskCreate 和深度设计都是 optionalAfterDone。
 
 > 📖 每条规则的完整说明、PRD 质量门槛、临时文件路径规范、报表美化话术 → [references/development-rules.md](references/development-rules.md)
 
@@ -177,9 +256,9 @@ description: >
 | 问题 | 处理 |
 |------|------|
 | 发布提示登录失效 | 先 `openyida login`，再 `openyida publish <源文件> <appType> <formUuid> --health-check` |
-| 查已有表单的字段 ID | `openyida get-schema <appType> <formUuid>`，从 Schema 读各字段 `fieldId`（详见 `yida-get-schema`） |
-| 更新已有表单字段 | 用 `create-form` 的 update 模式：`openyida create-form update <appType> <formUuid> '[{"action":"add","field":{"type":"TextField","label":"新字段"}}]'`（详见 `yida-create-form-page`） |
-| 发布提示 corpId 不匹配 | 问用户：当前组织新建应用发布，或 `openyida logout` 后重新登录到正确组织 |
+| 查已有表单的字段 ID | `openyida get-schema <appType> <formUuid> --compact --resolve-fields "字段名"`，仅使用唯一命中的 `fieldId`（详见 `yida-get-schema`） |
+| 更新已有表单字段 | direct/standalone 表单用 `create-form` 的 update 模式：`openyida create-form update <appType> <formUuid> '[{"action":"add","field":{"type":"TextField","label":"新字段"}}]'`（详见 `yida-create-form-page`）；schema-managed 表单走 schema validate → plan → apply |
+| 发布提示 corpId 不匹配 | 问用户：确认在当前组织继续操作已解析资源，或 `openyida logout` 后重新登录到正确组织 |
 
 ---
 

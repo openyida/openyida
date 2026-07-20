@@ -1,14 +1,29 @@
 ---
 name: yida-create-app
-description: 创建宜搭应用，返回 appType。搭建应用的第一步。适用于从零新建全新应用时。
+description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用户意图允许新建时使用。schema-managed 应用由根技能或明确 context 路由到 schema workflow。
 ---
 
 # 创建应用
+
+> 资源边界：本技能只处理普通 OpenYida 资源；若根技能、上下文或 CLI guard 显示目标是 schema-managed，停止本技能并走 schema workflow；目标不明时回到根技能确认。
+
+## Resource-First 使用门槛
+
+本技能不是完整搭建的默认第一步，只能在以下条件同时满足时加载/执行：
+
+1. 根技能或 `yida-app` 已完成 `resolve_resource_context`；
+2. 没有从本轮 prompt、应用 URL、agent bound context、workspace config/cache 或会话历史解析到目标 `appType`；
+3. 用户明确要求从零创建应用，或完整搭建缺少 app 且 `allowCreate=true`。
+
+若已解析到 `appType`、应用 URL、bound app 或 workspace 中可确认的 standalone app，必须复用该 app 并继续后续表单/页面/发布步骤，不得调用 `openyida create-app`。若用户说“新建另一个应用”，先确认目标组织和新应用名，再执行本技能。
+
+若该 app 是 yida-agent / 宿主预创建的占位 app（例如名称为“新应用”“未命名”“占位”或 `APP_xxx` 样式，且 context 标记 `source=agent_bound`、`precreated=true`、`allowRename !== false`），也仍然视为“已有目标 app”：不得调用 `openyida create-app`。占位名修正由 `yida-app` 在最小需求分析得到稳定语义应用名后调用 `openyida update-app <appType> --name "<语义应用名>"` 完成；本技能只负责在确实没有目标 app 且允许创建时新建应用。
 
 ## 严格禁止 (NEVER DO)
 - 不要编造 appType，必须从命令返回的 JSON 中提取
 - 不要在未确认 corpId 的情况下创建应用（先运行 `openyida env` 确认登录态）
 - 不要在同一轮已成功创建应用后重复创建。若接口明确返回名称冲突，单点任务先询问用户；`yida-app fast_build` 可追加短后缀重试一次，不要为了查重额外探测。
+- 已有 `appType`、应用 URL、bound app 或 workspace app 时，不要创建新应用；除非用户明确要求新建另一个应用并确认。
 
 ## 严格要求 (MUST DO)
 
@@ -18,8 +33,8 @@ description: 创建宜搭应用，返回 appType。搭建应用的第一步。�
 
 ## 适用场景
 
-用户说"创建应用"、"新建系统"、"搭建平台"时使用此技能。
-创建应用后，通常需要继续执行：创建表单（`yida-create-form-page`）→ 创建页面（`yida-create-page`）→ 发布页面（`yida-publish-page`）。
+用户说"从零创建应用"、"新建另一个系统"、"新建应用并返回 appType"，且 resource context 没有目标 app 时使用此技能。
+创建应用后，通常需要继续执行：创建/更新表单（`yida-create-form-page`）→ 创建或复用页面（`yida-create-page` / existing page）→ 发布页面（`yida-publish-page`）。
 后续如果需要自定义页面，默认走 native 兼容链路：源码写到 `project/pages/src/<页面名>.oyd.jsx`，先 `openyida check-page` / `openyida compile`，再 `openyida publish`。Code Canvas 尚未全量，只有用户明确要求或已确认当前组织/页面支持时才走 `.canvas.jsx` 链路。
 
 ---

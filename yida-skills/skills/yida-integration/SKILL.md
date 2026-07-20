@@ -1,9 +1,15 @@
 ---
 name: yida-integration
-description: 宜搭集成&自动化配置。支持创建、查询、开启、关闭集成自动化逻辑流，包括消息通知、数据增删改、条件分支等节点。适用于自动化数据联动和业务触发场景。
+description: Standalone 创建/管理宜搭集成自动化；如果请求来自 Schema-as-Code manifest/state，停止，不降级直写。
 ---
 
 # yida-integration — 宜搭集成&自动化（逻辑流）技能
+
+## 适用范围：standalone 资源
+
+- 本技能只处理明确 standalone 的集成自动化。用户提供 Schema-as-Code manifest、要求 schema validate/plan/apply，或自动化身份来自 Schema-as-Code state 时，不执行创建、更新、开启或关闭，稳定停止为 unsupported。
+- 不得把 SAC unsupported/conflict/uncertain 降级为 `integration create` 等 legacy 写入，不得按名称 discover/adopt、猜逻辑流 ID 或自动重建。
+- 只有自动化明确 standalone/unmanaged，或用户明确要求 standalone legacy 命令时，以下参数、stdout/stderr、发布/启停和返回行为才按原契约使用；所有权不明确时零远端写。
 
 ## 严格禁止 (NEVER DO)
 

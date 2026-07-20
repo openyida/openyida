@@ -1,9 +1,15 @@
 ---
 name: yida-page-config
-description: 页面公开访问和组织内分享配置。支持 URL 验证、配置保存、导航显示控制。适用于设置页面免登访问或生成分享链接时。
+description: Standalone 配置已有页面的公开访问和组织内分享；如果请求来自 Schema-as-Code manifest/state，停止，不降级直写。
 ---
 
 # 页面配置
+
+## 适用范围：standalone 资源
+
+- 本技能只处理明确 standalone 的已有页面配置。用户提供 Schema-as-Code manifest、要求 schema validate/plan/apply，或页面身份来自 Schema-as-Code state 时，不执行页面配置写入，稳定停止为 unsupported。
+- 不得把 unsupported、conflict、stale、reconciliation required 或 uncertain 自动降级为 `save-share-config`/`update-form-config`，不得按标题或 URL adopt、猜 formUuid。
+- 只有页面明确 standalone/unmanaged，或用户明确要求 standalone legacy 配置时，以下命令、stdout/stderr 和返回行为才按原契约使用；所有权不明确时零远端写。
 
 ## 严格禁止 (NEVER DO)
 

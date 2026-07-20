@@ -1,9 +1,15 @@
 ---
 name: yida-report
-description: "宜搭原生报表创建，支持 16 种图表/表格/筛选器组件。普通「报表」「统计」需求默认使用本技能。触发词：「报表」「统计」「图表」「数据汇总」。"
+description: "Standalone 创建宜搭原生报表；如果请求来自 Schema-as-Code manifest/state，停止，不降级直写。"
 ---
 
 # 宜搭原生报表技能
+
+## 适用范围：standalone 资源
+
+- 本技能只处理明确 standalone 的原生报表。用户提供 Schema-as-Code manifest、要求 schema validate/plan/apply，或报表身份来自 Schema-as-Code state 时，不执行创建、追加或发布，稳定停止为 unsupported。
+- 不得把 SAC unsupported/conflict/uncertain 降级为 `create-report` 等 legacy 写入，不得按标题、组件类型或数组位置 adopt、猜 report/chart/filter ID。
+- 只有报表明确 standalone/unmanaged，或用户明确要求 standalone legacy 报表命令时，以下示例、stdout/stderr 和返回行为才按原契约使用；所有权不明确时零远端写。
 
 ## 严格禁止 (NEVER DO)
 

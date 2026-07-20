@@ -1,5 +1,7 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const { extractJsonObject, runAgent } = require('../scripts/eval/agent');
 const {
   normalizeSkill,
@@ -52,6 +54,67 @@ describe('eval agent.extractJsonObject', () => {
 });
 
 describe('eval routing', () => {
+  test('Phase 1 routing fixture contract covers SAC ownership, replacement plans, legacy, and deferred resources', () => {
+    const fixturePath = path.join(__dirname, '..', 'scripts', 'eval', 'scenarios', 'routing-core.json');
+    const scenarios = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+    const phaseOne = Object.fromEntries(
+      scenarios.filter((scenario) => scenario.id.startsWith('schema-phase1-'))
+        .map((scenario) => [scenario.id, scenario])
+    );
+
+    expect(Object.keys(phaseOne).sort()).toEqual([
+      'schema-phase1-automation-deferred',
+      'schema-phase1-delete-pull-deferred',
+      'schema-phase1-explicit-manifest',
+      'schema-phase1-page-config-deferred',
+      'schema-phase1-report-deferred',
+      'schema-phase1-stale-replanned',
+      'schema-phase1-standalone-integration-legacy',
+      'schema-phase1-standalone-legacy',
+      'schema-phase1-standalone-page-config-legacy',
+      'schema-phase1-standalone-report-legacy',
+      'schema-phase1-state-owned-form',
+    ]);
+    expect(phaseOne['schema-phase1-explicit-manifest'].expectedSkill).toBe('yida-app');
+    expect(phaseOne['schema-phase1-state-owned-form'].expectedSkill).toBe('yida-create-form-page');
+    expect(phaseOne['schema-phase1-stale-replanned'].note).toMatch(/不自动 apply/);
+    expect(phaseOne['schema-phase1-standalone-legacy'].expectedSkill).toBe('yida-publish-page');
+    expect(phaseOne['schema-phase1-report-deferred'].note).toMatch(/禁止 fallback/);
+    expect(phaseOne['schema-phase1-automation-deferred'].note).toMatch(/禁止 fallback/);
+    expect(phaseOne['schema-phase1-page-config-deferred'].note).toMatch(/不伪造 Manifest/);
+    expect(phaseOne['schema-phase1-delete-pull-deferred'].note).toMatch(/无 live routing target/);
+    expect(phaseOne['schema-phase1-standalone-report-legacy'].expectedSkill).toBe('yida-report');
+    expect(phaseOne['schema-phase1-standalone-integration-legacy'].expectedSkill).toBe('yida-integration');
+    expect(phaseOne['schema-phase1-standalone-page-config-legacy'].expectedSkill).toBe('yida-page-config');
+
+    const rootSkill = fs.readFileSync(path.join(__dirname, '..', 'yida-skills', 'SKILL.md'), 'utf8');
+    const appSkill = fs.readFileSync(path.join(__dirname, '..', 'yida-skills', 'skills', 'yida-app', 'SKILL.md'), 'utf8');
+    const guide = fs.readFileSync(path.join(__dirname, '..', 'yida-skills', 'references', 'schema-as-code-phase1.md'), 'utf8');
+    for (const document of [rootSkill, appSkill, guide]) {
+      expect(document).toMatch(/planId/);
+      expect(document).toMatch(/显式批准/);
+      expect(document).toMatch(/绝不自动 apply|不能授予.*write|不能授予 `mixed\/write`/);
+      expect(document).toMatch(/report/);
+      expect(document).toMatch(/automation/);
+      expect(document).toMatch(/page config|page-config/);
+    }
+    expect(guide).toMatch(/先在 workspace 内创建或替换 companion source/);
+    expect(guide).toMatch(/nextAction.*只用于错误恢复或业务取舍/);
+    expect(guide).toMatch(/正常结果不触发错误恢复型.*ask_human/);
+    expect(guide).toMatch(/plan 完成后都必须独立暂停/);
+
+    const directSkills = {
+      report: fs.readFileSync(path.join(__dirname, '..', 'yida-skills', 'skills', 'yida-report', 'SKILL.md'), 'utf8'),
+      integration: fs.readFileSync(path.join(__dirname, '..', 'yida-skills', 'skills', 'yida-integration', 'SKILL.md'), 'utf8'),
+      pageConfig: fs.readFileSync(path.join(__dirname, '..', 'yida-skills', 'skills', 'yida-page-config', 'SKILL.md'), 'utf8'),
+    };
+    for (const skill of Object.values(directSkills)) {
+      expect(skill).toMatch(/SAC.*Phase 1|Phase 1.*SAC/);
+      expect(skill).toMatch(/standalone\/unmanaged/);
+      expect(skill).toMatch(/不得.*降级|不执行/);
+    }
+  });
+
   test('normalizeSkill 去斜杠/大小写', () => {
     expect(normalizeSkill('/Yida-Dashboard')).toBe('yida-dashboard');
   });

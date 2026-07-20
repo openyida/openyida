@@ -1,9 +1,20 @@
 ---
 name: yida-process-rule
-description: 为已有流程表单配置审批规则（审批/办理/抄送、条件/并行分支、字段权限、跳转规则、官方组件节点透传）。适用于流程表单已创建、需要调整审批流程时。
+description: 配置已有流程表单审批规则；schema-managed 流程由根技能或明确 context 路由到 schema workflow。
 ---
 
 # 宜搭流程规则配置技能
+
+> 资源边界：本技能只处理普通 OpenYida 资源；若根技能、上下文或 CLI guard 显示目标是 schema-managed，停止本技能并走 schema workflow；目标不明时回到根技能确认。
+
+## Resource-First 使用门槛
+
+本技能是已有流程/表单上下文的默认流程修改入口：
+
+- 已有流程表单、`processCode`、流程 URL、bound process 或可确认的 workflow form 时，审批节点、条件分支、字段权限、抄送、跳转规则等诉求默认使用本技能。
+- 已有普通表单 `formUuid` 且用户要“配置审批 / 转为审批流程”，先确认是否对该表单启用流程；如果只是转流程且尚无流程，可由 `yida-create-process --formUuid` 复用该表单，不要新建同名表单。
+- 没有目标表单/流程，且用户明确从零创建审批系统时，才改用 `yida-create-process`。
+- 多个流程候选按根技能来源优先级选择；同级冲突或无法判断目标流程时才问用户。
 
 ## 严格禁止 (NEVER DO)
 
@@ -11,6 +22,7 @@ description: 为已有流程表单配置审批规则（审批/办理/抄送、�
 - 不要在未加载本技能内容的情况下编写流程定义 JSON，格式复杂且易出错
 - 不要用此技能创建流程表单，应使用 `yida-create-process`
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成流程定义 JSON
+- 已有 process/form context 时不要新建同类流程表单；在原流程上配置/更新。
 
 ## 严格要求 (MUST DO)
 
@@ -25,7 +37,7 @@ description: 为已有流程表单配置审批规则（审批/办理/抄送、�
 | 用户意图 | 触发条件 |
 |---------|---------|
 | 配置/修改审批流程 | "配置审批"、"审批节点"、"条件分支"、"字段权限" |
-| 从零创建流程表单 | → 改用 `yida-create-process` |
+| 从零创建流程表单 | 仅无既有 form/process context 时 → 改用 `yida-create-process` |
 
 ## 触发条件
 
@@ -55,7 +67,8 @@ description: 为已有流程表单配置审批规则（审批/办理/抄送、�
 | 场景 | 使用技能 |
 |------|---------|
 | **已有流程表单**：只需修改/配置已有表单的审批流程规则 | **本技能（yida-process-rule）** |
-| **从零创建**：需要新建表单 + 配置审批流程（一步到位） | **yida-create-process** |
+| **已有普通表单**：要启用/转换审批流程 | 先确认目标表单，再用 `yida-create-process --formUuid` 复用表单或回到本技能配置 |
+| **从零创建**：没有目标表单/流程，需要新建表单 + 配置审批流程 | **yida-create-process** |
 
 > 简单判断：有没有现成的流程表单？有 → 本技能；没有 → `yida-create-process`。
 
@@ -432,8 +445,8 @@ yida-process-rule/
 
 | 步骤 | 技能 | 说明 |
 | --- | --- | --- |
-| 1 | `yida-create-app` | 创建应用，获取 `appType` |
-| 2 | `yida-create-form-page` | 创建表单，获取 `formUuid` 和字段 ID |
+| 1 | 已有 app 或 `yida-create-app` | 复用已解析 `appType`；仅无 app 且允许创建时新建 |
+| 2 | 已有表单或 `yida-create-form-page` | 复用已解析 `formUuid`；仅缺表单且允许创建时新建，并获取字段 ID |
 | 3 | **本技能** | 配置表单的流程规则 |
 | 4 | `yida-custom-page` | 编写自定义页面代码 |
 | 5 | `yida-publish-page` | 发布自定义页面 |

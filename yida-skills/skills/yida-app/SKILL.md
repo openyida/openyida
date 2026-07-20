@@ -1,6 +1,6 @@
 ---
 name: yida-app
-description: 宜搭完整应用开发编排技能。从零搭建应用时使用；默认走 fast_build，创建应用、必要表单、主页面、发布并输出链接。
+description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做完整搭建或补齐时使用；默认走 fast_build，先解析资源上下文，再创建缺失资源、更新主页面并发布输出链接。
 ---
 
 # yida-app — 完整应用编排契约
@@ -9,17 +9,47 @@ description: 宜搭完整应用开发编排技能。从零搭建应用时使用�
 
 ## 触发条件
 
-用户要求从零创建、搭建、生成一个完整宜搭应用/系统/平台/管理工具时使用本技能。
+用户要求从零创建、搭建、生成一个完整宜搭应用/系统/平台/管理工具，或已有 app/page 需要补齐成完整业务系统时使用本技能。
 
 用户说“按默认方案”“不要追问”“直接创建”“尽快搭建”等，必须选择 `fast_build`，用合理 MVP 假设直接执行，不展开深度 PRD 讨论。
 
-**默认判定**：从零搭建完整应用时，只要用户表达“默认方案 / 不要追问 / 直接创建 / 尽快搭建”等快速交付信号，就必须命中 `fast_build`。默认完成链路固定为 `创建应用 → 核心表单 → 主页面 → 编写主页面源码 → 发布 → 返回访问链接`。
+**默认判定**：完整应用搭建或补齐时，只要用户表达“默认方案 / 不要追问 / 直接创建 / 尽快搭建”等快速交付信号，就必须命中 `fast_build`。默认完成链路固定为 `resolve app → resolve forms → resolve main page → create missing resources only → 编写/更新主页面源码 → 发布 → 返回访问链接`。
+
+> 资源边界：本技能只处理普通 OpenYida 资源；若根技能、上下文或 CLI guard 显示目标是 schema-managed，停止本技能并走 schema workflow；目标不明时回到根技能确认。
+
+## 阶段 0：resolve_resource_context
+
+进入 `fast_build` / `full_demo` / `deep_design` 前，先按根技能的 Resource-First 规则解析本次目标 app/page/form/process：
+
+- 来源优先级：本轮显式 `appType` / `formUuid` / URL → agent bound context → workspace config/cache → 会话历史 → 明确从零创建。
+- agent bound context 只是默认候选，不是锁定目标；如果用户本轮明确提到另一个 app/page/form/process，必须重新解析本轮目标，能唯一解析则切换，不能唯一解析才问用户。
+- 已有 app 时在该 app 内补齐资源，不加载 `yida-create-app`；只有无 app 且用户意图允许创建时才创建。
+- 若已有 app 来自 agent 预创建占位资源，先记录 `app.source`、`precreated`、`placeholderName`、`allowRename` 和用户是否要求保留原名，后续在语义应用名稳定后决定是否改名。
+- 已有主页面 URL / `formUuid` / bound page 时，直接写源码并发布到该页面，不加载 `yida-create-page`；只有缺少 display page 且本次意图允许新增页面时才创建。
+- 已有表单 context 时，字段诉求走 `yida-create-form-page` 的 update/patch/rule/bind-datasource；只有已有 app 但缺少业务数据表时才 create form。
+- 已有流程表单或 `processCode` 时，流程诉求走 `yida-process-rule`；只有没有表单/流程且用户要新建审批表单时才进入 `yida-create-process`。
+- 多个同优先级候选、当前轮显式资源冲突或目标不明时才问用户；不要因为 cache 和历史里同时存在资源就默认打断。
+
+该阶段只决定普通 OpenYida resource context；schema-managed 路径仍以 schema CLI 的 validate/plan/apply 结果为准。
+
+## 阶段 1：resolve app name / rename placeholder app
+
+完成最小需求分析后，先确定稳定语义应用名（如“访客管理系统”“CRM 客户管理系统”），再进入表单或页面创建/更新。若目标 app 来自 agent 预创建占位资源，且满足以下条件，必须复用当前 `appType` 并执行改名：
+
+- `app.source === "agent_bound"`；
+- `precreated === true`，或当前名称 / `placeholderName` 命中“新应用 / 未命名 / 占位 / APP_xxx”等占位样式；
+- `allowRename !== false`；
+- 用户没有明确要求“保持应用名称不变”或指定保留原名称；
+- 目标不是 schema-managed；
+- 已从本轮需求得到稳定语义应用名，且该名称不是占位名。
+
+命令固定使用现有 CLI：`openyida update-app <appType> --name "<语义应用名>"`。该调用应在创建表单/页面前执行；若受信息收集顺序限制，最晚在发布前执行。不要在本技能中重写平台 API，不要加载 `yida-create-app` 处理改名，不要按标题发现/adopt 其他应用，不要 cleanup orphan，不要对已命名的真实业务应用自动改名，不要把 schema-managed 资源交给 legacy `update-app`。
 
 ## 模式
 
 | 模式 | 何时使用 | 目标 |
 |------|----------|------|
-| `fast_build` | 默认；用户要求不追问/直接创建 | 创建应用、必要表单、主页面，发布并输出访问 URL |
+| `fast_build` | 默认；用户要求不追问/直接创建 | 复用已解析资源，只创建缺失且允许创建的应用/表单/页面，发布并输出访问 URL |
 | `full_demo` | 用户明确要演示完整、示例数据、导航整理、可点验收 | 在 `fast_build` 后补导航、示例数据、公开访问或截图 |
 | `deep_design` | 用户明确要深度产品设计、视觉方向、多角色、多页面、复杂流程 | 先做详细 PRD/视觉决策，再执行多阶段搭建 |
 
@@ -33,13 +63,14 @@ description: 宜搭完整应用开发编排技能。从零搭建应用时使用�
 
 | 阶段 | 子技能 | 必做动作 | doneWhen |
 |------|--------|----------|----------|
-| 1. 创建应用 | `yida-create-app` | `openyida create-app`，提取 `appType` | 拿到真实 `appType` |
-| 2. 记录最小需求 | 无 | 写 `prd/<项目名>.md`：只记录 MVP 假设、核心表单/页面、完成标准；写 `.cache/<项目名>-schema.json` 初始骨架；不要写长 PRD | 业务语义和 ID 存储位置明确 |
-| 3. 创建必要表单 | `yida-create-form-page` | 只创建支撑 MVP 的核心表单；字段配置文件写入 `.cache/openyida/<项目名>/` | 拿到表单 `formUuid` 和真实 `fieldId` |
-| 4. 创建主页面 | `yida-create-page` | 创建一个用户主入口页面，通常是工作台/看板/列表入口 | 拿到页面 `formUuid` |
-| 5. 编写页面 | 默认 `yida-custom-page`；用户明确要求或已确认支持 Canvas 时才用 `yida-canvas-custom-page` | 生成主页面源码；只实现 MVP 首屏和核心操作。可用已创建表单链接、轻量统计占位和基础列表/入口布局完成主页面；不要加载视觉/密度/报表/数据源等额外技能 | 本地源码通过对应页面技能的基础校验 |
-| 6. 发布页面 | `yida-publish-page` | 按页面链路校验后发布：默认 native `.oyd.jsx` / `.jsx` 跑 `check-page` / `compile` 后发布；Canvas `.canvas.jsx` 仅在已选择 Canvas 链路时用 `openyida publish` 的 Canvas 编译阶段或 `compileCanvasLocal` 快检；再发布主页面 | 发布成功并获得可访问 URL |
-| 7. 输出结果 | 无 | 返回应用链接、主页面链接、已创建资源摘要、后续可选项 | 用户拿到 URL |
+| 0. 解析资源上下文 | 无 | 合并本轮显式资源、agent bound context、workspace config/cache、会话历史；本轮显式目标覆盖 bound context；判定 app/page/form/process 的 `source` 和 `allowCreate` | 明确复用、创建缺口或需要 ask_human |
+| 1. resolve app + app name | `yida-create-app` 仅在 app 缺失且允许创建时加载；`openyida update-app` 仅用于预创建占位 app 改名 | 已有 `appType`/应用 URL/bound app 时直接复用；若 bound/precreated app 仍是占位名，在语义名稳定后执行 `openyida update-app <appType> --name "<语义应用名>"`；否则创建应用并提取真实 `appType` | 拿到真实目标 `appType`，预创建占位 app 已改成语义名或明确跳过，且不会重复创建同类 app |
+| 2. 记录最小需求 | 无 | 写 `prd/<项目名>.md`：只记录 MVP 假设、核心表单/页面、完成标准；写/更新 `.cache/<项目名>-schema.json` standalone 映射；不要写长 PRD | 业务语义和 ID 存储位置明确 |
+| 3. resolve forms | `yida-create-form-page` | 已有目标表单时 update/patch/rule/bind-datasource；缺少支撑 MVP 的核心表单且允许创建时才 create；字段配置文件写入 `.cache/openyida/<项目名>/` | 拿到或确认表单 `formUuid` 和真实 `fieldId` |
+| 4. resolve main page | `yida-create-page` 仅在主页面缺失且允许创建时加载 | 已有页面 URL / `formUuid` / bound page 时直接作为主页面；否则创建一个用户主入口 display page | 拿到真实目标页面 `formUuid`，且不会重复创建页面 |
+| 5. 编写/更新页面 | 默认 `yida-custom-page`；用户明确要求或已确认支持 Canvas 时才用 `yida-canvas-custom-page` | 生成或修改主页面源码；只实现 MVP 首屏和核心操作。可用已解析表单链接、轻量统计占位和基础列表/入口布局完成主页面；不要加载视觉/密度/报表/数据源等额外技能 | 本地源码通过对应页面技能的基础校验 |
+| 6. 发布页面 | `yida-publish-page` | 按页面链路校验后发布到已解析主页面：默认 native `.oyd.jsx` / `.jsx` 跑 `check-page` / `compile` 后发布；Canvas `.canvas.jsx` 仅在已选择 Canvas 链路时用 `openyida publish` 的 Canvas 编译阶段或 `compileCanvasLocal` 快检 | 发布成功并获得可访问 URL |
+| 7. 输出结果 | 无 | 返回应用链接、主页面链接、复用/创建/更新的资源摘要、后续可选项 | 用户拿到 URL |
 
 `fast_build` 不默认执行：`yida-page-uiux`、`yida-canvas-custom-page`（除非已确认 Canvas 支持或用户明确要求）、`yida-data-source-connectors`、`yida-data-management`、`yida-nav-group`、`yida-dashboard`、导航重排、示例数据、截图验收、公开访问配置、深度 UI 设计、长 PRD、TaskCreate / 继续规划任务，也不默认读取 `references/app-build-contract.md`。
 
@@ -72,7 +103,7 @@ description: 宜搭完整应用开发编排技能。从零搭建应用时使用�
 
 1. 主页面发布成功；
 2. 输出可访问 URL；
-3. 输出真实 `appType`、页面 `formUuid`、核心表单 `formUuid` 摘要；
+3. 输出真实 `appType`、页面 `formUuid`、核心表单 `formUuid` 摘要，并标明关键资源是复用、创建还是更新；
 4. 未继续执行可选后置动作。
 
 发布成功并拿到访问 URL 后即完成，不要继续 TaskCreate、重复读技能、重复规划后续阶段。
@@ -82,6 +113,10 @@ description: 宜搭完整应用开发编排技能。从零搭建应用时使用�
 - 不编造 `appType`、`formUuid`、`fieldId`、`reportId`。
 - 同一命令失败后，必须改变登录态、组织、参数、输入文件或字段 ID 后才能重试；禁止无修改连续重试。
 - corpId 与目标组织不一致时先停下，让用户选择重新登录或在当前组织继续。
+- 已有目标 app/page/form/process 时默认复用；只有用户明确要求新建另一个同类资源，或目标缺失且本次意图允许创建时，才加载 create 类子技能。
+- 当前轮用户明确指定的资源优先于 agent bound context；例如会话绑定页面 A、用户要求修复页面 B 时，先解析 B，不能唯一解析才问用户，不要默认改 A。
+- agent 预创建占位 app 只作为默认资源；满足改名条件时只调用 `openyida update-app` 修正语义名，不创建新 app，不改非占位真实业务 app。
+- 多个同优先级资源候选或当前轮显式资源冲突时，先问用户确认目标，不要通过重复创建规避冲突。
 - 输入 JSON/YAML/CSV/JSX 等业务文件必须用结构化文件写入工具创建，不用 shell heredoc、`cat`、`echo`、`printf`、`tee` 或重定向。
 
 ## 存储约定
