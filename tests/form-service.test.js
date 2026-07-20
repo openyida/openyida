@@ -117,6 +117,23 @@ describe('form service strict create resource', () => {
     expect(querystring.parse(saveCall[2]).gmtModified).toBe('100');
   });
 
+  test('uses definition title when creating the blank form shell', async () => {
+    utils.httpPost.mockResolvedValue({ success: true, content: { formUuid: 'FORM_TEST' } });
+
+    await expect(createBlankForm(authRef, {
+      appType: 'APP_XXX',
+      definition: {
+        title: '客户审批',
+      },
+      formType: 'process',
+    })).resolves.toMatchObject({ formUuid: 'FORM_TEST' });
+
+    const createCall = utils.httpPost.mock.calls.find(call => call[1].includes('/saveFormSchemaInfo.json'));
+    const params = querystring.parse(createCall[2]);
+    expect(params.formType).toBe('process');
+    expect(JSON.parse(params.title)).toMatchObject({ zh_CN: '客户审批' });
+  });
+
   test('throws stable error when config update fails', async () => {
     mockCreateSaveConfig({ success: false, errorMsg: 'config failed', content: { secret: 'ignored' } });
     utils.httpGet.mockResolvedValue({
