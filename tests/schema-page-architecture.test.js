@@ -44,7 +44,7 @@ describe('live page architecture surface', () => {
 
     expect(relative).toEqual([
       'lib/app/services/native-page-schema-builder.js',
-      'lib/formula/evaluate.js',
+      'lib/formula/field-refs.js',
     ]);
     for (const forbidden of LEGACY_PUBLISH_ORCHESTRATION) {
       expect(relative).not.toContain(forbidden);

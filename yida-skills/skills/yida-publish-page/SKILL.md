@@ -6,6 +6,7 @@ description: 自定义页面 JSX 编译发布技能；schema-managed 页面由�
 # 发布自定义页面
 
 > 资源边界：本技能只处理普通 OpenYida 资源；若根技能、上下文或 CLI guard 显示目标是 schema-managed，停止本技能并走 schema workflow；目标不明时回到根技能确认。
+> direct/standalone 路径才可执行本技能；schema-managed 路径必须回到 schema validate → plan → apply，不在本技能内降级写入。
 
 ## Resource-First 发布目标
 

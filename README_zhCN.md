@@ -305,6 +305,14 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida update-form-config <appType> ...` | 更新表单配置 |
 | `openyida get-form-config <appType> <formUuid> [--json]` | 查询表单配置 |
 
+### Schema-as-Code
+
+| 命令 | 说明 |
+|------|------|
+| `openyida schema validate <manifest> --json --quiet` | 本地校验 Schema-as-Code Manifest |
+| `openyida schema plan <manifest> --state <path> --json --quiet` | 只读观测远端并规划 Schema-as-Code 变更 |
+| `openyida schema apply <manifest> --state <path> --plan-id <planId> --json --quiet` | 使用 checkpoint 和恢复护栏执行已审阅的 Schema-as-Code 计划 |
+
 ### 数据 & 权限
 
 | 命令 | 说明 |

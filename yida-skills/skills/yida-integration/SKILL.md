@@ -7,7 +7,7 @@ description: Standalone 创建/管理宜搭集成自动化；如果请求来自 
 
 ## 适用范围：standalone 资源
 
-- 本技能只处理明确 standalone 的集成自动化。用户提供 Schema-as-Code manifest、要求 schema validate/plan/apply，或自动化身份来自 Schema-as-Code state 时，不执行创建、更新、开启或关闭，稳定停止为 unsupported。
+- SAC Phase 1 下，本技能只处理明确 standalone 的集成自动化。用户提供 Schema-as-Code manifest、要求 schema validate/plan/apply，或自动化身份来自 Schema-as-Code state 时，不执行创建、更新、开启或关闭，稳定停止为 unsupported。
 - 不得把 SAC unsupported/conflict/uncertain 降级为 `integration create` 等 legacy 写入，不得按名称 discover/adopt、猜逻辑流 ID 或自动重建。
 - 只有自动化明确 standalone/unmanaged，或用户明确要求 standalone legacy 命令时，以下参数、stdout/stderr、发布/启停和返回行为才按原契约使用；所有权不明确时零远端写。
 

@@ -30,7 +30,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 - 已有流程表单或 `processCode` 时，流程诉求走 `yida-process-rule`；只有没有表单/流程且用户要新建审批表单时才进入 `yida-create-process`。
 - 多个同优先级候选、当前轮显式资源冲突或目标不明时才问用户；不要因为 cache 和历史里同时存在资源就默认打断。
 
-该阶段只决定普通 OpenYida resource context；schema-managed 路径仍以 schema CLI 的 validate/plan/apply 结果为准。
+该阶段只决定普通 OpenYida resource context；schema-managed 路径仍以 schema CLI 的 validate/plan/apply 结果为准。schema-managed create/update 必须停在当前 `planId`，等待用户显式批准后才可执行 `apply`；`nextAction`、错误恢复或本技能判断都不能授予 `mixed/write`。Phase 1 中 report、automation、page config、delete、pull 不从 Manifest fallback 到本技能的 legacy workflow。
 
 ## 阶段 1：resolve app name / rename placeholder app
 

@@ -55,6 +55,8 @@ description: >
 | `schema-managed` | 用户提供 Schema-as-Code manifest、要求 `schema validate/plan/apply`，或 CLI/context 明确目标身份来自 Schema-as-Code state | 走 `openyida schema validate <manifest> --json --quiet` → `openyida schema plan <manifest> --state <path> --json --quiet` → 用户审阅本次 `planId` → `openyida schema apply <manifest> --state <path> --plan-id <reviewed-planId> --json --quiet` |
 | `direct/standalone` | 没有 manifest/state 管理关系，或用户明确要求 standalone legacy 命令 | 走下方 Resource-First direct workflow：先解析已有资源，再 create missing only / update / publish |
 
+schema-managed create/update 必须等待用户对当前 `planId` 显式批准；`nextAction`、错误恢复或路由判断都不能授予 `mixed/write`。Phase 1 中 report、automation、page config、delete、pull 不从 Manifest fallback 到 legacy。
+
 `.cache/<项目名>-schema.json` 只是 direct/standalone 的 ID 映射，不等于 Schema-as-Code state。路径不明确时先只读确认或询问用户；不要通过新建同类资源规避不确定性。
 
 ---
