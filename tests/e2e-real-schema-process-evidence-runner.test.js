@@ -40,7 +40,7 @@ describe('schema process evidence runner safety projection', () => {
     };
     const privateState = { resourceIds: ids };
     const forbiddenValues = buildForbiddenValues(cookieData, privateState, [
-      '/Users/alex.mm/private/project/openyida/secret.json',
+      '/workspace/private/secret.json',
       '/alibaba/web/APP_SAC06_REALISTIC_123456/query/simpleProcess/getProcessById.json',
     ]);
     const sensitiveMessage = [
@@ -50,7 +50,7 @@ describe('schema process evidence runner safety projection', () => {
       ids.formUuid,
       ids.processCode,
       ids.processId,
-      '/Users/alex.mm/private/project/openyida/secret.json',
+      '/workspace/private/secret.json',
       'https://internal.example.test/alibaba/web/APP_SAC06_REALISTIC_123456/query/simpleProcess/getProcessById.json',
     ].join(' ');
 

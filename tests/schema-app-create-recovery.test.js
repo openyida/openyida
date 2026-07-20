@@ -136,6 +136,43 @@ describe('schema app create identity recovery', () => {
     expect(operations['form:followup'].status).toBe('completed');
   });
 
+  test('form post-write readback retries transient exact read failures without recreating', async () => {
+    const registry = createRegistry({ formContract: createFollowupFormAdapter() });
+    const normalized = normalizeAppWithFormManifest(registry);
+    const plan = createReviewedPlan(normalized, registry);
+    const harness = createAppHarness({
+      enableFollowupForm: true,
+      formReadFailureCount: 2,
+    });
+
+    const result = await runApply(normalized, plan.planId, harness.services, registry, {
+      formPostWriteReadbackRetry: { maxAttempts: 3, delayMs: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.counts).toMatchObject({ create: 2 });
+    expect(harness.calls).toEqual([
+      'createAppResource',
+      'readApp',
+      'createFollowupFormResource',
+      'readFollowupFormResource',
+      'readFollowupFormResource',
+      'readFollowupFormResource',
+    ]);
+    expect(harness.calls.filter(call => call === 'createFollowupFormResource')).toHaveLength(1);
+    expect(harness.formReadInputs).toEqual([
+      { appType: APP_TYPE, formUuid: 'FORM_FOLLOWUP_EXACT' },
+      { appType: APP_TYPE, formUuid: 'FORM_FOLLOWUP_EXACT' },
+      { appType: APP_TYPE, formUuid: 'FORM_FOLLOWUP_EXACT' },
+    ]);
+
+    const state = readState(statePath(), { environment: environment(), registry });
+    expect(state.resources.form.followup).toMatchObject({
+      bindings: { appType: APP_TYPE, formUuid: 'FORM_FOLLOWUP_EXACT' },
+    });
+    expect(readOperations(registry)['form:followup'].status).toBe('completed');
+  });
+
   test('app create post-write readback exhaustion remains uncertain without state or recreate', async () => {
     const registry = createRegistry();
     const normalized = normalizeAppManifest(registry);
@@ -370,6 +407,7 @@ function createAppHarness(options = {}) {
     forms: {},
   };
   let appReadMissingCount = options.appReadMissingCount || 0;
+  let formReadFailureCount = options.formReadFailureCount || 0;
   const services = {
     async createAppResource(_context, input) {
       calls.push('createAppResource');
@@ -435,6 +473,12 @@ function createAppHarness(options = {}) {
       if (!form || form.appType !== input.appType || form.formUuid !== input.formUuid) {
         const error = new Error('missing form');
         error.code = 'FORM_READ_NOT_FOUND';
+        throw error;
+      }
+      if (formReadFailureCount > 0) {
+        formReadFailureCount -= 1;
+        const error = new Error('transient form read failure');
+        error.code = 'FORM_SCHEMA_READ_FAILED';
         throw error;
       }
       return { ...form };
