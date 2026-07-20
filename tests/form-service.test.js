@@ -163,6 +163,93 @@ describe('form service strict create resource', () => {
     expect(utils.httpGet).toHaveBeenCalledTimes(1);
   });
 
+  test('accepts updateFormConfig HTTP 200 empty non-JSON response and verifies readback', async () => {
+    mockCreateSaveConfig({
+      success: false,
+      errorMsg: 'HTTP 200: 响应非 JSON',
+      __httpStatus: 200,
+      __nonJsonResponse: true,
+      __emptyBody: true,
+    });
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: schemaWithField('TextField', 'textField_keep'),
+    });
+
+    const result = await createFormResource(authRef, baseInput());
+
+    expect(result).toMatchObject({
+      formUuid: 'FORM_TEST',
+      configResult: {
+        success: true,
+        acceptedNonJsonResponse: true,
+        acceptedEmptyResponse: true,
+      },
+      verification: {
+        missing: [],
+        mismatched: [],
+      },
+    });
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+  });
+
+  test('accepts updateFormConfig HTTP 200 non-empty non-JSON response and verifies readback', async () => {
+    mockCreateSaveConfig({
+      success: false,
+      errorMsg: 'HTTP 200: 响应非 JSON',
+      __httpStatus: 200,
+      __nonJsonResponse: true,
+      __emptyBody: false,
+    });
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: schemaWithField('TextField', 'textField_keep'),
+    });
+
+    const result = await createFormResource(authRef, baseInput());
+
+    expect(result).toMatchObject({
+      formUuid: 'FORM_TEST',
+      configResult: {
+        success: true,
+        acceptedNonJsonResponse: true,
+        acceptedEmptyResponse: false,
+      },
+      verification: {
+        missing: [],
+        mismatched: [],
+      },
+    });
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+  });
+
+  test('rejects updateFormConfig non-JSON response with explicit business code', async () => {
+    mockCreateSaveConfig({
+      success: false,
+      errorMsg: 'HTTP 200: 响应非 JSON',
+      errorCode: 'FAILED',
+      __httpStatus: 200,
+      __nonJsonResponse: true,
+      __emptyBody: false,
+    });
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: schemaWithField('TextField', 'textField_keep'),
+    });
+
+    await expect(createFormResource(authRef, baseInput())).rejects.toMatchObject({
+      code: 'FORM_CONFIG_UPDATE_FAILED',
+      details: {
+        result: {
+          errorCode: 'FAILED',
+          __httpStatus: 200,
+          __nonJsonResponse: true,
+        },
+      },
+    });
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+  });
+
   test('throws stable error when read-back binding is missing', async () => {
     mockCreateSaveConfig({ success: true });
     utils.httpGet.mockResolvedValue({

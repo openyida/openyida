@@ -65,7 +65,7 @@ describe('shared form mode service', () => {
     expect(query).not.toHaveProperty('pageSize');
   });
 
-  test('only treats an explicit empty procCode string as receipt mode', async () => {
+  test('treats an explicit empty procCode string as receipt mode', async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
       content: {
@@ -80,14 +80,46 @@ describe('shared form mode service', () => {
     })).resolves.toEqual({ mode: 'receipt' });
   });
 
+  test('treats successful empty content as receipt mode', async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      content: {},
+    });
+
+    await expect(readFormMode({}, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_TEST',
+    })).resolves.toEqual({ mode: 'receipt' });
+  });
+
+  test.each([
+    { systemType: 'default_system' },
+    { appType: 'APP_TEST', systemType: 'default_system' },
+    { appType: 'APP_TEST', formUuid: 'FORM_TEST', systemType: 'default_system' },
+  ])('treats successful content without procCode as receipt when identity matches %#', async content => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      content,
+    });
+
+    await expect(readFormMode({}, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_TEST',
+    })).resolves.toEqual({ mode: 'receipt' });
+  });
+
   test.each([
     { success: false, errorCode: '500' },
     { success: true, content: null },
-    { success: true, content: {} },
+    { success: true, content: 'invalid' },
+    { success: true, content: [] },
     { success: true, content: { procCode: null } },
+    { success: false, content: {} },
+    { success: true, content: { appType: 'APP_OTHER' } },
+    { success: true, content: { appType: 'APP_TEST', formUuid: 'FORM_OTHER' } },
     { success: true, content: { appType: 'APP_OTHER', procCode: 'TPROC_TEST' } },
     { success: true, content: { appType: 'APP_TEST', formUuid: 'FORM_OTHER', procCode: 'TPROC_TEST' } },
-  ])('returns a stable read failure without guessing missing', async result => {
+  ])('returns a stable read failure for invalid binding responses', async result => {
     mockGet.mockResolvedValueOnce(result);
 
     await expect(readFormMode({}, {

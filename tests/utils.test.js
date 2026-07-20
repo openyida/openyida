@@ -190,6 +190,28 @@ describe('http redirect login detection', () => {
     }
   });
 
+  test('httpPost 为 200 空响应非 JSON 保留结构化元数据', async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 200;
+      res.end('');
+    });
+    const port = await listen(server);
+
+    try {
+      const result = await httpPost(`http://127.0.0.1:${port}`, '/empty', '', { silentStatus: true });
+
+      expect(result).toMatchObject({
+        success: false,
+        __httpStatus: 200,
+        __nonJsonResponse: true,
+        __emptyBody: true,
+      });
+      expect(result.errorMsg).toMatch(/^HTTP 200:/);
+    } finally {
+      await closeServer(server);
+    }
+  });
+
   test('httpGet 将 307 跳转识别为需要重新登录', async () => {
     const server = http.createServer((req, res) => {
       res.statusCode = 307;

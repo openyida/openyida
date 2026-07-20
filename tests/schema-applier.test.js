@@ -369,6 +369,54 @@ describe('schema apply command and recovery state machine', () => {
     expect(findFieldComponent(harness.remote.forms[formUuid].content, noteId)).toBeTruthy();
   });
 
+  test('app update still requires post-write readback before State checkpoint', async () => {
+    const manifestFile = writeManifest();
+    const initialNormalized = normalizeManifest(manifest());
+    const harness = createRemoteHarness();
+    const firstPlan = planFor(initialNormalized, emptyState(initialNormalized));
+    expect((await runApply(manifestFile, firstPlan.planId, harness)).payload.success).toBe(true);
+
+    writeManifest(manifest('Visitor App 2'));
+    const reviewedPlan = await runSchemaCommand([
+      'plan', manifestFile, '--state', statePath(), '--json', '--quiet',
+    ], {
+      authRef: authRef(),
+      environment: environment(),
+      projectRoot: tempDir,
+      services: harness.services,
+      setExitCode: false,
+      stdout: collectStdout().stream,
+    });
+    expect(reviewedPlan.counts.update).toBe(1);
+
+    const stateBefore = fs.readFileSync(statePath(), 'utf8');
+    const updateAppResource = harness.services.updateAppResource;
+    harness.services.updateAppResource = async function (context, input) {
+      const result = await updateAppResource(context, input);
+      harness.remote.app.appName = 'Remote Drift';
+      return result;
+    };
+    const callStart = harness.calls.length;
+
+    const failed = await runApply(manifestFile, reviewedPlan.planId, harness);
+
+    expect(failed.payload).toMatchObject({
+      success: false,
+      error: {
+        code: 'SCHEMA_APPLY_VERIFY_FAILED',
+        details: {
+          resourceType: 'app',
+          key: 'visitorApp',
+        },
+      },
+    });
+    expect(harness.calls.slice(callStart)).toContain('update:app');
+    expect(harness.calls.slice(callStart).lastIndexOf('read:app')).toBeGreaterThan(
+      harness.calls.slice(callStart).indexOf('update:app')
+    );
+    expect(fs.readFileSync(statePath(), 'utf8')).toBe(stateBefore);
+  });
+
   test('full-Schema-only drift after plan makes apply stale before any write', async () => {
     const manifestFile = writeManifest();
     const normalized = normalizeManifest(manifest());

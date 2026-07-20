@@ -3,6 +3,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { compileFormDefinition } = require('../lib/app/services/form-compiler');
 const { appAdapter } = require('../lib/schema/adapters/app-adapter');
 const { formAdapter } = require('../lib/schema/adapters/form-adapter');
 const { applySchema } = require('../lib/schema/applier');
@@ -19,12 +20,17 @@ const { createPlan, hashManagedIdentity } = require('../lib/schema/planner');
 const { ResourceRegistry } = require('../lib/schema/resource-registry');
 const {
   createEmptyState,
+  hashStable,
   readState,
+  upsertResourceState,
+  writeStateAtomic,
 } = require('../lib/schema/state-store');
 
 const APP_KEY = 'recoveryApp';
 const APP_NAME = 'Recovery App';
 const APP_TYPE = 'APP_CREATED_EXACT';
+const FORM_KEY = 'followup';
+const FORM_UUID = 'FORM_RESUME_EXACT';
 const TOKEN_SECRET = 'TOKEN_SECRET_VALUE';
 const COOKIE_SECRET = 'COOKIE_SECRET_VALUE';
 
@@ -39,87 +45,61 @@ describe('schema app create identity recovery', () => {
     fs.rmSync(workspace, { recursive: true, force: true });
   });
 
-  test('real uncertain app create identity resumes by exact appType read without recreating', async () => {
-    const resumeCalls = [];
-    const registry = createRegistry({ resumeCalls });
+  test('app create receipt checkpoints state without post-write readback', async () => {
+    const registry = createRegistry();
     const normalized = normalizeAppManifest(registry);
     const plan = createReviewedPlan(normalized, registry);
     const behavior = {
-      readError: new Error(`post read failed ${TOKEN_SECRET}`),
+      readError: new Error(`post read should not be required ${TOKEN_SECRET}`),
     };
     const harness = createAppHarness(behavior);
 
-    await expect(runApply(normalized, plan.planId, harness.services, registry))
-      .rejects.toMatchObject({ code: 'SCHEMA_RECONCILIATION_REQUIRED' });
+    const result = await runApply(normalized, plan.planId, harness.services, registry);
 
-    expect(harness.calls).toEqual(['createAppResource', 'readApp']);
+    expect(result.success).toBe(true);
+    expect(harness.calls).toEqual(['createAppResource']);
+    expect(harness.readInputs).toEqual([]);
     const operation = readOperation(registry);
     expect(operation).toMatchObject({
       resourceType: 'app',
       key: APP_KEY,
       operation: 'create',
-      status: 'uncertain',
+      status: 'completed',
       createIdentity: {
         bindings: { appType: APP_TYPE },
       },
     });
-    expect(fs.existsSync(statePath())).toBe(false);
+    expect(readState(statePath(), { environment: environment(), registry })
+      .resources.app[APP_KEY]).toMatchObject({
+      bindings: { appType: APP_TYPE },
+      lastApplied: { key: APP_KEY, name: APP_NAME },
+    });
 
     const rawJournal = fs.readFileSync(resolveApplyPaths(statePath()).journalPath, 'utf8');
     expect(rawJournal).toContain(APP_TYPE);
     expect(rawJournal).not.toContain(TOKEN_SECRET);
     expect(rawJournal).not.toContain(COOKIE_SECRET);
     expect(rawJournal).not.toContain('response');
-
-    behavior.readError = null;
-    const callStart = harness.calls.length;
-    const createCountBeforeResume = harness.calls.filter(call => call === 'createAppResource').length;
-
-    const result = await runApply(normalized, plan.planId, harness.services, registry);
-
-    expect(result.success).toBe(true);
-    expect(resumeCalls).toHaveLength(1);
-    expect(harness.calls.filter(call => call === 'createAppResource')).toHaveLength(createCountBeforeResume);
-    expect(harness.calls.slice(callStart).every(call => call === 'readApp')).toBe(true);
-    expect(harness.readInputs.every(input => (
-      Object.keys(input).join(',') === 'appType' && input.appType === APP_TYPE
-    ))).toBe(true);
-    expect(readState(statePath(), { environment: environment(), registry })
-      .resources.app[APP_KEY]).toMatchObject({
-      bindings: { appType: APP_TYPE },
-      lastApplied: { key: APP_KEY, name: APP_NAME },
-    });
-    expect(readOperation(registry).status).toBe('completed');
   });
 
-  test('app create post-write readback waits for exact appType before continuing dependents', async () => {
+  test('app create receipt checkpoints before dependents when app readback is still missing', async () => {
     const registry = createRegistry({ formContract: createFollowupFormAdapter() });
     const normalized = normalizeAppWithFormManifest(registry);
     const plan = createReviewedPlan(normalized, registry);
     const harness = createAppHarness({
-      appReadMissingCount: 2,
+      appReadMissingCount: 99,
       enableFollowupForm: true,
     });
 
-    const result = await runApply(normalized, plan.planId, harness.services, registry, {
-      appCreatePostWriteReadbackRetry: { maxAttempts: 3, delayMs: 0 },
-    });
+    const result = await runApply(normalized, plan.planId, harness.services, registry);
 
     expect(result.success).toBe(true);
     expect(result.counts).toMatchObject({ create: 2 });
-    expect(harness.calls).toEqual([
-      'createAppResource',
-      'readApp',
-      'readApp',
-      'readApp',
-      'createFollowupFormResource',
-      'readFollowupFormResource',
-    ]);
-    expect(harness.readInputs).toEqual([
-      { appType: APP_TYPE },
-      { appType: APP_TYPE },
-      { appType: APP_TYPE },
-    ]);
+    expect(harness.calls.filter(call => call === 'readApp')).toHaveLength(0);
+    expect(harness.calls.indexOf('createFollowupFormResource')).toBeGreaterThan(
+      harness.calls.indexOf('createAppResource')
+    );
+    expect(harness.readInputs).toEqual([]);
     expect(harness.calls.filter(call => call === 'createAppResource')).toHaveLength(1);
 
     const state = readState(statePath(), { environment: environment(), registry });
@@ -136,35 +116,27 @@ describe('schema app create identity recovery', () => {
     expect(operations['form:followup'].status).toBe('completed');
   });
 
-  test('form post-write readback retries transient exact read failures without recreating', async () => {
+  test('form post-write readback uses expanded default retry budget without recreating', async () => {
     const registry = createRegistry({ formContract: createFollowupFormAdapter() });
     const normalized = normalizeAppWithFormManifest(registry);
     const plan = createReviewedPlan(normalized, registry);
     const harness = createAppHarness({
       enableFollowupForm: true,
-      formReadFailureCount: 2,
+      formReadFailureCount: 9,
     });
 
     const result = await runApply(normalized, plan.planId, harness.services, registry, {
-      formPostWriteReadbackRetry: { maxAttempts: 3, delayMs: 0 },
+      formPostWriteReadbackRetry: { delayMs: 0 },
     });
 
     expect(result.success).toBe(true);
     expect(result.counts).toMatchObject({ create: 2 });
-    expect(harness.calls).toEqual([
-      'createAppResource',
-      'readApp',
-      'createFollowupFormResource',
-      'readFollowupFormResource',
-      'readFollowupFormResource',
-      'readFollowupFormResource',
-    ]);
+    expect(harness.calls.filter(call => call === 'readFollowupFormResource')).toHaveLength(10);
     expect(harness.calls.filter(call => call === 'createFollowupFormResource')).toHaveLength(1);
-    expect(harness.formReadInputs).toEqual([
-      { appType: APP_TYPE, formUuid: 'FORM_FOLLOWUP_EXACT' },
-      { appType: APP_TYPE, formUuid: 'FORM_FOLLOWUP_EXACT' },
-      { appType: APP_TYPE, formUuid: 'FORM_FOLLOWUP_EXACT' },
-    ]);
+    expect(harness.formReadInputs).toHaveLength(10);
+    expect(harness.formReadInputs.every(input => (
+      input.appType === APP_TYPE && input.formUuid === 'FORM_FOLLOWUP_EXACT'
+    ))).toBe(true);
 
     const state = readState(statePath(), { environment: environment(), registry });
     expect(state.resources.form.followup).toMatchObject({
@@ -173,60 +145,402 @@ describe('schema app create identity recovery', () => {
     expect(readOperations(registry)['form:followup'].status).toBe('completed');
   });
 
-  test('app create post-write readback exhaustion remains uncertain without state or recreate', async () => {
+  test('pending form create identity resume retries pre-resume readback without recreating', async () => {
+    const registry = createRegistry();
+    const normalized = normalizeAppWithFormManifest(registry);
+    const appState = writeAppOnlyState(normalized, registry);
+    const plan = createReviewedPlan(normalized, registry, {
+      observedResources: [observedAppResource()],
+      state: appState,
+    });
+    const formResource = desiredResources(normalized, registry)
+      .find(resource => resource.resourceType === 'form' && resource.key === FORM_KEY);
+    const compiled = compileFormDefinition({
+      title: formResource.desired.title,
+      fields: formResource.desired.fields,
+    }, {
+      appType: APP_TYPE,
+      formUuid: FORM_UUID,
+    });
+    const formBindings = stateFormBindings(compiled);
+    writePendingFormCreateIdentity(normalized, plan.planId, registry, formResource, formBindings, appState);
+
+    const harness = createAppHarness({
+      remoteApp: { appType: APP_TYPE, appName: APP_NAME },
+    });
+    const formReadInputs = [];
+    let formReadFailures = 9;
+    harness.remote.forms[FORM_UUID] = {
+      success: true,
+      content: {
+        ...compiled.schema,
+        gmtModified: 100,
+      },
+    };
+    harness.services.createFormResource = async function () {
+      harness.calls.push('createFormResource');
+      throw new Error('form create should not be called during identity resume');
+    };
+    harness.services.resumeFormResource = async function () {
+      harness.calls.push('resumeFormResource');
+      throw new Error('resume write should not be called when observed form already matches desired');
+    };
+    harness.services.readFormSchema = async function (_context, input) {
+      harness.calls.push('readFormSchema');
+      formReadInputs.push({ ...input });
+      if (formReadFailures > 0) {
+        formReadFailures -= 1;
+        const error = new Error('transient resume form read failure');
+        error.code = 'FORM_SCHEMA_READ_FAILED';
+        throw error;
+      }
+      return harness.remote.forms[input.formUuid];
+    };
+
+    const result = await runApply(normalized, plan.planId, harness.services, registry, {
+      formPostWriteReadbackRetry: { delayMs: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(formReadFailures).toBe(0);
+    expect(formReadInputs.length).toBeGreaterThanOrEqual(10);
+    expect(formReadInputs.every(input => input.appType === APP_TYPE && input.formUuid === FORM_UUID)).toBe(true);
+    expect(harness.calls).not.toContain('createFormResource');
+    expect(harness.calls).not.toContain('resumeFormResource');
+    expect(readState(statePath(), { environment: environment(), registry })
+      .resources.form[FORM_KEY]).toMatchObject({
+      bindings: {
+        appType: APP_TYPE,
+        formUuid: FORM_UUID,
+        fieldBindings: formBindings,
+      },
+      lastApplied: formResource.desired,
+    });
+    expect(readOperations(registry)[`form:${FORM_KEY}`].status).toBe('completed');
+  });
+
+  test('pending receipt form create identity resume falls back when mode read fails after schema match', async () => {
+    const registry = createRegistry();
+    const normalized = normalizeAppWithFormManifest(registry, { formMode: 'receipt' });
+    const appState = writeAppOnlyState(normalized, registry);
+    const plan = createReviewedPlan(normalized, registry, {
+      observedResources: [observedAppResource()],
+      state: appState,
+    });
+    const formResource = desiredResources(normalized, registry)
+      .find(resource => resource.resourceType === 'form' && resource.key === FORM_KEY);
+    const compiled = compileFormDefinition({
+      title: formResource.desired.title,
+      fields: formResource.desired.fields,
+    }, {
+      appType: APP_TYPE,
+      formUuid: FORM_UUID,
+    });
+    compiled.schema.gmtModified = 100;
+    const formBindings = stateFormBindings(compiled);
+    writePendingFormCreateIdentity(normalized, plan.planId, registry, formResource, formBindings, appState);
+
+    const harness = createAppHarness({
+      remoteApp: { appType: APP_TYPE, appName: APP_NAME },
+    });
+    const formReadInputs = [];
+    const modeReadInputs = [];
+    harness.remote.forms[FORM_UUID] = {
+      success: true,
+      content: compiled.schema,
+    };
+    harness.services.createFormResource = async function () {
+      harness.calls.push('createFormResource');
+      throw new Error('form create should not be called during identity resume');
+    };
+    harness.services.resumeFormResource = async function () {
+      harness.calls.push('resumeFormResource');
+      throw new Error('resume write should not be called when observed receipt form already matches desired');
+    };
+    harness.services.readFormSchema = async function (_context, input) {
+      harness.calls.push('readFormSchema');
+      formReadInputs.push({ ...input });
+      return harness.remote.forms[input.formUuid];
+    };
+    harness.services.readFormMode = async function (_context, input) {
+      harness.calls.push('readFormMode');
+      modeReadInputs.push({ ...input });
+      const error = new Error('transient resume form mode read failure');
+      error.code = 'FORM_MODE_READ_FAILED';
+      error.details = {
+        operation: 'FormProcBinding.getBindingByFormUuid',
+        result: { success: false, errorCode: '500' },
+      };
+      throw error;
+    };
+
+    const result = await runApply(normalized, plan.planId, harness.services, registry, {
+      formPostWriteReadbackRetry: { maxAttempts: 3, delayMs: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(modeReadInputs).toHaveLength(3);
+    expect(formReadInputs).toHaveLength(4);
+    expect(formReadInputs.every(input => input.appType === APP_TYPE && input.formUuid === FORM_UUID)).toBe(true);
+    expect(modeReadInputs.every(input => input.appType === APP_TYPE && input.formUuid === FORM_UUID)).toBe(true);
+    expect(harness.calls).not.toContain('createFormResource');
+    expect(harness.calls).not.toContain('resumeFormResource');
+    expect(readState(statePath(), { environment: environment(), registry })
+      .resources.form[FORM_KEY]).toMatchObject({
+      bindings: {
+        appType: APP_TYPE,
+        formUuid: FORM_UUID,
+        fieldBindings: formBindings,
+      },
+      lastApplied: formResource.desired,
+    });
+    expect(readOperations(registry)[`form:${FORM_KEY}`].status).toBe('completed');
+  });
+
+  test('pending process form create identity resume write re-reads mode before checkpointing', async () => {
+    const registry = createRegistry();
+    const normalized = normalizeAppWithFormManifest(registry, { formMode: 'process' });
+    const appState = writeAppOnlyState(normalized, registry);
+    const plan = createReviewedPlan(normalized, registry, {
+      observedResources: [observedAppResource()],
+      state: appState,
+    });
+    const formResource = desiredResources(normalized, registry)
+      .find(resource => resource.resourceType === 'form' && resource.key === FORM_KEY);
+    const compiled = compileFormDefinition({
+      title: formResource.desired.title,
+      fields: formResource.desired.fields,
+    }, {
+      appType: APP_TYPE,
+      formUuid: FORM_UUID,
+    });
+    compiled.schema.gmtModified = 101;
+    const formBindings = stateFormBindings(compiled);
+    writePendingFormCreateIdentity(normalized, plan.planId, registry, formResource, formBindings, appState);
+
+    const harness = createAppHarness({
+      remoteApp: { appType: APP_TYPE, appName: APP_NAME },
+    });
+    const formReadInputs = [];
+    const modeReadInputs = [];
+    harness.remote.forms[FORM_UUID] = {
+      success: true,
+      content: compiled.schema,
+    };
+    harness.services.createFormResource = async function () {
+      harness.calls.push('createFormResource');
+      throw new Error('form create should not be called during identity resume');
+    };
+    harness.services.resumeFormResource = async function (_context, input) {
+      harness.calls.push('resumeFormResource');
+      expect(input.formUuid).toBe(FORM_UUID);
+      return {
+        appType: input.appType,
+        formUuid: input.formUuid,
+        fieldBindings: compiled.fieldBindings,
+        fieldBindingComponents: compiled.fieldBindingComponents,
+        schemaResult: harness.remote.forms[input.formUuid],
+      };
+    };
+    harness.services.readFormSchema = async function (_context, input) {
+      harness.calls.push('readFormSchema');
+      formReadInputs.push({ ...input });
+      if (formReadInputs.length === 1) {
+        return {
+          success: true,
+          content: {
+            gmtModified: 100,
+            pages: [],
+          },
+        };
+      }
+      return harness.remote.forms[input.formUuid];
+    };
+    harness.services.readFormMode = async function (_context, input) {
+      harness.calls.push('readFormMode');
+      modeReadInputs.push({ ...input });
+      return { mode: 'process', processCode: 'TPROC_RESUME_WRITE' };
+    };
+
+    const result = await runApply(normalized, plan.planId, harness.services, registry);
+
+    expect(result.success).toBe(true);
+    expect(harness.calls).toContain('resumeFormResource');
+    expect(harness.calls).not.toContain('createFormResource');
+    expect(formReadInputs.length).toBeGreaterThanOrEqual(2);
+    expect(modeReadInputs.length).toBeGreaterThanOrEqual(2);
+    expect(harness.calls.lastIndexOf('readFormMode')).toBeGreaterThan(
+      harness.calls.indexOf('resumeFormResource')
+    );
+    expect(readState(statePath(), { environment: environment(), registry })
+      .resources.form[FORM_KEY]).toMatchObject({
+      bindings: {
+        appType: APP_TYPE,
+        formUuid: FORM_UUID,
+        fieldBindings: formBindings,
+        processCode: 'TPROC_RESUME_WRITE',
+      },
+      lastApplied: formResource.desired,
+    });
+    expect(readOperations(registry)[`form:${FORM_KEY}`].status).toBe('completed');
+  });
+
+  test('pending process form create identity resume keeps mode read failure uncertain', async () => {
+    const registry = createRegistry();
+    const normalized = normalizeAppWithFormManifest(registry, { formMode: 'process' });
+    const appState = writeAppOnlyState(normalized, registry);
+    const plan = createReviewedPlan(normalized, registry, {
+      observedResources: [observedAppResource()],
+      state: appState,
+    });
+    const formResource = desiredResources(normalized, registry)
+      .find(resource => resource.resourceType === 'form' && resource.key === FORM_KEY);
+    const compiled = compileFormDefinition({
+      title: formResource.desired.title,
+      fields: formResource.desired.fields,
+    }, {
+      appType: APP_TYPE,
+      formUuid: FORM_UUID,
+    });
+    compiled.schema.gmtModified = 100;
+    const formBindings = stateFormBindings(compiled);
+    writePendingFormCreateIdentity(normalized, plan.planId, registry, formResource, formBindings, appState);
+
+    const harness = createAppHarness({
+      remoteApp: { appType: APP_TYPE, appName: APP_NAME },
+    });
+    const modeReadInputs = [];
+    harness.remote.forms[FORM_UUID] = {
+      success: true,
+      content: compiled.schema,
+    };
+    harness.services.createFormResource = async function () {
+      harness.calls.push('createFormResource');
+      throw new Error('form create should not be called during identity resume');
+    };
+    harness.services.resumeFormResource = async function () {
+      harness.calls.push('resumeFormResource');
+      throw new Error('resume write should not be called after process mode read failure');
+    };
+    harness.services.readFormSchema = async function (_context, input) {
+      harness.calls.push('readFormSchema');
+      return harness.remote.forms[input.formUuid];
+    };
+    harness.services.readFormMode = async function (_context, input) {
+      harness.calls.push('readFormMode');
+      modeReadInputs.push({ ...input });
+      const error = new Error('process form mode read failure');
+      error.code = 'FORM_MODE_READ_FAILED';
+      throw error;
+    };
+
+    await expect(runApply(normalized, plan.planId, harness.services, registry, {
+      formPostWriteReadbackRetry: { maxAttempts: 2, delayMs: 0 },
+    })).rejects.toMatchObject({ code: 'SCHEMA_RECONCILIATION_REQUIRED' });
+
+    expect(modeReadInputs).toHaveLength(2);
+    expect(harness.calls).not.toContain('createFormResource');
+    expect(harness.calls).not.toContain('resumeFormResource');
+    expect(readOperations(registry)[`form:${FORM_KEY}`].status).toBe('uncertain');
+    expect(readState(statePath(), { environment: environment(), registry }).resources.form).toBeUndefined();
+  });
+
+  test('pending receipt form create identity resume does not fallback on permission mode read failure', async () => {
+    const registry = createRegistry();
+    const normalized = normalizeAppWithFormManifest(registry, { formMode: 'receipt' });
+    const appState = writeAppOnlyState(normalized, registry);
+    const plan = createReviewedPlan(normalized, registry, {
+      observedResources: [observedAppResource()],
+      state: appState,
+    });
+    const formResource = desiredResources(normalized, registry)
+      .find(resource => resource.resourceType === 'form' && resource.key === FORM_KEY);
+    const compiled = compileFormDefinition({
+      title: formResource.desired.title,
+      fields: formResource.desired.fields,
+    }, {
+      appType: APP_TYPE,
+      formUuid: FORM_UUID,
+    });
+    compiled.schema.gmtModified = 100;
+    const formBindings = stateFormBindings(compiled);
+    writePendingFormCreateIdentity(normalized, plan.planId, registry, formResource, formBindings, appState);
+
+    const harness = createAppHarness({
+      remoteApp: { appType: APP_TYPE, appName: APP_NAME },
+    });
+    const formReadInputs = [];
+    const modeReadInputs = [];
+    harness.remote.forms[FORM_UUID] = {
+      success: true,
+      content: compiled.schema,
+    };
+    harness.services.createFormResource = async function () {
+      harness.calls.push('createFormResource');
+      throw new Error('form create should not be called during identity resume');
+    };
+    harness.services.resumeFormResource = async function () {
+      harness.calls.push('resumeFormResource');
+      throw new Error('resume write should not be called after permission mode read failure');
+    };
+    harness.services.readFormSchema = async function (_context, input) {
+      harness.calls.push('readFormSchema');
+      formReadInputs.push({ ...input });
+      return harness.remote.forms[input.formUuid];
+    };
+    harness.services.readFormMode = async function (_context, input) {
+      harness.calls.push('readFormMode');
+      modeReadInputs.push({ ...input });
+      const error = new Error('permission denied');
+      error.code = 'FORM_MODE_READ_FAILED';
+      error.details = {
+        operation: 'FormProcBinding.getBindingByFormUuid',
+        result: { success: false, errorCode: '403', errorMsg: 'permission denied' },
+      };
+      throw error;
+    };
+
+    await expect(runApply(normalized, plan.planId, harness.services, registry, {
+      formPostWriteReadbackRetry: { maxAttempts: 3, delayMs: 0 },
+    })).rejects.toMatchObject({ code: 'SCHEMA_RECONCILIATION_REQUIRED' });
+
+    expect(modeReadInputs).toHaveLength(1);
+    expect(formReadInputs).toHaveLength(1);
+    expect(harness.calls).not.toContain('createFormResource');
+    expect(harness.calls).not.toContain('resumeFormResource');
+    expect(readOperations(registry)[`form:${FORM_KEY}`].status).toBe('uncertain');
+  });
+
+  test('app create receipt completes without readback retry or recreate', async () => {
     const registry = createRegistry();
     const normalized = normalizeAppManifest(registry);
     const plan = createReviewedPlan(normalized, registry);
-    const harness = createAppHarness({ appReadMissingCount: 10 });
+    const harness = createAppHarness({ appReadMissingCount: 99 });
 
-    await expect(runApply(normalized, plan.planId, harness.services, registry, {
-      appCreatePostWriteReadbackRetry: { maxAttempts: 3, delayMs: 0 },
-    })).rejects.toMatchObject({ code: 'SCHEMA_RECONCILIATION_REQUIRED' });
+    const result = await runApply(normalized, plan.planId, harness.services, registry);
 
-    expect(harness.calls).toEqual([
-      'createAppResource',
-      'readApp',
-      'readApp',
-      'readApp',
-    ]);
-    expect(harness.readInputs).toEqual([
-      { appType: APP_TYPE },
-      { appType: APP_TYPE },
-      { appType: APP_TYPE },
-    ]);
-    expect(readOperation(registry)).toMatchObject({
-      status: 'uncertain',
-      createIdentity: { bindings: { appType: APP_TYPE } },
-    });
-    expect(fs.existsSync(statePath())).toBe(false);
-
-    await expect(runApply(normalized, plan.planId, harness.services, registry, {
-      appCreatePostWriteReadbackRetry: { maxAttempts: 3, delayMs: 0 },
-    })).rejects.toMatchObject({ code: 'SCHEMA_RECONCILIATION_REQUIRED' });
-
+    expect(result.success).toBe(true);
+    expect(harness.calls).toEqual(['createAppResource']);
+    expect(harness.readInputs).toEqual([]);
     expect(harness.calls.filter(call => call === 'createAppResource')).toHaveLength(1);
-    expect(harness.readInputs.every(input => (
-      Object.keys(input).join(',') === 'appType' && input.appType === APP_TYPE
-    ))).toBe(true);
     expect(readOperation(registry)).toMatchObject({
-      status: 'uncertain',
+      status: 'completed',
       createIdentity: { bindings: { appType: APP_TYPE } },
     });
-    expect(fs.existsSync(statePath())).toBe(false);
+    expect(readState(statePath(), { environment: environment(), registry })
+      .resources.app[APP_KEY]).toMatchObject({
+      bindings: { appType: APP_TYPE },
+      lastApplied: { key: APP_KEY, name: APP_NAME },
+    });
   });
 
-  test('pending crash-recovery app identity also resumes by exact appType read', async () => {
+  test('pending crash-recovery app identity resumes from journal receipt without readback', async () => {
     const resumeCalls = [];
     const registry = createRegistry({ resumeCalls });
     const normalized = normalizeAppManifest(registry);
     const plan = createReviewedPlan(normalized, registry);
     writePendingAppCreateIdentity(normalized, plan.planId, registry);
-    const harness = createAppHarness({
-      remoteApp: {
-        appType: APP_TYPE,
-        appName: { zh_CN: APP_NAME },
-      },
-    });
+    const harness = createAppHarness({ appReadMissingCount: 99 });
 
     const result = await runApply(normalized, plan.planId, harness.services, registry);
 
@@ -234,10 +548,8 @@ describe('schema app create identity recovery', () => {
     expect(resumeCalls).toHaveLength(1);
     expect(harness.calls).not.toContain('createAppResource');
     expect(harness.calls).not.toContain('updateAppResource');
-    expect(harness.calls.every(call => call === 'readApp')).toBe(true);
-    expect(harness.readInputs.every(input => (
-      Object.keys(input).join(',') === 'appType' && input.appType === APP_TYPE
-    ))).toBe(true);
+    expect(harness.calls).not.toContain('readApp');
+    expect(harness.readInputs).toEqual([]);
     expect(readState(statePath(), { environment: environment(), registry })
       .resources.app[APP_KEY]).toMatchObject({
       bindings: { appType: APP_TYPE },
@@ -277,39 +589,6 @@ describe('schema app create identity recovery', () => {
     expect(fs.existsSync(statePath())).toBe(false);
   });
 
-  test('real uncertain app create identity with mismatched projection stops without State or recreate', async () => {
-    const resumeCalls = [];
-    const registry = createRegistry({ resumeCalls });
-    const normalized = normalizeAppManifest(registry);
-    const plan = createReviewedPlan(normalized, registry);
-    const behavior = {
-      readError: new Error('post read failed before mismatch check'),
-    };
-    const harness = createAppHarness(behavior);
-
-    await expect(runApply(normalized, plan.planId, harness.services, registry))
-      .rejects.toMatchObject({ code: 'SCHEMA_RECONCILIATION_REQUIRED' });
-
-    expect(readOperation(registry)).toMatchObject({
-      status: 'uncertain',
-      createIdentity: { bindings: { appType: APP_TYPE } },
-    });
-    behavior.readError = null;
-    harness.remote.app.appName = 'Different App';
-    const callStart = harness.calls.length;
-
-    await expect(runApply(normalized, plan.planId, harness.services, registry))
-      .rejects.toMatchObject({ code: 'SCHEMA_RECONCILIATION_REQUIRED' });
-
-    expect(resumeCalls).toHaveLength(1);
-    expect(harness.calls.slice(callStart)).toEqual(['readApp']);
-    expect(harness.calls.filter(call => call === 'createAppResource')).toHaveLength(1);
-    expect(fs.existsSync(statePath())).toBe(false);
-    expect(readOperation(registry)).toMatchObject({
-      status: 'uncertain',
-      createIdentity: { bindings: { appType: APP_TYPE } },
-    });
-  });
 });
 
 function createRegistry(options = {}) {
@@ -338,19 +617,23 @@ function appManifest() {
   };
 }
 
-function appWithFormManifest() {
+function appWithFormManifest(options = {}) {
+  const followup = {
+    title: 'Followup',
+    fields: {
+      note: {
+        type: 'TextField',
+        label: 'Note',
+      },
+    },
+  };
+  if (options.formMode !== undefined) {
+    followup.mode = options.formMode;
+  }
   return {
     ...appManifest(),
     forms: {
-      followup: {
-        title: 'Followup',
-        fields: {
-          note: {
-            type: 'TextField',
-            label: 'Note',
-          },
-        },
-      },
+      followup,
     },
   };
 }
@@ -362,22 +645,22 @@ function normalizeAppManifest(registry) {
   });
 }
 
-function normalizeAppWithFormManifest(registry) {
-  return normalizeManifest(appWithFormManifest(), {
+function normalizeAppWithFormManifest(registry, options = {}) {
+  return normalizeManifest(appWithFormManifest(options), {
     registry,
     workspaceRoot: workspace,
   });
 }
 
-function createReviewedPlan(normalized, registry) {
-  const state = createEmptyState(environment(), {
+function createReviewedPlan(normalized, registry, options = {}) {
+  const state = options.state || createEmptyState(environment(), {
     manifestHash: normalized.manifestHash,
     registry,
   });
   return createPlan({
     desiredResources: normalized.normalized.resources,
     manifestHash: normalized.manifestHash,
-    observedResources: [],
+    observedResources: options.observedResources || [],
     state,
   }, { registry });
 }
@@ -618,6 +901,92 @@ function desiredResources(normalized, registry) {
     ...resource,
     adapterVersion: resource.adapterVersion || registry.get(resource.resourceType).adapterVersion,
   }));
+}
+
+function observedAppResource() {
+  return {
+    resourceType: 'app',
+    key: APP_KEY,
+    adapterVersion: 1,
+    managed: { key: APP_KEY, name: APP_NAME },
+  };
+}
+
+function writeAppOnlyState(normalized, registry) {
+  const appLastApplied = { key: APP_KEY, name: APP_NAME };
+  let state = createEmptyState(environment(), {
+    manifestHash: normalized.manifestHash,
+    registry,
+  });
+  state = upsertResourceState(state, {
+    resourceType: 'app',
+    key: APP_KEY,
+    adapterVersion: 1,
+    bindings: { appType: APP_TYPE },
+    lastApplied: appLastApplied,
+    lastAppliedHash: hashStable(appLastApplied),
+  }, { registry });
+  return writeStateAtomic(statePath(), state, {
+    environment: environment(),
+    fsImpl: fs,
+    registry,
+  });
+}
+
+function stateFormBindings(compiled) {
+  const result = {};
+  Object.keys(compiled.fieldBindings || {}).sort().forEach((semanticPath) => {
+    result[semanticPath] = {
+      fieldId: compiled.fieldBindings[semanticPath],
+      componentType: compiled.fieldBindingComponents[semanticPath] || '',
+    };
+  });
+  return result;
+}
+
+function writePendingFormCreateIdentity(normalized, planId, registry, resource, formBindings, state) {
+  let journal = createApplyJournal({
+    environment: environment(),
+    manifestHash: normalized.manifestHash,
+    planId,
+    registry,
+  });
+  journal = updateJournalOperation(journal, {
+    operationId: createApplyOperationId({
+      planId,
+      resourceType: resource.resourceType,
+      key: resource.key,
+      operation: 'create',
+    }),
+    resourceType: resource.resourceType,
+    key: resource.key,
+    operation: 'create',
+    adapterVersion: resource.adapterVersion,
+    desiredHash: hashManagedIdentity({
+      adapterVersion: resource.adapterVersion,
+      key: resource.key,
+      managed: resource.desired,
+      resourceType: resource.resourceType,
+    }),
+    status: 'pending',
+    stateRevision: state.revision,
+    createIdentity: {
+      bindings: {
+        appType: APP_TYPE,
+        formUuid: FORM_UUID,
+        fieldBindings: formBindings,
+      },
+    },
+  }, {
+    environment: environment(),
+    registry,
+  });
+  writeApplyJournalAtomic(resolveApplyPaths(statePath()).journalPath, journal, {
+    environment: environment(),
+    fsImpl: fs,
+    registry,
+    workspaceRoot: workspace,
+  });
 }
 
 function readOperation(registry) {
