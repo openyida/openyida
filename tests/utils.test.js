@@ -143,6 +143,10 @@ describe('isLoginExpired', () => {
     expect(isLoginExpired(null)).toBeFalsy();
   });
 
+  test('content 为 null 时返回 false', () => {
+    expect(isLoginExpired({ success: true, content: null })).toBe(false);
+  });
+
   test('空对象时返回 false', () => {
     expect(isLoginExpired({})).toBe(false);
   });
