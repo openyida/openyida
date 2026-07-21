@@ -404,6 +404,40 @@ describe('schema planner three-way diff', () => {
     ]);
   });
 
+  test('fails when planner dependency sorting finds a cycle after validation is bypassed', () => {
+    const manifestHash = hashStable({ manifest: 'cyclic' });
+    const desiredResources = [
+      {
+        resourceType: 'form',
+        key: 'alpha',
+        adapterVersion: 1,
+        desired: { title: 'Alpha', fields: [] },
+        dependsOn: ['form:beta'],
+      },
+      {
+        resourceType: 'form',
+        key: 'beta',
+        adapterVersion: 1,
+        desired: { title: 'Beta', fields: [] },
+        dependsOn: ['form:alpha'],
+      },
+    ];
+
+    expect(() => createPlan({
+      desiredResources,
+      manifestHash,
+      observedResources: [],
+      state: createEmptyState(environmentInput(), {
+        manifestHash,
+      }),
+    })).toThrow(expect.objectContaining({
+      code: 'SCHEMA_DEPENDENCY_CYCLE',
+      details: expect.objectContaining({
+        cycle: ['form:alpha', 'form:beta', 'form:alpha'],
+      }),
+    }));
+  });
+
   test('classifies update, noop, state repair, remote drift, and dual-change conflict', () => {
     const original = normalize();
     const desiredManifest = baseManifest();
@@ -865,6 +899,67 @@ describe('schema plan command', () => {
     expect(stdout.value().trim().split('\n')).toHaveLength(1);
     expect(stderr.value()).toBe('');
     expect(JSON.stringify(payload)).not.toContain('SECRET');
+  });
+
+  test('schema plan action classification uses exact security and validation boundaries', async () => {
+    const desired = normalize(simpleManifest());
+    const state = createState(desired);
+    const manifestFile = writeManifest(simpleManifest());
+
+    async function planFailureActionFor(code) {
+      const stdout = collectStdout();
+      const payload = await runSchemaCommand([
+        'plan',
+        manifestFile,
+        '--state',
+        path.join(tempDir, 'unused.json'),
+        '--json',
+        '--quiet',
+      ], {
+        projectRoot: tempDir,
+        readObservedResources: jest.fn(async () => {
+          throw schemaError(code, 'Synthetic schema failure for classification.');
+        }),
+        setExitCode: false,
+        state: clone(state),
+        stdout: stdout.stream,
+      });
+      expect(payload).toMatchObject({
+        kind: 'openyida_schema_plan',
+        success: false,
+        error: { code },
+      });
+      return payload.action;
+    }
+
+    await expect(planFailureActionFor('SCHEMA_FORBIDDEN_FIELD')).resolves.toMatchObject({
+      classification: 'security_failure',
+      nextAction: 'fix_security_boundary',
+    });
+    await expect(planFailureActionFor('SCHEMA_MANIFEST_SCHEMA_INVALID')).resolves.toMatchObject({
+      classification: 'validation_failure',
+      nextAction: 'fix_manifest',
+    });
+    await expect(planFailureActionFor('SCHEMA_PAGE_FOUNDATION_SCHEMA_INVALID')).resolves.toMatchObject({
+      classification: 'validation_failure',
+      nextAction: 'fix_manifest',
+    });
+    await expect(planFailureActionFor('SCHEMA_DEPENDENCY_CYCLE')).resolves.toMatchObject({
+      classification: 'validation_failure',
+      nextAction: 'fix_manifest',
+    });
+
+    for (const code of [
+      'SCHEMA_APPLY_BLOCKED',
+      'SCHEMA_CACHE_INVALIDATION_FAILED',
+      'SCHEMA_OBSERVED_FIELD_READ_FAILED',
+      'SCHEMA_PROFILE_FORBIDDEN_ALIAS',
+    ]) {
+      await expect(planFailureActionFor(code)).resolves.toMatchObject({
+        classification: 'blocked',
+        nextAction: 'stop',
+      });
+    }
   });
 
   test('schema plan reports stale managed field bindings as a compact conflict', async () => {
