@@ -20,6 +20,8 @@ description: 流程表单一体化创建（创建表单 → 转流程 → 配置
 
 - 不要编造 processCode，必须从命令返回的 JSON 中提取
 - 不要在流程定义中使用猜测的 fieldId，必须先用 `yida-get-schema` 获取
+- 不要在流程定义 `nodes` 中声明 `start` / `startNode` / `end` / `endNode` / `finish` 节点；OpenYida 会自动生成发起和结束节点
+- 不要把审批节点写成 `approve`；CLI 支持的是 `approval`（名词），别名可用 `approver` / `approvalNode`
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成字段定义、流程定义 JSON 文件
 - 已有流程表单、`processCode` 或 bound process 时，不要从零创建流程表单；改用 `yida-process-rule`。
 
@@ -76,6 +78,87 @@ openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile>
 
 ```json
 {"success":true,"formUuid":"FORM-YYY","formTitle":"订单处理表","appType":"APP_XXX","fieldCount":6,"processCode":"TPROC--XXX","url":"{base_url}/APP_XXX/workbench/FORM-YYY"}
+```
+
+## 流程定义最小 DSL 合约
+
+`processDefinitionFile` 只描述发起和结束之间的业务节点。OpenYida 编译器会自动注入发起节点和结束节点，`nodes` 数组里不要手写任何 start/end 节点。
+
+合法基础节点类型只使用这些值：
+
+| 节点意图 | `type` 写法 |
+|------|------|
+| 审批 | `approval` |
+| 办理 / 填写 | `operator` |
+| 条件分支 | `route` |
+| 并行分支 | `parallel` |
+| 抄送 | `carbon` |
+
+常见误写必须修正：
+
+| 错误写法 | 正确处理 |
+|------|------|
+| `start`, `startNode`, `StartNode` | 删除该节点，CLI 自动生成发起节点 |
+| `end`, `endNode`, `finish`, `FinishNode` | 删除该节点，CLI 自动生成结束节点 |
+| `approve` | 改成 `approval` |
+
+最小合法流程定义示例：
+
+```json
+{
+  "nodes": [
+    {
+      "type": "approval",
+      "name": "主管审批",
+      "approver": "originator"
+    }
+  ]
+}
+```
+
+带条件分支示例：
+
+```json
+{
+  "nodes": [
+    {
+      "type": "route",
+      "name": "金额分支",
+      "conditions": [
+        {
+          "name": "5万以上",
+          "rules": [
+            {
+              "fieldId": "numberField_amount",
+              "fieldName": "采购金额",
+              "componentType": "NumberField",
+              "op": "GreaterThanOrEqual",
+              "value": 50000
+            }
+          ],
+          "childNodes": [
+            { "type": "approval", "name": "总经理审批", "approver": "originator" }
+          ]
+        },
+        {
+          "name": "5万以下",
+          "rules": [
+            {
+              "fieldId": "numberField_amount",
+              "fieldName": "采购金额",
+              "componentType": "NumberField",
+              "op": "LessThan",
+              "value": 50000
+            }
+          ],
+          "childNodes": [
+            { "type": "approval", "name": "部门经理审批", "approver": "originator" }
+          ]
+        }
+      ]
+    }
+  ]
+}
 ```
 
 ## 推荐两步流程

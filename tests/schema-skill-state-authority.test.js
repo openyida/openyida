@@ -60,4 +60,24 @@ describe('Schema-as-Code skill State authority', () => {
     expect(skill).not.toMatch(/generic JIT conflict/);
     expect(skill).not.toMatch(/classification=stale_replanned/);
   });
+
+  test('create-process skill pins the process node DSL used by agents', () => {
+    const skill = fs.readFileSync(path.join(
+      __dirname,
+      '..',
+      'yida-skills',
+      'skills',
+      'yida-create-process',
+      'SKILL.md'
+    ), 'utf8');
+
+    expect(skill).toMatch(/流程定义最小 DSL 合约/);
+    expect(skill).toMatch(/"type": "approval"/);
+    expect(skill).toMatch(/不要.*startNode/);
+    expect(skill).toMatch(/不要.*endNode/);
+    expect(skill).toMatch(/不要.*approve/);
+    expect(skill).toMatch(/改成 `approval`/);
+    expect(skill).toMatch(/自动生成发起节点/);
+    expect(skill).toMatch(/自动生成结束节点/);
+  });
 });
