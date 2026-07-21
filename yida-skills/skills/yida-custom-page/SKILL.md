@@ -58,6 +58,7 @@ description: 宜搭普通自定义页面 JSX / Jsx 组件开发规范（React 16
 13. **严禁 emoji**：页面渲染出来的任何位置（标题、按钮、标签、状态、空态文案、图表标题等）**一律禁止出现 emoji**（😀🚀✅⚠️📦📊 等一切彩色符号字符）。需要图标一律用功能性内联 SVG（见 `skills/yida-page-uiux` 图标策略）；需要状态标记用文字 + 语义色标签。emoji 是最明显的 AI 味来源之一，且跨端显示不一致。JS 注释里也不要留装饰性符号。
 14. **light 页面禁灰黑主题**：普通业务列表、协同表、录入表、工作台和门户默认不要用近黑按钮、近黑描边、灰黑重阴影作为主题；主操作、选中态、筛选焦点和批量操作使用品牌色或 sample 自带主题色，边框用浅色品牌混合。只有用户明确要求暗色/高对比时才使用深色主视觉。
 15. **发布前必须跑检查链路**：先执行 `openyida check-page <file>` 和 `openyida compile <file>`；若出现 warning/error，按规则修复后再发布
+16. **源码修改发布闭环**：只要本轮 Write/Edit/Create 了 `project/pages/src/*.{oyd.jsx,jsx,tsx}` 普通自定义页面源码，`check-page` / `compile` 只证明源码可发布，不等于远端页面已更新；final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`。没有 publish 成功证据时，只能说“源码已修改，尚未发布”，不能说“页面已更新 / 已重新发布”。
 
 > 每条规则的代码示例、反模式和常见错误见 [编码指南](references/coding-guide.md)；`fast_build` 默认先遵守本技能正文，不预读长 reference，只有 check-page 报错、复杂交互、`deep_design` 或正文覆盖不了的问题时才读取。
 > 运行时易错点、`check-page` 规则和兼容层自动修复边界见 [运行时护栏](references/runtime-guardrails.md)，按需读取。
@@ -115,6 +116,7 @@ openyida publish project/pages/src/employee-query.oyd.jsx APP_XXX FORM-QUERY001
 - **Step 2** 默认复用已有页面 context 并跳过 `openyida create-page`；但本轮用户明确指定另一个页面时先切换目标，不能唯一识别时询问；只有页面缺失且允许新增时才执行创建命令
 - **Step 3** 的页面代码必须遵循本技能正文；[编码指南](references/coding-guide.md) 和 [运行时护栏](references/runtime-guardrails.md) 在 check-page 报错、复杂交互、`deep_design` 或正文覆盖不了时读取
 - 注意：`openyida generate-page` 默认生成 Code Canvas `.canvas.jsx`；明确需要普通自定义页面 JSX/Jsx 组件链路时输出 `.oyd.jsx` 或加 `--native`
+- **Step 4** 是本地质量门槛，**Step 5** 才是远端页面更新证据；如果本轮只完成文件 Write/Edit 或 `check-page` / `compile`，final 只能说明“源码已修改，尚未发布”
 - 优先通过 `openyida generate-page ... --compile` 生成高质量骨架；需要完整交互样板时使用 `todo-mvc`
 - 页面生成 spec、接口调试 JSON、一次性验证脚本等临时工件必须用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/` 下；不要在仓库根目录、系统临时目录或 `.cache/` 顶层生成 `page.json`、`data.json` 或脚本文件
 - `check-page` 支持行级禁用：`// openyida-lint-disable-line <rule>` 或 `// openyida-lint-disable-next-line <rule>`。只在确认该行不会触发宜搭运行时问题时使用。

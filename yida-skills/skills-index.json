@@ -41,6 +41,7 @@
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
       "description": "完整搭建或补齐普通 OpenYida 应用的流程编排技能。默认 fast_build 先解析并复用 app/page/form/process 上下文，只创建缺失且允许创建的应用、表单或页面；预创建占位应用在语义名称稳定后通过 update-app 重命名；不默认使用未绑定 dataSourceMap，导航、示例数据和深度设计按需后置。",
+      "done_when": "若本轮 Write/Edit 页面源码，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 并返回访问 URL；没有 publish 证据只能声明源码已修改，尚未发布。",
       "category": "yida-skills/app",
       "tags": [
         "宜搭",
@@ -176,7 +177,7 @@
         "build-page",
         "publish"
       ],
-      "done_when": "Canvas 源码生成并通过 Canvas 发布链路写入 YidaCodeCanvas Schema。"
+      "done_when": "Canvas 源码生成或修改后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 写入 YidaCodeCanvas Schema；没有 publish 证据只能声明源码已修改，尚未发布。"
     },
     {
       "name": "yida-canvas-data-binding",
@@ -435,7 +436,7 @@
         "compile",
         "publish"
       ],
-      "done_when": "普通自定义页面源码通过 check-page / compile 并发布到目标页面。"
+      "done_when": "普通自定义页面源码通过 check-page / compile 后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 发布到目标 display 页面；没有 publish 证据只能声明源码已修改，尚未发布。"
     },
     {
       "name": "yida-dashboard",
@@ -908,6 +909,12 @@
       "path": "skills/yida-publish-page/SKILL.md",
       "display_name": "发布自定义页面",
       "description": "将自定义页面源码编译为宜搭可运行 Schema 并发布；源码依赖 dataSourceMap 但发布无数据源时不能视为完成。",
+      "command_ids": [
+        "check-page",
+        "compile",
+        "publish"
+      ],
+      "done_when": "final 证据只认真实执行成功的 openyida publish <source> <appType> <displayPageFormUuid> 命令结果；本地文件编辑、diff、check-page 或 compile 不能证明远端页面已更新。",
       "category": "yida-skills/page",
       "tags": [
         "发布",

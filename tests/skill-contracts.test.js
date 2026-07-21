@@ -113,6 +113,41 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('本次发布不能视为完成');
   });
 
+  test('page source edits require successful publish evidence before claiming remote updates', () => {
+    const root = readSkill('yida-skills/SKILL.md');
+    const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
+    const canvas = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');
+    const native = readSkill('yida-skills/skills/yida-custom-page/SKILL.md');
+    const publish = readSkill('yida-skills/skills/yida-publish-page/SKILL.md');
+    const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
+    const byName = new Map(index.skills.map((skill) => [skill.name, skill]));
+
+    expect(root).toContain('页面源码修改必须发布闭环');
+    expect(root).toContain('project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}');
+    expect(root).toContain('openyida publish <source> <appType> <displayPageFormUuid>');
+    expect(root).toContain('源码已修改，尚未发布');
+    expect(root).toContain('禁止说“页面已更新 / 已重新发布 / 已上线”');
+
+    expect(app).toContain('已有页面 update path');
+    expect(app).toContain('阶段 5 的本地源码校验只算“可发布”');
+    expect(app).toContain('没有 publish 成功证据，只能对用户说明“源码已修改，尚未发布”');
+
+    expect(canvas).toContain('本技能的本地校验只证明源码可发布，不等于远端页面已更新');
+    expect(canvas).toContain('只能说“Canvas 源码已修改，尚未发布”');
+
+    expect(native).toContain('`check-page` / `compile` 只证明源码可发布，不等于远端页面已更新');
+    expect(native).toContain('final 只能说明“源码已修改，尚未发布”');
+
+    expect(publish).toContain('final 证据只认真实执行成功的 `openyida publish <source> <appType> <displayPageFormUuid>`');
+    expect(publish).toContain('本地文件编辑、diff、`check-page`、`compile`、`compileCanvasLocal` 或口头声明都不能证明远端页面已更新');
+    expect(publish).toContain('发布了其他文件或其他目标页面，不满足本轮源码修改的 doneWhen');
+
+    expect(byName.get('yida-app').done_when).toContain('没有 publish 证据只能声明源码已修改，尚未发布');
+    expect(byName.get('yida-canvas-custom-page').done_when).toContain('openyida publish <source> <appType> <displayPageFormUuid>');
+    expect(byName.get('yida-custom-page').done_when).toContain('openyida publish <source> <appType> <displayPageFormUuid>');
+    expect(byName.get('yida-publish-page').done_when).toContain('本地文件编辑、diff、check-page 或 compile 不能证明远端页面已更新');
+  });
+
   test('sample visual lessons are codified in page uiux, theme, chart, and report skills', () => {
     const pageUiux = readSkill('yida-skills/skills/yida-page-uiux/SKILL.md');
     const theme = readSkill('yida-skills/skills/yida-theme/SKILL.md');

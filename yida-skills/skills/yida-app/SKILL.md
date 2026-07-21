@@ -25,7 +25,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 - agent bound context 只是默认候选，不是锁定目标；如果用户本轮明确提到另一个 app/page/form/process，必须重新解析本轮目标，能唯一解析则切换，不能唯一解析才问用户。
 - 已有 app 时在该 app 内补齐资源，不加载 `yida-create-app`；只有无 app 且用户意图允许创建时才创建。
 - 若已有 app 来自 agent 预创建占位资源，先记录 `app.source`、`precreated`、`placeholderName`、`allowRename` 和用户是否要求保留原名，后续在语义应用名稳定后决定是否改名。
-- 已有主页面 URL / `formUuid` / bound page 时，直接写源码并发布到该页面，不加载 `yida-create-page`；只有缺少 display page 且本次意图允许新增页面时才创建。
+- 已有主页面 URL / `formUuid` / bound page 时，直接写源码并发布到该页面，不加载 `yida-create-page`；已有页面 update path 也必须在本轮源码 Write/Edit 后执行真实 `openyida publish <source> <appType> <displayPageFormUuid>`，只有缺少 display page 且本次意图允许新增页面时才创建。
 - 已有表单 context 时，字段诉求走 `yida-create-form-page` 的 update/patch/rule/bind-datasource；只有已有 app 但缺少业务数据表时才 create form。
 - 已有流程表单或 `processCode` 时，流程诉求走 `yida-process-rule`；只有没有表单/流程且用户要新建审批表单时才进入 `yida-create-process`。
 - 多个同优先级候选、当前轮显式资源冲突或目标不明时才问用户；不要因为 cache 和历史里同时存在资源就默认打断。
@@ -109,6 +109,14 @@ UI 不是独立替代主流程的步骤，而是按模式插入到页面生成�
 - 用户明确要求普通自定义页面 JSX/Jsx 组件链路，或页面强依赖普通自定义页实例桥时，选择 `yida-custom-page`：`this.$(fieldId)` 双向绑定、`this.utils.yida.*`、`this.dataSourceMap`、表单提交或流程发起与页面实例深度耦合。
 - 普通自定义页面使用 `.oyd.jsx`、`renderJsx()`、`check-page` / `compile`，发布为平台 `Jsx` 组件；Code Canvas 使用 `.canvas.jsx`、`YidaComp`、`openyida generate-page ... --compile` 或 Canvas 本地快检，发布为 `YidaCodeCanvas` 组件。
 
+## 页面源码修改发布闭环
+
+完整应用、补齐应用和已有主页面 update path 都按同一个 doneWhen 判断：
+
+- 只要本轮 Write/Edit/Create 了 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}`，阶段 5 的本地源码校验只算“可发布”，不算远端页面完成。
+- final 前必须经过 `yida-publish-page`，并看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>` 命令结果；发布的 `<source>` 必须是本轮修改过的页面源码，`<displayPageFormUuid>` 必须是已解析的 display 自定义页面。
+- 如果没有 publish 成功证据，只能对用户说明“源码已修改，尚未发布”，不得声称“页面已更新 / 已重新发布 / 已上线”。规则归页面技能，完成证据归 publish guard，不能靠 final 口头补齐。
+
 ## Sample 与业务页边界
 
 `openyida sample` 和 `openyida generate-page <模板>` 只能提供可编译骨架、运行时契约和 primitive 结构，不能当成真实业务页面的最终稿。生成应用时必须把用户需求转成业务化 `page-spec.json`，至少覆盖：
@@ -152,8 +160,8 @@ UI 不是独立替代主流程的步骤，而是按模式插入到页面生成�
 | 2. 记录最小需求 | 无 | 写 `prd/<项目名>.md`：只记录 MVP 假设、核心表单/页面、完成标准；写/更新 `.cache/<项目名>-schema.json` standalone 映射；不要写长 PRD | 业务语义和 ID 存储位置明确 |
 | 3. resolve forms | `yida-create-form-page` | 已有目标表单时 update/patch/rule/bind-datasource；缺少支撑 MVP 的核心表单且允许创建时才 create；字段配置文件写入 `.cache/openyida/<项目名>/` | 拿到或确认表单 `formUuid` 和真实 `fieldId` |
 | 4. resolve main page | `yida-create-page` 仅在主页面缺失且允许创建时加载 | 已有页面 URL / `formUuid` / bound page 时直接作为主页面；否则创建一个用户主入口 display page | 拿到真实目标页面 `formUuid`，且不会重复创建页面 |
-| 5. 编写/更新页面 | 默认 `yida-canvas-custom-page`；明确要求 JSX/Jsx 组件链路或实例桥强依赖时选择 `yida-custom-page` | 生成或修改主页面源码；只实现 MVP 首屏和核心操作。可用已解析表单链接、轻量统计占位和基础列表/入口布局完成主页面；不要加载视觉/密度/报表/数据源等额外技能 | 本地源码通过对应页面技能的基础校验 |
-| 6. 发布页面 | `yida-publish-page` | 按页面链路校验后发布到已解析主页面：Canvas `.canvas.jsx` 使用 `openyida publish` 的 Canvas 编译阶段或 `compileCanvasLocal` 快检；普通自定义页面 `.oyd.jsx` / `.jsx` 跑 `check-page` / `compile`；再发布主页面 | 发布成功并获得可访问 URL |
+| 5. 编写/更新页面 | 默认 `yida-canvas-custom-page`；明确要求 JSX/Jsx 组件链路或实例桥强依赖时选择 `yida-custom-page` | 生成或修改主页面源码；只实现 MVP 首屏和核心操作。可用已解析表单链接、轻量统计占位和基础列表/入口布局完成主页面；不要加载视觉/密度/报表/数据源等额外技能 | 本地源码通过对应页面技能的基础校验；未执行 publish 时仍是“源码已修改，尚未发布” |
+| 6. 发布页面 | `yida-publish-page` | 按页面链路校验后发布到已解析主页面：Canvas `.canvas.jsx` 使用 `openyida publish` 的 Canvas 编译阶段或 `compileCanvasLocal` 快检；普通自定义页面 `.oyd.jsx` / `.jsx` 跑 `check-page` / `compile`；再执行 `openyida publish <source> <appType> <displayPageFormUuid>` 发布主页面 | 发布成功并获得可访问 URL |
 | 7. 输出结果 | 无 | 返回应用链接、主页面链接、复用/创建/更新的资源摘要、后续可选项 | 用户拿到 URL |
 
 `fast_build` 不默认执行：`yida-page-uiux`、`yida-app-uiux`、`yida-canvas-data-binding`、`yida-data-source-connectors`、`yida-data-management`、`yida-nav-group`、`yida-dashboard`、导航重排、示例数据、截图验收、公开访问配置、深度 UI 设计、长 PRD、TaskCreate / 继续规划任务，也不默认读取 `references/app-build-contract.md`。
@@ -242,6 +250,8 @@ UI 不是独立替代主流程的步骤，而是按模式插入到页面生成�
 2. 输出可访问 URL；
 3. 输出真实 `appType`、页面 `formUuid`、核心表单 `formUuid` 摘要，并标明关键资源是复用、创建还是更新；
 4. 未继续执行可选后置动作。
+
+若本轮修改过页面源码但没有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，完整应用仍未达到 doneWhen；只能交付本地源码修改说明和未发布原因，不能宣称远端主页面已更新。
 
 发布成功并拿到访问 URL 后即完成，不要继续 TaskCreate、重复读技能、重复规划后续阶段。
 

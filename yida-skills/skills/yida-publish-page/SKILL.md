@@ -36,6 +36,7 @@ description: 自定义页面 JSX 编译发布技能；schema-managed 页面由�
 - corpId 不匹配时，必须询问用户是否切换组织，不得强行发布
 - 重新发布已有自定义页面时，`openyida publish` 会自动读取目标页面现有 Schema 并合并页面级 `dataSource`；不要靠 Agent 口头承诺“保留数据源”，必须使用新版 CLI 的默认保护能力
 - 如果源码包含 `this.dataSourceMap.`，而发布输出包含 `No custom page data sources to preserve`，本次发布不能视为完成；说明源码依赖设计器数据源但目标页没有可保留数据源。必须改为 `this.utils.yida.*` / 入口型页面后重新 check、compile、publish，或先通过 `yida-data-source-connectors` 创建并绑定数据源后重新发布
+- **发布证据闭环**：本轮只要 Write/Edit/Create 了 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}`，final 证据只认真实执行成功的 `openyida publish <source> <appType> <displayPageFormUuid>` 命令结果；本地文件编辑、diff、`check-page`、`compile`、`compileCanvasLocal` 或口头声明都不能证明远端页面已更新
 - **本技能不读写 memory**：发布操作通过 CLI 命令写入宜搭平台，不依赖跨会话的 memory 状态
 
 ## 适用场景
@@ -84,6 +85,13 @@ openyida list-forms <appType> --keyword <页面名>
 ```
 
 只选择 `formType=display` 的 `formUuid` 作为发布目标。源码里用于 `this.utils.yida` 读写数据的普通表单常量（如 `FORM_SKILL`、`FORM_DATA`、`FORM_TABLE`）通常是数据底表，不能作为 `openyida publish` 的第三个参数。
+
+## Final 证据契约
+
+- final 中“页面已更新 / 已重新发布 / 已上线”的依据只能是成功的 `openyida publish <source> <appType> <displayPageFormUuid>` 命令结果，最好同时带发布输出中的 URL、`formUuid`、`success:true` 或 health-check 摘要。
+- `<source>` 必须是本轮实际 Write/Edit/Create 过的页面源码；`<displayPageFormUuid>` 必须是已解析的 display 自定义页面。发布了其他文件或其他目标页面，不满足本轮源码修改的 doneWhen。
+- 若 publish 没执行、执行失败、目标不明、登录态/组织不一致或用户要求先暂停，final 只能说“源码已修改，尚未发布”，并给出下一步需要执行的 publish 命令或阻塞原因。
+- 普通自定义页面的 `check-page` / `compile`、Code Canvas 的 `compileCanvasLocal` 或 `generate-page --compile` 都是发布前 guard，不是远端完成证据。
 
 ## 数据源保留
 

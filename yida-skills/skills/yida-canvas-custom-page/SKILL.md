@@ -86,10 +86,11 @@ openyida sample yida-canvas-custom-page portal-native-components --output projec
 
 1. **Canvas 入口明确**：源码必须导出或返回 `YidaComp`，并把主组件作为默认导出或 `YidaComp` 暴露。
 2. **发布链路正确**：Canvas 源码使用 `.canvas.jsx` / `.canvas.tsx`，或发布时显式加 `--canvas`。
-3. **依赖可加载**：普通 import 只使用 Code Canvas 白名单依赖；宜搭运行态组件走原生组件桥。
-4. **不使用普通页实例契约**：Canvas 中不写 `renderJsx()`、`didMount()`、`this.forceUpdate()`、`this.utils.yida.*`、`this.dataSourceMap`。
-5. **副作用清理**：`useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
-6. **交互控件必须受控且真正驱动数据**：凡是暗示“会改变下方数据/视图”的控件（筛选 `Select`、搜索 `Input`/`Input.Search`、周期切换、`Tabs`/`Segmented`、批量/重置 `Button` 等），禁止只写 `defaultValue` 当装饰。必须用 `useState` 建立受控状态、绑定 `onChange`/`onClick`，并让 `Table`/列表/卡片的数据源经过基于该状态的 `useMemo` 派生过滤后再渲染。**反例（会导致“点了筛选下面数据不变”）**：把固定 `seedRows` 直接喂给 `<Table dataSource={rows} />`，同时摆一排 `defaultValue` 且无 `onChange` 的筛选控件。切换筛选后若可能让当前选中项失效，需回退选中态（如 `selected < filteredRows.length ? selected : 0`）。
+3. **源码修改发布闭环**：只要本轮 Write/Edit/Create 了 `project/pages/src/*.canvas.jsx` 或 `project/pages/src/*.canvas.tsx`，本技能的本地校验只证明源码可发布，不等于远端页面已更新；final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`。没有 publish 成功证据时，只能说“Canvas 源码已修改，尚未发布”，不能说“页面已更新 / 已重新发布”。
+4. **依赖可加载**：普通 import 只使用 Code Canvas 白名单依赖；宜搭运行态组件走原生组件桥。
+5. **不使用普通页实例契约**：Canvas 中不写 `renderJsx()`、`didMount()`、`this.forceUpdate()`、`this.utils.yida.*`、`this.dataSourceMap`。
+6. **副作用清理**：`useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
+7. **交互控件必须受控且真正驱动数据**：凡是暗示“会改变下方数据/视图”的控件（筛选 `Select`、搜索 `Input`/`Input.Search`、周期切换、`Tabs`/`Segmented`、批量/重置 `Button` 等），禁止只写 `defaultValue` 当装饰。必须用 `useState` 建立受控状态、绑定 `onChange`/`onClick`，并让 `Table`/列表/卡片的数据源经过基于该状态的 `useMemo` 派生过滤后再渲染。**反例（会导致“点了筛选下面数据不变”）**：把固定 `seedRows` 直接喂给 `<Table dataSource={rows} />`，同时摆一排 `defaultValue` 且无 `onChange` 的筛选控件。切换筛选后若可能让当前选中项失效，需回退选中态（如 `selected < filteredRows.length ? selected : 0`）。
 
 ### 重要规则（IMPORTANT）
 
@@ -161,14 +162,14 @@ openyida sample yida-canvas-custom-page portal-native-components --output projec
 # 4. 本地 Canvas 快检
 node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/<页面名>.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
 
-# 5. 发布
+# 5. 发布（本轮修改源码后的远端完成证据）
 openyida publish project/pages/src/<页面名>.canvas.jsx <appType> <formUuid>
 
 # 6. 发布后回读 Schema 验收
 openyida get-schema <appType> <formUuid> > .cache/openyida/<页面名>-schema.json
 ```
 
-`openyida check-page` / `openyida compile` 当前面向普通自定义页面 `.oyd.jsx` / `.jsx`；Canvas 以 `compileCanvasLocal` 和 `openyida publish .canvas.jsx` 的 Canvas 编译阶段为准。
+`openyida check-page` / `openyida compile` 当前面向普通自定义页面 `.oyd.jsx` / `.jsx`；Canvas 以 `compileCanvasLocal` 和 `openyida publish .canvas.jsx` 的 Canvas 编译阶段为准。`compileCanvasLocal` 是发布前快检，不能替代 `openyida publish` 的远端写入证据。
 
 如需保存完整 Schema，使用 create_file / Write / file edit tool 创建 `<projectRoot>/.cache/openyida/<页面名或任务名>/<页面名>-schema.json`；从 workspace 根执行后续命令时路径加 `project/` 前缀。不要把 `openyida` stdout 通过 shell 重定向保存成 JSON。
 
