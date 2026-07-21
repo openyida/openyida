@@ -14,7 +14,13 @@
 - `draft-needs-domain-spec`：用户已有业务要求，但 page spec 仍缺业务对象、指标、交互或视觉方向；继续补 spec 或改源码。
 - `sample-reference`：基本没有业务化输入，结果只能当 sample 参考，不能交付为真实应用页面。
 
-真实业务页的 `page-spec.json` 不能只写 `template/title/output`。至少写清业务名称与定位、业务模块/对象、指标口径、用户动作或下钻方式、视觉方向；看板/列表/详情优先写 `dataBinding` 或字段映射，官网/品牌页优先写 `assets` 或素材缺口。`sample` 是例子，不是框架；如果 `domainFidelity.sampleFallbacks` 里还出现 `features`、`metrics`、`roadmap`、`heroText` 等关键项，必须继续定制。
+真实业务页的 `page-spec.json` 不能只写 `template/title/output`。至少写清业务名称与定位、业务模块/对象、指标口径、用户动作或下钻方式、视觉方向；看板/列表/详情如果本轮已经创建或解析业务表单，必须写 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射，官网/品牌页优先写 `assets` 或素材缺口。`sample` 是例子，不是框架；如果 `domainFidelity.sampleFallbacks` 里还出现 `features`、`metrics`、`roadmap`、`heroText` 等关键项，必须继续定制。
+
+数据真实性边界：
+
+- `openyida sample` 或模板原样发布可以展示 sample/seed 数据，但页面必须标注 sample/seed。
+- 完整应用或真实交付页不能用前端 seedRows 冒充业务记录；需要演示数据时，先把 demo/mock records 写入真实宜搭表单，再由 Canvas 读取。
+- 未写入 demo records 且没有真实数据时，页面应展示空态、表单入口、刷新/登记按钮和 dataBinding 接入提示。
 
 | 用户需求 | CLI 模板 | scene | 视觉要点 |
 | --- | --- | --- | --- |

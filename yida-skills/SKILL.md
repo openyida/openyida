@@ -146,6 +146,8 @@ schema-managed create/update 必须等待用户对当前 `planId` 显式批准�
 
 **fast_build 默认加载边界**：只加载 `yida-app` 和当前阶段必需的子技能。`yida-create-app`、`yida-create-page`、`yida-create-form-page` 只有在目标资源缺失且本次意图允许创建时才加载；已有资源时进入对应 update / publish 分支。页面默认走 Code Canvas；当用户明确要求普通自定义页面 JSX/Jsx 组件链路，或页面强依赖普通自定义页实例桥（`this.$(fieldId)` / `this.utils.yida.*` / `this.dataSourceMap` / 表单提交或字段双向绑定深度耦合）时，选择 `yida-custom-page`。不要默认加载 `yida-page-uiux`、`yida-data-source-connectors`、`yida-data-management`、`yida-nav-group`、`yida-dashboard`，也不要默认深读 `references/`。
 
+**Canvas 数据边界**：完整应用/真实交付页如果展示列表、看板或详情记录，必须优先把本轮真实 `appType/formUuid/fieldId` 写入 `page-spec.json` 的 `dataBinding.mode=form`；需要演示记录时先写入真实表单再读取。未接真实表单且未写入 demo records 时，页面展示空态/入口，不用前端 seedRows 冒充业务数据。
+
 **doneWhen**：`yida-app` 发布主页面成功并输出可访问 URL。到这里默认完成；不要发布后继续 TaskCreate、重复读技能或继续规划。
 
 **optionalAfterDone**：导航整理、示例数据、公开访问、截图验证、深度视觉方向、数据源/连接器深度接入、报表/大屏，只在用户明确要求或 `yida-app` 模式为 `full_demo` / `deep_design` 时执行。

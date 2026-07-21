@@ -41,7 +41,7 @@ OpenYida `generate-page --spec` 支持把 Canvas 数据契约写成结构化 `da
 
 - `mode=form` 必须来自真实 `appType/formUuid` 和字段 ID，不要猜字段。
 - `mode=connector/url` 必须使用同源代理端点，不把第三方密钥放进 Canvas 源码。
-- `mode=seed` 只能作为演示，不能标注“已接真实数据”。
+- `mode=seed` 只能用于 `openyida sample`、离线预览或明确标注的演示页，不能标注“已接真实数据”；完整应用/真实交付页需要演示记录时，先把 demo/mock records 写入真实表单，再用 `mode=form` 读取。
 - 模板生成的 `DataBridge` 状态要保留，方便线上排查“接口没通 / 结构没识别 / 权限不足”。
 
 ## 可复用读数据 Hook
@@ -194,7 +194,7 @@ function normalizeFormRow(row) {
 
 保护规则：
 
-- 首屏可以用 seed 数据做本地预览兜底，但真实接口返回后必须以接口为准。
+- 首屏只有 sample/离线预览可以用 seed 数据做本地预览兜底；真实交付页未接表单数据时展示空态和登记入口，不用 seedRows 冒充业务记录。真实接口返回后必须以接口为准。
 - 如果 `getTotalCount(json) > 0` 且 `unwrapRows(json).length === 0`，抛出“接口返回结构未识别”，不要展示“暂无数据”。
 - 用 `openyida data query form <appType> <formUuid> --size 20` 或数据管理页核对总数，页面统计必须和真实表单一致。
 
@@ -342,7 +342,7 @@ function fieldOf(row, fieldId) { return (row.formData || row)[fieldId]; }
 1. **把 Code Canvas 当普通自定义页面写**：Canvas 没有 `this.utils.yida.*` / `dataSourceMap`，必须自写 HTTP 桥。
 2. **CSRF 来源取错**：只从 `document.cookie` 找 token 会失败，因为 Cookie 可能是 HttpOnly；应从 `window.g_config` 取页面上下文 token。
 3. **响应结构只解析一层**：表单查询可能返回 `content.result.data` 这类多层包裹，页面只读 `json.data` 就会显示 0 条。
-4. **Demo 数据掩盖真实错误**：seed 数据让页面看起来“有内容”，但没有证明接口数据真的接入；真实数据页必须用 `totalCount` 做保护。
+4. **Demo 数据掩盖真实错误**：seed 数据让页面看起来“有内容”，但没有证明接口数据真的接入；真实数据页必须用 `totalCount` 做保护，接口异常或未接 dataBinding 时展示错误/空态，不回退成漂亮 demo 列表。
 5. **刷新策略不对**：多人状态同步需要 5 秒左右轮询，但轮询只能刷新数值和列表，不能整页 reload，也不能首屏之后反复清空旧数据。
 6. **排序口径混淆**：数据存在但按点赞排行时，0 赞新数据可能排在后面；验收时要同时看总数和列表排序规则。
 

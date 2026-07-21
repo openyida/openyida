@@ -120,7 +120,13 @@ const DEFAULT_INSIGHTS = [
     suggestion: '首屏保留字段工具条、横向滚动表格、分组行和批量操作，用户能立刻理解这是数据管理场景。',
   },
 ];
-const DEFAULT_DATA_BINDING = { enabled: false, mode: 'seed' };
+const DEFAULT_DATA_BINDING = { enabled: false, mode: 'seed', seedStrategy: 'sample-only' };
+const EMPTY_METRICS = [
+  { label: '真实记录', value: '0', hint: '未接入表单数据' },
+  { label: '数据来源', value: '未接入', hint: '请在 page-spec.json 配置 dataBinding' },
+  { label: '字段映射', value: '待配置', hint: '写入 appType/formUuid/fields' },
+  { label: '演示记录', value: '0', hint: '演示记录需先写入真实表单' },
+];
 
 const FEATURES = parseTemplateJson('{{FEATURES_JSON}}', DEFAULT_FEATURES);
 const METRICS = parseTemplateJson('{{METRICS_JSON}}', DEFAULT_METRICS);
@@ -219,6 +225,179 @@ function createRowsFromFeatures(features) {
       note: item.text || row.note,
     };
   });
+}
+
+function isDataBindingEnabled(binding) {
+  return Boolean(binding && binding.enabled && binding.mode && binding.mode !== 'seed');
+}
+
+function isSampleSeedPreview(binding) {
+  const mode = binding && binding.mode ? binding.mode : 'seed';
+  return RESEARCH_LEVEL === 'sample' && !isDataBindingEnabled(binding) && mode === 'seed';
+}
+
+function getCsrfToken() {
+  try {
+    return (window.g_config && (window.g_config._csrf_token || window.g_config.csrfToken)) || '';
+  } catch (err) {
+    return '';
+  }
+}
+
+function buildDataRequest(binding) {
+  if (binding.mode === 'form' && binding.appType && binding.formUuid) {
+    const qs = new URLSearchParams({
+      formUuid: binding.formUuid,
+      appType: binding.appType,
+      currentPage: String(binding.pageNumber || 1),
+      pageSize: String(binding.pageSize || 50),
+      searchFieldJson: JSON.stringify(binding.query || {}),
+    }).toString();
+    return {
+      url: '/dingtalk/web/' + binding.appType + '/v1/form/searchFormDatas.json?' + qs,
+      method: 'GET',
+      body: {},
+    };
+  }
+  return {
+    url: binding.endpoint,
+    method: binding.method || 'GET',
+    body: binding.body || {},
+  };
+}
+
+function requestJson(req, signal) {
+  const csrfToken = getCsrfToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (csrfToken) {
+    headers.global_csrf_token = csrfToken;
+  }
+  return fetch(req.url, {
+    method: req.method || 'GET',
+    credentials: 'include',
+    headers,
+    body: req.method === 'GET' ? undefined : JSON.stringify(req.body || {}),
+    signal,
+  }).then((resp) => {
+    if (!resp.ok) {
+      throw new Error('HTTP ' + resp.status);
+    }
+    return resp.json();
+  }).then((json) => {
+    if (json && json.success === false) {
+      throw new Error(json.errorMsg || json.message || 'request failed');
+    }
+    return json;
+  });
+}
+
+function unwrapRows(payload) {
+  const queue = [payload];
+  const seen = [];
+  while (queue.length) {
+    const item = queue.shift();
+    if (!item || seen.indexOf(item) >= 0) { continue; }
+    seen.push(item);
+    if (Array.isArray(item)) { return item; }
+    ['data', 'list', 'values', 'records'].forEach((key) => {
+      if (Array.isArray(item[key])) {
+        queue.unshift(item[key]);
+      }
+    });
+    ['result', 'content', 'value'].forEach((key) => {
+      if (item[key] && typeof item[key] === 'object') {
+        queue.push(item[key]);
+      }
+    });
+  }
+  return [];
+}
+
+function getTotalCount(payload) {
+  const queue = [payload];
+  const seen = [];
+  while (queue.length) {
+    const item = queue.shift();
+    if (!item || seen.indexOf(item) >= 0) { continue; }
+    seen.push(item);
+    if (typeof item.totalCount === 'number') { return item.totalCount; }
+    if (typeof item.total === 'number') { return item.total; }
+    if (typeof item.count === 'number') { return item.count; }
+    ['result', 'content', 'data', 'value'].forEach((key) => {
+      if (item[key] && typeof item[key] === 'object') {
+        queue.push(item[key]);
+      }
+    });
+  }
+  return null;
+}
+
+function pickField(row, fieldId, fallbackKeys) {
+  const data = row.formData || row.data || row;
+  if (fieldId && data[fieldId] !== undefined) {
+    return data[fieldId];
+  }
+  for (let i = 0; i < fallbackKeys.length; i++) {
+    if (data[fallbackKeys[i]] !== undefined) {
+      return data[fallbackKeys[i]];
+    }
+  }
+  return '';
+}
+
+function normalizeTags(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item)).filter(Boolean).slice(0, 4);
+  }
+  if (value === undefined || value === null || value === '') {
+    return ['真实表单'];
+  }
+  return String(value).split(/[,，、\s]+/).filter(Boolean).slice(0, 4);
+}
+
+function normalizeBoundRows(rows, binding) {
+  const fields = binding.fields || {};
+  return rows.map((row, index) => {
+    const status = pickField(row, fields.progress || fields.status, ['progress', 'status', 'state']) || '待确认';
+    return {
+      id: row.formInstanceId || row.instanceId || row.id || index + 1,
+      group: pickField(row, fields.group || fields.owner, ['group', 'owner', 'creator']) || '真实表单记录',
+      task: pickField(row, fields.task || fields.title || fields.code, ['task', 'title', 'name', 'code']) || ('记录 ' + (index + 1)),
+      progress: status,
+      date: pickField(row, fields.date, ['date', 'gmtCreate', 'createTime']) || '-',
+      tags: normalizeTags(pickField(row, fields.tags || fields.tag, ['tags', 'tag', 'category'])),
+      priority: pickField(row, fields.priority, ['priority', 'level']) || '-',
+      note: pickField(row, fields.note || fields.summary, ['note', 'summary', 'description']) || '',
+      rich: pickField(row, fields.rich || fields.content, ['rich', 'content', 'remark']) || '',
+    };
+  });
+}
+
+function useYidaData(binding) {
+  const [state, setState] = React.useState(() => ({ loading: isDataBindingEnabled(binding), error: '', rows: [], totalCount: null }));
+  React.useEffect(() => {
+    if (!isDataBindingEnabled(binding)) { return undefined; }
+    const controller = new AbortController();
+    const req = buildDataRequest(binding);
+    if (!req.url) {
+      setState({ loading: false, error: '数据绑定缺少 endpoint 或 appType/formUuid', rows: [], totalCount: null });
+      return undefined;
+    }
+    setState({ loading: true, error: '', rows: [], totalCount: null });
+    requestJson(req, controller.signal).then((json) => {
+      const rows = unwrapRows(json);
+      const totalCount = getTotalCount(json);
+      if (binding.emptyAsError !== false && totalCount > 0 && rows.length === 0) {
+        throw new Error('接口返回结构未识别：totalCount=' + totalCount + ' 但 rows=0');
+      }
+      setState({ loading: false, error: '', rows: normalizeBoundRows(rows, binding), totalCount });
+    }).catch((err) => {
+      if (err.name === 'AbortError') { return; }
+      setState({ loading: false, error: err.message || String(err), rows: [], totalCount: null });
+    });
+    return () => controller.abort();
+  }, []);
+  return state;
 }
 
 function Icon({ name }) {
@@ -390,7 +569,12 @@ function MetricStrip({ metrics }) {
   );
 }
 
-function Sidebar({ roadmap, insight, dataBinding }) {
+function Sidebar({ roadmap, insight, dataBinding, usesSeedRows }) {
+  const dataText = dataBinding && dataBinding.enabled
+    ? '已配置真实数据源，页面通过 DataBridge 读取宜搭表单。'
+    : usesSeedRows
+      ? '当前为 sample/seed 预览数据，未接真实表单。'
+      : '未接入真实表单 dataBinding，交付态不显示前端 seed 记录。';
   return (
     <aside className="oy-data-sidebar">
       <div className="oy-side-block">
@@ -418,7 +602,7 @@ function Sidebar({ roadmap, insight, dataBinding }) {
       <div className="oy-side-block is-insight">
         <Tag color="cyan">{ARCHETYPE}</Tag>
         <p>{insight.suggestion || PAGE.ctaText}</p>
-        {dataBinding && dataBinding.enabled ? <Text type="secondary">已配置真实数据源</Text> : <Text type="secondary">当前使用演示数据，可通过 dataBinding 接入宜搭表单。</Text>}
+        <Text type="secondary">{dataText}</Text>
       </div>
     </aside>
   );
@@ -430,8 +614,21 @@ const DIMENSION_LABEL = { group: '单选', progress: '状态', date: '日期', p
 function YidaComp() {
   const [activeView, setActiveView] = useState((APP_BLUEPRINT.views && APP_BLUEPRINT.views[0]) || '全部数据');
   const seedRows = useMemo(() => createRowsFromFeatures(FEATURES), []);
-  const [rows, setRows] = useState(seedRows);
-  const [selected, setSelected] = useState([1, 2]);
+  const usesSeedRows = isSampleSeedPreview(DATA_BINDING);
+  const dataState = useYidaData(DATA_BINDING);
+  const [localRows, setLocalRows] = useState(() => usesSeedRows ? seedRows : []);
+  const rows = isDataBindingEnabled(DATA_BINDING) ? dataState.rows : localRows;
+  const metricItems = usesSeedRows
+    ? METRICS
+    : isDataBindingEnabled(DATA_BINDING)
+      ? [
+        { label: DATA_BINDING.sourceName || '真实记录', value: dataState.loading ? '--' : String(dataState.totalCount === null ? rows.length : dataState.totalCount), hint: dataState.loading ? '正在读取真实表单' : '来自宜搭表单' },
+        { label: '数据状态', value: dataState.error ? '异常' : '已接入', hint: dataState.error || 'DataBridge' },
+        { label: '字段映射', value: Object.keys(DATA_BINDING.fields || {}).length + ' 项', hint: 'page-spec.json' },
+        { label: '演示记录', value: '0', hint: '演示记录需先写入表单' },
+      ]
+      : EMPTY_METRICS;
+  const [selected, setSelected] = useState(() => usesSeedRows ? [1, 2] : []);
   const [keyword, setKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortDir, setSortDir] = useState('none');
@@ -509,10 +706,14 @@ function YidaComp() {
     setCollapsed((cur) => cur.indexOf(key) >= 0 ? cur.filter((item) => item !== key) : cur.concat(key));
   }
   function addRecord() {
-    const nextId = rows.reduce((max, row) => Math.max(max, row.id), 0) + 1;
-    const groupName = (rows[0] && rows[0].group) || '20260717-研发治理';
+    if (!usesSeedRows) {
+      notify(isDataBindingEnabled(DATA_BINDING) ? '请通过真实表单登记记录后刷新读取' : '请先在 page-spec.json 接入 dataBinding.mode=form');
+      return;
+    }
+    const nextId = localRows.reduce((max, row) => Math.max(max, Number(row.id) || 0), 0) + 1;
+    const groupName = (localRows[0] && localRows[0].group) || '20260717-研发治理';
     const record = { id: nextId, group: groupName, task: '新任务 ' + nextId, progress: '待确认', date: '2026-07-17', tags: ['新建'], priority: 'P2', note: '待补充', rich: '' };
-    setRows([record].concat(rows));
+    setLocalRows([record].concat(localRows));
     setSelected(selected.concat(nextId));
     if (message && message.success) { message.success('已新增一条记录，已自动选中'); }
   }
@@ -1059,12 +1260,19 @@ function YidaComp() {
                 <Tag color="cyan">{activeView}</Tag>
                 <Tag>{VISUAL_PROFILE.name}</Tag>
                 <Tag>{RESEARCH_LEVEL}</Tag>
-                {DATA_BINDING.enabled ? <Tag color="green">真实数据</Tag> : <Tag>演示数据</Tag>}
+                {isDataBindingEnabled(DATA_BINDING) ? <Tag color={dataState.error ? 'error' : dataState.loading ? 'processing' : 'green'}>DataBridge</Tag> : usesSeedRows ? <Tag color="warning">Sample seed</Tag> : <Tag>未接数据</Tag>}
+                <Text type={dataState.error ? 'danger' : 'secondary'}>
+                  {isDataBindingEnabled(DATA_BINDING)
+                    ? dataState.error || (dataState.loading ? '正在读取真实数据' : '真实数据已接入' + (dataState.totalCount === null ? '' : '：' + dataState.totalCount + ' 条'))
+                    : usesSeedRows
+                      ? '当前为 sample/seed 预览数据，未接真实表单。'
+                      : '未配置真实表单 dataBinding，当前不显示前端 seed 记录。'}
+                </Text>
               </div>
               <Title level={2}>{PAGE.brandName}</Title>
               <p>{PAGE.heroText}</p>
             </div>
-            <MetricStrip metrics={METRICS} />
+            <MetricStrip metrics={metricItems} />
           </section>
 
           <section className={sidebarOpen ? 'oy-data-workspace' : 'oy-data-workspace is-full'}>
@@ -1096,16 +1304,22 @@ function YidaComp() {
                   </React.Fragment>
                 ))}
                 {viewRows.length === 0 ? (
-                  <div className="oy-data-empty">没有符合条件的记录，试试清空搜索或切换筛选</div>
+                  <div className="oy-data-empty">
+                    {isDataBindingEnabled(DATA_BINDING)
+                      ? dataState.loading ? '正在读取真实表单数据' : '暂无真实表单记录。若需要演示内容，请先通过表单数据写入链路创建 demo records，再刷新本页读取。'
+                      : usesSeedRows
+                        ? '没有符合条件的 sample 记录，试试清空搜索或切换筛选'
+                        : '未接入真实表单数据。完整应用交付页不会用前端 seedRows 冒充业务记录，请在 page-spec.json 写入 dataBinding.mode=form。'}
+                  </div>
                 ) : null}
                 <div className="oy-add-row">
-                  <button type="button" onClick={addRecord}>+ 新增一条记录</button>
-                  <Text type="secondary">字段、分组和筛选会保持在当前视图中</Text>
+                  <button type="button" onClick={addRecord}>+ {usesSeedRows ? '新增一条 sample 记录' : '登记真实表单记录'}</button>
+                  <Text type="secondary">{usesSeedRows ? '字段、分组和筛选会保持在当前 sample 视图中' : '请通过表单写入真实记录后刷新读取'}</Text>
                 </div>
               </div>
             </div>
 
-            {sidebarOpen ? <Sidebar roadmap={ROADMAP} insight={insight} dataBinding={DATA_BINDING} /> : null}
+            {sidebarOpen ? <Sidebar roadmap={ROADMAP} insight={insight} dataBinding={DATA_BINDING} usesSeedRows={usesSeedRows} /> : null}
           </section>
         </div>
       </main>

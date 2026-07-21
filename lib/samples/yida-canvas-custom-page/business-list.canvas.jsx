@@ -136,7 +136,12 @@ const DEFAULT_INSIGHTS = [
     suggestion: '高频批量动作固定在列表底部，选中记录后右侧展示下一步。',
   },
 ];
-const DEFAULT_DATA_BINDING = { enabled: false, mode: 'seed' };
+const DEFAULT_DATA_BINDING = { enabled: false, mode: 'seed', seedStrategy: 'sample-only' };
+const EMPTY_METRICS = [
+  { label: '真实记录', value: '0', hint: '未接入表单数据' },
+  { label: '数据来源', value: '未接入', hint: '请在 page-spec.json 配置 dataBinding' },
+  { label: '演示记录', value: '0', hint: '演示记录需先写入真实表单' },
+];
 const BACKGROUND_IMAGES = {
   hero: 'https://images.unsplash.com/photo-1566346654781-14e3ef6ee988?auto=format&fit=crop&w=1400&q=80',
   card: 'https://images.unsplash.com/photo-1759884247160-27b8465544b6?auto=format&fit=crop&w=1200&q=80',
@@ -268,6 +273,11 @@ function isDataBindingEnabled(binding) {
   return Boolean(binding && binding.enabled && binding.mode && binding.mode !== 'seed');
 }
 
+function isSampleSeedPreview(binding) {
+  const mode = binding && binding.mode ? binding.mode : 'seed';
+  return RESEARCH_LEVEL === 'sample' && !isDataBindingEnabled(binding) && mode === 'seed';
+}
+
 function getCsrfToken() {
   try {
     return (window.g_config && (window.g_config._csrf_token || window.g_config.csrfToken)) || '';
@@ -393,7 +403,7 @@ function normalizeBoundRows(rows, binding) {
 }
 
 function useYidaData(binding) {
-  const [state, setState] = React.useState({ loading: false, error: '', rows: [], totalCount: null });
+  const [state, setState] = React.useState(() => ({ loading: isDataBindingEnabled(binding), error: '', rows: [], totalCount: null }));
   React.useEffect(() => {
     if (!isDataBindingEnabled(binding)) { return undefined; }
     const controller = new AbortController();
@@ -446,7 +456,9 @@ function YidaComp() {
     period: index % 2 === 0 ? 'week' : 'month',
   })), []);
   const dataState = useYidaData(DATA_BINDING);
-  const rows = dataState.rows.length ? dataState.rows : seedRows;
+  const usesSeedRows = isSampleSeedPreview(DATA_BINDING);
+  const metricItems = usesSeedRows || isDataBindingEnabled(DATA_BINDING) ? METRICS : EMPTY_METRICS;
+  const rows = dataState.rows.length ? dataState.rows : (usesSeedRows ? seedRows : []);
   const filteredRows = useMemo(() => {
     const kw = (filters.keyword || '').trim().toLowerCase();
     return rows.filter((row) => {
@@ -547,6 +559,11 @@ function YidaComp() {
           .oy-list-insight { padding: 12px 14px; margin: 0 0 16px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--oy-brand), transparent 70%); background: #EFF6FF; }
           .oy-list-brief { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
           .oy-data-status { margin: 0 0 12px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--oy-line); background: var(--oy-surface-soft); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+          .oy-list-empty-state { min-height: 278px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 32px 22px; text-align: center; border: 1px dashed var(--oy-line); border-radius: 14px; background: color-mix(in srgb, var(--oy-brand-soft), #fff 58%); }
+          .oy-list-empty-state h4 { margin: 0; color: var(--oy-text); }
+          .oy-list-empty-state .ant-typography { max-width: 540px; }
+          .oy-list-empty-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+          .oy-list-empty-detail { min-height: 360px; display: flex; flex-direction: column; justify-content: center; padding: 8px; }
           @media (max-width: 960px) {
             .oy-business-list { padding: 20px; }
             .oy-list-grid, .oy-list-metrics, .oy-list-filter, .oy-list-hero { grid-template-columns: 1fr; }
@@ -573,7 +590,7 @@ function YidaComp() {
             </header>
 
             <section className="oy-list-metrics">
-              {METRICS.slice(0, 3).map((item) => (
+              {metricItems.slice(0, 3).map((item) => (
                 <div className="oy-list-metric" key={item.label}>
                   <Text>{item.label}</Text>
                   <div className="oy-list-number">{item.value}</div>
@@ -594,15 +611,39 @@ function YidaComp() {
                       {dataState.error || (dataState.loading ? '正在读取真实数据' : '真实数据已接入' + (dataState.totalCount === null ? '' : '：' + dataState.totalCount + ' 条'))}
                     </Text>
                   </div>
-                ) : null}
-                <Table
-                  columns={columns}
-                  dataSource={filteredRows}
-                  pagination={false}
-                  size="middle"
-                  rowClassName={(_, index) => index === activeIndex ? 'is-selected-row' : ''}
-                  onRow={(_, index) => ({ onClick: () => setSelected(index || 0) })}
-                />
+                ) : (
+                  <div className="oy-data-status">
+                    <Tag color={usesSeedRows ? 'warning' : 'default'}>{usesSeedRows ? 'Sample seed' : '未接数据'}</Tag>
+                    <Text type="secondary">
+                      {usesSeedRows ? '当前为 sample/seed 预览数据，未接真实表单。' : '未配置真实表单 dataBinding，当前不显示前端 seed 列表。'}
+                    </Text>
+                  </div>
+                )}
+                {filteredRows.length ? (
+                  <Table
+                    columns={columns}
+                    dataSource={filteredRows}
+                    pagination={false}
+                    size="middle"
+                    rowClassName={(_, index) => index === activeIndex ? 'is-selected-row' : ''}
+                    onRow={(_, index) => ({ onClick: () => setSelected(index || 0) })}
+                  />
+                ) : (
+                  <div className="oy-list-empty-state">
+                    <Title level={4}>{dataState.loading ? '正在读取真实表单数据' : isDataBindingEnabled(DATA_BINDING) ? '暂无真实表单记录' : usesSeedRows ? '暂无匹配的 sample 记录' : '未接入真实表单数据'}</Title>
+                    <Paragraph type="secondary">
+                      {isDataBindingEnabled(DATA_BINDING)
+                        ? '当前数据源已接入宜搭表单。若需要演示内容，请先通过表单数据写入链路创建 demo records，再刷新本页读取。'
+                        : usesSeedRows
+                          ? '这是模板原样发布的 sample/seed 数据，仅用于离线预览模板结构。'
+                          : '完整应用交付页不会用前端 seedRows 冒充业务记录。请在 page-spec.json 写入 dataBinding.mode=form，或先登记真实表单记录。'}
+                    </Paragraph>
+                    <div className="oy-list-empty-actions">
+                      <Button type="primary">{PAGE.primaryCta || '登记记录'}</Button>
+                      <Button>刷新数据</Button>
+                    </div>
+                  </div>
+                )}
               </div>
               <BulkActionBar actions={INTERACTION_PROFILE.bulkActions} count={filteredRows.length} />
             </section>
@@ -613,7 +654,15 @@ function YidaComp() {
                   <Text strong>{insight.suggestion}</Text>
                 </div>
               ) : null}
-              <DetailPreview active={active} page={PAGE} roadmap={ROADMAP} />
+              {filteredRows.length ? (
+                <DetailPreview active={active} page={PAGE} roadmap={ROADMAP} />
+              ) : (
+                <div className="oy-list-empty-detail">
+                  <Tag color="default">空态入口</Tag>
+                  <Title level={4} style={{ marginTop: 14 }}>等待真实记录</Title>
+                  <Paragraph type="secondary">接入表单后，选中列表记录将在这里展示摘要、负责人、状态和处理路径。</Paragraph>
+                </div>
+              )}
             </aside>
           </div>
         </div>

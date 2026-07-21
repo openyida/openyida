@@ -91,7 +91,13 @@ const DEFAULT_THEME_PROFILE = { followRuntimeTheme: false, name: 'harbor-command
 const DEFAULT_APP_BLUEPRINT = { shell: 'dashboard' };
 const DEFAULT_INTERACTION_PROFILE = { primaryAction: '查看详情' };
 const DEFAULT_INSIGHTS = [{ conclusion: '本周业务整体稳定，建议优先处理高价值待跟进事项。' }];
-const DEFAULT_DATA_BINDING = { enabled: false, mode: 'seed' };
+const DEFAULT_DATA_BINDING = { enabled: false, mode: 'seed', seedStrategy: 'sample-only' };
+const EMPTY_METRICS = [
+  { label: '真实记录', value: '0', delta: '未接入表单数据' },
+  { label: '数据来源', value: '未接入', delta: '请配置 dataBinding' },
+  { label: '演示指标', value: '0', delta: '演示记录需先写入表单' },
+  { label: '图表状态', value: '空态', delta: '等待真实数据' },
+];
 const BACKGROUND_IMAGES = {
   hero: 'https://images.unsplash.com/photo-1566346654781-14e3ef6ee988?auto=format&fit=crop&w=1400&q=80',
 };
@@ -215,6 +221,19 @@ function ChartPanel({ title, subtitle, children }) {
   );
 }
 
+function DashboardEmptyState({ title, text }) {
+  return (
+    <div className="oy-dashboard-empty">
+      <Title level={4}>{title}</Title>
+      <Paragraph type="secondary">{text}</Paragraph>
+      <div className="oy-dashboard-empty-actions">
+        <Button type="primary">{PAGE.primaryCta || '登记记录'}</Button>
+        <Button>刷新数据</Button>
+      </div>
+    </div>
+  );
+}
+
 function RankList({ data, color }) {
   return (
     <div className="oy-rank-list">
@@ -246,6 +265,11 @@ function ActionStep({ item }) {
 
 function isDataBindingEnabled(binding) {
   return Boolean(binding && binding.enabled && binding.mode && binding.mode !== 'seed');
+}
+
+function isSampleSeedPreview(binding) {
+  const mode = binding && binding.mode ? binding.mode : 'seed';
+  return RESEARCH_LEVEL === 'sample' && !isDataBindingEnabled(binding) && mode === 'seed';
 }
 
 function getCsrfToken() {
@@ -341,8 +365,46 @@ function getTotalCount(payload) {
   return null;
 }
 
+function pickField(row, fieldId, fallbackKeys) {
+  const data = row.formData || row.data || row;
+  if (fieldId && data[fieldId] !== undefined) {
+    return data[fieldId];
+  }
+  for (let i = 0; i < fallbackKeys.length; i++) {
+    if (data[fallbackKeys[i]] !== undefined) {
+      return data[fallbackKeys[i]];
+    }
+  }
+  return undefined;
+}
+
+function parseNumericMetric(value) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  if (typeof value !== 'number' && typeof value !== 'string') {
+    return null;
+  }
+  if (typeof value === 'string' && value.trim() === '') {
+    return null;
+  }
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
+}
+
+function normalizeDashboardRows(rows, binding) {
+  const fields = binding.fields || {};
+  return rows.map((row, index) => {
+    const rawValue = pickField(row, fields.value || fields.amount || fields.count, ['value', 'amount', 'count']);
+    return {
+      name: pickField(row, fields.name || fields.title || fields.code, ['name', 'title', 'code']) || ('记录 ' + (index + 1)),
+      value: parseNumericMetric(rawValue),
+    };
+  });
+}
+
 function useYidaData(binding) {
-  const [state, setState] = React.useState({ loading: false, error: '', rows: [], totalCount: null });
+  const [state, setState] = React.useState(() => ({ loading: isDataBindingEnabled(binding), error: '', rows: [], totalCount: null }));
   React.useEffect(() => {
     if (!isDataBindingEnabled(binding)) { return undefined; }
     const controller = new AbortController();
@@ -358,7 +420,7 @@ function useYidaData(binding) {
       if (binding.emptyAsError !== false && totalCount > 0 && rows.length === 0) {
         throw new Error('接口返回结构未识别：totalCount=' + totalCount + ' 但 rows=0');
       }
-      setState({ loading: false, error: '', rows, totalCount });
+      setState({ loading: false, error: '', rows: normalizeDashboardRows(rows, binding), totalCount });
     }).catch((err) => {
       if (err.name === 'AbortError') { return; }
       setState({ loading: false, error: err.message || String(err), rows: [], totalCount: null });
@@ -378,7 +440,7 @@ function YidaComp() {
   const brandSoft = getThemeColor(THEME_PROFILE, 'themeColorSoft', readBrandColor(2, '#F3F5FB'));
   const palette = parseColorGroup(THEME_PROFILE.palette || [brand, '#14B8A6', '#F97316', '#22C55E', '#A855F7']);
   const themeVars = buildScopedThemeVars(THEME_SCOPE, THEME_PROFILE);
-  const trendData = useMemo(() => [
+  const seedTrendData = useMemo(() => [
     { name: '周一', value: 42, target: 36 },
     { name: '周二', value: 48, target: 39 },
     { name: '周三', value: 51, target: 44 },
@@ -386,18 +448,73 @@ function YidaComp() {
     { name: '周五', value: 58, target: 49 },
     { name: '周六', value: 63, target: 55 },
   ], []);
-  const rankData = useMemo(() => FEATURES.slice(0, 5).map((item, index) => ({
+  const seedRankData = useMemo(() => FEATURES.slice(0, 5).map((item, index) => ({
     name: item.title,
     value: 88 - index * 11,
   })), []);
-  const mainMetric = METRICS[0] || { value: '-', label: '核心指标' };
   const insight = INSIGHTS[0] || null;
   const primaryAction = INTERACTION_PROFILE.primaryAction || PAGE.primaryCta;
   const shellLabel = APP_BLUEPRINT.shell || 'single_page';
   const dataState = useYidaData(DATA_BINDING);
-  const dataMetric = isDataBindingEnabled(DATA_BINDING) && dataState.totalCount !== null
-    ? { value: String(dataState.totalCount), label: DATA_BINDING.sourceName || '真实记录' }
-    : null;
+  const usesSeedRows = isSampleSeedPreview(DATA_BINDING);
+  const chartRows = isDataBindingEnabled(DATA_BINDING)
+    ? dataState.rows.filter((row) => Number.isFinite(row.value))
+    : [];
+  const hasRowsWithoutChartValue = isDataBindingEnabled(DATA_BINDING)
+    && !dataState.loading
+    && !dataState.error
+    && dataState.rows.length > 0
+    && chartRows.length === 0;
+  const trendData = usesSeedRows
+    ? seedTrendData
+    : chartRows.length
+      ? chartRows.slice(0, 6).map((row, index) => ({ name: row.name || '记录 ' + (index + 1), value: row.value, target: row.value }))
+      : [];
+  const rankData = usesSeedRows
+    ? seedRankData
+    : chartRows.length
+      ? chartRows.slice(0, 5)
+      : [];
+  const metricItems = usesSeedRows
+    ? METRICS
+    : isDataBindingEnabled(DATA_BINDING)
+      ? [
+        { value: dataState.loading ? '--' : String(dataState.totalCount === null ? dataState.rows.length : dataState.totalCount), label: DATA_BINDING.sourceName || '真实记录', delta: dataState.loading ? '正在读取真实表单' : '来自宜搭表单' },
+        { value: dataState.error ? '异常' : '已接入', label: '数据状态', delta: dataState.error || 'DataBridge' },
+        { value: Object.keys(DATA_BINDING.fields || {}).length + ' 项', label: '字段映射', delta: 'page-spec.json' },
+        { value: '0', label: '演示指标', delta: '演示记录需先写入表单' },
+      ]
+      : EMPTY_METRICS;
+  const mainMetric = metricItems[0] || { value: '-', label: '核心指标' };
+  const hasChartData = trendData.length > 0 && rankData.length > 0;
+  const trendEmptyTitle = isDataBindingEnabled(DATA_BINDING)
+    ? dataState.error
+      ? '真实数据读取异常'
+      : dataState.loading
+        ? '正在读取真实表单数据'
+        : hasRowsWithoutChartValue
+          ? '缺少数值字段映射'
+          : '暂无真实趋势数据'
+    : '未接入真实表单数据';
+  const trendEmptyText = isDataBindingEnabled(DATA_BINDING)
+    ? hasRowsWithoutChartValue
+      ? '已读取真实表单记录，但字段映射中没有可解析的数值字段，趋势图暂不绘制。'
+      : '当前数据源已接入宜搭表单。若需要演示内容，请先通过表单数据写入链路创建 demo records，再刷新本页读取。'
+    : '完整应用交付页不会用前端静态趋势冒充业务数据，请在 page-spec.json 写入 dataBinding.mode=form。';
+  const rankEmptyTitle = isDataBindingEnabled(DATA_BINDING)
+    ? dataState.error
+      ? '真实数据读取异常'
+      : dataState.loading
+        ? '正在读取真实排行数据'
+        : hasRowsWithoutChartValue
+          ? '暂无可绘图数据'
+          : '暂无真实排行记录'
+    : '未接入真实排行数据';
+  const rankEmptyText = isDataBindingEnabled(DATA_BINDING)
+    ? hasRowsWithoutChartValue
+      ? 'DataBridge 已读取真实记录，但缺少可用于排行的数值字段映射，页面不会合成前端指标。'
+      : 'DataBridge 已启用，页面不会回退到 sample 排行。'
+    : '请配置真实表单 dataBinding，或先写入 demo records 后再让 Canvas 读取。';
 
   return (
     <ConfigProvider
@@ -478,6 +595,10 @@ function YidaComp() {
           .oy-rank-bar { height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--oy-brand) 12%, #fff); overflow: hidden; }
           .oy-rank-bar span { display: block; height: 100%; border-radius: inherit; }
           .oy-data-status { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+          .oy-dashboard-empty { min-height: 220px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; text-align: center; padding: 28px 18px; border: 1px dashed color-mix(in srgb, var(--oy-brand) 24%, #D7E4EA); border-radius: 14px; background: color-mix(in srgb, var(--oy-brand-soft), #fff 54%); }
+          .oy-dashboard-empty h4 { margin: 0; color: #102A2F; }
+          .oy-dashboard-empty .ant-typography { max-width: 560px; }
+          .oy-dashboard-empty-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
           @media (max-width: 960px) {
             .oy-dashboard-overview { padding: 20px; }
             .oy-dashboard-grid, .oy-dashboard-chart-row, .oy-dashboard-kpi { grid-template-columns: 1fr; }
@@ -511,12 +632,19 @@ function YidaComp() {
                         {dataState.error || (dataState.loading ? '正在读取真实数据' : '真实数据已接入' + (dataState.totalCount === null ? '' : '：' + dataState.totalCount + ' 条'))}
                       </Text>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="oy-data-status">
+                      <Tag color={usesSeedRows ? 'warning' : 'default'}>{usesSeedRows ? 'Sample seed' : '未接数据'}</Tag>
+                      <Text type="secondary">
+                        {usesSeedRows ? '当前为 sample/seed 预览指标，未接真实表单。' : '未配置真实表单 dataBinding，当前不显示前端静态业务指标。'}
+                      </Text>
+                    </div>
+                  )}
                 </div>
-                <DataFreshnessBadge researchLevel={RESEARCH_LEVEL} />
+                <DataFreshnessBadge researchLevel={usesSeedRows ? 'sample seed' : isDataBindingEnabled(DATA_BINDING) ? 'DataBridge' : 'empty'} />
               </div>
               <div className="oy-dashboard-kpi">
-                {(dataMetric ? [dataMetric].concat(METRICS) : METRICS).slice(0, 4).map((item, index) => (
+                {metricItems.slice(0, 4).map((item, index) => (
                   <KpiPrimitive item={item} index={index} brandDeep={brandDeep} key={item.label} />
                 ))}
               </div>
@@ -537,29 +665,45 @@ function YidaComp() {
 
           <div className="oy-dashboard-chart-row">
             <ChartPanel title="趋势分析" subtitle={`${mainMetric.label}: ${mainMetric.value}`}>
-              <ResponsiveContainer width="100%" height={220}>
-                <AreaChart data={trendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in srgb, var(--oy-brand) 12%, #E8F0F8)" />
-                  <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                  <YAxis tickLine={false} axisLine={false} />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="target" name="目标" stroke={palette[2]} fill={palette[2]} fillOpacity={0.12} />
-                  <Area type="monotone" dataKey="value" name="实际" stroke={brand} fill={brand} fillOpacity={0.18} />
-                </AreaChart>
-              </ResponsiveContainer>
+              {hasChartData ? (
+                <ResponsiveContainer width="100%" height={220}>
+                  <AreaChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in srgb, var(--oy-brand) 12%, #E8F0F8)" />
+                    <XAxis dataKey="name" tickLine={false} axisLine={false} />
+                    <YAxis tickLine={false} axisLine={false} />
+                    <Tooltip />
+                    <Area type="monotone" dataKey="target" name="目标" stroke={palette[2]} fill={palette[2]} fillOpacity={0.12} />
+                    <Area type="monotone" dataKey="value" name="实际" stroke={brand} fill={brand} fillOpacity={0.18} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <DashboardEmptyState
+                  title={trendEmptyTitle}
+                  text={trendEmptyText}
+                />
+              )}
             </ChartPanel>
 
             <ChartPanel title={PAGE.featuresTitle} subtitle={`TOP ${rankData.length}`}>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={rankData} layout="vertical" margin={{ left: 10, right: 16 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="color-mix(in srgb, var(--oy-brand) 12%, #E8F0F8)" />
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={96} />
-                  <Tooltip />
-                  <Bar dataKey="value" name="贡献度" fill={palette[1] || brand} radius={[0, 6, 6, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-              <RankList data={rankData} color={palette[1] || brand} />
+              {hasChartData ? (
+                <>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={rankData} layout="vertical" margin={{ left: 10, right: 16 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="color-mix(in srgb, var(--oy-brand) 12%, #E8F0F8)" />
+                      <XAxis type="number" hide />
+                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={96} />
+                      <Tooltip />
+                      <Bar dataKey="value" name="贡献度" fill={palette[1] || brand} radius={[0, 6, 6, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <RankList data={rankData} color={palette[1] || brand} />
+                </>
+              ) : (
+                <DashboardEmptyState
+                  title={rankEmptyTitle}
+                  text={rankEmptyText}
+                />
+              )}
             </ChartPanel>
           </div>
         </div>

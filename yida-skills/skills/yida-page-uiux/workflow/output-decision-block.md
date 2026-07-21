@@ -12,7 +12,7 @@
 - **archetype**：<dashboard: overview/analysis/monitor/report/compare/operation；其他场景写 profile/table-management/operation/brand-home 等>
 - **interactionProfile**：<primaryAction、detailMode(drawer/page/iframe/none)、bulkActions、empty/loading/error 状态>
 - **insights**：<看板/报告/工作台写 1-3 条“结论 + 证据 + 建议”；无洞察则空数组>
-- **dataBinding**：<真实数据来源；无真实数据写 mode=seed；有表单写 appType/formUuid/fields；有连接器写同源 endpoint>
+- **dataBinding**：<真实数据来源；有表单写 mode=form + appType/formUuid/fields；有连接器写同源 endpoint；无真实数据的完整交付页写 mode=none/空态策略，只有 sample/离线预览可写 mode=seed 并标注演示数据>
 - **气质关键词**：<2-3 个>
 - **项目特定设计原则**：<3-5 条，具体到业务>
 - **布局骨架**：<来自 scene 文件的骨架，按本页信息调整>

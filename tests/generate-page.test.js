@@ -422,6 +422,67 @@ describe('generate-page command', () => {
     });
   });
 
+  test('business-list delivery output without dataBinding uses empty state instead of seed list fallback', () => {
+    const specPath = path.join(tmpDir, 'orders-no-binding.json');
+    fs.writeFileSync(specPath, JSON.stringify({
+      template: 'business-list',
+      output: 'pages/src/orders-no-binding.canvas.jsx',
+      requirement: '做订单管理页，支持筛选订单、查看详情和登记新订单。',
+      brandName: '订单管理页',
+      tagline: '订单筛选、处理和详情预览',
+      heroText: '面向运营人员处理订单状态、负责人和下一步动作。',
+      interactionProfile: {
+        primaryAction: '登记订单',
+        detailMode: 'side-pane',
+        bulkActions: ['导出订单', '批量分派'],
+      },
+      visualProfile: {
+        name: 'order-ops-list',
+        density: 'business-compact',
+      },
+      features: [
+        { title: '订单登记', text: '登记客户、金额、状态和负责人。' },
+        { title: '订单筛选', text: '按状态、周期和关键词定位记录。' },
+        { title: '详情处理', text: '在右侧查看摘要并推进下一步。' },
+      ],
+      roadmap: [
+        { stage: '登记', title: '创建订单', text: '从订单表单写入真实记录。' },
+        { stage: '处理', title: '筛选负责人', text: '按状态和负责人分派处理。' },
+        { stage: '复盘', title: '查看结果', text: '从真实表单读取最新记录。' },
+      ],
+    }, null, 2), 'utf8');
+
+    execFileSync(process.execPath, [
+      BIN,
+      'generate-page',
+      '--spec',
+      specPath,
+      '--compile',
+    ], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+
+    const sourcePath = path.join(tmpDir, 'pages', 'src', 'orders-no-binding.canvas.jsx');
+    const compiledPath = path.join(tmpDir, 'pages', 'dist', 'orders-no-binding.canvas.js');
+    const manifestPath = path.join(tmpDir, 'pages', 'src', 'orders-no-binding.canvas.openyida-page.json');
+    const source = fs.readFileSync(sourcePath, 'utf8');
+    const compiled = fs.readFileSync(compiledPath, 'utf8');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+
+    expect(fs.existsSync(compiledPath)).toBe(true);
+    expect(source).toContain('未接入真实表单数据');
+    expect(source).toContain('usesSeedRows ? seedRows : []');
+    expect(source).not.toContain('dataState.rows.length ? dataState.rows : seedRows');
+    expect(compiled).toContain('完整应用交付页不会用前端 seedRows 冒充业务记录。');
+    expect(manifest.dataBinding).toMatchObject({
+      mode: 'seed',
+      enabled: false,
+    });
+  });
+
   test('workbench canvas sample fills the app surface and avoids demo labels', () => {
     const source = fs.readFileSync(path.join(ROOT, 'lib', 'samples', 'yida-canvas-custom-page', 'workbench-home.canvas.jsx'), 'utf8');
 

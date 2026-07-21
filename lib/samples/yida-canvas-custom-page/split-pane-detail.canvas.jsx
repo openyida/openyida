@@ -84,7 +84,7 @@ const DEFAULT_ROADMAP = [
   { stage: '03', title: '推进处理', text: '完成分派、备注或状态更新。' },
 ];
 const DEFAULT_THEME_PROFILE = { followRuntimeTheme: false, name: 'amber-client-file', themeColor: '#B7791F', themeColorDeep: '#7C4A03', themeColorSoft: '#FFF8E7', themeColorTint: 'rgba(183, 121, 31, 0.18)', palette: ['#B7791F', '#0F9F8E', '#E11D48', '#2563EB', '#F97316'] };
-const DEFAULT_DATA_BINDING = { enabled: false, mode: 'seed' };
+const DEFAULT_DATA_BINDING = { enabled: false, mode: 'seed', seedStrategy: 'sample-only' };
 const DEFAULT_INSIGHTS = [{ conclusion: '双栏详情页适合高频查阅和逐条处理。' }];
 const BACKGROUND_IMAGES = {
   detail: 'https://images.unsplash.com/photo-1771147372627-7fffe86cf00b?auto=format&fit=crop&w=1400&q=80',
@@ -98,6 +98,7 @@ const THEME_PROFILE = parseTemplateJson('{{OPENYIDA_THEME_PROFILE_JSON}}', DEFAU
 const THEME_SCOPE = withFallback('{{OPENYIDA_THEME_SCOPE}}', 'page');
 const DATA_BINDING = parseTemplateJson('{{OPENYIDA_DATA_BINDING_JSON}}', DEFAULT_DATA_BINDING);
 const INSIGHTS = parseTemplateJson('{{OPENYIDA_INSIGHTS_JSON}}', DEFAULT_INSIGHTS);
+const RESEARCH_LEVEL = withFallback('{{OPENYIDA_RESEARCH_LEVEL}}', 'sample');
 
 function getThemeColor(fallback) {
   if (typeof window === 'undefined' || !window.getComputedStyle) {
@@ -152,6 +153,163 @@ function getSeedRows() {
   ];
 }
 
+function isDataBindingEnabled(binding) {
+  return Boolean(binding && binding.enabled && binding.mode && binding.mode !== 'seed');
+}
+
+function isSampleSeedPreview(binding) {
+  const mode = binding && binding.mode ? binding.mode : 'seed';
+  return RESEARCH_LEVEL === 'sample' && !isDataBindingEnabled(binding) && mode === 'seed';
+}
+
+function getCsrfToken() {
+  try {
+    return (window.g_config && (window.g_config._csrf_token || window.g_config.csrfToken)) || '';
+  } catch (err) {
+    return '';
+  }
+}
+
+function buildDataRequest(binding) {
+  if (binding.mode === 'form' && binding.appType && binding.formUuid) {
+    const qs = new URLSearchParams({
+      formUuid: binding.formUuid,
+      appType: binding.appType,
+      currentPage: String(binding.pageNumber || 1),
+      pageSize: String(binding.pageSize || 20),
+      searchFieldJson: JSON.stringify(binding.query || {}),
+    }).toString();
+    return {
+      url: '/dingtalk/web/' + binding.appType + '/v1/form/searchFormDatas.json?' + qs,
+      method: 'GET',
+      body: {},
+    };
+  }
+  return {
+    url: binding.endpoint,
+    method: binding.method || 'GET',
+    body: binding.body || {},
+  };
+}
+
+function requestJson(req, signal) {
+  const csrfToken = getCsrfToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (csrfToken) {
+    headers.global_csrf_token = csrfToken;
+  }
+  return fetch(req.url, {
+    method: req.method || 'GET',
+    credentials: 'include',
+    headers,
+    body: req.method === 'GET' ? undefined : JSON.stringify(req.body || {}),
+    signal,
+  }).then((resp) => {
+    if (!resp.ok) {
+      throw new Error('HTTP ' + resp.status);
+    }
+    return resp.json();
+  }).then((json) => {
+    if (json && json.success === false) {
+      throw new Error(json.errorMsg || json.message || 'request failed');
+    }
+    return json;
+  });
+}
+
+function unwrapRows(payload) {
+  const queue = [payload];
+  const seen = [];
+  while (queue.length) {
+    const item = queue.shift();
+    if (!item || seen.indexOf(item) >= 0) { continue; }
+    seen.push(item);
+    if (Array.isArray(item)) { return item; }
+    ['data', 'list', 'values', 'records'].forEach((key) => {
+      if (Array.isArray(item[key])) {
+        queue.unshift(item[key]);
+      }
+    });
+    ['result', 'content', 'value'].forEach((key) => {
+      if (item[key] && typeof item[key] === 'object') {
+        queue.push(item[key]);
+      }
+    });
+  }
+  return [];
+}
+
+function getTotalCount(payload) {
+  const queue = [payload];
+  const seen = [];
+  while (queue.length) {
+    const item = queue.shift();
+    if (!item || seen.indexOf(item) >= 0) { continue; }
+    seen.push(item);
+    if (typeof item.totalCount === 'number') { return item.totalCount; }
+    if (typeof item.total === 'number') { return item.total; }
+    if (typeof item.count === 'number') { return item.count; }
+    ['result', 'content', 'data', 'value'].forEach((key) => {
+      if (item[key] && typeof item[key] === 'object') {
+        queue.push(item[key]);
+      }
+    });
+  }
+  return null;
+}
+
+function pickField(row, fieldId, fallbackKeys) {
+  const data = row.formData || row.data || row;
+  if (fieldId && data[fieldId] !== undefined) {
+    return data[fieldId];
+  }
+  for (let i = 0; i < fallbackKeys.length; i++) {
+    if (data[fallbackKeys[i]] !== undefined) {
+      return data[fallbackKeys[i]];
+    }
+  }
+  return '';
+}
+
+function normalizeBoundRows(rows, binding) {
+  const fields = binding.fields || {};
+  return rows.map((row, index) => ({
+    id: row.formInstanceId || row.instanceId || row.id || ('ROW-' + (index + 1)),
+    title: pickField(row, fields.title || fields.code, ['title', 'name', 'code']) || ('记录 ' + (index + 1)),
+    desc: pickField(row, fields.desc || fields.summary || fields.description, ['desc', 'summary', 'description', 'content']) || '',
+    status: pickField(row, fields.status, ['status', 'state', 'progress']) || '待处理',
+    owner: pickField(row, fields.owner, ['owner', 'creator', 'dept']) || '未分配',
+    amount: pickField(row, fields.amount || fields.value, ['amount', 'value', 'count']) || '-',
+  }));
+}
+
+function useYidaData(binding) {
+  const [state, setState] = React.useState(() => ({ loading: isDataBindingEnabled(binding), error: '', rows: [], totalCount: null }));
+  React.useEffect(() => {
+    if (!isDataBindingEnabled(binding)) { return undefined; }
+    const controller = new AbortController();
+    const req = buildDataRequest(binding);
+    if (!req.url) {
+      setState({ loading: false, error: '数据绑定缺少 endpoint 或 appType/formUuid', rows: [], totalCount: null });
+      return undefined;
+    }
+    setState({ loading: true, error: '', rows: [], totalCount: null });
+    requestJson(req, controller.signal).then((json) => {
+      const rows = unwrapRows(json);
+      const totalCount = getTotalCount(json);
+      if (binding.emptyAsError !== false && totalCount > 0 && rows.length === 0) {
+        throw new Error('接口返回结构未识别：totalCount=' + totalCount + ' 但 rows=0');
+      }
+      setState({ loading: false, error: '', rows: normalizeBoundRows(rows, binding), totalCount });
+    }).catch((err) => {
+      if (err.name === 'AbortError') { return; }
+      setState({ loading: false, error: err.message || String(err), rows: [], totalCount: null });
+    });
+    return () => controller.abort();
+  }, []);
+  return state;
+}
+
 function getStatusColor(status) {
   if (/高|异常|风险|超时/.test(status)) {
     return 'error';
@@ -164,7 +322,7 @@ function getStatusColor(status) {
 
 const QUEUE_STATUS = { high: '高优先级', pending: '待跟进' };
 
-function SplitQueue({ rows, selectedId, onSelect, filters, onFilterChange }) {
+function SplitQueue({ rows, selectedId, onSelect, filters, onFilterChange, emptyText }) {
   return (
     <aside className="oy-split-queue">
       <div className="oy-filter-bar">
@@ -181,7 +339,7 @@ function SplitQueue({ rows, selectedId, onSelect, filters, onFilterChange }) {
       </div>
       <div className="oy-queue-list">
         {rows.length === 0 ? (
-          <div className="oy-queue-empty"><Text>无匹配工单，试试清空搜索或切换状态</Text></div>
+          <div className="oy-queue-empty"><Text>{emptyText || '无匹配工单，试试清空搜索或切换状态'}</Text></div>
         ) : rows.map((row) => (
           <button
             type="button"
@@ -203,6 +361,28 @@ function SplitQueue({ rows, selectedId, onSelect, filters, onFilterChange }) {
 
 function DetailPane({ item }) {
   const insight = INSIGHTS[0] || { conclusion: PAGE.ctaText, evidence: '', suggestion: '' };
+  if (!item) {
+    return (
+      <section className="oy-detail-pane oy-empty-detail">
+        <div className="oy-detail-hero">
+          <Tag color="default">空态入口</Tag>
+          <Title level={2}>等待真实记录</Title>
+          <Paragraph>未接入真实表单数据时，交付态不会展示前端 seed 详情。请在 page-spec.json 写入 dataBinding.mode=form，或先登记真实表单记录。</Paragraph>
+          <div className="oy-detail-actions">
+            <Button type="primary">{PAGE.primaryCta}</Button>
+            <Button>刷新数据</Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+  const metricItems = isSampleSeedPreview(DATA_BINDING)
+    ? METRICS
+    : [
+      { label: '当前状态', value: item.status || '-' },
+      { label: '负责人', value: item.owner || '-' },
+      { label: '金额/数值', value: item.amount || '-' },
+    ];
   return (
     <section className="oy-detail-pane">
       <div className="oy-detail-hero">
@@ -215,7 +395,7 @@ function DetailPane({ item }) {
         </div>
       </div>
       <div className="oy-detail-grid">
-        {METRICS.map((metric) => (
+        {metricItems.map((metric) => (
           <div className="oy-metric-card" key={metric.label}>
             <Text>{metric.label}</Text>
             <strong>{metric.value}</strong>
@@ -246,8 +426,11 @@ function DetailPane({ item }) {
 
 function YidaComp() {
   useEffect(() => { updateShellTheme(); }, []);
-  const rows = useMemo(() => getSeedRows(), []);
-  const [selectedId, setSelectedId] = useState(rows[0] && rows[0].id);
+  const seedRows = useMemo(() => getSeedRows(), []);
+  const usesSeedRows = isSampleSeedPreview(DATA_BINDING);
+  const dataState = useYidaData(DATA_BINDING);
+  const rows = dataState.rows.length ? dataState.rows : (usesSeedRows ? seedRows : []);
+  const [selectedId, setSelectedId] = useState(() => usesSeedRows && seedRows[0] ? seedRows[0].id : null);
   const [queueFilters, setQueueFilters] = useState({ keyword: '', status: 'all' });
   const handleQueueFilter = (key, value) => setQueueFilters((prev) => Object.assign({}, prev, { [key]: value }));
   const filteredRows = useMemo(() => {
@@ -262,8 +445,13 @@ function YidaComp() {
     });
   }, [rows, queueFilters]);
   const visibleSelectedId = filteredRows.some((row) => row.id === selectedId) ? selectedId : (filteredRows[0] && filteredRows[0].id);
-  const selected = rows.find((row) => row.id === visibleSelectedId) || rows[0];
+  const selected = rows.find((row) => row.id === visibleSelectedId) || null;
   const themeVars = buildScopedThemeVars();
+  const queueEmptyText = isDataBindingEnabled(DATA_BINDING)
+    ? dataState.loading ? '正在读取真实表单数据' : '暂无真实表单记录。若需要演示内容，请先通过表单数据写入链路创建 demo records。'
+    : usesSeedRows
+      ? '无匹配 sample 记录，试试清空搜索或切换状态'
+      : '未接入真实表单数据。完整应用交付页不会用前端 seedRows 冒充业务队列。';
 
   return (
     <ConfigProvider getPopupContainer={(triggerNode) => (triggerNode && triggerNode.parentElement) || document.body}>
@@ -334,14 +522,22 @@ function YidaComp() {
               <div className="oy-brand-mark">{PAGE.brandInitials}</div>
               <div>
                 <Tag color="warning">{PAGE.tagline}</Tag>
+                {isDataBindingEnabled(DATA_BINDING) ? <Tag color={dataState.error ? 'error' : dataState.loading ? 'processing' : 'green'}>DataBridge</Tag> : usesSeedRows ? <Tag color="warning">Sample seed</Tag> : <Tag>未接数据</Tag>}
                 <h1>{PAGE.brandName}</h1>
                 <p>{PAGE.heroText}</p>
+                <p className="oy-data-status">
+                  {isDataBindingEnabled(DATA_BINDING)
+                    ? dataState.error || (dataState.loading ? '正在读取真实数据' : '真实数据已接入' + (dataState.totalCount === null ? '' : '：' + dataState.totalCount + ' 条'))
+                    : usesSeedRows
+                      ? '当前为 sample/seed 预览数据，未接真实表单。'
+                      : '未配置真实表单 dataBinding，当前不显示前端 seed 队列。'}
+                </p>
               </div>
             </div>
             <Button type="primary">{PAGE.primaryCta}</Button>
           </header>
           <section className="oy-split-layout">
-            <SplitQueue rows={filteredRows} selectedId={visibleSelectedId} onSelect={setSelectedId} filters={queueFilters} onFilterChange={handleQueueFilter} />
+            <SplitQueue rows={filteredRows} selectedId={visibleSelectedId} onSelect={setSelectedId} filters={queueFilters} onFilterChange={handleQueueFilter} emptyText={queueEmptyText} />
             <DetailPane item={selected} />
           </section>
         </div>

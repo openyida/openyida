@@ -78,7 +78,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
               ↓
 [Step 6] 编写自定义页面代码 → 默认 use_skill("yida-canvas-custom-page", "生成 Code Canvas 主页面")
               ↓      先写业务化 page-spec.json，再 openyida generate-page <模板> --theme-profile yida-app-theme --theme-scope page --spec <page-spec.json> --compile
-              ↓      需要真实数据时在 spec.dataBinding 写 appType/formUuid/字段映射；深度接入再加载 yida-canvas-data-binding
+              ↓      本轮已创建/解析业务表单且页面需要列表/看板/详情数据时，必须在 spec.dataBinding 写 mode=form + 真实 appType/formUuid/fieldId；深度接入再加载 yida-canvas-data-binding
               ↓      明确要求普通自定义页面 JSX/Jsx 组件链路，或强依赖 this.$ / this.utils.yida.* / this.dataSourceMap 等实例桥时选择 yida-custom-page
               ↓
 [Step 7] 发布页面 → use_skill("yida-publish-page", "发布主页面") → openyida publish <源文件路径> <appType> <formUuid> [--health-check]
@@ -123,7 +123,7 @@ UI 不是独立替代主流程的步骤，而是按模式插入到页面生成�
 
 - `brandName` / `tagline` / `heroText`：使用当前应用的业务名称、角色和问题域，不沿用模板默认标题。
 - `features`：写真实业务对象、模块入口或处理事项，不写“统一入口 / 状态跟进 / 流程闭环”这类通用模板卖点。
-- `metrics`：写贴合场景的指标口径；没有真实数据时也要使用业务占位口径，并在 `dataBinding.seedStrategy` 标明演示数据。
+- `metrics` / 列表 / 看板 / 详情数据：写贴合场景的指标口径；完整应用或真实交付页不得用前端 seedRows 冒充真实业务记录。本轮已有业务表单时必须写 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射；若需要演示数据，先通过表单数据写入链路创建 demo/mock records，再让 Canvas 页面读取这些真实表单记录。没有写入 demo records 且没有真实数据时，页面展示空态、表单入口、刷新/登记按钮，并在 final 明确“未接真实表单数据”。
 - `roadmap` 或 `interactionProfile`：写用户动作、筛选、下钻、批量处理、空/载/错状态。
 - `visualProfile`：写一个区别于 sample 的视觉方向，例如信息密度、构图节奏、强调色来源、图表/列表/队列母题。
 - 官网/品牌页还必须写 `assets` 或明确素材缺口；看板/列表/详情页优先写 `dataBinding`、字段映射或表单链接。
@@ -160,7 +160,7 @@ UI 不是独立替代主流程的步骤，而是按模式插入到页面生成�
 | 2. 记录最小需求 | 无 | 写 `prd/<项目名>.md`：只记录 MVP 假设、核心表单/页面、完成标准；写/更新 `.cache/<项目名>-schema.json` standalone 映射；不要写长 PRD | 业务语义和 ID 存储位置明确 |
 | 3. resolve forms | `yida-create-form-page` | 已有目标表单时 update/patch/rule/bind-datasource；缺少支撑 MVP 的核心表单且允许创建时才 create；字段配置文件写入 `.cache/openyida/<项目名>/` | 拿到或确认表单 `formUuid` 和真实 `fieldId` |
 | 4. resolve main page | `yida-create-page` 仅在主页面缺失且允许创建时加载 | 已有页面 URL / `formUuid` / bound page 时直接作为主页面；否则创建一个用户主入口 display page | 拿到真实目标页面 `formUuid`，且不会重复创建页面 |
-| 5. 编写/更新页面 | 默认 `yida-canvas-custom-page`；明确要求 JSX/Jsx 组件链路或实例桥强依赖时选择 `yida-custom-page` | 生成或修改主页面源码；只实现 MVP 首屏和核心操作。可用已解析表单链接、轻量统计占位和基础列表/入口布局完成主页面；不要加载视觉/密度/报表/数据源等额外技能 | 本地源码通过对应页面技能的基础校验；未执行 publish 时仍是“源码已修改，尚未发布” |
+| 5. 编写/更新页面 | 默认 `yida-canvas-custom-page`；明确要求 JSX/Jsx 组件链路或实例桥强依赖时选择 `yida-custom-page` | 生成或修改主页面源码；只实现 MVP 首屏和核心操作。可用已解析表单链接、真实空态、表单入口和轻量指标口径完成主页面；若展示业务列表/看板/详情记录，必须接本轮真实表单 `dataBinding.mode=form`，或先写入 demo records 后再读取；不要加载视觉/密度/报表/数据源等额外技能 | 本地源码通过对应页面技能的基础校验；未执行 publish 时仍是“源码已修改，尚未发布” |
 | 6. 发布页面 | `yida-publish-page` | 按页面链路校验后发布到已解析主页面：Canvas `.canvas.jsx` 使用 `openyida publish` 的 Canvas 编译阶段或 `compileCanvasLocal` 快检；普通自定义页面 `.oyd.jsx` / `.jsx` 跑 `check-page` / `compile`；再执行 `openyida publish <source> <appType> <displayPageFormUuid>` 发布主页面 | 发布成功并获得可访问 URL |
 | 7. 输出结果 | 无 | 返回应用链接、主页面链接、复用/创建/更新的资源摘要、后续可选项 | 用户拿到 URL |
 
@@ -215,6 +215,7 @@ UI 不是独立替代主流程的步骤，而是按模式插入到页面生成�
 
 - 默认页面源码不得使用 `this.dataSourceMap.*`，除非本轮已经明确创建并绑定对应设计器数据源。
 - 默认页面只走两类可闭环方案：入口型页面（表单入口、资源链接、轻量统计占位）或内置数据 API 页面（`this.utils.yida.searchFormDatas` / `saveFormData` 等查询本轮已创建表单）。
+- Canvas 列表/看板/详情页的业务记录不得回退到前端 seedRows 冒充真实数据。`openyida sample` 原样发布可以显示 sample/seed 并标注；完整应用交付页必须优先在 `page-spec.json` 中写 `dataBinding.mode=form`，用本轮真实 `appType/formUuid/fieldId` 读取表单。若用户要求可演示数据，先加载数据写入链路把 demo/mock records 写入表单并抽查，再由 Canvas 读取；没写入记录时展示空态和登记入口。
 - 如果页面源码确实需要 `this.dataSourceMap.*`，必须先把模式升级为可选数据源链路：加载 `yida-data-source-connectors`，创建/绑定数据源，并在发布后确认页面 Schema 中存在对应数据源；否则 `fast_build` 未完成。
 - 发布输出出现 `No custom page data sources to preserve` 时，只有源码不依赖 `this.dataSourceMap.*` 才能视为正常；若源码依赖 dataSourceMap，必须改源码或补数据源后重新发布。
 

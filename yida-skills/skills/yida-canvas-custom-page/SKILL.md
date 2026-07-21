@@ -103,6 +103,16 @@ openyida sample yida-canvas-custom-page portal-native-components --output projec
 7. **light 页面禁灰黑主题**：业务列表、协同表、数据管理页、工作台和门户默认不要用 `#111827` 这类近黑色做按钮、描边、选中态或大阴影；主操作、选中态、筛选焦点和批量操作使用品牌色或 sample 自带主题色，边框用浅色品牌混合。只有用户明确要求暗色大屏/夜间模式/高对比风格时才使用深色主视觉。
 8. **门户运行态组件要补必需 props 和局部降级**：`QuickAccessCard` / `RecentlyUsedCard` 必须传 `theme="row-white"` 等必需 props，避免运行态读取 `theme.includes(...)` 报错；所有门户/字段/上传增强组件外层加局部 ErrorBoundary，单个组件不兼容时只降级该块，不让整页进入 Canvas 错误态。
 9. **自定义主题必须页面内注入**：`--theme` 只接受平台预置 key；如果页面设计使用非预置主题（例如活力橙、深玫红、自定义暗黑金），Canvas 页面必须在自身源码中注入 `style#yida-global-theme` 或等价 scoped CSS vars，并在根节点设置 `data-theme-scope="page"`。官方 sample 每个页面都要做，避免宿主应用 `black` 主题把页面染成黑灰。
+10. **真实交付不使用前端 seed 冒充业务数据**：`openyida sample` 原样发布可以保留 sample/seed 数据，但必须在页面上标注为 sample/seed。完整应用或真实交付页只要需要列表、看板、详情记录，并且本轮已经创建/解析业务表单，就必须在 `page-spec.json` 写入 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射，让页面从表单读取。若需要演示数据，先通过表单数据写入链路创建 demo/mock records，再由 Canvas 读取这些真实表单记录；未写入 demo records 且没有真实数据时展示空态、表单入口、刷新/登记按钮。
+
+## 数据真实性边界
+
+Canvas 模板有两种允许状态：
+
+- **Sample / 离线预览**：`openyida sample` 或模板原样发布可以显示内置 seedRows，页面必须标注 `sample/seed`，final 也要说明“当前为演示数据/未接真实表单数据”。
+- **完整应用 / 真实交付**：先解析真实 `appType/formUuid/fieldId`，写入 `page-spec.json` 的 `dataBinding.mode=form` 后再 `openyida generate-page ... --spec <page-spec.json>`。需要 demo/mock 记录时，先用数据写入链路把记录写入表单并抽查，再让页面读取；不能把前端 seedRows、静态 DEFAULT_FEATURES 或固定指标说成真实业务数据。
+
+生成后如果 `.openyida-page.json` 的 `dataBinding.enabled !== true`，且页面仍展示列表/看板/详情业务记录，只能标为 sample/draft；完整应用 final 不得说“已接真实数据”。未接数据的交付页应保留真实空态、登记入口、刷新按钮和数据接入提示。
 
 ## 模板占位符防回归
 
@@ -133,7 +143,7 @@ npx jest tests/canvas-compile.test.js tests/generate-page.test.js --runInBand
 - **说清参考转译**：交付 sample 改造时要用 1-2 句话说明参考被转译成了什么，例如“详情页采用对象 hero + sticky 元信息 + 时间线结构”、“数据管理页采用多维表工具栏 + 分组行 + 彩色标签密集表格”。不要只说“已参考 Dribbble”。
 - **每页独立主题**：sample 页默认 `themeScope=page` 或等价固定 CSS 变量；业务列表、详情、门户、工作台、官网、数据管理、大屏要有不同色相和不同信息节奏，不被宿主应用主题统一染色。
 - **非预置主题不走 `--theme`**：`deepBlue/podBlue/.../black` 这些平台 key 才能传给 `--theme`；自己设计的主题色要写到页面 `style#yida-global-theme` / scoped token 中，并确保每个 sample 页面都有这段注入。
-- **数据要像真实业务**：列表、详情、数据管理、工作台、大屏必须模拟足够丰富的数据、状态、筛选、趋势、分组、时间线或指标，不要只放 3 个卡片和空泛文案。
+- **Sample 数据要像真实业务，但不能冒充真实交付数据**：列表、详情、数据管理、工作台、大屏 sample 必须模拟足够丰富的数据、状态、筛选、趋势、分组、时间线或指标，不要只放 3 个卡片和空泛文案；完整应用/真实交付页必须优先接 `dataBinding.mode=form` 或展示真实空态，不把 sample seed 当业务主列表。
 - **工作台不是 demo 壳**：工作台页面要铺满应用内容区，侧栏/导航/主面板形成真实产品首页；禁止用 `max-width + margin: 0 auto + 外层 padding` 做居中展示框，也不要把 `dribbble research`、`sample`、`workbench + operation` 这类设计过程词露给用户。
 - **数据大屏地图要稳定**：大屏中心态势图如果是地图，不能只依赖外部 ECharts CDN / GeoJSON 成功后才显示；优先探测宜搭宿主地图组件（如 `YoushuMap` / `ChinaMap` / `MapChart` 等），并提供内置区域地图组件兜底。禁止把“地图组件暂不可用”作为正常展示态暴露给用户。
 - **截图问题要反哺模板**：用户指出导航未覆盖、地图抽象、颜色不好、内容不丰富、产品首页不像首页等问题时，不只修当前 JSX；如果属于模板共性，补到 sample 模板、测试或本技能规则。
