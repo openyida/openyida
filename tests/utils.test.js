@@ -23,6 +23,8 @@ jest.mock('../lib/auth/token-auth', () => ({
   getAccessToken: jest.fn(() => 'test-access-token'),
 }));
 
+const LEGACY_COOKIE_ENV = 'OPENYIDA_COOKIE_B64';
+
 // ── hasDesktopEnvironment ─────────────────────────────────────────────
 
 describe('hasDesktopEnvironment', () => {
@@ -417,7 +419,7 @@ describe('loadCookieData', () => {
 describe('loadAuthData', () => {
   let tmpDir;
   let originalAuthEnabled;
-  let originalCookieB64;
+  let originalLegacyCookieEnv;
   let originalAccessToken;
   let originalRefreshToken;
   let originalEndpoint;
@@ -427,14 +429,14 @@ describe('loadAuthData', () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-utils-'));
     originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
-    originalCookieB64 = process.env.OPENYIDA_COOKIE_B64;
+    originalLegacyCookieEnv = process.env[LEGACY_COOKIE_ENV];
     originalAccessToken = process.env.OPENYIDA_ACCESS_TOKEN;
     originalRefreshToken = process.env.OPENYIDA_REFRESH_TOKEN;
     originalEndpoint = process.env.OPENYIDA_ENDPOINT;
     originalCorpId = process.env.OPENYIDA_TOKEN_CORP_ID;
     originalUserId = process.env.OPENYIDA_TOKEN_USER_ID;
     delete process.env.YIDA_AUTH_ENABLED;
-    delete process.env.OPENYIDA_COOKIE_B64;
+    delete process.env[LEGACY_COOKIE_ENV];
     delete process.env.OPENYIDA_ACCESS_TOKEN;
     delete process.env.OPENYIDA_REFRESH_TOKEN;
     delete process.env.OPENYIDA_ENDPOINT;
@@ -451,7 +453,7 @@ describe('loadAuthData', () => {
       }
     };
     restore('YIDA_AUTH_ENABLED', originalAuthEnabled);
-    restore('OPENYIDA_COOKIE_B64', originalCookieB64);
+    restore(LEGACY_COOKIE_ENV, originalLegacyCookieEnv);
     restore('OPENYIDA_ACCESS_TOKEN', originalAccessToken);
     restore('OPENYIDA_REFRESH_TOKEN', originalRefreshToken);
     restore('OPENYIDA_ENDPOINT', originalEndpoint);
@@ -491,14 +493,14 @@ describe('loadAuthData', () => {
     expect(loadAuthData(tmpDir)).toBeNull();
   });
 
-  test('YIDA_AUTH_ENABLED=true 时读取宿主注入 token，不读取 OPENYIDA_COOKIE_B64', () => {
+  test('YIDA_AUTH_ENABLED=true 时读取宿主注入 token，忽略旧 cookie env', () => {
     process.env.YIDA_AUTH_ENABLED = 'true';
     process.env.OPENYIDA_ACCESS_TOKEN = 'env-access-token';
     process.env.OPENYIDA_REFRESH_TOKEN = 'env-refresh-token';
     process.env.OPENYIDA_ENDPOINT = 'https://env-token.example.com';
     process.env.OPENYIDA_TOKEN_CORP_ID = 'corpEnv';
     process.env.OPENYIDA_TOKEN_USER_ID = 'userEnv';
-    process.env.OPENYIDA_COOKIE_B64 = Buffer.from(
+    process.env[LEGACY_COOKIE_ENV] = Buffer.from(
       'tianshu_csrf_token=legacy-csrf; tianshu_corp_user=corpLegacy_userLegacy',
       'utf8'
     ).toString('base64');
@@ -520,12 +522,12 @@ describe('loadAuthData', () => {
       { name: 'tianshu_corp_user', value: 'corpLegacy_userLegacy' },
     ]), 'utf-8');
     process.env.YIDA_AUTH_ENABLED = 'true';
-    delete process.env.OPENYIDA_COOKIE_B64;
+    delete process.env[LEGACY_COOKIE_ENV];
 
     expect(loadAuthData(tmpDir)).toBeNull();
   });
 
-  test('OPENYIDA_COOKIE_B64 存在也不会让默认登录态进入 Cookie 模式', () => {
+  test('旧 cookie env 存在也不会让默认登录态进入 Cookie 模式', () => {
     const cacheDir = path.join(tmpDir, '.cache');
     fs.mkdirSync(cacheDir, { recursive: true });
     fs.writeFileSync(path.join(cacheDir, 'cookies.json'), JSON.stringify([
@@ -533,7 +535,7 @@ describe('loadAuthData', () => {
       { name: 'tianshu_corp_user', value: 'corpLegacy_userLegacy' },
     ]), 'utf-8');
     process.env.YIDA_AUTH_ENABLED = 'true';
-    process.env.OPENYIDA_COOKIE_B64 = 'not-base64';
+    process.env[LEGACY_COOKIE_ENV] = 'not-base64';
 
     expect(loadAuthData(tmpDir)).toBeNull();
   });

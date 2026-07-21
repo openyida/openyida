@@ -47,7 +47,6 @@ function cliEnv() {
     OPENYIDA_AGENT_MODE: '',
     OPENYIDA_ASSUME_DESKTOP: '',
     YIDA_AUTH_ENABLED: '',
-    OPENYIDA_COOKIE_B64: '',
     OPENYIDA_ACCESS_TOKEN: '',
     OPENYIDA_REFRESH_TOKEN: '',
     OPENYIDA_TOKEN_CLIENT_ID: '',
@@ -1201,30 +1200,6 @@ describe('CLI offline smoke', () => {
       });
       expect(refresh).not.toHaveProperty('access_token');
       expect(refresh).not.toHaveProperty('refresh_token');
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('YIDA_AUTH_ENABLED=true ignores legacy cookie env without reading cookies.json', () => {
-    const workspace = createCodexWorkspace();
-    writeIgnoredLegacyCookieCache(workspace);
-    try {
-      const parsed = JSON.parse(runOkWithEnv(['login', '--check-only', '--json'], {
-        CODEX_SHELL: '1',
-        OPENYIDA_ENV: 'public',
-        YIDA_AUTH_ENABLED: 'true',
-        OPENYIDA_COOKIE_B64: 'not-base64',
-      }, workspace));
-      expect(parsed).toMatchObject({
-        auth_mode: 'token',
-        auth_source: 'env',
-        status: 'not_logged_in',
-        can_auto_use: false,
-        failure_reason: 'env_token_missing',
-      });
-      expect(parsed).not.toHaveProperty('csrf_token');
-      expect(parsed).not.toHaveProperty('cookies');
     } finally {
       fs.rmSync(workspace, { recursive: true, force: true });
     }

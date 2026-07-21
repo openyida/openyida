@@ -19,6 +19,7 @@ const {
 } = require('../scripts/e2e-real/schema-source-runner');
 const { version } = require('../package.json');
 const SOURCE_RUNNER = path.join(__dirname, '..', 'scripts', 'e2e-real', 'schema-source-runner.js');
+const LEGACY_COOKIE_ENV = 'OPENYIDA_COOKIE_B64';
 
 let tempDir;
 
@@ -81,7 +82,7 @@ describe('schema source e2e runner', () => {
       OPENYIDA_TOKEN_USER_ID: 'userSourceE2E',
       OPENYIDA_ENDPOINT: 'https://source-e2e.example.test',
     });
-    expect(env).not.toHaveProperty('OPENYIDA_COOKIE_B64');
+    expect(env).not.toHaveProperty(LEGACY_COOKIE_ENV);
     expect(fs.existsSync(path.join(tempDir, '.cache', 'cookies.json'))).toBe(false);
   });
 

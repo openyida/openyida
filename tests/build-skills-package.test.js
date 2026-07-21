@@ -7,6 +7,7 @@ const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const BUILD_SCRIPT = path.join(ROOT, 'scripts', 'build-skills-package.js');
+const LEGACY_COOKIE_ENV = 'OPENYIDA_COOKIE_B64';
 
 function findEndOfCentralDirectory(zipBuffer) {
   for (let offset = zipBuffer.length - 22; offset >= 0; offset--) {
@@ -59,7 +60,7 @@ describe('build-skills-package', () => {
       const generatedRootSkill = fs.readFileSync(path.join(outDir, 'SKILL.md'), 'utf8');
       expect(generatedRootSkill).toContain('OPENYIDA_ACCESS_TOKEN');
       expect(generatedRootSkill).toContain('禁止触发 OAuth');
-      expect(generatedRootSkill).not.toContain('OPENYIDA_COOKIE_B64');
+      expect(generatedRootSkill).not.toContain(LEGACY_COOKIE_ENV);
       expect(fs.readFileSync(
         path.join(outDir, 'references', 'subskills', 'yida-app', 'README.md'),
         'utf8'
@@ -79,7 +80,7 @@ describe('build-skills-package', () => {
       expect(generatedLoginSkill).toContain('OPENYIDA_ACCESS_TOKEN');
       expect(generatedLoginSkill).toContain('不要再执行 `openyida login` 触发 OAuth');
       expect(generatedLoginSkill).toContain('不要查找本地 `.cache/cookies*.json`');
-      expect(generatedLoginSkill).not.toContain('OPENYIDA_COOKIE_B64');
+      expect(generatedLoginSkill).not.toContain(LEGACY_COOKIE_ENV);
       expect(generatedLoginSkill).not.toContain('本地兼容缓存');
       expect(generatedLoginSkill).not.toContain('兼容缓存的 Cookie/CSRF');
 

@@ -33,7 +33,6 @@ describe('detectEnvironment', () => {
 describe('detectLoginStatus', () => {
   let tmpDir;
   let originalAuthEnabled;
-  let originalCookieB64;
   let originalAccessToken;
   let originalEndpoint;
   let originalCorpId;
@@ -42,13 +41,11 @@ describe('detectLoginStatus', () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-env-token-'));
     originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
-    originalCookieB64 = process.env.OPENYIDA_COOKIE_B64;
     originalAccessToken = process.env.OPENYIDA_ACCESS_TOKEN;
     originalEndpoint = process.env.OPENYIDA_ENDPOINT;
     originalCorpId = process.env.OPENYIDA_TOKEN_CORP_ID;
     originalUserId = process.env.OPENYIDA_TOKEN_USER_ID;
     delete process.env.YIDA_AUTH_ENABLED;
-    delete process.env.OPENYIDA_COOKIE_B64;
     delete process.env.OPENYIDA_ACCESS_TOKEN;
     delete process.env.OPENYIDA_ENDPOINT;
     delete process.env.OPENYIDA_TOKEN_CORP_ID;
@@ -64,7 +61,6 @@ describe('detectLoginStatus', () => {
       }
     };
     restore('YIDA_AUTH_ENABLED', originalAuthEnabled);
-    restore('OPENYIDA_COOKIE_B64', originalCookieB64);
     restore('OPENYIDA_ACCESS_TOKEN', originalAccessToken);
     restore('OPENYIDA_ENDPOINT', originalEndpoint);
     restore('OPENYIDA_TOKEN_CORP_ID', originalCorpId);
@@ -140,13 +136,10 @@ describe('detectLoginStatus', () => {
 
 describe('run', () => {
   let originalAuthEnabled;
-  let originalCookieB64;
 
   beforeEach(() => {
     originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
-    originalCookieB64 = process.env.OPENYIDA_COOKIE_B64;
     delete process.env.YIDA_AUTH_ENABLED;
-    delete process.env.OPENYIDA_COOKIE_B64;
   });
 
   afterEach(() => {
@@ -154,11 +147,6 @@ describe('run', () => {
       delete process.env.YIDA_AUTH_ENABLED;
     } else {
       process.env.YIDA_AUTH_ENABLED = originalAuthEnabled;
-    }
-    if (originalCookieB64 === undefined) {
-      delete process.env.OPENYIDA_COOKIE_B64;
-    } else {
-      process.env.OPENYIDA_COOKIE_B64 = originalCookieB64;
     }
   });
 
