@@ -62,6 +62,7 @@ function createStagedHarness(options = {}) {
   };
   let failAfterStage = options.failAfterStage;
   let failReadOnce = options.failReadOnce === true;
+  let failingReadCode = options.failingReadCode;
   let failingReadStages = new Set(options.failingReadStages || []);
   let reconciliation = options.reconciliation || 'unresolved';
   let remoteDispatches = 0;
@@ -94,7 +95,11 @@ function createStagedHarness(options = {}) {
     async readObserved(stateResource) {
       calls.push('read');
       if (failingReadStages.has(remote.stage)) {
-        throw new Error('injected staged intermediate read failure');
+        const error = new Error('injected staged intermediate read failure');
+        if (failingReadCode) {
+          error.code = failingReadCode;
+        }
+        throw error;
       }
       if (failReadOnce) {
         failReadOnce = false;
@@ -209,6 +214,9 @@ function createStagedHarness(options = {}) {
     },
     setFailingReadStages(values) {
       failingReadStages = new Set(values || []);
+    },
+    setFailingReadCode(value) {
+      failingReadCode = value;
     },
     stateVisibility,
   };
@@ -505,6 +513,7 @@ describe('generic staged apply journal and reconciliation', () => {
       code: 'SCHEMA_RECONCILIATION_REQUIRED',
     });
     harness.setFailingReadStages(['draft_created']);
+    harness.setFailingReadCode('FORM_SCHEMA_READ_FAILED');
     harness.setReconciliation('resume');
     harness.calls.length = 0;
 
@@ -519,6 +528,19 @@ describe('generic staged apply journal and reconciliation', () => {
     expect(harness.calls.indexOf('reconcile:draft_created')).toBeLessThan(
       harness.calls.indexOf('update:resume')
     );
+    const recoveredJournal = readJournal();
+    expect(recoveredJournal.operations['process:approvalFlow'].suppressedErrors).toEqual([
+      expect.objectContaining({
+        code: 'SCHEMA_DEFERRED_RECOVERY_READ_FAILED',
+        adapterCode: 'FORM_SCHEMA_READ_FAILED',
+        errorCode: 'SCHEMA_REMOTE_READ_FAILED',
+        errorName: 'SchemaValidationError',
+        phase: 'deferred_recovery_observed_read',
+        resourceType: 'process',
+        key: 'approvalFlow',
+      }),
+    ]);
+    expect(JSON.stringify(recoveredJournal)).not.toContain('injected staged intermediate read failure');
     const recoveredState = readState(statePath(), {
       environment: environment(),
       registry: updateContext.registry,
