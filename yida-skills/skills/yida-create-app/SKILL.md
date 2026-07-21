@@ -46,6 +46,8 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 openyida create-app <appName> [description] [icon] [iconColor] [colour] [navTheme] [layoutDirection]
 ```
 
+`openyida create-app` 不支持 `--json` 参数；不要添加 `--json`。创建成功时命令本身会输出一行 JSON，从该输出中提取 `appType`。
+
 | 参数 | 必填 | 默认值 | 说明 |
 |------|------|--------|------|
 | `appName` | 是 | — | 应用名称 |

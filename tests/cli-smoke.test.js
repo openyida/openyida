@@ -207,6 +207,22 @@ describe('CLI offline smoke', () => {
     expect(output).not.toContain('读取登录态');
   });
 
+  test('resource command --help probes exit successfully without requiring login', () => {
+    const cases = [
+      { args: ['create-form', '--help'], text: 'create-form create' },
+      { args: ['create-page', '--help'], text: 'create-page' },
+      { args: ['sample', '--help'], text: 'Sample Templates' },
+      { args: ['publish', '--help'], text: 'openyida publish' },
+    ];
+
+    for (const item of cases) {
+      const result = runAny(item.args);
+      expect(result.status).toBe(0);
+      expect(result.output).toContain(item.text);
+      expect(result.output).not.toContain('读取登录态');
+    }
+  });
+
   test('app-list --help renders usage without requiring login', () => {
     const result = runAny(['app-list', '--help']);
     expect(result.status).toBe(0);

@@ -80,4 +80,19 @@ describe('Schema-as-Code skill State authority', () => {
     expect(skill).toMatch(/自动生成发起节点/);
     expect(skill).toMatch(/自动生成结束节点/);
   });
+
+  test('create-app skill does not teach agents to pass unsupported json flag', () => {
+    const skill = fs.readFileSync(path.join(
+      __dirname,
+      '..',
+      'yida-skills',
+      'skills',
+      'yida-create-app',
+      'SKILL.md'
+    ), 'utf8');
+
+    expect(skill).toMatch(/不支持 `--json`/);
+    expect(skill).toMatch(/不要添加 `--json`/);
+    expect(skill).toMatch(/命令本身会输出一行 JSON/);
+  });
 });
