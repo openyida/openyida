@@ -86,7 +86,6 @@
   "dependencies": {
     "@babel/standalone": "^7.15.1",
     "ajv": "^8.20.0",
-    "qrcode": "^1.5.4",
     "uglify-js": "^3.19.3"
   },
   "devDependencies": {

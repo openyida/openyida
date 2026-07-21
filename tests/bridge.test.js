@@ -252,6 +252,35 @@ describe('bridge HTTP protocol', () => {
     expect(feedback.body.metadata.session).toMatch(/^anon_/);
   });
 
+  test('default login start returns a non-pollable token payload', async () => {
+    const baseUrl = await startTestBridge();
+
+    const pair = await requestJson(baseUrl, {
+      path: '/v1/pair',
+      method: 'POST',
+      origin,
+      body: { token: 'pair-token' },
+    });
+
+    const loginStart = await requestJson(baseUrl, {
+      path: '/v1/actions/login/start',
+      method: 'POST',
+      origin,
+      token: pair.body.token,
+    });
+
+    expect(loginStart.status).toBe(200);
+    expect(loginStart.body.login).toMatchObject({
+      status: 'token_login_required',
+      authMode: 'token',
+      canAutoUse: false,
+      pollable: false,
+      loginSessionId: null,
+    });
+    expect(loginStart.body.login).not.toHaveProperty('qrUrl');
+    expect(loginStart.body.login).not.toHaveProperty('pollIntervalMs');
+  });
+
   test('create-app action is authenticated and returns sanitized app payload', async () => {
     const baseUrl = await startTestBridge({
       createApp: (params) => ({
@@ -414,15 +443,18 @@ describe('bridge HTTP protocol', () => {
     expect(JSON.stringify(loginBody)).not.toContain('/secret');
   });
 
-  test('default login check reports cookie inject mode without token wording', async () => {
+  test('default login check reports host-injected token mode without secret leakage', async () => {
     const originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
-    const originalCookieB64 = process.env.OPENYIDA_COOKIE_B64;
+    const originalAccessToken = process.env.OPENYIDA_ACCESS_TOKEN;
+    const originalEndpoint = process.env.OPENYIDA_ENDPOINT;
+    const originalCorpId = process.env.OPENYIDA_TOKEN_CORP_ID;
+    const originalUserId = process.env.OPENYIDA_TOKEN_USER_ID;
     try {
       process.env.YIDA_AUTH_ENABLED = 'true';
-      process.env.OPENYIDA_COOKIE_B64 = Buffer.from(
-        'tianshu_csrf_token=bridge-csrf; tianshu_corp_user=corpBridge_userBridge',
-        'utf8'
-      ).toString('base64');
+      process.env.OPENYIDA_ACCESS_TOKEN = 'bridge-access-token';
+      process.env.OPENYIDA_ENDPOINT = 'https://bridge.example.test';
+      process.env.OPENYIDA_TOKEN_CORP_ID = 'corpBridge';
+      process.env.OPENYIDA_TOKEN_USER_ID = 'userBridge';
       const baseUrl = await startBridgeServer({
         host: '127.0.0.1',
         port: 0,
@@ -449,23 +481,38 @@ describe('bridge HTTP protocol', () => {
         token: pair.body.token,
       });
       expect(login.body.login).toMatchObject({
-        authMode: 'cookie',
+        authMode: 'token',
+        authSource: 'env',
         status: 'ok',
         canAutoUse: true,
         loggedIn: true,
       });
-      expect(JSON.stringify(login.body.login)).not.toContain('auth-token');
-      expect(JSON.stringify(login.body.login)).not.toContain('bridge-csrf');
+      expect(JSON.stringify(login.body.login)).not.toContain('bridge-access-token');
     } finally {
       if (originalAuthEnabled === undefined) {
         delete process.env.YIDA_AUTH_ENABLED;
       } else {
         process.env.YIDA_AUTH_ENABLED = originalAuthEnabled;
       }
-      if (originalCookieB64 === undefined) {
-        delete process.env.OPENYIDA_COOKIE_B64;
+      if (originalAccessToken === undefined) {
+        delete process.env.OPENYIDA_ACCESS_TOKEN;
       } else {
-        process.env.OPENYIDA_COOKIE_B64 = originalCookieB64;
+        process.env.OPENYIDA_ACCESS_TOKEN = originalAccessToken;
+      }
+      if (originalEndpoint === undefined) {
+        delete process.env.OPENYIDA_ENDPOINT;
+      } else {
+        process.env.OPENYIDA_ENDPOINT = originalEndpoint;
+      }
+      if (originalCorpId === undefined) {
+        delete process.env.OPENYIDA_TOKEN_CORP_ID;
+      } else {
+        process.env.OPENYIDA_TOKEN_CORP_ID = originalCorpId;
+      }
+      if (originalUserId === undefined) {
+        delete process.env.OPENYIDA_TOKEN_USER_ID;
+      } else {
+        process.env.OPENYIDA_TOKEN_USER_ID = originalUserId;
       }
     }
   });

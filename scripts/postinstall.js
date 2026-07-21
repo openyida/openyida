@@ -224,28 +224,24 @@ npm install -g openyida@latest
 若登录态无效，执行：
 
 \`\`\`bash
-openyida login --browser
+openyida login
 \`\`\`
 
-登录完成后再次运行 \`openyida login --check-only --json\` 验证缓存写入，再继续真实资源操作。
+登录完成后再次运行 \`openyida login --check-only --json\` 验证 token session，再继续真实资源操作。
 
 ## Codex Browser 边界
 
 Codex App 的 in-app browser / \`@Browser\` 适合打开本地开发服务器、file-backed preview 和无需登录的公开页面，用于截图、点击和检查渲染状态。
 
-不要把 Codex in-app browser 用作宜搭登录 Cookie 来源：它不支持认证流程、登录态页面、普通浏览器 profile 或 Cookie 导出。
+不要把 Codex in-app browser 用作宜搭登录 Cookie 来源：OpenYida CLI 登录使用 OAuth loopback + token session，不需要导出或手写 Cookie。
 
-需要登录并获得 CLI Cookie 时，优先运行：
+需要登录并获得 CLI token session 时，优先运行：
 
 \`\`\`bash
-openyida login --browser
+openyida login
 \`\`\`
 
-\`--browser\` 会打开常规本地浏览器并在登录成功后将 Cookie 写入 OpenYida 缓存。只有在需要纯浏览器预览或检查公开页面时才使用 \`@Browser\`。
-
-在 Codex 中如果 \`openyida login --codex-poll\` 返回 \`need_corp_selection\`，优先调用 OpenYida MCP 工具
-\`select_yida_login_organization\`，传入返回值里的 \`session_file\`。该工具会通过 MCP \`elicitation/create\`
-展示 Codex 原生组织单选控件，并在用户选择后完成 \`openyida login --codex-select\`。
+\`openyida login\` 会通过 OAuth loopback 打开常规本地浏览器；如需抑制自动打开浏览器，可设置环境变量 \`OPENYIDA_NO_BROWSER=1\`。只有在需要纯浏览器预览或检查公开页面时才使用 \`@Browser\`。
 
 ## 工作目录
 
@@ -279,7 +275,7 @@ fast_build 页面源码默认不得使用 \`this.dataSourceMap.*\`，除非本�
 | \`yida-skills/analytics\` | 报表、统计、图表、ECharts、看板、驾驶舱 | \`yida-report\`, \`yida-chart\`, \`yida-dashboard\` |
 | \`yida-skills/integration\` | 连接器、外部 API、数据源、集成自动化 | \`yida-integration\`, \`yida-connector\`, \`yida-connector-safe-actions\`, \`yida-data-source-connectors\` |
 | \`yida-skills/access\` | 平台/应用/表单/页面权限、公开访问、分享 | \`yida-corp-manager\`, \`yida-app-permission\`, \`yida-form-permission\`, \`yida-page-config\` |
-| \`yida-skills/ops\` | SLS、日志、traceId、Sequence、VOC | \`sls-log-workbench\`, \`yida-db-seq-fix\`, \`yida-voc\` |
+| \`yida-skills/ops\` | Sequence、VOC | \`yida-db-seq-fix\`, \`yida-voc\` |
 | \`yida-skills/agent\` | 导出对话、会议纪要/闪记转 PRD | \`yida-export-conversation\`, \`yida-flash-note-to-prd\` |
 
 ## 执行规则

@@ -54,7 +54,6 @@ function baseEnv() {
     OPENYIDA_AGENT_MODE: '',
     YIDA_AUTH_ENABLED: '',
     OPENYIDA_ASSUME_DESKTOP: '',
-    OPENYIDA_FORCE_TERMINAL_QR: '',
     __CFBundleIdentifier: '',
   };
 }

@@ -294,13 +294,15 @@ describe('EnvironmentChecker', () => {
     cleanupTempDir(tmpDir);
   });
 
-  test('checkLoginStatus 在 Cookie 注入模式下不提示 token 登录', () => {
+  test('checkLoginStatus 在宿主 token 注入模式缺 token 时不提示本地登录', () => {
     const originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
-    const originalCookieB64 = process.env.OPENYIDA_COOKIE_B64;
+    const originalAccessToken = process.env.OPENYIDA_ACCESS_TOKEN;
+    const originalRefreshToken = process.env.OPENYIDA_REFRESH_TOKEN;
     const tmpDir = createTempProject();
     try {
       process.env.YIDA_AUTH_ENABLED = 'true';
-      delete process.env.OPENYIDA_COOKIE_B64;
+      delete process.env.OPENYIDA_ACCESS_TOKEN;
+      delete process.env.OPENYIDA_REFRESH_TOKEN;
       const checker = new EnvironmentChecker({ projectRoot: tmpDir });
       const result = checker.checkLoginStatus();
 
@@ -311,8 +313,9 @@ describe('EnvironmentChecker', () => {
         fixType: null,
         fixCommand: null,
       });
-      expect(result.label).toContain('Cookie 注入');
-      expect(result.message).toContain('OPENYIDA_COOKIE_B64');
+      expect(result.label).toContain('宿主 token 注入');
+      expect(result.message).toContain('OPENYIDA_ACCESS_TOKEN');
+      expect(result.message).toContain('OPENYIDA_REFRESH_TOKEN');
       expect(result.message).not.toContain('openyida login');
     } finally {
       if (originalAuthEnabled === undefined) {
@@ -320,10 +323,15 @@ describe('EnvironmentChecker', () => {
       } else {
         process.env.YIDA_AUTH_ENABLED = originalAuthEnabled;
       }
-      if (originalCookieB64 === undefined) {
-        delete process.env.OPENYIDA_COOKIE_B64;
+      if (originalAccessToken === undefined) {
+        delete process.env.OPENYIDA_ACCESS_TOKEN;
       } else {
-        process.env.OPENYIDA_COOKIE_B64 = originalCookieB64;
+        process.env.OPENYIDA_ACCESS_TOKEN = originalAccessToken;
+      }
+      if (originalRefreshToken === undefined) {
+        delete process.env.OPENYIDA_REFRESH_TOKEN;
+      } else {
+        process.env.OPENYIDA_REFRESH_TOKEN = originalRefreshToken;
       }
       cleanupTempDir(tmpDir);
     }
@@ -500,12 +508,12 @@ describe('FixEngine', () => {
     const fixEngine = new FixEngine({ projectRoot: tmpDir });
 
     const issues = [
-      { id: 'env-playwright', fixType: 'command', fixCommand: 'npm install playwright && npx playwright install chromium', severity: 'error' },
+      { id: 'env-npm', fixType: 'command', fixCommand: 'npm install -g npm@latest', severity: 'error' },
     ];
 
     await fixEngine.autoFix(issues);
     expect(fixEngine.fixResults[0].fixed).toBe(false);
-    expect(fixEngine.fixResults[0].message).toContain('npm install playwright');
+    expect(fixEngine.fixResults[0].message).toContain('npm install -g npm@latest');
 
     cleanupTempDir(tmpDir);
   });
@@ -531,9 +539,9 @@ describe('FixEngine', () => {
 describe('ReportGenerator', () => {
   const mockResults = [
     { id: 'a', label: 'Node.js', passed: true, severity: 'info' },
-    { id: 'b', label: 'Playwright', passed: false, severity: 'error', message: '未安装' },
+    { id: 'b', label: '可选浏览器能力（Playwright 未安装）', passed: true, severity: 'info', message: '截图软依赖缺失，不影响登录' },
   ];
-  const mockSummary = { total: 2, passed: 1, errorCount: 1, warningCount: 0, infoCount: 1, autoFixable: 0 };
+  const mockSummary = { total: 2, passed: 2, errorCount: 0, warningCount: 0, infoCount: 2, autoFixable: 0 };
 
   test('生成 JSON 报告', () => {
     const tmpDir = createTempProject();

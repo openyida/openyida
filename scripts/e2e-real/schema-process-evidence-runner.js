@@ -4,7 +4,6 @@
 
 const crypto = require('crypto');
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
@@ -12,11 +11,6 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const SOURCE_BIN = path.join(ROOT, 'bin', 'yida.js');
 const SOURCE_SKILL_ROOT = path.join(ROOT, 'yida-skills');
 const DEFAULT_RESULT_DIR = path.join(ROOT, 'project', '.cache', 'e2e-real', 'schema-process-evidence');
-const DEFAULT_COOKIE_FILE_CANDIDATES = Object.freeze([
-  path.join(ROOT, 'project', '.cache', 'cookies-public.json'),
-  path.join(ROOT, 'project', '.cache', 'cookies.json'),
-  path.join(os.homedir(), '.cache', 'cookies-public.json'),
-]);
 const DEFAULT_TIMEOUT_MS = 120000;
 const READ_PROBE_REPEAT_COUNT = 2;
 const LOCAL_ERROR_MARKER = Symbol('openyida.schemaProcessEvidence.localError');
@@ -61,6 +55,8 @@ const INTERNAL_PATH_PATTERNS = Object.freeze([
 ]);
 const CREDENTIAL_PATTERNS = Object.freeze([
   /OPENYIDA_COOKIE_B64/i,
+  /OPENYIDA_ACCESS_TOKEN/i,
+  /OPENYIDA_REFRESH_TOKEN/i,
   /tianshu_csrf_token/i,
   /global_csrf_token/i,
   /\bCookie\s*[:=]/i,
@@ -188,7 +184,7 @@ function readSourceSkillEvidence(skillRoot = SOURCE_SKILL_ROOT) {
 function parseArgs(argv) {
   const options = {
     real: false,
-    cookieFile: process.env.OPENYIDA_SCHEMA_PROCESS_EVIDENCE_COOKIE_FILE || '',
+    tokenFile: process.env.OPENYIDA_SCHEMA_PROCESS_EVIDENCE_TOKEN_FILE || '',
     resultDir: process.env.OPENYIDA_SCHEMA_PROCESS_EVIDENCE_RESULT_DIR || DEFAULT_RESULT_DIR,
     runId: '',
     keepWorkspace: false,
@@ -199,8 +195,10 @@ function parseArgs(argv) {
       options.real = true;
     } else if (arg === '--keep-workspace') {
       options.keepWorkspace = true;
+    } else if (arg === '--token-file') {
+      options.tokenFile = argv[++index] || '';
     } else if (arg === '--cookie-file') {
-      options.cookieFile = argv[++index] || '';
+      throw new Error('--cookie-file is no longer supported; use token env/session or --token-file');
     } else if (arg === '--result-dir') {
       options.resultDir = argv[++index] || '';
     } else if (arg === '--run-id') {
@@ -216,52 +214,36 @@ function parseArgs(argv) {
 
 function printUsage() {
   process.stdout.write([
-    'Usage: npm run e2e:schema-process-evidence -- --real [--cookie-file <path>]',
+    'Usage: npm run e2e:schema-process-evidence -- --real [--token-file <path>]',
     '',
     'Runs a real, opt-in Yida process API evidence collection against current checkout sources.',
   ].join('\n') + '\n');
 }
 
-function resolveCookieFile(explicitCookieFile) {
-  const candidates = explicitCookieFile
-    ? [explicitCookieFile]
-    : DEFAULT_COOKIE_FILE_CANDIDATES;
-  for (const candidate of candidates) {
-    if (!candidate) { continue; }
-    const resolved = path.resolve(candidate);
-    if (fs.existsSync(resolved)) {
-      return resolved;
-    }
-  }
-  throw new Error('No existing OpenYida cookie cache found; run openyida login first or pass --cookie-file');
-}
-
-function readCookieData(cookieFile) {
-  const parsed = JSON.parse(fs.readFileSync(cookieFile, 'utf8'));
-  const cookieData = Array.isArray(parsed)
-    ? { cookies: parsed }
-    : parsed;
-  const cookies = Array.isArray(cookieData.cookies) ? cookieData.cookies : [];
-  if (cookies.length === 0) {
-    throw new Error('Cookie cache has no cookies array');
-  }
-  const csrfCookie = cookies.find((cookie) => (
-    cookie && ['tianshu_csrf_token', 'china_csrf_token', 'csrf_token', '_csrf_token'].includes(cookie.name) && cookie.value
-  ));
-  const csrfToken = cookieData.csrf_token || cookieData.csrfToken || cookieData._csrf_token || (csrfCookie && csrfCookie.value);
-  if (!csrfToken) {
-    throw new Error('Cookie cache has no csrf token');
-  }
-  return {
-    ...cookieData,
-    cookies,
-    csrf_token: csrfToken,
-    base_url: cookieData.base_url || 'https://www.aliwork.com',
-  };
-}
-
 function cookieHeaderFromData(cookieData) {
   return cookieData.cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; ');
+}
+
+function readTokenData(tokenFile) {
+  const { normalizeTokenSession } = require('../../lib/auth/token-store');
+  const parsed = JSON.parse(fs.readFileSync(tokenFile, 'utf8'));
+  const tokenData = normalizeTokenSession(parsed);
+  if (!tokenData.access_token && !tokenData.refresh_token) {
+    throw new Error('Token file has no access_token or refresh_token');
+  }
+  return tokenData;
+}
+
+function resolveTokenData(explicitTokenFile) {
+  if (explicitTokenFile) {
+    return readTokenData(path.resolve(explicitTokenFile));
+  }
+  const { loadTokenSession } = require('../../lib/auth/token-store');
+  const tokenData = loadTokenSession({ projectRoot: path.join(ROOT, 'project') });
+  if (!tokenData || (!tokenData.access_token && !tokenData.refresh_token)) {
+    throw new Error('No OpenYida token session found; run openyida login or inject OPENYIDA_ACCESS_TOKEN/OPENYIDA_REFRESH_TOKEN');
+  }
+  return tokenData;
 }
 
 function createLauncher(workspace) {
@@ -300,13 +282,17 @@ process.exit(result.status === null ? 1 : result.status);
   return { binDir, launcherPath, tracePath };
 }
 
-function buildCommandEnv(launcher, cookieData) {
+function buildCommandEnv(launcher, tokenData) {
   return {
     ...process.env,
     PATH: `${launcher.binDir}${path.delimiter}${process.env.PATH || ''}`,
     YIDA_AUTH_ENABLED: 'true',
-    OPENYIDA_COOKIE_B64: Buffer.from(cookieHeaderFromData(cookieData), 'utf8').toString('base64'),
-    OPENYIDA_BASE_URL: cookieData.base_url || '',
+    OPENYIDA_ACCESS_TOKEN: tokenData.access_token || '',
+    OPENYIDA_REFRESH_TOKEN: tokenData.refresh_token || '',
+    OPENYIDA_TOKEN_CLIENT_ID: tokenData.client_id || '',
+    OPENYIDA_TOKEN_CORP_ID: tokenData.corp_id || '',
+    OPENYIDA_TOKEN_USER_ID: tokenData.user_id || '',
+    OPENYIDA_ENDPOINT: tokenData.base_url || '',
     OPENYIDA_SKIP_UPDATE_CHECK: '1',
     NO_UPDATE_NOTIFIER: '1',
     OPENYIDA_LANG: 'en',
@@ -382,12 +368,20 @@ function commandEvidence(commandResult, parsed) {
   return evidence;
 }
 
-function createAuthRef(cookieData) {
+function createAuthRef(tokenData) {
   return {
-    csrfToken: cookieData.csrf_token,
-    cookies: cookieData.cookies,
-    baseUrl: cookieData.base_url || 'https://www.aliwork.com',
-    cookieData,
+    baseUrl: tokenData.base_url || 'https://www.aliwork.com',
+    authData: {
+      auth_mode: 'token',
+      auth_source: 'env',
+      base_url: tokenData.base_url || 'https://www.aliwork.com',
+      corp_id: tokenData.corp_id || '',
+      user_id: tokenData.user_id || '',
+    },
+    authMode: 'token',
+    authSource: 'env',
+    corpId: tokenData.corp_id || '',
+    userId: tokenData.user_id || '',
   };
 }
 
@@ -953,10 +947,10 @@ function scrubLoginEvidence(value) {
   const preflightPassed = !!(
     value &&
     typeof value === 'object' &&
-    (value.preflightPassed === true || value.hasCsrf === true)
+    (value.preflightPassed === true || value.hasToken === true || value.hasCsrf === true)
   );
   return {
-    source: 'local-cache',
+    source: 'token-session',
     preflightPassed,
   };
 }
@@ -1070,16 +1064,18 @@ function leakScan(filePaths, forbiddenValues, options = {}) {
   };
 }
 
-function buildForbiddenValues(cookieData, privateState, extraValues = []) {
+function buildForbiddenValues(authData, privateState, extraValues = []) {
   const ids = privateState && privateState.resourceIds || {};
   return [
     ids.appType,
     ids.formUuid,
     ids.processCode,
     ids.processId,
-    cookieData && cookieData.csrf_token,
-    cookieData && cookieData.base_url,
-    cookieData && cookieData.cookies ? cookieHeaderFromData(cookieData) : null,
+    authData && authData.csrf_token,
+    authData && authData.base_url,
+    authData && authData.access_token,
+    authData && authData.refresh_token,
+    authData && authData.cookies ? cookieHeaderFromData(authData) : null,
     ...extraValues,
   ].filter(Boolean).map(String);
 }
@@ -1150,11 +1146,10 @@ async function run(options = {}) {
   const workspace = path.join(runDir, 'workspace');
   fs.mkdirSync(workspace, { recursive: true, mode: 0o700 });
 
-  const cookieFile = resolveCookieFile(options.cookieFile);
-  const cookieData = readCookieData(cookieFile);
+  const tokenData = resolveTokenData(options.tokenFile);
   const launcher = createLauncher(workspace);
-  const commandEnv = buildCommandEnv(launcher, cookieData);
-  const authRef = createAuthRef(cookieData);
+  const commandEnv = buildCommandEnv(launcher, tokenData);
+  const authRef = createAuthRef(tokenData);
   const prefix = `SAC06_EVIDENCE_${nowStamp()}`;
   const evidencePath = path.join(runDir, 'evidence.v1.json');
   const privateStatePath = path.join(runDir, 'private-state.v1.json');
@@ -1173,7 +1168,7 @@ async function run(options = {}) {
       skills: readSourceSkillEvidence(),
     },
     login: {
-      source: 'local-cache',
+      source: tokenData.auth_source === 'env' ? 'env-token' : 'token-session',
       preflightPassed: false,
     },
     commands: [],
@@ -1190,7 +1185,7 @@ async function run(options = {}) {
   const privateState = {
     runId,
     prefix,
-    cookieFile,
+    tokenSource: tokenData.auth_source === 'env' ? 'env-token' : 'token-session',
     resourceIds: {},
   };
   let currentPhase = 'init';
@@ -1426,7 +1421,7 @@ async function run(options = {}) {
     evidence.status = 'passed';
 
     writeJson(privateStatePath, privateState);
-    const forbiddenValues = buildForbiddenValues(cookieData, privateState);
+    const forbiddenValues = buildForbiddenValues(tokenData, privateState);
     const safeEvidence = writeSafeEvidence(evidencePath, evidence, forbiddenValues, { phase: currentPhase });
     writeJson(path.join(resultDir, 'latest.json'), {
       runId,
@@ -1448,7 +1443,7 @@ async function run(options = {}) {
     evidence.status = 'failed';
     evidence.error = projectError(error, { phase: currentPhase });
     writeJson(privateStatePath, privateState);
-    const forbiddenValues = buildForbiddenValues(cookieData, privateState);
+    const forbiddenValues = buildForbiddenValues(tokenData, privateState);
     writeSafeEvidence(evidencePath, evidence, forbiddenValues, {
       phase: currentPhase,
       throwOnLeak: false,

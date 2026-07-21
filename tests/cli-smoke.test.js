@@ -46,10 +46,14 @@ function cliEnv() {
     MULE_DATA_DIR: '',
     OPENYIDA_AGENT_MODE: '',
     OPENYIDA_ASSUME_DESKTOP: '',
-    OPENYIDA_FORCE_TERMINAL_QR: '',
     YIDA_AUTH_ENABLED: '',
     OPENYIDA_COOKIE_B64: '',
-    OPENYIDA_BASE_URL: '',
+    OPENYIDA_ACCESS_TOKEN: '',
+    OPENYIDA_REFRESH_TOKEN: '',
+    OPENYIDA_TOKEN_CLIENT_ID: '',
+    OPENYIDA_TOKEN_CORP_ID: '',
+    OPENYIDA_TOKEN_USER_ID: '',
+    OPENYIDA_ENDPOINT: '',
     __CFBundleIdentifier: '',
   };
 }
@@ -78,10 +82,6 @@ function createCodexWorkspace() {
   fs.mkdirSync(projectDir, { recursive: true });
   fs.writeFileSync(path.join(projectDir, 'config.json'), '{}', 'utf8');
   return workspace;
-}
-
-function encodeCookieHeader(cookieHeader) {
-  return Buffer.from(cookieHeader, 'utf8').toString('base64');
 }
 
 function writeIgnoredLegacyCookieCache(workspace) {
@@ -242,6 +242,60 @@ describe('CLI offline smoke', () => {
     expect(result.status).toBe(0);
     expect(result.output).toContain('openyida er');
     expect(result.output).not.toContain('读取登录态');
+  });
+
+  test('login --help renders usage without starting OAuth login', () => {
+    const result = runAny(['login', '--help']);
+    expect(result.status).toBe(0);
+    expect(result.output).toContain('openyida login');
+    expect(result.output).toContain('OAuth loopback');
+    expect(result.output).not.toContain('login.dingtalk.com/oauth2/auth');
+    expect(result.output).not.toContain('not_logged_in');
+  });
+
+  test('auth login --help renders login usage without starting OAuth login', () => {
+    const result = runAny(['auth', 'login', '--help']);
+    expect(result.status).toBe(0);
+    expect(result.output).toContain('openyida login');
+    expect(result.output).toContain('OAuth loopback');
+    expect(result.output).not.toContain('login.dingtalk.com/oauth2/auth');
+    expect(result.output).not.toContain('not_logged_in');
+  });
+
+  test('removed legacy login flags fail instead of falling through to OAuth', () => {
+    const removedFlags = [
+      '--qr',
+      '--qr-code',
+      '--agent-qr',
+      '--codex-qr',
+      '--agent-poll',
+      '--codex-poll',
+      '--browser',
+      '--codex',
+      '--qoder',
+      '--wukong',
+    ];
+
+    for (const flag of removedFlags) {
+      for (const argsList of [['login', flag], ['auth', 'login', flag]]) {
+        const result = runAny(argsList);
+        expect(result.status).toBe(1);
+        expect(result.output).toContain(flag);
+        expect(result.output).toContain('旧登录参数不再支持');
+        expect(result.output).toContain('openyida login');
+        expect(result.output).not.toContain('login.dingtalk.com/oauth2/auth');
+      }
+    }
+  });
+
+  test('removed legacy login flags support JSON error output', () => {
+    const result = runAny(['login', '--browser', '--json']);
+    expect(result.status).toBe(1);
+    expect(JSON.parse(result.output)).toMatchObject({
+      success: false,
+      errorCode: 'INVALID_ARGUMENTS',
+      errorMsg: expect.stringContaining('--browser'),
+    });
   });
 
   test('commands --json renders machine-readable command manifest', () => {
@@ -1015,26 +1069,27 @@ describe('CLI offline smoke', () => {
     }
   });
 
-  test('YIDA_AUTH_ENABLED=true reports cookie auth status and does not start OAuth login', () => {
+  test('YIDA_AUTH_ENABLED=true reports host-injected token status and does not start OAuth login', () => {
     const workspace = createCodexWorkspace();
     const env = {
       CODEX_SHELL: '1',
       OPENYIDA_ENV: 'public',
       YIDA_AUTH_ENABLED: 'true',
-      OPENYIDA_COOKIE_B64: encodeCookieHeader(
-        'tianshu_csrf_token=legacy-csrf; tianshu_corp_user=corpLegacy_userLegacy'
-      ),
+      OPENYIDA_ACCESS_TOKEN: 'env-access-token',
+      OPENYIDA_TOKEN_CORP_ID: 'corpEnv',
+      OPENYIDA_TOKEN_USER_ID: 'userEnv',
+      OPENYIDA_ENDPOINT: 'https://env-token.example.com',
     };
 
     try {
       const checkOnly = JSON.parse(runOkWithEnv(['login', '--check-only', '--json'], env, workspace));
       expect(checkOnly).toMatchObject({
-        auth_mode: 'cookie',
+        auth_mode: 'token',
         auth_source: 'env',
         status: 'ok',
         can_auto_use: true,
-        corp_id: 'corpLegacy',
-        user_id: 'userLegacy',
+        corp_id: 'corpEnv',
+        user_id: 'userEnv',
       });
       expect(checkOnly).not.toHaveProperty('cookies');
       expect(checkOnly).not.toHaveProperty('csrf_token');
@@ -1043,25 +1098,26 @@ describe('CLI offline smoke', () => {
       expect(loginOutput).not.toContain('login.dingtalk.com/oauth2/auth');
       const login = JSON.parse(loginOutput);
       expect(login).toMatchObject({
-        auth_mode: 'cookie',
+        auth_mode: 'token',
+        auth_source: 'env',
         status: 'ok',
         can_auto_use: true,
       });
 
       const authStatus = JSON.parse(runOkWithEnv(['auth', 'status', '--json'], env, workspace));
       expect(authStatus).toMatchObject({
-        auth_mode: 'cookie',
+        auth_mode: 'token',
+        auth_source: 'env',
         status: 'ok',
         can_auto_use: true,
       });
 
       const refresh = JSON.parse(runOkWithEnv(['auth', 'refresh', '--json'], env, workspace));
       expect(refresh).toMatchObject({
-        auth_mode: 'cookie',
+        auth_mode: 'token',
         auth_source: 'env',
-        status: 'ok',
-        can_auto_use: true,
-        refresh_supported: false,
+        status: 'missing_refresh_token',
+        can_auto_use: false,
       });
       expect(refresh).not.toHaveProperty('access_token');
       expect(refresh).not.toHaveProperty('refresh_token');
@@ -1076,9 +1132,10 @@ describe('CLI offline smoke', () => {
       CODEX_SHELL: '1',
       OPENYIDA_ENV: 'public',
       YIDA_AUTH_ENABLED: 'true',
-      OPENYIDA_COOKIE_B64: encodeCookieHeader(
-        'tianshu_csrf_token=legacy-csrf; tianshu_corp_user=corpLegacy_userLegacy'
-      ),
+      OPENYIDA_ACCESS_TOKEN: 'env-access-token',
+      OPENYIDA_TOKEN_CORP_ID: 'corpEnv',
+      OPENYIDA_TOKEN_USER_ID: 'userEnv',
+      OPENYIDA_ENDPOINT: 'https://env-token.example.com',
     };
 
     try {
@@ -1087,21 +1144,21 @@ describe('CLI offline smoke', () => {
         loggedIn: true,
         canAutoUse: true,
         authSource: 'env',
-        authMode: 'cookie',
-        corpId: 'corpLegacy',
-        userId: 'userLegacy',
+        authMode: 'token',
+        corpId: 'corpEnv',
+        userId: 'userEnv',
       });
       expect(envSnapshot.login).not.toHaveProperty('cookies');
       expect(envSnapshot.login).not.toHaveProperty('csrfToken');
       expect(envSnapshot.login.diagnostics).toMatchObject({
-        authMode: 'cookie',
-        cookieFound: true,
-        csrfFound: true,
+        authMode: 'token',
+        authSource: 'env',
+        tokenFound: true,
       });
 
       const summary = JSON.parse(runOkWithEnv(['agent-capabilities', '--summary-json'], env, workspace));
       expect(summary.login).toMatchObject({
-        auth_mode: 'cookie',
+        auth_mode: 'token',
         auth_source: 'env',
         status: 'ok',
         can_auto_use: true,
@@ -1113,7 +1170,7 @@ describe('CLI offline smoke', () => {
     }
   });
 
-  test('YIDA_AUTH_ENABLED=true ignores legacy cookies.json when OPENYIDA_COOKIE_B64 is missing', () => {
+  test('YIDA_AUTH_ENABLED=true ignores legacy cookies.json when host token is missing', () => {
     const workspace = createCodexWorkspace();
     writeIgnoredLegacyCookieCache(workspace);
     try {
@@ -1123,12 +1180,11 @@ describe('CLI offline smoke', () => {
         YIDA_AUTH_ENABLED: 'true',
       }, workspace));
       expect(parsed).toMatchObject({
-        auth_mode: 'cookie',
+        auth_mode: 'token',
         auth_source: 'env',
         status: 'not_logged_in',
         can_auto_use: false,
-        cookie_count: 0,
-        failure_reason: 'env_cookie_missing',
+        failure_reason: 'env_token_missing',
       });
       expect(parsed).not.toHaveProperty('csrf_token');
       expect(parsed).not.toHaveProperty('cookies');
@@ -1139,12 +1195,9 @@ describe('CLI offline smoke', () => {
         YIDA_AUTH_ENABLED: 'true',
       }, workspace));
       expect(refresh).toMatchObject({
-        auth_mode: 'cookie',
-        auth_source: 'env',
-        status: 'not_logged_in',
+        auth_mode: 'token',
+        status: 'missing_refresh_token',
         can_auto_use: false,
-        refresh_supported: false,
-        failure_reason: 'env_cookie_missing',
       });
       expect(refresh).not.toHaveProperty('access_token');
       expect(refresh).not.toHaveProperty('refresh_token');
@@ -1153,7 +1206,7 @@ describe('CLI offline smoke', () => {
     }
   });
 
-  test('YIDA_AUTH_ENABLED=true reports invalid OPENYIDA_COOKIE_B64 without reading cookies.json', () => {
+  test('YIDA_AUTH_ENABLED=true ignores legacy cookie env without reading cookies.json', () => {
     const workspace = createCodexWorkspace();
     writeIgnoredLegacyCookieCache(workspace);
     try {
@@ -1164,12 +1217,11 @@ describe('CLI offline smoke', () => {
         OPENYIDA_COOKIE_B64: 'not-base64',
       }, workspace));
       expect(parsed).toMatchObject({
-        auth_mode: 'cookie',
+        auth_mode: 'token',
         auth_source: 'env',
         status: 'not_logged_in',
         can_auto_use: false,
-        cookie_count: 0,
-        failure_reason: 'env_cookie_decode_failed',
+        failure_reason: 'env_token_missing',
       });
       expect(parsed).not.toHaveProperty('csrf_token');
       expect(parsed).not.toHaveProperty('cookies');

@@ -1,15 +1,15 @@
 ---
 name: yida-login
-description: 宜搭登录态管理。默认 OAuth token；仅 yida-agent 旧链路使用 YIDA_AUTH_ENABLED=true + OPENYIDA_COOKIE_B64 Cookie 注入。
+description: 宜搭登录态管理。默认 OAuth token；YIDA_AUTH_ENABLED=true 时使用宿主注入 token。
 ---
 
 # yida-login
 
 ## Mode
 
-- IF `YIDA_AUTH_ENABLED=true`: `auth_mode=cookie`; only credential source is `OPENYIDA_COOKIE_B64`.
+- IF `YIDA_AUTH_ENABLED=true`: `auth_mode=token`, `auth_source=env`; only credential sources are host-injected token env such as `OPENYIDA_ACCESS_TOKEN` and `OPENYIDA_REFRESH_TOKEN`.
 - ELSE: `auth_mode=token`; use OAuth token flow only.
-- NEVER infer cookie mode from `.cache/cookies*.json`.
+- NEVER infer auth from `.cache/cookies*.json`.
 
 ## Preflight
 
@@ -31,16 +31,12 @@ openyida login --check-only --json
 | Observed status | Action |
 |---|---|
 | `auth_mode=token`, `status=ok` or `can_auto_use=true` | Continue business command |
-| `auth_mode=token`, not logged in | Run `openyida login`, then verify with `openyida login --check-only --json` |
-| `auth_mode=cookie`, `status=ok` or `can_auto_use=true` | Continue business command |
-| `auth_mode=cookie`, `status=not_logged_in` | STOP; ask host to inject valid `OPENYIDA_COOKIE_B64`; do not OAuth |
-| `failure_reason=env_cookie_missing` | STOP; host did not inject `OPENYIDA_COOKIE_B64` |
-| `failure_reason=env_cookie_decode_failed` or `env_cookie_parse_failed` | STOP; injected `OPENYIDA_COOKIE_B64` is invalid |
-| `failure_reason=csrf_token_missing` | STOP; injected Cookie lacks CSRF |
+| `failure_reason=env_token_missing` | STOP; host did not inject `OPENYIDA_ACCESS_TOKEN` or `OPENYIDA_REFRESH_TOKEN`; do not OAuth |
+| `auth_mode=token`, not logged in, `YIDA_AUTH_ENABLED` is not true | Run `openyida login`, then verify with `openyida login --check-only --json` |
 
 ## Token Mode Commands
 
-Use only when `YIDA_AUTH_ENABLED` is not true.
+Use OAuth login only when `YIDA_AUTH_ENABLED` is not true.
 
 ```bash
 openyida login
@@ -60,7 +56,7 @@ openyida login --intl
 
 Overseas / international / global / Japan / Global YiDA => add `--intl` or equivalent.
 
-## Cookie Inject Mode Commands
+## Host-Injected Token Mode Commands
 
 Use only when `YIDA_AUTH_ENABLED=true`.
 
@@ -69,13 +65,14 @@ openyida agent-capabilities --summary-json
 openyida env --json
 openyida login --check-only --json
 openyida auth status
+openyida auth refresh
 ```
 
 Expected usable shape:
 
 ```json
 {
-  "auth_mode": "cookie",
+  "auth_mode": "token",
   "auth_source": "env",
   "status": "ok",
   "can_auto_use": true
@@ -86,12 +83,11 @@ Expected usable shape:
 
 - Never hardcode or print `access_token`, `refresh_token`, Cookie, or CSRF.
 - Never read/write `.env`, token files, or Cookie files manually.
-- In cookie inject mode: 不要再执行 `openyida login` 触发 OAuth.
-- In cookie inject mode: do not run `openyida auth refresh`.
-- In cookie inject mode: 不要查找本地 `.cache/cookies*.json`.
+- In host-injected token mode: 不要再执行 `openyida login` 触发 OAuth.
+- In host-injected token mode: 缺 token 时回到宿主修复注入，不要查找本地 `.cache/cookies*.json`.
 - Do not pass Cookie, `_csrf_token`, or Bearer token manually in business commands.
 
 ## Done
 
 - Login/auth preflight reports usable auth, or
-- Cookie inject mode reports a clear stop reason for the host to fix.
+- Host-injected token mode reports a clear stop reason for the host to fix.

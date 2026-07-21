@@ -19,9 +19,9 @@ node --check lib/xxx.js  # 语法检查
 | `bin/yida.js` | CLI 入口，所有命令在此注册 |
 | `lib/core/env.js` | AI 工具环境检测 |
 | `lib/core/utils.js` | 公共工具函数 |
-| `lib/auth/login.js` | 宜搭浏览器登录 + Cookie 缓存 |
-| `lib/auth/codex-login.js` | Codex 内置浏览器登录引导 |
-| `lib/auth/qr-login.js` | 终端二维码登录 |
+| `lib/auth/token-auth.js` | OAuth loopback + token 登录态管理 |
+| `lib/auth/token-store.js` | 本地/环境 token session 读取与存储 |
+| `lib/auth/oauth-loopback.js` | OAuth 回调监听与授权码换取 |
 | `project/config.json` | 应用配置（appType、pageId） |
 | `yida-skills/SKILL.md` | AI 技能入口文档 |
 
@@ -36,10 +36,10 @@ node --check lib/xxx.js  # 语法检查
 
 ## Codex 特殊说明
 
-- Codex 环境下 `openyida login` 默认缓存优先；无有效缓存时进入 Codex 内置浏览器登录模式
-- `openyida login --codex` 不需要 Playwright 或额外 Chromium
-- 测试终端二维码链路时使用 `openyida login --qr`
-- 多组织账号请显式传 `openyida login --qr --corp-id <corpId>`；不要由 AI 代理代替用户选择组织
+- Codex 环境下 `openyida login` 使用 OAuth loopback + 系统浏览器；`OPENYIDA_NO_BROWSER=1` 只抑制自动打开浏览器，不是独立 CLI 登录模式
+- `YIDA_AUTH_ENABLED=true` 表示宿主注入 token；此模式下缺 token 应回到宿主诊断，不要唤起 OAuth 浏览器
+- 不要使用已删除的 `--codex`、`--qr`、`--agent-qr` 等旧登录 flag，也不要引导安装 Playwright 修复登录
+- 多组织账号请在支持的命令中显式传 `--corp-id <corpId>`；不要由 AI 代理代替用户选择组织
 
 ## 悟空（Wukong）特殊说明
 

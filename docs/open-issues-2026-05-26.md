@@ -17,7 +17,7 @@ This snapshot was collected from <https://github.com/openyida/openyida/issues> o
 
 | Issue | Disposition |
 | --- | --- |
-| #339 SLS log workbench skill | `yida-skills/skills/sls-log-workbench` is indexed in the root skill table. |
+| #339 SLS log workbench skill | Removed from the current skill package; no SLS log workbench skill is indexed. |
 | #325 yida-schema-render | Covered by `build-page`, page IR, custom page templates, and schema-driven page authoring pipeline. |
 | #324 LayoutContainer | Covered by form schema builder layout modes and page IR layout components. |
 | #323 navigation groups | `openyida nav-group`. |

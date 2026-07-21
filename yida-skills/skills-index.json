@@ -4,23 +4,6 @@
   "entry": "openyida",
   "skills": [
     {
-      "name": "sls-log-workbench",
-      "path": "skills/sls-log-workbench/SKILL.md",
-      "display_name": "SLS 日志查询工作台",
-      "description": "SLS 日志查询工作台排查技能。用于快速定位和排查宜搭平台的页面请求、业务规则、集成自动化、流程审批、TraceId、灰度匹配等问题。",
-      "category": "yida-skills/ops",
-      "tags": [
-        "SLS",
-        "日志",
-        "排查",
-        "TraceId"
-      ],
-      "aliases": [
-        "日志查询",
-        "平台排障"
-      ]
-    },
-    {
       "name": "yida-agent-center",
       "path": "skills/yida-agent-center/SKILL.md",
       "display_name": "流程代理中心",
@@ -730,7 +713,7 @@
       "name": "yida-login",
       "path": "skills/yida-login/SKILL.md",
       "display_name": "宜搭登录态管理",
-      "description": "宜搭登录态管理。默认 OAuth token 模式；yida-agent 旧链路仅临时兼容 YIDA_AUTH_ENABLED=true + OPENYIDA_COOKIE_B64 的 Cookie 注入模式。",
+      "description": "宜搭登录态管理。默认 OAuth token 模式；YIDA_AUTH_ENABLED=true 时使用宿主注入 token。",
       "category": "yida-skills/context",
       "tags": [
         "登录",
@@ -1153,13 +1136,8 @@
     {
       "name": "yida-skills/ops",
       "display_name": "排障与支持",
-      "description": "SLS 日志排查、数据库 Sequence 修复、VOC 故障/需求反馈材料整理。",
+      "description": "数据库 Sequence 修复、VOC 故障/需求反馈材料整理。",
       "signals": [
-        "SLS",
-        "日志",
-        "traceId",
-        "排障",
-        "灰度",
         "Sequence",
         "主键冲突",
         "VOC",

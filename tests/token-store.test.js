@@ -58,11 +58,12 @@ describe('token-store', () => {
     expect(loadTokenSession(options)).toBe(null);
   });
 
-  test('uses the injected env refresh token when the local token file is absent', () => {
+  test('uses injected env access and refresh tokens when the local token file is absent', () => {
     const options = {
       projectRoot,
       envName: 'public',
       env: {
+        OPENYIDA_ACCESS_TOKEN: 'env-access-token',
         OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
         OPENYIDA_ENDPOINT: 'https://www.aliwork.com',
         OPENYIDA_TOKEN_CLIENT_ID: 'openyida-cli',
@@ -73,7 +74,7 @@ describe('token-store', () => {
 
     const loaded = loadTokenSession(options);
 
-    expect(loaded.access_token).toBeUndefined();
+    expect(loaded.access_token).toBe('env-access-token');
     expect(loaded.refresh_token).toBe('env-refresh-token');
     expect(loaded.auth_source).toBe('env');
     expect(loaded.corp_id).toBe('corp-env');
@@ -100,6 +101,44 @@ describe('token-store', () => {
     expect(loaded.access_token).toBe('local-access-token');
     expect(loaded.refresh_token).toBe('local-refresh-token');
     expect(loaded.auth_source).toBe('local');
+  });
+
+  test('host-injected token mode ignores local token files', () => {
+    const options = {
+      projectRoot,
+      envName: 'public',
+      env: {
+        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_ACCESS_TOKEN: 'env-access-token',
+        OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
+      },
+    };
+    saveTokenSession({
+      access_token: 'local-access-token',
+      refresh_token: 'local-refresh-token',
+    }, options);
+
+    const loaded = loadTokenSession(options);
+
+    expect(loaded.access_token).toBe('env-access-token');
+    expect(loaded.refresh_token).toBe('env-refresh-token');
+    expect(loaded.auth_source).toBe('env');
+  });
+
+  test('host-injected token mode returns null when the host provides no token', () => {
+    const options = {
+      projectRoot,
+      envName: 'public',
+      env: {
+        YIDA_AUTH_ENABLED: 'true',
+      },
+    };
+    saveTokenSession({
+      access_token: 'local-access-token',
+      refresh_token: 'local-refresh-token',
+    }, options);
+
+    expect(loadTokenSession(options)).toBeNull();
   });
 
   test('fills a missing local refresh token from env without replacing local access token', () => {
@@ -153,7 +192,7 @@ describe('token-store', () => {
     fs.writeFileSync(tokenFile, '{not-json', 'utf8');
 
     const loaded = loadTokenSession(options);
-    expect(loaded.access_token).toBeUndefined();
+    expect(loaded.access_token).toBe('env-access-token');
     expect(loaded.refresh_token).toBe('env-refresh-token');
     expect(loaded.auth_source).toBe('env');
   });

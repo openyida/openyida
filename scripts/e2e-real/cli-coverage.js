@@ -15,7 +15,7 @@
  *
  * 需要：
  *   - OPENYIDA_E2E=1 环境变量
- *   - 有效的 .cache/cookies.json 登录态缓存
+ *   - 有效的 OAuth token session，或宿主注入的 OPENYIDA_ACCESS_TOKEN / OPENYIDA_REFRESH_TOKEN
  */
 
 const fs = require('fs');

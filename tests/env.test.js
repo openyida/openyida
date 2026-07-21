@@ -34,26 +34,41 @@ describe('detectLoginStatus', () => {
   let tmpDir;
   let originalAuthEnabled;
   let originalCookieB64;
+  let originalAccessToken;
+  let originalEndpoint;
+  let originalCorpId;
+  let originalUserId;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-env-token-'));
     originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
     originalCookieB64 = process.env.OPENYIDA_COOKIE_B64;
+    originalAccessToken = process.env.OPENYIDA_ACCESS_TOKEN;
+    originalEndpoint = process.env.OPENYIDA_ENDPOINT;
+    originalCorpId = process.env.OPENYIDA_TOKEN_CORP_ID;
+    originalUserId = process.env.OPENYIDA_TOKEN_USER_ID;
     delete process.env.YIDA_AUTH_ENABLED;
     delete process.env.OPENYIDA_COOKIE_B64;
+    delete process.env.OPENYIDA_ACCESS_TOKEN;
+    delete process.env.OPENYIDA_ENDPOINT;
+    delete process.env.OPENYIDA_TOKEN_CORP_ID;
+    delete process.env.OPENYIDA_TOKEN_USER_ID;
   });
 
   afterEach(() => {
-    if (originalAuthEnabled === undefined) {
-      delete process.env.YIDA_AUTH_ENABLED;
-    } else {
-      process.env.YIDA_AUTH_ENABLED = originalAuthEnabled;
-    }
-    if (originalCookieB64 === undefined) {
-      delete process.env.OPENYIDA_COOKIE_B64;
-    } else {
-      process.env.OPENYIDA_COOKIE_B64 = originalCookieB64;
-    }
+    const restore = (name, value) => {
+      if (value === undefined) {
+        delete process.env[name];
+      } else {
+        process.env[name] = value;
+      }
+    };
+    restore('YIDA_AUTH_ENABLED', originalAuthEnabled);
+    restore('OPENYIDA_COOKIE_B64', originalCookieB64);
+    restore('OPENYIDA_ACCESS_TOKEN', originalAccessToken);
+    restore('OPENYIDA_ENDPOINT', originalEndpoint);
+    restore('OPENYIDA_TOKEN_CORP_ID', originalCorpId);
+    restore('OPENYIDA_TOKEN_USER_ID', originalUserId);
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
@@ -92,34 +107,33 @@ describe('detectLoginStatus', () => {
       corpId: 'corpABC',
       userId: 'user456',
       baseUrl: 'https://www.aliwork.com',
-      authSource: 'token',
+      authSource: 'local',
       authMode: 'token',
     });
     expect(result.diagnostics.tokenFileFound).toBe(true);
     expect(result.diagnostics.tokenFound).toBe(true);
   });
 
-  test('YIDA_AUTH_ENABLED=true 时返回 cookie 兼容登录状态', () => {
+  test('YIDA_AUTH_ENABLED=true 时返回宿主注入 token 状态', () => {
     process.env.YIDA_AUTH_ENABLED = 'true';
-    process.env.OPENYIDA_COOKIE_B64 = Buffer.from(
-      'tianshu_csrf_token=legacy-csrf; tianshu_corp_user=corpCookie_userCookie',
-      'utf8'
-    ).toString('base64');
+    process.env.OPENYIDA_ACCESS_TOKEN = 'env-access-token';
+    process.env.OPENYIDA_ENDPOINT = 'https://env-token.example.com';
+    process.env.OPENYIDA_TOKEN_CORP_ID = 'corpEnv';
+    process.env.OPENYIDA_TOKEN_USER_ID = 'userEnv';
 
     const result = detectLoginStatus(tmpDir);
     expect(result).toMatchObject({
       loggedIn: true,
       canAutoUse: true,
-      corpId: 'corpCookie',
-      userId: 'userCookie',
+      corpId: 'corpEnv',
+      userId: 'userEnv',
       authSource: 'env',
-      authMode: 'cookie',
+      authMode: 'token',
     });
     expect(result.diagnostics).toMatchObject({
-      authMode: 'cookie',
-      cookieFound: true,
-      csrfFound: true,
-      tokenFound: false,
+      authMode: 'token',
+      authSource: 'env',
+      tokenFound: true,
     });
   });
 });

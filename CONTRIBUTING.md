@@ -37,17 +37,14 @@ cd openyida
 # 2. Install dependencies
 npm install
 
-# 3. Optional: install Playwright for local browser login outside Codex
-npx playwright install chromium
-
-# 4. Link globally for local debugging
+# 3. Link globally for local debugging
 npm link
 
-# 5. Run the full local CI check
+# 4. Run the full local CI check
 npm run check:ci
 ```
 
-Codex contributors do not need Playwright for the default login path. In Codex, use `openyida login` or `openyida login --codex` to hand off login to the Codex in-app browser. For terminal QR verification, use `openyida login --qr --corp-id <corpId>` when the account belongs to multiple organizations.
+Local CLI login uses OAuth loopback and stores a token session. Use `openyida login`, then verify with `openyida login --check-only --json` or `openyida auth status`. In host-injected agent mode, `YIDA_AUTH_ENABLED=true` means the host provides token env; if the token is missing, fix the host injection rather than using QR/Codex/Playwright login flags.
 
 ## PR Checklist
 

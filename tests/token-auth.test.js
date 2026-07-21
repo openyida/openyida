@@ -59,6 +59,54 @@ describe('token-auth', () => {
     });
   });
 
+  test('host-injected token mode reports env access token status without local token file', () => {
+    const status = tokenStatus({
+      projectRoot: tmpDir,
+      env: {
+        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_ACCESS_TOKEN: 'env-access-token',
+        OPENYIDA_TOKEN_CORP_ID: 'corp-env',
+        OPENYIDA_TOKEN_USER_ID: 'user-env',
+      },
+    });
+
+    expect(status).toMatchObject({
+      ok: true,
+      auth_mode: 'token',
+      auth_source: 'env',
+      status: 'ok',
+      can_auto_use: true,
+      corp_id: 'corp-env',
+      user_id: 'user-env',
+    });
+    expect(status.access_token).toBe('env-...');
+    expect(status).not.toHaveProperty('token_file');
+  });
+
+  test('host-injected token mode reports env_token_missing when host provides no token', () => {
+    saveTokenSession({
+      access_token: 'local-access-token',
+      refresh_token: 'local-refresh-token',
+    }, { projectRoot: tmpDir });
+
+    const status = tokenStatus({
+      projectRoot: tmpDir,
+      env: {
+        YIDA_AUTH_ENABLED: 'true',
+      },
+    });
+
+    expect(status).toMatchObject({
+      ok: false,
+      auth_mode: 'token',
+      auth_source: 'env',
+      status: 'not_logged_in',
+      can_auto_use: false,
+      failure_reason: 'env_token_missing',
+    });
+    expect(status).not.toHaveProperty('token_file');
+  });
+
   test('本地缺少 refresh token 时使用环境变量刷新并把新 session 落盘', async () => {
     let refreshBody;
     const server = http.createServer((req, res) => {
@@ -193,6 +241,53 @@ describe('token-auth', () => {
       restore('OPENYIDA_ENDPOINT', previousEnv.endpoint);
       restore('OPENYIDA_TOKEN_CORP_ID', previousEnv.corpId);
       restore('OPENYIDA_TOKEN_USER_ID', previousEnv.userId);
+    }
+  });
+
+  test('host-injected token refresh updates only the provided env object', async () => {
+    let refreshBody;
+    const server = http.createServer((req, res) => {
+      const chunks = [];
+      req.on('data', (chunk) => chunks.push(chunk));
+      req.on('end', () => {
+        refreshBody = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+        res.setHeader('content-type', 'application/json');
+        res.end(JSON.stringify({
+          success: true,
+          content: {
+            status: 'ok',
+            accessToken: 'new-env-access-token',
+            refreshToken: 'new-env-refresh-token',
+            expiresIn: 1800,
+          },
+        }));
+      });
+    });
+    const port = await listen(server);
+    const env = {
+      YIDA_AUTH_ENABLED: 'true',
+      OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
+      OPENYIDA_ENDPOINT: `http://127.0.0.1:${port}`,
+    };
+
+    try {
+      const refreshed = await tokenRefresh({
+        projectRoot: tmpDir,
+        endpoint: `http://127.0.0.1:${port}`,
+        env,
+      });
+
+      expect(refreshBody.refreshToken).toBe('env-refresh-token');
+      expect(refreshed).toMatchObject({
+        auth_source: 'env',
+        access_token: 'new-env-access-token',
+        refresh_token: 'new-env-refresh-token',
+      });
+      expect(env.OPENYIDA_ACCESS_TOKEN).toBe('new-env-access-token');
+      expect(env.OPENYIDA_REFRESH_TOKEN).toBe('new-env-refresh-token');
+      expect(fs.existsSync(getTokenFilePath({ projectRoot: tmpDir }))).toBe(false);
+    } finally {
+      await closeServer(server);
     }
   });
 });

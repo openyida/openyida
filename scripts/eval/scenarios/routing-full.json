@@ -1,23 +1,8 @@
 [
   {
-    "id": "sls-log-pos-1",
-    "prompt": "帮我查一下 SLS 日志，看看昨天下午 3 点到 5 点这个应用的报错信息",
-    "expectedSkill": "sls-log-workbench",
-    "type": "positive",
-    "note": "SLS 日志查询排查"
-  },
-  {
-    "id": "sls-log-pos-2",
-    "prompt": "线上有个接口 500 了，帮我去日志工作台查一下错误堆栈",
-    "expectedSkill": "sls-log-workbench",
-    "type": "positive",
-    "note": "线上排错需要查日志"
-  },
-  {
     "id": "sls-log-neg-1",
     "prompt": "帮我整理一下最近用户反馈的问题清单",
     "expectedSkill": "yida-voc",
-    "mustNotTrigger": ["sls-log-workbench"],
     "type": "negative",
     "category": "disambiguation",
     "note": "用户反馈整理是 VOC，不是日志查询"
@@ -792,14 +777,5 @@
     "expectedSkill": "yida-voc",
     "type": "positive",
     "note": "VOC 数据分析"
-  },
-  {
-    "id": "voc-neg-1",
-    "prompt": "帮我查一下线上日志，看看有没有报错",
-    "expectedSkill": "sls-log-workbench",
-    "mustNotTrigger": ["yida-voc"],
-    "type": "negative",
-    "category": "disambiguation",
-    "note": "查日志 → sls-log-workbench，不是用户反馈"
   }
 ]

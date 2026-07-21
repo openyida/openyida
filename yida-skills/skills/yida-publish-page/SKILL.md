@@ -139,7 +139,7 @@ body { background-color: #f2f3f5; }
 
 ## 注意事项
 
-- 发布目标地址由当前环境配置和 auth context（默认 token session；`YIDA_AUTH_ENABLED=true` 时为 Cookie 注入）中的 `base_url` 决定
+- 发布目标地址由当前环境配置和 auth context（默认 token session；`YIDA_AUTH_ENABLED=true` 时为宿主注入 token）中的 `base_url` 决定
 - 碰到组织 corpId 不匹配时，询问用户是重新登录到目标组织，还是确认在当前组织继续发布到已解析页面；不要通过新建应用规避不匹配
 - **编写源码前必须先加载对应页面子技能**：普通自定义页面 JSX/Jsx 组件链路调用 `use_skill("yida-custom-page", "编写宜搭普通自定义页面 JSX")`；Code Canvas 链路调用 `use_skill("yida-canvas-custom-page", "编写 Code Canvas 自定义页面")`。旧式 `renderJsx` 写法不要使用 Hooks，现代普通自定义页面 authoring 写法必须走 `.oyd.jsx` 兼容编译；Canvas 源码写成 `.canvas.jsx`
 

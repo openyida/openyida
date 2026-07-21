@@ -1373,7 +1373,20 @@ describe('schema plan command', () => {
       incrementRevision: false,
     });
     const manifestFile = writeManifest(simpleManifest());
-    const loadCookieData = jest.fn(() => ({
+    const loadCookieData = jest.fn();
+    const authRef = {
+      baseUrl: environment.endpoint,
+      corpId: environment.corpId,
+      authMode: 'token',
+      authSource: 'env',
+      authData: {
+        auth_mode: 'token',
+        auth_source: 'env',
+        base_url: environment.endpoint,
+        corp_id: environment.corpId,
+      },
+    };
+    const cookieData = {
       base_url: environment.endpoint,
       corp_id: environment.corpId,
       csrf_token: 'csrf-secret',
@@ -1381,7 +1394,7 @@ describe('schema plan command', () => {
         { name: 'tianshu_corp_user', value: 'corp-auth_user-auth' },
         { name: 'tianshu_csrf_token', value: 'csrf-secret' },
       ],
-    }));
+    };
     const readObservedResources = jest.fn(async (resources, observedState, options) => {
       expect(observedState.environment).toEqual(state.environment);
       expect(options.context.authRef).toMatchObject({
@@ -1401,6 +1414,8 @@ describe('schema plan command', () => {
       '--json',
       '--quiet',
     ], {
+      authRef,
+      cookieData,
       loadCookieData,
       projectRoot: tempDir,
       readObservedResources,
@@ -1409,7 +1424,7 @@ describe('schema plan command', () => {
     });
 
     expect(payload.success).toBe(true);
-    expect(loadCookieData).toHaveBeenCalledTimes(1);
+    expect(loadCookieData).not.toHaveBeenCalled();
     expect(readObservedResources).toHaveBeenCalledTimes(1);
   });
 

@@ -18,6 +18,7 @@ const { COMMAND_GROUPS, buildCommandManifest } = require('../lib/core/command-ma
 
 const command = process.argv[2];
 const args = process.argv.slice(3);
+const rawArgs = process.argv.slice(3);
 
 function isAgentEnvironment(env) {
   return !!(
@@ -53,6 +54,9 @@ function shouldRunUpdateCheck() {
     return false;
   }
   if (!command || command === '--help' || command === '-h' || command === '--version' || command === '-v') {
+    return false;
+  }
+  if (args.includes('--help') || args.includes('-h')) {
     return false;
   }
   if (command === 'commands' || command === 'agent-capabilities' || command === 'mcp') {
@@ -250,32 +254,15 @@ function printLoginResult(result) {
     return;
   }
 
-  const authMode = result.auth_mode || result.authMode || 'token';
-  if (authMode !== 'token') {
-    const usable = result.can_auto_use !== false && result.status === 'ok';
-    const summary = {
-      ok: usable,
-      status: result.status || (usable ? 'ok' : 'not_logged_in'),
-      auth_mode: authMode,
-      auth_source: result.auth_source || result.authSource,
-      can_auto_use: usable,
-      base_url: result.base_url,
-      corp_id: result.corp_id,
-      user_id: result.user_id,
-      cookie_count: result.cookie_count,
-      failure_reason: result.failure_reason,
-      message: result.message,
-    };
-    console.log(JSON.stringify(summary));
-    return;
-  }
-
-  const tokenUsable = result.can_auto_use !== false && !!result.access_token;
+  const tokenUsable = result.ok !== undefined
+    ? !!result.ok
+    : (result.can_auto_use !== false && !!result.access_token);
   const summary = {
     ok: tokenUsable,
     status: result.status || (tokenUsable ? 'ok' : 'token_not_issued'),
     auth_mode: 'token',
-    can_auto_use: tokenUsable,
+    auth_source: result.auth_source || result.authSource,
+    can_auto_use: result.can_auto_use !== undefined ? !!result.can_auto_use : tokenUsable,
     token_type: result.token_type || 'Bearer',
     access_token: maskSensitiveAuthOutput({ access_token: result.access_token }).access_token,
     expires_at: result.expires_at ? new Date(result.expires_at).toISOString() : undefined,
@@ -283,6 +270,7 @@ function printLoginResult(result) {
     corp_id: result.corp_id,
     user_id: result.user_id,
     user_name: result.user_name,
+    failure_reason: result.failure_reason,
     message: result.message,
     raw: tokenUsable ? undefined : result.raw,
   };
@@ -326,6 +314,30 @@ function getArgValue(cliArgs, name) {
     return null;
   }
   return cliArgs[index + 1];
+}
+
+const UNSUPPORTED_LEGACY_LOGIN_FLAGS = new Set([
+  '--qr',
+  '--qr-code',
+  '--agent-qr',
+  '--codex-qr',
+  '--agent-poll',
+  '--codex-poll',
+  '--browser',
+  '--codex',
+  '--qoder',
+  '--wukong',
+]);
+
+function findUnsupportedLegacyLoginFlag(...argLists) {
+  for (const argList of argLists) {
+    for (const arg of argList || []) {
+      if (UNSUPPORTED_LEGACY_LOGIN_FLAGS.has(arg)) {
+        return arg;
+      }
+    }
+  }
+  return null;
 }
 
 function parseLoginTargetArg(value) {
@@ -465,6 +477,34 @@ function throwCliUsage(...lines) {
   });
 }
 
+function hasHelpFlag(cliArgs = []) {
+  return cliArgs.includes('--help') || cliArgs.includes('-h');
+}
+
+function printCommandUsage(...lines) {
+  console.log(lines.filter(Boolean).join('\n'));
+}
+
+function printLoginHelp() {
+  printCommandUsage(t('cli.login_usage'), t('cli.login_example'));
+}
+
+function printAuthHelp() {
+  printCommandUsage(t('cli.auth_usage'), t('cli.auth_example'));
+}
+
+function assertNoUnsupportedLegacyLoginFlags(...argLists) {
+  const flag = findUnsupportedLegacyLoginFlag(...argLists);
+  if (!flag) {
+    return;
+  }
+  throwCliUsage(
+    t('cli.login_unsupported_option', flag),
+    t('cli.login_usage'),
+    t('cli.login_example')
+  );
+}
+
 async function main() {
   applyQuietFlag();
   applyGlobalEnvironmentFlags();
@@ -537,17 +577,22 @@ async function main() {
     case 'login': {
       const loginArgs = applyLoginEnvironmentFlags(args, { inferTargetUrl: true });
       const { getAuthStatus, isEnvAuthMode } = require('../lib/core/utils');
-      if (loginArgs.includes('--check-only')) {
-        console.log(JSON.stringify(getAuthStatus(), null, 2));
-      } else if (isEnvAuthMode()) {
-        printLoginResult(getAuthStatus());
+      if (hasHelpFlag(loginArgs)) {
+        printLoginHelp();
       } else {
-        const { tokenLogin } = require('../lib/auth/token-auth');
-        const result = await tokenLogin({
-          clientId: getArgValue(loginArgs, '--client-id'),
-          quiet: loginArgs.includes('--quiet'),
-        });
-        printLoginResult(result);
+        assertNoUnsupportedLegacyLoginFlags(rawArgs, loginArgs);
+        if (loginArgs.includes('--check-only')) {
+          console.log(JSON.stringify(getAuthStatus(), null, 2));
+        } else if (isEnvAuthMode()) {
+          printLoginResult(getAuthStatus());
+        } else {
+          const { tokenLogin } = require('../lib/auth/token-auth');
+          const result = await tokenLogin({
+            clientId: getArgValue(loginArgs, '--client-id'),
+            quiet: loginArgs.includes('--quiet'),
+          });
+          printLoginResult(result);
+        }
       }
       break;
     }
@@ -563,29 +608,25 @@ async function main() {
       const authArgs = applyLoginEnvironmentFlags(args.slice(1), { inferTargetUrl: true });
       const { getAuthStatus, isEnvAuthMode } = require('../lib/core/utils');
       const { tokenLogin, tokenLogout, tokenRefresh } = require('../lib/auth/token-auth');
-      if (subCommand === 'status') {
+      if (!subCommand || subCommand === '--help' || subCommand === '-h') {
+        printAuthHelp();
+      } else if (subCommand === 'status') {
         console.log(JSON.stringify(getAuthStatus(), null, 2));
       } else if (subCommand === 'login') {
-        const result = isEnvAuthMode()
-          ? getAuthStatus()
-          : await tokenLogin({
-            clientId: getArgValue(authArgs, '--client-id'),
-            quiet: authArgs.includes('--quiet'),
-          });
-        printLoginResult(result);
-      } else if (subCommand === 'refresh') {
-        if (isEnvAuthMode()) {
-          const status = getAuthStatus();
-          console.log(JSON.stringify({
-            ...status,
-            refresh_supported: false,
-            message: status.status === 'ok'
-              ? 'cookie auth is host-injected; auth refresh is not supported. Refresh or reinject OPENYIDA_COOKIE_B64 in the host.'
-              : status.message,
-          }, null, 2));
+        if (hasHelpFlag(authArgs)) {
+          printLoginHelp();
         } else {
-          console.log(JSON.stringify(maskSensitiveAuthOutput(await tokenRefresh()), null, 2));
+          assertNoUnsupportedLegacyLoginFlags(rawArgs.slice(1), authArgs);
+          const result = isEnvAuthMode()
+            ? getAuthStatus()
+            : await tokenLogin({
+              clientId: getArgValue(authArgs, '--client-id'),
+              quiet: authArgs.includes('--quiet'),
+            });
+          printLoginResult(result);
         }
+      } else if (subCommand === 'refresh') {
+        console.log(JSON.stringify(maskSensitiveAuthOutput(await tokenRefresh()), null, 2));
       } else if (subCommand === 'logout') {
         console.log(JSON.stringify(await tokenLogout(), null, 2));
       } else {

@@ -16,10 +16,12 @@ const DEFAULT_RESULT_DIR = path.join(ROOT, 'project', '.cache', 'e2e-real', 'sch
 const DEFAULT_TIMEOUT_MS = 120000;
 
 const SENSITIVE_STDIO_PATTERNS = Object.freeze([
-  /csrf-source-e2e/i,
+  /source-e2e-access-token/i,
+  /source-e2e-refresh-token/i,
   /corpSourceE2E/i,
   /userSourceE2E/i,
-  /OPENYIDA_COOKIE_B64/i,
+  /OPENYIDA_ACCESS_TOKEN/i,
+  /OPENYIDA_REFRESH_TOKEN/i,
   /APP_SOURCE_E2E_/,
   /FORM_SOURCE_E2E_/,
   /TPROC_SOURCE_E2E_/,
@@ -28,12 +30,12 @@ const SENSITIVE_STDIO_PATTERNS = Object.freeze([
   /componentsTree/,
 ]);
 
-const MOCK_COOKIE_DATA = Object.freeze({
+const MOCK_TOKEN_DATA = Object.freeze({
   base_url: 'https://source-e2e.example.test',
-  cookies: [
-    { name: 'tianshu_csrf_token', value: 'csrf-source-e2e', domain: 'source-e2e.example.test' },
-    { name: 'tianshu_corp_user', value: 'corpSourceE2E_userSourceE2E', domain: 'source-e2e.example.test' },
-  ],
+  access_token: 'source-e2e-access-token',
+  refresh_token: 'source-e2e-refresh-token',
+  corp_id: 'corpSourceE2E',
+  user_id: 'userSourceE2E',
 });
 
 function nowStamp(date = new Date()) {
@@ -104,13 +106,6 @@ function ensureWorkspace(workspace) {
   fs.mkdirSync(path.join(workspace, '.cache'), { recursive: true, mode: 0o700 });
 }
 
-function cookieHeaderFromData(cookieData) {
-  return (cookieData.cookies || [])
-    .filter((cookie) => cookie && cookie.name && cookie.value)
-    .map((cookie) => `${cookie.name}=${cookie.value}`)
-    .join('; ');
-}
-
 function createLauncher(workspace) {
   const binDir = path.join(workspace, 'bin');
   const tracePath = path.join(workspace, 'launcher-trace.jsonl');
@@ -158,7 +153,6 @@ process.exit(result.status === null ? 1 : result.status);
 
 function buildEnv(workspace, launcher) {
   const mockDbPath = path.join(workspace, 'mock-remote.json');
-  const cookieHeader = cookieHeaderFromData(MOCK_COOKIE_DATA);
   return {
     ...process.env,
     PATH: `${launcher.binDir}${path.delimiter}${process.env.PATH || ''}`,
@@ -169,8 +163,11 @@ function buildEnv(workspace, launcher) {
     OPENYIDA_LANG: 'en',
     OPENYIDA_SKIP_UPDATE_CHECK: '1',
     YIDA_AUTH_ENABLED: 'true',
-    OPENYIDA_COOKIE_B64: Buffer.from(cookieHeader, 'utf8').toString('base64'),
-    OPENYIDA_BASE_URL: MOCK_COOKIE_DATA.base_url,
+    OPENYIDA_ACCESS_TOKEN: MOCK_TOKEN_DATA.access_token,
+    OPENYIDA_REFRESH_TOKEN: MOCK_TOKEN_DATA.refresh_token,
+    OPENYIDA_TOKEN_CORP_ID: MOCK_TOKEN_DATA.corp_id,
+    OPENYIDA_TOKEN_USER_ID: MOCK_TOKEN_DATA.user_id,
+    OPENYIDA_ENDPOINT: MOCK_TOKEN_DATA.base_url,
     NO_UPDATE_NOTIFIER: '1',
     YIDA_QUIET: '1',
     CI: '1',

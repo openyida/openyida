@@ -217,13 +217,6 @@
     "note": "反馈材料整理 → voc"
   },
   {
-    "id": "sls-log-trace",
-    "prompt": "帮我查一下这个 traceId 对应的流程执行日志",
-    "expectedSkill": "sls-log-workbench",
-    "group": "辅助工具",
-    "note": "SLS 日志查询 → sls-log-workbench"
-  },
-  {
     "id": "db-seq-fix-conflict",
     "prompt": "数据库主键序列冲突了，帮我检测并修复",
     "expectedSkill": "yida-db-seq-fix",

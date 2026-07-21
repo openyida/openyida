@@ -203,17 +203,16 @@ describe('schema process evidence runner safety projection', () => {
   test('shrinks login and command evidence to stable local facts', () => {
     const scrubbed = scrubEvidenceForWrite({
       login: {
-        source: 'external-local-cache',
-        cookieFileSha256: 'abc123',
-        cookiesCount: 22,
-        hasCsrf: true,
+        source: 'external-token-session',
+        tokenFileSha256: 'abc123',
+        hasToken: true,
         baseUrlHash: 'def456',
       },
       commands: [
         {
           command: 'login --check-only',
           status: 0,
-          stdoutJsonKeys: ['can_auto_use', 'corp_id', 'csrf_token', 'diagnostics', 'user_id'],
+          stdoutJsonKeys: ['auth_mode', 'can_auto_use', 'corp_id', 'diagnostics', 'user_id'],
           stdoutJsonShape: {
             type: 'object',
             fields: {
@@ -221,7 +220,7 @@ describe('schema process evidence runner safety projection', () => {
               can_auto_use: { type: 'boolean', value: true },
               diagnostics: {
                 type: 'object',
-                keys: ['cookieFile', 'legacyCookieFile'],
+                keys: ['tokenFile'],
               },
             },
           },
@@ -238,7 +237,7 @@ describe('schema process evidence runner safety projection', () => {
 
     expect(scrubbed).toEqual({
       login: {
-        source: 'local-cache',
+        source: 'token-session',
         preflightPassed: true,
       },
       commands: [
@@ -256,15 +255,13 @@ describe('schema process evidence runner safety projection', () => {
     });
     const raw = JSON.stringify(scrubbed);
     for (const disallowed of [
-      'cookieFileSha256',
-      'cookiesCount',
-      'hasCsrf',
+      'tokenFileSha256',
+      'hasToken',
       'baseUrlHash',
       'corp_id',
       'user_id',
       'csrf_token',
-      'cookieFile',
-      'legacyCookieFile',
+      'tokenFile',
       'diagnostics',
       'stdoutJsonKeys',
       'stdoutJsonShape',

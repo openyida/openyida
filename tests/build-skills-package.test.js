@@ -57,8 +57,9 @@ describe('build-skills-package', () => {
       expect(fs.existsSync(path.join(outDir, 'skills-index.json'))).toBe(true);
       expect(fs.existsSync(path.join(outDir, 'references', 'schema-as-code-phase1.md'))).toBe(true);
       const generatedRootSkill = fs.readFileSync(path.join(outDir, 'SKILL.md'), 'utf8');
-      expect(generatedRootSkill).toContain('OPENYIDA_COOKIE_B64');
-      expect(generatedRootSkill).toContain('禁止 `openyida login` / `openyida auth refresh`');
+      expect(generatedRootSkill).toContain('OPENYIDA_ACCESS_TOKEN');
+      expect(generatedRootSkill).toContain('禁止触发 OAuth');
+      expect(generatedRootSkill).not.toContain('OPENYIDA_COOKIE_B64');
       expect(fs.readFileSync(
         path.join(outDir, 'references', 'subskills', 'yida-app', 'README.md'),
         'utf8'
@@ -67,16 +68,18 @@ describe('build-skills-package', () => {
         path.join(outDir, 'references', 'setup-and-env.md'),
         'utf8'
       );
-      expect(generatedSetupGuide).toContain('auth_mode=cookie');
-      expect(generatedSetupGuide).toContain('STOP; host must inject `OPENYIDA_COOKIE_B64`');
-      expect(generatedSetupGuide).toContain('Never run `openyida auth refresh` in cookie mode');
+      expect(generatedSetupGuide).toContain('host-injected token mode');
+      expect(generatedSetupGuide).toContain('STOP; host must inject `OPENYIDA_ACCESS_TOKEN` or `OPENYIDA_REFRESH_TOKEN`');
+      expect(generatedSetupGuide).toContain('Never run `openyida login` in host-injected token mode');
+      expect(generatedSetupGuide).not.toContain('auth_mode=cookie');
       const generatedLoginSkill = fs.readFileSync(
         path.join(outDir, 'references', 'subskills', 'yida-login', 'README.md'),
         'utf8'
       );
-      expect(generatedLoginSkill).toContain('OPENYIDA_COOKIE_B64');
+      expect(generatedLoginSkill).toContain('OPENYIDA_ACCESS_TOKEN');
       expect(generatedLoginSkill).toContain('不要再执行 `openyida login` 触发 OAuth');
       expect(generatedLoginSkill).toContain('不要查找本地 `.cache/cookies*.json`');
+      expect(generatedLoginSkill).not.toContain('OPENYIDA_COOKIE_B64');
       expect(generatedLoginSkill).not.toContain('本地兼容缓存');
       expect(generatedLoginSkill).not.toContain('兼容缓存的 Cookie/CSRF');
 

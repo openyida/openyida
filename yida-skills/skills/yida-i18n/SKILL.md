@@ -34,7 +34,7 @@ openyida i18n overview <appType>
 如果 `ability.enabled=false`，通常说明当前组织未开通国际化能力包，或需要先切到国际版登录态：
 
 ```bash
-openyida login --browser --intl
+openyida login --intl
 openyida i18n overview <appType>
 ```
 
