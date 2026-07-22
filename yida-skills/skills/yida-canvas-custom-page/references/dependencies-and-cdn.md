@@ -21,7 +21,9 @@
 | framer-motion | `FramerMotion` | `${cdn}/.../framerMotion.js` |
 | yida-plugin-markdown | `YidaMarkdown` | moduleFederation 0.0.4 |
 
-新增依赖必须同时满足：① 编译能把 import 抽进 `importedModules` 并映射到 windowAlias（见 `canvas-compile.js` 的 `MODULE_ALIAS_MAP`）；② 上表或平台运行时能把依赖加载到 window；③ `runtimeCode` 引用的变量名与 windowAlias 一致；④ CSS 资源可加载，否则组件可能渲染但样式/弹层异常。白名单外的包（yida-utils、`@ali/deep`、原生字段组件等）不能 `import`。
+新增依赖必须同时满足：① 编译能把 import 抽进 `importedModules` 并映射到 windowAlias（见 `canvas-compile.js` 的 `MODULE_ALIAS_MAP`）；② 上表或平台运行时能把依赖加载到 window；③ `runtimeCode` 引用的变量名与 windowAlias 一致；④ CSS 资源可加载，否则组件可能渲染但样式/弹层异常。白名单外的包（yida-utils、`@ali/deep`、原生字段组件等）不能 `import`；带绑定的非白名单裸包 import 会在本地编译阶段硬失败，不再退化为 `window["pkg"]`。宜搭平台运行态全局对象必须显式使用 `window.Deep`、`window.DeepYida`、`window.YidaNativeComponents` 等 `window.*` 访问，不要从包中导入。
+
+Canvas 没有官方 `useDataBinding` hook，不得从任何包 `import { useDataBinding }`。真实表单数据绑定使用页面内本地 `useYidaData(binding)`、`DataBridge` 与同源 `fetch` 实现。
 
 编译位置：OpenYida CLI **本地用 Babel** 把源码转译为 `runtimeCode` + `importedModules`（`import`→`window.<别名>`、`export default`→`YidaComp`、依赖名正则抽取），不调用任何在线编译服务，因此不依赖登录态、不经过风控。别名映射逐条镜像自 `dependencies.ts` 的 `getModuleAliasMap()`；运行时消费契约见 `factory.tsx`（`new Function` 执行 `runtimeCode` 取 `YidaComp`）。
 

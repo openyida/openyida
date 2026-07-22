@@ -284,6 +284,28 @@ describe('resolveWindowAlias', () => {
 });
 
 describe('compileCanvasLocal', () => {
+  test('rejects unsupported bare package binding imports before runtime', () => {
+    const src = `
+      import { useDataBinding } from 'some-package';
+      export default function App() {
+        const data = useDataBinding({});
+        return <div>{data}</div>;
+      }
+    `;
+
+    let error;
+    try {
+      compileCanvasLocal(src);
+    } catch (compileError) {
+      error = compileError;
+    }
+
+    expect(error).toBeTruthy();
+    expect(error.message).toContain('some-package');
+    expect(error.message).toContain('MODULE_ALIAS_MAP');
+    expect(error.message).toContain('window.*');
+  });
+
   test('produces new Function-compatible runtimeCode that yields a rendering YidaComp', () => {
     const src = `
       import React, { useState } from 'react';

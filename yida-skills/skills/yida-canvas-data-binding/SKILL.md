@@ -16,6 +16,7 @@ Code Canvas 运行时是标准 React 组件环境，组件没有普通宜搭自�
 - `YidaCodeCanvas` 物料只透传 `code / runtimeCode / importedModules / pageType`。
 - 组件内没有 `this` 上下文，也没有 `dataSourceMap`。
 - `this.utils.yida.*`、`didMount()`、`_customState` 等普通页面契约不可用。
+- Canvas 没有官方 `useDataBinding` hook，不得从任何包 `import { useDataBinding }`；真实表单数据绑定用页面内本地 `useYidaData(binding)`、`DataBridge` 和同源 `fetch` 实现。
 - Cookie 由浏览器同源请求自动携带，前端代码不能硬编码 Cookie、appSecret、accessKey 或外部密钥。
 - 调宜搭同源端点时，请求必须带 `credentials: 'include'`。
 - CSRF 优先从 `window.g_config._csrf_token` 或 `window.g_config.csrfToken` 读取；内部端点常同时需要 `_csrf_token` 参数和 `global_csrf_token` 请求头。
