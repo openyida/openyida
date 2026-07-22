@@ -260,6 +260,77 @@ function validatePermissions(commands) {
   }
 }
 
+function validateForbiddenAliases() {
+  const manifest = require('../lib/core/command-manifest').buildCommandManifest();
+  const commandIds = new Set(flattenCommandManifest().map(entry => entry.id));
+  const allowedMatcherTypes = new Set([
+    'argv_prefix',
+    'command_has_option',
+  ]);
+  const seenPatterns = new Set();
+
+  if (!manifest.forbidden_alias_schema || manifest.forbidden_alias_schema.version !== 1) {
+    errors.push('Command manifest is missing forbidden_alias_schema.version 1');
+  }
+  if (!Array.isArray(manifest.forbidden_aliases)) {
+    errors.push('Command manifest forbidden_aliases must be an array');
+    return;
+  }
+
+  for (const entry of manifest.forbidden_aliases) {
+    if (!entry || typeof entry !== 'object') {
+      errors.push('Forbidden alias entries must be objects');
+      continue;
+    }
+    if (typeof entry.id !== 'string' || !entry.id.trim()) {
+      errors.push('Forbidden alias entry is missing id');
+    }
+    if (typeof entry.pattern !== 'string' || !entry.pattern.trim()) {
+      errors.push(`Forbidden alias "${entry.id || '(missing id)'}" is missing pattern`);
+    } else if (seenPatterns.has(entry.pattern)) {
+      errors.push(`Duplicate forbidden alias pattern: ${entry.pattern}`);
+    } else {
+      seenPatterns.add(entry.pattern);
+    }
+    if (!entry.matcher || typeof entry.matcher !== 'object' || Array.isArray(entry.matcher)) {
+      errors.push(`Forbidden alias "${entry.id}" matcher must be an object`);
+    } else if (!allowedMatcherTypes.has(entry.matcher.type)) {
+      errors.push(`Forbidden alias "${entry.id}" has invalid matcher type "${entry.matcher.type}"`);
+    } else if (entry.matcher.type === 'argv_prefix') {
+      if (!Array.isArray(entry.matcher.tokens) || entry.matcher.tokens.length === 0) {
+        errors.push(`Forbidden alias "${entry.id}" argv_prefix matcher.tokens must be a non-empty array`);
+      }
+    } else if (entry.matcher.type === 'command_has_option') {
+      if (typeof entry.matcher.command !== 'string' || !entry.matcher.command.trim()) {
+        errors.push(`Forbidden alias "${entry.id}" command_has_option matcher.command must be a non-empty string`);
+      }
+      if (typeof entry.matcher.option !== 'string' || !entry.matcher.option.startsWith('--')) {
+        errors.push(`Forbidden alias "${entry.id}" command_has_option matcher.option must be a --option string`);
+      }
+    }
+    if (!commandIds.has(entry.suggested_command_id)) {
+      errors.push(`Forbidden alias "${entry.id}" references unknown suggested_command_id "${entry.suggested_command_id}"`);
+    }
+    if (typeof entry.suggested_usage !== 'string' || !entry.suggested_usage.startsWith('openyida ')) {
+      errors.push(`Forbidden alias "${entry.id}" suggested_usage must start with "openyida "`);
+    }
+    if (typeof entry.message_key !== 'string' || !entry.message_key.trim()) {
+      errors.push(`Forbidden alias "${entry.id}" message_key must be a non-empty string`);
+    }
+    if (entry.message_args !== undefined && !Array.isArray(entry.message_args)) {
+      errors.push(`Forbidden alias "${entry.id}" message_args must be an array when present`);
+    }
+    if (entry.message !== undefined && (typeof entry.message !== 'string' || !entry.message.trim())) {
+      errors.push(`Forbidden alias "${entry.id}" message must be a non-empty string when present`);
+    }
+    for (const commandId of entry.alternative_command_ids || []) {
+      if (!commandIds.has(commandId)) {
+        errors.push(`Forbidden alias "${entry.id}" references unknown alternative_command_id "${commandId}"`);
+      }
+    }
+  }
+}
+
 function collectPatternCovers(patterns) {
   if (!Array.isArray(patterns)) {
     return [];
@@ -316,6 +387,7 @@ function run() {
   validateReadmeCoverage(commands);
   validateSideEffects(commands);
   validatePermissions(commands);
+  validateForbiddenAliases();
 
   if (errors.length > 0) {
     console.error('Command manifest validation failed:');

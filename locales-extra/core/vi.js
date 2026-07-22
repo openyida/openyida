@@ -234,6 +234,14 @@ module.exports = {
       '  openyida export-conversation -o output.md       Specify output path\n' +
       '  openyida export-conversation --list             List available conversations\n',
     unknown_command: 'Unknown command: {0}',
+    command_suggestion: 'Suggested command: {0}',
+    forbidden_alias_list_apps: '`{0}` is not an OpenYida command; use `{1}` for application discovery.',
+    forbidden_alias_get_app: '`{0}` is ambiguous; use `{1}` for app name search, `{2}` for form/schema lookup, or `{3}` for bound context preflight.',
+    forbidden_alias_create_app_json: '`{0}` is not a separate command contract; use canonical `{1}` output.',
+    forbidden_alias_create_page_app_type_option: '`{0}` takes appType as the first positional argument, not `{1}`.',
+    forbidden_alias_get_schema_app_type_option: '`{0}` takes appType as the first positional argument, not `{1}`.',
+    forbidden_alias_get_schema_form_uuid_option: '`{0}` takes formUuid as the second positional argument, not `{1}`.',
+    nearest_command_suggestion: 'Unknown OpenYida command root "{0}". Did you mean "{1}"?',
     run_help: 'Run openyida --help for usage',
     integration_help: 'Cach dung: openyida integration <create|list|enable|disable> ...',
     integration_unknown: 'Lenh con integration khong xac dinh: {0}',
@@ -1212,6 +1220,7 @@ module.exports = {
     exception: '\n❌ Lỗi xuất bản: {0}',
     error: '\n❌ Publish error: {0}',
     source_not_found: '❌ Không tìm thấy tệp nguồn: {0}',
+    source_path_hint: '💡 Hãy thử đường dẫn tệp nguồn này: {0}',
     usage: 'Cách dùng: openyida publish <tệpNguồn> <appType> <formUuid> [--health-check] [--canvas]',
     example: 'Ví dụ: openyida publish pages/src/xxx.js APP_XXX FORM-XXX --health-check'
   },

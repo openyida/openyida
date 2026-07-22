@@ -12,6 +12,7 @@ jest.mock('../lib/app/form-navigation', () => ({
 
 const { fetchFormPageList } = require('../lib/app/form-navigation');
 const {
+  buildMissingSourceHints,
   buildDefaultPageDataSource,
   buildCanvasSchemaContent,
   buildSchemaContent,
@@ -51,6 +52,26 @@ describe('publish prechecks', () => {
 
     expect(mismatches).toEqual([
       { sourcePath, duplicatePath: artifactPath },
+    ]);
+  });
+
+  test('suggests pages/src path when cwd is already the OpenYida project directory', () => {
+    const sourceDir = path.join(workspace, 'pages', 'src');
+    fs.mkdirSync(sourceDir, { recursive: true });
+    fs.writeFileSync(path.join(sourceDir, 'home.canvas.jsx'), 'export default function Page() { return null; }\n', 'utf8');
+
+    expect(buildMissingSourceHints('project/pages/src/home.canvas.jsx', workspace)).toEqual([
+      'pages/src/home.canvas.jsx',
+    ]);
+  });
+
+  test('suggests project/pages/src path when running from the repository root', () => {
+    const sourceDir = path.join(workspace, 'project', 'pages', 'src');
+    fs.mkdirSync(sourceDir, { recursive: true });
+    fs.writeFileSync(path.join(sourceDir, 'home.oyd.jsx'), 'export function renderJsx() { return <div />; }\n', 'utf8');
+
+    expect(buildMissingSourceHints('pages/src/home.oyd.jsx', workspace)).toEqual([
+      'project/pages/src/home.oyd.jsx',
     ]);
   });
 

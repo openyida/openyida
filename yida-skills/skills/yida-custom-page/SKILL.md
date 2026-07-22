@@ -16,6 +16,7 @@ description: 宜搭普通自定义页面 JSX / Jsx 组件开发规范（React 16
 - 完整应用 `fast_build` 如果已有 bound app/page，主页面源码直接落到该页面；只在缺少主入口 display page 且用户意图允许新增时创建页面容器。
 - 用户只说“优化这个页面 URL / 修改现有页面 / 重新发布”时，本技能与 `yida-publish-page` 配合即可完成，不创建 app/page。
 - 如果用户给的是普通表单 `formUuid`，页面源码只能把它作为数据源或入口链接使用；不能把数据表单 ID 当作发布目标。
+- 页面源码路径按 Bash cwd 选择：从仓库根执行命令时用 `project/pages/src/...`；如果 cwd 已是 `<workspace>/project`，用 `pages/src/...`，不要写成 `project/pages/src/...`。
 
 ## 核心规则
 
@@ -84,6 +85,8 @@ description: 宜搭普通自定义页面 JSX / Jsx 组件开发规范（React 16
 ## 快速开始
 
 以开发「员工信息查询页」为例，完整流程如下：
+
+下面命令以仓库根为视角；如果当前 cwd 已经是 `<workspace>/project`，把 `project/pages/src/...` 改成 `pages/src/...`。读取生成文件和 Schema 时优先用宿主 Read / Glob / Grep，不要在 CLI 成功后 Bash `cat`/`ls` 复核。
 
 1. 获取表单 Schema，确认字段 ID：
 

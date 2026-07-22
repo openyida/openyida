@@ -219,6 +219,14 @@ module.exports = {
       '  openyida export-conversation -o output.md       指定輸出路徑\n' +
       '  openyida export-conversation --list             列出可用對話\n',
     unknown_command: '未知指令：{0}',
+    command_suggestion: '建議指令：{0}',
+    forbidden_alias_list_apps: '`{0}` 不是 OpenYida 指令；請使用 `{1}` 查詢應用。',
+    forbidden_alias_get_app: '`{0}` 含義不明確；按應用名稱搜尋請用 `{1}`，查詢表單/欄位結構請用 `{2}`，讀取綁定上下文請用 `{3}`。',
+    forbidden_alias_create_app_json: '`{0}` 不是獨立指令契約；請使用規範的 `{1}` 輸出。',
+    forbidden_alias_create_page_app_type_option: '`{0}` 使用第一個位置參數傳入 appType，不使用 `{1}`。',
+    forbidden_alias_get_schema_app_type_option: '`{0}` 使用第一個位置參數傳入 appType，不使用 `{1}`。',
+    forbidden_alias_get_schema_form_uuid_option: '`{0}` 使用第二個位置參數傳入 formUuid，不使用 `{1}`。',
+    nearest_command_suggestion: '未知 OpenYida 指令根「{0}」。你是不是想用「{1}」？',
     run_help: '執行 openyida --help 查看說明',
     integration_help: '用法：openyida integration <create|list|enable|disable> ...',
     integration_unknown: '未知的 integration 子指令：{0}',
@@ -1146,6 +1154,7 @@ module.exports = {
     exception: '\n❌ 發布異常：{0}',
     error: '\n❌ 發布異常：{0}',
     source_not_found: '❌ 原始檔案不存在：{0}',
+    source_path_hint: '💡 可嘗試使用原始檔路徑：{0}',
     usage: '用法：openyida publish <原始檔路徑> <appType> <formUuid> [--health-check] [--canvas]',
     example: '範例：openyida publish pages/src/xxx.js APP_XXX FORM-XXX --health-check'
   },

@@ -220,6 +220,14 @@ module.exports = {
       '  openyida export-conversation --list             利用可能な会話を一覧表示\n' +
       '  openyida update                                 最新バージョンに更新\n',
     unknown_command: '不明なコマンド: {0}',
+    command_suggestion: '推奨コマンド: {0}',
+    forbidden_alias_list_apps: '`{0}` は OpenYida コマンドではありません。アプリ検索には `{1}` を使用してください。',
+    forbidden_alias_get_app: '`{0}` はあいまいです。アプリ名検索には `{1}`、フォーム/Schema 検索には `{2}`、バインド済みコンテキスト確認には `{3}` を使用してください。',
+    forbidden_alias_create_app_json: '`{0}` は独立したコマンド契約ではありません。標準の `{1}` 出力を使用してください。',
+    forbidden_alias_create_page_app_type_option: '`{0}` は appType を最初の位置引数として受け取ります。`{1}` は使用しません。',
+    forbidden_alias_get_schema_app_type_option: '`{0}` は appType を最初の位置引数として受け取ります。`{1}` は使用しません。',
+    forbidden_alias_get_schema_form_uuid_option: '`{0}` は formUuid を 2 番目の位置引数として受け取ります。`{1}` は使用しません。',
+    nearest_command_suggestion: '不明な OpenYida コマンドルート「{0}」。もしかして「{1}」ですか？',
     run_help: 'openyida --help を実行してヘルプを確認してください',
     integration_help: '使用方法: openyida integration <create|list|enable|disable> ...',
     integration_unknown: '不明な integration サブコマンド: {0}',
@@ -1163,6 +1171,7 @@ module.exports = {
     exception: '\n❌ 公開エラー: {0}',
     error: '\n❌ 公開エラー: {0}',
     source_not_found: '❌ ソースファイルが見つかりません：{0}',
+    source_path_hint: '💡 次のソースファイルパスを試してください：{0}',
     usage: '使用方法: openyida publish <ソースファイル> <appType> <formUuid> [--health-check] [--canvas]',
     example: '例: openyida publish pages/src/xxx.js APP_XXX FORM-XXX --health-check'
   },

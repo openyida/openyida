@@ -22,6 +22,7 @@ Code Canvas 是宜搭的代码画布自定义页面链路：以 `YidaCodeCanvas`
 ## 运行时事实
 
 - Canvas 源码写成 `.canvas.jsx` / `.canvas.tsx`，`openyida publish` 会自动走 Canvas 链路。
+- 页面源码路径按 Bash cwd 选择：从仓库根执行命令时用 `project/pages/src/...`；如果 cwd 已是 `<workspace>/project`，用 `pages/src/...`，不要写成 `project/pages/src/...`。
 - `runtimeCode` 在宿主页真实 `window` 中执行，入口必须返回 `YidaComp` / `YidaComp.default` / 组件函数。
 - Canvas 组件没有普通页面实例上下文；数据读写通过 fetch、开放 API、连接器代理或显式 props 数据桥完成。
 - 第三方依赖走白名单；React、antd、ahooks、d3、recharts、Radix、framer-motion 等可按规则 import。
@@ -153,6 +154,8 @@ npx jest tests/canvas-compile.test.js tests/generate-page.test.js --runInBand
 - **CLI 缺口要落盘**：如果改造过程中发现 CLI 行为“回包成功但未生效”、缺少 sample 注册、缺少模板类型或测试覆盖，应优先补 CLI/测试，而不是只用一次性脚本绕过。
 
 ## 开发流程
+
+下面命令以仓库根为视角；如果当前 cwd 已经是 `<workspace>/project`，把 `project/pages/src/...` 改成 `pages/src/...`。读取生成文件、Schema 或校验产物时优先用宿主 Read / Glob / Grep，不要在 CLI 成功后 Bash `cat`/`ls` 复核。
 
 ```bash
 # 1. 只读检查环境和登录态；真实创建资源前必须通过

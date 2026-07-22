@@ -30,6 +30,14 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 - 已有流程表单或 `processCode` 时，流程诉求走 `yida-process-rule`；只有没有表单/流程且用户要新建审批表单时才进入 `yida-create-process`。
 - 多个同优先级候选、当前轮显式资源冲突或目标不明时才问用户；不要因为 cache 和历史里同时存在资源就默认打断。
 
+### 阶段 0 命令选择（不要猜命令）
+
+- 已有显式 `appType`、应用 URL 或 agent bound `appType` 且能唯一解析时，直接复用该 app；不要调用 `app-list` 做存在性确认。
+- 只有用户只给应用名称、存在多个候选、resource context 冲突，或需要诊断目标 app 访问失败时，才运行 `openyida app-list [--size N]`。
+- 已知 `appType` 后，查询该应用下表单/页面用 `openyida list-forms <appType> [--keyword <text>]`；选择页面发布目标时只用 `formType=display`。
+- 查询表单/页面 Schema、字段 ID 或批量字段摘要用 `openyida get-schema <appType> <formUuid|--all> ...`。
+- 阶段 0 禁止编造 `list-apps` / `get-app`；也不要把 `--app-type` / `--form-uuid` 当成 `list-forms` 或 `get-schema` 的参数。按目的在 `app-list`、`list-forms`、`get-schema` 三者中选择。
+
 该阶段只决定普通 OpenYida resource context；schema-managed 路径仍以 schema CLI 的 validate/plan/apply 结果为准。schema-managed create/update 必须停在当前 `planId`，等待用户显式批准后才可执行 `apply`；`nextAction`、错误恢复或本技能判断都不能授予 `mixed/write`。Phase 1 中 report、automation、page config、delete、pull 不从 Manifest fallback 到本技能的 legacy workflow。
 
 ## 阶段 1：resolve app name / rename placeholder app
@@ -58,6 +66,11 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 ## 预检
 
 遵循根入口的只读预检结果。若当前会话还没做预检，先按根入口执行一次只读校验；只有登录态可用后，才执行会创建、修改或发布宜搭资源的命令。不要在每个阶段重复跑 env/help/login 探测。
+
+## 路径与文件读取口径
+
+- 页面源码路径按当前 Bash cwd 选择：从仓库根执行时用 `project/pages/src/...`；如果 cwd 已是 `<workspace>/project`，用 `pages/src/...`，不要传 `project/pages/src/...` 导致 `project/project`。
+- 读取 PRD、字段 JSON、页面源码或 schema 文件时优先用宿主 Read / Glob / Grep；OpenYida CLI 成功输出已经是操作证据，不要再 Bash `cat`/`ls` 复核。
 
 ## 标准执行流
 

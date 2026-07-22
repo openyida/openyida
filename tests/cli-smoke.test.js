@@ -332,9 +332,57 @@ describe('CLI offline smoke', () => {
         unknown_action_mode: expect.stringContaining('unrecognized actions'),
       },
     });
+    expect(parsed.forbidden_alias_schema).toMatchObject({
+      version: 1,
+      matcher_types: {
+        argv_prefix: expect.stringContaining('argv begins'),
+        command_has_option: expect.stringContaining('option appears'),
+      },
+      agent_policy: expect.stringContaining('Deny forbidden aliases before asking'),
+    });
+    expect(parsed.forbidden_aliases).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        pattern: 'list-apps',
+        matcher: { type: 'argv_prefix', tokens: ['list-apps'] },
+        suggested_command_id: 'app-list',
+        suggested_usage: 'openyida app-list [--size N]',
+        message_key: 'cli.forbidden_alias_list_apps',
+        message_args: ['list-apps', 'app-list'],
+        message: '`list-apps` 不是 OpenYida 命令；请使用 `app-list` 查询应用。',
+      }),
+      expect.objectContaining({
+        pattern: 'get-app',
+        suggested_command_id: 'app-list',
+        alternative_command_ids: ['get-schema', 'agent-capabilities'],
+        message_key: 'cli.forbidden_alias_get_app',
+      }),
+      expect.objectContaining({
+        pattern: 'create-app --json',
+        matcher: { type: 'command_has_option', command: 'create-app', option: '--json' },
+        suggested_command_id: 'create-app',
+      }),
+      expect.objectContaining({
+        pattern: 'create-page --app-type',
+        suggested_usage: expect.stringContaining('create-page <appType>'),
+      }),
+      expect.objectContaining({
+        pattern: 'get-schema --app-type',
+        suggested_usage: expect.stringContaining('get-schema <appType>'),
+      }),
+      expect.objectContaining({
+        pattern: 'get-schema --form-uuid',
+        suggested_usage: expect.stringContaining('get-schema <appType>'),
+      }),
+    ]));
     expect(parsed.summary).toMatchObject({
       command_count: parsed.commands.length,
       group_count: parsed.groups.length,
+      forbidden_alias_count: parsed.forbidden_aliases.length,
+      forbidden_alias_patterns: expect.arrayContaining([
+        'list-apps',
+        'get-app',
+        'create-app --json',
+      ]),
     });
     expect(parsed.summary.side_effect_counts.remote_write).toBeGreaterThan(0);
     expect(parsed.summary.permission_mode_counts.allow).toBeGreaterThan(0);
@@ -664,6 +712,105 @@ describe('CLI offline smoke', () => {
       command_manifest_digest_algorithm: 'sha256',
       command_count: manifest.summary.command_count,
       full_capabilities_command: 'openyida agent-capabilities --json',
+      builder_fast_path: {
+        preflight: {
+          recommended_command: 'openyida agent-capabilities --summary-json',
+          run_once: true,
+          additional_env_check_default: false,
+          additional_login_check_default: false,
+          trust_summary_json_as_builder_preflight: true,
+        },
+        environment_check_simplification: {
+          contract_role: 'machine_readable_fast_path_for_builder_runtime_not_yida_agent_business_logic',
+          minimal_probe_commands: [
+            'which openyida',
+            'openyida agent-capabilities --summary-json',
+          ],
+          skip_default_command_patterns: expect.arrayContaining([
+            'openyida --help',
+            'openyida env --json',
+            'openyida login --check-only --json',
+            'Playwright cookie inspection',
+            'cookie cache inspection',
+            'openyida app-list',
+          ]),
+          skip_help_discovery_default: true,
+          skip_env_noise_default: true,
+          skip_cookie_or_playwright_checks_default: true,
+          default_app_list_policy: 'skip_when_bound_app_type_unique',
+        },
+        command_contract: {
+          command_prefix: 'openyida',
+          supported_command_count: manifest.commands.length,
+          supported_command_ids: expect.arrayContaining([
+            'agent-capabilities',
+            'commands',
+            'app-list',
+            'list-forms',
+            'get-schema',
+            'create-app',
+            'create-form.create',
+            'create-page',
+            'publish',
+          ]),
+          canonical_builder_commands: expect.arrayContaining([
+            expect.objectContaining({
+              id: 'app-list',
+              usage: 'openyida app-list [--size N]',
+            }),
+            expect.objectContaining({
+              id: 'get-schema',
+              usage: expect.stringContaining('openyida get-schema'),
+            }),
+          ]),
+          forbidden_aliases: expect.arrayContaining([
+            expect.objectContaining({
+              pattern: 'list-apps',
+              suggested_command_id: 'app-list',
+              message_key: 'cli.forbidden_alias_list_apps',
+            }),
+            expect.objectContaining({
+              pattern: 'get-app',
+              alternative_command_ids: ['get-schema', 'agent-capabilities'],
+              message_key: 'cli.forbidden_alias_get_app',
+            }),
+          ]),
+        },
+        bound_context: {
+          existing_app_type_policy: 'do_not_call_app_list_by_default',
+          call_app_list_only_when: expect.arrayContaining(['name_search', 'target_conflict', 'failure_diagnosis']),
+        },
+        resource_context_resolution: {
+          contract_role: 'structured_runtime_hint_not_skill_stage_rewrite',
+          if_bound_app_type_unique: {
+            action: 'reuse_bound_app_type',
+            command: null,
+            skip_command_ids: ['app-list'],
+          },
+          app_name_search: {
+            command_id: 'app-list',
+            usage: 'openyida app-list [--size N]',
+          },
+          app_forms_or_pages_lookup: {
+            command_id: 'list-forms',
+            usage: 'openyida list-forms <appType> [--keyword <text>]',
+          },
+          schema_or_field_lookup: {
+            command_id: 'get-schema',
+            usages: expect.arrayContaining([
+              'openyida get-schema <appType> <formUuid> --summary-json',
+            ]),
+          },
+          preflight_context: {
+            command_id: 'agent-capabilities',
+            usage: 'openyida agent-capabilities --summary-json',
+          },
+        },
+        paths: {
+          page_source_cli_path_policy: expect.stringContaining('pages/src/<file>'),
+          page_source_examples: expect.arrayContaining(['pages/src/home.canvas.jsx']),
+        },
+      },
     });
     expect(parsed.command_manifest_digest).toMatch(/^[a-f0-9]{64}$/);
     expect(parsed.cache_dir).toBe(path.join(parsed.workdir, '.cache'));
@@ -676,6 +823,24 @@ describe('CLI offline smoke', () => {
     expect(parsed.login).not.toHaveProperty('diagnostics');
     expect(parsed.login).not.toHaveProperty('cookies');
     expect(parsed.login).not.toHaveProperty('csrf_token');
+    expect(parsed.builder_fast_path.command_contract).toMatchObject({
+      forbidden_aliases_available_in: 'openyida commands --json',
+      forbidden_alias_count: manifest.forbidden_aliases.length,
+      unknown_command_policy: 'deny_with_manifest_suggestion_before_asking_user',
+    });
+    expect(parsed.builder_fast_path.auth).toMatchObject({
+      auth_runtime: 'token_oauth_session',
+      cookie_auth_supported: false,
+      cookie_check_required: false,
+      playwright_cookie_check_required: false,
+      qr_login_required: false,
+      prohibited_legacy_checks: expect.arrayContaining([
+        'browser_cookie',
+        'playwright_cookie',
+        'qr_login',
+        'cookie_cache',
+      ]),
+    });
   });
 
   test('agent-capabilities command manifest digest canonicalizes object keys', () => {
@@ -798,8 +963,63 @@ describe('CLI offline smoke', () => {
       mode: 'fast_build',
       completion_contract: expect.stringContaining('Create app'),
     });
+    expect(parsed.builder_fast_path.bound_context).toMatchObject({
+      existing_app_type_policy: 'do_not_call_app_list_by_default',
+      skip_app_list_when: expect.arrayContaining([
+        'appType is already provided by the user',
+        'a bound app context is already available',
+      ]),
+    });
+    expect(parsed.builder_fast_path.resource_context_resolution).toMatchObject({
+      if_bound_app_type_unique: {
+        action: 'reuse_bound_app_type',
+        command: null,
+        skip_command_ids: ['app-list'],
+      },
+      app_name_search: {
+        command_id: 'app-list',
+      },
+      app_forms_or_pages_lookup: {
+        command_id: 'list-forms',
+      },
+      schema_or_field_lookup: {
+        command_id: 'get-schema',
+      },
+    });
+    expect(parsed.builder_fast_path.environment_check_simplification).toMatchObject({
+      minimal_probe_commands: [
+        'which openyida',
+        'openyida agent-capabilities --summary-json',
+      ],
+      skip_default_command_patterns: expect.arrayContaining([
+        'openyida --help',
+        'openyida env --json',
+        'openyida login --check-only --json',
+        'browser login',
+        'qr login',
+        'Playwright cookie inspection',
+        'cookie cache inspection',
+        'openyida app-list',
+      ]),
+      skip_help_discovery_default: true,
+      skip_env_noise_default: true,
+      skip_cookie_or_playwright_checks_default: true,
+      default_app_list_policy: 'skip_when_bound_app_type_unique',
+    });
+    expect(parsed.builder_fast_path.command_contract.canonical_builder_commands.map(entry => entry.id)).toEqual(expect.arrayContaining([
+      'agent-capabilities',
+      'commands',
+      'app-list',
+      'list-forms',
+      'get-schema',
+      'create-app',
+      'create-form.create',
+      'create-page',
+      'publish',
+    ]));
     expect(parsed.recommended.preflight_command).toBe('openyida agent-capabilities --summary-json');
     expect(parsed.recommended.full_capabilities_command).toBe('openyida agent-capabilities --json');
+    expect(parsed.recommended.builder_fast_path.preflight.run_once).toBe(true);
     expect(parsed.command_manifest.side_effect_schema).toMatchObject({
       version: 1,
       kinds: {
@@ -813,6 +1033,12 @@ describe('CLI offline smoke', () => {
         ask: expect.stringContaining('Requires user confirmation'),
       },
     });
+    expect(parsed.command_manifest.forbidden_aliases).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        pattern: 'list-apps',
+        suggested_command_id: 'app-list',
+      }),
+    ]));
     expect(parsed.command_manifest.summary.command_count).toBe(parsed.command_manifest.commands.length);
     expect(parsed.login).toHaveProperty('status');
     expect(parsed.login).not.toHaveProperty('cookies');
@@ -1162,6 +1388,44 @@ describe('CLI offline smoke', () => {
         status: 'ok',
         can_auto_use: true,
       });
+      expect(summary.builder_fast_path.auth).toMatchObject({
+        mode: 'token',
+        source: 'env',
+        can_auto_use: true,
+        host_injected_token_mode: true,
+        host_token_env_detected: true,
+        env_token_present: true,
+        interactive_login_allowed: false,
+        browser_session_auth_allowed: false,
+        missing_token_action: 'STOP_AND_REQUEST_HOST_TOKEN',
+      });
+      expect(summary.builder_fast_path.preflight).toMatchObject({
+        recommended_command: 'openyida agent-capabilities --summary-json',
+        run_once: true,
+        additional_env_check_default: false,
+        additional_login_check_default: false,
+        trust_summary_json_as_builder_preflight: true,
+      });
+      expect(summary.builder_fast_path.environment_check_simplification).toMatchObject({
+        can_skip_default_exploration_when_summary_ok: true,
+        skip_login_check_only_default: true,
+        skip_browser_login_default: true,
+        skip_cookie_or_playwright_checks_default: true,
+        stop_when_host_token_missing: false,
+      });
+      expect(summary.builder_fast_path.environment_check_simplification.skip_default_command_patterns).toEqual(expect.arrayContaining([
+        'openyida --help',
+        'openyida env --json',
+        'openyida login --check-only --json',
+        'browser login',
+        'qr login',
+        'Playwright cookie inspection',
+        'cookie cache inspection',
+        'openyida app-list',
+      ]));
+      expect(summary.builder_fast_path.bound_context.existing_app_type_policy).toBe('do_not_call_app_list_by_default');
+      expect(JSON.stringify(summary)).not.toContain('login.dingtalk.com/oauth2/auth');
+      expect(JSON.stringify(summary)).not.toContain('cookies.json');
       expect(summary.login).not.toHaveProperty('cookies');
       expect(summary.login).not.toHaveProperty('csrf_token');
     } finally {
@@ -1200,6 +1464,32 @@ describe('CLI offline smoke', () => {
       });
       expect(refresh).not.toHaveProperty('access_token');
       expect(refresh).not.toHaveProperty('refresh_token');
+
+      const summary = JSON.parse(runOkWithEnv(['agent-capabilities', '--summary-json'], {
+        CODEX_SHELL: '1',
+        OPENYIDA_ENV: 'public',
+        YIDA_AUTH_ENABLED: 'true',
+      }, workspace));
+      expect(summary.login).toMatchObject({
+        auth_mode: 'token',
+        auth_source: 'env',
+        status: 'not_logged_in',
+        can_auto_use: false,
+      });
+      expect(summary.builder_fast_path.auth).toMatchObject({
+        host_injected_token_mode: true,
+        host_token_env_detected: true,
+        env_token_present: false,
+        interactive_login_allowed: false,
+        missing_token_action: 'STOP_AND_REQUEST_HOST_TOKEN',
+      });
+      expect(summary.builder_fast_path.environment_check_simplification).toMatchObject({
+        can_skip_default_exploration_when_summary_ok: true,
+        skip_login_check_only_default: true,
+        skip_browser_login_default: true,
+        skip_cookie_or_playwright_checks_default: true,
+        stop_when_host_token_missing: true,
+      });
     } finally {
       fs.rmSync(workspace, { recursive: true, force: true });
     }
@@ -1232,6 +1522,35 @@ describe('CLI offline smoke', () => {
       errorCode: 'INVALID_ARGUMENTS',
       errorMsg: expect.stringContaining('未知命令'),
     });
+  });
+
+  test('forbidden alias unknown commands fail with manifest suggestions', () => {
+    const listApps = runAny(['list-apps']);
+    expect(listApps.status).toBe(1);
+    expect(listApps.output).toContain('未知命令');
+    expect(listApps.output).toContain('建议命令: openyida app-list [--size N]');
+    expect(listApps.output).toContain('`list-apps` 不是 OpenYida 命令；请使用 `app-list` 查询应用。');
+    expect(listApps.output).not.toContain('is not an OpenYida command');
+
+    const getApp = runAny(['get-app', '--json']);
+    expect(getApp.status).toBe(1);
+    const parsed = JSON.parse(getApp.output);
+    expect(parsed.errorMsg).toContain('openyida app-list [--size N]');
+    expect(parsed.errorMsg).toContain('`get-app` 含义不明确');
+    expect(parsed.errorMsg).not.toContain('is ambiguous');
+    expect(parsed.details.suggestion).toMatchObject({
+      pattern: 'get-app',
+      suggested_command_id: 'app-list',
+      alternative_command_ids: ['get-schema', 'agent-capabilities'],
+      message_key: 'cli.forbidden_alias_get_app',
+      message_args: ['get-app', 'app-list', 'get-schema', 'agent-capabilities'],
+    });
+
+    const nearest = runAny(['app-lst']);
+    expect(nearest.status).toBe(1);
+    expect(nearest.output).toContain('建议命令: openyida app-list [--size N]');
+    expect(nearest.output).toContain('未知 OpenYida 命令根「app-lst」。你是不是想用「app-list」？');
+    expect(nearest.output).not.toContain('Unknown OpenYida command root');
   });
 
   test('publish keeps source-first CLI order through the router', () => {

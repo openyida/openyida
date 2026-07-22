@@ -234,6 +234,14 @@ module.exports = {
       '  openyida export-conversation -o output.md       Specify output path\n' +
       '  openyida export-conversation --list             List available conversations\n',
     unknown_command: 'Unknown command: {0}',
+    command_suggestion: 'Suggested command: {0}',
+    forbidden_alias_list_apps: '`{0}` is not an OpenYida command; use `{1}` for application discovery.',
+    forbidden_alias_get_app: '`{0}` is ambiguous; use `{1}` for app name search, `{2}` for form/schema lookup, or `{3}` for bound context preflight.',
+    forbidden_alias_create_app_json: '`{0}` is not a separate command contract; use canonical `{1}` output.',
+    forbidden_alias_create_page_app_type_option: '`{0}` takes appType as the first positional argument, not `{1}`.',
+    forbidden_alias_get_schema_app_type_option: '`{0}` takes appType as the first positional argument, not `{1}`.',
+    forbidden_alias_get_schema_form_uuid_option: '`{0}` takes formUuid as the second positional argument, not `{1}`.',
+    nearest_command_suggestion: 'Unknown OpenYida command root "{0}". Did you mean "{1}"?',
     run_help: 'Run openyida --help for usage',
     integration_help: '사용법: openyida integration <create|list|enable|disable> ...',
     integration_unknown: '알 수 없는 integration 하위 명령: {0}',
@@ -1213,6 +1221,7 @@ module.exports = {
     exception: '\n❌ 배포 오류: {0}',
     error: '\n❌ Publish error: {0}',
     source_not_found: '❌ 소스 파일을 찾을 수 없습니다: {0}',
+    source_path_hint: '💡 이 소스 파일 경로를 시도해 보세요: {0}',
     usage: '사용법: openyida publish <소스 파일> <appType> <formUuid> [--health-check] [--canvas]',
     example: '예시: openyida publish pages/src/xxx.js APP_XXX FORM-XXX --health-check'
   },

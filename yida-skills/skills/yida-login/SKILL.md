@@ -1,14 +1,16 @@
 ---
 name: yida-login
-description: 宜搭登录态管理。默认 OAuth token；YIDA_AUTH_ENABLED=true 时使用宿主注入 token。
+description: 宜搭登录态管理。以 OpenYida auth snapshot 为准；默认 OAuth token，snapshot 返回 env 注入状态时使用宿主 token。
 ---
 
 # yida-login
 
 ## Mode
 
-- IF `YIDA_AUTH_ENABLED=true`: `auth_mode=token`, `auth_source=env`; only credential sources are host-injected token env such as `OPENYIDA_ACCESS_TOKEN` and `OPENYIDA_REFRESH_TOKEN`.
-- ELSE: `auth_mode=token`; use OAuth token flow only.
+- Do not infer auth mode from agent name, host product, workspace path, or a guessed environment variable.
+- First read `openyida agent-capabilities --summary-json`; fallback to `openyida login --check-only --json` only when needed.
+- If the snapshot reports `login.auth_source=env` or `failure_reason=env_token_missing`, treat it as host-injected token mode. The only credential sources are host-injected token env such as `OPENYIDA_ACCESS_TOKEN` and `OPENYIDA_REFRESH_TOKEN`.
+- Otherwise, `auth_mode=token` uses the default OAuth token session flow.
 - NEVER infer auth from `.cache/cookies*.json`.
 
 ## Preflight
@@ -31,12 +33,12 @@ openyida login --check-only --json
 | Observed status | Action |
 |---|---|
 | `auth_mode=token`, `status=ok` or `can_auto_use=true` | Continue business command |
-| `failure_reason=env_token_missing` | STOP; host did not inject `OPENYIDA_ACCESS_TOKEN` or `OPENYIDA_REFRESH_TOKEN`; do not OAuth |
-| `auth_mode=token`, not logged in, `YIDA_AUTH_ENABLED` is not true | Run `openyida login`, then verify with `openyida login --check-only --json` |
+| `auth_source=env` / `failure_reason=env_token_missing` | Treat as host-injected token mode; if token is missing, STOP and ask host to inject `OPENYIDA_ACCESS_TOKEN` or `OPENYIDA_REFRESH_TOKEN`; do not OAuth |
+| `auth_mode=token`, not logged in, and snapshot does not report env injection | Run `openyida login`, then verify with `openyida login --check-only --json` |
 
 ## Token Mode Commands
 
-Use OAuth login only when `YIDA_AUTH_ENABLED` is not true.
+Use OAuth login only when the auth snapshot does not report env injection.
 
 ```bash
 openyida login
@@ -58,7 +60,7 @@ Overseas / international / global / Japan / Global YiDA => add `--intl` or equiv
 
 ## Host-Injected Token Mode Commands
 
-Use only when `YIDA_AUTH_ENABLED=true`.
+Use only after the auth snapshot reports `auth_source=env` or `failure_reason=env_token_missing`.
 
 ```bash
 openyida agent-capabilities --summary-json

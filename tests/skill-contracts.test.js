@@ -105,6 +105,30 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('不内联完整 Schema');
   });
 
+  test('builder stopgap docs codify yida-app resource resolution commands and cwd-sensitive paths', () => {
+    const root = readSkill('yida-skills/SKILL.md');
+    const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
+    const canvas = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');
+    const native = readSkill('yida-skills/skills/yida-custom-page/SKILL.md');
+    const publish = readSkill('yida-skills/skills/yida-publish-page/SKILL.md');
+
+    expect(root).toContain('不要再用 Bash `cat`/`ls` 做无意义复核');
+
+    expect(app).toContain('已有显式 `appType`、应用 URL 或 agent bound `appType` 且能唯一解析时，直接复用该 app');
+    expect(app).toContain('不要调用 `app-list` 做存在性确认');
+    expect(app).toContain('才运行 `openyida app-list [--size N]`');
+    expect(app).toContain('openyida list-forms <appType> [--keyword <text>]');
+    expect(app).toContain('openyida get-schema <appType> <formUuid|--all> ...');
+    expect(app).toContain('禁止编造 `list-apps` / `get-app`');
+    expect(app).toContain('按目的在 `app-list`、`list-forms`、`get-schema` 三者中选择');
+
+    [app, canvas, native, publish].forEach((skill) => {
+      expect(skill).toContain('从仓库根执行');
+      expect(skill).toContain('<workspace>/project');
+      expect(skill).toContain('`pages/src/...`');
+    });
+  });
+
   test('yida-publish-page treats missing preserved data sources as incomplete when code uses dataSourceMap', () => {
     const skill = readSkill('yida-skills/skills/yida-publish-page/SKILL.md');
 

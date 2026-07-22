@@ -14,7 +14,7 @@ const { version: currentVersion } = require('../package.json');
 const { t } = require('../lib/core/i18n');
 const { warn } = require('../lib/core/chalk');
 const { CliError, isCliError, toErrorPayload } = require('../lib/core/cli-error');
-const { COMMAND_GROUPS, buildCommandManifest } = require('../lib/core/command-manifest');
+const { COMMAND_GROUPS, buildCommandManifest, findCommandSuggestion } = require('../lib/core/command-manifest');
 
 const command = process.argv[2];
 const args = process.argv.slice(3);
@@ -474,6 +474,33 @@ function applyQuietFlag() {
 function throwCliUsage(...lines) {
   throw new CliError(lines.filter(Boolean).join('\n'), {
     code: 'INVALID_ARGUMENTS',
+  });
+}
+
+function formatSuggestionMessage(suggestion) {
+  if (!suggestion) {
+    return '';
+  }
+  if (suggestion.message_key) {
+    return t(suggestion.message_key, ...(suggestion.message_args || []));
+  }
+  return '';
+}
+
+function throwUnknownCommand(commandName, commandArgs = []) {
+  const suggestion = findCommandSuggestion([commandName, ...commandArgs]);
+  const lines = [t('cli.unknown_command', commandName)];
+  if (suggestion) {
+    lines.push(t('cli.command_suggestion', suggestion.suggested_usage));
+    const suggestionMessage = formatSuggestionMessage(suggestion);
+    if (suggestionMessage) {
+      lines.push(suggestionMessage);
+    }
+  }
+  lines.push(t('cli.run_help'));
+  throw new CliError(lines.filter(Boolean).join('\n'), {
+    code: 'INVALID_ARGUMENTS',
+    details: suggestion ? { suggestion } : undefined,
   });
 }
 
@@ -1147,7 +1174,7 @@ async function main() {
     }
 
     default: {
-      throwCliUsage(t('cli.unknown_command', command), t('cli.run_help'));
+      throwUnknownCommand(command, args);
     }
   }
 }

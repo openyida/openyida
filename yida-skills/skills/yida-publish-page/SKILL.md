@@ -63,6 +63,8 @@ description: 自定义页面 JSX 编译发布技能；schema-managed 页面由�
 openyida publish <源文件路径> <appType> <formUuid> [--compat] [--canvas] [--health-check] [--force]
 ```
 
+路径口径：从仓库根执行时，源文件用 `project/pages/src/...`；如果 Bash cwd 已经是 `<workspace>/project`，源文件用 `pages/src/...`，不要传 `project/pages/src/...` 导致查找 `project/project/pages/src/...`。发布失败提示源文件不存在时，先按该规则切换路径，不要自动发布另一份文件。
+
 > 本技能覆盖两条并列发布链路：**普通自定义页面 JSX/Jsx 组件链路**（`.oyd.jsx` / `.jsx`，Babel + UglifyJS + `Jsx` 组件 Schema）和 **Code Canvas 链路**（`.canvas.jsx`，本地 Babel 编译 + `YidaCodeCanvas` Schema）。从零写普通自定义页面见 `yida-custom-page`；从零写或迁移 Canvas 页见 `yida-canvas-custom-page` / `yida-canvas-upgrade`。
 > 注意：`openyida check-page` / `openyida compile` 当前是普通自定义页面检查器，不适合作为 `.canvas.jsx` 的预检；Canvas 预检以 `publish` 的「编译 Code Canvas 源码」阶段为准。
 
@@ -139,7 +141,7 @@ body { background-color: #f2f3f5; }
 
 ## 注意事项
 
-- 发布目标地址由当前环境配置和 auth context（默认 token session；`YIDA_AUTH_ENABLED=true` 时为宿主注入 token）中的 `base_url` 决定
+- 发布目标地址由当前环境配置和 auth snapshot（本地 OAuth token session 或 snapshot 明确返回的宿主注入 env token）中的 `base_url` 决定
 - 碰到组织 corpId 不匹配时，询问用户是重新登录到目标组织，还是确认在当前组织继续发布到已解析页面；不要通过新建应用规避不匹配
 - **编写源码前必须先加载对应页面子技能**：普通自定义页面 JSX/Jsx 组件链路调用 `use_skill("yida-custom-page", "编写宜搭普通自定义页面 JSX")`；Code Canvas 链路调用 `use_skill("yida-canvas-custom-page", "编写 Code Canvas 自定义页面")`。旧式 `renderJsx` 写法不要使用 Hooks，现代普通自定义页面 authoring 写法必须走 `.oyd.jsx` 兼容编译；Canvas 源码写成 `.canvas.jsx`
 

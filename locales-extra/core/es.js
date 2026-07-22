@@ -234,6 +234,14 @@ module.exports = {
       '  openyida export-conversation -o output.md       Specify output path\n' +
       '  openyida export-conversation --list             List available conversations\n',
     unknown_command: 'Unknown command: {0}',
+    command_suggestion: 'Suggested command: {0}',
+    forbidden_alias_list_apps: '`{0}` is not an OpenYida command; use `{1}` for application discovery.',
+    forbidden_alias_get_app: '`{0}` is ambiguous; use `{1}` for app name search, `{2}` for form/schema lookup, or `{3}` for bound context preflight.',
+    forbidden_alias_create_app_json: '`{0}` is not a separate command contract; use canonical `{1}` output.',
+    forbidden_alias_create_page_app_type_option: '`{0}` takes appType as the first positional argument, not `{1}`.',
+    forbidden_alias_get_schema_app_type_option: '`{0}` takes appType as the first positional argument, not `{1}`.',
+    forbidden_alias_get_schema_form_uuid_option: '`{0}` takes formUuid as the second positional argument, not `{1}`.',
+    nearest_command_suggestion: 'Unknown OpenYida command root "{0}". Did you mean "{1}"?',
     run_help: 'Run openyida --help for usage',
     integration_help: 'Uso: openyida integration <create|list|enable|disable> ...',
     integration_unknown: 'Subcomando integration desconocido: {0}',
@@ -1214,6 +1222,7 @@ module.exports = {
     exception: '\n❌ Error de publicación: {0}',
     error: '\n❌ Publish error: {0}',
     source_not_found: '❌ Archivo fuente no encontrado: {0}',
+    source_path_hint: '💡 Prueba esta ruta de archivo fuente: {0}',
     usage: 'Uso: openyida publish <archivoFuente> <appType> <formUuid> [--health-check] [--canvas]',
     example: 'Ejemplo: openyida publish pages/src/xxx.js APP_XXX FORM-XXX --health-check'
   },
