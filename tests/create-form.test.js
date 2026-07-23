@@ -23,6 +23,7 @@ const createFormSplitSource = [
 ].map((file) => fs.readFileSync(path.join(__dirname, '..', 'lib', 'app', 'create-form', file), 'utf-8')).join('\n');
 const combinedCreateFormSource = sourceCode + '\n' + createFormSplitSource;
 const createForm = require('../lib/app/create-form');
+const { createDefinitionReaders } = require('../lib/app/create-form/definition-reader');
 const formCompiler = require('../lib/app/services/form-compiler');
 const { verifyFieldBindings } = require('../lib/app/services/field-bindings');
 
@@ -637,6 +638,40 @@ describe('create-form module API', () => {
       appType: 'APP_XXX',
       formUuid: 'FORM_XXX',
       validationJsonOrFile: '.cache/openyida/forms/validations.json',
+    });
+  });
+});
+
+describe('create-form definition readers', () => {
+  function createTestReaders() {
+    return createDefinitionReaders({
+      fs,
+      path,
+      safeParseJson: JSON.parse,
+      error(message) {
+        throw new Error(message);
+      },
+      t(key) {
+        return key;
+      },
+    });
+  }
+
+  test('create fields unwrap update-style add changes produced by agents', () => {
+    const { readFieldsDefinition } = createTestReaders();
+
+    const result = readFieldsDefinition(JSON.stringify([
+      { action: 'add', field: { type: 'Divider', title: '访客信息' } },
+      { action: 'add', field: { type: 'TextField', label: '访客姓名', required: true } },
+    ]));
+
+    expect(result).toMatchObject({
+      columns: 1,
+      validations: [],
+      fields: [
+        { type: 'Divider', title: '访客信息' },
+        { type: 'TextField', label: '访客姓名', required: true },
+      ],
     });
   });
 });
