@@ -304,6 +304,31 @@ describe('compileCanvasLocal', () => {
     expect(error.message).toContain('some-package');
     expect(error.message).toContain('MODULE_ALIAS_MAP');
     expect(error.message).toContain('window.*');
+    expect(error.message).toContain('OPENYIDA_CANVAS_ALLOW_UNSUPPORTED_IMPORTS');
+  });
+
+  test('allows explicit legacy window fallback for runtime alias drift', () => {
+    const oldValue = process.env.OPENYIDA_CANVAS_ALLOW_UNSUPPORTED_IMPORTS;
+    process.env.OPENYIDA_CANVAS_ALLOW_UNSUPPORTED_IMPORTS = '1';
+    try {
+      const src = `
+        import { FutureWidget } from 'future-runtime-package';
+        export default function App() {
+          return <FutureWidget />;
+        }
+      `;
+
+      const { runtimeCode, importedModules } = compileCanvasLocal(src);
+
+      expect(runtimeCode).toContain('window["future-runtime-package"]');
+      expect(JSON.parse(importedModules)).toEqual(['future-runtime-package', 'react']);
+    } finally {
+      if (oldValue === undefined) {
+        delete process.env.OPENYIDA_CANVAS_ALLOW_UNSUPPORTED_IMPORTS;
+      } else {
+        process.env.OPENYIDA_CANVAS_ALLOW_UNSUPPORTED_IMPORTS = oldValue;
+      }
+    }
   });
 
   test('produces new Function-compatible runtimeCode that yields a rendering YidaComp', () => {
