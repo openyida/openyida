@@ -149,6 +149,10 @@ schema-managed create/update 必须等待用户对当前 `planId` 显式批准�
 
 **Canvas 数据边界**：完整应用/真实交付页如果展示列表、看板或详情记录，必须优先把本轮真实 `appType/formUuid/fieldId` 写入 `page-spec.json` 的 `dataBinding.mode=form`；需要演示记录时先写入真实表单再读取。未接真实表单且未写入 demo records 时，页面展示空态/入口，不用前端 seedRows 冒充业务数据。
 
+**Schema 获取去重**：完整应用创建/解析多个表单后，页面阶段需要字段映射时，对每个目标表单默认只执行一次 `openyida get-schema <appType> <formUuid> --field-map-json`，读取完整 JSON 并合并到 `.cache/<项目名>-schema.json` 复用。不要用 `head`/`tail`/`grep` 截断 get-schema stdout 作为字段证据，也不要因此对同一表单重复拉取多轮 schema。
+
+**Canvas 生成路径二选一**：走模板路径时，先写业务化 `page-spec.json` 再 `openyida generate-page ... --spec ... --compile`，后续只读 manifest/摘要并小范围 Edit；不要立即 Read 大段源码再全量 Write 覆盖同一路径。若已经明确最终页面结构，跳过 `generate-page` 直接 Write 最终 `.canvas.jsx`。
+
 **doneWhen**：`yida-app` 发布主页面成功并输出可访问 URL。到这里默认完成；不要发布后继续 TaskCreate、重复读技能或继续规划。
 
 **optionalAfterDone**：导航整理、示例数据、公开访问、截图验证、深度视觉方向、数据源/连接器深度接入、报表/大屏，只在用户明确要求或 `yida-app` 模式为 `full_demo` / `deep_design` 时执行。
@@ -232,7 +236,7 @@ schema-managed create/update 必须等待用户对当前 `planId` 显式批准�
 
 1. **按阶段加载必要技能**：按意图选 1 个主技能；完整应用按阶段加载当下唯一需要的子技能，禁止并发批量读取多个 `SKILL.md` 或预读未来阶段技能。
 2. **Resource-First**：任何 legacy 写操作前先解析本轮显式资源、agent bound context、workspace cache/config、历史上下文；已有目标资源时默认修改/补齐/发布，只有目标缺失且意图允许创建时才加载 create 类技能。
-3. **优先复用 direct 映射**：仅对 direct/standalone 资源，已有 `.cache/<项目名>-schema.json` 中可确认新鲜的 `appType`/`formUuid`/`fieldId` 可复用；该文件不是 Schema-as-Code state，也不是远端真相。字段缺失、重名或结构变化时执行 `get-schema --compact --resolve-fields`，不得猜测。
+3. **优先复用 direct 映射**：仅对 direct/standalone 资源，已有 `.cache/<项目名>-schema.json` 中可确认新鲜的 `appType`/`formUuid`/`fieldId` 可复用；该文件不是 Schema-as-Code state，也不是远端真相。字段缺失、重名或结构变化时执行 `get-schema --compact --resolve-fields`；完整应用页面需要多字段/多表单映射时每表单一次性执行 `get-schema --field-map-json` 并缓存完整字段摘要。不得猜测字段 ID，也不要用 `head`/`tail`/`grep` 截断 schema stdout 当证据。
 4. **模板优先**：复杂产物先用 `openyida sample` 或现有示例生成骨架，再做最小改动。
 5. **配置承载优先于代码**：字段/公式/联动/报表/审批/集成交给对应技能，自定义页面只做展示与胶水。
 6. **数据性能优先**：统计聚合用 `yida-report` 服务端聚合，不在前端拉全量后自行聚合。

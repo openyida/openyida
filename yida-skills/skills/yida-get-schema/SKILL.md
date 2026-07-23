@@ -15,12 +15,16 @@ description: 确定性解析表单字段 ID（fieldId）和子表路径；agent 
 - 不要缓存过期的 Schema 信息，表单结构变更后必须重新获取
 - 不要把进程内状态或 CLI 自动派生索引当作跨调用缓存；查询新字段时允许重新拉取完整 Schema
 - 不要把 `openyida get-schema` 的 stdout 通过 shell 重定向保存成 JSON，也不要用 heredoc、`cat`/`echo`/`printf`/`tee` 生成 Schema 文件
+- 不要把 `openyida get-schema` 的 stdout 再接 `head`、`tail`、`grep`、`sed`、`awk` 等截断/筛选命令作为 Schema 证据；这会丢字段、选项或子表路径，导致后续重复拉取
+- 不要在同一阶段对同一个 `formUuid` 连续执行 `--compact`、`--field-map-json`、完整 Schema 等多轮“探一段 stdout”式查询；除非表单刚被修改、上次命令失败/不完整，或排障需要完整组件 props
 
 ## 严格要求 (MUST DO)
 
 - **凡是需要用到字段 ID（fieldId）的操作，必须先执行此命令**，不得跳过
 - 页面开发、数据查询、报表配置或流程规则只需要字段身份时，先执行 `openyida get-schema <appType> <formUuid> --compact --resolve-fields "<字段1,字段2>"`，不要拉取完整 Schema
 - 页面开发默认使用 compact 输出，只读取必要字段契约，不内联完整 Schema
+- 完整应用页面、看板、列表或详情页需要一个表单的大部分字段，或需要跨多个表单建立 `dataBinding` 时，优先对每个表单执行一次 `openyida get-schema <appType> <formUuid> --field-map-json`，消费完整 JSON 后解析所需字段，不用 shell 截断 stdout
+- 多表单场景同一阶段同一 `formUuid` 默认最多拉取一次字段映射；把 `appType`、`formUuid`、`fieldId`、`label`、`componentName`、`options` 等合并写入 `<projectRoot>/.cache/<项目名>-schema.json`，后续页面 spec 和源码复用该 standalone ID 映射
 - 执行 compact 查询后，只消费唯一命中的 `fields[]`；`missingFields` 或 `ambiguousFields` 非空时停止，不得猜测或继续写操作
 - 只有用户明确需要完整组件 props、布局结构、字段数据源配置，或 compact/summary 无法排障时，才执行不带 `--compact`/`--summary-json` 的完整 Schema 输出；拿到完整 Schema 后只读取必要片段，不内联完整 Schema
 - 已有 `<projectRoot>/.cache/<项目名>-schema.json` 等 standalone ID 映射文件可显式复用；目标字段缺失、重名、结构已变或无法确认新鲜度时，必须重新执行 compact 查询
@@ -74,12 +78,14 @@ openyida get-schema <appType> --all [--summary-json] [--output-dir <dir>] [--key
 
 ```bash
 openyida get-schema APP_XXX FORM-XXX --compact --resolve-fields "访客姓名,状态"
-openyida get-schema APP_XXX FORM-XXX --summary-json
+openyida get-schema APP_XXX FORM-XXX --field-map-json
 ```
 
 Agent 只需要少量字段 ID 时，默认使用 `--compact --resolve-fields`，读取 `fields[].label`、`fields[].fieldId`、`fields[].componentType`、`fields[].valueType`、`fields[].path`、`fields[].labelPath` 和 `fields[].parentFieldId`。`path` 是稳定的 fieldId 数组，`labelPath` 是可读路径；所有可用语言的 label 都参与精确匹配。同名字段会进入 `ambiguousFields[].matches`，必须使用完整 `labelPath`、稳定 `path` 或已返回的 fieldId 重新精确选择，禁止取第一个。
 
 需要全量字段摘要和选项时继续使用 `--summary-json`。只有需要组件完整 props、布局结构、字段数据源配置或排障时，才执行不带 compact/summary 参数的完整 Schema 输出。
+
+消费输出时读取完整 JSON，再由 agent / 脚本解析字段；不要用 `tail -20`、`head -30` 或 `grep` 只看局部 stdout。局部查看可以作为人工调试，但不能作为后续写页面、写数据或配置流程的字段证据。
 
 如需复用输出，使用 agent 的结构化文件写入工具创建：
 
@@ -167,7 +173,7 @@ Agent compact 模式输出共享 contract，不包含完整 Schema 或 props：
 |---------|----------|
 | 命令返回失败 | 确认 appType 和 formUuid 正确，检查登录态 |
 | 输出被终端截断 | 优先改用 `--summary-json`；确需完整 Schema 时，再将 stdout 通过结构化文件写入工具保存到 `<projectRoot>/.cache/openyida/<项目名或任务名>/<表单名>-schema.json`；不要使用 shell 重定向 |
-| 需要多个表单字段 ID | 使用批量 compact 模式：`openyida get-schema <appType> --all --summary-json --output-dir .cache/openyida/<项目名或任务名>/schemas`，默认只读 `index.json` 字段摘要 |
+| 需要多个表单字段 ID | 使用批量摘要或每表单完整字段映射：`openyida get-schema <appType> --all --summary-json --output-dir .cache/openyida/<项目名或任务名>/schemas`，或对目标表单逐个执行一次 `--field-map-json`；默认只读完整 JSON / `index.json` 字段摘要，不用 `head`/`tail`/`grep` 截断 |
 | 批量部分失败 | 查看 stdout 的 `failedCount` 和 `forms[].errorMsg`，必要时提高 `--retries` 或缩小 `--keyword` 范围 |
 | 找不到目标字段 | 查看 `missingFields`，确认字段已创建后重新查询；不能手写猜测 fieldId |
 | 同名字段无法唯一确定 | 查看 `ambiguousFields[].matches[].labelPath` 和稳定 `path`，使用完整路径或 fieldId 重新查询；不得默认取第一个 |

@@ -8,6 +8,8 @@
 
 `generate-page` 的模板只用于选定运行时契约、数据桥、主题变量和首版 primitives；它不是最终视觉稿。生成真实页面时，必须结合 `yida-page-uiux` 的视觉方向决策块重写区块顺序、信息层级、局部构图、文案和样式节奏。可以保留模板的编译安全结构和必要 primitive class，但不要照搬默认 Hero、卡片网格、三段式卖点或库存文案。
 
+页面生成路径必须二选一：走模板路径时，先写业务化 `page-spec.json` 并执行 `openyida generate-page ... --spec ... --compile`，之后只读取 CLI 摘要或 `.openyida-page.json`，再对生成源码做小范围 Edit/patch；不要立刻 Read 大段源码后全量 Write 覆盖同一路径。若已经明确最终页面结构、数据桥和视觉细节，走手写路径，跳过 `generate-page`，直接 Write 最终 `.canvas.jsx`。
+
 生成器会在 `.openyida-page.json` 中写入 `domainFidelity`，并在 CLI 输出中提示当前页面是否还依赖 sample fallback：
 
 - `domain-ready`：主要业务语义已覆盖，sample 只剩编译骨架。

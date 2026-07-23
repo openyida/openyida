@@ -105,6 +105,7 @@ openyida sample yida-canvas-custom-page portal-native-components --output projec
 8. **门户运行态组件要补必需 props 和局部降级**：`QuickAccessCard` / `RecentlyUsedCard` 必须传 `theme="row-white"` 等必需 props，避免运行态读取 `theme.includes(...)` 报错；所有门户/字段/上传增强组件外层加局部 ErrorBoundary，单个组件不兼容时只降级该块，不让整页进入 Canvas 错误态。
 9. **自定义主题必须页面内注入**：`--theme` 只接受平台预置 key；如果页面设计使用非预置主题（例如活力橙、深玫红、自定义暗黑金），Canvas 页面必须在自身源码中注入 `style#yida-global-theme` 或等价 scoped CSS vars，并在根节点设置 `data-theme-scope="page"`。官方 sample 每个页面都要做，避免宿主应用 `black` 主题把页面染成黑灰。
 10. **真实交付不使用前端 seed 冒充业务数据**：`openyida sample` 原样发布可以保留 sample/seed 数据，但必须在页面上标注为 sample/seed。完整应用或真实交付页只要需要列表、看板、详情记录，并且本轮已经创建/解析业务表单，就必须在 `page-spec.json` 写入 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射，让页面从表单读取。若需要演示数据，先通过表单数据写入链路创建 demo/mock records，再由 Canvas 读取这些真实表单记录；未写入 demo records 且没有真实数据时展示空态、表单入口、刷新/登记按钮。
+11. **页面生成二选一**：选择模板路径时，`openyida generate-page ... --spec ... --compile` 之后只读取 CLI 摘要或 `.openyida-page.json` 判断 `domainFidelity` / dataBinding，并对生成源码做小范围 Edit/patch；禁止立刻 Read 大段源码后全量 Write 覆盖同一路径。选择手写路径时，直接 Write 最终 `.canvas.jsx` 并快检/发布，不要先跑 `generate-page` 再完全覆盖。
 
 ## 数据真实性边界
 
@@ -165,12 +166,14 @@ openyida login --check-only --json
 # 2. 如需新页面，先创建空白自定义页拿 formUuid
 openyida create-page <appType> "<页面名>"
 
-# 3. 生成或复制 Canvas 源码
+# 3. 生成或编写 Canvas 源码
+# 模板路径：生成后基于 manifest/摘要和小范围 patch 演进，不全量覆盖生成文件。
 openyida generate-page workbench-home --theme-profile yida-app-theme --theme-scope page --output project/pages/src/workbench-home.canvas.jsx --compile
 openyida generate-page dashboard-overview --theme-profile yida-app-theme --theme-scope page --output project/pages/src/dashboard-overview.canvas.jsx --compile
 openyida generate-page portal-shell-home --theme-profile yida-app-theme --theme-scope page --output project/pages/src/portal-shell-home.canvas.jsx --compile
 openyida sample yida-canvas-custom-page native-components-smoke --output project/pages/src/native-components-smoke.canvas.jsx
 openyida sample yida-canvas-custom-page portal-native-components --output project/pages/src/portal-native-components.canvas.jsx
+# 手写路径：已明确最终页面结构时，跳过 generate-page，直接 Write 最终 .canvas.jsx。
 
 # 4. 本地 Canvas 快检
 node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/<页面名>.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
@@ -178,8 +181,8 @@ node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/c
 # 5. 发布（本轮修改源码后的远端完成证据）
 openyida publish project/pages/src/<页面名>.canvas.jsx <appType> <formUuid>
 
-# 6. 发布后回读 Schema 验收
-openyida get-schema <appType> <formUuid> > .cache/openyida/<页面名>-schema.json
+# 6. 发布后回读字段摘要验收；如需留证，用结构化文件写入工具保存 stdout，不用 shell 重定向
+openyida get-schema <appType> <formUuid> --field-map-json
 ```
 
 `openyida check-page` / `openyida compile` 当前面向普通自定义页面 `.oyd.jsx` / `.jsx`；Canvas 以 `compileCanvasLocal` 和 `openyida publish .canvas.jsx` 的 Canvas 编译阶段为准。`compileCanvasLocal` 是发布前快检，不能替代 `openyida publish` 的远端写入证据。

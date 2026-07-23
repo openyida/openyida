@@ -259,6 +259,10 @@ openyida copy
 
 fast_build 页面源码默认不得使用 \`this.dataSourceMap.*\`，除非本轮已经明确创建并绑定设计器数据源；默认使用入口型页面或 \`this.utils.yida.*\` 查询已创建表单。
 
+fast_build 创建/解析多个表单后，页面阶段需要字段映射时，对每个目标表单默认只执行一次 \`openyida get-schema <appType> <formUuid> --field-map-json\`，读取完整 JSON 并写入/复用 \`.cache/<项目名>-schema.json\`；不要用 \`head\` / \`tail\` / \`grep\` 截断 schema stdout 后重复拉取。
+
+Canvas 页面实现二选一：走模板路径时先写业务化 \`page-spec.json\` 再 \`openyida generate-page ... --spec ... --compile\`，之后只做必要小范围 Edit/patch；如果已经明确最终页面结构，跳过 \`generate-page\`，直接 Write 最终 \`.canvas.jsx\`。不要 generate-page 后马上 Read 大段源码并全量 Write 覆盖同一路径。
+
 不要默认加载 \`yida-page-uiux\`、\`yida-data-source-connectors\`、\`yida-data-management\`、\`yida-nav-group\`、\`yida-dashboard\`，也不要默认做示例数据、导航整理、截图验收、公开访问、长 PRD 或深读 references；这些只在用户明确要求或 \`full_demo\` / \`deep_design\` 时执行。
 
 ## 子技能目录
