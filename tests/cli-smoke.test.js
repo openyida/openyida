@@ -1501,4 +1501,22 @@ describe('CLI offline smoke', () => {
     expect(result.output).toContain('missing-publish-source.oyd.jsx');
     expect(result.output).not.toContain(path.join(ROOT, 'FORM-XXX'));
   });
+
+  test('Canvas publish rejects emoji in source filenames before login', () => {
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-publish-canvas-'));
+    try {
+      const sourcePath = path.join(workspace, 'pages', 'src', 'home-✅.canvas.jsx');
+      fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
+      fs.writeFileSync(sourcePath, 'export default function Page() { return <div>ok</div>; }\n', 'utf8');
+
+      const result = runAny(['publish', sourcePath, 'APP_TEST', 'FORM-TEST', '--no-open']);
+
+      expect(result.status).toBe(1);
+      expect(result.output).toMatch(/OPENYIDA_PAGE_FILENAME_EMOJI_FORBIDDEN|contains emoji/);
+      expect(result.output).not.toContain('读取登录态');
+      expect(result.output).not.toContain('Read login credentials');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
 });
