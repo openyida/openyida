@@ -251,6 +251,45 @@ openyida integration create APP_XXX FORM-XXX "获取自身后分支更新" \
   --publish
 ```
 
+审批完成后调用 HTTP 自定义连接器时，spec 中应同时保留连接器类型推断、鉴权连接和设计器展示所需的元信息：
+
+```json
+{
+  "events": ["processFinish"],
+  "approvalActions": ["agree"],
+  "nodes": [
+    {
+      "id": "self",
+      "type": "getSelf",
+      "formName": "导入申请",
+      "description": "按当前表单实例ID获取导入申请"
+    },
+    {
+      "id": "submit",
+      "type": "connector",
+      "connectorId": "Http_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "connectorName": "Http_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "connectorDisplayName": "BI 后端",
+      "actionId": "submit_import",
+      "connectionId": "10001",
+      "assignments": [
+        {
+          "column": "month",
+          "valueType": "column",
+          "value": "${self}.dateField_month"
+        }
+      ]
+    }
+  ]
+}
+```
+
+`connectorId` 以 `Http_` 开头时会自动使用 `connectorMode=5` 和 `httpConnector`；也可以在节点中显式指定 `"connectorMode": 5`。`connectionId` 是连接器鉴权连接 ID，不能用连接器 ID 或动作 ID 替代。
+
+`processFinish` 事件必须提供非空 `approvalActions`；`activityTask` 事件还必须提供非空 `approvalNodeIds`，否则命令会在保存流程前终止。
+
+同时声明 `processFinish` 和 `activityTask` 时，执行模型会保留两种事件；设计器只能保存一种审批触发子类型，因此 `examineApproveType` 与普通构建器保持一致，优先使用 `activityTask`。
+
 > `--spec` 文件先用 create_file / Write / file edit tool 创建。上方路径默认从 OpenYida project 工作目录执行；从 workspace 根执行命令时路径加 `project/` 前缀。
 
 ## 字段变量引用格式

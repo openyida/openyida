@@ -170,6 +170,15 @@ describe('integration spec builder', () => {
     expect(() => validateIntegrationSpec({ nodes: [{ type: 'getSelf' }] }, ['insert'])).not.toThrow();
     expect(() => validateIntegrationSpec({ events: ['insert'], nodes: [] })).toThrow(/non-empty nodes array/);
     expect(() => validateIntegrationSpec({ events: ['unknown'], nodes: [{ type: 'getSelf' }] })).toThrow(/valid event/);
+    expect(() => validateIntegrationSpec({
+      events: ['processFinish'],
+      nodes: [{ type: 'getSelf' }],
+    })).toThrow(/approvalActions/);
+    expect(() => validateIntegrationSpec({
+      events: ['activityTask'],
+      approvalActions: ['agree'],
+      nodes: [{ type: 'getSelf' }],
+    })).toThrow(/approvalNodeIds/);
   });
 
   test('accepts route condition objects with explicit logic', () => {
@@ -320,6 +329,204 @@ describe('integration spec builder', () => {
     expect(lookup.props.condition.rules[0]).toMatchObject({
       id: 'textField_b',
       value: `\${${built.nodeIdMap.self}}.textField_a`,
+    });
+  });
+
+  test('maps process completion events to designer trigger metadata', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['processFinish'],
+        approvalActions: ['agree'],
+        nodes: [{ id: 'self', type: 'getSelf' }],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-PROCESS',
+      flowName: 'Approval completion flow',
+    });
+
+    const processTrigger = built.processJson.nodes[0];
+    expect(processTrigger.props.inputs).toMatchObject({
+      formEventType: ['processFinish'],
+      activityAction: ['agree'],
+    });
+
+    const viewTrigger = built.viewJson.schema.children[0].props.start;
+    expect(viewTrigger).toMatchObject({
+      formEventType: ['processEvents'],
+      examineApproveType: 'processFinish',
+      examineApproveActiveList: ['agree'],
+    });
+  });
+
+  test('preserves ordinary events when combined with process completion', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert', 'processFinish'],
+        approvalActions: ['agree'],
+        nodes: [{ id: 'self', type: 'getSelf' }],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-PROCESS',
+      flowName: 'Mixed event flow',
+    });
+
+    expect(built.processJson.nodes[0].props.inputs.formEventType).toEqual([
+      'insert',
+      'processFinish',
+    ]);
+    expect(built.viewJson.schema.children[0].props.start).toMatchObject({
+      formEventType: ['processEvents', 'insert'],
+      examineApproveType: 'processFinish',
+    });
+  });
+
+  test('maps approval task events and selected nodes to designer trigger metadata', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['activityTask'],
+        approvalActions: [' agree ', ''],
+        approvalNodeIds: [' approval-node-1 ', ''],
+        nodes: [{ id: 'self', type: 'getSelf' }],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-PROCESS',
+      flowName: 'Approval task flow',
+    });
+
+    const expectedTask = [{
+      activityId: ['approval-node-1'],
+      activityAction: ['agree'],
+    }];
+    expect(built.processJson.nodes[0].props.inputs).toMatchObject({
+      formEventType: ['activityTask'],
+      activityAction: ['agree'],
+      activityId: ['approval-node-1'],
+      activityTask: expectedTask,
+    });
+
+    const viewTrigger = built.viewJson.schema.children[0].props.start;
+    expect(viewTrigger).toMatchObject({
+      formEventType: ['processEvents'],
+      examineApproveType: 'activityTask',
+      examineApproveNode: 'approval-node-1',
+      examineApproveActiveList: ['agree'],
+      examineApproveActiveTask: expectedTask,
+    });
+  });
+
+  test('keeps HTTP connector metadata in spec process and designer nodes', () => {
+    const connectorId = 'Http_1234567890abcdef1234567890abcdef';
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          {
+            id: 'submit',
+            type: 'connector',
+            name: 'Submit import',
+            connectorId,
+            connectorName: connectorId,
+            connectorDisplayName: 'BI backend',
+            actionId: 'submit_import',
+            connectionId: '10001',
+            assignments: [
+              { column: 'month', valueType: 'processVar', value: 'dateField_month' },
+            ],
+          },
+        ],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'HTTP connector flow',
+    });
+
+    const processConnector = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.submit);
+    expect(processConnector).toMatchObject({
+      type: 'httpConnector',
+      props: {
+        inputs: {
+          connection: '10001',
+          connectionId: '10001',
+          connectorMode: 5,
+          connectorId,
+          actionId: 'submit_import',
+        },
+      },
+    });
+
+    const viewConnector = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.submit);
+    expect(viewConnector.props.name).toBe('BI backend');
+    expect(viewConnector.props.connectorRules).toMatchObject({
+      connectionId: '10001',
+      connectorId,
+      actionId: 'submit_import',
+      connector: {
+        connectorId,
+        connectorName: connectorId,
+        connectorMode: 5,
+        mode: 5,
+        name: 'BI backend',
+        displayName: 'BI backend',
+      },
+    });
+  });
+
+  test('marks getSelf targets as process forms and preserves display metadata', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['processFinish'],
+        approvalActions: ['agree'],
+        nodes: [
+          {
+            id: 'self',
+            type: 'getSelf',
+            name: 'Get current request',
+            formName: 'Monthly import request',
+            description: 'Load the current request by form instance ID',
+          },
+        ],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-PROCESS',
+      flowName: 'Get current request flow',
+    });
+
+    const getSelf = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.self);
+    expect(getSelf.props.description).toBe('Load the current request by form instance ID');
+    expect(getSelf.props.getData.targetItem.formItem).toMatchObject({
+      formType: 'process',
+      formUuid: 'FORM-PROCESS',
+      title: 'Monthly import request',
+    });
+    expect(getSelf.props.getData.condition.rules[0]).toMatchObject({
+      id: 'pid',
+      value: '__masterdata_form_inst_id',
+      opCode: 'Equal',
+    });
+  });
+
+  test('keeps getSelf targets as receipt forms for ordinary form events', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [{ id: 'self', type: 'getSelf', formName: 'Submission' }],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-RECEIPT',
+      flowName: 'Get current submission flow',
+    });
+
+    const getSelf = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.self);
+    expect(getSelf.props.getData.targetItem.formItem).toMatchObject({
+      formType: 'receipt',
+      formUuid: 'FORM-RECEIPT',
+      title: 'Submission',
     });
   });
 
