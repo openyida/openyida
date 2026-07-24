@@ -106,7 +106,7 @@ openyida sample yida-canvas-custom-page portal-native-components --output projec
 9. **自定义主题必须页面内注入**：`--theme` 只接受平台预置 key；如果页面设计使用非预置主题（例如活力橙、深玫红、自定义暗黑金），Canvas 页面必须在自身源码中注入 `style#yida-global-theme` 或等价 scoped CSS vars，并在根节点设置 `data-theme-scope="page"`。官方 sample 每个页面都要做，避免宿主应用 `black` 主题把页面染成黑灰。
 10. **真实交付不使用前端 seed 冒充业务数据**：`openyida sample` 原样发布可以保留 sample/seed 数据，但必须在页面上标注为 sample/seed。完整应用或真实交付页只要需要列表、看板、详情记录，并且本轮已经创建/解析业务表单，就必须在 `page-spec.json` 写入 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射，让页面从表单读取。若需要演示数据，先通过表单数据写入链路创建 demo/mock records，再由 Canvas 读取这些真实表单记录；未写入 demo records 且没有真实数据时展示空态、表单入口、刷新/登记按钮。
 11. **页面生成二选一**：选择模板路径时，`openyida generate-page ... --spec ... --compile` 之后只读取 CLI 摘要或 `.openyida-page.json` 判断 `domainFidelity` / dataBinding，并对生成源码做小范围 Edit/patch；禁止立刻 Read 大段源码后全量 Write 覆盖同一路径。选择手写路径时，直接 Write 最终 `.canvas.jsx` 并快检/发布，不要先跑 `generate-page` 再完全覆盖。
-12. **Canvas 产物硬禁 emoji**：`.canvas.jsx` 源码、模板 spec 会渲染到页面的文案、JS 注释和数据常量都不能包含 emoji。`generate-page --compile`、`compileCanvasLocal` 或 `publish` 报 emoji 错误时，先改 spec/源码；不要尝试跳过 lint 或重复发布。
+12. **Canvas 产物硬禁 emoji**：`.canvas.jsx` 源码、模板 spec 会渲染到页面的文案、JS 注释、数据常量和产物文件路径都不能包含 emoji。`generate-page --compile`、`compileCanvasLocal` 或 `publish` 报 emoji 错误时，先改 spec/源码/路径；不要尝试跳过 lint 或重复发布。
 
 ## 数据真实性边界
 

@@ -284,6 +284,48 @@ describe('resolveWindowAlias', () => {
 });
 
 describe('compileCanvasLocal', () => {
+  test('rejects unicode escape sequences that would decode to emoji', () => {
+    expect(() => compileCanvasLocal(`
+      import React from 'react';
+      export default function Page() {
+        return <div>{"\\u2705"}</div>;
+      }
+    `)).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_SOURCE_EMOJI_FORBIDDEN',
+    }));
+
+    expect(() => compileCanvasLocal(`
+      import React from 'react';
+      export default function Page() {
+        return <div>{"\\u{1F4CA}"}</div>;
+      }
+    `)).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_SOURCE_EMOJI_FORBIDDEN',
+    }));
+
+    expect(() => compileCanvasLocal(`
+      import React from 'react';
+      export default function Page() {
+        return <div>{"\\uD83D\\uDE80"}</div>;
+      }
+    `)).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_SOURCE_EMOJI_FORBIDDEN',
+    }));
+  });
+
+  test('rejects emoji in source filenames', () => {
+    expect(() => compileCanvasLocal(`
+      import React from 'react';
+      export default function Page() {
+        return <div>ok</div>;
+      }
+    `, {
+      sourcePath: 'pages/src/home-✅.canvas.jsx',
+    })).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_PAGE_FILENAME_EMOJI_FORBIDDEN',
+    }));
+  });
+
   test('rejects unsupported bare package binding imports before runtime', () => {
     const src = `
       import { useDataBinding } from 'some-package';

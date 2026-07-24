@@ -144,6 +144,28 @@ describe('generate-page command', () => {
     expect(fs.existsSync(path.join(tmpDir, 'pages', 'dist', 'emoji-home.canvas.js'))).toBe(false);
   });
 
+  test('rejects emoji in generated output filenames before writing files', () => {
+    expect(() => execFileSync(process.execPath, [
+      BIN,
+      'generate-page',
+      'product-homepage',
+      '--brand-name',
+      '客户工作台',
+      '--output',
+      'pages/src/home-✅.canvas.jsx',
+      '--compile',
+    ], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+      stdio: 'pipe',
+    })).toThrow(/contains emoji/);
+
+    expect(fs.existsSync(path.join(tmpDir, 'pages', 'src', 'home-✅.canvas.jsx'))).toBe(false);
+    expect(fs.existsSync(path.join(tmpDir, 'pages', 'dist', 'home-✅.canvas.js'))).toBe(false);
+  });
+
   test('accepts --theme-profile as a visual profile alias', () => {
     execFileSync(process.execPath, [BIN, 'generate-page', 'product-homepage', '--theme-profile', 'custom-theme', '--compile'], {
       cwd: tmpDir,

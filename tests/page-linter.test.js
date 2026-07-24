@@ -51,6 +51,22 @@ export function renderJsx() {
     ]));
   });
 
+  test('blocks emoji in page filenames', () => {
+    const source = `
+export function renderJsx() {
+  return <div>ok</div>;
+}
+`;
+
+    const result = lintYidaSource(source, '/tmp/home-✅.jsx');
+    expect(result.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        rule: 'emoji-forbidden',
+        line: 1,
+      }),
+    ]));
+  });
+
   test('flags Yida runtime traps in otherwise JSX-shaped pages', () => {
     const source = `
 export function renderJsx() {

@@ -343,6 +343,28 @@ describe('SAC-09A offline page foundation', () => {
     }));
   });
 
+  test('Canvas compiler rejects unicode escape emoji before producing runtime code', () => {
+    writeSource(
+      'pages/escaped.canvas.jsx',
+      'import React from "react";\nexport default function Page() { return <div>{"\\u2705"}</div>; }\n'
+    );
+
+    expect(() => compileCanvasPageSource(load('pages/escaped.canvas.jsx'))).toThrow(expect.objectContaining({
+      code: 'SCHEMA_PAGE_SOURCE_EMOJI_FORBIDDEN',
+    }));
+  });
+
+  test('Canvas schema builder rejects unicode escape emoji in stored source or runtime code', () => {
+    expect(() => buildCanvasPageSchemaContent(
+      'export default function Page() { return <div>{"\\u2705"}</div>; }',
+      'var YidaComp = function Page(){ return window.React.createElement("div", null, "\\u2705"); };',
+      '["react"]',
+      'FORM-CANVAS'
+    )).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_PAGE_SCHEMA_EMOJI_FORBIDDEN',
+    }));
+  });
+
   test('projects saved Canvas pages from YidaCodeCanvas props without native shell fingerprints', () => {
     const compiledPage = compileCanvas();
     const firstSchema = makeCanvasSavedSchema(compiledPage, {

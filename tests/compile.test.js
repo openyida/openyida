@@ -95,4 +95,42 @@ export function renderJsx() {
 
     expect(fs.existsSync(path.join(tmpDir, 'pages', 'dist', 'emoji.js'))).toBe(false);
   });
+
+  test('rejects unicode escape emoji before writing compiled output', () => {
+    const sourcePath = path.join(tmpDir, 'pages', 'src', 'escaped.jsx');
+    fs.writeFileSync(sourcePath, `
+export function renderJsx() {
+  return <div>{"\\u2705"}</div>;
+}
+`, 'utf8');
+
+    expect(() => execFileSync(process.execPath, [BIN, 'compile', 'pages/src/escaped.jsx', '--skip-lint'], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+      stdio: 'pipe',
+    })).toThrow(/contains emoji/);
+
+    expect(fs.existsSync(path.join(tmpDir, 'pages', 'dist', 'escaped.js'))).toBe(false);
+  });
+
+  test('rejects emoji in source filenames', () => {
+    const sourcePath = path.join(tmpDir, 'pages', 'src', 'home-✅.jsx');
+    fs.writeFileSync(sourcePath, `
+export function renderJsx() {
+  return <div>ok</div>;
+}
+`, 'utf8');
+
+    expect(() => execFileSync(process.execPath, [BIN, 'compile', 'pages/src/home-✅.jsx', '--skip-lint'], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+      stdio: 'pipe',
+    })).toThrow(/contains emoji/);
+
+    expect(fs.existsSync(path.join(tmpDir, 'pages', 'dist', 'home-✅.js'))).toBe(false);
+  });
 });

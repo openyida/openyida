@@ -160,7 +160,7 @@ UI 不是独立替代主流程的步骤，而是按模式插入到页面生成�
 
 - **模板路径**：先写业务化 `page-spec.json`，再执行 `openyida generate-page ... --spec <page-spec.json> --compile`。生成后只读取 `.openyida-page.json` / CLI 摘要判断 `domainFidelity` 和 dataBinding 状态；若需要补业务语义或样式，基于生成文件做小范围 Edit/patch。禁止在 `generate-page` 后立即 Read 500+ 行源码再全量 Write 覆盖同一路径。
 - **手写路径**：如果已经明确最终页面结构、数据桥和视觉细节，跳过 `generate-page`，直接 Write 最终 `.canvas.jsx`，再做本地快检和 publish。不要先生成模板再把模板完全覆盖。
-- **emoji 硬门禁**：表单字段 JSON、页面 spec、`.canvas.jsx` / `.oyd.jsx` 源码和发布 Schema 都不能包含 emoji。OpenYida 报 emoji 错误时修改字段文案、spec 或源码；不要用 `--skip-lint`、重复 create/publish 或全量 rewrite 试图绕过。
+- **emoji 硬门禁**：表单字段 JSON、页面 spec、`.canvas.jsx` / `.oyd.jsx` 源码、发布 Schema 和产物文件路径都不能包含 emoji。OpenYida 报 emoji 错误时修改字段文案、spec、源码或路径；不要用 `--skip-lint`、重复 create/publish 或全量 rewrite 试图绕过。
 
 选择模板路径时必须：
 
