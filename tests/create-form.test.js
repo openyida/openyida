@@ -1079,7 +1079,7 @@ describe('form compiler field bindings', () => {
     }));
   });
 
-  test('compileFormDefinition validates AssociationFormField associationForm.formUuid', () => {
+  test('compileFormDefinition validates AssociationFormField association targets', () => {
     expect(() => formCompiler.compileFormDefinition({
       formTitle: '缺关联配置',
       fields: [
@@ -1112,6 +1112,33 @@ describe('form compiler field bindings', () => {
         label: '关联车辆',
       }),
     }));
+
+    expect(() => formCompiler.compileFormDefinition({
+      formTitle: '非法 schema-managed 引用',
+      fields: [
+        { key: 'customer', type: 'AssociationFormField', label: '关联客户', form: 'customer' },
+      ],
+    })).toThrow(expect.objectContaining({
+      code: 'FORM_COMPILER_ASSOCIATION_FORM_UUID_MISSING',
+      details: expect.objectContaining({
+        semanticPath: 'customer',
+        form: 'customer',
+      }),
+    }));
+
+    const managedReferenceCompiled = formCompiler.compileFormDefinition({
+      formTitle: 'schema-managed 引用',
+      fields: [
+        {
+          key: 'customer',
+          type: 'AssociationFormField',
+          label: '关联客户',
+          form: 'form:customer',
+        },
+      ],
+    });
+
+    expect(managedReferenceCompiled.fieldBindingComponents.customer).toBe('AssociationFormField');
 
     const compiled = formCompiler.compileFormDefinition({
       formTitle: '合法关联配置',
