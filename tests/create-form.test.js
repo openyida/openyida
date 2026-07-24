@@ -471,6 +471,49 @@ describe('form presentation components', () => {
     }));
   });
 
+  test('AssociationFormField requires associationForm.formUuid in nested definitions', () => {
+    expect(() => createForm._private.validateFormFieldDefinitions([
+      {
+        type: 'TableField',
+        label: '明细',
+        children: [
+          { type: 'AssociationFormField', label: '关联客户', associationForm: { formUuid: '' } },
+        ],
+      },
+    ])).toThrow(expect.objectContaining({
+      code: 'CREATE_FORM_ASSOCIATION_FORM_UUID_MISSING',
+      details: expect.objectContaining({
+        path: 'fields[0].children[0]',
+        label: '关联客户',
+      }),
+    }));
+
+    expect(() => createForm._private.validateFormFieldDefinitions([
+      {
+        type: 'ColumnContainer',
+        children: [
+          [
+            { type: 'AssociationFormField', label: '关联订单', associationForm: {} },
+          ],
+        ],
+      },
+    ])).toThrow(expect.objectContaining({
+      code: 'CREATE_FORM_ASSOCIATION_FORM_UUID_MISSING',
+      details: expect.objectContaining({
+        path: 'fields[0].children[0][0]',
+        label: '关联订单',
+      }),
+    }));
+
+    expect(() => createForm._private.validateFormFieldDefinitions([
+      {
+        type: 'AssociationFormField',
+        label: '关联车辆',
+        associationForm: { formUuid: 'FORM_VEHICLE' },
+      },
+    ])).not.toThrow();
+  });
+
   test('TableField children reject presentation components before schema build', () => {
     const fields = [
       {
@@ -756,6 +799,37 @@ describe('create-form create recovery guardrails', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
+  test('missing AssociationFormField formUuid fails before saveFormSchemaInfo creates a blank form', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-missing-association-'));
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([
+      {
+        type: 'AssociationFormField',
+        label: '关联车辆',
+        associationForm: { appType: 'APP_TEST' },
+      },
+    ]));
+
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand();
+
+    await expect(isolatedCreateForm.run([
+      'create',
+      'APP_TEST',
+      '用车申请',
+      fieldsPath,
+    ])).rejects.toMatchObject({
+      code: 'CREATE_FORM_ASSOCIATION_FORM_UUID_MISSING',
+      details: expect.objectContaining({
+        path: 'fields[0]',
+        label: '关联车辆',
+      }),
+    });
+
+    expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
   test('post-create getFormSchema failure emits structured recovery JSON with formUuid', async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-post-create-'));
     const fieldsPath = path.join(tmpDir, 'fields.json');
@@ -1022,6 +1096,83 @@ describe('form compiler field bindings', () => {
         ]),
       }),
     }));
+  });
+
+  test('compileFormDefinition validates AssociationFormField association targets', () => {
+    expect(() => formCompiler.compileFormDefinition({
+      formTitle: '缺关联配置',
+      fields: [
+        { key: 'customer', type: 'AssociationFormField', label: '关联客户', associationForm: {} },
+      ],
+    })).toThrow(expect.objectContaining({
+      code: 'FORM_COMPILER_ASSOCIATION_FORM_UUID_MISSING',
+      details: expect.objectContaining({
+        semanticPath: 'customer',
+        label: '关联客户',
+      }),
+    }));
+
+    expect(() => formCompiler.compileFormDefinition({
+      formTitle: '子表缺关联配置',
+      fields: [
+        {
+          key: 'items',
+          type: 'TableField',
+          label: '明细',
+          children: [
+            { key: 'vehicle', type: 'AssociationFormField', label: '关联车辆', associationForm: { formUuid: ' ' } },
+          ],
+        },
+      ],
+    })).toThrow(expect.objectContaining({
+      code: 'FORM_COMPILER_ASSOCIATION_FORM_UUID_MISSING',
+      details: expect.objectContaining({
+        semanticPath: 'items.vehicle',
+        label: '关联车辆',
+      }),
+    }));
+
+    expect(() => formCompiler.compileFormDefinition({
+      formTitle: '非法 schema-managed 引用',
+      fields: [
+        { key: 'customer', type: 'AssociationFormField', label: '关联客户', form: 'customer' },
+      ],
+    })).toThrow(expect.objectContaining({
+      code: 'FORM_COMPILER_ASSOCIATION_FORM_UUID_MISSING',
+      details: expect.objectContaining({
+        semanticPath: 'customer',
+        form: 'customer',
+      }),
+    }));
+
+    const managedReferenceCompiled = formCompiler.compileFormDefinition({
+      formTitle: 'schema-managed 引用',
+      fields: [
+        {
+          key: 'customer',
+          type: 'AssociationFormField',
+          label: '关联客户',
+          form: 'form:customer',
+        },
+      ],
+    });
+
+    expect(managedReferenceCompiled.fieldBindingComponents.customer).toBe('AssociationFormField');
+
+    const compiled = formCompiler.compileFormDefinition({
+      formTitle: '合法关联配置',
+      fields: [
+        {
+          key: 'customer',
+          type: 'AssociationFormField',
+          label: '关联客户',
+          associationForm: { appType: 'APP_CUSTOMER', formUuid: 'FORM_CUSTOMER' },
+        },
+      ],
+    });
+
+    expect(JSON.stringify(compiled.schema)).toContain('FORM_CUSTOMER');
+    expect(compiled.fieldBindingComponents.customer).toBe('AssociationFormField');
   });
 
   test('compileFormDefinition rejects dots inside semantic keys', () => {
