@@ -20,6 +20,7 @@ const {
   extractPageDataSource,
   findDuplicateSourceMismatches,
   mergePageDataSource,
+  sendHealthCheckRequest,
   sendSaveRequestOnce,
   verifyPublishTarget,
 } = require('../lib/app/publish');
@@ -190,6 +191,165 @@ describe('publish prechecks', () => {
         importedModules: '["react"]',
       },
     });
+  });
+
+  test('health check skips safely when cookies are missing', async () => {
+    const requestSpy = jest.spyOn(https, 'request');
+
+    await expect(sendHealthCheckRequest('https://example.test/APP_XXX/workbench/FORM-PAGE')).resolves.toMatchObject({
+      ok: false,
+      skipped: true,
+      reason: 'missing_cookies',
+    });
+
+    await expect(sendHealthCheckRequest('https://example.test/APP_XXX/workbench/FORM-PAGE', [])).resolves.toMatchObject({
+      ok: false,
+      skipped: true,
+      reason: 'missing_cookies',
+    });
+
+    expect(requestSpy).not.toHaveBeenCalled();
+    requestSpy.mockRestore();
+  });
+
+  test('publish main treats health check transport errors as non-fatal after save succeeds', async () => {
+    const sourcePath = path.join(workspace, 'home.canvas.jsx');
+    fs.writeFileSync(sourcePath, 'export default function Page() { return null; }\n', 'utf8');
+
+    jest.resetModules();
+    const previousQuiet = process.env.YIDA_QUIET;
+    process.env.YIDA_QUIET = '1';
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error('process.exit ' + code);
+    });
+    const warnMock = jest.fn();
+    const resultMock = jest.fn();
+    const requestSpy = jest.spyOn(https, 'request').mockImplementation((options, callback) => {
+      if (options && options.method === 'GET') {
+        throw new Error('health transport broke');
+      }
+      const response = new EventEmitter();
+      response.statusCode = 200;
+      const request = new EventEmitter();
+      request.write = jest.fn();
+      request.end = jest.fn(() => {
+        callback(response);
+        response.emit('data', JSON.stringify({ success: true }));
+        response.emit('end');
+      });
+      request.destroy = jest.fn();
+      return request;
+    });
+    const mockUtils = {
+      findProjectRoot: jest.fn(() => workspace),
+      isLoginExpired: jest.fn(() => false),
+      isCsrfTokenExpired: jest.fn(() => false),
+      httpGet: jest.fn(() => Promise.resolve({
+        success: true,
+        content: { pages: [], gmtModified: 100 },
+      })),
+      httpPost: jest.fn(() => Promise.resolve({
+        success: true,
+        content: { formUuid: 'FORM-PAGE', version: 7 },
+      })),
+      requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
+    };
+
+    jest.doMock('../lib/core/utils', () => mockUtils);
+    jest.doMock('../lib/core/yida-client', () => ({
+      createAuthRef: jest.fn(() => ({
+        baseUrl: 'https://example.test',
+        csrfToken: 'csrf',
+        cookies: [{ name: 'session', value: 'private' }],
+        authMode: 'token',
+        authSource: 'token',
+        authData: { auth_mode: 'token', auth_source: 'token' },
+      })),
+      isTokenAuthRef: jest.fn(() => true),
+    }));
+    jest.doMock('../lib/core/chalk', () => ({
+      banner: jest.fn(),
+      step: jest.fn(),
+      label: jest.fn(),
+      success: jest.fn(),
+      fail: jest.fn(),
+      warn: warnMock,
+      info: jest.fn(),
+      error: jest.fn(),
+      result: resultMock,
+      usage: jest.fn(),
+      hint: jest.fn(),
+    }));
+    jest.doMock('../lib/core/browser-handoff', () => ({
+      parseOpenOption: jest.fn((args) => ({
+        args: args.filter((arg) => arg !== '--no-open'),
+        mode: false,
+      })),
+      withBrowserHandoff: jest.fn((payload) => payload),
+    }));
+    jest.doMock('../lib/core/legacy-schema-guard', () => ({
+      assertLegacyDirectWriteAllowed: jest.fn(),
+      extractLegacyGuardArgs: jest.fn((args) => ({ args, guardOptions: {} })),
+    }));
+    jest.doMock('../lib/app/canvas-compile', () => ({
+      compileCanvas: jest.fn(() => Promise.resolve({
+        runtimeCode: 'var YidaComp = function Page() { return null; };',
+        importedModules: '[]',
+      })),
+    }));
+    jest.doMock('../lib/app/services/canvas-page-schema-builder', () => ({
+      buildCanvasPageSchemaContent: jest.fn(() => JSON.stringify({ pages: [] })),
+    }));
+
+    try {
+      const isolatedPublish = require('../lib/app/publish');
+      await expect(isolatedPublish([
+        sourcePath,
+        'APP_XXX',
+        'FORM-PAGE',
+        '--canvas',
+        '--force',
+        '--skip-lint',
+        '--health-check',
+        '--no-open',
+      ])).resolves.toBeUndefined();
+
+      expect(exitSpy).not.toHaveBeenCalled();
+      expect(resultMock).toHaveBeenCalledWith(true, expect.any(String), expect.any(Array));
+      expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('health transport broke'));
+      const outputPayload = consoleSpy.mock.calls
+        .map((call) => call[0])
+        .filter((line) => typeof line === 'string' && line.startsWith('{'))
+        .map((line) => JSON.parse(line))
+        .find((payload) => payload && payload.success === true);
+      expect(outputPayload).toMatchObject({
+        success: true,
+        appType: 'APP_XXX',
+        formUuid: 'FORM-PAGE',
+        healthCheck: {
+          ok: false,
+          error: 'health transport broke',
+        },
+      });
+    } finally {
+      requestSpy.mockRestore();
+      exitSpy.mockRestore();
+      consoleSpy.mockRestore();
+      jest.dontMock('../lib/core/utils');
+      jest.dontMock('../lib/core/yida-client');
+      jest.dontMock('../lib/core/chalk');
+      jest.dontMock('../lib/core/browser-handoff');
+      jest.dontMock('../lib/core/legacy-schema-guard');
+      jest.dontMock('../lib/app/canvas-compile');
+      jest.dontMock('../lib/app/services/canvas-page-schema-builder');
+      jest.resetModules();
+      if (previousQuiet === undefined) {
+        delete process.env.YIDA_QUIET;
+      } else {
+        process.env.YIDA_QUIET = previousQuiet;
+      }
+    }
   });
 
   test.each([
