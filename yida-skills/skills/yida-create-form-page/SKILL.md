@@ -92,6 +92,7 @@ Divider > Field
 - 复杂业务表单应自然使用多种字段类型，例如文本、数值、日期、选择、成员/部门、附件、子表、关联表单；字段类型多样性服务于业务语义。
 - `TableField` 必须提供 `children` 子字段，`AssociationFormField` 必须提供关联表单信息。
 - 审批人、审批状态、审批节点等流程运行字段由流程能力承载；表单只收集业务数据。
+- 表单标题、字段 label/title、选项、提示语、校验文案、动作源码和字段 JSON 常量都禁止 emoji；`create-form` / schema compiler 报 emoji 错误时必须改字段 JSON，不能重复 create 或用同义命令绕过。
 
 ## Divider 主题规则
 

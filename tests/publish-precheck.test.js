@@ -192,6 +192,26 @@ describe('publish prechecks', () => {
     });
   });
 
+  test('publish schema builders reject emoji in stored page source', () => {
+    expect(() => buildSchemaContent(
+      'export function renderJsx() { return React.createElement("div", null, "✅"); }',
+      'function renderJsx(){return React.createElement("div",null,"✅");}',
+      'FORM-PAGE',
+      { silent: true }
+    )).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_PAGE_SCHEMA_EMOJI_FORBIDDEN',
+    }));
+
+    expect(() => buildCanvasSchemaContent(
+      'export default function Page() { return <div>📊</div>; }',
+      'var YidaComp = function Page(){ return window.React.createElement("div", null, "📊"); };',
+      '["react"]',
+      'FORM-CANVAS'
+    )).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_PAGE_SCHEMA_EMOJI_FORBIDDEN',
+    }));
+  });
+
   test.each([
     ['login expiry', { success: false, errorCode: '307' }],
     ['CSRF expiry', { success: false, errorCode: 'TIANSHU_000030' }],

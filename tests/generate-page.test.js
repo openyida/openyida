@@ -117,6 +117,33 @@ describe('generate-page command', () => {
     expect(fs.existsSync(path.join(projectDir, 'project', 'pages', 'src', 'visitor-dashboard.canvas.jsx'))).toBe(false);
   });
 
+  test('rejects specs that would render emoji into generated page source before writing files', () => {
+    const specPath = path.join(tmpDir, 'emoji-page.json');
+    fs.writeFileSync(specPath, JSON.stringify({
+      template: 'product-homepage',
+      output: 'pages/src/emoji-home.canvas.jsx',
+      brandName: '客户工作台 ✅',
+      heroText: '查看客户进度',
+      compile: true,
+    }), 'utf8');
+
+    expect(() => execFileSync(process.execPath, [
+      BIN,
+      'generate-page',
+      '--spec',
+      specPath,
+    ], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+      stdio: 'pipe',
+    })).toThrow(/contains emoji/);
+
+    expect(fs.existsSync(path.join(tmpDir, 'pages', 'src', 'emoji-home.canvas.jsx'))).toBe(false);
+    expect(fs.existsSync(path.join(tmpDir, 'pages', 'dist', 'emoji-home.canvas.js'))).toBe(false);
+  });
+
   test('accepts --theme-profile as a visual profile alias', () => {
     execFileSync(process.execPath, [BIN, 'generate-page', 'product-homepage', '--theme-profile', 'custom-theme', '--compile'], {
       cwd: tmpDir,

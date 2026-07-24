@@ -76,4 +76,23 @@ describe('compile command', () => {
     expect(fs.existsSync(compiledPath)).toBe(true);
     expect(fs.statSync(compiledPath).size).toBeGreaterThan(1000);
   });
+
+  test('rejects emoji even when lint is skipped', () => {
+    const sourcePath = path.join(tmpDir, 'pages', 'src', 'emoji.jsx');
+    fs.writeFileSync(sourcePath, `
+export function renderJsx() {
+  return <div>✅ 已完成</div>;
+}
+`, 'utf8');
+
+    expect(() => execFileSync(process.execPath, [BIN, 'compile', 'pages/src/emoji.jsx', '--skip-lint'], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+      stdio: 'pipe',
+    })).toThrow(/contains emoji/);
+
+    expect(fs.existsSync(path.join(tmpDir, 'pages', 'dist', 'emoji.js'))).toBe(false);
+  });
 });
