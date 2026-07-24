@@ -418,6 +418,79 @@ describe('form presentation components', () => {
     expect(divider.props.title.zh_CN).toBe('联系方式');
   });
 
+  test('field definition type can come from componentName or componentType without charAt crashes', () => {
+    const fields = [
+      {
+        componentName: 'ColumnContainer',
+        layout: '6:6',
+        children: [
+          [{ componentType: 'TextField', label: '姓名' }],
+          [{ componentName: 'NumberField', label: '年龄' }],
+        ],
+      },
+    ];
+
+    expect(() => createForm._private.validateFormFieldDefinitions(fields)).not.toThrow();
+    expect(createForm._private.countDataFieldDefinitions(fields)).toBe(2);
+
+    const schema = createForm._private.buildFormSchema(
+      '低层类型兼容测试',
+      fields,
+      'FORM_TEST',
+      'CORP_TEST',
+      'APP_TEST',
+      'single',
+      'default',
+      'top'
+    );
+    const formContainer = findFormContainer(schema.pages[0].componentsTree[0]);
+    const columnsLayout = formContainer.children[0];
+
+    expect(columnsLayout.componentName).toBe('ColumnsLayout');
+    expect(columnsLayout.children[0].children[0].componentName).toBe('TextField');
+    expect(columnsLayout.children[1].children[0].componentName).toBe('NumberField');
+  });
+
+  test('field definition validation reports missing nested type with a stable path', () => {
+    const fields = [
+      {
+        type: 'ColumnContainer',
+        children: [
+          [{ type: 'TextField', label: '姓名' }],
+          [{ label: '缺类型字段' }],
+        ],
+      },
+    ];
+
+    expect(() => createForm._private.validateFormFieldDefinitions(fields)).toThrow(expect.objectContaining({
+      code: 'CREATE_FORM_FIELD_TYPE_MISSING',
+      details: expect.objectContaining({
+        path: 'fields[0].children[1][0]',
+        label: '缺类型字段',
+      }),
+    }));
+  });
+
+  test('TableField children reject presentation components before schema build', () => {
+    const fields = [
+      {
+        type: 'TableField',
+        label: '明细',
+        children: [
+          { type: 'Divider', title: '子表分组' },
+        ],
+      },
+    ];
+
+    expect(() => createForm._private.validateFormFieldDefinitions(fields)).toThrow(expect.objectContaining({
+      code: 'CREATE_FORM_TABLE_CHILD_PRESENTATION_UNSUPPORTED',
+      details: expect.objectContaining({
+        path: 'fields[0].children[0]',
+        title: '子表分组',
+      }),
+    }));
+  });
+
   test('counts only business fields inside presentation containers', () => {
     expect(createForm._private.countDataFieldDefinitions([
       { type: 'Divider', title: '分割线' },
@@ -642,6 +715,194 @@ describe('create-form module API', () => {
   });
 });
 
+describe('create-form create recovery guardrails', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
+  });
+
+  test('invalid field definitions fail before saveFormSchemaInfo creates a blank form', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-invalid-fields-'));
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([
+      {
+        type: 'ColumnContainer',
+        children: [
+          [{ type: 'TextField', label: '姓名' }],
+          [{ label: '缺类型字段' }],
+        ],
+      },
+    ]));
+
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand();
+
+    await expect(isolatedCreateForm.run([
+      'create',
+      'APP_TEST',
+      '坏字段表单',
+      fieldsPath,
+    ])).rejects.toMatchObject({
+      code: 'CREATE_FORM_FIELD_TYPE_MISSING',
+      details: expect.objectContaining({
+        path: 'fields[0].children[1][0]',
+        label: '缺类型字段',
+      }),
+    });
+
+    expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('post-create getFormSchema failure emits structured recovery JSON with formUuid', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-post-create-'));
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([
+      { type: 'TextField', label: '姓名' },
+    ]));
+
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpGet: jest.fn(() => Promise.resolve({
+        success: false,
+        errorMsg: 'schema read failed',
+        errorCode: 'READ_FAILED',
+        content: { shouldNotLeak: true },
+      })),
+    });
+
+    await expect(isolatedCreateForm.run([
+      'create',
+      'APP_TEST',
+      '半成功表单',
+      fieldsPath,
+    ])).rejects.toMatchObject({
+      code: 'CREATE_FORM_GET_SCHEMA_FAILED',
+    });
+
+    const recoveryPayload = consoleSpy.mock.calls
+      .map((call) => call[0])
+      .filter((line) => typeof line === 'string' && line.startsWith('{'))
+      .map((line) => JSON.parse(line))
+      .find((payload) => payload && payload.success === false && payload.formUuid === 'FORM_HALF_CREATED');
+
+    expect(recoveryPayload).toMatchObject({
+      success: false,
+      appType: 'APP_TEST',
+      formTitle: '半成功表单',
+      formUuid: 'FORM_HALF_CREATED',
+      stage: 'getFormSchema',
+      error: 'schema read failed',
+      errorCode: 'CREATE_FORM_GET_SCHEMA_FAILED',
+    });
+    expect(recoveryPayload.retryAdvice).toContain('list-forms APP_TEST');
+    expect(JSON.stringify(recoveryPayload)).not.toContain('shouldNotLeak');
+    expect(mockUtils.httpPost).toHaveBeenCalledTimes(1);
+
+    consoleSpy.mockRestore();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('post-create updateFormConfig failure reports success false with recovery advice', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-config-failed-'));
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([
+      { type: 'TextField', label: '姓名' },
+    ]));
+
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpPost: jest.fn((baseUrl, requestPath) => {
+        if (requestPath.includes('saveFormSchemaInfo')) {
+          return Promise.resolve({ success: true, content: { formUuid: 'FORM_CONFIG_FAILED' } });
+        }
+        if (requestPath.includes('updateFormConfig')) {
+          return Promise.resolve({ success: false, errorMsg: 'config failed', content: { shouldNotLeak: true } });
+        }
+        return Promise.resolve({ success: true });
+      }),
+    });
+
+    await expect(isolatedCreateForm.run([
+      'create',
+      'APP_TEST',
+      '配置失败表单',
+      fieldsPath,
+    ])).resolves.toBeUndefined();
+
+    const recoveryPayload = consoleSpy.mock.calls
+      .map((call) => call[0])
+      .filter((line) => typeof line === 'string' && line.startsWith('{'))
+      .map((line) => JSON.parse(line))
+      .find((payload) => payload && payload.formUuid === 'FORM_CONFIG_FAILED');
+
+    expect(recoveryPayload).toMatchObject({
+      success: false,
+      appType: 'APP_TEST',
+      formTitle: '配置失败表单',
+      formUuid: 'FORM_CONFIG_FAILED',
+      stage: 'updateFormConfig',
+      error: 'config failed',
+      errorCode: 'CREATE_FORM_UPDATE_CONFIG_FAILED',
+      schemaSaved: true,
+      configWarning: 'config failed',
+    });
+    expect(recoveryPayload.retryAdvice).toContain('list-forms APP_TEST');
+    expect(JSON.stringify(recoveryPayload)).not.toContain('shouldNotLeak');
+    expect(mockUtils.httpPost).toHaveBeenCalledTimes(3);
+
+    consoleSpy.mockRestore();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+});
+
+function loadIsolatedCreateFormCommand(overrides = {}) {
+  jest.resetModules();
+  const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  const mockUtils = Object.assign({
+    loadAuthData: jest.fn(() => ({
+      csrf_token: 'csrf',
+      cookies: [{ name: 'session', value: 'private' }],
+      corp_id: 'corp',
+      base_url: 'https://example.test',
+      auth_mode: 'cookie',
+      auth_source: 'cookie',
+    })),
+    loadCookieData: jest.fn(),
+    triggerLogin: jest.fn(),
+    resolveBaseUrl: jest.fn(() => 'https://example.test'),
+    httpGet: jest.fn(() => Promise.resolve({ success: true, content: { gmtModified: 100 } })),
+    httpPost: jest.fn((baseUrl, requestPath) => {
+      if (requestPath.includes('saveFormSchemaInfo')) {
+        return Promise.resolve({ success: true, content: { formUuid: 'FORM_HALF_CREATED' } });
+      }
+      return Promise.resolve({ success: true });
+    }),
+    requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
+    detectActiveTool: jest.fn(() => null),
+  }, overrides);
+  jest.doMock('../lib/core/utils', () => mockUtils);
+  jest.doMock('../lib/core/chalk', () => ({
+    banner: jest.fn(),
+    step: jest.fn(),
+    label: jest.fn(),
+    success: jest.fn(),
+    fail: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    error: jest.fn(),
+    result: jest.fn(),
+    usage: jest.fn(),
+    hint: jest.fn(),
+    listItem: jest.fn(),
+  }));
+  return {
+    isolatedCreateForm: require('../lib/app/create-form'),
+    mockUtils,
+    consoleSpy,
+  };
+}
+
 describe('create-form definition readers', () => {
   function createTestReaders() {
     return createDefinitionReaders({
@@ -708,6 +969,40 @@ describe('form compiler field bindings', () => {
     });
     expect(JSON.stringify(compiled.schema)).toContain('textField_keep');
     expect(JSON.stringify(compiled.schema)).toContain('textField_child_keep');
+  });
+
+  test('compileFormDefinition accepts componentType for business field definitions', () => {
+    const compiled = formCompiler.compileFormDefinition({
+      formTitle: '访客登记',
+      fields: [
+        { key: 'visitorName', componentType: 'TextField', label: '访客姓名' },
+      ],
+    });
+
+    expect(compiled.fieldBindingComponents).toEqual({
+      visitorName: 'TextField',
+    });
+    expect(JSON.stringify(compiled.schema)).toContain('textField_');
+  });
+
+  test('compileFormDefinition rejects missing and unsupported field types with stable compiler errors', () => {
+    expect(() => formCompiler.compileFormDefinition({
+      formTitle: '缺类型',
+      fields: [
+        { key: 'badField', label: '缺类型字段' },
+      ],
+    })).toThrow(expect.objectContaining({
+      code: 'FORM_COMPILER_FIELD_TYPE_MISSING',
+    }));
+
+    expect(() => formCompiler.compileFormDefinition({
+      formTitle: '展示布局不支持',
+      fields: [
+        { key: 'layout', componentName: 'ColumnContainer', label: '低层布局' },
+      ],
+    })).toThrow(expect.objectContaining({
+      code: 'FORM_COMPILER_UNSUPPORTED_FIELD_TYPE',
+    }));
   });
 
   test('compileFormDefinition rejects dots inside semantic keys', () => {

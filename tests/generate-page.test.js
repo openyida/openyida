@@ -91,6 +91,32 @@ describe('generate-page command', () => {
     expect(distPath).toBe('/private/tmp/dist/demo.canvas.js');
   });
 
+  test('strips redundant project prefix when cwd is already the OpenYida project directory', () => {
+    const projectDir = path.join(tmpDir, 'project');
+    fs.mkdirSync(projectDir, { recursive: true });
+    fs.writeFileSync(path.join(projectDir, 'config.json'), '{}', 'utf8');
+
+    execFileSync(process.execPath, [
+      BIN,
+      'generate-page',
+      'dashboard-overview',
+      '--brand-name',
+      '访客看板',
+      '--output',
+      'project/pages/src/visitor-dashboard.canvas.jsx',
+      '--compile',
+    ], {
+      cwd: projectDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+
+    expect(fs.existsSync(path.join(projectDir, 'pages', 'src', 'visitor-dashboard.canvas.jsx'))).toBe(true);
+    expect(fs.existsSync(path.join(projectDir, 'pages', 'dist', 'visitor-dashboard.canvas.js'))).toBe(true);
+    expect(fs.existsSync(path.join(projectDir, 'project', 'pages', 'src', 'visitor-dashboard.canvas.jsx'))).toBe(false);
+  });
+
   test('accepts --theme-profile as a visual profile alias', () => {
     execFileSync(process.execPath, [BIN, 'generate-page', 'product-homepage', '--theme-profile', 'custom-theme', '--compile'], {
       cwd: tmpDir,

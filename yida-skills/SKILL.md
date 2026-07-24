@@ -231,6 +231,7 @@ schema-managed create/update 必须等待用户对当前 `planId` 显式批准�
 4. **页面源码修改必须发布闭环**：只要本轮 Write/Edit/Create 了页面源码 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}`（含完整搭建、补齐、已有页面 update path、单点优化），final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>` 命令结果；本地文件编辑、diff、本地校验或编译只证明源码可发布，不等于远端页面已更新。若没有 publish 成功证据，final 只能说“源码已修改，尚未发布”，禁止说“页面已更新 / 已重新发布 / 已上线”。
 5. **命令输入文件禁止 shell 写入**：当 OpenYida 命令需要 JSON/YAML/CSV/config/script 文件参数时，先使用当前 agent 运行时提供的结构化文件写入工具（如 create_file / Write / file edit tool）创建文件，再把路径传给命令；禁止用 shell heredoc、`cat`/`echo`/`printf`/`tee` 加输出重定向，或把命令 stdout 重定向成业务文件。
 6. **读文件少用 Bash 噪声**：读取或定位 workspace 文件优先用宿主的 Read / Glob / Grep；OpenYida CLI 已返回成功 JSON、URL 或 `formUuid/appType` 时，不要再用 Bash `cat`/`ls` 做无意义复核。
+7. **OpenYida CLI 不吞诊断**：不要给 `openyida` 命令加 `2>/dev/null`；失败时保留 stdout/stderr（必要时用 `2>&1` 合并诊断）。遇到 DENIED 或同一命令重复失败，先换策略、改输入或重做只读确认，不要盲目微调后重跑。
 
 ### 重要规则（IMPORTANT，影响质量/性能/可维护性）
 
