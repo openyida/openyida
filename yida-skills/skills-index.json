@@ -724,6 +724,11 @@
       ],
       "aliases": [
         "登录态"
+      ],
+      "command_ids": [
+        "agent-capabilities",
+        "login",
+        "auth"
       ]
     },
     {
@@ -739,6 +744,10 @@
       ],
       "aliases": [
         "登出"
+      ],
+      "command_ids": [
+        "logout",
+        "auth"
       ]
     },
     {

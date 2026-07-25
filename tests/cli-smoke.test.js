@@ -735,6 +735,9 @@ describe('CLI offline smoke', () => {
           canonical_builder_command_ids: expect.arrayContaining([
             'agent-capabilities',
             'commands',
+            'login',
+            'logout',
+            'auth',
             'app-list',
             'list-forms',
             'get-schema',
@@ -881,6 +884,11 @@ describe('CLI offline smoke', () => {
     expect(parsed.commands.permission_mode_counts.allow).toBeGreaterThan(0);
     expect(parsed.commands.permission_mode_counts.ask).toBeGreaterThan(0);
     expect(parsed.commands.allow_command_ids).toContain('agent-capabilities');
+    expect(parsed.commands.allow_command_ids).toEqual(expect.arrayContaining([
+      'login',
+      'logout',
+      'auth',
+    ]));
     expect(parsed.commands.allow_command_ids).toContain('create-app');
     expect(parsed.commands.ask_command_ids).toEqual([
       'connector.delete',
@@ -958,6 +966,9 @@ describe('CLI offline smoke', () => {
     expect(parsed.builder_fast_path.command_contract.canonical_builder_commands.map(entry => entry.id)).toEqual(expect.arrayContaining([
       'agent-capabilities',
       'commands',
+      'login',
+      'logout',
+      'auth',
       'app-list',
       'list-forms',
       'get-schema',

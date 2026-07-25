@@ -66,6 +66,11 @@ describe('OpenYida skill contracts', () => {
     expect(form.negative_signals).toEqual(expect.arrayContaining(['新增记录']));
     expect(form.command_ids).toEqual(expect.arrayContaining(['create-form.create']));
 
+    const login = byName.get('yida-login');
+    const logout = byName.get('yida-logout');
+    expect(login.command_ids).toEqual(expect.arrayContaining(['agent-capabilities', 'login', 'auth']));
+    expect(logout.command_ids).toEqual(expect.arrayContaining(['logout', 'auth']));
+
     const data = byName.get('yida-data-management');
     expect(data.positive_signals).toEqual(expect.arrayContaining(['新增记录']));
     expect(data.negative_signals).toEqual(expect.arrayContaining(['修改表单结构']));
