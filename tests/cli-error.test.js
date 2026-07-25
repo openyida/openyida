@@ -31,4 +31,31 @@ describe('CliError', () => {
       errorMsg: 'Boom',
     });
   });
+
+  test('promotes actionable stage details for JSON callers', () => {
+    const error = new CliError('Save failed', {
+      code: 'SAVE_FAILED',
+      details: {
+        stage: 'save_definition',
+        completedStages: ['read_definition', 'build_definition'],
+        nextStep: '检查流程节点配置后重试。',
+        authToken: 'private-token',
+      },
+    });
+
+    expect(toErrorPayload(error)).toEqual({
+      success: false,
+      errorCode: 'SAVE_FAILED',
+      errorMsg: 'Save failed',
+      stage: 'save_definition',
+      completedStages: ['read_definition', 'build_definition'],
+      nextStep: '检查流程节点配置后重试。',
+      details: {
+        stage: 'save_definition',
+        completedStages: ['read_definition', 'build_definition'],
+        nextStep: '检查流程节点配置后重试。',
+        authToken: 'priv***oken',
+      },
+    });
+  });
 });

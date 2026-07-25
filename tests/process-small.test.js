@@ -4,6 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const querystring = require('querystring');
+const { CliError } = require('../lib/core/cli-error');
 
 jest.mock('child_process', () => ({
   spawnSync: jest.fn(() => ({ status: 0 })),
@@ -151,6 +152,123 @@ describe('small process commands', () => {
     });
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(JSON.parse(logSpy.mock.calls[0][0])).toEqual(result);
+  });
+
+  test('create-process reports switch stage with compact failure details', async () => {
+    const processDefPath = path.join(tmpDir, 'process.json');
+    fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }), 'utf8');
+    utils.httpPost.mockResolvedValueOnce({
+      success: false,
+      errorMsg: 'permission denied',
+      content: {
+        nested: 'x'.repeat(2000),
+        token: 'private-token-value',
+      },
+    });
+
+    let thrown;
+    try {
+      await createProcess.run(['APP_XXX', '--formUuid', 'FORM_1', processDefPath]);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toMatchObject({
+      isCliError: true,
+      code: 'CREATE_PROCESS_SWITCH_FAILED',
+      details: {
+        stage: 'switch_form_type',
+        completedStages: ['load_auth', 'reuse_form'],
+        context: {
+          appType: 'APP_XXX',
+          formUuid: 'FORM_1',
+          processDefinitionFile: processDefPath,
+        },
+        cause: {
+          success: false,
+          errorMsg: 'permission denied',
+          content: {
+            type: 'object',
+            keys: ['nested', 'token'],
+          },
+        },
+      },
+    });
+    expect(thrown.details.nextStep).toContain('表单管理权限');
+    expect(JSON.stringify(thrown.details)).not.toContain('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+  });
+
+  test('create-process preserves configure-process inner failure stage', async () => {
+    const processDefPath = path.join(tmpDir, 'process.json');
+    fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }), 'utf8');
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+    utils.httpGet.mockResolvedValueOnce({
+      success: true,
+      content: {
+        appType: 'APP_XXX',
+        procCode: 'TPROC_1',
+      },
+    });
+    configureProcess.run.mockRejectedValueOnce(new CliError('save denied', {
+      code: 'CONFIGURE_PROCESS_SAVE_FAILED',
+      details: {
+        stage: 'save_definition',
+        completedStages: ['read_definition', 'load_auth', 'build_definition'],
+        nextStep: '检查流程节点配置后重试。',
+      },
+    }));
+
+    let thrown;
+    try {
+      await createProcess.run(['APP_XXX', '--formUuid', 'FORM_1', processDefPath]);
+    } catch (error) {
+      thrown = error;
+    }
+
+    const payload = logSpy.mock.calls
+      .map(call => call[0])
+      .filter(line => typeof line === 'string' && line.startsWith('{'))
+      .map(line => JSON.parse(line))
+      .find(item => item && item.success === false);
+
+    expect(payload).toMatchObject({
+      success: false,
+      formUuid: 'FORM_1',
+      appType: 'APP_XXX',
+      error: expect.stringContaining('save denied'),
+      stage: 'save_definition',
+      completedStages: ['load_auth', 'reuse_form', 'switch_form_type', 'resolve_process_code'],
+      nextStep: '检查流程节点配置后重试。',
+      retryCommand: 'openyida create-process APP_XXX --formUuid FORM_1 ' + path.basename(processDefPath),
+      configureProcess: {
+        stage: 'save_definition',
+        completedStages: ['read_definition', 'load_auth', 'build_definition'],
+        nextStep: '检查流程节点配置后重试。',
+      },
+    });
+    expect(payload.stage).not.toBe('configure_process');
+    expect(thrown).toMatchObject({
+      isCliError: true,
+      code: 'CREATE_PROCESS_CONFIGURE_FAILED',
+      details: {
+        stage: 'save_definition',
+        completedStages: ['load_auth', 'reuse_form', 'switch_form_type', 'resolve_process_code'],
+        nextStep: '检查流程节点配置后重试。',
+        createProcessStage: 'configure_process',
+        context: {
+          appType: 'APP_XXX',
+          formUuid: 'FORM_1',
+          processCode: 'TPROC_1',
+          retryCommand: 'openyida create-process APP_XXX --formUuid FORM_1 ' + path.basename(processDefPath),
+        },
+        configureProcess: {
+          stage: 'save_definition',
+          completedStages: ['read_definition', 'load_auth', 'build_definition'],
+          nextStep: '检查流程节点配置后重试。',
+        },
+      },
+    });
+    expect(thrown.details.stage).not.toBe('configure_process');
   });
 
   test('preview-process writes an HTML preview and returns metadata', async () => {

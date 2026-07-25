@@ -463,4 +463,94 @@ describe('configure-process command runner', () => {
 
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
+
+  test('reports save stage with compact remote response details', async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-configure-process-'));
+    const definitionFile = path.join(tempDir, 'process.json');
+    fs.writeFileSync(definitionFile, JSON.stringify({ nodes: [] }));
+
+    const mockAuthRef = {
+      baseUrl: 'https://www.aliwork.com',
+    };
+    const mockGet = jest.fn().mockResolvedValueOnce({
+      success: true,
+      content: { data: [{ id: 100, version: '2' }] },
+    });
+    const mockPostForm = jest.fn()
+      .mockResolvedValueOnce({ success: true, content: { processId: 101 } })
+      .mockResolvedValueOnce({
+        success: false,
+        errorMsg: 'save denied',
+        content: {
+          nested: 'x'.repeat(2000),
+          token: 'private-token-value',
+        },
+      });
+
+    jest.resetModules();
+    jest.doMock('../lib/core/yida-client', () => ({
+      createAuthRef: jest.fn(() => mockAuthRef),
+      createYidaClient: jest.fn(() => ({
+        get: mockGet,
+        postForm: mockPostForm,
+      })),
+    }));
+
+    const freshConfigureProcess = require('../lib/process/configure-process');
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit should not be called');
+    });
+
+    let thrown;
+    try {
+      await freshConfigureProcess.run([
+        'APP_TEST',
+        'FORM_TEST',
+        definitionFile,
+        'TPROC_TEST',
+      ]);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toMatchObject({
+      isCliError: true,
+      code: 'CONFIGURE_PROCESS_SAVE_FAILED',
+      details: {
+        stage: 'save_definition',
+        completedStages: [
+          'read_definition',
+          'load_auth',
+          'resolve_process_code',
+          'query_process_versions',
+          'create_draft',
+          'build_definition',
+        ],
+        context: {
+          appType: 'APP_TEST',
+          formUuid: 'FORM_TEST',
+          processCode: 'TPROC_TEST',
+          processId: 101,
+          processVersion: 3,
+          processDefinitionFile: definitionFile,
+        },
+        cause: {
+          success: false,
+          errorMsg: 'save denied',
+          content: {
+            type: 'object',
+            keys: ['nested', 'token'],
+          },
+        },
+      },
+    });
+    expect(thrown.details.nextStep).toContain('流程节点配置');
+    expect(JSON.stringify(thrown.details)).not.toContain('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+    expect(mockPostForm).toHaveBeenCalledTimes(2);
+    expect(exitSpy).not.toHaveBeenCalled();
+
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
 });

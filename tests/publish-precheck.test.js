@@ -19,6 +19,7 @@ const {
   countCustomPageDataSources,
   extractPageDataSource,
   findDuplicateSourceMismatches,
+  loadPublishSource,
   mergePageDataSource,
   sendHealthCheckRequest,
   sendSaveRequestOnce,
@@ -74,6 +75,23 @@ describe('publish prechecks', () => {
     expect(buildMissingSourceHints('pages/src/home.oyd.jsx', workspace)).toEqual([
       'project/pages/src/home.oyd.jsx',
     ]);
+  });
+
+  test('loads workspace page source through the trusted source loader', () => {
+    const sourceDir = path.join(workspace, 'project', 'pages', 'src');
+    fs.mkdirSync(sourceDir, { recursive: true });
+    const sourcePath = path.join(sourceDir, 'home.oyd.jsx');
+    fs.writeFileSync(sourcePath, 'export function renderJsx() { return <div>ok</div>; }\n', 'utf8');
+
+    const loaded = loadPublishSource(sourcePath, { workspaceRoot: workspace });
+
+    expect(loaded).toMatchObject({
+      absolutePath: sourcePath,
+      profile: 'native/default',
+      relativePath: 'project/pages/src/home.oyd.jsx',
+      source: expect.stringContaining('renderJsx'),
+      sourceHash: expect.stringMatching(/^sha256:/),
+    });
   });
 
   test('allows publishing only to display custom pages', async () => {
