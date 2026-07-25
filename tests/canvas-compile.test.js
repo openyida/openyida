@@ -24,6 +24,12 @@ function assembleRuntime(runtimeCode, stubWindow) {
   return factory(stubWindow, stubWindow);
 }
 
+function expectCanvasEntry(runtimeCode) {
+  expect(runtimeCode).toMatch(
+    /\b(?:function|class)\s+YidaComp\b|\b(?:var|let|const)\s+YidaComp\b|YidaComp\s*=/
+  );
+}
+
 function stubReactWindow(extra) {
   const calls = [];
   const React = {
@@ -373,6 +379,117 @@ describe('compileCanvasLocal', () => {
     }
   });
 
+  test('does not redeclare const YidaComp when it is the default export', () => {
+    const src = `
+      const YidaComp = () => <div>ok</div>;
+      export default YidaComp;
+    `;
+
+    const { runtimeCode } = compileCanvasLocal(src);
+
+    expect(runtimeCode).toMatch(/const YidaComp\b/);
+    expect(runtimeCode).not.toMatch(/var YidaComp\s*=\s*YidaComp/);
+
+    const Comp = assembleRuntime(runtimeCode, stubReactWindow());
+    expect(typeof Comp).toBe('function');
+    expect(Comp({}).type).toBe('div');
+  });
+
+  test('does not redeclare let YidaComp when it is the default export', () => {
+    const src = `
+      let YidaComp = function Page() {
+        return <section>let entry</section>;
+      };
+      export default YidaComp;
+    `;
+
+    const { runtimeCode } = compileCanvasLocal(src);
+
+    expect(runtimeCode).toMatch(/let YidaComp\b/);
+    expect(runtimeCode).not.toMatch(/var YidaComp\s*=\s*YidaComp/);
+
+    const Comp = assembleRuntime(runtimeCode, stubReactWindow());
+    expect(typeof Comp).toBe('function');
+    expect(Comp({}).type).toBe('section');
+  });
+
+  test('does not redeclare class YidaComp when it is the default export', () => {
+    const src = `
+      class YidaComp {
+        constructor(props) {
+          this.props = props;
+        }
+        render() {
+          return <main>{this.props.title}</main>;
+        }
+      }
+      export default YidaComp;
+    `;
+
+    const { runtimeCode } = compileCanvasLocal(src);
+
+    expect(runtimeCode).toMatch(/class YidaComp\b/);
+    expect(runtimeCode).not.toMatch(/var YidaComp\s*=\s*YidaComp/);
+
+    const Comp = assembleRuntime(runtimeCode, stubReactWindow());
+    expect(typeof Comp).toBe('function');
+    expect(new Comp({ title: 'class entry' }).render().type).toBe('main');
+  });
+
+  test('keeps function YidaComp default export parseable', () => {
+    const src = `
+      function YidaComp(props) {
+        return <b>{props.name}</b>;
+      }
+      export default YidaComp;
+    `;
+
+    const { runtimeCode } = compileCanvasLocal(src);
+
+    expect(runtimeCode).toMatch(/function YidaComp\b/);
+    expect(runtimeCode).not.toMatch(/var YidaComp\s*=\s*YidaComp/);
+
+    const Comp = assembleRuntime(runtimeCode, stubReactWindow());
+    expect(Comp({ name: 'function entry' }).type).toBe('b');
+  });
+
+  test('still aliases non-YidaComp default exports to YidaComp', () => {
+    const src = `
+      const App = () => <i>app entry</i>;
+      export default App;
+    `;
+
+    const { runtimeCode } = compileCanvasLocal(src);
+
+    expect(runtimeCode).toMatch(/const App\b/);
+    expect(runtimeCode).toMatch(/var YidaComp\s*=\s*App/);
+
+    const Comp = assembleRuntime(runtimeCode, stubReactWindow());
+    expect(Comp({}).type).toBe('i');
+  });
+
+  test('reports Canvas wrapper parse failures before publish/runtime', () => {
+    const src = `
+      const window = {};
+      export default function App() {
+        return <div>ok</div>;
+      }
+    `;
+
+    let error;
+    try {
+      compileCanvasLocal(src, { sourcePath: 'pages/src/bad.canvas.jsx' });
+    } catch (compileError) {
+      error = compileError;
+    }
+
+    expect(error).toBeTruthy();
+    expect(error.code).toBe('OPENYIDA_CANVAS_RUNTIME_PARSE_FAILED');
+    expect(error.message).toContain('运行时装配校验');
+    expect(error.message).toContain('window');
+    expect(error.message).toContain('pages/src/bad.canvas.jsx');
+  });
+
   test('produces new Function-compatible runtimeCode that yields a rendering YidaComp', () => {
     const src = `
       import React, { useState } from 'react';
@@ -397,7 +514,7 @@ describe('compileCanvasLocal', () => {
     expect(runtimeCode).toMatch(/window\.React/);
     expect(runtimeCode).toMatch(/window\.antd/);
     // 收敛出 YidaComp 绑定
-    expect(runtimeCode).toMatch(/YidaComp\s*=/);
+    expectCanvasEntry(runtimeCode);
 
     // importedModules 是 JSON 数组字符串；副作用 CSS 不计入
     const mods = JSON.parse(importedModules);
@@ -484,7 +601,7 @@ describe('compileCanvasLocal', () => {
     expect(runtimeCode).toMatch(/window\.antd/);
     expect(runtimeCode).toMatch(/window\.Recharts/);
     expect(runtimeCode).toMatch(/window\.ahooks/);
-    expect(runtimeCode).toMatch(/YidaComp\s*=/);
+    expectCanvasEntry(runtimeCode);
     expect(runtimeCode).not.toMatch(/\bimport\s/);
     expect(runtimeCode).not.toMatch(/\bexport\s/);
   });
@@ -506,7 +623,7 @@ describe('compileCanvasLocal', () => {
     expect(runtimeCode).toMatch(/window\.YidaNativeComponents/);
     expect(runtimeCode).toMatch(/window\.Deep/);
     expect(runtimeCode).toMatch(/window\.DeepYida/);
-    expect(runtimeCode).toMatch(/YidaComp\s*=/);
+    expectCanvasEntry(runtimeCode);
     expect(runtimeCode).not.toMatch(/\bimport\s/);
     expect(runtimeCode).not.toMatch(/\bexport\s/);
     expect(runtimeCode).not.toMatch(/@ali\/deep/);
@@ -532,7 +649,7 @@ describe('compileCanvasLocal', () => {
     expect(runtimeCode).toMatch(/window\.YidaNativeComponents/);
     expect(runtimeCode).toMatch(/DataManageViews/);
     expect(runtimeCode).toMatch(/formUuid/);
-    expect(runtimeCode).toMatch(/YidaComp\s*=/);
+    expectCanvasEntry(runtimeCode);
     expect(runtimeCode).not.toMatch(/\bimport\s/);
     expect(runtimeCode).not.toMatch(/\bexport\s/);
     expect(runtimeCode).not.toMatch(/@ali\/deep/);
@@ -560,7 +677,7 @@ describe('compileCanvasLocal', () => {
     expect(source).toMatch(/oy-store-band/);
     expect(JSON.parse(importedModules)).toEqual(['antd', 'react']);
     expect(runtimeCode).not.toMatch(/window\.ahooks/);
-    expect(runtimeCode).toMatch(/YidaComp\s*=/);
+    expectCanvasEntry(runtimeCode);
   });
 
   test('business-list raw sample renders marked seed rows', () => {

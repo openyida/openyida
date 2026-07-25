@@ -24,6 +24,7 @@ Code Canvas 是宜搭的代码画布自定义页面链路：以 `YidaCodeCanvas`
 - Canvas 源码写成 `.canvas.jsx` / `.canvas.tsx`，`openyida publish` 会自动走 Canvas 链路。
 - 页面源码路径按 Bash cwd 选择：从仓库根执行命令时用 `project/pages/src/...`；如果 cwd 已是 `<workspace>/project`，用 `pages/src/...`，不要写成 `project/pages/src/...`。
 - `runtimeCode` 在宿主页真实 `window` 中执行，入口必须返回 `YidaComp` / `YidaComp.default` / 组件函数。
+- 推荐入口写法是 `function YidaComp(props) { ... }`，或 `const App = ...; export default App;`。CLI 已兼容 `const/let/class YidaComp; export default YidaComp`，但生成新代码时优先避开同名默认导出，减少不同 Canvas 运行态装配器下的重复声明风险。
 - Canvas 组件没有普通页面实例上下文；数据读写通过 fetch、开放 API、连接器代理或显式 props 数据桥完成。
 - 第三方依赖走白名单；React、antd、ahooks、d3、recharts、Radix、framer-motion 等可按规则 import。
 - 宜搭运行态组件通过“原生组件桥 + fallback + 值归一化”接入；不改 `vc-deep-yida` 时，以宿主已存在的 `window.Deep` / `window.DeepYida` 探测为主，`window.YidaNativeComponents` 仅作为兼容入口。需要嵌入门户数据管理视图时探测 `DataManageViews`，并显式传入目标表单 `form.value/formUuid`。
