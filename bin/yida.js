@@ -729,12 +729,6 @@ async function main() {
       break;
     }
 
-    case 'schema': {
-      const { run } = require('../lib/schema/command');
-      await run(args);
-      break;
-    }
-
     case 'formula': {
       const subCommand = args[0];
       const subArgs = args.slice(1);

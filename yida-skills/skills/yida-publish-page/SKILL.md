@@ -1,11 +1,11 @@
 ---
 name: yida-publish-page
-description: 自定义页面 JSX 编译发布技能；显式 schema 文件任务先回到根技能确认。
+description: 自定义页面 JSX 编译发布技能。
 ---
 
 # 发布自定义页面
 
-> 资源边界：本技能只处理普通 OpenYida 页面发布；若根技能、上下文或 CLI guard 显示目标来自显式 schema manifest/state 文件，停止本技能并回到根技能确认；目标不明时先只读确认或询问用户。
+> 资源边界：本技能只处理普通 OpenYida 页面发布；目标不明时先只读确认或询问用户。
 
 ## Resource-First 发布目标
 

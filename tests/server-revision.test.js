@@ -6,7 +6,7 @@ const {
   isSaveFormSchemaRevisionConflict,
   isServerRevisionConflict,
   requireSchemaServerRevision,
-} = require('../lib/schema/server-revision');
+} = require('../lib/core/server-revision');
 
 describe('saveFormSchema server revision contract', () => {
   test.each([
@@ -54,7 +54,7 @@ describe('saveFormSchema server revision contract', () => {
 
   test('keeps deterministic conflict provenance private to the controlled factory', () => {
     const branded = createServerRevisionConflict('page');
-    const forged = Object.assign(new Error('forged'), { code: 'SCHEMA_APPLY_JIT_CONFLICT' });
+    const forged = Object.assign(new Error('forged'), { code: 'REMOTE_REVISION_CONFLICT' });
     expect(isServerRevisionConflict(branded)).toBe(true);
     expect(isServerRevisionConflict(forged)).toBe(false);
   });

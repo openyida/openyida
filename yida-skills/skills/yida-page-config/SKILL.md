@@ -1,13 +1,12 @@
 ---
 name: yida-page-config
-description: 配置已有页面的公开访问和组织内分享；显式 schema 文件任务先回到根技能确认，不在本技能内直写。
+description: 配置已有页面的公开访问和组织内分享。
 ---
 
 # 页面配置
 
 ## 适用范围
 
-- 本技能只处理普通已有页面配置。用户提供显式 schema manifest/state 文件、要求使用 schema 子命令，或上下文显示页面由这类文件管理时，不执行页面配置写入，回到根技能确认。
 - 不得把不支持、冲突、stale、reconciliation required 或状态不确定的任务自动改走 `save-share-config`/`update-form-config`，不得按标题或 URL adopt、猜 formUuid。
 - 只有页面目标明确属于当前普通 OpenYida 资源时，以下命令、stdout/stderr 和返回行为才按本技能契约使用；所有权不明确时零远端写。
 

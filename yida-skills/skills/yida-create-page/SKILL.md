@@ -1,10 +1,10 @@
 ---
 name: yida-create-page
-description: 创建自定义展示页面（display 类型）并返回 formUuid；仅当目标 page 缺失且用户意图允许新增页面时使用。显式 schema 文件任务先回到根技能确认。
+description: 创建自定义展示页面（display 类型）并返回 formUuid；仅当目标 page 缺失且用户意图允许新增页面时使用。
 ---
 # 创建自定义页面
 
-> 资源边界：本技能只处理普通 OpenYida 页面创建；若根技能、上下文或 CLI guard 显示目标来自显式 schema manifest/state 文件，停止本技能并回到根技能确认；目标不明时先只读确认或询问用户。
+> 资源边界：本技能只处理普通 OpenYida 页面创建；目标不明时先只读确认或询问用户。
 
 ## Resource-First 使用门槛
 

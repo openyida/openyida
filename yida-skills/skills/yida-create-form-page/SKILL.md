@@ -1,11 +1,11 @@
 ---
 name: yida-create-form-page
-description: 表单页面创建与更新，支持 19 种业务字段和 Divider、ColumnContainer 等表单展示布局组件，PageSection/GroupContainer 仅少量特殊场景使用；支持联动规则和数据源绑定。适用于新建表单、设计表单结构、添加或修改表单字段；显式 schema 文件任务先回到根技能确认。
+description: 表单页面创建与更新，支持 19 种业务字段和 Divider、ColumnContainer 等表单展示布局组件，PageSection/GroupContainer 仅少量特殊场景使用；支持联动规则和数据源绑定。适用于新建表单、设计表单结构、添加或修改表单字段。
 ---
 
 # 表单页面创建与更新
 
-> 资源边界：本技能处理普通表单创建与更新。若用户显式提供 schema manifest/state 文件、要求使用 schema 子命令，或上下文明确目标由这类文件管理，停止本技能并回到根入口确认；不要在本技能内自动切换或降级写入。目标不明时先只读确认或询问用户。
+> 资源边界：本技能处理普通表单创建与更新。目标不明时先只读确认或询问用户。
 
 ## Resource-First create/update 判定
 
@@ -254,7 +254,7 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 | 异常场景 | 处理方式 |
 |---------|----------|
 | create 返回失败 | 检查 appType 是否正确，确认登录态有效 |
-| 字段级 direct 命令找不到字段 | 先看命令 JSON 的 `diagnostics[].candidates` 修正 label、补 `tableLabel` 或改用已知 `fieldId`；仍不明确时再用 `openyida get-schema --compact --resolve-fields` |
+| 字段级命令找不到字段 | 先看命令 JSON 的 `diagnostics[].candidates` 修正 label、补 `tableLabel` 或改用已知 `fieldId`；仍不明确时再用 `openyida get-schema --compact --resolve-fields` |
 | 字段类型不支持 | 检查字段类型是否在支持的 19 种业务字段或已验证展示布局组件列表中 |
 | 子表字段创建失败 | 确认 `children` 数组格式正确，子表字段不能嵌套子表 |
 | 返回 JSON 中无 formUuid | 不要猜测 formUuid，重新执行命令获取 |

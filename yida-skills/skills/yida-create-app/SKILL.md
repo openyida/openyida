@@ -1,11 +1,11 @@
 ---
 name: yida-create-app
-description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用户意图允许新建时使用。显式 schema 文件任务先回到根技能确认。
+description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用户意图允许新建时使用。
 ---
 
 # 创建应用
 
-> 资源边界：本技能只处理普通 OpenYida 应用创建；若根技能、上下文或 CLI guard 显示目标来自显式 schema manifest/state 文件，停止本技能并回到根技能确认；目标不明时先只读确认或询问用户。
+> 资源边界：本技能只处理普通 OpenYida 应用创建；目标不明时先只读确认或询问用户。
 
 ## Resource-First 使用门槛
 

@@ -51,9 +51,7 @@ description: >
 
 OpenYida builder 默认使用 `create-app / create-form / create-page / generate-page / publish` 等常规命令链路。CLI 内部负责读取必要的 schema、定位字段、输出 compact diff/evidence、readback 和 bindings，模型不要为了简单字段更新先拉取大 schema，也不要把新建命令当作默认动作。
 
-显式 schema manifest/state 文件任务不是普通自然语言搭建的默认入口。用户明确提供这类文件、明确要求使用 schema 子命令，或上下文表明目标由此类文件管理时，先停止常规写入并回到根入口确认；不要在普通技能里自动切换、降级写入或授予写权限。
-
-`.cache/<项目名>-schema.json` 只是本地 ID 映射，不等于远端真相或 schema state。路径不明确时先只读确认或询问用户；不要通过新建同类资源规避不确定性。
+`.cache/<项目名>-schema.json` 只是本地 ID 映射，不等于远端真相。路径不明确时先只读确认或询问用户；不要通过新建同类资源规避不确定性。
 
 ---
 
@@ -116,7 +114,7 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 | `从零创建一个 CRM 应用` 且无 context | 允许 create app/form/page 并发布 |
 | 多个 app/page 候选 | 按来源优先级选；同级冲突或目标不明才问人 |
 
-> 该 resource context 是常规写入前置解析。显式 schema manifest/state 文件任务必须先停下确认，不替代这里的资源前置解析。
+> 该 resource context 是常规写入前置解析，不替代具体技能里的目标确认。
 
 ---
 
@@ -136,7 +134,7 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 > 📌 仅当第二步判定为「完整搭建 / 补齐」时进入；单一/增量任务请跳「技能路由」。
 > 加载子技能 `yida-app`，由它负责完整应用 workflow、阶段子技能加载、关键 ID 流转、PRD 与 schema cache 约束。
 > 用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，`yida-app` 选择 `fast_build`：先解析并复用已有资源，只创建缺失且允许创建的应用/表单/页面，最后发布并输出链接。
-> `yida-app fast_build` 使用常规 OpenYida 命令编排；显式 schema manifest/state 文件任务不进入默认搭建链路。
+> `yida-app fast_build` 使用常规 OpenYida 命令编排。
 
 **默认链路**：`fast_build` 必须只做 `resolve app → resolve forms → resolve main page → create missing resources only → 编写/更新主页面源码 → 发布 → 返回访问链接`。不要因为应用名里有“看板 / 系统 / 管理”就升级到 `deep_design` 或 `full_demo`。
 
@@ -256,7 +254,7 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 |------|------|
 | 发布提示登录失效 | 先 `openyida login`，再 `openyida publish <源文件> <appType> <formUuid> --health-check` |
 | 查已有表单的字段 ID | 字段级命令优先内部解析；仅当歧义未解、页面/流程/公式/数据代码需要多字段映射，或要人工确认时，用 `openyida get-schema <appType> <formUuid> --compact --resolve-fields "字段名"`，只使用唯一命中的 `fieldId`（详见 `yida-get-schema`） |
-| 更新已有表单字段 | 表单用 `create-form` 的 update/add-option/bind-datasource/validation/rule：`openyida create-form update <appType> <formUuid> '[{"action":"update","label":"备注","changes":{"required":true}}]'`；CLI 内部读 schema 并输出 resolved/updated evidence，通常不需要先 `get-schema`。显式 schema manifest/state 文件任务先回到根入口确认，不在普通表单技能内自动写入 |
+| 更新已有表单字段 | 表单用 `create-form` 的 update/add-option/bind-datasource/validation/rule：`openyida create-form update <appType> <formUuid> '[{"action":"update","label":"备注","changes":{"required":true}}]'`；CLI 内部读 schema 并输出 resolved/updated evidence，通常不需要先 `get-schema` |
 | 发布提示 corpId 不匹配 | 问用户：确认在当前组织继续操作已解析资源，或 `openyida logout` 后重新登录到正确组织 |
 
 ---

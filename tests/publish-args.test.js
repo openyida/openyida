@@ -19,7 +19,7 @@ describe('publish argument parsing', () => {
     });
   });
 
-  test('keeps legacy direct publish.js order compatible', () => {
+  test('keeps older positional publish.js order compatible', () => {
     expect(publish.parseArgs([
       'APP_XXX',
       'FORM-XXX',

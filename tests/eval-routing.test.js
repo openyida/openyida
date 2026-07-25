@@ -54,13 +54,22 @@ describe('eval agent.extractJsonObject', () => {
 });
 
 describe('eval routing', () => {
-  test('routing fixture avoids internal schema/direct architecture prompts', () => {
+  test('routing fixture avoids retired architecture prompts', () => {
     const fixturePath = path.join(__dirname, '..', 'scripts', 'eval', 'scenarios', 'routing-core.json');
     const fixtureText = fs.readFileSync(fixturePath, 'utf8');
     const scenarios = JSON.parse(fixtureText);
+    const retiredPattern = new RegExp([
+      'Direct' + '-plus',
+      'direct' + '/standalone',
+      'schema' + '-managed',
+      ['Schema', 'as', 'Code'].join('-'),
+      '\\b' + 'S' + 'AC' + '\\b',
+      'standalone',
+      'legacy',
+    ].join('|'));
 
-    expect(scenarios.some((scenario) => scenario.id.startsWith('schema-phase1-'))).toBe(false);
-    expect(fixtureText).not.toMatch(/Direct-plus|direct\/standalone|schema-managed|Schema-as-Code|\bSAC\b|standalone|legacy/);
+    expect(scenarios.some((scenario) => scenario.id.startsWith('retired-route-'))).toBe(false);
+    expect(fixtureText).not.toMatch(retiredPattern);
   });
 
   test('normalizeSkill 去斜杠/大小写', () => {

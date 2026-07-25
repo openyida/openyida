@@ -1,11 +1,11 @@
 ---
 name: yida-process-rule
-description: 配置已有流程表单审批规则；显式 schema 文件任务先回到根技能确认。
+description: 配置已有流程表单审批规则。
 ---
 
 # 宜搭流程规则配置技能
 
-> 资源边界：本技能只处理普通 OpenYida 流程规则配置；若根技能、上下文或 CLI guard 显示目标来自显式 schema manifest/state 文件，停止本技能并回到根技能确认；目标不明时先只读确认或询问用户。
+> 资源边界：本技能只处理普通 OpenYida 流程规则配置；目标不明时先只读确认或询问用户。
 
 ## Resource-First 使用门槛
 

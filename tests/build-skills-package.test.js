@@ -56,7 +56,6 @@ describe('build-skills-package', () => {
 
       expect(fs.existsSync(path.join(outDir, 'SKILL.md'))).toBe(true);
       expect(fs.existsSync(path.join(outDir, 'skills-index.json'))).toBe(true);
-      expect(fs.existsSync(path.join(outDir, 'references', 'schema-as-code-phase1.md'))).toBe(true);
       const generatedRootSkill = fs.readFileSync(path.join(outDir, 'SKILL.md'), 'utf8');
       expect(generatedRootSkill).toContain('OPENYIDA_ACCESS_TOKEN');
       expect(generatedRootSkill).toContain('禁止触发 OAuth');
@@ -86,7 +85,6 @@ describe('build-skills-package', () => {
 
       const entryNames = listZipEntryNames(zipOut);
       expect(entryNames).toContain('openyida/SKILL.md');
-      expect(entryNames).toContain('openyida/references/schema-as-code-phase1.md');
       expect(entryNames).toContain('openyida/references/setup-and-env.md');
       expect(entryNames).toContain('openyida/references/subskills/yida-login/README.md');
       expect(entryNames).not.toContain('openyida/skills-index.json');

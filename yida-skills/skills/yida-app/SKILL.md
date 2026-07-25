@@ -15,7 +15,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 
 **默认判定**：完整应用搭建或补齐时，只要用户表达“默认方案 / 不要追问 / 直接创建 / 尽快搭建”等快速交付信号，就必须命中 `fast_build`。默认完成链路固定为 `resolve app → resolve forms → resolve main page → create missing resources only → 编写/更新主页面源码 → 发布 → 返回访问链接`。
 
-> 资源边界：本技能是默认完整应用编排；若用户显式提供 schema manifest/state 文件、要求使用 schema 子命令，或上下文明确目标由这类文件管理，停止本技能并回到根入口确认。目标不明时先只读确认或询问用户。
+> 资源边界：本技能是默认完整应用编排。目标不明时先只读确认或询问用户。
 
 ## 阶段 0：resolve_resource_context
 
@@ -39,7 +39,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 - 完整应用页面阶段只有在页面代码、数据查询、流程/公式或多表 dataBinding 确实需要多个 `fieldId` 时，才对每个目标业务表单执行一次 `openyida get-schema <appType> <formUuid> --field-map-json`，读取完整 JSON 并合并到 `.cache/<项目名>-schema.json`；不要对同一表单用 `tail/head/grep` 截断 stdout 后再重复拉取。
 - 阶段 0 禁止编造 `list-apps` / `get-app`；也不要把 `--app-type` / `--form-uuid` 当成 `list-forms` 或 `get-schema` 的参数。按目的在 `app-list`、`list-forms`、`get-schema` 三者中选择。
 
-该阶段只决定常规 resource context。显式 schema manifest/state 文件任务必须停下并回到根入口确认；不要在本技能里自动切换、降级写入或授予写权限。
+该阶段只决定常规 resource context；不要在本技能里绕过资源前置解析或自动新建同类资源。
 
 ## 阶段 1：resolve app name / rename placeholder app
 

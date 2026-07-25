@@ -1,7 +1,7 @@
 # publish 少烧 token、别覆盖线上改动 —— 优化方案（大白话版）
 
 > 这份文档只讲一件事：**为什么现在改页面这么费 token，怎么改能又省钱又不覆盖用户线上手动配的东西。**
-> 偏落地细节，配合代码看。更全面的背景版见 [publish-schema-sync-plan.md](./publish-schema-sync-plan.md)。
+> 偏落地细节，配合代码看。
 
 ---
 
@@ -217,7 +217,7 @@ openyida get-schema APP_XXX FORM_XXX --summary
 
 改动位置就在 [get-schema.js:455-457](../lib/app/get-schema.js#L455)：加个 `parsed.summary` 分支，走摘要；不加参数时……（下面第七节讲这里要不要保持兼容）。
 
-### P2：`schema diff`（可选，锦上添花）
+### P2：差异摘要（可选，锦上添花）
 
 用户说"我线上是不是改过啥"时，CLI 内部比对线上 Schema 和本地缓存，只吐差异摘要：
 
@@ -232,9 +232,9 @@ openyida get-schema APP_XXX FORM_XXX --summary
 
 ---
 
-## 六、本地缓存（配合 diff，非必需）
+## 六、本地缓存（配合差异摘要，非必需）
 
-如果做 `schema diff`，需要个地方存"上次拉到的线上 Schema"。建议：
+如果做差异摘要，需要个地方存"上次拉到的线上 Schema"。建议：
 
 ```
 project/.cache/openyida/schemas/

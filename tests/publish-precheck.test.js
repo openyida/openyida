@@ -328,10 +328,6 @@ describe('publish prechecks', () => {
       })),
       withBrowserHandoff: jest.fn((payload) => payload),
     }));
-    jest.doMock('../lib/core/legacy-schema-guard', () => ({
-      assertLegacyDirectWriteAllowed: jest.fn(),
-      extractLegacyGuardArgs: jest.fn((args) => ({ args, guardOptions: {} })),
-    }));
     jest.doMock('../lib/app/canvas-compile', () => ({
       compileCanvas: jest.fn(() => Promise.resolve({
         runtimeCode: 'var YidaComp = function Page() { return null; };',
@@ -380,7 +376,6 @@ describe('publish prechecks', () => {
       jest.dontMock('../lib/core/yida-client');
       jest.dontMock('../lib/core/chalk');
       jest.dontMock('../lib/core/browser-handoff');
-      jest.dontMock('../lib/core/legacy-schema-guard');
       jest.dontMock('../lib/app/canvas-compile');
       jest.dontMock('../lib/app/services/canvas-page-schema-builder');
       jest.resetModules();

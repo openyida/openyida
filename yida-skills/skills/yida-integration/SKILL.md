@@ -1,13 +1,12 @@
 ---
 name: yida-integration
-description: 创建/管理宜搭集成自动化；显式 schema 文件任务先回到根技能确认，不在本技能内直写。
+description: 创建/管理宜搭集成自动化。
 ---
 
 # yida-integration — 宜搭集成&自动化（逻辑流）技能
 
 ## 适用范围
 
-- 本技能只处理普通集成自动化。用户提供显式 schema manifest/state 文件、要求使用 schema 子命令，或上下文显示自动化由这类文件管理时，不执行创建、更新、开启或关闭，回到根技能确认。
 - 不得把不支持、冲突或状态不确定的任务改走 `integration create` 写入，不得按名称 discover/adopt、猜逻辑流 ID 或自动重建。
 - 只有自动化目标明确属于当前普通 OpenYida 资源时，以下参数、stdout/stderr、发布/启停和返回行为才按本技能契约使用；所有权不明确时零远端写。
 

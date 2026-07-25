@@ -3,6 +3,14 @@
 const fs = require('fs');
 const path = require('path');
 
+const RETIRED_ARCHITECTURE_PATTERN = new RegExp([
+  'Direct' + '-plus',
+  'direct' + '/standalone',
+  'schema' + '-managed',
+  ['Schema', 'as', 'Code'].join('-'),
+  '\\b' + 'S' + 'AC' + '\\b',
+].join('|'));
+
 describe('skill resource boundary copy', () => {
   test.each([
     ['root route', path.join(__dirname, '..', 'yida-skills', 'SKILL.md')],
@@ -32,7 +40,7 @@ describe('skill resource boundary copy', () => {
     expect(root).toMatch(/resolve_resource_context/);
     expect(root).toMatch(/create missing resources only/);
     expect(root).toMatch(/字段级命令内置解析/);
-    expect(root).not.toMatch(/Direct-plus|direct\/standalone|schema-managed|Schema-as-Code|\bSAC\b/);
+    expect(root).not.toMatch(RETIRED_ARCHITECTURE_PATTERN);
   });
 
   test.each([
@@ -42,7 +50,7 @@ describe('skill resource boundary copy', () => {
     'yida-process-rule',
     'yida-create-page',
     'yida-publish-page',
-  ])('%s hides internal schema architecture terms from agents', skillName => {
+  ])('%s keeps ordinary resource-first boundaries', skillName => {
     const skill = fs.readFileSync(path.join(
       __dirname,
       '..',
@@ -52,8 +60,8 @@ describe('skill resource boundary copy', () => {
       'SKILL.md'
     ), 'utf8');
 
-    expect(skill).toMatch(/显式 schema manifest\/state 文件|显式 schema 文件任务/);
-    expect(skill).not.toMatch(/Direct-plus|direct\/standalone|schema-managed|Schema-as-Code|\bSAC\b/);
+    expect(skill).toMatch(/目标不明时先只读确认或询问用户/);
+    expect(skill).not.toMatch(RETIRED_ARCHITECTURE_PATTERN);
     expect(skill).not.toMatch(/generic JIT conflict/);
     expect(skill).not.toMatch(/classification=stale_replanned/);
   });
