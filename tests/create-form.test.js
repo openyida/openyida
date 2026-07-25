@@ -188,6 +188,161 @@ describe('legacy create-form server revision isolation', () => {
   });
 });
 
+describe('legacy create-form direct-plus update evidence', () => {
+  test('label-based update resolves fields internally and emits compact evidence', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Direct Plus Update',
+      fields: [
+        { key: 'title', type: 'TextField', label: '事项名称' },
+        { key: 'remark', type: 'TextField', label: '备注' },
+      ],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_DIRECT_PLUS',
+    }).schema;
+    initial.gmtModified = 100;
+    const {
+      isolatedCreateForm,
+      mockUtils,
+      consoleSpy,
+      mockChalk,
+    } = loadIsolatedLegacyForm(initial);
+
+    await isolatedCreateForm.run([
+      'update',
+      'APP_TEST',
+      'FORM_DIRECT_PLUS',
+      JSON.stringify([{ action: 'update', label: '备注', changes: { required: true } }]),
+    ]);
+
+    const payload = parseConsoleJsonPayloads(consoleSpy).find(item => item && item.formUuid === 'FORM_DIRECT_PLUS');
+    expect(payload).toMatchObject({
+      success: true,
+      formUuid: 'FORM_DIRECT_PLUS',
+      appType: 'APP_TEST',
+      changesApplied: 1,
+      changes: [
+        {
+          action: 'update',
+          label: '备注',
+          changedProps: 'required',
+          resolved: {
+            label: '备注',
+            componentName: 'TextField',
+            fieldId: expect.stringMatching(/^textField_/),
+          },
+          updatedProps: { required: true },
+        },
+      ],
+    });
+    const getSchemaCalls = mockUtils.httpGet.mock.calls.filter(call => call[1].includes('getFormSchema'));
+    expect(getSchemaCalls).toHaveLength(1);
+    const saveCall = mockUtils.httpPost.mock.calls.find(call => call[1].includes('/saveFormSchema.json'));
+    const savedSchema = JSON.parse(querystring.parse(saveCall[2]).content);
+    const savedContainer = findFormContainer(savedSchema.pages[0].componentsTree[0]);
+    const savedRemark = savedContainer.children.find(child => child.props.label.zh_CN === '备注');
+    expect(savedRemark.props.validation).toEqual(expect.arrayContaining([{ type: 'required' }]));
+    expect(JSON.stringify(parseConsoleJsonPayloads(consoleSpy))).not.toContain('事项名称');
+    const listItemText = mockChalk.listItem.mock.calls.map(call => call.join(' ')).join('\n');
+    expect(listItemText).toContain('备注');
+    expect(listItemText).not.toContain('事项名称');
+
+    consoleSpy.mockRestore();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
+  });
+
+  test('ambiguous label update returns compact candidates and does not save', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Direct Plus Ambiguous',
+      fields: [
+        { key: 'remarkA', type: 'TextField', label: '备注' },
+        { key: 'remarkB', type: 'TextareaField', label: '备注' },
+      ],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_DIRECT_AMBIGUOUS',
+    }).schema;
+    initial.gmtModified = 100;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedLegacyForm(initial);
+
+    await expect(isolatedCreateForm.run([
+      'update',
+      'APP_TEST',
+      'FORM_DIRECT_AMBIGUOUS',
+      JSON.stringify([{ action: 'update', label: '备注', changes: { required: true } }]),
+    ])).rejects.toMatchObject({ code: 'CREATE_FORM_FIELD_RESOLUTION_FAILED' });
+
+    const payload = parseConsoleJsonPayloads(consoleSpy).find(item => item && item.error === 'CREATE_FORM_FIELD_RESOLUTION_FAILED');
+    expect(payload).toMatchObject({
+      success: false,
+      appType: 'APP_TEST',
+      formUuid: 'FORM_DIRECT_AMBIGUOUS',
+      diagnostics: [
+        {
+          action: 'update',
+          code: 'CREATE_FORM_FIELD_AMBIGUOUS',
+          label: '备注',
+          candidates: [
+            { label: '备注', componentName: 'TextField', fieldId: expect.stringMatching(/^textField_/) },
+            { label: '备注', componentName: 'TextareaField', fieldId: expect.stringMatching(/^textareaField_/) },
+          ],
+        },
+      ],
+    });
+    expect(mockUtils.httpPost.mock.calls.filter(call => call[1].includes('/saveFormSchema.json'))).toHaveLength(0);
+    expect(mockUtils.httpPost.mock.calls.filter(call => call[1].includes('updateFormConfig'))).toHaveLength(0);
+
+    consoleSpy.mockRestore();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
+  });
+
+  test('missing label update returns compact diagnostics and candidates', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Direct Plus Missing',
+      fields: [{ key: 'title', type: 'TextField', label: '事项名称' }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_DIRECT_MISSING',
+    }).schema;
+    initial.gmtModified = 100;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedLegacyForm(initial);
+
+    await expect(isolatedCreateForm.run([
+      'update',
+      'APP_TEST',
+      'FORM_DIRECT_MISSING',
+      JSON.stringify([{ action: 'update', label: '备注', changes: { required: true } }]),
+    ])).rejects.toMatchObject({ code: 'CREATE_FORM_FIELD_RESOLUTION_FAILED' });
+
+    const payload = parseConsoleJsonPayloads(consoleSpy).find(item => item && item.error === 'CREATE_FORM_FIELD_RESOLUTION_FAILED');
+    expect(payload).toMatchObject({
+      success: false,
+      appType: 'APP_TEST',
+      formUuid: 'FORM_DIRECT_MISSING',
+      diagnostics: [
+        {
+          action: 'update',
+          code: 'CREATE_FORM_FIELD_NOT_FOUND',
+          label: '备注',
+          candidates: [
+            { label: '事项名称', componentName: 'TextField', fieldId: expect.stringMatching(/^textField_/) },
+          ],
+        },
+      ],
+    });
+    expect(mockUtils.httpPost.mock.calls.filter(call => call[1].includes('/saveFormSchema.json'))).toHaveLength(0);
+
+    consoleSpy.mockRestore();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
+  });
+});
+
 function loadIsolatedLegacyForm(schema) {
   jest.resetModules();
   const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -217,8 +372,7 @@ function loadIsolatedLegacyForm(schema) {
     requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
     detectActiveTool: jest.fn(() => null),
   };
-  jest.doMock('../lib/core/utils', () => mockUtils);
-  jest.doMock('../lib/core/chalk', () => ({
+  const mockChalk = {
     banner: jest.fn(),
     step: jest.fn(),
     label: jest.fn(),
@@ -231,10 +385,13 @@ function loadIsolatedLegacyForm(schema) {
     usage: jest.fn(),
     hint: jest.fn(),
     listItem: jest.fn(),
-  }));
+  };
+  jest.doMock('../lib/core/utils', () => mockUtils);
+  jest.doMock('../lib/core/chalk', () => mockChalk);
   return {
     isolatedCreateForm: require('../lib/app/create-form'),
     mockUtils,
+    mockChalk,
     consoleSpy,
   };
 }
@@ -1084,6 +1241,111 @@ describe('create-form create recovery guardrails', () => {
 
     consoleSpy.mockRestore();
   });
+
+  test('patch mode reports post-save updateFormConfig failure as warning', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Patch Warning',
+      fields: [{ key: 'name', type: 'TextField', label: '姓名' }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_PATCH_WARNING',
+    }).schema;
+    initial.gmtModified = 100;
+    const { isolatedCreateForm, mockUtils, consoleSpy, mockChalk } = loadIsolatedLegacyForm(initial);
+    mockUtils.httpPost.mockImplementation((baseUrl, requestPath) => {
+      if (requestPath.includes('updateFormConfig')) {
+        return Promise.resolve({ success: false, errorMsg: '权限不足', errorCode: 'PERMISSION_DENIED' });
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    await expect(isolatedCreateForm.run([
+      'patch',
+      'APP_TEST',
+      'FORM_PATCH_WARNING',
+      JSON.stringify([{ action: 'add', path: '/postSaveWarningProbe', value: true }]),
+    ])).resolves.toBeUndefined();
+
+    const warningPayload = consoleSpy.mock.calls
+      .map((call) => call[0])
+      .filter((line) => typeof line === 'string' && line.startsWith('{'))
+      .map((line) => JSON.parse(line))
+      .find((payload) => payload && payload.formUuid === 'FORM_PATCH_WARNING');
+
+    expect(warningPayload).toMatchObject({
+      success: true,
+      appType: 'APP_TEST',
+      formUuid: 'FORM_PATCH_WARNING',
+      stage: 'updateFormConfig',
+      schemaSaved: true,
+      configWarning: '权限不足',
+      configResult: {
+        success: false,
+        errorMsg: '权限不足',
+        errorCode: 'PERMISSION_DENIED',
+      },
+    });
+    expect(mockChalk.result.mock.calls.some((call) => call[0] === false)).toBe(false);
+    expect(mockChalk.result).toHaveBeenCalledWith(true, 'Schema 补丁保存成功', expect.any(Array));
+    expect(mockChalk.warn).toHaveBeenCalledWith(expect.stringContaining('权限不足'));
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(1);
+
+    consoleSpy.mockRestore();
+  });
+
+  test('add-option mode reports post-save updateFormConfig failure as warning', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Add Option Warning',
+      fields: [{ key: 'status', type: 'SelectField', label: '状态', options: ['待处理'] }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_ADD_OPTION_WARNING',
+    }).schema;
+    initial.gmtModified = 100;
+    const { isolatedCreateForm, mockUtils, consoleSpy, mockChalk } = loadIsolatedLegacyForm(initial);
+    mockUtils.httpPost.mockImplementation((baseUrl, requestPath) => {
+      if (requestPath.includes('updateFormConfig')) {
+        return Promise.resolve({ success: false, errorMsg: '权限不足', errorCode: 'PERMISSION_DENIED' });
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    await expect(isolatedCreateForm.run([
+      'add-option',
+      'APP_TEST',
+      'FORM_ADD_OPTION_WARNING',
+      '状态',
+      '已完成',
+    ])).resolves.toBeUndefined();
+
+    const warningPayload = consoleSpy.mock.calls
+      .map((call) => call[0])
+      .filter((line) => typeof line === 'string' && line.startsWith('{'))
+      .map((line) => JSON.parse(line))
+      .find((payload) => payload && payload.formUuid === 'FORM_ADD_OPTION_WARNING');
+
+    expect(warningPayload).toMatchObject({
+      success: true,
+      appType: 'APP_TEST',
+      formUuid: 'FORM_ADD_OPTION_WARNING',
+      fieldLabel: '状态',
+      added: ['已完成'],
+      stage: 'updateFormConfig',
+      schemaSaved: true,
+      configWarning: '权限不足',
+      configResult: {
+        success: false,
+        errorMsg: '权限不足',
+        errorCode: 'PERMISSION_DENIED',
+      },
+    });
+    expect(mockChalk.result.mock.calls.some((call) => call[0] === false)).toBe(false);
+    expect(mockChalk.result).toHaveBeenCalledWith(true, '选项追加成功', expect.any(Array));
+    expect(mockChalk.warn).toHaveBeenCalledWith(expect.stringContaining('权限不足'));
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(1);
+
+    consoleSpy.mockRestore();
+  });
 });
 
 function loadIsolatedCreateFormCommand(overrides = {}) {
@@ -1492,6 +1754,13 @@ function findFormContainer(node) {
     }
   }
   return null;
+}
+
+function parseConsoleJsonPayloads(consoleSpy) {
+  return consoleSpy.mock.calls
+    .map(call => call[0])
+    .filter(line => typeof line === 'string' && line.startsWith('{'))
+    .map(line => JSON.parse(line));
 }
 
 // ── add-option 模式 parseArgs 测试 ──────────────────

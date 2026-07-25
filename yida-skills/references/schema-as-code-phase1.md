@@ -1,6 +1,8 @@
 # Schema-as-Code Phase 1 Manifest
 
-这是 OpenYida Phase 1 唯一的 Manifest 编写与执行指南。Phase 1 管理 `app`、`form`、`process` 和 `native/default` 展示页；State 是资源 identity bindings 的唯一持久化权威，但 State 不是远端真相。
+这是 OpenYida 显式 Manifest / 高级收敛 / 实验或 managed mode 的 Phase 1 指南，不是普通自然语言完整搭建的默认 builder 路线。默认 builder 走 Direct-plus direct 命令；只有用户提供 manifest、要求 `schema validate/plan/apply`，或上下文明确目标由 Schema-as-Code state 管理时才进入本文流程。
+
+Phase 1 管理 `app`、`form`、`process`、`native/default` 展示页和 `canvas/default` Code Canvas 展示页；State 是资源 identity bindings 的唯一持久化权威，但 State 不是远端真相。
 
 ## Canonical Manifest
 
@@ -89,9 +91,10 @@ openyida schema apply app.yida.json --state .cache/openyida/state.v1.json --plan
 | Resource or operation | Phase 1 |
 | --- | --- |
 | app/form/process/native-default display page create/update/noop | Supported |
+| canvas-default display page create/update/noop (`.canvas.jsx`, profile `canvas/default`) | Supported |
 | report、integration automation | `SCHEMA_RESOURCE_TYPE_UNSUPPORTED` |
 | page config、delete、pull、adopt | Deferred; not Manifest v1 properties |
-| Canvas、dashboard、raw Schema、inline page source | Deferred/unsupported |
+| dashboard、raw Schema、inline page source | Deferred/unsupported |
 
 Standalone、明确 unmanaged 且用户明确要求 legacy 命令的资源仍可使用原 CLI。SAC Manifest 或 State 已拥有资源身份时，不得 fallback 到 legacy 直写。
 

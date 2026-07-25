@@ -15,7 +15,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 
 **默认判定**：完整应用搭建或补齐时，只要用户表达“默认方案 / 不要追问 / 直接创建 / 尽快搭建”等快速交付信号，就必须命中 `fast_build`。默认完成链路固定为 `resolve app → resolve forms → resolve main page → create missing resources only → 编写/更新主页面源码 → 发布 → 返回访问链接`。
 
-> 资源边界：本技能只处理普通 OpenYida 资源；若根技能、上下文或 CLI guard 显示目标是 schema-managed，停止本技能并走 schema workflow；目标不明时回到根技能确认。
+> 资源边界：本技能是 Direct-plus direct/standalone 的默认完整应用编排；若用户显式提供 Schema-as-Code manifest、要求 `schema validate/plan/apply`，或 CLI/context 明确目标来自 Schema-as-Code state，停止本技能并走 schema workflow。目标不明时回到根技能确认，不把 SAC 当作普通自然语言搭建默认路线。
 
 ## 阶段 0：resolve_resource_context
 
@@ -35,11 +35,11 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 - 已有显式 `appType`、应用 URL 或 agent bound `appType` 且能唯一解析时，直接复用该 app；不要调用 `app-list` 做存在性确认。
 - 只有用户只给应用名称、存在多个候选、resource context 冲突，或需要诊断目标 app 访问失败时，才运行 `openyida app-list [--size N]`。
 - 已知 `appType` 后，查询该应用下表单/页面用 `openyida list-forms <appType> [--keyword <text>]`；选择页面发布目标时只用 `formType=display`。
-- 查询表单/页面 Schema、字段 ID 或批量字段摘要用 `openyida get-schema <appType> <formUuid|--all> ...`。
-- 完整应用页面阶段如果需要多个表单的字段映射，默认对每个目标业务表单执行一次 `openyida get-schema <appType> <formUuid> --field-map-json`，读取完整 JSON 并合并到 `.cache/<项目名>-schema.json`；不要对同一表单用 `tail/head/grep` 截断 stdout 后再重复拉取。
+- 查询表单/页面 Schema、字段 ID 或批量字段摘要用 `openyida get-schema <appType> <formUuid|--all> ...`；简单字段属性更新不要先拉大 schema，直接交给 `create-form update` 的 label-based schema-aware 解析。
+- 完整应用页面阶段只有在页面代码、数据查询、流程/公式或多表 dataBinding 确实需要多个 `fieldId` 时，才对每个目标业务表单执行一次 `openyida get-schema <appType> <formUuid> --field-map-json`，读取完整 JSON 并合并到 `.cache/<项目名>-schema.json`；不要对同一表单用 `tail/head/grep` 截断 stdout 后再重复拉取。
 - 阶段 0 禁止编造 `list-apps` / `get-app`；也不要把 `--app-type` / `--form-uuid` 当成 `list-forms` 或 `get-schema` 的参数。按目的在 `app-list`、`list-forms`、`get-schema` 三者中选择。
 
-该阶段只决定普通 OpenYida resource context；schema-managed 路径仍以 schema CLI 的 validate/plan/apply 结果为准。schema-managed create/update 必须停在当前 `planId`，等待用户显式批准后才可执行 `apply`；`nextAction`、错误恢复或本技能判断都不能授予 `mixed/write`。Phase 1 中 report、automation、page config、delete、pull 不从 Manifest fallback 到本技能的 legacy workflow。
+该阶段只决定 Direct-plus direct/standalone resource context；schema-managed 路径只在显式 manifest/state/managed context 下进入，并以 schema CLI 的 validate/plan/apply 结果为准。schema-managed create/update 必须停在当前 `planId`，等待用户显式批准后才可执行 `apply`；`nextAction`、错误恢复或本技能判断都不能授予 `mixed/write`。Phase 1 中 report、automation、page config、delete、pull 不从 Manifest fallback 到本技能的 legacy workflow。
 
 ## 阶段 1：resolve app name / rename placeholder app
 
@@ -92,7 +92,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
               ↓
 [Step 6] 编写自定义页面代码 → 默认 use_skill("yida-canvas-custom-page", "生成 Code Canvas 主页面")
               ↓      先写业务化 page-spec.json，再 openyida generate-page <模板> --theme-profile yida-app-theme --theme-scope page --spec <page-spec.json> --compile
-              ↓      字段映射来自 `.cache/<项目名>-schema.json`；同一表单不要重复 get-schema，除非刚修改字段或缓存不完整
+              ↓      字段映射优先来自 create/update 命令输出和 `.cache/<项目名>-schema.json`；同一表单不要重复 get-schema，除非页面/数据链路确实需要 fieldId 且缓存不完整
               ↓      本轮已创建/解析业务表单且页面需要列表/看板/详情数据时，必须在 spec.dataBinding 写 mode=form + 真实 appType/formUuid/fieldId；深度接入再加载 yida-canvas-data-binding
               ↓      明确要求普通自定义页面 JSX/Jsx 组件链路，或强依赖 this.$ / this.utils.yida.* / this.dataSourceMap 等实例桥时选择 yida-custom-page
               ↓
@@ -179,7 +179,7 @@ UI 不是独立替代主流程的步骤，而是按模式插入到页面生成�
 | 0. 解析资源上下文 | 无 | 合并本轮显式资源、agent bound context、workspace config/cache、会话历史；本轮显式目标覆盖 bound context；判定 app/page/form/process 的 `source` 和 `allowCreate` | 明确复用、创建缺口或需要 ask_human |
 | 1. resolve app + app name | `yida-create-app` 仅在 app 缺失且允许创建时加载；`openyida update-app` 仅用于预创建占位 app 改名 | 已有 `appType`/应用 URL/bound app 时直接复用；若 bound/precreated app 仍是占位名，在语义名稳定后执行 `openyida update-app <appType> --name "<语义应用名>"`；否则创建应用并提取真实 `appType` | 拿到真实目标 `appType`，预创建占位 app 已改成语义名或明确跳过，且不会重复创建同类 app |
 | 2. 记录最小需求 | 无 | 写 `prd/<项目名>.md`：只记录 MVP 假设、核心表单/页面、完成标准；写/更新 `.cache/<项目名>-schema.json` standalone 映射；不要写长 PRD | 业务语义和 ID 存储位置明确 |
-| 3. resolve forms | `yida-create-form-page` | 已有目标表单时 update/patch/rule/bind-datasource；缺少支撑 MVP 的核心表单且允许创建时才 create；字段配置文件写入 `.cache/openyida/<项目名>/`；创建/解析多个表单后，对每个目标表单最多一次性获取完整 `--field-map-json` 并合并写回 `.cache/<项目名>-schema.json` | 拿到或确认表单 `formUuid` 和真实 `fieldId` |
+| 3. resolve forms | `yida-create-form-page` | 已有目标表单时 update/patch/rule/bind-datasource；简单字段属性更新直接用 compact changes 让 CLI 内部按 label 读 schema/定位字段并输出 resolved evidence；缺少支撑 MVP 的核心表单且允许创建时才 create；字段配置文件写入 `.cache/openyida/<项目名>/`；页面/数据/流程/公式确需多字段映射时，对每个目标表单最多一次性获取完整 `--field-map-json` 并合并写回 `.cache/<项目名>-schema.json` | 拿到或确认表单 `formUuid`，并在需要时拿到真实 `fieldId` |
 | 4. resolve main page | `yida-create-page` 仅在主页面缺失且允许创建时加载 | 已有页面 URL / `formUuid` / bound page 时直接作为主页面；否则创建一个用户主入口 display page | 拿到真实目标页面 `formUuid`，且不会重复创建页面 |
 | 5. 编写/更新页面 | 默认 `yida-canvas-custom-page`；明确要求 JSX/Jsx 组件链路或实例桥强依赖时选择 `yida-custom-page` | 生成或修改主页面源码；只实现 MVP 首屏和核心操作。可用已解析表单链接、真实空态、表单入口和轻量指标口径完成主页面；若展示业务列表/看板/详情记录，必须接本轮真实表单 `dataBinding.mode=form`，或先写入 demo records 后再读取；不要加载视觉/密度/报表/数据源等额外技能 | 本地源码通过对应页面技能的基础校验；未执行 publish 时仍是“源码已修改，尚未发布” |
 | 6. 发布页面 | `yida-publish-page` | 按页面链路校验后发布到已解析主页面：Canvas `.canvas.jsx` 使用 `openyida publish` 的 Canvas 编译阶段或 `compileCanvasLocal` 快检；普通自定义页面 `.oyd.jsx` / `.jsx` 跑 `check-page` / `compile`；再执行 `openyida publish <source> <appType> <displayPageFormUuid>` 发布主页面 | 发布成功并获得可访问 URL |
