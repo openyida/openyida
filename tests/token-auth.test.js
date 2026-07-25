@@ -6,7 +6,12 @@ const os = require('os');
 const path = require('path');
 
 const { getAccessToken, tokenRefresh, tokenStatus } = require('../lib/auth/token-auth');
-const { getTokenFilePath, saveTokenSession } = require('../lib/auth/token-store');
+const {
+  getBusinessContextFilePath,
+  getTokenFilePath,
+  loadTokenSession,
+  saveTokenSession,
+} = require('../lib/auth/token-store');
 
 function listen(server) {
   return new Promise((resolve) => {
@@ -244,7 +249,7 @@ describe('token-auth', () => {
     }
   });
 
-  test('host-injected token refresh updates only the provided env object', async () => {
+  test('host-injected token refresh caches only the returned business base_url', async () => {
     let refreshBody;
     const server = http.createServer((req, res) => {
       const chunks = [];
@@ -259,6 +264,8 @@ describe('token-auth', () => {
             accessToken: 'new-env-access-token',
             refreshToken: 'new-env-refresh-token',
             expiresIn: 1800,
+            base_url: 'https://customer.example.com/path',
+            corp_id: 'corp-env',
           },
         }));
       });
@@ -268,6 +275,7 @@ describe('token-auth', () => {
       YIDA_AUTH_ENABLED: 'true',
       OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
       OPENYIDA_ENDPOINT: `http://127.0.0.1:${port}`,
+      OPENYIDA_TOKEN_CORP_ID: 'corp-env',
     };
 
     try {
@@ -286,6 +294,24 @@ describe('token-auth', () => {
       expect(env.OPENYIDA_ACCESS_TOKEN).toBe('new-env-access-token');
       expect(env.OPENYIDA_REFRESH_TOKEN).toBe('new-env-refresh-token');
       expect(fs.existsSync(getTokenFilePath({ projectRoot: tmpDir }))).toBe(false);
+      const contextFile = getBusinessContextFilePath({ projectRoot: tmpDir });
+      const context = JSON.parse(fs.readFileSync(contextFile, 'utf8'));
+      expect(context).toMatchObject({
+        version: 1,
+        corp_id: 'corp-env',
+        base_url: 'https://customer.example.com',
+      });
+      expect(context).not.toHaveProperty('access_token');
+      expect(context).not.toHaveProperty('refresh_token');
+      expect(loadTokenSession({
+        projectRoot: tmpDir,
+        env: {
+          YIDA_AUTH_ENABLED: 'true',
+          OPENYIDA_REFRESH_TOKEN: 'next-process-refresh-token',
+          OPENYIDA_ENDPOINT: `http://127.0.0.1:${port}`,
+          OPENYIDA_TOKEN_CORP_ID: 'corp-env',
+        },
+      }).base_url).toBe('https://customer.example.com');
     } finally {
       await closeServer(server);
     }
