@@ -98,6 +98,23 @@ describe('resolveBaseUrl', () => {
       }
     }
   });
+
+  test('鉴权服务返回的业务 base_url 优先于 OPENYIDA_ENDPOINT', () => {
+    const originalEndpoint = process.env.OPENYIDA_ENDPOINT;
+    process.env.OPENYIDA_ENDPOINT = 'https://www.aliwork.com';
+
+    try {
+      expect(resolveBaseUrl({
+        base_url: 'https://customer.example.com/path',
+      })).toBe('https://customer.example.com');
+    } finally {
+      if (originalEndpoint === undefined) {
+        delete process.env.OPENYIDA_ENDPOINT;
+      } else {
+        process.env.OPENYIDA_ENDPOINT = originalEndpoint;
+      }
+    }
+  });
 });
 
 // ── isLoginExpired ────────────────────────────────────────────────────
@@ -338,47 +355,58 @@ describe('requestWithAutoLogin', () => {
 
   test('登录失效且 refresh 成功时刷新 token 并重试原请求', async () => {
     jest.resetModules();
-    const tokenRefresh = jest.fn().mockResolvedValue({
-      access_token: 'new-access-token',
-      refresh_token: 'refresh-token',
-      base_url: 'https://www.aliwork.com',
-      corp_id: 'ding-corp',
-      user_id: 'user-1',
-    });
-    const isRefreshAuthRequired = jest.fn(() => false);
-    jest.doMock('../lib/auth/token-auth', () => ({ tokenRefresh, isRefreshAuthRequired }));
-    const utils = require('../lib/core/utils');
-    const requestFn = jest.fn()
-      .mockResolvedValueOnce({ __needLogin: true })
-      .mockResolvedValueOnce({ success: true, content: { ok: true } });
-    const authRef = {
-      baseUrl: 'https://www.aliwork.com',
-      authData: {
+    const originalEndpoint = process.env.OPENYIDA_ENDPOINT;
+    process.env.OPENYIDA_ENDPOINT = 'https://www.aliwork.com';
+    try {
+      const tokenRefresh = jest.fn().mockResolvedValue({
+        access_token: 'new-access-token',
+        refresh_token: 'refresh-token',
+        base_url: 'https://customer.example.com',
+        corp_id: 'ding-corp',
+        user_id: 'user-1',
+      });
+      const isRefreshAuthRequired = jest.fn(() => false);
+      jest.doMock('../lib/auth/token-auth', () => ({ tokenRefresh, isRefreshAuthRequired }));
+      const utils = require('../lib/core/utils');
+      const requestFn = jest.fn()
+        .mockResolvedValueOnce({ __needLogin: true })
+        .mockResolvedValueOnce({ success: true, content: { ok: true } });
+      const authRef = {
+        baseUrl: 'https://www.aliwork.com',
+        authData: {
+          auth_mode: 'token',
+          auth_source: 'token',
+          base_url: 'https://www.aliwork.com',
+          client_id: 'suite9xvlxxerybljwheo',
+        },
+        authMode: 'token',
+        authSource: 'token',
+      };
+
+      const result = await utils.requestWithAutoLogin(requestFn, authRef);
+
+      expect(tokenRefresh).toHaveBeenCalledWith(expect.objectContaining({
+        baseUrl: 'https://www.aliwork.com',
+        clientId: 'suite9xvlxxerybljwheo',
+      }));
+      expect(requestFn).toHaveBeenCalledTimes(2);
+      expect(authRef.authData).toMatchObject({
         auth_mode: 'token',
-        auth_source: 'token',
-        base_url: 'https://www.aliwork.com',
-        client_id: 'suite9xvlxxerybljwheo',
-      },
-      authMode: 'token',
-      authSource: 'token',
-    };
-
-    const result = await utils.requestWithAutoLogin(requestFn, authRef);
-
-    expect(tokenRefresh).toHaveBeenCalledWith(expect.objectContaining({
-      baseUrl: 'https://www.aliwork.com',
-      clientId: 'suite9xvlxxerybljwheo',
-    }));
-    expect(requestFn).toHaveBeenCalledTimes(2);
-    expect(authRef.authData).toMatchObject({
-      auth_mode: 'token',
-      base_url: 'https://www.aliwork.com',
-      corp_id: 'ding-corp',
-      user_id: 'user-1',
-    });
-    expect(result).toEqual({ success: true, content: { ok: true } });
-    jest.dontMock('../lib/auth/token-auth');
-    jest.resetModules();
+        base_url: 'https://customer.example.com',
+        corp_id: 'ding-corp',
+        user_id: 'user-1',
+      });
+      expect(authRef.baseUrl).toBe('https://customer.example.com');
+      expect(result).toEqual({ success: true, content: { ok: true } });
+    } finally {
+      if (originalEndpoint === undefined) {
+        delete process.env.OPENYIDA_ENDPOINT;
+      } else {
+        process.env.OPENYIDA_ENDPOINT = originalEndpoint;
+      }
+      jest.dontMock('../lib/auth/token-auth');
+      jest.resetModules();
+    }
   });
 });
 

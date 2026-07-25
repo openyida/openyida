@@ -6,10 +6,13 @@ const path = require('path');
 
 const {
   clearTokenSession,
+  getBusinessContextFilePath,
   getTokenFilePath,
   isAccessTokenUsable,
+  loadBusinessContext,
   loadTokenSession,
   maskToken,
+  saveBusinessContext,
   saveTokenSession,
 } = require('../lib/auth/token-store');
 
@@ -123,6 +126,70 @@ describe('token-store', () => {
     expect(loaded.access_token).toBe('env-access-token');
     expect(loaded.refresh_token).toBe('env-refresh-token');
     expect(loaded.auth_source).toBe('env');
+  });
+
+  test('host-injected token mode uses cached business base_url for the same corp', () => {
+    const options = {
+      projectRoot,
+      envName: 'public',
+      env: {
+        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_ACCESS_TOKEN: 'env-access-token',
+        OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
+        OPENYIDA_ENDPOINT: 'https://www.aliwork.com',
+        OPENYIDA_TOKEN_CORP_ID: 'corp-env',
+      },
+    };
+    saveBusinessContext({
+      corp_id: 'corp-env',
+      base_url: 'https://customer.example.com/path',
+    }, options);
+
+    const loaded = loadTokenSession(options);
+    const contextFile = getBusinessContextFilePath(options);
+    const raw = JSON.parse(fs.readFileSync(contextFile, 'utf8'));
+
+    expect(loaded.base_url).toBe('https://customer.example.com');
+    expect(loadBusinessContext(options)).toMatchObject({
+      version: 1,
+      corp_id: 'corp-env',
+      base_url: 'https://customer.example.com',
+    });
+    expect(raw).not.toHaveProperty('access_token');
+    expect(raw).not.toHaveProperty('refresh_token');
+  });
+
+  test('host-injected token mode ignores cached business base_url for another corp', () => {
+    const options = {
+      projectRoot,
+      envName: 'public',
+      env: {
+        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_ACCESS_TOKEN: 'env-access-token',
+        OPENYIDA_ENDPOINT: 'https://www.aliwork.com',
+        OPENYIDA_TOKEN_CORP_ID: 'corp-current',
+      },
+    };
+    saveBusinessContext({
+      corp_id: 'corp-previous',
+      base_url: 'https://previous-customer.example.com',
+    }, options);
+
+    expect(loadTokenSession(options).base_url).toBe('https://www.aliwork.com');
+  });
+
+  test('business context rejects non-http URLs and embedded credentials', () => {
+    const options = { projectRoot, envName: 'public' };
+
+    expect(saveBusinessContext({
+      corp_id: 'corp-env',
+      base_url: 'javascript:alert(1)',
+    }, options)).toBeNull();
+    expect(saveBusinessContext({
+      corp_id: 'corp-env',
+      base_url: 'https://user:password@customer.example.com',
+    }, options)).toBeNull();
+    expect(fs.existsSync(getBusinessContextFilePath(options))).toBe(false);
   });
 
   test('host-injected token mode returns null when the host provides no token', () => {
