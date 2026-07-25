@@ -144,7 +144,7 @@ description: 宜搭应用主题色与全局主题变量配置技能。用于应�
 处理建议：
 
 - 如果自定义主题对应已有平台主题，同步 `colour` 为最接近的主题 key，让配置展示、图标、预览更一致。
-- 如果是任意品牌色，保留 `colour` 作为 legacy fallback，同时写入 `customThemeStyle.tokens` 作为运行态真实主题。
+- 如果是任意品牌色，保留 `colour` 作为兼容 fallback，同时写入 `customThemeStyle.tokens` 作为运行态真实主题。
 - UI 上应显示“当前启用自定义主题”，避免用户看到 `colour=orange` 但页面实际是另一套颜色。
 
 ## 主题注入方案

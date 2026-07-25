@@ -15,7 +15,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 
 **默认判定**：完整应用搭建或补齐时，只要用户表达“默认方案 / 不要追问 / 直接创建 / 尽快搭建”等快速交付信号，就必须命中 `fast_build`。默认完成链路固定为 `resolve app → resolve forms → resolve main page → create missing resources only → 编写/更新主页面源码 → 发布 → 返回访问链接`。
 
-> 资源边界：本技能是 Direct-plus direct/standalone 的默认完整应用编排；若用户显式提供 Schema-as-Code manifest、要求 `schema validate/plan/apply`，或 CLI/context 明确目标来自 Schema-as-Code state，停止本技能并走 schema workflow。目标不明时回到根技能确认，不把 SAC 当作普通自然语言搭建默认路线。
+> 资源边界：本技能是默认完整应用编排；若用户显式提供 schema manifest/state 文件、要求使用 schema 子命令，或上下文明确目标由这类文件管理，停止本技能并回到根入口确认。目标不明时先只读确认或询问用户。
 
 ## 阶段 0：resolve_resource_context
 
@@ -39,7 +39,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 - 完整应用页面阶段只有在页面代码、数据查询、流程/公式或多表 dataBinding 确实需要多个 `fieldId` 时，才对每个目标业务表单执行一次 `openyida get-schema <appType> <formUuid> --field-map-json`，读取完整 JSON 并合并到 `.cache/<项目名>-schema.json`；不要对同一表单用 `tail/head/grep` 截断 stdout 后再重复拉取。
 - 阶段 0 禁止编造 `list-apps` / `get-app`；也不要把 `--app-type` / `--form-uuid` 当成 `list-forms` 或 `get-schema` 的参数。按目的在 `app-list`、`list-forms`、`get-schema` 三者中选择。
 
-该阶段只决定 Direct-plus direct/standalone resource context；schema-managed 路径只在显式 manifest/state/managed context 下进入，并以 schema CLI 的 validate/plan/apply 结果为准。schema-managed create/update 必须停在当前 `planId`，等待用户显式批准后才可执行 `apply`；`nextAction`、错误恢复或本技能判断都不能授予 `mixed/write`。Phase 1 中 report、automation、page config、delete、pull 不从 Manifest fallback 到本技能的 legacy workflow。
+该阶段只决定常规 resource context。显式 schema manifest/state 文件任务必须停下并回到根入口确认；不要在本技能里自动切换、降级写入或授予写权限。
 
 ## 阶段 1：resolve app name / rename placeholder app
 
@@ -49,10 +49,9 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 - `precreated === true`，或当前名称 / `placeholderName` 命中“新应用 / 未命名 / 占位 / APP_xxx”等占位样式；
 - `allowRename !== false`；
 - 用户没有明确要求“保持应用名称不变”或指定保留原名称；
-- 目标不是 schema-managed；
 - 已从本轮需求得到稳定语义应用名，且该名称不是占位名。
 
-命令固定使用现有 CLI：`openyida update-app <appType> --name "<语义应用名>"`。该调用应在创建表单/页面前执行；若受信息收集顺序限制，最晚在发布前执行。不要在本技能中重写平台 API，不要加载 `yida-create-app` 处理改名，不要按标题发现/adopt 其他应用，不要 cleanup orphan，不要对已命名的真实业务应用自动改名，不要把 schema-managed 资源交给 legacy `update-app`。
+命令固定使用现有 CLI：`openyida update-app <appType> --name "<语义应用名>"`。该调用应在创建表单/页面前执行；若受信息收集顺序限制，最晚在发布前执行。不要在本技能中重写平台 API，不要加载 `yida-create-app` 处理改名，不要按标题发现/adopt 其他应用，不要 cleanup orphan，不要对已命名的真实业务应用自动改名。
 
 ## 模式
 
@@ -178,7 +177,7 @@ UI 不是独立替代主流程的步骤，而是按模式插入到页面生成�
 |------|--------|----------|----------|
 | 0. 解析资源上下文 | 无 | 合并本轮显式资源、agent bound context、workspace config/cache、会话历史；本轮显式目标覆盖 bound context；判定 app/page/form/process 的 `source` 和 `allowCreate` | 明确复用、创建缺口或需要 ask_human |
 | 1. resolve app + app name | `yida-create-app` 仅在 app 缺失且允许创建时加载；`openyida update-app` 仅用于预创建占位 app 改名 | 已有 `appType`/应用 URL/bound app 时直接复用；若 bound/precreated app 仍是占位名，在语义名稳定后执行 `openyida update-app <appType> --name "<语义应用名>"`；否则创建应用并提取真实 `appType` | 拿到真实目标 `appType`，预创建占位 app 已改成语义名或明确跳过，且不会重复创建同类 app |
-| 2. 记录最小需求 | 无 | 写 `prd/<项目名>.md`：只记录 MVP 假设、核心表单/页面、完成标准；写/更新 `.cache/<项目名>-schema.json` standalone 映射；不要写长 PRD | 业务语义和 ID 存储位置明确 |
+| 2. 记录最小需求 | 无 | 写 `prd/<项目名>.md`：只记录 MVP 假设、核心表单/页面、完成标准；写/更新 `.cache/<项目名>-schema.json` 本地 ID 映射；不要写长 PRD | 业务语义和 ID 存储位置明确 |
 | 3. resolve forms | `yida-create-form-page` | 已有目标表单时 update/patch/rule/bind-datasource；简单字段属性更新直接用 compact changes 让 CLI 内部按 label 读 schema/定位字段并输出 resolved evidence；缺少支撑 MVP 的核心表单且允许创建时才 create；字段配置文件写入 `.cache/openyida/<项目名>/`；页面/数据/流程/公式确需多字段映射时，对每个目标表单最多一次性获取完整 `--field-map-json` 并合并写回 `.cache/<项目名>-schema.json` | 拿到或确认表单 `formUuid`，并在需要时拿到真实 `fieldId` |
 | 4. resolve main page | `yida-create-page` 仅在主页面缺失且允许创建时加载 | 已有页面 URL / `formUuid` / bound page 时直接作为主页面；否则创建一个用户主入口 display page | 拿到真实目标页面 `formUuid`，且不会重复创建页面 |
 | 5. 编写/更新页面 | 默认 `yida-canvas-custom-page`；明确要求 JSX/Jsx 组件链路或实例桥强依赖时选择 `yida-custom-page` | 生成或修改主页面源码；只实现 MVP 首屏和核心操作。可用已解析表单链接、真实空态、表单入口和轻量指标口径完成主页面；若展示业务列表/看板/详情记录，必须接本轮真实表单 `dataBinding.mode=form`，或先写入 demo records 后再读取；不要加载视觉/密度/报表/数据源等额外技能 | 本地源码通过对应页面技能的基础校验；未执行 publish 时仍是“源码已修改，尚未发布” |

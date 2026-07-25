@@ -23,7 +23,7 @@
 
 新增依赖必须同时满足：① 编译能把 import 抽进 `importedModules` 并映射到 windowAlias（见 `canvas-compile.js` 的 `MODULE_ALIAS_MAP`）；② 上表或平台运行时能把依赖加载到 window；③ `runtimeCode` 引用的变量名与 windowAlias 一致；④ CSS 资源可加载，否则组件可能渲染但样式/弹层异常。白名单外的包（yida-utils、`@ali/deep`、原生字段组件等）不能 `import`；带绑定的非白名单裸包 import 会在本地编译阶段硬失败。宜搭平台运行态全局对象必须显式使用 `window.Deep`、`window.DeepYida`、`window.YidaNativeComponents` 等 `window.*` 访问，不要从包中导入。
 
-如果宜搭物料依赖表已经先于 OpenYida CLI 升级，且你已经确认运行时确实会注入某个新裸包，可以临时设置 `OPENYIDA_CANVAS_ALLOW_UNSUPPORTED_IMPORTS=1` 退回 legacy `window["pkg"]` 映射发布；这只是白名单漂移逃生舱，不应用来绕过 `useDataBinding` 这类不存在的 hook 或未验证依赖。
+如果宜搭物料依赖表已经先于 OpenYida CLI 升级，且你已经确认运行时确实会注入某个新裸包，可以临时设置 `OPENYIDA_CANVAS_ALLOW_UNSUPPORTED_IMPORTS=1` 退回旧式 `window["pkg"]` 映射发布；这只是白名单漂移逃生舱，不应用来绕过 `useDataBinding` 这类不存在的 hook 或未验证依赖。
 
 Canvas 没有官方 `useDataBinding` hook，不得从任何包 `import { useDataBinding }`。真实表单数据绑定使用页面内本地 `useYidaData(binding)`、`DataBridge` 与同源 `fetch` 实现。
 

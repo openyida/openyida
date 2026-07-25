@@ -1,18 +1,17 @@
 ---
 name: yida-create-form-page
-description: 表单页面创建与更新，支持 19 种业务字段和 Divider、ColumnContainer 等表单展示布局组件，PageSection/GroupContainer 仅少量特殊场景使用；支持联动规则和数据源绑定。适用于新建表单、设计表单结构、添加或修改表单字段；默认 Direct-plus direct，显式 schema-managed 表单才由根技能或明确 context 路由到 schema workflow。
+description: 表单页面创建与更新，支持 19 种业务字段和 Divider、ColumnContainer 等表单展示布局组件，PageSection/GroupContainer 仅少量特殊场景使用；支持联动规则和数据源绑定。适用于新建表单、设计表单结构、添加或修改表单字段；显式 schema 文件任务先回到根技能确认。
 ---
 
 # 表单页面创建与更新
 
-> 资源边界：本技能只处理 Direct-plus direct/standalone 资源；若用户显式提供 Schema-as-Code manifest、要求 `schema validate/plan/apply`，或 CLI/context 明确目标来自 Schema-as-Code state，停止本技能并走 schema workflow。目标不明时回到根技能确认。
-> schema-managed 路径必须回到 schema validate → plan → apply，不在本技能内降级写入；普通自然语言搭建/修改默认不走 SAC。
+> 资源边界：本技能处理普通表单创建与更新。若用户显式提供 schema manifest/state 文件、要求使用 schema 子命令，或上下文明确目标由这类文件管理，停止本技能并回到根入口确认；不要在本技能内自动切换或降级写入。目标不明时先只读确认或询问用户。
 
 ## Resource-First create/update 判定
 
 执行本技能前必须先解析 app/form resource context：
 
-- 已有目标 `formUuid`、表单 URL、bound form，或 workspace cache/config 中可确认的 standalone form 时，字段结构诉求默认走 update/patch/rule/bind-datasource 模式；不要再 create 同名或同类表单。
+- 已有目标 `formUuid`、表单 URL、bound form，或 workspace cache/config 中可确认的表单时，字段结构诉求默认走 update/patch/rule/bind-datasource 模式；不要再 create 同名或同类表单。
 - bound form/page 只是默认候选，不是锁定目标；如果当前会话绑定表单或页面 A，但用户本轮明确要求修改 B 的字段，必须先解析 B 对应的表单 `formUuid`。B 能唯一解析时改 B；B 无法唯一解析或字段归属不清时问用户；禁止默认改 A。
 - 已有目标 app 但缺少业务数据表，且用户明确要求“增加客户表 / 新建订单表 / 新增数据收集入口”等，才使用 create 模式创建新表单。
 - 用户给页面 URL 或自定义页面 `formUuid` 且诉求是优化页面 UI 时，改走 `yida-custom-page` + `yida-publish-page`；不要创建表单。
@@ -21,7 +20,7 @@ description: 表单页面创建与更新，支持 19 种业务字段和 Divider�
 ## 严格禁止 (NEVER DO)
 
 - 不要编造 formUuid，必须从命令返回的 JSON 中提取
-- 不要猜测 fieldId。字段级 direct 命令优先用字段 `label`、必要时用已知 `fieldId` 或 `tableLabel + label`；CLI 内部读 schema/定位并返回 compact evidence。只有字段解析失败/歧义、patch 底层路径或页面/公式/流程等确实需要多字段映射时，才用 `yida-get-schema` 一次性取证。
+- 不要猜测 fieldId。字段级命令优先用字段 `label`、必要时用已知 `fieldId` 或 `tableLabel + label`；CLI 内部读 schema/定位并返回 compact evidence。只有字段解析失败/歧义、patch 底层路径或页面/公式/流程等确实需要多字段映射时，才用 `yida-get-schema` 一次性取证。
 - 不要用此命令操作数据记录（增删改查），应使用 `yida-data-management`
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成字段、变更、补丁、规则、数据源 JSON 文件
 - OpenYida CLI 不要加 `2>/dev/null`；失败时保留 stdout/stderr 诊断，遇到 DENIED 或重复失败必须换策略
@@ -31,7 +30,7 @@ description: 表单页面创建与更新，支持 19 种业务字段和 Divider�
 ## 严格要求 (MUST DO)
 
 - create 成功后，将 formUuid 记录到 `.cache/<项目名>-schema.json`
-- update / add-option / bind-datasource / validation / rule 等字段级 direct 操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会内部读取 schema、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败/歧义时按 `diagnostics[].candidates` 补 `tableLabel`、修正 label 或再执行一次 compact `get-schema`。
+- update / add-option / bind-datasource / validation / rule 等字段级操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会内部读取 schema、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败/歧义时按 `diagnostics[].candidates` 补 `tableLabel`、修正 label 或再执行一次 compact `get-schema`。
 - 字段定义或变更定义需要落盘时，必须使用 agent 的结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`，例如 `<projectRoot>/.cache/openyida/pm/pm-fields-team.json`
 - 普通表单分组必须优先使用 `Divider`，多列排版必须通过字段 JSON 中的 `ColumnContainer` 局部表达
 - **本技能不读写 memory**：formUuid 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
@@ -156,7 +155,7 @@ openyida create-form update <appType> <formUuid> <changesJsonOrFile>
 
 字段不存在、重名或歧义时，CLI 会返回 `success:false`、`diagnostics[].code` 和 compact `candidates`；优先按候选补充 `tableLabel`、改用 `fieldId` 或修正 label 后重试。只有仍不明确、需要底层 patch path，或要为页面/公式/流程生成多字段映射时，才调用 `get-schema --compact --resolve-fields` 或 `--field-map-json`。
 
-Direct-plus 字段解析也覆盖常用高级字段命令：
+字段级内置解析也覆盖常用高级字段命令：
 
 ```bash
 openyida create-form add-option <appType> <formUuid> <fieldLabelOrId> <option1> [option2] ...

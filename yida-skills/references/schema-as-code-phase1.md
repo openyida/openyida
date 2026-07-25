@@ -1,6 +1,6 @@
-# Schema-as-Code Phase 1 Manifest
+# 显式 Schema Manifest 兼容说明
 
-这是 OpenYida 显式 Manifest / 高级收敛 / 实验或 managed mode 的 Phase 1 指南，不是普通自然语言完整搭建的默认 builder 路线。默认 builder 走 Direct-plus direct 命令；只有用户提供 manifest、要求 `schema validate/plan/apply`，或上下文明确目标由 Schema-as-Code state 管理时才进入本文流程。
+这是 OpenYida 显式 schema manifest 的兼容说明，不是普通自然语言完整搭建的默认路线。普通搭建和修改使用常规 OpenYida 命令；只有用户明确提供 manifest、明确要求 schema 子命令，或上下文明确目标由 schema state 管理时才进入本文流程。
 
 Phase 1 管理 `app`、`form`、`process`、`native/default` 展示页和 `canvas/default` Code Canvas 展示页；State 是资源 identity bindings 的唯一持久化权威，但 State 不是远端真相。
 
@@ -96,7 +96,7 @@ openyida schema apply app.yida.json --state .cache/openyida/state.v1.json --plan
 | page config、delete、pull、adopt | Deferred; not Manifest v1 properties |
 | dashboard、raw Schema、inline page source | Deferred/unsupported |
 
-Standalone、明确 unmanaged 且用户明确要求 legacy 命令的资源仍可使用原 CLI。SAC Manifest 或 State 已拥有资源身份时，不得 fallback 到 legacy 直写。
+普通资源且用户明确要求现有 CLI 命令时，仍可使用对应技能。Manifest 或 State 已拥有资源身份时，不得改走普通写命令。
 
-- SAC-owned Manifest 中的 report、automation、page config、delete 和 pull 在 Phase 1 停止或延期，不 fallback 到 legacy。
-- 明确 standalone/unmanaged 的 report、integration automation 和 page config 仍可路由现有 `yida-report`、`yida-integration`、`yida-page-config`；delete/pull 当前没有 Phase 1 live Manifest 或 standalone routing contract。
+- Manifest 中的 report、automation、page config、delete 和 pull 在 Phase 1 停止或延期，不改走普通写命令。
+- 明确属于普通资源的 report、integration automation 和 page config 仍可路由现有 `yida-report`、`yida-integration`、`yida-page-config`；delete/pull 当前没有 live routing contract。

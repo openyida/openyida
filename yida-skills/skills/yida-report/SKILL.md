@@ -1,15 +1,15 @@
 ---
 name: yida-report
-description: "Standalone 创建宜搭原生报表；如果请求来自 Schema-as-Code manifest/state，停止，不降级直写。"
+description: "创建宜搭原生报表；显式 schema 文件任务先回到根技能确认，不在本技能内直写。"
 ---
 
 # 宜搭原生报表技能
 
-## 适用范围：standalone 资源
+## 适用范围
 
-- SAC Phase 1 下，本技能只处理明确 standalone 的原生报表。用户提供 Schema-as-Code manifest、要求 schema validate/plan/apply，或报表身份来自 Schema-as-Code state 时，不执行创建、追加或发布，稳定停止为 unsupported。
-- 不得把 SAC unsupported/conflict/uncertain 降级为 `create-report` 等 legacy 写入，不得按标题、组件类型或数组位置 adopt、猜 report/chart/filter ID。
-- 只有报表明确 standalone/unmanaged，或用户明确要求 standalone legacy 报表命令时，以下示例、stdout/stderr 和返回行为才按原契约使用；所有权不明确时零远端写。
+- 本技能只处理普通原生报表。用户提供显式 schema manifest/state 文件、要求使用 schema 子命令，或上下文显示报表由这类文件管理时，不执行创建、追加或发布，回到根技能确认。
+- 不得把不支持、冲突或状态不确定的任务改走 `create-report` 写入，不得按标题、组件类型或数组位置 adopt、猜 report/chart/filter ID。
+- 只有报表目标明确属于当前普通 OpenYida 资源时，以下示例、stdout/stderr 和返回行为才按本技能契约使用；所有权不明确时零远端写。
 
 ## 严格禁止 (NEVER DO)
 

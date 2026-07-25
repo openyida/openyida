@@ -1,12 +1,11 @@
 ---
 name: yida-create-app
-description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用户意图允许新建时使用。schema-managed 应用由根技能或明确 context 路由到 schema workflow。
+description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用户意图允许新建时使用。显式 schema 文件任务先回到根技能确认。
 ---
 
 # 创建应用
 
-> 资源边界：本技能只处理普通 OpenYida 资源；若根技能、上下文或 CLI guard 显示目标是 schema-managed，停止本技能并走 schema workflow；目标不明时回到根技能确认。
-> direct/standalone 路径才可执行本技能；schema-managed 路径必须回到 schema validate → plan → apply，不在本技能内降级写入。
+> 资源边界：本技能只处理普通 OpenYida 应用创建；若根技能、上下文或 CLI guard 显示目标来自显式 schema manifest/state 文件，停止本技能并回到根技能确认；目标不明时先只读确认或询问用户。
 
 ## Resource-First 使用门槛
 
@@ -16,7 +15,7 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 2. 没有从本轮 prompt、应用 URL、agent bound context、workspace config/cache 或会话历史解析到目标 `appType`；
 3. 用户明确要求从零创建应用，或完整搭建缺少 app 且 `allowCreate=true`。
 
-若已解析到 `appType`、应用 URL、bound app 或 workspace 中可确认的 standalone app，必须复用该 app 并继续后续表单/页面/发布步骤，不得调用 `openyida create-app`。若用户说“新建另一个应用”，先确认目标组织和新应用名，再执行本技能。
+若已解析到 `appType`、应用 URL、bound app 或 workspace 中可确认的 app，必须复用该 app 并继续后续表单/页面/发布步骤，不得调用 `openyida create-app`。若用户说“新建另一个应用”，先确认目标组织和新应用名，再执行本技能。
 
 若该 app 是 yida-agent / 宿主预创建的占位 app（例如名称为“新应用”“未命名”“占位”或 `APP_xxx` 样式，且 context 标记 `source=agent_bound`、`precreated=true`、`allowRename !== false`），也仍然视为“已有目标 app”：不得调用 `openyida create-app`。占位名修正由 `yida-app` 在最小需求分析得到稳定语义应用名后调用 `openyida update-app <appType> --name "<语义应用名>"` 完成；本技能只负责在确实没有目标 app 且允许创建时新建应用。
 

@@ -1,11 +1,10 @@
 ---
 name: yida-create-process
-description: 流程表单一体化创建（创建表单 → 转流程 → 配置流程）；仅当无既有流程/表单上下文且用户意图允许新建流程表单时使用。schema-managed 流程由根技能或明确 context 路由到 schema workflow。
+description: 流程表单一体化创建（创建表单 → 转流程 → 配置流程）；仅当无既有流程/表单上下文且用户意图允许新建流程表单时使用。显式 schema 文件任务先回到根技能确认。
 ---
 # 流程表单一体化创建
 
-> 资源边界：本技能只处理普通 OpenYida 资源；若根技能、上下文或 CLI guard 显示目标是 schema-managed，停止本技能并走 schema workflow；目标不明时回到根技能确认。
-> direct/standalone 路径才可执行本技能；schema-managed 路径必须回到 schema validate → plan → apply，不在本技能内降级写入。
+> 资源边界：本技能只处理普通 OpenYida 流程表单创建；若根技能、上下文或 CLI guard 显示目标来自显式 schema manifest/state 文件，停止本技能并回到根技能确认；目标不明时先只读确认或询问用户。
 
 ## Resource-First 使用门槛
 

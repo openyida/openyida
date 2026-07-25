@@ -188,17 +188,17 @@ describe('legacy create-form server revision isolation', () => {
   });
 });
 
-describe('legacy create-form direct-plus update evidence', () => {
+describe('legacy create-form schema-aware update evidence', () => {
   test('label-based update resolves fields internally and emits compact evidence', async () => {
     const initial = formCompiler.compileFormDefinition({
-      formTitle: 'Direct Plus Update',
+      formTitle: 'Schema Aware Update',
       fields: [
         { key: 'title', type: 'TextField', label: '事项名称' },
         { key: 'remark', type: 'TextField', label: '备注' },
       ],
     }, {
       appType: 'APP_TEST',
-      formUuid: 'FORM_DIRECT_PLUS',
+      formUuid: 'FORM_SCHEMA_AWARE',
     }).schema;
     initial.gmtModified = 100;
     const {
@@ -211,14 +211,14 @@ describe('legacy create-form direct-plus update evidence', () => {
     await isolatedCreateForm.run([
       'update',
       'APP_TEST',
-      'FORM_DIRECT_PLUS',
+      'FORM_SCHEMA_AWARE',
       JSON.stringify([{ action: 'update', label: '备注', changes: { required: true } }]),
     ]);
 
-    const payload = parseConsoleJsonPayloads(consoleSpy).find(item => item && item.formUuid === 'FORM_DIRECT_PLUS');
+    const payload = parseConsoleJsonPayloads(consoleSpy).find(item => item && item.formUuid === 'FORM_SCHEMA_AWARE');
     expect(payload).toMatchObject({
       success: true,
-      formUuid: 'FORM_DIRECT_PLUS',
+      formUuid: 'FORM_SCHEMA_AWARE',
       appType: 'APP_TEST',
       changesApplied: 1,
       changes: [
@@ -255,14 +255,14 @@ describe('legacy create-form direct-plus update evidence', () => {
 
   test('ambiguous label update returns compact candidates and does not save', async () => {
     const initial = formCompiler.compileFormDefinition({
-      formTitle: 'Direct Plus Ambiguous',
+      formTitle: 'Schema Aware Ambiguous',
       fields: [
         { key: 'remarkA', type: 'TextField', label: '备注' },
         { key: 'remarkB', type: 'TextareaField', label: '备注' },
       ],
     }, {
       appType: 'APP_TEST',
-      formUuid: 'FORM_DIRECT_AMBIGUOUS',
+      formUuid: 'FORM_SCHEMA_AMBIGUOUS',
     }).schema;
     initial.gmtModified = 100;
     const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedLegacyForm(initial);
@@ -270,7 +270,7 @@ describe('legacy create-form direct-plus update evidence', () => {
     await expect(isolatedCreateForm.run([
       'update',
       'APP_TEST',
-      'FORM_DIRECT_AMBIGUOUS',
+      'FORM_SCHEMA_AMBIGUOUS',
       JSON.stringify([{ action: 'update', label: '备注', changes: { required: true } }]),
     ])).rejects.toMatchObject({ code: 'CREATE_FORM_FIELD_RESOLUTION_FAILED' });
 
@@ -278,7 +278,7 @@ describe('legacy create-form direct-plus update evidence', () => {
     expect(payload).toMatchObject({
       success: false,
       appType: 'APP_TEST',
-      formUuid: 'FORM_DIRECT_AMBIGUOUS',
+      formUuid: 'FORM_SCHEMA_AMBIGUOUS',
       diagnostics: [
         {
           action: 'update',
@@ -302,11 +302,11 @@ describe('legacy create-form direct-plus update evidence', () => {
 
   test('missing label update returns compact diagnostics and candidates', async () => {
     const initial = formCompiler.compileFormDefinition({
-      formTitle: 'Direct Plus Missing',
+      formTitle: 'Schema Aware Missing',
       fields: [{ key: 'title', type: 'TextField', label: '事项名称' }],
     }, {
       appType: 'APP_TEST',
-      formUuid: 'FORM_DIRECT_MISSING',
+      formUuid: 'FORM_SCHEMA_MISSING',
     }).schema;
     initial.gmtModified = 100;
     const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedLegacyForm(initial);
@@ -314,7 +314,7 @@ describe('legacy create-form direct-plus update evidence', () => {
     await expect(isolatedCreateForm.run([
       'update',
       'APP_TEST',
-      'FORM_DIRECT_MISSING',
+      'FORM_SCHEMA_MISSING',
       JSON.stringify([{ action: 'update', label: '备注', changes: { required: true } }]),
     ])).rejects.toMatchObject({ code: 'CREATE_FORM_FIELD_RESOLUTION_FAILED' });
 
@@ -322,7 +322,7 @@ describe('legacy create-form direct-plus update evidence', () => {
     expect(payload).toMatchObject({
       success: false,
       appType: 'APP_TEST',
-      formUuid: 'FORM_DIRECT_MISSING',
+      formUuid: 'FORM_SCHEMA_MISSING',
       diagnostics: [
         {
           action: 'update',
@@ -343,10 +343,10 @@ describe('legacy create-form direct-plus update evidence', () => {
   });
 });
 
-describe('legacy create-form direct-plus field resolver', () => {
+describe('legacy create-form compact field resolver', () => {
   test('add-option missing field returns compact diagnostics and does not save', async () => {
     const initial = formCompiler.compileFormDefinition({
-      formTitle: 'Direct Plus Add Option Missing',
+      formTitle: 'Compact Add Option Missing',
       fields: [
         { key: 'status', type: 'SelectField', label: '状态', options: ['待处理'] },
         { key: 'title', type: 'TextField', label: '事项名称' },
@@ -403,7 +403,7 @@ describe('legacy create-form direct-plus field resolver', () => {
 
   test('bind-datasource missing field returns compact diagnostics and does not save', async () => {
     const initial = formCompiler.compileFormDefinition({
-      formTitle: 'Direct Plus Bind Missing',
+      formTitle: 'Compact Bind Missing',
       fields: [
         { key: 'status', type: 'SelectField', label: '状态', options: ['待处理'] },
         { key: 'title', type: 'TextField', label: '事项名称' },
@@ -451,7 +451,7 @@ describe('legacy create-form direct-plus field resolver', () => {
 
   test('validation success emits compact resolved evidence without unrelated field labels', async () => {
     const initial = formCompiler.compileFormDefinition({
-      formTitle: 'Direct Plus Validation Evidence',
+      formTitle: 'Compact Validation Evidence',
       fields: [
         { key: 'title', type: 'TextField', label: '事项名称' },
         { key: 'remark', type: 'TextField', label: '备注' },
@@ -498,7 +498,7 @@ describe('legacy create-form direct-plus field resolver', () => {
 
   test('validation missing field returns compact diagnostics and does not save', async () => {
     const initial = formCompiler.compileFormDefinition({
-      formTitle: 'Direct Plus Validation Missing',
+      formTitle: 'Compact Validation Missing',
       fields: [
         { key: 'title', type: 'TextField', label: '事项名称' },
         { key: 'remark', type: 'TextField', label: '备注' },
@@ -543,7 +543,7 @@ describe('legacy create-form direct-plus field resolver', () => {
 
   test('rule missing field returns compact diagnostics and does not save', async () => {
     const initial = formCompiler.compileFormDefinition({
-      formTitle: 'Direct Plus Rule Missing',
+      formTitle: 'Compact Rule Missing',
       fields: [
         { key: 'status', type: 'SelectField', label: '状态', options: ['待处理'] },
         { key: 'remark', type: 'TextField', label: '备注' },
@@ -588,7 +588,7 @@ describe('legacy create-form direct-plus field resolver', () => {
 
   test('rule resolves tableLabel-scoped fields and emits compact evidence', async () => {
     const initial = formCompiler.compileFormDefinition({
-      formTitle: 'Direct Plus Rule Table Evidence',
+      formTitle: 'Compact Rule Table Evidence',
       fields: [
         { key: 'title', type: 'TextField', label: '事项名称' },
         { key: 'status', type: 'SelectField', label: '状态', options: ['待处理'] },
@@ -685,7 +685,7 @@ describe('legacy create-form direct-plus field resolver', () => {
 
   test('add-option can resolve a target field by fieldId and emits compact evidence', async () => {
     const initial = formCompiler.compileFormDefinition({
-      formTitle: 'Direct Plus FieldId Success',
+      formTitle: 'Compact FieldId Success',
       fields: [
         { key: 'status', type: 'SelectField', label: '状态', options: ['待处理'] },
         { key: 'title', type: 'TextField', label: '事项名称' },
@@ -730,7 +730,7 @@ describe('legacy create-form direct-plus field resolver', () => {
 
   test('update with missing fieldId returns compact diagnostics and does not save', async () => {
     const initial = formCompiler.compileFormDefinition({
-      formTitle: 'Direct Plus FieldId Missing',
+      formTitle: 'Compact FieldId Missing',
       fields: [{ key: 'title', type: 'TextField', label: '事项名称' }],
     }, {
       appType: 'APP_TEST',
@@ -1979,7 +1979,7 @@ describe('form compiler field bindings', () => {
     }));
 
     expect(() => formCompiler.compileFormDefinition({
-      formTitle: '非法 schema-managed 引用',
+      formTitle: '非法 manifest 引用',
       fields: [
         { key: 'customer', type: 'AssociationFormField', label: '关联客户', form: 'customer' },
       ],
@@ -1991,8 +1991,8 @@ describe('form compiler field bindings', () => {
       }),
     }));
 
-    const managedReferenceCompiled = formCompiler.compileFormDefinition({
-      formTitle: 'schema-managed 引用',
+    const manifestReferenceCompiled = formCompiler.compileFormDefinition({
+      formTitle: 'manifest 引用',
       fields: [
         {
           key: 'customer',
@@ -2003,7 +2003,7 @@ describe('form compiler field bindings', () => {
       ],
     });
 
-    expect(managedReferenceCompiled.fieldBindingComponents.customer).toBe('AssociationFormField');
+    expect(manifestReferenceCompiled.fieldBindingComponents.customer).toBe('AssociationFormField');
 
     const compiled = formCompiler.compileFormDefinition({
       formTitle: '合法关联配置',
