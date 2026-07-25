@@ -21,7 +21,7 @@ description: 表单页面创建与更新，支持 19 种业务字段和 Divider�
 ## 严格禁止 (NEVER DO)
 
 - 不要编造 formUuid，必须从命令返回的 JSON 中提取
-- 不要猜测 fieldId。简单 update 模式优先用字段 `label` 的 compact changes，由 CLI 内部读 schema/定位；patch / rule / validation / bind-datasource 或页面/公式/流程等确实需要 fieldId 时，必须先用 `yida-get-schema` 获取。
+- 不要猜测 fieldId。字段级 direct 命令优先用字段 `label`、必要时用已知 `fieldId` 或 `tableLabel + label`；CLI 内部读 schema/定位并返回 compact evidence。只有字段解析失败/歧义、patch 底层路径或页面/公式/流程等确实需要多字段映射时，才用 `yida-get-schema` 一次性取证。
 - 不要用此命令操作数据记录（增删改查），应使用 `yida-data-management`
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成字段、变更、补丁、规则、数据源 JSON 文件
 - OpenYida CLI 不要加 `2>/dev/null`；失败时保留 stdout/stderr 诊断，遇到 DENIED 或重复失败必须换策略
@@ -31,7 +31,7 @@ description: 表单页面创建与更新，支持 19 种业务字段和 Divider�
 ## 严格要求 (MUST DO)
 
 - create 成功后，将 formUuid 记录到 `.cache/<项目名>-schema.json`
-- update 模式修改简单字段属性时，不要求先执行外部 `get-schema`；直接提交 compact changes，CLI 会内部读取 schema、按 label 定位字段，并在成功 JSON 中输出 compact resolved/updated evidence。patch / rule / validation / bind-datasource 或需要 fieldId 的复杂场景，仍先用 `openyida get-schema` 确认字段 ID 和现有结构。
+- update / add-option / bind-datasource / validation / rule 等字段级 direct 操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会内部读取 schema、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败/歧义时按 `diagnostics[].candidates` 补 `tableLabel`、修正 label 或再执行一次 compact `get-schema`。
 - 字段定义或变更定义需要落盘时，必须使用 agent 的结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`，例如 `<projectRoot>/.cache/openyida/pm/pm-fields-team.json`
 - 普通表单分组必须优先使用 `Divider`，多列排版必须通过字段 JSON 中的 `ColumnContainer` 局部表达
 - **本技能不读写 memory**：formUuid 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
@@ -133,7 +133,7 @@ create 命令失败后，不要立刻重复同一条 create：
 
 ## update 模式
 
-已有 `formUuid` / 表单 URL / bound form 时优先使用本模式。简单字段属性更新直接写 compact changes，不需要模型先 `get-schema --field-map-json`；CLI 会内部读取当前 schema、按 `label` 定位字段，成功 JSON 会返回 `changes[].resolved` 和 `changes[].updatedProps`。
+已有 `formUuid` / 表单 URL / bound form 时优先使用本模式。简单字段属性更新直接写 compact changes，不需要模型先 `get-schema --field-map-json`；CLI 会内部读取当前 schema，按 `label`、`fieldId` 或 `tableLabel + label` 定位字段，成功 JSON 会返回 `changes[].resolved` 和 `changes[].updatedProps`。
 
 ```bash
 openyida create-form update <appType> <formUuid> <changesJsonOrFile>
@@ -154,7 +154,18 @@ openyida create-form update <appType> <formUuid> <changesJsonOrFile>
 ]
 ```
 
-字段不存在、重名或歧义时，CLI 会返回 `success:false`、`diagnostics[].code` 和 compact `candidates`；优先按候选补充 `tableLabel` 或修正 label 后重试。只有仍需 fieldId 或要做 patch/rule/validation/bind-datasource 时，才调用 `get-schema --compact --resolve-fields`。
+字段不存在、重名或歧义时，CLI 会返回 `success:false`、`diagnostics[].code` 和 compact `candidates`；优先按候选补充 `tableLabel`、改用 `fieldId` 或修正 label 后重试。只有仍不明确、需要底层 patch path，或要为页面/公式/流程生成多字段映射时，才调用 `get-schema --compact --resolve-fields` 或 `--field-map-json`。
+
+Direct-plus 字段解析也覆盖常用高级字段命令：
+
+```bash
+openyida create-form add-option <appType> <formUuid> <fieldLabelOrId> <option1> [option2] ...
+openyida create-form bind-datasource <appType> <formUuid> <fieldLabelOrId> <dataSourceJsonOrFile>
+openyida create-form validation <appType> <formUuid> <validationsJsonOrFile>
+openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
+```
+
+`validation` / `rule` JSON 可优先写 label，例如 `{ "field": "备注", "type": "required" }`；若位于子表或存在重名，补 `{ "tableLabel": "明细", "field": "备注" }` 或直接使用已知 `fieldId`。成功 JSON 会返回每条规则或事件绑定的 compact `resolved` evidence；失败只返回 compact `diagnostics[].candidates`，不会打印完整字段列表。
 
 ## 高级模式
 
@@ -165,8 +176,8 @@ openyida create-form update <appType> <formUuid> <changesJsonOrFile>
 | `patch` | `openyida create-form patch <appType> <formUuid> <patchJsonOrFile>` | 受控修改底层 Schema、字段 props、动作模块、自定义校验 |
 | `rule` | `openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>` | 字段显示隐藏、只读、自动赋值、onChange 带出 |
 | `validation` | `openyida create-form validation <appType> <formUuid> <validationsJsonOrFile>` | 字段校验规则，优先用内置校验，复杂场景再用 customValidate |
-| `bind-datasource` | `openyida create-form bind-datasource <appType> <formUuid> <fieldLabelOrId> <dataSourceJsonOrFile>` | 选项字段绑定远程搜索数据源 |
-| `add-option` | `openyida create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | 给已有选项字段追加选项 |
+| `bind-datasource` | `openyida create-form bind-datasource <appType> <formUuid> <fieldLabelOrId> <dataSourceJsonOrFile>` | 选项字段绑定远程搜索数据源；成功输出 `resolved` |
+| `add-option` | `openyida create-form add-option <appType> <formUuid> <fieldLabelOrId> <option1> [option2] ...` | 给已有选项字段追加选项；成功输出 `resolved` |
 
 ## 字段定义 JSON 高频范式
 
@@ -237,14 +248,14 @@ openyida create-form update <appType> <formUuid> <changesJsonOrFile>
 - `SelectField`、`RadioField`、`CheckboxField`、`MultiSelectField` 固定选项必须提供 `dataSource`
 - `TableField` 必须提供 `children`，且子表不能嵌套子表
 - `AssociationFormField` 必须提供 `associationForm`
-- update 模式按字段 `label` 查找并要求唯一命中；如果有重名字段，先看命令返回的 `diagnostics[].candidates`，可用 `tableLabel` 缩小范围，仍不明确时再用 `get-schema --compact --resolve-fields` 确认 fieldId 并使用更精确的高级模式。
+- update / add-option / bind-datasource / validation / rule 按字段 `label`、`fieldId` 或 `tableLabel + label` 解析并要求唯一命中；如果有重名字段，先看命令返回的 `diagnostics[].candidates`，可用 `tableLabel` 或 `fieldId` 缩小范围，仍不明确时再用 `get-schema --compact --resolve-fields`。
 
 ## 异常处理
 
 | 异常场景 | 处理方式 |
 |---------|----------|
 | create 返回失败 | 检查 appType 是否正确，确认登录态有效 |
-| update 模式找不到字段 | 先看命令 JSON 的 `diagnostics[].candidates` 修正 label 或补 `tableLabel`；仍不明确时再用 `openyida get-schema --compact --resolve-fields` |
+| 字段级 direct 命令找不到字段 | 先看命令 JSON 的 `diagnostics[].candidates` 修正 label、补 `tableLabel` 或改用已知 `fieldId`；仍不明确时再用 `openyida get-schema --compact --resolve-fields` |
 | 字段类型不支持 | 检查字段类型是否在支持的 19 种业务字段或已验证展示布局组件列表中 |
 | 子表字段创建失败 | 确认 `children` 数组格式正确，子表字段不能嵌套子表 |
 | 返回 JSON 中无 formUuid | 不要猜测 formUuid，重新执行命令获取 |

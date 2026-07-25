@@ -149,7 +149,7 @@ schema-managed create/update 必须等待用户对当前 `planId` 显式批准�
 
 **Canvas 数据边界**：完整应用/真实交付页如果展示列表、看板或详情记录，必须优先把本轮真实 `appType/formUuid/fieldId` 写入 `page-spec.json` 的 `dataBinding.mode=form`；需要演示记录时先写入真实表单再读取。未接真实表单且未写入 demo records 时，页面展示空态/入口，不用前端 seedRows 冒充业务数据。
 
-**Schema-aware direct**：简单字段属性更新（例如“把备注字段改为必填”）直接调用 `openyida create-form update <appType> <formUuid> '[{"action":"update","label":"备注","changes":{"required":true}}]'`；CLI 会内部读取当前 schema、按 label 定位字段，并在 JSON 中输出 resolved field evidence。只有页面代码、数据查询、流程、公式等确实需要多个 `fieldId` 时，才对每个目标表单执行一次 `openyida get-schema <appType> <formUuid> --field-map-json` 并合并到 `.cache/<项目名>-schema.json`。不要用 `head`/`tail`/`grep` 截断 get-schema stdout 作为字段证据，也不要因此对同一表单重复拉取多轮 schema。
+**Schema-aware direct**：简单字段属性更新（例如“把备注字段改为必填”）直接调用 `openyida create-form update <appType> <formUuid> '[{"action":"update","label":"备注","changes":{"required":true}}]'`；CLI 会内部读取当前 schema，按 label/fieldId/tableLabel 定位字段，并在 JSON 中输出 resolved/updated evidence。`add-option`、`bind-datasource`、`validation`、`rule` 等字段级 direct 命令也可直接按 label 或已知 fieldId 操作，成功返回 compact `resolved`，失败返回 compact `diagnostics[].candidates`。只有字段解析仍歧义、需要底层 patch path，或页面代码/数据查询/流程/公式等确实需要多个 `fieldId` 时，才对目标表单执行一次 `openyida get-schema <appType> <formUuid> --field-map-json` 并合并到 `.cache/<项目名>-schema.json`。不要用 `head`/`tail`/`grep` 截断 get-schema stdout 作为字段证据，也不要因此对同一表单重复拉取多轮 schema。
 
 **Canvas 生成路径二选一**：走模板路径时，先写业务化 `page-spec.json` 再 `openyida generate-page ... --spec ... --compile`，后续只读 manifest/摘要并小范围 Edit；不要立即 Read 大段源码再全量 Write 覆盖同一路径。若已经明确最终页面结构，跳过 `generate-page` 直接 Write 最终 `.canvas.jsx`。
 
@@ -237,7 +237,7 @@ schema-managed create/update 必须等待用户对当前 `planId` 显式批准�
 
 1. **按阶段加载必要技能**：按意图选 1 个主技能；完整应用按阶段加载当下唯一需要的子技能，禁止并发批量读取多个 `SKILL.md` 或预读未来阶段技能。
 2. **Resource-First**：任何 legacy 写操作前先解析本轮显式资源、agent bound context、workspace cache/config、历史上下文；已有目标资源时默认修改/补齐/发布，只有目标缺失且意图允许创建时才加载 create 类技能。
-3. **优先复用 direct 映射**：仅对 direct/standalone 资源，已有 `.cache/<项目名>-schema.json` 中可确认新鲜的 `appType`/`formUuid`/`fieldId` 可复用；该文件不是 Schema-as-Code state，也不是远端真相。简单字段属性更新优先交给 `create-form update` 的 label-based schema-aware 解析，不要求先外部 `get-schema`；若 CLI 返回字段不存在/重名/歧义 diagnostics，再按 candidates、`tableLabel` 或 `get-schema --compact --resolve-fields` 收敛。页面代码、数据、流程、公式等确实需要多字段/多表单映射时，每表单一次性执行 `get-schema --field-map-json` 并缓存完整字段摘要。不得猜测字段 ID，也不要用 `head`/`tail`/`grep` 截断 schema stdout 当证据。
+3. **优先复用 direct 映射**：仅对 direct/standalone 资源，已有 `.cache/<项目名>-schema.json` 中可确认新鲜的 `appType`/`formUuid`/`fieldId` 可复用；该文件不是 Schema-as-Code state，也不是远端真相。字段级 direct 操作优先交给 `create-form update/add-option/bind-datasource/validation/rule` 的 schema-aware 解析，不要求先外部 `get-schema`；若 CLI 返回字段不存在/重名/歧义 diagnostics，再按 candidates、`tableLabel`、已知 `fieldId` 或 `get-schema --compact --resolve-fields` 收敛。页面代码、数据、流程、公式等确实需要多字段/多表单映射时，每表单一次性执行 `get-schema --field-map-json` 并缓存完整字段摘要。不得猜测字段 ID，也不要用 `head`/`tail`/`grep` 截断 schema stdout 当证据。
 4. **模板优先**：复杂产物先用 `openyida sample` 或现有示例生成骨架，再做最小改动。
 5. **配置承载优先于代码**：字段/公式/联动/报表/审批/集成交给对应技能，自定义页面只做展示与胶水。
 6. **数据性能优先**：统计聚合用 `yida-report` 服务端聚合，不在前端拉全量后自行聚合。
@@ -260,8 +260,8 @@ schema-managed create/update 必须等待用户对当前 `planId` 显式批准�
 | 问题 | 处理 |
 |------|------|
 | 发布提示登录失效 | 先 `openyida login`，再 `openyida publish <源文件> <appType> <formUuid> --health-check` |
-| 查已有表单的字段 ID | `openyida get-schema <appType> <formUuid> --compact --resolve-fields "字段名"`，仅使用唯一命中的 `fieldId`（详见 `yida-get-schema`） |
-| 更新已有表单字段 | direct/standalone 表单用 `create-form` 的 update 模式：`openyida create-form update <appType> <formUuid> '[{"action":"update","label":"备注","changes":{"required":true}}]'`；CLI 内部读 schema 并输出 resolved/updated evidence，通常不需要先 `get-schema`。只有显式 manifest/state 的 schema-managed 表单才走 schema validate → plan → apply |
+| 查已有表单的字段 ID | 字段级 direct 命令优先内部解析；仅当歧义未解、页面/流程/公式/数据代码需要多字段映射，或要人工确认时，用 `openyida get-schema <appType> <formUuid> --compact --resolve-fields "字段名"`，只使用唯一命中的 `fieldId`（详见 `yida-get-schema`） |
+| 更新已有表单字段 | direct/standalone 表单用 `create-form` 的 update/add-option/bind-datasource/validation/rule：`openyida create-form update <appType> <formUuid> '[{"action":"update","label":"备注","changes":{"required":true}}]'`；CLI 内部读 schema 并输出 resolved/updated evidence，通常不需要先 `get-schema`。只有显式 manifest/state 的 schema-managed 表单才走 schema validate → plan → apply |
 | 发布提示 corpId 不匹配 | 问用户：确认在当前组织继续操作已解析资源，或 `openyida logout` 后重新登录到正确组织 |
 
 ---
