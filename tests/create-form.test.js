@@ -760,6 +760,7 @@ describe('create-form module API', () => {
 
 describe('create-form create recovery guardrails', () => {
   afterEach(() => {
+    delete process.env.OPENYIDA_UPDATE_FORM_CONFIG_RETRY_DELAYS_MS;
     jest.restoreAllMocks();
     jest.dontMock('../lib/core/utils');
     jest.dontMock('../lib/core/chalk');
@@ -878,12 +879,65 @@ describe('create-form create recovery guardrails', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test('post-create updateFormConfig failure reports success false with recovery advice', async () => {
+  test('post-create updateFormConfig retries transient form not found and then succeeds', async () => {
+    process.env.OPENYIDA_UPDATE_FORM_CONFIG_RETRY_DELAYS_MS = '0,0';
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-config-retry-'));
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([
+      { type: 'TextField', label: '姓名' },
+    ]));
+
+    let updateConfigAttempts = 0;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpPost: jest.fn((baseUrl, requestPath) => {
+        if (requestPath.includes('saveFormSchemaInfo')) {
+          return Promise.resolve({ success: true, content: { formUuid: 'FORM_CONFIG_RETRY' } });
+        }
+        if (requestPath.includes('updateFormConfig')) {
+          updateConfigAttempts += 1;
+          if (updateConfigAttempts === 1) {
+            return Promise.resolve({ success: false, errorMsg: '表单不存在' });
+          }
+          return Promise.resolve({ success: true });
+        }
+        return Promise.resolve({ success: true });
+      }),
+    });
+
+    await expect(isolatedCreateForm.run([
+      'create',
+      'APP_TEST',
+      '配置重试表单',
+      fieldsPath,
+    ])).resolves.toBeUndefined();
+
+    const payload = consoleSpy.mock.calls
+      .map((call) => call[0])
+      .filter((line) => typeof line === 'string' && line.startsWith('{'))
+      .map((line) => JSON.parse(line))
+      .find((item) => item && item.formUuid === 'FORM_CONFIG_RETRY');
+
+    expect(payload).toMatchObject({
+      success: true,
+      appType: 'APP_TEST',
+      formTitle: '配置重试表单',
+      formUuid: 'FORM_CONFIG_RETRY',
+      fieldCount: 1,
+    });
+    expect(payload).not.toHaveProperty('configWarning');
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(2);
+
+    consoleSpy.mockRestore();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('post-create updateFormConfig retry exhaustion reports post-save warning', async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-config-failed-'));
     const fieldsPath = path.join(tmpDir, 'fields.json');
     fs.writeFileSync(fieldsPath, JSON.stringify([
       { type: 'TextField', label: '姓名' },
     ]));
+    process.env.OPENYIDA_UPDATE_FORM_CONFIG_RETRY_DELAYS_MS = '0,0';
 
     const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
       httpPost: jest.fn((baseUrl, requestPath) => {
@@ -891,7 +945,7 @@ describe('create-form create recovery guardrails', () => {
           return Promise.resolve({ success: true, content: { formUuid: 'FORM_CONFIG_FAILED' } });
         }
         if (requestPath.includes('updateFormConfig')) {
-          return Promise.resolve({ success: false, errorMsg: 'config failed', content: { shouldNotLeak: true } });
+          return Promise.resolve({ success: false, errorMsg: '表单不存在', content: { shouldNotLeak: true } });
         }
         return Promise.resolve({ success: true });
       }),
@@ -911,22 +965,124 @@ describe('create-form create recovery guardrails', () => {
       .find((payload) => payload && payload.formUuid === 'FORM_CONFIG_FAILED');
 
     expect(recoveryPayload).toMatchObject({
-      success: false,
+      success: true,
       appType: 'APP_TEST',
       formTitle: '配置失败表单',
       formUuid: 'FORM_CONFIG_FAILED',
       stage: 'updateFormConfig',
-      error: 'config failed',
-      errorCode: 'CREATE_FORM_UPDATE_CONFIG_FAILED',
       schemaSaved: true,
-      configWarning: 'config failed',
+      configWarning: '表单不存在',
+      configResult: {
+        success: false,
+        errorMsg: '表单不存在',
+      },
     });
-    expect(recoveryPayload.retryAdvice).toContain('list-forms APP_TEST');
+    expect(recoveryPayload.retryAdvice).toBeUndefined();
     expect(JSON.stringify(recoveryPayload)).not.toContain('shouldNotLeak');
-    expect(mockUtils.httpPost).toHaveBeenCalledTimes(3);
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(3);
 
     consoleSpy.mockRestore();
     fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('post-create updateFormConfig does not retry non-retryable permission errors', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-config-permission-'));
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([
+      { type: 'TextField', label: '姓名' },
+    ]));
+
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpPost: jest.fn((baseUrl, requestPath) => {
+        if (requestPath.includes('saveFormSchemaInfo')) {
+          return Promise.resolve({ success: true, content: { formUuid: 'FORM_CONFIG_PERMISSION' } });
+        }
+        if (requestPath.includes('updateFormConfig')) {
+          return Promise.resolve({ success: false, errorMsg: '权限不足', errorCode: 'PERMISSION_DENIED' });
+        }
+        return Promise.resolve({ success: true });
+      }),
+    });
+
+    await expect(isolatedCreateForm.run([
+      'create',
+      'APP_TEST',
+      '配置权限表单',
+      fieldsPath,
+    ])).resolves.toBeUndefined();
+
+    const warningPayload = consoleSpy.mock.calls
+      .map((call) => call[0])
+      .filter((line) => typeof line === 'string' && line.startsWith('{'))
+      .map((line) => JSON.parse(line))
+      .find((payload) => payload && payload.formUuid === 'FORM_CONFIG_PERMISSION');
+
+    expect(warningPayload).toMatchObject({
+      success: true,
+      appType: 'APP_TEST',
+      formTitle: '配置权限表单',
+      formUuid: 'FORM_CONFIG_PERMISSION',
+      stage: 'updateFormConfig',
+      schemaSaved: true,
+      configWarning: '权限不足',
+      configResult: {
+        success: false,
+        errorMsg: '权限不足',
+        errorCode: 'PERMISSION_DENIED',
+      },
+    });
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(1);
+
+    consoleSpy.mockRestore();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('update mode keeps success true when post-save updateFormConfig fails', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Update Warning',
+      fields: [{ key: 'name', type: 'TextField', label: '姓名' }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_UPDATE_WARNING',
+    }).schema;
+    initial.gmtModified = 100;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedLegacyForm(initial);
+    mockUtils.httpPost.mockImplementation((baseUrl, requestPath) => {
+      if (requestPath.includes('updateFormConfig')) {
+        return Promise.resolve({ success: false, errorMsg: '权限不足', errorCode: 'PERMISSION_DENIED' });
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    await expect(isolatedCreateForm.run([
+      'update',
+      'APP_TEST',
+      'FORM_UPDATE_WARNING',
+      JSON.stringify([{ action: 'add', field: { type: 'TextField', label: '备注' } }]),
+    ])).resolves.toBeUndefined();
+
+    const warningPayload = consoleSpy.mock.calls
+      .map((call) => call[0])
+      .filter((line) => typeof line === 'string' && line.startsWith('{'))
+      .map((line) => JSON.parse(line))
+      .find((payload) => payload && payload.formUuid === 'FORM_UPDATE_WARNING');
+
+    expect(warningPayload).toMatchObject({
+      success: true,
+      appType: 'APP_TEST',
+      formUuid: 'FORM_UPDATE_WARNING',
+      stage: 'updateFormConfig',
+      schemaSaved: true,
+      configWarning: '权限不足',
+      configResult: {
+        success: false,
+        errorMsg: '权限不足',
+        errorCode: 'PERMISSION_DENIED',
+      },
+    });
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(1);
+
+    consoleSpy.mockRestore();
   });
 });
 
