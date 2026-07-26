@@ -12,6 +12,9 @@ jest.mock('../lib/app/form-navigation', () => ({
 
 const { fetchFormPageList } = require('../lib/app/form-navigation');
 const {
+  loadPageSource,
+} = require('../lib/app/services/page-source-loader');
+const {
   buildMissingSourceHints,
   buildDefaultPageDataSource,
   buildCanvasSchemaContent,
@@ -25,6 +28,41 @@ const {
   sendSaveRequestOnce,
   verifyPublishTarget,
 } = require('../lib/app/publish');
+
+function cloneStat(stat, overrides = {}) {
+  return {
+    dev: overrides.dev === undefined ? stat.dev : overrides.dev,
+    ino: overrides.ino === undefined ? stat.ino : overrides.ino,
+    mode: stat.mode,
+    size: overrides.size === undefined ? stat.size : overrides.size,
+    mtimeMs: overrides.mtimeMs === undefined ? stat.mtimeMs : overrides.mtimeMs,
+    ctimeMs: overrides.ctimeMs === undefined ? stat.ctimeMs : overrides.ctimeMs,
+    birthtimeMs: overrides.birthtimeMs === undefined ? stat.birthtimeMs : overrides.birthtimeMs,
+    isFile: () => stat.isFile(),
+    isSymbolicLink: () => stat.isSymbolicLink(),
+  };
+}
+
+function createSandboxIdentityFs(options = {}) {
+  return {
+    ...fs,
+    lstatSync(targetPath) {
+      const stat = fs.lstatSync(targetPath);
+      return cloneStat(stat, {
+        dev: 1001,
+        ino: 2001,
+      });
+    },
+    fstatSync(fd) {
+      const stat = fs.fstatSync(fd);
+      return cloneStat(stat, {
+        dev: 3001,
+        ino: 4001,
+        mtimeMs: options.driftFingerprint ? stat.mtimeMs + 5000 : stat.mtimeMs,
+      });
+    },
+  };
+}
 
 describe('publish prechecks', () => {
   let workspace;
@@ -92,6 +130,40 @@ describe('publish prechecks', () => {
       source: expect.stringContaining('renderJsx'),
       sourceHash: expect.stringMatching(/^sha256:/),
     });
+  });
+
+  test('loads page source when sandbox path and fd identities differ but stat fingerprint matches', () => {
+    const relativePath = path.join('project', 'pages', 'src', 'home.oyd.jsx');
+    const sourcePath = path.join(workspace, relativePath);
+    fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
+    fs.writeFileSync(sourcePath, 'export function renderJsx() { return <div>ok</div>; }\n', 'utf8');
+
+    const loaded = loadPageSource(relativePath, {
+      fsImpl: createSandboxIdentityFs(),
+      workspaceRoot: workspace,
+    });
+
+    expect(loaded).toMatchObject({
+      profile: 'native/default',
+      relativePath: 'project/pages/src/home.oyd.jsx',
+      source: expect.stringContaining('renderJsx'),
+      sourceHash: expect.stringMatching(/^sha256:/),
+    });
+  });
+
+  test('rejects page source when sandbox identity and stat fingerprint both differ', () => {
+    const relativePath = path.join('project', 'pages', 'src', 'home.oyd.jsx');
+    const sourcePath = path.join(workspace, relativePath);
+    fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
+    fs.writeFileSync(sourcePath, 'export function renderJsx() { return <div>ok</div>; }\n', 'utf8');
+
+    expect(() => loadPageSource(relativePath, {
+      fsImpl: createSandboxIdentityFs({ driftFingerprint: true }),
+      workspaceRoot: workspace,
+    })).toThrow(expect.objectContaining({
+      code: 'SCHEMA_PAGE_SOURCE_READ_FAILED',
+      message: 'Page source changed while it was being opened.',
+    }));
   });
 
   test('allows publishing only to display custom pages', async () => {
