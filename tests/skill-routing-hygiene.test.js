@@ -38,7 +38,7 @@ describe('skill resource boundary copy', () => {
 
     expect(root).toMatch(/默认使用 `create-app \/ create-form \/ create-page \/ generate-page \/ publish`/);
     expect(root).toMatch(/resolve_resource_context/);
-    expect(root).toMatch(/create missing resources only/);
+    expect(root).toMatch(/reserve main page → resolve forms/);
     expect(root).toMatch(/字段级命令内置解析/);
     expect(root).not.toMatch(RETIRED_ARCHITECTURE_PATTERN);
   });
