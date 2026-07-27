@@ -17,7 +17,7 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 
 若已解析到 `appType`、应用 URL、bound app 或 workspace 中可确认的 app，必须复用该 app 并继续后续表单/页面/发布步骤，不得调用 `openyida create-app`。若用户说“新建另一个应用”，先确认目标组织和新应用名，再执行本技能。
 
-若该 app 是 yida-agent / 宿主预创建的占位 app（例如名称为“新应用”“未命名”“占位”或 `APP_xxx` 样式，且 context 标记 `source=agent_bound`、`precreated=true`、`allowRename !== false`），也仍然视为“已有目标 app”：不得调用 `openyida create-app`。占位名修正由 `yida-app` 在最小需求分析得到稳定语义应用名后调用 `openyida update-app <appType> --name "<语义应用名>"` 完成；本技能只负责在确实没有目标 app 且允许创建时新建应用。
+若该 app 是 yida-agent / 宿主预创建的 app（context 标记 `source=agent_bound` 或 `precreated=true`），也仍然视为“已有目标 app”：不得调用 `openyida create-app`，也不得在本技能中修改应用名称。本技能只负责在确实没有目标 app 且允许创建时新建应用。
 
 ## 严格禁止 (NEVER DO)
 - 不要编造 appType，必须从命令返回的 JSON 中提取

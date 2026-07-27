@@ -81,19 +81,17 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
   "app": {
     "appType": "APP_xxx",
     "source": "explicit_prompt|url|agent_bound|workspace_cache",
-    "precreated": true,
-    "placeholderName": "新应用",
     "allowCreate": false,
-    "allowRename": true
+    "precreated": true
   },
   "page": { "formUuid": "FORM_xxx", "source": "explicit_prompt|url|agent_bound|workspace_cache", "allowCreate": false },
   "form": { "formUuid": "FORM_xxx", "source": "explicit_prompt|url|workspace_cache", "allowCreate": false }
 }
 ```
 
-`precreated` 表示该 app 由 agent / 宿主提前创建并绑定到本轮任务；`placeholderName` 是宿主创建时的占位名；`allowRename` 控制 OpenYida 是否可在语义名稳定后修正应用名称。这些字段都是可选提示：缺失时按普通已有资源处理，不作为运行前置。
+`precreated` 表示该 app 由 agent / 宿主提前创建并绑定到本轮任务。这些字段都是可选提示：缺失时按普通已有资源处理，不作为运行前置。
 
-**预创建占位 app 改名**：当 `app.source === "agent_bound"`，且满足 `precreated === true` 或当前名称 / `placeholderName` 命中“新应用 / 未命名 / 占位 / APP_xxx”等占位样式，并且 `allowRename !== false`、用户没有明确要求保留原应用名称、已从本轮需求确定稳定语义应用名时，`yida-app` 应复用该 `appType` 并调用 `openyida update-app APP_xxx --name "语义应用名"`。该动作只修正 agent 预创建占位应用名称；不要按标题发现/adopt 其他应用，不要 cleanup orphan，不要对非占位已有业务应用自动改名，不要让 `yida-create-app` 参与改名。
+**绑定 app 只复用不改名**：OpenYida 技能侧不自动修改应用名称；即使目标 app 来自 agent / 宿主预创建资源，也只复用该 `appType` 继续创建、更新或发布资源。应用名修正如有需要由宿主或 yida-agent 侧负责；技能不得因为占位名、页面标题或业务语义推导触发应用名修改。
 
 ### create-or-update 判定
 
@@ -206,7 +204,6 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 
 | 意图 | 直接执行 |
 |------|------|
-| 修改当前 app 信息 / 预创建占位 app 改名 | `openyida update-app` |
 | 聚合表 / 虚拟视图 | `openyida aggregate-table` |
 | 流程表单 AI 审批提示 | `openyida ai-form-setting` |
 | 文生文 / 识图通用 AI 能力 | `openyida ai` |

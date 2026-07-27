@@ -23,7 +23,7 @@
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
-      "description": "完整搭建或补齐普通 OpenYida 应用的流程编排技能。默认 fast_build 先解析并复用 app/page/form/process 上下文，只创建缺失且允许创建的应用、表单或页面；预创建占位应用在语义名称稳定后通过 update-app 重命名；不默认使用未绑定 dataSourceMap，导航、示例数据和深度设计按需后置。",
+      "description": "完整搭建或补齐普通 OpenYida 应用的流程编排技能。默认 fast_build 先解析并复用 app/page/form/process 上下文，只创建缺失且允许创建的应用、表单或页面；绑定或预创建应用只复用不改名；不默认使用未绑定 dataSourceMap，导航、示例数据和深度设计按需后置。",
       "done_when": "若本轮 Write/Edit 页面源码，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 并返回访问 URL；没有 publish 证据只能声明源码已修改，尚未发布。",
       "category": "yida-skills/app",
       "tags": [
@@ -298,7 +298,7 @@
       "name": "yida-create-app",
       "path": "skills/yida-create-app/SKILL.md",
       "display_name": "创建宜搭应用",
-      "description": "仅在没有目标 app 且允许创建时创建宜搭应用并返回 appType。已绑定或预创建 app 不调用 create-app，应交给 yida-app 复用，并在需要时通过 update-app 重命名。",
+      "description": "仅在没有目标 app 且允许创建时创建宜搭应用并返回 appType。已绑定或预创建 app 不调用 create-app，也不由 OpenYida 技能侧自动改名，应交给 yida-app 复用。",
       "category": "yida-skills/app",
       "tags": [
         "创建应用",
