@@ -25,6 +25,7 @@ description: 创建自定义展示页面（display 类型）并返回 formUuid�
 
 - **创建前必须确认**：单点创建页面时，执行创建命令前必须向用户确认页面名称和目标应用。由 `yida-app fast_build` 编排且用户已说“默认方案 / 不要追问 / 直接创建”时，合理命名并直接创建，不再二次追问。
 - 创建成功后，将 formUuid 记录到 `.cache/<项目名>-schema.json`
+- 由 `yida-app fast_build` 编排的首页/工作台/智能助手/门户门面页，可以先于业务表单创建；先占位记录 `formUuid`，待表单 ID 明确后再写源码并发布。
 - 创建页面后，必须继续选择一个页面实现链路编写页面源码，再用 `yida-publish-page` 发布：Code Canvas 链路用 `yida-canvas-custom-page`；普通自定义页面 JSX/Jsx 组件链路用 `yida-custom-page`
 - 用户明确要求 JSX / Jsx 组件 / 普通自定义页，或页面强依赖 `this.$`、`this.utils.yida.*`、`this.dataSourceMap` 时，创建后进入 `yida-custom-page`；涉及成员、部门、附件上传或图片上传时必须读取 `component-jsx-guide.md`，上传还必须读取 `attachment-upload-guide.md`
 - **本技能不读写 memory**：formUuid 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态

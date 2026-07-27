@@ -99,7 +99,7 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 - 已解析到目标自定义页面 URL / `formUuid` / bound page 时，默认写源码并发布到该页面，不执行 `yida-create-page`；只有缺少目标 display page 且本次意图允许新增页面时才创建。
 - 已解析到目标表单 `formUuid` 时，字段结构诉求默认走 `yida-create-form-page` 的 update/patch/rule/bind-datasource 模式，不创建同名或同类表单。
 - 已解析到目标流程表单 / `processCode` 时，默认走 `yida-process-rule` 配置/更新流程，不从零执行 `yida-create-process`。
-- 完整应用 `fast_build` 也遵守本规则：`resolve app → resolve forms → resolve main page → create missing resources only → update/publish`。
+- 完整应用 `fast_build` 也遵守本规则：先占位主页面，再建表单，最后回填发布。
 
 验收心智模型：
 
@@ -134,7 +134,7 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 > 用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，`yida-app` 选择 `fast_build`：先解析并复用已有资源，只创建缺失且允许创建的应用/表单/页面，最后发布并输出链接。
 > `yida-app fast_build` 使用常规 OpenYida 命令编排。
 
-**默认链路**：`fast_build` 必须只做 `resolve app → resolve forms → resolve main page → create missing resources only → 编写/更新主页面源码 → 发布 → 返回访问链接`。不要因为应用名里有“看板 / 系统 / 管理”就升级到 `deep_design` 或 `full_demo`。
+**默认链路**：`fast_build` 必须只做 `resolve app → reserve main page → resolve forms → 编写/更新主页面源码 → 发布 → 返回访问链接`。若需要首页/工作台/智能助手/门户门面且主页面缺失，先创建空 display page 占位，再建表单，最后回填发布；不要因此默认执行导航重排。不要因为应用名里有“看板 / 系统 / 管理”就升级到 `deep_design` 或 `full_demo`。
 
 **fast_build 默认加载边界**：只加载 `yida-app` 和当前阶段必需的子技能。`yida-create-app`、`yida-create-page`、`yida-create-form-page` 只有在目标资源缺失且本次意图允许创建时才加载；已有资源时进入对应 update / publish 分支。页面默认走 Code Canvas；当用户明确要求普通自定义页面 JSX/Jsx 组件链路，或页面强依赖普通自定义页实例桥（`this.$(fieldId)` / `this.utils.yida.*` / `this.dataSourceMap` / 表单提交或字段双向绑定深度耦合）时，选择 `yida-custom-page`。不要默认加载 `yida-page-uiux`、`yida-data-source-connectors`、`yida-data-management`、`yida-nav-group`、`yida-dashboard`，也不要默认深读 `references/`。
 
