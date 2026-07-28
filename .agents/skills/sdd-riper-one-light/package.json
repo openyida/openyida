@@ -1,0 +1,11 @@
+{
+  "name": "sdd-riper-one-light",
+  "version": "0.12.0",
+  "description": "面向 GPT-5.4 等强模型和熟练用户的轻量 AI Agent Harness / checkpoint-driven coding skill。默认用户已经把任务切到基本可执行的最小混沌单元；模型自行分解、探索与推进，人类通过最终目标、最小 spec、复述、checkpoint、证据验证与回写来低干扰控盘。",
+  "publishConfig": {
+    "registry": "https://contextlab.alibaba-inc.com/skill"
+  },
+  "aoneKit": {
+    "generated": true
+  }
+}
