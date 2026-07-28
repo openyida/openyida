@@ -82,6 +82,35 @@ describe('OpenYida skill contracts', () => {
     expect(uiux.done_when).toContain('视觉方向');
   });
 
+  test('deprecated yida-ppt routes through yida-ppt-slider only', () => {
+    const root = readSkill('yida-skills/SKILL.md');
+    const slider = readSkill('yida-skills/skills/yida-ppt-slider/SKILL.md');
+    const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
+    const byName = new Map(index.skills.map((skill) => [skill.name, skill]));
+
+    expect(byName.has('yida-ppt')).toBe(false);
+    expect(fs.existsSync(path.join(ROOT, 'yida-skills', 'skills', 'yida-ppt', 'SKILL.md'))).toBe(false);
+    expect(root).toContain('`yida-ppt-slider`');
+    expect(root).not.toContain('`yida-ppt` |');
+    expect(byName.get('yida-ppt-slider').aliases).toEqual(expect.arrayContaining(['yida-ppt']));
+    expect(byName.get('yida-ppt-slider').positive_signals).toEqual(expect.arrayContaining(['yida-ppt', 'PPT']));
+    expect(slider).toContain('"yida-ppt"');
+  });
+
+  test('tingji reads taskUuid before flash-note PRD generation', () => {
+    const root = readSkill('yida-skills/SKILL.md');
+    const tingji = readSkill('yida-skills/skills/yida-tingji/SKILL.md');
+    const flash = readSkill('yida-skills/skills/yida-flash-note-to-prd/SKILL.md');
+    const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
+    const byName = new Map(index.skills.map((skill) => [skill.name, skill]));
+
+    expect(root).toContain('先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd`');
+    expect(tingji).toContain('本技能不直接生成 PRD');
+    expect(flash).toContain('先加载 `yida-tingji` 读取听记内容');
+    expect(byName.get('yida-tingji').description).toContain('只负责读取内容');
+    expect(byName.get('yida-flash-note-to-prd').description).toContain('若用户只给 taskUuid');
+  });
+
   test('yida-app fast_build forbids unbound dataSourceMap by default', () => {
     const skill = readSkill('yida-skills/skills/yida-app/SKILL.md');
 

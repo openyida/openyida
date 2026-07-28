@@ -56,6 +56,11 @@ describe('build-skills-package', () => {
 
       expect(fs.existsSync(path.join(outDir, 'SKILL.md'))).toBe(true);
       expect(fs.existsSync(path.join(outDir, 'skills-index.json'))).toBe(true);
+      const generatedIndex = JSON.parse(fs.readFileSync(path.join(outDir, 'skills-index.json'), 'utf8'));
+      const loginIndexEntry = generatedIndex.skills.find((skill) => skill.name === 'yida-login');
+      expect(loginIndexEntry.path).toBe('references/subskills/yida-login/README.md');
+      expect(fs.existsSync(path.join(outDir, loginIndexEntry.path))).toBe(true);
+      expect(generatedIndex.skills.some((skill) => skill.path.startsWith('skills/'))).toBe(false);
       const generatedRootSkill = fs.readFileSync(path.join(outDir, 'SKILL.md'), 'utf8');
       expect(generatedRootSkill).toContain('OPENYIDA_ACCESS_TOKEN');
       expect(generatedRootSkill).toContain('禁止触发 OAuth');

@@ -50,7 +50,6 @@ const SKILL_COVERAGE = {
   'yida-openyida-publish-guard': { level: 'offline-unit', tests: ['skill metadata and packaging validation'], reason: 'publish guard is an agent workflow safety rule for comparing live schema before publish; real page publish behavior remains covered by yida-publish-page E2E stages' },
   'yida-page-config': { level: 'real-e2e', stages: ['share'], commands: ['get-page-config', 'verify-short-url', 'save-share-config'] },
   'yida-page-uiux': { level: 'offline-unit', tests: ['skill metadata and packaging validation', 'routing eval scenarios'], reason: 'visual direction skill emits a decision block before JSX authoring and should be validated through routing/packaging rather than mutating Yida resources' },
-  'yida-ppt': { level: 'deprecated', reason: 'skill is deprecated in favor of yida-ppt-slider' },
   'yida-ppt-slider': { level: 'offline-unit', reason: 'presentation-style custom page skill should be validated by page generation/check-page fixtures' },
   'yida-process-rule': { level: 'opt-in-real-e2e', stages: ['process'], commands: ['configure-process'], reason: 'process stage publishes workflow rules on the disposable E2E form and is excluded from default full E2E unless explicitly requested' },
   'yida-publish-page': { level: 'real-e2e', stages: ['page', 'dashboard'], commands: ['publish --health-check'] },
