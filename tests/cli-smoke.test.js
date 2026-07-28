@@ -1547,4 +1547,73 @@ describe('CLI offline smoke', () => {
       fs.rmSync(workspace, { recursive: true, force: true });
     }
   });
+
+  test('Canvas publish --json preserves emoji source error code and details before login', () => {
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-publish-canvas-'));
+    try {
+      const sourcePath = path.join(workspace, 'pages', 'src', 'home.canvas.jsx');
+      fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
+      fs.writeFileSync(sourcePath, [
+        'import React from "react";',
+        'export default function Page() {',
+        '  return <div>Menu ☰</div>;',
+        '}',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runAny(['publish', sourcePath, 'APP_TEST', 'FORM-TEST', '--no-open', '--json']);
+      const parsed = JSON.parse(result.output);
+
+      expect(result.status).toBe(1);
+      expect(parsed).toMatchObject({
+        success: false,
+        errorCode: 'OPENYIDA_CANVAS_SOURCE_EMOJI_FORBIDDEN',
+        details: {
+          stage: 'canvas_compile',
+          sourcePath,
+          artifact: sourcePath,
+          issues: [
+            expect.objectContaining({
+              line: 3,
+              column: expect.any(Number),
+              emoji: '☰',
+            }),
+          ],
+        },
+      });
+      expect(parsed.errorMsg).toContain('OPENYIDA_CANVAS_SOURCE_EMOJI_FORBIDDEN');
+      expect(parsed.details).not.toHaveProperty('causeCode');
+      expect(parsed.details).not.toHaveProperty('causeDetails');
+      expect(result.output).not.toContain('读取登录态');
+      expect(result.output).not.toContain('Read login credentials');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('Canvas publish non-json prints source emoji error code before login', () => {
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-publish-canvas-'));
+    try {
+      const sourcePath = path.join(workspace, 'pages', 'src', 'home.canvas.jsx');
+      fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
+      fs.writeFileSync(sourcePath, [
+        'import React from "react";',
+        'export default function Page() {',
+        '  return <div>Menu ☰</div>;',
+        '}',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runAny(['publish', sourcePath, 'APP_TEST', 'FORM-TEST', '--no-open']);
+
+      expect(result.status).toBe(1);
+      expect(result.output).toContain('OPENYIDA_CANVAS_SOURCE_EMOJI_FORBIDDEN');
+      expect(result.output).toContain(`${sourcePath}:3:`);
+      expect(result.output).toContain('Remove emoji');
+      expect(result.output).not.toContain('读取登录态');
+      expect(result.output).not.toContain('Read login credentials');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
 });

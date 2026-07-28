@@ -45,12 +45,13 @@ Thumbs.db
 # coverage
 coverage/
 
-# AI 工具配置（保留 CLAUDE.md）
+# AI 工具配置入口（仅提交共享技能 symlink，本地工具状态不入库）
 .claude/*
-!.claude/CLAUDE.md
-.qoder/
-mydocs/
+!.claude/skills
+.qoder/*
+!.qoder/skills
 
+mydocs/
 
 # 根目录缓存（临时文件，不入库）
 .cache/

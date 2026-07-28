@@ -5,6 +5,16 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 
 # 数据管理
 
+## 创建/录入数据强制闭环
+
+涉及新增记录、生成测试数据、批量导入或发起流程时，必须连续完成下面 5 步；任一步断开都不算完成。
+
+1. **只读预检**：先确认登录态和目标 `appType`/`formUuid`；执行 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实 `fieldId`，必要时先 `openyida data query ...` 确认目标表单/流程可读。
+2. **类型分流**：普通表单用 `openyida data create form <appType> <formUuid> ...`；流程表单用 `openyida data create process <appType> <formUuid> --process-code <processCode> ...`。表单接口和流程接口不能互相替代。
+3. **写入即提交**：小 JSON 可直接用 `--data-json '<json>'`；长 JSON 或批量造数先用结构化文件写入工具创建到 `.cache/openyida/<项目名或任务名>/data-import/<name>.json`，创建后必须立刻调用对应 `openyida data create ... --data-file <path>`。
+4. **批量逐条创建**：`openyida data create form/process` 每次只创建一条实例；多条记录按单次不超过 30 条循环/分批逐条调用。不要把多条实例数组塞进一个 `--data-file`，除非该数组是某个子表字段的字段值。
+5. **写后验收**：create/update 返回无报错后，必须执行 `openyida data query form|process <appType> <formUuid> ...` 抽查至少 1 条新记录，确认 `formData` 非空且包含本次写入字段值；流程记录可再用返回的 `processInstanceId` 执行 `get process` 复核。
+
 ## 严格禁止 (NEVER DO)
 
 - 不要混用表单接口和流程接口，两套接口完全独立，参数和返回结构不同
@@ -12,11 +22,13 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 - 不要用此命令修改表单结构（字段增删改），应使用 `yida-create-form-page`
 - **绝对禁止猜测或编造字段 ID（fieldId）**，宜搭字段 ID 由平台随机生成（如 `textField_eftt1aa5m`），无法预测，必须通过 `openyida get-schema` 获取
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成 `--data-file`、`--search-file`、CSV 或一次性脚本
+- 不要把顶层 JSON 数组当作 `openyida data create form/process` 的批量实例导入；顶层数组只适用于子表字段值等字段内部结构
 
 ## 严格要求 (MUST DO)
 
 - 操作前先用 query 命令确认目标数据存在
-- 批量操作单次不超过 30 条记录
+- 新增记录、生成测试数据、批量导入或发起流程必须遵守上方“创建/录入数据强制闭环”
+- 批量操作单次不超过 30 条记录；多条实例必须逐条/分批执行 `openyida data create ...`
 - 删除数据前必须向用户展示操作摘要并获得明确确认
 - **录入/更新数据前，必须先执行 `openyida get-schema` 获取真实字段 ID，并将字段 ID 映射记录到 `.cache/<项目名>-schema.json`**
 - **生成测试数据或录入/更新数据时，`DateField` / `CascadeDateField` 必须使用 13 位毫秒时间戳（如 `1719705600000`），不要传 `YYYY-MM-DD`、`YYYY-MM-DD HH:mm:ss` 或 ISO 字符串**
@@ -25,6 +37,24 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 - **本技能不读写 memory**：数据操作通过 CLI 命令写入宜搭平台，不依赖跨会话的 memory 状态
 - 一次性造数、旧数据修正、字段迁移脚本可以使用 Python 或 JS，优先选择更快更清晰的实现；脚本、导入数据、查询条件文件必须由结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/` 下，并复用真实查询到的 appType/formUuid/fieldId/formInstId
 - **禁止在仓库根目录、系统临时目录或 `.cache/` 顶层生成导入用的 `*.json`、`*.js`、`*.py`、`*.csv` 临时文件**；推荐使用 `<projectRoot>/.cache/openyida/<项目名或任务名>/data-import/` 存放数据文件，`<projectRoot>/.cache/openyida/<项目名或任务名>/scripts/` 存放一次性执行脚本
+
+## 不可停在这些中间态 (NOT DONE)
+
+- 只执行 `mkdir` 或只创建 `.cache/openyida/.../*.json`
+- 只写了 `.json`、`.js`、`.py` 或 CSV 脚本/数据文件，但未执行 `openyida data create ...`
+- 只跑了 `openyida auth status`、`openyida login --check-only`、`openyida agent-capabilities` 或 `openyida get-schema`
+- 只把导入命令交给用户自行运行，自己没有执行并拿到结果
+- `openyida data create ...` 报错、无返回，或未对每条实例执行 create
+- 未执行 `openyida data query ...` 抽查，或抽查结果的 `formData` 为空
+
+## 完成检查清单
+
+- [ ] 已确认登录态、`appType`、`formUuid`；流程表单已确认 `processCode`
+- [ ] 已通过 schema/field map 使用真实 `fieldId`
+- [ ] 如使用 `--data-file`，文件位于 `.cache/openyida/<项目名或任务名>/data-import/`，且创建后已立即调用 `openyida data create ... --data-file ...`
+- [ ] 每条实例都实际执行了 `openyida data create form/process`，且命令返回无报错
+- [ ] 已用 `openyida data query form|process ...` 抽查至少 1 条，确认 `formData` 非空且字段值正确
+- [ ] 已向用户报告创建/更新数量、验收命令与结果摘要；未完成项必须如实说明
 
 ## 适用场景
 
@@ -159,7 +189,7 @@ openyida data query tasks <appType> --type todo|done|submitted|cc [--page 1 --si
 {"textField_xxx":"文本","numberField_xxx":10,"dateField_xxx":1719705600000,"employeeField_xxx":["userId"]}
 ```
 
-当 JSON 较长或用于批量导入时，使用结构化文件写入工具写入 `<projectRoot>/.cache/openyida/<项目名或任务名>/data-import/<name>.json`，再使用 `--data-file` 或 `--search-file`；不要为了拼接命令在仓库根目录、系统临时目录或 `.cache/` 顶层生成临时脚本。
+当 JSON 较长或用于批量导入时，使用结构化文件写入工具写入 `<projectRoot>/.cache/openyida/<项目名或任务名>/data-import/<name>.json`，再使用 `--data-file` 或 `--search-file`；不要为了拼接命令在仓库根目录、系统临时目录或 `.cache/` 顶层生成临时脚本。`openyida data create form/process` 单次只提交一个实例 JSON，多条实例必须逐条/分批调用；不要把实例数组作为一个 `--data-file` 提交。
 
 ### 常见字段格式
 

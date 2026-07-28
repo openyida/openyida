@@ -1,6 +1,6 @@
 ---
 name: yida-ppt-slider
-description: "宜搭全屏幻灯片页面开发，默认使用 Code Canvas + React hooks 管理翻页、URL hash、键盘/演讲笔、全屏和副作用清理。支持浅色简约与 dark-tech 主题。普通自定义页面生命周期模式仅用于 legacy/native 维护。"
+description: "宜搭全屏幻灯片页面开发，兼容旧 yida-ppt / PPT / 演示 / 幻灯片触发词，默认使用 Code Canvas + React hooks 管理翻页、URL hash、键盘/演讲笔、全屏和副作用清理。支持浅色简约与 dark-tech 主题。普通自定义页面生命周期模式仅用于 legacy/native 维护。"
 ---
 
 # 宜搭 PPT 幻灯片开发指南
@@ -19,12 +19,12 @@ description: "宜搭全屏幻灯片页面开发，默认使用 Code Canvas + Rea
 
 ## 适用场景
 
-| 用户意图 | 处理方式 |
-| --- | --- |
-| 在宜搭内创建 PPT、幻灯片、演示页面、产品路演 | 本技能，默认 Canvas |
-| 演示页读取宜搭表单/连接器数据 | Canvas + `yida-canvas-data-binding` |
-| 纯静态演讲稿，不依赖宜搭发布 | 优先独立 HTML 幻灯片能力 |
-| 维护已有 `renderJsx` / `didMount` PPT | legacy `yida-custom-page` |
+| 用户意图 | 触发条件 | 处理方式 |
+|---------|---------|---------|
+| 在宜搭内创建演示文稿 | "PPT"、"yida-ppt"、"幻灯片"、"演示页面"、"产品路演" | 使用本技能，默认 Canvas |
+| 需要读取宜搭数据的演示 | 演示页要接入表单、权限或宜搭页面能力 | Canvas + `yida-canvas-data-binding` |
+| 纯静态演讲稿 | 不依赖宜搭发布、不读取宜搭数据 | 优先改用独立 HTML 幻灯片能力 |
+| 维护已有 `renderJsx` / `didMount` PPT | 已有普通自定义页面或强依赖普通页面实例桥 | legacy `yida-custom-page` |
 
 ## 致命规则
 

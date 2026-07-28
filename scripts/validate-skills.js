@@ -192,42 +192,53 @@ function validateIndexEntry(skillDirName, skillFile) {
   }
 }
 
-function validateSkillsIndex(skillDirNames) {
-  if (!fs.existsSync(SKILLS_INDEX_FILE)) {
-    errors.push(toRelative(SKILLS_INDEX_FILE) + ': missing machine-readable skills index');
+function validateSkillsIndex(skillDirNames, options = {}) {
+  const indexFile = options.indexFile || SKILLS_INDEX_FILE;
+  const indexRoot = options.indexRoot || SKILLS_ROOT;
+  const pathPattern = options.pathPattern || /^skills\/[a-z0-9-]+\/SKILL\.md$/;
+  const pathForSkill = options.pathForSkill || function(skillDirName) {
+    return 'skills/' + skillDirName + '/SKILL.md';
+  };
+  const skillNameFromPath = options.skillNameFromPath || function(entryPath) {
+    return entryPath.split('/')[1];
+  };
+  const frontmatterRequired = options.frontmatterRequired !== false;
+
+  if (!fs.existsSync(indexFile)) {
+    errors.push(toRelative(indexFile) + ': missing machine-readable skills index');
     return;
   }
 
   let index;
   try {
-    index = readJson(SKILLS_INDEX_FILE);
+    index = readJson(indexFile);
   } catch (error) {
-    errors.push(toRelative(SKILLS_INDEX_FILE) + ': invalid JSON: ' + error.message);
+    errors.push(toRelative(indexFile) + ': invalid JSON: ' + error.message);
     return;
   }
 
   if (index.version !== 1) {
-    errors.push(toRelative(SKILLS_INDEX_FILE) + ': version must be 1');
+    errors.push(toRelative(indexFile) + ': version must be 1');
   }
   if (index.source !== 'openyida') {
-    errors.push(toRelative(SKILLS_INDEX_FILE) + ': source must be "openyida"');
+    errors.push(toRelative(indexFile) + ': source must be "openyida"');
   }
   if (index.entry !== 'openyida') {
-    errors.push(toRelative(SKILLS_INDEX_FILE) + ': entry must be "openyida"');
+    errors.push(toRelative(indexFile) + ': entry must be "openyida"');
   }
   if (!Array.isArray(index.skills)) {
-    errors.push(toRelative(SKILLS_INDEX_FILE) + ': skills must be an array');
+    errors.push(toRelative(indexFile) + ': skills must be an array');
     return;
   }
   if (!Array.isArray(index.route_groups) || index.route_groups.length === 0) {
-    errors.push(toRelative(SKILLS_INDEX_FILE) + ': route_groups must be a non-empty array');
+    errors.push(toRelative(indexFile) + ': route_groups must be a non-empty array');
     return;
   }
 
   const routeGroupNames = new Set();
   for (let i = 0; i < index.route_groups.length; i++) {
     const group = index.route_groups[i];
-    const groupLabel = toRelative(SKILLS_INDEX_FILE) + ': route_groups[' + i + ']';
+    const groupLabel = toRelative(indexFile) + ': route_groups[' + i + ']';
     if (!group || typeof group !== 'object' || Array.isArray(group)) {
       errors.push(groupLabel + ': entry must be an object');
       continue;
@@ -252,16 +263,14 @@ function validateSkillsIndex(skillDirNames) {
     }
   }
 
-  const expectedPaths = new Set(skillDirNames.map(function(skillDirName) {
-    return 'skills/' + skillDirName + '/SKILL.md';
-  }));
+  const expectedPaths = new Set(skillDirNames.map(pathForSkill));
   const expectedNames = new Set(skillDirNames);
   const seenNames = new Set();
   const seenPaths = new Set();
 
   for (let i = 0; i < index.skills.length; i++) {
     const entry = index.skills[i];
-    const entryLabel = toRelative(SKILLS_INDEX_FILE) + ': skills[' + i + ']';
+    const entryLabel = toRelative(indexFile) + ': skills[' + i + ']';
 
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
       errors.push(entryLabel + ': entry must be an object');
@@ -301,25 +310,27 @@ function validateSkillsIndex(skillDirNames) {
       }
     }
 
-    if (!/^skills\/[a-z0-9-]+\/SKILL\.md$/.test(entry.path)) {
-      errors.push(entryLabel + ': path must look like skills/<skill-name>/SKILL.md');
+    if (!pathPattern.test(entry.path)) {
+      errors.push(entryLabel + ': path has invalid layout: ' + entry.path);
       continue;
     }
 
-    const skillFile = path.join(SKILLS_ROOT, entry.path);
+    const skillFile = path.join(indexRoot, entry.path);
     if (!fs.existsSync(skillFile)) {
       errors.push(entryLabel + ': path does not exist: ' + entry.path);
       continue;
     }
 
-    const content = readText(skillFile);
-    const frontmatter = parseFrontmatter(content);
-    const frontmatterName = frontmatter ? frontmatterField(frontmatter, 'name') : null;
-    if (frontmatterName && entry.name !== frontmatterName) {
-      errors.push(entryLabel + ': name "' + entry.name + '" does not match frontmatter name "' + frontmatterName + '"');
+    if (frontmatterRequired) {
+      const content = readText(skillFile);
+      const frontmatter = parseFrontmatter(content);
+      const frontmatterName = frontmatter ? frontmatterField(frontmatter, 'name') : null;
+      if (frontmatterName && entry.name !== frontmatterName) {
+        errors.push(entryLabel + ': name "' + entry.name + '" does not match frontmatter name "' + frontmatterName + '"');
+      }
     }
 
-    const pathSkillName = entry.path.split('/')[1];
+    const pathSkillName = skillNameFromPath(entry.path);
     if (entry.name && entry.name !== pathSkillName) {
       errors.push(entryLabel + ': name "' + entry.name + '" does not match path skill name "' + pathSkillName + '"');
     }
@@ -344,13 +355,66 @@ function validateSkillsIndex(skillDirNames) {
 
   for (const expectedPath of expectedPaths) {
     if (!seenPaths.has(expectedPath)) {
-      errors.push(toRelative(SKILLS_INDEX_FILE) + ': missing skill path "' + expectedPath + '"');
+      errors.push(toRelative(indexFile) + ': missing skill path "' + expectedPath + '"');
     }
   }
   for (const expectedName of expectedNames) {
     if (!seenNames.has(expectedName)) {
-      errors.push(toRelative(SKILLS_INDEX_FILE) + ': missing skill name "' + expectedName + '"');
+      errors.push(toRelative(indexFile) + ': missing skill name "' + expectedName + '"');
     }
+  }
+
+  return index;
+}
+
+function comparableSkillEntry(entry) {
+  return Object.keys(entry).sort().reduce(function(result, key) {
+    if (key !== 'path') {
+      result[key] = entry[key];
+    }
+    return result;
+  }, {});
+}
+
+function validateGeneratedSkillsIndex(sourceIndex, generatedIndexFile) {
+  const generatedIndex = validateSkillsIndex(sourceIndex.skills.map(function(skill) {
+    return skill.name;
+  }).sort(), {
+    indexFile: generatedIndexFile,
+    indexRoot: GENERATED_SKILL_ROOT,
+    pathPattern: /^references\/subskills\/[a-z0-9-]+\/README\.md$/,
+    pathForSkill: function(skillName) {
+      return 'references/subskills/' + skillName + '/README.md';
+    },
+    skillNameFromPath: function(entryPath) {
+      return entryPath.split('/')[2];
+    },
+    frontmatterRequired: false,
+  });
+
+  if (!generatedIndex) {
+    return;
+  }
+
+  const generatedNames = generatedIndex.skills.map(function(skill) { return skill.name; }).sort();
+  const sourceNames = sourceIndex.skills.map(function(skill) { return skill.name; }).sort();
+  if (JSON.stringify(generatedNames) !== JSON.stringify(sourceNames)) {
+    errors.push(toRelative(generatedIndexFile) + ': skill set must match source yida-skills/skills-index.json');
+    return;
+  }
+
+  const sourceByName = new Map(sourceIndex.skills.map(function(skill) {
+    return [skill.name, comparableSkillEntry(skill)];
+  }));
+  for (const generatedSkill of generatedIndex.skills) {
+    const sourceSkill = sourceByName.get(generatedSkill.name);
+    if (JSON.stringify(comparableSkillEntry(generatedSkill)) !== JSON.stringify(sourceSkill)) {
+      errors.push(toRelative(generatedIndexFile) + ': metadata for "' + generatedSkill.name + '" must match source except path');
+    }
+  }
+
+  if (JSON.stringify(generatedIndex.route_groups) !== JSON.stringify(sourceIndex.route_groups)) {
+    errors.push(toRelative(generatedIndexFile) + ': route_groups must match source yida-skills/skills-index.json');
   }
 }
 
@@ -371,10 +435,7 @@ function validateGeneratedSkillRoot() {
   if (fs.existsSync(generatedIndexFile)) {
     try {
       const sourceIndex = readJson(SKILLS_INDEX_FILE);
-      const generatedIndex = readJson(generatedIndexFile);
-      if (JSON.stringify(generatedIndex) !== JSON.stringify(sourceIndex)) {
-        errors.push(toRelative(generatedIndexFile) + ': must match source yida-skills/skills-index.json');
-      }
+      validateGeneratedSkillsIndex(sourceIndex, generatedIndexFile);
     } catch (error) {
       errors.push(toRelative(generatedIndexFile) + ': invalid JSON: ' + error.message);
     }

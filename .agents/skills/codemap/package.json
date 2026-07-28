@@ -1,0 +1,11 @@
+{
+  "name": "codemap",
+  "version": "0.1.0",
+  "description": "Generate, update, or drift-check agent-facing CodeMaps as progressive code terrain indexes for projects, features, capabilities, functions, modules, or bug chains. Use when Codex needs to inspect an unfamiliar codebase, map a feature/capability from entry to effect, create or update `mydocs/codemap/*`, answer `create_codemap`, `MAP`, `PROJECT MAP`, code terrain, impact-map, \"where should the agent look first\", check whether existing CodeMaps are stale after a diff, or prepare SDD-RIPER Research without loading the whole repository into context.",
+  "publishConfig": {
+    "registry": "https://contextlab.alibaba-inc.com/skill"
+  },
+  "aoneKit": {
+    "generated": true
+  }
+}
