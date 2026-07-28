@@ -1,6 +1,8 @@
 # yida-ppt-slider 使用示例
 
-## 示例 1：创建产品路演幻灯片
+> 新建幻灯片默认使用 Code Canvas。本页先给 Canvas 流程；后续 `_customState`、`didMount`、`renderJsx` 完整代码是 **legacy/native 参考**，只用于维护既有普通自定义页面。
+
+## 示例 1：Canvas-first 产品路演
 
 ### 输入
 
@@ -20,12 +22,17 @@ openyida create-app "产品演示中心"
 openyida create-page APP_DEMO123 "产品路演2026"
 # 输出：formUuid = FORM-PPT001
 
-# Step 4：编写幻灯片代码（见下方代码示例）
-# 输出到 project/pages/src/product-ppt.js
+# Step 4：编写 Code Canvas 幻灯片
+# 输出到 project/pages/src/product-ppt.canvas.jsx
 
-# Step 5：校验并发布页面
-openyida check-page project/pages/src/product-ppt.js
-openyida publish project/pages/src/product-ppt.js APP_DEMO123 FORM-PPT001 --health-check
+# Step 5：按 yida-canvas-custom-page 做本地 Canvas 快检
+
+# Step 6：用户确认后发布页面
+openyida publish project/pages/src/product-ppt.canvas.jsx APP_DEMO123 FORM-PPT001
+
+# Step 7：隐藏平台导航并回读
+openyida update-form-config APP_DEMO123 FORM-PPT001 false "产品路演2026"
+openyida get-schema APP_DEMO123 FORM-PPT001
 ```
 
 ### 输出
@@ -39,7 +46,22 @@ openyida publish project/pages/src/product-ppt.js APP_DEMO123 FORM-PPT001 --heal
 
 ---
 
-## 示例 2：幻灯片页面核心代码
+## 示例 2：Canvas hooks 核心
+
+新建页面使用：
+
+- `useState`：当前页、主题、语言、导航显隐、全屏状态。
+- `useEffect`：键盘、hash、触摸、fullscreen、定时器和 cleanup。
+- `useMemo`：当前 slide、进度和派生展示数据。
+- `useCallback`：`goTo` / `next` / `previous`，避免事件 effect 反复注册。
+
+hash effect 必须双向：初始化和 `hashchange` 读取页码，当前页变化时用 `history.replaceState` 更新 `#<page>`。全屏监听、键盘监听、触摸监听、数字键缓冲定时器都必须在各自 cleanup 中释放。完整最小骨架见主 `SKILL.md`。
+
+---
+
+## Legacy/native 完整示例
+
+以下代码只适用于已有 `.oyd.jsx` 普通自定义页面。新建幻灯片不要复制此处的 `_customState` / `didMount` / `renderJsx`；应把数据保留为顶层 `SLIDES`，把状态和副作用迁移到 Canvas hooks。
 
 ### 幻灯片数据定义
 

@@ -1,6 +1,6 @@
 # 输出：视觉方向决策块
 
-> Step 6 自检通过后，输出如下结构（**纯方向，不含代码**），然后按页面实现链路落地：Code Canvas 交给 `yida-canvas-custom-page`；普通自定义页面 JSX/Jsx 组件链路或强依赖普通自定义页实例桥时交给 `yida-custom-page`。
+> Step 6 自检通过后，输出如下结构（**纯方向，不含代码**）。默认交 Code Canvas：页面交 `yida-canvas-custom-page`，常规图表交 `yida-rechart`。只有明确 ECharts/复杂 option/旧 native 图表才交 `yida-chart`；普通页 JSX/Jsx 或实例桥依赖才交 `yida-custom-page`。
 
 ```markdown
 ### 【视觉方向决策】
@@ -37,8 +37,8 @@
 <内联 SVG 语义集（默认）/ 用户提供的 iconfont URL（opt-in）；描边风格；只作功能用途>
 
 ---
-> 下一步：Code Canvas 链路交 `yida-canvas-custom-page`，按 `canvas-design-system.md` 的 token/组件落地；普通自定义页面 JSX/Jsx 组件链路交 `yida-custom-page`，读取 `design-system.md`。
-> 具体色值、圆角像素、间距、组件样式一律以 `design-system.md` 为准；本决策块只定方向与差异。
+> 下一步（默认）：Code Canvas 交 `yida-canvas-custom-page`，按 `canvas-design-system.md` 落地；页面含常规图表时交 `yida-rechart`。只有已记录 legacy/native 原因时才交 `yida-custom-page`；只有已记录 ECharts 例外时才交 `yida-chart`。
+> 默认 Canvas 的具体色值、圆角、间距和组件样式以 `canvas-design-system.md` 为准；只有明确 legacy/native 链路时才读普通页 `design-system.md`。本决策块只定方向与差异。
 ```
 
 ## 可执行 Page Spec 对齐

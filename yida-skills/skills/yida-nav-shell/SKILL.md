@@ -1,108 +1,159 @@
 ---
 name: yida-nav-shell
 description: >
-  宜搭自定义页面「页面内导航壳」形态目录。当自定义页隐藏了应用导航（isRenderNav=false，沉浸式/独立页/门户首页/大屏/分享页）后，应用框架的导航消失，页面要用 JSX 自绘一套导航接管应用级导航。提供侧边栏/顶部/顶部+侧边混合/浮动胶囊/标签页五种 B 端导航形态的选型、骨架、普通自定义页面 + Canvas 代码示例、多视图切换机制与带 URL 参数的跨页跳转规范。
-  当用户要求「给这个自定义页/沉浸式页面/门户/大屏 加个导航（侧边/顶部/浮动/标签）」「自定义导航」「导航隐藏了页面自己怎么做导航」「一个页面切多个视图」时触发。
-  注意：本技能只描述**页面内 JSX 自绘导航壳**，不处理平台真实导航树配置。
+  宜搭自定义页面「页面内导航壳」形态目录，保留 Code Canvas 与普通自定义页面双链路并默认 Canvas-first。适用于隐藏应用导航后的侧边、顶部、混合、浮动和标签导航，多视图切换及带参数跨页跳转；Canvas 默认用 React useState/useEffect/hash，普通页 _customState/renderJsx 仅作 legacy fallback。
 ---
 
 # yida-nav-shell — 页面内自绘导航壳
 
-## 定位（先读这段）
+## 核心定位
 
-自定义页**隐藏应用导航**（`isRenderNav=false`）后，宜搭框架的左侧/顶部导航消失，页面即整个视口。此时页面要**自己画一套导航**接管应用级导航——这就是「导航壳」。本技能是导航壳的**形态选型 + 骨架 + 代码示例**目录。
+自定义页隐藏应用导航（`isRenderNav=false`）后，页面需要自己承担应用级导航。本技能负责形态选型、状态机制、URL 纪律和代码骨架。
 
-## 前置：先确认导航确实隐藏
+两条链路都支持，但顺序明确：
 
-导航壳的前提是应用导航已隐藏。是否隐藏、以及隐藏时的主色/视觉策略，按 [Step 0 导航形态判定](../yida-page-uiux/workflow/step-0-nav-shape.md) 决定：
+1. 新建导航壳默认交 **Code Canvas**，使用 React hooks、antd 或自绘组件。
+2. 只有维护旧 `.oyd.jsx`、明确要求普通页，或深度依赖普通页实例桥时，才使用 native fallback。
 
-- 发布时 `openyida update-form-config <appType> <formUuid> false "<标题>"`（`isRenderNav=false`），或访问带 `?isRenderNav=false`。
-- 导航**未**隐藏（默认）时无需自建导航壳，应用导航负责跨页跳转——此时一般不用本技能。
+本技能不配置宜搭平台真实导航树；平台导航分组由 `yida-nav-group` 处理。
 
-## 严格要求（导航壳必做）
+## 前置判定
 
-1. **先隐藏宜搭原导航**：只要页面内自绘应用级导航壳，就必须在发布后执行 `openyida update-form-config <appType> <shellFormUuid> false "<页面标题>"`，或创建时使用能隐藏导航的模式；不能让宜搭原左侧导航和页面内导航同时出现。
-2. **导航项必须携带 URL 参数**：导航配置不要只存 `formUuid`。每个跨页导航项必须能生成完整 URL，并合并公共参数（至少 `isRenderNav=false`；跨组织场景还要保留 `corpid`；业务深链保留 `tab`、`view`、`dateRange` 等参数）。
-3. **跨自定义页默认走 `custom/{formUuid}?isRenderNav=false`**：隐藏导航壳跳到另一个自定义展示页时，优先拼 `{base_url}/{appType}/custom/{formUuid}?isRenderNav=false`。不要只用 `this.utils.router.push(formUuid, {}, false)`，它容易丢失 `isRenderNav=false`，导致目标页重新出现宜搭原导航。
-4. **表单/数据管理入口分清打开方式**：需要在导航壳内容区展示表单列表时，用 iframe 地址 `workbench/{formUuid}?iframe=true`；必须整页跳转到表单管理时，也要通过统一 URL 构造函数合并当前业务参数，并明确接受目标页可能回到宜搭工作台框架。
-5. **发布后验证最终 URL**：发布完成后至少打开一个带 `?isRenderNav=false` 的导航项 URL，确认目标页没有宜搭原导航，且 URL 参数没有被跳转逻辑吞掉。
+- 导航未隐藏：通常使用宜搭平台导航，不需要本技能。
+- 沉浸页、门户、大屏、独立分享页或用户明确隐藏导航：使用本技能。
+- 页面内自绘导航与宜搭原导航不得同时出现。
 
-## 选型速查
+发布后必须配置并验证：
 
-| 形态 | 何时用 | 顶级项数量 | 移动端收敛 |
-|---|---|---|---|
-| **左侧边栏** | 模块多、需常驻导航的后台/门户（最通用 B 端形态） | 5–12，支持分组/二级 | 抽屉（汉堡唤出） |
-| **顶部导航** | 模块少、内容要占满宽度的看板/门户 | 2–6 | 汉堡菜单 |
-| **顶部 + 侧边混合** | 两级结构复杂应用（顶部分域，侧边分子模块） | 顶 2–5 × 侧 3–10 | 顶部汉堡 + 侧边抽屉 |
-| **浮动导航（悬浮胶囊/Dock）** | 沉浸/大屏/展示页，chrome 要极简，导航不常驻 | 3–6 | 底部胶囊/收起 |
-| **标签页** | 一个模块内切同级视图（常叠加在上面几种之上） | 2–8 | 横向滚动标签 |
+```bash
+openyida update-form-config <appType> <shellFormUuid> false "<页面标题>"
+```
 
-每种形态的 ASCII 骨架、选中态纪律、移动端收敛、普通自定义页面 + Canvas 代码示例、自查清单见 [references/nav-shell-patterns.md](references/nav-shell-patterns.md)。
+## 选型
 
-## 多视图切换机制（导航壳的核心）
+| 形态 | 何时用 | 移动端 |
+| --- | --- | --- |
+| 左侧边栏 | 5–12 个模块、常驻导航 | Drawer/汉堡 |
+| 顶部导航 | 2–6 个同级模块、内容要宽 | 汉堡菜单 |
+| 顶部 + 侧边 | 两级复杂应用 | 顶部收敛 + 侧栏抽屉 |
+| 浮动胶囊/Dock | 沉浸、大屏、展示页 | 底部胶囊 |
+| 标签页 | 单模块内切同级视图 | 横向滚动 |
 
-导航壳 = 一个自定义页内切多个视图。两条链路：
+详细骨架见 `references/nav-shell-patterns.md`，其中 Canvas 示例优先，native 代码明确标记 legacy。
 
-- **普通自定义页面**：状态存 `_customState.activeView`，点击 `this.setCustomState({ activeView: key })`，`renderJsx` 里按 `activeView` 分支渲染内容区。
-- **Canvas**：`React.useState`，或用 URL hash（`window.location.hash` + `hashchange`，`useEffect` 注册并 cleanup）做可分享/可后退的视图切换。
-- **跨页跳转**：跳到别的自定义页/表单时，用 [field-and-url-reference.md](../../references/field-and-url-reference.md) 的模板拼 URL，并显式合并导航项参数。隐藏导航壳跳自定义页时，目标必须带 `?isRenderNav=false` 保持沉浸；别假设应用导航还在。
+## Canvas-first 状态机制
 
-### URL 构造模板（普通自定义页面）
+### 仅需本地切换
+
+用 `useState` 保存 `activeView`；菜单配置与视图组件映射放在组件外，避免条件 JSX 越堆越深。
 
 ```jsx
-var BASE_URL = 'https://www.aliwork.com';
-var APP_TYPE = 'APP_XXX';
-var COMMON_NAV_PARAMS = {
-  isRenderNav: 'false'
-};
+function YidaComp() {
+  const [activeView, setActiveView] = React.useState('home');
+  const ActiveView = VIEW_COMPONENTS[activeView] || NotFoundView;
 
-var NAV_ITEMS = [
-  { key: 'home', label: '首页', type: 'custom', formUuid: 'FORM-HOME', params: { tab: 'home' } },
-  { key: 'dashboard', label: '经营看板', type: 'custom', formUuid: 'FORM-DASHBOARD', params: { tab: 'dashboard' } },
-  { key: 'orders', label: '订单管理', type: 'workbench', formUuid: 'FORM-ORDERS', params: { iframe: 'true' } }
-];
-
-export function buildQuery(params) {
-  var pairs = [];
-  Object.keys(params || {}).forEach(function(key) {
-    if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-      pairs.push(encodeURIComponent(key) + '=' + encodeURIComponent(String(params[key])));
-    }
-  });
-  return pairs.length ? '?' + pairs.join('&') : '';
-}
-
-export function mergeParams(baseParams, extraParams) {
-  return Object.assign({}, baseParams || {}, extraParams || {});
-}
-
-export function buildNavUrl(item) {
-  var path = item.type === 'workbench'
-    ? '/' + APP_TYPE + '/workbench/' + item.formUuid
-    : '/' + APP_TYPE + '/custom/' + item.formUuid;
-  var baseParams = item.type === 'workbench' ? {} : COMMON_NAV_PARAMS;
-  return BASE_URL + path + this.buildQuery(this.mergeParams(baseParams, item.params));
-}
-
-export function openNavItem(item) {
-  var url = this.buildNavUrl(item);
-  window.open(url, '_top');
+  return (
+    <AppShell
+      items={NAV_ITEMS}
+      activeKey={activeView}
+      onSelect={setActiveView}
+    >
+      <ActiveView />
+    </AppShell>
+  );
 }
 ```
 
-> 如果需要保留当前 URL 上的 `corpid`、`locale` 或业务参数，先从 `this.state.urlParams` 读出白名单字段，合并进 `COMMON_NAV_PARAMS`；不要把不明参数全量透传。
+### 需要可分享、前进/后退
 
-## 纪律（B 端 + 去 AI 味）
+用 URL hash 作为真相源：
 
-- **选中态一眼可辨**：侧边用「左侧 3px 主色条 + 浅色底 + 字重加粗」；顶部用「底部 2px 主色下划线 + 主色文字」，别只靠淡变色。
-- **图标只作功能用途**：功能性内联 SVG + 文字，同页一套风格；**禁 emoji**、禁每项前配装饰图标（详见 [yida-page-uiux 图标纪律](../yida-page-uiux/workflow/step-5-icon-and-assets.md)）。
-- **不做营销脸**：无巨 Logo Hero、无渐变横幅；顶部条放「应用名/模块名 + 面包屑 + 用户」，克制。
-- **主色策略**：导航隐藏时主色相可自立，但要么走品牌 `var(--color-brand1-*)`、要么用自定主色一以贯之；语义色固定。
+- 初始化读取 hash。
+- `hashchange` 更新 activeView。
+- 点击导航更新 hash。
+- `useEffect` cleanup 移除监听。
+- 未知 hash 回退默认视图，不能渲染空白页。
+
+```jsx
+function useHashView(defaultView) {
+  const read = () => window.location.hash.replace(/^#\/?/, '') || defaultView;
+  const [view, setView] = React.useState(read);
+
+  React.useEffect(() => {
+    const handleHashChange = () => setView(read());
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [defaultView]);
+
+  const navigate = React.useCallback((next) => {
+    window.location.hash = '/' + next;
+  }, []);
+
+  return [view, navigate];
+}
+```
+
+## 跨页 URL 纪律
+
+导航项必须保存 `type`、`formUuid` 和 `params`，而不是只存 `formUuid`。
+
+```javascript
+const NAV_ITEMS = [
+  { key: 'home', type: 'custom', formUuid: 'FORM-HOME', params: { tab: 'home' } },
+  { key: 'orders', type: 'workbench', formUuid: 'FORM-ORDERS', params: { iframe: 'true' } },
+];
+```
+
+- 跨自定义页：`/{appType}/custom/{formUuid}?isRenderNav=false`。
+- 内容区 iframe 表单列表：`/{appType}/workbench/{formUuid}?iframe=true`。
+- 合并并白名单保留 `corpid`、`locale` 和业务深链参数。
+- 使用 `URL` / `URLSearchParams` 构造地址；不要字符串拼接重复 `?`。
+- 不使用可能吞掉 `isRenderNav=false` 的裸 `router.push(formUuid)`。
+- 最终至少验证一个跨页 URL 和一个浏览器回退动作。
+
+## 移动端
+
+- Canvas 使用 CSS media query 或带 cleanup 的 `matchMedia` hook。
+- 侧边栏收敛为 Drawer，顶部导航收敛为汉堡菜单，浮动导航下沉为底部胶囊。
+- 触控目标至少 44px，焦点态和键盘访问不能丢。
+- 菜单展开状态与当前 activeView 分离，切换视图后按产品需要关闭移动菜单。
+
+## Legacy/native fallback
+
+仅在旧普通自定义页面或实例桥依赖场景使用：
+
+- `_customState.activeView` 保存状态。
+- `this.setCustomState({ activeView: key })` 更新。
+- `renderJsx` 按 activeView 渲染。
+- `this.utils.isMobile()` 只用于旧页面响应式。
+
+跨页 URL 规则与 Canvas 完全相同，不能因为是 legacy 就省略 `isRenderNav=false` 或业务参数。
+
+## 严格要求
+
+1. 自绘导航前先隐藏宜搭原导航。
+2. 选中态必须一眼可辨，不能只靠极淡颜色。
+3. 导航项必须真正可点击，未知 key 有 fallback。
+4. hash/event/matchMedia 等监听必须 cleanup。
+5. 图标使用功能性内联 SVG，禁 emoji 和装饰性图标堆叠。
+6. 顶部条保持克制，不做营销 Hero。
+7. Canvas 示例与状态机制优先；普通页只能标记为 legacy fallback。
+
+## 验收
+
+- 发布配置和最终 URL 均为 `isRenderNav=false`。
+- 当前视图、选中态、内容区一致。
+- hash 深链、前进/后退、刷新恢复可用。
+- 跨页参数不丢，表单工作台 URL 类型正确。
+- PC 和移动端导航均可操作。
+- 离开页面后无残留监听。
 
 ## 参考文档
 
-| 文档 | 覆盖范围 | 何时阅读 |
-|------|---------|---------|
-| [导航壳形态目录](references/nav-shell-patterns.md) | 五形态 ASCII 骨架 + 选中态 + 移动端 + 普通自定义页面/Canvas 代码 + 多视图切换 + 自查清单 | 选定形态、要骨架/代码时 |
-| [yida-page-uiux Step 0](../yida-page-uiux/workflow/step-0-nav-shape.md) | 导航是否隐藏的判定法 + 隐藏时主色/视觉策略分叉 | 动手前确认导航形态时 |
-| [字段与 URL 参考](../../references/field-and-url-reference.md) | 隐藏导航 `isRenderNav=false`、跨页跳转 URL 模板 | 拼跨页跳转 URL 时 |
+| 文档 | 用途 |
+| --- | --- |
+| [导航壳形态目录](references/nav-shell-patterns.md) | 五种形态、Canvas-first 骨架、legacy/native 示例与自查 |
+| [yida-page-uiux Step 0](../yida-page-uiux/workflow/step-0-nav-shape.md) | 判定是否隐藏导航及视觉策略 |
+| [字段与 URL 参考](../../references/field-and-url-reference.md) | 页面 URL 和参数规范 |
+| `yida-canvas-custom-page` | Canvas 运行时与发布 |
+| `yida-custom-page` | legacy 普通页面运行时 |

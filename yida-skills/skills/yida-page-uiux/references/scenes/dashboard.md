@@ -64,10 +64,10 @@
 
 **关键 KPI**。整个看板应有 1-2 个「最该先看」的核心指标，视觉上最突出（最大字号 / 置于左上视觉起点 / 点缀色强调）。
 
-## 组件套餐（映射 design-system.md / yida-chart）
+## 组件套餐（默认映射 Canvas 设计系统 / yida-rechart）
 
 - KPI 卡：大数字（`tabular-nums`）+ 同比/环比小标 + 趋势箭头（升降用语义色）
-- 图表：ECharts，走 `yida-chart` 技能；色板**克制**，对齐平台品牌变量 + 有限辅助色
+- 图表：Code Canvas 常规图表走 `yida-rechart`，色板**克制**，对齐平台品牌变量 + 有限辅助色；仅明确 ECharts、复杂 option/扩展系列或维护旧 native 图表时走 `yida-chart`
 - 排行/明细：`design-system.md` 列表行 / 紧凑表格
 - 告警：`design-system.md` 标签（tag）+ 告警红（稀缺，只给真异常）
 

@@ -198,4 +198,37 @@ describe('OpenYida skill contracts', () => {
     expect(retrospective).toContain('Chart sample / 原生报表绑定经验');
     expect(retrospective).toContain('工作台是操作首页，不是 demo 页面');
   });
+
+  test('custom-page-dependent skills keep Canvas-first and native fallback boundaries explicit', () => {
+    const dashboard = readSkill('yida-skills/skills/yida-dashboard/SKILL.md');
+    const ppt = readSkill('yida-skills/skills/yida-ppt-slider/SKILL.md');
+    const density = readSkill('yida-skills/skills/yida-density/SKILL.md');
+    const navShell = readSkill('yida-skills/skills/yida-nav-shell/SKILL.md');
+    const pageUiux = readSkill('yida-skills/skills/yida-page-uiux/SKILL.md');
+    const dataSources = readSkill('yida-skills/skills/yida-data-source-connectors/SKILL.md');
+
+    expect(dashboard).toContain('默认实现层是 **Code Canvas**');
+    expect(dashboard).toContain('常规图表：`yida-rechart`');
+    expect(dashboard).toContain('只有用户明确要求 ECharts');
+    expect(dashboard).toContain('## Legacy/native fallback');
+
+    expect(ppt).toContain('新建演示默认走 **Code Canvas**');
+    expect(ppt).toContain('`useEffect` 管键盘、hash、触摸、定时器和 cleanup');
+    expect(ppt).toContain('## Legacy/native fallback');
+
+    expect(density).toContain('实现示例默认使用 **Code Canvas + React hooks**');
+    expect(density).toContain('## Legacy/native fallback');
+
+    expect(navShell).toContain('新建导航壳默认交 **Code Canvas**');
+    expect(navShell).toContain('需要可分享、前进/后退');
+    expect(navShell).toContain('## Legacy/native fallback');
+
+    expect(pageUiux).toContain('默认交 Code Canvas');
+    expect(pageUiux).toContain('常规业务图表交 `yida-rechart`');
+    expect(pageUiux).toContain('ECharts 例外');
+
+    expect(dataSources).toContain('本技能只服务 **普通自定义页面 native 链路**');
+    expect(dataSources).toContain('Code Canvas 组件没有普通页面 `this` 实例，也没有 `dataSourceMap`');
+    expect(dataSources).toContain('use_skill("yida-canvas-data-binding"');
+  });
 });

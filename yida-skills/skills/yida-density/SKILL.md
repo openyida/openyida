@@ -1,149 +1,157 @@
 ---
 name: yida-density
-description: 自定义页面信息密度设计规范，提供紧凑、舒适、宽松三种模式，支持密度切换和响应式降级。适用于列表/表格类页面需要调整信息密度时。
+description: 自定义页面信息密度设计规范，链路无关并优先给出 Code Canvas 写法。提供紧凑、舒适、宽松三种模式、切换 UI 和响应式降级；普通页 didMount/this.utils.isMobile 仅作 legacy/native 示例。
 ---
 
 # 宜搭自定义页面信息密度设计规范
 
-## 严格禁止 (NEVER DO)
+## 核心定位
 
-- 不要在移动端页面提供密度切换 UI，移动端固定使用 `spacious`
-- 不要在固定展示的报表/大屏页面提供密度切换，直接用 `spacious`
-- 不要在表单填写页提供密度切换，固定使用 `comfortable`
-- 不要硬编码像素值而不使用 `DENSITY_CONFIG` 变量，否则密度切换失效
+信息密度是页面设计决策，不绑定某一种运行时。`DENSITY_CONFIG`、场景选择、移动端降级和无障碍要求对 Code Canvas 与普通自定义页面都适用；实现示例默认使用 **Code Canvas + React hooks**。
 
-## 严格要求 (MUST DO)
+只有维护旧 `.oyd.jsx` 或用户明确选择普通自定义页面时，才使用 `didMount` / `this.utils.isMobile()` 的 legacy 写法。
 
-- 每次生成自定义页面时都必须考虑密度，无需用户明确提及
-- 列表/表格类页面必须默认提供密度切换 UI
-- 在 `didMount` 中必须检测移动端并自动降级为 `spacious`
-- 所有间距、字体、行高必须从 `DENSITY_CONFIG[density]` 读取，不得硬编码
-- **本技能不读写 memory**：密度配置作为页面代码的一部分写入宜搭平台，不依赖跨会话的 memory 状态
+## 严格要求
 
-## 写操作安全守卫
+- 每次生成列表/表格类自定义页面时都考虑密度，无需用户主动提及。
+- PC 列表/表格默认 `comfortable`，可提供紧凑/舒适切换。
+- 移动端固定 `spacious`，不显示密度切换 UI。
+- 固定展示大屏使用 `spacious`，不显示密度切换 UI。
+- 表单填写页交原生表单；若只讨论密度，固定 `comfortable`，不提供切换。
+- 间距、字号、行高、控件高度统一从密度 token 派生，避免散落魔法值。
+- 密度状态是页面本地状态，不依赖跨会话 memory。
 
-本技能生成的代码最终会写入宜搭平台，必须遵循以下安全机制：
+## 场景选择
 
-| 操作阶段 | 安全守卫 | 说明 |
-|---------|---------|------|
-| **生成前** | 确认页面类型 | 必须先确认是列表/表格/单卡片/表单，再选择合适密度 |
-| **生成中** | 代码预览 | 生成代码后必须先展示给用户预览，等待用户确认后再执行发布 |
-| **发布前** | 用户确认 | 执行 `yida-publish-page` 前必须明确告知用户"即将发布到宜搭平台"，获得用户同意 |
-| **发布后** | 结果验证 | 发布后必须提供页面访问链接，引导用户验证效果 |
-
-**强制规则**：
-- 禁止在用户未确认的情况下直接发布页面
-- 禁止跳过代码预览步骤
-- 生成的代码必须完整展示 `DENSITY_CONFIG` 配置和关键渲染逻辑，不得省略
-
-## 触发条件
-
-**正向触发**（生成自定义页面时自动应用，无需用户提及）：
-- 生成任何列表/表格类自定义页面时
-- 用户说"紧凑/密集/更多信息" → 使用 `compact` 模式
-- 用户说"宽松/舒适/大字体" → 使用 `spacious` 模式
-
-**不适用场景（不要触发）**：
-- 单卡片、表单提交页 → 无需密度设计，固定使用 `comfortable`
-- 原生报表页面 → 密度由报表组件自身控制
-- 移动端页面 → 固定 `spacious`，不提供切换 UI
-
-## 场景与密度选择
-
-AI 在生成自定义页面时，**无需用户明确提及密度**，根据以下规则自动选择：
-
-| 场景 | 推荐密度 | 典型示例 | 是否提供切换 UI |
-| --- | --- | --- | --- |
-| 数据量大、专业用户、需一屏展示更多信息 | **紧凑（compact）** | 运营后台、数据报表、审批列表 | ✅ 提供 |
-| 常规业务场景、平衡信息量与可读性 | **舒适（comfortable）** | 任务管理、日常审批 | ✅ 提供 |
-| 表单填写页 | **舒适（comfortable）** | 信息录入、申请提交 | ❌ 固定，不提供 |
-| 重点突出、新手友好、强调视觉舒适度 | **宽松（spacious）** | 展示大屏、引导页 | ❌ 固定，不提供 |
-| 移动端页面 | **宽松（spacious）** | 移动端所有页面 | ❌ 固定，不提供 |
-
-**用户明确指定时**：
-- 用户说"紧凑/密集/更多信息" → 使用 `compact`
-- 用户说"宽松/舒适/大字体" → 使用 `spacious`
-- 用户未指定 → 根据上表场景自动选择
-
-## 响应式与切换 UI 规则
-
-| 设备/场景 | 默认密度 | 是否提供切换 UI |
+| 场景 | 默认密度 | 切换 UI |
 | --- | --- | --- |
-| PC 端列表/表格页 | comfortable | ✅ 提供，让用户自选 |
-| 移动端 | spacious | ❌ 不提供，固定 spacious |
-| 大屏展示/报表 | spacious | ❌ 不提供，固定 spacious |
-| 表单填写页 | comfortable | ❌ 不提供，固定 comfortable |
+| 专业后台、运营列表、大数据表格 | `compact` 或 `comfortable` | PC 提供 |
+| 常规任务管理、审批列表 | `comfortable` | PC 提供 |
+| 引导页、展示页、固定大屏 | `spacious` | 不提供 |
+| 移动端 | `spacious` | 不提供 |
+| 原生表单填写 | `comfortable` | 不提供 |
 
-在 `didMount` 中自动检测移动端并降级：
+用户明确说“紧凑/密集/一屏更多”时选 `compact`；说“宽松/大字体/更易读”时选 `spacious`。用户未指定时按页面类型和设备选择。
+
+## 密度 token
+
+同一页面可以把数值映射成 CSS variables、antd token 或 inline style；关键是所有相关组件都消费同一个配置。
+
+```javascript
+const DENSITY_CONFIG = {
+  compact: {
+    cardPadding: '8px 12px',
+    fontSize: 12,
+    lineHeight: 1.4,
+    tableRowHeight: 32,
+    controlHeight: 24,
+    sectionGap: 8,
+  },
+  comfortable: {
+    cardPadding: '16px 20px',
+    fontSize: 14,
+    lineHeight: 1.6,
+    tableRowHeight: 48,
+    controlHeight: 32,
+    sectionGap: 16,
+  },
+  spacious: {
+    cardPadding: '24px 28px',
+    fontSize: 16,
+    lineHeight: 1.8,
+    tableRowHeight: 64,
+    controlHeight: 40,
+    sectionGap: 24,
+  },
+};
+```
+
+## Canvas-first 实现
+
+在 Canvas 中用 `matchMedia` + hooks 管设备变化。不要在首次渲染时读一次宽度后永不更新。
+
+```jsx
+import React, { useEffect, useMemo, useState } from 'react';
+
+function useIsMobile() {
+  const query = '(max-width: 767px)';
+  const [isMobile, setIsMobile] = useState(
+    () => window.matchMedia(query).matches,
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const handleChange = (event) => setIsMobile(event.matches);
+    media.addEventListener('change', handleChange);
+    return () => media.removeEventListener('change', handleChange);
+  }, []);
+
+  return isMobile;
+}
+
+function DensityAwareList() {
+  const isMobile = useIsMobile();
+  const [desktopDensity, setDesktopDensity] = useState('comfortable');
+  const density = isMobile ? 'spacious' : desktopDensity;
+  const tokens = useMemo(() => DENSITY_CONFIG[density], [density]);
+
+  return (
+    <section style={{ '--row-height': `${tokens.tableRowHeight}px` }}>
+      {!isMobile && (
+        <DensitySwitch value={desktopDensity} onChange={setDesktopDensity} />
+      )}
+      <BusinessTable density={density} tokens={tokens} />
+    </section>
+  );
+}
+```
+
+如果目标使用 antd `Table` / `ConfigProvider`，把密度映射到 `size` 和组件 token，同时保留业务级 `DENSITY_CONFIG` 作为唯一来源；不要一部分走 `size="small"`、另一部分继续写固定 padding。
+
+## 响应式纪律
+
+- 移动端自动使用 `spacious`，回到桌面后恢复用户先前选择的桌面密度。
+- 切换密度不能清空筛选、分页、选中行和数据。
+- 触控目标仍需满足可点击尺寸；`compact` 只用于桌面高密度场景。
+- 系统字体缩放、长中文、英文和大数值下均不得截断关键字段。
+- 虚拟表格行高、骨架屏行高和真实行高必须使用同一密度 token。
+
+## Legacy/native fallback
+
+已有普通自定义页面可以继续使用：
 
 ```javascript
 export function didMount() {
   if (this.utils.isMobile()) {
     _customState.density = 'spacious';
+    this.forceUpdate();
   }
 }
 ```
 
-## 异常与错误处理
+这段只用于 legacy/native 页面。新 Canvas 页面不得使用 `didMount`、`this.utils.isMobile()`、`_customState` 或 `forceUpdate`；应使用上面的 `matchMedia` hook 并 cleanup。
 
-| 场景 | 处理方式 |
-|---------|----------|
-| 密度切换后样式未更新 | 确认所有间距/字体从 `DENSITY_CONFIG[density]` 读取，不得硬编码像素值 |
-| 移动端显示密度切换 UI | 在 `didMount` 中检测移动端并自动降级为 `spacious`，隐藏切换 UI |
-| 报表/大屏页面提供密度切换 | 固定展示的报表/大屏不提供密度切换，直接使用 `spacious` |
-| 密度配置缺失 | 使用 `comfortable` 模式作为默认值，不得报错中断 |
-| 移动端检测失败 | 默认使用 `spacious` 模式，确保移动端可用性 |
-| 样式变量未定义 | 停止执行，提示用户检查 `DENSITY_CONFIG` 配置是否完整 |
-| 页面类型判断错误 | 询问用户确认页面类型（列表/表格/单卡片/表单），再选择合适密度 |
-| 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |
+现有 `openyida sample yida-density density-switch-page` 若输出普通页面，也只能作为 native 参考，不能据此改变新页面的 Canvas 默认路由。
 
----
+## 异常处理
 
-## 三种密度的样式规范
+| 场景 | 处理 |
+| --- | --- |
+| 切换后局部样式没变 | 检查是否仍有硬编码 padding/height，统一消费 token |
+| 移动端还显示切换 UI | 由 `isMobile` 派生 UI 和最终 density，不只改样式 |
+| 回桌面后丢失用户选择 | 分开保存 `desktopDensity` 与派生 `density` |
+| 字体放大后内容裁切 | 避免固定内容高度，允许行高/单元格扩展 |
+| 配置缺失 | 回退 `comfortable`，同时暴露开发期错误 |
 
-```javascript
-var DENSITY_CONFIG = {
-  compact: {
-    cardPadding: '8px 12px',
-    cardMarginBottom: '8px',
-    fontSize: '12px',
-    lineHeight: '1.4',
-    tableRowHeight: '32px',
-    buttonHeight: '24px',
-    buttonPadding: '0 8px',
-    inputHeight: '24px',
-    iconSize: '14px',
-    sectionGap: '8px',
-  },
-  comfortable: {
-    cardPadding: '16px 20px',
-    cardMarginBottom: '16px',
-    fontSize: '14px',
-    lineHeight: '1.6',
-    tableRowHeight: '48px',
-    buttonHeight: '32px',
-    buttonPadding: '0 16px',
-    inputHeight: '32px',
-    iconSize: '16px',
-    sectionGap: '16px',
-  },
-  spacious: {
-    cardPadding: '24px 28px',
-    cardMarginBottom: '24px',
-    fontSize: '16px',
-    lineHeight: '1.8',
-    tableRowHeight: '64px',
-    buttonHeight: '40px',
-    buttonPadding: '0 24px',
-    inputHeight: '40px',
-    iconSize: '20px',
-    sectionGap: '24px',
-  },
-};
-```
+## 写操作边界
 
----
+本技能负责生成规范，不自动授权发布。真实发布前必须展示代码/配置摘要并获得用户确认；发布后提供页面 URL 与 PC/移动端验证结果。
 
-## 完整示例：带密度切换的页面
+## 验收清单
 
-> 完整示例代码：执行 `openyida sample yida-density density-switch-page` 输出到 `.cache/samples/density-switch-page.js`，再用 `read_file` 读取。包含 `DENSITY_CONFIG`、状态管理、密度切换 UI、数据加载和渲染逻辑的完整实现。
+- 页面类型与默认密度匹配。
+- Canvas 示例优先；普通页生命周期只出现在 legacy 小节。
+- PC 切换真实改变表格/卡片/控件密度，不丢业务状态。
+- 移动端固定 `spacious` 且隐藏切换 UI。
+- 所有密度相关值来自统一 token。
+- `matchMedia` 监听或其他响应式副作用有 cleanup。
