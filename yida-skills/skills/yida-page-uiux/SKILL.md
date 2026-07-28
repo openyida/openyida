@@ -1,7 +1,7 @@
 ---
 name: yida-page-uiux
 description: >
-  宜搭自定义页面 UI/UX 视觉方向决策技能。用于在页面实现前，按页面类型（工作台/看板/数据大屏/列表/详情/官网落地页）确定布局骨架、信息密度、视觉风格、素材/图标策略和模板路由，产出「视觉方向决策块」。
+  宜搭自定义页面 UI/UX 视觉方向决策技能。用于在页面实现前，按页面类型（工作台/看板/数据大屏/列表/详情/官网落地页）确定布局骨架、信息密度、视觉风格、素材/图标策略和模板路由，产出「视觉方向决策块」，默认交 Code Canvas 落地。
   当用户要新建或改造自定义页面，并明确关注好看、高级、品牌化、去 AI 味、UI 视觉、美化、页面太丑、不够惊艳，或进入深度视觉设计阶段时触发。
   完成范围：单页自定义页面的页面类型判断、视觉方向选择、差异化设计原则、素材与图标策略、去 AI 味自检和可交给实现阶段使用的决策块。
 ---
@@ -15,6 +15,15 @@ description: >
 - **产出**：一个「视觉方向决策块」（纯文字方向 + 差异化说明），供后续页面代码按对应 `design-system.md` 的 token / 组件落地。
 - **不产出**：JSX 代码、具体像素数值表（那是 `design-system.md` 的职责）。
 - **为什么存在**：`design-system.md` 是「安全平庸」的 token 层——直接套用会得到千篇一律的 AI 模板脸。本技能在写码前先强制做**差异化视觉决策**，让每个页面有自己的性格。
+
+## 实现链路交接
+
+- **默认**：视觉决策完成后交 `yida-canvas-custom-page`，生成 `.canvas.jsx`。
+- **图表/看板默认**：常规业务图表交 `yida-rechart`。
+- **ECharts 例外**：只有用户明确要求 ECharts、复杂 ECharts option/扩展系列，或维护旧普通自定义页面图表时，才交 `yida-chart`。
+- **legacy/native fallback**：用户明确要求普通 JSX/Jsx 页面，或页面深度依赖 `this.$()`、`this.utils.yida.*`、`this.dataSourceMap` 等实例桥时，交 `yida-custom-page`。
+
+本技能只做视觉决策，不得因为 references 中存在普通页示例就把新页面从 Canvas 降级到 native。
 
 ## 重要限制：自定义页面不做表单/录入 UI
 
@@ -94,7 +103,7 @@ Step 0 导航形态判定 → Step 1 页面类型 → Step 2 意图解码 → St
 | 文档 | 覆盖范围 | 何时阅读 |
 |------|---------|---------|
 | [视觉决策引擎](references/visual-decision-engine.md) | 5 个风格意图 + 反默认组合表 + 5 个差异化维度 + 强制第二选择 + 差异化自检 | Step 4 做视觉决策时（所有场景共用） |
-| 页面内自绘导航壳（独立 skill） | 页面隐藏应用导航后用 JSX 自建侧边/顶部/混合/浮动/标签导航壳：选型表 + 骨架 + 普通自定义页面/Canvas 代码 + 多视图切换 | Step 0 判定导航隐藏、需自建导航壳时调用 `use_skill("yida-nav-shell", "设计页面内自绘导航壳")` |
+| 页面内自绘导航壳（独立 skill） | 页面隐藏应用导航后自建侧边/顶部/混合/浮动/标签导航壳：Canvas hooks 示例优先，普通页作为 legacy fallback | Step 0 判定导航隐藏、需自建导航壳时调用 `use_skill("yida-nav-shell", "设计页面内自绘导航壳")` |
 | [应用蓝图字段](references/app/blueprint.md) | `appBlueprint` 字段、门面页、页面组合 | 当前页面属于多页面应用时 |
 | [应用导航模式](references/app/navigation-patterns.md) | 平台导航 / 页面内导航壳 / 混合导航 | 需要决定导航形态或导航分组时 |
 | [角色旅程](references/app/role-journey.md) | 角色入口、任务和页面映射 | 用户提到多角色时 |

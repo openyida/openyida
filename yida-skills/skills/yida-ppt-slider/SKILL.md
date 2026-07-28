@@ -1,145 +1,217 @@
 ---
 name: yida-ppt-slider
-description: "宜搭全屏幻灯片页面开发。支持键盘翻页、演讲笔控制、移动端适配，含 default（浅色简约）和 dark-tech（深色科技风）主题。适用于技术分享、产品路演、培训课件等演示场景。"
+description: "宜搭全屏幻灯片页面开发，默认使用 Code Canvas + React hooks 管理翻页、URL hash、键盘/演讲笔、全屏和副作用清理。支持浅色简约与 dark-tech 主题。普通自定义页面生命周期模式仅用于 legacy/native 维护。"
 ---
 
 # 宜搭 PPT 幻灯片开发指南
 
+## 核心定位
+
+本技能用于在宜搭内交付全屏演示页。新建演示默认走 **Code Canvas**：
+
+- `.canvas.jsx` / `.canvas.tsx` + `YidaComp` 函数组件。
+- `useState` 管当前页、主题、语言、导航显隐和全屏状态。
+- `useEffect` 管键盘、hash、触摸、定时器和 cleanup。
+- `useMemo` 派生当前页与页码数据。
+- 常规图表默认交 `yida-rechart`；明确 ECharts/复杂 option 时才使用 `yida-chart`。
+
+已有 `.oyd.jsx` 或深度依赖普通页实例桥时，才使用 legacy/native fallback。
+
 ## 适用场景
 
-| 用户意图 | 触发条件 | 处理方式 |
-|---------|---------|---------|
-| 在宜搭内创建演示文稿 | "PPT"、"幻灯片"、"演示页面"、"产品路演" | 使用本技能 |
-| 需要读取宜搭数据的演示 | 演示页要接入表单、权限或宜搭页面能力 | 使用本技能 |
-| 纯静态演讲稿 | 不依赖宜搭发布、不读取宜搭数据 | 优先改用独立 HTML 幻灯片能力 |
+| 用户意图 | 处理方式 |
+| --- | --- |
+| 在宜搭内创建 PPT、幻灯片、演示页面、产品路演 | 本技能，默认 Canvas |
+| 演示页读取宜搭表单/连接器数据 | Canvas + `yida-canvas-data-binding` |
+| 纯静态演讲稿，不依赖宜搭发布 | 优先独立 HTML 幻灯片能力 |
+| 维护已有 `renderJsx` / `didMount` PPT | legacy `yida-custom-page` |
 
-## 核心规则
+## 致命规则
 
-### 致命规则（FATAL）
-
-1. **禁止 Hooks / import / require**：必须使用宜搭原生 `export function` 页面模式，第三方库通过 CDN 或内联代码接入。
-2. **状态只走 `_customState + forceUpdate`**：状态变更后调用 `this.forceUpdate()`，不要用 Hooks，也不要把业务状态写进 React state。
-3. **事件绑定必须真实可触发**：禁止 `onClick={foo()}`、`onClick={handleDotClick(i)}`、JSX 小写 `onclick`；可见 `<button>` 必须有 handler 或显式 `disabled`。
-4. **生命周期必须清理**：键盘、触摸、鼠标、hash、fullscreen、定时器、ECharts 实例都要在 `didUnmount` 中清理。
-5. **图片必须完整展示**：使用 `objectFit: 'contain'`，不要用 `cover` 裁剪演示素材。
-6. **发布前必须校验**：执行 `openyida check-page <源文件>`，首次发布建议 `openyida publish ... --health-check`。
-
-### 重要规则（IMPORTANT）
-
-1. **发布前先确认**：展示页数、标题列表、主题方案，获得用户明确同意后再发布真实页面。
-2. **幻灯片数据顶层维护**：用顶层 `SLIDES` 数组描述页面，不要把数据硬编码在 `renderJsx` 中。
-3. **全屏覆盖宜搭容器**：页面根节点用 `position: fixed; top:0; left:0; right:0; bottom:0` 覆盖默认容器。
-4. **移动端适配**：使用 `this.utils.isMobile()` 判断设备，调整字号、间距、图片高度和触控区域。
-5. **演讲笔兼容**：键盘事件需支持方向键、`PageDown`、`PageUp`，数字键跳页用 300ms 缓冲。
-6. **导航默认隐藏**：底部翻页导航默认隐藏，鼠标靠近底部或移动端触摸时显示。
-7. **隐藏平台导航**：发布 PPT 后执行 `openyida update-form-config <appType> <formUuid> false "<页面标题>"`。
-
-## 主题选择
-
-生成 PPT 前先让用户选择视觉主题：
-
-| theme | 风格 | 特色 | 适合场景 |
-|-------|------|------|---------|
-| `default` | 浅色简约 | 白底黑字、多 accent 主题色、数据驱动 `SLIDES` | 技术分享、产品路演、通用演示 |
-| `dark-tech` | 深色科技风 | `#0B0F19` 背景、Canvas 粒子、电影级转场、玻璃态卡片 | 企业培训、产品发布、科技感演示 |
-
-推荐话术：
-
-> 我来帮你生成 PPT。请先选择视觉风格：A. default（浅色简约）；B. dark-tech（深色科技风）。
+1. **默认 Canvas**：新建页面不得把 `.oyd.jsx`、`renderJsx`、`didMount` 写成默认。
+2. **状态归 hooks**：翻页、导航、语言、主题、全屏状态用 React hooks。
+3. **副作用必须清理**：键盘、触摸、鼠标、hash、fullscreen、定时器和图表副作用均在 `useEffect` cleanup。
+4. **事件真实可触发**：禁止 `onClick={foo()}`、小写 `onclick`；可见按钮必须有 handler 或 disabled。
+5. **图片完整展示**：默认 `object-fit: contain`，不得裁掉关键演示素材。
+6. **hash 双向同步**：初始页读取 hash；翻页更新 hash；浏览器前进/后退能恢复页码。
+7. **全屏由用户手势触发**：监听 `fullscreenchange` 同步 UI；卸载时移除监听。
+8. **隐藏平台导航**：演示页发布后配置 `isRenderNav=false` 并验证最终 URL。
 
 ## 开发流程
 
 ```bash
-# Step 1: 只读检测环境和登录态
+# 1. 只读检测
 openyida env --json
 openyida login --check-only --json
 
-# Step 2: 创建应用和页面（已有则跳过）
+# 2. 已获授权后创建应用/页面（已有则跳过）
 openyida create-app "<应用名>"
 openyida create-page <appType> "<页面名>"
 
-# Step 3: 编写页面源码
-# 文件建议：project/pages/src/<页面名>.oyd.jsx
+# 3. 编写 Canvas 源码
+# project/pages/src/<页面名>.canvas.jsx
 
-# Step 4: 本地校验
-openyida check-page project/pages/src/<页面名>.oyd.jsx
+# 4. Canvas 本地快检（以 yida-canvas-custom-page 的 compileCanvasLocal 为准）
 
-# Step 5: 向用户展示配置摘要并确认后发布
-openyida publish project/pages/src/<页面名>.oyd.jsx <appType> <formUuid> --health-check
+# 5. 用户确认内容与主题后发布
+openyida publish project/pages/src/<页面名>.canvas.jsx <appType> <formUuid>
 
-# Step 6: 隐藏宜搭顶部导航
+# 6. 隐藏宜搭导航并回读验证
 openyida update-form-config <appType> <formUuid> false "<页面名>"
+openyida get-schema <appType> <formUuid>
 ```
 
-## 技术栈与页面骨架
+`openyida check-page` / `openyida compile` 是普通自定义页面校验，不是 Canvas 默认验证步骤。
 
-| 项 | 规范 |
-|----|------|
-| 框架 | React 16，宜搭原生 `export function` 页面模式 |
-| 样式 | 内联 style；需要全局动画时用 `<style>` 注入 |
-| 状态 | 顶层 `var _customState` + `getCustomState` / `setCustomState` / `forceUpdate` |
-| 数据 | 顶层 `var SLIDES = [...]`，每页一个对象 |
-| 生命周期 | `didMount` 注册事件，`didUnmount` 清理事件和定时器 |
-| 文件名 | 推荐 `project/pages/src/<name>.oyd.jsx` |
+## Canvas 技术骨架
 
-## 幻灯片类型速查
+```jsx
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-| 类型 | 用途 | 关键字段 |
-|------|------|---------|
-| `cover` | 封面页 | `eyebrow`, `title`, `subtitle`, `meta`, `tags` |
-| `toc` | 目录页 | `title`, `items` |
-| `chapter` | 章节过渡页 | `partNum`, `title`, `subtitle`, `desc` |
-| `key-points` | 要点列表页 | `chapter`, `title`, `subtitle`, `points` |
-| `image-text` | 图文混排页 | `chapter`, `title`, `subtitle`, `body`, `imageUrl` |
-| `scene-image` | 场景展示页 | `chapter`, `sceneNum`, `title`, `subtitle`, `body`, `imageUrl`, `tag` |
-| `scene-image-top` | 顶部大图场景页 | `chapter`, `sceneNum`, `title`, `subtitle`, `body`, `imageUrl`, `tag` |
-| `two-images` | 双图对比页 | `chapter`, `title`, `subtitle`, `leftImage`, `rightImage` |
-| `echarts-race` | ECharts 动态柱状图 | `title`, `subtitle`, 数据和渲染函数见参考文档 |
-| `ending` | 结束页 | `title`, `subtitle`, `quote`, `cta`, `tags`, `contacts` |
+function clampPage(value, total) {
+  return Math.max(0, Math.min(total - 1, value));
+}
 
-## 必备能力清单
+function readHashPage(total) {
+  const raw = Number(window.location.hash.replace(/^#/, ''));
+  return Number.isFinite(raw) && raw >= 1 ? clampPage(raw - 1, total) : 0;
+}
 
-| 能力 | 实现要点 | 详细位置 |
-|------|---------|---------|
-| 键盘 / 演讲笔翻页 | 方向键、`PageDown`、`PageUp` | [核心示例](references/examples.md) |
-| 数字键跳页 | `numBuffer` + 300ms 延迟，支持双位数 | [核心示例](references/examples.md) |
-| 底部导航隐藏 | `navVisible` + 底部 80px 鼠标区域 | [核心示例](references/examples.md) |
-| 全屏切换 | Fullscreen API，必须用户手势触发 | [核心示例](references/examples.md) |
-| 中英文切换 | `I18N[state.lang]` 动态读取 | [核心示例](references/examples.md) |
-| 深浅色切换 | `THEME_CONFIG` 动态取色 | [核心示例](references/examples.md) |
-| URL hash 定位 | `#页码`，翻页同步 hash | [核心示例](references/examples.md) |
-| dark-tech 主题 | 转场、粒子、玻璃态、背景层 | [dark-tech 主题](references/dark-tech-theme.md) |
-| ECharts race | ECharts 5.6.0、插值动画、清理实例 | [ECharts race 示例](references/echarts-race-example.md) |
+function YidaComp() {
+  const total = SLIDES.length;
+  const [current, setCurrent] = useState(() => readHashPage(total));
+  const [navVisible, setNavVisible] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(Boolean(document.fullscreenElement));
 
-## 样式速查
+  const goTo = useCallback((next) => {
+    setCurrent((previous) => clampPage(
+      typeof next === 'function' ? next(previous) : next,
+      total,
+    ));
+  }, [total]);
 
-| 场景 | 规则 |
-|------|------|
-| 白色主题 | 背景 `#ffffff`，主文字 `#1a1a2e`，边框 `rgba(26,26,46,0.08)` |
-| 推荐 accent | 琥珀 `#d97706`、蓝色 `#0089ff`、紫色 `#c084fc` |
-| dark-tech | 背景 `#0B0F19`，详见参考文档 |
-| 图片 | `maxWidth/maxHeight: 100%` + `objectFit: 'contain'` |
-| 移动端 | 用 `this.utils.isMobile()` 调整字号、padding 和图片高度 |
-| 调试工具 | 可用 style 隐藏 `#__lowcode_devtool_switch__` |
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(event.key)) {
+        event.preventDefault();
+        goTo((page) => page + 1);
+      } else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(event.key)) {
+        event.preventDefault();
+        goTo((page) => page - 1);
+      } else if (event.key === 'Home') {
+        goTo(0);
+      } else if (event.key === 'End') {
+        goTo(total - 1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [goTo, total]);
 
-## 异常处理
+  useEffect(() => {
+    const handleHashChange = () => setCurrent(readHashPage(total));
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [total]);
 
-| 异常场景 | 处理方式 |
-|---------|----------|
-| 键盘翻页无响应 | 检查 `didMount` 是否注册键盘事件，是否支持 `PageDown` / `PageUp` |
-| 切换页面后仍触发事件 | 检查 `didUnmount` 是否清理所有事件监听和定时器 |
-| 图片显示不完整 | 改为 `objectFit: 'contain'`，限制 `maxWidth/maxHeight` |
-| 按钮点不了 | 运行 `openyida check-page <file>`，重点检查 handler 绑定方式 |
-| 数字键跳错页 | 检查 300ms 缓冲清空逻辑，页码从 1 开始、索引从 0 开始 |
-| 全屏按钮无效 | 确认 Fullscreen API 在真实用户点击事件里调用 |
-| 中英文切换未刷新 | 确认文案来自 `I18N[state.lang]`，切换后调用 `forceUpdate()` |
-| 顶部导航遮挡 | 发布后执行 `openyida update-form-config ... false ...` |
+  useEffect(() => {
+    const hash = '#' + String(current + 1);
+    if (window.location.hash !== hash) history.replaceState(null, '', hash);
+  }, [current]);
+
+  useEffect(() => {
+    const handleFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener('fullscreenchange', handleFullscreen);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreen);
+  }, []);
+
+  const slide = useMemo(() => SLIDES[current], [current]);
+  return (
+    <PresentationShell
+      slide={slide}
+      current={current}
+      total={total}
+      navVisible={navVisible}
+      isFullscreen={isFullscreen}
+      onNavigate={goTo}
+      onNavVisibleChange={setNavVisible}
+    />
+  );
+}
+
+export default YidaComp;
+```
+
+触摸手势、鼠标底部热区、数字键缓冲和自动播放也分别放进 `useEffect`，每个 effect 独立 cleanup；不要把所有事件塞进一个难以维护的大 effect。
+
+## 幻灯片数据与类型
+
+`SLIDES` 放在组件外作为静态数据，或通过 props/数据桥加载；不要把全部文案硬编码在 JSX 分支中。
+
+| 类型 | 用途 |
+| --- | --- |
+| `cover` | 封面 |
+| `toc` | 目录 |
+| `chapter` | 章节过渡 |
+| `key-points` | 要点列表 |
+| `image-text` | 图文混排 |
+| `scene-image` | 场景展示 |
+| `two-images` | 双图对比 |
+| `chart` | 业务图表，默认 `yida-rechart` |
+| `ending` | 结束页 |
+
+## 主题
+
+| theme | 风格 | 适合场景 |
+| --- | --- | --- |
+| `default` | 浅色简约、内容优先 | 技术分享、产品路演、培训 |
+| `dark-tech` | 深色、粒子/网格、电影级转场 | 科技发布、沉浸演示 |
+
+粒子背景用 `<canvas>` 时，在 React `ref` + `useEffect` 中初始化 `requestAnimationFrame`，cleanup 必须 `cancelAnimationFrame`、移除 resize 监听并释放引用。不要用固定 `setTimeout` 等 DOM。
+
+## 响应式与交互
+
+- 响应式优先 CSS media query / `matchMedia` hook，不使用一次性 `this.utils.isMobile()`。
+- 页面根节点固定覆盖视口：`position: fixed; inset: 0; overflow: hidden`。
+- 键盘支持方向键、PageDown/PageUp、Home/End；演讲笔通常映射到这些键。
+- 数字键跳页用独立 hook 管缓冲与定时器，并在 cleanup 清除。
+- 底部导航默认隐藏，鼠标靠近底部或触摸时显示；移动端触控目标不少于 44px。
+- 图片使用 `max-width/max-height: 100%` + `object-fit: contain`。
+- prefers-reduced-motion 时关闭粒子、自动播放和大幅转场。
+
+## 图表边界
+
+- 常规折线、柱、面积、饼/环、组合图：`use_skill("yida-rechart", "在 Canvas 幻灯片中实现业务图表")`。
+- 只有用户明确要求 ECharts、复杂 ECharts option、bar chart race 或旧 native ECharts 演示时，调用 `yida-chart`。
+- `references/echarts-race-example.md` 是明确 ECharts 的专项/legacy 参考，不是默认幻灯片骨架。
+
+## Legacy/native fallback
+
+仅在维护旧普通自定义页面或必须使用页面实例桥时：
+
+- 使用 `yida-custom-page`。
+- 状态可用 `_customState + forceUpdate`。
+- 生命周期使用 `didMount` / `didUnmount`。
+- 移动端可用 `this.utils.isMobile()`。
+- 源码使用 `.oyd.jsx`，校验走 `openyida check-page` / `openyida compile`。
+
+`references/examples.md` 和 `references/dark-tech-theme.md` 中标记为 legacy/native 的代码只用于旧页面维护；新建页面优先把同等能力翻译成 hooks。
+
+## 验收
+
+- Canvas 本地编译通过，发布后回读到非空 `runtimeCode`。
+- 方向键、PageUp/PageDown、hash 前进后退、全屏按钮、触摸翻页实际可用。
+- 离开页面后不再响应事件、轮询或动画。
+- 图片无关键裁切，手机竖屏可读，reduced-motion 有降级。
+- 平台导航隐藏，分享 URL 定位页码有效。
+- 使用 ECharts 时已明确记录命中的例外条件；否则图表默认 `yida-rechart`。
 
 ## 参考文档
 
-| 文档 | 覆盖范围 | 何时阅读 |
-|------|---------|---------|
-| [核心示例](references/examples.md) | SLIDES、状态、生命周期、渲染、导航、全屏、i18n、主题、hash | 编写页面代码前必读 |
-| [dark-tech 主题](references/dark-tech-theme.md) | CSS 动画库、转场配置、样式预设、Canvas 粒子、背景层、主框架 | 用户选择 `dark-tech` 时必读 |
-| [ECharts race 示例](references/echarts-race-example.md) | 动态柱状图完整实现、数据结构、插值动画、清理逻辑 | 需要 `echarts-race` 类型时必读 |
-| `yida-custom-page` 子技能 | 宜搭 React 16 页面模式、编码限制、发布前检查 | 不确定页面运行时规则时调用 `use_skill("yida-custom-page", "确认宜搭自定义页面运行时规则")` |
+| 文档 | 用途 |
+| --- | --- |
+| [核心示例](references/examples.md) | Canvas hooks 示例优先；旧 native 完整示例明确标记 legacy |
+| [dark-tech 主题](references/dark-tech-theme.md) | Canvas 粒子/转场原则；旧 `renderJsx` 框架只作 legacy |
+| [ECharts race 示例](references/echarts-race-example.md) | 仅明确 ECharts/bar chart race 或维护旧实现时阅读 |
+| `yida-canvas-custom-page` | Canvas 运行时、依赖、编译和发布 |
+| `yida-canvas-data-binding` | 演示页真实数据桥 |

@@ -1,6 +1,8 @@
 # 深色科技风主题（dark-tech）完整参考
 
 > 来源：`wukong-openyida-training-v2.js` 实战案例，适合企业培训、产品发布、科技感演示场景。
+>
+> 新建页面默认使用 Code Canvas。粒子、转场、键盘和全屏副作用用 React `ref` + `useEffect` 初始化并 cleanup。本文后半部的 `renderJsx` / `didMount` 写法是 legacy/native 参考，不是默认实现。
 
 **设计体系：** 背景 `#0B0F19` · 主色蓝 `#3b82f6` / 紫 `#a855f7` / 绿 `#10b981` / 粉 `#ec4899`
 
@@ -142,7 +144,7 @@ export function renderBgLayers(isChapter) {
 }
 ```
 
-## dark-tech 主渲染框架
+## Legacy/native 主渲染框架
 
 ```javascript
 export function renderJsx() {
@@ -195,10 +197,11 @@ export function renderJsx() {
 }
 ```
 
-## dark-tech 注意事项
+## Legacy/native 注意事项
 
-- 🚨 **禁止 `import`/`require`**：文件顶部不能有任何 import 语句，宜搭沙箱不支持
+- **只适用于普通自定义页面**：以下 `import`/`require` 限制不适用于 Code Canvas；Canvas 依赖按白名单正常 import
+- **普通页禁止 `import`/`require`**：legacy `.oyd.jsx` 文件顶部不能有 import 语句
 - **事件绑定必须是真实函数**：可以用 `onClick={handleNext}` 或 `onClick={function() { self.changeSlide(1); }}`；禁止 `onClick={self.changeSlide(1)}` 这种渲染期调用，禁止 JSX 小写 `onclick`（ECharts `graphic.onclick` 不是 JSX 属性，可以保留）
 - **禁止 ES6 计算属性名**：`{ [key]: value }` 改为 `var obj = {}; obj[key] = value;`
-- **Canvas 初始化延迟**：`setTimeout(() => { self.initParticles(); }, 500)` 确保 DOM 就绪
+- **legacy 粒子初始化延迟**：旧页面可用延迟等待 DOM；新 Canvas 页面必须改成 `ref` + `useEffect`，cleanup 取消动画帧和 resize 监听
 - **`WebkitBackdropFilter`** 必须与 `backdropFilter` 同时写，兼容 Safari

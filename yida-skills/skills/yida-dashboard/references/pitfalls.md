@@ -2,6 +2,8 @@
 
 > 本文档汇总开发过程中实际踩过、并已修复的坑。每一条都有**现象 → 根因 → 正确做法**。
 >
+> 新建看板默认 Code Canvas。涉及 Recore、`_customState`、`renderJsx`、`didMount`、`this.utils`、ECharts CDN 的条目均为 legacy/native 排障资料；Canvas 优先检查 hooks cleanup、同源 DataBridge、Recharts 响应式容器和 `runtimeCode`。业务级数据、待办、截图和 URL 结论仍适用。
+>
 > 建议时机：
 > - 发布前最后一次通读
 > - 运行时报错排查时按编号对照

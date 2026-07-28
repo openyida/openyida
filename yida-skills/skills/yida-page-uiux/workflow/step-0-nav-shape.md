@@ -21,14 +21,14 @@
 ## 导航隐藏时的自带导航壳要点
 
 - **壳型选择**：顶部标签栏 / 左侧边栏 / 顶部条 + 面包屑——按信息广度选，别只堆一个孤零零的返回按钮。
-- **多视图切换**：单个自定义页内用本地状态（普通自定义页面 `_customState.activeView` / Canvas `useState`）或 URL hash 切换多个视图区块，做出「一个页面即一个小应用」的多样化导航，而不是一屏到底。
+- **多视图切换**：默认 Canvas 用 `useState`，需要可分享/可后退时用 URL hash + `useEffect` cleanup；普通页 `_customState.activeView` 仅作 legacy fallback。
 - **跨页跳转**：需要跳到别的自定义页/表单时，用 [field-and-url-reference.md](../../../references/field-and-url-reference.md) 的地址模板拼完整 URL，并把导航项参数合并进去；跳目标自定义页必须带 `?isRenderNav=false` 保持沉浸，不要用会丢参数的裸 `router.push(formUuid)`。
 - **配置闭环**：只要页面内自绘应用级导航，发布后必须执行 `openyida update-form-config <appType> <formUuid> false "<页面标题>"` 隐藏宜搭原导航，并验证最终 URL 仍带 `isRenderNav=false`。
-- **移动端**：侧边栏在窄屏要能收起为抽屉/底部标签，仍走 `isMobile` 响应式。
+- **移动端**：侧边栏在窄屏要能收起为抽屉/底部标签；Canvas 默认走 CSS media query/`matchMedia` hook，legacy 普通页才用 `this.utils.isMobile()`。
 
-**导航壳形态选型**：侧边栏 / 顶部 / 顶部+侧边混合 / 浮动胶囊 / 标签页——按顶级模块数量和是否常驻选。需要选型表、每种形态的骨架、选中态、移动端收敛、普通自定义页面 JSX + Code Canvas 代码示例时，调用 `use_skill("yida-nav-shell", "设计页面内自绘导航壳")`。
+**导航壳形态选型**：侧边栏 / 顶部 / 顶部+侧边混合 / 浮动胶囊 / 标签页——按顶级模块数量和是否常驻选。需要选型表、每种形态的骨架、选中态、移动端收敛、Code Canvas 优先示例和 legacy 普通页 fallback 时，调用 `use_skill("yida-nav-shell", "设计页面内自绘导航壳")`。
 
-> 导航壳的**视觉方向**仍走 Step 1–6（多为 workbench/门户形态）；导航壳的**形态与实现**（选型、多视图切换、URL 拼接）需要调用 `use_skill("yida-nav-shell", "设计页面内自绘导航壳")`，再交 `yida-custom-page` / `yida-canvas-custom-page` 落地。
+> 导航壳的**视觉方向**仍走 Step 1–6；形态与实现调用 `yida-nav-shell`，默认交 `yida-canvas-custom-page`。仅实例桥依赖或维护旧 `.oyd.jsx` 时交 `yida-custom-page`。
 
 ## 产出
 

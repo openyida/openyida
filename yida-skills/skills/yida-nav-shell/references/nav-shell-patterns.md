@@ -2,7 +2,7 @@
 
 当页面隐藏了应用导航（`isRenderNav=false`，见 [yida-page-uiux Step 0 导航形态判定](../../yida-page-uiux/workflow/step-0-nav-shape.md)），页面要**自带导航壳**接管应用级导航。本文件是 B 端常见导航形态的选型 + 骨架 + 代码示例目录。挑一种主形态，可与标签页叠加做二级导航。
 
-> 这里给**方向 + 骨架 + 可直接改的代码示例**。示例以普通自定义页面（`_customState` + inline style）为主，因为最自包含、两条链路都能读；每种形态附一句 **Canvas（antd）等价件**。落地时：普通自定义页面交 `yida-custom-page`，Canvas 交 `yida-canvas-custom-page`。
+> 这里给**方向 + 骨架 + 可直接改的代码示例**。默认先用 Code Canvas（React hooks + antd/自绘组件）；文中 `_customState`、`renderJsx`、`this.utils.isMobile()` 代码统一视为 **legacy/native 示例**，只用于维护普通自定义页面。
 
 ## 选型速查
 
@@ -28,44 +28,55 @@
 
 导航壳 = 一个自定义页内切多个视图。两条链路的做法：
 
-- **普通自定义页面**：状态存 `_customState.activeView`，点击 `this.setCustomState({ activeView: key })`，`renderJsx` 里按 `activeView` 分支渲染内容区。
-- **Canvas**：`var v = React.useState('home')`，或用 URL hash（`window.location.hash` + `hashchange` 监听，`useEffect` 注册并 cleanup）做可分享/可后退的视图切换。
+- **Canvas（默认）**：`React.useState('home')` 管本地视图；需要可分享/可后退时用 URL hash，并在 `useEffect` 注册 `hashchange`、cleanup 移除监听。
+- **普通自定义页面（legacy）**：状态存 `_customState.activeView`，点击 `this.setCustomState({ activeView: key })`，`renderJsx` 里按 `activeView` 分支渲染内容区。
 - **跨页跳转**（跳到别的自定义页/表单）：用 [field-and-url-reference.md](../../../references/field-and-url-reference.md) 的模板拼 URL，目标自定义页必须带 `?isRenderNav=false` 保持沉浸；不要假设应用导航还在。不要只调用 `router.push(formUuid, {}, false)`，它无法表达完整的隐藏导航 URL 和业务参数。
 
-### 跨页导航 URL 模板
+### Canvas 跨页导航 URL 模板
 
 ```jsx
-var BASE_URL = 'https://www.aliwork.com';
-var APP_TYPE = 'APP_XXX';
-var COMMON_NAV_PARAMS = { isRenderNav: 'false' };
+const BASE_URL = 'https://www.aliwork.com';
+const APP_TYPE = 'APP_XXX';
+const COMMON_NAV_PARAMS = { isRenderNav: 'false' };
 
-var NAV = [
+const NAV = [
   { key: 'overview', label: '概览', type: 'custom', formUuid: 'FORM-OVERVIEW', params: { tab: 'overview' } },
   { key: 'orders', label: '订单', type: 'workbench', formUuid: 'FORM-ORDERS', params: { iframe: 'true' } }
 ];
 
-export function buildQuery(params) {
-  var pairs = [];
-  Object.keys(params || {}).forEach(function(key) {
-    if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-      pairs.push(encodeURIComponent(key) + '=' + encodeURIComponent(String(params[key])));
-    }
-  });
-  return pairs.length ? '?' + pairs.join('&') : '';
-}
-
-export function buildNavUrl(item) {
-  var path = item.type === 'workbench'
+function buildNavUrl(item) {
+  const path = item.type === 'workbench'
     ? '/' + APP_TYPE + '/workbench/' + item.formUuid
     : '/' + APP_TYPE + '/custom/' + item.formUuid;
-  var params = item.type === 'workbench'
-    ? Object.assign({}, item.params || {})
-    : Object.assign({}, COMMON_NAV_PARAMS, item.params || {});
-  return BASE_URL + path + this.buildQuery(params);
+  const url = new URL(path, BASE_URL);
+  const params = item.type === 'workbench'
+    ? { ...(item.params || {}) }
+    : { ...COMMON_NAV_PARAMS, ...(item.params || {}) };
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      url.searchParams.set(key, String(value));
+    }
+  });
+  return url.toString();
 }
 
-export function openNavItem(item) {
-  window.open(this.buildNavUrl(item), '_top');
+function openNavItem(item) {
+  window.open(buildNavUrl(item), '_top');
+}
+```
+
+### Canvas 状态骨架
+
+```jsx
+function YidaComp() {
+  const [activeView, setActiveView] = React.useState('overview');
+  const ActiveView = VIEW_COMPONENTS[activeView] || NotFoundView;
+  return (
+    <Layout className="app-shell">
+      <ShellMenu items={NAV} activeKey={activeView} onSelect={setActiveView} />
+      <Layout.Content><ActiveView /></Layout.Content>
+    </Layout>
+  );
 }
 ```
 
@@ -86,10 +97,10 @@ export function openNavItem(item) {
 └──────┴─────────────────────────────┘
 ```
 
-**何时用**：顶级模块 5–12，需要常驻导航。**Canvas 等价**：antd `Layout` + `Layout.Sider` + `Menu`（`mode="inline"`）。
+**何时用**：顶级模块 5–12，需要常驻导航。**Canvas 默认**：antd `Layout` + `Layout.Sider` + `Menu`（`mode="inline"`）。
 
 ```jsx
-// 普通自定义页面：_customState.activeView / collapsed；styles 见下，主色可用品牌变量或自定主色
+// Legacy/native：_customState.activeView / collapsed；仅维护旧普通自定义页时使用
 var NAV = [
   { key: 'overview', label: '概览', icon: ICONS.dashboard },
   { key: 'orders',   label: '订单', icon: ICONS.list },
@@ -158,7 +169,7 @@ export function renderSidebar() {
 └─────────────────────────────────────┘
 ```
 
-**何时用**：顶级模块 2–6、内容要占满宽度（看板/门户）。**Canvas 等价**：antd `Menu mode="horizontal"` 或 `Tabs`。
+**何时用**：顶级模块 2–6、内容要占满宽度（看板/门户）。**Canvas 默认**：antd `Menu mode="horizontal"` 或 `Tabs`。
 
 ```jsx
 export function renderTopnav() {
@@ -206,7 +217,7 @@ export function renderTopnav() {
 └──────┴──────────────────────────────┘
 ```
 
-**何时用**：两级结构、模块多的复杂应用（顶部切「域」，侧边切该域「子模块」）。顶部选中切换时，侧边 `NAV` 换成该域的子项，`activeView` 重置到该域第一项。**Canvas 等价**：antd `Layout`（Header + Sider + Content）。
+**何时用**：两级结构、模块多的复杂应用（顶部切「域」，侧边切该域「子模块」）。顶部选中切换时，侧边导航切换到该域的子项，`activeView` 重置到该域第一项。**Canvas 默认**：antd `Layout`（Header + Sider + Content）。
 
 ## 形态 4：浮动导航（悬浮胶囊 / Dock）
 
@@ -220,7 +231,7 @@ export function renderTopnav() {
         └───────────────────────┘
 ```
 
-**何时用**：沉浸/大屏/展示页，chrome 要极简、导航不常驻。**Canvas 等价**：自定义悬浮容器或 antd `FloatButton.Group`。
+**何时用**：沉浸/大屏/展示页，chrome 要极简、导航不常驻。**Canvas 默认**：自定义悬浮容器或 antd `FloatButton.Group`。
 
 ```jsx
 export function renderFloatDock() {
@@ -259,7 +270,7 @@ export function renderFloatDock() {
 
 ## 形态 5：标签页（叠加二级导航）
 
-一个模块内切同级视图，通常叠在侧边/顶部之下。**Canvas 等价**：antd `Tabs`。
+一个模块内切同级视图，通常叠在侧边/顶部之下。**Canvas 默认**：antd `Tabs`。
 
 ```jsx
 export function renderTabs() {
@@ -295,8 +306,8 @@ export function renderTabs() {
 - 选中态一眼可辨（主色条/下划线 + 字重），不是只靠淡变色。
 - 导航项 = 功能性 SVG + 文字，同页一套图标风格，无 emoji、无每项装饰图标。
 - 顶部/侧边有应用名或面包屑，用户知道「在哪、能去哪」，不是孤零零一个返回按钮。
-- 内容区按 `activeView` 切换（普通自定义页面 `_customState` / Canvas `useState`/hash），切换有状态、可回来。
+- 内容区按 `activeView` 切换（Canvas 默认 `useState`/hash；普通页 `_customState` 仅 legacy），切换有状态、可回来。
 - 宿主页已执行 `openyida update-form-config <appType> <formUuid> false "<标题>"`，宜搭原导航不再出现。
 - 跨页跳转用 URL 模板拼；目标自定义页带 `?isRenderNav=false`，导航项的 `params` 没丢。
-- 移动端：侧边→抽屉、顶部→汉堡、浮动→底部胶囊，走 `isMobile` 响应式。
+- 移动端：侧边→抽屉、顶部→汉堡、浮动→底部胶囊；Canvas 用 media query/`matchMedia` hook，legacy 普通页才用 `this.utils.isMobile()`。
 - 浮动导航留出内容安全间距，不遮关键信息。

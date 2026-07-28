@@ -2,6 +2,8 @@
 
 > 完整的 Bar Chart Race 实现代码，从 `yida-ppt-slider` 主技能提取。
 > 用于在 PPT 幻灯片中集成 ECharts 动态柱状图，展示中国历代经济排名变化。
+>
+> **路由边界**：只有用户明确要求 ECharts / bar chart race / 复杂 ECharts option，或维护已有 native ECharts 幻灯片时阅读。普通 Canvas 幻灯片图表默认使用 `yida-rechart`；本文 `renderJsx` / `didMount` 风格代码按 legacy/native 处理。
 
 ## SLIDES 数据结构
 
