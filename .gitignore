@@ -45,12 +45,7 @@ Thumbs.db
 # coverage
 coverage/
 
-# AI 工具配置（保留 CLAUDE.md）
-.claude/*
-!.claude/CLAUDE.md
-.qoder/
 mydocs/
-
 
 # 根目录缓存（临时文件，不入库）
 .cache/
