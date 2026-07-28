@@ -126,15 +126,19 @@ function writeRootSkill(src, dest) {
 
 function copySkillsIndex(outputRoot) {
   const dest = path.join(outputRoot, 'skills-index.json');
-  fs.copyFileSync(readRequiredFilePath(SOURCE_SKILLS_INDEX_FILE), dest);
+  const index = JSON.parse(readRequiredFile(SOURCE_SKILLS_INDEX_FILE));
+  index.skills = index.skills.map(function(skill) {
+    const sourcePath = skill.path;
+    const match = /^skills\/([a-z0-9-]+)\/SKILL\.md$/.exec(sourcePath);
+    if (!match || match[1] !== skill.name) {
+      throw new Error('Invalid source skills-index path for ' + skill.name + ': ' + sourcePath);
+    }
+    return Object.assign({}, skill, {
+      path: 'references/subskills/' + skill.name + '/README.md',
+    });
+  });
+  fs.writeFileSync(dest, JSON.stringify(index, null, 2) + '\n', 'utf8');
   return 1;
-}
-
-function readRequiredFilePath(src) {
-  if (!fs.existsSync(src)) {
-    throw new Error('Missing required file: ' + path.relative(ROOT, src));
-  }
-  return src;
 }
 
 function transformSubskillReference(content) {

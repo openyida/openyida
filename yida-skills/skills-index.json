@@ -105,12 +105,13 @@
       "name": "yida-tingji",
       "path": "skills/yida-tingji/SKILL.md",
       "display_name": "钉钉听记详情",
-      "description": "按 taskUuid 获取钉钉听记、会议录音转写、会议纪要或 AI 听记的完整详情。用户提供听记任务 ID 并要求读取、整理、总结或转 PRD 时使用。",
+      "description": "按 taskUuid 获取钉钉听记、会议录音转写、会议纪要或 AI 听记详情；只负责读取内容。若用户要求转 PRD，先取内容再交给 yida-flash-note-to-prd。",
       "category": "yida-skills/agent",
       "tags": ["钉钉听记", "会议纪要", "taskUuid", "语音转写"],
       "aliases": ["读取听记", "获取会议记录"],
+      "positive_signals": ["taskUuid", "读取听记", "获取听记内容"],
       "command_ids": ["read-dingtalk-tingji"],
-      "done_when": "命令成功返回指定 taskUuid 对应的真实听记详情。",
+      "done_when": "命令成功返回指定 taskUuid 对应的真实听记详情；转 PRD 场景已把内容交给 yida-flash-note-to-prd。",
       "requires_login": true
     },
     {
@@ -586,7 +587,7 @@
       "name": "yida-flash-note-to-prd",
       "path": "skills/yida-flash-note-to-prd/SKILL.md",
       "display_name": "闪记转 PRD",
-      "description": "从钉钉闪记、会议记录或需求文档中提取产品需求，生成结构化 PRD。",
+      "description": "从已有钉钉闪记、会议记录或需求文档内容中提取产品需求，生成结构化 PRD。若用户只给 taskUuid，先用 yida-tingji 读取内容。",
       "category": "yida-skills/agent",
       "tags": [
         "闪记",
@@ -596,6 +597,12 @@
       ],
       "aliases": [
         "会议转需求"
+      ],
+      "positive_signals": [
+        "已有会议内容",
+        "闪记转 PRD",
+        "会议纪要转 PRD",
+        "taskUuid 转 PRD"
       ]
     },
     {
@@ -873,35 +880,32 @@
       "done_when": "输出可执行视觉方向决策块，并交给页面实现技能落地。"
     },
     {
-      "name": "yida-ppt",
-      "path": "skills/yida-ppt/SKILL.md",
-      "display_name": "旧版 PPT 技能兼容",
-      "description": "已废弃的宜搭 PPT / 演示文稿旧技能，仅用于兼容旧触发词，实际开发改用 yida-ppt-slider。",
-      "category": "yida-skills/page",
-      "tags": [
-        "PPT",
-        "已废弃",
-        "兼容",
-        "幻灯片"
-      ],
-      "aliases": [
-        "旧版演示"
-      ]
-    },
-    {
       "name": "yida-ppt-slider",
       "path": "skills/yida-ppt-slider/SKILL.md",
       "display_name": "全屏幻灯片页面",
-      "description": "宜搭全屏幻灯片页面开发，支持键盘翻页、演讲笔控制、移动端适配和多主题。",
+      "description": "宜搭全屏幻灯片页面开发，兼容旧 yida-ppt / PPT / 演示 / 幻灯片触发词，支持键盘翻页、演讲笔控制、移动端适配和多主题。",
       "category": "yida-skills/page",
       "tags": [
+        "PPT",
         "幻灯片",
         "演示",
         "路演",
-        "培训"
+        "培训",
+        "yida-ppt"
       ],
       "aliases": [
-        "PPT 页面"
+        "PPT 页面",
+        "yida-ppt",
+        "旧版 PPT 技能",
+        "演示文稿"
+      ],
+      "positive_signals": [
+        "PPT",
+        "yida-ppt",
+        "幻灯片",
+        "演示页面",
+        "产品路演",
+        "培训课件"
       ]
     },
     {

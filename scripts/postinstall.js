@@ -275,12 +275,12 @@ Canvas 页面实现二选一：走模板路径时先写业务化 \`page-spec.jso
 | \`yida-skills/app\` | 从零搭应用、应用蓝图、导航、主题、多语言 | \`yida-app\`, \`yida-create-app\`, \`yida-app-uiux\`, \`yida-nav-group\`, \`yida-theme\`, \`yida-i18n\` |
 | \`yida-skills/form\` | 表单字段、公式、校验、业务规则、详情页、批量录入、数据记录 | \`yida-create-form-page\`, \`yida-formula\`, \`yida-formula-evaluate\`, \`yida-business-rule\`, \`yida-form-detail\`, \`yida-table-form\`, \`yida-data-management\` |
 | \`yida-skills/process\` | 审批、流程表单、流程规则、代理人 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\` |
-| \`yida-skills/page\` | 自定义展示页、Code Canvas、普通自定义页面 JSX/Jsx 组件、发布、页面视觉、导航壳、PPT | \`yida-create-page\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-page-uiux\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\`, \`yida-ppt\` |
+| \`yida-skills/page\` | 自定义展示页、Code Canvas、普通自定义页面 JSX/Jsx 组件、发布、页面视觉、导航壳、PPT | \`yida-create-page\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-page-uiux\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\` |
 | \`yida-skills/analytics\` | 报表、统计、图表、ECharts、看板、驾驶舱 | \`yida-report\`, \`yida-chart\`, \`yida-dashboard\` |
 | \`yida-skills/integration\` | 连接器、外部 API、数据源、集成自动化 | \`yida-integration\`, \`yida-connector\`, \`yida-connector-safe-actions\`, \`yida-data-source-connectors\` |
 | \`yida-skills/access\` | 平台/应用/表单/页面权限、公开访问、分享 | \`yida-corp-manager\`, \`yida-app-permission\`, \`yida-form-permission\`, \`yida-page-config\` |
 | \`yida-skills/ops\` | Sequence、VOC | \`yida-db-seq-fix\`, \`yida-voc\` |
-| \`yida-skills/agent\` | 导出对话、会议纪要/闪记转 PRD | \`yida-export-conversation\`, \`yida-flash-note-to-prd\` |
+| \`yida-skills/agent\` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | \`yida-export-conversation\`, \`yida-document-markdown\`, \`yida-tingji\`, \`yida-flash-note-to-prd\` |
 
 ## 执行规则
 

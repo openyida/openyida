@@ -162,7 +162,7 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 | `yida-skills/app` | 从零搭应用、完整系统、应用蓝图、应用导航、主题、多语言 | `yida-app`、`yida-create-app`、`yida-app-uiux`、`yida-nav-group`、`yida-theme`、`yida-i18n` |
 | `yida-skills/form` | 表单字段、公式、校验、业务关联规则、详情页、批量录入、数据记录 | `yida-create-form-page`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-form-detail`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-agent-center` |
-| `yida-skills/page` | 自定义展示页、Code Canvas、普通自定义页面 JSX/Jsx 组件、页面发布、页面视觉、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-page-uiux`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider`、`yida-ppt` |
+| `yida-skills/page` | 自定义展示页、Code Canvas、普通自定义页面 JSX/Jsx 组件、页面发布、页面视觉、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-page-uiux`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
 | `yida-skills/analytics` | 报表、统计、图表、ECharts、看板、驾驶舱、大屏 | `yida-report`、`yida-chart`、`yida-dashboard` |
 | `yida-skills/integration` | 连接器、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-integration`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
 | `yida-skills/access` | 平台/应用/表单/页面权限、公开访问、分享 | `yida-corp-manager`、`yida-app-permission`、`yida-form-permission`、`yida-page-config` |
@@ -176,6 +176,8 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 | 从零搭一个完整应用/系统 | `yida-app`；默认 `fast_build`，不要自动升级到深度设计 |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
+| 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成 PRD |
+| 已有会议纪要/闪记内容转 PRD | `yida-flash-note-to-prd`，只处理已有内容，不负责按 taskUuid 拉取听记 |
 | 只创建应用壳并拿 appType | `yida-create-app` |
 | 创建自定义展示页资源 | `yida-create-page`，之后默认接 `yida-canvas-custom-page` 和 `yida-publish-page` |
 | 开发表单字段结构 / 增删改字段 | `yida-create-form-page` |
