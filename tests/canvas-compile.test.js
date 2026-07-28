@@ -1044,10 +1044,38 @@ describe('compileCanvas (async wrapper)', () => {
   });
 
   test('rejects on empty source', async () => {
-    await expect(compileCanvas('   ')).rejects.toThrow(/源码为空/);
+    await expect(compileCanvas('   ')).rejects.toMatchObject({
+      code: 'OPENYIDA_CANVAS_COMPILE_EMPTY_SOURCE',
+    });
   });
 
   test('rejects with friendly message on invalid syntax', async () => {
-    await expect(compileCanvas('export default function( {')).rejects.toThrow(/本地编译失败/);
+    await expect(compileCanvas('export default function( {')).rejects.toMatchObject({
+      code: 'OPENYIDA_CANVAS_COMPILE_FAILED',
+      message: expect.stringMatching(/本地编译失败/),
+    });
+  });
+
+  test('preserves emoji CliError code and details from local compile', async () => {
+    await expect(compileCanvas(`
+      import React from 'react';
+      export default function Page() {
+        return <div>Menu ☰</div>;
+      }
+    `, {
+      sourcePath: 'pages/src/emoji.canvas.jsx',
+    })).rejects.toMatchObject({
+      code: 'OPENYIDA_CANVAS_SOURCE_EMOJI_FORBIDDEN',
+      details: {
+        artifact: 'pages/src/emoji.canvas.jsx',
+        issues: [
+          expect.objectContaining({
+            line: 4,
+            column: expect.any(Number),
+            emoji: '☰',
+          }),
+        ],
+      },
+    });
   });
 });
