@@ -12,6 +12,11 @@ description: >
 
 ---
 
+## 语言与完成性
+
+- 默认沿用用户语言输出；中文用户用中文。CLI 命令、API 路径、参数名、`fieldId`、`appType`、`formUuid` 等技术标识保持英文原文。
+- 一旦进入写操作任务，必须跑到对应子技能的 `doneWhen` 或验收闭环；只做预检、只读 schema、只写本地文件或只规划下一步，都不能对用户宣称完成。
+
 ## 宿主能力适配
 
 - 如果当前宿主提供 `use_skill` / `search_skills`：必须通过 `use_skill("<技能名>", "<本阶段目的>")` 加载主技能和子技能，禁止用 `Read` / `read_file` / `cat` 读取 `SKILL.md` 路径；`use_skill` 会稳定返回技能内容和可读取的辅助文件列表。
