@@ -79,6 +79,8 @@ describe('npm package smoke', () => {
       expect(files).toContain('yida-skills/skills-index.json');
       expect(files).toContain('scripts/postinstall.js');
       expect(files).toContain('lib/samples/yida-canvas-custom-page/dashboard-starter.canvas.jsx');
+      expect(files).toContain('lib/samples/yida-rechart/trend-combo.canvas.jsx');
+      expect(files).toContain('lib/samples/yida-canvas-table-form/table-form-batch-submit.canvas.jsx');
 
       expect(files.some((file) => file.startsWith('locales-extra/'))).toBe(false);
       expect(files.some((file) => /^lib\/core\/locales\/(?!zh|en)[^/]+\.js$/.test(file))).toBe(false);
