@@ -5,6 +5,7 @@ const os = require('os');
 const path = require('path');
 const UglifyJS = require('uglify-js');
 const { default: babelTransform } = require('../lib/core/babel-transform');
+const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 const { applyTemplateVariables, run } = require('../lib/core/sample');
 
 describe('sample templates', () => {
@@ -90,6 +91,28 @@ describe('sample templates', () => {
     const minifyResult = UglifyJS.minify(babelResult.compiled);
     expect(minifyResult.error).toBeUndefined();
     expect(minifyResult.code.length).toBeGreaterThan(1000);
+  });
+
+  test('Canvas-first chart and table-form samples are discoverable and compile', async () => {
+    const chartOutput = path.join(tmpDir, 'trend-combo.canvas.jsx');
+    const tableOutput = path.join(tmpDir, 'table-form-batch-submit.canvas.jsx');
+
+    await run(['yida-rechart', 'trend-combo', '--output', chartOutput]);
+    await run(['yida-canvas-table-form', 'table-form-batch-submit', '--output', tableOutput]);
+
+    const chartSource = fs.readFileSync(chartOutput, 'utf8');
+    const tableSource = fs.readFileSync(tableOutput, 'utf8');
+    const chartResult = compileCanvasLocal(chartSource, { sourcePath: chartOutput });
+    const tableResult = compileCanvasLocal(tableSource, { sourcePath: tableOutput });
+
+    expect(JSON.parse(chartResult.importedModules)).toEqual(['antd', 'react', 'recharts']);
+    expect(chartSource).toContain('sample/seed 聚合数据');
+    expect(chartSource).not.toMatch(/\.(?:reduce|groupBy)\(/);
+
+    expect(JSON.parse(tableResult.importedModules)).toEqual(['antd', 'dayjs', 'react']);
+    expect(tableSource).toContain('writeBridge.verified');
+    expect(tableSource).toContain('Promise.all');
+    expect(tableSource).not.toContain('this.utils.yida');
   });
 
   test('light business samples avoid near-black theme borders and actions', () => {

@@ -204,6 +204,42 @@
       ]
     },
     {
+      "name": "yida-canvas-table-form",
+      "path": "skills/yida-canvas-table-form/SKILL.md",
+      "display_name": "Code Canvas 表格批量录入",
+      "description": "Code Canvas + antd 默认批量录入技能，支持草稿、行级校验、分批并发和行级错误保留；写入必须通过已验证的同源 fetch、连接器或显式数据桥。",
+      "category": "yida-skills/form",
+      "tags": [
+        "Code Canvas",
+        "antd Table",
+        "批量录入",
+        "分批并发"
+      ],
+      "aliases": [
+        "Canvas 批量录入",
+        "表格填写"
+      ],
+      "positive_signals": [
+        "批量录入",
+        "表格填写",
+        "多行编辑",
+        "Code Canvas 表格",
+        "antd Table"
+      ],
+      "negative_signals": [
+        "普通自定义页面",
+        "native 旧页面",
+        "this.utils.yida.saveFormData",
+        "仅用 CLI 批量写数据"
+      ],
+      "command_ids": [
+        "get-schema",
+        "sample",
+        "publish"
+      ],
+      "done_when": "Canvas 批量录入页面本地编译通过；只有写入桥真实验证并成功发布后，才能声明远程写入闭环。"
+    },
+    {
       "name": "yida-canvas-upgrade",
       "path": "skills/yida-canvas-upgrade/SKILL.md",
       "display_name": "Code Canvas 迁移升级",
@@ -223,7 +259,7 @@
       "name": "yida-chart",
       "path": "skills/yida-chart/SKILL.md",
       "display_name": "ECharts 高级可视化",
-      "description": "ECharts 高级可视化报表。依赖宜搭原生报表聚合接口获取数据，适用于更美观、定制化和大屏图表场景。",
+      "description": "ECharts + 普通自定义页面兼容技能。仅用于明确指定 ECharts、维护旧 ECharts 页面，或 Recharts 无法覆盖的复杂 option；聚合数据依赖宜搭原生报表接口。",
       "category": "yida-skills/analytics",
       "tags": [
         "ECharts",
@@ -232,21 +268,22 @@
         "定制图表"
       ],
       "aliases": [
-        "高级图表",
-        "数据大屏"
+        "ECharts 图表",
+        "旧 ECharts 页面"
       ],
       "positive_signals": [
         "ECharts",
-        "高级图表",
-        "数据大屏图表",
-        "地图",
-        "雷达图",
-        "散点图"
+        "维护旧 ECharts 页面",
+        "复杂 ECharts option",
+        "custom series",
+        "graph 图"
       ],
       "negative_signals": [
         "原生报表",
         "完整驾驶舱交付",
-        "仅创建报表数据源"
+        "仅创建报表数据源",
+        "未指定技术栈的高级图表",
+        "Recharts"
       ],
       "command_ids": [
         "sample",
@@ -976,10 +1013,46 @@
       "done_when": "原生报表或图表创建成功并返回 reportId / 页面链接。"
     },
     {
+      "name": "yida-rechart",
+      "path": "skills/yida-rechart/SKILL.md",
+      "display_name": "Code Canvas Recharts 图表",
+      "description": "Code Canvas + Recharts 默认高级图表技能，用于高级图表、可视化和看板图表；统计聚合来自原生报表或已聚合接口，禁止前端拉全量明细聚合。",
+      "category": "yida-skills/analytics",
+      "tags": [
+        "Code Canvas",
+        "Recharts",
+        "高级图表",
+        "可视化"
+      ],
+      "aliases": [
+        "Recharts 图表",
+        "看板图表"
+      ],
+      "positive_signals": [
+        "高级图表",
+        "可视化",
+        "看板图表",
+        "趋势图",
+        "组合图",
+        "Recharts"
+      ],
+      "negative_signals": [
+        "明确指定 ECharts",
+        "维护旧 ECharts 页面",
+        "复杂 ECharts option",
+        "只要原生报表"
+      ],
+      "command_ids": [
+        "sample",
+        "publish"
+      ],
+      "done_when": "Recharts Canvas 页面本地编译通过；真实交付还需验证聚合数据源并成功发布目标页面。"
+    },
+    {
       "name": "yida-table-form",
       "path": "skills/yida-table-form/SKILL.md",
       "display_name": "表格批量表单提交",
-      "description": "表格形态批量表单提交页面开发，支持动态增删行、行内编辑验证、Excel 粘贴导入和批量提交。",
+      "description": "普通自定义页面的表格批量提交兼容技能。仅用于明确指定 native/旧页面或 this.utils.yida.saveFormData 的批量录入场景。",
       "category": "yida-skills/form",
       "tags": [
         "表格表单",
@@ -988,7 +1061,18 @@
         "saveFormData"
       ],
       "aliases": [
-        "批量录入"
+        "native 批量录入",
+        "旧表格表单"
+      ],
+      "positive_signals": [
+        "普通自定义页面批量录入",
+        "native 旧页面",
+        "this.utils.yida.saveFormData"
+      ],
+      "negative_signals": [
+        "Code Canvas",
+        "antd Table",
+        "默认批量录入"
       ]
     },
     {
@@ -1078,7 +1162,7 @@
     {
       "name": "yida-skills/form",
       "display_name": "表单与数据采集",
-      "description": "表单字段结构、字段公式/校验、业务关联规则、表单详情页、表格批量录入和表单/流程数据记录管理。",
+      "description": "表单字段结构、字段公式/校验、业务关联规则、表单详情页、Canvas-first 表格批量录入和表单/流程数据记录管理。",
       "signals": [
         "创建表单",
         "新增字段",
@@ -1126,11 +1210,12 @@
     {
       "name": "yida-skills/analytics",
       "display_name": "报表与看板",
-      "description": "原生报表、ECharts 高级可视化、经营看板/驾驶舱/数据大屏。",
+      "description": "原生报表、Code Canvas Recharts 默认高级图表、ECharts 兼容链路、经营看板/驾驶舱/数据大屏。",
       "signals": [
         "报表",
         "统计",
         "图表",
+        "Recharts",
         "ECharts",
         "看板",
         "驾驶舱",

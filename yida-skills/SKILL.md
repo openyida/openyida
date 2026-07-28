@@ -160,10 +160,10 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 |------|------|------|
 | `yida-skills/context` | 登录、退出、切换组织、组织版本/容量、Schema、fieldId、只读预检 | `yida-login`、`yida-logout`、`yida-basic-info`、`yida-get-schema`、`yida-corp-efficiency` |
 | `yida-skills/app` | 从零搭应用、完整系统、应用蓝图、应用导航、主题、多语言 | `yida-app`、`yida-create-app`、`yida-app-uiux`、`yida-nav-group`、`yida-theme`、`yida-i18n` |
-| `yida-skills/form` | 表单字段、公式、校验、业务关联规则、详情页、批量录入、数据记录 | `yida-create-form-page`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-form-detail`、`yida-table-form`、`yida-data-management` |
+| `yida-skills/form` | 表单字段、公式、校验、业务关联规则、详情页、批量录入、数据记录 | `yida-create-form-page`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-form-detail`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-agent-center` |
 | `yida-skills/page` | 自定义展示页、Code Canvas、普通自定义页面 JSX/Jsx 组件、页面发布、页面视觉、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-page-uiux`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider`、`yida-ppt` |
-| `yida-skills/analytics` | 报表、统计、图表、ECharts、看板、驾驶舱、大屏 | `yida-report`、`yida-chart`、`yida-dashboard` |
+| `yida-skills/analytics` | 报表、统计、图表、Recharts、ECharts、看板、驾驶舱、大屏 | `yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard` |
 | `yida-skills/integration` | 连接器、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-integration`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
 | `yida-skills/access` | 平台/应用/表单/页面权限、公开访问、分享 | `yida-corp-manager`、`yida-app-permission`、`yida-form-permission`、`yida-page-config` |
 | `yida-skills/ops` | Sequence、主键冲突、VOC 反馈 | `yida-db-seq-fix`、`yida-voc` |
@@ -191,12 +191,14 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 | 普通自定义页面 JSX/Jsx 组件链路，或强依赖 `this.$` / `this.utils.yida.*` / `this.dataSourceMap` | `yida-custom-page` |
 | Code Canvas 接真实数据 | `yida-canvas-data-binding` |
 | 已有 `.oyd.jsx` / `renderJsx` 迁到 Canvas | `yida-canvas-upgrade` |
+| 批量录入、表格填写、多行编辑 | 默认 `yida-canvas-table-form`；明确普通自定义页面/native/旧页面或 `this.utils.yida.saveFormData` 时用 `yida-table-form` |
 | 页面视觉方向、去 AI 味 | `yida-page-uiux`；实现层仍交给 Code Canvas 或普通自定义页面技能 |
 | 应用级主题、品牌色、全局换肤 | `yida-theme` |
 | 平台左侧导航树分组/排序 | `yida-nav-group` |
 | 页面隐藏原导航后自绘导航壳 | `yida-nav-shell` |
 | 普通报表/统计 | `yida-report` |
-| ECharts、高级图表、大屏视觉 | `yida-chart` |
+| 高级图表、可视化、看板图表 | 默认 `yida-rechart`（Code Canvas + Recharts） |
+| 明确 ECharts、维护旧 ECharts 页面、复杂 option 超出 Recharts 能力 | `yida-chart` |
 | 产品化经营看板/驾驶舱交付 | `yida-dashboard` |
 | 页面美化/视觉方向 | `yida-page-uiux` 只产出视觉决策；落地实现仍回到 `yida-canvas-custom-page` 或 `yida-custom-page` |
 | 公开访问/组织内分享 | `yida-page-config` |
@@ -236,7 +238,7 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 7. **避免无效重试**：失败先查登录态/组织/参数/字段 ID，无修改不连续重试超 1 次。
 8. **配置分两处存**：业务语义 → `prd/<项目名>.md`；Schema ID → `.cache/<项目名>-schema.json`（prd 不记 ID）。
 9. **临时文件入 project `.cache/`**：OpenYida 业务中间文件写入 `<projectRoot>/.cache/openyida/<项目名或任务名>/`；Schema ID 映射仍写 `<projectRoot>/.cache/<项目名>-schema.json`。从 workspace 根执行命令时使用 `project/.cache/...`，从 project 工作目录内执行时使用 `.cache/...`；不要写仓库根目录或系统临时目录。
-10. **报表美化先问方案**：用户说"优化/美化报表"时先问选原生报表(`yida-report`)还是 ECharts(`yida-chart`)。
+10. **报表美化先分流**：标准统计与原生报表用 `yida-report`；定制图表页面默认用 `yida-rechart`；只有明确 ECharts、维护旧 ECharts 页面或复杂 option 超出 Recharts 能力时用 `yida-chart`。
 11. **按 schema 证据选技能**：先看 `formType`、组件树、`dataSource.online`；`receipt/process/report` 分别落到表单/流程/报表技能。
 12. **官方示例范式优先**：蒸馏官方示例时先理解脱敏 schema 承载方式，不凭截图/标题/视觉判断。
 13. **默认完成即停止**：完整应用默认以发布成功并输出 URL 为 doneWhen；UIUX、数据源深读、示例数据、导航、截图、TaskCreate 和深度设计都是 optionalAfterDone。

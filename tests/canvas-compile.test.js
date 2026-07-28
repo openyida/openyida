@@ -606,6 +606,43 @@ describe('compileCanvasLocal', () => {
     expect(runtimeCode).not.toMatch(/\bexport\s/);
   });
 
+  test('compiles the Canvas-first Recharts trend sample', () => {
+    const samplePath = path.join(
+      __dirname,
+      '..',
+      'lib',
+      'samples',
+      'yida-rechart',
+      'trend-combo.canvas.jsx'
+    );
+    const src = fs.readFileSync(samplePath, 'utf8');
+    const { runtimeCode, importedModules } = compileCanvasLocal(src, { sourcePath: samplePath });
+
+    expect(JSON.parse(importedModules)).toEqual(['antd', 'react', 'recharts']);
+    expect(runtimeCode).toMatch(/window\.Recharts/);
+    expect(runtimeCode).toMatch(/window\.antd/);
+    expectCanvasEntry(runtimeCode);
+  });
+
+  test('compiles the Canvas-first table form without a native page bridge', () => {
+    const samplePath = path.join(
+      __dirname,
+      '..',
+      'lib',
+      'samples',
+      'yida-canvas-table-form',
+      'table-form-batch-submit.canvas.jsx'
+    );
+    const src = fs.readFileSync(samplePath, 'utf8');
+    const { runtimeCode, importedModules } = compileCanvasLocal(src, { sourcePath: samplePath });
+
+    expect(JSON.parse(importedModules)).toEqual(['antd', 'dayjs', 'react']);
+    expect(runtimeCode).toMatch(/window\.dayjs/);
+    expect(runtimeCode).toMatch(/window\.antd/);
+    expect(runtimeCode).not.toMatch(/this\.utils\.yida/);
+    expectCanvasEntry(runtimeCode);
+  });
+
   test('compiles the portal native components bridge sample', () => {
     const samplePath = path.join(
       __dirname,

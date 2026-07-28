@@ -78,8 +78,35 @@ describe('OpenYida skill contracts', () => {
     const canvas = byName.get('yida-canvas-custom-page');
     expect(canvas.negative_signals).toEqual(expect.arrayContaining(['强依赖 this.$']));
 
+    const rechart = byName.get('yida-rechart');
+    expect(rechart.positive_signals).toEqual(expect.arrayContaining(['高级图表', 'Recharts']));
+    expect(rechart.negative_signals).toEqual(expect.arrayContaining(['明确指定 ECharts']));
+
+    const canvasTable = byName.get('yida-canvas-table-form');
+    expect(canvasTable.positive_signals).toEqual(expect.arrayContaining(['批量录入', 'antd Table']));
+    expect(canvasTable.negative_signals).toEqual(expect.arrayContaining(['this.utils.yida.saveFormData']));
+
     const uiux = byName.get('yida-page-uiux');
     expect(uiux.done_when).toContain('视觉方向');
+  });
+
+  test('specialized Canvas-first skills keep native compatibility routes explicit', () => {
+    const root = readSkill('yida-skills/SKILL.md');
+    const rechart = readSkill('yida-skills/skills/yida-rechart/SKILL.md');
+    const canvasTable = readSkill('yida-skills/skills/yida-canvas-table-form/SKILL.md');
+    const nativeChart = readSkill('yida-skills/skills/yida-chart/SKILL.md');
+    const nativeTable = readSkill('yida-skills/skills/yida-table-form/SKILL.md');
+
+    expect(root).toContain('默认 `yida-rechart`（Code Canvas + Recharts）');
+    expect(root).toContain('默认 `yida-canvas-table-form`');
+    expect(rechart).toContain('禁止前端全量聚合');
+    expect(rechart).toContain('`yida-report`');
+    expect(rechart).toContain('`yida-canvas-data-binding`');
+    expect(canvasTable).toContain('Canvas 没有普通页面实例桥');
+    expect(canvasTable).toContain('未验证不得伪装闭环');
+    expect(canvasTable).toContain('Promise.all');
+    expect(nativeChart).toContain('# 宜搭 ECharts 高级报表技能');
+    expect(nativeTable).toContain('saveFormData');
   });
 
   test('yida-app fast_build forbids unbound dataSourceMap by default', () => {
