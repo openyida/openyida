@@ -42,6 +42,8 @@
 | `children` | Object[] | 条件必填 | `TableField` / 展示布局组件必填 |
 | `associationForm` | Object | 条件必填 | `AssociationFormField` 必填 |
 
+选项类字段包括 `SelectField`、`MultiSelectField`、`RadioField`、`CheckboxField`。固定选项必须在字段 JSON 中提供非空 `dataSource`；不要省略选项源，也不要只写旧式 `options`。
+
 ## 展示/布局组件
 
 ### Divider

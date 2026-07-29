@@ -1155,6 +1155,83 @@ describe('form presentation components', () => {
     expect(diagnostics).toEqual([]);
   });
 
+  test('field JSON validator accepts Column object children for ColumnContainer and ColumnsLayout', () => {
+    const fields = [
+      {
+        type: 'ColumnContainer',
+        layout: '6:6',
+        children: [
+          {
+            type: 'Column',
+            children: [
+              { type: 'TextField', label: '姓名' },
+            ],
+          },
+          {
+            componentName: 'Column',
+            children: [
+              { type: 'SelectField', label: '状态', dataSource: ['待处理'] },
+            ],
+          },
+        ],
+      },
+      {
+        type: 'ColumnsLayout',
+        layout: '12',
+        children: [
+          {
+            type: 'Column',
+            children: [
+              { componentType: 'NumberField', label: '金额' },
+            ],
+          },
+        ],
+      },
+    ];
+
+    expect(createForm._private.collectFormFieldValidationDiagnostics(fields)).toEqual([]);
+    expect(() => createForm._private.validateFormFieldDefinitions(fields)).not.toThrow();
+
+    const schema = createForm._private.buildFormSchema(
+      'Column 对象兼容测试',
+      fields,
+      'FORM_TEST',
+      'CORP_TEST',
+      'APP_TEST',
+      'single',
+      'default',
+      'top'
+    );
+    const formContainer = findFormContainer(schema.pages[0].componentsTree[0]);
+
+    expect(formContainer.children[0].children[0].children[0].componentName).toBe('TextField');
+    expect(formContainer.children[0].children[1].children[0].componentName).toBe('SelectField');
+    expect(formContainer.children[1].children[0].children[0].componentName).toBe('NumberField');
+  });
+
+  test('field JSON gate intentionally rejects top-level Column without reporting unsupported type', () => {
+    const diagnostics = createForm._private.collectFormFieldValidationDiagnostics([
+      {
+        type: 'Column',
+        children: [
+          { type: 'TextField', label: '姓名' },
+        ],
+      },
+    ]);
+
+    expect(diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'COLUMN_OUTSIDE_COLUMN_CONTAINER',
+        path: 'fields[0]',
+      }),
+    ]));
+    expect(diagnostics).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'UNSUPPORTED_FIELD_TYPE',
+      }),
+    ]));
+  });
+
   test('field JSON validator accepts one-dimensional TableField children and rejects nested TableField', () => {
     expect(createForm._private.collectFormFieldValidationDiagnostics([
       {

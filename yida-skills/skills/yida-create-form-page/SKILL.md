@@ -219,8 +219,8 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 | `TextField` / `TextareaField` | 单行 / 多行文本 | 最常用文本字段 |
 | `NumberField` | 数字 | 金额、数量、分值 |
 | `DateField` / `CascadeDateField` | 日期 / 日期区间 | 流程表单常用 |
-| `SelectField` / `RadioField` | 单选 | 固定选项用 `dataSource` |
-| `CheckboxField` / `MultiSelectField` | 多选 | 固定选项用 `dataSource` |
+| `SelectField` / `RadioField` | 单选 | 创建字段 JSON 时必须提供 `dataSource`，不要省略或只写旧式 `options` |
+| `CheckboxField` / `MultiSelectField` | 多选 | 创建字段 JSON 时必须提供 `dataSource`，不要省略或只写旧式 `options` |
 | `EmployeeField` | 成员 | 细节见 [employee-field.md](references/employee-field.md) |
 | `DepartmentSelectField` | 部门 | 支持 `multiple` |
 | `AttachmentField` / `ImageField` | 附件 / 图片 | 表单内上传能力 |
@@ -244,7 +244,7 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 
 - `appType` 必须来自已创建应用或用户提供
 - 字段类型必须使用标准组件名，如 `TextField`、`SelectField`
-- `SelectField`、`RadioField`、`CheckboxField`、`MultiSelectField` 固定选项必须提供 `dataSource`
+- `SelectField`、`MultiSelectField`、`RadioField`、`CheckboxField` 固定选项必须提供 `dataSource`；远程选项字段必须提供 `remoteDataSource` 或通过 `bind-datasource` 配置，不要生成无选项源的字段 JSON。
 - `TableField` 必须提供 `children`，且子表不能嵌套子表
 - `AssociationFormField` 必须提供 `associationForm`
 - update / add-option / bind-datasource / validation / rule 按字段 `label`、`fieldId` 或 `tableLabel + label` 解析并要求唯一命中；如果有重名字段，先看命令返回的 `diagnostics[].candidates`，可用 `tableLabel` 或 `fieldId` 缩小范围，仍不明确时再用 `get-schema --compact --resolve-fields`。
