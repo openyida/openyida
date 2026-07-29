@@ -532,6 +532,26 @@ describe('CLI offline smoke', () => {
       mutates_yida: false,
       mutates_local: false,
     });
+    expect(commandById['create-form.validate']).toBeUndefined();
+    expect(commandById['create-form.validate-fields'].requires_login).toBe(false);
+    expect(commandById['create-form.validate-fields'].side_effect).toMatchObject({
+      kind: 'local_read',
+      mutates_yida: false,
+      mutates_local: false,
+    });
+    expect(commandById['create-form.validate-fields'].permission).toMatchObject({
+      mode: 'allow',
+      effect: 'read',
+    });
+    expect(commandById['create-form.validation'].side_effect).toMatchObject({
+      kind: 'remote_write',
+      mutates_yida: true,
+      mutates_local: false,
+    });
+    expect(commandById['create-form.validation'].permission).toMatchObject({
+      mode: 'allow',
+      effect: 'write',
+    });
     expect(commandById.ai.side_effect).toMatchObject({
       kind: 'mixed',
       mutates_yida: true,

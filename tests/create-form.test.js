@@ -4,8 +4,10 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const querystring = require('querystring');
+const { spawnSync } = require('child_process');
 
 const CREATE_FORM_PATH = path.join(__dirname, '..', 'lib', 'app', 'create-form.js');
+const BIN_PATH = path.join(__dirname, '..', 'bin', 'yida.js');
 const FORM_COMPILER_PATH = path.join(__dirname, '..', 'lib', 'app', 'services', 'form-compiler.js');
 const FORM_VALIDATION_PATH = path.join(__dirname, '..', 'lib', 'app', 'services', 'form-validation.js');
 const sourceCode = fs.readFileSync(CREATE_FORM_PATH, 'utf-8');
@@ -1099,6 +1101,141 @@ describe('form presentation components', () => {
     ])).not.toThrow();
   });
 
+  test('field JSON validator rejects three-dimensional ColumnContainer children with a stable diagnostic path', () => {
+    const diagnostics = createForm._private.collectFormFieldValidationDiagnostics([
+      {
+        type: 'ColumnContainer',
+        children: [
+          [[{ type: 'TextField', label: '姓名' }]],
+        ],
+      },
+    ]);
+
+    expect(diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'INVALID_COLUMN_CONTAINER_CHILDREN_DEPTH',
+        path: 'fields[0].children[0][0]',
+        expected: 'FieldDefinition object',
+        actual: 'array',
+        suggestion: expect.any(String),
+      }),
+    ]));
+
+    expect(() => createForm._private.validateFormFieldDefinitions([
+      {
+        type: 'ColumnContainer',
+        children: [
+          [[{ type: 'TextField', label: '姓名' }]],
+        ],
+      },
+    ])).toThrow(expect.objectContaining({
+      code: 'CREATE_FORM_INVALID_COLUMN_CONTAINER_CHILDREN_DEPTH',
+      details: expect.objectContaining({
+        diagnostics: expect.arrayContaining([
+          expect.objectContaining({
+            code: 'INVALID_COLUMN_CONTAINER_CHILDREN_DEPTH',
+            path: 'fields[0].children[0][0]',
+          }),
+        ]),
+      }),
+    }));
+  });
+
+  test('field JSON validator accepts correct two-dimensional ColumnContainer children', () => {
+    const diagnostics = createForm._private.collectFormFieldValidationDiagnostics([
+      {
+        type: 'ColumnContainer',
+        children: [
+          [{ type: 'TextField', label: '姓名' }],
+          [{ type: 'SelectField', label: '状态', dataSource: ['待处理'] }],
+        ],
+      },
+    ]);
+
+    expect(diagnostics).toEqual([]);
+  });
+
+  test('field JSON validator accepts one-dimensional TableField children and rejects nested TableField', () => {
+    expect(createForm._private.collectFormFieldValidationDiagnostics([
+      {
+        type: 'TableField',
+        label: '明细',
+        children: [
+          { type: 'TextField', label: '项目' },
+        ],
+      },
+    ])).toEqual([]);
+
+    expect(createForm._private.collectFormFieldValidationDiagnostics([
+      {
+        type: 'TableField',
+        label: '明细',
+        children: [
+          { type: 'TableField', label: '嵌套明细', children: [] },
+        ],
+      },
+    ])).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'NESTED_TABLE_FIELD_UNSUPPORTED',
+        path: 'fields[0].children[0]',
+      }),
+    ]));
+  });
+
+  test('field JSON validator rejects SelectField without fixed or remote data source', () => {
+    expect(createForm._private.collectFormFieldValidationDiagnostics([
+      { type: 'SelectField', label: '状态' },
+    ])).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'OPTION_FIELD_DATASOURCE_MISSING',
+        path: 'fields[0].dataSource',
+      }),
+    ]));
+  });
+
+  test('field JSON validator does not require Divider label', () => {
+    expect(createForm._private.collectFormFieldValidationDiagnostics([
+      { type: 'Divider', title: '基础信息', dividerType: 'solid' },
+    ])).toEqual([]);
+  });
+
+  test('field JSON validator accepts non-empty i18n object labels and rejects empty labels', () => {
+    expect(createForm._private.collectFormFieldValidationDiagnostics([
+      { type: 'TextField', label: { zh_CN: '姓名', en_US: 'Name' } },
+      {
+        type: 'PageSection',
+        label: { zh_CN: '基础信息', en_US: 'Basic Info' },
+        children: [
+          { type: 'TextField', label: { zh_CN: '手机号' } },
+        ],
+      },
+    ])).toEqual([]);
+
+    expect(createForm._private.collectFormFieldValidationDiagnostics([
+      { type: 'TextField', label: '' },
+      { type: 'TextField', label: {} },
+      { type: 'TextField' },
+      { type: 'TextField', label: { type: 'i18n', envLocale: 'zh_CN', key: 'name' } },
+    ])).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'BUSINESS_FIELD_LABEL_MISSING',
+        path: 'fields[0].label',
+      }),
+      expect.objectContaining({
+        code: 'BUSINESS_FIELD_LABEL_MISSING',
+        path: 'fields[1].label',
+      }),
+      expect.objectContaining({
+        code: 'BUSINESS_FIELD_LABEL_MISSING',
+        path: 'fields[2].label',
+      }),
+      expect.objectContaining({
+        code: 'BUSINESS_FIELD_LABEL_MISSING',
+        path: 'fields[3].label',
+      }),
+    ]));
+  });
+
   test('TableField children reject presentation components before schema build', () => {
     const fields = [
       {
@@ -1341,11 +1478,59 @@ describe('create-form module API', () => {
       validationJsonOrFile: '.cache/openyida/forms/validations.json',
     });
   });
+
+  test('parseArgs keeps validate three-argument compatibility for validation rules', () => {
+    expect(createForm.parseArgs([
+      'validate',
+      'APP_XXX',
+      'FORM_XXX',
+      '.cache/openyida/forms/validations.json',
+    ])).toMatchObject({
+      mode: 'validation',
+      appType: 'APP_XXX',
+      formUuid: 'FORM_XXX',
+      validationJsonOrFile: '.cache/openyida/forms/validations.json',
+    });
+  });
+
+  test('parseArgs treats validate-fields with one target as local field JSON validation', () => {
+    expect(createForm.parseArgs([
+      'validate-fields',
+      '.cache/openyida/forms/fields.json',
+      '--json',
+    ])).toMatchObject({
+      mode: 'validate-fields',
+      fieldsJsonOrFile: '.cache/openyida/forms/fields.json',
+      json: true,
+    });
+  });
+
+  test('parseArgs keeps validate inline rule compatibility', () => {
+    expect(createForm.parseArgs([
+      'validate',
+      'APP_XXX',
+      'FORM_XXX',
+      '--field',
+      '手机号',
+      '--type',
+      'phone',
+    ])).toMatchObject({
+      mode: 'validation',
+      appType: 'APP_XXX',
+      formUuid: 'FORM_XXX',
+      validationJsonOrFile: '',
+      inlineValidationRule: expect.objectContaining({
+        field: '手机号',
+        type: 'phone',
+      }),
+    });
+  });
 });
 
 describe('create-form create recovery guardrails', () => {
   afterEach(() => {
     delete process.env.OPENYIDA_UPDATE_FORM_CONFIG_RETRY_DELAYS_MS;
+    process.exitCode = undefined;
     jest.restoreAllMocks();
     jest.dontMock('../lib/core/utils');
     jest.dontMock('../lib/core/chalk');
@@ -1413,6 +1598,197 @@ describe('create-form create recovery guardrails', () => {
 
     expect(mockUtils.httpPost).not.toHaveBeenCalled();
     consoleSpy.mockRestore();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('create-form create stops locally when field JSON gate fails and does not call platform APIs', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-field-gate-'));
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([
+      { type: 'SelectField', label: '状态' },
+    ]));
+
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand();
+
+    await expect(isolatedCreateForm.run([
+      'create',
+      'APP_TEST',
+      '字段 Gate 测试',
+      fieldsPath,
+    ])).rejects.toMatchObject({
+      code: 'CREATE_FORM_OPTION_FIELD_DATASOURCE_MISSING',
+      details: expect.objectContaining({
+        diagnostics: expect.arrayContaining([
+          expect.objectContaining({
+            code: 'OPTION_FIELD_DATASOURCE_MISSING',
+            path: 'fields[0].dataSource',
+          }),
+        ]),
+      }),
+    });
+
+    expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    expect(mockUtils.httpGet).not.toHaveBeenCalled();
+    expect(mockUtils.requestWithAutoLogin).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('create-form update validates add fields before getFormSchema or save calls', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-update-field-gate-'));
+    const changesPath = path.join(tmpDir, 'changes.json');
+    fs.writeFileSync(changesPath, JSON.stringify([
+      {
+        action: 'add',
+        field: {
+          type: 'ColumnContainer',
+          children: [
+            [[{ type: 'TextField', label: '姓名' }]],
+          ],
+        },
+      },
+    ]));
+
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand();
+
+    await expect(isolatedCreateForm.run([
+      'update',
+      'APP_TEST',
+      'FORM_TEST',
+      changesPath,
+    ])).rejects.toMatchObject({
+      code: 'CREATE_FORM_INVALID_COLUMN_CONTAINER_CHILDREN_DEPTH',
+      details: expect.objectContaining({
+        diagnostics: expect.arrayContaining([
+          expect.objectContaining({
+            code: 'INVALID_COLUMN_CONTAINER_CHILDREN_DEPTH',
+            path: 'changes[0].field.children[0][0]',
+          }),
+        ]),
+      }),
+    });
+
+    expect(mockUtils.httpGet).not.toHaveBeenCalled();
+    expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    expect(mockUtils.requestWithAutoLogin).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('create-form validate-fields runs local JSON gate and returns diagnostics without login or platform APIs', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-field-validate-'));
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([
+      {
+        type: 'ColumnContainer',
+        children: [
+          [[{ type: 'TextField', label: '姓名' }]],
+        ],
+      },
+    ]));
+
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand();
+
+    const previousExitCode = process.exitCode;
+    await expect(isolatedCreateForm.run([
+      'validate-fields',
+      fieldsPath,
+      '--json',
+    ])).resolves.toMatchObject({
+      success: false,
+      valid: false,
+    });
+
+    const payload = JSON.parse(consoleSpy.mock.calls[0][0]);
+    expect(payload).toMatchObject({
+      success: false,
+      valid: false,
+      diagnostics: [
+        expect.objectContaining({
+          code: 'INVALID_COLUMN_CONTAINER_CHILDREN_DEPTH',
+          path: 'fields[0].children[0][0]',
+        }),
+      ],
+    });
+    expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    expect(mockUtils.httpGet).not.toHaveBeenCalled();
+    expect(mockUtils.requestWithAutoLogin).not.toHaveBeenCalled();
+    process.exitCode = previousExitCode;
+    consoleSpy.mockRestore();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('create-form validate-fields CLI emits exactly one JSON payload for invalid input', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-validate-cli-invalid-'));
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([
+      {
+        type: 'ColumnContainer',
+        children: [
+          [[{ type: 'TextField', label: '姓名' }]],
+        ],
+      },
+    ]));
+
+    const result = spawnSync(process.execPath, [
+      BIN_PATH,
+      'create-form',
+      'validate-fields',
+      fieldsPath,
+      '--json',
+    ], {
+      encoding: 'utf8',
+      env: Object.assign({}, process.env, {
+        OPENYIDA_SKIP_UPDATE_CHECK: '1',
+        NO_UPDATE_NOTIFIER: '1',
+      }),
+    });
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toBe('');
+    const payload = JSON.parse(result.stdout);
+    expect(payload).toMatchObject({
+      success: false,
+      valid: false,
+      diagnostics: [
+        expect.objectContaining({
+          code: 'INVALID_COLUMN_CONTAINER_CHILDREN_DEPTH',
+          path: 'fields[0].children[0][0]',
+        }),
+      ],
+    });
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('create-form validate-fields CLI emits success JSON and exit code 0 for valid input', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-validate-cli-valid-'));
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([
+      { type: 'TextField', label: { zh_CN: '姓名', en_US: 'Name' } },
+    ]));
+
+    const result = spawnSync(process.execPath, [
+      BIN_PATH,
+      'create-form',
+      'validate-fields',
+      fieldsPath,
+      '--json',
+    ], {
+      encoding: 'utf8',
+      env: Object.assign({}, process.env, {
+        OPENYIDA_SKIP_UPDATE_CHECK: '1',
+        NO_UPDATE_NOTIFIER: '1',
+      }),
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      success: true,
+      valid: true,
+      fieldCount: 1,
+      diagnostics: [],
+    });
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
