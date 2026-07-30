@@ -851,6 +851,23 @@
       ]
     },
     {
+      "name": "yida-openyida-cli-fast-publish",
+      "path": "skills/yida-openyida-cli-fast-publish/SKILL.md",
+      "display_name": "OpenYida CLI 快速发布",
+      "description": "通过 CLI-only、最小变更、默认立即发布和一次聚焦回读，加快 OpenYida 问题解决与上线；避免浏览器插件启动、登录同步、页面加载和交互等待严重拖慢流程。",
+      "category": "yida-skills/context",
+      "tags": [
+        "CLI-only",
+        "快速发布",
+        "问题解决提速",
+        "禁止浏览器混用"
+      ],
+      "aliases": [
+        "快速上线",
+        "CLI 快速交付"
+      ]
+    },
+    {
       "name": "yida-openyida-publish-guard",
       "path": "skills/yida-openyida-publish-guard/SKILL.md",
       "display_name": "页面发布保护",
