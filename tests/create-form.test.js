@@ -1602,6 +1602,52 @@ describe('create-form module API', () => {
       }),
     });
   });
+
+  test('parseArgs keeps legacy positional create compatibility', () => {
+    expect(createForm.parseArgs([
+      'APP_XXX',
+      '访客登记',
+      '.cache/openyida/visitor/fields.json',
+    ])).toMatchObject({
+      mode: 'create',
+      appType: 'APP_XXX',
+      formTitle: '访客登记',
+      fieldsJsonOrFile: '.cache/openyida/visitor/fields.json',
+    });
+  });
+
+  test('parseArgs rejects create-form name fields option hallucination before legacy fallback', () => {
+    let thrown;
+    try {
+      createForm.parseArgs([
+        'APP_XXX',
+        '--name',
+        '访客登记',
+        '--fields',
+        '[{"type":"TextField","label":"姓名"}]',
+        '--json',
+      ]);
+    } catch (err) {
+      thrown = err;
+    }
+
+    expect(thrown).toMatchObject({
+      code: 'CREATE_FORM_DEPRECATED_OPTION_SHAPE',
+      details: {
+        command_id: 'create-form.create',
+        canonical: {
+          display: 'openyida create-form create <appType> "<formTitle>" <fieldsJsonFile>',
+        },
+        suggestion: {
+          argv: ['create-form', 'create', 'APP_XXX', '访客登记', '<fieldsJsonFile>'],
+          fields_inline_value_present: true,
+        },
+        pattern: {
+          id: 'deprecated.create-form.name-fields-options',
+        },
+      },
+    });
+  });
 });
 
 describe('create-form create recovery guardrails', () => {
@@ -1612,6 +1658,25 @@ describe('create-form create recovery guardrails', () => {
     jest.dontMock('../lib/core/utils');
     jest.dontMock('../lib/core/chalk');
     jest.resetModules();
+  });
+
+  test('hallucinated name fields shape fails before remote write', async () => {
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand();
+
+    await expect(isolatedCreateForm.run([
+      'APP_TEST',
+      '--name',
+      '访客登记',
+      '--fields',
+      '[{"type":"TextField","label":"姓名"}]',
+    ])).rejects.toMatchObject({
+      code: 'CREATE_FORM_DEPRECATED_OPTION_SHAPE',
+    });
+
+    expect(mockUtils.httpGet).not.toHaveBeenCalled();
+    expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    expect(mockUtils.requestWithAutoLogin).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
   });
 
   test('invalid field definitions fail before saveFormSchemaInfo creates a blank form', async () => {

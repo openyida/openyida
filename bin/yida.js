@@ -549,6 +549,11 @@ async function main() {
 
   switch (command) {
     case 'commands': {
+      if (args[0] === 'validate' || args[0] === 'build') {
+        const { runCommandsContract } = require('../lib/core/command-contract');
+        await runCommandsContract(args);
+        break;
+      }
       const manifest = buildCommandManifest({ t, version: currentVersion });
       console.log(JSON.stringify(manifest, null, 2));
       break;

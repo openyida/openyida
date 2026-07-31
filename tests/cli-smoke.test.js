@@ -111,6 +111,11 @@ function runAny(args) {
   };
 }
 
+function readManifestCommand(commandId) {
+  const manifest = JSON.parse(runOk(['commands', '--json']));
+  return manifest.commands.find(entry => entry.id === commandId);
+}
+
 function resolveManifestCommand(commands, args) {
   return commands
     .filter(entry => entry.path.every((token, index) => args[index] === token))
@@ -372,6 +377,12 @@ describe('CLI offline smoke', () => {
         suggested_usage: expect.stringContaining('create-page <appType>'),
       }),
       expect.objectContaining({
+        pattern: 'create-form <appType> --name <formTitle> --fields <fieldsJson>',
+        matcher: { type: 'command_has_option', command: 'create-form', option: '--fields' },
+        suggested_command_id: 'create-form.create',
+        suggested_usage: 'openyida create-form create <appType> "<formTitle>" <fieldsJsonFile>',
+      }),
+      expect.objectContaining({
         pattern: 'get-schema --app-type',
         suggested_usage: expect.stringContaining('get-schema <appType>'),
       }),
@@ -388,6 +399,7 @@ describe('CLI offline smoke', () => {
         'list-apps',
         'get-app',
         'create-app --json',
+        'create-form <appType> --name <formTitle> --fields <fieldsJson>',
       ]),
     });
     expect(parsed.summary.side_effect_counts.remote_write).toBeGreaterThan(0);
@@ -531,6 +543,39 @@ describe('CLI offline smoke', () => {
       kind: 'local_read',
       mutates_yida: false,
       mutates_local: false,
+    });
+    expect(commandById['create-form.create']).toMatchObject({
+      path: ['create-form', 'create'],
+      permission: {
+        mode: 'allow',
+        effect: 'write',
+      },
+      args: [
+        expect.objectContaining({ name: 'appType', source: 'positional', required: true }),
+        expect.objectContaining({ name: 'formTitle', source: 'positional', required: true }),
+        expect.objectContaining({ name: 'fieldsJsonFile', source: 'positional', required: true }),
+      ],
+      canonical: {
+        command_id: 'create-form.create',
+        path: ['create-form', 'create'],
+        argv_template: ['create-form', 'create', '<appType>', '<formTitle>', '<fieldsJsonFile>'],
+        display: 'openyida create-form create <appType> "<formTitle>" <fieldsJsonFile>',
+        builder: expect.stringContaining('commands build create-form.create'),
+      },
+      deprecated_patterns: [
+        expect.objectContaining({
+          id: 'deprecated.create-form.name-fields-options',
+          code: 'CREATE_FORM_DEPRECATED_OPTION_SHAPE',
+        }),
+      ],
+      repair_patterns: [
+        expect.objectContaining({
+          id: 'repair.create-form.name-fields-to-create',
+        }),
+      ],
+      examples: expect.arrayContaining([
+        expect.stringContaining('openyida create-form create APP_XXX'),
+      ]),
     });
     expect(commandById['generate-page'].side_effect).toMatchObject({
       kind: 'local_write',
@@ -734,6 +779,160 @@ describe('CLI offline smoke', () => {
     expect(classifyManifestInvocation(parsed.commands, ['app-permission', 'remove'])).toMatchObject({
       entry: { id: 'app-permission' },
       decision: 'ask',
+    });
+  });
+
+  test('commands validate accepts canonical create-form create invocation', () => {
+    const manifestEntry = readManifestCommand('create-form.create');
+    const output = runOk([
+      'commands',
+      'validate',
+      '--json',
+      '--',
+      'create-form',
+      'create',
+      'APP_xxx',
+      '访客登记',
+      '.cache/openyida/visitor/fields.json',
+    ]);
+    const parsed = JSON.parse(output);
+
+    expect(parsed).toMatchObject({
+      ok: true,
+      status: 'ok',
+      command_id: 'create-form.create',
+      matched_pattern: 'canonical.create-form.create',
+      params: {
+        appType: 'APP_xxx',
+        formTitle: '访客登记',
+        fieldsJsonFile: '.cache/openyida/visitor/fields.json',
+      },
+      path: manifestEntry.path,
+      canonical: manifestEntry.canonical,
+    });
+  });
+
+  test('commands validate rejects hallucinated create-form name fields shape', () => {
+    const manifestEntry = readManifestCommand('create-form.create');
+    const deprecatedPattern = manifestEntry.deprecated_patterns[0];
+    const result = runAny([
+      'commands',
+      'validate',
+      '--json',
+      '--',
+      'create-form',
+      'APP_xxx',
+      '--name',
+      '访客登记',
+      '--fields',
+      '[{"type":"TextField","label":"姓名"}]',
+    ]);
+    const parsed = JSON.parse(result.stdout);
+
+    expect(result.status).toBe(1);
+    expect(parsed).toMatchObject({
+      ok: false,
+      status: 'invalid',
+      code: deprecatedPattern.code,
+      command_id: 'create-form.create',
+      canonical: manifestEntry.canonical,
+      suggestion: {
+        argv: ['create-form', 'create', 'APP_xxx', '访客登记', '<fieldsJsonFile>'],
+        fields_inline_value_present: true,
+      },
+      pattern: {
+        id: deprecatedPattern.id,
+        code: deprecatedPattern.code,
+        matcher: deprecatedPattern.matcher,
+        received: {
+          appType: 'APP_xxx',
+          formTitle: '访客登记',
+        },
+      },
+    });
+  });
+
+  test('commands validate preserves target argv after delimiter including --json', () => {
+    const output = runOk([
+      'commands',
+      'validate',
+      '--json',
+      '--',
+      'create-form',
+      'create',
+      'APP_xxx',
+      '访客登记',
+      '.cache/openyida/visitor/fields.json',
+      '--json',
+    ]);
+    const parsed = JSON.parse(output);
+
+    expect(parsed).toMatchObject({
+      ok: true,
+      command_id: 'create-form.create',
+    });
+    expect(parsed.argv).toEqual([
+      'create-form',
+      'create',
+      'APP_xxx',
+      '访客登记',
+      '.cache/openyida/visitor/fields.json',
+      '--json',
+    ]);
+  });
+
+  test('commands build renders canonical create-form argv without executing', () => {
+    const manifestEntry = readManifestCommand('create-form.create');
+    const output = runOk([
+      'commands',
+      'build',
+      'create-form.create',
+      '--app-type',
+      'APP_xxx',
+      '--form-title',
+      '访客登记',
+      '--fields-json-file',
+      '.cache/openyida/visitor/fields.json',
+      '--json',
+    ]);
+    const parsed = JSON.parse(output);
+
+    expect(parsed).toMatchObject({
+      ok: true,
+      status: 'ok',
+      command_id: 'create-form.create',
+      execute: false,
+      argv: ['create-form', 'create', 'APP_xxx', '访客登记', '.cache/openyida/visitor/fields.json'],
+      display: 'openyida create-form create APP_xxx "访客登记" .cache/openyida/visitor/fields.json',
+      canonical: manifestEntry.canonical,
+    });
+    expect(parsed.argv.slice(0, manifestEntry.path.length)).toEqual(manifestEntry.path);
+  });
+
+  test('direct create-form hallucinated shape returns clean JSON error before execution', () => {
+    const manifestEntry = readManifestCommand('create-form.create');
+    const result = runAny([
+      'create-form',
+      'APP_xxx',
+      '--name',
+      '访客登记',
+      '--fields',
+      '[{"type":"TextField","label":"姓名"}]',
+      '--json',
+    ]);
+    const parsed = JSON.parse(result.jsonOutput);
+
+    expect(result.status).toBe(1);
+    expect(parsed).toMatchObject({
+      success: false,
+      errorCode: 'CREATE_FORM_DEPRECATED_OPTION_SHAPE',
+      details: {
+        command_id: 'create-form.create',
+        canonical: manifestEntry.canonical,
+        suggestion: {
+          argv: ['create-form', 'create', 'APP_xxx', '访客登记', '<fieldsJsonFile>'],
+        },
+      },
     });
   });
 
