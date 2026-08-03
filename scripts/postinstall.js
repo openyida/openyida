@@ -274,13 +274,15 @@ Canvas 页面实现二选一：走模板路径时先写业务化 \`page-spec.jso
 
 不要默认加载 \`yida-app-uiux\`、\`yida-data-source-connectors\`、\`yida-data-management\`、\`yida-dashboard\`，也不要默认做示例数据、精细导航分组、截图验收、公开访问、长 PRD、深度 UI 设计或深读 references；这些只在用户明确要求或 \`full_demo\` / \`deep_design\` 时执行。发布后的轻量导航排序是 fast_build 默认收尾，不等于 full_demo 导航整理。
 
+任何会创建、修改、修复、配置、保存或发布宜搭资源的任务，都同时加载 \`yida-openyida-cli-fast-publish\` 和对应领域技能。浏览器插件会引入启动、登录态同步、页面加载、渲染与交互等待，混入 OpenYida 工作流会严重拖慢问题定位、修改和发布；默认只使用 OpenYida CLI 与本地读写工具，完成最小必要变更后立即发布，并以一次聚焦 CLI 回读验收。CLI 缺少能力时准确报告限制，不回退到 Browser、Chrome、Playwright、CUA、Computer Use 或其他浏览器控制工具。
+
 ## 子技能目录
 
 根据用户意图先命中一个大类目录，再选择最匹配的子技能。支持 \`use_skill\` / \`search_skills\` 的宿主中，必须调用 \`use_skill("<技能名>", "<本次目的>")\` 加载子技能；不要用 Read / read_file / cat 读取 SKILL.md 路径，也不要猜测 .skills、插件缓存或 workspace/project/.skills。\`skills-index.json\` 的 \`route_groups\` 与下表一致，供 yida-agent 或同构宿主做机器路由。机器路由推荐顺序：先用 \`route_groups[].signals\` 命中 \`yida-skills/<area>\` 大类，只在该 \`category\` 下用 skill 的 description/tags/signals 精排，再调用 \`use_skill\`。完全没有 \`use_skill\` 的本地工具，才允许按根技能路由表选定技能，并按 \`skills/<技能名>/SKILL.md\` 定位当前阶段唯一必要的 SKILL.md，禁止并发批量读取多个 SKILL.md。
 
 | 大类目录 | 第一层意图信号 | 子技能 |
 | --- | --- | --- |
-| \`yida-skills/context\` | 登录、退出、组织信息、Schema、fieldId、只读预检 | \`yida-login\`, \`yida-logout\`, \`yida-basic-info\`, \`yida-get-schema\`, \`yida-corp-efficiency\` |
+| \`yida-skills/context\` | 登录、退出、组织信息、Schema、fieldId、只读预检、CLI 快速发布 | \`yida-openyida-cli-fast-publish\`, \`yida-login\`, \`yida-logout\`, \`yida-basic-info\`, \`yida-get-schema\`, \`yida-corp-efficiency\` |
 | \`yida-skills/app\` | 从零搭应用、应用蓝图、导航、主题、多语言 | \`yida-app\`, \`yida-create-app\`, \`yida-app-uiux\`, \`yida-nav-group\`, \`yida-theme\`, \`yida-i18n\` |
 | \`yida-skills/form\` | 表单字段、公式、校验、业务规则、详情页、批量录入、数据记录 | \`yida-create-form-page\`, \`yida-formula\`, \`yida-formula-evaluate\`, \`yida-business-rule\`, \`yida-form-detail\`, \`yida-canvas-table-form\`, \`yida-table-form\`, \`yida-data-management\` |
 | \`yida-skills/process\` | 审批、流程表单、流程规则、代理人 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\` |

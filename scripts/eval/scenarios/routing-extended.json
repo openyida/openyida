@@ -70,6 +70,13 @@
     "note": "发布前检查线上状态 → openyida-publish-guard"
   },
   {
+    "id": "openyida-cli-fast-publish",
+    "prompt": "用 OpenYida 尽快修复这个表单并直接发布上线，不要调用浏览器插件",
+    "expectedSkill": "yida-openyida-cli-fast-publish",
+    "group": "应用与登录",
+    "note": "CLI-only 最小变更并快速发布 → openyida-cli-fast-publish"
+  },
+  {
     "id": "aggregate-table-list",
     "prompt": "帮我列一下当前应用有哪些聚合表",
     "expectedSkill": "openyida aggregate-table",

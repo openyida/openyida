@@ -58,6 +58,12 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 
 `.cache/<项目名>-schema.json` 只是本地 ID 映射，不等于远端真相。路径不明确时先只读确认或询问用户；不要通过新建同类资源规避不确定性。
 
+### 全局快速交付技能
+
+任何会创建、修改、修复、配置、保存或发布宜搭资源的任务，都同时加载 `yida-openyida-cli-fast-publish` 和对应领域技能。浏览器插件会引入启动、登录态同步、页面加载、渲染与交互等待，混入 OpenYida 工作流会严重拖慢问题定位、修改和发布；因此默认只使用 OpenYida CLI 与本地读写工具，完成最小必要变更后立即发布，并以一次聚焦 CLI 回读验收。
+
+若 CLI 缺少能力，准确报告限制，不要回退到 Browser、Chrome、Playwright、CUA、Computer Use 或其他浏览器控制工具。用户明确要求浏览器操作时，将其作为独立的纯浏览器任务，不与 OpenYida CLI 写操作混用。
+
 ---
 
 ## 路由前置：resolve_resource_context
@@ -163,7 +169,7 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 
 | 大类目录 | 第一层意图信号 | 子技能 |
 |------|------|------|
-| `yida-skills/context` | 登录、退出、切换组织、组织版本/容量、Schema、fieldId、只读预检 | `yida-login`、`yida-logout`、`yida-basic-info`、`yida-get-schema`、`yida-corp-efficiency` |
+| `yida-skills/context` | 登录、退出、切换组织、组织版本/容量、Schema、fieldId、只读预检、CLI 快速发布 | `yida-openyida-cli-fast-publish`、`yida-login`、`yida-logout`、`yida-basic-info`、`yida-get-schema`、`yida-corp-efficiency` |
 | `yida-skills/app` | 从零搭应用、完整系统、应用蓝图、应用导航、主题、多语言 | `yida-app`、`yida-create-app`、`yida-app-uiux`、`yida-nav-group`、`yida-theme`、`yida-i18n` |
 | `yida-skills/form` | 表单字段、公式、校验、业务关联规则、详情页、批量录入、数据记录 | `yida-create-form-page`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-form-detail`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-agent-center` |
@@ -178,6 +184,7 @@ OpenYida builder 默认使用 `create-app / create-form / create-page / generate
 
 | 用户意图 | 选哪个 |
 |------|------|
+| 任何 OpenYida 写操作，需要快速解决并上线 | 领域技能 + `yida-openyida-cli-fast-publish`；禁止混用浏览器插件，最小变更后立即发布并只做一次聚焦回读 |
 | 从零搭一个完整应用/系统 | `yida-app`；默认 `fast_build`，不要自动升级到深度设计 |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
