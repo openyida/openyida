@@ -21,6 +21,8 @@ module.exports = {
     cmd_corp_efficiency: "Consulter l'aperçu de l'efficacité entreprise et les rapports détaillés",
     cmd_create_app: 'Créer une application Yida',
     cmd_update_app: "Mettre à jour les infos de l'application",
+    cmd_app_online: "Activer une application Yida",
+    cmd_app_offline: "Désactiver une application Yida",
     cmd_nav_group: "Gérer les groupes de navigation latérale de l'application",
     cmd_app_permission: "Gérer les admins principaux, données et développement de l'app",
     cmd_i18n: "Gérer les textes multilingues et langues de l'app",
@@ -918,6 +920,18 @@ module.exports = {
     name_label: '  App name: {0}',
     failed: '  ❌ Update failed: {0}',
     layout_notice: 'Note: layoutDirection is consumed by the Yida app shell during creation/refresh. If the top action bar does not recover immediately after a backend switch, reopen the workbench or recreate the app with the target layout.'
+  },
+  app_lifecycle: {
+    online_usage: 'Utilisation : openyida app-online <appType> [--to-ding-app-center] [--show-app-center]',
+    online_example: 'Exemple : openyida app-online APP_XXX',
+    offline_usage: 'Utilisation : openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]',
+    offline_example: 'Exemple : openyida app-offline APP_XXX',
+    missing_app_type: "Erreur : argument appType manquant",
+    invalid_argument: 'Argument non pris en charge : {0}',
+    invalid_action: "Action de cycle de vie d'application non prise en charge : {0}",
+    request_failed: "Échec de l'opération de cycle de vie de l'application",
+    online_success: 'Application activée',
+    offline_success: 'Application désactivée',
   },
   create_process: {
     title: 'Yida Process Form Creation',

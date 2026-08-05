@@ -21,6 +21,8 @@ module.exports = {
     cmd_corp_efficiency: '企業効率の概要と明細レポートを取得',
     cmd_create_app: '宜搭アプリを作成',
     cmd_update_app: 'アプリ情報を更新',
+    cmd_app_online: 'Yida アプリを有効化',
+    cmd_app_offline: 'Yida アプリを無効化',
     cmd_nav_group: 'アプリのサイドバーナビゲーショングループを管理',
     cmd_app_permission: 'アプリ主管理者、データ管理者、開発メンバーを管理',
     cmd_i18n: 'アプリの多言語文言と言語設定を管理',
@@ -870,6 +872,18 @@ module.exports = {
     name_label: '  App name: {0}',
     failed: '  ❌ Update failed: {0}',
     layout_notice: 'Note: layoutDirection is consumed by the Yida app shell during creation/refresh. If the top action bar does not recover immediately after a backend switch, reopen the workbench or recreate the app with the target layout.'
+  },
+  app_lifecycle: {
+    online_usage: '使用方法: openyida app-online <appType> [--to-ding-app-center] [--show-app-center]',
+    online_example: '例: openyida app-online APP_XXX',
+    offline_usage: '使用方法: openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]',
+    offline_example: '例: openyida app-offline APP_XXX',
+    missing_app_type: 'エラー: appType 引数がありません',
+    invalid_argument: 'サポートされていない引数: {0}',
+    invalid_action: 'サポートされていないアプリライフサイクル操作: {0}',
+    request_failed: 'アプリライフサイクル操作に失敗しました',
+    online_success: 'アプリを有効化しました',
+    offline_success: 'アプリを無効化しました',
   },
   create_process: {
     title: 'Yida Process Form Creation',

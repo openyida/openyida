@@ -103,6 +103,40 @@
       ]
     },
     {
+      "name": "yida-app-lifecycle",
+      "path": "skills/yida-app-lifecycle/SKILL.md",
+      "display_name": "应用启用与停用",
+      "description": "宜搭应用启用与停用。仅当用户明确要求启用、停用、上线或下线某个已有应用时使用；不用于创建应用、发布页面或发布到钉钉应用中心。",
+      "category": "yida-skills/app",
+      "tags": [
+        "启用应用",
+        "停用应用",
+        "上线应用",
+        "下线应用"
+      ],
+      "aliases": [
+        "应用生命周期",
+        "应用上下线"
+      ],
+      "positive_signals": [
+        "启用应用",
+        "停用应用",
+        "上线应用",
+        "下线应用"
+      ],
+      "negative_signals": [
+        "发布页面",
+        "更新应用信息",
+        "禁用集成自动化",
+        "关闭公开访问"
+      ],
+      "command_ids": [
+        "app-online",
+        "app-offline"
+      ],
+      "done_when": "CLI 返回 success:true 且 action 与用户明确意图一致；app-offline 执行前已确认目标 appType，失败时不得宣称状态改变。"
+    },
+    {
       "name": "yida-basic-info",
       "path": "skills/yida-basic-info/SKILL.md",
       "display_name": "组织基础信息查询",
@@ -1160,6 +1194,10 @@
         "创建应用",
         "完整应用",
         "管理系统",
+        "启用应用",
+        "停用应用",
+        "上线应用",
+        "下线应用",
         "导航分组",
         "多语言"
       ]

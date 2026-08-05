@@ -21,6 +21,8 @@ module.exports = {
     cmd_corp_efficiency: 'Truy vấn tổng quan hiệu quả doanh nghiệp và báo cáo chi tiết',
     cmd_create_app: 'Tạo ứng dụng Yida',
     cmd_update_app: 'Cập nhật thông tin ứng dụng',
+    cmd_app_online: 'Bật ứng dụng Yida',
+    cmd_app_offline: 'Tắt ứng dụng Yida',
     cmd_nav_group: 'Quản lý nhóm điều hướng thanh bên của ứng dụng',
     cmd_app_permission: 'Quản lý quản trị chính, dữ liệu và phát triển của ứng dụng',
     cmd_i18n: 'Quản lý nội dung đa ngôn ngữ và cấu hình ngôn ngữ của ứng dụng',
@@ -916,6 +918,18 @@ module.exports = {
     name_label: '  App name: {0}',
     failed: '  ❌ Update failed: {0}',
     layout_notice: 'Note: layoutDirection is consumed by the Yida app shell during creation/refresh. If the top action bar does not recover immediately after a backend switch, reopen the workbench or recreate the app with the target layout.'
+  },
+  app_lifecycle: {
+    online_usage: 'Cách dùng: openyida app-online <appType> [--to-ding-app-center] [--show-app-center]',
+    online_example: 'Ví dụ: openyida app-online APP_XXX',
+    offline_usage: 'Cách dùng: openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]',
+    offline_example: 'Ví dụ: openyida app-offline APP_XXX',
+    missing_app_type: 'Lỗi: thiếu tham số appType',
+    invalid_argument: 'Tham số không được hỗ trợ: {0}',
+    invalid_action: 'Thao tác vòng đời ứng dụng không được hỗ trợ: {0}',
+    request_failed: 'Thao tác vòng đời ứng dụng thất bại',
+    online_success: 'Đã bật ứng dụng',
+    offline_success: 'Đã tắt ứng dụng',
   },
   create_process: {
     title: 'Yida Process Form Creation',

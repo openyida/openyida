@@ -10,6 +10,7 @@ const SKILLS_DIR = path.join(ROOT, 'yida-skills', 'skills');
 
 const SKILL_COVERAGE = {
   'yida-app': { level: 'real-e2e', stages: ['app', 'form', 'page', 'data', 'report', 'dashboard'] },
+  'yida-app-lifecycle': { level: 'offline-unit', tests: ['tests/app-lifecycle.test.js', 'tests/cli-smoke.test.js'], reason: 'online/offline commands change real app availability; request contracts and agent permission metadata are validated with mocks and never run in shared real E2E' },
   'yida-app-permission': { level: 'offline-unit', tests: ['tests/app-permission.test.js'], reason: 'app admin mutations affect real application access; shared real E2E only validates safe read paths' },
   'yida-design': { level: 'offline-unit', tests: ['skill metadata and packaging validation', 'routing eval scenarios', 'tests/create-form.test.js', 'tests/skill-contracts.test.js'], reason: 'application experience blueprint, visual direction and theme token guidance produce PRD/design artifacts before missing app/form/process/page resources are created; validate routing, packaging, skill contracts and form theme payloads rather than mutating Yida resources or tenant-wide theme config' },
   'yida-basic-info': { level: 'offline-unit', tests: ['tests/basic-info.test.js'], reason: 'basic-info reads org admin metadata and can update domains; unit coverage avoids mutating shared real org settings' },

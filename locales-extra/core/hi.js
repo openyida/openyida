@@ -21,6 +21,8 @@ module.exports = {
     cmd_corp_efficiency: 'एंटरप्राइज दक्षता अवलोकन और विवरण रिपोर्ट क्वेरी करें',
     cmd_create_app: 'Yida ऐप बनाएं',
     cmd_update_app: 'ऐप जानकारी अपडेट करें',
+    cmd_app_online: 'Yida ऐप सक्षम करें',
+    cmd_app_offline: 'Yida ऐप अक्षम करें',
     cmd_nav_group: 'ऐप साइडबार नेविगेशन समूह प्रबंधित करें',
     cmd_app_permission: 'ऐप प्राथमिक, डेटा और डेवलपमेंट एडमिन प्रबंधित करें',
     cmd_i18n: 'ऐप की बहुभाषी कॉपी और भाषा कॉन्फिग प्रबंधित करें',
@@ -916,6 +918,18 @@ module.exports = {
     name_label: '  App name: {0}',
     failed: '  ❌ Update failed: {0}',
     layout_notice: 'Note: layoutDirection is consumed by the Yida app shell during creation/refresh. If the top action bar does not recover immediately after a backend switch, reopen the workbench or recreate the app with the target layout.'
+  },
+  app_lifecycle: {
+    online_usage: 'उपयोग: openyida app-online <appType> [--to-ding-app-center] [--show-app-center]',
+    online_example: 'उदाहरण: openyida app-online APP_XXX',
+    offline_usage: 'उपयोग: openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]',
+    offline_example: 'उदाहरण: openyida app-offline APP_XXX',
+    missing_app_type: 'त्रुटि: appType आर्ग्युमेंट अनुपस्थित है',
+    invalid_argument: 'असमर्थित आर्ग्युमेंट: {0}',
+    invalid_action: 'असमर्थित ऐप जीवनचक्र कार्रवाई: {0}',
+    request_failed: 'ऐप जीवनचक्र कार्रवाई विफल हुई',
+    online_success: 'ऐप सक्षम किया गया',
+    offline_success: 'ऐप अक्षम किया गया',
   },
   create_process: {
     title: 'Yida Process Form Creation',
