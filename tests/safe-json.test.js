@@ -31,7 +31,8 @@ describe('safe-json preprocessing (#3)', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     try {
       expect(safeParseJson(input)).toEqual({ name: 'OpenKuma' });
-      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('智能引号'));
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy.mock.calls[0][0]).toMatch(/智能引号|smart \/ curly quotes/);
     } finally {
       errorSpy.mockRestore();
     }
