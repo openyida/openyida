@@ -20,7 +20,7 @@ function listMarkdownAndJsonFiles(dir) {
 }
 
 function isSampleRoutingGuidanceFile(file) {
-  const relativePath = path.relative(ROOT, file);
+  const relativePath = path.relative(ROOT, file).replace(/\\/g, '/');
   if (relativePath.includes('yida-skills/skills/yida-design/references/style-designs/')) {
     return false;
   }

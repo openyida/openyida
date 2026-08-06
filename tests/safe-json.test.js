@@ -4,6 +4,8 @@ const { safeParseJson, preprocessJsonInput, normalizeSmartQuotes } = require('..
 const { setLanguage } = require('../lib/core/i18n');
 
 describe('safe-json preprocessing (#3)', () => {
+  beforeAll(() => setLanguage('zh'));
+
   test('parses plain valid JSON', () => {
     expect(safeParseJson('{"a":1,"b":[2,3]}')).toEqual({ a: 1, b: [2, 3] });
   });
@@ -39,8 +41,6 @@ describe('safe-json preprocessing (#3)', () => {
 });
 
 describe('safe-json friendly diagnostics (#2)', () => {
-  beforeAll(() => setLanguage('zh'));
-
   function messageOf(input) {
     try {
       safeParseJson(input, { recoverSmartQuotes: false });
