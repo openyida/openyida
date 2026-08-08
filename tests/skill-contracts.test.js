@@ -20,7 +20,7 @@ function listMarkdownAndJsonFiles(dir) {
 }
 
 function isSampleRoutingGuidanceFile(file) {
-  const relativePath = path.relative(ROOT, file);
+  const relativePath = path.relative(ROOT, file).replace(/\\/g, '/');
   if (relativePath.includes('yida-skills/skills/yida-design/references/style-designs/')) {
     return false;
   }
@@ -120,6 +120,15 @@ describe('OpenYida skill contracts', () => {
     const logout = byName.get('yida-logout');
     expect(login.command_ids).toEqual(expect.arrayContaining(['agent-capabilities', 'login', 'auth']));
     expect(logout.command_ids).toEqual(expect.arrayContaining(['logout', 'auth']));
+
+    const lifecycle = byName.get('yida-app-lifecycle');
+    expect(lifecycle.positive_signals).toEqual(expect.arrayContaining(['启用应用', '停用应用', '上线应用', '下线应用']));
+    expect(lifecycle.negative_signals).toEqual(expect.arrayContaining(['发布页面', '禁用集成自动化']));
+    expect(lifecycle.command_ids).toEqual(['app-online', 'app-offline']);
+    const lifecycleSkill = readSkill('yida-skills/skills/yida-app-lifecycle/SKILL.md');
+    expect(lifecycleSkill).toContain('只有用户明确说');
+    expect(lifecycleSkill).toContain('`app-offline` 会让现有应用停止服务');
+    expect(lifecycleSkill).toContain('不得在测试、评测或默认 shared real E2E 中执行真实启用/停用');
 
     const data = byName.get('yida-data-management');
     expect(data.positive_signals).toEqual(expect.arrayContaining(['新增记录']));

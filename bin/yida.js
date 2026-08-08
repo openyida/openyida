@@ -841,6 +841,13 @@ async function main() {
       break;
     }
 
+    case 'app-online':
+    case 'app-offline': {
+      const { run: runAppLifecycle } = require('../lib/app/app-lifecycle');
+      await runAppLifecycle(command === 'app-online' ? 'online' : 'offline', args);
+      break;
+    }
+
     case 'nav-group':
     case 'group': {
       const { run: runNavGroup } = require('../lib/app/nav-group');

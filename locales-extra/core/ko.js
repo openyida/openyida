@@ -21,6 +21,8 @@ module.exports = {
     cmd_corp_efficiency: '기업 효율 개요 및 상세 보고서 조회',
     cmd_create_app: 'Yida 앱 생성',
     cmd_update_app: '앱 정보 업데이트',
+    cmd_app_online: 'Yida 앱 활성화',
+    cmd_app_offline: 'Yida 앱 비활성화',
     cmd_nav_group: '앱 사이드바 내비게이션 그룹 관리',
     cmd_app_permission: '앱 주관리자, 데이터 관리자, 개발 멤버 관리',
     cmd_i18n: '앱 다국어 문구와 언어 설정 관리',
@@ -917,6 +919,18 @@ module.exports = {
     name_label: '  App name: {0}',
     failed: '  ❌ Update failed: {0}',
     layout_notice: 'Note: layoutDirection is consumed by the Yida app shell during creation/refresh. If the top action bar does not recover immediately after a backend switch, reopen the workbench or recreate the app with the target layout.'
+  },
+  app_lifecycle: {
+    online_usage: '사용법: openyida app-online <appType> [--to-ding-app-center] [--show-app-center]',
+    online_example: '예: openyida app-online APP_XXX',
+    offline_usage: '사용법: openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]',
+    offline_example: '예: openyida app-offline APP_XXX',
+    missing_app_type: '오류: appType 인수가 없습니다',
+    invalid_argument: '지원되지 않는 인수: {0}',
+    invalid_action: '지원되지 않는 앱 수명 주기 작업: {0}',
+    request_failed: '앱 수명 주기 작업 실패',
+    online_success: '앱이 활성화되었습니다',
+    offline_success: '앱이 비활성화되었습니다',
   },
   create_process: {
     title: 'Yida Process Form Creation',

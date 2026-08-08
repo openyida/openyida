@@ -21,6 +21,8 @@ module.exports = {
     cmd_corp_efficiency: '查詢企業效能概覽和明細報表',
     cmd_create_app: '建立宜搭應用程式',
     cmd_update_app: '更新應用程式資料',
+    cmd_app_online: '啟用宜搭應用程式',
+    cmd_app_offline: '停用宜搭應用程式',
     cmd_nav_group: '管理應用程式左側導航分組',
     cmd_app_permission: '管理應用主管理員、資料管理員和開發成員',
     cmd_i18n: '管理應用多語言文案和語言設定',
@@ -856,6 +858,18 @@ module.exports = {
     name_label: '  应用名称: {0}',
     failed: '  ❌ 更新失败: {0}',
     layout_notice: '提示：layoutDirection 由宜搭應用外殼在建立/重新整理時消費；若後台切換後頂部操作欄未立即恢復，請重新開啟工作台或使用目標 layout 重新建立應用。'
+  },
+  app_lifecycle: {
+    online_usage: '用法: openyida app-online <appType> [--to-ding-app-center] [--show-app-center]',
+    online_example: '範例: openyida app-online APP_XXX',
+    offline_usage: '用法: openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]',
+    offline_example: '範例: openyida app-offline APP_XXX',
+    missing_app_type: '錯誤: 缺少 appType 參數',
+    invalid_argument: '不支援的參數: {0}',
+    invalid_action: '不支援的應用生命週期操作: {0}',
+    request_failed: '應用生命週期操作失敗',
+    online_success: '應用已啟用',
+    offline_success: '應用已停用',
   },
   create_process: {
     title: '宜搭流程表单一体化创建',

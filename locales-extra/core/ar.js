@@ -21,6 +21,8 @@ module.exports = {
     cmd_corp_efficiency: 'استعلام عن نظرة عامة على كفاءة المؤسسة وتقارير التفاصيل',
     cmd_create_app: 'إنشاء تطبيق Yida',
     cmd_update_app: 'تحديث معلومات التطبيق',
+    cmd_app_online: 'تفعيل تطبيق Yida',
+    cmd_app_offline: 'تعطيل تطبيق Yida',
     cmd_nav_group: 'إدارة مجموعات التنقل الجانبية للتطبيق',
     cmd_app_permission: 'إدارة مسؤولي التطبيق الأساسيين والبيانات والتطوير',
     cmd_i18n: 'إدارة نصوص التطبيق متعددة اللغات وإعداداتها',
@@ -916,6 +918,18 @@ module.exports = {
     name_label: '  App name: {0}',
     failed: '  ❌ Update failed: {0}',
     layout_notice: 'Note: layoutDirection is consumed by the Yida app shell during creation/refresh. If the top action bar does not recover immediately after a backend switch, reopen the workbench or recreate the app with the target layout.'
+  },
+  app_lifecycle: {
+    online_usage: 'الاستخدام: openyida app-online <appType> [--to-ding-app-center] [--show-app-center]',
+    online_example: 'مثال: openyida app-online APP_XXX',
+    offline_usage: 'الاستخدام: openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]',
+    offline_example: 'مثال: openyida app-offline APP_XXX',
+    missing_app_type: 'خطأ: وسيطة appType مفقودة',
+    invalid_argument: 'وسيطة غير مدعومة: {0}',
+    invalid_action: 'إجراء دورة حياة تطبيق غير مدعوم: {0}',
+    request_failed: 'فشلت عملية دورة حياة التطبيق',
+    online_success: 'تم تفعيل التطبيق',
+    offline_success: 'تم تعطيل التطبيق',
   },
   create_process: {
     title: 'Yida Process Form Creation',

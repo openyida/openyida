@@ -220,6 +220,8 @@ describe('CLI offline smoke', () => {
     const cases = [
       { args: ['create-form', '--help'], text: 'create-form create' },
       { args: ['create-page', '--help'], text: 'create-page' },
+      { args: ['app-online', '--help'], text: 'openyida app-online' },
+      { args: ['app-offline', '--help'], text: 'openyida app-offline' },
       { args: ['sample', '--help'], text: 'Code Templates' },
       { args: ['publish', '--help'], text: 'openyida publish' },
     ];
@@ -421,6 +423,7 @@ describe('CLI offline smoke', () => {
       'formula.evaluate',
     ]));
     expect(parsed.summary.ask_command_ids).toEqual([
+      'app-offline',
       'connector.delete',
       'connector.delete-action',
     ]);
@@ -459,6 +462,8 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('login');
     expect(commands).toContain('org');
     expect(commands).toContain('corp-efficiency');
+    expect(commands).toContain('app-online');
+    expect(commands).toContain('app-offline');
     expect(commands).toContain('nav-group');
     expect(commands).toContain('create-form.create');
     expect(commands).toContain('create-form.patch');
@@ -509,6 +514,18 @@ describe('CLI offline smoke', () => {
     expect(parsed.commands.find(entry => entry.id === 'ai')).toMatchObject({
       usage: 'openyida ai <text|image> [options]',
       output: 'text|json',
+      requires_login: true,
+    });
+    expect(parsed.commands.find(entry => entry.id === 'app-online')).toMatchObject({
+      usage: 'openyida app-online <appType> [--to-ding-app-center] [--show-app-center]',
+      side_effect: { kind: 'remote_write', mutates_yida: true },
+      permission: { mode: 'allow', effect: 'write' },
+      requires_login: true,
+    });
+    expect(parsed.commands.find(entry => entry.id === 'app-offline')).toMatchObject({
+      usage: 'openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]',
+      side_effect: { kind: 'remote_write', mutates_yida: true },
+      permission: { mode: 'ask', effect: 'destructive' },
       requires_login: true,
     });
     expect(parsed.commands.find(entry => entry.id === 'integration.diagnose')).toMatchObject({
@@ -1158,6 +1175,7 @@ describe('CLI offline smoke', () => {
     ]));
     expect(parsed.commands.allow_command_ids).toContain('create-app');
     expect(parsed.commands.ask_command_ids).toEqual([
+      'app-offline',
       'connector.delete',
       'connector.delete-action',
     ]);

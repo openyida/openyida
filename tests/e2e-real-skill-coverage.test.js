@@ -51,4 +51,12 @@ describe('real E2E skill coverage matrix', () => {
       commands: ['configure-process'],
     });
   });
+
+  test('app lifecycle stays offline because it changes real app availability', () => {
+    expect(SKILL_COVERAGE['yida-app-lifecycle']).toMatchObject({
+      level: 'offline-unit',
+      tests: expect.arrayContaining(['tests/app-lifecycle.test.js']),
+      reason: expect.stringMatching(/availability|never run/i),
+    });
+  });
 });
