@@ -408,42 +408,82 @@ describe('run --all', () => {
 
   test('summary-json keeps batch stdout and index compact', async () => {
     const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-schemas-compact-'));
+    const canvasSource = 'export default function Page() { return React.createElement("div", null, "ok"); }';
+    const canvasRuntime = 'var YidaComp = function Page(){ return window.React.createElement("div", null, "ok"); };';
+    const nativeSource = 'export function renderJsx() { return React.createElement("div", null, "ok"); }';
+    const nativeCompiled = 'function renderJsx(){return React.createElement("div",null,"ok");}';
     fetchFormPageList.mockResolvedValue([
       { formUuid: 'FORM-A', formName: '客户信息', formType: 'form', pathName: 'customer' },
+      { formUuid: 'FORM-CANVAS', formName: 'Canvas 页', formType: 'display', pathName: 'canvas' },
+      { formUuid: 'FORM-NATIVE', formName: 'Native 页', formType: 'display', pathName: 'native' },
     ]);
-    utils.httpGet.mockResolvedValue({
-      success: true,
-      content: {
-        pages: [
-          {
-            componentsTree: [
-              {
-                componentName: 'FormContainer',
-                children: [
-                  {
-                    componentName: 'TextField',
-                    props: { fieldId: 'textField_name', label: '姓名' },
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    });
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          pages: [
+            {
+              componentsTree: [
+                {
+                  componentName: 'FormContainer',
+                  children: [
+                    {
+                      componentName: 'TextField',
+                      props: { fieldId: 'textField_name', label: '姓名' },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: buildCanvasPageSchemaContent(
+          canvasSource,
+          canvasRuntime,
+          '["react","antd"]',
+          'FORM-CANVAS'
+        ),
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: buildNativePageSchemaContent(nativeSource, nativeCompiled, 'FORM-NATIVE'),
+      });
 
     const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
-    await run(['APP_XXX', '--all', '--summary-json', '--output-dir', outputDir]);
+    await run(['APP_XXX', '--all', '--summary-json', '--output-dir', outputDir, '--concurrency', '1']);
 
     const index = JSON.parse(fs.readFileSync(path.join(outputDir, 'index.json'), 'utf-8'));
     expect(index[0]).toHaveProperty('fieldSummary');
     expect(index[0]).toHaveProperty('schemaFile');
     expect(index[0]).not.toHaveProperty('schema');
+    expect(index[0]).not.toHaveProperty('displayPage');
+    expect(index[1].displayPage).toMatchObject({
+      hasYidaCodeCanvas: true,
+      hasNativeJsx: false,
+      runtimeCodeBytes: Buffer.byteLength(canvasRuntime, 'utf8'),
+      sourceCodeBytes: Buffer.byteLength(canvasSource, 'utf8'),
+      importedModules: ['react', 'antd'],
+      componentCount: 1,
+    });
+    expect(index[2].displayPage).toMatchObject({
+      hasYidaCodeCanvas: false,
+      hasNativeJsx: true,
+      runtimeCodeBytes: 0,
+      sourceCodeBytes: Buffer.byteLength(nativeSource, 'utf8'),
+      compiledCodeBytes: Buffer.byteLength(nativeCompiled, 'utf8'),
+      importedModules: [],
+      componentCount: 1,
+    });
 
     const output = JSON.parse(mockLog.mock.calls[mockLog.mock.calls.length - 1][0]);
     expect(output.summaryOnly).toBe(true);
     expect(output.forms[0]).toHaveProperty('fieldSummary');
     expect(output.forms[0]).not.toHaveProperty('schema');
+    expect(output.forms[1].displayPage.hasYidaCodeCanvas).toBe(true);
+    expect(output.forms[2].displayPage.hasNativeJsx).toBe(true);
     mockLog.mockRestore();
   });
 });
