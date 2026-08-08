@@ -18,6 +18,8 @@ jest.mock('../lib/app/form-navigation', () => ({
 
 const utils = require('../lib/core/utils');
 const { fetchFormPageList } = require('../lib/app/form-navigation');
+const { buildCanvasPageSchemaContent } = require('../lib/app/services/canvas-page-schema-builder');
+const { buildNativePageSchemaContent } = require('../lib/app/services/native-page-schema-builder');
 const {
   extractFieldSummary,
   extractOptionSummary,
@@ -289,6 +291,57 @@ describe('buildSchemaSummary', () => {
     });
     expect(summary).not.toHaveProperty('content');
     expect(summary).not.toHaveProperty('pages');
+    expect(summary).not.toHaveProperty('displayPage');
+  });
+
+  test('adds Code Canvas display page signals without exposing schema content', () => {
+    const sourceCode = 'export default function Page() { return React.createElement("div", null, "ok"); }';
+    const runtimeCode = 'var YidaComp = function Page(){ return window.React.createElement("div", null, "ok"); };';
+    const summary = buildSchemaSummary('APP_XXX', 'FORM-CANVAS', {
+      content: buildCanvasPageSchemaContent(
+        sourceCode,
+        runtimeCode,
+        '["react","antd"]',
+        'FORM-CANVAS'
+      ),
+    });
+
+    expect(summary).toMatchObject({
+      success: true,
+      appType: 'APP_XXX',
+      formUuid: 'FORM-CANVAS',
+      fieldCount: 0,
+      fields: [],
+      displayPage: {
+        hasYidaCodeCanvas: true,
+        hasNativeJsx: false,
+        runtimeCodeBytes: Buffer.byteLength(runtimeCode, 'utf8'),
+        sourceCodeBytes: Buffer.byteLength(sourceCode, 'utf8'),
+        compiledCodeBytes: 0,
+        importedModules: ['react', 'antd'],
+        componentCount: 1,
+      },
+    });
+    expect(summary).not.toHaveProperty('content');
+    expect(summary).not.toHaveProperty('pages');
+  });
+
+  test('adds native custom page signals for legacy display pages', () => {
+    const sourceCode = 'export function renderJsx() { return React.createElement("div", null, "ok"); }';
+    const compiledCode = 'function renderJsx(){return React.createElement("div",null,"ok");}';
+    const summary = buildSchemaSummary('APP_XXX', 'FORM-NATIVE', {
+      content: buildNativePageSchemaContent(sourceCode, compiledCode, 'FORM-NATIVE'),
+    });
+
+    expect(summary.displayPage).toMatchObject({
+      hasYidaCodeCanvas: false,
+      hasNativeJsx: true,
+      runtimeCodeBytes: 0,
+      sourceCodeBytes: Buffer.byteLength(sourceCode, 'utf8'),
+      compiledCodeBytes: Buffer.byteLength(compiledCode, 'utf8'),
+      importedModules: [],
+      componentCount: 1,
+    });
   });
 });
 
