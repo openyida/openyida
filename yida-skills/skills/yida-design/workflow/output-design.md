@@ -1,6 +1,6 @@
 # 输出：design.md
 
-> Step 6 自检通过后，写入 `prd/<项目名>/design.md`。`design.md` 是应用级 UI 视觉设计系统，结构以本文件为准，并参考 `references/style-designs/_design-md-template.md` 的字段完整度：先记录 style-design 模板选择依据和主题换肤结果，再写可复用视觉 DNA、token、布局、组件、状态和自检，最后在“实现适配”里写清宜搭运行时主题契约。PRD 只写主题色和风格摘要，完整 UI 设计以本文件为准。
+> Step 6 自检通过后，写入 `prd/<项目名>/design.md`。`design.md` 是应用级 UI 视觉设计系统，结构以本文件为准，并参考 `references/style-designs/_design-md-template.md` 的字段完整度：先记录 style-design 模板选择依据和主题换肤结果，再写可复用视觉 DNA、token、布局、组件、状态和自检，最后写清页面技能交接摘要。PRD 只写主题色和风格摘要，完整 UI 设计以本文件为准。
 
 最终 `design.md` 的依据分四层：结构依据本文件和 `_design-md-template.md`；视觉 DNA、布局机制、组件机制和换肤规则依据选中的 `style-designs/*.md`；业务内容、页面区块、数据来源和操作路径依据当前 PRD；主题 token 依据 Step 2 的主题色来源和所选模板的 `theme_adaptation`。
 
@@ -57,9 +57,9 @@ themeAdaptationResult:
 yidaThemeRuntime:
   globalThemeInjection: <style#yida-global-theme / customThemeStyle.tokens / none>
   styleElementId: yida-global-theme
-  helperRef: yida-canvas-custom-page/references/theme-runtime-helpers.md
-  injectTargets: [currentDocument, sameOriginParentDocuments]
-  rootAttribute: data-yida-theme-root
+  themeScope: <app / page>
+  tokenSource: design.md tokens
+  parentShellExpectation: <follow-app-theme / page-level-theme / none>
 tokens:
   --color-brand1-1: <明亮品牌浅色或浅 hover 色>
   --color-brand1-2: <浅背景>
@@ -79,7 +79,7 @@ visual_dna:
     confidence: observed
     evidence: <参考或需求中可见的证据>
     rule: <生成新 UI 时必须如何保留它>
-    implementation_hooks: [<布局/组件/token/CSS/图表钩子>]
+    handoff_hooks: [<布局/组件/token/图表/状态交接点>]
     failure_mode: <缺失该 DNA 时会出现的风格漂移>
 colors:
   bg-outer: "#..."
@@ -189,7 +189,7 @@ inferred_modules:
 
 ## 6. 视觉 DNA / 设计母体
 
-从选中 style-design 模板和当前业务结构中提取 2-5 个内容替换后仍必须保留的设计记忆点。每个 DNA 必须包含名称、证据、规则、实现钩子、失败表现和置信度；证据必须同时说明业务触发条件和模板来源。
+从选中 style-design 模板和当前业务结构中提取 2-5 个内容替换后仍必须保留的设计记忆点。每个 DNA 必须包含名称、证据、规则、交接钩子、失败表现和置信度；证据必须同时说明业务触发条件和模板来源。
 
 ## 7. 色彩角色
 
@@ -229,9 +229,9 @@ inferred_modules:
 
 ### Background Layer Contract
 
-展示型页面、工作台、看板、门户、官网、登录页和空状态页推荐使用有层次的页面画布，而不是无氛围的纯空白背景。画布可以接近白色，但应通过淡渐变、细线装饰、星芒、高光、插图、顶部不规则色块或内容密度形成背景感。背景层写成可实现字段 `backgroundLayer`，优先选择 1-2 个背景 primitive：
+展示型页面、工作台、看板、门户、官网、登录页和空状态页推荐使用有层次的页面画布，而不是无氛围的纯空白背景。画布可以接近白色，但应通过淡渐变、细线装饰、星芒、高光、插图、顶部不规则色块或内容密度形成背景感。背景层写成可交接字段 `backgroundLayer`，优先选择 1-2 个背景 primitive：
 
-| primitive          | 适用场景                                   | 实现要求                                                                                             |
+| primitive          | 适用场景                                   | 设计要求                                                                                             |
 | ------------------ | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
 | `softTintCanvas`   | 工作台、列表、管理后台                     | 使用低饱和高明度底色，例如暖灰、浅青、浅粉、浅蓝紫，也可以是带弱渐变的近白画布；前景内容保持规则栅格 |
 | `topIrregularWash` | 官网、品牌页、主页面首屏、登录页、空状态页 | 顶部或首屏使用不规则色块、波浪、斜切、有机边界或轻装饰曲线；内容不跟随背景扭曲                       |
@@ -264,7 +264,7 @@ inferred_modules:
 
 覆盖顶部栏、按钮、图标按钮、卡片/面板、输入框/选择器、表格/列表、图表、标签/徽标、快捷入口、空状态、弹窗/浮层。相关组件要包含 default、hover、active、focus、disabled、loading、selected、error 等状态。图标规则写入 `iconSystem`：页面图标只使用 `lucide-react` 或 `@ant-design/icons`，默认使用 `lucide-react` named import；快捷入口、按钮、状态、导航和空态必须给出可实现的 `actionIconMap` / `statusIconMap` / `navigationIconMap` / `emptyStateIconMap`。emoji 不能改成 CSS 形状、字母占位、Unicode 符号或临时 SVG。
 
-组件默认密度和呼吸规则必须写到可实现数值：状态摘要 64-88px 高，动作条 40-56px 高，列表行 44-56px，高频按钮 36-40px，卡片 padding 默认 22-28px 且必须大于 20px，卡片和卡片的 gap 默认 12-18px 且必须小于 20px。空状态默认嵌在列表/面板内部，使用薄提示行、补录/刷新/新建动作和简短说明；不得用 160px 以上大白卡只显示“暂无数据”。
+组件默认密度和呼吸规则必须写到可交接数值：状态摘要 64-88px 高，动作条 40-56px 高，列表行 44-56px，高频按钮 36-40px，卡片 padding 默认 22-28px 且必须大于 20px，卡片和卡片的 gap 默认 12-18px 且必须小于 20px。空状态默认嵌在列表/面板内部，使用薄提示行、补录/刷新/新建动作和简短说明；不得用 160px 以上大白卡只显示“暂无数据”。
 
 ## 13. 快捷入口区域
 
@@ -296,45 +296,24 @@ inferred_modules:
 
 要求对比度、focus 状态、纯图标控件标签、非纯颜色状态表达、键盘可访问和 reduced motion。
 
-## 18. 实现适配
+## 18. 页面技能交接
 
-只包含相关适配，例如 CSS 变量、Ant Design ConfigProvider、Tailwind class 映射、Yida / Code Canvas 容器重置或 React 组件建议。宜搭主题必须写成可执行契约：
+只写页面技能需要消费的设计信息，不写 JSX、CSS、helper、import 方式或组件代码。主题关系必须写成清楚的交接摘要：
 
-### Yida Global Theme Runtime Contract
+### Yida Theme Handoff
 
-| 项目         | 规则                                                                                                                                                                         |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 平台预置主题 | 只有 `themePresetKey` 命中平台预置 key 且 `shouldPassCreateAppTheme=true` 时，`create-app/update-app` 才传 `theme/colour`                                                    |
-| 自定义色盘   | `shouldPassCreateAppTheme=false`，创建应用时不传 `theme/colour`                                                                                                              |
-| 页面注入     | 自定义色盘、隐藏导航沉浸页、页面级独立主题使用 `style#yida-global-theme`                                                                                                     |
-| 应用级换肤   | 需要全应用换肤时写 `customThemeStyle.tokens`，页面运行态统一注入 `style#yida-global-theme`                                                                                   |
-| 注入目标     | 当前窗口 `document` 和所有同源可访问父级窗口 `document`；跨域父级静默跳过                                                                                                    |
-| Helper       | Code Canvas 和普通 JSX 都复制 `yida-canvas-custom-page/references/theme-runtime-helpers.md`，使用其中的 `collectYidaThemeDocuments` 收集当前文档和同源父级文档，不要临场重写 |
-| 样式 ID      | 固定为 `yida-global-theme`，重复执行只更新同一个 style                                                                                                                       |
-| 根节点       | 页面根节点加 `data-yida-theme-root="true"`，让 token 在当前页和父级 iframe 壳层都能命中                                                                                      |
-
-### Code Canvas 实现要求
-
-- 复制 `theme-runtime-helpers.md` 的 Code Canvas Helper。
-- 在根组件中调用 `useYidaGlobalTheme(CUSTOM_THEME_TOKENS)`。
-- `CUSTOM_THEME_TOKENS` 必须来自本 design.md 的 `tokens`，不能临场另配。
-- 根节点写 `<div data-yida-theme-root className="...">`。
-- `backgroundLayer` 必须落到根节点背景、`::before` 顶部不规则色块或大面积光洗、`::after` 流光/纹理层；内容层使用相对定位和更高 `z-index`，保证背景不盖住操作区。
-- `surfaceContrast` 必须落到页面根背景和卡片/面板样式：白色/浅色背景配有边框卡片，浅灰或浅彩背景配白色无边框卡片，渐变背景配玻璃感卡片。
-- `flowLight` 动效必须写 `@media (prefers-reduced-motion: reduce)` 停止动画。
-- 页面图标使用 `lucide-react` 或 `@ant-design/icons` 的标准 import，默认从 `lucide-react` named import 具体组件；源码按 `iconSystem.actionIconMap` / `statusIconMap` / `navigationIconMap` / `emptyStateIconMap` 渲染图标。CSS 只能控制图标容器样式，不能绘制或替代图标本体。
-
-### 普通 JSX 实现要求
-
-- 复制 `theme-runtime-helpers.md` 的 Ordinary JSX Helper。
-- 在 `didMount` 或等价初始化中调用 `installYidaGlobalTheme(CUSTOM_THEME_TOKENS, window)`。
-- 普通 JSX 指非 Code Canvas 的自定义页面，发布后落到平台 `Jsx` 组件，不支持 `import/require`。
-- 普通 JSX 的图标来源仍只允许 `lucide-react` 或 `@ant-design/icons`，默认 `lucide-react`；但加载方式不是 import，而是已验证运行时脚本/global。emoji 报错时按 `iconSystem` 映射到这两类图标来源，不退成 CSS 图形、字母占位、Unicode 符号、iconfont 或临时 SVG。
-- 使用 ES5 写法，避免普通 JSX 编译链不支持的语法；若当前普通 JSX 链路无法稳定加载图标库，必须回到实现链路选择，优先切到 Code Canvas，而不是绕过图标规范。
+| 项目 | 规则 |
+| --- | --- |
+| 平台预置主题 | 只有 `themePresetKey` 命中平台预置 key 且 `shouldPassCreateAppTheme=true` 时，`create-app/update-app` 才传 `theme/colour` |
+| 自定义色盘 | `shouldPassCreateAppTheme=false`，创建应用时不传 `theme/colour` |
+| 主题作用域 | `themeScope=app` 表示应用级换肤；`themeScope=page` 表示单页独立色盘 |
+| token 来源 | 页面技能只从本 `design.md` 的 `tokens` 和 `themeProfile` 取值，不临场另配 |
+| 壳层关系 | 写清页面跟随应用主题、页面级独立主题或无运行时主题需求 |
+| 交接边界 | 具体注入方式、组件代码、样式代码和发布链路由页面技能负责 |
 
 ## 19. 必须包含
 
-列出硬性正向要求。每个视觉 DNA 都必须作为明确必选规则出现。必须包含 `styleDesignSelection`、`themeAdaptationResult` 和 `baseDesignSource`。若 `globalThemeInjection` 不是 `none`，必须包含 `style#yida-global-theme` / `customThemeStyle.tokens` 的落地规则。
+列出硬性正向要求。每个视觉 DNA 都必须作为明确必选规则出现。必须包含 `styleDesignSelection`、`themeAdaptationResult` 和 `baseDesignSource`。若 `globalThemeInjection` 不是 `none`，必须写清主题作用域、token 来源和壳层关系。
 
 ## 20. 禁止项
 
@@ -348,13 +327,13 @@ inferred_modules:
 | ------------------------------------ | ---------------------------------------------------------------------- |
 | 看到绿色业务就选 `teal-rail`         | 先推演用户任务、信息拓扑和 requiredVisualDNA，再选模板；绿色只用于换肤 |
 | 为了套时间轴模板新增不存在的阶段模块 | PRD 没有阶段/里程碑时拒绝时间轴模板                                    |
-| 自定义色盘仍传 `--theme myBrand`     | 不传应用 theme，在页面复制 helper 注入 `style#yida-global-theme`       |
-| 只在当前 iframe 写 style             | 同步当前文档和同源父级窗口文档                                         |
+| 自定义色盘仍传 `--theme myBrand`     | 不传应用 theme，把自定义色盘写入 `themeProfile` 和 `tokens`            |
+| 主题作用域不清                       | 明确 `themeScope=app/page`，并说明页面跟随应用主题还是单页独立色盘     |
 | PRD 里复制完整视觉规则               | PRD 只写摘要，完整 UI 规则写 design.md                                 |
 
 ## 22. Agent 使用提示
 
-提供一段简洁提示词，明确告诉 AI 如何使用该 design.md。必须说明选中 style-design 只是设计母体，最终事实源是当前项目 `design.md`；视觉 DNA 在内容替换后也要保留；实现自定义色盘时必须读取 `yida-canvas-custom-page/references/theme-runtime-helpers.md` 并复制对应 helper。
+提供一段简洁提示词，明确告诉 AI 如何使用该 design.md。必须说明选中 style-design 只是设计母体，最终事实源是当前项目 `design.md`；视觉 DNA 在内容替换后也要保留；页面技能根据自身链路选择实现指南，不从 `yida-design` 补写源码细节。
 
 ## 23. 交付自检清单
 
@@ -365,7 +344,7 @@ inferred_modules:
 - [ ] 主题色遵守“换 hue，不换 DNA；换 token，不换结构”。
 - [ ] 源图或参考业务内容已抽象为中性槽位。
 - [ ] 文档识别了 2-5 个视觉 DNA / 设计母体。
-- [ ] 每个 DNA 都包含证据、规则、实现钩子、失败表现和置信度。
+- [ ] 每个 DNA 都包含证据、规则、交接钩子、失败表现和置信度。
 - [ ] DNA 已同步进入必须包含、禁止项、错误 vs 正确、Agent 使用提示和最终自检。
 - [ ] 若页面类型是工作台、仪表盘、管理后台或运营首页，文档已包含快捷入口区域。
 - [ ] 可推断的 token 已给出具体值。
@@ -380,12 +359,12 @@ inferred_modules:
 - [ ] `surfaceContrast` 已说明页面背景与卡片背景的明确层次搭配，不存在相近或相同背景。
 - [ ] 若使用 `topIrregularWash`、`flowLight` 或 `organicNoise`，已写清对比度、内容栅格和 reduced motion 静态降级。
 - [ ] 自定义色盘没有传给 `create-app/update-app --theme`。
-- [ ] 需要运行时主题时，已声明复制 `theme-runtime-helpers.md`，并覆盖当前窗口与同源父级窗口。
+- [ ] 需要运行时主题时，已写清主题作用域、token 来源和壳层关系。
 - [ ] 不依赖原截图，也能指导生成一个新页面。
 ```
 
-## 交给实现阶段
+## 交给页面技能
 
 - `yida-app` 读取 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md` 后创建或复用资源。
-- 页面实现阶段读取 `prd.md` 的业务内容，并直接读取 `design.md` 的视觉 DNA、token、布局、组件、状态和 `Yida Global Theme Runtime Contract`。
+- 页面技能读取 `prd.md` 的业务内容，并直接读取 `design.md` 的视觉 DNA、token、布局、组件、状态和 `Yida Theme Handoff`。
 - 只有走页面生成器或需要稳定交接时才派生 `page-spec.json`，并标记 `sourceOfTruth.prdFile/designFile`。`page-spec.json` 不复制完整 design.md，只保存与 design.md 一致的主题摘要和引用。

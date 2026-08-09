@@ -1,6 +1,6 @@
 # Code Canvas 数据桥
 
-Code Canvas 运行时提供 React 函数组件上下文；`YidaComp` 内没有普通页面实例 `this`。读写宜搭表单数据时，发布层必须在外层普通自定义页面 `didMount` 中把 `this.utils.yida.*` 注册成 `window.__OPENYIDA_YIDA_API__`，Canvas 组件只消费这个 window 桥。连接器代理和自定义同源接口仍用 HTTP 数据桥。
+Code Canvas 运行时提供 React 函数组件上下文；`YidaComp` 内没有普通页面实例 `this`。读写宜搭表单数据时，发布层必须在外层普通自定义页面 `didMount` 中把 `this.utils.yida.*` 注册成 `window.__OPENYIDA_YIDA_API__`，Canvas 组件调用这个 window 桥。连接器代理和自定义同源接口仍用 HTTP 数据桥。
 
 ## 三条数据路径，先选对
 

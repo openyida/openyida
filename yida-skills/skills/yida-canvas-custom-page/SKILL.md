@@ -9,7 +9,7 @@ description: 宜搭 Code Canvas / 代码画布自定义页面开发规范，是�
 
 Code Canvas 是宜搭的代码画布自定义页面链路：用户写标准 React18 函数组件源码，OpenYida 本地编译为 `runtimeCode` + `importedModules`，运行时由 `YidaCodeCanvas` 加载前端资源并执行 `YidaComp`。
 
-UI 和产品设计输入来自 `yida-design` 输出的 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md`，或单页 PRD 章节 + design spec。本技能负责把 PRD 的页面场景、区块、交互、数据绑定和功能契约，以及 design.md 的主题色、视觉 DNA、布局、材质、圆角、密度、呼吸感、组件和状态规则落到 `.canvas.jsx` / `.canvas.tsx`、antd token、CSS 变量、数据桥、表单入口和发布验收。
+页面设计输入来自 `yida-design` 输出的 `prd.md` 和 `design.md`。本技能只负责把这两份文件落到 `.canvas.jsx` / `.canvas.tsx`、数据桥、表单入口和发布验收。
 
 相较普通 `.oyd.jsx` 自定义页，Code Canvas 更适合：
 
@@ -37,7 +37,7 @@ UI 和产品设计输入来自 `yida-design` 输出的 `prd/<项目名>/prd.md` 
 
 | 需求 | 推荐做法 |
 | --- | --- |
-| 官网、看板、工作台、列表、详情、门户壳 | 同时读取 `yida-design` 的 PRD 与 design.md；生成器路径再读取派生 `page-spec.json`，按页面场景实现 `.canvas.jsx` |
+| 官网、看板、工作台、列表、详情、门户壳 | 读取 `yida-design` 产物；生成器路径再读取派生 `page-spec.json`，实现 `.canvas.jsx` |
 | 需要开放 API / 连接器读写数据 | 使用本技能，在 `YidaComp` 内自建 HTTP 数据桥 |
 | 需要门户 topBanner / quickEntry / 数据卡片 | 使用本技能，按“门户组件桥”接入，必要时 fallback 自绘 |
 | 需要成员、部门、附件上传、图片上传 | 使用本技能，按“宜搭组件桥”接入并归一化值 |
@@ -84,7 +84,7 @@ UI 和产品设计输入来自 `yida-design` 输出的 `prd/<项目名>/prd.md` 
 5. **使用 Canvas 函数组件契约**：Canvas 代码写 `YidaComp` React 函数组件；数据、生命周期和渲染都通过 hooks、props、外层 yida JS-API 桥或连接器完成。组件内部不能直接写 `this.utils.yida.*`；需要 `renderJsx()`、`didMount()`、`this.forceUpdate()`、`this.dataSourceMap` 或字段双向绑定时切到 `yida-custom-page`。
 6. **副作用清理**：`useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
 7. **交互控件必须受控且真正驱动数据**：筛选 `Select`、搜索 `Input`/`Input.Search`、周期切换、`Tabs`/`Segmented`、批量/重置 `Button` 等控件都用 `useState` 建立受控状态，绑定 `onChange`/`onClick`，并让 `Table`/列表/卡片的数据源通过 `useMemo` 按状态派生后渲染。切换筛选后若当前选中项失效，回退选中态（如 `selected < filteredRows.length ? selected : 0`）。
-8. **视觉壳层必须消费 design.md**：工作台、门户、看板、首页、展示页和真实交付页写 Canvas 源码前，先从 `design.md` 抽取 `backgroundLayer`、`visualScaffold.rootShell`、`surfaceMap`、`componentRecipe`、`roundedRule`、`densityRule`、`breathingRule`、`themeProfile` 和 `yidaThemeRuntime`。若 `design.md` 声明 `backgroundLayer`，源码完成标准是：页面根节点带 `data-yida-theme-root="true"`；根节点或注入 CSS 承载背景层；背景 primitive 落到根节点、`::before`、`::after` 或等价背景层；内容层使用相对定位和更高 `z-index`；antd 页面包 `ConfigProvider`，并使用 `readBrandColor`、`getPopupContainer` 和控件 reset CSS 让主题、焦点和浮层生效。若 `design.md` 声明圆润高密和呼吸感规则，源码必须同步到 antd `borderRadius`、CSS `border-radius`、页面 padding/gap、区块间距、列表行高、状态摘要高度、空态高度和内容安全内距，并保证卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px。
+8. **视觉壳层必须消费 design.md**：工作台、门户、看板、首页、展示页和真实交付页写 Canvas 源码前，先读取 `design.md` 的 `designRefs` 和相关章节。具体 Canvas 样式落地规则见 `canvas-style-implementation-guide.md`。
 9. **表单数据读取必须使用 dataBinding 契约和 yida JS-API 桥**：完整应用、工作台、列表、看板、详情等真实交付页只要本轮已经创建或解析业务表单，先写入 `dataBinding.mode="form"`、真实 `appType/formUuid` 和字段 ID，再用本地 `useYidaData(binding)` / `DataBridge` 读取。发布层必须在外层页面 `didMount` 注册 `window.__OPENYIDA_YIDA_API__`，Canvas 内部默认调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；只有桥不可用时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。页面不能使用 `/query/form/searchFormDatas.json`，也不能只写前端 seedRows 后声称已接真实数据。
 
 ### 重要规则（IMPORTANT）
@@ -93,14 +93,14 @@ UI 和产品设计输入来自 `yida-design` 输出的 `prd/<项目名>/prd.md` 
 2. **组件增强可降级**：门户、成员、部门、上传组件都做 feature detect 和 fallback；组件缺失时页面仍展示 Canvas 自绘基线。
 3. **值先归一化**：成员、部门、文件的原始返回值保留到 `raw` 用于检查，业务 payload 使用统一结构。
 4. **UI 改造保持功能契约**：页面美感提升、页面重构和局部美化只调整颜色、布局、密度、间距、视觉层级、素材和图标表达；已有数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限和业务状态按原链路保留。
-5. **主题实现消费设计结果**：`themeProfile`、`themeScope`、`themeColorSource` 来自 `yida-design` 的 `design.md`，业务场景和页面边界来自 `prd.md` 或派生 `page-spec.json`；真实业务页、页面重构和局部美化以当前应用主题色为基准，并读取对应 `--color-brand1-*` 与 `--color-group`。独立品牌/活动页、隐藏导航沉浸页和用户明确要求完全不同风格的页面，使用页面级固定主题（`followRuntimeTheme: false` 或等价 CSS 变量）。需要自定义色盘时复制 `references/theme-runtime-helpers.md` 的 Code Canvas helper，向当前文档、同源可访问父级 iframe 文档，以及 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 文档注入 `style#yida-global-theme`。
+5. **主题实现消费设计结果**：主题来源只读 `design.md`；本技能负责把主题落到 Canvas 页面。需要自定义色盘时复制 `references/theme-runtime-helpers.md` 的 Code Canvas helper，向当前文档、同源可访问父级 iframe 文档，以及 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 文档注入 `style#yida-global-theme`。
 6. **先验证再扩展业务**：原生组件、上传、组织搜索、弹层类能力先做 smoke 页面，确认 PC/移动端都可用后再进入复杂业务页面。
 7. **生成骨架占位符必须可直发**：Canvas 可编译骨架同时支持生成器替换变量和原样发布。JSON 占位符用 `parseTemplateJson(raw, fallback)`，展示文案占位符用 `withFallback` / `applyPageFallbacks` 兜底，未替换时页面继续可运行，并显示业务化 fallback 文案。
 8. **light 页面使用清爽业务色**：业务列表、协同表、数据管理页、工作台和门户默认使用 light 模式；主操作、选中态、筛选焦点和批量操作使用品牌色，边框用浅色品牌混合。用户明确要求暗色大屏/夜间模式/高对比风格时使用深色主视觉。
 9. **门户运行态组件要补必需 props 和局部降级**：`QuickAccessCard` / `RecentlyUsedCard` 传 `theme="row-white"` 等必需 props；所有门户/字段/上传增强组件外层加局部 ErrorBoundary，单个组件不兼容时只降级该块，整页保持可用。
 10. **自定义主题写入页面作用域**：`--theme` 只接受平台预置 key；不要把任意色值或自定义主题名传给 create-app。PRD 指定非预置主题（例如活力橙、深玫红、自定义暗黑金）时，在 Canvas 源码中注入 `style#yida-global-theme` 或等价 scoped CSS vars，并在根节点设置 `data-theme-scope="page"`。注入代码复制 `references/theme-runtime-helpers.md`，不能只写当前页面 `document.head`。
 11. **真实交付使用真实数据源**：完整应用或真实交付页只要需要列表、看板、详情记录，并且本轮已经创建/解析业务表单，就在 `page-spec.json` 写入 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射，让页面从表单读取。完整应用默认在页面实现前通过 `yida-data-management` 写入 1-3 条业务化 demo records；Canvas 页面读取这些真实表单记录，不使用前端 seedRows 冒充。真实数据暂未接入或 seed records 写入失败时展示空态、表单入口、刷新/登记按钮。
-12. **PRD + design.md 进入实现输入**：完整应用和真实交付页在写页面前，先消费 `yida-design` 的 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md`。PRD 提供产品定位、页面场景、页面区块、数据来源、`functionContract`、素材/图标策略、原生表单入口、页面实现交付顺序、业务化自检、应用主题色和风格摘要；design.md 提供完整 UI 设计，包括 `themeProfile`、tokens、视觉 DNA、`visualScaffold`、材质、组件、圆角、密度、呼吸感和状态规则。两者是唯一设计事实源；`page-spec.json` 只能作为派生 handoff，不得覆盖或改写 PRD/design.md，也不得复制完整 UI 设计规则。
+12. **PRD + design.md 进入实现输入**：完整应用和真实交付页写页面前，先读取 `yida-design` 输出的 `prd.md` 和 `design.md`，再实现页面结构、数据绑定和样式。`page-spec.json` 只能作为派生 handoff，不得覆盖或改写 PRD/design.md。
 13. **页面实现二选一**：结构化实现路径先从 `prd.md + design.md` 派生 `page-spec.json`，写入 `sourceOfTruth.prdFile/designFile/designRefs/conflictPolicy`，生成可编译骨架后读取 CLI 摘要或 `.openyida-page.json` 判断业务化程度和 dataBinding。业务或视觉事实源缺失时先回写 `prd.md` / `design.md` 并重生成 spec；只有 className、布局比例、字段映射、响应式、状态渲染或编译错误等实现偏差才对生成源码做小范围 Edit/patch。手写路径直接 Write 最终 `.canvas.jsx` 并快检/发布。
 14. **实现骨架消费业务 spec**：品牌名、行业词、导航、指标、卡片标题、图片 alt、CTA、色彩 profile 和 section 说明来自当前业务 spec。若 CLI 报业务内容不足，补齐/改写 spec 或 patch 源码后重新生成/编译。
 15. **Canvas 产物使用纯文本业务文案**：`.canvas.jsx` 源码、`page-spec.json` 中会渲染到页面的文案、JS 注释、数据常量和产物文件路径都使用无 emoji 文本。页面生成、`compileCanvasLocal` 或 `publish` 报 emoji 错误时，先改 spec/源码/路径，再重新校验发布。若 emoji 原本承担图标含义，必须按 `design.md.iconSystem` 改成 `lucide-react` 或 `@ant-design/icons` 的具体组件，默认 `lucide-react`；不得用 CSS 绘制图形、单字母、首字母、标点符号、Unicode 符号或临时 SVG 冒充图标。

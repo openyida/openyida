@@ -103,7 +103,7 @@ Divider > Field
 - 普通业务分组：`Divider` 标题跟随应用主题，下面直接接字段或 `ColumnContainer`
 - 默认 `Divider` 不写颜色属性，或保持 `colorType: "theme"`
 - 表单 JS 必须默认注入 `style#yida-global-theme`，让提交页自身、表单内部、同源父窗口和 `window.top` 都尽量获得同一套主题 token；详情页 CSS 也写在同一段表单 JS 中，但只在 formDetail 页面条件注入；跨域窗口只跳过，不报错
-- 新表单页默认消费`podBlue`、`podGreen`、`podOrange` 等应用主题对应 token；`blue`、`green`、`orange` 作为应用主题 token profile 保留原名。本技能只消费注入后的变量，不把 legacy 名称当作表单 `--theme` 或应用 `--theme` 参数
+- 新表单页默认读取 `podBlue`、`podGreen`、`podOrange` 等应用主题对应 token；`blue`、`green`、`orange` 作为应用主题 token profile 保留原名。表单实现使用注入后的变量，不把 legacy 名称当作表单 `--theme` 或应用 `--theme` 参数
 - 局部多列容器：保持背景克制，避免给每个列容器单独上色
 - 流程表单：更偏单列和清晰分段，颜色只用于章节识别，不要做大面积品牌色块
 - 自定义色：只有用户明确说“红色警示”“绿色成功态”“品牌色 #xxx”时才写 `colorType: "custom"` 和具体色值

@@ -1,6 +1,6 @@
 ---
 name: yida-create-app
-description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用户意图允许新建时使用。
+description: 创建宜搭应用并返回 appType。仅在没有目标 app 且允许新建时使用。不是完整应用入口。
 ---
 
 # 创建应用
@@ -28,15 +28,14 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 ## 严格要求 (MUST DO)
 
 - 创建成功后，将 appType 记录到 `.cache/<项目名>-schema.json`
-- 创建成功后，把真实 `appType` 交给 `yida-design` 生成或更新 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`；后续表单、流程、页面和发布都按 PRD 执行业务，按 design.md 执行视觉。
+- 创建成功后，把真实 `appType` 写入 `.cache/<项目名>-schema.json`，并交给当前编排步骤继续使用。
 - 创建前确认当前登录的组织（corpId）与目标组织一致
 - **本技能不读写 memory**：appType 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
 ## 适用场景
 
 用户说"只创建应用壳"、"新建应用并返回 appType"，且 resource context 没有目标 app 时使用此技能。
-创建应用后，先用 `yida-design` 产出或更新 PRD，再继续执行：创建/更新表单（`yida-create-form-page`）→ 创建或复用页面（`yida-create-page` / existing page）→ 发布页面（`yida-publish-page`）。
-后续如果需要自定义页面，默认走 Code Canvas 链路：源码写到 `project/pages/src/<页面名>.canvas.jsx`，通过 Canvas 编译链路发布。用户明确要求普通自定义页面 JSX/Jsx 组件链路，或页面强依赖普通自定义页实例桥（`this.$(fieldId)`、`this.utils.yida.*`、`this.dataSourceMap`、表单提交或字段双向绑定深度耦合）时，选择 `.oyd.jsx` / `.jsx` 并执行 `openyida check-page` / `openyida compile`。
+完整应用场景下，本技能只返回真实 `appType`；后续步骤由 `yida-app` 阶段表继续编排。
 
 ---
 
@@ -60,7 +59,7 @@ openyida create-app <appName> [description] [icon] [iconColor] [colour] [navThem
 
 ## 创建应用壳层兜底
 
-如果用户只说“创建一个律所/茶叶官网/数据大屏应用”，不要直接使用通用默认壳。先由 `yida-design` 根据行业、品牌、业务情绪和视觉目标做创意色彩判断，再决定是否适合平台预置主题 key；禁止把行业词直接映射成固定颜色，例如“科技=蓝、宠物=橙、法律=蓝”。完整应用主题 key 只查 `yida-design/references/theme/theme-token-presets.md`。只有 PRD 明确 `themePresetKey` 命中平台预置 key 时，才把该 key 作为 `colour/theme` 传给创建命令；否则不传主题，由页面或全局 token 注入落地。
+完整应用的主题结论由 `yida-design` 产出。本技能读取 PRD 中的 `shouldPassCreateAppTheme` 和 `themePresetKey`：命中平台预置 key 才传 `colour/theme`，否则不传主题。
 
 | 场景语义 | CLI 壳层 fallback 主题（非设计结论） | create-app 壳层 fallback | 创建后的首屏页面 |
 |------|------|------|------|
@@ -74,11 +73,7 @@ CLI 已内置上述行业推断作为创建壳层的兜底能力，不代表 `yi
 
 **应用主题（colour）口径**：
 
-默认不要把黑色、深灰或灰黑中性色作为普通应用主题色。创建业务系统、工作台、门户、数据管理类应用时，先根据行业、品牌、业务情绪和视觉目标做创意色彩判断；`podBlue`、`podGreen`、`podOrange` 只是常用浅底候选，不是固定默认，也不是行业刻板答案。`black` 仅在用户明确要求暗色模式、高对比、奢侈品牌或极简黑色视觉时使用，`greyBlue` 也只在工业制造、技术工程等稳重场景下作为 fallback。
-
-这里的 `colour` / `--theme` 只能选平台预置 key；不能填 AI 自己设计的任意主题名或色值。`blue`、`green`、`orange` 作为应用主题 token profile 保留原名；新应用如果采用自定义色盘，创建应用时不要显式传 `theme/colour`，页面实现必须注入 `style#yida-global-theme` 或等价 scoped CSS vars。
-
-完整应用主题 key、颜色倾向和 token 变量统一维护在 `yida-design/references/theme/theme-token-presets.md`，本技能不重复维护完整清单。
+`colour` / `--theme` 只能传宜搭平台预置 key，不能传自定义色值或 AI 自造主题名。完整主题判断和 token 变量查看 `yida-design`，本技能只负责把已确认的平台预置 key 传给创建命令。
 
 ## 输出
 

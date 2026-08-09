@@ -39,7 +39,7 @@
 - 3-5 条业务专属设计原则：结合业务对象和用户任务写具体规则。
 - 差异化 5 维：色彩、构图、密度、组件语言、动线；这些规则必须来自业务推演和所选模板视觉 DNA 的融合。
 - 基础版式：全应用视觉锚点、区块节奏、密度、操作位置和响应式规则。
-- `visualScaffold`：给所有页面实现使用的硬骨架，写清 `layoutRecipe`、`surfaceMap`、`sectionRhythm`、`densityRule`、`breathingRule`、`componentRecipe`、`emptyStateRecipe`、`responsiveSlots` 和 `acceptanceChecks`。这些字段属于 `design.md`，PRD 只引用。
+- `visualScaffold`：给页面技能消费的结构骨架，写清 `layoutRecipe`、`surfaceMap`、`sectionRhythm`、`densityRule`、`breathingRule`、`componentRecipe`、`emptyStateRecipe`、`responsiveSlots` 和 `acceptanceChecks`。这些字段属于 `design.md`，PRD 只引用。
 - 默认业务工具页采用圆润高密且有呼吸感的规则：卡片 padding 默认 22-28px 且必须大于 20px，卡片与卡片的 gap 默认 12-18px 且必须小于 20px，卡片圆角范围 0-32px，控件 10-14px；状态摘要 64-88px，动作条 40-56px，列表行 44-56px，空态 88-120px 内。官网、品牌页或用户明确要求舒展时才放宽。
 
 `visualScaffold` 的最低要求：
@@ -51,13 +51,13 @@
 - `breathingRule` 写清主区/右栏/工具条/列表之间的呼吸节奏、组内内距、贴边修正和内容不足时的压缩/补充策略。
 - `roundedRule` 写清业务面板、主面板、控件、标签、抽屉和弹层圆角；卡片圆角必须在 0-32px 范围内。
 - `componentRecipe` 写清按钮、入口、标签、列表、图表和空态的具体形态。
-- 源码槽位写清 `rootShell`、`prioritySurface`、`statusPrimitive`、`actionPrimitive`、`contentPrimitive`、`contextPrimitive`、`statePrimitive` 和 `responsiveRule`。
+- 页面结构槽位写清 `rootShell`、`prioritySurface`、`statusPrimitive`、`actionPrimitive`、`contentPrimitive`、`contextPrimitive`、`statePrimitive` 和 `responsiveRule`。
 - 视觉层次写清 `backgroundLayer`、`surfaceMaterial`、`surfaceContrast`、`colorRoles` 和 `depthRule`；需要玻璃感时，明确半透明表面、`backdrop-filter`、细边框、柔和阴影和背景层。
 - `backgroundLayer` 写清基础画布和推荐装饰方式，可选 `softTintCanvas`、`topIrregularWash`、`radialGlowWash`、`flowLight` 或 `organicNoise`。工作台、看板、门户、官网、登录页和空状态页推荐使用非纯空白的画布；如果选择近白画布，要说明渐变、细线、星芒、插图、局部光影或内容密度如何形成背景感。
 - `surfaceContrast` 写清页面背景与卡片背景的层次搭配：白色/浅色背景配有边框卡片，浅灰背景（如 `#F3F4F6`）配白色无边框卡片，浅彩色背景配白色无边框卡片，渐变背景配玻璃感卡片；禁止背景和卡片相近或相同。
 - 不规则背景只作用于页面壳、顶部首屏、功能引导卡或空状态安全区；内容布局继续使用规则栅格、稳定分栏和清晰对齐，做到“背景自由、内容严谨”。
 - `flowLight`、流动线条或光影动效必须低饱和、低对比、低速，并写 `prefers-reduced-motion` 静态降级；禁止离散装饰圆球、bokeh 或干扰文字阅读的背景动效。
-- 这些字段要能直接指导实现，而不是形容词；实现者应能按 `design.md` 写出根容器、分栏、背景层、表面材质、按钮状态和空态。
+- 这些字段要能让页面技能判断布局、背景、表面、组件状态和空态，而不是停留在形容词；不要在本技能里写 JSX、CSS 或 helper 用法。
 - `acceptanceChecks` 至少包含：10+ `contentBlocks`、KPI/快捷入口子项不计数、首屏至少两层信息、没有大空白卡、主色跟随应用主题、背景或装饰层不干扰前景对比度。
 
 ## 3. 写组件和状态规则

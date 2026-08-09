@@ -25,7 +25,7 @@ description: 确定性解析表单字段 ID（fieldId）和子表路径；agent 
 - 页面开发默认使用 compact 输出，只读取必要字段契约，不内联完整 Schema
 - 完整应用页面、看板、列表或详情页需要一个表单的大部分字段，或需要跨多个表单建立 `dataBinding` 时，优先对每个表单执行一次 `openyida get-schema <appType> <formUuid> --field-map-json`，消费完整 JSON 后解析所需字段，不用 shell 截断 stdout
 - 多表单场景同一阶段同一 `formUuid` 默认最多拉取一次字段映射；把 `appType`、`formUuid`、`fieldId`、`label`、`componentName`、`options` 等合并写入 `<projectRoot>/.cache/<项目名>-schema.json`，后续 `page-spec.json` 和源码复用该本地 ID 映射
-- 执行 compact 查询后，只消费唯一命中的 `fields[]`；`missingFields` 或 `ambiguousFields` 非空时停止，不得猜测或继续写操作
+- 执行 compact 查询后，只读取唯一命中的 `fields[]`；`missingFields` 或 `ambiguousFields` 非空时停止，不得猜测或继续写操作
 - 只有用户明确需要完整组件 props、布局结构、字段数据源配置，或 compact/summary 无法排障时，才执行不带 `--compact`/`--summary-json` 的完整 Schema 输出；拿到完整 Schema 后只读取必要片段，不内联完整 Schema
 - 已有 `<projectRoot>/.cache/<项目名>-schema.json` 等本地 ID 映射文件可显式复用；目标字段缺失、重名、结构已变或无法确认新鲜度时，必须重新执行 compact 查询
 - 如需保存关键字段 ID 映射，使用结构化文件写入工具；这是 agent 管理的本地工件，不是 OpenYida CLI 自动缓存

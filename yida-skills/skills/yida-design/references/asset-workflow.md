@@ -1,7 +1,7 @@
 # 素材工作流：官网 / 品牌页的真实图片如何落地
 
 > 官网、品牌首页、活动落地页需要**大 Hero 图和真实产品/场景图**才好看。但绝不能编造图片 URL。
-> 本文档告诉本地智能体（Claude / 悟空等）：**怎么拿到真实图片、怎么校验、怎么回填进页面**，以及拿不到时怎么诚实标注草稿。
+> 本文档告诉本地智能体（Claude / 悟空等）：**怎么拿到真实图片、怎么校验、怎么交给页面技能**，以及拿不到时怎么诚实标注草稿。
 
 ---
 
@@ -32,8 +32,8 @@
 ├───────────────────────────────────────────────┤
 │ Step 3  写进 spec.assets（heroImage/productImages）│
 ├───────────────────────────────────────────────┤
-│ Step 4  页面实现时回填 + 定级：                  │
-│   校验素材并写回 spec / 页面源码                  │
+│ Step 4  页面技能消费 + 定级：                    │
+│   校验素材并写入素材交接信息                      │
 │   （有 CDN 时转存稳定 URL）                       │
 └───────────────────────────────────────────────┘
         │
@@ -52,10 +52,10 @@ materialStatus = final | draft | none
 |---|---|---|
 | `openyida asset status` | 检测 CDN 是否配置、能否上传、推荐素材策略 | `--online`（若走线上实例）`--json` |
 | `openyida asset verify-url <url>` | 校验单个图片 URL 真实可达且为图片 | `--min-bytes` `--timeout` `--json`；任一失败退出码 1 |
-| `openyida asset resolve` | 解析 hero/product 候选 → 校验外链 / 上传本地 → 回填并定级 | `--hero <url\|path>` `--product <url\|path>`（可重复）`--require-hero` `--upload`(需 CDN) `--offline` `--json`；`materialStatus!=final` 退出码 2 |
+| `openyida asset resolve` | 解析 hero/product 候选 → 校验外链 / 上传本地 → 输出素材交接结果 | `--hero <url\|path>` `--product <url\|path>`（可重复）`--require-hero` `--upload`(需 CDN) `--offline` `--json`；`materialStatus!=final` 退出码 2 |
 | `openyida asset generate` | 输出素材来源引导（免费库清单 + 纪律），检测生成能力 | `--json` |
 
-> 页面实现阶段复用同一套回填口径：先校验候选素材，能上传 CDN 时转存稳定 URL，离线展示只做非网络的轻量定级。
+> 页面技能复用同一套回填口径：先校验候选素材，能上传 CDN 时转存稳定 URL，离线展示只做非网络的轻量定级。
 
 ---
 
@@ -104,9 +104,9 @@ openyida asset resolve --offline --require-hero --json                  # 官网
 
 ## 离线展示的无 CDN 方案
 
-离线展示应用没有 CDN、但需要保证源码原样发布后图片稳定时，可内嵌压缩后的 JPEG/WebP data URI：
+离线展示应用没有 CDN、但需要保证页面发布后图片稳定时，可让页面技能按受控体积使用压缩后的 JPEG/WebP data URI：
 
 - 建议 3-5 张关键图，长边约 1600-2000 px、质量 70-82。
 - 单张尽量不超过 250 KB，图片总量尽量不超过 800 KB。
-- 发布前检查源码与 `runtimeCode` 体积，接受 CLI 的大文件提示但不能超过宜搭 Schema 可稳定发布的范围。
+- 发布前由页面技能检查页面体积，接受 CLI 的大文件提示但不能超过宜搭 Schema 可稳定发布的范围。
 - 生产项目应迁移到 CDN；禁止把 data URI 规则扩展成“所有图片都 base64”。

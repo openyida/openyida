@@ -38,13 +38,13 @@
 
 ### 初始示例数据计划
 
-完整应用默认在表单创建后、页面实现前，为核心业务普通表单写入 1-3 条业务化示例记录。这里写业务语义，真实 fieldId 由实现阶段通过 `openyida get-schema` 回填。
+完整应用默认在表单创建后、页面实现前，为核心业务普通表单写入 1-3 条业务化示例记录。这里写业务语义，真实 fieldId 由页面技能通过 `openyida get-schema` 回填。
 
 | 表单 | 默认写入数量 | 示例记录语义 | 是否允许跳过 | 跳过条件 |
 | --- | --- | --- | --- | --- |
 | <核心业务表单> | <1-3> | <记录 1：关键字段和值；记录 2：关键字段和值；记录 3：关键字段和值> | <否 / 是> | <用户明确不要造数 / 配置字典表 / 敏感数据 / 字段缺少可安全构造值> |
 
-要求：示例记录必须贴合当前业务，不写“测试1/测试2”；日期字段在实现阶段必须转成 13 位毫秒时间戳；普通表单逐条 `openyida data create form` 写入并 query 抽查。流程表单只有 processCode 已确认且页面需要流程实例时才发起。
+要求：示例记录必须贴合当前业务，不写“测试1/测试2”；日期字段由页面技能转成 13 位毫秒时间戳；普通表单逐条 `openyida data create form` 写入并 query 抽查。流程表单只有 processCode 已确认且页面需要流程实例时才发起。
 
 流程表单需要补充：
 
@@ -84,7 +84,7 @@
   - themeSummary：<应用主题色 / 风格关键词 / themeScope 摘要；必须与 design.md 一致，不写 token 和视觉规则>
   - designFile：<prd/<项目名>/design.md>
   - designRefs：<themeProfile / sceneRecipes.<scene> / components.<name> / states.<name>>
-  - dataBinding：<form / report / connector / static-empty；真实资源 ID 由实现阶段回填>
+  - dataBinding：<form / report / connector / static-empty；真实资源 ID 由页面技能回填>
   - primaryAction：<主操作和打开方式>
 
 ## 5. 应用主题与风格摘要
@@ -171,8 +171,8 @@
 | 导航可用 | <导航顺序符合 PRD，主入口靠前，配置/低频资源靠后> |
 ```
 
-## 交给实现阶段
+## 交给页面技能
 
 - `yida-app` 读取 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md` 后创建或复用资源。
 - 真实 ID 写入 `.cache/<项目名>-schema.json`。
-- 页面实现阶段读取 `prd.md` 的业务内容，并直接读取 `design.md` 的主题、布局、材质、圆角、密度、呼吸感、组件和状态规则；只有走页面生成器或需要稳定交接时才派生 `page-spec.json`，再交给 Code Canvas 或普通自定义页实现。
+- 页面技能读取 `prd.md` 的业务内容，并直接读取 `design.md` 的主题、布局、材质、圆角、密度、呼吸感、组件和状态规则；只有走页面生成器或需要稳定交接时才派生 `page-spec.json`，再交给 Code Canvas 或普通自定义页实现。

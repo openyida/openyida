@@ -15,7 +15,7 @@
 
 ### 列页面资源
 
-| 页面 | resourceType | scene | 用途 | 实现链路 |
+| 页面 | resourceType | scene | 用途 | 页面链路 |
 | --- | --- | --- | --- | --- |
 | 主页 / 首页 / 工作台 | `display-page` | `workbench/dashboard/landing` | 应用第一入口、指标概览、快捷入口 | 默认 Code Canvas |
 | 管理列表页 | `display-page` | `list` | 查询、筛选、批量操作、详情入口 | 默认 Code Canvas |
@@ -29,7 +29,7 @@
 | 普通数据表单 | `normal-form` | 数据录入、编辑、查询、列表数据源 | 字段名、字段类型、必填、默认值、Divider 分组 |
 | 流程表单 | `process-form` | 审批、流转、节点处理 | 表单字段 + 流程节点、审批人、流转条件 |
 
-资源清单使用业务语义和资源类型；`appType/corpId/baseUrl` 写入 PRD 的应用配置，`formUuid`、`fieldId`、`processCode` 等细节 ID 由实现阶段写入 `.cache/<项目名>-schema.json`。
+资源清单使用业务语义和资源类型；`appType/corpId/baseUrl` 写入 PRD 的应用配置，`formUuid`、`fieldId`、`processCode` 等细节 ID 由页面技能写入 `.cache/<项目名>-schema.json`。
 
 ## 给页面标场景
 

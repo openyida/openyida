@@ -23,8 +23,8 @@
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
-      "description": "完整搭建或补齐普通 OpenYida 应用的流程编排技能。先解析资源上下文并消费 yida-design 的 prd.md 与 design.md，再按 PRD 创建或复用应用、表单、流程和页面；表单/流程先于自定义页面；发布后优先按 PRD 导航顺序排序，缺少明确页面清单时自动排序兜底；最终先输出 2-3 句业务交付总结，再给一个主入口链接。",
-      "done_when": "PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md；若本轮 Write/Edit 单个页面源码，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 并返回当前页面 URL；其他完整应用、表单、流程、权限、主题、导航或批量资源场景返回 {base_url}/{appType}/workbench；final 先用 2-3 句业务语言总结创建/复用了哪些表单、页面和流程，以及完成了哪些功能，再给主入口链接；不默认输出表格、长列表或资源 ID；没有 publish 证据只能声明源码已修改，尚未发布。",
+      "description": "完整应用编排。用于从零搭建或补齐一个宜搭应用。读取 yida-design 的 prd.md/design.md，按阶段加载子技能，发布主页面，返回主入口链接。",
+      "done_when": "主页面已发布，或说明没有发布证据/阻塞原因；导航排序已执行或说明跳过原因；final 用 2-3 句业务总结 + 一个主入口链接，不输出资源表。",
       "category": "yida-skills/app",
       "tags": [
         "宜搭",
@@ -43,7 +43,7 @@
       "name": "yida-design",
       "path": "skills/yida-design/SKILL.md",
       "display_name": "宜搭应用设计",
-      "description": "当用户要做完整应用产品设计、单页 UI 改造、主页面视觉设计、应用主题色或全局换肤时使用。本技能基于需求分析和资源上下文，输出 prd/<项目名>/prd.md 与 prd/<项目名>/design.md；prd.md 写业务目标、数据结构、页面功能、资源顺序、导航顺序和验收标准，design.md 写主题 token、布局、材质、圆角、密度、组件和状态规则。本技能不写页面源码；页面实现交给 yida-canvas-custom-page 或 yida-custom-page。",
+      "description": "宜搭产品与视觉设计。输出 prd/<项目名>/prd.md 和 prd/<项目名>/design.md。只写业务结构和设计规则，不写页面源码。",
       "category": "yida-skills/design",
       "tags": [
         "应用设计",
@@ -84,7 +84,7 @@
         "数据记录操作"
       ],
       "command_ids": [],
-      "done_when": "输出 prd/<项目名>/prd.md 与 prd/<项目名>/design.md；PRD 写清资源创建顺序、页面实现交付顺序、导航顺序和验收标准，design.md 写清所有页面共同遵守的视觉系统；只有走页面生成器或需要稳定交接时才派生 page-spec.json。"
+      "done_when": "已输出 prd/<项目名>/prd.md 和 prd/<项目名>/design.md；没有写页面源码。"
     },
     {
       "name": "yida-app-permission",
@@ -178,7 +178,7 @@
       "name": "yida-tingji",
       "path": "skills/yida-tingji/SKILL.md",
       "display_name": "钉钉听记详情",
-      "description": "按 taskUuid 获取钉钉听记、会议录音转写、会议纪要或 AI 听记详情；只负责读取内容。若用户要求转 PRD，先取内容再交给 yida-flash-note-to-prd。",
+      "description": "按 taskUuid 获取钉钉听记、会议录音转写、会议纪要或 AI 听记详情；只负责读取内容。若用户要求转 PRD，先取内容再交给 yida-flash-note-to-prd 整理需求素材。",
       "category": "yida-skills/agent",
       "tags": [
         "钉钉听记",
@@ -198,7 +198,7 @@
       "command_ids": [
         "read-dingtalk-tingji"
       ],
-      "done_when": "命令成功返回指定 taskUuid 对应的真实听记详情；转 PRD 场景已把内容交给 yida-flash-note-to-prd。",
+      "done_when": "命令成功返回指定 taskUuid 对应的真实听记详情；转 PRD 场景已把内容交给 yida-flash-note-to-prd 整理需求素材。",
       "requires_login": true
     },
     {
@@ -444,7 +444,7 @@
       "name": "yida-create-app",
       "path": "skills/yida-create-app/SKILL.md",
       "display_name": "创建宜搭应用",
-      "description": "仅在没有目标 app 且允许创建时创建宜搭应用并返回 appType。创建成功后把 appType 交给 yida-design 生成或更新 PRD，再继续表单、流程、页面和发布。",
+      "description": "创建宜搭应用并返回 appType。仅在没有目标 app 且允许新建时使用。不是完整应用入口。",
       "category": "yida-skills/app",
       "tags": [
         "创建应用",
@@ -533,7 +533,7 @@
       "name": "yida-custom-page",
       "path": "skills/yida-custom-page/SKILL.md",
       "display_name": "普通自定义页面 JSX 开发",
-      "description": "宜搭普通自定义页面 React 16 / JSX / Jsx 组件开发规范。明确要求 JSX/Jsx 组件链路、普通自定义页面，或页面强依赖 this.$、this.utils.yida、dataSourceMap、表单提交或字段双向绑定深度耦合时使用；完整应用默认使用 this.utils.yida.* 或入口型页面，只有已绑定设计器数据源时才用 dataSourceMap。",
+      "description": "普通自定义页面 JSX/Jsx 开发。仅在用户明确要普通自定义页面，或页面依赖 this.$、this.utils.yida、dataSourceMap、表单双向绑定时使用。",
       "category": "yida-skills/page",
       "tags": [
         "JSX",
@@ -564,7 +564,7 @@
         "compile",
         "publish"
       ],
-      "done_when": "普通自定义页面源码通过 check-page / compile 后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 发布到目标 display 页面；没有 publish 证据只能声明源码已修改，尚未发布。"
+      "done_when": "源码已通过 check-page 或 compile；已成功执行 openyida publish <source> <appType> <displayPageFormUuid>；没有 publish 证据时只说明本地已修改。"
     },
     {
       "name": "yida-dashboard",
@@ -705,8 +705,8 @@
     {
       "name": "yida-flash-note-to-prd",
       "path": "skills/yida-flash-note-to-prd/SKILL.md",
-      "display_name": "闪记转 PRD",
-      "description": "从已有钉钉闪记、会议记录或需求文档内容中提取产品需求，生成结构化 PRD。若用户只给 taskUuid，先用 yida-tingji 读取内容。",
+      "display_name": "闪记需求素材整理",
+      "description": "从闪记、会议记录或需求文档提取需求素材。只产出给 yida-design 使用的素材；不直接写 prd.md 或 design.md。只有 taskUuid 时先用 yida-tingji。",
       "category": "yida-skills/agent",
       "tags": [
         "闪记",
@@ -912,7 +912,7 @@
       "name": "yida-nav-group",
       "path": "skills/yida-nav-group/SKILL.md",
       "display_name": "应用左侧导航分组",
-      "description": "宜搭应用左侧导航分组管理。查询导航树、新建或重命名分组、移动排序表单页面和外链；PRD 写明导航顺序时用 order，缺少明确页面清单时用 auto-order 兜底。",
+      "description": "管理宜搭应用左侧导航。查询导航树，创建或重命名分组，移动、排序、隐藏或显示页面、表单和外链。PRD 有顺序用 order，否则用 auto-order。",
       "category": "yida-skills/app",
       "tags": [
         "导航",

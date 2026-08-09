@@ -445,16 +445,16 @@ describe('CLI offline smoke', () => {
         'yida-data-source-connectors',
         'yida-data-management',
       ]),
-      product_design_policy: expect.stringContaining('resource creation order, page implementation delivery order, navigation order'),
-      ui_guidance_policy: expect.stringContaining('only design sources of truth'),
+      product_design_policy: expect.stringContaining('yida-app first confirms target resources'),
+      ui_guidance_policy: expect.stringContaining('derived implementation handoff'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),
-      completion_contract: expect.stringContaining('PRD navigation order or lightweight fallback navigation order'),
+      completion_contract: expect.stringContaining('2-3 business-summary sentences'),
       recommended_read_commands: expect.arrayContaining([
         expect.stringContaining('--summary-json'),
       ]),
       default_data_contract: expect.stringContaining('this.dataSourceMap'),
     });
-    expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('prd.md + design.md');
+    expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is only a derived implementation handoff');
     expect(parsed.summary.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
     expect(parsed.summary.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
     expect(commands).toContain('env');
@@ -747,6 +747,23 @@ describe('CLI offline smoke', () => {
       preauthorized_actions: ['switch'],
       unknown_action_mode: 'ask',
     });
+    expect(commandById['nav-group'].side_effect).toMatchObject({
+      kind: 'mixed',
+      mutates_yida: true,
+      mutates_local: false,
+      action_dependent: true,
+      read_actions: ['list'],
+      mutating_actions: expect.arrayContaining(['order', 'auto-order']),
+    });
+    expect(commandById['nav-group'].permission).toMatchObject({
+      mode: 'allow',
+      effect: 'unknown',
+      action_dependent: true,
+      read_actions: ['list'],
+      preauthorized_actions: expect.arrayContaining(['order', 'auto-order']),
+      ask_actions: ['delete'],
+      unknown_action_mode: 'ask',
+    });
     expect(commandById.batch.permission).toMatchObject({
       mode: 'allow',
       effect: 'unknown',
@@ -808,6 +825,18 @@ describe('CLI offline smoke', () => {
     });
     expect(classifyManifestInvocation(parsed.commands, ['batch', 'commands.txt'])).toMatchObject({
       entry: { id: 'batch' },
+      decision: 'ask',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['nav-group', 'order'])).toMatchObject({
+      entry: { id: 'nav-group' },
+      decision: 'allow',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['nav-group', 'auto-order'])).toMatchObject({
+      entry: { id: 'nav-group' },
+      decision: 'allow',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['nav-group', 'delete'])).toMatchObject({
+      entry: { id: 'nav-group' },
       decision: 'ask',
     });
     expect(classifyManifestInvocation(parsed.commands, ['data', 'delete'])).toMatchObject({
@@ -1197,23 +1226,23 @@ describe('CLI offline smoke', () => {
         'yida-data-source-connectors',
         'yida-data-management',
       ]),
-      product_design_policy: expect.stringContaining('resource creation order, page implementation delivery order, navigation order'),
-      ui_guidance_policy: expect.stringContaining('only design sources of truth'),
+      product_design_policy: expect.stringContaining('yida-app first confirms target resources'),
+      ui_guidance_policy: expect.stringContaining('derived implementation handoff'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),
-      completion_contract: expect.stringContaining('PRD navigation order or lightweight fallback navigation order'),
+      completion_contract: expect.stringContaining('2-3 business-summary sentences'),
       recommended_read_commands: expect.arrayContaining([
         expect.stringContaining('--summary-json'),
       ]),
       default_data_contract: expect.stringContaining('this.dataSourceMap'),
     });
-    expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('prd.md + design.md');
+    expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is only a derived implementation handoff');
     expect(parsed.commands.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
     expect(parsed.commands.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
     expect(parsed.recommended.default_full_app_workflow).toMatchObject({
       mode: 'unified_build',
-      completion_contract: expect.stringContaining('create or reuse app'),
+      completion_contract: expect.stringContaining('2-3 business-summary sentences'),
     });
-    expect(parsed.recommended.default_full_app_workflow.completion_contract).toContain('Markdown table');
+    expect(parsed.recommended.default_full_app_workflow.completion_contract).toContain('one primary user-facing link');
     expect(parsed.builder_path.bound_context).toMatchObject({
       existing_app_type_policy: 'do_not_call_app_list_by_default',
       skip_app_list_when: expect.arrayContaining([
@@ -1300,8 +1329,8 @@ describe('CLI offline smoke', () => {
     expect(parsed.login).not.toHaveProperty('csrf_token');
     expect(parsed.sideEffects.read_only_preflight).toContain('openyida agent-capabilities --summary-json');
     expect(parsed.sideEffects.read_only_preflight).not.toContain('openyida agent-capabilities --json');
-    expect(parsed.sideEffects.completion_contracts.full_app).toContain('creating or reusing the app');
-    expect(parsed.sideEffects.completion_contracts.full_app).toContain('Markdown table');
+    expect(parsed.sideEffects.completion_contracts.full_app).toContain('yida-app stage table');
+    expect(parsed.sideEffects.completion_contracts.full_app).toContain('one primary user-facing link');
     expect(parsed.sideEffects.full_app_data_contract).toContain('this.dataSourceMap');
     const commandIds = parsed.command_manifest.commands.map(entry => entry.id);
     const commandById = Object.fromEntries(parsed.command_manifest.commands.map(entry => [entry.id, entry]));

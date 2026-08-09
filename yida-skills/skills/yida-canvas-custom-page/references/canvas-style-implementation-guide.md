@@ -137,7 +137,7 @@ Code Canvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `breathi
 
 ## 品牌 token 实现消费
 
-品牌 token 的完整语义由 `yida-design/workflow/output-design.md` 与 `yida-design/references/theme/theme-token-presets.md` 维护。Code Canvas 不重新解释 token，只按 `design.md` 的 `tokens` 和 token 语义把它们接到组件、CSS 和图表。
+品牌 token 的完整语义查看 `yida-design/workflow/output-design.md` 与 `yida-design/references/theme/theme-token-presets.md`。Code Canvas 读取 `design.md` 的 `tokens`，再把它们接到组件、CSS 和图表。
 
 | token | design.md 语义 | Code Canvas 使用方式 |
 | --- | --- | --- |

@@ -3,7 +3,7 @@
 本文件用于在 Step 5 为完整应用生成一份应用级 `prd/<项目名>/design.md`。生成流程必须先从业务上下文判断内容兼容性，再推演视觉策略，选择唯一一个内置 `style-designs/*.md` 作为基础视觉母体，最后按主题色适配模板并输出自包含的 `design.md`。
 
 业务对象、字段、表单、流程、导航、权限和页面结构都从当前 PRD 读取；模板只提供视觉 DNA、布局机制、组件机制、质量锚点和主题换肤规则，不提供业务内容。指标卡、图表、表格、待办、筛选器、右侧栏、状态标签、快捷入口、时间线等常见内容组件只能判断模板是否可承载，不得作为风格模板的强匹配理由。
-`style-designs/_design-md-template.md` 是最终结构模板，只约束章节结构、字段完整度和描述粒度；内置 style-design 模板只提供可复用视觉母体。真实项目的配色、业务内容、资源关系、页面结构和实现交接必须从当前 PRD、应用主题和用户要求生成。
+`style-designs/_design-md-template.md` 是最终结构模板，只约束章节结构、字段完整度和描述粒度；内置 style-design 模板只提供可复用视觉母体。真实项目的配色、业务内容、资源关系、页面结构和页面技能交接必须从当前 PRD、应用主题和用户要求生成。
 
 ## 何时使用
 
@@ -98,8 +98,8 @@
 | --- | --- | --- |
 | 平台导航 / 应用菜单可见 | `跟随应用主题` | 主按钮、链接、选中态、重点标签、图表主序列使用应用主题；模板色相仅作为辅助色、浅背景、图表第二序列或装饰色 |
 | 生成色盘与应用主题不同 | `应用主题主导，生成色彩作为辅助色` | 保留模板视觉 DNA、布局、密度和组件语言，不把页面主色改成与应用主题冲突的色相 |
-| 用户要求全局换肤 / 导航也一起变色 | `应用级换肤` | 输出 `themeScope=app`，实现阶段更新应用主题或壳层主题；自定义色盘写 `customThemeStyle.tokens` |
-| 隐藏平台导航、独立品牌页、活动页、公开落地页 | `页面级独立色盘` | 输出 `themeScope=page` 和独立色盘原因，页面内注入 `style#yida-global-theme` 或 scoped CSS vars |
+| 用户要求全局换肤 / 导航也一起变色 | `应用级换肤` | 输出 `themeScope=app`，页面技能按所选链路处理应用主题或壳层主题；自定义色盘写 `customThemeStyle.tokens` |
+| 隐藏平台导航、独立品牌页、活动页、公开落地页 | `页面级独立色盘` | 输出 `themeScope=page`、独立色盘原因和 token 来源；具体页面处理由页面技能负责 |
 
 ## 输出字段
 
@@ -108,7 +108,7 @@ Step 5 生成 `design.md`，并让 PRD 的每个自定义展示页只引用它�
 | 字段 | 写入位置 | 写法 |
 | --- | --- | --- |
 | baseDesignSource | design.md | `references/style-designs/<selected-template>.md`；所有模板不适用时才写 `generated-from-business-context` |
-| styleDesignSelection | design.md | 只记录模板来源、视觉策略、视觉强调、选中模板、实现约束和置信度；候选比较和拒绝理由默认不写入 |
+| styleDesignSelection | design.md | 只记录模板来源、视觉策略、视觉强调、选中模板、页面约束和置信度；候选比较和拒绝理由默认不写入 |
 | themeAdaptationResult | design.md | 记录输入主题色、换肤策略、替换 token、保留 DNA 和保留机制 |
 | designFile | PRD pageSpecHandoff | `prd/<项目名>/design.md` |
 | designRefs | PRD pageSpecHandoff | 当前页面引用 design.md 的章节 ID |
@@ -119,19 +119,19 @@ Step 5 生成 `design.md`，并让 PRD 的每个自定义展示页只引用它�
 | visualScaffold | design.md | layoutRecipe、surfaceMap、sectionRhythm、densityRule、breathingRule、componentRecipe、emptyStateRecipe、acceptanceChecks |
 | rounded / spacing / breathing | design.md | 大圆角、紧凑间距和呼吸节奏的具体数值，不能只写“圆润”“留白舒适”“有呼吸感” |
 
-## 实现交接
+## 页面技能交接
 
-实现阶段读取 PRD 中的 `designFile/designRefs`，再读取当前项目 `design.md`，并按以下方式落地：
+页面技能读取 PRD 中的 `designFile/designRefs`，再读取当前项目 `design.md`，并按以下方式消费：
 
-| design.md 内容 | 实现落点 |
+| design.md 内容 | 交接内容 |
 | --- | --- |
-| styleDesignSelection | 理解视觉母体来源和禁止偏移点；实现阶段不再回读模板目录 |
-| themeAdaptationResult | CSS token、按钮、链接、选中态、图表辅助色和运行时主题注入 |
+| styleDesignSelection | 理解视觉母体来源和禁止偏移点；页面技能不需要回读模板目录 |
+| themeAdaptationResult | 主题来源、token 角色、按钮、链接、选中态和图表辅助色 |
 | 视觉 DNA | 首屏、指标、列表、图表、侧栏、状态标签 |
 | 布局配方 | 页面栅格、区域顺序、区块比例 |
 | 组件规则 | 卡片、表格、按钮、筛选、抽屉、标签 |
 | 状态规则 | 空态、加载、错误、无权限、禁用、选中 |
-| visualScaffold | 实现阶段先按槽位填业务内容，再写样式；任何页面实现不得跳过 |
-| rounded / spacing / densityRule / breathingRule | Code Canvas 的 CSS、antd token、列表行高、面板内距、卡片 gap、空态高度和首屏分组节奏；实现阶段必须保持卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px |
+| visualScaffold | 页面技能按槽位组织业务内容和视觉层级；任何 display 页面不得跳过 |
+| rounded / spacing / densityRule / breathingRule | 列表行高、面板内距、卡片 gap、空态高度和首屏分组节奏；页面结果必须保持卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px |
 
 业务文案、字段、表单入口、流程处理、详情链接和导航顺序都从 PRD 读取；当前项目 `design.md` 提供所有页面必须遵守的视觉 DNA、布局、组件样式、主题 token 和状态规则。

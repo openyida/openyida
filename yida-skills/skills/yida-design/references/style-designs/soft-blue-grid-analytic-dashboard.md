@@ -28,35 +28,35 @@ visual_dna:
     confidence: observed
     evidence: 顶部首屏有一排等高白色指标卡，卡片使用大圆角、极浅边框和轻阴影，主数字醒目，趋势徽标小面积贴近数字。
     rule: 新页面的首屏必须先提供 3-4 个等高 metric_card，用大号数字、短标题、状态徽标和弱化说明形成一眼可扫的摘要层。
-    implementation_hooks: [metric_grid, metric_card, delta_badge, icon_corner, comparison_caption, equal_height_grid]
+    handoff_hooks: [metric_grid, metric_card, delta_badge, icon_corner, comparison_caption, equal_height_grid]
     failure_mode: 如果指标卡高度不齐、边框过重或数字层级不足，页面会变成普通后台表单，失去轻量数据概览记忆点。
   - id: pill_command_header
     name: 右对齐胶囊命令头
     confidence: observed
     evidence: 页面标题左置，右侧是日期筛选、时间范围、次级按钮和蓝色主按钮，所有控件都呈胶囊形并对齐在同一水平线上。
     rule: 顶部必须保留左标题、右命令组的结构；筛选器、次级操作和主操作都使用圆角胶囊控件，主操作以蓝色填充突出。
-    implementation_hooks: [page_header, date_filter, segmented_filter, secondary_button, primary_button, icon_button, control_group]
+    handoff_hooks: [page_header, date_filter, segmented_filter, secondary_button, primary_button, icon_button, control_group]
     failure_mode: 如果顶部命令分散、按钮棱角化或主操作不突出，会破坏截图中安静但明确的工具感。
   - id: blue_focus_visualization
     name: 蓝色焦点数据可视化
     confidence: observed
     evidence: 折线、选中柱、主按钮和图标都使用饱和蓝色；图表背景保持白色，其他数据序列使用浅灰或半透明弱化。
     rule: 图表中只允许 1 个主蓝色焦点序列，辅助序列、未选中柱和网格线必须低对比；可使用渐变填充、提示浮层和选中态强化判断。
-    implementation_hooks: [line_chart, area_fill, bar_chart_selected, gauge_segment, chart_tooltip, chart_grid, brand_blue]
+    handoff_hooks: [line_chart, area_fill, bar_chart_selected, gauge_segment, chart_tooltip, chart_grid, brand_blue]
     failure_mode: 如果多色抢焦、网格线过重或图表缺少蓝色主序列，页面会丢失统一的分析焦点。
   - id: modular_two_column_canvas
     name: 左宽右窄模块化分析画布
     confidence: observed
     evidence: 页面主体以左侧宽内容列承载趋势和明细，右侧窄列垂直堆叠分布、比例和辅助模块，所有面板边缘对齐。
     rule: 桌面端主区域必须采用 8:5 或 2:1 近似分栏，左侧放 trend_panel 与 detail_table，右侧放 breakdown_panel、ratio_panel 或 assistant_panel 等辅助模块。
-    implementation_hooks: [main_grid, left_column, right_rail, trend_panel, detail_table, auxiliary_panel, align_items_stretch]
+    handoff_hooks: [main_grid, left_column, right_rail, trend_panel, detail_table, auxiliary_panel, align_items_stretch]
     failure_mode: 如果改成瀑布流或所有模块自由堆叠，会失去原图稳定、平衡、可扫描的工作台结构。
   - id: rounded_micro_detail
     name: 圆角微细节与轻量悬浮层
     confidence: observed
     evidence: 面板、表格缩略图、输入框、趋势徽标、提示浮层都使用统一圆角；阴影极轻，悬浮提示像白色小面板压在图表上。
     rule: 所有局部组件必须继承统一圆角系统和浅边框；tooltip、popover、输入区、标签和缩略图用轻阴影制造层级，不使用厚重卡片阴影。
-    implementation_hooks: [rounded_tokens, tooltip, popover, input_shell, table_thumbnail, status_pill, subtle_shadow]
+    handoff_hooks: [rounded_tokens, tooltip, popover, input_shell, table_thumbnail, status_pill, subtle_shadow]
     failure_mode: 如果圆角尺度混乱、阴影过重或局部组件没有浅边框，界面会显得粗糙且不再像同一套系统。
 theme_adaptation:
   accepts_theme_color: true
@@ -224,7 +224,7 @@ inferred_modules:
 - **置信度**：observed
 - **可见证据**：首屏顶部有一排等高白色指标卡，主数字很大，标题短，角落放小图标，趋势徽标贴近主数值。
 - **复用规则**：首屏摘要必须优先出现 3-4 个 `metric_card`，桌面端同一行等高，卡片内部用标题、主值、趋势徽标、弱化对比说明组成固定结构。
-- **实现钩子**：`metric_grid`、`metric_card`、`metric-main`、`delta_badge`、`icon_corner`、`comparison_caption`。
+- **交接钩子**：`metric_grid`、`metric_card`、`metric-main`、`delta_badge`、`icon_corner`、`comparison_caption`。
 - **缺失后的失败表现**：指标卡如果高度参差、数字不突出或用强色块填充，会变成普通数据卡集合，失去轻量、精致、可扫读的首屏记忆点。
 
 ### 4.2 右对齐胶囊命令头
@@ -232,7 +232,7 @@ inferred_modules:
 - **置信度**：observed
 - **可见证据**：页面标题左置，右侧筛选、次级操作、主操作组成胶囊控件组，主操作为蓝色填充。
 - **复用规则**：`page_header` 必须使用左标题右命令组；筛选、选择器、次级按钮和主按钮高度一致，圆角接近胶囊，图标与文字基线对齐。
-- **实现钩子**：`page_header`、`global_filters`、`date_filter`、`segmented_filter`、`secondary_button`、`primary_button`、`control_group`。
+- **交接钩子**：`page_header`、`global_filters`、`date_filter`、`segmented_filter`、`secondary_button`、`primary_button`、`control_group`。
 - **缺失后的失败表现**：命令散落到卡片内部或按钮样式不统一时，页面会丢失成熟仪表盘的全局操作秩序。
 
 ### 4.3 蓝色焦点数据可视化
@@ -240,7 +240,7 @@ inferred_modules:
 - **置信度**：observed
 - **可见证据**：折线、选中柱、主按钮、图标和发送控件使用统一蓝色；辅助数据为浅灰、淡绿或低饱和状态色。
 - **复用规则**：每个图表只设置一个主焦点色；辅助序列降低不透明度，网格线轻，tooltip 使用白底轻阴影，选中态可叠加渐变或强调标签。
-- **实现钩子**：`line_chart`、`area_fill`、`bar_chart_selected`、`gauge_segment`、`chart_tooltip`、`chart-grid`。
+- **交接钩子**：`line_chart`、`area_fill`、`bar_chart_selected`、`gauge_segment`、`chart_tooltip`、`chart-grid`。
 - **缺失后的失败表现**：多色图表、厚重网格或全页面蓝色化会让视线无法聚焦，削弱原风格的专业分析感。
 
 ### 4.4 左宽右窄模块化分析画布
@@ -248,7 +248,7 @@ inferred_modules:
 - **置信度**：observed
 - **可见证据**：主体区域左侧为宽趋势面板和明细表，右侧为窄分析面板纵向堆叠，模块边缘和间距稳定对齐。
 - **复用规则**：桌面端主网格采用左宽右窄结构，建议 `grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr)`；左列承载主趋势和明细，右列承载辅助判断、比例、输入或推荐模块。
-- **实现钩子**：`main_grid`、`left_column`、`right_rail`、`trend_panel`、`detail_table`、`auxiliary_panel`、`align-items: stretch`。
+- **交接钩子**：`main_grid`、`left_column`、`right_rail`、`trend_panel`、`detail_table`、`auxiliary_panel`、`align-items: stretch`。
 - **缺失后的失败表现**：瀑布流、随内容变高的散卡或左右列宽无规律，会破坏原图平衡的工作台画布。
 
 ### 4.5 圆角微细节与轻量悬浮层
@@ -256,7 +256,7 @@ inferred_modules:
 - **置信度**：observed
 - **可见证据**：面板、按钮、输入框、表格缩略图、状态徽标和图表 tooltip 都有统一圆角；阴影很轻，不制造厚重层叠。
 - **复用规则**：从大面板到小徽标使用分级圆角 token；tooltip、popover、输入区、内嵌小卡使用白底、浅边框和轻阴影。
-- **实现钩子**：`rounded_tokens`、`tooltip`、`popover`、`input_shell`、`table_thumbnail`、`status_pill`、`subtle_shadow`。
+- **交接钩子**：`rounded_tokens`、`tooltip`、`popover`、`input_shell`、`table_thumbnail`、`status_pill`、`subtle_shadow`。
 - **缺失后的失败表现**：圆角尺度随机、阴影太重或局部组件裸露无边界，会让页面显得粗糙、不统一。
 
 ## 5. 色彩角色
@@ -530,77 +530,13 @@ page_shell
 - 图表需提供摘要文本或数据表替代信息。
 - 支持键盘导航，focus 顺序遵循从顶部命令到摘要、主体、明细的阅读顺序。
 
-## 17. 实现适配
+## 17. 页面技能交接
 
-### CSS 变量
-
-```css
-:root {
-  --oyd-bg-app: #f4f7fa;
-  --oyd-surface: #ffffff;
-  --oyd-surface-muted: #f6f8fb;
-  --oyd-text-primary: #0f1217;
-  --oyd-text-secondary: #6f7782;
-  --oyd-border-subtle: #e4e9ef;
-  --oyd-brand: #2f6ff4;
-  --oyd-brand-soft: #eaf2ff;
-  --oyd-positive: #39b981;
-  --oyd-negative: #e84f83;
-  --oyd-radius-panel: 28px;
-  --oyd-radius-card: 24px;
-  --oyd-radius-control: 24px;
-  --oyd-shadow-panel: 0 1px 2px rgba(18, 31, 44, 0.04), 0 10px 24px rgba(18, 31, 44, 0.035);
-  --oyd-gap: 24px;
-}
-```
-
-### 布局骨架
-
-```css
-.page-shell {
-  min-height: 100vh;
-  padding: 28px 36px;
-  background: var(--oyd-bg-app);
-}
-
-.main-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
-  gap: var(--oyd-gap);
-  align-items: stretch;
-}
-
-.panel {
-  min-width: 0;
-  min-height: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--oyd-border-subtle);
-  border-radius: var(--oyd-radius-panel);
-  background: var(--oyd-surface);
-  box-shadow: var(--oyd-shadow-panel);
-}
-
-.panel-body {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-}
-```
-
-### Ant Design / React
-
-- `Button`、`DatePicker`、`Select`、`Input` 高度统一到 44-48px，圆角设置为 18-24px。
-- `Card` 不使用默认厚阴影，改为浅边框 + 轻阴影。
-- 表格行高 72-76px，列标题弱化，长文本使用 `ellipsis`。
-- 图表建议使用 ECharts / Recharts，主题 token 映射到 `brand`、`chart-muted`、`status-positive`、`status-negative`。
-
-### Yida / Code Canvas
-
-- 页面根节点重置 `box-sizing: border-box`，避免宜搭容器默认样式影响布局。
-- 图表和表格容器必须设定稳定高度，发布前检查不同宽度下是否溢出。
-- 图标按钮必须带可读标签或 tooltip，适配钉钉内嵌浏览器的键盘和触控行为。
+- token 角色：背景、表面、文字、边框、品牌色、状态色、圆角、间距和阴影必须映射到当前页面技能的主题体系。
+- 布局约束：桌面端保留左宽右窄双栏、顶部命令头、软指标卡行和右侧辅助栏；移动端按主分析、指标、右栏、明细顺序折叠。
+- 稳定尺寸：指标卡、图表、表格、右栏模块和空态都要有稳定高度或内部滚动策略。
+- 组件约束：按钮、筛选器和输入控件高度一致；面板使用浅边框和轻阴影；表格保持高密行高和清晰列标题；图表颜色使用 `design.md` 的主题角色。
+- 边界说明：组件导入、样式写法和发布链路由 `yida-canvas-custom-page`、`yida-custom-page` 或对应页面技能负责，本文件只提供视觉交接。
 
 ## 18. 必须包含
 

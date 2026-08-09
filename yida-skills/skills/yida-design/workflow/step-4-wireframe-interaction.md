@@ -44,7 +44,7 @@
 - 功能契约：<保留的数据源/字段映射/按钮动作/筛选逻辑/提交 URL/权限/状态>
 - 响应式策略：<PC / 移动端差异>
 - 原生表单入口：<新增/提交/编辑打开方式>
-- pageSpecHandoff 草稿：<pageStructure/scene/contentBlocks/themeSummary/designFile/designRefs/dataBinding/primaryAction；视觉源码槽位待 Step 5 写入 design.md>
+- pageSpecHandoff 草稿：<pageStructure/scene/contentBlocks/themeSummary/designFile/designRefs/dataBinding/primaryAction；页面结构槽位待 Step 5 写入 design.md>
 ```
 
 ## 下一步

@@ -1,18 +1,18 @@
 # 视觉脚手架配方库
 
-本文件把高质量页面的视觉结构沉淀成可执行槽位。设计阶段输出 `visualScaffold` 时，从这里选择一套配方，再把当前业务对象、字段、动作和状态填进去。实现阶段按槽位写页面，不复制示例业务文案、不套默认卡片墙。
+本文件把高质量页面的视觉结构沉淀成可交接槽位。设计阶段输出 `visualScaffold` 时，从这里选择一套配方，再把当前业务对象、字段、动作和状态填进去。页面技能按槽位消费，不复制示例业务文案、不套默认卡片墙。
 
 ## 使用规则
 
 1. 先按页面场景选择一套配方。
 2. 把 `contentBlocks` 映射到配方槽位，少于 10 个区块先回到 Step 4 补齐。
 3. 把配方写入 `design.md` 的 `visualScaffold`：`layoutRecipe`、`surfaceMap`、`sectionRhythm`、`densityRule`、`breathingRule`、`componentRecipe`、`emptyStateRecipe`、`responsiveSlots`、`acceptanceChecks`。PRD 只引用 `designFile/designRefs` 和主题风格摘要。
-4. 实现阶段逐项消费，不从“高级 / 简洁 / 好看”等形容词直接写 CSS。
+4. 页面技能逐项消费，不从“高级 / 简洁 / 好看”等形容词直接推断页面样式。
 5. 默认业务页采用圆润高密且有呼吸感的规则：卡片 padding 默认 22-28px 且必须大于 20px，卡片与卡片的 gap 默认 12-18px 且必须小于 20px，卡片圆角范围 0-32px，控件 10-14px；状态摘要、动作条、列表和空态必须紧凑，间距服务分组和扫读，不用额外 margin 或空白高度撑面积。
 
-## 源码级槽位
+## 页面结构槽位
 
-`visualScaffold` 不只描述页面长相，还要让实现阶段能直接写出结构。每个配方都必须补齐下面这些源码级槽位：
+`visualScaffold` 不只描述页面长相，还要让页面技能稳定判断结构。每个配方都必须补齐下面这些页面结构槽位：
 
 - `rootShell`：页面外层背景、最大宽度、是否全屏、是否显示平台导航后的内容宽度。
 - `prioritySurface`：首屏最大视觉锚点，例如主趋势、主任务、主对象摘要或主视觉区，不能只是标题。
@@ -26,7 +26,7 @@
 - `breathingRule`：主区、右栏、工具条、列表和空态之间的呼吸节奏，组内/组间间距、贴边修正和移动端折叠间距。
 - `roundedRule`：业务面板、主面板、控件、标签、抽屉和弹层的圆角数值。
 
-没有这些源码级槽位时，`design.md` 不算可实现；先补 `visualScaffold`，再进入页面代码。
+没有这些页面结构槽位时，`design.md` 不算可交接；先补 `visualScaffold`，再交给页面技能。
 
 ## 背景层配方
 
@@ -121,7 +121,7 @@ KPI 子项、图表点、列表行不分别计数。
 - 左侧指标轨不是四个大白卡。
 - 右侧事件流不是空白卡。
 - 主色跟随应用主题，语义色只用于风险、告警和成功。
-- 源码中能落成 `rootShell`、`prioritySurface`、`statusPrimitive`、`contentPrimitive`、`contextPrimitive` 和 `statePrimitive`。
+- 页面结构能对应 `rootShell`、`prioritySurface`、`statusPrimitive`、`contentPrimitive`、`contextPrimitive` 和 `statePrimitive`。
 
 ## 配方 B：任务工作台双栏
 

@@ -39,7 +39,7 @@ metadata:
 
 1. 单屏控制塔结构，见 `references/structure-and-layout.md`。
 2. 真实数据绑定：聚合指标走报表/聚合结果，明细走分页查询；禁止前端拉全量后聚合。
-3. 视觉主题和信息层级，见 `references/theme-presets.md`。默认从 `podBlue`、`podGreen`、`podOrange` 等应用主题中选择，用同名 profile 注入页面 token 并可同步应用 `--theme`。
+3. 视觉主题和信息层级读取 `yida-design` 的 `design.md`，再落到看板布局和图表样式。
 4. 筛选与图表联动；控件必须受控并真实改变下方数据。
 5. 每元素可派单：`saveFormData → 集成自动化 → 待办2.0 ConnectorCall`。
 6. 卡片截图分享：真实可点击，截图时排除截图按钮本身。
@@ -70,7 +70,7 @@ metadata:
    ↓
 [Step 3] 需要派单时创建“看板派单触发表”并配置集成自动化
    ↓
-[Step 4] 用 yida-design 决定 dashboard/screen、主题、Shell、Archetype
+[Step 4] 读取 yida-design 输出的 dashboard/screen 设计
    ↓
 [Step 5] 生成或编写 dashboard-overview.canvas.jsx / data-screen.canvas.jsx
    ↓
@@ -85,8 +85,8 @@ metadata:
 
 Canvas 页面入口：
 
-- `prd.md` 决定页面目标、指标、区块和交互，`design.md` 决定主题、布局和视觉状态；`page-spec.json` 只作为生成器需要时的派生输入。
-- 默认主题从 `podBlue`、`podGreen`、`podOrange` 等应用主题中选择；用户明确要求应用主题风格/应用主题色时，才使用 `yida-app-theme`。
+- 先读取 `yida-design` 产出的 `prd.md` 与 `design.md`，再提取页面目标、指标、设计引用和主题结果。
+- `page-spec.json` 只在生成器需要时从两份文件派生。
 - 用户强调“大屏 / 指挥舱 / 实时监控”时使用 `screen` 场景；普通经营看板使用 `dashboard` 场景。
 - Canvas 编译与发布细节以 `yida-canvas-custom-page` 为准；不要把 `openyida check-page`、`.oyd.jsx` 或 `renderJsx` 写成默认步骤。
 

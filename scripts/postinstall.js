@@ -254,11 +254,11 @@ openyida login
 openyida copy
 \`\`\`
 
-## 完整应用默认链路
+## 完整应用入口
 
 用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，加载 \`yida-app\` 走完整应用统一编排。
 
-统一编排只做：解析资源上下文 → \`yida-design\` 输出 \`prd.md\` 和 \`design.md\` → 创建/复用应用 → 核心表单/流程 → 主页面 → 编写主页面源码 → 发布 + 轻量导航排序 → 返回 2-3 句业务交付总结和一个主入口链接。资源创建顺序按 PRD 执行：应用先落位，表单/流程先于自定义页面。发布主页面成功后，PRD 写明导航顺序时执行 \`openyida nav-group order <appType> <页面/表单...>\`；PRD 只写宽泛分组或缺少导航顺序时，执行 \`openyida publish ... --auto-nav-order\` 或 \`openyida nav-group auto-order <appType>\` 兜底，兜底顺序为门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
+\`yida-app\` 先确认目标资源，再按 workflow 阶段创建或复用资源、发布主页面并输出一个主入口链接。
 
 表单页开发默认加载 \`yida-form-detail\` 做表单视觉引导，并把 Divider 分割线语义分组合并进字段 JSON；拿到真实 formUuid 后默认注入 formDetail CSS。
 
@@ -268,11 +268,11 @@ openyida copy
 
 完整应用创建/解析多个表单后，页面阶段需要字段映射时，对每个目标表单默认只执行一次 \`openyida get-schema <appType> <formUuid> --field-map-json\`，读取完整 JSON 并写入/复用 \`.cache/<项目名>-schema.json\`；不要用 \`head\` / \`tail\` / \`grep\` 截断 schema stdout 后重复拉取。
 
-Canvas 页面实现统一直接写最终 \`.canvas.jsx\`：先读 PRD 的页面场景、业务区块、数据来源和主操作，再读 design.md 的主题、布局、材质、组件和状态规则，然后用 \`openyida check-page\` / \`openyida compile\` / \`openyida publish\` 验证发布。
+Canvas 页面实现交给 \`yida-canvas-custom-page\`；普通自定义页面 JSX/Jsx 组件链路交给 \`yida-custom-page\`。
 
-完整应用需求分析和产品设计由 \`yida-design\` 承担，并输出两份文件：\`prd/<项目名>/prd.md\` 写业务目标、数据结构、页面与功能、资源顺序、导航顺序和验收标准；\`prd/<项目名>/design.md\` 写主题色、themeProfile、tokens、视觉系统、组件和状态规则。页面实现先读 PRD 的页面场景、页面区块、数据来源、主操作和表单入口，再读 design.md 的主题、布局、材质、组件和状态规则，然后交给 \`yida-canvas-custom-page\` 或 \`yida-custom-page\` 落地。
+\`yida-design\` 输出 \`prd/<项目名>/prd.md\` 与 \`prd/<项目名>/design.md\`。后续技能读取这两份文件，再继续创建表单、页面和导航。
 
-默认只加载当前阶段必需技能；示例数据、精细导航分组、截图验收、公开访问、数据源深接、数据管理和原生报表只在用户明确要求或 PRD 验收标准命中时执行。发布后的轻量导航排序是统一编排默认收尾，不等于精细导航分组。
+完整应用按步骤加载对应子技能。示例数据、精细导航分组、截图验收、公开访问、数据源深接、数据管理和原生报表是否执行，以 \`yida-app\` 阶段表和用户需求为准。
 
 ## 子技能目录
 

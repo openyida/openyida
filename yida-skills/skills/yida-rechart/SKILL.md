@@ -96,7 +96,7 @@ function YidaComp(props) {
 export default YidaComp;
 ```
 
-这段结构只消费已聚合行；不要在 `useMemo` 中把原始明细聚合成图表点。
+这段结构接收已聚合行；不要在 `useMemo` 中把原始明细聚合成图表点。
 
 ## 开发流程
 

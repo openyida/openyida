@@ -1,6 +1,6 @@
 # 页面质量门禁
 
-本文件用于 Step 4、Step 5 和 Step 6 输出前自检。页面设计必须先通过这些门禁，再交给实现阶段。PRD 负责业务结构、应用主题色和风格摘要，`design.md` 负责完整 UI 设计规则；不要把 `design.md` 内容复制进 PRD。
+本文件用于 Step 4、Step 5 和 Step 6 输出前自检。页面设计必须先通过这些门禁，再交给页面技能。PRD 负责业务结构、应用主题色和风格摘要，`design.md` 负责完整 UI 设计规则；不要把 `design.md` 内容复制进 PRD。
 
 ## 1. 区块数量门禁
 
@@ -9,9 +9,9 @@
 - 每个区块必须写清目的、数据来源、主操作和状态。
 - 重复指标、重复入口、列表行、图表点、装饰块、空白容器不计数。
 
-## 2. 源码槽位门禁
+## 2. 页面结构槽位门禁
 
-每个 display 页面都要能落到下列源码槽位：
+每个 display 页面都要写清下列页面结构槽位：
 
 | 槽位 | 必须写清 |
 | --- | --- |
@@ -24,7 +24,7 @@
 | `statePrimitive` | loading、empty、error、未接数据、无权限和刷新/登记/补录动作 |
 | `responsiveRule` | PC 到移动端的分栏退化顺序和关键区块保留规则 |
 
-缺少 `prioritySurface`、`contentPrimitive` 或 `statePrimitive` 任意一项，不能交付为可实现页面设计。
+缺少 `prioritySurface`、`contentPrimitive` 或 `statePrimitive` 任意一项，不能交付给页面技能。
 
 ## 3. 低密大卡片门禁
 
@@ -120,6 +120,6 @@
 
 `design.md` 必须包含 `rootShell`、`prioritySurface`、`statusPrimitive`、`actionPrimitive`、`contentPrimitive`、`contextPrimitive`、`statePrimitive`、`responsiveRule`、`backgroundLayer`、`surfaceMaterial`、`surfaceContrast`、`colorRoles` 和 `depthRule`。
 
-`design.md` 还必须写清 `densityRule`、`breathingRule` 与 `roundedRule`。缺少圆角、间距、呼吸节奏、状态摘要高度、列表行高或空态高度的具体数值时，不能交付给 Code Canvas 实现。
+`design.md` 还必须写清 `densityRule`、`breathingRule` 与 `roundedRule`。缺少圆角、间距、呼吸节奏、状态摘要高度、列表行高或空态高度的具体数值时，不能交付给页面技能。
 
 缺少 `pageSpecHandoff`、缺少 `design.md`、或 `pageSpecHandoff` 没有引用 `designFile/designRefs` 时，Step 6 不算完成。

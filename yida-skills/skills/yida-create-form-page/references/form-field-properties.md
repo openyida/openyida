@@ -56,7 +56,7 @@ Divider > Field
 - 不要为了“更好看”给每个 Divider 随机写 `backgroundColor` / `secondaryColor`。
 - 只有用户明确指定颜色时，才使用 `colorType: "custom"` 并写 `backgroundColor`、`secondaryColor`、`titleColor`。
 - 表单 JS 默认注入 `style#yida-global-theme`，并尽可能同步到提交页自身、当前页面和同源 `window.top`；跨域窗口只跳过，不报错。
-- 新表单页默认消费 `podBlue`、`podGreen`、`podOrange` 对应主题变量；`blue`、`green`、`orange` 作为应用主题 token profile 保留原名。本参考只消费运行态变量，不把 legacy 名称当作表单 `--theme` 或应用 `--theme` 参数。
+- 新表单页默认读取 `podBlue`、`podGreen`、`podOrange` 对应主题变量；`blue`、`green`、`orange` 作为应用主题 token profile 保留原名。表单实现使用运行态变量，不把 legacy 名称当作表单 `--theme` 或应用 `--theme` 参数。
 
 ### Divider
 
