@@ -162,7 +162,7 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 | `yida-skills/integration` | 连接器、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-integration`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
 | `yida-skills/access` | 平台/应用/表单/页面权限、公开访问、分享 | `yida-corp-manager`、`yida-app-permission`、`yida-form-permission`、`yida-page-config` |
 | `yida-skills/ops` | Sequence、主键冲突、VOC 反馈 | `yida-db-seq-fix`、`yida-voc` |
-| `yida-skills/agent` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | `yida-export-conversation`、`yida-document-markdown`、`yida-tingji`、`yida-flash-note-to-prd` |
+| `yida-skills/agent` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转会议需求稿 | `yida-export-conversation`、`yida-document-markdown`、`yida-tingji`、`yida-flash-note-to-prd` |
 
 ### 高频分歧
 
@@ -171,8 +171,8 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 | 从零搭一个完整应用/系统 | `yida-app`；它按依赖加载 `yida-design` 等子技能 |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
-| 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成结构化 PRD |
-| 已有会议纪要/闪记内容转 PRD | `yida-flash-note-to-prd`，只处理已有内容并生成结构化 PRD，不负责按 taskUuid 拉取听记 |
+| 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成会议需求稿 |
+| 已有会议纪要/闪记内容转 PRD | `yida-flash-note-to-prd`，只处理已有内容并生成会议需求稿，不负责按 taskUuid 拉取听记 |
 | 只创建应用壳并拿 appType | `yida-create-app`；创建成功后把真实 `appType` 写入缓存，并交给当前编排步骤继续使用 |
 | 启用/上线或停用/下线已有应用 | `yida-app-lifecycle`；只有用户明确要求时执行，`app-offline` 执行前需再次确认目标应用 |
 | 创建自定义展示页资源 | `yida-create-page`，之后交给 `yida-canvas-custom-page` 和 `yida-publish-page` |
@@ -241,7 +241,7 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 16. **最终输出按 owner**：完整应用最终输出见 `yida-app`；页面、表单、流程、权限等单点任务按对应子技能输出。
 17. **任务复盘沉淀**：任务完成前判断是否有可复用经验需要落盘到 CLI、测试或 skill。用户多次纠正、平台接口假成功、页面骨架共性质量问题、线上回读验收方法、一次性脚本可产品化等情况必须沉淀；详见 `references/task-retrospective.md`。
 
-> 📖 每条规则的完整说明、PRD 质量门槛、临时文件路径规范、报表美化话术 → [references/development-rules.md](references/development-rules.md)
+> 📖 每条规则的完整说明、PRD/design 归属、临时文件路径规范、报表美化话术 → [references/development-rules.md](references/development-rules.md)
 
 ---
 
@@ -261,7 +261,7 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 | 文档 | 覆盖范围 | 何时阅读 |
 |------|---------|---------|
 | [环境准备与登录检测](references/setup-and-env.md) | 环境依赖、env 解读、多环境 token 登录、悟空降级、project 初始化 | 环境异常或登录问题时 |
-| [核心规则详解](references/development-rules.md) | 成功率清单、PRD 门槛、临时文件、报表美化、corpId | 编写 PRD / 规范执行前 |
+| [核心规则详解](references/development-rules.md) | 成功率清单、PRD/design 归属、临时文件、报表美化、corpId | 编写 PRD / 规范执行前 |
 | [字段类型 / URL 规则](references/field-and-url-reference.md) | 表单字段类型速查、应用 URL 拼接规则 | 建表单 / 拼访问链接时 |
 | [宜搭 API](references/yida-api.md) | 宜搭 API 完整参数 | 调用 API 前 |
 | [公式函数库](references/formula-functions.md) | 公式函数速查 | 编写公式前 |

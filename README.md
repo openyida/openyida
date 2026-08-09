@@ -494,7 +494,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida export-conversation [options]` | Export AI conversation records |
 | `openyida feedback <setup\|url\|dismiss\|status> [options]` | Configure experience feedback form and local reminder state |
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run OpenYida commands in batch |
-| `openyida flash-to-prd --file <path> --name "<project>"` | Convert flash notes or meeting notes to a PRD prompt |
+| `openyida flash-to-prd --file <path> --name "<project>"` | Generate a meeting requirements draft from flash notes or meeting notes |
 | `openyida ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
 | `openyida asset <status\|verify-url\|resolve\|generate> [options]` | Detect asset capability / verify image URLs / resolve materials |
 | `openyida cdn-config [options]` | Configure CDN / OSS upload |

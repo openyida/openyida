@@ -178,7 +178,7 @@
       "name": "yida-tingji",
       "path": "skills/yida-tingji/SKILL.md",
       "display_name": "钉钉听记详情",
-      "description": "按 taskUuid 获取钉钉听记、会议录音转写、会议纪要或 AI 听记详情；只负责读取内容。若用户要求转 PRD，先取内容再交给 yida-flash-note-to-prd 整理需求素材。",
+      "description": "按 taskUuid 获取钉钉听记、会议录音转写、会议纪要或 AI 听记详情；只负责读取内容。若用户要求转 PRD，先取内容再交给 yida-flash-note-to-prd 生成会议需求稿。",
       "category": "yida-skills/agent",
       "tags": [
         "钉钉听记",
@@ -198,7 +198,7 @@
       "command_ids": [
         "read-dingtalk-tingji"
       ],
-      "done_when": "命令成功返回指定 taskUuid 对应的真实听记详情；转 PRD 场景已把内容交给 yida-flash-note-to-prd 整理需求素材。",
+      "done_when": "命令成功返回指定 taskUuid 对应的真实听记详情；转 PRD 场景已把内容交给 yida-flash-note-to-prd 生成会议需求稿。",
       "requires_login": true
     },
     {
@@ -710,8 +710,8 @@
     {
       "name": "yida-flash-note-to-prd",
       "path": "skills/yida-flash-note-to-prd/SKILL.md",
-      "display_name": "闪记转 PRD",
-      "description": "从已有钉钉闪记、会议记录或需求文档内容中提取产品需求，生成结构化 PRD。若用户只给 taskUuid，先用 yida-tingji 读取内容，再进入本技能。",
+      "display_name": "闪记转会议需求稿",
+      "description": "从已有钉钉闪记、会议记录或需求文档内容中提取产品需求，生成会议需求稿到 prd/<项目名>/prd.md。完整应用 PRD 和 design.md 由 yida-design 承接。",
       "category": "yida-skills/agent",
       "tags": [
         "闪记",
@@ -1330,7 +1330,7 @@
     {
       "name": "yida-skills/agent",
       "display_name": "Agent 辅助工具",
-      "description": "非宜搭业务资源本身的 agent 辅助能力：导出对话、会议/闪记转 PRD。",
+      "description": "非宜搭业务资源本身的 agent 辅助能力：导出对话、会议/闪记生成会议需求稿。",
       "signals": [
         "导出对话",
         "钉钉文档",

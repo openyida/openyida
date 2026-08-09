@@ -229,12 +229,18 @@ describe('OpenYida skill contracts', () => {
     const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
     const byName = new Map(index.skills.map((skill) => [skill.name, skill]));
 
-    expect(root).toContain('先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成结构化 PRD');
-    expect(tingji).toContain('本技能不直接生成 PRD');
+    expect(root).toContain('先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成会议需求稿');
+    expect(tingji).toContain('本技能不直接生成会议需求稿');
     expect(flash).toContain('先加载 `yida-tingji` 读取听记内容');
-    expect(flash).toContain('生成的 prompt 写入 `prd/<项目名>/prd.md`');
+    expect(flash).toContain('不要将生成的会议需求稿写入项目根目录');
+    expect(flash).toContain('写入 `prd/<项目名>/prd.md`');
+    expect(flash).toContain('## PRD 生成规则');
+    expect(flash).toContain('完整应用 PRD 和 `design.md` 的产物生成、补齐和验收由 `yida-design` 承接');
+    expect(flash).not.toContain('## OpenYida PRD 质量门槛');
+    expect(flash).not.toContain('| MVP 边界 | 第一版必须做什么');
     expect(byName.get('yida-tingji').description).toContain('只负责读取内容');
-    expect(byName.get('yida-flash-note-to-prd').description).toContain('生成结构化 PRD');
+    expect(byName.get('yida-flash-note-to-prd').description).toContain('生成会议需求稿');
+    expect(byName.get('yida-flash-note-to-prd').description).toContain('design.md 由 yida-design 承接');
   });
 
   test('yida-app unified build forbids unbound dataSourceMap by default', () => {

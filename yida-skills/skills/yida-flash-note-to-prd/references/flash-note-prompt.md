@@ -1,6 +1,6 @@
 ## AI Prompt 设计
 
-本技能采用**三层 Prompt 架构**，确保从闪记中高质量提取需求并生成结构化 PRD。
+本技能采用三层 Prompt 架构，从闪记中提取需求，并按 [PRD 生成规则](flash-note-prd-template.md) 生成会议需求稿。
 
 完整的 Prompt 构建逻辑实现在 `build-flash-note-prompt.js` 中，以下是核心设计。
 
@@ -35,7 +35,7 @@
 ```
 ## 任务
 
-请分析以下钉钉闪记内容，从中提取产品需求，生成一份高质量的结构化 PRD（产品需求文档）。
+请分析以下钉钉闪记内容，从中提取产品需求，并按 PRD 生成规则生成会议需求稿。
 
 ## 分析要求
 
@@ -149,7 +149,7 @@
 {preprocessed_flash_note_content}
 
 ---
-请严格按照上述要求输出结构化 PRD 文档。
+请严格按照上述要求输出会议需求稿。
 ```
 
 ### 分段处理 Prompt
@@ -159,7 +159,7 @@
 | 阶段 | Prompt 策略 | 输出格式 |
 |------|------------|---------|
 | **分段提取**（每段） | 从当前段提取需求信息 | JSON 结构化数据 |
-| **合并生成**（最终） | 将各段 JSON 合并去重，生成完整 PRD | Markdown PRD |
+| **合并生成**（最终） | 将各段 JSON 合并去重，生成会议需求稿 | Markdown |
 
 **分段提取 prompt 输出的 JSON 结构**：
 
@@ -209,7 +209,7 @@ promptBuilder.flashNoteToPrd(rawFlashNote, {
   projectName: '设备巡检系统',
   callAI: callAI,
 }).then(function(prdContent) {
-  console.log('PRD 生成成功', prdContent);
+  console.log('会议需求稿生成成功', prdContent);
 });
 
 // 方式 3：直接调用 AI 接口
@@ -226,7 +226,7 @@ fetch('/query/intelligent/txtFromAI.json', {
   .then(function (data) {
     if (data.success) {
       var prdContent = data.content.content;
-      console.log('PRD 生成成功', prdContent);
+      console.log('会议需求稿生成成功', prdContent);
     }
   });
 ```

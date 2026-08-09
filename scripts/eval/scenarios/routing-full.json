@@ -444,7 +444,7 @@
     "prompt": "我有一份产品讨论的闪记，帮我转化成正式的需求文档",
     "expectedSkill": "yida-flash-note-to-prd",
     "type": "positive",
-    "note": "闪记转 PRD"
+    "note": "闪记生成会议需求稿"
   },
 
   {

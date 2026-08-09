@@ -1,7 +1,8 @@
-# PRD 输出模板
+# PRD 生成规则
 
-> 本文档是 `yida-flash-note-to-prd` 技能的参考文档，定义生成的 PRD 文件的标准结构。
-> 生成的高质量 prompt 遵循以下标准结构，写入 `prd/<项目名>/prd.md`。
+本文档定义 `yida-flash-note-to-prd` 从会议/闪记内容生成需求稿的结构，输出到 `prd/<项目名>/prd.md`。
+
+完整应用 PRD 的最终口径见 `../../yida-design/workflow/output-prd.md`；`design.md` 生成、视觉规则和双文件验收由 `yida-design` 承接。本模板只负责把会议内容整理成可继续加工的需求稿，并把缺失信息写入「待确认事项」。
 
 ```markdown
 # <项目名称> — 产品需求文档

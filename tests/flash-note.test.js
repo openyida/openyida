@@ -32,7 +32,7 @@ const {
   loadPromptBuilder,
 } = require('../lib/flash-note/flash-to-prd');
 
-describe('flash note to PRD prompt builder', () => {
+describe('flash note to meeting requirements draft prompt builder', () => {
   test('preprocessFlashNote removes timestamps and merges continuous speech', () => {
     const cleaned = preprocessFlashNote([
       '[00:01:02] 张三：嗯 我们要做审批功能。。',
@@ -173,7 +173,7 @@ describe('flash-to-prd CLI command', () => {
   });
 
   test('callAI posts through yida-client and returns generated text', async () => {
-    const result = await callAI('生成 PRD', 2048, {
+    const result = await callAI('生成会议需求稿', 2048, {
       baseUrl: 'https://www.aliwork.com',
       authMode: 'token',
       authSource: 'token',
@@ -183,7 +183,7 @@ describe('flash-to-prd CLI command', () => {
     expect(utils.httpPost).toHaveBeenCalledTimes(1);
     expect(utils.httpPost.mock.calls[0][1]).toBe('/query/intelligent/txtFromAI.json');
     expect(querystring.parse(utils.httpPost.mock.calls[0][2])).toMatchObject({
-      prompt: '生成 PRD',
+      prompt: '生成会议需求稿',
       maxTokens: '2048',
       skill: 'ToText',
     });
@@ -195,7 +195,7 @@ describe('flash-to-prd CLI command', () => {
       errorMsg: '模型暂不可用',
     });
 
-    await expect(callAI('生成 PRD', 2048, {
+    await expect(callAI('生成会议需求稿', 2048, {
       baseUrl: 'https://www.aliwork.com',
       authMode: 'token',
       authSource: 'token',
