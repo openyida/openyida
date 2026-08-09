@@ -424,7 +424,11 @@ function buildDashboardSource(config, context) {
     ['Imported App', context.importAppType],
   ].filter((row) => row[1]);
 
-  return `import React from 'react';
+  return `/**
+ * @openyida-scene dashboard
+ * @openyida-content-blocks 应用标题,运行摘要,资源概览,模块状态,资源清单,发布状态,数据状态,权限状态,分享状态,报表状态
+ */
+import React from 'react';
 
 var RESULT = {
   title: ${escapeJsString(config.resultAppName)},
@@ -600,7 +604,11 @@ export default function Page() {
 }
 
 function buildDashboardSkillSource(config, context) {
-  return `import React from 'react';
+  return `/**
+ * @openyida-scene dashboard
+ * @openyida-content-blocks 页面标题,时间筛选,指标摘要,健康指数,资源状态,发布状态,趋势面板,结构面板,检查清单,资源绑定
+ */
+import React from 'react';
 
 var DASHBOARD = {
   title: 'OpenYida Dashboard Skill E2E',
@@ -702,7 +710,11 @@ export default function Page() {
 }
 
 function buildBusinessDashboardSource(config, context) {
-  return `import React, { useState } from 'react';
+  return `/**
+ * @openyida-scene dashboard
+ * @openyida-content-blocks 页面标题,时间筛选,区域筛选,经营指标,营收贡献,渠道增长,客户分层,供应履约,利润趋势,协同效率,风险闭环
+ */
+import React, { useState } from 'react';
 
 var DASHBOARD = {
   title: '全球业务经营驾驶舱',
