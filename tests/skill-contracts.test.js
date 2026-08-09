@@ -147,6 +147,19 @@ describe('OpenYida skill contracts', () => {
     expect(rechart.positive_signals).toEqual(expect.arrayContaining(['高级图表', 'Recharts']));
     expect(rechart.negative_signals).toEqual(expect.arrayContaining(['明确指定 ECharts']));
 
+    const dashboard = byName.get('yida-dashboard');
+    expect(dashboard.display_name).toContain('产品结构编排');
+    expect(dashboard.description).toContain('具体图表、聚合、数据接入和页面实现交给对应技能');
+    expect(dashboard.command_ids).toEqual(expect.arrayContaining([
+      'create-page',
+      'create-form.create',
+      'integration.create',
+      'create-report',
+      'publish',
+      'save-share-config',
+      'get-page-config',
+    ]));
+
     const canvasTable = byName.get('yida-canvas-table-form');
     expect(canvasTable.positive_signals).toEqual(expect.arrayContaining(['批量录入', 'antd Table']));
     expect(canvasTable.negative_signals).toEqual(expect.arrayContaining(['this.utils.yida.saveFormData']));

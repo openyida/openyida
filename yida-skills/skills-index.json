@@ -570,8 +570,8 @@
     {
       "name": "yida-dashboard",
       "path": "skills/yida-dashboard/SKILL.md",
-      "display_name": "经营看板产品化交付",
-      "description": "经营看板、驾驶舱和数据大屏产品化交付，覆盖真实数据接入、筛选交互、截图、短链和钉钉待办闭环。",
+      "display_name": "经营看板产品结构编排",
+      "description": "经营看板、驾驶舱和数据大屏产品结构编排。定义指标、布局、筛选、派单、截图、分享和验收；具体图表、聚合、数据接入和页面实现交给对应技能。",
       "category": "yida-skills/analytics",
       "tags": [
         "看板",
@@ -597,10 +597,14 @@
       ],
       "command_ids": [
         "create-page",
+        "create-form.create",
+        "integration.create",
         "create-report",
-        "publish"
+        "publish",
+        "save-share-config",
+        "get-page-config"
       ],
-      "done_when": "看板页面、数据来源和关键行动入口形成可访问交付。"
+      "done_when": "看板结构、页面实现、数据来源、图表路由和关键行动入口形成可访问交付。"
     },
     {
       "name": "yida-data-management",
