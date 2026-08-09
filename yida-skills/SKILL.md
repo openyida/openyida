@@ -154,7 +154,7 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 |------|------|------|
 | `yida-skills/context` | 登录、退出、切换组织、组织版本/容量、Schema、fieldId、只读预检 | `yida-login`、`yida-logout`、`yida-basic-info`、`yida-get-schema`、`yida-corp-efficiency` |
 | `yida-skills/app` | 从零搭应用、完整系统、应用启停、应用导航、多语言 | `yida-app`、`yida-create-app`、`yida-app-lifecycle`、`yida-nav-group`、`yida-i18n` |
-| `yida-skills/design` | PRD 生成、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、design.md | `yida-prd`、`yida-design` |
+| `yida-skills/design` | 需求剖析、PRD 生成、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、design.md | `yida-requirement-analysis`、`yida-prd`、`yida-design` |
 | `yida-skills/form` | 表单字段、公式、校验、业务关联规则、详情页、批量录入、数据记录 | `yida-create-form-page`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-form-detail`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-agent-center` |
 | `yida-skills/page` | 自定义展示页、Code Canvas、已有普通自定义页面维护、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
@@ -168,7 +168,8 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 
 | 用户意图 | 选哪个 |
 |------|------|
-| 从零搭一个完整应用/系统 | `yida-app`；它按依赖加载 `yida-design` 等子技能 |
+| 从零搭一个完整应用/系统 | `yida-app`；详细步骤由它统一编排 |
+| 只分析行业、用户、功能范围、品牌或色彩偏好 | `yida-requirement-analysis` |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
 | 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成会议需求稿 |
@@ -226,12 +227,12 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 1. **加载唯一主技能**：按意图选 1 个主技能；完整应用加载 `yida-app`。
 2. **资源优先**：任何写操作前先解析本轮显式资源、已绑定资源上下文、workspace 配置/缓存、历史上下文；已有目标资源时默认修改/补齐/发布，只有目标缺失且意图允许创建时才加载 create 类技能。
 3. **ID 不猜测**：已有 `.cache/<项目名>-schema.json` 只能作为本地线索，不等于远端真相。需要字段、页面、流程或数据 ID 时，按对应子技能和 CLI 的结构化证据处理。
-4. **设计和页面分工**：`yida-prd` 负责 `prd.md`；`yida-design` 负责 `design.md`；`yida-app` 只编排完整应用；页面实现交给页面技能。
+4. **需求、设计和页面分工**：`yida-requirement-analysis` 负责共享需求简报；`yida-prd` 负责 `prd.md`；`yida-design` 负责 `design.md`；页面实现交给页面技能。
 5. **配置优先于页面代码**：字段、公式、联动、报表、审批和集成交给对应技能；自定义页面负责展示数据、放置业务入口、打开详情页，并串联表单、流程、报表和导航入口。
 6. **脚手架边界清楚**：Code Canvas、普通 JSX 和原生表单脚手架规则归各自子技能；根入口只负责路由。
 7. **数据性能优先**：统计聚合用 `yida-report` 服务端聚合，不在前端拉全量后自行聚合。
 8. **避免无效重试**：失败先查登录态/组织/参数/字段 ID，无修改不连续重试超 1 次。
-9. **设计产物归属清楚**：`prd.md` 由 `yida-prd` 产出，`design.md` 由 `yida-design` 产出；schema ID 映射只作为本地资源线索。
+9. **设计产物归属清楚**：共享需求简报只作为 `yida-prd` 和 `yida-design` 的共同输入；`prd.md`、`design.md` 分别由两个技能产出；schema ID 映射只作为本地资源线索。
 10. **临时文件入 project `.cache/`**：OpenYida 业务中间文件写入 `<projectRoot>/.cache/openyida/<项目名或任务名>/`；Schema ID 映射仍写 `<projectRoot>/.cache/<项目名>-schema.json`。从 workspace 根执行命令时使用 `project/.cache/...`，从 project 工作目录内执行时使用 `.cache/...`；不要写仓库根目录或系统临时目录。
 11. **报表美化先分流**：标准统计与原生报表用 `yida-report`；新建定制图表页面默认用 `yida-rechart` 或 `yida-canvas-custom-page`；只有维护旧 ECharts / 普通自定义页面图表时用 `yida-chart`。
 12. **按 schema 证据选技能**：先看 `formType`、组件树、页面组件类型和 `dataSource.online`；表单、流程、报表和页面分别路由到对应 owner 技能。

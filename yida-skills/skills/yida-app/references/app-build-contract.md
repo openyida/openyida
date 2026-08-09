@@ -1,6 +1,6 @@
 # yida-app 执行细节参考
 
-本文件只记录完整应用落地时的执行细节。完整应用阶段表见 `../workflow/build-stages.md`；`prd.md` 的定义和验收归 `yida-prd`，`design.md` 的定义和验收归 `yida-design`。
+本文件只记录完整应用落地时的执行细节。完整应用阶段表见 `../workflow/build-stages.md`；共享需求简报由 `yida-requirement-analysis` 生成，`prd.md` 和 `design.md` 分别由 `yida-prd`、`yida-design` 同时生成。
 
 ## PRD / design.md / page-spec 关系
 

@@ -1,6 +1,6 @@
 # style-design 内置模板注册表
 
-本目录提供 `yida-design` Step 5 生成 `prd/<项目名>/design.md` 时可选择的内置视觉 DNA 模板。生成 `design.md` 时必须先判断内容兼容性，再根据视觉策略选择唯一一个 `style-designs/*.md` 作为基础视觉母体，最后结合主题色和当前 PRD 生成最终自包含的 `design.md`。
+本目录提供 `yida-design` Step 5 生成 `prd/<项目名>/design.md` 时可选择的内置视觉 DNA 模板。生成 `design.md` 时必须先判断内容兼容性，再根据视觉策略选择唯一一个 `style-designs/*.md` 作为基础视觉母体，最后结合主题色和当前 共享需求简报 生成最终自包含的 `design.md`。
 
 `_design-md-template.md` 仍是结构模板；它不参与视觉风格选择。页面技能只读取当前项目的 `prd.md` 和 `design.md`，不回读本目录。
 
@@ -47,7 +47,7 @@
 2. 主题色只作为所选模板的 `theme_adaptation` 输入，用于替换强调色 token；主题色不是选择模板的主要依据。
 3. 指标卡、图表、表格、待办、筛选器、右侧栏、状态标签、快捷入口、时间线等公共组件只用于判断 `contentCompatibility`，不得作为模板强匹配理由。
 4. 每次必须选择唯一一个 `style-designs/*.md` 作为 `baseDesignSource`。若所有模板都不适合，仍读取 `_design-md-template.md` 输出 `baseDesignSource=generated-from-business-context`，并在 `styleDesignSelection.rejectedStyleDesigns` 说明原因。
-5. 不得为了套模板凭空创造 PRD 未要求的图表、右侧栏、时间轴、深色舞台或快捷入口；模板只能决定已有业务内容的视觉承载方式。
+5. 不得为了套模板凭空创造 共享需求简报 未要求的图表、右侧栏、时间轴、深色舞台或快捷入口；模板只能决定已有业务内容的视觉承载方式。
 6. `dark-stage-analytic-dashboard` 是局部深色重点舞台，不是全页面深色沉浸。不得仅以“用户未要求深色”为理由拒绝它；只能在页面不需要强视觉焦点时拒绝。
 7. `soft-analytic-workbench` 是 `soft_neutral` 均衡办公风格，不是所有工作台的默认答案。选择它时必须在内部选择草稿中确认其他更强视觉策略证据不足。
 8. 最终 `design.md` 必须自包含：包含模板来源、选择依据、主题换肤结果、视觉 DNA、token、组件、状态、响应式、可访问性和实现契约。

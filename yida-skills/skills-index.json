@@ -23,7 +23,7 @@
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
-      "description": "完整应用编排。用于从零搭建或补齐一个宜搭应用。读取 yida-prd 的 prd.md 和 yida-design 的 design.md，按依赖加载子技能，发布主页面，返回主入口链接。",
+      "description": "完整应用编排。用于从零搭建或补齐一个宜搭应用。先生成共享需求简报，再同时生成 prd.md 和 design.md，按依赖创建资源、发布主页面并返回主入口链接。",
       "done_when": "主页面已发布，或说明没有发布证据/阻塞原因；导航排序已执行或说明跳过原因；final 用 2-3 句业务总结 + 一个主入口链接，不输出资源表。",
       "category": "yida-skills/app",
       "tags": [
@@ -38,6 +38,41 @@
         "应用搭建",
         "管理系统搭建"
       ]
+    },
+    {
+      "name": "yida-requirement-analysis",
+      "path": "skills/yida-requirement-analysis/SKILL.md",
+      "display_name": "宜搭需求剖析",
+      "description": "宜搭需求剖析。完整应用开始时整理行业、用户、业务目标、核心功能、业务对象、页面场景、品牌和色彩偏好，写入共享需求简报，供 yida-prd 与 yida-design 同时使用。",
+      "category": "yida-skills/design",
+      "tags": [
+        "需求剖析",
+        "行业分析",
+        "用户分析",
+        "功能范围",
+        "品牌偏好",
+        "共享需求简报"
+      ],
+      "aliases": [
+        "需求分析",
+        "需求简报",
+        "行业定位"
+      ],
+      "positive_signals": [
+        "分析应用需求",
+        "判断行业",
+        "梳理用户和功能",
+        "确定品牌方向",
+        "生成需求简报"
+      ],
+      "negative_signals": [
+        "生成正式 PRD",
+        "生成 design.md",
+        "页面实现",
+        "发布页面"
+      ],
+      "command_ids": [],
+      "done_when": "已输出 .cache/openyida/<项目名>/requirement-brief.json；没有生成 prd.md、design.md 或页面源码。"
     },
     {
       "name": "yida-prd",
@@ -742,7 +777,7 @@
       "name": "yida-flash-note-to-prd",
       "path": "skills/yida-flash-note-to-prd/SKILL.md",
       "display_name": "闪记转会议需求稿",
-      "description": "从已有钉钉闪记、会议记录或需求文档内容中提取产品需求，生成会议需求稿到 prd/<项目名>/prd.md。完整应用 PRD 由 yida-prd 承接，design.md 由 yida-design 承接。",
+      "description": "从已有钉钉闪记、会议记录或需求文档内容中提取产品需求，生成会议需求稿到 prd/<项目名>/prd.md。继续搭建完整应用时交给 yida-requirement-analysis 生成共享需求简报。",
       "category": "yida-skills/agent",
       "tags": [
         "闪记",
@@ -1241,8 +1276,11 @@
     {
       "name": "yida-skills/design",
       "display_name": "应用设计与主题",
-      "description": "宜搭应用设计、应用级体验蓝图、单页视觉方向、主题色、全局换肤、素材图标和去 AI 味检查。",
+      "description": "宜搭需求剖析、PRD、单页视觉方向、主题色、全局换肤、素材图标和去 AI 味检查。",
       "signals": [
+        "需求剖析",
+        "需求简报",
+        "行业定位",
         "应用设计",
         "UI设计",
         "视觉设计",

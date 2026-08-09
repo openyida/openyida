@@ -8,7 +8,7 @@
 
 1. 读取 [design.md 生成规则](../references/style-design-selection.md)。
 2. 读取 [style-design 内置模板注册表](../references/style-designs/registry.md)，再读取 `_design-md-template.md`。
-3. 从 Step 1-4 产物推演 `inferredUserTask`、`inferredInformationTopology`、`interactionFocus` 和 `requiredVisualDNA`。用户通常不会主动描述视觉结构，agent 必须从业务对象、数据形态、页面区块和操作路径中推演。
+3. 从共享需求简报和 Step 2-4 产物推演 `inferredUserTask`、`inferredInformationTopology`、`interactionFocus` 和 `requiredVisualDNA`。用户通常不会主动描述视觉结构，agent 必须从业务对象、页面场景和操作目标中推演。
 4. 按 `业务任务匹配 30% + 信息拓扑匹配 25% + 视觉 DNA 命中 30% + 实现稳定性 10% - 风险扣分 5%` 选择唯一一个 `style-designs/*.md` 作为 `baseDesignSource`；纯表单、长文、品牌营销、移动端单任务、未要求暗色时要过滤明显不合适的模板。
 5. 读取被选中的 style-design 模板，抽取 `visual_dna`、`theme_adaptation`、`layout_stability`、`quality_anchors`、`components` 和 `modules`。
 6. 根据 Step 2 的主题色来源和主题色输入执行换肤：替换模板 `theme_adaptation.replace_tokens`，派生 `derive_tokens`，保留 `preserve_tokens` 和 `visual_dna.invariant`。主题色只换 hue，不换 DNA，不改结构。
@@ -39,7 +39,7 @@
 - 3-5 条业务专属设计原则：结合业务对象和用户任务写具体规则。
 - 差异化 5 维：色彩、构图、密度、组件语言、动线；这些规则必须来自业务推演和所选模板视觉 DNA 的融合。
 - 基础版式：全应用视觉锚点、区块节奏、密度、操作位置和响应式规则。
-- `visualScaffold`：给页面技能消费的结构骨架，写清 `layoutRecipe`、`surfaceMap`、`sectionRhythm`、`densityRule`、`breathingRule`、`componentRecipe`、`emptyStateRecipe`、`responsiveSlots` 和 `acceptanceChecks`。这些字段属于 `design.md`，PRD 只引用。
+- `visualScaffold`：给页面技能消费的结构骨架，写清 `layoutRecipe`、`surfaceMap`、`sectionRhythm`、`densityRule`、`breathingRule`、`componentRecipe`、`emptyStateRecipe`、`responsiveSlots` 和 `acceptanceChecks`。这些字段只写入 `design.md`。
 - 默认业务工具页采用圆润高密且有呼吸感的规则：卡片 padding 默认 22-28px 且必须大于 20px，卡片与卡片的 gap 默认 12-18px 且必须小于 20px，卡片圆角范围 0-32px，控件 10-14px；状态摘要 64-88px，动作条 40-56px，列表行 44-56px，空态 88-120px 内。官网、品牌页或用户明确要求舒展时才放宽。
 
 `visualScaffold` 的最低要求：
@@ -88,7 +88,7 @@
 7. 列表、看板、详情是否保留用户当前上下文。
 8. 新增/提交/编辑是否使用原生表单入口。
 9. 首屏是否有视觉锚点、主操作、关键状态和至少两个信息层。
-10. 自定义展示页是否在 PRD 中引用 `designFile` 和 `designRefs`，且 `design.md` 已写清视觉 DNA 和页面场景规则。
+10. `design.md` 是否已为共享需求简报中的页面场景写清视觉 DNA、`sceneRecipes` 和可引用的 `designRefs`。
 11. 工作台 / 业务首页是否避开“4 个等宽大 KPI 卡 + 图标快捷卡 + 大空态白卡”的低密模板；空数据是否用薄空态行和主操作入口承接。
 12. 工作台、首页、门户、看板、展示页和业务入口页是否至少有 10 个有业务目的的区块以上，并且不是靠重复卡片或空白容器凑数；KPI 子项、快捷入口子项和列表行不能分别计数。
 13. 页面是否已考虑 `backgroundLayer`：优先选择淡色背景、顶部不规则色块、柔和光洗、低速流光、微噪点、细线装饰、插图或局部渐变之一；近白画布可以保留，但不能呈现为未设计的空白底。
@@ -109,7 +109,7 @@
 - iconSystem：<defaultLibrary / allowedLibraries / sizes / actionIconMap / statusIconMap>
 - stateSpec：<正常/禁用/加载/空态/错误/无权限>
 - assetStrategy：<图片/图标/素材缺口/materialStatus>
-- pageDesignRefs：<每个 display 页面在 PRD 中引用 design.md 的章节 ID>
+- pageDesignRefs：<交给 yida-app 对齐 PRD 页面场景的 design.md 章节 ID>
 - deAiChecks：<通过项和需要修正项>
 ```
 

@@ -118,6 +118,8 @@ describe('eval routing', () => {
         skill: 'yida-app',
         defaultLoadSkills: [
           'yida-app',
+          'yida-requirement-analysis',
+          'yida-prd',
           'yida-create-app',
           'yida-create-form-page',
           'yida-create-page',
@@ -131,13 +133,15 @@ describe('eval routing', () => {
     const r = evaluateScenario({
       scenario,
       routingContext: 'doc',
-      skillNames: ['yida-app', 'yida-design', 'yida-data-source-connectors'],
+      skillNames: ['yida-app', 'yida-requirement-analysis', 'yida-prd', 'yida-design', 'yida-data-source-connectors'],
       runAgent: fakeAgent,
     });
 
     expect(r.hit).toBe(true);
     expect(r.modeHit).toBe(null);
     expect(r.defaultLoadSkills).toContain('yida-app');
+    expect(r.defaultLoadSkills).toContain('yida-requirement-analysis');
+    expect(r.defaultLoadSkills).toContain('yida-prd');
     expect(r.defaultLoadSkills).toContain('yida-design');
     expect(r.forbiddenDefaultSkillHits).toEqual([]);
   });
@@ -147,7 +151,7 @@ describe('eval routing', () => {
       available: true,
       json: {
         skill: 'yida-app',
-        defaultLoadSkills: ['yida-app', 'yida-design', 'yida-canvas-custom-page', 'yida-data-source-connectors'],
+        defaultLoadSkills: ['yida-app', 'yida-requirement-analysis', 'yida-prd', 'yida-design', 'yida-canvas-custom-page', 'yida-data-source-connectors'],
       },
     });
     const r = evaluateScenario({
@@ -158,7 +162,7 @@ describe('eval routing', () => {
         forbiddenDefaultSkills: ['yida-data-source-connectors'],
       },
       routingContext: 'doc',
-      skillNames: ['yida-app', 'yida-design', 'yida-data-source-connectors'],
+      skillNames: ['yida-app', 'yida-requirement-analysis', 'yida-prd', 'yida-design', 'yida-data-source-connectors'],
       runAgent: fakeAgent,
     });
 

@@ -73,6 +73,10 @@ describe('build-skills-package', () => {
         path.join(outDir, 'references', 'subskills', 'yida-app', 'workflow', 'build-stages.md'),
         'utf8'
       )).toContain('完整应用阶段');
+      expect(fs.readFileSync(
+        path.join(outDir, 'references', 'subskills', 'yida-requirement-analysis', 'README.md'),
+        'utf8'
+      )).toContain('共享需求简报');
       const generatedDesignSkill = fs.readFileSync(
         path.join(outDir, 'references', 'subskills', 'yida-design', 'README.md'),
         'utf8'

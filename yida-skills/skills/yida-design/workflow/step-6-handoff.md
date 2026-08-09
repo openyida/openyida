@@ -20,13 +20,13 @@
 
 ## 写文件前检查
 
-1. 确认业务对象、页面场景、主操作和数据来源已来自用户诉求或 `prd.md`。
+1. 确认业务对象、页面场景、品牌和色彩偏好已来自共享需求简报或当前单页上下文。
 2. 读取 [design.md 输出格式](output-design.md)。
 3. 读取 [页面质量门禁](../references/page-quality-gates.md)，确认设计规则可交给页面技能。
 4. 用 Step 2 的主题结果填充 `themeProfile`、tokens 和 `themeAdaptationResult`。
 5. 用 Step 5 的视觉结果填充 `visualScaffold`、`sceneRecipes`、组件、图标和状态规则。
 6. 写入 `prd/<项目名>/design.md`。
-7. 若已有 `prd.md`，确认其中的 `designFile/designRefs` 能指向本文件；不一致时提示回到 `yida-prd` 修正 PRD 引用。
+7. 写入完成后把 `designFile` 和可用 `designRefs` 交给 `yida-app`；完整应用在 `prd.md` 与 `design.md` 都完成后统一校验引用。
 
 ## 完成标准
 

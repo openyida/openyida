@@ -1,6 +1,6 @@
 # 输出：prd.md
 
-> 本技能输出 `prd/<项目名>/prd.md`。`prd.md` 记录业务语义、产品设计、页面结构、资源创建顺序、页面实现交付顺序和导航顺序。PRD 不写 UI 视觉设计规范，只写应用主题色和风格摘要，并引用 `design.md` 章节。
+> 本技能输出 `prd/<项目名>/prd.md`。`prd.md` 记录业务语义、产品设计、页面结构、资源创建顺序、页面实现交付顺序和导航顺序。PRD 只保留共享需求简报中的品牌和色彩偏好，并引用 `design.md`，不写 UI 视觉设计规则。
 
 ## PRD 输出格式
 
@@ -17,7 +17,7 @@
 | 核心用户 | <角色 1 / 角色 2 / 管理员等> |
 | 使用场景 | <PC 办公 / 移动录入 / 大屏查看 / 外部官网等> |
 | 核心对象 | <客户 / 订单 / 商品 / 工单 / 审批单等> |
-| 主题色 | <当前应用主题色 / 用户指定品牌色 / 待创建后回填；写清色值或主题 key> |
+| 品牌和色彩偏好 | <从 requirement-brief.json 读取；用户未指定时写“由 yida-design 决定”> |
 | 权限口径 | <谁能看、谁能填、谁能审批、谁能管理> |
 
 ## 2. 应用配置
@@ -81,24 +81,21 @@
   - pageStructure：<workbench / dashboard-overview / business-list / detail-profile / split-pane-detail / portal-shell-home / official-homepage / data-screen>
   - scene：<workbench / dashboard / list / detail / landing / screen>
   - contentBlocks：<10+ 区块；KPI/快捷入口/列表/图表子项不分别计数>
-  - themeSummary：<应用主题色 / 风格关键词 / themeScope 摘要；必须与 design.md 一致，不写 token 和视觉规则>
+  - themeSummary：<品牌和色彩偏好摘要；最终由 yida-app 在两份文件完成后与 design.md 对齐>
   - designFile：<prd/<项目名>/design.md>
   - designRefs：<themeProfile / sceneRecipes.<scene> / components.<name> / states.<name>>
   - dataBinding：<form / report / connector / static-empty；真实资源 ID 由页面技能回填>
   - primaryAction：<主操作和打开方式>
 
-## 5. 应用主题与风格摘要
+## 5. 设计需求与引用
 
 | 项目 | 内容 |
 | --- | --- |
 | 设计文件 | `prd/<项目名>/design.md` |
-| 应用主题色 | <平台预置 key 或自定义色盘名称；必须与 design.md 的 Theme Profile 一致> |
-| 风格摘要 | <2-3 个业务风格关键词，例如高效协同、稳重可信、经营洞察；完整 UI 设计见 design.md> |
-| 主题作用域 | <app / page；只写摘要，具体 themeProfile、token、注入策略见 design.md> |
-| 明暗模式 | <light 默认；dark 只在明确暗色/夜间/高对比/黑金时使用；具体色阶见 design.md> |
+| 品牌和色彩偏好 | <从共享需求简报读取用户指定品牌色、已有应用主题、偏好色和避用色> |
+| 视觉目标 | <从共享需求简报读取业务气质、参考案例和素材要求> |
 | 页面设计引用 | <逐页列出 designRefs，不复制 design.md 内容> |
-| 素材策略摘要 | <官网/品牌页是否需要真实图片或生成图片；具体视觉表达见 design.md> |
-| 一致性要求 | <PRD 中主题色和风格摘要必须与 design.md 保持一致；冲突时以 design.md 为准并修正 PRD 摘要> |
+| 一致性要求 | <两份文件完成后由 yida-app 校验页面场景和 designRefs；PRD 保留业务事实，design.md 保留视觉事实> |
 
 ## 6. 业务逻辑与交互状态
 

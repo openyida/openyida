@@ -189,7 +189,7 @@ inferred_modules:
 
 这是一套内容中立的浅色数据工作台视觉规范，适合把多组摘要、趋势、分布、比例、辅助输入和明细列表组织在同一个首屏或连续画布中。它的核心不是具体业务，而是“浅灰画布 + 白色软边框模块 + 蓝色单焦点可视化 + 稳定分栏网格”的组合。
 
-界面应保持中等信息密度：首屏能快速扫到 `page_title`、`global_filters`、`primary_metrics` 和主要 `trend_panel`，下方再承接 `detail_table` 或 `detail_list`。所有模块以中性槽位命名，具体指标、记录、商品、人名、业务状态都由后续 PRD 注入。
+界面应保持中等信息密度：首屏能快速扫到 `page_title`、`global_filters`、`primary_metrics` 和主要 `trend_panel`，下方再承接 `detail_table` 或 `detail_list`。所有模块以中性槽位命名，具体指标、记录、商品、人名、业务状态都由后续 共享需求简报 注入。
 
 这套风格的可识别感来自边界精细、留白充足、数字层级强、图表克制和局部圆角统一。生成页面时可以替换主题色和业务内容，但不能改变这些视觉母体。
 
@@ -545,7 +545,7 @@ page_shell
 - 必须保留 `blue_focus_visualization`：图表以一个蓝色主焦点序列为核心，辅助元素低对比。
 - 必须保留 `modular_two_column_canvas`：桌面端左宽右窄，左侧主分析与明细，右侧辅助模块堆叠。
 - 必须保留 `rounded_micro_detail`：圆角 token、浅边框、轻阴影贯穿面板、控件、浮层和细节组件。
-- 工作台、仪表盘、管理后台、运营首页必须包含 `quick_actions`，除非 PRD 明确不需要快捷入口。
+- 工作台、仪表盘、管理后台、运营首页必须包含 `quick_actions`，除非 共享需求简报 明确不需要快捷入口。
 - 所有图表、表格、列表、快捷入口必须有固定高度或内部滚动策略。
 - 所有内容都必须使用中性槽位承载，不写死具体业务指标、商品、人物、行业术语或示例数据。
 
@@ -575,7 +575,7 @@ page_shell
 
 ## 21. Agent 使用提示
 
-使用本 DESIGN.md 生成界面时，先读取 PRD 的信息拓扑，再把内容映射到 `page_title`、`global_filters`、`primary_metrics`、`trend_panel`、`breakdown_panel`、`ratio_panel`、`detail_table`、`quick_actions` 等中性槽位。视觉 DNA 必须在内容替换后保留：`soft_metric_card_row`、`pill_command_header`、`blue_focus_visualization`、`modular_two_column_canvas`、`rounded_micro_detail`。主题色只能替换小面积强调色，不能改变浅灰画布、白色软边框面板、左宽右窄网格和轻量圆角系统。工作台、仪表盘、管理后台或运营首页必须按 `quick_actions` 规则生成快捷入口区域，除非 PRD 明确排除。
+使用本 DESIGN.md 生成界面时，先读取 共享需求简报 的信息拓扑，再把内容映射到 `page_title`、`global_filters`、`primary_metrics`、`trend_panel`、`breakdown_panel`、`ratio_panel`、`detail_table`、`quick_actions` 等中性槽位。视觉 DNA 必须在内容替换后保留：`soft_metric_card_row`、`pill_command_header`、`blue_focus_visualization`、`modular_two_column_canvas`、`rounded_micro_detail`。主题色只能替换小面积强调色，不能改变浅灰画布、白色软边框面板、左宽右窄网格和轻量圆角系统。工作台、仪表盘、管理后台或运营首页必须按 `quick_actions` 规则生成快捷入口区域，除非 共享需求简报 明确排除。
 
 ## 22. 交付自检清单
 
@@ -585,7 +585,7 @@ page_shell
 - [ ] 图表只使用一个蓝色主焦点，辅助序列、网格线、未选中状态保持低对比。
 - [ ] 桌面端主体为左宽右窄网格，左列主分析和明细，右列辅助模块堆叠。
 - [ ] 面板、控件、tooltip、输入框、徽标、缩略图都继承统一圆角 token。
-- [ ] 快捷入口区域存在或有明确 PRD 排除理由，并继承软边框、浅图标块和蓝色小面积焦点。
+- [ ] 快捷入口区域存在或有明确 共享需求简报 排除理由，并继承软边框、浅图标块和蓝色小面积焦点。
 - [ ] 主网格使用 `align-items: stretch`，面板使用 `height: 100%`、`min-width: 0`、`min-height: 0`、`display: flex`、`flex-direction: column`。
 - [ ] 图表、表格、列表、快捷入口和长文案有固定高度、内部滚动、截断或折叠策略。
 - [ ] 页面区块间距由父级 `gap` 管理，没有零散外边距造成错位。

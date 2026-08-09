@@ -72,8 +72,8 @@ describe('yida-prd PRD quality fixtures', () => {
     const pageGeneration = read('yida-skills/skills/yida-canvas-custom-page/references/page-generation-guide.md');
 
     expect(fs.existsSync(scenesDir)).toBe(false);
-    expect(prd).toContain('本技能负责生成 `prd/<项目名>/prd.md`');
-    expect(skill).toContain('本技能负责生成 `prd/<项目名>/design.md`');
+    expect(prd).toContain('并生成 `prd/<项目名>/prd.md`');
+    expect(skill).toContain('并生成 `prd/<项目名>/design.md`');
     expect(step3).toContain('页面 `scene` 只作为分类标签和实现提示，不作为页面模板');
     expect(step5).toContain('同一个 `prd/<项目名>/design.md`');
     expect(pageGeneration).toContain('强视觉品牌以 PRD 的素材清单和 `design.md.assetStrategy` 为准');

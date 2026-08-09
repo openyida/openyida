@@ -226,12 +226,12 @@ openyida/
 
 ### yida-skills 技能路由规则（Agent 必读）
 
-**当用户首次创建完整应用/系统/平台时，AI agent 必须加载 `yida-app` 子技能作为唯一编排入口**。`yida-app` 按步骤加载对应子技能。
+**当用户首次创建完整应用/系统/平台时，AI agent 必须加载 `yida-app` 子技能作为唯一编排入口**。`yida-app` 先加载 `yida-requirement-analysis` 生成共享需求简报，再同时加载 `yida-prd` 和 `yida-design`，分别生成 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`。
 
 | 禁止（NEVER DO） | 正确做法（MUST DO） |
 |------|------|
 | 首次搭建应用时直接调用 `openyida create-app` 然后手动拼接 create-form / create-page / publish | 首次搭建时加载 `yida-app` 子技能，由它按标准编排流程执行 |
-| 跳过 PRD 设计阶段，凭感觉定义字段和页面结构 | 先由 `yida-design` 输出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`，再按 `yida-app` 阶段表执行 |
+| 跳过需求和设计阶段，凭感觉定义字段和页面结构 | 先生成共享需求简报，再同时生成 `prd.md` 与 `design.md`，然后按 `yida-app` 阶段表执行 |
 | 把 `yida-create-app` 当作“搭建应用”的入口 | `yida-create-app` 只是 `yida-app` 编排流程中的一个阶段步骤 |
 
 触发条件：用户消息包含“搭建应用”“创建系统”“做一个管理系统”“从零创建应用”“build an app”等完整应用构建意图，必须路由到 `yida-app`。完整路由规则详见 `yida-skills/SKILL.md` 的"第二步：意图路由"章节。

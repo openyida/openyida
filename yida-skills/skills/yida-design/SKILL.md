@@ -5,13 +5,13 @@ description: 宜搭 design.md 生成。输出 prd/<项目名>/design.md。只写
 
 # yida-design
 
-本技能负责生成 `prd/<项目名>/design.md`。`prd.md` 由 `yida-prd` 生成，页面源码由页面技能实现。
+本技能读取 `yida-requirement-analysis` 生成的共享需求简报，并生成 `prd/<项目名>/design.md`。`prd.md` 由 `yida-prd` 同时生成，页面源码由页面技能实现。
 
 ## 何时使用
 
 | 用户诉求 | 动作 |
 | --- | --- |
-| 完整应用、多个页面、主页面视觉设计 | 读取当前需求和可用 `prd.md`，生成 `design.md` |
+| 完整应用、多个页面、主页面视觉设计 | 读取共享需求简报并生成 `design.md`；可与 `yida-prd` 同时执行 |
 | 单个自定义页要求好看、高级、品牌化、去 AI 味、页面太丑 | 读 [page-design](sub_skill/page-design/SKILL.md)，再写当前页设计补充 |
 | 应用主题色、品牌色、全局换肤、`--color-brand1-*`、`customThemeStyle.tokens` | 生成 `themeProfile`、token 和主题注入说明 |
 | 只要 PRD、字段建模、流程配置、页面发布 | 不用本技能，交给 `yida-prd` 或对应子技能 |
@@ -19,7 +19,7 @@ description: 宜搭 design.md 生成。输出 prd/<项目名>/design.md。只写
 ## 必须做到
 
 1. 写入 `design.md`：`prd/<项目名>/design.md`。
-2. 先确认业务对象、页面类型、用户任务、应用主题和页面入口；已有 `prd.md` 时先读它。
+2. 完整应用先读取 `.cache/openyida/<项目名>/requirement-brief.json`，确认业务对象、页面场景、用户任务、品牌和色彩偏好。
 3. `design.md` 写主题、token、视觉 DNA、布局配方、背景、材质、圆角、密度、呼吸感、组件、图标、状态、响应式和页面技能交接。
 4. 页面实现只读取 `design.md` 的视觉规则；具体 Code Canvas、普通 JSX、表单入口和数据绑定规则交给页面技能。
 5. 完整应用只产出一份应用级 `design.md`；页面差异写成 `sceneRecipes`，不要为每页另起设计文件。
@@ -37,7 +37,7 @@ description: 宜搭 design.md 生成。输出 prd/<项目名>/design.md。只写
 
 | 步骤 | 读取文件 | 产出 |
 | --- | --- | --- |
-| 1. 确认设计输入 | 无；已有 PRD 时读 `prd/<项目名>/prd.md` | 业务对象、页面场景、应用主题、视觉目标 |
+| 1. 读取设计输入 | `.cache/openyida/<项目名>/requirement-brief.json`；单页任务读取当前页面上下文 | 业务对象、页面场景、品牌和色彩偏好、视觉目标 |
 | 2. 选择主题色和 token | [选择主题色和 token](workflow/step-2-theme-system.md) | `themeProfile` 和 token 草稿 |
 | 3. 设计页面结构和交互 | [页面结构和交互设计](workflow/step-4-wireframe-interaction.md) | 布局骨架、区块、主操作、状态 |
 | 4. 设计 UI 视觉和状态 | [UI 视觉和状态设计](workflow/step-5-visual-states.md) | 视觉 DNA、组件、素材、状态规则 |
@@ -45,7 +45,7 @@ description: 宜搭 design.md 生成。输出 prd/<项目名>/design.md。只写
 
 ## 核心规则
 
-1. **视觉输入来自需求**：业务目标、页面清单、角色、数据来源和主操作来自用户诉求或 `prd.md`。
+1. **视觉输入来自需求简报**：完整应用的行业、业务目标、用户、页面场景、品牌和色彩偏好来自 `yida-requirement-analysis`；单页任务读取当前页面上下文。
 2. **主题作用域写清楚**：应用级换肤写 `themeScope=app`；单页美化写 `themeScope=page`；自定义色盘写 token；注入摘要可写 `style#yida-global-theme`，不把任意色值传给 create-app/update-app。
 3. **默认主题先做业务判断**：主色从行业、品牌、业务情绪和视觉目标推导；先根据行业、品牌、业务情绪和视觉目标做创意色彩判断；主色不固定为 `podBlue` 或 #1677ff，不套行业刻板配色。
 4. **style-design 模板先选后定制**：先按业务任务、信息拓扑和视觉 DNA 选择唯一模板，再换主题色；换 hue，不换 DNA。
@@ -75,13 +75,14 @@ description: 宜搭 design.md 生成。输出 prd/<项目名>/design.md。只写
 | [写入 design.md](workflow/step-6-handoff.md) | 输出前检查和完成条件 |
 | [design.md 生成规则](references/style-design-selection.md) | 选择内置 style-design 模板并换肤 |
 | [视觉脚手架配方库](references/visual-scaffold-recipes.md) | `visualScaffold` 槽位和页面结构配方 |
-| [页面质量门禁](references/page-quality-gates.md) | 区块数量、视觉层次、圆角密度、PRD 引用检查 |
+| [页面质量门禁](references/page-quality-gates.md) | 区块数量、视觉层次、圆角密度、并行产物对齐 |
 | [style-design 内置模板注册表](references/style-designs/registry.md) | 模板选择、拒绝理由和输出粒度 |
 | [应用主题与 token 参考](references/theme/theme-token-presets.md) | 平台主题 key 和 token profile |
 
 ## 完成条件
 
 - 已写入 `prd/<项目名>/design.md`。
+- 完整应用已读取 `.cache/openyida/<项目名>/requirement-brief.json`。
 - `design.md` 包含 `themeProfile`、tokens、`visualScaffold`、`roundedRule`、`densityRule`、`breathingRule`、`surfaceContrast`、组件、图标、状态和响应式规则。
 - 每个 display 页面都有可供页面技能读取的 `sceneRecipes` 或 `designRefs`。
 - 没有写 `prd.md` 或页面源码。

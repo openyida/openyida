@@ -38,8 +38,8 @@ describe('skill resource boundary copy', () => {
 
     expect(root).toMatch(/先完成全局预检和资源上下文解析/);
     expect(root).toMatch(/resolve_resource_context/);
-    expect(root).toMatch(/确认目标资源并按完整应用阶段执行/);
-    expect(root).toMatch(/字段级表单操作优先交给/);
+    expect(root).toMatch(/加载子技能 `yida-app`，详细流程见 `yida-app`/);
+    expect(root).toMatch(/选定 \*\*1 个\*\*，加载对应子技能执行/);
     expect(root).not.toMatch(RETIRED_ARCHITECTURE_PATTERN);
   });
 

@@ -1,6 +1,6 @@
 # 页面质量门禁
 
-本文件用于 Step 4、Step 5 和 Step 6 输出前自检。页面设计必须先通过这些门禁，再交给页面技能。PRD 负责业务结构、应用主题色和风格摘要，`design.md` 负责完整 UI 设计规则；不要把 `design.md` 内容复制进 PRD。
+本文件用于 Step 4、Step 5 和 Step 6 输出前自检。`design.md` 负责完整 UI 设计规则；业务结构由 `yida-prd` 负责。两份文件同时生成，完成后由 `yida-app` 校验引用和场景是否一致。
 
 ## 1. 区块数量门禁
 
@@ -97,9 +97,11 @@
 - 卡片、列表、图表和右侧上下文的容器形态要有差异，不能全部是同一种白卡片。
 - 渐变背景上的卡片必须是玻璃感材质；不能把普通白卡直接贴在渐变背景上。
 
-## 6. PRD 引用与 design.md 门禁
+## 6. 并行产物对齐门禁
 
-完整应用交付时必须能读到两类设计输入：
+本门禁由 `yida-app` 在 `prd.md` 和 `design.md` 都生成后执行，不阻塞 `yida-design` 开始工作。
+
+完整应用交付时必须能读到两类文件：
 
 - `prd/<项目名>/prd.md`：由 `yida-prd` 生成，提供业务、资源、页面结构、数据来源、主操作、顺序和验收。
 - `prd/<项目名>/design.md`：由 `yida-design` 生成，提供主题 token、视觉 DNA、布局密度、表面材质、场景配方、组件规则和状态规则。
@@ -122,4 +124,4 @@
 
 `design.md` 还必须写清 `densityRule`、`breathingRule` 与 `roundedRule`。缺少圆角、间距、呼吸节奏、状态摘要高度、列表行高或空态高度的具体数值时，不能交付给页面技能。
 
-缺少 `design.md`，或已有 PRD 的 `pageSpecHandoff` 没有引用 `designFile/designRefs` 时，Step 6 不算完成。缺少 `pageSpecHandoff` 时，提示回到 `yida-prd` 补齐。
+缺少 `design.md` 时由 `yida-design` 补齐。PRD 的 `pageSpecHandoff` 缺少 `designFile/designRefs` 时由 `yida-prd` 补齐。两份文件都有但场景不一致时，业务页面清单按 PRD 修正，视觉规则按 design.md 修正。

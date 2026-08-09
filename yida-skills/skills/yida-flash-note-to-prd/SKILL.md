@@ -18,7 +18,7 @@ description: 从已有钉钉闪记、会议记录或需求文档内容中提取�
 - 用户只提供 `taskUuid` 且要求转 PRD 时，必须先加载 `yida-tingji` 读取听记内容，再用读取结果生成会议需求稿
 - 必须提取会议元信息（标题、参会人、时间）并写入生成上下文
 - 生成结构按 [PRD 生成规则](references/flash-note-prd-template.md) 写入 `prd/<项目名>/prd.md`
-- 生成完成后必须提示用户确认需求稿；完整应用 PRD 由 `yida-prd` 补齐，`design.md` 由 `yida-design` 生成
+- 生成完成后必须提示用户确认需求稿；继续搭建完整应用时，交给 `yida-requirement-analysis` 生成共享需求简报
 
 ## 适用场景
 
@@ -69,7 +69,7 @@ description: 从已有钉钉闪记、会议记录或需求文档内容中提取�
 
 本技能将钉钉闪记、会议记录或已有需求材料整理成会议需求稿，写入 `prd/<项目名>/prd.md`。
 
-后续如果要从会议需求稿继续做完整应用，加载 `yida-prd` 补齐完整 `prd.md`，再加载 `yida-design` 生成 `prd/<项目名>/design.md`。
+从会议需求稿继续做完整应用时，先由 `yida-requirement-analysis` 生成共享需求简报，再同时加载 `yida-prd` 和 `yida-design`。
 
 **核心能力**：
 - **自动识别闪记输入**：用户直接发送闪记文本或图片，AI 智能体自动触发本技能
@@ -122,7 +122,7 @@ description: 从已有钉钉闪记、会议记录或需求文档内容中提取�
 [Step 5] 输出摘要，询问用户是否需要调整
          - 展示：项目名称、功能模块数、待确认事项数
          - 询问：是否需要修改或补充
-         - 提示：如需继续搭建完整应用，下一步加载 `yida-design`
+         - 提示：如需继续搭建完整应用，下一步交给 `yida-app`
 ```
 
 ### 图片输入处理规则
@@ -208,7 +208,7 @@ cat meeting.txt | openyida flash-to-prd --name <项目名>
 
 ## PRD 生成规则
 
-本技能的 PRD 文件结构和质量要求统一引用 [references/flash-note-prd-template.md](references/flash-note-prd-template.md)。完整应用 PRD 的补齐和验收由 `yida-prd` 承接，`design.md` 由 `yida-design` 承接。
+本技能的 PRD 文件结构和质量要求统一引用 [references/flash-note-prd-template.md](references/flash-note-prd-template.md)。继续搭建完整应用时，`yida-requirement-analysis` 读取会议需求稿生成共享需求简报，`yida-prd` 和 `yida-design` 再分别生成正式产物。
 
 ---
 
@@ -279,9 +279,9 @@ cat meeting.txt | openyida flash-to-prd --name <项目名>
 
 ---
 
-## 与 yida-design 的关系
+## 与完整应用技能的关系
 
-本技能只把会议内容整理成 `prd/<项目名>/prd.md` 的需求稿，并保留「待确认事项」。完整应用继续开发时，`yida-prd` 读取这份需求稿并补齐完整应用 PRD，`yida-design` 生成 `prd/<项目名>/design.md`。
+本技能只把会议内容整理成 `prd/<项目名>/prd.md` 的需求稿，并保留「待确认事项」。完整应用继续开发时，`yida-requirement-analysis` 先把已确认内容写入共享需求简报，`yida-prd` 和 `yida-design` 同时读取该简报。
 
 ## 前置依赖
 
