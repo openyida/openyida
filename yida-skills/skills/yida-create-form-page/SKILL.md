@@ -7,9 +7,9 @@ description: 表单页面创建与更新，默认加载 yida-form-detail 作为�
 
 > 资源边界：本技能处理普通表单创建与更新。目标不明时先只读确认或询问用户。
 
-原生表单使用独立脚手架：`openyida sample yida-create-form-page form --output project/.cache/openyida/forms/<name>.form.json`。Agent 只扩展 `.form.json` 中的字段、Divider 分组、校验和规则；不要把原生表单写成自定义页面 JSX。
+原生表单使用独立脚手架：`openyida sample yida-create-form-page form --output project/.cache/openyida/forms/<name>.form.json`。在 `.form.json` 中填写字段、Divider/多列分组、校验、规则、远程数据源、主题 token 和 formDetail preset；不要把原生表单写成自定义页面 JSX。
 
-OpenYida 用 `lib/app/services/form-schema-builder.js` 与 `lib/app/services/form-runtime.js` 生成原生表单 Schema、生命周期、主题和 formDetail 样式。页面型代码归 `yida-canvas-custom-page` 或 `yida-custom-page`。
+OpenYida 用 `lib/app/scaffolds/form/form-schema-builder.js` 与 `lib/app/services/form-runtime.js` 生成原生表单 Schema、生命周期、主题和 formDetail 样式。页面型代码归 `yida-canvas-custom-page` 或 `yida-custom-page`。
 
 ## Resource-First create/update 判定
 
@@ -39,7 +39,7 @@ OpenYida 用 `lib/app/services/form-schema-builder.js` 与 `lib/app/services/for
 - 完整应用生成场景中，create 成功并记录 formUuid 后，把核心普通表单交给 `yida-data-management` 默认写入 1-3 条业务化示例记录；该任务可与自定义页面创建和实现并行。本技能不直接操作数据记录。
 - update / add-option / bind-datasource / validation / rule 等字段级操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会内部读取 schema、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败/歧义时按 `diagnostics[].candidates` 补 `tableLabel`、修正 label 或再执行一次 compact `get-schema`。
 - 字段定义或变更定义需要落盘时，必须使用 agent 的结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`，例如 `<projectRoot>/.cache/openyida/pm/pm-fields-team.json`
-- 新建表单输入优先使用 `.form.json` 脚手架；只扩展 `fields`、`validations`、`rules` 和布局/主题摘要字段
+- 新建表单输入使用 `.form.json` 脚手架；填写 `fields`、`validations`、`rules`、`dataSources`、布局和主题字段
 - 普通表单分组必须优先使用 `Divider`，多列排版必须通过字段 JSON 中的 `ColumnContainer` 局部表达
 - **本技能不读写 memory**：formUuid 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
@@ -80,7 +80,7 @@ OpenYida 用 `lib/app/services/form-schema-builder.js` 与 `lib/app/services/for
 - 全局 `--layout double`：只有用户明确要求“整个表单双列”时才使用；一般更推荐在字段 JSON 内用 `ColumnContainer` 做局部多列。
 - 语义分组：按业务含义分段，不按字段数量平均分。常见分组包括“基本信息”“业务信息”“时间计划”“补充材料”“审批信息”。
 - Divider 样式：默认 `bold-with-thin`；显式样式按 `bold-with-thin` → `double-color-trapezoid` → `left-dot-title` → `solid` / `dashed` / `thick` / `dotted` 优先级选择；门户/强分区场景可统一显式使用 `multi-parallelograms-end`。
-- formDetail CSS 注入是表单保存后的默认动作，不是字段 JSON 本身的字段表达；新建表单在 Schema JS 中默认带上 `openyida:theme` 和 `openyidaThemeDidMount`，已有表单在 update/patch/rule/bind-datasource 保存前默认补齐，执行失败时必须说明阻塞原因。
+- 保存前自动补齐统一 runtime、主题和 formDetail 样式；保存后自动回读 revision、生命周期、主题、formDetail 样式和 13 个 Yida API，缺少任一项即失败。
 
 推荐结构：
 

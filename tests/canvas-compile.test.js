@@ -913,9 +913,9 @@ describe('compileCanvasLocal', () => {
       name: 'didMount',
       type: 'actionRef',
     });
-    expect(schema.actions.module.source).toContain('openyidaInstallYidaApiBridge');
-    expect(schema.actions.module.source).toContain('window.__OPENYIDA_YIDA_API__');
-    expect(schema.actions.module.source).toContain('window.__OPENYIDA_RUNTIME__');
+    expect(schema.actions.module.source).toContain('openyidaInstallRuntime');
+    expect(schema.actions.module.source).toContain('target.__OPENYIDA_YIDA_API__');
+    expect(schema.actions.module.source).toContain('target.__OPENYIDA_RUNTIME__');
     expect(schema.actions.module.source).toContain('this.utils.yida');
     expect(schema.actions.module.source).toContain('searchFormDatas');
     expect(schema.actions.module.source).toContain('saveFormData');
@@ -924,8 +924,12 @@ describe('compileCanvasLocal', () => {
     expect(schema.actions.module.source).toContain('getProcessInstanceById');
     expect(schema.actions.module.source).toContain('openyidaCreateThemeRuntime');
     expect(schema.actions.module.source).toContain('yida-global-theme');
-    expect(schema.actions.module.compiled).toContain('openyidaInstallYidaApiBridge');
-    expect(schema.actions.module.compiled).toContain('window.__OPENYIDA_RUNTIME__');
+    expect(schema.actions.module.source).toContain('window.top');
+    expect(schema.actions.module.source).toContain('openyidaRuntimeError');
+    expect(schema.actions.module.source).toContain("themeMethods: ['refresh', 'install', 'installIntoFrame', 'getTokens']");
+    expect(schema.actions.module.source).toContain('existingRuntime');
+    expect(schema.actions.module.compiled).toContain('openyidaInstallRuntime');
+    expect(schema.actions.module.compiled).toContain('__OPENYIDA_RUNTIME__');
     expect(schema.actions.module.compiled).toContain('exports.didMount = didMount');
   });
 

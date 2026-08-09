@@ -443,6 +443,22 @@ describe('CLI offline smoke', () => {
         join_owner_skill_id: 'yida-app',
       },
       ordinary_jsx_skill_id: 'yida-custom-page',
+      scaffold_contracts: {
+        version: 1,
+        canvas: {
+          api_methods: expect.arrayContaining(['saveFormData', 'getProcessInstanceById']),
+          capabilities: expect.arrayContaining(['desktop-50vw-drawer-and-mobile-full-page']),
+        },
+        native_form: {
+          builder_path: 'lib/app/scaffolds/form/form-schema-builder.js',
+          definition_fields: expect.arrayContaining(['themeTokens', 'formDetailPreset', 'dataSources']),
+          api_methods: expect.arrayContaining(['saveFormData', 'getProcessInstanceById']),
+          capabilities: expect.arrayContaining([
+            'single-builder-for-create-and-offline-compile',
+            'remote-revision-runtime-theme-and-detail-readback',
+          ]),
+        },
+      },
       required_command_ids: expect.arrayContaining([
         'agent-capabilities',
         'create-app',
@@ -457,7 +473,7 @@ describe('CLI offline smoke', () => {
         'yida-data-management',
       ]),
       product_design_policy: expect.stringContaining('yida-prd and yida-design start in parallel'),
-      page_skill_policy: expect.stringContaining('New custom pages default to Code Canvas'),
+      page_skill_policy: expect.stringContaining('New custom pages use Code Canvas'),
       form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
       ui_guidance_policy: expect.stringContaining('derived implementation handoff'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),
@@ -1253,6 +1269,15 @@ describe('CLI offline smoke', () => {
         join_owner_skill_id: 'yida-app',
       },
       ordinary_jsx_skill_id: 'yida-custom-page',
+      scaffold_contracts: {
+        version: 1,
+        canvas: {
+          api_methods: expect.arrayContaining(['saveFormData', 'getProcessInstanceById']),
+        },
+        native_form: {
+          definition_fields: expect.arrayContaining(['validations', 'rules', 'dataSources']),
+        },
+      },
       required_command_ids: expect.arrayContaining([
         'create-app',
         'create-form.create',
@@ -1266,7 +1291,7 @@ describe('CLI offline smoke', () => {
         'yida-data-management',
       ]),
       product_design_policy: expect.stringContaining('yida-prd and yida-design start in parallel'),
-      page_skill_policy: expect.stringContaining('New custom pages default to Code Canvas'),
+      page_skill_policy: expect.stringContaining('New custom pages use Code Canvas'),
       form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
       ui_guidance_policy: expect.stringContaining('derived implementation handoff'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),

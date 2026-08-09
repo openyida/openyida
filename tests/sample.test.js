@@ -5,7 +5,10 @@ const os = require('os');
 const path = require('path');
 const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 const { applyTemplateVariables, run } = require('../lib/core/sample');
-const formSchemaBuilder = require('../lib/app/services/form-schema-builder');
+const formSchemaBuilder = require('../lib/app/scaffolds/form/form-schema-builder');
+const { buildCanvasRuntimeSource } = require('../lib/app/runtime/canvas-runtime');
+const { CANVAS_YIDA_API_METHODS } = require('../lib/app/runtime/canvas-yida-api-methods');
+const { validateFormDefinition } = require('../lib/app/scaffolds/form/form-definition-validator');
 
 describe('sample templates', () => {
   let tmpDir;
@@ -61,30 +64,31 @@ describe('sample templates', () => {
 
     const source = fs.readFileSync(outputPath, 'utf8');
     const result = compileCanvasLocal(source, { sourcePath: outputPath });
+    const runtimeSource = buildCanvasRuntimeSource();
 
     expect(JSON.parse(result.importedModules)).toEqual(['antd', 'react']);
-    [
-      'saveFormData',
-      'updateFormData',
-      'deleteFormData',
-      'getFormDataById',
-      'searchFormDatas',
-      'searchFormDataIds',
-      'getFormComponentDefinationList',
-      'startProcessInstance',
-      'updateProcessInstance',
-      'deleteProcessInstance',
-      'getProcessInstances',
-      'getProcessInstanceIds',
-      'getProcessInstanceById',
-    ].forEach((methodName) => {
-      expect(source).toContain(methodName);
+    expect(CANVAS_YIDA_API_METHODS).toHaveLength(13);
+    CANVAS_YIDA_API_METHODS.forEach((methodName) => {
+      expect(runtimeSource).toContain(methodName);
     });
+    expect(source).toContain('window.__OPENYIDA_RUNTIME__');
+    expect(source).toContain("readWindow('top')");
+    expect(source).toContain('ConfigProvider');
     expect(source).toContain('FormOpenContainer');
     expect(source).toContain('buildSubmissionUrl');
     expect(source).toContain('buildFormDetailUrl');
     expect(source).toContain('assertFormInstanceId');
     expect(source).toContain('installThemeIntoFrame');
+    expect(source).toContain('width="50vw"');
+    expect(source).toContain('window.location.assign(url)');
+    expect(source).toContain('error.repairType');
+    expect(source).toContain('APP_TYPE');
+    expect(source).toContain('FORM_UUIDS');
+    expect(source).toContain('FIELDS');
+    expect(source).toContain('THEME_TOKENS');
+    ['refresh', 'install', 'installIntoFrame', 'getTokens'].forEach((methodName) => {
+      expect(runtimeSource).toContain(methodName);
+    });
     expect(source).toContain('This is the only generic Canvas scaffold');
   });
 
@@ -95,6 +99,7 @@ describe('sample templates', () => {
 
     const source = fs.readFileSync(outputPath, 'utf8');
     const definition = JSON.parse(source);
+    expect(validateFormDefinition(definition)).toMatchObject({ version: 1 });
     const compiled = formSchemaBuilder.compileFormDefinition(definition, {
       appType: 'APP_TEST',
       formUuid: 'FORM_TEST',
@@ -107,9 +112,23 @@ describe('sample templates', () => {
       expect.objectContaining({ type: 'Divider', label: '基本信息' }),
       expect.objectContaining({ type: 'TextField', label: '事项名称' }),
     ]));
+    expect(definition).toMatchObject({
+      version: 1,
+      theme: 'comfortable',
+      formDetailPreset: 'clean-card',
+      themeTokens: expect.any(Object),
+      validations: expect.any(Array),
+      rules: expect.any(Array),
+      dataSources: expect.any(Array),
+    });
     expect(compiled.schema.pages[0].componentsTree[0].lifeCycles.componentDidMount.name).toBe('openyidaThemeDidMount');
     expect(compiled.schema.actions.module.source).toContain('openyida:theme:start');
     expect(compiled.schema.actions.module.source).toContain('yida-global-theme');
+    expect(compiled.schema.actions.module.source).toContain('OPENYIDA_YIDA_API_METHODS');
+    expect(compiled.schema.actions.module.source).toContain('yida-form-detail-style');
+    CANVAS_YIDA_API_METHODS.forEach((methodName) => {
+      expect(compiled.schema.actions.module.source).toContain(methodName);
+    });
   });
 
   test('remaining samples avoid near-black default business surfaces', () => {

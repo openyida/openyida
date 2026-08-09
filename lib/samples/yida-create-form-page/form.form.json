@@ -1,12 +1,23 @@
 {
+  "version": 1,
   "formTitle": "业务登记表",
   "layout": "single",
+  "theme": "comfortable",
   "labelAlign": "top",
+  "themeTokens": {
+    "--color-brand1-6": "#2563eb",
+    "--color-brand1-1": "#eff6ff",
+    "--openyida-form-bg": "#f6f8fb",
+    "--openyida-form-surface": "#ffffff",
+    "--openyida-form-border": "#d8e0ea",
+    "--openyida-form-text": "#172033"
+  },
+  "formDetailPreset": "clean-card",
   "fields": [
     {
       "type": "Divider",
       "label": "基本信息",
-      "style": "bold-with-thin"
+      "dividerType": "bold-with-thin"
     },
     {
       "key": "title",
@@ -36,7 +47,7 @@
     {
       "type": "Divider",
       "label": "补充说明",
-      "style": "bold-with-thin"
+      "dividerType": "bold-with-thin"
     },
     {
       "key": "description",
@@ -56,5 +67,6 @@
       ]
     }
   ],
-  "rules": []
+  "rules": [],
+  "dataSources": []
 }

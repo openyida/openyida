@@ -46,7 +46,7 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 | `yida-prd` | 阶段 2A 与 `yida-design` 同时加载，生成 `prd.md` |
 | `yida-design` | 阶段 2B 与 `yida-prd` 同时加载，生成 `design.md` |
 | `yida-create-app` | app 缺失且本次意图允许创建时加载 |
-| `yida-form-detail` / `yida-create-form-page` | 创建或更新原生表单字段结构时加载；字段、分组、校验和规则写 `.form.json` |
+| `yida-form-detail` / `yida-create-form-page` | 创建或更新原生表单时加载；输入和实现规则见 `yida-create-form-page` |
 | `yida-create-process` | PRD 命中审批、流程、申请、审核或工单对象时加载 |
 | `yida-data-management` | 完整应用默认写入核心普通表单示例记录时加载 |
 | `yida-create-page` | 主 display page 缺失且允许创建时加载 |

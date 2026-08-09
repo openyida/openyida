@@ -9,7 +9,7 @@ const { spawnSync } = require('child_process');
 const CREATE_FORM_PATH = path.join(__dirname, '..', 'lib', 'app', 'create-form.js');
 const BIN_PATH = path.join(__dirname, '..', 'bin', 'yida.js');
 const FORM_COMPILER_PATH = path.join(__dirname, '..', 'lib', 'app', 'services', 'form-compiler.js');
-const FORM_SCHEMA_BUILDER_PATH = path.join(__dirname, '..', 'lib', 'app', 'services', 'form-schema-builder.js');
+const FORM_SCHEMA_BUILDER_PATH = path.join(__dirname, '..', 'lib', 'app', 'scaffolds', 'form', 'form-schema-builder.js');
 const FORM_RUNTIME_PATH = path.join(__dirname, '..', 'lib', 'app', 'services', 'form-runtime.js');
 const FORM_VALIDATION_PATH = path.join(__dirname, '..', 'lib', 'app', 'services', 'form-validation.js');
 const sourceCode = fs.readFileSync(CREATE_FORM_PATH, 'utf-8');
@@ -31,9 +31,10 @@ const combinedCreateFormSource = sourceCode + '\n' + createFormSplitSource;
 const createForm = require('../lib/app/create-form');
 const { createDefinitionReaders } = require('../lib/app/create-form/definition-reader');
 const formCompiler = require('../lib/app/services/form-compiler');
-const formSchemaBuilder = require('../lib/app/services/form-schema-builder');
+const formSchemaBuilder = require('../lib/app/scaffolds/form/form-schema-builder');
 const formRuntime = require('../lib/app/services/form-runtime');
 const { verifyFieldBindings } = require('../lib/app/services/field-bindings');
+const { validateFormDefinition } = require('../lib/app/scaffolds/form/form-definition-validator');
 
 function stripNodeRuntimeWarnings(output) {
   return String(output || '')
@@ -70,9 +71,9 @@ describe('create-form.js imports', () => {
   });
 
   test('native form creation uses the dedicated schema builder and runtime modules', () => {
-    expect(sourceCode).toContain("require('./services/form-schema-builder')");
+    expect(sourceCode).toContain("require('./scaffolds/form/form-schema-builder')");
     expect(compilerSourceCode).toContain("require('./form-runtime')");
-    expect(formSchemaBuilderSourceCode).toContain("require('./form-compiler')");
+    expect(formSchemaBuilderSourceCode).toContain("require('../../services/form-compiler')");
     expect(formRuntimeSourceCode).toContain('buildFormActionsModule');
     expect(formSchemaBuilder.buildFormSchema).toEqual(expect.any(Function));
     expect(formSchemaBuilder.compileFormDefinition).toEqual(expect.any(Function));
@@ -80,6 +81,14 @@ describe('create-form.js imports', () => {
       name: 'didMount',
       type: 'actionRef',
     });
+  });
+
+  test('create-form and offline compiler use one public form schema builder', () => {
+    expect((sourceCode.match(/function\s+buildFormSchema\s*\(/g) || [])).toHaveLength(0);
+    expect((compilerSourceCode.match(/function\s+buildFormSchema\s*\(/g) || [])).toHaveLength(0);
+    expect((formSchemaBuilderSourceCode.match(/function\s+buildFormSchema\s*\(/g) || [])).toHaveLength(1);
+    expect(compilerSourceCode).toContain("require('../scaffolds/form/form-schema-builder').compileFormDefinition");
+    expect(sourceCode).toContain('formSchemaBuilder.buildFormSchema(');
   });
 });
 
@@ -95,6 +104,7 @@ describe('legacy process form bridge', () => {
 
     jest.resetModules();
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    let savedSchema;
     const mockUtils = {
       loadAuthData: jest.fn(() => ({
         csrf_token: 'csrf',
@@ -104,11 +114,12 @@ describe('legacy process form bridge', () => {
         auth_mode: 'cookie',
         auth_source: 'cookie',
       })),
-      httpPost: jest.fn((baseUrl, requestPath) => {
+      httpPost: jest.fn((baseUrl, requestPath, postData) => {
         if (requestPath.includes('saveFormSchemaInfo')) {
           return Promise.resolve({ success: true, content: { formUuid: 'FORM_BRIDGE' } });
         }
         if (requestPath.includes('/_view/query/formdesign/saveFormSchema.json')) {
+          savedSchema = JSON.parse(querystring.parse(postData).content);
           return Promise.resolve({ success: true });
         }
         if (requestPath.includes('updateFormConfig')) {
@@ -120,7 +131,11 @@ describe('legacy process form bridge', () => {
       loadCookieData: jest.fn(),
       triggerLogin: jest.fn(),
       resolveBaseUrl: jest.fn(() => 'https://example.test'),
-      httpGet: jest.fn(() => Promise.resolve({ success: true, content: { gmtModified: 100 } })),
+      httpGet: jest.fn(() => Promise.resolve({
+        success: true,
+        content: savedSchema || { gmtModified: 100 },
+        gmtModified: 101,
+      })),
     };
 
     jest.doMock('../lib/core/utils', () => mockUtils);
@@ -143,12 +158,18 @@ describe('legacy process form bridge', () => {
       formTitle: '流程申请',
       fieldCount: 1,
       configResult: { success: false, errorMsg: 'config warning' },
+      scaffoldReadback: {
+        confirmed: true,
+        apiMethodCount: 13,
+        globalTheme: true,
+        formDetailStyle: true,
+      },
     });
     const saveCall = mockUtils.httpPost.mock.calls.find(function (call) {
       return call[1].includes('/_view/query/formdesign/saveFormSchema.json');
     });
-    const savedSchema = JSON.parse(querystring.parse(saveCall[2]).content);
-    const savedText = JSON.stringify(savedSchema);
+    const persistedSchema = JSON.parse(querystring.parse(saveCall[2]).content);
+    const savedText = JSON.stringify(persistedSchema);
     expect(savedText).toContain('textField_');
     expect(savedText).toContain('required');
     expect(consoleSpy).not.toHaveBeenCalled();
@@ -183,7 +204,7 @@ describe('legacy create-form server revision isolation', () => {
     const saveBody = querystring.parse(saveCall[2]);
     expect(saveBody.gmtModified).toBe('100');
     expect(JSON.parse(saveBody.content).gmtModified).toBe(999);
-    expect(mockUtils.requestWithAutoLogin).toHaveBeenCalledTimes(3);
+    expect(mockUtils.requestWithAutoLogin).toHaveBeenCalledTimes(4);
     consoleSpy.mockRestore();
     jest.dontMock('../lib/core/utils');
     jest.dontMock('../lib/core/chalk');
@@ -208,6 +229,35 @@ describe('legacy create-form server revision isolation', () => {
     ])).rejects.toMatchObject({ code: 'CREATE_FORM_SCHEMA_REVISION_INVALID' });
 
     expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
+  });
+
+  test('blocks success when the saved schema readback is missing required scaffold capabilities', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Readback Test',
+      fields: [{ key: 'name', type: 'TextField', label: 'Name' }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_TEST',
+    }).schema;
+    initial.gmtModified = 100;
+    const incompleteReadback = JSON.parse(JSON.stringify(initial));
+    incompleteReadback.actions.module.source = 'export function didMount() {}';
+    incompleteReadback.actions.module.compiled = '';
+    const { isolatedCreateForm, consoleSpy } = loadIsolatedLegacyForm(initial, { readbackSchema: incompleteReadback });
+
+    await expect(isolatedCreateForm.run([
+      'patch',
+      'APP_TEST',
+      'FORM_TEST',
+      JSON.stringify([{ action: 'replace', path: '/gmtModified', value: 101 }]),
+    ])).rejects.toMatchObject({
+      code: 'CREATE_FORM_SCAFFOLD_READBACK_INCOMPLETE',
+    });
+
     consoleSpy.mockRestore();
     jest.dontMock('../lib/core/utils');
     jest.dontMock('../lib/core/chalk');
@@ -263,7 +313,7 @@ describe('legacy create-form schema-aware update evidence', () => {
       ],
     });
     const getSchemaCalls = mockUtils.httpGet.mock.calls.filter(call => call[1].includes('getFormSchema'));
-    expect(getSchemaCalls).toHaveLength(1);
+    expect(getSchemaCalls).toHaveLength(2);
     const saveCall = mockUtils.httpPost.mock.calls.find(call => call[1].includes('/saveFormSchema.json'));
     const savedSchema = JSON.parse(querystring.parse(saveCall[2]).content);
     const savedContainer = findFormContainer(savedSchema.pages[0].componentsTree[0]);
@@ -798,9 +848,10 @@ describe('legacy create-form compact field resolver', () => {
   });
 });
 
-function loadIsolatedLegacyForm(schema) {
+function loadIsolatedLegacyForm(schema, options = {}) {
   jest.resetModules();
   const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  let savedSchema = schema;
   const mockUtils = {
     loadAuthData: jest.fn(() => ({
       csrf_token: 'csrf',
@@ -817,8 +868,17 @@ function loadIsolatedLegacyForm(schema) {
     })),
     triggerLogin: jest.fn(),
     resolveBaseUrl: jest.fn(() => 'https://example.test'),
-    httpGet: jest.fn(() => Promise.resolve({ success: true, content: schema })),
-    httpPost: jest.fn((baseUrl, requestPath) => {
+    httpGet: jest.fn(() => {
+      const isReadback = mockUtils.httpGet.mock.calls.length > 1;
+      return Promise.resolve({
+        success: true,
+        content: isReadback && options.readbackSchema ? options.readbackSchema : savedSchema,
+      });
+    }),
+    httpPost: jest.fn((baseUrl, requestPath, postData) => {
+      if (requestPath.includes('/saveFormSchema.json')) {
+        savedSchema = JSON.parse(querystring.parse(postData).content);
+      }
       if (requestPath.includes('updateFormConfig')) {
         return Promise.resolve({ success: true });
       }
@@ -876,7 +936,7 @@ describe('generateFieldId uniqueness', () => {
 
 describe('buildFormSchema lifeCycles', () => {
   test('lifeCycles includes componentDidMount with actionRef to didMount', () => {
-    const formSchemaFunction = extractFunctionBody(compilerSourceCode, 'buildFormSchema');
+    const formSchemaFunction = extractFunctionBody(compilerSourceCode, 'buildFormSchemaCore');
     expect(formSchemaFunction).toBeDefined();
 
     // 检查 lifeCycles 中包含 componentDidMount 配置
@@ -893,7 +953,7 @@ describe('buildFormSchema lifeCycles', () => {
 
 describe('buildFormSchema FormContainer structure', () => {
   test('FormContainer does not nest another FormContainer as direct child', () => {
-    const formSchemaFunction = extractFunctionBody(compilerSourceCode, 'buildFormSchema');
+    const formSchemaFunction = extractFunctionBody(compilerSourceCode, 'buildFormSchemaCore');
     expect(formSchemaFunction).toBeDefined();
 
     const formContainerMatches = formSchemaFunction.match(/componentName:\s*['"]FormContainer['"]/g) || [];
@@ -901,7 +961,7 @@ describe('buildFormSchema FormContainer structure', () => {
   });
 
   test('RootContent has exactly one FormContainer child', () => {
-    const formSchemaFunction = extractFunctionBody(compilerSourceCode, 'buildFormSchema');
+    const formSchemaFunction = extractFunctionBody(compilerSourceCode, 'buildFormSchemaCore');
     expect(formSchemaFunction).toBeDefined();
 
     const rootContentIndex = formSchemaFunction.search(/['"]RootContent['"]/);
@@ -915,7 +975,7 @@ describe('buildFormSchema FormContainer structure', () => {
 
 describe('component alias schema support', () => {
   test('buildFormSchema writes component alias metadata at page level', () => {
-    const formSchemaFunction = extractFunctionBody(compilerSourceCode, 'buildFormSchema');
+    const formSchemaFunction = extractFunctionBody(compilerSourceCode, 'buildFormSchemaCore');
     expect(formSchemaFunction).toBeDefined();
     expect(compilerSourceCode).toContain('function normalizeComponentAlias(');
     expect(compilerSourceCode).toContain('function buildComponentAliasItems(');
@@ -2397,7 +2457,9 @@ describe('create-form create recovery guardrails', () => {
 function loadIsolatedCreateFormCommand(overrides = {}) {
   jest.resetModules();
   const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-  const mockUtils = Object.assign({
+  let savedSchema;
+  const overrideHttpPost = overrides.httpPost;
+  const defaultUtils = {
     loadAuthData: jest.fn(() => ({
       csrf_token: 'csrf',
       cookies: [{ name: 'session', value: 'private' }],
@@ -2409,8 +2471,18 @@ function loadIsolatedCreateFormCommand(overrides = {}) {
     loadCookieData: jest.fn(),
     triggerLogin: jest.fn(),
     resolveBaseUrl: jest.fn(() => 'https://example.test'),
-    httpGet: jest.fn(() => Promise.resolve({ success: true, content: { gmtModified: 100 } })),
-    httpPost: jest.fn((baseUrl, requestPath) => {
+    httpGet: jest.fn(() => Promise.resolve({
+      success: true,
+      content: savedSchema || { gmtModified: 100 },
+      gmtModified: savedSchema ? 101 : 100,
+    })),
+    httpPost: jest.fn((baseUrl, requestPath, postData) => {
+      if (requestPath.includes('/saveFormSchema.json')) {
+        savedSchema = JSON.parse(querystring.parse(postData).content);
+      }
+      if (overrideHttpPost) {
+        return overrideHttpPost(baseUrl, requestPath, postData);
+      }
       if (requestPath.includes('saveFormSchemaInfo')) {
         return Promise.resolve({ success: true, content: { formUuid: 'FORM_HALF_CREATED' } });
       }
@@ -2418,7 +2490,12 @@ function loadIsolatedCreateFormCommand(overrides = {}) {
     }),
     requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
     detectActiveTool: jest.fn(() => null),
-  }, overrides);
+  };
+  const wrappedHttpPost = defaultUtils.httpPost;
+  const mockUtils = Object.assign(defaultUtils, overrides);
+  if (overrideHttpPost) {
+    mockUtils.httpPost = wrappedHttpPost;
+  }
   jest.doMock('../lib/core/utils', () => mockUtils);
   jest.doMock('../lib/core/chalk', () => ({
     banner: jest.fn(),
@@ -2476,6 +2553,95 @@ describe('create-form definition readers', () => {
 });
 
 describe('form compiler field bindings', () => {
+  test('form definition schema accepts v1 and rejects unsupported versions', () => {
+    expect(validateFormDefinition({
+      version: 1,
+      formTitle: '事项登记',
+      fields: [{ type: 'TextField', label: '事项' }],
+    })).toMatchObject({ version: 1 });
+    expect(() => validateFormDefinition({
+      version: 2,
+      formTitle: '事项登记',
+      fields: [{ type: 'TextField', label: '事项' }],
+    })).toThrow(expect.objectContaining({ code: 'FORM_DEFINITION_SCHEMA_INVALID' }));
+  });
+
+  test('form definition compiles top-level validations, rules, and remote data sources', () => {
+    const compiled = formSchemaBuilder.compileFormDefinition({
+      formTitle: '事项登记',
+      themeTokens: { '--color-brand1-6': '#0f766e' },
+      fields: [
+        { key: 'status', type: 'SelectField', label: '状态', options: ['待处理', '完成'] },
+        { key: 'description', type: 'TextField', label: '说明' },
+      ],
+      validations: [
+        { field: '说明', rules: [{ type: 'required', message: '请输入说明' }] },
+      ],
+      rules: [
+        { type: 'visibility', source: '状态', equals: '完成', target: '说明' },
+      ],
+      dataSources: [
+        {
+          field: 'status',
+          url: 'https://example.test/options',
+          listPath: 'data.items',
+          labelField: 'name',
+          valueField: 'id',
+        },
+      ],
+    });
+    const root = compiled.schema.pages[0].componentsTree[0];
+    const formContainer = findFormContainer(root);
+    const status = findDirectChildByLabel(formContainer, '状态');
+    const description = findDirectChildByLabel(formContainer, '说明');
+
+    expect(status.props.searchConfig.url).toBe('https://example.test/options');
+    expect(description.props.validation).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'required' }),
+    ]));
+    expect(compiled.schema.actions.module.source).toContain('OPENYIDA_RULES');
+    expect(compiled.schema.actions.module.source).toContain('openyidaRulesDidMount');
+    expect(formSchemaBuilder._private.validateNativeFormScaffold(compiled.schema, {})).toMatchObject({
+      valid: true,
+      apiMethodCount: 13,
+    });
+  });
+
+  test('upgrades an existing native form to the complete runtime without replacing its didMount', () => {
+    const legacySchema = {
+      actions: {
+        type: 'FUNCTION',
+        list: [{ id: 'legacyDidMount', name: 'legacyDidMount', relatedEventId: 'lifecycle:didMount', type: 'lifeCycleEvent', params: {} }],
+        module: {
+          source: 'export function legacyDidMount() { return "legacy"; }',
+          compiled: '',
+        },
+      },
+      pages: [{
+        componentsTree: [{
+          componentName: 'Page',
+          lifeCycles: {
+            componentDidMount: { name: 'legacyDidMount', id: 'legacyDidMount', params: {}, type: 'actionRef' },
+          },
+          children: [],
+        }],
+      }],
+    };
+
+    formSchemaBuilder.ensureDefaultPresentation(legacySchema);
+    const firstSource = legacySchema.actions.module.source;
+    formSchemaBuilder.ensureDefaultPresentation(legacySchema);
+
+    expect(legacySchema.pages[0].componentsTree[0].lifeCycles.componentDidMount.name).toBe('openyidaThemeDidMount');
+    expect(firstSource).toContain('legacyDidMount.call(this, event)');
+    expect(firstSource).toContain('openyidaRuntimeDidMount.call(this, event)');
+    expect(legacySchema.actions.module.source).toBe(firstSource);
+    expect(formSchemaBuilder.validateNativeFormScaffold(legacySchema)).toMatchObject({
+      valid: true,
+      apiMethodCount: 13,
+    });
+  });
+
   test('compileFormDefinition reuses existing field bindings by semantic path', () => {
     const compiled = formCompiler.compileFormDefinition({
       formTitle: '访客登记',
@@ -2536,7 +2702,7 @@ describe('form compiler field bindings', () => {
     expect(() => formCompiler.compileFormDefinition({
       formTitle: '展示布局不支持',
       fields: [
-        { key: 'layout', componentName: 'ColumnContainer', label: '低层布局' },
+        { key: 'layout', componentName: 'UnknownField', label: '未知字段' },
       ],
     })).toThrow(expect.objectContaining({
       code: 'FORM_COMPILER_UNSUPPORTED_FIELD_TYPE',
@@ -3088,6 +3254,7 @@ describe('legacy create-form compatibility', () => {
   test('create mode reads only the shell revision and does not discover semantic keys', async () => {
     jest.resetModules();
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    let savedSchema;
     const mockUtils = {
       loadAuthData: jest.fn(() => ({
         csrf_token: 'csrf',
@@ -3104,12 +3271,17 @@ describe('legacy create-form compatibility', () => {
       })),
       triggerLogin: jest.fn(),
       resolveBaseUrl: jest.fn(() => 'https://example.test'),
-      httpGet: jest.fn(() => Promise.resolve({ success: true, content: { gmtModified: 100 } })),
-      httpPost: jest.fn((baseUrl, requestPath) => {
+      httpGet: jest.fn(() => Promise.resolve({
+        success: true,
+        content: savedSchema || { gmtModified: 100 },
+        gmtModified: savedSchema ? 101 : 100,
+      })),
+      httpPost: jest.fn((baseUrl, requestPath, postData) => {
         if (requestPath.includes('saveFormSchemaInfo')) {
           return Promise.resolve({ success: true, content: { formUuid: 'FORM_TEST' } });
         }
         if (requestPath.includes('saveFormSchema')) {
+          savedSchema = JSON.parse(querystring.parse(postData).content);
           return Promise.resolve({ success: true });
         }
         if (requestPath.includes('updateFormConfig')) {
@@ -3145,7 +3317,7 @@ describe('legacy create-form compatibility', () => {
       JSON.stringify([{ key: 'visitorName', type: 'TextField', label: '访客姓名' }]),
     ]);
 
-    expect(mockUtils.httpGet).toHaveBeenCalledTimes(1);
+    expect(mockUtils.httpGet).toHaveBeenCalledTimes(2);
     expect(consoleSpy).toHaveBeenCalledTimes(1);
     expect(JSON.parse(consoleSpy.mock.calls[0][0])).toMatchObject({
       success: true,
@@ -3153,6 +3325,10 @@ describe('legacy create-form compatibility', () => {
       formTitle: '访客登记',
       appType: 'APP_XXX',
       fieldCount: 1,
+      scaffoldReadback: {
+        confirmed: true,
+        apiMethodCount: 13,
+      },
       url: 'https://example.test/APP_XXX/workbench/FORM_TEST',
     });
 

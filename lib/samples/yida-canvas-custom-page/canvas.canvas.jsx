@@ -9,28 +9,20 @@
  * scaffolds.
  */
 
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Alert, Button, Drawer, Empty, Space, Spin, Table, Typography } from 'antd';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Button, ConfigProvider, Drawer, Empty, Space, Spin, Table, Typography } from 'antd';
 
 const { Text, Title } = Typography;
 
-const YIDA_API_METHODS = [
-  'saveFormData',
-  'updateFormData',
-  'deleteFormData',
-  'getFormDataById',
-  'searchFormDatas',
-  'searchFormDataIds',
-  'getFormComponentDefinationList',
-  'startProcessInstance',
-  'updateProcessInstance',
-  'deleteProcessInstance',
-  'getProcessInstances',
-  'getProcessInstanceIds',
-  'getProcessInstanceById',
-];
-
-const DEFAULT_THEME_TOKENS = {
+const APP_TYPE = '';
+const FORM_UUIDS = { primary: '' };
+const FIELDS = {
+  title: '',
+  status: '',
+  owner: '',
+  updatedAt: '',
+};
+const THEME_TOKENS = {
   '--color-brand1-6': '#2563eb',
   '--color-brand1-1': '#eff6ff',
   '--openyida-surface': '#ffffff',
@@ -41,30 +33,31 @@ const DEFAULT_THEME_TOKENS = {
 };
 
 const DEFAULT_BINDING = {
-  appType: '',
-  formUuid: '',
+  appType: APP_TYPE,
+  formUuid: FORM_UUIDS.primary,
   pageSize: 20,
-  fields: {
-    title: '',
-    status: '',
-    owner: '',
-    updatedAt: '',
-  },
+  fields: FIELDS,
 };
 
-function readParentWindow() {
+function readWindow(name) {
   try {
-    return window.parent && window.parent !== window ? window.parent : null;
+    const target = window[name];
+    return target && target !== window ? target : null;
   } catch (error) {
     return null;
   }
 }
 
 function getOpenYidaRuntime() {
-  const parentWindow = readParentWindow();
+  const parentWindow = readWindow('parent');
+  const topWindow = readWindow('top');
   const candidates = [
     typeof window !== 'undefined' ? window.__OPENYIDA_RUNTIME__ : null,
+    typeof window !== 'undefined' ? window.openyidaRuntime : null,
     parentWindow ? parentWindow.__OPENYIDA_RUNTIME__ : null,
+    parentWindow ? parentWindow.openyidaRuntime : null,
+    topWindow ? topWindow.__OPENYIDA_RUNTIME__ : null,
+    topWindow ? topWindow.openyidaRuntime : null,
   ];
   const runtime = candidates.find((item) => item && item.yida);
   if (runtime) {
@@ -73,7 +66,11 @@ function getOpenYidaRuntime() {
 
   const yidaApi =
     (typeof window !== 'undefined' && window.__OPENYIDA_YIDA_API__) ||
+    (typeof window !== 'undefined' && window.openyidaYidaApi) ||
     (parentWindow && parentWindow.__OPENYIDA_YIDA_API__) ||
+    (parentWindow && parentWindow.openyidaYidaApi) ||
+    (topWindow && topWindow.__OPENYIDA_YIDA_API__) ||
+    (topWindow && topWindow.openyidaYidaApi) ||
     null;
   return yidaApi ? { ready: yidaApi.ready, yida: yidaApi, yidaApi, theme: null } : null;
 }
@@ -82,8 +79,17 @@ function getYidaApi(runtime) {
   return runtime && runtime.yida ? runtime.yida : null;
 }
 
-function hasYidaMethods(api) {
-  return Boolean(api && YIDA_API_METHODS.every((methodName) => typeof api[methodName] === 'function'));
+function requireYidaApi(runtime, methodName) {
+  const api = getYidaApi(runtime);
+  if (!runtime || runtime.ready !== true || !api || typeof api[methodName] !== 'function') {
+    const error = new Error(`发布 runtime 未就绪或缺少 ${methodName}。`);
+    error.code = 'OPENYIDA_RUNTIME_NOT_READY';
+    error.evidence = { methodName, runtimeReady: Boolean(runtime && runtime.ready) };
+    error.retryable = true;
+    error.repairType = 'runtime';
+    throw error;
+  }
+  return api;
 }
 
 function normalizeSearchParams(params) {
@@ -150,7 +156,7 @@ function assertFormInstanceId(row) {
 }
 
 function resolveBaseUrl() {
-  const parentWindow = readParentWindow();
+  const parentWindow = readWindow('parent');
   const config =
     (typeof window !== 'undefined' && (window.pageConfig || window.g_config || window.__YIDA__)) ||
     (parentWindow && (parentWindow.pageConfig || parentWindow.g_config || parentWindow.__YIDA__)) ||
@@ -179,26 +185,13 @@ function buildWorkbenchUrl({ baseUrl, appType, formUuid }) {
   return `${baseUrl}/${appType}/workbench/${formUuid}?iframe=true`;
 }
 
-function installThemeIntoDocument(doc, tokens) {
-  if (!doc || !doc.head || !tokens) return false;
-  const cssText = ':root {\n' + Object.keys(tokens).map((key) => `  ${key}: ${tokens[key]};`).join('\n') + '\n}';
-  let style = doc.getElementById('yida-global-theme');
-  if (!style) {
-    style = doc.createElement('style');
-    style.id = 'yida-global-theme';
-    doc.head.appendChild(style);
-  }
-  style.textContent = cssText;
-  return true;
-}
-
 function installThemeIntoFrame(themeTokens, iframeElement) {
   const runtime = getOpenYidaRuntime();
-  if (runtime && runtime.theme && typeof runtime.theme.install === 'function') {
-    runtime.theme.install({ tokens: themeTokens });
+  if (!runtime || !runtime.theme || typeof runtime.theme.installIntoFrame !== 'function') {
+    return false;
   }
   try {
-    return installThemeIntoDocument(iframeElement.contentWindow.document, themeTokens);
+    return runtime.theme.installIntoFrame(themeTokens, iframeElement).installed > 0;
   } catch (error) {
     return false;
   }
@@ -252,11 +245,6 @@ function useCanvasBaseState(binding) {
 
   const loadRows = useCallback(async () => {
     const runtime = getOpenYidaRuntime();
-    const api = getYidaApi(runtime);
-    if (!hasYidaMethods(api)) {
-      setError('发布 runtime 未就绪，无法读取宜搭表单数据。');
-      return;
-    }
     if (!binding.formUuid) {
       setRows([]);
       setTotalCount(0);
@@ -266,6 +254,7 @@ function useCanvasBaseState(binding) {
     setLoading(true);
     setError('');
     try {
+      const api = requireYidaApi(runtime, 'searchFormDatas');
       const payload = await api.searchFormDatas(normalizeSearchParams({
         appType: binding.appType,
         formUuid: binding.formUuid,
@@ -294,27 +283,32 @@ function useCanvasBaseState(binding) {
 
 function YidaComp(props) {
   const binding = useMemo(() => ({ ...DEFAULT_BINDING, ...((props && props.dataBinding) || {}) }), [props]);
-  const themeTokens = useMemo(() => ({ ...DEFAULT_THEME_TOKENS, ...((props && props.themeTokens) || {}) }), [props]);
+  const themeTokens = useMemo(() => ({ ...THEME_TOKENS, ...((props && props.themeTokens) || {}) }), [props]);
   const baseUrl = resolveBaseUrl();
   const { error, loadRows, loading, rows, totalCount } = useCanvasBaseState(binding);
   const [openState, setOpenState] = useState({ visible: false, type: '', url: '' });
 
+  useEffect(() => {
+    const runtime = getOpenYidaRuntime();
+    if (runtime && runtime.theme && typeof runtime.theme.install === 'function') {
+      runtime.theme.install({ tokens: themeTokens });
+    }
+  }, [themeTokens]);
+
   const openForm = useCallback((request) => {
     const type = request && request.type;
+    let url;
     if (type === 'detail') {
       const formInstId = request.formInstId || assertFormInstanceId(request.row);
-      setOpenState({
-        visible: true,
-        type,
-        url: buildFormDetailUrl({ baseUrl, appType: binding.appType, formUuid: binding.formUuid, formInstId }),
-      });
+      url = buildFormDetailUrl({ baseUrl, appType: binding.appType, formUuid: binding.formUuid, formInstId });
+    } else {
+      url = buildSubmissionUrl({ baseUrl, appType: binding.appType, formUuid: binding.formUuid });
+    }
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
+      window.location.assign(url);
       return;
     }
-    setOpenState({
-      visible: true,
-      type: 'submission',
-      url: buildSubmissionUrl({ baseUrl, appType: binding.appType, formUuid: binding.formUuid }),
-    });
+    setOpenState({ visible: true, type: type === 'detail' ? 'detail' : 'submission', url });
   }, [baseUrl, binding.appType, binding.formUuid]);
 
   const columns = [
@@ -339,11 +333,23 @@ function YidaComp(props) {
   ];
 
   return (
-    <div className="openyida-canvas-scaffold" style={{ minHeight: '100%', padding: 24, background: 'var(--openyida-bg)' }}>
-      <style>{`
+    <ConfigProvider theme={{ token: { colorPrimary: themeTokens['--color-brand1-6'], borderRadius: 8 } }}>
+      <div className="openyida-canvas-scaffold" style={{ minHeight: '100%', padding: 24, background: 'var(--openyida-bg)' }}>
+        <style>{`
         .openyida-canvas-scaffold {
           color: var(--openyida-text);
           box-sizing: border-box;
+        }
+        .openyida-canvas-scaffold *,
+        .openyida-canvas-scaffold *::before,
+        .openyida-canvas-scaffold *::after {
+          box-sizing: border-box;
+        }
+        .openyida-canvas-scaffold button,
+        .openyida-canvas-scaffold input,
+        .openyida-canvas-scaffold textarea,
+        .openyida-canvas-scaffold select {
+          font: inherit;
         }
         .openyida-canvas-panel {
           background: var(--openyida-surface);
@@ -351,8 +357,8 @@ function YidaComp(props) {
           border-radius: 8px;
           padding: 20px;
         }
-      `}</style>
-      <div className="openyida-canvas-panel">
+        `}</style>
+        <div className="openyida-canvas-panel">
         <Space direction="vertical" size={16} style={{ width: '100%' }}>
           <Space style={{ width: '100%', justifyContent: 'space-between' }} align="start">
             <div>
@@ -380,16 +386,17 @@ function YidaComp(props) {
             </Button>
           ) : null}
         </Space>
+        </div>
+        <FormOpenContainer
+          openState={openState}
+          onClose={() => {
+            setOpenState({ visible: false, type: '', url: '' });
+            loadRows();
+          }}
+          themeTokens={themeTokens}
+        />
       </div>
-      <FormOpenContainer
-        openState={openState}
-        onClose={() => {
-          setOpenState({ visible: false, type: '', url: '' });
-          loadRows();
-        }}
-        themeTokens={themeTokens}
-      />
-    </div>
+    </ConfigProvider>
   );
 }
 

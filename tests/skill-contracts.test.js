@@ -659,21 +659,20 @@ describe('OpenYida skill contracts', () => {
   });
 
   test('native form development uses form json and dedicated builders', () => {
-    const root = readSkill('yida-skills/SKILL.md');
     const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
     const createForm = readSkill('yida-skills/skills/yida-create-form-page/SKILL.md');
     const formDetail = readSkill('yida-skills/skills/yida-form-detail/SKILL.md');
     const manifest = readSkill('lib/core/command-manifest.js');
 
     expect(createForm).toContain('原生表单使用独立脚手架');
-    expect(createForm).toContain('Agent 只扩展 `.form.json` 中的字段、Divider 分组、校验和规则');
-    expect(createForm).toContain('`lib/app/services/form-schema-builder.js` 与 `lib/app/services/form-runtime.js`');
+    expect(createForm).toContain('在 `.form.json` 中填写字段、Divider/多列分组、校验、规则、远程数据源、主题 token 和 formDetail preset');
+    expect(createForm).toContain('`lib/app/scaffolds/form/form-schema-builder.js` 与 `lib/app/services/form-runtime.js`');
     expect(createForm).toContain('不要把原生表单写成自定义页面 JSX');
-    expect(app).toContain('`yida-form-detail` / `yida-create-form-page` | 创建或更新原生表单字段结构时加载；字段、分组、校验和规则写 `.form.json`');
+    expect(app).toContain('输入和实现规则见 `yida-create-form-page`');
     expect(formDetail).toContain('Divider 策略');
     expect(formDetail).toContain('formDetail CSS');
     expect(createForm).toContain('视觉引导必须和 `Divider` 分割线语义分组合并执行');
-    expect(createForm).toContain('新建表单在 Schema JS 中默认带上 `openyida:theme` 和 `openyidaThemeDidMount`');
+    expect(createForm).toContain('保存后自动回读 revision、生命周期、主题、formDetail 样式和 13 个 Yida API');
     expect(formDetail).toContain('### 【表单视觉引导】');
     expect(formDetail).toContain('Divider 策略');
     expect(formDetail).toContain('拿到 `formUuid` 后默认执行幂等注入');
@@ -691,6 +690,8 @@ describe('OpenYida skill contracts', () => {
     expect(manifest).toContain("default_form_visual_guidance_skill_id: 'yida-form-detail'");
     expect(manifest).toContain('Native forms use the independent .form.json scaffold');
     expect(manifest).toContain('form-schema-builder.js and form-runtime.js');
+    expect(manifest).toContain('scaffold_contracts: buildScaffoldContracts()');
+    expect(manifest).not.toContain('a page-instance capability that Canvas lacks');
     expect(manifest).toContain("'form-detail-style.apply'");
   });
 
@@ -1116,7 +1117,6 @@ describe('OpenYida skill contracts', () => {
     const themeHelpers = readSkill('yida-skills/skills/yida-canvas-custom-page/references/theme-runtime-helpers.md');
     const customPage = readSkill('yida-skills/skills/yida-custom-page/SKILL.md');
     const codingGuide = readSkill('yida-skills/skills/yida-custom-page/references/coding-guide.md');
-    const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
     const fieldUrlReference = readSkill('yida-skills/references/field-and-url-reference.md');
 
     expect(pageUiux).toContain('表单入口只写交互意图');

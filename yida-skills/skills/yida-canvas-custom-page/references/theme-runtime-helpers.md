@@ -10,9 +10,9 @@
 - 样式 id 固定为 `yida-global-theme`；重复执行时更新内容，不插入多个 style。
 - tokens 必须来自当前项目 `design.md`；若 design.md 声明移动端支持色阶，`--color-brand-1` ~ `--color-brand-4` 必须和 `--color-brand1-*` 一起注入。
 
-## Code Canvas Helper
+## 旧 Canvas 源码 Helper
 
-复制到 `.canvas.jsx` 的常量和组件定义附近，在根组件中调用：
+新建页面不使用本节，直接使用 `canvas.canvas.jsx` 内置主题能力。只有改造缺少主题 runtime 的旧 `.canvas.jsx` 时，才参考下面代码补齐：
 
 ```jsx
 function collectYidaThemeDocuments(startWindow) {
