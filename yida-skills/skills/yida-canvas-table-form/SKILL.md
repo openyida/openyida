@@ -30,7 +30,7 @@ description: Code Canvas + antd 默认批量录入技能。使用 Table、Input�
 
 ## 致命规则（FATAL）
 
-1. **Canvas 组件内没有普通页面实例桥**：禁止在 `YidaComp` 源码中直接调用 `this.utils.yida.*`、`this.$(...)` 或 `this.dataSourceMap`；需要宜搭表单写入时消费发布层注入的 `window.__OPENYIDA_YIDA_API__`。
+1. **Canvas 组件不直接使用普通页面实例桥**：禁止在 `YidaComp` 源码中直接调用 `this.utils.yida.*`、`this.$(...)` 或 `this.dataSourceMap`；需要宜搭表单写入时消费发布层注入的 `window.__OPENYIDA_YIDA_API__`。
 2. **写入桥必须先验证**：默认使用 `window.__OPENYIDA_YIDA_API__.saveFormData/updateFormData`，也可使用已验证连接器代理或同源业务桥。必须确认目标 `appType/formUuid`、请求体、返回体和错误码。
 3. **未验证不得伪装闭环**：桥未配置或未验证时，提交按钮禁用或进入清晰的“待接入”状态；不得模拟成功、生成假 `formInstId` 或宣称数据已写入宜搭。
 4. **提交前先验证并确认**：先完成行级校验，再向用户展示待提交行数和关键字段摘要，获得确认后发起写入。

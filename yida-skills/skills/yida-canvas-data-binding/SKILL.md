@@ -14,7 +14,7 @@ Code Canvas 运行时是标准 React 组件环境，组件没有普通宜搭自�
 ## 运行时事实
 
 - `YidaCodeCanvas` 物料只透传 `code / runtimeCode / importedModules / pageType`。
-- 组件内没有 `this` 上下文，也没有 `dataSourceMap`。
+- 组件内不直接使用普通页面的 `this` 上下文或 `dataSourceMap`。
 - `this.utils.yida.*`、`didMount()`、`_customState` 等普通页面契约在 `YidaComp` 内不可直接使用；发布 Code Canvas 页面时，外层普通页面的 `didMount` 必须自动把可用能力注册到 `window.__OPENYIDA_RUNTIME__` / `window.openyidaRuntime`。Canvas 通过 `runtime.yida` 读写数据，通过 `runtime.theme.install(...)` 注入主题。兼容别名 `window.__OPENYIDA_YIDA_API__` / `window.openyidaYidaApi` 仍可读取 yida API。
 - Canvas 没有官方 `useDataBinding` hook，不得从任何包 `import { useDataBinding }`；真实表单数据绑定用页面内本地 `useYidaData(binding)`、`DataBridge` 和 yida JS-API 桥实现。
 - Cookie 由浏览器同源请求自动携带，前端代码不能硬编码 Cookie、appSecret、accessKey 或外部密钥。

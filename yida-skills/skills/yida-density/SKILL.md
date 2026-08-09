@@ -116,7 +116,7 @@ function DensityAwareList() {
 - 系统字体缩放、长中文、英文和大数值下均不得截断关键字段。
 - 虚拟表格行高、骨架屏行高和真实行高必须使用同一密度 token。
 
-## Legacy/native fallback
+## 存量普通页维护
 
 已有普通自定义页面可以继续使用：
 

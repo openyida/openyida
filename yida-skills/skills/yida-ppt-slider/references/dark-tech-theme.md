@@ -2,7 +2,7 @@
 
 > 来源：`wukong-openyida-training-v2.js` 实战案例，适合企业培训、产品发布、科技感演示场景。
 >
-> 新建页面默认使用 Code Canvas。粒子、转场、键盘和全屏副作用用 React `ref` + `useEffect` 初始化并 cleanup。本文后半部的 `renderJsx` / `didMount` 写法是 legacy/native 参考，不是默认实现。
+> 新建页面使用 Code Canvas。粒子、转场、键盘和全屏副作用用 React `ref` + `useEffect` 初始化并 cleanup。本文后半部的 `renderJsx` / `didMount` 写法只用于存量普通页面维护。
 >
 > 注意：`dark-tech` 是演示页视觉主题，不是默认业务主题。普通新页面先由 `yida-design` 根据行业、品牌、业务情绪和视觉目标做创意色彩判断；`podBlue`、`podGreen`、`podOrange` 只是平台预置候选，不是行业默认答案。只有演示、发布会或用户明确暗色科技风时才使用本文主题。
 

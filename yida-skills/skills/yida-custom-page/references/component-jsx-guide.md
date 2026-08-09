@@ -5,7 +5,7 @@
 ## 先说清楚边界
 
 - 不要假设自定义页面能通过 `import` 获取 `window.Deep` 上的表单组件；当前规范下应使用原生 JSX 元素、Tailwind `className` 和必要的内联兜底样式组合。
-- Code Canvas 是自定义页面的新建默认链路（现代 React/hooks/可视化/AI）；本指南只服务已有普通自定义页面 JSX/Jsx 维护，例如目标页面已确认是 `Jsx` 组件、`renderJsx`、或已有 `this.$(fieldId)`、`this.utils.yida.*`、`this.dataSourceMap`、表单提交/字段双向绑定深度耦合。用户要新建页面、代码画布、`YidaCodeCanvas`、`runtimeCode`、`importedModules` 时，切换到 `yida-canvas-custom-page`。
+- Code Canvas 是自定义页面的新建链路（现代 React/hooks/可视化/AI）；本指南只服务已有普通自定义页面 JSX/Jsx 维护，例如目标页面已确认是 `Jsx` 组件、`renderJsx`、或已有 `this.$(fieldId)`、`this.utils.yida.*`、`this.dataSourceMap`、表单提交/字段双向绑定深度耦合。用户要新建页面、代码画布、`YidaCodeCanvas`、`runtimeCode`、`importedModules` 时，切换到 `yida-canvas-custom-page`。
 - 不要把字段中文名当作 `fieldId`；字段 ID 必须来自 `openyida get-schema`。
 - 不要把原生表单页面的组件配置 JSON 直接复制到自定义页面 JSX；两者不是同一个运行面。
 - 如果确有平台内置选择器、上传器等 API，必须先由用户提供官方示例或在目标环境验证，再写入代码。

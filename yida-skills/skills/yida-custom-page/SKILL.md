@@ -1,11 +1,11 @@
 ---
 name: yida-custom-page
-description: 普通自定义页面 JSX/Jsx 维护与例外实现。用于用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 页面，或必须使用 Canvas 当前不具备的普通页面实例能力。
+description: 普通自定义页面 JSX/Jsx 维护。只用于修改已确认的存量普通 JSX/Jsx 页面。
 ---
 
 # 自定义页面开发
 
-> **先确认链路**：本技能服务三类场景：用户明确要求普通 JSX/Jsx；维护已有非 Code Canvas 页面；需求必须使用 Canvas 当前不具备的普通页面实例能力。新建自定义页面默认使用 `yida-canvas-custom-page`，发布为 `YidaCodeCanvas`。已有普通自定义页面升级到 Code Canvas 时使用 `yida-canvas-upgrade`。
+> **先确认链路**：本技能只服务已确认的存量普通 JSX/Jsx 页面修改。新建自定义页面使用 `yida-canvas-custom-page`，发布为 `YidaCodeCanvas`。已有普通自定义页面升级到 Code Canvas 时使用 `yida-canvas-upgrade`。
 
 ## Resource-First 页面开发
 
@@ -14,7 +14,7 @@ description: 普通自定义页面 JSX/Jsx 维护与例外实现。用于用户�
 - 已有页面 URL、display `formUuid`、bound page 或 workspace cache/config 中可确认的自定义页面时，先读取页面 Schema 或源码证据。确认目标是非 Code Canvas 的 `Jsx` / `renderJsx` 页面后，用本技能修改源码并交给 `yida-publish-page` 发布。
 - 目标页面是 `YidaCodeCanvas` 时，改用 `yida-canvas-custom-page`。
 - bound page 只是默认页面，不是锁定目标；如果当前会话绑定页面 A，但用户本轮明确说要修改页面 B，先解析 B 的 URL / display `formUuid` / 页面名称。B 能唯一解析时改 B；B 无法唯一解析时询问用户；禁止静默把需求发布到 A。
-- 完整应用统一编排的新建页面默认使用 Code Canvas；缺少主入口 display page 时创建页面容器后交给 `yida-canvas-custom-page`。
+- 完整应用统一编排的新建页面使用 Code Canvas；缺少主入口 display page 时创建页面容器后交给 `yida-canvas-custom-page`。
 - 用户只说“优化这个页面 URL / 修改现有页面 / 重新发布”时，本技能与 `yida-publish-page` 配合即可完成，不创建 app/page。
 - 如果用户给的是普通表单 `formUuid`，页面源码只能把它作为数据源或入口链接使用；不能把数据表单 ID 当作发布目标。
 - 页面源码路径按 Bash cwd 选择：从仓库根执行命令时用 `project/pages/src/...`；如果 cwd 已是 `<workspace>/project`，用 `pages/src/...`，不要写成 `project/pages/src/...`。
@@ -101,7 +101,7 @@ openyida get-schema APP_XXX FORM-EMPLOYEE
 ```bash
 # Step 2：确认或补齐自定义页面发布目标
 # 已有页面 URL / display formUuid 时直接复用该 formUuid，例如 FORM-QUERY001。
-# 新建自定义页面默认交给 yida-create-page + yida-canvas-custom-page。
+# 页面缺失时停止本技能，改用 yida-create-page + yida-canvas-custom-page 新建 Code Canvas 页面。
 
 # Step 3：编写普通自定义页面 JSX 代码
 # 在 project/pages/src/employee-query.oyd.jsx 中编写；Code Canvas 页面使用 yida-canvas-custom-page / .canvas.jsx

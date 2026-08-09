@@ -1,7 +1,7 @@
 ---
 name: yida-nav-shell
 description: >
-  宜搭自定义页面「页面内导航壳」形态目录，保留 Code Canvas 与普通自定义页面双链路并默认 Canvas-first。适用于隐藏应用导航后的侧边、顶部、混合、浮动和标签导航，多视图切换及带参数跨页跳转；Canvas 默认用 React useState/useEffect/hash，普通页 _customState/renderJsx 仅作 legacy fallback。
+  宜搭自定义页面「页面内导航壳」形态目录。新建导航壳使用 Code Canvas；已确认的存量普通页面维护才使用 _customState/renderJsx。适用于隐藏应用导航后的侧边、顶部、混合、浮动和标签导航，多视图切换及带参数跨页跳转。
 ---
 
 # yida-nav-shell — 页面内自绘导航壳
@@ -10,10 +10,10 @@ description: >
 
 自定义页显式隐藏应用导航（`isRenderNav=false`）后，页面需要自己承担应用级导航。本技能负责形态选型、状态机制、URL 纪律和代码骨架；若用户只是要求页面内 tab / 内容区导航但没有说隐藏平台导航，默认仍保留宜搭导航，不进入隐藏导航链路。
 
-两条链路都支持，但顺序明确：
+链路选择：
 
 1. 新建导航壳默认交 **Code Canvas**，使用 React hooks、antd 或自绘组件。
-2. 只有维护旧 `.oyd.jsx`、明确要求普通页，或深度依赖普通页实例桥时，才使用 native fallback。
+2. 只有维护已确认的存量普通 JSX/Jsx 导航壳时，才使用 `yida-custom-page`。
 
 本技能不配置宜搭平台真实导航树；平台导航分组由 `yida-nav-group` 处理。
 
@@ -119,7 +119,7 @@ const NAV_ITEMS = [
 - 触控目标至少 44px，焦点态和键盘访问不能丢。
 - 菜单展开状态与当前 activeView 分离，切换视图后按产品需要关闭移动菜单。
 
-## Legacy/native fallback
+## 存量普通页维护
 
 仅在旧普通自定义页面或实例桥依赖场景使用：
 
@@ -138,7 +138,7 @@ const NAV_ITEMS = [
 4. hash/event/matchMedia 等监听必须 cleanup。
 5. 图标只使用 `lucide-react` 或 `@ant-design/icons` 的具体组件映射，默认 `lucide-react`；禁 emoji、CSS 绘制图形、字母占位和装饰性图标堆叠。
 6. 顶部条保持克制，不做营销 Hero。
-7. Canvas 示例与状态机制优先；普通页只能标记为 legacy fallback。
+7. Canvas 示例与状态机制优先；普通页只用于存量页面维护。
 
 ## 验收
 

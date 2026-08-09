@@ -1,6 +1,6 @@
 ---
 name: yida-canvas-custom-page
-description: 宜搭 Code Canvas / 代码画布自定义页面实现规则。新建自定义页面默认使用本技能；负责 page-spec 派生、数据绑定、主题落地、运行态组件、源码修复和编译发布校验。
+description: 宜搭 Code Canvas / 代码画布自定义页面实现规则。新建自定义页面使用本技能；负责 page-spec 派生、数据绑定、主题落地、运行态组件、源码修复和编译发布校验。
 ---
 
 # 宜搭 Code Canvas 自定义页面开发
@@ -23,7 +23,7 @@ OpenYida 只提供一份完整 Canvas 脚手架：`openyida sample yida-canvas-c
 - 只需要通过 HTTP / 连接器读写数据的页面。
 - 需要在 Canvas 内受控接入门户、成员、部门、上传等宜搭运行态组件的页面。
 
-新建自定义页面默认使用 Code Canvas。`yida-custom-page` 服务三类场景：用户明确要求普通 JSX/Jsx；维护已有非 Code Canvas 页面；当前 Canvas 确认缺少必须的普通页面实例能力。
+新建自定义页面使用 Code Canvas。`yida-custom-page` 只用于修改已确认的存量普通 JSX/Jsx 页面。
 
 ## 运行时事实
 
@@ -50,8 +50,8 @@ OpenYida 只提供一份完整 Canvas 脚手架：`openyida sample yida-canvas-c
 | 新建自定义页面 | 使用本技能，写 `.canvas.jsx` / `.canvas.tsx` |
 | 需要 Canvas 起步代码 | 使用 `openyida sample yida-canvas-custom-page canvas` 输出 `canvas.canvas.jsx` |
 | 修改已有 `YidaCodeCanvas` 页面 | 使用本技能，保留 Canvas 链路 |
-| 明确要求普通 JSX/Jsx、修改已有非 Code Canvas 页面，或必须使用 Canvas 缺少的普通页面实例能力 | 使用 `yida-custom-page` |
-| 用户提到 `this.$`、`this.utils.yida.*`、`dataSourceMap`，但没有明确要求普通 JSX/Jsx | 使用本技能；改成 Canvas 数据桥、统一 window runtime 或开放 API 方案 |
+| 修改已确认的存量普通 JSX/Jsx 页面 | 使用 `yida-custom-page` |
+| 新建页面提到 `this.$`、`this.utils.yida.*` 或 `dataSourceMap` | 使用本技能；改成 Canvas 数据桥、统一 window runtime 或开放 API 方案 |
 
 ## 两类特殊组件场景
 
@@ -89,7 +89,7 @@ OpenYida 只提供一份完整 Canvas 脚手架：`openyida sample yida-canvas-c
 2. **发布链路正确**：Canvas 源码使用 `.canvas.jsx` / `.canvas.tsx`，或发布时显式加 `--canvas`。
 3. **源码修改发布闭环**：本轮 Write/Edit/Create 了 `project/pages/src/*.canvas.jsx` 或 `project/pages/src/*.canvas.tsx` 后，final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`。有 publish 成功证据时表述为“页面已发布”；只有本地校验证据时表述为“Canvas 源码已修改，尚未发布”。
 4. **依赖可加载**：普通 import 只使用 Code Canvas 可用资源清单内的前端资源；React、antd、Ant Design Icons、Recharts、ahooks、lucide-react 等包依赖必须写 `import ... from '包名'`。严禁写未声明裸变量依赖或手写 window 依赖，例如 `const { Drawer } = antd`、`const { Search } = lucideReact`、`const { ConfigProvider } = window.antd`、`const React = window.React`、`window.icons`。宜搭运行态组件才通过 `window.Deep`、`window.DeepYida`、`window.YidaNativeComponents` 探测。
-5. **使用 Canvas 函数组件契约**：Canvas 代码写 `YidaComp` React 函数组件；数据、生命周期和渲染都通过 hooks、props、统一 window runtime 或连接器完成。组件内部不能直接写 `this.utils.yida.*`。用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 页面，或必须使用 Canvas 缺少的普通页面实例能力时，才用 `yida-custom-page`。
+5. **使用 Canvas 函数组件契约**：Canvas 代码写 `YidaComp` React 函数组件；数据、生命周期和渲染都通过 hooks、props、统一 window runtime 或连接器完成。组件内部不能直接写 `this.utils.yida.*`。只有修改已确认的存量普通 JSX/Jsx 页面时，才用 `yida-custom-page`。
 6. **副作用清理**：`useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
 7. **交互控件必须受控且真正驱动数据**：筛选 `Select`、搜索 `Input`/`Input.Search`、周期切换、`Tabs`/`Segmented`、批量/重置 `Button` 等控件都用 `useState` 建立受控状态，绑定 `onChange`/`onClick`，并让 `Table`/列表/卡片的数据源通过 `useMemo` 按状态派生后渲染。切换筛选后若当前选中项失效，回退选中态（如 `selected < filteredRows.length ? selected : 0`）。
 8. **视觉壳层必须消费 design.md**：工作台、门户、看板、首页、展示页和真实交付页写 Canvas 源码前，先读取 `design.md` 的 `designRefs` 和相关章节。具体 Canvas 样式落地规则见 `canvas-style-implementation-guide.md`。

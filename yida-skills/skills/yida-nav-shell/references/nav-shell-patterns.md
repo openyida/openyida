@@ -2,7 +2,7 @@
 
 当页面被用户显式要求隐藏应用导航（`isRenderNav=false`，先用 `use_skill("yida-design", "判定导航与视觉策略")` 完成入口判断），页面要**自带导航壳**接管应用级导航。本文件是 B 端常见导航形态的选型 + 骨架 + 代码示例目录。挑一种主形态，可与标签页叠加做二级导航。
 
-> 这里给**方向 + 骨架 + 可直接改的代码示例**。默认先用 Code Canvas（React hooks + antd/自绘组件）；文中 `_customState`、`renderJsx`、`this.utils.isMobile()` 代码统一视为 **legacy/native 示例**，只用于维护普通自定义页面。
+> 这里给方向、骨架和可直接改的代码示例。新建导航壳使用 Code Canvas（React hooks + antd/自绘组件）；文中 `_customState`、`renderJsx`、`this.utils.isMobile()` 代码只用于维护存量普通自定义页面。
 
 ## 选型速查
 

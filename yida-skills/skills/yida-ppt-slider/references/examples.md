@@ -1,6 +1,6 @@
 # yida-ppt-slider 使用示例
 
-> 新建幻灯片默认使用 Code Canvas。本页先给 Canvas 流程；后续 `_customState`、`didMount`、`renderJsx` 完整代码是 **legacy/native 参考**，只用于维护既有普通自定义页面。
+> 新建幻灯片使用 Code Canvas。本页先给 Canvas 流程；后续 `_customState`、`didMount`、`renderJsx` 完整代码只用于维护既有普通自定义页面。
 
 ## 示例 1：Canvas-first 产品路演
 

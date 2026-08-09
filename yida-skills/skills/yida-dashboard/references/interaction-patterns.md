@@ -1,6 +1,6 @@
 # 看板交互闭环代码范式
 
-> 业务闭环规则同时适用于 Canvas 与普通页。新建看板默认使用 Code Canvas：状态与副作用用 hooks，数据写入使用 `yida-canvas-data-binding` 的同源 HTTP 数据桥。本文现存 `self.utils.yida.*`、`_customState`、`didMount` 代码是 **legacy/native 示例**，用于维护普通自定义页面，不能作为新建默认。
+> 业务闭环规则同时适用于 Canvas 与普通页。新建看板使用 Code Canvas：状态与副作用用 hooks，数据写入使用 `yida-canvas-data-binding` 的同源 HTTP 数据桥。本文现存 `self.utils.yida.*`、`_customState`、`didMount` 代码只用于维护存量普通自定义页面。
 >
 > 本文档覆盖 5 大交互闭环：
 > 1. 钉钉派单闭环（前端 `saveFormData` 到派单触发表 → 集成自动化 insert 事件 → 待办2.0 连接器 → 真实钉钉待办）

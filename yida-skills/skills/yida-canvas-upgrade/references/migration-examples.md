@@ -44,7 +44,7 @@ export default YidaComp;
 - `_customState` 字段 → `useState`；复杂派生数据 → `useMemo`。
 - `didMount` / `didUnmount` → `useEffect(() => { ...; return cleanup; }, [])`。
 - `this.forceUpdate()` / `setCustomState` 强刷 → 删除，靠 hooks 自然重渲染。
-- `this.utils.yida.*` / `this.dataSourceMap.*` 无法照搬，抽成 props 调用或明确 TODO，不要假装可用（Canvas 无平台数据桥）。
+- `this.utils.yida.*` / `this.dataSourceMap.*` 不能照搬，改为统一 window runtime、dataBinding、连接器或 HTTP 数据桥。
 
 ## 升级报告模板
 

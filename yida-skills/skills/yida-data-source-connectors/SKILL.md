@@ -1,6 +1,6 @@
 ---
 name: yida-data-source-connectors
-description: 宜搭普通自定义页面（native）设计器 dataSourceMap 专用技能。仅用于把连接器/远程 API 注册到 Page dataSource.online 并通过 this.dataSourceMap.<name>.load() 调用。Code Canvas 没有 dataSourceMap，Canvas 数据接入必须转 yida-canvas-data-binding / Canvas HTTP 数据桥。
+description: 宜搭普通自定义页面设计器 dataSourceMap 专用技能。仅用于把连接器/远程 API 注册到 Page dataSource.online 并通过 this.dataSourceMap.<name>.load() 调用。Code Canvas 数据接入使用 yida-canvas-data-binding、统一 window runtime 或 HTTP 数据桥。
 ---
 
 # 宜搭普通自定义页面连接器数据源规范
@@ -15,7 +15,7 @@ description: 宜搭普通自定义页面（native）设计器 dataSourceMap 专�
   → 连接器 / REMOTE 数据源
 ```
 
-它不是 Canvas 通用数据接入技能。Code Canvas 组件没有普通页面 `this` 实例，也没有 `dataSourceMap`；遇到 `.canvas.jsx`、`YidaCodeCanvas`、`YidaComp`、React hooks 或 Canvas 看板时，立即转：
+它不是 Canvas 通用数据接入技能。Code Canvas 不直接使用普通页面的 `this.dataSourceMap`；遇到 `.canvas.jsx`、`YidaCodeCanvas`、`YidaComp`、React hooks 或 Canvas 看板时，立即转：
 
 ```text
 use_skill("yida-canvas-data-binding", "为 Code Canvas 页面接入连接器或同源 API 数据")
@@ -118,13 +118,14 @@ export function loadConnectorDataSource(dataSourceName, headers, query, body) {
 
 Canvas 中不得复制上面的 `this.dataSourceMap` 代码。Canvas 数据接入使用：
 
+- 统一 window runtime 的 `runtime.yida`。
 - `dataBinding.mode=connector` + 同源代理 `endpoint`。
 - 或 `dataBinding.mode=url/form/report` + Canvas `DataBridge`。
 - `fetch(..., { credentials: 'include' })`。
 - CSRF、AbortController、返回体解包、`totalCount` 保护、silent refresh。
 - Cookie、密钥、签名留在平台连接器或后端服务侧。
 
-详细规则由 `yida-canvas-data-binding` 决定。本技能只负责判断“当前需求不是 native dataSourceMap”并完成转交，不为 Canvas 发明伪 `dataSourceMap`。
+详细规则由 `yida-canvas-data-binding` 决定。本技能只负责判断“当前需求不是普通页面 dataSourceMap”并完成转交，不为 Canvas 发明伪 `dataSourceMap`。
 
 ## Native 发布与回读验证
 

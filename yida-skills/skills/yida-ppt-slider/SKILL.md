@@ -1,6 +1,6 @@
 ---
 name: yida-ppt-slider
-description: "宜搭全屏幻灯片页面开发，兼容旧 yida-ppt / PPT / 演示 / 幻灯片触发词，默认使用 Code Canvas + React hooks 管理翻页、URL hash、键盘/演讲笔、全屏和副作用清理。支持浅色简约与 dark-tech 主题。普通自定义页面生命周期模式仅用于 legacy/native 维护。"
+description: "宜搭全屏幻灯片页面开发，兼容旧 yida-ppt / PPT / 演示 / 幻灯片触发词，默认使用 Code Canvas + React hooks 管理翻页、URL hash、键盘/演讲笔、全屏和副作用清理。支持浅色简约与 dark-tech 主题。普通自定义页面生命周期模式仅用于存量页面维护。"
 ---
 
 # 宜搭 PPT 幻灯片开发指南
@@ -15,7 +15,7 @@ description: "宜搭全屏幻灯片页面开发，兼容旧 yida-ppt / PPT / 演
 - `useMemo` 派生当前页与页码数据。
 - 常规图表默认交 `yida-rechart`；明确 ECharts/复杂 option 时才使用 `yida-chart`。
 
-已有 `.oyd.jsx` 或深度依赖普通页实例桥时，才使用 legacy/native fallback。
+只有维护已确认的存量普通 JSX/Jsx 演示页时，才使用普通页面生命周期模式。
 
 ## 适用场景
 
@@ -24,7 +24,7 @@ description: "宜搭全屏幻灯片页面开发，兼容旧 yida-ppt / PPT / 演
 | 在宜搭内创建演示文稿 | "PPT"、"yida-ppt"、"幻灯片"、"演示页面"、"产品路演" | 使用本技能，默认 Canvas |
 | 需要读取宜搭数据的演示 | 演示页要接入表单、权限或宜搭页面能力 | Canvas + `yida-canvas-data-binding` |
 | 纯静态演讲稿 | 不依赖宜搭发布、不读取宜搭数据 | 优先改用独立 HTML 幻灯片能力 |
-| 维护已有 `renderJsx` / `didMount` PPT | 已有普通自定义页面或强依赖普通页面实例桥 | legacy `yida-custom-page` |
+| 维护已有 `renderJsx` / `didMount` PPT | 已确认是存量普通自定义页面 | `yida-custom-page` |
 
 ## 致命规则
 
@@ -185,7 +185,7 @@ export default YidaComp;
 - 只有用户明确要求 ECharts、复杂 ECharts option、bar chart race 或旧 native ECharts 演示时，调用 `yida-chart`。
 - `references/echarts-race-example.md` 是明确 ECharts 的专项/legacy 参考，不是默认幻灯片骨架。
 
-## Legacy/native fallback
+## 存量普通页维护
 
 仅在维护旧普通自定义页面或必须使用页面实例桥时：
 

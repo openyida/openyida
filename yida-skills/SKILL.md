@@ -183,12 +183,8 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 | 改表单数据记录 | `yida-data-management`，不是 `yida-create-form-page` |
 | 配字段默认值、计算、校验 | `yida-formula`；静态检查用 `yida-formula-evaluate` |
 | 提交后跨表写入/更新/删除 | 默认 `yida-integration`；用户明确要业务关联规则/高级函数时用 `yida-business-rule` |
-| 自定义页面默认开发链路 | `yida-canvas-custom-page`；新建自定义页面使用 Code Canvas |
-| 普通自定义页面 JSX/Jsx | 用户明确要求普通 JSX/Jsx、维护历史页面，或必须使用 Canvas 当前不具备的普通页面实例能力时用 `yida-custom-page` |
-| Code Canvas 页面使用成员/部门/上传等宜搭运行态组件 | `yida-canvas-custom-page`，读取 `native-components-bridge.md` |
-| 新建页面提到 `this.$`、`this.utils.yida.*` 或 `this.dataSourceMap`，但没有明确要求普通 JSX/Jsx | 用 `yida-canvas-custom-page`，改成 Canvas 数据桥、统一 window runtime 或开放 API 方案 |
-| Code Canvas 接真实数据 | `yida-canvas-data-binding` |
-| 已有 `.oyd.jsx` / `renderJsx` 迁到 Canvas | `yida-canvas-upgrade` |
+| 自定义页面开发 | 新建、实现或修改 Code Canvas 页面用 `yida-canvas-custom-page`；已确认是存量普通 JSX/Jsx 页面时用 `yida-custom-page`；旧页面迁移用 `yida-canvas-upgrade` |
+| Code Canvas 数据和运行态组件 | 真实数据接入用 `yida-canvas-data-binding`；成员、部门、上传等组件规则由 `yida-canvas-custom-page` 处理 |
 | 批量录入、表格填写、多行编辑 | 默认 `yida-canvas-table-form`；明确普通自定义页面/native/旧页面或 `this.utils.yida.saveFormData` 时用 `yida-table-form` |
 | 页面视觉方向、去 AI 味 | `yida-design`；页面实现交给页面技能 |
 | 应用级主题、品牌色、全局换肤 | `yida-design` |
@@ -238,7 +234,7 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 9. **设计产物归属清楚**：`prd.md` 与 `design.md` 由 `yida-design` 产出；schema ID 映射只作为本地资源线索。
 10. **临时文件入 project `.cache/`**：OpenYida 业务中间文件写入 `<projectRoot>/.cache/openyida/<项目名或任务名>/`；Schema ID 映射仍写 `<projectRoot>/.cache/<项目名>-schema.json`。从 workspace 根执行命令时使用 `project/.cache/...`，从 project 工作目录内执行时使用 `.cache/...`；不要写仓库根目录或系统临时目录。
 11. **报表美化先分流**：标准统计与原生报表用 `yida-report`；新建定制图表页面默认用 `yida-rechart` 或 `yida-canvas-custom-page`；只有维护旧 ECharts / 普通自定义页面图表时用 `yida-chart`。
-12. **按 schema 证据选技能**：先看 `formType`、组件树、页面组件类型和 `dataSource.online`；`receipt/process/report` 分别落到表单/流程/报表技能。新建自定义页面默认使用 `yida-canvas-custom-page`。用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 页面，或必须使用 Canvas 当前不具备的普通页面实例能力时，用 `yida-custom-page`。修改已有 `YidaCodeCanvas` 页面继续用 `yida-canvas-custom-page`。
+12. **按 schema 证据选技能**：先看 `formType`、组件树、页面组件类型和 `dataSource.online`；表单、流程、报表和页面分别路由到对应 owner 技能。
 13. **官方示例范式优先**：蒸馏官方示例时先理解脱敏 schema 承载方式，不凭截图/标题/视觉判断。
 14. **默认完成即停止**：任务达到所选子技能的 doneWhen 后停止；完整应用完成条件见 `yida-app`。
 15. **UI 设计技能优先**：涉及应用蓝图、页面视觉、主题色、品牌色、全局换肤或 `--color-brand1-*` 时加载 `yida-design`。后续技能读取 `design.md` 中的主题和设计引用继续实现。

@@ -89,7 +89,7 @@ openyida create-app <appName> [description] [icon] [iconColor] [colour] [navThem
 ## 创建后交付约定
 
 - 将 `appType`、页面 `formUuid`、表单 `fieldId` 写入 `.cache/<项目名>-schema.json`，PRD 只保留业务语义。
-- 新建自定义页面源码默认使用 `.canvas.jsx` / `.canvas.tsx`，通过 `yida-canvas-custom-page` 生成或编写并使用 Canvas 编译发布。`yida-custom-page` 用于用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 页面，或必须使用 Canvas 当前不具备的普通页面实例能力。
+- 新建自定义页面源码使用 `.canvas.jsx` / `.canvas.tsx`，通过 `yida-canvas-custom-page` 编写并使用 Canvas 编译发布。`yida-custom-page` 只用于修改已确认的存量普通 JSX/Jsx 页面。
 - 造测试数据或修旧数据时，可以用 Python 或 JS 编写 `.cache/` 下的一次性脚本；优先选择更快更清晰的方式，但字段 ID 和记录 ID 必须来自真实查询。
 
 ## 异常处理

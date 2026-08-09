@@ -25,7 +25,7 @@ metadata:
 - 常规图表：`yida-rechart`。
 - 只有用户明确要求 ECharts、需要复杂 ECharts `option`/扩展系列，或维护已有普通自定义页面时，才使用 `yida-chart`。
 
-普通自定义页面能力仍保留为 legacy/native fallback，但不得作为新看板默认链路。
+普通自定义页面链路只用于已确认的存量普通 JSX/Jsx 看板维护。
 
 ## 何时触发
 
@@ -151,9 +151,9 @@ use_skill("yida-chart", "实现明确要求的 ECharts 或维护旧 native 图�
 
 不要仅因“看板里有图”就调用 `yida-chart`。
 
-## Legacy/native fallback
+## 存量普通页维护
 
-只有用户明确选择普通自定义页面，或现有页面依赖 `this.utils.yida.*`、`this.dataSourceMap`、`renderJsx`、`didMount` 等实例桥时，才进入 legacy 链路：
+只有已确认的存量普通 JSX/Jsx 看板，才进入普通页面维护链路：
 
 - 页面规范交 `yida-custom-page`。
 - 旧 ECharts 图表交 `yida-chart`。

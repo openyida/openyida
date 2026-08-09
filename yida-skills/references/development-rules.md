@@ -30,7 +30,7 @@
 | 7 | 配置分两处存 | 详见 [配置信息分两处存储](#配置信息分两处存储) 与 [PRD 质量门槛](#prd-质量门槛)。 |
 | 8 | 临时文件入 project `.cache/` | 详见 [临时文件规范](#临时文件规范)。 |
 | 9 | 报表美化先问方案 | 详见 [报表优化 / 美化提示规则](#报表优化--美化提示规则)。 |
-| 10 | 按 schema 证据选技能 | 先看 `formType`、组件树、页面组件类型和 `dataSource.online`；`receipt/process/report` 分别落到表单/流程/报表技能。新建自定义页面使用 `yida-canvas-custom-page` 和 `canvas.canvas.jsx`。原生表单使用 `.form.json`，不要写成自定义页面 JSX。修改已有页面时，`YidaCodeCanvas` 继续用 `yida-canvas-custom-page`；非 Code Canvas 的 `Jsx` / `renderJsx` / `.oyd.jsx` 页面才用 `yida-custom-page`。 |
+| 10 | 按 schema 证据选技能 | 先看 `formType`、组件树、页面组件类型和 `dataSource.online`；表单、流程、报表和页面分别路由到对应 owner 技能。 |
 | 11 | 官方示例范式优先 | 蒸馏宜搭示例中心时，先按 [官方示例 Schema 范式](official-example-schema-patterns.md) 理解脱敏 schema 的承载方式，不凭截图/卡片标题/页面视觉判断。 |
 
 ## 配置信息分两处存储

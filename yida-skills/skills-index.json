@@ -532,8 +532,8 @@
     {
       "name": "yida-custom-page",
       "path": "skills/yida-custom-page/SKILL.md",
-      "display_name": "普通自定义页面 JSX 开发",
-      "description": "普通自定义页面 JSX/Jsx 维护与例外实现。用于用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 页面，或必须使用 Canvas 当前不具备的普通页面实例能力。",
+      "display_name": "普通自定义页面 JSX 维护",
+      "description": "普通自定义页面 JSX/Jsx 维护。只用于修改已确认的存量普通 JSX/Jsx 页面。",
       "category": "yida-skills/page",
       "tags": [
         "JSX",
@@ -546,7 +546,6 @@
         "普通自定义页面"
       ],
       "positive_signals": [
-        "明确要求普通 JSX/Jsx",
         "修改已有普通自定义页面",
         "Jsx 组件链路",
         "this.$",

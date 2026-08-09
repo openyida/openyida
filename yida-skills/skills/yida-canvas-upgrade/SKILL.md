@@ -22,7 +22,7 @@ description: 将 OpenYida 原普通自定义页面链路升级/迁移为宜搭 C
 | Code Canvas 发布能力 | 已内置：产出的 `.canvas.jsx` 用 `openyida publish <源文件> <appType> <formUuid>` 即自动启用 Canvas 链路（`.canvas.jsx` 扩展名识别，CLI 本地用 Babel 编译出 `runtimeCode` + `importedModules` 并写 `YidaCodeCanvas` Schema），无需设计器手工添加 |
 | 原页面数据依赖 | 列出 `this.utils.yida.*`、`this.dataSourceMap.*`、连接器、外部脚本、全局变量 |
 
-`openyida publish` 已能把 `.canvas.jsx` 发布为 `YidaCodeCanvas` 页面；升级的真正门槛在**源码等价改写**（尤其 `this.utils.yida.*` / `dataSourceMap` 无 Canvas 对应物），而非发布能力。改写受阻、无法保证等价时，只交付源码草案和迁移报告，不要声称已完成升级。
+`openyida publish` 已能把 `.canvas.jsx` 发布为 `YidaCodeCanvas` 页面；升级的主要工作是把普通页面的 `this.utils.yida.*` / `dataSourceMap` 改写为统一 window runtime、dataBinding、连接器或 HTTP 数据桥。改写受阻、无法保证等价时，只交付源码草案和迁移报告，不要声称已完成升级。
 
 ## 可迁移性分级
 
@@ -32,8 +32,8 @@ description: 将 OpenYida 原普通自定义页面链路升级/迁移为宜搭 C
 | 普通 React 状态 / `_customState` | 改为 `useState` / `useMemo` / `useEffect` |
 | `didMount` / `didUnmount` | 改为 `useEffect(() => { ...; return cleanup; }, [])` |
 | ECharts / d3 / recharts | 优先使用 Code Canvas 依赖白名单；不在白名单则先补依赖或降级 |
-| `this.utils.yida.*` 表单 API | 不能默认照搬；需要通过 props、数据源注入、或保留普通页面链路 |
-| `this.dataSourceMap.*` | 需要确认 Code Canvas props 是否透传数据源；未验证前不要迁移为可运行承诺 |
+| `this.utils.yida.*` 表单 API | 改为统一 window runtime 的 `runtime.yida` |
+| `this.dataSourceMap.*` | 改为 dataBinding、连接器代理或 HTTP 数据桥 |
 | `this.utils.toast/dialog/router` | 改为 antd Message/Modal 或由 props 注入的能力；需验证 |
 | 字段组件如 `EmployeeField` | 按 `yida-canvas-custom-page` 的依赖映射规则先做最小验证 |
 | `openyida publish` | 仍是最终发布方式：普通自定义页面源码发 `Jsx` 页面，`.canvas.jsx` 源码（或加 `--canvas`）发 `YidaCodeCanvas` 页面。迁移就是把源码改写成 `.canvas.jsx` 后重新 `publish` |
@@ -53,14 +53,14 @@ description: 将 OpenYida 原普通自定义页面链路升级/迁移为宜搭 C
 
 2. **判断是否能自动升级**
    - 如果页面主要是 UI + 本地状态 + 白名单图表库，可以继续生成 Canvas 源码。
-   - 如果页面强依赖 `this.utils.yida.*` 或设计器数据源，但 Code Canvas props 未验证，先输出阻塞点和迁移计划。
+   - 如果页面强依赖普通页面实例桥，先列出等价改写方案和需要验证的 runtime / dataBinding 输入。
    - 如果目标诉求其实是字段结构、流程、报表、权限，停止迁移，切到对应配置型技能。
 
 3. **生成 Canvas 源码**
    - 把 `export function renderJsx()` 的 JSX 提取到 `function YidaComp(props)`。
    - 把 `_customState` 拆为 React state；复杂派生数据用 `useMemo`。
    - 把生命周期副作用放进 `useEffect` 并返回 cleanup。
-   - 把普通页面 API 适配逻辑抽成 props 调用或明确的 TODO，不要假装可用。
+   - 把普通页面 API 适配为统一 window runtime、dataBinding、连接器或 HTTP 数据桥。
    - 保持 UI 结构和文案尽量不变，先做等价迁移，再考虑重构。
 
 4. **处理依赖**
@@ -81,7 +81,7 @@ description: 将 OpenYida 原普通自定义页面链路升级/迁移为宜搭 C
 
 ## 转换模式与升级报告
 
-- 转换核心：`_customState` → `useState`/`useMemo`；`didMount`/`didUnmount` → `useEffect` + cleanup；删掉 `forceUpdate`/timestamp 强刷；`this.utils.yida.*`/`dataSourceMap` 抽成 props 或明确 TODO（Canvas 无数据桥，不要假装可用）；JSX 从 `renderJsx()` 提到 `function YidaComp(props)` 并 `export default`。
+- 转换核心：`_customState` → `useState`/`useMemo`；`didMount`/`didUnmount` → `useEffect` + cleanup；删掉 `forceUpdate`/timestamp 强刷；`this.utils.yida.*` / `dataSourceMap` 改为统一 window runtime、dataBinding、连接器或 HTTP 数据桥；JSX 从 `renderJsx()` 提到 `function YidaComp(props)` 并 `export default`。
 - 迁移完成或受阻时输出简短升级报告（含 source/target、status、依赖、schema write path、blockers、验收勾选项）。
 
 > 📖 before/after 完整转换 JSX 示例 + 升级报告模板 → [references/migration-examples.md](references/migration-examples.md)
@@ -90,8 +90,8 @@ description: 将 OpenYida 原普通自定义页面链路升级/迁移为宜搭 C
 
 | 阻塞 | 处理 |
 | --- | --- |
-| 源码无法等价改写（`this.utils.yida.*` / `dataSourceMap` 深度耦合） | Canvas 无实例数据桥，需重写为自建 HTTP 桥或 props；未验证前只交付草案和迁移报告，不发布覆盖 |
+| 源码无法等价改写（`this.utils.yida.*` / `dataSourceMap` 深度耦合） | 改写为统一 window runtime、dataBinding、连接器或 HTTP 数据桥；未验证前只交付草案和迁移报告，不发布覆盖 |
 | 依赖不在 Code Canvas 白名单 | 补依赖映射、换已支持库，或保留原链路 |
-| 原页面强依赖 `this.utils.yida.*` | 需要 props / 数据源注入方案；未验证前不要承诺可运行 |
+| 原页面强依赖 `this.utils.yida.*` | 使用统一 window runtime 的 `runtime.yida`；未验证前不要承诺可运行 |
 | 原页面使用宜搭原生字段组件 | 先用 `yida-canvas-custom-page` 做最小验证 |
 | Schema 回读不是 `YidaCodeCanvas` | 说明仍在普通 `Jsx` 链路，升级未完成 |

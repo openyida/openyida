@@ -48,7 +48,7 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 | `yida-create-process` | PRD 命中审批、流程、申请、审核或工单对象时加载 |
 | `yida-data-management` | 完整应用默认写入核心普通表单示例记录时加载 |
 | `yida-create-page` | 主 display page 缺失且允许创建时加载 |
-| `yida-canvas-custom-page` | 完整应用页面实现链路；新建自定义页面使用 Code Canvas 和 `canvas.canvas.jsx` |
+| `yida-canvas-custom-page` | 完整应用页面实现链路 |
 | `yida-publish-page` | 本轮修改页面源码后发布主页面时加载 |
 | `yida-nav-group` | 用户明确要求精细导航整理，或轻量排序需要单独命令时加载 |
 
