@@ -497,12 +497,16 @@ describe('OpenYida skill contracts', () => {
     expect(design).toContain('写入 `design.md`');
     expect(design).toContain('页面布局要到可交接粒度');
     expect(prd).toContain('每个 display 页面写薄 `pageSpecHandoff`');
-    expect(step5).toContain('`visualScaffold`：给页面技能消费的结构骨架');
-    expect(step5).toContain('读取 [视觉脚手架配方库](../references/visual-scaffold-recipes.md)');
-    expect(step5).toContain('读取 [页面质量门禁](../references/page-quality-gates.md)');
-    expect(step5).toContain('`surfaceMap` 写清每个区块的容器形态');
-    expect(step5).toContain('页面结构槽位写清 `rootShell`、`prioritySurface`');
-    expect(step5).toContain('这些字段要能让页面技能判断布局、背景、表面、组件状态和空态');
+    expect(step5).toContain('生成各页面的 `visualScaffold`');
+    expect(step5).toContain('[视觉脚手架配方库](../references/visual-scaffold-recipes.md)');
+    expect(step5).toContain('[页面质量门禁](../references/page-quality-gates.md)');
+    expect(step5).toContain('只读取被选中的一个 `style-designs/*.md`');
+    expect(step5).toContain('模板选择、评分、近邻比较和换肤规则只以 `style-design-selection.md` 为准');
+    expect(step5).not.toContain('业务任务匹配 30%');
+    expect(step5.split('\n').length).toBeLessThan(70);
+    expect(scaffoldRecipes).toContain('surfaceMap');
+    expect(scaffoldRecipes).toContain('`rootShell`');
+    expect(outputDesign).toContain('surfaceMap：<每个区块的容器形态');
     expect(readSkill('yida-skills/skills/yida-design/references/visual-scaffold-recipes.md')).toContain('## 页面结构槽位');
     expect(readSkill('yida-skills/skills/yida-design/references/visual-scaffold-recipes.md')).toContain('`prioritySurface`：首屏最大视觉锚点');
     expect(readSkill('yida-skills/skills/yida-design/references/page-quality-gates.md')).toContain('## 6. 并行产物对齐门禁');
@@ -612,8 +616,8 @@ describe('OpenYida skill contracts', () => {
     expect(design).toContain('[design.md 生成规则](references/style-design-selection.md)');
     expect(design).toContain('[style-design 内置模板注册表](references/style-designs/registry.md)');
     expect(step5).toContain('读取 [design.md 生成规则](../references/style-design-selection.md)');
-    expect(step5).toContain('- designFile：<prd/<项目名>/design.md>');
-    expect(step5).toContain('- baseDesignSource：references/style-designs/<selected-template>.md');
+    expect(styleSelection).toContain('| designFile | PRD pageSpecHandoff | `prd/<项目名>/design.md` |');
+    expect(styleSelection).toContain('references/style-designs/<selected-template>.md');
     expect(styleSelection).toContain('## 输出字段');
     expect(styleSelection).toContain('当前项目 `design.md` 提供所有页面必须遵守的视觉 DNA、布局、组件样式、主题 token 和状态规则');
     expect(styleSelection).toContain('| visualScaffold | design.md |');
@@ -691,6 +695,8 @@ describe('OpenYida skill contracts', () => {
   test('Canvas form data pages use yida JS API bridge before endpoint fallback', () => {
     const canvas = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');
     const dataBinding = readSkill('yida-skills/skills/yida-canvas-data-binding/SKILL.md');
+    const bindingRuntime = readSkill('yida-skills/skills/yida-canvas-data-binding/references/form-runtime-guide.md');
+    const dataBridge = readSkill('yida-skills/skills/yida-canvas-data-binding/references/data-bridge-guide.md');
     const bridge = readSkill('yida-skills/skills/yida-canvas-custom-page/references/data-bridge-guide.md');
     const generation = readSkill('yida-skills/skills/yida-canvas-custom-page/references/page-generation-guide.md');
     const postinstall = readSkill('scripts/postinstall.js');
@@ -703,7 +709,7 @@ describe('OpenYida skill contracts', () => {
     });
     expect(bridge).toContain('window.__OPENYIDA_RUNTIME__');
     expect(bridge).toContain('window.__OPENYIDA_YIDA_API__');
-    [dataBinding].forEach((doc) => {
+    [bindingRuntime].forEach((doc) => {
       expect(doc).toContain('window.__OPENYIDA_RUNTIME__');
       expect(doc).toContain('saveFormData');
       expect(doc).toContain('getFormComponentDefinationList');
@@ -716,7 +722,7 @@ describe('OpenYida skill contracts', () => {
     expect(canvas).toContain('data-bridge-guide.md');
     expect(canvas).not.toContain('window.__OPENYIDA_RUNTIME__.yida.searchFormDatas(params)');
     expect(canvas).not.toContain('不能使用 `/query/form/searchFormDatas.json`');
-    [dataBinding, bridge].forEach((doc) => {
+    [bindingRuntime, bridge].forEach((doc) => {
       expect(doc).toContain('this.utils.yida');
       expect(doc).toContain('/dingtalk/web/<appType>/v1/form/searchFormDatas.json');
       expect(doc).toContain('searchFieldJson');
@@ -724,7 +730,11 @@ describe('OpenYida skill contracts', () => {
     });
     expect(bridge).toContain('window.__OPENYIDA_RUNTIME__.yida.searchFormDatas(params)');
     expect(bridge).toContain('window.__OPENYIDA_YIDA_API__.searchFormDatas(params)');
-    expect(dataBinding).toContain('`/query/form/searchFormDatas.json` 不是可用表单数据端点');
+    expect(dataBinding).toContain('references/form-runtime-guide.md');
+    expect(dataBinding).toContain('references/data-bridge-guide.md');
+    expect(dataBinding).not.toContain('function getCsrfToken()');
+    expect(bindingRuntime).toContain('`/query/form/searchFormDatas.json` 不是可用表单数据端点');
+    expect(dataBridge).toContain('function unwrapRows(payload)');
     expect(bridge).toContain('`/query/form/searchFormDatas.json` 不是可用表单数据端点');
     expect(generation).toContain('用前端 seedRows 冒充真实表单数据');
     expect(postinstall).toContain('完整应用的 Code Canvas 页面通过 \\`window.__OPENYIDA_RUNTIME__.yida\\`');
@@ -751,11 +761,33 @@ describe('OpenYida skill contracts', () => {
 
   test('yida-get-schema documents compact field-map first', () => {
     const skill = readSkill('yida-skills/skills/yida-get-schema/SKILL.md');
+    const outputs = readSkill('yida-skills/skills/yida-get-schema/references/output-contracts.md');
 
     expect(skill).toContain('openyida get-schema <appType> <formUuid> [--summary-json|--field-map-json]');
     expect(skill).toContain('页面开发默认使用 compact 输出');
     expect(skill).toContain('Canvas 发布会再次与线上 Schema 精确核对');
     expect(skill).toContain('不内联完整 Schema');
+    expect(skill).toContain('references/output-contracts.md');
+    expect(skill).not.toContain('"kind": "yida_schema_field_resolution"');
+    expect(outputs).toContain('"kind": "yida_schema_field_resolution"');
+  });
+
+  test('large execution skills keep templates and troubleshooting in references', () => {
+    const connector = readSkill('yida-skills/skills/yida-connector-safe-actions/SKILL.md');
+    const connectorJson = readSkill('yida-skills/skills/yida-connector-safe-actions/references/action-json-guide.md');
+    const dataBinding = readSkill('yida-skills/skills/yida-canvas-data-binding/SKILL.md');
+    const getSchema = readSkill('yida-skills/skills/yida-get-schema/SKILL.md');
+    const publish = readSkill('yida-skills/skills/yida-publish-page/SKILL.md');
+    const publishCompile = readSkill('yida-skills/skills/yida-publish-page/references/compile-and-troubleshoot.md');
+
+    [connector, dataBinding, getSchema, publish].forEach((skill) => {
+      expect(skill.split('\n').length).toBeLessThan(120);
+      expect(skill).toContain('## 参考文件');
+    });
+    expect(connector).not.toContain('"operationId": "getDeviceData"');
+    expect(connectorJson).toContain('"operationId": "getDeviceData"');
+    expect(publish).not.toContain('body { background-color: #f2f3f5; }');
+    expect(publishCompile).toContain('body { background-color: #f2f3f5; }');
   });
 
   test('builder stopgap docs codify yida-app resource resolution commands and cwd-sensitive paths', () => {
@@ -1040,9 +1072,10 @@ describe('OpenYida skill contracts', () => {
     expect(step4).toContain('内容区块：<至少 10 个区块列表 + 目的');
     expect(step4).toContain('KPI 组只能算 1 个，快捷入口组只能算 1 个，列表组只能算 1 个');
     expect(step4).toContain('视觉上只有 4 个聚合区块，不满足 10+');
-    expect(step5).toContain('4 个等宽大 KPI 卡 + 图标快捷卡 + 大空态白卡');
-    expect(step5).toContain('至少有 10 个有业务目的的区块以上');
-    expect(step5).toContain('KPI 子项、快捷入口子项和列表行不能分别计数');
+    expect(step5).toContain('4 个等宽大 KPI 白卡 + 图标快捷卡 + 大空态白卡');
+    expect(step5).toContain('满足页面质量门禁中的区块数量要求');
+    expect(qualityGates).toContain('至少有 10 个有业务目的的 `contentBlocks`');
+    expect(qualityGates).toContain('KPI 组、快捷入口组、列表组、图表组各只算 1 个区块');
     expect(outputPrd).toContain('必须逐条列出至少 10 个 `contentBlocks`');
     expect(outputPrd).toContain('KPI 组、快捷入口组、列表组各只算 1 个区块');
     expect(pageGeneration).toContain('替代“4 个等宽大 KPI 白卡 + 图标快捷卡 + 大空态白卡”');
@@ -1178,6 +1211,7 @@ describe('OpenYida skill contracts', () => {
     const nativeDesignSystem = readSkill('yida-skills/skills/yida-custom-page/references/design-system.md');
     const assetsGuide = readSkill('yida-skills/skills/yida-custom-page/references/assets-guide.md');
     const dataSources = readSkill('yida-skills/skills/yida-data-source-connectors/SKILL.md');
+    const nativeDataSource = readSkill('yida-skills/skills/yida-data-source-connectors/references/native-data-source-guide.md');
 
     expect(dashboard).toContain('设计经营看板、驾驶舱或数据大屏');
     expect(dashboard).toContain('Code Canvas 页面实现和发布 | `yida-canvas-custom-page`');
@@ -1298,5 +1332,8 @@ describe('OpenYida skill contracts', () => {
     expect(dataSources).toContain('本技能只服务 **已有普通 JSX 自定义页面**');
     expect(dataSources).toContain('Code Canvas 不直接使用普通页面的 `this.dataSourceMap`');
     expect(dataSources).toContain('use_skill("yida-canvas-data-binding"');
+    expect(dataSources.split('\n').length).toBeLessThan(90);
+    expect(dataSources).not.toContain('export function loadConnectorDataSource');
+    expect(nativeDataSource).toContain('export function loadConnectorDataSource');
   });
 });
