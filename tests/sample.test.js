@@ -85,6 +85,9 @@ describe('sample templates', () => {
     expect(source).toContain('APP_TYPE');
     expect(source).toContain('FORM_UUIDS');
     expect(source).toContain('FIELDS');
+    expect(source).toContain('fields: FIELDS.primary');
+    expect(source).toContain("return String(row.formInstId || '')");
+    expect(source).not.toContain('row.formInstanceId || row.instanceId || row.id');
     expect(source).toContain('THEME_TOKENS');
     ['refresh', 'install', 'installIntoFrame', 'getTokens'].forEach((methodName) => {
       expect(runtimeSource).toContain(methodName);

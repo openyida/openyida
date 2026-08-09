@@ -447,7 +447,16 @@ describe('CLI offline smoke', () => {
         version: 1,
         canvas: {
           api_methods: expect.arrayContaining(['saveFormData', 'getProcessInstanceById']),
-          capabilities: expect.arrayContaining(['desktop-50vw-drawer-and-mobile-full-page']),
+          capabilities: expect.arrayContaining([
+            'desktop-50vw-drawer-and-mobile-full-page',
+            'live-form-and-field-id-validation-before-publish',
+          ]),
+          binding_contract: {
+            field_map_shape: 'FIELDS.<formKey> matches FORM_UUIDS.<formKey>',
+            validation_timing: 'before_remote_publish',
+            failure_code: 'CANVAS_BINDING_VALIDATION_FAILED',
+            auto_correct: false,
+          },
         },
         native_form: {
           builder_path: 'lib/app/scaffolds/form/form-schema-builder.js',

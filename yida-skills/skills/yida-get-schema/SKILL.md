@@ -21,6 +21,7 @@ description: 确定性解析表单字段 ID（fieldId）和子表路径；agent 
 ## 严格要求 (MUST DO)
 
 - **凡是需要用到字段 ID（fieldId）的操作，必须先执行此命令**，不得跳过
+- 只使用 JSON 返回中的完整 `formUuid` 和 `fieldId`；不要凭终端显示手工补全、缩写或重新输入。Canvas 发布会再次与线上 Schema 精确核对。
 - 页面开发、数据查询、报表配置或流程规则只需要字段身份时，先执行 `openyida get-schema <appType> <formUuid> --compact --resolve-fields "<字段1,字段2>"`，不要拉取完整 Schema
 - 页面开发默认使用 compact 输出，只读取必要字段契约，不内联完整 Schema
 - 完整应用页面、看板、列表或详情页需要一个表单的大部分字段，或需要跨多个表单建立 `dataBinding` 时，优先对每个表单执行一次 `openyida get-schema <appType> <formUuid> --field-map-json`，消费完整 JSON 后解析所需字段，不用 shell 截断 stdout

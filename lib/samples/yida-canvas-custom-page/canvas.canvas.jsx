@@ -17,10 +17,12 @@ const { Text, Title } = Typography;
 const APP_TYPE = '';
 const FORM_UUIDS = { primary: '' };
 const FIELDS = {
-  title: '',
-  status: '',
-  owner: '',
-  updatedAt: '',
+  primary: {
+    title: '',
+    status: '',
+    owner: '',
+    updatedAt: '',
+  },
 };
 const THEME_TOKENS = {
   '--color-brand1-6': '#2563eb',
@@ -36,7 +38,7 @@ const DEFAULT_BINDING = {
   appType: APP_TYPE,
   formUuid: FORM_UUIDS.primary,
   pageSize: 20,
-  fields: FIELDS,
+  fields: FIELDS.primary,
 };
 
 function readWindow(name) {
@@ -144,7 +146,7 @@ function unwrapTotalCount(payload, rows) {
 
 function resolveFormInstanceId(row) {
   if (!row || typeof row !== 'object') return '';
-  return String(row.formInstId || row.formInstanceId || row.instanceId || row.id || '');
+  return String(row.formInstId || '');
 }
 
 function assertFormInstanceId(row) {

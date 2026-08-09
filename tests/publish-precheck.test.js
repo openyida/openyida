@@ -175,6 +175,10 @@ describe('publish prechecks', () => {
     await expect(verifyPublishTarget('APP_XXX', 'FORM-PAGE', {})).resolves.toEqual({
       ok: true,
       target: { formUuid: 'FORM-PAGE', formName: 'Skill 广场首页', formType: 'display' },
+      forms: [
+        { formUuid: 'FORM-DATA', formName: 'Skill 信息底表', formType: 'receipt' },
+        { formUuid: 'FORM-PAGE', formName: 'Skill 广场首页', formType: 'display' },
+      ],
     });
 
     await expect(verifyPublishTarget('APP_XXX', 'FORM-DATA', {})).resolves.toEqual({

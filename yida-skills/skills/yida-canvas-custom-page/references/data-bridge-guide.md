@@ -218,7 +218,7 @@ function getTotalCount(payload) {
 function normalizeFormRow(row) {
   var formData = row.formData || row.data || row;
   return {
-    id: row.formInstanceId || row.instanceId || row.id,
+    id: row.formInstId,
     title: formData.textField_xxx || formData.title || '',
     content: formData.textareaField_xxx || formData.content || '',
   };

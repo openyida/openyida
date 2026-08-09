@@ -44,10 +44,11 @@ OpenYida 只提供一份完整 Canvas 脚手架：`openyida sample yida-canvas-c
 1. **Canvas 源码和发布**：源码写 `.canvas.jsx` / `.canvas.tsx`，入口和依赖规则见 `canvas-authoring-examples.md`、`dependencies-and-cdn.md`。
 2. **页面事实源**：页面先消费 `prd.md` 与 `design.md`；`page-spec.json` 只是派生产物，详细规则见 `page-generation-guide.md`。
 3. **真实数据接入**：表单、流程、连接器和同源接口接入见 `data-bridge-guide.md`；不要用前端 seedRows 冒充真实数据。
-4. **运行态组件**：门户、成员、部门、上传等组件见 `native-components-bridge.md` 和 `employeefield-verification.md`。
-5. **主题和样式**：`design.md` 到 Canvas 样式的落地见 `canvas-style-implementation-guide.md`；旧源码主题 helper 见 `theme-runtime-helpers.md`。
-6. **表单入口**：提交页、详情页、应用内页面和外链跳转见 `navigation-and-entry-guide.md`，新建 Canvas 页面使用脚手架内置的 `FormOpenContainer` 能力。
-7. **源码修改发布闭环**：本轮 Write/Edit/Create 了 Canvas 源码后，final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`。有 publish 成功证据时表述为“页面已发布”；只有本地校验证据时表述为“Canvas 源码已修改，尚未发布”。
+4. **真实资源 ID**：`FORM_UUIDS` 与 `FIELDS.<formKey>` 必须来自 `get-schema --field-map-json` 的完整值。发布命令会与线上 Schema 逐项核对，空值、错位或少字符都会阻止发布并返回真实候选。
+5. **运行态组件**：门户、成员、部门、上传等组件见 `native-components-bridge.md` 和 `employeefield-verification.md`。
+6. **主题和样式**：`design.md` 到 Canvas 样式的落地见 `canvas-style-implementation-guide.md`；旧源码主题 helper 见 `theme-runtime-helpers.md`。
+7. **表单入口**：提交页、详情页、应用内页面和外链跳转见 `navigation-and-entry-guide.md`，新建 Canvas 页面使用脚手架内置的 `FormOpenContainer` 能力。
+8. **源码修改发布闭环**：本轮 Write/Edit/Create 了 Canvas 源码后，final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`。有 publish 成功证据时表述为“页面已发布”；只有本地校验证据时表述为“Canvas 源码已修改，尚未发布”。
 
 ## 开发流程
 

@@ -295,6 +295,7 @@ describe('OpenYida skill contracts', () => {
     expect(appStages).toContain('交给页面技能读取 `prd.md`、`design.md` 和真实 `appType/formUuid/fieldId`');
     expect(appStages).not.toContain('新建自定义页面从 `canvas.canvas.jsx` 扩展，写 `.canvas.jsx` / `.canvas.tsx`');
     expect(canvas).toContain('只提供一份完整 Canvas 脚手架');
+    expect(canvas).toContain('发布命令会与线上 Schema 逐项核对');
     expect(appStages).not.toContain('明确要求 JSX/Jsx 组件链路或实例桥强依赖时选择 `yida-custom-page`');
     expect(appStages).toContain('发布成功后，PRD 写明导航顺序时执行轻量导航排序');
     expect(appStages).toContain('`--auto-nav-order` / `nav-group auto-order`');
@@ -758,6 +759,7 @@ describe('OpenYida skill contracts', () => {
 
     expect(skill).toContain('openyida get-schema <appType> <formUuid> [--summary-json|--field-map-json]');
     expect(skill).toContain('页面开发默认使用 compact 输出');
+    expect(skill).toContain('Canvas 发布会再次与线上 Schema 精确核对');
     expect(skill).toContain('不内联完整 Schema');
   });
 
@@ -1140,8 +1142,8 @@ describe('OpenYida skill contracts', () => {
     expect(navGuide).toContain('return `/${appType}/submission/${entry.formUuid}?isRenderNav=false`;');
     expect(navGuide).toContain('formDetail/${entry.formUuid}?formInstId=');
     expect(navGuide).toContain("'navConfig.layout': 1180");
-    expect(navGuide).toContain('row.formInstId || row.formInstanceId || row.instanceId || row.id');
-    expect(navGuide).toContain('禁止打开 `formInstId=` 为空的详情页');
+    expect(navGuide).toContain('只使用 `searchFormDatas` 返回行的 `row.formInstId`');
+    expect(navGuide).toContain('不要改用 `formInstanceId`、`instanceId` 或 `id`');
     expect(navGuide).toContain('&isRenderNav=false');
     expect(navGuide).toContain('FormOpenContainer');
     expect(navGuide).toContain('按钮事件只调用 `openForm(request)`');

@@ -163,7 +163,7 @@ function useYidaFormOpen(currentAppType, refreshData, themeTokens) {
 
 function ExampleToolbar({ appType, customerFormUuid, selectedCustomer, reload }) {
   const { openForm, formOpenContainer } = useYidaFormOpen(appType, reload, CUSTOM_THEME_TOKENS);
-  const selectedFormInstId = selectedCustomer && (selectedCustomer.formInstId || selectedCustomer.formInstanceId || selectedCustomer.instanceId || selectedCustomer.id);
+  const selectedFormInstId = selectedCustomer && selectedCustomer.formInstId;
   return (
     <>
       <Button type="primary" onClick={() => openForm({ type: 'submission', title: '新增客户', formUuid: customerFormUuid })}>
@@ -189,7 +189,7 @@ Canvas 自绘快捷入口时，表单提交和详情入口沿用 `useYidaFormOpe
 
 ```js
 function getYidaFormInstId(row) {
-  return row && (row.formInstId || row.formInstanceId || row.instanceId || row.id);
+  return row && row.formInstId;
 }
 
 function buildYidaPath(entry, currentAppType) {
@@ -230,7 +230,7 @@ function openEntry(entry, currentAppType, runtime) {
 
 验收时检查抽屉 `iframeSrc` 或移动端打开地址包含 `isRenderNav=false`；详情页还必须包含真实 `formInstId`。如果目标表单已另有 query 参数，必须用统一 URL 构造函数合并为 `&isRenderNav=false`，不要丢掉 `corpid`、来源页或业务参数。
 
-详情页实例 ID 以 `searchFormDatas` 返回行的 `row.formInstId` 为准，兼容兜底顺序只能写成 `row.formInstId || row.formInstanceId || row.instanceId || row.id`。缺少实例 ID 时禁用详情按钮或提示“未找到数据实例”，禁止打开 `formInstId=` 为空的详情页。
+详情页实例 ID 只使用 `searchFormDatas` 返回行的 `row.formInstId`。缺少时禁用详情按钮或提示“未找到数据实例”；不要改用 `formInstanceId`、`instanceId` 或 `id`，也不要打开空 `formInstId` 的详情页。
 
 如果运行态明确向 Canvas 暴露了壳层 router / history API，可把同应用 `page/app` 的同页跳转替换成壳层 `push/replace`；没有明确 API 时，不猜内部对象，使用上面的工作台 URL。
 

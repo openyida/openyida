@@ -558,7 +558,7 @@ describe('compileCanvasLocal', () => {
     }));
   });
 
-  test('allows detail opens that resolve row.formInstId first and block missing ids', () => {
+  test('rejects legacy fallbacks even when row.formInstId appears first', () => {
     const source = `
       import React, { useState } from 'react';
       export default function App() {
@@ -568,6 +568,28 @@ describe('compileCanvasLocal', () => {
           if (!formInstId) {
             return;
           }
+          setFormRequest({ type: 'detail', title: '订单详情', formUuid: 'FORM_XXX', formInstId });
+        }
+        return <button onClick={() => openDetail({ formInstId: 'FINST_1' })}>{formRequest ? '打开中' : '详情'}</button>;
+      }
+    `;
+
+    expect(() => compileCanvasLocal(source)).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_FORM_DETAIL_LINK_INVALID',
+      details: expect.objectContaining({
+        issueType: 'legacy-formInstId-fallback',
+      }),
+    }));
+  });
+
+  test('allows detail opens that use only row.formInstId and block missing ids', () => {
+    const source = `
+      import React, { useState } from 'react';
+      export default function App() {
+        const [formRequest, setFormRequest] = useState(null);
+        function openDetail(row) {
+          const formInstId = row && row.formInstId;
+          if (!formInstId) return;
           setFormRequest({ type: 'detail', title: '订单详情', formUuid: 'FORM_XXX', formInstId });
         }
         return <button onClick={() => openDetail({ formInstId: 'FINST_1' })}>{formRequest ? '打开中' : '详情'}</button>;
