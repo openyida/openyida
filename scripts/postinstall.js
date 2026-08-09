@@ -214,9 +214,9 @@ openyida agent-capabilities --summary-json
 
 该 compact 命令一次返回版本、登录态摘要、工作目录、缓存目录和命令 manifest digest，避免大 JSON 被宿主 offload，也避免反复探测 \`which\`、\`--version\`、\`--help\`、\`env\` 和 \`login --check-only\`。
 
-\`openyida agent-capabilities --json\` 是 full capabilities，只用于命令契约排障或深度诊断；不要放进常规完整搭建链路。
+\`openyida agent-capabilities --json\` 返回完整命令信息，只在排查命令或深入诊断时使用；常规完整应用使用上面的摘要命令。
 
-字段映射：compact 输出的 \`workdir\` 对应 full capabilities 的 \`active.projectRoot\`；\`workdir_exists\` 对应 \`active.projectRootExists\`。
+字段映射：摘要输出的 \`workdir\` 对应完整输出中的 \`active.projectRoot\`；\`workdir_exists\` 对应 \`active.projectRootExists\`。
 
 如果 \`openyida\` 不存在，先提醒用户需要安装，或在用户同意后执行：
 
@@ -256,21 +256,21 @@ openyida copy
 
 ## 完整应用入口
 
-用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，加载 \`yida-app\` 走完整应用统一编排。
+用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，加载 \`yida-app\`，按完整应用阶段执行。
 
 \`yida-app\` 先确认目标资源，再按 workflow 阶段创建或复用资源、发布主页面并输出一个主入口链接。
 
 原生表单使用独立 \`.form.json\` 脚手架；Agent 只扩展字段、Divider 分组、校验和规则。OpenYida 用 \`form-schema-builder.js\` 与 \`form-runtime.js\` 生成原生表单 Schema、生命周期、主题和 formDetail 样式，不把原生表单写成自定义页面 JSX。
 
-完整应用页面源码默认不得使用 \`this.dataSourceMap.*\`，除非本轮已经明确创建并绑定设计器数据源；默认使用入口型页面或 \`this.utils.yida.*\` 查询已创建表单。
+完整应用的 Code Canvas 页面通过 \`window.__OPENYIDA_RUNTIME__.yida\` 或兼容的 \`window.__OPENYIDA_YIDA_API__\` 读写宜搭数据，不在 \`YidaComp\` 中直接使用普通页面的 \`this.utils.yida.*\` 或 \`this.dataSourceMap.*\`。
 
 最终结果先输出 2-3 句业务交付总结，再给一个主入口链接：新增/修改/发布单个页面时主入口是当前页面 URL；其他完整应用、表单、流程、权限、主题、导航或批量资源场景主入口是应用首页 \`{base_url}/{appType}/workbench\`。示例：“已完成订单、商品和客户等核心表单，并发布首页、订单管理和库存看板入口。当前应用已支持订单录入、库存预警、销售统计和表单详情查看，示例记录与轻量导航排序也已就绪。主入口：{base_url}/{appType}/workbench”。不要使用表格、资源 ID 清单或长列表；不要把 \`g.alicdn.com\` 静态资源、CDN 构建产物、locale JSON、\`/admin\` 管理页或中间文件 URL 当成最终结果。
 
 完整应用创建/解析多个表单后，页面阶段需要字段映射时，对每个目标表单默认只执行一次 \`openyida get-schema <appType> <formUuid> --field-map-json\`，读取完整 JSON 并写入/复用 \`.cache/<项目名>-schema.json\`；不要用 \`head\` / \`tail\` / \`grep\` 截断 schema stdout 后重复拉取。
 
-新建自定义页面默认使用 Code Canvas，页面实现交给 \`yida-canvas-custom-page\`。OpenYida 只提供一份完整 \`canvas.canvas.jsx\` 脚手架，内置 13 个 Yida API、主题、表单提交/详情抽屉、URL 构造、实例 ID 校验、iframe 主题同步和基础状态。用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 的 \`Jsx\` / \`renderJsx\` 页面，或必须使用 Canvas 当前不具备的普通页面实例能力时，交给 \`yida-custom-page\`。
+新建自定义页面使用 Code Canvas，页面实现交给 \`yida-canvas-custom-page\`。OpenYida 提供一份完整 \`canvas.canvas.jsx\` 脚手架，内置 13 个 Yida API、主题、表单提交/详情抽屉、URL 构造、实例 ID 校验、iframe 主题同步和基础状态。修改已有非 Code Canvas 的 \`Jsx\` / \`renderJsx\` 页面时，使用 \`yida-custom-page\`。
 
-完整应用由 \`yida-app\` 编排。它先用 \`yida-requirement-analysis\` 生成共享需求简报，再同时加载 \`yida-prd\` 和 \`yida-design\`，分别输出 \`prd/<项目名>/prd.md\` 与 \`prd/<项目名>/design.md\`。
+\`yida-app\` 先用 \`yida-requirement-analysis\` 生成共享需求简报，再同时加载 \`yida-prd\` 和 \`yida-design\`，分别输出 \`prd/<项目名>/prd.md\` 与 \`prd/<项目名>/design.md\`。
 
 完整应用按步骤加载对应子技能。示例数据、精细导航分组、截图验收、公开访问、数据源深接、数据管理和原生报表是否执行，以 \`yida-app\` 阶段表和用户需求为准。
 

@@ -474,12 +474,12 @@ describe('CLI offline smoke', () => {
         'create-form.create',
         'create-process',
         'create-page',
+        'data',
         'publish',
         'nav-group',
       ]),
       do_not_default_skill_ids: expect.arrayContaining([
         'yida-data-source-connectors',
-        'yida-data-management',
       ]),
       product_design_policy: expect.stringContaining('yida-prd and yida-design start in parallel'),
       page_skill_policy: expect.stringContaining('New custom pages use Code Canvas'),
@@ -490,13 +490,20 @@ describe('CLI offline smoke', () => {
       recommended_read_commands: expect.arrayContaining([
         expect.stringContaining('--summary-json'),
       ]),
-      default_data_contract: expect.stringContaining('this.dataSourceMap'),
+      default_data_contract: expect.stringContaining('window.__OPENYIDA_RUNTIME__.yida'),
+      default_seed_data: expect.objectContaining({
+        skill_id: 'yida-data-management',
+        command_id: 'data',
+        run_in_parallel_with: expect.arrayContaining(['create-page', 'yida-canvas-custom-page']),
+      }),
     });
     expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is only a derived implementation handoff');
     expect(parsed.summary.core_workflows.full_app_build.page_skill_policy).toContain('canvas.canvas.jsx');
     expect(parsed.summary.core_workflows.full_app_build.form_visual_guidance_policy).toContain('form-runtime.js');
     expect(parsed.summary.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
     expect(parsed.summary.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
+    expect(parsed.summary.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-data-management');
+    expect(parsed.summary.core_workflows.full_app_build.optional_after_done_command_ids).not.toContain('data');
     expect(commands).toContain('env');
     expect(commands).not.toContain('env-management');
     expect(commands).toContain('login');
@@ -1299,12 +1306,12 @@ describe('CLI offline smoke', () => {
         'create-form.create',
         'create-process',
         'create-page',
+        'data',
         'publish',
         'nav-group',
       ]),
       do_not_default_skill_ids: expect.arrayContaining([
         'yida-data-source-connectors',
-        'yida-data-management',
       ]),
       product_design_policy: expect.stringContaining('yida-prd and yida-design start in parallel'),
       page_skill_policy: expect.stringContaining('New custom pages use Code Canvas'),
@@ -1315,13 +1322,20 @@ describe('CLI offline smoke', () => {
       recommended_read_commands: expect.arrayContaining([
         expect.stringContaining('--summary-json'),
       ]),
-      default_data_contract: expect.stringContaining('this.dataSourceMap'),
+      default_data_contract: expect.stringContaining('window.__OPENYIDA_RUNTIME__.yida'),
+      default_seed_data: expect.objectContaining({
+        skill_id: 'yida-data-management',
+        command_id: 'data',
+        run_in_parallel_with: expect.arrayContaining(['create-page', 'yida-canvas-custom-page']),
+      }),
     });
     expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is only a derived implementation handoff');
     expect(parsed.commands.core_workflows.full_app_build.page_skill_policy).toContain('canvas.canvas.jsx');
     expect(parsed.commands.core_workflows.full_app_build.form_visual_guidance_policy).toContain('form-runtime.js');
     expect(parsed.commands.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
     expect(parsed.commands.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
+    expect(parsed.commands.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-data-management');
+    expect(parsed.commands.core_workflows.full_app_build.optional_after_done_command_ids).not.toContain('data');
     expect(parsed.recommended.default_full_app_workflow).toMatchObject({
       mode: 'unified_build',
       completion_contract: expect.stringContaining('2-3 business-summary sentences'),

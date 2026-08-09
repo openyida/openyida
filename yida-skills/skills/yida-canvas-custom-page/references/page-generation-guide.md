@@ -24,7 +24,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 
 如果当前 `design.md` 缺少 `roundedRule`、`densityRule` 或 `breathingRule`，先回写设计文件再实现。默认业务页应写清卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px；状态摘要、任务列表、动作条和空态保持紧凑，不得用额外 margin、超宽空状态框或空白高度制造“高级感”。
 
-页面实现路径二选一：结构化实现路径先从 `prd.md + design.md` 派生业务化 `page-spec.json` 并生成可编译骨架，之后读取 CLI 摘要或 `.openyida-page.json`。若发现业务或视觉事实源缺失，先回写 `prd.md` / `design.md` 并重生成 spec；只有实现偏差才对生成源码做小范围 Edit/patch。手写路径直接 Write 最终 `.canvas.jsx`。
+页面实现路径二选一：结构化实现路径先从 `prd.md + design.md` 派生业务化 `page-spec.json` 并生成可编译骨架，之后读取 CLI 摘要或 `.openyida-page.json`。若业务需求或视觉规则缺失，先补齐 `prd.md` / `design.md` 并重新生成 spec；只有实现偏差才小范围修改生成源码。手写路径直接创建最终 `.canvas.jsx`。
 
 实现工具会在 `.openyida-page.json` 中写入 `domainFidelity`，并在 CLI 输出中提示当前页面的业务化程度：
 

@@ -422,8 +422,8 @@ describe('OpenYida skill contracts', () => {
     expect(skill).not.toContain('页面生成器修复策略');
     expect(pageGeneration).toContain('PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec.json`');
     expect(pageGeneration).toContain('修复路径');
-    expect(pageGeneration).toContain('若发现业务或视觉事实源缺失，先回写 `prd.md` / `design.md` 并重生成 spec');
-    expect(pageGeneration).toContain('只有实现偏差才对生成源码做小范围 Edit/patch');
+    expect(pageGeneration).toContain('若业务需求或视觉规则缺失，先补齐 `prd.md` / `design.md` 并重新生成 spec');
+    expect(pageGeneration).toContain('只有实现偏差才小范围修改生成源码');
     expect(appBuildStages).toContain('| 5A. seed records（并行） | `yida-data-management` |');
     expect(appBuildStages).toContain('| 5B. reserve main page（并行） | `yida-create-page` 仅在主页面缺失且允许创建时加载 |');
     expect(appBuildStages).toContain('| 5C. 编写/更新页面（并行） | `yida-canvas-custom-page` |');
@@ -547,7 +547,7 @@ describe('OpenYida skill contracts', () => {
     expect(pageGeneration).toContain('页面目标、业务对象、指标口径、主操作、表单入口、数据来源');
     expect(pageGeneration).toContain('回写 `prd.md`，再重新派生 `page-spec.json`');
     expect(pageGeneration).toContain('回写 `design.md`，再重新派生 `page-spec.json` 或重读 design.md 实现');
-    expect(pageGeneration).toContain('只有实现偏差才对生成源码做小范围 Edit/patch');
+    expect(pageGeneration).toContain('只有实现偏差才小范围修改生成源码');
     expect(pageGeneration).toContain('近白画布如果有渐变、装饰、素材焦点或足够内容密度，可以作为背景感方案');
     expect(pageGeneration).toContain('`.oy-page-root` 承载基础底色');
     expect(pageGeneration).toContain('主题关系、token、`visualScaffold`、`backgroundLayer`、`surfaceMaterial`、`surfaceContrast`、`colorRoles`、`depthRule`、`roundedRule`、`densityRule`、`breathingRule`、组件规则、状态规则、响应式规则不足或错误');
@@ -693,6 +693,7 @@ describe('OpenYida skill contracts', () => {
     const dataBinding = readSkill('yida-skills/skills/yida-canvas-data-binding/SKILL.md');
     const bridge = readSkill('yida-skills/skills/yida-canvas-custom-page/references/data-bridge-guide.md');
     const generation = readSkill('yida-skills/skills/yida-canvas-custom-page/references/page-generation-guide.md');
+    const postinstall = readSkill('scripts/postinstall.js');
 
     [dataBinding, bridge, generation].forEach((doc) => {
       expect(doc).toContain('dataBinding.mode');
@@ -726,6 +727,9 @@ describe('OpenYida skill contracts', () => {
     expect(dataBinding).toContain('`/query/form/searchFormDatas.json` 不是可用表单数据端点');
     expect(bridge).toContain('`/query/form/searchFormDatas.json` 不是可用表单数据端点');
     expect(generation).toContain('用前端 seedRows 冒充真实表单数据');
+    expect(postinstall).toContain('完整应用的 Code Canvas 页面通过 \\`window.__OPENYIDA_RUNTIME__.yida\\`');
+    expect(postinstall).toContain('修改已有非 Code Canvas 的 \\`Jsx\\` / \\`renderJsx\\` 页面时');
+    expect(postinstall).not.toContain('Canvas 当前不具备的普通页面实例能力');
   });
 
   test('yida-custom-page covers ordinary JSX exceptions', () => {
