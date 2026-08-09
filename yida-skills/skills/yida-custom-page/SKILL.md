@@ -236,7 +236,7 @@ openyida check-page pages/src/home.oyd.jsx --json      # 输出机器可读的�
 | 文档 | 覆盖范围 | 何时阅读 |
 |------|---------|---------|
 | **本技能文档** | | |
-| `yida-design` 子技能 | 输出 `prd.md` 与 `design.md` | 页面实现前加载或读取这两份文件，再编写普通 JSX 页面 |
+| `yida-design` 子技能 | 输出 `prd.md` 与 `design.md` | 编写普通 JSX 页面时读取这两份文件 |
 | [编码指南](references/coding-guide.md) | 文件结构模板、状态管理、生命周期、19 条编码规范 | check-page 报错、复杂交互、状态管理问题时阅读 |
 | [运行时护栏](references/runtime-guardrails.md) | pageSize、loading 恢复、ECharts DOM 时序、setState 约束、check-page 规则映射 | 页面运行时报错、check-page 规则不清或编译兼容边界不清时阅读 |
 | [普通 JSX 样式实现适配](references/design-system.md) | 把 `design.md` 落到普通自定义页面样式 | 需要普通 JSX 样式落地细节时阅读 |

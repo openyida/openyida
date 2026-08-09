@@ -36,7 +36,7 @@ OpenYida 用 `lib/app/services/form-schema-builder.js` 与 `lib/app/services/for
 
 - 表单页开发默认先加载 `yida-form-detail` 作为视觉引导和详情页样式默认注入策略，再由本技能落地字段 JSON；视觉引导必须和 `Divider` 分割线语义分组合并执行。
 - create 成功后，将 formUuid 记录到 `.cache/<项目名>-schema.json`
-- 完整应用生成场景中，create 成功并记录 formUuid 后，把核心普通表单交给 `yida-data-management` 默认写入 1-3 条业务化示例记录；不要在本技能里直接操作数据记录。
+- 完整应用生成场景中，create 成功并记录 formUuid 后，把核心普通表单交给 `yida-data-management` 默认写入 1-3 条业务化示例记录；该任务可与自定义页面创建和实现并行。本技能不直接操作数据记录。
 - update / add-option / bind-datasource / validation / rule 等字段级操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会内部读取 schema、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败/歧义时按 `diagnostics[].candidates` 补 `tableLabel`、修正 label 或再执行一次 compact `get-schema`。
 - 字段定义或变更定义需要落盘时，必须使用 agent 的结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`，例如 `<projectRoot>/.cache/openyida/pm/pm-fields-team.json`
 - 新建表单输入优先使用 `.form.json` 脚手架；只扩展 `fields`、`validations`、`rules` 和布局/主题摘要字段

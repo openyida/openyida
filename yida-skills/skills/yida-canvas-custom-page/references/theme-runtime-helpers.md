@@ -1,10 +1,10 @@
 # Yida Global Theme Runtime Helpers
 
-本文件提供自定义主题 token 的复制型 helper。它不是设计事实源，不生成配色，也不解释视觉 DNA；调用方必须先从 `yida-design` 输出的 `design.md` 读取 `tokens`，再把同一份 token 交给本 helper。页面需要自定义色盘、`style#yida-global-theme`、隐藏导航沉浸页，或页面在 iframe 中承载原生表单时，优先复制对应 helper 到页面源码，不要临场重写。
+本文件提供旧源码和普通 JSX 页面可参考的主题 helper。它不是设计事实源，不生成配色，也不解释视觉 DNA；调用方必须先从 `yida-design` 输出的 `design.md` 读取 `tokens`，再把同一份 token 交给本 helper。新建 Canvas 页面使用 `canvas.canvas.jsx` 内置主题能力；只有维护旧源码、普通 JSX 页面或排查历史页面主题问题时，才参考本文件补齐。
 
 ## 推荐策略
 
-- Code Canvas 和普通 JSX 都使用复制型 helper。页面源码发布后应自包含，不依赖本仓库运行时文件。
+- 新建 Canvas 页面使用 `canvas.canvas.jsx` 内置主题能力；旧 Canvas 源码和普通 JSX 页面可以参考本文件补齐同源父级窗口和子 iframe 主题同步。
 - 只有平台预置主题 key 才传给 `create-app/update-app --theme`；任意自定义色盘都走 `style#yida-global-theme` 或 scoped CSS vars。
 - 注入目标必须包含当前窗口文档、同源可访问的所有父级窗口文档，以及 `FormOpenContainer` 打开的同源子 iframe 文档。跨域窗口会抛异常，必须静默降级。
 - 样式 id 固定为 `yida-global-theme`；重复执行时更新内容，不插入多个 style。
@@ -174,4 +174,4 @@ didMount: function () {
 }
 ```
 
-根节点建议加 `data-yida-theme-root="true"`，方便当前页面 scoped token 和父级窗口 token 同时命中。PC 端用 `FormOpenContainer` 抽屉 iframe 打开提交页或详情页时，必须在 iframe `onload` 后调用 `installYidaGlobalThemeIntoFrame(CUSTOM_THEME_TOKENS, iframeElement)`；父页面 CSS 变量不会自动继承到子 iframe 文档。
+维护旧源码或普通 JSX 页面时，根节点建议加 `data-yida-theme-root="true"`，方便当前页面 scoped token 和父级窗口 token 同时命中。PC 端用表单抽屉承载提交页或详情页时，在 iframe `onload` 后调用 `installYidaGlobalThemeIntoFrame(CUSTOM_THEME_TOKENS, iframeElement)`；父页面 CSS 变量不会自动继承到子 iframe 文档。新建 Canvas 页面优先使用 `canvas.canvas.jsx` 内置能力。

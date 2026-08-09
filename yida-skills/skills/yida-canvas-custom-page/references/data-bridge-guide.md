@@ -42,7 +42,7 @@ Code Canvas 页面先把数据契约写成结构化 `dataBinding`，再在页面
 
 - `mode=form` 使用真实 `appType/formUuid` 和字段 ID，字段来源为 `get-schema`、表单创建结果或已确认的业务 Schema。
 - `mode=connector/url` 使用同源代理端点，第三方密钥留在连接器或后端服务侧。
-- `mode=seed` 只用于离线预览或明确标注的演示页；完整应用/真实交付页默认先由 `yida-app` 调用 `yida-data-management` 把 1-3 条 demo records 写入真实表单，再用 `mode=form` 读取。
+- `mode=seed` 只用于离线预览或明确标注的演示页；完整应用/真实交付页默认由 `yida-app` 调用 `yida-data-management` 把 1-3 条 demo records 写入真实表单，写入任务可与 Canvas 页面实现并行，页面用 `mode=form` 读取并保留空态、刷新和登记入口。
 - 页面生成或手写的 `DataBridge` 状态要保留，用于呈现“接口没通 / 结构没识别 / 权限不足”等运行时状态。
 
 `dataBinding.mode=form` 默认调用 `window.__OPENYIDA_RUNTIME__.yida.searchFormDatas(params)`，兼容调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`。参数至少包含 `formUuid`、`currentPage`、`pageSize` 和 `searchFieldJson`；`appType` 可保留在 `dataBinding` 中用于校验和构造详情/提交链接。只有 runtime 不存在时才同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`；直连 query 至少包含 `formUuid`、`appType`、`currentPage`、`pageSize`、`searchFieldJson` 和 `_csrf_token`，并设置 `credentials: 'include'` 与 `global_csrf_token` 头。`/query/form/searchFormDatas.json` 不是可用表单数据端点。

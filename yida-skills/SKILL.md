@@ -22,7 +22,7 @@ description: >
 - 如果当前 AI 工具提供 `use_skill` / `search_skills`：必须通过 `use_skill("<技能名>", "<本阶段目的>")` 加载主技能和子技能，禁止用 `Read` / `read_file` / `cat` 读取 `SKILL.md` 路径；`use_skill` 会稳定返回技能内容和可读取的辅助文件列表。
 - `skills-index.json` 是给能读取索引的工具快速找到技能用的；不能读取它的工具直接忽略，不要把它当作运行前置条件。
 - 使用 `use_skill` / `search_skills` 时，只读取该工具返回的辅助文件；禁止猜测 `.skills`、`skills`、`yida-skills`、插件缓存、workspace/project/.skills 等安装路径。
-- 如果当前 AI 工具没有 `use_skill` / `search_skills`：按本文的技能路由表选定技能名，按 `skills/<技能名>/SKILL.md` 定位当前步骤要用的子技能文档；完整应用按步骤加载对应子技能。
+- 如果当前 AI 工具没有 `use_skill` / `search_skills`：按本文的技能路由表选定技能名，按 `skills/<技能名>/SKILL.md` 定位当前要用的子技能文档；完整应用按依赖加载对应子技能。
 - `references/`、`scripts/`、`assets/` 等辅助文件只能在已加载对应技能后，读取该技能正文明确列出的相对路径；不要把当前工具的 sandbox 路径当作通用路径。
 
 ---
@@ -136,7 +136,7 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 
 > 📌 仅当第二步判定为「完整搭建 / 补齐」时进入；单一/增量任务请跳「技能路由」。
 
-加载子技能 `yida-app`，由它确认目标资源、按阶段加载子技能、流转关键 ID、发布主页面并输出主入口链接。
+加载子技能 `yida-app`，由它确认目标资源、按依赖加载子技能、流转关键 ID、发布主页面并输出主入口链接。
 
 完整应用阶段只读取 `yida-app/SKILL.md` 当前要求的文件。`yida-design` 输出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`；后续技能读取这两份文件继续创建表单、页面和导航。
 
@@ -166,7 +166,7 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 
 | 用户意图 | 选哪个 |
 |------|------|
-| 从零搭一个完整应用/系统 | `yida-app`；它按阶段加载 `yida-design` 等子技能 |
+| 从零搭一个完整应用/系统 | `yida-app`；它按依赖加载 `yida-design` 等子技能 |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
 | 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成结构化 PRD |
@@ -225,7 +225,7 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 
 ### 重要规则（IMPORTANT，影响质量/性能/可维护性）
 
-1. **按步骤加载子技能**：按意图选 1 个主技能；完整应用按步骤加载对应子技能。
+1. **按依赖加载子技能**：按意图选 1 个主技能；完整应用按依赖加载对应子技能。
 2. **资源优先**：任何写操作前先解析本轮显式资源、已绑定资源上下文、workspace 配置/缓存、历史上下文；已有目标资源时默认修改/补齐/发布，只有目标缺失且意图允许创建时才加载 create 类技能。
 3. **优先复用本地 ID 映射**：已有 `.cache/<项目名>-schema.json` 中可确认新鲜的 `appType`/`formUuid`/`fieldId` 可复用；该文件不是远端真相。字段级表单操作优先交给 `create-form update/add-option/bind-datasource/validation/rule` 的 schema-aware 解析，不要求先外部 `get-schema`；若 CLI 返回字段不存在/重名/歧义 diagnostics，再按 candidates、`tableLabel`、已知 `fieldId` 或 `get-schema --compact --resolve-fields` 收敛。页面代码、数据、流程、公式等确实需要多字段/多表单映射时，每表单一次性执行 `get-schema --field-map-json` 并缓存完整字段摘要。不得猜测字段 ID，也不要用 `head`/`tail`/`grep` 截断 schema stdout 当证据。
 4. **页面规格优先**：完整应用页面规格关系由 `yida-app` 引用 `yida-design` 产物处理；单页视觉设计交给 `yida-design`，实现交给页面技能。

@@ -1,11 +1,11 @@
 ---
 name: yida-app
-description: 完整应用编排。用于从零搭建或补齐一个宜搭应用。读取 yida-design 的 prd.md/design.md，按阶段加载子技能，发布主页面，返回主入口链接。
+description: 完整应用编排。用于从零搭建或补齐一个宜搭应用。读取 yida-design 的 prd.md/design.md，按依赖加载子技能，发布主页面，返回主入口链接。
 ---
 
 # yida-app — 完整应用统一编排
 
-本技能负责完整应用和补齐应用。它先确认目标资源，再按阶段加载子技能，最后发布主页面并输出一个主入口链接。完整应用按步骤加载对应子技能。
+本技能负责完整应用和补齐应用。它先确认目标资源，再按依赖加载子技能，最后发布主页面并输出一个主入口链接。表单/字段映射完成后，示例数据写入和自定义页面创建/实现可以并行。
 
 ## 触发条件
 
@@ -35,7 +35,7 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 | 阶段 | 子技能 | 必做动作 | doneWhen |
 |------|--------|----------|----------|
 | 0. 确认目标资源 | 无 | 读取 [确认目标资源](workflow/resolve-context.md)，判断复用、创建缺口或询问用户 | 目标 app/page/form/process 的处理方式明确 |
-| 1-8. 创建、补齐、实现和发布 | 按阶段加载 | 读取 [完整应用阶段](workflow/build-stages.md)，按阶段创建或复用资源、写入示例记录、实现页面、发布页面 | 主页面发布成功，导航排序已处理或有明确 warning |
+| 1-7. 创建、补齐、实现和发布 | 按依赖加载 | 读取 [完整应用阶段](workflow/build-stages.md)，按依赖创建或复用资源；表单/字段映射完成后并行写入示例记录和实现页面 | 主页面发布成功，导航排序已处理，seed records 有证据或跳过原因 |
 | 9. 输出结果 | 无 | 读取 [最终输出](workflow/final-output.md)，写业务总结和主入口链接 | 用户能理解交付内容并打开主入口 |
 
 ## 子技能短引用
@@ -82,7 +82,7 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 ## 参考
 
 - [确认目标资源](workflow/resolve-context.md)：阶段 0，选择目标 app/page/form/process。
-- [完整应用阶段](workflow/build-stages.md)：阶段 1-8，按步骤加载子技能。
+- [完整应用阶段](workflow/build-stages.md)：阶段 1-7，按依赖加载子技能，seed records 与页面实现可并行。
 - [最终输出](workflow/final-output.md)：阶段 9，判断完成并输出主入口。
 - [详细编排参考](references/app-build-contract.md)：排障、URL 规则、字段文件样例、seed records 细则、删除应用确认和故障处理。
 - `use_skill("yida-design", "完整应用产品设计")`：生成 `prd.md` 与 `design.md`。

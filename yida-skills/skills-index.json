@@ -23,7 +23,7 @@
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
-      "description": "完整应用编排。用于从零搭建或补齐一个宜搭应用。读取 yida-design 的 prd.md/design.md，按阶段加载子技能，发布主页面，返回主入口链接。",
+      "description": "完整应用编排。用于从零搭建或补齐一个宜搭应用。读取 yida-design 的 prd.md/design.md，按依赖加载子技能，发布主页面，返回主入口链接。",
       "done_when": "主页面已发布，或说明没有发布证据/阻塞原因；导航排序已执行或说明跳过原因；final 用 2-3 句业务总结 + 一个主入口链接，不输出资源表。",
       "category": "yida-skills/app",
       "tags": [

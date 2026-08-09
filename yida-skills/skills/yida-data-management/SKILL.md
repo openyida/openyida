@@ -17,7 +17,7 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 
 ## 完整应用默认 seed records
 
-`yida-app` 从零生成完整应用时，表单创建完成后默认加载本技能，为核心业务普通表单写入 1-3 条业务化示例记录，再让自定义页面读取这些真实表单记录。
+`yida-app` 从零生成完整应用时，表单创建完成并拿到字段映射后默认加载本技能，为核心业务普通表单写入 1-3 条业务化示例记录。该任务可与自定义页面创建和实现并行；页面使用真实表单数据绑定，并保留空态、刷新和登记入口。
 
 执行规则：
 
@@ -27,7 +27,7 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 - 先执行 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实 `fieldId`；保存数据使用真实 fieldId 或 `--resolve-aliases` 可解析别名，禁止猜测字段 ID。
 - 日期字段必须转成 13 位毫秒时间戳；单选/多选必须使用表单已配置选项；成员/部门字段只有可安全确认 userId/deptId 时才填，否则留空或跳过该字段。
 - 每条实例单独执行一次 `openyida data create form`；不要把 1-3 条记录作为顶层数组塞进一个 `--data-file`。
-- 写完必须 `openyida data query form` 抽查至少 1 条，并把写入数量和抽查结果交给 `yida-app` 页面阶段使用。
+- 写完必须 `openyida data query form` 抽查至少 1 条，并把写入数量和抽查结果交给 `yida-app` 最终汇合阶段使用。
 
 ## 严格禁止 (NEVER DO)
 

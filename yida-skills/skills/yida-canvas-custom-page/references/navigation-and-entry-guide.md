@@ -63,7 +63,7 @@
 
 自定义页面内凡是点击按钮去新增、提交或查看表单详情，统一封装成同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；外部 URL 才使用新标签。PC 端容器表现为右侧抽屉 + iframe，移动端直接进入原生表单页，关闭抽屉后触发当前页刷新。
 
-Code Canvas 推荐使用 antd `Drawer`。复制本示例前，先把 [theme-runtime-helpers.md](theme-runtime-helpers.md) 中的 `installYidaGlobalThemeIntoFrame` 一并放到页面源码；父页面 CSS 变量不会自动继承到提交页/详情页 iframe。
+新建 Canvas 页面使用 `canvas.canvas.jsx` 内置的 antd `Drawer`、URL 构造、实例 ID 校验和主题同步。下面示例只用于维护旧源码、普通 JSX 页面或排查历史页面；父页面 CSS 变量不会自动继承到提交页/详情页 iframe。
 
 ```jsx
 import React, { useCallback, useMemo, useRef, useState } from 'react';

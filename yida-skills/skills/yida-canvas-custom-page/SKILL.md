@@ -101,13 +101,13 @@ OpenYida 只提供一份完整 Canvas 脚手架：`openyida sample yida-canvas-c
 2. **组件增强可降级**：门户、成员、部门、上传组件都做 feature detect 和 fallback；组件缺失时页面仍展示 Canvas 自绘基线。
 3. **值先归一化**：成员、部门、文件的原始返回值保留到 `raw` 用于检查，业务 payload 使用统一结构。
 4. **UI 改造保持功能契约**：页面美感提升、页面重构和局部美化只调整颜色、布局、密度、间距、视觉层级、素材和图标表达；已有数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限和业务状态按原链路保留。
-5. **主题实现消费设计结果**：主题来源只读 `design.md`；本技能负责把主题落到 Canvas 页面。需要自定义色盘时复制 `references/theme-runtime-helpers.md` 的 Code Canvas helper，向当前文档、同源可访问父级 iframe 文档，以及 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 文档注入 `style#yida-global-theme`。
+5. **主题实现消费设计结果**：主题来源只读 `design.md`；新建 Canvas 页面使用 `canvas.canvas.jsx` 内置的主题和 iframe 同步能力。只有维护旧源码、普通 JSX 页面或排查历史页面主题问题时，才参考 `references/theme-runtime-helpers.md`。
 6. **先验证再扩展业务**：原生组件、上传、组织搜索、弹层类能力先做 smoke 页面，确认 PC/移动端都可用后再进入复杂业务页面。
 7. **Canvas 脚手架唯一**：新建 Canvas 页面使用 `canvas.canvas.jsx` 这一份完整脚手架。Agent 只扩展字段映射、业务区块、动作和样式，不新增官网、看板、列表、表单等场景脚手架。JSON 占位符用 `parseTemplateJson(raw, fallback)`，展示文案占位符用 `withFallback` / `applyPageFallbacks` 兜底，未替换时页面继续可运行，并显示业务化 fallback 文案。
 8. **light 页面使用清爽业务色**：业务列表、协同表、数据管理页、工作台和门户默认使用 light 模式；主操作、选中态、筛选焦点和批量操作使用品牌色，边框用浅色品牌混合。用户明确要求暗色大屏/夜间模式/高对比风格时使用深色主视觉。
 9. **门户运行态组件要补必需 props 和局部降级**：`QuickAccessCard` / `RecentlyUsedCard` 传 `theme="row-white"` 等必需 props；所有门户/字段/上传增强组件外层加局部 ErrorBoundary，单个组件不兼容时只降级该块，整页保持可用。
-10. **自定义主题写入页面作用域**：`--theme` 只接受平台预置 key；不要把任意色值或自定义主题名传给 create-app。PRD 指定非预置主题（例如活力橙、深玫红、自定义暗黑金）时，在 Canvas 源码中注入 `style#yida-global-theme` 或等价 scoped CSS vars，并在根节点设置 `data-theme-scope="page"`。注入代码复制 `references/theme-runtime-helpers.md`，不能只写当前页面 `document.head`。
-11. **真实交付使用真实数据源**：完整应用或真实交付页只要需要列表、看板、详情记录，并且本轮已经创建/解析业务表单，就在 `page-spec.json` 写入 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射，让页面从表单读取。完整应用默认在页面实现前通过 `yida-data-management` 写入 1-3 条业务化 demo records；Canvas 页面读取这些真实表单记录，不使用前端 seedRows 冒充。真实数据暂未接入或 seed records 写入失败时展示空态、表单入口、刷新/登记按钮。
+10. **自定义主题写入页面作用域**：`--theme` 只接受平台预置 key；不要把任意色值或自定义主题名传给 create-app。PRD 指定非预置主题（例如活力橙、深玫红、自定义暗黑金）时，在 Canvas 源码中使用脚手架内置主题能力或等价 scoped CSS vars，并在根节点设置 `data-theme-scope="page"`。旧源码缺少主题同步时，再参考 `references/theme-runtime-helpers.md` 补齐。
+11. **真实交付使用真实数据源**：完整应用或真实交付页只要需要列表、看板、详情记录，并且本轮已经创建/解析业务表单，就在 `page-spec.json` 写入 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射，让页面从表单读取。完整应用默认由 `yida-data-management` 写入 1-3 条业务化 demo records；该任务可与页面实现并行。Canvas 页面读取真实表单记录，不使用前端 seedRows 冒充；真实数据暂未接入或 seed records 写入失败时展示空态、表单入口、刷新/登记按钮。
 12. **PRD + design.md 进入实现输入**：完整应用和真实交付页写页面前，先读取 `yida-design` 输出的 `prd.md` 和 `design.md`，再实现页面结构、数据绑定和样式。`page-spec.json` 只能作为派生 handoff，不得覆盖或改写 PRD/design.md。
 13. **页面实现二选一**：结构化实现路径先从 `prd.md + design.md` 派生 `page-spec.json`，写入 `sourceOfTruth.prdFile/designFile/designRefs/conflictPolicy`，生成可编译骨架后读取 CLI 摘要或 `.openyida-page.json` 判断业务化程度和 dataBinding。业务或视觉事实源缺失时先回写 `prd.md` / `design.md` 并重生成 spec；只有 className、布局比例、字段映射、响应式、状态渲染或编译错误等实现偏差才对生成源码做小范围 Edit/patch。手写路径直接 Write 最终 `.canvas.jsx` 并快检/发布。
 14. **实现骨架消费业务 spec**：品牌名、行业词、导航、指标、卡片标题、图片 alt、CTA、色彩 profile 和 section 说明来自当前业务 spec。若 CLI 报业务内容不足，补齐/改写 spec 或 patch 源码后重新生成/编译。
@@ -120,7 +120,7 @@ OpenYida 只提供一份完整 Canvas 脚手架：`openyida sample yida-canvas-c
 ## 数据真实性边界
 
 - 完整应用或真实交付页先解析真实 `appType/formUuid/fieldId`，并在 `page-spec.json` 写入 `dataBinding.mode=form`。
-- 完整应用默认先用 `yida-data-management` 把 1-3 条业务化 seed records 写入核心普通表单并抽查，再让页面读取；前端静态数据只能用于明确标注的离线演示态。
+- 完整应用默认用 `yida-data-management` 把 1-3 条业务化 seed records 写入核心普通表单并抽查；该任务可与页面实现并行。前端静态数据只能用于明确标注的离线演示态。
 - 生成后如果 `.openyida-page.json` 的 `dataBinding.enabled !== true`，且页面仍展示列表/看板/详情业务记录，交付状态标为草稿；完整应用 final 只有在真实数据绑定已启用并验证后表述为“已接真实数据”。
 - 未接数据的交付页保留真实空态、登记入口、刷新按钮和数据接入提示。
 
@@ -164,6 +164,6 @@ openyida get-schema <appType> <formUuid> --field-map-json
 | [employeefield-verification.md](references/employeefield-verification.md) | 运行时事实、原生组件验证、EmployeeField 验收 | 验证成员/字段组件时阅读 |
 | [data-bridge-guide.md](references/data-bridge-guide.md) | Canvas 内自建 HTTP 数据桥 | 接入真实数据时阅读 |
 | [canvas-style-implementation-guide.md](references/canvas-style-implementation-guide.md) | 将 `design.md` 的 App 主题色、antd token、背景层、圆角密度、控件焦点/下拉 reset、图表配色落到 Code Canvas | 写样式和主题时阅读 |
-| [theme-runtime-helpers.md](references/theme-runtime-helpers.md) | Code Canvas / 普通 JSX 自定义主题注入 helper，支持 iframe 父级窗口和表单抽屉同源子 iframe | 自定义色盘、`style#yida-global-theme`、隐藏导航沉浸页或 FormOpenContainer 时阅读 |
+| [theme-runtime-helpers.md](references/theme-runtime-helpers.md) | 旧 Canvas 源码 / 普通 JSX 主题 helper，支持父级窗口和表单抽屉同源子文档 | 维护旧源码、普通 JSX 页面或排查历史页面主题问题时阅读 |
 | [component-library-guide.md](references/component-library-guide.md) | 组件库推荐组合和页面选型建议 | 选择 UI/图表依赖时阅读 |
 | [canvas-authoring-examples.md](references/canvas-authoring-examples.md) | 最小组件、hooks、副作用、图表示例 | 手写 Canvas 代码时阅读 |
