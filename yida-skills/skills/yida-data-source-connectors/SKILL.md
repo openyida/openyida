@@ -1,13 +1,13 @@
 ---
 name: yida-data-source-connectors
-description: 宜搭普通自定义页面设计器 dataSourceMap 专用技能。仅用于把连接器/远程 API 注册到 Page dataSource.online 并通过 this.dataSourceMap.<name>.load() 调用。Code Canvas 数据接入使用 yida-canvas-data-binding、统一 window runtime 或 HTTP 数据桥。
+description: 为已有普通 JSX 页面配置设计器数据源，并通过 this.dataSourceMap 调用连接器或远程 API。
 ---
 
 # 宜搭普通自定义页面连接器数据源规范
 
 ## 核心定位
 
-本技能只服务 **普通自定义页面 native 链路**：
+本技能只服务 **已有普通 JSX 自定义页面**：
 
 ```text
 设计器 Page dataSource.online
@@ -170,7 +170,7 @@ this.dataSourceMap.getDeviceList.load();
 - Page Schema 包含可审计的数据源配置。
 - native 代码只通过 `this.dataSourceMap` 调用。
 - loading / error / timeout / retry 可恢复。
-- `check-page`、compile、发布回读属于 native 链路且通过。
+- `check-page`、compile 和发布回读都已通过。
 - 如果目标是 Canvas，已转 `yida-canvas-data-binding`，本技能没有生成 native 代码。
 
 > 子表内嵌明细只返回 50 行时，应使用 `openyida data query subform` 按 `formInstId + tableFieldId` 分页查询，不为此新建连接器数据源。

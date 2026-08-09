@@ -1,6 +1,6 @@
 ---
 name: yida-ppt-slider
-description: "宜搭全屏幻灯片页面开发，兼容旧 yida-ppt / PPT / 演示 / 幻灯片触发词，默认使用 Code Canvas + React hooks 管理翻页、URL hash、键盘/演讲笔、全屏和副作用清理。支持浅色简约与 dark-tech 主题。普通自定义页面生命周期模式仅用于存量页面维护。"
+description: 使用 Code Canvas 创建全屏幻灯片页面，支持键盘翻页、演讲笔、全屏和移动端。
 ---
 
 # 宜搭 PPT 幻灯片开发指南

@@ -1,6 +1,6 @@
 ---
 name: yida-basic-info
-description: 宜搭平台管理 basicInfo 页面的组织基本信息、资源容量、额度和域名设置查询。适用于排查组织版本、Corp ID、授权人数、容量用量、固定域名引用和高级能力额度。
+description: 查询宜搭组织的版本、Corp ID、授权人数、资源容量、固定域名和功能额度。
 ---
 
 # 组织基本信息
@@ -17,7 +17,7 @@ description: 宜搭平台管理 basicInfo 页面的组织基本信息、资源�
 - 查询组织概览时先运行 `openyida basic-info overview`
 - 检查域名修改风险时先运行 `openyida basic-info abs-path` 查看固定域名引用页面
 - 修改域名必须使用 `openyida basic-info domain set --target <domain> --confirm`
-- **本技能不读写 memory**：组织信息通过 CLI 命令实时查询宜搭平台
+- 组织信息以 CLI 实时查询结果为准。
 
 ## 适用场景
 
@@ -126,12 +126,3 @@ openyida basic-info domain set --target newname --confirm
 | `abs-path` 返回大量记录 | 先按应用/页面逐步修复固定域名引用，再修改域名 |
 | 域名修改失败 | 检查剩余修改次数、域名格式和当前组织版本 |
 | `overview.errors` 非空 | 展示成功部分，同时说明失败的子接口和错误信息 |
-
-## Agent 错误处理策略
-
-| 错误类型 | 默认处理策略 |
-|---------|-------------|
-| 命令执行失败 | 停止执行，展示错误信息，不要猜测结果 |
-| 参数缺失 | 主动询问用户补充，不要编造域名或 resourceKey |
-| 修改域名未确认 | 停止执行，说明需要用户明确确认 |
-| 敏感信息请求 | 先说明 `corpToken` 属于敏感凭证，再按用户确认决定是否追加 `--include-secrets` |

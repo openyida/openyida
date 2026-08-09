@@ -1,9 +1,9 @@
 ---
 name: yida-app
-description: 完整应用编排。用于从零搭建或补齐一个宜搭应用。先生成共享需求简报，再同时生成 prd.md 和 design.md，按依赖创建资源、发布主页面并返回主入口链接。
+description: 从零搭建或补齐一个宜搭应用。生成需求和设计文件，创建所需资源，发布主页面并返回应用入口。
 ---
 
-# yida-app — 完整应用统一编排
+# yida-app - 完整应用构建
 
 本技能负责完整应用和补齐应用。它先确认目标资源并生成共享需求简报，再同时生成 `prd.md` 和 `design.md`，最后按依赖创建资源、发布主页面并输出一个主入口链接。表单/字段映射完成后，示例数据写入和自定义页面创建/实现可以并行。
 
@@ -11,7 +11,7 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 
 | 用户诉求 | 是否进入本技能 | 动作 |
 | --- | --- | --- |
-| 从零创建、搭建、生成一个完整宜搭应用/系统/平台/管理工具 | 是 | 执行完整应用统一编排阶段 |
+| 从零创建、搭建、生成一个完整宜搭应用/系统/平台/管理工具 | 是 | 执行完整应用阶段 |
 | 已有 app/page 需要补齐成完整业务系统 | 是 | 复用已有资源，补齐缺口并发布主入口 |
 | 只加字段、改公式、查数据、发布已有页面、改权限、配流程 | 否 | 回到根入口单点技能路由 |
 | 目标 app/page/form/process 不明确 | 暂停 | 先只读确认或询问用户 |
@@ -32,7 +32,7 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 
 执行到每个阶段前，先读取该阶段对应的 workflow 文件。
 
-| 阶段 | 子技能 | 必做动作 | doneWhen |
+| 阶段 | 子技能 | 必做动作 | 完成条件 |
 |------|--------|----------|----------|
 | 0. 确认目标资源 | 无 | 读取 [确认目标资源](workflow/resolve-context.md)，判断复用、创建缺口或询问用户 | 目标 app/page/form/process 的处理方式明确 |
 | 1-8. 需求、设计、创建、实现和发布 | 按依赖加载 | 读取 [完整应用阶段](workflow/build-stages.md)，先生成共享需求简报，再并行生成 PRD 和 design.md；之后按依赖创建或复用资源 | 主页面发布成功，导航排序已处理，seed records 有证据或跳过原因 |
@@ -50,7 +50,7 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 | `yida-create-process` | PRD 命中审批、流程、申请、审核或工单对象时加载 |
 | `yida-data-management` | 完整应用默认写入核心普通表单示例记录时加载 |
 | `yida-create-page` | 主 display page 缺失且允许创建时加载 |
-| `yida-canvas-custom-page` | 完整应用页面实现链路 |
+| `yida-canvas-custom-page` | 实现完整应用页面 |
 | `yida-publish-page` | 本轮修改页面源码后发布主页面时加载 |
 | `yida-nav-group` | 用户明确要求精细导航整理，或轻量排序需要单独命令时加载 |
 
@@ -64,7 +64,7 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 | 共享需求简报 | `.cache/openyida/<项目名>/requirement-brief.json` |
 | 真实 ID | `.cache/<项目名>-schema.json` |
 | 临时配置、导入数据、脚本 | `.cache/openyida/<项目名或任务名>/` |
-| 页面派生产物 | 需要时由页面实现阶段生成 `page-spec.json` |
+| 页面生成输入 | 需要时由页面实现阶段生成 `page-spec.json` |
 
 ## 完成条件
 
@@ -86,8 +86,8 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 - [确认目标资源](workflow/resolve-context.md)：阶段 0，选择目标 app/page/form/process。
 - [完整应用阶段](workflow/build-stages.md)：阶段 1-8，PRD 与 design.md 并行，seed records 与页面实现并行。
 - [最终输出](workflow/final-output.md)：阶段 9，判断完成并输出主入口。
-- [详细编排参考](references/app-build-contract.md)：排障、URL 规则、字段文件样例、seed records 细则、删除应用确认和故障处理。
+- [详细执行参考](references/app-build-contract.md)：排障、URL 规则、字段文件样例、seed records 细则、删除应用确认和故障处理。
 - `use_skill("yida-requirement-analysis", "生成完整应用共享需求简报")`：生成 PRD 和 design.md 的共同输入。
 - `use_skill("yida-prd", "完整应用 PRD 生成")`：生成 `prd.md`。
 - `use_skill("yida-design", "完整应用视觉设计")`：生成 `design.md`。
-- `use_skill("yida-canvas-custom-page", "实现 Code Canvas 页面")`：完整应用页面实现链路。
+- `use_skill("yida-canvas-custom-page", "实现 Code Canvas 页面")`：实现完整应用页面。

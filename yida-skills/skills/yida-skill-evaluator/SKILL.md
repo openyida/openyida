@@ -1,9 +1,6 @@
 ---
 name: yida-skill-evaluator
-description: >
-  评测指定的 OpenYida 技能质量。输入技能名称，自动执行全链路闭环评测
-  （静态校验 → 路由测试 → 安全合规 → 覆盖度 → 多维评分 → 准出门槛 → 优化建议），
-  生成评测报告和改进建议。不要触发本技能来执行其他 OpenYida 开发任务。
+description: 评测指定 OpenYida 技能的格式、路由、安全、覆盖度和输出质量，并生成报告。
 triggers:
   - 评测技能
   - 测试技能
@@ -151,7 +148,7 @@ npm run eval:dashboard
 
 | 模式 | 命令 | 说明 |
 |------|------|------|
-| pipeline | `--mode pipeline` | 全自动闭环（推荐） |
+| pipeline | `--mode pipeline` | 依次执行全部评测并生成报告（推荐） |
 | doc-quality | `--mode doc-quality` | 文档规范性 |
 | routing | `--mode routing` | 路由准确率 |
 | safety | `--mode safety` | 安全合规 |

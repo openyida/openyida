@@ -1,7 +1,6 @@
 ---
 name: yida-form-detail
-description: >
-  表单页视觉引导与表单详情页 formDetail 样式优化。表单页开发默认加载本技能做视觉引导，合并 Divider 分割线语义分组；拿到真实 formUuid 后默认使用 openyida form-detail-style 写入表单 Schema JS，在 componentDidMount 中注入全局主题和详情页条件样式。
+description: 设计宜搭原生表单的字段分组，并通过 form-detail-style 设置表单详情页主题和样式。
 license: MIT
 compatibility:
   - opencode
@@ -28,7 +27,7 @@ metadata:
 
 - 表单字段结构阶段：输出表单视觉引导，要求用 `Divider` 做语义分组，字段密度、分组标题、局部多列和说明字段都服务于真实业务填写路径。
 - 表单详情页样式阶段：拿到真实 `formUuid` 后默认把 formDetail CSS 写入表单 Schema JS。运行时 `openyidaThemeDidMount` 判断当前文档是否为 `formDetail`，是详情页才注入 `style#yida-form-detail-style`，否则不注入详情页结构样式。
-- 表单运行态主题阶段：提交页和详情页必须消费同一个 `style#yida-global-theme`；`openyida create-form create/update/...` 和 `openyida form-detail-style apply` 都必须执行公共注入脚本，把 `openyida:theme` 区块写入表单 Schema 的 `actions.module.source`，并让根节点 `componentDidMount` 指向 `openyidaThemeDidMount`。自定义页抽屉 iframe 再通过 `FormOpenContainer` 的 iframe `onLoad` 同步父页面 tokens。
+- 表单运行时主题：提交页和详情页使用同一个 `style#yida-global-theme`；`openyida create-form create/update/...` 和 `openyida form-detail-style apply` 执行公共注入脚本，把 `openyida:theme` 写入表单 Schema 的 `actions.module.source`，并让根节点 `componentDidMount` 指向 `openyidaThemeDidMount`。自定义页抽屉 iframe 通过 `FormOpenContainer` 的 iframe `onLoad` 同步父页面 tokens。
 
 ## 何时使用
 
@@ -81,7 +80,7 @@ openyida form-detail-style remove <appType> <formUuid> --json
 `apply` 会完成表单 Schema JS 写入，缺一不可：
 
 1. 在 `actions.module.source` 写入 `openyida:theme` 区块。
-2. 在根节点生命周期补齐 `openyidaThemeDidMount`，供提交页和同源父级文档消费 `style#yida-global-theme`。
+2. 在根节点生命周期补齐 `openyidaThemeDidMount`，让提交页和同源父级文档使用 `style#yida-global-theme`。
 3. 将详情页 CSS 内置到同一个区块；运行时只有检测到 `formDetail` 页面才注入 `style#yida-form-detail-style`。
 
 - `style#yida-global-theme` 不区分提交页和详情页，始终注入。

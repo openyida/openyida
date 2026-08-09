@@ -1,13 +1,13 @@
 ---
 name: yida-rechart
-description: Code Canvas + Recharts 默认高级图表技能。用于高级图表、可视化、看板图表、趋势图、组合图等现代 React 图表页面；聚合数据必须来自宜搭原生报表或已聚合接口，不在前端拉全量明细自行聚合。明确要求 ECharts、维护旧 ECharts 页面或 Recharts 无法覆盖的复杂 option 时改用 yida-chart。
+description: 使用 Code Canvas 和 Recharts 创建趋势图、组合图和看板图表。统计数据来自原生报表或聚合接口。
 ---
 
 # 宜搭 Code Canvas Recharts 图表
 
 ## 核心定位
 
-本技能是“高级图表 / 可视化 / 看板图表”的默认实现链路：
+本技能用于新建 Recharts 图表页面：
 
 - 页面使用 `.canvas.jsx` / `.canvas.tsx`。
 - 入口使用 `YidaComp` React 函数组件。
@@ -117,7 +117,7 @@ openyida publish project/pages/src/trend-combo.canvas.jsx <appType> <displayPage
 
 - [ ] 源码后缀是 `.canvas.jsx` / `.canvas.tsx`，入口是 `YidaComp`。
 - [ ] `compileCanvasLocal` 返回的依赖包含 `react`、`recharts`，使用 antd 时包含 `antd`。
-- [ ] 图表消费的是报表结果或已聚合接口，不是全量明细前端聚合。
+- [ ] 图表使用报表结果或已聚合接口，不读取全量明细在前端计算。
 - [ ] 筛选控件受控，并真正改变展示数据或请求参数。
 - [ ] loading、空态、错误态、无权限状态可区分。
 - [ ] 响应式容器有明确高度，Tooltip、坐标轴和图例可读。

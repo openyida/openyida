@@ -1,6 +1,6 @@
 ---
 name: yida-requirement-analysis
-description: 宜搭需求剖析。完整应用开始时整理行业、用户、业务目标、核心功能、业务对象、页面场景、品牌和色彩偏好，写入共享需求简报，供 yida-prd 与 yida-design 同时使用。
+description: 分析完整应用的行业、用户、目标、功能、页面和品牌偏好，生成供 PRD 与视觉设计共同使用的需求简报。
 ---
 
 # yida-requirement-analysis

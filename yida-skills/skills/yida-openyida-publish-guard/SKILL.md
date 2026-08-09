@@ -1,63 +1,54 @@
 ---
 name: yida-openyida-publish-guard
-description: Prevent stale local OpenYida custom page source from overwriting live designer edits. Use before modifying, compiling, or publishing an existing Yida custom page, display page, pageDesigner URL, or formUuid with openyida publish, especially when users may have edited the page in the designer after local source was last copied.
+description: 修改或发布已有自定义页面前检查线上版本，防止本地旧源码覆盖线上改动。
 ---
 
-# OpenYida Publish Guard
+# 发布前检查线上页面
 
-## Purpose
+## 何时使用
 
-Use this skill whenever an existing OpenYida custom page is about to be edited or published from local source.
+- 修改或发布已有自定义页面。
+- 用户提供 `pageDesigner` URL、展示页面 `formUuid` 或现有页面源码。
+- 用户要求“只修改某一处”或“不要改其他内容”。
+- 页面可能在宜搭设计器中被其他人修改过。
 
-The Yida designer is also a source of truth. Users can make small live edits in the designer, such as deleting a query button, while the local `.oyd.jsx` file still contains older code. Publishing that stale local file will silently restore the deleted UI or roll back other live changes.
+全新页面还没有线上 Schema 时不用本技能。
 
-This skill adds a mandatory online-state check before publishing so agents merge requested changes onto the current live page instead of overwriting it.
+## 必须遵守
 
-## When To Use
+1. 编辑前读取线上 Schema，不能直接用本地旧源码覆盖。
+2. 比较线上源码、本地源码和页面数据源。
+3. 用户只要求修改一处时，最终差异只能包含该修改和必要的辅助代码。
+4. 线上存在本地没有的改动时，保留线上改动；无法确定如何合并时询问用户。
+5. 只有用户明确要求“以本地源码为准”时，才可不合并线上源码，但仍要执行检查、编译和发布。
 
-Use this skill for:
+## 执行步骤
 
-- Any `openyida publish` to an existing custom page.
-- Any request that mentions a `pageDesigner` URL, display page, custom page JSX, or `formUuid`.
-- Any targeted page edit where the user says "only change X" or "do not touch other code".
-- Any situation where the user or another editor may have changed the page in the Yida designer after the local source was created.
-
-Do not use this skill for creating a brand-new page that has no existing live schema.
-
-## Required Workflow
-
-1. Confirm the target `appType`, `formUuid`, and local source path.
-2. Check the OpenYida environment and login state:
+1. 确认目标 `appType`、展示页面 `formUuid` 和本地源码路径。
+2. 检查环境和登录：
 
 ```bash
 openyida env --json
 openyida login --check-only --json
 ```
 
-3. Fetch the live schema before editing or publishing:
+3. 读取线上 Schema：
 
 ```bash
 openyida get-schema <appType> <formUuid> --json
 ```
 
-If the schema needs to be inspected from a file, save stdout with the agent's structured file write tool to `<projectRoot>/.cache/openyida/publish-guard/live-<formUuid>.json`. From the workspace root that path is typically `project/.cache/openyida/publish-guard/live-<formUuid>.json`. Do not use shell redirection and do not commit fetched live schema files.
+需要保存结果时，使用文件编辑工具写入：
 
-4. Inspect the fetched live page for current code and configuration. For custom display pages, check at least:
+```text
+<projectRoot>/.cache/openyida/publish-guard/live-<formUuid>.json
+```
 
-- `pages[].componentsTree[].methods.__initMethods__.source`
-- `pages[].componentsTree[].methods.__initMethods__.compiled`
-- JSX render source under `componentsTree` when present
-- `dataSource.online` and existing connector or page-level data source definitions
-- Any visible component tree change that could represent a designer edit
+不要使用 shell 重定向，也不要提交该文件。
 
-5. Compare the live source with the local source before publishing.
-
-- If the local source is older or missing a user-visible live change, merge the requested change into the live/current behavior.
-- If the user explicitly says "only change X", verify the final diff only touches X and strictly required helper or style code.
-- If live and local differ in unrelated user-visible areas, pause and ask whether to preserve the live changes unless the preservation is obvious.
-- Exception: only when the user explicitly says "use local source" may you skip live-source merging. You must still run env check -> check-page -> compile -> publish --health-check. Skipping live-source merging does not mean skipping safety checks.
-
-6. Only after the merge is scoped and reviewed, run:
+4. 检查线上页面的源码、编译结果、组件树和 `dataSource.online`。
+5. 将用户要求的修改合并到最新线上行为，再检查最终差异。
+6. 执行发布：
 
 ```bash
 openyida check-page <source>
@@ -65,24 +56,25 @@ openyida compile <source>
 openyida publish <source> <appType> <formUuid> --health-check
 ```
 
-## Minimal Diff Discipline
+Code Canvas 页面按 `yida-canvas-custom-page` 和 `yida-publish-page` 的命令要求执行。
 
-- Do not reformat the file.
-- Do not regenerate the entire page unless explicitly requested.
-- Do not replace a page with an older local copy.
-- Keep deleted live UI deleted unless the user asks to restore it.
-- Preserve existing page data sources; confirm publish output reports retained data sources.
-- Search the final local source for accidentally restored labels or controls from the bug report, such as `查询`, `queryButton`, or other recently removed UI.
+## 检查重点
 
-## Incident That Motivated This Skill
+- 不格式化无关代码，不重新生成整页。
+- 不恢复线上已经删除的按钮、文案或交互。
+- 保留现有页面数据源，并检查发布输出是否显示数据源已保留。
+- 搜索本次问题涉及的旧标签或控件，确认它们没有被意外恢复。
 
-While editing a Junjie Yida ranking page, a user had deleted the query button directly in the Yida designer. A later targeted change was published from an older local `.oyd.jsx` file without first checking the live designer schema. The stale publish restored the deleted query button and overwrote the user's immediate designer edit.
+## 覆盖后恢复
 
-The fix was to restore the deleted UI state and add this guardrail: before future OpenYida page edits or publishes, fetch the live schema, compare the current live source with local source, and merge the requested change onto the latest live behavior.
+1. 明确说明发生了覆盖。
+2. 恢复被覆盖的线上改动，不做无关重构。
+3. 重新执行检查、编译和带健康检查的发布命令。
+4. 回读线上 Schema，确认恢复结果。
 
-## Recovery If An Overwrite Happens
+## 完成条件
 
-1. Acknowledge the overwrite plainly.
-2. Restore the overwritten live change immediately, without broad refactors.
-3. Re-run `openyida check-page`, `openyida compile`, and `openyida publish --health-check`.
-4. Update this skill if the failure mode is not already covered.
+- 已比较线上和本地源码。
+- 用户的修改已合并到最新线上版本。
+- 无关线上改动和页面数据源得到保留。
+- 发布和线上回读成功。

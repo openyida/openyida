@@ -1,13 +1,13 @@
 ---
 name: yida-canvas-data-binding
-description: Code Canvas / YidaCodeCanvas 页面真实数据接入技能。用于在 Canvas 页面中用 dataBinding + 统一 window runtime 接入宜搭表单、流程、连接器代理或同源接口数据，处理返回体包裹解析、totalCount 保护、DataBridge 状态和静默刷新。
+description: 为 Code Canvas 页面接入宜搭表单、流程、连接器或同源接口数据，并处理加载、空数据、错误和刷新状态。
 ---
 
 # Code Canvas 数据绑定
 
 ## 核心定位
 
-本技能处理 Code Canvas 页面里的真实数据接入：把页面所需数据先声明成 `dataBinding` 契约，再由页面生成器或业务组件生成统一的 `DataBridge`。读取宜搭表单数据时，默认消费发布 Schema 在 `didMount` 中注册的统一 window runtime；连接器代理或自定义同源接口仍按自身 endpoint 读取。
+本技能为 Code Canvas 页面接入真实数据：先声明 `dataBinding`，再由页面生成器或业务组件创建统一 `DataBridge`。读取宜搭表单数据时使用发布 Schema 在 `didMount` 中注册的 window runtime；连接器或同源接口按各自 endpoint 读取。
 
 Code Canvas 运行时是标准 React 组件环境，组件没有普通宜搭自定义页实例对象。因此数据接入要显式写清来源、字段映射、刷新策略和异常处理，不能靠隐式页面实例补齐。
 
@@ -42,13 +42,13 @@ Code Canvas 运行时是标准 React 组件环境，组件没有普通宜搭自�
 
 | mode | 用途 | 必填 | 运行方式 |
 | --- | --- | --- | --- |
-| `seed` | 演示兜底 / 本地预览 | 无 | 只用本地演示数据 |
+| `seed` | 本地预览 | 无 | 只使用明确标记的演示数据 |
 | `form` | 读宜搭表单数据 | `appType`、`formUuid`、`fields` | 默认 `window.__OPENYIDA_RUNTIME__.yida.searchFormDatas(params)`；兼容 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；桥不存在时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json` |
 | `connector` | 读平台连接器代理 | `endpoint` | 同源代理端点，鉴权留在平台侧 |
 | `url` | 读同源业务接口 | `endpoint` | 同源 `fetch` |
 | `report` | 读报表或聚合结果 | 报表 schema 参数 | 使用平台聚合结果，不在前端拉全量猜聚合 |
 
-页面实现通过以下入口消费数据契约：
+页面通过以下入口读取数据：
 
 - `page-spec.json` 中的 `dataBinding` 字段。
 - 页面实现命令或源码中的 `OPENYIDA_DATA_BINDING_JSON`。
@@ -62,7 +62,7 @@ Code Canvas 运行时是标准 React 组件环境，组件没有普通宜搭自�
 2. 首屏可以显示 loading；后续轮询或手动刷新必须 silent，不清空旧列表，不重置整页。
 3. 返回体解析必须兼容多层包裹：`data`、`result.data`、`content.data`、`content.result.data`、`list`、`records`、`values`。
 4. `totalCount > 0 && rows.length === 0` 必须视为数据桥故障，页面显式报错，不能静默显示“暂无数据”。
-5. seed 数据只能作为接口失败时的低保真兜底，并在状态区标记“示例数据”或“接口异常”。
+5. seed 数据只用于本地预览或接口失败提示，并在页面标记“示例数据”或“接口异常”。
 6. `useEffect` 内请求要用 `AbortController` 或等价 cleanup，避免页面切换后继续 setState。
 7. 轮询间隔需要可控，常规业务页不低于 5 秒；实时大屏可更短，但必须避免重复并发请求。
 

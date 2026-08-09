@@ -1,6 +1,6 @@
 ---
 name: yida-get-schema
-description: 确定性解析表单字段 ID（fieldId）和子表路径；agent 优先使用 compact 字段契约，排障时仍可获取完整 Schema。
+description: 获取宜搭表单 Schema、真实 fieldId 和子表字段路径。涉及字段 ID 时先使用本技能。
 ---
 
 # 获取表单 Schema
@@ -24,7 +24,7 @@ description: 确定性解析表单字段 ID（fieldId）和子表路径；agent 
 - 只使用 JSON 返回中的完整 `formUuid` 和 `fieldId`；不要凭终端显示手工补全、缩写或重新输入。Canvas 发布会再次与线上 Schema 精确核对。
 - 页面开发、数据查询、报表配置或流程规则只需要字段身份时，先执行 `openyida get-schema <appType> <formUuid> --compact --resolve-fields "<字段1,字段2>"`，不要拉取完整 Schema
 - 页面开发默认使用 compact 输出，只读取必要字段契约，不内联完整 Schema
-- 完整应用页面、看板、列表或详情页需要一个表单的大部分字段，或需要跨多个表单建立 `dataBinding` 时，优先对每个表单执行一次 `openyida get-schema <appType> <formUuid> --field-map-json`，消费完整 JSON 后解析所需字段，不用 shell 截断 stdout
+- 页面需要一个表单的大部分字段，或需要跨多个表单建立 `dataBinding` 时，对每个表单执行一次 `openyida get-schema <appType> <formUuid> --field-map-json`，读取完整 JSON 后解析字段。
 - 多表单场景同一阶段同一 `formUuid` 默认最多拉取一次字段映射；把 `appType`、`formUuid`、`fieldId`、`label`、`componentName`、`options` 等合并写入 `<projectRoot>/.cache/<项目名>-schema.json`，后续 `page-spec.json` 和源码复用该本地 ID 映射
 - 执行 compact 查询后，只读取唯一命中的 `fields[]`；`missingFields` 或 `ambiguousFields` 非空时停止，不得猜测或继续写操作
 - 只有用户明确需要完整组件 props、布局结构、字段数据源配置，或 compact/summary 无法排障时，才执行不带 `--compact`/`--summary-json` 的完整 Schema 输出；拿到完整 Schema 后只读取必要片段，不内联完整 Schema
@@ -86,7 +86,7 @@ Agent 只需要少量字段 ID 时，默认使用 `--compact --resolve-fields`�
 
 需要全量字段摘要和选项时继续使用 `--summary-json`。只有需要组件完整 props、布局结构、字段数据源配置或排障时，才执行不带 compact/summary 参数的完整 Schema 输出。
 
-消费输出时读取完整 JSON，再由 agent / 脚本解析字段；不要用 `tail -20`、`head -30` 或 `grep` 只看局部 stdout。局部查看可以作为人工调试，但不能作为后续写页面、写数据或配置流程的字段证据。
+读取完整 JSON，再由 agent 或脚本解析字段。`tail`、`head` 或 `grep` 截取的局部输出只能用于人工调试，不能作为页面、数据或流程使用的字段证据。
 
 如需复用输出，使用 agent 的结构化文件写入工具创建：
 

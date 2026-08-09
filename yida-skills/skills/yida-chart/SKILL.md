@@ -1,9 +1,9 @@
 ---
 name: yida-chart
-description: "旧 ECharts / 普通自定义页面图表维护技能。依赖宜搭原生报表 getDataAsync.json 接口获取聚合数据，禁止前端聚合。新建图表页默认使用 yida-rechart 或 Code Canvas。普通「报表」「统计」需求默认由 yida-report 处理。"
+description: 维护已有普通 JSX 页面中的 ECharts 图表。新建图表页面使用 yida-rechart。
 ---
 
-# 宜搭 ECharts 高级报表技能
+# 宜搭 ECharts 页面维护
 
 ## 适用场景
 
@@ -11,7 +11,7 @@ description: "旧 ECharts / 普通自定义页面图表维护技能。依赖宜�
 |---------|---------|
 | 维护已有 ECharts / 普通自定义页面图表 | 使用本技能 |
 | 新建图表、看板、大屏 | 默认使用 `yida-rechart` 或 `yida-canvas-custom-page` |
-| 用户提供已有报表 URL，希望美化展示 | 使用本技能的方案 C |
+| 用户提供已有报表 URL，希望美化展示 | 基于该报表创建或修改 ECharts 页面 |
 | 多表关联分析 | 当前不支持，先澄清或拆成单表报表 |
 
 ## 核心规则
@@ -34,11 +34,11 @@ description: "旧 ECharts / 普通自定义页面图表维护技能。依赖宜�
 5. **维护旧普通页面图表**：状态、生命周期、事件绑定、发布前校验按 `yida-custom-page` 执行；新建图表页使用 `yida-rechart` 或 `yida-canvas-custom-page`。
 6. **当前应用报表绑定优先**：修复或迁移现有 ECharts 页面时，不要复用其它应用的 `REPORT_xxx`、`prdId/topicId` 或 `cid`。必须在当前 app 内创建或同步原生报表，再批量替换绑定。
 
-## 方案选择
+## 处理方式
 
-| 场景 | 方案 | 流程 |
+| 场景 | 处理方式 | 步骤 |
 |------|------|------|
-| 用户有原生报表 URL | 方案 C：基于已有报表创建 ECharts 页面 | 解析 URL → get-schema → 提取组件参数 → 校验数据源 → 写 ECharts 页面 |
+| 用户有原生报表 URL | 基于已有报表创建 ECharts 页面 | 解析 URL → get-schema → 提取组件参数 → 校验数据源 → 写 ECharts 页面 |
 | 用户无原生报表但要新建高级图表 | 不使用本技能 | `yida-rechart` 或 `yida-canvas-custom-page` |
 | 用户只要标准报表 | 不使用本技能 | 交给 `yida-report` |
 
@@ -146,7 +146,7 @@ openyida publish project/pages/src/<页面名>.oyd.jsx <appType> <echartsFormUui
 **Q：用户说"优化已有报表"，是不是改原生报表？**  
 A：不是。本技能最终产物是 ECharts 自定义页面，原生报表只作为数据源。
 
-**Q：为什么不能前端聚合？**  
+**Q：前端聚合有什么风险？**
 A：权限、过滤器、数据量和统计口径都由宜搭原生报表保证；前端聚合容易越权、慢且口径不一致。
 
 **Q：多个图表能共用同一个 `filterKey` 吗？**  
@@ -161,7 +161,7 @@ A：更新 `_customState.filterValueMap`，重新调用报表数据请求函数�
 |------|---------|---------|
 | [ECharts 页面代码模板](references/echarts-code-template.md) | 必备函数、CDN、`prdId` 动态获取、报表请求模板、meta 解析 | 编写 ECharts 页面代码前必读 |
 | [ECharts 视觉规范](references/echarts-design-spec.md) | 默认风格、配色、卡片、图表模板、多端适配、表格样式 | 设计页面 UI 时必读 |
-| [已有报表绑定指南](references/echarts-bindding-guide.md) | 方案 C、Schema 解析、filterKey、数据源完整性校验 | 用户提供报表 URL 时必读 |
+| [已有报表绑定指南](references/echarts-bindding-guide.md) | 已有报表、Schema 解析、filterKey、数据源完整性校验 | 用户提供报表 URL 时必读 |
 | [示例](references/examples.md) | 命令示例、页面代码示例、常见图表实现 | 需要参考完整写法时阅读 |
 | `yida-report` 子技能 | 原生报表创建、追加图表、Schema 生成 | 需要先创建或补齐原生报表时调用 `use_skill("yida-report", "创建或补齐原生报表")` |
 | `yida-custom-page` 子技能 | 宜搭 React 16 自定义页面规则 | 不确定页面运行时限制时调用 `use_skill("yida-custom-page", "确认宜搭自定义页面运行时限制")` |

@@ -60,13 +60,13 @@ describe('skill resource boundary copy', () => {
       'SKILL.md'
     ), 'utf8');
 
-    expect(skill).toMatch(/目标不明时先只读确认或询问用户/);
+    expect(skill).toMatch(/目标不明时先只读确认或询问用户|仍无法判断再询问用户/);
     expect(skill).not.toMatch(RETIRED_ARCHITECTURE_PATTERN);
     expect(skill).not.toMatch(/generic JIT conflict/);
     expect(skill).not.toMatch(/classification=stale_replanned/);
   });
 
-  test('create-process skill pins the process node DSL used by agents', () => {
+  test('create-process references the process-rule DSL without copying it', () => {
     const skill = fs.readFileSync(path.join(
       __dirname,
       '..',
@@ -76,14 +76,11 @@ describe('skill resource boundary copy', () => {
       'SKILL.md'
     ), 'utf8');
 
-    expect(skill).toMatch(/流程定义最小 DSL 合约/);
-    expect(skill).toMatch(/"type": "approval"/);
-    expect(skill).toMatch(/不要.*startNode/);
-    expect(skill).toMatch(/不要.*endNode/);
-    expect(skill).toMatch(/不要.*approve/);
-    expect(skill).toMatch(/改成 `approval`/);
-    expect(skill).toMatch(/自动生成发起节点/);
-    expect(skill).toMatch(/自动生成结束节点/);
+    expect(skill).toMatch(/流程定义格式使用 `yida-process-rule`/);
+    expect(skill).toMatch(/不要在本技能重复定义节点结构/);
+    expect(skill).toMatch(/不要在流程定义中手写开始或结束节点/);
+    expect(skill).toMatch(/审批节点类型写 `approval`/);
+    expect(skill).not.toMatch(/流程定义最小 DSL 合约/);
   });
 
   test('create-app skill does not teach agents to pass unsupported json flag', () => {

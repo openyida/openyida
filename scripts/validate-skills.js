@@ -11,7 +11,10 @@ const SKILLS_DIR = path.join(SKILLS_ROOT, 'skills');
 const INDEX_FILE = path.join(SKILLS_ROOT, 'SKILL.md');
 const SKILLS_INDEX_FILE = path.join(SKILLS_ROOT, 'skills-index.json');
 const GENERATED_SKILL_ROOT = path.join(ROOT, 'dist', 'skills', 'openyida');
-const MAX_RECOMMENDED_LINES = 500;
+const MAX_RECOMMENDED_LINES = 300;
+const MAX_DESCRIPTION_LENGTH = 140;
+const UNCLEAR_SKILL_WORDING_PATTERN = /胶水|赋能|闭环|中台|一体化|编排|链路|消费|承接|兜底|沉淀|事实源|派生产物|owner|能力边界/i;
+const HOST_INTERNAL_WORDING_PATTERN = /本技能不读写 memory|不依赖跨会话的 memory|Resource-First|resource context|Final 证据契约|doneWhen|发布前 guard/i;
 const SKILLS_INDEX_ENTRY_ALLOWED_FIELDS = new Set([
   'name',
   'path',
@@ -123,6 +126,14 @@ function validateSkillFrontmatter(skillDirName, skillFile) {
 
   if (!description) {
     errors.push(toRelative(skillFile) + ': missing frontmatter field "description"');
+  } else if (description.length > MAX_DESCRIPTION_LENGTH) {
+    errors.push(toRelative(skillFile) + ': description must stay concise (<= ' + MAX_DESCRIPTION_LENGTH + ' chars)');
+  } else if (UNCLEAR_SKILL_WORDING_PATTERN.test(description)) {
+    errors.push(toRelative(skillFile) + ': description contains unclear internal wording: ' + description);
+  }
+
+  if (UNCLEAR_SKILL_WORDING_PATTERN.test(content) || HOST_INTERNAL_WORDING_PATTERN.test(content)) {
+    errors.push(toRelative(skillFile) + ': replace unclear or host-internal wording with direct instructions');
   }
 
   const lineCount = content.split(/\r?\n/).length;
@@ -257,6 +268,10 @@ function validateSkillsIndex(skillDirNames, options = {}) {
     }
     if (!group.description || typeof group.description !== 'string') {
       errors.push(groupLabel + ': missing string field "description"');
+    } else if (group.description.length > MAX_DESCRIPTION_LENGTH) {
+      errors.push(groupLabel + ': description must stay concise (<= ' + MAX_DESCRIPTION_LENGTH + ' chars)');
+    } else if (UNCLEAR_SKILL_WORDING_PATTERN.test(group.description)) {
+      errors.push(groupLabel + ': description contains unclear internal wording: ' + group.description);
     }
     if (!Array.isArray(group.signals) || group.signals.length === 0) {
       errors.push(groupLabel + ': signals must be a non-empty array');
@@ -325,8 +340,12 @@ function validateSkillsIndex(skillDirNames, options = {}) {
       const content = readText(skillFile);
       const frontmatter = parseFrontmatter(content);
       const frontmatterName = frontmatter ? frontmatterField(frontmatter, 'name') : null;
+      const frontmatterDescription = frontmatter ? frontmatterField(frontmatter, 'description') : null;
       if (frontmatterName && entry.name !== frontmatterName) {
         errors.push(entryLabel + ': name "' + entry.name + '" does not match frontmatter name "' + frontmatterName + '"');
+      }
+      if (frontmatterDescription && entry.description !== frontmatterDescription) {
+        errors.push(entryLabel + ': description must match the skill frontmatter description');
       }
     }
 
@@ -340,8 +359,10 @@ function validateSkillsIndex(skillDirNames, options = {}) {
     }
     if (!entry.description || typeof entry.description !== 'string') {
       errors.push(entryLabel + ': missing string field "description"');
-    } else if (entry.description.length > 280) {
-      errors.push(entryLabel + ': description must stay concise for machine search (<= 280 chars)');
+    } else if (entry.description.length > MAX_DESCRIPTION_LENGTH) {
+      errors.push(entryLabel + ': description must stay concise for machine search (<= ' + MAX_DESCRIPTION_LENGTH + ' chars)');
+    } else if (UNCLEAR_SKILL_WORDING_PATTERN.test(entry.description)) {
+      errors.push(entryLabel + ': description contains unclear internal wording: ' + entry.description);
     }
     if (!entry.category || typeof entry.category !== 'string') {
       errors.push(entryLabel + ': missing string field "category"');

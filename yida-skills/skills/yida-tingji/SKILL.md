@@ -1,6 +1,6 @@
 ---
 name: yida-tingji
-description: 按 taskUuid 获取钉钉听记、会议录音转写、会议纪要或 AI 听记的完整详情；只负责读取内容。若用户要求转 PRD，先用本技能取内容，再交给 yida-flash-note-to-prd 生成会议需求稿。
+description: 按 taskUuid 读取钉钉听记、会议转写和会议纪要。需要生成会议需求稿时，再交给 yida-flash-note-to-prd。
 ---
 
 # 获取钉钉听记详情

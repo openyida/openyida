@@ -1,6 +1,6 @@
 ---
 name: yida-connector-safe-actions
-description: 从前端 API 文件或后端 Controller 代码中提取接口定义，为已有宜搭连接器生成执行动作配置；修复"测试后动作消失"问题。适用于连接器已创建、需要添加可调用的 API 操作时。
+description: 从前端 API 或后端 Controller 代码提取接口，为已有宜搭连接器添加可执行动作。
 ---
 
 # 宜搭 HTTP 连接器执行动作安全生成
@@ -24,7 +24,7 @@ description: 从前端 API 文件或后端 Controller 代码中提取接口定�
 - 默认只生成前端 API 文件实际暴露/调用的接口，除非用户明确要求覆盖后端全部接口。
 - 对未知响应结构保持保守，先只输出根对象 `Response`，避免宜搭测试面板解析复杂输出结构时报错。
 - Windows PowerShell 读取中文 JSON 时必须显式使用 UTF-8。
-- 修改后必须执行“添加动作 -> 列表验证 -> CLI 测试 -> 再次列表验证”的闭环。
+- 修改后依次执行“添加动作 -> 列表验证 -> CLI 测试 -> 再次列表验证”。
 - 如果一次错误配置导致动作被清空，应重建完整动作列表，而不是只追加缺失动作。
 - 动作 JSON 必须使用当前 agent 的结构化文件写入工具创建；不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向写文件。
 

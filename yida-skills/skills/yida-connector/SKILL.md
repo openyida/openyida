@@ -1,6 +1,6 @@
 ---
 name: yida-connector
-description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/第三方 API，支持 6 种鉴权方式。适用于用户需要接入外部接口、配置鉴权、创建或管理连接器时。
+description: 创建和管理宜搭 HTTP 连接器，包括接口地址、鉴权、连接和动作。
 ---
 
 # HTTP 连接器管理
@@ -17,7 +17,7 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 - 优先使用 `smart-create` 从 curl 命令或接口文档智能创建
 - 创建连接器后，将 connector-id 记录到 `.cache/<项目名>-schema.json`
 - `--operations`、`--action` 等文件参数必须先用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/connector/` 或该技能更具体的目录，再传给命令；不要写仓库根目录或系统临时目录
-- **本技能不读写 memory**：连接器配置通过 CLI 命令写入宜搭平台，不依赖跨会话的 memory 状态
+- 连接器配置以 CLI 保存后的读取结果为准。
 
 ## 适用场景
 
@@ -45,24 +45,6 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 | action-id 不存在 | 执行 `openyida connector list-actions <connector-id>` 重新获取有效 action-id |
 | 连接器被依赖无法删除 | 先在宜搭平台确认哪些表单/页面依赖此连接器，解除依赖后再删除 |
 | 智能创建解析失败 | 改用 `openyida connector gen-template` 生成模板，手动填写后再创建 |
-
-## Agent 错误处理策略
-
-当 Agent 执行本技能遇到错误时，必须遵循以下默认行为：
-
-| 错误类型 | 默认处理策略 |
-|---------|-------------|
-| 命令执行失败 | 停止执行，向用户展示错误信息，询问是否重试或调整参数 |
-| 参数缺失（connector-id/action-id 等） | 执行 `connector list` 或 `list-actions` 获取有效 ID，不得编造 |
-| 权限不足 / 登录态失效 | 停止执行，提示用户执行 `openyida auth status` 检查登录态 |
-| 鉴权配置错误 | 停止执行，引导用户检查鉴权方式和凭证配置 |
-| 智能创建解析失败 | 降级为模板创建方式，引导用户使用 `gen-template` |
-| 网络超时 | 重试 1 次，仍失败则停止并提示用户检查网络 |
-| 删除操作前 | 必须先确认无依赖，展示确认提示后再执行 |
-| 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |
-
----
-
 
 ## 鉴权方式
 

@@ -1,6 +1,6 @@
 ---
 name: yida-document-markdown
-description: 获取钉钉文档、钉钉在线文档或知识库文档的完整 Markdown 内容。用户提供文档链接并要求读取、提取、总结或继续处理文档内容时使用。
+description: 读取钉钉文档或知识库文档的完整 Markdown。用户要求读取、提取或总结文档内容时使用。
 ---
 
 # 获取钉钉文档 Markdown
@@ -29,7 +29,7 @@ openyida read-dingtalk-doc "<docUrl>" --output ./document.md
 
 1. 确认用户已提供文档链接。
 2. 默认运行 `openyida read-dingtalk-doc "<docUrl>"` 获取纯 Markdown；需要结构化结果时使用 `--json`。
-3. 仅在用户要求保存文件或后续任务需要文件输入时使用 `--output`，并明确告知写入路径。
+3. 仅在用户要求保存文件，或下一步命令需要读取文件时使用 `--output`，并明确告知写入路径。
 4. 检查命令成功结果，再按用户要求处理 Markdown。
 
 ## 异常处理

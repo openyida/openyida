@@ -1,6 +1,6 @@
 ---
 name: yida-prd
-description: 宜搭 PRD 生成。输出 prd/<项目名>/prd.md。只写业务事实、资源蓝图、页面结构、数据关系、顺序和验收，不写 design.md 和页面源码。
+description: 生成 prd/<项目名>/prd.md，记录业务需求、资源结构、页面结构、数据关系、顺序和验收标准。
 ---
 
 # yida-prd
@@ -27,7 +27,7 @@ description: 宜搭 PRD 生成。输出 prd/<项目名>/prd.md。只写业务事
 
 - 不写 `design.md`。
 - 不写 JSX、TSX、CSS 或页面实现规则。
-- 不把 `page-spec.json` 当成 PRD 产物；它是页面实现阶段的派生产物。
+- `page-spec.json` 由页面实现阶段按需生成，不写入 PRD。
 - 不编造真实 ID。
 
 ## 标准流程

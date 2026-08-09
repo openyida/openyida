@@ -1,95 +1,77 @@
 ---
 name: yida-canvas-custom-page
-description: 宜搭 Code Canvas / 代码画布自定义页面实现规则。新建自定义页面使用本技能；负责 page-spec 派生、数据绑定、主题落地、运行态组件、源码修复和编译发布校验。
+description: 新建或修改 Code Canvas 自定义页面，负责页面生成、数据绑定、主题、组件、源码检查和发布。
 ---
 
-# 宜搭 Code Canvas 自定义页面开发
+# 宜搭 Code Canvas 自定义页面
 
-## 核心定位
+## 何时使用
 
-Code Canvas 是宜搭的代码画布自定义页面链路：用户写标准 React18 函数组件源码，OpenYida 本地编译为 `runtimeCode` + `importedModules`，运行时由 `YidaCodeCanvas` 加载前端资源并执行 `YidaComp`。
+- 新建自定义页面。
+- 修改已有 `YidaCodeCanvas` 页面。
+- 创建工作台、列表、详情、门户、看板或图表页面。
+- 修改已有普通 JSX 页面 → 使用 `yida-custom-page`。
+- 把普通 JSX 页面迁移为 Code Canvas → 使用 `yida-canvas-upgrade`。
 
-页面设计输入来自 `yida-prd` 输出的 `prd.md` 和 `yida-design` 输出的 `design.md`。本技能负责把这两份文件落到 `.canvas.jsx` / `.canvas.tsx`、数据桥、表单入口和发布验收。
+## 输入
 
-本技能负责 Code Canvas 页面实现规则：`page-spec.json` 派生、数据绑定、主题落地、运行态组件、源码修复、编译和发布前校验，都由本技能或本技能明确调用的确定性脚本处理。
+- `prd.md` 提供业务内容和页面任务。
+- `design.md` 提供视觉规则。
+- `appType`、页面 `formUuid`、表单 `formUuid` 和 `fieldId` 使用 CLI 返回的完整真实值。
+- 需要页面生成器时，由本技能根据前两份文件生成 `page-spec.json`。
 
-OpenYida 只提供一份完整 Canvas 脚手架：`openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas.canvas.jsx`。这份脚手架预置 13 个 Yida API、主题、表单提交/详情抽屉、URL 构造、实例 ID 校验、iframe 主题同步和基础状态。官网、看板、列表、详情、表单入口等页面都从这份脚手架扩展，不按场景裁剪脚手架。
+## 脚手架
 
-相较普通 `.oyd.jsx` 自定义页，Code Canvas 更适合：
+OpenYida 提供一份完整脚手架：
 
-- 现代 React hooks 交互、图表、动效、复杂状态。
-- 首版页面生成：官网、看板、工作台、列表、详情、门户壳。
-- 需要 React18 函数组件、状态隔离和现代前端体验的页面。
-- 只需要通过 HTTP / 连接器读写数据的页面。
-- 需要在 Canvas 内受控接入门户、成员、部门、上传等宜搭运行态组件的页面。
+```bash
+openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas.canvas.jsx
+```
 
-新建自定义页面使用 Code Canvas。`yida-custom-page` 只用于修改已确认的存量普通 JSX/Jsx 页面。
-
-## 使用决策
-
-| 需求 | 推荐做法 |
-| --- | --- |
-| 官网、看板、工作台、列表、详情、门户壳 | 使用本技能；页面生成规则见 `page-generation-guide.md` |
-| 需要开放 API、表单、流程、连接器读写数据 | 使用本技能；数据规则见 `data-bridge-guide.md` |
-| 需要门户、成员、部门、附件上传、图片上传 | 使用本技能；组件规则见 `native-components-bridge.md` |
-| 需要字段结构、公式、联动、权限、报表、流程 | 使用对应配置型技能完成配置，Canvas 展示结果并分发页面事件 |
-| 新建自定义页面 | 使用本技能，写 `.canvas.jsx` / `.canvas.tsx` |
-| 需要 Canvas 起步代码 | 使用 `openyida sample yida-canvas-custom-page canvas` 输出 `canvas.canvas.jsx` |
-| 修改已有 `YidaCodeCanvas` 页面 | 使用本技能，保留 Canvas 链路 |
-| 修改已确认的存量普通 JSX/Jsx 页面 | 使用 `yida-custom-page` |
-| 新建页面提到 `this.$`、`this.utils.yida.*` 或 `dataSourceMap` | 使用本技能；改成 Canvas 数据桥、统一 window runtime 或开放 API 方案 |
+脚手架内置 13 个 Yida API、主题、表单提交和详情抽屉、URL 构造、实例 ID 校验、iframe 主题同步，以及加载、空数据和错误状态。所有新页面都从这份脚手架扩展。
 
 ## 核心规则
 
-1. **Canvas 源码和发布**：源码写 `.canvas.jsx` / `.canvas.tsx`，入口和依赖规则见 `canvas-authoring-examples.md`、`dependencies-and-cdn.md`。
-2. **页面事实源**：页面先消费 `prd.md` 与 `design.md`；`page-spec.json` 只是派生产物，详细规则见 `page-generation-guide.md`。
-3. **真实数据接入**：表单、流程、连接器和同源接口接入见 `data-bridge-guide.md`；不要用前端 seedRows 冒充真实数据。
-4. **真实资源 ID**：`FORM_UUIDS` 与 `FIELDS.<formKey>` 必须来自 `get-schema --field-map-json` 的完整值。发布命令会与线上 Schema 逐项核对，空值、错位或少字符都会阻止发布并返回真实候选。
-5. **运行态组件**：门户、成员、部门、上传等组件见 `native-components-bridge.md` 和 `employeefield-verification.md`。
-6. **主题和样式**：`design.md` 到 Canvas 样式的落地见 `canvas-style-implementation-guide.md`；旧源码主题 helper 见 `theme-runtime-helpers.md`。
-7. **表单入口**：提交页、详情页、应用内页面和外链跳转见 `navigation-and-entry-guide.md`，新建 Canvas 页面使用脚手架内置的 `FormOpenContainer` 能力。
-8. **源码修改发布闭环**：本轮 Write/Edit/Create 了 Canvas 源码后，final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`。有 publish 成功证据时表述为“页面已发布”；只有本地校验证据时表述为“Canvas 源码已修改，尚未发布”。
+1. 源码使用 `.canvas.jsx` 或 `.canvas.tsx`。
+2. `FORM_UUIDS` 和 `FIELDS.<formKey>` 使用 `get-schema --field-map-json` 返回的完整值。
+3. 表单、流程、连接器和同源接口的数据接入读取 [数据接入](references/data-bridge-guide.md)。
+4. 成员、部门、附件、图片和门户组件读取 [运行时组件](references/native-components-bridge.md)。
+5. 主题和样式读取 [样式实现](references/canvas-style-implementation-guide.md)。
+6. 提交页、详情页和页面跳转读取 [页面入口](references/navigation-and-entry-guide.md)。
+7. 本轮修改源码后，必须成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，才能说明页面已发布。
 
-## 开发流程
+发布命令会与线上 Schema 精确核对 `appType`、`formUuid` 和 `fieldId`。空值、错位或缺少字符都会阻止发布，并返回可供核对的真实候选值。
 
-下面命令从仓库根执行；如果当前 cwd 已经是 `<workspace>/project`，把 `project/pages/src/...` 改成 `pages/src/...`。读取生成文件、Schema 或校验产物时优先用当前工具的 Read / Glob / Grep。
+## 开发步骤
 
-```bash
-# 1. 只读检查环境、登录态和可用能力；真实创建资源前必须通过
-openyida agent-capabilities --summary-json
+1. 检查环境和登录状态。
+2. 确认或创建目标展示页面，取得页面 `formUuid`。
+3. 获取涉及表单的真实字段映射。
+4. 生成脚手架并按 `prd.md`、`design.md` 实现页面。
+5. 按当前功能读取下方对应 reference。
+6. 执行 `openyida publish <source> <appType> <displayPageFormUuid> --health-check`。
+7. 回读页面 Schema，确认组件为 `YidaCodeCanvas`，并检查真实页面。
 
-# 2. 如需新页面，先创建空白自定义页拿 formUuid
-openyida create-page <appType> "<页面名>"
+从仓库根执行时使用 `project/pages/src/...`；从 `<workspace>/project` 执行时使用 `pages/src/...`。
 
-# 3. 按 yida-prd 的 prd.md + yida-design 的 design.md 生成或编写 Canvas 源码；结构化实现路径再读取派生 page-spec.json
-# 结构化实现路径：先从 prd.md + design.md 派生 page-spec.json，生成可编译骨架后基于 manifest/摘要做小范围 patch。
-# 手写路径：已明确最终页面结构、数据桥和样式细节时，直接 Write 最终 .canvas.jsx。
+## 完成条件
 
-# 4. 本地 Canvas 快检
-node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/<页面名>.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
+- 发布命令成功。
+- Schema 回读中存在 `YidaCodeCanvas`，`runtimeCode` 和 `importedModules` 有效。
+- 页面使用真实资源 ID 和真实数据。
+- 加载、空数据、错误和移动端状态可用。
 
-# 5. 发布（本轮修改源码后的远端完成证据）
-openyida publish project/pages/src/<页面名>.canvas.jsx <appType> <formUuid>
+## 参考文件
 
-# 6. 发布后回读字段摘要验收；如需留证，用结构化文件写入工具保存 stdout，不用 shell 重定向
-openyida get-schema <appType> <formUuid> --field-map-json
-```
-
-`openyida check-page` / `openyida compile` 当前面向普通自定义页面 `.oyd.jsx` / `.jsx`；Canvas 以 `compileCanvasLocal` 和 `openyida publish .canvas.jsx` 的 Canvas 编译阶段为准。`compileCanvasLocal` 是发布前快检，`openyida publish` 是远端写入证据。
-
-如需保存完整 Schema，使用 create_file / Write / file edit tool 创建 `<projectRoot>/.cache/openyida/<页面名或任务名>/<页面名>-schema.json`；从 workspace 根执行后续命令时路径加 `project/` 前缀。
-
-## 参考文档
-
-| 文档 | 覆盖范围 | 何时阅读 |
-| --- | --- | --- |
-| [page-generation-guide.md](references/page-generation-guide.md) | PRD 到 Canvas 实现入口、官网素材、themeScope、Page Spec、primitives | 写页面前必读 |
-| [navigation-and-entry-guide.md](references/navigation-and-entry-guide.md) | 应用内页面、表单、外链和跨应用快捷入口的导航职责与跳转方式；含 `FormOpenContainer` 标准容器 | 工作台/门户含快捷入口、表单新增或详情查看时必读 |
-| [native-components-bridge.md](references/native-components-bridge.md) | 门户、成员、部门、上传组件桥接和值归一化 | 需要宜搭运行态组件时必读 |
-| [dependencies-and-cdn.md](references/dependencies-and-cdn.md) | 可用前端资源、import 写法、运行时加载方式 | 选择或验证前端资源时必读 |
-| [employeefield-verification.md](references/employeefield-verification.md) | 运行时事实、原生组件验证、EmployeeField 验收 | 验证成员/字段组件时阅读 |
-| [data-bridge-guide.md](references/data-bridge-guide.md) | Canvas 内自建 HTTP 数据桥 | 接入真实数据时阅读 |
-| [canvas-style-implementation-guide.md](references/canvas-style-implementation-guide.md) | 将 `design.md` 的 App 主题色、antd token、背景层、圆角密度、控件焦点/下拉 reset、图表配色落到 Code Canvas | 写样式和主题时阅读 |
-| [theme-runtime-helpers.md](references/theme-runtime-helpers.md) | 旧 Canvas 源码 / 普通 JSX 主题 helper，支持父级窗口和表单抽屉同源子文档 | 维护旧源码、普通 JSX 页面或排查历史页面主题问题时阅读 |
-| [component-library-guide.md](references/component-library-guide.md) | 组件库推荐组合和页面选型建议 | 选择 UI/图表依赖时阅读 |
-| [canvas-authoring-examples.md](references/canvas-authoring-examples.md) | 最小组件、hooks、副作用、图表示例 | 手写 Canvas 代码时阅读 |
+| 文件 | 何时读取 |
+|------|----------|
+| [页面生成](references/page-generation-guide.md) | 生成 `page-spec.json` 或页面源码时 |
+| [数据接入](references/data-bridge-guide.md) | 接入表单、流程、连接器或 HTTP 数据时 |
+| [运行时组件](references/native-components-bridge.md) | 使用成员、部门、附件、图片或门户组件时 |
+| [成员字段验证](references/employeefield-verification.md) | 验证成员选择组件时 |
+| [页面入口](references/navigation-and-entry-guide.md) | 打开提交页、详情页、应用页面或外链时 |
+| [样式实现](references/canvas-style-implementation-guide.md) | 把 `design.md` 写成 Canvas 样式时 |
+| [源码示例](references/canvas-authoring-examples.md) | 编写组件、hooks、副作用或图表时 |
+| [依赖与 CDN](references/dependencies-and-cdn.md) | 添加依赖或外部资源时 |
+| [组件选择](references/component-library-guide.md) | 选择 UI 或图表组件时 |
+| [旧主题工具](references/theme-runtime-helpers.md) | 维护旧源码的主题同步时 |

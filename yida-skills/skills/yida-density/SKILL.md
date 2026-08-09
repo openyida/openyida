@@ -1,6 +1,6 @@
 ---
 name: yida-density
-description: 自定义页面信息密度设计规范，链路无关并优先给出 Code Canvas 写法。提供紧凑、舒适、宽松三种模式、切换 UI 和响应式降级；普通页 didMount/this.utils.isMobile 仅作 legacy/native 示例。
+description: 为自定义页面设置紧凑、舒适或宽松的信息密度，并处理移动端布局。
 ---
 
 # 宜搭自定义页面信息密度设计规范
@@ -13,13 +13,13 @@ description: 自定义页面信息密度设计规范，链路无关并优先给�
 
 ## 严格要求
 
-- 每次生成列表/表格类自定义页面时都考虑密度，无需用户主动提及。
+- 每次生成列表或表格类自定义页面时都设置合适的信息密度，无需用户主动提及。
 - PC 列表/表格默认 `comfortable`，可提供紧凑/舒适切换。
 - 移动端固定 `spacious`，不显示密度切换 UI。
 - 固定展示大屏使用 `spacious`，不显示密度切换 UI。
-- 表单填写页交原生表单；若只讨论密度，固定 `comfortable`，不提供切换。
+- 表单填写页交原生表单；若只调整密度，固定 `comfortable`，不提供切换。
 - 间距、字号、行高、控件高度统一从密度 token 派生，避免散落魔法值。
-- 密度状态是页面本地状态，不依赖跨会话 memory。
+- 密度状态保存在当前页面会话中。
 
 ## 场景选择
 
@@ -35,7 +35,7 @@ description: 自定义页面信息密度设计规范，链路无关并优先给�
 
 ## 密度 token
 
-同一页面可以把数值映射成 CSS variables、antd token 或 inline style；关键是所有相关组件都消费同一个配置。
+同一页面可以把数值映射成 CSS variables、antd token 或 inline style；所有相关组件使用同一个配置。
 
 ```javascript
 const DENSITY_CONFIG = {
@@ -137,7 +137,7 @@ export function didMount() {
 
 | 场景 | 处理 |
 | --- | --- |
-| 切换后局部样式没变 | 检查是否仍有硬编码 padding/height，统一消费 token |
+| 切换后局部样式没变 | 检查是否仍有硬编码 padding/height，统一使用 token |
 | 移动端还显示切换 UI | 由 `isMobile` 派生 UI 和最终 density，不只改样式 |
 | 回桌面后丢失用户选择 | 分开保存 `desktopDensity` 与派生 `density` |
 | 字体放大后内容裁切 | 避免固定内容高度，允许行高/单元格扩展 |

@@ -63,12 +63,12 @@ describe('build-skills-package', () => {
       expect(generatedIndex.skills.some((skill) => skill.path.startsWith('skills/'))).toBe(false);
       const generatedRootSkill = fs.readFileSync(path.join(outDir, 'SKILL.md'), 'utf8');
       expect(generatedRootSkill).toContain('OPENYIDA_ACCESS_TOKEN');
-      expect(generatedRootSkill).toContain('禁止触发 OAuth');
+      expect(generatedRootSkill).toContain('返回环境注入 token 模式，但 token 缺失');
       expect(generatedRootSkill).not.toContain(LEGACY_COOKIE_ENV);
       expect(fs.readFileSync(
         path.join(outDir, 'references', 'subskills', 'yida-app', 'README.md'),
         'utf8'
-      )).toContain('完整应用统一编排');
+      )).toContain('完整应用构建');
       expect(fs.readFileSync(
         path.join(outDir, 'references', 'subskills', 'yida-app', 'workflow', 'build-stages.md'),
         'utf8'
