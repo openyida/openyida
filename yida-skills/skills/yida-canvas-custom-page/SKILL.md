@@ -25,27 +25,13 @@ OpenYida 只提供一份完整 Canvas 脚手架：`openyida sample yida-canvas-c
 
 新建自定义页面使用 Code Canvas。`yida-custom-page` 只用于修改已确认的存量普通 JSX/Jsx 页面。
 
-## 运行时事实
-
-- Canvas 源码写成 `.canvas.jsx` / `.canvas.tsx`，`openyida publish` 会自动启用 Canvas 链路。
-- 页面源码路径按 Bash cwd 选择：从仓库根执行命令时用 `project/pages/src/...`；cwd 已是 `<workspace>/project` 时用 `pages/src/...`。
-- `runtimeCode` 在运行页面真实 `window` 中执行，入口必须返回 `YidaComp` / `YidaComp.default` / 组件函数。
-- 推荐入口写法是 `function YidaComp(props) { ... }`，或 `const App = ...; export default App;`。CLI 已兼容 `const/let/class YidaComp; export default YidaComp`，但生成新代码时优先避开同名默认导出，减少不同 Canvas 运行态装配器下的重复声明风险。
-- Canvas 组件使用 React 函数组件上下文；数据读写通过 fetch、开放 API、连接器代理或统一 window runtime 完成。
-- 发布 Schema 自动注册统一 window runtime：`window.__OPENYIDA_RUNTIME__` / `window.openyidaRuntime`。其中 `runtime.yida` 覆盖 7 个表单方法 `saveFormData`、`updateFormData`、`deleteFormData`、`getFormDataById`、`searchFormDatas`、`searchFormDataIds`、`getFormComponentDefinationList`，以及 6 个流程方法 `startProcessInstance`、`updateProcessInstance`、`deleteProcessInstance`、`getProcessInstances`、`getProcessInstanceIds`、`getProcessInstanceById`；`runtime.theme.install(...)` 负责主题注入。兼容别名 `window.__OPENYIDA_YIDA_API__` / `window.openyidaYidaApi` 仍可用。
-- 第三方前端资源只从可用资源清单中选择；React、antd、Ant Design Icons、ahooks、d3、recharts、Radix、framer-motion、lucide-react 等必须按规则 import，由编译器写入 `importedModules`。源码严禁出现 `const { Drawer } = antd`、`const { Search } = lucideReact`、`window.antd`、`window.icons` 等手写依赖全局。
-- 宜搭运行态组件按“先探测、可用增强、fallback 保底、值统一归一化”接入；以 `window.Deep` / `window.DeepYida` 探测为主，`window.YidaNativeComponents` 作为可用主题。嵌入门户数据管理视图时使用 `DataManageViews`，并显式传入目标表单 `form.value/formUuid`。
-
-> 可用资源清单和运行时细节见 [dependencies-and-cdn.md](references/dependencies-and-cdn.md) 与 [employeefield-verification.md](references/employeefield-verification.md)。
-
 ## 使用决策
 
 | 需求 | 推荐做法 |
 | --- | --- |
-| 官网、看板、工作台、列表、详情、门户壳 | 读取 `yida-design` 产物；生成器路径再读取派生 `page-spec.json`，实现 `.canvas.jsx` |
-| 需要开放 API / 连接器读写数据 | 使用本技能，在 `YidaComp` 内自建 HTTP 数据桥 |
-| 需要门户 topBanner / quickEntry / 数据卡片 | 使用本技能，按“门户组件桥”接入，必要时 fallback 自绘 |
-| 需要成员、部门、附件上传、图片上传 | 使用本技能，按“宜搭组件桥”接入并归一化值 |
+| 官网、看板、工作台、列表、详情、门户壳 | 使用本技能；页面生成规则见 `page-generation-guide.md` |
+| 需要开放 API、表单、流程、连接器读写数据 | 使用本技能；数据规则见 `data-bridge-guide.md` |
+| 需要门户、成员、部门、附件上传、图片上传 | 使用本技能；组件规则见 `native-components-bridge.md` |
 | 需要字段结构、公式、联动、权限、报表、流程 | 使用对应配置型技能完成配置，Canvas 展示结果并分发页面事件 |
 | 新建自定义页面 | 使用本技能，写 `.canvas.jsx` / `.canvas.tsx` |
 | 需要 Canvas 起步代码 | 使用 `openyida sample yida-canvas-custom-page canvas` 输出 `canvas.canvas.jsx` |
@@ -53,80 +39,19 @@ OpenYida 只提供一份完整 Canvas 脚手架：`openyida sample yida-canvas-c
 | 修改已确认的存量普通 JSX/Jsx 页面 | 使用 `yida-custom-page` |
 | 新建页面提到 `this.$`、`this.utils.yida.*` 或 `dataSourceMap` | 使用本技能；改成 Canvas 数据桥、统一 window runtime 或开放 API 方案 |
 
-## 两类特殊组件场景
-
-### 1. 门户组件、topBanner 与数据卡片
-
-需要门户展示能力时，先按目标页面 PRD 确定门户区块、数据来源和降级视图；需要确认运行态组件清单时，按 [native-components-bridge.md](references/native-components-bridge.md) 编写探测页。
-
-组件选择建议：
-
-- `PortalTopBanner`、`PortalQuickEntry`：优先接入，适合门户首页的 Banner 和快捷入口。
-- `QuickAccessCard`、`RecentlyUsedCard`：先做运行态验证，再用于动态门户卡片。
-- `DataCard`、`PortalContainer`：仅在目标门户上下文、数据卡片配置和样式变量都验证通过后启用。
-
-做法：从 `window.Deep`、`window.DeepYida` 探测组件；若环境已有 `window.YidaNativeComponents` 也可兼容读取。探测到组件时渲染原生组件；未探测到时渲染 Canvas 自绘卡片，页面保持可用。
-
-### 2. 成员、部门、上传组件
-
-需要数据管理视图、成员、部门、附件上传、图片上传时，使用原生组件桥从页面 `window.Deep` / `window.DeepYida` 探测已挂载组件，并把探测结果写回当前页面实现计划。
-
-组件选择建议：
-
-- `EmployeeField`：优先验证和接入，记录真实 `onChange` 结构。
-- `DepartmentSelectField`：验证部门搜索、弹层、权限提示、单选/多选后启用。
-- `AttachmentField` / `ImageField`：验证 OSS 签名、上传权限、预览、删除、失败提示后启用。
-
-做法：原生组件处理交互输入；页面业务状态保存归一化后的成员、部门、文件结构；提交通过 fetch / 连接器 / 开放 API 完成。组件验证通过时使用原生组件；组件条件不足时使用 Canvas 自绘输入、搜索或链接录入。
-
-> 详细桥接规则、值结构和验收清单见 [native-components-bridge.md](references/native-components-bridge.md)。
-
 ## 核心规则
 
-### 致命规则（FATAL）
-
-1. **Canvas 入口明确**：源码必须导出或返回 `YidaComp`，并把主组件作为默认导出或 `YidaComp` 暴露。
-2. **发布链路正确**：Canvas 源码使用 `.canvas.jsx` / `.canvas.tsx`，或发布时显式加 `--canvas`。
-3. **源码修改发布闭环**：本轮 Write/Edit/Create 了 `project/pages/src/*.canvas.jsx` 或 `project/pages/src/*.canvas.tsx` 后，final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`。有 publish 成功证据时表述为“页面已发布”；只有本地校验证据时表述为“Canvas 源码已修改，尚未发布”。
-4. **依赖可加载**：普通 import 只使用 Code Canvas 可用资源清单内的前端资源；React、antd、Ant Design Icons、Recharts、ahooks、lucide-react 等包依赖必须写 `import ... from '包名'`。严禁写未声明裸变量依赖或手写 window 依赖，例如 `const { Drawer } = antd`、`const { Search } = lucideReact`、`const { ConfigProvider } = window.antd`、`const React = window.React`、`window.icons`。宜搭运行态组件才通过 `window.Deep`、`window.DeepYida`、`window.YidaNativeComponents` 探测。
-5. **使用 Canvas 函数组件契约**：Canvas 代码写 `YidaComp` React 函数组件；数据、生命周期和渲染都通过 hooks、props、统一 window runtime 或连接器完成。组件内部不能直接写 `this.utils.yida.*`。只有修改已确认的存量普通 JSX/Jsx 页面时，才用 `yida-custom-page`。
-6. **副作用清理**：`useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
-7. **交互控件必须受控且真正驱动数据**：筛选 `Select`、搜索 `Input`/`Input.Search`、周期切换、`Tabs`/`Segmented`、批量/重置 `Button` 等控件都用 `useState` 建立受控状态，绑定 `onChange`/`onClick`，并让 `Table`/列表/卡片的数据源通过 `useMemo` 按状态派生后渲染。切换筛选后若当前选中项失效，回退选中态（如 `selected < filteredRows.length ? selected : 0`）。
-8. **视觉壳层必须消费 design.md**：工作台、门户、看板、首页、展示页和真实交付页写 Canvas 源码前，先读取 `design.md` 的 `designRefs` 和相关章节。具体 Canvas 样式落地规则见 `canvas-style-implementation-guide.md`。
-9. **表单数据读取必须使用 dataBinding 契约和 yida runtime**：完整应用、工作台、列表、看板、详情等真实交付页只要本轮已经创建或解析业务表单，先写入 `dataBinding.mode="form"`、真实 `appType/formUuid` 和字段 ID，再用本地 `useYidaData(binding)` / `DataBridge` 读取。发布层必须在外层页面 `didMount` 注册统一 window runtime，Canvas 内部默认调用 `window.__OPENYIDA_RUNTIME__.yida.searchFormDatas(params)` 或兼容别名 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；只有桥不可用时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。页面不能使用 `/query/form/searchFormDatas.json`，也不能只写前端 seedRows 后声称已接真实数据。
-
-### 重要规则（IMPORTANT）
-
-1. **数据桥显式化**：表单数据默认通过外层 yida JS-API 桥读写，连接器和同源业务接口通过显式 endpoint 读写；Cookie、CSRF、密钥和签名留在平台、连接器或后端服务侧。
-2. **组件增强可降级**：门户、成员、部门、上传组件都做 feature detect 和 fallback；组件缺失时页面仍展示 Canvas 自绘基线。
-3. **值先归一化**：成员、部门、文件的原始返回值保留到 `raw` 用于检查，业务 payload 使用统一结构。
-4. **UI 改造保持功能契约**：页面美感提升、页面重构和局部美化只调整颜色、布局、密度、间距、视觉层级、素材和图标表达；已有数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限和业务状态按原链路保留。
-5. **主题实现消费设计结果**：主题来源只读 `design.md`；新建 Canvas 页面使用 `canvas.canvas.jsx` 内置的主题和 iframe 同步能力。只有维护旧源码、普通 JSX 页面或排查历史页面主题问题时，才参考 `references/theme-runtime-helpers.md`。
-6. **先验证再扩展业务**：原生组件、上传、组织搜索、弹层类能力先做 smoke 页面，确认 PC/移动端都可用后再进入复杂业务页面。
-7. **Canvas 脚手架唯一**：新建 Canvas 页面使用 `canvas.canvas.jsx` 这一份完整脚手架。Agent 只扩展字段映射、业务区块、动作和样式，不新增官网、看板、列表、表单等场景脚手架。JSON 占位符用 `parseTemplateJson(raw, fallback)`，展示文案占位符用 `withFallback` / `applyPageFallbacks` 兜底，未替换时页面继续可运行，并显示业务化 fallback 文案。
-8. **light 页面使用清爽业务色**：业务列表、协同表、数据管理页、工作台和门户默认使用 light 模式；主操作、选中态、筛选焦点和批量操作使用品牌色，边框用浅色品牌混合。用户明确要求暗色大屏/夜间模式/高对比风格时使用深色主视觉。
-9. **门户运行态组件要补必需 props 和局部降级**：`QuickAccessCard` / `RecentlyUsedCard` 传 `theme="row-white"` 等必需 props；所有门户/字段/上传增强组件外层加局部 ErrorBoundary，单个组件不兼容时只降级该块，整页保持可用。
-10. **自定义主题写入页面作用域**：`--theme` 只接受平台预置 key；不要把任意色值或自定义主题名传给 create-app。PRD 指定非预置主题（例如活力橙、深玫红、自定义暗黑金）时，在 Canvas 源码中使用脚手架内置主题能力或等价 scoped CSS vars，并在根节点设置 `data-theme-scope="page"`。旧源码缺少主题同步时，再参考 `references/theme-runtime-helpers.md` 补齐。
-11. **真实交付使用真实数据源**：完整应用或真实交付页只要需要列表、看板、详情记录，并且本轮已经创建/解析业务表单，就在 `page-spec.json` 写入 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射，让页面从表单读取。完整应用默认由 `yida-data-management` 写入 1-3 条业务化 demo records；该任务可与页面实现并行。Canvas 页面读取真实表单记录，不使用前端 seedRows 冒充；真实数据暂未接入或 seed records 写入失败时展示空态、表单入口、刷新/登记按钮。
-12. **PRD + design.md 进入实现输入**：完整应用和真实交付页写页面前，先读取 `yida-design` 输出的 `prd.md` 和 `design.md`，再实现页面结构、数据绑定和样式。`page-spec.json` 只能作为派生 handoff，不得覆盖或改写 PRD/design.md。
-13. **页面实现二选一**：结构化实现路径先从 `prd.md + design.md` 派生 `page-spec.json`，写入 `sourceOfTruth.prdFile/designFile/designRefs/conflictPolicy`，生成可编译骨架后读取 CLI 摘要或 `.openyida-page.json` 判断业务化程度和 dataBinding。业务或视觉事实源缺失时先回写 `prd.md` / `design.md` 并重生成 spec；只有 className、布局比例、字段映射、响应式、状态渲染或编译错误等实现偏差才对生成源码做小范围 Edit/patch。手写路径直接 Write 最终 `.canvas.jsx` 并快检/发布。
-14. **实现骨架消费业务 spec**：品牌名、行业词、导航、指标、卡片标题、图片 alt、CTA、色彩 profile 和 section 说明来自当前业务 spec。若 CLI 报业务内容不足，补齐/改写 spec 或 patch 源码后重新生成/编译。
-15. **Canvas 产物使用纯文本业务文案**：`.canvas.jsx` 源码、`page-spec.json` 中会渲染到页面的文案、JS 注释、数据常量和产物文件路径都使用无 emoji 文本。页面生成、`compileCanvasLocal` 或 `publish` 报 emoji 错误时，先改 spec/源码/路径，再重新校验发布。若 emoji 原本承担图标含义，必须按 `design.md.iconSystem` 改成 `lucide-react` 或 `@ant-design/icons` 的具体组件，默认 `lucide-react`；不得用 CSS 绘制图形、单字母、首字母、标点符号、Unicode 符号或临时 SVG 冒充图标。
-16. **JSX 文案只能是文本或字符串**：JSX 文案只能写成纯文本 `所有级别` 或带引号字符串 `{'所有级别'}`；筛选项、按钮、状态、空态和表格列名等中文业务文案都按此规则书写。花括号里只能放真实 JS 变量/表达式，不能把中文文案写成 `{所有级别}`、`{处理中}`；Unicode escape 被工具解码后也必须保留字符串引号。
-17. **同应用页面入口归入导航**：快捷入口目标如果是同应用内页面，优先写入 `appBlueprint.navigation` 或平台导航分组，由应用导航内切换；自定义页内容区的 `quickEntries` 只放当前页动作、表单新建/查看、外部链接、跨应用资源，或显式隐藏平台导航后的页面内导航壳入口。
-18. **表单打开入口统一容器**：自定义页内「新建 / 提交表单 / 查看详情」保留原生表单能力，并统一封装为 `FormOpenContainer`。按钮事件只能调用 `openForm({ type: "submission" | "detail", ... })`。查看详情必须先从 `searchFormDatas` 返回行解析真实实例 ID，顺序固定为 `row.formInstId || row.formInstanceId || row.instanceId || row.id`，并优先使用 `row.formInstId`；缺少实例 ID 时禁用详情按钮或提示，不得打开空 `formInstId` 的详情页。PC 端主操作使用右侧抽屉 + iframe 承载隐藏导航的提交页或详情页，抽屉默认半屏 `50vw`，提交页和详情页使用同一宽度规则；详情页 URL 固定追加 `formInstId`、`navConfig.layout=1180` 和 `isRenderNav=false`；iframe `onLoad` 后必须用 `installYidaGlobalThemeIntoFrame(themeTokens, iframeElement)` 把当前页面主题同步到同源子文档；关闭后回到当前列表/工作台并刷新数据。移动端可直接进入提交页/详情页或新页打开，依赖表单自身 JS 注入的 `style#yida-global-theme`。
-19. **图标资源固定为可加载库**：页面图标只使用 `lucide-react` 或 `@ant-design/icons`，默认使用 `lucide-react` named import。只有页面已经采用 Ant Design 图标语言、或 antd 组件语境需要 Outlined 图标时，才使用 `@ant-design/icons`。快捷入口、按钮、状态、导航和空态图标在写源码前先建立 `actionIconMap` / `statusIconMap`，按业务语义映射到具体组件，例如 `Plus`、`Upload`、`Download`、`Eye`、`Building2`、`AlertCircle`、`Check`。图标外层可以用 CSS 控制尺寸、颜色、圆角、背景和 hover，但图标本体必须来自上述两类组件，不能用 CSS 形状、字母或 emoji 替代。
-
-## 数据真实性边界
-
-- 完整应用或真实交付页先解析真实 `appType/formUuid/fieldId`，并在 `page-spec.json` 写入 `dataBinding.mode=form`。
-- 完整应用默认用 `yida-data-management` 把 1-3 条业务化 seed records 写入核心普通表单并抽查；该任务可与页面实现并行。前端静态数据只能用于明确标注的离线演示态。
-- 生成后如果 `.openyida-page.json` 的 `dataBinding.enabled !== true`，且页面仍展示列表/看板/详情业务记录，交付状态标为草稿；完整应用 final 只有在真实数据绑定已启用并验证后表述为“已接真实数据”。
-- 未接数据的交付页保留真实空态、登记入口、刷新按钮和数据接入提示。
+1. **Canvas 源码和发布**：源码写 `.canvas.jsx` / `.canvas.tsx`，入口和依赖规则见 `canvas-authoring-examples.md`、`dependencies-and-cdn.md`。
+2. **页面事实源**：页面先消费 `prd.md` 与 `design.md`；`page-spec.json` 只是派生产物，详细规则见 `page-generation-guide.md`。
+3. **真实数据接入**：表单、流程、连接器和同源接口接入见 `data-bridge-guide.md`；不要用前端 seedRows 冒充真实数据。
+4. **运行态组件**：门户、成员、部门、上传等组件见 `native-components-bridge.md` 和 `employeefield-verification.md`。
+5. **主题和样式**：`design.md` 到 Canvas 样式的落地见 `canvas-style-implementation-guide.md`；旧源码主题 helper 见 `theme-runtime-helpers.md`。
+6. **表单入口**：提交页、详情页、应用内页面和外链跳转见 `navigation-and-entry-guide.md`，新建 Canvas 页面使用脚手架内置的 `FormOpenContainer` 能力。
+7. **源码修改发布闭环**：本轮 Write/Edit/Create 了 Canvas 源码后，final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`。有 publish 成功证据时表述为“页面已发布”；只有本地校验证据时表述为“Canvas 源码已修改，尚未发布”。
 
 ## 开发流程
 
-下面命令以仓库根为视角；如果当前 cwd 已经是 `<workspace>/project`，把 `project/pages/src/...` 改成 `pages/src/...`。读取生成文件、Schema 或校验产物时优先用当前工具的 Read / Glob / Grep。
+下面命令从仓库根执行；如果当前 cwd 已经是 `<workspace>/project`，把 `project/pages/src/...` 改成 `pages/src/...`。读取生成文件、Schema 或校验产物时优先用当前工具的 Read / Glob / Grep。
 
 ```bash
 # 1. 只读检查环境、登录态和可用能力；真实创建资源前必须通过
