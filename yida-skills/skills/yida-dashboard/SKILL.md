@@ -1,6 +1,6 @@
 ---
 name: yida-dashboard
-description: "经营看板/驾驶舱/数据大屏产品化交付，默认使用 Code Canvas + yida-rechart。含真实数据、筛选联动、卡片截图、组织内短链和钉钉待办闭环。仅在用户明确要求 ECharts、复杂 ECharts option 或维护旧普通自定义页时转 yida-chart。普通统计优先 yida-report。"
+description: "经营看板、驾驶舱和数据大屏产品结构编排。定义指标、布局、筛选、派单、截图、分享和验收；具体图表、聚合、数据接入和页面实现交给对应技能。"
 license: MIT
 metadata:
   audience: developers
@@ -18,138 +18,56 @@ metadata:
 
 ## 核心定位
 
-本技能负责完整 Dashboard 产品化交付：业务指标、真实数据、交互筛选、洞察、派单、截图和分享闭环。它决定“看什么、怎么组织、怎么验收”，默认实现层是 **Code Canvas**：
+本技能负责 Dashboard 产品结构：看什么指标、页面怎么分区、筛选怎么影响数据、哪些元素能派单、截图和分享怎么验收。默认实现层是 **Code Canvas**。
 
-- 页面容器、状态、筛选、响应式、副作用：`yida-canvas-custom-page`。
-- Canvas 真实数据：`yida-canvas-data-binding`。
-- 常规图表：`yida-rechart`。
-- 只有用户明确要求 ECharts、需要复杂 ECharts `option`/扩展系列，或维护已有普通自定义页面时，才使用 `yida-chart`。
-
-普通自定义页面链路只用于已确认的存量普通 JSX/Jsx 看板维护。
+页面代码、数据桥、图表 option 和报表聚合规则见下方对应技能。
 
 ## 何时触发
 
 - 看板 / 驾驶舱 / 大屏 / Dashboard / 数据大屏。
 - 经营看板 / 业务看板 / 管理驾驶舱 / 高层汇报。
-- 指标卡截图、组织内短链、隐藏导航、看板派单闭环。
+- 指标卡截图、组织内短链、隐藏导航、看板派单。
 
-单个普通统计报表优先 `yida-report`；只解决单张图的实现问题时按“图表路由边界”选择 `yida-rechart` 或 `yida-chart`。
+单个普通统计报表用 `yida-report`。只解决单张图的实现问题时，用 `yida-rechart`；只有用户明确要求 ECharts 或维护旧 ECharts 页面时，用 `yida-chart`。
 
-## 默认交付物
+## 技能分工
 
-1. 单屏控制塔结构，见 `references/structure-and-layout.md`。
-2. 真实数据绑定：聚合指标走报表/聚合结果，明细走分页查询；禁止前端拉全量后聚合。
-3. 视觉主题和信息层级读取 `yida-design` 的 `design.md`，再落到看板布局和图表样式。
-4. 筛选与图表联动；控件必须受控并真实改变下方数据。
-5. 每元素可派单：`saveFormData → 集成自动化 → 待办2.0 ConnectorCall`。
-6. 卡片截图分享：真实可点击，截图时排除截图按钮本身。
-7. PC / 平板 / 手机响应式。
-8. 隐藏导航时的组织内分享 URL；需要页面内导航壳时调用 `yida-nav-shell`。
-9. loading / empty / error / freshness 状态与 1–3 条业务洞察。
-
-## 链路决策
-
-| 信号 | 实现链路 |
+| 内容 | 负责人 |
 | --- | --- |
-| 新建经营看板、驾驶舱、大屏 | Code Canvas + `yida-rechart` |
-| React hooks、复杂筛选、轮询、动画、组件状态 | Code Canvas |
-| 表单/报表/连接器数据进入 Canvas | `yida-canvas-data-binding`，用同源 HTTP 数据桥 |
-| 用户明确要求 ECharts 或提供 ECharts option | `yida-chart` |
-| 地图、桑基、graph、custom series 等 Recharts 不覆盖的复杂图 | 明确说明原因后使用 `yida-chart` |
-| 维护已有 `.oyd.jsx`、`renderJsx`、`didMount` 页面 | legacy `yida-custom-page` + `yida-chart` |
-| 单个原生统计报表 | `yida-report` |
+| 看板产品结构、指标分区、筛选关系、行动入口、截图和验收 | `yida-dashboard` |
+| 页面实现、Canvas 源码、表单入口、发布校验 | `yida-canvas-custom-page` |
+| Canvas 真实数据接入、`dataBinding`、返回体解析、轮询刷新 | `yida-canvas-data-binding` |
+| 常规图表：折线、柱、条、面积、饼、环、组合图 | `yida-rechart` |
+| 服务端聚合、原生统计报表、报表结果作为数据源 | `yida-report` |
+| 明确要求 ECharts、复杂 ECharts option、维护旧 ECharts 页面 | `yida-chart` |
+| 隐藏平台导航后的页面内导航壳 | `yida-nav-shell` |
+| 看板派单触发表和待办集成 | `yida-create-form-page`、`yida-integration` |
 
-不得因为维护旧页面时看到普通自定义页面样例，就把新看板降级为 `.oyd.jsx`。
+## 交付清单
 
-## Canvas-first 交付流程
+1. 指标分组：5 到 8 个经营维度，每个维度有口径、数据来源和刷新频率。
+2. 页面结构：首屏重点、趋势区、分布区、明细区、行动区和移动端形态。
+3. 数据路径：聚合指标交 `yida-report` 或已聚合接口；明细和筛选数据交 `yida-canvas-data-binding`。
+4. 图表路径：常规图表交 `yida-rechart`；只有用户明确要求 ECharts 或维护旧 ECharts 页面时交 `yida-chart`。
+5. 行动路径：需要派单时，定义触发表字段和待办集成目标，再交表单和集成技能实现。
+6. 页面路径：新建看板用 `yida-canvas-custom-page` 实现和发布。
+7. 分享路径：需要隐藏导航或页面内导航时，交 `yida-nav-shell` 和页面配置技能处理。
 
-```text
-[Step 1] 澄清业务范围 → 5–8 个经营维度、指标、角色与刷新频率
-   ↓
-[Step 2] 数据契约 → appType/formUuid/fieldId/report/connector endpoint
-   ↓
-[Step 3] 需要派单时创建“看板派单触发表”并配置集成自动化
-   ↓
-[Step 4] 读取 yida-design 输出的 dashboard/screen 设计
-   ↓
-[Step 5] 生成或编写 dashboard-overview.canvas.jsx / data-screen.canvas.jsx
-   ↓
-[Step 6] 用 hooks 实现筛选、轮询、截图、hash/导航与 cleanup
-   ↓
-[Step 7] 常规图表交 yida-rechart；仅命中 ECharts 条件才交 yida-chart
-   ↓
-[Step 8] compileCanvasLocal 快检；获用户确认后发布并回读 Schema
-   ↓
-[Step 9] 隐藏导航、验证组织内 URL、截图、数据刷新和派单闭环
-```
+## 执行步骤
 
-Canvas 页面入口：
+1. 读取 `prd.md` 与 `design.md`，提取看板目标、用户角色、指标、视觉风格和验收标准。
+2. 输出看板结构：指标分组、区块顺序、筛选项、图表类型、明细表、行动入口、截图和分享要求。
+3. 按“技能分工”加载实现技能。Canvas、Recharts、报表、数据桥和 ECharts 细则以对应技能为准。
+4. 实现技能完成后，本技能只检查看板是否满足业务验收。
 
-- 先读取 `yida-design` 产出的 `prd.md` 与 `design.md`，再提取页面目标、指标、设计引用和主题结果。
-- `page-spec.json` 只在生成器需要时从两份文件派生。
-- 用户强调“大屏 / 指挥舱 / 实时监控”时使用 `screen` 场景；普通经营看板使用 `dashboard` 场景。
-- Canvas 编译与发布细节以 `yida-canvas-custom-page` 为准；不要把 `openyida check-page`、`.oyd.jsx` 或 `renderJsx` 写成默认步骤。
+## 路由边界
 
-## 数据与派单边界
-
-### 真实数据
-
-- KPI / 趋势 / 占比必须来自服务端聚合、报表结果或明确的聚合接口。
-- 明细查询必须分页；不得拉全量后 `reduce` 冒充生产聚合。
-- Canvas 页面使用 `dataBinding` + `DataBridge` + 外层 yida JS-API 桥；只有桥不可用时才降级同源 `fetch`，并保留错误态与 cleanup。
-- 不得在 Canvas 使用 `this.dataSourceMap`；连接器代理转 `yida-canvas-data-binding`。
-- demo/seed 只能用于离线预览，并明确标记；真实交付无数据时展示真实空态。
-
-### 派单
-
-需要派单时固定使用：
-
-1. `yida-create-form-page` 创建“看板派单触发表”，至少包含
-   `subject` / `executor` / `description` / `dueTime` / `priority` / `priorityNum`。
-2. `openyida integration create ... --events create` 配置待办2.0 ConnectorCall。
-3. 前端只写触发表；连接器鉴权和调用留在后端集成自动化。
-
-`priority` 连接器入参必须来自 NumberField `priorityNum`（10/20/30/40），不能直接透传 SelectField/RadioField。不得把工作通知包装成真实待办。
-
-## Canvas 实现纪律
-
-1. 使用 `YidaComp` React 函数组件和 hooks；不使用 `_customState` / `forceUpdate`。
-2. `useEffect` 注册的轮询、键盘、resize、hash、截图资源或图表副作用必须 cleanup。
-3. 筛选、周期切换、Tabs、刷新按钮均为受控状态，并真实驱动列表/KPI/图表派生数据。
-4. 所有数据请求都有 loading / error / retry；静默刷新保留旧数据。
-5. 所有可见按钮必须有真实 handler 或显式 disabled。
-6. 截图按钮必须可用，并在截图时用 class/属性排除自身。
-7. 移动端 KPI 改 2 列或横向滚动，图表纵向堆叠。
-8. 隐藏平台导航后需要跨模块切换时，交 `yida-nav-shell`，默认用 Canvas `useState` / hash。
-
-## 图表路由边界
-
-### 默认：`yida-rechart`
-
-以下图表默认调用：
-
-```text
-use_skill("yida-rechart", "在 Code Canvas 看板中实现常规业务图表")
-```
-
-- 折线、面积、柱、条、饼/环、组合图。
-- 常规 tooltip、legend、响应式容器、主题色和数据格式化。
-- KPI 趋势、区域营收、渠道贡献、客群分布、排行与同比环比。
-
-### 例外：`yida-chart`
-
-只有出现以下任一信号时调用：
-
-```text
-use_skill("yida-chart", "实现明确要求的 ECharts 或维护旧 native 图表")
-```
-
-- 用户明确说 ECharts。
-- 用户提供或要求维护复杂 ECharts `option`。
-- 地图、桑基、graph、custom series、复杂 visualMap 等 Recharts 不覆盖能力。
-- 维护已有普通自定义页 / native ECharts 页面。
-
-不要仅因“看板里有图”就调用 `yida-chart`。
+- 常规图表：`yida-rechart`。
+- 聚合统计：`yida-report`。
+- 数据接入：`yida-canvas-data-binding`。
+- 页面实现：`yida-canvas-custom-page`。
+- 只有用户明确要求 ECharts、提供复杂 ECharts option，或维护旧 ECharts 页面时：`yida-chart`。
+- 单个普通统计报表：`yida-report`，不进入完整 Dashboard 编排。
 
 ## 存量普通页维护
 
@@ -157,35 +75,30 @@ use_skill("yida-chart", "实现明确要求的 ECharts 或维护旧 native 图�
 
 - 页面规范交 `yida-custom-page`。
 - 旧 ECharts 图表交 `yida-chart`。
-- 本地使用 `.oyd.jsx`、`openyida check-page`、`openyida compile`。
-- references 中的 `renderJsx` / `didMount` 片段仅供维护旧页面，不代表新建默认。
+- 本地检查和发布按普通页面技能执行。
 
 ## 严格禁止
 
 1. 禁止默认生成普通 `.oyd.jsx` 看板。
 2. 禁止前端拉全量明细聚合 KPI。
-3. 禁止 Canvas 使用 `this.dataSourceMap`、`this.utils.yida.*` 或普通页生命周期。
-4. 禁止在前端直连钉钉 OpenAPI、硬编码 accessToken/Cookie/密钥。
-5. 禁止把工作通知声称为真实待办。
-6. 禁止 mock/seed 数据冒充真实交付。
-7. 禁止无 handler 的按钮。
-8. 禁止常规图表无条件路由 `yida-chart`。
+3. 禁止把工作通知说成真实待办。
+4. 禁止 mock/seed 数据冒充真实交付。
+5. 禁止常规图表无条件路由 `yida-chart`。
 
 ## 参考文档
 
 | 文档 | 何时读 |
 | --- | --- |
-| `references/structure-and-layout.md` | 设计 Dashboard 层次、Canvas 组件树和响应式 |
-| `references/theme-presets.md` | 选择主题、色板和图表视觉强度 |
-| `references/interaction-patterns.md` | 派单、搜人、截图、marquee、短链；旧普通页代码仅作 legacy |
-| `references/pitfalls.md` | 发布前检查数据、连接器、截图与旧页面兼容问题 |
+| `references/structure-and-layout.md` | 设计 Dashboard 层次、区块顺序和响应式要求 |
+| `references/theme-presets.md` | 选择看板主题和图表视觉强度 |
+| `references/interaction-patterns.md` | 派单、搜人、截图、marquee、短链的产品行为 |
+| `references/pitfalls.md` | 发布前检查数据、连接器、截图和旧页面兼容问题 |
 
 ## 验收
 
-- Canvas 本地编译通过，依赖只包含白名单模块。
-- 发布后回读到 `YidaCodeCanvas` 与非空 `runtimeCode`。
-- 至少一个 KPI/列表/图表来自真实数据契约；否则标记 draft。
-- 筛选、刷新、移动端、截图、空/载/错态实际可用。
-- 常规图表已路由 `yida-rechart`；使用 `yida-chart` 时交付说明明确命中了哪条 ECharts 例外。
-- 需要派单时，真实待办 ConnectorCall 和字段映射验证通过。
-- 隐藏导航时，最终组织内 URL 保留 `isRenderNav=false`。
+- 看板结构包含指标、图表、筛选、明细、行动入口和分享要求。
+- 每个指标都有真实数据来源；聚合不在前端拉全量完成。
+- 常规图表已路由 `yida-rechart`；使用 `yida-chart` 时写明命中的 ECharts 条件。
+- 页面实现和发布证据来自 `yida-canvas-custom-page`。
+- 数据接入证据来自 `yida-canvas-data-binding`、`yida-report` 或已确认接口。
+- 需要派单时，触发表字段和待办集成验证通过。

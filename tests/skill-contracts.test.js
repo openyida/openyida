@@ -1122,9 +1122,18 @@ describe('OpenYida skill contracts', () => {
     const dataSources = readSkill('yida-skills/skills/yida-data-source-connectors/SKILL.md');
 
     expect(dashboard).toContain('默认实现层是 **Code Canvas**');
+    expect(dashboard).toContain('看板产品结构、指标分区、筛选关系、行动入口、截图和验收');
+    expect(dashboard).toContain('页面实现、Canvas 源码、表单入口、发布校验 | `yida-canvas-custom-page`');
+    expect(dashboard).toContain('Canvas 真实数据接入、`dataBinding`、返回体解析、轮询刷新 | `yida-canvas-data-binding`');
     expect(dashboard).toContain('常规图表：`yida-rechart`');
+    expect(dashboard).toContain('服务端聚合、原生统计报表、报表结果作为数据源 | `yida-report`');
     expect(dashboard).toContain('只有用户明确要求 ECharts');
     expect(dashboard).toContain('## 存量普通页维护');
+    expect(dashboard).not.toContain('## Canvas 实现纪律');
+    expect(dashboard).not.toContain('Canvas 页面使用 `dataBinding` + `DataBridge`');
+    expect(dashboard).not.toContain('`saveFormData → 集成自动化 → 待办2.0 ConnectorCall`');
+    expect(dashboard).not.toContain('use_skill("yida-rechart"');
+    expect(dashboard).not.toContain('use_skill("yida-chart"');
 
     expect(ppt).toContain('新建演示默认使用 **Code Canvas**');
     expect(ppt).toContain('`useEffect` 管键盘、hash、触摸、定时器和 cleanup');
