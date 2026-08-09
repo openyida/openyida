@@ -196,7 +196,7 @@
 
 | 功能 | 执行操作 |
 |---|---|
-| 快速判断当前工作区、登录态、组织和命令能力 | `openyida agent-capabilities --summary-json` |
+| 快速判断当前工作区、登录态、命令能力和完整应用产物路由 | `openyida agent-capabilities --summary-json` |
 | 获取完整 Agent 能力诊断（含完整环境、登录状态与命令 Manifest） | `openyida agent-capabilities --json` |
 | 获取完整命令 Manifest、副作用和权限元数据 | `openyida commands --json` |
 | 运行无副作用路由评测 | `openyida eval --mode routing [--skill <name>]` |

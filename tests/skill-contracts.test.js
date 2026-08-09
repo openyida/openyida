@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { flattenCommandManifest } = require('../lib/core/command-manifest');
+const { buildCommandManifest, flattenCommandManifest } = require('../lib/core/command-manifest');
 
 const ROOT = path.join(__dirname, '..');
 
@@ -170,14 +170,17 @@ describe('OpenYida skill contracts', () => {
     expect(requirementAnalysis.description).toContain('宜搭需求剖析');
     expect(requirementAnalysis.done_when).toContain('requirement-brief.json');
     expect(requirementAnalysis.done_when).toContain('没有生成 prd.md、design.md');
+    expect(requirementAnalysis.command_ids).toEqual([]);
     expect(prd.description).toContain('宜搭 PRD 生成');
     expect(prd.description).toContain('prd/<项目名>/prd.md');
     expect(prd.done_when).toContain('prd/<项目名>/prd.md');
     expect(prd.done_when).toContain('没有写 design.md');
+    expect(prd.command_ids).toEqual([]);
     expect(design.description).toContain('宜搭 design.md 生成');
     expect(design.description).toContain('prd/<项目名>/design.md');
     expect(design.description).toContain('不写 prd.md 和页面源码');
     expect(design.done_when).toContain('prd/<项目名>/design.md');
+    expect(design.command_ids).toEqual([]);
     expect(design.done_when).toContain('没有写 prd.md');
     expect(design.tags).toEqual(expect.arrayContaining(['ui_skill']));
     expect(design.positive_signals).toEqual(expect.arrayContaining(['主页面 UI 设计', 'ui_skill']));
@@ -306,7 +309,11 @@ describe('OpenYida skill contracts', () => {
     expect(manifest).toContain('openyida nav-group order <appType> <items...>');
     expect(manifest).toContain('openyida publish ... --auto-nav-order');
     expect(manifest).toContain('product_design_policy');
-    expect(manifest).toContain('yida-prd and yida-design then start in parallel');
+    expect(manifest).toContain('yida-prd and yida-design start in parallel');
+    expect(manifest).toContain('artifact_generation: {');
+    expect(manifest).toContain("mode: 'parallel'");
+    expect(manifest).toContain("{ skill_id: 'yida-prd', output_path: 'prd/<project>/prd.md' }");
+    expect(manifest).toContain("{ skill_id: 'yida-design', output_path: 'prd/<project>/design.md' }");
     expect(manifest).toContain('final_link_policy');
     expect(manifest).toContain('Return exactly one primary user-facing link');
     expect(manifest).toContain('{base_url}/{appType}/workbench');
@@ -376,6 +383,7 @@ describe('OpenYida skill contracts', () => {
     const appFinalOutput = readSkill('yida-skills/skills/yida-app/workflow/final-output.md');
     const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
     const byName = new Map(index.skills.map((item) => [item.name, item]));
+    const workflow = buildCommandManifest().summary.core_workflows.full_app_build;
 
     expect(requirementAnalysis).toContain('`.cache/openyida/<项目名>/requirement-brief.json`');
     expect(requirementAnalysis).toContain('同时加载 `yida-prd` 和 `yida-design`');
@@ -383,6 +391,25 @@ describe('OpenYida skill contracts', () => {
     expect(appBuildStages).toContain('| 2A. PRD 生成（并行） | `yida-prd` |');
     expect(appBuildStages).toContain('| 2B. design.md 生成（并行） | `yida-design` |');
     expect(appBuildStages).toContain('不等待或读取本轮 PRD');
+    expect(workflow).toMatchObject({
+      orchestrator_skill_id: 'yida-app',
+      requirement_analysis_skill_id: 'yida-requirement-analysis',
+      requirement_brief_path: '.cache/openyida/<project>/requirement-brief.json',
+      artifact_generation: {
+        mode: 'parallel',
+        tasks: [
+          { skill_id: 'yida-prd', output_path: 'prd/<project>/prd.md' },
+          { skill_id: 'yida-design', output_path: 'prd/<project>/design.md' },
+        ],
+        join_owner_skill_id: 'yida-app',
+      },
+    });
+    expect([
+      workflow.orchestrator_skill_id,
+      workflow.requirement_analysis_skill_id,
+      workflow.artifact_generation.join_owner_skill_id,
+      ...workflow.artifact_generation.tasks.map((task) => task.skill_id),
+    ].every((skillId) => byName.has(skillId))).toBe(true);
     expect(step1).toContain('读取 `.cache/openyida/<项目名>/requirement-brief.json`');
     expect(prd).not.toContain('先用本技能生成 `prd.md`，再加载 `yida-design`');
     expect(design).not.toContain('已有 `prd.md` 时先读它');

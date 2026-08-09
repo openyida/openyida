@@ -57,14 +57,13 @@ OpenYida 要求 Node.js 18 或更高版本。安装后会提供 `openyida` 和 `
 在 AI 编程工作区中运行：
 
 ```bash
-openyida agent-capabilities --json
+openyida agent-capabilities --summary-json
 ```
 
-该命令会一次性返回 OpenYida 版本、当前工作区、AI 工具环境、登录态、组织上下文、命令清单和副作用提示。旧版本或轻量检查也可以使用：
+该命令返回 OpenYida 版本、登录态、工作区/缓存路径、命令清单摘要，以及完整应用中需求简报、PRD 和 design.md 的并行产物路由。需要完整环境、组织上下文、命令清单和副作用信息时使用：
 
 ```bash
-openyida env --json
-openyida login --check-only --json
+openyida agent-capabilities --json
 ```
 
 ### 3. 登录
@@ -384,7 +383,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida export-conversation [options]` | 导出 AI 对话记录 |
 | `openyida feedback <setup\|url\|dismiss\|status> [options]` | 配置体验反馈表单和本地提醒状态 |
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | 批量执行 OpenYida 命令 |
-| `openyida flash-to-prd --file <path> --name "<project>"` | 闪记 / 会议纪要转 PRD prompt |
+| `openyida flash-to-prd --file <path> --name "<project>"` | 闪记 / 会议纪要生成会议需求稿 |
 | `openyida ai <text\|image> [options]` | 调用 AI 文生文和识图能力 |
 | `openyida asset <status\|verify-url\|resolve\|generate> [options]` | 检测素材能力 / 校验图片 URL / 解析回填素材 |
 | `openyida cdn-config [options]` | 配置 CDN / OSS 上传 |

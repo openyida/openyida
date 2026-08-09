@@ -429,12 +429,19 @@ describe('CLI offline smoke', () => {
     ]);
     expect(parsed.summary.core_workflows.full_app_build).toMatchObject({
       mode: 'unified_build',
+      orchestrator_skill_id: 'yida-app',
       default_page_skill_id: 'yida-canvas-custom-page',
       default_ui_guidance_skill_id: 'yida-design',
       requirement_analysis_skill_id: 'yida-requirement-analysis',
-      prd_skill_id: 'yida-prd',
-      parallel_design_skill_ids: ['yida-prd', 'yida-design'],
       requirement_brief_path: '.cache/openyida/<project>/requirement-brief.json',
+      artifact_generation: {
+        mode: 'parallel',
+        tasks: [
+          { skill_id: 'yida-prd', output_path: 'prd/<project>/prd.md' },
+          { skill_id: 'yida-design', output_path: 'prd/<project>/design.md' },
+        ],
+        join_owner_skill_id: 'yida-app',
+      },
       ordinary_jsx_skill_id: 'yida-custom-page',
       required_command_ids: expect.arrayContaining([
         'agent-capabilities',
@@ -449,7 +456,7 @@ describe('CLI offline smoke', () => {
         'yida-data-source-connectors',
         'yida-data-management',
       ]),
-      product_design_policy: expect.stringContaining('yida-prd and yida-design then start in parallel'),
+      product_design_policy: expect.stringContaining('yida-prd and yida-design start in parallel'),
       page_skill_policy: expect.stringContaining('New custom pages default to Code Canvas'),
       form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
       ui_guidance_policy: expect.stringContaining('derived implementation handoff'),
@@ -1033,6 +1040,19 @@ describe('CLI offline smoke', () => {
       command_manifest_digest_algorithm: 'sha256',
       command_count: manifest.summary.command_count,
       full_capabilities_command: 'openyida agent-capabilities --json',
+      full_app_artifact_route: {
+        orchestrator_skill_id: 'yida-app',
+        requirement_analysis_skill_id: 'yida-requirement-analysis',
+        requirement_brief_path: '.cache/openyida/<project>/requirement-brief.json',
+        artifact_generation: {
+          mode: 'parallel',
+          tasks: [
+            { skill_id: 'yida-prd', output_path: 'prd/<project>/prd.md' },
+            { skill_id: 'yida-design', output_path: 'prd/<project>/design.md' },
+          ],
+          join_owner_skill_id: 'yida-app',
+        },
+      },
       builder_path: {
         schema_version: 1,
         preflight: {
@@ -1219,12 +1239,19 @@ describe('CLI offline smoke', () => {
     expect(parsed.commands.read_only_command_ids).toContain('agent-capabilities');
     expect(parsed.commands.core_workflows.full_app_build).toMatchObject({
       mode: 'unified_build',
+      orchestrator_skill_id: 'yida-app',
       default_page_skill_id: 'yida-canvas-custom-page',
       default_ui_guidance_skill_id: 'yida-design',
       requirement_analysis_skill_id: 'yida-requirement-analysis',
-      prd_skill_id: 'yida-prd',
-      parallel_design_skill_ids: ['yida-prd', 'yida-design'],
       requirement_brief_path: '.cache/openyida/<project>/requirement-brief.json',
+      artifact_generation: {
+        mode: 'parallel',
+        tasks: [
+          { skill_id: 'yida-prd', output_path: 'prd/<project>/prd.md' },
+          { skill_id: 'yida-design', output_path: 'prd/<project>/design.md' },
+        ],
+        join_owner_skill_id: 'yida-app',
+      },
       ordinary_jsx_skill_id: 'yida-custom-page',
       required_command_ids: expect.arrayContaining([
         'create-app',
@@ -1238,7 +1265,7 @@ describe('CLI offline smoke', () => {
         'yida-data-source-connectors',
         'yida-data-management',
       ]),
-      product_design_policy: expect.stringContaining('yida-prd and yida-design then start in parallel'),
+      product_design_policy: expect.stringContaining('yida-prd and yida-design start in parallel'),
       page_skill_policy: expect.stringContaining('New custom pages default to Code Canvas'),
       form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
       ui_guidance_policy: expect.stringContaining('derived implementation handoff'),
