@@ -1,14 +1,15 @@
 # yida-app 执行细节参考
 
-本文件只记录完整应用落地时的执行细节。完整应用阶段表见 `../workflow/build-stages.md`；`prd.md` 与 `design.md` 由 `yida-design` 生成。
+本文件只记录完整应用落地时的执行细节。完整应用阶段表见 `../workflow/build-stages.md`；`prd.md` 与 `design.md` 的定义和验收归 `yida-design`。
 
 ## PRD / design.md / page-spec 关系
 
-| 文件 | 输出方 | `yida-app` 如何使用 |
-| --- | --- | --- |
-| `prd/<项目名>/prd.md` | `yida-design` | 读取业务对象、资源关系、页面顺序、导航顺序和验收要求 |
-| `prd/<项目名>/design.md` | `yida-design` | 读取页面实现必须遵守的视觉契约 |
-| `page-spec.json` | 页面实现阶段按需派生 | 仅作为实现 handoff / 生成器输入；冲突时以 `prd.md + design.md` 为准 |
+`yida-app` 只认四个关系：
+
+1. `prd.md` 由 `yida-design` 产出，作为业务输入。
+2. `design.md` 由 `yida-design` 产出，作为视觉输入。
+3. `page-spec.json` 是页面实现阶段按需派生的产物。
+4. Code Canvas 实现规则归 `yida-canvas-custom-page`。
 
 真实 `formUuid`、`fieldId`、`pageId` 等 ID 写入 `.cache/<项目名>-schema.json`；业务语义不写入 ID 映射文件，ID 不写入 PRD 正文。
 

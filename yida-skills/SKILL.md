@@ -127,7 +127,7 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 
 | 用户诉求信号 | 判定 | 走哪条路线 |
 |------------|------|-----------|
-| 创建/搭建/做一个 + 应用/系统/管理系统；或已有 app/page 需要补成完整系统 | **完整搭建 / 补齐** | 加载子技能 `yida-app`，由它确认目标资源并按完整应用阶段执行 |
+| 创建/搭建/做一个 + 应用/系统/管理系统；或已有 app/page 需要补成完整系统 | **完整搭建 / 补齐** | 加载子技能 `yida-app`，详细流程见 `yida-app` |
 | 对已有应用/表单/页面的单点操作（加字段、查改数据、配公式、建报表、改权限、发布、美化…） | **单一 / 增量任务** | 到 [技能路由](#技能路由单一--增量任务) 选定 **1 个**，加载对应子技能执行，不回退流程 |
 
 ---
@@ -136,9 +136,11 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 
 > 📌 仅当第二步判定为「完整搭建 / 补齐」时进入；单一/增量任务请跳「技能路由」。
 
-加载子技能 `yida-app`，由它确认目标资源、按依赖加载子技能、流转关键 ID、发布主页面并输出主入口链接。
+加载子技能 `yida-app`。
 
-完整应用阶段只读取 `yida-app/SKILL.md` 当前要求的文件。`yida-design` 输出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`；后续技能读取这两份文件继续创建表单、页面和导航。
+完整应用默认消费 `yida-design` 产出的 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`。
+
+详细流程见 `yida-app`。根入口不写资源顺序、最终输出格式、schema 获取策略或 Canvas 实现规则。
 
 ---
 
@@ -217,7 +219,7 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 
 1. **技能加载唯一入口**：执行任何子技能前，能调用 `use_skill` 的工具必须用 `use_skill("<技能名>", "<本阶段目的>")` 加载对应技能；不要用 `Read` / `read_file` / `cat` 读取 SKILL.md 路径，不凭记忆猜参数格式。
 2. **corpId 一致性检查**：创建或发布页面前对比 prd/resource context 与当前 auth snapshot（本地 OAuth token session 或 snapshot 明确返回的运行环境注入 env token）中的 corpId，不一致必须询问用户（重新登录到目标组织，或确认在当前组织继续操作已解析资源/缺失资源）。
-3. **发布前本地校验**：普通自定义页面 `.oyd.jsx` / `.jsx` 发布前跑 `openyida check-page` + `openyida compile`；Code Canvas `.canvas.jsx` 不跑这两个普通自定义页面检查，改由 `openyida publish` 的 Canvas 编译阶段或 `compileCanvasLocal` 快检校验；JSON 配置写盘后先解析校验，再调用平台命令。Code Canvas 依赖只能用标准 import，严禁 `const { Drawer } = antd`、`const { Search } = lucideReact`、`window.antd`、`window.icons` 这类裸变量或手写全局依赖。表单详情入口必须优先读取 `row.formInstId`，缺少实例 ID 时禁用或提示，禁止打开空 `formInstId` 的 formDetail 链接。JSX 中文业务文案只能写成纯文本 `所有级别` 或带引号字符串 `{'所有级别'}`，不能写成 `{所有级别}` 这种裸变量表达式。OpenYida 生成产物硬禁 emoji：页面源码、Canvas 源码、表单 Schema、发布 Schema 和产物文件路径出现 emoji 时必须改源码/字段 JSON/路径，不得用 `--skip-lint` 或重复发布绕过。若 emoji 原本承担图标含义，Code Canvas 改成 `lucide-react` 或 `@ant-design/icons` 的标准 import；普通 JSX 不支持 import，必须使用已验证运行时脚本/global 加载这两类图标库，加载条件不满足时切到 Code Canvas。不得用 CSS 绘制图形、字母占位或临时 SVG 代替。
+3. **发布前必须校验**：页面源码、JSON 配置和表单配置发布或写入前，按对应子技能的校验要求执行。根入口不保存普通 JSX、Code Canvas、表单 Schema 的实现规则。
 4. **页面源码修改必须发布闭环**：只要本轮 Write/Edit/Create 了页面源码 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}`（含完整搭建、补齐、已有页面 update path、单点优化），final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>` 命令结果；本地文件编辑、diff、本地校验或编译只证明源码可发布，不等于远端页面已更新。若没有 publish 成功证据，final 只能说“源码已修改，尚未发布”，禁止说“页面已更新 / 已重新发布 / 已上线”。
 5. **命令输入文件禁止 shell 写入**：当 OpenYida 命令需要 JSON/YAML/CSV/config/script 文件参数时，先使用当前 agent 运行时提供的结构化文件写入工具（如 create_file / Write / file edit tool）创建文件，再把路径传给命令；禁止用 shell heredoc、`cat`/`echo`/`printf`/`tee` 加输出重定向，或把命令 stdout 重定向成业务文件。
 6. **读文件少用 Bash 噪声**：读取或定位 workspace 文件优先用当前工具的 Read / Glob / Grep；OpenYida CLI 已返回成功 JSON、URL 或 `formUuid/appType` 时，不要再用 Bash `cat`/`ls` 做无意义复核。
@@ -225,22 +227,22 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 
 ### 重要规则（IMPORTANT，影响质量/性能/可维护性）
 
-1. **按依赖加载子技能**：按意图选 1 个主技能；完整应用按依赖加载对应子技能。
+1. **加载唯一主技能**：按意图选 1 个主技能；完整应用加载 `yida-app`。
 2. **资源优先**：任何写操作前先解析本轮显式资源、已绑定资源上下文、workspace 配置/缓存、历史上下文；已有目标资源时默认修改/补齐/发布，只有目标缺失且意图允许创建时才加载 create 类技能。
-3. **优先复用本地 ID 映射**：已有 `.cache/<项目名>-schema.json` 中可确认新鲜的 `appType`/`formUuid`/`fieldId` 可复用；该文件不是远端真相。字段级表单操作优先交给 `create-form update/add-option/bind-datasource/validation/rule` 的 schema-aware 解析，不要求先外部 `get-schema`；若 CLI 返回字段不存在/重名/歧义 diagnostics，再按 candidates、`tableLabel`、已知 `fieldId` 或 `get-schema --compact --resolve-fields` 收敛。页面代码、数据、流程、公式等确实需要多字段/多表单映射时，每表单一次性执行 `get-schema --field-map-json` 并缓存完整字段摘要。不得猜测字段 ID，也不要用 `head`/`tail`/`grep` 截断 schema stdout 当证据。
-4. **页面规格优先**：完整应用页面规格关系由 `yida-app` 引用 `yida-design` 产物处理；单页视觉设计交给 `yida-design`，实现交给页面技能。
+3. **ID 不猜测**：已有 `.cache/<项目名>-schema.json` 只能作为本地线索，不等于远端真相。需要字段、页面、流程或数据 ID 时，按对应子技能和 CLI 的结构化证据处理。
+4. **设计和页面分工**：`yida-design` 负责 `prd.md` / `design.md`；`yida-app` 只编排完整应用；页面实现交给页面技能。
 5. **配置优先于页面代码**：字段、公式、联动、报表、审批和集成交给对应技能；自定义页面负责展示数据、放置业务入口、打开详情页，并串联表单、流程、报表和导航入口。
-6. **脚手架边界清楚**：Code Canvas 使用 `openyida sample yida-canvas-custom-page canvas` 这一份 `canvas.canvas.jsx`；原生表单使用 `openyida sample yida-create-form-page form` 这一份 `.form.json`。表单字段、分组、校验和规则不要写成自定义页面 JSX。
+6. **脚手架边界清楚**：Code Canvas、普通 JSX 和原生表单脚手架规则归各自子技能；根入口只负责路由。
 7. **数据性能优先**：统计聚合用 `yida-report` 服务端聚合，不在前端拉全量后自行聚合。
 8. **避免无效重试**：失败先查登录态/组织/参数/字段 ID，无修改不连续重试超 1 次。
-9. **配置分三处存**：业务语义 → `prd/<项目名>/prd.md`；视觉契约 → `prd/<项目名>/design.md`；Schema ID → `.cache/<项目名>-schema.json`（prd 不记 ID）。
+9. **设计产物归属清楚**：`prd.md` 与 `design.md` 由 `yida-design` 产出；schema ID 映射只作为本地资源线索。
 10. **临时文件入 project `.cache/`**：OpenYida 业务中间文件写入 `<projectRoot>/.cache/openyida/<项目名或任务名>/`；Schema ID 映射仍写 `<projectRoot>/.cache/<项目名>-schema.json`。从 workspace 根执行命令时使用 `project/.cache/...`，从 project 工作目录内执行时使用 `.cache/...`；不要写仓库根目录或系统临时目录。
 11. **报表美化先分流**：标准统计与原生报表用 `yida-report`；新建定制图表页面默认用 `yida-rechart` 或 `yida-canvas-custom-page`；只有维护旧 ECharts / 普通自定义页面图表时用 `yida-chart`。
 12. **按 schema 证据选技能**：先看 `formType`、组件树、页面组件类型和 `dataSource.online`；`receipt/process/report` 分别落到表单/流程/报表技能。新建自定义页面默认使用 `yida-canvas-custom-page`。用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 页面，或必须使用 Canvas 当前不具备的普通页面实例能力时，用 `yida-custom-page`。修改已有 `YidaCodeCanvas` 页面继续用 `yida-canvas-custom-page`。
 13. **官方示例范式优先**：蒸馏官方示例时先理解脱敏 schema 承载方式，不凭截图/标题/视觉判断。
-14. **默认完成即停止**：完整应用默认以发布成功、完成轻量导航自动排序并输出 URL 与业务交付总结为 doneWhen；`yida-design` 输出的 `prd.md` 与 `design.md` 只服务于本轮应用或页面交付。数据源深读、精细导航整理、截图和 TaskCreate 都是 optionalAfterDone；seed records 属于完整应用默认阶段。
+14. **默认完成即停止**：任务达到所选子技能的 doneWhen 后停止；完整应用完成条件见 `yida-app`。
 15. **UI 设计技能优先**：涉及应用蓝图、页面视觉、主题色、品牌色、全局换肤或 `--color-brand1-*` 时加载 `yida-design`。后续技能读取 `design.md` 中的主题和设计引用继续实现。
-16. **最终输出业务化**：最终回复先写 2-3 句业务交付总结，再给主入口链接。新增/修改/发布单个页面时主入口是当前页面 URL；其他完整应用、表单、流程、权限、主题、导航或批量资源场景主入口是应用首页 `{base_url}/{appType}/workbench`。业务总结说明创建/复用了哪些业务表单和页面、完成了哪些功能和默认示例数据/导航/详情样式状态；不要使用表格、资源 ID 清单或长列表。示例：“已完成订单、商品和客户等核心表单，并发布首页、订单管理和库存看板入口。当前应用已支持订单录入、库存预警、销售统计和表单详情查看，示例记录与轻量导航排序也已就绪。主入口：{base_url}/{appType}/workbench”。默认不输出 `资源类型 | 名称/用途 | ID | 状态` 表格，也不把 `g.alicdn.com` 静态资源、CDN 构建产物、locale JSON、`/admin` 管理页或中间文件 URL 当成最终结果。
+16. **最终输出按 owner**：完整应用最终输出见 `yida-app`；页面、表单、流程、权限等单点任务按对应子技能输出。
 17. **任务复盘沉淀**：任务完成前判断是否有可复用经验需要落盘到 CLI、测试或 skill。用户多次纠正、平台接口假成功、页面骨架共性质量问题、线上回读验收方法、一次性脚本可产品化等情况必须沉淀；详见 `references/task-retrospective.md`。
 
 > 📖 每条规则的完整说明、PRD 质量门槛、临时文件路径规范、报表美化话术 → [references/development-rules.md](references/development-rules.md)

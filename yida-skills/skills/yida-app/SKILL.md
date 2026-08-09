@@ -22,8 +22,8 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 
 ## 核心边界
 
-1. **设计产物**：`yida-design` 写入 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`；本技能读取两份文件继续创建资源、实现页面和发布页面。
-2. **页面规格**：页面实现同时读取 PRD 和 `design.md`；只有走页面生成器或需要稳定交接时，才派生 `page-spec.json`。
+1. **设计产物**：`prd.md` 与 `design.md` 由 `yida-design` 定义、产出和验收；本技能只读取这两份文件。
+2. **页面实现**：`page-spec.json` 是页面阶段按需派生的产物；Code Canvas 实现规则交给 `yida-canvas-custom-page`。
 3. **资源优先**：已有 app/page/form/process 默认复用；目标缺失且本次意图允许创建时，才加载 create 类子技能。
 4. **发布要求**：本轮修改页面源码后，final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`。
 5. **最终输出**：最终回复先写 2-3 句业务交付总结，再给一个主入口链接。
@@ -58,11 +58,10 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 
 | 内容 | 存放位置 |
 | --- | --- |
-| 业务语义 | `prd/<项目名>/prd.md` |
-| 视觉契约 | `prd/<项目名>/design.md` |
+| 设计产物 | `prd/<项目名>/prd.md`、`prd/<项目名>/design.md` |
 | 真实 ID | `.cache/<项目名>-schema.json` |
 | 临时配置、导入数据、脚本 | `.cache/openyida/<项目名或任务名>/` |
-| 生成器 handoff | 需要时从 `prd.md + design.md` 派生 `page-spec.json` |
+| 页面派生产物 | 需要时由页面实现阶段生成 `page-spec.json` |
 
 ## 完成条件
 
