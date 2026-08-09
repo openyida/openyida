@@ -12,10 +12,14 @@ const {
   runCli,
   writeRegistry,
 } = require('./runner');
+const {
+  DEFAULT_CANVAS_SOURCE,
+  prepareDefaultCanvasSource,
+} = require('./canvas-fixture');
 const { validateSkillCoverage } = require('./skill-coverage');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const DEFAULT_PAGE_SOURCE = path.join(ROOT, 'project', 'pages', 'src', 'demo-compat-smoke.oyd.jsx');
+const DEFAULT_PAGE_SOURCE = DEFAULT_CANVAS_SOURCE;
 
 const DEFAULT_STAGES = [
   'auth',
@@ -698,7 +702,7 @@ export default function Page() {
 }
 
 function buildBusinessDashboardSource(config, context) {
-  return `import React from 'react';
+  return `import React, { useState } from 'react';
 
 var DASHBOARD = {
   title: '全球业务经营驾驶舱',
@@ -1212,9 +1216,20 @@ function run(options = {}) {
     }
 
     if (hasStage(config.stages, 'page')) {
-      runStep('check-page', ['check-page', config.pageSource, '--json']);
-      runStep('build-page', ['build-page', config.pageSource, '--output', path.join(workDir, 'built-page.jsx'), '--json']);
-      runStep('compile', ['compile', config.pageSource], { allowNoJson: true });
+      const pageSource = prepareDefaultCanvasSource({
+        sourcePath: config.pageSource,
+        outputPath: path.join(workDir, 'current-scaffold.canvas.jsx'),
+        appType: context.appType,
+        formUuid: context.formUuid,
+        fields: context.fields,
+        writeText: writeTextFile,
+      });
+      const isCanvas = /\.canvas\.(jsx|tsx)$/i.test(pageSource);
+      if (!isCanvas) {
+        runStep('check-page', ['check-page', pageSource, '--json']);
+        runStep('build-page', ['build-page', pageSource, '--output', path.join(workDir, 'built-page.jsx'), '--json']);
+        runStep('compile', ['compile', pageSource], { allowNoJson: true });
+      }
 
       const page = runStep('create-page', [
         'create-page',
@@ -1227,7 +1242,7 @@ function run(options = {}) {
       context.pageId = page.pageId;
       trackResource(registry, registryPath, { type: 'page', appType: context.appType, pageId: context.pageId, name: config.pageName, url: page.url });
       runStep('update-form-config-page', ['update-form-config', context.appType, context.pageId, 'false', config.pageName], { allowNoJson: true });
-      runStep('publish', ['publish', config.pageSource, context.appType, context.pageId, '--health-check', '--no-open']);
+      runStep('publish', ['publish', pageSource, context.appType, context.pageId, '--health-check', '--no-open']);
     }
 
     if (hasStage(config.stages, 'data')) {
@@ -1282,8 +1297,7 @@ function run(options = {}) {
     }
 
     if (hasStage(config.stages, 'dashboard')) {
-      const dashboardSkillSourcePath = writeTextFile(path.join(workDir, 'dashboard-skill.oyd.jsx'), buildDashboardSkillSource(config, context));
-      runStep('dashboard-skill-check', ['check-page', dashboardSkillSourcePath, '--json']);
+      const dashboardSkillSourcePath = writeTextFile(path.join(workDir, 'dashboard-skill.canvas.jsx'), buildDashboardSkillSource(config, context));
       const dashboardSkillPage = runStep('dashboard-skill-create-page', [
         'create-page',
         context.appType,
@@ -1296,8 +1310,7 @@ function run(options = {}) {
       trackResource(registry, registryPath, { type: 'dashboard-skill', appType: context.appType, pageId: context.dashboardSkillPageId, name: `${config.prefix}_DashboardSkill`, url: dashboardSkillPage.url });
       runStep('dashboard-skill-publish', ['publish', dashboardSkillSourcePath, context.appType, context.dashboardSkillPageId, '--health-check', '--no-open']);
 
-      const businessDashboardSourcePath = writeTextFile(path.join(workDir, 'business-dashboard.oyd.jsx'), buildBusinessDashboardSource(config, context));
-      runStep('business-dashboard-check', ['check-page', businessDashboardSourcePath, '--json']);
+      const businessDashboardSourcePath = writeTextFile(path.join(workDir, 'business-dashboard.canvas.jsx'), buildBusinessDashboardSource(config, context));
       const businessDashboardPage = runStep('business-dashboard-create-page', [
         'create-page',
         context.appType,
@@ -1471,8 +1484,7 @@ function run(options = {}) {
     }
 
     if (context.appType) {
-      const dashboardSourcePath = writeTextFile(path.join(workDir, 'result-dashboard.oyd.jsx'), buildDashboardSource(config, context));
-      runStep('result-dashboard-check', ['check-page', dashboardSourcePath, '--json']);
+      const dashboardSourcePath = writeTextFile(path.join(workDir, 'result-dashboard.canvas.jsx'), buildDashboardSource(config, context));
       const dashboardPage = runStep('result-dashboard-create-page', [
         'create-page',
         context.appType,

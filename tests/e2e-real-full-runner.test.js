@@ -87,7 +87,7 @@ describe('full real E2E runner', () => {
       resultAppName: 'OY_E2E_FULL_PASSED',
       importAppName: 'OY_E2E_FULL_Imported',
       fieldsFile: path.join(__dirname, '..', 'scripts', 'e2e-real', 'fixtures', 'form-fields.json'),
-      pageSource: path.join(__dirname, '..', 'project', 'pages', 'src', 'demo-compat-smoke.oyd.jsx'),
+      pageSource: path.join(__dirname, '..', 'lib', 'samples', 'yida-canvas-custom-page', 'canvas.canvas.jsx'),
       registryDir: '/tmp/openyida-e2e-full-test',
       corpId: 'ding-test-corp',
       stages: ['auth', 'app', 'form', 'page', 'data', 'report', 'dashboard', 'batch', 'connector-local'],
@@ -140,8 +140,8 @@ describe('full real E2E runner', () => {
     expect(calls.some((args) => args[0] === 'create-page' && args[2] === 'OY_E2E_FULL_Dashboard')).toBe(true);
     expect(calls.some((args) => args[0] === 'create-page' && args[2] === 'OY_E2E_FULL_DashboardSkill')).toBe(true);
     expect(calls.some((args) => args[0] === 'create-page' && args[2] === 'OY_E2E_FULL_BusinessDashboard')).toBe(true);
-    expect(calls.some((args) => args[0] === 'check-page' && String(args[1]).includes('business-dashboard.oyd.jsx'))).toBe(true);
-    expect(calls.some((args) => args[0] === 'publish' && String(args[1]).includes('business-dashboard.oyd.jsx') && args[2] === 'APP_FULL' && args[3] === 'PAGE-FULL' && args.includes('--health-check'))).toBe(true);
+    expect(calls.some((args) => args[0] === 'check-page' && String(args[1]).includes('.canvas.'))).toBe(false);
+    expect(calls.some((args) => args[0] === 'publish' && String(args[1]).includes('business-dashboard.canvas.jsx') && args[2] === 'APP_FULL' && args[3] === 'PAGE-FULL' && args.includes('--health-check'))).toBe(true);
     expect(calls.some((args) => args[0] === 'publish' && args[2] === 'APP_FULL' && args[3] === 'PAGE-FULL')).toBe(true);
     expect(calls).toContainEqual(['update-app', 'APP_FULL', '--name', 'OY_E2E_FULL_PASSED', '--quiet']);
     expect(calls).toContainEqual(['data', 'get', 'form', 'APP_FULL', '--inst-id', 'INST-FULL', '--quiet']);
@@ -175,7 +175,7 @@ describe('full real E2E runner', () => {
       resultAppName: 'OY_E2E_PROC_PASSED',
       importAppName: 'OY_E2E_PROC_Imported',
       fieldsFile: path.join(__dirname, '..', 'scripts', 'e2e-real', 'fixtures', 'form-fields.json'),
-      pageSource: path.join(__dirname, '..', 'project', 'pages', 'src', 'demo-compat-smoke.oyd.jsx'),
+      pageSource: path.join(__dirname, '..', 'lib', 'samples', 'yida-canvas-custom-page', 'canvas.canvas.jsx'),
       registryDir: '/tmp/openyida-e2e-full-test',
       stages: ['app', 'form', 'process'],
     };

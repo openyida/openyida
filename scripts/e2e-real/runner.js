@@ -5,12 +5,17 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const {
+  DEFAULT_CANVAS_SOURCE,
+  collectFields,
+  prepareDefaultCanvasSource,
+} = require('./canvas-fixture');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const BIN = path.join(ROOT, 'bin', 'yida.js');
 const DEFAULT_REGISTRY_DIR = path.join(ROOT, 'project', '.cache', 'e2e-real');
 const DEFAULT_FIELDS_FILE = path.join(__dirname, 'fixtures', 'form-fields.json');
-const DEFAULT_PAGE_SOURCE = path.join(ROOT, 'lib', 'templates', 'yida-canvas-custom-page', 'dashboard-starter.canvas.jsx');
+const DEFAULT_PAGE_SOURCE = DEFAULT_CANVAS_SOURCE;
 
 function nowStamp(date = new Date()) {
   return date.toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
@@ -204,10 +209,22 @@ function run(options = {}) {
     ]));
     trackResource(registry, registryPath, { type: 'form', appType: app.appType, formUuid: form.formUuid, name: config.formName, url: form.url });
 
-    requireSuccess('get schema', runStep('get-schema', ['get-schema', app.appType, form.formUuid, '--json']));
+    const schema = requireSuccess('get schema', runStep('get-schema', ['get-schema', app.appType, form.formUuid, '--json']));
     requireSuccess('query data', runStep('query-data', ['data', 'query', 'form', app.appType, form.formUuid, '--size', '1']));
 
     if (!config.skipPublish) {
+      const pageSource = prepareDefaultCanvasSource({
+        sourcePath: config.pageSource,
+        outputPath: path.join(config.registryDir, config.prefix, 'current-scaffold.canvas.jsx'),
+        appType: app.appType,
+        formUuid: form.formUuid,
+        fields: collectFields(schema.content || schema),
+        writeText: (filePath, value) => {
+          fs.mkdirSync(path.dirname(filePath), { recursive: true });
+          fs.writeFileSync(filePath, value, 'utf8');
+          return filePath;
+        },
+      });
       const page = requireSuccess('create page', runStep('create-page', [
         'create-page',
         app.appType,
@@ -219,7 +236,7 @@ function run(options = {}) {
       trackResource(registry, registryPath, { type: 'page', appType: app.appType, pageId: page.pageId, name: config.pageName, url: page.url });
       requireSuccess('publish page', runStep('publish', [
         'publish',
-        config.pageSource,
+        pageSource,
         app.appType,
         page.pageId,
         '--health-check',

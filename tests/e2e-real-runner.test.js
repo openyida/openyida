@@ -10,6 +10,9 @@ const {
   parseLastJson,
   run,
 } = require('../scripts/e2e-real/runner');
+const {
+  configureCanvasScaffold,
+} = require('../scripts/e2e-real/canvas-fixture');
 
 describe('real E2E runner', () => {
   test('stays opt-in by default', () => {
@@ -34,6 +37,35 @@ describe('real E2E runner', () => {
       appType: 'APP_NEW',
       nested: { ok: true },
     });
+  });
+
+  test('fills the current Canvas scaffold with exact live resource IDs', () => {
+    const source = [
+      "const APP_TYPE = '';",
+      "const FORM_UUIDS = { primary: '' };",
+      'const FIELDS = {',
+      '  primary: {',
+      "    title: '',",
+      "    status: '',",
+      "    owner: '',",
+      "    updatedAt: '',",
+      '  },',
+      '};',
+    ].join('\n');
+    const configured = configureCanvasScaffold(source, {
+      appType: 'APP_EXACT_123',
+      formUuid: 'FORM-EXACT-456',
+      fields: [
+        { label: 'E2E Text', fieldId: 'textField_exact789' },
+        { label: 'E2E Status', fieldId: 'selectField_exact012' },
+        { label: 'E2E Number', fieldId: 'numberField_exact345' },
+      ],
+    });
+
+    expect(configured).toContain('const APP_TYPE = "APP_EXACT_123";');
+    expect(configured).toContain('const FORM_UUIDS = { primary: "FORM-EXACT-456" };');
+    expect(configured).toContain('status: "selectField_exact012"');
+    expect(configured).toContain('updatedAt: "numberField_exact345"');
   });
 
   test('runs the real E2E command chain and records resources', () => {
