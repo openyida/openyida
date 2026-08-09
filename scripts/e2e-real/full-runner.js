@@ -478,7 +478,7 @@ function statusRow(name, index) {
         fontSize: 13,
         fontWeight: 800,
         flex: '0 0 auto',
-      }}>✓</span>
+      }}>OK</span>
       <span>{name}</span>
     </div>
   );
@@ -687,7 +687,7 @@ export default function Page() {
         <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, 420px)', gap: 14 }}>
           <div style={{ background: '#fff', border: '1px solid #d9e2ef', borderRadius: 8, padding: 18 }}>
             <div style={{ fontSize: 18, fontWeight: 850, marginBottom: 12 }}>Dashboard Skill Checks</div>
-            {CHECKS.map(function (item) { return <div key={item} style={{ padding: '10px 0', borderBottom: '1px solid #edf1f7', color: '#344054' }}>✓ {item}</div>; })}
+            {CHECKS.map(function (item) { return <div key={item} style={{ padding: '10px 0', borderBottom: '1px solid #edf1f7', color: '#344054' }}>OK {item}</div>; })}
           </div>
           <div style={{ background: '#101828', borderRadius: 8, padding: 18, color: '#e5e7eb' }}>
             <div style={{ fontSize: 18, fontWeight: 850, marginBottom: 12 }}>Resource Binding</div>

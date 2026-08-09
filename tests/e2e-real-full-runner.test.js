@@ -74,6 +74,18 @@ describe('full real E2E runner', () => {
     expect(findValueByKeys({ content: { formInstId: 'FORM-INST-1' } }, ['formInstId'])).toBe('FORM-INST-1');
   });
 
+  test('keeps generated Canvas acceptance pages free of emoji', () => {
+    const config = { prefix: 'OY_E2E', resultAppName: 'OY_E2E_PASSED' };
+    const context = { appType: 'APP_E2E', formUuid: 'FORM-E2E', pageId: 'PAGE-E2E' };
+    const sources = [
+      buildDashboardSource(config, context),
+      buildDashboardSkillSource(config, context),
+      buildBusinessDashboardSource(config, context),
+    ];
+
+    expect(sources.join('\n')).not.toContain('✓');
+  });
+
   test('runs a selected full-stage chain with mocked CLI calls', () => {
     const calls = [];
     const registry = { resources: [], commands: [] };
