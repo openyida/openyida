@@ -1077,6 +1077,13 @@ describe('CLI offline smoke', () => {
           ],
           join_owner_skill_id: 'yida-app',
         },
+        canvas_binding_contract: {
+          field_map_shape: 'FIELDS.<formKey> matches FORM_UUIDS.<formKey>',
+          validation_timing: 'before_remote_publish',
+          validation_source: 'live_app_form_list_and_form_schema',
+          failure_code: 'CANVAS_BINDING_VALIDATION_FAILED',
+          auto_correct: false,
+        },
       },
       builder_path: {
         schema_version: 1,
