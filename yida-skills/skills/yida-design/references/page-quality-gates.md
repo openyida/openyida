@@ -97,12 +97,12 @@
 - 卡片、列表、图表和右侧上下文的容器形态要有差异，不能全部是同一种白卡片。
 - 渐变背景上的卡片必须是玻璃感材质；不能把普通白卡直接贴在渐变背景上。
 
-## 6. 双文件输出门禁
+## 6. PRD 引用与 design.md 门禁
 
-每个完整应用设计必须输出两份文件：
+完整应用交付时必须能读到两类设计输入：
 
-- `prd/<项目名>/prd.md`：业务、资源、页面结构、数据来源、主操作、顺序和验收。
-- `prd/<项目名>/design.md`：主题 token、视觉 DNA、布局密度、表面材质、场景配方、组件规则和状态规则。
+- `prd/<项目名>/prd.md`：由 `yida-prd` 生成，提供业务、资源、页面结构、数据来源、主操作、顺序和验收。
+- `prd/<项目名>/design.md`：由 `yida-design` 生成，提供主题 token、视觉 DNA、布局密度、表面材质、场景配方、组件规则和状态规则。
 
 每个 display 页面在 PRD 中必须输出薄 `pageSpecHandoff`，并至少包含：
 
@@ -122,4 +122,4 @@
 
 `design.md` 还必须写清 `densityRule`、`breathingRule` 与 `roundedRule`。缺少圆角、间距、呼吸节奏、状态摘要高度、列表行高或空态高度的具体数值时，不能交付给页面技能。
 
-缺少 `pageSpecHandoff`、缺少 `design.md`、或 `pageSpecHandoff` 没有引用 `designFile/designRefs` 时，Step 6 不算完成。
+缺少 `design.md`，或已有 PRD 的 `pageSpecHandoff` 没有引用 `designFile/designRefs` 时，Step 6 不算完成。缺少 `pageSpecHandoff` 时，提示回到 `yida-prd` 补齐。

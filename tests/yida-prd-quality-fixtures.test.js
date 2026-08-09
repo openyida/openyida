@@ -9,9 +9,9 @@ function read(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
 }
 
-describe('yida-design PRD quality fixtures', () => {
-  test('fixture prompts assert pageSpecHandoff and visualScaffold primitives', () => {
-    const fixturePath = 'scripts/eval/scenarios/yida-design-prd-quality.json';
+describe('yida-prd PRD quality fixtures', () => {
+  test('fixture prompts assert pageSpecHandoff and design handoff primitives', () => {
+    const fixturePath = 'scripts/eval/scenarios/yida-prd-quality.json';
     const scenarios = JSON.parse(read(fixturePath));
 
     expect(scenarios).toHaveLength(4);
@@ -23,7 +23,7 @@ describe('yida-design PRD quality fixtures', () => {
     ]);
 
     for (const scenario of scenarios) {
-      expect(scenario.expectedSkill).toBe('yida-design');
+      expect(scenario.expectedSkill).toBe('yida-prd');
       expect(scenario.requiredPatterns).toEqual(expect.arrayContaining([
         'pageSpecHandoff',
         'prd.md',
@@ -31,19 +31,6 @@ describe('yida-design PRD quality fixtures', () => {
         'designFile',
         'designRefs',
         'contentBlocks',
-        'prioritySurface',
-        'contentPrimitive',
-        'statePrimitive',
-        'backgroundLayer',
-        'surfaceMaterial',
-        'surfaceContrast',
-        'colorRoles',
-        'densityRule',
-        'breathingRule',
-        'roundedRule',
-        'themePresetKey',
-        'shouldPassCreateAppTheme',
-        'globalThemeInjection',
       ]));
       expect(scenario.forbiddenPatterns.length).toBeGreaterThan(0);
     }
@@ -76,16 +63,17 @@ describe('yida-design PRD quality fixtures', () => {
     expect(template).toContain('gray-bg-white-card');
   });
 
-  test('design skill uses prd.md and design.md instead of scene docs', () => {
+  test('prd and design skills use prd.md and design.md instead of scene docs', () => {
     const scenesDir = path.join(ROOT, 'yida-skills/skills/yida-design/references', 'scenes');
+    const prd = read('yida-skills/skills/yida-prd/SKILL.md');
     const skill = read('yida-skills/skills/yida-design/SKILL.md');
-    const step3 = read('yida-skills/skills/yida-design/workflow/step-3-information-architecture.md');
+    const step3 = read('yida-skills/skills/yida-prd/workflow/step-3-information-architecture.md');
     const step5 = read('yida-skills/skills/yida-design/workflow/step-5-visual-states.md');
     const pageGeneration = read('yida-skills/skills/yida-canvas-custom-page/references/page-generation-guide.md');
 
     expect(fs.existsSync(scenesDir)).toBe(false);
-    expect(skill).toContain('设计事实源唯一');
-    expect(skill).toContain('页面 `scene` 只作为分类标签');
+    expect(prd).toContain('本技能负责生成 `prd/<项目名>/prd.md`');
+    expect(skill).toContain('本技能负责生成 `prd/<项目名>/design.md`');
     expect(step3).toContain('页面 `scene` 只作为分类标签和实现提示，不作为页面模板');
     expect(step5).toContain('同一个 `prd/<项目名>/design.md`');
     expect(pageGeneration).toContain('强视觉品牌以 PRD 的素材清单和 `design.md.assetStrategy` 为准');

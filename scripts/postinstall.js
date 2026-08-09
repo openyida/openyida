@@ -270,7 +270,7 @@ openyida copy
 
 新建自定义页面默认使用 Code Canvas，页面实现交给 \`yida-canvas-custom-page\`。OpenYida 只提供一份完整 \`canvas.canvas.jsx\` 脚手架，内置 13 个 Yida API、主题、表单提交/详情抽屉、URL 构造、实例 ID 校验、iframe 主题同步和基础状态。用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 的 \`Jsx\` / \`renderJsx\` 页面，或必须使用 Canvas 当前不具备的普通页面实例能力时，交给 \`yida-custom-page\`。
 
-\`yida-design\` 输出 \`prd/<项目名>/prd.md\` 与 \`prd/<项目名>/design.md\`。后续技能读取这两份文件，再继续创建表单、页面和导航。
+\`yida-prd\` 输出 \`prd/<项目名>/prd.md\`，\`yida-design\` 输出 \`prd/<项目名>/design.md\`。后续技能读取这两份文件，再继续创建表单、页面和导航。
 
 完整应用按步骤加载对应子技能。示例数据、精细导航分组、截图验收、公开访问、数据源深接、数据管理和原生报表是否执行，以 \`yida-app\` 阶段表和用户需求为准。
 
@@ -282,7 +282,7 @@ openyida copy
 | --- | --- | --- |
 | \`yida-skills/context\` | 登录、退出、组织信息、Schema、fieldId、只读预检 | \`yida-login\`, \`yida-logout\`, \`yida-basic-info\`, \`yida-get-schema\`, \`yida-corp-efficiency\` |
 | \`yida-skills/app\` | 从零搭应用、导航、多语言 | \`yida-app\`, \`yida-create-app\`, \`yida-nav-group\`, \`yida-i18n\` |
-| \`yida-skills/design\` | 完整应用产品设计、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、PRD 和 design.md | \`yida-design\` |
+| \`yida-skills/design\` | PRD 生成、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、design.md | \`yida-prd\`, \`yida-design\` |
 | \`yida-skills/form\` | 表单字段、公式、校验、业务规则、详情页、批量录入、数据记录 | \`yida-create-form-page\`, \`yida-formula\`, \`yida-formula-evaluate\`, \`yida-business-rule\`, \`yida-form-detail\`, \`yida-canvas-table-form\`, \`yida-table-form\`, \`yida-data-management\` |
 | \`yida-skills/process\` | 审批、流程表单、流程规则、代理人 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\` |
 | \`yida-skills/page\` | 自定义展示页、Code Canvas、已有普通自定义页面维护、发布、导航壳、PPT | \`yida-create-page\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\` |

@@ -108,4 +108,4 @@ design.md Theme Profile：
 
 ## 下一步
 
-→ [Step 3：规划页面和导航](step-3-information-architecture.md)
+→ [Step 3：页面结构和交互设计](step-4-wireframe-interaction.md)

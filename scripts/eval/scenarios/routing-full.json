@@ -679,14 +679,14 @@
     "prompt": "帮我确定一下这个自定义页面应该走什么视觉方向，科技感还是简约风",
     "expectedSkill": "yida-design",
     "type": "positive",
-    "note": "自定义页面 PRD"
+    "note": "自定义页面视觉方向"
   },
   {
     "id": "design-pos-2",
     "prompt": "这个页面的整体 UI 风格该怎么定？帮我出个设计方案",
     "expectedSkill": "yida-design",
     "type": "positive",
-    "note": "页面 UI/UX PRD"
+    "note": "页面 UI/UX 视觉方案"
   },
   {
     "id": "design-neg-1",

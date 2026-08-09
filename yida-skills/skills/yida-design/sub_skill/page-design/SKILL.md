@@ -11,7 +11,7 @@ description: 宜搭单页设计子流程。用于已有应用里的单个自定�
 
 单页设计和页面重构先确认当前应用主题，同时记录现有功能契约，再决定页面级主题是跟随、增强还是局部差异化。页面美感提升默认属于 UI-only 改造：换颜色、布局、密度、间距、视觉层级、素材和图标表达，业务功能保持原样。
 
-| 证据来源 | 读取内容 | 写入 PRD |
+| 证据来源 | 读取内容 | 写入设计上下文 |
 | --- | --- | --- |
 | 用户给出的应用 URL、`appType`、页面 URL、resource context | 目标应用、目标页面、页面所处业务上下文 | `appType`、`pageFormUuid`、`themeEvidence.source` |
 | `project/config.json`、`.cache/<项目名>-schema.json`、`.openyida-page.json` | 已记录的 app/page/form、themeProfile、themeScope、页面视觉摘要 | `themeEvidence.source=workspace` |
@@ -26,12 +26,10 @@ description: 宜搭单页设计子流程。用于已有应用里的单个自定�
 | 步骤 | 复用文件 | 单页执行重点 |
 | --- | --- | --- |
 | 1 | 本文件：读取应用主题与功能契约 | 获取 `currentAppTheme`、`currentPageTheme`、`themeEvidence`、`functionContract` |
-| 2 | [分析需求和资源](../../workflow/step-1-positioning.md) | 聚焦当前页面的用户、任务、业务对象和 UI-only 改造目标 |
-| 3 | [选择主题色和 token](../../workflow/step-2-theme-system.md) | 基于 Step 1 的应用主题，优先跟随应用主题；强差异化诉求再决定 `themeScope=page` 独立覆盖 |
-| 4 | [规划页面和导航](../../workflow/step-3-information-architecture.md) | 只补当前页与平台导航、上游入口、下钻页面、原生表单/流程的关系 |
-| 5 | [页面结构和交互设计](../../workflow/step-4-wireframe-interaction.md) | 明确布局骨架、主操作、详情抽屉、表单提交入口和 PC/移动端差异 |
-| 6 | [UI 视觉和状态设计](../../workflow/step-5-visual-states.md) | 细化当前页视觉、素材、图标、空态、加载态、错误态和业务化自检 |
-| 7 | [写入 prd.md 和 design.md](../../workflow/step-6-handoff.md) | 输出单页 PRD 章节，交给 Code Canvas 或普通自定义页实现 |
+| 2 | [选择主题色和 token](../../workflow/step-2-theme-system.md) | 基于 Step 1 的应用主题，优先跟随应用主题；强差异化诉求再决定 `themeScope=page` 独立覆盖 |
+| 3 | [页面结构和交互设计](../../workflow/step-4-wireframe-interaction.md) | 明确布局骨架、主操作、详情抽屉、表单提交入口和 PC/移动端差异 |
+| 4 | [UI 视觉和状态设计](../../workflow/step-5-visual-states.md) | 细化当前页视觉、素材、图标、空态、加载态、错误态和业务化自检 |
+| 5 | [写入 design.md](../../workflow/step-6-handoff.md) | 输出单页设计补充，交给 Code Canvas 或普通自定义页实现 |
 
 ## 主题决策口径
 
@@ -45,7 +43,7 @@ description: 宜搭单页设计子流程。用于已有应用里的单个自定�
 
 ## 输出补充字段
 
-在 [PRD 输出格式](../../workflow/output-prd.md) 和 [design.md 输出格式](../../workflow/output-design.md) 基础上补充：
+在 [design.md 输出格式](../../workflow/output-design.md) 基础上补充：
 
 ```markdown
 - themeEvidence：<source/status/currentAppTheme/currentPageTheme>

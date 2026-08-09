@@ -69,7 +69,7 @@ openyida nav-group order <appType> <formUuid|navUuid|name> [more items...]
 openyida nav-group auto-order <appType>
 ```
 
-`order` 会把列出的导航项按给定顺序移动到根导航靠前位置，未列出的系统导航、表单、页面、分组保持相对顺序并跟在后面。适合消费 `yida-design` 的 `prd.md` 导航顺序，一次性整理用户入口。
+`order` 会把列出的导航项按给定顺序移动到根导航靠前位置，未列出的系统导航、表单、页面、分组保持相对顺序并跟在后面。适合消费 `yida-prd` 的 `prd.md` 导航顺序，一次性整理用户入口。
 
 `auto-order` 会读取当前根导航并按默认优先级排序：门户/首页/工作台入口 > 自定义展示页面 > 流程表单 > 普通表单；系统导航保持在系统区域，未识别分组和其他项排在后面。适合 PRD 没有明确页面清单时做轻量兜底。
 

@@ -1,12 +1,12 @@
 # yida-app 执行细节参考
 
-本文件只记录完整应用落地时的执行细节。完整应用阶段表见 `../workflow/build-stages.md`；`prd.md` 与 `design.md` 的定义和验收归 `yida-design`。
+本文件只记录完整应用落地时的执行细节。完整应用阶段表见 `../workflow/build-stages.md`；`prd.md` 的定义和验收归 `yida-prd`，`design.md` 的定义和验收归 `yida-design`。
 
 ## PRD / design.md / page-spec 关系
 
 `yida-app` 只认四个关系：
 
-1. `prd.md` 由 `yida-design` 产出，作为业务输入。
+1. `prd.md` 由 `yida-prd` 产出，作为业务输入。
 2. `design.md` 由 `yida-design` 产出，作为视觉输入。
 3. `page-spec.json` 是页面实现阶段按需派生的产物。
 4. Code Canvas 实现规则归 `yida-canvas-custom-page`。

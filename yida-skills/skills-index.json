@@ -23,7 +23,7 @@
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
-      "description": "完整应用编排。用于从零搭建或补齐一个宜搭应用。读取 yida-design 的 prd.md/design.md，按依赖加载子技能，发布主页面，返回主入口链接。",
+      "description": "完整应用编排。用于从零搭建或补齐一个宜搭应用。读取 yida-prd 的 prd.md 和 yida-design 的 design.md，按依赖加载子技能，发布主页面，返回主入口链接。",
       "done_when": "主页面已发布，或说明没有发布证据/阻塞原因；导航排序已执行或说明跳过原因；final 用 2-3 句业务总结 + 一个主入口链接，不输出资源表。",
       "category": "yida-skills/app",
       "tags": [
@@ -40,16 +40,50 @@
       ]
     },
     {
+      "name": "yida-prd",
+      "path": "skills/yida-prd/SKILL.md",
+      "display_name": "宜搭 PRD 生成",
+      "description": "宜搭 PRD 生成。输出 prd/<项目名>/prd.md。只写业务事实、资源蓝图、页面结构、数据关系、顺序和验收，不写 design.md 和页面源码。",
+      "category": "yida-skills/design",
+      "tags": [
+        "PRD",
+        "产品设计",
+        "需求分析",
+        "资源蓝图",
+        "页面结构",
+        "导航顺序"
+      ],
+      "aliases": [
+        "PRD生成",
+        "产品需求文档",
+        "需求文档"
+      ],
+      "positive_signals": [
+        "生成 PRD",
+        "产品需求文档",
+        "资源蓝图",
+        "页面结构规划",
+        "导航顺序",
+        "字段业务语义"
+      ],
+      "negative_signals": [
+        "页面美化",
+        "视觉设计",
+        "主题 token",
+        "发布页面"
+      ],
+      "command_ids": [],
+      "done_when": "已输出 prd/<项目名>/prd.md；没有写 design.md 或页面源码。"
+    },
+    {
       "name": "yida-design",
       "path": "skills/yida-design/SKILL.md",
-      "display_name": "宜搭应用设计",
-      "description": "宜搭产品与视觉设计。输出 prd/<项目名>/prd.md 和 prd/<项目名>/design.md。只写业务结构和设计规则，不写页面源码。",
+      "display_name": "宜搭视觉设计",
+      "description": "宜搭 design.md 生成。输出 prd/<项目名>/design.md。只写主题、视觉 DNA、布局、组件、状态和页面实现交接规则，不写 prd.md 和页面源码。",
       "category": "yida-skills/design",
       "tags": [
         "应用设计",
         "ui_skill",
-        "产品设计",
-        "页面结构",
         "页面视觉",
         "主题",
         "去 AI 味"
@@ -59,7 +93,6 @@
         "UI设计",
         "视觉设计",
         "视觉规范",
-        "页面结构规划",
         "页面美化",
         "应用主题",
         "品牌色"
@@ -72,8 +105,6 @@
         "去 AI 味",
         "高级感",
         "品牌化",
-        "页面结构规划",
-        "导航分组",
         "应用主题色",
         "全局换肤"
       ],
@@ -84,7 +115,7 @@
         "数据记录操作"
       ],
       "command_ids": [],
-      "done_when": "已输出 prd/<项目名>/prd.md 和 prd/<项目名>/design.md；没有写页面源码。"
+      "done_when": "已输出 prd/<项目名>/design.md；没有写 prd.md 或页面源码。"
     },
     {
       "name": "yida-app-permission",
@@ -711,7 +742,7 @@
       "name": "yida-flash-note-to-prd",
       "path": "skills/yida-flash-note-to-prd/SKILL.md",
       "display_name": "闪记转会议需求稿",
-      "description": "从已有钉钉闪记、会议记录或需求文档内容中提取产品需求，生成会议需求稿到 prd/<项目名>/prd.md。完整应用 PRD 和 design.md 由 yida-design 承接。",
+      "description": "从已有钉钉闪记、会议记录或需求文档内容中提取产品需求，生成会议需求稿到 prd/<项目名>/prd.md。完整应用 PRD 由 yida-prd 承接，design.md 由 yida-design 承接。",
       "category": "yida-skills/agent",
       "tags": [
         "闪记",

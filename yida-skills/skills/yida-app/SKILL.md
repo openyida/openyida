@@ -1,6 +1,6 @@
 ---
 name: yida-app
-description: 完整应用编排。用于从零搭建或补齐一个宜搭应用。读取 yida-design 的 prd.md/design.md，按依赖加载子技能，发布主页面，返回主入口链接。
+description: 完整应用编排。用于从零搭建或补齐一个宜搭应用。读取 yida-prd 的 prd.md 和 yida-design 的 design.md，按依赖加载子技能，发布主页面，返回主入口链接。
 ---
 
 # yida-app — 完整应用统一编排
@@ -22,7 +22,7 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 
 ## 核心边界
 
-1. **设计产物**：`prd.md` 与 `design.md` 由 `yida-design` 定义、产出和验收；本技能只读取这两份文件。
+1. **设计产物**：`prd.md` 由 `yida-prd` 生成；`design.md` 由 `yida-design` 生成；本技能只读取这两份文件。
 2. **页面实现**：`page-spec.json` 是页面阶段按需派生的产物；Code Canvas 实现规则交给 `yida-canvas-custom-page`。
 3. **资源优先**：已有 app/page/form/process 默认复用；目标缺失且本次意图允许创建时，才加载 create 类子技能。
 4. **发布要求**：本轮修改页面源码后，final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`。
@@ -42,7 +42,8 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 
 | 子技能 | 何时加载 |
 | --- | --- |
-| `yida-design` | 阶段 2 加载，生成 `prd.md` 与 `design.md` |
+| `yida-prd` | 阶段 2A 加载，生成 `prd.md` |
+| `yida-design` | 阶段 2B 加载，生成 `design.md` |
 | `yida-create-app` | app 缺失且本次意图允许创建时加载 |
 | `yida-form-detail` / `yida-create-form-page` | 创建或更新原生表单字段结构时加载；字段、分组、校验和规则写 `.form.json` |
 | `yida-create-process` | PRD 命中审批、流程、申请、审核或工单对象时加载 |
@@ -84,5 +85,6 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 - [完整应用阶段](workflow/build-stages.md)：阶段 1-7，按依赖加载子技能，seed records 与页面实现可并行。
 - [最终输出](workflow/final-output.md)：阶段 9，判断完成并输出主入口。
 - [详细编排参考](references/app-build-contract.md)：排障、URL 规则、字段文件样例、seed records 细则、删除应用确认和故障处理。
-- `use_skill("yida-design", "完整应用产品设计")`：生成 `prd.md` 与 `design.md`。
+- `use_skill("yida-prd", "完整应用 PRD 生成")`：生成 `prd.md`。
+- `use_skill("yida-design", "完整应用视觉设计")`：生成 `design.md`。
 - `use_skill("yida-canvas-custom-page", "实现 Code Canvas 页面")`：完整应用页面实现链路。

@@ -115,4 +115,4 @@
 
 ## 下一步
 
-→ [Step 6：写入 prd.md 和 design.md](step-6-handoff.md)
+→ [Step 5：写入 design.md](step-6-handoff.md)

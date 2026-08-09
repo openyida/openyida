@@ -55,4 +55,4 @@
 
 ## 下一步
 
-→ [Step 2：选择主题色和 token](step-2-theme-system.md)
+→ [Step 2：规划页面和导航](step-3-information-architecture.md)

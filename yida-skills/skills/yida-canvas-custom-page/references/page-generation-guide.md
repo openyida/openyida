@@ -1,10 +1,10 @@
 # Code Canvas 页面实现入口
 
-Code Canvas 消费 `yida-design` 输出的 `prd.md` 与 `design.md`，或单页 PRD 章节 + design spec，把页面场景、区块、主题、交互、数据绑定和素材清单实现成 `.canvas.jsx` / `.canvas.tsx`。
+Code Canvas 消费 `yida-prd` 输出的 `prd.md` 和 `yida-design` 输出的 `design.md`，或单页 PRD 章节 + design spec，把页面场景、区块、主题、交互、数据绑定和素材清单实现成 `.canvas.jsx` / `.canvas.tsx`。
 
 ## 页面场景到实现入口
 
-用户描述页面目标后，先读取 `yida-design` 的 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md`，或单页 PRD 章节和对应 design spec。PRD 用来确认页面场景、区块、数据来源、主操作和移动端要求；design.md 用来确认主题色、页面风格、视觉 DNA、布局配方、材质、圆角、密度、呼吸感、组件和状态规则。实现时按下表选择页面结构；页面结构、数据桥和样式细节已经明确时，直接手写 `.canvas.jsx`。
+用户描述页面目标后，先读取 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md`，或单页 PRD 章节和对应 design spec。PRD 用来确认页面场景、区块、数据来源、主操作和移动端要求；design.md 用来确认主题色、页面风格、视觉 DNA、布局配方、材质、圆角、密度、呼吸感、组件和状态规则。实现时按下表选择页面结构；页面结构、数据桥和样式细节已经明确时，直接手写 `.canvas.jsx`。
 
 结构化实现工具提供可编译运行时结构、数据桥、主题变量和基础 primitives。真实业务页结合 `prd.md` 落地业务化区块顺序、数据和文案，结合 `design.md` 落地信息层级、局部构图和样式节奏。
 
@@ -112,7 +112,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 
 ## 主题实现
 
-主题色决策来自 `yida-design` 的 `design.md`，业务场景和页面边界来自 `prd.md` 或派生的 `page-spec.json`。页面重构 / 局部美化先以当前应用主题为基准；缺少主题证据时，按业务气质选择平台预置主题或自定义 token，不固定回到 `podBlue` / #1677ff。`themeProfile: { "name": "yida-app-theme" }` 表示跟随宜搭运行态主题：线上由 `style#yida-global-theme` 的 `--color-brand1-*` 和 `--color-group` 决定页面主色、图表色组和局部强调色。
+主题色决策来自 `design.md`，业务场景和页面边界来自 `prd.md` 或派生的 `page-spec.json`。页面重构 / 局部美化先以当前应用主题为基准；缺少主题证据时，按业务气质选择平台预置主题或自定义 token，不固定回到 `podBlue` / #1677ff。`themeProfile: { "name": "yida-app-theme" }` 表示跟随宜搭运行态主题：线上由 `style#yida-global-theme` 的 `--color-brand1-*` 和 `--color-group` 决定页面主色、图表色组和局部强调色。
 
 `page-spec.json` 只保存与 design.md 一致的主题摘要。只有平台预置 key 才能传给应用 `theme/colour`；自定义主题名必须在 design.md 中配套输出 tokens。新建 Canvas 页面使用 `canvas.canvas.jsx` 内置主题能力和 iframe 同步能力；旧源码缺少主题同步时，再参考 `theme-runtime-helpers.md` 补齐。
 
@@ -143,15 +143,15 @@ PRD 给出品牌色、色值、独立品牌/活动页诉求，或明确要求做
 | `researchLevel` | 官网/落地页调研深度：`none/light/enhanced/deep` | landing 默认 `light` |
 | `sourceOfTruth` | `prdFile`、`designFile`、`designRefs`、`conflictPolicy` | 必填，来自当前项目 PRD 与 design.md |
 | `appBlueprint` | 应用名、角色、导航分组、页面组合、壳形态 | 单页自动生成当前页 entry |
-| `resourceBlueprint` | 完整应用的主页面、业务页面、普通表单、流程表单和报表资源 | 来自 `yida-design` |
+| `resourceBlueprint` | 完整应用的主页面、业务页面、普通表单、流程表单和报表资源 | 来自 `yida-prd` |
 | `archetype` | 页面类型，如 `overview/analysis/monitor/profile` | 按 scene 推断 |
 | `interactionProfile` | 主操作、详情方式、批量动作、空/载/错状态 | 按 scene 推断 |
 | `functionContract` | 页面美感提升时保留的数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限、状态 | 现有页面契约 |
 | `insights` | 看板/报告/工作台的数据洞察 | 无则空数组或场景默认洞察 |
-| `designFile` | 当前项目设计契约路径 | 来自 `yida-design` Step 5 |
+| `designFile` | 当前项目设计契约路径 | 来自 `yida-design` |
 | `designRefs` | 当前页面引用的 design.md 章节 ID | 来自 PRD 的 pageSpecHandoff |
 | `themeSummary` | 应用主题色、风格关键词、themeScope 摘要 | 来自 PRD 摘要，必须与 design.md 一致 |
-| `contentBlocks` | 页面区块清单，工作台/首页/门户/看板/展示页/业务入口页不少于 10 个有业务目的的区块；KPI 组、快捷入口组、列表组各只算 1 个区块 | 来自 `yida-design` Step 4 |
+| `contentBlocks` | 页面区块清单，工作台/首页/门户/看板/展示页/业务入口页不少于 10 个有业务目的的区块；KPI 组、快捷入口组、列表组各只算 1 个区块 | 来自 `yida-prd`；视觉结构补充来自 `yida-design` |
 | `domainFidelity` | 实现后由 CLI 回填，标记业务化程度 | 无需手写 |
 
 示例：

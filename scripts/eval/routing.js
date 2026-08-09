@@ -73,7 +73,7 @@ function buildRoutingPrompt({ request, routingContext, skillNames }) {
     '',
     '要求：',
     '- skill 必须是上面可选子技能名之一。',
-    '- 不要输出 mode；完整应用搭建统一由 yida-app 编排，需求分析和产品设计由 yida-design 承担。',
+    '- 不要输出 mode；完整应用搭建统一由 yida-app 编排，PRD 生成由 yida-prd 承担，视觉设计由 yida-design 承担。',
     '- defaultLoadSkills 只列默认会加载的技能；optionalAfterDone 不要列入默认加载。',
   ].join('\n');
 }

@@ -1,6 +1,6 @@
 # 宜搭普通自定义页面样式实现适配
 
-> **本文件是普通 JSX 的 token / 组件实现适配层（数值层）**：提供色彩、圆角、字体、间距的具体值与组件模板，不产出配色、视觉 DNA 或页面风格。设计事实唯一来自 `yida-design` 输出的 `prd.md` 与 `design.md`；本文件只负责把 `design.md` 的视觉方向落到普通自定义页面的内联样式、Tailwind className、组件和状态上。
+> **本文件是普通 JSX 的 token / 组件实现适配层（数值层）**：提供色彩、圆角、字体、间距的具体值与组件模板，不产出配色、视觉 DNA 或页面风格。设计事实来自 `yida-prd` 输出的 `prd.md` 和 `yida-design` 输出的 `design.md`；本文件只负责把 `design.md` 的视觉方向落到普通自定义页面的内联样式、Tailwind className、组件和状态上。
 
 > 宜搭自定义页面默认使用 Tailwind utility `className` 组织视觉层，并保留内联 `style` 兜底。不能使用 CSS 文件、CSS Modules、shadcn/ui 或构建期样式方案。
 

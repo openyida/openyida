@@ -67,4 +67,4 @@
 
 ## 下一步
 
-→ [Step 4：页面结构和交互设计](step-4-wireframe-interaction.md)
+→ [PRD 输出格式](output-prd.md)

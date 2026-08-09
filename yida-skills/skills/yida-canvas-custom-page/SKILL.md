@@ -9,7 +9,7 @@ description: 宜搭 Code Canvas / 代码画布自定义页面实现规则。新�
 
 Code Canvas 是宜搭的代码画布自定义页面链路：用户写标准 React18 函数组件源码，OpenYida 本地编译为 `runtimeCode` + `importedModules`，运行时由 `YidaCodeCanvas` 加载前端资源并执行 `YidaComp`。
 
-页面设计输入来自 `yida-design` 输出的 `prd.md` 和 `design.md`。本技能负责把这两份文件落到 `.canvas.jsx` / `.canvas.tsx`、数据桥、表单入口和发布验收。
+页面设计输入来自 `yida-prd` 输出的 `prd.md` 和 `yida-design` 输出的 `design.md`。本技能负责把这两份文件落到 `.canvas.jsx` / `.canvas.tsx`、数据桥、表单入口和发布验收。
 
 本技能负责 Code Canvas 页面实现规则：`page-spec.json` 派生、数据绑定、主题落地、运行态组件、源码修复、编译和发布前校验，都由本技能或本技能明确调用的确定性脚本处理。
 
@@ -60,7 +60,7 @@ openyida agent-capabilities --summary-json
 # 2. 如需新页面，先创建空白自定义页拿 formUuid
 openyida create-page <appType> "<页面名>"
 
-# 3. 按 yida-design 的 prd.md + design.md 生成或编写 Canvas 源码；结构化实现路径再读取派生 page-spec.json
+# 3. 按 yida-prd 的 prd.md + yida-design 的 design.md 生成或编写 Canvas 源码；结构化实现路径再读取派生 page-spec.json
 # 结构化实现路径：先从 prd.md + design.md 派生 page-spec.json，生成可编译骨架后基于 manifest/摘要做小范围 patch。
 # 手写路径：已明确最终页面结构、数据桥和样式细节时，直接 Write 最终 .canvas.jsx。
 

@@ -45,7 +45,7 @@
 
 ## PRD/design 归属
 
-`prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md` 的生成规则、补齐要求和验收口径由 `yida-design` 负责。其他技能只读取这两份文件，并把真实 `appType`、`formUuid`、`fieldId` 等 ID 写入 `.cache/<项目名>-schema.json`。
+`prd/<项目名>/prd.md` 的生成规则、补齐要求和验收口径由 `yida-prd` 负责。`prd/<项目名>/design.md` 的生成规则、补齐要求和验收口径由 `yida-design` 负责。其他技能只读取这两份文件，并把真实 `appType`、`formUuid`、`fieldId` 等 ID 写入 `.cache/<项目名>-schema.json`。
 
 ## 临时文件规范
 
