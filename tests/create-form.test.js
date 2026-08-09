@@ -9,9 +9,13 @@ const { spawnSync } = require('child_process');
 const CREATE_FORM_PATH = path.join(__dirname, '..', 'lib', 'app', 'create-form.js');
 const BIN_PATH = path.join(__dirname, '..', 'bin', 'yida.js');
 const FORM_COMPILER_PATH = path.join(__dirname, '..', 'lib', 'app', 'services', 'form-compiler.js');
+const FORM_SCHEMA_BUILDER_PATH = path.join(__dirname, '..', 'lib', 'app', 'services', 'form-schema-builder.js');
+const FORM_RUNTIME_PATH = path.join(__dirname, '..', 'lib', 'app', 'services', 'form-runtime.js');
 const FORM_VALIDATION_PATH = path.join(__dirname, '..', 'lib', 'app', 'services', 'form-validation.js');
 const sourceCode = fs.readFileSync(CREATE_FORM_PATH, 'utf-8');
 const compilerSourceCode = fs.readFileSync(FORM_COMPILER_PATH, 'utf-8');
+const formSchemaBuilderSourceCode = fs.readFileSync(FORM_SCHEMA_BUILDER_PATH, 'utf-8');
+const formRuntimeSourceCode = fs.readFileSync(FORM_RUNTIME_PATH, 'utf-8');
 const validationSourceCode = fs.readFileSync(FORM_VALIDATION_PATH, 'utf-8');
 const createFormSplitSource = [
   'args.js',
@@ -27,6 +31,8 @@ const combinedCreateFormSource = sourceCode + '\n' + createFormSplitSource;
 const createForm = require('../lib/app/create-form');
 const { createDefinitionReaders } = require('../lib/app/create-form/definition-reader');
 const formCompiler = require('../lib/app/services/form-compiler');
+const formSchemaBuilder = require('../lib/app/services/form-schema-builder');
+const formRuntime = require('../lib/app/services/form-runtime');
 const { verifyFieldBindings } = require('../lib/app/services/field-bindings');
 
 function stripNodeRuntimeWarnings(output) {
@@ -61,6 +67,19 @@ describe('create-form.js imports', () => {
     expect(updateBody).toContain('authRef && authRef.cookies');
     expect(postBody).not.toContain('Cookie:');
     expect(updateBody).not.toContain('Cookie:');
+  });
+
+  test('native form creation uses the dedicated schema builder and runtime modules', () => {
+    expect(sourceCode).toContain("require('./services/form-schema-builder')");
+    expect(compilerSourceCode).toContain("require('./form-runtime')");
+    expect(formSchemaBuilderSourceCode).toContain("require('./form-compiler')");
+    expect(formRuntimeSourceCode).toContain('buildFormActionsModule');
+    expect(formSchemaBuilder.buildFormSchema).toEqual(expect.any(Function));
+    expect(formSchemaBuilder.compileFormDefinition).toEqual(expect.any(Function));
+    expect(formRuntime.buildFormDidMountLifecycle()).toMatchObject({
+      name: 'didMount',
+      type: 'actionRef',
+    });
   });
 });
 
@@ -862,8 +881,11 @@ describe('buildFormSchema lifeCycles', () => {
 
     // 检查 lifeCycles 中包含 componentDidMount 配置
     expect(formSchemaFunction).toContain('componentDidMount');
-    expect(formSchemaFunction).toContain("name: 'didMount'");
-    expect(formSchemaFunction).toContain("type: 'actionRef'");
+    expect(formSchemaFunction).toContain('buildFormDidMountLifecycle()');
+    expect(formRuntime.buildFormDidMountLifecycle()).toMatchObject({
+      type: 'actionRef',
+      name: 'didMount',
+    });
   });
 });
 

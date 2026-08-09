@@ -7,14 +7,18 @@ description: 表单页面创建与更新，默认加载 yida-form-detail 作为�
 
 > 资源边界：本技能处理普通表单创建与更新。目标不明时先只读确认或询问用户。
 
+原生表单使用独立脚手架：`openyida sample yida-create-form-page form --output project/.cache/openyida/forms/<name>.form.json`。Agent 只扩展 `.form.json` 中的字段、Divider 分组、校验和规则；不要把原生表单写成自定义页面 JSX。
+
+OpenYida 用 `lib/app/services/form-schema-builder.js` 与 `lib/app/services/form-runtime.js` 生成原生表单 Schema、生命周期、主题和 formDetail 样式。页面型代码归 `yida-canvas-custom-page` 或 `yida-custom-page`。
+
 ## Resource-First create/update 判定
 
 执行本技能前必须先解析 app/form resource context：
 
-- 已有目标 `formUuid`、表单 URL、bound form，或 workspace cache/config 中可确认的表单时，字段结构诉求默认走 update/patch/rule/bind-datasource 模式；不要再 create 同名或同类表单。
+- 已有目标 `formUuid`、表单 URL、bound form，或 workspace cache/config 中可确认的表单时，字段结构诉求默认使用 update/patch/rule/bind-datasource 模式；不要再 create 同名或同类表单。
 - bound form/page 只是默认候选，不是锁定目标；如果当前会话绑定表单或页面 A，但用户本轮明确要求修改 B 的字段，必须先解析 B 对应的表单 `formUuid`。B 能唯一解析时改 B；B 无法唯一解析或字段归属不清时问用户；禁止默认改 A。
 - 已有目标 app 但缺少业务数据表，且用户明确要求“增加客户表 / 新建订单表 / 新增数据收集入口”等，才使用 create 模式创建新表单。
-- 用户给页面 URL 或自定义页面 `formUuid` 且诉求是优化页面 UI 时，改走 `yida-custom-page` + `yida-publish-page`；不要创建表单。
+- 用户给页面 URL 或自定义页面 `formUuid` 且诉求是优化页面 UI 时，先判断页面 Schema：`YidaCodeCanvas` 使用 `yida-canvas-custom-page`，非 Code Canvas 的 `Jsx` / `renderJsx` 页面使用 `yida-custom-page`；不要创建表单。
 - 多个表单候选时按根技能来源优先级选择；同级冲突、字段目标不明或无法判断要改哪张表时才问用户。
 
 ## 严格禁止 (NEVER DO)
@@ -22,6 +26,7 @@ description: 表单页面创建与更新，默认加载 yida-form-detail 作为�
 - 不要编造 formUuid，必须从命令返回的 JSON 中提取
 - 不要猜测 fieldId。字段级命令优先用字段 `label`、必要时用已知 `fieldId` 或 `tableLabel + label`；CLI 内部读 schema/定位并返回 compact evidence。只有字段解析失败/歧义、patch 底层路径或页面/公式/流程等确实需要多字段映射时，才用 `yida-get-schema` 一次性取证。
 - 不要用此命令操作数据记录（增删改查），应使用 `yida-data-management`
+- 不要把创建原生表单写成自定义页面 JSX、`.oyd.jsx` 或 `.canvas.jsx`
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成字段、变更、补丁、规则、数据源 JSON 文件
 - OpenYida CLI 不要加 `2>/dev/null`；失败时保留 stdout/stderr 诊断，遇到 DENIED 或重复失败必须换策略
 - 已有目标表单且用户是改字段/联动/属性时，不要创建新表单；必须走 update/patch/rule/bind-datasource。
@@ -34,6 +39,7 @@ description: 表单页面创建与更新，默认加载 yida-form-detail 作为�
 - 完整应用生成场景中，create 成功并记录 formUuid 后，把核心普通表单交给 `yida-data-management` 默认写入 1-3 条业务化示例记录；不要在本技能里直接操作数据记录。
 - update / add-option / bind-datasource / validation / rule 等字段级操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会内部读取 schema、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败/歧义时按 `diagnostics[].candidates` 补 `tableLabel`、修正 label 或再执行一次 compact `get-schema`。
 - 字段定义或变更定义需要落盘时，必须使用 agent 的结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`，例如 `<projectRoot>/.cache/openyida/pm/pm-fields-team.json`
+- 新建表单输入优先使用 `.form.json` 脚手架；只扩展 `fields`、`validations`、`rules` 和布局/主题摘要字段
 - 普通表单分组必须优先使用 `Divider`，多列排版必须通过字段 JSON 中的 `ColumnContainer` 局部表达
 - **本技能不读写 memory**：formUuid 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
@@ -137,7 +143,7 @@ openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout d
 create 命令失败后，不要立刻重复同一条 create：
 
 1. 先确认字段 JSON 文件存在，且内容是结构化写入后的最终字段数组/对象，不是半截 JSON、update changes 或 shell 拼接残留。
-2. 运行 `openyida list-forms <appType> --keyword "<表单名>"` 查同名表单；若本轮刚创建过空白表单或已有同名目标表单，优先走 `create-form update` / `patch` / 后续显式 resume 能力复用，不再 create。
+2. 运行 `openyida list-forms <appType> --keyword "<表单名>"` 查同名表单；若本轮刚创建过空白表单或已有同名目标表单，优先使用 `create-form update` / `patch` / 后续显式 resume 能力复用，不再 create。
 3. 只有确认远端没有同名目标表单，并且已经修改输入文件、参数、登录态或组织后，才重试 create。
 4. 同一 create 命令最多重试 2 次；仍失败时停止并带上完整 stdout/stderr、字段文件路径、appType、表单名和已发现的 formUuid 给用户。
 

@@ -19,7 +19,7 @@ description: 将 OpenYida 原普通自定义页面链路升级/迁移为宜搭 C
 | 登录态只读验证 | `openyida env --json` + `openyida login --check-only --json` |
 | 原页面源码 | 找到 `.oyd.jsx` / `.jsx` 源文件；不要只看 dist 编译产物 |
 | 目标页面 Schema | 先执行 `openyida get-schema <appType> <formUuid>`，再用 create_file / Write / file edit tool 按需保存到 `<projectRoot>/.cache/openyida/canvas-upgrade/<name>-schema.json`；不要用 shell 重定向 |
-| Code Canvas 发布能力 | 已内置：产出的 `.canvas.jsx` 用 `openyida publish <源文件> <appType> <formUuid>` 即自动走 Canvas 链路（`.canvas.jsx` 扩展名识别，CLI 本地用 Babel 编译出 `runtimeCode` + `importedModules` 并写 `YidaCodeCanvas` Schema），无需设计器手工添加 |
+| Code Canvas 发布能力 | 已内置：产出的 `.canvas.jsx` 用 `openyida publish <源文件> <appType> <formUuid>` 即自动启用 Canvas 链路（`.canvas.jsx` 扩展名识别，CLI 本地用 Babel 编译出 `runtimeCode` + `importedModules` 并写 `YidaCodeCanvas` Schema），无需设计器手工添加 |
 | 原页面数据依赖 | 列出 `this.utils.yida.*`、`this.dataSourceMap.*`、连接器、外部脚本、全局变量 |
 
 `openyida publish` 已能把 `.canvas.jsx` 发布为 `YidaCodeCanvas` 页面；升级的真正门槛在**源码等价改写**（尤其 `this.utils.yida.*` / `dataSourceMap` 无 Canvas 对应物），而非发布能力。改写受阻、无法保证等价时，只交付源码草案和迁移报告，不要声称已完成升级。
@@ -69,7 +69,7 @@ description: 将 OpenYida 原普通自定义页面链路升级/迁移为宜搭 C
    - 外部 CDN 脚本要么换成白名单依赖，要么在最小验证页确认可加载。
 
 5. **发布 / 验证 Schema**
-   - 用 `openyida publish project/pages/src/<页面名>.canvas.jsx <appType> <formUuid>` 发布：`.canvas.jsx` 自动走 Canvas 链路，CLI 本地用 Babel 编译出 `runtimeCode` + `importedModules` 并写入 `YidaCodeCanvas` Schema（`code` / `runtimeCode` / `importedModules` 由 CLI 填充，无需手工拼 Schema）。
+   - 用 `openyida publish project/pages/src/<页面名>.canvas.jsx <appType> <formUuid>` 发布：`.canvas.jsx` 自动启用 Canvas 链路，CLI 本地用 Babel 编译出 `runtimeCode` + `importedModules` 并写入 `YidaCodeCanvas` Schema（`code` / `runtimeCode` / `importedModules` 由 CLI 填充，无需手工拼 Schema）。
    - 源码改写受阻、无法保证等价时，只交付 `.canvas.jsx` 草案和升级报告，不要发布覆盖线上页。
    - 发布后回读 Schema，确认组件树中存在 `YidaCodeCanvas`，且 `runtimeCode` 不是空。
 

@@ -64,12 +64,17 @@ describe('OpenYida skill contracts', () => {
     expect(localeSource).toContain('openyida check-page pages/src/home.canvas.jsx');
   });
 
-  test('skill guidance does not route through sample templates', () => {
+  test('skill guidance only references the official Canvas and native form scaffolds', () => {
     const files = listMarkdownAndJsonFiles(path.join(ROOT, 'yida-skills'))
       .filter(isSampleRoutingGuidanceFile);
     const offenders = files.filter((file) => {
       const source = fs.readFileSync(file, 'utf8');
-      return /sample|generate-page|openyida sample/i.test(source);
+      const withoutOfficialScaffolds = source
+        .replace(/openyida sample yida-canvas-custom-page canvas[^\n`]*/g, '')
+        .replace(/openyida sample yida-create-form-page form[^\n`]*/g, '')
+        .replace(/`canvas\.canvas\.jsx`/g, '')
+        .replace(/`form\.form\.json`/g, '');
+      return /generate-page|openyida sample/i.test(withoutOfficialScaffolds);
     });
 
     expect(offenders.map((file) => path.relative(ROOT, file))).toEqual([]);
@@ -210,12 +215,12 @@ describe('OpenYida skill contracts', () => {
     const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
     const byName = new Map(index.skills.map((skill) => [skill.name, skill]));
 
-    expect(root).toContain('先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 整理需求素材');
+    expect(root).toContain('先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成结构化 PRD');
     expect(tingji).toContain('本技能不直接生成 PRD');
     expect(flash).toContain('先加载 `yida-tingji` 读取听记内容');
-    expect(flash).toContain('最终 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md` 由 `yida-design` 生成或更新');
+    expect(flash).toContain('生成的 prompt 写入 `prd/<项目名>/prd.md`');
     expect(byName.get('yida-tingji').description).toContain('只负责读取内容');
-    expect(byName.get('yida-flash-note-to-prd').description).toContain('只有 taskUuid 时先用 yida-tingji');
+    expect(byName.get('yida-flash-note-to-prd').description).toContain('生成结构化 PRD');
   });
 
   test('yida-app unified build forbids unbound dataSourceMap by default', () => {
@@ -226,7 +231,8 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('完整应用按步骤加载对应子技能');
     expect(skill).toContain('prd/<项目名>/prd.md');
     expect(skill).toContain('prd/<项目名>/design.md');
-    expect(skill).toContain('`yida-canvas-custom-page` | 默认页面实现链路');
+    expect(skill).toContain('`yida-canvas-custom-page` | 完整应用页面实现链路；新建自定义页面使用 Code Canvas 和 `canvas.canvas.jsx`');
+    expect(skill).not.toContain('`yida-custom-page` |');
     expect(skill).toContain('2-3 句业务交付总结');
     expect(finalOutput).toContain('默认不输出资源 ID 表格、长列表、管理态链接');
     expect(canvas).toContain('页面不能使用 `/query/form/searchFormDatas.json`');
@@ -246,6 +252,8 @@ describe('OpenYida skill contracts', () => {
 
     expect(root).toContain('确认目标资源、按阶段加载子技能');
     expect(app).toContain('[完整应用阶段](workflow/build-stages.md)');
+    expect(appStages).toContain('新建自定义页面从 `canvas.canvas.jsx` 扩展，写 `.canvas.jsx` / `.canvas.tsx`');
+    expect(appStages).not.toContain('明确要求 JSX/Jsx 组件链路或实例桥强依赖时选择 `yida-custom-page`');
     expect(appStages).toContain('发布成功后，PRD 写明导航顺序时执行轻量导航排序');
     expect(appStages).toContain('`--auto-nav-order` / `nav-group auto-order`');
     expect(appStages).toContain('PRD 命中审批/流程时加载');
@@ -521,18 +529,20 @@ describe('OpenYida skill contracts', () => {
     expect(byName.get('yida-app').done_when).toContain('主页面已发布');
   });
 
-  test('form page development loads yida-form-detail and defaults formDetail CSS injection', () => {
+  test('native form development uses form json and dedicated builders', () => {
     const root = readSkill('yida-skills/SKILL.md');
     const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
     const createForm = readSkill('yida-skills/skills/yida-create-form-page/SKILL.md');
     const formDetail = readSkill('yida-skills/skills/yida-form-detail/SKILL.md');
     const manifest = readSkill('lib/core/command-manifest.js');
 
-    expect(createForm).toContain('拿到 formUuid 后默认注入 formDetail CSS');
-    expect(app).toContain('`yida-form-detail` / `yida-create-form-page` | 创建或更新普通表单字段结构时加载');
+    expect(createForm).toContain('原生表单使用独立脚手架');
+    expect(createForm).toContain('Agent 只扩展 `.form.json` 中的字段、Divider 分组、校验和规则');
+    expect(createForm).toContain('`lib/app/services/form-schema-builder.js` 与 `lib/app/services/form-runtime.js`');
+    expect(createForm).toContain('不要把原生表单写成自定义页面 JSX');
+    expect(app).toContain('`yida-form-detail` / `yida-create-form-page` | 创建或更新原生表单字段结构时加载；字段、分组、校验和规则写 `.form.json`');
     expect(formDetail).toContain('Divider 策略');
     expect(formDetail).toContain('formDetail CSS');
-    expect(createForm).toContain('拿到 formUuid 后默认注入 formDetail CSS');
     expect(createForm).toContain('视觉引导必须和 `Divider` 分割线语义分组合并执行');
     expect(createForm).toContain('新建表单在 Schema JS 中默认带上 `openyida:theme` 和 `openyidaThemeDidMount`');
     expect(formDetail).toContain('### 【表单视觉引导】');
@@ -550,7 +560,8 @@ describe('OpenYida skill contracts', () => {
     expect(formDetail).toContain('openyida form-detail-style check');
     expect(formDetail).toContain('openyida form-detail-style apply');
     expect(manifest).toContain("default_form_visual_guidance_skill_id: 'yida-form-detail'");
-    expect(manifest).toContain('injects formDetail CSS by default after a real formUuid exists');
+    expect(manifest).toContain('Native forms use the independent .form.json scaffold');
+    expect(manifest).toContain('form-schema-builder.js and form-runtime.js');
     expect(manifest).toContain("'form-detail-style.apply'");
   });
 
@@ -566,12 +577,24 @@ describe('OpenYida skill contracts', () => {
     [canvas, dataBinding, bridge, generation].forEach((doc) => {
       expect(doc).toContain('window.__OPENYIDA_YIDA_API__');
     });
+    [canvas, dataBinding].forEach((doc) => {
+      expect(doc).toContain('window.__OPENYIDA_RUNTIME__');
+      expect(doc).toContain('saveFormData');
+      expect(doc).toContain('getFormComponentDefinationList');
+      expect(doc).toContain('startProcessInstance');
+      expect(doc).toContain('getProcessInstanceById');
+      expect(doc).toContain('runtime.theme.install');
+    });
+    expect(canvas).toContain('只提供一份完整 Canvas 脚手架');
+    expect(canvas).toContain('`openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas.canvas.jsx`');
+    expect(canvas).toContain('不按场景裁剪脚手架');
     [dataBinding, bridge].forEach((doc) => {
-      expect(doc).toContain('this.utils.yida.searchFormDatas');
+      expect(doc).toContain('this.utils.yida');
       expect(doc).toContain('/dingtalk/web/<appType>/v1/form/searchFormDatas.json');
       expect(doc).toContain('searchFieldJson');
       expect(doc).toContain('_csrf_token');
     });
+    expect(canvas).toContain('window.__OPENYIDA_RUNTIME__.yida.searchFormDatas(params)');
     expect(canvas).toContain('window.__OPENYIDA_YIDA_API__.searchFormDatas(params)');
     expect(canvas).toContain('不能使用 `/query/form/searchFormDatas.json`');
     expect(dataBinding).toContain('`/query/form/searchFormDatas.json` 不是可用表单数据端点');
@@ -579,12 +602,15 @@ describe('OpenYida skill contracts', () => {
     expect(generation).toContain('用前端 seedRows 冒充真实表单数据');
   });
 
-  test('yida-custom-page unified full-app build uses compact native defaults and reads references on demand', () => {
+  test('yida-custom-page covers ordinary JSX exceptions', () => {
     const skill = readSkill('yida-skills/skills/yida-custom-page/SKILL.md');
 
-    expect(skill).toContain('完整应用默认不得生成依赖 dataSourceMap 的代码');
-    expect(skill).toContain('不得在完整应用默认页面里写 `this.dataSourceMap.<name>.load()`');
-    expect(skill).toContain('本技能只负责把它落到普通 JSX 页面');
+    expect(skill).toContain('用户明确要求普通 JSX/Jsx');
+    expect(skill).toContain('维护已有非 Code Canvas 页面');
+    expect(skill).toContain('Canvas 当前不具备的普通页面实例能力');
+    expect(skill).toContain('新建自定义页面默认使用 `yida-canvas-custom-page`');
+    expect(skill).toContain('目标页面是 `YidaCodeCanvas` 时，改用 `yida-canvas-custom-page`');
+    expect(skill).toContain('不得在已有普通页面里新增 `this.dataSourceMap.<name>.load()`');
     expect(skill).toContain('## Available Files');
     expect(skill).toContain('check-page 报错、复杂交互、状态管理问题');
     expect(skill).not.toContain('编写页面代码前**必须完整阅读**');
@@ -754,10 +780,12 @@ describe('OpenYida skill contracts', () => {
     expect(presets).toContain('`blue`、`green`、`orange` 也是应用主题 token profile，保留原名，不自动改写成其他主题名');
     expect(presets).toContain('若设计结果是任意自定义品牌色、渐变色盘或不在清单里的主题名，创建应用时不要显式传 `theme/colour`');
     expect(presets).toContain('其他 skill 需要应用主题 key、平台候选主题或 token 变量时，引用本文');
-    expect(createApp).toContain('只在 PRD 的 `shouldPassCreateAppTheme=true` 且 `themePresetKey` 命中平台预置 key 时传');
-    expect(createApp).toContain('完整应用的主题结论由 `yida-design` 产出');
-    expect(createApp).toContain('完整主题判断和 token 变量查看 `yida-design`');
-    expect(createApp).toContain('本技能只负责把已确认的平台预置 key 传给创建命令');
+    expect(createApp).toContain('本技能只创建应用壳层并返回 `appType`');
+    expect(createApp).toContain('本技能不按行业、场景或应用名推断颜色');
+    expect(createApp).toContain('没有明确值时使用 CLI 和平台默认值');
+    expect(createApp).not.toContain('shouldPassCreateAppTheme');
+    expect(createApp).not.toContain('themePresetKey');
+    expect(createApp).not.toContain('CLI 壳层 fallback');
     expect(createApp).not.toContain('禁止把行业词直接映射成固定颜色');
     expect(createApp).not.toContain('| `deepBlue` | 深蓝 |');
     expect(pageUiux).not.toContain('| `deepBlue` | 深蓝 |');
@@ -1027,7 +1055,7 @@ describe('OpenYida skill contracts', () => {
     expect(dashboard).toContain('只有用户明确要求 ECharts');
     expect(dashboard).toContain('## Legacy/native fallback');
 
-    expect(ppt).toContain('新建演示默认走 **Code Canvas**');
+    expect(ppt).toContain('新建演示默认使用 **Code Canvas**');
     expect(ppt).toContain('`useEffect` 管键盘、hash、触摸、定时器和 cleanup');
     expect(ppt).toContain('## Legacy/native fallback');
 
@@ -1040,7 +1068,7 @@ describe('OpenYida skill contracts', () => {
 
     expect(pageUiux).toContain('默认自定义页面归 Code Canvas 页面技能处理');
     expect(pageUiux).toContain('常规业务图表归 `yida-rechart`');
-    expect(pageUiux).toContain('ECharts 只在用户明确要求复杂 ECharts option 或维护旧图表时归 `yida-chart`');
+    expect(pageUiux).toContain('新建图表页不因 ECharts 关键词改走普通 JSX');
     expect(pageUiux).toContain('页面重构/单页美化默认以当前应用主题色为基准');
     expect(canvas).toContain('页面设计输入来自 `yida-design` 输出的 `prd.md` 和 `design.md`');
     expect(canvas).toContain('主题实现消费设计结果');
@@ -1092,6 +1120,7 @@ describe('OpenYida skill contracts', () => {
     expect(pageGeneration).not.toContain('视觉路由');
     expect(pageGeneration).not.toContain('自然语言推断');
     expect(customPage).toContain('页面重构保持现有功能契约');
+    expect(customPage).toContain('新建自定义页面默认使用 `yida-canvas-custom-page`');
     expect(customPage).toContain('普通 JSX 是非 Code Canvas 的自定义页面');
     expect(customPage).toContain('JSX 文案只能写成纯文本 `所有级别` 或带引号字符串 `{\'所有级别\'}`');
     expect(codingGuide).toContain('中文业务文案只能写成纯文本 `所有级别` 或带引号字符串 `{\'所有级别\'}`');

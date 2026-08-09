@@ -260,7 +260,7 @@ openyida copy
 
 \`yida-app\` 先确认目标资源，再按 workflow 阶段创建或复用资源、发布主页面并输出一个主入口链接。
 
-表单页开发默认加载 \`yida-form-detail\` 做表单视觉引导，并把 Divider 分割线语义分组合并进字段 JSON；拿到真实 formUuid 后默认注入 formDetail CSS。
+原生表单使用独立 \`.form.json\` 脚手架；Agent 只扩展字段、Divider 分组、校验和规则。OpenYida 用 \`form-schema-builder.js\` 与 \`form-runtime.js\` 生成原生表单 Schema、生命周期、主题和 formDetail 样式，不把原生表单写成自定义页面 JSX。
 
 完整应用页面源码默认不得使用 \`this.dataSourceMap.*\`，除非本轮已经明确创建并绑定设计器数据源；默认使用入口型页面或 \`this.utils.yida.*\` 查询已创建表单。
 
@@ -268,7 +268,7 @@ openyida copy
 
 完整应用创建/解析多个表单后，页面阶段需要字段映射时，对每个目标表单默认只执行一次 \`openyida get-schema <appType> <formUuid> --field-map-json\`，读取完整 JSON 并写入/复用 \`.cache/<项目名>-schema.json\`；不要用 \`head\` / \`tail\` / \`grep\` 截断 schema stdout 后重复拉取。
 
-Canvas 页面实现交给 \`yida-canvas-custom-page\`；普通自定义页面 JSX/Jsx 组件链路交给 \`yida-custom-page\`。
+新建自定义页面默认使用 Code Canvas，页面实现交给 \`yida-canvas-custom-page\`。OpenYida 只提供一份完整 \`canvas.canvas.jsx\` 脚手架，内置 13 个 Yida API、主题、表单提交/详情抽屉、URL 构造、实例 ID 校验、iframe 主题同步和基础状态。用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 的 \`Jsx\` / \`renderJsx\` 页面，或必须使用 Canvas 当前不具备的普通页面实例能力时，交给 \`yida-custom-page\`。
 
 \`yida-design\` 输出 \`prd/<项目名>/prd.md\` 与 \`prd/<项目名>/design.md\`。后续技能读取这两份文件，再继续创建表单、页面和导航。
 
@@ -285,7 +285,7 @@ Canvas 页面实现交给 \`yida-canvas-custom-page\`；普通自定义页面 JS
 | \`yida-skills/design\` | 完整应用产品设计、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、PRD 和 design.md | \`yida-design\` |
 | \`yida-skills/form\` | 表单字段、公式、校验、业务规则、详情页、批量录入、数据记录 | \`yida-create-form-page\`, \`yida-formula\`, \`yida-formula-evaluate\`, \`yida-business-rule\`, \`yida-form-detail\`, \`yida-canvas-table-form\`, \`yida-table-form\`, \`yida-data-management\` |
 | \`yida-skills/process\` | 审批、流程表单、流程规则、代理人 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\` |
-| \`yida-skills/page\` | 自定义展示页、Code Canvas、普通自定义页面 JSX/Jsx 组件、发布、导航壳、PPT | \`yida-create-page\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\` |
+| \`yida-skills/page\` | 自定义展示页、Code Canvas、已有普通自定义页面维护、发布、导航壳、PPT | \`yida-create-page\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\` |
 | \`yida-skills/analytics\` | 报表、统计、图表、Recharts、ECharts、看板、驾驶舱 | \`yida-report\`, \`yida-rechart\`, \`yida-chart\`, \`yida-dashboard\` |
 | \`yida-skills/integration\` | 连接器、外部 API、数据源、集成自动化 | \`yida-integration\`, \`yida-connector\`, \`yida-connector-safe-actions\`, \`yida-data-source-connectors\` |
 | \`yida-skills/access\` | 平台/应用/表单/页面权限、公开访问、分享 | \`yida-corp-manager\`, \`yida-app-permission\`, \`yida-form-permission\`, \`yida-page-config\` |

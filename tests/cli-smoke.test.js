@@ -446,6 +446,8 @@ describe('CLI offline smoke', () => {
         'yida-data-management',
       ]),
       product_design_policy: expect.stringContaining('yida-app first confirms target resources'),
+      page_skill_policy: expect.stringContaining('New custom pages default to Code Canvas'),
+      form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
       ui_guidance_policy: expect.stringContaining('derived implementation handoff'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),
       completion_contract: expect.stringContaining('2-3 business-summary sentences'),
@@ -455,6 +457,8 @@ describe('CLI offline smoke', () => {
       default_data_contract: expect.stringContaining('this.dataSourceMap'),
     });
     expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is only a derived implementation handoff');
+    expect(parsed.summary.core_workflows.full_app_build.page_skill_policy).toContain('canvas.canvas.jsx');
+    expect(parsed.summary.core_workflows.full_app_build.form_visual_guidance_policy).toContain('form-runtime.js');
     expect(parsed.summary.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
     expect(parsed.summary.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
     expect(commands).toContain('env');
@@ -1227,6 +1231,8 @@ describe('CLI offline smoke', () => {
         'yida-data-management',
       ]),
       product_design_policy: expect.stringContaining('yida-app first confirms target resources'),
+      page_skill_policy: expect.stringContaining('New custom pages default to Code Canvas'),
+      form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
       ui_guidance_policy: expect.stringContaining('derived implementation handoff'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),
       completion_contract: expect.stringContaining('2-3 business-summary sentences'),
@@ -1236,6 +1242,8 @@ describe('CLI offline smoke', () => {
       default_data_contract: expect.stringContaining('this.dataSourceMap'),
     });
     expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is only a derived implementation handoff');
+    expect(parsed.commands.core_workflows.full_app_build.page_skill_policy).toContain('canvas.canvas.jsx');
+    expect(parsed.commands.core_workflows.full_app_build.form_visual_guidance_policy).toContain('form-runtime.js');
     expect(parsed.commands.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
     expect(parsed.commands.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
     expect(parsed.recommended.default_full_app_workflow).toMatchObject({
@@ -1448,9 +1456,12 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('Code Templates');
     expect(output).toContain('yida-chart');
     expect(output).toContain('yida-canvas-table-form');
+    expect(output).toContain('yida-canvas-custom-page');
+    expect(output).toContain('yida-create-form-page');
+    expect(output).toContain('openyida sample yida-canvas-custom-page canvas');
+    expect(output).toContain('openyida sample yida-create-form-page form');
     expect(output).toContain('table-form-batch-submit');
     expect(output).not.toContain('yida-custom-page');
-    expect(output).not.toContain('yida-canvas-custom-page');
     expect(output).not.toContain('product-homepage');
     expect(output).not.toContain('todo-mvc');
   });

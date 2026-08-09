@@ -915,9 +915,17 @@ describe('compileCanvasLocal', () => {
     });
     expect(schema.actions.module.source).toContain('openyidaInstallYidaApiBridge');
     expect(schema.actions.module.source).toContain('window.__OPENYIDA_YIDA_API__');
+    expect(schema.actions.module.source).toContain('window.__OPENYIDA_RUNTIME__');
     expect(schema.actions.module.source).toContain('this.utils.yida');
     expect(schema.actions.module.source).toContain('searchFormDatas');
+    expect(schema.actions.module.source).toContain('saveFormData');
+    expect(schema.actions.module.source).toContain('getFormComponentDefinationList');
+    expect(schema.actions.module.source).toContain('startProcessInstance');
+    expect(schema.actions.module.source).toContain('getProcessInstanceById');
+    expect(schema.actions.module.source).toContain('openyidaCreateThemeRuntime');
+    expect(schema.actions.module.source).toContain('yida-global-theme');
     expect(schema.actions.module.compiled).toContain('openyidaInstallYidaApiBridge');
+    expect(schema.actions.module.compiled).toContain('window.__OPENYIDA_RUNTIME__');
     expect(schema.actions.module.compiled).toContain('exports.didMount = didMount');
   });
 

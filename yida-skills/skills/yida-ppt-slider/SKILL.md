@@ -7,7 +7,7 @@ description: "宜搭全屏幻灯片页面开发，兼容旧 yida-ppt / PPT / 演
 
 ## 核心定位
 
-本技能用于在宜搭内交付全屏演示页。新建演示默认走 **Code Canvas**：
+本技能用于在宜搭内交付全屏演示页。新建演示默认使用 **Code Canvas**：
 
 - `.canvas.jsx` / `.canvas.tsx` + `YidaComp` 函数组件。
 - `useState` 管当前页、主题、语言、导航显隐和全屏状态。

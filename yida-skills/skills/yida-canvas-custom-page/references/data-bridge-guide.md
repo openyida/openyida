@@ -1,17 +1,17 @@
 # Code Canvas 数据桥
 
-Code Canvas 运行时提供 React 函数组件上下文；`YidaComp` 内没有普通页面实例 `this`。读写宜搭表单数据时，发布层必须在外层普通自定义页面 `didMount` 中把 `this.utils.yida.*` 注册成 `window.__OPENYIDA_YIDA_API__`，Canvas 组件调用这个 window 桥。连接器代理和自定义同源接口仍用 HTTP 数据桥。
+Code Canvas 运行时提供 React 函数组件上下文；`YidaComp` 内没有普通页面实例 `this`。读写宜搭表单或流程数据时，发布 Schema 会在外层普通自定义页面 `didMount` 中注册统一 window runtime。Canvas 组件优先使用 `window.__OPENYIDA_RUNTIME__.yida`；兼容别名 `window.__OPENYIDA_YIDA_API__` 仍可用。连接器代理和自定义同源接口仍用 HTTP 数据桥。
 
 ## 三条数据路径，先选对
 
 | 路径 | 是否可在浏览器（Canvas）直接调 | 说明 |
 | --- | --- | --- |
-| 外层 yida JS-API 桥 `window.__OPENYIDA_YIDA_API__` | **表单默认** | 发布 Code Canvas 时由外层页面 `didMount` 自动注册，底层调用官方 `this.utils.yida.searchFormDatas` 等 API。 |
+| 统一 window runtime `window.__OPENYIDA_RUNTIME__.yida` | **表单/流程默认** | 发布 Code Canvas 时由外层页面 `didMount` 自动注册，底层调用官方 `this.utils.yida` 的表单和流程 API；兼容 `window.__OPENYIDA_YIDA_API__`。 |
 | 宜搭开放 API（OpenAPI，`appKey`/`appSecret` 签名） | 服务端 / 连接器代理 | 需服务端签名；浏览器直连会泄露 secret。由后端 / 连接器代理调用。 |
 | 平台已配置**连接器**（HTTP 连接器暴露的同源代理端点） | **推荐** | 同源 `fetch(url, { credentials: 'include' })` 带 cookie 即可，鉴权与密钥留在平台侧，符合数据源治理。 |
 | 内部表单数据端点（同源、依赖登录 cookie + CSRF） | 降级可用 | 仅在 yida JS-API 桥不存在时使用；必须使用同源相对路径、`credentials: 'include'` 和运行态 CSRF token。 |
 
-选路原则：读本应用或本轮创建的宜搭表单，默认走 yida JS-API 桥；读第三方或复杂后端数据，走连接器代理；只有桥不存在且必须读表单时，才同源直连内部端点。Cookie / CSRF / appSecret 由平台上下文、连接器或后端服务提供。
+选路原则：读本应用或本轮创建的宜搭表单/流程，默认使用统一 window runtime；读第三方或复杂后端数据，使用连接器代理；只有 runtime 不存在且必须读表单时，才同源直连内部端点。Cookie / CSRF / appSecret 由平台上下文、连接器或后端服务提供。
 
 ## 推荐：先写 dataBinding，再实现数据桥
 
@@ -45,7 +45,7 @@ Code Canvas 页面先把数据契约写成结构化 `dataBinding`，再在页面
 - `mode=seed` 只用于离线预览或明确标注的演示页；完整应用/真实交付页默认先由 `yida-app` 调用 `yida-data-management` 把 1-3 条 demo records 写入真实表单，再用 `mode=form` 读取。
 - 页面生成或手写的 `DataBridge` 状态要保留，用于呈现“接口没通 / 结构没识别 / 权限不足”等运行时状态。
 
-`dataBinding.mode=form` 默认调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`。参数至少包含 `formUuid`、`currentPage`、`pageSize` 和 `searchFieldJson`；`appType` 可保留在 `dataBinding` 中用于校验和构造详情/提交链接。只有桥不存在时才同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`；直连 query 至少包含 `formUuid`、`appType`、`currentPage`、`pageSize`、`searchFieldJson` 和 `_csrf_token`，并设置 `credentials: 'include'` 与 `global_csrf_token` 头。`/query/form/searchFormDatas.json` 不是可用表单数据端点。
+`dataBinding.mode=form` 默认调用 `window.__OPENYIDA_RUNTIME__.yida.searchFormDatas(params)`，兼容调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`。参数至少包含 `formUuid`、`currentPage`、`pageSize` 和 `searchFieldJson`；`appType` 可保留在 `dataBinding` 中用于校验和构造详情/提交链接。只有 runtime 不存在时才同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`；直连 query 至少包含 `formUuid`、`appType`、`currentPage`、`pageSize`、`searchFieldJson` 和 `_csrf_token`，并设置 `credentials: 'include'` 与 `global_csrf_token` 头。`/query/form/searchFormDatas.json` 不是可用表单数据端点。
 
 ## 可复用读数据 Hook
 
@@ -54,6 +54,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 function getYidaApiBridge() {
   var candidates = [];
+  try { candidates.push(window.__OPENYIDA_RUNTIME__ && window.__OPENYIDA_RUNTIME__.yida); } catch (err) {}
+  try { candidates.push(window.parent && window.parent.__OPENYIDA_RUNTIME__ && window.parent.__OPENYIDA_RUNTIME__.yida); } catch (err) {}
   try { candidates.push(window.__OPENYIDA_YIDA_API__); } catch (err) {}
   try { candidates.push(window.parent && window.parent.__OPENYIDA_YIDA_API__); } catch (err) {}
   try {

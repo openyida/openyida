@@ -1,6 +1,6 @@
 ---
 name: yida-canvas-custom-page
-description: 宜搭 Code Canvas / 代码画布自定义页面开发规范，是现代 React18 自定义页面的默认链路。用于官网、看板、工作台、列表、详情、门户壳、可视化、hooks 交互，以及用户明确提到 code canvas、代码画布、YidaCodeCanvas、runtimeCode、importedModules、门户组件、数据管理视图、成员、部门或上传组件的场景。
+description: 宜搭 Code Canvas / 代码画布自定义页面实现规则。新建自定义页面默认使用本技能；负责 page-spec 派生、数据绑定、主题落地、运行态组件、源码修复和编译发布校验。
 ---
 
 # 宜搭 Code Canvas 自定义页面开发
@@ -9,7 +9,11 @@ description: 宜搭 Code Canvas / 代码画布自定义页面开发规范，是�
 
 Code Canvas 是宜搭的代码画布自定义页面链路：用户写标准 React18 函数组件源码，OpenYida 本地编译为 `runtimeCode` + `importedModules`，运行时由 `YidaCodeCanvas` 加载前端资源并执行 `YidaComp`。
 
-页面设计输入来自 `yida-design` 输出的 `prd.md` 和 `design.md`。本技能只负责把这两份文件落到 `.canvas.jsx` / `.canvas.tsx`、数据桥、表单入口和发布验收。
+页面设计输入来自 `yida-design` 输出的 `prd.md` 和 `design.md`。本技能负责把这两份文件落到 `.canvas.jsx` / `.canvas.tsx`、数据桥、表单入口和发布验收。
+
+本技能负责 Code Canvas 页面实现规则：`page-spec.json` 派生、数据绑定、主题落地、运行态组件、源码修复、编译和发布前校验，都由本技能或本技能明确调用的确定性脚本处理。
+
+OpenYida 只提供一份完整 Canvas 脚手架：`openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas.canvas.jsx`。这份脚手架预置 13 个 Yida API、主题、表单提交/详情抽屉、URL 构造、实例 ID 校验、iframe 主题同步和基础状态。官网、看板、列表、详情、表单入口等页面都从这份脚手架扩展，不按场景裁剪脚手架。
 
 相较普通 `.oyd.jsx` 自定义页，Code Canvas 更适合：
 
@@ -19,15 +23,16 @@ Code Canvas 是宜搭的代码画布自定义页面链路：用户写标准 Reac
 - 只需要通过 HTTP / 连接器读写数据的页面。
 - 需要在 Canvas 内受控接入门户、成员、部门、上传等宜搭运行态组件的页面。
 
-普通自定义页面使用 `yida-custom-page`：适用于用户明确要求 JSX/Jsx 普通页面，或页面需要 `this.$(fieldId)` 双向绑定、`this.utils.yida.*`、`this.dataSourceMap`、提交流程深度耦合等普通页面实例桥能力。
+新建自定义页面默认使用 Code Canvas。`yida-custom-page` 服务三类场景：用户明确要求普通 JSX/Jsx；维护已有非 Code Canvas 页面；当前 Canvas 确认缺少必须的普通页面实例能力。
 
 ## 运行时事实
 
-- Canvas 源码写成 `.canvas.jsx` / `.canvas.tsx`，`openyida publish` 会自动走 Canvas 链路。
+- Canvas 源码写成 `.canvas.jsx` / `.canvas.tsx`，`openyida publish` 会自动启用 Canvas 链路。
 - 页面源码路径按 Bash cwd 选择：从仓库根执行命令时用 `project/pages/src/...`；cwd 已是 `<workspace>/project` 时用 `pages/src/...`。
 - `runtimeCode` 在运行页面真实 `window` 中执行，入口必须返回 `YidaComp` / `YidaComp.default` / 组件函数。
 - 推荐入口写法是 `function YidaComp(props) { ... }`，或 `const App = ...; export default App;`。CLI 已兼容 `const/let/class YidaComp; export default YidaComp`，但生成新代码时优先避开同名默认导出，减少不同 Canvas 运行态装配器下的重复声明风险。
-- Canvas 组件使用 React 函数组件上下文；数据读写通过 fetch、开放 API、连接器代理或显式 props 数据桥完成。
+- Canvas 组件使用 React 函数组件上下文；数据读写通过 fetch、开放 API、连接器代理或统一 window runtime 完成。
+- 发布 Schema 自动注册统一 window runtime：`window.__OPENYIDA_RUNTIME__` / `window.openyidaRuntime`。其中 `runtime.yida` 覆盖 7 个表单方法 `saveFormData`、`updateFormData`、`deleteFormData`、`getFormDataById`、`searchFormDatas`、`searchFormDataIds`、`getFormComponentDefinationList`，以及 6 个流程方法 `startProcessInstance`、`updateProcessInstance`、`deleteProcessInstance`、`getProcessInstances`、`getProcessInstanceIds`、`getProcessInstanceById`；`runtime.theme.install(...)` 负责主题注入。兼容别名 `window.__OPENYIDA_YIDA_API__` / `window.openyidaYidaApi` 仍可用。
 - 第三方前端资源只从可用资源清单中选择；React、antd、Ant Design Icons、ahooks、d3、recharts、Radix、framer-motion、lucide-react 等必须按规则 import，由编译器写入 `importedModules`。源码严禁出现 `const { Drawer } = antd`、`const { Search } = lucideReact`、`window.antd`、`window.icons` 等手写依赖全局。
 - 宜搭运行态组件按“先探测、可用增强、fallback 保底、值统一归一化”接入；以 `window.Deep` / `window.DeepYida` 探测为主，`window.YidaNativeComponents` 作为可用主题。嵌入门户数据管理视图时使用 `DataManageViews`，并显式传入目标表单 `form.value/formUuid`。
 
@@ -42,8 +47,11 @@ Code Canvas 是宜搭的代码画布自定义页面链路：用户写标准 Reac
 | 需要门户 topBanner / quickEntry / 数据卡片 | 使用本技能，按“门户组件桥”接入，必要时 fallback 自绘 |
 | 需要成员、部门、附件上传、图片上传 | 使用本技能，按“宜搭组件桥”接入并归一化值 |
 | 需要字段结构、公式、联动、权限、报表、流程 | 使用对应配置型技能完成配置，Canvas 展示结果并分发页面事件 |
-| 深度依赖普通页 `this` 实例桥 | 使用 `yida-custom-page` |
-| 表单内字段双向绑定 `this.$(fieldId)`、`this.utils.yida.*`、`dataSourceMap`、提交流程深度耦合 | 使用 `yida-custom-page`（该实例桥由普通自定义页面提供） |
+| 新建自定义页面 | 使用本技能，写 `.canvas.jsx` / `.canvas.tsx` |
+| 需要 Canvas 起步代码 | 使用 `openyida sample yida-canvas-custom-page canvas` 输出 `canvas.canvas.jsx` |
+| 修改已有 `YidaCodeCanvas` 页面 | 使用本技能，保留 Canvas 链路 |
+| 明确要求普通 JSX/Jsx、修改已有非 Code Canvas 页面，或必须使用 Canvas 缺少的普通页面实例能力 | 使用 `yida-custom-page` |
+| 用户提到 `this.$`、`this.utils.yida.*`、`dataSourceMap`，但没有明确要求普通 JSX/Jsx | 使用本技能；改成 Canvas 数据桥、统一 window runtime 或开放 API 方案 |
 
 ## 两类特殊组件场景
 
@@ -81,11 +89,11 @@ Code Canvas 是宜搭的代码画布自定义页面链路：用户写标准 Reac
 2. **发布链路正确**：Canvas 源码使用 `.canvas.jsx` / `.canvas.tsx`，或发布时显式加 `--canvas`。
 3. **源码修改发布闭环**：本轮 Write/Edit/Create 了 `project/pages/src/*.canvas.jsx` 或 `project/pages/src/*.canvas.tsx` 后，final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`。有 publish 成功证据时表述为“页面已发布”；只有本地校验证据时表述为“Canvas 源码已修改，尚未发布”。
 4. **依赖可加载**：普通 import 只使用 Code Canvas 可用资源清单内的前端资源；React、antd、Ant Design Icons、Recharts、ahooks、lucide-react 等包依赖必须写 `import ... from '包名'`。严禁写未声明裸变量依赖或手写 window 依赖，例如 `const { Drawer } = antd`、`const { Search } = lucideReact`、`const { ConfigProvider } = window.antd`、`const React = window.React`、`window.icons`。宜搭运行态组件才通过 `window.Deep`、`window.DeepYida`、`window.YidaNativeComponents` 探测。
-5. **使用 Canvas 函数组件契约**：Canvas 代码写 `YidaComp` React 函数组件；数据、生命周期和渲染都通过 hooks、props、外层 yida JS-API 桥或连接器完成。组件内部不能直接写 `this.utils.yida.*`；需要 `renderJsx()`、`didMount()`、`this.forceUpdate()`、`this.dataSourceMap` 或字段双向绑定时切到 `yida-custom-page`。
+5. **使用 Canvas 函数组件契约**：Canvas 代码写 `YidaComp` React 函数组件；数据、生命周期和渲染都通过 hooks、props、统一 window runtime 或连接器完成。组件内部不能直接写 `this.utils.yida.*`。用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 页面，或必须使用 Canvas 缺少的普通页面实例能力时，才用 `yida-custom-page`。
 6. **副作用清理**：`useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
 7. **交互控件必须受控且真正驱动数据**：筛选 `Select`、搜索 `Input`/`Input.Search`、周期切换、`Tabs`/`Segmented`、批量/重置 `Button` 等控件都用 `useState` 建立受控状态，绑定 `onChange`/`onClick`，并让 `Table`/列表/卡片的数据源通过 `useMemo` 按状态派生后渲染。切换筛选后若当前选中项失效，回退选中态（如 `selected < filteredRows.length ? selected : 0`）。
 8. **视觉壳层必须消费 design.md**：工作台、门户、看板、首页、展示页和真实交付页写 Canvas 源码前，先读取 `design.md` 的 `designRefs` 和相关章节。具体 Canvas 样式落地规则见 `canvas-style-implementation-guide.md`。
-9. **表单数据读取必须使用 dataBinding 契约和 yida JS-API 桥**：完整应用、工作台、列表、看板、详情等真实交付页只要本轮已经创建或解析业务表单，先写入 `dataBinding.mode="form"`、真实 `appType/formUuid` 和字段 ID，再用本地 `useYidaData(binding)` / `DataBridge` 读取。发布层必须在外层页面 `didMount` 注册 `window.__OPENYIDA_YIDA_API__`，Canvas 内部默认调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；只有桥不可用时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。页面不能使用 `/query/form/searchFormDatas.json`，也不能只写前端 seedRows 后声称已接真实数据。
+9. **表单数据读取必须使用 dataBinding 契约和 yida runtime**：完整应用、工作台、列表、看板、详情等真实交付页只要本轮已经创建或解析业务表单，先写入 `dataBinding.mode="form"`、真实 `appType/formUuid` 和字段 ID，再用本地 `useYidaData(binding)` / `DataBridge` 读取。发布层必须在外层页面 `didMount` 注册统一 window runtime，Canvas 内部默认调用 `window.__OPENYIDA_RUNTIME__.yida.searchFormDatas(params)` 或兼容别名 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；只有桥不可用时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。页面不能使用 `/query/form/searchFormDatas.json`，也不能只写前端 seedRows 后声称已接真实数据。
 
 ### 重要规则（IMPORTANT）
 
@@ -95,7 +103,7 @@ Code Canvas 是宜搭的代码画布自定义页面链路：用户写标准 Reac
 4. **UI 改造保持功能契约**：页面美感提升、页面重构和局部美化只调整颜色、布局、密度、间距、视觉层级、素材和图标表达；已有数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限和业务状态按原链路保留。
 5. **主题实现消费设计结果**：主题来源只读 `design.md`；本技能负责把主题落到 Canvas 页面。需要自定义色盘时复制 `references/theme-runtime-helpers.md` 的 Code Canvas helper，向当前文档、同源可访问父级 iframe 文档，以及 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 文档注入 `style#yida-global-theme`。
 6. **先验证再扩展业务**：原生组件、上传、组织搜索、弹层类能力先做 smoke 页面，确认 PC/移动端都可用后再进入复杂业务页面。
-7. **生成骨架占位符必须可直发**：Canvas 可编译骨架同时支持生成器替换变量和原样发布。JSON 占位符用 `parseTemplateJson(raw, fallback)`，展示文案占位符用 `withFallback` / `applyPageFallbacks` 兜底，未替换时页面继续可运行，并显示业务化 fallback 文案。
+7. **Canvas 脚手架唯一**：新建 Canvas 页面使用 `canvas.canvas.jsx` 这一份完整脚手架。Agent 只扩展字段映射、业务区块、动作和样式，不新增官网、看板、列表、表单等场景脚手架。JSON 占位符用 `parseTemplateJson(raw, fallback)`，展示文案占位符用 `withFallback` / `applyPageFallbacks` 兜底，未替换时页面继续可运行，并显示业务化 fallback 文案。
 8. **light 页面使用清爽业务色**：业务列表、协同表、数据管理页、工作台和门户默认使用 light 模式；主操作、选中态、筛选焦点和批量操作使用品牌色，边框用浅色品牌混合。用户明确要求暗色大屏/夜间模式/高对比风格时使用深色主视觉。
 9. **门户运行态组件要补必需 props 和局部降级**：`QuickAccessCard` / `RecentlyUsedCard` 传 `theme="row-white"` 等必需 props；所有门户/字段/上传增强组件外层加局部 ErrorBoundary，单个组件不兼容时只降级该块，整页保持可用。
 10. **自定义主题写入页面作用域**：`--theme` 只接受平台预置 key；不要把任意色值或自定义主题名传给 create-app。PRD 指定非预置主题（例如活力橙、深玫红、自定义暗黑金）时，在 Canvas 源码中注入 `style#yida-global-theme` 或等价 scoped CSS vars，并在根节点设置 `data-theme-scope="page"`。注入代码复制 `references/theme-runtime-helpers.md`，不能只写当前页面 `document.head`。

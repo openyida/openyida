@@ -240,7 +240,7 @@
       "name": "yida-canvas-custom-page",
       "path": "skills/yida-canvas-custom-page/SKILL.md",
       "display_name": "Code Canvas 自定义页面",
-      "description": "宜搭 Code Canvas / 代码画布自定义页面开发规范，是自定义页面默认链路。用于现代 React 交互、hooks、可视化、AI 页、官网、看板、工作台、列表和详情。",
+      "description": "宜搭 Code Canvas / 代码画布自定义页面实现规则。新建自定义页面默认使用本技能；OpenYida 只提供一份完整 canvas.canvas.jsx 脚手架，内置 13 个 Yida API、主题、表单抽屉、URL 和基础状态。",
       "category": "yida-skills/page",
       "tags": [
         "Code Canvas",
@@ -277,7 +277,7 @@
       "name": "yida-canvas-data-binding",
       "path": "skills/yida-canvas-data-binding/SKILL.md",
       "display_name": "Code Canvas 数据绑定",
-      "description": "Code Canvas 页面接真实数据，覆盖 dataBinding、DataBridge、外层 yida JS-API 桥、返回体解析、totalCount 保护和静默轮询刷新。",
+      "description": "Code Canvas 页面接真实数据，覆盖 dataBinding、DataBridge、统一 window runtime、返回体解析、totalCount 保护和静默轮询刷新。",
       "category": "yida-skills/page",
       "tags": [
         "Code Canvas",
@@ -345,7 +345,7 @@
       "name": "yida-chart",
       "path": "skills/yida-chart/SKILL.md",
       "display_name": "ECharts 高级可视化",
-      "description": "ECharts + 普通自定义页面兼容技能。仅用于明确指定 ECharts、维护旧 ECharts 页面，或 Recharts 无法覆盖的复杂 option；聚合数据依赖宜搭原生报表接口。",
+      "description": "旧 ECharts / 普通自定义页面图表维护技能。仅用于维护已有 ECharts 或普通自定义页面图表；新建图表页默认使用 yida-rechart 或 Code Canvas。",
       "category": "yida-skills/analytics",
       "tags": [
         "ECharts",
@@ -459,7 +459,7 @@
       "name": "yida-create-form-page",
       "path": "skills/yida-create-form-page/SKILL.md",
       "display_name": "创建或更新表单页面",
-      "description": "表单页面创建与更新，支持字段类型、联动规则和数据源绑定。适用于新建表单、设计表单结构、添加或修改字段。",
+      "description": "原生表单创建与更新。Agent 扩展 .form.json 中的字段、Divider 分组、校验和规则；OpenYida 用 form-schema-builder.js 与 form-runtime.js 生成 Schema、生命周期、主题和 formDetail 样式。",
       "category": "yida-skills/form",
       "tags": [
         "表单",
@@ -533,7 +533,7 @@
       "name": "yida-custom-page",
       "path": "skills/yida-custom-page/SKILL.md",
       "display_name": "普通自定义页面 JSX 开发",
-      "description": "普通自定义页面 JSX/Jsx 开发。仅在用户明确要普通自定义页面，或页面依赖 this.$、this.utils.yida、dataSourceMap、表单双向绑定时使用。",
+      "description": "普通自定义页面 JSX/Jsx 维护与例外实现。用于用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 页面，或必须使用 Canvas 当前不具备的普通页面实例能力。",
       "category": "yida-skills/page",
       "tags": [
         "JSX",
@@ -546,7 +546,8 @@
         "普通自定义页面"
       ],
       "positive_signals": [
-        "普通自定义页面",
+        "明确要求普通 JSX/Jsx",
+        "修改已有普通自定义页面",
         "Jsx 组件链路",
         "this.$",
         "this.utils.yida",
@@ -555,6 +556,7 @@
         ".oyd.jsx"
       ],
       "negative_signals": [
+        "新建自定义页面",
         "默认现代 React 页面",
         "Code Canvas 默认链路",
         "只做 PRD"
@@ -705,8 +707,8 @@
     {
       "name": "yida-flash-note-to-prd",
       "path": "skills/yida-flash-note-to-prd/SKILL.md",
-      "display_name": "闪记需求素材整理",
-      "description": "从闪记、会议记录或需求文档提取需求素材。只产出给 yida-design 使用的素材；不直接写 prd.md 或 design.md。只有 taskUuid 时先用 yida-tingji。",
+      "display_name": "闪记转 PRD",
+      "description": "从已有钉钉闪记、会议记录或需求文档内容中提取产品需求，生成结构化 PRD。若用户只给 taskUuid，先用 yida-tingji 读取内容，再进入本技能。",
       "category": "yida-skills/agent",
       "tags": [
         "闪记",
@@ -1255,7 +1257,7 @@
     {
       "name": "yida-skills/page",
       "display_name": "自定义页面",
-      "description": "自定义展示页创建、Code Canvas 链路、普通自定义页面 JSX/Jsx 组件链路、真实数据绑定、Canvas 迁移、页面发布、防覆盖、页面内导航壳和 PPT 页面。",
+      "description": "自定义展示页创建、Code Canvas 链路、已有普通自定义页面维护、真实数据绑定、Canvas 迁移、页面发布、防覆盖、页面内导航壳和 PPT 页面。",
       "signals": [
         "自定义页面",
         "Canvas",

@@ -1,19 +1,20 @@
 ---
 name: yida-custom-page
-description: 普通自定义页面 JSX/Jsx 开发。仅在用户明确要普通自定义页面，或页面依赖 this.$、this.utils.yida、dataSourceMap、表单双向绑定时使用。
+description: 普通自定义页面 JSX/Jsx 维护与例外实现。用于用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 页面，或必须使用 Canvas 当前不具备的普通页面实例能力。
 ---
 
 # 自定义页面开发
 
-> **先确认链路**：普通自定义页面 JSX/Jsx 组件链路走本技能，发布后落到平台 `Jsx` 组件；Code Canvas 链路走 `yida-canvas-custom-page`，发布后落到 `YidaCodeCanvas` 组件。两者是并列页面实现链路，不要把本技能描述成 Code Canvas 的备用链路。已有普通自定义页面升级到 Code Canvas 时才走 `yida-canvas-upgrade`。
+> **先确认链路**：本技能服务三类场景：用户明确要求普通 JSX/Jsx；维护已有非 Code Canvas 页面；需求必须使用 Canvas 当前不具备的普通页面实例能力。新建自定义页面默认使用 `yida-canvas-custom-page`，发布为 `YidaCodeCanvas`。已有普通自定义页面升级到 Code Canvas 时使用 `yida-canvas-upgrade`。
 
 ## Resource-First 页面开发
 
 编写页面源码前，先按根技能解析目标 app/page/form context：
 
-- 已有页面 URL、display `formUuid`、bound page 或 workspace cache/config 中可确认的自定义页面时，直接为该页面编写/修改源码，并交给 `yida-publish-page` 发布；不要先调用 `yida-create-page`。
+- 已有页面 URL、display `formUuid`、bound page 或 workspace cache/config 中可确认的自定义页面时，先读取页面 Schema 或源码证据。确认目标是非 Code Canvas 的 `Jsx` / `renderJsx` 页面后，用本技能修改源码并交给 `yida-publish-page` 发布。
+- 目标页面是 `YidaCodeCanvas` 时，改用 `yida-canvas-custom-page`。
 - bound page 只是默认页面，不是锁定目标；如果当前会话绑定页面 A，但用户本轮明确说要修改页面 B，先解析 B 的 URL / display `formUuid` / 页面名称。B 能唯一解析时改 B；B 无法唯一解析时询问用户；禁止静默把需求发布到 A。
-- 完整应用统一编排如果已有 bound app/page，主页面源码直接落到该页面；只在缺少主入口 display page 且用户意图允许新增时创建页面容器。
+- 完整应用统一编排的新建页面默认使用 Code Canvas；缺少主入口 display page 时创建页面容器后交给 `yida-canvas-custom-page`。
 - 用户只说“优化这个页面 URL / 修改现有页面 / 重新发布”时，本技能与 `yida-publish-page` 配合即可完成，不创建 app/page。
 - 如果用户给的是普通表单 `formUuid`，页面源码只能把它作为数据源或入口链接使用；不能把数据表单 ID 当作发布目标。
 - 页面源码路径按 Bash cwd 选择：从仓库根执行命令时用 `project/pages/src/...`；如果 cwd 已是 `<workspace>/project`，用 `pages/src/...`，不要写成 `project/pages/src/...`。
@@ -44,7 +45,7 @@ description: 普通自定义页面 JSX/Jsx 开发。仅在用户明确要普通�
 
 影响代码质量和用户体验：
 
-0. **视觉方向先于编码**：页面美化、页面重构、去 AI 味或完整应用页面实现前，先消费 `yida-design` 产物。本技能只负责把它落到普通 JSX 页面；页面重构保持现有功能契约。普通 JSX 需要自定义主题 token 时，复制 `yida-canvas-custom-page/references/theme-runtime-helpers.md` 的 Ordinary JSX helper，向当前文档、同源可访问父级窗口和 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 注入 `style#yida-global-theme`。
+0. **视觉方向先于编码**：页面美化、页面重构、去 AI 味时，先消费 `yida-design` 产物。本技能只负责把它落到已有普通 JSX 页面；页面重构保持现有功能契约。普通 JSX 需要自定义主题 token 时，复制 `yida-canvas-custom-page/references/theme-runtime-helpers.md` 的 Ordinary JSX helper，向当前文档、同源可访问父级窗口和 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 注入 `style#yida-global-theme`。
 1. **代码生成前确认功能摘要**：详见 [编码指南 编注 0](references/coding-guide.md)
 2. **pageSize 推荐 50，最大 100**：列表/看板默认 `pageSize: 50`；分页接口 `searchFormDatas` 等的 `pageSize` 最大 100
 3. **didUnmount 清理定时器**：在 `didUnmount` 中清理所有 `setInterval`/`setTimeout`，防止内存泄漏
@@ -73,7 +74,7 @@ description: 普通自定义页面 JSX/Jsx 开发。仅在用户明确要普通�
 | 层 | 默认内容 | 生成要求 |
 | --- | --- | --- |
 | 状态层 | `loading`、`list/tableData`、`currentPage`、`pageSize`、`totalCount`、`filters/searchFieldJson`、`selectedRowKeys`、`dialogVisible` | 放入 `_customState`，所有失败路径必须恢复 `loading: false` |
-| 数据源层 | 表单查询、保存、更新、删除、流程发起、任务列表、连接器动作 | 只有已存在或本轮已创建设计器数据源时，才允许调用 `this.dataSourceMap.<name>.load()`；完整应用默认不得生成依赖 dataSourceMap 的代码。查询本轮新建的宜搭表单数据时默认用 `this.utils.yida.searchFormDatas(params)`；不需要真实列表时用入口卡片 + 统计占位，不编造 dataSourceMap |
+| 数据源层 | 表单查询、保存、更新、删除、流程发起、任务列表、连接器动作 | 只有目标已有设计器数据源，或本轮已为该普通页面创建并绑定设计器数据源时，才允许调用 `this.dataSourceMap.<name>.load()`；不要为新建页面选择本技能。查询宜搭表单数据时默认用 `this.utils.yida.searchFormDatas(params)`；不需要真实列表时用入口卡片 + 统计占位，不编造 dataSourceMap |
 | 交互层 | 筛选栏、表格/卡片列表、分页、弹窗、Tab/Collapse、操作按钮 | `renderJsx` 只负责展示和事件分发，业务逻辑拆成 `export function` |
 
 默认页面结构按常见业务页面转译为 JSX：顶部筛选/操作区、主体表格或卡片列表、分页、详情/编辑弹窗、空态/错误态。数据查询、复杂计算和大段 DOM 分层编写，保持 `renderJsx` 只负责展示和事件分发。
@@ -81,7 +82,7 @@ description: 普通自定义页面 JSX/Jsx 开发。仅在用户明确要普通�
 如果用户的需求实际是字段公式、字段联动、原生报表、审批规则或集成自动化，先切换到对应技能；自定义页面只在需要跨数据展示、工具页交互、可视化看板或连接器调用界面时承担前端层。
 
 ## 适用场景
-自定义展示页面、JSX 页面、跨数据展示、复杂交互
+已有普通自定义页面、已有 JSX 页面、已有 `renderJsx` 页面、已有 `dataSourceMap` 页面维护。
 
 ## 快速开始
 
@@ -100,8 +101,7 @@ openyida get-schema APP_XXX FORM-EMPLOYEE
 ```bash
 # Step 2：确认或补齐自定义页面发布目标
 # 已有页面 URL / display formUuid 时直接复用该 formUuid，例如 FORM-QUERY001。
-# 只有没有目标页面且允许新增时才执行：
-openyida create-page APP_XXX "员工信息查询"
+# 新建自定义页面默认交给 yida-create-page + yida-canvas-custom-page。
 
 # Step 3：编写普通自定义页面 JSX 代码
 # 在 project/pages/src/employee-query.oyd.jsx 中编写；Code Canvas 页面使用 yida-canvas-custom-page / .canvas.jsx
@@ -122,9 +122,9 @@ openyida publish project/pages/src/employee-query.oyd.jsx APP_XXX FORM-QUERY001
 - 页面生成 spec、接口调试 JSON、一次性验证脚本等临时工件必须用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/` 下；不要在仓库根目录、系统临时目录或 `.cache/` 顶层生成 `page.json`、`data.json` 或脚本文件
 - `check-page` 支持行级禁用：`// openyida-lint-disable-line <rule>` 或 `// openyida-lint-disable-next-line <rule>`。只在确认该行不会触发宜搭运行时问题时使用。
 
-## 完整应用默认页面结构
+## 已有普通页面结构
 
-完整应用统一编排编写或更新主页面时，默认选择以下轻量闭环之一：
+维护已有普通页面时，默认选择以下轻量结构之一：
 
 1. 入口型页面：展示表单入口、核心流程说明、少量统计占位和快捷按钮，不执行真实列表查询。
 2. 内置数据 API 页面：用 `this.utils.yida.searchFormDatas` 查询已创建表单，用 `this.utils.yida.saveFormData` 做快速新增；所有失败路径恢复 `loading: false` 并展示空态。
@@ -158,11 +158,11 @@ export function loadVisitorList() {
 }
 ```
 
-不得在完整应用默认页面里写 `this.dataSourceMap.<name>.load()`，除非本轮已明确创建并绑定该数据源，并且已加载 `yida-data-source-connectors` 完成数据源链路。
+不得在已有普通页面里新增 `this.dataSourceMap.<name>.load()`，除非本轮已明确创建并绑定该数据源，并且已加载 `yida-data-source-connectors` 完成数据源链路。
 
 ## 开发规范
 
-> 完整应用统一编排先遵守 `yida-design` 的 `prd.md`、`design.md`、本技能正文的核心规则和页面结构。只有 check-page 报错、复杂交互/复杂组件或正文覆盖不了的运行时问题，才读取下方 Available Files。
+> 维护已有普通页面时，先遵守 `yida-design` 的 `prd.md`、`design.md`、本技能正文的核心规则和页面结构。只有 check-page 报错、复杂交互/复杂组件或正文覆盖不了的运行时问题，才读取下方 Available Files。
 > 涉及输入控件、日期、选择、成员/部门、附件、表格或筛选栏时，读取 [组件指南](references/component-jsx-guide.md)。
 
 ## 编码指南与注意事项

@@ -194,7 +194,7 @@ GET https://template.aliwork.com/alibaba/web/{APP_TYPE}/query/formdesign/getSche
 落地规则：
 
 - 创建或改造原生报表优先用 `yida-report`，不要手写 `Youshu*` schema。
-- 需要更强视觉和交互时，先用原生报表做服务端聚合，再用 `yida-chart`/`yida-custom-page` 渲染。
+- 需要更强视觉和交互时，先用原生报表做服务端聚合，再用 `yida-rechart` 或 `yida-canvas-custom-page` 渲染；旧 ECharts 页面维护才用 `yida-chart`。
 - 不要在自定义页面前端分页拉全量表单数据做大规模聚合。
 
 ## 表单、公式、流程与集成边界
@@ -211,7 +211,8 @@ GET https://template.aliwork.com/alibaba/web/{APP_TYPE}/query/formdesign/getSche
 | `formType: "receipt"`，组件多为 `TextField` / `NumberField` / `TableField` | `yida-create-form-page`，公式需求再用 `yida-formula` |
 | `formType: "process"` | `yida-create-process` / `yida-process-rule` |
 | `formType: "report"` 或组件为 `Youshu*` | `yida-report` |
-| 自定义展示页，组件为 `Div` / `Text` / `Button` / `TablePc` / `Dialog` | `yida-custom-page` |
-| 自定义页面里有 `dataSource.online` 的远程接口 | `yida-data-source-connectors` + `yida-custom-page` |
+| 新建自定义展示页 | `yida-canvas-custom-page` |
+| 已有自定义展示页，组件为 `Div` / `Text` / `Button` / `TablePc` / `Dialog` | `yida-custom-page` |
+| 已有普通自定义页面里有 `dataSource.online` 的远程接口 | `yida-data-source-connectors` + `yida-custom-page` |
 | `publicService/invokeService` 或 `serviceInfo.connectorInfo` | `yida-connector` / `yida-data-source-connectors` |
 | 默认页看不到逻辑流，但标签是 `integration` | `yida-integration` |

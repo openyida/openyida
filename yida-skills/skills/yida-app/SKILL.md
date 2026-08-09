@@ -44,12 +44,11 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 | --- | --- |
 | `yida-design` | 阶段 2 加载，生成 `prd.md` 与 `design.md` |
 | `yida-create-app` | app 缺失且本次意图允许创建时加载 |
-| `yida-form-detail` / `yida-create-form-page` | 创建或更新普通表单字段结构时加载 |
+| `yida-form-detail` / `yida-create-form-page` | 创建或更新原生表单字段结构时加载；字段、分组、校验和规则写 `.form.json` |
 | `yida-create-process` | PRD 命中审批、流程、申请、审核或工单对象时加载 |
 | `yida-data-management` | 完整应用默认写入核心普通表单示例记录时加载 |
 | `yida-create-page` | 主 display page 缺失且允许创建时加载 |
-| `yida-canvas-custom-page` | 默认页面实现链路 |
-| `yida-custom-page` | 用户明确要求普通自定义页面 JSX/Jsx 组件链路，或页面强依赖普通页实例桥时加载 |
+| `yida-canvas-custom-page` | 完整应用页面实现链路；新建自定义页面使用 Code Canvas 和 `canvas.canvas.jsx` |
 | `yida-publish-page` | 本轮修改页面源码后发布主页面时加载 |
 | `yida-nav-group` | 用户明确要求精细导航整理，或轻量排序需要单独命令时加载 |
 
@@ -87,5 +86,4 @@ description: 完整应用编排。用于从零搭建或补齐一个宜搭应用�
 - [最终输出](workflow/final-output.md)：阶段 9，判断完成并输出主入口。
 - [详细编排参考](references/app-build-contract.md)：排障、URL 规则、字段文件样例、seed records 细则、删除应用确认和故障处理。
 - `use_skill("yida-design", "完整应用产品设计")`：生成 `prd.md` 与 `design.md`。
-- `use_skill("yida-canvas-custom-page", "实现默认 Code Canvas 页面")`：默认页面实现链路。
-- `use_skill("yida-custom-page", "实现普通自定义页面 JSX/Jsx 组件链路")`：明确要求 JSX/Jsx 组件链路，或普通自定义页实例桥强依赖时使用。
+- `use_skill("yida-canvas-custom-page", "实现 Code Canvas 页面")`：完整应用页面实现链路。

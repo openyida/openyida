@@ -5,6 +5,7 @@ const os = require('os');
 const path = require('path');
 const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 const { applyTemplateVariables, run } = require('../lib/core/sample');
+const formSchemaBuilder = require('../lib/app/services/form-schema-builder');
 
 describe('sample templates', () => {
   let tmpDir;
@@ -51,6 +52,64 @@ describe('sample templates', () => {
     expect(tableSource).toContain('writeBridge.verified');
     expect(tableSource).toContain('Promise.all');
     expect(tableSource).not.toContain('this.utils.yida');
+  });
+
+  test('generic Code Canvas scaffold is the complete custom-page scaffold', async () => {
+    const outputPath = path.join(tmpDir, 'canvas.canvas.jsx');
+
+    await run(['yida-canvas-custom-page', 'canvas', '--output', outputPath]);
+
+    const source = fs.readFileSync(outputPath, 'utf8');
+    const result = compileCanvasLocal(source, { sourcePath: outputPath });
+
+    expect(JSON.parse(result.importedModules)).toEqual(['antd', 'react']);
+    [
+      'saveFormData',
+      'updateFormData',
+      'deleteFormData',
+      'getFormDataById',
+      'searchFormDatas',
+      'searchFormDataIds',
+      'getFormComponentDefinationList',
+      'startProcessInstance',
+      'updateProcessInstance',
+      'deleteProcessInstance',
+      'getProcessInstances',
+      'getProcessInstanceIds',
+      'getProcessInstanceById',
+    ].forEach((methodName) => {
+      expect(source).toContain(methodName);
+    });
+    expect(source).toContain('FormOpenContainer');
+    expect(source).toContain('buildSubmissionUrl');
+    expect(source).toContain('buildFormDetailUrl');
+    expect(source).toContain('assertFormInstanceId');
+    expect(source).toContain('installThemeIntoFrame');
+    expect(source).toContain('This is the only generic Canvas scaffold');
+  });
+
+  test('native form scaffold stays as form json and compiles through form schema builder', async () => {
+    const outputPath = path.join(tmpDir, 'form.form.json');
+
+    await run(['yida-create-form-page', 'form', '--output', outputPath]);
+
+    const source = fs.readFileSync(outputPath, 'utf8');
+    const definition = JSON.parse(source);
+    const compiled = formSchemaBuilder.compileFormDefinition(definition, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_TEST',
+      corpId: 'CORP_TEST',
+    });
+
+    expect(outputPath.endsWith('.form.json')).toBe(true);
+    expect(source).not.toMatch(/renderJsx|YidaComp|\\.jsx|this\\.utils\\.yida/);
+    expect(definition.fields).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'Divider', label: '基本信息' }),
+      expect.objectContaining({ type: 'TextField', label: '事项名称' }),
+    ]));
+    expect(compiled.schema.pages[0].componentsTree[0].lifeCycles.componentDidMount.name).toBe('openyidaThemeDidMount');
+    expect(compiled.schema.actions.module.source).toContain('openyida:theme:start');
+    expect(compiled.schema.actions.module.source).toContain('yida-global-theme');
   });
 
   test('remaining samples avoid near-black default business surfaces', () => {

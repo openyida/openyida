@@ -1,6 +1,6 @@
 ---
 name: yida-chart
-description: "ECharts 高级可视化报表。依赖宜搭原生报表 getDataAsync.json 接口获取聚合数据，禁止前端聚合。触发词：「更美观」「ECharts」「大屏」「定制化」。普通「报表」「统计」需求默认由 yida-report 处理。"
+description: "旧 ECharts / 普通自定义页面图表维护技能。依赖宜搭原生报表 getDataAsync.json 接口获取聚合数据，禁止前端聚合。新建图表页默认使用 yida-rechart 或 Code Canvas。普通「报表」「统计」需求默认由 yida-report 处理。"
 ---
 
 # 宜搭 ECharts 高级报表技能
@@ -9,7 +9,8 @@ description: "ECharts 高级可视化报表。依赖宜搭原生报表 getDataAs
 
 | 用户意图 | 正确处理 |
 |---------|---------|
-| "更美观"、"高级"、"定制化"、"ECharts"、"数据大屏" | 使用本技能 |
+| 维护已有 ECharts / 普通自定义页面图表 | 使用本技能 |
+| 新建图表、看板、大屏 | 默认使用 `yida-rechart` 或 `yida-canvas-custom-page` |
 | 用户提供已有报表 URL，希望美化展示 | 使用本技能的方案 C |
 | 多表关联分析 | 当前不支持，先澄清或拆成单表报表 |
 
@@ -30,7 +31,7 @@ description: "ECharts 高级可视化报表。依赖宜搭原生报表 getDataAs
 2. **记录绑定关系**：写入 `.cache/<项目名>-report-bindding.json`，记录 ECharts 页面、原生报表和组件映射。
 3. **更新时双页面同步**：需求变化时先更新原生报表 Schema，再更新 ECharts 页面和绑定关系。
 4. **明细表走表单数据接口**：仅数据明细表可用 `this.utils.yida.searchFormDatas`，聚合图表仍走报表接口。
-5. **遵循自定义页面规范**：状态、生命周期、事件绑定、发布前校验按 `yida-custom-page` 执行。
+5. **维护旧普通页面图表**：状态、生命周期、事件绑定、发布前校验按 `yida-custom-page` 执行；新建图表页使用 `yida-rechart` 或 `yida-canvas-custom-page`。
 6. **当前应用报表绑定优先**：修复或迁移现有 ECharts 页面时，不要复用其它应用的 `REPORT_xxx`、`prdId/topicId` 或 `cid`。必须在当前 app 内创建或同步原生报表，再批量替换绑定。
 
 ## 方案选择
@@ -38,7 +39,7 @@ description: "ECharts 高级可视化报表。依赖宜搭原生报表 getDataAs
 | 场景 | 方案 | 流程 |
 |------|------|------|
 | 用户有原生报表 URL | 方案 C：基于已有报表创建 ECharts 页面 | 解析 URL → get-schema → 提取组件参数 → 校验数据源 → 写 ECharts 页面 |
-| 用户无原生报表但要 ECharts 高级报表 | 方案 B：从头创建 | `yida-report` 创建原生报表 → get-schema → 创建 ECharts 页面 |
+| 用户无原生报表但要新建高级图表 | 不使用本技能 | `yida-rechart` 或 `yida-canvas-custom-page` |
 | 用户只要标准报表 | 不使用本技能 | 交给 `yida-report` |
 
 ## 开发流程

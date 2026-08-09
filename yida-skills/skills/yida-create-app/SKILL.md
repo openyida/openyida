@@ -52,28 +52,16 @@ openyida create-app <appName> [description] [icon] [iconColor] [colour] [navThem
 | `appName` | 是 | — | 应用名称 |
 | `description` | 否 | 同 appName | 应用描述 |
 | `icon` | 否 | `xian-yingyong` | 图标标识（见下方图标表） |
-| `iconColor` | 否 | `#0089FF` | 图标背景色 |
-| `colour` | 否 | 平台默认 | 平台壳层应用主题 key；只在 PRD 的 `shouldPassCreateAppTheme=true` 且 `themePresetKey` 命中平台预置 key 时传。自定义品牌色不要传 `colour/theme`，改由页面或全局 `style#yida-global-theme` / `customThemeStyle.tokens` 注入 |
+| `iconColor` | 否 | CLI 默认 | 仅用户或上游编排明确给定时透传 |
+| `colour` | 否 | 平台默认 | 仅用户或上游编排明确给定平台支持的主题 key 时透传；本技能不判断主题 |
 | `navTheme` | 否 | 不传 | 导航风格：仅用户明确要求时传 `dark`（深色）/ `light`（浅色） |
 | `layoutDirection` | 否 | 不传 | 导航布局：仅用户明确要求时传 `slide`（侧边栏）/ `ver`（L 型顶导） |
 
-## 创建应用壳层兜底
+## 参数边界
 
-完整应用的主题结论由 `yida-design` 产出。本技能读取 PRD 中的 `shouldPassCreateAppTheme` 和 `themePresetKey`：命中平台预置 key 才传 `colour/theme`，否则不传主题。
+本技能只创建应用壳层并返回 `appType`。应用主题、品牌色、页面视觉和 token 由 `yida-design` 决定；本技能不按行业、场景或应用名推断颜色。
 
-| 场景语义 | CLI 壳层 fallback 主题（非设计结论） | create-app 壳层 fallback | 创建后的首屏页面 |
-|------|------|------|------|
-| 律所、律师、法律服务、法务合规 | `podBlue` | `xian-falv #5C72FF podBlue` | `official-homepage`，走专业服务官网叙事 |
-| 茶叶、茶园、生态、环保、健康品牌 | `podGreen` | `xian-diqiu #00B853 podGreen` | `official-homepage`，走品牌官网叙事 |
-| 数据大屏、实时监控、预警系统、态势屏、水质/IoT | `podBlue` | `xian-baogao #14A9FF podBlue` | `data-screen`，走沉浸式指挥舱 |
-| 咨询、审计、会计、投顾、企业服务 | `podBlue` | `xian-qiye #5C72FF podBlue` | `official-homepage` 或工作台，按用户目标选择 |
-| 普通内部管理、CRM、OA、项目管理 | `podBlue`，业务强调增长/活力时可选 `podOrange` | 可使用默认或用户指定参数 | `product-homepage --scene workbench` |
-
-CLI 已内置上述行业推断作为创建壳层的兜底能力，不代表 `yida-design` 的主题结论。当用户没有显式传 `icon/iconColor/colour` 时，CLI 会根据应用名和描述自动补齐；`navTheme/layoutDirection` 默认不传，只有用户明确要求时才传。显式参数始终优先。
-
-**应用主题（colour）口径**：
-
-`colour` / `--theme` 只能传宜搭平台预置 key，不能传自定义色值或 AI 自造主题名。完整主题判断和 token 变量查看 `yida-design`，本技能只负责把已确认的平台预置 key 传给创建命令。
+`icon`、`iconColor`、`colour`、`navTheme`、`layoutDirection` 只在用户明确给定或 `yida-app` 上游步骤已给定时传。没有明确值时使用 CLI 和平台默认值。
 
 ## 输出
 
@@ -98,12 +86,10 @@ CLI 已内置上述行业推断作为创建壳层的兜底能力，不代表 `yi
 | 火车 | `huoche` | | 查询 | `xian-chaxun` |
 | 申报 | `xian-shenbao` | | 打卡 | `xian-daka` |
 
-**图标背景色**：`#0089FF` `#00B853` `#FFA200` `#FF7357` `#5C72FF` `#85C700` `#FFC505` `#FF6B7A` `#8F66FF` `#14A9FF`
-
 ## 创建后交付约定
 
 - 将 `appType`、页面 `formUuid`、表单 `fieldId` 写入 `.cache/<项目名>-schema.json`，PRD 只保留业务语义。
-- 自定义页面源码默认使用 `.canvas.jsx`，通过 `yida-canvas-custom-page` 生成或编写并走 Canvas 编译发布；明确要求普通自定义页面 JSX/Jsx 组件链路，或强依赖普通自定义页实例桥时才使用 `.oyd.jsx` / `.jsx`，并遵循 `yida-custom-page` 的事件绑定、timestamp 隐藏节点、loading 兜底等规范。
+- 新建自定义页面源码默认使用 `.canvas.jsx` / `.canvas.tsx`，通过 `yida-canvas-custom-page` 生成或编写并使用 Canvas 编译发布。`yida-custom-page` 用于用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 页面，或必须使用 Canvas 当前不具备的普通页面实例能力。
 - 造测试数据或修旧数据时，可以用 Python 或 JS 编写 `.cache/` 下的一次性脚本；优先选择更快更清晰的方式，但字段 ID 和记录 ID 必须来自真实查询。
 
 ## 异常处理

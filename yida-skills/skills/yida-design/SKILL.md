@@ -69,7 +69,7 @@ description: >
 21. **设计事实源唯一**：`prd.md` 写业务目标、资源、页面、数据来源、主操作和 `pageSpecHandoff`；`design.md` 写主题、布局、视觉脚手架、组件、图标、背景和状态规则。页面 `scene` 只作为分类标签，不对应模板文件或代码入口。
 22. **参考转成可执行选择**：参考 Dribbble / 优秀案例时，落到主色、背景素材、首屏构图、信息密度、动线、区块数量和反默认点。
 23. **页面文案和图标使用专业表达**：渲染文案使用纯文本；图标只使用 `lucide-react` 或 `@ant-design/icons` 的具体组件，默认选择 `lucide-react`，并在 `design.md` 的 `iconSystem` 中写清业务动作、状态、导航和空态到图标组件的映射。emoji 不能改成 CSS 形状、字母占位、Unicode 符号或临时 SVG；如果需要图标，必须映射到上述两类库的具体组件。
-24. **页面链路只做归属说明**：默认自定义页面归 Code Canvas 页面技能处理；常规业务图表归 `yida-rechart`；ECharts 只在用户明确要求复杂 ECharts option 或维护旧图表时归 `yida-chart`。本技能不写这些链路的代码规则。
+24. **页面链路只做归属说明**：默认自定义页面归 Code Canvas 页面技能处理；常规业务图表归 `yida-rechart`；新建图表页不因 ECharts 关键词改走普通 JSX；只有维护旧 ECharts / 普通自定义页面图表时归 `yida-chart`。本技能不写这些链路的代码规则。
 
 ---
 

@@ -102,8 +102,8 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 
 - 已解析到目标 app 时，默认在该 app 内修改、补齐或发布，不执行 `yida-create-app`；只有用户明确要求“新建另一个应用”并确认目标组织后才创建新 app。
 - 已解析到目标自定义页面 URL / `formUuid` / bound page 时，默认写源码并发布到该页面，不执行 `yida-create-page`；只有缺少目标 display page 且本次意图允许新增页面时才创建。
-- 已解析到目标表单 `formUuid` 时，字段结构诉求默认走 `yida-create-form-page` 的 update/patch/rule/bind-datasource 模式，不创建同名或同类表单。
-- 已解析到目标流程表单 / `processCode` 时，默认走 `yida-process-rule` 配置/更新流程，不从零执行 `yida-create-process`。
+- 已解析到目标表单 `formUuid` 时，字段结构诉求默认使用 `yida-create-form-page` 的 update/patch/rule/bind-datasource 模式，不创建同名或同类表单。
+- 已解析到目标流程表单 / `processCode` 时，默认使用 `yida-process-rule` 配置/更新流程，不从零执行 `yida-create-process`。
 - 完整应用统一编排也遵守本规则：交给 `yida-app` 解析、创建或复用资源；根入口不展开完整应用阶段。
 
 验收心智模型：
@@ -155,7 +155,7 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 | `yida-skills/design` | 完整应用产品设计、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、PRD 和 design.md | `yida-design` |
 | `yida-skills/form` | 表单字段、公式、校验、业务关联规则、详情页、批量录入、数据记录 | `yida-create-form-page`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-form-detail`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-agent-center` |
-| `yida-skills/page` | 自定义展示页、Code Canvas、普通自定义页面 JSX/Jsx 组件、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
+| `yida-skills/page` | 自定义展示页、Code Canvas、已有普通自定义页面维护、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
 | `yida-skills/analytics` | 报表、统计、图表、Recharts、ECharts、看板、驾驶舱、大屏 | `yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard` |
 | `yida-skills/integration` | 连接器、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-integration`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
 | `yida-skills/access` | 平台/应用/表单/页面权限、公开访问、分享 | `yida-corp-manager`、`yida-app-permission`、`yida-form-permission`、`yida-page-config` |
@@ -169,22 +169,22 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 | 从零搭一个完整应用/系统 | `yida-app`；它按阶段加载 `yida-design` 等子技能 |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
-| 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 整理需求素材，最终 PRD 由 `yida-design` 生成或更新 |
-| 已有会议纪要/闪记内容转 PRD | `yida-flash-note-to-prd`，只处理已有内容并输出需求素材，不负责按 taskUuid 拉取听记 |
+| 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成结构化 PRD |
+| 已有会议纪要/闪记内容转 PRD | `yida-flash-note-to-prd`，只处理已有内容并生成结构化 PRD，不负责按 taskUuid 拉取听记 |
 | 只创建应用壳并拿 appType | `yida-create-app`；创建成功后把真实 `appType` 写入缓存，并交给当前编排步骤继续使用 |
 | 启用/上线或停用/下线已有应用 | `yida-app-lifecycle`；只有用户明确要求时执行，`app-offline` 执行前需再次确认目标应用 |
-| 创建自定义展示页资源 | `yida-create-page`，之后默认接 `yida-canvas-custom-page` 和 `yida-publish-page` |
-| 开发表单字段结构 / 增删改字段 | 先加载 `yida-form-detail` 做表单视觉引导并合并 Divider 分割线，再用 `yida-create-form-page` 落地字段结构 |
+| 创建自定义展示页资源 | `yida-create-page`，之后交给 `yida-canvas-custom-page` 和 `yida-publish-page` |
+| 开发表单字段结构 / 增删改字段 | 先加载 `yida-form-detail` 做表单视觉引导并合并 Divider 分割线，再用 `yida-create-form-page` 落地 `.form.json` 字段、分组、校验和规则 |
 | 创建带审批的流程表单 | `yida-create-process` |
 | 修改已有流程节点/分支/字段权限 | `yida-process-rule` |
 | 查字段 ID / 保存 Schema 证据 | `yida-get-schema`；凡涉及 fieldId 的数据、流程、公式、页面代码先取证 |
 | 改表单数据记录 | `yida-data-management`，不是 `yida-create-form-page` |
 | 配字段默认值、计算、校验 | `yida-formula`；静态检查用 `yida-formula-evaluate` |
 | 提交后跨表写入/更新/删除 | 默认 `yida-integration`；用户明确要业务关联规则/高级函数时用 `yida-business-rule` |
-| 自定义页面默认开发链路 | `yida-canvas-custom-page` |
-| 普通自定义页面 JSX/Jsx 组件使用成员/部门/附件上传/图片上传 | `yida-custom-page`，必须读取 `component-jsx-guide.md`；上传还必须读取 `attachment-upload-guide.md` |
+| 自定义页面默认开发链路 | `yida-canvas-custom-page`；新建自定义页面使用 Code Canvas |
+| 普通自定义页面 JSX/Jsx | 用户明确要求普通 JSX/Jsx、维护历史页面，或必须使用 Canvas 当前不具备的普通页面实例能力时用 `yida-custom-page` |
 | Code Canvas 页面使用成员/部门/上传等宜搭运行态组件 | `yida-canvas-custom-page`，读取 `native-components-bridge.md` |
-| 普通自定义页面 JSX/Jsx 组件链路，或强依赖 `this.$` / `this.utils.yida.*` / `this.dataSourceMap` | `yida-custom-page` |
+| 新建页面提到 `this.$`、`this.utils.yida.*` 或 `this.dataSourceMap`，但没有明确要求普通 JSX/Jsx | 用 `yida-canvas-custom-page`，改成 Canvas 数据桥、统一 window runtime 或开放 API 方案 |
 | Code Canvas 接真实数据 | `yida-canvas-data-binding` |
 | 已有 `.oyd.jsx` / `renderJsx` 迁到 Canvas | `yida-canvas-upgrade` |
 | 批量录入、表格填写、多行编辑 | 默认 `yida-canvas-table-form`；明确普通自定义页面/native/旧页面或 `this.utils.yida.saveFormData` 时用 `yida-table-form` |
@@ -194,7 +194,8 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 | 页面隐藏原导航后自绘导航壳 | `yida-nav-shell` |
 | 普通报表/统计 | `yida-report` |
 | 高级图表、可视化、看板图表 | 默认 `yida-rechart`（Code Canvas + Recharts） |
-| 明确 ECharts、维护旧 ECharts 页面、复杂 option 超出 Recharts 能力 | `yida-chart` |
+| 新建高级图表、可视化、看板图表 | 默认 `yida-rechart` 或 `yida-canvas-custom-page` |
+| 维护旧 ECharts / 普通自定义页面图表 | `yida-chart` |
 | 产品化经营看板/驾驶舱交付 | `yida-dashboard` |
 | 公开访问/组织内分享 | `yida-page-config` |
 | 评测指定技能质量并给出评分建议 | `yida-skill-evaluator` |
@@ -229,17 +230,18 @@ OpenYida builder 先完成全局预检和资源上下文解析，再按意图进
 3. **优先复用本地 ID 映射**：已有 `.cache/<项目名>-schema.json` 中可确认新鲜的 `appType`/`formUuid`/`fieldId` 可复用；该文件不是远端真相。字段级表单操作优先交给 `create-form update/add-option/bind-datasource/validation/rule` 的 schema-aware 解析，不要求先外部 `get-schema`；若 CLI 返回字段不存在/重名/歧义 diagnostics，再按 candidates、`tableLabel`、已知 `fieldId` 或 `get-schema --compact --resolve-fields` 收敛。页面代码、数据、流程、公式等确实需要多字段/多表单映射时，每表单一次性执行 `get-schema --field-map-json` 并缓存完整字段摘要。不得猜测字段 ID，也不要用 `head`/`tail`/`grep` 截断 schema stdout 当证据。
 4. **页面规格优先**：完整应用页面规格关系由 `yida-app` 引用 `yida-design` 产物处理；单页视觉设计交给 `yida-design`，实现交给页面技能。
 5. **配置优先于页面代码**：字段、公式、联动、报表、审批和集成交给对应技能；自定义页面负责展示数据、放置业务入口、打开详情页，并串联表单、流程、报表和导航入口。
-6. **数据性能优先**：统计聚合用 `yida-report` 服务端聚合，不在前端拉全量后自行聚合。
-7. **避免无效重试**：失败先查登录态/组织/参数/字段 ID，无修改不连续重试超 1 次。
-8. **配置分三处存**：业务语义 → `prd/<项目名>/prd.md`；视觉契约 → `prd/<项目名>/design.md`；Schema ID → `.cache/<项目名>-schema.json`（prd 不记 ID）。
-9. **临时文件入 project `.cache/`**：OpenYida 业务中间文件写入 `<projectRoot>/.cache/openyida/<项目名或任务名>/`；Schema ID 映射仍写 `<projectRoot>/.cache/<项目名>-schema.json`。从 workspace 根执行命令时使用 `project/.cache/...`，从 project 工作目录内执行时使用 `.cache/...`；不要写仓库根目录或系统临时目录。
-10. **报表美化先分流**：标准统计与原生报表用 `yida-report`；定制图表页面默认用 `yida-rechart`；只有明确 ECharts、维护旧 ECharts 页面或复杂 option 超出 Recharts 能力时用 `yida-chart`。
-11. **按 schema 证据选技能**：先看 `formType`、组件树、`dataSource.online`；`receipt/process/report` 分别落到表单/流程/报表技能。
-12. **官方示例范式优先**：蒸馏官方示例时先理解脱敏 schema 承载方式，不凭截图/标题/视觉判断。
-13. **默认完成即停止**：完整应用默认以发布成功、完成轻量导航自动排序并输出 URL 与业务交付总结为 doneWhen；`yida-design` 输出的 `prd.md` 与 `design.md` 只服务于本轮应用或页面交付。数据源深读、精细导航整理、截图和 TaskCreate 都是 optionalAfterDone；seed records 属于完整应用默认阶段。
-14. **UI 设计技能优先**：涉及应用蓝图、页面视觉、主题色、品牌色、全局换肤或 `--color-brand1-*` 时加载 `yida-design`。后续技能读取 `design.md` 中的主题和设计引用继续实现。
-15. **最终输出业务化**：最终回复先写 2-3 句业务交付总结，再给主入口链接。新增/修改/发布单个页面时主入口是当前页面 URL；其他完整应用、表单、流程、权限、主题、导航或批量资源场景主入口是应用首页 `{base_url}/{appType}/workbench`。业务总结说明创建/复用了哪些业务表单和页面、完成了哪些功能和默认示例数据/导航/详情样式状态；不要使用表格、资源 ID 清单或长列表。示例：“已完成订单、商品和客户等核心表单，并发布首页、订单管理和库存看板入口。当前应用已支持订单录入、库存预警、销售统计和表单详情查看，示例记录与轻量导航排序也已就绪。主入口：{base_url}/{appType}/workbench”。默认不输出 `资源类型 | 名称/用途 | ID | 状态` 表格，也不把 `g.alicdn.com` 静态资源、CDN 构建产物、locale JSON、`/admin` 管理页或中间文件 URL 当成最终结果。
-16. **任务复盘沉淀**：任务完成前判断是否有可复用经验需要落盘到 CLI、测试或 skill。用户多次纠正、平台接口假成功、页面骨架共性质量问题、线上回读验收方法、一次性脚本可产品化等情况必须沉淀；详见 `references/task-retrospective.md`。
+6. **脚手架边界清楚**：Code Canvas 使用 `openyida sample yida-canvas-custom-page canvas` 这一份 `canvas.canvas.jsx`；原生表单使用 `openyida sample yida-create-form-page form` 这一份 `.form.json`。表单字段、分组、校验和规则不要写成自定义页面 JSX。
+7. **数据性能优先**：统计聚合用 `yida-report` 服务端聚合，不在前端拉全量后自行聚合。
+8. **避免无效重试**：失败先查登录态/组织/参数/字段 ID，无修改不连续重试超 1 次。
+9. **配置分三处存**：业务语义 → `prd/<项目名>/prd.md`；视觉契约 → `prd/<项目名>/design.md`；Schema ID → `.cache/<项目名>-schema.json`（prd 不记 ID）。
+10. **临时文件入 project `.cache/`**：OpenYida 业务中间文件写入 `<projectRoot>/.cache/openyida/<项目名或任务名>/`；Schema ID 映射仍写 `<projectRoot>/.cache/<项目名>-schema.json`。从 workspace 根执行命令时使用 `project/.cache/...`，从 project 工作目录内执行时使用 `.cache/...`；不要写仓库根目录或系统临时目录。
+11. **报表美化先分流**：标准统计与原生报表用 `yida-report`；新建定制图表页面默认用 `yida-rechart` 或 `yida-canvas-custom-page`；只有维护旧 ECharts / 普通自定义页面图表时用 `yida-chart`。
+12. **按 schema 证据选技能**：先看 `formType`、组件树、页面组件类型和 `dataSource.online`；`receipt/process/report` 分别落到表单/流程/报表技能。新建自定义页面默认使用 `yida-canvas-custom-page`。用户明确要求普通 JSX/Jsx、维护已有非 Code Canvas 页面，或必须使用 Canvas 当前不具备的普通页面实例能力时，用 `yida-custom-page`。修改已有 `YidaCodeCanvas` 页面继续用 `yida-canvas-custom-page`。
+13. **官方示例范式优先**：蒸馏官方示例时先理解脱敏 schema 承载方式，不凭截图/标题/视觉判断。
+14. **默认完成即停止**：完整应用默认以发布成功、完成轻量导航自动排序并输出 URL 与业务交付总结为 doneWhen；`yida-design` 输出的 `prd.md` 与 `design.md` 只服务于本轮应用或页面交付。数据源深读、精细导航整理、截图和 TaskCreate 都是 optionalAfterDone；seed records 属于完整应用默认阶段。
+15. **UI 设计技能优先**：涉及应用蓝图、页面视觉、主题色、品牌色、全局换肤或 `--color-brand1-*` 时加载 `yida-design`。后续技能读取 `design.md` 中的主题和设计引用继续实现。
+16. **最终输出业务化**：最终回复先写 2-3 句业务交付总结，再给主入口链接。新增/修改/发布单个页面时主入口是当前页面 URL；其他完整应用、表单、流程、权限、主题、导航或批量资源场景主入口是应用首页 `{base_url}/{appType}/workbench`。业务总结说明创建/复用了哪些业务表单和页面、完成了哪些功能和默认示例数据/导航/详情样式状态；不要使用表格、资源 ID 清单或长列表。示例：“已完成订单、商品和客户等核心表单，并发布首页、订单管理和库存看板入口。当前应用已支持订单录入、库存预警、销售统计和表单详情查看，示例记录与轻量导航排序也已就绪。主入口：{base_url}/{appType}/workbench”。默认不输出 `资源类型 | 名称/用途 | ID | 状态` 表格，也不把 `g.alicdn.com` 静态资源、CDN 构建产物、locale JSON、`/admin` 管理页或中间文件 URL 当成最终结果。
+17. **任务复盘沉淀**：任务完成前判断是否有可复用经验需要落盘到 CLI、测试或 skill。用户多次纠正、平台接口假成功、页面骨架共性质量问题、线上回读验收方法、一次性脚本可产品化等情况必须沉淀；详见 `references/task-retrospective.md`。
 
 > 📖 每条规则的完整说明、PRD 质量门槛、临时文件路径规范、报表美化话术 → [references/development-rules.md](references/development-rules.md)
 

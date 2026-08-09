@@ -1,0 +1,60 @@
+{
+  "formTitle": "业务登记表",
+  "layout": "single",
+  "labelAlign": "top",
+  "fields": [
+    {
+      "type": "Divider",
+      "label": "基本信息",
+      "style": "bold-with-thin"
+    },
+    {
+      "key": "title",
+      "type": "TextField",
+      "label": "事项名称",
+      "required": true,
+      "placeholder": "请输入事项名称"
+    },
+    {
+      "key": "owner",
+      "type": "EmployeeField",
+      "label": "负责人",
+      "required": true
+    },
+    {
+      "key": "status",
+      "type": "SelectField",
+      "label": "状态",
+      "required": true,
+      "options": ["待处理", "进行中", "已完成"]
+    },
+    {
+      "key": "dueDate",
+      "type": "DateField",
+      "label": "计划完成时间"
+    },
+    {
+      "type": "Divider",
+      "label": "补充说明",
+      "style": "bold-with-thin"
+    },
+    {
+      "key": "description",
+      "type": "TextareaField",
+      "label": "说明",
+      "placeholder": "请输入说明"
+    }
+  ],
+  "validations": [
+    {
+      "field": "事项名称",
+      "rules": [
+        {
+          "type": "required",
+          "message": "请输入事项名称"
+        }
+      ]
+    }
+  ],
+  "rules": []
+}
