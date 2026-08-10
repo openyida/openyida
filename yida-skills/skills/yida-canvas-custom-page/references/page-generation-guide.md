@@ -35,7 +35,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 
 `dataBinding.mode=form` 的页面实现必须读取 [data-bridge-guide.md](data-bridge-guide.md) 的表单数据契约。源码使用本地 `useYidaData(binding)` / `DataBridge`，默认调用发布层注入的 `window.__OPENYIDA_RUNTIME__.yida.searchFormDatas(params)`，兼容 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；只有 runtime 不可用时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。生成器或手写页面如果没有 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射，只能标记为未接真实表单数据。
 
-新建 Canvas 页面从 `openyida sample yida-canvas-custom-page canvas` 输出的 `canvas.canvas.jsx` 扩展。`FORM_UUIDS.<formKey>` 与 `FIELDS.<formKey>` 使用同一个表单键，并填写 `get-schema --field-map-json` 返回的完整 ID；发布前由 CLI 与线上 Schema 核对。脚手架中的 13 个 Yida API、主题、表单容器、URL、实例校验和基础状态不按场景裁剪。
+新建 Canvas 页面从 `openyida sample yida-canvas-custom-page canvas` 输出的 `canvas.canvas.jsx` 扩展。`FORM_UUIDS.<formKey>` 与 `FIELDS.<formKey>` 使用同一个表单键，并填写 `get-schema --field-map-json` 返回的完整 ID；发布前由 CLI 与线上 Schema 核对。脚手架中的 13 个 Yida API、主题、表单容器、URL、实例校验和基础状态不按场景裁剪。表单新建、提交和详情保留脚手架的 `FormOpenContainer`，默认不改成页面跳转。
 
 ## 修复路径
 
@@ -78,7 +78,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 
 默认实现保留平台应用导航，同应用内页面入口写入 `appBlueprint.navigation` 或平台导航分组。页面内 tab、自绘侧边栏或独立门户壳最多写 `appBlueprint.hasPageNavigation: true`，并保持平台导航可见；PRD 明确隐藏平台导航、无导航全屏体验或 `isRenderNav=false` 时，在 spec 里写 `appBlueprint.renderNav: false`；发布后再用 `openyida update-form-config <appType> <formUuid> false "<页面标题>"` 隐藏平台导航，保持页面单导航。
 
-快捷入口目标是同应用内页面时，先把目标放入 `appBlueprint.navigation` / 平台导航分组，由应用导航内切换；默认工作台或门户内容区聚焦当前页动作、表单新建/查看、外部链接、跨应用资源，或用户显式隐藏平台导航后的页面内导航壳。表单新建/提交入口必须写清 `targetType: "submission"` 与 `openMode: "responsive-drawer"`；表单查看入口必须写清 `targetType: "detail"`、目标 `formUuid` 和真实 `formInstId` 来源。两类入口都默认 `hideNav: true` / `isRenderNav=false`：PC 端生成 `FormOpenContainer` 右侧抽屉 iframe，抽屉默认半屏 `50vw`，提交页和详情页使用同一宽度规则；移动端整页或新页打开隐藏导航原生表单页。PC 抽屉 iframe 不会自动继承父页面 CSS 变量，`FormOpenContainer` 必须接收 design.md 派生的 `themeTokens`，并在 iframe `onLoad` 后调用 `installYidaGlobalThemeIntoFrame(themeTokens, iframeElement)`，保证提交页和详情页同源子文档也有 `style#yida-global-theme`。
+快捷入口目标是同应用内页面时，先把目标放入 `appBlueprint.navigation` / 平台导航分组，由应用导航内切换；默认工作台或门户内容区聚焦当前页动作、表单新建/查看、外部链接、跨应用资源，或用户显式隐藏平台导航后的页面内导航壳。表单新建/提交入口必须写清 `targetType: "submission"` 与 `openMode: "responsive-drawer"`；表单查看入口必须写清 `targetType: "detail"`、目标 `formUuid` 和真实 `formInstId` 来源。两类入口都默认 `hideNav: true` / `iframe=true` / `isRenderNav=false`，并使用 `FormOpenContainer`：桌面端侧边抽屉，移动端全屏抽屉。iframe 不会自动继承父页面 CSS 变量，`FormOpenContainer` 必须接收 design.md 派生的 `themeTokens`，并在 iframe `onLoad` 后调用 `installYidaGlobalThemeIntoFrame(themeTokens, iframeElement)`。
 
 ## 官网与品牌页素材流程
 

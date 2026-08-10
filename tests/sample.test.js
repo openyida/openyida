@@ -77,10 +77,13 @@ describe('sample templates', () => {
     expect(source).toContain('FormOpenContainer');
     expect(source).toContain('buildSubmissionUrl');
     expect(source).toContain('buildFormDetailUrl');
+    expect(source).toContain('(request && request.formUuid) || binding.formUuid');
     expect(source).toContain('assertFormInstanceId');
     expect(source).toContain('installThemeIntoFrame');
-    expect(source).toContain('width="50vw"');
-    expect(source).toContain('window.location.assign(url)');
+    expect(source).toContain('width="min(720px, 100vw)"');
+    expect(source).toContain('?iframe=true&isRenderNav=false');
+    expect(source).toContain("iframe: 'true'");
+    expect(source).not.toContain('window.location.assign(url)');
     expect(source).toContain('error.repairType');
     expect(source).toContain('APP_TYPE');
     expect(source).toContain('FORM_UUIDS');

@@ -467,7 +467,7 @@ describe('compileCanvasLocal', () => {
     }));
   });
 
-  test('allows mobile-only full-page form opens when desktop uses FormOpenContainer state', () => {
+  test('rejects mobile-only full-page form opens', () => {
     const source = `
       import React, { useState } from 'react';
       export default function App() {
@@ -484,6 +484,46 @@ describe('compileCanvasLocal', () => {
       }
       function isMobileViewport() {
         return window.matchMedia('(max-width: 767px)').matches;
+      }
+    `;
+
+    expect(() => compileCanvasLocal(source)).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_FORM_OPEN_CONTAINER_REQUIRED',
+      details: expect.objectContaining({
+        line: 8,
+        callee: 'window.location.href',
+      }),
+    }));
+  });
+
+  test('rejects location.assign when a generic url variable holds a form route', () => {
+    const source = `
+      import React from 'react';
+      export default function App() {
+        let url;
+        url = buildSubmissionUrl();
+        return <button onClick={() => window.location.assign(url)}>新增</button>;
+      }
+      function buildSubmissionUrl() {
+        return '/APP_XXX/submission/FORM_XXX?isRenderNav=false';
+      }
+    `;
+
+    expect(() => compileCanvasLocal(source)).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_FORM_OPEN_CONTAINER_REQUIRED',
+      details: expect.objectContaining({
+        callee: 'window.location.assign',
+      }),
+    }));
+  });
+
+  test('allows an explicit full-page form-open override', () => {
+    const source = `
+      // @openyida-form-open-mode page
+      import React from 'react';
+      export default function App() {
+        const submitUrl = '/APP_XXX/submission/FORM_XXX?isRenderNav=false';
+        return <button onClick={() => window.location.assign(submitUrl)}>新增</button>;
       }
     `;
 

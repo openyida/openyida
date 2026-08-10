@@ -13,6 +13,7 @@ description: 创建宜搭自定义展示页面并返回 formUuid。确认目标�
 - 如果本轮用户给了页面 URL、`formUuid`、bound page，或 workspace cache/config 中已有目标 display page，禁止调用 `openyida create-page`；先判断页面 Schema：`YidaCodeCanvas` 用 `yida-canvas-custom-page`，已确认是存量普通 JSX/Jsx 页面时用 `yida-custom-page`，再用 `yida-publish-page` 发布到该页面。
 - 如果用户给的是普通表单 `formUuid` 且诉求是改字段结构，改用 `yida-create-form-page`；不要把表单 ID 当作自定义页面创建目标。
 - 只有目标 app 已明确、目标 display page 缺失，并且用户意图允许新增页面（例如“在 APP_xxx 里增加回访页面”）时，才加载并执行本技能。
+- 完整应用只创建本轮会实现并发布的自定义页面。下一步或以后才实现的页面只保留在 PRD，不执行 `create-page`。
 - 多个已有页面候选按根技能来源优先级选择；同级冲突或无法判断主页面时才问用户。
 
 ## 严格禁止 (NEVER DO)
@@ -23,7 +24,7 @@ description: 创建宜搭自定义展示页面并返回 formUuid。确认目标�
 ## 严格要求 (MUST DO)
 
 - **创建前必须确认**：单项创建页面时，执行命令前向用户确认页面名称和目标应用。完整应用阶段已取得直接创建授权时，合理命名并创建，不再重复询问。
-- 完整应用中的首页、工作台、智能助手或门户可以先创建页面容器并记录 `formUuid`，取得表单 ID 后再写源码并发布。
+- 完整应用中，本轮会实现并发布的首页、工作台、智能助手或门户可以先创建并记录 `formUuid`，取得表单 ID 后再写源码并发布。
 - 新建自定义页面创建后交给 `yida-canvas-custom-page` 编写，再用 `yida-publish-page` 发布。
 - 将命令返回的真实 `formUuid` 写入 `.cache/<项目名>-schema.json`。
 

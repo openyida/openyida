@@ -49,7 +49,7 @@ description: 从零搭建或补齐一个宜搭应用。生成需求和设计文�
 | `yida-form-detail` / `yida-create-form-page` | 创建或更新原生表单时加载；输入和实现规则见 `yida-create-form-page` |
 | `yida-create-process` | PRD 命中审批、流程、申请、审核或工单对象时加载 |
 | `yida-data-management` | 完整应用默认写入核心普通表单示例记录时加载 |
-| `yida-create-page` | 主 display page 缺失且允许创建时加载 |
+| `yida-create-page` | 本轮要实现并发布的主 display page 缺失且允许创建时加载 |
 | `yida-canvas-custom-page` | 实现完整应用页面 |
 | `yida-publish-page` | 本轮修改页面源码后发布主页面时加载 |
 | `yida-nav-group` | 用户明确要求精细导航整理，或轻量排序需要单独命令时加载 |

@@ -57,10 +57,10 @@
 | 页面类型 | URL 格式 |
 |---------|---------|
 | 应用首页 | `{base_url}/{appType}/workbench` |
-| 表单提交页（默认隐藏导航） | `{base_url}/{appType}/submission/{formUuid}?isRenderNav=false` |
+| 表单提交页（抽屉/隐藏导航） | `{base_url}/{appType}/submission/{formUuid}?iframe=true&isRenderNav=false` |
 | 自定义页面 | `{base_url}/{appType}/custom/{formUuid}` |
 | 自定义页面隐藏导航 | `{base_url}/{appType}/custom/{formUuid}?isRenderNav=false` |
-| 表单详情页（抽屉/隐藏导航） | `{base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&navConfig.layout=1180&isRenderNav=false` |
+| 表单详情页（抽屉/隐藏导航） | `{base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&iframe=true&navConfig.layout=1180&isRenderNav=false` |
 
 建议在链接末尾拼接 `corpid={corpId}`，便于切换到正确组织。
 

@@ -86,7 +86,7 @@ Code Canvas 不使用普通页面的 `check-page` / `compile` 作为预检，直
 
 | 技能 | 关系 |
 | --- | --- |
-| `yida-create-page` | 目标 display page 缺失且允许新增时创建页面容器 |
+| `yida-create-page` | 本轮要实现并发布的目标 display page 缺失且允许新增时创建页面 |
 | `yida-canvas-custom-page` | 编写 Code Canvas 页面 |
 | `yida-custom-page` | 维护已有普通 JSX 页面 |
 | `yida-page-config` | 发布后配置公开访问或分享 |

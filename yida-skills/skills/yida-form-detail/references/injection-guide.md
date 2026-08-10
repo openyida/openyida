@@ -105,7 +105,7 @@ Body:
    结果必须包含 `globalThemeActionFound: true` 和 `formDetailStyleActionFound: true`。
 3. 如果已有一条数据记录，可以打开：
    ```text
-   {base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&navConfig.layout=1180&isRenderNav=false
+   {base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&iframe=true&navConfig.layout=1180&isRenderNav=false
    ```
 
 ## 注入方式

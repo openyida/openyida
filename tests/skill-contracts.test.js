@@ -360,6 +360,7 @@ describe('OpenYida skill contracts', () => {
     const root = readSkill('yida-skills/SKILL.md');
     const skill = readSkill('yida-skills/skills/yida-app/SKILL.md');
     const createApp = readSkill('yida-skills/skills/yida-create-app/SKILL.md');
+    const createPage = readSkill('yida-skills/skills/yida-create-page/SKILL.md');
     const contract = readSkill('yida-skills/skills/yida-app/references/app-build-contract.md');
     const prd = readSkill('yida-skills/skills/yida-prd/SKILL.md');
     const design = readSkill('yida-skills/skills/yida-design/SKILL.md');
@@ -425,7 +426,10 @@ describe('OpenYida skill contracts', () => {
     expect(pageGeneration).toContain('若业务需求或视觉规则缺失，先补齐 `prd.md` / `design.md` 并重新生成 spec');
     expect(pageGeneration).toContain('只有实现偏差才小范围修改生成源码');
     expect(appBuildStages).toContain('| 5A. seed records（并行） | `yida-data-management` |');
-    expect(appBuildStages).toContain('| 5B. reserve main page（并行） | `yida-create-page` 仅在主页面缺失且允许创建时加载 |');
+    expect(appBuildStages).toContain('| 5B. 创建本轮主页面（并行） | `yida-create-page` 仅在本轮主页面缺失且允许创建时加载 |');
+    expect(appBuildStages).toContain('下一步或以后才实现的其他页面只保留在 PRD，不执行 `create-page`');
+    expect(createPage).toContain('下一步或以后才实现的页面只保留在 PRD，不执行 `create-page`');
+    expect(workflow.page_creation_policy).toContain('Keep later-step pages in the PRD');
     expect(appBuildStages).toContain('| 5C. 编写/更新页面（并行） | `yida-canvas-custom-page` |');
     expect(appBuildStages).toContain('默认给本轮新建或页面数据源依赖的核心普通表单写入 1-3 条业务化 seed records');
     expect(appBuildStages).toContain('不要等示例数据写完才创建或编写自定义页面');
@@ -1140,6 +1144,7 @@ describe('OpenYida skill contracts', () => {
     const customPage = readSkill('yida-skills/skills/yida-custom-page/SKILL.md');
     const codingGuide = readSkill('yida-skills/skills/yida-custom-page/references/coding-guide.md');
     const fieldUrlReference = readSkill('yida-skills/references/field-and-url-reference.md');
+    const workflow = buildCommandManifest().summary.core_workflows.full_app_build;
 
     expect(pageUiux).toContain('表单入口只写交互意图');
     expect(pageUiux).toContain('具体 URL、真实记录校验、容器实现和主题同步由页面实现技能处理');
@@ -1148,6 +1153,7 @@ describe('OpenYida skill contracts', () => {
     expect(pageUiux).not.toContain('新增/提交页 URL 默认使用隐藏导航的 `submission/{formUuid}?isRenderNav=false`');
     expect(pageUiux).not.toContain('formDetail/{formUuid}?formInstId={formInstId}&navConfig.layout=1180&isRenderNav=false');
     expect(canvas).toContain('navigation-and-entry-guide.md');
+    expect(canvas).toContain('移动端使用全屏抽屉');
     expect(canvas).not.toContain('function FormOpenContainer');
     expect(canvas).not.toContain('按钮事件只能调用 `openForm({ type: "submission" | "detail", ... })`');
     expect(navGuide).toContain('"openMode": "responsive-drawer"');
@@ -1157,9 +1163,9 @@ describe('OpenYida skill contracts', () => {
     expect(navGuide).toContain('installYidaGlobalThemeIntoFrame');
     expect(navGuide).toContain('themeTokens');
     expect(navGuide).toContain('onLoad={syncThemeToIframe}');
-    expect(navGuide).toContain("const FORM_OPEN_DRAWER_WIDTH = '50vw';");
+    expect(navGuide).toContain("const FORM_OPEN_DRAWER_WIDTH = 'min(720px, 100vw)';");
     expect(navGuide).toContain('width={FORM_OPEN_DRAWER_WIDTH}');
-    expect(navGuide).toContain('return `/${appType}/submission/${entry.formUuid}?isRenderNav=false`;');
+    expect(navGuide).toContain('return `/${appType}/submission/${entry.formUuid}?iframe=true&isRenderNav=false`;');
     expect(navGuide).toContain('formDetail/${entry.formUuid}?formInstId=');
     expect(navGuide).toContain("'navConfig.layout': 1180");
     expect(navGuide).toContain('只使用 `searchFormDatas` 返回行的 `row.formInstId`');
@@ -1167,12 +1173,14 @@ describe('OpenYida skill contracts', () => {
     expect(navGuide).toContain('&isRenderNav=false');
     expect(navGuide).toContain('FormOpenContainer');
     expect(navGuide).toContain('按钮事件只调用 `openForm(request)`');
+    expect(navGuide).toContain('@openyida-form-open-mode page');
+    expect(navGuide).not.toContain('function isMobileViewport()');
     expect(navGuide).not.toContain('runtime.openDrawer');
     expect(pageGeneration).toContain('`targetType: "submission"` 与 `openMode: "responsive-drawer"`');
     expect(pageGeneration).toContain('`targetType: "detail"`、目标 `formUuid` 和真实 `formInstId` 来源');
-    expect(pageGeneration).toContain('默认 `hideNav: true` / `isRenderNav=false`');
-    expect(pageGeneration).toContain('抽屉默认半屏 `50vw`');
-    expect(pageGeneration).toContain('PC 抽屉 iframe 不会自动继承父页面 CSS 变量');
+    expect(pageGeneration).toContain('默认 `hideNav: true` / `iframe=true` / `isRenderNav=false`');
+    expect(pageGeneration).toContain('移动端全屏抽屉');
+    expect(pageGeneration).toContain('iframe 不会自动继承父页面 CSS 变量');
     expect(pageGeneration).toContain('新建 Canvas 页面使用 `canvas.canvas.jsx` 内置主题能力和 iframe 同步能力');
     expect(pageGeneration).not.toMatch(/复制.*theme-runtime|复制.*helper|优先复制/);
     expect(themeHelpers).toContain('function installYidaGlobalThemeIntoFrame');
@@ -1182,16 +1190,17 @@ describe('OpenYida skill contracts', () => {
     expect(customPage).toContain('FormOpenContainer');
     expect(customPage).not.toContain('半屏 `50vw` 抽屉 iframe');
     expect(customPage).not.toContain('formDetail/{formUuid}?formInstId=...&navConfig.layout=1180&isRenderNav=false');
-    expect(codingGuide).toContain('抽屉内 iframe 指向隐藏导航提交页或详情页 URL');
-    expect(codingGuide).toContain("drawerWidth: '50vw'");
-    expect(codingGuide).toContain("state.formOpenRequest.drawerWidth || '50vw'");
+    expect(codingGuide).toContain('桌面端打开右侧抽屉，移动端打开全屏抽屉');
+    expect(codingGuide).toContain("drawerWidth: 'min(720px, 100vw)'");
+    expect(codingGuide).toContain("state.formOpenRequest.drawerWidth || 'min(720px, 100vw)'");
     expect(codingGuide).toContain('FormOpenContainer');
     expect(codingGuide).toContain('formOpenRequest');
     expect(codingGuide).toContain('installYidaGlobalThemeIntoFrame');
-    expect(codingGuide).toContain("'/submission/' + formUuid + '?isRenderNav=false'");
+    expect(codingGuide).toContain("'/submission/' + formUuid + '?iframe=true&isRenderNav=false'");
     expect(codingGuide).toContain("'/formDetail/' + formUuid");
     expect(codingGuide).toContain('&isRenderNav=false');
-    expect(fieldUrlReference).toContain('{base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&navConfig.layout=1180&isRenderNav=false');
+    expect(fieldUrlReference).toContain('{base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&iframe=true&navConfig.layout=1180&isRenderNav=false');
+    expect(workflow.form_entry_policy).toContain('mobile uses a full-screen drawer');
   });
 
   test('custom-page-dependent skills keep Code Canvas as creation path', () => {

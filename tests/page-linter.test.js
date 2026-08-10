@@ -287,7 +287,7 @@ export function renderJsx() {
     expect(warningRules).toContain('iframe-self-navigation');
   });
 
-  test('blocks form submission or detail pages opening outside FormOpenContainer on desktop', () => {
+  test('blocks form submission or detail pages opening outside FormOpenContainer on every device', () => {
     const source = `
 export function openCreate() {
   var submitUrl = '/APP_XXX/submission/FORM_XXX?isRenderNav=false';
@@ -305,8 +305,9 @@ export function openMobileCreate() {
     const result = lintYidaSource(source, '/tmp/form-open.jsx');
     const formOpenErrors = result.errors.filter(issue => issue.rule === 'form-open-container');
 
-    expect(formOpenErrors).toHaveLength(1);
+    expect(formOpenErrors).toHaveLength(2);
     expect(formOpenErrors[0].line).toBe(4);
+    expect(formOpenErrors[1].line).toBe(10);
   });
 
   test('blocks form detail links without a reliable formInstId', () => {

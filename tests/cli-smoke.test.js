@@ -448,7 +448,7 @@ describe('CLI offline smoke', () => {
         canvas: {
           api_methods: expect.arrayContaining(['saveFormData', 'getProcessInstanceById']),
           capabilities: expect.arrayContaining([
-            'desktop-50vw-drawer-and-mobile-full-page',
+            'all-device-drawer-and-mobile-full-screen',
             'live-form-and-field-id-validation-before-publish',
           ]),
           binding_contract: {
@@ -483,6 +483,8 @@ describe('CLI offline smoke', () => {
       ]),
       product_design_policy: expect.stringContaining('yida-prd and yida-design start in parallel'),
       page_skill_policy: expect.stringContaining('New custom pages use Code Canvas'),
+      page_creation_policy: expect.stringContaining('current run'),
+      form_entry_policy: expect.stringContaining('full-screen drawer'),
       form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
       ui_guidance_policy: expect.stringContaining('derived implementation handoff'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),
@@ -1315,6 +1317,8 @@ describe('CLI offline smoke', () => {
       ]),
       product_design_policy: expect.stringContaining('yida-prd and yida-design start in parallel'),
       page_skill_policy: expect.stringContaining('New custom pages use Code Canvas'),
+      page_creation_policy: expect.stringContaining('current run'),
+      form_entry_policy: expect.stringContaining('full-screen drawer'),
       form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
       ui_guidance_policy: expect.stringContaining('derived implementation handoff'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),

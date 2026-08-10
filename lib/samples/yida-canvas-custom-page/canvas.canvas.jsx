@@ -168,7 +168,7 @@ function resolveBaseUrl() {
 }
 
 function buildSubmissionUrl({ baseUrl, appType, formUuid }) {
-  return `${baseUrl}/${appType}/submission/${formUuid}?isRenderNav=false`;
+  return `${baseUrl}/${appType}/submission/${formUuid}?iframe=true&isRenderNav=false`;
 }
 
 function buildFormDetailUrl({ baseUrl, appType, formUuid, formInstId }) {
@@ -177,6 +177,7 @@ function buildFormDetailUrl({ baseUrl, appType, formUuid, formInstId }) {
   }
   const query = new URLSearchParams({
     formInstId,
+    iframe: 'true',
     'navConfig.layout': '1180',
     isRenderNav: 'false',
   });
@@ -218,7 +219,7 @@ function FormOpenContainer({ openState, onClose, themeTokens }) {
   return (
     <Drawer
       title={title}
-      width="50vw"
+      width="min(720px, 100vw)"
       open={openState.visible}
       onClose={onClose}
       destroyOnClose
@@ -299,16 +300,14 @@ function YidaComp(props) {
 
   const openForm = useCallback((request) => {
     const type = request && request.type;
+    const targetAppType = (request && request.appType) || binding.appType;
+    const targetFormUuid = (request && request.formUuid) || binding.formUuid;
     let url;
     if (type === 'detail') {
       const formInstId = request.formInstId || assertFormInstanceId(request.row);
-      url = buildFormDetailUrl({ baseUrl, appType: binding.appType, formUuid: binding.formUuid, formInstId });
+      url = buildFormDetailUrl({ baseUrl, appType: targetAppType, formUuid: targetFormUuid, formInstId });
     } else {
-      url = buildSubmissionUrl({ baseUrl, appType: binding.appType, formUuid: binding.formUuid });
-    }
-    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
-      window.location.assign(url);
-      return;
+      url = buildSubmissionUrl({ baseUrl, appType: targetAppType, formUuid: targetFormUuid });
     }
     setOpenState({ visible: true, type: type === 'detail' ? 'detail' : 'submission', url });
   }, [baseUrl, binding.appType, binding.formUuid]);

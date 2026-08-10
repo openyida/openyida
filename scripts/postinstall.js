@@ -270,6 +270,8 @@ openyida copy
 
 新建自定义页面使用 Code Canvas，页面实现交给 \`yida-canvas-custom-page\`。OpenYida 提供一份完整 \`canvas.canvas.jsx\` 脚手架，内置 13 个 Yida API、主题、表单提交/详情抽屉、URL 构造、实例 ID 校验、iframe 主题同步和基础状态。修改已有非 Code Canvas 的 \`Jsx\` / \`renderJsx\` 页面时，使用 \`yida-custom-page\`。
 
+只为本轮会实现并发布的自定义页面执行 \`create-page\`；下一步或以后才实现的页面只保留在 PRD。Code Canvas 的表单新建、提交和详情默认使用脚手架抽屉，移动端使用全屏抽屉；用户未明确要求时，不改成整页跳转或新标签。
+
 \`yida-app\` 先用 \`yida-requirement-analysis\` 生成共享需求简报，再同时加载 \`yida-prd\` 和 \`yida-design\`，分别输出 \`prd/<项目名>/prd.md\` 与 \`prd/<项目名>/design.md\`。
 
 完整应用按步骤加载对应子技能。示例数据、精细导航分组、截图验收、公开访问、数据源深接、数据管理和原生报表是否执行，以 \`yida-app\` 阶段表和用户需求为准。

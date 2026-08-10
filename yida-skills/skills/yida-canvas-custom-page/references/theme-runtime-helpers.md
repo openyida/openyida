@@ -174,4 +174,4 @@ didMount: function () {
 }
 ```
 
-维护旧源码或普通 JSX 页面时，根节点建议加 `data-yida-theme-root="true"`，方便当前页面 scoped token 和父级窗口 token 同时命中。PC 端用表单抽屉承载提交页或详情页时，在 iframe `onload` 后调用 `installYidaGlobalThemeIntoFrame(CUSTOM_THEME_TOKENS, iframeElement)`；父页面 CSS 变量不会自动继承到子 iframe 文档。新建 Canvas 页面优先使用 `canvas.canvas.jsx` 内置能力。
+维护旧源码或普通 JSX 页面时，根节点建议加 `data-yida-theme-root="true"`，方便当前页面 scoped token 和父级窗口 token 同时命中。用表单抽屉承载提交页或详情页时，在 iframe `onload` 后调用 `installYidaGlobalThemeIntoFrame(CUSTOM_THEME_TOKENS, iframeElement)`；父页面 CSS 变量不会自动继承到子 iframe 文档。新建 Canvas 页面优先使用 `canvas.canvas.jsx` 内置能力。

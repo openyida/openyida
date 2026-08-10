@@ -76,7 +76,7 @@
 - 布局骨架：<顶部概览 / 筛选区 / 表格 / 卡片列表 / 图表区 / 右侧详情等>
 - 核心组件：<KPI / 快捷入口 / 表格 / 图表 / 表单入口 / 状态标签等>
 - 主操作：<新增 / 提交 / 查看 / 审批 / 编辑 / 跳转>
-- PC / 移动端差异：<PC 抽屉 / 移动端整页 / 卡片堆叠 / 隐藏低频列>
+- PC / 移动端差异：<PC 侧边抽屉 / 移动端全屏抽屉 / 卡片堆叠 / 隐藏低频列>
 - pageSpecHandoff：
   - pageStructure：<workbench / dashboard-overview / business-list / detail-profile / split-pane-detail / portal-shell-home / official-homepage / data-screen>
   - scene：<workbench / dashboard / list / detail / landing / screen>
