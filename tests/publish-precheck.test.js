@@ -14,6 +14,8 @@ const { fetchFormPageList } = require('../lib/app/form-navigation');
 const {
   loadPageSource,
 } = require('../lib/app/services/page-source-loader');
+const { compileCanvasPageSource } = require('../lib/app/services/canvas-page-compiler');
+const { compileNativePageSource } = require('../lib/app/services/native-page-compiler');
 const {
   buildMissingSourceHints,
   buildDefaultPageDataSource,
@@ -149,6 +151,35 @@ describe('publish prechecks', () => {
       source: expect.stringContaining('renderJsx'),
       sourceHash: expect.stringMatching(/^sha256:/),
     });
+  });
+
+  test('schema compilers reject a trusted source from the other page chain', () => {
+    const sourceDir = path.join(workspace, 'project', 'pages', 'src');
+    fs.mkdirSync(sourceDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(sourceDir, 'home.canvas.jsx'),
+      'export default function Page() { return <div>Canvas</div>; }\n',
+      'utf8'
+    );
+    fs.writeFileSync(
+      path.join(sourceDir, 'legacy.oyd.jsx'),
+      'export function renderJsx() { return <div>Native</div>; }\n',
+      'utf8'
+    );
+
+    const canvasSource = loadPageSource('project/pages/src/home.canvas.jsx', {
+      workspaceRoot: workspace,
+    });
+    const nativeSource = loadPageSource('project/pages/src/legacy.oyd.jsx', {
+      workspaceRoot: workspace,
+    });
+
+    expect(() => compileNativePageSource(canvasSource)).toThrow(expect.objectContaining({
+      code: 'SCHEMA_PAGE_COMPILER_MISMATCH',
+    }));
+    expect(() => compileCanvasPageSource(nativeSource)).toThrow(expect.objectContaining({
+      code: 'SCHEMA_PAGE_COMPILER_MISMATCH',
+    }));
   });
 
   test('rejects page source when sandbox identity and stat fingerprint both differ', () => {

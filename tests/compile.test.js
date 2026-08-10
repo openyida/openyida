@@ -97,7 +97,7 @@ export default function Portal() {
 `, 'utf8');
 
     const compileOutput = execFileSync(process.execPath, [
-      BIN, 'compile', 'pages/src/portal.canvas.jsx', '--json',
+      BIN, 'compile', 'pages/src/portal.canvas.jsx', '--compat', '--skip-lint', '--json',
     ], {
       cwd: tmpDir,
       env: cliEnv(),
@@ -144,6 +144,24 @@ export default function Portal() { return <SearchIcon />; }
       timeout: 10000,
       stdio: 'pipe',
     })).toThrow(/OPENYIDA_CANVAS_INVALID_ANT_ICON_IMPORT/);
+  });
+
+  test('build-page refuses Canvas source instead of using the native compatibility compiler', () => {
+    const sourcePath = path.join(tmpDir, 'pages', 'src', 'canvas-only.canvas.jsx');
+    fs.writeFileSync(sourcePath, `
+import React from 'react';
+export default function Page() { return <div>Canvas</div>; }
+`, 'utf8');
+
+    expect(() => execFileSync(process.execPath, [
+      BIN, 'build-page', 'pages/src/canvas-only.canvas.jsx', '--json',
+    ], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+      stdio: 'pipe',
+    })).toThrow(/OPENYIDA_PAGE_COMPILER_MISMATCH/);
   });
 
   test('rejects emoji even when lint is skipped', () => {

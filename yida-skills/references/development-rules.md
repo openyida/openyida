@@ -12,6 +12,7 @@
 
 **F3 发布前本地校验**：
 - 普通自定义页面 `.oyd.jsx` / `.jsx` 和 Code Canvas `.canvas.jsx` / `.canvas.tsx` 都可运行 `openyida check-page <源文件>` 与 `openyida compile <源文件>`；CLI 按后缀选择正确编译器。Canvas 发布仍以 `openyida publish` 成功为准；
+- 不直接给页面选择内部编译器。`.canvas.jsx` / `.canvas.tsx` 的检查结果必须是 `mode: "canvas"`；编译器不匹配错误先修正文件后缀或命令，不按普通 JSX 规则改 Canvas 源码；
 - 发布时留意"同名双副本内容不一致"警告，必要时加 `--health-check` 做首屏 HTTP 健康检查；
 - 任何 JSON 配置写盘后先做 JSON 解析校验，再调用平台命令。
 

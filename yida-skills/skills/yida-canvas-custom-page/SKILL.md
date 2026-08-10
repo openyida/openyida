@@ -42,7 +42,8 @@ openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas
 8. JSX 中使用的组件必须有明确的 import 或本地定义。按钮、搜索、快捷入口、可点击卡片和“查看全部”等操作必须绑定会执行动作的事件。
 9. React Hooks、自定义 Hooks、`antd` 和 `@ant-design/icons` 都可用。包依赖使用标准 import；Ant Design 图标使用该包真实导出的 `*Outlined`、`*Filled` 或 `*TwoTone` 名称，不混用 `lucide-react` 图标名。
 10. 本地执行 `openyida check-page <source> --json` 或 `openyida compile <source> --json`；`.canvas.jsx` / `.canvas.tsx` 会自动使用 Canvas 编译器。
-11. 本轮修改源码后，必须成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，才能说明页面已发布。
+11. 不直接调用普通 JSX 的 compatibility compiler、`page-compiler` 或 `build-page`。本地检查结果必须包含 `mode: "canvas"`；出现 `OPENYIDA_PAGE_COMPILER_MISMATCH` 时先改命令或文件后缀，不按普通 JSX 错误修改 Hooks、import 和默认导出。
+12. 本轮修改源码后，必须成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，才能说明页面已发布。
 
 发布命令会与线上 Schema 精确核对 `appType`、`formUuid` 和 `fieldId`。空值、错位或缺少字符都会阻止发布，并返回可供核对的真实候选值。
 
@@ -62,6 +63,7 @@ openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas
 ## 完成条件
 
 - 发布命令成功。
+- 本地检查返回 `mode: "canvas"`。
 - Schema 回读中存在 `YidaCodeCanvas`，`runtimeCode` 和 `importedModules` 有效。
 - 页面使用真实资源 ID 和真实数据。
 - 加载、空数据、错误和移动端状态可用。

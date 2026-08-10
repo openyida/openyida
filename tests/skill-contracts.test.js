@@ -816,6 +816,7 @@ describe('OpenYida skill contracts', () => {
     const generation = readSkill('yida-skills/skills/yida-canvas-custom-page/references/page-generation-guide.md');
     const compiler = readSkill('lib/app/canvas-compile.js');
     const guard = readSkill('lib/app/canvas-source-guard.js');
+    const routing = readSkill('lib/app/page-compiler-routing.js');
 
     expect(canvas).toContain('组件必须有明确的 import 或本地定义');
     expect(canvas).toContain('必须绑定会执行动作的事件');
@@ -827,6 +828,9 @@ describe('OpenYida skill contracts', () => {
     expect(guard).toContain('OPENYIDA_CANVAS_INVALID_ANT_ICON_IMPORT');
     expect(canvas).toContain('React Hooks、自定义 Hooks、`antd` 和 `@ant-design/icons` 都可用');
     expect(canvas).toContain('openyida compile <source> --json');
+    expect(canvas).toContain('本地检查结果必须包含 `mode: "canvas"`');
+    expect(routing).toContain('OPENYIDA_PAGE_COMPILER_MISMATCH');
+    expect(routing).toContain('resolvePageCompilerMode');
   });
 
   test('yida-custom-page covers ordinary JSX exceptions', () => {

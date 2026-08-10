@@ -16,6 +16,8 @@
 
 `.canvas.jsx` / `.canvas.tsx` 执行 `check-page`、`compile` 或 `publish` 时都会自动使用 Canvas 编译器，检查未声明组件、无效交互、图标导入、`YidaComp` 导出、依赖和 `runtimeCode + importedModules`。React Hooks、自定义 Hooks 和标准包 import 可用，不套用普通 JSX 的限制。
 
+不要为 Canvas 源码调用 `build-page`、compatibility compiler 或普通 `page-compiler`。CLI 和底层编译服务都会核对页面链路；选错时返回 `OPENYIDA_PAGE_COMPILER_MISMATCH` 或 `SCHEMA_PAGE_COMPILER_MISMATCH`，不得根据普通 JSX 报错删 Hooks、删 import 或改写默认导出。
+
 ## 自动注入样式
 
 发布时自动覆盖平台默认页面间距：
