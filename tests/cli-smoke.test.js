@@ -2130,4 +2130,43 @@ describe('CLI offline smoke', () => {
       fs.rmSync(workspace, { recursive: true, force: true });
     }
   });
+
+  test('Canvas publish blocks direct form row field reads before login', () => {
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-publish-canvas-'));
+    try {
+      const sourcePath = path.join(workspace, 'pages', 'src', 'bad-form-row.canvas.jsx');
+      fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
+      fs.writeFileSync(sourcePath, [
+        'import React from "react";',
+        'const FIELDS = { apartment: { name: "textField_name" } };',
+        'export default function Page() {',
+        '  const rows = [];',
+        '  React.useEffect(function () {',
+        '    window.__OPENYIDA_YIDA_API__.searchFormDatas({ formUuid: "FORM-X", currentPage: 1, pageSize: 20, searchFieldJson: "" });',
+        '  }, []);',
+        '  return rows.map(function (apt) { return <div>{apt[FIELDS.apartment.name]}</div>; });',
+        '}',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runAny(['publish', sourcePath, 'APP_TEST', 'FORM-TEST', '--no-open', '--json']);
+      const parsed = JSON.parse(result.jsonOutput);
+
+      expect(result.status).toBe(1);
+      expect(parsed).toMatchObject({
+        success: false,
+        errorCode: 'OPENYIDA_CANVAS_FORM_ROW_DIRECT_FIELD_READ',
+        details: expect.objectContaining({
+          stage: 'canvas_compile',
+          sourcePath,
+          issueType: 'form-row-direct-field-read',
+          expression: 'apt[FIELDS.apartment.name]',
+        }),
+      });
+      expect(parsed.errorMsg).toContain('row.formData[fieldId]');
+      expect(result.output).not.toContain('读取登录态');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
 });

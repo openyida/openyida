@@ -166,6 +166,12 @@ function resolveFormInstanceId(row) {
   return String(row.formInstId || '');
 }
 
+function fieldOf(row, fieldId) {
+  if (!row || !fieldId) return '';
+  const formData = row.formData || {};
+  return formData[fieldId];
+}
+
 function assertFormInstanceId(row) {
   const formInstId = resolveFormInstanceId(row);
   if (!formInstId) {
@@ -251,14 +257,13 @@ function installThemeIntoFrame(themeTokens, iframeElement) {
 }
 
 function normalizeRow(row, fields) {
-  const formData = row && (row.formData || row.data || row);
   return {
     key: resolveFormInstanceId(row) || String(Math.random()),
     formInstId: resolveFormInstanceId(row),
-    title: formData && fields.title ? formData[fields.title] : '',
-    status: formData && fields.status ? formData[fields.status] : '',
-    owner: formData && fields.owner ? formData[fields.owner] : '',
-    updatedAt: formData && fields.updatedAt ? formData[fields.updatedAt] : '',
+    title: fieldOf(row, fields.title),
+    status: fieldOf(row, fields.status),
+    owner: fieldOf(row, fields.owner),
+    updatedAt: fieldOf(row, fields.updatedAt),
     raw: row,
   };
 }

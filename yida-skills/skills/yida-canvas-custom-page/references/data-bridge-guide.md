@@ -216,7 +216,7 @@ function getTotalCount(payload) {
 }
 
 function normalizeFormRow(row) {
-  var formData = row.formData || row.data || row;
+  var formData = row.formData || {};
   return {
     id: row.formInstId,
     title: formData.textField_xxx || formData.title || '',
@@ -229,6 +229,7 @@ function normalizeFormRow(row) {
 
 - 首屏只有离线预览可以用 seed 数据做本地预览兜底；真实交付页未接表单数据时展示空态和登记入口。真实接口返回后以接口数据为准。
 - 如果 `getTotalCount(json) > 0` 且 `unwrapRows(json).length === 0`，展示“接口返回结构未识别”，并保留原始错误状态供定位。
+- `searchFormDatas` 返回行的字段值只从 `row.formData[fieldId]` 读取。不要写 `row[fieldId]`、`item[FIELDS.xxx]` 或 `apt[FIELDS.xxx]`。
 - 用 `openyida data query form <appType> <formUuid> --size 20` 或数据管理页核对总数，页面统计必须和真实表单一致。
 
 ## 在组件里用
@@ -371,8 +372,8 @@ function fetchFormData(appType, formUuid, signal) {
   });
 }
 
-// 取字段值：优先 row.formData[fieldId]
-function fieldOf(row, fieldId) { return (row.formData || row)[fieldId]; }
+// 取字段值：searchFormDatas 返回行的字段值在 row.formData[fieldId]
+function fieldOf(row, fieldId) { return ((row && row.formData) || {})[fieldId]; }
 ```
 
 ## 数据接入验收清单
