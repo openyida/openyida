@@ -40,7 +40,7 @@ openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas
 6. 提交页、详情页、数据管理页和页面跳转读取 [页面入口](references/navigation-and-entry-guide.md)。数据管理抽屉使用 `workbench/{formUuid}?hideLeftNav=true&corpid={corpId}`，不得显示平台左侧导航。
 7. 用户未明确要求整页跳转时，不得把脚手架的表单抽屉改成 `window.location`、`openPage`、`window.open` 或新标签。
 8. `searchFormDatas` 返回行的字段值只从 `row.formData[fieldId]` 读。使用脚手架的 `fieldOf(row, fieldId)`；不要写 `row[fieldId]`、`item[FIELDS.xxx]` 或 `apt[FIELDS.xxx]`。
-9. JSX 中使用的组件必须有明确的 import 或本地定义。按钮、搜索、快捷入口、可点击卡片和“查看全部”等操作必须绑定会执行动作的事件。
+9. JSX 中使用的组件必须有明确的 import 或本地定义。按钮、搜索、筛选、Tab、分页、菜单、链接、快捷入口、可点击卡片和“查看全部”等可操作外观必须绑定真实事件；暂不实现就改成禁用态或静态文本。
 10. React Hooks、自定义 Hooks、`antd` 和 `@ant-design/icons` 都可用。包依赖使用标准 import；Ant Design 图标使用该包真实导出的 `*Outlined`、`*Filled` 或 `*TwoTone` 名称，不混用 `lucide-react` 图标名。
 11. 本地执行 `openyida check-page <source> --json` 或 `openyida compile <source> --json`；`.canvas.jsx` / `.canvas.tsx` 会自动使用 Canvas 编译器。
 12. 不直接调用普通 JSX 的 compatibility compiler、`page-compiler` 或 `build-page`。本地检查结果必须包含 `mode: "canvas"`；出现 `OPENYIDA_PAGE_COMPILER_MISMATCH` 时先改命令或文件后缀，不按普通 JSX 错误修改 Hooks、import 和默认导出。

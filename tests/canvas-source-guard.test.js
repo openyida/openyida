@@ -64,4 +64,74 @@ export default function Page() {
     expect(findCanvasSourceIssues(source).map(issue => issue.type))
       .not.toContain('form-row-direct-field-read');
   });
+
+  test('blocks common Antd controls without real handlers', () => {
+    const source = `
+import React from 'react';
+import { Segmented, Select, Tabs, Typography } from 'antd';
+
+export default function Page() {
+  return (
+    <div>
+      <Segmented options={['今日', '本周']} />
+      <Select options={[]} />
+      <Tabs items={[]} />
+      <Typography.Link>查看全部</Typography.Link>
+    </div>
+  );
+}
+`;
+
+    const issues = findCanvasSourceIssues(source);
+
+    expect(issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'missing-handler', elementName: 'Segmented' }),
+      expect.objectContaining({ type: 'missing-handler', elementName: 'Select' }),
+      expect.objectContaining({ type: 'missing-handler', elementName: 'Tabs' }),
+      expect.objectContaining({ type: 'missing-handler', elementName: 'Typography.Link' }),
+    ]));
+  });
+
+  test('allows controlled Antd controls and real links', () => {
+    const source = `
+import React from 'react';
+import { Segmented, Select, Tabs, Typography } from 'antd';
+
+export default function Page() {
+  const [tab, setTab] = React.useState('home');
+  return (
+    <div>
+      <Segmented options={['今日', '本周']} onChange={(value) => setTab(value)} />
+      <Select options={[]} onChange={(value) => setTab(value)} />
+      <Tabs items={[]} activeKey={tab} onChange={(key) => setTab(key)} />
+      <Typography.Link href="https://example.com">查看全部</Typography.Link>
+    </div>
+  );
+}
+`;
+
+    expect(findCanvasSourceIssues(source).map(issue => issue.type))
+      .not.toContain('missing-handler');
+  });
+
+  test('blocks pointer style references without handlers', () => {
+    const source = `
+import React from 'react';
+
+const styles = {
+  actionCard: { cursor: 'pointer', padding: 12 },
+};
+
+export default function Page() {
+  return <div style={styles.actionCard}>快捷入口</div>;
+}
+`;
+
+    expect(findCanvasSourceIssues(source)).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'missing-handler',
+        elementName: 'div',
+      }),
+    ]));
+  });
 });

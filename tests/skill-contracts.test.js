@@ -813,6 +813,7 @@ describe('OpenYida skill contracts', () => {
     expect(canvas).toContain('openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas.canvas.jsx');
     expect(canvas).toContain('完整应用从项目 Canvas 脚手架扩展');
     expect(canvas).toContain('不要改名或自造方法');
+    expect(canvas).toContain('可操作外观必须绑定真实事件');
     expect(canvas).toContain('data-bridge-guide.md');
     expect(canvas).not.toContain('window.__OPENYIDA_RUNTIME__.yida.searchFormDatas(params)');
     expect(canvas).not.toContain('不能使用 `/query/form/searchFormDatas.json`');
@@ -831,6 +832,9 @@ describe('OpenYida skill contracts', () => {
     expect(dataBridge).toContain('function unwrapRows(payload)');
     expect(bridge).toContain('`/query/form/searchFormDatas.json` 不是可用表单数据端点');
     expect(generation).toContain('用前端 seedRows 冒充真实表单数据');
+    expect(generation).toContain('可操作外观必须有真实动作');
+    expect(generation).toContain('Segmented');
+    expect(generation).toContain('Tabs');
     expect(postinstall).toContain('完整应用的 Code Canvas 页面通过 \\`window.__OPENYIDA_RUNTIME__.yida\\`');
     expect(postinstall).toContain('修改已有非 Code Canvas 的 \\`Jsx\\` / \\`renderJsx\\` 页面时');
     expect(postinstall).not.toContain('Canvas 当前不具备的普通页面实例能力');
@@ -845,7 +849,7 @@ describe('OpenYida skill contracts', () => {
     const routing = readSkill('lib/app/page-compiler-routing.js');
 
     expect(canvas).toContain('组件必须有明确的 import 或本地定义');
-    expect(canvas).toContain('必须绑定会执行动作的事件');
+    expect(canvas).toContain('可操作外观必须绑定真实事件');
     expect(dependencies).toContain('Canvas 编译会阻止未声明组件发布');
     expect(generation).toContain('暂未实现的操作使用禁用态或静态文本');
     expect(compiler).toContain('assertCanvasSourceContracts(source, options)');
