@@ -10,9 +10,11 @@ description: 查询和设置宜搭应用左侧导航，包括分组、移动、�
 - 操作前必须已知 `appType`；不要编造。
 - 完整应用使用 PRD 的导航分组和顺序，不使用 `auto-order` 覆盖 PRD。
 - 完整应用只执行一条 `order --plan` 命令，不让 Agent 逐条拼接 `create`、`move` 和普通 `order`。
+- 完整应用的导航分组和排序是必做阶段，不是可选优化。没有计划文件、命令结果或回读证据时不得结束任务。
 - 导航计划只放本轮已经创建或复用的资源。以后才实现的页面不创建、不放入计划。
 - 计划项优先使用真实 `formUuid` 或 `navUuid`；同时写资源名，用于检查 ID 是否映射正确。
 - 命令只有在回读结果 `verification.matched=true` 时才算成功。
+- warning、执行过 `auto-order` 或只创建了分组，都不能代替 `verification.matched=true`。
 - 删除分组默认只删除空分组；非空分组必须先移动子项，除非用户明确要求 `--force`。
 - 分组节点是 `navType: "NAV"`，普通页面是 `navType: "PAGE"`，外链是 `navType: "LINK"`，系统节点不要移动或删除。
 

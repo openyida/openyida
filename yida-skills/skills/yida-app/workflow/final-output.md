@@ -7,7 +7,7 @@
 完整应用默认完成条件：
 
 1. PRD 中所有“本轮交付=是”的页面均已发布并回读成功；
-2. 轻量导航自动排序已执行，或给出明确 warning；
+2. `.cache/openyida/<项目名>/navigation-plan.json` 已生成，`openyida nav-group order <appType> --plan <file>` 返回 `verification.matched=true`；
 3. 核心普通表单已写入 1-3 条示例记录并 query 抽查，或说明跳过原因；
 4. 输出 2-3 句业务交付总结；
 5. 在业务总结之后给出一个可访问主入口链接；
@@ -16,6 +16,8 @@
 本轮修改过页面源码但没有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>` 时，完整应用未完成；最终回复只说明本地源码修改和未发布原因。
 
 存在 `container_created_unpublished` 页面时，完整应用未完成。先隐藏该页面导航并继续发布修复；不得把空容器写成“页面已创建”或留到下一步。
+
+缺少导航计划文件、导航命令结果或 `verification.matched=true` 时，完整应用未完成。不得用 warning 代替导航执行，也不得在最终回复中声称导航已就绪。
 
 ## 主入口选择
 

@@ -287,6 +287,7 @@ describe('OpenYida skill contracts', () => {
     const byName = new Map(index.skills.map((skill) => [skill.name, skill]));
 
     const appStages = readSkill('yida-skills/skills/yida-app/workflow/build-stages.md');
+    const appFinalOutput = readSkill('yida-skills/skills/yida-app/workflow/final-output.md');
 
     expect(root).toContain('加载子技能 `yida-app`，详细流程见 `yida-app`');
     expect(root).toContain('完整应用默认使用 `yida-prd` 生成的 `prd/<项目名>/prd.md` 和 `yida-design` 生成的 `prd/<项目名>/design.md`');
@@ -298,15 +299,20 @@ describe('OpenYida skill contracts', () => {
     expect(canvas).toContain('OpenYida 提供一份完整脚手架');
     expect(canvas).toContain('发布命令会与线上 Schema 精确核对');
     expect(appStages).not.toContain('明确要求 JSX/Jsx 组件链路或实例桥强依赖时选择 `yida-custom-page`');
-    expect(appStages).toContain('生成 `.cache/openyida/<项目名>/navigation-plan.json`');
+    expect(appStages).toContain('写入 `.cache/openyida/<项目名>/navigation-plan.json`');
     expect(appStages).toContain('`openyida nav-group order <appType> --plan <file>`');
-    expect(appStages).toContain('导航命令返回 `verification.matched=true`');
+    expect(appStages).toContain('命令返回 `verification.matched=true`');
+    expect(appStages).toContain('缺少导航计划、命令结果或回读证据时停止，不进入最终输出');
+    expect(appStages).not.toContain('精细导航分组');
+    expect(appFinalOutput).toContain('不得用 warning 代替导航执行');
+    expect(appFinalOutput).not.toContain('轻量导航自动排序已执行，或给出明确 warning');
     expect(appStages).toContain('PRD 命中审批/流程时加载');
     expect(publish).toContain('`--auto-nav-order`');
     expect(publish).toContain('完整应用使用 `nav-group order --plan`');
     expect(navGroup).toContain('完整应用只执行一条 `order --plan` 命令');
     expect(navGroup).toContain('openyida nav-group order <appType> --plan .cache/openyida/<项目名>/navigation-plan.json');
     expect(navGroup).toContain('`verification.matched=true`');
+    expect(navGroup).toContain('导航分组和排序是必做阶段，不是可选优化');
     expect(navGroup).toContain('openyida nav-group auto-order <appType>');
     expect(prd).toContain('带唯一 `resourceKey` 的资源');
     expect(prdOutput).toContain('导航顺序只引用资源蓝图中的 `resourceKey`');
@@ -314,6 +320,8 @@ describe('OpenYida skill contracts', () => {
     expect(manifest).toContain('default_nav_order_policy');
     expect(manifest).toContain('openyida nav-group order <appType> --plan <file>');
     expect(manifest).toContain('completion requires verification.matched=true');
+    expect(manifest).toContain('navigation_contract');
+    expect(manifest).toContain('warning_is_completion: false');
     expect(manifest).toContain('product_design_policy');
     expect(manifest).toContain('yida-prd and yida-design start in parallel');
     expect(manifest).toContain('artifact_generation: {');

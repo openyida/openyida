@@ -501,6 +501,11 @@ describe('CLI offline smoke', () => {
         forbidden_fields: expect.arrayContaining(['contentBlocks', 'themeSummary', 'visualImplementation']),
       }),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> --plan <file>'),
+      navigation_contract: expect.objectContaining({
+        required: true,
+        done_when: 'verification.matched=true',
+        warning_is_completion: false,
+      }),
       completion_contract: expect.stringContaining('2-3 business-summary sentences'),
       recommended_read_commands: expect.arrayContaining([
         expect.stringContaining('--summary-json'),
@@ -1341,6 +1346,11 @@ describe('CLI offline smoke', () => {
         forbidden_fields: expect.arrayContaining(['contentBlocks', 'themeSummary', 'visualImplementation']),
       }),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> --plan <file>'),
+      navigation_contract: expect.objectContaining({
+        required: true,
+        done_when: 'verification.matched=true',
+        warning_is_completion: false,
+      }),
       completion_contract: expect.stringContaining('2-3 business-summary sentences'),
       recommended_read_commands: expect.arrayContaining([
         expect.stringContaining('--summary-json'),
