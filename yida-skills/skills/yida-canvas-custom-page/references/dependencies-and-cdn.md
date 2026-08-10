@@ -23,7 +23,8 @@ Code Canvas 页面只从下表资源 import。编译阶段会把这些资源写�
 ## 资源使用约定
 
 - 页面源码只从上表资源 import；第三方资源加载交给 Code Canvas runtime。
-- React、antd、Ant Design Icons、Recharts、ahooks、d3、dayjs、Radix、lucide-react、framer-motion 等包依赖必须写标准 import，例如 `import { ConfigProvider, Button } from 'antd'`、`import { Search, Plus } from 'lucide-react'`。不要在源码里写 `const { Drawer } = antd`、`const { Search } = lucideReact`、`const { ConfigProvider } = window.antd`、`const React = window.React` 或 `window.icons`；这类写法不会正确进入 `importedModules`，运行时会出现 `antd is not defined`、`lucideReact is not defined` 或依赖资源未加载。
+- React Hooks、自定义 Hooks、`antd` 和 `@ant-design/icons` 都可用。React、antd、Ant Design Icons、Recharts、ahooks、d3、dayjs、Radix、lucide-react、framer-motion 等包依赖必须写标准 import，例如 `import { ConfigProvider, Button } from 'antd'`、`import { Search, Plus } from 'lucide-react'`。不要在源码里写 `const { Drawer } = antd`、`const { Search } = lucideReact`、`const { ConfigProvider } = window.antd`、`const React = window.React` 或 `window.icons`；这类写法不会正确进入 `importedModules`，运行时会出现依赖未定义或资源未加载。
+- `lucide-react` 使用 `Search`、`Phone`、`Wifi` 等名称；`@ant-design/icons` 使用该包真实导出的 `SearchOutlined`、`PhoneOutlined`、`WifiOutlined` 等名称。不得把 `Search as SearchIcon` 这类 Lucide 名称写到 `@ant-design/icons` import 中；Canvas 编译器会直接阻止发布。
 - JSX 中出现的 `ConfigProvider`、`Space`、`Button`、图表和图标等组件必须在 import 语句或本地声明中存在。Canvas 编译会阻止未声明组件发布，并提示需要补充的 import。
 - 平台运行态组件和平台能力通过 `window.Deep`、`window.DeepYida`、`window.YidaNativeComponents` 等页面对象探测。
 - 真实表单数据绑定使用页面内本地 `useYidaData(binding)`、`DataBridge` 与同源 `fetch` 实现。
@@ -32,3 +33,5 @@ Code Canvas 页面只从下表资源 import。编译阶段会把这些资源写�
 ## 编译与运行方式
 
 OpenYida CLI **本地用 Babel** 把源码转译为 `runtimeCode` + `importedModules`，不调用在线编译服务。运行时由 `YidaCodeCanvas` 物料按 `importedModules` 加载上表资源，再用 `new Function` 执行 `runtimeCode` 并取回 `YidaComp`。
+
+本地检查使用 `openyida check-page <source.canvas.jsx> --json` 或 `openyida compile <source.canvas.jsx> --json`。两个命令都会按文件后缀使用 Canvas 编译器，不会套用普通 JSX 的 Hook 和 import 限制。

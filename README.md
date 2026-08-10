@@ -396,8 +396,8 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | Export app entity relationship diagram |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page |
 | `openyida build-page <sourceFile> [--output file\|--write]` | Build Yida-compatible page source |
-| `openyida check-page <src> [--compat]` | Check custom page standards |
-| `openyida compile <src>` | Compile custom page locally |
+| `openyida check-page <src> [--compat] [--json]` | Check custom page standards |
+| `openyida compile <src> [--json] [--canvas]` | Compile custom page locally |
 | `openyida publish <src> <appType> <formUuid> [--health-check] [--force] [--canvas] [--auto-nav-order] [--open\|--no-open]` | Compile and publish custom page |
 | `openyida update-form-config <appType> ...` | Update form configuration |
 | `openyida get-form-config <appType> <formUuid> [--json]` | Query form configuration |
@@ -485,7 +485,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start OpenYida local web bridge service |
 | `openyida copy [--force]` | Copy project working directory |
-| `openyida sample [--list]` | Output code templates; form/Canvas templates support `--design-config <file>` |
+| `openyida sample [--list] \| sample <skill> <name> [--output <file>] [--design-config <file>]` | Output code samples/templates |
 | `openyida doctor [--fix]` | Environment diagnostics & auto-fix |
 | `openyida eval --mode <mode> [--skill <name>] [--runs N]` | Multi-dimensional skill evaluation (doc quality, routing accuracy, safety, etc.) |
 | `openyida db-seq-fix [--fix]` | Detect and repair PostgreSQL sequence drift |

@@ -107,7 +107,7 @@ export default YidaComp;
 # yida-report 负责统计口径；yida-canvas-data-binding 负责接口接入
 
 # 2. 本地 Canvas 快检
-node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/trend-combo.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
+openyida compile project/pages/src/trend-combo.canvas.jsx --json
 
 # 3. 真实交付时发布
 openyida publish project/pages/src/trend-combo.canvas.jsx <appType> <displayPageFormUuid>
@@ -116,7 +116,7 @@ openyida publish project/pages/src/trend-combo.canvas.jsx <appType> <displayPage
 ## 验收清单
 
 - [ ] 源码后缀是 `.canvas.jsx` / `.canvas.tsx`，入口是 `YidaComp`。
-- [ ] `compileCanvasLocal` 返回的依赖包含 `react`、`recharts`，使用 antd 时包含 `antd`。
+- [ ] `openyida compile <source.canvas.jsx> --json` 返回的依赖包含 `react`、`recharts`，使用 antd 时包含 `antd`。
 - [ ] 图表使用报表结果或已聚合接口，不读取全量明细在前端计算。
 - [ ] 筛选控件受控，并真正改变展示数据或请求参数。
 - [ ] loading、空态、错误态、无权限状态可区分。
@@ -126,6 +126,6 @@ openyida publish project/pages/src/trend-combo.canvas.jsx <appType> <displayPage
 
 ## 完成证据
 
-- 本地样例或源码：`compileCanvasLocal` 成功且依赖清单正确。
+- 本地样例或源码：`openyida compile <source.canvas.jsx> --json` 成功且依赖清单正确。
 - 真实交付：聚合数据源已验证，页面发布成功并返回目标页面 URL。
 - 若本轮没有远程写入，只能报告“技能/源码/样例已完成本地验证，尚未发布”。

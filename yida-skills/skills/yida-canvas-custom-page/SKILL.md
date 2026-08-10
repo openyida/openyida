@@ -40,7 +40,9 @@ openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas
 6. 提交页、详情页和页面跳转读取 [页面入口](references/navigation-and-entry-guide.md)。
 7. 用户未明确要求整页跳转时，不得把脚手架的表单抽屉改成 `window.location`、`openPage`、`window.open` 或新标签。
 8. JSX 中使用的组件必须有明确的 import 或本地定义。按钮、搜索、快捷入口、可点击卡片和“查看全部”等操作必须绑定会执行动作的事件。
-9. 本轮修改源码后，必须成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，才能说明页面已发布。
+9. React Hooks、自定义 Hooks、`antd` 和 `@ant-design/icons` 都可用。包依赖使用标准 import；Ant Design 图标使用该包真实导出的 `*Outlined`、`*Filled` 或 `*TwoTone` 名称，不混用 `lucide-react` 图标名。
+10. 本地执行 `openyida check-page <source> --json` 或 `openyida compile <source> --json`；`.canvas.jsx` / `.canvas.tsx` 会自动使用 Canvas 编译器。
+11. 本轮修改源码后，必须成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，才能说明页面已发布。
 
 发布命令会与线上 Schema 精确核对 `appType`、`formUuid` 和 `fieldId`。空值、错位或缺少字符都会阻止发布，并返回可供核对的真实候选值。
 
@@ -51,8 +53,9 @@ openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas
 3. 获取涉及表单的真实字段映射。
 4. 完整应用写入薄 page-spec，复制项目 Canvas 脚手架，按 `prdRefs` 和 `designRefs` 读取原文后实现；单页任务生成标准脚手架并按当前需求实现。
 5. 按当前功能读取下方对应 reference。
-6. 执行 `openyida publish <source> <appType> <displayPageFormUuid> --health-check`。
-7. 回读页面 Schema，确认组件为 `YidaCodeCanvas`，并检查真实页面。
+6. 执行 `openyida compile <source> --json`，修复全部 Canvas 编译错误。
+7. 执行 `openyida publish <source> <appType> <displayPageFormUuid> --health-check`。
+8. 回读页面 Schema，确认组件为 `YidaCodeCanvas`，并检查真实页面。
 
 从仓库根执行时使用 `project/pages/src/...`；从 `<workspace>/project` 执行时使用 `pages/src/...`。
 

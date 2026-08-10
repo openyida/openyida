@@ -477,6 +477,34 @@ describe('compileCanvasLocal', () => {
     }));
   });
 
+  test('rejects lucide icon names imported from @ant-design/icons', () => {
+    expect(() => compileCanvasLocal(`
+      import React from 'react';
+      import { Search as SearchIcon, Phone } from '@ant-design/icons';
+      export default function App() {
+        return <div><SearchIcon /><Phone /></div>;
+      }
+    `, { sourcePath: 'pages/src/invalid-icons.canvas.jsx' })).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_INVALID_ANT_ICON_IMPORT',
+      details: expect.objectContaining({
+        line: 3,
+        importedName: 'Search',
+        localName: 'SearchIcon',
+        suggestedName: 'SearchOutlined',
+      }),
+    }));
+  });
+
+  test('accepts real @ant-design/icons exports and aliases', () => {
+    expect(() => compileCanvasLocal(`
+      import React from 'react';
+      import { SearchOutlined as SearchIcon, PhoneFilled } from '@ant-design/icons';
+      export default function App() {
+        return <div><SearchIcon /><PhoneFilled /></div>;
+      }
+    `, { sourcePath: 'pages/src/valid-icons.canvas.jsx' })).not.toThrow();
+  });
+
   test.each([
     ['native button', '<button>搜索</button>'],
     ['antd button', '<Button>查看全部</Button>'],

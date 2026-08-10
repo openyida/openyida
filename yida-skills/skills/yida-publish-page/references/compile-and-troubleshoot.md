@@ -14,7 +14,7 @@
 
 ## Canvas 编译
 
-`.canvas.jsx` / `.canvas.tsx` 由 `publish` 检查未声明组件、无效交互、`YidaComp` 导出、依赖和 `runtimeCode + importedModules`，不先运行普通页面的 `check-page` / `compile`。
+`.canvas.jsx` / `.canvas.tsx` 执行 `check-page`、`compile` 或 `publish` 时都会自动使用 Canvas 编译器，检查未声明组件、无效交互、图标导入、`YidaComp` 导出、依赖和 `runtimeCode + importedModules`。React Hooks、自定义 Hooks 和标准包 import 可用，不套用普通 JSX 的限制。
 
 ## 自动注入样式
 
@@ -38,6 +38,6 @@ body { background-color: #f2f3f5; }
 | 目标不是 display page | 用 `list-forms` 重新确认，不对数据表追加 `--force` |
 | saveFormSchema 401 | 重新执行 `openyida login` |
 | corpId 不匹配 | 询问用户是否切换组织，不新建应用规避 |
-| Canvas 页面空白 | 检查 `YidaComp`、依赖白名单和浏览器控制台 |
+| Canvas 页面空白 | 先执行 `openyida compile <source.canvas.jsx> --json`，再检查 `YidaComp`、命名导出、依赖白名单和浏览器控制台 |
 | 普通页面空白 | 检查 `renderJsx` 导出和运行时报错 |
 | 发布接口成功但页面异常 | 使用 `--health-check` 并做浏览器首屏验证 |

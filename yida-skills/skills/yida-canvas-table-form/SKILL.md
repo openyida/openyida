@@ -123,7 +123,7 @@ openyida get-schema <appType> <formUuid> --field-map-json
 # 未验证前保持 writeBridge.verified !== true
 
 # 4. 本地 Canvas 快检
-node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/table-form-batch-submit.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
+openyida compile project/pages/src/table-form-batch-submit.canvas.jsx --json
 
 # 5. 真实交付时发布
 openyida publish project/pages/src/table-form-batch-submit.canvas.jsx <appType> <displayPageFormUuid>
@@ -144,7 +144,7 @@ openyida publish project/pages/src/table-form-batch-submit.canvas.jsx <appType> 
 
 ## 完成证据
 
-- 本地样例：`compileCanvasLocal` 成功，依赖清单包含 `react`、`antd`、`dayjs`。
+- 本地样例：`openyida compile <source.canvas.jsx> --json` 成功，依赖清单包含 `react`、`antd`、`dayjs`。
 - 写入验证：运行时返回逐行写入结果，部分失败和重试已经验证。
 - 页面交付：目标 `.canvas.jsx` 已成功发布。
 - 缺少任一远程证据时，明确报告“本地页面已完成，写入桥/远程发布尚未验证”。

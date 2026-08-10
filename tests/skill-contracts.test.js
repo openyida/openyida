@@ -824,6 +824,9 @@ describe('OpenYida skill contracts', () => {
     expect(compiler).toContain('assertCanvasSourceContracts(source, options)');
     expect(guard).toContain('OPENYIDA_CANVAS_UNBOUND_COMPONENT');
     expect(guard).toContain('OPENYIDA_CANVAS_INTERACTION_INCOMPLETE');
+    expect(guard).toContain('OPENYIDA_CANVAS_INVALID_ANT_ICON_IMPORT');
+    expect(canvas).toContain('React Hooks、自定义 Hooks、`antd` 和 `@ant-design/icons` 都可用');
+    expect(canvas).toContain('openyida compile <source> --json');
   });
 
   test('yida-custom-page covers ordinary JSX exceptions', () => {
@@ -1345,7 +1348,9 @@ describe('OpenYida skill contracts', () => {
     expect(canvas).not.toContain('`const { Drawer } = antd`');
     expect(canvas).not.toContain('`const { Search } = lucideReact`');
     expect(dependencies).toContain('不要在源码里写 `const { Drawer } = antd`');
-    expect(dependencies).toContain('运行时会出现 `antd is not defined`、`lucideReact is not defined`');
+    expect(dependencies).toContain('React Hooks、自定义 Hooks、`antd` 和 `@ant-design/icons` 都可用');
+    expect(dependencies).toContain('不得把 `Search as SearchIcon` 这类 Lucide 名称写到 `@ant-design/icons` import 中');
+    expect(dependencies).toContain('两个命令都会按文件后缀使用 Canvas 编译器');
     expect(authoringExamples).toContain('所有包依赖都用标准 `import`');
     expect(authoringExamples).toContain('不要直接从 `window.*` 解构');
     expect(authoringExamples).toContain('JSX 文案只能写成纯文本 `所有级别` 或带引号字符串 `{\'所有级别\'}`');

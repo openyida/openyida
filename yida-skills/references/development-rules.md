@@ -11,7 +11,7 @@
 - 不一致 → 询问用户：重新登录到正确组织，还是在当前组织新建应用。
 
 **F3 发布前本地校验**：
-- 普通自定义页面 `.oyd.jsx` / `.jsx` 发布前先跑 `openyida check-page <源文件>` + `openyida compile <源文件>`；Code Canvas `.canvas.jsx` 不跑这两个普通自定义页面检查，改由 `openyida publish` 的 Canvas 编译阶段或 `compileCanvasLocal` 快检校验；
+- 普通自定义页面 `.oyd.jsx` / `.jsx` 和 Code Canvas `.canvas.jsx` / `.canvas.tsx` 都可运行 `openyida check-page <源文件>` 与 `openyida compile <源文件>`；CLI 按后缀选择正确编译器。Canvas 发布仍以 `openyida publish` 成功为准；
 - 发布时留意"同名双副本内容不一致"警告，必要时加 `--health-check` 做首屏 HTTP 健康检查；
 - 任何 JSON 配置写盘后先做 JSON 解析校验，再调用平台命令。
 

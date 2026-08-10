@@ -285,8 +285,8 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | 导出应用实体关系图 |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义展示页面 |
 | `openyida build-page <sourceFile> [--output file\|--write]` | 构建宜搭兼容页面源码 |
-| `openyida check-page <src> [--compat]` | 检查自定义页面规范 |
-| `openyida compile <src>` | 本地编译自定义页面 |
+| `openyida check-page <src> [--compat] [--json]` | 检查自定义页面规范 |
+| `openyida compile <src> [--json] [--canvas]` | 本地编译自定义页面 |
 | `openyida publish <src> <appType> <formUuid> [--health-check] [--force] [--canvas] [--auto-nav-order] [--open\|--no-open]` | 编译并发布自定义页面 |
 | `openyida update-form-config <appType> ...` | 更新表单配置 |
 | `openyida get-form-config <appType> <formUuid> [--json]` | 查询表单配置 |
@@ -374,7 +374,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida a2a <serve\|agent-card> [options]` | 启动本地只读 A2A Adapter 或输出 Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | 启动 OpenYida 本地网页桥接服务 |
 | `openyida copy [--force]` | 复制 project 工作目录 |
-| `openyida sample [--list]` | 输出代码示例/骨架 |
+| `openyida sample [--list] \| sample <skill> <name> [--output <file>] [--design-config <file>]` | 输出代码示例/骨架 |
 | `openyida doctor [--fix]` | 环境诊断与自动修复 |
 | `openyida eval --mode <mode> [--skill <name>] [--runs N]` | 技能多维评测（文档质量、路由准确率、安全合规等） |
 | `openyida db-seq-fix [--fix]` | PostgreSQL Sequence 漂移检测与修复 |

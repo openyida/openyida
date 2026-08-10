@@ -51,7 +51,8 @@ openyida create-page <appType> "<页面名>"
 # 3. 编写 Canvas 源码
 # project/pages/src/<页面名>.canvas.jsx
 
-# 4. Canvas 本地快检（以 yida-canvas-custom-page 的 compileCanvasLocal 为准）
+# 4. Canvas 本地快检
+openyida compile project/pages/src/<页面名>.canvas.jsx --json
 
 # 5. 用户确认内容与主题后发布
 openyida publish project/pages/src/<页面名>.canvas.jsx <appType> <formUuid>
@@ -61,7 +62,7 @@ openyida update-form-config <appType> <formUuid> false "<页面名>"
 openyida get-schema <appType> <formUuid>
 ```
 
-`openyida check-page` / `openyida compile` 是普通自定义页面校验，不是 Canvas 默认验证步骤。
+`.canvas.jsx` / `.canvas.tsx` 执行 `openyida check-page` 或 `openyida compile` 时会自动使用 Canvas 编译器。
 
 ## Canvas 技术骨架
 

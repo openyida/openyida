@@ -69,6 +69,83 @@ describe('compile command', () => {
     expect(fs.statSync(compiledPath).size).toBeGreaterThan(1000);
   });
 
+  test('compile and check-page route .canvas.jsx through the Canvas compiler', () => {
+    const sourcePath = path.join(tmpDir, 'pages', 'src', 'portal.canvas.jsx');
+    fs.writeFileSync(sourcePath, `
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { Button, ConfigProvider } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+
+function usePortalState() {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const label = useMemo(() => '已选择 ' + count, [count]);
+  const increase = useCallback(() => setCount((value) => value + 1), []);
+  return { count, increase, label, ref };
+}
+
+export default function Portal() {
+  const state = usePortalState();
+  return (
+    <ConfigProvider>
+      <Button ref={state.ref} icon={<SearchOutlined />} onClick={state.increase}>
+        {state.label}
+      </Button>
+    </ConfigProvider>
+  );
+}
+`, 'utf8');
+
+    const compileOutput = execFileSync(process.execPath, [
+      BIN, 'compile', 'pages/src/portal.canvas.jsx', '--json',
+    ], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+    expect(JSON.parse(compileOutput)).toMatchObject({
+      success: true,
+      mode: 'canvas',
+      importedModules: ['@ant-design/icons', 'antd', 'react'],
+      runtimeCodeBytes: expect.any(Number),
+    });
+
+    const checkOutput = execFileSync(process.execPath, [
+      BIN, 'check-page', 'pages/src/portal.canvas.jsx', '--json',
+    ], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+    expect(JSON.parse(checkOutput)).toMatchObject({
+      ok: true,
+      mode: 'canvas',
+      importedModules: ['@ant-design/icons', 'antd', 'react'],
+      errors: [],
+    });
+  });
+
+  test('compile reports invalid Ant Design icon exports before publish', () => {
+    const sourcePath = path.join(tmpDir, 'pages', 'src', 'invalid-icon.canvas.jsx');
+    fs.writeFileSync(sourcePath, `
+import React from 'react';
+import { Search as SearchIcon } from '@ant-design/icons';
+export default function Portal() { return <SearchIcon />; }
+`, 'utf8');
+
+    expect(() => execFileSync(process.execPath, [
+      BIN, 'compile', 'pages/src/invalid-icon.canvas.jsx', '--json',
+    ], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+      stdio: 'pipe',
+    })).toThrow(/OPENYIDA_CANVAS_INVALID_ANT_ICON_IMPORT/);
+  });
+
   test('rejects emoji even when lint is skipped', () => {
     const sourcePath = path.join(tmpDir, 'pages', 'src', 'emoji.jsx');
     fs.writeFileSync(sourcePath, `
