@@ -554,6 +554,7 @@
       ],
       "command_ids": [
         "create-form.create",
+        "create-form.validate-fields",
         "create-form.update",
         "create-form.patch",
         "create-form.rule",
@@ -577,6 +578,9 @@
       ],
       "aliases": [
         "新建页面"
+      ],
+      "command_ids": [
+        "create-page"
       ]
     },
     {
@@ -593,6 +597,12 @@
       ],
       "aliases": [
         "新建流程"
+      ],
+      "command_ids": [
+        "create-process",
+        "create-form.create",
+        "get-schema",
+        "configure-process"
       ]
     },
     {
@@ -793,6 +803,10 @@
         "闪记转 PRD",
         "会议纪要转 PRD",
         "taskUuid 转 PRD"
+      ],
+      "command_ids": [
+        "flash-to-prd",
+        "read-dingtalk-tingji"
       ]
     },
     {
@@ -849,6 +863,11 @@
       ],
       "aliases": [
         "字段公式"
+      ],
+      "command_ids": [
+        "get-schema",
+        "create-form.update",
+        "formula.evaluate"
       ]
     },
     {
@@ -1086,6 +1105,10 @@
       ],
       "aliases": [
         "审批规则"
+      ],
+      "command_ids": [
+        "get-schema",
+        "configure-process"
       ]
     },
     {

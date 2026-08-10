@@ -15,7 +15,7 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `pageName` | String | 是 | 固定值 `"report"` |
-| `prdId` | String | 是 | 报表的 prdId（从报表 URL 中获取） |
+| `prdId` | String | 是 | 当前应用导航中目标 `REPORT_xxx` 对应的 `topicId`；页面运行时动态获取 |
 | `cid` | String | 是 | 报表组件 ID（如 `YoushuTable_mmx9ha6ar`） |
 | `cname` | String | 是 | 组件名称（如 `"按状态统计"`） |
 | `className` | String | 是 | 组件类名（如 `"YoushuTable"`、`"YoushuSimpleIndicatorCard"`） |
@@ -23,21 +23,17 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 
 ### 请求示例
 
+这里只定义报表接口的请求参数。Code Canvas 页面如何发起请求由 `yida-canvas-data-binding` 负责，页面内不直接使用普通 JSX 的 `this.utils.yida.*`。
+
 ```javascript
 var requestBody = {
   pageName: "report",
-  prdId: "13085982",
-  cid: "YoushuTable_mmx9ha6ar",
+  prdId: currentReportTopicId,
+  cid: currentReportComponent.cid,
   cname: "按状态统计",
   className: "YoushuTable",
   dataSetKey: "table",
 };
-
-this.utils.yida.request({
-  url: "/alibaba/web/" + APP_TYPE + "/visual/visualizationDataRpc/getDataAsync.json",
-  method: "POST",
-  data: requestBody,
-});
 ```
 
 ### 返回数据结构
@@ -161,19 +157,13 @@ openyida create-form update <appType> <formUuid> '[
 
 ### 坑 3：prdId 获取方式
 
-**prdId 不是 formUuid**，而是报表页面 URL 中的数字 ID。
-
-获取方式：
-1. 在浏览器中打开报表页面
-2. 打开开发者工具 → Network
-3. 搜索 `getDataAsync` 请求
-4. 在请求参数中找到 `prdId` 值
+**prdId 不是 formUuid**。自定义页面运行时调用 `getFormNavigationListByOrder`，按目标 `REPORT_xxx` 找到当前应用导航项，再使用该导航项的 `topicId`。不要把另一个应用或一次调试请求中的数字写死在页面源码里。
 
 ### 坑 4：组件 ID（cid）获取方式
 
 每个报表组件都有唯一的 `cid`，格式为 `{组件类名}_{随机字符串}`。
 
-获取方式：同上，在 Network 中查看 `getDataAsync` 请求的参数。
+获取方式：回读目标报表 Schema，从 `componentsTree` 中读取目标组件的真实 ID。
 
 ### 坑 5：dataSetKey 区分
 
@@ -184,19 +174,9 @@ openyida create-form update <appType> <formUuid> '[
 
 **用错 dataSetKey 会导致返回空数据。**
 
-### 坑 6：searchFormDatas 没有 HTTP API
+### 坑 6：不要用明细接口代替报表聚合
 
-`searchFormDatas` 是宜搭前端 JS SDK 的接口（`this.utils.yida.searchFormDatas`），**不能**通过 HTTP 直接调用。
-
-```
-❌ POST /dingtalk/web/{appType}/query/punchFormDataProvider/searchFormDatas.json → 404
-❌ POST /dingtalk/web/{appType}/v1/form/searchFormDatas.json → 超时
-```
-
-但 `saveFormData` 可以通过 HTTP 调用：
-```
-✅ POST /dingtalk/web/{appType}/query/punchFormDataProvider/saveFormData.json
-```
+Code Canvas 的表单明细读取由 `yida-canvas-data-binding` 提供统一 window runtime 和同源 HTTP 降级契约。报表指标仍使用本文件的报表接口，不把 `searchFormDatas` 明细拉到页面后自行聚合。
 
 ### 坑 7：不要手动拼鉴权参数
 
@@ -263,9 +243,4 @@ await httpPost(baseUrl, `/dingtalk/web/${APP_TYPE}/query/punchFormDataProvider/s
 1. 在浏览器中打开报表页面
 2. 打开 DevTools → Network → 搜索 `getDataAsync`
 3. 查看请求参数和返回数据
-4. 将参数复制到自定义页面代码中
-
-**Q：ECharts 图表不显示？**
-- 确认 ECharts CDN 加载成功：`https://g.alicdn.com/code/lib/echarts/5.5.0/echarts.min.js`
-- 确认 DOM 元素已渲染后再调用 `echarts.init()`
-- 使用 `setTimeout` 延迟初始化图表
+4. 用当前应用导航和报表 Schema 核对参数；页面实现仍动态获取 `topicId`，不复制调试请求里的旧数值

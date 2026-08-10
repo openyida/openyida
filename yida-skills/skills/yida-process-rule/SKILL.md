@@ -47,7 +47,7 @@ openyida configure-process <appType> <formUuid> <processDefinitionFile> [process
 - 不要手写 `startNode`，CLI 自动生成发起节点。
 - 不要手写 `endNode`，CLI 自动生成结束节点。
 - 不要写 `"type": "approve"`，改成 `approval`。
-- 条件、并行、办理、抄送和官方组件节点的完整结构读取下方参考文件。
+- 审批人、条件、并行、办理、抄送、字段权限和跳转规则读取 [流程 DSL](references/process-dsl.md)；连接器、消息、代码等节点读取官方组件参考。
 
 ## 执行步骤
 
@@ -70,6 +70,7 @@ openyida configure-process <appType> <formUuid> <processDefinitionFile> [process
 
 | 文件 | 何时读取 |
 |------|----------|
+| [流程 DSL](references/process-dsl.md) | 编写节点、审批人、条件、并行、字段权限或跳转规则时 |
 | [流程示例](references/examples.md) | 需要条件分支、嵌套分支、字段权限或跳转示例时 |
 | [官方组件节点](references/official-component-nodes.md) | 使用连接器、消息、代码、子流程、循环或 AI 节点时 |
 | [流程生成规则](references/process-ai-rules.md) | 自动生成字段权限和退回规则时 |

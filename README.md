@@ -381,9 +381,9 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida create-form create <appType> "<formTitle>" <fieldsJsonFile> [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a form page |
+| `openyida create-form create <appType> "<formTitle>" <fieldsJsonFile> [--layout single\|double\|card] [--theme default\|compact\|comfortable] [--label-align top\|left\|right] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a form page |
 | `openyida create-form validate-fields <fieldsJsonOrFile> [--json]` | Validate form field JSON locally |
-| `openyida create-form update <appType> ... [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Update a form page |
+| `openyida create-form update <appType> <formUuid> <changesJsonOrFile> [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Update a form page |
 | `openyida create-form patch <appType> <formUuid> <patchJsonOrFile> [--open\|--no-open]` | Update a form page |
 | `openyida create-form rule <appType> <formUuid> <rulesJsonOrFile> [--open\|--no-open]` | Update a form page |
 | `openyida create-form validation <appType> <formUuid> <validationsJsonOrFile> [--open\|--no-open]` | Update a form page |
@@ -409,7 +409,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida data <action> <resource> [args]` | Unified data management (form/process/task/subform) |
+| `openyida data <query\|get\|create\|update\|execute> <form\|process\|subform\|operation-records\|task\|tasks> [args]` | Unified data management (form/process/task/subform) |
 | `openyida task-center <type> [options]` | Global task center (todo/processed/cc etc.) |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, and domain settings |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | Fetch Markdown content from a DingTalk document |
@@ -423,8 +423,8 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida configure-process <appType> ...` | Configure and publish process rules |
-| `openyida create-process <appType> ...` | Create process form (all-in-one) |
+| `openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode]` | Configure and publish process rules |
+| `openyida create-process <appType> "<formTitle>" <fieldsJsonFile> <processDefinitionFile> \| create-process <appType> --formUuid <formUuid> <processDefinitionFile>` | Create process form (all-in-one) |
 | `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | Manage process form AI approval prompts |
 | `openyida process preview <appType> ...` | Preview process instance (visual flowchart) |
 
@@ -441,8 +441,8 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida create-report <appType> "<name>" ... [--open\|--no-open]` | Create a Yida report |
-| `openyida append-chart <appType> <reportId> ... [--open\|--no-open]` | Append chart to existing report |
+| `openyida create-report <appType> "<name>" <configJsonFile> [--open\|--no-open]` | Create a Yida report |
+| `openyida append-chart <appType> <reportId> <chartConfigJsonFile> [--open\|--no-open]` | Append chart to existing report |
 
 ### Connectors
 
@@ -466,7 +466,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida integration create <appType> ... [--spec file.json]` | Create integration automation flow |
+| `openyida integration create <appType> <formUuid> "<flowName>" [--events <list>] [--spec file.json] [--publish]` | Create integration automation flow |
 | `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
 | `openyida integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
 | `openyida integration disable <appType> <formUuid> <processCode>` | Disable integration automation flow |
@@ -494,7 +494,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida export-conversation [options]` | Export AI conversation records |
 | `openyida feedback <setup\|url\|dismiss\|status> [options]` | Configure experience feedback form and local reminder state |
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run OpenYida commands in batch |
-| `openyida flash-to-prd --file <path> --name "<project>"` | Generate a meeting requirements draft from flash notes or meeting notes |
+| `openyida flash-to-prd [--file <path>] --name "<project>" [--max-tokens N]` | Generate a meeting requirements draft from flash notes or meeting notes |
 | `openyida ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
 | `openyida asset <status\|verify-url\|resolve\|generate> [options]` | Detect asset capability / verify image URLs / resolve materials |
 | `openyida cdn-config [options]` | Configure CDN / OSS upload |

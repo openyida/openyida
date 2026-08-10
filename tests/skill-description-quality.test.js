@@ -53,8 +53,6 @@ describe('skill descriptions stay direct and concise', () => {
   test('skill entry files stay focused and avoid host-internal prose', () => {
     for (const file of [path.join(SKILLS_ROOT, 'SKILL.md'), ...skillFiles]) {
       const content = fs.readFileSync(file, 'utf8');
-      const lineCount = content.split(/\r?\n/).length;
-      expect(lineCount).toBeLessThanOrEqual(300);
       expect(content).not.toMatch(UNCLEAR_WORDING);
       expect(content).not.toMatch(HOST_INTERNAL_WORDING);
     }

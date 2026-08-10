@@ -43,7 +43,8 @@ CLI 使用 `lib/report/chart-builder.js` 生成原生报表 Schema。入口文�
 ## 页面绑定
 
 - 报表 ID 使用平台返回的 `REPORT_xxx`。
-- 页面通过报表接口读取聚合结果。
+- 回读报表 Schema，记录每个组件的真实 `cid`、`className`、`dataSetKey` 和 `filterKey`。
+- 页面通过报表接口读取聚合结果；`topicId` / `prdId` 运行时按当前应用导航和 `REPORT_xxx` 获取，不写死旧应用数值。
 - 报表和页面跨应用时，先在页面所在应用创建对应报表。
 - 页面只负责展示报表结果；指标和分组在原生报表配置中定义。
 

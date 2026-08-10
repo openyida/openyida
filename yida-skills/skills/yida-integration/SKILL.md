@@ -26,8 +26,8 @@ description: 创建、查询、启用或停用宜搭集成自动化流程。
 ```bash
 openyida integration create <appType> <formUuid> "<名称>" [options]
 openyida integration list <appType>
-openyida integration enable <appType> <processCode>
-openyida integration disable <appType> <processCode>
+openyida integration enable <appType> <formUuid> <processCode>
+openyida integration disable <appType> <formUuid> <processCode>
 openyida integration check <appType> [--json]
 openyida integration diagnose --text "<异常信息>" [--json]
 ```
@@ -64,5 +64,6 @@ openyida integration diagnose --text "<异常信息>" [--json]
 
 | 文件 | 何时读取 |
 |------|----------|
+| [命令参数](references/cli-options.md) | 选择触发事件、跨表写入、发起审批、连接器或启停参数时 |
 | [节点结构](references/integration-node-schemas.md) | 使用 `--spec` 或排查节点参数时 |
 | [命令示例](references/examples.md) | 需要通知、跨表新增或跨表查询示例时 |

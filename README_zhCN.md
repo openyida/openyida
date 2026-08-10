@@ -270,9 +270,9 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida create-form create <appType> "<formTitle>" <fieldsJsonFile> [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建表单页面 |
+| `openyida create-form create <appType> "<formTitle>" <fieldsJsonFile> [--layout single\|double\|card] [--theme default\|compact\|comfortable] [--label-align top\|left\|right] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建表单页面 |
 | `openyida create-form validate-fields <fieldsJsonOrFile> [--json]` | 本地校验表单字段 JSON |
-| `openyida create-form update <appType> ... [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 更新表单页面 |
+| `openyida create-form update <appType> <formUuid> <changesJsonOrFile> [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 更新表单页面 |
 | `openyida create-form patch <appType> <formUuid> <patchJsonOrFile> [--open\|--no-open]` | 更新表单页面 |
 | `openyida create-form rule <appType> <formUuid> <rulesJsonOrFile> [--open\|--no-open]` | 更新表单页面 |
 | `openyida create-form validation <appType> <formUuid> <validationsJsonOrFile> [--open\|--no-open]` | 更新表单页面 |
@@ -298,7 +298,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida data <action> <resource> [args]` | 统一数据管理（表单/流程/任务/子表单） |
+| `openyida data <query\|get\|create\|update\|execute> <form\|process\|subform\|operation-records\|task\|tasks> [args]` | 统一数据管理（表单/流程/任务/子表单） |
 | `openyida task-center <type> [options]` | 全局任务中心（待办/已处理/抄送等） |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | 查询组织基本信息、容量、额度和域名设置 |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | 获取钉钉文档的 Markdown 内容 |
@@ -312,8 +312,8 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida configure-process <appType> ...` | 配置并发布流程规则 |
-| `openyida create-process <appType> ...` | 创建流程表单（一体化） |
+| `openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode]` | 配置并发布流程规则 |
+| `openyida create-process <appType> "<formTitle>" <fieldsJsonFile> <processDefinitionFile> \| create-process <appType> --formUuid <formUuid> <processDefinitionFile>` | 创建流程表单（一体化） |
 | `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | 管理流程表单 AI 审批提示 |
 | `openyida process preview <appType> ...` | 预览流程实例（可视化流程图） |
 
@@ -330,8 +330,8 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida create-report <appType> "<name>" ... [--open\|--no-open]` | 创建宜搭报表 |
-| `openyida append-chart <appType> <reportId> ... [--open\|--no-open]` | 向已有报表追加图表 |
+| `openyida create-report <appType> "<name>" <configJsonFile> [--open\|--no-open]` | 创建宜搭报表 |
+| `openyida append-chart <appType> <reportId> <chartConfigJsonFile> [--open\|--no-open]` | 向已有报表追加图表 |
 
 ### 连接器
 
@@ -355,7 +355,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida integration create <appType> ... [--spec file.json]` | 创建集成自动化逻辑流 |
+| `openyida integration create <appType> <formUuid> "<flowName>" [--events <list>] [--spec file.json] [--publish]` | 创建集成自动化逻辑流 |
 | `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | 列出集成自动化逻辑流 |
 | `openyida integration enable <appType> <formUuid> <processCode>` | 启用集成自动化逻辑流 |
 | `openyida integration disable <appType> <formUuid> <processCode>` | 停用集成自动化逻辑流 |
@@ -383,7 +383,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida export-conversation [options]` | 导出 AI 对话记录 |
 | `openyida feedback <setup\|url\|dismiss\|status> [options]` | 配置体验反馈表单和本地提醒状态 |
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | 批量执行 OpenYida 命令 |
-| `openyida flash-to-prd --file <path> --name "<project>"` | 闪记 / 会议纪要生成会议需求稿 |
+| `openyida flash-to-prd [--file <path>] --name "<project>" [--max-tokens N]` | 闪记 / 会议纪要生成会议需求稿 |
 | `openyida ai <text\|image> [options]` | 调用 AI 文生文和识图能力 |
 | `openyida asset <status\|verify-url\|resolve\|generate> [options]` | 检测素材能力 / 校验图片 URL / 解析回填素材 |
 | `openyida cdn-config [options]` | 配置 CDN / OSS 上传 |

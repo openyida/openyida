@@ -34,6 +34,8 @@ openyida data query process <appType> <formUuid> [options]
 openyida data get process <appType> --process-inst-id <processInstanceId>
 openyida data create process <appType> <formUuid> --process-code <processCode> --data-json '<json>' [--resolve-aliases]
 openyida data update process <appType> --process-inst-id <processInstanceId> --form-uuid <formUuid> --data-json '<json>' [--resolve-aliases]
+openyida data query operation-records <appType> --process-inst-id <processInstanceId>
+openyida data execute task <appType> --task-id <taskId> --process-inst-id <processInstanceId> --out-result AGREE|DISAGREE --remark '<text>' [options]
 
 openyida data query tasks <appType> --type todo|done|submitted|cc [--page 1 --size 20]
 ```

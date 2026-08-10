@@ -696,6 +696,49 @@ describe('OpenYida skill contracts', () => {
     expect(manifest).toContain("'form-detail-style.apply'");
   });
 
+  test('skill slimming keeps specialized operational contracts in their owners', () => {
+    const createForm = readSkill('yida-skills/skills/yida-create-form-page/SKILL.md');
+    const createFormWorkflow = readSkill('yida-skills/skills/yida-create-form-page/references/create-update-workflow.md');
+    const processRule = readSkill('yida-skills/skills/yida-process-rule/SKILL.md');
+    const processDsl = readSkill('yida-skills/skills/yida-process-rule/references/process-dsl.md');
+    const integration = readSkill('yida-skills/skills/yida-integration/SKILL.md');
+    const integrationOptions = readSkill('yida-skills/skills/yida-integration/references/cli-options.md');
+    const formula = readSkill('yida-skills/skills/yida-formula/SKILL.md');
+    const data = readSkill('yida-skills/skills/yida-data-management/SKILL.md');
+    const report = readSkill('yida-skills/skills/yida-report/SKILL.md');
+    const reportApi = readSkill('yida-skills/skills/yida-report/references/report-api-guide.md');
+    const manifest = buildCommandManifest();
+    const commands = new Map(manifest.commands.map((command) => [command.id, command]));
+
+    expect(createForm).toContain('references/create-update-workflow.md');
+    expect(createFormWorkflow).toContain('list-forms <appType> --keyword');
+    expect(createFormWorkflow).toContain('diagnostics[].candidates');
+    expect(createFormWorkflow).toContain('--label-align top|left|right');
+
+    expect(processRule).toContain('references/process-dsl.md');
+    expect(processDsl).toContain('| `operator` |');
+    expect(processDsl).toContain('| `parallel` |');
+    expect(processDsl).toContain('`multiApproverType`');
+    expect(processDsl).toContain('`routeRules`');
+
+    expect(integration).toContain('integration enable <appType> <formUuid> <processCode>');
+    expect(integrationOptions).toContain('--approval-actions <list>');
+    expect(integrationOptions).toContain('--initiate-approval-form-uuid <formUuid>');
+    expect(integrationOptions).toContain('--connection-id <id>');
+
+    expect(formula).toContain('公式结果类型必须与目标字段兼容');
+    expect(data).toContain('data query operation-records');
+    expect(data).toContain('data execute task');
+    expect(report).toContain('`cid`、`className`、`dataSetKey` 和 `filterKey`');
+    expect(reportApi).toContain('getFormNavigationListByOrder');
+    expect(reportApi).not.toContain('prdId: "13085982"');
+
+    expect(commands.get('create-form.create').usage).toContain('--label-align top|left|right');
+    expect(commands.get('create-process').usage).toContain('--formUuid <formUuid>');
+    expect(commands.get('configure-process').usage).toContain('<processDefinitionFile>');
+    expect(commands.get('integration.create').usage).toContain('<formUuid> "<flowName>"');
+  });
+
   test('Canvas form data pages use yida JS API bridge before endpoint fallback', () => {
     const canvas = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');
     const dataBinding = readSkill('yida-skills/skills/yida-canvas-data-binding/SKILL.md');

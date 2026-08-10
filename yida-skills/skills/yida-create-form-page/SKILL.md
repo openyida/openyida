@@ -40,12 +40,13 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 ## 执行步骤
 
 1. 确认目标应用、表单名称和创建或更新方式。
-2. 读取 `yida-form-detail`，确定字段分组和详情样式。
-3. 从脚手架扩展 `.form.json`，填写字段、Divider、校验和规则。
-4. 运行表单定义校验。
-5. 执行 create、update 或对应子命令。
-6. 将真实 `formUuid` 和 `fieldId` 写入 `.cache/<项目名>-schema.json`。
-7. 回读 revision、字段、生命周期、主题、formDetail 样式和 13 个 Yida API。
+2. 读取 [创建与更新规则](references/create-update-workflow.md)，确定目标表单、失败恢复和字段定位方式。
+3. 读取 `yida-form-detail`，确定字段分组和详情样式。
+4. 从脚手架扩展 `.form.json`，填写字段、Divider、校验和规则。
+5. 运行表单定义校验。
+6. 执行 create、update 或对应子命令。
+7. 将真实 `formUuid` 和 `fieldId` 写入 `.cache/<项目名>-schema.json`。
+8. 回读 revision、字段、生命周期、主题、formDetail 样式和 13 个 Yida API。
 
 视觉引导必须和 `Divider` 分割线语义分组合并执行。常规业务表单优先使用 Divider 和多列容器，表单标题、说明、字段顺序和校验文案保持业务语义。
 
@@ -68,6 +69,7 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 
 | 文件 | 何时读取 |
 |------|----------|
+| [创建与更新规则](references/create-update-workflow.md) | 选择 create/update、处理创建失败或字段重名时 |
 | [字段定义](references/field-definition-guide.md) | 编写字段 JSON 时 |
 | [字段属性](references/form-field-properties.md) | 设置组件属性时 |
 | [表单模式](references/advanced-form-modes.md) | 使用 patch、规则、校验或数据源时 |
