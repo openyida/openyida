@@ -461,6 +461,14 @@ describe('CLI offline smoke', () => {
         native_form: {
           builder_path: 'lib/app/scaffolds/form/form-schema-builder.js',
           definition_fields: expect.arrayContaining(['themeTokens', 'formDetailPreset', 'dataSources']),
+          field_layout_contract: {
+            first_item: 'Divider',
+            divider_location: 'inline_in_fields',
+            divider_title_property: 'title',
+            field_type_property: 'type',
+            option_source_property: 'dataSource',
+            validation_command: 'openyida create-form validate-fields <fieldsJsonOrFile> --json',
+          },
           api_methods: expect.arrayContaining(['saveFormData', 'getProcessInstanceById']),
           capabilities: expect.arrayContaining([
             'single-builder-for-create-and-offline-compile',

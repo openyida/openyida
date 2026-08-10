@@ -1,5 +1,12 @@
 # 字段定义 JSON 指南
 
+## 必须遵守
+
+- `fields` 第一项必须是 `{ "type": "Divider", "title": "分组名" }`。
+- 每个业务分组都把 Divider 直接写进 `fields`，不要创建独立的 `dividers` 数组。
+- Divider 后至少放一个字段或布局组件；不要连续写 Divider，也不要把 Divider 放在末尾。
+- 字段类型写 `type`，固定选项写 `dataSource`。
+
 ## 常用结构
 
 ```json

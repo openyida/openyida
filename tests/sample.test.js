@@ -115,8 +115,13 @@ describe('sample templates', () => {
     expect(outputPath.endsWith('.form.json')).toBe(true);
     expect(source).not.toMatch(/renderJsx|YidaComp|\\.jsx|this\\.utils\\.yida/);
     expect(definition.fields).toEqual(expect.arrayContaining([
-      expect.objectContaining({ type: 'Divider', label: '基本信息' }),
+      expect.objectContaining({ type: 'Divider', title: '基本信息' }),
       expect.objectContaining({ type: 'TextField', label: '事项名称' }),
+      expect.objectContaining({ type: 'SelectField', dataSource: ['待处理', '进行中', '已完成'] }),
+    ]));
+    expect(definition.fields[0]).toMatchObject({ type: 'Divider', title: '基本信息' });
+    expect(definition.fields).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ options: expect.anything() }),
     ]));
     expect(definition).toMatchObject({
       version: 1,

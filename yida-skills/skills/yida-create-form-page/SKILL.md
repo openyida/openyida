@@ -42,13 +42,14 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 1. 确认目标应用、表单名称和创建或更新方式。
 2. 读取 [创建与更新规则](references/create-update-workflow.md)，确定目标表单、失败恢复和字段定位方式。
 3. 读取 `yida-form-detail`，确定字段分组和详情样式。
-4. 从脚手架扩展 `.form.json`，填写字段、Divider、校验和规则。
-5. 运行表单定义校验。
-6. 执行 create、update 或对应子命令。
-7. 将真实 `formUuid` 和 `fieldId` 写入 `.cache/<项目名>-schema.json`。
-8. 回读 revision、字段、生命周期、主题、formDetail 样式和 13 个 Yida API。
+4. 编写字段 JSON 前读取 [字段定义](references/field-definition-guide.md)。
+5. 从脚手架扩展 `.form.json`。`fields` 第一项必须是 `{ "type": "Divider", "title": "分组名" }`；每个业务分组都把 Divider 直接写在对应字段前，不使用独立 `dividers` 数组。
+6. 运行 `openyida create-form validate-fields <fieldsJsonOrFile> --json`，通过后再创建或更新表单。
+7. 执行 create、update 或对应子命令。
+8. 将真实 `formUuid` 和 `fieldId` 写入 `.cache/<项目名>-schema.json`。
+9. 回读 revision、字段、生命周期、主题、formDetail 样式和 13 个 Yida API。
 
-视觉引导必须和 `Divider` 分割线语义分组合并执行。常规业务表单优先使用 Divider 和多列容器，表单标题、说明、字段顺序和校验文案保持业务语义。
+视觉引导必须和 `Divider` 分割线语义分组合并执行。新表单必须以 Divider 开始，每个 Divider 后至少有一个字段或布局组件，末尾不放 Divider。字段类型写 `type`，选项写 `dataSource`。
 
 ## 关键规则
 

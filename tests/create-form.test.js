@@ -1391,6 +1391,89 @@ describe('form presentation components', () => {
     ])).toEqual([]);
   });
 
+  test('full form validation requires inline semantic Divider groups', () => {
+    const validFields = [
+      { type: 'Divider', title: '基础信息' },
+      { type: 'TextField', label: '姓名' },
+      { type: 'Divider', title: '补充信息' },
+      { type: 'TextareaField', label: '说明' },
+    ];
+
+    expect(createForm._private.collectFormFieldValidationDiagnostics(validFields, {
+      rootPath: 'fields',
+      definition: { fields: validFields },
+      requireSemanticDividers: true,
+    })).toEqual([]);
+
+    const diagnostics = createForm._private.collectFormFieldValidationDiagnostics([
+      { type: 'TextField', label: '姓名' },
+      { type: 'Divider', title: '空分组' },
+      { type: 'Divider', title: '末尾分组' },
+    ], {
+      rootPath: 'fields',
+      definition: { fields: [], dividers: [{ title: '错误分组' }] },
+      requireSemanticDividers: true,
+    });
+
+    expect(diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'SEPARATE_DIVIDERS_UNSUPPORTED', path: 'dividers' }),
+      expect.objectContaining({ code: 'ROOT_DIVIDER_REQUIRED', path: 'fields[0]' }),
+      expect.objectContaining({ code: 'ADJACENT_DIVIDERS_UNSUPPORTED', path: 'fields[2]' }),
+      expect.objectContaining({ code: 'TRAILING_DIVIDER_UNSUPPORTED', path: 'fields[2]' }),
+    ]));
+  });
+
+  test('full form validation requires a Divider title', () => {
+    expect(createForm._private.collectFormFieldValidationDiagnostics([
+      { type: 'Divider' },
+      { type: 'TextField', label: '姓名' },
+    ], {
+      requireSemanticDividers: true,
+    })).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'DIVIDER_TITLE_MISSING', path: 'fields[0].title' }),
+    ]));
+  });
+
+  test('form scaffold compilation adds a default Divider but rejects a separate dividers array', () => {
+    const compiled = formSchemaBuilder.compileFormDefinition({
+      version: 1,
+      formTitle: '无分组表单',
+      fields: [{ type: 'TextField', label: '姓名' }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_TEST',
+      corpId: 'CORP_TEST',
+    });
+    const compiledFormContainer = findFormContainer(compiled.schema.pages[0].componentsTree[0]);
+    expect(compiledFormContainer.children[0]).toMatchObject({
+      componentName: 'Divider',
+      props: expect.objectContaining({
+        title: expect.objectContaining({ zh_CN: '基本信息' }),
+      }),
+    });
+
+    expect(() => formSchemaBuilder.compileFormDefinition({
+      version: 1,
+      formTitle: '错误分组表单',
+      dividers: [{ title: '基础信息', position: 0 }],
+      fields: [
+        { type: 'Divider', title: '基础信息' },
+        { type: 'TextField', label: '姓名' },
+      ],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_TEST',
+      corpId: 'CORP_TEST',
+    })).toThrow(expect.objectContaining({
+      code: 'FORM_DEFINITION_FIELD_INVALID',
+      details: expect.objectContaining({
+        diagnostics: expect.arrayContaining([
+          expect.objectContaining({ code: 'SEPARATE_DIVIDERS_UNSUPPORTED' }),
+        ]),
+      }),
+    }));
+  });
+
   test('field JSON validator accepts non-empty i18n object labels and rejects empty labels', () => {
     expect(createForm._private.collectFormFieldValidationDiagnostics([
       { type: 'TextField', label: { zh_CN: '姓名', en_US: 'Name' } },
@@ -1843,6 +1926,7 @@ describe('create-form create recovery guardrails', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-invalid-fields-'));
     const fieldsPath = path.join(tmpDir, 'fields.json');
     fs.writeFileSync(fieldsPath, JSON.stringify([
+      { type: 'Divider', title: '基础信息' },
       {
         type: 'ColumnContainer',
         children: [
@@ -1862,7 +1946,7 @@ describe('create-form create recovery guardrails', () => {
     ])).rejects.toMatchObject({
       code: 'CREATE_FORM_FIELD_TYPE_MISSING',
       details: expect.objectContaining({
-        path: 'fields[0].children[1][0]',
+        path: 'fields[1].children[1][0]',
         label: '缺类型字段',
       }),
     });
@@ -1981,6 +2065,7 @@ describe('create-form create recovery guardrails', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-field-validate-'));
     const fieldsPath = path.join(tmpDir, 'fields.json');
     fs.writeFileSync(fieldsPath, JSON.stringify([
+      { type: 'Divider', title: '基础信息' },
       {
         type: 'ColumnContainer',
         children: [
@@ -2008,7 +2093,7 @@ describe('create-form create recovery guardrails', () => {
       diagnostics: [
         expect.objectContaining({
           code: 'INVALID_COLUMN_CONTAINER_CHILDREN_DEPTH',
-          path: 'fields[0].children[0][0]',
+          path: 'fields[1].children[0][0]',
         }),
       ],
     });
@@ -2024,6 +2109,7 @@ describe('create-form create recovery guardrails', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-validate-cli-invalid-'));
     const fieldsPath = path.join(tmpDir, 'fields.json');
     fs.writeFileSync(fieldsPath, JSON.stringify([
+      { type: 'Divider', title: '基础信息' },
       {
         type: 'ColumnContainer',
         children: [
@@ -2055,7 +2141,7 @@ describe('create-form create recovery guardrails', () => {
       diagnostics: [
         expect.objectContaining({
           code: 'INVALID_COLUMN_CONTAINER_CHILDREN_DEPTH',
-          path: 'fields[0].children[0][0]',
+          path: 'fields[1].children[0][0]',
         }),
       ],
     });
@@ -2066,6 +2152,7 @@ describe('create-form create recovery guardrails', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-validate-cli-valid-'));
     const fieldsPath = path.join(tmpDir, 'fields.json');
     fs.writeFileSync(fieldsPath, JSON.stringify([
+      { type: 'Divider', title: '基础信息' },
       { type: 'TextField', label: { zh_CN: '姓名', en_US: 'Name' } },
     ]));
 

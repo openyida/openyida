@@ -16,7 +16,7 @@
   "fields": [
     {
       "type": "Divider",
-      "label": "基本信息",
+      "title": "基本信息",
       "dividerType": "bold-with-thin"
     },
     {
@@ -37,7 +37,7 @@
       "type": "SelectField",
       "label": "状态",
       "required": true,
-      "options": ["待处理", "进行中", "已完成"]
+      "dataSource": ["待处理", "进行中", "已完成"]
     },
     {
       "key": "dueDate",
@@ -46,7 +46,7 @@
     },
     {
       "type": "Divider",
-      "label": "补充说明",
+      "title": "补充说明",
       "dividerType": "bold-with-thin"
     },
     {

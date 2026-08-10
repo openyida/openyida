@@ -673,6 +673,10 @@ describe('OpenYida skill contracts', () => {
     expect(formDetail).toContain('Divider 策略');
     expect(formDetail).toContain('formDetail CSS');
     expect(createForm).toContain('视觉引导必须和 `Divider` 分割线语义分组合并执行');
+    expect(createForm).toContain('`fields` 第一项必须是 `{ "type": "Divider", "title": "分组名" }`');
+    expect(createForm).toContain('不使用独立 `dividers` 数组');
+    expect(createForm).toContain('openyida create-form validate-fields <fieldsJsonOrFile> --json');
+    expect(createForm).toContain('字段类型写 `type`，选项写 `dataSource`');
     expect(createForm).toContain('回读 revision、字段、生命周期、主题、formDetail 样式和 13 个 Yida API');
     expect(formDetail).toContain('### 【表单视觉引导】');
     expect(formDetail).toContain('Divider 策略');
@@ -690,6 +694,8 @@ describe('OpenYida skill contracts', () => {
     expect(formDetail).toContain('openyida form-detail-style apply');
     expect(manifest).toContain("default_form_visual_guidance_skill_id: 'yida-form-detail'");
     expect(manifest).toContain('Native forms use the independent .form.json scaffold');
+    expect(manifest).toContain('do not use a separate dividers array');
+    expect(manifest).toContain('run create-form validate-fields before create');
     expect(manifest).toContain('form-schema-builder.js and form-runtime.js');
     expect(manifest).toContain('scaffold_contracts: buildScaffoldContracts()');
     expect(manifest).not.toContain('a page-instance capability that Canvas lacks');
