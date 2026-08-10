@@ -2029,4 +2029,73 @@ describe('CLI offline smoke', () => {
       fs.rmSync(workspace, { recursive: true, force: true });
     }
   });
+
+  test('Canvas publish blocks unimported JSX components before login', () => {
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-publish-canvas-'));
+    try {
+      const sourcePath = path.join(workspace, 'pages', 'src', 'missing-import.canvas.jsx');
+      fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
+      fs.writeFileSync(sourcePath, [
+        'import React from "react";',
+        'export default function Page() {',
+        '  return <ConfigProvider><div>页面</div></ConfigProvider>;',
+        '}',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runAny(['publish', sourcePath, 'APP_TEST', 'FORM-TEST', '--no-open', '--json']);
+      const parsed = JSON.parse(result.jsonOutput);
+
+      expect(result.status).toBe(1);
+      expect(parsed).toMatchObject({
+        success: false,
+        errorCode: 'OPENYIDA_CANVAS_UNBOUND_COMPONENT',
+        details: expect.objectContaining({
+          stage: 'canvas_compile',
+          sourcePath,
+          componentName: 'ConfigProvider',
+          line: 3,
+        }),
+      });
+      expect(parsed.errorMsg).toContain("import { ConfigProvider } from 'antd'");
+      expect(result.output).not.toContain('读取登录态');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('Canvas publish blocks visible actions without handlers before login', () => {
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-publish-canvas-'));
+    try {
+      const sourcePath = path.join(workspace, 'pages', 'src', 'missing-handler.canvas.jsx');
+      fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
+      fs.writeFileSync(sourcePath, [
+        'import React from "react";',
+        'import { Button } from "antd";',
+        'export default function Page() {',
+        '  return <Button>查看全部</Button>;',
+        '}',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runAny(['publish', sourcePath, 'APP_TEST', 'FORM-TEST', '--no-open', '--json']);
+      const parsed = JSON.parse(result.jsonOutput);
+
+      expect(result.status).toBe(1);
+      expect(parsed).toMatchObject({
+        success: false,
+        errorCode: 'OPENYIDA_CANVAS_INTERACTION_INCOMPLETE',
+        details: expect.objectContaining({
+          stage: 'canvas_compile',
+          sourcePath,
+          elementName: 'Button',
+          issueType: 'missing-handler',
+          line: 4,
+        }),
+      });
+      expect(result.output).not.toContain('读取登录态');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
 });

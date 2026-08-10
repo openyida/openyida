@@ -789,6 +789,22 @@ describe('OpenYida skill contracts', () => {
     expect(postinstall).not.toContain('Canvas 当前不具备的普通页面实例能力');
   });
 
+  test('Code Canvas generation and compiler both require complete imports and interactions', () => {
+    const canvas = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');
+    const dependencies = readSkill('yida-skills/skills/yida-canvas-custom-page/references/dependencies-and-cdn.md');
+    const generation = readSkill('yida-skills/skills/yida-canvas-custom-page/references/page-generation-guide.md');
+    const compiler = readSkill('lib/app/canvas-compile.js');
+    const guard = readSkill('lib/app/canvas-source-guard.js');
+
+    expect(canvas).toContain('组件必须有明确的 import 或本地定义');
+    expect(canvas).toContain('必须绑定会执行动作的事件');
+    expect(dependencies).toContain('Canvas 编译会阻止未声明组件发布');
+    expect(generation).toContain('暂未实现的操作使用禁用态或静态文本');
+    expect(compiler).toContain('assertCanvasSourceContracts(source, options)');
+    expect(guard).toContain('OPENYIDA_CANVAS_UNBOUND_COMPONENT');
+    expect(guard).toContain('OPENYIDA_CANVAS_INTERACTION_INCOMPLETE');
+  });
+
   test('yida-custom-page covers ordinary JSX exceptions', () => {
     const skill = readSkill('yida-skills/skills/yida-custom-page/SKILL.md');
 

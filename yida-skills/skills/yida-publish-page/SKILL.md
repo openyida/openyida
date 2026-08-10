@@ -59,7 +59,7 @@ openyida compile <源文件路径>
 openyida publish <源文件路径> <appType> <displayPageFormUuid> --health-check
 ```
 
-Code Canvas 不使用普通页面的 `check-page` / `compile` 作为预检，直接由 `publish` 的 Canvas 编译阶段校验 `runtimeCode + importedModules`。
+Code Canvas 不使用普通页面的 `check-page` / `compile` 作为预检，直接由 `publish` 检查组件导入、交互事件和 `runtimeCode + importedModules`。
 
 ## 发布证明
 

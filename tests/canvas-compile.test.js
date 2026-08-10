@@ -399,8 +399,9 @@ describe('compileCanvasLocal', () => {
       import React from 'react';
       import { ConfigProvider, Button } from 'antd';
       export default function App() {
-        return <ConfigProvider><Button>提交</Button></ConfigProvider>;
+        return <ConfigProvider><Button onClick={() => submit()}>提交</Button></ConfigProvider>;
       }
+      function submit() {}
     `;
     const result = compileCanvasLocal(goodSource);
     expect(JSON.parse(result.importedModules)).toEqual(['antd', 'react']);
@@ -445,6 +446,94 @@ describe('compileCanvasLocal', () => {
         packageName: 'lucide-react',
       }),
     }));
+  });
+
+  test('rejects antd JSX components that were used without imports', () => {
+    expect(() => compileCanvasLocal(`
+      import React from 'react';
+      export default function App() {
+        return <ConfigProvider><div>页面</div></ConfigProvider>;
+      }
+    `, { sourcePath: 'pages/src/missing-config-provider.canvas.jsx' })).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_UNBOUND_COMPONENT',
+      details: expect.objectContaining({
+        line: 4,
+        componentName: 'ConfigProvider',
+      }),
+    }));
+
+    expect(() => compileCanvasLocal(`
+      import React from 'react';
+      import { ConfigProvider } from 'antd';
+      export default function App() {
+        return <ConfigProvider><Space>页面</Space></ConfigProvider>;
+      }
+    `, { sourcePath: 'pages/src/missing-space.canvas.jsx' })).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_UNBOUND_COMPONENT',
+      details: expect.objectContaining({
+        line: 5,
+        componentName: 'Space',
+      }),
+    }));
+  });
+
+  test.each([
+    ['native button', '<button>搜索</button>'],
+    ['antd button', '<Button>查看全部</Button>'],
+    ['button role', '<div role="button">快捷入口</div>'],
+    ['pointer card', '<div style={{ cursor: "pointer" }}>预定卡片</div>'],
+    ['pointer class card', '<><style>{`.entry { cursor: pointer; }`}</style><div className="entry">快捷入口</div></>'],
+    ['search input', '<Input.Search placeholder="搜索" />'],
+  ])('rejects %s without a real interaction handler', (_label, jsx) => {
+    expect(() => compileCanvasLocal(`
+      import React from 'react';
+      import { Button, Input } from 'antd';
+      export default function App() {
+        return (${jsx});
+      }
+    `, { sourcePath: 'pages/src/incomplete-action.canvas.jsx' })).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_INTERACTION_INCOMPLETE',
+      details: expect.objectContaining({
+        issueType: 'missing-handler',
+      }),
+    }));
+  });
+
+  test('rejects handlers that return a function reference without calling it', () => {
+    expect(() => compileCanvasLocal(`
+      import React from 'react';
+      import { Button } from 'antd';
+      const openDetail = () => {};
+      export default function App() {
+        return <Button onClick={() => openDetail}>详情</Button>;
+      }
+    `)).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_INTERACTION_INCOMPLETE',
+      details: expect.objectContaining({
+        issueType: 'invalid-handler',
+      }),
+    }));
+  });
+
+  test('allows explicit actions, links, submit buttons and disabled placeholders', () => {
+    expect(() => compileCanvasLocal(`
+      import React from 'react';
+      import { Button, Input } from 'antd';
+      const run = () => {};
+      export default function App() {
+        return (
+          <div>
+            <button onClick={run}>搜索</button>
+            <Button onClick={() => run()}>查看全部</Button>
+            <Button href="/target">打开</Button>
+            <button type="submit">提交</button>
+            <Button disabled>待开放</Button>
+            <Input.Search onSearch={run} />
+            <div role="button" onKeyDown={run}>快捷入口</div>
+          </div>
+        );
+      }
+    `)).not.toThrow();
   });
 
   test('rejects desktop form submission/detail new-tab opens before publish', () => {

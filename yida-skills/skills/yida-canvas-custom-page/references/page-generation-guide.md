@@ -37,6 +37,8 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 
 新建 Canvas 页面从 `openyida sample yida-canvas-custom-page canvas` 输出的 `canvas.canvas.jsx` 扩展。`FORM_UUIDS.<formKey>` 与 `FIELDS.<formKey>` 使用同一个表单键，并填写 `get-schema --field-map-json` 返回的完整 ID；发布前由 CLI 与线上 Schema 核对。脚手架中的 13 个 Yida API、主题、表单容器、URL、实例校验和基础状态不按场景裁剪。表单新建、提交和详情保留脚手架的 `FormOpenContainer`，默认不改成页面跳转。
 
+页面中的按钮、搜索框、快捷入口、可点击卡片和文字操作必须有真实动作。使用原生 `button`、Antd `Button`、`Input.Search`、`role="button"`、`hoverable` 或 `cursor:pointer` 时，必须绑定对应事件；暂未实现的操作使用禁用态或静态文本，不保留可点击外观。
+
 ## 修复路径
 
 | 问题类型 | 必须修改哪里 | 不允许的做法 |

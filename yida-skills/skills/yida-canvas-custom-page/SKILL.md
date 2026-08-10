@@ -39,7 +39,8 @@ openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas
 5. 主题和样式读取 [样式实现](references/canvas-style-implementation-guide.md)。
 6. 提交页、详情页和页面跳转读取 [页面入口](references/navigation-and-entry-guide.md)。
 7. 用户未明确要求整页跳转时，不得把脚手架的表单抽屉改成 `window.location`、`openPage`、`window.open` 或新标签。
-8. 本轮修改源码后，必须成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，才能说明页面已发布。
+8. JSX 中使用的组件必须有明确的 import 或本地定义。按钮、搜索、快捷入口、可点击卡片和“查看全部”等操作必须绑定会执行动作的事件。
+9. 本轮修改源码后，必须成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，才能说明页面已发布。
 
 发布命令会与线上 Schema 精确核对 `appType`、`formUuid` 和 `fieldId`。空值、错位或缺少字符都会阻止发布，并返回可供核对的真实候选值。
 

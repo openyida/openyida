@@ -14,7 +14,7 @@
 
 ## Canvas 编译
 
-`.canvas.jsx` / `.canvas.tsx` 由 `publish` 的 Canvas 编译阶段检查 `YidaComp` 导出、依赖和 `runtimeCode + importedModules`，不先运行普通页面的 `check-page` / `compile`。
+`.canvas.jsx` / `.canvas.tsx` 由 `publish` 检查未声明组件、无效交互、`YidaComp` 导出、依赖和 `runtimeCode + importedModules`，不先运行普通页面的 `check-page` / `compile`。
 
 ## 自动注入样式
 
