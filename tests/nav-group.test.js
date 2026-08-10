@@ -17,6 +17,7 @@ const {
   reorderRootNodes,
   resolveNavigationPlan,
   resolveNode,
+  verifyAutoOrder,
   verifyNavigationPlan,
 } = require('../lib/app/nav-group');
 
@@ -130,6 +131,26 @@ describe('nav-group helpers', () => {
     expect(getNavigationPriority(mixed[2])).toBe(1);
     expect(getNavigationPriority(mixed[3])).toBe(2);
     expect(getNavigationPriority(mixed[1])).toBe(3);
+  });
+
+  test('verifyAutoOrder checks the actual server readback order', () => {
+    const expected = ['PAGE-HOME', 'PAGE-LIST', 'FORM-ORDER'];
+    const arranged = [
+      { id: 1, navUuid: 'PAGE-HOME', parentNavUuid: ROOT_NAV_UUID, navType: 'PAGE' },
+      { id: 2, navUuid: 'PAGE-LIST', parentNavUuid: ROOT_NAV_UUID, navType: 'PAGE' },
+      { id: 3, navUuid: 'FORM-ORDER', parentNavUuid: ROOT_NAV_UUID, navType: 'PAGE' },
+    ];
+    const stale = [arranged[2], arranged[0], arranged[1]];
+
+    expect(verifyAutoOrder(arranged, expected)).toEqual({
+      matched: true,
+      expected,
+      actual: expected,
+    });
+    expect(verifyAutoOrder(stale, expected)).toMatchObject({
+      matched: false,
+      actual: ['FORM-ORDER', 'PAGE-HOME', 'PAGE-LIST'],
+    });
   });
 
   test('moveNodeInTree rejects moving a system node', () => {

@@ -503,6 +503,7 @@ describe('CLI offline smoke', () => {
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> --plan <file>'),
       navigation_contract: expect.objectContaining({
         required: true,
+        canvas_publish_baseline: expect.stringContaining('custom pages precede process and normal forms'),
         done_when: 'verification.matched=true',
         warning_is_completion: false,
       }),
@@ -1348,6 +1349,7 @@ describe('CLI offline smoke', () => {
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> --plan <file>'),
       navigation_contract: expect.objectContaining({
         required: true,
+        canvas_publish_baseline: expect.stringContaining('custom pages precede process and normal forms'),
         done_when: 'verification.matched=true',
         warning_is_completion: false,
       }),

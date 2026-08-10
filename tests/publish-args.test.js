@@ -3,6 +3,12 @@
 const publish = require('../lib/app/publish');
 
 describe('publish argument parsing', () => {
+  test('always auto-orders navigation after Code Canvas publish', () => {
+    expect(publish.shouldAutoOrderNavigation(true, false)).toBe(true);
+    expect(publish.shouldAutoOrderNavigation(false, true)).toBe(true);
+    expect(publish.shouldAutoOrderNavigation(false, false)).toBe(false);
+  });
+
   test('uses source-first order for the public CLI contract', () => {
     expect(publish.parseArgs([
       'pages/src/home.oyd.jsx',

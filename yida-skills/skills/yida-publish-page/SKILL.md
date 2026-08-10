@@ -34,6 +34,7 @@ openyida list-forms <appType> --keyword <页面名>
 6. 本轮修改 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}` 后，必须成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`。本地编辑、diff、`check-page`、`compile` 或 `compileCanvasLocal` 只证明源码通过本地检查。
 7. 发布结果以 CLI 返回值和线上回读为准。
 8. 源码包含 `this.dataSourceMap.` 且输出包含 `No custom page data sources to preserve` 时，本次发布不能视为完成；按 [数据源保留](references/data-source-preservation.md) 修复后重发。
+9. Code Canvas 发布后 CLI 自动执行基础导航排序并回读验证，保证自定义页面排在流程表单和普通表单前。执行失败或回读顺序不一致时发布命令失败；完整应用随后仍按 PRD 执行 `nav-group order --plan` 完成精确分组。
 
 ## 发布命令
 
@@ -48,7 +49,7 @@ openyida publish <源文件路径> <appType> <formUuid> [--compat] [--canvas] [-
 | `--compat` | 普通 `.jsx` 强制使用兼容构建；`.oyd.jsx` 默认启用 |
 | `--canvas` | 明确使用 Canvas 编译；`.canvas.jsx` 默认启用 |
 | `--health-check` | 发布后检查页面 URL |
-| `--auto-nav-order` | 没有 PRD 导航计划的单页任务可在发布后自动排序；完整应用使用 `nav-group order --plan` |
+| `--auto-nav-order` | 普通 JSX 页面需要基础导航排序时使用；Code Canvas 已默认执行。完整应用仍使用 `nav-group order --plan` 落实 PRD 分组 |
 | `--force` | 仅在已确认目标是 display page、但导航接口暂时无法识别时绕过类型保护 |
 
 普通页面发布前运行：
@@ -73,6 +74,7 @@ Code Canvas 不使用普通页面的 `check-page` / `compile` 作为预检，直
 - 发布目标是用户要求的 display page。
 - CLI 返回发布成功。
 - 发布后的页面可访问，必要时通过 `--health-check` 或浏览器验证。
+- Code Canvas 发布结果包含成功的 `navOrder`，自定义页面排在流程表单和普通表单前。
 - 普通页面依赖的设计器数据源仍存在。
 
 ## 参考文件

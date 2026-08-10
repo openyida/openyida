@@ -308,7 +308,9 @@ describe('OpenYida skill contracts', () => {
     expect(appFinalOutput).not.toContain('轻量导航自动排序已执行，或给出明确 warning');
     expect(appStages).toContain('PRD 命中审批/流程时加载');
     expect(publish).toContain('`--auto-nav-order`');
-    expect(publish).toContain('完整应用使用 `nav-group order --plan`');
+    expect(publish).toContain('完整应用仍使用 `nav-group order --plan`');
+    expect(publish).toContain('Code Canvas 发布后 CLI 自动执行基础导航排序');
+    expect(publish).toContain('自定义页面排在流程表单和普通表单前');
     expect(navGroup).toContain('完整应用只执行一条 `order --plan` 命令');
     expect(navGroup).toContain('openyida nav-group order <appType> --plan .cache/openyida/<项目名>/navigation-plan.json');
     expect(navGroup).toContain('`verification.matched=true`');

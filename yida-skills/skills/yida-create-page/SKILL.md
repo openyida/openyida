@@ -53,7 +53,7 @@ openyida create-page <appType> <pageName> [--source <page.canvas.jsx>] [--mode d
 ## 输出
 
 ```json
-{"success":true,"pageId":"FORM-XXX","appType":"APP_XXX","sourcePreflight":{"mode":"canvas","sourcePath":"/abs/page.canvas.jsx"},"delivery":{"complete":false,"status":"container_created_unpublished","requiredNextCommand":"openyida publish /abs/page.canvas.jsx APP_XXX FORM-XXX --health-check --json"}}
+{"success":true,"pageId":"FORM-XXX","appType":"APP_XXX","sourcePreflight":{"mode":"canvas","sourcePath":"/abs/page.canvas.jsx"},"delivery":{"complete":false,"status":"container_created_unpublished","requiredNextCommand":"openyida publish /abs/page.canvas.jsx APP_XXX FORM-XXX --health-check --auto-nav-order --json"}}
 ```
 
 > 创建后使用 `yida-canvas-custom-page` 实现页面，再使用 `yida-publish-page` 发布。

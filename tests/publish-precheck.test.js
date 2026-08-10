@@ -377,7 +377,7 @@ describe('publish prechecks', () => {
     requestSpy.mockRestore();
   });
 
-  test('publish main treats health check and auto nav order errors as non-fatal after save succeeds', async () => {
+  test('Canvas publish fails when required baseline navigation ordering fails', async () => {
     const sourcePath = path.join(workspace, 'home.canvas.jsx');
     fs.writeFileSync(sourcePath, 'export default function Page() { return null; }\n', 'utf8');
 
@@ -477,30 +477,20 @@ describe('publish prechecks', () => {
         '--force',
         '--skip-lint',
         '--health-check',
-        '--auto-nav-order',
         '--no-open',
-      ])).resolves.toBeUndefined();
+      ])).rejects.toMatchObject({
+        code: 'OPENYIDA_CANVAS_NAV_ORDER_FAILED',
+        details: expect.objectContaining({
+          stage: 'canvas_nav_order',
+          published: true,
+        }),
+      });
 
       expect(exitSpy).not.toHaveBeenCalled();
-      expect(resultMock).toHaveBeenCalledWith(true, expect.any(String), expect.any(Array));
+      expect(resultMock).not.toHaveBeenCalled();
       expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('health transport broke'));
       expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('nav order broke'));
       expect(autoOrderNavigationMock).toHaveBeenCalledWith('APP_XXX', expect.any(Object));
-      const outputPayload = consoleSpy.mock.calls
-        .map((call) => call[0])
-        .filter((line) => typeof line === 'string' && line.startsWith('{'))
-        .map((line) => JSON.parse(line))
-        .find((payload) => payload && payload.success === true);
-      expect(outputPayload).toMatchObject({
-        success: true,
-        appType: 'APP_XXX',
-        formUuid: 'FORM-PAGE',
-        healthCheck: {
-          ok: false,
-          error: 'health transport broke',
-        },
-        navOrderWarning: 'nav order broke',
-      });
     } finally {
       requestSpy.mockRestore();
       exitSpy.mockRestore();
