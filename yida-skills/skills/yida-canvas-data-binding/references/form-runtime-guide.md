@@ -11,6 +11,8 @@
 
 `YidaComp` 内不能直接调用普通页面的 `this.utils.yida.*`。底层普通页面 API 由脚手架注册到上述 window runtime。
 
+官方方法名固定，不要按页面语义或接口标题改名。
+
 runtime 提供 7 个表单方法：`saveFormData`、`updateFormData`、`deleteFormData`、`getFormDataById`、`searchFormDatas`、`searchFormDataIds`、`getFormComponentDefinationList`。
 
 runtime 提供 6 个流程方法：`startProcessInstance`、`updateProcessInstance`、`deleteProcessInstance`、`getProcessInstances`、`getProcessInstanceIds`、`getProcessInstanceById`。

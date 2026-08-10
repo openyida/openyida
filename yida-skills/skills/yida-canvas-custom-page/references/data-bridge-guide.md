@@ -13,6 +13,14 @@ Code Canvas 运行时提供 React 函数组件上下文；`YidaComp` 内没有�
 
 选路原则：读本应用或本轮创建的宜搭表单/流程，默认使用统一 window runtime；读第三方或复杂后端数据，使用连接器代理；只有 runtime 不存在且必须读表单时，才同源直连内部端点。Cookie / CSRF / appSecret 由平台上下文、连接器或后端服务提供。
 
+## 官方方法名固定
+
+Code Canvas 调用宜搭表单和流程能力时，只使用脚手架注册到 `window.__OPENYIDA_RUNTIME__.yida` 的官方方法名。不要改名，不要自造 `searchForms`、`updateForm`、`listForms` 这类方法。
+
+表单方法：`saveFormData`、`updateFormData`、`deleteFormData`、`getFormDataById`、`searchFormDatas`、`searchFormDataIds`、`getFormComponentDefinationList`。
+
+流程方法：`startProcessInstance`、`updateProcessInstance`、`deleteProcessInstance`、`getProcessInstances`、`getProcessInstanceIds`、`getProcessInstanceById`。
+
 ## 推荐：先写 dataBinding，再实现数据桥
 
 Code Canvas 页面先把数据契约写成结构化 `dataBinding`，再在页面实现里注入为 `OPENYIDA_DATA_BINDING_JSON` 或 `DATA_BINDING` 常量，并生成统一的数据桥状态、错误态和总数保护。

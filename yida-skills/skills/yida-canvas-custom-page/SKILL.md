@@ -28,7 +28,7 @@ OpenYida 提供一份完整脚手架：
 openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas.canvas.jsx
 ```
 
-完整应用从项目 Canvas 脚手架扩展；单页任务使用上面的标准脚手架。脚手架内置 13 个 Yida API、主题、表单提交、详情和数据管理抽屉、URL 构造、实例 ID 校验、iframe 主题同步，以及加载、空数据和错误状态。表单新建、提交、详情和数据管理在所有设备都使用抽屉，移动端使用全屏抽屉。
+完整应用从项目 Canvas 脚手架扩展；单页任务使用上面的标准脚手架。脚手架内置 13 个 Yida API，方法名见 [数据接入](references/data-bridge-guide.md)，不要改名或自造方法。主题、表单提交、详情和数据管理抽屉、URL 构造、实例 ID 校验、iframe 主题同步，以及加载、空数据和错误状态也已内置。表单新建、提交、详情和数据管理在所有设备都使用抽屉，移动端使用全屏抽屉。
 
 ## 核心规则
 

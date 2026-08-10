@@ -791,14 +791,28 @@ describe('OpenYida skill contracts', () => {
     expect(bridge).toContain('window.__OPENYIDA_YIDA_API__');
     [bindingRuntime].forEach((doc) => {
       expect(doc).toContain('window.__OPENYIDA_RUNTIME__');
+      expect(doc).toContain('官方方法名固定');
       expect(doc).toContain('saveFormData');
+      expect(doc).toContain('updateFormData');
       expect(doc).toContain('getFormComponentDefinationList');
       expect(doc).toContain('startProcessInstance');
       expect(doc).toContain('getProcessInstanceById');
     });
+    [
+      'saveFormData',
+      'updateFormData',
+      'deleteFormData',
+      'getFormDataById',
+      'searchFormDatas',
+      'searchFormDataIds',
+      'getFormComponentDefinationList',
+    ].forEach((methodName) => {
+      expect(bridge).toContain(methodName);
+    });
     expect(canvas).toContain('OpenYida 提供一份完整脚手架');
     expect(canvas).toContain('openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas.canvas.jsx');
     expect(canvas).toContain('完整应用从项目 Canvas 脚手架扩展');
+    expect(canvas).toContain('不要改名或自造方法');
     expect(canvas).toContain('data-bridge-guide.md');
     expect(canvas).not.toContain('window.__OPENYIDA_RUNTIME__.yida.searchFormDatas(params)');
     expect(canvas).not.toContain('不能使用 `/query/form/searchFormDatas.json`');
