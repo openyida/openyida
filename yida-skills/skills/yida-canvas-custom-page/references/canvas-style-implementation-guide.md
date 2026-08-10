@@ -1,6 +1,6 @@
 # Code Canvas 样式实现指南
 
-本文件只说明 Code Canvas 如何实现样式，不产出设计事实。完整应用优先读取项目 Canvas 脚手架和 `page-spec.json`；只有单页任务、设计变更或派生产物冲突时，才回读 PRD/design.md。固定主题安装和 iframe 同步由脚手架提供。
+本文件只说明 Code Canvas 如何实现样式，不产出设计要求。完整应用先从薄 page-spec 取得 `prdRefs` 和 `designRefs`，再读取 PRD/design.md 的当前页章节。固定主题安装和 iframe 同步由项目脚手架提供。
 
 真实业务页、页面重构和局部美化以当前应用主题色为基准；缺少主题证据时先按业务气质选择平台预置主题或自定义色盘，不固定回到 `podBlue` / #1677ff。独立品牌/活动页、隐藏导航沉浸页和用户明确要求完全不同风格的页面使用页面级固定主题和差异化色盘。
 
@@ -28,7 +28,7 @@
 
 ## 默认圆润高密与呼吸感落地
 
-Code Canvas 使用项目脚手架中的通用圆角、密度和间距，并使用 `page-spec.json` 的页面特有值。缺值时回写 design.md 并重新生成派生产物，不在源码里凭感觉补。
+Code Canvas 使用项目脚手架中的通用圆角、密度和间距，并从 `designRefs` 指向的章节读取页面特有要求。缺值时回写 design.md；全局值变化时再生成 `design-runtime.json` 和项目脚手架，不在源码里凭感觉补。
 
 - 卡片 `border-radius` 范围 `0px-32px`，业务面板 / 卡片默认 `20px-24px`，主面板、抽屉和重点容器默认 `22px-32px`。
 - Button、Input、Select、DatePicker 等控件 `borderRadius` 默认 `10px-14px`；状态标签和徽标使用 `999px` 胶囊。
@@ -40,7 +40,7 @@ Code Canvas 使用项目脚手架中的通用圆角、密度和间距，并使�
 
 ## 视觉落地顺序
 
-页面实现不要从“高级、简洁、好看”等形容词直接写 CSS。完整应用读取 `page-spec.json.visualImplementation`，按固定顺序落地：
+页面实现不要从“高级、简洁、好看”等形容词直接写 CSS。完整应用读取 `designRefs` 指向的 `visualScaffold` 和当前 `sceneRecipes`，按固定顺序实现：
 
 1. `layoutRecipe`：先确定页面骨架和分栏比例。
 2. `surfaceMap`：决定每个区块是无框、细线面板、浅底条、列表行、表格、右侧栏还是抽屉。
@@ -120,7 +120,7 @@ Code Canvas 使用项目脚手架中的通用圆角、密度和间距，并使�
 
 页面源码不能只堆 section 或 Card。写完 `.canvas.jsx` 后，按下面结构自检：
 
-- 文件输入：完整应用已读取项目脚手架和 `page-spec.json`；单页任务已读取当前需求和设计上下文。
+- 文件输入：完整应用已读取项目脚手架、page-spec 中的引用和对应 PRD/design.md 章节；单页任务已读取当前需求和设计上下文。
 - `rootShell`：有页面根类、背景带、内容宽度、平台导航可见时的宽度处理。
 - `prioritySurface`：首屏最大视觉锚点是主图表、主任务、主对象摘要或主视觉区，不是纯标题或空白卡。
 - `statusPrimitive`：有紧凑状态摘要、数据在线、更新时间、主健康分或状态胶囊。
@@ -129,7 +129,7 @@ Code Canvas 使用项目脚手架中的通用圆角、密度和间距，并使�
 - `contextPrimitive`：有右侧洞察、风险、负责人、下一步建议或关联对象，避免页面只有左到右平铺卡片。
 - `statePrimitive`：loading、empty、error、未接数据都有薄空态、刷新、登记或补录动作。
 - `responsiveRule`：移动端分栏退化为单列，关键状态、动作和主内容保留，不让文字和按钮挤压。
-- `backgroundLayer` / `surfaceMaterial` / `colorRoles` / `depthRule` / `roundedRule` / `densityRule` / `breathingRule`：源码按项目脚手架和 `page-spec.visualImplementation` 落地分层背景、材质、色彩角色、圆角、密度和间距。
+- `backgroundLayer` / `surfaceMaterial` / `colorRoles` / `depthRule` / `roundedRule` / `densityRule` / `breathingRule`：源码按项目脚手架和 design.md 引用章节实现分层背景、材质、色彩角色、圆角、密度和间距。
 
 缺少 `prioritySurface`、`contentPrimitive` 或 `statePrimitive` 任意一项，不能交付为“已打磨页面”。
 要求玻璃感但源码只有普通白底和纯白不透明卡片，也不能交付为“已打磨页面”；如果选择极简近白背景，需要在截图和源码中体现细节层次。
@@ -154,7 +154,7 @@ Code Canvas 使用项目脚手架中的通用圆角、密度和间距，并使�
 
 ## themeScope：主题作用域落地
 
-Code Canvas 的 `page-spec.json` 会把主题拆成两个概念：
+design.md 把主题写成两个概念，页面通过 `designRefs` 读取：
 
 | 字段 | 默认 | 说明 |
 | --- | --- | --- |
@@ -210,13 +210,13 @@ React.useEffect(function () {
 }, []);
 ```
 
-页面重构先把当前应用主题写入 spec；缺少主题证据时按业务气质判断，而不是固定三选一。页面级换肤写 scoped 变量；用户明确要求应用主题风格/应用主题色时，使用 `themeProfile: yida-app-theme` 或显式 `themeScope: app`。
+页面重构先把当前应用主题写入 design.md；缺少主题证据时按业务气质判断，而不是固定三选一。页面级换肤写 scoped 变量；用户明确要求应用主题风格/应用主题色时，使用 `themeProfile: yida-app-theme` 或显式 `themeScope: app`。
 
 ## PRD 与 design.md 字段落地规则
 
-从 PRD 或派生的 `page-spec.json` 读取业务边界，从 design.md 读取主题 token 与视觉执行规则，并落地 `themeScope`：
+从 `prdRefs` 指向的章节读取业务边界，从 `designRefs` 指向的章节读取主题 token 与视觉规则，并实现 `themeScope`：
 
-| 用户说法 | spec |
+| 用户说法 | design.md |
 | --- | --- |
 | 整个应用统一、全局换肤、系统整体主题、应用主题也改 | `{ "themeScope": "app" }` |
 | 左侧导航/菜单/顶部壳层也一起变色，导航和内容区同色 | `{ "themeScope": "app" }` |

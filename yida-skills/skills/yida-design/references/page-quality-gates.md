@@ -110,18 +110,14 @@
 
 ```markdown
 - pageSpecHandoff：
-  - pageStructure：<workbench / dashboard-overview / business-list / detail-profile / split-pane-detail / portal-shell-home / official-homepage / data-screen>
-  - scene：<workbench / dashboard / list / detail / landing / screen>
-  - contentBlocks：<10+ 区块；KPI/快捷入口/列表/图表子项不分别计数>
-  - themeSummary：<应用主题色 / 风格关键词 / themeScope 摘要；必须与 design.md 一致>
+  - pageKey：<当前页面 resourceKey>
+  - prdRefs：<pages.<pageKey> / businessObjects.<resourceKey> / interactions.<pageKey> / acceptance.<pageKey>>
   - designFile：<prd/<项目名>/design.md>
   - designRefs：<themeProfile / sceneRecipes.<scene> / components.<name> / states.<name>>
-  - dataBinding：<form / report / connector / static-empty>
-  - primaryAction：<主操作和打开方式>
 ```
 
 `design.md` 必须包含 `rootShell`、`prioritySurface`、`statusPrimitive`、`actionPrimitive`、`contentPrimitive`、`contextPrimitive`、`statePrimitive`、`responsiveRule`、`backgroundLayer`、`surfaceMaterial`、`surfaceContrast`、`colorRoles` 和 `depthRule`。
 
 `design.md` 还必须写清 `densityRule`、`breathingRule` 与 `roundedRule`。缺少圆角、间距、呼吸节奏、状态摘要高度、列表行高或空态高度的具体数值时，不能交付给页面技能。
 
-缺少 `design.md` 时由 `yida-design` 补齐。PRD 的 `pageSpecHandoff` 缺少 `designFile/designRefs` 时由 `yida-prd` 补齐。两份文件都有但场景不一致时，业务页面清单按 PRD 修正，视觉规则按 design.md 修正。
+缺少 `design.md` 时由 `yida-design` 补齐。PRD 的 `pageSpecHandoff` 缺少 `pageKey/prdRefs/designFile/designRefs` 时由 `yida-prd` 补齐。两份文件都有但场景不一致时，业务页面清单按 PRD 修正，视觉规则按 design.md 修正。

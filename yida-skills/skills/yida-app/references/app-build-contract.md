@@ -8,8 +8,8 @@
 
 1. `prd.md` 由 `yida-prd` 产出，作为业务输入。
 2. `design.md` 由 `yida-design` 产出，作为视觉输入。
-3. `page-spec.json` 是页面实现阶段按需派生的产物。
-4. Code Canvas 实现规则归 `yida-canvas-custom-page`。
+3. `page-spec.json` 只记录当前页的 `prdRefs`、`designRefs`、真实资源 ID、数据绑定和源码路径，不复制 PRD/design.md 内容。
+4. 页面技能先读 page-spec，再按引用读取 PRD/design.md 的相关章节。Code Canvas 实现规则归 `yida-canvas-custom-page`。
 
 真实 `formUuid`、`fieldId`、`pageId` 等 ID 按 PRD 的 `resourceKey` 写入 `.cache/<项目名>-schema.json`；业务语义不写入 ID 映射文件，ID 不写入 PRD 正文。
 

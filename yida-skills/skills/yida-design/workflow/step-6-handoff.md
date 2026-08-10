@@ -64,7 +64,7 @@ openyida sample yida-create-form-page form --design-config .cache/openyida/<项�
 openyida sample yida-canvas-custom-page canvas --design-config .cache/openyida/<项目名>/design-runtime.json --output .cache/openyida/<项目名>/scaffolds/canvas.canvas.jsx
 ```
 
-9. 把 `designFile`、可用 `designRefs`、`design-runtime.json` 和两份脚手架路径交给 `yida-app`；完整应用在 `prd.md` 与 `design.md` 都完成后统一校验并派生页面 spec。
+9. 把 `designFile`、可用 `designRefs`、`design-runtime.json` 和两份脚手架路径交给 `yida-app`；完整应用在 `prd.md` 与 `design.md` 都完成后校验引用。页面实现阶段只把引用和真实资源写入薄 page-spec。
 
 ## 完成标准
 

@@ -121,7 +121,7 @@ Step 5 生成 `design.md`，并让 PRD 的每个自定义展示页只引用它�
 
 ## 页面技能交接
 
-`yida-app` 对齐 PRD 与 design.md 后，把当前页需要的内容派生到 `page-spec.visualImplementation`，并把通用视觉值写入项目脚手架：
+`yida-app` 对齐 PRD 与 design.md 后，把通用视觉值写入项目脚手架。薄 page-spec 只记录当前页的 `designRefs`，页面技能按引用读取以下 design.md 内容：
 
 | design.md 内容 | 交接内容 |
 | --- | --- |
@@ -134,4 +134,4 @@ Step 5 生成 `design.md`，并让 PRD 的每个自定义展示页只引用它�
 | visualScaffold | 页面技能按槽位组织业务内容和视觉层级；任何 display 页面不得跳过 |
 | rounded / spacing / densityRule / breathingRule | 列表行高、面板内距、卡片 gap、空态高度和首屏分组节奏；页面结果必须保持卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px |
 
-业务文案、字段、表单入口、流程处理、详情链接和导航顺序来自 PRD；视觉 DNA、布局、组件样式、主题 token 和状态规则来自 design.md。页面实现消费两者的派生产物。
+业务文案、字段、表单入口、流程处理、详情链接和导航顺序从 `prdRefs` 指向的 PRD 章节读取；视觉 DNA、布局、组件样式、主题 token 和状态规则从 `designRefs` 指向的 design.md 章节读取。

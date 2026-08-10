@@ -29,6 +29,7 @@ describe('yida-prd PRD quality fixtures', () => {
         'prd.md',
         'design.md',
         'designFile',
+        'prdRefs',
         'designRefs',
         'contentBlocks',
       ]));
@@ -77,6 +78,6 @@ describe('yida-prd PRD quality fixtures', () => {
     expect(skill).toContain('`.cache/openyida/<项目名>/design-runtime.json`');
     expect(step3).toContain('页面 `scene` 只作为分类标签和实现提示，不作为页面模板');
     expect(step5).toContain('同一个 `prd/<项目名>/design.md`');
-    expect(pageGeneration).toContain('强视觉品牌以 `page-spec.json` 的素材和视觉摘要为准');
+    expect(pageGeneration).toContain('强视觉品牌从 `prdRefs` 读取素材和 CTA，从 `designRefs` 读取构图与视觉节奏');
   });
 });

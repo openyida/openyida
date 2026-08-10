@@ -19,7 +19,7 @@ description: 生成 prd/<项目名>/prd.md，记录业务需求、资源结构�
 
 1. 先读取 `.cache/openyida/<项目名>/requirement-brief.json`，再写入 `prd/<项目名>/prd.md`。
 2. PRD 只写业务事实、角色、数据对象、带唯一 `resourceKey` 的资源、页面结构、创建顺序、交付顺序、导航顺序和验收。
-3. 每个 display 页面写薄 `pageSpecHandoff`，只包含页面结构、场景、区块、数据来源、主操作、`designFile` 和 `designRefs`。
+3. 每个 display 页面的业务要求完整写在 PRD 页面章节；`pageSpecHandoff` 只写稳定 `pageKey`、`prdRefs`、`designFile` 和 `designRefs`。
 4. 品牌和色彩只保留共享需求简报中的偏好摘要；完整视觉规则交给 `yida-design`。
 5. `appType`、`formUuid`、`fieldId`、`processCode` 等真实 ID 不写进 PRD，运行后写 `.cache/<项目名>-schema.json`。
 

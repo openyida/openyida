@@ -78,14 +78,10 @@
 - 主操作：<新增 / 提交 / 查看 / 审批 / 编辑 / 跳转>
 - PC / 移动端差异：<PC 侧边抽屉 / 移动端全屏抽屉 / 卡片堆叠 / 隐藏低频列>
 - pageSpecHandoff：
-  - pageStructure：<workbench / dashboard-overview / business-list / detail-profile / split-pane-detail / portal-shell-home / official-homepage / data-screen>
-  - scene：<workbench / dashboard / list / detail / landing / screen>
-  - contentBlocks：<10+ 区块；KPI/快捷入口/列表/图表子项不分别计数>
-  - themeSummary：<品牌和色彩偏好摘要；最终由 yida-app 在两份文件完成后与 design.md 对齐>
+  - pageKey：<当前页面 resourceKey>
+  - prdRefs：<pages.<pageKey> / businessObjects.<resourceKey> / interactions.<pageKey> / acceptance.<pageKey>>
   - designFile：<prd/<项目名>/design.md>
   - designRefs：<themeProfile / sceneRecipes.<scene> / components.<name> / states.<name>>
-  - dataBinding：<form / report / connector / static-empty；真实资源 ID 由页面技能回填>
-  - primaryAction：<主操作和打开方式>
 
 ## 5. 设计需求与引用
 
@@ -174,4 +170,4 @@
 
 - `yida-app` 对齐 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md`，再生成本轮页面规格和项目脚手架。
 - 真实 ID 写入 `.cache/<项目名>-schema.json`。
-- `yida-app` 对齐 PRD 与 design.md 后，为本轮页面派生 `page-spec.json`。完整应用页面读取该 spec 和项目 Canvas 脚手架；设计变更时重新生成派生产物。
+- 页面实现阶段把 `pageSpecHandoff` 的引用和真实资源写入薄 page-spec；随后按 `prdRefs`、`designRefs` 读取原文章节，并使用项目 Canvas 脚手架。

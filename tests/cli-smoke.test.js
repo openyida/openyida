@@ -494,7 +494,12 @@ describe('CLI offline smoke', () => {
       page_creation_policy: expect.stringContaining('current run'),
       form_entry_policy: expect.stringContaining('full-screen drawer'),
       form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
-      ui_guidance_policy: expect.stringContaining('design-runtime.json and project scaffolds are derived from design.md'),
+      ui_guidance_policy: expect.stringContaining('design-runtime.json writes shared visual values into project scaffolds'),
+      page_index_contract: expect.objectContaining({
+        path_template: '.cache/openyida/<project>/page-specs/<pageKey>.json',
+        required_fields: expect.arrayContaining(['sourceOfTruth.prdRefs', 'sourceOfTruth.designRefs', 'resources', 'dataBindings', 'sourceFile']),
+        forbidden_fields: expect.arrayContaining(['contentBlocks', 'themeSummary', 'visualImplementation']),
+      }),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> --plan <file>'),
       completion_contract: expect.stringContaining('2-3 business-summary sentences'),
       recommended_read_commands: expect.arrayContaining([
@@ -507,8 +512,8 @@ describe('CLI offline smoke', () => {
         run_in_parallel_with: expect.arrayContaining(['create-page', 'yida-canvas-custom-page']),
       }),
     });
-    expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is derived after PRD/design alignment');
-    expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('rereads PRD/design only when design changes or derived artifacts conflict');
+    expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is a thin index');
+    expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('reads the indexed PRD/design sections');
     expect(parsed.summary.core_workflows.full_app_build.page_skill_policy).toContain('canvas.canvas.jsx');
     expect(parsed.summary.core_workflows.full_app_build.form_visual_guidance_policy).toContain('form-runtime.js');
     expect(parsed.summary.core_workflows.full_app_build.default_nav_order_policy).toContain('completion requires verification.matched=true');
@@ -1329,7 +1334,12 @@ describe('CLI offline smoke', () => {
       page_creation_policy: expect.stringContaining('current run'),
       form_entry_policy: expect.stringContaining('full-screen drawer'),
       form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
-      ui_guidance_policy: expect.stringContaining('design-runtime.json and project scaffolds are derived from design.md'),
+      ui_guidance_policy: expect.stringContaining('design-runtime.json writes shared visual values into project scaffolds'),
+      page_index_contract: expect.objectContaining({
+        path_template: '.cache/openyida/<project>/page-specs/<pageKey>.json',
+        required_fields: expect.arrayContaining(['sourceOfTruth.prdRefs', 'sourceOfTruth.designRefs', 'resources', 'dataBindings', 'sourceFile']),
+        forbidden_fields: expect.arrayContaining(['contentBlocks', 'themeSummary', 'visualImplementation']),
+      }),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> --plan <file>'),
       completion_contract: expect.stringContaining('2-3 business-summary sentences'),
       recommended_read_commands: expect.arrayContaining([
@@ -1342,8 +1352,8 @@ describe('CLI offline smoke', () => {
         run_in_parallel_with: expect.arrayContaining(['create-page', 'yida-canvas-custom-page']),
       }),
     });
-    expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is derived after PRD/design alignment');
-    expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('rereads PRD/design only when design changes or derived artifacts conflict');
+    expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is a thin index');
+    expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('reads the indexed PRD/design sections');
     expect(parsed.commands.core_workflows.full_app_build.page_skill_policy).toContain('canvas.canvas.jsx');
     expect(parsed.commands.core_workflows.full_app_build.form_visual_guidance_policy).toContain('form-runtime.js');
     expect(parsed.commands.core_workflows.full_app_build.default_nav_order_policy).toContain('completion requires verification.matched=true');

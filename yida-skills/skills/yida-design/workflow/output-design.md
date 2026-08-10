@@ -304,7 +304,7 @@ inferred_modules:
 | token 来源 | `design-runtime.json` 从本 `design.md` 的 `tokens` 和 `themeProfile` 派生，不临场另配 |
 | 壳层关系 | 写清页面跟随应用主题、页面级独立主题或无运行时主题需求 |
 | 固定运行时 | 主题安装、ConfigProvider、表单抽屉和 iframe 同步由标准脚手架提供，不写入 design.md |
-| 页面实现 | 完整应用使用项目 Canvas 脚手架和派生 `page-spec.json`；设计变更时重新生成两者 |
+| 页面实现 | 完整应用使用项目 Canvas 脚手架，并按薄 page-spec 的 `designRefs` 读取本文件相关章节 |
 
 ## 19. 必须包含
 
@@ -328,7 +328,7 @@ inferred_modules:
 
 ## 22. Agent 使用提示
 
-提供一段简洁提示词，明确告诉 AI 如何使用该 design.md。必须说明选中 style-design 只是设计母体，最终事实源是当前项目 `design.md`；视觉 DNA 在内容替换后也要保留；完整应用页面消费派生 `page-spec.json` 和项目脚手架，不从 `yida-design` 补写源码细节。
+提供一段简洁提示词，明确告诉 AI 如何使用该 design.md。必须说明选中 style-design 只是设计母体，最终依据是当前项目 `design.md`；视觉 DNA 在内容替换后也要保留；完整应用页面按薄 page-spec 的 `designRefs` 读取本文件并使用项目脚手架，不从 `yida-design` 补写源码细节。
 
 ## 23. 交付自检清单
 
@@ -360,6 +360,6 @@ inferred_modules:
 
 ## 交给页面技能
 
-- `yida-app` 在 PRD 与 design.md 都完成后校验两份事实源，并派生本轮页面的 `page-spec.json`。
-- 完整应用页面读取项目 Canvas 脚手架和 `page-spec.json`；原生表单读取项目表单脚手架，不再逐步重读整份 design.md。
-- 设计变化时，先更新 design.md，再重新生成 `design-runtime.json`、两份项目脚手架和受影响的 `page-spec.json`。
+- `yida-app` 在 PRD 与 design.md 都完成后校验 `prdRefs` 和 `designRefs`。
+- 完整应用页面读取项目 Canvas 脚手架，再按薄 page-spec 的引用读取 PRD/design.md 当前页章节；原生表单读取项目表单脚手架。
+- 设计变化时先更新 design.md；通用 token、圆角或间距变化时，再生成 `design-runtime.json` 和两份项目脚手架。page-spec 只有引用变化时才更新。
