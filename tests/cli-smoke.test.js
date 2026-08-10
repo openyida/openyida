@@ -494,7 +494,7 @@ describe('CLI offline smoke', () => {
       page_creation_policy: expect.stringContaining('current run'),
       form_entry_policy: expect.stringContaining('full-screen drawer'),
       form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
-      ui_guidance_policy: expect.stringContaining('derived implementation handoff'),
+      ui_guidance_policy: expect.stringContaining('design-runtime.json and project scaffolds are derived from design.md'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> --plan <file>'),
       completion_contract: expect.stringContaining('2-3 business-summary sentences'),
       recommended_read_commands: expect.arrayContaining([
@@ -507,7 +507,8 @@ describe('CLI offline smoke', () => {
         run_in_parallel_with: expect.arrayContaining(['create-page', 'yida-canvas-custom-page']),
       }),
     });
-    expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is only a derived implementation handoff');
+    expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is derived after PRD/design alignment');
+    expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('rereads PRD/design only when design changes or derived artifacts conflict');
     expect(parsed.summary.core_workflows.full_app_build.page_skill_policy).toContain('canvas.canvas.jsx');
     expect(parsed.summary.core_workflows.full_app_build.form_visual_guidance_policy).toContain('form-runtime.js');
     expect(parsed.summary.core_workflows.full_app_build.default_nav_order_policy).toContain('completion requires verification.matched=true');
@@ -1328,7 +1329,7 @@ describe('CLI offline smoke', () => {
       page_creation_policy: expect.stringContaining('current run'),
       form_entry_policy: expect.stringContaining('full-screen drawer'),
       form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
-      ui_guidance_policy: expect.stringContaining('derived implementation handoff'),
+      ui_guidance_policy: expect.stringContaining('design-runtime.json and project scaffolds are derived from design.md'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> --plan <file>'),
       completion_contract: expect.stringContaining('2-3 business-summary sentences'),
       recommended_read_commands: expect.arrayContaining([
@@ -1341,7 +1342,8 @@ describe('CLI offline smoke', () => {
         run_in_parallel_with: expect.arrayContaining(['create-page', 'yida-canvas-custom-page']),
       }),
     });
-    expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is only a derived implementation handoff');
+    expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is derived after PRD/design alignment');
+    expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('rereads PRD/design only when design changes or derived artifacts conflict');
     expect(parsed.commands.core_workflows.full_app_build.page_skill_policy).toContain('canvas.canvas.jsx');
     expect(parsed.commands.core_workflows.full_app_build.form_visual_guidance_policy).toContain('form-runtime.js');
     expect(parsed.commands.core_workflows.full_app_build.default_nav_order_policy).toContain('completion requires verification.matched=true');

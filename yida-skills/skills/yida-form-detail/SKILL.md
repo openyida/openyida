@@ -32,7 +32,7 @@ metadata:
 ## 何时使用
 
 - 表单页开发默认加载本技能作为视觉引导和详情页样式默认注入策略：创建表单、更新表单结构、设计字段分组、设计流程表单字段时都适用。
-- 完整应用表单：先读取 `prd.md` 和 `design.md`，再执行 Divider 分组和 formDetail CSS 注入。
+- 完整应用表单：从项目表单脚手架扩展 PRD 定义的字段和 Divider 分组，再执行 formDetail CSS 注入。
 - 用户说“表单详情页美化”“详情页优化”“formDetail 样式”“字段详情页不好看”。
 - 新建应用包含表单，默认统一详情页风格。
 - 只调整表单详情页，不改自定义展示页面、不改数据记录。
@@ -104,7 +104,7 @@ openyida form-detail-style remove <appType> <formUuid> --json
 ## 决策规则
 
 - 创建或更新表单结构：默认加载本技能做视觉引导，必须合并 Divider 分割线分组；拿到真实 `formUuid` 后默认注入或补齐 formDetail CSS。
-- 完整应用表单：先读取 `prd.md` 和 `design.md`，再做 Divider 分组和详情页样式注入；不要把视觉规则复制回 PRD。
+- 完整应用表单：使用项目表单脚手架中的主题和详情样式，按 PRD 补字段与 Divider 分组。
 - 用户要求完整美化或未指定特殊样式：使用默认 CSS 全量注入。
 - 用户只要求某一区域：从默认 CSS 中截取对应分区，仍写入同一个 `openyida:theme` 区块。
 - 用户有品牌色：优先改 CSS 顶部变量，不要大面积改选择器。

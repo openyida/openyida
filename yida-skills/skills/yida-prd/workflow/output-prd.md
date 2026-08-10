@@ -172,6 +172,6 @@
 
 ## 交给页面技能
 
-- `yida-app` 读取 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md` 后创建或复用资源。
+- `yida-app` 对齐 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md`，再生成本轮页面规格和项目脚手架。
 - 真实 ID 写入 `.cache/<项目名>-schema.json`。
-- 页面技能读取 `prd.md` 的业务内容，并直接读取 `design.md` 的主题、布局、材质、圆角、密度、呼吸感、组件和状态规则；只有走页面生成器或需要稳定交接时才派生 `page-spec.json`，再交给 Code Canvas 或普通自定义页实现。
+- `yida-app` 对齐 PRD 与 design.md 后，为本轮页面派生 `page-spec.json`。完整应用页面读取该 spec 和项目 Canvas 脚手架；设计变更时重新生成派生产物。

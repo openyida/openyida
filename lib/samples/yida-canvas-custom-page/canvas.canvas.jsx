@@ -24,15 +24,31 @@ const FIELDS = {
     updatedAt: '',
   },
 };
-const THEME_TOKENS = {
-  '--color-brand1-6': '#2563eb',
-  '--color-brand1-1': '#eff6ff',
-  '--openyida-surface': '#ffffff',
-  '--openyida-bg': '#f6f8fb',
-  '--openyida-border': '#d8e0ea',
-  '--openyida-text': '#172033',
-  '--openyida-muted': '#667085',
+const DESIGN_DEFAULTS = {
+  // @openyida-design-defaults:start
+  "designSource": {
+    "designFile": "",
+    "designId": ""
+  },
+  "themeTokens": {
+    "--color-brand1-6": "#2563eb",
+    "--color-brand1-1": "#eff6ff",
+    "--openyida-surface": "#ffffff",
+    "--openyida-bg": "#f6f8fb",
+    "--openyida-border": "#d8e0ea",
+    "--openyida-text": "#172033",
+    "--openyida-muted": "#667085"
+  },
+  "layout": {
+    "pagePadding": 24,
+    "panelPadding": 24,
+    "sectionGap": 16,
+    "panelRadius": 22,
+    "controlRadius": 12
+  }
+  // @openyida-design-defaults:end
 };
+const THEME_TOKENS = DESIGN_DEFAULTS.themeTokens;
 
 const DEFAULT_BINDING = {
   appType: APP_TYPE,
@@ -334,8 +350,8 @@ function YidaComp(props) {
   ];
 
   return (
-    <ConfigProvider theme={{ token: { colorPrimary: themeTokens['--color-brand1-6'], borderRadius: 8 } }}>
-      <div className="openyida-canvas-scaffold" style={{ minHeight: '100%', padding: 24, background: 'var(--openyida-bg)' }}>
+    <ConfigProvider theme={{ token: { colorPrimary: themeTokens['--color-brand1-6'], borderRadius: DESIGN_DEFAULTS.layout.controlRadius } }}>
+      <div className="openyida-canvas-scaffold" style={{ minHeight: '100%', padding: DESIGN_DEFAULTS.layout.pagePadding, background: 'var(--openyida-bg)' }}>
         <style>{`
         .openyida-canvas-scaffold {
           color: var(--openyida-text);
@@ -355,12 +371,12 @@ function YidaComp(props) {
         .openyida-canvas-panel {
           background: var(--openyida-surface);
           border: 1px solid var(--openyida-border);
-          border-radius: 8px;
-          padding: 20px;
+          border-radius: ${DESIGN_DEFAULTS.layout.panelRadius}px;
+          padding: ${DESIGN_DEFAULTS.layout.panelPadding}px;
         }
         `}</style>
         <div className="openyida-canvas-panel">
-        <Space direction="vertical" size={16} style={{ width: '100%' }}>
+        <Space direction="vertical" size={DESIGN_DEFAULTS.layout.sectionGap} style={{ width: '100%' }}>
           <Space style={{ width: '100%', justifyContent: 'space-between' }} align="start">
             <div>
               <Title level={4} style={{ margin: 0 }}>业务工作台</Title>

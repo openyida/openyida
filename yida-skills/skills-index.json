@@ -114,7 +114,7 @@
       "name": "yida-design",
       "path": "skills/yida-design/SKILL.md",
       "display_name": "宜搭视觉设计",
-      "description": "生成 prd/<项目名>/design.md，记录主题、布局、组件、页面状态和响应式设计。",
+      "description": "生成 prd/<项目名>/design.md，并把主题、圆角、密度和间距写入项目表单与 Canvas 脚手架。",
       "category": "yida-skills/design",
       "tags": [
         "应用设计",
@@ -149,8 +149,10 @@
         "表单字段建模",
         "数据记录操作"
       ],
-      "command_ids": [],
-      "done_when": "已输出 prd/<项目名>/design.md；没有写 prd.md 或页面源码。"
+      "command_ids": [
+        "sample"
+      ],
+      "done_when": "已输出 prd/<项目名>/design.md、design-runtime.json 和两份项目脚手架；没有写 prd.md 或手写页面源码。"
     },
     {
       "name": "yida-app-permission",
@@ -334,6 +336,7 @@
         "renderJsx 旧页面迁移"
       ],
       "command_ids": [
+        "sample",
         "build-page",
         "publish"
       ],
@@ -553,6 +556,7 @@
         "发起流程实例"
       ],
       "command_ids": [
+        "sample",
         "create-form.create",
         "create-form.validate-fields",
         "create-form.update",

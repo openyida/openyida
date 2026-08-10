@@ -5,6 +5,7 @@ const os = require('os');
 const path = require('path');
 const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 const { applyTemplateVariables, run } = require('../lib/core/sample');
+const { normalizeDesignRuntime } = require('../lib/core/design-scaffold');
 const formSchemaBuilder = require('../lib/app/scaffolds/form/form-schema-builder');
 const { buildCanvasRuntimeSource } = require('../lib/app/runtime/canvas-runtime');
 const { CANVAS_YIDA_API_METHODS } = require('../lib/app/runtime/canvas-yida-api-methods');
@@ -140,6 +141,77 @@ describe('sample templates', () => {
     CANVAS_YIDA_API_METHODS.forEach((methodName) => {
       expect(compiled.schema.actions.module.source).toContain(methodName);
     });
+  });
+
+  test('design runtime updates project form and Canvas scaffolds without copying runtime helpers', async () => {
+    const configPath = path.join(tmpDir, 'design-runtime.json');
+    const formOutput = path.join(tmpDir, 'scaffolds', 'form.form.json');
+    const canvasOutput = path.join(tmpDir, 'scaffolds', 'canvas.canvas.jsx');
+    const config = {
+      version: 1,
+      designFile: 'prd/order-center/design.md',
+      designId: 'order-center-v1',
+      tokens: {
+        '--color-brand1-6': '#0f766e',
+        '--color-brand1-1': '#ecfdf5',
+        '--openyida-bg': '#f1f5f4',
+        '--openyida-surface': '#ffffff',
+        '--openyida-border': '#cbd5d1',
+        '--openyida-text': '#14211f',
+        '--openyida-muted': '#5f6f6b',
+      },
+      layout: {
+        pagePadding: 28,
+        panelPadding: 26,
+        sectionGap: 14,
+        panelRadius: 24,
+        controlRadius: 12,
+      },
+      form: {
+        theme: 'compact',
+        labelAlign: 'left',
+        formDetailPreset: 'clean-card',
+      },
+    };
+    fs.writeFileSync(configPath, JSON.stringify(config), 'utf8');
+
+    await run(['yida-create-form-page', 'form', '--design-config', configPath, '--output', formOutput]);
+    await run(['yida-canvas-custom-page', 'canvas', '--design-config', configPath, '--output', canvasOutput]);
+
+    const formDefinition = JSON.parse(fs.readFileSync(formOutput, 'utf8'));
+    const canvasSource = fs.readFileSync(canvasOutput, 'utf8');
+    expect(formDefinition).toMatchObject({
+      designSource: { designFile: config.designFile, designId: config.designId },
+      theme: 'compact',
+      labelAlign: 'left',
+      formDetailPreset: 'clean-card',
+      themeTokens: {
+        '--color-brand1-6': '#0f766e',
+        '--openyida-form-bg': '#f1f5f4',
+        '--openyida-form-surface': '#ffffff',
+      },
+    });
+    expect(validateFormDefinition(formDefinition)).toMatchObject({ version: 1 });
+    expect(canvasSource).toContain('"designFile": "prd/order-center/design.md"');
+    expect(canvasSource).toContain('"pagePadding": 28');
+    expect(canvasSource).toContain('"panelRadius": 24');
+    expect(canvasSource).toContain("const THEME_TOKENS = DESIGN_DEFAULTS.themeTokens;");
+    expect(canvasSource).toContain('FormOpenContainer');
+    expect(canvasSource).toContain('installThemeIntoFrame');
+    expect(JSON.parse(compileCanvasLocal(canvasSource, { sourcePath: canvasOutput }).importedModules)).toEqual(['antd', 'react']);
+  });
+
+  test('design runtime rejects ambiguous or out-of-range values', () => {
+    expect(() => normalizeDesignRuntime({
+      version: 1,
+      designFile: 'prd/demo/design.md',
+      layout: { panelRadius: 80 },
+    })).toThrow('panelRadius');
+    expect(() => normalizeDesignRuntime({
+      version: 1,
+      designFile: 'prd/demo/design.md',
+      tokens: { brand: '#123456' },
+    })).toThrow('无效的主题 token');
   });
 
   test('remaining samples avoid near-black default business surfaces', () => {

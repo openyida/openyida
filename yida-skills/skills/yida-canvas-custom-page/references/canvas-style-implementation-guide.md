@@ -1,6 +1,6 @@
 # Code Canvas 样式实现指南
 
-本文件是 Code Canvas 的样式实现适配指南，不是新的设计系统，也不产出配色、视觉 DNA 或页面风格。设计事实来自 `yida-prd` 输出的 `prd.md` 和 `yida-design` 输出的 `design.md`：PRD 给业务场景和页面边界，`design.md` 给完整主题、token、视觉 DNA、布局、材质、圆角、密度、呼吸感、背景层、组件和状态规则。Code Canvas 只负责把这些规则落到 antd token、CSS 变量、Tailwind、图表、控件状态、背景 CSS 和表单 iframe 主题同步。
+本文件只说明 Code Canvas 如何实现样式，不产出设计事实。完整应用优先读取项目 Canvas 脚手架和 `page-spec.json`；只有单页任务、设计变更或派生产物冲突时，才回读 PRD/design.md。固定主题安装和 iframe 同步由脚手架提供。
 
 真实业务页、页面重构和局部美化以当前应用主题色为基准；缺少主题证据时先按业务气质选择平台预置主题或自定义色盘，不固定回到 `podBlue` / #1677ff。独立品牌/活动页、隐藏导航沉浸页和用户明确要求完全不同风格的页面使用页面级固定主题和差异化色盘。
 
@@ -28,7 +28,7 @@
 
 ## 默认圆润高密与呼吸感落地
 
-Code Canvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `breathingRule` 落成具体 CSS 与 antd token。若 design.md 未写明数值，先回写 design.md，不要在源码里凭感觉补。
+Code Canvas 使用项目脚手架中的通用圆角、密度和间距，并使用 `page-spec.json` 的页面特有值。缺值时回写 design.md 并重新生成派生产物，不在源码里凭感觉补。
 
 - 卡片 `border-radius` 范围 `0px-32px`，业务面板 / 卡片默认 `20px-24px`，主面板、抽屉和重点容器默认 `22px-32px`。
 - Button、Input、Select、DatePicker 等控件 `borderRadius` 默认 `10px-14px`；状态标签和徽标使用 `999px` 胶囊。
@@ -40,7 +40,7 @@ Code Canvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `breathi
 
 ## 视觉落地顺序
 
-页面实现不要从“高级、简洁、好看”等形容词直接写 CSS。先读取 `prd/<项目名>/design.md`，再用 PRD 的 `pageSpecHandoff.designRefs` 定位当前页面要遵守的 `visualScaffold`，按固定顺序落地：
+页面实现不要从“高级、简洁、好看”等形容词直接写 CSS。完整应用读取 `page-spec.json.visualImplementation`，按固定顺序落地：
 
 1. `layoutRecipe`：先确定页面骨架和分栏比例。
 2. `surfaceMap`：决定每个区块是无框、细线面板、浅底条、列表行、表格、右侧栏还是抽屉。
@@ -120,7 +120,7 @@ Code Canvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `breathi
 
 页面源码不能只堆 section 或 Card。写完 `.canvas.jsx` 后，按下面结构自检：
 
-- 文件输入：实现前已读取 `prd.md` 和 `design.md`；视觉规则来自 `design.md`，业务区块和数据来源来自 PRD。
+- 文件输入：完整应用已读取项目脚手架和 `page-spec.json`；单页任务已读取当前需求和设计上下文。
 - `rootShell`：有页面根类、背景带、内容宽度、平台导航可见时的宽度处理。
 - `prioritySurface`：首屏最大视觉锚点是主图表、主任务、主对象摘要或主视觉区，不是纯标题或空白卡。
 - `statusPrimitive`：有紧凑状态摘要、数据在线、更新时间、主健康分或状态胶囊。
@@ -129,7 +129,7 @@ Code Canvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `breathi
 - `contextPrimitive`：有右侧洞察、风险、负责人、下一步建议或关联对象，避免页面只有左到右平铺卡片。
 - `statePrimitive`：loading、empty、error、未接数据都有薄空态、刷新、登记或补录动作。
 - `responsiveRule`：移动端分栏退化为单列，关键状态、动作和主内容保留，不让文字和按钮挤压。
-- `backgroundLayer` / `surfaceMaterial` / `colorRoles` / `depthRule` / `roundedRule` / `densityRule` / `breathingRule`：源码按 `design.md` 落地分层背景、半透明玻璃或细线面板、明确辅助色角色、深度规则、大圆角、紧凑密度和呼吸节奏；近白画布可接受，但应有渐变、装饰、素材焦点或内容密度支撑。
+- `backgroundLayer` / `surfaceMaterial` / `colorRoles` / `depthRule` / `roundedRule` / `densityRule` / `breathingRule`：源码按项目脚手架和 `page-spec.visualImplementation` 落地分层背景、材质、色彩角色、圆角、密度和间距。
 
 缺少 `prioritySurface`、`contentPrimitive` 或 `statePrimitive` 任意一项，不能交付为“已打磨页面”。
 要求玻璃感但源码只有普通白底和纯白不透明卡片，也不能交付为“已打磨页面”；如果选择极简近白背景，需要在截图和源码中体现细节层次。
@@ -137,7 +137,7 @@ Code Canvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `breathi
 
 ## 品牌 token 实现消费
 
-品牌 token 的完整语义查看 `yida-design/workflow/output-design.md` 与 `yida-design/references/theme/theme-token-presets.md`。Code Canvas 读取 `design.md` 的 `tokens`，再把它们接到组件、CSS 和图表。
+品牌 token 已写入项目 Canvas 脚手架。单页任务或设计变更时，token 语义查看 `yida-design/references/theme/theme-token-presets.md`。
 
 | token | design.md 语义 | Code Canvas 使用方式 |
 | --- | --- | --- |

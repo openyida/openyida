@@ -6,7 +6,7 @@
 
 `deepBlue`、`deepPurple`、`purple`、`yellow`、`magenta`、`red`、`greyBlue`、`coffee`、`black` 等属于平台支持主题；仅在用户明确指定、品牌匹配或业务确实需要时使用。普通业务页默认使用浅底主题，`black` 不作为默认主题。
 
-注意：`openyida create-app/update-app --theme` 只能传平台支持的应用主题 key。若设计结果是任意自定义品牌色、渐变色盘或不在清单里的主题名，创建应用时不要显式传 `theme/colour`；把色盘写成 `style#yida-global-theme` 或 `customThemeStyle.tokens` 注入。页面级 `--theme-profile` / `style#yida-global-theme` 可以使用本文的应用主题 token profile。
+注意：`openyida create-app/update-app --theme` 只能传平台支持的应用主题 key。若设计结果是任意自定义品牌色、渐变色盘或不在清单里的主题名，创建应用时不要显式传 `theme/colour`；把色盘写入 `design.md` 和 `design-runtime.json`，再由项目脚手架应用。
 
 ## 应用主题 key 清单
 

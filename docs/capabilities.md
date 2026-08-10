@@ -174,7 +174,7 @@
 | 功能 | 执行操作 |
 |---|---|
 | 初始化 project 工作目录 | `openyida copy [--force]` |
-| 查看/输出示例模板 | `openyida sample [--list]` |
+| 查看/输出模板 | `openyida sample [--list]`；表单/Canvas 支持 `--design-config <file>` |
 | 环境诊断与自动修复 | `openyida doctor [--fix]` |
 | 批量执行命令文件 | `openyida batch <file> [--stop-on-error] [--json]` |
 | 批量执行内联命令 | `openyida batch --commands "cmd1 ; cmd2" [--stop-on-error] [--json]` |

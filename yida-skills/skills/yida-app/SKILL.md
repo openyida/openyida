@@ -23,7 +23,7 @@ description: 从零搭建或补齐一个宜搭应用。生成需求和设计文�
 ## 核心边界
 
 1. **设计产物**：`yida-prd` 和 `yida-design` 读取同一份共享需求简报，同时生成 `prd.md` 和 `design.md`；本技能在两份文件完成后校验一致性。
-2. **页面实现**：`page-spec.json` 是页面阶段按需派生的产物；Code Canvas 实现规则交给 `yida-canvas-custom-page`。
+2. **页面实现**：`page-spec.json` 是两份设计产物的派生交接；项目视觉脚手架由 `yida-design` 准备，Code Canvas 实现规则交给 `yida-canvas-custom-page`。
 3. **资源优先**：已有 app/page/form/process 默认复用；目标缺失且本次意图允许创建时，才加载 create 类子技能。
 4. **发布要求**：本轮修改页面源码后，final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`。
 5. **最终输出**：最终回复先写 2-3 句业务交付总结，再给一个主入口链接。
@@ -44,7 +44,7 @@ description: 从零搭建或补齐一个宜搭应用。生成需求和设计文�
 | --- | --- |
 | `yida-requirement-analysis` | 阶段 1 加载，生成共享需求简报 |
 | `yida-prd` | 阶段 2A 与 `yida-design` 同时加载，生成 `prd.md` |
-| `yida-design` | 阶段 2B 与 `yida-prd` 同时加载，生成 `design.md` |
+| `yida-design` | 阶段 2B 与 `yida-prd` 同时加载，生成 `design.md` 和项目视觉脚手架 |
 | `yida-create-app` | app 缺失且本次意图允许创建时加载 |
 | `yida-form-detail` / `yida-create-form-page` | 创建或更新原生表单时加载；输入和实现规则见 `yida-create-form-page` |
 | `yida-create-process` | PRD 命中审批、流程、申请、审核或工单对象时加载 |
@@ -62,9 +62,11 @@ description: 从零搭建或补齐一个宜搭应用。生成需求和设计文�
 | --- | --- |
 | 设计产物 | `prd/<项目名>/prd.md`、`prd/<项目名>/design.md` |
 | 共享需求简报 | `.cache/openyida/<项目名>/requirement-brief.json` |
+| 项目视觉配置 | `.cache/openyida/<项目名>/design-runtime.json` |
+| 项目脚手架 | `.cache/openyida/<项目名>/scaffolds/form.form.json`、`canvas.canvas.jsx` |
 | 真实 ID | `.cache/<项目名>-schema.json` |
 | 临时配置、导入数据、脚本 | `.cache/openyida/<项目名或任务名>/` |
-| 页面生成输入 | 需要时由页面实现阶段生成 `page-spec.json` |
+| 页面生成输入 | PRD 与 design.md 对齐后派生 `page-spec.json` |
 | 导航执行计划 | `.cache/openyida/<项目名>/navigation-plan.json` |
 
 ## 完成条件

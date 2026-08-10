@@ -39,7 +39,7 @@ themeProfile:
   themeColorSource: <user-specified / application-theme / platform-preset-match / business-inferred / template-default>
   themePresetKey: <命中平台预置时填写；自定义色盘留空>
   shouldPassCreateAppTheme: <true 仅限平台预置；false 表示 create-app 不传 theme/colour>
-  globalThemeInjection: <style#yida-global-theme / customThemeStyle.tokens / none>
+  themeRelation: <follow-app / page-independent>
   navTheme: light
   colorMode: <宜搭配色模式，如 gradient；不表示暗黑>
 themeAdaptationResult:
@@ -54,12 +54,6 @@ themeAdaptationResult:
     - <dna-id>
   preservedMechanisms:
     - <画布 / 面板 / 布局 / 深色舞台 / 右侧栏等>
-yidaThemeRuntime:
-  globalThemeInjection: <style#yida-global-theme / customThemeStyle.tokens / none>
-  styleElementId: yida-global-theme
-  themeScope: <app / page>
-  tokenSource: design.md tokens
-  parentShellExpectation: <follow-app-theme / page-level-theme / none>
 tokens:
   --color-brand1-1: <明亮品牌浅色或浅 hover 色>
   --color-brand1-2: <浅背景>
@@ -193,7 +187,7 @@ inferred_modules:
 
 ## 7. 色彩角色
 
-用表格列出 token、取值和用途，覆盖背景、表面、文字、边框、品牌色、状态色和图表序列。必须包含 `themeProfile` 和 `yidaThemeRuntime` 中声明的主题 token。
+用表格列出 token、取值和用途，覆盖背景、表面、文字、边框、品牌色、状态色和图表序列。token 必须与 `themeProfile` 的主题作用域和壳层关系一致。
 
 | token               | 取值                        | 用途                                               |
 | ------------------- | --------------------------- | -------------------------------------------------- |
@@ -300,24 +294,25 @@ inferred_modules:
 
 只写页面技能需要消费的设计信息，不写 JSX、CSS、helper、import 方式或组件代码。主题关系必须写成清楚的交接摘要：
 
-### Yida Theme Handoff
+### Project Visual Handoff
 
 | 项目 | 规则 |
 | --- | --- |
 | 平台预置主题 | 只有 `themePresetKey` 命中平台预置 key 且 `shouldPassCreateAppTheme=true` 时，`create-app/update-app` 才传 `theme/colour` |
 | 自定义色盘 | `shouldPassCreateAppTheme=false`，创建应用时不传 `theme/colour` |
 | 主题作用域 | `themeScope=app` 表示应用级换肤；`themeScope=page` 表示单页独立色盘 |
-| token 来源 | 页面技能只从本 `design.md` 的 `tokens` 和 `themeProfile` 取值，不临场另配 |
+| token 来源 | `design-runtime.json` 从本 `design.md` 的 `tokens` 和 `themeProfile` 派生，不临场另配 |
 | 壳层关系 | 写清页面跟随应用主题、页面级独立主题或无运行时主题需求 |
-| 交接边界 | 具体注入方式、组件代码、样式代码和发布链路由页面技能负责 |
+| 固定运行时 | 主题安装、ConfigProvider、表单抽屉和 iframe 同步由标准脚手架提供，不写入 design.md |
+| 页面实现 | 完整应用使用项目 Canvas 脚手架和派生 `page-spec.json`；设计变更时重新生成两者 |
 
 ## 19. 必须包含
 
-列出硬性正向要求。每个视觉 DNA 都必须作为明确必选规则出现。必须包含 `styleDesignSelection`、`themeAdaptationResult` 和 `baseDesignSource`。若 `globalThemeInjection` 不是 `none`，必须写清主题作用域、token 来源和壳层关系。
+列出硬性正向要求。每个视觉 DNA 都必须作为明确必选规则出现。必须包含 `styleDesignSelection`、`themeAdaptationResult` 和 `baseDesignSource`，并写清主题作用域、token 来源和壳层关系。
 
 ## 20. 禁止项
 
-列出硬性负向约束，覆盖会抹掉每个 DNA 的错误做法。必须包含：不得按行业或颜色直接套模板；不得为了还原模板凭空创造需求简报未要求的模块；自定义主题名或任意色值不得传给 `create-app --theme`；不得在设计文件中写主题注入代码，主题落地由页面技能处理。
+列出硬性负向约束，覆盖会抹掉每个 DNA 的错误做法。必须包含：不得按行业或颜色直接套模板；不得为了还原模板凭空创造需求简报未要求的模块；自定义主题名或任意色值不得传给 `create-app --theme`；不得在设计文件中写主题注入、抽屉、iframe 或 helper 代码。
 
 ## 21. 错误 vs 正确
 
@@ -333,7 +328,7 @@ inferred_modules:
 
 ## 22. Agent 使用提示
 
-提供一段简洁提示词，明确告诉 AI 如何使用该 design.md。必须说明选中 style-design 只是设计母体，最终事实源是当前项目 `design.md`；视觉 DNA 在内容替换后也要保留；页面技能根据自身链路选择实现指南，不从 `yida-design` 补写源码细节。
+提供一段简洁提示词，明确告诉 AI 如何使用该 design.md。必须说明选中 style-design 只是设计母体，最终事实源是当前项目 `design.md`；视觉 DNA 在内容替换后也要保留；完整应用页面消费派生 `page-spec.json` 和项目脚手架，不从 `yida-design` 补写源码细节。
 
 ## 23. 交付自检清单
 
@@ -354,17 +349,17 @@ inferred_modules:
 - [ ] 已明确紧凑密度默认值：状态摘要、动作条、列表行、空态高度、卡片 padding >20px、卡片 gap <20px 都有数值范围。
 - [ ] 工作台/首页首屏没有超宽空 KPI 框、大空态白卡、无内容右栏或靠 margin/padding 撑出的空白。
 - [ ] 响应式和可访问性规则完整。
-- [ ] `themeProfile`、`yidaThemeRuntime` 和 `tokens` 一致。
+- [ ] `themeProfile`、`themeRelation` 和 `tokens` 一致。
 - [ ] `backgroundLayer` 已说明基础画布、装饰方式和是否使用背景 primitive；若选择近白画布，已说明如何通过渐变、细线、素材或内容密度形成背景感。
 - [ ] `surfaceContrast` 已说明页面背景与卡片背景的明确层次搭配，不存在相近或相同背景。
 - [ ] 若使用 `topIrregularWash`、`flowLight` 或 `organicNoise`，已写清对比度、内容栅格和 reduced motion 静态降级。
 - [ ] 自定义色盘没有传给 `create-app/update-app --theme`。
-- [ ] 需要运行时主题时，已写清主题作用域、token 来源和壳层关系。
+- [ ] 已写清主题作用域、token 来源和壳层关系，没有写运行时实现细节。
 - [ ] 不依赖原截图，也能指导生成一个新页面。
 ```
 
 ## 交给页面技能
 
-- `yida-app` 读取 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md` 后创建或复用资源。
-- 页面技能读取 `prd.md` 的业务内容，并直接读取 `design.md` 的视觉 DNA、token、布局、组件、状态和 `Yida Theme Handoff`。
-- 只有走页面生成器或需要稳定交接时才派生 `page-spec.json`，并标记 `sourceOfTruth.prdFile/designFile`。`page-spec.json` 不复制完整 design.md，只保存与 design.md 一致的主题摘要和引用。
+- `yida-app` 在 PRD 与 design.md 都完成后校验两份事实源，并派生本轮页面的 `page-spec.json`。
+- 完整应用页面读取项目 Canvas 脚手架和 `page-spec.json`；原生表单读取项目表单脚手架，不再逐步重读整份 design.md。
+- 设计变化时，先更新 design.md，再重新生成 `design-runtime.json`、两份项目脚手架和受影响的 `page-spec.json`。

@@ -61,7 +61,7 @@
 - 页面级独立色盘只用于隐藏平台导航、独立品牌页、活动页、公开落地页或用户明确要求。
 - 默认业务页使用 light 模式；暗色只用于用户明确说暗色、夜间、高对比、黑金或暗色科技风。
 - 主色不能无思考地固定为 `podBlue` / #1677ff；缺少主题证据时先根据行业、品牌、业务情绪和视觉目标做创意色彩判断，再选择平台预置主题或自定义 token；不得套用“科技=蓝、宠物=橙、法律=蓝”这类行业刻板配色。
-- `shouldPassCreateAppTheme=true` 仅限 `themePresetKey` 命中平台预置 key；自定义色盘必须 `shouldPassCreateAppTheme=false`，创建应用时不传 `theme/colour`，并写清 `style#yida-global-theme` / `customThemeStyle.tokens` 注入方案。
+- `shouldPassCreateAppTheme=true` 仅限 `themePresetKey` 命中平台预置 key；自定义色盘必须 `shouldPassCreateAppTheme=false`，创建应用时不传 `theme/colour`，并把 token 写入项目视觉配置。
 
 ## 5. 视觉层次门禁
 

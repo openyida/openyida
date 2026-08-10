@@ -45,7 +45,7 @@
 
 ## PRD/design 归属
 
-`.cache/openyida/<项目名>/requirement-brief.json` 由 `yida-requirement-analysis` 生成，供 `yida-prd` 和 `yida-design` 同时读取。`prd/<项目名>/prd.md` 归 `yida-prd`，`prd/<项目名>/design.md` 归 `yida-design`。其他技能只读取正式产物，并把真实 `appType`、`formUuid`、`fieldId` 等 ID 写入 `.cache/<项目名>-schema.json`。
+`.cache/openyida/<项目名>/requirement-brief.json` 由 `yida-requirement-analysis` 生成，供 `yida-prd` 和 `yida-design` 同时读取。`prd/<项目名>/prd.md` 归 `yida-prd`，`prd/<项目名>/design.md` 归 `yida-design`。`yida-app` 对齐两份文件后生成页面规格和项目脚手架；后续完整应用阶段读取派生产物。真实 `appType`、`formUuid`、`fieldId` 等 ID 写入 `.cache/<项目名>-schema.json`。
 
 ## 临时文件规范
 

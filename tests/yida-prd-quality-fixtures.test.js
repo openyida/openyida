@@ -73,9 +73,10 @@ describe('yida-prd PRD quality fixtures', () => {
 
     expect(fs.existsSync(scenesDir)).toBe(false);
     expect(prd).toContain('并生成 `prd/<项目名>/prd.md`');
-    expect(skill).toContain('并生成 `prd/<项目名>/design.md`');
+    expect(skill).toContain('生成 `prd/<项目名>/design.md` 和精简视觉配置');
+    expect(skill).toContain('`.cache/openyida/<项目名>/design-runtime.json`');
     expect(step3).toContain('页面 `scene` 只作为分类标签和实现提示，不作为页面模板');
     expect(step5).toContain('同一个 `prd/<项目名>/design.md`');
-    expect(pageGeneration).toContain('强视觉品牌以 PRD 的素材清单和 `design.md.assetStrategy` 为准');
+    expect(pageGeneration).toContain('强视觉品牌以 `page-spec.json` 的素材和视觉摘要为准');
   });
 });
