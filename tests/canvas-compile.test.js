@@ -634,6 +634,23 @@ describe('compileCanvasLocal', () => {
     }));
   });
 
+  test('rejects data-management workbench links outside FormOpenContainer', () => {
+    const source = `
+      import React from 'react';
+      export default function App() {
+        const managementUrl = '/APP_XXX/workbench/FORM_XXX?iframe=true';
+        return <a href={managementUrl} target="_blank">数据管理</a>;
+      }
+    `;
+
+    expect(() => compileCanvasLocal(source)).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_FORM_OPEN_CONTAINER_REQUIRED',
+      details: expect.objectContaining({
+        callee: '<a href>',
+      }),
+    }));
+  });
+
   test('allows an explicit full-page form-open override', () => {
     const source = `
       // @openyida-form-open-mode page

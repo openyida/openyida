@@ -438,13 +438,15 @@ describe('OpenYida skill contracts', () => {
     expect(pageGeneration).toContain('修复路径');
     expect(pageGeneration).toContain('先补原文，再继续实现');
     expect(appBuildStages).toContain('| 5A. seed records（并行） | `yida-data-management` |');
-    expect(appBuildStages).toContain('| 5B. 创建本轮主页面（并行） | `yida-create-page` 仅在本轮主页面缺失且允许创建时加载 |');
-    expect(appBuildStages).toContain('下一步或以后才实现的其他页面只保留在 PRD，不执行 `create-page`');
+    expect(appBuildStages).toContain('| 5B. 实现本轮页面源码（并行） | `yida-canvas-custom-page` |');
+    expect(appBuildStages).toContain('本阶段禁止调用 `create-page`');
+    expect(appBuildStages).toContain('| 5C. 逐页创建并发布 | `yida-create-page`、`yida-publish-page` |');
+    expect(appBuildStages).toContain('上一页未发布成功前不得创建下一页');
     expect(createPage).toContain('下一步或以后才实现的页面只保留在 PRD，不执行 `create-page`');
-    expect(workflow.page_creation_policy).toContain('Keep later-step pages in the PRD');
-    expect(appBuildStages).toContain('| 5C. 编写/更新页面（并行） | `yida-canvas-custom-page` |');
+    expect(createPage).toContain('`delivery.complete=false`');
+    expect(workflow.page_creation_policy).toContain('Never batch-create page containers');
     expect(appBuildStages).toContain('默认给本轮新建或页面数据源依赖的核心普通表单写入 1-3 条业务化 seed records');
-    expect(appBuildStages).toContain('不要等示例数据写完才创建或编写自定义页面');
+    expect(appBuildStages).toContain('seed records 和页面源码实现可以同时开始');
     expect(skill).toContain('seed records、表单详情页 formDetail CSS 注入和按 PRD 应用导航计划属于默认完整应用阶段');
     expect(appFinalOutput).toContain('核心普通表单已写入 1-3 条示例记录并 query 抽查');
     expect(appResolveContext).toContain('外部工具注入的当前任务资源上下文，例如 yida-agent 绑定的 app/page/form/process');
@@ -597,7 +599,7 @@ describe('OpenYida skill contracts', () => {
     expect(output).toContain('## 3. 数据结构（业务语义，不含细节 ID）');
     expect(output).toContain('### 初始示例数据计划');
     expect(output).toContain('完整应用默认在表单字段映射完成后，为核心业务普通表单写入 1-3 条业务化示例记录');
-    expect(output).toContain('示例数据写入可以和自定义页面创建、实现并行');
+    expect(output).toContain('示例数据写入可以和自定义页面源码实现、编译并行');
     expect(output).toContain('| 3 | 初始示例数据 | 页面需要读取真实表单记录，完整应用默认写入 1-3 条核心业务记录；可与页面实现并行 | 写入数量、抽查结果 |');
     expect(dataManagement).toContain('`data create form/process` 每次创建一条实例');
     expect(dataManagement).toContain('抽查至少一条新记录');
@@ -668,9 +670,9 @@ describe('OpenYida skill contracts', () => {
     expect(contract).not.toContain('需求范围');
     expect(contract).not.toContain('## 完整低代码 PRD 模板');
     expect(byName.get('yida-app').description).toContain('生成需求和设计文件');
-    expect(byName.get('yida-app').description).toContain('发布主页面并返回应用入口');
+    expect(byName.get('yida-app').description).toContain('发布本轮页面并返回应用入口');
     expect(byName.get('yida-create-app').description).toContain('只需要新应用壳');
-    expect(byName.get('yida-app').done_when).toContain('主页面已发布');
+    expect(byName.get('yida-app').done_when).toContain('所有本轮交付页面已发布并回读成功');
   });
 
   test('native form development uses form json and dedicated builders', () => {
@@ -928,7 +930,7 @@ describe('OpenYida skill contracts', () => {
     expect(root).toContain('才能说明线上页面已更新');
 
     expect(app).toContain('本轮修改页面源码后');
-    expect(app).toContain('final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`');
+    expect(app).toContain('所有“本轮交付=是”的页面都必须在 final 前成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`');
     expect(appFinalOutput).toContain('最终回复只说明本地源码修改和未发布原因');
 
     expect(canvas).toContain('本轮修改源码后，必须成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`');
@@ -1254,6 +1256,8 @@ describe('OpenYida skill contracts', () => {
     expect(navGuide).toContain('width={FORM_OPEN_DRAWER_WIDTH}');
     expect(navGuide).toContain('return `/${appType}/submission/${entry.formUuid}?iframe=true&isRenderNav=false`;');
     expect(navGuide).toContain('formDetail/${entry.formUuid}?formInstId=');
+    expect(navGuide).toContain('workbench/${entry.formUuid}?hideLeftNav=true&corpid=');
+    expect(navGuide).toContain("entry.targetType === 'management'");
     expect(navGuide).toContain("'navConfig.layout': 1180");
     expect(navGuide).toContain('只使用 `searchFormDatas` 返回行的 `row.formInstId`');
     expect(navGuide).toContain('不要改用 `formInstanceId`、`instanceId` 或 `id`');
@@ -1265,9 +1269,10 @@ describe('OpenYida skill contracts', () => {
     expect(navGuide).not.toContain('runtime.openDrawer');
     expect(pageGeneration).toContain('表单新建/提交入口从 PRD 读取目标资源和打开方式');
     expect(pageGeneration).toContain('表单查看入口从 PRD 读取目标资源，并使用真实 `formUuid` 和 `formInstId`');
+    expect(pageGeneration).toContain('数据管理入口使用真实 `corpId`');
     expect(pageGeneration).toContain('使用项目脚手架内置的 `FormOpenContainer`');
     expect(pageGeneration).toContain('移动端全屏抽屉');
-    expect(pageGeneration).toContain('不要重新编写 iframe 主题同步');
+    expect(pageGeneration).toContain('不要重新编写 URL 或 iframe 主题同步');
     expect(pageGeneration).toContain('新建 Canvas 页面使用项目脚手架内置主题和 iframe 同步能力');
     expect(pageGeneration).not.toMatch(/复制.*theme-runtime|复制.*helper|优先复制/);
     expect(themeHelpers).toContain('function installYidaGlobalThemeIntoFrame');
@@ -1288,6 +1293,7 @@ describe('OpenYida skill contracts', () => {
     expect(codingGuide).toContain('&isRenderNav=false');
     expect(fieldUrlReference).toContain('{base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&iframe=true&navConfig.layout=1180&isRenderNav=false');
     expect(workflow.form_entry_policy).toContain('mobile uses a full-screen drawer');
+    expect(workflow.form_entry_policy).toContain('hideLeftNav=true&corpid={corpId}');
   });
 
   test('custom-page-dependent skills keep Code Canvas as creation path', () => {

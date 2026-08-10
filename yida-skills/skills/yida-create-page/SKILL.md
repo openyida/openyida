@@ -13,7 +13,7 @@ description: 创建宜搭自定义展示页面并返回 formUuid。确认目标�
 - 如果本轮用户给了页面 URL、`formUuid`、bound page，或 workspace cache/config 中已有目标 display page，禁止调用 `openyida create-page`；先判断页面 Schema：`YidaCodeCanvas` 用 `yida-canvas-custom-page`，已确认是存量普通 JSX/Jsx 页面时用 `yida-custom-page`，再用 `yida-publish-page` 发布到该页面。
 - 如果用户给的是普通表单 `formUuid` 且诉求是改字段结构，改用 `yida-create-form-page`；不要把表单 ID 当作自定义页面创建目标。
 - 只有目标 app 已明确、目标 display page 缺失，并且用户意图允许新增页面（例如“在 APP_xxx 里增加回访页面”）时，才加载并执行本技能。
-- 完整应用只创建本轮会实现并发布的自定义页面。下一步或以后才实现的页面只保留在 PRD，不执行 `create-page`。
+- 完整应用只创建 PRD 中“本轮交付=是”且源码已经通过 Canvas 编译的页面。下一步或以后才实现的页面只保留在 PRD，不执行 `create-page`。
 - 多个已有页面候选按根技能来源优先级选择；同级冲突或无法判断主页面时才问用户。
 
 ## 严格禁止 (NEVER DO)
@@ -24,7 +24,9 @@ description: 创建宜搭自定义展示页面并返回 formUuid。确认目标�
 ## 严格要求 (MUST DO)
 
 - **创建前必须确认**：单项创建页面时，执行命令前向用户确认页面名称和目标应用。完整应用阶段已取得直接创建授权时，合理命名并创建，不再重复询问。
-- 完整应用中，本轮会实现并发布的首页、工作台、智能助手或门户可以先创建并记录 `formUuid`，取得表单 ID 后再写源码并发布。
+- 完整应用先完成页面源码并执行 `openyida compile <source> --json`。只有返回 `mode: "canvas"` 后，才执行带 `--source <source>` 的 `create-page`。
+- `create-page` 成功只表示容器已创建，JSON 中 `delivery.complete=false`。必须立即执行 `delivery.requiredNextCommand` 发布并回读；上一页未发布成功前不得创建下一页。
+- 创建后发布失败时，立即执行 `openyida nav-group hide <appType> <formUuid>` 隐藏空导航项并停止，不把空容器留给用户。
 - 新建自定义页面创建后交给 `yida-canvas-custom-page` 编写，再用 `yida-publish-page` 发布。
 - 将命令返回的真实 `formUuid` 写入 `.cache/<项目名>-schema.json`。
 
@@ -35,13 +37,14 @@ description: 创建宜搭自定义展示页面并返回 formUuid。确认目标�
 ## 命令
 
 ```bash
-openyida create-page <appType> <pageName> [--mode dashboard] [--hide-nav]
+openyida create-page <appType> <pageName> [--source <page.canvas.jsx>] [--mode dashboard] [--hide-nav]
 ```
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
 | `appType` | 是 | 应用 ID，如 `APP_XXX` |
 | `pageName` | 是 | 页面名称 |
+| `--source` | 完整应用必填 | 创建前先执行 Canvas 编译预检；源码未完成、扩展名错误或编译失败时不创建线上容器 |
 | `--mode dashboard` | 否 | 看板/驾驶舱页面推荐使用；只表达页面模式，不会自动隐藏导航 |
 | `--hide-nav` | 否 | 仅当用户显式要求隐藏导航 / 无导航 / 全屏无框时使用；创建后隐藏顶部导航，并输出无左侧工作台栏的 `custom/{formUuid}?isRenderNav=false` URL |
 
@@ -50,7 +53,7 @@ openyida create-page <appType> <pageName> [--mode dashboard] [--hide-nav]
 ## 输出
 
 ```json
-{"success":true,"pageId":"FORM-XXX","pageName":"驾驶舱","appType":"APP_XXX","mode":"dashboard","hideNav":false,"chromeless":false,"url":"{base_url}/APP_XXX/workbench/FORM-XXX","workbenchUrl":"{base_url}/APP_XXX/workbench/FORM-XXX"}
+{"success":true,"pageId":"FORM-XXX","appType":"APP_XXX","sourcePreflight":{"mode":"canvas","sourcePath":"/abs/page.canvas.jsx"},"delivery":{"complete":false,"status":"container_created_unpublished","requiredNextCommand":"openyida publish /abs/page.canvas.jsx APP_XXX FORM-XXX --health-check --json"}}
 ```
 
 > 创建后使用 `yida-canvas-custom-page` 实现页面，再使用 `yida-publish-page` 发布。

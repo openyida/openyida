@@ -578,27 +578,33 @@ this.utils.toast({ title: '调试信息', type: 'info' });
 |------|----------|
 | 表单提交页（默认隐藏导航） | `{base_url}/{appType}/submission/{formUuid}?iframe=true&isRenderNav=false` |
 | 表单详情页（默认隐藏导航） | `{base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&iframe=true&navConfig.layout=1180&isRenderNav=false` |
-| 数据管理页（列表） | `{base_url}/{appType}/workbench/{formUuid}?iframe=true` |
-| 数据管理页（指定视图） | `{base_url}/{appType}/workbench/{formUuid}?viewUuid={viewUuid}&iframe=true` |
+| 数据管理页（抽屉） | `{base_url}/{appType}/workbench/{formUuid}?hideLeftNav=true&corpid={corpId}` |
+| 数据管理页（指定视图抽屉） | `{base_url}/{appType}/workbench/{formUuid}?hideLeftNav=true&corpid={corpId}&viewUuid={viewUuid}` |
 
 ```javascript
 // ❌ 错误：formDetail 是表单详情页，不是数据列表
 const wrongUrl = `${baseUrl}/${appType}/formDetail/${formUuid}`;
 
 // ✅ 正确：workbench 是运行态数据管理页
-const listUrl = `${baseUrl}/${appType}/workbench/${formUuid}?iframe=true`;
+const listUrl = `${baseUrl}/${appType}/workbench/${formUuid}?hideLeftNav=true&corpid=${encodeURIComponent(corpId)}`;
 ```
 
-新增、提交和查看详情默认统一使用 `FormOpenContainer`，不得直接调用 `window.open`、`openPage` 或 `window.location`。桌面端打开右侧抽屉，移动端打开全屏抽屉。提交成功或关闭后刷新列表；平台表单页的 postMessage 事件经过验证后，再接精确完成事件。
+新增、提交、查看详情和数据管理默认统一使用 `FormOpenContainer`，不得直接调用 `window.open`、`openPage` 或 `window.location`。桌面端打开右侧抽屉，移动端打开全屏抽屉。数据管理页必须隐藏左侧导航并携带真实 `corpid`；提交成功或关闭后刷新列表。
 
 ```javascript
 // FormOpenContainer 在桌面端显示侧边抽屉，在移动端显示全屏抽屉
-export function buildYidaFormUrl(type, appType, formUuid, formInstId) {
+export function buildYidaFormUrl(type, appType, formUuid, formInstId, corpId) {
   if (type === 'detail') {
     if (!formInstId) {
       return '';
     }
     return '/' + appType + '/formDetail/' + formUuid + '?formInstId=' + encodeURIComponent(formInstId) + '&iframe=true&navConfig.layout=1180&isRenderNav=false';
+  }
+  if (type === 'management') {
+    if (!corpId) {
+      return '';
+    }
+    return '/' + appType + '/workbench/' + formUuid + '?hideLeftNav=true&corpid=' + encodeURIComponent(corpId);
   }
   return '/' + appType + '/submission/' + formUuid + '?iframe=true&isRenderNav=false';
 }

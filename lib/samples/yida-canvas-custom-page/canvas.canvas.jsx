@@ -52,6 +52,7 @@ const THEME_TOKENS = DESIGN_DEFAULTS.themeTokens;
 
 const DEFAULT_BINDING = {
   appType: APP_TYPE,
+  corpId: '',
   formUuid: FORM_UUIDS.primary,
   pageSize: 20,
   fields: FIELDS.primary,
@@ -183,6 +184,32 @@ function resolveBaseUrl() {
   return String(origin || '').replace(/\/$/, '');
 }
 
+function readCorpIdFromWindow(targetWindow) {
+  if (!targetWindow) return '';
+  try {
+    const config = targetWindow.pageConfig || targetWindow.g_config || targetWindow.__YIDA__ || {};
+    const queryCorpId = new URLSearchParams(targetWindow.location && targetWindow.location.search || '').get('corpid');
+    return String(queryCorpId || config.corpId || config.corpid || '').trim();
+  } catch (error) {
+    return '';
+  }
+}
+
+function resolveCorpId() {
+  const runtime = getOpenYidaRuntime();
+  const runtimeContext = runtime && runtime.context && typeof runtime.context === 'object' ? runtime.context : {};
+  const runtimeCorpId = runtime && (runtime.corpId || runtime.corpid);
+  const candidates = [
+    runtimeCorpId,
+    runtimeContext.corpId,
+    runtimeContext.corpid,
+    readCorpIdFromWindow(typeof window !== 'undefined' ? window : null),
+    readCorpIdFromWindow(readWindow('parent')),
+    readCorpIdFromWindow(readWindow('top')),
+  ];
+  return String(candidates.find((value) => value) || '').trim();
+}
+
 function buildSubmissionUrl({ baseUrl, appType, formUuid }) {
   return `${baseUrl}/${appType}/submission/${formUuid}?iframe=true&isRenderNav=false`;
 }
@@ -200,8 +227,15 @@ function buildFormDetailUrl({ baseUrl, appType, formUuid, formInstId }) {
   return `${baseUrl}/${appType}/formDetail/${formUuid}?${query.toString()}`;
 }
 
-function buildWorkbenchUrl({ baseUrl, appType, formUuid }) {
-  return `${baseUrl}/${appType}/workbench/${formUuid}?iframe=true`;
+function buildWorkbenchUrl({ baseUrl, appType, formUuid, corpId }) {
+  if (!corpId) {
+    throw new Error('打开数据管理页必须传入真实 corpid。');
+  }
+  const query = new URLSearchParams({
+    hideLeftNav: 'true',
+    corpid: corpId,
+  });
+  return `${baseUrl}/${appType}/workbench/${formUuid}?${query.toString()}`;
 }
 
 function installThemeIntoFrame(themeTokens, iframeElement) {
@@ -231,7 +265,9 @@ function normalizeRow(row, fields) {
 
 function FormOpenContainer({ openState, onClose, themeTokens }) {
   const iframeRef = useRef(null);
-  const title = openState.type === 'detail' ? '查看详情' : '提交表单';
+  const title = openState.type === 'detail'
+    ? '查看详情'
+    : openState.type === 'management' ? '数据管理' : '提交表单';
   return (
     <Drawer
       title={title}
@@ -318,15 +354,26 @@ function YidaComp(props) {
     const type = request && request.type;
     const targetAppType = (request && request.appType) || binding.appType;
     const targetFormUuid = (request && request.formUuid) || binding.formUuid;
-    let url;
-    if (type === 'detail') {
-      const formInstId = request.formInstId || assertFormInstanceId(request.row);
-      url = buildFormDetailUrl({ baseUrl, appType: targetAppType, formUuid: targetFormUuid, formInstId });
-    } else {
-      url = buildSubmissionUrl({ baseUrl, appType: targetAppType, formUuid: targetFormUuid });
+    try {
+      let url;
+      if (type === 'detail') {
+        const formInstId = request.formInstId || assertFormInstanceId(request.row);
+        url = buildFormDetailUrl({ baseUrl, appType: targetAppType, formUuid: targetFormUuid, formInstId });
+      } else if (type === 'management') {
+        url = buildWorkbenchUrl({
+          baseUrl,
+          appType: targetAppType,
+          formUuid: targetFormUuid,
+          corpId: (request && request.corpId) || binding.corpId || resolveCorpId(),
+        });
+      } else {
+        url = buildSubmissionUrl({ baseUrl, appType: targetAppType, formUuid: targetFormUuid });
+      }
+      setOpenState({ visible: true, type: type === 'detail' ? 'detail' : type === 'management' ? 'management' : 'submission', url });
+    } catch (openError) {
+      setError(openError && openError.message ? openError.message : '表单地址构造失败');
     }
-    setOpenState({ visible: true, type: type === 'detail' ? 'detail' : 'submission', url });
-  }, [baseUrl, binding.appType, binding.formUuid]);
+  }, [baseUrl, binding.appType, binding.corpId, binding.formUuid, setError]);
 
   const columns = [
     { title: '标题', dataIndex: 'title', key: 'title' },
@@ -398,7 +445,7 @@ function YidaComp(props) {
             />
           </Spin>
           {binding.appType && binding.formUuid ? (
-            <Button type="link" href={buildWorkbenchUrl({ baseUrl, appType: binding.appType, formUuid: binding.formUuid })} target="_blank">
+            <Button type="link" onClick={() => openForm({ type: 'management' })}>
               打开数据管理页
             </Button>
           ) : null}

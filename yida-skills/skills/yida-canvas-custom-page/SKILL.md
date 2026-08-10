@@ -28,7 +28,7 @@ OpenYida 提供一份完整脚手架：
 openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas.canvas.jsx
 ```
 
-完整应用从项目 Canvas 脚手架扩展；单页任务使用上面的标准脚手架。脚手架内置 13 个 Yida API、主题、表单提交和详情抽屉、URL 构造、实例 ID 校验、iframe 主题同步，以及加载、空数据和错误状态。表单新建、提交和详情在所有设备都使用抽屉，移动端使用全屏抽屉。
+完整应用从项目 Canvas 脚手架扩展；单页任务使用上面的标准脚手架。脚手架内置 13 个 Yida API、主题、表单提交、详情和数据管理抽屉、URL 构造、实例 ID 校验、iframe 主题同步，以及加载、空数据和错误状态。表单新建、提交、详情和数据管理在所有设备都使用抽屉，移动端使用全屏抽屉。
 
 ## 核心规则
 
@@ -37,7 +37,7 @@ openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas
 3. 表单、流程、连接器和同源接口的数据接入读取 [数据接入](references/data-bridge-guide.md)。
 4. 成员、部门、附件、图片和门户组件读取 [运行时组件](references/native-components-bridge.md)。
 5. 完整应用使用项目脚手架，并按 `designRefs` 读取 design.md 后执行 [样式实现](references/canvas-style-implementation-guide.md)。
-6. 提交页、详情页和页面跳转读取 [页面入口](references/navigation-and-entry-guide.md)。
+6. 提交页、详情页、数据管理页和页面跳转读取 [页面入口](references/navigation-and-entry-guide.md)。数据管理抽屉使用 `workbench/{formUuid}?hideLeftNav=true&corpid={corpId}`，不得显示平台左侧导航。
 7. 用户未明确要求整页跳转时，不得把脚手架的表单抽屉改成 `window.location`、`openPage`、`window.open` 或新标签。
 8. JSX 中使用的组件必须有明确的 import 或本地定义。按钮、搜索、快捷入口、可点击卡片和“查看全部”等操作必须绑定会执行动作的事件。
 9. React Hooks、自定义 Hooks、`antd` 和 `@ant-design/icons` 都可用。包依赖使用标准 import；Ant Design 图标使用该包真实导出的 `*Outlined`、`*Filled` 或 `*TwoTone` 名称，不混用 `lucide-react` 图标名。

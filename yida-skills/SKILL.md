@@ -84,7 +84,7 @@ openyida agent-capabilities --summary-json
 | 只创建应用壳并取得 `appType` | `yida-create-app` |
 | 创建或修改原生表单字段 | `yida-create-form-page`；表单布局和详情样式读取 `yida-form-detail` |
 | 查询真实 `fieldId` | `yida-get-schema` |
-| 新建自定义页面 | `yida-create-page` 创建本轮目标页面，`yida-canvas-custom-page` 实现页面，`yida-publish-page` 发布 |
+| 新建自定义页面 | `yida-canvas-custom-page` 完成并编译源码，`yida-create-page --source` 创建容器，`yida-publish-page` 立即发布 |
 | 修改 Code Canvas 页面 | `yida-canvas-custom-page` |
 | 修改已有普通 JSX 页面 | `yida-custom-page` |
 | 把旧 JSX 页面迁移到 Code Canvas | `yida-canvas-upgrade` |

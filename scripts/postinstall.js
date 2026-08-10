@@ -258,7 +258,7 @@ openyida copy
 
 用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，加载 \`yida-app\`，按完整应用阶段执行。
 
-\`yida-app\` 先确认目标资源，再按 workflow 阶段创建或复用资源、发布主页面并输出一个主入口链接。
+\`yida-app\` 先确认目标资源，再按 workflow 阶段创建或复用资源、发布全部本轮交付页面并输出一个主入口链接。
 
 原生表单使用独立 \`.form.json\` 脚手架；Agent 只扩展字段、Divider 分组、校验和规则。OpenYida 用 \`form-schema-builder.js\` 与 \`form-runtime.js\` 生成原生表单 Schema、生命周期、主题和 formDetail 样式，不把原生表单写成自定义页面 JSX。
 
@@ -268,9 +268,9 @@ openyida copy
 
 完整应用创建/解析多个表单后，页面阶段需要字段映射时，对每个目标表单默认只执行一次 \`openyida get-schema <appType> <formUuid> --field-map-json\`，读取完整 JSON 并写入/复用 \`.cache/<项目名>-schema.json\`；不要用 \`head\` / \`tail\` / \`grep\` 截断 schema stdout 后重复拉取。
 
-新建自定义页面使用 Code Canvas，页面实现交给 \`yida-canvas-custom-page\`。OpenYida 提供一份完整 \`canvas.canvas.jsx\` 脚手架，内置 13 个 Yida API、主题、表单提交/详情抽屉、URL 构造、实例 ID 校验、iframe 主题同步和基础状态。修改已有非 Code Canvas 的 \`Jsx\` / \`renderJsx\` 页面时，使用 \`yida-custom-page\`。
+新建自定义页面使用 Code Canvas，页面实现交给 \`yida-canvas-custom-page\`。OpenYida 提供一份完整 \`canvas.canvas.jsx\` 脚手架，内置 13 个 Yida API、主题、表单提交/详情/数据管理抽屉、URL 构造、实例 ID 校验、iframe 主题同步和基础状态。修改已有非 Code Canvas 的 \`Jsx\` / \`renderJsx\` 页面时，使用 \`yida-custom-page\`。
 
-只为本轮会实现并发布的自定义页面执行 \`create-page\`；下一步或以后才实现的页面只保留在 PRD。Code Canvas 的表单新建、提交和详情默认使用脚手架抽屉，移动端使用全屏抽屉；用户未明确要求时，不改成整页跳转或新标签。
+完整应用先实现并编译每个本轮页面源码，再逐页执行带 \`--source\` 的 \`create-page\` 并立即发布；不得批量创建空容器。下一步或以后才实现的页面只保留在 PRD。Code Canvas 的表单新建、提交、详情和数据管理默认使用脚手架抽屉；数据管理 URL 必须包含 \`hideLeftNav=true\` 和真实 \`corpid\`。
 
 \`yida-app\` 先用 \`yida-requirement-analysis\` 生成共享需求简报，再同时加载 \`yida-prd\` 和 \`yida-design\`，分别输出 \`prd/<项目名>/prd.md\` 与 \`prd/<项目名>/design.md\`。
 

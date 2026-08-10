@@ -1,7 +1,8 @@
 'use strict';
 
 const querystring = require('querystring');
-const { buildPageInfoPostData, parseArgs } = require('../lib/app/create-page');
+const path = require('path');
+const { buildPageInfoPostData, parseArgs, preflightCanvasSource } = require('../lib/app/create-page');
 
 describe('create-page locale handling', () => {
   test('parseArgs accepts content locale flags', () => {
@@ -29,6 +30,29 @@ describe('create-page locale handling', () => {
     expect(parseArgs(['APP_X', '经营看板', '--isRenderNav=true'])).toMatchObject({
       hideNav: false,
     });
+  });
+
+  test('parseArgs accepts a Canvas source preflight file', () => {
+    expect(parseArgs(['APP_X', '经营看板', '--source', 'pages/portal.canvas.jsx'])).toMatchObject({
+      appType: 'APP_X',
+      pageName: '经营看板',
+      sourceFile: 'pages/portal.canvas.jsx',
+    });
+  });
+
+  test('preflight compiles Canvas source before any page mutation', () => {
+    const sourcePath = path.join(__dirname, '..', 'lib', 'samples', 'yida-canvas-custom-page', 'canvas.canvas.jsx');
+    expect(preflightCanvasSource(sourcePath)).toMatchObject({
+      sourcePath,
+      mode: 'canvas',
+      importedModules: ['antd', 'react'],
+    });
+  });
+
+  test('preflight rejects a non-Canvas source path', () => {
+    expect(() => preflightCanvasSource(__filename)).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CREATE_PAGE_SOURCE_NOT_CANVAS',
+    }));
   });
 
   test('buildPageInfoPostData fills Japanese title instead of null', () => {

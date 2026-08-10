@@ -100,12 +100,12 @@ function useHashView(defaultView) {
 ```javascript
 const NAV_ITEMS = [
   { key: 'home', type: 'custom', formUuid: 'FORM-HOME', params: { tab: 'home' } },
-  { key: 'orders', type: 'workbench', formUuid: 'FORM-ORDERS', params: { iframe: 'true' } },
+  { key: 'orders', type: 'workbench', formUuid: 'FORM-ORDERS', params: { hideLeftNav: 'true', corpid: 'ding_xxx' } },
 ];
 ```
 
 - 跨自定义页：`/{appType}/custom/{formUuid}?isRenderNav=false`。
-- 内容区 iframe 表单列表：`/{appType}/workbench/{formUuid}?iframe=true`。
+- 内容区数据管理页：`/{appType}/workbench/{formUuid}?hideLeftNav=true&corpid={corpId}`。
 - 合并并白名单保留 `corpid`、`locale` 和业务深链参数。
 - 使用 `URL` / `URLSearchParams` 构造地址；不要字符串拼接重复 `?`。
 - 不使用可能吞掉 `isRenderNav=false` 的裸 `router.push(formUuid)`。

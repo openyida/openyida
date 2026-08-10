@@ -491,7 +491,7 @@ describe('CLI offline smoke', () => {
       ]),
       product_design_policy: expect.stringContaining('yida-prd and yida-design start in parallel'),
       page_skill_policy: expect.stringContaining('New custom pages use Code Canvas'),
-      page_creation_policy: expect.stringContaining('current run'),
+      page_creation_policy: expect.stringContaining('Never batch-create page containers'),
       form_entry_policy: expect.stringContaining('full-screen drawer'),
       form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
       ui_guidance_policy: expect.stringContaining('design-runtime.json writes shared visual values into project scaffolds'),
@@ -509,7 +509,7 @@ describe('CLI offline smoke', () => {
       default_seed_data: expect.objectContaining({
         skill_id: 'yida-data-management',
         command_id: 'data',
-        run_in_parallel_with: expect.arrayContaining(['create-page', 'yida-canvas-custom-page']),
+        run_in_parallel_with: expect.arrayContaining(['yida-canvas-custom-page source implementation and local compile']),
       }),
     });
     expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is a thin index');
@@ -1331,7 +1331,7 @@ describe('CLI offline smoke', () => {
       ]),
       product_design_policy: expect.stringContaining('yida-prd and yida-design start in parallel'),
       page_skill_policy: expect.stringContaining('New custom pages use Code Canvas'),
-      page_creation_policy: expect.stringContaining('current run'),
+      page_creation_policy: expect.stringContaining('Never batch-create page containers'),
       form_entry_policy: expect.stringContaining('full-screen drawer'),
       form_visual_guidance_policy: expect.stringContaining('Native forms use the independent .form.json scaffold'),
       ui_guidance_policy: expect.stringContaining('design-runtime.json writes shared visual values into project scaffolds'),
@@ -1349,7 +1349,7 @@ describe('CLI offline smoke', () => {
       default_seed_data: expect.objectContaining({
         skill_id: 'yida-data-management',
         command_id: 'data',
-        run_in_parallel_with: expect.arrayContaining(['create-page', 'yida-canvas-custom-page']),
+        run_in_parallel_with: expect.arrayContaining(['yida-canvas-custom-page source implementation and local compile']),
       }),
     });
     expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('page-spec.json is a thin index');

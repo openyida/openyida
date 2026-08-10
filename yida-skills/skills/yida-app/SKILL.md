@@ -1,11 +1,11 @@
 ---
 name: yida-app
-description: 从零搭建或补齐一个宜搭应用。生成需求和设计文件，创建所需资源，发布主页面并返回应用入口。
+description: 从零搭建或补齐一个宜搭应用。生成需求和设计文件，创建所需资源，发布本轮页面并返回应用入口。
 ---
 
 # yida-app - 完整应用构建
 
-本技能负责完整应用和补齐应用。它先确认目标资源并生成共享需求简报，再同时生成 `prd.md` 和 `design.md`，最后按依赖创建资源、发布主页面并输出一个主入口链接。表单/字段映射完成后，示例数据写入和自定义页面创建/实现可以并行。
+本技能负责完整应用和补齐应用。它先确认目标资源并生成共享需求简报，再同时生成 `prd.md` 和 `design.md`，最后按依赖创建资源、逐页发布本轮页面并输出一个主入口链接。表单/字段映射完成后，示例数据写入和页面源码实现可以并行；页面容器只能在对应源码编译成功后创建。
 
 ## 触发条件
 
@@ -25,7 +25,7 @@ description: 从零搭建或补齐一个宜搭应用。生成需求和设计文�
 1. **设计产物**：`yida-prd` 和 `yida-design` 读取同一份共享需求简报，同时生成 `prd.md` 和 `design.md`；本技能在两份文件完成后校验一致性。
 2. **页面实现**：`page-spec.json` 只记录 PRD/design.md 章节引用、真实资源 ID、数据绑定和源码路径。页面技能按引用读取原文，并使用 `yida-design` 准备的项目脚手架。
 3. **资源优先**：已有 app/page/form/process 默认复用；目标缺失且本次意图允许创建时，才加载 create 类子技能。
-4. **发布要求**：本轮修改页面源码后，final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`。
+4. **发布要求**：本轮修改页面源码后，PRD 中所有“本轮交付=是”的页面都必须在 final 前成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`；不能用已创建的空容器代替页面交付。
 5. **最终输出**：最终回复先写 2-3 句业务交付总结，再给一个主入口链接。
 
 ## 执行流程
@@ -35,7 +35,7 @@ description: 从零搭建或补齐一个宜搭应用。生成需求和设计文�
 | 阶段 | 子技能 | 必做动作 | 完成条件 |
 |------|--------|----------|----------|
 | 0. 确认目标资源 | 无 | 读取 [确认目标资源](workflow/resolve-context.md)，判断复用、创建缺口或询问用户 | 目标 app/page/form/process 的处理方式明确 |
-| 1-8. 需求、设计、创建、实现和发布 | 按依赖加载 | 读取 [完整应用阶段](workflow/build-stages.md)，先生成共享需求简报，再并行生成 PRD 和 design.md；之后按依赖创建或复用资源 | 主页面发布成功，导航计划回读一致，seed records 有证据或跳过原因 |
+| 1-8. 需求、设计、创建、实现和发布 | 按依赖加载 | 读取 [完整应用阶段](workflow/build-stages.md)，先生成共享需求简报，再并行生成 PRD 和 design.md；之后先实现页面源码，再逐页创建和发布 | 本轮页面全部发布成功，导航计划回读一致，seed records 有证据或跳过原因 |
 | 9. 输出结果 | 无 | 读取 [最终输出](workflow/final-output.md)，写业务总结和主入口链接 | 用户能理解交付内容并打开主入口 |
 
 ## 子技能短引用
@@ -49,9 +49,9 @@ description: 从零搭建或补齐一个宜搭应用。生成需求和设计文�
 | `yida-form-detail` / `yida-create-form-page` | 创建或更新原生表单时加载；输入和实现规则见 `yida-create-form-page` |
 | `yida-create-process` | PRD 命中审批、流程、申请、审核或工单对象时加载 |
 | `yida-data-management` | 完整应用默认写入核心普通表单示例记录时加载 |
-| `yida-create-page` | 本轮要实现并发布的主 display page 缺失且允许创建时加载 |
+| `yida-create-page` | 本轮页面源码已通过 Canvas 编译、目标 display page 缺失且允许创建时加载 |
 | `yida-canvas-custom-page` | 实现完整应用页面 |
-| `yida-publish-page` | 本轮修改页面源码后发布主页面时加载 |
+| `yida-publish-page` | 逐页发布本轮已完成源码时加载 |
 | `yida-nav-group` | 阶段 6 应用并验证 PRD 导航计划时加载；单点导航任务也可直接加载 |
 
 公开访问、截图验收、数据桥深度接入、报表/大屏只在用户明确要求或 PRD 验收标准命中时追加。seed records、表单详情页 formDetail CSS 注入和按 PRD 应用导航计划属于默认完整应用阶段。

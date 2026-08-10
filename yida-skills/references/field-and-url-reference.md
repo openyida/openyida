@@ -35,7 +35,7 @@
 | 应用首页 | `{base_url}/{appType}/workbench` |
 | 表单提交页（抽屉/隐藏导航） | `{base_url}/{appType}/submission/{formUuid}?iframe=true&isRenderNav=false` |
 | 数据管理页（列表） | `{base_url}/{appType}/workbench/{formUuid}` |
-| 数据管理页（iframe 嵌入） | `{base_url}/{appType}/workbench/{formUuid}?iframe=true` |
+| 数据管理页（自定义页抽屉） | `{base_url}/{appType}/workbench/{formUuid}?hideLeftNav=true&corpid={corpId}` |
 | 自定义页面 | `{base_url}/{appType}/custom/{formUuid}` |
 | 自定义页面（隐藏导航） | 上行 + `?isRenderNav=false` |
 | 表单详情页（抽屉/隐藏导航） | `{base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&iframe=true&navConfig.layout=1180&isRenderNav=false` |
@@ -50,7 +50,7 @@
 当自定义页自己绘制导航壳、并隐藏宜搭原导航时，导航项不能只保存 `formUuid`，必须保存可合并的 URL 参数：
 
 - 自定义展示页目标：使用 `{base_url}/{appType}/custom/{formUuid}?isRenderNav=false`，保持目标页也不显示宜搭原导航。
-- 数据表单目标：若在导航壳内容区嵌入，用 `{base_url}/{appType}/workbench/{formUuid}?iframe=true`；若整页跳转到 workbench，明确接受目标页回到宜搭工作台框架。
+- 数据表单目标：若在自定义页抽屉或导航壳内容区嵌入，用 `{base_url}/{appType}/workbench/{formUuid}?hideLeftNav=true&corpid={corpId}`；若整页跳转到 workbench，明确接受目标页回到宜搭工作台框架。
 - 跨组织访问：在已有 query 后追加 `&corpid={corpId}`；没有 query 时用 `?corpid={corpId}`。
 - 业务深链：导航项可带 `tab`、`view`、`dateRange`、`mode` 等白名单参数；拼 URL 时与公共参数合并，不能被 `router.push(formUuid)` 吞掉。
 

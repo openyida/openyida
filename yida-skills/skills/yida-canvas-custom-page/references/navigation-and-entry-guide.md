@@ -22,6 +22,7 @@
 | 当前应用首页 | `targetType: "app"`，保留 `appType` | 同页进入 `/{appType}/workbench` |
 | 当前应用提交页 | `targetType: "submission"`，保留目标表单 | 使用 `FormOpenContainer`；桌面端右侧抽屉，移动端全屏抽屉 |
 | 当前应用详情页 | `targetType: "detail"`，保留目标表单和实例 ID | 使用 `FormOpenContainer`；桌面端右侧抽屉，移动端全屏抽屉 |
+| 当前应用数据管理页 | `targetType: "management"`，保留目标表单和 `corpId` | 使用 `FormOpenContainer`；URL 为 `/{appType}/workbench/{formUuid}?hideLeftNav=true&corpid={corpId}`，隐藏平台左侧导航 |
 | 跨应用页面 | `targetType: "page"`，保留目标 `appType` | 默认同页进入目标应用工作台；用户要求保留当前页时才新开 |
 | 外部 URL、钉钉 OA、第三方系统 | `targetType: "url"` | 使用 `openPage` / 新窗口 / 钉钉打开能力 |
 
@@ -50,6 +51,14 @@
       "hideNav": true
     },
     {
+      "title": "客户数据管理",
+      "targetType": "management",
+      "appType": "APP_xxx",
+      "formUuid": "FORM_xxx",
+      "corpId": "ding_xxx",
+      "openMode": "responsive-drawer"
+    },
+    {
       "title": "外部帮助",
       "targetType": "url",
       "url": "https://example.com",
@@ -61,7 +70,7 @@
 
 ## 标准 FormOpenContainer
 
-自定义页面内凡是点击按钮去新增、提交或查看表单详情，统一使用同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；外部 URL 才使用新标签。桌面端使用右侧抽屉，移动端使用全屏抽屉，关闭抽屉后刷新当前页。
+自定义页面内凡是点击按钮去新增、提交、查看表单详情或打开数据管理页，统一使用同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；外部 URL 才使用新标签。桌面端使用右侧抽屉，移动端使用全屏抽屉，关闭抽屉后刷新当前页。
 
 只有用户明确要求整页或新标签打开表单时，才允许改用页面跳转，并在源码中声明 `@openyida-form-open-mode page` 或 `@openyida-form-open-mode new-tab`。
 
@@ -93,6 +102,15 @@ function buildYidaFormUrl(request, currentAppType) {
       iframe: true,
       'navConfig.layout': 1180,
       isRenderNav: false,
+    });
+  }
+  if (request.type === 'management') {
+    if (!request.corpId) {
+      return '';
+    }
+    return appendQuery(`/${appType}/workbench/${request.formUuid}`, {
+      hideLeftNav: true,
+      corpid: request.corpId,
     });
   }
   return request.url || '';
@@ -170,6 +188,9 @@ function ExampleToolbar({ appType, customerFormUuid, selectedCustomer, reload })
       >
         查看详情
       </Button>
+      <Button onClick={() => openForm({ type: 'management', title: '客户数据管理', formUuid: customerFormUuid, corpId: CURRENT_CORP_ID })}>
+        数据管理
+      </Button>
       {formOpenContainer}
     </>
   );
@@ -180,7 +201,7 @@ function ExampleToolbar({ appType, customerFormUuid, selectedCustomer, reload })
 
 ## Canvas 点击骨架
 
-Canvas 自绘快捷入口时，表单提交和详情入口沿用 `useYidaFormOpen` 返回的 `openForm`。应用内页面用同页跳转，外部链接才新开；表单提交和详情在所有设备都进入抽屉，URL 默认追加 `iframe=true` 和 `isRenderNav=false`。详情页还必须包含真实 `formInstId` 和 `navConfig.layout=1180`：
+Canvas 自绘快捷入口时，表单提交、详情和数据管理入口沿用 `useYidaFormOpen` 返回的 `openForm`。应用内页面用同页跳转，外部链接才新开；这三类表单入口在所有设备都进入抽屉。提交和详情 URL 默认追加 `iframe=true` 和 `isRenderNav=false`，详情页还必须包含真实 `formInstId` 和 `navConfig.layout=1180`；数据管理 URL 必须追加 `hideLeftNav=true` 和真实 `corpid`：
 
 ```js
 function getYidaFormInstId(row) {
@@ -198,17 +219,22 @@ function buildYidaPath(entry, currentAppType) {
     if (!entry.formInstId) return '';
     return `/${appType}/formDetail/${entry.formUuid}?formInstId=${encodeURIComponent(entry.formInstId)}&iframe=true&navConfig.layout=1180&isRenderNav=false`;
   }
+  if (entry.targetType === 'management') {
+    if (!entry.corpId) return '';
+    return `/${appType}/workbench/${entry.formUuid}?hideLeftNav=true&corpid=${encodeURIComponent(entry.corpId)}`;
+  }
   return entry.url || '';
 }
 
 function openEntry(entry, currentAppType, runtime) {
-  if (entry.targetType === 'submission' || entry.targetType === 'detail') {
+  if (entry.targetType === 'submission' || entry.targetType === 'detail' || entry.targetType === 'management') {
     runtime.openForm({
       type: entry.targetType,
       title: entry.title || '表单',
       appType: entry.appType || currentAppType,
       formUuid: entry.formUuid,
       formInstId: getYidaFormInstId(entry.row) || entry.formInstId,
+      corpId: entry.corpId,
     });
     return;
   }
@@ -223,7 +249,7 @@ function openEntry(entry, currentAppType, runtime) {
 }
 ```
 
-验收时检查抽屉 `iframeSrc` 包含 `iframe=true` 和 `isRenderNav=false`；详情页还必须包含真实 `formInstId`。如果目标表单已有 query 参数，必须用统一 URL 构造函数合并参数，不要丢掉 `corpid`、来源页或业务参数。
+验收提交和详情抽屉时，检查 `iframeSrc` 包含 `iframe=true` 和 `isRenderNav=false`；详情页还必须包含真实 `formInstId`。验收数据管理抽屉时，检查路径为 `/{appType}/workbench/{formUuid}`，并包含 `hideLeftNav=true` 和真实 `corpid`。如果目标表单已有 query 参数，必须用统一 URL 构造函数合并参数，不要丢掉 `corpid`、来源页或业务参数。
 
 详情页实例 ID 只使用 `searchFormDatas` 返回行的 `row.formInstId`。缺少时禁用详情按钮或提示“未找到数据实例”；不要改用 `formInstanceId`、`instanceId` 或 `id`，也不要打开空 `formInstId` 的详情页。
 
@@ -242,6 +268,7 @@ function openEntry(entry, currentAppType, runtime) {
 - 点击同应用页面入口后，没有新浏览器标签或新钉钉窗口。
 - 点击桌面端「新建 / 提交表单 / 查看详情」后，在当前自定义页侧边抽屉打开原生表单页。
 - 点击移动端「新建 / 提交表单 / 查看详情」后，在当前自定义页全屏抽屉打开原生表单页。
+- 点击「数据管理」后，在当前自定义页抽屉打开 `workbench/{formUuid}?hideLeftNav=true&corpid={corpId}`，抽屉内不显示平台左侧导航。
 - 用户未明确要求时，不直接跳转、不打开新标签。
 - URL 进入 `/{appType}/workbench/{formUuid}` 或对应平台同页路径。
 - 应用左侧/顶部导航能跟随目标页面选中；若导航隐藏，则页面内导航壳有明确选中态。

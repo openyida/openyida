@@ -2,7 +2,7 @@
 
 本文件用于阶段 1-8。按依赖执行，每个阶段只加载当前需要的子技能。
 
-阶段 4 拿到表单、流程和字段映射后，seed records 和页面创建/实现可以同时开始。不要等示例数据写完才创建或编写自定义页面；最终输出前汇合 seed 写入证据或跳过原因即可。
+阶段 4 拿到表单、流程和字段映射后，seed records 和页面源码实现可以同时开始。页面源码必须先通过 Canvas 编译，才能创建对应页面容器；不要批量创建空页面。最终输出前汇合 seed 写入证据或跳过原因即可。
 
 | 阶段 | 子技能 | 必做动作 | doneWhen |
 |------|--------|----------|----------|
@@ -13,9 +13,9 @@
 | 3. create/reuse app | `yida-create-app` 仅在 app 缺失且允许创建时加载 | 已有 `appType`、应用 URL 或已绑定 app 时直接复用；否则按 PRD 创建应用并提取真实 `appType` | 拿到真实目标 `appType`，且没有重复创建同类 app |
 | 4. resolve forms/processes | `yida-form-detail`、`yida-create-form-page`；PRD 命中审批/流程时加载 `yida-create-process` | 已有目标表单时 update/patch/rule/bind-datasource；缺少核心业务表单且允许创建时才 create；从项目 `scaffolds/form.form.json` 扩展业务字段；需要多字段映射时，每个目标表单最多一次性获取完整 `--field-map-json` 并合并写回 `.cache/<项目名>-schema.json` | 拿到或确认表单/流程表单 `formUuid`，字段结构和必要 ID 映射可供页面阶段使用 |
 | 5A. seed records（并行） | `yida-data-management` | 阶段 4 后立即启动；默认给本轮新建或页面数据源依赖的核心普通表单写入 1-3 条业务化 seed records，并 query 抽查至少 1 条；用户明确不要造数、表单是配置字典/权限表、或字段缺少可安全构造值时跳过并说明原因 | 最终输出前拿到真实示例记录证据，或有明确跳过原因和空态方案 |
-| 5B. 创建本轮主页面（并行） | `yida-create-page` 仅在本轮主页面缺失且允许创建时加载 | 阶段 4 后即可执行；已有页面 URL、`formUuid` 或已绑定页面时直接复用；缺少本轮要实现并发布的首页、工作台或门户页时创建该页面，不等待 seed records 完成。下一步或以后才实现的其他页面只保留在 PRD，不执行 `create-page` | 拿到本轮主页面的真实 `formUuid`，且没有创建未实现页面或重复页面 |
-| 5C. 编写/更新页面（并行） | `yida-canvas-custom-page` | 阶段 4 后即可执行；写入薄 page-spec，记录 `prdRefs`、`designRefs`、真实 `appType/formUuid/fieldId`、数据绑定和源码路径。复制项目 Canvas 脚手架，按引用读取 PRD/design.md 的当前页章节后实现页面 | page-spec 没有复制业务或视觉摘要；Canvas 源码通过基础校验；未发布时仍是“源码已修改，尚未发布” |
-| 6. 发布并应用导航 | `yida-publish-page`、`yida-nav-group` | 发布本轮修改过的主页面。所有本轮资源拿到真实 ID 后，根据 PRD 的 `resourceKey` 和 `.cache/<项目名>-schema.json` 生成 `.cache/openyida/<项目名>/navigation-plan.json`，执行 `openyida nav-group order <appType> --plan <file>`。后续才实现的页面不写入执行计划 | 页面发布成功；导航命令返回 `verification.matched=true`，回读分组和顺序与 PRD 的本轮资源一致 |
+| 5B. 实现本轮页面源码（并行） | `yida-canvas-custom-page` | 读取 PRD“页面实现交付顺序”，只处理“本轮交付=是”的页面。每页写入薄 page-spec，记录 `prdRefs`、`designRefs`、真实 `appType/formUuid/fieldId`、数据绑定和源码路径；复制项目 Canvas 脚手架，按引用读取 PRD/design.md 的当前页章节，完成源码并执行 `openyida compile <source> --json`。本阶段禁止调用 `create-page` | 每个本轮交付页面都有完整源码，编译返回 `mode=canvas`；后续页面没有源码要求，也没有线上空容器 |
+| 5C. 逐页创建并发布 | `yida-create-page`、`yida-publish-page` | 按 PRD 交付顺序逐页执行。已有页面直接发布；页面缺失时执行 `openyida create-page <appType> <pageName> --source <source>`，取得真实 `formUuid` 后立即执行返回的 `delivery.requiredNextCommand`，再回读确认 `YidaCodeCanvas`。上一页未发布成功前不得创建下一页；创建后发布失败时立即 `nav-group hide` 隐藏该空导航项并停止 | 所有“本轮交付=是”的页面都已发布并回读成功；不存在 `container_created_unpublished` 页面 |
+| 6. 应用导航 | `yida-nav-group` | 所有本轮页面发布成功并拿到真实 ID 后，根据 PRD 的 `resourceKey` 和 `.cache/<项目名>-schema.json` 生成 `.cache/openyida/<项目名>/navigation-plan.json`，执行 `openyida nav-group order <appType> --plan <file>`。未发布页面和后续页面都不写入执行计划 | 导航命令返回 `verification.matched=true`，回读分组和顺序与 PRD 的本轮已发布资源一致 |
 | 7. 汇合默认证据 | 无 | 汇合 seed records 结果、页面发布结果和导航结果；seed 失败时保留空态入口和失败原因，不回滚已发布页面 | 完整应用默认证据齐全，或每项缺失都有明确原因 |
 
 ## 默认阶段
@@ -24,11 +24,11 @@
 
 1. 创建或复用核心普通表单和流程表单；
 2. 为核心普通表单写入 1-3 条业务化示例记录并抽查；
-3. 创建或复用本轮要实现并发布的主 display page；
-4. 实现主页面并发布；
+3. 实现并编译 PRD 中所有“本轮交付=是”的自定义页面源码；
+4. 按交付顺序逐页复用或创建容器，并立即发布、回读；
 5. 应用导航计划并回读确认。
 
-第 2 项和第 3-4 项在表单字段映射完成后并行执行；最终输出前汇合结果。
+第 2 项和第 3 项在表单字段映射完成后并行执行；第 4 项必须在对应页面源码编译成功后执行。最终输出前汇合结果。
 
 ## 可选阶段
 

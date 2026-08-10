@@ -310,6 +310,21 @@ export function openMobileCreate() {
     expect(formOpenErrors[1].line).toBe(10);
   });
 
+  test('blocks data-management workbench links rendered as direct hrefs', () => {
+    const source = `
+export function DataManagementLink() {
+  var managementUrl = '/APP_XXX/workbench/FORM_XXX?iframe=true';
+  return <a href={managementUrl} target="_blank">数据管理</a>;
+}
+`;
+
+    const result = lintYidaSource(source, '/tmp/data-management-link.canvas.jsx');
+    const formOpenErrors = result.errors.filter(issue => issue.rule === 'form-open-container');
+
+    expect(formOpenErrors).toHaveLength(1);
+    expect(formOpenErrors[0].message).toContain('hideLeftNav=true&corpid={corpId}');
+  });
+
   test('blocks form detail links without a reliable formInstId', () => {
     const source = `
 export function openDetail(row) {

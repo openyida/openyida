@@ -78,6 +78,11 @@ describe('sample templates', () => {
     expect(source).toContain('FormOpenContainer');
     expect(source).toContain('buildSubmissionUrl');
     expect(source).toContain('buildFormDetailUrl');
+    expect(source).toContain('buildWorkbenchUrl');
+    expect(source).toContain("hideLeftNav: 'true'");
+    expect(source).toContain('corpid: corpId');
+    expect(source).toContain("openForm({ type: 'management' })");
+    expect(source).not.toContain('target="_blank"');
     expect(source).toContain('(request && request.formUuid) || binding.formUuid');
     expect(source).toContain('assertFormInstanceId');
     expect(source).toContain('installThemeIntoFrame');
@@ -195,7 +200,7 @@ describe('sample templates', () => {
     expect(canvasSource).toContain('"designFile": "prd/order-center/design.md"');
     expect(canvasSource).toContain('"pagePadding": 28');
     expect(canvasSource).toContain('"panelRadius": 24');
-    expect(canvasSource).toContain("const THEME_TOKENS = DESIGN_DEFAULTS.themeTokens;");
+    expect(canvasSource).toContain('const THEME_TOKENS = DESIGN_DEFAULTS.themeTokens;');
     expect(canvasSource).toContain('FormOpenContainer');
     expect(canvasSource).toContain('installThemeIntoFrame');
     expect(JSON.parse(compileCanvasLocal(canvasSource, { sourcePath: canvasOutput }).importedModules)).toEqual(['antd', 'react']);
