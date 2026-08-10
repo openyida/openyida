@@ -48,7 +48,7 @@ openyida publish <源文件路径> <appType> <formUuid> [--compat] [--canvas] [-
 | `--compat` | 普通 `.jsx` 强制使用兼容构建；`.oyd.jsx` 默认启用 |
 | `--canvas` | 明确使用 Canvas 编译；`.canvas.jsx` 默认启用 |
 | `--health-check` | 发布后检查页面 URL |
-| `--auto-nav-order` | 发布后按默认规则排序；PRD 已写明顺序时使用 `openyida nav-group order` |
+| `--auto-nav-order` | 没有 PRD 导航计划的单页任务可在发布后自动排序；完整应用使用 `nav-group order --plan` |
 | `--force` | 仅在已确认目标是 display page、但导航接口暂时无法识别时绕过类型保护 |
 
 普通页面发布前运行：

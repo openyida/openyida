@@ -35,7 +35,7 @@ description: 从零搭建或补齐一个宜搭应用。生成需求和设计文�
 | 阶段 | 子技能 | 必做动作 | 完成条件 |
 |------|--------|----------|----------|
 | 0. 确认目标资源 | 无 | 读取 [确认目标资源](workflow/resolve-context.md)，判断复用、创建缺口或询问用户 | 目标 app/page/form/process 的处理方式明确 |
-| 1-8. 需求、设计、创建、实现和发布 | 按依赖加载 | 读取 [完整应用阶段](workflow/build-stages.md)，先生成共享需求简报，再并行生成 PRD 和 design.md；之后按依赖创建或复用资源 | 主页面发布成功，导航排序已处理，seed records 有证据或跳过原因 |
+| 1-8. 需求、设计、创建、实现和发布 | 按依赖加载 | 读取 [完整应用阶段](workflow/build-stages.md)，先生成共享需求简报，再并行生成 PRD 和 design.md；之后按依赖创建或复用资源 | 主页面发布成功，导航计划回读一致，seed records 有证据或跳过原因 |
 | 9. 输出结果 | 无 | 读取 [最终输出](workflow/final-output.md)，写业务总结和主入口链接 | 用户能理解交付内容并打开主入口 |
 
 ## 子技能短引用
@@ -52,9 +52,9 @@ description: 从零搭建或补齐一个宜搭应用。生成需求和设计文�
 | `yida-create-page` | 本轮要实现并发布的主 display page 缺失且允许创建时加载 |
 | `yida-canvas-custom-page` | 实现完整应用页面 |
 | `yida-publish-page` | 本轮修改页面源码后发布主页面时加载 |
-| `yida-nav-group` | 用户明确要求精细导航整理，或轻量排序需要单独命令时加载 |
+| `yida-nav-group` | 阶段 6 应用并验证 PRD 导航计划时加载；单点导航任务也可直接加载 |
 
-公开访问、截图验收、数据桥深度接入、报表/大屏、精细导航分组只在用户明确要求或 PRD 验收标准命中时追加。seed records、表单详情页 formDetail CSS 注入和轻量导航排序属于默认完整应用阶段。
+公开访问、截图验收、数据桥深度接入、报表/大屏只在用户明确要求或 PRD 验收标准命中时追加。seed records、表单详情页 formDetail CSS 注入和按 PRD 应用导航计划属于默认完整应用阶段。
 
 ## 存储约定
 
@@ -65,6 +65,7 @@ description: 从零搭建或补齐一个宜搭应用。生成需求和设计文�
 | 真实 ID | `.cache/<项目名>-schema.json` |
 | 临时配置、导入数据、脚本 | `.cache/openyida/<项目名或任务名>/` |
 | 页面生成输入 | 需要时由页面实现阶段生成 `page-spec.json` |
+| 导航执行计划 | `.cache/openyida/<项目名>/navigation-plan.json` |
 
 ## 完成条件
 

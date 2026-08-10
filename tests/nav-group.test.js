@@ -1,15 +1,23 @@
 'use strict';
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const {
   ROOT_NAV_UUID,
+  applyNavigationPlan,
   autoOrderRootNodes,
+  buildNavigationPlanState,
   buildNavigationTree,
   flattenTreeIds,
   getNavigationPriority,
   moveNodeInTree,
+  normalizeNavigationPlan,
   parseArgs,
   reorderRootNodes,
+  resolveNavigationPlan,
   resolveNode,
+  verifyNavigationPlan,
 } = require('../lib/app/nav-group');
 
 const fixture = [
@@ -28,6 +36,13 @@ describe('nav-group helpers', () => {
         to: '分组一',
         after: 'FORM-B',
         force: true,
+      },
+    });
+    expect(parseArgs(['APP_XXX', '--plan', 'navigation-plan.json', '--dry-run'])).toEqual({
+      positional: ['APP_XXX'],
+      flags: {
+        plan: 'navigation-plan.json',
+        'dry-run': true,
       },
     });
   });
@@ -120,5 +135,185 @@ describe('nav-group helpers', () => {
   test('moveNodeInTree rejects moving a system node', () => {
     expect(() => moveNodeInTree(fixture, 'NAV-SYSTEM-RUNNING-UUID', ROOT_NAV_UUID))
       .toThrow('System navigation nodes cannot be moved');
+  });
+
+  test('navigation plan resolves exact IDs and builds group and root order together', () => {
+    const plan = normalizeNavigationPlan({
+      version: 1,
+      items: [
+        {
+          group: '分组二',
+          items: [{ ref: 'FORM-A', name: '表单 A' }],
+        },
+        {
+          group: '分组一',
+          navUuid: 'NAV-GROUP-1',
+          items: ['FORM-B'],
+        },
+      ],
+    });
+    const resolved = resolveNavigationPlan(fixture, plan, { requireGroups: true });
+    const state = buildNavigationPlanState(fixture, resolved);
+
+    expect(state.moves).toEqual([
+      { navUuid: 'FORM-A', parentNavUuid: 'NAV-GROUP-2' },
+    ]);
+    expect(state.expectedOrders).toEqual([
+      {
+        parentNavUuid: ROOT_NAV_UUID,
+        orderedNavUuids: ['NAV-GROUP-2', 'NAV-GROUP-1'],
+      },
+      {
+        parentNavUuid: 'NAV-GROUP-2',
+        orderedNavUuids: ['FORM-A'],
+      },
+      {
+        parentNavUuid: 'NAV-GROUP-1',
+        orderedNavUuids: ['FORM-B'],
+      },
+    ]);
+    expect(state.ids).toEqual([1, 5, 2, 3, 4]);
+  });
+
+  test('navigation plan fails before mutation when a required item is missing', () => {
+    const plan = {
+      version: 1,
+      items: [{ group: '分组一', items: ['FORM-MISSING'] }],
+    };
+
+    expect(() => resolveNavigationPlan(fixture, plan))
+      .toThrow('Navigation node not found: FORM-MISSING');
+  });
+
+  test('navigation plan does not recreate a group when its declared navUuid is stale', () => {
+    const plan = {
+      version: 1,
+      items: [{ group: '分组一', navUuid: 'NAV-MISSING', items: ['FORM-A'] }],
+    };
+
+    expect(() => resolveNavigationPlan(fixture, plan))
+      .toThrow('Navigation node not found: NAV-MISSING');
+  });
+
+  test('navigation plan defers optional future pages without creating an empty group', () => {
+    const resolved = resolveNavigationPlan(fixture, {
+      version: 1,
+      items: [
+        'FORM-A',
+        {
+          group: '后续页面',
+          items: [{ ref: 'PAGE-FUTURE', name: '后续页面', optional: true }],
+        },
+      ],
+    });
+
+    expect(resolved.groupsToCreate).toEqual([]);
+    expect(resolved.deferred).toEqual([
+      { ref: 'PAGE-FUTURE', name: '后续页面', parent: '后续页面' },
+    ]);
+    expect(resolved.items).toHaveLength(1);
+  });
+
+  test('navigation plan verification checks root order, group order, and parent placement', () => {
+    const plan = {
+      version: 1,
+      items: [
+        { group: '分组二', items: ['FORM-A'] },
+        { group: '分组一', items: ['FORM-B'] },
+      ],
+    };
+    const arranged = [
+      fixture[0],
+      fixture[4],
+      { ...fixture[1], parentNavUuid: 'NAV-GROUP-2' },
+      fixture[2],
+      fixture[3],
+    ];
+    const resolved = resolveNavigationPlan(arranged, plan, { requireGroups: true });
+
+    expect(verifyNavigationPlan(arranged, resolved)).toMatchObject({
+      matched: true,
+      mismatches: [],
+    });
+    expect(verifyNavigationPlan(fixture, resolveNavigationPlan(fixture, plan, { requireGroups: true })))
+      .toMatchObject({ matched: false });
+  });
+
+  test('order plan creates groups, moves items, orders roots, and verifies the readback', async () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-nav-plan-'));
+    const planFile = path.join(directory, 'navigation-plan.json');
+    fs.writeFileSync(planFile, JSON.stringify({
+      version: 1,
+      items: [
+        { ref: 'FORM-A', name: '表单 A' },
+        { group: '数据管理', items: [{ ref: 'FORM-B', name: '表单 B' }] },
+      ],
+    }));
+
+    let state = fixture.map(node => ({ ...node }));
+    let nextId = 20;
+    const postNavAction = jest.fn(async (appType, action, payload) => {
+      expect(appType).toBe('APP-TEST');
+      expect(action).toBe('updateOrderNew');
+      const current = state.find(node => node.id === payload.currentId);
+      current.parentNavUuid = payload.parentNavUuid;
+      const byId = new Map(state.map(node => [node.id, node]));
+      state = payload.ids.split(',').map(id => byId.get(Number(id)));
+      return { success: true };
+    });
+    const dependencies = {
+      fetchNavigationList: jest.fn(async () => state.map(node => ({ ...node }))),
+      createGroup: jest.fn(async (appType, name) => {
+        const group = {
+          id: nextId++,
+          navUuid: `NAV-${name}`,
+          parentNavUuid: ROOT_NAV_UUID,
+          navType: 'NAV',
+          title: { zh_CN: name },
+        };
+        state.push(group);
+        return { success: true, group: { ...group, name } };
+      }),
+      postNavAction,
+    };
+
+    try {
+      const result = await applyNavigationPlan(
+        'APP-TEST',
+        planFile,
+        {},
+        { ready: true },
+        dependencies
+      );
+
+      expect(result).toMatchObject({
+        success: true,
+        action: 'order',
+        mode: 'plan',
+        createdGroups: [expect.objectContaining({ name: '数据管理' })],
+        movedItems: [expect.objectContaining({ navUuid: 'FORM-B' })],
+        verification: { matched: true, mismatches: [] },
+      });
+      expect(result.orderedParents).toContain(ROOT_NAV_UUID);
+      expect(postNavAction).toHaveBeenCalledTimes(2);
+
+      const repeated = await applyNavigationPlan(
+        'APP-TEST',
+        planFile,
+        {},
+        { ready: true },
+        dependencies
+      );
+      expect(repeated).toMatchObject({
+        success: true,
+        createdGroups: [],
+        movedItems: [],
+        orderedParents: [],
+        verification: { matched: true },
+      });
+      expect(postNavAction).toHaveBeenCalledTimes(2);
+    } finally {
+      fs.rmSync(directory, { recursive: true, force: true });
+    }
   });
 });

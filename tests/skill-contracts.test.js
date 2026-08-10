@@ -273,11 +273,13 @@ describe('OpenYida skill contracts', () => {
     expect(generation).toContain('用前端 seedRows 冒充真实表单数据');
   });
 
-  test('unified full app build consumes declared navigation order and falls back to auto order', () => {
+  test('unified full app build applies one verified navigation plan', () => {
     const root = readSkill('yida-skills/SKILL.md');
     const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
     const publish = readSkill('yida-skills/skills/yida-publish-page/SKILL.md');
     const navGroup = readSkill('yida-skills/skills/yida-nav-group/SKILL.md');
+    const prd = readSkill('yida-skills/skills/yida-prd/SKILL.md');
+    const prdOutput = readSkill('yida-skills/skills/yida-prd/workflow/output-prd.md');
     const canvas = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');
     const manifest = readSkill('lib/core/command-manifest.js');
     const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
@@ -294,18 +296,22 @@ describe('OpenYida skill contracts', () => {
     expect(canvas).toContain('OpenYida 提供一份完整脚手架');
     expect(canvas).toContain('发布命令会与线上 Schema 精确核对');
     expect(appStages).not.toContain('明确要求 JSX/Jsx 组件链路或实例桥强依赖时选择 `yida-custom-page`');
-    expect(appStages).toContain('发布成功后，PRD 写明导航顺序时执行轻量导航排序');
-    expect(appStages).toContain('`--auto-nav-order` / `nav-group auto-order`');
+    expect(appStages).toContain('生成 `.cache/openyida/<项目名>/navigation-plan.json`');
+    expect(appStages).toContain('`openyida nav-group order <appType> --plan <file>`');
+    expect(appStages).toContain('导航命令返回 `verification.matched=true`');
     expect(appStages).toContain('PRD 命中审批/流程时加载');
     expect(publish).toContain('`--auto-nav-order`');
-    expect(publish).toContain('PRD 已写明顺序时使用 `openyida nav-group order`');
-    expect(appStages).toContain('导航排序已执行或给出明确 warning');
-    expect(navGroup).toContain('PRD 导航优先');
-    expect(navGroup).toContain('openyida nav-group order <appType> <页面/表单...>');
+    expect(publish).toContain('完整应用使用 `nav-group order --plan`');
+    expect(navGroup).toContain('完整应用只执行一条 `order --plan` 命令');
+    expect(navGroup).toContain('openyida nav-group order <appType> --plan .cache/openyida/<项目名>/navigation-plan.json');
+    expect(navGroup).toContain('`verification.matched=true`');
     expect(navGroup).toContain('openyida nav-group auto-order <appType>');
+    expect(prd).toContain('带唯一 `resourceKey` 的资源');
+    expect(prdOutput).toContain('导航顺序只引用资源蓝图中的 `resourceKey`');
+    expect(prdOutput).toContain('后续才实现的页面保留在资源蓝图和页面交付顺序中，不放入本轮导航执行计划');
     expect(manifest).toContain('default_nav_order_policy');
-    expect(manifest).toContain('openyida nav-group order <appType> <items...>');
-    expect(manifest).toContain('openyida publish ... --auto-nav-order');
+    expect(manifest).toContain('openyida nav-group order <appType> --plan <file>');
+    expect(manifest).toContain('completion requires verification.matched=true');
     expect(manifest).toContain('product_design_policy');
     expect(manifest).toContain('yida-prd and yida-design start in parallel');
     expect(manifest).toContain('artifact_generation: {');
@@ -433,7 +439,7 @@ describe('OpenYida skill contracts', () => {
     expect(appBuildStages).toContain('| 5C. 编写/更新页面（并行） | `yida-canvas-custom-page` |');
     expect(appBuildStages).toContain('默认给本轮新建或页面数据源依赖的核心普通表单写入 1-3 条业务化 seed records');
     expect(appBuildStages).toContain('不要等示例数据写完才创建或编写自定义页面');
-    expect(skill).toContain('seed records、表单详情页 formDetail CSS 注入和轻量导航排序属于默认完整应用阶段');
+    expect(skill).toContain('seed records、表单详情页 formDetail CSS 注入和按 PRD 应用导航计划属于默认完整应用阶段');
     expect(appFinalOutput).toContain('核心普通表单已写入 1-3 条示例记录并 query 抽查');
     expect(appResolveContext).toContain('外部工具注入的当前任务资源上下文，例如 yida-agent 绑定的 app/page/form/process');
     expect(skill).not.toContain('## 模板优先');
@@ -614,7 +620,7 @@ describe('OpenYida skill contracts', () => {
     expect(output).toContain('## 8. 资源创建顺序');
     expect(output).toContain('## 9. 页面实现交付顺序');
     expect(output).toContain('## 10. 导航顺序');
-    expect(output).toContain('| 分组 | 页面顺序 | 导航呈现 | 放置原则 |');
+    expect(output).toContain('| 分组 | resourceKey 顺序 | 导航呈现 | 放置原则 |');
     expect(output).toContain('表单/流程在自定义页面之前');
     expect(output).toContain('## 11. 验收标准');
     expect(design).toContain('[design.md 生成规则](references/style-design-selection.md)');
@@ -1185,7 +1191,7 @@ describe('OpenYida skill contracts', () => {
     expect(output).toContain('## 7. 资源蓝图');
     expect(output).toContain('process-form');
     expect(output).toContain('## 8. 资源创建顺序');
-    expect(blueprint).toContain('`resourceBlueprint` 对齐 `yida-app` 的页面与表单设计');
+    expect(blueprint).toContain('每个资源必须有唯一、稳定的 `resourceKey`');
     expect(pageDesign).toContain('## 第一步：读取应用主题与现有功能');
     expect(pageDesign).toContain('单页设计和页面重构先确认当前应用主题');
     expect(pageDesign).toContain('页面重构、局部美化、列表/看板/详情优化默认沿用当前应用');

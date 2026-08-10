@@ -29,7 +29,7 @@
 | 更新应用名称、布局、主题 | `openyida update-app <appType> [--name "..."] [--layout slide\|ver] [--theme deepBlue]` |
 | 导出应用迁移包 | `openyida export <appType> [output]` |
 | 导入应用迁移包 | `openyida import <file> [name]` |
-| 管理左侧导航分组 | `openyida nav-group <list\|create\|rename\|delete\|move\|order\|hide\|show> <appType> ...` |
+| 管理左侧导航分组 | `openyida nav-group <list\|create\|rename\|delete\|move\|order\|auto-order\|hide\|show> <appType> ...` |
 | 管理应用管理员 | `openyida app-permission <get\|set\|add\|remove\|search-user> ...` |
 | 管理应用多语言 | `openyida i18n <overview\|config\|languages\|list\|upsert\|delete\|translate\|translate-all\|upgrade> <appType> ...` |
 | 查询组织基础信息、容量、额度、域名 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` |

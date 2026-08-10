@@ -11,7 +11,7 @@
 3. `page-spec.json` 是页面实现阶段按需派生的产物。
 4. Code Canvas 实现规则归 `yida-canvas-custom-page`。
 
-真实 `formUuid`、`fieldId`、`pageId` 等 ID 写入 `.cache/<项目名>-schema.json`；业务语义不写入 ID 映射文件，ID 不写入 PRD 正文。
+真实 `formUuid`、`fieldId`、`pageId` 等 ID 按 PRD 的 `resourceKey` 写入 `.cache/<项目名>-schema.json`；业务语义不写入 ID 映射文件，ID 不写入 PRD 正文。
 
 ## 路径口径
 
@@ -41,8 +41,8 @@
 ```json
 {
   "appType": "APP_XXXXXX",
-  "pages": {
-    "访客登记表": {
+  "resources": {
+    "visitor_form": {
       "formUuid": "FORM-XXXXXX",
       "fields": {
         "访客姓名": "textField_xxxxxxxx"
@@ -82,7 +82,7 @@
 
 推荐写法：
 
-已完成订单、客户和商品等核心业务表单，并发布首页、订单管理和库存看板等入口页面。当前应用已支持订单录入、库存预警、销售统计、表单提交入口和详情查看，示例记录、轻量导航排序与表单详情样式也已就绪。
+已完成订单、客户和商品等核心业务表单，并发布首页、订单管理和库存看板等入口页面。当前应用已支持订单录入、库存预警、销售统计、表单提交入口和详情查看，示例记录、导航分组与表单详情样式也已就绪。
 
 主入口：`{base_url}/{appType}/workbench`
 

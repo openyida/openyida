@@ -15,21 +15,21 @@
 
 ### 列页面资源
 
-| 页面 | resourceType | scene | 用途 | 页面链路 |
-| --- | --- | --- | --- | --- |
-| 主页 / 首页 / 工作台 | `display-page` | `workbench/dashboard/landing` | 应用第一入口、指标概览、快捷入口 | 默认 Code Canvas |
-| 管理列表页 | `display-page` | `list` | 查询、筛选、批量操作、详情入口 | 默认 Code Canvas |
-| 详情页 | `display-page` | `detail` | 单对象信息总览、时间线、关联对象 | 默认 Code Canvas |
-| 数据大屏 / 看板 | `display-page` 或报表 | `screen/dashboard` | 指标监控、经营分析、投屏展示 | Canvas / Recharts / 报表 |
+| resourceKey | 页面 | resourceType | scene | 用途 | 页面链路 |
+| --- | --- | --- | --- | --- | --- |
+| `home` | 主页 / 首页 / 工作台 | `display-page` | `workbench/dashboard/landing` | 应用第一入口、指标概览、快捷入口 | 默认 Code Canvas |
+| `management_list` | 管理列表页 | `display-page` | `list` | 查询、筛选、批量操作、详情入口 | 默认 Code Canvas |
+| `detail` | 详情页 | `display-page` | `detail` | 单对象信息总览、时间线、关联对象 | 默认 Code Canvas |
+| `dashboard` | 数据大屏 / 看板 | `display-page` 或报表 | `screen/dashboard` | 指标监控、经营分析、投屏展示 | Canvas / Recharts / 报表 |
 
 ### 列表单资源
 
-| 表单 | formKind | 用途 | 字段口径 |
-| --- | --- | --- | --- |
-| 普通数据表单 | `normal-form` | 数据录入、编辑、查询、列表数据源 | 字段名、字段类型、必填、默认值、Divider 分组 |
-| 流程表单 | `process-form` | 审批、流转、节点处理 | 表单字段 + 流程节点、审批人、流转条件 |
+| resourceKey | 表单 | formKind | 用途 | 字段口径 |
+| --- | --- | --- | --- | --- |
+| `data_form` | 普通数据表单 | `normal-form` | 数据录入、编辑、查询、列表数据源 | 字段名、字段类型、必填、默认值、Divider 分组 |
+| `approval_process` | 流程表单 | `process-form` | 审批、流转、节点处理 | 表单字段 + 流程节点、审批人、流转条件 |
 
-资源清单使用业务语义和资源类型；`appType/corpId/baseUrl` 写入 PRD 的应用配置，`formUuid`、`fieldId`、`processCode` 等细节 ID 由页面技能写入 `.cache/<项目名>-schema.json`。
+每个资源使用唯一 `resourceKey`。`appType/corpId/baseUrl` 写入 PRD 的应用配置，`formUuid`、`fieldId`、`processCode` 等真实 ID 由实现阶段按 `resourceKey` 写入 `.cache/<项目名>-schema.json`。
 
 ## 给页面标场景
 
@@ -59,7 +59,7 @@
 
 ```markdown
 - appBlueprint：<应用目标、角色、页面清单、导航分组>
-- resourceBlueprint：<pages: name/resourceType/scene/purpose；forms: name/formKind/fields/process>
+- resourceBlueprint：<pages: resourceKey/name/resourceType/scene/purpose；forms: resourceKey/name/formKind/fields/process>
 - 页面场景：<scene + 判定依据>
 - 页面区块 / contentBlocks：<工作台、首页、门户、看板、展示页和业务入口页逐条列出至少 10 个区块；KPI 组和快捷入口组各只算 1 个区块>
 - 页面关系：<上一层入口、下钻目标、原生表单/流程关系>

@@ -22,12 +22,13 @@
 
 ## resourceBlueprint
 
-`resourceBlueprint` 对齐 `yida-app` 的页面与表单设计，描述“应该有什么资源”，运行后 ID 由实现阶段记录。
+`resourceBlueprint` 描述应用需要的资源。每个资源必须有唯一、稳定的 `resourceKey`；运行后由实现阶段把 `resourceKey` 映射到真实 ID。
 
 ```json
 {
   "pages": [
     {
+      "resourceKey": "home",
       "name": "经营工作台",
       "resourceType": "display-page",
       "scene": "workbench",
@@ -37,12 +38,14 @@
   ],
   "forms": [
     {
+      "resourceKey": "product_form",
       "name": "商品管理",
       "formKind": "normal-form",
       "purpose": "维护商品基础资料",
       "fields": ["商品名称", "商品分类", "售价", "商品状态"]
     },
     {
+      "resourceKey": "purchase_process",
       "name": "采购审批",
       "formKind": "process-form",
       "purpose": "采购申请与审批流转",
@@ -51,6 +54,7 @@
   ],
   "reports": [
     {
+      "resourceKey": "sales_report",
       "name": "销售趋势报表",
       "purpose": "汇总订单金额和销量趋势"
     }
@@ -58,4 +62,4 @@
 }
 ```
 
-字段写业务名、字段类型、必填、默认值、Divider 分组等语义；真实 `formUuid`、`fieldId`、`processCode` 由实现阶段创建后写入 `.cache/<项目名>-schema.json`。
+`resourceKey` 在同一项目内不能重复，资源改名时保持不变。字段写业务名、字段类型、必填、默认值、Divider 分组等语义；真实 `formUuid`、`fieldId`、`processCode` 由实现阶段创建后写入 `.cache/<项目名>-schema.json`。
