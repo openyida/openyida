@@ -637,7 +637,7 @@ export function YidaComp() {
   test('accepts yida JS API bridge plus correct same-origin fallback usage', () => {
     const goodSource = `
 function getYidaApiBridge() {
-  return window.__OPENYIDA_YIDA_API__;
+  return window.__OPENYIDA_RUNTIME__ && window.__OPENYIDA_RUNTIME__.yida;
 }
 export function YidaComp() {
   var bridge = getYidaApiBridge();
