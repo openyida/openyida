@@ -1903,6 +1903,10 @@ describe('create-form create recovery guardrails', () => {
     jest.resetModules();
   });
 
+  test('post-create config retry window covers slow form propagation', () => {
+    expect(sourceCode).toContain('return [1000, 3000, 5000, 5000];');
+  });
+
   test('hallucinated name fields shape fails before remote write', async () => {
     const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand();
 

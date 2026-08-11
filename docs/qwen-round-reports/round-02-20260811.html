@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenYida Qwen 8轮优化 - Round 02</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fa;
+      --panel: #ffffff;
+      --text: #182033;
+      --muted: #627085;
+      --line: #dce3ec;
+      --blue: #1167d8;
+      --green: #16794c;
+      --amber: #9b6200;
+      --red: #b42318;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      width: min(1120px, calc(100vw - 40px));
+      margin: 28px auto 56px;
+    }
+    header, section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px 24px;
+      margin-bottom: 16px;
+    }
+    h1, h2 { margin: 0 0 12px; line-height: 1.25; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 19px; }
+    p { margin: 8px 0; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; overflow-wrap: anywhere; }
+    th, td { border: 1px solid var(--line); padding: 9px 10px; text-align: left; vertical-align: top; }
+    th { background: #f1f5fb; }
+    ul { margin: 8px 0 0 20px; padding: 0; }
+    code {
+      background: #eef2f7;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .meta div {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #fbfcff;
+    }
+    .label { color: var(--muted); font-size: 12px; }
+    .value { font-weight: 650; margin-top: 2px; }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .ok { color: var(--green); background: #e8f5ee; }
+    .warn { color: var(--amber); background: #fff4df; }
+    .risk { color: var(--red); background: #fdecea; }
+    .note { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>OpenYida Qwen 8轮优化 - Round 02</h1>
+      <p>本报告记录 Qoder 使用 <code>Qwen3.7-Plus</code> 对 Round 01 修复的回归验证、第二轮发现以及当前代码修复。</p>
+      <div class="meta">
+        <div><div class="label">日期</div><div class="value">2026-08-11</div></div>
+        <div><div class="label">代码分支</div><div class="value">codex/openyida-compress-routing-85161120</div></div>
+        <div><div class="label">Qoder run</div><div class="value">openyida-qwen-round-02-20260811</div></div>
+        <div><div class="label">结论</div><div class="value"><span class="badge warn">表单轻量链路更好，自定义页未覆盖</span></div></div>
+      </div>
+    </header>
+
+    <section>
+      <h2>Qwen 本轮结果</h2>
+      <table>
+        <thead>
+          <tr><th>应用</th><th>appType</th><th>表单数</th><th>入口</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>校园社团活动管理</td>
+            <td><code>APP_MAE3MHMF5G2XZ3UTRJFF</code></td>
+            <td>3</td>
+            <td><a href="https://demo.aliwork.com/APP_MAE3MHMF5G2XZ3UTRJFF/workbench">workbench</a></td>
+          </tr>
+          <tr>
+            <td>二手车销售跟进</td>
+            <td><code>APP_TWQ71OTAC1TYAKO4VWK6</code></td>
+            <td>2</td>
+            <td><a href="https://demo.aliwork.com/APP_TWQ71OTAC1TYAKO4VWK6/workbench">workbench</a></td>
+          </tr>
+          <tr>
+            <td>企业培训管理</td>
+            <td><code>APP_BV5GXE2JLVH2LNJL80KZ</code></td>
+            <td>2</td>
+            <td><a href="https://demo.aliwork.com/APP_BV5GXE2JLVH2LNJL80KZ/workbench">workbench</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">Qoder 本轮共创建 3 个轻量应用、7 个表单；未创建自定义 Canvas 页面，因此按钮、链接卡片、抽屉详情、内容块数量和浏览器交互未被有效覆盖。</p>
+    </section>
+
+    <section>
+      <h2>回归验证</h2>
+      <table>
+        <thead>
+          <tr><th>项目</th><th>状态</th><th>证据</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>短字段类型别名</td>
+            <td><span class="badge ok">已验证</span></td>
+            <td>7 个表单均使用 <code>text</code>、<code>number</code>、<code>radio</code>、<code>multiselect</code>、<code>date</code>、<code>textarea</code> 等短名创建成功。</td>
+          </tr>
+          <tr>
+            <td>Token 模式健康检查</td>
+            <td><span class="badge ok">代码路径正确</span></td>
+            <td><code>missing_cookies</code> 会返回 <code>skipped: true</code>，发布输出走 <code>info()</code>，不再走失败警告。</td>
+          </tr>
+          <tr>
+            <td><code>updateFormConfig</code> 传播时序</td>
+            <td><span class="badge warn">仍需增强</span></td>
+            <td>Round 01 的 5 秒窗口不足，7 个表单仍出现“配置更新失败: 表单不存在”。</td>
+          </tr>
+          <tr>
+            <td>自定义页和 10 内容块误判</td>
+            <td><span class="badge risk">未覆盖</span></td>
+            <td>Qoder 本轮偏离任务，没有创建自定义页；下一轮 prompt 需要硬性要求至少 1 个 Canvas 页。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>本轮修复</h2>
+      <ul>
+        <li>将 <code>updateFormConfig</code> 默认传播重试窗口从 <code>[500, 1500, 3000]</code> 调整为 <code>[1000, 3000, 5000, 5000]</code>。</li>
+        <li>保持成功路径不增加等待；只有后端明确返回可重试的“表单不存在”等传播时序错误时才进入更长等待。</li>
+        <li>新增测试守护默认重试窗口，避免后续改动把真实环境需要的等待时间缩回去。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>验证</h2>
+      <table>
+        <thead>
+          <tr><th>命令</th><th>结果</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>node --check lib/app/create-form.js && node --check tests/create-form.test.js</code></td><td><span class="badge ok">通过</span></td></tr>
+          <tr><td><code>npx jest tests/create-form.test.js --runInBand</code></td><td><span class="badge ok">117 passed</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>下一轮要求</h2>
+      <ul>
+        <li>必须创建至少 1 个 Canvas 自定义页并发布，不能只做表单。</li>
+        <li>继续验证 <code>updateFormConfig</code> 是否还出现“表单不存在”。</li>
+        <li>把浏览器预览、按钮/卡片点击、详情抽屉、新增抽屉、导航排序写成明确结论；无法验证时标明能力限制。</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
