@@ -377,6 +377,116 @@ describe('publish prechecks', () => {
     requestSpy.mockRestore();
   });
 
+  test('publish reports missing-cookie health check as skipped instead of failed', async () => {
+    const sourcePath = path.join(workspace, 'home.canvas.jsx');
+    fs.writeFileSync(sourcePath, 'export default function Page() { return null; }\n', 'utf8');
+
+    jest.resetModules();
+    const previousQuiet = process.env.YIDA_QUIET;
+    process.env.YIDA_QUIET = '1';
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const requestSpy = jest.spyOn(https, 'request');
+    const warnMock = jest.fn();
+    const infoMock = jest.fn();
+    const autoOrderNavigationMock = jest.fn(() => Promise.resolve({
+      orderedNodes: [{ name: '首页' }, { name: '数据表' }],
+    }));
+    const mockUtils = {
+      findProjectRoot: jest.fn(() => workspace),
+      isLoginExpired: jest.fn(() => false),
+      isCsrfTokenExpired: jest.fn(() => false),
+      httpGet: jest.fn(() => Promise.resolve({
+        success: true,
+        content: { pages: [], gmtModified: 100 },
+      })),
+      httpPost: jest.fn(() => Promise.resolve({
+        success: true,
+        content: { formUuid: 'FORM-PAGE', version: 7 },
+      })),
+      requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
+    };
+
+    jest.doMock('../lib/core/utils', () => mockUtils);
+    jest.doMock('../lib/core/yida-client', () => ({
+      createAuthRef: jest.fn(() => ({
+        baseUrl: 'https://example.test',
+        csrfToken: 'csrf',
+        cookies: [],
+        authMode: 'token',
+        authSource: 'token',
+        authData: { auth_mode: 'token', auth_source: 'token' },
+      })),
+      isTokenAuthRef: jest.fn(() => true),
+    }));
+    jest.doMock('../lib/core/chalk', () => ({
+      banner: jest.fn(),
+      step: jest.fn(),
+      label: jest.fn(),
+      success: jest.fn(),
+      fail: jest.fn(),
+      warn: warnMock,
+      info: infoMock,
+      error: jest.fn(),
+      result: jest.fn(),
+      usage: jest.fn(),
+      hint: jest.fn(),
+    }));
+    jest.doMock('../lib/core/browser-handoff', () => ({
+      parseOpenOption: jest.fn((args) => ({
+        args: args.filter((arg) => arg !== '--no-open'),
+        mode: false,
+      })),
+      withBrowserHandoff: jest.fn((payload) => payload),
+    }));
+    jest.doMock('../lib/app/canvas-compile', () => ({
+      compileCanvas: jest.fn(() => Promise.resolve({
+        runtimeCode: 'var YidaComp = function Page() { return null; };',
+        importedModules: '[]',
+      })),
+    }));
+    jest.doMock('../lib/app/services/canvas-page-schema-builder', () => ({
+      buildCanvasPageSchemaContent: jest.fn(() => JSON.stringify({ pages: [] })),
+    }));
+    jest.doMock('../lib/app/nav-group', () => ({
+      autoOrderNavigation: autoOrderNavigationMock,
+    }));
+
+    try {
+      const isolatedPublish = require('../lib/app/publish');
+      await expect(isolatedPublish([
+        sourcePath,
+        'APP_XXX',
+        'FORM-PAGE',
+        '--canvas',
+        '--force',
+        '--skip-lint',
+        '--health-check',
+        '--no-open',
+      ])).resolves.toBeUndefined();
+
+      expect(requestSpy).not.toHaveBeenCalled();
+      expect(infoMock).toHaveBeenCalledWith(expect.stringContaining('missing_cookies'));
+      expect(warnMock).not.toHaveBeenCalledWith(expect.stringContaining('Health check failed'));
+      expect(warnMock).not.toHaveBeenCalledWith(expect.stringContaining('健康检查失败'));
+    } finally {
+      requestSpy.mockRestore();
+      consoleSpy.mockRestore();
+      jest.dontMock('../lib/core/utils');
+      jest.dontMock('../lib/core/yida-client');
+      jest.dontMock('../lib/core/chalk');
+      jest.dontMock('../lib/core/browser-handoff');
+      jest.dontMock('../lib/app/canvas-compile');
+      jest.dontMock('../lib/app/services/canvas-page-schema-builder');
+      jest.dontMock('../lib/app/nav-group');
+      jest.resetModules();
+      if (previousQuiet === undefined) {
+        delete process.env.YIDA_QUIET;
+      } else {
+        process.env.YIDA_QUIET = previousQuiet;
+      }
+    }
+  });
+
   test('Canvas publish fails when required baseline navigation ordering fails', async () => {
     const sourcePath = path.join(workspace, 'home.canvas.jsx');
     fs.writeFileSync(sourcePath, 'export default function Page() { return null; }\n', 'utf8');

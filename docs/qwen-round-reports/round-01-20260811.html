@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenYida Qwen 8轮优化 - Round 01</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #5f6b7a;
+      --line: #dce2ea;
+      --blue: #136ef6;
+      --green: #168a4a;
+      --amber: #a66500;
+      --red: #b42318;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      width: min(1120px, calc(100vw - 40px));
+      margin: 28px auto 56px;
+    }
+    header, section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px 24px;
+      margin-bottom: 16px;
+    }
+    h1, h2, h3 { margin: 0 0 12px; line-height: 1.25; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 19px; }
+    h3 { font-size: 15px; }
+    p { margin: 8px 0; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .meta div {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #fbfcff;
+    }
+    .label { color: var(--muted); font-size: 12px; }
+    .value { font-weight: 650; margin-top: 2px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      overflow-wrap: anywhere;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #f1f5fb; }
+    ul { margin: 8px 0 0 20px; padding: 0; }
+    code {
+      background: #eef2f7;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .ok { color: var(--green); background: #e8f6ee; }
+    .warn { color: var(--amber); background: #fff4df; }
+    .risk { color: var(--red); background: #fdecea; }
+    .note { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>OpenYida Qwen 8轮优化 - Round 01</h1>
+      <p>本报告记录 Qoder 使用 <code>Qwen3.7-Plus</code> 对当前项目 OpenYida 的第一轮真实应用搭建结果、发现的问题、链路层修复和验证结果。</p>
+      <div class="meta">
+        <div><div class="label">日期</div><div class="value">2026-08-11</div></div>
+        <div><div class="label">代码分支</div><div class="value">codex/openyida-compress-routing-85161120</div></div>
+        <div><div class="label">Qoder run</div><div class="value">openyida-qwen-round-01-20260811</div></div>
+        <div><div class="label">结论</div><div class="value"><span class="badge ok">首轮可用，已修复高频体验点</span></div></div>
+      </div>
+    </header>
+
+    <section>
+      <h2>Qwen 发现的问题</h2>
+      <table>
+        <thead>
+          <tr><th>级别</th><th>问题</th><th>证据</th><th>影响</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge warn">Medium</span></td>
+            <td><code>updateFormConfig</code> 偶发返回“表单不存在”</td>
+            <td>3 个应用的表单创建链路均出现过该警告；Schema 已保存成功。</td>
+            <td>属于后端传播时序竞争，容易让首轮搭建看起来“不稳定”。</td>
+          </tr>
+          <tr>
+            <td><span class="badge warn">Low</span></td>
+            <td>Token 模式下健康检查输出“失败: missing_cookies”</td>
+            <td>Qoder 真实发布 Canvas 页面后，健康检查无法携带浏览器 cookie。</td>
+            <td>页面实际已发布，但输出容易误导 agent 继续做无效修复。</td>
+          </tr>
+          <tr>
+            <td><span class="badge warn">Low</span></td>
+            <td>短字段类型名不被接受</td>
+            <td><code>text</code>、<code>radio</code>、<code>number</code> 等需写成完整组件名。</td>
+            <td>增加 PRD 到表单字段落地的摩擦，Qwen 容易使用自然短名。</td>
+          </tr>
+          <tr>
+            <td><span class="badge risk">Info</span></td>
+            <td>CLI 侧无法完成真实浏览器视觉和点击验证</td>
+            <td>页面可打开，但 Qoder 本轮无法从终端确认按钮、抽屉和数据展示。</td>
+            <td>第二轮开始需要继续要求 Qoder 明确记录浏览器验证能力和缺口。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>真实应用结果</h2>
+      <table>
+        <thead>
+          <tr><th>#</th><th>应用</th><th>场景</th><th>appType</th><th>入口</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>宠物诊所管理系统</td>
+            <td>宠物登记、就诊记录、总览仪表盘</td>
+            <td><code>APP_LX3SKKCSM8T2W1JU8XZ2</code></td>
+            <td><a href="https://xmtrf1.aliwork.com/APP_LX3SKKCSM8T2W1JU8XZ2/workbench">workbench</a></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>共享会议室预订</td>
+            <td>会议室管理、预订记录、总览仪表盘</td>
+            <td><code>APP_CSEE60FGCXT6MZRHTM71</code></td>
+            <td><a href="https://xmtrf1.aliwork.com/APP_CSEE60FGCXT6MZRHTM71/workbench">workbench</a></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>社区活动报名</td>
+            <td>活动发布、报名记录、总览仪表盘</td>
+            <td><code>APP_MJKJ1ZSQU89RHDM0FPT3</code></td>
+            <td><a href="https://xmtrf1.aliwork.com/APP_MJKJ1ZSQU89RHDM0FPT3/workbench">workbench</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">Qoder 记录：每个应用包含 2 个表单、1 个 Canvas 仪表盘页面，Canvas 字段绑定验证通过，导航自动排序完成。单应用创建到发布约 2-3 分钟。</p>
+    </section>
+
+    <section>
+      <h2>本轮修复内容</h2>
+      <ul>
+        <li>放宽并增强 <code>updateFormConfig</code> 后置配置重试：默认重试节奏从 <code>500,1000ms</code> 调整为 <code>500,1500,3000ms</code>；当 500 响应中包含“表单不存在”等传播时序语义时进入重试。</li>
+        <li>在创建入口、字段校验器、离线表单编译器三处统一补齐短字段类型别名，例如 <code>text -> TextField</code>、<code>number -> NumberField</code>、<code>radio -> RadioField</code>、<code>multiselect -> MultiSelectField</code>。</li>
+        <li>发布健康检查遇到 <code>missing_cookies</code> 等 skip 结果时输出“健康检查已跳过”，不再输出“健康检查失败”。</li>
+        <li>新增测试覆盖真实 500 + “表单不存在”重试、短字段类型别名、以及 publish 链路中健康检查 skip 的输出等级。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>验证</h2>
+      <table>
+        <thead>
+          <tr><th>命令</th><th>结果</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>node --check lib/app/create-form.js lib/app/form-field-validator.js lib/app/services/form-compiler.js lib/app/publish.js</code></td><td><span class="badge ok">通过</span></td></tr>
+          <tr><td><code>npx jest tests/create-form.test.js tests/publish-precheck.test.js --runInBand</code></td><td><span class="badge ok">138 passed</span></td></tr>
+          <tr><td><code>npm run check:i18n</code></td><td><span class="badge ok">通过棘轮校验</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>下一轮关注</h2>
+      <ul>
+        <li>继续真实创建 2-3 个不同业务场景，重点观察首轮是否还出现 <code>updateFormConfig</code> 警告。</li>
+        <li>要求 Qoder 明确记录按钮、链接卡片、详情抽屉、新增抽屉和导航排序的浏览器验证能力；无法验证时要给出原因。</li>
+        <li>继续从 PRD 和用户明确页面范围判断应用规模，避免默认生成固定数量模块。</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

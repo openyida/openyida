@@ -2246,7 +2246,7 @@ describe('create-form create recovery guardrails', () => {
         if (requestPath.includes('updateFormConfig')) {
           updateConfigAttempts += 1;
           if (updateConfigAttempts === 1) {
-            return Promise.resolve({ success: false, errorMsg: '表单不存在' });
+            return Promise.resolve({ success: false, errorMsg: '表单不存在', __httpStatus: 500 });
           }
           return Promise.resolve({ success: true });
         }
@@ -2276,6 +2276,47 @@ describe('create-form create recovery guardrails', () => {
     });
     expect(payload).not.toHaveProperty('configWarning');
     expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(2);
+
+    consoleSpy.mockRestore();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('create form accepts concise field type aliases', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-field-alias-'));
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([
+      { key: 'guestName', type: 'text', label: '访客姓名' },
+      { key: 'guestCount', type: 'number', label: '人数' },
+      { key: 'visitDate', type: 'date', label: '到访日期' },
+      { key: 'status', type: 'radio', label: '状态', options: ['待确认', '已确认'] },
+      { key: 'tags', type: 'multiselect', label: '标签', options: ['家庭', '商务'] },
+    ]));
+
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpPost: jest.fn((baseUrl, requestPath, body) => {
+        if (requestPath.includes('saveFormSchemaInfo')) {
+          return Promise.resolve({ success: true, content: { formUuid: 'FORM_ALIAS' }, __body: body });
+        }
+        return Promise.resolve({ success: true });
+      }),
+    });
+
+    await expect(isolatedCreateForm.run([
+      'create',
+      'APP_TEST',
+      '字段别名表单',
+      fieldsPath,
+    ])).resolves.toBeUndefined();
+
+    const saveSchemaCall = mockUtils.httpPost.mock.calls.find((call) => (
+      call[1].includes('saveFormSchema') && !call[1].includes('saveFormSchemaInfo')
+    ));
+    const schema = JSON.parse(querystring.parse(saveSchemaCall[2]).content);
+    const formContainer = findFormContainer(schema.pages[0].componentsTree[0]);
+    const componentNames = formContainer.children
+      .map((field) => field.componentName)
+      .filter((componentName) => componentName !== 'Divider');
+    expect(componentNames).toEqual(['TextField', 'NumberField', 'DateField', 'RadioField', 'MultiSelectField']);
 
     consoleSpy.mockRestore();
     fs.rmSync(tmpDir, { recursive: true, force: true });
