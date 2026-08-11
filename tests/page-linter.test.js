@@ -618,6 +618,34 @@ export default function Page() {
     expect(goodResult.errors.map(issue => issue.rule)).not.toContain('formdata-literal-key');
   });
 
+  test('flags setError calls without a local binding', () => {
+    const source = `
+export function YidaComp() {
+  const state = useCanvasBaseState({});
+  const openForm = () => {
+    setError('表单地址构造失败');
+  };
+  return <button onClick={openForm}>新增</button>;
+}
+`;
+    const result = lintYidaSource(source, '/tmp/missing-seterror.canvas.jsx');
+    expect(result.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ rule: 'undefined-seterror', line: 5 }),
+    ]));
+
+    const goodSource = `
+export function YidaComp() {
+  const { setError } = useCanvasBaseState({});
+  const openForm = () => {
+    setError('表单地址构造失败');
+  };
+  return <button onClick={openForm}>新增</button>;
+}
+`;
+    const goodResult = lintYidaSource(goodSource, '/tmp/bound-seterror.canvas.jsx');
+    expect(goodResult.errors.map(issue => issue.rule)).not.toContain('undefined-seterror');
+  });
+
   test('flags Canvas form data read without yida JS API bridge', () => {
     const source = `
 export function YidaComp() {

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenYida Qwen 8轮优化 - Round 06 数据连接专项审计</title>
+  <style>
+    :root { --bg:#f7f8fb; --panel:#fff; --text:#172033; --muted:#5d6b82; --line:#dce3ec; --blue:#1167d8; --green:#157347; --amber:#9a6500; --red:#b42318; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:14px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { width:min(1120px, calc(100vw - 40px)); margin:28px auto 56px; }
+    header, section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px 24px; margin-bottom:16px; }
+    h1, h2 { margin:0 0 12px; line-height:1.25; }
+    h1 { font-size:28px; }
+    h2 { font-size:19px; }
+    p { margin:8px 0; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; overflow-wrap:anywhere; }
+    th, td { border:1px solid var(--line); padding:9px 10px; text-align:left; vertical-align:top; }
+    th { background:#f1f5fb; }
+    ul { margin:8px 0 0 20px; padding:0; }
+    code { background:#eef2f7; border-radius:4px; padding:1px 5px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px; }
+    .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-top:14px; }
+    .meta div { border:1px solid var(--line); border-radius:6px; padding:10px 12px; background:#fbfcff; }
+    .label { color:var(--muted); font-size:12px; }
+    .value { font-weight:650; margin-top:2px; }
+    .badge { display:inline-block; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:650; }
+    .ok { color:var(--green); background:#e8f5ee; }
+    .warn { color:var(--amber); background:#fff4df; }
+    .risk { color:var(--red); background:#fdecea; }
+    .note { color:var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>OpenYida Qwen 8轮优化 - Round 06 数据连接专项审计</h1>
+      <p>本轮跳过无 seed 硬验收的 Round 05 后，使用 Ultimate 执行数据连接专项审计。3 个真实应用均完成真实 seed 写入、query 回读、Canvas 发布、Drawer 交互源码检查和导航排序验证。</p>
+      <div class="meta">
+        <div><div class="label">日期</div><div class="value">2026-08-11</div></div>
+        <div><div class="label">代码分支</div><div class="value">codex/openyida-compress-routing-85161120</div></div>
+        <div><div class="label">Qoder run</div><div class="value">openyida-qwen-round-06-data-audit-20260811</div></div>
+        <div><div class="label">结论</div><div class="value"><span class="badge ok">数据链路通过，发现 scaffold 致命缺陷</span></div></div>
+      </div>
+    </header>
+
+    <section>
+      <h2>应用验收</h2>
+      <table>
+        <thead><tr><th>应用</th><th>appType</th><th>表单与 seed</th><th>Canvas 页面</th><th>样式差异</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>会员咖啡运营台R06</td>
+            <td><code>APP_RNY68K8OWFPGDWID7XW6</code></td>
+            <td>会员档案 3 条、消费记录 2 条；回读 <code>totalCount=3/2</code></td>
+            <td>运营工作台；发布成功；render probe 3769B</td>
+            <td>咖啡棕、暖色背景、KPI 卡 + 表格</td>
+          </tr>
+          <tr>
+            <td>小区物业报修台R06</td>
+            <td><code>APP_ODFBF3LS548PRU38EDOG</code></td>
+            <td>住户档案 2 条、报修工单 3 条；回读 <code>totalCount=2/3</code></td>
+            <td>报修看板；发布成功；render probe 4183B</td>
+            <td>青绿色、冷灰绿背景、三列看板</td>
+          </tr>
+          <tr>
+            <td>课程教务工作台R06</td>
+            <td><code>APP_WUXOQ4T4HLX7EPTVE54B</code></td>
+            <td>课程档案 2 条、学员报名 3 条；回读 <code>totalCount=2/3</code></td>
+            <td>教务工作台；发布成功；render probe 2954B</td>
+            <td>品红色、浅粉背景、签到统计 + 标签表格</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>7 项检查</h2>
+      <table>
+        <thead><tr><th>检查项</th><th>结论</th><th>证据</th></tr></thead>
+        <tbody>
+          <tr><td>自定义页面是否有报错</td><td><span class="badge warn">源码修复后通过；浏览器 UNKNOWN</span></td><td>未修复 scaffold 会 <code>setError is not defined</code>；本轮 3 页手动补后 render probe 通过。浏览器因 DingTalk 登录跳转无法完成 console 验收。</td></tr>
+          <tr><td>页面是否连接真实表单数据</td><td><span class="badge ok">PASS</span></td><td>全部使用 <code>get-schema --field-map-json</code> 的真实 fieldId，且每个数据源表单 <code>data query form</code> 回读 <code>totalCount&gt;0</code>。</td></tr>
+          <tr><td>按钮/链接/卡片是否可点击</td><td><span class="badge ok">PASS</span></td><td>源码层按钮有真实 <code>onClick</code>，详情卡片调用 <code>openForm({ type:'detail' })</code>。</td></tr>
+          <tr><td>新增/详情是否抽屉打开</td><td><span class="badge ok">PASS</span></td><td>3 页均使用 <code>Drawer</code> + <code>iframe</code>，新增 URL 为 <code>/submission/{formUuid}?iframe=true</code>。</td></tr>
+          <tr><td>导航是否默认排序好</td><td><span class="badge ok">PASS</span></td><td>3 个应用 display 页均 <code>listOrder=4</code> 居首，表单页面排在后面。</td></tr>
+          <tr><td>自定义页面是否为空</td><td><span class="badge ok">PASS</span></td><td>render probe 输出 2954-4183B，<code>runtimeCodeBytes</code> 为 18016-19426。</td></tr>
+          <tr><td>三个应用样式是否不一样</td><td><span class="badge ok">PASS</span></td><td>主题色、背景、圆角、模块形态和信息架构均不同。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Qoder 发现</h2>
+      <table>
+        <thead><tr><th>级别</th><th>发现</th><th>处理</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="badge risk">Critical</span></td>
+            <td>官方 Canvas scaffold 未从 <code>useCanvasBaseState</code> 解构 <code>setError</code>，导致打开表单异常路径直接 <code>ReferenceError</code>。</td>
+            <td>已修复 sample，并在 sample 单测中固定该解构。</td>
+          </tr>
+          <tr>
+            <td><span class="badge warn">High</span></td>
+            <td><code>check-page</code> 无法发现该类运行时未绑定调用。</td>
+            <td>新增窄规则：调用 <code>setError(...)</code> 但当前作用域无绑定时，报 <code>undefined-seterror</code>。</td>
+          </tr>
+          <tr>
+            <td><span class="badge warn">Medium</span></td>
+            <td>DateField 使用 ISO 日期字符串时可能返回 success 但不可查询。</td>
+            <td>现有技能契约已要求 DateField 使用 13 位毫秒时间戳；后续轮次继续观察是否需要 CLI 侧字段级校验。</td>
+          </tr>
+          <tr>
+            <td><span class="badge warn">Medium</span></td>
+            <td>历史测试页存在无效图标 import 或未修复 scaffold 的空白风险。</td>
+            <td>本轮先修源头 scaffold 和 check-page 窄门禁；历史远端测试页不作为产品交付页面批量修复。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>本轮修复</h2>
+      <ul>
+        <li>修复 <code>lib/samples/yida-canvas-custom-page/canvas.canvas.jsx</code>：补齐 <code>setError</code> 解构，避免官方 scaffold 生成页面运行时崩溃。</li>
+        <li>增强 <code>lib/app/page-linter.js</code>：新增 <code>undefined-seterror</code> 窄规则，让 <code>check-page</code> 能拦住本次真实缺陷。</li>
+        <li>补充中英文 i18n 文案和 <code>tests/page-linter.test.js</code>、<code>tests/sample.test.js</code> 覆盖。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>验证</h2>
+      <table>
+        <thead><tr><th>命令</th><th>结果</th></tr></thead>
+        <tbody>
+          <tr><td><code>node --check lib/app/page-linter.js tests/page-linter.test.js tests/sample.test.js</code></td><td><span class="badge ok">通过</span></td></tr>
+          <tr><td><code>npx jest tests/page-linter.test.js tests/sample.test.js --runInBand</code></td><td><span class="badge ok">45 passed</span></td></tr>
+          <tr><td><code>node bin/yida.js check-page lib/samples/yida-canvas-custom-page/canvas.canvas.jsx --json</code></td><td><span class="badge ok">通过；0 errors / 0 warnings</span></td></tr>
+          <tr><td><code>npm run check:i18n</code></td><td><span class="badge ok">通过；核心语言无新增漂移</span></td></tr>
+        </tbody>
+      </table>
+      <p class="note">浏览器验收仍受 DingTalk 登录态限制，Round 06 已按 UNKNOWN 记录，没有写成 PASS。</p>
+    </section>
+  </main>
+</body>
+</html>

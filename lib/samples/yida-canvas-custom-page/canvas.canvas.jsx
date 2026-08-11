@@ -345,7 +345,7 @@ function YidaComp(props) {
   const binding = useMemo(() => ({ ...DEFAULT_BINDING, ...((props && props.dataBinding) || {}) }), [props]);
   const themeTokens = useMemo(() => ({ ...THEME_TOKENS, ...((props && props.themeTokens) || {}) }), [props]);
   const baseUrl = resolveBaseUrl();
-  const { error, loadRows, loading, rows, totalCount } = useCanvasBaseState(binding);
+  const { error, loadRows, loading, rows, setError, totalCount } = useCanvasBaseState(binding);
   const [openState, setOpenState] = useState({ visible: false, type: '', url: '' });
 
   useEffect(() => {

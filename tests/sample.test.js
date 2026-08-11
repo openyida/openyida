@@ -91,6 +91,7 @@ describe('sample templates', () => {
     expect(source).toContain("iframe: 'true'");
     expect(source).not.toContain('window.location.assign(url)');
     expect(source).toContain('error.repairType');
+    expect(source).toContain('setError, totalCount } = useCanvasBaseState(binding)');
     expect(source).toContain('APP_TYPE');
     expect(source).toContain('FORM_UUIDS');
     expect(source).toContain('FIELDS');
