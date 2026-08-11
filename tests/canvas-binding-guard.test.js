@@ -106,6 +106,28 @@ describe('Code Canvas binding guard', () => {
     ]));
   });
 
+  test('rejects placeholder field IDs before nearest-match fallback', () => {
+    const contract = extractCanvasBindingContract(`
+      const APP_TYPE = 'APP_REAL';
+      const FORM_UUIDS = { primary: 'FORM-CUSTOMERS-001' };
+      const FIELDS = { primary: { title: 'textField_customerName_xxxx' } };
+    `);
+    const result = validateCanvasBindingContract(contract, {
+      appType: 'APP_REAL',
+      forms,
+      schemasByFormUuid,
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'CANVAS_BINDING_FIELD_ID_PLACEHOLDER',
+        fieldId: 'textField_customerName_xxxx',
+        candidates: [expect.objectContaining({ id: 'textField_customerName_12345' })],
+      }),
+    ]));
+  });
+
   test('rejects empty, cross-app, and dynamic scaffold bindings', () => {
     const contract = extractCanvasBindingContract(`
       const APP_TYPE = 'APP_WRONG';

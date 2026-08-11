@@ -28,6 +28,7 @@ const {
   mergePageDataSource,
   sendHealthCheckRequest,
   sendSaveRequestOnce,
+  ensurePublishTargetOrExit,
   verifyPublishTarget,
 } = require('../lib/app/publish');
 
@@ -226,6 +227,31 @@ describe('publish prechecks', () => {
     });
 
     expect(fetchFormPageList).not.toHaveBeenCalled();
+  });
+
+  test('force publish still returns app forms for Canvas binding validation', async () => {
+    const previousQuiet = process.env.YIDA_QUIET;
+    process.env.YIDA_QUIET = '1';
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'FORM-DATA', formName: '数据表', formType: 'receipt' },
+    ]);
+
+    try {
+      await expect(ensurePublishTargetOrExit('APP_XXX', 'FORM-PAGE', {}, { force: true }))
+        .resolves.toMatchObject({
+          ok: true,
+          skipped: true,
+          forms: [{ formUuid: 'FORM-DATA', formName: '数据表', formType: 'receipt' }],
+        });
+
+      expect(fetchFormPageList).toHaveBeenCalledWith('APP_XXX', {});
+    } finally {
+      if (previousQuiet === undefined) {
+        delete process.env.YIDA_QUIET;
+      } else {
+        process.env.YIDA_QUIET = previousQuiet;
+      }
+    }
   });
 
   test('preserves existing custom page data sources while keeping built-ins', () => {

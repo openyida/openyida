@@ -50,7 +50,9 @@ openyida publish <源文件路径> <appType> <formUuid> [--compat] [--canvas] [-
 | `--canvas` | 明确使用 Canvas 编译；`.canvas.jsx` 默认启用 |
 | `--health-check` | 发布后检查页面 URL |
 | `--auto-nav-order` | 普通 JSX 页面需要基础导航排序时使用；Code Canvas 已默认执行。完整应用仍使用 `nav-group order --plan` 落实 PRD 分组 |
-| `--force` | 仅在已确认目标是 display page、但导航接口暂时无法识别时绕过类型保护 |
+| `--force` | 仅在已确认目标是 display page、但导航接口暂时无法识别时绕过类型保护；不会绕过 Code Canvas 的 `appType/formUuid/fieldId` 绑定校验 |
+
+Code Canvas 发布时如果提示 `CANVAS_BINDING_*`，必须回到 `get-schema --field-map-json` 的真实结果修正源码。不要用 `--force` 绕过字段绑定错误。
 
 普通页面发布前运行：
 
