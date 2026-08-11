@@ -16,7 +16,7 @@
 | 页面结构配方 | 中性槽位、`visualScaffold`、`surfaceMap`、`componentRecipe`、`sceneRecipes` |
 | 状态与交互 / 响应式 / 可访问性 | loading、empty、error、mobile、reduced motion、焦点和对比度 |
 | 页面技能交接 | `designFile`、`designRefs`、主题作用域、token 来源、视觉脚手架、状态和组件约束 |
-| 交付自检 | 10+ contentBlocks、低密大卡片、主题一致性、背景层次、圆角密度、页面技能引用 |
+| 交付自检 | contentBlocks 来源与 PRD/用户范围一致、低密大卡片、主题一致性、背景层次、圆角密度、页面技能引用 |
 
 ## 写文件前检查
 

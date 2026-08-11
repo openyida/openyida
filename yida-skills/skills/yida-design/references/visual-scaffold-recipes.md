@@ -5,7 +5,7 @@
 ## 使用规则
 
 1. 先按页面场景选择一套配方。
-2. 把 `contentBlocks` 映射到配方槽位，少于 10 个区块先回到 Step 4 补齐。
+2. 把 PRD 或当前页面上下文中的 `contentBlocks` 映射到配方槽位。少于配方示例数量时，先确认是否用户范围已限定、页面是窄场景或能力由原生表单/流程承载；只有 PRD 支持时才回到 Step 4 补区块。
 3. 把配方写入 `design.md` 的 `visualScaffold`：`layoutRecipe`、`surfaceMap`、`sectionRhythm`、`densityRule`、`breathingRule`、`componentRecipe`、`emptyStateRecipe`、`responsiveSlots`、`acceptanceChecks`。PRD 只引用 `designFile/designRefs` 和主题风格摘要。
 4. 页面技能逐项消费，不从“高级 / 简洁 / 好看”等形容词直接推断页面样式。
 5. 默认业务页采用圆润高密且有呼吸感的规则：卡片 padding 默认 22-28px 且必须大于 20px，卡片与卡片的 gap 默认 12-18px 且必须小于 20px，卡片圆角范围 0-32px，控件 10-14px；状态摘要、动作条、列表和空态必须紧凑，间距服务分组和扫读，不用额外 margin 或空白高度撑面积。
@@ -116,7 +116,7 @@ KPI 子项、图表点、列表行不分别计数。
 ### acceptanceChecks
 
 - 三栏比例存在，不退化为四张等宽 KPI 卡。
-- 至少 10 个有业务目的的 `contentBlocks`。
+- `contentBlocks` 全部来自 PRD 或当前页面上下文；少于配方示例数量时已说明范围原因。
 - 首屏有主图、风险、事件流和动作入口。
 - 左侧指标轨不是四个大白卡。
 - 右侧事件流不是空白卡。

@@ -22,6 +22,7 @@ description: 生成 prd/<项目名>/prd.md，记录业务需求、资源结构�
 3. 每个 display 页面的业务要求完整写在 PRD 页面章节；`pageSpecHandoff` 只写稳定 `pageKey`、`prdRefs`、`designFile` 和 `designRefs`。
 4. 品牌和色彩只保留共享需求简报中的偏好摘要；完整视觉规则交给 `yida-design`。
 5. `appType`、`formUuid`、`fieldId`、`processCode` 等真实 ID 不写进 PRD，运行后写 `.cache/<项目名>-schema.json`。
+6. 共享需求简报包含 `explicitScope` 时，页面清单、导航清单和本轮交付范围按用户明确要求生成；不要补默认页面或固定数量模块来显得完整。
 
 ## 不要做
 
@@ -55,4 +56,5 @@ description: 生成 prd/<项目名>/prd.md，记录业务需求、资源结构�
 - 每个资源有唯一 `resourceKey`，导航顺序只引用 `resourceKey`。
 - PRD 里有资源创建顺序、页面交付顺序和导航顺序。
 - 每个 display 页面都有 `pageSpecHandoff`，并引用 `prd/<项目名>/design.md`。
+- 用户明确页面或资源范围时，PRD 没有新增同级 display 页面或默认模块来扩展范围。
 - 没有写 `design.md` 或页面源码。

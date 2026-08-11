@@ -19,7 +19,7 @@ description: 生成 prd/<项目名>/design.md，并把主题、圆角、密度�
 ## 必须做到
 
 1. 写入 `prd/<项目名>/design.md` 和 `.cache/openyida/<项目名>/design-runtime.json`。
-2. 完整应用先读取 `.cache/openyida/<项目名>/requirement-brief.json`，确认业务对象、页面场景、用户任务、品牌和色彩偏好。
+2. 完整应用先读取 `.cache/openyida/<项目名>/requirement-brief.json`，确认业务对象、页面场景、用户任务、`explicitScope`、品牌和色彩偏好。
 3. `design.md` 只写项目视觉决策：主题与色彩、视觉 DNA、布局、层级、背景、材质、圆角、密度、间距、组件、图标、状态和响应式规则。
 4. 完整应用只产出一份应用级 `design.md`；页面差异写成 `sceneRecipes`，不要为每页另起设计文件。
 5. 写完设计后，用 `design-runtime.json` 刷新项目级表单与 Canvas 脚手架；不手写主题注入、抽屉或 iframe 代码。
@@ -57,7 +57,7 @@ description: 生成 prd/<项目名>/design.md，并把主题、圆角、密度�
 9. **表单入口只写交互意图**：写清新建、提交、详情查看的视觉位置和打开体验；具体 URL、真实记录校验、容器实现和主题同步由页面实现技能处理。
 10. **默认页面保留平台应用导航**：同应用页面优先放入平台导航或导航分组；页面内 tab、自绘侧边栏或独立门户壳写 `appBlueprint.hasPageNavigation: true`，同时保持平台导航可见。
 11. **页面布局要到可交接粒度**：写清顶部/左侧/主体/右侧/底部区域、核心组件、信息密度、主操作位置、PC/移动端差异和空/载/错态。
-12. **页面丰富度保底**：工作台、首页、门户、看板、展示页和业务入口页至少规划 10 个有业务目的的区块以上；KPI 组、快捷入口组和列表组各只算 1 个区块。
+12. **页面丰富度服从 PRD**：工作台、首页、门户、看板、展示页和业务入口页默认要有足够支撑判断和操作的业务区块；用户或 PRD 已限定页面/模块时按限定范围设计，不为了数量补 PRD 没有的功能。KPI 组、快捷入口组和列表组各只算 1 个区块。
 13. **工作台禁低密大卡片模板**：不用“标题 + 4 个等宽大 KPI 白卡 + 图标快捷卡 + 大空态白卡”撑首屏。
 14. **默认圆润高密且有呼吸感**：`design.md` 写清 `roundedRule`、`densityRule` 和 `breathingRule` 的具体数值。
 15. **背景与卡片必须有层次对比**：`design.md` 写清 `surfaceContrast`，避免浅底白卡无边框、同色背景同色卡片。
@@ -84,7 +84,7 @@ description: 生成 prd/<项目名>/design.md，并把主题、圆角、密度�
 
 - 已写入 `prd/<项目名>/design.md` 和 `.cache/openyida/<项目名>/design-runtime.json`。
 - 已生成 `.cache/openyida/<项目名>/scaffolds/form.form.json` 和 `canvas.canvas.jsx`。
-- 完整应用已读取 `.cache/openyida/<项目名>/requirement-brief.json`。
+- 完整应用已读取 `.cache/openyida/<项目名>/requirement-brief.json`，并继承其中的 `explicitScope`。
 - `design.md` 包含 `themeProfile`、tokens、`visualScaffold`、`roundedRule`、`densityRule`、`breathingRule`、`surfaceContrast`、组件、图标、状态和响应式规则。
 - 每个 display 页面都有可供页面技能读取的 `sceneRecipes` 或 `designRefs`。
 - 没有写 `prd.md`，没有手写页面源码或运行时 helper。

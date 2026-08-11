@@ -6,10 +6,10 @@
 
 | 阶段 | 子技能 | 必做动作 | doneWhen |
 |------|--------|----------|----------|
-| 1. 需求剖析 | `yida-requirement-analysis` | 读取用户需求和资源上下文，写入 `.cache/openyida/<项目名>/requirement-brief.json` | 行业、用户、业务目标、核心功能、业务对象、页面场景、品牌和色彩偏好明确 |
+| 1. 需求剖析 | `yida-requirement-analysis` | 读取用户需求和资源上下文；用户明确页面、表单、流程、报表、导航项或本轮交付范围时，写入 `explicitScope`；再写入 `.cache/openyida/<项目名>/requirement-brief.json` | 行业、用户、业务目标、核心功能、业务对象、页面场景、品牌和色彩偏好明确；用户明确范围时 `explicitScope` 已保留 |
 | 2A. PRD 生成（并行） | `yida-prd` | 读取共享需求简报，生成 `prd/<项目名>/prd.md`；记录项目名和 `.cache/<项目名>-schema.json` 的 ID 映射位置 | PRD 可执行 |
 | 2B. design.md 生成（并行） | `yida-design` | 读取共享需求简报，生成 `design.md`、`design-runtime.json` 和项目表单/Canvas 脚手架；不等待或读取本轮 PRD | 设计文件和两份项目脚手架可用 |
-| 2C. PRD/design 对齐 | `yida-canvas-custom-page` | 等 2A 和 2B 都完成后，校验 PRD 页面场景、`prdRefs` 与 design.md 的 `designRefs`。业务冲突交给 `yida-prd` 修正，视觉冲突交给 `yida-design` 修正 | 当前页面的 PRD/design 引用存在且无冲突 |
+| 2C. PRD/design 对齐 | `yida-canvas-custom-page` | 等 2A 和 2B 都完成后，校验 PRD 页面清单、页面场景、`prdRefs` 与 design.md 的 `designRefs`。`explicitScope` 存在时，PRD 和 design.md 不得新增用户未要求的同级 display 页面；业务冲突交给 `yida-prd` 修正，视觉冲突交给 `yida-design` 修正 | 当前页面的 PRD/design 引用存在且无冲突；显式页面范围未被扩展 |
 | 3. create/reuse app | `yida-create-app` 仅在 app 缺失且允许创建时加载 | 已有 `appType`、应用 URL 或已绑定 app 时直接复用；否则按 PRD 创建应用并提取真实 `appType` | 拿到真实目标 `appType`，且没有重复创建同类 app |
 | 4. resolve forms/processes | `yida-form-detail`、`yida-create-form-page`；PRD 命中审批/流程时加载 `yida-create-process` | 已有目标表单时 update/patch/rule/bind-datasource；缺少核心业务表单且允许创建时才 create；从项目 `scaffolds/form.form.json` 扩展业务字段；需要多字段映射时，每个目标表单最多一次性获取完整 `--field-map-json` 并合并写回 `.cache/<项目名>-schema.json` | 拿到或确认表单/流程表单 `formUuid`，字段结构和必要 ID 映射可供页面阶段使用 |
 | 5A. seed records（并行） | `yida-data-management` | 阶段 4 后立即启动；默认给本轮新建或页面数据源依赖的核心普通表单写入 1-3 条业务化 seed records，并 query 抽查至少 1 条；用户明确不要造数、表单是配置字典/权限表、或字段缺少可安全构造值时跳过并说明原因 | 最终输出前拿到真实示例记录证据，或有明确跳过原因和空态方案 |

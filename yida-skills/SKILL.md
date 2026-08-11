@@ -59,6 +59,15 @@ openyida agent-capabilities --summary-json
 
 完整应用默认使用 `yida-prd` 生成的 `prd/<项目名>/prd.md` 和 `yida-design` 生成的 `prd/<项目名>/design.md`。创建顺序、页面实现和最终输出见 `yida-app`。
 
+### 完整应用输入约束
+
+当任务进入 `yida-app` 前，先判断用户是否已经明确给出范围：
+
+- 用户明确列出页面、表单、流程、报表、导航项或本轮只交付哪些页面时，把这些内容标记为 `explicitScope`，后续 `yida-requirement-analysis`、`yida-prd` 和 `yida-design` 必须原样继承。
+- 用户明确页面清单时，PRD 不再补默认页面来凑完整系统；只允许为必要的原生表单、流程、数据源或用户没有排除的支撑资源做最小补齐，并在 assumptions 中说明。
+- 用户没有明确页面清单时，才由 `yida-prd` 根据业务目标、角色任务和资源关系推导页面；推导结果仍要服务核心需求，不按固定数量补模块。
+- `yida-design` 只能为 PRD 中存在且本轮交付的 display 页面设计 `contentBlocks`。页面丰富度是质量检查，不是新增业务页面或新增业务模块的理由。
+
 ## 第四步：选择子技能
 
 先按任务选择一类，再从该类中选择一个主技能。
