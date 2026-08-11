@@ -2,7 +2,7 @@
  * OpenYida Code Canvas complete scaffold.
  *
  * @openyida-scene workbench
- * @openyida-content-blocks 页面标题,状态摘要,主操作区,数据筛选,数据表格,空状态,详情抽屉,新建入口,主题同步,错误提示
+ * @openyida-content-blocks 页面标题,主操作区,数据表格,空状态,详情抽屉,新建入口,数据管理入口,首屏加载,主题同步,错误提示
  *
  * This is the only generic Canvas scaffold. Extend dataBinding, fields,
  * blocks and actions in this file. Do not fork separate website/dashboard/list
@@ -256,6 +256,18 @@ function installThemeIntoFrame(themeTokens, iframeElement) {
   }
 }
 
+function isDocumentDetachedError(error) {
+  const message = String(error && error.message ? error.message : error || '');
+  return /document is already detached|failed to execute 'send' on 'xmlhttprequest'/i.test(message);
+}
+
+function formatLoadError(error) {
+  if (isDocumentDetachedError(error)) {
+    return '表单窗口关闭后正在刷新数据，请稍后再试。';
+  }
+  return error && error.message ? error.message : '数据加载失败';
+}
+
 function normalizeRow(row, fields) {
   return {
     key: resolveFormInstanceId(row) || String(Math.random()),
@@ -330,9 +342,11 @@ function useCanvasBaseState(binding) {
       setRows(nextRows.map((row) => normalizeRow(row, binding.fields || {})));
       setTotalCount(nextTotal);
     } catch (loadError) {
-      setError(loadError && loadError.message ? loadError.message : '数据加载失败');
-      setRows([]);
-      setTotalCount(0);
+      setError(formatLoadError(loadError));
+      if (!isDocumentDetachedError(loadError)) {
+        setRows([]);
+        setTotalCount(0);
+      }
     } finally {
       setLoading(false);
     }
@@ -347,6 +361,7 @@ function YidaComp(props) {
   const baseUrl = resolveBaseUrl();
   const { error, loadRows, loading, rows, setError, totalCount } = useCanvasBaseState(binding);
   const [openState, setOpenState] = useState({ visible: false, type: '', url: '' });
+  const refreshTimerRef = useRef(null);
 
   useEffect(() => {
     const runtime = getOpenYidaRuntime();
@@ -354,6 +369,26 @@ function YidaComp(props) {
       runtime.theme.install({ tokens: themeTokens });
     }
   }, [themeTokens]);
+
+  useEffect(() => {
+    loadRows();
+  }, [loadRows]);
+
+  useEffect(() => () => {
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+    }
+  }, []);
+
+  const scheduleLoadRows = useCallback(() => {
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+    }
+    refreshTimerRef.current = setTimeout(() => {
+      refreshTimerRef.current = null;
+      loadRows();
+    }, 400);
+  }, [loadRows]);
 
   const openForm = useCallback((request) => {
     const type = request && request.type;
@@ -460,7 +495,7 @@ function YidaComp(props) {
           openState={openState}
           onClose={() => {
             setOpenState({ visible: false, type: '', url: '' });
-            loadRows();
+            scheduleLoadRows();
           }}
           themeTokens={themeTokens}
         />

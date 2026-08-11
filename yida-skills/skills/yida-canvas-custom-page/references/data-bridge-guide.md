@@ -170,6 +170,8 @@ function useYidaFetch(buildRequest, deps) {
 - 如需 CSRF，优先从 `window.g_config`、`window.pageConfig`、`window.__YIDA__` 等运行态配置动态读取；预览域名缺少注入字段时，兜底读取 meta 或同源 cookie（如 `tianshu_csrf_token`）。内部端点同时放入 `_csrf_token` query 和 `global_csrf_token` 头。
 - 用 `AbortController` 在卸载 / 依赖变化时取消请求，保证副作用清理完整（对应编码规则 #5）。
 - 解析响应按**真实返回结构**处理；不同端点和运行态会出现 `data`、`result.data`、`content.data`、`content.result.data`、`list`、`values`、`records` 等包装。
+- 表单列表页必须在 mount 时自动调用一次查询；“刷新按钮能查到数据”不等于页面已接通。
+- 提交、详情或数据管理抽屉关闭后，先关闭 iframe，再延迟刷新列表；不要在 `onClose` 同步调用查询，也不要把 `Document is already detached` 等原始 XHR 报错展示给用户。
 
 ## 表单查询返回体必须递归解析
 

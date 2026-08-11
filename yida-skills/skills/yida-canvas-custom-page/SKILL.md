@@ -41,10 +41,13 @@ openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas
 7. 用户未明确要求整页跳转时，不得把脚手架的表单抽屉改成 `window.location`、`openPage`、`window.open` 或新标签。
 8. `searchFormDatas` 返回行的字段值只从 `row.formData[fieldId]` 读。使用脚手架的 `fieldOf(row, fieldId)`；不要写 `row[fieldId]`、`item[FIELDS.xxx]` 或 `apt[FIELDS.xxx]`。
 9. JSX 中使用的组件必须有明确的 import 或本地定义。按钮、搜索、筛选、Tab、分页、菜单、链接、快捷入口、可点击卡片和“查看全部”等可操作外观必须绑定真实事件；暂不实现就改成禁用态或静态文本。
-10. React Hooks、自定义 Hooks、`antd` 和 `@ant-design/icons` 都可用。包依赖使用标准 import；Ant Design 图标使用该包真实导出的 `*Outlined`、`*Filled` 或 `*TwoTone` 名称，不混用 `lucide-react` 图标名。
-11. 本地执行 `openyida check-page <source> --json` 或 `openyida compile <source> --json`；`.canvas.jsx` / `.canvas.tsx` 会自动使用 Canvas 编译器。
-12. 不直接调用普通 JSX 的 compatibility compiler、`page-compiler` 或 `build-page`。本地检查结果必须包含 `mode: "canvas"`；出现 `OPENYIDA_PAGE_COMPILER_MISMATCH` 时先改命令或文件后缀，不按普通 JSX 错误修改 Hooks、import 和默认导出。
-13. 本轮修改源码后，必须成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，才能说明页面已发布。
+10. 页面声明的 `@openyida-content-blocks` 必须在 JSX 中有对应 UI。不要只改注释来通过检查。
+11. 读取表单数据的页面必须在 mount 时自动加载一次数据。只把 `loadRows` 挂在“刷新”按钮上不合格。
+12. 关闭提交、详情或数据管理抽屉后再刷新数据；刷新要延迟到 iframe 卸载之后，错误文案不得把原始 XHR 报错透给用户。
+13. React Hooks、自定义 Hooks、`antd` 和 `@ant-design/icons` 都可用。包依赖使用标准 import；Ant Design 图标使用该包真实导出的 `*Outlined`、`*Filled` 或 `*TwoTone` 名称，不混用 `lucide-react` 图标名。
+14. 本地执行 `openyida check-page <source> --json` 或 `openyida compile <source> --json`；`.canvas.jsx` / `.canvas.tsx` 会自动使用 Canvas 编译器。
+15. 不直接调用普通 JSX 的 compatibility compiler、`page-compiler` 或 `build-page`。本地检查结果必须包含 `mode: "canvas"`；出现 `OPENYIDA_PAGE_COMPILER_MISMATCH` 时先改命令或文件后缀，不按普通 JSX 错误修改 Hooks、import 和默认导出。
+16. 本轮修改源码后，必须成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，才能说明页面已发布。
 
 发布命令会与线上 Schema 精确核对 `appType`、`formUuid` 和 `fieldId`。空值、错位或缺少字符都会阻止发布，并返回可供核对的真实候选值。
 
@@ -67,6 +70,8 @@ openyida sample yida-canvas-custom-page canvas --output project/pages/src/canvas
 - 本地检查返回 `mode: "canvas"`。
 - Schema 回读中存在 `YidaCodeCanvas`，`runtimeCode` 和 `importedModules` 有效。
 - 页面使用真实资源 ID 和真实数据。
+- 首屏会自动读取真实数据，手动刷新只是补充操作。
+- 新增、详情和数据管理抽屉关闭后不会清空列表或展示原始 XHR 报错。
 - 加载、空数据、错误和移动端状态可用。
 
 ## 参考文件

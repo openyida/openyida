@@ -92,6 +92,11 @@ describe('sample templates', () => {
     expect(source).not.toContain('window.location.assign(url)');
     expect(source).toContain('error.repairType');
     expect(source).toContain('setError, totalCount } = useCanvasBaseState(binding)');
+    expect(source).toContain('loadRows();');
+    expect(source).toContain('scheduleLoadRows');
+    expect(source).toContain('setTimeout(() => {');
+    expect(source).toContain('表单窗口关闭后正在刷新数据，请稍后再试。');
+    expect(source).toContain('if (!isDocumentDetachedError(loadError))');
     expect(source).toContain('APP_TYPE');
     expect(source).toContain('FORM_UUIDS');
     expect(source).toContain('FIELDS');
