@@ -66,15 +66,15 @@
 
 ## seed records 规则
 
-完整应用默认写入核心普通表单示例记录；该任务在表单字段映射完成后即可启动，可与主页面创建和 Canvas 源码实现并行。用户明确不要造数、目标是配置字典/权限表、敏感个人数据表、纯附件表或字段缺少可安全构造值时跳过并说明原因。
+完整应用默认写入核心普通表单示例记录；该任务在表单字段映射完成后即可启动，可与主页面创建和 Canvas 源码实现并行。只要本轮自定义页面读取普通表单数据，真实 seed 写入和 query 回读就是硬门禁。用户明确不要造数、目标是配置字典/权限表、敏感个人数据表、纯附件表或字段缺少可安全构造值时才可跳过并说明原因。
 
 - 每个核心普通表单写入 1-3 条；列表/工作台通常 2 条，看板/排行/状态分布通常 3 条。
 - 示例记录必须是当前业务语义，不写“测试1 / demo / mock”。
 - 先用 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实字段 ID。
 - `DateField` / `CascadeDateField` 使用 13 位毫秒时间戳。
 - 每条记录单独执行 `openyida data create form`，不要把多条实例作为顶层数组传入。
-- 写入后执行 query 抽查至少 1 条，确认 `formData` 非空。
-- 最终输出前必须汇合 seed 证据或跳过原因；页面发布不因 seed 任务仍在执行而阻塞。
+- 写入后必须执行 `openyida data query form <appType> <formUuid>`，确认 `totalCount>=1`，并抽查至少一条新记录的 `formInstId` 和 `formData`。
+- 最终输出前必须汇合 `appType/formUuid/formInstId/totalCount/样例字段值` 证据或合规跳过原因；缺少 query 回读时不得声称数据源已连接。
 
 ## 最终输出口径
 

@@ -455,10 +455,14 @@ describe('OpenYida skill contracts', () => {
     expect(createPage).toContain('下一步或以后才实现的页面只保留在 PRD，不执行 `create-page`');
     expect(createPage).toContain('`delivery.complete=false`');
     expect(workflow.page_creation_policy).toContain('Never batch-create page containers');
-    expect(appBuildStages).toContain('默认给本轮新建或页面数据源依赖的核心普通表单写入 1-3 条业务化 seed records');
+    expect(appBuildStages).toContain('本轮自定义页面读取的每个核心普通表单默认写入 1-3 条业务化 seed records');
+    expect(appBuildStages).toContain('`data query form` 回读');
+    expect(appBuildStages).toContain('`appType/formUuid/formInstId/totalCount/样例字段值`');
+    expect(appBuildStages).toContain('`totalCount>=1`');
     expect(appBuildStages).toContain('seed records 和页面源码实现可以同时开始');
     expect(skill).toContain('seed records、表单详情页 formDetail CSS 注入和按 PRD 应用导航计划属于默认完整应用阶段');
-    expect(appFinalOutput).toContain('核心普通表单已写入 1-3 条示例记录并 query 抽查');
+    expect(appFinalOutput).toContain('自定义页面读取的每个核心普通表单已写入 1-3 条业务化示例记录');
+    expect(appFinalOutput).toContain('`data query form` 回读 `totalCount>=1`');
     expect(appResolveContext).toContain('外部工具注入的当前任务资源上下文，例如 yida-agent 绑定的 app/page/form/process');
     expect(skill).not.toContain('## 模板优先');
     expect(skill).not.toContain('## Sample 与业务页边界');
@@ -615,6 +619,8 @@ describe('OpenYida skill contracts', () => {
     expect(dataManagement).toContain('抽查至少一条新记录');
     expect(appBuildContract).toContain('## seed records 规则');
     expect(appBuildContract).toContain('完整应用默认写入核心普通表单示例记录');
+    expect(appBuildContract).toContain('只要本轮自定义页面读取普通表单数据，真实 seed 写入和 query 回读就是硬门禁');
+    expect(dataManagement).toContain('每个被读取表单都必须写入 1-3 条业务化记录');
     expect(output).toContain('## 4. 页面与功能设计');
     expect(output).toContain('## 5. 设计需求与引用');
     expect(output).toContain('| 设计文件 | `prd/<项目名>/design.md` |');

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenYida Qwen 8轮优化 - Round 05 跳过与数据专项补查</title>
+  <style>
+    :root { --bg:#f7f8fb; --panel:#fff; --text:#172033; --muted:#5d6b82; --line:#dce3ec; --blue:#1167d8; --green:#157347; --amber:#9a6500; --red:#b42318; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:14px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { width:min(1120px, calc(100vw - 40px)); margin:28px auto 56px; }
+    header, section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px 24px; margin-bottom:16px; }
+    h1, h2 { margin:0 0 12px; line-height:1.25; }
+    h1 { font-size:28px; }
+    h2 { font-size:19px; }
+    p { margin:8px 0; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; overflow-wrap:anywhere; }
+    th, td { border:1px solid var(--line); padding:9px 10px; text-align:left; vertical-align:top; }
+    th { background:#f1f5fb; }
+    ul { margin:8px 0 0 20px; padding:0; }
+    code { background:#eef2f7; border-radius:4px; padding:1px 5px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px; }
+    .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-top:14px; }
+    .meta div { border:1px solid var(--line); border-radius:6px; padding:10px 12px; background:#fbfcff; }
+    .label { color:var(--muted); font-size:12px; }
+    .value { font-weight:650; margin-top:2px; }
+    .badge { display:inline-block; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:650; }
+    .ok { color:var(--green); background:#e8f5ee; }
+    .warn { color:var(--amber); background:#fff4df; }
+    .risk { color:var(--red); background:#fdecea; }
+    .note { color:var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>OpenYida Qwen 8轮优化 - Round 05 跳过与数据专项补查</h1>
+      <p>Round 05 已由 Qoder 执行，但提示词没有把真实 seed 数据写入与回读作为硬验收。本报告将 Round 05 标记为不计入有效验收，并记录 Ultimate 补查暴露的数据连接问题和本轮源码修复。</p>
+      <div class="meta">
+        <div><div class="label">日期</div><div class="value">2026-08-11</div></div>
+        <div><div class="label">代码分支</div><div class="value">codex/openyida-compress-routing-85161120</div></div>
+        <div><div class="label">Qoder run</div><div class="value">openyida-qwen-round-05-20260811 / openyida-data-interaction-audit-20260811</div></div>
+        <div><div class="label">结论</div><div class="value"><span class="badge risk">Round 05 跳过，不算有效验收</span></div></div>
+      </div>
+    </header>
+
+    <section>
+      <h2>为什么跳过 Round 05</h2>
+      <table>
+        <thead><tr><th>检查项</th><th>Round 05 状态</th><th>判定</th></tr></thead>
+        <tbody>
+          <tr><td>每个数据源表单默认写入 1-3 条业务数据</td><td>未写入、未记录 seed 证据</td><td><span class="badge risk">失败</span></td></tr>
+          <tr><td><code>data query form</code> 回读 <code>totalCount>=1</code></td><td>未执行</td><td><span class="badge risk">失败</span></td></tr>
+          <tr><td>自定义页数据是否真实连接表单提交数据</td><td>仅有 binding/schema 证据，没有真实 payload 验证</td><td><span class="badge warn">证据不足</span></td></tr>
+          <tr><td>浏览器 console/runtime/network 与点击验收</td><td>未完成浏览器验收</td><td><span class="badge warn">未知</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Ultimate 补查发现</h2>
+      <table>
+        <thead><tr><th>级别</th><th>发现</th><th>证据</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="badge risk">Critical</span></td>
+            <td>前四轮漏检默认表单数据</td>
+            <td>补查前 Round 02/03/04 共 12 个业务表单 <code>totalCount=0</code>。空表单会掩盖字段映射错误和接口断链。</td>
+          </tr>
+          <tr>
+            <td><span class="badge risk">Critical</span></td>
+            <td>Round 04 Canvas 页按中文 label 读 <code>formData</code></td>
+            <td>真实 payload key 是 <code>textField_...</code>、<code>selectField_...</code>，而页面代码使用 <code>row.formData['报修住户']</code>、<code>row.formData['处理状态']</code>，导致 KPI 和列表实际渲染为空或 0。</td>
+          </tr>
+          <tr>
+            <td><span class="badge warn">High</span></td>
+            <td>裸读 <code>window.Aliwork</code> 且静默空数组</td>
+            <td>取不到运行时 API 时页面返回空态，缺少显式错误态，check-page/compile 都拦不住。</td>
+          </tr>
+          <tr>
+            <td><span class="badge warn">Medium</span></td>
+            <td>新增入口未按抽屉模式打开</td>
+            <td>Round 04 新增按钮使用 <code>window.open('/workbench/...')</code>，不是 <code>/submission/&lt;formUuid&gt;?iframe=true</code>。</td>
+          </tr>
+          <tr>
+            <td><span class="badge warn">Medium</span></td>
+            <td>多应用样式同构</td>
+            <td>咖啡与报修页面都是相同浅底、三 KPI、三段 Card+Table 结构，只换了文案和图标。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>本轮修复</h2>
+      <ul>
+        <li>新增 page-linter 规则：自定义页读取 <code>formData['...']</code> 时，字面量 key 必须像真实宜搭 <code>fieldId</code>，否则以 <code>formdata-literal-key</code> 报错。</li>
+        <li>新增中英文错误文案，引导使用 <code>get-schema --field-map-json</code> 生成 <code>FIELDS</code> 映射。</li>
+        <li>强化 <code>yida-app</code> 阶段表、最终输出和 app-build-contract：自定义页读取普通表单时，seed 写入 + <code>data query form</code> 回读 <code>totalCount>=1</code> 是硬门禁。</li>
+        <li>强化 <code>yida-data-management</code>：完整应用 seed 必须记录 <code>appType/formUuid/formInstId/totalCount/样例字段值</code>，前端 <code>seedRows/mockRows/demoRows</code> 不算真实连接。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>验证</h2>
+      <table>
+        <thead><tr><th>命令</th><th>结果</th></tr></thead>
+        <tbody>
+          <tr><td><code>node --check lib/app/page-linter.js</code></td><td><span class="badge ok">通过</span></td></tr>
+          <tr><td><code>node --check tests/page-linter.test.js</code></td><td><span class="badge ok">通过</span></td></tr>
+          <tr><td><code>npx jest tests/page-linter.test.js --runInBand</code></td><td><span class="badge ok">35 passed</span></td></tr>
+          <tr><td><code>npx jest tests/skill-contracts.test.js --runInBand</code></td><td><span class="badge ok">31 passed</span></td></tr>
+          <tr><td><code>npm run check:i18n</code></td><td><span class="badge ok">通过；核心语言无新增漂移</span></td></tr>
+          <tr><td><code>npm run check:skills</code></td><td><span class="badge ok">通过；173 个 Markdown 文件</span></td></tr>
+          <tr><td><code>npm run build:skills</code></td><td><span class="badge ok">通过；生成 dist/skills/openyida 和 openyida-skills.zip</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>下一轮动作</h2>
+      <p>已派发 <code>openyida-qwen-round-06-data-audit-20260811</code>，模型为 Ultimate。该轮要求 3 个真实应用逐项输出 7 项验收结果，并把 seed 写入、接口回读、按钮点击、Drawer、导航、空页和样式差异全部作为证据项。</p>
+      <p class="note">浏览器验证如果因 Playwright/浏览器能力缺失无法完成，必须标记 UNKNOWN 或 FAIL-UNVERIFIED，不允许写 PASS。</p>
+    </section>
+  </main>
+</body>
+</html>

@@ -590,6 +590,34 @@ export function YidaComp() {
     expect(result.errors.map(issue => issue.rule)).toContain('searchformdata-http-path');
   });
 
+  test('flags formData literal keys that are labels instead of fieldIds', () => {
+    const badSource = `
+export default function Page() {
+  var row = { formData: {} };
+  var status = row.formData['处理状态'];
+  var owner = row.formData['owner'];
+  return <div>{status}{owner}</div>;
+}
+`;
+    const badResult = lintYidaSource(badSource, '/tmp/formdata-label.canvas.jsx');
+    expect(badResult.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ rule: 'formdata-literal-key', line: 4 }),
+      expect.objectContaining({ rule: 'formdata-literal-key', line: 5 }),
+    ]));
+
+    const goodSource = `
+export default function Page() {
+  var row = { formData: {} };
+  var FIELDS = { order: { status: 'selectField_ab12' } };
+  var status = row.formData[FIELDS.order.status];
+  var title = row.formData['textField_cd34'];
+  return <div>{status}{title}</div>;
+}
+`;
+    const goodResult = lintYidaSource(goodSource, '/tmp/formdata-fieldid.canvas.jsx');
+    expect(goodResult.errors.map(issue => issue.rule)).not.toContain('formdata-literal-key');
+  });
+
   test('flags Canvas form data read without yida JS API bridge', () => {
     const source = `
 export function YidaComp() {

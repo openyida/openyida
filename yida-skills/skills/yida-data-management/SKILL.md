@@ -59,6 +59,8 @@ openyida data query tasks <appType> --type todo|done|submitted|cc [--page 1 --si
 
 只生成数据文件、只执行登录或 Schema 查询、没有查询回读，都不算完成。
 
+完整应用默认 seed 数据时，若自定义页面读取普通表单数据，每个被读取表单都必须写入 1-3 条业务化记录，并记录 `appType/formUuid/formInstId/totalCount/样例字段值`。`totalCount < 1`、只使用前端 `seedRows/mockRows/demoRows`、或没有 query 回读，都不能证明自定义页面已经连接真实数据源。
+
 ## 参考文件
 
 | 文件 | 何时读取 |

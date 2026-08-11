@@ -8,7 +8,7 @@
 
 1. PRD 中所有“本轮交付=是”的页面均已发布并回读成功；
 2. `.cache/openyida/<项目名>/navigation-plan.json` 已生成，`openyida nav-group order <appType> --plan <file>` 返回 `verification.matched=true`；
-3. 核心普通表单已写入 1-3 条示例记录并 query 抽查，或说明跳过原因；
+3. 自定义页面读取的每个核心普通表单已写入 1-3 条业务化示例记录，并通过 `data query form` 回读 `totalCount>=1`；跳过 seed 只允许用于用户明确不要造数、配置字典/权限表、敏感个人数据表、纯附件表或字段无法安全构造值的场景；
 4. 输出 2-3 句业务交付总结；
 5. 在业务总结之后给出一个可访问主入口链接；
 6. 未继续执行可选后置动作。
