@@ -117,7 +117,7 @@ export function renderJsx() {
     const source = `
 /**
  * @openyida-scene workbench
- * @openyida-content-blocks 状态摘要,快捷入口,最近订单,空态提示
+ * @openyida-content-blocks 状态摘要,快捷入口,空态提示
  */
 export function renderJsx() {
   return <div>工作台</div>;

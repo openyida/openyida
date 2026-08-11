@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenYida Qwen 8轮优化 - Round 04</title>
+  <style>
+    :root { --bg:#f7f8fb; --panel:#fff; --text:#172033; --muted:#5d6b82; --line:#dce3ec; --blue:#1167d8; --green:#157347; --amber:#9a6500; --red:#b42318; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:14px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { width:min(1120px, calc(100vw - 40px)); margin:28px auto 56px; }
+    header, section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px 24px; margin-bottom:16px; }
+    h1, h2 { margin:0 0 12px; line-height:1.25; }
+    h1 { font-size:28px; }
+    h2 { font-size:19px; }
+    p { margin:8px 0; }
+    a { color:var(--blue); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; overflow-wrap:anywhere; }
+    th, td { border:1px solid var(--line); padding:9px 10px; text-align:left; vertical-align:top; }
+    th { background:#f1f5fb; }
+    ul { margin:8px 0 0 20px; padding:0; }
+    code { background:#eef2f7; border-radius:4px; padding:1px 5px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px; }
+    .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-top:14px; }
+    .meta div { border:1px solid var(--line); border-radius:6px; padding:10px 12px; background:#fbfcff; }
+    .label { color:var(--muted); font-size:12px; }
+    .value { font-weight:650; margin-top:2px; }
+    .badge { display:inline-block; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:650; }
+    .ok { color:var(--green); background:#e8f5ee; }
+    .warn { color:var(--amber); background:#fff4df; }
+    .risk { color:var(--red); background:#fdecea; }
+    .note { color:var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>OpenYida Qwen 8轮优化 - Round 04</h1>
+      <p>本报告记录第四轮专项验证：少于 10 个内容块的轻量 Canvas 页、用户明确页面范围，以及配置传播 pending 文案。</p>
+      <div class="meta">
+        <div><div class="label">日期</div><div class="value">2026-08-11</div></div>
+        <div><div class="label">代码分支</div><div class="value">codex/openyida-compress-routing-85161120</div></div>
+        <div><div class="label">Qoder run</div><div class="value">openyida-qwen-round-04-20260811</div></div>
+        <div><div class="label">结论</div><div class="value"><span class="badge ok">轻量区块误判已修复</span></div></div>
+      </div>
+    </header>
+
+    <section>
+      <h2>应用与页面</h2>
+      <table>
+        <thead><tr><th>应用</th><th>appType</th><th>范围</th><th>Canvas 页</th><th>链接</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>咖啡店会员积分系统</td>
+            <td><code>APP_H4ZRIFD568ZMC321CM6S</code></td>
+            <td>2 表单 + 1 页面；5 个内容块</td>
+            <td>会员概览</td>
+            <td><a href="https://demo.aliwork.com/APP_H4ZRIFD568ZMC321CM6S/workbench/FORM-06E9A38B38F547B88804C1E21976D1740W9C">Canvas 页面</a></td>
+          </tr>
+          <tr>
+            <td>小区报修登记系统</td>
+            <td><code>APP_VXH7HLGZUPKLZGJRC3HT</code></td>
+            <td>2 表单 + 1 页面；5 个内容块</td>
+            <td>报修看板</td>
+            <td><a href="https://demo.aliwork.com/APP_VXH7HLGZUPKLZGJRC3HT/workbench/FORM-DF332694260241AE8B300DE265AE3D0DADSN">Canvas 页面</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Qwen 发现</h2>
+      <table>
+        <thead><tr><th>级别</th><th>发现</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="badge warn">Medium</span></td>
+            <td>Rich scene 仍硬性要求 10 个内容块</td>
+            <td><code>@openyida-scene dashboard</code> + 5 blocks 会触发 <code>OPENYIDA_CANVAS_CONTENT_BLOCKS_TOO_FEW</code>；改成 <code>overview</code> 才能绕过。</td>
+          </tr>
+          <tr>
+            <td><span class="badge ok">Info</span></td>
+            <td>yida-app 总入口尊重 explicitScope</td>
+            <td>技能链路已把 <code>explicitScope</code> 作为硬约束，PRD/design 不得额外扩同级 display 页面。</td>
+          </tr>
+          <tr>
+            <td><span class="badge ok">Info</span></td>
+            <td>updateFormConfig pending 文案有效</td>
+            <td>“表单不存在”被显示为“配置更新暂未生效”，不再是硬失败语义；稍后重试可成功。</td>
+          </tr>
+          <tr>
+            <td><span class="badge warn">Low</span></td>
+            <td>Canvas binding contract 变量名较敏感</td>
+            <td>页面中出现特定 <code>FORM_UUIDS/FIELDS</code> 常量名会触发严格契约校验，Qoder 本轮通过改名规避；后续轮次继续观察。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>本轮修复</h2>
+      <ul>
+        <li>将 <code>lib/app/page-richness-guard.js</code> 的展示页最低业务内容块阈值从 10 调整为 4。</li>
+        <li>保留 rich scene 的内容块声明要求，继续拦截空页、极低密页面和无业务目的页面。</li>
+        <li>更新 page linter、Canvas 编译和 skill contract 测试，使合同从“固定 10+”变成“按 PRD、用户明确范围和真实任务决定”。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>验证</h2>
+      <table>
+        <thead><tr><th>命令</th><th>结果</th></tr></thead>
+        <tbody>
+          <tr><td><code>node --check lib/app/page-richness-guard.js && node --check tests/page-linter.test.js && node --check tests/canvas-compile.test.js && node --check tests/skill-contracts.test.js</code></td><td><span class="badge ok">通过</span></td></tr>
+          <tr><td><code>npx jest tests/page-linter.test.js tests/canvas-compile.test.js tests/skill-contracts.test.js --runInBand</code></td><td><span class="badge ok">119 passed</span></td></tr>
+          <tr><td><code>rg 固定 10 内容块旧文案</code></td><td><span class="badge ok">无命中</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>下一轮要求</h2>
+      <ul>
+        <li>继续用 rich scene + 4-6 个内容块验证，不再使用 overview 绕过。</li>
+        <li>继续检查 Canvas binding contract 对自然变量命名是否过严。</li>
+        <li>继续要求 Qoder 输出浏览器交互能力限制和 API/readback 证据。</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

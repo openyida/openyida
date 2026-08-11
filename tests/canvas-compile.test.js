@@ -137,7 +137,7 @@ test('blocks rich display pages with too few content blocks', () => {
   const source = `
 /**
  * @openyida-scene workbench
- * @openyida-content-blocks 状态摘要,快捷入口,最近订单,空态提示
+ * @openyida-content-blocks 状态摘要,快捷入口,空态提示
  */
 import React from 'react';
 
@@ -147,7 +147,7 @@ export default function YidaComp() {
 `;
 
   expect(() => compileCanvasLocal(source, { sourcePath: '/tmp/workbench.canvas.jsx' }))
-    .toThrow(/至少需要 10 个|at least 10/);
+    .toThrow(/至少需要 4 个|at least 4/);
 });
 
 test('allows rich display pages with enough content blocks', () => {
