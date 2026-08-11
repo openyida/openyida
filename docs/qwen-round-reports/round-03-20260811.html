@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenYida Qwen 8轮优化 - Round 03</title>
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --panel: #fff;
+      --text: #172033;
+      --muted: #5d6b82;
+      --line: #dce3ec;
+      --blue: #1167d8;
+      --green: #157347;
+      --amber: #9a6500;
+      --red: #b42318;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    main { width: min(1120px, calc(100vw - 40px)); margin: 28px auto 56px; }
+    header, section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; margin-bottom: 16px; }
+    h1, h2 { margin: 0 0 12px; line-height: 1.25; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 19px; }
+    p { margin: 8px 0; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; overflow-wrap: anywhere; }
+    th, td { border: 1px solid var(--line); padding: 9px 10px; text-align: left; vertical-align: top; }
+    th { background: #f1f5fb; }
+    ul { margin: 8px 0 0 20px; padding: 0; }
+    code { background: #eef2f7; border-radius: 4px; padding: 1px 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 14px; }
+    .meta div { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; background: #fbfcff; }
+    .label { color: var(--muted); font-size: 12px; }
+    .value { font-weight: 650; margin-top: 2px; }
+    .badge { display: inline-block; border-radius: 999px; padding: 2px 8px; font-size: 12px; font-weight: 650; }
+    .ok { color: var(--green); background: #e8f5ee; }
+    .warn { color: var(--amber); background: #fff4df; }
+    .risk { color: var(--red); background: #fdecea; }
+    .note { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>OpenYida Qwen 8轮优化 - Round 03</h1>
+      <p>本报告记录 Qoder 使用 <code>Qwen3.7-Plus</code> 的第三轮真实应用测试。本轮补齐了 Canvas 自定义页覆盖，并继续验证前两轮修复。</p>
+      <div class="meta">
+        <div><div class="label">日期</div><div class="value">2026-08-11</div></div>
+        <div><div class="label">代码分支</div><div class="value">codex/openyida-compress-routing-85161120</div></div>
+        <div><div class="label">Qoder run</div><div class="value">openyida-qwen-round-03-20260811</div></div>
+        <div><div class="label">结论</div><div class="value"><span class="badge warn">Canvas 链路可用，配置传播仍需兜底</span></div></div>
+      </div>
+    </header>
+
+    <section>
+      <h2>应用与页面</h2>
+      <table>
+        <thead>
+          <tr><th>应用</th><th>appType</th><th>表单</th><th>Canvas 页</th><th>页面链接</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>家政服务预约平台</td>
+            <td><code>APP_F2E3IX4U8ITY3OQL3VPP</code></td>
+            <td>服务项目、客户预约</td>
+            <td>预约看板</td>
+            <td><a href="https://demo.aliwork.com/APP_F2E3IX4U8ITY3OQL3VPP/workbench/FORM-230D62D2B49B4DABA5207B9E368FF8B4CR4M">FORM-230D...</a></td>
+          </tr>
+          <tr>
+            <td>小型仓储出入库管理</td>
+            <td><code>APP_WHT6KN3VJEKSQD4J4RE0</code></td>
+            <td>商品档案、出入库记录</td>
+            <td>库存看板</td>
+            <td><a href="https://demo.aliwork.com/APP_WHT6KN3VJEKSQD4J4RE0/workbench/FORM-3D54CC8B3FF04B0DB63640542EB2A118H4U7">FORM-3D54...</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Qwen 发现</h2>
+      <table>
+        <thead>
+          <tr><th>级别</th><th>发现</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge warn">Medium</span></td>
+            <td><code>updateFormConfig</code> “表单不存在”仍复现</td>
+            <td>4/4 个表单创建都出现传播型警告；Schema 保存成功，表单功能正常，Canvas 发布阶段配置更新正常。</td>
+          </tr>
+          <tr>
+            <td><span class="badge ok">Info</span></td>
+            <td>Canvas 页数据连接验证通过</td>
+            <td>2 个 Canvas 页均通过 <code>check-page</code>，<code>canvasBindingEvidence.valid=true</code>，字段映射正确。</td>
+          </tr>
+          <tr>
+            <td><span class="badge ok">Info</span></td>
+            <td>health-check missing_cookies 修复有效</td>
+            <td>2/2 次发布均为 <code>skipped=true</code>，未输出失败警告。</td>
+          </tr>
+          <tr>
+            <td><span class="badge ok">Info</span></td>
+            <td>短字段类型继续可用</td>
+            <td><code>text</code>、<code>number</code>、<code>radio</code>、<code>date</code>、<code>textarea</code> 均成功。</td>
+          </tr>
+          <tr>
+            <td><span class="badge risk">Low</span></td>
+            <td>真实浏览器交互仍无法验证</td>
+            <td>Qoder 环境无法真实点击按钮、验证 Drawer 动画和 iframe 提交刷新；只能用源码、API 和发布证据补充。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>本轮修复</h2>
+      <ul>
+        <li>将 <code>updateFormConfig</code> 传播型重试窗口调整为 <code>[2000, 4000, 6000, 8000, 10000]</code>，总计约 30 秒。</li>
+        <li>对“表单不存在/未找到”等可重试传播错误，最终仍未完成时改用 <code>配置更新暂未生效</code> 文案，避免误导为创建失败。</li>
+        <li>保留非重试错误的原有 <code>配置更新失败</code> 语义，例如权限、登录、参数错误仍按失败提示。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>验证</h2>
+      <table>
+        <thead>
+          <tr><th>命令</th><th>结果</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>node --check lib/app/create-form.js && node --check tests/create-form.test.js</code></td><td><span class="badge ok">通过</span></td></tr>
+          <tr><td><code>npx jest tests/create-form.test.js --runInBand</code></td><td><span class="badge ok">117 passed</span></td></tr>
+          <tr><td><code>npm run check:i18n</code></td><td><span class="badge ok">通过棘轮校验</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>下一轮要求</h2>
+      <ul>
+        <li>继续创建带 Canvas 页的应用，观察 30 秒窗口是否减少传播警告。</li>
+        <li>专项测试少于 10 个内容块的 Canvas 页，确认不再有 <code>@openyida-content-blocks</code> 固定 10 块误判。</li>
+        <li>专项测试用户明确页面范围时，入口路由是否尊重范围，不额外扩写页面。</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

@@ -1904,7 +1904,7 @@ describe('create-form create recovery guardrails', () => {
   });
 
   test('post-create config retry window covers slow form propagation', () => {
-    expect(sourceCode).toContain('return [1000, 3000, 5000, 5000];');
+    expect(sourceCode).toContain('return [2000, 4000, 6000, 8000, 10000];');
   });
 
   test('hallucinated name fields shape fails before remote write', async () => {
