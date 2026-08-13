@@ -937,6 +937,41 @@
       ]
     },
     {
+      "name": "yida-native-attachment-upload",
+      "path": "skills/yida-native-attachment-upload/SKILL.md",
+      "display_name": "宜搭原生附件上传",
+      "description": "将本地文件上传到已有普通表单实例的 AttachmentField，支持替换、追加、并发上传和写后验收。",
+      "category": "yida-skills/form",
+      "tags": [
+        "附件上传",
+        "AttachmentField",
+        "OSS",
+        "表单实例"
+      ],
+      "aliases": [
+        "原生附件直传",
+        "附件迁移"
+      ],
+      "positive_signals": [
+        "上传本地文件到表单",
+        "追加附件",
+        "替换附件",
+        "附件迁移",
+        "后台直传附件"
+      ],
+      "negative_signals": [
+        "自定义页面上传组件",
+        "上传图片到 CDN",
+        "流程表单附件",
+        "删除附件"
+      ],
+      "command_ids": [
+        "data.upload-attachment.form",
+        "get-schema"
+      ],
+      "done_when": "命令完成 OSS 上传、附件回调、表单更新和实例回读，verification.passed=true 且附件数量符合预期。"
+    },
+    {
       "name": "yida-openyida-publish-guard",
       "path": "skills/yida-openyida-publish-guard/SKILL.md",
       "display_name": "页面发布保护",

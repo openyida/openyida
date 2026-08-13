@@ -48,6 +48,7 @@ module.exports = {
     cmd_form_detail_style: 'Manage form detail page style',
     group_data: 'Daten & Berechtigungen',
     cmd_data: 'Einheitliche Datenverwaltung (Formular/Prozess/Aufgabe/Unterformular)',
+    cmd_data_upload_attachment: 'Lokale Dateien in ein Anhangsfeld einer vorhandenen Formularinstanz hochladen',
     cmd_task_center: 'Globales Aufgabenzentrum (Aufgaben/Bearbeitet/CC etc.)',
     cmd_basic_info: 'Organisationsinfos, Kapazitaeten, Quoten und Domain-Einstellungen abfragen',
     cmd_read_dingtalk_doc: 'Markdown-Inhalt eines DingTalk-Dokuments abrufen',
@@ -119,6 +120,13 @@ module.exports = {
     quickstart_app_name: 'Anwesenheitsverwaltung',
     quickstart_form_name: 'Mitarbeiterinfo',
     docs: '📚 Dokumentation:'
+  },
+  attachment_upload: {
+    invalid: 'Ungültige Argumente für den Anhang-Upload: {0}',
+    login_required: 'Eine gültige OpenYida-OAuth-Sitzung ist erforderlich; führen Sie zuerst openyida login aus',
+    stage_failed: 'Anhang-Upload in Phase {0} fehlgeschlagen: {1}',
+    partial_failed: 'Mindestens eine Datei konnte nicht hochgeladen werden; das Formular wurde nicht aktualisiert und verwaiste OSS-Objekte sind möglich',
+    verification_failed: 'Der Anhang wurde aktualisiert, aber die Überprüfung durch erneutes Lesen ist fehlgeschlagen'
   },
   cli: {
     help: '\n' +

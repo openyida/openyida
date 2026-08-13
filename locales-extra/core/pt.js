@@ -48,6 +48,7 @@ module.exports = {
     cmd_form_detail_style: 'Manage form detail page style',
     group_data: 'Dados & Permissões',
     cmd_data: 'Gerenciamento unificado de dados (formulário/processo/tarefa/subformulário)',
+    cmd_data_upload_attachment: 'Enviar arquivos locais para um campo de anexo de uma instância de formulário existente',
     cmd_task_center: 'Centro de tarefas global (pendente/processado/CC etc.)',
     cmd_basic_info: 'Consultar info da organizacao, capacidade, cotas e dominio',
     cmd_read_dingtalk_doc: 'Obter conteúdo Markdown de um documento DingTalk',
@@ -119,6 +120,13 @@ module.exports = {
     quickstart_app_name: 'Gestão de presença',
     quickstart_form_name: 'Info do funcionário',
     docs: '📚 Documentação:'
+  },
+  attachment_upload: {
+    invalid: 'Argumentos inválidos para envio de anexos: {0}',
+    login_required: 'É necessária uma sessão OAuth válida do OpenYida; execute openyida login primeiro',
+    stage_failed: 'O envio do anexo falhou durante {0}: {1}',
+    partial_failed: 'Falha no envio de um ou mais arquivos; o formulário não foi atualizado e podem existir objetos OSS órfãos',
+    verification_failed: 'O anexo foi atualizado, mas a verificação por nova leitura falhou'
   },
   cli: {
     help: '\n' +

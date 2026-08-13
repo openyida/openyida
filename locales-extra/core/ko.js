@@ -48,6 +48,7 @@ module.exports = {
     cmd_form_detail_style: 'Manage form detail page style',
     group_data: '데이터 & 권한',
     cmd_data: '통합 데이터 관리 (양식/프로세스/작업/하위양식)',
+    cmd_data_upload_attachment: '로컬 파일을 기존 양식 인스턴스의 첨부 필드에 업로드',
     cmd_task_center: '글로벌 작업 센터 (할일/처리됨/참조 등)',
     cmd_basic_info: '조직 기본 정보, 용량, 할당량 및 도메인 설정 조회',
     cmd_read_dingtalk_doc: 'DingTalk 문서의 Markdown 내용 가져오기',
@@ -119,6 +120,13 @@ module.exports = {
     quickstart_app_name: '출석 관리',
     quickstart_form_name: '직원 정보',
     docs: '📚 문서:'
+  },
+  attachment_upload: {
+    invalid: '첨부 파일 업로드 인수가 잘못되었습니다: {0}',
+    login_required: '유효한 OpenYida OAuth 세션이 필요합니다. 먼저 openyida login을 실행하세요',
+    stage_failed: '첨부 파일 업로드가 {0} 단계에서 실패했습니다: {1}',
+    partial_failed: '하나 이상의 파일 업로드에 실패했습니다. 양식은 업데이트되지 않았으며 OSS 고아 객체가 남을 수 있습니다',
+    verification_failed: '첨부 파일은 업데이트되었지만 양식 재조회 검증에 실패했습니다'
   },
   cli: {
     help: '\n' +

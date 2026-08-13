@@ -48,6 +48,7 @@ module.exports = {
     cmd_form_detail_style: 'Manage form detail page style',
     group_data: 'データ & 権限',
     cmd_data: '統合データ管理（フォーム/プロセス/タスク/サブフォーム）',
+    cmd_data_upload_attachment: 'ローカルファイルを既存フォームインスタンスの添付フィールドへアップロード',
     cmd_task_center: 'グローバルタスクセンター（未処理/処理済/CC等）',
     cmd_basic_info: '組織の基本情報、容量、クォータ、ドメイン設定を照会',
     cmd_read_dingtalk_doc: 'DingTalk ドキュメントの Markdown 内容を取得',
@@ -119,6 +120,13 @@ module.exports = {
     quickstart_app_name: '勤怠管理',
     quickstart_form_name: '従業員情報',
     docs: '📚 ドキュメント:'
+  },
+  attachment_upload: {
+    invalid: '添付ファイルのアップロード引数が無効です：{0}',
+    login_required: '有効な OpenYida OAuth セッションが必要です。先に openyida login を実行してください',
+    stage_failed: '添付ファイルのアップロードが {0} 段階で失敗しました：{1}',
+    partial_failed: '1つ以上のファイルのアップロードに失敗しました。フォームは更新されず、OSS に孤立オブジェクトが残る可能性があります',
+    verification_failed: '添付ファイルは更新されましたが、フォームの再取得による検証に失敗しました'
   },
   cli: {
     help: '\n' +

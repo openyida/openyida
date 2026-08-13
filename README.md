@@ -34,7 +34,7 @@ OpenYida is a bridge between AI coding tools and Yida. It gives agents a stable 
 | Form modeling | Create forms, update fields, inspect schemas, and manage permissions |
 | Custom pages | Generate React-based pages, lint Yida runtime rules, compile, and publish |
 | Workflow automation | Create process forms, configure approval flows, preview process instances |
-| Data operations | Query form/process/task/subform data and run anomaly checks |
+| Data operations | Query and update form/process/task/subform data, including native attachment uploads |
 | Integrations | Manage HTTP connectors, connector actions, auth accounts, and automation flows |
 | Operations | Diagnose environment issues, manage login state, configure sharing, upload CDN assets |
 
@@ -211,6 +211,7 @@ openyida configure-process APP_XXX FORM_XXX .cache/openyida/process/process.json
 openyida process preview APP_XXX PROC_INST_XXX --output .cache/openyida/process/process.html
 openyida data query form APP_XXX FORM_XXX --page 1 --size 20
 openyida data create form APP_XXX FORM_XXX --data-file .cache/openyida/data-import/record.json
+openyida data upload-attachment form APP_XXX FORM_XXX --inst-id FINST_XXX --attachment-field attachmentField_xxx --file ./contract.pdf --append
 openyida get-permission APP_XXX FORM_XXX
 ```
 
@@ -420,6 +421,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | Command | Description |
 |---------|-------------|
 | `openyida data <action> <resource> [args]` | Unified data management (form/process/task/subform) |
+| `openyida data upload-attachment form <appType> <formUuid> --inst-id <formInstId> --attachment-field <attachmentField_xxx> --file <path> [--file <path> ...] [--append] [--concurrency <1-5>] [--dry-run]` | Upload local files to an attachment field on an existing form instance |
 | `openyida task-center <type> [options]` | Global task center (todo/processed/cc etc.) |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, and domain settings |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | Fetch Markdown content from a DingTalk document |
