@@ -54,6 +54,7 @@ module.exports = {
     cmd_get_form_config: 'Query form configuration',
     group_data: 'البيانات & الأذونات',
     cmd_data: 'إدارة البيانات الموحدة (نموذج/عملية/مهمة/نموذج فرعي)',
+    cmd_data_upload_attachment: 'رفع ملفات محلية إلى حقل مرفقات في نسخة نموذج موجودة',
     cmd_task_center: 'مركز المهام العالمي (معلق/معالج/نسخة إلخ)',
     cmd_basic_info: 'عرض معلومات المؤسسة والسعة والحصص والنطاق',
     cmd_read_dingtalk_doc: 'جلب محتوى Markdown من مستند DingTalk',
@@ -147,6 +148,13 @@ module.exports = {
     next_page: 'تتوفر تطبيقات أخرى. تابع باستخدام: {0}',
   },
 
+  attachment_upload: {
+    invalid: 'وسيطات رفع المرفقات غير صالحة: {0}',
+    login_required: 'يلزم وجود جلسة OAuth صالحة لـ OpenYida؛ شغّل openyida login أولاً',
+    stage_failed: 'فشل رفع المرفق أثناء مرحلة {0}: {1}',
+    partial_failed: 'فشل رفع ملف واحد أو أكثر؛ لم يتم تحديث النموذج وقد توجد كائنات OSS يتيمة',
+    verification_failed: 'تم تحديث المرفق، لكن فشل التحقق بإعادة قراءة النموذج'
+  },
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +
