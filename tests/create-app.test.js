@@ -126,6 +126,8 @@ describe('create-app argument parsing', () => {
       group: 'ALL',
       openExclusive: 'n',
       openPhysicColumn: 'n',
+      fromBuilderAi: 'y',
+      builderAiSource: 'local',
     });
     expect(payload).not.toHaveProperty('navTheme');
     expect(payload).not.toHaveProperty('layoutDirection');
