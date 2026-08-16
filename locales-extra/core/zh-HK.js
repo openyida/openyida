@@ -35,7 +35,7 @@ module.exports = {
     cmd_list_forms: '列出應用程式下的表單/頁面',
     cmd_aggregate_table: '管理聚合表（virtualView）',
     cmd_get_schema: '取得表單 Schema',
-    cmd_check_prd_completeness: 'Check PRD build completeness',
+    cmd_check_prd_completeness: 'Check PRD build delivery risk',
     cmd_er: '導出應用實體關係圖',
     cmd_create_page: '建立自訂展示頁面',
     cmd_generate_page: '基於高質素模板生成頁面',
@@ -251,8 +251,8 @@ module.exports = {
     build_page_example: '示例: openyida build-page pages/src/dashboard.oyd.jsx --output pages/build/dashboard.yida.jsx',
     publish_usage: '用法：openyida publish <原始檔路徑> <appType> <formUuid> [--health-check] [--canvas] [--auto-nav-order]',
     publish_example: '範例：openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX --health-check --auto-nav-order',
-    check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--json]',
-    check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --json',
+    check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]',
+    check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --build-manifest prd/order-management/build-manifest.json --json',
     formula_usage: '用法: openyida formula evaluate <公式或文件> [--schema schema.json] [--json] [--strict]',
     formula_example: `示例: openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "高", "低")' --schema .cache/schema.json`,
     verify_usage: '用法：openyida verify-short-url <appType> <formUuid> <url>',
@@ -1226,9 +1226,11 @@ module.exports = {
     stdin_closed: '輸入串流已關閉，無法選擇組織'
   },
   check_prd_completeness: {
-    usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--json]',
-    example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --json',
+    usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]',
+    example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --build-manifest prd/order-management/build-manifest.json --json',
     prd_not_found: 'PRD file not found: {0}',
+    manifest_not_found: 'Build manifest file not found: {0}',
+    manifest_invalid: 'Invalid build manifest JSON: {0}',
     no_login: 'Unable to obtain valid token credentials. Please run openyida login first',
     checking: 'Checking PRD build completeness: {0}'
   },

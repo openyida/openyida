@@ -3,6 +3,7 @@
 const {
   evaluatePrdCompleteness,
   parseArgs,
+  parseBuildManifest,
   parsePrdMarkdown,
 } = require('../lib/app/check-prd-completeness');
 
@@ -98,6 +99,16 @@ function buildPrd() {
 `;
 }
 
+function buildManifest(overrides = {}) {
+  return {
+    resources: [
+      { name: '销售工作台', type: 'display-page', formUuid: 'FORM-HOME', main: true },
+      { name: '客户信息', type: 'normal-form', formUuid: 'FORM-CUSTOMER' },
+    ],
+    ...overrides,
+  };
+}
+
 describe('prd completeness check', () => {
   const forms = [
     { formUuid: 'FORM-HOME', formName: '销售工作台', formType: 'display' },
@@ -108,6 +119,8 @@ describe('prd completeness check', () => {
     const result = await evaluatePrdCompleteness(buildPrd(), {
       appType: 'APP_XXX',
       authRef: { baseUrl: 'https://example.test', authMode: 'token' },
+      buildManifest: buildManifest(),
+      buildManifestPath: 'prd/sales/build-manifest.json',
     }, {
       fetchForms: jest.fn(() => Promise.resolve(forms)),
       fetchSchema: jest.fn((appType, formUuid) => {
@@ -127,57 +140,28 @@ describe('prd completeness check', () => {
     expect(result).toMatchObject({
       success: true,
       verdict: 'pass',
-      coverage: {
-        resources: '2/2',
-        fields: '2/2',
-        pages: '1/1',
-        seedRecords: '1/1',
-        navigation: 'pass',
+      mode: 'delivery_risk_radar',
+      sources: {
+        buildManifest: {
+          mode: 'build_facts',
+          path: 'prd/sales/build-manifest.json',
+        },
       },
+      summary: {
+        hardFailures: 0,
+        needsReview: 0,
+        notChecked: 0,
+      },
+      items: [],
       hardFailures: [],
       warnings: [],
       manualReview: [],
     });
+    expect(result).not.toHaveProperty('coverage');
   });
 
-  test('treats allowed skipped seed records as warning instead of hard failure', async () => {
-    const prd = buildPrd().replace(
-      '| 客户信息 | 1 | 客户名称=星河科技，状态=潜在 | 否 |  |',
-      '| 客户信息 | 1 | 客户名称=星河科技，状态=潜在 | 是 | 可由用户导入 |'
-    );
-
-    const result = await evaluatePrdCompleteness(prd, {
-      appType: 'APP_XXX',
-      authRef: { baseUrl: 'https://example.test', authMode: 'token' },
-    }, {
-      fetchForms: jest.fn(() => Promise.resolve(forms)),
-      fetchSchema: jest.fn((appType, formUuid) => {
-        if (formUuid === 'FORM-HOME') {
-          return Promise.resolve(canvasSchema());
-        }
-        return Promise.resolve(formSchema([
-          field('TextField', '客户名称', 'textField_name', { required: true }),
-          field('RadioField', '状态', 'radioField_status', {
-            options: [{ label: '潜在', value: 'lead' }, { label: '成交', value: 'won' }],
-          }),
-        ]));
-      }),
-      fetchOneFormRecordCount: jest.fn(() => Promise.resolve(0)),
-    });
-
-    expect(result.verdict).toBe('warning');
-    expect(result.coverage.seedRecords).toBe('1/1');
-    expect(result.hardFailures.map(failure => failure.code)).not.toContain('seed_record_missing');
-    expect(result.warnings.map(warning => warning.code)).toContain('seed_record_skipped');
-  });
-
-  test('returns warning verdict when manual review items remain', async () => {
-    const prd = buildPrd().replace(
-      '| 数据录入 | 客户信息表单能提交并可查询 |',
-      '| 数据录入 | 客户信息表单能提交并可查询 |\n| 视觉一致性 | 首屏体验和品牌风格一致 |'
-    );
-
-    const result = await evaluatePrdCompleteness(prd, {
+  test('returns needs_review without a build manifest instead of failing parser gaps', async () => {
+    const result = await evaluatePrdCompleteness(buildPrd(), {
       appType: 'APP_XXX',
       authRef: { baseUrl: 'https://example.test', authMode: 'token' },
     }, {
@@ -196,11 +180,152 @@ describe('prd completeness check', () => {
       fetchOneFormRecordCount: jest.fn(() => Promise.resolve(1)),
     });
 
-    expect(result.verdict).toBe('warning');
+    expect(result.verdict).toBe('needs_review');
+    expect(result.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'build_manifest_missing',
+        status: 'not_checked',
+      }),
+    ]));
+    expect(result.hardFailures).toEqual([]);
+  });
+
+  test('fails when the target app resource list cannot be read', async () => {
+    const result = await evaluatePrdCompleteness(buildPrd(), {
+      appType: 'APP_XXX',
+      authRef: { baseUrl: 'https://example.test', authMode: 'token' },
+      buildManifest: buildManifest(),
+    }, {
+      fetchForms: jest.fn(() => Promise.reject(new Error('network down'))),
+      fetchSchema: jest.fn(),
+      fetchOneFormRecordCount: jest.fn(),
+    });
+
+    expect(result.verdict).toBe('fail');
+    expect(result.hardFailures).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'app_nav_list_read_failed' }),
+    ]));
+  });
+
+  test('fails when a core form exists but schema readback fails', async () => {
+    const result = await evaluatePrdCompleteness(buildPrd(), {
+      appType: 'APP_XXX',
+      authRef: { baseUrl: 'https://example.test', authMode: 'token' },
+      buildManifest: buildManifest(),
+    }, {
+      fetchForms: jest.fn(() => Promise.resolve(forms)),
+      fetchSchema: jest.fn((appType, formUuid) => {
+        if (formUuid === 'FORM-CUSTOMER') {
+          return Promise.reject(new Error('schema timeout'));
+        }
+        return Promise.resolve(canvasSchema());
+      }),
+      fetchOneFormRecordCount: jest.fn(() => Promise.resolve(1)),
+    });
+
+    expect(result.verdict).toBe('fail');
+    expect(result.hardFailures).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'form_schema_read_failed',
+        expected: expect.objectContaining({ formUuid: 'FORM-CUSTOMER' }),
+      }),
+    ]));
+  });
+
+  test('fails when an explicitly required core resource is missing', async () => {
+    const result = await evaluatePrdCompleteness(buildPrd(), {
+      appType: 'APP_XXX',
+      authRef: { baseUrl: 'https://example.test', authMode: 'token' },
+      buildManifest: buildManifest(),
+    }, {
+      fetchForms: jest.fn(() => Promise.resolve(forms.filter(form => form.formUuid !== 'FORM-CUSTOMER'))),
+      fetchSchema: jest.fn(() => Promise.resolve(canvasSchema())),
+      fetchOneFormRecordCount: jest.fn(() => Promise.resolve(1)),
+    });
+
+    expect(result.verdict).toBe('fail');
+    expect(result.hardFailures).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'resource_missing',
+        expected: expect.objectContaining({ name: '客户信息' }),
+      }),
+    ]));
+  });
+
+  test('treats allowed skipped seed records as review item instead of hard failure', async () => {
+    const prd = buildPrd().replace(
+      '| 客户信息 | 1 | 客户名称=星河科技，状态=潜在 | 否 |  |',
+      '| 客户信息 | 1 | 客户名称=星河科技，状态=潜在 | 是 | 可由用户导入 |'
+    );
+
+    const result = await evaluatePrdCompleteness(prd, {
+      appType: 'APP_XXX',
+      authRef: { baseUrl: 'https://example.test', authMode: 'token' },
+      buildManifest: buildManifest(),
+    }, {
+      fetchForms: jest.fn(() => Promise.resolve(forms)),
+      fetchSchema: jest.fn((appType, formUuid) => {
+        if (formUuid === 'FORM-HOME') {
+          return Promise.resolve(canvasSchema());
+        }
+        return Promise.resolve(formSchema([
+          field('TextField', '客户名称', 'textField_name', { required: true }),
+          field('RadioField', '状态', 'radioField_status', {
+            options: [{ label: '潜在', value: 'lead' }, { label: '成交', value: 'won' }],
+          }),
+        ]));
+      }),
+      fetchOneFormRecordCount: jest.fn(() => Promise.resolve(0)),
+    });
+
+    expect(result.verdict).toBe('needs_review');
+    expect(result.summary.checked.seedRecords).toMatchObject({ hinted: 1, checked: 1, found: 0 });
+    expect(result.hardFailures.map(failure => failure.code)).not.toContain('seed_record_missing');
+    expect(result.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'seed_record_skipped',
+        source: 'prd.seedRecords',
+        status: 'needs_review',
+        severity: 'info',
+      }),
+    ]));
+  });
+
+  test('returns needs_review verdict when manual review items remain', async () => {
+    const prd = buildPrd().replace(
+      '| 数据录入 | 客户信息表单能提交并可查询 |',
+      '| 数据录入 | 客户信息表单能提交并可查询 |\n| 视觉一致性 | 首屏体验和品牌风格一致 |'
+    );
+
+    const result = await evaluatePrdCompleteness(prd, {
+      appType: 'APP_XXX',
+      authRef: { baseUrl: 'https://example.test', authMode: 'token' },
+      buildManifest: buildManifest(),
+    }, {
+      fetchForms: jest.fn(() => Promise.resolve(forms)),
+      fetchSchema: jest.fn((appType, formUuid) => {
+        if (formUuid === 'FORM-HOME') {
+          return Promise.resolve(canvasSchema());
+        }
+        return Promise.resolve(formSchema([
+          field('TextField', '客户名称', 'textField_name', { required: true }),
+          field('RadioField', '状态', 'radioField_status', {
+            options: [{ label: '潜在', value: 'lead' }, { label: '成交', value: 'won' }],
+          }),
+        ]));
+      }),
+      fetchOneFormRecordCount: jest.fn(() => Promise.resolve(1)),
+    });
+
+    expect(result.verdict).toBe('needs_review');
     expect(result.hardFailures).toEqual([]);
     expect(result.warnings).toEqual([]);
-    expect(result.manualReview).toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: 'manual_acceptance_required' }),
+    expect(result.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'manual_acceptance_required',
+        status: 'needs_review',
+        severity: 'manual',
+      }),
     ]));
   });
 
@@ -208,6 +333,7 @@ describe('prd completeness check', () => {
     const result = await evaluatePrdCompleteness(buildPrd(), {
       appType: 'APP_XXX',
       authRef: { baseUrl: 'https://example.test', authMode: 'token' },
+      buildManifest: buildManifest(),
     }, {
       fetchForms: jest.fn(() => Promise.resolve(forms.slice().reverse())),
       fetchSchema: jest.fn((appType, formUuid) => {
@@ -222,16 +348,17 @@ describe('prd completeness check', () => {
     });
 
     const failureCodes = result.hardFailures.map(failure => failure.code);
+    const warningCodes = result.warnings.map(warning => warning.code);
+    const itemIds = result.items.map(item => item.id);
 
     expect(result.verdict).toBe('fail');
-    expect(result.coverage).toMatchObject({
-      resources: '2/2',
-      fields: '1/2',
-      pages: '0/1',
-      seedRecords: '0/1',
-      navigation: 'fail',
-    });
-    expect(failureCodes).toEqual(expect.arrayContaining([
+    expect(failureCodes).toEqual(['display_page_unpublished']);
+    expect(warningCodes).toEqual(expect.arrayContaining([
+      'field_missing',
+      'seed_record_missing',
+      'navigation_order_mismatch',
+    ]));
+    expect(itemIds).toEqual(expect.arrayContaining([
       'field_missing',
       'display_page_unpublished',
       'seed_record_missing',
@@ -249,6 +376,7 @@ describe('prd completeness check', () => {
     const result = await evaluatePrdCompleteness(prd, {
       appType: 'APP_XXX',
       authRef: { baseUrl: 'https://example.test', authMode: 'token' },
+      buildManifest: buildManifest(),
     }, {
       fetchForms: jest.fn(() => Promise.resolve(forms)),
       fetchSchema: jest.fn((appType, formUuid) => {
@@ -265,23 +393,26 @@ describe('prd completeness check', () => {
       fetchOneFormRecordCount,
     });
 
-    expect(result.coverage.seedRecords).toBe('2/2');
+    expect(result.summary.checked.seedRecords).toMatchObject({ hinted: 2, checked: 2, found: 2 });
     expect(fetchOneFormRecordCount).toHaveBeenCalledTimes(1);
   });
 
   test('parses PRD sections and keeps the command mode-less', () => {
-    const parsedArgs = parseArgs(['prd/demo/prd.md', '--app-type', 'APP_XXX', '--json']);
+    const parsedArgs = parseArgs(['prd/demo/prd.md', '--app-type', 'APP_XXX', '--build-manifest', 'prd/demo/build-manifest.json', '--json']);
     const parsedPrd = parsePrdMarkdown(buildPrd());
+    const parsedManifest = parseBuildManifest(buildManifest());
 
     expect(parsedArgs).toEqual({
       prdPath: 'prd/demo/prd.md',
       appType: 'APP_XXX',
+      buildManifestPath: 'prd/demo/build-manifest.json',
       json: true,
       help: false,
     });
     expect(parsedPrd.resources.map(resource => resource.name)).toEqual(['销售工作台', '客户信息']);
     expect(parsedPrd.fields.map(item => item.label)).toEqual(['客户名称', '状态']);
     expect(parsedPrd.navigationOrder).toEqual(['销售工作台', '客户信息']);
+    expect(parsedManifest.resources.map(resource => resource.formUuid)).toEqual(['FORM-HOME', 'FORM-CUSTOMER']);
     expect(parsedArgs).not.toHaveProperty('mode');
   });
 });
