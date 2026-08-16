@@ -24,10 +24,12 @@ const {
   findDuplicateSourceMismatches,
   loadPublishSource,
   mergePageDataSource,
-  sendHealthCheckRequest,
   sendSaveRequestOnce,
   verifyPublishTarget,
 } = require('../lib/app/publish');
+const {
+  verifyPublishedContentMatch,
+} = require('../lib/app/display-page-readback');
 
 function cloneStat(stat, overrides = {}) {
   return {
@@ -323,23 +325,109 @@ describe('publish prechecks', () => {
     }));
   });
 
-  test('health check skips safely when cookies are missing', async () => {
+  test('publish readback fingerprint matches Canvas runtime code without cookies', () => {
+    const schemaContent = JSON.stringify({
+      pages: [{
+        componentsTree: [{
+          children: [{
+            componentName: 'YidaCodeCanvas',
+            props: {
+              code: 'export default function Page() { return null; }',
+              runtimeCode: 'var YidaComp = function Page() { return null; };',
+            },
+          }],
+        }],
+      }],
+      actions: { module: { compiled: '', source: '' } },
+      gmtModified: 100,
+    });
+
+    const match = verifyPublishedContentMatch(JSON.parse(schemaContent), schemaContent, 'canvas');
+
+    expect(match).toMatchObject({
+      displayComponentPresent: true,
+      publishedContentMatched: true,
+    });
+  });
+
+  test('publish readback fingerprint detects mismatched native compiled code', () => {
+    const expectedSchema = {
+      pages: [{ componentsTree: [{ children: [{ componentName: 'Jsx', props: {} }] }] }],
+      actions: { module: { compiled: 'function renderJsx(){return "new";}', source: 'source' } },
+    };
+    const readbackSchema = {
+      pages: [{ componentsTree: [{ children: [{ componentName: 'Jsx', props: {} }] }] }],
+      actions: { module: { compiled: 'function renderJsx(){return "old";}', source: 'source' } },
+    };
+
+    const match = verifyPublishedContentMatch(readbackSchema, JSON.stringify(expectedSchema), 'native');
+
+    expect(match).toMatchObject({
+      displayComponentPresent: true,
+      publishedContentMatched: false,
+    });
+  });
+
+  test('publish readback health check uses token schema readback and never GETs page HTML', async () => {
+    const schemaContent = JSON.stringify({
+      pages: [{
+        componentsTree: [{
+          children: [{
+            componentName: 'YidaCodeCanvas',
+            props: {
+              code: 'export default function Page() { return null; }',
+              runtimeCode: 'var YidaComp = function Page() { return null; };',
+            },
+          }],
+        }],
+      }],
+      actions: { module: { compiled: '', source: '' } },
+      gmtModified: 100,
+    });
+
+    jest.resetModules();
     const requestSpy = jest.spyOn(https, 'request');
+    const httpGetMock = jest.fn(() => Promise.resolve({
+      success: true,
+      content: JSON.parse(schemaContent),
+      gmtModified: 100,
+    }));
 
-    await expect(sendHealthCheckRequest('https://example.test/APP_XXX/workbench/FORM-PAGE')).resolves.toMatchObject({
-      ok: false,
-      skipped: true,
-      reason: 'missing_cookies',
+    jest.doMock('../lib/core/utils', () => {
+      const actual = jest.requireActual('../lib/core/utils');
+      return {
+        ...actual,
+        findProjectRoot: jest.fn(() => workspace),
+        httpGet: httpGetMock,
+        requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
+      };
     });
 
-    await expect(sendHealthCheckRequest('https://example.test/APP_XXX/workbench/FORM-PAGE', [])).resolves.toMatchObject({
-      ok: false,
-      skipped: true,
-      reason: 'missing_cookies',
-    });
+    try {
+      const isolatedPublish = require('../lib/app/publish');
+      await expect(isolatedPublish.runPublishReadbackHealthCheck(
+        'APP_XXX',
+        'FORM-PAGE',
+        { baseUrl: 'https://example.test', authMode: 'token', authSource: 'token' },
+        schemaContent,
+        'canvas'
+      )).resolves.toMatchObject({
+        ok: true,
+        mode: 'publish_readback',
+        authMode: 'token',
+        targetReadable: true,
+        schemaParsed: true,
+        displayComponentPresent: true,
+        publishedContentMatched: true,
+      });
 
-    expect(requestSpy).not.toHaveBeenCalled();
-    requestSpy.mockRestore();
+      expect(requestSpy).not.toHaveBeenCalled();
+      expect(httpGetMock).toHaveBeenCalledTimes(1);
+    } finally {
+      requestSpy.mockRestore();
+      jest.dontMock('../lib/core/utils');
+      jest.resetModules();
+    }
   });
 
   test('publish main treats health check and auto nav order errors as non-fatal after save succeeds', async () => {
@@ -357,9 +445,6 @@ describe('publish prechecks', () => {
     const resultMock = jest.fn();
     const autoOrderNavigationMock = jest.fn(() => Promise.reject(new Error('nav order broke')));
     const requestSpy = jest.spyOn(https, 'request').mockImplementation((options, callback) => {
-      if (options && options.method === 'GET') {
-        throw new Error('health transport broke');
-      }
       const response = new EventEmitter();
       response.statusCode = 200;
       const request = new EventEmitter();
@@ -391,8 +476,6 @@ describe('publish prechecks', () => {
     jest.doMock('../lib/core/yida-client', () => ({
       createAuthRef: jest.fn(() => ({
         baseUrl: 'https://example.test',
-        csrfToken: 'csrf',
-        cookies: [{ name: 'session', value: 'private' }],
         authMode: 'token',
         authSource: 'token',
         authData: { auth_mode: 'token', auth_source: 'token' },
@@ -448,7 +531,7 @@ describe('publish prechecks', () => {
 
       expect(exitSpy).not.toHaveBeenCalled();
       expect(resultMock).toHaveBeenCalledWith(true, expect.any(String), expect.any(Array));
-      expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('health transport broke'));
+      expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('display_component_missing'));
       expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('nav order broke'));
       expect(autoOrderNavigationMock).toHaveBeenCalledWith('APP_XXX', expect.any(Object));
       const outputPayload = consoleSpy.mock.calls
@@ -462,7 +545,7 @@ describe('publish prechecks', () => {
         formUuid: 'FORM-PAGE',
         healthCheck: {
           ok: false,
-          error: 'health transport broke',
+          reason: 'display_component_missing',
         },
         navOrderWarning: 'nav order broke',
       });
