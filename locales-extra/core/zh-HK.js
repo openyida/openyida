@@ -35,7 +35,7 @@ module.exports = {
     cmd_list_forms: '列出應用程式下的表單/頁面',
     cmd_aggregate_table: '管理聚合表（virtualView）',
     cmd_get_schema: '取得表單 Schema',
-    cmd_check_prd_completeness: 'Check PRD build delivery risk',
+    cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: '導出應用實體關係圖',
     cmd_create_page: '建立自訂展示頁面',
     cmd_generate_page: '基於高質素模板生成頁面',
@@ -1232,7 +1232,7 @@ module.exports = {
     manifest_not_found: 'Build manifest file not found: {0}',
     manifest_invalid: 'Invalid build manifest JSON: {0}',
     no_login: 'Unable to obtain valid token credentials. Please run openyida login first',
-    checking: 'Checking PRD build completeness: {0}'
+    checking: 'Checking PRD page/resource count risk: {0}'
   },
   postinstall: {
     welcome_title: '  🎉 歡迎使用 OpenYida！                                    ',

@@ -35,7 +35,7 @@ module.exports = {
     cmd_list_forms: "Lister les formulaires/pages d'une app",
     cmd_aggregate_table: 'Manage aggregate tables (virtualView)',
     cmd_get_schema: 'Obtenir le Schema du formulaire',
-    cmd_check_prd_completeness: 'Check PRD build delivery risk',
+    cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
     cmd_create_page: "Créer une page d'affichage personnalisée",
     cmd_generate_page: 'Generate page from curated template',
@@ -1300,7 +1300,7 @@ module.exports = {
     manifest_not_found: 'Build manifest file not found: {0}',
     manifest_invalid: 'Invalid build manifest JSON: {0}',
     no_login: 'Unable to obtain valid token credentials. Please run openyida login first',
-    checking: 'Checking PRD build completeness: {0}'
+    checking: 'Checking PRD page/resource count risk: {0}'
   },
   postinstall: {
     welcome_title: '  🎉 Bienvenue sur OpenYida !                                  ',
