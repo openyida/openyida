@@ -35,6 +35,7 @@ module.exports = {
     cmd_list_forms: 'List forms/pages in an app',
     cmd_aggregate_table: 'Manage aggregate tables (virtualView)',
     cmd_get_schema: 'Lấy Schema biểu mẫu',
+    cmd_check_prd_completeness: 'Check PRD build completeness',
     cmd_er: 'Export app entity relationship diagram',
     cmd_create_page: 'Tạo trang hiển thị tùy chỉnh',
     cmd_generate_page: 'Generate page from curated template',
@@ -265,6 +266,8 @@ module.exports = {
     build_page_example: 'Example: openyida build-page pages/src/dashboard.oyd.jsx --output pages/build/dashboard.yida.jsx',
     publish_usage: 'Usage: openyida publish <sourceFile> <appType> <formUuid> [--health-check] [--canvas] [--auto-nav-order]',
     publish_example: 'Example: openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX --health-check --auto-nav-order',
+    check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--json]',
+    check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --json',
     formula_usage: 'Usage: openyida formula evaluate <formula|file> [--schema schema.json] [--json] [--strict]',
     formula_example: `Example: openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "high", "low")' --schema .cache/schema.json`,
     verify_usage: 'Usage: openyida verify-short-url <appType> <formUuid> <url>',
@@ -1287,6 +1290,13 @@ module.exports = {
     no_corp_available: 'Không tìm thấy tổ chức nào có thể truy cập',
     no_csrf_in_cookie: 'Đăng nhập thành công nhưng không tìm thấy csrf_token, vui lòng thử lại',
     stdin_closed: 'Luồng đầu vào đã đóng, không thể chọn tổ chức'
+  },
+  check_prd_completeness: {
+    usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--json]',
+    example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --json',
+    prd_not_found: 'PRD file not found: {0}',
+    no_login: 'Unable to obtain valid token credentials. Please run openyida login first',
+    checking: 'Checking PRD build completeness: {0}'
   },
   postinstall: {
     welcome_title: '  🎉 Chào mừng đến với OpenYida!                               ',

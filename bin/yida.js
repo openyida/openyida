@@ -734,6 +734,12 @@ async function main() {
       break;
     }
 
+    case 'check-prd-completeness': {
+      const { run } = require('../lib/app/check-prd-completeness');
+      await run(args);
+      break;
+    }
+
     case 'er': {
       const { run } = require('../lib/app/er');
       await run(args);

@@ -35,6 +35,7 @@ module.exports = {
     cmd_list_forms: 'アプリ内のフォーム/ページを一覧表示',
     cmd_aggregate_table: 'Manage aggregate tables (virtualView)',
     cmd_get_schema: 'フォーム Schema を取得',
+    cmd_check_prd_completeness: 'Check PRD build completeness',
     cmd_er: 'Export app entity relationship diagram',
     cmd_create_page: 'カスタム表示ページを作成',
     cmd_generate_page: 'Generate page from curated template',
@@ -251,6 +252,8 @@ module.exports = {
     build_page_example: 'Example: openyida build-page pages/src/dashboard.oyd.jsx --output pages/build/dashboard.yida.jsx',
     publish_usage: '使用方法: openyida publish <ソースファイル> <appType> <formUuid> [--health-check] [--canvas] [--auto-nav-order]',
     publish_example: '例: openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX --health-check --auto-nav-order',
+    check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--json]',
+    check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --json',
     formula_usage: 'Usage: openyida formula evaluate <formula|file> [--schema schema.json] [--json] [--strict]',
     formula_example: `Example: openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "high", "low")' --schema .cache/schema.json`,
     verify_usage: '使用方法: openyida verify-short-url <appType> <formUuid> <url>',
@@ -1238,6 +1241,13 @@ module.exports = {
     no_corp_available: 'アクセス可能な組織が見つかりません',
     no_csrf_in_cookie: 'ログインは成功しましたが csrf_token が見つかりません。再試行してください',
     stdin_closed: '入力ストリームが閉じられました。組織を選択できません'
+  },
+  check_prd_completeness: {
+    usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--json]',
+    example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --json',
+    prd_not_found: 'PRD file not found: {0}',
+    no_login: 'Unable to obtain valid token credentials. Please run openyida login first',
+    checking: 'Checking PRD build completeness: {0}'
   },
   postinstall: {
     welcome_title: '  🎉 OpenYida へようこそ！                                    ',
