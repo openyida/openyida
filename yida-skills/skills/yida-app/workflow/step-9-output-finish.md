@@ -25,6 +25,31 @@
 
 若本轮修改过页面源码但没有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，只能交付“源码已修改，尚未发布”的说明。
 
+## build-manifest 约定
+
+完整搭建收尾前，从本轮真实创建、复用和发布结果写入 `prd/<项目名>/build-manifest.json`。它只是轻量事实源，不是严格 schema；只记录已经拿到的真实资源名、类型和 ID，用于让 `check-prd-completeness` 区分“实际搭建事实”和 PRD 正则 hints。
+
+最小示例：
+
+```json
+{
+  "resources": [
+    { "name": "销售工作台", "type": "display-page", "formUuid": "FORM-HOME", "main": true, "required": true },
+    { "name": "客户信息", "type": "normal-form", "formUuid": "FORM-CUSTOMER", "required": true }
+  ],
+  "pages": [
+    { "name": "销售工作台", "type": "display-page", "formUuid": "FORM-HOME", "main": true, "required": true }
+  ],
+  "forms": [
+    { "name": "客户信息", "type": "normal-form", "formUuid": "FORM-CUSTOMER", "required": true }
+  ],
+  "seedRecords": [
+    { "formName": "客户信息", "expectedCount": 1, "allowSkip": false }
+  ],
+  "navigationOrder": ["销售工作台", "客户信息"]
+}
+```
+
 ## 结果输出格式
 
 - 先写 2-3 句业务交付总结，再给一个主入口链接。

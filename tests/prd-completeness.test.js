@@ -190,6 +190,28 @@ describe('prd completeness check', () => {
     expect(result.hardFailures).toEqual([]);
   });
 
+  test('keeps PRD-only missing resources as review items without a build manifest', async () => {
+    const result = await evaluatePrdCompleteness(buildPrd(), {
+      appType: 'APP_XXX',
+      authRef: { baseUrl: 'https://example.test', authMode: 'token' },
+    }, {
+      fetchForms: jest.fn(() => Promise.resolve([])),
+      fetchSchema: jest.fn(),
+      fetchOneFormRecordCount: jest.fn(),
+    });
+
+    expect(result.verdict).toBe('needs_review');
+    expect(result.hardFailures).toEqual([]);
+    expect(result.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'resource_missing',
+        source: 'prd.resourceBlueprint',
+        status: 'needs_review',
+        severity: 'warning',
+      }),
+    ]));
+  });
+
   test('fails when the target app resource list cannot be read', async () => {
     const result = await evaluatePrdCompleteness(buildPrd(), {
       appType: 'APP_XXX',
