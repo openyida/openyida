@@ -197,8 +197,32 @@ describe('DiagnosticEngine', () => {
 
 describe('EnvironmentChecker', () => {
   let networkSpy;
+  let tmpAuthDir;
+  let originalAuthDir;
+  let originalAuthEnabled;
+  let originalAccessToken;
+  let originalRefreshToken;
+  let originalAuthProfile;
+  let originalAuthCorpId;
+  let originalAuthUserId;
 
   beforeEach(() => {
+    tmpAuthDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yida-doctor-auth-'));
+    originalAuthDir = process.env.OPENYIDA_AUTH_DIR;
+    originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
+    originalAccessToken = process.env.OPENYIDA_ACCESS_TOKEN;
+    originalRefreshToken = process.env.OPENYIDA_REFRESH_TOKEN;
+    originalAuthProfile = process.env.OPENYIDA_AUTH_PROFILE;
+    originalAuthCorpId = process.env.OPENYIDA_AUTH_CORP_ID;
+    originalAuthUserId = process.env.OPENYIDA_AUTH_USER_ID;
+    process.env.OPENYIDA_AUTH_DIR = tmpAuthDir;
+    delete process.env.YIDA_AUTH_ENABLED;
+    delete process.env.OPENYIDA_ACCESS_TOKEN;
+    delete process.env.OPENYIDA_REFRESH_TOKEN;
+    delete process.env.OPENYIDA_AUTH_PROFILE;
+    delete process.env.OPENYIDA_AUTH_CORP_ID;
+    delete process.env.OPENYIDA_AUTH_USER_ID;
+
     // mock 网络检查，避免在 CI 环境中因网络不通或超时导致测试失败
     networkSpy = jest.spyOn(EnvironmentChecker.prototype, 'checkNetwork').mockResolvedValue({
       id: 'env-network',
@@ -210,7 +234,22 @@ describe('EnvironmentChecker', () => {
   });
 
   afterEach(() => {
+    const restore = (name, value) => {
+      if (value === undefined) {
+        delete process.env[name];
+      } else {
+        process.env[name] = value;
+      }
+    };
     networkSpy.mockRestore();
+    restore('OPENYIDA_AUTH_DIR', originalAuthDir);
+    restore('YIDA_AUTH_ENABLED', originalAuthEnabled);
+    restore('OPENYIDA_ACCESS_TOKEN', originalAccessToken);
+    restore('OPENYIDA_REFRESH_TOKEN', originalRefreshToken);
+    restore('OPENYIDA_AUTH_PROFILE', originalAuthProfile);
+    restore('OPENYIDA_AUTH_CORP_ID', originalAuthCorpId);
+    restore('OPENYIDA_AUTH_USER_ID', originalAuthUserId);
+    cleanupTempDir(tmpAuthDir);
   });
 
   test('checkNodeVersion 当前环境应通过', () => {

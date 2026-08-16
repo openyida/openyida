@@ -51,6 +51,9 @@ describe('agent-capabilities summary', () => {
           status: 'ok',
           auth_mode: 'token',
           auth_source: 'env',
+          auth_store: 'host_injected',
+          user_auth_store_writable: null,
+          persistence_scope: 'host',
           can_auto_use: true,
         },
         precheck: {
@@ -62,12 +65,21 @@ describe('agent-capabilities summary', () => {
         builder_path: {
           auth: {
             source: 'env',
+            store: 'host_injected',
+            user_auth_store_writable: null,
+            persistence_scope: 'host',
             can_auto_use: true,
             host_injected_token_mode: true,
             env_token_present: true,
             runtime_auth_provisioned: true,
             interactive_login_allowed: false,
             browser_session_auth_allowed: false,
+          },
+          interactive_login: {
+            mode: 'not_required',
+            browser_owner: 'none',
+            recommended_command: null,
+            reason: 'host_token_env_detected',
           },
         },
       });
@@ -88,6 +100,10 @@ describe('agent-capabilities summary', () => {
     const getAuthStatus = jest.fn(() => ({
       ok: false,
       auth_mode: 'token',
+      auth_source: 'project_legacy',
+      auth_store: 'project_cache',
+      user_auth_store_writable: true,
+      persistence_scope: 'project',
       status: 'not_logged_in',
       can_auto_use: false,
     }));
@@ -112,7 +128,17 @@ describe('agent-capabilities summary', () => {
       expect(summary.login).toMatchObject({
         status: 'not_logged_in',
         auth_mode: 'token',
+        auth_source: 'project_legacy',
+        auth_store: 'project_cache',
+        user_auth_store_writable: true,
+        persistence_scope: 'project',
         can_auto_use: false,
+      });
+      expect(summary.builder_path.auth).toMatchObject({
+        source: 'project_legacy',
+        store: 'project_cache',
+        user_auth_store_writable: true,
+        persistence_scope: 'project',
       });
       expect(summary.builder_path.auth).not.toHaveProperty('runtime_auth_provisioned');
     } finally {

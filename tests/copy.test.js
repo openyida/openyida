@@ -187,8 +187,19 @@ describe('detectActiveTool Windows 路径兼容', () => {
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
     delete process.env.QODERCLI_INTEGRATION_MODE;
+    delete process.env.QODER_WORK_INTEGRATION_PRODUCT;
+    delete process.env.QODERCN_CONFIG_DIR;
+    delete process.env.QODER_CONFIG_DIR;
+    delete process.env.QODER_WORKER_CWD;
+    delete process.env.QWENWORK;
     delete process.env.QWENWORK_INTEGRATION_MODE;
     delete process.env.QWENWORKCN_INTEGRATION_MODE;
+    delete process.env.QWENWORK_CLIENT;
+    delete process.env.QWENWORK_WORKSPACE_DIR;
+    delete process.env.QWENWORK_SANDBOX_ID;
+    delete process.env.QWENWORK_PREVIEW_URL;
+    delete process.env.QWENWORK_VNC_URL;
+    delete process.env.AGENT_PLATFORM;
     delete process.env.CODEX_SHELL;
     delete process.env.CODEX_CI;
     delete process.env.CODEX_THREAD_ID;
@@ -197,6 +208,8 @@ describe('detectActiveTool Windows 路径兼容', () => {
     delete process.env.CURSOR_TRACE_ID;
     delete process.env.MULERUN_CHAT_ID;
     delete process.env.MULE_DATA_DIR;
+    delete process.env.MULE_WORKSPACE_DIR;
+    delete process.env.MULE_SANDBOX_ID;
     process.env.AGENT_WORK_ROOT = '/home/user/.real/workspace';
     const result = detectActiveTool();
     expect(result).not.toBeNull();
@@ -211,8 +224,19 @@ describe('detectActiveTool Windows 路径兼容', () => {
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
     delete process.env.QODERCLI_INTEGRATION_MODE;
+    delete process.env.QODER_WORK_INTEGRATION_PRODUCT;
+    delete process.env.QODERCN_CONFIG_DIR;
+    delete process.env.QODER_CONFIG_DIR;
+    delete process.env.QODER_WORKER_CWD;
+    delete process.env.QWENWORK;
     delete process.env.QWENWORK_INTEGRATION_MODE;
     delete process.env.QWENWORKCN_INTEGRATION_MODE;
+    delete process.env.QWENWORK_CLIENT;
+    delete process.env.QWENWORK_WORKSPACE_DIR;
+    delete process.env.QWENWORK_SANDBOX_ID;
+    delete process.env.QWENWORK_PREVIEW_URL;
+    delete process.env.QWENWORK_VNC_URL;
+    delete process.env.AGENT_PLATFORM;
     delete process.env.CODEX_SHELL;
     delete process.env.CODEX_CI;
     delete process.env.CODEX_THREAD_ID;
@@ -221,6 +245,8 @@ describe('detectActiveTool Windows 路径兼容', () => {
     delete process.env.CURSOR_TRACE_ID;
     delete process.env.MULERUN_CHAT_ID;
     delete process.env.MULE_DATA_DIR;
+    delete process.env.MULE_WORKSPACE_DIR;
+    delete process.env.MULE_SANDBOX_ID;
     // Windows 风格路径，包含 path.join(".real") 的结果
     process.env.AGENT_WORK_ROOT = 'C:\\Users\\user\\.real\\workspace';
     const result = detectActiveTool();

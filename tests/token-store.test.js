@@ -6,21 +6,28 @@ const path = require('path');
 
 const {
   clearTokenSession,
+  getAuthProfilePointerFilePath,
   getBusinessContextFilePath,
   getTokenFilePath,
+  getUserProfileFilePath,
   isAccessTokenUsable,
+  listUserAuthProfiles,
   loadBusinessContext,
   loadTokenSession,
   maskToken,
+  resolveTokenSession,
   saveBusinessContext,
+  saveProjectLegacyTokenSession,
   saveTokenSession,
 } = require('../lib/auth/token-store');
 
 describe('token-store', () => {
   let projectRoot;
+  let authDir;
 
   beforeEach(() => {
     projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-store-'));
+    authDir = path.join(projectRoot, 'user-auth');
   });
 
   afterEach(() => {
@@ -36,7 +43,7 @@ describe('token-store', () => {
       base_url: 'https://www.aliwork.com/openapi/cli/v1/auth',
       corp_id: 'corpA',
       user_id: 'userA',
-    }, options);
+    }, { ...options, authDir });
 
     expect(saved.auth_mode).toBe('token');
     expect(saved.expires_at).toBeGreaterThan(Date.now());
@@ -45,26 +52,290 @@ describe('token-store', () => {
     expect(raw.base_url).toBe('https://www.aliwork.com');
     expect(raw.token_endpoint).toBeUndefined();
 
-    const loaded = loadTokenSession(options);
+    const loaded = loadTokenSession({ ...options, authDir });
     expect(loaded.access_token).toBe('access-token-value');
     expect(loaded.refresh_token).toBe('refresh-token-value');
     expect(loaded.base_url).toBe('https://www.aliwork.com');
     expect(loaded.corp_id).toBe('corpA');
+    expect(loaded.auth_source).toBe('project_legacy');
+    expect(loaded.auth_store).toBe('project_cache');
     expect(isAccessTokenUsable(loaded)).toBe(true);
   });
 
   test('clears token session idempotently', () => {
-    const options = { projectRoot, envName: 'public' };
+    const options = { projectRoot, envName: 'public', authDir };
     saveTokenSession({ access_token: 'token' }, options);
     clearTokenSession(options);
     clearTokenSession(options);
     expect(loadTokenSession(options)).toBe(null);
   });
 
+  test('saves complete OAuth sessions to user auth profile and project pointer only', () => {
+    const options = { projectRoot, envName: 'public', authDir };
+    const saved = saveTokenSession({
+      access_token: 'user-access-token',
+      refresh_token: 'user-refresh-token',
+      expires_in: 1800,
+      base_url: 'https://www.aliwork.com',
+      client_id: 'openyida-cli',
+      corp_id: 'corp-user',
+      user_id: 'user-user',
+      user_name: 'User',
+    }, options);
+
+    const pointerFile = getAuthProfilePointerFilePath(options);
+    const profileFile = getUserProfileFilePath(saved.auth_profile, options);
+    const pointer = JSON.parse(fs.readFileSync(pointerFile, 'utf8'));
+    const profile = JSON.parse(fs.readFileSync(profileFile, 'utf8'));
+
+    expect(saved).toMatchObject({
+      auth_source: 'user_profile',
+      auth_store: 'user',
+      persistence_scope: 'user',
+      corp_id: 'corp-user',
+      user_id: 'user-user',
+    });
+    expect(fs.existsSync(getTokenFilePath(options))).toBe(false);
+    expect(pointer).toMatchObject({
+      auth_profile: saved.auth_profile,
+      auth_store: 'user',
+      base_url: 'https://www.aliwork.com',
+      client_id: 'openyida-cli',
+      corp_id: 'corp-user',
+      user_id: 'user-user',
+    });
+    expect(pointer).not.toHaveProperty('access_token');
+    expect(pointer).not.toHaveProperty('refresh_token');
+    expect(profile.access_token).toBe('user-access-token');
+    expect(profile.refresh_token).toBe('user-refresh-token');
+
+    const loaded = loadTokenSession(options);
+    expect(loaded).toMatchObject({
+      access_token: 'user-access-token',
+      refresh_token: 'user-refresh-token',
+      auth_source: 'user_profile',
+      auth_store: 'user',
+      auth_profile: saved.auth_profile,
+    });
+  });
+
+  test('keeps user profile when project auth pointer cannot be written', () => {
+    const blockedProjectRoot = path.join(projectRoot, 'blocked-project');
+    fs.writeFileSync(blockedProjectRoot, 'not a directory', 'utf8');
+    const options = { projectRoot: blockedProjectRoot, envName: 'review', authDir };
+
+    const saved = saveTokenSession({
+      access_token: 'user-access-token',
+      refresh_token: 'user-refresh-token',
+      base_url: 'https://www.aliwork.com',
+      client_id: 'openyida-cli',
+      corp_id: 'corp-user',
+      user_id: 'user-user',
+    }, options);
+
+    expect(saved).toMatchObject({
+      auth_source: 'user_profile',
+      auth_store: 'user',
+      persistence_scope: 'user',
+      user_auth_store_writable: true,
+      corp_id: 'corp-user',
+      user_id: 'user-user',
+    });
+    expect(saved.warning).toContain('project_auth_pointer_unavailable');
+    expect(fs.existsSync(getUserProfileFilePath(saved.auth_profile, options))).toBe(true);
+    expect(fs.existsSync(getAuthProfilePointerFilePath(options))).toBe(false);
+    expect(fs.existsSync(getTokenFilePath(options))).toBe(false);
+
+    expect(loadTokenSession(options)).toMatchObject({
+      access_token: 'user-access-token',
+      auth_source: 'user_profile',
+      auth_store: 'user',
+      persistence_scope: 'user',
+    });
+  });
+
+  test('falls back to project legacy when the user auth dir cannot be written', () => {
+    const authDirFile = path.join(projectRoot, 'not-a-directory');
+    fs.writeFileSync(authDirFile, 'block directory creation', 'utf8');
+    const options = { projectRoot, envName: 'public', authDir: authDirFile };
+
+    const saved = saveTokenSession({
+      access_token: 'legacy-access-token',
+      refresh_token: 'legacy-refresh-token',
+      base_url: 'https://www.aliwork.com',
+      client_id: 'openyida-cli',
+      corp_id: 'corp-fallback',
+      user_id: 'user-fallback',
+    }, options);
+
+    expect(saved).toMatchObject({
+      auth_source: 'project_legacy',
+      auth_store: 'project_cache',
+      persistence_scope: 'project',
+      user_auth_store_writable: false,
+    });
+    expect(saved.warning).toContain('user_auth_store_unavailable_project_legacy_fallback');
+    expect(fs.existsSync(getTokenFilePath(options))).toBe(true);
+    expect(loadTokenSession(options)).toMatchObject({
+      access_token: 'legacy-access-token',
+      auth_source: 'project_legacy',
+      auth_store: 'project_cache',
+    });
+  });
+
+  test('current project legacy beats unrelated single user profile when no pointer or explicit selector', () => {
+    const otherProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-profile-other-'));
+    try {
+      saveTokenSession({
+        access_token: 'global-access-token',
+        base_url: 'https://www.aliwork.com',
+        client_id: 'openyida-cli',
+        corp_id: 'corp-global',
+        user_id: 'user-global',
+      }, { projectRoot: otherProject, authDir });
+      saveProjectLegacyTokenSession({
+        access_token: 'legacy-access-token',
+        base_url: 'https://www.aliwork.com',
+        client_id: 'openyida-cli',
+        corp_id: 'corp-legacy',
+        user_id: 'user-legacy',
+      }, { projectRoot, authDir });
+
+      const loaded = loadTokenSession({ projectRoot, authDir });
+      expect(loaded).toMatchObject({
+        access_token: 'legacy-access-token',
+        corp_id: 'corp-legacy',
+        user_id: 'user-legacy',
+        auth_source: 'project_legacy',
+        auth_store: 'project_cache',
+      });
+    } finally {
+      fs.rmSync(otherProject, { recursive: true, force: true });
+    }
+  });
+
+  test('explicit corpId mismatch does not return project legacy', () => {
+    saveProjectLegacyTokenSession({
+      access_token: 'legacy-access-token',
+      base_url: 'https://www.aliwork.com',
+      client_id: 'openyida-cli',
+      corp_id: 'corp-a',
+      user_id: 'user-a',
+    }, { projectRoot, authDir });
+
+    expect(loadTokenSession({ projectRoot, authDir, corpId: 'corp-b' })).toBe(null);
+    expect(resolveTokenSession({ projectRoot, authDir, corpId: 'corp-b' })).toMatchObject({
+      session: null,
+      status: 'profile_not_found',
+    });
+  });
+
+  test('explicit corpId match can return project legacy', () => {
+    saveProjectLegacyTokenSession({
+      access_token: 'legacy-access-token',
+      base_url: 'https://www.aliwork.com',
+      client_id: 'openyida-cli',
+      corp_id: 'corp-a',
+      user_id: 'user-a',
+    }, { projectRoot, authDir });
+
+    expect(loadTokenSession({ projectRoot, authDir, corpId: 'corp-a' })).toMatchObject({
+      access_token: 'legacy-access-token',
+      corp_id: 'corp-a',
+      auth_source: 'project_legacy',
+      auth_store: 'project_cache',
+    });
+  });
+
+  test('explicit userId mismatch does not return project legacy', () => {
+    saveProjectLegacyTokenSession({
+      access_token: 'legacy-access-token',
+      base_url: 'https://www.aliwork.com',
+      client_id: 'openyida-cli',
+      corp_id: 'corp-a',
+      user_id: 'user-a',
+    }, { projectRoot, authDir });
+
+    expect(loadTokenSession({ projectRoot, authDir, userId: 'user-b' })).toBe(null);
+  });
+
+  test('explicit corpId constrains known env identity but allows env without corp identity', () => {
+    expect(loadTokenSession({
+      projectRoot,
+      authDir,
+      corpId: 'corp-b',
+      env: {
+        OPENYIDA_ACCESS_TOKEN: 'env-access-token',
+        OPENYIDA_TOKEN_CORP_ID: 'corp-a',
+      },
+    })).toBe(null);
+
+    expect(loadTokenSession({
+      projectRoot,
+      authDir,
+      corpId: 'corp-b',
+      env: {
+        OPENYIDA_ACCESS_TOKEN: 'env-access-token',
+      },
+    })).toMatchObject({
+      access_token: 'env-access-token',
+      auth_source: 'env',
+    });
+  });
+
+  test('does not guess when multiple user profiles exist without project pointer', () => {
+    const firstProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-profile-a-'));
+    const secondProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-profile-b-'));
+    const newProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-profile-new-'));
+    try {
+      saveTokenSession({
+        access_token: 'access-a',
+        refresh_token: 'refresh-a',
+        base_url: 'https://www.aliwork.com',
+        client_id: 'openyida-cli',
+        corp_id: 'corp-a',
+        user_id: 'user-a',
+      }, { projectRoot: firstProject, authDir });
+      saveTokenSession({
+        access_token: 'access-b',
+        refresh_token: 'refresh-b',
+        base_url: 'https://www.aliwork.com',
+        client_id: 'openyida-cli',
+        corp_id: 'corp-b',
+        user_id: 'user-b',
+      }, { projectRoot: secondProject, authDir });
+
+      expect(listUserAuthProfiles({ authDir })).toHaveLength(2);
+      const ambiguous = resolveTokenSession({ projectRoot: newProject, authDir });
+      expect(ambiguous).toMatchObject({
+        session: null,
+        status: 'profile_required',
+        candidate_count: 2,
+      });
+      expect(loadTokenSession({ projectRoot: newProject, authDir })).toBe(null);
+
+      const selected = loadTokenSession({
+        projectRoot: newProject,
+        authDir,
+        corpId: 'corp-b',
+      });
+      expect(selected).toMatchObject({
+        access_token: 'access-b',
+        corp_id: 'corp-b',
+        auth_source: 'user_profile',
+      });
+    } finally {
+      fs.rmSync(firstProject, { recursive: true, force: true });
+      fs.rmSync(secondProject, { recursive: true, force: true });
+      fs.rmSync(newProject, { recursive: true, force: true });
+    }
+  });
+
   test('uses injected env access and refresh tokens when the local token file is absent', () => {
     const options = {
       projectRoot,
       envName: 'public',
+      authDir,
       env: {
         OPENYIDA_ACCESS_TOKEN: 'env-access-token',
         OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
@@ -84,10 +355,11 @@ describe('token-store', () => {
     expect(loaded.user_id).toBe('user-env');
   });
 
-  test('does not fall back to env when a valid local token file exists', () => {
+  test('env access token wins over a project legacy token file', () => {
     const options = {
       projectRoot,
       envName: 'public',
+      authDir,
       env: {
         OPENYIDA_ACCESS_TOKEN: 'env-access-token',
         OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
@@ -101,15 +373,17 @@ describe('token-store', () => {
 
     const loaded = loadTokenSession(options);
 
-    expect(loaded.access_token).toBe('local-access-token');
-    expect(loaded.refresh_token).toBe('local-refresh-token');
-    expect(loaded.auth_source).toBe('local');
+    expect(loaded.access_token).toBe('env-access-token');
+    expect(loaded.refresh_token).toBe('env-refresh-token');
+    expect(loaded.auth_source).toBe('env');
+    expect(loaded.auth_store).toBe('host_injected');
   });
 
   test('host-injected token mode ignores local token files', () => {
     const options = {
       projectRoot,
       envName: 'public',
+      authDir,
       env: {
         YIDA_AUTH_ENABLED: 'true',
         OPENYIDA_ACCESS_TOKEN: 'env-access-token',
@@ -132,6 +406,7 @@ describe('token-store', () => {
     const options = {
       projectRoot,
       envName: 'public',
+      authDir,
       env: {
         YIDA_AUTH_ENABLED: 'true',
         OPENYIDA_ACCESS_TOKEN: 'env-access-token',
@@ -163,6 +438,7 @@ describe('token-store', () => {
     const options = {
       projectRoot,
       envName: 'public',
+      authDir,
       env: {
         YIDA_AUTH_ENABLED: 'true',
         OPENYIDA_ACCESS_TOKEN: 'env-access-token',
@@ -196,6 +472,7 @@ describe('token-store', () => {
     const options = {
       projectRoot,
       envName: 'public',
+      authDir,
       env: {
         YIDA_AUTH_ENABLED: 'true',
       },
@@ -212,8 +489,8 @@ describe('token-store', () => {
     const options = {
       projectRoot,
       envName: 'public',
+      authDir,
       env: {
-        OPENYIDA_ACCESS_TOKEN: 'env-access-token',
         OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
       },
     };
@@ -226,14 +503,15 @@ describe('token-store', () => {
     expect(loaded.access_token).toBe('local-access-token');
     expect(loaded.refresh_token).toBe('env-refresh-token');
     expect(loaded.auth_source).toBe('mixed');
+    expect(loaded.auth_store).toBe('project_cache');
   });
 
-  test('never fills a missing local access token from env', () => {
+  test('never fills a missing local access token from refresh-only env', () => {
     const options = {
       projectRoot,
       envName: 'public',
+      authDir,
       env: {
-        OPENYIDA_ACCESS_TOKEN: 'env-access-token',
         OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
       },
     };
@@ -242,13 +520,14 @@ describe('token-store', () => {
     const loaded = loadTokenSession(options);
     expect(loaded.access_token).toBeUndefined();
     expect(loaded.refresh_token).toBe('local-refresh-token');
-    expect(loaded.auth_source).toBe('local');
+    expect(loaded.auth_source).toBe('project_legacy');
   });
 
   test('falls back to env fields when the local token file cannot be parsed', () => {
     const options = {
       projectRoot,
       envName: 'public',
+      authDir,
       env: {
         OPENYIDA_ACCESS_TOKEN: 'env-access-token',
         OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',

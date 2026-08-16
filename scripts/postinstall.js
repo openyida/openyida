@@ -28,6 +28,11 @@
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const {
+  detectActiveTool,
+  resolveProjectRoot,
+  buildSkillsDiagnostics,
+} = require('../lib/core/utils');
 
 const PACKAGE_ROOT = path.resolve(__dirname, '..');
 const PACKAGE_JSON = require(path.join(PACKAGE_ROOT, 'package.json'));
@@ -105,6 +110,13 @@ function cleanupLegacy(dirPath) {
   }
 }
 
+function installSkillsToDest(destPath) {
+  const skillsDir = path.dirname(destPath);
+  fs.mkdirSync(skillsDir, { recursive: true });
+  cleanupLegacy(destPath);
+  copyDirRecursive(SKILLS_DIR, destPath);
+}
+
 /**
  * 将 yida-skills 安装到 AI 工具的 skills 目录。
  * 正确路径：~/<tool-config>/skills/yida-skills/
@@ -116,16 +128,7 @@ function installSkillsToTool(toolConfigDir) {
   cleanupLegacy(path.join(toolConfigDir, 'yida-skills'));
 
   // 安装到正确路径：~/<tool-config>/skills/yida-skills/
-  const skillsDir = path.join(toolConfigDir, 'skills');
-  const destPath = path.join(skillsDir, 'yida-skills');
-
-  fs.mkdirSync(skillsDir, { recursive: true });
-
-  // 如果已存在，先清理（旧软链接或旧目录）
-  cleanupLegacy(destPath);
-
-  // 复制文件（不用软链接，确保 AI 工具首次扫描就能发现）
-  copyDirRecursive(SKILLS_DIR, destPath);
+  installSkillsToDest(path.join(toolConfigDir, 'skills', 'yida-skills'));
 }
 
 /**
@@ -449,6 +452,19 @@ safeExec(() => {
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, '.qwenworkcn'))) {
     installSkillsToTool(path.join(HOME_DIR, '.qwenworkcn'));
+  }
+});
+
+// QwenWork 运行时 — Web 沙箱可能没有用户级配置目录，按宿主能力降级到 workspace skills 目录
+safeExec(() => {
+  const activeTool = detectActiveTool();
+  if (!activeTool || activeTool.tool !== 'qwenwork') {
+    return;
+  }
+  const projectResolution = resolveProjectRoot({ activeTool });
+  const diagnostics = buildSkillsDiagnostics({ activeTool, projectResolution });
+  if (diagnostics.selected && diagnostics.selected.usable) {
+    installSkillsToDest(diagnostics.selected.path);
   }
 });
 
