@@ -126,9 +126,9 @@ jobs:
 
           安装后即可在 Claude Code / OpenCode / Aone Copilot / Cursor / Qoder / 悟空 中直接使用，零配置。
 
-          ## OpenYida 悟空技能包
+          ## OpenYida 技能包
 
-          在本 Release 页面底部的 **Assets** 中下载 `openyida-skills.zip`，然后在悟空技能中心通过「上传技能」导入。该包按悟空 SKILL.md 规范生成：
+          在本 Release 页面底部的 **Assets** 中下载 `openyida-skills.zip`，然后可在对应 Agent 技能中心通过「上传技能」导入。
           根目录为 `openyida/`，只包含一个根 `SKILL.md`，长文档和子能力放在 `references/` 中。
 
         generate_release_notes: true
