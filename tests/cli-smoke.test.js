@@ -503,7 +503,7 @@ describe('CLI offline smoke', () => {
       requires_login: false,
     });
     expect(parsed.commands.find(entry => entry.id === 'commands')).toMatchObject({
-      usage: 'openyida commands [--json]',
+      usage: 'openyida commands [--json|validate|build]',
       output: 'json',
       requires_login: false,
     });

@@ -743,7 +743,7 @@ async function main() {
     case 'formula': {
       const subCommand = args[0];
       const subArgs = args.slice(1);
-      if (subCommand === 'evaluate' || subCommand === 'check') {
+      if (subCommand === 'evaluate') {
         const { run } = require('../lib/formula/evaluate');
         await run(subArgs);
       } else {
@@ -1121,7 +1121,7 @@ async function main() {
       } else if (subCommand === 'check') {
         const { run: runIntegrationCheck } = require('../lib/integration/integration-check');
         await runIntegrationCheck(subArgs);
-      } else if (subCommand === 'diagnose' || subCommand === 'doctor') {
+      } else if (subCommand === 'diagnose') {
         const { run: runIntegrationDiagnose } = require('../lib/integration/integration-diagnose');
         await runIntegrationDiagnose(subArgs);
       } else {

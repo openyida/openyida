@@ -37,7 +37,7 @@
 | 导入应用迁移包 | `openyida import <file> [name]` |
 | 管理左侧导航分组 | `openyida nav-group <list\|create\|rename\|delete\|move\|order\|hide\|show> <appType> ...` |
 | 管理应用管理员 | `openyida app-permission <get\|set\|add\|remove\|search-user> ...` |
-| 管理应用多语言 | `openyida i18n <overview\|config\|languages\|list\|upsert\|delete\|translate\|translate-all\|upgrade> <appType> ...` |
+| 管理应用多语言 | `openyida i18n <overview\|config\|get\|languages\|list\|upsert\|batch-upsert\|bind\|delete\|translate\|translate-all\|upgrade> <appType> ...` |
 | 查询组织基础信息、容量、额度、域名 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` |
 | 查询企业效能 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options]` |
 | 管理平台管理员和通讯录权限 | `openyida corp-manager <search-user\|list\|add\|remove\|address-book> ...` |
@@ -113,7 +113,7 @@
 | 开启或关闭 AI 审批提示 | `openyida ai-form-setting <enable\|disable> <appType> <formUuid>` |
 | 保存 AI 审批提示配置 | `openyida ai-form-setting save <appType> <formUuid> <config.json>` |
 | 查询任务中心 | `openyida task-center <type> [options]` |
-| 管理流程代理/离职代理 | `openyida agent-center <list\|create\|update\|cancel\|range\|search-user> ...` |
+| 管理流程代理/离职代理 | `openyida agent-center <list\|create\|update\|cancel\|range\|search-user\|is-leader\|last-departure> ...` |
 
 ## 数据、权限与分享
 
@@ -202,7 +202,7 @@
 | 启动 MCP 服务 | `openyida mcp` |
 | 启动 A2A adapter 或输出 Agent Card | `openyida a2a <serve\|agent-card> [options]` |
 | 启动本地 Web bridge | `openyida bridge start [--token <pair-token>] [--port 6736]` |
-| 输出机器可读命令清单 | `openyida commands --json` |
+| 输出机器可读命令清单 | `openyida commands [--json\|validate\|build]` |
 | 静默 CLI 装饰输出 | `openyida --quiet ...` 或 `YIDA_QUIET=1` |
 | 禁用更新检查提示 | `OPENYIDA_SKIP_UPDATE_CHECK=1` / `NO_UPDATE_NOTIFIER=1` / `CI=1` |
 | 输出完整 Agent 能力诊断 | `openyida agent-capabilities --json` |

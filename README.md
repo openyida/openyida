@@ -373,7 +373,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]` | Disable a Yida app |
 | `openyida nav-group <list\|create\|rename\|delete\|move\|order\|auto-order\|hide\|show> <appType> ...` | Manage app sidebar navigation groups |
 | `openyida app-permission <get\|set\|add\|remove\|search-user> ...` | Manage app primary, data, and developer admins |
-| `openyida i18n <overview\|config\|languages\|list\|upsert\|delete\|translate\|translate-all\|upgrade> <appType> ...` | Manage app multilingual copy and language config |
+| `openyida i18n <overview\|config\|get\|languages\|list\|upsert\|batch-upsert\|bind\|delete\|translate\|translate-all\|upgrade> <appType> ...` | Manage app multilingual copy and language config |
 | `openyida export <appType> [output]` | Export app (generate migration package) |
 | `openyida import <file> [name]` | Import migration package, rebuild app |
 
@@ -417,7 +417,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida get-permission <appType> <formUuid>` | Query form permission config |
 | `openyida save-permission <appType> <formUuid> ...` | Save form permission config |
 | `openyida corp-manager <search-user\|list\|add\|remove\|address-book> ...` | Manage platform admins and address book permissions |
-| `openyida agent-center <list\|create\|update\|cancel\|range\|search-user> ...` | Manage process and departure delegation |
+| `openyida agent-center <list\|create\|update\|cancel\|range\|search-user\|is-leader\|last-departure> ...` | Manage process and departure delegation |
 
 ### Process
 
@@ -480,7 +480,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida commands [--json]` | Output machine-readable command manifest |
+| `openyida commands [--json\|validate\|build]` | Output machine-readable command manifest |
 | `openyida agent-capabilities [--json] [--summary-json\|--compact]` | Output one-shot agent capability snapshot |
 | `openyida a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start OpenYida local web bridge service |

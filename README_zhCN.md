@@ -263,7 +263,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]` | 停用宜搭应用 |
 | `openyida nav-group <list\|create\|rename\|delete\|move\|order\|auto-order\|hide\|show> <appType> ...` | 管理应用左侧导航分组 |
 | `openyida app-permission <get\|set\|add\|remove\|search-user> ...` | 管理应用主管理员、数据管理员和开发成员 |
-| `openyida i18n <overview\|config\|languages\|list\|upsert\|delete\|translate\|translate-all\|upgrade> <appType> ...` | 管理应用多语言文案和语言配置 |
+| `openyida i18n <overview\|config\|get\|languages\|list\|upsert\|batch-upsert\|bind\|delete\|translate\|translate-all\|upgrade> <appType> ...` | 管理应用多语言文案和语言配置 |
 | `openyida export <appType> [output]` | 导出应用（生成迁移包） |
 | `openyida import <file> [name]` | 导入迁移包，重建应用 |
 
@@ -307,7 +307,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida get-permission <appType> <formUuid>` | 查询表单权限配置 |
 | `openyida save-permission <appType> <formUuid> ...` | 保存表单权限配置 |
 | `openyida corp-manager <search-user\|list\|add\|remove\|address-book> ...` | 管理平台管理员与通讯录权限 |
-| `openyida agent-center <list\|create\|update\|cancel\|range\|search-user> ...` | 管理流程代理和离职代理 |
+| `openyida agent-center <list\|create\|update\|cancel\|range\|search-user\|is-leader\|last-departure> ...` | 管理流程代理和离职代理 |
 
 ### 流程
 
@@ -370,7 +370,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida commands [--json]` | 输出机器可读命令清单 |
+| `openyida commands [--json\|validate\|build]` | 输出机器可读命令清单 |
 | `openyida agent-capabilities [--json] [--summary-json\|--compact]` | 输出 Agent 一次性能力快照 |
 | `openyida a2a <serve\|agent-card> [options]` | 启动本地只读 A2A Adapter 或输出 Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | 启动 OpenYida 本地网页桥接服务 |
