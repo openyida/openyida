@@ -179,7 +179,8 @@ describe('shared form mode service', () => {
       authRef: {
         baseUrl: 'https://example.test',
         csrfToken: 'csrf',
-        cookies: [],
+        authMode: 'token',
+        authSource: 'token',
       },
       assertRemoteDispatchBoundary() {},
     }, {

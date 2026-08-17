@@ -236,6 +236,33 @@ describe('http redirect login detection', () => {
     }
   });
 
+  test('httpPost ignores legacy cookie arrays and sends bearer auth only', async () => {
+    let capturedHeaders = null;
+    const server = http.createServer((req, res) => {
+      capturedHeaders = req.headers;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true }));
+    });
+    const port = await listen(server);
+
+    try {
+      const result = await httpPost(
+        `http://127.0.0.1:${port}`,
+        '/legacy-cookie-arg',
+        'a=1',
+        [{ name: 'session', value: 'private' }],
+        { silentStatus: true, csrfToken: 'legacy-csrf' }
+      );
+
+      expect(result).toEqual({ success: true });
+      expect(capturedHeaders.authorization).toBe('Bearer test-access-token');
+      expect(capturedHeaders.cookie).toBeUndefined();
+      expect(capturedHeaders.global_csrf_token).toBeUndefined();
+    } finally {
+      await closeServer(server);
+    }
+  });
+
   test('httpGet 将 307 跳转识别为需要重新登录', async () => {
     const server = http.createServer((req, res) => {
       res.statusCode = 307;

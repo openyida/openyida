@@ -34,7 +34,6 @@ describe('import-app helpers', () => {
     const httpPost = jest.fn().mockResolvedValue(response);
     const requestWithAutoLogin = jest.fn((requestFn, authRef) => requestFn(authRef));
     jest.doMock('../lib/core/utils', () => ({
-      loadCookieData: jest.fn(),
       triggerLogin: jest.fn(),
       resolveBaseUrl: jest.fn(() => 'https://example.test'),
       httpGet: jest.fn(),
@@ -47,7 +46,7 @@ describe('import-app helpers', () => {
       'APP_XXX',
       'FORM_XXX',
       { pages: [] },
-      { baseUrl: 'https://example.test', csrfToken: 'csrf', cookies: [] },
+      { baseUrl: 'https://example.test', csrfToken: 'csrf', authMode: 'token', authSource: 'token' },
       'receipt',
       100
     )).resolves.toEqual(response);
@@ -63,7 +62,6 @@ describe('import-app helpers', () => {
     jest.resetModules();
     const httpPost = jest.fn();
     jest.doMock('../lib/core/utils', () => ({
-      loadCookieData: jest.fn(),
       triggerLogin: jest.fn(),
       resolveBaseUrl: jest.fn(() => 'https://example.test'),
       httpGet: jest.fn(),
@@ -76,7 +74,7 @@ describe('import-app helpers', () => {
       'APP_XXX',
       'FORM_XXX',
       { pages: [] },
-      { baseUrl: 'https://example.test', cookies: [] },
+      { baseUrl: 'https://example.test', authMode: 'cookie', authSource: 'cookie' },
       'receipt',
       100
     )).rejects.toMatchObject({ code: 'IMPORT_SCHEMA_WRITE_PRECHECK_FAILED' });
@@ -84,7 +82,7 @@ describe('import-app helpers', () => {
       'APP_XXX',
       'FORM_XXX',
       { pages: [] },
-      { baseUrl: 'https://example.test', csrfToken: 'csrf', cookies: [] },
+      { baseUrl: 'https://example.test', csrfToken: 'csrf', authMode: 'token', authSource: 'token' },
       'receipt'
     )).rejects.toMatchObject({ code: 'SCHEMA_REMOTE_READ_FAILED' });
 

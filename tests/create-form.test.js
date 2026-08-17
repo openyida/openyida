@@ -57,8 +57,8 @@ describe('create-form.js imports', () => {
     expect(getBody).toContain('httpGet(baseUrl, requestPath, queryParams)');
     expect(postBody).toContain('httpPost(baseUrl, requestPath, postData');
     expect(updateBody).toMatch(/httpPost\(\s*baseUrl,/);
-    expect(postBody).toContain('authRef && authRef.cookies');
-    expect(updateBody).toContain('authRef && authRef.cookies');
+    expect(postBody).not.toContain('authRef && authRef.cookies');
+    expect(updateBody).not.toContain('authRef && authRef.cookies');
     expect(postBody).not.toContain('Cookie:');
     expect(updateBody).not.toContain('Cookie:');
   });
@@ -78,12 +78,10 @@ describe('legacy process form bridge', () => {
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     const mockUtils = {
       loadAuthData: jest.fn(() => ({
-        csrf_token: 'csrf',
-        cookies: [{ name: 'session', value: 'private' }],
         corp_id: 'corp',
         base_url: 'https://example.test',
-        auth_mode: 'cookie',
-        auth_source: 'cookie',
+        auth_mode: 'token',
+        auth_source: 'token',
       })),
       httpPost: jest.fn((baseUrl, requestPath) => {
         if (requestPath.includes('saveFormSchemaInfo')) {
@@ -98,7 +96,6 @@ describe('legacy process form bridge', () => {
         return Promise.resolve({ success: true });
       }),
       requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
-      loadCookieData: jest.fn(),
       triggerLogin: jest.fn(),
       resolveBaseUrl: jest.fn(() => 'https://example.test'),
       httpGet: jest.fn(() => Promise.resolve({ success: true, content: { gmtModified: 100 } })),
@@ -108,8 +105,8 @@ describe('legacy process form bridge', () => {
     const isolatedCreateForm = require('../lib/app/create-form');
     const result = await isolatedCreateForm.createFormForLegacyProcess({
       baseUrl: 'https://example.test',
-      cookies: [{ name: 'session', value: 'private' }],
-      csrfToken: 'csrf',
+      authMode: 'token',
+      authSource: 'token',
       corpId: 'corp',
     }, {
       appType: 'APP_TEST',
@@ -784,17 +781,10 @@ function loadIsolatedLegacyForm(schema) {
   const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   const mockUtils = {
     loadAuthData: jest.fn(() => ({
-      csrf_token: 'csrf',
-      cookies: [{ name: 'session', value: 'private' }],
       corp_id: 'corp',
       base_url: 'https://example.test',
-      auth_mode: 'cookie',
-      auth_source: 'cookie',
-    })),
-    loadCookieData: jest.fn(() => ({
-      csrf_token: 'csrf',
-      cookies: [{ name: 'session', value: 'private' }],
-      corp_id: 'corp',
+      auth_mode: 'token',
+      auth_source: 'token',
     })),
     triggerLogin: jest.fn(),
     resolveBaseUrl: jest.fn(() => 'https://example.test'),
@@ -2377,14 +2367,11 @@ function loadIsolatedCreateFormCommand(overrides = {}) {
   const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   const mockUtils = Object.assign({
     loadAuthData: jest.fn(() => ({
-      csrf_token: 'csrf',
-      cookies: [{ name: 'session', value: 'private' }],
       corp_id: 'corp',
       base_url: 'https://example.test',
-      auth_mode: 'cookie',
-      auth_source: 'cookie',
+      auth_mode: 'token',
+      auth_source: 'token',
     })),
-    loadCookieData: jest.fn(),
     triggerLogin: jest.fn(),
     resolveBaseUrl: jest.fn(() => 'https://example.test'),
     httpGet: jest.fn(() => Promise.resolve({ success: true, content: { gmtModified: 100 } })),
@@ -3068,17 +3055,10 @@ describe('legacy create-form compatibility', () => {
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     const mockUtils = {
       loadAuthData: jest.fn(() => ({
-        csrf_token: 'csrf',
-        cookies: [{ name: 'tianshu_corp_user', value: 'corp_user' }],
         corp_id: 'corp',
         base_url: 'https://example.test',
-        auth_mode: 'cookie',
-        auth_source: 'cookie',
-      })),
-      loadCookieData: jest.fn(() => ({
-        csrf_token: 'csrf',
-        cookies: [{ name: 'tianshu_corp_user', value: 'corp_user' }],
-        corp_id: 'corp',
+        auth_mode: 'token',
+        auth_source: 'token',
       })),
       triggerLogin: jest.fn(),
       resolveBaseUrl: jest.fn(() => 'https://example.test'),

@@ -23,7 +23,8 @@ const {
 const AUTH_REF = {
   baseUrl: 'https://www.aliwork.com',
   csrfToken: 'csrf-value',
-  cookies: [{ name: 'session', value: 'redacted' }],
+  authMode: 'token',
+  authSource: 'token',
 };
 
 beforeEach(() => {
@@ -36,7 +37,7 @@ describe('app lifecycle requests', () => {
     utils.httpPost.mockResolvedValue({ success: true, content: true });
 
     const output = await changeAppLifecycle('online', parseArgs(['APP_1']));
-    const [baseUrl, requestPath, rawBody, cookies] = utils.httpPost.mock.calls[0];
+    const [baseUrl, requestPath, rawBody] = utils.httpPost.mock.calls[0];
 
     expect(baseUrl).toBe('https://www.aliwork.com');
     expect(requestPath).toMatch(/^\/dingtalk\/web\/APP_1\/query\/app\/onlineApp\.json\?_api=App\.goOnline&_mock=false&_stamp=\d+$/);
@@ -46,7 +47,7 @@ describe('app lifecycle requests', () => {
       isToDingAppCenter: 'n',
       showAppCenter: 'n',
     });
-    expect(cookies).toBe(AUTH_REF.cookies);
+    expect(utils.httpPost.mock.calls[0][3]).toBeUndefined();
     expect(output).toMatchObject({ success: true, action: 'online', appType: 'APP_1' });
   });
 

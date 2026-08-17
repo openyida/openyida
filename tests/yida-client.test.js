@@ -58,6 +58,32 @@ describe('yida-client', () => {
     expect(utils.triggerLogin).toHaveBeenCalledTimes(1);
   });
 
+  test('does not expose legacy cookie auth data as an auth ref', () => {
+    utils.loadAuthData.mockReturnValue({
+      base_url: 'https://legacy.example.test',
+      auth_mode: 'cookie',
+      auth_source: 'cookie',
+      cookies: [{ name: 'session', value: 'private' }],
+      csrf_token: 'csrf',
+    });
+    utils.triggerLogin.mockReturnValue({
+      base_url: 'https://example.yida.test',
+      auth_mode: 'token',
+      auth_source: 'token',
+    });
+
+    const authRef = createAuthRef();
+
+    expect(authRef).toMatchObject({
+      baseUrl: 'https://example.yida.test',
+      authMode: 'token',
+      authSource: 'token',
+    });
+    expect(authRef).not.toHaveProperty('cookies');
+    expect(authRef).not.toHaveProperty('cookieData');
+    expect(utils.triggerLogin).toHaveBeenCalledTimes(1);
+  });
+
   test('wraps GET requests with auto-login handling', async () => {
     const client = createYidaClient();
     const result = await client.get('/query/path.json', { page: 1 });
@@ -121,7 +147,8 @@ describe('yida-client', () => {
   test('postFormOnce rejects missing write auth before transport', async () => {
     const client = createYidaClient({ authRef: {
       baseUrl: 'https://example.yida.test',
-      cookies: [],
+      authMode: 'cookie',
+      authSource: 'cookie',
     } });
 
     await expect(client.postFormOnce('/save/path.json', {})).rejects.toMatchObject({

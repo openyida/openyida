@@ -24,7 +24,6 @@ const {
   findDuplicateSourceMismatches,
   loadPublishSource,
   mergePageDataSource,
-  sendSaveRequestOnce,
   verifyPublishTarget,
 } = require('../lib/app/publish');
 const {
@@ -572,67 +571,65 @@ describe('publish prechecks', () => {
   test.each([
     ['login expiry', { success: false, errorCode: '307' }],
     ['CSRF expiry', { success: false, errorCode: 'TIANSHU_000030' }],
-    ['redirect response', { success: false, errorCode: '302' }],
+    ['redirect response', { __needLogin: true, __httpStatus: 302 }],
     ['ordinary failure', { success: false, errorCode: 'FAILED' }],
-  ])('legacy publish Schema transport sends once on %s', async (label, responseBody) => {
-    const previousQuiet = process.env.YIDA_QUIET;
-    process.env.YIDA_QUIET = '1';
-    const requestSpy = jest.spyOn(https, 'request').mockImplementation((options, callback) => {
-      const response = new EventEmitter();
-      response.statusCode = label === 'redirect response' ? 302 : 200;
-      const request = new EventEmitter();
-      request.write = jest.fn();
-      request.end = jest.fn(() => {
-        callback(response);
-        response.emit('data', JSON.stringify(responseBody));
-        response.emit('end');
-      });
-      return request;
+  ])('token publish Schema transport delegates once on %s', async (label, responseBody) => {
+    jest.resetModules();
+    const httpPost = jest.fn().mockResolvedValue(responseBody);
+    jest.doMock('../lib/core/utils', () => {
+      const actual = jest.requireActual('../lib/core/utils');
+      return {
+        ...actual,
+        httpPost,
+      };
     });
+    const isolatedPublish = require('../lib/app/publish');
 
     try {
-      await sendSaveRequestOnce(
-        'csrf',
-        [{ name: 'session', value: 'private' }],
+      await isolatedPublish.sendSaveRequestWithAuth(
+        { baseUrl: 'https://example.test', authMode: 'token', authSource: 'token' },
         JSON.stringify({ pages: [] }),
-        'https://example.test',
         'APP_XXX',
         'FORM_XXX',
         100
       );
-      expect(requestSpy).toHaveBeenCalledTimes(1);
+      expect(httpPost).toHaveBeenCalledTimes(1);
+      expect(httpPost.mock.calls[0][3]).toEqual({ silentStatus: true });
+      expect(label).toBeTruthy();
     } finally {
-      requestSpy.mockRestore();
-      if (previousQuiet === undefined) {
-        delete process.env.YIDA_QUIET;
-      } else {
-        process.env.YIDA_QUIET = previousQuiet;
-      }
+      jest.dontMock('../lib/core/utils');
+      jest.resetModules();
     }
   });
 
-  test('legacy publish Schema transport rejects missing auth or revision before request', async () => {
-    const requestSpy = jest.spyOn(https, 'request');
+  test('token publish Schema transport rejects missing token auth or revision before request', async () => {
+    jest.resetModules();
+    const httpPost = jest.fn();
+    jest.doMock('../lib/core/utils', () => {
+      const actual = jest.requireActual('../lib/core/utils');
+      return {
+        ...actual,
+        httpPost,
+      };
+    });
+    const isolatedPublish = require('../lib/app/publish');
 
-    await expect(sendSaveRequestOnce(
-      '',
-      [],
+    await expect(isolatedPublish.sendSaveRequestWithAuth(
+      { baseUrl: 'https://example.test', authMode: 'cookie', authSource: 'cookie' },
       JSON.stringify({ pages: [] }),
-      'https://example.test',
       'APP_XXX',
       'FORM_XXX',
       100
     )).rejects.toMatchObject({ code: 'PUBLISH_SCHEMA_WRITE_PRECHECK_FAILED' });
-    await expect(Promise.resolve().then(() => sendSaveRequestOnce(
-      'csrf',
-      [],
+    await expect(Promise.resolve().then(() => isolatedPublish.sendSaveRequestWithAuth(
+      { baseUrl: 'https://example.test', authMode: 'token', authSource: 'token' },
       JSON.stringify({ pages: [] }),
-      'https://example.test',
       'APP_XXX',
       'FORM_XXX'
     ))).rejects.toMatchObject({ code: 'SCHEMA_REMOTE_READ_FAILED' });
 
-    expect(requestSpy).not.toHaveBeenCalled();
-    requestSpy.mockRestore();
+    expect(httpPost).not.toHaveBeenCalled();
+    jest.dontMock('../lib/core/utils');
+    jest.resetModules();
   });
 });
