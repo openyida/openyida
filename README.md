@@ -68,9 +68,9 @@ OpenYida returns a compact machine-readable summary with the version, login stat
 openyida login
 ```
 
-OpenYida login defaults to OAuth token mode. It opens the DingTalk OAuth authorization page, receives the local loopback callback, exchanges `code` / `authCode` with the Yida server, and stores `access_token` / `refresh_token` in the current project cache.
+OpenYida login defaults to OAuth token mode. It opens the DingTalk OAuth authorization page, receives the local loopback callback, exchanges `code` / `authCode` with the Yida server, and stores `access_token` / `refresh_token` in the user auth store when available. If the user auth store is not writable, OpenYida explicitly falls back to the current project cache and reports that narrower persistence scope.
 
-When the user names a target Yida entry URL, pass it to the login command so OpenYida can select the matching environment and token session file. For example, Alibaba intranet Yida uses `auth-token-alibaba.json`:
+When the user names a target Yida entry URL, pass it to the login command so OpenYida can select the matching environment and auth profile. For example:
 
 ```bash
 openyida login https://yida-group.alibaba-inc.com/
@@ -393,6 +393,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida list-forms <appType> [--keyword <text>]` | List forms/pages in an app |
 | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | Manage aggregate tables (virtualView) |
 | `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json]` | Get one form Schema or all form Schemas |
+| `openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]` | Check PRD page/resource count risk |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | Export app entity relationship diagram |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page |
 | `openyida build-page <sourceFile> [--output file\|--write]` | Build Yida-compatible page source |

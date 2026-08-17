@@ -53,7 +53,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 
 ## 完成条件
 
-按 [Step 9：输出与收尾](workflow/step-9-output-finish.md) 核对完成条件。完整应用默认完成点是主页面发布成功、轻量导航排序完成或有 warning、seed records 就绪或说明跳过原因、final 先给业务总结再给唯一主入口；截图、公开访问、数据源深接、报表大屏和精细导航分组只在用户明确要求或 PRD 验收标准命中时追加。
+按 [Step 9：输出与收尾](workflow/step-9-output-finish.md) 核对完成条件。完整应用默认完成点是主页面发布成功、轻量导航排序完成或有 warning、seed records 就绪或说明跳过原因、写入轻量 build-manifest 并运行页面/资源数量完整性风险检查、final 先给业务总结再给唯一主入口；只有 `verdict=pass` 才能说“已按 PRD 完成搭建”，`needs_review` 允许交付但必须列出需确认项。截图、公开访问、数据源深接、报表大屏和精细导航分组只在用户明确要求或 PRD 验收标准命中时追加。
 
 ## 参考文件
 

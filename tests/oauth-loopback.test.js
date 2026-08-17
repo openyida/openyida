@@ -34,6 +34,15 @@ describe('launchLoginBrowser browser ownership', () => {
     })).toBe(false);
     expect(openBrowser).not.toHaveBeenCalled();
   });
+
+  test('OPENYIDA_NO_BROWSER leaves the authorization URL to the caller', () => {
+    const openBrowser = jest.fn();
+    expect(launchLoginBrowser('https://login.example.test', {
+      env: { OPENYIDA_NO_BROWSER: '1' },
+      openBrowser,
+    })).toBe(false);
+    expect(openBrowser).not.toHaveBeenCalled();
+  });
 });
 
 describe('resolveBrowserLauncher', () => {
@@ -189,6 +198,9 @@ describe('openBrowser launch policy', () => {
     expect(isQwenWorkEnvironment({ QWENWORKCN_INTEGRATION_MODE: '1' })).toBe(true);
     expect(isQwenWorkEnvironment({ __CFBundleIdentifier: 'com.alibaba.qwenwork' })).toBe(true);
     expect(isQwenWorkEnvironment({ QODER_WORK_INTEGRATION_PRODUCT: 'qwen-work' })).toBe(true);
+    expect(isQwenWorkEnvironment({ QODER_WORK_INTEGRATION_PRODUCT: 'qwenworkcn' })).toBe(true);
+    expect(isQwenWorkEnvironment({ QODERCN_CONFIG_DIR: '/Users/me/.qwenworkcn' })).toBe(true);
+    expect(isQwenWorkEnvironment({ QODER_WORKER_CWD: '/Users/me/.qwenworkcn/workspace/chat-1' })).toBe(true);
     expect(isQwenWorkEnvironment({ __CFBundleIdentifier: 'com.openai.codex' })).toBe(false);
   });
 

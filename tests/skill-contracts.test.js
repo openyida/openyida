@@ -67,6 +67,18 @@ describe('OpenYida skill contracts', () => {
     expect(localeSource).not.toContain('openyida check-page pages/src/home.canvas.jsx');
   });
 
+  test('optional locale login help keeps the no-browser ownership contract', () => {
+    const localeDir = path.join(ROOT, 'locales-extra', 'core');
+    const localeFiles = fs.readdirSync(localeDir).filter((file) => file.endsWith('.js'));
+
+    for (const file of localeFiles) {
+      const source = fs.readFileSync(path.join(localeDir, file), 'utf8');
+      expect(source).toContain('[--no-browser]');
+      expect(source).toContain('openyida login --no-browser');
+      expect(source).toMatch(/authorization URL|授權連結/);
+    }
+  });
+
   test('skill guidance does not route through sample templates', () => {
     const files = listMarkdownAndJsonFiles(path.join(ROOT, 'yida-skills'))
       .filter(isSampleRoutingGuidanceFile);

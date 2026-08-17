@@ -12,6 +12,7 @@ const {
   loadAuthData,
   loadCookieData,
   detectActiveTool,
+  detectRuntimeCapabilities,
   hasDesktopEnvironment,
   resolveWukongWorkspaceRoot,
   httpPost,
@@ -364,6 +365,7 @@ describe('requestWithAutoLogin', () => {
         refresh_token: 'refresh-token',
         base_url: 'https://customer.example.com',
         corp_id: 'ding-corp',
+        corp_name: '钉钉组织',
         user_id: 'user-1',
       });
       const isRefreshAuthRequired = jest.fn(() => false);
@@ -395,8 +397,10 @@ describe('requestWithAutoLogin', () => {
         auth_mode: 'token',
         base_url: 'https://customer.example.com',
         corp_id: 'ding-corp',
+        corp_name: '钉钉组织',
         user_id: 'user-1',
       });
+      expect(authRef.corpName).toBe('钉钉组织');
       expect(authRef.baseUrl).toBe('https://customer.example.com');
       expect(result).toEqual({ success: true, content: { ok: true } });
     } finally {
@@ -454,6 +458,7 @@ describe('loadAuthData', () => {
   let originalEndpoint;
   let originalCorpId;
   let originalUserId;
+  let originalAuthDir;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-utils-'));
@@ -464,6 +469,7 @@ describe('loadAuthData', () => {
     originalEndpoint = process.env.OPENYIDA_ENDPOINT;
     originalCorpId = process.env.OPENYIDA_TOKEN_CORP_ID;
     originalUserId = process.env.OPENYIDA_TOKEN_USER_ID;
+    originalAuthDir = process.env.OPENYIDA_AUTH_DIR;
     delete process.env.YIDA_AUTH_ENABLED;
     delete process.env[LEGACY_COOKIE_ENV];
     delete process.env.OPENYIDA_ACCESS_TOKEN;
@@ -471,6 +477,7 @@ describe('loadAuthData', () => {
     delete process.env.OPENYIDA_ENDPOINT;
     delete process.env.OPENYIDA_TOKEN_CORP_ID;
     delete process.env.OPENYIDA_TOKEN_USER_ID;
+    process.env.OPENYIDA_AUTH_DIR = path.join(tmpDir, 'user-auth');
   });
 
   afterEach(() => {
@@ -488,6 +495,7 @@ describe('loadAuthData', () => {
     restore('OPENYIDA_ENDPOINT', originalEndpoint);
     restore('OPENYIDA_TOKEN_CORP_ID', originalCorpId);
     restore('OPENYIDA_TOKEN_USER_ID', originalUserId);
+    restore('OPENYIDA_AUTH_DIR', originalAuthDir);
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
@@ -499,15 +507,18 @@ describe('loadAuthData', () => {
       expires_at: Date.now() + 600000,
       base_url: 'https://www.aliwork.com',
       corp_id: 'corpA',
+      corp_name: '组织 A',
       user_id: 'user1',
     }, { projectRoot: tmpDir });
 
     const result = loadAuthData(tmpDir);
     expect(result).toMatchObject({
       corp_id: 'corpA',
+      corp_name: '组织 A',
       user_id: 'user1',
       base_url: 'https://www.aliwork.com',
-      auth_source: 'token',
+      auth_source: 'project_legacy',
+      auth_store: 'project_cache',
       auth_mode: 'token',
     });
   });
@@ -584,8 +595,19 @@ describe('detectActiveTool', () => {
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
     delete process.env.QODERCLI_INTEGRATION_MODE;
+    delete process.env.QODER_WORK_INTEGRATION_PRODUCT;
+    delete process.env.QODERCN_CONFIG_DIR;
+    delete process.env.QODER_CONFIG_DIR;
+    delete process.env.QODER_WORKER_CWD;
+    delete process.env.QWENWORK;
     delete process.env.QWENWORK_INTEGRATION_MODE;
     delete process.env.QWENWORKCN_INTEGRATION_MODE;
+    delete process.env.QWENWORK_CLIENT;
+    delete process.env.QWENWORK_WORKSPACE_DIR;
+    delete process.env.QWENWORK_SANDBOX_ID;
+    delete process.env.QWENWORK_PREVIEW_URL;
+    delete process.env.QWENWORK_VNC_URL;
+    delete process.env.AGENT_PLATFORM;
     delete process.env.CODEX_SHELL;
     delete process.env.CODEX_CI;
     delete process.env.CODEX_THREAD_ID;
@@ -595,6 +617,8 @@ describe('detectActiveTool', () => {
     delete process.env.AGENT_WORK_ROOT;
     delete process.env.MULERUN_CHAT_ID;
     delete process.env.MULE_DATA_DIR;
+    delete process.env.MULE_WORKSPACE_DIR;
+    delete process.env.MULE_SANDBOX_ID;
     delete process.env.TERM_PROGRAM;
     delete process.env.VSCODE_GIT_ASKPASS_NODE;
     delete process.env.OPENYIDA_NO_BROWSER_HANDOFF;
@@ -633,6 +657,43 @@ describe('detectActiveTool', () => {
     expect(result.tool).toBe('mulerun');
   });
 
+  test('QwenWork web 强信号优先于 MuleRun 兼容变量', () => {
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'qwenwork-web-'));
+    fs.mkdirSync(path.join(workspace, 'project'), { recursive: true });
+    fs.writeFileSync(path.join(workspace, 'project', 'config.json'), '{}', 'utf8');
+    try {
+      process.env.QWENWORK = '1';
+      process.env.AGENT_PLATFORM = 'qwenwork_base';
+      process.env.QWENWORK_CLIENT = 'acp';
+      process.env.QWENWORK_WORKSPACE_DIR = workspace;
+      process.env.QWENWORK_SANDBOX_ID = 'sandbox-web';
+      process.env.QWENWORK_PREVIEW_URL = 'https://preview.example.test';
+      process.env.QWENWORK_VNC_URL = 'https://vnc.example.test';
+      process.env.MULERUN_CHAT_ID = 'mule-chat';
+      process.env.MULE_DATA_DIR = '/tmp/.mulerun';
+      process.env.MULE_WORKSPACE_DIR = '/tmp/mule-workspace';
+      process.env.CLAUDE_CODE = '1';
+
+      const result = detectActiveTool();
+      expect(result).toMatchObject({
+        tool: 'qwenwork',
+        dirName: '.qwenworkcn',
+        runtime: 'web_sandbox',
+        subtype: 'qwenwork_web',
+        workspaceRoot: path.join(workspace, 'project'),
+        workspaceRootSource: 'QWENWORK_WORKSPACE_DIR',
+        capabilities: {
+          desktop_shell: false,
+          agent_browser: true,
+          browser_auto_open: false,
+          playwright_required: false,
+        },
+      });
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
   test('OPENCODE 环境变量时检测为 OpenCode', () => {
     delete process.env.CLAUDE_CODE;
     process.env.OPENCODE = '1';
@@ -663,6 +724,40 @@ describe('detectActiveTool', () => {
     expect(result.tool).toBe('qwenwork');
     expect(result.displayName).toBe('QwenWork（千问办公）');
     expect(result.dirName).toBe('.qwenworkcn');
+  });
+
+  test('QwenWork desktop 强信号优先于 Qoder/QoderWork 兼容变量', () => {
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'qwenwork-desktop-'));
+    fs.writeFileSync(path.join(workspace, 'config.json'), '{}', 'utf8');
+    try {
+      process.env.QODER_IDE = '1';
+      process.env.QODER_AGENT = '1';
+      process.env.QODERCLI_INTEGRATION_MODE = 'qoder_work';
+      process.env.QODER_WORK_INTEGRATION_PRODUCT = 'qwenworkcn';
+      process.env.__CFBundleIdentifier = 'cn.qwenwork.desktop.mac';
+      process.env.QODERCN_CONFIG_DIR = path.join(os.homedir(), '.qwenworkcn');
+      process.env.QODER_WORKER_CWD = workspace;
+      process.env.CLAUDE_CODE_ENTRYPOINT = 'sdk-ts';
+
+      const result = detectActiveTool();
+      expect(result).toMatchObject({
+        tool: 'qwenwork',
+        displayName: 'QwenWork（千问办公）',
+        dirName: '.qwenworkcn',
+        runtime: 'desktop_shell',
+        subtype: 'qwenwork_desktop',
+        workspaceRoot: workspace,
+        workspaceRootSource: 'QODER_WORKER_CWD',
+        capabilities: {
+          desktop_shell: true,
+          agent_browser: true,
+          browser_auto_open: true,
+          playwright_required: false,
+        },
+      });
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
   });
 
   test('QwenWork 和 QoderWork 环境默认附加浏览器 handoff', () => {
@@ -782,5 +877,27 @@ describe('detectActiveTool', () => {
 
     // 恢复 fs.existsSync
     fs.existsSync = originalExistsSync;
+  });
+
+  test('detectRuntimeCapabilities 在无桌面且无 Agent 浏览器时显式标记无浏览器能力', () => {
+    const result = detectRuntimeCapabilities({
+      env: { CI: '1' },
+      cwd: '/tmp/openyida-runtime',
+      platform: 'linux',
+      home: '/tmp/openyida-home',
+    });
+
+    expect(result).toMatchObject({
+      tool: null,
+      runtime: 'unknown',
+      workspaceRoot: path.join('/tmp/openyida-runtime', 'project'),
+      workspaceRootSource: 'cwd_project',
+      capabilities: {
+        desktop_shell: false,
+        agent_browser: false,
+        browser_auto_open: false,
+        playwright_required: false,
+      },
+    });
   });
 });

@@ -21,6 +21,7 @@ describe('yida-client', () => {
       auth_mode: 'token',
       auth_source: 'token',
       corp_id: 'corp-1',
+      corp_name: '组织 1',
       user_id: 'user-1',
     });
     utils.httpGet.mockResolvedValue({ success: true, method: 'get' });
@@ -36,6 +37,7 @@ describe('yida-client', () => {
       authMode: 'token',
       authSource: 'token',
       corpId: 'corp-1',
+      corpName: '组织 1',
       userId: 'user-1',
     });
     expect(authRef).not.toHaveProperty('cookies');

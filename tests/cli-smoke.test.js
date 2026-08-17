@@ -31,6 +31,10 @@ function cliEnv() {
     QODER_IDE: '',
     QODER_AGENT: '',
     QODERCLI_INTEGRATION_MODE: '',
+    QODER_WORK_INTEGRATION_PRODUCT: '',
+    QODERCN_CONFIG_DIR: '',
+    QODER_CONFIG_DIR: '',
+    QODER_WORKER_CWD: '',
     CODEX_SHELL: '',
     CODEX_CI: '',
     CODEX_THREAD_ID: '',
@@ -44,8 +48,19 @@ function cliEnv() {
     AGENT_WORK_ROOT: '',
     MULERUN_CHAT_ID: '',
     MULE_DATA_DIR: '',
+    MULE_WORKSPACE_DIR: '',
+    MULE_SANDBOX_ID: '',
     OPENYIDA_AGENT_MODE: '',
     OPENYIDA_ASSUME_DESKTOP: '',
+    QWENWORK: '',
+    QWENWORK_INTEGRATION_MODE: '',
+    QWENWORKCN_INTEGRATION_MODE: '',
+    QWENWORK_CLIENT: '',
+    QWENWORK_WORKSPACE_DIR: '',
+    QWENWORK_SANDBOX_ID: '',
+    QWENWORK_PREVIEW_URL: '',
+    QWENWORK_VNC_URL: '',
+    AGENT_PLATFORM: '',
     YIDA_AUTH_ENABLED: '',
     OPENYIDA_ACCESS_TOKEN: '',
     OPENYIDA_REFRESH_TOKEN: '',
@@ -53,6 +68,8 @@ function cliEnv() {
     OPENYIDA_TOKEN_CORP_ID: '',
     OPENYIDA_TOKEN_USER_ID: '',
     OPENYIDA_ENDPOINT: '',
+    OPENYIDA_NO_BROWSER: '',
+    OPENYIDA_OAUTH_TIMEOUT_MS: '',
     __CFBundleIdentifier: '',
   };
 }
@@ -73,6 +90,25 @@ function runOkWithEnv(args, extraEnv, cwd = ROOT) {
     encoding: 'utf8',
     timeout: 10000,
   });
+}
+
+function runAnyWithEnv(args, extraEnv, cwd = ROOT, options = {}) {
+  const result = spawnSync(process.execPath, [BIN, ...args], {
+    cwd,
+    env: { ...cliEnv(), ...extraEnv },
+    encoding: 'utf8',
+    timeout: options.timeout || 10000,
+  });
+  const output = `${result.stdout || ''}${result.stderr || ''}`;
+  return {
+    status: result.status,
+    stdout: result.stdout || '',
+    stderr: result.stderr || '',
+    output,
+    jsonOutput: output
+      .replace(/^\(node:\d+\) ExperimentalWarning:.*\n?/gm, '')
+      .replace(/^\(Use `node --trace-warnings \.\.\.` to show where the warning was created\)\n?/gm, ''),
+  };
 }
 
 function createCodexWorkspace() {
@@ -271,6 +307,31 @@ describe('CLI offline smoke', () => {
     expect(result.output).toContain('OAuth loopback');
     expect(result.output).not.toContain('login.dingtalk.com/oauth2/auth');
     expect(result.output).not.toContain('not_logged_in');
+  });
+
+  test('login --no-browser --quiet still prints the authorization URL to stderr', () => {
+    const result = runAnyWithEnv(['login', '--no-browser', '--quiet'], {
+      OPENYIDA_OAUTH_TIMEOUT_MS: '80',
+    }, ROOT, { timeout: 5000 });
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('Open this URL to login:');
+    expect(result.stderr).toContain('login.dingtalk.com/oauth2/auth');
+    expect(result.stderr).not.toContain('Waiting for browser authorization');
+    expect(result.stdout).not.toContain('login.dingtalk.com/oauth2/auth');
+  });
+
+  test('OPENYIDA_NO_BROWSER with quiet login still prints the authorization URL to stderr', () => {
+    const result = runAnyWithEnv(['login', '--quiet'], {
+      OPENYIDA_NO_BROWSER: '1',
+      OPENYIDA_OAUTH_TIMEOUT_MS: '80',
+    }, ROOT, { timeout: 5000 });
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('Open this URL to login:');
+    expect(result.stderr).toContain('login.dingtalk.com/oauth2/auth');
+    expect(result.stderr).not.toContain('Waiting for browser authorization');
+    expect(result.stdout).not.toContain('login.dingtalk.com/oauth2/auth');
   });
 
   test('removed legacy login flags fail instead of falling through to OAuth', () => {
@@ -1023,14 +1084,38 @@ describe('CLI offline smoke', () => {
       command_manifest_digest_algorithm: 'sha256',
       command_count: manifest.summary.command_count,
       full_capabilities_command: 'openyida agent-capabilities --json',
+      runtime: {
+        tool: null,
+        runtime: 'unknown',
+        subtype: null,
+        workspace_root: expect.any(String),
+        workspace_root_source: 'cwd_project',
+        browser_capabilities: {
+          desktop_shell: false,
+          agent_browser: false,
+          browser_auto_open: false,
+          playwright_required: false,
+          playwright_policy: 'optional_fallback_only_do_not_install_by_default',
+        },
+      },
       builder_path: {
         schema_version: 1,
+        runtime: {
+          tool: null,
+          runtime: 'unknown',
+          workspace_root_source: 'cwd_project',
+        },
         interactive_login: {
-          browser_default: 'cli_auto_open',
-          agent_action: 'wait_for_login_command',
+          mode: 'unsupported',
+          browser_default: 'unsupported',
+          browser_owner: 'none',
+          recommended_command: null,
+          agent_action: 'ask_user_for_browser_or_host_token',
+          reason: 'no_desktop_shell_or_agent_browser_detected',
           suppress_flag: '--no-browser',
           suppress_env: 'OPENYIDA_NO_BROWSER',
           completion_signal: 'process_exit_and_final_json',
+          playwright_required: false,
         },
         preflight: {
           recommended_command: 'openyida agent-capabilities --summary-json',
@@ -1111,6 +1196,125 @@ describe('CLI offline smoke', () => {
       playwright_cookie_check_required: false,
       qr_login_required: false,
     });
+  });
+
+  test('agent-capabilities summary detects QwenWork web before MuleRun fallback', () => {
+    const workspace = createCodexWorkspace();
+    try {
+      const summary = JSON.parse(runOkWithEnv(['agent-capabilities', '--summary-json'], {
+        QWENWORK: '1',
+        AGENT_PLATFORM: 'qwenwork_base',
+        QWENWORK_CLIENT: 'acp',
+        QWENWORK_WORKSPACE_DIR: workspace,
+        QWENWORK_SANDBOX_ID: 'sandbox-web',
+        QWENWORK_PREVIEW_URL: 'https://preview.example.test',
+        QWENWORK_VNC_URL: 'https://vnc.example.test',
+        MULERUN_CHAT_ID: 'mule-chat',
+        MULE_DATA_DIR: '/tmp/.mulerun',
+        MULE_WORKSPACE_DIR: '/tmp/mule-workspace',
+        CLAUDE_CODE: '1',
+      }, workspace));
+
+      expect(summary.workdir).toBe(path.join(workspace, 'project'));
+      expect(summary.runtime).toMatchObject({
+        tool: 'qwenwork',
+        display_name: 'QwenWork（千问办公）',
+        runtime: 'web_sandbox',
+        subtype: 'qwenwork_web',
+        workspace_root: path.join(workspace, 'project'),
+        workspace_root_source: 'QWENWORK_WORKSPACE_DIR',
+        browser_capabilities: {
+          desktop_shell: false,
+          agent_browser: true,
+          browser_auto_open: false,
+          playwright_required: false,
+        },
+      });
+      expect(summary.builder_path.interactive_login).toMatchObject({
+        mode: 'caller_open_url',
+        browser_default: 'caller_open_url',
+        browser_owner: 'agent_browser',
+        recommended_command: 'openyida login --no-browser',
+        agent_action: 'open_cli_printed_url_once',
+        reason: 'web_sandbox_agent_browser_available',
+        playwright_required: false,
+      });
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('agent-capabilities summary detects QwenWork desktop before Qoder fallback', () => {
+    const workspace = createCodexWorkspace();
+    const projectDir = path.join(workspace, 'project');
+    try {
+      const summary = JSON.parse(runOkWithEnv(['agent-capabilities', '--summary-json'], {
+        QODER_IDE: '1',
+        QODER_AGENT: '1',
+        QODERCLI_INTEGRATION_MODE: 'qoder_work',
+        QODER_WORK_INTEGRATION_PRODUCT: 'qwenworkcn',
+        QODERCN_CONFIG_DIR: path.join(tempHome, '.qwenworkcn'),
+        QODER_CONFIG_DIR: path.join(tempHome, '.qwenworkcn'),
+        QODER_WORKER_CWD: projectDir,
+        __CFBundleIdentifier: 'cn.qwenwork.desktop.mac',
+        CLAUDE_CODE_ENTRYPOINT: 'sdk-ts',
+      }, workspace));
+
+      expect(summary.workdir).toBe(projectDir);
+      expect(summary.runtime).toMatchObject({
+        tool: 'qwenwork',
+        display_name: 'QwenWork（千问办公）',
+        runtime: 'desktop_shell',
+        subtype: 'qwenwork_desktop',
+        workspace_root: projectDir,
+        workspace_root_source: 'QODER_WORKER_CWD',
+        browser_capabilities: {
+          desktop_shell: true,
+          agent_browser: true,
+          browser_auto_open: true,
+          playwright_required: false,
+        },
+      });
+      expect(summary.builder_path.interactive_login).toMatchObject({
+        mode: 'cli_auto_open',
+        browser_default: 'cli_auto_open',
+        browser_owner: 'cli',
+        recommended_command: 'openyida login',
+        agent_action: 'wait_for_login_command',
+        reason: 'desktop_shell_available',
+        playwright_required: false,
+      });
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('agent-capabilities summary keeps desktop shell login on CLI auto-open', () => {
+    const workspace = createCodexWorkspace();
+    try {
+      const summary = JSON.parse(runOkWithEnv(['agent-capabilities', '--summary-json'], {
+        OPENYIDA_ASSUME_DESKTOP: '1',
+      }, workspace));
+
+      expect(summary.runtime).toMatchObject({
+        tool: null,
+        runtime: 'desktop_shell',
+        browser_capabilities: {
+          desktop_shell: true,
+          agent_browser: false,
+          browser_auto_open: true,
+          playwright_required: false,
+        },
+      });
+      expect(summary.builder_path.interactive_login).toMatchObject({
+        mode: 'cli_auto_open',
+        browser_owner: 'cli',
+        recommended_command: 'openyida login',
+        reason: 'desktop_shell_available',
+      });
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
   });
 
   test('agent-capabilities command manifest digest canonicalizes object keys', () => {
@@ -1701,6 +1905,14 @@ describe('CLI offline smoke', () => {
         browser_session_auth_allowed: false,
         missing_token_action: 'STOP_AND_REQUEST_HOST_TOKEN',
       });
+      expect(summary.builder_path.interactive_login).toMatchObject({
+        mode: 'not_required',
+        browser_default: 'not_required',
+        browser_owner: 'none',
+        recommended_command: null,
+        agent_action: 'do_not_run_oauth_login',
+        reason: 'host_token_env_detected',
+      });
       expect(summary.builder_path.preflight).toMatchObject({
         recommended_command: 'openyida agent-capabilities --summary-json',
         run_once: true,
@@ -1776,6 +1988,12 @@ describe('CLI offline smoke', () => {
         env_token_present: false,
         interactive_login_allowed: false,
         missing_token_action: 'STOP_AND_REQUEST_HOST_TOKEN',
+      });
+      expect(summary.builder_path.interactive_login).toMatchObject({
+        mode: 'not_required',
+        browser_owner: 'none',
+        recommended_command: null,
+        reason: 'host_token_required',
       });
       expect(summary.builder_path.auth).not.toHaveProperty('runtime_auth_provisioned');
       expect(summary.builder_path.environment_check_simplification).toMatchObject({

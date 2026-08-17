@@ -77,9 +77,9 @@ openyida publish <源文件路径> <appType> <formUuid> [--compat] [--canvas] [-
 | `源文件路径` | 是 | 页面源码路径；`.canvas.jsx` / `.canvas.tsx` 写入 `YidaCodeCanvas` 组件，`.oyd.jsx` / `.jsx` / `.tsx` 写入平台 `Jsx` 组件 |
 | `appType` | 是 | 应用 ID |
 | `formUuid` | 是 | 自定义页面 ID，必须是 `openyida list-forms <appType>` 返回的 `formType=display` 目标，不要使用数据底表或流程表单 ID |
-| `--compat` / `--modern` | 否 | 兼容构建开关；仅在确认源文件属于平台 JSX 组件页面且扩展名不规范时使用 |
-| `--canvas` | 否 | 显式写入 `YidaCodeCanvas` Schema；`.canvas.jsx` 扩展名已自动启用，仅当扩展名不规范但确认为 `YidaCodeCanvas` 组件源码时需要 |
-| `--health-check` | 否 | 发布成功后请求页面 URL，回显 HTTP 健康检查结果，避免只看到 200 接口返回但首屏坏掉 |
+| `--compat` / `--modern` | 否 | 兼容构建开关；对普通 `.jsx` 也强制启用 OpenYida 兼容构建，`.oyd.jsx` 默认自动启用；仅在确认源文件属于平台 `Jsx` 组件页面且扩展名不规范时使用 |
+| `--canvas` | 否 | 显式走 Code Canvas 链路（本地 Babel 编译 + `YidaCodeCanvas` Schema）；`.canvas.jsx` 扩展名已自动启用，仅当扩展名不规范但确为 `YidaCodeCanvas` 组件源码时需要 |
+| `--health-check` | 否 | 发布成功后用 token 读回目标页面 Schema，校验 Canvas `YidaCodeCanvas.runtimeCode` 或普通页面 `Jsx + actions.module.compiled` 与本次发布内容匹配；不请求页面 HTML，不依赖 Cookie |
 | `--auto-nav-order` | 否 | 发布成功后立刻执行轻量导航排序；PRD 已写明导航顺序时优先用 `openyida nav-group order <appType> <页面/表单...>`，PRD 缺少明确页面清单时才用本参数兜底；排序失败只警告，不回滚已发布页面 |
 | `--force` | 否 | 显式绕过发布目标类型保护；只有确认目标是自定义页面但导航接口暂时无法识别时才使用 |
 
@@ -95,7 +95,7 @@ openyida list-forms <appType> --keyword <页面名>
 
 ## Final 证据契约
 
-- final 中“页面已更新 / 已重新发布 / 已上线”的依据只能是成功的 `openyida publish <source> <appType> <displayPageFormUuid>` 命令结果，最好同时带发布输出中的 URL、`formUuid`、`success:true` 或 health-check 摘要。
+- final 中“页面已更新 / 已重新发布 / 已上线”的依据只能是成功的 `openyida publish <source> <appType> <displayPageFormUuid>` 命令结果，最好同时带发布输出中的 URL、`formUuid`、`success:true` 或 `healthCheck.mode=publish_readback` 摘要。
 - `<source>` 必须是本轮实际 Write/Edit/Create 过的页面源码；`<displayPageFormUuid>` 必须是已解析的 display 自定义页面。发布了其他文件或其他目标页面，不满足本轮源码修改的 doneWhen。
 - 若 publish 没执行、执行失败、目标不明、登录态/组织不一致或用户要求先暂停，final 只能说“源码已修改，尚未发布”，并给出下一步需要执行的 publish 命令或阻塞原因。
 - 平台 JSX 组件页面的 `check-page` / `compile`、使用 `YidaCodeCanvas` 组件实现页面的 `compileCanvasLocal` 都是发布前 guard，不是远端完成证据。
@@ -128,7 +128,7 @@ openyida list-forms <appType> --keyword <页面名>
 ## 输出
 
 ```json
-{"success":true,"formUuid":"FORM-XXX","version":0,"healthCheck":{"ok":true,"statusCode":200}}
+{"success":true,"formUuid":"FORM-XXX","version":0,"healthCheck":{"ok":true,"mode":"publish_readback","authMode":"token","targetReadable":true,"schemaParsed":true,"displayComponentPresent":true,"publishedContentMatched":true}}
 ```
 
 ## 自动注入的 CSS
@@ -159,8 +159,8 @@ body { background-color: #f2f3f5; }
 | saveFormSchema 接口失败（401） | 执行 `openyida login` 重新登录后重试 |
 | corpId 不匹配 | 询问用户是否切换组织或创建新应用，不得强行发布 |
 | 发布后页面空白 | `YidaCodeCanvas` 页面检查 `YidaComp` 是否正确导出和依赖是否可加载；平台 JSX 组件页面检查 `renderJsx` 是否正确导出；同时查看浏览器控制台报错 |
-| 发布接口成功但页面坏了 | 重新执行 `openyida publish <源文件路径> <appType> <formUuid> --health-check`，结合浏览器首屏验证 |
-| 发布后功能异常 | `YidaCodeCanvas` 页面优先查依赖白名单、`YidaComp` 导出、hooks 副作用清理；平台 JSX 组件页面检查 `forceUpdate is not a function` 等常见错误，参考平台 JSX 组件页面规范 |
+| 发布接口成功但页面坏了 | 重新执行 `openyida publish <源文件路径> <appType> <formUuid> --health-check` 先确认远端 Schema 已读回且内容匹配；首屏渲染、控制台报错和体验问题仍结合浏览器验证 |
+| 发布后功能异常 | `YidaCodeCanvas` 页面优先查依赖白名单、`YidaComp` 导出、hooks 副作用清理；平台 JSX 组件页面检查 `forceUpdate is not a function` 等常见错误，参考 `yida-custom-page` 规范 |
 
 ## Agent 错误处理策略
 

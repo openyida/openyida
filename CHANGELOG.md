@@ -32,6 +32,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - 更新技能契约、路由测评、`get-schema` 和 CLI smoke 测试，覆盖自定义页面路由收拢、历史 JSX 维护边界和 Builder AI 创建标识。
 - 重新构建并校验技能发布包，确认源码态与悟空发布态的技能索引、子技能引用和路由说明一致。
 
+## [2026.8.16-beta.1] - 2026-08-17
+
+### Changed
+- auth profile、project pointer、business context、host-injected token 与 `agent-capabilities` 状态输出保留非密钥组织名字段 `corp_name`，便于多组织账号在新会话中识别候选组织。
+- `org list` / `org switch --json` 复用统一组织名解析；登录身份匹配仍以 `corpId` / `userId` / `baseUrl` / `clientId` 为准，`corp_name` 不参与 profile key。
+
+### Tests
+- 补充 auth profile 候选列表脱敏、组织名别名归一化、env token 组织名、自动刷新后 authRef 组织名透传等回归测试。
+
+## [2026.8.16-beta.0] - 2026-08-16
+
+### Added
+- 新增用户级 auth profile 存储，OAuth 登录优先写入稳定用户目录，project cache 仅保存非密钥指针；用户目录不可写时显式降级到 project legacy 并报告持久化范围。
+- `agent-capabilities --summary-json` 补充 runtime、project root、skills 目录、auth store 与 interactive login 策略，减少 Agent 反复扫描工作区和登录态目录。
+- 新增 `check-prd-completeness` 命令，用 build manifest 与远端资源列表做 PRD 交付数量风险检查。
+
+### Changed
+- 优化千问办公本地版/网页版、MuleRun 继承环境、Qoder/QoderWork 等运行时识别；千问办公强信号优先于 MULE/QODER 兼容变量。
+- 登录浏览器归属改为由能力摘要指导：桌面环境默认 CLI 打开系统浏览器，Web sandbox 使用 `--no-browser` 由 Agent 打开授权 URL；Playwright 仅作为可选兜底，不默认安装。
+- `publish --health-check` 改为发布后读取远端 Schema 并校验发布内容指纹，替代依赖页面 HTML/cookie 的健康检查。
+
+### Fixed
+- 修复 `--no-browser --quiet` 与 `OPENYIDA_NO_BROWSER=1 ... --quiet` 下授权 URL 不输出的问题；授权 URL 始终写入 stderr，避免污染 stdout JSON。
+- 修复用户级 auth profile 写入成功但 project pointer 不可写时被误判为登录态不可持久化的问题。
+
+### Tests
+- 新增/更新 OAuth loopback、agent capabilities、project root/skills、auth profile、publish readback、PRD completeness 与 CLI smoke 回归测试。
+- 已用 Codex 和 Qoder 本地 Agent 跑通真实搭建验证；千问办公本地版完成环境识别验证。
+
 ## [2026.8.14] - 2026-08-14
 
 ### Added

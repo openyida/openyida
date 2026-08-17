@@ -9,6 +9,7 @@
 - 资源创建、复用、更新摘要；
 - seed records 写入或跳过结果；
 - 导航排序结果。
+- 页面/资源数量完整性风险检查结果。
 
 ## 完成条件核对
 
@@ -19,9 +20,33 @@
 3. 轻量导航排序已执行，或给出明确 warning；
 4. 新建或作为页面数据源的核心普通表单已写入 1-3 条真实示例记录并 query 抽查，或明确说明跳过原因；
 5. 普通表单和流程表单已注入全局主题样式，详情页已注入 formDetail CSS，或明确说明无法注入的阻塞原因；
-6. 未继续执行用户未要求的公开访问、截图验收、报表、大屏、数据源深接或精细导航分组。
+6. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；一期只检查页面/资源数量完整性，只有 `verdict=pass` 时才说“已按 PRD 完成搭建”，`verdict=needs_review` 时可以交付但不能使用“完全按 PRD 完成”口径，必须列出 `items` 中 `status=needs_review/not_checked` 的复核项，`verdict=fail` 时列出 `hardFailures` 并说明未完成；
+7. 未继续执行用户未要求的公开访问、截图验收、报表、大屏、数据源深接或精细导航分组。
 
 若本轮修改过页面源码但没有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，只能交付“源码已修改，尚未发布”的说明。
+
+## build-manifest 约定
+
+完整搭建收尾前，从本轮真实创建、复用和发布结果写入 `prd/<项目名>/build-manifest.json`。它只是轻量事实源，不是严格 schema；只记录已经拿到的真实资源名、类型和 ID，用于让 `check-prd-completeness` 做一次 app 资源列表 readback 后判断页面/资源数量是否完整。
+
+一期检查只消费 `display-page`、`normal-form`、`process-form` 资源项；不检查字段、必填、选项、seed records、导航顺序、表单 Schema、页面发布内容、截图或视觉体验。
+
+最小示例：
+
+```json
+{
+  "resources": [
+    { "name": "销售工作台", "type": "display-page", "formUuid": "FORM-HOME", "main": true, "required": true },
+    { "name": "客户信息", "type": "normal-form", "formUuid": "FORM-CUSTOMER", "required": true }
+  ],
+  "pages": [
+    { "name": "销售工作台", "type": "display-page", "formUuid": "FORM-HOME", "main": true, "required": true }
+  ],
+  "forms": [
+    { "name": "客户信息", "type": "normal-form", "formUuid": "FORM-CUSTOMER", "required": true }
+  ]
+}
+```
 
 ## 结果输出格式
 
@@ -77,6 +102,7 @@
 ## Checklist
 
 - [ ] final 先写业务总结，再给唯一主入口；
+- [ ] 已写入轻量 build-manifest 并运行页面/资源数量完整性风险检查；未通过时没有声称“已按 PRD 完成搭建”；
 - [ ] 未默认暴露资源 ID 或管理态链接；
 - [ ] 未把 CDN 构建产物当作交付链接；
 - [ ] 未执行用户未要求的可选后置动作。

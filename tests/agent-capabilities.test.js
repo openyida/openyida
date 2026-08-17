@@ -34,6 +34,7 @@ describe('agent-capabilities summary', () => {
     process.env.YIDA_AUTH_ENABLED = 'true';
     process.env.OPENYIDA_ACCESS_TOKEN = 'runtime-access-token';
     process.env.OPENYIDA_TOKEN_CORP_ID = 'corpRuntime';
+    process.env.OPENYIDA_TOKEN_CORP_NAME = '运行时组织';
     process.env.OPENYIDA_TOKEN_USER_ID = 'userRuntime';
 
     try {
@@ -51,6 +52,12 @@ describe('agent-capabilities summary', () => {
           status: 'ok',
           auth_mode: 'token',
           auth_source: 'env',
+          auth_store: 'host_injected',
+          corp_id: 'corpRuntime',
+          corp_name: '运行时组织',
+          user_id: 'userRuntime',
+          user_auth_store_writable: null,
+          persistence_scope: 'host',
           can_auto_use: true,
         },
         precheck: {
@@ -62,12 +69,24 @@ describe('agent-capabilities summary', () => {
         builder_path: {
           auth: {
             source: 'env',
+            store: 'host_injected',
+            corp_id: 'corpRuntime',
+            corp_name: '运行时组织',
+            user_id: 'userRuntime',
+            user_auth_store_writable: null,
+            persistence_scope: 'host',
             can_auto_use: true,
             host_injected_token_mode: true,
             env_token_present: true,
             runtime_auth_provisioned: true,
             interactive_login_allowed: false,
             browser_session_auth_allowed: false,
+          },
+          interactive_login: {
+            mode: 'not_required',
+            browser_owner: 'none',
+            recommended_command: null,
+            reason: 'host_token_env_detected',
           },
         },
       });
@@ -88,8 +107,23 @@ describe('agent-capabilities summary', () => {
     const getAuthStatus = jest.fn(() => ({
       ok: false,
       auth_mode: 'token',
+      auth_source: 'project_legacy',
+      auth_store: 'project_cache',
+      corp_id: 'corp-a',
+      corp_name: '组织 A',
+      user_auth_store_writable: true,
+      persistence_scope: 'project',
       status: 'not_logged_in',
       can_auto_use: false,
+      candidate_count: 1,
+      candidates: [
+        {
+          auth_profile: 'profile-a',
+          corp_id: 'corp-a',
+          corp_name: '组织 A',
+          user_id: 'user-a',
+        },
+      ],
     }));
     const findProjectRoot = jest.fn(() => {
       throw new Error('findProjectRoot is only needed by the runtime fast path');
@@ -112,7 +146,28 @@ describe('agent-capabilities summary', () => {
       expect(summary.login).toMatchObject({
         status: 'not_logged_in',
         auth_mode: 'token',
+        auth_source: 'project_legacy',
+        auth_store: 'project_cache',
+        corp_id: 'corp-a',
+        corp_name: '组织 A',
+        user_auth_store_writable: true,
+        persistence_scope: 'project',
+        candidate_count: 1,
+        candidates: [
+          expect.objectContaining({
+            auth_profile: 'profile-a',
+            corp_name: '组织 A',
+          }),
+        ],
         can_auto_use: false,
+      });
+      expect(summary.builder_path.auth).toMatchObject({
+        source: 'project_legacy',
+        store: 'project_cache',
+        corp_id: 'corp-a',
+        corp_name: '组织 A',
+        user_auth_store_writable: true,
+        persistence_scope: 'project',
       });
       expect(summary.builder_path.auth).not.toHaveProperty('runtime_auth_provisioned');
     } finally {
