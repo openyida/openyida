@@ -84,6 +84,15 @@ openyida login --check-only --json
 openyida auth status
 ```
 
+To reuse an existing shared login profile for the current project, switch first instead of starting a new OAuth login:
+
+```bash
+openyida auth profiles
+openyida auth profile switch <auth_profile>
+```
+
+If the target profile is not listed, run `openyida login` to add it, then switch to the new profile.
+
 OpenYida does not install Playwright by default.
 
 ### 4. Build With an AI Agent
@@ -356,9 +365,9 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | Command | Description |
 |---------|-------------|
 | `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | Login with OAuth token mode |
-| `openyida logout` | Logout / clear token |
-| `openyida auth <status\|login\|refresh\|logout>` | Token login state management |
-| `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | Organization management (list / switch by OAuth re-login) |
+| `openyida logout` | Logout / unbind current project auth |
+| `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch>` | Token login state and profile management |
+| `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | Organization management (list / switch existing profiles first) |
 | `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | Detect AI tool environment & token login state |
 
 ### App Management

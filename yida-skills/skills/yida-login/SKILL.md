@@ -35,6 +35,7 @@ openyida login --check-only --json
 | 状态 | 动作 |
 |---|---|
 | `auth_mode=token` 且 `status=ok` 或 `can_auto_use=true` | 继续执行业务命令 |
+| `status=profile_required` 且返回 `candidates` / `next_step` | 不猜组织；先执行 `openyida auth profiles`，再用 `openyida auth profile switch <auth_profile>` 切到用户确认或目标匹配的已有 profile |
 | `auth_source=env` / `failure_reason=env_token_missing` | 进入运行环境注入 token 模式；缺 token 时停止，让 Codex、yida-agent 等宿主注入 `OPENYIDA_ACCESS_TOKEN` 或 `OPENYIDA_REFRESH_TOKEN`；不要执行 OAuth |
 | `auth_mode=token`，未登录，且 `interactive_login.mode=cli_auto_open` | 只执行一次 `openyida login`，等待该命令结束，并使用其最终 JSON 判断结果 |
 | `auth_mode=token`，未登录，且 `interactive_login.mode=caller_open_url` | 只执行一次 `openyida login --no-browser`，由 Agent 打开输出的授权 URL 一次，并等待原命令结束 |
@@ -48,9 +49,19 @@ openyida login --check-only --json
 openyida login
 openyida login --check-only --json
 openyida auth status
+openyida auth profiles
+openyida auth profile switch <auth_profile>
 openyida auth refresh
 openyida auth logout
 ```
+
+## Profile 选择原则
+
+- 当前已有多个 profile 且 snapshot 返回 `profile_required` 时，不要根据目录、组织名片段或最近操作猜测组织。
+- 先执行 `openyida auth profiles` 查看 `corp_name`、`corp_id`、`user_id`、`auth_profile`、`last_used_at` 和 `auth_store`。
+- 目标 profile 已存在时，执行 `openyida auth profile switch <auth_profile>`；这是非破坏性切换，只更新当前项目 pointer。
+- 目标 profile 不存在时，再执行 `openyida login` 新增登录态；登录完成后重新执行 `openyida auth profiles` 并切到新增 profile。
+- 运行环境注入 token 模式下，不要切换或删除本地 profile，让宿主注入目标组织的 token。
 
 ## Agent OAuth 登录编排
 

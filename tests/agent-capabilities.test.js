@@ -124,6 +124,11 @@ describe('agent-capabilities summary', () => {
           user_id: 'user-a',
         },
       ],
+      next_step: 'Run openyida auth profiles, then switch to an existing profile.',
+      next_step_commands: [
+        'openyida auth profiles',
+        'openyida auth profile switch <auth_profile>',
+      ],
     }));
     const findProjectRoot = jest.fn(() => {
       throw new Error('findProjectRoot is only needed by the runtime fast path');
@@ -159,6 +164,11 @@ describe('agent-capabilities summary', () => {
             corp_name: '组织 A',
           }),
         ],
+        next_step: 'Run openyida auth profiles, then switch to an existing profile.',
+        next_step_commands: [
+          'openyida auth profiles',
+          'openyida auth profile switch <auth_profile>',
+        ],
         can_auto_use: false,
       });
       expect(summary.builder_path.auth).toMatchObject({
@@ -168,6 +178,11 @@ describe('agent-capabilities summary', () => {
         corp_name: '组织 A',
         user_auth_store_writable: true,
         persistence_scope: 'project',
+        next_step: 'Run openyida auth profiles, then switch to an existing profile.',
+        next_step_commands: [
+          'openyida auth profiles',
+          'openyida auth profile switch <auth_profile>',
+        ],
       });
       expect(summary.builder_path.auth).not.toHaveProperty('runtime_auth_provisioned');
     } finally {

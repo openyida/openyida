@@ -135,7 +135,17 @@ describe('auth profile management', () => {
       authDir,
     });
 
-    expect(() => switchAuthProfile('corp-missing', { projectRoot, authDir })).toThrow(/auth profile not found/);
+    try {
+      switchAuthProfile('corp-missing', { projectRoot, authDir });
+      throw new Error('switchAuthProfile should throw');
+    } catch (error) {
+      expect(error).toMatchObject({
+        code: 'AUTH_PROFILE_NOT_FOUND',
+        details: {
+          next_step: expect.stringContaining('openyida auth profiles'),
+        },
+      });
+    }
     expect(loadTokenSession({ projectRoot, authDir })).toMatchObject({
       auth_profile: previous.auth_profile,
       corp_id: 'corp-a',
@@ -156,7 +166,18 @@ describe('auth profile management', () => {
       authDir,
     });
 
-    expect(() => switchAuthProfile('corp-b', { projectRoot, authDir })).toThrow(/multiple auth profiles/);
+    try {
+      switchAuthProfile('corp-b', { projectRoot, authDir });
+      throw new Error('switchAuthProfile should throw');
+    } catch (error) {
+      expect(error).toMatchObject({
+        code: 'AUTH_PROFILE_REQUIRED',
+        details: {
+          candidate_count: 2,
+          next_step: expect.stringContaining('openyida auth profile switch <auth_profile>'),
+        },
+      });
+    }
     expect(loadTokenSession({ projectRoot, authDir })).toMatchObject({
       auth_profile: previous.auth_profile,
       corp_id: 'corp-a',

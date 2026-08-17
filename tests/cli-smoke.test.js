@@ -573,6 +573,10 @@ describe('CLI offline smoke', () => {
       output: 'json',
       requires_login: false,
     });
+    expect(parsed.commands.find(entry => entry.id === 'auth')).toMatchObject({
+      usage: 'openyida auth <status|login|refresh|logout|profiles|profile switch>',
+      requires_login: false,
+    });
     expect(parsed.commands.find(entry => entry.id === 'dingtalk-link')).toMatchObject({
       usage: 'openyida dingtalk-link <url> [--target fullScreen] [--legacy-scheme] [--json]',
       output: 'text|json',
@@ -1603,8 +1607,8 @@ describe('CLI offline smoke', () => {
       kind: 'mixed',
       mutates_yida: false,
       mutates_local: true,
-      read_actions: ['status'],
-      mutating_actions: ['login', 'refresh', 'logout'],
+      read_actions: ['status', 'profiles'],
+      mutating_actions: ['login', 'refresh', 'logout', 'profile switch'],
     });
     expect(commandById.org.side_effect).toMatchObject({
       kind: 'mixed',

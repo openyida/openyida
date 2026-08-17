@@ -889,7 +889,7 @@
       "name": "yida-logout",
       "path": "skills/yida-logout/SKILL.md",
       "display_name": "退出宜搭登录",
-      "description": "退出宜搭登录，清空本地 token session。适用于切换账号或组织。",
+      "description": "退出宜搭登录或解绑当前项目登录态。默认保留共享 profile，显式 --profile/--all 才删除。",
       "category": "yida-skills/context",
       "tags": [
         "退出登录",

@@ -1,27 +1,33 @@
 ---
 name: yida-logout
-description: 退出宜搭登录，清空本地 token session。适用于需要切换账号、切换组织或重置 refresh token 时。
+description: 退出宜搭登录或解绑当前项目登录态。默认只解绑当前项目 profile pointer；显式传 --profile 或 --all 才删除共享登录 profile。
 ---
 
 # 退出登录
 
 ## 严格禁止 (NEVER DO)
 
-- 不要在退出登录后立即执行需要登录态的命令，必须先重新登录
-- 不要手动删除或编辑 `.cache/auth-token-<env>.json`，必须通过 `openyida logout` / `openyida auth logout` 清空
+- 不要把默认 `openyida logout` 当成删除共享登录态；它只解绑当前项目 profile pointer，并清当前项目 legacy token
+- 不要在目标 profile 已存在时要求用户重新 OAuth 登录；应先执行 `openyida auth profile switch <auth_profile>`
+- 不要手动删除或编辑 `.cache/auth-token-<env>.json`、`.cache/openyida/auth-profile-<env>.json` 或用户 auth profile 文件
+- 运行环境注入 token 模式下，不要尝试写入或删除本地 user profile
 
 ## 严格要求 (MUST DO)
 
-- 退出后如需继续使用，必须重新执行 `openyida login` 获取新的登录态
+- 默认退出后如需继续使用，先执行 `openyida auth status` / `openyida auth profiles`，优先切换已有 profile
+- 只有目标 profile 不存在时，才执行 `openyida login` 新增登录态
+- 删除共享 profile 必须显式使用 `openyida auth logout --profile <auth_profile>` 或 `openyida auth logout --all`
 - **本技能不读写 memory**：退出操作仅清空当前环境的 token session，不依赖跨会话的 memory 状态
 
 ## 适用场景
 
 | 用户意图 | 触发条件 |
 |---------|---------|
-| 切换账号 | "切换账号"、"换个账号登录" |
-| 切换组织 | "切换组织"、当前 token 绑定了错误组织 |
+| 解绑当前项目 | "退出登录"、当前项目绑定了错误 profile |
+| 切换账号 | "切换账号"、"换个账号登录"，且已有目标 profile 可切换 |
+| 切换组织 | "切换组织"、当前 token 绑定了错误组织，且已有目标 profile 可切换 |
 | 重置登录态 | refresh token 缺失、过期或服务端拒绝刷新 |
+| 删除共享 profile | 用户明确要求删除某个 profile 或清空全部本地共享登录态 |
 
 ## 触发条件
 
@@ -41,19 +47,24 @@ description: 退出宜搭登录，清空本地 token session。适用于需要�
 
 ```bash
 openyida logout
+openyida auth profiles
+openyida auth profile switch <auth_profile>
+openyida auth logout --profile <auth_profile>
+openyida auth logout --all
 ```
 
-清空当前环境的 `.cache/auth-token-<env>.json` token session。下次调用需要鉴权的命令前，需要重新执行 `openyida login`。
+`openyida logout` / `openyida auth logout` 默认只解绑当前项目的 profile pointer，并清当前项目 legacy token；不会删除用户级共享 profile。
 
-**适用场景**：切换账号、切换组织、refresh token 失效无法自动刷新。
+**适用场景**：解绑当前项目、切换到已有 profile、显式删除共享 profile、refresh token 失效无法自动刷新。
 
 ## 异常处理
 
 | 异常场景 | 处理方式 |
 |---------|----------|
-| logout 后忘记重新登录 | 执行 `openyida login` 获取新的 token session |
-| 手动删除了 auth-token 文件 | 效果等同于 logout，下次需要重新登录 |
-| logout 后立即执行需要登录的命令 | 先完成 token 登录后再继续 |
+| logout 后仍需继续操作 | 执行 `openyida auth profiles`，优先 `openyida auth profile switch <auth_profile>` |
+| 目标 profile 不存在 | 执行 `openyida login` 新增登录态，再切到新增 profile |
+| 手动删除了 auth-token 文件 | 执行 `openyida auth status` 检查状态，不要继续手动删 profile |
+| logout 后立即执行需要登录的命令 | 先确认 `openyida auth status` 返回可用登录态 |
 
 ## Agent 错误处理策略
 
@@ -62,7 +73,7 @@ openyida logout
 | 错误类型 | 默认处理策略 |
 |---------|-------------|
 | 命令执行失败 | 停止执行，向用户展示错误信息，询问是否重试 |
-| auth-token 文件不存在 | 无需处理，说明已处于未登录状态 |
+| auth-token 文件不存在 | 无需处理；默认 logout 仍会尝试解绑 project pointer |
 | 文件权限不足 | 提示用户检查 `.cache/` 目录权限 |
-| logout 后需要继续操作 | 提示用户执行 `openyida login` 重新登录 |
+| logout 后需要继续操作 | 提示用户先 `openyida auth profiles` 并切换已有 profile；目标不存在时再 `openyida login` |
 | 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |

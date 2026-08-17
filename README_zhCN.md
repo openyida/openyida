@@ -55,10 +55,10 @@ OpenYida 要求 Node.js 18 或更高版本。安装后会提供 `openyida` 和 `
 在 AI 编程工作区中运行：
 
 ```bash
-openyida agent-capabilities --json
+openyida agent-capabilities --summary-json
 ```
 
-该命令会一次性返回 OpenYida 版本、当前工作区、AI 工具环境、登录态、组织上下文、命令清单和副作用提示。旧版本或轻量检查也可以使用：
+该命令会返回紧凑的 OpenYida 版本、登录态、工作区和命令清单摘要。需要完整诊断时再使用 `openyida agent-capabilities --json`；旧版本也可以降级使用：
 
 ```bash
 openyida env --json
@@ -79,6 +79,15 @@ AI 工具中建议登录后用下面任一命令确认 token session 可用：
 openyida login --check-only --json
 openyida auth status
 ```
+
+如果当前项目要复用已有共享登录 profile，先切换已有 profile，不要直接发起新的 OAuth 登录：
+
+```bash
+openyida auth profiles
+openyida auth profile switch <auth_profile>
+```
+
+目标 profile 不在列表中时，再执行 `openyida login` 新增登录态，随后切到新增 profile。
 
 如果用户给出明确的宜搭入口 URL，需要把 URL 传给登录命令：
 
@@ -246,9 +255,9 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | 命令 | 说明 |
 |------|------|
 | `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
-| `openyida logout` | 退出登录 / 清空 token |
-| `openyida auth <status\|login\|refresh\|logout>` | token 登录态管理 |
-| `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | 组织管理（列表 / 重新登录切换） |
+| `openyida logout` | 退出登录 / 解绑当前项目登录态 |
+| `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch>` | token 登录态与 profile 管理 |
+| `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | 组织管理（列表 / 优先按已有 profile 切换） |
 | `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | 检测 AI 工具环境和 token 登录态 |
 
 ### 应用管理

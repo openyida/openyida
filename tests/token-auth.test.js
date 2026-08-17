@@ -167,6 +167,11 @@ describe('token-auth', () => {
         ok: false,
         status: 'profile_required',
         candidate_count: 2,
+        next_step: expect.stringContaining('openyida auth profiles'),
+        next_step_commands: [
+          'openyida auth profiles',
+          'openyida auth profile switch <auth_profile>',
+        ],
       });
       expect(status.candidates).toEqual(expect.arrayContaining([
         expect.objectContaining({ corp_id: 'corp-a', corp_name: '组织 A', user_id: 'user-a' }),
@@ -205,6 +210,7 @@ describe('token-auth', () => {
       status: 'not_logged_in',
       can_auto_use: false,
       failure_reason: 'env_token_missing',
+      next_step: expect.stringContaining('Ask the host runtime to inject'),
     });
     expect(status).not.toHaveProperty('token_file');
   });
