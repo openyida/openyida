@@ -10,6 +10,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.8.16-beta.1] - 2026-08-17
+
+### Changed
+- auth profile、project pointer、business context、host-injected token 与 `agent-capabilities` 状态输出保留非密钥组织名字段 `corp_name`，便于多组织账号在新会话中识别候选组织。
+- `org list` / `org switch --json` 复用统一组织名解析；登录身份匹配仍以 `corpId` / `userId` / `baseUrl` / `clientId` 为准，`corp_name` 不参与 profile key。
+
+### Tests
+- 补充 auth profile 候选列表脱敏、组织名别名归一化、env token 组织名、自动刷新后 authRef 组织名透传等回归测试。
+
 ## [2026.8.16-beta.0] - 2026-08-16
 
 ### Added
