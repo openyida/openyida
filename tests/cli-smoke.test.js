@@ -1235,7 +1235,10 @@ describe('CLI offline smoke', () => {
         browser_default: 'caller_open_url',
         browser_owner: 'agent_browser',
         recommended_command: 'openyida login --no-browser',
-        agent_action: 'open_cli_printed_url_once',
+        agent_action: 'open_cli_printed_url_once_with_agent_browser',
+        url_source: 'login_command_stderr',
+        manual_user_open_fallback: 'only_when_agent_browser_tool_unavailable_or_failed',
+        must_not_only_print_url_when_agent_browser_available: true,
         reason: 'web_sandbox_agent_browser_available',
         playwright_required: false,
       });

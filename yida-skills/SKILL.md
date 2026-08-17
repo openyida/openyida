@@ -16,6 +16,8 @@ description: >
 
 先执行 `openyida agent-capabilities --summary-json`，确认 OpenYida、Node/npm、登录态和工作目录可用。`openyida agent-capabilities --json` 是完整能力信息，只在命令契约排障、manifest 差异诊断或深度调试时使用；不要把完整能力信息放进常规完整搭建链路。`workdir` 对应完整能力信息里的 `active.projectRoot`。
 
+如果快照显示 `builder_path.interactive_login.mode=caller_open_url`，说明 CLI 已把浏览器归属交给 Agent。执行 `openyida login --no-browser` 后，Agent 必须优先调用当前宿主的沙箱浏览器 / 内置 Browser 打开 CLI 输出的授权 URL 一次；只有没有浏览器工具或工具调用失败时，才让用户手动打开链接。
+
 未完成环境与登录态确认前，不创建应用、页面、表单，不发布页面。环境异常、登录失败、env token 注入和 `openyida copy` 初始化见 [环境准备与登录检测](references/setup-and-env.md)。
 
 核心判断：
