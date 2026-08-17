@@ -365,6 +365,7 @@ describe('requestWithAutoLogin', () => {
         refresh_token: 'refresh-token',
         base_url: 'https://customer.example.com',
         corp_id: 'ding-corp',
+        corp_name: '钉钉组织',
         user_id: 'user-1',
       });
       const isRefreshAuthRequired = jest.fn(() => false);
@@ -396,8 +397,10 @@ describe('requestWithAutoLogin', () => {
         auth_mode: 'token',
         base_url: 'https://customer.example.com',
         corp_id: 'ding-corp',
+        corp_name: '钉钉组织',
         user_id: 'user-1',
       });
+      expect(authRef.corpName).toBe('钉钉组织');
       expect(authRef.baseUrl).toBe('https://customer.example.com');
       expect(result).toEqual({ success: true, content: { ok: true } });
     } finally {
@@ -504,12 +507,14 @@ describe('loadAuthData', () => {
       expires_at: Date.now() + 600000,
       base_url: 'https://www.aliwork.com',
       corp_id: 'corpA',
+      corp_name: '组织 A',
       user_id: 'user1',
     }, { projectRoot: tmpDir });
 
     const result = loadAuthData(tmpDir);
     expect(result).toMatchObject({
       corp_id: 'corpA',
+      corp_name: '组织 A',
       user_id: 'user1',
       base_url: 'https://www.aliwork.com',
       auth_source: 'project_legacy',

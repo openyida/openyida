@@ -15,6 +15,7 @@ const {
   loadBusinessContext,
   loadTokenSession,
   maskToken,
+  normalizeCorpName,
   resolveTokenSession,
   saveBusinessContext,
   saveProjectLegacyTokenSession,
@@ -116,6 +117,44 @@ describe('token-store', () => {
       auth_source: 'user_profile',
       auth_store: 'user',
       auth_profile: saved.auth_profile,
+    });
+  });
+
+  test('persists corp name metadata without changing auth profile identity', () => {
+    const options = { projectRoot, envName: 'public', authDir };
+    const first = saveTokenSession({
+      access_token: 'first-access-token',
+      refresh_token: 'first-refresh-token',
+      base_url: 'https://www.aliwork.com',
+      client_id: 'openyida-cli',
+      corp_id: 'corp-user',
+      corp_name: '钉钉组织',
+      user_id: 'user-user',
+    }, options);
+    const second = saveTokenSession({
+      access_token: 'second-access-token',
+      refresh_token: 'second-refresh-token',
+      base_url: 'https://www.aliwork.com',
+      client_id: 'openyida-cli',
+      corp_id: 'corp-user',
+      corpName: '钉钉组织新版',
+      user_id: 'user-user',
+    }, options);
+
+    const pointer = JSON.parse(fs.readFileSync(getAuthProfilePointerFilePath(options), 'utf8'));
+    const profile = JSON.parse(fs.readFileSync(getUserProfileFilePath(second.auth_profile, options), 'utf8'));
+
+    expect(normalizeCorpName({ name: '钉钉组织' })).toBe('钉钉组织');
+    expect(second.auth_profile).toBe(first.auth_profile);
+    expect(pointer).toMatchObject({
+      auth_profile: second.auth_profile,
+      corp_id: 'corp-user',
+      corp_name: '钉钉组织新版',
+    });
+    expect(profile).toMatchObject({
+      access_token: 'second-access-token',
+      corp_id: 'corp-user',
+      corp_name: '钉钉组织新版',
     });
   });
 
@@ -294,6 +333,7 @@ describe('token-store', () => {
         base_url: 'https://www.aliwork.com',
         client_id: 'openyida-cli',
         corp_id: 'corp-a',
+        corp_name: '组织 A',
         user_id: 'user-a',
       }, { projectRoot: firstProject, authDir });
       saveTokenSession({
@@ -302,6 +342,7 @@ describe('token-store', () => {
         base_url: 'https://www.aliwork.com',
         client_id: 'openyida-cli',
         corp_id: 'corp-b',
+        corp_name: '组织 B',
         user_id: 'user-b',
       }, { projectRoot: secondProject, authDir });
 
@@ -312,6 +353,15 @@ describe('token-store', () => {
         status: 'profile_required',
         candidate_count: 2,
       });
+      expect(ambiguous.candidates).toEqual(expect.arrayContaining([
+        expect.objectContaining({ corp_id: 'corp-a', corp_name: '组织 A', user_id: 'user-a' }),
+        expect.objectContaining({ corp_id: 'corp-b', corp_name: '组织 B', user_id: 'user-b' }),
+      ]));
+      expect(ambiguous.candidates.every((candidate) => {
+        return !Object.prototype.hasOwnProperty.call(candidate, 'access_token') &&
+          !Object.prototype.hasOwnProperty.call(candidate, 'refresh_token') &&
+          !Object.prototype.hasOwnProperty.call(candidate, 'raw');
+      })).toBe(true);
       expect(loadTokenSession({ projectRoot: newProject, authDir })).toBe(null);
 
       const selected = loadTokenSession({
@@ -342,6 +392,7 @@ describe('token-store', () => {
         OPENYIDA_ENDPOINT: 'https://www.aliwork.com',
         OPENYIDA_TOKEN_CLIENT_ID: 'openyida-cli',
         OPENYIDA_TOKEN_CORP_ID: 'corp-env',
+        OPENYIDA_TOKEN_CORP_NAME: '环境组织',
         OPENYIDA_TOKEN_USER_ID: 'user-env',
       },
     };
@@ -352,6 +403,7 @@ describe('token-store', () => {
     expect(loaded.refresh_token).toBe('env-refresh-token');
     expect(loaded.auth_source).toBe('env');
     expect(loaded.corp_id).toBe('corp-env');
+    expect(loaded.corp_name).toBe('环境组织');
     expect(loaded.user_id).toBe('user-env');
   });
 
@@ -417,6 +469,7 @@ describe('token-store', () => {
     };
     saveBusinessContext({
       corp_id: 'corp-env',
+      corp_name: '缓存组织',
       base_url: 'https://customer.example.com/path',
     }, options);
 
@@ -428,6 +481,7 @@ describe('token-store', () => {
     expect(loadBusinessContext(options)).toMatchObject({
       version: 1,
       corp_id: 'corp-env',
+      corp_name: '缓存组织',
       base_url: 'https://customer.example.com',
     });
     expect(raw).not.toHaveProperty('access_token');

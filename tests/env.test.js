@@ -98,6 +98,7 @@ describe('detectLoginStatus', () => {
       base_url: 'https://www.aliwork.com',
       client_id: 'openyida-cli',
       corp_id: 'corpABC',
+      corp_name: '组织 ABC',
       user_id: 'user456',
     }, { projectRoot: tmpDir });
 
@@ -106,6 +107,7 @@ describe('detectLoginStatus', () => {
       loggedIn: true,
       canAutoUse: true,
       corpId: 'corpABC',
+      corpName: '组织 ABC',
       userId: 'user456',
       baseUrl: 'https://www.aliwork.com',
       authSource: 'user_profile',
@@ -116,6 +118,7 @@ describe('detectLoginStatus', () => {
     expect(result.diagnostics.tokenFileFound).toBe(false);
     expect(result.diagnostics.authProfilePointerFileFound).toBe(true);
     expect(result.diagnostics.tokenFound).toBe(true);
+    expect(result.diagnostics.corpNameFound).toBe(true);
   });
 
   test('YIDA_AUTH_ENABLED=true 时返回运行环境注入 token 状态', () => {
@@ -123,6 +126,7 @@ describe('detectLoginStatus', () => {
     process.env.OPENYIDA_ACCESS_TOKEN = 'env-access-token';
     process.env.OPENYIDA_ENDPOINT = 'https://env-token.example.com';
     process.env.OPENYIDA_TOKEN_CORP_ID = 'corpEnv';
+    process.env.OPENYIDA_TOKEN_CORP_NAME = '环境组织';
     process.env.OPENYIDA_TOKEN_USER_ID = 'userEnv';
 
     const result = detectLoginStatus(tmpDir);
@@ -130,6 +134,7 @@ describe('detectLoginStatus', () => {
       loggedIn: true,
       canAutoUse: true,
       corpId: 'corpEnv',
+      corpName: '环境组织',
       userId: 'userEnv',
       authSource: 'env',
       authStore: 'host_injected',

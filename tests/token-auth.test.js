@@ -5,7 +5,13 @@ const http = require('http');
 const os = require('os');
 const path = require('path');
 
-const { getAccessToken, tokenLogout, tokenRefresh, tokenStatus } = require('../lib/auth/token-auth');
+const {
+  getAccessToken,
+  normalizeTokenResponse,
+  tokenLogout,
+  tokenRefresh,
+  tokenStatus,
+} = require('../lib/auth/token-auth');
 const {
   getBusinessContextFilePath,
   getUserProfileFilePath,
@@ -75,6 +81,32 @@ describe('token-auth', () => {
     });
   });
 
+  test('normalizes corp name aliases from token responses', () => {
+    expect(normalizeTokenResponse({
+      content: {
+        status: 'ok',
+        accessToken: 'access-token',
+        corpId: 'corp-a',
+        corpName: '组织 A',
+      },
+    }, 'https://www.aliwork.com', 'openyida-cli')).toMatchObject({
+      access_token: 'access-token',
+      corp_id: 'corp-a',
+      corp_name: '组织 A',
+    });
+
+    expect(normalizeTokenResponse({
+      data: {
+        access_token: 'access-token',
+        corp_id: 'corp-b',
+        name: '组织 B',
+      },
+    }, 'https://www.aliwork.com', 'openyida-cli')).toMatchObject({
+      corp_id: 'corp-b',
+      corp_name: '组织 B',
+    });
+  });
+
   test('host-injected token mode reports env access token status without local token file', () => {
     const status = tokenStatus({
       projectRoot: tmpDir,
@@ -83,6 +115,7 @@ describe('token-auth', () => {
         YIDA_AUTH_ENABLED: 'true',
         OPENYIDA_ACCESS_TOKEN: 'env-access-token',
         OPENYIDA_TOKEN_CORP_ID: 'corp-env',
+        OPENYIDA_TOKEN_CORP_NAME: '环境组织',
         OPENYIDA_TOKEN_USER_ID: 'user-env',
       },
     });
@@ -96,10 +129,58 @@ describe('token-auth', () => {
       status: 'ok',
       can_auto_use: true,
       corp_id: 'corp-env',
+      corp_name: '环境组织',
       user_id: 'user-env',
     });
     expect(status.access_token).toBe('env-...');
     expect(status).not.toHaveProperty('token_file');
+  });
+
+  test('status exposes safe candidates when multiple profiles require selection', () => {
+    const firstProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-status-a-'));
+    const secondProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-status-b-'));
+    const newProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-status-new-'));
+    try {
+      saveTokenSession({
+        access_token: 'access-a',
+        refresh_token: 'refresh-a',
+        base_url: 'https://www.aliwork.com',
+        client_id: 'openyida-cli',
+        corp_id: 'corp-a',
+        corp_name: '组织 A',
+        user_id: 'user-a',
+      }, { projectRoot: firstProject, authDir });
+      saveTokenSession({
+        access_token: 'access-b',
+        refresh_token: 'refresh-b',
+        base_url: 'https://www.aliwork.com',
+        client_id: 'openyida-cli',
+        corp_id: 'corp-b',
+        corp_name: '组织 B',
+        user_id: 'user-b',
+      }, { projectRoot: secondProject, authDir });
+
+      const status = tokenStatus({ projectRoot: newProject, authDir });
+
+      expect(status).toMatchObject({
+        ok: false,
+        status: 'profile_required',
+        candidate_count: 2,
+      });
+      expect(status.candidates).toEqual(expect.arrayContaining([
+        expect.objectContaining({ corp_id: 'corp-a', corp_name: '组织 A', user_id: 'user-a' }),
+        expect.objectContaining({ corp_id: 'corp-b', corp_name: '组织 B', user_id: 'user-b' }),
+      ]));
+      expect(status.candidates.every((candidate) => {
+        return !Object.prototype.hasOwnProperty.call(candidate, 'access_token') &&
+          !Object.prototype.hasOwnProperty.call(candidate, 'refresh_token') &&
+          !Object.prototype.hasOwnProperty.call(candidate, 'raw');
+      })).toBe(true);
+    } finally {
+      fs.rmSync(firstProject, { recursive: true, force: true });
+      fs.rmSync(secondProject, { recursive: true, force: true });
+      fs.rmSync(newProject, { recursive: true, force: true });
+    }
   });
 
   test('host-injected token mode reports env_token_missing when host provides no token', () => {
@@ -316,6 +397,7 @@ describe('token-auth', () => {
             expiresIn: 1800,
             base_url: 'https://customer.example.com/path',
             corp_id: 'corp-env',
+            corp_name: '环境组织',
           },
         }));
       });
@@ -341,6 +423,7 @@ describe('token-auth', () => {
         auth_source: 'env',
         access_token: 'new-env-access-token',
         refresh_token: 'new-env-refresh-token',
+        corp_name: '环境组织',
       });
       expect(env.OPENYIDA_ACCESS_TOKEN).toBe('new-env-access-token');
       expect(env.OPENYIDA_REFRESH_TOKEN).toBe('new-env-refresh-token');
@@ -350,6 +433,7 @@ describe('token-auth', () => {
       expect(context).toMatchObject({
         version: 1,
         corp_id: 'corp-env',
+        corp_name: '环境组织',
         base_url: 'https://customer.example.com',
       });
       expect(context).not.toHaveProperty('access_token');
