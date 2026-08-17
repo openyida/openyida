@@ -556,6 +556,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('a2a');
     expect(commands).toContain('ai');
     expect(commands).toContain('batch');
+    expect(commands).not.toContain('check-prd-completeness');
     expect(commands).not.toContain('batch.file');
     expect(commands).not.toContain('batch.inline');
     expect(parsed.commands.find(entry => entry.id === 'a2a')).toMatchObject({
