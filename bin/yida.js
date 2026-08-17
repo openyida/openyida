@@ -336,6 +336,29 @@ function getArgValue(cliArgs, name) {
   return cliArgs[index + 1];
 }
 
+function getFirstPositionalArg(cliArgs, startIndex = 0) {
+  const valueFlags = new Set([
+    '--client-id',
+    '--corp-id',
+    '--endpoint',
+    '--base-url',
+    '--login-url',
+    '--profile',
+    '--user-id',
+  ]);
+  for (let index = startIndex; index < cliArgs.length; index++) {
+    const arg = cliArgs[index];
+    if (valueFlags.has(arg)) {
+      index++;
+      continue;
+    }
+    if (!arg.startsWith('--')) {
+      return arg;
+    }
+  }
+  return null;
+}
+
 const UNSUPPORTED_LEGACY_LOGIN_FLAGS = new Set([
   '--qr',
   '--qr-code',
@@ -548,6 +571,13 @@ function buildTokenLoginOptions(loginArgs) {
   };
 }
 
+function buildLogoutOptions(logoutArgs) {
+  return {
+    authProfile: getArgValue(logoutArgs, '--profile'),
+    allProfiles: logoutArgs.includes('--all'),
+  };
+}
+
 function printAuthHelp() {
   printCommandUsage(t('cli.auth_usage'), t('cli.auth_example'));
 }
@@ -660,7 +690,7 @@ async function main() {
 
     case 'logout': {
       const { tokenLogout } = require('../lib/auth/token-auth');
-      console.log(JSON.stringify(await tokenLogout(), null, 2));
+      console.log(JSON.stringify(await tokenLogout(buildLogoutOptions(args)), null, 2));
       break;
     }
 
@@ -673,6 +703,18 @@ async function main() {
         printAuthHelp();
       } else if (subCommand === 'status') {
         console.log(JSON.stringify(getAuthStatus(buildTokenLoginOptions(authArgs)), null, 2));
+      } else if (subCommand === 'profiles') {
+        const { listAuthProfiles } = require('../lib/auth/profile');
+        console.log(JSON.stringify(listAuthProfiles(buildTokenLoginOptions(authArgs)), null, 2));
+      } else if (subCommand === 'profile') {
+        const profileSubCommand = authArgs[0];
+        if (profileSubCommand === 'switch') {
+          const target = getFirstPositionalArg(authArgs, 1);
+          const { switchAuthProfile } = require('../lib/auth/profile');
+          console.log(JSON.stringify(switchAuthProfile(target, buildTokenLoginOptions(authArgs)), null, 2));
+        } else {
+          throwCliUsage(t('cli.auth_usage'), t('cli.auth_example'));
+        }
       } else if (subCommand === 'login') {
         if (hasHelpFlag(authArgs)) {
           printLoginHelp();
@@ -686,7 +728,7 @@ async function main() {
       } else if (subCommand === 'refresh') {
         console.log(JSON.stringify(maskSensitiveAuthOutput(await tokenRefresh()), null, 2));
       } else if (subCommand === 'logout') {
-        console.log(JSON.stringify(await tokenLogout(), null, 2));
+        console.log(JSON.stringify(await tokenLogout(buildLogoutOptions(authArgs)), null, 2));
       } else {
         throwCliUsage(t('cli.auth_usage'), t('cli.auth_example'));
       }

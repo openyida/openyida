@@ -16,6 +16,7 @@ const {
   getBusinessContextFilePath,
   getUserProfileFilePath,
   getTokenFilePath,
+  listUserAuthProfiles,
   loadTokenSession,
   saveTokenSession,
 } = require('../lib/auth/token-store');
@@ -208,11 +209,52 @@ describe('token-auth', () => {
     expect(status).not.toHaveProperty('token_file');
   });
 
-  test('logout clears a user profile selected without a project pointer', async () => {
+  test('default logout only unbinds the current project and keeps shared user profiles', async () => {
+    const loginProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-login-project-'));
+    const secondProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-second-project-'));
+    const newProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-new-project-'));
+    try {
+      const saved = saveTokenSession({
+        access_token: 'profile-access-token',
+        base_url: 'https://www.aliwork.com',
+        client_id: 'openyida-cli',
+        corp_id: 'corp-profile',
+        user_id: 'user-profile',
+      }, { projectRoot: loginProject, authDir });
+      const second = saveTokenSession({
+        access_token: 'second-profile-access-token',
+        base_url: 'https://www.aliwork.com',
+        client_id: 'openyida-cli',
+        corp_id: 'corp-second',
+        user_id: 'user-second',
+      }, { projectRoot: secondProject, authDir });
+
+      const result = await tokenLogout({ projectRoot: newProject, authDir });
+      expect(result).toMatchObject({
+        ok: true,
+        status: 'project_unbound',
+        deleted_profile_count: 0,
+        project_unbound: true,
+      });
+      expect(loadTokenSession({ projectRoot: newProject, authDir })).toBe(null);
+      expect(fs.existsSync(getUserProfileFilePath(saved.auth_profile, { authDir }))).toBe(true);
+      expect(loadTokenSession({ projectRoot: loginProject, authDir })).toMatchObject({
+        auth_profile: saved.auth_profile,
+        corp_id: 'corp-profile',
+      });
+      expect(fs.existsSync(getUserProfileFilePath(second.auth_profile, { authDir }))).toBe(true);
+    } finally {
+      fs.rmSync(loginProject, { recursive: true, force: true });
+      fs.rmSync(secondProject, { recursive: true, force: true });
+      fs.rmSync(newProject, { recursive: true, force: true });
+    }
+  });
+
+  test('logout deletes a shared user profile only when --profile is explicit', async () => {
     const loginProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-login-project-'));
     const newProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-new-project-'));
     try {
-      saveTokenSession({
+      const saved = saveTokenSession({
         access_token: 'profile-access-token',
         base_url: 'https://www.aliwork.com',
         client_id: 'openyida-cli',
@@ -220,15 +262,95 @@ describe('token-auth', () => {
         user_id: 'user-profile',
       }, { projectRoot: loginProject, authDir });
 
-      expect(loadTokenSession({ projectRoot: newProject, authDir })).toMatchObject({
-        auth_source: 'user_profile',
-        auth_store: 'user',
+      const result = await tokenLogout({
+        projectRoot: newProject,
+        authDir,
+        authProfile: saved.auth_profile,
       });
-      await tokenLogout({ projectRoot: newProject, authDir });
+
+      expect(result).toMatchObject({
+        ok: true,
+        status: 'logged_out',
+        auth_profile: saved.auth_profile,
+        deleted_profile_count: 1,
+        project_unbound: true,
+      });
+      expect(fs.existsSync(getUserProfileFilePath(saved.auth_profile, { authDir }))).toBe(false);
       expect(loadTokenSession({ projectRoot: newProject, authDir })).toBe(null);
     } finally {
       fs.rmSync(loginProject, { recursive: true, force: true });
       fs.rmSync(newProject, { recursive: true, force: true });
+    }
+  });
+
+  test('logout --all deletes shared user profiles outside host-injected token mode', async () => {
+    const firstProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-login-a-'));
+    const secondProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-login-b-'));
+    try {
+      saveTokenSession({
+        access_token: 'profile-access-a',
+        base_url: 'https://www.aliwork.com',
+        client_id: 'openyida-cli',
+        corp_id: 'corp-a',
+        user_id: 'user-a',
+      }, { projectRoot: firstProject, authDir });
+      saveTokenSession({
+        access_token: 'profile-access-b',
+        base_url: 'https://www.aliwork.com',
+        client_id: 'openyida-cli',
+        corp_id: 'corp-b',
+        user_id: 'user-b',
+      }, { projectRoot: secondProject, authDir });
+
+      const result = await tokenLogout({
+        projectRoot: tmpDir,
+        authDir,
+        allProfiles: true,
+      });
+
+      expect(result).toMatchObject({
+        ok: true,
+        status: 'logged_out',
+        deleted_profile_count: 2,
+        project_unbound: true,
+      });
+      expect(listUserAuthProfiles({ authDir })).toHaveLength(0);
+      expect(loadTokenSession({ projectRoot: tmpDir, authDir })).toBe(null);
+    } finally {
+      fs.rmSync(firstProject, { recursive: true, force: true });
+      fs.rmSync(secondProject, { recursive: true, force: true });
+    }
+  });
+
+  test('host-injected token logout never deletes local user profiles', async () => {
+    const loginProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-login-project-'));
+    try {
+      const saved = saveTokenSession({
+        access_token: 'profile-access-token',
+        base_url: 'https://www.aliwork.com',
+        client_id: 'openyida-cli',
+        corp_id: 'corp-profile',
+        user_id: 'user-profile',
+      }, { projectRoot: loginProject, authDir });
+
+      const result = await tokenLogout({
+        projectRoot: tmpDir,
+        authDir,
+        authProfile: saved.auth_profile,
+        allProfiles: true,
+        env: {
+          YIDA_AUTH_ENABLED: 'true',
+        },
+      });
+
+      expect(result).toMatchObject({
+        ok: true,
+        status: 'host_injected_noop',
+        auth_store: 'host_injected',
+      });
+      expect(fs.existsSync(getUserProfileFilePath(saved.auth_profile, { authDir }))).toBe(true);
+    } finally {
+      fs.rmSync(loginProject, { recursive: true, force: true });
     }
   });
 
