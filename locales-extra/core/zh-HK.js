@@ -788,12 +788,8 @@ module.exports = {
   },
   import_example2: '      openyida import ./yida-export.json "品質追溯系統（正式環境）"',
   exec_failed: '\n❌ 執行失敗：{0}',
-  auth_usage: '用法：openyida auth <status|login|refresh|logout>',
-  auth_example: '範例：\n' +
-    '  openyida auth status         # 查看登入狀態\n' +
-    '  openyida auth login          # 執行登入\n' +
-    '  openyida auth refresh        # 刷新登入態\n' +
-    '  openyida auth logout         # 登出',
+  auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch>',
+  auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
   org_usage: '用法：openyida org <list|switch>',
   org_example: '範例：\n  openyida org list                    # 列出可訪問的組織\n  openyida org switch --corp-id dingXXX  # 切換到指定組織',
   title: '  openyida import - 宜搭應用程式匯入工具',
