@@ -1,9 +1,9 @@
 ---
 name: yida-rechart
-description: Code Canvas + Recharts 默认高级图表技能。用于高级图表、可视化、看板图表、趋势图、组合图等现代 React 图表页面；聚合数据必须来自宜搭原生报表或已聚合接口，不在前端拉全量明细自行聚合。明确要求 ECharts、维护旧 ECharts 页面或 Recharts 无法覆盖的复杂 option 时改用 yida-chart。
+description: 自定义页面 Recharts 高级图表技能。使用 `YidaCodeCanvas` 组件和 Recharts 实现可视化、看板图表、趋势图、组合图等现代 React 图表页面；聚合数据必须来自宜搭原生报表或已聚合接口，不在前端拉全量明细自行聚合。明确要求 ECharts、维护旧 ECharts 页面或 Recharts 无法覆盖的复杂 option 时改用 yida-chart。
 ---
 
-# 宜搭 Code Canvas Recharts 图表
+# 自定义页面 Recharts 图表
 
 ## 核心定位
 
@@ -26,22 +26,22 @@ description: Code Canvas + Recharts 默认高级图表技能。用于高级图�
 | 明确指定 ECharts | `yida-chart` |
 | 维护已有 ECharts / 普通自定义页面 | `yida-chart` |
 | 地图、graph、custom series、复杂 option 等 Recharts 无法覆盖 | `yida-chart` |
-| Canvas 图表接真实数据、CSRF、同源 fetch、错误态 | 同时遵循 `yida-canvas-data-binding` |
+| 自定义页面图表接真实数据、CSRF、同源 fetch、错误态 | 同时遵循 `yida-canvas-data-binding` |
 
-不要仅因为用户说“高级”“好看”“大屏”就切到 ECharts。默认先用本技能；只有明确技术要求、兼容旧页面或能力缺口才使用 `yida-chart`。
+不要仅因为用户说“高级”“好看”“大屏”就切到 ECharts。默认先用本技能；只有明确技术要求、维护平台 JSX 组件页面或能力缺口才使用 `yida-chart`。
 
 ## 致命规则（FATAL）
 
 1. **禁止前端全量聚合**：不得拉取全量表单明细后在浏览器中 `reduce` / `groupBy` 计算 KPI、趋势、占比或排名。
 2. **聚合口径有来源**：统计数据必须来自 `yida-report` 原生报表接口，或经过验证、已完成权限与聚合的后端/连接器接口。
-3. **Canvas 契约正确**：源码使用 `.canvas.jsx` / `.canvas.tsx`，主入口是 `YidaComp` 函数组件，使用 hooks，不使用 `renderJsx`、`didMount` 或 `this.utils.yida.*`。
-4. **依赖只用白名单**：从 `recharts`、`react`、`antd` 等 Canvas 白名单包导入；不通过脚本标签加载 Recharts。
+3. **YidaCodeCanvas 组件契约正确**：源码使用 `.canvas.jsx` / `.canvas.tsx`，主入口是 `YidaComp` 函数组件，使用 hooks，不使用 `renderJsx`、`didMount` 或 `this.utils.yida.*`。
+4. **依赖只用可用资源清单**：从 `recharts`、`react`、`antd` 等 `YidaCodeCanvas` 可用资源清单内的包导入；不通过脚本标签加载 Recharts。
 5. **错误与空态真实**：接口失败、无权限、字段不匹配和无数据分别展示明确状态，不用 seed 数据伪装真实成功。
 6. **源码修改后才可声明发布**：真实交付中创建或修改页面源码后，只有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>` 才能说“页面已发布”；本地编译只能说明“源码可发布”。
 
 ## 数据边界
 
-| 数据类型 | 正确来源 | Canvas 允许做什么 |
+| 数据类型 | 正确来源 | 页面允许做什么 |
 | --- | --- | --- |
 | KPI、求和、平均、分组、趋势、占比、排名 | `yida-report` 或已聚合接口 | 格式化、排序已聚合点、切换展示窗口 |
 | 已聚合时间序列 | 报表组件接口或聚合 API | 映射字段、过滤当前展示范围、渲染组合图 |
@@ -106,7 +106,7 @@ export default YidaComp;
 # 1. 如需真实统计，先创建/确认原生报表或已聚合接口
 # yida-report 负责统计口径；yida-canvas-data-binding 负责接口接入
 
-# 2. 本地 Canvas 快检
+# 2. 本地快检
 node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/trend-combo.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
 
 # 3. 真实交付时发布

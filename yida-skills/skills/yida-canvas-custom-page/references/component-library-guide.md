@@ -1,12 +1,12 @@
-# Code Canvas 组件库选型
+# 自定义页面组件库选型
 
-Code Canvas 页面从 [dependencies-and-cdn.md](dependencies-and-cdn.md) 的可用前端资源中选择组件库。组件库服务 `yida-design` 已确认的页面场景、区块、主题和交互，资源版本、import 写法和运行时加载方式以资源清单为准。
+使用 `YidaCodeCanvas` 组件实现的页面从 [dependencies-and-cdn.md](dependencies-and-cdn.md) 的可用前端资源中选择组件库。组件库服务 `yida-design` 已确认的页面场景、区块、主题和交互，资源版本、import 写法和运行时加载方式以资源清单为准。
 
 ## 推荐组合
 
 | 场景 | 推荐库 | 何时使用 | 使用要点 |
 | --- | --- | --- | --- |
-| B 端业务界面 | `antd` | 表格、表单控件、按钮、弹窗、Tabs、Tag、Dropdown、分页 | 最外层包 `ConfigProvider`，主色用 `readBrandColor` 注入；资源加载交给 Code Canvas runtime |
+| B 端业务界面 | `antd` | 表格、表单控件、按钮、弹窗、Tabs、Tag、Dropdown、分页 | 最外层包 `ConfigProvider`，主色用 `readBrandColor` 注入；资源加载交给 YidaCodeCanvas runtime |
 | 图表看板 | `recharts` | 折线、柱状、面积、饼图、简单仪表盘 | 容器必须有稳定高度；颜色用品牌色和语义色，不硬编码默认蓝 |
 | 复杂可视化 | `d3` | 自定义关系图、力导向、桑基、特殊坐标系 | 只在 Recharts 覆盖不了时使用；自己管理 DOM/cleanup |
 | 图标 | `lucide-react`，必要时 `@ant-design/icons` | 按钮、操作、状态、导航等功能性图标 | 默认使用 `lucide-react` named import；antd 语境可使用 `@ant-design/icons` Outlined 图标 |
@@ -25,7 +25,7 @@ Code Canvas 页面从 [dependencies-and-cdn.md](dependencies-and-cdn.md) 的可�
 
 ## lucide-react 用法
 
-Code Canvas 支持在页面源码中使用 `lucide-react`。页面默认从常用图标列表里选择具体组件，用 named import 引入：
+YidaCodeCanvas 支持在页面源码中使用 `lucide-react`。页面默认从常用图标列表里选择具体组件，用 named import 引入：
 
 ```jsx
 import { Search, RefreshCw, ChevronDown, Settings, Plus } from 'lucide-react';

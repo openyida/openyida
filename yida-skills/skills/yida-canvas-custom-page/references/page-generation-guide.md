@@ -1,6 +1,6 @@
-# Code Canvas 页面实现入口
+# 自定义页面实现入口
 
-Code Canvas 消费 `yida-design` 输出的 `prd.md` 与 `design.md`，或单页 PRD 章节 + design spec，把页面场景、区块、主题、交互、数据绑定和素材清单实现成 `.canvas.jsx` / `.canvas.tsx`。
+使用 `YidaCodeCanvas` 组件实现的自定义页面消费 `yida-design` 输出的 `prd.md` 与 `design.md`，或单页 PRD 章节 + design spec，把页面场景、区块、主题、交互、数据绑定和素材清单实现成 `.canvas.jsx` / `.canvas.tsx`。
 
 ## 页面场景到实现入口
 
@@ -20,7 +20,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 - spec 与 PRD/design.md 冲突时，以 PRD/design.md 为准，重新生成 spec；不要修改 PRD/design.md 来迎合旧 spec。
 - 手写页面且结构清楚时可以跳过 `page-spec.json`，但源码实现备注必须能说明已读取 `prd.md` 和 `design.md`。
 
-实现阶段不再从 PRD 里反推视觉，也不直接读取 `references/style-designs/`。该目录只在 yida-design 阶段提供 `design.md` 结构模板；Code Canvas 只遵守当前项目的 `design.md`。工作台/业务首页通常需要圆润紧凑状态摘要、高频动作、待办/动态/最近记录和右侧上下文；实现阶段用这些结构替代“4 个等宽大 KPI 白卡 + 图标快捷卡 + 大空态白卡”。列表/管理页通常需要顶部视觉区、搜索筛选区、左侧列表或表格、右侧详情预览、错误/空态下一步动作；实现阶段用这些结构替代单个渐变标题、单个指标卡和大块空白提示。工作台、首页、门户、看板、展示页和业务入口页推荐落地 8-10 个有业务目的的区块以上；区块可以紧凑组合，不能用重复 KPI 卡、重复快捷入口或大空白卡凑数；KPI 子项、快捷入口子项和列表行不计入区块数量。窄场景或用户要求精简时可以更少，不应因此阻塞实现。
+实现阶段不再从 PRD 里反推视觉，也不直接读取 `references/style-designs/`。该目录只在 yida-design 阶段提供 `design.md` 结构模板；`YidaCodeCanvas` 组件实现只遵守当前项目的 `design.md`。工作台/业务首页通常需要圆润紧凑状态摘要、高频动作、待办/动态/最近记录和右侧上下文；实现阶段用这些结构替代“4 个等宽大 KPI 白卡 + 图标快捷卡 + 大空态白卡”。列表/管理页通常需要顶部视觉区、搜索筛选区、左侧列表或表格、右侧详情预览、错误/空态下一步动作；实现阶段用这些结构替代单个渐变标题、单个指标卡和大块空白提示。工作台、首页、门户、看板、展示页和业务入口页推荐落地 8-10 个有业务目的的区块以上；区块可以紧凑组合，不能用重复 KPI 卡、重复快捷入口或大空白卡凑数；KPI 子项、快捷入口子项和列表行不计入区块数量。窄场景或用户要求精简时可以更少，不应因此阻塞实现。
 
 如果当前 `design.md` 缺少 `roundedRule`、`densityRule` 或 `breathingRule`，先回写设计文件再实现。默认业务页应写清卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px；状态摘要、任务列表、动作条和空态保持紧凑，不得用额外 margin、超宽空状态框或空白高度制造“高级感”。
 
@@ -58,7 +58,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 数据真实性边界：
 
 - 明确做离线预览时可以展示前端 seed 数据，但页面必须标注演示数据状态。
-- 完整应用或真实交付页使用真实业务记录；默认先把 1-3 条 demo records 写入真实宜搭表单，再由 Canvas 读取。
+- 完整应用或真实交付页使用真实业务记录；默认先把 1-3 条 demo records 写入真实宜搭表单，再由页面读取。
 - 真实数据暂未接入或 seed records 写入失败时，页面应展示空态、表单入口、刷新/登记按钮和 dataBinding 接入提示。
 
 | 已确认的页面场景 | 页面结构 | scene | 实现重点 |
@@ -72,7 +72,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 | 主从分栏、工单处理台、左列表右详情 | `split-pane-detail` | `list` | 左侧队列、右侧详情、时间线、动作区 |
 | 页面内门户壳、多入口门户、隐藏导航门户 | `portal-shell-home` | `workbench` | 仅显式要求页面内门户壳、自绘导航或隐藏平台导航时使用；默认门户/工作台不自建导航 |
 
-如果用户要求“门户组件 / 成员 / 部门 / 上传组件”，继续使用 Code Canvas，并按 [native-components-bridge.md](native-components-bridge.md) 的桥接规则实现。
+如果用户要求“门户组件 / 成员 / 部门 / 上传组件”，继续使用本技能，并按 [native-components-bridge.md](native-components-bridge.md) 的桥接规则用 `YidaCodeCanvas` 组件实现。
 
 默认实现保留平台应用导航，同应用内页面入口写入 `appBlueprint.navigation` 或平台导航分组。页面内 tab、自绘侧边栏或独立门户壳最多写 `appBlueprint.hasPageNavigation: true`，并保持平台导航可见；PRD 明确隐藏平台导航、无导航全屏体验或 `isRenderNav=false` 时，在 spec 里写 `appBlueprint.renderNav: false`；发布后再用 `openyida update-form-config <appType> <formUuid> false "<页面标题>"` 隐藏平台导航，保持页面单导航。
 
@@ -112,7 +112,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 
 主题色决策来自 `yida-design` 的 `design.md`，业务场景和页面边界来自 `prd.md` 或派生的 `page-spec.json`。页面重构 / 局部美化先以当前应用主题为基准；缺少主题证据时，按业务气质选择平台预置主题或自定义 token，不固定回到 `podBlue` / #1677ff。`themeProfile: { "name": "yida-app-theme" }` 表示跟随宜搭运行态主题：线上由 `style#yida-global-theme` 的 `--color-brand1-*` 和 `--color-group` 决定页面主色、图表色组和局部强调色。
 
-`page-spec.json` 只保存与 design.md 一致的主题摘要。只有平台预置 key 才能传给应用 `theme/colour`；自定义主题名必须在 design.md 中配套输出 tokens，并在 Canvas 源码中复制 `theme-runtime-helpers.md` 的 Code Canvas helper，注入 `style#yida-global-theme` 或 scoped CSS vars。页面包含 `FormOpenContainer` 时，同一份 tokens 还要传给容器，由容器在提交页/详情页 iframe `onLoad` 后同步到同源子文档。
+`page-spec.json` 只保存与 design.md 一致的主题摘要。只有平台预置 key 才能传给应用 `theme/colour`；自定义主题名必须在 design.md 中配套输出 tokens，并在页面源码中复制 `theme-runtime-helpers.md` 的 `YidaCodeCanvas` helper，注入 `style#yida-global-theme` 或 scoped CSS vars。页面包含 `FormOpenContainer` 时，同一份 tokens 还要传给容器，由容器在提交页/详情页 iframe `onLoad` 后同步到同源子文档。
 
 `themeScope` 决定主题影响范围：
 
@@ -130,7 +130,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 | 某个页面、首页、看板、自定义页变好看、页面重构或局部美化 | `themeScope: page`，主题基准为当前应用主题 |
 | 保持导航不变、其他页面不变、只改当前页 | `themeScope: page` |
 
-PRD 给出品牌色、色值、独立品牌/活动页诉求，或明确要求做成和当前应用很不一样时，Canvas 在页面作用域写入覆盖色。
+PRD 给出品牌色、色值、独立品牌/活动页诉求，或明确要求做成和当前应用很不一样时，在页面作用域写入覆盖色。
 
 ## Page Spec 结构化字段
 
@@ -213,7 +213,7 @@ PRD 给出品牌色、色值、独立品牌/活动页诉求，或明确要求做
 
 工作台的状态摘要必须是 64-88px 圆润紧凑状态条，不是 180px 高的大白卡，也不是横跨整页但内容稀疏的空矩形；快捷入口必须有分组和主次，不能平铺成图标卡阵列；待办、动态、最近记录、洞察、提醒和右侧上下文推荐组合成 8-10 个业务目的区块以上，但不作为硬门槛。空数据也用薄空态行 + 主操作入口，不渲染大块空白卡片。
 
-展示型 Canvas 页面验收时检查 `contentBlocks` 或源码结构：工作台、首页、门户、看板、展示页和业务入口页应有足够多有业务目的的区块；每个区块承担不同任务，例如判断状态、发起动作、筛选、处理待办、查看动态、看洞察、看异常、进入详情、处理空态或补充上下文。区块数量不作为阻塞实现的硬门槛。若 PRD 只写“`KPI 卡片: 学生总数, 课程总数, 本月出勤率, 平均分`、`快捷入口: 录入学生/登记成绩/记录考勤/管理课程`、`最近成绩列表`、`最近考勤记录`”，实现前建议补充 `contentBlocks`；若业务确实是窄场景，可以继续实现并说明取舍。
+展示型自定义页面验收时检查 `contentBlocks` 或源码结构：工作台、首页、门户、看板、展示页和业务入口页应有足够多有业务目的的区块；每个区块承担不同任务，例如判断状态、发起动作、筛选、处理待办、查看动态、看洞察、看异常、进入详情、处理空态或补充上下文。区块数量不作为阻塞实现的硬门槛。若 PRD 只写“`KPI 卡片: 学生总数, 课程总数, 本月出勤率, 平均分`、`快捷入口: 录入学生/登记成绩/记录考勤/管理课程`、`最近成绩列表`、`最近考勤记录`”，实现前建议补充 `contentBlocks`；若业务确实是窄场景，可以继续实现并说明取舍。
 
 所有展示型页面都按当前项目 `design.md` 的 `visualScaffold` 实现。若 PRD 只有业务区块、design.md 只有视觉形容词，没有明确 `layoutRecipe` / `surfaceMap` / `componentRecipe`，先回到 `prd/<项目名>/design.md` 补齐：
 
@@ -225,4 +225,4 @@ PRD 给出品牌色、色值、独立品牌/活动页诉求，或明确要求做
 6. 按源码 primitive 写组件：外层壳、首屏最大视觉锚点、状态摘要、动作条、主要内容、右侧上下文、状态处理和响应式规则都要落成真实 JSX/CSS。
 7. 写完源码后逐条核对 `acceptanceChecks`，不通过就继续 patch。
 
-所有 Canvas 页面都带控件样式护栏：`ConfigProvider.getPopupContainer` 让 Select / DatePicker 弹层留在页面作用域，`OPENYIDA_CANVAS_CONTROL_CSS` 统一输入框、下拉、日期、运行态字段组件的 hover / focus / dropdown 样式。出现黑色粗边、浏览器原生 outline、下拉浮层脱离页面风格时，优先检查这两项是否保留。
+所有使用 `YidaCodeCanvas` 组件实现的页面都带控件样式护栏：`ConfigProvider.getPopupContainer` 让 Select / DatePicker 弹层留在页面作用域，`OPENYIDA_CANVAS_CONTROL_CSS` 统一输入框、下拉、日期、运行态字段组件的 hover / focus / dropdown 样式。出现黑色粗边、浏览器原生 outline、下拉浮层脱离页面风格时，优先检查这两项是否保留。

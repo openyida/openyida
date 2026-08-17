@@ -149,7 +149,7 @@ inferred_modules:
 
 ## 16. 实现适配
 
-只包含相关适配，例如 CSS 变量、Ant Design ConfigProvider、Tailwind class 映射、Yida / Code Canvas 容器重置或 React 组件建议。
+只包含相关适配，例如 CSS 变量、Ant Design ConfigProvider、Tailwind class 映射、Yida / YidaCodeCanvas 容器重置或 React 组件建议。
 
 ## 17. 必须包含
 

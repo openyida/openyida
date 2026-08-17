@@ -40,14 +40,14 @@ description: 确定性解析表单字段 ID（fieldId）和子表路径；agent 
 - 配置数据查询条件（`yida-data-management` query searchFieldJson）
 - 更新表单字段结构（`yida-create-form-page` update 模式）
 - 配置流程字段权限（`yida-process-rule`）
-- 自定义页面中引用字段 ID 常量（`yida-custom-page`）
+- 自定义页面中引用字段 ID 常量（ `yida-canvas-custom-page`）
 
 ## 触发条件
 
 **正向触发**：
 - 任何需要用到 fieldId 的操作前（自动前置触发）
 - "查看表单结构"、"获取字段 ID"、"查看 Schema"
-- 其他技能（yida-data-management、yida-process-rule、yida-custom-page）执行前的前置步骤
+- 其他技能（yida-data-management、yida-process-rule、页面源码维护技能）执行前的字段 ID 前置步骤
 - "批量获取所有表单 Schema"、"导出应用下所有字段 ID"、"不知道 formUuid 先全量看一遍"
 
 ---

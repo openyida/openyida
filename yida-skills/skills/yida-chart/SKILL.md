@@ -30,7 +30,7 @@ description: "ECharts 高级可视化报表。依赖宜搭原生报表 getDataAs
 2. **记录绑定关系**：写入 `.cache/<项目名>-report-bindding.json`，记录 ECharts 页面、原生报表和组件映射。
 3. **更新时双页面同步**：需求变化时先更新原生报表 Schema，再更新 ECharts 页面和绑定关系。
 4. **明细表走表单数据接口**：仅数据明细表可用 `this.utils.yida.searchFormDatas`，聚合图表仍走报表接口。
-5. **遵循自定义页面规范**：状态、生命周期、事件绑定、发布前校验按 `yida-custom-page` 执行。
+5. **遵循平台 JSX 组件页面规范**：状态、生命周期、事件绑定、发布前校验按平台 `Jsx` 组件运行时规则执行。
 6. **当前应用报表绑定优先**：修复或迁移现有 ECharts 页面时，不要复用其它应用的 `REPORT_xxx`、`prdId/topicId` 或 `cid`。必须在当前 app 内创建或同步原生报表，再批量替换绑定。
 
 ## 方案选择
@@ -163,4 +163,4 @@ A：更新 `_customState.filterValueMap`，重新调用报表数据请求函数�
 | [已有报表绑定指南](references/echarts-bindding-guide.md) | 方案 C、Schema 解析、filterKey、数据源完整性校验 | 用户提供报表 URL 时必读 |
 | [示例](references/examples.md) | 命令示例、页面代码示例、常见图表实现 | 需要参考完整写法时阅读 |
 | `yida-report` 子技能 | 原生报表创建、追加图表、Schema 生成 | 需要先创建或补齐原生报表时调用 `use_skill("yida-report", "创建或补齐原生报表")` |
-| `yida-custom-page` 子技能 | 宜搭 React 16 自定义页面规则 | 不确定页面运行时限制时调用 `use_skill("yida-custom-page", "确认宜搭自定义页面运行时限制")` |
+| 平台 JSX 组件页面规范 | 宜搭 React 16 自定义页面规则 | 不确定页面运行时限制时读取对应规范 |

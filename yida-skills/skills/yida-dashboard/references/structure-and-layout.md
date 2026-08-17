@@ -1,6 +1,6 @@
 # 看板结构与布局规范
 
-> 本文定义看板的信息结构、Canvas 组件树和响应式策略。新建页面默认用 Code Canvas；文末普通自定义页说明仅用于维护旧页面。
+> 本文定义看板的信息结构、Canvas 组件树和响应式策略。文末平台 JSX 组件页面说明仅用于维护对应运行时。
 
 ## 单屏控制塔结构
 
@@ -109,11 +109,11 @@ export default YidaComp;
 - 筛选控件必须受控，并真实改变 KPI、图表或明细。
 - 轮询刷新必须 silent，保留旧数据；`useEffect` 中断请求并清理定时器。
 
-## Legacy/native fallback
+## 平台 JSX 组件维护注意事项
 
-维护旧页面样例：
+维护平台 JSX 组件页面样例：
 
 - `project/pages/src/supply-chain-dashboard.js`
 - `project/pages/src/shangri-la-executive-dashboard.js`
 
-它们只能参考页面和导航关系、业务模块和视觉节奏。其中 `renderJsx`、`_customState`、`didMount`、ECharts CDN 与样式对象属于普通自定义页面实现，仅在维护既有 `.oyd.jsx` 时使用。新建看板不得因参考这些样本而从 Canvas 回退到 native。
+它们只能参考页面和导航关系、业务模块和视觉节奏。其中 `renderJsx`、`_customState`、`didMount`、ECharts CDN 与样式对象属于平台 JSX 组件页面实现，仅在维护既有 `.oyd.jsx` / `.oyb.jsx` / 平台 `Jsx` 组件页面时使用。新建看板不得因参考这些样本而回退到 native。

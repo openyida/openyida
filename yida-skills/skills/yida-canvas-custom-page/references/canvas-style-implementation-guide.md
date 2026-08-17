@@ -1,6 +1,6 @@
-# Code Canvas 样式实现指南
+# YidaCodeCanvas 组件样式实现指南
 
-本文件是 Code Canvas 的样式实现适配指南，不是新的设计系统，也不产出配色、视觉 DNA 或页面风格。设计事实唯一来自 `yida-design` 输出的 `prd.md` 与 `design.md`：PRD 给业务场景和页面边界，`design.md` 给完整主题、token、视觉 DNA、布局、材质、圆角、密度、呼吸感、背景层、组件和状态规则。Code Canvas 只负责把这些规则落到 antd token、CSS 变量、Tailwind、图表、控件状态、背景 CSS 和表单 iframe 主题同步。
+本文件是 `YidaCodeCanvas` 组件的样式实现适配指南，不是新的设计系统，也不产出配色、视觉 DNA 或页面风格。设计事实唯一来自 `yida-design` 输出的 `prd.md` 与 `design.md`：PRD 给业务场景和页面边界，`design.md` 给完整主题、token、视觉 DNA、布局、材质、圆角、密度、呼吸感、背景层、组件和状态规则。`YidaCodeCanvas` 组件只负责把这些规则落到 antd token、CSS 变量、Tailwind、图表、控件状态、背景 CSS 和表单 iframe 主题同步。
 
 真实业务页、页面重构和局部美化以当前应用主题色为基准；缺少主题证据时先按业务气质选择平台预置主题或自定义色盘，不固定回到 `podBlue` / #1677ff。独立品牌/活动页、隐藏导航沉浸页和用户明确要求完全不同风格的页面使用页面级固定主题和差异化色盘。
 
@@ -28,7 +28,7 @@
 
 ## 默认圆润高密与呼吸感落地
 
-Code Canvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `breathingRule` 落成具体 CSS 与 antd token。若 design.md 未写明数值，先回写 design.md，不要在源码里凭感觉补。
+YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `breathingRule` 落成具体 CSS 与 antd token。若 design.md 未写明数值，先回写 design.md，不要在源码里凭感觉补。
 
 - 卡片 `border-radius` 范围 `0px-32px`，业务面板 / 卡片默认 `20px-24px`，主面板、抽屉和重点容器默认 `22px-32px`。
 - Button、Input、Select、DatePicker 等控件 `borderRadius` 默认 `10px-14px`；状态标签和徽标使用 `999px` 胶囊。
@@ -137,9 +137,9 @@ Code Canvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `breathi
 
 ## 品牌 token 实现消费
 
-品牌 token 的完整语义由 `yida-design/workflow/output-design.md` 与 `yida-design/references/theme/theme-token-presets.md` 维护。Code Canvas 不重新解释 token，只按 `design.md` 的 `tokens` 和 token 语义把它们接到组件、CSS 和图表。
+品牌 token 的完整语义由 `yida-design/workflow/output-design.md` 与 `yida-design/references/theme/theme-token-presets.md` 维护。YidaCodeCanvas 不重新解释 token，只按 `design.md` 的 `tokens` 和 token 语义把它们接到组件、CSS 和图表。
 
-| token | design.md 语义 | Code Canvas 使用方式 |
+| token | design.md 语义 | YidaCodeCanvas 使用方式 |
 | --- | --- | --- |
 | `--color-brand1-6` | 主色 | 主按钮、链接、选中态、信息强调、图表主序列 |
 | `--color-brand1-1` / `--color-brand1-2` / `--color-brand1-3` | 浅底色阶 | 标签浅底、提示块、筛选选中底、弱强调背景 |
@@ -154,16 +154,16 @@ Code Canvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `breathi
 
 ## themeScope：主题作用域落地
 
-Code Canvas 的 `page-spec.json` 会把主题拆成两个概念：
+使用 `YidaCodeCanvas` 组件实现的页面 `page-spec.json` 会把主题拆成两个概念：
 
 | 字段 | 默认 | 说明 |
 | --- | --- | --- |
 | `themeProfile` | 当前应用主题；缺证据时按业务气质选择平台预置 key 或自定义 token | 应用主题；页面重构/局部美化先沿用当前应用主题 |
 | `themeScope` | `page` | 主题作用域，决定只影响当前页还是请求应用壳层一起换肤 |
 
-`themeScope: page` 是默认安全模式：真实业务页默认使用应用主题 token profile，不污染应用其他页面。页面重构/局部美化即使是 page scope，也先以当前应用主题为基准，只补当前页密度、间距、状态色和图表色阶。用户明确要求完全不同风格、显式传了 `themeColor`，或页面是独立品牌/活动页时，在当前 Canvas 根节点注入 CSS 变量做页面级覆盖。
+`themeScope: page` 是默认安全模式：真实业务页默认使用应用主题 token profile，不污染应用其他页面。页面重构/局部美化即使是 page scope，也先以当前应用主题为基准，只补当前页密度、间距、状态色和图表色阶。用户明确要求完全不同风格、显式传了 `themeColor`，或页面是独立品牌/活动页时，在当前页面根节点注入 CSS 变量做页面级覆盖。
 
-`podBlue`、`podGreen`、`podOrange` 是常用浅底候选，不是固定默认。`blue`、`green`、`orange`、`podBlue`、`podGreen`、`podOrange` 都作为应用主题 token profile 保留原名，不互相改写；完整变量和语义以 `yida-design/references/theme/theme-token-presets.md` 为准。自定义品牌色必须在页面源码里注入 `style#yida-global-theme` 或 scoped vars，不能假装是平台 `--theme`。需要注入时复制 [Yida Global Theme Runtime Helpers](theme-runtime-helpers.md) 的 Code Canvas helper；它会同时写入当前文档、同源可访问的父级 iframe 文档，以及 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 文档。
+`podBlue`、`podGreen`、`podOrange` 是常用浅底候选，不是固定默认。`blue`、`green`、`orange`、`podBlue`、`podGreen`、`podOrange` 都作为应用主题 token profile 保留原名，不互相改写；完整变量和语义以 `yida-design/references/theme/theme-token-presets.md` 为准。自定义品牌色必须在页面源码里注入 `style#yida-global-theme` 或 scoped vars，不能假装是平台 `--theme`。需要注入时复制 [Yida Global Theme Runtime Helpers](theme-runtime-helpers.md) 的 YidaCodeCanvas helper；它会同时写入当前文档、同源可访问的父级 iframe 文档，以及 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 文档。
 
 ```jsx
 var THEME_COLOR_LEVELS = {
@@ -223,15 +223,15 @@ React.useEffect(function () {
 | 某个页面/首页/看板/自定义页变好看、页面重构或局部美化 | `{ "themeScope": "page", "themeBase": "current-app-theme" }` |
 | 明确说保持导航不变、其他页面不变、只改当前页 | `{ "themeScope": "page" }` |
 
-设计输入冲突时，回到 `yida-design` 补齐明确值，再进入 Canvas 实现。
+设计输入冲突时，回到 `yida-design` 补齐明确值，再进入自定义页面实现。
 
 ## 核心事实：CSS 变量直接级联，antd token 使用解析色值
 
-Canvas 的 `runtimeCode` 在**运行页面真实 `window`** 里 `new Function` 执行（见 SKILL.md「运行时事实」），组件挂在页面 DOM 树内。由此得到主色落地的分界：
+`YidaCodeCanvas` 组件的 `runtimeCode` 在**运行页面真实 `window`** 里 `new Function` 执行（见 SKILL.md「运行时事实」），组件挂在页面 DOM 树内。由此得到主色落地的分界：
 
 | 消费方 | 品牌色怎么给 | 原因 |
 | --- | --- | --- |
-| 普通 DOM / Tailwind 元素（`style` / `className`） | **直接用 CSS 变量** `var(--color-brand1-6)` | CSS 变量沿 DOM 树级联，Canvas 节点在页面 DOM 树内，能读到平台注入的 `--color-brand1-*` |
+| 普通 DOM / Tailwind 元素（`style` / `className`） | **直接用 CSS 变量** `var(--color-brand1-6)` | CSS 变量沿 DOM 树级联，`YidaCodeCanvas` 节点在页面 DOM 树内，能读到平台注入的 `--color-brand1-*` |
 | antd 组件（Button / Table / Tabs…） | **JS 解析成真实色值**喂 `ConfigProvider.theme.token.colorPrimary` | antd 的色板（hover/active/disabled）由 JS 算法从一个真实颜色推导，`var(...)` 是字符串塞不进算法 |
 | JS 消费的颜色：recharts `stroke`/`fill`、canvas 绘制、图表配色数组 | **JS 解析成真实色值** | 传给库的是运行时字符串，不走 CSS 级联 |
 
@@ -308,7 +308,7 @@ export default YidaComp;
 
 ## 控件焦点态与下拉浮层 reset
 
-Code Canvas 页面只要出现搜索框、筛选下拉、日期选择、文本输入、成员/部门/上传等运行态控件，就在页面 `<style>` 顶部注入控件 reset，统一输入框、下拉触发器、focus ring 和字体粗细。
+使用 `YidaCodeCanvas` 组件实现的页面只要出现搜索框、筛选下拉、日期选择、文本输入、成员/部门/上传等运行态控件，就在页面 `<style>` 顶部注入控件 reset，统一输入框、下拉触发器、focus ring 和字体粗细。
 
 实现规则：
 

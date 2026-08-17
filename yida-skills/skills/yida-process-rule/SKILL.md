@@ -449,7 +449,7 @@ yida-process-rule/
 | 1 | 已有 app 或 `yida-create-app` | 复用已解析 `appType`；仅无 app 且允许创建时新建 |
 | 2 | 已有表单或 `yida-create-form-page` | 复用已解析 `formUuid`；仅缺表单且允许创建时新建，并获取字段 ID |
 | 3 | **本技能** | 配置表单的流程规则 |
-| 4 | `yida-custom-page` | 编写自定义页面代码 |
+| 4 | `yida-canvas-custom-page` | 编写或更新自定义页面源码 |
 | 5 | `yida-publish-page` | 发布自定义页面 |
 
 > **快捷方式**：使用 `yida-create-process` 技能可一键完成步骤 2-3（创建表单 + 配置流程）。

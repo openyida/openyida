@@ -4,7 +4,6 @@ description: >
   当用户要做完整应用产品设计、单页 UI 改造、主页面视觉设计、应用主题色或全局换肤时使用。
   本技能基于需求分析和资源上下文，输出 prd/<项目名>/prd.md 与 prd/<项目名>/design.md。
   prd.md 写业务目标、数据结构、页面功能、资源顺序、导航顺序和验收标准；design.md 写主题 token、布局、材质、圆角、密度、呼吸感、组件和状态规则。
-  本技能不写页面源码；页面实现交给 yida-canvas-custom-page 或 yida-custom-page。
 ---
 
 # yida-design
@@ -41,7 +40,7 @@ description: >
 
 > 进入标准流程后，从 Step 1 开始按顺序执行；每步开始前先读取对应步骤文件，每步形成产物后再进入下一步。Step 6 输出前核对 Step 1-5 的产物齐全，确保不跳步、不停在中间步骤。
 
-> 本技能输出 `prd.md` 和 `design.md`，不写 JSX/TSX。`prd.md` 记录业务、资源、页面、数据和验收；`design.md` 记录所有页面必须遵守的视觉系统。实现阶段默认交给 Code Canvas；普通 JSX/Jsx 用于用户明确指定普通页或页面深度依赖普通页实例桥的场景。
+> 本技能输出 `prd.md` 和 `design.md`，不写 JSX/TSX。`prd.md` 记录业务、资源、页面、数据和验收；`design.md` 记录所有页面必须遵守的视觉系统。
 
 ---
 
@@ -71,7 +70,7 @@ description: >
 21. **设计事实源唯一**：`prd.md` 写业务目标、资源、页面、数据来源、主操作和 `pageSpecHandoff`；`design.md` 写主题、布局、视觉脚手架、组件、图标、背景和状态规则。页面 `scene` 只作为分类标签，不对应参考文件、固定样式文件或实现阶段读取入口。
 22. **参考转成可执行选择**：参考 Dribbble / 优秀案例时，落到主色、背景素材、首屏构图、信息密度、动线、区块数量和反默认点。
 23. **页面文案和图标使用专业表达**：渲染文案使用纯文本；图标只使用 `lucide-react` 或 `@ant-design/icons` 的具体组件，默认选择 `lucide-react`，并在 `design.md` 的 `iconSystem` 中写清业务动作、状态、导航和空态到图标组件的映射。emoji 不能改成 CSS 形状、字母占位、Unicode 符号或临时 SVG；如果需要图标，必须映射到上述两类库的具体组件。
-24. **实现链路明确交接**：默认页面实现链路是 Code Canvas；常规业务图表使用 `yida-rechart`；ECharts 例外只用于用户明确要求复杂 ECharts option 或维护旧图表。
+24. **实现交接明确**：设计产物只定义页面结构、视觉系统和验收标准；常规业务图表使用 `yida-rechart`；ECharts 例外只用于用户明确要求复杂 ECharts option 或维护旧图表。
 
 ---
 
@@ -94,5 +93,5 @@ description: >
 | [style-design 风格注册表](references/style-designs/registry.md) | 内置视觉 DNA 风格、选择评分、风险扣分、风格消费规则 | Step 5 |
 | [应用结构参考](references/app/blueprint.md) | 应用角色、导航、页面清单、页面/表单/流程资源蓝图 | 完整应用或主页面 |
 | [应用主题与 token 参考](references/theme/theme-token-presets.md) | 平台主题 key、候选主题、token profile | 需要主题 key 或 token |
-| [Canvas 样式实现指南](../yida-canvas-custom-page/references/canvas-style-implementation-guide.md) | 将 `design.md` 的 token、背景、圆角、密度和组件规则落到 Code Canvas、antd、CSS、图表和控件状态 | 实现阶段 |
+| [yida-canvas-custom-page 样式实现指南](../yida-canvas-custom-page/references/canvas-style-implementation-guide.md) | 将 `design.md` 的 token、背景、圆角、密度和组件规则落到页面源码、antd、CSS、图表和控件状态 | 实现阶段 |
 | [字段与 URL 参考](../../references/field-and-url-reference.md) | `isRenderNav=false`、页面 URL、跨页跳转 | 拼接页面/表单 URL |

@@ -1,8 +1,8 @@
 # yida-ppt-slider 使用示例
 
-> 新建幻灯片默认使用 Code Canvas。本页先给 Canvas 流程；后续 `_customState`、`didMount`、`renderJsx` 完整代码是 **legacy/native 参考**，只用于维护既有普通自定义页面。
+> 本页先给 hooks 流程；后续 `_customState`、`didMount`、`renderJsx` 完整代码是 **平台 JSX 组件/native 参考**，只用于维护既有平台 JSX 组件页面。
 
-## 示例 1：Canvas-first 产品路演
+## 示例 1：产品路演
 
 ### 输入
 
@@ -22,10 +22,10 @@ openyida create-app "产品演示中心"
 openyida create-page APP_DEMO123 "产品路演2026"
 # 输出：formUuid = FORM-PPT001
 
-# Step 4：编写 Code Canvas 幻灯片
+# Step 4：编写自定义页面幻灯片
 # 输出到 project/pages/src/product-ppt.canvas.jsx
 
-# Step 5：按 yida-canvas-custom-page 做本地 Canvas 快检
+# Step 5：按 yida-canvas-custom-page 做本地快检
 
 # Step 6：用户确认后发布页面
 openyida publish project/pages/src/product-ppt.canvas.jsx APP_DEMO123 FORM-PPT001
@@ -61,7 +61,7 @@ hash effect 必须双向：初始化和 `hashchange` 读取页码，当前页变
 
 ## Legacy/native 完整示例
 
-以下代码只适用于已有 `.oyd.jsx` 普通自定义页面。新建幻灯片不要复制此处的 `_customState` / `didMount` / `renderJsx`；应把数据保留为顶层 `SLIDES`，把状态和副作用迁移到 Canvas hooks。
+以下代码只适用于已有 `.oyd.jsx` 普通自定义页面。新建幻灯片不要复制此处的 `_customState` / `didMount` / `renderJsx`；应把数据保留为顶层 `SLIDES`，把状态和副作用迁移到 React hooks。
 
 ### 幻灯片数据定义
 

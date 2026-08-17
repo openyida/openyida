@@ -7,7 +7,7 @@
 1. **真实业务页主色跟随应用主题**：平台已内置品牌色 CSS 变量（`var(--color-brand1-6)` 等），导航可见的真实业务页主色随平台主题走。差异化改由下面 5 个维度承载。独立品牌页、活动页、隐藏导航沉浸页或用户明确要求完全不同风格时，使用页面级独立主题。
 2. **字体不可用 Google Fonts**：禁 `fonts.googleapis.com`（大陆不可达）。放弃「Inter vs Plus Jakarta」这类字体选型，改用**系统中文字体栈** + 字重/字号对比/字间距/`tabular-nums` 造性格。仅允许 `g.alicdn.com` 上已验证的字体。
 3. **B 端为主**：自定义页多为看板/列表/工具/详情，不是营销落地页。装饰要克制、服务于信息，不堆砌。
-4. **纯方向**：本文档只帮你选方向，不产出 JSX，也不替代 `design.md`。Code Canvas 落地时读取 `../../yida-canvas-custom-page/references/canvas-style-implementation-guide.md`，把 `design.md` 的 token、视觉 DNA、布局、圆角、密度和组件规则转换成实现；普通自定义页面 JSX/Jsx 组件链路读 `../../yida-custom-page/references/design-system.md` 作为实现侧适配。
+4. **纯方向**：本文档只帮你选方向，不产出 JSX，也不替代 `design.md`。实现阶段读取对应实现适配文档，把 `design.md` 的 token、视觉 DNA、布局、圆角、密度和组件规则转换成页面源码。
 5. **默认 light，不默认暗黑**：工作台、门户、列表、详情、普通看板和数据大屏默认是浅底业务风；“高级 / 酷炫 / 大屏 / 驾驶舱”不等于暗色。只有用户明确说暗色、深色、暗黑、夜间、高对比、黑金或暗色科技风，才允许深色沉浸。
 
 ---

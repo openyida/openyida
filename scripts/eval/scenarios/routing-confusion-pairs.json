@@ -129,15 +129,15 @@
   },
   {
     "id": "confusion-canvas-vs-native-vs-upgrade-2",
-    "prompt": "这个表单提交页深度依赖 this.utils.yida 和 dataSourceMap，走 native 链路写",
+    "prompt": "维护一个现有 .oyb.jsx 页面，里面已经是 renderJsx 平台 Jsx 组件写法",
     "expectedSkill": "yida-custom-page",
     "group": "易混淆-Canvas选型",
     "confusionPair": true,
-    "note": "强依赖原生实例桥 → custom-page (native)（不是 canvas-custom-page / canvas-upgrade）"
+    "note": "已检测到历史平台 JSX 组件页面维护 → custom-page（不是 canvas-custom-page / canvas-upgrade）"
   },
   {
     "id": "confusion-canvas-vs-native-vs-upgrade-3",
-    "prompt": "我有一个老的 .oyd.jsx 自定义页面想升级到 Code Canvas 新链路",
+    "prompt": "我有一个老的 .oyd.jsx 自定义页面想升级为 YidaCodeCanvas 组件实现",
     "expectedSkill": "yida-canvas-upgrade",
     "group": "易混淆-Canvas选型",
     "confusionPair": true,

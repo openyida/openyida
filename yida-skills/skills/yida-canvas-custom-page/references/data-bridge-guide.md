@@ -1,12 +1,12 @@
-# Code Canvas 数据桥
+# YidaCodeCanvas 组件数据桥
 
-Code Canvas 运行时提供 React 函数组件上下文；`YidaComp` 内没有普通页面实例 `this`。读写宜搭表单数据时，发布层必须在外层普通自定义页面 `didMount` 中把 `this.utils.yida.*` 注册成 `window.__OPENYIDA_YIDA_API__`，Canvas 组件只消费这个 window 桥。连接器代理和自定义同源接口仍用 HTTP 数据桥。
+`YidaCodeCanvas` 组件运行时提供 React 函数组件上下文；`YidaComp` 内没有普通页面实例 `this`。读写宜搭表单数据时，发布层必须在外层普通自定义页面 `didMount` 中把 `this.utils.yida.*` 注册成 `window.__OPENYIDA_YIDA_API__`，`YidaCodeCanvas` 组件只消费这个 window 桥。连接器代理和自定义同源接口仍用 HTTP 数据桥。
 
 ## 三条数据路径，先选对
 
-| 路径 | 是否可在浏览器（Canvas）直接调 | 说明 |
+| 路径 | 是否可在浏览器页面内直接调 | 说明 |
 | --- | --- | --- |
-| 外层 yida JS-API 桥 `window.__OPENYIDA_YIDA_API__` | **表单默认** | 发布 Code Canvas 时由外层页面 `didMount` 自动注册，底层调用官方 `this.utils.yida.searchFormDatas` 等 API。 |
+| 外层 yida JS-API 桥 `window.__OPENYIDA_YIDA_API__` | **表单默认** | 发布使用 `YidaCodeCanvas` 组件实现的页面时由外层页面 `didMount` 自动注册，底层调用官方 `this.utils.yida.searchFormDatas` 等 API。 |
 | 宜搭开放 API（OpenAPI，`appKey`/`appSecret` 签名） | 服务端 / 连接器代理 | 需服务端签名；浏览器直连会泄露 secret。由后端 / 连接器代理调用。 |
 | 平台已配置**连接器**（HTTP 连接器暴露的同源代理端点） | **推荐** | 同源 `fetch(url, { credentials: 'include' })` 带 cookie 即可，鉴权与密钥留在平台侧，符合数据源治理。 |
 | 内部表单数据端点（同源、依赖登录 cookie + CSRF） | 降级可用 | 仅在 yida JS-API 桥不存在时使用；必须使用同源相对路径、`credentials: 'include'` 和运行态 CSRF token。 |
@@ -15,7 +15,7 @@ Code Canvas 运行时提供 React 函数组件上下文；`YidaComp` 内没有�
 
 ## 推荐：先写 dataBinding，再实现数据桥
 
-Code Canvas 页面先把数据契约写成结构化 `dataBinding`，再在页面实现里注入为 `OPENYIDA_DATA_BINDING_JSON` 或 `DATA_BINDING` 常量，并生成统一的数据桥状态、错误态和总数保护。
+使用 `YidaCodeCanvas` 组件实现的页面先把数据契约写成结构化 `dataBinding`，再在页面实现里注入为 `OPENYIDA_DATA_BINDING_JSON` 或 `DATA_BINDING` 常量，并生成统一的数据桥状态、错误态和总数保护。
 
 ```json
 {
@@ -163,7 +163,7 @@ function useYidaFetch(buildRequest, deps) {
 
 ## 表单查询返回体必须递归解析
 
-“数据管理里有数据，但 Code Canvas 页面显示 0 条”的常见失败模式是响应体被多层包装，页面只读了错误层级。统一使用下面的解析器，既兼容数组位置，也能在 `totalCount > 0` 但解析为 0 条时主动暴露故障。
+“数据管理里有数据，但自定义页面显示 0 条”的常见失败模式是响应体被多层包装，页面只读了错误层级。统一使用下面的解析器，既兼容数组位置，也能在 `totalCount > 0` 但解析为 0 条时主动暴露故障。
 
 ```jsx
 function unwrapRows(payload) {
@@ -386,4 +386,4 @@ function fieldOf(row, fieldId) { return (row.formData || row)[fieldId]; }
 - **确认再写**：删除、批量更新等不可逆操作，先让用户在 UI 里显式确认，严禁在 `useEffect` 里静默触发。
 - **幂等**：提交按钮加 loading 锁与去重键，拦截重复写入。
 - **权限**：写操作是否允许由平台权限决定；失败按后端返回的 `errorMsg` 提示。
-- **密钥位置**：任何 `appSecret` / 签名逻辑都留在服务端 / 连接器，Canvas 源码里只出现同源相对路径与业务参数。
+- **密钥位置**：任何 `appSecret` / 签名逻辑都留在服务端 / 连接器，页面源码里只出现同源相对路径与业务参数。

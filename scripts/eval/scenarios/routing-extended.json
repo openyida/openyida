@@ -36,24 +36,24 @@
   },
   {
     "id": "canvas-custom-page-hooks",
-    "prompt": "用 Code Canvas 写一个带 hooks 状态管理的交互式数据展示页",
+    "prompt": "用 YidaCodeCanvas 组件实现一个带 hooks 状态管理的交互式数据展示页",
     "expectedSkill": "yida-canvas-custom-page",
     "group": "页面与表单",
-    "note": "Code Canvas 现代交互页 → canvas-custom-page"
+    "note": "YidaCodeCanvas 组件现代交互页 → canvas-custom-page"
   },
   {
     "id": "native-custom-page-binding",
-    "prompt": "这个页面需要用 this.$(fieldId) 绑定表单字段，走 native 链路写",
+    "prompt": "维护现有 .oyd.jsx 页面，里面已经是 renderJsx 平台 Jsx 组件写法",
     "expectedSkill": "yida-custom-page",
     "group": "页面与表单",
-    "note": "强依赖原生实例数据桥 → custom-page (native)"
+    "note": "已检测到历史平台 JSX 组件页面维护 → yida-custom-page"
   },
   {
     "id": "canvas-upgrade-migration",
-    "prompt": "把现有的 .oyd.jsx 页面迁移升级到 Code Canvas 链路",
+    "prompt": "把现有的 .oyd.jsx 页面迁移升级为 YidaCodeCanvas 组件实现",
     "expectedSkill": "yida-canvas-upgrade",
     "group": "页面与表单",
-    "note": "已有 .oyd.jsx 迁到 Canvas → canvas-upgrade"
+    "note": "已有 .oyd.jsx 迁移为 YidaCodeCanvas 组件实现 → canvas-upgrade"
   },
   {
     "id": "nav-shell-sidebar",

@@ -1,15 +1,15 @@
 ---
 name: yida-density
-description: 自定义页面信息密度设计规范，链路无关并优先给出 Code Canvas 写法。提供紧凑、舒适、宽松三种模式、切换 UI 和响应式降级；普通页 didMount/this.utils.isMobile 仅作 legacy/native 示例。
+description: 自定义页面信息密度设计规范。提供紧凑、舒适、宽松三种模式、切换 UI 和响应式降级；平台 JSX 组件页面的 didMount/this.utils.isMobile 仅作存量维护示例。
 ---
 
 # 宜搭自定义页面信息密度设计规范
 
 ## 核心定位
 
-信息密度是页面密度配置，不绑定某一种运行时。`DENSITY_CONFIG`、场景选择、移动端降级和无障碍要求对 Code Canvas 与普通自定义页面都适用；实现示例默认使用 **Code Canvas + React hooks**。
+信息密度是页面密度配置。`DENSITY_CONFIG`、场景选择、移动端降级和无障碍要求对自定义页面都适用；实现示例使用 React hooks。
 
-只有维护旧 `.oyd.jsx` 或用户明确选择普通自定义页面时，才使用 `didMount` / `this.utils.isMobile()` 的 legacy 写法。
+维护已检测到的 `.oyd.jsx` / `.oyb.jsx` / `renderJsx` / 平台 `Jsx` 组件页面时，才参考 `didMount` / `this.utils.isMobile()` 的平台 JSX 组件写法。
 
 ## 严格要求
 
@@ -66,7 +66,7 @@ const DENSITY_CONFIG = {
 };
 ```
 
-## Canvas-first 实现
+## React Hooks 实现
 
 在 Canvas 中用 `matchMedia` + hooks 管设备变化。不要在首次渲染时读一次宽度后永不更新。
 
@@ -116,7 +116,7 @@ function DensityAwareList() {
 - 系统字体缩放、长中文、英文和大数值下均不得截断关键字段。
 - 虚拟表格行高、骨架屏行高和真实行高必须使用同一密度 token。
 
-## Legacy/native fallback
+## 平台 JSX 组件维护注意事项
 
 已有普通自定义页面可以继续使用：
 
@@ -129,9 +129,9 @@ export function didMount() {
 }
 ```
 
-这段只用于 legacy/native 页面。新 Canvas 页面不得使用 `didMount`、`this.utils.isMobile()`、`_customState` 或 `forceUpdate`；应使用上面的 `matchMedia` hook 并 cleanup。
+这段只用于平台 JSX 组件页面或 native 页面维护。React hooks 实现不得使用 `didMount`、`this.utils.isMobile()`、`_customState` 或 `forceUpdate`；应使用上面的 `matchMedia` hook 并 cleanup。
 
-现有普通页面只能作为 native 兼容参考，不能据此改变新页面的 Canvas 默认路由。
+现有普通页面只能作为 native 兼容参考，不能据此改变当前页面的实现事实。
 
 ## 异常处理
 

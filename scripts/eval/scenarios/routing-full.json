@@ -119,7 +119,7 @@
     "prompt": "帮我用 Canvas 开发一个自定义的数据看板页面，要用代码写",
     "expectedSkill": "yida-canvas-custom-page",
     "type": "positive",
-    "note": "Code Canvas 自定义页面开发"
+    "note": "YidaCodeCanvas 组件自定义页面开发"
   },
   {
     "id": "canvas-custom-page-pos-2",
@@ -140,17 +140,17 @@
 
   {
     "id": "canvas-upgrade-pos-1",
-    "prompt": "这个页面还是老版本的自定义页面，帮我升级到 Canvas 架构",
+    "prompt": "这个页面还是现有 .oyd.jsx / renderJsx 平台 JSX 组件页面，帮我升级为 YidaCodeCanvas 组件实现",
     "expectedSkill": "yida-canvas-upgrade",
     "type": "positive",
-    "note": "普通自定义页面升级为 Canvas"
+    "note": "历史平台 JSX 组件页面升级为 YidaCodeCanvas"
   },
   {
     "id": "canvas-upgrade-pos-2",
-    "prompt": "把现有的 native 自定义页面迁移为 Code Canvas 页面",
+    "prompt": "把现有 .oyb.jsx 自定义页面迁移为 YidaCodeCanvas 组件实现",
     "expectedSkill": "yida-canvas-upgrade",
     "type": "positive",
-    "note": "迁移到 Canvas 架构"
+    "note": "迁移到 YidaCodeCanvas 组件实现"
   },
 
   {
@@ -316,26 +316,26 @@
 
   {
     "id": "custom-page-pos-1",
-    "prompt": "帮我用 native 方式开发一个自定义页面，用 JSX 写组件",
+    "prompt": "维护现有 .oyd.jsx 自定义页面，里面已经是平台 Jsx 组件源码",
     "expectedSkill": "yida-custom-page",
     "type": "positive",
-    "note": "native 自定义页面 JSX 开发"
+    "note": "历史平台 JSX 组件页面维护"
   },
   {
     "id": "custom-page-pos-2",
-    "prompt": "我要在原生自定义页面里手写 JSX 实现一个可拖拽排序的列表",
+    "prompt": "修一下已有 renderJsx 页面里的列表拖拽排序逻辑",
     "expectedSkill": "yida-custom-page",
     "type": "positive",
-    "note": "native 页面 JSX 开发"
+    "note": "已检测到 renderJsx 历史页面维护"
   },
   {
     "id": "custom-page-neg-1",
-    "prompt": "帮我在 Code Canvas 页面里开发一个复杂的仪表盘",
+    "prompt": "帮我在使用 YidaCodeCanvas 组件实现的页面里开发一个复杂的仪表盘",
     "expectedSkill": "yida-canvas-custom-page",
     "mustNotTrigger": ["yida-custom-page"],
     "type": "negative",
     "category": "disambiguation",
-    "note": "Code Canvas 页面 → canvas-custom-page，不是 native 自定义页面"
+    "note": "YidaCodeCanvas 页面 → canvas-custom-page，不是历史 JSX 维护"
   },
 
   {

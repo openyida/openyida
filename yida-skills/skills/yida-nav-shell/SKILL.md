@@ -1,7 +1,7 @@
 ---
 name: yida-nav-shell
 description: >
-  宜搭自定义页面「页面内导航壳」形态目录，保留 Code Canvas 与普通自定义页面双链路并默认 Canvas-first。适用于隐藏应用导航后的侧边、顶部、混合、浮动和标签导航，多视图切换及带参数跨页跳转；Canvas 默认用 React useState/useEffect/hash，普通页 _customState/renderJsx 仅作 legacy fallback。
+  宜搭自定义页面「页面内导航壳」形态目录。适用于隐藏应用导航后的侧边、顶部、混合、浮动和标签导航，多视图切换及带参数跨页跳转；默认用 React useState/useEffect/hash，平台 JSX 组件/native 示例仅作对应运行时维护参考。
 ---
 
 # yida-nav-shell — 页面内自绘导航壳
@@ -9,11 +9,6 @@ description: >
 ## 核心定位
 
 自定义页显式隐藏应用导航（`isRenderNav=false`）后，页面需要自己承担应用级导航。本技能负责形态选型、状态机制、URL 纪律和代码骨架；若用户只是要求页面内 tab / 内容区导航但没有说隐藏平台导航，默认仍保留宜搭导航，不进入隐藏导航链路。
-
-两条链路都支持，但顺序明确：
-
-1. 新建导航壳默认交 **Code Canvas**，使用 React hooks、antd 或自绘组件。
-2. 只有维护旧 `.oyd.jsx`、明确要求普通页，或深度依赖普通页实例桥时，才使用 native fallback。
 
 本技能不配置宜搭平台真实导航树；平台导航分组由 `yida-nav-group` 处理。
 
@@ -40,9 +35,9 @@ openyida update-form-config <appType> <shellFormUuid> false "<页面标题>"
 | 浮动胶囊/Dock | 沉浸、大屏、展示页 | 底部胶囊 |
 | 标签页 | 单模块内切同级视图 | 横向滚动 |
 
-详细骨架见 `references/nav-shell-patterns.md`，其中 Canvas 示例优先，native 代码明确标记 legacy。
+详细骨架见 `references/nav-shell-patterns.md`，其中平台 JSX 组件/native 代码只作对应运行时维护参考。
 
-## Canvas-first 状态机制
+## 状态机制
 
 ### 仅需本地切换
 
@@ -119,14 +114,14 @@ const NAV_ITEMS = [
 - 触控目标至少 44px，焦点态和键盘访问不能丢。
 - 菜单展开状态与当前 activeView 分离，切换视图后按产品需要关闭移动菜单。
 
-## Legacy/native fallback
+## 平台 JSX 组件维护注意事项
 
-仅在旧普通自定义页面或实例桥依赖场景使用：
+平台 JSX 组件页面或实例桥依赖场景维护时：
 
 - `_customState.activeView` 保存状态。
 - `this.setCustomState({ activeView: key })` 更新。
 - `renderJsx` 按 activeView 渲染。
-- `this.utils.isMobile()` 只用于旧页面响应式。
+- `this.utils.isMobile()` 只用于平台 JSX 组件页面响应式。
 
 跨页 URL 规则与 Canvas 完全相同，不能因为是 legacy 就省略 `isRenderNav=false` 或业务参数。
 
@@ -138,7 +133,7 @@ const NAV_ITEMS = [
 4. hash/event/matchMedia 等监听必须 cleanup。
 5. 图标只使用 `lucide-react` 或 `@ant-design/icons` 的具体组件映射，默认 `lucide-react`；禁 emoji、CSS 绘制图形、字母占位和装饰性图标堆叠。
 6. 顶部条保持克制，不做营销 Hero。
-7. Canvas 示例与状态机制优先；普通页只能标记为 legacy fallback。
+7. 平台 JSX 组件示例只能标记为对应运行时维护参考。
 
 ## 验收
 
@@ -153,8 +148,6 @@ const NAV_ITEMS = [
 
 | 文档 | 用途 |
 | --- | --- |
-| [导航壳形态目录](references/nav-shell-patterns.md) | 五种形态、Canvas-first 骨架、legacy/native 示例与自查 |
+| [导航壳形态目录](references/nav-shell-patterns.md) | 五种形态、默认骨架、平台 JSX 组件/native 示例与自查 |
 | `use_skill("yida-design", "判定导航与视觉策略")` | 判定是否隐藏导航及视觉策略 |
 | [字段与 URL 参考](../../references/field-and-url-reference.md) | 页面 URL 和参数规范 |
-| `yida-canvas-custom-page` | Canvas 运行时与发布 |
-| `yida-custom-page` | legacy 普通页面运行时 |

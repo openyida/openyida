@@ -19,7 +19,7 @@
 | 页面视觉和设计不一致 | `design.md` 的 token、布局、背景、圆角、密度、组件和状态规则 | 回写或重读 `design.md`，再回到 Step 7 |
 | `page-spec.json` 和 PRD/design.md 冲突 | `sourceOfTruth`、`designFile`、`designRefs`、dataBinding | 丢弃旧 spec，从最新 PRD + `design.md` 重生成 |
 | JSX 运行时报中文变量未定义 | 页面源码中的 `{所有级别}`、`{处理中}` 等裸中文表达式 | 改成纯文本或 `{'所有级别'}` 形式，再重新校验 |
-| emoji 导致 create/publish 失败 | 字段 JSON、`page-spec.json`、页面源码、发布 Schema、路径 | 删除 emoji；Code Canvas 图标改成 `lucide-react` 或 `@ant-design/icons` 标准 import |
+| emoji 导致 create/publish 失败 | 字段 JSON、`page-spec.json`、页面源码、发布 Schema、路径 | 删除 emoji；页面图标改成 `lucide-react` 或 `@ant-design/icons` 标准 import |
 | 本地源码改了但远端没更新 | 是否有成功的 `openyida publish <source> <appType> <displayPageFormUuid>` | 回到 [Step 8](../workflow/step-8-publish-navigation.md) 发布本轮源码 |
 | 发布失败后想重试 | 上一次 stdout/stderr、登录态、组织、参数、输入文件、字段 ID | 修改至少一项输入或上下文后重试；保留错误输出 |
 | 导航顺序不对 | PRD 的导航顺序、`nav-group order` / `nav-group auto-order` 输出 | 回到 Step 8；有明确顺序用 `nav-group order`，无明确顺序用自动排序兜底 |

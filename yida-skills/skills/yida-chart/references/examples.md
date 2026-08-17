@@ -21,7 +21,7 @@ openyida get-schema APP_KNILKT41DC5XXR5D4QEC REPORT-QA666SC1J3U3TFO9GM9MJ5400RIW
 # Step 3：创建自定义展示页面
 openyida create-page APP_KNILKT41DC5XXR5D4QEC "任务数据看板" --mode dashboard
 
-# Step 4：编写 ECharts 页面代码（参考 yida-custom-page 规范）
+# Step 4：编写 ECharts 页面代码（参考平台 JSX 组件页面规范）
 # 输出到 project/pages/src/task-dashboard.js
 
 # Step 5：发布页面

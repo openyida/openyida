@@ -23,7 +23,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | 4 | [创建或更新表单/流程](workflow/step-4-forms-processes.md) | 执行 `use_skill("yida-form-detail")`、`use_skill("yida-create-form-page")`，需要流程时执行 `use_skill("yida-create-process")` | 真实 `formUuid`、`processCode`、必要 `fieldId` |
 | 5 | [写入初始表单数据](workflow/step-5-seed-records.md) | 执行 `use_skill("yida-data-management")`，为核心普通表单写入 1-3 条业务化 seed records 并 query 抽查 | 真实表单记录或明确跳过原因 |
 | 6 | [创建或复用主页面](workflow/step-6-main-page.md) | 已有 display 页面直接复用；缺少主页面且允许创建时执行 `use_skill("yida-create-page")` | 真实主页面 `formUuid` |
-| 7 | [编写或更新页面](workflow/step-7-page-code.md) | 默认执行 `use_skill("yida-canvas-custom-page")`，按 PRD + design.md 实现页面和真实 dataBinding | 本地页面源码通过基础校验 |
+| 7 | [编写或更新页面](workflow/step-7-page-code.md) | 执行 `use_skill("yida-canvas-custom-page")`，按 PRD + design.md 实现页面和真实 dataBinding | 本地页面源码通过基础校验 |
 | 8 | [发布页面并排序导航](workflow/step-8-publish-navigation.md) | 执行 `use_skill("yida-publish-page")`，发布本轮源码到主页面并执行轻量导航排序 | 已发布主页面 URL |
 | 9 | [输出与收尾](workflow/step-9-output-finish.md) | 核对完成条件，按业务语言输出结果 | 2-3 句业务总结 + 一个主入口链接 |
 
@@ -34,7 +34,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 3. **设计事实源唯一**：需求分析、资源蓝图、页面结构、导航顺序和验收标准由 `yida-design` 写入 `prd.md`；主题 token、布局、材质、圆角、密度、组件和状态规则由 `design.md` 承担。
 4. **阶段技能按需加载**：进入应用壳、表单、流程、页面、发布、数据写入等阶段时，才执行对应 `use_skill(...)`。
 5. **真实 ID 和真实数据**：不编造 `appType`、`formUuid`、`fieldId`、`processCode`、`reportId`。完整应用默认给核心普通表单写入 1-3 条业务化 seed records 并 query 抽查；不适合造数时说明原因和空态方案。
-6. **页面默认 Code Canvas**：完整应用自定义页面默认走 `yida-canvas-custom-page`。只有用户明确要求普通 JSX/Jsx 链路，或页面强依赖 `this.$`、`this.utils.yida.*`、`this.dataSourceMap` 等普通页实例桥时，才走 `yida-custom-page`。
+6. **自定义页面开发技能固定**：完整应用页面源码按 Step 7 执行。
 7. **删除必须确认**：用户要求删除应用时，先展示应用名称、应用 ID 和影响范围，等待明确“确认删除”后才能执行。
 
 ## 关键决策树
@@ -46,7 +46,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 ## 页面数据契约
 
 - 默认页面源码不得使用 `this.dataSourceMap.*`，除非本轮已经创建并绑定对应设计器数据源。
-- 真实表单数据默认通过 `this.utils.yida.searchFormDatas` 或 Code Canvas 对应数据能力读取；不要用前端 seedRows 冒充真实表单数据。
+- 真实表单数据默认通过页面数据桥或 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)` 读取；不要用前端 seedRows 冒充真实表单数据。
 - 完整应用的列表、看板、详情页优先读取真实表单数据，`page-spec.json` 写 `dataBinding.mode=form`、真实 `appType/formUuid/fieldId` 和字段映射。
 - 完整应用默认先写入 1-3 条业务化 seed records 并 query 抽查；没写入成功时，页面展示空态、表单入口、刷新或登记按钮，并在 final 说明原因。
 - 若页面确实依赖 `this.dataSourceMap.*`，必须执行 `use_skill("yida-data-source-connectors")` 创建/绑定数据源，并在发布后确认页面 Schema 中存在对应数据源；发布输出出现 `No custom page data sources to preserve` 时，本次发布不能视为完成。
@@ -65,7 +65,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | [Step 4：创建或更新表单/流程](workflow/step-4-forms-processes.md) | 表单、流程、字段 ID、formDetail CSS | 必读 |
 | [Step 5：写入初始表单数据](workflow/step-5-seed-records.md) | seed records、字段类型、query 抽查、跳过条件 | 必读 |
 | [Step 6：创建或复用主页面](workflow/step-6-main-page.md) | display 页面复用、页面创建、corpId 一致性检查 | 必读 |
-| [Step 7：编写或更新页面](workflow/step-7-page-code.md) | Code Canvas / JSX 选择、page-spec、dataBinding、本地校验 | 必读 |
+| [Step 7：编写或更新页面](workflow/step-7-page-code.md) | 页面源码、page-spec、dataBinding、本地校验 | 必读 |
 | [Step 8：发布页面并排序导航](workflow/step-8-publish-navigation.md) | publish、导航排序、发布完成证据 | 必读 |
 | [Step 9：输出与收尾](workflow/step-9-output-finish.md) | final 口径、URL 规则、可选后置、错误处理 | 必读 |
 | [常见问题解决思路](references/common-issues.md) | 资源冲突、字段 ID、seed records、页面数据、发布失败、输出口径等高频问题 | 遇到异常或执行结果不符合预期时 |

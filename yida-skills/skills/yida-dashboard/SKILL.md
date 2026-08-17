@@ -1,6 +1,6 @@
 ---
 name: yida-dashboard
-description: "经营看板/驾驶舱/数据大屏产品化交付，默认使用 Code Canvas + yida-rechart。含真实数据、筛选联动、卡片截图、组织内短链和钉钉待办闭环。仅在用户明确要求 ECharts、复杂 ECharts option 或维护旧普通自定义页时转 yida-chart。普通统计优先 yida-report。"
+description: "经营看板/驾驶舱/数据大屏产品化交付。含真实数据、筛选联动、卡片截图、组织内短链和钉钉待办闭环。常规图表使用 yida-rechart；明确 ECharts、复杂 ECharts option 或维护旧图表时使用 yida-chart。普通统计优先 yida-report。"
 license: MIT
 metadata:
   audience: developers
@@ -18,14 +18,12 @@ metadata:
 
 ## 核心定位
 
-本技能负责完整 Dashboard 产品化交付：业务指标、真实数据、交互筛选、洞察、派单、截图和分享闭环。它决定“看什么、怎么组织、怎么验收”，默认实现层是 **Code Canvas**：
+本技能负责完整 Dashboard 产品化交付：业务指标、真实数据、交互筛选、洞察、派单、截图和分享闭环。它决定“看什么、怎么组织、怎么验收”：
 
 - 页面容器、状态、筛选、响应式、副作用：`yida-canvas-custom-page`。
 - Canvas 真实数据：`yida-canvas-data-binding`。
 - 常规图表：`yida-rechart`。
-- 只有用户明确要求 ECharts、需要复杂 ECharts `option`/扩展系列，或维护已有普通自定义页面时，才使用 `yida-chart`。
-
-普通自定义页面能力仍保留为 legacy/native fallback，但不得作为新看板默认链路。
+- 只有用户明确要求 ECharts、需要复杂 ECharts `option`/扩展系列，或维护已有图表时，才使用 `yida-chart`。
 
 ## 何时触发
 
@@ -47,21 +45,18 @@ metadata:
 8. 隐藏导航时的组织内分享 URL；需要页面内导航壳时调用 `yida-nav-shell`。
 9. loading / empty / error / freshness 状态与 1–3 条业务洞察。
 
-## 链路决策
+## 实现边界
 
-| 信号 | 实现链路 |
+| 信号 | 处理 |
 | --- | --- |
-| 新建经营看板、驾驶舱、大屏 | Code Canvas + `yida-rechart` |
-| React hooks、复杂筛选、轮询、动画、组件状态 | Code Canvas |
 | 表单/报表/连接器数据进入 Canvas | `yida-canvas-data-binding`，用同源 HTTP 数据桥 |
 | 用户明确要求 ECharts 或提供 ECharts option | `yida-chart` |
 | 地图、桑基、graph、custom series 等 Recharts 不覆盖的复杂图 | 明确说明原因后使用 `yida-chart` |
-| 维护已有 `.oyd.jsx`、`renderJsx`、`didMount` 页面 | legacy `yida-custom-page` + `yida-chart` |
 | 单个原生统计报表 | `yida-report` |
 
-不得因为维护旧页面时看到普通自定义页面样例，就把新看板降级为 `.oyd.jsx`。
+维护平台 JSX 组件页面时看到的 `.oyd.jsx`、`renderJsx`、`didMount` 片段属于平台实例桥写法，只能作为对应运行时参考。
 
-## Canvas-first 交付流程
+## 交付流程
 
 ```text
 [Step 1] 澄清业务范围 → 5–8 个经营维度、指标、角色与刷新频率
@@ -83,12 +78,12 @@ metadata:
 [Step 9] 隐藏导航、验证组织内 URL、截图、数据刷新和派单闭环
 ```
 
-Canvas 页面入口：
+自定义页面入口：
 
 - `prd.md` 决定页面目标、指标、区块和交互，`design.md` 决定主题、布局和视觉状态；`page-spec.json` 只作为生成器需要时的派生输入。
 - 默认主题从 `podBlue`、`podGreen`、`podOrange` 等应用主题中选择；用户明确要求应用主题风格/应用主题色时，才使用 `yida-app-theme`。
 - 用户强调“大屏 / 指挥舱 / 实时监控”时使用 `screen` 场景；普通经营看板使用 `dashboard` 场景。
-- Canvas 编译与发布细节以 `yida-canvas-custom-page` 为准；不要把 `openyida check-page`、`.oyd.jsx` 或 `renderJsx` 写成默认步骤。
+- `.canvas.jsx` 编译与发布细节以 `yida-canvas-custom-page` 为准；不要把 `openyida check-page`、`.oyd.jsx` 或 `renderJsx` 写成默认步骤。
 
 ## 数据与派单边界
 
@@ -96,8 +91,8 @@ Canvas 页面入口：
 
 - KPI / 趋势 / 占比必须来自服务端聚合、报表结果或明确的聚合接口。
 - 明细查询必须分页；不得拉全量后 `reduce` 冒充生产聚合。
-- Canvas 页面使用 `dataBinding` + `DataBridge` + 外层 yida JS-API 桥；只有桥不可用时才降级同源 `fetch`，并保留错误态与 cleanup。
-- 不得在 Canvas 使用 `this.dataSourceMap`；连接器代理转 `yida-canvas-data-binding`。
+- 使用 `YidaCodeCanvas` 组件实现的页面使用 `dataBinding` + `DataBridge` + 外层 yida JS-API 桥；只有桥不可用时才降级同源 `fetch`，并保留错误态与 cleanup。
+- 不得在 `YidaCodeCanvas` 组件内使用 `this.dataSourceMap`；连接器代理转 `yida-canvas-data-binding`。
 - demo/seed 只能用于离线预览，并明确标记；真实交付无数据时展示真实空态。
 
 ### 派单
@@ -111,7 +106,7 @@ Canvas 页面入口：
 
 `priority` 连接器入参必须来自 NumberField `priorityNum`（10/20/30/40），不能直接透传 SelectField/RadioField。不得把工作通知包装成真实待办。
 
-## Canvas 实现纪律
+## 自定义页面实现纪律
 
 1. 使用 `YidaComp` React 函数组件和 hooks；不使用 `_customState` / `forceUpdate`。
 2. `useEffect` 注册的轮询、键盘、resize、hash、截图资源或图表副作用必须 cleanup。
@@ -120,7 +115,7 @@ Canvas 页面入口：
 5. 所有可见按钮必须有真实 handler 或显式 disabled。
 6. 截图按钮必须可用，并在截图时用 class/属性排除自身。
 7. 移动端 KPI 改 2 列或横向滚动，图表纵向堆叠。
-8. 隐藏平台导航后需要跨模块切换时，交 `yida-nav-shell`，默认用 Canvas `useState` / hash。
+8. 隐藏平台导航后需要跨模块切换时，交 `yida-nav-shell`，默认用 React `useState` / hash。
 
 ## 图表路由边界
 
@@ -129,7 +124,7 @@ Canvas 页面入口：
 以下图表默认调用：
 
 ```text
-use_skill("yida-rechart", "在 Code Canvas 看板中实现常规业务图表")
+use_skill("yida-rechart", "在自定义页面看板中实现常规业务图表")
 ```
 
 - 折线、面积、柱、条、饼/环、组合图。
@@ -151,20 +146,20 @@ use_skill("yida-chart", "实现明确要求的 ECharts 或维护旧 native 图�
 
 不要仅因“看板里有图”就调用 `yida-chart`。
 
-## Legacy/native fallback
+## 平台 JSX 组件维护注意事项
 
-只有用户明确选择普通自定义页面，或现有页面依赖 `this.utils.yida.*`、`this.dataSourceMap`、`renderJsx`、`didMount` 等实例桥时，才进入 legacy 链路：
+`.oyd.jsx` / `.oyb.jsx` / `renderJsx` / 平台 `Jsx` 组件页面，若现有页面依赖 `this.utils.yida.*`、`this.dataSourceMap`、`renderJsx`、`didMount` 等实例桥，维护时注意：
 
-- 页面规范交 `yida-custom-page`。
+- 页面规范按平台 JSX 组件页面规则执行。
 - 旧 ECharts 图表交 `yida-chart`。
 - 本地使用 `.oyd.jsx`、`openyida check-page`、`openyida compile`。
-- references 中的 `renderJsx` / `didMount` 片段仅供维护旧页面，不代表新建默认。
+- references 中的 `renderJsx` / `didMount` 片段仅供维护平台 JSX 组件页面。
 
 ## 严格禁止
 
-1. 禁止默认生成普通 `.oyd.jsx` 看板。
+1. 禁止生成与目标运行时不匹配的页面源码。
 2. 禁止前端拉全量明细聚合 KPI。
-3. 禁止 Canvas 使用 `this.dataSourceMap`、`this.utils.yida.*` 或普通页生命周期。
+3. 禁止 Canvas 使用 `this.dataSourceMap`、`this.utils.yida.*` 或平台 JSX 组件生命周期。
 4. 禁止在前端直连钉钉 OpenAPI、硬编码 accessToken/Cookie/密钥。
 5. 禁止把工作通知声称为真实待办。
 6. 禁止 mock/seed 数据冒充真实交付。
@@ -177,8 +172,8 @@ use_skill("yida-chart", "实现明确要求的 ECharts 或维护旧 native 图�
 | --- | --- |
 | `references/structure-and-layout.md` | 设计 Dashboard 层次、Canvas 组件树和响应式 |
 | `references/theme-presets.md` | 选择主题、色板和图表视觉强度 |
-| `references/interaction-patterns.md` | 派单、搜人、截图、marquee、短链；旧普通页代码仅作 legacy |
-| `references/pitfalls.md` | 发布前检查数据、连接器、截图与旧页面兼容问题 |
+| `references/interaction-patterns.md` | 派单、搜人、截图、marquee、短链；旧普通页代码仅作维护参考 |
+| `references/pitfalls.md` | 发布前检查数据、连接器、截图与平台 JSX 组件页面兼容问题 |
 
 ## 验收
 
@@ -186,6 +181,6 @@ use_skill("yida-chart", "实现明确要求的 ECharts 或维护旧 native 图�
 - 发布后回读到 `YidaCodeCanvas` 与非空 `runtimeCode`。
 - 至少一个 KPI/列表/图表来自真实数据契约；否则标记 draft。
 - 筛选、刷新、移动端、截图、空/载/错态实际可用。
-- 常规图表已路由 `yida-rechart`；使用 `yida-chart` 时交付说明明确命中了哪条 ECharts 例外。
+- 常规图表已使用 `yida-rechart`；使用 `yida-chart` 时交付说明明确命中了哪条 ECharts 例外。
 - 需要派单时，真实待办 ConnectorCall 和字段映射验证通过。
 - 隐藏导航时，最终组织内 URL 保留 `isRenderNav=false`。

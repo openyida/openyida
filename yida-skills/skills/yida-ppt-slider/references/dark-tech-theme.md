@@ -2,7 +2,7 @@
 
 > 来源：`wukong-openyida-training-v2.js` 实战案例，适合企业培训、产品发布、科技感演示场景。
 >
-> 新建页面默认使用 Code Canvas。粒子、转场、键盘和全屏副作用用 React `ref` + `useEffect` 初始化并 cleanup。本文后半部的 `renderJsx` / `didMount` 写法是 legacy/native 参考，不是默认实现。
+> 粒子、转场、键盘和全屏副作用用 React `ref` + `useEffect` 初始化并 cleanup。本文后半部的 `renderJsx` / `didMount` 写法是平台 JSX 组件页面参考。
 >
 > 注意：`dark-tech` 是演示页视觉主题，不是默认业务主题。普通新页面先由 `yida-design` 根据行业、品牌、业务情绪和视觉目标做创意色彩判断；`podBlue`、`podGreen`、`podOrange` 只是平台预置候选，不是行业默认答案。只有演示、发布会或用户明确暗色科技风时才使用本文主题。
 
@@ -201,9 +201,9 @@ export function renderJsx() {
 
 ## Legacy/native 注意事项
 
-- **只适用于普通自定义页面**：以下 `import`/`require` 限制不适用于 Code Canvas；Canvas 依赖按白名单正常 import
+- **只适用于平台 JSX 组件页面**：以下 `import`/`require` 限制不适用于使用 `YidaCodeCanvas` 组件实现的页面；相关依赖按可用资源清单正常 import
 - **普通页禁止 `import`/`require`**：legacy `.oyd.jsx` 文件顶部不能有 import 语句
 - **事件绑定必须是真实函数**：可以用 `onClick={handleNext}` 或 `onClick={function() { self.changeSlide(1); }}`；禁止 `onClick={self.changeSlide(1)}` 这种渲染期调用，禁止 JSX 小写 `onclick`（ECharts `graphic.onclick` 不是 JSX 属性，可以保留）
 - **禁止 ES6 计算属性名**：`{ [key]: value }` 改为 `var obj = {}; obj[key] = value;`
-- **legacy 粒子初始化延迟**：旧页面可用延迟等待 DOM；新 Canvas 页面必须改成 `ref` + `useEffect`，cleanup 取消动画帧和 resize 监听
+- **平台 JSX 组件粒子初始化延迟**：平台 JSX 组件页面可用延迟等待 DOM；新建自定义页面必须改成 `ref` + `useEffect`，cleanup 取消动画帧和 resize 监听
 - **`WebkitBackdropFilter`** 必须与 `backdropFilter` 同时写，兼容 Safari

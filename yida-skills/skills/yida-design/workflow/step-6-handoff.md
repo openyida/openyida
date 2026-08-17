@@ -37,7 +37,7 @@
 | 组件样式 / 快捷入口区域 | 按组件写 default、hover、active、focus、disabled、loading、selected、error；工作台等必须写快捷入口区域 |
 | 页面结构配方 | 中性槽位、`visualScaffold`、`surfaceMap`、`componentRecipe` |
 | 状态与交互 / 响应式 / 可访问性 | loading、empty、error、mobile、reduced motion、焦点和对比度 |
-| 实现适配 | CSS 变量、Yida / Code Canvas 容器重置、`Yida Global Theme Runtime Contract`、Code Canvas / 普通 JSX helper 使用规则 |
+| 实现适配 | CSS 变量、Yida / YidaCodeCanvas 容器重置、`Yida Global Theme Runtime Contract`、YidaCodeCanvas / 平台 JSX 组件 helper 使用规则 |
 | 包含项 / 禁止项 / 错误 vs 正确 / Agent 使用提示 / 交付自检 | 保护视觉 DNA、contentBlocks 推荐 8-10 个区块以上、禁大白卡、自定义色 token 注入、实现前读取双文件 |
 
 ## 写文件前检查

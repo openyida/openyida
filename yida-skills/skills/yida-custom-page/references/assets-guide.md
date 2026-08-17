@@ -28,7 +28,7 @@
 
 ## Icon 素材
 
-自定义页面图标只使用 `lucide-react` 或 `@ant-design/icons`，默认 `lucide-react`。Code Canvas 使用标准 import；普通 JSX 是非 Code Canvas 的自定义页面，源码不支持 import，只能通过已验证运行时脚本/global 方式加载这两类图标库。emoji 报错时把语义映射到这两类图标来源；加载条件不满足时切到 Code Canvas 或去掉非必要图标，不使用 iconfont、Remix Icon、Font Awesome、CSS 图形、字母占位、Unicode 符号或临时 SVG。
+自定义页面图标只使用 `lucide-react` 或 `@ant-design/icons`，默认 `lucide-react`。使用 `YidaCodeCanvas` 组件实现的页面使用标准 import；平台 JSX 组件页面源码不支持 import，只能通过已验证运行时脚本/global 方式加载这两类图标库。emoji 报错时把语义映射到这两类图标来源；加载条件不满足时去掉非必要图标或使用已验证资源，不使用 iconfont、Remix Icon、Font Awesome、CSS 图形、字母占位、Unicode 符号或临时 SVG。
 
 | 图标库 | 授权方式 | 推荐场景 |
 | --- | --- | --- |
@@ -53,7 +53,7 @@
 
 ### 性能
 - 图片使用合适尺寸（避免加载 4K 大图）；音频使用压缩后的 MP3 格式
-- 图标本体来自 `lucide-react` 或 `@ant-design/icons`；Code Canvas 用 import，普通 JSX 用已验证运行时脚本/global；CSS 只控制尺寸、颜色、背景、圆角和 hover
+- 图标本体来自 `lucide-react` 或 `@ant-design/icons`；使用 `YidaCodeCanvas` 组件实现的页面用 import，平台 JSX 组件页面用已验证运行时脚本/global；CSS 只控制尺寸、颜色、背景、圆角和 hover
 
 ---
 

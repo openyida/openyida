@@ -596,7 +596,7 @@ page_shell
 - 表格行高 72-76px，列标题弱化，长文本使用 `ellipsis`。
 - 图表建议使用 ECharts / Recharts，主题 token 映射到 `brand`、`chart-muted`、`status-positive`、`status-negative`。
 
-### Yida / Code Canvas
+### Yida / YidaCodeCanvas
 
 - 页面根节点重置 `box-sizing: border-box`，避免宜搭容器默认样式影响布局。
 - 图表和表格容器必须设定稳定高度，发布前检查不同宽度下是否溢出。

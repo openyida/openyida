@@ -120,6 +120,6 @@
 
 `design.md` 必须包含 `rootShell`、`prioritySurface`、`statusPrimitive`、`actionPrimitive`、`contentPrimitive`、`contextPrimitive`、`statePrimitive`、`responsiveRule`、`backgroundLayer`、`surfaceMaterial`、`surfaceContrast`、`colorRoles` 和 `depthRule`。
 
-`design.md` 还必须写清 `densityRule`、`breathingRule` 与 `roundedRule`。缺少圆角、间距、呼吸节奏、状态摘要高度、列表行高或空态高度的具体数值时，不能交付给 Code Canvas 实现。
+`design.md` 还必须写清 `densityRule`、`breathingRule` 与 `roundedRule`。缺少圆角、间距、呼吸节奏、状态摘要高度、列表行高或空态高度的具体数值时，不能交付给自定义页面实现。
 
 缺少 `pageSpecHandoff`、缺少 `design.md`、或 `pageSpecHandoff` 没有引用 `designFile/designRefs` 时，Step 6 不算完成。

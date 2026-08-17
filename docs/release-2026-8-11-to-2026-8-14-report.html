@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenYida 2026.8.11 到 2026.8.14 改造对比报告</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #5f6b7a;
+      --line: #d9dee7;
+      --brand: #176b87;
+      --brand-soft: #e3f3f7;
+      --good: #17845f;
+      --warn: #a56400;
+      --bad: #b42318;
+      --code: #eef2f7;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      background: #0f2530;
+      color: #fff;
+      padding: 40px 32px 34px;
+    }
+    header .meta {
+      color: rgba(255, 255, 255, 0.72);
+      margin: 0 0 12px;
+      font-size: 13px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+    header p.summary {
+      max-width: 960px;
+      margin: 16px 0 0;
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.86);
+    }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 24px 56px;
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      margin: 18px 0;
+    }
+    h2 {
+      margin: 0 0 14px;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+    h3 {
+      margin: 18px 0 8px;
+      font-size: 15px;
+    }
+    p {
+      margin: 8px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fbfcfe;
+      min-height: 120px;
+    }
+    .metric b {
+      display: block;
+      font-size: 22px;
+      line-height: 1.2;
+      margin: 4px 0 8px;
+    }
+    .metric span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+    }
+    .metric.good b,
+    .delta.good {
+      color: var(--good);
+    }
+    .metric.warn b,
+    .delta.warn {
+      color: var(--warn);
+    }
+    .metric.bad b,
+    .delta.bad {
+      color: var(--bad);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 6px;
+      overflow-wrap: anywhere;
+    }
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f0f4f8;
+      font-weight: 650;
+      color: #23313f;
+    }
+    tr:last-child td {
+      border-bottom: 0;
+    }
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 9px;
+      background: var(--brand-soft);
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .callout {
+      border-left: 4px solid var(--brand);
+      background: #f3f8fb;
+      padding: 12px 14px;
+      margin: 12px 0;
+      border-radius: 6px;
+    }
+    ul {
+      margin: 8px 0 0 20px;
+      padding: 0;
+    }
+    li {
+      margin: 5px 0;
+    }
+    code {
+      background: var(--code);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .small {
+      font-size: 12px;
+    }
+    @media (max-width: 900px) {
+      .grid,
+      .two {
+        grid-template-columns: 1fr;
+      }
+      header {
+        padding: 30px 20px 28px;
+      }
+      main {
+        padding: 20px 14px 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="meta">OpenYida release comparison · v2026.8.11 → v2026.8.14 · generated 2026-08-14</p>
+    <h1>OpenYida 2026.8.11 到 2026.8.14 改造对比报告</h1>
+    <p class="summary">8.14 的核心不是继续堆能力，而是把 8.11 以来快速增长的技能说明重新收拢成“短入口 + 阶段化 workflow + 按需参考文档”。结果是 npm 包体积略降、核心 agent 首读入口显著变短，同时保留了更细的完整应用搭建流程和发布证据约束。</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>结论摘要</h2>
+      <div class="grid">
+        <div class="metric good">
+          <span>npm tarball</span>
+          <b>-7.6 KB</b>
+          <span>1,311,507 B → 1,303,775 B，约 -0.59%</span>
+        </div>
+        <div class="metric good">
+          <span>npm unpacked size</span>
+          <b>-20.8 KB</b>
+          <span>4,582,070 B → 4,560,734 B，约 -0.47%</span>
+        </div>
+        <div class="metric good">
+          <span>根技能入口大小</span>
+          <b>-49.3%</b>
+          <span><code>yida-skills/SKILL.md</code> 从 36,804 B 降到 18,650 B</span>
+        </div>
+        <div class="metric good">
+          <span>yida-app 入口大小</span>
+          <b>-79.5%</b>
+          <span><code>yida-app/SKILL.md</code> 从 37,585 B 降到 7,692 B</span>
+        </div>
+      </div>
+      <div class="callout">
+        <b>一句话判断：</b>8.14 是一次面向 agent 执行质量的结构性整理。它牺牲了少量文件数量简洁度，换来入口降噪、阶段边界更清晰、完整应用搭建链路更稳定，以及 npm 包整体小幅瘦身。
+      </div>
+    </section>
+
+    <section>
+      <h2>改造内容对比</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>主题</th>
+            <th>8.11 状态</th>
+            <th>8.14 改造</th>
+            <th>影响</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pill">技能入口治理</span></td>
+            <td>根 <code>SKILL.md</code> 和 <code>yida-app/SKILL.md</code> 承载大量长说明，首次加载信息密度高。</td>
+            <td>主入口保留搭应用总入口、资源上下文、意图识别、技能路由表和必须遵守规则，删除重复子技能长列表。</td>
+            <td>降低首读 token 噪音，让 agent 更快定位“该用哪个子技能”和“完整应用必须走 yida-app”。</td>
+          </tr>
+          <tr>
+            <td><span class="pill">yida-app 编排</span></td>
+            <td>完整应用搭建规则主要聚合在一个长入口和旧 <code>app-build-contract.md</code>。</td>
+            <td>新增 9 个 workflow 阶段：资源上下文、设计、创建/复用应用、表单流程、种子数据、主页面、页面代码、发布导航、输出收尾。</td>
+            <td>完整应用、已有 app 无页面、已有资源补齐等场景有统一推进顺序，减少跳步和乱建资源。</td>
+          </tr>
+          <tr>
+            <td><span class="pill">资源上下文</span></td>
+            <td>资源复用、绑定上下文、已有 app 无页面等规则分散在多个文档。</td>
+            <td>新增 <code>references/resource-context.md</code> 和 <code>workflow/step-1-resource-context.md</code>，明确已有 app 默认复用、目标不清先解析。</td>
+            <td>减少误调用 <code>create-app</code>、误新建页面或误绑定资源的风险。</td>
+          </tr>
+          <tr>
+            <td><span class="pill">页面丰富度门禁</span></td>
+            <td><code>page-richness-guard.js</code> 和 linter/compile 阶段存在内容区块数量硬校验。</td>
+            <td>删除 <code>lib/app/page-richness-guard.js</code>，把“至少 10 个区块”改成“推荐 8-10 个以上，不作为硬门槛”。</td>
+            <td>窄场景、单任务页面和用户要求精简时不再被工具阻塞，同时保留设计阶段质量建议。</td>
+          </tr>
+          <tr>
+            <td><span class="pill">发布证据</span></td>
+            <td>发布目标、真实发布证据、final 输出口径在多个位置重复出现。</td>
+            <td>优化 <code>yida-publish-page</code> 和 <code>yida-app</code> Step 8/9，强调真实发布、主入口链接和业务语言总结。</td>
+            <td>减少“本地编译等同发布”“输出一堆 ID 而不是业务结果”的误判。</td>
+          </tr>
+          <tr>
+            <td><span class="pill">帮助与能力入口</span></td>
+            <td>README/能力列表链接还在旧分散入口。</td>
+            <td>帮助网站统一到 <code>demo.aliwork.com/o/openyida/helpCenter</code>，补齐 capabilities、CLI Reference、Examples、Changelog 链接。</td>
+            <td>用户文档入口更集中，README 承担引导而不是复制完整能力清单。</td>
+          </tr>
+          <tr>
+            <td><span class="pill">agent 能力识别</span></td>
+            <td>agent 能力摘要对运行时 auth 快路径覆盖不足。</td>
+            <td>增强 <code>lib/core/agent-capabilities.js</code> 并新增 <code>tests/agent-capabilities.test.js</code>。</td>
+            <td>更准确识别当前环境的登录态/能力，降低 agent 错误引导登录或跳过 auth 检查的概率。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>代码与文件变化</h2>
+      <div class="two">
+        <div>
+          <h3>整体 diff</h3>
+          <table>
+            <tbody>
+              <tr><th>对比范围</th><td><code>v2026.8.11..v2026.8.14</code></td></tr>
+              <tr><th>提交范围</th><td><code>c1774c0</code> → <code>6895c54</code></td></tr>
+              <tr><th>变更文件</th><td>88 files</td></tr>
+              <tr><th>新增/删除行</th><td>+1,970 / -5,859，净减少 3,889 行</td></tr>
+              <tr><th>新增文件</th><td>15 个，主要是 <code>yida-app/workflow/</code> 阶段文件和资源上下文参考</td></tr>
+              <tr><th>删除文件</th><td>10 个，主要是旧治理长文档、旧内容区块硬门禁和旧 app-build contract</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3>变化集中区域</h3>
+          <table>
+            <thead>
+              <tr><th>区域</th><th>占比/说明</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>yida-skills/skills/yida-design/</code></td><td>样式选择、页面质量门禁和 workflow 文档更新较多。</td></tr>
+              <tr><td><code>yida-skills/skills/yida-app/workflow/</code></td><td>新增完整 9 阶段编排，是 8.14 的主结构变化。</td></tr>
+              <tr><td><code>docs/</code></td><td>删除多份旧方案长文档，新增主分支分析 HTML。</td></tr>
+              <tr><td><code>lib/app/</code></td><td>删除页面丰富度硬校验模块，编译/lint 链路移除硬阻断。</td></tr>
+              <tr><td><code>tests/</code></td><td>补 agent 能力、命令 manifest、技能契约和路由卫生相关断言。</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>体积对比</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>指标</th>
+            <th>2026.8.11</th>
+            <th>2026.8.14</th>
+            <th>变化</th>
+            <th>解读</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>npm tarball size</td>
+            <td>1,311,507 B</td>
+            <td>1,303,775 B</td>
+            <td class="delta good">-7,732 B / -0.59%</td>
+            <td>压缩包小幅下降，发布/安装下载体积略优。</td>
+          </tr>
+          <tr>
+            <td>npm unpacked size</td>
+            <td>4,582,070 B</td>
+            <td>4,560,734 B</td>
+            <td class="delta good">-21,336 B / -0.47%</td>
+            <td>实际展开后也变小，说明删除旧文档抵消了 workflow 拆文件的新增。</td>
+          </tr>
+          <tr>
+            <td>npm file count</td>
+            <td>379</td>
+            <td>389</td>
+            <td class="delta warn">+10 / +2.64%</td>
+            <td>文件数增加来自阶段化拆分，不代表体积膨胀。</td>
+          </tr>
+          <tr>
+            <td>Markdown 文件数</td>
+            <td>158</td>
+            <td>169</td>
+            <td class="delta warn">+11</td>
+            <td>长文档被拆为短入口和阶段文件，按需读取更友好。</td>
+          </tr>
+          <tr>
+            <td>Markdown 总字节</td>
+            <td>1,708,743 B</td>
+            <td>1,689,718 B</td>
+            <td class="delta good">-19,025 B / -1.11%</td>
+            <td>文档文件更多，但总体更轻。</td>
+          </tr>
+          <tr>
+            <td><code>yida-skills/</code> 总字节</td>
+            <td>1,720,593 B</td>
+            <td>1,699,586 B</td>
+            <td class="delta good">-21,007 B / -1.22%</td>
+            <td>技能包主体小幅瘦身。</td>
+          </tr>
+          <tr>
+            <td><code>yida-skills/SKILL.md</code></td>
+            <td>36,804 B</td>
+            <td>18,650 B</td>
+            <td class="delta good">-18,154 B / -49.3%</td>
+            <td>根入口显著降噪，对 agent 首次路由最直接。</td>
+          </tr>
+          <tr>
+            <td><code>yida-app/SKILL.md</code></td>
+            <td>37,585 B</td>
+            <td>7,692 B</td>
+            <td class="delta good">-29,893 B / -79.5%</td>
+            <td>完整应用入口从长文档变成阶段索引，首读成本大幅下降。</td>
+          </tr>
+          <tr>
+            <td><code>lib/</code> 总字节</td>
+            <td>2,633,865 B</td>
+            <td>2,631,550 B</td>
+            <td class="delta good">-2,315 B / -0.09%</td>
+            <td>运行时代码基本持平，主要净减少来自删除 <code>page-richness-guard.js</code>。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>性能与执行体验</h2>
+      <p>这里的性能分两类看：CLI 进程启动的机器耗时，以及 agent 使用技能文档时的上下文/决策成本。</p>
+      <h3>CLI 启动采样</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>命令</th>
+            <th>2026.8.11 中位数</th>
+            <th>2026.8.14 中位数</th>
+            <th>变化</th>
+            <th>说明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>node bin/yida.js --version</code></td>
+            <td>68.1 ms</td>
+            <td>56.8 ms</td>
+            <td class="delta good">-11.3 ms / -16.6%</td>
+            <td>8.14 在轻入口版本输出上更快，可能受本机进程调度影响，作为方向性参考。</td>
+          </tr>
+          <tr>
+            <td><code>node bin/yida.js --help</code></td>
+            <td>61.6 ms</td>
+            <td>66.3 ms</td>
+            <td class="delta warn">+4.7 ms / +7.6%</td>
+            <td>帮助输出略慢但仍在 60ms 量级，差异很小，不构成性能风险。</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">采样方法：两个已发布 npm tarball 本地展开，使用同一 Node 运行时和同一依赖路径，每条命令执行 15 次取中位数。该数据不代表网络 API 命令性能。</p>
+
+      <h3>Agent 侧执行体验</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th>变化</th>
+            <th>判断</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>首次路由成本</td>
+            <td>根入口减少 49.3%，保留路由表和必须遵守规则。</td>
+            <td class="delta good">明显改善。弱模型或短上下文模型更容易读完关键规则。</td>
+          </tr>
+          <tr>
+            <td>完整应用搭建成本</td>
+            <td><code>yida-app/SKILL.md</code> 减少 79.5%，但新增 9 个 workflow 文件。</td>
+            <td class="delta good">按需加载改善明显。只有进入对应阶段才读阶段细则。</td>
+          </tr>
+          <tr>
+            <td>误阻断风险</td>
+            <td>页面丰富度从硬门槛改为建议，删除运行时 hard guard。</td>
+            <td class="delta good">减少窄场景被 compile/lint/publish 链路挡住的概率。</td>
+          </tr>
+          <tr>
+            <td>规则遗漏风险</td>
+            <td>规则分散到 workflow/reference 后，agent 必须按入口链接继续读取。</td>
+            <td class="delta warn">需要依赖技能契约和 agent 阅读 discipline；8.14 已补对应契约测试。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>质量与风险</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th>收益</th>
+            <th>风险/注意点</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>可维护性</td>
+            <td>长文档拆阶段后，后续改资源解析、页面发布、最终输出等规则可以定位到单文件。</td>
+            <td>阶段文件之间要继续通过契约测试防止链接断裂或规则漂移。</td>
+          </tr>
+          <tr>
+            <td>用户体验</td>
+            <td>完整应用输出更偏业务结果，默认一个主入口链接，少暴露内部 ID。</td>
+            <td>排障场景仍需要保留命令输出和真实资源 ID 的可追溯性。</td>
+          </tr>
+          <tr>
+            <td>生成质量</td>
+            <td>8-10 区块从硬门槛变为质量建议，既保留丰富度方向，也允许窄场景精简。</td>
+            <td>如果 agent 忽略建议，页面可能回到单薄结构，需要通过 yida-design 和 Canvas 文档继续约束。</td>
+          </tr>
+          <tr>
+            <td>发布安全</td>
+            <td>发布证据与最终输出规则更明确，减少“本地完成但远端未发布”的状态混淆。</td>
+            <td>仍需区分 tag、GitHub Release、npm 官方源、npmmirror 这几个独立状态。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>证据与复核口径</h2>
+      <ul>
+        <li>源码对比：<code>git diff --shortstat v2026.8.11..v2026.8.14</code> 得到 88 files changed, 1,970 insertions, 5,859 deletions。</li>
+        <li>npm 包数据：<code>npm view openyida@2026.8.11 dist</code> 与 <code>npm view openyida@2026.8.14 dist</code>，并用 <code>npm pack</code> 下载 tarball 复核压缩体积。</li>
+        <li>文件结构数据：展开官方 npm tarball 后统计文件数、Markdown 字节数、<code>yida-skills/</code> 字节数和核心入口文件大小。</li>
+        <li>启动采样：展开两个官方 npm tarball，复用当前仓库依赖路径，分别执行 <code>--version</code> 和 <code>--help</code> 15 次取中位数。</li>
+        <li>当前工作区存在 8.14 之后的未提交改动，本报告全部基于已发布 tag 和官方 npm tarball，不把当前工作区内容计入 8.14 改造事实。</li>
+      </ul>
+      <p class="note">报告关注 2026.8.11 到 2026.8.14 的累计变化，其中包含 2026.8.12、2026.8.12-1、2026.8.13 和 2026.8.14 的发布内容。</p>
+    </section>
+  </main>
+</body>
+</html>

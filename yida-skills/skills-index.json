@@ -43,7 +43,7 @@
       "name": "yida-design",
       "path": "skills/yida-design/SKILL.md",
       "display_name": "宜搭应用设计",
-      "description": "当用户要做完整应用产品设计、单页 UI 改造、主页面视觉设计、应用主题色或全局换肤时使用。本技能基于需求分析和资源上下文，输出 prd/<项目名>/prd.md 与 prd/<项目名>/design.md；prd.md 写业务目标、数据结构、页面功能、资源顺序、导航顺序和验收标准，design.md 写主题 token、布局、材质、圆角、密度、组件和状态规则。本技能不写页面源码；页面实现交给 yida-canvas-custom-page 或 yida-custom-page。",
+      "description": "当用户要做完整应用产品设计、单页 UI 改造、主页面视觉设计、应用主题色或全局换肤时使用。本技能基于需求分析和资源上下文，输出 prd/<项目名>/prd.md 与 prd/<项目名>/design.md；prd.md 写业务目标、数据结构、页面功能、资源顺序、导航顺序和验收标准，design.md 写主题 token、布局、材质、圆角、密度、组件和状态规则。本技能不写页面源码；页面实现交给 yida-canvas-custom-page。",
       "category": "yida-skills/design",
       "tags": [
         "应用设计",
@@ -239,22 +239,21 @@
     {
       "name": "yida-canvas-custom-page",
       "path": "skills/yida-canvas-custom-page/SKILL.md",
-      "display_name": "Code Canvas 自定义页面",
-      "description": "宜搭 Code Canvas / 代码画布自定义页面开发规范，是自定义页面默认链路。用于现代 React 交互、hooks、可视化、AI 页、官网、看板、工作台、列表和详情。",
+      "display_name": "自定义页面开发",
+      "description": "宜搭自定义页面开发规范，使用 YidaCodeCanvas 组件实现现代 React18 自定义页面。用于官网、看板、工作台、列表、详情、门户壳、可视化和 hooks 交互。",
       "category": "yida-skills/page",
       "tags": [
-        "Code Canvas",
+        "YidaCodeCanvas",
         "React18",
         "runtimeCode",
         "自定义页面"
       ],
       "aliases": [
-        "代码画布",
-        "Canvas 页面"
+        "YidaCodeCanvas",
+        "现代自定义页面"
       ],
       "positive_signals": [
-        "Code Canvas",
-        "代码画布",
+        "YidaCodeCanvas",
         "现代 React 页面",
         "官网首页",
         "工作台",
@@ -262,60 +261,58 @@
         ".canvas.jsx"
       ],
       "negative_signals": [
-        "普通自定义页面 JSX/Jsx",
-        "强依赖 this.$",
-        "强依赖 this.dataSourceMap",
-        "renderJsx 旧页面迁移"
+        "平台 JSX 组件页面维护",
+        "renderJsx 平台 Jsx 组件迁移"
       ],
       "command_ids": [
         "build-page",
         "publish"
       ],
-      "done_when": "Canvas 源码生成或修改后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 写入 YidaCodeCanvas Schema；没有 publish 证据只能声明源码已修改，尚未发布。"
+      "done_when": ".canvas.jsx 源码生成或修改后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 写入 YidaCodeCanvas Schema；没有 publish 证据只能声明源码已修改，尚未发布。"
     },
     {
       "name": "yida-canvas-data-binding",
       "path": "skills/yida-canvas-data-binding/SKILL.md",
-      "display_name": "Code Canvas 数据绑定",
-      "description": "Code Canvas 页面接真实数据，覆盖 dataBinding、DataBridge、外层 yida JS-API 桥、返回体解析、totalCount 保护和静默轮询刷新。",
+      "display_name": "自定义页面数据绑定",
+      "description": "使用 YidaCodeCanvas 组件实现的自定义页面接真实数据，覆盖 dataBinding、DataBridge、外层 yida JS-API 桥、返回体解析、totalCount 保护和静默轮询刷新。",
       "category": "yida-skills/page",
       "tags": [
-        "Code Canvas",
+        "YidaCodeCanvas",
         "dataBinding",
         "DataBridge",
         "真实数据"
       ],
       "aliases": [
-        "Canvas 数据绑定",
-        "Canvas 接数据"
+        "自定义页面数据绑定",
+        "YidaCodeCanvas 接数据"
       ]
     },
     {
       "name": "yida-canvas-table-form",
       "path": "skills/yida-canvas-table-form/SKILL.md",
-      "display_name": "Code Canvas 表格批量录入",
-      "description": "Code Canvas + antd 默认批量录入技能，支持草稿、行级校验、分批并发和行级错误保留；写入默认消费发布层注入的 window.__OPENYIDA_YIDA_API__，也可走已验证连接器或同源业务桥。",
+      "display_name": "自定义页面表格批量录入",
+      "description": "使用 YidaCodeCanvas 组件和 antd 实现批量录入，支持草稿、行级校验、分批并发和行级错误保留；写入默认消费发布层注入的 window.__OPENYIDA_YIDA_API__，也可走已验证连接器或同源业务桥。",
       "category": "yida-skills/form",
       "tags": [
-        "Code Canvas",
+        "YidaCodeCanvas",
         "antd Table",
         "批量录入",
         "分批并发"
       ],
       "aliases": [
-        "Canvas 批量录入",
+        "自定义页面批量录入",
         "表格填写"
       ],
       "positive_signals": [
         "批量录入",
         "表格填写",
         "多行编辑",
-        "Code Canvas 表格",
+        "YidaCodeCanvas 表格",
         "antd Table"
       ],
       "negative_signals": [
         "普通自定义页面",
-        "native 旧页面",
+        "平台 JSX 组件页面",
         "this.utils.yida.saveFormData",
         "仅用 CLI 批量写数据"
       ],
@@ -323,22 +320,22 @@
         "get-schema",
         "publish"
       ],
-      "done_when": "Canvas 批量录入页面本地编译通过；只有写入桥真实验证并成功发布后，才能声明远程写入闭环。"
+      "done_when": "自定义页面批量录入本地编译通过；只有写入桥真实验证并成功发布后，才能声明远程写入闭环。"
     },
     {
       "name": "yida-canvas-upgrade",
       "path": "skills/yida-canvas-upgrade/SKILL.md",
-      "display_name": "Code Canvas 迁移升级",
-      "description": "将 OpenYida 原普通自定义页面链路升级或迁移为宜搭 Code Canvas 链路。",
+      "display_name": "自定义页面迁移升级",
+      "description": "将存量平台 JSX 组件页面升级或迁移为使用 YidaCodeCanvas 组件实现的自定义页面。",
       "category": "yida-skills/page",
       "tags": [
-        "Canvas",
+        "YidaCodeCanvas",
         "迁移",
         ".oyd.jsx",
         "YidaCodeCanvas"
       ],
       "aliases": [
-        "Canvas 升级"
+        "YidaCodeCanvas 升级"
       ]
     },
     {
@@ -532,8 +529,8 @@
     {
       "name": "yida-custom-page",
       "path": "skills/yida-custom-page/SKILL.md",
-      "display_name": "普通自定义页面 JSX 开发",
-      "description": "宜搭普通自定义页面 React 16 / JSX / Jsx 组件开发规范。明确要求 JSX/Jsx 组件链路、普通自定义页面，或页面强依赖 this.$、this.utils.yida、dataSourceMap、表单提交或字段双向绑定深度耦合时使用；完整应用默认使用 this.utils.yida.* 或入口型页面，只有已绑定设计器数据源时才用 dataSourceMap。",
+      "display_name": "JSX 自定义页面开发",
+      "description": "JSX 自定义页面开发规范。仅用于已检测到 .oyd.jsx/.oyb.jsx/renderJsx/平台 Jsx 组件页面维护。",
       "category": "yida-skills/page",
       "tags": [
         "JSX",
@@ -542,29 +539,28 @@
         "页面代码"
       ],
       "aliases": [
-        "页面开发",
-        "普通自定义页面"
+        "JSX 自定义页面",
+        "历史自定义页面"
       ],
       "positive_signals": [
-        "普通自定义页面",
+        "平台 JSX 组件页面",
         "Jsx 组件链路",
-        "this.$",
-        "this.utils.yida",
-        "this.dataSourceMap",
         "renderJsx",
-        ".oyd.jsx"
+        ".oyd.jsx",
+        ".oyb.jsx"
       ],
       "negative_signals": [
-        "默认现代 React 页面",
-        "Code Canvas 默认链路",
-        "只做 PRD"
+        "新建自定义页面",
+        "完整应用默认页面",
+        "现代 React 页面",
+        "自定义页面开发"
       ],
       "command_ids": [
         "check-page",
         "compile",
         "publish"
       ],
-      "done_when": "普通自定义页面源码通过 check-page / compile 后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 发布到目标 display 页面；没有 publish 证据只能声明源码已修改，尚未发布。"
+      "done_when": "平台 JSX 组件页面源码通过 check-page / compile 后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 发布到目标 display 页面；没有 publish 证据只能声明源码已修改，尚未发布。"
     },
     {
       "name": "yida-dashboard",
@@ -1023,8 +1019,6 @@
       "display_name": "发布自定义页面",
       "description": "将自定义页面源码编译为宜搭可运行 Schema 并发布；源码依赖 dataSourceMap 但发布无数据源时不能视为完成。",
       "command_ids": [
-        "check-page",
-        "compile",
         "publish"
       ],
       "done_when": "final 证据只认真实执行成功的 openyida publish <source> <appType> <displayPageFormUuid> 命令结果；本地文件编辑、diff、check-page 或 compile 不能证明远端页面已更新。",
@@ -1032,8 +1026,7 @@
       "tags": [
         "发布",
         "publish",
-        "compile",
-        "check-page"
+        "页面发布"
       ],
       "aliases": [
         "页面发布"
@@ -1075,11 +1068,11 @@
     {
       "name": "yida-rechart",
       "path": "skills/yida-rechart/SKILL.md",
-      "display_name": "Code Canvas Recharts 图表",
-      "description": "Code Canvas + Recharts 默认高级图表技能，用于高级图表、可视化和看板图表；统计聚合来自原生报表或已聚合接口，禁止前端拉全量明细聚合。",
+      "display_name": "自定义页面 Recharts 图表",
+      "description": "使用 YidaCodeCanvas 组件和 Recharts 实现高级图表、可视化和看板图表；统计聚合来自原生报表或已聚合接口，禁止前端拉全量明细聚合。",
       "category": "yida-skills/analytics",
       "tags": [
-        "Code Canvas",
+        "YidaCodeCanvas",
         "Recharts",
         "高级图表",
         "可视化"
@@ -1105,13 +1098,13 @@
       "command_ids": [
         "publish"
       ],
-      "done_when": "Recharts Canvas 页面本地编译通过；真实交付还需验证聚合数据源并成功发布目标页面。"
+      "done_when": "Recharts 自定义页面本地编译通过；真实交付还需验证聚合数据源并成功发布目标页面。"
     },
     {
       "name": "yida-table-form",
       "path": "skills/yida-table-form/SKILL.md",
       "display_name": "表格批量表单提交",
-      "description": "普通自定义页面的表格批量提交兼容技能。仅用于明确指定 native/旧页面或 this.utils.yida.saveFormData 的批量录入场景。",
+      "description": "平台 JSX 组件页面的表格批量提交兼容技能。仅用于明确指定平台 JSX/native 页面或 this.utils.yida.saveFormData 的批量录入场景。",
       "category": "yida-skills/form",
       "tags": [
         "表格表单",
@@ -1125,11 +1118,11 @@
       ],
       "positive_signals": [
         "普通自定义页面批量录入",
-        "native 旧页面",
+        "平台 JSX 组件页面",
         "this.utils.yida.saveFormData"
       ],
       "negative_signals": [
-        "Code Canvas",
+        "YidaCodeCanvas",
         "antd Table",
         "默认批量录入"
       ]
@@ -1222,7 +1215,7 @@
     {
       "name": "yida-skills/form",
       "display_name": "表单与数据采集",
-      "description": "表单字段结构、表单视觉引导、Divider 分割线分组、字段公式/校验、业务关联规则、表单详情页、Canvas-first 表格批量录入和表单/流程数据记录管理。",
+      "description": "表单字段结构、表单视觉引导、Divider 分割线分组、字段公式/校验、业务关联规则、表单详情页、自定义页面表格批量录入和表单/流程数据记录管理。",
       "signals": [
         "创建表单",
         "新增字段",
@@ -1255,11 +1248,10 @@
     {
       "name": "yida-skills/page",
       "display_name": "自定义页面",
-      "description": "自定义展示页创建、Code Canvas 链路、普通自定义页面 JSX/Jsx 组件链路、真实数据绑定、Canvas 迁移、页面发布、防覆盖、页面内导航壳和 PPT 页面。",
+      "description": "自定义展示页创建、自定义页面开发、平台 JSX 组件页面维护、真实数据绑定、YidaCodeCanvas 迁移、页面发布、防覆盖、页面内导航壳和 PPT 页面。",
       "signals": [
         "自定义页面",
-        "Canvas",
-        "代码画布",
+        "YidaCodeCanvas",
         "JSX",
         "React",
         "发布页面",
@@ -1270,7 +1262,7 @@
     {
       "name": "yida-skills/analytics",
       "display_name": "报表与看板",
-      "description": "原生报表、Code Canvas Recharts 默认高级图表、ECharts 兼容链路、经营看板/驾驶舱/数据大屏。",
+      "description": "原生报表、自定义页面 Recharts 默认高级图表、ECharts 兼容场景、经营看板/驾驶舱/数据大屏。",
       "signals": [
         "报表",
         "统计",

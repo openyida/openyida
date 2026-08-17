@@ -17,9 +17,9 @@
 
 | 页面 | resourceType | scene | 用途 | 实现链路 |
 | --- | --- | --- | --- | --- |
-| 主页 / 首页 / 工作台 | `display-page` | `workbench/dashboard/landing` | 应用第一入口、指标概览、快捷入口 | 默认 Code Canvas |
-| 管理列表页 | `display-page` | `list` | 查询、筛选、批量操作、详情入口 | 默认 Code Canvas |
-| 详情页 | `display-page` | `detail` | 单对象信息总览、时间线、关联对象 | 默认 Code Canvas |
+| 主页 / 首页 / 工作台 | `display-page` | `workbench/dashboard/landing` | 应用第一入口、指标概览、快捷入口 | 自定义页面 |
+| 管理列表页 | `display-page` | `list` | 查询、筛选、批量操作、详情入口 | 自定义页面 |
+| 详情页 | `display-page` | `detail` | 单对象信息总览、时间线、关联对象 | 自定义页面 |
 | 数据大屏 / 看板 | `display-page` 或报表 | `screen/dashboard` | 指标监控、经营分析、投屏展示 | Canvas / Recharts / 报表 |
 
 ### 列表单资源

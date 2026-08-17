@@ -36,7 +36,7 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 
 用户说"只创建应用壳"、"新建应用并返回 appType"，且 resource context 没有目标 app 时使用此技能。
 创建应用后，先用 `yida-design` 产出或更新 PRD，再继续执行：创建/更新表单（`yida-create-form-page`）→ 创建或复用页面（`yida-create-page` / existing page）→ 发布页面（`yida-publish-page`）。
-后续如果需要自定义页面，默认走 Code Canvas 链路：源码写到 `project/pages/src/<页面名>.canvas.jsx`，通过 Canvas 编译链路发布。用户明确要求普通自定义页面 JSX/Jsx 组件链路，或页面强依赖普通自定义页实例桥（`this.$(fieldId)`、`this.utils.yida.*`、`this.dataSourceMap`、表单提交或字段双向绑定深度耦合）时，选择 `.oyd.jsx` / `.jsx` 并执行 `openyida check-page` / `openyida compile`。
+后续如果需要自定义页面，源码写到 `project/pages/src/<页面名>.canvas.jsx` 并发布。
 
 ---
 
@@ -108,7 +108,7 @@ CLI 已内置上述行业推断作为创建壳层的兜底能力，不代表 `yi
 ## 创建后交付约定
 
 - 将 `appType`、页面 `formUuid`、表单 `fieldId` 写入 `.cache/<项目名>-schema.json`，PRD 只保留业务语义。
-- 自定义页面源码默认使用 `.canvas.jsx`，通过 `yida-canvas-custom-page` 生成或编写并走 Canvas 编译发布；明确要求普通自定义页面 JSX/Jsx 组件链路，或强依赖普通自定义页实例桥时才使用 `.oyd.jsx` / `.jsx`，并遵循 `yida-custom-page` 的事件绑定、timestamp 隐藏节点、loading 兜底等规范。
+- 自定义页面源码默认使用 `.canvas.jsx`，完成编写后发布。
 - 造测试数据或修旧数据时，可以用 Python 或 JS 编写 `.cache/` 下的一次性脚本；优先选择更快更清晰的方式，但字段 ID 和记录 ID 必须来自真实查询。
 
 ## 异常处理

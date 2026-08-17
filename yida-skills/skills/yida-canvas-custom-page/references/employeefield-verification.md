@@ -1,13 +1,13 @@
-# Code Canvas 运行时事实与 EmployeeField 验证
+# YidaCodeCanvas 组件运行时事实与 EmployeeField 验证
 
-Code Canvas 接入 `EmployeeField` 前，先确认运行时边界、组件探测结果和值结构。
+使用 `YidaCodeCanvas` 组件接入 `EmployeeField` 前，先确认运行时边界、组件探测结果和值结构。
 
 ## 运行时事实
 
-- Code Canvas 源码在运行页面 `window` 中执行，`YidaComp` 是普通 React 函数组件。
-- Canvas 使用 React 函数组件上下文；数据读写、生命周期和渲染通过 hooks、props、HTTP 数据桥或连接器完成。需要 `this.utils.yida.*`、`this.dataSourceMap`、`this.$(fieldId)`、`export function didMount()` 等普通页面契约时，使用 `yida-custom-page`。
+- `.canvas.jsx` 源码在运行页面 `window` 中执行，`YidaComp` 是普通 React 函数组件。
+- `YidaCodeCanvas` 组件使用 React 函数组件上下文；数据读写、生命周期和渲染通过 hooks、props、HTTP 数据桥或连接器完成。
 - 代码执行后必须返回 `YidaComp`、`YidaComp.default` 或组件函数。
-- Canvas 要读写宜搭数据，只能在组件内使用 HTTP 数据桥、连接器代理或显式 props 注入。如果用户明确要求普通自定义页面 JSX/Jsx 组件链路，或页面强依赖普通自定义页实例桥，选择 `yida-custom-page`。
+- 页面要读写宜搭数据，只能在组件内使用 HTTP 数据桥、连接器代理或显式 props 注入。
 
 > 可用资源清单、import 写法与运行时加载方式已拆到 [dependencies-and-cdn.md](dependencies-and-cdn.md)。
 
@@ -23,7 +23,7 @@ Code Canvas 接入 `EmployeeField` 前，先确认运行时边界、组件探测
 
 ## EmployeeField 验证示例
 
-示例用于 Code Canvas 验证；普通 `.oyd.jsx` 自定义页使用 `yida-custom-page` 的实例桥写法。
+示例用于 YidaCodeCanvas 验证；历史 `.oyd.jsx` 自定义页使用实例桥写法。
 
 ```jsx
 import React from 'react';

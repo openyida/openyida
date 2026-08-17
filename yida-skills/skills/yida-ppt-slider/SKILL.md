@@ -1,13 +1,13 @@
 ---
 name: yida-ppt-slider
-description: "宜搭全屏幻灯片页面开发，兼容旧 yida-ppt / PPT / 演示 / 幻灯片触发词，默认使用 Code Canvas + React hooks 管理翻页、URL hash、键盘/演讲笔、全屏和副作用清理。支持浅色简约与 dark-tech 主题。普通自定义页面生命周期模式仅用于 legacy/native 维护。"
+description: "宜搭全屏幻灯片页面开发，兼容旧 yida-ppt / PPT / 演示 / 幻灯片触发词，使用 React hooks 管理翻页、URL hash、键盘/演讲笔、全屏和副作用清理。支持浅色简约与 dark-tech 主题。平台 JSX 组件生命周期模式仅用于对应运行时维护。"
 ---
 
 # 宜搭 PPT 幻灯片开发指南
 
 ## 核心定位
 
-本技能用于在宜搭内交付全屏演示页。新建演示默认走 **Code Canvas**：
+本技能用于在宜搭内交付全屏演示页：
 
 - `.canvas.jsx` / `.canvas.tsx` + `YidaComp` 函数组件。
 - `useState` 管当前页、主题、语言、导航显隐和全屏状态。
@@ -15,20 +15,20 @@ description: "宜搭全屏幻灯片页面开发，兼容旧 yida-ppt / PPT / 演
 - `useMemo` 派生当前页与页码数据。
 - 常规图表默认交 `yida-rechart`；明确 ECharts/复杂 option 时才使用 `yida-chart`。
 
-已有 `.oyd.jsx` 或深度依赖普通页实例桥时，才使用 legacy/native fallback。
+已有 `.oyd.jsx` / `.oyb.jsx` 或深度依赖平台实例桥时，按平台 JSX 组件运行时维护。
 
 ## 适用场景
 
 | 用户意图 | 触发条件 | 处理方式 |
 |---------|---------|---------|
-| 在宜搭内创建演示文稿 | "PPT"、"yida-ppt"、"幻灯片"、"演示页面"、"产品路演" | 使用本技能，默认 Canvas |
-| 需要读取宜搭数据的演示 | 演示页要接入表单、权限或宜搭页面能力 | Canvas + `yida-canvas-data-binding` |
+| 在宜搭内创建演示文稿 | "PPT"、"yida-ppt"、"幻灯片"、"演示页面"、"产品路演" | 使用本技能 |
+| 需要读取宜搭数据的演示 | 演示页要接入表单、权限或宜搭页面能力 | `YidaCodeCanvas` 组件 + `yida-canvas-data-binding` |
 | 纯静态演讲稿 | 不依赖宜搭发布、不读取宜搭数据 | 优先改用独立 HTML 幻灯片能力 |
-| 维护已有 `renderJsx` / `didMount` PPT | 已有普通自定义页面或强依赖普通页面实例桥 | legacy `yida-custom-page` |
+| 维护已有 `renderJsx` / `didMount` PPT | 已有平台 JSX 组件页面或强依赖平台实例桥 | 按平台 JSX 组件运行时维护 |
 
 ## 致命规则
 
-1. **默认 Canvas**：新建页面不得把 `.oyd.jsx`、`renderJsx`、`didMount` 写成默认。
+1. **源码格式正确**：不得把 `.oyd.jsx`、`renderJsx`、`didMount` 写成默认页面实现。
 2. **状态归 hooks**：翻页、导航、语言、主题、全屏状态用 React hooks。
 3. **副作用必须清理**：键盘、触摸、鼠标、hash、fullscreen、定时器和图表副作用均在 `useEffect` cleanup。
 4. **事件真实可触发**：禁止 `onClick={foo()}`、小写 `onclick`；可见按钮必须有 handler 或 disabled。
@@ -48,10 +48,10 @@ openyida login --check-only --json
 openyida create-app "<应用名>"
 openyida create-page <appType> "<页面名>"
 
-# 3. 编写 Canvas 源码
+# 3. 编写 `.canvas.jsx` 源码
 # project/pages/src/<页面名>.canvas.jsx
 
-# 4. Canvas 本地快检（以 yida-canvas-custom-page 的 compileCanvasLocal 为准）
+# 4. 本地快检（以 yida-canvas-custom-page 的 compileCanvasLocal 为准）
 
 # 5. 用户确认内容与主题后发布
 openyida publish project/pages/src/<页面名>.canvas.jsx <appType> <formUuid>
@@ -61,9 +61,9 @@ openyida update-form-config <appType> <formUuid> false "<页面名>"
 openyida get-schema <appType> <formUuid>
 ```
 
-`openyida check-page` / `openyida compile` 是普通自定义页面校验，不是 Canvas 默认验证步骤。
+`openyida check-page` / `openyida compile` 是平台 JSX 组件页面校验，不是使用 `YidaCodeCanvas` 组件实现页面的默认验证步骤。
 
-## Canvas 技术骨架
+## 技术骨架
 
 ```jsx
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -185,17 +185,16 @@ export default YidaComp;
 - 只有用户明确要求 ECharts、复杂 ECharts option、bar chart race 或旧 native ECharts 演示时，调用 `yida-chart`。
 - `references/echarts-race-example.md` 是明确 ECharts 的专项/legacy 参考，不是默认幻灯片骨架。
 
-## Legacy/native fallback
+## 平台 JSX 组件维护注意事项
 
-仅在维护旧普通自定义页面或必须使用页面实例桥时：
+维护平台 JSX 组件页面或必须使用页面实例桥时：
 
-- 使用 `yida-custom-page`。
 - 状态可用 `_customState + forceUpdate`。
 - 生命周期使用 `didMount` / `didUnmount`。
 - 移动端可用 `this.utils.isMobile()`。
 - 源码使用 `.oyd.jsx`，校验走 `openyida check-page` / `openyida compile`。
 
-`references/examples.md` 和 `references/dark-tech-theme.md` 中标记为 legacy/native 的代码只用于旧页面维护；新建页面优先把同等能力翻译成 hooks。
+`references/examples.md` 和 `references/dark-tech-theme.md` 中标记为平台 JSX 组件/native 的代码只用于对应运行时维护；同等能力优先用 hooks 表达。
 
 ## 验收
 
@@ -210,8 +209,7 @@ export default YidaComp;
 
 | 文档 | 用途 |
 | --- | --- |
-| [核心示例](references/examples.md) | Canvas hooks 示例优先；旧 native 完整示例明确标记 legacy |
-| [dark-tech 主题](references/dark-tech-theme.md) | Canvas 粒子/转场原则；旧 `renderJsx` 框架只作 legacy |
+| [核心示例](references/examples.md) | hooks 示例优先；旧 native 完整示例明确标记 legacy |
+| [dark-tech 主题](references/dark-tech-theme.md) | 粒子/转场原则；旧 `renderJsx` 框架只作 legacy |
 | [ECharts race 示例](references/echarts-race-example.md) | 仅明确 ECharts/bar chart race 或维护旧实现时阅读 |
-| `yida-canvas-custom-page` | Canvas 运行时、依赖、编译和发布 |
 | `yida-canvas-data-binding` | 演示页真实数据桥 |

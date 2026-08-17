@@ -4,7 +4,7 @@
 
 ## 转换模式示例
 
-普通自定义页面（`.oyd.jsx`，`_customState` + `forceUpdate` + `renderJsx`）：
+平台 JSX 组件页面（`.oyd.jsx`，`_customState` + `forceUpdate` + `renderJsx`）：
 
 ```jsx
 var _customState = { count: 0 };
@@ -20,7 +20,7 @@ export function renderJsx() {
 }
 ```
 
-Code Canvas（真 React18 hooks，导出 `YidaComp`）：
+YidaCodeCanvas（真 React18 hooks，导出 `YidaComp`）：
 
 ```jsx
 import React, { useState } from 'react';
@@ -44,7 +44,7 @@ export default YidaComp;
 - `_customState` 字段 → `useState`；复杂派生数据 → `useMemo`。
 - `didMount` / `didUnmount` → `useEffect(() => { ...; return cleanup; }, [])`。
 - `this.forceUpdate()` / `setCustomState` 强刷 → 删除，靠 hooks 自然重渲染。
-- `this.utils.yida.*` / `this.dataSourceMap.*` 无法照搬，抽成 props 调用或明确 TODO，不要假装可用（Canvas 无平台数据桥）。
+- `this.utils.yida.*` / `this.dataSourceMap.*` 无法照搬，抽成 props 调用或明确 TODO，不要假装可用（YidaCodeCanvas 组件无平台 JSX 组件实例桥）。
 
 ## 升级报告模板
 

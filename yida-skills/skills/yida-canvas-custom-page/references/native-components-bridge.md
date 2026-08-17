@@ -1,10 +1,10 @@
-# Code Canvas 原生组件桥
+# YidaCodeCanvas 原生组件桥
 
-Code Canvas 接入平台运行态组件时，统一使用运行时桥接。覆盖门户组件、数据管理视图、成员、部门、附件上传和图片上传。
+YidaCodeCanvas 接入平台运行态组件时，统一使用运行时桥接。覆盖门户组件、数据管理视图、成员、部门、附件上传和图片上传。
 
 ## 核心策略
 
-Code Canvas 里的平台运行态组件按“先探测、可用增强、fallback 保底”的方式接入。字段、门户、数据管理视图等运行态组件统一从页面 `window.Deep` / `window.DeepYida` / `window.YidaNativeComponents` 查找；页面源码只 `import` Code Canvas 可用资源清单内的通用前端包。
+YidaCodeCanvas 里的平台运行态组件按“先探测、可用增强、fallback 保底”的方式接入。字段、门户、数据管理视图等运行态组件统一从页面 `window.Deep` / `window.DeepYida` / `window.YidaNativeComponents` 查找；页面源码只 `import` YidaCodeCanvas 可用资源清单内的通用前端包。
 
 运行时桥接步骤：
 
@@ -110,7 +110,7 @@ Code Canvas 里的平台运行态组件按“先探测、可用增强、fallback
 }
 ```
 
-Smoke 页验证方式：编写最小 Code Canvas 探测页，只包含组件查找、props 传入、错误边界和 fallback。
+Smoke 页验证方式：编写最小 YidaCodeCanvas 探测页，只包含组件查找、props 传入、错误边界和 fallback。
 
 发布后在 URL 追加目标表单：
 

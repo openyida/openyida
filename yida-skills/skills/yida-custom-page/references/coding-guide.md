@@ -463,7 +463,7 @@ export function renderJsx() {
 
 ### 6. 样式方式
 
-所有样式通过 JavaScript 对象定义（内联样式），在 `renderJsx` 中通过 `style` 属性应用，不使用外部 CSS 文件。普通 JSX 的样式实现适配和组件模板见 [普通自定义页面样式实现适配](design-system.md)。
+所有样式通过 JavaScript 对象定义（内联样式），在 `renderJsx` 中通过 `style` 属性应用，不使用外部 CSS 文件。平台 JSX 组件页面的样式实现适配和组件模板见 [平台 JSX 组件样式实现适配](design-system.md)。
 
 ### 7. 异步操作
 
@@ -500,12 +500,6 @@ dateField_xxx: '2024-01-15'
 // ✅ 正确：时间戳格式
 dateField_xxx: new Date().getTime()
 ```
-
-### 10.1 AttachmentField 上传不是直接写 File
-
-在自定义页面中，`AttachmentField` 不能直接写浏览器 `File` 对象，也不能写普通文本。正确做法是先走 `ossSign -> OSS 直传 -> AttachmentField 对象数组` 的链路，再在 `saveFormData` 时提交。
-
-详见：[AttachmentField 上传指南](./attachment-upload-guide.md)
 
 ### 11. 多端适配
 
@@ -637,7 +631,7 @@ export function closeYidaForm() {
 
 ### 16.1 自定义主题注入到 iframe 窗口
 
-普通 JSX 页面需要自定义色盘、隐藏导航沉浸页或 iframe 中承载原生表单时，复制 `yida-canvas-custom-page/references/theme-runtime-helpers.md` 的 Ordinary JSX helper。该 helper 会向当前文档、同源可访问的所有父级窗口文档，以及 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 文档注入 `style#yida-global-theme`；跨域窗口静默降级。不要只向当前页面 `document.head` 写 style，否则嵌套 iframe 时父级壳层和抽屉内表单可能读不到同一套 token。
+平台 JSX 组件页面需要自定义色盘、隐藏导航沉浸页或 iframe 中承载原生表单时，复制 `yida-canvas-custom-page/references/theme-runtime-helpers.md` 的 Ordinary JSX helper。该 helper 会向当前文档、同源可访问的所有父级窗口文档，以及 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 文档注入 `style#yida-global-theme`；跨域窗口静默降级。不要只向当前页面 `document.head` 写 style，否则嵌套 iframe 时父级壳层和抽屉内表单可能读不到同一套 token。
 
 ### 17. 下拉选项控制选项卡（Tabs）表格页显示/隐藏
 
@@ -661,7 +655,7 @@ export function closeYidaForm() {
 // 字段 ID 来自 openyida get-schema 的输出，或 .cache/<项目名>-schema.json
 var FIELDS = {
   userName: 'textField_k8j2n3m4',       // 姓名
-  department: 'selectField_a3b9c1d2',    // 部门
+  category: 'selectField_a3b9c1d2',      // 类别
   applyDate: 'dateField_x7y2z5w1',       // 申请日期
   amount: 'numberField_p4q8r3s6',        // 金额
   status: 'radioField_m1n5o9p3',         // 审批状态

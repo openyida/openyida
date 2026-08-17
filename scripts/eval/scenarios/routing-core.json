@@ -91,13 +91,13 @@
   },
   {
     "id": "canvas-custom-page-split-pane",
-    "prompt": "用 Code Canvas 给我生成一个左列表右详情的工单处理台页面",
+    "prompt": "用 YidaCodeCanvas 组件实现一个左列表右详情的工单处理台页面",
     "expectedSkill": "yida-canvas-custom-page",
-    "note": "Code Canvas 自定义页实现 → yida-canvas-custom-page"
+    "note": "YidaCodeCanvas 组件自定义页实现 → yida-canvas-custom-page"
   },
   {
     "id": "canvas-data-binding-zero-rows",
-    "prompt": "Code Canvas 看板页面接了表单数据但列表一直显示 0 条，帮我排查 dataBinding 和同源 fetch",
+    "prompt": "使用 YidaCodeCanvas 组件实现的看板页面接了表单数据但列表一直显示 0 条，帮我排查 dataBinding 和同源 fetch",
     "expectedSkill": "yida-canvas-data-binding",
     "note": "Canvas 真实数据接入与 DataBridge 排查 → yida-canvas-data-binding"
   },

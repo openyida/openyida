@@ -85,7 +85,7 @@
 | 可选项 | 子技能 | doneWhen |
 | --- | --- | --- |
 | 精细导航整理 | `use_skill("yida-nav-group", "整理应用导航分组")` | 主页面/核心表单顺序符合业务入口 |
-| 数据桥深度接入 | `use_skill("yida-canvas-data-binding", "接入 Code Canvas 数据")` 或 `use_skill("yida-data-source-connectors", "绑定设计器数据源")` | 页面真实数据读写稳定，空态/错误态可恢复 |
+| 数据桥深度接入 | `use_skill("yida-canvas-data-binding", "接入页面数据")` 或 `use_skill("yida-data-source-connectors", "绑定设计器数据源")` | 页面真实数据读写稳定，空态/错误态可恢复 |
 | 报表/图表 | `use_skill("yida-report", "创建原生报表")`、`use_skill("yida-rechart", "创建 Recharts 页面")` 或 `use_skill("yida-chart", "创建 ECharts 页面")` | 报表或图表页面已创建/发布 |
 | 公开访问 | `use_skill("yida-page-config", "配置页面公开访问")` | 分享配置保存成功 |
 | 截图/人工验收 | 按当前工具能力 | 截图或用户确认通过 |

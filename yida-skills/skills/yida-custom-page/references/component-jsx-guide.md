@@ -5,7 +5,7 @@
 ## 先说清楚边界
 
 - 不要假设自定义页面能通过 `import` 获取 `window.Deep` 上的表单组件；当前规范下应使用原生 JSX 元素、Tailwind `className` 和必要的内联兜底样式组合。
-- Code Canvas 是自定义页面的默认链路（现代 React/hooks/可视化/AI）；本指南服务普通自定义页面 JSX/Jsx 组件链路，例如明确要求 `Jsx` 组件、`renderJsx`、或强依赖 `this.$(fieldId)`、`this.utils.yida.*`、`this.dataSourceMap`、表单提交/字段双向绑定深度耦合。用户要代码画布、`YidaCodeCanvas`、`runtimeCode`、`importedModules` 时，切换到 `yida-canvas-custom-page`。
+- 本指南服务 `.oyd.jsx` / `.oyb.jsx` / `renderJsx` / 平台 `Jsx` 组件页面维护，例如存量源码已确认依赖 `this.$(fieldId)`、`this.utils.yida.*`、`this.dataSourceMap`、表单提交或字段双向绑定深度耦合。
 - 不要把字段中文名当作 `fieldId`；字段 ID 必须来自 `openyida get-schema`。
 - 不要把原生表单页面的组件配置 JSON 直接复制到自定义页面 JSX；两者不是同一个运行面。
 - 如果确有平台内置选择器、上传器等 API，必须先由用户提供官方示例或在目标环境验证，再写入代码。
@@ -14,7 +14,7 @@
 
 1. **Tailwind 视觉优先 + native 控件 reset**：面向用户的控件默认用 Tailwind utility className 组合，并保留必要的 `style` 兜底；页面默认开启 Tailwind preflight，同时注入 `openyida-native-control-reset` 或等效页面级样式，避免 input/textarea/select/自定义下拉聚焦时出现浏览器黑色粗边。
 2. **非受控输入**：输入类控件使用 `defaultValue` + `onChange` 写入 `_customState`，避免 `value` 受控模式导致输入卡顿或无法输入。
-3. **字段值按接口格式保存**：DateField 使用毫秒时间戳；选择/成员/部门等字段以平台数据实际结构为准，未验证时只存 ID 或文本，不伪装复杂对象。
+3. **字段值按接口格式保存**：DateField 使用毫秒时间戳；选择类字段以平台数据实际结构为准，未验证时只存 ID 或文本，不伪装复杂对象。
 4. **禁用可见原生下拉**：用户可见的单选下拉不要使用 `<select>`；用 `button + menu + option` 自定义下拉，避免浏览器原生控件观感不一致。
 5. **移动端考虑触控尺寸**：按钮和输入框高度建议不小于 36px，表格在移动端改为卡片列表或横向滚动。
 
@@ -292,69 +292,6 @@ var self = this;
   }}
   style={styles.input}
 />
-```
-
-## EmployeeField / DepartmentSelectField
-
-普通自定义页面 JSX 里不能直接把表单设计器字段当 React 组件渲染。不要写未验证的 `<EmployeeField />`、`<DepartmentSelectField />`、`<AttachmentField />`、`<ImageField />`，也不要假设可以通过 `import` 获取 `window.Deep` 上的组件。自定义页面只负责交互 UI 和数据提交；真正的字段组件优先放在表单页面里。
-
-按场景选择：
-
-- 查询/筛选场景：把成员/部门作为文本、userId、deptId 或候选项筛选，查询条件以真实接口支持为准。
-- 编辑/提交场景：用业务候选列表、自定义下拉或已验证 picker 收集 userId/deptId，再通过 `this.utils.yida.saveFormData` / `updateFormData` 写入真实字段。
-- 展示场景：优先展示接口返回的名称字段；没有名称时展示 userId/deptId。
-
-必须遵守：
-
-- `EmployeeField` 写值通常是成员 userId 数组，例如 `[userId]`；多人时是多个 userId。具体结构以 `get-schema` 和真实查询返回为准。
-- `DepartmentSelectField` 写值通常是部门 id 数组或平台返回的部门值结构；不要把部门名称当作稳定主键。
-- 同名成员/部门必须让用户或业务候选列表提供可区分的 userId/deptId，不得只凭名称写入。
-- 如果用户要求“原生成员选择弹窗/通讯录选择器”，必须先拿到官方示例或在目标环境验证 picker API；未验证时只能实现候选列表选择或文本/ID 录入 fallback。
-
-```jsx
-{this.renderDropdown(
-  FIELDS.owner,
-  ownerOptions.map((user) => ({
-    value: user.userId,
-    label: user.name || user.userId,
-  })),
-  (record.formData && record.formData[FIELDS.owner]) || '',
-  '请选择负责人'
-)}
-```
-
-提交时按真实字段 ID 组装 payload：
-
-```jsx
-var payload = {};
-payload[FIELDS.owner] = state.ownerUserId ? [state.ownerUserId] : [];
-payload[FIELDS.department] = state.deptId ? [state.deptId] : [];
-
-this.utils.yida.saveFormData({
-  appType: APP_TYPE,
-  formUuid: FORM_UUID,
-  formDataJson: JSON.stringify(payload),
-});
-```
-
-## ImageField / AttachmentField
-
-上传能力依赖具体页面环境和接口权限。普通自定义页面 JSX 里不要把浏览器 `File` 对象、普通 URL 字符串或单个对象直接写进 `AttachmentField` / `ImageField`。
-
-必须遵守：
-
-- 不要写“可直接上传”的组件承诺。
-- 可以展示已有图片/附件链接。
-- 真正上传并写表单字段时，必须读取 [AttachmentField 上传指南](attachment-upload-guide.md)，走 `ossSign -> OSS 直传 -> 附件对象数组 -> saveFormData/updateFormData`。
-- `ImageField` 也按附件对象数组链路处理；图片预览 URL 和下载 URL 以 OSS/平台返回为准。
-- 上传成功不等于落表成功，必须在保存表单后再查询验证字段值。
-
-```jsx
-{attachments.map((file) => (
-  <a key={file.url} href={file.url} target="_blank" rel="noreferrer" style={styles.link}>
-    {file.name || file.url}
-  </a>
-))}
 ```
 
 ## TableField / 数据表格

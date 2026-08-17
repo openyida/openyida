@@ -1,6 +1,6 @@
-# Code Canvas 编写示例 / 脚手架
+# 自定义页面编写示例 / 脚手架
 
-从零写 Code Canvas 页面时，入口使用普通 React18 函数组件 `YidaComp`，源码导出或返回 `YidaComp` / `YidaComp.default`；`import` 使用可用资源清单内的包；副作用在 `useEffect` 里注册并返回 cleanup。
+从零写使用 `YidaCodeCanvas` 组件实现的页面时，入口使用普通 React18 函数组件 `YidaComp`，源码导出或返回 `YidaComp` / `YidaComp.default`；`import` 使用可用资源清单内的包；副作用在 `useEffect` 里注册并返回 cleanup。
 
 > 可用资源、import 写法与运行时加载方式见 [dependencies-and-cdn.md](dependencies-and-cdn.md)；读写宜搭数据见 [data-bridge-guide.md](data-bridge-guide.md)。
 

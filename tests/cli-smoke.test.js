@@ -515,6 +515,12 @@ describe('CLI offline smoke', () => {
       ]),
       default_data_contract: expect.stringContaining('this.dataSourceMap'),
     });
+    expect(parsed.summary.core_workflows.full_app_build.page_skill_policy)
+      .toContain('existing .oyd.jsx/.oyb.jsx/renderJsx/platform Jsx component maintenance');
+    expect(parsed.summary.core_workflows.full_app_build.page_skill_policy)
+      .not.toContain('page strongly depends on this.$');
+    expect(parsed.summary.core_workflows.full_app_build.page_skill_policy)
+      .not.toContain('deep field two-way binding');
     expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('prd.md + design.md');
     expect(parsed.summary.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
     expect(parsed.summary.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
@@ -1438,6 +1444,12 @@ describe('CLI offline smoke', () => {
       ]),
       default_data_contract: expect.stringContaining('this.dataSourceMap'),
     });
+    expect(parsed.commands.core_workflows.full_app_build.page_skill_policy)
+      .toContain('existing .oyd.jsx/.oyb.jsx/renderJsx/platform Jsx component maintenance');
+    expect(parsed.commands.core_workflows.full_app_build.page_skill_policy)
+      .not.toContain('page strongly depends on this.$');
+    expect(parsed.commands.core_workflows.full_app_build.page_skill_policy)
+      .not.toContain('deep field two-way binding');
     expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('prd.md + design.md');
     expect(parsed.commands.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
     expect(parsed.commands.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');

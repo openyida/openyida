@@ -294,7 +294,7 @@ describe('buildSchemaSummary', () => {
     expect(summary).not.toHaveProperty('displayPage');
   });
 
-  test('adds Code Canvas display page signals without exposing schema content', () => {
+  test('adds YidaCodeCanvas display page signals without exposing schema content', () => {
     const sourceCode = 'export default function Page() { return React.createElement("div", null, "ok"); }';
     const runtimeCode = 'var YidaComp = function Page(){ return window.React.createElement("div", null, "ok"); };';
     const summary = buildSchemaSummary('APP_XXX', 'FORM-CANVAS', {

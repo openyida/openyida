@@ -271,9 +271,9 @@ openyida copy
 
 完整应用创建/解析多个表单后，页面阶段需要字段映射时，对每个目标表单默认只执行一次 \`openyida get-schema <appType> <formUuid> --field-map-json\`，读取完整 JSON 并写入/复用 \`.cache/<项目名>-schema.json\`；不要用 \`head\` / \`tail\` / \`grep\` 截断 schema stdout 后重复拉取。
 
-Canvas 页面实现统一直接写最终 \`.canvas.jsx\`：先读 PRD 的页面场景、业务区块、数据来源和主操作，再读 design.md 的主题、布局、材质、组件和状态规则，然后用 \`openyida check-page\` / \`openyida compile\` / \`openyida publish\` 验证发布。
+使用 \`YidaCodeCanvas\` 组件实现的自定义页面统一直接写最终 \`.canvas.jsx\`：先读 PRD 的页面场景、业务区块、数据来源和主操作，再读 design.md 的主题、布局、材质、组件和状态规则，然后用 \`compileCanvasLocal\` 快检或 \`openyida publish\` 的编译阶段验证发布。\`openyida check-page\` / \`openyida compile\` 只用于历史平台 JSX 组件页面维护。
 
-完整应用需求分析和产品设计由 \`yida-design\` 承担，并输出两份文件：\`prd/<项目名>/prd.md\` 写业务目标、数据结构、页面与功能、资源顺序、导航顺序和验收标准；\`prd/<项目名>/design.md\` 写主题色、themeProfile、tokens、视觉系统、组件和状态规则。页面实现先读 PRD 的页面场景、页面区块、数据来源、主操作和表单入口，再读 design.md 的主题、布局、材质、组件和状态规则，然后交给 \`yida-canvas-custom-page\` 或 \`yida-custom-page\` 落地。
+完整应用需求分析和产品设计由 \`yida-design\` 承担，并输出两份文件：\`prd/<项目名>/prd.md\` 写业务目标、数据结构、页面与功能、资源顺序、导航顺序和验收标准；\`prd/<项目名>/design.md\` 写主题色、themeProfile、tokens、视觉系统、组件和状态规则。页面实现先读 PRD 的页面场景、页面区块、数据来源、主操作和表单入口，再读 design.md 的主题、布局、材质、组件和状态规则，然后交给 \`yida-canvas-custom-page\` 落地。只有已识别为历史平台 JSX 组件页面维护时，才由 \`yida-custom-page\` 自身闭环处理。
 
 默认只加载当前阶段必需技能；示例数据、精细导航分组、截图验收、公开访问、数据源深接、数据管理和原生报表只在用户明确要求或 PRD 验收标准命中时执行。发布后的轻量导航排序是统一编排默认收尾，不等于精细导航分组。
 
@@ -288,7 +288,7 @@ Canvas 页面实现统一直接写最终 \`.canvas.jsx\`：先读 PRD 的页面�
 | \`yida-skills/design\` | 完整应用产品设计、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、PRD 和 design.md | \`yida-design\` |
 | \`yida-skills/form\` | 表单字段、公式、校验、业务规则、详情页、批量录入、数据记录 | \`yida-create-form-page\`, \`yida-formula\`, \`yida-formula-evaluate\`, \`yida-business-rule\`, \`yida-form-detail\`, \`yida-canvas-table-form\`, \`yida-table-form\`, \`yida-data-management\` |
 | \`yida-skills/process\` | 审批、流程表单、流程规则、代理人 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\` |
-| \`yida-skills/page\` | 自定义展示页、Code Canvas、普通自定义页面 JSX/Jsx 组件、发布、导航壳、PPT | \`yida-create-page\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\` |
+| \`yida-skills/page\` | 自定义展示页、YidaCodeCanvas 组件、历史平台 JSX 组件页面维护、发布、导航壳、PPT | \`yida-create-page\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\` |
 | \`yida-skills/analytics\` | 报表、统计、图表、Recharts、ECharts、看板、驾驶舱 | \`yida-report\`, \`yida-rechart\`, \`yida-chart\`, \`yida-dashboard\` |
 | \`yida-skills/integration\` | 连接器、外部 API、数据源、集成自动化 | \`yida-integration\`, \`yida-connector\`, \`yida-connector-safe-actions\`, \`yida-data-source-connectors\` |
 | \`yida-skills/access\` | 平台/应用/表单/页面权限、公开访问、分享 | \`yida-corp-manager\`, \`yida-app-permission\`, \`yida-form-permission\`, \`yida-page-config\` |
@@ -299,7 +299,7 @@ Canvas 页面实现统一直接写最终 \`.canvas.jsx\`：先读 PRD 的页面�
 
 - 不要编造 \`appType\`、\`formUuid\`、\`fieldId\`、\`reportId\`；必须从命令输出、缓存或 schema 中读取。
 - 同一命令失败后，根据错误信息检查登录态、组织、参数和字段 ID；不要无修改地连续重试。
-- 普通自定义页面 \`.oyd.jsx\` / \`.jsx\` 发布前先运行 \`openyida check-page\` 和 \`openyida compile\`；Code Canvas \`.canvas.jsx\` 页面不跑这两个普通自定义页面检查，使用 \`openyida publish\` 的 Canvas 编译阶段或 \`compileCanvasLocal\` 快检。
+- 历史平台 JSX 组件页面 \`.oyd.jsx\` / \`.jsx\` 发布前先运行 \`openyida check-page\` 和 \`openyida compile\`；使用 \`YidaCodeCanvas\` 组件实现的 \`.canvas.jsx\` 页面不跑这两个普通自定义页面检查，使用 \`openyida publish\` 的编译阶段或 \`compileCanvasLocal\` 快检。
 - JSON 配置写入文件后先解析校验，再调用会修改平台资源的命令。
 - 新增用户可见文案或 CLI 行为时，遵循当前 OpenYida 仓库的 \`AGENTS.md\` 开发规范。
 `;

@@ -1,9 +1,9 @@
 ---
 name: yida-canvas-table-form
-description: Code Canvas + antd 默认批量录入技能。使用 Table、Input、Select、DatePicker、React hooks 实现草稿、行级校验、分批并发提交和行级错误保留。Canvas 内不能直接调用 this.utils.yida.*；写入默认消费发布层注入的 window.__OPENYIDA_YIDA_API__，也可走已验证连接器或同源业务桥，未验证时不得声称提交闭环。
+description: 自定义页面表格批量录入技能。使用 `YidaCodeCanvas` 组件和 antd Table、Input、Select、DatePicker、React hooks 实现草稿、行级校验、分批并发提交和行级错误保留。`YidaCodeCanvas` 组件内不能直接调用 this.utils.yida.*；写入默认消费发布层注入的 window.__OPENYIDA_YIDA_API__，也可走已验证连接器或同源业务桥，未验证时不得声称提交闭环。
 ---
 
-# 宜搭 Code Canvas 表格批量录入
+# 自定义页面表格批量录入
 
 ## 核心定位
 
@@ -15,28 +15,28 @@ description: Code Canvas + antd 默认批量录入技能。使用 Table、Input�
 - 分批并发写入，每行独立记录成功或失败。
 - 写入能力由显式、已验证的数据桥提供。
 
-旧 `yida-table-form` 保留给普通自定义页面：仅当用户明确指定 native/旧页面，或要求使用 `this.utils.yida.saveFormData` 时使用。
+`yida-table-form` 保留给已检测到的平台 JSX 组件页面或 native 页面：仅当目标页面已确认依赖平台实例桥，或存量源码已确认使用 `this.utils.yida.saveFormData` 时使用。
 
 ## 路由边界
 
 | 用户意图 | 选择 |
 | --- | --- |
 | 默认批量录入、表格填写、多行编辑 | `yida-canvas-table-form` |
-| Code Canvas + antd Table | `yida-canvas-table-form` |
-| 明确普通自定义页面/native/旧页面 | `yida-table-form` |
+| YidaCodeCanvas 组件 + antd Table | `yida-canvas-table-form` |
+| 已检测到平台 JSX 组件页面/native 页面 | `yida-table-form` |
 | 明确要求 `this.utils.yida.saveFormData` | `yida-table-form` |
 | 只需 CLI 批量写入数据，不开发页面 | `yida-data-management` |
 | 需要创建或调整表单字段 | `yida-create-form-page` |
 
 ## 致命规则（FATAL）
 
-1. **Canvas 组件内没有普通页面实例桥**：禁止在 `YidaComp` 源码中直接调用 `this.utils.yida.*`、`this.$(...)` 或 `this.dataSourceMap`；需要宜搭表单写入时消费发布层注入的 `window.__OPENYIDA_YIDA_API__`。
+1. **YidaCodeCanvas 组件内没有平台 JSX 组件实例桥**：禁止在 `YidaComp` 源码中直接调用 `this.utils.yida.*`、`this.$(...)` 或 `this.dataSourceMap`；需要宜搭表单写入时消费发布层注入的 `window.__OPENYIDA_YIDA_API__`。
 2. **写入桥必须先验证**：默认使用 `window.__OPENYIDA_YIDA_API__.saveFormData/updateFormData`，也可使用已验证连接器代理或同源业务桥。必须确认目标 `appType/formUuid`、请求体、返回体和错误码。
 3. **未验证不得伪装闭环**：桥未配置或未验证时，提交按钮禁用或进入清晰的“待接入”状态；不得模拟成功、生成假 `formInstId` 或宣称数据已写入宜搭。
 4. **提交前先验证并确认**：先完成行级校验，再向用户展示待提交行数和关键字段摘要，获得确认后发起写入。
 5. **分批并发而非无限并发**：按固定批次切分，批次内使用 `Promise.all` 并发，批次间顺序推进；不得逐行串行，也不得一次性无限并发。
 6. **失败行必须保留**：每行保存 `_status`、`_errors` 和 `_submitError`；部分失败后只重试失败行，成功行不能重复提交。
-7. **真实交付要发布证据**：创建或修改 Canvas 页面源码后，只有 `openyida publish <source> <appType> <displayPageFormUuid>` 成功才能声明页面已发布。
+7. **真实交付要发布证据**：创建或修改 `.canvas.jsx` / `.canvas.tsx` 页面源码后，只有 `openyida publish <source> <appType> <displayPageFormUuid>` 成功才能声明页面已发布。
 
 ## 数据桥契约
 
@@ -62,7 +62,7 @@ const writeBridge = {
 - 写入返回值能确定该行成功，失败会抛出带可展示信息的错误。
 - 重试策略有幂等键，或后端能防止重复记录。
 
-不要把 access token、密钥或连接器凭据写入 Canvas 源码。它们应保留在宜搭同源会话、连接器或后端服务侧。
+不要把 access token、密钥或连接器凭据写入页面源码。它们应保留在宜搭同源会话、连接器或后端服务侧。
 
 ## 行状态
 
@@ -117,12 +117,12 @@ async function submitInBatches(rows, writeBridge, batchSize) {
 # 1. 取得真实字段 ID
 openyida get-schema <appType> <formUuid> --field-map-json
 
-# 2. 编写 Canvas 表格表单页面
+# 2. 编写表格批量录入页面
 
 # 3. 接入并验证 window.__OPENYIDA_YIDA_API__ / 连接器 / 数据桥
 # 未验证前保持 writeBridge.verified !== true
 
-# 4. 本地 Canvas 快检
+# 4. 本地快检
 node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/table-form-batch-submit.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
 
 # 5. 真实交付时发布

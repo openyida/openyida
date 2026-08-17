@@ -185,16 +185,14 @@ Form definitions support 19 business field types plus verified presentation/layo
 
 ```bash
 openyida create-page APP_XXX "Dashboard" --mode dashboard
-openyida check-page pages/src/home.canvas.jsx --json
-openyida compile pages/src/home.canvas.jsx
 openyida publish pages/src/home.canvas.jsx APP_XXX FORM_XXX
 ```
 
-Custom page source is authored directly from PRD and design guidance. Code Canvas is the default output (`.canvas.jsx`); use `.oyd.jsx` only when the page must use the 普通自定义页面 JSX/Jsx 组件链路.
+Custom page source is authored directly from PRD and design guidance. Custom page development uses `yida-canvas-custom-page` and `.canvas.jsx`.
 
-For member, department, attachment, and image upload components, choose the page chain first. Code Canvas pages should follow `yida-canvas-custom-page/references/native-components-bridge.md` for feature detection, fallback, and value normalization. 普通自定义页面 JSX/Jsx pages should use `.oyd.jsx`, read `yida-custom-page/references/component-jsx-guide.md`, and read `attachment-upload-guide.md` when upload fields are involved.
+For member, department, attachment, and image upload components, `.canvas.jsx` pages should follow `yida-canvas-custom-page/references/native-components-bridge.md` for feature detection, fallback, and value normalization.
 
-For the current AI custom page native-component support matrix, see [Yida native components supported by AI custom pages](https://demo.aliwork.com/o/openyida/sample/canvas-native-components).
+For the current custom page native-component support matrix, see [Yida native components supported by custom pages](https://demo.aliwork.com/o/openyida/sample/canvas-native-components).
 
 ### Workflow, Data, and Permissions
 

@@ -14,7 +14,7 @@ description: 表单页面创建与更新，默认加载 yida-form-detail 作为�
 - 已有目标 `formUuid`、表单 URL、bound form，或 workspace cache/config 中可确认的表单时，字段结构诉求默认走 update/patch/rule/bind-datasource 模式；不要再 create 同名或同类表单。
 - bound form/page 只是默认候选，不是锁定目标；如果当前会话绑定表单或页面 A，但用户本轮明确要求修改 B 的字段，必须先解析 B 对应的表单 `formUuid`。B 能唯一解析时改 B；B 无法唯一解析或字段归属不清时问用户；禁止默认改 A。
 - 已有目标 app 但缺少业务数据表，且用户明确要求“增加客户表 / 新建订单表 / 新增数据收集入口”等，才使用 create 模式创建新表单。
-- 用户给页面 URL 或自定义页面 `formUuid` 且诉求是优化页面 UI 时，改走 `yida-custom-page` + `yida-publish-page`；不要创建表单。
+- 用户给页面 URL 或自定义页面 `formUuid` 且诉求是优化页面 UI 时，改走页面源码开发和 `yida-publish-page`；不要创建表单。
 - 多个表单候选时按根技能来源优先级选择；同级冲突、字段目标不明或无法判断要改哪张表时才问用户。
 
 ## 严格禁止 (NEVER DO)

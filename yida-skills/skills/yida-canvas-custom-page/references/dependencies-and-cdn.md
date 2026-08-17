@@ -1,6 +1,6 @@
-# Code Canvas 可用资源
+# 自定义页面可用资源
 
-Code Canvas 页面只从下表资源 import。编译阶段会把这些资源写入 `importedModules`，运行时由 `YidaCodeCanvas` 按资源表加载。
+使用 `YidaCodeCanvas` 组件实现的页面只从下表资源 import。编译阶段会把这些资源写入 `importedModules`，运行时由 `YidaCodeCanvas` 组件按资源表加载。
 
 ## 可用前端资源
 
@@ -22,7 +22,7 @@ Code Canvas 页面只从下表资源 import。编译阶段会把这些资源写�
 
 ## 资源使用约定
 
-- 页面源码只从上表资源 import；第三方资源加载交给 Code Canvas runtime。
+- 页面源码只从上表资源 import；第三方资源加载交给 YidaCodeCanvas runtime。
 - React、antd、Ant Design Icons、Recharts、ahooks、d3、dayjs、Radix、lucide-react、framer-motion 等包依赖必须写标准 import，例如 `import { ConfigProvider, Button } from 'antd'`、`import { Search, Plus } from 'lucide-react'`。不要在源码里写 `const { Drawer } = antd`、`const { Search } = lucideReact`、`const { ConfigProvider } = window.antd`、`const React = window.React` 或 `window.icons`；这类写法不会正确进入 `importedModules`，运行时会出现 `antd is not defined`、`lucideReact is not defined` 或依赖资源未加载。
 - 平台运行态组件和平台能力通过 `window.Deep`、`window.DeepYida`、`window.YidaNativeComponents` 等页面对象探测。
 - 真实表单数据绑定使用页面内本地 `useYidaData(binding)`、`DataBridge` 与同源 `fetch` 实现。

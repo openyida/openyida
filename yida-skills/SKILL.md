@@ -71,7 +71,7 @@ description: >
 | `yida-skills/design` | 完整应用产品设计、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、PRD 和 design.md | `yida-design` |
 | `yida-skills/form` | 表单字段、公式、校验、业务关联规则、详情页、批量录入、数据记录 | `yida-create-form-page`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-form-detail`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-agent-center` |
-| `yida-skills/page` | 自定义展示页、Code Canvas、普通自定义页面 JSX/Jsx 组件、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
+| `yida-skills/page` | 自定义展示页、页面源码开发、平台 JSX 组件页面维护、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
 | `yida-skills/analytics` | 报表、统计、图表、Recharts、ECharts、看板、驾驶舱、大屏 | `yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard` |
 | `yida-skills/integration` | 连接器、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-integration`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
 | `yida-skills/access` | 平台/应用/表单/页面权限、公开访问、分享 | `yida-corp-manager`、`yida-app-permission`、`yida-form-permission`、`yida-page-config` |
@@ -90,7 +90,7 @@ description: >
 | 已有会议纪要/闪记内容转 PRD | `yida-flash-note-to-prd`，只处理已有内容，不负责按 taskUuid 拉取听记 |
 | 只创建应用壳并拿 appType | `yida-create-app`；创建成功后把真实 `appType` 交给 `yida-design` 生成或更新 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md`，后续表单、流程、页面和发布都消费这两份文件 |
 | 启用/上线或停用/下线已有应用 | `yida-app-lifecycle`；只有用户明确要求时执行，`app-offline` 执行前需再次确认目标应用 |
-| 创建自定义展示页资源 | `yida-create-page`，之后默认接 `yida-canvas-custom-page` 和 `yida-publish-page` |
+| 创建自定义展示页资源 | `yida-create-page`，之后交给 `yida-canvas-custom-page` 编写页面源码，再交给 `yida-publish-page` 发布 |
 | 开发表单字段结构 / 增删改字段 | 先加载 `yida-form-detail` 做表单视觉引导并合并 Divider 分割线，再用 `yida-create-form-page` 落地字段结构 |
 | 创建带审批的流程表单 | `yida-create-process` |
 | 修改已有流程节点/分支/字段权限 | `yida-process-rule` |
@@ -98,17 +98,16 @@ description: >
 | 改表单数据记录 | `yida-data-management`，不是 `yida-create-form-page` |
 | 配字段默认值、计算、校验 | `yida-formula`；静态检查用 `yida-formula-evaluate` |
 | 提交后跨表写入/更新/删除 | 默认 `yida-integration`；用户明确要业务关联规则/高级函数时用 `yida-business-rule` |
-| 自定义页面默认开发链路 | `yida-canvas-custom-page` |
-| 普通自定义页面 JSX/Jsx 组件使用成员/部门/附件上传/图片上传 | `yida-custom-page`，必须读取 `component-jsx-guide.md`；上传还必须读取 `attachment-upload-guide.md` |
-| Code Canvas 页面使用成员/部门/上传等宜搭运行态组件 | `yida-canvas-custom-page`，读取 `native-components-bridge.md` |
-| 普通自定义页面 JSX/Jsx 组件链路，或强依赖 `this.$` / `this.utils.yida.*` / `this.dataSourceMap` | `yida-custom-page` |
-| Code Canvas 接真实数据 | `yida-canvas-data-binding` |
-| 已有 `.oyd.jsx` / `renderJsx` 迁到 Canvas | `yida-canvas-upgrade` |
-| 高级图表、可视化、看板图表 | 默认 `yida-rechart`（Code Canvas + Recharts） |
+| 自定义页面开发 | `yida-canvas-custom-page`，新建和默认页面源码开发入口，源码使用 `.canvas.jsx` |
+| JSX 自定义页面开发 | `yida-custom-page`，仅用于已检测到的 `.oyd.jsx` / `.oyb.jsx` / `renderJsx` / 平台 `Jsx` 组件页面维护 |
+| `.canvas.jsx` 页面使用成员/部门/上传等宜搭运行态组件 | `yida-canvas-custom-page`，读取 `native-components-bridge.md` |
+| `.canvas.jsx` 页面接真实数据 | `yida-canvas-data-binding` |
+| 已有 `.oyd.jsx` / `renderJsx` 迁到 `YidaCodeCanvas` 组件实现 | `yida-canvas-upgrade` |
+| 高级图表、可视化、看板图表 | 默认 `yida-rechart` |
 | 明确 ECharts、维护旧 ECharts 页面、复杂 option 超出 Recharts 能力 | `yida-chart` |
 | 产品化经营看板/驾驶舱交付 | `yida-dashboard` |
-| 批量录入、表格填写、多行编辑 | 默认 `yida-canvas-table-form`；明确普通自定义页面/native/旧页面或 `this.utils.yida.saveFormData` 时用 `yida-table-form` |
-| 页面视觉方向、页面美化、去 AI 味 | `yida-design` 产出 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md`，或单页 PRD 章节 + design spec；落地实现仍回到 `yida-canvas-custom-page` 或 `yida-custom-page` |
+| 批量录入、表格填写、多行编辑 | 默认 `yida-canvas-table-form`；已检测到平台 JSX 组件页面、native 页面或存量源码使用 `this.utils.yida.saveFormData` 时用 `yida-table-form` |
+| 页面视觉方向、页面美化、去 AI 味 | `yida-design` 产出 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md`，或单页 PRD 章节 + design spec；实现阶段默认交给 `yida-canvas-custom-page` |
 | 应用级主题、品牌色、全局换肤 | `yida-design` |
 | 平台左侧导航树分组/排序 | `yida-nav-group` |
 | 页面隐藏原导航后自绘导航壳 | `yida-nav-shell` |
@@ -128,8 +127,8 @@ description: >
 3. **真实资源先确认**：写操作前解析本轮显式资源、已绑定资源上下文、workspace 配置/缓存和历史上下文；已有目标资源时默认修改、补齐或发布，只有目标缺失且意图允许创建时才加载 create 类技能。
 4. **corpId 一致性检查**：创建或发布页面前对比 PRD/resource context 与当前 auth snapshot 的 `corpId`；不一致时先让用户选择重新登录或确认继续。
 5. **页面源码修改必须发布闭环**：只要本轮 Write/Edit/Create 了页面源码 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}`，final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`；没有证据只能说“源码已修改，尚未发布”，禁止说“页面已更新 / 已重新发布 / 已上线”。
-6. **发布前本地校验**：普通自定义页面发布前跑 `openyida check-page` + `openyida compile`；Code Canvas 页面由 `openyida publish` 的 Canvas 编译阶段或 `compileCanvasLocal` 快检校验；JSON 配置写盘后先解析校验，再调用平台命令。
-7. **生成产物严禁 emoji**：页面源码、Canvas 源码、表单 Schema、发布 Schema、产物文件名和路径中严禁使用 emoji；图标语义使用平台组件、图标库或已验证资源表达。
+6. **发布前本地校验**：平台 JSX 组件页面的 `check-page` / `compile` 归 `yida-custom-page` 执行；使用 `YidaCodeCanvas` 组件实现的自定义页面按本地快检或发布阶段校验；JSON 配置写盘后先解析校验，再调用平台命令。
+7. **生成产物严禁 emoji**：页面源码、`.canvas.jsx` 源码、表单 Schema、发布 Schema、产物文件名和路径中严禁使用 emoji；图标语义使用平台组件、图标库或已验证资源表达。
 8. **输入文件用结构化写入**：JSON/YAML/CSV/config/script 文件使用当前 agent 的文件写入能力创建，再把路径传给命令；严禁用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成业务文件。
 9. **OpenYida CLI 不吞诊断**：不要给 `openyida` 命令加 `2>/dev/null`；失败时保留 stdout/stderr；遇到 DENIED 或同一命令重复失败，先换策略、改输入或重做环境确认。
 10. **读取与复核用合适工具**：读取或定位 workspace 文件优先用当前工具的 Read / Glob / Grep 或 `rg`；OpenYida CLI 已返回成功 JSON、URL、`appType`、`formUuid` 或 `fieldId` 时，以 CLI 结果作为证据。

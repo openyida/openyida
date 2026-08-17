@@ -132,6 +132,6 @@
 | 组件规则 | 卡片、表格、按钮、筛选、抽屉、标签 |
 | 状态规则 | 空态、加载、错误、无权限、禁用、选中 |
 | visualScaffold | 实现阶段先按槽位填业务内容，再写样式；任何页面实现不得跳过 |
-| rounded / spacing / densityRule / breathingRule | Code Canvas 的 CSS、antd token、列表行高、面板内距、卡片 gap、空态高度和首屏分组节奏；实现阶段必须保持卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px |
+| rounded / spacing / densityRule / breathingRule | 使用 `YidaCodeCanvas` 组件实现页面时的 CSS、antd token、列表行高、面板内距、卡片 gap、空态高度和首屏分组节奏；实现阶段必须保持卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px |
 
 业务文案、字段、表单入口、流程处理、详情链接和导航顺序都从 PRD 读取；当前项目 `design.md` 提供所有页面必须遵守的视觉 DNA、布局、组件样式、主题 token 和状态规则。

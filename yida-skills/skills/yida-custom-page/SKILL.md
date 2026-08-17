@@ -1,11 +1,9 @@
 ---
 name: yida-custom-page
-description: 宜搭普通自定义页面 JSX / Jsx 组件开发规范（React 16 宜搭原生 export function renderJsx 模式、宜搭 JS API、状态管理与编码约束）。当用户明确要求 JSX/Jsx 组件链路、普通自定义页面，或页面强依赖 this.$(fieldId)、this.utils.yida.*、dataSourceMap、表单提交/字段双向绑定深度耦合时使用。
+description: JSX 自定义页面开发规范（React 16 平台 Jsx 组件、export function renderJsx 模式、宜搭 JS API、状态管理与编码约束）。用于 .oyd.jsx / .oyb.jsx / renderJsx / 平台 Jsx 组件页面维护。
 ---
 
-# 自定义页面开发
-
-> **先确认链路**：普通自定义页面 JSX/Jsx 组件链路走本技能，发布后落到平台 `Jsx` 组件；Code Canvas 链路走 `yida-canvas-custom-page`，发布后落到 `YidaCodeCanvas` 组件。两者是并列页面实现链路，不要把本技能描述成 Code Canvas 的备用链路。已有普通自定义页面升级到 Code Canvas 时才走 `yida-canvas-upgrade`。
+# JSX 自定义页面开发
 
 ## Resource-First 页面开发
 
@@ -44,7 +42,7 @@ description: 宜搭普通自定义页面 JSX / Jsx 组件开发规范（React 16
 
 影响代码质量和用户体验：
 
-0. **视觉方向先于编码**：单点页面美化、页面重构、用户明确要求好看/去 AI 味，或完整应用进入页面实现阶段时，调用 `use_skill("yida-design", "确定自定义页面视觉方向")` 完成产品设计或 UI 设计。默认产出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`，或单页 PRD 章节 + design spec；PRD 包含页面场景、页面区块、`functionContract`、素材策略、原生表单入口和业务化自检，design.md 包含 `themeProfile`、tokens、视觉 DNA、`visualScaffold`、圆角、密度、组件和状态规则。页面重构默认以当前应用主题色为基准，并保持现有数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限和业务状态，独立品牌/活动页或用户明确要求完全不同风格时使用页面级独立主题。普通 JSX 需要自定义主题 token 时，复制 `yida-canvas-custom-page/references/theme-runtime-helpers.md` 的 Ordinary JSX helper，向当前文档、同源可访问父级窗口和 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 注入 `style#yida-global-theme`。
+0. **视觉方向先于编码**：单点页面美化、页面重构、用户明确要求好看/去 AI 味，或完整应用进入页面实现阶段时，调用 `use_skill("yida-design", "确定自定义页面视觉方向")` 完成产品设计或 UI 设计。默认产出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`，或单页 PRD 章节 + design spec；PRD 包含页面场景、页面区块、`functionContract`、素材策略、原生表单入口和业务化自检，design.md 包含 `themeProfile`、tokens、视觉 DNA、`visualScaffold`、圆角、密度、组件和状态规则。页面重构默认以当前应用主题色为基准，并保持现有数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限和业务状态，独立品牌/活动页或用户明确要求完全不同风格时使用页面级独立主题。平台 JSX 组件页面需要自定义主题 token 时，复制 `yida-canvas-custom-page/references/theme-runtime-helpers.md` 的 Ordinary JSX helper，向当前文档、同源可访问父级窗口和 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 注入 `style#yida-global-theme`。
 1. **代码生成前确认功能摘要**：详见 [编码指南 编注 0](references/coding-guide.md)
 2. **pageSize 推荐 50，最大 100**：列表/看板默认 `pageSize: 50`；分页接口 `searchFormDatas` 等的 `pageSize` 最大 100
 3. **didUnmount 清理定时器**：在 `didUnmount` 中清理所有 `setInterval`/`setTimeout`，防止内存泄漏
@@ -57,14 +55,37 @@ description: 宜搭普通自定义页面 JSX / Jsx 组件开发规范（React 16
 10. **Tabs 显隐控制**：下拉值变更后自动回退到第一个可见 Tab，内容区用 `display: none` 保留 DOM
 11. **加载态必须可恢复**：列表/看板页默认保留空态或演示数据；接口失败、超时或返回异常时必须把 `loading` 置回 `false`，不要只渲染“正在加载...”挡住整页
 12. **禁止可见原生下拉**：筛选、预约、审批等用户可见下拉交互不要使用 `<select>`；普通自定义页也不要把表单设计器里的 `SelectField` 当 React 筛选组件直接渲染。默认使用 Tailwind className 组合 `button + menu + option` 的自定义下拉组件，并带 `.oyd-select-arrow` 下箭头、`.oyd-select-check` 选中标记和页面级 focus reset；light 模式下选中项整块背景必须用 `--oyd-control-selected-bg` 这类低透明度浅色 token，不要直接用 `--color-brand1-1`
-13. **严禁 emoji**：普通 JSX 是非 Code Canvas 的自定义页面，发布后落到平台 `Jsx` 组件，源码禁止 `import/require`。页面渲染出来的任何位置（标题、按钮、标签、状态、空态文案、图表标题等）**一律禁止出现 emoji**（😀🚀✅⚠️📦📊 等一切彩色符号字符）。需要图标时仍遵守 `skills/yida-design` 的 `iconSystem`：图标来源只允许 `lucide-react` 或 `@ant-design/icons`，默认 `lucide-react`；普通 JSX 只能通过已验证运行时脚本/global 方式加载这两类图标库，不能写 import。若当前普通 JSX 链路无法稳定加载图标库，必须切到 Code Canvas 或去掉非必要图标。不得把 emoji 改成 CSS 图形、字母占位、Unicode 符号、iconfont、装饰性临时 SVG 或其他图标库。emoji 是最明显的 AI 味来源之一，且跨端显示不一致。JS 注释、文件路径、数据常量和示例数组里也不要留装饰性符号；`check-page` / `compile` / `publish` 报 emoji 错误时必须改成规定的图标库实现或切换到 Code Canvas，不能用 `--skip-lint` 绕过。
+13. **严禁 emoji**：平台 JSX 组件页面发布后落到平台 `Jsx` 组件，源码禁止 `import/require`。页面渲染出来的任何位置（标题、按钮、标签、状态、空态文案、图表标题等）**一律禁止出现 emoji**（😀🚀✅⚠️📦📊 等一切彩色符号字符）。需要图标时仍遵守 `skills/yida-design` 的 `iconSystem`：图标来源只允许 `lucide-react` 或 `@ant-design/icons`，默认 `lucide-react`；平台 JSX 组件只能通过已验证运行时脚本/global 方式加载这两类图标库，不能写 import。若当前平台 JSX 组件运行环境无法稳定加载图标库，必须去掉非必要图标或使用已验证资源。不得把 emoji 改成 CSS 图形、字母占位、Unicode 符号、iconfont、装饰性临时 SVG 或其他图标库。emoji 是最明显的 AI 味来源之一，且跨端显示不一致。JS 注释、文件路径、数据常量和示例数组里也不要留装饰性符号；`check-page` / `compile` / `publish` 报 emoji 错误时必须改成规定的图标库实现，不能用 `--skip-lint` 绕过。
 14. **light 页面使用清爽业务配色**：普通业务列表、协同表、录入表、工作台和门户默认使用浅底、清晰分割和应用品牌色；主操作、选中态、筛选焦点和批量操作使用平台品牌色或当前页面确认的品牌色，边框用浅色品牌混合。用户明确要求暗色/高对比时使用深色主视觉。
 15. **发布前必须跑检查链路**：先执行 `openyida check-page <file>` 和 `openyida compile <file>`；若出现 warning/error，按规则修复后再发布
 16. **源码修改发布闭环**：只要本轮 Write/Edit/Create 了 `project/pages/src/*.{oyd.jsx,jsx,tsx}` 普通自定义页面源码，`check-page` / `compile` 只证明源码可发布，不等于远端页面已更新；final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`。没有 publish 成功证据时，只能说“源码已修改，尚未发布”，不能说“页面已更新 / 已重新发布”。
 
 > 每条规则的代码示例、反模式和常见错误见 [编码指南](references/coding-guide.md)；完整应用统一编排默认先遵守 `yida-design` 的 `prd.md`、`design.md` 和本技能正文，不预读长 reference，只有 check-page 报错、复杂交互或正文覆盖不了的问题时才读取。
 > 运行时易错点、`check-page` 规则和兼容层自动修复边界见 [运行时护栏](references/runtime-guardrails.md)，按需读取。
-> 表单类 JSX 控件、筛选栏、表格、成员/附件等组件写法见 [组件指南](references/component-jsx-guide.md)，涉及这些复杂组件时读取；未验证的平台组件能力不得编造。
+> 表单类 JSX 控件、筛选栏、表格等组件写法见 [组件指南](references/component-jsx-guide.md)，涉及这些复杂组件时读取；未验证的平台组件能力不得编造。
+
+## 平台 JSX 组件编译与检查
+
+本技能负责平台 JSX 组件页面发布前的本地检查、兼容构建和编译校验。只要本轮维护的是 `.oyd.jsx`、`.oyb.jsx`、已有 `renderJsx` 源码或平台 `Jsx` 组件页面，发布前先执行：
+
+```bash
+openyida check-page project/pages/src/employee-query.oyd.jsx --json
+openyida compile project/pages/src/employee-query.oyd.jsx
+```
+
+路径口径同本技能 Resource-First 规则：从仓库根执行时用 `project/pages/src/...`；如果 cwd 已经是 `<workspace>/project`，改用 `pages/src/...`。
+
+兼容构建规则：
+
+1. `.oyd.jsx` / `.openyida.jsx` 或显式 `--compat`：先运行 OpenYida compatibility compiler。
+2. 普通 `.jsx` 源码没有 `export function renderJsx()` 但存在 `export default function Page()`：自动尝试有限 authoring 降级，不要求 Agent 手动补 `--compat`。
+3. 源码已有 `export function renderJsx()`：视为宜搭原生源码，机械修复事件绑定、数组回调，并补齐缺失的基础运行时导出。
+4. 源码是 `export default function Page()`：支持有限 authoring 模式，当前可降级 `useState` 和 `useEffect(..., [])`；`useEffect` 内引用组件局部 helper/state 会被阻塞，避免发布后 `didMount` 运行时报 `undefined`。
+5. 兼容构建会自动补齐 `renderJsx` return 分支中的隐藏 timestamp 节点，并将直接事件绑定 / `.bind(this)` 机械改成箭头函数包裹。
+6. `check-page` 会硬拦截生命周期大小写错误、小写 `onclick`、渲染时执行事件函数、箭头函数只引用不调用方法、可见 `<button>` 没有事件等按钮不可点击问题。
+7. 对构建后的 `.yida.jsx` 执行 `check-page` 规则、Babel 转 ES5、UglifyJS 压缩，再构建 Schema 发布。
+
+这一步是脚本级确定性处理，优先让 lint/fix/build 解决语法和运行时兼容问题，不应把简单机械修改交给 AI 反复重写。`check-page` / `compile` 只证明源码可发布，不等于远端页面已更新；远端完成证据仍然必须来自成功的 `openyida publish <source> <appType> <displayPageFormUuid>`。
 
 ## 页面结构范式
 
@@ -81,7 +102,7 @@ description: 宜搭普通自定义页面 JSX / Jsx 组件开发规范（React 16
 如果用户的需求实际是字段公式、字段联动、原生报表、审批规则或集成自动化，先切换到对应技能；自定义页面只在需要跨数据展示、工具页交互、可视化看板或连接器调用界面时承担前端层。
 
 ## 适用场景
-自定义展示页面、JSX 页面、跨数据展示、复杂交互
+`.oyd.jsx` / `.oyb.jsx` 页面、`renderJsx` 页面、平台 `Jsx` 组件维护、跨数据展示维护、复杂交互维护。
 
 ## 快速开始
 
@@ -103,8 +124,8 @@ openyida get-schema APP_XXX FORM-EMPLOYEE
 # 只有没有目标页面且允许新增时才执行：
 openyida create-page APP_XXX "员工信息查询"
 
-# Step 3：编写普通自定义页面 JSX 代码
-# 在 project/pages/src/employee-query.oyd.jsx 中编写；Code Canvas 页面使用 yida-canvas-custom-page / .canvas.jsx
+# Step 3：维护 JSX 自定义页面代码
+# 在 project/pages/src/employee-query.oyd.jsx 中编写
 
 # Step 4：本地规范检查 + 编译校验（不发布）
 openyida check-page project/pages/src/employee-query.oyd.jsx
@@ -163,7 +184,7 @@ export function loadVisitorList() {
 ## 开发规范
 
 > 完整应用统一编排默认不读取长 reference，直接遵守 `yida-design` 的 `prd.md`、`design.md`、本技能正文的核心规则和页面结构。只有 check-page 报错、复杂交互/复杂组件或正文覆盖不了的运行时问题，才读取下方 Available Files。
-> 涉及输入控件、日期、选择、成员/部门、附件、表格或筛选栏时，读取 [组件指南](references/component-jsx-guide.md)。
+> 涉及输入控件、日期、选择、表格或筛选栏时，读取 [组件指南](references/component-jsx-guide.md)。
 
 ## 编码指南与注意事项
 
@@ -178,12 +199,7 @@ openyida check-page pages/src/home.oyd.jsx --json      # 输出机器可读的�
 - 完整文件结构、状态管理、全局变量、19 条编码规则见 [编码指南](references/coding-guide.md)，按需读取
 - `page-spec.json`、接口调试 JSON 和一次性验证脚本先用 create_file / Write / file edit tool 创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`
 - 运行时高风险规则、`check-page` 规则和自动修复边界见 [运行时护栏](references/runtime-guardrails.md)
-- 输入控件、筛选栏、下拉、表格、附件等组件骨架见 [组件指南](references/component-jsx-guide.md)
-
-## 常见场景示例
-
-- 自定义页面附件上传：见 [AttachmentField 上传指南](references/attachment-upload-guide.md)
-- 对应最小代码示例：见 [attachment-upload.js](examples/attachment-upload.js)
+- 输入控件、筛选栏、下拉、表格等组件骨架见 [组件指南](references/component-jsx-guide.md)
 
 ## API 速查
 
@@ -227,8 +243,8 @@ openyida check-page pages/src/home.oyd.jsx --json      # 输出机器可读的�
 |-----|------|------|
 | `coding-guide` | `references/coding-guide.md` | check-page 报错、复杂交互、状态管理问题 |
 | `runtime-guardrails` | `references/runtime-guardrails.md` | 页面运行时报错、check-page 规则不清、编译兼容边界不清 |
-| `component-jsx-guide` | `references/component-jsx-guide.md` | 输入控件、日期、选择、成员/部门、附件、表格或筛选栏 |
-| `design-system` | `references/design-system.md` | 普通 JSX 样式实现适配；已进入 `yida-design` 后把 `design.md` 落到内联样式和组件状态 |
+| `component-jsx-guide` | `references/component-jsx-guide.md` | 输入控件、日期、选择、表格或筛选栏 |
+| `design-system` | `references/design-system.md` | 平台 JSX 组件样式实现适配；已进入 `yida-design` 后把 `design.md` 落到内联样式和组件状态 |
 | `theme-runtime-helpers` | `../yida-canvas-custom-page/references/theme-runtime-helpers.md` | 自定义色盘、`style#yida-global-theme`、隐藏导航沉浸页、iframe 父级或表单抽屉同源子 iframe 主题同步 |
 
 ## 参考文档
@@ -239,8 +255,8 @@ openyida check-page pages/src/home.oyd.jsx --json      # 输出机器可读的�
 | `yida-design` 子技能 | 产品定位、页面场景、主题色和 token、UI 视觉、状态规则、去 AI 味自检、图标策略 | 页面实现前加载；完整应用统一编排使用 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`，用户明确要求好看/去 AI 味时按入口路由读取更多 reference |
 | [编码指南](references/coding-guide.md) | 文件结构模板、状态管理、生命周期、19 条编码规范 | check-page 报错、复杂交互、状态管理问题时阅读 |
 | [运行时护栏](references/runtime-guardrails.md) | pageSize、loading 恢复、ECharts DOM 时序、setState 约束、check-page 规则映射 | 页面运行时报错、check-page 规则不清或编译兼容边界不清时阅读 |
-| [普通 JSX 样式实现适配](references/design-system.md) | 将 `design.md` 的色彩、圆角、字体、间距、组件和状态规则落到普通自定义页面 | 用户明确要求视觉细化，或已进入 `yida-design` 后阅读 |
-| [主题运行时 helper](../yida-canvas-custom-page/references/theme-runtime-helpers.md) | 普通 JSX 自定义主题 token 注入，支持 iframe 父级窗口和表单抽屉同源子 iframe | 自定义色盘、隐藏导航沉浸页或 iframe 主题同步时阅读 |
+| [平台 JSX 组件样式实现适配](references/design-system.md) | 将 `design.md` 的色彩、圆角、字体、间距、组件和状态规则落到平台 JSX 组件页面 | 用户明确要求视觉细化，或已进入 `yida-design` 后阅读 |
+| [主题运行时 helper](../yida-canvas-custom-page/references/theme-runtime-helpers.md) | 平台 JSX 组件自定义主题 token 注入，支持 iframe 父级窗口和表单抽屉同源子 iframe | 自定义色盘、隐藏导航沉浸页或 iframe 主题同步时阅读 |
 | [素材资源](references/assets-guide.md) | 图片/音乐/Icon 素材库、CDN 安全规范 | 需要引入图片、图标、音效时阅读 |
 | **全局共享文档** | | |
 | [宜搭 API](../../references/yida-api.md) | 表单/流程/工具 API 完整参数文档 | 复杂参数不确定、接口返回结构异常或正文速查不够时阅读 |

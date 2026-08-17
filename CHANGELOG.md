@@ -10,6 +10,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.8.17] - 2026-08-17
+
+### Added
+- 新增 2026.8.11 到 2026.8.14 的版本改造对比报告，补充技能体积、文档结构和性能影响分析。
+
+### Changed
+- 自定义页面默认开发链路收拢到 `yida-canvas-custom-page` 与 `YidaCodeCanvas`，`yida-custom-page` 聚焦历史 `.oyd.jsx` / `.oyb.jsx` / `renderJsx` / 平台 `Jsx` 页面维护。
+- 更新 `yida-app`、技能路由、评测场景和覆盖矩阵，清理普通自定义页面与 Code Canvas 双链路选择提示，减少弱模型误选。
+- 调整自定义页面编译与发布说明，将历史 JSX 编译维护口径归入 `yida-custom-page`，新建自定义页面继续使用 YidaCodeCanvas 组件实现。
+- 新建应用链路默认携带 Builder AI / OpenYida 创建标识，由 CLI 调用接口时自动传入，不再暴露给用户手动填写。
+- 更新现代版主题接口相关技能说明与示例，统一主题运行时、注入和页面设计侧的调用口径。
+
+### Fixed
+- 修正 `renderJsx`、`didMount`、`this.utils.yida`、`this.dataSourceMap` 等平台 JSX 组件能力的描述边界，避免误判为普通新建页面链路。
+- 收窄 `skills-index.json` 和跨技能引用改动范围，保留必要技能指向，同时避免其他技能过度依赖 `yida-custom-page`。
+- 恢复并明确附件上传、图片上传、成员和部门等能力不属于历史 JSX 特性，避免自定义页面能力说明被误删或错误归类。
+- 优化 `yida-publish-page` 严禁事项与发布边界，保留具体约束，避免发布阶段提示过度抽象。
+
+### Tests
+- 更新技能契约、路由测评、`get-schema` 和 CLI smoke 测试，覆盖自定义页面路由收拢、历史 JSX 维护边界和 Builder AI 创建标识。
+- 重新构建并校验技能发布包，确认源码态与悟空发布态的技能索引、子技能引用和路由说明一致。
+
 ## [2026.8.16-beta.1] - 2026-08-17
 
 ### Changed

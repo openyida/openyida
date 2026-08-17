@@ -4,13 +4,13 @@
 
 ## 推荐策略
 
-- Code Canvas 和普通 JSX 都使用复制型 helper。页面源码发布后应自包含，不依赖本仓库运行时文件。
+- YidaCodeCanvas 和平台 JSX 组件页面都使用复制型 helper。页面源码发布后应自包含，不依赖本仓库运行时文件。
 - 只有平台预置主题 key 才传给 `create-app/update-app --theme`；任意自定义色盘都走 `style#yida-global-theme` 或 scoped CSS vars。
 - 注入目标必须包含当前窗口文档、同源可访问的所有父级窗口文档，以及 `FormOpenContainer` 打开的同源子 iframe 文档。跨域窗口会抛异常，必须静默降级。
 - 样式 id 固定为 `yida-global-theme`；重复执行时更新内容，不插入多个 style。
 - tokens 必须来自当前项目 `design.md`；若 design.md 声明移动端支持色阶，`--color-brand-1` ~ `--color-brand-4` 必须和 `--color-brand1-*` 一起注入。
 
-## Code Canvas Helper
+## YidaCodeCanvas Helper
 
 复制到 `.canvas.jsx` 的常量和组件定义附近，在根组件中调用：
 
@@ -96,7 +96,7 @@ function YidaComp() {
 
 ## Ordinary JSX Helper
 
-复制到 `.oyd.jsx` / 普通 JSX 的 `didMount` 或等价初始化函数中，保持 ES5 写法：
+复制到 `.oyd.jsx` / 平台 JSX 组件页面的 `didMount` 或等价初始化函数中，保持 ES5 写法：
 
 ```javascript
 function collectYidaThemeDocuments(startWindow) {

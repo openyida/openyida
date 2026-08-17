@@ -1,4 +1,4 @@
-# Code Canvas 应用内导航与快捷入口
+# YidaCodeCanvas 应用内导航与快捷入口
 
 自定义页面里的快捷入口先判定目标类型，再选择跳转方式。目标是应用内页面时，用户应感觉是在宜搭应用导航内切换，而不是弹出一个脱离左侧导航的新页面。
 
@@ -63,7 +63,7 @@
 
 自定义页面内凡是点击按钮去新增、提交或查看表单详情，统一封装成同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；外部 URL 才使用新标签。PC 端容器表现为右侧抽屉 + iframe，移动端直接进入原生表单页，关闭抽屉后触发当前页刷新。
 
-Code Canvas 推荐使用 antd `Drawer`。复制本示例前，先把 [theme-runtime-helpers.md](theme-runtime-helpers.md) 中的 `installYidaGlobalThemeIntoFrame` 一并放到页面源码；父页面 CSS 变量不会自动继承到提交页/详情页 iframe。
+YidaCodeCanvas 推荐使用 antd `Drawer`。复制本示例前，先把 [theme-runtime-helpers.md](theme-runtime-helpers.md) 中的 `installYidaGlobalThemeIntoFrame` 一并放到页面源码；父页面 CSS 变量不会自动继承到提交页/详情页 iframe。
 
 ```jsx
 import React, { useCallback, useMemo, useRef, useState } from 'react';

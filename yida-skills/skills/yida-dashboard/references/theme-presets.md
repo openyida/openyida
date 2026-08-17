@@ -142,7 +142,7 @@ var FONT_STACK = '"Orbitron", "Playfair Display", "Segoe UI", -apple-system, san
 
 **典型业务**：日常业务看板、财务看板、医疗健康、内部管理、HR 分析
 **视觉关键词**：克制、可读、大屏投屏友好、打印友好
-**Canvas 默认**：配色与主题落地参考 `yida-rechart`；只有明确 ECharts 或维护旧 native 图表时再参考 `yida-chart`。
+**自定义页面默认**：配色与主题落地参考 `yida-rechart`；只有明确 ECharts 或维护旧 native 图表时再参考 `yida-chart`。
 
 ```javascript
 var THEME = {

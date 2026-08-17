@@ -301,7 +301,7 @@ inferred_modules:
 
 ## 18. 实现适配
 
-只包含相关适配，例如 CSS 变量、Ant Design ConfigProvider、Tailwind class 映射、Yida / Code Canvas 容器重置或 React 组件建议。宜搭主题必须写成可执行契约：
+只包含相关适配，例如 CSS 变量、Ant Design ConfigProvider、Tailwind class 映射、Yida / YidaCodeCanvas 容器重置或 React 组件建议。宜搭主题必须写成可执行契约：
 
 ### Yida Global Theme Runtime Contract
 
@@ -315,13 +315,13 @@ inferred_modules:
 | 详情页样式   | formDetail 页面必须由同一个 `openyidaThemeDidMount` 条件注入 `style#yida-form-detail-style`，不得只完成页面主题而漏掉详情页样式                                                |
 | 主题一致性   | 自定义页面、普通表单、流程表单、提交页、formDetail 详情页和应用主题色必须一致；抽屉 iframe 打开表单时同步父页面当前主题 tokens                                                 |
 | 注入目标     | 当前窗口 `document` 和所有同源可访问父级窗口 `document`；跨域父级静默跳过                                                                                                    |
-| Helper       | Code Canvas 和普通 JSX 都复制 `yida-canvas-custom-page/references/theme-runtime-helpers.md`，使用其中的 `collectYidaThemeDocuments` 收集当前文档和同源父级文档，不要临场重写 |
+| Helper       | YidaCodeCanvas 和平台 JSX 组件页面都复制 `yida-canvas-custom-page/references/theme-runtime-helpers.md`，使用其中的 `collectYidaThemeDocuments` 收集当前文档和同源父级文档，不要临场重写 |
 | 样式 ID      | 固定为 `yida-global-theme`，重复执行只更新同一个 style                                                                                                                       |
 | 根节点       | 页面根节点加 `data-yida-theme-root="true"`，让 token 在当前页和父级 iframe 壳层都能命中                                                                                      |
 
-### Code Canvas 实现要求
+### 自定义页面实现要求
 
-- 复制 `theme-runtime-helpers.md` 的 Code Canvas Helper。
+- 使用 `YidaCodeCanvas` 组件实现时，复制 `theme-runtime-helpers.md` 的 YidaCodeCanvas Helper。
 - 在根组件中调用 `useYidaGlobalTheme(CUSTOM_THEME_TOKENS)`。
 - `CUSTOM_THEME_TOKENS` 必须来自本 design.md 的 `tokens`，不能临场另配。
 - 根节点写 `<div data-yida-theme-root className="...">`。
@@ -330,13 +330,13 @@ inferred_modules:
 - `flowLight` 动效必须写 `@media (prefers-reduced-motion: reduce)` 停止动画。
 - 页面图标使用 `lucide-react` 或 `@ant-design/icons` 的标准 import，默认从 `lucide-react` named import 具体组件；源码按 `iconSystem.actionIconMap` / `statusIconMap` / `navigationIconMap` / `emptyStateIconMap` 渲染图标。CSS 只能控制图标容器样式，不能绘制或替代图标本体。
 
-### 普通 JSX 实现要求
+### 平台 JSX 组件实现要求
 
 - 复制 `theme-runtime-helpers.md` 的 Ordinary JSX Helper。
 - 在 `didMount` 或等价初始化中调用 `installYidaGlobalTheme(CUSTOM_THEME_TOKENS, window)`。
-- 普通 JSX 指非 Code Canvas 的自定义页面，发布后落到平台 `Jsx` 组件，不支持 `import/require`。
-- 普通 JSX 的图标来源仍只允许 `lucide-react` 或 `@ant-design/icons`，默认 `lucide-react`；但加载方式不是 import，而是已验证运行时脚本/global。emoji 报错时按 `iconSystem` 映射到这两类图标来源，不退成 CSS 图形、字母占位、Unicode 符号、iconfont 或临时 SVG。
-- 使用 ES5 写法，避免普通 JSX 编译链不支持的语法；若当前普通 JSX 链路无法稳定加载图标库，必须回到实现链路选择，优先切到 Code Canvas，而不是绕过图标规范。
+- 平台 JSX 组件页面发布后落到平台 `Jsx` 组件，不支持 `import/require`。
+- 平台 JSX 组件页面的图标来源仍只允许 `lucide-react` 或 `@ant-design/icons`，默认 `lucide-react`；但加载方式不是 import，而是已验证运行时脚本/global。emoji 报错时按 `iconSystem` 映射到这两类图标来源，不退成 CSS 图形、字母占位、Unicode 符号、iconfont 或临时 SVG。
+- 使用 ES5 写法，避免平台 JSX 组件编译链不支持的语法；若当前平台 JSX 组件运行环境无法稳定加载图标库，必须去掉非必要图标或改用已验证资源，不能绕过图标规范。
 
 ## 19. 必须包含
 
@@ -394,4 +394,5 @@ inferred_modules:
 
 - `yida-app` 读取 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md` 后创建或复用资源。
 - 页面实现阶段读取 `prd.md` 的业务内容，并直接读取 `design.md` 的视觉 DNA、token、布局、组件、状态和 `Yida Global Theme Runtime Contract`。
+- 页面实现交给 `yida-canvas-custom-page`。
 - 只有走页面生成器或需要稳定交接时才派生 `page-spec.json`，并标记 `sourceOfTruth.prdFile/designFile`。`page-spec.json` 不复制完整 design.md，只保存与 design.md 一致的主题摘要和引用。
