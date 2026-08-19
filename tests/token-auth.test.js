@@ -8,7 +8,6 @@ const path = require('path');
 const {
   getAccessToken,
   normalizeTokenResponse,
-  tokenLogin,
   tokenLogout,
   tokenRefresh,
   tokenStatus,
@@ -109,12 +108,12 @@ describe('token-auth', () => {
     });
   });
 
-  test('host-injected token mode reports env access token status without local token file', () => {
+  test('env token mode reports env access token status without local token file', () => {
     const status = tokenStatus({
       projectRoot: tmpDir,
       authDir,
       env: {
-        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_AUTH_MODE: 'token',
         OPENYIDA_ACCESS_TOKEN: 'env-access-token',
         OPENYIDA_TOKEN_CORP_ID: 'corp-env',
         OPENYIDA_TOKEN_CORP_NAME: '环境组织',
@@ -126,8 +125,8 @@ describe('token-auth', () => {
       ok: true,
       auth_mode: 'token',
       auth_source: 'env',
-      auth_store: 'host_injected',
-      persistence_scope: 'host',
+      auth_store: 'env',
+      persistence_scope: 'process',
       status: 'ok',
       can_auto_use: true,
       corp_id: 'corp-env',
@@ -136,74 +135,6 @@ describe('token-auth', () => {
     });
     expect(status.access_token).toBe('env-...');
     expect(status).not.toHaveProperty('token_file');
-  });
-
-  test('host-injected token login returns already logged in without OAuth', async () => {
-    const result = await tokenLogin({
-      projectRoot: tmpDir,
-      authDir,
-      noBrowser: true,
-      quiet: true,
-      timeoutMs: 1,
-      env: {
-        YIDA_AUTH_ENABLED: 'true',
-        OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
-        OPENYIDA_TOKEN_CLIENT_ID: 'openyida-cli',
-        OPENYIDA_TOKEN_CORP_ID: 'corp-env',
-        OPENYIDA_TOKEN_USER_ID: 'user-env',
-        OPENYIDA_ENDPOINT: 'https://env-token.example.com',
-      },
-    });
-
-    expect(result).toMatchObject({
-      ok: true,
-      auth_mode: 'token',
-      auth_source: 'env',
-      auth_store: 'host_injected',
-      persistence_scope: 'host',
-      status: 'ok',
-      can_auto_use: true,
-      already_logged_in: true,
-      login_action: 'noop',
-      previous_status: 'refresh_required',
-      corp_id: 'corp-env',
-      user_id: 'user-env',
-    });
-    expect(fs.existsSync(getTokenFilePath({ projectRoot: tmpDir, authDir }))).toBe(false);
-  });
-
-  test('OPENYIDA_AUTH_MODE=token refresh token login skips OAuth without YIDA_AUTH_ENABLED', async () => {
-    const result = await tokenLogin({
-      projectRoot: tmpDir,
-      authDir,
-      noBrowser: true,
-      quiet: true,
-      timeoutMs: 1,
-      env: {
-        OPENYIDA_AUTH_MODE: 'token',
-        OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
-        OPENYIDA_TOKEN_CLIENT_ID: 'openyida-cli',
-        OPENYIDA_TOKEN_CORP_ID: 'corp-env',
-        OPENYIDA_TOKEN_USER_ID: 'user-env',
-        OPENYIDA_ENDPOINT: 'https://env-token.example.com',
-      },
-    });
-
-    expect(result).toMatchObject({
-      ok: true,
-      auth_mode: 'token',
-      auth_source: 'env',
-      auth_store: 'host_injected',
-      persistence_scope: 'host',
-      status: 'ok',
-      can_auto_use: true,
-      already_logged_in: true,
-      login_action: 'noop',
-      previous_status: 'refresh_required',
-      corp_id: 'corp-env',
-      user_id: 'user-env',
-    });
-    expect(fs.existsSync(getTokenFilePath({ projectRoot: tmpDir, authDir }))).toBe(false);
   });
 
   test('status exposes safe candidates when multiple profiles require selection', () => {
@@ -258,17 +189,12 @@ describe('token-auth', () => {
     }
   });
 
-  test('host-injected token mode reports env_token_missing when host provides no token', () => {
-    saveTokenSession({
-      access_token: 'local-access-token',
-      refresh_token: 'local-refresh-token',
-    }, { projectRoot: tmpDir, authDir });
-
+  test('env token mode reports env_token_missing when runtime provides no token and no cache exists', () => {
     const status = tokenStatus({
       projectRoot: tmpDir,
       authDir,
       env: {
-        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_AUTH_MODE: 'token',
       },
     });
 
@@ -279,7 +205,7 @@ describe('token-auth', () => {
       status: 'not_logged_in',
       can_auto_use: false,
       failure_reason: 'env_token_missing',
-      next_step: expect.stringContaining('Ask the host runtime to inject'),
+      next_step: expect.stringContaining('Ask the runtime to inject'),
     });
     expect(status).not.toHaveProperty('token_file');
   });
@@ -358,7 +284,7 @@ describe('token-auth', () => {
     }
   });
 
-  test('logout --all deletes shared user profiles outside host-injected token mode', async () => {
+  test('logout --all deletes shared user profiles', async () => {
     const firstProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-login-a-'));
     const secondProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-login-b-'));
     try {
@@ -397,7 +323,7 @@ describe('token-auth', () => {
     }
   });
 
-  test('host-injected token logout never deletes local user profiles', async () => {
+  test('YIDA_AUTH_ENABLED does not protect local profiles from explicit logout --all', async () => {
     const loginProject = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-login-project-'));
     try {
       const saved = saveTokenSession({
@@ -420,10 +346,10 @@ describe('token-auth', () => {
 
       expect(result).toMatchObject({
         ok: true,
-        status: 'host_injected_noop',
-        auth_store: 'host_injected',
+        status: 'logged_out',
+        auth_store: 'user',
       });
-      expect(fs.existsSync(getUserProfileFilePath(saved.auth_profile, { authDir }))).toBe(true);
+      expect(fs.existsSync(getUserProfileFilePath(saved.auth_profile, { authDir }))).toBe(false);
     } finally {
       fs.rmSync(loginProject, { recursive: true, force: true });
     }
@@ -577,7 +503,7 @@ describe('token-auth', () => {
     }
   });
 
-  test('host-injected token refresh caches only the returned business base_url', async () => {
+  test('env token refresh writes project cache and caches returned business base_url', async () => {
     let refreshBody;
     const server = http.createServer((req, res) => {
       const chunks = [];
@@ -601,7 +527,7 @@ describe('token-auth', () => {
     });
     const port = await listen(server);
     const env = {
-      YIDA_AUTH_ENABLED: 'true',
+      OPENYIDA_AUTH_MODE: 'token',
       OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
       OPENYIDA_ENDPOINT: `http://127.0.0.1:${port}`,
       OPENYIDA_TOKEN_CORP_ID: 'corp-env',
@@ -617,14 +543,20 @@ describe('token-auth', () => {
 
       expect(refreshBody.refreshToken).toBe('env-refresh-token');
       expect(refreshed).toMatchObject({
-        auth_source: 'env',
+        auth_source: 'project_legacy',
+        auth_store: 'project_cache',
         access_token: 'new-env-access-token',
         refresh_token: 'new-env-refresh-token',
         corp_name: '环境组织',
       });
       expect(env.OPENYIDA_ACCESS_TOKEN).toBe('new-env-access-token');
       expect(env.OPENYIDA_REFRESH_TOKEN).toBe('new-env-refresh-token');
-      expect(fs.existsSync(getTokenFilePath({ projectRoot: tmpDir }))).toBe(false);
+      const tokenFile = getTokenFilePath({ projectRoot: tmpDir });
+      expect(fs.existsSync(tokenFile)).toBe(true);
+      expect(JSON.parse(fs.readFileSync(tokenFile, 'utf8'))).toMatchObject({
+        access_token: 'new-env-access-token',
+        refresh_token: 'new-env-refresh-token',
+      });
       const contextFile = getBusinessContextFilePath({ projectRoot: tmpDir });
       const context = JSON.parse(fs.readFileSync(contextFile, 'utf8'));
       expect(context).toMatchObject({
@@ -640,11 +572,16 @@ describe('token-auth', () => {
         authDir,
         env: {
           YIDA_AUTH_ENABLED: 'true',
+          OPENYIDA_AUTH_MODE: 'token',
           OPENYIDA_REFRESH_TOKEN: 'next-process-refresh-token',
           OPENYIDA_ENDPOINT: `http://127.0.0.1:${port}`,
           OPENYIDA_TOKEN_CORP_ID: 'corp-env',
         },
-      }).base_url).toBe('https://customer.example.com');
+      })).toMatchObject({
+        base_url: 'https://customer.example.com',
+        refresh_token: 'new-env-refresh-token',
+        auth_source: 'project_legacy',
+      });
     } finally {
       await closeServer(server);
     }

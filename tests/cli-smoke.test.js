@@ -52,7 +52,6 @@ function cliEnv() {
     MULE_SANDBOX_ID: '',
     OPENYIDA_AGENT_MODE: '',
     OPENYIDA_ASSUME_DESKTOP: '',
-    OPENYIDA_AUTH_MODE: '',
     QWENWORK: '',
     QWENWORK_INTEGRATION_MODE: '',
     QWENWORKCN_INTEGRATION_MODE: '',
@@ -67,7 +66,6 @@ function cliEnv() {
     OPENYIDA_REFRESH_TOKEN: '',
     OPENYIDA_TOKEN_CLIENT_ID: '',
     OPENYIDA_TOKEN_CORP_ID: '',
-    OPENYIDA_TOKEN_CORP_NAME: '',
     OPENYIDA_TOKEN_USER_ID: '',
     OPENYIDA_ENDPOINT: '',
     OPENYIDA_NO_BROWSER: '',
@@ -1116,7 +1114,7 @@ describe('CLI offline smoke', () => {
           browser_default: 'unsupported',
           browser_owner: 'none',
           recommended_command: null,
-          agent_action: 'ask_user_for_browser_or_host_token',
+          agent_action: 'ask_user_for_browser_access',
           reason: 'no_desktop_shell_or_agent_browser_detected',
           suppress_flag: '--no-browser',
           suppress_env: 'OPENYIDA_NO_BROWSER',
@@ -1804,12 +1802,12 @@ describe('CLI offline smoke', () => {
     }
   });
 
-  test('YIDA_AUTH_ENABLED=true reports host-injected token status and does not start OAuth login', () => {
+  test('OPENYIDA_AUTH_MODE=token reports env token status and does not start OAuth login', () => {
     const workspace = createCodexWorkspace();
     const env = {
       CODEX_SHELL: '1',
       OPENYIDA_ENV: 'public',
-      YIDA_AUTH_ENABLED: 'true',
+      OPENYIDA_AUTH_MODE: 'token',
       OPENYIDA_ACCESS_TOKEN: 'env-access-token',
       OPENYIDA_TOKEN_CORP_ID: 'corpEnv',
       OPENYIDA_TOKEN_USER_ID: 'userEnv',
@@ -1835,12 +1833,13 @@ describe('CLI offline smoke', () => {
       expect(login).toMatchObject({
         auth_mode: 'token',
         auth_source: 'env',
+        auth_store: 'env',
         status: 'ok',
         can_auto_use: true,
-        already_logged_in: true,
-        login_action: 'noop',
-        previous_status: 'ok',
       });
+      expect(login).not.toHaveProperty('already_logged_in');
+      expect(login).not.toHaveProperty('login_action');
+      expect(login).not.toHaveProperty('previous_status');
 
       const authStatus = JSON.parse(runOkWithEnv(['auth', 'status', '--json'], env, workspace));
       expect(authStatus).toMatchObject({
@@ -1864,12 +1863,12 @@ describe('CLI offline smoke', () => {
     }
   });
 
-  test('YIDA_AUTH_ENABLED=true is visible in env and agent-capabilities preflight output', () => {
+  test('OPENYIDA_AUTH_MODE=token is visible in env and agent-capabilities preflight output', () => {
     const workspace = createCodexWorkspace();
     const env = {
       CODEX_SHELL: '1',
       OPENYIDA_ENV: 'public',
-      YIDA_AUTH_ENABLED: 'true',
+      OPENYIDA_AUTH_MODE: 'token',
       OPENYIDA_ACCESS_TOKEN: 'env-access-token',
       OPENYIDA_TOKEN_CORP_ID: 'corpEnv',
       OPENYIDA_TOKEN_USER_ID: 'userEnv',
@@ -1898,24 +1897,19 @@ describe('CLI offline smoke', () => {
       expect(summary.login).toMatchObject({
         auth_mode: 'token',
         auth_source: 'env',
+        auth_store: 'env',
         status: 'ok',
         can_auto_use: true,
       });
-      expect(summary.precheck).toMatchObject({
-        skipped: true,
-        reason: 'runtime_auth_provisioned',
-      });
+      expect(summary).not.toHaveProperty('precheck');
       expect(summary.builder_path.auth).toMatchObject({
         mode: 'token',
         source: 'env',
+        store: 'env',
         can_auto_use: true,
-        host_injected_token_mode: true,
-        host_token_env_detected: true,
-        env_token_present: true,
-        runtime_auth_provisioned: true,
         interactive_login_allowed: false,
         browser_session_auth_allowed: false,
-        missing_token_action: 'STOP_AND_REQUEST_HOST_TOKEN',
+        missing_token_action: 'STOP_AND_REQUEST_ENV_TOKEN',
       });
       expect(summary.builder_path.interactive_login).toMatchObject({
         mode: 'not_required',
@@ -1923,7 +1917,7 @@ describe('CLI offline smoke', () => {
         browser_owner: 'none',
         recommended_command: null,
         agent_action: 'do_not_run_oauth_login',
-        reason: 'host_token_env_detected',
+        reason: 'env_token_bootstrap',
       });
       expect(summary.builder_path.preflight).toMatchObject({
         recommended_command: 'openyida agent-capabilities --summary-json',
@@ -1937,8 +1931,10 @@ describe('CLI offline smoke', () => {
         skip_login_check_only_default: true,
         skip_browser_login_default: true,
         skip_cookie_or_playwright_checks_default: true,
-        stop_when_host_token_missing: false,
+        stop_when_env_token_missing: false,
       });
+      expect(JSON.stringify(summary)).not.toContain('host_injected');
+      expect(JSON.stringify(summary)).not.toContain('host_token');
       expect(summary.builder_path.environment_check_simplification).not.toHaveProperty('skip_default_command_patterns');
       expect(summary.builder_path.bound_context.existing_app_type_policy).toBe('do_not_call_app_list_by_default');
       expect(JSON.stringify(summary)).not.toContain('login.dingtalk.com/oauth2/auth');
@@ -1950,130 +1946,14 @@ describe('CLI offline smoke', () => {
     }
   });
 
-  test('YIDA_AUTH_ENABLED=true treats refresh-only host token as logged-in login noop', () => {
-    const workspace = createCodexWorkspace();
-    try {
-      const loginOutput = runOkWithEnv(['login', '--no-browser', '--json'], {
-        CODEX_SHELL: '1',
-        OPENYIDA_ENV: 'public',
-        YIDA_AUTH_ENABLED: 'true',
-        OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
-        OPENYIDA_TOKEN_CLIENT_ID: 'openyida-cli',
-        OPENYIDA_TOKEN_CORP_ID: 'corpEnv',
-        OPENYIDA_TOKEN_USER_ID: 'userEnv',
-        OPENYIDA_ENDPOINT: 'https://env-token.example.com',
-      }, workspace);
-
-      expect(loginOutput).not.toContain('login.dingtalk.com/oauth2/auth');
-      expect(JSON.parse(loginOutput)).toMatchObject({
-        ok: true,
-        auth_mode: 'token',
-        auth_source: 'env',
-        auth_store: 'host_injected',
-        persistence_scope: 'host',
-        status: 'ok',
-        can_auto_use: true,
-        already_logged_in: true,
-        login_action: 'noop',
-        previous_status: 'refresh_required',
-        corp_id: 'corpEnv',
-        user_id: 'userEnv',
-      });
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('OPENYIDA_AUTH_MODE=token treats refresh-only host token as logged-in without OAuth', () => {
-    const workspace = createCodexWorkspace();
-    const env = {
-      CODEX_SHELL: '1',
-      OPENYIDA_ENV: 'public',
-      OPENYIDA_AUTH_MODE: 'token',
-      OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
-      OPENYIDA_TOKEN_CLIENT_ID: 'openyida-cli',
-      OPENYIDA_TOKEN_CORP_ID: 'corpEnv',
-      OPENYIDA_TOKEN_CORP_NAME: '环境组织',
-      OPENYIDA_TOKEN_USER_ID: 'userEnv',
-      OPENYIDA_ENDPOINT: 'https://env-token.example.com',
-      OPENYIDA_NO_BROWSER: '1',
-      OPENYIDA_OAUTH_TIMEOUT_MS: '80',
-    };
-    try {
-      const loginResult = runAnyWithEnv(['login', '--no-browser', '--json', '--quiet'], env, workspace);
-      expect(loginResult.status).toBe(0);
-      expect(loginResult.stderr).not.toContain('login.dingtalk.com/oauth2/auth');
-      expect(loginResult.stdout).not.toContain('login.dingtalk.com/oauth2/auth');
-      expect(JSON.parse(loginResult.stdout)).toMatchObject({
-        ok: true,
-        auth_mode: 'token',
-        auth_source: 'env',
-        auth_store: 'host_injected',
-        persistence_scope: 'host',
-        status: 'ok',
-        can_auto_use: true,
-        already_logged_in: true,
-        login_action: 'noop',
-        previous_status: 'refresh_required',
-        corp_id: 'corpEnv',
-        user_id: 'userEnv',
-      });
-
-      const summary = JSON.parse(runOkWithEnv(['agent-capabilities', '--summary-json'], env, workspace));
-      expect(summary.login).toMatchObject({
-        auth_mode: 'token',
-        auth_source: 'env',
-        auth_store: 'host_injected',
-        persistence_scope: 'host',
-        status: 'refresh_required',
-        can_auto_use: true,
-        corp_id: 'corpEnv',
-        corp_name: '环境组织',
-        user_id: 'userEnv',
-      });
-      expect(summary).not.toHaveProperty('precheck');
-      expect(summary.builder_path.auth).toMatchObject({
-        mode: 'token',
-        source: 'env',
-        store: 'host_injected',
-        can_auto_use: true,
-        host_injected_token_mode: true,
-        host_token_env_detected: true,
-        env_token_present: true,
-        interactive_login_allowed: false,
-        browser_session_auth_allowed: false,
-        missing_token_action: 'STOP_AND_REQUEST_HOST_TOKEN',
-      });
-      expect(summary.builder_path.auth).not.toHaveProperty('runtime_auth_provisioned');
-      expect(summary.builder_path.interactive_login).toMatchObject({
-        mode: 'not_required',
-        browser_default: 'not_required',
-        browser_owner: 'none',
-        recommended_command: null,
-        agent_action: 'do_not_run_oauth_login',
-        reason: 'host_token_env_detected',
-      });
-      expect(summary.builder_path.environment_check_simplification).toMatchObject({
-        can_skip_default_exploration_when_summary_ok: true,
-        skip_login_check_only_default: true,
-        skip_browser_login_default: true,
-        skip_cookie_or_playwright_checks_default: true,
-        stop_when_host_token_missing: false,
-      });
-      expect(JSON.stringify(summary)).not.toContain('login.dingtalk.com/oauth2/auth');
-    } finally {
-      fs.rmSync(workspace, { recursive: true, force: true });
-    }
-  });
-
-  test('YIDA_AUTH_ENABLED=true ignores legacy cookies.json when host token is missing', () => {
+  test('OPENYIDA_AUTH_MODE=token ignores legacy cookies.json when env token is missing', () => {
     const workspace = createCodexWorkspace();
     writeIgnoredLegacyCookieCache(workspace);
     try {
       const parsed = JSON.parse(runOkWithEnv(['login', '--check-only', '--json'], {
         CODEX_SHELL: '1',
         OPENYIDA_ENV: 'public',
-        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_AUTH_MODE: 'token',
       }, workspace));
       expect(parsed).toMatchObject({
         auth_mode: 'token',
@@ -2088,7 +1968,7 @@ describe('CLI offline smoke', () => {
       const refresh = JSON.parse(runOkWithEnv(['auth', 'refresh', '--json'], {
         CODEX_SHELL: '1',
         OPENYIDA_ENV: 'public',
-        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_AUTH_MODE: 'token',
       }, workspace));
       expect(refresh).toMatchObject({
         auth_mode: 'token',
@@ -2101,7 +1981,7 @@ describe('CLI offline smoke', () => {
       const summary = JSON.parse(runOkWithEnv(['agent-capabilities', '--summary-json'], {
         CODEX_SHELL: '1',
         OPENYIDA_ENV: 'public',
-        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_AUTH_MODE: 'token',
       }, workspace));
       expect(summary.login).toMatchObject({
         auth_mode: 'token',
@@ -2111,26 +1991,24 @@ describe('CLI offline smoke', () => {
       });
       expect(summary).not.toHaveProperty('precheck');
       expect(summary.builder_path.auth).toMatchObject({
-        host_injected_token_mode: true,
-        host_token_env_detected: true,
-        env_token_present: false,
         interactive_login_allowed: false,
-        missing_token_action: 'STOP_AND_REQUEST_HOST_TOKEN',
+        missing_token_action: 'STOP_AND_REQUEST_ENV_TOKEN',
       });
       expect(summary.builder_path.interactive_login).toMatchObject({
         mode: 'not_required',
         browser_owner: 'none',
         recommended_command: null,
-        reason: 'host_token_required',
+        reason: 'env_token_bootstrap',
       });
-      expect(summary.builder_path.auth).not.toHaveProperty('runtime_auth_provisioned');
       expect(summary.builder_path.environment_check_simplification).toMatchObject({
-        can_skip_default_exploration_when_summary_ok: true,
-        skip_login_check_only_default: true,
+        can_skip_default_exploration_when_summary_ok: false,
+        skip_login_check_only_default: false,
         skip_browser_login_default: true,
         skip_cookie_or_playwright_checks_default: true,
-        stop_when_host_token_missing: true,
+        stop_when_env_token_missing: true,
       });
+      expect(JSON.stringify(summary)).not.toContain('host_injected');
+      expect(JSON.stringify(summary)).not.toContain('host_token');
     } finally {
       fs.rmSync(workspace, { recursive: true, force: true });
     }

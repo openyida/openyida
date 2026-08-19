@@ -11,7 +11,6 @@ const {
   isLoginExpired,
   loadAuthData,
   loadCookieData,
-  isEnvAuthMode,
   detectActiveTool,
   detectRuntimeCapabilities,
   hasDesktopEnvironment,
@@ -565,8 +564,8 @@ describe('loadAuthData', () => {
     expect(loadAuthData(tmpDir)).toBeNull();
   });
 
-  test('YIDA_AUTH_ENABLED=true 时读取运行环境注入 token，忽略旧 cookie env', () => {
-    process.env.YIDA_AUTH_ENABLED = 'true';
+  test('OPENYIDA_AUTH_MODE=token 时读取运行环境注入 token，忽略旧 cookie env', () => {
+    process.env.OPENYIDA_AUTH_MODE = 'token';
     process.env.OPENYIDA_ACCESS_TOKEN = 'env-access-token';
     process.env.OPENYIDA_REFRESH_TOKEN = 'env-refresh-token';
     process.env.OPENYIDA_ENDPOINT = 'https://env-token.example.com';
@@ -586,33 +585,14 @@ describe('loadAuthData', () => {
     });
   });
 
-  test('OPENYIDA_AUTH_MODE=token 时读取运行环境注入 refresh token', () => {
-    process.env.OPENYIDA_AUTH_MODE = 'token';
-    process.env.OPENYIDA_REFRESH_TOKEN = 'env-refresh-token';
-    process.env.OPENYIDA_ENDPOINT = 'https://env-token.example.com';
-    process.env.OPENYIDA_TOKEN_CORP_ID = 'corpEnv';
-    process.env.OPENYIDA_TOKEN_USER_ID = 'userEnv';
-
-    expect(isEnvAuthMode()).toBe(true);
-    expect(loadAuthData(tmpDir)).toMatchObject({
-      auth_mode: 'token',
-      auth_source: 'env',
-      auth_store: 'host_injected',
-      persistence_scope: 'host',
-      corp_id: 'corpEnv',
-      user_id: 'userEnv',
-      base_url: 'https://env-token.example.com',
-    });
-  });
-
-  test('YIDA_AUTH_ENABLED=true 且运行环境缺 token 时不回退旧 cookies.json 文件', () => {
+  test('OPENYIDA_AUTH_MODE=token 且运行环境缺 token 时不回退旧 cookies.json 文件', () => {
     const cacheDir = path.join(tmpDir, '.cache');
     fs.mkdirSync(cacheDir, { recursive: true });
     fs.writeFileSync(path.join(cacheDir, 'cookies.json'), JSON.stringify([
       { name: 'tianshu_csrf_token', value: 'legacy-csrf' },
       { name: 'tianshu_corp_user', value: 'corpLegacy_userLegacy' },
     ]), 'utf-8');
-    process.env.YIDA_AUTH_ENABLED = 'true';
+    process.env.OPENYIDA_AUTH_MODE = 'token';
     delete process.env[LEGACY_COOKIE_ENV];
 
     expect(loadAuthData(tmpDir)).toBeNull();
@@ -625,7 +605,7 @@ describe('loadAuthData', () => {
       { name: 'tianshu_csrf_token', value: 'legacy-csrf' },
       { name: 'tianshu_corp_user', value: 'corpLegacy_userLegacy' },
     ]), 'utf-8');
-    process.env.YIDA_AUTH_ENABLED = 'true';
+    process.env.OPENYIDA_AUTH_MODE = 'token';
     process.env[LEGACY_COOKIE_ENV] = 'not-base64';
 
     expect(loadAuthData(tmpDir)).toBeNull();

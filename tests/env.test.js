@@ -33,6 +33,7 @@ describe('detectEnvironment', () => {
 describe('detectLoginStatus', () => {
   let tmpDir;
   let originalAuthEnabled;
+  let originalAuthMode;
   let originalAccessToken;
   let originalEndpoint;
   let originalCorpId;
@@ -42,12 +43,14 @@ describe('detectLoginStatus', () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-env-token-'));
     originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
+    originalAuthMode = process.env.OPENYIDA_AUTH_MODE;
     originalAccessToken = process.env.OPENYIDA_ACCESS_TOKEN;
     originalEndpoint = process.env.OPENYIDA_ENDPOINT;
     originalCorpId = process.env.OPENYIDA_TOKEN_CORP_ID;
     originalUserId = process.env.OPENYIDA_TOKEN_USER_ID;
     originalAuthDir = process.env.OPENYIDA_AUTH_DIR;
     delete process.env.YIDA_AUTH_ENABLED;
+    delete process.env.OPENYIDA_AUTH_MODE;
     delete process.env.OPENYIDA_ACCESS_TOKEN;
     delete process.env.OPENYIDA_ENDPOINT;
     delete process.env.OPENYIDA_TOKEN_CORP_ID;
@@ -64,6 +67,7 @@ describe('detectLoginStatus', () => {
       }
     };
     restore('YIDA_AUTH_ENABLED', originalAuthEnabled);
+    restore('OPENYIDA_AUTH_MODE', originalAuthMode);
     restore('OPENYIDA_ACCESS_TOKEN', originalAccessToken);
     restore('OPENYIDA_ENDPOINT', originalEndpoint);
     restore('OPENYIDA_TOKEN_CORP_ID', originalCorpId);
@@ -121,8 +125,8 @@ describe('detectLoginStatus', () => {
     expect(result.diagnostics.corpNameFound).toBe(true);
   });
 
-  test('YIDA_AUTH_ENABLED=true 时返回运行环境注入 token 状态', () => {
-    process.env.YIDA_AUTH_ENABLED = 'true';
+  test('OPENYIDA_AUTH_MODE=token 时返回运行环境注入 token 状态', () => {
+    process.env.OPENYIDA_AUTH_MODE = 'token';
     process.env.OPENYIDA_ACCESS_TOKEN = 'env-access-token';
     process.env.OPENYIDA_ENDPOINT = 'https://env-token.example.com';
     process.env.OPENYIDA_TOKEN_CORP_ID = 'corpEnv';
@@ -137,14 +141,14 @@ describe('detectLoginStatus', () => {
       corpName: '环境组织',
       userId: 'userEnv',
       authSource: 'env',
-      authStore: 'host_injected',
-      persistenceScope: 'host',
+      authStore: 'env',
+      persistenceScope: 'process',
       authMode: 'token',
     });
     expect(result.diagnostics).toMatchObject({
       authMode: 'token',
       authSource: 'env',
-      authStore: 'host_injected',
+      authStore: 'env',
       tokenFound: true,
     });
   });

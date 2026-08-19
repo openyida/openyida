@@ -428,16 +428,16 @@ describe('token-store', () => {
     expect(loaded.access_token).toBe('env-access-token');
     expect(loaded.refresh_token).toBe('env-refresh-token');
     expect(loaded.auth_source).toBe('env');
-    expect(loaded.auth_store).toBe('host_injected');
+    expect(loaded.auth_store).toBe('env');
   });
 
-  test('host-injected token mode ignores local token files', () => {
+  test('env token mode prefers project cache over stale env tokens', () => {
     const options = {
       projectRoot,
       envName: 'public',
       authDir,
       env: {
-        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_AUTH_MODE: 'token',
         OPENYIDA_ACCESS_TOKEN: 'env-access-token',
         OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
       },
@@ -449,18 +449,47 @@ describe('token-store', () => {
 
     const loaded = loadTokenSession(options);
 
-    expect(loaded.access_token).toBe('env-access-token');
-    expect(loaded.refresh_token).toBe('env-refresh-token');
-    expect(loaded.auth_source).toBe('env');
+    expect(loaded.access_token).toBe('local-access-token');
+    expect(loaded.refresh_token).toBe('local-refresh-token');
+    expect(loaded.auth_source).toBe('project_legacy');
+    expect(loaded.auth_store).toBe('project_cache');
   });
 
-  test('host-injected token mode uses cached business base_url for the same corp', () => {
+  test('env token mode does not use project cache for another injected corp', () => {
     const options = {
       projectRoot,
       envName: 'public',
       authDir,
       env: {
-        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_AUTH_MODE: 'token',
+        OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
+        OPENYIDA_TOKEN_CORP_ID: 'corp-b',
+        OPENYIDA_TOKEN_USER_ID: 'user-b',
+        OPENYIDA_ENDPOINT: 'https://www.aliwork.com',
+      },
+    };
+    saveProjectLegacyTokenSession({
+      access_token: 'local-access-token',
+      refresh_token: 'local-refresh-token',
+      corp_id: 'corp-a',
+      user_id: 'user-a',
+    }, options);
+
+    const loaded = loadTokenSession(options);
+
+    expect(loaded.refresh_token).toBe('env-refresh-token');
+    expect(loaded.corp_id).toBe('corp-b');
+    expect(loaded.user_id).toBe('user-b');
+    expect(loaded.auth_source).toBe('env');
+  });
+
+  test('env token mode uses cached business base_url for the same corp', () => {
+    const options = {
+      projectRoot,
+      envName: 'public',
+      authDir,
+      env: {
+        OPENYIDA_AUTH_MODE: 'token',
         OPENYIDA_ACCESS_TOKEN: 'env-access-token',
         OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
         OPENYIDA_ENDPOINT: 'https://www.aliwork.com',
@@ -488,13 +517,13 @@ describe('token-store', () => {
     expect(raw).not.toHaveProperty('refresh_token');
   });
 
-  test('host-injected token mode ignores cached business base_url for another corp', () => {
+  test('env token mode ignores cached business base_url for another corp', () => {
     const options = {
       projectRoot,
       envName: 'public',
       authDir,
       env: {
-        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_AUTH_MODE: 'token',
         OPENYIDA_ACCESS_TOKEN: 'env-access-token',
         OPENYIDA_ENDPOINT: 'https://www.aliwork.com',
         OPENYIDA_TOKEN_CORP_ID: 'corp-current',
@@ -522,21 +551,28 @@ describe('token-store', () => {
     expect(fs.existsSync(getBusinessContextFilePath(options))).toBe(false);
   });
 
-  test('host-injected token mode returns null when the host provides no token', () => {
+  test('env token mode returns null when project cache and env token are missing', () => {
     const options = {
       projectRoot,
       envName: 'public',
       authDir,
       env: {
-        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_AUTH_MODE: 'token',
       },
     };
-    saveTokenSession({
+    saveProjectLegacyTokenSession({
       access_token: 'local-access-token',
       refresh_token: 'local-refresh-token',
+      corp_id: 'corp-a',
     }, options);
 
-    expect(loadTokenSession(options)).toBeNull();
+    expect(loadTokenSession({
+      ...options,
+      env: {
+        OPENYIDA_AUTH_MODE: 'token',
+        OPENYIDA_TOKEN_CORP_ID: 'corp-b',
+      },
+    })).toBeNull();
   });
 
   test('fills a missing local refresh token from env without replacing local access token', () => {

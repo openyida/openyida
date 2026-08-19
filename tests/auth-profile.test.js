@@ -184,7 +184,7 @@ describe('auth profile management', () => {
     });
   });
 
-  test('host-injected token mode does not switch local profiles', () => {
+  test('env token mode does not switch local profiles', () => {
     const saved = saveTokenSession(makeSession('corp-a', 'user-a', 'access-a'), {
       projectRoot,
       authDir,
@@ -193,8 +193,8 @@ describe('auth profile management', () => {
     expect(() => switchAuthProfile(saved.auth_profile, {
       projectRoot,
       authDir,
-      env: { YIDA_AUTH_ENABLED: 'true' },
-    })).toThrow(/host-injected token mode/);
+      env: { OPENYIDA_AUTH_MODE: 'token' },
+    })).toThrow(/env token mode/);
     expect(loadTokenSession({ projectRoot, authDir })).toMatchObject({
       auth_profile: saved.auth_profile,
       corp_id: 'corp-a',

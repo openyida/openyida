@@ -444,14 +444,14 @@ describe('bridge HTTP protocol', () => {
     expect(JSON.stringify(loginBody)).not.toContain('/secret');
   });
 
-  test('default login check reports host-injected token mode without secret leakage', async () => {
-    const originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
+  test('default login check reports env token mode without secret leakage', async () => {
+    const originalAuthMode = process.env.OPENYIDA_AUTH_MODE;
     const originalAccessToken = process.env.OPENYIDA_ACCESS_TOKEN;
     const originalEndpoint = process.env.OPENYIDA_ENDPOINT;
     const originalCorpId = process.env.OPENYIDA_TOKEN_CORP_ID;
     const originalUserId = process.env.OPENYIDA_TOKEN_USER_ID;
     try {
-      process.env.YIDA_AUTH_ENABLED = 'true';
+      process.env.OPENYIDA_AUTH_MODE = 'token';
       process.env.OPENYIDA_ACCESS_TOKEN = 'bridge-access-token';
       process.env.OPENYIDA_ENDPOINT = 'https://bridge.example.test';
       process.env.OPENYIDA_TOKEN_CORP_ID = 'corpBridge';
@@ -490,10 +490,10 @@ describe('bridge HTTP protocol', () => {
       });
       expect(JSON.stringify(login.body.login)).not.toContain('bridge-access-token');
     } finally {
-      if (originalAuthEnabled === undefined) {
-        delete process.env.YIDA_AUTH_ENABLED;
+      if (originalAuthMode === undefined) {
+        delete process.env.OPENYIDA_AUTH_MODE;
       } else {
-        process.env.YIDA_AUTH_ENABLED = originalAuthEnabled;
+        process.env.OPENYIDA_AUTH_MODE = originalAuthMode;
       }
       if (originalAccessToken === undefined) {
         delete process.env.OPENYIDA_ACCESS_TOKEN;
