@@ -11,6 +11,7 @@ const {
   isLoginExpired,
   loadAuthData,
   loadCookieData,
+  isEnvAuthMode,
   detectActiveTool,
   detectRuntimeCapabilities,
   hasDesktopEnvironment,
@@ -479,6 +480,7 @@ describe('loadCookieData', () => {
 describe('loadAuthData', () => {
   let tmpDir;
   let originalAuthEnabled;
+  let originalAuthMode;
   let originalLegacyCookieEnv;
   let originalAccessToken;
   let originalRefreshToken;
@@ -490,6 +492,7 @@ describe('loadAuthData', () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-token-utils-'));
     originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
+    originalAuthMode = process.env.OPENYIDA_AUTH_MODE;
     originalLegacyCookieEnv = process.env[LEGACY_COOKIE_ENV];
     originalAccessToken = process.env.OPENYIDA_ACCESS_TOKEN;
     originalRefreshToken = process.env.OPENYIDA_REFRESH_TOKEN;
@@ -498,6 +501,7 @@ describe('loadAuthData', () => {
     originalUserId = process.env.OPENYIDA_TOKEN_USER_ID;
     originalAuthDir = process.env.OPENYIDA_AUTH_DIR;
     delete process.env.YIDA_AUTH_ENABLED;
+    delete process.env.OPENYIDA_AUTH_MODE;
     delete process.env[LEGACY_COOKIE_ENV];
     delete process.env.OPENYIDA_ACCESS_TOKEN;
     delete process.env.OPENYIDA_REFRESH_TOKEN;
@@ -516,6 +520,7 @@ describe('loadAuthData', () => {
       }
     };
     restore('YIDA_AUTH_ENABLED', originalAuthEnabled);
+    restore('OPENYIDA_AUTH_MODE', originalAuthMode);
     restore(LEGACY_COOKIE_ENV, originalLegacyCookieEnv);
     restore('OPENYIDA_ACCESS_TOKEN', originalAccessToken);
     restore('OPENYIDA_REFRESH_TOKEN', originalRefreshToken);
@@ -575,6 +580,25 @@ describe('loadAuthData', () => {
     expect(loadAuthData(tmpDir)).toMatchObject({
       auth_mode: 'token',
       auth_source: 'env',
+      corp_id: 'corpEnv',
+      user_id: 'userEnv',
+      base_url: 'https://env-token.example.com',
+    });
+  });
+
+  test('OPENYIDA_AUTH_MODE=token 时读取运行环境注入 refresh token', () => {
+    process.env.OPENYIDA_AUTH_MODE = 'token';
+    process.env.OPENYIDA_REFRESH_TOKEN = 'env-refresh-token';
+    process.env.OPENYIDA_ENDPOINT = 'https://env-token.example.com';
+    process.env.OPENYIDA_TOKEN_CORP_ID = 'corpEnv';
+    process.env.OPENYIDA_TOKEN_USER_ID = 'userEnv';
+
+    expect(isEnvAuthMode()).toBe(true);
+    expect(loadAuthData(tmpDir)).toMatchObject({
+      auth_mode: 'token',
+      auth_source: 'env',
+      auth_store: 'host_injected',
+      persistence_scope: 'host',
       corp_id: 'corpEnv',
       user_id: 'userEnv',
       base_url: 'https://env-token.example.com',

@@ -289,6 +289,9 @@ function printLoginResult(result) {
     corp_id: result.corp_id,
     user_id: result.user_id,
     user_name: result.user_name,
+    already_logged_in: result.already_logged_in,
+    login_action: result.login_action,
+    previous_status: result.previous_status,
     failure_reason: result.failure_reason,
     message: result.message,
     warning: result.warning,
@@ -670,15 +673,13 @@ async function main() {
 
     case 'login': {
       const loginArgs = applyLoginEnvironmentFlags(args, { inferTargetUrl: true });
-      const { getAuthStatus, isEnvAuthMode } = require('../lib/core/utils');
+      const { getAuthStatus } = require('../lib/core/utils');
       if (hasHelpFlag(loginArgs)) {
         printLoginHelp();
       } else {
         assertNoUnsupportedLegacyLoginFlags(rawArgs, loginArgs);
         if (loginArgs.includes('--check-only')) {
           console.log(JSON.stringify(getAuthStatus(buildTokenLoginOptions(loginArgs)), null, 2));
-        } else if (isEnvAuthMode()) {
-          printLoginResult(getAuthStatus(buildTokenLoginOptions(loginArgs)));
         } else {
           const { tokenLogin } = require('../lib/auth/token-auth');
           const result = await tokenLogin(buildTokenLoginOptions(loginArgs));
@@ -697,7 +698,7 @@ async function main() {
     case 'auth': {
       const subCommand = args[0];
       const authArgs = applyLoginEnvironmentFlags(args.slice(1), { inferTargetUrl: true });
-      const { getAuthStatus, isEnvAuthMode } = require('../lib/core/utils');
+      const { getAuthStatus } = require('../lib/core/utils');
       const { tokenLogin, tokenLogout, tokenRefresh } = require('../lib/auth/token-auth');
       if (!subCommand || subCommand === '--help' || subCommand === '-h') {
         printAuthHelp();
@@ -720,9 +721,7 @@ async function main() {
           printLoginHelp();
         } else {
           assertNoUnsupportedLegacyLoginFlags(rawArgs.slice(1), authArgs);
-          const result = isEnvAuthMode()
-            ? getAuthStatus(buildTokenLoginOptions(authArgs))
-            : await tokenLogin(buildTokenLoginOptions(authArgs));
+          const result = await tokenLogin(buildTokenLoginOptions(authArgs));
           printLoginResult(result);
         }
       } else if (subCommand === 'refresh') {

@@ -52,6 +52,7 @@ function cliEnv() {
     MULE_SANDBOX_ID: '',
     OPENYIDA_AGENT_MODE: '',
     OPENYIDA_ASSUME_DESKTOP: '',
+    OPENYIDA_AUTH_MODE: '',
     QWENWORK: '',
     QWENWORK_INTEGRATION_MODE: '',
     QWENWORKCN_INTEGRATION_MODE: '',
@@ -66,6 +67,7 @@ function cliEnv() {
     OPENYIDA_REFRESH_TOKEN: '',
     OPENYIDA_TOKEN_CLIENT_ID: '',
     OPENYIDA_TOKEN_CORP_ID: '',
+    OPENYIDA_TOKEN_CORP_NAME: '',
     OPENYIDA_TOKEN_USER_ID: '',
     OPENYIDA_ENDPOINT: '',
     OPENYIDA_NO_BROWSER: '',
@@ -1835,6 +1837,9 @@ describe('CLI offline smoke', () => {
         auth_source: 'env',
         status: 'ok',
         can_auto_use: true,
+        already_logged_in: true,
+        login_action: 'noop',
+        previous_status: 'ok',
       });
 
       const authStatus = JSON.parse(runOkWithEnv(['auth', 'status', '--json'], env, workspace));
@@ -1940,6 +1945,122 @@ describe('CLI offline smoke', () => {
       expect(JSON.stringify(summary)).not.toContain('cookies.json');
       expect(summary.login).not.toHaveProperty('cookies');
       expect(summary.login).not.toHaveProperty('csrf_token');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('YIDA_AUTH_ENABLED=true treats refresh-only host token as logged-in login noop', () => {
+    const workspace = createCodexWorkspace();
+    try {
+      const loginOutput = runOkWithEnv(['login', '--no-browser', '--json'], {
+        CODEX_SHELL: '1',
+        OPENYIDA_ENV: 'public',
+        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
+        OPENYIDA_TOKEN_CLIENT_ID: 'openyida-cli',
+        OPENYIDA_TOKEN_CORP_ID: 'corpEnv',
+        OPENYIDA_TOKEN_USER_ID: 'userEnv',
+        OPENYIDA_ENDPOINT: 'https://env-token.example.com',
+      }, workspace);
+
+      expect(loginOutput).not.toContain('login.dingtalk.com/oauth2/auth');
+      expect(JSON.parse(loginOutput)).toMatchObject({
+        ok: true,
+        auth_mode: 'token',
+        auth_source: 'env',
+        auth_store: 'host_injected',
+        persistence_scope: 'host',
+        status: 'ok',
+        can_auto_use: true,
+        already_logged_in: true,
+        login_action: 'noop',
+        previous_status: 'refresh_required',
+        corp_id: 'corpEnv',
+        user_id: 'userEnv',
+      });
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('OPENYIDA_AUTH_MODE=token treats refresh-only host token as logged-in without OAuth', () => {
+    const workspace = createCodexWorkspace();
+    const env = {
+      CODEX_SHELL: '1',
+      OPENYIDA_ENV: 'public',
+      OPENYIDA_AUTH_MODE: 'token',
+      OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
+      OPENYIDA_TOKEN_CLIENT_ID: 'openyida-cli',
+      OPENYIDA_TOKEN_CORP_ID: 'corpEnv',
+      OPENYIDA_TOKEN_CORP_NAME: '环境组织',
+      OPENYIDA_TOKEN_USER_ID: 'userEnv',
+      OPENYIDA_ENDPOINT: 'https://env-token.example.com',
+      OPENYIDA_NO_BROWSER: '1',
+      OPENYIDA_OAUTH_TIMEOUT_MS: '80',
+    };
+    try {
+      const loginResult = runAnyWithEnv(['login', '--no-browser', '--json', '--quiet'], env, workspace);
+      expect(loginResult.status).toBe(0);
+      expect(loginResult.stderr).not.toContain('login.dingtalk.com/oauth2/auth');
+      expect(loginResult.stdout).not.toContain('login.dingtalk.com/oauth2/auth');
+      expect(JSON.parse(loginResult.stdout)).toMatchObject({
+        ok: true,
+        auth_mode: 'token',
+        auth_source: 'env',
+        auth_store: 'host_injected',
+        persistence_scope: 'host',
+        status: 'ok',
+        can_auto_use: true,
+        already_logged_in: true,
+        login_action: 'noop',
+        previous_status: 'refresh_required',
+        corp_id: 'corpEnv',
+        user_id: 'userEnv',
+      });
+
+      const summary = JSON.parse(runOkWithEnv(['agent-capabilities', '--summary-json'], env, workspace));
+      expect(summary.login).toMatchObject({
+        auth_mode: 'token',
+        auth_source: 'env',
+        auth_store: 'host_injected',
+        persistence_scope: 'host',
+        status: 'refresh_required',
+        can_auto_use: true,
+        corp_id: 'corpEnv',
+        corp_name: '环境组织',
+        user_id: 'userEnv',
+      });
+      expect(summary).not.toHaveProperty('precheck');
+      expect(summary.builder_path.auth).toMatchObject({
+        mode: 'token',
+        source: 'env',
+        store: 'host_injected',
+        can_auto_use: true,
+        host_injected_token_mode: true,
+        host_token_env_detected: true,
+        env_token_present: true,
+        interactive_login_allowed: false,
+        browser_session_auth_allowed: false,
+        missing_token_action: 'STOP_AND_REQUEST_HOST_TOKEN',
+      });
+      expect(summary.builder_path.auth).not.toHaveProperty('runtime_auth_provisioned');
+      expect(summary.builder_path.interactive_login).toMatchObject({
+        mode: 'not_required',
+        browser_default: 'not_required',
+        browser_owner: 'none',
+        recommended_command: null,
+        agent_action: 'do_not_run_oauth_login',
+        reason: 'host_token_env_detected',
+      });
+      expect(summary.builder_path.environment_check_simplification).toMatchObject({
+        can_skip_default_exploration_when_summary_ok: true,
+        skip_login_check_only_default: true,
+        skip_browser_login_default: true,
+        skip_cookie_or_playwright_checks_default: true,
+        stop_when_host_token_missing: false,
+      });
+      expect(JSON.stringify(summary)).not.toContain('login.dingtalk.com/oauth2/auth');
     } finally {
       fs.rmSync(workspace, { recursive: true, force: true });
     }

@@ -8,6 +8,7 @@ const path = require('path');
 const {
   getAccessToken,
   normalizeTokenResponse,
+  tokenLogin,
   tokenLogout,
   tokenRefresh,
   tokenStatus,
@@ -135,6 +136,74 @@ describe('token-auth', () => {
     });
     expect(status.access_token).toBe('env-...');
     expect(status).not.toHaveProperty('token_file');
+  });
+
+  test('host-injected token login returns already logged in without OAuth', async () => {
+    const result = await tokenLogin({
+      projectRoot: tmpDir,
+      authDir,
+      noBrowser: true,
+      quiet: true,
+      timeoutMs: 1,
+      env: {
+        YIDA_AUTH_ENABLED: 'true',
+        OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
+        OPENYIDA_TOKEN_CLIENT_ID: 'openyida-cli',
+        OPENYIDA_TOKEN_CORP_ID: 'corp-env',
+        OPENYIDA_TOKEN_USER_ID: 'user-env',
+        OPENYIDA_ENDPOINT: 'https://env-token.example.com',
+      },
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      auth_mode: 'token',
+      auth_source: 'env',
+      auth_store: 'host_injected',
+      persistence_scope: 'host',
+      status: 'ok',
+      can_auto_use: true,
+      already_logged_in: true,
+      login_action: 'noop',
+      previous_status: 'refresh_required',
+      corp_id: 'corp-env',
+      user_id: 'user-env',
+    });
+    expect(fs.existsSync(getTokenFilePath({ projectRoot: tmpDir, authDir }))).toBe(false);
+  });
+
+  test('OPENYIDA_AUTH_MODE=token refresh token login skips OAuth without YIDA_AUTH_ENABLED', async () => {
+    const result = await tokenLogin({
+      projectRoot: tmpDir,
+      authDir,
+      noBrowser: true,
+      quiet: true,
+      timeoutMs: 1,
+      env: {
+        OPENYIDA_AUTH_MODE: 'token',
+        OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
+        OPENYIDA_TOKEN_CLIENT_ID: 'openyida-cli',
+        OPENYIDA_TOKEN_CORP_ID: 'corp-env',
+        OPENYIDA_TOKEN_USER_ID: 'user-env',
+        OPENYIDA_ENDPOINT: 'https://env-token.example.com',
+      },
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      auth_mode: 'token',
+      auth_source: 'env',
+      auth_store: 'host_injected',
+      persistence_scope: 'host',
+      status: 'ok',
+      can_auto_use: true,
+      already_logged_in: true,
+      login_action: 'noop',
+      previous_status: 'refresh_required',
+      corp_id: 'corp-env',
+      user_id: 'user-env',
+    });
+    expect(fs.existsSync(getTokenFilePath({ projectRoot: tmpDir, authDir }))).toBe(false);
   });
 
   test('status exposes safe candidates when multiple profiles require selection', () => {
