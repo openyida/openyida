@@ -1,5 +1,9 @@
 'use strict';
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
 jest.mock('../lib/core/utils', () => ({
   loadAuthData: jest.fn(() => ({
     auth_mode: 'token',
@@ -38,7 +42,12 @@ jest.mock('../lib/integration/integration-api', () => ({
   saveProcess: jest.fn(),
 }));
 
+jest.mock('../lib/core/chalk', () => ({
+  warn: jest.fn(),
+}));
+
 const { fetchFormPageList } = require('../lib/app/form-navigation');
+const { warn } = require('../lib/core/chalk');
 const integrationApi = require('../lib/integration/integration-api');
 const { run } = require('../lib/integration/integration-create');
 
@@ -271,6 +280,44 @@ describe('integration create command', () => {
     const viewNode = saveParams.viewJson.schema.children.find((node) => node.componentName === 'ConnectorNode');
     expect(viewNode.props.connectorRules.connector.mode).toBe(5);
     expect(viewNode.props.connectorRules.connector.connectorMode).toBe(5);
+    expect(exitSpy).not.toHaveBeenCalled();
+  });
+
+  test('reports events and approval actions from structured specs', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-integration-create-'));
+    const specFile = path.join(dir, 'approval-flow.json');
+    fs.writeFileSync(specFile, JSON.stringify({
+      events: ['processFinish'],
+      approvalActions: [' agree ', ''],
+      nodes: [{ type: 'getSelf' }],
+    }), 'utf8');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    try {
+      await run([
+        'APP_TEST',
+        'FORM-PROCESS',
+        'Approval completion flow',
+        '--process-code',
+        'LPROC-TEST',
+        '--spec',
+        specFile,
+      ]);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+
+    const output = warn.mock.calls.flat().join('\n');
+    const eventSummary = warn.mock.calls
+      .map(([message]) => String(message))
+      .find((message) => message.includes('processFinish'));
+    const approvalSummary = warn.mock.calls
+      .map(([message]) => String(message))
+      .find((message) => message.includes('审批动作:'));
+    expect(eventSummary).toBeDefined();
+    expect(eventSummary).not.toContain('insert');
+    expect(approvalSummary).toBe('审批动作: agree');
+    expect(output).toContain('审批动作: agree');
     expect(exitSpy).not.toHaveBeenCalled();
   });
 
