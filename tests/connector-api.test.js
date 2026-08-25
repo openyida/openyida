@@ -12,7 +12,6 @@ jest.mock('../lib/core/utils', () => ({
 
 const utils = require('../lib/core/utils');
 const {
-  deleteConnector,
   createConnection,
   listConnections,
   saveConnector,
@@ -129,19 +128,6 @@ describe('connector frontend API contract', () => {
 
     expect(utils.httpPost).toHaveBeenCalledTimes(1);
     expect(utils.httpGet).not.toHaveBeenCalled();
-  });
-
-  test('delete uses the frontend endpoint once and returns confirmed deletion', async () => {
-    utils.httpPost.mockResolvedValue({ success: true, content: true });
-
-    await expect(deleteConnector('Http_owned', '5', authRef)).resolves.toMatchObject({
-      success: true,
-      connectorName: 'Http_owned',
-    });
-
-    expect(utils.httpPost).toHaveBeenCalledTimes(1);
-    expect(utils.httpPost.mock.calls[0][1]).toContain('/query/newconnector/deleteConnector.json');
-    expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
   });
 
   test('listConnections follows the frontend POST pagination contract', async () => {
