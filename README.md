@@ -461,7 +461,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida connector list` | List HTTP connectors |
 | `openyida connector create "name" "domain" ...` | Create a connector |
 | `openyida connector detail <id>` | View connector details |
-| `openyida connector delete <id>` | Delete a connector |
+| `openyida connector delete <id> [--force]` | Show manual deletion guidance (CLI does not delete) |
 | `openyida connector add-action --operations <file> --connector-id <id>` | Add an action |
 | `openyida connector list-actions <id>` | List actions |
 | `openyida connector delete-action <id> <operation-id>` | Delete an action |

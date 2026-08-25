@@ -9,7 +9,7 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 
 - 不要在代码中硬编码 API Key、密码等凭证，通过连接器鉴权配置管理
 - 不要编造 connector-id 或 action-id，必须从命令返回中提取
-- 不要删除连接器前确认是否有表单/页面正在使用
+- 不要把 `connector delete` 当作真实删除命令；CLI 仅查询目标并展示平台手工删除指引
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成连接器 action/config JSON
 
 ## 严格要求 (MUST DO)
@@ -33,7 +33,7 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 
 ## 危险操作确认
 
-删除连接器为不可逆操作，执行前必须确认无表单/页面依赖此连接器。
+CLI 不执行连接器删除。用户确需删除时，先确认并解除表单、页面、流程和集成自动化中的全部依赖，再根据命令指引前往宜搭平台管理后台手工删除；平台删除不可逆。
 
 ## 异常处理
 
@@ -43,7 +43,7 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 | 鉴权失败（401/403） | 检查鉴权方式和凭证配置，重新创建连接器或更新鉴权账号 |
 | API 调用超时 | 检查目标域名是否可达，确认网络连通性后重试 |
 | action-id 不存在 | 执行 `openyida connector list-actions <connector-id>` 重新获取有效 action-id |
-| 连接器被依赖无法删除 | 先在宜搭平台确认哪些表单/页面依赖此连接器，解除依赖后再删除 |
+| 需要删除连接器 | 执行 `openyida connector delete <connector-id> --force` 仅查询目标并获取平台指引；确认并解除全部依赖后，在宜搭平台管理后台手工删除 |
 | 智能创建解析失败 | 改用 `openyida connector gen-template` 生成模板，手动填写后再创建 |
 
 ## Agent 错误处理策略
@@ -58,7 +58,7 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 | 鉴权配置错误 | 停止执行，引导用户检查鉴权方式和凭证配置 |
 | 智能创建解析失败 | 降级为模板创建方式，引导用户使用 `gen-template` |
 | 网络超时 | 重试 1 次，仍失败则停止并提示用户检查网络 |
-| 删除操作前 | 必须先确认无依赖，展示确认提示后再执行 |
+| 用户要求删除连接器 | 明确说明 CLI 不执行删除；仅查询目标并展示平台手工删除指引，不得宣称命令已删除资源 |
 | 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |
 
 ---
@@ -89,8 +89,8 @@ openyida connector create "<名称>" "<域名>" [--auth "<鉴权方式>" --usern
 # 获取详情
 openyida connector detail <connector-id>
 
-# 删除连接器
-openyida connector delete <connector-id>
+# 查询连接器并获取平台手工删除指引（CLI 不执行删除）
+openyida connector delete <connector-id> --force
 ```
 
 ### 执行动作管理

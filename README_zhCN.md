@@ -351,7 +351,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida connector list` | 列出 HTTP 连接器 |
 | `openyida connector create "name" "domain" ...` | 创建连接器 |
 | `openyida connector detail <id>` | 查看连接器详情 |
-| `openyida connector delete <id>` | 删除连接器 |
+| `openyida connector delete <id> [--force]` | 显示平台手工删除指引（CLI 不执行删除） |
 | `openyida connector add-action --operations <file> --connector-id <id>` | 添加执行动作 |
 | `openyida connector list-actions <id>` | 列出执行动作 |
 | `openyida connector delete-action <id> <operation-id>` | 删除执行动作 |

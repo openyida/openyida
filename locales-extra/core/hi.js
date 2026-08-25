@@ -73,7 +73,7 @@ module.exports = {
     cmd_connector_list: 'HTTP कनेक्टर सूचीबद्ध करें',
     cmd_connector_create: 'कनेक्टर बनाएं',
     cmd_connector_detail: 'कनेक्टर विवरण देखें',
-    cmd_connector_delete: 'कनेक्टर हटाएं',
+    cmd_connector_delete: 'मैन्युअल हटाने के निर्देश दिखाएँ (CLI नहीं हटाता)',
     cmd_connector_add_action: 'Add an action',
     cmd_connector_list_actions: 'List actions',
     cmd_connector_delete_action: 'Delete an action',
@@ -170,7 +170,7 @@ module.exports = {
       '  connector list [options]                                     List HTTP connectors\n' +
       '  connector create "<name>" "<domain>" --operations <file> [options]  Create connector\n' +
       '  connector detail <connector-id>                              View connector details\n' +
-      '  connector delete <connector-id> [--force]                    Delete connector\n' +
+      '  connector delete <connector-id> [--force]                    मैन्युअल हटाने के निर्देश दिखाएँ (CLI नहीं हटाता)\n' +
       '  connector add-action --operations <file> --connector-id <id> Add action to connector\n' +
       '  connector list-actions <connector-id>                        List actions\n' +
       '  connector delete-action <connector-id> <operation-id>        Delete action\n' +

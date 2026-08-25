@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
+
 jest.mock('../lib/connector/api', () => ({
   findConnectorById: jest.fn(),
   getAuthRef: jest.fn(),
@@ -51,5 +54,30 @@ describe('connector delete safety boundary', () => {
 
   test('the connector API does not expose an unguarded delete mutation', () => {
     expect(actualConnectorApi.deleteConnector).toBeUndefined();
+  });
+
+  test('public docs and every locale describe connector delete as read-only guidance', () => {
+    const repoRoot = path.resolve(__dirname, '..');
+    const docs = [
+      ['README.md', 'Show manual deletion guidance (CLI does not delete)'],
+      ['README_zhCN.md', '显示平台手工删除指引（CLI 不执行删除）'],
+      ['yida-skills/skills/yida-connector/SKILL.md', 'CLI 不执行连接器删除'],
+    ];
+    for (const [relativePath, expected] of docs) {
+      expect(fs.readFileSync(path.join(repoRoot, relativePath), 'utf8')).toContain(expected);
+    }
+
+    const localePaths = [
+      'lib/core/locales/en.js',
+      'lib/core/locales/zh.js',
+      ...['ar', 'de', 'es', 'fr', 'hi', 'ja', 'ko', 'pt', 'vi', 'zh-HK']
+        .map((locale) => `locales-extra/core/${locale}.js`),
+    ];
+    expect(localePaths).toHaveLength(12);
+    for (const relativePath of localePaths) {
+      const locale = require(path.join(repoRoot, relativePath));
+      expect(locale.help.cmd_connector_delete).toContain('CLI');
+      expect(locale.cli.help).toMatch(/connector delete <connector-id> \[--force\].*CLI/);
+    }
   });
 });

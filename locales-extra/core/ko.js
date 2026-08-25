@@ -73,7 +73,7 @@ module.exports = {
     cmd_connector_list: 'HTTP 커넥터 목록',
     cmd_connector_create: '커넥터 생성',
     cmd_connector_detail: '커넥터 상세 보기',
-    cmd_connector_delete: '커넥터 삭제',
+    cmd_connector_delete: '수동 삭제 안내 표시(CLI는 삭제하지 않음)',
     cmd_connector_add_action: 'Add an action',
     cmd_connector_list_actions: 'List actions',
     cmd_connector_delete_action: 'Delete an action',
@@ -170,7 +170,7 @@ module.exports = {
       '  connector list [options]                                     List HTTP connectors\n' +
       '  connector create "<name>" "<domain>" --operations <file> [options]  Create connector\n' +
       '  connector detail <connector-id>                              View connector details\n' +
-      '  connector delete <connector-id> [--force]                    Delete connector\n' +
+      '  connector delete <connector-id> [--force]                    수동 삭제 안내 표시(CLI는 삭제하지 않음)\n' +
       '  connector add-action --operations <file> --connector-id <id> Add action to connector\n' +
       '  connector list-actions <connector-id>                        List actions\n' +
       '  connector delete-action <connector-id> <operation-id>        Delete action\n' +

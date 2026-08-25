@@ -73,7 +73,7 @@ module.exports = {
     cmd_connector_list: 'HTTP コネクタ一覧',
     cmd_connector_create: 'コネクタを作成',
     cmd_connector_detail: 'コネクタ詳細を表示',
-    cmd_connector_delete: 'コネクタを削除',
+    cmd_connector_delete: '手動削除の案内を表示（CLI は削除しません）',
     cmd_connector_add_action: 'アクションを追加',
     cmd_connector_list_actions: 'アクション一覧を表示',
     cmd_connector_delete_action: 'アクションを削除',
@@ -168,7 +168,7 @@ module.exports = {
       '  connector list [オプション]                                  HTTP コネクター一覧\n' +
       '  connector create "名前" "ドメイン" --operations <file> [オプション]  コネクター作成\n' +
       '  connector detail <connector-id>                              コネクター詳細を表示\n' +
-      '  connector delete <connector-id> [--force]                    コネクターを削除\n' +
+      '  connector delete <connector-id> [--force]                    手動削除の案内を表示（CLI は削除しません）\n' +
       '  connector add-action --operations <file> --connector-id <id> アクションを追加\n' +
       '  connector list-actions <connector-id>                        アクション一覧\n' +
       '  connector delete-action <connector-id> <operation-id>        アクションを削除\n' +

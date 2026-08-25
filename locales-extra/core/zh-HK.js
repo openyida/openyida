@@ -73,7 +73,7 @@ module.exports = {
     cmd_connector_list: '列出 HTTP 連接器',
     cmd_connector_create: '建立連接器',
     cmd_connector_detail: '查看連接器詳情',
-    cmd_connector_delete: '刪除連接器',
+    cmd_connector_delete: '顯示平台手動刪除指引（CLI 不執行刪除）',
     cmd_connector_add_action: '新增執行動作',
     cmd_connector_list_actions: '列出執行動作',
     cmd_connector_delete_action: '刪除執行動作',
@@ -168,7 +168,7 @@ module.exports = {
       '  connector list [選項]                                        列出 HTTP 連接器\n' +
       '  connector create "名稱" "網域" --operations <file> [選項]    建立連接器\n' +
       '  connector detail <connector-id>                              查看連接器詳情\n' +
-      '  connector delete <connector-id> [--force]                    刪除連接器\n' +
+      '  connector delete <connector-id> [--force]                    顯示平台手動刪除指引（CLI 不執行刪除）\n' +
       '  connector add-action --operations <file> --connector-id <id> 新增執行動作到連接器\n' +
       '  connector list-actions <connector-id>                        列出執行動作\n' +
       '  connector delete-action <connector-id> <operation-id>        刪除執行動作\n' +
