@@ -442,6 +442,53 @@ describe('requestWithAutoLogin', () => {
   });
 });
 
+describe('requestNonIdempotentWithAuthPreflight', () => {
+  test('does not replay the mutation when its result has an auth challenge', async () => {
+    const utils = require('../lib/core/utils');
+    const preflightFn = jest.fn().mockResolvedValue({ success: true, content: [] });
+    const mutationFn = jest.fn().mockResolvedValue({
+      __needLogin: true,
+      __httpStatus: 302,
+    });
+
+    const result = await utils.requestNonIdempotentWithAuthPreflight(
+      mutationFn,
+      preflightFn,
+      { baseUrl: 'https://example.test' }
+    );
+
+    expect(preflightFn).toHaveBeenCalledTimes(1);
+    expect(mutationFn).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: 'NON_IDEMPOTENT_RESULT_UNKNOWN',
+      __needLogin: true,
+    });
+    expect(result.errorMsg).toContain('Verify the target state before retrying');
+  });
+
+  test('does not issue the mutation when the read-only preflight fails', async () => {
+    const utils = require('../lib/core/utils');
+    const preflightFn = jest.fn().mockResolvedValue({
+      success: false,
+      errorCode: 'TOKEN_REFRESH_FAILED',
+    });
+    const mutationFn = jest.fn();
+
+    const result = await utils.requestNonIdempotentWithAuthPreflight(
+      mutationFn,
+      preflightFn,
+      { baseUrl: 'https://example.test' }
+    );
+
+    expect(mutationFn).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: 'TOKEN_REFRESH_FAILED',
+    });
+  });
+});
+
 // ── loadCookieData ────────────────────────────────────────────────────
 
 describe('loadCookieData', () => {

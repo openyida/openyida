@@ -35,19 +35,25 @@ function stripNodeRuntimeWarnings(output) {
     .replace(/^\(Use `node --trace-warnings \.\.\.` to show where the warning was created\)\n?/gm, '');
 }
 
+async function requestNonIdempotentOnce(requestFn, preflightFn, authRef) {
+  const preflightResult = await preflightFn(authRef);
+  if (!preflightResult || preflightResult.success === false) {
+    return preflightResult;
+  }
+  return requestFn(authRef);
+}
+
 // ── Bug #1: HTTP helpers must use master token auth / auto-login plumbing ──
 
 describe('create-form.js imports', () => {
   test('uses token-first authRef HTTP helpers while keeping auto-login wrapper', () => {
     expect(sourceCode).toContain("require('../core/yida-client')");
     expect(sourceCode).toContain('createAuthRef');
-    const requireLine = sourceCode
-      .split('\n')
-      .find((line) => line.includes('require("../core/utils")') || line.includes("require('../core/utils')"));
-    expect(requireLine).toBeDefined();
-    expect(requireLine).toContain('httpPost');
-    expect(requireLine).toContain('httpGet');
-    expect(requireLine).toContain('requestWithAutoLogin');
+    expect(sourceCode).toContain("require('../core/utils')");
+    expect(sourceCode).toContain('httpPost');
+    expect(sourceCode).toContain('httpGet');
+    expect(sourceCode).toContain('requestWithAutoLogin');
+    expect(sourceCode).toContain('requestNonIdempotentWithAuthPreflight');
   });
 
   test('request wrappers delegate to token auth HTTP helpers', () => {
@@ -96,6 +102,7 @@ describe('legacy process form bridge', () => {
         return Promise.resolve({ success: true });
       }),
       requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
+      requestNonIdempotentWithAuthPreflight: jest.fn(requestNonIdempotentOnce),
       triggerLogin: jest.fn(),
       resolveBaseUrl: jest.fn(() => 'https://example.test'),
       httpGet: jest.fn(() => Promise.resolve({ success: true, content: { gmtModified: 100 } })),
@@ -796,6 +803,7 @@ function loadIsolatedLegacyForm(schema) {
       return Promise.resolve({ success: true });
     }),
     requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
+    requestNonIdempotentWithAuthPreflight: jest.fn(requestNonIdempotentOnce),
     detectActiveTool: jest.fn(() => null),
   };
   const mockChalk = {
@@ -2010,12 +2018,14 @@ describe('create-form create recovery guardrails', () => {
     ]));
 
     const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
-      httpGet: jest.fn(() => Promise.resolve({
-        success: false,
-        errorMsg: 'schema read failed',
-        errorCode: 'READ_FAILED',
-        content: { shouldNotLeak: true },
-      })),
+      httpGet: jest.fn()
+        .mockResolvedValueOnce({ success: true, content: [] })
+        .mockResolvedValueOnce({
+          success: false,
+          errorMsg: 'schema read failed',
+          errorCode: 'READ_FAILED',
+          content: { shouldNotLeak: true },
+        }),
     });
 
     await expect(isolatedCreateForm.run([
@@ -2382,6 +2392,7 @@ function loadIsolatedCreateFormCommand(overrides = {}) {
       return Promise.resolve({ success: true });
     }),
     requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
+    requestNonIdempotentWithAuthPreflight: jest.fn(requestNonIdempotentOnce),
     detectActiveTool: jest.fn(() => null),
   }, overrides);
   jest.doMock('../lib/core/utils', () => mockUtils);
@@ -3076,6 +3087,7 @@ describe('legacy create-form compatibility', () => {
         return Promise.resolve({ success: true });
       }),
       requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
+      requestNonIdempotentWithAuthPreflight: jest.fn(requestNonIdempotentOnce),
       detectActiveTool: jest.fn(() => null),
     };
 
@@ -3103,7 +3115,16 @@ describe('legacy create-form compatibility', () => {
       JSON.stringify([{ key: 'visitorName', type: 'TextField', label: '访客姓名' }]),
     ]);
 
-    expect(mockUtils.httpGet).toHaveBeenCalledTimes(1);
+    expect(mockUtils.httpGet).toHaveBeenCalledTimes(2);
+    expect(mockUtils.httpGet.mock.calls[0][1]).toContain(
+      'getFormNavigationListByOrder.json'
+    );
+    expect(mockUtils.httpGet.mock.calls[1][1]).toContain('getFormSchema.json');
+    expect(
+      mockUtils.httpPost.mock.calls.filter((call) =>
+        call[1].includes('saveFormSchemaInfo.json')
+      )
+    ).toHaveLength(1);
     expect(consoleSpy).toHaveBeenCalledTimes(1);
     expect(JSON.parse(consoleSpy.mock.calls[0][0])).toMatchObject({
       success: true,
