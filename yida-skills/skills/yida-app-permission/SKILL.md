@@ -3,80 +3,72 @@ name: yida-app-permission
 description: 应用级管理员设置。查询和维护单个宜搭应用的应用主管理员、数据管理员、开发成员。适用于调整某个应用的管理员角色分配。
 ---
 
-# 应用级权限设置
+# 应用级管理员设置
 
-## 严格要求 (MUST DO)
+## 适用范围
 
-- 修改前先执行 `openyida app-permission get <appType>` 查询当前应用管理员设置。
-- 添加成员前先用 `search-user` 确认目标人员 userId；同名人员必须结合部门信息区分。
-- 修改 `main` 应用主管理员会影响应用后台最高管理权限，执行前必须展示当前成员和修改后成员，并等待用户确认。
-- `main` 应用主管理员不能为空；清空仅允许 `data` 或 `dev`。
+用户要求维护某一个 appType 的应用主管理员、数据管理员或开发成员时使用本技能。
 
-## 常用命令
+`app-permission main` 是单个应用内的 `MAIN` 应用主管理员。`corp-manager app` 是组织级 `applicationCreateRole` 应用管理员。两者接口、作用域和成员列表不同，不能互换。
 
-查询应用管理员设置：
+## 铁律
+
+1. **人员身份必须明确**：添加成员前运行 `search-user`；同名人员用 userId 和部门路径区分。
+2. **main 必须保留成员**：`MAIN` 是单应用最高管理员角色，after 至少包含一个 userId。
+3. **set 是整组替换**：执行前展示完整 before/after；`--clear` 只用于 data 或 dev。
+4. **平台状态是真相源**：每次修改都查询、确认并重查；本技能不使用 memory 保存管理员状态。
+
+## 标准流程
+
+1. **查询**：运行 `openyida app-permission get <appType>`，记录目标角色的 userIds。
+2. **差异预览**：根据 add、remove、set 或 clear 计算并输出明确的 before/after。
+3. **确认**：向用户确认 appType、角色、人员身份和完整 after；修改 main 时再次确认最高权限变化。
+4. **写入**：只执行一次目标命令。
+5. **重查验证**：再次运行 get，比较实际 userIds 与 after；输出 expected/actual，不一致时报告失败。
+
+## 命令
+
+查询应用角色：
 
 ```bash
 openyida app-permission get <appType>
 ```
 
-搜索人员，确认 userId：
+搜索人员：
 
 ```bash
 openyida app-permission search-user "姓名或关键词" --dept "部门关键词"
 ```
 
-添加成员：
+增量添加或移除：
 
 ```bash
-openyida app-permission add <appType> main --users <userId>
-openyida app-permission add <appType> data --users <userId1,userId2>
-openyida app-permission add <appType> dev --users <userId1,userId2>
+openyida app-permission add <appType> <main|data|dev> --users <userId1,userId2>
+openyida app-permission remove <appType> <main|data|dev> --users <userId1,userId2>
 ```
 
-完全替换某一类成员：
+整组替换或清空：
 
 ```bash
-openyida app-permission set <appType> main --users <userId1,userId2>
-openyida app-permission set <appType> data --users <userId1,userId2>
-openyida app-permission set <appType> dev --users <userId1,userId2>
+openyida app-permission set <appType> <main|data|dev> --users <userId1,userId2>
+openyida app-permission set <appType> <data|dev> --clear
 ```
 
-移除成员：
-
-```bash
-openyida app-permission remove <appType> data --users <userId>
-openyida app-permission remove <appType> dev --users <userId>
-```
-
-清空数据管理员或开发成员：
-
-```bash
-openyida app-permission set <appType> data --clear
-openyida app-permission set <appType> dev --clear
-```
-
-## 角色映射
-
-| CLI 角色 | 页面含义 | 接口 adminType |
-|---------|----------|----------------|
+| CLI 角色 | 单应用含义 | 接口 adminType |
+|----------|------------|----------------|
 | `main` | 应用主管理员 | `MAIN` |
 | `data` | 数据管理员 | `DATA` |
 | `dev` | 开发成员 | `DEV` |
 
-## 安全检查清单
+写命令的 JSON 输出包含写入结果和 `currentRole`。Agent 仍以独立 get 结果作为最终验证证据。
 
-1. `app-permission search-user` 确认目标 userId 和人员身份。
-2. `app-permission get` 查询当前应用管理员配置。
-3. 展示将要执行的 `add` / `remove` / `set` 命令和修改后 userId 列表。
-4. 用户确认后执行修改。
-5. 再次 `app-permission get` 验证结果。
+## 失败处理
 
-## 异常处理
-
-| 异常场景 | 处理方式 |
-|---------|----------|
-| 权限不足 / 登录态失效 | 停止执行，提示用户执行 `openyida login` 重新登录或切换具备权限的账号 |
-| 同名人员 | 必须通过部门路径或 userId 二次确认 |
-| 试图清空应用主管理员 | 拒绝执行，要求至少保留 1 个 `main` 成员 |
-| 修改前未查询现有配置 | 先执行 `app-permission get`，不要直接修改 |
+| 结果 | 动作 |
+|------|------|
+| 搜索到同名人员 | 展示 userId 和部门路径，由用户确认目标 |
+| main after 为空 | 零写入；要求至少保留一个主管理员 |
+| 查询或登录态失败 | 零写入；运行 `openyida auth status` 并处理账号/组织 |
+| 写入失败 | 停止；保留 before 和错误响应，不自动重复写入 |
+| 重查不一致 | 输出 expected/actual，不宣称完成 |
+| 网络超时 | 先运行 get 判断实际状态；无法证明时停止 |

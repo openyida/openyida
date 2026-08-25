@@ -29,6 +29,8 @@ let errorSpy;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  utils.httpGet.mockReset();
+  utils.httpPost.mockReset();
   utils.loadAuthData.mockReturnValue(mockAuthData);
   utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
   logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -147,55 +149,157 @@ describe('verify-short-url', () => {
 });
 
 describe('save-share-config', () => {
-  test('saves public open URL config through yida-client', async () => {
-    utils.httpPost.mockResolvedValue({
-      success: true,
-    });
+  test('updates public URL, preserves share URL, and verifies readback', async () => {
+    utils.httpPost
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          isOpen: 'n',
+          openUrl: '/o/old-public-page',
+          shareUrl: '/s/internal-page',
+          openPageAuthConfig: '{"openAuth":"y","authSources":[]}',
+        },
+      })
+      .mockResolvedValueOnce({ success: true })
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          isOpen: 'y',
+          openUrl: '/o/public-page',
+          shareUrl: '/s/internal-page',
+          openPageAuthConfig: '{"openAuth":"n","authSources":[]}',
+        },
+      });
 
     const result = await saveShareConfig.run(['APP_XXX', 'FORM_XXX', '/o/public-page', 'y', 'n']);
 
-    expect(utils.httpPost).toHaveBeenCalledTimes(1);
-    expect(utils.httpPost.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/query/formdesign/saveShareConfig.json');
-    const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
+    expect(utils.httpPost).toHaveBeenCalledTimes(3);
+    expect(utils.httpPost.mock.calls[1][1]).toBe('/dingtalk/web/APP_XXX/query/formdesign/saveShareConfig.json');
+    const body = querystring.parse(utils.httpPost.mock.calls[1][2]);
     expect(body).toMatchObject({
       _api: 'Share.saveShareConfig',
       formUuid: 'FORM_XXX',
       openUrl: '/o/public-page',
+      shareUrl: '/s/internal-page',
       isOpen: 'y',
     });
     expect(JSON.parse(body.openPageAuthConfig)).toEqual({
       openAuth: 'n',
       authSources: [],
     });
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: true,
       openUrl: '/o/public-page',
+      shareUrl: '/s/internal-page',
       isOpen: true,
+      before: {
+        openUrl: '/o/old-public-page',
+        shareUrl: '/s/internal-page',
+      },
+      after: {
+        openUrl: '/o/public-page',
+        shareUrl: '/s/internal-page',
+      },
       message: expect.any(String),
     });
     expect(getLoggedJson()).toEqual(result);
   });
 
-  test('sends organization share URLs as shareUrl', async () => {
-    utils.httpPost.mockResolvedValue({
-      success: true,
-    });
+  test('updates organization share URL while preserving public URL and auth config', async () => {
+    const publicAuthConfig = '{"openAuth":"y","authSources":["corp"]}';
+    utils.httpPost
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          isOpen: 'y',
+          openUrl: '/o/public-page',
+          shareUrl: '/s/old-internal-page',
+          openPageAuthConfig: publicAuthConfig,
+        },
+      })
+      .mockResolvedValueOnce({ success: true })
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          isOpen: 'y',
+          openUrl: '/o/public-page',
+          shareUrl: '/s/internal-page',
+          openPageAuthConfig: publicAuthConfig,
+        },
+      });
 
     await saveShareConfig.run(['APP_XXX', 'FORM_XXX', '/s/internal-page', 'y']);
 
-    const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
+    const body = querystring.parse(utils.httpPost.mock.calls[1][2]);
     expect(body).toMatchObject({
       shareUrl: '/s/internal-page',
+      openUrl: '/o/public-page',
+      isOpen: 'y',
+      openPageAuthConfig: publicAuthConfig,
     });
-    expect(body.openUrl).toBeUndefined();
+  });
+
+  test('updates organization share URL when no public config exists', async () => {
+    utils.httpPost
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          isOpen: 'n',
+          openUrl: '',
+          shareUrl: '',
+        },
+      })
+      .mockResolvedValueOnce({ success: true })
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          isOpen: 'n',
+          openUrl: '',
+          shareUrl: '/s/team',
+        },
+      });
+
+    const result = await saveShareConfig.run(['APP_XXX', 'FORM_XXX', '/s/team', 'n']);
+
+    expect(result).toMatchObject({
+      success: true,
+      openUrl: null,
+      shareUrl: '/s/team',
+      isOpen: false,
+    });
+    expect(result.expected).not.toHaveProperty('openPageAuthConfig');
+  });
+
+  test('fails closed when an existing public URL lacks preservable auth config', async () => {
+    utils.httpPost.mockResolvedValueOnce({
+      success: true,
+      content: {
+        isOpen: 'y',
+        openUrl: '/o/public-page',
+        shareUrl: '/s/old-internal-page',
+      },
+    });
+
+    await expect(saveShareConfig.run([
+      'APP_XXX',
+      'FORM_XXX',
+      '/s/internal-page',
+      'y',
+    ])).rejects.toMatchObject({
+      isCliError: true,
+      code: 'SAVE_SHARE_CONFIG_CURRENT_STATE_INCOMPLETE',
+    });
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
   });
 
   test('keeps save API business failure as a normal JSON result', async () => {
-    utils.httpPost.mockResolvedValue({
-      success: false,
-      errorMsg: '保存失败',
-      errorCode: 'SAVE_FAILED',
-    });
+    utils.httpPost
+      .mockResolvedValueOnce({ success: true, content: {} })
+      .mockResolvedValueOnce({
+        success: false,
+        errorMsg: '保存失败',
+        errorCode: 'SAVE_FAILED',
+      });
 
     const result = await saveShareConfig.run(['APP_XXX', 'FORM_XXX', '/o/public-page', 'y']);
 
@@ -203,6 +307,30 @@ describe('save-share-config', () => {
       success: false,
       message: '保存失败',
       errorCode: 'SAVE_FAILED',
+    });
+    expect(utils.httpPost).toHaveBeenCalledTimes(2);
+  });
+
+  test('fails closed when save succeeds but readback does not match', async () => {
+    utils.httpPost
+      .mockResolvedValueOnce({
+        success: true,
+        content: { isOpen: 'n', openUrl: '/o/old', shareUrl: '/s/keep' },
+      })
+      .mockResolvedValueOnce({ success: true })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { isOpen: 'n', openUrl: '/o/old', shareUrl: '/s/keep' },
+      });
+
+    await expect(saveShareConfig.run([
+      'APP_XXX',
+      'FORM_XXX',
+      '/o/new',
+      'y',
+    ])).rejects.toMatchObject({
+      isCliError: true,
+      code: 'SAVE_SHARE_CONFIG_VERIFY_FAILED',
     });
   });
 
@@ -215,6 +343,19 @@ describe('save-share-config', () => {
     }
 
     expectCliError(error, 'SAVE_SHARE_CONFIG_INVALID_ARGUMENTS', 'maybe');
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('rejects a non-empty invalid URL even when isOpen is n', async () => {
+    await expect(saveShareConfig.run([
+      'APP_XXX',
+      'FORM_XXX',
+      '/s/../bad',
+      'n',
+    ])).rejects.toMatchObject({
+      isCliError: true,
+      code: 'SAVE_SHARE_CONFIG_INVALID_ARGUMENTS',
+    });
     expect(utils.httpPost).not.toHaveBeenCalled();
   });
 });

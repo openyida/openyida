@@ -54,7 +54,8 @@ describe('get-permission command regression', () => {
             packageName: { zh_CN: '管理员' },
             description: { zh_CN: '管理权限' },
             packageType: 'FORM_PACKAGE_VIEW',
-            roleMembers: [{ roleType: 'USER', label: 'Ada', roleValue: 'u1' }],
+            roleMembers: [{ roleType: 'MANAGER', label: 'Ada', roleValue: 'u1' }],
+            roleData: '{"include":[{"roleType":"MANAGER","roleValue":"u1"}]}',
             dataPermit: '{"scope":"all"}',
             operatePermit: { submit: true },
             fieldPermit: 'not-json',
@@ -78,12 +79,22 @@ describe('get-permission command regression', () => {
     expect(output).toMatchObject({
       success: true,
       totalPackages: 1,
+      query: {
+        packageType: 'FORM_PACKAGE_VIEW',
+        pageIndex: 1,
+        pageSize: 20,
+        returned: 1,
+        mayHaveMore: false,
+      },
       message: '权限配置查询成功',
     });
     expect(output.permissions[0]).toMatchObject({
       packageUuid: 'pkg-1',
       packageName: '管理员',
       description: '管理权限',
+      roleData: {
+        include: [{ roleType: 'MANAGER', roleValue: 'u1' }],
+      },
       dataPermit: { scope: 'all' },
       operatePermit: { submit: true },
       fieldPermit: {},

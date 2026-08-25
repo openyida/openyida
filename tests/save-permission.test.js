@@ -11,12 +11,19 @@ jest.mock('../lib/core/utils', () => ({
   requestWithAutoLogin: jest.fn(),
 }));
 
-jest.mock('../lib/core/i18n', () => ({
-  t: jest.fn((key, ...args) => args.length ? `${key}: ${args.join(', ')}` : key),
-}));
+jest.mock('../lib/core/i18n', () => {
+  const i18n = jest.requireActual('../lib/core/i18n');
+  i18n.setLanguage('zh');
+  return { t: i18n.t };
+});
 
 const utils = require('../lib/core/utils');
-const { run, buildDataPermit, validateMatrix } = require('../lib/permission/save-permission');
+const {
+  run,
+  buildDataPermit,
+  validateDataPermission,
+  validateMatrix,
+} = require('../lib/permission/save-permission');
 
 const mockAuthData = {
   base_url: 'https://www.aliwork.com',
@@ -26,6 +33,16 @@ const mockAuthData = {
   user_id: 'user-1',
 };
 
+const customFieldPermit = {
+  fieldRange: 'CUSTOM',
+  fieldStatus: [{
+    label: '客户名称',
+    fieldName: 'textField_a',
+    componentName: 'TextField',
+    value: 'FORM_FIELD_VIEW',
+  }],
+};
+
 describe('save-permission command', () => {
   let mockLog;
   let mockError;
@@ -33,6 +50,8 @@ describe('save-permission command', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    utils.httpGet.mockReset();
+    utils.httpPost.mockReset();
     utils.loadAuthData.mockReturnValue(mockAuthData);
     utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
     mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -69,7 +88,7 @@ describe('save-permission command', () => {
       'APP-1',
       'FORM-1',
       '--field-permission',
-      '{"role":"DEFAULT","fieldRange":"CUSTOM","fields":{"textField_a":"READONLY"}}',
+      JSON.stringify({ role: 'DEFAULT', ...customFieldPermit }),
     ]);
 
     expect(utils.httpGet).toHaveBeenCalledTimes(1);
@@ -78,7 +97,7 @@ describe('save-permission command', () => {
     expect(body).toMatchObject({
       formUuid: 'FORM-1',
       packageUuid: 'pkg-1',
-      fieldPermit: '{"fieldRange":"CUSTOM","fields":{"textField_a":"READONLY"}}',
+      fieldPermit: JSON.stringify(customFieldPermit),
     });
     const output = JSON.parse(mockLog.mock.calls[0][0]);
     expect(output).toMatchObject({
@@ -103,7 +122,7 @@ describe('save-permission command', () => {
       '--name',
       '只读字段组',
       '--field-permission',
-      '{"fieldRange":"CUSTOM","fields":{"textField_a":"READONLY"}}',
+      JSON.stringify(customFieldPermit),
     ]);
 
     expect(utils.httpPost).toHaveBeenCalledTimes(1);
@@ -111,7 +130,7 @@ describe('save-permission command', () => {
     expect(body.packageUuid).toBeUndefined();
     expect(body).toMatchObject({
       formUuid: 'FORM-1',
-      fieldPermit: '{"fieldRange":"CUSTOM","fields":{"textField_a":"READONLY"}}',
+      fieldPermit: JSON.stringify(customFieldPermit),
     });
     const output = JSON.parse(mockLog.mock.calls[0][0]);
     expect(output).toMatchObject({
@@ -419,6 +438,308 @@ describe('save-permission command', () => {
     expect(utils.httpPost).not.toHaveBeenCalled();
   });
 
+  test('rejects an unsupported target role before any network request', async () => {
+    await expect(run([
+      'APP-1',
+      'FORM-1',
+      '--data-permission',
+      '{"role":"PERSONS","dataRange":"ALL"}',
+    ])).rejects.toMatchObject({
+      isCliError: true,
+      code: 'SAVE_PERMISSION_INVALID_ARGUMENTS',
+    });
+    expect(utils.httpGet).not.toHaveBeenCalled();
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('writes nothing when a role matches multiple permission groups and lists candidates', async () => {
+    utils.httpGet.mockResolvedValueOnce({
+      success: true,
+      content: {
+        formPermit: [
+          {
+            packageUuid: 'pkg-a',
+            packageName: { zh_CN: '默认组 A' },
+            roleMembers: [{ roleType: 'DEFAULT' }],
+          },
+          {
+            packageUuid: 'pkg-b',
+            packageName: { zh_CN: '默认组 B' },
+            roleMembers: [{ roleType: 'DEFAULT' }],
+          },
+        ],
+      },
+    });
+
+    let error;
+    try {
+      await run(['APP-1', 'FORM-1', '--data-permission', '{"dataRange":"ALL"}']);
+    } catch (caught) {
+      error = caught;
+    }
+
+    expect(error).toMatchObject({
+      isCliError: true,
+      code: 'SAVE_PERMISSION_AMBIGUOUS_PACKAGE',
+    });
+    expect(error.message).toContain('默认组 A (pkg-a)');
+    expect(error.message).toContain('默认组 B (pkg-b)');
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('writes nothing when a role matches no permission group and lists available groups', async () => {
+    utils.httpGet.mockResolvedValueOnce({
+      success: true,
+      content: {
+        formPermit: [{
+          packageUuid: 'pkg-default',
+          packageName: { zh_CN: '默认组' },
+          roleMembers: [{ roleType: 'DEFAULT' }],
+        }],
+      },
+    });
+
+    await expect(run([
+      'APP-1',
+      'FORM-1',
+      '--data-permission',
+      '{"role":"MANAGER","dataRange":"ALL"}',
+    ])).rejects.toMatchObject({
+      isCliError: true,
+      code: 'SAVE_PERMISSION_NO_MATCHING_PACKAGE',
+      message: expect.stringContaining('默认组 (pkg-default)'),
+    });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('writes nothing when the first page is full and uniqueness cannot be proven', async () => {
+    utils.httpGet.mockResolvedValueOnce({
+      success: true,
+      content: {
+        formPermit: Array.from({ length: 20 }, (_item, index) => ({
+          packageUuid: `pkg-${index + 1}`,
+          packageName: { zh_CN: `权限组 ${index + 1}` },
+          roleMembers: [{ roleType: index === 0 ? 'DEFAULT' : 'MANAGER' }],
+        })),
+      },
+    });
+
+    await expect(run([
+      'APP-1',
+      'FORM-1',
+      '--data-permission',
+      '{"role":"DEFAULT","dataRange":"ALL"}',
+    ])).rejects.toMatchObject({
+      isCliError: true,
+      code: 'SAVE_PERMISSION_QUERY_LIMIT_REACHED',
+      message: expect.stringContaining('权限组 20 (pkg-20)'),
+    });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('blocks action replacement when the current package has unknown operation keys', async () => {
+    utils.httpGet.mockResolvedValueOnce({
+      success: true,
+      content: {
+        formPermit: [{
+          packageUuid: 'pkg-unknown-action',
+          packageName: { zh_CN: '含新操作的权限组' },
+          roleMembers: [{ roleType: 'DEFAULT' }],
+          roleData: '{"include":[{"roleType":"DEFAULT","roleValue":"ALL"}]}',
+          dataPermit: '{"rule":[{"type":"ALL","value":"y"}]}',
+          operatePermit: '{"OPERATE_VIEW":"y","OPERATE_FUTURE":"y"}',
+          fieldPermit: '{"fieldRange":"FORM"}',
+        }],
+      },
+    });
+
+    await expect(run([
+      'APP-1',
+      'FORM-1',
+      '--action-permission',
+      '{"operations":{"OPERATE_VIEW":true}}',
+    ])).rejects.toMatchObject({
+      isCliError: true,
+      code: 'SAVE_PERMISSION_UNKNOWN_OPERATE_KEYS',
+    });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('preserves unknown operation keys verbatim when another dimension changes', async () => {
+    const roleData = '{"include":[{"roleType":"DEFAULT","roleValue":"ALL"}]}';
+    const operatePermit = '{"OPERATE_VIEW":"y","OPERATE_FUTURE":"y"}';
+    utils.httpGet.mockResolvedValueOnce({
+      success: true,
+      content: {
+        formPermit: [{
+          packageUuid: 'pkg-preserve-action',
+          packageName: { zh_CN: '保留新操作' },
+          roleMembers: [{ roleType: 'DEFAULT' }],
+          roleData,
+          dataPermit: '{"rule":[{"type":"ALL","value":"y"}]}',
+          operatePermit,
+          fieldPermit: '{"fieldRange":"FORM"}',
+        }],
+      },
+    });
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+
+    await run([
+      'APP-1',
+      'FORM-1',
+      '--field-permission',
+      '{"role":"DEFAULT","fieldRange":"FORM"}',
+    ]);
+
+    const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
+    expect(body.operatePermit).toBe(operatePermit);
+    expect(body.roleData).toBe(roleData);
+  });
+
+  test.each([
+    ['empty operation set', ['--action-permission', '{"operations":{}}'], '操作权限至少需要一个'],
+    ['empty data range', ['--data-permission', '{"rule":[]}'], 'rule 不能为空'],
+    [
+      'custom department without ids',
+      ['--data-permission', '{"rule":[{"type":"CUSTOM_DEPARTMENT","value":"y"}]}'],
+      'departmentIds',
+    ],
+    [
+      'formula without formulaData',
+      ['--data-permission', '{"rule":[{"type":"FORMULA","value":"y"}]}'],
+      'formulaData',
+    ],
+  ])('rejects %s before remote writes', async (_label, permissionArgs, message) => {
+    await expect(run(['APP-1', 'FORM-1', ...permissionArgs])).rejects.toMatchObject({
+      isCliError: true,
+      code: 'SAVE_PERMISSION_INVALID_ARGUMENTS',
+      message: expect.stringContaining(message),
+    });
+    expect(utils.httpGet).not.toHaveBeenCalled();
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('requires explicit confirmation before all-members replaces composite roleData', async () => {
+    utils.httpGet.mockResolvedValueOnce({
+      success: true,
+      content: {
+        formPermit: [{
+          packageUuid: 'pkg-composite',
+          packageName: { zh_CN: '复合成员组' },
+          roleMembers: [{ roleType: 'DEFAULT' }],
+          roleData: JSON.stringify({
+            include: [
+              { roleType: 'DEFAULT', roleValue: 'ALL' },
+              { roleType: 'MANAGER', roleValue: 'appMainAdminRole' },
+              { roleType: 'DEPARTMENT', roleValue: 'dept-1' },
+            ],
+          }),
+          dataPermit: '{"rule":[{"type":"ALL","value":"y"}]}',
+          operatePermit: '{"OPERATE_VIEW":"y"}',
+          fieldPermit: '{"fieldRange":"FORM"}',
+        }],
+      },
+    });
+
+    await expect(run(['APP-1', 'FORM-1', '--all-members'])).rejects.toMatchObject({
+      isCliError: true,
+      code: 'SAVE_PERMISSION_MEMBER_REPLACE_CONFIRM_REQUIRED',
+      message: expect.stringContaining('DEPARTMENT'),
+    });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('replaces composite roleData only after explicit member confirmation', async () => {
+    utils.httpGet.mockResolvedValueOnce({
+      success: true,
+      content: {
+        formPermit: [{
+          packageUuid: 'pkg-composite',
+          packageName: { zh_CN: '复合成员组' },
+          roleMembers: [{ roleType: 'DEFAULT' }],
+          roleData: JSON.stringify({
+            include: [
+              { roleType: 'DEFAULT', roleValue: 'ALL' },
+              { roleType: 'MANAGER', roleValue: 'appMainAdminRole' },
+            ],
+          }),
+          dataPermit: '{"rule":[{"type":"ALL","value":"y"}]}',
+          operatePermit: '{"OPERATE_VIEW":"y"}',
+          fieldPermit: '{"fieldRange":"FORM"}',
+        }],
+      },
+    });
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+
+    await run(['APP-1', 'FORM-1', '--all-members', '--confirm-member-replace']);
+
+    const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
+    expect(JSON.parse(body.roleData)).toEqual({
+      include: [{ roleType: 'DEFAULT', roleValue: 'ALL' }],
+    });
+  });
+
+  test('members replacement preserves non-PERSONS role entries', async () => {
+    const existingRoleData = {
+      include: [
+        { roleType: 'MANAGER', roleValue: 'appMainAdminRole' },
+        { roleType: 'DEPARTMENT', roleValue: 'dept-1' },
+        { roleType: 'ROLE', roleValue: 'role-1' },
+        { roleType: 'PARAM', roleValue: 'param-1' },
+        { roleType: 'PERSONS', roleValue: 'old-user' },
+      ],
+    };
+    utils.httpGet.mockResolvedValueOnce({
+      success: true,
+      content: {
+        formPermit: [{
+          packageUuid: 'pkg-manager',
+          packageName: { zh_CN: '管理员复合组' },
+          roleMembers: [{ roleType: 'MANAGER' }],
+          roleData: JSON.stringify(existingRoleData),
+          dataPermit: '{"rule":[{"type":"ALL","value":"y"}]}',
+          operatePermit: '{"OPERATE_VIEW":"y"}',
+          fieldPermit: '{"fieldRange":"FORM"}',
+        }],
+      },
+    });
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+
+    await run([
+      'APP-1',
+      'FORM-1',
+      '--members',
+      'new-user',
+      '--data-permission',
+      '{"role":"MANAGER","dataRange":"ALL"}',
+    ]);
+
+    const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
+    expect(JSON.parse(body.roleData)).toEqual({
+      include: [
+        ...existingRoleData.include.slice(0, 4),
+        { roleType: 'PERSONS', roleValue: 'new-user' },
+      ],
+    });
+  });
+
+  test('rejects matrix membership whose data permission omits MATRIX', async () => {
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+
+    await expect(run([
+      'APP-1',
+      'FORM-1',
+      '--create',
+      '--name',
+      '无矩阵数据范围',
+      '--matrix',
+      '{"matrixId":"MATRIX-1","columnId":"column-1"}',
+      '--data-permission',
+      '{"dataRange":"ALL"}',
+    ])).rejects.toThrow('数据权限 rule 必须包含 MATRIX');
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
   test('invalid JSON rejects with CliError instead of exiting', async () => {
     let error;
     try {
@@ -467,6 +788,48 @@ describe('buildDataPermit', () => {
       },
     };
     expect(JSON.parse(buildDataPermit(complex))).toEqual(complex);
+  });
+
+  test('removes target role from the persisted dataPermit payload', () => {
+    expect(JSON.parse(buildDataPermit({
+      role: 'MANAGER',
+      rule: [{ type: 'ALL', value: 'y' }],
+    }))).toEqual({
+      rule: [{ type: 'ALL', value: 'y' }],
+    });
+  });
+
+  test('keeps supporting data for simple custom department and formula ranges', () => {
+    expect(JSON.parse(buildDataPermit({
+      dataRange: 'CUSTOM_DEPARTMENT',
+      customDepartmentData: { departmentIds: ['dept-1'] },
+    }))).toEqual({
+      rule: [{ type: 'CUSTOM_DEPARTMENT', value: 'y' }],
+      customDepartmentData: { departmentIds: ['dept-1'] },
+    });
+    expect(JSON.parse(buildDataPermit({
+      dataRange: 'FORMULA',
+      formulaData: { condition: 'OR', rules: [] },
+    }))).toEqual({
+      rule: [{ type: 'FORMULA', value: 'y' }],
+      formulaData: { condition: 'OR', rules: [] },
+    });
+  });
+});
+
+describe('validateDataPermission', () => {
+  test('accepts the platform data types and rejects aliases inside raw rules', () => {
+    expect(() => validateDataPermission({
+      rule: [{ type: 'SUBORDINATE', value: 'y' }],
+    })).not.toThrow();
+    expect(() => validateDataPermission({
+      rule: [{ type: 'SELF', value: 'y' }],
+    })).toThrow('无效的 rule type');
+  });
+
+  test('requires supporting data for simple custom ranges', () => {
+    expect(() => validateDataPermission({ dataRange: 'CUSTOM_DEPARTMENT' })).toThrow('departmentIds');
+    expect(() => validateDataPermission({ dataRange: 'CUSTOM' })).toThrow('formulaData');
   });
 });
 

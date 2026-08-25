@@ -3,120 +3,95 @@ name: yida-page-config
 description: 配置已有页面的公开访问和组织内分享。
 ---
 
-# 页面配置
+# 页面访问配置
 
 ## 适用范围
 
-- 不得把不支持、冲突、stale、reconciliation required 或状态不确定的任务自动改走 `save-share-config`/`update-form-config`，不得按标题或 URL adopt、猜 formUuid。
-- 只有页面目标明确属于当前普通 OpenYida 资源时，以下命令、stdout/stderr 和返回行为才按本技能契约使用；所有权不明确时零远端写。
+用户要求查询或修改已有普通 OpenYida 页面的公开短链 `/o/`、组织内分享短链 `/s/`，或明确要求隐藏页面级导航时使用本技能。
 
-## 严格禁止 (NEVER DO)
+目标页面必须有可证明的 appType 和 formUuid。资源所有权不明、状态 stale、存在冲突或需要 reconciliation 时保持零写入；按标题或 URL 猜测页面身份不构成证明。
 
-- 不要为使用宜搭表单数据的自定义页面配置公开访问（`/o/xxx`），匿名用户无法调用需要登录态的表单接口
-- 不要跳过 `verify-short-url` 验证直接保存配置，URL 格式错误会导致配置失败
-- 不要编造 `appType` 或 `formUuid`，必须从命令返回或 `config.json` 中提取
+## 能力边界
 
-## 严格要求 (MUST DO)
+| 配置 | 已确认语义 | 当前 CLI 能力边界 |
+|------|------------|-------------------|
+| `/o/<path>` | 公开访问短链，保存字段为 openUrl，并由 isOpen 控制开关 | openAuth 原样传给公开访问配置；CLI 不能证明页面是否具备公开访问资格，也不能推断授权主体或匿名数据能力 |
+| `/s/<path>` | 组织内分享短链，保存字段为 shareUrl | isOpen 和 openAuth 不定义 `/s/` 的访问能力；以平台查询结果和实际访问验证为准 |
 
-- 配置公开访问前必须确认页面类型：纯展示页面才可配置 `/o/` 公开访问
-- 必须先运行 `verify-short-url` 验证 URL 有效性，再执行 `save-share-config`
-- 配置完成后必须访问生成的 URL 验证页面可正常访问
-- **本技能不读写 memory**：页面配置通过 CLI 命令写入宜搭平台，不依赖跨会话的 memory 状态
+页面使用哪类数据、是否允许公开、openAuth 对当前页面和组织开放哪些资格，必须来自平台能力、用户确认或实际查询证据。本技能不根据页面类型或数据源猜测资格。
 
-## 适用场景
+## 铁律
 
-| 用户意图 | 触发条件 |
-|---------|---------|
-| 页面公开访问 | "公开访问"、"分享链接"、"外部访问" |
-| 组织内分享 | "组织内分享"、"内部分享" |
-| 导航栏显示控制 | "隐藏导航"、"全屏展示" |
+1. **目标必须可证明**：appType 和 formUuid 从创建/查询命令或当前项目 config.json 获取；证据冲突时停止。
+2. **一类短链修改必须保留另一类**：修改 `/o/` 时保留已有 `/s/`；修改 `/s/` 时保留已有 `/o/`、isOpen 和公开授权配置。
+3. **短链必须先验证**：启用或替换短链前运行 `verify-short-url`；验证失败时零写入。
+4. **写后必须重查**：保存成功只表示请求成功；`get-page-config` 的实际 URL 与预期一致后才报告完成。
+5. **平台状态是真相源**：本技能不使用 memory 保存页面配置。
 
-## 触发条件
+## 标准流程
 
-**正向触发**：
-- "公开访问"、"分享链接"、"外部访问"、"生成分享地址"
-- "组织内分享"、"内部分享"
-- "隐藏导航"、"全屏展示"、"隐藏顶部导航栏"
-- 页面发布后需要配置访问权限时
-
----
-
-
-## ⚠️ 关键限制
-
-**使用宜搭表单数据的自定义页面不支持公开访问（`/o/xxx`）**，因为匿名用户无法调用需要登录态的表单接口。
-
-| 页面类型 | 公开访问 `/o/` | 组织内分享 `/s/` |
-|---------|:-:|:-:|
-| 纯展示页面（静态/外部 API） | ✅ | ✅ |
-| 使用宜搭表单数据 | ❌ | ✅ |
+1. **查询**：运行 `openyida get-page-config <appType> <formUuid>`，记录 openUrl、shareUrl 和 isOpen。
+2. **差异预览**：输出 before/after，明确目标短链的变化以及另一类短链保持值。
+3. **确认**：用户确认 URL、`/o/` 或 `/s/` 语义；使用 `/o/` 时同时确认 isOpen 与 openAuth 输入只代表提交参数，不代表资格证明。
+4. **写入**：先验证目标 URL，再执行一次 `save-share-config`。CLI 会再次查询当前配置并合并未修改字段。
+5. **重查验证**：CLI 保存后会重查并返回 before/after；Agent 再以 `get-page-config` 和实际访问结果验证目标 URL。expected/actual 不一致时停止。
 
 ## 命令
 
-### 验证 URL
-
-```bash
-openyida verify-short-url <appType> <formUuid> <url>
-```
-
-### 保存配置
-
-```bash
-openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]
-```
-
-| 参数 | 必填 | 说明 |
-|------|------|------|
-| `url` | 是 | `/o/xxx` 或 `/s/xxx`，关闭时传 `""` |
-| `isOpen` | 是 | `y` 开启 / `n` 关闭 |
-| `openAuth` | 否 | `y` 需授权 / `n` 不需要（默认） |
-
-### 查询配置
+查询：
 
 ```bash
 openyida get-page-config <appType> <formUuid>
 ```
 
-### 隐藏页面导航
+验证目标短链：
+
+```bash
+openyida verify-short-url <appType> <formUuid> </o/path|/s/path>
+```
+
+保存：
+
+```bash
+openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]
+```
+
+| 参数 | 规则 |
+|------|------|
+| `url` | `/o/...` 修改 openUrl；`/s/...` 修改 shareUrl |
+| `isOpen` | `y` 或 `n`；控制 `/o/` 公开开关 |
+| `openAuth` | `y` 或 `n`，默认 `n`；只写入公开访问授权配置，不声明授权资格或人员范围 |
+
+路径段支持 `a-z A-Z 0-9 _ -`，可用单个 `/` 分隔。空路径段、连续 `/` 和尾部 `/` 校验失败。URL 是否可用由 `verify-short-url` 接口结果决定。
+
+## 页面级导航
+
+用户明确要求页面隐藏导航、无导航或全屏无框时执行：
 
 ```bash
 openyida update-form-config <appType> <formUuid> false "<页面标题>"
 ```
 
-这条命令只做页面级导航隐藏：
+这条命令只设置页面级 `isRenderNav=false`。自定义页要自绘应用侧边或顶部导航时，先使用 `openyida update-app <appType> --hide-app-nav` 隐藏应用导航；两者不是同一配置。
 
-| 场景 | 用这个命令吗 | 说明 |
-| --- | --- | --- |
-| 页面隐藏导航 / 无导航 / 全屏无框 | 是 | 对应 `isRenderNav=false` |
-| 自定义页自绘应用侧边/顶部导航 | 不是主命令 | 先执行 `openyida update-app <appType> --hide-app-nav` |
-| 自绘应用导航后还要求页面本身也隐藏导航 | 是 | 在 `update-app --hide-app-nav` 之后再执行本命令 |
+创建 dashboard 页面时，只有用户明确要求隐藏页面导航才使用：
 
-看板/驾驶舱新建页面默认导航可见；只有用户显式要求页面隐藏导航 / 无导航 / 全屏无框时，才使用 `openyida create-page <appType> "<页面名>" --mode dashboard --hide-nav` 一步完成页面导航隐藏。自定义页之间跳转不靠 `?isRenderNav=false` 隐藏应用导航。
+```bash
+openyida create-page <appType> "<页面名>" --mode dashboard --hide-nav
+```
 
-## URL 格式
+## 失败处理
 
-- 公开访问：`/o/xxx`，组织内分享：`/s/xxx`
-- 路径段仅支持 `a-z A-Z 0-9 _ -`，可用 `/` 分隔多级路径，例如 `/o/team/report-2026`
-- 不允许空路径段、连续 `/` 或尾部 `/`，路径全局唯一
+| 结果 | 动作 |
+|------|------|
+| URL 格式或可用性验证失败 | 零写入；展示接口错误并让用户选择新路径 |
+| 保存前查询失败 | 零写入；处理登录态、权限或资源身份问题 |
+| 修改 `/s/` 时当前 `/o/` 授权配置缺失 | 零写入；保留查询结果并让用户在平台确认当前公开配置 |
+| 保存请求失败 | 停止；保留 before，不自动重复提交 |
+| 写后重查不一致 | 报告 expected/actual 和 before/after，不宣称完成 |
+| 实际 URL 无法访问 | 记录状态码和页面响应；不猜测 CDN、公开资格或 openAuth 语义 |
+| 网络超时 | 先重查配置；无法证明是否写入时停止并交给用户判断 |
 
-## 异常处理
+## 明确不支持
 
-| 异常场景 | 处理方式 |
-|---------|----------|
-| verify-short-url 验证失败 | 检查 URL 格式（路径段只含 `a-z A-Z 0-9 _ -`，`/` 仅作分隔符），确认路径全局唯一 |
-| save-share-config 失败 | 必须先执行 verify-short-url 验证通过后再保存 |
-| 公开访问页面无法加载数据 | 使用宜搭表单数据的页面不支持公开访问（/o/），改用组织内分享（/s/） |
-| 配置后访问 URL 404 | 确认 URL 路径唯一，等待 CDN 缓存刷新（通常 1-2 分钟） |
-
-## Agent 错误处理策略
-
-当 Agent 执行本技能遇到错误时，必须遵循以下默认行为：
-
-| 错误类型 | 默认处理策略 |
-|---------|-------------|
-| 命令执行失败 | 停止执行，向用户展示错误信息，询问是否重试或调整参数 |
-| 参数缺失（appType/formUuid 等） | 主动询问用户补充，不得猜测或编造 |
-| 权限不足 / 登录态失效 | 停止执行，提示用户执行 `openyida auth status` 检查登录态 |
-| URL 验证失败 | 停止执行，提示用户检查 URL 格式或更换路径 |
-| 网络超时 | 重试 1 次，仍失败则停止并提示用户检查网络 |
-| 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |
+页面人员/部门白名单、公开访问资格探测、openAuth 授权主体配置和 permission-v2。

@@ -31,6 +31,7 @@
     "test:e2e:real:process-agent": "node scripts/e2e-real/process/agent-runner.js",
     "test:e2e:real:skills": "node scripts/e2e-real/skill-coverage.js",
     "test:e2e:real:cleanup": "node scripts/e2e-real/cleanup.js",
+    "test:e2e:real:permission": "node scripts/e2e-real/permission/runner.js",
     "eval:e2e": "node scripts/eval/runner.js --mode e2e",
     "eval:routing": "node scripts/eval/runner.js --mode routing",
     "eval:generate": "node scripts/eval/runner.js --mode generate",
