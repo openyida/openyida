@@ -11,6 +11,12 @@ jest.mock('../lib/core/utils', () => ({
   requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
 }));
 
+jest.mock('../lib/core/i18n', () => {
+  const i18n = jest.requireActual('../lib/core/i18n');
+  i18n.setLanguage('zh');
+  return { t: i18n.t };
+});
+
 const utils = require('../lib/core/utils');
 const {
   buildSubAdminConfig,
