@@ -92,14 +92,15 @@ describe('report command helpers', () => {
     expect(querystring.parse(utils.httpPost.mock.calls[0][2])).toMatchObject({
       formType: 'report',
     });
-    expect(utils.httpPost.mock.calls[1][1]).toBe('/dingtalk/web/APP_XXX/_view/query/formdesign/saveFormSchema.json');
+    expect(utils.httpPost.mock.calls[1][1]).toBe('/alibaba/web/APP_XXX/_view/query/formdesign/saveFormSchema.json');
     expect(querystring.parse(utils.httpPost.mock.calls[1][2])).toMatchObject({
       formUuid: 'REPORT_1',
       schemaVersion: 'V5',
-      importSchema: 'true',
+      domainCode: 'tEXDRG',
       gmtModified: '100',
     });
-    expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(1);
+    expect(querystring.parse(utils.httpPost.mock.calls[1][2])).not.toHaveProperty('importSchema');
+    expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
   });
 
   test.each([
@@ -127,7 +128,15 @@ describe('report command helpers', () => {
     utils.httpPost
       .mockResolvedValueOnce({ success: true, content: { formUuid: 'REPORT_1' } })
       .mockResolvedValueOnce({ success: true });
-    utils.httpGet.mockResolvedValueOnce({ success: true, content: { gmtModified: 100 } });
+    utils.httpGet
+      .mockResolvedValueOnce({ success: true, content: { gmtModified: 100 } })
+      .mockImplementationOnce(async () => {
+        const saveBody = querystring.parse(utils.httpPost.mock.calls[1][2]);
+        return {
+          success: true,
+          content: { ...JSON.parse(saveBody.content), gmtModified: 101 },
+        };
+      });
 
     const result = await createReport.run(['APP_XXX', '销售报表', JSON.stringify(chartConfig)]);
 
@@ -137,6 +146,7 @@ describe('report command helpers', () => {
       reportTitle: '销售报表',
       appType: 'APP_XXX',
       chartCount: 1,
+      readbackVerified: true,
       url: 'https://demo.aliwork.com/APP_XXX/workbench/REPORT_1',
     });
     const saveBody = querystring.parse(utils.httpPost.mock.calls[1][2]);
@@ -145,7 +155,29 @@ describe('report command helpers', () => {
       pages: expect.any(Array),
     });
     expect(saveBody.gmtModified).toBe('100');
+    expect(saveBody.domainCode).toBe('tEXDRG');
+    expect(utils.httpGet.mock.calls[0][2]).toMatchObject({
+      formUuid: 'REPORT_1',
+      schemaVersion: 'V5',
+      domainCode: 'tEXDRG',
+    });
     expect(JSON.parse(logSpy.mock.calls[0][0])).toEqual(result);
+  });
+
+  test('create-report fails closed when the single create write returns no report identity', async () => {
+    utils.httpPost.mockResolvedValueOnce({ success: true, content: {} });
+
+    await expect(createReport.run([
+      'APP_XXX',
+      '销售报表',
+      JSON.stringify(chartConfig),
+    ])).rejects.toMatchObject({
+      code: 'CREATE_REPORT_IDENTITY_MISSING',
+    });
+
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpGet).not.toHaveBeenCalled();
+    expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
   });
 
   test('append-chart run fetches existing schema and saves appended chart', async () => {
@@ -154,6 +186,13 @@ describe('report command helpers', () => {
       content: makeReportSchema(),
     });
     utils.httpPost.mockResolvedValueOnce({ success: true });
+    utils.httpGet.mockImplementationOnce(async () => {
+      const saveBody = querystring.parse(utils.httpPost.mock.calls[0][2]);
+      return {
+        success: true,
+        content: { ...JSON.parse(saveBody.content), gmtModified: 101 },
+      };
+    });
 
     const result = await appendReport.run(['APP_XXX', 'REPORT_1', JSON.stringify(chartConfig)]);
 
@@ -162,6 +201,7 @@ describe('report command helpers', () => {
       reportId: 'REPORT_1',
       appType: 'APP_XXX',
       appendedChartCount: 1,
+      readbackVerified: true,
       url: 'https://demo.aliwork.com/APP_XXX/workbench/REPORT_1',
     });
     expect(utils.httpGet.mock.calls[0][1]).toBe('/alibaba/web/APP_XXX/_view/query/formdesign/getFormSchema.json');
@@ -171,6 +211,30 @@ describe('report command helpers', () => {
     const rootContent = savedSchema.pages[0].componentsTree[0].children[0];
     expect(rootContent.children).toHaveLength(1);
     expect(rootContent.props.layout).toHaveLength(1);
+  });
+
+  test('append-chart fails closed when the report schema readback differs', async () => {
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: makeReportSchema(),
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...makeReportSchema(), gmtModified: 101 },
+      });
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+
+    await expect(appendReport.run([
+      'APP_XXX',
+      'REPORT_1',
+      JSON.stringify(chartConfig),
+    ])).rejects.toMatchObject({
+      code: 'REPORT_SCHEMA_READBACK_MISMATCH',
+    });
+
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
   });
 
   test('usage errors reject as CliError instead of exiting', async () => {

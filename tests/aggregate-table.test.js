@@ -38,6 +38,22 @@ const mockAuthData = {
   user_id: 'user-1',
 };
 
+function buildPublishableDesign(overrides = {}) {
+  return {
+    formUuid: 'FORM-VIEW',
+    relationForms: [{ formUuid: 'FORM-SOURCE' }],
+    relationships: [{
+      relationId: 'REL-1',
+      relationshipInfos: [{ id: 'field_name', name: '名称' }],
+    }],
+    aggregatedFields: [{ id: 'REL-1', name: '名称' }],
+    auxFields: [],
+    formulaFields: [{ id: 'metric_count', formula: 'COUNT(field_name)' }],
+    validators: [],
+    ...overrides,
+  };
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
   utils.loadAuthData.mockReturnValue(mockAuthData);
@@ -169,7 +185,162 @@ describe('aggregate-table run', () => {
       formType: 'virtualView',
       designUrl: 'https://www.aliwork.com/alibaba/web/APP_XXX/design/virtualViewDesigner.html?formUuid=FORM-VIEW&fromNew=true',
     });
+    expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(1);
 
     mockLog.mockRestore();
+  });
+
+  test('create-empty fails closed when the single write returns no form identity', async () => {
+    utils.httpPost
+      .mockResolvedValueOnce({ success: true, content: true })
+      .mockResolvedValueOnce({ success: true, content: {} });
+
+    await expect(run([
+      'create-empty',
+      'APP_XXX',
+      '客户聚合表',
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_CREATE_IDENTITY_MISSING',
+    });
+
+    expect(utils.httpPost).toHaveBeenCalledTimes(2);
+    expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(1);
+  });
+
+  test('publish rejects an incomplete frontend contract before the remote write', async () => {
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: { gmtModified: 1, stashGmtModified: 1 },
+    });
+
+    await expect(run([
+      'publish',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(buildPublishableDesign({ formulaFields: [] })),
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_DESIGN_CONTRACT_INVALID',
+    });
+
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('publish performs one write and requires exact designer-owned readback', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 1, stashGmtModified: 1 },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 2, stashGmtModified: 1, serverOnly: true },
+      });
+    utils.httpPost.mockResolvedValue({ success: true, content: { gmtModified: 2 } });
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await run([
+      'publish',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ]);
+
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost.mock.calls[0][1]).toBe(
+      '/alibaba/web/APP_XXX/query/virtualview/update.json'
+    );
+    const output = JSON.parse(mockLog.mock.calls[0][0]);
+    expect(output).toMatchObject({
+      success: true,
+      action: 'publish',
+      readbackVerified: true,
+    });
+
+    mockLog.mockRestore();
+  });
+
+  test('publish fails closed when the platform readback differs', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 1, stashGmtModified: 1 },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          ...design,
+          aggregatedFields: [{ id: 'REL-1', name: '平台返回了不同列名' }],
+          gmtModified: 2,
+        },
+      });
+    utils.httpPost.mockResolvedValue({ success: true, content: { gmtModified: 2 } });
+
+    await expect(run([
+      'publish',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_DESIGN_READBACK_MISMATCH',
+    });
+
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  });
+
+  test('publish accepts a success response without a response revision when exact readback advances', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 1, stashGmtModified: 1 },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 2, stashGmtModified: 1 },
+      });
+    utils.httpPost.mockResolvedValue({ success: true, content: {} });
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await run([
+      'publish',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ]);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(mockLog.mock.calls[0][0])).toMatchObject({
+      success: true,
+      readbackVerified: true,
+    });
+    mockLog.mockRestore();
+  });
+
+  test('publish rejects a revision-less response when readback did not advance', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: { ...design, gmtModified: 1, stashGmtModified: 1 },
+    });
+    utils.httpPost.mockResolvedValue({ success: true, content: {} });
+
+    await expect(run([
+      'publish',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_WRITE_REVISION_UNCHANGED',
+    });
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
   });
 });
