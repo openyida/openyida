@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "scenarioId": "integration-initiate-approval",
+  "artifactKind": "synthetic-protocol-fixture",
+  "content": {
+    "processCode": "LPROC-CONTRACT-APPROVAL",
+    "formUuid": "FORM-CONTRACT-PURCHASE",
+    "json": "{\"props\":{\"processCode\":\"LPROC-CONTRACT-APPROVAL\"},\"nodes\":[{\"name\":{\"zh_CN\":\"表单事件触发\"},\"type\":\"trigger\",\"nodeId\":\"node_raw_approval_trigger\",\"nextId\":[\"node_raw_approval_start\"],\"props\":{\"inputs\":{\"formEventType\":[\"insert\"],\"formUuid\":\"FORM-CONTRACT-PURCHASE\",\"conditions\":null,\"triggerFormEventRecursively\":false}}},{\"name\":{\"zh_CN\":\"发起审批\"},\"type\":\"initiateApproval\",\"nodeId\":\"node_raw_approval_start\",\"nextId\":[\"node_raw_approval_finish\"],\"props\":{\"type\":\"single\",\"formUuid\":\"FORM-CONTRACT-PAYMENT-PROCESS\",\"initiator\":{\"type\":\"select_user\",\"value\":\"{\\\"id\\\":\\\"USER-CONTRACT-INITIATOR\\\",\\\"label\\\":\\\"契约发起人\\\",\\\"type\\\":\\\"employee\\\"}\"},\"assignments\":[{\"column\":\"textField_approval_request_no\",\"valueType\":\"processVar\",\"value\":\"textField_request_no\"},{\"column\":\"numberField_approval_amount\",\"valueType\":\"processVar\",\"value\":\"numberField_request_amount\"},{\"column\":\"textField_approval_source\",\"valueType\":\"literal\",\"value\":\"采购申请\"}]}},{\"name\":{\"zh_CN\":\"结束\"},\"type\":\"finish\",\"nodeId\":\"node_raw_approval_finish\",\"nextId\":[],\"props\":{}}]}",
+    "viewJson": "{\"schema\":{\"componentName\":\"CanvasEngine\",\"id\":\"canvas_raw_approval\",\"children\":[{\"componentName\":\"StartNode\",\"id\":\"node_raw_approval_trigger\",\"props\":{\"name\":\"表单事件触发\",\"start\":{\"triggerType\":\"FormEvent\",\"formEventType\":[\"insert\"],\"formUuid\":\"FORM-CONTRACT-PURCHASE\",\"conditions\":null,\"triggerFormEventRecursively\":false}}},{\"componentName\":\"InitiateApprovalNode\",\"id\":\"node_raw_approval_start\",\"props\":{\"name\":\"发起审批\",\"initiateApprovalRules\":{\"type\":\"single\",\"formUuid\":\"FORM-CONTRACT-PAYMENT-PROCESS\",\"initiator\":{\"type\":\"select_user\",\"value\":\"{\\\"id\\\":\\\"USER-CONTRACT-INITIATOR\\\",\\\"label\\\":\\\"契约发起人\\\",\\\"type\\\":\\\"employee\\\"}\"},\"assignments\":[{\"column\":\"textField_approval_request_no\",\"valueType\":\"processVar\",\"value\":\"textField_request_no\"},{\"column\":\"numberField_approval_amount\",\"valueType\":\"processVar\",\"value\":\"numberField_request_amount\"},{\"column\":\"textField_approval_source\",\"valueType\":\"literal\",\"value\":\"采购申请\"}]}}},{\"componentName\":\"EndNode\",\"id\":\"node_raw_approval_finish\",\"props\":{\"name\":\"结束\"}}]},\"globalSetting\":{}}"
+  },
+  "provenance": {
+    "kind": "synthetic-protocol-fixture",
+    "authoredBy": "test-author",
+    "platformCaptured": false,
+    "builderGenerated": false,
+    "evidence": [
+      "form-event-runtime-inputs",
+      "initiate-approval-transform",
+      "recursive-assignment-map",
+      "approval-value-types"
+    ]
+  }
+}

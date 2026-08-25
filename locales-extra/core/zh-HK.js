@@ -374,6 +374,7 @@ module.exports = {
     create_example1: '  openyida integration create APP_XXX FORM-XXX "新增通知" --receivers user123 --publish',
     create_example2: '  openyida integration create APP_XXX FORM-XXX "获取自身后通知" --get-self --publish',
     create_missing_args: '缺少必要参数。',
+    create_flow_name_too_long: '邏輯流程名稱不能超過 {0} 個字元（目前 {1} 個）。',
     create_invalid_events: '未识别到有效触发事件。',
     create_no_receivers: '未指定通知接收人或成员字段，将不会生成消息通知节点。',
     create_title: '创建集成自动化逻辑流',

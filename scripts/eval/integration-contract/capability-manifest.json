@@ -1,0 +1,612 @@
+{
+  "schemaVersion": 1,
+  "protocol": "openyida-integration-static-contract",
+  "source": {
+    "package": "yida-logic-flow",
+    "version": "0.2.245",
+    "url": "https://g.alicdn.com/yida-platform/yida-logic-flow/0.2.245/index.js",
+    "bundleSizeBytes": 12655678,
+    "sha256": "2963c6a8dcce3a8f56efcd2a2d847d33167f23d71fbf515be24d60a008901c89",
+    "bundleCommitted": false,
+    "ciNetworkRequired": false,
+    "protocolExtract": "fixtures/pinned-bundle-protocol-extract.json"
+  },
+  "statusDefinitions": {
+    "CONFIRMED": "Directly supported by a stable anchor in the pinned frontend bundle.",
+    "INFERRED": "Consistent with multiple pinned-bundle observations, but a captured platform fixture is still required to freeze the exact contract.",
+    "PLATFORM_PROBE_REQUIRED": "The pinned designer bundle does not contain sufficient evidence. No platform behavior is asserted."
+  },
+  "capabilities": {
+    "Confirmed": [
+      {
+        "capability": "frontend_node_to_runtime_type_mapping",
+        "id": "frontend_node_to_runtime_type_mapping",
+        "values": {
+          "StartNode": "trigger",
+          "ConditionContainer": "route",
+          "ConditionNode": "condition",
+          "ParallelNode": "condition",
+          "InitiateApprovalNode": "initiateApproval",
+          "SendMessageNode": "sendMessage",
+          "GetSingleDataNode": "dataRetrieve",
+          "GetBatchDataNode": "dataRetrieve",
+          "AddDataNode": "dataCreate",
+          "UpdateDataNode": "dataUpdate",
+          "EndNode": "finish"
+        },
+        "status": "CONFIRMED",
+        "evidence": [
+          "node-runtime-type-map"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#node-runtime-type-map",
+        "frontendComponentOrApi": ["StartNode", "ConditionContainer", "ConditionNode", "ParallelNode", "InitiateApprovalNode", "SendMessageNode", "GetSingleDataNode", "GetBatchDataNode", "AddDataNode", "UpdateDataNode", "EndNode"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/references/integration-node-schemas.md#节点类型总览"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-view-builder.js", "lib/integration/integration-spec-builder.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-spec-builder.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC",
+        "notes": "Confirms StartNode, route/condition, dataRetrieve, dataCreate, dataUpdate, sendMessage, initiateApproval and finish runtime type lowering. ConnectorNode is resolved through a separate connector-mode map."
+      },
+      {
+        "capability": "runtime_graph_topology",
+        "id": "runtime_graph_topology",
+        "values": ["props", "nodes", "nodeId", "prevId", "nextId", "childNodes"],
+        "status": "CONFIRMED",
+        "evidence": [
+          "graph-next-and-children",
+          "runtime-process-root",
+          "route-condition-props"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#graph-next-and-children",
+        "frontendComponentOrApi": ["ConditionContainer", "ConditionNode", "ParallelNode"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/references/integration-node-schemas.md#固定拓扑顺序", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#条件分支节点route-condition"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-spec-builder.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-spec-builder.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC",
+        "notes": "The runtime graph has a process props root and nodes. Nodes retain nodeId, prevId, nextId, props and childNodes; nextId is an array and branch nodes retain priority/default metadata."
+      },
+      {
+        "capability": "process_and_view_save_shape",
+        "id": "process_and_view_save_shape",
+        "values": {
+          "runtimeSaveField": "json",
+          "viewSaveField": "viewJson",
+          "viewRoot": ["schema", "globalSetting"]
+        },
+        "status": "CONFIRMED",
+        "evidence": [
+          "runtime-process-root",
+          "save-process-view-payload"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#save-process-view-payload",
+        "frontendComponentOrApi": ["/query/simpleProcess/saveProcess.json"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#执行流程", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#saveProcess保存逻辑流"],
+        "cliImplementationLocation": ["lib/integration/integration-create.js", "lib/integration/integration-process-builder.js", "lib/integration/integration-view-builder.js", "lib/integration/integration-api.js"],
+        "unitTestCoverage": ["tests/integration-create.test.js", "tests/integration-process-builder.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC",
+        "notes": "The designer posts runtime JSON through the `json` field and canvas JSON through `viewJson`, where the view root contains schema and globalSetting. The exact detail API readback wrapper remains unconfirmed."
+      },
+      {
+        "capability": "form_event_trigger_serialization",
+        "id": "form_event_trigger_serialization",
+        "values": ["insert", "update", "delete", "comment", "processEvents"],
+        "status": "CONFIRMED",
+        "evidence": [
+          "form-event-runtime-inputs",
+          "form-event-basic-options",
+          "form-event-process-option"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#form-event-runtime-inputs",
+        "frontendComponentOrApi": ["StartNode", "FormEvent"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#参数说明", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#触发节点trigger"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-spec-builder.js", "lib/integration/integration-create.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-spec-builder.test.js", "tests/integration-create.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC",
+        "notes": "Confirms FormEvent inputs including formEventType, formEventField, formUuid, conditions, approval activity selectors and triggerFormEventRecursively. Basic event values include insert, update, delete and comment; process forms may add processEvents."
+      },
+      {
+        "capability": "route_branch_serialization",
+        "id": "route_branch_serialization",
+        "values": ["priority", "isDefault", "conditions", "calculate", "expression", "childNodes"],
+        "status": "CONFIRMED",
+        "evidence": [
+          "graph-next-and-children",
+          "route-condition-props",
+          "node-runtime-type-map"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#route-condition-props",
+        "frontendComponentOrApi": ["ConditionContainer", "ConditionNode", "ParallelNode"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#复杂结构化编排spec", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#条件分支节点route-condition"],
+        "cliImplementationLocation": ["lib/integration/integration-spec-builder.js"],
+        "unitTestCoverage": ["tests/integration-spec-builder.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC",
+        "notes": "Confirms route/condition lowering, child branch topology, outgoingType, priority, isDefault, conditions, calculate and expression fields."
+      },
+      {
+        "capability": "assignment_and_process_variable_serialization",
+        "id": "assignment_and_process_variable_serialization",
+        "values": ["literal", "processVar", "column"],
+        "status": "CONFIRMED",
+        "evidence": [
+          "recursive-assignment-map",
+          "approval-value-types"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#recursive-assignment-map",
+        "frontendComponentOrApi": ["ActionRulesEditor", "InitiateApprovalSetter"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/references/integration-node-schemas.md#字段赋值valueType规范"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-view-builder.js", "lib/integration/integration-spec-builder.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-spec-builder.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC",
+        "notes": "Assignments recursively retain column, valueType, value and nested assignments. The node-specific UI exposes literal, processVar and column value types, and the converter normalizes processVar references."
+      },
+      {
+        "capability": "connector_input_serialization",
+        "id": "connector_input_serialization",
+        "values": {
+          "1": "innerConnector",
+          "3": "thirdConnector",
+          "5": "httpConnector",
+          "8": "iPaaSCustomConnector",
+          "9": "faasConnector"
+        },
+        "status": "CONFIRMED",
+        "evidence": [
+          "connector-mode-map",
+          "recursive-assignment-map"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#connector-mode-map",
+        "frontendComponentOrApi": ["ConnectorNode", "ConnectorSetter"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#参数说明"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-view-builder.js", "lib/integration/integration-spec-builder.js", "lib/integration/integration-create.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-create.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC",
+        "notes": "Connector modes 1, 3, 5, 8 and 9 map to named connector runtime types. Inputs retain URL, method, body, connection, connectorId, actionId and recursive assignments, with integration-object metadata when configured."
+      },
+      {
+        "capability": "data_retrieve_serialization",
+        "id": "data_retrieve_serialization",
+        "values": ["type", "filterType", "sort", "sourceId", "appType", "originalType", "subSourceId", "condition", "quantity", "dataRules", "assignments"],
+        "status": "CONFIRMED",
+        "evidence": [
+          "data-retrieve-transform"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#data-retrieve-transform",
+        "frontendComponentOrApi": ["GetSingleDataNode", "GetBatchDataNode", "GetDataSetter"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#复杂结构化编排spec", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#获取单条数据节点dataRetrieve"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-view-builder.js", "lib/integration/integration-spec-builder.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-spec-builder.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC",
+        "notes": "The runtime props retain type, filterType, sort, sourceId, appType, originalType, subSourceId, condition, quantity, dataRules and assignments."
+      },
+      {
+        "capability": "data_create_serialization",
+        "id": "data_create_serialization",
+        "values": ["formUuid", "appType", "subFormUuid", "insertType", "type", "sourceId", "assignments"],
+        "status": "CONFIRMED",
+        "evidence": [
+          "data-create-transform"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#data-create-transform",
+        "frontendComponentOrApi": ["AddDataNode", "AddDataSetter"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#参数说明", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#新增数据节点dataCreate"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-view-builder.js", "lib/integration/integration-spec-builder.js", "lib/integration/integration-create.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-spec-builder.test.js", "tests/integration-create.test.js"],
+        "realE2ECoverage": "integration-data-create: one insert created exactly one target record with mapped text/number fields and a literal status; a source update created no additional target record",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC + REAL_RUNTIME_OBSERVED",
+        "notes": "The runtime props retain formUuid, appType, subFormUuid, insertType, type, sourceId and assignments. A disposable-app real E2E observed the declared dataCreate side effect and insert-only trigger behavior."
+      },
+      {
+        "capability": "data_update_serialization",
+        "id": "data_update_serialization",
+        "values": {
+          "serialized": ["updateDataRules", "assignments"],
+          "noneOperation": ["ignored", "add"]
+        },
+        "status": "CONFIRMED",
+        "evidence": [
+          "data-update-transform",
+          "data-update-empty-result-options"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#data-update-transform",
+        "frontendComponentOrApi": ["UpdateDataNode", "UpdateDataSetter"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#复杂结构化编排spec", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#更新数据节点dataUpdate"],
+        "cliImplementationLocation": ["lib/integration/integration-spec-builder.js"],
+        "unitTestCoverage": ["tests/integration-spec-builder.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC",
+        "notes": "The updateDataRules object and assignments are serialized. The editor defaults noneOperation to ignored and offers ignored/add choices when no data is obtained. This does not prove runtime behavior."
+      },
+      {
+        "capability": "send_message_serialization_and_preflight",
+        "id": "send_message_serialization_and_preflight",
+        "values": {
+          "required": ["messageType", "messageInfo.content", "recipient"],
+          "recipientCollections": ["toVars", "toGroups", "toRoles", "toUsers", "userFields", "robotUrls", "toGroupVars"]
+        },
+        "status": "CONFIRMED",
+        "evidence": [
+          "send-message-transform",
+          "send-message-required-fields"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#send-message-required-fields",
+        "frontendComponentOrApi": ["SendMessageNode", "SendMessageSetter"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#参数说明", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#消息通知节点sendMessage"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-view-builder.js", "lib/integration/integration-spec-builder.js", "lib/integration/integration-create.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-spec-builder.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC",
+        "notes": "The runtime receives sendMessageRules without the design-only description. Designer preflight checks messageType, messageInfo.content and at least one supported recipient collection."
+      },
+      {
+        "capability": "initiate_approval_serialization_and_preflight",
+        "id": "initiate_approval_serialization_and_preflight",
+        "values": ["formUuid", "initiator", "assignments", "column", "value", "valueType"],
+        "status": "CONFIRMED",
+        "evidence": [
+          "initiate-approval-transform",
+          "approval-value-types",
+          "frontend-preflight-error-map"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#initiate-approval-transform",
+        "frontendComponentOrApi": ["InitiateApprovalNode", "InitiateApprovalSetter"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#参数说明"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-view-builder.js", "lib/integration/integration-create.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-create.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC",
+        "notes": "The runtime retains initiateApprovalRules and maps assignments to column/value/valueType. Designer preflight requires the target form, initiator and required assignment values."
+      },
+      {
+        "capability": "designer_get_save_publish_and_create_apis",
+        "id": "designer_get_save_publish_and_create_apis",
+        "values": ["getProcess", "getConfig", "saveProcess", "publishProcess", "saveProcessById", "publishProcessById", "getProcessById", "newDraftProcess", "createLogicflow"],
+        "status": "CONFIRMED",
+        "evidence": [
+          "simple-process-api-table",
+          "create-logicflow-api"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#simple-process-api-table",
+        "frontendComponentOrApi": ["/query/simpleProcess/getProcess.json", "/query/simpleProcess/getConfig.json", "/query/simpleProcess/saveProcess.json", "/query/simpleProcess/publishProcess.json", "/query/formLogicflowBinding/createLogicflow.json"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#执行流程", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#API接口"],
+        "cliImplementationLocation": ["lib/integration/integration-api.js", "lib/integration/integration-create.js"],
+        "unitTestCoverage": ["tests/integration-api.test.js", "tests/integration-create.test.js"],
+        "realE2ECoverage": "A disposable-app run observed createLogicflow, draft save, publish, getProcess, version listing and getProcessById. getProcess/getProcessById returned view-only content in this tenant.",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC + PLATFORM_OBSERVED",
+        "notes": "Confirms static frontend references for getProcess/getConfig, saveProcess, publishProcess, ID-based save/publish/get, newDraftProcess and formLogicflowBinding/createLogicflow. The real E2E establishes only the endpoints actually observed and does not generalize untested response wrappers or permissions."
+      },
+      {
+        "capability": "designer_preflight_error_categories",
+        "id": "designer_preflight_error_categories",
+        "values": ["trigger", "route", "connector", "dataRetrieve", "dataCreate", "dataUpdate", "sendMessage", "initiateApproval"],
+        "status": "CONFIRMED",
+        "evidence": [
+          "frontend-preflight-error-map"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#frontend-preflight-error-map",
+        "frontendComponentOrApi": ["checkSchema"],
+        "skillDeclarationLocation": [],
+        "cliImplementationLocation": ["lib/integration/integration-create.js", "lib/integration/integration-spec-builder.js"],
+        "unitTestCoverage": ["tests/integration-create.test.js", "tests/integration-spec-builder.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "CONFIRMED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC",
+        "notes": "The designer has explicit incomplete-configuration categories for trigger, route, connector, data, message and approval nodes. These are save-time checks, not runtime guarantees."
+      }
+    ],
+    "Inferred": [
+      {
+        "capability": "get_self_is_data_retrieve_specialization",
+        "id": "get_self_is_data_retrieve_specialization",
+        "values": {
+          "declaredType": "getSelf",
+          "inferredRuntimeType": "dataRetrieve"
+        },
+        "status": "INFERRED",
+        "evidence": [
+          "node-runtime-type-map",
+          "data-retrieve-transform"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#node-runtime-type-map",
+        "frontendComponentOrApi": ["GetSingleDataNode", "GetDataSetter"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#复杂结构化编排spec"],
+        "cliImplementationLocation": ["lib/integration/integration-spec-builder.js"],
+        "unitTestCoverage": ["tests/integration-spec-builder.test.js", "tests/integration-diagnostics.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "INFERRED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC_INFERENCE",
+        "notes": "No distinct GetSelf component or runtime type is present in the pinned node map. OpenYida getSelf is therefore expected to lower to dataRetrieve with current-record constraints, but an independent fixture must freeze the exact source and condition fields."
+      },
+      {
+        "capability": "route_or_relation_encoding",
+        "id": "route_or_relation_encoding",
+        "values": ["AND", "OR"],
+        "status": "INFERRED",
+        "evidence": [
+          "route-condition-props",
+          "form-event-basic-options"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#route-condition-props",
+        "frontendComponentOrApi": ["ConditionNode", "ConditionSetter", "ActionRulesEditor"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#复杂结构化编排spec", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#条件分支节点route-condition"],
+        "cliImplementationLocation": ["lib/integration/integration-spec-builder.js"],
+        "unitTestCoverage": ["tests/integration-spec-builder.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "INFERRED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC_INFERENCE",
+        "notes": "Condition groups have a relation field and default to AND, while the UI contains an OR choice. A captured route fixture is required to freeze exact casing and nesting for OR."
+      },
+      {
+        "capability": "single_default_branch_constraint",
+        "id": "single_default_branch_constraint",
+        "values": {
+          "expectedDefaultBranchCount": 1
+        },
+        "status": "INFERRED",
+        "evidence": [
+          "route-condition-props",
+          "frontend-preflight-error-map"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#route-condition-props",
+        "frontendComponentOrApi": ["ConditionContainer", "ConditionNode"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/references/integration-node-schemas.md#条件分支节点route-condition"],
+        "cliImplementationLocation": ["lib/integration/integration-spec-builder.js"],
+        "unitTestCoverage": ["tests/integration-spec-builder.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "INFERRED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC_INFERENCE",
+        "notes": "The default branch flag and branch validation are present, but the pinned extract does not independently prove the exactly-one-default invariant."
+      },
+      {
+        "capability": "process_view_semantic_equivalence",
+        "id": "process_view_semantic_equivalence",
+        "values": ["runtime json", "viewJson.schema"],
+        "status": "INFERRED",
+        "evidence": [
+          "runtime-process-root",
+          "save-process-view-payload"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#save-process-view-payload",
+        "frontendComponentOrApi": ["/query/simpleProcess/saveProcess.json"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#执行流程", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#saveProcess保存逻辑流"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-view-builder.js", "lib/integration/integration-spec-builder.js", "lib/integration/integration-create.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-spec-builder.test.js", "tests/integration-create.test.js"],
+        "realE2ECoverage": "integration-data-create passed locked semantics using a compiler-acknowledged process payload plus platform view readback; the actual dataCreate side effect also passed",
+        "currentVerdict": "INFERRED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC_INFERENCE",
+        "notes": "The platform view readback matched the acknowledged compiler process semantics after stable node-id alignment, and runtime behavior passed. Because this tenant did not expose runtime process JSON through getProcess/getProcessById, full platform process/view readback equivalence remains INFERRED."
+      },
+      {
+        "capability": "multi_step_output_variable_reference",
+        "id": "multi_step_output_variable_reference",
+        "values": ["processVar", "source node", "output field path"],
+        "status": "INFERRED",
+        "evidence": [
+          "recursive-assignment-map"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#recursive-assignment-map",
+        "frontendComponentOrApi": ["ActionRulesEditor"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/references/integration-node-schemas.md#字段赋值valueType规范"],
+        "cliImplementationLocation": ["lib/integration/integration-spec-builder.js", "lib/integration/integration-process-builder.js"],
+        "unitTestCoverage": ["tests/integration-spec-builder.test.js", "tests/integration-process-builder.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "INFERRED",
+        "verificationLevel": "PINNED_BUNDLE_STATIC_INFERENCE",
+        "notes": "The processVar representation is directly observed, but source-node output schemas and multi-step paths are not fully frozen by this static extract."
+      }
+    ],
+    "Unknown": [
+      {
+        "capability": "integration_list_contract",
+        "id": "integration_list_contract",
+        "values": {
+          "skillAndCliClaimedEndpoint": "/query/appLogicflowBinding/listflow.json",
+          "formPaginationEndpoint": "/query/formLogicflowBinding/listflow.json",
+          "platformContractVerified": false
+        },
+        "status": "PLATFORM_PROBE_REQUIRED",
+        "evidence": [
+          "bundle-negative-string-observations"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#bundle-negative-string-observations",
+        "frontendComponentOrApi": ["/query/appLogicflowBinding/listflow.json", "/query/formLogicflowBinding/listflow.json"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/references/integration-node-schemas.md#listLogicflows查询逻辑流列表"],
+        "cliImplementationLocation": ["lib/integration/integration-api.js#listLogicflows", "lib/integration/integration-api.js#listFormLogicflows", "lib/integration/integration-list.js#runList"],
+        "unitTestCoverage": ["tests/integration-api.test.js", "tests/integration-list.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "PLATFORM_PROBE_REQUIRED",
+        "verificationLevel": "PLATFORM_PROBE_REQUIRED",
+        "notes": "The exact ordinary-form integration automation list endpoint, request shape, pagination and response wrapper are not established by the pinned designer converter."
+      },
+      {
+        "capability": "integration_enable_disable_contract",
+        "id": "integration_enable_disable_contract",
+        "values": {
+          "skillAndCliClaimedEndpoint": "/query/formLogicflowBinding/switchflow.json",
+          "enable": ["y", "n"],
+          "platformContractVerified": false
+        },
+        "status": "PLATFORM_PROBE_REQUIRED",
+        "evidence": [
+          "bundle-negative-string-observations"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#bundle-negative-string-observations",
+        "frontendComponentOrApi": ["/query/formLogicflowBinding/switchflow.json"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/references/integration-node-schemas.md#switchLogicflow开启关闭逻辑流"],
+        "cliImplementationLocation": ["lib/integration/integration-api.js#switchLogicflow", "lib/integration/integration-list.js#runEnable", "lib/integration/integration-list.js#runDisable"],
+        "unitTestCoverage": ["tests/integration-list.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "PLATFORM_PROBE_REQUIRED",
+        "verificationLevel": "PLATFORM_PROBE_REQUIRED",
+        "notes": "No reliable enable/disable API contract was found in the pinned designer bundle. Absence of a string is not evidence that the platform lacks the feature."
+      },
+      {
+        "capability": "integration_detail_readback_wrapper",
+        "id": "integration_detail_readback_wrapper",
+        "values": {
+          "candidateFields": ["json", "processJson", "viewJson", "content", "data"],
+          "confirmedWrapper": null
+        },
+        "status": "PLATFORM_PROBE_REQUIRED",
+        "evidence": [
+          "save-process-view-payload",
+          "bundle-negative-string-observations"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#save-process-view-payload",
+        "frontendComponentOrApi": ["/query/simpleProcess/getProcess.json", "/query/simpleProcess/getProcessById.json"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/references/integration-node-schemas.md#saveProcess保存逻辑流"],
+        "cliImplementationLocation": [],
+        "unitTestCoverage": [],
+        "realE2ECoverage": "getProcess and getProcessById returned content containing view schema/globalSetting only; getConfig returned designer component package configuration; no runtime process JSON wrapper was observed",
+        "currentVerdict": "PLATFORM_PROBE_REQUIRED",
+        "verificationLevel": "PLATFORM_PROBE_REQUIRED",
+        "notes": "One tenant/run established a view-only content wrapper for getProcess/getProcessById, but did not expose runtime process JSON. Object-versus-string fields, json-versus-processJson naming and cross-tenant/version behavior still require an independent captured runtime definition response."
+      },
+      {
+        "capability": "execution_log_and_status_contract",
+        "id": "execution_log_and_status_contract",
+        "values": {
+          "skillAndCliClaimedEndpoint": "/query/formLogicflowBinding/listLog.json",
+          "claimedStatusFilter": {
+            "0": "running",
+            "2": "exception",
+            "3": "success"
+          },
+          "platformContractVerified": false
+        },
+        "status": "PLATFORM_PROBE_REQUIRED",
+        "evidence": [
+          "bundle-negative-string-observations"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#bundle-negative-string-observations",
+        "frontendComponentOrApi": ["/query/formLogicflowBinding/listLog.json"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#运行日志巡检与诊断", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#listLogicflowLogs查询运行日志"],
+        "cliImplementationLocation": ["lib/integration/integration-api.js#listLogicflowLogs", "lib/integration/integration-check.js", "lib/integration/integration-diagnostics.js"],
+        "unitTestCoverage": ["tests/integration-api.test.js", "tests/integration-check.test.js", "tests/integration-diagnostics.test.js"],
+        "realE2ECoverage": "one filtered success log was observed for the owned integration-data-create source instance",
+        "currentVerdict": "PLATFORM_PROBE_REQUIRED",
+        "verificationLevel": "PLATFORM_PROBE_REQUIRED",
+        "notes": "A single success-log observation supports this run's runtime evidence only. Pagination, running/error states, exception payloads and the complete integration-specific status contract remain unverified."
+      },
+      {
+        "capability": "node_failure_retry_and_timeout_behavior",
+        "id": "node_failure_retry_and_timeout_behavior",
+        "values": null,
+        "status": "PLATFORM_PROBE_REQUIRED",
+        "evidence": [
+          "frontend-preflight-error-map"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#frontend-preflight-error-map",
+        "frontendComponentOrApi": [],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#运行日志巡检与诊断"],
+        "cliImplementationLocation": ["lib/integration/integration-check.js", "lib/integration/integration-diagnostics.js"],
+        "unitTestCoverage": ["tests/integration-check.test.js", "tests/integration-diagnostics.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "PLATFORM_PROBE_REQUIRED",
+        "verificationLevel": "PLATFORM_PROBE_REQUIRED",
+        "notes": "Designer preflight failures are confirmed, but runtime retry, timeout and node-failure behavior require platform execution evidence."
+      },
+      {
+        "capability": "data_retrieve_empty_result_runtime_behavior",
+        "id": "data_retrieve_empty_result_runtime_behavior",
+        "values": null,
+        "status": "PLATFORM_PROBE_REQUIRED",
+        "evidence": [
+          "data-retrieve-transform"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#data-retrieve-transform",
+        "frontendComponentOrApi": ["GetSingleDataNode", "GetBatchDataNode"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#关键坑位防护", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#获取单条数据节点dataRetrieve"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-spec-builder.js", "lib/integration/integration-diagnostics.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-spec-builder.test.js", "tests/integration-diagnostics.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "PLATFORM_PROBE_REQUIRED",
+        "verificationLevel": "PLATFORM_PROBE_REQUIRED",
+        "notes": "Serialization is known, but the runtime output and branch behavior for zero matches are not established."
+      },
+      {
+        "capability": "connector_output_and_runtime_failure_behavior",
+        "id": "connector_output_and_runtime_failure_behavior",
+        "values": null,
+        "status": "PLATFORM_PROBE_REQUIRED",
+        "evidence": [
+          "connector-mode-map"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#connector-mode-map",
+        "frontendComponentOrApi": ["ConnectorNode", "ConnectorSetter"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#参数说明", "yida-skills/skills/yida-integration/SKILL.md#运行日志巡检与诊断"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-view-builder.js", "lib/integration/integration-create.js", "lib/integration/integration-diagnostics.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-create.test.js", "tests/integration-diagnostics.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "PLATFORM_PROBE_REQUIRED",
+        "verificationLevel": "PLATFORM_PROBE_REQUIRED",
+        "notes": "Connector inputs are known, while output schemas, error payloads and retry behavior require captured or runtime platform evidence."
+      },
+      {
+        "capability": "initiate_approval_runtime_behavior",
+        "id": "initiate_approval_runtime_behavior",
+        "values": null,
+        "status": "PLATFORM_PROBE_REQUIRED",
+        "evidence": [
+          "initiate-approval-transform"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#initiate-approval-transform",
+        "frontendComponentOrApi": ["InitiateApprovalNode", "InitiateApprovalSetter"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#参数说明"],
+        "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-view-builder.js", "lib/integration/integration-create.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-create.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "PLATFORM_PROBE_REQUIRED",
+        "verificationLevel": "PLATFORM_PROBE_REQUIRED",
+        "notes": "Static serialization does not prove successful process creation, initiator resolution or assignment application."
+      },
+      {
+        "capability": "publish_and_enable_final_state",
+        "id": "publish_and_enable_final_state",
+        "values": {
+          "publishRequestFlag": "isOnline=true",
+          "enableRequestValues": ["y", "n"],
+          "confirmedFinalState": null
+        },
+        "status": "PLATFORM_PROBE_REQUIRED",
+        "evidence": [
+          "simple-process-api-table"
+        ],
+        "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#simple-process-api-table",
+        "frontendComponentOrApi": ["/query/simpleProcess/publishProcess.json", "/query/formLogicflowBinding/switchflow.json"],
+        "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#功能概述", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#switchLogicflow开启关闭逻辑流"],
+        "cliImplementationLocation": ["lib/integration/integration-create.js", "lib/integration/integration-api.js#switchLogicflow", "lib/integration/integration-list.js"],
+        "unitTestCoverage": ["tests/integration-create.test.js", "tests/integration-list.test.js"],
+        "realE2ECoverage": "none",
+        "currentVerdict": "PLATFORM_PROBE_REQUIRED",
+        "verificationLevel": "PLATFORM_PROBE_REQUIRED",
+        "notes": "A publish endpoint reference is confirmed, but final published/enabled status and read-after-write behavior require a platform probe."
+      }
+    ]
+  },
+  "scopeNotes": [
+    "This manifest is a static protocol baseline, not compiler conformance, platform conformance or runtime conformance.",
+    "The current OpenYida integration builders are implementation comparison targets and are not primary evidence for CONFIRMED entries.",
+    "Platform capabilities visible in the bundle but not declared by OpenYida, such as batch retrieval, deletion, email, code, foreach and AI nodes, are out of scope rather than defects.",
+    "The full third-party bundle is not committed and CI must not download it."
+  ]
+}

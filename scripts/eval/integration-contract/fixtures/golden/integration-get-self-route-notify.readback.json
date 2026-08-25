@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "scenarioId": "integration-get-self-route-notify",
+  "artifactKind": "synthetic-protocol-fixture",
+  "content": {
+    "processCode": "LPROC-CONTRACT-SELF-ROUTE",
+    "formUuid": "FORM-CONTRACT-WORKORDER",
+    "json": "{\"props\":{\"processCode\":\"LPROC-CONTRACT-SELF-ROUTE\"},\"nodes\":[{\"name\":{\"zh_CN\":\"表单事件触发\"},\"type\":\"trigger\",\"nodeId\":\"node_raw_self_trigger\",\"nextId\":[\"node_raw_self_retrieve\"],\"props\":{\"inputs\":{\"formEventType\":[\"insert\",\"update\"],\"formUuid\":\"FORM-CONTRACT-WORKORDER\",\"conditions\":null,\"triggerFormEventRecursively\":true},\"triggerType\":\"FormEvent\"}},{\"name\":{\"zh_CN\":\"获取自身\"},\"type\":\"dataRetrieve\",\"nodeId\":\"node_raw_self_retrieve\",\"nextId\":[\"node_raw_self_route\"],\"props\":{\"type\":\"single\",\"sourceId\":\"FORM-CONTRACT-WORKORDER\",\"condition\":{\"condition\":\"AND\",\"rules\":[{\"id\":\"pid\",\"opCode\":\"Equal\",\"valueType\":\"processVar\",\"value\":\"__masterdata_form_inst_id\"}]},\"assignments\":[]}},{\"name\":{\"zh_CN\":\"状态分支\"},\"type\":\"route\",\"nodeId\":\"node_raw_self_route\",\"nextId\":[\"node_raw_self_pending\",\"node_raw_self_default\"],\"props\":{\"outgoingType\":\"priority\"},\"childNodes\":[{\"name\":{\"zh_CN\":\"待处理或大额\"},\"type\":\"condition\",\"nodeId\":\"node_raw_self_pending\",\"nextId\":[\"node_raw_self_notify\"],\"props\":{\"priority\":1,\"isDefault\":false,\"conditions\":{\"condition\":\"OR\",\"conditionCode\":\"||\",\"rules\":[{\"id\":\"${node_raw_self_retrieve}.selectField_status\",\"opCode\":\"Equal\",\"valueType\":\"literal\",\"value\":\"待处理\"},{\"id\":\"${node_raw_self_retrieve}.numberField_amount\",\"opCode\":\"GreaterThanOrEqual\",\"valueType\":\"literal\",\"value\":1000}]}},\"childNodes\":[{\"name\":{\"zh_CN\":\"通知负责人\"},\"type\":\"sendMessage\",\"nodeId\":\"node_raw_self_notify\",\"nextId\":[\"node_raw_self_finish\"],\"props\":{\"messageInfo\":{\"title\":\"待处理工单\",\"content\":\"工单 ${node_raw_self_retrieve}.textField_ticket_no 等待处理\"},\"toUsers\":[{\"userId\":\"USER-CONTRACT-OWNER\"}],\"userFields\":[]}}]},{\"name\":{\"zh_CN\":\"其他情况\"},\"type\":\"condition\",\"nodeId\":\"node_raw_self_default\",\"nextId\":[\"node_raw_self_finish\"],\"props\":{\"priority\":2147483647,\"isDefault\":true},\"childNodes\":[]}]},{\"name\":{\"zh_CN\":\"结束\"},\"type\":\"finish\",\"nodeId\":\"node_raw_self_finish\",\"nextId\":[],\"props\":{}}]}",
+    "viewJson": "{\"schema\":{\"componentName\":\"CanvasEngine\",\"id\":\"canvas_raw_self\",\"children\":[{\"componentName\":\"StartNode\",\"id\":\"node_raw_self_trigger\",\"props\":{\"name\":\"表单事件触发\",\"start\":{\"triggerType\":\"FormEvent\",\"formEventType\":[\"insert\",\"update\"],\"formUuid\":\"FORM-CONTRACT-WORKORDER\",\"conditions\":null,\"triggerFormEventRecursively\":true}}},{\"componentName\":\"GetSingleDataNode\",\"id\":\"node_raw_self_retrieve\",\"props\":{\"name\":\"获取自身\",\"getData\":{\"type\":\"single\",\"sourceId\":\"FORM-CONTRACT-WORKORDER\",\"condition\":{\"condition\":\"AND\",\"rules\":[{\"id\":\"pid\",\"opCode\":\"Equal\",\"valueType\":\"processVar\",\"value\":\"__masterdata_form_inst_id\"}]},\"assignments\":[]}}},{\"componentName\":\"ConditionContainer\",\"id\":\"node_raw_self_route\",\"props\":{\"name\":\"状态分支\"},\"children\":[{\"componentName\":\"ConditionNode\",\"id\":\"node_raw_self_pending\",\"props\":{\"name\":\"待处理或大额\",\"conditions\":{\"isDefault\":false,\"priority\":1,\"conditions\":{\"condition\":\"OR\",\"conditionCode\":\"||\",\"rules\":[{\"id\":\"${node_raw_self_retrieve}.selectField_status\",\"opCode\":\"Equal\",\"valueType\":\"literal\",\"value\":\"待处理\"},{\"id\":\"${node_raw_self_retrieve}.numberField_amount\",\"opCode\":\"GreaterThanOrEqual\",\"valueType\":\"literal\",\"value\":1000}]}}},\"children\":[{\"componentName\":\"SendMessageNode\",\"id\":\"node_raw_self_notify\",\"props\":{\"name\":\"通知负责人\",\"sendMessageRules\":{\"messageInfo\":{\"title\":\"待处理工单\",\"content\":\"工单 ${node_raw_self_retrieve}.textField_ticket_no 等待处理\"},\"toUsers\":[{\"userId\":\"USER-CONTRACT-OWNER\"}],\"userFields\":[]}}}]},{\"componentName\":\"ConditionNode\",\"id\":\"node_raw_self_default\",\"props\":{\"name\":\"其他情况\",\"isDefault\":true,\"priority\":2147483647}}]},{\"componentName\":\"EndNode\",\"id\":\"node_raw_self_finish\",\"props\":{\"name\":\"结束\"}}]},\"globalSetting\":{}}"
+  },
+  "provenance": {
+    "kind": "synthetic-protocol-fixture",
+    "authoredBy": "test-author",
+    "platformCaptured": false,
+    "builderGenerated": false,
+    "evidence": [
+      "form-event-runtime-inputs",
+      "data-retrieve-transform",
+      "route-condition-props",
+      "send-message-transform",
+      "graph-next-and-children"
+    ]
+  }
+}

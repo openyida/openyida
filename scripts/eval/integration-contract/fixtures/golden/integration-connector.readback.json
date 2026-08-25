@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "scenarioId": "integration-connector",
+  "artifactKind": "synthetic-protocol-fixture",
+  "content": {
+    "processCode": "LPROC-CONTRACT-CONNECTOR",
+    "formUuid": "FORM-CONTRACT-ORDER",
+    "json": "{\"props\":{\"processCode\":\"LPROC-CONTRACT-CONNECTOR\"},\"nodes\":[{\"name\":{\"zh_CN\":\"表单事件触发\"},\"type\":\"trigger\",\"nodeId\":\"node_raw_connector_trigger\",\"nextId\":[\"node_raw_connector_call\"],\"props\":{\"inputs\":{\"formEventType\":[\"insert\"],\"formUuid\":\"FORM-CONTRACT-ORDER\",\"conditions\":null,\"triggerFormEventRecursively\":false}}},{\"name\":{\"zh_CN\":\"同步订单\"},\"type\":\"httpConnector\",\"nodeId\":\"node_raw_connector_call\",\"nextId\":[\"node_raw_connector_finish\"],\"props\":{\"inputs\":{\"connectorMode\":5,\"connectorId\":\"Http_CONTRACT_ORDER_SYNC\",\"actionId\":\"sync_order\",\"connection\":\"CONNECTION-CONTRACT-001\",\"connectionId\":\"CONNECTION-CONTRACT-001\",\"assignments\":[{\"column\":\"orderNo\",\"valueType\":\"processVar\",\"value\":\"textField_order_no\"},{\"column\":\"amount\",\"valueType\":\"processVar\",\"value\":\"numberField_order_amount\"}]}}},{\"name\":{\"zh_CN\":\"结束\"},\"type\":\"finish\",\"nodeId\":\"node_raw_connector_finish\",\"nextId\":[],\"props\":{}}]}",
+    "viewJson": "{\"schema\":{\"componentName\":\"CanvasEngine\",\"id\":\"canvas_raw_connector\",\"children\":[{\"componentName\":\"StartNode\",\"id\":\"node_raw_connector_trigger\",\"props\":{\"name\":\"表单事件触发\",\"start\":{\"triggerType\":\"FormEvent\",\"formEventType\":[\"insert\"],\"formUuid\":\"FORM-CONTRACT-ORDER\",\"conditions\":null,\"triggerFormEventRecursively\":false}}},{\"componentName\":\"ConnectorNode\",\"id\":\"node_raw_connector_call\",\"props\":{\"name\":\"同步订单\",\"connectorRules\":{\"connectorId\":\"Http_CONTRACT_ORDER_SYNC\",\"actionId\":\"sync_order\",\"connectionId\":\"CONNECTION-CONTRACT-001\",\"connector\":{\"mode\":5,\"connectorMode\":5,\"connectorId\":\"Http_CONTRACT_ORDER_SYNC\"},\"inputs\":[{\"name\":\"orderNo\",\"componentName\":\"TextField\"},{\"name\":\"amount\",\"componentName\":\"NumberField\"}],\"rules\":[{\"id\":\"orderNo\",\"rules\":[{\"id\":\"orderNo\",\"valueType\":\"processVar\",\"value\":\"textField_order_no\"}]},{\"id\":\"amount\",\"rules\":[{\"id\":\"amount\",\"valueType\":\"processVar\",\"value\":\"numberField_order_amount\"}]}]}}},{\"componentName\":\"EndNode\",\"id\":\"node_raw_connector_finish\",\"props\":{\"name\":\"结束\"}}]},\"globalSetting\":{}}"
+  },
+  "provenance": {
+    "kind": "synthetic-protocol-fixture",
+    "authoredBy": "test-author",
+    "platformCaptured": false,
+    "builderGenerated": false,
+    "evidence": [
+      "form-event-runtime-inputs",
+      "connector-mode-map",
+      "recursive-assignment-map",
+      "save-process-view-payload"
+    ]
+  }
+}

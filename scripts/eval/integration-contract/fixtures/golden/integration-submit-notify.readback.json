@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "scenarioId": "integration-submit-notify",
+  "artifactKind": "synthetic-protocol-fixture",
+  "content": {
+    "processCode": "LPROC-CONTRACT-NOTIFY",
+    "formUuid": "FORM-CONTRACT-LEAVE",
+    "json": "{\"props\":{\"processCode\":\"LPROC-CONTRACT-NOTIFY\"},\"nodes\":[{\"name\":{\"zh_CN\":\"表单事件触发\"},\"type\":\"trigger\",\"nodeId\":\"node_raw_notify_trigger\",\"nextId\":[\"node_raw_notify_message\"],\"props\":{\"inputs\":{\"formEventType\":[\"insert\"],\"formUuid\":\"FORM-CONTRACT-LEAVE\",\"conditions\":null,\"triggerFormEventRecursively\":false},\"triggerType\":\"FormEvent\"}},{\"name\":{\"zh_CN\":\"消息通知\"},\"type\":\"sendMessage\",\"nodeId\":\"node_raw_notify_message\",\"nextId\":[\"node_raw_notify_finish\"],\"props\":{\"messageType\":\"NORMAL\",\"messageInfo\":{\"title\":\"新请假申请：#{employeeField_applicant-EmployeeField}#\",\"content\":\"请假类型：#{selectField_leave_type-SelectField}#\"},\"toUsers\":[{\"userId\":\"USER-CONTRACT-HR\",\"userName\":\"\"}],\"userFields\":[]}},{\"name\":{\"zh_CN\":\"结束\"},\"type\":\"finish\",\"nodeId\":\"node_raw_notify_finish\",\"nextId\":[],\"props\":{}}]}",
+    "viewJson": "{\"schema\":{\"componentName\":\"CanvasEngine\",\"id\":\"canvas_raw_notify\",\"children\":[{\"componentName\":\"StartNode\",\"id\":\"node_raw_notify_trigger\",\"props\":{\"name\":\"表单事件触发\",\"start\":{\"triggerType\":\"FormEvent\",\"formEventType\":[\"insert\"],\"formUuid\":\"FORM-CONTRACT-LEAVE\",\"conditions\":null,\"triggerFormEventRecursively\":false}}},{\"componentName\":\"SendMessageNode\",\"id\":\"node_raw_notify_message\",\"props\":{\"name\":\"消息通知\",\"sendMessageRules\":{\"messageType\":\"NORMAL\",\"messageInfo\":{\"title\":\"新请假申请：#{employeeField_applicant-EmployeeField}#\",\"content\":\"请假类型：#{selectField_leave_type-SelectField}#\"},\"toUsers\":[{\"userId\":\"USER-CONTRACT-HR\",\"userName\":\"\"}],\"userFields\":[]}}},{\"componentName\":\"EndNode\",\"id\":\"node_raw_notify_finish\",\"props\":{\"name\":\"结束\"}}]},\"globalSetting\":{}}"
+  },
+  "provenance": {
+    "kind": "synthetic-protocol-fixture",
+    "authoredBy": "test-author",
+    "platformCaptured": false,
+    "builderGenerated": false,
+    "evidence": [
+      "form-event-runtime-inputs",
+      "send-message-transform",
+      "save-process-view-payload"
+    ]
+  }
+}

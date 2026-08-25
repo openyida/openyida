@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "scenarioId": "integration-data-create",
+  "artifactKind": "synthetic-protocol-fixture",
+  "content": {
+    "processCode": "LPROC-CONTRACT-CREATE",
+    "formUuid": "FORM-CONTRACT-ORDER",
+    "json": "{\"props\":{\"processCode\":\"LPROC-CONTRACT-CREATE\"},\"nodes\":[{\"name\":{\"zh_CN\":\"表单事件触发\"},\"type\":\"trigger\",\"nodeId\":\"node_raw_create_trigger\",\"nextId\":[\"node_raw_create_data\"],\"props\":{\"inputs\":{\"formEventType\":[\"insert\"],\"formUuid\":\"FORM-CONTRACT-ORDER\",\"conditions\":null,\"triggerFormEventRecursively\":false},\"triggerType\":\"FormEvent\"}},{\"name\":{\"zh_CN\":\"新增统计数据\"},\"type\":\"dataCreate\",\"nodeId\":\"node_raw_create_data\",\"nextId\":[\"node_raw_create_finish\"],\"props\":{\"formUuid\":\"FORM-CONTRACT-STATS\",\"type\":\"single\",\"assignments\":[{\"column\":\"textField_stats_order_no\",\"valueType\":\"processVar\",\"value\":\"textField_order_no\"},{\"column\":\"numberField_stats_amount\",\"valueType\":\"processVar\",\"value\":\"numberField_amount\"},{\"column\":\"selectField_sync_status\",\"valueType\":\"literal\",\"value\":\"已同步\"}]}},{\"name\":{\"zh_CN\":\"结束\"},\"type\":\"finish\",\"nodeId\":\"node_raw_create_finish\",\"nextId\":[],\"props\":{}}]}",
+    "viewJson": "{\"schema\":{\"componentName\":\"CanvasEngine\",\"id\":\"canvas_raw_create\",\"children\":[{\"componentName\":\"StartNode\",\"id\":\"node_raw_create_trigger\",\"props\":{\"name\":\"表单事件触发\",\"start\":{\"triggerType\":\"FormEvent\",\"formEventType\":[\"insert\"],\"formUuid\":\"FORM-CONTRACT-ORDER\",\"conditions\":null,\"triggerFormEventRecursively\":false}}},{\"componentName\":\"AddDataNode\",\"id\":\"node_raw_create_data\",\"props\":{\"name\":\"新增统计数据\",\"addDataRules\":{\"formUuid\":\"FORM-CONTRACT-STATS\",\"type\":\"single\",\"rules\":{\"rules\":[{\"name\":\"textField_stats_order_no\",\"valueType\":\"processVar\",\"value\":\"textField_order_no\"},{\"name\":\"numberField_stats_amount\",\"valueType\":\"processVar\",\"value\":\"numberField_amount\"},{\"name\":\"selectField_sync_status\",\"valueType\":\"literal\",\"value\":\"已同步\"}]}}}},{\"componentName\":\"EndNode\",\"id\":\"node_raw_create_finish\",\"props\":{\"name\":\"结束\"}}]},\"globalSetting\":{}}"
+  },
+  "provenance": {
+    "kind": "synthetic-protocol-fixture",
+    "authoredBy": "test-author",
+    "platformCaptured": false,
+    "builderGenerated": false,
+    "evidence": [
+      "form-event-runtime-inputs",
+      "data-create-transform",
+      "recursive-assignment-map",
+      "save-process-view-payload"
+    ]
+  }
+}

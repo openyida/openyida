@@ -1,0 +1,48 @@
+{
+  "id": "integration-data-create",
+  "title": "表单提交后跨表新增数据",
+  "publicPrompt": "销售订单新增后，在销售统计表新增一条记录，映射订单号和金额，并把同步状态写成固定值。",
+  "requiredCapabilities": [
+    "form-event-trigger",
+    "data-create",
+    "assignment-value-types",
+    "process-view-consistency"
+  ],
+  "expectedResources": {
+    "triggerForm": "salesOrder",
+    "targetForm": "salesStats"
+  },
+  "runtimeCases": [
+    {
+      "id": "copies-fields",
+      "expected": "one-target-record-with-mapped-values"
+    },
+    {
+      "id": "source-update-ignored",
+      "trigger": "update",
+      "expected": "no-execution"
+    }
+  ],
+  "protocolEvidence": [
+    {
+      "id": "form-event-runtime-inputs",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "data-create-transform",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "recursive-assignment-map",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "process_view_semantic_equivalence",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    }
+  ]
+}

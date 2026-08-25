@@ -1,0 +1,56 @@
+{
+  "id": "integration-initiate-approval",
+  "title": "表单提交后发起审批",
+  "publicPrompt": "采购申请新增后，以指定员工为发起人创建付款审批，并映射申请单号、金额和固定来源。",
+  "requiredCapabilities": [
+    "form-event-trigger",
+    "initiate-approval",
+    "assignment-value-types",
+    "process-view-consistency"
+  ],
+  "expectedResources": {
+    "triggerForm": "purchaseRequest",
+    "targetForm": "paymentApproval",
+    "users": [
+      "approvalInitiator"
+    ]
+  },
+  "runtimeCases": [
+    {
+      "id": "starts-approval",
+      "expected": "one-approval-instance-with-mapped-values"
+    },
+    {
+      "id": "missing-initiator-preflight",
+      "mutation": "remove-initiator",
+      "expected": "validation-error-before-write"
+    }
+  ],
+  "protocolEvidence": [
+    {
+      "id": "form-event-runtime-inputs",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "initiate-approval-transform",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "approval-value-types",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "recursive-assignment-map",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "process_view_semantic_equivalence",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    }
+  ]
+}

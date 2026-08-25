@@ -1,0 +1,68 @@
+{
+  "id": "integration-data-retrieve-default",
+  "title": "查询数据后命中或走默认分支",
+  "publicPrompt": "工单新增后按客户编号查询客户表；查到记录时通知客户经理，未查到时必须走唯一默认分支通知数据管理员。",
+  "requiredCapabilities": [
+    "form-event-trigger",
+    "data-retrieve",
+    "route",
+    "default-branch",
+    "send-message",
+    "process-view-consistency"
+  ],
+  "expectedResources": {
+    "triggerForm": "ticket",
+    "sourceForm": "customer",
+    "users": [
+      "managerRecipient",
+      "adminRecipient"
+    ]
+  },
+  "runtimeCases": [
+    {
+      "id": "record-found",
+      "expectedBranch": "condition"
+    },
+    {
+      "id": "record-missing",
+      "expectedBranch": "condition~2"
+    }
+  ],
+  "protocolEvidence": [
+    {
+      "id": "form-event-runtime-inputs",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "data-retrieve-transform",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "route-condition-props",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "send-message-transform",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "single_default_branch_constraint",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    },
+    {
+      "id": "process_view_semantic_equivalence",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    },
+    {
+      "id": "multi_step_output_variable_reference",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    }
+  ]
+}

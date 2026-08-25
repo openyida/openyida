@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "sourceBundle": {
+    "package": "yida-logic-flow",
+    "version": "0.2.245"
+  },
+  "contractRevision": 1,
+  "scenarioId": "integration-get-self-route-notify",
+  "artifactKind": "definition",
+  "semantic": {
+    "trigger": {
+      "key": "trigger",
+      "type": "trigger",
+      "componentName": "StartNode",
+      "eventTypes": [
+        "insert",
+        "update"
+      ],
+      "recursive": true,
+      "conditions": []
+    },
+    "nodes": [
+      {
+        "key": "trigger",
+        "type": "trigger",
+        "componentName": "StartNode",
+        "name": "表单事件触发",
+        "nextKeys": [
+          "dataRetrieve"
+        ],
+        "config": {}
+      },
+      {
+        "key": "dataRetrieve",
+        "type": "dataRetrieve",
+        "componentName": "GetSingleDataNode",
+        "name": "获取自身",
+        "nextKeys": [
+          "route"
+        ],
+        "config": {
+          "dataRetrieve": {
+            "sourceForm": "workOrder",
+            "query": [
+              {
+                "field": "instanceId",
+                "valueType": "processVar",
+                "sourceField": "triggerInstanceId",
+                "operator": "Equal"
+              }
+            ],
+            "assignments": []
+          }
+        }
+      },
+      {
+        "key": "route",
+        "type": "route",
+        "componentName": "ConditionContainer",
+        "name": "状态分支",
+        "nextKeys": [
+          "condition",
+          "condition~2"
+        ],
+        "config": {}
+      },
+      {
+        "key": "sendMessage",
+        "type": "sendMessage",
+        "componentName": "SendMessageNode",
+        "name": "通知负责人",
+        "nextKeys": [
+          "finish"
+        ],
+        "config": {
+          "sendMessage": {
+            "recipients": [
+              {
+                "valueType": "user",
+                "value": "ownerRecipient"
+              }
+            ],
+            "title": "待处理工单",
+            "content": "工单 ${dataRetrieve.ticketNo} 等待处理"
+          }
+        }
+      },
+      {
+        "key": "finish",
+        "type": "finish",
+        "componentName": "EndNode",
+        "name": "结束",
+        "nextKeys": [],
+        "config": {}
+      }
+    ],
+    "branches": [
+      {
+        "routeKey": "route",
+        "key": "condition",
+        "name": "待处理或大额",
+        "isDefault": false,
+        "priority": 1,
+        "logic": "OR",
+        "rules": [
+          {
+            "field": "status",
+            "valueType": "literal",
+            "value": "待处理",
+            "sourceNode": "dataRetrieve",
+            "sourceField": "status",
+            "operator": "Equal"
+          },
+          {
+            "field": "amount",
+            "valueType": "literal",
+            "value": 1000,
+            "sourceNode": "dataRetrieve",
+            "sourceField": "amount",
+            "operator": "GreaterThanOrEqual"
+          }
+        ],
+        "targetKey": "sendMessage"
+      },
+      {
+        "routeKey": "route",
+        "key": "condition~2",
+        "name": "其他情况",
+        "isDefault": true,
+        "priority": 2147483647,
+        "logic": "AND",
+        "rules": [],
+        "targetKey": "finish"
+      }
+    ],
+    "requireProcessViewConsistency": true
+  },
+  "evidenceProfile": {
+    "confirmedProtocol": [
+      "form-event-runtime-inputs",
+      "data-retrieve-transform",
+      "route-condition-props",
+      "send-message-transform",
+      "graph-next-and-children"
+    ],
+    "inferredProtocol": [
+      "get_self_is_data_retrieve_specialization",
+      "route_or_relation_encoding",
+      "single_default_branch_constraint",
+      "process_view_semantic_equivalence",
+      "multi_step_output_variable_reference"
+    ],
+    "contractInvariants": [
+      "getSelf represented by dataRetrieve protocol shape",
+      "OR branch with Equal and GreaterThanOrEqual rules",
+      "one condition~2 default branch",
+      "upstream dataRetrieve field references",
+      "process/view semantic equivalence"
+    ],
+    "testAuthorExpectations": [
+      "Pending status or amount at least 1000 takes condition; all other records take condition~2."
+    ]
+  }
+}

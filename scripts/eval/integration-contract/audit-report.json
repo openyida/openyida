@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "protocol": "openyida-integration-static-contract",
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "scope": "Skill 声明、CLI 实现、单测、静态验收与脱敏真实 E2E 结论；真实 ID、身份与 session 证据仅保留在 project/.cache，不进入本文件",
+  "findingSnapshot": "pre-optimization baseline; current branch disposition is recorded in summary.compilerConformanceEvidence and summary.realE2EEvidence",
+  "summary": {
+    "unitTestEvidence": {"suites": 11, "tests": 141, "result": "passed"},
+    "compilerConformance": "passed-supported-scenarios",
+    "compilerConformanceEvidence": {
+      "scenariosPassed": 6,
+      "contractOnlyScenarios": ["integration-data-update"],
+      "contractOnlyRuntimeCases": ["integration-connector/missing-connection-preflight"],
+      "zeroRemoteWriteScenarios": ["integration-initiate-approval/missing-initiator-preflight"]
+    },
+    "platformConformance": "passed-integration-data-create-publish-and-platform-view-readback",
+    "runtimeConformance": "passed-integration-data-create-copies-fields-and-source-update-ignored",
+    "agentVerification": "not-run",
+    "controlPlaneDisposition": "PARTIALLY_OBSERVED_WITH_REMAINING_PLATFORM_PROBE_REQUIRED",
+    "realE2EEvidence": {
+      "runId": "OY_INT_E2E_20260825013047_83CB7F",
+      "scenario": "integration-data-create",
+      "deterministicGate": {"suites": 11, "tests": 134, "result": "passed-before-remote-write"},
+      "publishReadback": {
+        "published": true,
+        "platformViewReadback": true,
+        "normalizeValidateContractLock": "passed",
+        "evidenceComposition": "compiler-acknowledged-process + platform-view-readback",
+        "platformRuntimeJsonReadback": "PLATFORM_PROBE_REQUIRED"
+      },
+      "runtime": {
+        "copiesFields": "passed",
+        "sourceUpdateIgnored": "passed",
+        "successLogObserved": true
+      },
+      "remoteResourceCounts": {"applications": 1, "forms": 2, "logicFlows": 1, "formInstances": 2},
+      "cleanup": {
+        "deleteCalls": 0,
+        "ownedResidualCount": 6,
+        "reason": "no confirmed safe delete contract",
+        "processCleanupWaivedResidualsTouched": 0
+      },
+      "redGreenFixes": [
+        "logic-flow name over 30 characters now fails before auth and remote writes",
+        "RESPONSE_ID_MISSING recovered through one create command plus exact unique runId readback in the exclusive owned source form",
+        "view-only platform readback remains explicitly classified instead of being guessed as runtime JSON"
+      ]
+    }
+  },
+  "findings": [
+    {
+      "id": "INTEGRATION-BUG-001",
+      "category": "BUG",
+      "severity": "P0",
+      "sourceTags": ["STATIC_SCAN", "PROCESS_VIEW_DRIFT", "SKILL_CLI_DIFF"],
+      "currentBehavior": "sendMessage 在 processJson 默认追加 form_inst_creator，在 viewJson 默认追加 form_inst_modifier；显式用户接收人不会阻止隐式字段接收人。",
+      "expectedBehavior": "processJson 与 viewJson 的接收人集合完全一致，且严格等于用户声明的固定用户和人员字段。",
+      "evidence": [
+        {"location": "lib/integration/integration-process-builder.js:462", "detail": "process userFields fallback"},
+        {"location": "lib/integration/integration-view-builder.js:412", "detail": "view userFields fallback"},
+        {"location": "lib/integration/integration-spec-builder.js:239,275", "detail": "spec 重复同一漂移"}
+      ],
+      "recommendation": "使用同一份标准化 recipient 模型生成 process/view，空 userFields 保持空数组。",
+      "regressionScenario": "integration-submit-notify",
+      "acceptanceLayer": "compiler-conformance"
+    },
+    {
+      "id": "INTEGRATION-BUG-002",
+      "category": "BUG",
+      "severity": "P0",
+      "sourceTags": ["STATIC_SCAN", "REMOTE_WRITE_GUARD"],
+      "currentBehavior": "spec 只进行浅层 shape 校验；createLogicflow 创建远端绑定后才完整构建节点，unsupported node、重复别名等错误可留下空绑定。",
+      "expectedBehavior": "所有节点类型、必填项、引用、分支和双 JSON 构建均应在首个远端写入之前完成。",
+      "evidence": [
+        {"location": "lib/integration/integration-spec-builder.js:51-60", "detail": "仅检查非空 nodes 和至少一个合法事件"},
+        {"location": "lib/integration/integration-create.js:520", "detail": "先 createLogicflow"},
+        {"location": "lib/integration/integration-spec-builder.js:773", "detail": "完整构建阶段才拒绝未知节点"}
+      ],
+      "recommendation": "引入纯离线 preflight，并测试任何失败均不调用 createLogicflow/saveProcess。",
+      "regressionScenario": "integration-get-self-route-notify",
+      "acceptanceLayer": "compiler-conformance"
+    },
+    {
+      "id": "INTEGRATION-BUG-003",
+      "category": "BUG",
+      "severity": "P0",
+      "sourceTags": ["STATIC_SCAN", "TARGET_GUARD"],
+      "currentBehavior": "spec 的 dataCreate 绕过流程表单目标校验；普通模式目标信息或 Schema 查询失败后仍可继续保存。",
+      "expectedBehavior": "dataCreate 仅允许已确认的普通表单，目标类型和所引用字段 Schema 无法确认时零写入。",
+      "evidence": [
+        {"location": "lib/integration/integration-create.js:472", "detail": "目标信息失败后继续按普通表单处理"},
+        {"location": "lib/integration/integration-create.js:578,588", "detail": "Schema 失败只告警"},
+        {"location": "lib/integration/integration-spec-builder.js:944-960", "detail": "spec 只收集 dataCreate UUID"}
+      ],
+      "recommendation": "flat/spec 共用目标资源验证，Schema 失败不得保存引用字段的节点。",
+      "regressionScenario": "integration-data-create",
+      "acceptanceLayer": "compiler-conformance"
+    },
+    {
+      "id": "INTEGRATION-BUG-004",
+      "category": "BUG",
+      "severity": "P1",
+      "sourceTags": ["STATIC_SCAN", "SPEC_FLAT_DIFF", "CONNECTOR"],
+      "currentBehavior": "spec connector 固定生成 innerConnector、mode=1、空 connectionId，忽略 HTTP 连接器元数据。",
+      "expectedBehavior": "spec 与 flat 对已确认的 mode、connector、action、connection 和 inputs 使用同一语义；outputs schema 不纳入此 BUG 的确定性验收，保持 PLATFORM_PROBE_REQUIRED。",
+      "evidence": [
+        {"location": "lib/integration/integration-spec-builder.js:508", "detail": "固定 innerConnector"},
+        {"location": "lib/integration/integration-spec-builder.js:555,564", "detail": "connectionId 为空且 mode 固定 1"},
+        {"location": "lib/integration/integration-process-builder.js:215-216,393-425", "detail": "flat 已区分 HTTP/内部连接器"}
+      ],
+      "recommendation": "连接器节点先标准化后同时序列化 process/view，不允许静默降级。",
+      "regressionScenario": "integration-connector",
+      "acceptanceLayer": "compiler-conformance"
+    },
+    {
+      "id": "INTEGRATION-BUG-005",
+      "category": "BUG",
+      "severity": "P1",
+      "sourceTags": ["STATIC_SCAN", "SPEC_FLAT_DIFF", "APPROVAL_TRIGGER"],
+      "currentBehavior": "spec 审批节点触发的 activityTask 恒为空，view examineApproveType 恒为 processFinish。",
+      "expectedBehavior": "审批完成与指定审批节点完成应保留各自事件、动作和审批节点语义。",
+      "evidence": [
+        {"location": "lib/integration/integration-spec-builder.js:820", "detail": "activityTask 固定空数组"},
+        {"location": "lib/integration/integration-spec-builder.js:838", "detail": "examineApproveType 固定 processFinish"},
+        {"location": "lib/integration/integration-view-builder.js:96-103", "detail": "flat 模式存在区分逻辑"}
+      ],
+      "recommendation": "复用 flat 触发器标准化模型，并增加 processFinish/activityTask 独立契约。",
+      "regressionScenario": null,
+      "acceptanceLayer": "compiler-conformance"
+    },
+    {
+      "id": "INTEGRATION-BUG-006",
+      "category": "BUG",
+      "severity": "P1",
+      "sourceTags": ["STATIC_SCAN", "REFERENCE_INTEGRITY"],
+      "currentBehavior": "未解析的 ${alias}、未知 update source、缺失 assignment 字段和多个默认分支不会统一失败。",
+      "expectedBehavior": "引用必须指向已知节点和字段；每个 route 恰有一个默认分支；必填配置缺失必须在 preflight 失败。",
+      "evidence": [
+        {"location": "lib/integration/integration-spec-builder.js:111-120", "detail": "未知 alias 原样保留"},
+        {"location": "lib/integration/integration-spec-builder.js:599-665", "detail": "仅记录是否存在默认分支，不拒绝多个默认分支"}
+      ],
+      "recommendation": "建立引用图和 route 约束验证，禁止静默 filter/drop。",
+      "regressionScenario": "integration-data-retrieve-default",
+      "acceptanceLayer": "compiler-conformance"
+    },
+    {
+      "id": "INTEGRATION-BUG-007",
+      "category": "BUG",
+      "severity": "P1",
+      "sourceTags": ["STATIC_SCAN", "CLI_RESULT"],
+      "currentBehavior": "未知事件、非法 action/valueType、半配置 connector 会被丢弃或降级；发布失败输出 success=true。",
+      "expectedBehavior": "用户请求的语义无法完整达成时返回失败和非零退出码，同时可单独报告 draftSaved 等部分结果。",
+      "evidence": [
+        {"location": "lib/integration/integration-process-builder.js:17-36", "detail": "未知事件被 filter"},
+        {"location": "lib/integration/integration-create.js:326,348", "detail": "connector inputs/ID 静默降级"},
+        {"location": "lib/integration/integration-create.js:727-736", "detail": "发布失败 success=true"}
+      ],
+      "recommendation": "严格枚举校验并统一 CLI 结果模型。",
+      "regressionScenario": "integration-connector",
+      "acceptanceLayer": "compiler-conformance"
+    },
+    {
+      "id": "INTEGRATION-TEST-001",
+      "category": "TEST_GAP",
+      "severity": "P0",
+      "sourceTags": ["UNIT_TEST_AUDIT"],
+      "currentBehavior": "现有 builder 测试分别断言对象片段，没有独立 hidden contract 验证 process/view 节点、连线、接收人、赋值和引用的一致性。",
+      "expectedBehavior": "7 个 P0 场景均由独立 contract 验证 golden 和 compiler output，mutation 能证明每项关键语义可被发现。",
+      "evidence": [
+        {"location": "tests/integration-process-builder.test.js", "detail": "以局部 toMatchObject 为主"},
+        {"location": "tests/integration-spec-builder.test.js", "detail": "无通用 process/view consistency validator"}
+      ],
+      "recommendation": "使用本目录 contracts 与 golden 建立 validator self-test 和 compiler conformance 两套独立结果。",
+      "regressionScenario": "all-seven-p0",
+      "acceptanceLayer": "validator-self-test"
+    },
+    {
+      "id": "INTEGRATION-TEST-002",
+      "category": "TEST_GAP",
+      "severity": "P1",
+      "sourceTags": ["E2E_AUDIT"],
+      "currentBehavior": "真实 E2E 只有 integration list 的 exit=0 冒烟；create/publish/enable/disable/log/runtime 均无专属 stage。",
+      "expectedBehavior": "后续在一次性资源和 cleanup/audit 护栏下分别报告 platform conformance 与 runtime conformance。",
+      "evidence": [
+        {"location": "scripts/e2e-real/cli-coverage.js:210-219", "detail": "仅 integration list"},
+        {"location": "scripts/e2e-real/skill-coverage.js:46", "detail": "yida-integration 标记为 opt-in"}
+      ],
+      "recommendation": "本轮只保留接口，不得把静态 fixture 通过表述为真实 E2E 通过。",
+      "regressionScenario": "all-seven-p0",
+      "acceptanceLayer": "platform-and-runtime-conformance"
+    },
+    {
+      "id": "INTEGRATION-PROBE-001",
+      "category": "PLATFORM_PROBE_REQUIRED",
+      "severity": "P1",
+      "sourceTags": ["CONTROL_PLANE", "BUNDLE_EVIDENCE_INSUFFICIENT"],
+      "currentBehavior": "list/enable/disable/check 已有 CLI 和单测，但固定 bundle 不足以离线确认列表分页、状态回读、幂等切换和日志枚举的完整服务端契约。",
+      "expectedBehavior": "控制面只标记待平台探测，不纳入本轮 7 个 P0 definition contract。",
+      "evidence": [
+        {"location": "lib/integration/integration-api.js:154-342", "detail": "服务端 list/log/switch API wrapper"},
+        {"location": "yida-skills/skills/yida-integration/references/integration-node-schemas.md:344-397", "detail": "参考接口说明不能替代固定平台响应 fixture"}
+      ],
+      "recommendation": "后续使用最小只读 list/detail/log fixture 与可回收启停资源建立独立控制面合同。",
+      "regressionScenario": null,
+      "acceptanceLayer": "platform-conformance"
+    },
+    {
+      "id": "INTEGRATION-BUG-008",
+      "category": "BUG",
+      "severity": "P1",
+      "sourceTags": ["PROTOCOL_CONFLICT"],
+      "currentBehavior": "主技能和实现默认 recursive=false，节点参考文档称 triggerFormEventRecursively 固定 true。",
+      "expectedBehavior": "Skill reference 与固定 bundle、CLI 的默认 false 对齐：缺省 triggerFormEventRecursively=false，仅在显式开启时为 true。",
+      "evidence": [
+        {"location": "yida-skills/skills/yida-integration/SKILL.md:101", "detail": "--trigger-recursively 默认关闭"},
+        {"location": "yida-skills/skills/yida-integration/references/integration-node-schemas.md:67", "detail": "参考文档称固定 true"},
+        {"location": "lib/integration/integration-process-builder.js:287", "detail": "Boolean(triggerRecursively)"},
+        {"location": "fixtures/pinned-bundle-protocol-extract.json#form-event-runtime-inputs", "detail": "固定 bundle 确认 triggerFormEventRecursively 缺省为 false"}
+      ],
+      "recommendation": "修正 Skill reference 中固定 true 的描述，并由 compiler/skill-doc conformance 同时验证默认 false 与显式 true。",
+      "regressionScenario": "integration-get-self-route-notify",
+      "acceptanceLayer": "compiler-and-skill-doc-conformance"
+    },
+    {
+      "id": "INTEGRATION-UNKNOWN-002",
+      "category": "UNKNOWN",
+      "severity": "P1",
+      "sourceTags": ["PROTOCOL_FIXTURE_REQUIRED"],
+      "currentBehavior": "numeric-looking literal 会在未读取目标字段类型时转为数字，initiateApproval 的 processCode 与 connector fallback schema 也只能由当前实现自述。",
+      "expectedBehavior": "以固定前端转换或捕获 fixture 确认字段类型转换、审批绑定和 connector schema，不用 compiler output 证明自己正确。",
+      "evidence": [
+        {"location": "lib/integration/integration-process-builder.js:125-142", "detail": "literal 无条件数值转换"},
+        {"location": "lib/integration/integration-process-builder.js:376", "detail": "initiateApproval processCode 使用父逻辑流 code"},
+        {"location": "lib/integration/connector-presets.js:187-204", "detail": "未知 connector inputs 合成 TextField fallback"}
+      ],
+      "recommendation": "分别建立固定 fixture；证据不足前保持 Unknown。",
+      "regressionScenario": "integration-initiate-approval",
+      "acceptanceLayer": "protocol-baseline"
+    },
+    {
+      "id": "INTEGRATION-OOS-001",
+      "category": "OUT_OF_SCOPE",
+      "severity": "P3",
+      "sourceTags": ["SCOPE_GUARD"],
+      "currentBehavior": "平台可能存在定时、应用事件、手工触发、循环、等待、脚本等额外能力。",
+      "expectedBehavior": "平台存在但 OpenYida Skill 未声明的创建能力不作为本轮缺陷，也不为凑场景数量纳入 P0。",
+      "evidence": [
+        {"location": "yida-skills/skills/yida-integration/SKILL.md:66-72", "detail": "当前声明的能力边界"},
+        {"location": "lib/integration/integration-check.js:18-24", "detail": "check 读取多种 flow type 不等于声明创建能力"}
+      ],
+      "recommendation": "未来如明确扩展 Skill 声明，再单独建立协议和 E2E。",
+      "regressionScenario": null,
+      "acceptanceLayer": "scope-governance"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "integration-connector",
+  "title": "调用 HTTP 连接器动作",
+  "publicPrompt": "订单新增后调用已配置鉴权连接的 HTTP 连接器同步订单，传入订单号和金额。",
+  "requiredCapabilities": [
+    "form-event-trigger",
+    "connector",
+    "connector-input-mapping",
+    "process-view-consistency"
+  ],
+  "expectedResources": {
+    "triggerForm": "order",
+    "connector": "orderSyncConnector",
+    "action": "syncOrderAction",
+    "connection": "orderSyncConnection"
+  },
+  "runtimeCases": [
+    {
+      "id": "calls-action",
+      "expected": "one-connector-call-with-mapped-inputs"
+    },
+    {
+      "id": "missing-connection-preflight",
+      "mutation": "remove-connection",
+      "expected": "validation-error-before-write"
+    }
+  ],
+  "protocolEvidence": [
+    {
+      "id": "form-event-runtime-inputs",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "connector-mode-map",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "recursive-assignment-map",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "process_view_semantic_equivalence",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    }
+  ]
+}

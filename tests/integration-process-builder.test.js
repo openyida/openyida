@@ -9,21 +9,24 @@ jest.mock('../lib/integration/integration-node-ids', () => ({
 
 const {
   mapEventTypes,
+  buildTriggerCondition,
   buildDataRetrieveCondition,
   buildDataCreateAssignments,
   buildInitiateApprovalAssignments,
+  resolveConnectorMode,
   buildProcessJson,
 } = require('../lib/integration/integration-process-builder');
 const { buildViewJson } = require('../lib/integration/integration-view-builder');
 
 describe('integration process builder', () => {
-  test('mapEventTypes normalizes supported aliases and drops unknown events', () => {
-    expect(mapEventTypes(['create', 'insert', 'UPDATE', 'delete', 'unknown'])).toEqual([
+  test('mapEventTypes normalizes supported aliases and rejects unknown events', () => {
+    expect(mapEventTypes(['create', 'insert', 'UPDATE', 'delete'])).toEqual([
       'insert',
       'insert',
       'update',
       'delete',
     ]);
+    expect(() => mapEventTypes(['insert', 'unknown'])).toThrow(/Unsupported integration event: unknown/);
   });
 
   test('buildDataRetrieveCondition creates deterministic rule structure around field mapping', () => {
@@ -72,14 +75,54 @@ describe('integration process builder', () => {
     });
   });
 
-  test('buildDataCreateAssignments preserves literals and converts numeric literals', () => {
+  test('buildDataRetrieveCondition preserves explicit primitive literal values', () => {
+    const condition = buildDataRetrieveCondition([
+      {
+        bFieldId: 'numberField_zero',
+        bFieldName: 'Zero',
+        aFieldId: 0,
+        componentType: 'NumberField',
+        opCode: 'Equal',
+        valueType: 'literal',
+      },
+      {
+        bFieldId: 'checkboxField_false',
+        bFieldName: 'False',
+        value: false,
+        componentType: 'CheckboxField',
+        opCode: 'Equal',
+        valueType: 'literal',
+      },
+      {
+        bFieldId: 'textField_empty',
+        bFieldName: 'Empty',
+        ruleValue: '',
+        componentType: 'TextField',
+        opCode: 'Equal',
+        valueType: 'literal',
+      },
+    ]);
+
+    expect(condition.rules.map((rule) => rule.value)).toEqual([0, false, '']);
+    expect(condition.rules.map((rule) => rule.ruleValue)).toEqual([0, false, '']);
+  });
+
+  test('literal conversion requires explicit numeric component evidence', () => {
     expect(buildDataCreateAssignments([
       { column: 'numberField_count', valueType: 'literal', value: '12' },
       { column: 'textField_name', valueType: 'processVar', value: 'form_inst_creator' },
     ])).toEqual([
-      { column: 'numberField_count', valueType: 'literal', value: 12, assignments: [] },
+      { column: 'numberField_count', valueType: 'literal', value: '12', assignments: [] },
       { column: 'textField_name', valueType: 'processVar', value: 'form_inst_creator', assignments: [] },
     ]);
+
+    expect(buildDataCreateAssignments(
+      [{ column: 'numberField_count', valueType: 'literal', value: '12' }],
+      new Map([['numberField_count', 'NumberField']])
+    )[0].value).toBe(12);
+    expect(buildTriggerCondition([
+      { fieldId: 'textField_code', valueType: 'literal', value: '0012', componentType: 'TextField' },
+    ]).rules[0].value).toBe('0012');
   });
 
   test('buildInitiateApprovalAssignments matches designer payload shape', () => {
@@ -90,7 +133,7 @@ describe('integration process builder', () => {
 
     expect(buildInitiateApprovalAssignments(assignments, { includeRequired: false })).toEqual([
       { column: 'textField_process', valueType: 'literal', value: 'hello' },
-      { column: 'numberField_count', valueType: 'literal', value: 7 },
+      { column: 'numberField_count', valueType: 'literal', value: '7' },
     ]);
     expect(buildInitiateApprovalAssignments(assignments, { includeRequired: true })[0]).toMatchObject({
       column: 'textField_process',
@@ -98,6 +141,14 @@ describe('integration process builder', () => {
       value: 'hello',
       required: false,
     });
+  });
+
+  test('resolveConnectorMode rejects connector modes outside the declared OpenYida scope', () => {
+    expect(resolveConnectorMode('G-CONN', 1)).toBe(1);
+    expect(resolveConnectorMode('Http_123', 5)).toBe(5);
+    expect(() => resolveConnectorMode('G-CONN', 3)).toThrow(/Unsupported connector mode: 3/);
+    expect(() => resolveConnectorMode('G-CONN', 8)).toThrow(/Unsupported connector mode: 8/);
+    expect(() => resolveConnectorMode('G-CONN', 9)).toThrow(/Unsupported connector mode: 9/);
   });
 
   test('buildProcessJson links trigger, data, add-data, message, and finish nodes in order', () => {
@@ -143,7 +194,9 @@ describe('integration process builder', () => {
       nodeIds: ['canvas', 'trigger', 'data', 'add', 'message', 'end'],
       addDataFormUuid: 'FORM-B',
       addDataAssignments: [{ column: 'textField_name', valueType: 'literal', value: 'Ada' }],
-      addDataFormSchema: [],
+      addDataFormSchema: [
+        { componentName: 'TextField', props: { fieldId: 'textField_name', label: 'Name' } },
+      ],
       dataFormUuid: 'FORM-C',
       dataConditions: [{ bFieldId: 'field_b', bFieldName: 'B', aFieldId: 'field_a' }],
       hasMessageNode: true,
@@ -236,6 +289,30 @@ describe('integration process builder', () => {
       actionId: 'publish_month_qs',
       connectionId: '28336',
       connectorMode: 5,
+    });
+  });
+
+  test('buildProcessJson keeps httpConnector mode when connectionId is omitted', () => {
+    const processJson = buildProcessJson({
+      processCode: 'LPROC-TEST',
+      formUuid: 'FORM-HTTP',
+      appType: 'APP-HTTP',
+      formEventTypes: ['insert'],
+      toUsers: [],
+      nodeIds: ['trigger', 'connector', 'end'],
+      hasMessageNode: false,
+      connectorId: 'Http_2ed1618fdc744a288e5cb52bc02e462f',
+      actionId: 'publish_month_qs',
+      connectorMode: 5,
+    });
+
+    expect(processJson.nodes[1]).toMatchObject({
+      type: 'httpConnector',
+      props: { inputs: {
+        connectorMode: 5,
+        connection: '',
+        connectionId: '',
+      } },
     });
   });
 

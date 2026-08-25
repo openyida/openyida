@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "sourceBundle": {
+    "package": "yida-logic-flow",
+    "version": "0.2.245"
+  },
+  "contractRevision": 1,
+  "scenarioId": "integration-data-retrieve-default",
+  "artifactKind": "definition",
+  "semantic": {
+    "trigger": {
+      "key": "trigger",
+      "type": "trigger",
+      "componentName": "StartNode",
+      "eventTypes": [
+        "insert"
+      ],
+      "recursive": false,
+      "conditions": []
+    },
+    "nodes": [
+      {
+        "key": "trigger",
+        "type": "trigger",
+        "componentName": "StartNode",
+        "name": "表单事件触发",
+        "nextKeys": [
+          "dataRetrieve"
+        ],
+        "config": {}
+      },
+      {
+        "key": "dataRetrieve",
+        "type": "dataRetrieve",
+        "componentName": "GetSingleDataNode",
+        "name": "获取客户",
+        "nextKeys": [
+          "route"
+        ],
+        "config": {
+          "dataRetrieve": {
+            "sourceForm": "customer",
+            "query": [
+              {
+                "field": "customerNo",
+                "valueType": "processVar",
+                "sourceField": "ticketCustomerNo",
+                "operator": "Equal"
+              }
+            ],
+            "assignments": []
+          }
+        }
+      },
+      {
+        "key": "route",
+        "type": "route",
+        "componentName": "ConditionContainer",
+        "name": "查询结果分支",
+        "nextKeys": [
+          "condition",
+          "condition~2"
+        ],
+        "config": {}
+      },
+      {
+        "key": "sendMessage",
+        "type": "sendMessage",
+        "componentName": "SendMessageNode",
+        "name": "通知客户经理",
+        "nextKeys": [
+          "finish"
+        ],
+        "config": {
+          "sendMessage": {
+            "recipients": [
+              {
+                "valueType": "user",
+                "value": "managerRecipient"
+              }
+            ],
+            "title": "客户工单",
+            "content": "客户 ${dataRetrieve.customerName} 有新工单"
+          }
+        }
+      },
+      {
+        "key": "sendMessage~2",
+        "type": "sendMessage",
+        "componentName": "SendMessageNode",
+        "name": "通知数据管理员",
+        "nextKeys": [
+          "finish"
+        ],
+        "config": {
+          "sendMessage": {
+            "recipients": [
+              {
+                "valueType": "user",
+                "value": "adminRecipient"
+              }
+            ],
+            "title": "客户资料缺失",
+            "content": "未找到客户资料"
+          }
+        }
+      },
+      {
+        "key": "finish",
+        "type": "finish",
+        "componentName": "EndNode",
+        "name": "结束",
+        "nextKeys": [],
+        "config": {}
+      }
+    ],
+    "branches": [
+      {
+        "routeKey": "route",
+        "key": "condition",
+        "name": "查到客户",
+        "isDefault": false,
+        "priority": 1,
+        "logic": "AND",
+        "rules": [
+          {
+            "field": "customerName",
+            "valueType": "literal",
+            "sourceNode": "dataRetrieve",
+            "sourceField": "customerName",
+            "operator": "ExistValue"
+          }
+        ],
+        "targetKey": "sendMessage"
+      },
+      {
+        "routeKey": "route",
+        "key": "condition~2",
+        "name": "未查到客户",
+        "isDefault": true,
+        "priority": 2147483647,
+        "logic": "AND",
+        "rules": [],
+        "targetKey": "sendMessage~2"
+      }
+    ],
+    "requireProcessViewConsistency": true
+  },
+  "evidenceProfile": {
+    "confirmedProtocol": [
+      "form-event-runtime-inputs",
+      "data-retrieve-transform",
+      "route-condition-props",
+      "send-message-transform",
+      "graph-next-and-children"
+    ],
+    "inferredProtocol": [
+      "single_default_branch_constraint",
+      "process_view_semantic_equivalence",
+      "multi_step_output_variable_reference"
+    ],
+    "contractInvariants": [
+      "dataRetrieve query field mapping",
+      "AND condition branch",
+      "one condition~2 default branch",
+      "dataRetrieve output referenced by sendMessage",
+      "process/view semantic equivalence"
+    ],
+    "testAuthorExpectations": [
+      "A found customer takes condition; a missing customer takes condition~2."
+    ]
+  }
+}

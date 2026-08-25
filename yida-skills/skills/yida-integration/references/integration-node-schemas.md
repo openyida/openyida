@@ -56,7 +56,7 @@ trigger
       "formUuid": "FORM-XXX",
       "conditions": null,
       "activityAction": [],
-      "triggerFormEventRecursively": true
+      "triggerFormEventRecursively": false
     },
     "triggerType": "FormEvent"
   }
@@ -64,7 +64,7 @@ trigger
 ```
 
 - `formEventType`：触发事件数组，可选值：`insert`（新增）、`update`（修改）、`delete`（删除）、`comment`（评论）
-- `triggerFormEventRecursively`：固定 `true`
+- `triggerFormEventRecursively`：默认 `false`；仅在显式开启递归触发时设为 `true`
 
 ---
 

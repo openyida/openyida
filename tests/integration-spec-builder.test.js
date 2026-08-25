@@ -169,10 +169,10 @@ describe('integration spec builder', () => {
   test('validates spec shape before remote calls are needed', () => {
     expect(() => validateIntegrationSpec({ nodes: [{ type: 'getSelf' }] }, ['insert'])).not.toThrow();
     expect(() => validateIntegrationSpec({ events: ['insert'], nodes: [] })).toThrow(/non-empty nodes array/);
-    expect(() => validateIntegrationSpec({ events: ['unknown'], nodes: [{ type: 'getSelf' }] })).toThrow(/valid event/);
+    expect(() => validateIntegrationSpec({ events: ['unknown'], nodes: [{ type: 'getSelf' }] })).toThrow(/Unsupported integration event/);
   });
 
-  test('accepts route condition objects with explicit logic', () => {
+  test('accepts route condition objects with explicit logic and adds a missing default branch', () => {
     const built = buildSpecProcessAndViewJson({
       spec: {
         events: ['insert'],
@@ -215,6 +215,46 @@ describe('integration spec builder', () => {
       conditionCode: '||',
     });
     expect(route.childNodes[0].props.conditions.rules).toHaveLength(2);
+    expect(route.childNodes).toHaveLength(2);
+    expect(route.childNodes[1].props).toMatchObject({
+      isDefault: true,
+      priority: 2147483647,
+    });
+    const routeView = built.viewJson.schema.children.find((node) => node.componentName === 'ConditionContainer');
+    expect(routeView.children[1].props.isDefault).toBe(true);
+    expect(routeView.children[1].props.priority).toBe(2147483647);
+  });
+
+  test('resolves declared upstream aliases inside sendMessage title and content', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          { id: 'self', type: 'getSelf' },
+          {
+            id: 'notify',
+            type: 'sendMessage',
+            receivers: ['user-1'],
+            title: 'Record ${self}.pid',
+            content: 'Status ${self}.textField_status',
+          },
+        ],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+    });
+    const processMessage = built.processJson.nodes.find((node) => node.type === 'sendMessage');
+    const viewMessage = built.viewJson.schema.children.find((node) => node.componentName === 'SendMessageNode');
+
+    expect(processMessage.props.messageInfo).toMatchObject({
+      title: `Record \${${built.nodeIdMap.self}}.pid`,
+      content: `Status \${${built.nodeIdMap.self}}.textField_status`,
+    });
+    expect(viewMessage.props.sendMessageRules.messageInfo).toMatchObject(
+      processMessage.props.messageInfo
+    );
   });
 
   test('does not use duplicate display names as node aliases', () => {
@@ -222,8 +262,8 @@ describe('integration spec builder', () => {
       spec: {
         events: ['insert'],
         nodes: [
-          { type: 'sendMessage', name: 'Notify', content: 'first' },
-          { type: 'sendMessage', name: 'Notify', content: 'second' },
+          { type: 'sendMessage', name: 'Notify', receivers: ['user-1'], content: 'first' },
+          { type: 'sendMessage', name: 'Notify', receivers: ['user-1'], content: 'second' },
         ],
       },
       processCode: 'LPROC-SPEC',
@@ -246,8 +286,8 @@ describe('integration spec builder', () => {
       spec: {
         events: ['insert'],
         nodes: [
-          { id: 'notify', type: 'sendMessage', content: 'first' },
-          { id: 'notify', type: 'sendMessage', content: 'second' },
+          { id: 'notify', type: 'sendMessage', receivers: ['user-1'], content: 'first' },
+          { id: 'notify', type: 'sendMessage', receivers: ['user-1'], content: 'second' },
         ],
       },
       processCode: 'LPROC-SPEC',
@@ -268,13 +308,14 @@ describe('integration spec builder', () => {
               {
                 name: 'Matched',
                 conditions: [{ fieldId: 'textField_a', opCode: 'ExistValue' }],
-                nodes: [{ type: 'sendMessage', content: 'first' }],
+                nodes: [{ type: 'sendMessage', receivers: ['user-1'], content: 'first' }],
               },
               {
                 name: 'Matched',
                 conditions: [{ fieldId: 'textField_b', opCode: 'ExistValue' }],
-                nodes: [{ type: 'sendMessage', content: 'second' }],
+                nodes: [{ type: 'sendMessage', receivers: ['user-1'], content: 'second' }],
               },
+              { id: 'fallback', name: 'Other', default: true },
             ],
           },
         ],
@@ -324,6 +365,65 @@ describe('integration spec builder', () => {
     });
   });
 
+  test('preserves dataRetrieve primitive literals in process and view JSON', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [{
+          id: 'lookup',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-B',
+          conditions: [
+            {
+              fieldId: 'numberField_zero',
+              aFieldId: 0,
+              componentType: 'NumberField',
+              opCode: 'Equal',
+              valueType: 'literal',
+            },
+            {
+              fieldId: 'checkboxField_false',
+              value: false,
+              componentType: 'CheckboxField',
+              opCode: 'Equal',
+              valueType: 'literal',
+            },
+            {
+              fieldId: 'textField_empty',
+              ruleValue: '',
+              componentType: 'TextField',
+              opCode: 'Equal',
+              valueType: 'literal',
+            },
+          ],
+        }],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+    });
+    const processRules = built.processJson.nodes.find((node) => node.type === 'dataRetrieve').props.condition.rules;
+    const viewRules = built.viewJson.schema.children.find((node) => node.componentName === 'GetSingleDataNode')
+      .props.getData.condition.rules;
+
+    expect(processRules.map((rule) => rule.value)).toEqual([0, false, '']);
+    expect(processRules.map((rule) => rule.ruleValue)).toEqual([0, false, '']);
+    expect(viewRules.map((rule) => rule.value)).toEqual([0, false, '']);
+    expect(viewRules.map((rule) => rule.ruleValue)).toEqual([0, false, '']);
+  });
+
+  test('rejects undeclared sendMessage messageInfo.content instead of silently using a default', () => {
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{
+        type: 'sendMessage',
+        receivers: ['user-1'],
+        messageInfo: { content: 'declared in an unsupported shape' },
+      }],
+    })).toThrow(/sendMessage node content is required/);
+  });
+
   test('resolveNodeRefs replaces spec aliases only inside ${alias}', () => {
     const context = {
       aliasToNodeId: new Map([['self', 'node-self']]),
@@ -331,6 +431,143 @@ describe('integration spec builder', () => {
 
     expect(_private.resolveNodeRefs('${self}.numberField_count+1', context)).toBe('${node-self}.numberField_count+1');
     expect(_private.resolveNodeRefs('literal-self', context)).toBe('literal-self');
+  });
+
+  test('rejects unresolved aliases, invalid assignments, and routes with multiple default branches', () => {
+    const base = {
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+    };
+
+    expect(() => buildSpecProcessAndViewJson({
+      ...base,
+      spec: {
+        events: ['insert'],
+        nodes: [{
+          type: 'dataUpdate',
+          source: 'missingAlias',
+          assignments: [{ column: 'textField_a', valueType: 'literal', value: 'x' }],
+        }],
+      },
+    })).toThrow(/Unknown integration spec node alias: missingAlias/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{
+        type: 'dataCreate',
+        formUuid: 'FORM-B',
+        assignments: [{ valueType: 'literal', value: 'x' }],
+      }],
+    })).toThrow(/assignment column/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{
+        type: 'dataCreate',
+        formUuid: 'FORM-B',
+        assignments: [{ column: 'textField_a', valueType: 'unknown', value: 'x' }],
+      }],
+    })).toThrow(/assignment valueType/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{
+        type: 'dataCreate',
+        formUuid: 'FORM-B',
+        assignments: [{ column: 'textField_a', valueType: 'literal' }],
+      }],
+    })).toThrow(/assignment value/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{ type: 'connector', connectorId: 'G-CONN-ONLY' }],
+    })).toThrow(/connectorId and actionId/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{ type: 'notADeclaredNode' }],
+    })).toThrow(/Unsupported integration spec node type/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{ type: 'route', branches: [{ id: 'a', default: true }, { id: 'b', default: true }] }],
+    })).toThrow(/at most one default branch/);
+  });
+
+  test('preserves primitive literal types exactly in spec JSON', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [{
+          id: 'create',
+          type: 'dataCreate',
+          formUuid: 'FORM-B',
+          assignments: [
+            { column: 'textField_code', valueType: 'literal', value: '00123' },
+            { column: 'numberField_count', valueType: 'literal', value: 123 },
+            { column: 'checkboxField_flag', valueType: 'literal', value: false },
+          ],
+        }],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+      formSchemasByUuid: new Map([['FORM-B', [
+        { componentName: 'TextField', props: { fieldId: 'textField_code' } },
+        { componentName: 'NumberField', props: { fieldId: 'numberField_count' } },
+        { componentName: 'CheckboxField', props: { fieldId: 'checkboxField_flag' } },
+      ]]]),
+    });
+    const processValues = built.processJson.nodes.find((node) => node.type === 'dataCreate')
+      .props.assignments.map((item) => item.value);
+    const viewValues = built.viewJson.schema.children.find((node) => node.componentName === 'AddDataNode')
+      .props.addDataRules.rules.rules.map((item) => item.value);
+
+    expect(processValues).toEqual(['00123', 123, false]);
+    expect(viewValues).toEqual(processValues);
+  });
+
+  test('serializes activityTask trigger semantics consistently in process and view JSON', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['activityTask'],
+        approvalActions: ['agree'],
+        approvalNodeIds: ['activity-1'],
+        nodes: [{ type: 'sendMessage', receivers: ['user-1'], content: 'done' }],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+    });
+    const processStart = built.processJson.nodes[0].props.inputs;
+    const viewStart = built.viewJson.schema.children[0].props.start;
+
+    expect(processStart).toMatchObject({
+      formEventType: ['activityTask'],
+      activityAction: ['agree'],
+      activityId: ['activity-1'],
+      activityTask: [{ activityId: ['activity-1'], activityAction: ['agree'] }],
+    });
+    expect(viewStart).toMatchObject({
+      examineApproveType: 'activityTask',
+      formEventType: ['processEvents'],
+      examineApproveNode: 'activity-1',
+      examineApproveActiveList: ['agree'],
+      examineApproveActiveTask: [{ activityId: ['activity-1'], activityAction: ['agree'] }],
+    });
+  });
+
+  test('documents recursive form-event triggering as default false', () => {
+    const doc = fs.readFileSync(path.join(
+      __dirname,
+      '../yida-skills/skills/yida-integration/references/integration-node-schemas.md'
+    ), 'utf8');
+    expect(doc).toMatch(/triggerFormEventRecursively[^\n]*默认[^\n]*false/i);
+    expect(doc).not.toMatch(/triggerFormEventRecursively[^\n]*固定[^\n]*true/i);
   });
 
   test('readIntegrationSpec accepts UTF-8 BOM files', () => {

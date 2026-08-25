@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "sourceBundle": {
+    "package": "yida-logic-flow",
+    "version": "0.2.245"
+  },
+  "contractRevision": 1,
+  "scenarioId": "integration-submit-notify",
+  "artifactKind": "definition",
+  "semantic": {
+    "trigger": {
+      "key": "trigger",
+      "type": "trigger",
+      "componentName": "StartNode",
+      "eventTypes": [
+        "insert"
+      ],
+      "recursive": false,
+      "conditions": []
+    },
+    "nodes": [
+      {
+        "key": "trigger",
+        "type": "trigger",
+        "componentName": "StartNode",
+        "name": "表单事件触发",
+        "nextKeys": [
+          "sendMessage"
+        ],
+        "config": {}
+      },
+      {
+        "key": "sendMessage",
+        "type": "sendMessage",
+        "componentName": "SendMessageNode",
+        "name": "消息通知",
+        "nextKeys": [
+          "finish"
+        ],
+        "config": {
+          "sendMessage": {
+            "recipients": [
+              {
+                "valueType": "user",
+                "value": "hrRecipient"
+              }
+            ],
+            "title": "新请假申请：${field.applicant}",
+            "content": "请假类型：${field.leaveType}"
+          }
+        }
+      },
+      {
+        "key": "finish",
+        "type": "finish",
+        "componentName": "EndNode",
+        "name": "结束",
+        "nextKeys": [],
+        "config": {}
+      }
+    ],
+    "branches": [],
+    "requireProcessViewConsistency": true
+  },
+  "evidenceProfile": {
+    "confirmedProtocol": [
+      "form-event-runtime-inputs",
+      "send-message-transform",
+      "save-process-view-payload"
+    ],
+    "inferredProtocol": [
+      "process_view_semantic_equivalence"
+    ],
+    "contractInvariants": [
+      "FormEvent insert trigger",
+      "trigger -> sendMessage -> finish topology",
+      "notification recipient/title/content mapping",
+      "process/view semantic equivalence"
+    ],
+    "testAuthorExpectations": [
+      "An inserted leave request sends exactly one HR notification."
+    ]
+  }
+}
