@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "protocol": "openyida-process-static-contract",
+  "source": {
+    "package": "yida-simple-flow",
+    "version": "0.2.307",
+    "url": "https://g.alicdn.com/yida-platform/yida-simple-flow/0.2.307/index.js",
+    "bundleSizeBytes": 12566951,
+    "sha256": "a4d0d5e6a7c54c2b0d348f716d87fb4c126a54cabfdc5881ad98d68d9a183af4",
+    "bundleCommitted": false,
+    "ciNetworkRequired": false
+  },
+  "statusDefinitions": {
+    "Confirmed": "Directly evidenced by the pinned bundle or an existing captured protocol fixture.",
+    "Inferred": "Required by observed process/view relationships but not fully proven for every runtime variant.",
+    "Unknown": "Registered for visibility; exact props or runtime behavior are intentionally not asserted in v1."
+  },
+  "verificationProfiles": {
+    "CONTRACT_VERIFIED": {
+      "publicApi": ["normalizeReadback", "verifyContract"],
+      "requiredArtifact": ["processJson", "viewJson"],
+      "meaning": "Full static process/view semantic contract verification for a combined compile artifact."
+    },
+    "PLATFORM_VIEW_VERIFIED": {
+      "publicApi": ["normalizeViewReadback", "verifyViewContract"],
+      "requiredArtifact": ["bindingForm", "formulaRules", "globalSetting", "schema"],
+      "meaning": "Independent verification of assertions observable in the platform designer view readback.",
+      "doesNotImply": ["processJson verified", "runtime behavior verified"]
+    },
+    "RUNTIME": {
+      "publicApi": [],
+      "requiredArtifact": ["runtime execution evidence"],
+      "meaning": "Assertions that require platform runtime evidence and are not satisfied by static or view verification."
+    }
+  },
+  "capabilities": {
+    "Confirmed": [
+      {
+        "id": "topology.lifecycle",
+        "values": ["ApplyNode:apply", "EndNode:finish"],
+        "evidenceLocator": "bundle@sha256:a4d0d5e6...#byte:3841667(component type map: ApplyNode=apply,EndNode=finish)"
+      },
+      {
+        "id": "topology.human-nodes",
+        "values": ["ApprovalNode:approval", "MultiApprovalNode:approval", "OperatorNode:approval", "CarbonNode:carbon"],
+        "evidenceLocator": "bundle@sha256:a4d0d5e6...#byte:3841667(eBt component type map); captured:scripts/eval/process-contract/fixtures/pinned-bundle-protocol-extract.json#/protocolSamples/multiApproval"
+      },
+      {
+        "id": "topology.branch-nodes",
+        "values": ["ConditionContainer:route", "ConditionNode:condition", "ParallelNode:condition"],
+        "evidenceLocator": "bundle@sha256:a4d0d5e6...#byte:3841667(eBt component type map); reference:yida-skills/skills/yida-process-rule/references/official-component-nodes.md#透传规则"
+      },
+      {
+        "id": "approval.multi-approver-mode",
+        "values": ["all", "or", "oneByOne"],
+        "evidenceLocator": "bundle@sha256:a4d0d5e6...#byte:3924107(multiApprove/approvalType_multi),byte:4044511(oneByOne); captured:scripts/eval/process-contract/fixtures/pinned-bundle-protocol-extract.json#/protocolSamples/multiApproval"
+      },
+      {
+        "id": "condition.logic",
+        "values": ["AND", "OR"],
+        "evidenceLocator": "bundle@sha256:a4d0d5e6...#byte:2043435(a8 condition transform)"
+      },
+      {
+        "id": "condition.operator",
+        "values": ["Equal", "GreaterThan", "GreaterThanOrEqual", "LessThan", "LessThanOrEqual"],
+        "evidenceLocator": "bundle@sha256:a4d0d5e6...#byte:2043435(a8 opCode transform); captured:scripts/eval/process-contract/fixtures/pinned-bundle-protocol-extract.json#/protocolSamples/conditionRules"
+      },
+      {
+        "id": "form.field-permission",
+        "values": ["NORMAL", "READONLY", "HIDDEN"],
+        "evidenceLocator": "bundle@sha256:a4d0d5e6...#byte:4026851(ajt node behaviorList to flowConfig); captured:scripts/eval/process-contract/fixtures/pinned-bundle-protocol-extract.json#/protocolSamples/fieldPermission"
+      },
+      {
+        "id": "readback.designer-detail-view-only",
+        "values": ["getProcess.json:viewJson", "getProcessById.json:viewJson"],
+        "evidenceLocator": "bundle@sha256:a4d0d5e6...#byte:4573948(process_version_service read sequence),byte:3905669(ProcessInfo parsed as view schema); captured:scripts/eval/process-contract/fixtures/get-process-by-id-view-only.readback.json"
+      },
+      {
+        "id": "verification.platform-view-contract",
+        "values": ["node set", "component and name", "designer tree order", "visible approval mode"],
+        "evidenceLocator": "captured:scripts/eval/process-contract/fixtures/get-process-by-id-view-only.readback.json; implementation:scripts/eval/process-contract/index.js#normalizeViewReadback,verifyViewContract; tests:tests/eval-process-view-contract.test.js"
+      }
+    ],
+    "Inferred": [
+      {
+        "id": "topology.process-view-semantic-binding",
+        "values": ["node id", "node type", "node name", "branch target"],
+        "evidenceLocator": "compiler:lib/process/services/process-compiler.js#buildNodeListRecursive; tests:tests/configure-process.test.js"
+      },
+      {
+        "id": "condition.default-priority",
+        "values": [2147483647],
+        "evidenceLocator": "compiler:lib/process/services/process-compiler.js#buildRouteNode"
+      },
+      {
+        "id": "approval.return-target",
+        "values": ["routeRule.rules[].targetNodeId"],
+        "evidenceLocator": "compiler:lib/process/services/process-compiler.js#buildRouteRule"
+      }
+    ],
+    "Unknown": [
+      {
+        "id": "advanced-node.complete-props",
+        "values": ["ConnectorNode", "GroovyNode", "JavaScriptNode", "InitiateApprovalNode", "CycleContainer", "AINode"],
+        "evidenceLocator": "reference:yida-skills/skills/yida-process-rule/references/official-component-nodes.md#支持清单"
+      },
+      {
+        "id": "runtime.platform-execution",
+        "values": ["tenant-specific execution", "designer migration behavior"],
+        "evidenceLocator": "not-verified:v1-is-static-and-offline"
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "id": "amount-condition-boundary",
+  "title": "金额条件边界",
+  "template": "amountConditionBoundary",
+  "request": "构建费用审批流程：紧急或超大额优先走特别审批；金额达到一万元走财务审批；零到一万元之间走主管办理；零金额归档；其他情况走默认分支。"
+}

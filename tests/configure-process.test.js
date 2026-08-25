@@ -385,6 +385,56 @@ describe('configure-process official component nodes', () => {
   });
 });
 
+describe('configure-process DSL safety', () => {
+  test.each([
+    [{ type: 'approval', name: '缺少审批人' }, 'approval'],
+    [{ type: 'operator', name: '缺少办理人' }, 'operator'],
+    [{ type: 'carbon', name: '缺少抄送人' }, 'carbon'],
+  ])('rejects missing actor config for %s', (node, nodeType) => {
+    expect.assertions(2);
+    try {
+      _private.buildProcessAndViewJson(
+        { nodes: [node] },
+        'TPROC-TEST',
+        'FORM-TEST',
+        'https://www.aliwork.com',
+        'APP_TEST'
+      );
+    } catch (error) {
+      expect(error).toMatchObject({
+        code: 'PROCESS_COMPILE_APPROVER_REQUIRED',
+      });
+      expect(error.details).toMatchObject({ nodeType });
+    }
+  });
+
+  test('rejects duplicate node names before route targets can be overwritten', () => {
+    expect(() => _private.buildProcessAndViewJson({
+      nodes: [
+        { type: 'approval', name: '重复节点', approver: 'originator' },
+        { type: 'operator', name: '重复节点', executor: 'originator' },
+      ],
+    }, 'TPROC-TEST', 'FORM-TEST', 'https://www.aliwork.com', 'APP_TEST')).toThrow(expect.objectContaining({
+      code: 'PROCESS_COMPILE_NODE_NAME_DUPLICATE',
+    }));
+  });
+
+  test('rejects routeRules that point to an unknown node', () => {
+    expect(() => _private.buildProcessAndViewJson({
+      nodes: [
+        {
+          type: 'approval',
+          name: '复核',
+          approver: 'originator',
+          routeRules: [{ when: 'disagree', jumpTo: '不存在的节点' }],
+        },
+      ],
+    }, 'TPROC-TEST', 'FORM-TEST', 'https://www.aliwork.com', 'APP_TEST')).toThrow(expect.objectContaining({
+      code: 'PROCESS_COMPILE_ROUTE_TARGET_INVALID',
+    }));
+  });
+});
+
 describe('configure-process command runner', () => {
   afterEach(() => {
     jest.resetModules();
@@ -412,12 +462,14 @@ describe('configure-process command runner', () => {
     const mockAuthRef = {
       baseUrl: 'https://www.aliwork.com',
     };
-    const mockGet = jest.fn().mockResolvedValueOnce({
-      success: true,
-      content: { data: [{ id: 100, version: '2' }] },
-    });
+    const mockGet = jest.fn()
+      .mockResolvedValueOnce({
+        success: true,
+        content: { data: [{ id: 100, version: '2' }] },
+      })
+      .mockResolvedValueOnce({ success: true, content: { data: [] } });
     const mockPostForm = jest.fn()
-      .mockResolvedValueOnce({ success: true, content: { processId: 101 } })
+      .mockResolvedValueOnce({ success: true, content: { processId: 101, processVersion: 4 } })
       .mockResolvedValueOnce({ success: true })
       .mockResolvedValueOnce({ success: true });
 
@@ -448,11 +500,11 @@ describe('configure-process command runner', () => {
       success: true,
       processCode: 'TPROC_TEST',
       processId: 101,
-      processVersion: 3,
+      processVersion: 4,
       appType: 'APP_TEST',
       formUuid: 'FORM_TEST',
     });
-    expect(mockGet).toHaveBeenCalledTimes(1);
+    expect(mockGet).toHaveBeenCalledTimes(2);
     expect(mockGet.mock.calls[0][0]).toBe('/alibaba/web/APP_TEST/query/process/pageProcessVersion.json');
     expect(mockPostForm).toHaveBeenCalledTimes(3);
     expect(mockPostForm.mock.calls[0][0]).toBe('/APP_TEST/query/simpleProcess/newDraftProcess.json');
@@ -460,6 +512,180 @@ describe('configure-process command runner', () => {
     expect(mockPostForm.mock.calls[2][0]).toBe('/alibaba/web/APP_TEST/query/simpleProcess/publishProcessById.json');
     expect(logSpy).toHaveBeenCalledWith(JSON.stringify(result));
     expect(exitSpy).not.toHaveBeenCalled();
+
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  test('reuses a newer SAVED draft instead of creating its version again', async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-configure-process-'));
+    const definitionFile = path.join(tempDir, 'process.json');
+    fs.writeFileSync(definitionFile, JSON.stringify({ nodes: [] }));
+
+    const mockAuthRef = { baseUrl: 'https://www.aliwork.com' };
+    const mockGet = jest.fn()
+      .mockResolvedValueOnce({ success: true, content: { data: [{ id: 100, version: '2' }] } })
+      .mockResolvedValueOnce({ success: true, content: { data: [{ id: 101, version: '3', status: 'SAVED' }] } });
+    const mockPostForm = jest.fn()
+      .mockResolvedValueOnce({ success: true })
+      .mockResolvedValueOnce({ success: true });
+
+    jest.resetModules();
+    jest.doMock('../lib/core/yida-client', () => ({
+      createAuthRef: jest.fn(() => mockAuthRef),
+      createYidaClient: jest.fn(() => ({ get: mockGet, postForm: mockPostForm })),
+    }));
+
+    const freshConfigureProcess = require('../lib/process/configure-process');
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await freshConfigureProcess.run([
+      'APP_TEST',
+      'FORM_TEST',
+      definitionFile,
+      'TPROC_TEST',
+    ]);
+
+    expect(result).toMatchObject({ processId: 101, processVersion: 3 });
+    expect(mockPostForm).toHaveBeenCalledTimes(2);
+    expect(mockPostForm.mock.calls.map((call) => call[0])).toEqual([
+      '/alibaba/web/APP_TEST/query/simpleProcess/saveProcessById.json',
+      '/alibaba/web/APP_TEST/query/simpleProcess/publishProcessById.json',
+    ]);
+
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  test('refreshes SAVED id and version when draft creation returns an empty object', async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-configure-process-'));
+    const definitionFile = path.join(tempDir, 'process.json');
+    fs.writeFileSync(definitionFile, JSON.stringify({ nodes: [] }));
+
+    const mockGet = jest.fn()
+      .mockResolvedValueOnce({ success: true, content: { data: [{ id: 100, version: '2' }] } })
+      .mockResolvedValueOnce({ success: true, content: { data: [] } })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { data: [{ id: 102, processVersion: '4', status: 'SAVED' }] },
+      });
+    const mockPostForm = jest.fn()
+      .mockResolvedValueOnce({ success: true, content: {} })
+      .mockResolvedValueOnce({ success: true })
+      .mockResolvedValueOnce({ success: true });
+
+    jest.resetModules();
+    jest.doMock('../lib/core/yida-client', () => ({
+      createAuthRef: jest.fn(() => ({ baseUrl: 'https://www.aliwork.com' })),
+      createYidaClient: jest.fn(() => ({ get: mockGet, postForm: mockPostForm })),
+    }));
+
+    const freshConfigureProcess = require('../lib/process/configure-process');
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await freshConfigureProcess.run([
+      'APP_TEST',
+      'FORM_TEST',
+      definitionFile,
+      'TPROC_TEST',
+    ]);
+
+    expect(result).toMatchObject({ processId: 102, processVersion: 4 });
+    expect(mockGet).toHaveBeenCalledTimes(3);
+    expect(mockPostForm.mock.calls.map((call) => call[0])).toEqual([
+      '/APP_TEST/query/simpleProcess/newDraftProcess.json',
+      '/alibaba/web/APP_TEST/query/simpleProcess/saveProcessById.json',
+      '/alibaba/web/APP_TEST/query/simpleProcess/publishProcessById.json',
+    ]);
+
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  test('does not create a draft when the SAVED version lookup fails', async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-configure-process-'));
+    const definitionFile = path.join(tempDir, 'process.json');
+    fs.writeFileSync(definitionFile, JSON.stringify({ nodes: [] }));
+
+    const mockGet = jest.fn()
+      .mockResolvedValueOnce({ success: true, content: { data: [{ id: 100, version: '2' }] } })
+      .mockResolvedValueOnce({ success: false, errorMsg: 'saved lookup denied' });
+    const mockPostForm = jest.fn();
+    jest.resetModules();
+    jest.doMock('../lib/core/yida-client', () => ({
+      createAuthRef: jest.fn(() => ({ baseUrl: 'https://www.aliwork.com' })),
+      createYidaClient: jest.fn(() => ({ get: mockGet, postForm: mockPostForm })),
+    }));
+
+    const freshConfigureProcess = require('../lib/process/configure-process');
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(freshConfigureProcess.run([
+      'APP_TEST',
+      'FORM_TEST',
+      definitionFile,
+      'TPROC_TEST',
+    ])).rejects.toMatchObject({ code: 'CONFIGURE_PROCESS_QUERY_VERSIONS_FAILED' });
+    expect(mockPostForm).not.toHaveBeenCalled();
+
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  test.each([
+    [
+      'missing actor',
+      { nodes: [{ type: 'approval', name: '缺少审批人' }] },
+      'PROCESS_COMPILE_APPROVER_REQUIRED',
+    ],
+    [
+      'duplicate node names',
+      {
+        nodes: [
+          { type: 'approval', name: '重复节点', approver: 'originator' },
+          { type: 'operator', name: '重复节点', executor: 'originator' },
+        ],
+      },
+      'PROCESS_COMPILE_NODE_NAME_DUPLICATE',
+    ],
+    [
+      'unknown route target',
+      {
+        nodes: [{
+          type: 'approval',
+          name: '复核',
+          approver: 'originator',
+          routeRules: [{ when: 'disagree', jumpTo: '不存在的节点' }],
+        }],
+      },
+      'PROCESS_COMPILE_ROUTE_TARGET_INVALID',
+    ],
+  ])('rejects invalid DSL (%s) before any remote read or write request', async (_label, definition, errorCode) => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-configure-process-'));
+    const definitionFile = path.join(tempDir, 'process.json');
+    fs.writeFileSync(definitionFile, JSON.stringify(definition));
+
+    const mockGet = jest.fn();
+    const mockPostForm = jest.fn();
+    jest.resetModules();
+    jest.doMock('../lib/core/yida-client', () => ({
+      createAuthRef: jest.fn(() => ({ baseUrl: 'https://www.aliwork.com' })),
+      createYidaClient: jest.fn(() => ({ get: mockGet, postForm: mockPostForm })),
+    }));
+
+    const freshConfigureProcess = require('../lib/process/configure-process');
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(freshConfigureProcess.run([
+      'APP_TEST',
+      'FORM_TEST',
+      definitionFile,
+    ])).rejects.toMatchObject({
+      code: errorCode,
+      details: { stage: 'build_definition' },
+    });
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(mockPostForm).not.toHaveBeenCalled();
 
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
@@ -472,10 +698,12 @@ describe('configure-process command runner', () => {
     const mockAuthRef = {
       baseUrl: 'https://www.aliwork.com',
     };
-    const mockGet = jest.fn().mockResolvedValueOnce({
-      success: true,
-      content: { data: [{ id: 100, version: '2' }] },
-    });
+    const mockGet = jest.fn()
+      .mockResolvedValueOnce({
+        success: true,
+        content: { data: [{ id: 100, version: '2' }] },
+      })
+      .mockResolvedValueOnce({ success: true, content: { data: [] } });
     const mockPostForm = jest.fn()
       .mockResolvedValueOnce({ success: true, content: { processId: 101 } })
       .mockResolvedValueOnce({
@@ -523,10 +751,10 @@ describe('configure-process command runner', () => {
         completedStages: [
           'read_definition',
           'load_auth',
+          'build_definition',
           'resolve_process_code',
           'query_process_versions',
           'create_draft',
-          'build_definition',
         ],
         context: {
           appType: 'APP_TEST',

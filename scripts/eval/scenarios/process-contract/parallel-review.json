@@ -1,0 +1,6 @@
+{
+  "id": "parallel-review",
+  "title": "并行会审",
+  "template": "parallelReview",
+  "request": "构建合同会审流程：发起后法务与财务并行审批，两条分支完成后结束。"
+}

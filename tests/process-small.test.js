@@ -93,7 +93,11 @@ describe('small process commands', () => {
       toFormType: 'process',
       formUuid: 'FORM_1',
     });
-    expect(configureProcess.run).toHaveBeenCalledWith(['APP_XXX', 'FORM_1', processDefPath, 'TPROC_1']);
+    expect(configureProcess.run).toHaveBeenCalledWith(
+      ['APP_XXX', 'FORM_1', processDefPath, 'TPROC_1'],
+      { suppressOutput: true }
+    );
+    expect(logSpy).toHaveBeenCalledTimes(1);
     expect(JSON.parse(logSpy.mock.calls[0][0])).toEqual(result);
   });
 
@@ -135,12 +139,15 @@ describe('small process commands', () => {
       }
     );
     expect(childProcess.execSync).not.toHaveBeenCalled();
-    expect(configureProcess.run).toHaveBeenCalledWith([
-      'APP_XXX',
-      'FORM_CREATED',
-      processDefPath,
-      'TPROC_CREATED',
-    ]);
+    expect(configureProcess.run).toHaveBeenCalledWith(
+      [
+        'APP_XXX',
+        'FORM_CREATED',
+        processDefPath,
+        'TPROC_CREATED',
+      ],
+      { suppressOutput: true }
+    );
     expect(result).toEqual({
       success: true,
       formUuid: 'FORM_CREATED',
@@ -231,6 +238,11 @@ describe('small process commands', () => {
       .map(line => JSON.parse(line))
       .find(item => item && item.success === false);
 
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(configureProcess.run).toHaveBeenCalledWith(
+      ['APP_XXX', 'FORM_1', processDefPath, 'TPROC_1'],
+      { suppressOutput: true }
+    );
     expect(payload).toMatchObject({
       success: false,
       formUuid: 'FORM_1',

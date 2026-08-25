@@ -15,6 +15,7 @@ jest.mock('../lib/core/yida-client', () => ({
 }));
 
 const {
+  getProcessById,
   newDraftProcess,
   publishProcessById,
   queryProcessVersions,
@@ -67,5 +68,40 @@ describe('process version query', () => {
     expect(mockPostFormOnce).toHaveBeenCalledTimes(3);
     expect(mockGet).not.toHaveBeenCalled();
     expect(mockPostForm).not.toHaveBeenCalled();
+  });
+
+  test('preserves confirmed view-only readback without fabricating processJson', async () => {
+    const authRef = { csrfToken: 'csrf-runtime-only' };
+    mockGetOnce.mockResolvedValueOnce({
+      success: true,
+      content: JSON.stringify({
+        bindingForm: 'FORM_SANITIZED',
+        formulaRules: [],
+        globalSetting: { allowWithdraw: true },
+        schema: { componentName: 'CanvasEngine', children: [] },
+      }),
+    });
+
+    const response = await getProcessById(authRef, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_SANITIZED',
+      processCode: 'TPROC_SANITIZED',
+      processId: '101',
+      processVersion: '2',
+    }, { oneShot: true });
+    const parsed = JSON.parse(response.content);
+
+    expect(Object.keys(parsed).sort()).toEqual([
+      'bindingForm',
+      'formulaRules',
+      'globalSetting',
+      'schema',
+    ]);
+    expect(parsed).not.toHaveProperty('processJson');
+    expect(parsed).not.toHaveProperty('json');
+    expect(parsed).not.toHaveProperty('viewJson');
+    expect(mockGetOnce.mock.calls[0][0]).toBe(
+      '/alibaba/web/APP_TEST/query/simpleProcess/getProcessById.json'
+    );
   });
 });

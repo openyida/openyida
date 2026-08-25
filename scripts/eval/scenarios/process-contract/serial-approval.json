@@ -1,0 +1,6 @@
+{
+  "id": "serial-approval",
+  "title": "串行审批",
+  "template": "serialApproval",
+  "request": "构建请假流程：发起后由直属主管审批，再由人事审批，最后结束。"
+}

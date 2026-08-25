@@ -13,6 +13,10 @@ const {
   writeRegistry,
 } = require('./runner');
 const { validateSkillCoverage } = require('./skill-coverage');
+const {
+  DEFAULT_DEFINITION_FILE: DEFAULT_PROCESS_DEFINITION_FILE,
+  run: runProcessMvp,
+} = require('./process/runner');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const DEFAULT_PAGE_SOURCE = path.join(ROOT, 'project', 'pages', 'src', 'demo-compat-smoke.oyd.jsx');
@@ -1070,10 +1074,11 @@ function recordConfiguredStageResults(registry, registryPath, config, context, w
       resources: [],
     },
     process: {
-      commands: ['create-process', 'configure-process'],
-      summary: `Process form configured and republished: ${context.processCode || 'n/a'}`,
+      status: registry.processMvp && registry.processMvp.status,
+      commands: ['process-mvp-create-publish'],
+      summary: `Process form published and read back: ${context.processCode || 'n/a'}`,
       resources: ['process'],
-      artifacts: ['process-definition', 'process-rule-definition', 'process-official-node-fixture'],
+      artifacts: ['process-readback-raw', 'process-readback-canonical', 'process-acceptance-manifest'],
     },
     'connector-local': {
       commands: ['connector-gen-template', 'connector-parse-api'],
@@ -1092,7 +1097,7 @@ function recordConfiguredStageResults(registry, registryPath, config, context, w
     if (!definition) {continue;}
     const commands = commandsByName(registry, definition.commands);
     recordStageResult(registry, null, stageName, {
-      status: 'passed',
+      status: definition.status || 'passed',
       commands: commandNames(commands),
       resources: resourcesByType(registry, definition.resources || []),
       artifacts: artifactsByType(registry, definition.artifacts || []),
@@ -1102,7 +1107,7 @@ function recordConfiguredStageResults(registry, registryPath, config, context, w
   if (registryPath) {writeRegistry(registryPath, registry);}
 }
 
-function run(options = {}) {
+async function run(options = {}) {
   const env = options.env || process.env;
   const config = options.config || getFullConfig(env);
   const executeCli = options.runCli || runCli;
@@ -1386,55 +1391,34 @@ function run(options = {}) {
       if (!context.appType || !context.formUuid) {
         throw new Error('Process stage requires app and form stages');
       }
-      const processCreateDefinitionPath = writeJsonFile(
-        path.join(workDir, 'process-create-definition.json'),
-        buildProcessCreateDefinition(context.fields),
-      );
-      const processRuleDefinitionPath = writeJsonFile(
-        path.join(workDir, 'process-rule-definition.json'),
-        buildProcessRuleDefinition(context.fields),
-      );
-      const officialNodeFixturePath = writeJsonFile(
-        path.join(workDir, 'process-official-node-fixture.json'),
-        buildOfficialProcessNodeFixture(context),
-      );
-      registry.artifacts = registry.artifacts || [];
-      registry.artifacts.push(
-        { type: 'process-definition', path: processCreateDefinitionPath },
-        { type: 'process-rule-definition', path: processRuleDefinitionPath },
-        { type: 'process-official-node-fixture', path: officialNodeFixturePath },
-      );
-      persistRegistry(registryPath, registry);
-
-      const processCreate = runStep('create-process', [
-        'create-process',
-        context.appType,
-        '--formUuid',
-        context.formUuid,
-        processCreateDefinitionPath,
-      ]).json;
-      context.processCode = processCreate.processCode;
-      if (!context.processCode) {
-        throw new Error(`create-process did not return processCode: ${JSON.stringify(processCreate)}`);
-      }
-      trackResource(registry, registryPath, {
-        type: 'process',
-        appType: context.appType,
-        formUuid: context.formUuid,
-        processCode: context.processCode,
-        name: `${config.prefix}_Process`,
-        url: processCreate.url,
+      const processMvp = await runProcessMvp({
+        env,
+        config: {
+          enabled: true,
+          appType: context.appType,
+          formUuid: context.formUuid,
+          scenarioId: env.OPENYIDA_E2E_PROCESS_SCENARIO || 'serial-approval',
+          definitionFile: env.OPENYIDA_E2E_PROCESS_DEFINITION || DEFAULT_PROCESS_DEFINITION_FILE,
+          registryDir: config.registryDir,
+          baseUrl: config.baseUrl || 'https://www.aliwork.com',
+        },
+        registry,
+        registryPath,
+        writeRegistry: persistRegistry,
+        addResource: trackResource,
+        commandAdapter: {
+          run: function runProcessCommand(args) {
+            return executeCli(args, env);
+          },
+        },
+        apiAdapter: options.processApiAdapter,
+        removePath: options.removeProcessPath,
       });
-
-      const processRule = runStep('configure-process', [
-        'configure-process',
-        context.appType,
-        context.formUuid,
-        processRuleDefinitionPath,
-        context.processCode,
-      ]).json;
-      context.processId = processRule.processId || null;
-      context.processVersion = processRule.processVersion || null;
+      context.processCode = processMvp.processCode || null;
+      context.processId = processMvp.processId || null;
+      context.processVersion = processMvp.processVersion || null;
+      registry.processMvp = processMvp;
+      persistRegistry(registryPath, registry);
     }
 
     if (hasStage(config.stages, 'connector-local')) {
@@ -1487,7 +1471,9 @@ function run(options = {}) {
       runStep('mark-result-app', ['update-app', context.appType, '--name', config.resultAppName]);
     }
 
-    registry.status = 'passed';
+    registry.status = registry.processMvp && registry.processMvp.status === 'cleanup_blocked'
+      ? 'cleanup_blocked'
+      : 'passed';
     registry.finishedAt = new Date().toISOString();
     registry.context = context;
     registry.resultApp = buildResultApp(context, config.resultAppName);
@@ -1496,7 +1482,7 @@ function run(options = {}) {
     persistRegistry(registryPath, registry);
     printResultApp(registry.resultApp);
     printAcceptanceSummary(registry, registryPath);
-    console.log(`Full real E2E passed. Registry: ${registryPath}`);
+    console.log(`Full real E2E ${registry.status}. Registry: ${registryPath}`);
     return { skipped: false, registryPath, registry };
   } catch (error) {
     registry.status = 'failed';
@@ -1523,12 +1509,10 @@ function run(options = {}) {
 }
 
 if (require.main === module) {
-  try {
-    run();
-  } catch (error) {
+  run().catch(function (error) {
     console.error(error.message);
-    process.exit(1);
-  }
+    process.exitCode = 1;
+  });
 }
 
 module.exports = {

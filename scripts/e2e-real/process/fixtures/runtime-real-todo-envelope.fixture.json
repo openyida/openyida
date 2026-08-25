@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "content": {
+    "data": [
+      {
+        "activeTime": "2026-08-24T12:46:16.000Z",
+        "actualActionerId": "__IDENTITY_BOUND_ACTOR_ID__",
+        "appType": "__APP_TYPE__",
+        "createTime": "2026-08-24T12:46:16.000Z",
+        "originatorId": "__ORIGINATOR_ID__",
+        "originatorName": "Actor A",
+        "originatorNameEn": "Actor A",
+        "originatorPhoto": "",
+        "processInstanceId": "__PROCESS_INSTANCE_ID__",
+        "status": "RUNNING",
+        "taskId": "__TASK_ID__",
+        "taskType": "TODO",
+        "title": "Runtime verification task",
+        "titleEn": "Runtime verification task"
+      }
+    ]
+  }
+}

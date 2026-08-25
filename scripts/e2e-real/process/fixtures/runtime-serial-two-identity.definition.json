@@ -1,0 +1,34 @@
+{
+  "nodes": [
+    {
+      "key": "manager_approval",
+      "type": "approval",
+      "name": "直属主管审批",
+      "approver": {
+        "type": "user",
+        "users": [
+          {
+            "id": "__RUNTIME_APPROVER_B_USER_ID__",
+            "name": "RUNTIME_ACTOR_B"
+          }
+        ],
+        "multiApproverType": "all",
+        "processProps": {
+          "multiApprove": "all"
+        }
+      }
+    },
+    {
+      "key": "hr_approval",
+      "type": "approval",
+      "name": "人事审批",
+      "approver": {
+        "type": "originator",
+        "multiApproverType": "all",
+        "processProps": {
+          "multiApprove": "all"
+        }
+      }
+    }
+  ]
+}

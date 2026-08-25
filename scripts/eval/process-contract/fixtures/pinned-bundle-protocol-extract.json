@@ -1,0 +1,68 @@
+{
+  "fixtureVersion": 1,
+  "source": {
+    "package": "yida-simple-flow",
+    "version": "0.2.307",
+    "bundleSizeBytes": 12566951,
+    "sha256": "a4d0d5e6a7c54c2b0d348f716d87fb4c126a54cabfdc5881ad98d68d9a183af4"
+  },
+  "bundleLocators": {
+    "componentTypeMap": "index.js@byte:3841667#eBt(MultiApprovalNode=approval)",
+    "multiApprovalTransform": "index.js@byte:3924107#approvalType_multi,multiRules,mode=multi",
+    "multiApprovalModes": "index.js@byte:4044511#all,or,oneByOne",
+    "fieldPermissionFlowConfig": "index.js@byte:4026851#ajt(node.formConfig.behaviorList->flowConfig[nodeId])",
+    "conditionOperatorTransform": "index.js@byte:2043435#a8(op->opCode)",
+    "designerReadSequence": "index.js@byte:4573948#process_version_service:getProcess|pageProcessVersion->getProcessById"
+  },
+  "protocolSamples": {
+    "multiApproval": {
+      "processType": "approval",
+      "componentName": "MultiApprovalNode",
+      "modes": ["all", "or", "oneByOne"],
+      "processProps": {
+        "mode": "multi",
+        "multiApprove": "all",
+        "multiRules": [{ "status": "0", "rules": [] }]
+      },
+      "viewProps": {
+        "multiApproverRules": {
+          "approvalType_multi": "all",
+          "multiRules": [{ "status": "0", "rules": [] }]
+        }
+      }
+    },
+    "fieldPermission": {
+      "nodeId": "captured_permission_node",
+      "nodeBehaviorList": [
+        { "fieldId": "title", "fieldBehavior": "NORMAL" },
+        { "fieldId": "amount", "fieldBehavior": "READONLY" },
+        { "fieldId": "internalNote", "fieldBehavior": "HIDDEN" }
+      ],
+      "flowConfig": {
+        "captured_permission_node": [
+          { "fieldId": "title", "fieldBehavior": "NORMAL" },
+          { "fieldId": "amount", "fieldBehavior": "READONLY" },
+          { "fieldId": "internalNote", "fieldBehavior": "HIDDEN" }
+        ]
+      }
+    },
+    "conditionRules": {
+      "raw": [
+        { "id": "amount", "opCode": "GreaterThanOrEqual", "ruleValue": 10000 },
+        { "id": "amount", "op": "小于", "ruleValue": 50000 }
+      ],
+      "canonical": [
+        { "fieldId": "amount", "operator": "GreaterThanOrEqual", "value": 10000 },
+        { "fieldId": "amount", "operator": "LessThan", "value": 50000 }
+      ]
+    },
+    "designerReadback": {
+      "legacyEndpoint": "/query/simpleProcess/getProcess.json",
+      "versionedEndpoint": "/query/simpleProcess/getProcessById.json",
+      "frontendConsumer": "ProcessInfo parsed directly as view schema",
+      "capturedContentKind": "viewJson",
+      "independentProcessJsonIncluded": false,
+      "capturedShapeFixture": "get-process-by-id-view-only.readback.json"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "id": "multi-approval-modes",
+  "title": "多人审批模式",
+  "template": "multiApprovalModes",
+  "request": "构建三段多人审批流程，依次验证会签 all、或签 or、依次审批 oneByOne，然后结束。"
+}
