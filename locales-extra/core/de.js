@@ -1766,3 +1766,72 @@ module.exports = {
     error: '\n❌ Importfehler: {0}'
   }
 };
+
+// Safety-critical verification and publish lint messages.
+Object.assign(module.exports.app_permission || (module.exports.app_permission = {}), {
+  verify_failed: 'App-Administrator-Save-Verifizierung fehlgeschlagen',
+});
+
+Object.assign(module.exports.corp_manager || (module.exports.corp_manager = {}), {
+  address_book_verify_failed: 'Adressbuch-Berechtigungs-Save-Verifizierung fehlgeschlagen: erwartet={0}, tatsächlich={1}',
+  admin_verify_failed: 'Administrator-Save-Verifizierung fehlgeschlagen: {0} wurde in der Liste {1} nicht gefunden',
+  sub_admin_scope_verify_failed: 'Subadministrator-Bereichs-Save-Verifizierung fehlgeschlagen: erwartet={0}, tatsächlich={1}',
+  admin_remove_verify_failed: 'Administrator-Rücknahme-Verifizierung fehlgeschlagen: {0} befindet sich noch in der Liste {1}',
+});
+
+Object.assign(module.exports.save_permission || (module.exports.save_permission = {}), {
+  confirm_member_replace_usage: 'Das Ersetzen zusammengesetzter Mitglieder erfordert auch --confirm-member-replace',
+  data_object_required: 'Datenberechtigung muss ein JSON-Objekt sein',
+  data_rule_required: 'Datenberechtigungsregel darf nicht leer sein',
+  data_rule_type_required: 'Jeder Datenberechtigungsregeln-Eintrag muss einen Typ enthalten',
+  data_rule_value_invalid: 'Der Wert der Datenberechtigungsregel {0} muss y/n oder ein Boolean sein',
+  data_enabled_required: 'Datenberechtigung muss mindestens eine Datenskala aktivieren',
+  custom_department_ids_required: 'CUSTOM_DEPARTMENT erfordert nicht-leere customDepartmentData.departmentIds',
+  formula_data_required: 'FORMULA erfordert nicht-leere formulaData',
+  data_range_required: 'Datenberechtigung erfordert eine nicht-leere dataRange oder Regel',
+  action_enabled_required: 'Handlungsberechtigung muss mindestens einen Operationssatz auf true setzen',
+  action_value_boolean: 'Handlungsberechtigung {0} muss ein Boolean sein',
+  field_range_invalid: 'Feldberechtigungs fieldRange unterstützt nur FORM oder CUSTOM',
+  field_status_required: 'CUSTOM Feldberechtigung erfordert eine nicht-leere fieldStatus-Array',
+  field_status_item_required: 'Jedes fieldStatus-Eintrag muss label, fieldName, componentName und value enthalten',
+  field_status_value_invalid: 'Ungültiger Feldberechtigungs-Wert: {0}; gültige Werte: {1}',
+  json_object_required: '{0} muss ein JSON-Objekt sein',
+  parse_failed: 'Parse von {0} fehlgeschlagen: {1}',
+  role_conflict: 'Berechtigungsargumente spezifizieren inkonsistente Rollen: {0}',
+  matrix_role_only: '--matrix kann nur eine role=MATRIX Berechtigungsgruppe aktualisieren',
+  all_members_role_only: '--all-members kann nur eine role=DEFAULT Berechtigungsgruppe aktualisieren',
+  target_role_invalid: 'Ungültige Rolle: {0}; gültige Werte: {1}',
+  unnamed_package: 'Unbenannt',
+  missing_package_uuid: 'Kein UUID vorhanden',
+  target_no_match: 'Keine Berechtigungsgruppe passte zu role={0}; mit Nullschreiben abgebrochen, um eine unbeabsichtigte Aktualisierung zu verhindern. Aktuelle Berechtigungsgruppen:\n{2}',
+  target_ambiguous: 'role={0} passte {1} Berechtigungsguppen; mit Nullschreiben abgebrochen, um eine unbeabsichtigte Aktualisierung zu verhindern.\n{2}',
+  unknown_operate_keys: 'Die aktuelle Berechtigungsgruppe enthält Operationsschlüssel, die dem CLI unbekannt sind, daher kann action-permission nicht geändert werden: {0}. Andere Dimensionen können noch geändert werden und unbekannte Schlüssel werden wortwörtlich erhalten.',
+  matrix_role_value_required: 'MATRIX roleData.roleValue muss ein nicht-leeres Array sein',
+  matrix_data_required: 'Wenn Mitglieder MATRIX verwenden, muss die Datenberechtigungsregel MATRIX enthalten',
+  data_matrix_member_required: 'Wenn Datenberechtigung MATRIX enthält, müssen Mitglieder eine gültige Berechtigungsmatrix auswählen',
+  members_all_conflict: '--members und --all-members sind sich gegenseitig ausschließend',
+  invalid_arguments: 'Argumentvalidierung fehlgeschlagen: {0}',
+  query_limit: 'Die Berechtigungsguppen-Abfrage erreichte den aktuellen Limit von 20-Einträgen, sodass globale Rollen-Eindeutigkeit nicht bewiesen werden kann. Mit Nullschreiben abgebrochen.\n{0}',
+  unique_target: '  ✅ Einzigartiges Ziel: {0}',
+  member_before: '  Mitglieder vorher: {0}',
+  member_after: '  Mitglieder nach:  {0}',
+  member_removed: '  Mitgliedsrollen zum Entfernen: {0}',
+  member_replace_confirm: 'Mitgliedsersetzung entfernt bestehende zusammengesetzte Rollen. Prüfen Sie vor/nach und fügen Sie --confirm-member-replace hinzu. Einträge, die verloren gehen werden: {0}',
+});
+
+Object.assign(module.exports.save_share_config || (module.exports.save_share_config = {}), {
+  err_page_url_prefix: 'openUrl muss mit /o/ oder /s/ beginnen, aktueller Wert: {0}',
+  verify_failed: 'Post-Save-Verifizierung fehlgeschlagen: {0}',
+  current_state_incomplete: 'Save abgebrochen: aktuelle public-access-Konfiguration fehlt openPageAuthConfig, sodass sichere Bewahrung nicht bewiesen werden kann',
+});
+
+Object.assign(module.exports.publish || (module.exports.publish = {}), {
+  lint_jsx_text_identifier: 'JSX-Copy kann als {{0}} geschrieben werden; es wird als Variable behandelt und verursacht {0} ist nicht definiert. Verwenden Sie stattdessen rohen Text {0} oder einen zitierten String {\'{0}\'}.',
+  lint_form_open_container: 'Öffnung von Yida-Form-Einreichung/Detail-Seiten aus einer benutzerdefinierten Seite muss FormOpenContainer verwenden: ein 50vw-Ziehkasten-Iframe auf Desktop und nur volle/neue Seiten auf Mobilgeräten. Button-Handler sollten openForm({ type: "submission" | "detail", ... }) aufrufen.',
+  lint_form_detail_link: 'Yida-Form-Detail-Seiten müssen eine echte formInstId verwenden: lesen Sie zuerst row.formInstId und deaktivieren oder warnen, wenn die Instanz-ID fehlt, anstatt ein leeres formInstId mit einem formDetail-Link zu öffnen.',
+  lint_searchformdata_http_path: 'Eine direkte searchFormDatas.json-Aufruf muss /dingtalk/web/<appType>/v1/form/searchFormDatas.json verwenden; /query/form/searchFormDatas.json ist kein gültiger Form-Daten-Endpunkt',
+  lint_searchformdata_http_query_params: 'Der direkte searchFormDatas.json URL-Abfrage fehlt erforderliche Parameter: {0}. Verwenden Sie URLSearchParams mit appType, formUuid, currentPage, pageSize und searchFieldJson',
+  lint_searchformdata_http_csrf: 'Eine direkte searchFormDatas.json-Aufruf muss den Laufzeit-CSRF-Token sowohl in der _csrf_token URL-Abfrage als auch im global_csrf_token Request-Header setzen',
+  lint_searchformdata_http_credentials: 'Eine direkte searchFormDatas.json-Aufruf muss credentials: "include" festlegen, damit der Browser Same-Origin-Anmelde-Cookies sendet',
+  lint_canvas_yida_api_bridge_missing: 'YidaCodeCanvas Form-Daten-Lesevorgänge müssen zuerst window.__OPENYIDA_YIDA_API__ verbrauchen (die Publish-Schicht injiziert den this.utils.yida Brücke von außen didMount); verwenden Sie nicht standardmäßig eine handgeschriebene interne searchFormDatas-Abfrage',
+});

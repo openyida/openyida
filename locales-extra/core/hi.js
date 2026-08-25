@@ -1766,3 +1766,72 @@ module.exports = {
     error: '\n❌ आयात त्रुटि: {0}'
   }
 };
+
+// Safety-critical verification and publish lint messages.
+Object.assign(module.exports.app_permission || (module.exports.app_permission = {}), {
+  verify_failed: 'प्रशासक सहेजित जांच विफल हुई',
+});
+
+Object.assign(module.exports.corp_manager || (module.exports.corp_manager = {}), {
+  address_book_verify_failed: 'पता पुस्तिका अनुमति सेव विफल: अपेक्षित={0}, वास्तविक={1}',
+  admin_verify_failed: 'प्रशासक सेव विफल: {0} को {1} सूची में नहीं मिला',
+  sub_admin_scope_verify_failed: 'उप-प्रशासक दायरा सेव विफल: अपेक्षित={0}, वास्तविक={1}',
+  admin_remove_verify_failed: 'प्रशासक हटाया जांच विफल: {0} अभी भी {1} सूची में है',
+});
+
+Object.assign(module.exports.save_permission || (module.exports.save_permission = {}), {
+  confirm_member_replace_usage: 'युग्मित सदस्यों को बदलने के लिए --confirm-member-replace की आवश्यकता होती है',
+  data_object_required: 'डेटा अनुमति एक JSON वस्तु होनी चाहिए',
+  data_rule_required: 'डेटा अनुमति नियत नहीं खाली हो सकता',
+  data_rule_type_required: 'हर डेटा अनुमति नियत पद में प्रकार शामिल करना होगा',
+  data_rule_value_invalid: 'डेटा अनुमति नियत {0} का मान y/n या बूल्न होना चाहिए',
+  data_enabled_required: 'डेटा अनुमति कम से कम एक डेटा श्रेणी सक्षम करनी होगी',
+  custom_department_ids_required: 'CUSTOM_DEPARTMENT के लिए खाली नहीं होने वाले कस्टमDepartmentData.departmentIds की आवश्यकता है',
+  formula_data_required: 'FORMULA के लिए खाली नहीं होने वाला formulaData की आवश्यकता है',
+  data_range_required: 'डेटा अनुमति में एक खाली डेटाRange या नियत होना चाहिए',
+  action_enabled_required: 'कार्य अनुमति में कम से कम एक ऑपरेशन सत्य करके शामिल करना होगा',
+  action_value_boolean: 'कार्य अनुमति {0} बूल्न होनी चाहिए',
+  field_range_invalid: 'क्षेत्र अनुमति क्षेत्रRange केवल FORM या CUSTOM को समर्थन करता है',
+  field_status_required: 'CUSTOM क्षेत्र अनुमति में एक खाली fieldStatus अरे की आवश्यकता है',
+  field_status_item_required: 'हर fieldStatus पद में लेबल, fieldName, componentName और मान शामिल करना होगा',
+  field_status_value_invalid: 'अमान्य क्षेत्र अनुमति मान: {0}; वैध मान: {1}',
+  json_object_required: '{0} एक JSON वस्तु होना चाहिए',
+  parse_failed: '{0} को पारित करने में विफलता: {1}',
+  role_conflict: 'अनुमति तर्ग असंगत भूमिकाएं निर्दिष्ट करते हैं: {0}',
+  matrix_role_only: '--matrix केवल एक role=MATRIX अनुमति समूह को अपडेट कर सकता है',
+  all_members_role_only: '--all-members केवल एक role=DEFAULT अनुमति समूह को अपडेट कर सकता है',
+  target_role_invalid: 'अमान्य भूमिका: {0}; वैध मान: {1}',
+  unnamed_package: 'नामहीन',
+  missing_package_uuid: 'कोई UUID नहीं',
+  target_no_match: 'role={0} के लिए कोई अनुमति समूह मेल नहीं खाता; अनपेक्षित अपडेट को रोकने के साथ शून्य लिखतों से विरुद्ध किया गया है। वर्तमान अनुमति समूह:\n{2}',
+  target_ambiguous: 'role={0} ने {1} अनुमति समूहों का मेल खाया; अनपेक्षित अपडेट को रोकने के साथ शून्य लिखतों से विरुद्ध किया गया है。\n{2}',
+  unknown_operate_keys: 'वर्तमान अनुमति समूह में CLI द्वारा अज्ञात ऑपरेशन चाबीएं शामिल हैं, इसलिए action-permutation बदला नहीं जा सकता: {0}। अन्य आयाम अभी भी बदले जा सकते हैं और अज्ञात चाबियां बिना परिवर्तन रखी जाएंगी।',
+  matrix_role_value_required: 'MATRIX roleData.roleValue एक खाली अरे होनी चाहिए',
+  matrix_data_required: 'जब सदस्य MATRIX का उपयोग करते हैं, तो डेटा अनुमति नियत में MATRIX शामिल करना होगा',
+  data_matrix_member_required: 'डेटा अनुमति में MATRIX होने पर, सदस्यों को एक वैध अनुमति मैट्रिक्स चुनना होगा',
+  members_all_conflict: '--members और --all-members आपसी रूप से विरोधी हैं',
+  invalid_arguments: 'तर्ग जांच विफल: {0}',
+  query_limit: 'अनुमति समूह प्रश्न वर्तमान 20-पद सीमा को पहुंच गया, इसलिए वैश्विक भूमिका एकता का सिद्ध नहीं किया जा सकता। शून्य लिखतों के साथ विरुद्ध किया गया है。\n{0}',
+  unique_target: '  ✅ अकेला लक्ष्य: {0}',
+  member_before: '  सदस्यों से पहले: {0}',
+  member_after: '  सदस्यों के बाद:  {0}',
+  member_removed: '  हटाने वाले सदस्य भूमिकाएं: {0}',
+  member_replace_confirm: 'सदस्य प्रतिस्थापन मौजूदा युग्मित भूमिकाओं को हटाएगा। पहले/बाद और --confirm-member-replace जोड़ने से पहले समीक्षा करें। खो जाने वाले प्रविष्टियां: {0}',
+});
+
+Object.assign(module.exports.save_share_config || (module.exports.save_share_config = {}), {
+  err_page_url_prefix: 'openUrl /o/ या /s/ के साथ शुरू होना चाहिए, वर्तमान मान: {0}',
+  verify_failed: 'सेव-बाद जांच विफल हुई: {0}',
+  current_state_incomplete: 'सेव रद्द किया गया है: वर्तमान सार्वजनिक पहुंच कॉन्फ़िगरेशन openPageAuthConfig की कमी रखता है, इसलिए सुरक्षित संरक्षण का सिद्ध नहीं किया जा सकता',
+});
+
+Object.assign(module.exports.publish || (module.exports.publish = {}), {
+  lint_jsx_text_identifier: 'JSX कॉपी {{0}} के रूप में लिखा नहीं जा सकता; इसे एक चर के रूप में माना जाता है और {0} परिभाषित नहीं है। साधारण टेक्स्ट {0} या उद्धृत शब्द {\'{0}\'} का उपयोग करें इसके बजाय।',
+  lint_form_open_container: 'कस्टम पेज से Yida फॉर्म सबमिशन/विस्तार पृष्ठ खोलने के लिए FormOpenContainer का उपयोग करना चाहिए: डेस्कटॉप पर एक 50vw ड्रायर iframe, और मोबाइल पर केवल पूरा/नया पृष्ठ। बटन हैंडल openForm({ type: "submission" | "detail", ... }) को कॉल करनी चाहिए।',
+  lint_form_detail_link: 'Yida फॉर्म विस्तार पृष्ठ एक वास्तविक formInstId का उपयोग करना चाहिए: पहले row.formInstId पढ़ें, और instance id की कमी होने पर बंद या चेतावन दें, खाली formInstId के साथ एक formDetail लिंक खोलने के बजाय।',
+  lint_searchformdata_http_path: 'एक सीधा searchFormDatas.json कॉल /dingtalk/web/<appType>/v1/form/searchFormDatas.json का उपयोग करना चाहिए; /query/form/searchFormDatas.json एक वैध फॉर्म डेटा एंडपॉइंट नहीं है',
+  lint_searchformdata_http_query_params: 'सीधा searchFormDatas.json URL प्रश्न आवश्यक पैरामीटर्स की कमी रखता है: {0}। appType, formUuid, currentPage, pageSize और searchFieldJson के साथ URLSearchParams का उपयोग करें',
+  lint_searchformdata_http_csrf: 'एक सीधा searchFormDatas.json कॉल runtime CSRF टोकन को दोनों _csrf_token URL प्रश्न और global_csrf_token अनुरोध हेडर में रखना चाहिए',
+  lint_searchformdata_http_credentials: 'एक सीधा searchFormDatas.json कॉल credentials: "include" सेट करना होगा ताकि ब्राउज़र सम-मूल्य लॉगिन कोकीज भेजे',
+  lint_canvas_yida_api_bridge_missing: 'YidaCodeCanvas फॉर्म डेटा पढ़ें window.__OPENYIDA_YIDA_API__ पहले उपभोग करना चाहिए (पब्लिश स्तर बाहरी didMount से this.utils.yida ब्रिज इंजेक्ट करता है); हाथ से लिखी गई आंतरिक searchFormDatas fetch पर डिफ़ॉल्ट न करें',
+});

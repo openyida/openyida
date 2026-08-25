@@ -1766,3 +1766,72 @@ module.exports = {
     error: '\n❌ Lỗi nhập ứng dụng: {0}'
   }
 };
+
+// Safety-critical verification and publish lint messages.
+Object.assign(module.exports.app_permission || (module.exports.app_permission = {}), {
+  verify_failed: 'Lỗi xác minh lưu của quản trị viên ứng dụng',
+});
+
+Object.assign(module.exports.corp_manager || (module.exports.corp_manager = {}), {
+  address_book_verify_failed: 'Xác minh lưu thư mục địa chỉ thất bại: mong đợi={0}, thực tế={1}',
+  admin_verify_failed: 'Xác minh lưu quản trị viên thất bại: {0} không có trong danh sách {1}',
+  sub_admin_scope_verify_failed: 'Xác minh phạm vi phụ quản trị viên thất bại: mong đợi={0}, thực tế={1}',
+  admin_remove_verify_failed: 'Xác minh xóa quản trị viên thất bại: {0} vẫn còn trong danh sách {1}',
+});
+
+Object.assign(module.exports.save_permission || (module.exports.save_permission = {}), {
+  confirm_member_replace_usage: 'Thay thế thành viên hợp nhất cũng yêu cầu --confirm-member-replace',
+  data_object_required: 'Quyền dữ liệu phải là một đối tượng JSON',
+  data_rule_required: 'Quy tắc quyền dữ liệu không được để trống',
+  data_rule_type_required: 'Mỗi mục quy tắc quyền dữ liệu phải bao gồm trường type',
+  data_rule_value_invalid: 'Giá trị của quy tắc quyền dữ liệu {0} phải là y/n hoặc boolean',
+  data_enabled_required: 'Quyền dữ liệu phải bật ít nhất một khoảng dữ liệu',
+  custom_department_ids_required: 'CUSTOM_DEPARTMENT yêu cầu customDepartmentData.departmentIds không rỗng',
+  formula_data_required: 'FORMULA yêu cầu formulaData không rỗng',
+  data_range_required: 'Quyền dữ liệu phải có dataRange hoặc rule không rỗng',
+  action_enabled_required: 'Quyền hành động phải chứa ít nhất một bộ thao tác được đặt thành true',
+  action_value_boolean: 'Quyền hành động {0} phải là boolean',
+  field_range_invalid: 'Trường quyền dữ liệu fieldRange chỉ hỗ trợ FORM hoặc CUSTOM',
+  field_status_required: 'Quyền trường tùy chỉnh yêu cầu mảng fieldStatus không rỗng',
+  field_status_item_required: 'Mỗi mục fieldStatus phải bao gồm label, fieldName, componentName và value',
+  field_status_value_invalid: 'Giá trị quyền trường không hợp lệ: {0}; các giá trị hợp lệ: {1}',
+  json_object_required: '{0} phải là một đối tượng JSON',
+  parse_failed: 'Không thể giải mã {0}: {1}',
+  role_conflict: 'Các tham số quyền xác định các vai trò không nhất quán: {0}',
+  matrix_role_only: '--matrix chỉ có thể cập nhật nhóm quyền role=MATRIX',
+  all_members_role_only: '--all-members chỉ có thể cập nhật nhóm quyền role=DEFAULT',
+  target_role_invalid: 'Vai trò không hợp lệ: {0}; giá trị hợp lệ: {1}',
+  unnamed_package: 'Không đặt tên',
+  missing_package_uuid: 'Không có UUID',
+  target_no_match: 'Không có nhóm quyền phù hợp với vai trò={0}; hủy bỏ để ngăn cập nhật không mong muốn (không ghi dữ liệu). Các nhóm quyền hiện tại:\n{2}',
+  target_ambiguous: 'Vai trò={0} khớp {1} nhóm quyền; hủy bỏ để ngăn cập nhật không mong muốn.\n{2}',
+  unknown_operate_keys: 'Nhóm quyền hiện tại chứa các khóa thao tác mà CLI chưa biết, do đó action-permission không thể thay đổi: {0}. Các chiều khác vẫn có thể được thay đổi và các khóa chưa biết sẽ được giữ nguyên.',
+  matrix_role_value_required: 'MATRIX roleData.roleValue phải là một mảng không rỗng',
+  matrix_data_required: 'Khi sử dụng MATRIX, quy tắc quyền dữ liệu phải bao gồm MATRIX',
+  data_matrix_member_required: 'Khi quyền dữ liệu bao gồm MATRIX, thành viên phải chọn ma trận quyền hợp lệ',
+  members_all_conflict: '--members và --all-members là loại trừ lẫn nhau',
+  invalid_arguments: 'Kiểm tra tham số thất bại: {0}',
+  query_limit: 'Lên đến giới hạn hiện tại của truy vấn nhóm quyền (20 mục), do đó không thể chứng minh tính duy nhất toàn cục. Hủy bỏ với không ghi dữ liệu.\n{0}',
+  unique_target: '  ✅ Mục tiêu độc nhất: {0}',
+  member_before: '  Thành viên trước: {0}',
+  member_after: '  Thành viên sau:  {0}',
+  member_removed: '  Vai trò thành viên cần xóa: {0}',
+  member_replace_confirm: 'Thay thế thành viên sẽ xóa các vai trò hợp chất hiện có. Hãy xem xét trước/sau và thêm --confirm-member-replace. Các mục sắp bị mất: {0}',
+});
+
+Object.assign(module.exports.save_share_config || (module.exports.save_share_config = {}), {
+  err_page_url_prefix: 'openUrl phải bắt đầu bằng /o/ hoặc /s/, giá trị hiện tại: {0}',
+  verify_failed: 'Kiểm tra sau lưu thất bại: {0}',
+  current_state_incomplete: 'Lưu bị hủy: cấu hình truy cập công khai hiện tại thiếu openPageAuthConfig, do đó không thể chứng minh bảo tồn an toàn',
+});
+
+Object.assign(module.exports.publish || (module.exports.publish = {}), {
+  lint_jsx_text_identifier: 'JSX copy không thể viết dưới dạng {{0}}; nó được xử lý như biến và gây ra lỗi {0} is not defined. Hãy sử dụng văn bản thường {0} hoặc chuỗi có dấu ngoặc đơn {\'{0}\'} thay vào đó.',
+  lint_form_open_container: 'Khi mở trang Yida form submission/detail từ một trang tùy chỉnh, hãy sử dụng FormOpenContainer: khung trượt iframe trên máy tính để bàn (50vw) và chỉ toàn bộ/trang mới trên di động. Xử lý nút nên gọi openForm({ type: "submission" | "detail", ... }).',
+  lint_form_detail_link: 'Trang chi tiết form Yida phải sử dụng một formInstId thực tế: hãy đọc row.formInstId trước, và tắt hoặc cảnh báo khi id instance bị thiếu thay vì mở liên kết formDetail với formInstId rỗng.',
+  lint_searchformdata_http_path: 'Một cuộc gọi trực tiếp searchFormDatas.json bắt buộc phải sử dụng /dingtalk/web/<appType>/v1/form/searchFormDatas.json; /query/form/searchFormDatas.json không phải là điểm cuối dữ liệu form hợp lệ',
+  lint_searchformdata_http_query_params: 'Cuộc gọi URL tham số truy vấn trực tiếp searchFormDatas.json thiếu các tham số bắt buộc: {0}. Hãy sử dụng URLSearchParams với appType, formUuid, currentPage, pageSize và searchFieldJson',
+  lint_searchformdata_http_csrf: 'Một cuộc gọi trực tiếp searchFormDatas.json phải đặt token CSRF thời gian chạy vào cả _csrf_token trong truy vấn URL và global_csrf_token trong tiêu đề yêu cầu',
+  lint_searchformdata_http_credentials: 'Một cuộc gọi trực tiếp searchFormDatas.json phải thiết lập credentials: "include" để trình duyệt gửi cookie đăng nhập cùng nguồn gốc',
+  lint_canvas_yida_api_bridge_missing: 'Đọc dữ liệu form YidaCodeCanvas bắt buộc phải tiêu thụ window.__OPENYIDA_YIDA_API__ trước (lớp publish tiêm cầu nối this.utils.yida từ didMount bên ngoài); không mặc định đến fetch searchFormDatas nội bộ viết tay',
+});

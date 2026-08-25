@@ -1768,3 +1768,72 @@ module.exports = {
     error: '\n❌ Error de importación: {0}'
   }
 };
+
+// Safety-critical verification and publish lint messages.
+Object.assign(module.exports.app_permission || (module.exports.app_permission = {}), {
+  verify_failed: 'La verificación de guardado del administrador falló',
+});
+
+Object.assign(module.exports.corp_manager || (module.exports.corp_manager = {}), {
+  address_book_verify_failed: 'El guardado de la permisión de libreta de direcciones falló: esperado={0}, real={1}',
+  admin_verify_failed: 'El guardado como administrador falló: {0} no se encontró en la lista {1}',
+  sub_admin_scope_verify_failed: 'El guardado del alcance de subadministrador falló: esperado={0}, real={1}',
+  admin_remove_verify_failed: 'La verificación de eliminación como administrador falló: {0} sigue estando en la lista {1}',
+});
+
+Object.assign(module.exports.save_permission || (module.exports.save_permission = {}), {
+  confirm_member_replace_usage: 'Reemplazar miembros compuestos también requiere --confirm-member-replace',
+  data_object_required: 'El permiso de datos debe ser un objeto JSON',
+  data_rule_required: 'La regla del permiso de datos no puede estar vacía',
+  data_rule_type_required: 'Cada elemento de la regla del permiso de datos debe incluir el tipo',
+  data_rule_value_invalid: 'El valor de la regla del permiso de datos {0} debe ser y/n o booleano',
+  data_enabled_required: 'El permiso de datos debe habilitar al menos un rango de datos',
+  custom_department_ids_required: 'CUSTOM_DEPARTMENT requiere departmentIds no vacío en customDepartmentData',
+  formula_data_required: 'FORMULA requiere formulaData no vacío',
+  data_range_required: 'El permiso de datos requiere dataRange o rule no vacíos',
+  action_enabled_required: 'El permiso de acción debe contener al menos una operación establecida en true',
+  action_value_boolean: 'La permisión de acción {0} debe ser booleana',
+  field_range_invalid: 'fieldRange del permiso de campo solo soporta FORM o CUSTOM',
+  field_status_required: 'El permiso de campo CUSTOM requiere un array fieldStatus no vacío',
+  field_status_item_required: 'Cada elemento de fieldStatus debe incluir label, fieldName, componentName y value',
+  field_status_value_invalid: 'Valor del permiso de campo inválido: {0}; valores válidos: {1}',
+  json_object_required: '{0} debe ser un objeto JSON',
+  parse_failed: 'Error al analizar {0}: {1}',
+  role_conflict: 'Los argumentos del permiso especifican roles inconsistentes: {0}',
+  matrix_role_only: '--matrix solo puede actualizar el grupo de permisos role=MATRIX',
+  all_members_role_only: '--all-members solo puede actualizar el grupo de permisos role=DEFAULT',
+  target_role_invalid: 'Rol inválido: {0}; valores válidos: {1}',
+  unnamed_package: 'Sin nombre',
+  missing_package_uuid: 'No hay UUID',
+  target_no_match: 'No se encontró grupo de permisos que coincida con role={0}; abortado con cero escrituras para prevenir una actualización no intencionada. Grupos de permisos actuales:\n{2}',
+  target_ambiguous: 'role={0} coincide con {1} grupos de permisos; abortado con cero escrituras para prevenir una actualización no intencionada.\n{2}',
+  unknown_operate_keys: 'El grupo actual de permisos contiene claves de operación desconocidas por la CLI, así que action-permission no puede cambiar: {0}. Otras dimensiones aún pueden cambiarse y las claves desconocidas se preservarán tal cual.',
+  matrix_role_value_required: 'roleData.roleValue del rol MATRIX debe ser un array no vacío',
+  matrix_data_required: 'Cuando los miembros usan MATRIX, la regla de permiso de datos debe incluir MATRIX',
+  data_matrix_member_required: 'Cuando el permiso de datos incluye MATRIX, los miembros deben seleccionar una matriz de permisos válida',
+  members_all_conflict: '--members y --all-members son mutuamente excluyentes',
+  invalid_arguments: 'La validación de argumentos falló: {0}',
+  query_limit: 'La consulta del grupo de permisos alcanzó el límite actual de 20 elementos, por lo que no se puede probar la unicidad global de los roles. Abortado con cero escrituras.\n{0}',
+  unique_target: '  ✅ Objetivo único: {0}',
+  member_before: '  Miembros antes: {0}',
+  member_after: '  Miembros después:  {0}',
+  member_removed: '  Roles de miembros a eliminar: {0}',
+  member_replace_confirm: 'El reemplazo de miembro eliminará los roles compuestos existentes. Revise antes/después y agregue --confirm-member-replace. Entradas que se perderán: {0}',
+});
+
+Object.assign(module.exports.save_share_config || (module.exports.save_share_config = {}), {
+  err_page_url_prefix: 'openUrl debe comenzar con /o/ o /s/, valor actual: {0}',
+  verify_failed: 'La verificación post-guardado falló: {0}',
+  current_state_incomplete: 'Guardado abortado: la configuración de acceso público actual carece de openPageAuthConfig, por lo que no se puede probar una preservación segura',
+});
+
+Object.assign(module.exports.publish || (module.exports.publish = {}), {
+  lint_jsx_text_identifier: 'La copia JSX no se puede escribir como {{0}}; se trata como variable y causa {0} is not defined. Use plain text {0} o una cadena con comillas {\'{0}\'} en su lugar.',
+  lint_form_open_container: 'Abrir páginas de envío/detalles del formulario Yida desde una página personalizada debe usar FormOpenContainer: un iframe drawer de 50vw para escritorio, y solo nueva/página completa para móvil. Los manejadores de botón deben llamar openForm({ type: "submission" | "detail", ... }).',
+  lint_form_detail_link: 'Las páginas de detalle del formulario Yida deben usar una formInstId real: lea row.formInstId primero, y deshabilite o advierta cuando el id de instancia esté ausente en lugar de abrir un enlace formDetail con un formInstId vacío.',
+  lint_searchformdata_http_path: 'Una llamada directa a searchFormDatas.json debe usar /dingtalk/web/<appType>/v1/form/searchFormDatas.json; /query/form/searchFormDatas.json no es un endpoint válido de datos del formulario',
+  lint_searchformdata_http_query_params: 'La consulta URL directa de searchFormDatas.json falta los parámetros requeridos: {0}. Use URLSearchParams con appType, formUuid, currentPage, pageSize y searchFieldJson',
+  lint_searchformdata_http_csrf: 'Una llamada directa a searchFormDatas.json debe poner el token CSRF en tiempo de ejecución tanto en _csrf_token como en global_csrf_token header',
+  lint_searchformdata_http_credentials: 'Una llamada directa a searchFormDatas.json debe establecer credentials: "include" para que el navegador envíe cookies de inicio de sesión del mismo origen',
+  lint_canvas_yida_api_bridge_missing: 'Las lecturas de datos del formulario YidaCodeCanvas deben consumir window.__OPENYIDA_YIDA_API__ primero (la capa publish inyecta this.utils.yida desde didMount externo); no use por defecto la búsqueda interna manual fetch searchFormDatas',
+});

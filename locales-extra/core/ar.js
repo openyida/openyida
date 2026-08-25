@@ -1766,3 +1766,72 @@ module.exports = {
     error: '\n❌ خطأ في الاستيراد: {0}'
   }
 };
+
+// Safety-critical verification and publish lint messages.
+Object.assign(module.exports.app_permission || (module.exports.app_permission = {}), {
+  verify_failed: 'فشل حفظ التحقق من صلاحية مدير التطبيق',
+});
+
+Object.assign(module.exports.corp_manager || (module.exports.corp_manager = {}), {
+  address_book_verify_failed: 'فشل حفظ تحقق دفتر عناوين: المتوقع={0}, الفعلي={1}',
+  admin_verify_failed: 'فشل حفظ صلاحيات المدير: {0} غير موجود في قائمة {1}',
+  sub_admin_scope_verify_failed: 'فشل نطاق حفظ صلاحية نائب المدير: المتوقع={0}, الفعلي={1}',
+  admin_remove_verify_failed: 'فشل التحقق من إزالة المدير: لا يزال {0} موجودًا في قائمة {1}',
+});
+
+Object.assign(module.exports.save_permission || (module.exports.save_permission = {}), {
+  confirm_member_replace_usage: 'استبدال الأعضاء المركبين يتطلب أيضًا --confirm-member-replace',
+  data_object_required: 'يجب أن تكون صلاحية البيانات كائن JSON',
+  data_rule_required: 'لا يجب أن تكون قاعدة صلاحيات البيانات فارغة',
+  data_rule_type_required: 'يجب أن تتضمن كل عنصر في قاعدة صلاحيات البيانات نوعًا (type)',
+  data_rule_value_invalid: 'قيمة قاعدة صلاحية البيانات {0} يجب أن تكون y/n أو قيمة منطقية',
+  data_enabled_required: 'يجب تفعيل صلاحية البيانات على الأقل نطاق بيانات واحد',
+  custom_department_ids_required: 'يتطلب CUSTOM_DEPARTMENT قائمة departmentIds غير فارغة في customDepartmentData',
+  formula_data_required: 'يتطلب FORMULA قاعدة formulaData غير فارغة',
+  data_range_required: 'تتطلب صلاحية البيانات نطاق بيانات dataRange أو قاعدة غير فارغين',
+  action_enabled_required: 'يجب أن تحتوي صلاحيات الإجراءات على مجموعة عمليات واحدة الأقل least set to true',
+  action_value_boolean: 'يجب أن تكون صلاحيات الإجراء {0} قيمة منطقية (boolean)',
+  field_range_invalid: 'يدعم صلاحية الحقول fieldRange فقط FORM أو CUSTOM',
+  field_status_required: 'تتطلب صلاحية حقول مخصصة قائمة fieldStatus غير فارغة',
+  field_status_item_required: 'يجب أن يتضمن كل عنصر في fieldStatus التسمية (label)، واسم الحقل (fieldName)، ومكون المكون (componentName)، والقيمة (value)',
+  field_status_value_invalid: 'قيمة صلاحية الحقول غير صالحة: {0}; القيم الصالحة هي: {1}',
+  json_object_required: '{0} يجب أن يكون كائن JSON',
+  parse_failed: 'فشل تحليل {0}: {1}',
+  role_conflict: 'تحديد صلاحية صلاحيات غير متسقة: {0}',
+  matrix_role_only: '--matrix يمكنه تحديث مجموعة الصلاحيات فقط role=MATRIX',
+  all_members_role_only: '--all-members يمكنه تحديث مجموعة الصلاحيات فقط role=DEFAULT',
+  target_role_invalid: 'صلاحية غير صالحة: {0}; القيم المتاحة هي: {1}',
+  unnamed_package: 'غير مسمّى',
+  missing_package_uuid: 'ليس هناك UUID',
+  target_no_match: 'لم تطابق أي مجموعة صلاحية role={0}؛ تم التوقف عن الكتابة الصفرية لمنع تحديث غير مقصود. مجموعات الصلاحيات الحالية:\n{2}',
+  target_ambiguous: 'تم مطابقة {1} مجموعة صلاحيات لـ role={0}؛ تم التوقف عن الكتابة الصفرية لمنع تحديث غير مقصود.\n{2}',
+  unknown_operate_keys: 'تحتوي المجموعة الحالية للصلاحية على مفاتيح عمليات مجهولة بالنسبة إلى CLI، لذا لا يمكن تغيير action-permission: {0}. قد يتم تغيير أبعاد أخرى وسيتم حفظ المفاتيح المجهولة حرفيًا.',
+  matrix_role_value_required: 'يجب أن تكون roleData.roleValue في MATRIX قائمة غير فارغة',
+  matrix_data_required: 'عندما يستخدم الأعضاء MATRIX، يجب أن تتضمن قاعدة صلاحية البيانات MATRIX',
+  data_matrix_member_required: 'عندما تحتوي صلاحيات البيانات على MATRIX، يجب على الأعضاء اختيار مصفوفة صلاحية صحيحة',
+  members_all_conflict: '--members و --all-members متناقضان بشكل متبادل',
+  invalid_arguments: 'فشلت تحقق الحجة: {0}',
+  query_limit: 'وصل استعلام مجموعة الصلاحيات إلى حد الـ 20 العنصر الحالي، لذا لا يمكن إثبات فريدة الدور العالمية. تم التوقف عن الكتابة بالصفر.\n{0}',
+  unique_target: '  ✅ هدف فريد: {0}',
+  member_before: '  الأعضاء قبل: {0}',
+  member_after: '  الأعضاء بعد:  {0}',
+  member_removed: '  أدوار العضو لإزالتها: {0}',
+  member_replace_confirm: 'ستؤدي استبدال الأعضاء إلى إزالة الأدوار المركبة الموجودة. راجع قبل/بعد وأضف --confirm-member-replace. المدخلات التي سيتم فقدانها: {0}',
+});
+
+Object.assign(module.exports.save_share_config || (module.exports.save_share_config = {}), {
+  err_page_url_prefix: 'يجب أن يبدأ openUrl بـ /o/ أو /s/, القيمة الحالية هي: {0}',
+  verify_failed: 'فشلت التحقق من حفظ ما بعد الحفظ: {0}',
+  current_state_incomplete: 'تم التوقف عن الحفظ: لا تحتوي حالة الوصول العام الحالية على openPageAuthConfig، لذا لا يمكن إثبات الحفاظ الآمن',
+});
+
+Object.assign(module.exports.publish || (module.exports.publish = {}), {
+  lint_jsx_text_identifier: 'لا يمكن كتابة JSX النسخ كـ {{0}}؛ يتم معالجتها كمتغير وتسبب في {0} غير معرف. استخدم نصًا عاديً {0} أو سلسلة مقترنة {\'{0}\'} بدلاً من ذلك.',
+  lint_form_open_container: 'يجب استخدام FormOpenContainer عند فتح صفحات تقديم/تفاصيل نموذج Yida من صفحة مخصصة: إطار iframe سحب على العرض (50vw)، وصفحة كاملة فقط في الجوال. يجب أن تستدعي معالجة الأزرار openForm({ type: "submission" | "detail", ... }).',
+  lint_form_detail_link: 'يجب استخدام نموذج Yida تفاصيل صفحات حقيقية formInstId: اقرأ أولاً row.formInstId، وقم بتعطيل أو تنبيه عند عدم وجود معرف المصفوفة بدلاً من فتح رابط formDetail مع formInstId فارغ.',
+  lint_searchformdata_http_path: 'يجب أن تستخدم استدعاء مباشر searchFormDatas.json /dingtalk/web/<appType>/v1/form/searchFormDatas.json؛ ليس /query/form/searchFormDatas.json نقطة بيانات صالحة للبيانات النموذجية',
+  lint_searchformdata_http_query_params: 'يفتقر استعلام URL البحث المباشر عن searchFormDatas.json إلى المعلمات المطلوبة: {0}. استخدم URLSearchParams مع appType، formUuid، currentPage، pageSize، وsearchFieldJson',
+  lint_searchformdata_http_csrf: 'يجب أن يضع استدعاء مباشر searchFormDatas.json رمز CSRF التشغيلي في كل من _csrf_token استعلام URL و global_csrf_token رأس طلب الطلبات',
+  lint_searchformdata_http_credentials: 'يجب تعيين استدعاء مباشر searchFormDatas.json credentials: "include" حتى يرسل المتصفح ملفات تعريف الارتباط تسجيل الدخول ذات الأصل نفسه',
+  lint_canvas_yida_api_bridge_missing: 'يجب أن تستهلك بيانات نموذج YidaCodeCanvas window.__OPENYIDA_YIDA_API__ أولاً (يحقق طبقة النشر الجسر this.utils.yida من didMount الخارجي); لا تعتمد على البحث الداخلي يدوي fetch searchFormDatas',
+});

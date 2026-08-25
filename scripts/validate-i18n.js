@@ -25,7 +25,6 @@ const LOCALES_DIR = path.join(ROOT, 'lib', 'core', 'locales');
 const EXTRA_LOCALES_DIR = path.join(ROOT, 'locales-extra', 'core');
 const BASELINE_FILE = path.join(__dirname, 'i18n-baseline.json');
 const BASE_LOCALE = 'zh';
-const CORE_CHECK_LOCALES = new Set(['en']);
 
 function resolveLocaleFile(name) {
   const coreFile = path.join(LOCALES_DIR, `${name}.js`);
@@ -110,6 +109,38 @@ function readBaseline() {
   }
 }
 
+function findRegressions(report, baseline) {
+  const regressions = [];
+  Object.keys(report).forEach((name) => {
+    const current = report[name];
+    const saved = baseline.locales[name] || {
+      missing: 0,
+      missingKeys: [],
+      typeMismatch: 0,
+      typeMismatchKeys: [],
+    };
+    const checks = [
+      ['missing', 'missingKeys', '缺失'],
+      ['typeMismatch', 'typeMismatchKeys', '类型冲突'],
+    ];
+    checks.forEach(([field, keysField, label]) => {
+      if (Array.isArray(saved[keysField])) {
+        const known = new Set(saved[keysField]);
+        const added = current[field].filter((key) => !known.has(key));
+        if (added.length > 0) {
+          regressions.push(`${name} 新增${label} ${added.length} 个：${added.join(', ')}`);
+        }
+        return;
+      }
+      const savedCount = Number(saved[field]) || 0;
+      if (current[field].length > savedCount) {
+        regressions.push(`${name} ${label} ${savedCount} → ${current[field].length}`);
+      }
+    });
+  });
+  return regressions;
+}
+
 function main() {
   const asJson = process.argv.includes('--json');
   const isCheck = process.argv.includes('--check');
@@ -125,13 +156,15 @@ function main() {
     totalTypeMismatch += report[name].typeMismatch.length;
   });
 
-  // 生成/更新基线：记录每个语言当前缺失数与类型冲突数
+  // 生成/更新基线：同时记录精确路径，防止缺失 key 被等量替换后绕过计数棘轮。
   if (isUpdateBaseline) {
     const baseline = { base: BASE_LOCALE, basePathCount, locales: {} };
     Object.keys(report).forEach((name) => {
       baseline.locales[name] = {
         missing: report[name].missing.length,
+        missingKeys: report[name].missing,
         typeMismatch: report[name].typeMismatch.length,
+        typeMismatchKeys: report[name].typeMismatch,
       };
     });
     fs.writeFileSync(BASELINE_FILE, JSON.stringify(baseline, null, 2) + '\n');
@@ -165,23 +198,13 @@ function main() {
       console.error('\n[i18n] 未找到基线文件，请先运行 node scripts/validate-i18n.js --update-baseline');
       process.exit(1);
     }
-    const regressions = [];
-    Object.keys(report).forEach((name) => {
-      if (!CORE_CHECK_LOCALES.has(name)) { return; }
-      const base = baseline.locales[name] || { missing: 0, typeMismatch: 0 };
-      if (report[name].missing.length > base.missing) {
-        regressions.push(`${name} 缺失 ${base.missing} → ${report[name].missing.length}`);
-      }
-      if (report[name].typeMismatch.length > base.typeMismatch) {
-        regressions.push(`${name} 类型冲突 ${base.typeMismatch} → ${report[name].typeMismatch.length}`);
-      }
-    });
+    const regressions = findRegressions(report, baseline);
     if (regressions.length) {
       console.error('\n[i18n] 棘轮校验失败：以下语言漂移增大，请补齐新增 key 或修正后重试：\n  - ' + regressions.join('\n  - '));
       console.error('（存量缺失作为跟踪项，补齐后运行 --update-baseline 收紧基线）');
       process.exit(1);
     }
-    console.log('\n[i18n] 棘轮校验通过：核心语言无新增漂移 ✓（可选语言同步参与结构校验）');
+    console.log('\n[i18n] 棘轮校验通过：所有语言均无新增 key 漂移 ✓');
     return;
   }
 
@@ -194,4 +217,11 @@ function main() {
   console.log('\n[i18n] 全部语言包 key 对齐 ✓');
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  computeReport,
+  findRegressions,
+};

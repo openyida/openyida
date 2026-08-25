@@ -1639,3 +1639,72 @@ module.exports = {
     cache_available: '已存在可用的 CLI token session 緩存，無需重新開啟瀏覽器登入。'
   }
 };
+
+// Safety-critical verification and publish lint messages.
+Object.assign(module.exports.app_permission || (module.exports.app_permission = {}), {
+  verify_failed: '應用管理員保存後驗證失敗',
+});
+
+Object.assign(module.exports.corp_manager || (module.exports.corp_manager = {}), {
+  address_book_verify_failed: '保存通訊錄權限後驗證失敗：expected={0}, actual={1}',
+  admin_verify_failed: '管理員保存後驗證失敗：{0} 未出現在 {1} 列表中',
+  sub_admin_scope_verify_failed: '平台子管理員保存後範圍驗證失敗：expected={0}, actual={1}',
+  admin_remove_verify_failed: '管理員移除後驗證失敗：{0} 仍在 {1} 列表中',
+});
+
+Object.assign(module.exports.save_permission || (module.exports.save_permission = {}), {
+  confirm_member_replace_usage: '複合成員替換需要額外傳入 --confirm-member-replace',
+  data_object_required: '數據權限必須是 JSON 物件',
+  data_rule_required: '數據權限 rule 不能為空',
+  data_rule_type_required: '數據權限 rule 每一項都必須包含 type',
+  data_rule_value_invalid: '數據權限 rule {0} 的 value 只支援 y/n 或 boolean',
+  data_enabled_required: '數據權限至少需要一個啟用的數據範圍',
+  custom_department_ids_required: 'CUSTOM_DEPARTMENT 必須提供非空 customDepartmentData.departmentIds',
+  formula_data_required: 'FORMULA 必須提供非空 formulaData',
+  data_range_required: '數據權限必須提供非空 dataRange 或 rule',
+  action_enabled_required: '操作權限至少需要一個值為 true 的操作',
+  action_value_boolean: '操作權限 {0} 的值必須是 boolean',
+  field_range_invalid: '字段權限 fieldRange 只支援 FORM 或 CUSTOM',
+  field_status_required: 'CUSTOM 字段權限必須包含非空 fieldStatus 數組',
+  field_status_item_required: 'fieldStatus 每一項必須包含 label、fieldName、componentName 和 value',
+  field_status_value_invalid: '無效字段權限值：{0}，有效值：{1}',
+  json_object_required: '{0} 必須是 JSON 物件',
+  parse_failed: '{0} 解析失敗：{1}',
+  role_conflict: '權限參數中的 role 不一致：{0}',
+  matrix_role_only: '--matrix 只能更新 role=MATRIX 的權限組',
+  all_members_role_only: '--all-members 只能更新 role=DEFAULT 的權限組',
+  target_role_invalid: '無效 role: {0}，有效值：{1}',
+  unnamed_package: '未命名',
+  missing_package_uuid: '無 UUID',
+  target_no_match: 'role={0} 未匹配；為防止誤更新已中止（零寫入）。目前權限組：\n{2}',
+  target_ambiguous: 'role={0} 匹配 {1} 個權限組；為防止誤更新已中止（零寫入）。\n{2}',
+  unknown_operate_keys: '當前權限組包含 CLI 未識別的操作權限鍵，不能修改 action-permission: {0}。可只修改其他維度，未知鍵會原樣保留。',
+  matrix_role_value_required: 'MATRIX roleData.roleValue 必須是非空數組',
+  matrix_data_required: '成員選擇為 MATRIX 時，數據權限 rule 必須包含 MATRIX',
+  data_matrix_member_required: '數據權限包含 MATRIX 時，成員必須選擇有效權限矩陣',
+  members_all_conflict: '--members 與 --all-members 互斥，請勿同時指定',
+  invalid_arguments: '參數驗證失敗：{0}',
+  query_limit: '權限組查詢已達到當前 20 條上限，無法證明 role 目標全局唯一，已中止（零寫入）。\n{0}',
+  unique_target: '  ✅ 唯一目標：{0}',
+  member_before: '  成員 before: {0}',
+  member_after: '  成員 after： {0}',
+  member_removed: '  將移除成員角色：{0}',
+  member_replace_confirm: '成員替換會移除現有複合角色，請核對 before/after 後加入 --confirm-member-replace。將遺失：{0}',
+});
+
+Object.assign(module.exports.save_share_config || (module.exports.save_share_config = {}), {
+  err_page_url_prefix: 'openUrl 必須以 /o/ 或 /s/ 開頭，當前值：{0}',
+  verify_failed: '保存後驗證失敗：{0}',
+  current_state_incomplete: '保存已中止：當前公開訪問配置缺少 openPageAuthConfig，無法證明可安全保留',
+});
+
+Object.assign(module.exports.publish || (module.exports.publish = {}), {
+  lint_jsx_text_identifier: 'JSX 中文文案不能寫成 {{0}}，這會被當作變量並導致 {0} is not defined；請改成純文本 {0} 或字符串 {\'{0}\'}。',
+  lint_form_open_container: '自定義頁內打開表單提交/詳情只能使用 FormOpenContainer：PC 端用 50vw 抽屜 iframe，移動端才整頁或新頁打開。按鈕事件請調用 openForm({ type: "submission" | "detail", ... })。',
+  lint_form_detail_link: '表單詳情頁必須使用真實 formInstId：優先讀取 row.formInstId，缺少實例 ID 時禁用詳情入口或提示，不能打開空 formInstId 的 formDetail 鏈接。',
+  lint_searchformdata_http_path: '直連 searchFormDatas.json 必須使用 /dingtalk/web/<appType>/v1/form/searchFormDatas.json；/query/form/searchFormDatas.json 不是有效表單數據端點',
+  lint_searchformdata_http_query_params: '直連 searchFormDatas.json 的 URL query 缺少必要參數：{0}；請用 URLSearchParams 寫入 appType、formUuid、currentPage、pageSize 和 searchFieldJson',
+  lint_searchformdata_http_csrf: '直連 searchFormDatas.json 需要把運行態 CSRF 同時放入 URL query 的 _csrf_token 和請求頭 global_csrf_token',
+  lint_searchformdata_http_credentials: '直連 searchFormDatas.json 必須設置 credentials: "include"，讓瀏覽器攜帶同源登錄態',
+  lint_canvas_yida_api_bridge_missing: 'YidaCodeCanvas 表單數據讀取必須優先消費 window.__OPENYIDA_YIDA_API__（發布層由外層 didMount 注入 this.utils.yida 橋）；不要默認手寫內部 searchFormDatas fetch',
+});

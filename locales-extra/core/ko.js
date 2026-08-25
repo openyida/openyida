@@ -1767,3 +1767,72 @@ module.exports = {
     error: '\n❌ 앱 가져오기 오류: {0}'
   }
 };
+
+// Safety-critical verification and publish lint messages.
+Object.assign(module.exports.app_permission || (module.exports.app_permission = {}), {
+  verify_failed: '앱 관리자 저장 검증 실패',
+});
+
+Object.assign(module.exports.corp_manager || (module.exports.corp_manager = {}), {
+  address_book_verify_failed: '주소록 권한 저장 검증 실패: 예상={0}, 실제={1}',
+  admin_verify_failed: '관리자 저장 검증 실패: {0}이/가 {1} 목록에 존재하지 않음',
+  sub_admin_scope_verify_failed: '부 관리자 범위 저장 검증 실패: 예상={0}, 실제={1}',
+  admin_remove_verify_failed: '관리자 제거 검증 실패: {0}은/는 여전히 {1} 목록에 존재함',
+});
+
+Object.assign(module.exports.save_permission || (module.exports.save_permission = {}), {
+  confirm_member_replace_usage: '복합 멤버를 교체할 경우 --confirm-member-replace 플래그도 필요합니다.',
+  data_object_required: '데이터 권한은 JSON 객체여야 합니다.',
+  data_rule_required: '데이터 규칙이 비어있지 않아야 합니다.',
+  data_rule_type_required: '모든 데이터 규칙 항목에는 type 이 포함되어야 합니다.',
+  data_rule_value_invalid: '데이터 규칙 {0} 의 값은 y/n 또는 boolean 이어야 합니다.',
+  data_enabled_required: '데이터 권한에서 최소 하나의 데이터 범위를 활성화해야 합니다.',
+  custom_department_ids_required: 'CUSTOM_DEPARTMENT 는 비어있지 않은 customDepartmentData.departmentIds 를 요구합니다.',
+  formula_data_required: 'FORMULA 는 비어있지 않은 formulaData 를 요구합니다.',
+  data_range_required: '데이터 권한은 비어있지 않은 dataRange 또는 rule 을 포함해야 합니다.',
+  action_enabled_required: '행동 권한에서 true 로 설정된 최소 하나의 작업 집합을 포함해야 합니다.',
+  action_value_boolean: '행동 권한 {0} 은 boolean 이어야 합니다.',
+  field_range_invalid: '필드 권한의 fieldRange 는 FORM 또는 CUSTOM 만 지원합니다.',
+  field_status_required: 'CUSTOM 필드 권한은 비어있지 않은 fieldStatus 배열을 요구합니다.',
+  field_status_item_required: '모든 fieldStatus 항목에는 label, fieldName, componentName, value 가 포함되어야 합니다.',
+  field_status_value_invalid: '유효하지 않은 필드 권한 값: {0}; 유효한 값: {1}',
+  json_object_required: '{0} 은 JSON 객체여야 합니다.',
+  parse_failed: '{0} 파싱 실패: {1}',
+  role_conflict: '권한 인수에 모순된 역할이 지정되었습니다: {0}',
+  matrix_role_only: '--matrix 는 role=MATRIX 권한 그룹만 업데이트할 수 있습니다.',
+  all_members_role_only: '--all-members 은 role=DEFAULT 권한 그룹만 업데이트할 수 있습니다.',
+  target_role_invalid: '유효하지 않은 역할: {0}; 유효한 값: {1}',
+  unnamed_package: '이름 없음',
+  missing_package_uuid: 'UUID 없음',
+  target_no_match: '역할={0}에 맞는 권한 그룹을 찾지 못했습니다; 의도하지 않은 업데이트를 방지하기 위해 제로 쓰기로 중단. 현재 권한 그룹:\n{2}',
+  target_ambiguous: '역할={0}이/가 {1} 개의 권한 그룹과 일치합니다; 의도하지 않은 업데이트를 방지하기 위해 제로 쓰기로 중단.\n{2}',
+  unknown_operate_keys: '현재 권한 그룹에는 CLI 가 모르는 작업 키가 포함되어 있어 action-permission 을 변경할 수 없습니다: {0}. 다른 차원은 여전히 변경 가능하고, 알려지지 않은 키는 그대로 유지됩니다.',
+  matrix_role_value_required: 'MATRIX roleData.roleValue 는 비어있지 않은 배열이어야 합니다.',
+  matrix_data_required: '멤버가 MATRIX 를 사용할 경우 데이터 규칙에는 MATRIX 가 포함되어 있어야 합니다.',
+  data_matrix_member_required: '데이터 권한에 MATRIX 가 포함된 경우 멤버는 유효한 권한 행렬을 선택해야 합니다.',
+  members_all_conflict: '--members 와 --all-members 는 상호 배타적입니다.',
+  invalid_arguments: '인수 검증 실패: {0}',
+  query_limit: '권한 그룹 쿼리가 현재 20 개 항목 제한에 도달하여 전역 역할 고유성을 증명할 수 없습니다. 제로 쓰기로 중단.\n{0}',
+  unique_target: '  ✅ 고유 타겟: {0}',
+  member_before: '  멤버 이전: {0}',
+  member_after: '  멤버 이후:  {0}',
+  member_removed: '  제거할 멤버 역할: {0}',
+  member_replace_confirm: '멤버 교체는 기존 복합 역할을 제거합니다. 전후 상태를 검토하고 --confirm-member-replace 를 추가하세요. 손실될 항목: {0}',
+});
+
+Object.assign(module.exports.save_share_config || (module.exports.save_share_config = {}), {
+  err_page_url_prefix: 'openUrl 은 /o/ 또는 /s/ 로 시작해야 합니다, 현재 값: {0}',
+  verify_failed: '저장 후 검증 실패: {0}',
+  current_state_incomplete: '저중단: 공개 액세스 구성이 openPageAuthConfig 를 누락하여 안전한 보존을 증명할 수 없습니다.',
+});
+
+Object.assign(module.exports.publish || (module.exports.publish = {}), {
+  lint_jsx_text_identifier: 'JSX 복사 {{0}} 로 작성될 수 없으며, 변수로 간주되어 {0} is not defined 오류를 유발합니다. 평문 텍스트 {0} 또는 인용된 문자열 {\'{0}\'} 대신 사용하세요.',
+  lint_form_open_container: '커스텀 페이지에서 Yida 폼 제출/상세 페이지를 열려면 FormOpenContainer 를 사용해야 합니다: 데스크톱에서는 50vw 드래워 iframe, 모바일에서는 전체/새 페이지만 사용합니다. 버튼 핸들러는 openForm({ type: "submission" | "detail", ... }) 을 호출해야 합니다.',
+  lint_form_detail_link: 'Yida 폼 상세 페이지에는 실제 formInstId 를 사용해야 합니다: row.formInstId 를 먼저 읽으시고, 빈 formInstId 로 폼Detail 링크를 열지 않고 대신 비활성화 또는 경고하세요.',
+  lint_searchformdata_http_path: '직접적인 searchFormDatas.json 호출은 /dingtalk/web/<appType>/v1/form/searchFormDatas.json 을 사용해야 합니다; /query/form/searchFormDatas.json 은 유효하지 않은 폼 데이터 엔드포인트입니다.',
+  lint_searchformdata_http_query_params: '직접적인 searchFormDatas.json URL 쿼리는 필수 파라미터 {0} 를 누락했습니다. appType, formUuid, currentPage, pageSize, searchFieldJson 을 사용하여 URLSearchParams 로 사용하세요.',
+  lint_searchformdata_http_csrf: '직접적인 searchFormDatas.json 호출은 _csrf_token URL 쿼리와 global_csrf_token 요청 헤더 모두에 런타임 CSRF 토큰을 포함해야 합니다.',
+  lint_searchformdata_http_credentials: '직접적인 searchFormDatas.json 호출은 credentials: "include" 를 설정하여 브라우저가 같은 기원 로그인 쿠키를 전송하도록 해야 합니다.',
+  lint_canvas_yida_api_bridge_missing: 'YidaCodeCanvas 폼 데이터 읽기는 window.__OPENYIDA_YIDA_API__ 를 먼저 소비해야 합니다 (publish 레이어는 outer didMount 에서 this.utils.yida 브릿지를 주입합니다); 내부적인 searchFormDatas fetch 에 기본값을 사용하지 마세요.',
+});
