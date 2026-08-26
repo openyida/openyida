@@ -25,8 +25,8 @@ function runCreateCommand(command, language) {
   ]));
 
   const args = command === 'create-page'
-    ? [BIN, 'create-page', 'APP_TEST', 'Auth Replay Page', '--open', 'off']
-    : [BIN, 'create-form', 'create', 'APP_TEST', 'Auth Replay Form', fieldsFile, '--open', 'off'];
+    ? [BIN, 'create-page', 'APP_TEST', 'Auth Replay Page', '--open', 'off', '--json']
+    : [BIN, 'create-form', 'create', 'APP_TEST', 'Auth Replay Form', fieldsFile, '--open', 'off', '--json'];
   const existingNodeOptions = String(process.env.NODE_OPTIONS || '').trim();
   const preloadOption = `--require=${JSON.stringify(PRELOAD)}`;
   const result = spawnSync(process.execPath, args, {
@@ -49,9 +49,32 @@ function runCreateCommand(command, language) {
   fs.rmSync(tempDir, { recursive: true, force: true });
   return {
     status: result.status,
+    stdout: result.stdout || '',
+    stderr: result.stderr || '',
     output: `${result.stdout || ''}${result.stderr || ''}`,
     counter,
   };
+}
+
+function parseJsonLines(output) {
+  return String(output || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('{') && line.endsWith('}'))
+    .map((line) => JSON.parse(line));
+}
+
+function expectUnknownResultCode(result) {
+  const stderrJson = result.stderr.match(/\{\s*"success"[\s\S]*\}\s*$/);
+  expect(stderrJson).not.toBeNull();
+  const stderrPayload = JSON.parse(stderrJson[0]);
+  const payloads = [
+    ...parseJsonLines(result.stdout),
+    stderrPayload,
+  ]
+    .filter((payload) => payload && payload.success === false);
+  expect(payloads.length).toBeGreaterThanOrEqual(2);
+  expect(payloads.every((payload) => payload.errorCode === 'NON_IDEMPOTENT_RESULT_UNKNOWN')).toBe(true);
 }
 
 describe('create auth no-replay CLI UI E2E', () => {
@@ -62,6 +85,7 @@ describe('create auth no-replay CLI UI E2E', () => {
 
       expect(result.status).toBe(1);
       expect(result.output).toContain(expectedMessage);
+      expectUnknownResultCode(result);
       expect(result.counter.get).toBe(2);
       expect(result.counter.post).toBe(1);
       expect(result.counter.paths).toEqual([
@@ -79,6 +103,7 @@ describe('create auth no-replay CLI UI E2E', () => {
 
       expect(result.status).toBe(1);
       expect(result.output).toContain(EXPECTED_MESSAGES[language]);
+      expectUnknownResultCode(result);
       expect(result.counter.get).toBe(2);
       expect(result.counter.post).toBe(1);
     }

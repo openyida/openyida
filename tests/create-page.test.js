@@ -4,6 +4,7 @@ const querystring = require('querystring');
 const fs = require('fs');
 const path = require('path');
 const { buildPageInfoPostData, parseArgs } = require('../lib/app/create-page');
+const { buildApiPath } = require('../lib/app/create-form/api-path');
 
 const sourceCode = fs.readFileSync(
   path.join(__dirname, '..', 'lib', 'app', 'create-page.js'),
@@ -13,7 +14,12 @@ const sourceCode = fs.readFileSync(
 describe('create-page locale handling', () => {
   test('uses a read-only auth preflight before the one-shot create request', () => {
     expect(sourceCode).toContain('requestNonIdempotentWithAuthPreflight');
-    expect(sourceCode).toContain('getFormNavigationListByOrder.json');
+    expect(sourceCode).toContain("buildApiPath(appType, 'getFormNavigationListByOrder', { queryModule: 'formnav' })");
+  });
+
+  test('buildApiPath supports the existing formnav query family', () => {
+    expect(buildApiPath('APP_X', 'getFormNavigationListByOrder', { queryModule: 'formnav' }))
+      .toBe('/dingtalk/web/APP_X/query/formnav/getFormNavigationListByOrder.json');
   });
 
   test('parseArgs accepts content locale flags', () => {

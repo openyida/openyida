@@ -468,7 +468,7 @@ describe('requestNonIdempotentWithAuthPreflight', () => {
     expect(result.errorMsg).toBe(t('common.non_idempotent_result_unknown'));
   });
 
-  test('does not issue the mutation when the read-only preflight fails', async () => {
+  test('does not issue the mutation when the read-only preflight proves auth refresh failed', async () => {
     const utils = require('../lib/core/utils');
     const preflightFn = jest.fn().mockResolvedValue({
       success: false,
@@ -487,6 +487,41 @@ describe('requestNonIdempotentWithAuthPreflight', () => {
       success: false,
       errorCode: 'TOKEN_REFRESH_FAILED',
     });
+  });
+
+  test('issues the mutation once when the read-only preflight endpoint reports a non-auth failure', async () => {
+    const utils = require('../lib/core/utils');
+    const preflightFn = jest.fn().mockResolvedValue({
+      success: false,
+      errorCode: 'FORM_NAV_UNAVAILABLE',
+    });
+    const mutationFn = jest.fn().mockResolvedValue({ success: true, content: { formUuid: 'FORM_X' } });
+
+    const result = await utils.requestNonIdempotentWithAuthPreflight(
+      mutationFn,
+      preflightFn,
+      { baseUrl: 'https://example.test' }
+    );
+
+    expect(preflightFn).toHaveBeenCalledTimes(1);
+    expect(mutationFn).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ success: true, content: { formUuid: 'FORM_X' } });
+  });
+
+  test('issues the mutation once when the read-only preflight endpoint is unavailable', async () => {
+    const utils = require('../lib/core/utils');
+    const preflightFn = jest.fn().mockRejectedValue(new Error('formnav unavailable'));
+    const mutationFn = jest.fn().mockResolvedValue({ success: true, content: { formUuid: 'FORM_X' } });
+
+    const result = await utils.requestNonIdempotentWithAuthPreflight(
+      mutationFn,
+      preflightFn,
+      { baseUrl: 'https://example.test' }
+    );
+
+    expect(preflightFn).toHaveBeenCalledTimes(1);
+    expect(mutationFn).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ success: true, content: { formUuid: 'FORM_X' } });
   });
 });
 
