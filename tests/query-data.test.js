@@ -625,20 +625,20 @@ describe('run() create form', () => {
   });
 
   test.each([
-    ['readFormMode 抛错', () => formModeService.readFormMode.mockRejectedValue(new Error('binding timeout'))],
-    ['readFormMode 返回空值', () => formModeService.readFormMode.mockResolvedValue(null)],
-    ['readFormMode 返回 receipt/processCode 冲突', () => formModeService.readFormMode.mockResolvedValue({ mode: 'receipt', processCode: 'PROC-CONFLICT' })],
-    ['readFormMode 返回 process 但缺少 processCode', () => formModeService.readFormMode.mockResolvedValue({ mode: 'process' })],
-  ])('%s 时 fail-closed 且远端写入为 0', async (_label, arrangeMode) => {
+    ['readFormMode 抛错', () => formModeService.readFormMode.mockRejectedValue(new Error('binding timeout')), 'FORM_MODE_READ_FAILED'],
+    ['readFormMode 返回空值', () => formModeService.readFormMode.mockResolvedValue(null), 'FORM_MODE_RESULT_INVALID'],
+    ['readFormMode 返回 receipt/processCode 冲突', () => formModeService.readFormMode.mockResolvedValue({ mode: 'receipt', processCode: 'PROC-CONFLICT' }), 'FORM_MODE_RESULT_INVALID'],
+    ['readFormMode 返回 process 但缺少 processCode', () => formModeService.readFormMode.mockResolvedValue({ mode: 'process' }), 'FORM_MODE_RESULT_INVALID'],
+  ])('%s 时 fail-closed 且远端写入为 0', async (_label, arrangeMode, expectedCauseCode) => {
     arrangeMode();
     utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
 
     const error = await expectCliError(
-      run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-json', '{"textField_1":"hello"}']),
-      '无法验证表单 FORM-XXX 的类型'
+      run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-json', '{"textField_1":"hello"}'])
     );
 
     expect(error.code).toBe('DATA_FORM_MODE_UNVERIFIED');
+    expect(error.details).toEqual({ causeCode: expectedCauseCode });
     expect(utils.httpPost).not.toHaveBeenCalled();
   });
 
