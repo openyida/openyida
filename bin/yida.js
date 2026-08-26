@@ -1173,6 +1173,9 @@ async function main() {
       if (subCommand === 'create') {
         const { run: runIntegration } = require('../lib/integration/integration-create');
         await runIntegration(subArgs);
+      } else if (subCommand === 'update') {
+        const { run: runIntegrationUpdate } = require('../lib/integration/integration-update');
+        await runIntegrationUpdate(subArgs);
       } else if (subCommand === 'list') {
         const { runList } = require('../lib/integration/integration-list');
         await runList(subArgs);

@@ -349,6 +349,9 @@ openyida connector list
 openyida integration create APP_XXX FORM_XXX "Sync customer data"
 openyida integration create APP_XXX FORM_XXX "Approval result notify" \
   --events processFinish --approval-actions agree,disagree --receivers 123456
+# Capability probe only; currently fails closed before auth/spec reads/remote writes
+openyida integration update APP_XXX FORM_XXX LPROC_XXX \
+  --spec .cache/openyida/integration/desired-spec.json
 openyida create-report APP_XXX "Sales Dashboard" .cache/openyida/reports/charts.json
 openyida append-chart APP_XXX REPORT_XXX .cache/openyida/reports/chart.json
 ```
@@ -477,6 +480,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | Command | Description |
 |---------|-------------|
 | `openyida integration create <appType> ... [--spec file.json]` | Create integration automation flow |
+| `openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]` | Probe integration update capability (currently blocked without full readback) |
 | `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
 | `openyida integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
 | `openyida integration disable <appType> <formUuid> <processCode>` | Disable integration automation flow |
@@ -537,7 +541,7 @@ Form field definitions can include `alias` or `componentAlias` to populate Yida 
 
 #### Workflow, Reports, and Integrations
 
-`openyida integration create` supports form events (`insert`, `update`, `delete`, `comment`) and approval events (`processFinish`, `activityTask`; aliases: `approval`, `approvalNode`). Approval events require `--approval-actions agree,disagree,terminated`; `activityTask` also requires `--approval-node-ids <nodeId,...>`.
+`openyida integration create` supports form events (`insert`, `update`, `delete`, `comment`) and approval events (`processFinish`, `activityTask`; aliases: `approval`, `approvalNode`). Approval events require `--approval-actions agree,disagree,terminated`; `activityTask` also requires `--approval-node-ids <nodeId,...>`. Passing `--process-code` selects a full graph replacement and now requires explicit `--replace`; it is not a safe update. `integration update` currently performs capability detection only: because full platform `processJson` + `viewJson` readback is unproven, it writes a redacted local probe artifact and returns `PLATFORM_PROBE_REQUIRED` before authentication, spec reading, or remote writes. It does not edit a flow.
 
 ## Agent Skills
 

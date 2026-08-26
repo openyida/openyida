@@ -231,6 +231,7 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('aggregate-table');
     expect(output).toContain('ai-form-setting');
     expect(output).toContain('connector');
+    expect(output).toContain('integration update <appType>');
     expect(output).toContain('corp-manager');
     expect(output).toContain('agent-center');
     expect(output).toContain('dws');
@@ -479,6 +480,7 @@ describe('CLI offline smoke', () => {
       'login',
       'connector.list',
       'integration.list',
+      'integration.update',
       'integration.enable',
       'basic-info',
       'formula.evaluate',
@@ -547,6 +549,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('corp-manager');
     expect(commands).toContain('agent-center');
     expect(commands).toContain('integration.diagnose');
+    expect(commands).toContain('integration.update');
     expect(commands).toContain('dingtalk-link');
     expect(commands).toContain('export');
     expect(commands).toContain('externalize-form');
@@ -605,6 +608,13 @@ describe('CLI offline smoke', () => {
       requires_login: false,
     });
     expect(parsed.commands.find(entry => entry.id === 'integration.create').usage).toContain('--spec file.json');
+    expect(parsed.commands.find(entry => entry.id === 'integration.update')).toMatchObject({
+      usage: 'openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]',
+      output: 'json',
+      requires_login: false,
+      side_effect: { kind: 'local_write', mutates_yida: false, mutates_local: true },
+      permission: { mode: 'allow', effect: 'write' },
+    });
     expect(parsed.commands.find(entry => entry.id === 'externalize-form')).toMatchObject({
       usage: 'openyida externalize-form <appType> <formUuid> [--schema-file file]',
       output: 'json|markdown',

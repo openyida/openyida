@@ -99,6 +99,48 @@ describe('integration create command', () => {
     expect(integrationApi.saveProcess).not.toHaveBeenCalled();
   });
 
+  test('requires --replace for process-code full replacement before auth or remote writes', async () => {
+    const coreUtils = require('../lib/core/utils');
+
+    await expect(run([
+      'APP_TEST',
+      'FORM-A',
+      'unsafe replacement',
+      '--process-code',
+      'LPROC-EXISTING',
+    ])).rejects.toMatchObject({
+      code: 'INTEGRATION_FULL_REPLACEMENT_REQUIRES_REPLACE',
+    });
+
+    expect(coreUtils.loadAuthData).not.toHaveBeenCalled();
+    expect(fetchFormPageList).not.toHaveBeenCalled();
+    expect(integrationApi.getFormSchema).not.toHaveBeenCalled();
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+  });
+
+  test('allows an explicitly confirmed process-code full replacement without creating a binding', async () => {
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await run([
+      'APP_TEST',
+      'FORM-A',
+      'confirmed replacement',
+      '--process-code',
+      'LPROC-EXISTING',
+      '--replace',
+    ]);
+
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).toHaveBeenCalledTimes(1);
+    expect(integrationApi.saveProcess.mock.calls[0][1]).toMatchObject({
+      appType: 'APP_TEST',
+      formUuid: 'FORM-A',
+      processCode: 'LPROC-EXISTING',
+      isOnline: false,
+    });
+  });
+
   test.each([
     ['ASCII', 'x'.repeat(31)],
     ['Unicode code points', '😀'.repeat(31)],

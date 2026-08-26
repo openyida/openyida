@@ -86,6 +86,7 @@ module.exports = {
     cmd_connector_more: '查看更多子命令',
     group_integration: '整合 & 釘釘',
     cmd_integration: '建立整合自動化邏輯流',
+    cmd_integration_update: 'Probe integration update capability (currently blocked without full readback)',
     cmd_integration_list: '列出整合自動化邏輯流',
     cmd_integration_enable: '啟用整合自動化邏輯流',
     cmd_integration_disable: '停用整合自動化邏輯流',
@@ -179,6 +180,7 @@ module.exports = {
       '  connector parse-api [選項]                                   解析 API 資料\n' +
       '  connector gen-template [輸出路徑]                             產生介面文件範本\n' +
       '  integration create <appType> <formUuid> <flowName> [選項]    建立整合&自動化邏輯流\n' +
+      '  integration update <appType> <formUuid> <processCode> --spec <file>  Probe blocked update capability\n' +
       '  create-report <appType> "<報表名稱>" <圖表JSON|檔案路徑>     建立宜搭報表\n' +
       '  append-chart <appType> <reportId> <圖表JSON|檔案路徑>        向已有報表追加圖表\n' +
       '  dws <command> [args]                                         釘釘 CLI（通訊錄/日曆/待辦/審批等）\n' +
@@ -232,7 +234,7 @@ module.exports = {
     forbidden_alias_get_schema_form_uuid_option: '`{0}` 使用第二個位置參數傳入 formUuid，不使用 `{1}`。',
     nearest_command_suggestion: '未知 OpenYida 指令根「{0}」。你是不是想用「{1}」？',
     run_help: '執行 openyida --help 查看說明',
-    integration_help: '用法：openyida integration <create|list|enable|disable> ...',
+    integration_help: 'Usage: openyida integration <create|update|list|enable|disable|check|diagnose> ...',
     integration_unknown: '未知的 integration 子指令：{0}',
     integration_help_hint: '執行 openyida integration --help 查看可用子指令',
     integration_list_usage: '用法：openyida integration list <appType> [--form-uuid <uuid>] [--status y|n] [--key <kw>] [--page <n>] [--size <n>] [--json]',
@@ -350,7 +352,8 @@ module.exports = {
     create_arg_form_uuid: '  formUuid             触发表单 UUID，如 FORM-XXX',
     create_arg_flow_name: '  flowName             集成自动化名称',
     create_options_title: '选项:',
-    create_opt_process_code: '  --process-code <code>       更新已有逻辑流的 processCode',
+    create_opt_process_code: '  --process-code <code>       Select an existing flow for full replacement',
+    create_opt_replace: '  --replace                     Confirm --process-code is a full replacement, not a safe update',
     create_opt_receivers: '  --receivers <ids>            钉钉工作通知接收人 userId，多个用逗号分隔',
     create_opt_title: '  --title <text>                通知标题，支持 #{fieldId-ComponentType}#',
     create_opt_content: '  --content <text>              通知内容，支持 #{fieldId-ComponentType}#',
@@ -374,6 +377,7 @@ module.exports = {
     create_example1: '  openyida integration create APP_XXX FORM-XXX "新增通知" --receivers user123 --publish',
     create_example2: '  openyida integration create APP_XXX FORM-XXX "获取自身后通知" --get-self --publish',
     create_missing_args: '缺少必要参数。',
+    create_replace_required: 'Using --process-code fully replaces the existing flow. Pass --replace explicitly. Safe editing is not currently available; integration update only reports capability status.',
     create_flow_name_too_long: '邏輯流程名稱不能超過 {0} 個字元（目前 {1} 個）。',
     create_invalid_events: '未识别到有效触发事件。',
     create_no_receivers: '未指定通知接收人或成员字段，将不会生成消息通知节点。',
@@ -381,7 +385,7 @@ module.exports = {
     create_app_type: '应用 ID: {0}',
     create_form_uuid: '触发表单: {0}',
     create_flow_name: '逻辑流名称: {0}',
-    create_mode_update: '模式: 更新已有逻辑流',
+    create_mode_update: 'Mode: full replacement of existing logic flow (not a safe update)',
     create_mode_new: '模式: 新建逻辑流',
     create_process_code: '逻辑流 ID: {0}',
     create_events: '触发事件: {0}',
@@ -413,7 +417,10 @@ module.exports = {
     create_published_ok: '逻辑流已发布',
     create_done_published: '集成自动化创建并发布完成',
     create_done_draft: '集成自动化草稿已保存',
-    create_draft_hint: '可在宜搭设计器确认配置后手动发布。'
+    create_draft_hint: '可在宜搭设计器确认配置后手动发布。',
+    update_usage: 'Usage: openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]',
+    update_missing_args: 'Missing required arguments: appType, formUuid, processCode, and --spec are required.',
+    update_capability_blocked: 'Safe integration update is unavailable: full platform processJson + viewJson readback is not proven. No authentication or remote write was attempted.',
   },
   env: {
     title: '  openyida env - 環境偵測',
