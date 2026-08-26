@@ -48,6 +48,7 @@ module.exports = {
     cmd_form_detail_style: 'Manage form detail page style',
     group_data: 'Datos & Permisos',
     cmd_data: 'Gestión unificada de datos (formulario/proceso/tarea/subformulario)',
+    cmd_data_upload_attachment: 'Subir archivos locales a un campo de adjuntos de una instancia de formulario existente',
     cmd_task_center: 'Centro de tareas global (pendiente/procesado/CC etc.)',
     cmd_basic_info: 'Consultar informacion de organizacion, capacidad, cuotas y dominio',
     cmd_read_dingtalk_doc: 'Obtener contenido Markdown de un documento de DingTalk',
@@ -119,6 +120,13 @@ module.exports = {
     quickstart_app_name: 'Gestión de asistencia',
     quickstart_form_name: 'Info del empleado',
     docs: '📚 Documentación:'
+  },
+  attachment_upload: {
+    invalid: 'Argumentos de carga de adjuntos no válidos: {0}',
+    login_required: 'Se requiere una sesión OAuth de OpenYida válida; ejecute primero openyida login',
+    stage_failed: 'La carga del adjunto falló durante {0}: {1}',
+    partial_failed: 'Uno o más archivos no se cargaron; el formulario no se actualizó y pueden existir objetos OSS huérfanos',
+    verification_failed: 'El adjunto se actualizó, pero falló la verificación mediante nueva lectura'
   },
   cli: {
     help: '\n' +

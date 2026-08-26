@@ -10,6 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [Unreleased]
+
+### Added
+
+- 新增 `openyida data upload-attachment form`，支持通过 OAuth 登录态向已有普通表单实例的 `AttachmentField` 替换或追加本地文件，并内置 OSS 回调、并发限制、dry-run 和写后回读验收。
+- 新增 `yida-native-attachment-upload` 技能与协议参考，同步命令清单、多语言文案、能力说明和安全失败语义。
+
 ## [2026.8.25-1] - 2026-08-25
 
 ### Fixed

@@ -34,7 +34,7 @@ OpenYida 是 AI 编程工具和宜搭之间的桥接层。AI Agent 不需要直�
 | 表单建模 | 创建表单、更新字段、查询 Schema、配置权限 |
 | 自定义页面 | 生成 Code Canvas / 普通 JSX 页面、检查、编译、发布 |
 | 流程自动化 | 创建流程表单、配置审批流、预览流程实例 |
-| 数据管理 | 查询/新增/更新表单、流程、任务、子表数据 |
+| 数据管理 | 查询/新增/更新表单、流程、任务、子表数据，并上传原生附件 |
 | 连接器与集成 | 管理 HTTP 连接器、鉴权账号、连接器动作和集成自动化 |
 | 运营与诊断 | 登录态、组织上下文、环境诊断、页面分享、CDN 素材上传 |
 
@@ -219,9 +219,10 @@ openyida process preview APP_XXX PROC_INST_XXX --output .cache/openyida/process/
 openyida data query form APP_XXX FORM_XXX --page 1 --size 20
 openyida data create form APP_XXX FORM_XXX --data-file .cache/openyida/data-import/record.json
 openyida data query subform APP_XXX FORM_XXX --inst-id FORM_INST_XXX --table-field-id tableField_xxx
+openyida data upload-attachment form APP_XXX FORM_XXX --inst-id FINST_XXX --attachment-field attachmentField_xxx --file ./contract.pdf --append
 ```
 
-录入或更新数据前先用 `openyida get-schema` 获取真实 fieldId。`DateField` / `CascadeDateField` 使用 13 位毫秒时间戳，例如 `1719705600000`。
+录入、更新数据或上传附件前先用 `openyida get-schema` 获取真实 fieldId。附件上传只支持已有普通表单实例，默认替换附件字段；需要保留旧附件时使用 `--append`。`DateField` / `CascadeDateField` 使用 13 位毫秒时间戳，例如 `1719705600000`。
 
 ### 报表和 ECharts
 
@@ -310,6 +311,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | 命令 | 说明 |
 |------|------|
 | `openyida data <action> <resource> [args]` | 统一数据管理（表单/流程/任务/子表单） |
+| `openyida data upload-attachment form <appType> <formUuid> --inst-id <formInstId> --attachment-field <attachmentField_xxx> --file <path> [--file <path> ...] [--append] [--concurrency <1-5>] [--dry-run]` | 上传本地文件到已有表单实例的附件组件 |
 | `openyida task-center <type> [options]` | 全局任务中心（待办/已处理/抄送等） |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | 查询组织基本信息、容量、额度和域名设置 |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | 获取钉钉文档的 Markdown 内容 |

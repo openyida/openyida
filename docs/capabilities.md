@@ -122,6 +122,7 @@
 | 查询表单数据 | `openyida data query form <appType> <formUuid> [options]` |
 | 新增表单数据 | `openyida data create form <appType> <formUuid> --data-file <file>` |
 | 更新表单数据 | `openyida data update form <appType> <formUuid> <formInstId> --data-file <file>` |
+| 上传表单原生附件 | `openyida data upload-attachment form <appType> <formUuid> --inst-id <formInstId> --attachment-field <attachmentField_xxx> --file <path> [--append]` |
 | 查询流程/任务/子表数据 | `openyida data <action> <resource> [args]` |
 | 查询表单权限 | `openyida get-permission <appType> <formUuid>` |
 | 保存表单权限 | `openyida save-permission <appType> <formUuid> ...` |

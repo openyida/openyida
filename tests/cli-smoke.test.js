@@ -898,6 +898,26 @@ describe('CLI offline smoke', () => {
       entry: { id: 'data' },
       decision: 'ask',
     });
+    expect(classifyManifestInvocation(parsed.commands, [
+      'data',
+      'upload-attachment',
+      'form',
+      'APP_1',
+      'FORM-1',
+      '--inst-id',
+      'FINST-1',
+      '--attachment-field',
+      'attachmentField_1',
+      '--file',
+      'contract.pdf',
+    ])).toMatchObject({
+      entry: {
+        id: 'data.upload-attachment.form',
+        side_effect: { kind: 'remote_write', mutates_yida: true },
+        permission: { mode: 'allow', effect: 'write' },
+      },
+      decision: 'allow',
+    });
     expect(classifyManifestInvocation(parsed.commands, ['app-permission', 'remove'])).toMatchObject({
       entry: { id: 'app-permission' },
       decision: 'ask',

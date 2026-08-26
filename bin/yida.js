@@ -937,7 +937,8 @@ async function main() {
       if (args.length < 2) {
         throwCliUsage(
           '用法: openyida data <action> <resource> [args] [options]',
-          '示例: openyida data query form APP_XXX FORM_XXX --page 1 --size 20'
+          '示例: openyida data query form APP_XXX FORM_XXX --page 1 --size 20',
+          '      openyida data upload-attachment form APP_XXX FORM_XXX --inst-id FINST_XXX --attachment-field attachmentField_xxx --file contract.pdf'
         );
       }
       const { run: runDataManagement } = require('../lib/core/query-data');

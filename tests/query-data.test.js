@@ -102,6 +102,13 @@ beforeEach(() => {
 // ── 参数校验 ──────────────────────────────────────────────────────────
 
 describe('run() 参数校验', () => {
+  test('upload-attachment form 子命令路由到独立帮助', async () => {
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    await run(['upload-attachment', 'form', '--help']);
+    expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('data upload-attachment form'));
+    mockLog.mockRestore();
+  });
+
   test('参数不足时打印错误并以 exit code 1 退出', async () => {
     await expectCliError(run(['query']), '缺少必填参数');
   });

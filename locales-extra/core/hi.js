@@ -48,6 +48,7 @@ module.exports = {
     cmd_form_detail_style: 'Manage form detail page style',
     group_data: 'डेटा & अनुमतियां',
     cmd_data: 'एकीकृत डेटा प्रबंधन (फॉर्म/प्रक्रिया/कार्य/उप-फॉर्म)',
+    cmd_data_upload_attachment: 'स्थानीय फ़ाइलों को मौजूदा फ़ॉर्म इंस्टेंस के अटैचमेंट फ़ील्ड में अपलोड करें',
     cmd_task_center: 'वैश्विक कार्य केंद्र (लंबित/संसाधित/CC आदि)',
     cmd_basic_info: 'संगठन की मूल जानकारी, क्षमता, कोटा और डोमेन देखें',
     cmd_read_dingtalk_doc: 'DingTalk दस्तावेज़ की Markdown सामग्री प्राप्त करें',
@@ -119,6 +120,13 @@ module.exports = {
     quickstart_app_name: 'उपस्थिति प्रबंधन',
     quickstart_form_name: 'कर्मचारी जानकारी',
     docs: '📚 दस्तावेज़:'
+  },
+  attachment_upload: {
+    invalid: 'अटैचमेंट अपलोड के अमान्य तर्क: {0}',
+    login_required: 'मान्य OpenYida OAuth सत्र आवश्यक है; पहले openyida login चलाएँ',
+    stage_failed: '{0} चरण में अटैचमेंट अपलोड विफल हुआ: {1}',
+    partial_failed: 'एक या अधिक फ़ाइलें अपलोड नहीं हुईं; फ़ॉर्म अपडेट नहीं हुआ और OSS में अनाथ ऑब्जेक्ट हो सकते हैं',
+    verification_failed: 'अटैचमेंट अपडेट हुआ, लेकिन दोबारा पढ़कर सत्यापन विफल हुआ'
   },
   cli: {
     help: '\n' +
