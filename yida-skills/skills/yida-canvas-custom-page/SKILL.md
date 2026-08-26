@@ -87,6 +87,8 @@ UI 和产品设计输入来自 `yida-design` 输出的 `prd/<项目名>/prd.md` 
 9. **表单数据读取必须使用 dataBinding 契约和 yida JS-API 桥**：完整应用、工作台、列表、看板、详情等真实交付页只要本轮已经创建或解析业务表单，先写入 `dataBinding.mode="form"`、真实 `appType/formUuid` 和字段 ID，再用本地 `useYidaData(binding)` / `DataBridge` 读取。发布层必须在外层页面 `didMount` 注册 `window.__OPENYIDA_YIDA_API__`，`YidaCodeCanvas` 组件内部默认调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；只有桥不可用时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。页面不能使用 `/query/form/searchFormDatas.json`，也不能只写前端 seedRows 后声称已接真实数据。
 10. **源码保持零未绑定标识符**：每个 import、辅助函数、Ref、状态、局部变量和函数参数都必须在同一文件声明后使用；重命名时同时修改声明与全部引用。`compileCanvasLocal` 报 `OPENYIDA_CANVAS_UNBOUND_IDENTIFIER` 时先按错误中的全部名称和位置补齐声明。确实由非标准运行时提供的能力必须写成 `window.<name>` 或 `parentWindow.<name>` 并先判断属性是否存在，不得把裸变量加入源码后绕过发布。
 
+> **未绑定标识符守卫边界**：该守卫只拦截不属于 ECMAScript、Browser 或 Canvas wrapper 白名单的裸标识符。`name`、`status`、`length`、`event`、`origin`、`top` 等浏览器标准短名会解析为 `window` 属性，无法判断它原本是否是业务变量拼写错误；例如把 `orderName` 误写成 `name`、把 `rowStatus` 误写成 `status` 或把 `listLength` 误写成 `length` 都不会被拦截。守卫主要兜底 `getInstId`、`loadedRef` 这类自定义名，不代表能发现全部拼写错误；生成或重命名代码后仍须逐项核对业务标识符。
+
 ### 重要规则（IMPORTANT）
 
 1. **数据桥显式化**：表单数据默认通过外层 yida JS-API 桥读写，连接器和同源业务接口通过显式 endpoint 读写；Cookie、CSRF、密钥和签名留在平台、连接器或后端服务侧。

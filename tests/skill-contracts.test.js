@@ -775,6 +775,9 @@ describe('OpenYida skill contracts', () => {
     expect(canvas).toContain('源码保持零未绑定标识符');
     expect(canvas).toContain('OPENYIDA_CANVAS_UNBOUND_IDENTIFIER');
     expect(canvas).toContain('`window.<name>` 或 `parentWindow.<name>`');
+    expect(canvas).toContain('未绑定标识符守卫边界');
+    expect(canvas).toContain('不代表能发现全部拼写错误');
+    expect(canvas).toContain('`name`、`status`、`length`、`event`、`origin`、`top`');
     expect(navGuide.match(/function getYidaFormInstId\(/g)).toHaveLength(1);
     expect(navGuide).toContain('const selectedFormInstId = getYidaFormInstId(selectedCustomer);');
     expect(navGuide).toContain('不能只生成 `getInstId(...)` 等新调用名');
