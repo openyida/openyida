@@ -10,7 +10,7 @@ description: 创建/管理宜搭集成自动化。
 | 用户目标 | 执行动作 |
 | --- | --- |
 | 创建新自动化 | 使用 `integration create`，由 CLI 生成 `processCode` |
-| 整图替换已有自动化 | 校验 `appType`、`formUuid`、`processCode`，展示替换摘要并获得明确确认，再使用 `integration create ... --process-code <code> --replace` |
+| 整图替换已有自动化 | 校验 `appType`、`formUuid`、`processCode`，明确告知“CLI 无法读取原有节点定义；本次将整体覆盖，原节点不保留”，获得确认后使用 `integration create ... --process-code <code> --replace` |
 | 更新已有自动化 | 使用 `integration update` 获取 capability 结果，并按结果报告当前状态 |
 | 目标或资源归属不明确 | 保持零远端写，并请求用户明确目标资源和操作类型 |
 
@@ -19,6 +19,7 @@ description: 创建/管理宜搭集成自动化。
 - 不要在未加载本技能内容的情况下编写逻辑流定义，节点格式复杂且易出错
 - 不要编造 formUuid 或 fieldId，必须从已有记录或 `yida-get-schema` 获取
 - 不要用此技能配置审批流程，应使用 `yida-process-rule`
+- 不得把 `integration update` 的 fail-closed 结果降级为 `integration create --process-code --replace`
 
 ## 严格要求 (MUST DO)
 

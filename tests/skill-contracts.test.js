@@ -789,6 +789,7 @@ describe('OpenYida skill contracts', () => {
     expect(appStep7).toContain('Canvas 本地校验不存在未绑定标识符');
     expect(appStep7).toContain('`window.<name>` / `parentWindow.<name>`');
     expect(commonIssues).toContain('Canvas 编译报 `OPENYIDA_CANVAS_UNBOUND_IDENTIFIER`');
+    expect(commonIssues).toContain('或运行时报 `<name> is not defined`');
     expect(commonIssues).toContain('通过 `window.<name>` / `parentWindow.<name>` 获取能力');
   });
 
@@ -798,7 +799,9 @@ describe('OpenYida skill contracts', () => {
     expect(integration).toContain('## 命令选择');
     expect(integration).toContain('| 创建新自动化 | 使用 `integration create`，由 CLI 生成 `processCode` |');
     expect(integration).toContain('`integration create ... --process-code <code> --replace`');
+    expect(integration).toContain('CLI 无法读取原有节点定义；本次将整体覆盖，原节点不保留');
     expect(integration).toContain('| 更新已有自动化 | 使用 `integration update` 获取 capability 结果，并按结果报告当前状态 |');
+    expect(integration).toContain('不得把 `integration update` 的 fail-closed 结果降级为 `integration create --process-code --replace`');
     expect(integration).toContain('`INTEGRATION_FULL_REPLACEMENT_REQUIRES_REPLACE`');
     expect(integration).toContain('已获得整图替换确认时，补 `--replace` 重试一次');
     expect(integration).toContain('--process-code LPROC-XXX');
