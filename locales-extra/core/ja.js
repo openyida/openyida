@@ -1762,3 +1762,8 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
   lint_searchformdata_http_credentials: '直接的な searchFormDatas.json 呼び出しでは credentials: "include" を設定し、ブラウザが同一オリジンのログインクッキーを送信する必要があるためです',
   lint_canvas_yida_api_bridge_missing: 'YidaCodeCanvas フォームデータの読み取りにはまず window.__OPENYIDA_YIDA_API__ を消費する必要があります（publish レイヤーは outer didMount から this.utils.yida ブリッジを注入します）。手書きの内部 searchFormDatas 取得にデフォルトを使用しないでください',
 });
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  form_mode_unverified: 'フォーム {0} の種類を検証できませんでした。データを書き込まずに作成を停止しました。',
+  resource_required: 'data query にリソース種別 form がありません。推奨コマンド: {0}',
+});

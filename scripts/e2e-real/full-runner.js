@@ -133,23 +133,112 @@ function fieldByLabel(fields, label) {
   return field;
 }
 
-function findValueByKeys(node, keys) {
-  if (!node || typeof node !== 'object') {return null;}
-  for (const key of keys) {
-    if (node[key]) {return node[key];}
+function requireVerifiedResourceId(result, resourceType, idKey) {
+  const id = result && result[idKey];
+  const resource = result && result.resource;
+  if (
+    result &&
+    result.idVerified === true &&
+    typeof id === 'string' &&
+    id.length > 0 &&
+    resource &&
+    resource.type === resourceType &&
+    resource.id === id
+  ) {
+    return id;
   }
-  for (const value of Object.values(node)) {
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        const found = findValueByKeys(item, keys);
-        if (found) {return found;}
-      }
-    } else if (value && typeof value === 'object') {
-      const found = findValueByKeys(value, keys);
-      if (found) {return found;}
+  throw new Error(`Data create did not return a verified root-level ${idKey} contract.`);
+}
+
+function parseFormDataCandidate(value) {
+  if (!value) {return null;}
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+    } catch {
+      return null;
     }
   }
-  return null;
+  return typeof value === 'object' && !Array.isArray(value) ? value : null;
+}
+
+function extractReadbackField(result, fieldId) {
+  const content = result && result.content;
+  const data = result && result.data;
+  const nestedResult = result && result.result;
+  const candidates = [
+    result && result.formData,
+    result && result.formDataJson,
+    content && content.formData,
+    content && content.formDataJson,
+    content && content.data && content.data.formData,
+    content && content.data && content.data.formDataJson,
+    content && content.data,
+    data && data.formData,
+    data && data.formDataJson,
+    data,
+    nestedResult && nestedResult.formData,
+    nestedResult && nestedResult.formDataJson,
+    nestedResult && nestedResult.data && nestedResult.data.formData,
+    nestedResult && nestedResult.data && nestedResult.data.formDataJson,
+    nestedResult && nestedResult.data,
+    content,
+    nestedResult,
+  ];
+
+  for (const candidate of candidates) {
+    const formData = parseFormDataCandidate(candidate);
+    if (
+      formData &&
+      Object.prototype.hasOwnProperty.call(formData, fieldId) &&
+      formData[fieldId] !== undefined
+    ) {
+      return { found: true, value: formData[fieldId] };
+    }
+  }
+  return { found: false, value: undefined };
+}
+
+function assessDataReadback(result, fieldId, marker) {
+  const extracted = extractReadbackField(result, fieldId);
+  if (!extracted.found) {
+    return {
+      readback: {
+        status: 'blocked',
+        capability: 'BLOCKED',
+        markerVerified: false,
+        fieldId,
+      },
+      residual: {
+        code: 'DATA_READBACK_MARKER_CAPABILITY_BLOCKED',
+        message: `Readback payload does not expose marker field ${fieldId}.`,
+      },
+    };
+  }
+  if (extracted.value !== marker) {
+    return {
+      readback: {
+        status: 'failed',
+        capability: 'SUPPORTED',
+        markerVerified: false,
+        fieldId,
+      },
+      residual: {
+        code: 'DATA_READBACK_MARKER_MISMATCH',
+        message: `Readback marker for ${fieldId} does not match the create marker.`,
+      },
+    };
+  }
+  return {
+    readback: {
+      status: 'passed',
+      capability: 'SUPPORTED',
+      markerVerified: true,
+      fieldId,
+    },
+    residual: null,
+  };
 }
 
 function buildReportCharts(formUuid, fields) {
@@ -478,7 +567,7 @@ function statusRow(name, index) {
         fontSize: 13,
         fontWeight: 800,
         flex: '0 0 auto',
-      }}>✓</span>
+      }}>OK</span>
       <span>{name}</span>
     </div>
   );
@@ -894,6 +983,7 @@ function buildAcceptanceManifest(registry, registryPath) {
       optInReason: stageResults[name].optInReason,
     })),
     resources: registry.resources || [],
+    dataContracts: registry.dataContracts || {},
     urls: {
       adminUrl: resultApp.adminUrl || null,
       workbenchUrl: resultApp.workbenchUrl || null,
@@ -931,6 +1021,7 @@ function buildAcceptanceReport(registry, registryPath) {
       artifactCount: (registry.artifacts || []).length,
     },
     stages,
+    dataContracts: registry.dataContracts || {},
   };
 }
 
@@ -1023,8 +1114,8 @@ function recordConfiguredStageResults(registry, registryPath, config, context, w
     },
     data: {
       commands: ['data-create-form', 'data-get-form', 'data-update-form', 'data-query-form', 'data-query-form-ids'],
-      summary: 'Form data create/get/update/query/ids-only loop verified',
-      resources: [],
+      summary: 'Receipt form instance root contract and independent marker readback verified',
+      resources: ['form-instance'],
     },
     permission: {
       commands: ['get-permission'],
@@ -1075,9 +1166,9 @@ function recordConfiguredStageResults(registry, registryPath, config, context, w
     },
     process: {
       status: registry.processMvp && registry.processMvp.status,
-      commands: ['process-mvp-create-publish'],
-      summary: `Process form published and read back: ${context.processCode || 'n/a'}`,
-      resources: ['process'],
+      commands: ['process-mvp-create-publish', 'data-create-process-form', 'data-get-process'],
+      summary: `Process form and process instance contract/readback verified: ${context.processInstanceId || 'n/a'}`,
+      resources: ['process', 'process-instance'],
       artifacts: ['process-readback-raw', 'process-readback-canonical', 'process-acceptance-manifest'],
     },
     'connector-local': {
@@ -1125,6 +1216,8 @@ async function run(options = {}) {
   const { registry, registryPath } = registryFactory(config);
   registry.suite = 'full';
   registry.stages = config.stages;
+  registry.runId = registry.runId || config.prefix;
+  registry.dataContracts = registry.dataContracts || {};
   persistRegistry(registryPath, registry);
 
   const workDir = path.join(config.registryDir, config.prefix);
@@ -1155,6 +1248,93 @@ async function run(options = {}) {
       throw new Error(`${name} failed: ${JSON.stringify(commandResult.json)}`);
     }
     return commandResult;
+  }
+
+  function runDataCreateReadbackContract(contractOptions) {
+    const contract = {
+      kind: contractOptions.kind,
+      marker: contractOptions.marker,
+      resource: null,
+      contract: {
+        status: 'pending',
+        resourceType: contractOptions.resourceType,
+        idKey: contractOptions.idKey,
+        idVerified: false,
+      },
+      readback: {
+        status: 'pending',
+        capability: 'UNKNOWN',
+        markerVerified: false,
+        fieldId: contractOptions.markerFieldId,
+      },
+      residual: null,
+    };
+    registry.dataContracts[contractOptions.kind] = contract;
+    persistRegistry(registryPath, registry);
+
+    let createResult;
+    let resourceId;
+    try {
+      createResult = runStep(
+        contractOptions.createStepName,
+        contractOptions.createArgs
+      ).json;
+      resourceId = requireVerifiedResourceId(
+        createResult,
+        contractOptions.resourceType,
+        contractOptions.idKey
+      );
+    } catch (error) {
+      contract.contract.status = 'failed';
+      contract.residual = {
+        code: 'DATA_CREATE_CONTRACT_FAILED',
+        message: error.message,
+      };
+      persistRegistry(registryPath, registry);
+      throw error;
+    }
+
+    contract.resource = { type: contractOptions.resourceType, id: resourceId };
+    contract.contract.status = 'passed';
+    contract.contract.idVerified = true;
+    persistRegistry(registryPath, registry);
+
+    trackResource(registry, registryPath, {
+      runId: registry.runId,
+      owned: true,
+      type: contractOptions.ownedResourceType,
+      exactId: resourceId,
+      appType: contractOptions.appType,
+      formUuid: contractOptions.formUuid,
+      [contractOptions.idKey]: resourceId,
+      marker: contractOptions.marker,
+    });
+
+    const readbackResult = runStep(
+      contractOptions.readbackStepName,
+      contractOptions.readbackArgs(resourceId)
+    ).json;
+    const assessment = assessDataReadback(
+      readbackResult,
+      contractOptions.markerFieldId,
+      contractOptions.marker
+    );
+    contract.readback = assessment.readback;
+    contract.residual = assessment.residual;
+    persistRegistry(registryPath, registry);
+
+    if (assessment.readback.status === 'blocked') {
+      const error = new Error(`${contractOptions.kind} readback capability BLOCKED: ${assessment.residual.message}`);
+      error.code = assessment.residual.code;
+      throw error;
+    }
+    if (assessment.readback.status !== 'passed') {
+      const error = new Error(`${contractOptions.kind} readback marker mismatch: ${assessment.residual.message}`);
+      error.code = assessment.residual.code;
+      throw error;
+    }
+
+    return { resourceId, contract };
   }
 
   try {
@@ -1239,26 +1419,40 @@ async function run(options = {}) {
       const textField = fieldByLabel(context.fields, 'E2E Text');
       const numberField = fieldByLabel(context.fields, 'E2E Number');
       const statusField = fieldByLabel(context.fields, 'E2E Status');
+      const receiptMarker = `${registry.runId}__receipt_data_contract`;
       const createData = {};
-      createData[textField.fieldId] = `${config.prefix} record`;
+      createData[textField.fieldId] = receiptMarker;
       createData[numberField.fieldId] = 42;
       createData[statusField.fieldId] = 'New';
-      const createResult = runStep('data-create-form', [
-        'data',
-        'create',
-        'form',
-        context.appType,
-        context.formUuid,
-        '--data-json',
-        JSON.stringify(createData),
-      ]).json;
-      const formInstId = findValueByKeys(createResult, ['formInstId', 'formInstanceId', 'instanceId']);
-      if (formInstId) {
-        runStep('data-get-form', ['data', 'get', 'form', context.appType, '--inst-id', formInstId]);
-        const updateData = {};
-        updateData[textField.fieldId] = `${config.prefix} record updated`;
-        runStep('data-update-form', ['data', 'update', 'form', context.appType, '--inst-id', formInstId, '--data-json', JSON.stringify(updateData)]);
-      }
+      const receiptContract = runDataCreateReadbackContract({
+        kind: 'receipt',
+        marker: receiptMarker,
+        markerFieldId: textField.fieldId,
+        resourceType: 'formInstance',
+        idKey: 'formInstId',
+        ownedResourceType: 'form-instance',
+        appType: context.appType,
+        formUuid: context.formUuid,
+        createStepName: 'data-create-form',
+        createArgs: [
+          'data',
+          'create',
+          'form',
+          context.appType,
+          context.formUuid,
+          '--data-json',
+          JSON.stringify(createData),
+        ],
+        readbackStepName: 'data-get-form',
+        readbackArgs: formInstId => [
+          'data', 'get', 'form', context.appType, '--inst-id', formInstId,
+        ],
+      });
+      const formInstId = receiptContract.resourceId;
+      context.formInstId = formInstId;
+      const updateData = {};
+      updateData[textField.fieldId] = `${config.prefix} record updated`;
+      runStep('data-update-form', ['data', 'update', 'form', context.appType, '--inst-id', formInstId, '--data-json', JSON.stringify(updateData)]);
       runStep('data-query-form', ['data', 'query', 'form', context.appType, context.formUuid, '--size', '1']);
       runStep('data-query-form-ids', ['data', 'query', 'form', context.appType, context.formUuid, '--size', '1', '--ids-only']);
     }
@@ -1419,6 +1613,40 @@ async function run(options = {}) {
       context.processVersion = processMvp.processVersion || null;
       registry.processMvp = processMvp;
       persistRegistry(registryPath, registry);
+
+      const processTextField = fieldByLabel(context.fields, 'E2E Text');
+      const processNumberField = fieldByLabel(context.fields, 'E2E Number');
+      const processStatusField = fieldByLabel(context.fields, 'E2E Status');
+      const processMarker = `${registry.runId}__process_data_contract`;
+      const processCreateData = {};
+      processCreateData[processTextField.fieldId] = processMarker;
+      processCreateData[processNumberField.fieldId] = 84;
+      processCreateData[processStatusField.fieldId] = 'New';
+      const processContract = runDataCreateReadbackContract({
+        kind: 'process',
+        marker: processMarker,
+        markerFieldId: processTextField.fieldId,
+        resourceType: 'processInstance',
+        idKey: 'processInstanceId',
+        ownedResourceType: 'process-instance',
+        appType: context.appType,
+        formUuid: context.formUuid,
+        createStepName: 'data-create-process-form',
+        createArgs: [
+          'data',
+          'create',
+          'form',
+          context.appType,
+          context.formUuid,
+          '--data-json',
+          JSON.stringify(processCreateData),
+        ],
+        readbackStepName: 'data-get-process',
+        readbackArgs: processInstanceId => [
+          'data', 'get', 'process', context.appType, '--process-inst-id', processInstanceId,
+        ],
+      });
+      context.processInstanceId = processContract.resourceId;
     }
 
     if (hasStage(config.stages, 'connector-local')) {
@@ -1531,11 +1759,11 @@ module.exports = {
   buildProcessRuleDefinition,
   collectFields,
   fieldByLabel,
-  findValueByKeys,
   getFullConfig,
   parseStages,
   printAcceptanceSummary,
   recordStageResult,
+  requireVerifiedResourceId,
   run,
   writeAcceptanceArtifacts,
 };

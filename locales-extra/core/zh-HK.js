@@ -1708,3 +1708,8 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
   lint_searchformdata_http_credentials: '直連 searchFormDatas.json 必須設置 credentials: "include"，讓瀏覽器攜帶同源登錄態',
   lint_canvas_yida_api_bridge_missing: 'YidaCodeCanvas 表單數據讀取必須優先消費 window.__OPENYIDA_YIDA_API__（發布層由外層 didMount 注入 this.utils.yida 橋）；不要默認手寫內部 searchFormDatas fetch',
 });
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  form_mode_unverified: '無法驗證表單 {0} 的類型，已停止建立；未執行任何資料寫入。',
+  resource_required: 'data query 缺少資源類型 form。建議：{0}',
+});

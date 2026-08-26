@@ -1835,3 +1835,8 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
   lint_searchformdata_http_credentials: 'يجب تعيين استدعاء مباشر searchFormDatas.json credentials: "include" حتى يرسل المتصفح ملفات تعريف الارتباط تسجيل الدخول ذات الأصل نفسه',
   lint_canvas_yida_api_bridge_missing: 'يجب أن تستهلك بيانات نموذج YidaCodeCanvas window.__OPENYIDA_YIDA_API__ أولاً (يحقق طبقة النشر الجسر this.utils.yida من didMount الخارجي); لا تعتمد على البحث الداخلي يدوي fetch searchFormDatas',
 });
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  form_mode_unverified: 'تعذر التحقق من نوع النموذج {0}. تم إيقاف الإنشاء قبل كتابة أي بيانات.',
+  resource_required: 'يفتقد data query إلى نوع المورد form. الأمر المقترح: {0}',
+});

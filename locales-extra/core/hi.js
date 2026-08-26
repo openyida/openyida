@@ -1835,3 +1835,8 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
   lint_searchformdata_http_credentials: 'एक सीधा searchFormDatas.json कॉल credentials: "include" सेट करना होगा ताकि ब्राउज़र सम-मूल्य लॉगिन कोकीज भेजे',
   lint_canvas_yida_api_bridge_missing: 'YidaCodeCanvas फॉर्म डेटा पढ़ें window.__OPENYIDA_YIDA_API__ पहले उपभोग करना चाहिए (पब्लिश स्तर बाहरी didMount से this.utils.yida ब्रिज इंजेक्ट करता है); हाथ से लिखी गई आंतरिक searchFormDatas fetch पर डिफ़ॉल्ट न करें',
 });
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  form_mode_unverified: 'फ़ॉर्म {0} का प्रकार सत्यापित नहीं हो सका। किसी भी डेटा लेखन से पहले निर्माण रोक दिया गया।',
+  resource_required: 'data query में संसाधन प्रकार form नहीं है। सुझाया गया कमांड: {0}',
+});

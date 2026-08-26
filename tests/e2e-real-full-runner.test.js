@@ -8,17 +8,131 @@ const {
   buildDashboardSource,
   buildDashboardSkillSource,
   buildBusinessDashboardSource,
+  buildAcceptanceManifest,
+  buildAcceptanceReport,
   buildOfficialProcessNodeFixture,
   buildProcessCreateDefinition,
   buildProcessRuleDefinition,
   buildResultApp,
   collectFields,
-  findValueByKeys,
   getFullConfig,
   parseStages,
+  requireVerifiedResourceId,
   run,
 } = require('../scripts/e2e-real/full-runner');
 const { generateAllScenarios } = require('../scripts/eval/process-contract/scenario-generator');
+
+function buildProcessStageConfig(registryDir) {
+  return {
+    enabled: true,
+    prefix: 'OY_E2E_PROC',
+    appName: 'OY_E2E_PROC_App',
+    formName: 'OY_E2E_PROC_Form',
+    pageName: 'OY_E2E_PROC_Page',
+    updateAppName: 'OY_E2E_PROC_App_Renamed',
+    resultAppName: 'OY_E2E_PROC_PASSED',
+    importAppName: 'OY_E2E_PROC_Imported',
+    fieldsFile: path.join(__dirname, '..', 'scripts', 'e2e-real', 'fixtures', 'form-fields.json'),
+    pageSource: path.join(__dirname, '..', 'project', 'pages', 'src', 'demo-compat-smoke.oyd.jsx'),
+    registryDir,
+    stages: ['app', 'form', 'process'],
+  };
+}
+
+function buildProcessStageSchema() {
+  return {
+    success: true,
+    content: {
+      pages: [
+        {
+          componentsTree: [
+            {
+              children: [
+                { componentName: 'TextField', props: { fieldId: 'textField_1', label: { zh_CN: 'E2E Text' } } },
+                { componentName: 'NumberField', props: { fieldId: 'numberField_1', label: { zh_CN: 'E2E Number' } } },
+                { componentName: 'SelectField', props: { fieldId: 'selectField_1', label: { zh_CN: 'E2E Status' } } },
+                { componentName: 'TextareaField', props: { fieldId: 'textareaField_1', label: { zh_CN: 'E2E Notes' } } },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
+function buildProcessStageHarness(tmpDir, registry, readbackMarker = marker => marker) {
+  const calls = [];
+  const scenario = generateAllScenarios().find((item) => item.id === 'serial-approval');
+  let processMarker = null;
+  return {
+    calls,
+    getProcessMarker: () => processMarker,
+    options: {
+      env: { OPENYIDA_E2E: '1' },
+      config: buildProcessStageConfig(tmpDir),
+      createRegistry: () => ({ registry, registryPath: path.join(tmpDir, 'OY_E2E_PROC.json') }),
+      writeRegistry: () => {},
+      addResource: (currentRegistry, registryPath, resource) => {
+        currentRegistry.resources.push(resource);
+      },
+      writeJson: (filePath) => filePath,
+      writeText: (filePath) => filePath,
+      processApiAdapter: {
+        readback: async () => ({
+          rawProcessPayload: {
+            success: true,
+            content: JSON.stringify({
+              ...scenario.fixture.viewJson,
+              bindingForm: scenario.fixture.viewJson.bindingForm || 'FORM-PROC',
+              formulaRules: scenario.fixture.viewJson.formulaRules || [],
+              globalSetting: scenario.fixture.viewJson.globalSetting || {},
+            }),
+          },
+          processId: 'PID-PROC',
+          processVersion: 2,
+        }),
+      },
+      runCli: (args) => {
+        calls.push(args);
+        const command = args[0];
+        const sub = args[1];
+        const resource = args[2];
+        if (command === 'create-app') {return { json: { success: true, appType: 'APP_PROC' } };}
+        if (command === 'create-form' && sub === 'create') {return { json: { success: true, formUuid: 'FORM-PROC' } };}
+        if (command === 'get-schema') {return { json: buildProcessStageSchema() };}
+        if (command === 'create-process') {
+          const json = { success: true, processCode: 'TPROC-PROC', formUuid: 'FORM-PROC', appType: 'APP_PROC', url: 'https://www.aliwork.com/APP_PROC/workbench/FORM-PROC' };
+          return { stdout: JSON.stringify(json), json };
+        }
+        if (command === 'data' && sub === 'create' && resource === 'form') {
+          const dataIndex = args.indexOf('--data-json');
+          const formData = JSON.parse(args[dataIndex + 1]);
+          processMarker = formData.textField_1;
+          return {
+            json: {
+              success: true,
+              content: { processInstanceId: 'PROC-INST-FULL' },
+              processInstanceId: 'PROC-INST-FULL',
+              resource: { type: 'processInstance', id: 'PROC-INST-FULL' },
+              idVerified: true,
+            },
+          };
+        }
+        if (command === 'data' && sub === 'get' && resource === 'process') {
+          return {
+            json: {
+              success: true,
+              content: { formData: { textField_1: readbackMarker(processMarker) } },
+            },
+          };
+        }
+        if (command === 'create-page') {return { json: { success: true, pageId: 'PAGE-PROC' } };}
+        return { json: { success: true, status: 'ok' } };
+      },
+    },
+  };
+}
 
 describe('full real E2E runner', () => {
   test('defaults to the broad real-environment stage set', () => {
@@ -73,13 +187,22 @@ describe('full real E2E runner', () => {
     ]);
   });
 
-  test('finds instance identifiers in nested API payloads', () => {
-    expect(findValueByKeys({ content: { formInstId: 'FORM-INST-1' } }, ['formInstId'])).toBe('FORM-INST-1');
+  test('requires the stable root-level resource contract instead of guessing nested identifiers', () => {
+    expect(requireVerifiedResourceId({
+      formInstId: 'FORM-INST-1',
+      resource: { type: 'formInstance', id: 'FORM-INST-1' },
+      idVerified: true,
+    }, 'formInstance', 'formInstId')).toBe('FORM-INST-1');
+
+    expect(() => requireVerifiedResourceId({
+      content: { formInstId: 'FORM-INST-NESTED' },
+    }, 'formInstance', 'formInstId')).toThrow('verified root-level formInstId');
   });
 
   test('runs a selected full-stage chain with mocked CLI calls', async () => {
     const calls = [];
     const registry = { resources: [], commands: [] };
+    let receiptMarker = null;
     const config = {
       enabled: true,
       prefix: 'OY_E2E_FULL',
@@ -134,7 +257,28 @@ describe('full real E2E runner', () => {
         if (command === 'get-schema') {return { json: schema };}
         if (command === 'create-page') {return { json: { success: true, pageId: 'PAGE-FULL' } };}
         if (command === 'create-report') {return { json: { success: true, reportId: 'REPORT-FULL' } };}
-        if (command === 'data' && sub === 'create') {return { json: { success: true, content: { formInstId: 'INST-FULL' } } };}
+        if (command === 'data' && sub === 'create') {
+          const dataIndex = args.indexOf('--data-json');
+          const formData = JSON.parse(args[dataIndex + 1]);
+          receiptMarker = formData.textField_1;
+          return {
+            json: {
+              success: true,
+              content: { formInstId: 'INST-FULL' },
+              formInstId: 'INST-FULL',
+              resource: { type: 'formInstance', id: 'INST-FULL' },
+              idVerified: true,
+            },
+          };
+        }
+        if (command === 'data' && sub === 'get' && args[2] === 'form') {
+          return {
+            json: {
+              success: true,
+              content: { formData: { textField_1: receiptMarker } },
+            },
+          };
+        }
         return { json: { success: true, status: 'ok' } };
       },
     });
@@ -148,6 +292,26 @@ describe('full real E2E runner', () => {
     expect(calls.some((args) => args[0] === 'publish' && args[2] === 'APP_FULL' && args[3] === 'PAGE-FULL')).toBe(true);
     expect(calls).toContainEqual(['update-app', 'APP_FULL', '--name', 'OY_E2E_FULL_PASSED', '--quiet']);
     expect(calls).toContainEqual(['data', 'get', 'form', 'APP_FULL', '--inst-id', 'INST-FULL', '--quiet']);
+    expect(receiptMarker).toBe('OY_E2E_FULL__receipt_data_contract');
+    expect(registry.resources).toContainEqual(expect.objectContaining({
+      runId: 'OY_E2E_FULL',
+      owned: true,
+      type: 'form-instance',
+      exactId: 'INST-FULL',
+      formInstId: 'INST-FULL',
+      marker: receiptMarker,
+    }));
+    expect(registry.dataContracts.receipt).toMatchObject({
+      marker: receiptMarker,
+      resource: { type: 'formInstance', id: 'INST-FULL' },
+      contract: { status: 'passed', idVerified: true },
+      readback: { status: 'passed', markerVerified: true },
+      residual: null,
+    });
+    expect(buildAcceptanceManifest(registry, '/tmp/full-registry.json').dataContracts.receipt)
+      .toEqual(registry.dataContracts.receipt);
+    expect(buildAcceptanceReport(registry, '/tmp/full-registry.json').dataContracts.receipt)
+      .toEqual(registry.dataContracts.receipt);
     expect(calls.some((args) => args[0] === 'connector' && args[1] === 'parse-api')).toBe(true);
     expect(registry.status).toBe('passed');
     expect(registry.resultApp).toMatchObject({
@@ -166,89 +330,19 @@ describe('full real E2E runner', () => {
   });
 
   test('runs the opt-in process stage with mocked CLI calls', async () => {
-    const calls = [];
     const registry = { resources: [], commands: [] };
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-full-process-'));
-    const config = {
-      enabled: true,
-      prefix: 'OY_E2E_PROC',
-      appName: 'OY_E2E_PROC_App',
-      formName: 'OY_E2E_PROC_Form',
-      pageName: 'OY_E2E_PROC_Page',
-      updateAppName: 'OY_E2E_PROC_App_Renamed',
-      resultAppName: 'OY_E2E_PROC_PASSED',
-      importAppName: 'OY_E2E_PROC_Imported',
-      fieldsFile: path.join(__dirname, '..', 'scripts', 'e2e-real', 'fixtures', 'form-fields.json'),
-      pageSource: path.join(__dirname, '..', 'project', 'pages', 'src', 'demo-compat-smoke.oyd.jsx'),
-      registryDir: tmpDir,
-      stages: ['app', 'form', 'process'],
-    };
-
-    const schema = {
-      success: true,
-      content: {
-        pages: [
-          {
-            componentsTree: [
-              {
-                children: [
-                  { componentName: 'TextField', props: { fieldId: 'textField_1', label: { zh_CN: 'E2E Text' } } },
-                  { componentName: 'NumberField', props: { fieldId: 'numberField_1', label: { zh_CN: 'E2E Number' } } },
-                  { componentName: 'SelectField', props: { fieldId: 'selectField_1', label: { zh_CN: 'E2E Status' } } },
-                  { componentName: 'TextareaField', props: { fieldId: 'textareaField_1', label: { zh_CN: 'E2E Notes' } } },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    };
-
-    const scenario = generateAllScenarios().find((item) => item.id === 'serial-approval');
+    const harness = buildProcessStageHarness(tmpDir, registry);
     try {
-      await run({
-        env: { OPENYIDA_E2E: '1' },
-        config,
-        createRegistry: () => ({ registry, registryPath: path.join(tmpDir, 'OY_E2E_PROC.json') }),
-        writeRegistry: () => {},
-        addResource: (currentRegistry, registryPath, resource) => {
-          currentRegistry.resources.push(resource);
-        },
-        writeJson: (filePath) => filePath,
-        writeText: (filePath) => filePath,
-        processApiAdapter: {
-          readback: async () => ({
-            rawProcessPayload: {
-              success: true,
-              content: JSON.stringify({
-                ...scenario.fixture.viewJson,
-                bindingForm: scenario.fixture.viewJson.bindingForm || 'FORM-PROC',
-                formulaRules: scenario.fixture.viewJson.formulaRules || [],
-                globalSetting: scenario.fixture.viewJson.globalSetting || {},
-              }),
-            },
-            processId: 'PID-PROC',
-            processVersion: 2,
-          }),
-        },
-        runCli: (args) => {
-          calls.push(args);
-          const command = args[0];
-          const sub = args[1];
-          if (command === 'create-app') {return { json: { success: true, appType: 'APP_PROC' } };}
-          if (command === 'create-form' && sub === 'create') {return { json: { success: true, formUuid: 'FORM-PROC' } };}
-          if (command === 'get-schema') {return { json: schema };}
-          if (command === 'create-process') {
-            const json = { success: true, processCode: 'TPROC-PROC', formUuid: 'FORM-PROC', appType: 'APP_PROC', url: 'https://www.aliwork.com/APP_PROC/workbench/FORM-PROC' };
-            return { stdout: JSON.stringify(json), json };
-          }
-          if (command === 'create-page') {return { json: { success: true, pageId: 'PAGE-PROC' } };}
-          return { json: { success: true, status: 'ok' } };
-        },
-      });
+      await run(harness.options);
 
-      expect(calls.some((args) => args[0] === 'create-process' && args[1] === 'APP_PROC' && args[2] === '--formUuid' && args[3] === 'FORM-PROC')).toBe(true);
-      expect(calls.some((args) => args[0] === 'configure-process')).toBe(false);
+      expect(harness.calls.some((args) => args[0] === 'create-process' && args[1] === 'APP_PROC' && args[2] === '--formUuid' && args[3] === 'FORM-PROC')).toBe(true);
+      expect(harness.calls.some((args) => args[0] === 'configure-process')).toBe(false);
+      expect(harness.calls.some((args) => args[0] === 'data' && args[1] === 'create' && args[2] === 'form')).toBe(true);
+      expect(harness.calls).toContainEqual([
+        'data', 'get', 'process', 'APP_PROC', '--process-inst-id', 'PROC-INST-FULL', '--quiet',
+      ]);
+      expect(harness.getProcessMarker()).toBe('OY_E2E_PROC__process_data_contract');
       expect(registry.resources).toContainEqual(expect.objectContaining({
         owned: true,
         type: 'process',
@@ -257,6 +351,21 @@ describe('full real E2E runner', () => {
         formUuid: 'FORM-PROC',
         processCode: 'TPROC-PROC',
       }));
+      expect(registry.resources).toContainEqual(expect.objectContaining({
+        runId: 'OY_E2E_PROC',
+        owned: true,
+        type: 'process-instance',
+        exactId: 'PROC-INST-FULL',
+        processInstanceId: 'PROC-INST-FULL',
+        marker: harness.getProcessMarker(),
+      }));
+      expect(registry.dataContracts.process).toMatchObject({
+        marker: harness.getProcessMarker(),
+        resource: { type: 'processInstance', id: 'PROC-INST-FULL' },
+        contract: { status: 'passed', idVerified: true },
+        readback: { status: 'passed', markerVerified: true },
+        residual: null,
+      });
       expect(registry.context).toMatchObject({
         processCode: 'TPROC-PROC',
         processId: 'PID-PROC',
@@ -264,9 +373,54 @@ describe('full real E2E runner', () => {
       });
       expect(registry.stageResults.process).toMatchObject({
         status: 'cleanup_blocked',
-        commands: ['process-mvp-create-publish'],
+        commands: ['process-mvp-create-publish', 'data-create-process-form', 'data-get-process'],
       });
+      expect(buildAcceptanceManifest(registry, path.join(tmpDir, 'OY_E2E_PROC.json')).dataContracts.process)
+        .toEqual(registry.dataContracts.process);
+      expect(buildAcceptanceReport(registry, path.join(tmpDir, 'OY_E2E_PROC.json')).dataContracts.process)
+        .toEqual(registry.dataContracts.process);
       expect(registry.status).toBe('cleanup_blocked');
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('fails the process stage when independent process readback marker mismatches', async () => {
+    const registry = { resources: [], commands: [] };
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-full-process-mismatch-'));
+    const harness = buildProcessStageHarness(tmpDir, registry, marker => `${marker}__mismatch`);
+
+    try {
+      await expect(run(harness.options)).rejects.toThrow('process readback marker mismatch');
+      expect(registry.dataContracts.process).toMatchObject({
+        marker: 'OY_E2E_PROC__process_data_contract',
+        contract: { status: 'passed', idVerified: true },
+        readback: { status: 'failed', markerVerified: false },
+        residual: { code: 'DATA_READBACK_MARKER_MISMATCH' },
+      });
+      expect(registry.status).toBe('failed');
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('marks process readback capability BLOCKED when the marker cannot be extracted', async () => {
+    const registry = { resources: [], commands: [] };
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-full-process-blocked-'));
+    const harness = buildProcessStageHarness(tmpDir, registry, () => undefined);
+
+    try {
+      await expect(run(harness.options)).rejects.toThrow('process readback capability BLOCKED');
+      expect(registry.dataContracts.process).toMatchObject({
+        contract: { status: 'passed', idVerified: true },
+        readback: {
+          status: 'blocked',
+          capability: 'BLOCKED',
+          markerVerified: false,
+        },
+        residual: { code: 'DATA_READBACK_MARKER_CAPABILITY_BLOCKED' },
+      });
+      expect(registry.status).toBe('failed');
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -337,6 +491,7 @@ describe('full real E2E runner', () => {
     expect(source).toContain('OPENYIDA REAL ENVIRONMENT E2E');
     expect(source).toContain('APP_SOURCE');
     expect(source).toContain('REPORT-SOURCE');
+    expect(source).not.toContain('✓');
   });
 
   test('builds a dashboard skill verification page source', () => {

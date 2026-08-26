@@ -1836,3 +1836,8 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
   lint_searchformdata_http_credentials: '직접적인 searchFormDatas.json 호출은 credentials: "include" 를 설정하여 브라우저가 같은 기원 로그인 쿠키를 전송하도록 해야 합니다.',
   lint_canvas_yida_api_bridge_missing: 'YidaCodeCanvas 폼 데이터 읽기는 window.__OPENYIDA_YIDA_API__ 를 먼저 소비해야 합니다 (publish 레이어는 outer didMount 에서 this.utils.yida 브릿지를 주입합니다); 내부적인 searchFormDatas fetch 에 기본값을 사용하지 마세요.',
 });
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  form_mode_unverified: '폼 {0}의 유형을 확인할 수 없어 데이터 쓰기 전에 생성을 중지했습니다.',
+  resource_required: 'data query에 리소스 유형 form이 없습니다. 권장 명령: {0}',
+});

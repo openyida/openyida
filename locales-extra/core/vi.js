@@ -1835,3 +1835,8 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
   lint_searchformdata_http_credentials: 'Một cuộc gọi trực tiếp searchFormDatas.json phải thiết lập credentials: "include" để trình duyệt gửi cookie đăng nhập cùng nguồn gốc',
   lint_canvas_yida_api_bridge_missing: 'Đọc dữ liệu form YidaCodeCanvas bắt buộc phải tiêu thụ window.__OPENYIDA_YIDA_API__ trước (lớp publish tiêm cầu nối this.utils.yida từ didMount bên ngoài); không mặc định đến fetch searchFormDatas nội bộ viết tay',
 });
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  form_mode_unverified: 'Không thể xác minh loại của biểu mẫu {0}. Việc tạo đã dừng trước khi ghi dữ liệu.',
+  resource_required: 'data query thiếu loại tài nguyên form. Lệnh đề xuất: {0}',
+});

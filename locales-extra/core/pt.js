@@ -1837,3 +1837,8 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
   lint_searchformdata_http_credentials: 'Uma chamada direta a searchFormDatas.json deve definir credentials: "include" para que o navegador envie cookies de login da mesma origem',
   lint_canvas_yida_api_bridge_missing: 'As leituras de dados do formulário YidaCodeCanvas devem consumir window.__OPENYIDA_YIDA_API__ primeiro (a camada publish injeta a ponte this.utils.yida desde didMount externo); não use por padrão uma busca interna manual fetch searchFormDatas',
 });
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  form_mode_unverified: 'Não foi possível verificar o tipo do formulário {0}. A criação foi interrompida antes de qualquer gravação de dados.',
+  resource_required: 'O tipo de recurso form está ausente em data query. Comando sugerido: {0}',
+});

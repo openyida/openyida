@@ -255,6 +255,26 @@ describe('CLI: argument validation', () => {
     expect(result.status).not.toBe(0);
   });
 
+  test('data query 漏写 form 时在登录检查前返回精确纠错', () => {
+    const result = runAny(['data', 'query', 'APP_XXX', 'FORM_XXX', '--json']);
+    expect(result.status).not.toBe(0);
+    expect(JSON.parse(result.stderr)).toMatchObject({
+      errorCode: 'DATA_RESOURCE_REQUIRED',
+      errorMsg: expect.stringContaining('openyida data query form APP_XXX FORM_XXX'),
+    });
+    expect(result.output).not.toContain('无法获取有效 token 登录态');
+  });
+
+  test('data query 漏写 form 且使用 FORM- 前缀时同样在登录检查前纠错', () => {
+    const result = runAny(['data', 'query', 'APP_XXX', 'FORM-XXX', '--json']);
+    expect(result.status).not.toBe(0);
+    expect(JSON.parse(result.stderr)).toMatchObject({
+      errorCode: 'DATA_RESOURCE_REQUIRED',
+      errorMsg: expect.stringContaining('openyida data query form APP_XXX FORM-XXX'),
+    });
+    expect(result.output).not.toContain('无法获取有效 token 登录态');
+  });
+
   test('connector 无参数显示帮助', () => {
     const result = runAny(['connector']);
     expect(result.output).toContain('connector');

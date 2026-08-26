@@ -17,7 +17,7 @@ jest.mock('../lib/core/utils', () => ({
 }));
 
 jest.mock('../lib/app/services/form-mode-service', () => ({
-  getProcessCodeFromFormBinding: jest.fn(),
+  readFormMode: jest.fn(),
 }));
 
 const utils = require('../lib/core/utils');
@@ -44,6 +44,12 @@ async function expectCliError(promise, message, exitCode = 1) {
   if (message) {
     expect(error.message).toContain(message);
   }
+  return error;
+}
+
+function getLoggedJson(mockLog) {
+  const lastCall = mockLog.mock.calls[mockLog.mock.calls.length - 1];
+  return JSON.parse(lastCall[0]);
 }
 
 function buildAliasSchema() {
@@ -96,7 +102,7 @@ beforeEach(() => {
   // 默认已登录
   utils.loadAuthData.mockReturnValue(mockAuthData);
   // 默认按普通表单处理（非流程表单）
-  formModeService.getProcessCodeFromFormBinding.mockResolvedValue(null);
+  formModeService.readFormMode.mockResolvedValue({ mode: 'receipt' });
 });
 
 // ── 参数校验 ──────────────────────────────────────────────────────────
@@ -111,7 +117,37 @@ describe('run() 参数校验', () => {
   });
 
   test('未知 action/resource 组合时打印错误并退出', async () => {
-    await expectCliError(run(['unknown', 'resource']), '暂未实现的命令');
+    const error = await expectCliError(run(['unknown', 'resource']), '暂未实现的命令');
+    expect(error.code).toBe('DATA_ERROR');
+  });
+
+  test.each(['FORM_XXX', 'FORM-XXX'])(
+    'query 漏写 form 且 formUuid 为 %s 时在认证和网络前给出精确纠错',
+    async formUuid => {
+      utils.loadAuthData.mockReturnValue(null);
+
+      const error = await expectCliError(
+        run(['query', 'APP_XXX', formUuid]),
+        `openyida data query form APP_XXX ${formUuid}`
+      );
+
+      expect(error.code).toBe('DATA_RESOURCE_REQUIRED');
+      expect(utils.loadAuthData).not.toHaveBeenCalled();
+      expect(utils.triggerLogin).not.toHaveBeenCalled();
+      expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
+      expect(utils.httpGet).not.toHaveBeenCalled();
+      expect(utils.httpPost).not.toHaveBeenCalled();
+    }
+  );
+
+  test('显式未知资源不触发漏写 form 纠错', async () => {
+    const error = await expectCliError(
+      run(['query', 'unknown-resource', 'APP_XXX', 'FORM_XXX']),
+      '暂未实现的命令：query unknown-resource'
+    );
+
+    expect(error.code).toBe('DATA_ERROR');
+    expect(error.message).not.toContain('openyida data query form');
   });
 });
 
@@ -437,21 +473,59 @@ describe('run() get form', () => {
 // ── create form 场景 ──────────────────────────────────────────────────
 
 describe('run() create form', () => {
-  test('创建成功时输出 JSON 结果', async () => {
-    utils.requestWithAutoLogin.mockResolvedValue({
+  test('receipt 创建成功时输出根层 formInstId 和已验证资源，同时深度保留 content', async () => {
+    const content = {
+      formInstId: 'INST-NEW',
+      formData: { textField_1: 'hello' },
+      metadata: { nested: { preserved: true } },
+    };
+    utils.httpPost.mockResolvedValue({
       success: true,
-      content: { formInstId: 'INST-NEW' },
+      content,
     });
 
     const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
     const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     await run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-json', '{"textField_1":"hello"}']);
-    expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(1);
-    expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('"success": true'));
+    expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
+    expect(getLoggedJson(mockLog)).toEqual({
+      success: true,
+      content,
+      formInstId: 'INST-NEW',
+      resource: { type: 'formInstance', id: 'INST-NEW' },
+      idVerified: true,
+    });
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/v1/form/saveFormData.json');
 
     mockLog.mockRestore();
     mockError.mockRestore();
+  });
+
+  test.each([
+    ['receipt', { mode: 'receipt' }, 'formInstId', 'formInstance', 'FINST-SCALAR'],
+    ['process', { mode: 'process', processCode: 'PROC-XXX' }, 'processInstanceId', 'processInstance', 'PFINST-SCALAR'],
+  ])('%s 创建成功且平台 content 直接返回 ID 时输出稳定根层契约', async (
+    _label,
+    mode,
+    idKey,
+    resourceType,
+    platformId
+  ) => {
+    formModeService.readFormMode.mockResolvedValue(mode);
+    utils.httpPost.mockResolvedValue({ success: true, content: platformId });
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-json', '{"textField_1":"hello"}']);
+
+    const output = getLoggedJson(mockLog);
+    mockLog.mockRestore();
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(output.content).toBe(platformId);
+    expect(output[idKey]).toBe(platformId);
+    expect(output.resource).toEqual({ type: resourceType, id: platformId });
+    expect(output.idVerified).toBe(true);
   });
 
   test('传入 --data-file 时读取文件作为创建数据', async () => {
@@ -512,11 +586,15 @@ describe('run() create form', () => {
   });
 
   test('目标表单是流程表单时自动使用 startInstance.json 发起流程', async () => {
-    formModeService.getProcessCodeFromFormBinding.mockResolvedValue('PROC-XXX');
+    formModeService.readFormMode.mockResolvedValue({ mode: 'process', processCode: 'PROC-XXX' });
     utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    const content = {
+      processInstanceId: 'PROC-INST-NEW',
+      workflow: { nested: { preserved: true } },
+    };
     utils.httpPost.mockResolvedValue({
       success: true,
-      content: { processInstanceId: 'PROC-INST-NEW' },
+      content,
     });
 
     const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -524,42 +602,107 @@ describe('run() create form', () => {
 
     await run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-json', '{"textField_1":"hello"}']);
 
-    expect(formModeService.getProcessCodeFromFormBinding).toHaveBeenCalledWith(
+    expect(formModeService.readFormMode).toHaveBeenCalledWith(
       expect.objectContaining({ corpId: 'corp-1' }),
-      'APP_XXX',
-      'FORM-XXX'
+      { appType: 'APP_XXX', formUuid: 'FORM-XXX' }
     );
+    expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
     expect(utils.httpPost).toHaveBeenCalledTimes(1);
     expect(utils.httpPost.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/v1/process/startInstance.json');
     const postBody = decodeURIComponent(utils.httpPost.mock.calls[0][2]);
     expect(postBody).toContain('processCode=PROC-XXX');
     expect(postBody).toContain('formDataJson={"textField_1":"hello"}');
-    expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('"success": true'));
+    expect(getLoggedJson(mockLog)).toEqual({
+      success: true,
+      content,
+      processInstanceId: 'PROC-INST-NEW',
+      resource: { type: 'processInstance', id: 'PROC-INST-NEW' },
+      idVerified: true,
+    });
 
     mockLog.mockRestore();
     mockWarn.mockRestore();
   });
 
-  test('流程表单绑定查询失败时回退到 saveFormData.json 并告警', async () => {
-    formModeService.getProcessCodeFromFormBinding.mockRejectedValue(new Error('binding timeout'));
+  test.each([
+    ['readFormMode 抛错', () => formModeService.readFormMode.mockRejectedValue(new Error('binding timeout'))],
+    ['readFormMode 返回空值', () => formModeService.readFormMode.mockResolvedValue(null)],
+    ['readFormMode 返回 receipt/processCode 冲突', () => formModeService.readFormMode.mockResolvedValue({ mode: 'receipt', processCode: 'PROC-CONFLICT' })],
+    ['readFormMode 返回 process 但缺少 processCode', () => formModeService.readFormMode.mockResolvedValue({ mode: 'process' })],
+  ])('%s 时 fail-closed 且远端写入为 0', async (_label, arrangeMode) => {
+    arrangeMode();
     utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
-    utils.httpPost.mockResolvedValue({
-      success: true,
-      content: { formInstId: 'INST-FALLBACK' },
-    });
 
+    const error = await expectCliError(
+      run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-json', '{"textField_1":"hello"}']),
+      '无法验证表单 FORM-XXX 的类型'
+    );
+
+    expect(error.code).toBe('DATA_FORM_MODE_UNVERIFIED');
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['receipt', { mode: 'receipt' }],
+    ['process', { mode: 'process', processCode: 'PROC-XXX' }],
+  ])('%s 创建成功但平台未返回 ID 时不猜测或重试', async (_label, mode) => {
+    formModeService.readFormMode.mockResolvedValue(mode);
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    const content = { accepted: true, nested: { instanceId: 'DO-NOT-GUESS' } };
+    utils.httpPost.mockResolvedValue({ success: true, content });
     const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
-    const mockWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     await run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-json', '{"textField_1":"hello"}']);
 
-    expect(utils.httpPost).toHaveBeenCalledTimes(1);
-    expect(utils.httpPost.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/v1/form/saveFormData.json');
-    expect(mockWarn).toHaveBeenCalledWith(expect.stringContaining('无法判断表单 FORM-XXX 是否为流程表单'));
-    expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('"success": true'));
-
+    const output = getLoggedJson(mockLog);
     mockLog.mockRestore();
-    mockWarn.mockRestore();
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(output.content).toEqual(content);
+    expect(output.resource).toBeNull();
+    expect(output.idVerified).toBe(false);
+    expect(output).not.toHaveProperty('formInstId');
+    expect(output).not.toHaveProperty('processInstanceId');
+  });
+
+  test.each([
+    ['receipt', { mode: 'receipt' }, '/dingtalk/web/APP_XXX/v1/form/saveFormData.json'],
+    ['process', { mode: 'process', processCode: 'PROC-XXX' }, '/dingtalk/web/APP_XXX/v1/process/startInstance.json'],
+  ])('%s 写失败时使用 one-shot 边界且不重试', async (_label, mode, expectedPath) => {
+    formModeService.readFormMode.mockResolvedValue(mode);
+    utils.requestWithAutoLogin.mockRejectedValue(new Error('auto-login replay must not run'));
+    utils.httpPost.mockRejectedValue(new Error('write failed'));
+
+    await expect(
+      run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-json', '{"textField_1":"hello"}'])
+    ).rejects.toThrow('write failed');
+
+    expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost.mock.calls[0][1]).toBe(expectedPath);
+  });
+
+  test('root/content ID 冲突时保留 content 但不验证或猜测资源 ID', async () => {
+    const result = {
+      success: true,
+      formInstId: 'INST-ROOT',
+      content: {
+        formInstId: 'INST-CONTENT',
+        nested: { preserved: true },
+      },
+    };
+    utils.requestWithAutoLogin.mockResolvedValue(result);
+    utils.httpPost.mockResolvedValue(result);
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-json', '{"textField_1":"hello"}']);
+
+    const output = getLoggedJson(mockLog);
+    mockLog.mockRestore();
+    expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(output.content).toEqual(result.content);
+    expect(output.resource).toBeNull();
+    expect(output.idVerified).toBe(false);
   });
 
   test('缺少 --data-json 时打印错误并退出', async () => {
