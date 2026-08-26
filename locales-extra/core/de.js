@@ -1848,3 +1848,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   form_mode_unverified: 'Der Typ des Formulars {0} konnte nicht verifiziert werden. Die Erstellung wurde vor jedem Datenschreibvorgang beendet.',
   resource_required: 'Bei data query fehlt der Ressourcentyp form. Empfohlener Befehl: {0}',
 });
+
+Object.assign(module.exports.common || (module.exports.common = {}), {
+  non_idempotent_result_unknown: 'Die Authentifizierung hat sich während der Erstellungsanfrage geändert; das Ergebnis ist unbekannt. Prüfen Sie den Zielstatus, bevor Sie es erneut versuchen.',
+});

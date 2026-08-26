@@ -1721,3 +1721,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   form_mode_unverified: '無法驗證表單 {0} 的類型，已停止建立；未執行任何資料寫入。',
   resource_required: 'data query 缺少資源類型 form。建議：{0}',
 });
+
+Object.assign(module.exports.common || (module.exports.common = {}), {
+  non_idempotent_result_unknown: '建立請求期間的身份驗證發生變化；建立結果未知。請先檢查目標狀態，再決定是否重試。',
+});

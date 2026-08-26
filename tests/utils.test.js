@@ -464,7 +464,8 @@ describe('requestNonIdempotentWithAuthPreflight', () => {
       errorCode: 'NON_IDEMPOTENT_RESULT_UNKNOWN',
       __needLogin: true,
     });
-    expect(result.errorMsg).toContain('Verify the target state before retrying');
+    const { t } = require('../lib/core/i18n');
+    expect(result.errorMsg).toBe(t('common.non_idempotent_result_unknown'));
   });
 
   test('does not issue the mutation when the read-only preflight fails', async () => {

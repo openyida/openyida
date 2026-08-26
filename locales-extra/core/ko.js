@@ -1849,3 +1849,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   form_mode_unverified: '폼 {0}의 유형을 확인할 수 없어 데이터 쓰기 전에 생성을 중지했습니다.',
   resource_required: 'data query에 리소스 유형 form이 없습니다. 권장 명령: {0}',
 });
+
+Object.assign(module.exports.common || (module.exports.common = {}), {
+  non_idempotent_result_unknown: '생성 요청 중 인증 상태가 변경되어 생성 결과를 확인할 수 없습니다. 다시 시도하기 전에 대상 상태를 확인하세요.',
+});

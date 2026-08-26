@@ -1848,3 +1848,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   form_mode_unverified: 'Không thể xác minh loại của biểu mẫu {0}. Việc tạo đã dừng trước khi ghi dữ liệu.',
   resource_required: 'data query thiếu loại tài nguyên form. Lệnh đề xuất: {0}',
 });
+
+Object.assign(module.exports.common || (module.exports.common = {}), {
+  non_idempotent_result_unknown: 'Xác thực đã thay đổi trong lúc gửi yêu cầu tạo; chưa xác định được kết quả. Hãy kiểm tra trạng thái đích trước khi thử lại.',
+});

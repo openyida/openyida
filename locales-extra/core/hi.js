@@ -1848,3 +1848,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   form_mode_unverified: 'फ़ॉर्म {0} का प्रकार सत्यापित नहीं हो सका। किसी भी डेटा लेखन से पहले निर्माण रोक दिया गया।',
   resource_required: 'data query में संसाधन प्रकार form नहीं है। सुझाया गया कमांड: {0}',
 });
+
+Object.assign(module.exports.common || (module.exports.common = {}), {
+  non_idempotent_result_unknown: 'निर्माण अनुरोध के दौरान प्रमाणीकरण बदल गया; परिणाम अज्ञात है। पुनः प्रयास करने से पहले लक्ष्य की स्थिति जाँचें।',
+});

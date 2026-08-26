@@ -1850,3 +1850,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   form_mode_unverified: 'Não foi possível verificar o tipo do formulário {0}. A criação foi interrompida antes de qualquer gravação de dados.',
   resource_required: 'O tipo de recurso form está ausente em data query. Comando sugerido: {0}',
 });
+
+Object.assign(module.exports.common || (module.exports.common = {}), {
+  non_idempotent_result_unknown: 'A autenticação mudou durante a solicitação de criação; o resultado é desconhecido. Verifique o estado do destino antes de tentar novamente.',
+});

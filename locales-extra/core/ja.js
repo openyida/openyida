@@ -1775,3 +1775,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   form_mode_unverified: 'フォーム {0} の種類を検証できませんでした。データを書き込まずに作成を停止しました。',
   resource_required: 'data query にリソース種別 form がありません。推奨コマンド: {0}',
 });
+
+Object.assign(module.exports.common || (module.exports.common = {}), {
+  non_idempotent_result_unknown: '作成リクエスト中に認証状態が変化したため、作成結果を確認できません。再試行する前に対象の状態を確認してください。',
+});

@@ -1848,3 +1848,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   form_mode_unverified: 'تعذر التحقق من نوع النموذج {0}. تم إيقاف الإنشاء قبل كتابة أي بيانات.',
   resource_required: 'يفتقد data query إلى نوع المورد form. الأمر المقترح: {0}',
 });
+
+Object.assign(module.exports.common || (module.exports.common = {}), {
+  non_idempotent_result_unknown: 'تغيّرت المصادقة أثناء طلب الإنشاء؛ النتيجة غير معروفة. تحقّق من حالة الهدف قبل إعادة المحاولة.',
+});
