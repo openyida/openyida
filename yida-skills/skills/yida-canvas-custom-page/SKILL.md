@@ -85,7 +85,18 @@ UI 和产品设计输入来自 `yida-design` 输出的 `prd/<项目名>/prd.md` 
 7. **交互控件必须受控且真正驱动数据**：筛选 `Select`、搜索 `Input`/`Input.Search`、周期切换、`Tabs`/`Segmented`、批量/重置 `Button` 等控件都用 `useState` 建立受控状态，绑定 `onChange`/`onClick`，并让 `Table`/列表/卡片的数据源通过 `useMemo` 按状态派生后渲染。切换筛选后若当前选中项失效，回退选中态（如 `selected < filteredRows.length ? selected : 0`）。
 8. **视觉壳层必须消费 design.md**：工作台、门户、看板、首页、展示页和真实交付页写页面源码前，先从 `design.md` 抽取 `backgroundLayer`、`visualScaffold.rootShell`、`surfaceMap`、`componentRecipe`、`roundedRule`、`densityRule`、`breathingRule`、`themeProfile` 和 `yidaThemeRuntime`。若 `design.md` 声明 `backgroundLayer`，源码完成标准是：页面根节点带 `data-yida-theme-root="true"`；根节点或注入 CSS 承载背景层；背景 primitive 落到根节点、`::before`、`::after` 或等价背景层；内容层使用相对定位和更高 `z-index`；antd 页面包 `ConfigProvider`，并使用 `readBrandColor`、`getPopupContainer` 和控件 reset CSS 让主题、焦点和浮层生效。若 `design.md` 声明圆润高密和呼吸感规则，源码必须同步到 antd `borderRadius`、CSS `border-radius`、页面 padding/gap、区块间距、列表行高、状态摘要高度、空态高度和内容安全内距，并保证卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px。
 9. **表单数据读取必须使用 dataBinding 契约和 yida JS-API 桥**：完整应用、工作台、列表、看板、详情等真实交付页只要本轮已经创建或解析业务表单，先写入 `dataBinding.mode="form"`、真实 `appType/formUuid` 和字段 ID，再用本地 `useYidaData(binding)` / `DataBridge` 读取。发布层必须在外层页面 `didMount` 注册 `window.__OPENYIDA_YIDA_API__`，`YidaCodeCanvas` 组件内部默认调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；只有桥不可用时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。页面不能使用 `/query/form/searchFormDatas.json`，也不能只写前端 seedRows 后声称已接真实数据。
-10. **源码保持零未绑定标识符**：每个 import、辅助函数、Ref、状态、局部变量和函数参数都必须在同一文件声明后使用；重命名时同时修改声明与全部引用。`compileCanvasLocal` 报 `OPENYIDA_CANVAS_UNBOUND_IDENTIFIER` 时先按错误中的全部名称和位置补齐声明。确实由非标准运行时提供的能力必须写成 `window.<name>` 或 `parentWindow.<name>` 并先判断属性是否存在，不得把裸变量加入源码后绕过发布。
+10. **源码保持零未绑定标识符**：每个 import、辅助函数、Ref、状态、局部变量和函数参数都在同一文件声明后使用。非标准运行时能力通过 `window.<name>` 或 `parentWindow.<name>` 获取，调用前检查目标方法。`compileCanvasLocal` 报 `OPENYIDA_CANVAS_UNBOUND_IDENTIFIER` 时，一次修复 `details.issues` 中的全部名称，再重新编译。
+
+非标准运行时能力使用以下写法：
+
+```jsx
+function setNavigationTitle(title) {
+  const dingTalk = window.dd;
+  if (typeof dingTalk?.biz?.navigation?.setTitle === 'function') {
+    dingTalk.biz.navigation.setTitle({ title });
+  }
+}
+```
 
 > **未绑定标识符守卫边界**：该守卫只拦截不属于 ECMAScript、Browser 或 Canvas wrapper 白名单的裸标识符。`name`、`status`、`length`、`event`、`origin`、`top` 等浏览器标准短名会解析为 `window` 属性，无法判断它原本是否是业务变量拼写错误；例如把 `orderName` 误写成 `name`、把 `rowStatus` 误写成 `status` 或把 `listLength` 误写成 `length` 都不会被拦截。守卫主要兜底 `getInstId`、`loadedRef` 这类自定义名，不代表能发现全部拼写错误；生成或重命名代码后仍须逐项核对业务标识符。
 

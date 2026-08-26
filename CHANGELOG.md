@@ -18,6 +18,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `create-form`、自定义页面发布、应用导入和表单详情样式的 Schema 保存链路不再调用无实际作用的 `updateFormConfig`，消除冗余请求及误导性 warning；独立 `update-form-config` 命令继续使用有效的 `updateFormSchemaInfo` 接口。
 - 应用导入在创建目标表单后读取目标表单的当前 revision，再保存迁移 Schema，避免沿用源表单 revision 导致“页面已变更”。
 
+### Changed
+
+- `integration create --process-code` 执行整图替换时必须同时传入 `--replace`；LLM 在确认目标 `appType`、`formUuid`、`processCode` 和替换摘要后执行该命令。已有命令补充 `--replace` 后继续使用。
+- Canvas 源码中的非标准运行时能力通过 `window.<name>` 或 `parentWindow.<name>` 访问并检查目标方法；裸 `dd.biz.*` 改为通过 `window.dd` 调用。已发布页面继续运行，重新编译或发布源码时按该写法迁移。
+
 ## [2026.8.25-1] - 2026-08-25
 
 ### Fixed

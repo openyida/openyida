@@ -5,18 +5,21 @@ description: 创建/管理宜搭集成自动化。
 
 # yida-integration — 宜搭集成&自动化（逻辑流）技能
 
-## 适用范围
+## 命令选择
 
-- 不得把不支持、冲突或状态不确定的任务改走 `integration create` 写入，不得按名称 discover/adopt、猜逻辑流 ID 或自动重建。
-- `integration create ... --process-code` 是整图替换（full replacement），必须显式传 `--replace`；它不是安全编辑，也不得作为 `integration update` 的降级路径。
-- `integration update` 当前仅检测安全更新 capability；完整平台定义 readback 未证明时，必须在认证、读取 spec 和远端写入前结构化 fail-closed，不得宣称已编辑。
-- 只有自动化目标明确属于当前普通 OpenYida 资源时，以下参数、stdout/stderr、发布/启停和返回行为才按本技能契约使用；所有权不明确时零远端写。
+| 用户目标 | 执行动作 |
+| --- | --- |
+| 创建新自动化 | 使用 `integration create`，由 CLI 生成 `processCode` |
+| 整图替换已有自动化 | 校验 `appType`、`formUuid`、`processCode`，明确告知“CLI 无法读取原有节点定义；本次将整体覆盖，原节点不保留”，获得确认后使用 `integration create ... --process-code <code> --replace` |
+| 更新已有自动化 | 使用 `integration update` 获取 capability 结果，并按结果报告当前状态 |
+| 目标或资源归属不明确 | 保持零远端写，并请求用户明确目标资源和操作类型 |
 
 ## 严格禁止 (NEVER DO)
 
 - 不要在未加载本技能内容的情况下编写逻辑流定义，节点格式复杂且易出错
 - 不要编造 formUuid 或 fieldId，必须从已有记录或 `yida-get-schema` 获取
 - 不要用此技能配置审批流程，应使用 `yida-process-rule`
+- 不得把 `integration update` 的 fail-closed 结果降级为 `integration create --process-code --replace`
 
 ## 严格要求 (MUST DO)
 
@@ -49,6 +52,7 @@ description: 创建/管理宜搭集成自动化。
 
 | 错误类型 | 默认处理策略 |
 |---------|-------------|
+| `INTEGRATION_FULL_REPLACEMENT_REQUIRES_REPLACE` | 已获得整图替换确认时，补 `--replace` 重试一次；未获得确认时，展示替换摘要并请求确认 |
 | 命令执行失败 | 停止执行，向用户展示错误信息，询问是否重试或调整参数 |
 | 参数缺失（appType/formUuid/userId 等） | 主动询问用户补充，不得猜测或编造 |
 | 权限不足 / 登录态失效 | 停止执行，提示用户执行 `openyida auth status` 检查登录态 |
@@ -93,8 +97,8 @@ openyida integration check <appType...> [--json] [--output result.xlsx] [--no-pr
 
 | 选项 | 默认值 | 说明 |
 | --- | --- | --- |
-| `--process-code <code>` | 自动生成 | 已有逻辑流的 processCode（`LPROC-xxx` 格式）；传入即整图替换，必须同时传 `--replace` |
-| `--replace` | 关闭 | 显式确认 `--process-code` 是 full replacement，不是安全 update |
+| `--process-code <code>` | 自动生成 | 已有逻辑流的 processCode（`LPROC-xxx` 格式）；与 `--replace` 同时使用，执行整图替换 |
+| `--replace` | 关闭 | 显式确认 `--process-code` 执行整图替换 |
 | `--receivers <userId,...>` | 空（无接收人） | 接收钉钉工作通知的用户 ID，多个用逗号分隔 |
 | `--title <title>` | 同 flowName | 通知标题，支持 `#{fieldId-ComponentType}#` 引用表单字段 |
 | `--content <content>` | `"表单有新记录提交，请及时查看。"` | 通知内容，支持 `#{fieldId-ComponentType}#` 引用表单字段 |
@@ -122,6 +126,12 @@ openyida integration check <appType...> [--json] [--output result.xlsx] [--no-pr
 ### 示例
 
 ```bash
+# 整图替换已有自动化
+openyida integration create APP_XXX FORM-XXX "替换已有自动化" \
+  --process-code LPROC-XXX \
+  --replace \
+  --spec .cache/openyida/<项目名或任务名>/integration/desired-spec.json
+
 # 最简用法：表单新增时通知指定用户，仅保存草稿
 openyida integration create APP_XXX FORM-XXX "新增记录通知" \
   --receivers user123 \
@@ -317,7 +327,7 @@ openyida integration diagnose --file project/tickets/automation-error.txt --json
 ## 调用流程
 
 1. 读取 token session 获取登录态（不存在则提示执行 `openyida login`）
-2. 若未传入 `--process-code`，调用 `createLogicflow.json` 接口新建绑定关系，获取真实 `processCode`；若传入，必须有 `--replace` 并明确执行整图替换
+2. 创建新自动化时调用 `createLogicflow.json` 获取真实 `processCode`；整图替换时使用已校验的 `processCode` 和 `--replace`
 3. 生成各节点 ID（`node_xxx` 格式，随机生成）
 4. 根据用户传入的节点配置，构建 `json` 参数（节点定义）和 `viewJson` 参数（画布 Schema）
 5. 调用 `saveProcess` 接口（`isOnline=false`）保存为草稿
@@ -327,9 +337,7 @@ openyida integration diagnose --file project/tickets/automation-error.txt --json
 
 ## 安全二次编辑
 
-`integration update` 当前是 capability-detection 命令，不是已实现的编辑器。capability manifest 将 `integration_detail_readback_wrapper` 标记为 `PLATFORM_PROBE_REQUIRED`：已观测的 `getProcess/getProcessById` 只有 view schema，不能证明 runtime `processJson`。
-
-因此命令只生成包含 probe verdict、目标脱敏 hash、blocker 和 `remoteWrites=0` 的本地 artifact，然后在认证、ownership、spec 读取/构建及任何远端写之前结构化失败。它不执行 merge、diff、save、readback 或 restore；不得猜接口、用 compiler 结果自证或降级成 `integration create --process-code --replace`。
+使用 `integration update` 获取 capability 结果。结果为 `PLATFORM_PROBE_REQUIRED` 时，保持 `remoteWrites=0`，输出本地 probe artifact 和 blocker，并向用户报告当前状态。
 
 ## 逻辑流节点结构
 
