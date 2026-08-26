@@ -765,6 +765,26 @@ describe('OpenYida skill contracts', () => {
     expect(byName.get('yida-publish-page').done_when).toContain('本地文件编辑、diff、check-page 或 compile 不能证明远端页面已更新');
   });
 
+  test('Canvas skills require zero unbound identifiers and keep canonical helper names', () => {
+    const canvas = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');
+    const navGuide = readSkill('yida-skills/skills/yida-canvas-custom-page/references/navigation-and-entry-guide.md');
+    const dataBridge = readSkill('yida-skills/skills/yida-canvas-custom-page/references/data-bridge-guide.md');
+    const appStep7 = readSkill('yida-skills/skills/yida-app/workflow/step-7-page-code.md');
+    const commonIssues = readSkill('yida-skills/skills/yida-app/references/common-issues.md');
+
+    expect(canvas).toContain('源码保持零未绑定标识符');
+    expect(canvas).toContain('OPENYIDA_CANVAS_UNBOUND_IDENTIFIER');
+    expect(canvas).toContain('`window.<name>` 或 `parentWindow.<name>`');
+    expect(navGuide.match(/function getYidaFormInstId\(/g)).toHaveLength(1);
+    expect(navGuide).toContain('const selectedFormInstId = getYidaFormInstId(selectedCustomer);');
+    expect(navGuide).toContain('不能只生成 `getInstId(...)` 等新调用名');
+    expect(dataBridge).toContain('轮询骨架固定使用 `hasLoadedRef`');
+    expect(dataBridge).toContain('不能只把部分引用改成 `loadedRef`');
+    expect(appStep7).toContain('Canvas 本地校验不存在未绑定标识符');
+    expect(appStep7).toContain('`window.<name>` / `parentWindow.<name>`');
+    expect(commonIssues).toContain('Canvas 编译报 `OPENYIDA_CANVAS_UNBOUND_IDENTIFIER`');
+  });
+
   test('page visual lessons are codified in yida-design, chart, and report skills', () => {
     const design = readSkill('yida-skills/skills/yida-design/SKILL.md');
     const chart = readSkill('yida-skills/skills/yida-chart/SKILL.md');

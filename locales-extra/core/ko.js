@@ -1208,6 +1208,7 @@ module.exports = {
     canvas_compiling: '  🎨 사용자 지정 페이지 소스를 로컬에서 컴파일하는 중...',
     canvas_compile_done: '  ✅ 사용자 지정 페이지 컴파일 완료!',
     canvas_compile_failed: '  ❌ 사용자 지정 페이지 컴파일 실패: {0}',
+    canvas_unbound_identifiers: 'Code Canvas 소스에 선언되지 않은 식별자가 있습니다: {0}. 같은 파일에 import, 함수, Ref, 상태 또는 지역 변수 선언을 추가하고 모든 참조에서 같은 이름을 사용하세요. 비표준 런타임이 제공하는 식별자는 window.<name> 또는 parentWindow.<name>을 통해 명시적으로 접근하고 먼저 존재 여부를 확인하세요.',
     step_login: '\n🔑 Step 2: 로그인 정보 읽기',
     step_publish: '\n📤 Step 3: 스키마 배포\n',
     resend_save_csrf: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',

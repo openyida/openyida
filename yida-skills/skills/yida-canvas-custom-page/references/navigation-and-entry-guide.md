@@ -179,9 +179,13 @@ function useYidaFormOpen(currentAppType, refreshData, themeTokens) {
   return { openForm, formOpenContainer: container };
 }
 
+function getYidaFormInstId(row) {
+  return row && (row.formInstId || row.formInstanceId || row.instanceId || row.id);
+}
+
 function ExampleToolbar({ appType, customerFormUuid, selectedCustomer, reload }) {
   const { openForm, formOpenContainer } = useYidaFormOpen(appType, reload, CUSTOM_THEME_TOKENS);
-  const selectedFormInstId = selectedCustomer && (selectedCustomer.formInstId || selectedCustomer.formInstanceId || selectedCustomer.instanceId || selectedCustomer.id);
+  const selectedFormInstId = getYidaFormInstId(selectedCustomer);
   return (
     <>
       <Button type="primary" onClick={() => openForm({ type: 'submission', title: '新增客户', formUuid: customerFormUuid })}>
@@ -206,10 +210,6 @@ function ExampleToolbar({ appType, customerFormUuid, selectedCustomer, reload })
 Canvas 自绘快捷入口时，表单提交和详情入口沿用 `useYidaFormOpen` 返回的 `openForm`。应用内页面用同页跳转，外部链接才新开；提交页在 PC 端进入抽屉，移动端才整页或新页打开，提交页 URL 默认追加 `isRenderNav=false`；详情页 URL 必须包含真实 `formInstId`，并默认追加 `navConfig.layout=1180` 和 `isRenderNav=false`：
 
 ```js
-function getYidaFormInstId(row) {
-  return row && (row.formInstId || row.formInstanceId || row.instanceId || row.id);
-}
-
 function buildYidaPath(entry, currentAppType) {
   const appType = entry.appType || currentAppType;
   if (entry.targetType === 'app') return `/${appType}/workbench`;
@@ -245,6 +245,8 @@ function openEntry(entry, currentAppType, runtime) {
   window.location.href = href;
 }
 ```
+
+`getYidaFormInstId` 复用上方标准 `FormOpenContainer` 示例中的同名 helper。复制或重命名 helper 时必须连同声明和全部调用点一起修改，不能只生成 `getInstId(...)` 等新调用名。
 
 验收时检查抽屉 `iframeSrc` 或移动端打开地址包含 `isRenderNav=false`；详情页还必须包含真实 `formInstId`。如果目标表单已另有 query 参数，必须用统一 URL 构造函数合并为 `&isRenderNav=false`，不要丢掉 `corpid`、来源页或业务参数。
 

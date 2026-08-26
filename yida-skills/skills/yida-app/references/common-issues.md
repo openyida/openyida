@@ -19,6 +19,7 @@
 | 页面视觉和设计不一致 | `design.md` 的 token、布局、背景、圆角、密度、组件和状态规则 | 回写或重读 `design.md`，再回到 Step 7 |
 | `page-spec.json` 和 PRD/design.md 冲突 | `sourceOfTruth`、`designFile`、`designRefs`、dataBinding | 丢弃旧 spec，从最新 PRD + `design.md` 重生成 |
 | JSX 运行时报中文变量未定义 | 页面源码中的 `{所有级别}`、`{处理中}` 等裸中文表达式 | 改成纯文本或 `{'所有级别'}` 形式，再重新校验 |
+| Canvas 编译报 `OPENYIDA_CANVAS_UNBOUND_IDENTIFIER` 或运行时报 `<name> is not defined` | 错误详情中的全部名称和行列、辅助函数/Ref/状态的声明与引用 | 回到 [Step 7](../workflow/step-7-page-code.md)；补齐声明或统一重命名。若名称确由非标准运行时提供，改用 `window.<name>` / `parentWindow.<name>` 并先判断属性是否存在，再重新执行 Canvas 本地校验 |
 | emoji 导致 create/publish 失败 | 字段 JSON、`page-spec.json`、页面源码、发布 Schema、路径 | 删除 emoji；页面图标改成 `lucide-react` 或 `@ant-design/icons` 标准 import |
 | 本地源码改了但远端没更新 | 是否有成功的 `openyida publish <source> <appType> <displayPageFormUuid>` | 回到 [Step 8](../workflow/step-8-publish-navigation.md) 发布本轮源码 |
 | 发布失败后想重试 | 上一次 stdout/stderr、登录态、组织、参数、输入文件、字段 ID | 修改至少一项输入或上下文后重试；保留错误输出 |

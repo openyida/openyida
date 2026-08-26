@@ -1145,6 +1145,7 @@ module.exports = {
     canvas_compiling: '  🎨 本機編譯自訂頁面源碼...',
     canvas_compile_done: '  ✅ 自訂頁面編譯完成！',
     canvas_compile_failed: '  ❌ 自訂頁面編譯失敗：{0}',
+    canvas_unbound_identifiers: 'Code Canvas 原始碼存在未宣告識別字：{0}。請在同一檔案補齊 import、函式、Ref、狀態或區域變數宣告，並保持宣告與全部引用同名。若識別字由非標準執行環境提供，請改用 window.<name> 或 parentWindow.<name> 明確存取，並先檢查是否存在。',
     step_login: '\n🔑 Step 2：讀取登入態',
     step_publish: '\n📤 Step 3：發布 Schema\n',
     resend_save_csrf: '  🔄 重新傳送 saveFormSchema 請求（csrf_token 已刷新）...',

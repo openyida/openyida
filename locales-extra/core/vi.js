@@ -1207,6 +1207,7 @@ module.exports = {
     canvas_compiling: '  🎨 Đang biên dịch mã nguồn trang tùy chỉnh cục bộ...',
     canvas_compile_done: '  ✅ Đã biên dịch trang tùy chỉnh!',
     canvas_compile_failed: '  ❌ Biên dịch trang tùy chỉnh thất bại: {0}',
+    canvas_unbound_identifiers: 'Mã nguồn Code Canvas chứa định danh chưa được khai báo: {0}. Hãy bổ sung import hoặc khai báo hàm, Ref, trạng thái hay biến cục bộ trong cùng tệp và dùng cùng một tên cho mọi tham chiếu. Nếu runtime không chuẩn cung cấp định danh, hãy truy cập rõ ràng qua window.<name> hoặc parentWindow.<name> và kiểm tra sự tồn tại trước.',
     step_login: '\n🔑 Step 2: Đọc thông tin đăng nhập',
     step_publish: '\n📤 Step 3: Xuất bản schema\n',
     resend_save_csrf: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',

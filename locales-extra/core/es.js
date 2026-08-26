@@ -1209,6 +1209,7 @@ module.exports = {
     canvas_compiling: '  🎨 Compilando la fuente de la página personalizada localmente...',
     canvas_compile_done: '  ✅ ¡Página personalizada compilada!',
     canvas_compile_failed: '  ❌ Error al compilar la página personalizada: {0}',
+    canvas_unbound_identifiers: 'El código fuente de Code Canvas contiene identificadores no declarados: {0}. Añade en el mismo archivo la importación o declaración de función, Ref, estado o variable local que falte y usa el mismo nombre en todas las referencias. Si un entorno de ejecución no estándar proporciona el identificador, accede a él explícitamente mediante window.<name> o parentWindow.<name> y comprueba antes que exista.',
     step_login: '\n🔑 Step 2: Leer credenciales de sesión',
     step_publish: '\n📤 Step 3: Publicar esquema\n',
     resend_save_csrf: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',

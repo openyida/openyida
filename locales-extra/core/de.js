@@ -1207,6 +1207,7 @@ module.exports = {
     canvas_compiling: '  🎨 Quelle der benutzerdefinierten Seite wird lokal kompiliert...',
     canvas_compile_done: '  ✅ Benutzerdefinierte Seite kompiliert!',
     canvas_compile_failed: '  ❌ Kompilierung der benutzerdefinierten Seite fehlgeschlagen: {0}',
+    canvas_unbound_identifiers: 'Der Code-Canvas-Quelltext enthält nicht deklarierte Bezeichner: {0}. Ergänzen Sie Import, Funktion, Ref, Status oder lokale Variable in derselben Datei und verwenden Sie für alle Verweise denselben Namen. Bezeichner einer nicht standardmäßigen Laufzeit müssen explizit über window.<name> oder parentWindow.<name> aufgerufen und zuvor auf ihre Existenz geprüft werden.',
     step_login: '\n🔑 Step 2: Anmeldedaten lesen',
     step_publish: '\n📤 Step 3: Schema veröffentlichen\n',
     resend_save_csrf: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',

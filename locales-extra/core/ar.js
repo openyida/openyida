@@ -1207,6 +1207,7 @@ module.exports = {
     canvas_compiling: '  🎨 جارٍ تجميع مصدر الصفحة المخصصة محليًا...',
     canvas_compile_done: '  ✅ تم تجميع الصفحة المخصصة!',
     canvas_compile_failed: '  ❌ فشل تجميع الصفحة المخصصة: {0}',
+    canvas_unbound_identifiers: 'يحتوي مصدر Code Canvas على معرّفات غير مصرّح بها: {0}. أضف الاستيراد أو تعريف الدالة أو Ref أو الحالة أو المتغير المحلي المفقود في الملف نفسه، واستخدم الاسم نفسه في جميع المراجع. إذا كان المعرّف مقدمًا من بيئة تشغيل غير قياسية، فاستخدم window.<name> أو parentWindow.<name> بشكل صريح وتحقق من وجوده أولًا.',
     step_login: '\n🔑 Step 2: قراءة بيانات تسجيل الدخول',
     step_publish: '\n📤 Step 3: نشر المخطط\n',
     resend_save_csrf: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',

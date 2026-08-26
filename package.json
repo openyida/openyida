@@ -90,6 +90,7 @@
   "dependencies": {
     "@babel/standalone": "^7.15.1",
     "ajv": "^8.20.0",
+    "globals": "^17.11.0",
     "uglify-js": "^3.19.3"
   },
   "devDependencies": {
