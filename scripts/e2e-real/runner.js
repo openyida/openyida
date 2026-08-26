@@ -5,12 +5,13 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { compileCanvasLocal } = require('../../lib/app/canvas-compile');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const BIN = path.join(ROOT, 'bin', 'yida.js');
 const DEFAULT_REGISTRY_DIR = path.join(ROOT, 'project', '.cache', 'e2e-real');
 const DEFAULT_FIELDS_FILE = path.join(__dirname, 'fixtures', 'form-fields.json');
-const DEFAULT_PAGE_SOURCE = path.join(ROOT, 'lib', 'templates', 'yida-canvas-custom-page', 'dashboard-starter.canvas.jsx');
+const DEFAULT_PAGE_SOURCE = path.join(__dirname, 'fixtures', 'page.canvas.jsx');
 
 function nowStamp(date = new Date()) {
   return date.toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
@@ -170,6 +171,15 @@ function run(options = {}) {
   }
   if (!config.skipPublish && !fs.existsSync(config.pageSource)) {
     throw new Error(`E2E page source not found: ${config.pageSource}`);
+  }
+  if (!config.skipPublish) {
+    try {
+      compileCanvasLocal(fs.readFileSync(config.pageSource, 'utf8'), {
+        sourcePath: config.pageSource,
+      });
+    } catch (error) {
+      throw new Error(`E2E page source is not compilable: ${config.pageSource}\n${error.message}`);
+    }
   }
 
   const { registry, registryPath } = registryFactory(config);

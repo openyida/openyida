@@ -10,6 +10,7 @@ const {
   parseLastJson,
   run,
 } = require('../scripts/e2e-real/runner');
+const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 
 describe('real E2E runner', () => {
   test('stays opt-in by default', () => {
@@ -18,6 +19,14 @@ describe('real E2E runner', () => {
     expect(config.enabled).toBe(false);
     expect(config.missing).toEqual(['OPENYIDA_E2E=1']);
     expect(config.prefix).toBe('OY_E2E_20260511000000');
+  });
+
+  test('default Canvas fixture exists and compiles without project templates', () => {
+    const config = getConfig({}, new Date('2026-05-11T00:00:00Z'));
+    const source = fs.readFileSync(config.pageSource, 'utf8');
+
+    expect(config.pageSource).toBe(path.join(__dirname, '..', 'scripts', 'e2e-real', 'fixtures', 'page.canvas.jsx'));
+    expect(() => compileCanvasLocal(source, { sourcePath: config.pageSource })).not.toThrow();
   });
 
   test('extracts the last JSON object from decorated CLI output', () => {
@@ -40,9 +49,7 @@ describe('real E2E runner', () => {
     const calls = [];
     const resources = [];
     const registry = { resources: [], commands: [] };
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-e2e-page-'));
-    const pageSource = path.join(tmpDir, 'dashboard.canvas.jsx');
-    fs.writeFileSync(pageSource, 'export default function YidaComp() { return <div>Dashboard</div>; }');
+    const pageSource = getConfig({}).pageSource;
     const config = {
       enabled: true,
       missing: [],
@@ -90,6 +97,27 @@ describe('real E2E runner', () => {
     ]);
     expect(resources.map((resource) => resource.type)).toEqual(['app', 'form', 'page']);
     expect(registry.status).toBe('passed');
+  });
+
+  test('rejects an invalid Canvas fixture before running any CLI command', () => {
+    const calls = [];
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-e2e-invalid-page-'));
+    const pageSource = path.join(tmpDir, 'invalid.canvas.jsx');
+    fs.writeFileSync(pageSource, 'export default function YidaComp( {');
+    const config = {
+      ...getConfig({ OPENYIDA_E2E: '1' }),
+      pageSource,
+    };
+
+    expect(() => run({
+      config,
+      runCli: (args) => {
+        calls.push(args);
+        return { stdout: '{}', json: {} };
+      },
+    })).toThrow(/E2E page source is not compilable/);
+    expect(calls).toEqual([]);
+
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 });

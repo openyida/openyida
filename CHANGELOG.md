@@ -10,6 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [Unreleased]
+
+### Fixed
+
+- 真实 E2E 默认使用仓内专用、零依赖 Canvas fixture，并在创建远端资源前完成文件存在性与本地编译校验。
+- `create-form` 的 Schema 保存链路不再调用无实际作用的 `updateFormConfig`，消除新建表单成功后的误导性“表单不存在” warning；独立 `update-form-config`、页面发布和页面导航配置链路保持不变。
+
 ## [2026.8.25-1] - 2026-08-25
 
 ### Fixed

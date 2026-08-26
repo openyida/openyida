@@ -112,7 +112,6 @@ describe('small process commands', () => {
       formUuid: 'FORM_CREATED',
       formTitle: '流程表单',
       fieldCount: 1,
-      configResult: { success: false, errorMsg: 'legacy warning' },
     });
     utils.httpPost.mockResolvedValueOnce({ success: true });
     utils.httpGet.mockResolvedValueOnce({
