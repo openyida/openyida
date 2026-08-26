@@ -10,6 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [Unreleased]
+
+### Changed
+
+- `integration create --process-code` 执行整图替换时必须同时传入 `--replace`；LLM 在确认目标 `appType`、`formUuid`、`processCode` 和替换摘要后执行该命令。已有命令补充 `--replace` 后继续使用。
+- Canvas 源码中的非标准运行时能力通过 `window.<name>` 或 `parentWindow.<name>` 访问并检查目标方法；裸 `dd.biz.*` 改为通过 `window.dd` 调用。已发布页面继续运行，重新编译或发布源码时按该写法迁移。
+
 ## [2026.8.25-1] - 2026-08-25
 
 ### Fixed
