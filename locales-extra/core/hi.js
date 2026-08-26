@@ -1208,6 +1208,7 @@ module.exports = {
     canvas_compile_done: '  ✅ कस्टम पेज संकलित!',
     canvas_compile_failed: '  ❌ कस्टम पेज संकलन विफल: {0}',
     canvas_unbound_identifiers: 'Code Canvas स्रोत में अघोषित पहचानकर्ता हैं: {0}। उसी फ़ाइल में छूटा हुआ import, फ़ंक्शन, Ref, state या स्थानीय चर घोषित करें और सभी संदर्भों में वही नाम रखें। यदि पहचानकर्ता किसी गैर-मानक runtime से मिलता है, तो window.<name> या parentWindow.<name> से स्पष्ट रूप से पहुँचें और पहले उसके मौजूद होने की जाँच करें।',
+    canvas_instance_api_unavailable: 'Code Canvas कॉम्पोनेंट इन प्लेटफ़ॉर्म JSX इंस्टेंस API का उपयोग नहीं कर सकते: {0}। React hooks, props या window.__OPENYIDA_YIDA_API__ डेटा ब्रिज का उपयोग करें।',
     step_login: '\n🔑 Step 2: लॉगिन जानकारी पढ़ें',
     step_publish: '\n📤 Step 3: स्कीमा प्रकाशित करें\n',
     resend_save_csrf: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',

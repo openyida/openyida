@@ -413,11 +413,16 @@ describe('publish prechecks', () => {
       )).resolves.toMatchObject({
         ok: true,
         mode: 'publish_readback',
+        expectedPublishMode: 'canvas',
         authMode: 'token',
         targetReadable: true,
         schemaParsed: true,
         displayComponentPresent: true,
         publishedContentMatched: true,
+        readback: {
+          hasYidaCodeCanvas: true,
+          runtimeCodeBytes: expect.any(Number),
+        },
       });
 
       expect(requestSpy).not.toHaveBeenCalled();
@@ -544,8 +549,10 @@ describe('publish prechecks', () => {
         success: true,
         appType: 'APP_XXX',
         formUuid: 'FORM-PAGE',
+        publishMode: 'canvas',
         healthCheck: {
           ok: false,
+          expectedPublishMode: 'canvas',
           reason: 'display_component_missing',
         },
         navOrderWarning: 'nav order broke',

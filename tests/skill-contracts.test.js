@@ -301,7 +301,7 @@ describe('OpenYida skill contracts', () => {
     expect(root).toContain('默认完成即停止');
     expect(app).toContain('[Step 8：发布页面并排序导航]');
     expect(step8).toContain('发布本轮修改过的页面源码到真实 display 页面，并执行轻量导航排序');
-    expect(step8).toContain('openyida publish <source> <appType> <displayPageFormUuid> --auto-nav-order');
+    expect(step8).toContain('openyida publish <source> <appType> <displayPageFormUuid> --canvas --health-check --auto-nav-order');
     expect(step8).toContain('PRD 写明页面/表单清单顺序时，执行 `openyida nav-group order <appType> <页面/表单...>`');
     expect(step4).toContain('PRD 包含审批、流程、申请、审核、工单等流程对象时');
     expect(publish).toContain('`--auto-nav-order`');
@@ -714,6 +714,7 @@ describe('OpenYida skill contracts', () => {
     const root = readSkill('yida-skills/SKILL.md');
     const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
     const appStep7 = readSkill('yida-skills/skills/yida-app/workflow/step-7-page-code.md');
+    const appStep8 = readSkill('yida-skills/skills/yida-app/workflow/step-8-publish-navigation.md');
     const appStep9 = readSkill('yida-skills/skills/yida-app/workflow/step-9-output-finish.md');
     const canvas = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');
     const native = readSkill('yida-skills/skills/yida-custom-page/SKILL.md');
@@ -729,8 +730,12 @@ describe('OpenYida skill contracts', () => {
 
     expect(app).toContain('[Step 7：编写或更新页面]');
     expect(appStep7).toContain('页面源码通过本地校验只表示“可发布”，不表示远端页面已更新');
+    expect(appStep8).toContain('--canvas --health-check --auto-nav-order');
+    expect(appStep8).toContain('`publishMode=canvas`');
+    expect(appStep8).toContain('`healthCheck.readback.hasYidaCodeCanvas=true`');
     expect(appStep9).toContain('没有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`');
     expect(appStep9).toContain('只能交付“源码已修改，尚未发布”的说明');
+    expect(appStep9).toContain('显示至少一条已 query 确认的记录');
 
     expect(canvas).toContain('final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`');
     expect(canvas).toContain('该历史源码只由 `yida-custom-page` 自身闭环维护');
@@ -750,6 +755,8 @@ describe('OpenYida skill contracts', () => {
     expect(publish).toContain('| `yida-canvas-custom-page` | 前置技能，编写 `.canvas.jsx` / `.canvas.tsx` 页面源码 |');
     expect(publish).toContain('本地文件编辑、diff、`check-page`、`compile`、`compileCanvasLocal` 或口头声明都不能证明远端页面已更新');
     expect(publish).toContain('发布了其他文件或其他目标页面，不满足本轮源码修改的 doneWhen');
+    expect(publish).toContain('`publishMode=canvas`');
+    expect(publish).toContain('`healthCheck.readback.hasYidaCodeCanvas=true`');
     expect(publish).not.toContain('## OpenYida 兼容编译');
     expect(publish).not.toContain('兼容构建会自动补齐 `renderJsx`');
 

@@ -1208,6 +1208,7 @@ module.exports = {
     canvas_compile_done: '  ✅ Đã biên dịch trang tùy chỉnh!',
     canvas_compile_failed: '  ❌ Biên dịch trang tùy chỉnh thất bại: {0}',
     canvas_unbound_identifiers: 'Mã nguồn Code Canvas chứa định danh chưa được khai báo: {0}. Hãy bổ sung import hoặc khai báo hàm, Ref, trạng thái hay biến cục bộ trong cùng tệp và dùng cùng một tên cho mọi tham chiếu. Nếu runtime không chuẩn cung cấp định danh, hãy truy cập rõ ràng qua window.<name> hoặc parentWindow.<name> và kiểm tra sự tồn tại trước.',
+    canvas_instance_api_unavailable: 'Thành phần Code Canvas không thể dùng các API phiên bản JSX của nền tảng sau: {0}. Hãy dùng React hooks, props hoặc cầu nối dữ liệu window.__OPENYIDA_YIDA_API__.',
     step_login: '\n🔑 Step 2: Đọc thông tin đăng nhập',
     step_publish: '\n📤 Step 3: Xuất bản schema\n',
     resend_save_csrf: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',

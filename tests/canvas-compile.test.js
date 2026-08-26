@@ -680,6 +680,44 @@ describe('compileCanvasLocal', () => {
     expect(() => compileCanvasLocal(source)).not.toThrow();
   });
 
+  test.each([
+    ['props.utils.getDataList', 'props.utils.getDataList({})'],
+    ['this.utils.yida.searchFormDatas', 'this.utils.yida.searchFormDatas({})'],
+    ['this.dataSourceMap.orders.load', 'this.dataSourceMap.orders.load()'],
+    ['this.$', 'this.$("textField_x")'],
+  ])('rejects unavailable Canvas instance API %s', (_label, expression) => {
+    const source = `
+      import React from 'react';
+      export default function App(props) {
+        function load() { return ${expression}; }
+        return <button onClick={load}>加载</button>;
+      }
+    `;
+
+    expect(() => compileCanvasLocal(source, {
+      sourcePath: 'pages/src/workbench.canvas.jsx',
+    })).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_INSTANCE_API_UNAVAILABLE',
+      details: expect.objectContaining({
+        issues: expect.arrayContaining([
+          expect.objectContaining({ api: expect.any(String) }),
+        ]),
+      }),
+    }));
+  });
+
+  test('allows ordinary component props in Canvas source', () => {
+    const source = `
+      import React from 'react';
+      export default function App(props) {
+        const title = props.utils ? props.utils.format(props.title) : props.title;
+        return <div>{title || '标题'}</div>;
+      }
+    `;
+
+    expect(() => compileCanvasLocal(source)).not.toThrow();
+  });
+
   test('maps lucide-react named icons to LucideReact and DynamicIcon to its runtime global', () => {
     const src = `
       import React from 'react';

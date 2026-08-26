@@ -16,12 +16,14 @@
 完整应用默认完成需要同时满足：
 
 1. 主页面发布成功；
-2. 获得可访问 URL；
-3. 轻量导航排序已执行，或给出明确 warning；
-4. 新建或作为页面数据源的核心普通表单已写入 1-3 条真实示例记录并 query 抽查，或明确说明跳过原因；
-5. 普通表单和流程表单已注入全局主题样式，详情页已注入 formDetail CSS，或明确说明无法注入的阻塞原因；
-6. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；一期只检查页面/资源数量完整性，只有 `verdict=pass` 时才说“已按 PRD 完成搭建”，`verdict=needs_review` 时可以交付但不能使用“完全按 PRD 完成”口径，必须列出 `items` 中 `status=needs_review/not_checked` 的复核项，`verdict=fail` 时列出 `hardFailures` 并说明未完成；
-7. 未继续执行用户未要求的公开访问、截图验收、报表、大屏、数据源深接或精细导航分组。
+2. Canvas 主页面发布结果为 `publishMode=canvas`，读回 `hasYidaCodeCanvas=true` 且 `runtimeCodeBytes>0`；
+3. 真实数据页面在已登录浏览器中退出 loading、无业务错误，并显示至少一条已 query 确认的记录；
+4. 获得可访问 URL；
+5. 轻量导航排序已执行，或给出明确 warning；
+6. 新建或作为页面数据源的核心普通表单已写入 1-3 条真实示例记录并 query 抽查，或明确说明跳过原因；
+7. 普通表单和流程表单已注入全局主题样式，详情页已注入 formDetail CSS，或明确说明无法注入的阻塞原因；
+8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；一期只检查页面/资源数量完整性，只有 `verdict=pass` 时才说“已按 PRD 完成搭建”，`verdict=needs_review` 时可以交付但不能使用“完全按 PRD 完成”口径，必须列出 `items` 中 `status=needs_review/not_checked` 的复核项，`verdict=fail` 时列出 `hardFailures` 并说明未完成；
+9. 未继续执行用户未要求的公开访问、截图验收、报表、大屏、数据源深接或精细导航分组。
 
 若本轮修改过页面源码但没有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，只能交付“源码已修改，尚未发布”的说明。
 

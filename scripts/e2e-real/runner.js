@@ -154,6 +154,25 @@ function requireSuccess(stepName, commandResult) {
   return commandResult.json;
 }
 
+function requireCanvasPublishHealth(publishResult) {
+  const health = publishResult && publishResult.healthCheck;
+  const readback = health && health.readback;
+  if (
+    publishResult &&
+    publishResult.publishMode === 'canvas' &&
+    health && health.ok === true &&
+    health.expectedPublishMode === 'canvas' &&
+    readback && readback.hasYidaCodeCanvas === true &&
+    Number(readback.runtimeCodeBytes) > 0
+  ) {
+    return publishResult;
+  }
+  throw new Error(`publish Canvas health check failed: ${JSON.stringify({
+    publishMode: publishResult && publishResult.publishMode,
+    healthCheck: health || null,
+  })}`);
+}
+
 function run(options = {}) {
   const env = options.env || process.env;
   const config = options.config || getConfig(env);
@@ -227,14 +246,16 @@ function run(options = {}) {
         '--no-open',
       ]));
       trackResource(registry, registryPath, { type: 'page', appType: app.appType, pageId: page.pageId, name: config.pageName, url: page.url });
-      requireSuccess('publish page', runStep('publish', [
+      const publishResult = requireSuccess('publish page', runStep('publish', [
         'publish',
         config.pageSource,
         app.appType,
         page.pageId,
+        '--canvas',
         '--health-check',
         '--no-open',
       ]));
+      requireCanvasPublishHealth(publishResult);
     }
 
     registry.status = 'passed';
@@ -266,6 +287,7 @@ module.exports = {
   extractJsonObjects,
   getConfig,
   parseLastJson,
+  requireCanvasPublishHealth,
   run,
   runCli,
   writeRegistry,

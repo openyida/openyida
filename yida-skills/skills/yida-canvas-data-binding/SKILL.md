@@ -182,6 +182,7 @@ async function fetchFormRows(binding, signal) {
 - 页面首屏 KPI、列表、图表至少有一个区域来自真实数据源。
 - 接口异常时页面有明确错误态，不用 demo seed 伪装成成功态。
 - 发布后回读页面，确认 `YidaCodeCanvas` 组件的 `runtimeCode` 非空。
+- 在已登录浏览器中确认页面退出 loading、无数据加载错误，并显示至少一条已 query 确认的记录。
 
 验收命令：
 

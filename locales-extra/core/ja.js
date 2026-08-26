@@ -1159,6 +1159,7 @@ module.exports = {
     canvas_compile_done: '  ✅ カスタムページのコンパイルが完了しました！',
     canvas_compile_failed: '  ❌ カスタムページのコンパイルに失敗しました：{0}',
     canvas_unbound_identifiers: 'Code Canvas ソースに未宣言の識別子があります：{0}。同じファイルに import、関数、Ref、state、またはローカル変数の宣言を追加し、すべての参照で同じ名前を使用してください。非標準ランタイムが提供する識別子は window.<name> または parentWindow.<name> から明示的に参照し、先に存在を確認してください。',
+    canvas_instance_api_unavailable: 'Code Canvas コンポーネントでは、次のプラットフォーム JSX インスタンス API を使用できません：{0}。React Hooks、props、または window.__OPENYIDA_YIDA_API__ データブリッジを使用してください。',
     step_login: '\n🔑 Step 2: ログイン情報を読み込む',
     step_publish: '\n📤 Step 3: Schema を公開\n',
     resend_save_csrf: '  🔄 saveFormSchema リクエストを再送信中（csrf_token を更新済み）...',

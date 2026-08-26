@@ -25,12 +25,14 @@ describe('publish argument parsing', () => {
       'pages/src/home.canvas.jsx',
       'APP_XXX',
       'FORM-XXX',
+      '--canvas',
       '--auto-nav-order',
       '--health-check',
     ])).toMatchObject({
       sourceFile: 'pages/src/home.canvas.jsx',
       appType: 'APP_XXX',
       formUuid: 'FORM-XXX',
+      canvas: true,
       healthCheck: true,
       autoNavOrder: true,
     });
