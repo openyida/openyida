@@ -215,7 +215,7 @@ describe('form-detail-style api calls', () => {
     expect(utils.httpPost).not.toHaveBeenCalled();
   });
 
-  test('apply saves schema and refreshes MINI_RESOURCE', async () => {
+  test('apply succeeds after one Schema save', async () => {
     utils.httpGet.mockResolvedValue({ success: true, content: createSchema(), gmtModified: 8 });
     utils.httpPost.mockResolvedValue({ success: true });
 
@@ -223,7 +223,7 @@ describe('form-detail-style api calls', () => {
 
     expect(output.success).toBe(true);
     expect(output.action).toBe('inserted');
-    expect(utils.httpPost).toHaveBeenCalledTimes(2);
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
     expect(utils.httpPost.mock.calls[0][1]).toBe('/dingtalk/web/APP_X/_view/query/formdesign/saveFormSchema.json');
     const saveBody = querystring.parse(utils.httpPost.mock.calls[0][2]);
     expect(saveBody.formUuid).toBe('FORM_Y');
@@ -234,10 +234,28 @@ describe('form-detail-style api calls', () => {
     expect(saveBody.content).toContain('openyidaThemeDidMount');
     expect(saveBody.content).toContain('yida-form-detail-style');
     expect(output.themeAction).toBe('upserted');
+    expect(output).not.toHaveProperty('configResult');
+  });
 
-    expect(utils.httpPost.mock.calls[1][1]).toBe('/dingtalk/web/APP_X/query/formdesign/updateFormConfig.json');
-    const configBody = querystring.parse(utils.httpPost.mock.calls[1][2]);
-    expect(configBody.configType).toBe('MINI_RESOURCE');
-    expect(configBody.value).toBe('0');
+  test('remove succeeds after one Schema save', async () => {
+    const schema = createSchema();
+    formDetailStyle.upsertFormDetailCss(schema, '/* yida-form-detail */ .a { color: blue; }');
+    utils.httpGet.mockResolvedValue({ success: true, content: schema, gmtModified: 9 });
+    utils.httpPost.mockResolvedValue({ success: true });
+
+    const output = await formDetailStyle.run(['remove', 'APP_X', 'FORM_Y', '--json']);
+
+    expect(output).toMatchObject({ success: true, installed: false });
+    expect(output).not.toHaveProperty('configResult');
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost.mock.calls[0][1]).toBe('/dingtalk/web/APP_X/_view/query/formdesign/saveFormSchema.json');
+  });
+
+  test('apply fails when Schema save fails', async () => {
+    utils.httpGet.mockResolvedValue({ success: true, content: createSchema(), gmtModified: 10 });
+    utils.httpPost.mockResolvedValue({ success: false, errorMsg: 'save failed' });
+
+    await expect(formDetailStyle.run(['apply', 'APP_X', 'FORM_Y', '--json'])).rejects.toThrow('save failed');
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
   });
 });

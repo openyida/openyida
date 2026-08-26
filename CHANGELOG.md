@@ -15,7 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - 真实 E2E 默认使用仓内专用、零依赖 Canvas fixture，并在创建远端资源前完成文件存在性与本地编译校验。
-- `create-form` 的 Schema 保存链路不再调用无实际作用的 `updateFormConfig`，消除新建表单成功后的误导性“表单不存在” warning；独立 `update-form-config`、页面发布和页面导航配置链路保持不变。
+- `create-form`、自定义页面发布、应用导入和表单详情样式的 Schema 保存链路不再调用无实际作用的 `updateFormConfig`，消除冗余请求及误导性 warning；独立 `update-form-config` 命令继续使用有效的 `updateFormSchemaInfo` 接口。
+- 应用导入在创建目标表单后读取目标表单的当前 revision，再保存迁移 Schema，避免沿用源表单 revision 导致“页面已变更”。
 
 ## [2026.8.25-1] - 2026-08-25
 

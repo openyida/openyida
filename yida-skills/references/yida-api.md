@@ -27,7 +27,6 @@
   - [saveFormSchemaInfo](#saveformschemainfo) - 创建空白表单
   - [getFormSchema](#getformschema) - 获取表单 Schema
   - [saveFormSchema](#saveformschema) - 保存表单 Schema
-  - [updateFormConfig](#updateformconfig) - 更新表单配置
 - [工具类 API](#工具类-api)
   - [dialog](#dialog) - 对话框
   - [formatter](#formatter) - 格式化工具
@@ -741,34 +740,6 @@ this.utils.yida.getProcessInstanceById({
 ```json
 { "success": true }
 ```
-
-### updateFormConfig（更新表单配置）
-
-- **地址**：`POST /dingtalk/web/{appType}/query/formdesign/updateFormConfig.json`
-- **Content-Type**：`application/x-www-form-urlencoded`
-- **参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `_csrf_token` | String | 是 | CSRF Token（由 yida-login 获取） |
-| `formUuid` | String | 是 | 表单 UUID |
-| `version` | Number | 是 | 版本号（新创建的表单从 1 开始） |
-| `configType` | String | 是 | 固定 `MINI_RESOURCE` |
-| `value` | Number | 是 | 固定 `0`（表单页面配置值） |
-
-- **返回值**：
-
-```json
-{
-  "success": true,
-  "traceId": null,
-  "throwable": null,
-  "errorCode": null,
-  "content": null,
-  "errorMsg": null
-}
-```
-
 
 ## 工具类 API
 

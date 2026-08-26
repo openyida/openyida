@@ -68,28 +68,6 @@ Body:
 - `schemaVersion` 必须是字符串 `V5`。
 - `importSchema` 建议传字符串 `"true"`，与 OpenYida 表单保存链路保持一致。
 
-### 4. 刷新表单配置
-
-保存后调用 `updateFormConfig`，否则前端可能继续读缓存。
-
-```http
-POST /dingtalk/web/{appType}/query/formdesign/updateFormConfig.json
-Content-Type: application/x-www-form-urlencoded
-```
-
-Body:
-
-```json
-{
-  "formUuid": "FORM-XXX",
-  "version": 1,
-  "configType": "MINI_RESOURCE",
-  "value": 0
-}
-```
-
-表单页面使用 `value: 0`。自定义页面发布配置使用其他值，不要混用。
-
 ## 校验
 
 1. 重新获取 Schema，确认存在：
