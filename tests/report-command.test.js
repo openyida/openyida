@@ -180,6 +180,29 @@ describe('report command helpers', () => {
     expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
   });
 
+  test('create-report rejects an invalid timeGranularityType before remote writes', async () => {
+    const invalidConfig = [{
+      ...chartConfig[0],
+      xField: {
+        fieldCode: 'dateField_hireDate',
+        aliasName: '入职日期',
+        dataType: 'DATE',
+        timeGranularityType: 'DECADE',
+      },
+    }];
+
+    await expect(createReport.run([
+      'APP_XXX',
+      '入职报表',
+      JSON.stringify(invalidConfig),
+    ])).rejects.toMatchObject({
+      code: 'CREATE_REPORT_CHART_CONFIG_INVALID',
+    });
+
+    expect(utils.httpPost).not.toHaveBeenCalled();
+    expect(utils.httpGet).not.toHaveBeenCalled();
+  });
+
   test('append-chart run fetches existing schema and saves appended chart', async () => {
     utils.httpGet.mockResolvedValueOnce({
       success: true,

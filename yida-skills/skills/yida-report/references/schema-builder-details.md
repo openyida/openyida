@@ -31,7 +31,7 @@ buildDataSetEntry({
       isDim: true,                    // true=维度，false=度量
       dataType: 'DATE',              // STRING | NUMBER | DATE | BOOLEAN | ARRAY
       aggregateType: 'NONE',         // NONE | SUM | AVG | COUNT | MAX | MIN | COUNT_DISTINCT
-      timeGranularityType: 'DAY',    // YEAR | QUARTER | MONTH | WEEK | DAY | HOUR | MINUTE | null
+      timeGranularityType: 'DAY',    // YEAR | MONTH | DAY | HOUR | MINUTE | SECOND | null
     }),
     buildFieldDefinition({
       alias: 'sales',
