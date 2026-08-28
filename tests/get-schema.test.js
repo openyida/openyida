@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const crypto = require('crypto');
 const os = require('os');
 const path = require('path');
 
@@ -9,6 +10,7 @@ jest.mock('../lib/core/utils', () => ({
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
+  httpGetRedirectText: jest.fn(),
   requestWithAutoLogin: jest.fn(),
 }));
 
@@ -30,6 +32,7 @@ const {
   fetchSchemaRecord,
   collectFieldNodes,
   findFieldNode,
+  resolveCodeBundleSchema,
   run,
 } = require('../lib/app/get-schema');
 
@@ -342,6 +345,110 @@ describe('buildSchemaSummary', () => {
       importedModules: [],
       componentCount: 1,
     });
+  });
+});
+
+describe('CodeBundle schema compatibility', () => {
+  function sha256(value) {
+    return crypto.createHash('sha256').update(value, 'utf8').digest('hex');
+  }
+
+  test('keeps legacy inline Canvas schema unchanged without downloading', async () => {
+    const schemaResult = {
+      success: true,
+      content: {
+        pages: [{
+          componentsTree: [{
+            componentName: 'YidaCodeCanvas',
+            id: 'canvas-1',
+            props: { code: 'source', runtimeCode: 'runtime' },
+          }],
+        }],
+      },
+    };
+
+    await expect(resolveCodeBundleSchema(
+      schemaResult,
+      'APP_XXX',
+      'FORM_XXX',
+      { baseUrl: 'https://example.test' }
+    )).resolves.toBe(schemaResult);
+    expect(utils.httpGetRedirectText).not.toHaveBeenCalled();
+  });
+
+  test('hydrates source/runtime for a new Canvas schema and removes the descriptor', async () => {
+    const sourceCode = 'export default function Page() { return null; }';
+    const runtimeCode = 'var YidaComp = function Page() { return null; };';
+    const bundleId = 'a'.repeat(64);
+    const schemaResult = {
+      success: true,
+      content: {
+        pages: [{
+          componentsTree: [{
+            componentName: 'YidaCodeCanvas',
+            id: 'canvas-1',
+            props: {
+              codeBundle: {
+                version: '1',
+                bundleId,
+                source: { size: Buffer.byteLength(sourceCode), sha256: sha256(sourceCode) },
+                runtime: { size: Buffer.byteLength(runtimeCode), sha256: sha256(runtimeCode) },
+                owner: { appType: 'APP_XXX', formUuid: 'FORM_XXX' },
+              },
+            },
+          }],
+        }],
+      },
+    };
+    utils.httpGetRedirectText
+      .mockResolvedValueOnce(sourceCode)
+      .mockResolvedValueOnce(runtimeCode);
+
+    const resolved = await resolveCodeBundleSchema(
+      schemaResult,
+      'APP_XXX',
+      'FORM_XXX',
+      { baseUrl: 'https://example.test' }
+    );
+    const props = resolved.content.pages[0].componentsTree[0].props;
+
+    expect(props).toEqual({ code: sourceCode, runtimeCode });
+    expect(utils.httpGetRedirectText).toHaveBeenCalledTimes(2);
+    expect(utils.httpGetRedirectText.mock.calls.map(call => call[2].artifact).sort())
+      .toEqual(['runtime', 'source']);
+  });
+
+  test('rejects a downloaded artifact whose digest does not match the descriptor', async () => {
+    const sourceCode = 'source';
+    const runtimeCode = 'runtime';
+    const schemaResult = {
+      success: true,
+      content: {
+        pages: [{
+          componentsTree: [{
+            componentName: 'YidaCodeCanvas',
+            id: 'canvas-1',
+            props: {
+              codeBundle: {
+                bundleId: 'b'.repeat(64),
+                source: { size: Buffer.byteLength(sourceCode), sha256: 'c'.repeat(64) },
+                runtime: { size: Buffer.byteLength(runtimeCode), sha256: sha256(runtimeCode) },
+              },
+            },
+          }],
+        }],
+      },
+    };
+    utils.httpGetRedirectText
+      .mockResolvedValueOnce(sourceCode)
+      .mockResolvedValueOnce(runtimeCode);
+
+    await expect(resolveCodeBundleSchema(
+      schemaResult,
+      'APP_XXX',
+      'FORM_XXX',
+      { baseUrl: 'https://example.test' }
+    )).rejects.toThrow('完整性校验失败');
   });
 });
 
