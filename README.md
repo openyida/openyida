@@ -305,6 +305,10 @@ OPENYIDA_E2E=1 npm run eval:e2e -- --skill yida-dashboard --screenshot --auto-sc
 # above, here the agent self-orchestrates.
 OPENYIDA_E2E=1 npm run eval:generate -- --screenshot
 
+# Re-evaluate an archived real CLI trace against the latest scenario contract and
+# current read-only platform state. This does not run an agent or mutate resources.
+npm run eval:replay -- --report <generation-report.json> --scenario <scenario.json> --app-type APP_XXX
+
 # Run all three in one pass (routing + tool-pipeline baseline + real generation).
 OPENYIDA_E2E=1 npm run eval:all -- --skill yida-dashboard --screenshot
 
@@ -406,7 +410,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | Update a form page |
 | `openyida list-forms <appType> [--keyword <text>]` | List forms/pages in an app |
 | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | Manage aggregate tables (virtualView) |
-| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json]` | Get one form Schema or all form Schemas |
+| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | Get one form Schema or all form Schemas |
 | `openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]` | Check PRD page/resource count risk |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | Export app entity relationship diagram |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page |
@@ -424,13 +428,13 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida data <action> <resource> [args]` | Unified data management (form/process/task/subform) |
+| `openyida data <query\|get\|create\|update\|delete> <form\|process\|subform\|tasks\|operation-records\|task> [args]` | Unified data management (form/process/task/subform) |
 | `openyida task-center <type> [options]` | Global task center (todo/processed/cc etc.) |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, and domain settings |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | Fetch Markdown content from a DingTalk document |
 | `openyida read-dingtalk-tingji <taskUuid> [--json]` | Fetch DingTalk Tingji details by task UUID |
-| `openyida get-permission <appType> <formUuid>` | Query form permission config |
-| `openyida save-permission <appType> <formUuid> ...` | Save form permission config |
+| `openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--json]` | Query form permission config |
+| `openyida save-permission <appType> <formUuid> --package-uuid <packageUuid> [--data-permission <json>\|--action-permission <json>\|--field-permission <json>]` | Save form permission config |
 | `openyida corp-manager <search-user\|list\|add\|remove\|address-book> ...` | Manage platform admins and address book permissions |
 | `openyida agent-center <list\|create\|update\|cancel\|range\|search-user> ...` | Manage process and departure delegation |
 
@@ -485,7 +489,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 |---------|-------------|
 | `openyida integration create <appType> ... [--spec file.json]` | Create integration automation flow |
 | `openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]` | Probe integration update capability (currently blocked without full readback) |
-| `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
+| `openyida integration list <appType> [--flow-types 1,2,3,5,6] [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
 | `openyida integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
 | `openyida integration disable <appType> <formUuid> <processCode>` | Disable integration automation flow |
 | `openyida integration check <appType...>` | Check abnormal integration automation run logs |

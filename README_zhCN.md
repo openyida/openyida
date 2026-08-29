@@ -294,7 +294,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | 更新表单页面 |
 | `openyida list-forms <appType> [--keyword <text>]` | 列出应用下的表单/页面 |
 | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | 管理聚合表（virtualView） |
-| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json]` | 获取单个或全部表单 Schema |
+| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | 获取单个或全部表单 Schema |
 | `openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]` | 检查 PRD 页面/资源数量风险 |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | 导出应用实体关系图 |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义展示页面 |
@@ -312,13 +312,13 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida data <action> <resource> [args]` | 统一数据管理（表单/流程/任务/子表单） |
+| `openyida data <query\|get\|create\|update\|delete> <form\|process\|subform\|tasks\|operation-records\|task> [args]` | 统一数据管理（表单/流程/任务/子表单） |
 | `openyida task-center <type> [options]` | 全局任务中心（待办/已处理/抄送等） |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | 查询组织基本信息、容量、额度和域名设置 |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | 获取钉钉文档的 Markdown 内容 |
 | `openyida read-dingtalk-tingji <taskUuid> [--json]` | 按任务 UUID 获取钉钉听记详情 |
-| `openyida get-permission <appType> <formUuid>` | 查询表单权限配置 |
-| `openyida save-permission <appType> <formUuid> ...` | 保存表单权限配置 |
+| `openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--json]` | 查询表单权限配置 |
+| `openyida save-permission <appType> <formUuid> --package-uuid <packageUuid> [--data-permission <json>\|--action-permission <json>\|--field-permission <json>]` | 保存表单权限配置 |
 | `openyida corp-manager <search-user\|list\|add\|remove\|address-book> ...` | 管理平台管理员与通讯录权限 |
 | `openyida agent-center <list\|create\|update\|cancel\|range\|search-user> ...` | 管理流程代理和离职代理 |
 
@@ -373,7 +373,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 |------|------|
 | `openyida integration create <appType> ... [--spec file.json]` | 创建集成自动化逻辑流 |
 | `openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]` | 检测集成自动化安全更新能力（完整 readback 未证明，当前阻断） |
-| `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | 列出集成自动化逻辑流 |
+| `openyida integration list <appType> [--flow-types 1,2,3,5,6] [--form-uuid <uuid>] [--status y\|n] [--json]` | 列出集成自动化逻辑流 |
 | `openyida integration enable <appType> <formUuid> <processCode>` | 启用集成自动化逻辑流 |
 | `openyida integration disable <appType> <formUuid> <processCode>` | 停用集成自动化逻辑流 |
 | `openyida integration check <appType...>` | 检查集成自动化异常运行日志 |
@@ -443,6 +443,7 @@ Skill 路由和生成质量评测：
 npm run eval:routing
 OPENYIDA_E2E=1 npm run eval:e2e -- --skill yida-dashboard --screenshot
 OPENYIDA_E2E=1 npm run eval:generate -- --screenshot
+npm run eval:replay -- --report <generation-report.json> --scenario <scenario.json> --app-type APP_XXX
 npm run eval:dashboard
 ```
 

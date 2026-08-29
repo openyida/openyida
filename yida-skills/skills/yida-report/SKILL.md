@@ -127,7 +127,7 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 
 宜搭原生组件库本身包含更多组件，但 OpenYida CLI 只开放已经接入并纳入确定性契约的类型。未知类型、未探测类型和缺失 `type` 均会在远端写入前失败，绝不静默回退成柱状图。Agent 应通过 `openyida create-report` 传入结构化图表配置，由 CLI 内部构建并发布 Schema，不要尝试读取或手写 `build-yida-report-schema.js`。
 
-<!-- runtime-supported-chart-types: bar, combo, funnel, gauge, indicator, line, pie, pivot, table -->
+<!-- runtime-supported-chart-types: bar, calendarheatmap, combo, funnel, gauge, indicator, line, map, pie, pivot, table -->
 
 - **组件库地址**：`//g.alicdn.com/code/npm/@ali/vc-yida-report/1.0.101/pc.js`
 - **全局挂载**：`window.YidaReport`
@@ -145,13 +145,15 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 | `YoushuFunnelChart` | 漏斗图 | `buildSchema.funnelChart()` | 图表 |
 | `YoushuGauge` | 仪表盘 | `buildSchema.gauge()` | 图表 |
 | `YoushuComboChart` | 组合图 | `buildSchema.comboChart()` | 图表 |
+| `YoushuCalendarHeatmap` | 日历热力图 | `type: calendarHeatmap` | 图表 |
+| `YoushuMap` | 地图 | `type: map` | 图表 |
 | `YoushuCrossPivotTable` | 交叉透视表 | `buildSchema.crossPivotTable()` | 表格 |
 | `YoushuTable` | 基础表格 | `buildSchema.table()` | 表格 |
 | `YoushuPageHeader` | 页面标题栏 | `buildSchema.pageHeader()` | 布局 |
 | `YoushuTopFilterContainer` | 顶部筛选容器 | `buildSchema.topFilterContainer()` | 筛选 |
 | `YoushuSelectFilter` | 下拉筛选器 | `buildSchema.selectFilter()` | 筛选 |
 
-上表中的图表/表格类型与 runtime capability registry 一致；页面标题和 select 筛选器是 CLI 已接入的辅助组件。雷达、热力、日历热力、词云、地图、数字卡等高级 widget 即使存在于设计器组件库，也不得在未完成 platform/runtime probe 前传给 CLI。
+上表中的图表/表格类型与 runtime capability registry 一致；页面标题和 select 筛选器是 CLI 已接入的辅助组件。雷达、普通热力、词云、数字卡等未注册 widget 即使存在于设计器组件库，也不得传给 CLI。
 
 ### Schema 构建细节参考
 
@@ -220,6 +222,8 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 | `indicator` | `kpi`（数组） | 每个 kpi 字段需要 `fieldCode`、`aliasName`、`aggregateType` |
 | `pie` | `xField`（单个）+ `yField`（数组） | xField 为分类维度，yField 为数值度量 |
 | `bar`/`line`/`funnel` | `xField`（单个）+ `yField`（数组） | `bar`/`line` 可选 `groupField` 分组 |
+| `calendarHeatmap` | `xField`（日期）+ `yField`（数值） | 日期字段建议显式 `dataType: DATE`、`timeGranularityType: DAY` |
+| `map` | `locationFields`（地域层级）+ `valueField`（数值） | 地域字段按省/市/区顺序传入，数值通常使用 `pid + COUNT` |
 | `table` | `columnFields`（数组） | 每列一个字段对象 |
 | `combo` | `xField` + `leftYFields`/`rightYFields` 至少一组 | 柱线混合图，横轴和至少一个纵轴角色均为硬校验 |
 | `gauge` | `valueField`（单个） | 可选 `assitValueField` |
@@ -250,6 +254,8 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 2. **外层字段数组**（`xField`/`yField`/`fieldList`/`columnFields` 等）：展示层，每个字段对象包含 20+ 属性（`visible`、`isDimension`、`fieldKey`、`cubeCode`、`title`、`format`、`link`、`drillList`、`orderBy`、`measureType` 等）
 
 两层都必须正确填充，否则报表图表会显示为空。
+
+地域分布、订单日历等需求不得退化成普通柱/饼图：先从真实表单 Schema 取得地址拆分字段或 DateField，再分别使用 `map` / `calendarHeatmap`。既有报表反向分析时，以 `report inspect` 的组件名、cubeCode、字段角色和时间粒度为准，不按图表标题猜配置。
 
 ### userConfig 格式
 

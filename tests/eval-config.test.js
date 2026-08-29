@@ -25,11 +25,15 @@ describe('eval config', () => {
   });
 
   test('parseArgs 解析 flag 与 --key=value', () => {
-    const out = parseArgs(['--mode', 'all', '--skill=yida-report', '--no-screenshot', '--auto-score', 'extra']);
+    const out = parseArgs([
+      '--mode', 'all', '--skill=yida-report', '--no-screenshot', '--auto-score',
+      '--gen-timeout-ms=1800000', 'extra',
+    ]);
     expect(out.mode).toBe('all');
     expect(out.skill).toBe('yida-report');
     expect(out.screenshot).toBe(false);
     expect(out.autoScore).toBe(true);
+    expect(out.generationTimeoutMs).toBe(1800000);
     expect(out.rest).toEqual(['extra']);
   });
 
@@ -150,5 +154,23 @@ describe('eval config', () => {
       argv: [], env: { OPENYIDA_EVAL_AGENT_CMD: 'qodercli' }, fileConfig: {}, coverage,
     });
     expect(config.agentCommand).toBe('qodercli');
+  });
+
+  test('generation timeout 支持默认值、env 与 CLI 优先级', () => {
+    const defaults = resolveConfig({ argv: [], env: {}, fileConfig: {}, coverage });
+    expect(defaults.generationTimeoutMs).toBe(600000);
+
+    const fromEnv = resolveConfig({
+      argv: [], env: { OPENYIDA_EVAL_GEN_TIMEOUT_MS: '1200000' }, fileConfig: {}, coverage,
+    });
+    expect(fromEnv.generationTimeoutMs).toBe(1200000);
+
+    const fromCli = resolveConfig({
+      argv: ['--gen-timeout-ms', '1800000'],
+      env: { OPENYIDA_EVAL_GEN_TIMEOUT_MS: '1200000' },
+      fileConfig: { generationTimeoutMs: 900000 },
+      coverage,
+    });
+    expect(fromCli.generationTimeoutMs).toBe(1800000);
   });
 });

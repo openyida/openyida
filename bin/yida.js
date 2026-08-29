@@ -484,6 +484,45 @@ function printCommandUsage(...lines) {
   console.log(lines.filter(Boolean).join('\n'));
 }
 
+const MANIFEST_HELP_PATHS = Object.freeze({
+  'get-schema': ['get-schema'],
+  'query-data': ['data'],
+  'data-manage': ['data'],
+  data: ['data'],
+  report: ['report'],
+  'create-process': ['create-process'],
+  'create-report': ['create-report'],
+  'save-share-config': ['save-share-config'],
+  'verify-short-url': ['verify-short-url'],
+  'integration-create': ['integration', 'create'],
+  'save-permission': ['save-permission'],
+  'get-permission': ['get-permission'],
+});
+
+function printManifestCommandHelp(commandName) {
+  const canonicalPath = MANIFEST_HELP_PATHS[commandName];
+  if (!canonicalPath) {
+    return false;
+  }
+
+  const manifest = buildCommandManifest({ t, version: currentVersion });
+  const matches = manifest.commands.filter((entry) =>
+    canonicalPath.every((token, index) => entry.path[index] === token)
+  );
+  const exact = matches.find((entry) => entry.path.length === canonicalPath.length);
+  const entries = exact ? [exact] : matches;
+  if (entries.length === 0) {
+    return false;
+  }
+
+  printCommandUsage(...entries.flatMap((entry) => [
+    entry.usage,
+    entry.description,
+    ...(entry.examples || []),
+  ]));
+  return true;
+}
+
 function printLoginHelp() {
   printCommandUsage(t('cli.login_usage'), t('cli.login_example'));
 }
@@ -546,6 +585,10 @@ async function main() {
 
   if (command === '--version' || command === '-v') {
     console.log(currentVersion);
+    return;
+  }
+
+  if (hasHelpFlag(args) && printManifestCommandHelp(command)) {
     return;
   }
 

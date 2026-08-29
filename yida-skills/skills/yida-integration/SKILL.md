@@ -29,6 +29,7 @@ description: 创建/管理宜搭集成自动化。
 - `--spec` JSON 文件必须先用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/integration/`；不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向写文件，也不要写仓库根目录或系统临时目录
 - 连接器 action schema 只能来自 CLI 的平台只读发现或固定已证 preset；不得使用 `--connector-inputs` 自行声明未知字段类型，未知连接器、动作或输入字段必须停止且保持零写入
 - 参考官方示例时不要只看默认页面 schema：集成自动化示例的默认页通常只是触发表单或说明页，逻辑流本体需要通过集成自动化接口/命令查询或创建
+- 分析已有应用时先执行不带筛选的 `integration list --json` 获取全部已知触发类型；不得只看表单事件就声称已完成自动化盘点
 
 ## 适用场景
 
@@ -85,7 +86,7 @@ description: 创建/管理宜搭集成自动化。
 ```bash
 openyida integration create <appType> <formUuid> <flowName> [选项]
 openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]
-openyida integration list <appType> [--form-uuid <uuid>] [--status y|n] [--json]
+openyida integration list <appType> [--flow-types 1,2,3,5,6] [--form-uuid <uuid>] [--status y|n] [--json]
 openyida integration enable <appType> <formUuid> <processCode>
 openyida integration disable <appType> <formUuid> <processCode>
 openyida integration check <appType...> [--json] [--output result.xlsx] [--no-progress]
@@ -129,6 +130,7 @@ openyida integration check <appType...> [--json] [--output result.xlsx] [--no-pr
 | `--connector-display-name <name>` | `--connector-name` | 连接器展示名称，用于设计器画布和右侧配置面板 |
 | `--connector-inputs <file>` | 禁止 | 调用方文件不是平台证据；CLI 会拒绝并要求只读发现或固定已证 preset |
 | `--publish` | 不发布 | 加此标志则保存后立即发布（开启状态），否则仅保存为草稿 |
+| `--flow-types <types>` | `1,2,3,5,6` | 仅用于 `integration list`，按逗号过滤触发类型；默认枚举全部已知类型，每条结果返回 `flowType` |
 
 ### 示例
 
@@ -320,7 +322,8 @@ openyida integration create APP_XXX FORM-XXX "获取自身后分支更新" \
 
 ## 控制面查询与启停
 
-- `integration list` 会复用 `integration check` 的安全 paginator：拉完应用分组分页，并在分组 `hasMore=true` 时继续拉取表单下剩余逻辑流；不把单页结果冒充完整列表。
+- `integration list` 默认枚举 `1/2/3/5/6` 五类触发类型，并为结果附带 `flowType`；会复用 `integration check` 的安全 paginator，拉完应用分组分页，并在分组 `hasMore=true` 时继续拉取表单下剩余逻辑流，不把单页或单一触发类型冒充完整列表。
+- 当前 create 写入仍只支持表单事件触发。读到定时、应用事件或手动/卡片触发时，必须保留原 `flowType` 和事件语义并报告精确 capability gap；不得退化为表单新增通知后声称等价创建。
 - `integration enable/disable` 写入后必须按 `formUuid + processCode` 精确匹配唯一列表项、校验期望 `status=y/n`，并完成 `getProcess` 详情存在性回读。
 - 回读成功返回 `verificationLevel=PLATFORM_LIST_EXACT_DETAIL_PRESENT`；精确匹配为 0/多条、状态不一致、详情为空、详情请求失败，或详情顶层 `processCode/formUuid` 与目标冲突，都必须非零失败。
 - 详情回读当前只证明目标设计定义存在，不证明完整 runtime graph；不得据此解锁 `integration update`。

@@ -20,7 +20,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | 1 | [解析资源上下文](workflow/step-1-resource-context.md) | 合并本轮显式资源、绑定上下文、workspace 配置/缓存和会话历史，确认复用还是允许创建 | 目标 app/page/form/process 上下文 |
 | 2 | [产品设计](workflow/step-2-design.md) | 执行 `use_skill("yida-design", "完整应用产品设计")`，产出完整 PRD 和视觉契约 | `prd/<项目名>/prd.md` + `prd/<项目名>/design.md` |
 | 3 | [创建或复用应用](workflow/step-3-create-or-reuse-app.md) | 已有 `appType` 直接复用；缺少 app 且允许创建时执行 `use_skill("yida-create-app")` | 真实目标 `appType` |
-| 4 | [创建或更新表单/流程](workflow/step-4-forms-processes.md) | 执行 `use_skill("yida-form-detail")`、`use_skill("yida-create-form-page")`，需要流程时执行 `use_skill("yida-create-process")` | 真实 `formUuid`、`processCode`、必要 `fieldId` |
+| 4 | [创建或更新业务资源](workflow/step-4-forms-processes.md) | 执行 `use_skill("yida-form-detail")`、`use_skill("yida-create-form-page")`；按 PRD 执行 `use_skill("yida-create-process")`、`use_skill("yida-get-schema")`、`use_skill("yida-report")` 和 `use_skill("yida-integration")` | 真实 `formUuid`、`processCode`、必要 `fieldId/reportId` |
 | 5 | [写入初始表单数据](workflow/step-5-seed-records.md) | 执行 `use_skill("yida-data-management")`，为核心普通表单写入 1-3 条业务化 seed records 并 query 抽查 | 真实表单记录或明确跳过原因 |
 | 6 | [创建或复用主页面](workflow/step-6-main-page.md) | 已有 display 页面直接复用；缺少主页面且允许创建时执行 `use_skill("yida-create-page")` | 真实主页面 `formUuid` |
 | 7 | [编写或更新页面](workflow/step-7-page-code.md) | 执行 `use_skill("yida-canvas-custom-page")`，按 PRD + design.md 实现页面和真实 dataBinding | 本地页面源码通过基础校验 |
@@ -42,6 +42,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 - 需要收集或存储数据：先创建或复用核心普通表单，再生成页面；纯展示或静态内容可跳过表单创建。
 - 需要审批、申请、审核、工单流转：先创建或复用流程表单，再生成页面。
 - 需要标准统计：优先创建原生报表；明确高级图表或大屏时，再选择 `yida-rechart` / `yida-chart`。
+- PRD 明确包含报表或集成自动化时，它们属于 Step 4 主流程资源，不得推迟到 final 后置建议；自动化动作必须按通知、数据新增/更新、审批完成、定时或手动触发分别建模，不得统一退化成新增通知。
 
 ## 页面数据契约
 

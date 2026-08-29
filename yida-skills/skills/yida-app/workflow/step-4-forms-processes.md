@@ -20,6 +20,9 @@
 7. 页面、数据、流程或公式确需多字段映射时，对每个目标表单最多一次性执行 `openyida get-schema <appType> <formUuid> --field-map-json`，合并写回 `.cache/<项目名>-schema.json`。
 8. PRD 包含审批、流程、申请、审核、工单等流程对象时，执行 `use_skill("yida-create-process", "创建带审批流程表单")`。
 9. 已有流程表单或 `processCode` 时，执行 `use_skill("yida-process-rule", "更新已有流程规则")`。
+10. 分析、复刻或迁移已有表单时，执行 `use_skill("yida-get-schema", "读取字段与行为语义")`，对每个核心表单读取一次 `--analysis-json`；把字段结构与 `actions/fieldBehaviors/associationRuleCount` 分开规划，存在业务动作时使用 `yida-create-form-page` 的 `actions-module`、`bind-field-action`、`bind-datasource` 等高级 patch 能力。
+11. PRD 明确包含原生报表时，执行 `use_skill("yida-report", "按业务统计语义创建原生报表")`；地域分布、日历统计分别使用已支持的 `map`、`calendarHeatmap`，不得无声明退化成柱/饼图。
+12. PRD 明确包含集成自动化时，执行 `use_skill("yida-integration", "按业务动作创建自动化")`；已有应用先用全类型 `integration list --json` 盘点，创建时区分通知、数据新增/更新、审批完成、定时和手动触发。CLI 不支持的触发类型输出 capability gap，不得用通知替代。
 
 ## 字段配置文件示例
 

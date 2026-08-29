@@ -274,6 +274,30 @@ describe('CLI offline smoke', () => {
     }
   });
 
+  test('CRM Pro command help probes exit successfully without requiring login', () => {
+    const probes = [
+      { args: ['get-schema', '--help'], text: 'openyida get-schema' },
+      { args: ['query-data', '--help'], text: 'openyida data' },
+      { args: ['data-manage', '--help'], text: 'openyida data' },
+      { args: ['data', '--help'], text: 'openyida data' },
+      { args: ['data', 'create', '--help'], text: 'openyida data' },
+      { args: ['report', '--help'], text: 'openyida report inspect' },
+      { args: ['create-process', '--help'], text: 'openyida create-process' },
+      { args: ['create-report', '--help'], text: 'openyida create-report' },
+      { args: ['save-share-config', '--help'], text: 'openyida save-share-config' },
+      { args: ['verify-short-url', '--help'], text: 'openyida verify-short-url' },
+      { args: ['integration-create', '--help'], text: 'openyida integration create' },
+      { args: ['save-permission', '--help'], text: 'openyida save-permission' },
+      { args: ['get-permission', '--help'], text: 'openyida get-permission' },
+    ];
+
+    for (const probe of probes) {
+      const result = runAny(probe.args);
+      expect(result.status).toBe(0);
+      expect(result.output).toContain(probe.text);
+    }
+  });
+
   test('app-list --help renders usage without requiring login', () => {
     const result = runAny(['app-list', '--help']);
     expect(result.status).toBe(0);
@@ -1529,11 +1553,20 @@ describe('CLI offline smoke', () => {
       'app-list',
       'list-forms',
       'get-schema',
+      'data',
+      'nav-group',
+      'get-permission',
+      'save-permission',
       'create-app',
       'create-form.create',
       'create-page',
       'publish',
     ]));
+    const builderCommands = new Map(parsed.builder_path.command_contract.canonical_builder_commands
+      .map(entry => [entry.id, entry]));
+    expect(builderCommands.get('data').examples[0]).toContain('1787932800000');
+    expect(builderCommands.get('nav-group').examples).toContain('openyida nav-group move APP_XXX FORM_XXX --to NAV_XXX');
+    expect(builderCommands.get('save-permission').examples[0]).toContain('get-permission APP_XXX FORM_XXX');
     expect(parsed.recommended.preflight_command).toBe('openyida agent-capabilities --summary-json');
     expect(parsed.recommended.full_capabilities_command).toBe('openyida agent-capabilities --json');
     expect(parsed.recommended).not.toHaveProperty('builder_path');

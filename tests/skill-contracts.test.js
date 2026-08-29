@@ -285,6 +285,8 @@ describe('OpenYida skill contracts', () => {
     expect(step9).toContain('已完成订单、客户和商品等核心业务表单');
     expect(step9).toContain('主入口：`{base_url}/{appType}/workbench`');
     expect(step9).toContain('不把 `g.alicdn.com` 的 `index.css`、`index.js`、`index.html`、`locales/*.json`');
+    expect(step9).toContain('顶层 `skillsUsed`');
+    expect(step9).toContain('实际读取并使用');
   });
 
   test('unified full app build consumes PRD navigation order and falls back to auto order', () => {
@@ -310,6 +312,7 @@ describe('OpenYida skill contracts', () => {
     expect(navGroup).toContain('PRD 导航优先');
     expect(navGroup).toContain('openyida nav-group order <appType> <页面/表单...>');
     expect(navGroup).toContain('openyida nav-group auto-order <appType>');
+    expect(navGroup).toContain('目标分组必须通过 `--to` 传入');
     expect(manifest).toContain('default_nav_order_policy');
     expect(manifest).toContain('openyida nav-group order <appType> <items...>');
     expect(manifest).toContain('openyida publish ... --auto-nav-order');
@@ -675,6 +678,14 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('openyida get-schema <appType> <formUuid> [--summary-json|--field-map-json]');
     expect(skill).toContain('页面开发默认使用 compact 输出');
     expect(skill).toContain('不内联完整 Schema');
+    expect(skill).toContain('先传 `appType`，再传 `formUuid`');
+  });
+
+  test('form permission keeps package UUID scoped to the queried form', () => {
+    const skill = readSkill('yida-skills/skills/yida-form-permission/SKILL.md');
+
+    expect(skill).toContain('`packageUuid` 只属于本次查询的 `formUuid`');
+    expect(skill).toContain('禁止跨表单复用');
   });
 
   test('builder stopgap docs codify yida-app resource resolution commands and cwd-sensitive paths', () => {

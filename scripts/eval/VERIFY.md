@@ -159,9 +159,39 @@ OPENYIDA_E2E=1 npm run eval:generate -- --screenshot
 验证点:
 - golden 集 `scripts/eval/scenarios/generation/generation-core.json`(订单管理 / 请假审批 / 销售看板)逐条跑。
 - 每条输出 `产出资源 / 通过` 计数与通过率;`expectedFeatures` 校验 appType / 目标数 / 类型 / 关键词。
-- 产物落 `project/.cache/eval/generate/gen-<时间戳>/`:`generation-report.json` + `scoring.md` + `eval-report.html`。
+- 重型场景可增加执行证据契约：
+  - `expectedSkills.required/optional`：实际使用的子技能；optional 缺失只记覆盖缺口，不阻断通过。
+  - `expectedCommands.required/optional`：harness 通过临时 PATH shim 独立记录真实 `openyida` / `yida` 调用，可断言命令前缀、`argsIncludes` 和 `minCount`。
+  - `expectedResources.required/optional`：按资源 `type`、`name` / `nameIncludes`、`id`、`minCount` / `exactCount` 断言；还能检查权限包数、报表组件/图表/跨应用数据源、自动化状态、公开路径和种子数据实例数。
+  - `forbiddenFindings`：禁止出现的 finding code，例如 `resource-before-login-check`、`protected-resource-referenced`。
+  - `expectedSchemaDiff`：断言 `minAdded/minRemoved/minChanged`、`maxAdded/maxRemoved/maxChanged`、`addedKeys/removedKeys/changedKeys/stableKeys`；上限为 0 可验证幂等重放。
+- 场景可显式设置 `readback.enabled=true`，由当前 link 的 OpenYida CLI 在 agent 完成后执行只读回查：
+  - `list-forms` 证明 form/process/page/report；
+  - `integration list`、`nav-group list`、`i18n overview` 证明治理资源；
+  - `permissionFormNames` 与 `sharePageNames` 只回查场景点名的表单/页面；
+  - `dataPresenceFormNames` 对点名业务表执行只读 `data query ... --size 1`，仅记录实例数量，不把表单正文写进报告；
+  - `reportInspect=true` 回查报表版本、组件、图表和未知 cube；
+  - `pageRuntime` 为截图目标附加浏览器运行时契约，检查 console/page error、破图、加载收敛、正文长度和空数据文案；
+  - `portalNames` 将平台上的 display 页面按场景语义额外标记为 portal。
+- readback 资源标记为 `source=platform-readback`，与 `agent-report` 分离；readback 命令不计入 agent 的 `expectedCommands`。
+- 命令轨迹只保存脱敏参数、顺序、退出码和耗时，不保存 stdout/stderr；agent 自报的 commands 不会被采信。
+- 有证据契约但未满足时状态为 `evidence-miss`，并写入 JSON/HTML 报告；旧场景不声明这些字段时保持兼容。
+- finding 先按 `application-gap` / `diagnostic` / `openyida-optimization` / `resolved` 分层：CRM 资源缺口只写 `affected`，待重放问题只写 `diagnosticTargets`，只有证据足以指向 OpenYida 时才写 `targets`。问题组分别聚合为 `affected*`、`diagnostic*`、`target*` 字段，避免把相关技能误报为待优化技能。
+- 产物落 `project/.cache/eval/generate/gen-<时间戳>/`：`generation-report.json` + `optimization-backlog.json` + `scoring.md` + `eval-report.html`。
 - 控制台(第 0 步)「📊 查看最新报告」会自动包含「真实生成」的最新报告。
 - 降级:`claude` 不可用 → 整批标 `agent-unavailable`;Playwright 缺失 → 跳过截图;均不崩。
+
+历史真实运行可用最新验收合同重新诊断，无需再次运行 agent 或写远端资源：
+
+```bash
+npm run eval:replay -- \
+  --report project/.cache/eval/generate/gen-123/generation-report.json \
+  --scenario scripts/eval/scenarios/crm-pro/generation-crm-pro.json \
+  --app-type APP_XXX \
+  --trace-completeness partial
+```
+
+`partial` 是默认值：只对 trace 中明确观察到的失败做候选归因，不把未出现的命令武断判断为技能遗漏。只有确认报告覆盖完整冷启动进程时才使用 `full`。
 
 ## 第 8 步:三类测评一起跑
 
@@ -185,6 +215,7 @@ OPENYIDA_E2E=1 npm run eval:all -- --skill yida-dashboard --screenshot
 | `--auto-score` / `--no-auto-score` | 是否用本地 `claude -p` 给截图打分(默认关 → 仅人工模板) |
 | `--scenarios <dir>` | 路由测评 golden 集目录(默认 `scripts/eval/scenarios`) |
 | `--gen-scenarios <dir>` | 真实生成 golden 集目录(默认 `scripts/eval/scenarios/generation`) |
+| `--gen-timeout-ms <ms>` | 单条真实生成 agent 超时（默认 600000；重型场景可显式提高） |
 | `--baseline` / `--no-baseline` | 是否启用 A/B 对比(baseline 模式下默认开) |
 | `--format junit` | 额外生成 JUnit XML 报告(CI 集成用) |
 | `--fix` | pipeline 模式下尝试自动修复(实验性) |

@@ -14,6 +14,7 @@ description: 宜搭表单权限组管理。查询、新增权限组，配置成�
 ## 铁律
 
 1. **目标必须唯一**：优先使用查询结果中的 `packageUuid`，通过 `--package-uuid` 精确更新；未提供 UUID 时才按 `DEFAULT`、`MANAGER` 或 `MATRIX` 匹配。匹配 0 个或多个、分页无法完整结束时停止。
+   `packageUuid` 只属于本次查询的 `formUuid`；多表单配置必须逐表查询，禁止跨表单复用。
 2. **未知操作键必须保留**：目标组的 `operatePermit` 包含 CLI 白名单外键时，停止 action-permission 修改；修改其他维度时原样保留整个 `operatePermit`。
 3. **成员替换必须展示损失**：执行 `--all-members` 或 `--matrix` 前展示完整 roleData before/after 和会移除的 `DEPARTMENT`、`ROLE`、`PARAM`、`MANAGER` 等条目。CLI 要求确认时，用户确认后追加 `--confirm-member-replace`。
 4. **整块保存必须先确认**：action-permission 会整块替换为 operations 中值为 true 的白名单键；执行前展示完整 before/after。

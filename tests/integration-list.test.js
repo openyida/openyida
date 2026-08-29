@@ -37,6 +37,7 @@ describe('integration-list parseListArgs', () => {
       '--form-uuid', 'FORM-1',
       '--status', 'y',
       '--key', 'sync',
+      '--flow-types', '1,2,6',
       '--size', '20',
       '--json',
     ]);
@@ -45,6 +46,7 @@ describe('integration-list parseListArgs', () => {
       formUuid: 'FORM-1',
       status: 'y',
       key: 'sync',
+      flowTypes: ['1', '2', '6'],
       pageSize: 20,
       json: true,
     });
@@ -57,6 +59,7 @@ describe('integration-list parseListArgs', () => {
       formUuid: '',
       status: '',
       key: '',
+      flowTypes: ['1', '2', '3', '5', '6'],
       pageSize: 50,
       json: false,
     });
@@ -114,14 +117,14 @@ describe('integration-list runList', () => {
   });
 
   test('--json 输出扁平数组', async () => {
-    integrationApi.listLogicflows.mockResolvedValue({
-      data: [{
+    integrationApi.listLogicflows.mockImplementation((authRef, params) => Promise.resolve({
+      data: params.type === '1' ? [{
         formUuid: 'FORM-1', formName: 'F1',
         flowList: [{ processCode: 'LPROC-1', name: 'flow1', status: 'y' }],
-      }],
-      totalCount: 1,
+      }] : [],
+      totalCount: params.type === '1' ? 1 : 0,
       hasMore: false,
-    });
+    }));
 
     await integrationList.runList(['APP_X', '--json']);
 
@@ -131,7 +134,9 @@ describe('integration-list runList', () => {
     expect(logSpy).toHaveBeenCalledTimes(1);
     const printed = JSON.parse(logSpy.mock.calls[0][0]);
     expect(Array.isArray(printed)).toBe(true);
-    expect(printed[0]).toMatchObject({ processCode: 'LPROC-1', status: 'y' });
+    expect(printed[0]).toMatchObject({ processCode: 'LPROC-1', status: 'y', flowType: '1' });
+    expect(integrationApi.listLogicflows.mock.calls.map((call) => call[1].type))
+      .toEqual(['1', '2', '3', '5', '6']);
   });
 
   test('公共 list 复用安全 paginator 拉完应用页和表单分组剩余页', async () => {
@@ -164,7 +169,7 @@ describe('integration-list runList', () => {
         hasMore: false,
       });
 
-    await integrationList.runList(['APP_X', '--size', '1', '--json']);
+    await integrationList.runList(['APP_X', '--flow-types', '1', '--size', '1', '--json']);
 
     const printed = JSON.parse(logSpy.mock.calls[0][0]);
     expect(printed.map((flow) => flow.processCode).sort()).toEqual(['LPROC-1', 'LPROC-2', 'LPROC-3']);
@@ -178,7 +183,7 @@ describe('integration-list runList', () => {
       totalCount: 0,
       hasMore: false,
     });
-    await integrationList.runList(['APP_X']);
+    await integrationList.runList(['APP_X', '--flow-types', '1']);
     const printed = JSON.parse(logSpy.mock.calls[0][0]);
     expect(printed).toMatchObject({
       appType: 'APP_X', total: 0, totalCount: 0, hasMore: false,

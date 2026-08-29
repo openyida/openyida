@@ -33,6 +33,7 @@
     "eval:e2e": "node scripts/eval/runner.js --mode e2e",
     "eval:routing": "node scripts/eval/runner.js --mode routing",
     "eval:generate": "node scripts/eval/runner.js --mode generate",
+    "eval:replay": "node scripts/eval/replay-generation.js",
     "eval:all": "node scripts/eval/runner.js --mode all",
     "eval:doc-quality": "node scripts/eval/runner.js --mode doc-quality",
     "eval:safety": "node scripts/eval/runner.js --mode safety",

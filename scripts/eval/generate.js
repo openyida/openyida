@@ -25,6 +25,10 @@ const fs = require('fs');
 const path = require('path');
 
 const { runAgent, extractJsonObject, resolveAgentCommand, getAgentAdapter } = require('./agent');
+const { createCommandTraceSession } = require('./command-trace');
+const { buildGenerationEvidence, evaluateGenerationEvidence, runEvidenceCollector, mergeEvidence } = require('./evidence');
+const { collectOpenYidaReadback } = require('./openyida-readback');
+const { deriveOptimizationFindings } = require('./optimization-findings');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const DEFAULT_SKILL_MD = path.join(ROOT, 'yida-skills', 'SKILL.md');
@@ -91,15 +95,21 @@ function buildGenerationPrompt({ request, skillContext = '', cliName = 'openyida
     RESULT_SENTINEL,
     '```json',
     '{',
-    '  "appType": "应用类型（如 表单/流程/报表/数据看板）",',
+    '  "appType": "真实 APP_* 应用 ID（例如 APP_ABC123）",',
     '  "appUrl": "应用主页 URL（如有）",',
     '  "targets": [',
     '    {"type": "page", "url": "已发布页面 URL"},',
     '    {"type": "dashboard", "url": "数据看板 URL"}',
     '  ],',
-    '  "summary": "一句话说明你创建了什么、包含哪些关键字段/页面"',
+    '  "skillsUsed": ["本次实际读取和使用的 yida-* 子技能名"],',
+    '  "summary": "一句话说明你创建了什么、包含哪些关键字段/页面",',
+    '  "evidence": {',
+    '    "resources": [{"type":"form|process|page|dashboard|report|integration|permission|i18n|nav", "name":"资源名", "id":"真实资源 ID"}],',
+    '    "findings": [{"code":"发现的问题码", "detail":"说明"}]',
+    '  }',
     '}',
     '```',
+    '必须严格保留 targets/skillsUsed/evidence 字段名，不要改名为 created、assertions 或 capabilityGaps。',
     '只汇报你**真实创建成功**的资源；未成功的不要写进 targets。',
   ].filter((line) => line !== '').join('\n');
 }
@@ -136,7 +146,54 @@ function extractAllJsonObjects(text) {
  */
 function looksLikeGenerationResult(obj) {
   if (!obj || typeof obj !== 'object') {return false;}
-  return ['appType', 'appUrl', 'targets', 'pages', 'summary'].some((k) => k in obj);
+  return ['appType', 'appUrl', 'targets', 'pages', 'created', 'summary'].some((k) => k in obj);
+}
+
+function normalizeCreatedType(type) {
+  const normalized = String(type || '').toLowerCase();
+  if (normalized === 'display') {return 'page';}
+  if (normalized === 'nav-group' || normalized === 'nav_group') {return 'nav';}
+  return normalized || null;
+}
+
+function resultBaseUrl(resultObj = {}) {
+  if (typeof resultObj.baseUrl === 'string' && /^https?:\/\//.test(resultObj.baseUrl)) {
+    return resultObj.baseUrl.replace(/\/$/, '');
+  }
+  if (typeof resultObj.appUrl === 'string') {
+    try {return new URL(resultObj.appUrl).origin;} catch { /* ignore malformed URL */ }
+  }
+  return null;
+}
+
+function normalizeReportedEvidence(resultObj = {}) {
+  const reported = resultObj.evidence && typeof resultObj.evidence === 'object'
+    ? resultObj.evidence
+    : {};
+  const skills = [
+    ...(Array.isArray(reported.skills) ? reported.skills : []),
+    ...(Array.isArray(resultObj.skillsUsed) ? resultObj.skillsUsed : []),
+    ...(Array.isArray(resultObj.usedSkills) ? resultObj.usedSkills : []),
+  ];
+  const resources = Array.isArray(reported.resources) ? [...reported.resources] : [];
+  for (const item of Array.isArray(resultObj.created) ? resultObj.created : []) {
+    if (!item || typeof item !== 'object') {continue;}
+    resources.push({
+      ...item,
+      type: normalizeCreatedType(item.type),
+      source: item.source || 'agent-report',
+    });
+  }
+  const findings = Array.isArray(reported.findings) ? [...reported.findings] : [];
+  for (const gap of Array.isArray(resultObj.capabilityGaps) ? resultObj.capabilityGaps : []) {
+    if (!gap || typeof gap !== 'object') {continue;}
+    findings.push({
+      code: `capability-gap:${gap.area || 'unknown'}`,
+      detail: gap.actual || gap.detail || gap.expected || '',
+      source: 'agent-report',
+    });
+  }
+  return { ...reported, skills, resources, findings };
 }
 
 /**
@@ -158,13 +215,51 @@ function normalizeTargets(resultObj = {}) {
     if (typeof item === 'string') {push('page', item);}
     else {push(item.type || item.stage, item.url);}
   }
+  const baseUrl = resultBaseUrl(resultObj);
+  const appType = typeof resultObj.appType === 'string' ? resultObj.appType : null;
+  if (baseUrl && appType) {
+    for (const item of Array.isArray(resultObj.created) ? resultObj.created : []) {
+      if (!item || typeof item !== 'object' || !item.id) {continue;}
+      const type = normalizeCreatedType(item.type);
+      if (!['page', 'dashboard', 'report'].includes(type)) {continue;}
+      push(type, item.url || `${baseUrl}/${appType}/workbench/${item.id}`);
+    }
+  }
   return out;
+}
+
+function mergeGenerationTargets(result, targets = []) {
+  const merged = [];
+  const seen = new Set();
+  for (const target of [...(result.targets || []), ...(Array.isArray(targets) ? targets : [])]) {
+    if (!target || !target.url || seen.has(target.url)) {continue;}
+    seen.add(target.url);
+    merged.push(target);
+  }
+  result.targets = merged;
+  result.ok = result.ok || merged.length > 0;
+  return result;
+}
+
+function resolveEvidenceCollector(scenario = {}, collector) {
+  if (typeof collector === 'function') {return collector;}
+  if (scenario.readback && scenario.readback.enabled === true) {
+    return collectOpenYidaReadback;
+  }
+  return null;
+}
+
+function collectGenerationBeforeEvidence(scenario, collector) {
+  if (scenario.expectedSchemaDiff === undefined || typeof collector !== 'function') {return {};}
+  return runEvidenceCollector(collector, {
+    phase: 'before', scenario, result: { appType: scenario.readback && scenario.readback.appType }, agentResult: null,
+  });
 }
 
 /**
  * 解析 agent 运行结果 → 结构化生成产物。
  * @param {object|string} agentResult runAgent 的返回对象，或直接传一段文本（便于测试）
- * @returns {{ok:boolean, appType:string|null, appUrl:string|null, targets:Array, summary:string|null, raw:string|null}}
+ * @returns {{ok:boolean, appType:string|null, appUrl:string|null, targets:Array, summary:string|null, evidence:object, raw:string|null}}
  */
 function parseGenerationResult(agentResult) {
   const text = typeof agentResult === 'string'
@@ -185,7 +280,16 @@ function parseGenerationResult(agentResult) {
   }
 
   if (!resultObj) {
-    return { ok: false, appType: null, appUrl: null, targets: [], summary: null, raw: text || null };
+    const appTypeMatch = text.match(/\bAPP_[A-Z0-9]+\b/);
+    return {
+      ok: false,
+      appType: appTypeMatch ? appTypeMatch[0] : null,
+      appUrl: null,
+      targets: [],
+      summary: null,
+      evidence: {},
+      raw: text || null,
+    };
   }
 
   const targets = normalizeTargets(resultObj);
@@ -195,6 +299,7 @@ function parseGenerationResult(agentResult) {
     appUrl: resultObj.appUrl || null,
     targets,
     summary: resultObj.summary || null,
+    evidence: normalizeReportedEvidence(resultObj),
     raw: text || null,
   };
 }
@@ -251,13 +356,22 @@ function defaultGenerationAgent(options = {}) {
     ...adapter.allowedTools(['Bash', 'Read', 'Write']),
     '--add-dir', ROOT,
   ];
-  return runAgent({
-    prompt: options.prompt,
-    command,
-    cwd: ROOT,
-    timeoutMs: options.timeoutMs || 600000,
-    extraArgs,
-  });
+  const trace = options.trace === false
+    ? { env: process.env, read: () => [], cleanup: () => {}, available: false }
+    : createCommandTraceSession({ env: process.env });
+  try {
+    const result = runAgent({
+      prompt: options.prompt,
+      command,
+      cwd: ROOT,
+      env: trace.env,
+      timeoutMs: options.timeoutMs || 600000,
+      extraArgs,
+    });
+    return { ...result, commandTrace: trace.read(), commandTraceAvailable: trace.available };
+  } finally {
+    trace.cleanup();
+  }
 }
 
 /**
@@ -266,12 +380,59 @@ function defaultGenerationAgent(options = {}) {
 function evaluateGenerationScenario(options = {}) {
   const { scenario, skillContext } = options;
   const agent = options.runGenerationAgent || defaultGenerationAgent;
+  const collector = resolveEvidenceCollector(scenario, options.collectEvidence);
+  const beforeEvidence = collectGenerationBeforeEvidence(scenario, collector);
+
+  if (scenario.auditOnly === true) {
+    const result = {
+      ok: true,
+      appType: scenario.readback && scenario.readback.appType || null,
+      appUrl: null,
+      targets: [],
+      summary: 'deterministic platform audit',
+      evidence: {},
+      raw: null,
+    };
+    const afterEvidence = runEvidenceCollector(collector, {
+      phase: 'after', scenario, result, agentResult: null,
+    });
+    mergeGenerationTargets(result, afterEvidence.targets);
+    result.ok = result.ok && (result.targets.length > 0 || (afterEvidence.resources || []).length > 0);
+    const features = checkExpectedFeatures(result, scenario.expectedFeatures || {});
+    const evidence = buildGenerationEvidence({
+      scenario, result, agentResult: { commandTrace: [] },
+      extraEvidence: mergeEvidence(beforeEvidence, afterEvidence),
+    });
+    const evidenceChecks = evaluateGenerationEvidence(scenario, evidence);
+    let status = 'ok';
+    if (!result.ok) {status = 'no-output';}
+    else if (!features.pass) {status = 'feature-miss';}
+    else if (!evidenceChecks.pass) {status = 'evidence-miss';}
+    const outcome = {
+      id: scenario.id,
+      status,
+      prompt: scenario.prompt,
+      appType: result.appType,
+      appUrl: result.appUrl,
+      summary: result.summary,
+      targets: result.targets,
+      features,
+      evidence,
+      evidenceChecks,
+      result,
+      auditOnly: true,
+    };
+    outcome.optimizationFindings = deriveOptimizationFindings({
+      scenario, evidence, evidenceChecks, features, status,
+    });
+    return outcome;
+  }
 
   const prompt = buildGenerationPrompt({ request: scenario.prompt, skillContext });
   const res = agent({ prompt, timeoutMs: options.timeoutMs });
 
   if (res && res.available === false) {
-    return {
+    const outcome = {
       id: scenario.id,
       status: 'agent-unavailable',
       prompt: scenario.prompt,
@@ -279,26 +440,52 @@ function evaluateGenerationScenario(options = {}) {
       features: null,
       targets: [],
     };
+    outcome.optimizationFindings = deriveOptimizationFindings({
+      scenario, status: outcome.status,
+    });
+    return outcome;
   }
   if (res && res.ok === false && !(res.text || res.raw)) {
-    return {
+    const emptyResult = parseGenerationResult(res);
+    const afterEvidence = runEvidenceCollector(collector, {
+      phase: 'after',
+      scenario, result: emptyResult, agentResult: res,
+    });
+    const extraEvidence = mergeEvidence(beforeEvidence, afterEvidence);
+    const evidence = buildGenerationEvidence({
+      scenario, result: emptyResult, agentResult: res, extraEvidence,
+    });
+    const evidenceChecks = evaluateGenerationEvidence(scenario, evidence);
+    const outcome = {
       id: scenario.id,
       status: 'agent-error',
       prompt: scenario.prompt,
       error: res.error || null,
-      result: null,
+      result: emptyResult,
       features: null,
+      evidence,
+      evidenceChecks,
       targets: [],
     };
+    outcome.optimizationFindings = deriveOptimizationFindings({
+      scenario, evidence, evidenceChecks, status: outcome.status, error: outcome.error,
+    });
+    return outcome;
   }
 
   const result = parseGenerationResult(res);
+  const afterEvidence = runEvidenceCollector(collector, { phase: 'after', scenario, result, agentResult: res });
+  const extraEvidence = mergeEvidence(beforeEvidence, afterEvidence);
+  mergeGenerationTargets(result, extraEvidence.targets);
   const features = checkExpectedFeatures(result, scenario.expectedFeatures || {});
+  const evidence = buildGenerationEvidence({ scenario, result, agentResult: res, extraEvidence });
+  const evidenceChecks = evaluateGenerationEvidence(scenario, evidence);
   let status = 'ok';
   if (!result.ok) {status = 'no-output';}
   else if (!features.pass) {status = 'feature-miss';}
+  else if (!evidenceChecks.pass) {status = 'evidence-miss';}
 
-  return {
+  const outcome = {
     id: scenario.id,
     status,
     prompt: scenario.prompt,
@@ -307,8 +494,14 @@ function evaluateGenerationScenario(options = {}) {
     summary: result.summary,
     targets: result.targets,
     features,
+    evidence,
+    evidenceChecks,
     result,
   };
+  outcome.optimizationFindings = deriveOptimizationFindings({
+    scenario, evidence, evidenceChecks, features, status,
+  });
+  return outcome;
 }
 
 /**
@@ -317,14 +510,17 @@ function evaluateGenerationScenario(options = {}) {
 function summarizeGeneration(results = []) {
   const produced = results.filter((r) => r.targets && r.targets.length);
   const passed = results.filter((r) => r.status === 'ok');
+  const optimizationFindings = results.flatMap((result) => result.optimizationFindings || []);
   return {
     total: results.length,
     produced: produced.length,
     passed: passed.length,
     featureMiss: results.filter((r) => r.status === 'feature-miss').length,
+    evidenceMiss: results.filter((r) => r.status === 'evidence-miss').length,
     noOutput: results.filter((r) => r.status === 'no-output').length,
     agentError: results.filter((r) => r.status === 'agent-error').length,
     agentUnavailable: results.filter((r) => r.status === 'agent-unavailable').length,
+    optimizationFindings: optimizationFindings.length,
     passRate: results.length ? +(passed.length / results.length).toFixed(4) : null,
   };
 }
@@ -342,6 +538,7 @@ function runGenerationEval(options = {}) {
     scenario,
     skillContext,
     runGenerationAgent: options.runGenerationAgent,
+    collectEvidence: options.collectEvidence,
     timeoutMs: options.timeoutMs,
   }));
 
@@ -355,7 +552,12 @@ module.exports = {
   buildGenerationPrompt,
   extractAllJsonObjects,
   looksLikeGenerationResult,
+  normalizeCreatedType,
+  normalizeReportedEvidence,
   normalizeTargets,
+  mergeGenerationTargets,
+  resolveEvidenceCollector,
+  collectGenerationBeforeEvidence,
   parseGenerationResult,
   checkExpectedFeatures,
   defaultGenerationAgent,
@@ -401,6 +603,7 @@ async function runGenerationEvalAsync(options = {}) {
     concurrency: options.concurrency || 2,
     timeoutMs: options.timeoutMs || 600000,
     onProgress: options.onProgress,
+    collectEvidence: options.collectEvidence,
   });
 
   return {

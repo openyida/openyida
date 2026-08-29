@@ -1,0 +1,186 @@
+[
+  {
+    "id": "crm-pro-cold-start-full",
+    "prompt": "请使用 openyida 技能从零真实搭建一个 CRM PRO 应用。必须先完整读取 prd/crm-pro/prd.md、prd/crm-pro/design.md 和 docs/features/crm-pro-e2e/crm-pro-e2e-test-case.md，并以 yida-app 作为首次完整应用的唯一编排入口。按依赖顺序创建营销、线索、客户、联系人、商机、跟进、产品、报价审批、合同回款、开票、售后、Portal/自定义工作台、经营报表、自动化、权限、中英双语、页面分享和导航；页面绑定真实表单并写入少量合成数据。任何写操作前验证登录态和目标组织，保持应用未启用，不修改参考应用 APP_JAEZRUX85WI4LIR7AB4C。若能力缺失，完成其余部分并把缺口明确归因，不得把设计稿当作已创建资源。最后按测试用例的最终输出契约汇报真实结果。",
+    "expectedFeatures": {
+      "minTargets": 6,
+      "targetTypes": ["page", "report"],
+      "keywords": ["CRM", "线索", "客户", "商机", "报价", "合同", "自动化"]
+    },
+    "expectedSkills": {
+      "required": [
+        "yida-app",
+        "yida-login",
+        "yida-create-app",
+        "yida-create-form-page",
+        "yida-create-process",
+        "yida-canvas-custom-page",
+        "yida-canvas-data-binding",
+        "yida-publish-page",
+        "yida-report",
+        "yida-integration",
+        "yida-form-permission",
+        "yida-i18n",
+        "yida-nav-group",
+        "yida-page-config"
+      ],
+      "optional": [
+        "yida-design",
+        "yida-get-schema",
+        "yida-formula",
+        "yida-formula-evaluate",
+        "yida-form-detail",
+        "yida-density",
+        "yida-dashboard",
+        "yida-data-management",
+        "yida-process-rule",
+        "yida-app-permission"
+      ]
+    },
+    "expectedCommands": {
+      "required": [
+        {"name": "login", "argsIncludes": ["--check-only"], "minCount": 1},
+        {"name": "create-app", "minCount": 1},
+        {"name": "create-form create", "minCount": 16},
+        {"name": "create-process", "minCount": 1},
+        {"name": "create-page", "minCount": 9},
+        {"name": "publish", "minCount": 9},
+        {"name": "data create", "minCount": 14, "requirementId": "PRD-SEED-CORE"},
+        {"name": "create-report", "minCount": 19, "requirementId": "PRD-REPORTS-19"},
+        {"name": "integration create", "minCount": 18, "requirementId": "PRD-AUTOMATIONS-18"},
+        {"name": "save-permission", "minCount": 17, "requirementId": "PRD-PERMISSIONS-17"},
+        {"name": "i18n", "minCount": 1},
+        {"name": "nav-group", "minCount": 1},
+        {"name": "save-share-config", "minCount": 1}
+      ],
+      "optional": [
+        "get-schema",
+        "list-forms",
+        "integration list",
+        "report inspect",
+        "get-permission",
+        "get-page-config",
+        "app-permission"
+      ]
+    },
+    "expectedResources": {
+      "required": [
+        {"type": "app", "exactCount": 1, "requirementId": "PRD-APP"},
+        {"type": "form", "exactCount": 16, "requirementId": "PRD-FORMS-16"},
+        {"type": "process", "exactCount": 1, "requirementId": "PRD-PROCESS-1"},
+        {"type": "page", "exactCount": 9, "requirementId": "PRD-PAGES-9"},
+        {"type": "portal", "exactCount": 1, "requirementId": "PRD-PORTAL-1"},
+        {"type": "report", "exactCount": 19, "requirementId": "PRD-REPORTS-19"},
+        {"type": "report", "schemaVersion": "V5", "minComponentCount": 1, "minChartCount": 1, "maxUnknownCubeCount": 0, "exactCount": 19, "requirementId": "PRD-REPORT-BINDINGS"},
+        {"type": "report", "name": "市场线索分析", "requirementId": "PRD-REPORT-MARKET-LEAD"},
+        {"type": "report", "name": "营销ROI分析", "requirementId": "PRD-REPORT-MARKETING-ROI"},
+        {"type": "report", "name": "产品分析", "requirementId": "PRD-REPORT-PRODUCT"},
+        {"type": "report", "name": "客户分析", "requirementId": "PRD-REPORT-CUSTOMER"},
+        {"type": "report", "name": "商机分析", "requirementId": "PRD-REPORT-OPPORTUNITY"},
+        {"type": "report", "name": "报价情况", "requirementId": "PRD-REPORT-QUOTE"},
+        {"type": "report", "name": "订单分析", "requirementId": "PRD-REPORT-ORDER"},
+        {"type": "report", "name": "回款情况", "requirementId": "PRD-REPORT-PAYMENT"},
+        {"type": "report", "name": "售后服务分析", "requirementId": "PRD-REPORT-SERVICE"},
+        {"type": "report", "name": "退货分析", "requirementId": "PRD-REPORT-RETURN"},
+        {"type": "report", "name": "近7日客户挖掘&跟进情况", "requirementId": "PRD-REPORT-RECENT"},
+        {"type": "report", "name": "联系人管理", "requirementId": "PRD-REPORT-CONTACT"},
+        {"type": "report", "name": "商机管理", "requirementId": "PRD-REPORT-OPPORTUNITY-MANAGE"},
+        {"type": "report", "name": "跟进管理", "requirementId": "PRD-REPORT-FOLLOWUP"},
+        {"type": "report", "name": "跟进计划", "requirementId": "PRD-REPORT-FOLLOWUP-PLAN"},
+        {"type": "report", "name": "核心数据看板", "requirementId": "PRD-REPORT-CORE"},
+        {"type": "report", "name": "核心数据看板(mobile)", "requirementId": "PRD-REPORT-CORE-MOBILE"},
+        {"type": "report", "name": "销售漏斗", "requirementId": "PRD-REPORT-FUNNEL"},
+        {"type": "report", "name": "订单提交分析", "requirementId": "PRD-REPORT-ORDER-CALENDAR"},
+        {"type": "integration", "exactCount": 18, "requirementId": "PRD-AUTOMATIONS-18"},
+        {"type": "integration", "status": "y", "exactCount": 18, "requirementId": "PRD-AUTOMATIONS-ENABLED-18"},
+        {"type": "integration", "name": "新增商机发送卡片", "requirementId": "PRD-AUTO-OPPORTUNITY-CREATE"},
+        {"type": "integration", "name": "商机推进", "requirementId": "PRD-AUTO-OPPORTUNITY-STAGE"},
+        {"type": "integration", "name": "产品报价成功", "requirementId": "PRD-AUTO-QUOTE-PASS"},
+        {"type": "integration", "name": "新增联系人", "requirementId": "PRD-AUTO-CONTACT-CREATE"},
+        {"type": "integration", "name": "更新线索状态", "requirementId": "PRD-AUTO-LEAD-STATUS"},
+        {"type": "integration", "name": "新增公海客户发送卡片", "requirementId": "PRD-AUTO-PUBLIC-CUSTOMER"},
+        {"type": "integration", "name": "新增公共线索", "requirementId": "PRD-AUTO-PUBLIC-LEAD"},
+        {"type": "integration", "name": "回款计划创建发送卡片", "requirementId": "PRD-AUTO-PAYMENT-PLAN"},
+        {"type": "integration", "name": "表单提交后，更新另一个表单", "requirementId": "PRD-AUTO-FOLLOWUP"},
+        {"type": "integration", "name": "合同订单创建成功发送卡片", "requirementId": "PRD-AUTO-CONTRACT"},
+        {"type": "integration", "name": "回款单创建发送卡片", "requirementId": "PRD-AUTO-PAYMENT"},
+        {"type": "integration", "name": "销售简报", "requirementId": "PRD-AUTO-SALES-DIGEST"},
+        {"type": "integration", "name": "线索领取成功", "requirementId": "PRD-AUTO-LEAD-CLAIM"},
+        {"type": "integration", "name": "客户领取成功", "requirementId": "PRD-AUTO-CUSTOMER-CLAIM"},
+        {"type": "integration", "name": "商机推进-需求确认", "requirementId": "PRD-AUTO-STAGE-CONFIRM"},
+        {"type": "integration", "name": "商机推进-方案报价", "requirementId": "PRD-AUTO-STAGE-QUOTE"},
+        {"type": "integration", "name": "商机推进-商务谈判", "requirementId": "PRD-AUTO-STAGE-NEGOTIATE"},
+        {"type": "integration", "name": "商机推进-赢单", "requirementId": "PRD-AUTO-STAGE-WON"},
+        {"type": "permission", "exactCount": 17, "requirementId": "PRD-PERMISSION-READBACK-17"},
+        {"type": "permission", "minPackageCount": 2, "exactCount": 17, "requirementId": "PRD-PERMISSION-PACKAGES-17"},
+        {"type": "i18n", "exactCount": 2, "requirementId": "PRD-I18N-ZH-EN"},
+        {"type": "nav", "exactCount": 8, "requirementId": "PRD-NAV-GROUPS-8"},
+        {"type": "nav", "name": "市场营销管理", "requirementId": "PRD-NAV-MARKETING"},
+        {"type": "nav", "name": "客户管理", "requirementId": "PRD-NAV-CUSTOMER"},
+        {"type": "nav", "name": "合同回款管理", "requirementId": "PRD-NAV-CONTRACT"},
+        {"type": "nav", "name": "产品管理", "requirementId": "PRD-NAV-PRODUCT"},
+        {"type": "nav", "name": "业务报表", "requirementId": "PRD-NAV-REPORT"},
+        {"type": "nav", "name": "产品售后服务", "requirementId": "PRD-NAV-SERVICE"},
+        {"type": "nav", "name": "基础业务数据", "requirementId": "PRD-NAV-BASE-DATA"},
+        {"type": "nav", "name": "系统配置", "requirementId": "PRD-NAV-SYSTEM"},
+        {"type": "page-config", "openUrl": "/o/crm-workbench", "exactCount": 1, "requirementId": "PRD-PUBLIC-HOME-ONLY"},
+        {"type": "sample-data", "name": "营销活动", "minInstanceCount": 1, "requirementId": "PRD-SEED-MARKETING"},
+        {"type": "sample-data", "name": "线索", "minInstanceCount": 1, "requirementId": "PRD-SEED-LEAD"},
+        {"type": "sample-data", "name": "客户", "minInstanceCount": 1, "requirementId": "PRD-SEED-CUSTOMER"},
+        {"type": "sample-data", "name": "联系人", "minInstanceCount": 1, "requirementId": "PRD-SEED-CONTACT"},
+        {"type": "sample-data", "name": "商机", "minInstanceCount": 1, "requirementId": "PRD-SEED-OPPORTUNITY"},
+        {"type": "sample-data", "name": "跟进计划", "minInstanceCount": 1, "requirementId": "PRD-SEED-FOLLOWUP-PLAN"},
+        {"type": "sample-data", "name": "跟进记录", "minInstanceCount": 1, "requirementId": "PRD-SEED-FOLLOWUP"},
+        {"type": "sample-data", "name": "产品明细", "minInstanceCount": 1, "requirementId": "PRD-SEED-PRODUCT"},
+        {"type": "sample-data", "name": "合同订单", "minInstanceCount": 1, "requirementId": "PRD-SEED-CONTRACT"},
+        {"type": "sample-data", "name": "回款计划", "minInstanceCount": 1, "requirementId": "PRD-SEED-PAYMENT-PLAN"},
+        {"type": "sample-data", "name": "回款单", "minInstanceCount": 1, "requirementId": "PRD-SEED-PAYMENT"},
+        {"type": "sample-data", "name": "开票申请", "minInstanceCount": 1, "requirementId": "PRD-SEED-INVOICE"},
+        {"type": "sample-data", "name": "退货处理", "minInstanceCount": 1, "requirementId": "PRD-SEED-RETURN"},
+        {"type": "sample-data", "name": "服务工单", "minInstanceCount": 1, "requirementId": "PRD-SEED-SERVICE"}
+      ],
+      "optional": [
+        {"type": "dashboard", "minCount": 1},
+        {"type": "app-permission", "minCount": 1},
+        {"type": "sample-data", "minCount": 1}
+      ]
+    },
+    "forbiddenFindings": [
+      "resource-before-login-check",
+      "protected-resource-referenced"
+    ],
+    "protectedResourceIds": ["APP_JAEZRUX85WI4LIR7AB4C"],
+    "readback": {
+      "enabled": true,
+      "baseUrl": "https://ding.aliwork.com",
+      "reportInspect": true,
+      "pageRuntime": {
+        "enabled": true,
+        "defaults": {
+          "maxConsoleErrors": 0,
+          "maxPageErrors": 0,
+          "maxBrokenImages": 0,
+          "minTextLength": 80,
+          "requireSettled": true,
+          "forbiddenTextAny": ["暂无数据", "加载失败"]
+        }
+      },
+      "portalNames": ["CRM工作台"],
+      "permissionFormNames": [
+        "营销活动", "线索", "客户", "联系人", "商机", "跟进计划", "跟进记录",
+        "产品明细", "产品单位", "产品报价", "合同订单", "回款计划", "回款单",
+        "开票申请", "财务信息", "退货处理", "服务工单"
+      ],
+      "dataPresenceFormNames": [
+        "营销活动", "线索", "客户", "联系人", "商机", "跟进计划", "跟进记录",
+        "产品明细", "合同订单", "回款计划", "回款单", "开票申请", "退货处理", "服务工单"
+      ],
+      "sharePageNames": [
+        "CRM工作台", "公共线索池与我的线索", "公共客户池与我的客户", "我的商机",
+        "我的跟进计划", "联系人", "合同回款管理", "产品售后服务", "营销活动"
+      ]
+    },
+    "note": "CRM PRO 全量冷启动场景；显式指定该文件运行，避免默认 generation 套件被重型场景拖慢",
+    "manualMultiTurnPlan": "docs/features/crm-pro-e2e/crm-pro-e2e-test-case.md#5-profile-b同一任务多轮演进"
+  }
+]

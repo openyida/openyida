@@ -1,6 +1,6 @@
 ---
 name: yida-get-schema
-description: 确定性解析表单字段 ID（fieldId）和子表路径；agent 优先使用 compact 字段契约，排障时仍可获取完整 Schema。
+description: 确定性解析表单字段 ID、子表路径和表单行为语义；agent 按字段引用、完整字段映射或反向分析场景选择对应 contract。
 ---
 
 # 获取表单 Schema
@@ -24,6 +24,7 @@ description: 确定性解析表单字段 ID（fieldId）和子表路径；agent 
 - 页面开发、数据查询、报表配置或流程规则只需要字段身份时，先执行 `openyida get-schema <appType> <formUuid> --compact --resolve-fields "<字段1,字段2>"`，不要拉取完整 Schema
 - 页面开发默认使用 compact 输出，只读取必要字段契约，不内联完整 Schema
 - 完整应用页面、看板、列表或详情页需要一个表单的大部分字段，或需要跨多个表单建立 `dataBinding` 时，优先对每个表单执行一次 `openyida get-schema <appType> <formUuid> --field-map-json`，消费完整 JSON 后解析所需字段，不用 shell 截断 stdout
+- 分析、复刻或迁移已有表单时，执行一次 `openyida get-schema <appType> <formUuid> --analysis-json`，同时消费字段与 `semantics.actions/fieldBehaviors/associationRuleCount`；不得只凭 field map 推断原表单没有生命周期、联动、公式、关联或数据源行为
 - 多表单场景同一阶段同一 `formUuid` 默认最多拉取一次字段映射；把 `appType`、`formUuid`、`fieldId`、`label`、`componentName`、`options` 等合并写入 `<projectRoot>/.cache/<项目名>-schema.json`，后续 `page-spec.json` 和源码复用该本地 ID 映射
 - 执行 compact 查询后，只消费唯一命中的 `fields[]`；`missingFields` 或 `ambiguousFields` 非空时停止，不得猜测或继续写操作
 - 只有用户明确需要完整组件 props、布局结构、字段数据源配置，或 compact/summary 无法排障时，才执行不带 `--compact`/`--summary-json` 的完整 Schema 输出；拿到完整 Schema 后只读取必要片段，不内联完整 Schema
@@ -47,6 +48,7 @@ description: 确定性解析表单字段 ID（fieldId）和子表路径；agent 
 **正向触发**：
 - 任何需要用到 fieldId 的操作前（自动前置触发）
 - "查看表单结构"、"获取字段 ID"、"查看 Schema"
+- "分析/复刻/迁移已有表单"、"比较表单行为"、"查看生命周期/联动/公式/数据源"
 - 其他技能（yida-data-management、yida-process-rule、页面源码维护技能）执行前的字段 ID 前置步骤
 - "批量获取所有表单 Schema"、"导出应用下所有字段 ID"、"不知道 formUuid 先全量看一遍"
 
@@ -58,8 +60,11 @@ description: 确定性解析表单字段 ID（fieldId）和子表路径；agent 
 ```bash
 openyida get-schema <appType> <formUuid> --compact [--resolve-fields <labelOrFieldId,...>]
 openyida get-schema <appType> <formUuid> [--summary-json|--field-map-json]
-openyida get-schema <appType> --all [--summary-json] [--output-dir <dir>] [--keyword <text>] [--concurrency N] [--retries N]
+openyida get-schema <appType> <formUuid> --analysis-json
+openyida get-schema <appType> --all [--summary-json|--analysis-json] [--output-dir <dir>] [--keyword <text>] [--concurrency N] [--retries N]
 ```
+
+两个位置参数顺序固定：先传 `appType`，再传 `formUuid`，不得调换。
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
@@ -73,17 +78,21 @@ openyida get-schema <appType> --all [--summary-json] [--output-dir <dir>] [--key
 | `--concurrency N` | 否 | 批量并发数，默认 3，范围 1-10 |
 | `--retries N` | 否 | 单个 Schema 失败后的重试次数，默认 1，范围 0-5 |
 | `--summary-json` / `--field-map-json` | 否 | 只输出字段摘要 JSON，不把完整 Schema 放入 stdout；`--field-map-json` 是语义别名 |
+| `--analysis-json` | 否 | 输出 `yida_schema_semantic_analysis` contract v1：字段摘要、动作函数/绑定、URL 参数、字段 mutation、只读/隐藏、校验、公式/联动、关联和数据源摘要；不回显动作源码 |
 
 ### 单表模式
 
 ```bash
 openyida get-schema APP_XXX FORM-XXX --compact --resolve-fields "访客姓名,状态"
 openyida get-schema APP_XXX FORM-XXX --field-map-json
+openyida get-schema APP_XXX FORM-XXX --analysis-json
 ```
 
 Agent 只需要少量字段 ID 时，默认使用 `--compact --resolve-fields`，读取 `fields[].label`、`fields[].fieldId`、`fields[].componentType`、`fields[].valueType`、`fields[].path`、`fields[].labelPath` 和 `fields[].parentFieldId`。`path` 是稳定的 fieldId 数组，`labelPath` 是可读路径；所有可用语言的 label 都参与精确匹配。同名字段会进入 `ambiguousFields[].matches`，必须使用完整 `labelPath`、稳定 `path` 或已返回的 fieldId 重新精确选择，禁止取第一个。
 
 需要全量字段摘要和选项时继续使用 `--summary-json`。只有需要组件完整 props、布局结构、字段数据源配置或排障时，才执行不带 compact/summary 参数的完整 Schema 输出。
+
+反向分析时读取 `--analysis-json`，重点区分：源码字节数大不等于业务行为多；以 `urlParams`、`fieldMutations`、动作绑定、字段行为、关联规则和数据源摘要判断业务语义。需要等价迁移时，把字段结构与行为结构分别交给 `yida-create-form-page`，不要把缺失行为误报成“字段已创建所以表单完成”。
 
 消费输出时读取完整 JSON，再由 agent / 脚本解析字段；不要用 `tail -20`、`head -30` 或 `grep` 只看局部 stdout。局部查看可以作为人工调试，但不能作为后续写页面、写数据或配置流程的字段证据。
 
@@ -98,6 +107,7 @@ Agent 只需要少量字段 ID 时，默认使用 `--compact --resolve-fields`�
 
 ```bash
 openyida get-schema APP_XXX --all --summary-json --output-dir .cache/openyida/customer/schemas
+openyida get-schema APP_XXX --all --analysis-json --output-dir .cache/openyida/customer/schema-analysis
 openyida get-schema APP_XXX --all --keyword 客户 --concurrency 5 --retries 2
 ```
 
