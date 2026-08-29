@@ -48,7 +48,7 @@ test('unsupported permission arguments are localized by OPENYIDA_LANG instead of
   );
 });
 
-test('get-permission accepts the common --json output flag', () => {
+test('get-permission keeps accepting legacy --json although output is always JSON', () => {
   expect(parseGetPermissionArgs(['APP-1', 'FORM-1', '--json'])).toEqual({
     appType: 'APP-1',
     formUuid: 'FORM-1',

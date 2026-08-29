@@ -203,6 +203,8 @@ openyida data create form APP_XXX FORM_XXX --data-file .cache/openyida/data-impo
 openyida get-permission APP_XXX FORM_XXX
 ```
 
+`get-permission` always writes JSON to stdout. The legacy `--json` flag remains accepted only for backward compatibility.
+
 `configure-process` 的流程 JSON 中，审批人可配置为发起人、指定成员、指定角色、部门主管或直属主管，例如：
 
 ```json
@@ -433,7 +435,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, and domain settings |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | Fetch Markdown content from a DingTalk document |
 | `openyida read-dingtalk-tingji <taskUuid> [--json]` | Fetch DingTalk Tingji details by task UUID |
-| `openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--json]` | Query form permission config |
+| `openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>]` | Query form permission config |
 | `openyida save-permission <appType> <formUuid> --package-uuid <packageUuid> [--data-permission <json>\|--action-permission <json>\|--field-permission <json>]` | Save form permission config |
 | `openyida corp-manager <search-user\|list\|add\|remove\|address-book> ...` | Manage platform admins and address book permissions |
 | `openyida agent-center <list\|create\|update\|cancel\|range\|search-user> ...` | Manage process and departure delegation |

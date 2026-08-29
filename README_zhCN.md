@@ -217,6 +217,8 @@ openyida data query subform APP_XXX FORM_XXX --inst-id FORM_INST_XXX --table-fie
 
 录入或更新数据前先用 `openyida get-schema` 获取真实 fieldId。`DateField` / `CascadeDateField` 使用 13 位毫秒时间戳，例如 `1719705600000`。
 
+`openyida get-permission` 恒向 stdout 输出 JSON；旧的 `--json` 参数仅为兼容已有脚本而保留。
+
 ### 报表和 ECharts
 
 ```bash
@@ -317,7 +319,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | 查询组织基本信息、容量、额度和域名设置 |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | 获取钉钉文档的 Markdown 内容 |
 | `openyida read-dingtalk-tingji <taskUuid> [--json]` | 按任务 UUID 获取钉钉听记详情 |
-| `openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--json]` | 查询表单权限配置 |
+| `openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>]` | 查询表单权限配置 |
 | `openyida save-permission <appType> <formUuid> --package-uuid <packageUuid> [--data-permission <json>\|--action-permission <json>\|--field-permission <json>]` | 保存表单权限配置 |
 | `openyida corp-manager <search-user\|list\|add\|remove\|address-book> ...` | 管理平台管理员与通讯录权限 |
 | `openyida agent-center <list\|create\|update\|cancel\|range\|search-user> ...` | 管理流程代理和离职代理 |

@@ -1566,6 +1566,10 @@ describe('CLI offline smoke', () => {
       .map(entry => [entry.id, entry]));
     expect(builderCommands.get('data').examples[0]).toContain('1787932800000');
     expect(builderCommands.get('nav-group').examples).toContain('openyida nav-group move APP_XXX FORM_XXX --to NAV_XXX');
+    expect(builderCommands.get('get-permission')).toMatchObject({
+      usage: 'openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>]',
+      output: 'json',
+    });
     expect(builderCommands.get('save-permission').examples[0]).toContain('get-permission APP_XXX FORM_XXX');
     expect(parsed.recommended.preflight_command).toBe('openyida agent-capabilities --summary-json');
     expect(parsed.recommended.full_capabilities_command).toBe('openyida agent-capabilities --json');

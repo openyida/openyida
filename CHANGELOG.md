@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- `openyida integration list` 默认查询范围从仅 `flowType=1` 扩展为全部已知类型 `1,2,3,5,6`。依赖旧口径做数量断言的脚本应显式传入 `--flow-types 1`。
+
 ## [2026.8.28] - 2026-08-28
 
 ### Added
