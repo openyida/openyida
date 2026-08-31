@@ -1142,7 +1142,8 @@ module.exports = {
     result_copy: '   {0} → {1} ({2} archivos)',
     remove_failed: '    ❌ Error al eliminar: {0} ({1})',
     symlink_fallback_copy: '    ⚠️  Creación de enlace simbólico Windows fallida (requiere permisos de admin), usando copia de directorio: {0}',
-    symlink_failed: '    ❌ Error al crear enlace simbólico: {0} ({1})'
+    symlink_failed: '    ❌ Error al crear enlace simbólico: {0} ({1})',
+    source_destination_overlap: 'Copia detenida porque los directorios de origen y destino se superponen. Origen: {0}; destino: {1}'
   },
   check_update: {
     new_version: '\n🎉 Nueva versión disponible: {0} → {1}',
@@ -1903,6 +1904,14 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
 });
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  command_unsupported: 'Comando de datos no compatible: {0} {1}. Ejecuta openyida commands --json para consultar la capacidad real.',
+  delete_confirmation_required: 'Antes de eliminar un registro de formulario, consulta el objetivo, muestra el resumen al usuario y añade --confirm solo tras su aprobación explícita. No se realizó ninguna eliminación.',
+  delete_preflight_failed: 'No se pudo leer el registro de formulario {0} para la comprobación previa. No se realizó ninguna eliminación.',
+  delete_process_unsupported: 'Esta versión no admite eliminar instancias de proceso. Detén la operación e informa de la carencia; no uses scripts ni API privadas.',
+  delete_readback_mismatch: 'La solicitud de eliminación fue aceptada, pero el registro {0} sigue presente al volver a consultarlo. El resultado no está verificado; no repitas automáticamente la eliminación.',
+  delete_result_unknown: 'Se desconoce el resultado de la eliminación del registro {0}. Realiza solo una consulta de lectura y no repitas automáticamente la eliminación.',
+  delete_target_mismatch: 'El registro de formulario {0} no pertenece al formulario de destino {1}. La operación se detuvo antes de eliminar.',
+  delete_target_unverified: 'No se pudo verificar la identidad y pertenencia del registro de formulario {0}. La operación se detuvo antes de eliminar.',
   form_mode_unverified: 'No se pudo verificar el tipo del formulario {0}. La creación se detuvo antes de escribir datos.',
   resource_required: 'Falta el tipo de recurso form en data query. Comando sugerido: {0}',
 });

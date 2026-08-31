@@ -601,13 +601,14 @@
       "name": "yida-data-management",
       "path": "skills/yida-data-management/SKILL.md",
       "display_name": "宜搭数据管理",
-      "description": "宜搭数据管理。表单实例、子表、流程实例和任务中心的查询、新增、更新。",
+      "description": "宜搭数据管理。表单实例、子表、流程实例和任务中心的查询、新增、更新，以及普通表单单实例的精确删除。",
       "category": "yida-skills/form",
       "tags": [
         "数据查询",
         "数据新增",
         "表单实例",
-        "流程实例"
+        "流程实例",
+        "数据删除"
       ],
       "aliases": [
         "数据管理",
@@ -620,7 +621,8 @@
         "批量导入",
         "表单实例",
         "子表数据",
-        "任务中心"
+        "任务中心",
+        "删除记录"
       ],
       "negative_signals": [
         "新增字段",
@@ -632,7 +634,7 @@
         "data",
         "task-center"
       ],
-      "done_when": "目标数据查询或写入完成，并用 query/get 抽查真实记录。"
+      "done_when": "目标数据查询或写入完成，并用 query/get 抽查真实记录；删除仅在 deleted=true 且 readbackVerified=true 时完成。"
     },
     {
       "name": "yida-data-source-connectors",

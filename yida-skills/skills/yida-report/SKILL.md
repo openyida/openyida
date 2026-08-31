@@ -127,11 +127,11 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 
 宜搭原生组件库本身包含更多组件，但 OpenYida CLI 只开放已经接入并纳入确定性契约的类型。未知类型、未探测类型和缺失 `type` 均会在远端写入前失败，绝不静默回退成柱状图。Agent 应通过 `openyida create-report` 传入结构化图表配置，由 CLI 内部构建并发布 Schema，不要尝试读取或手写 `build-yida-report-schema.js`。
 
-<!-- runtime-supported-chart-types: bar, combo, funnel, gauge, indicator, line, pie, pivot, table -->
+<!-- runtime-supported-chart-types: bar, calendarheatmap, combo, funnel, gauge, indicator, line, map, pie, pivot, table -->
 
 - **组件库地址**：`//g.alicdn.com/code/npm/@ali/vc-yida-report/1.0.101/pc.js`
 - **全局挂载**：`window.YidaReport`
-- **创建入口**：`openyida create-report <appType> "<报表名称>" <配置JSON文件路径>`
+- **创建入口**：`openyida create-report <appType> "<报表名称>" <配置JSON文件路径> --json`
 - **字段配置参考**：[`report-field-config-guide.md`](../../references/report-field-config-guide.md)
 
 ### 组件总览
@@ -145,17 +145,19 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 | `YoushuFunnelChart` | 漏斗图 | `buildSchema.funnelChart()` | 图表 |
 | `YoushuGauge` | 仪表盘 | `buildSchema.gauge()` | 图表 |
 | `YoushuComboChart` | 组合图 | `buildSchema.comboChart()` | 图表 |
+| `YoushuCalendarHeatmap` | 日历热力图 | `type: calendarHeatmap` | 图表 |
+| `YoushuMap` | 地图 | `type: map` | 图表 |
 | `YoushuCrossPivotTable` | 交叉透视表 | `buildSchema.crossPivotTable()` | 表格 |
 | `YoushuTable` | 基础表格 | `buildSchema.table()` | 表格 |
 | `YoushuPageHeader` | 页面标题栏 | `buildSchema.pageHeader()` | 布局 |
 | `YoushuTopFilterContainer` | 顶部筛选容器 | `buildSchema.topFilterContainer()` | 筛选 |
 | `YoushuSelectFilter` | 下拉筛选器 | `buildSchema.selectFilter()` | 筛选 |
 
-上表中的图表/表格类型与 runtime capability registry 一致；页面标题和 select 筛选器是 CLI 已接入的辅助组件。雷达、热力、日历热力、词云、地图、数字卡等高级 widget 即使存在于设计器组件库，也不得在未完成 platform/runtime probe 前传给 CLI。
+上表中的图表/表格类型与 runtime capability registry 一致；页面标题和 select 筛选器是 CLI 已接入的辅助组件。雷达、普通热力、词云、数字卡等未注册 widget 即使存在于设计器组件库，也不得传给 CLI。
 
 ### Schema 构建细节参考
 
-普通报表创建优先使用 `openyida create-report <appType> "<报表名称>" <配置JSON文件路径>`，由 CLI 内部构建并发布 Schema。需要查看构建函数、组件示例、settings 字段或完整页面组合示例时，再读取 [references/schema-builder-details.md](references/schema-builder-details.md)。
+普通报表创建优先使用 `openyida create-report <appType> "<报表名称>" <配置JSON文件路径> --json`，由 CLI 内部构建并发布 Schema。机器调用必须保留 `--json`，以便在远端已经写入但回读不一致时读取安全的恢复信息。需要查看构建函数、组件示例、settings 字段或完整页面组合示例时，再读取 [references/schema-builder-details.md](references/schema-builder-details.md)。
 
 ---
 
@@ -164,13 +166,36 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 ### 命令调用格式
 
 ```bash
-openyida create-report <appType> "<报表名称>" <配置JSON文件路径>
+openyida create-report <appType> "<报表名称>" <配置JSON文件路径> --json
 # 配置文件路径示例：.cache/openyida/<项目名或任务名>/<报表名>-report.json
 ```
 
 > 配置 JSON 先用 create_file / Write / file edit tool 创建。上方路径默认从 OpenYida project 工作目录执行；从 workspace 根执行命令时传 `project/.cache/openyida/<项目名或任务名>/<报表名>-report.json`。
 
 **⚠️ 第二个参数是报表名称，必须使用业务含义的中文名称**（如"任务管理数据报表"），不要传 formUuid。
+
+对 `REPORT_SCHEMA_READBACK_MISMATCH` 等 post-create failure，同时读取顶层 `sideEffectState`、`residual`、`retrySafe`、`nextStep` 以及兼容字段 `details.nextAction`。若返回 `partial=true`、`residual.owned=true`，立即把 `residual.appType + residual.reportId` 锁定为本 task/run 唯一报表目标。即使更换配置文件、标题、prompt 或进入恢复轮次，也禁止再次执行 `create-report`，禁止按名称猜资源，禁止自动删除、隐藏或创建同名 display 页面掩盖残留。
+
+先且只先执行一次 `openyida report inspect <residual.appType> <residual.reportId> --json`。只有 inspect 证明原报表身份正确、已有组件集合明确，并且能够确定性算出尚未写入的 owned 图表时，才允许用 `append-chart` 修复同一个 `residual.reportId` 并再次 readback；不能证明安全增量或当前 CLI 没有对应 update/repair 能力时，必须停止并交付完整 residual、mismatch 和 nextStep，不能重新创建。
+
+<!-- owned-residual-contract:start -->
+```json
+{
+  "when": "partial=true && residual.type=report && residual.owned=true",
+  "createReportAllowed": false,
+  "inspect": {
+    "commandId": "report.inspect",
+    "appTypeSource": "residual.appType",
+    "reportIdSource": "residual.reportId",
+    "maxAttempts": 1
+  },
+  "allowedRepairCommands": ["append-chart"],
+  "repairReportIdSource": "residual.reportId",
+  "deleteAllowed": false,
+  "unsafeRepairFallback": "stop_and_report_residual"
+}
+```
+<!-- owned-residual-contract:end -->
 
 ### cubeCode 格式规则
 
@@ -220,6 +245,8 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 | `indicator` | `kpi`（数组） | 每个 kpi 字段需要 `fieldCode`、`aliasName`、`aggregateType` |
 | `pie` | `xField`（单个）+ `yField`（数组） | xField 为分类维度，yField 为数值度量 |
 | `bar`/`line`/`funnel` | `xField`（单个）+ `yField`（数组） | `bar`/`line` 可选 `groupField` 分组 |
+| `calendarHeatmap` | `xField`（日期）+ `yField`（数值） | 日期字段建议显式 `dataType: DATE`、`timeGranularityType: DAY` |
+| `map` | `locationFields`（地域层级）+ `valueField`（数值） | 地域字段按省/市/区顺序传入，数值通常使用 `pid + COUNT` |
 | `table` | `columnFields`（数组） | 每列一个字段对象 |
 | `combo` | `xField` + `leftYFields`/`rightYFields` 至少一组 | 柱线混合图，横轴和至少一个纵轴角色均为硬校验 |
 | `gauge` | `valueField`（单个） | 可选 `assitValueField` |
@@ -250,6 +277,8 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 2. **外层字段数组**（`xField`/`yField`/`fieldList`/`columnFields` 等）：展示层，每个字段对象包含 20+ 属性（`visible`、`isDimension`、`fieldKey`、`cubeCode`、`title`、`format`、`link`、`drillList`、`orderBy`、`measureType` 等）
 
 两层都必须正确填充，否则报表图表会显示为空。
+
+地域分布、订单日历等需求不得退化成普通柱/饼图：先从真实表单 Schema 取得地址拆分字段或 DateField，再分别使用 `map` / `calendarHeatmap`。既有报表反向分析时，以 `report inspect` 的组件名、cubeCode、字段角色和时间粒度为准，不按图表标题猜配置。
 
 ### userConfig 格式
 

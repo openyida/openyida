@@ -1140,7 +1140,8 @@ module.exports = {
     result_copy: '   {0} → {1} ({2} Dateien)',
     remove_failed: '    ❌ Entfernen fehlgeschlagen: {0} ({1})',
     symlink_fallback_copy: '    ⚠️  Windows-Symlink-Erstellung fehlgeschlagen (Admin-Rechte erforderlich), Verzeichniskopie wird verwendet: {0}',
-    symlink_failed: '    ❌ Symlink-Erstellung fehlgeschlagen: {0} ({1})'
+    symlink_failed: '    ❌ Symlink-Erstellung fehlgeschlagen: {0} ({1})',
+    source_destination_overlap: 'Kopiervorgang abgebrochen, da sich Quell- und Zielverzeichnis überschneiden. Quelle: {0}; Ziel: {1}'
   },
   check_update: {
     new_version: '\n🎉 Neue Version verfügbar: {0} → {1}',
@@ -1901,6 +1902,14 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
 });
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  command_unsupported: 'Nicht unterstützter Datenbefehl: {0} {1}. Mit openyida commands --json können Sie die tatsächlichen Funktionen prüfen.',
+  delete_confirmation_required: 'Vor dem Löschen eines Formulareintrags muss das Ziel abgefragt und dem Benutzer zusammengefasst werden. --confirm darf erst nach ausdrücklicher Bestätigung gesetzt werden. Es wurde nichts gelöscht.',
+  delete_preflight_failed: 'Der Formulareintrag {0} konnte für die Löschprüfung nicht gelesen werden. Es wurde nichts gelöscht.',
+  delete_process_unsupported: 'Das Löschen von Prozessinstanzen wird in dieser Version nicht unterstützt. Beenden Sie den Vorgang und melden Sie die Funktionslücke; verwenden Sie keine Skripte oder privaten APIs.',
+  delete_readback_mismatch: 'Die Löschanforderung wurde akzeptiert, aber der Formulareintrag {0} ist beim Rücklesen noch vorhanden. Das Ergebnis ist nicht verifiziert; die Löschung darf nicht automatisch wiederholt werden.',
+  delete_result_unknown: 'Das Löschergebnis für den Formulareintrag {0} ist unbekannt. Prüfen Sie das Ziel nur lesend und wiederholen Sie die Löschung nicht automatisch.',
+  delete_target_mismatch: 'Der Formulareintrag {0} gehört nicht zum Zielformular {1}. Der Vorgang wurde vor dem Löschen beendet.',
+  delete_target_unverified: 'Identität und Zuordnung des Formulareintrags {0} konnten nicht verifiziert werden. Der Vorgang wurde vor dem Löschen beendet.',
   form_mode_unverified: 'Der Typ des Formulars {0} konnte nicht verifiziert werden. Die Erstellung wurde vor jedem Datenschreibvorgang beendet.',
   resource_required: 'Bei data query fehlt der Ressourcentyp form. Empfohlener Befehl: {0}',
 });

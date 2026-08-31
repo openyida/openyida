@@ -1,6 +1,6 @@
 {
   "name": "openyida",
-  "version": "2026.8.27-2",
+  "version": "2026.8.31-1",
   "description": "OpenYida CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
   "bin": {
     "openyida": "bin/yida.js",
@@ -33,6 +33,7 @@
     "eval:e2e": "node scripts/eval/runner.js --mode e2e",
     "eval:routing": "node scripts/eval/runner.js --mode routing",
     "eval:generate": "node scripts/eval/runner.js --mode generate",
+    "eval:replay": "node scripts/eval/replay-generation.js",
     "eval:all": "node scripts/eval/runner.js --mode all",
     "eval:doc-quality": "node scripts/eval/runner.js --mode doc-quality",
     "eval:safety": "node scripts/eval/runner.js --mode safety",

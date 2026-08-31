@@ -242,7 +242,7 @@ function runAgentAsync(options) {
     try {
       child = spawn(command, args, {
         cwd: options.cwd,
-        env: process.env,
+        env: options.env || process.env,
         stdio: ['ignore', 'pipe', 'pipe'],
       });
     } catch (e) {
@@ -649,6 +649,7 @@ function runParallelGeneration(options) {
   }
 
   const agentMod = require('./agent');
+  const commandTrace = require('./command-trace');
   const adapter = agentMod.getAgentAdapter(agentCommand);
   let agentUnavailable = false;
   let completed = 0;
@@ -662,6 +663,15 @@ function runParallelGeneration(options) {
 
   const tasks = scenarios.map(function (scenario) {
     return function () {
+      if (scenario.auditOnly === true) {
+        completed++;
+        onProgress(completed, scenarios.length);
+        return Promise.resolve(generate.evaluateGenerationScenario({
+          scenario: scenario,
+          skillContext: skillContext,
+          collectEvidence: options.collectEvidence,
+        }));
+      }
       if (agentUnavailable) {
         completed++;
         onProgress(completed, scenarios.length);
@@ -677,6 +687,10 @@ function runParallelGeneration(options) {
         request: scenario.prompt,
         skillContext: skillContext,
       });
+      const evidenceMod = require('./evidence');
+      const optimizationMod = require('./optimization-findings');
+      const collector = generate.resolveEvidenceCollector(scenario, options.collectEvidence);
+      const beforeEvidence = generate.collectGenerationBeforeEvidence(scenario, collector);
 
       const extraArgs = [].concat(
         adapter.permissionBypass,
@@ -686,34 +700,72 @@ function runParallelGeneration(options) {
 
       stats.agentCalls++;
 
+      const trace = commandTrace.createCommandTraceSession({ env: process.env });
+
       return runAgentAsync({
         command: agentCommand,
         prompt: prompt,
         timeoutMs: timeoutMs,
         cwd: ROOT,
+        env: trace.env,
         extraArgs: extraArgs,
       }).then(function (res) {
+        res.commandTrace = trace.read();
+        res.commandTraceAvailable = trace.available;
+        trace.cleanup();
         completed++;
         onProgress(completed, scenarios.length);
 
         if (!res.available) {
           agentUnavailable = true;
-          return { id: scenario.id, status: 'agent-unavailable', prompt: scenario.prompt, targets: [] };
+          const outcome = { id: scenario.id, status: 'agent-unavailable', prompt: scenario.prompt, targets: [] };
+          outcome.optimizationFindings = optimizationMod.deriveOptimizationFindings({
+            scenario: scenario, status: outcome.status,
+          });
+          return outcome;
         }
         if (!res.ok && !(res.text)) {
-          return {
+          const emptyResult = generate.parseGenerationResult(res);
+          const afterEvidence = evidenceMod.runEvidenceCollector(collector, {
+            phase: 'after',
+            scenario: scenario, result: emptyResult, agentResult: res,
+          });
+          const extraEvidence = evidenceMod.mergeEvidence(beforeEvidence, afterEvidence);
+          const evidence = evidenceMod.buildGenerationEvidence({
+            scenario: scenario, result: emptyResult, agentResult: res, extraEvidence: extraEvidence,
+          });
+          const evidenceChecks = evidenceMod.evaluateGenerationEvidence(scenario, evidence);
+          const outcome = {
             id: scenario.id, status: 'agent-error', prompt: scenario.prompt,
-            error: res.error, targets: [],
+            error: res.error, targets: [], result: emptyResult,
+            evidence: evidence,
+            evidenceChecks: evidenceChecks,
           };
+          outcome.optimizationFindings = optimizationMod.deriveOptimizationFindings({
+            scenario: scenario, evidence: evidence, evidenceChecks: evidenceChecks,
+            status: outcome.status, error: outcome.error,
+          });
+          return outcome;
         }
 
         const result = generate.parseGenerationResult(res);
+        const afterEvidence = evidenceMod.runEvidenceCollector(collector, {
+          phase: 'after',
+          scenario: scenario, result: result, agentResult: res,
+        });
+        const extraEvidence = evidenceMod.mergeEvidence(beforeEvidence, afterEvidence);
+        generate.mergeGenerationTargets(result, extraEvidence.targets);
         const features = generate.checkExpectedFeatures(result, scenario.expectedFeatures || {});
+        const evidence = evidenceMod.buildGenerationEvidence({
+          scenario: scenario, result: result, agentResult: res, extraEvidence: extraEvidence,
+        });
+        const evidenceChecks = evidenceMod.evaluateGenerationEvidence(scenario, evidence);
         let status = 'ok';
         if (!result.ok) { status = 'no-output'; }
         else if (!features.pass) { status = 'feature-miss'; }
+        else if (!evidenceChecks.pass) { status = 'evidence-miss'; }
 
-        return {
+        const outcome = {
           id: scenario.id,
           status: status,
           prompt: scenario.prompt,
@@ -722,8 +774,15 @@ function runParallelGeneration(options) {
           summary: result.summary,
           targets: result.targets,
           features: features,
+          evidence: evidence,
+          evidenceChecks: evidenceChecks,
           result: result,
         };
+        outcome.optimizationFindings = optimizationMod.deriveOptimizationFindings({
+          scenario: scenario, evidence: evidence, evidenceChecks: evidenceChecks,
+          features: features, status: status,
+        });
+        return outcome;
       });
     };
   });

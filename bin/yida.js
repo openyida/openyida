@@ -13,7 +13,12 @@
 const { version: currentVersion } = require('../package.json');
 const { t } = require('../lib/core/i18n');
 const { warn } = require('../lib/core/chalk');
-const { CliError, isCliError, toErrorPayload } = require('../lib/core/cli-error');
+const {
+  CliError,
+  isCliError,
+  shouldUseStructuredErrorOutput,
+  toErrorPayload,
+} = require('../lib/core/cli-error');
 const { COMMAND_GROUPS, buildCommandManifest, findCommandSuggestion } = require('../lib/core/command-manifest');
 
 const command = process.argv[2];
@@ -484,6 +489,47 @@ function printCommandUsage(...lines) {
   console.log(lines.filter(Boolean).join('\n'));
 }
 
+const MANIFEST_HELP_PATHS = Object.freeze({
+  'get-schema': ['get-schema'],
+  'query-data': ['data'],
+  'data-manage': ['data'],
+  data: ['data'],
+  report: ['report'],
+  'create-process': ['create-process'],
+  'create-report': ['create-report'],
+  'append-chart': ['append-chart'],
+  'save-share-config': ['save-share-config'],
+  'verify-short-url': ['verify-short-url'],
+  'integration-create': ['integration', 'create'],
+  'save-permission': ['save-permission'],
+  'get-permission': ['get-permission'],
+  copy: ['copy'],
+});
+
+function printManifestCommandHelp(commandName) {
+  const canonicalPath = MANIFEST_HELP_PATHS[commandName];
+  if (!canonicalPath) {
+    return false;
+  }
+
+  const manifest = buildCommandManifest({ t, version: currentVersion });
+  const matches = manifest.commands.filter((entry) =>
+    canonicalPath.every((token, index) => entry.path[index] === token)
+  );
+  const exact = matches.find((entry) => entry.path.length === canonicalPath.length);
+  const entries = exact ? [exact] : matches;
+  if (entries.length === 0) {
+    return false;
+  }
+
+  printCommandUsage(...entries.flatMap((entry) => [
+    entry.usage,
+    entry.description,
+    ...(entry.examples || []),
+  ]));
+  return true;
+}
+
 function printLoginHelp() {
   printCommandUsage(t('cli.login_usage'), t('cli.login_example'));
 }
@@ -546,6 +592,10 @@ async function main() {
 
   if (command === '--version' || command === '-v') {
     console.log(currentVersion);
+    return;
+  }
+
+  if (hasHelpFlag(args) && printManifestCommandHelp(command)) {
     return;
   }
 
@@ -1218,7 +1268,7 @@ async function main() {
 
 main()
   .catch((err) => {
-    if (isCliError(err) && args.includes('--json')) {
+    if (shouldUseStructuredErrorOutput(err, args)) {
       console.error(JSON.stringify(toErrorPayload(err), null, 2));
     } else if (isCliError(err)) {
       warn(t('cli.exec_failed', err.message));

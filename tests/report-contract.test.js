@@ -73,6 +73,98 @@ describe('report frontend contract', () => {
       .toHaveProperty('__filterMeta__');
   });
 
+  test('prepareReportSchemaForSave matches platform omission of null chart defaults', () => {
+    const original = buildSchema({
+      pages: [{
+        utils: [],
+        css: 'body {\n  background-color: #f2f3f5;\n}\n',
+        componentsTree: [{
+          componentName: 'Page',
+          lifeCycles: { componentDidMount: null, componentWillUnmount: null },
+          children: [{
+            componentName: 'YoushuPieChart',
+            props: {
+              height: null,
+              dataSetModelMap: {
+                chartData: {
+                  dataViewQueryModel: {
+                    fieldDefinitionList: [{ fieldCode: 'dateField_1', timeGranularityType: null }],
+                  },
+                },
+              },
+              settings: {
+                height: null,
+                legend: { cardWidth: null, showLegend: true },
+                fixedLegend: { cardWidth: 320 },
+                yAxis: { min: null, max: null },
+              },
+              exportData: {
+                supportExport: false,
+                filterList: null,
+                exportPromptFilter: null,
+              },
+            },
+          }],
+        }],
+      }],
+    });
+
+    const prepared = prepareReportSchemaForSave(original);
+    const props = prepared.pages[0].componentsTree[0].children[0].props;
+
+    expect(props).not.toHaveProperty('height');
+    expect(props.dataSetModelMap.chartData.dataViewQueryModel.fieldDefinitionList[0])
+      .toEqual({ fieldCode: 'dateField_1' });
+    expect(props.settings).toEqual({
+      legend: { showLegend: true },
+      fixedLegend: { cardWidth: 320 },
+      yAxis: {},
+    });
+    expect(props.exportData).toEqual({ supportExport: false });
+    expect(prepared.pages[0].componentsTree[0].lifeCycles).toEqual({});
+    expect(prepared.pages[0]).not.toHaveProperty('utils');
+    expect(prepared.pages[0]).not.toHaveProperty('css');
+    expect(original.pages[0].componentsTree[0].children[0].props).toHaveProperty('height', null);
+  });
+
+  test('keeps cardWidth strict outside the proven pie legend null normalization', () => {
+    const calendar = buildSchema({
+      pages: [{
+        componentsTree: [{
+          componentName: 'Page',
+          children: [{
+            componentName: 'YoushuCalendarHeatmap',
+            props: { settings: { legend: { cardWidth: null } } },
+          }],
+        }],
+      }],
+    });
+    const pie = buildSchema({
+      pages: [{
+        componentsTree: [{
+          componentName: 'Page',
+          children: [{
+            componentName: 'YoushuPieChart',
+            props: {
+              settings: {
+                legend: { cardWidth: 320 },
+                fixedLegend: { cardWidth: null },
+              },
+            },
+          }],
+        }],
+      }],
+    });
+
+    expect(prepareReportSchemaForSave(calendar).pages[0].componentsTree[0]
+      .children[0].props.settings.legend).toHaveProperty('cardWidth', null);
+    expect(prepareReportSchemaForSave(pie).pages[0].componentsTree[0]
+      .children[0].props.settings).toEqual({
+      legend: { cardWidth: 320 },
+      fixedLegend: { cardWidth: null },
+    });
+  });
+
   test('normalizes string and response-wrapped schema content', () => {
     const schema = buildSchema();
     expect(normalizeReportSchemaContent({ content: JSON.stringify(schema) })).toEqual(schema);
@@ -208,6 +300,13 @@ describe('report frontend contract', () => {
     expect(caught).toMatchObject({
       code: 'REPORT_SCHEMA_READBACK_MISMATCH',
       details: {
+        mismatchType: expectedKind,
+        mismatchPath: expect.stringMatching(/^\$\.pages\[0\]\.componentsTree\[0\]\.children/),
+        retryable: false,
+        retrySafe: false,
+        sideEffectState: 'unknown',
+        readbackAllowed: true,
+        recommendedRecovery: 'inspect_then_stop',
         mismatch: {
           kind: expectedKind,
           path: expect.stringMatching(/^\$\.pages\[0\]\.componentsTree\[0\]\.children/),

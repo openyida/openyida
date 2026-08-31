@@ -1,6 +1,11 @@
 'use strict';
 
-const { CliError, isCliError, toErrorPayload } = require('../lib/core/cli-error');
+const {
+  CliError,
+  isCliError,
+  shouldUseStructuredErrorOutput,
+  toErrorPayload,
+} = require('../lib/core/cli-error');
 
 describe('CliError', () => {
   test('keeps exit code and code metadata', () => {
@@ -57,5 +62,87 @@ describe('CliError', () => {
         authToken: 'priv***oken',
       },
     });
+  });
+
+  test('promotes owned residual metadata and forces structured output without --json', () => {
+    const error = new CliError('Readback mismatch', {
+      code: 'REPORT_SCHEMA_READBACK_MISMATCH',
+      details: {
+        partial: true,
+        residual: {
+          type: 'report',
+          appType: 'APP_1',
+          reportId: 'REPORT_1',
+          owned: true,
+          state: 'created_partial',
+        },
+        retryable: false,
+        retrySafe: false,
+        sideEffectState: 'partial',
+        nextAction: {
+          commandId: 'report.inspect',
+          args: { appType: 'APP_1', reportId: 'REPORT_1' },
+        },
+        nextStep: 'openyida report inspect APP_1 REPORT_1 --json',
+      },
+    });
+
+    expect(toErrorPayload(error)).toMatchObject({
+      success: false,
+      errorCode: 'REPORT_SCHEMA_READBACK_MISMATCH',
+      partial: true,
+      residual: {
+        type: 'report',
+        appType: 'APP_1',
+        reportId: 'REPORT_1',
+        owned: true,
+        state: 'created_partial',
+      },
+      retryable: false,
+      retrySafe: false,
+      sideEffectState: 'partial',
+      nextStep: 'openyida report inspect APP_1 REPORT_1 --json',
+    });
+    expect(shouldUseStructuredErrorOutput(error, [])).toBe(true);
+    expect(shouldUseStructuredErrorOutput(new CliError('Bad input'), [])).toBe(false);
+    expect(shouldUseStructuredErrorOutput(new CliError('Bad input'), ['--json'])).toBe(true);
+  });
+
+  test('promotes unknown mutation outcome and forces structured output without --json', () => {
+    const error = new CliError('Delete outcome unknown', {
+      code: 'DATA_DELETE_RESULT_UNKNOWN',
+      details: {
+        target: {
+          type: 'formInstance',
+          appType: 'APP_1',
+          formUuid: 'FORM_1',
+          formInstId: 'FINST_1',
+        },
+        deleted: false,
+        mutationAccepted: true,
+        readbackVerified: false,
+        status: 'RESULT_UNKNOWN',
+        retryable: false,
+        retrySafe: false,
+        sideEffectState: 'unknown',
+        nextStep: 'openyida data get form APP_1 --inst-id FINST_1 --json',
+      },
+    });
+
+    expect(toErrorPayload(error)).toMatchObject({
+      errorCode: 'DATA_DELETE_RESULT_UNKNOWN',
+      target: {
+        type: 'formInstance',
+        formInstId: 'FINST_1',
+      },
+      deleted: false,
+      mutationAccepted: true,
+      readbackVerified: false,
+      status: 'RESULT_UNKNOWN',
+      retryable: false,
+      retrySafe: false,
+      sideEffectState: 'unknown',
+    });
+    expect(shouldUseStructuredErrorOutput(error, [])).toBe(true);
   });
 });

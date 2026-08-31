@@ -1090,7 +1090,8 @@ module.exports = {
     result_copy: '   {0} → {1}（{2} ファイル）',
     remove_failed: '    ❌ 削除失敗: {0} ({1})',
     symlink_fallback_copy: '    ⚠️  Windows でシンボリックリンク作成失敗（管理者権限が必要）、ディレクトリコピーにフォールバック: {0}',
-    symlink_failed: '    ❌ シンボリックリンク作成失敗: {0} ({1})'
+    symlink_failed: '    ❌ シンボリックリンク作成失敗: {0} ({1})',
+    source_destination_overlap: 'コピー元とコピー先のディレクトリが重複しているため、コピーを停止しました。コピー元: {0}、コピー先: {1}'
   },
   check_update: {
     new_version: '\n' +
@@ -1828,6 +1829,14 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
 });
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  command_unsupported: '未対応のデータコマンドです: {0} {1}。実際の機能は openyida commands --json で確認してください。',
+  delete_confirmation_required: 'フォームレコードを削除する前に対象を読み取り、概要をユーザーに提示し、明示的な承認後にのみ --confirm を追加してください。削除は実行されていません。',
+  delete_preflight_failed: '削除前確認のためフォームレコード {0} を読み取れませんでした。削除は実行されていません。',
+  delete_process_unsupported: 'このバージョンではプロセスインスタンスの削除に対応していません。処理を停止して機能不足を報告し、スクリプトや非公開 API を使用しないでください。',
+  delete_readback_mismatch: '削除要求は受理されましたが、再読み取り時にフォームレコード {0} が残っています。結果は未検証です。削除を自動再試行しないでください。',
+  delete_result_unknown: 'フォームレコード {0} の削除結果は不明です。読み取り専用で確認し、削除を自動再試行しないでください。',
+  delete_target_mismatch: 'フォームレコード {0} は対象フォーム {1} に属していません。削除前に処理を停止しました。',
+  delete_target_unverified: 'フォームレコード {0} の識別情報と所属を検証できませんでした。削除前に処理を停止しました。',
   form_mode_unverified: 'フォーム {0} の種類を検証できませんでした。データを書き込まずに作成を停止しました。',
   resource_required: 'data query にリソース種別 form がありません。推奨コマンド: {0}',
 });

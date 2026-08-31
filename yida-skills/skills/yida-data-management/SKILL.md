@@ -1,6 +1,6 @@
 ---
 name: yida-data-management
-description: 宜搭数据管理。表单实例/子表/流程实例/任务中心的查询、新增、更新。表单走 /v1/form/，流程走 /v1/process/，不能混用。
+description: 宜搭数据管理。表单实例/子表/流程实例/任务中心的查询、新增、更新，以及普通表单单实例的精确删除。表单走 /v1/form/，流程走 /v1/process/，不能混用。
 ---
 
 # 数据管理
@@ -43,7 +43,9 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 - 操作前先用 query 命令确认目标数据存在
 - 新增记录、生成测试数据、批量导入或发起流程必须遵守上方“创建/录入数据强制闭环”
 - 批量操作单次不超过 30 条记录；多条实例必须逐条/分批执行 `openyida data create ...`
-- 删除数据前必须向用户展示操作摘要并获得明确确认
+- 删除普通表单记录前，必须先执行 `openyida data get form <appType> --inst-id <formInstId> --form-uuid <formUuid> --json`，核对返回实例 ID 与目标表单，并向用户展示记录数量、标题/关键字段和实例 ID；只有用户明确确认后，才执行带 `--confirm` 的正式删除命令
+- 删除完成只以 `deleted=true && readbackVerified=true` 为准；`alreadyAbsent=true` 表示本次未再次发删除请求，可按幂等成功处理
+- 当前不支持删除流程实例；禁止生成 `openyida data delete process`，禁止在 CLI 报不支持后探索一次性脚本、浏览器私有请求或底层 API 绕过正式能力
 - **录入/更新数据前，必须先执行 `openyida get-schema` 获取真实字段 ID，并将字段 ID 映射记录到 `.cache/<项目名>-schema.json`**
 - **生成测试数据或录入/更新数据时，`DateField` / `CascadeDateField` 必须使用 13 位毫秒时间戳（如 `1719705600000`），不要传 `YYYY-MM-DD`、`YYYY-MM-DD HH:mm:ss` 或 ISO 字符串**
 - **录入数据后，必须执行 `openyida data query` 抽查至少 1 条记录，确认 `formData` 中字段有实际值（非空），否则说明字段 ID 有误，需重新排查**
@@ -96,6 +98,22 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 2. 等待用户明确确认
 3. 执行删除
 
+<!-- data-delete-contract:start -->
+```json
+{
+  "supportedDeleteCommand": "data delete form",
+  "requiredTarget": ["appType", "formUuid", "formInstId"],
+  "preflightCommand": "data get form",
+  "businessConfirmationRequired": true,
+  "executionFlag": "--confirm",
+  "successCondition": "deleted=true && readbackVerified=true",
+  "repeatResult": "alreadyAbsent=true && mutationPerformed=false",
+  "processDeleteSupported": false,
+  "privateApiFallbackAllowed": false
+}
+```
+<!-- data-delete-contract:end -->
+
 ---
 
 
@@ -106,13 +124,14 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 ### 表单实例
 
 ```bash
-openyida data query form <appType> <formUuid> [--page 1 --size 20] [--search-json '<json>'|--search-file .cache/openyida/<项目名或任务名>/data-import/search.json] [--resolve-aliases]
+openyida data query form <appType> <formUuid> [--page 1 --size 20] [--search-json '<json>'|--search-file .cache/openyida/<项目名或任务名>/data-import/search.json] [--dynamic-order '{"fieldId":"+"}'] [--resolve-aliases]
 openyida data get form <appType> --inst-id <formInstId>
 openyida data create form <appType> <formUuid> --data-json '<json>' [--resolve-aliases]
 openyida data create form <appType> <formUuid> --data-file .cache/openyida/<项目名或任务名>/data-import/record.json [--resolve-aliases]
 > `create form` 会自动探测表单类型；当目标表单为流程表单时，会改用 `/v1/process/startInstance.json` 发起流程。若已知 `processCode`，仍推荐显式使用 `create process`。
 openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --data-json '<json>' [--resolve-aliases]
 openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --data-file .cache/openyida/<项目名或任务名>/data-import/patch.json [--resolve-aliases]
+openyida data delete form <appType> <formUuid> --inst-id <formInstId> --confirm --json
 openyida data query subform <appType> <formUuid> --inst-id <formInstId> --table-field-id <fieldId|alias> [--page 1 --size 100] [--resolve-aliases]
 ```
 
@@ -165,9 +184,13 @@ openyida data query tasks <appType> --type todo|done|submitted|cc [--page 1 --si
 | `getFormDataById` | GET | 查询详情 |
 | `saveFormData` | POST | 新增 |
 | `updateFormData` | POST | 更新 |
+| `deleteFormData` | POST | 删除单个普通表单实例；CLI 删除后必须回读不存在 |
 | `listTableDataByFormInstIdAndTableId` | GET | 查询子表数据 |
 
 ### 流程实例
+
+当前 CLI 仅支持流程实例的查询、发起和更新，不支持删除。不要尝试 `data delete process`；收到
+`DATA_PROCESS_DELETE_UNSUPPORTED` 后停止并交付能力缺口，不得改用脚本或私有 API。
 
 | 接口 | 方法 | 说明 |
 |------|------|------|
@@ -258,6 +281,7 @@ openyida data create form APP_xxx FORM-商机表 --data-json '{
 
 - `pageSize` 最大 100，QPS 限制约 40 次/秒
 - `searchFieldJson` 和 `dynamicOrder` 必须传字符串
+- 需要稳定顺序的分页、比对或配对必须显式传 `--dynamic-order '{"fieldId":"+"}'`（升序）或 `--dynamic-order '{"fieldId":"-"}'`（降序）；未传时不得依赖默认返回顺序
 - 字段 ID 通过 `openyida get-schema` 获取，不要手写猜测
 - 批量脚本可以用 Python `subprocess` 调用 `openyida data ...`，也可以用 JS 复用 Node 工具；脚本必须由结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/scripts/`，导入数据放在 `<projectRoot>/.cache/openyida/<项目名或任务名>/data-import/`
 

@@ -1381,6 +1381,51 @@ describe('form presentation components', () => {
     ])).toBe(2);
   });
 
+  test('creates phone input as TextField with regex-backed custom validation and rejects PhoneField', () => {
+    const phoneDefinition = {
+      type: 'TextField',
+      label: '联系电话',
+      validation: [{
+        type: 'regex',
+        pattern: '^1[3-9]\\d{9}$',
+        message: '请输入正确的 11 位手机号码',
+      }],
+    };
+    const schema = createForm._private.buildFormSchema(
+      '电话字段测试',
+      [phoneDefinition],
+      'FORM_TEST',
+      'CORP_TEST',
+      'APP_TEST',
+      'single',
+      'default',
+      'top'
+    );
+    const formContainer = findFormContainer(schema.pages[0].componentsTree[0]);
+    const phoneField = findDirectChildByComponentName(formContainer, 'TextField');
+
+    expect(phoneField).toMatchObject({
+      componentName: 'TextField',
+      props: {
+        validationType: 'text',
+        validation: [expect.objectContaining({
+          type: 'customValidate',
+          message: '请输入正确的 11 位手机号码',
+          param: expect.objectContaining({ type: 'js' }),
+        })],
+      },
+    });
+    expect(phoneField.props.validation[0].param.source).toContain('var PATTERN = "^1[3-9]\\\\d{9}$";');
+    const validatePhone = new Function(`return (${phoneField.props.validation[0].param.source});`)();
+    expect(validatePhone('13800138000')).toBe(true);
+    expect(validatePhone('12345')).toBe(false);
+    expect(() => createForm._private.validateFormFieldDefinitions([
+      { type: 'PhoneField', label: '联系电话' },
+    ])).toThrow(expect.objectContaining({
+      code: 'CREATE_FORM_UNSUPPORTED_FIELD_TYPE',
+    }));
+  });
+
   test('Divider defaults to bold-with-thin so generated enterprise forms use the recommended section style', () => {
     const schema = createForm._private.buildFormSchema(
       '分割线测试',

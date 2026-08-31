@@ -2,6 +2,8 @@
 
 'use strict';
 
+/* global document, window */
+
 /**
  * 截取已发布宜搭页面的截图，供"应用效果"打分（自动或人工）。
  *
@@ -102,6 +104,89 @@ function isBrowserMissingError(message = '') {
 // 浏览器缺失时给用户的一句话修复指引。
 const BROWSER_MISSING_HINT = '运行 `npx playwright install chromium` 下载浏览器后重试';
 
+function evaluatePageRuntime(runtime = {}, expectations = {}) {
+  const expected = {
+    maxConsoleErrors: 0,
+    maxPageErrors: 0,
+    maxBrokenImages: 0,
+    minTextLength: 20,
+    requireSettled: true,
+    ...expectations,
+  };
+  const checks = [];
+  const add = (name, ok, detail) => checks.push({ name, ok: !!ok, detail });
+  add('consoleErrors', Number(runtime.consoleErrorCount || 0) <= expected.maxConsoleErrors,
+    `期望 ≤${expected.maxConsoleErrors}，实际 ${Number(runtime.consoleErrorCount || 0)}`);
+  add('pageErrors', Number(runtime.pageErrorCount || 0) <= expected.maxPageErrors,
+    `期望 ≤${expected.maxPageErrors}，实际 ${Number(runtime.pageErrorCount || 0)}`);
+  add('brokenImages', Number(runtime.brokenImageCount || 0) <= expected.maxBrokenImages,
+    `期望 ≤${expected.maxBrokenImages}，实际 ${Number(runtime.brokenImageCount || 0)}`);
+  add('textLength', Number(runtime.textLength || 0) >= expected.minTextLength,
+    `期望 ≥${expected.minTextLength}，实际 ${Number(runtime.textLength || 0)}`);
+  if (expected.requireSettled) {
+    add('loadingSettled', Number(runtime.loadingIndicatorCount || 0) === 0,
+      `可见加载指示器 ${Number(runtime.loadingIndicatorCount || 0)} 个`);
+  }
+  if (Array.isArray(expected.requiredTextAny) && expected.requiredTextAny.length) {
+    const matched = expected.requiredTextAny.filter((text) => String(runtime.bodyText || '').includes(String(text)));
+    add('requiredTextAny', matched.length > 0,
+      matched.length ? `命中 ${matched.join('、')}` : `未命中任一要求文案：${expected.requiredTextAny.join('、')}`);
+  }
+  if (Array.isArray(expected.forbiddenTextAny) && expected.forbiddenTextAny.length) {
+    const matched = expected.forbiddenTextAny.filter((text) => String(runtime.bodyText || '').includes(String(text)));
+    add('forbiddenTextAny', matched.length === 0,
+      matched.length ? `命中禁止文案：${matched.join('、')}` : '未命中禁止文案');
+  }
+  return { pass: checks.every((check) => check.ok), checks };
+}
+
+async function collectPageRuntime(page, diagnostics = {}) {
+  const dom = await page.evaluate(() => {
+    const bodyText = document.body ? document.body.innerText || '' : '';
+    const visible = (element) => {
+      const rect = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+      return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+    };
+    const loadingIndicatorCount = Array.from(document.querySelectorAll(
+      '[aria-busy="true"], .next-loading, .next-loading-tip, .ant-spin-spinning',
+    )).filter(visible).length;
+    const brokenImageCount = Array.from(document.images || [])
+      .filter((image) => image.complete && image.naturalWidth === 0).length;
+    return {
+      title: document.title || '',
+      bodyText,
+      textLength: bodyText.trim().length,
+      loadingIndicatorCount,
+      brokenImageCount,
+    };
+  });
+  return {
+    ...dom,
+    finalUrl: page.url(),
+    consoleErrorCount: diagnostics.consoleErrorCount || 0,
+    pageErrorCount: diagnostics.pageErrorCount || 0,
+  };
+}
+
+function runtimeFindingsFromScreenshots(screenshots = []) {
+  const findings = [];
+  for (const shot of screenshots) {
+    if (!shot || !Array.isArray(shot.runtimeChecks)) {continue;}
+    for (const check of shot.runtimeChecks.filter((item) => item && item.ok === false)) {
+      findings.push({
+        code: check.name === 'forbiddenTextAny' ? 'page-visible-data-missing' : 'browser-runtime-signal-failed',
+        detail: `${shot.name || shot.stage || shot.url}: ${check.detail}`,
+        source: 'browser-runtime',
+        scenarioId: shot.scenarioId || null,
+        targetUrl: shot.url || null,
+        check: check.name,
+      });
+    }
+  }
+  return findings;
+}
+
 /**
  * 对一组目标 URL 截图。
  * @param {object} options
@@ -148,11 +233,27 @@ async function captureScreenshots(options = {}) {
       const fileName = `${String(i + 1).padStart(2, '0')}-${slugify(target.stage, target.type)}.png`;
       const filePath = path.join(outputDir, fileName);
       const page = await context.newPage();
+      const diagnostics = { consoleErrorCount: 0, pageErrorCount: 0 };
+      page.on('console', (message) => {
+        if (message.type() === 'error') {diagnostics.consoleErrorCount += 1;}
+      });
+      page.on('pageerror', () => {diagnostics.pageErrorCount += 1;});
       try {
         await page.goto(target.url, { waitUntil: 'networkidle', timeout: timeoutMs });
         await page.waitForTimeout(1500);
+        const runtimeWithText = await collectPageRuntime(page, diagnostics);
+        const runtimeEvaluation = evaluatePageRuntime(runtimeWithText, target.runtimeExpectations || {});
+        const runtime = { ...runtimeWithText };
+        delete runtime.bodyText;
         await page.screenshot({ path: filePath, fullPage: true });
-        screenshots.push({ ...target, ok: true, path: filePath });
+        screenshots.push({
+          ...target,
+          ok: true,
+          path: filePath,
+          runtime,
+          runtimePass: runtimeEvaluation.pass,
+          runtimeChecks: runtimeEvaluation.checks,
+        });
       } catch (error) {
         screenshots.push({ ...target, ok: false, path: null, error: error.message });
       } finally {
@@ -188,5 +289,8 @@ module.exports = {
   normalizeCookies,
   isBrowserMissingError,
   BROWSER_MISSING_HINT,
+  evaluatePageRuntime,
+  collectPageRuntime,
+  runtimeFindingsFromScreenshots,
   captureScreenshots,
 };

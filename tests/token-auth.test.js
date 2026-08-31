@@ -173,6 +173,9 @@ describe('token-auth', () => {
           'openyida auth profile switch <auth_profile>',
         ],
       });
+      expect(status.next_step).toContain('current project auth pointer');
+      expect(status.next_step).not.toContain('For one command');
+      expect(status.next_step).not.toContain('pass --profile');
       expect(status.candidates).toEqual(expect.arrayContaining([
         expect.objectContaining({ corp_id: 'corp-a', corp_name: '组织 A', user_id: 'user-a' }),
         expect.objectContaining({ corp_id: 'corp-b', corp_name: '组织 B', user_id: 'user-b' }),

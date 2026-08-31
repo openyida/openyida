@@ -48,6 +48,21 @@ test('unsupported permission arguments are localized by OPENYIDA_LANG instead of
   );
 });
 
+test('get-permission accepts the common --json output flag', () => {
+  expect(parseGetPermissionArgs(['APP-1', 'FORM-1', '--json'])).toEqual({
+    appType: 'APP-1',
+    formUuid: 'FORM-1',
+    packageUuid: null,
+  });
+  expect(parseGetPermissionArgs([
+    'APP-1', 'FORM-1', '--package-uuid', 'pkg-1', '--json',
+  ])).toEqual({
+    appType: 'APP-1',
+    formUuid: 'FORM-1',
+    packageUuid: 'pkg-1',
+  });
+});
+
 test('permission-list response failures use semantic English messages', () => {
   expect(() => unwrapPermitPackagePage(null)).toThrow('Failed to query permission groups');
   expect(() => unwrapPermitPackagePage({ success: true, content: { formPermit: {} } })).toThrow(

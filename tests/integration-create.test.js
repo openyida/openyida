@@ -121,6 +121,48 @@ describe('integration create command', () => {
     expect(integrationApi.saveProcess).not.toHaveBeenCalled();
   });
 
+  test('rejects dangling designer source node IDs before any remote write', async () => {
+    const specPath = writeTempSpec({
+      events: ['insert'],
+      nodes: [
+        {
+          id: 'lookup',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-B',
+          conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+        },
+        {
+          id: 'update',
+          type: 'dataUpdate',
+          source: 'lookup',
+          assignments: [{
+            column: 'numberField_total',
+            valueType: 'column',
+            value: '${lookup}.numberField_total+1',
+            __source: '#{node_typo//numberField_total}+1',
+          }],
+        },
+      ],
+    });
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'FORM-B', formName: 'B普通表单', formType: 'receipt' },
+    ]);
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-SHOULD-NOT-EXIST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await expect(run([
+      'APP_TEST',
+      'FORM-A',
+      'dangling designer source',
+      '--spec',
+      specPath,
+    ])).rejects.toThrow(/Unknown integration spec node alias: node_typo/);
+
+    expect(integrationApi.getFormSchema).not.toHaveBeenCalled();
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+  });
+
   test('requires --replace for process-code full replacement before auth or remote writes', async () => {
     const coreUtils = require('../lib/core/utils');
 

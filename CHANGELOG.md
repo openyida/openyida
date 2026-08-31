@@ -12,6 +12,81 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.8.31-1] - 2026-08-31
+
+### Changed
+
+- 完整应用的列表页策略默认改为普通表单的数据管理页（`native-list`），不再默认创建自定义列表页；只有用户明确要求自定义列表时才规划并实现 `display-page / list`。
+- 同步更新 `yida-design` 信息架构、PRD 输出模板与 `yida-app` 编排约束：资源蓝图、页面实现顺序、导航分组与验收清单均以表单数据管理页为默认数据查看入口。
+- 新增技能契约测试锁定上述默认行为，防止回退到「默认自定义列表页」。
+
+## [2026.8.31] - 2026-08-31
+
+### Added
+
+- 新增 `openyida data delete form <appType> <formUuid> --inst-id <id> --confirm`：单条表单数据精确删除，强制 `--confirm` 确认、删除前目标校验与删除后回读确认；流程实例删除仍不支持，会以 `DATA_PROCESS_DELETE_UNSUPPORTED` 明确拒绝。
+
+### Fixed
+
+- 报表创建/追加图表失败时的恢复路径收敛：区分副作用已发生与未发生，避免在不确定状态下直接重试导致重复写入。
+- `project` 工作目录初始化新增目标路径安全校验，拒绝拷贝到源目录自身或其子目录。
+- 自定义页面构建/检查/发布链路与页面兼容层的异常语义对齐，预检失败不再产出歧义提示。
+
+### Changed
+
+- CLI 错误契约扩展结构化字段（`partial`/`residual`/`retrySafe`/`sideEffectState`/`readbackAllowed`/`recommendedRecovery`/`nextAction` 等），供 agent 判断副作用状态与重试安全性。
+- `create-report` / `append-chart` 补齐 `--json` 输出；README 双语命令表同步。
+- 同步 yida-data-management / yida-report / yida-create-form-page / yida-app 等子技能文档与命令清单。
+
+## [2026.8.30] - 2026-08-30
+
+### Fixed
+
+- 集成逻辑流数据赋值的设计器来源引用 `#{节点别名//字段ID}` 现在会解析为节点 ID 后再写入，修复公式来源字段别名未转换导致的保存失败。
+- 集成逻辑流构建时拒绝悬空（未知）的设计器来源节点别名引用，提前给出明确错误而非产出无效 spec。
+
+### Changed
+
+- `httpGet` 查询串拼接修复：路径已含查询串时改用 `&` 追加，避免产生双 `?` 的非法 URL；`--dynamic-order` 等参数透传更稳。
+- `openyida data query form` 补齐 `--dynamic-order` 文档：`{"fieldId":"+"}` 升序 / `{"fieldId":"-"}` 降序，未指定时不保证结果顺序。
+- 清理报表不支持的图表类型（radar/scatter/area/number）死代码，`getChartSettings` 保持 fail-closed 拒绝。
+- 同步 README、yida-api、yida-data-management、yida-integration 等文档。
+
+## [2026.8.29] - 2026-08-29
+
+### Added
+
+- CRM Pro 评测新增确定性证据链：命令轨迹独立采集（临时 PATH shim + 敏感参数脱敏）、证据断言引擎、平台只读回读、schema-diff 稳定快照、只读重放（`eval:replay`）与浏览器运行时验收。
+- `get-schema` 新增 `--analysis-json` 表单 Schema 语义分析（字段角色、关联与能力诊断）。
+- 报表新增 `map`、`calendarHeatmap` 图表类型，覆盖能力注册、图表构建与数据模型校验。
+
+### Changed
+
+- `openyida integration list` 默认查询范围从仅 `flowType=1` 扩展为全部已知类型 `1,2,3,5,6`。依赖旧口径做数量断言的脚本应显式传入 `--flow-types 1`。
+- 报表保存契约规范化平台省略的 `null` 默认键，修复回读误判；schema 结果校验收紧为要求 `pages` 为数组。
+- CLI `--help` 改为命令清单驱动的按命令帮助，usage 与 examples 与 manifest 保持一致。
+- 同步 yida-get-schema / yida-report / yida-integration 等子技能文档与 README 双语命令表。
+
+## [2026.8.28] - 2026-08-28
+
+### Added
+
+- OAuth 登录回调页新增完整的成功/失败界面、12 语言文案、HTML 转义与自动关闭失败回退，登录完成状态更清晰。
+- 权限、流程、集成自动化、聚合表、报表和连接器新增确定性契约、平台回读、运行态与 UI 证据链，覆盖真实搭建与安全清理边界。
+
+### Changed
+
+- 权限保存采用精确目标匹配和逐字段回读，修改人员时保留部门、角色与动态成员配置，并统一脱敏诊断信息。
+- 流程整图更新要求显式替换，补齐 MultiApproval 与多分支序列化、草稿选择和发布视图验证，避免多义目标与半成品流程。
+- 集成自动化补齐有界分页、精确匹配、节点契约、配置摘要与最终态回读；空配置、未知写入结果和不安全清理统一 fail-closed。
+- 聚合表保存增加 revision/CAS、跨数组引用校验、发布态回读及 ownership/restore 证据，避免并发覆盖和空结果误判成功。
+- 原生报表统一能力注册、布局与严格 Schema 回读，过滤创建期客户端元数据，并拒绝空报表配置。
+- 自定义连接器支持 DingAuth、稳定 action identity 与参数化测试；部分编辑保留未修改的认证、请求参数和返回结构，拒绝无变化写入及误清空配置。
+
+### Security
+
+- 真实 E2E、错误信息和诊断产物统一收紧敏感字段输出；无法证明资源归属或删除安全性时记录为 blocked/cleanup_blocked，不再伪报成功。
+
 ## [2026.8.27-2] - 2026-08-27
 
 ### Added

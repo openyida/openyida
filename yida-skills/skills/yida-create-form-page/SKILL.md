@@ -61,6 +61,7 @@ description: 表单页面创建与更新，默认加载 yida-form-detail 作为�
 官方示例中心的表单类能力大多用 `FormContainer + 标准字段 + 字段属性/公式/联动` 承载，少量 `RichText` 用于说明。创建或更新表单时优先按这个顺序落地：
 
 1. 字段结构：用 `TextField`、`NumberField`、`DateField`、`EmployeeField`、`SelectField`、`TableField`、`AssociationFormField` 等标准字段表达数据模型。
+   电话号码使用 `TextField` 加 `validation: [{ "type": "regex", "pattern": "^1[3-9]\\d{9}$", "message": "请输入正确的 11 位手机号码" }]`；不要创建或 patch `PhoneField`。CLI 会把正则规则编译为 `customValidate`。
 2. 字段公式：计算、默认值、日期/文本转换等用字段 `valueType: "formula"`、`complexValue.formula`、`formula`，不要改写成自定义页面 JS。
 3. 字段联动：显示隐藏、只读、onChange 自动赋值优先用 `rule` 模式；只有 OpenYida DSL 不覆盖的平台属性才用 `patch`。
 4. 说明/示例文字：需要解释能力时可增加 `RichText` 或说明字段，但业务字段仍应保持结构化。
@@ -257,6 +258,7 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 
 - `appType` 必须来自已创建应用或用户提供
 - 字段类型必须使用标准组件名，如 `TextField`、`SelectField`
+- 电话字段固定使用 `TextField` 加正则自定义校验；读取已有 Schema 时可以识别历史 `PhoneField`，但不得把它作为新建或 patch 能力。
 - `SelectField`、`MultiSelectField`、`RadioField`、`CheckboxField` 固定选项必须提供 `dataSource`；远程选项字段必须提供 `remoteDataSource` 或通过 `bind-datasource` 配置，不要生成无选项源的字段 JSON。
 - `TableField` 必须提供 `children`，且子表不能嵌套子表
 - `AssociationFormField` 必须提供 `associationForm`

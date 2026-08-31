@@ -113,12 +113,14 @@ describe('run() 参数校验', () => {
   });
 
   test('参数为空数组时打印错误并以 exit code 1 退出', async () => {
-    await expectCliError(run([]), '缺少必填参数');
+    const error = await expectCliError(run([]), '缺少必填参数');
+    expect(error.usage).toContain('--dynamic-order');
+    expect(error.usage).toContain('does not guarantee a stable result order');
   });
 
   test('未知 action/resource 组合时打印错误并退出', async () => {
-    const error = await expectCliError(run(['unknown', 'resource']), '暂未实现的命令');
-    expect(error.code).toBe('DATA_ERROR');
+    const error = await expectCliError(run(['unknown', 'resource']));
+    expect(error.code).toBe('DATA_COMMAND_UNSUPPORTED');
   });
 
   test.each(['FORM_XXX', 'FORM-XXX'])(
@@ -142,11 +144,10 @@ describe('run() 参数校验', () => {
 
   test('显式未知资源不触发漏写 form 纠错', async () => {
     const error = await expectCliError(
-      run(['query', 'unknown-resource', 'APP_XXX', 'FORM_XXX']),
-      '暂未实现的命令：query unknown-resource'
+      run(['query', 'unknown-resource', 'APP_XXX', 'FORM_XXX'])
     );
 
-    expect(error.code).toBe('DATA_ERROR');
+    expect(error.code).toBe('DATA_COMMAND_UNSUPPORTED');
     expect(error.message).not.toContain('openyida data query form');
   });
 });
@@ -716,6 +717,196 @@ describe('run() update form alias resolution', () => {
       run(['update', 'form', 'APP_XXX', '--inst-id', 'INST-001', '--data-json', '{"phone":"123"}', '--resolve-aliases']),
       '--resolve-aliases 需要提供 formUuid'
     );
+  });
+});
+
+describe('run() delete form', () => {
+  const deleteArgs = [
+    'delete',
+    'form',
+    'APP_XXX',
+    'FORM-XXX',
+    '--inst-id',
+    'FINST-001',
+    '--confirm',
+    '--json',
+  ];
+
+  function mockReadRequests(...responses) {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    responses.forEach(response => utils.httpGet.mockResolvedValueOnce(response));
+  }
+
+  test('缺少 --confirm 时在认证和网络前停止', async () => {
+    utils.loadAuthData.mockReturnValue(null);
+
+    const error = await expectCliError(
+      run(deleteArgs.filter(arg => arg !== '--confirm'))
+    );
+
+    expect(error.code).toBe('DATA_DELETE_CONFIRMATION_REQUIRED');
+    expect(error.details).toMatchObject({
+      sideEffectState: 'none',
+      target: {
+        appType: 'APP_XXX',
+        formUuid: 'FORM-XXX',
+        formInstId: 'FINST-001',
+      },
+    });
+    expect(utils.loadAuthData).not.toHaveBeenCalled();
+    expect(utils.httpGet).not.toHaveBeenCalled();
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('delete process 在认证和网络前返回稳定不支持错误', async () => {
+    utils.loadAuthData.mockReturnValue(null);
+
+    const error = await expectCliError(
+      run(['delete', 'process', 'APP_XXX', '--process-inst-id', 'PROC-001', '--confirm', '--json'])
+    );
+
+    expect(error.code).toBe('DATA_PROCESS_DELETE_UNSUPPORTED');
+    expect(error.details).toMatchObject({
+      retryable: false,
+      sideEffectState: 'none',
+      nextStep: 'stop_and_report_unsupported',
+    });
+    expect(utils.loadAuthData).not.toHaveBeenCalled();
+    expect(utils.httpGet).not.toHaveBeenCalled();
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('精确预检、one-shot 删除并回读不存在后输出稳定结果', async () => {
+    mockReadRequests(
+      {
+        success: true,
+        content: {
+          formInstId: 'FINST-001',
+          modelUuid: 'FORM-XXX',
+          title: '待删除记录',
+          gmtModified: 1788105600000,
+        },
+      },
+      { success: true, content: null }
+    );
+    utils.httpPost.mockResolvedValue({ success: true, content: true });
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await run(deleteArgs);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+    expect(utils.httpGet.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/v1/form/getFormDataById.json');
+    expect(utils.httpGet.mock.calls[0][2]).toMatchObject({ formInstId: 'FINST-001' });
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/query/formdata/deleteFormData.json');
+    expect(utils.httpPost.mock.calls[0][2]).toContain('formInstId=FINST-001');
+    expect(getLoggedJson(mockLog)).toMatchObject({
+      success: true,
+      deleted: true,
+      alreadyAbsent: false,
+      mutationPerformed: true,
+      mutationAccepted: true,
+      readbackVerified: true,
+      retryable: false,
+      sideEffectState: 'committed',
+      status: 'DELETED',
+      target: {
+        type: 'formInstance',
+        appType: 'APP_XXX',
+        formUuid: 'FORM-XXX',
+        formInstId: 'FINST-001',
+      },
+      summary: {
+        title: '待删除记录',
+        gmtModified: 1788105600000,
+      },
+    });
+
+    mockLog.mockRestore();
+  });
+
+  test('重复删除已不存在目标时不再次发送 POST', async () => {
+    mockReadRequests({ success: true, content: null });
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await run(deleteArgs);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost).not.toHaveBeenCalled();
+    expect(getLoggedJson(mockLog)).toMatchObject({
+      success: true,
+      deleted: true,
+      alreadyAbsent: true,
+      mutationPerformed: false,
+      readbackVerified: true,
+      sideEffectState: 'none',
+      status: 'ALREADY_ABSENT',
+    });
+
+    mockLog.mockRestore();
+  });
+
+  test('实例不属于目标 formUuid 时 fail closed 且不发送 POST', async () => {
+    mockReadRequests({
+      success: true,
+      content: {
+        formInstId: 'FINST-001',
+        modelUuid: 'FORM-OTHER',
+      },
+    });
+
+    const error = await expectCliError(run(deleteArgs));
+
+    expect(error.code).toBe('DATA_DELETE_TARGET_MISMATCH');
+    expect(error.details).toMatchObject({
+      observed: { formInstId: 'FINST-001', formUuid: 'FORM-OTHER' },
+      sideEffectState: 'none',
+    });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('删除响应失败时结果为 unknown 且不自动重试 POST', async () => {
+    mockReadRequests({
+      success: true,
+      content: { formInstId: 'FINST-001', modelUuid: 'FORM-XXX' },
+    });
+    utils.httpPost.mockResolvedValue({ success: false, errorCode: 'REMOTE_ERROR' });
+
+    const error = await expectCliError(run(deleteArgs));
+
+    expect(error.code).toBe('DATA_DELETE_RESULT_UNKNOWN');
+    expect(error.details).toMatchObject({
+      mutationAccepted: false,
+      readbackVerified: false,
+      retrySafe: false,
+      sideEffectState: 'unknown',
+      nextStep: expect.stringContaining('data get form APP_XXX'),
+    });
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+  });
+
+  test('删除成功响应后回读仍存在时返回语义失败且不重试 POST', async () => {
+    const record = { formInstId: 'FINST-001', modelUuid: 'FORM-XXX' };
+    mockReadRequests(
+      { success: true, content: record },
+      { success: true, content: record }
+    );
+    utils.httpPost.mockResolvedValue({ success: true, content: true });
+
+    const error = await expectCliError(run(deleteArgs));
+
+    expect(error.code).toBe('DATA_DELETE_READBACK_MISMATCH');
+    expect(error.details).toMatchObject({
+      deleted: false,
+      mutationAccepted: true,
+      readbackVerified: false,
+      status: 'SEMANTIC_FAILURE',
+      retrySafe: false,
+      sideEffectState: 'unknown',
+    });
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
   });
 });
 

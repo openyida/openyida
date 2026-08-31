@@ -1141,7 +1141,8 @@ module.exports = {
     result_copy: '   {0} → {1} ({2}개 파일)',
     remove_failed: '    ❌ 제거 실패: {0} ({1})',
     symlink_fallback_copy: '    ⚠️  Windows 심볼릭 링크 생성 실패(관리자 권한 필요), 디렉토리 복사로 대체: {0}',
-    symlink_failed: '    ❌ 심볼릭 링크 생성 실패: {0} ({1})'
+    symlink_failed: '    ❌ 심볼릭 링크 생성 실패: {0} ({1})',
+    source_destination_overlap: '원본과 대상 디렉터리가 겹쳐 복사를 중지했습니다. 원본: {0}; 대상: {1}'
   },
   check_update: {
     new_version: '\n🎉 새 버전 사용 가능: {0} → {1}',
@@ -1902,6 +1903,14 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
 });
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  command_unsupported: '지원하지 않는 데이터 명령입니다: {0} {1}. 실제 기능은 openyida commands --json으로 확인하세요.',
+  delete_confirmation_required: '폼 레코드를 삭제하기 전에 대상을 조회하고 요약을 사용자에게 보여 준 뒤 명시적 승인 후에만 --confirm을 추가하세요. 삭제는 실행되지 않았습니다.',
+  delete_preflight_failed: '삭제 전 확인을 위해 폼 레코드 {0}을(를) 읽을 수 없습니다. 삭제는 실행되지 않았습니다.',
+  delete_process_unsupported: '이 버전에서는 프로세스 인스턴스 삭제를 지원하지 않습니다. 실행을 중단하고 기능 누락을 보고하세요. 스크립트나 비공개 API를 사용하지 마세요.',
+  delete_readback_mismatch: '삭제 요청이 수락되었지만 재조회에서 폼 레코드 {0}이(가) 여전히 존재합니다. 결과가 검증되지 않았으므로 삭제를 자동 재시도하지 마세요.',
+  delete_result_unknown: '폼 레코드 {0}의 삭제 결과를 알 수 없습니다. 읽기 전용으로 확인하고 삭제를 자동 재시도하지 마세요.',
+  delete_target_mismatch: '폼 레코드 {0}은(는) 대상 폼 {1}에 속하지 않습니다. 삭제 전에 실행을 중단했습니다.',
+  delete_target_unverified: '폼 레코드 {0}의 ID와 소속을 검증할 수 없습니다. 삭제 전에 실행을 중단했습니다.',
   form_mode_unverified: '폼 {0}의 유형을 확인할 수 없어 데이터 쓰기 전에 생성을 중지했습니다.',
   resource_required: 'data query에 리소스 유형 form이 없습니다. 권장 명령: {0}',
 });

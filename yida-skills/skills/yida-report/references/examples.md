@@ -95,7 +95,7 @@ openyida get-schema APP_XXX FORM-TASK
 ### 执行命令
 
 ```bash
-openyida create-report APP_XXX "任务管理数据报表" .cache/openyida/task-report/task-report-config.json
+openyida create-report APP_XXX "任务管理数据报表" .cache/openyida/task-report/task-report-config.json --json
 
 # 创建/追加后只读回读真实绑定；不要从示例猜 cid/dataSetKey/filterKey/prdId/pageId
 openyida report inspect APP_XXX REPORT_XXX --json

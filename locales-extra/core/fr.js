@@ -1142,7 +1142,8 @@ module.exports = {
     result_copy: '   {0} → {1} ({2} fichiers)',
     remove_failed: '    ❌ Échec de la suppression : {0} ({1})',
     symlink_fallback_copy: '    ⚠️  Création du lien symbolique Windows échouée (droits admin requis), copie de répertoire utilisée : {0}',
-    symlink_failed: '    ❌ Échec de la création du lien symbolique : {0} ({1})'
+    symlink_failed: '    ❌ Échec de la création du lien symbolique : {0} ({1})',
+    source_destination_overlap: 'Copie arrêtée car les répertoires source et destination se chevauchent. Source : {0} ; destination : {1}'
   },
   check_update: {
     new_version: '\n🎉 Nouvelle version disponible : {0} → {1}',
@@ -1903,6 +1904,14 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
 });
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  command_unsupported: 'Commande de données non prise en charge : {0} {1}. Exécutez openyida commands --json pour consulter les capacités réelles.',
+  delete_confirmation_required: 'Avant de supprimer une fiche, lisez la cible, présentez son résumé à l’utilisateur et ajoutez --confirm uniquement après son accord explicite. Aucune suppression n’a été effectuée.',
+  delete_preflight_failed: 'Impossible de lire la fiche {0} pour la vérification préalable. Aucune suppression n’a été effectuée.',
+  delete_process_unsupported: 'La suppression des instances de processus n’est pas prise en charge dans cette version. Arrêtez et signalez cette lacune ; n’utilisez ni script ni API privée.',
+  delete_readback_mismatch: 'La demande de suppression a été acceptée, mais la fiche {0} existe toujours lors de la relecture. Le résultat n’est pas vérifié ; ne relancez pas automatiquement la suppression.',
+  delete_result_unknown: 'Le résultat de la suppression de la fiche {0} est inconnu. Effectuez uniquement une vérification en lecture et ne relancez pas automatiquement la suppression.',
+  delete_target_mismatch: 'La fiche {0} n’appartient pas au formulaire cible {1}. L’opération a été arrêtée avant la suppression.',
+  delete_target_unverified: 'Impossible de vérifier l’identité et l’appartenance de la fiche {0}. L’opération a été arrêtée avant la suppression.',
   form_mode_unverified: 'Impossible de vérifier le type du formulaire {0}. La création a été arrêtée avant toute écriture de données.',
   resource_required: 'Le type de ressource form manque à data query. Commande suggérée : {0}',
 });

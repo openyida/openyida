@@ -1140,7 +1140,8 @@ module.exports = {
     result_copy: '   {0} → {1} ({2} ملفات)',
     remove_failed: '    ❌ فشل الحذف: {0} ({1})',
     symlink_fallback_copy: '    ⚠️  فشل إنشاء الرابط الرمزي في Windows (يتطلب صلاحيات المسؤول)، استخدام نسخ الدليل: {0}',
-    symlink_failed: '    ❌ فشل إنشاء الرابط الرمزي: {0} ({1})'
+    symlink_failed: '    ❌ فشل إنشاء الرابط الرمزي: {0} ({1})',
+    source_destination_overlap: 'تم إيقاف النسخ لأن مجلدي المصدر والوجهة متداخلان. المصدر: {0}؛ الوجهة: {1}'
   },
   check_update: {
     new_version: '\n🎉 إصدار جديد متاح: {0} → {1}',
@@ -1901,6 +1902,14 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
 });
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  command_unsupported: 'أمر بيانات غير مدعوم: {0} {1}. شغّل openyida commands --json لعرض الإمكانات الفعلية.',
+  delete_confirmation_required: 'قبل حذف سجل نموذج، اعرض ملخص الهدف للمستخدم وأضف --confirm فقط بعد الموافقة الصريحة. لم يتم تنفيذ الحذف.',
+  delete_preflight_failed: 'تعذرت قراءة سجل النموذج {0} للتحقق قبل الحذف. لم يتم تنفيذ الحذف.',
+  delete_process_unsupported: 'حذف مثيلات سير العمل غير مدعوم في هذا الإصدار. أوقف التنفيذ وأبلغ عن نقص الإمكانية؛ لا تستخدم نصوصًا أو واجهات API خاصة.',
+  delete_readback_mismatch: 'تم قبول طلب الحذف، لكن سجل النموذج {0} ما زال موجودًا عند إعادة القراءة. النتيجة غير مؤكدة؛ لا تُعد محاولة الحذف تلقائيًا.',
+  delete_result_unknown: 'نتيجة حذف سجل النموذج {0} غير معروفة. نفّذ فحصًا للقراءة فقط ولا تُعد الحذف تلقائيًا.',
+  delete_target_mismatch: 'سجل النموذج {0} لا ينتمي إلى النموذج الهدف {1}. توقف التنفيذ قبل الحذف.',
+  delete_target_unverified: 'تعذر التحقق من هوية سجل النموذج {0} وملكيته. توقف التنفيذ قبل الحذف.',
   form_mode_unverified: 'تعذر التحقق من نوع النموذج {0}. تم إيقاف الإنشاء قبل كتابة أي بيانات.',
   resource_required: 'يفتقد data query إلى نوع المورد form. الأمر المقترح: {0}',
 });

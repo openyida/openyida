@@ -22,12 +22,28 @@ const MUTATING_VERB_PREFIXES = [
 ];
 
 const MUTATING_VERBS = new Set([
+  'add-validation',
+  'app-offline',
+  'app-online',
   'publish',
+  'save-permission',
   'save-share-config',
 ]);
 
 // `data <sub>` 形式：仅 create/update/delete 子命令算变更。
 const MUTATING_DATA_SUBCOMMANDS = new Set(['create', 'update', 'delete']);
+
+const MUTATING_SUBCOMMANDS = new Map([
+  ['agent-center', new Set(['create', 'update', 'cancel'])],
+  ['aggregate-table', new Set(['create-empty', 'save', 'publish'])],
+  ['ai-form-setting', new Set(['enable', 'disable', 'save'])],
+  ['app-permission', new Set(['set', 'add', 'remove'])],
+  ['connector', new Set(['create', 'add-action', 'update-action', 'delete-action', 'create-connection'])],
+  ['form-detail-style', new Set(['apply', 'remove'])],
+  ['i18n', new Set(['config', 'upsert', 'delete', 'translate', 'translate-all', 'upgrade'])],
+  ['integration', new Set(['create', 'update', 'enable', 'disable'])],
+  ['nav-group', new Set(['create', 'rename', 'delete', 'move', 'order', 'auto-order', 'hide', 'show'])],
+]);
 
 /**
  * 判断单条命令是否为资源变更命令。
@@ -40,6 +56,7 @@ function isMutatingCommand(command) {
   if (MUTATING_VERBS.has(verb)) {return true;}
   if (MUTATING_VERB_PREFIXES.some((prefix) => verb.startsWith(prefix))) {return true;}
   if (verb === 'data' && MUTATING_DATA_SUBCOMMANDS.has(args[1])) {return true;}
+  if (MUTATING_SUBCOMMANDS.has(verb) && MUTATING_SUBCOMMANDS.get(verb).has(args[1])) {return true;}
   return false;
 }
 
@@ -122,6 +139,7 @@ function hasGuardrailFailure(results = []) {
 module.exports = {
   MUTATING_VERB_PREFIXES,
   MUTATING_VERBS,
+  MUTATING_SUBCOMMANDS,
   isMutatingCommand,
   isLoginCheck,
   assertLoginBeforeMutation,

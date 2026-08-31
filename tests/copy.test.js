@@ -233,6 +233,54 @@ describe('forceCopyDir 行为', () => {
   });
 });
 
+describe('copy 源目标重叠保护', () => {
+  const { _internal } = require('../lib/core/copy');
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yida-copy-overlap-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('拒绝复制到源目录自身或子目录', () => {
+    const sourceDir = path.join(tmpDir, 'source');
+    fs.mkdirSync(sourceDir);
+
+    expect(() => _internal.assertCopyDestinationSafe(sourceDir, sourceDir)).toThrow(expect.objectContaining({
+      code: 'COPY_SOURCE_DESTINATION_OVERLAP',
+      details: expect.objectContaining({ sideEffectState: 'none' }),
+    }));
+    expect(() => _internal.assertCopyDestinationSafe(sourceDir, path.join(sourceDir, 'project'))).toThrow(expect.objectContaining({
+      code: 'COPY_SOURCE_DESTINATION_OVERLAP',
+      details: expect.objectContaining({ relation: 'destination_inside_source' }),
+    }));
+  });
+
+  test('拒绝 force 目标包含源目录，避免清空源文件', () => {
+    const destinationDir = path.join(tmpDir, 'destination');
+    const sourceDir = path.join(destinationDir, 'project');
+    fs.mkdirSync(sourceDir, { recursive: true });
+    fs.writeFileSync(path.join(sourceDir, 'keep.txt'), 'keep', 'utf8');
+
+    expect(() => _internal.assertCopyDestinationSafe(sourceDir, destinationDir)).toThrow(expect.objectContaining({
+      code: 'COPY_SOURCE_DESTINATION_OVERLAP',
+      details: expect.objectContaining({ relation: 'source_inside_destination' }),
+    }));
+    expect(fs.readFileSync(path.join(sourceDir, 'keep.txt'), 'utf8')).toBe('keep');
+  });
+
+  test('允许互不重叠的源目录和目标目录', () => {
+    const sourceDir = path.join(tmpDir, 'source');
+    const destinationDir = path.join(tmpDir, 'destination');
+    fs.mkdirSync(sourceDir);
+
+    expect(() => _internal.assertCopyDestinationSafe(sourceDir, destinationDir)).not.toThrow();
+  });
+});
+
 describe('project 工作区基础目录', () => {
   const { _internal } = require('../lib/core/copy');
 

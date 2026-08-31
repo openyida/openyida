@@ -342,7 +342,7 @@ this.utils.yida.getFormDataById({
 | createTo | String | 否 | 创建时间范围结束，格式 yyyy-MM-dd | `'2024-02-01'` |
 | modifiedFrom | String | 否 | 修改时间范围起始，格式 yyyy-MM-dd | `'2024-01-01'` |
 | modifiedTo | String | 否 | 修改时间范围结束，格式 yyyy-MM-dd | `'2024-02-01'` |
-| dynamicOrder | String | 否 | 指定排序字段 | `'{"numberField_1ac":"+"}'` |
+| dynamicOrder | String | 否 | 指定排序字段；`+` 升序，`-` 降序。不传时返回顺序无稳定性保证 | `'{"numberField_1ac":"+"}'` |
 
 **searchFieldJson 示例**：
 
@@ -398,6 +398,8 @@ this.utils.yida.getFormDataById({
 > - **页面内部调用**（即在宜搭自定义页面的 JS 代码中调用 `this.utils.yida.searchFormDatas`）：**不需要传 `appType`**，SDK 会自动从当前页面上下文中获取。
 > - **外部 HTTP 直接调用**（如通过 `openyida data query form` CLI 或服务端脚本）：**必须传 `appType`**，即应用的唯一标识（可在宜搭应用 URL 中找到，格式如 `APP_XXXXXXXX`）。
 
+> 📌 **排序说明**：需要稳定顺序的分页、比对或配对逻辑必须显式传入 `dynamicOrder`。不传时不得依赖接口当前返回顺序；CLI 对应参数为 `--dynamic-order '{"fieldId":"+"}'` 或 `--dynamic-order '{"fieldId":"-"}'`。
+
 **请求示例**：
 
 ```javascript
@@ -411,7 +413,7 @@ this.utils.yida.searchFormDatas({
   createTo: '2024-02-01',
   modifiedFrom: '2024-01-01',
   modifiedTo: '2024-02-01',
-  dynamicOrder: '',
+  dynamicOrder: '{"dateField_xxx":"-"}',
 }).then((res) => {
   // 兼容两种返回结构
   var data = (res && res.data) || (res && res.content && res.content.data) || [];

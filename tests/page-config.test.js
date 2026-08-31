@@ -149,6 +149,63 @@ describe('verify-short-url', () => {
 });
 
 describe('save-share-config', () => {
+  test('bootstraps a new public config when current state is empty and openAuth is explicit', async () => {
+    utils.httpPost
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          isOpen: 'n',
+          openUrl: '',
+          shareUrl: '',
+        },
+      })
+      .mockResolvedValueOnce({ success: true })
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          isOpen: 'y',
+          openUrl: '/o/public-page',
+          shareUrl: '',
+          openPageAuthConfig: '{"openAuth":"n","authSources":[]}',
+        },
+      });
+
+    const result = await saveShareConfig.run(['APP_XXX', 'FORM_XXX', '/o/public-page', 'y', 'n']);
+
+    const body = querystring.parse(utils.httpPost.mock.calls[1][2]);
+    expect(JSON.parse(body.openPageAuthConfig)).toEqual({
+      openAuth: 'n',
+      authSources: [],
+    });
+    expect(result).toMatchObject({
+      success: true,
+      openUrl: '/o/public-page',
+      isOpen: true,
+      verification: {
+        status: 'verified',
+        changedKeys: expect.arrayContaining(['openUrl', 'isOpen', 'openPageAuthConfig']),
+      },
+    });
+  });
+
+  test('new public config still fails closed when openAuth is omitted', async () => {
+    utils.httpPost.mockResolvedValueOnce({
+      success: true,
+      content: { isOpen: 'n', openUrl: '', shareUrl: '' },
+    });
+
+    await expect(saveShareConfig.run([
+      'APP_XXX',
+      'FORM_XXX',
+      '/o/public-page',
+      'y',
+    ])).rejects.toMatchObject({
+      isCliError: true,
+      code: 'SAVE_SHARE_CONFIG_CURRENT_STATE_INCOMPLETE',
+    });
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  });
+
   test('omitted openAuth preserves the complete public auth config', async () => {
     const sensitiveMarker = 'SENSITIVE_AUTH_SOURCE_MARKER_PRESERVE';
     const authConfig = {

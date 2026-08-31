@@ -199,6 +199,7 @@ openyida create-process APP_XXX "Purchase Request" .cache/openyida/process/field
 openyida configure-process APP_XXX FORM_XXX .cache/openyida/process/process.json
 openyida process preview APP_XXX PROC_INST_XXX --output .cache/openyida/process/process.html
 openyida data query form APP_XXX FORM_XXX --page 1 --size 20
+openyida data query form APP_XXX FORM_XXX --dynamic-order '{"dateField_xxx":"-"}'
 openyida data create form APP_XXX FORM_XXX --data-file .cache/openyida/data-import/record.json
 openyida get-permission APP_XXX FORM_XXX
 ```
@@ -226,6 +227,7 @@ openyida get-permission APP_XXX FORM_XXX
 发布成功还必须精确回读同一 PUBLISHED `processId/processVersion` 的 `getProcessById` 平台视图，并验证可见节点的组件、名称、顺序和审批模式。只有输出 `verificationLevel: "PLATFORM_VIEW_VERIFIED"` 才表示平台 view 已验证；`PUBLISHED_UNVERIFIED` 表示发布可能已生效但回读不完整，不能宣称 `processJson` 已验证，也不能直接重放写请求。
 
 When creating or updating test data with `openyida data`, Yida date fields must use 13-digit millisecond timestamps, for example `"dateField_xxx": 1719705600000`. Do not submit `YYYY-MM-DD` strings for `DateField` or `CascadeDateField` values.
+For deterministic query order, pass `--dynamic-order '{"fieldId":"+"}'` for ascending order or `--dynamic-order '{"fieldId":"-"}'` for descending order. Without `--dynamic-order`, `searchFormDatas` does not guarantee a stable result order; pagination, comparison, and pairing logic must not depend on the default order.
 Temporary JSON, CSV, and one-off import scripts should live under `.cache/openyida/` so generated run artifacts do not clutter the repository root.
 
 ### Real Environment E2E
@@ -304,6 +306,10 @@ OPENYIDA_E2E=1 npm run eval:e2e -- --skill yida-dashboard --screenshot --auto-sc
 # it needs OPENYIDA_E2E=1 + an authenticated agent. Unlike the deterministic baseline
 # above, here the agent self-orchestrates.
 OPENYIDA_E2E=1 npm run eval:generate -- --screenshot
+
+# Re-evaluate an archived real CLI trace against the latest scenario contract and
+# current read-only platform state. This does not run an agent or mutate resources.
+npm run eval:replay -- --report <generation-report.json> --scenario <scenario.json> --app-type APP_XXX
 
 # Run all three in one pass (routing + tool-pipeline baseline + real generation).
 OPENYIDA_E2E=1 npm run eval:all -- --skill yida-dashboard --screenshot
@@ -406,7 +412,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | Update a form page |
 | `openyida list-forms <appType> [--keyword <text>]` | List forms/pages in an app |
 | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | Manage aggregate tables (virtualView) |
-| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json]` | Get one form Schema or all form Schemas |
+| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | Get one form Schema or all form Schemas |
 | `openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]` | Check PRD page/resource count risk |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | Export app entity relationship diagram |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page |
@@ -424,13 +430,13 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida data <action> <resource> [args]` | Unified data management (form/process/task/subform) |
+| `openyida data <query\|get\|create\|update> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --confirm [--json]` | Unified data management (form/process/task/subform) |
 | `openyida task-center <type> [options]` | Global task center (todo/processed/cc etc.) |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, and domain settings |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | Fetch Markdown content from a DingTalk document |
 | `openyida read-dingtalk-tingji <taskUuid> [--json]` | Fetch DingTalk Tingji details by task UUID |
-| `openyida get-permission <appType> <formUuid>` | Query form permission config |
-| `openyida save-permission <appType> <formUuid> ...` | Save form permission config |
+| `openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--json]` | Query form permission config |
+| `openyida save-permission <appType> <formUuid> --package-uuid <packageUuid> [--data-permission <json>\|--action-permission <json>\|--field-permission <json>]` | Save form permission config |
 | `openyida corp-manager <search-user\|list\|add\|remove\|address-book> ...` | Manage platform admins and address book permissions |
 | `openyida agent-center <list\|create\|update\|cancel\|range\|search-user> ...` | Manage process and departure delegation |
 
@@ -456,8 +462,8 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida create-report <appType> "<name>" ... [--open\|--no-open]` | Create a Yida report |
-| `openyida append-chart <appType> <reportId> ... [--open\|--no-open]` | Append chart to existing report |
+| `openyida create-report <appType> "<name>" ... [--json] [--open\|--no-open]` | Create a Yida report |
+| `openyida append-chart <appType> <reportId> ... [--json] [--open\|--no-open]` | Append chart to existing report |
 | `openyida report inspect <appType> <reportId> --json` | Inspect report runtime bindings (read-only) |
 
 ### Connectors
@@ -485,7 +491,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 |---------|-------------|
 | `openyida integration create <appType> ... [--spec file.json]` | Create integration automation flow |
 | `openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]` | Probe integration update capability (currently blocked without full readback) |
-| `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
+| `openyida integration list <appType> [--flow-types 1,2,3,5,6] [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
 | `openyida integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
 | `openyida integration disable <appType> <formUuid> <processCode>` | Disable integration automation flow |
 | `openyida integration check <appType...>` | Check abnormal integration automation run logs |

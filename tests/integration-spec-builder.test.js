@@ -434,6 +434,118 @@ describe('integration spec builder', () => {
     expect(_private.resolveNodeRefs('literal-self', context)).toBe('literal-self');
   });
 
+  test('resolves __source references on update assignments', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          {
+            id: 'lookup',
+            type: 'dataRetrieve',
+            formUuid: 'FORM-B',
+            conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+          },
+          {
+            id: 'update',
+            type: 'dataUpdate',
+            source: 'lookup',
+            assignments: [{
+              column: 'numberField_total',
+              valueType: 'column',
+              value: '${lookup}.numberField_total+1',
+              __source: '#{lookup//numberField_total}+1',
+              __display: '获取单条数据.总数+1',
+            }],
+          },
+        ],
+      },
+      processCode: 'LPROC-SOURCE',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Formula source flow',
+    });
+
+    const updateNode = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.update);
+    const updateViewNode = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.update);
+    const expectedAssignment = {
+      value: `\${${built.nodeIdMap.lookup}}.numberField_total+1`,
+      __source: `#{${built.nodeIdMap.lookup}//numberField_total}+1`,
+      __display: '获取单条数据.总数+1',
+    };
+    expect(updateNode.props.assignments[0]).toMatchObject(expectedAssignment);
+    expect(updateViewNode.props.updateDataRules.assignments[0]).toMatchObject(expectedAssignment);
+  });
+
+  test('preserves registered node IDs in __source references', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          {
+            id: 'lookup',
+            nodeId: 'node-fixed',
+            type: 'dataRetrieve',
+            formUuid: 'FORM-B',
+            conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+          },
+          {
+            id: 'update',
+            nodeId: 'node-update',
+            type: 'dataUpdate',
+            source: 'lookup',
+            assignments: [{
+              column: 'numberField_total',
+              valueType: 'column',
+              value: '${lookup}.numberField_total+1',
+              __source: '#{node-fixed//numberField_total}+1',
+            }],
+          },
+        ],
+      },
+      processCode: 'LPROC-SOURCE-ID',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Formula source node ID flow',
+    });
+
+    const expectedSource = '#{node-fixed//numberField_total}+1';
+    const updateNode = built.processJson.nodes.find((node) => node.nodeId === 'node-update');
+    const updateViewNode = built.viewJson.schema.children.find((node) => node.id === 'node-update');
+    expect(updateNode.props.assignments[0].__source).toBe(expectedSource);
+    expect(updateViewNode.props.updateDataRules.assignments[0].__source).toBe(expectedSource);
+  });
+
+  test.each(['node_typo', 'node-missing'])('rejects unregistered designer source node ID %s', (nodeId) => {
+    expect(() => buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          {
+            id: 'lookup',
+            type: 'dataRetrieve',
+            formUuid: 'FORM-B',
+            conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+          },
+          {
+            id: 'update',
+            type: 'dataUpdate',
+            source: 'lookup',
+            assignments: [{
+              column: 'numberField_total',
+              valueType: 'column',
+              value: '${lookup}.numberField_total+1',
+              __source: `#{${nodeId}//numberField_total}+1`,
+            }],
+          },
+        ],
+      },
+      processCode: 'LPROC-SOURCE-INVALID',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Invalid formula source flow',
+    })).toThrow(`Unknown integration spec node alias: ${nodeId}`);
+  });
+
   test('rejects unresolved aliases, invalid assignments, and routes with multiple default branches', () => {
     const base = {
       processCode: 'LPROC-SPEC',

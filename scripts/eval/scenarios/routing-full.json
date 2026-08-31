@@ -361,6 +361,20 @@
     "note": "数据批量更新"
   },
   {
+    "id": "data-management-delete-form-pos-1",
+    "prompt": "先查清楚这条临时表单记录的内容并让我确认，然后精确删除指定 formInstId，删除后再回读确认不存在",
+    "expectedSkill": "yida-data-management",
+    "type": "positive",
+    "note": "普通表单精确删除必须走查询、业务确认、正式删除与回读闭环"
+  },
+  {
+    "id": "data-management-delete-process-boundary-1",
+    "prompt": "删除这个流程实例；如果 OpenYida 没有正式命令就明确停止，不要猜命令，也不要写脚本或调用私有 API",
+    "expectedSkill": "yida-data-management",
+    "type": "positive",
+    "note": "流程实例删除能力边界仍由 data-management 明确说明"
+  },
+  {
     "id": "data-management-neg-1",
     "prompt": "帮我查一下这个表单有哪些字段，字段类型分别是什么",
     "expectedSkill": "yida-get-schema",

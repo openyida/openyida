@@ -1142,7 +1142,8 @@ module.exports = {
     result_copy: '   {0} → {1} ({2} arquivos)',
     remove_failed: '    ❌ Falha ao remover: {0} ({1})',
     symlink_fallback_copy: '    ⚠️  Criação de link simbólico Windows falhou (requer permissões de admin), usando cópia de diretório: {0}',
-    symlink_failed: '    ❌ Falha ao criar link simbólico: {0} ({1})'
+    symlink_failed: '    ❌ Falha ao criar link simbólico: {0} ({1})',
+    source_destination_overlap: 'Cópia interrompida porque os diretórios de origem e destino se sobrepõem. Origem: {0}; destino: {1}'
   },
   check_update: {
     new_version: '\n🎉 Nova versão disponível: {0} → {1}',
@@ -1903,6 +1904,14 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
 });
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  command_unsupported: 'Comando de dados não suportado: {0} {1}. Execute openyida commands --json para consultar a capacidade real.',
+  delete_confirmation_required: 'Antes de excluir um registro de formulário, consulte o alvo, mostre o resumo ao usuário e adicione --confirm somente após aprovação explícita. Nenhuma exclusão foi realizada.',
+  delete_preflight_failed: 'Não foi possível ler o registro de formulário {0} para a verificação prévia. Nenhuma exclusão foi realizada.',
+  delete_process_unsupported: 'A exclusão de instâncias de processo não é suportada nesta versão. Pare e informe a lacuna de capacidade; não use scripts nem APIs privadas.',
+  delete_readback_mismatch: 'A solicitação de exclusão foi aceita, mas o registro {0} ainda existe na releitura. O resultado não foi verificado; não repita a exclusão automaticamente.',
+  delete_result_unknown: 'O resultado da exclusão do registro {0} é desconhecido. Faça apenas uma verificação de leitura e não repita a exclusão automaticamente.',
+  delete_target_mismatch: 'O registro de formulário {0} não pertence ao formulário de destino {1}. A operação foi interrompida antes da exclusão.',
+  delete_target_unverified: 'Não foi possível verificar a identidade e a associação do registro de formulário {0}. A operação foi interrompida antes da exclusão.',
   form_mode_unverified: 'Não foi possível verificar o tipo do formulário {0}. A criação foi interrompida antes de qualquer gravação de dados.',
   resource_required: 'O tipo de recurso form está ausente em data query. Comando sugerido: {0}',
 });
