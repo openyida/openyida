@@ -440,7 +440,17 @@ describe('CodeBundle schema compatibility', () => {
       },
     };
     utils.httpGetRedirectText
-      .mockResolvedValueOnce(sourceCode)
+      .mockImplementationOnce((_baseUrl, _path, _query, options) => {
+        options.onResponseMetadata({
+          baseUrl: 'https://example.test',
+          finalHost: 'bundle.oss.example.test',
+          status: 200,
+          contentType: 'text/plain',
+          eagleeyeTraceId: 'trace-integrity',
+          context: 'baseUrl=https://example.test, finalHost=bundle.oss.example.test, status=200, contentType=text/plain, eagleeyeTraceId=trace-integrity',
+        });
+        return Promise.resolve(sourceCode);
+      })
       .mockResolvedValueOnce(runtimeCode);
 
     await expect(resolveCodeBundleSchema(
@@ -448,7 +458,16 @@ describe('CodeBundle schema compatibility', () => {
       'APP_XXX',
       'FORM_XXX',
       { baseUrl: 'https://example.test' }
-    )).rejects.toThrow('完整性校验失败');
+    )).rejects.toMatchObject({
+      code: 'CODE_BUNDLE_INTEGRITY_MISMATCH',
+      message: expect.stringContaining('eagleeyeTraceId=trace-integrity'),
+      details: expect.objectContaining({
+        artifact: 'source',
+        finalHost: 'bundle.oss.example.test',
+        status: 200,
+        eagleeyeTraceId: 'trace-integrity',
+      }),
+    });
   });
 });
 
