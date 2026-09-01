@@ -50,6 +50,36 @@ describe('eval screenshot', () => {
     ]));
   });
 
+  test('已知数据非空但页面仍全 0 时运行态验收失败', () => {
+    const failed = evaluatePageRuntime({
+      bodyText: '客户看板 客户总数 0 联系人总数 0',
+      textLength: 24,
+    }, {
+      requireKnownDataEvidence: true,
+      knownDataCounts: [{ name: '客户', count: 3 }],
+    });
+    expect(failed.pass).toBe(false);
+    expect(failed.checks).toContainEqual(expect.objectContaining({ name: 'knownDataEvidence', ok: false }));
+
+    const passed = evaluatePageRuntime({
+      bodyText: '客户经营看板 客户总数 3 联系人总数 2 商机总数 1',
+      textLength: 28,
+    }, {
+      requireKnownDataEvidence: true,
+      knownDataCounts: [{ name: '客户', count: 3 }],
+    });
+    expect(passed.pass).toBe(true);
+
+    const emptySource = evaluatePageRuntime({
+      bodyText: '客户经营看板 客户总数 0 当前暂无业务记录',
+      textLength: 24,
+    }, {
+      requireKnownDataEvidence: true,
+      knownDataCounts: [{ name: '客户', count: 0 }],
+    });
+    expect(emptySource.pass).toBe(true);
+  });
+
   test('截图运行时失败转换为可归因证据且不携带页面正文', () => {
     const findings = runtimeFindingsFromScreenshots([{
       scenarioId: 'crm', name: '我的线索', url: 'https://x/page',

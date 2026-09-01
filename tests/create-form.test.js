@@ -682,8 +682,12 @@ describe('legacy create-form compact field resolver', () => {
     const tableStatus = findDirectChildByLabel(table, '状态');
     expect(topLevelStatus.props.onChange).toBeUndefined();
     expect(tableStatus.props.onChange).toMatchObject({
-      type: 'actionRef',
-      name: expect.stringMatching(/^openyidaRuleChange_/),
+      type: 'JSExpression',
+      value: expect.stringContaining('legaoBuiltin.execEventFlow'),
+      events: [expect.objectContaining({
+        type: 'actionRef',
+        name: expect.stringMatching(/^openyidaRuleChange_/),
+      })],
     });
 
     consoleSpy.mockRestore();
@@ -2322,6 +2326,105 @@ describe('create-form create recovery guardrails', () => {
     expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(0);
 
     consoleSpy.mockRestore();
+  });
+
+  test('field-action patch performs an exact post-save binding readback', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Action Readback',
+      fields: [{ key: 'status', type: 'SelectField', label: '状态', options: ['A', 'B'] }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_ACTION_READBACK',
+    }).schema;
+    initial.gmtModified = 100;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedLegacyForm(initial);
+
+    await isolatedCreateForm.run([
+      'patch',
+      'APP_TEST',
+      'FORM_ACTION_READBACK',
+      JSON.stringify([{
+        action: 'field-action',
+        field: '状态',
+        name: 'handleStatusChange',
+        source: 'export function handleStatusChange(event) { return event && event.value === "A"; }',
+      }]),
+    ]);
+
+    const payload = parseConsoleJsonPayloads(consoleSpy).find(item => item && item.formUuid === 'FORM_ACTION_READBACK');
+    expect(payload).toMatchObject({
+      success: true,
+      readbackVerified: true,
+      eventBindings: [{
+        fieldId: expect.stringMatching(/^selectField_/),
+        event: 'onChange',
+        actionName: 'handleStatusChange',
+        verified: true,
+      }],
+    });
+    expect(mockUtils.requestWithAutoLogin).toHaveBeenCalledTimes(3);
+
+    consoleSpy.mockRestore();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
+  });
+
+  test('field-action patch reports semantic failure when remote readback loses the binding', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Action Readback Mismatch',
+      fields: [{ key: 'status', type: 'SelectField', label: '状态', options: ['A', 'B'] }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_ACTION_READBACK_MISMATCH',
+    }).schema;
+    initial.gmtModified = 100;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedLegacyForm(initial);
+    let savedSchema;
+    let getCount = 0;
+    mockUtils.httpPost.mockImplementation((baseUrl, requestPath, body) => {
+      if (requestPath.includes('/saveFormSchema.json')) {
+        savedSchema = JSON.parse(querystring.parse(body).content);
+      }
+      return Promise.resolve({ success: true });
+    });
+    mockUtils.httpGet.mockImplementation(() => {
+      getCount++;
+      if (getCount === 1) {
+        return Promise.resolve({ success: true, content: initial });
+      }
+      const readback = JSON.parse(JSON.stringify(savedSchema));
+      const container = findFormContainer(readback.pages[0].componentsTree[0]);
+      delete findDirectChildByLabel(container, '状态').props.onChange;
+      return Promise.resolve({ success: true, content: readback });
+    });
+
+    await expect(isolatedCreateForm.run([
+      'patch',
+      'APP_TEST',
+      'FORM_ACTION_READBACK_MISMATCH',
+      JSON.stringify([{
+        action: 'field-action',
+        field: '状态',
+        name: 'handleStatusChange',
+        source: 'export function handleStatusChange() {}',
+      }]),
+      '--json',
+    ])).rejects.toMatchObject({
+      code: 'FORM_ACTION_BINDING_READBACK_MISMATCH',
+      details: {
+        status: 'SEMANTIC_FAILURE',
+        mutationAccepted: true,
+        readbackVerified: false,
+        sideEffectState: 'committed',
+      },
+    });
+    expect(parseConsoleJsonPayloads(consoleSpy).some(item => item && item.success === true)).toBe(false);
+
+    consoleSpy.mockRestore();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
   });
 
   test('add-option mode saves the schema without updateFormConfig', async () => {

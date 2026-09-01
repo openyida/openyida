@@ -4,6 +4,7 @@ const {
   checkExpectedSkills,
   checkExpectedCommands,
   checkExpectedResources,
+  checkExpectedTargets,
   checkForbiddenFindings,
   deriveCommandFindings,
   buildGenerationEvidence,
@@ -77,7 +78,9 @@ describe('eval generation evidence', () => {
     const actual = [
       {
         type: 'report', name: '经营报表', schemaVersion: 'V5', componentCount: 7,
-        chartCount: 3, unknownCubeCount: 0,
+        chartCount: 3,
+        componentNames: ['YoushuPieChart', 'YoushuSimpleIndicatorCard'],
+        unknownCubeCount: 0,
       },
       { type: 'permission', name: '客户', packageCount: 2 },
       { type: 'sample-data', name: '客户', instanceCount: 2 },
@@ -85,7 +88,11 @@ describe('eval generation evidence', () => {
       { type: 'page-config', name: '工作台', openUrl: '/o/crm' },
     ];
     const result = checkExpectedResources(actual, { required: [
-      { type: 'report', schemaVersion: 'V5', minComponentCount: 7, minChartCount: 3, maxUnknownCubeCount: 0 },
+      {
+        type: 'report', schemaVersion: 'V5', minComponentCount: 7, minChartCount: 3,
+        componentNamesIncludes: ['YoushuPieChart', 'YoushuSimpleIndicatorCard'],
+        maxUnknownCubeCount: 0,
+      },
       { type: 'permission', minPackageCount: 2 },
       { type: 'sample-data', minInstanceCount: 1 },
       { type: 'integration', status: 'y' },
@@ -93,6 +100,42 @@ describe('eval generation evidence', () => {
     ] });
     expect(result.pass).toBe(true);
     expect(result.checks.every((check) => check.ok)).toBe(true);
+  });
+
+  test('资源组件类型断言缺少任一报表组件时失败', () => {
+    const result = checkExpectedResources([
+      { type: 'report', componentNames: ['YoushuPieChart', 'YoushuGroupedBarChart'] },
+    ], { required: [{
+      type: 'report',
+      componentNamesIncludes: ['YoushuPieChart', 'YoushuSimpleIndicatorCard'],
+    }] });
+    expect(result.pass).toBe(false);
+  });
+
+  test('Agent 原始交付目标支持 URL 正反向断言', () => {
+    const expectedTargets = { required: [{
+      type: 'report',
+      urlPattern: '^https://ding\\.aliwork\\.com/APP_[^/]+/workbench/REPORT[-_]',
+      urlNotIncludes: '/report/',
+    }] };
+    expect(checkExpectedTargets([
+      { type: 'report', url: 'https://ding.aliwork.com/APP_X/workbench/REPORT-1' },
+    ], expectedTargets).pass).toBe(true);
+    expect(checkExpectedTargets([
+      { type: 'report', url: 'https://ding.aliwork.com/APP_X/report/REPORT-1' },
+    ], expectedTargets).pass).toBe(false);
+  });
+
+  test('平台回读目标不能覆盖 Agent 自报的错误交付 URL', () => {
+    const scenario = { expectedTargets: { required: [{
+      type: 'report', urlIncludes: '/workbench/', urlNotIncludes: '/report/',
+    }] } };
+    const result = {
+      targets: [{ type: 'report', url: 'https://ding.aliwork.com/APP_X/workbench/REPORT-1' }],
+      reportedTargets: [{ type: 'report', url: 'https://ding.aliwork.com/APP_X/report/REPORT-1' }],
+    };
+    const evidence = buildGenerationEvidence({ scenario, result, agentResult: {} });
+    expect(evaluateGenerationEvidence(scenario, evidence).pass).toBe(false);
   });
 
   test('禁止项只要命中即失败', () => {

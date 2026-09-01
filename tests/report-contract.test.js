@@ -95,6 +95,7 @@ describe('report frontend contract', () => {
               settings: {
                 height: null,
                 legend: { cardWidth: null, showLegend: true },
+                tooltip: { contentType: null, showTooltip: true },
                 fixedLegend: { cardWidth: 320 },
                 yAxis: { min: null, max: null },
               },
@@ -117,6 +118,7 @@ describe('report frontend contract', () => {
       .toEqual({ fieldCode: 'dateField_1' });
     expect(props.settings).toEqual({
       legend: { showLegend: true },
+      tooltip: { showTooltip: true },
       fixedLegend: { cardWidth: 320 },
       yAxis: {},
     });
@@ -162,6 +164,44 @@ describe('report frontend contract', () => {
       .children[0].props.settings).toEqual({
       legend: { cardWidth: 320 },
       fixedLegend: { cardWidth: null },
+    });
+  });
+
+  test('keeps tooltip contentType strict outside the proven pie null normalization', () => {
+    const bar = buildSchema({
+      pages: [{
+        componentsTree: [{
+          componentName: 'Page',
+          children: [{
+            componentName: 'YoushuGroupedBarChart',
+            props: { settings: { tooltip: { contentType: null } } },
+          }],
+        }],
+      }],
+    });
+    const pie = buildSchema({
+      pages: [{
+        componentsTree: [{
+          componentName: 'Page',
+          children: [{
+            componentName: 'YoushuPieChart',
+            props: {
+              settings: {
+                tooltip: { contentType: 'NAME_VALUE', showTooltip: true },
+                fixedTooltip: { contentType: null },
+              },
+            },
+          }],
+        }],
+      }],
+    });
+
+    expect(prepareReportSchemaForSave(bar).pages[0].componentsTree[0]
+      .children[0].props.settings.tooltip).toHaveProperty('contentType', null);
+    expect(prepareReportSchemaForSave(pie).pages[0].componentsTree[0]
+      .children[0].props.settings).toEqual({
+      tooltip: { contentType: 'NAME_VALUE', showTooltip: true },
+      fixedTooltip: { contentType: null },
     });
   });
 

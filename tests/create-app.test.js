@@ -169,6 +169,7 @@ describe('create-app argument parsing', () => {
       group: 'ALL',
       openExclusive: 'n',
       openPhysicColumn: 'n',
+      createWithModernTheme: 'y',
       fromBuilderAi: 'y',
       builderAiSource: 'local',
     });

@@ -9,8 +9,8 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 
 涉及新增记录、生成测试数据、批量导入或发起流程时，必须连续完成下面 5 步；任一步断开都不算完成。
 
-1. **只读预检**：先确认登录态和目标 `appType`/`formUuid`；执行 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实 `fieldId`，必要时先 `openyida data query ...` 确认目标表单/流程可读。
-2. **类型分流**：普通表单用 `openyida data create form <appType> <formUuid> ...`；流程表单用 `openyida data create process <appType> <formUuid> --process-code <processCode> ...`。表单接口和流程接口不能互相替代。
+1. **只读预检**：先确认目标 `appType`、资源名称、`formUuid`、`formType`；执行 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实 `fieldId`，必要时先 query 确认资源可读。
+2. **类型分流**：普通表单写操作固定传 `--expect-form-name <真实名称> --expect-form-type receipt`；流程写操作固定传 `--expect-form-name <真实名称> --expect-form-type process`。名称、UUID 或类型不一致时必须停止，不能改写成当前上下文里的其他资源。
 3. **写入即提交**：小 JSON 可直接用 `--data-json '<json>'`；长 JSON 或批量造数先用结构化文件写入工具创建到 `.cache/openyida/<项目名或任务名>/data-import/<name>.json`，创建后必须立刻调用对应 `openyida data create ... --data-file <path>`。
 4. **批量逐条创建**：`openyida data create form/process` 每次只创建一条实例；多条记录按单次不超过 30 条循环/分批逐条调用。不要把多条实例数组塞进一个 `--data-file`，除非该数组是某个子表字段的字段值。
 5. **写后验收**：create/update 返回无报错后，必须执行 `openyida data query form|process <appType> <formUuid> ...` 抽查至少 1 条新记录，确认 `formData` 非空且包含本次写入字段值；流程记录可再用返回的 `processInstanceId` 执行 `get process` 复核。
@@ -32,6 +32,7 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 ## 严格禁止 (NEVER DO)
 
 - 不要混用表单接口和流程接口，两套接口完全独立，参数和返回结构不同
+- 不要省略写操作的 `--expect-form-name` / `--expect-form-type`；`create form` 不会自动改为发起流程
 - 不要编造 formInstId 或 processInstanceId，必须从查询结果中提取
 - 不要用此命令修改表单结构（字段增删改），应使用 `yida-create-form-page`
 - **绝对禁止猜测或编造字段 ID（fieldId）**，宜搭字段 ID 由平台随机生成（如 `textField_eftt1aa5m`），无法预测，必须通过 `openyida get-schema` 获取
@@ -41,6 +42,7 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 ## 严格要求 (MUST DO)
 
 - 操作前先用 query 命令确认目标数据存在
+- 所有 create/update/delete/execute 写操作必须携带只读预检确认的资源名称和类型；CLI 校验不一致时停止，不得换目标重试
 - 新增记录、生成测试数据、批量导入或发起流程必须遵守上方“创建/录入数据强制闭环”
 - 批量操作单次不超过 30 条记录；多条实例必须逐条/分批执行 `openyida data create ...`
 - 删除普通表单记录前，必须先执行 `openyida data get form <appType> --inst-id <formInstId> --form-uuid <formUuid> --json`，核对返回实例 ID 与目标表单，并向用户展示记录数量、标题/关键字段和实例 ID；只有用户明确确认后，才执行带 `--confirm` 的正式删除命令
@@ -102,7 +104,7 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 ```json
 {
   "supportedDeleteCommand": "data delete form",
-  "requiredTarget": ["appType", "formUuid", "formInstId"],
+  "requiredTarget": ["appType", "formUuid", "formInstId", "formName", "formType"],
   "preflightCommand": "data get form",
   "businessConfirmationRequired": true,
   "executionFlag": "--confirm",
@@ -126,12 +128,11 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 ```bash
 openyida data query form <appType> <formUuid> [--page 1 --size 20] [--search-json '<json>'|--search-file .cache/openyida/<项目名或任务名>/data-import/search.json] [--dynamic-order '{"fieldId":"+"}'] [--resolve-aliases]
 openyida data get form <appType> --inst-id <formInstId>
-openyida data create form <appType> <formUuid> --data-json '<json>' [--resolve-aliases]
-openyida data create form <appType> <formUuid> --data-file .cache/openyida/<项目名或任务名>/data-import/record.json [--resolve-aliases]
-> `create form` 会自动探测表单类型；当目标表单为流程表单时，会改用 `/v1/process/startInstance.json` 发起流程。若已知 `processCode`，仍推荐显式使用 `create process`。
-openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --data-json '<json>' [--resolve-aliases]
-openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --data-file .cache/openyida/<项目名或任务名>/data-import/patch.json [--resolve-aliases]
-openyida data delete form <appType> <formUuid> --inst-id <formInstId> --confirm --json
+openyida data create form <appType> <formUuid> --expect-form-name <name> --expect-form-type receipt --data-json '<json>' [--resolve-aliases]
+openyida data create form <appType> <formUuid> --expect-form-name <name> --expect-form-type receipt --data-file .cache/openyida/<项目名或任务名>/data-import/record.json [--resolve-aliases]
+openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --expect-form-name <name> --expect-form-type receipt --data-json '<json>' [--resolve-aliases]
+openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --expect-form-name <name> --expect-form-type receipt --data-file .cache/openyida/<项目名或任务名>/data-import/patch.json [--resolve-aliases]
+openyida data delete form <appType> <formUuid> --inst-id <formInstId> --expect-form-name <name> --expect-form-type receipt --confirm --json
 openyida data query subform <appType> <formUuid> --inst-id <formInstId> --table-field-id <fieldId|alias> [--page 1 --size 100] [--resolve-aliases]
 ```
 
@@ -159,12 +160,12 @@ openyida data query subform <appType> <formUuid> --inst-id <formInstId> --table-
 ```bash
 openyida data query process <appType> <formUuid> [--instance-status RUNNING] [--search-file .cache/openyida/<项目名或任务名>/data-import/process-search.json] [--resolve-aliases]
 openyida data get process <appType> --process-inst-id <processInstanceId>
-openyida data create process <appType> <formUuid> --process-code <processCode> --data-json '<json>' [--resolve-aliases]
-openyida data create process <appType> <formUuid> --process-code <processCode> --data-file .cache/openyida/<项目名或任务名>/data-import/process-record.json [--resolve-aliases]
-openyida data update process <appType> --process-inst-id <processInstanceId> --form-uuid <formUuid> --data-json '<json>' [--resolve-aliases]
-openyida data update process <appType> --process-inst-id <processInstanceId> --form-uuid <formUuid> --data-file .cache/openyida/<项目名或任务名>/data-import/process-patch.json [--resolve-aliases]
+openyida data create process <appType> <formUuid> --process-code <processCode> --expect-form-name <name> --expect-form-type process --data-json '<json>' [--resolve-aliases]
+openyida data create process <appType> <formUuid> --process-code <processCode> --expect-form-name <name> --expect-form-type process --data-file .cache/openyida/<项目名或任务名>/data-import/process-record.json [--resolve-aliases]
+openyida data update process <appType> --process-inst-id <processInstanceId> --form-uuid <formUuid> --expect-form-name <name> --expect-form-type process --data-json '<json>' [--resolve-aliases]
+openyida data update process <appType> --process-inst-id <processInstanceId> --form-uuid <formUuid> --expect-form-name <name> --expect-form-type process --data-file .cache/openyida/<项目名或任务名>/data-import/process-patch.json [--resolve-aliases]
 openyida data query operation-records <appType> --process-inst-id <processInstanceId>
-openyida data execute task <appType> --task-id <taskId> --process-inst-id <processInstanceId> --out-result AGREE --remark '同意' [--data-file .cache/openyida/<项目名或任务名>/data-import/task-data.json] [--form-uuid <formUuid>] [--resolve-aliases]
+openyida data execute task <appType> --task-id <taskId> --process-inst-id <processInstanceId> --form-uuid <formUuid> --expect-form-name <name> --expect-form-type process --out-result AGREE --remark '同意' [--data-file .cache/openyida/<项目名或任务名>/data-import/task-data.json] [--resolve-aliases]
 ```
 
 ### 任务中心
@@ -251,7 +252,7 @@ openyida data query tasks <appType> --type todo|done|submitted|cc [--page 1 --si
 - 日期字符串可能导致保存失败、字段为空，或后续报表/筛选异常。
 
 ```bash
-openyida data create form APP_xxx FORM-xxx --data-json '{
+openyida data create form APP_xxx FORM-xxx --expect-form-name 合同信息 --expect-form-type receipt --data-json '{
   "textField_xxx": "测试记录",
   "dateField_xxx": 1719705600000,
   "cascadeDateField_xxx": [1719705600000,1722384000000]
@@ -264,7 +265,7 @@ openyida data create form APP_xxx FORM-xxx --data-json '{
 
 ```bash
 # 示例：创建带关联客户的商机
-openyida data create form APP_xxx FORM-商机表 --data-json '{
+openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --expect-form-type receipt --data-json '{
   "textField_xxx": "商机名称",
   "associationFormField_xxx": [{"appType":"APP_xxx","formUuid":"FORM-客户表","instanceId":"FINST-xxx"}]
 }'

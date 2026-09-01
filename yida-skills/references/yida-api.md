@@ -4,6 +4,16 @@
 
 所有接口返回 Promise，统一使用 `.then()` 和 `.catch()` 处理结果和异常。
 
+## 页面 JS 与动作面板基础契约
+
+- 只有顶层 `export function actionName(...) {}` 会出现在动作面板，供组件事件和生命周期绑定。
+- 一个导出动作调用另一个导出动作时使用 `this.actionName(...)`；未导出的纯 helper 可直接调用，但不能依赖宜搭注入的 `this`。
+- 表单字段通过 `this.$('fieldId')` 访问，读值用 `getValue()`，赋值用 `setValue(value, options)`；需要触发目标字段 `onChange` 时显式设置 `options.triggerChange`。
+- 组件事件参数以对应组件 API 为准。下拉单选 `onChange` 直接传入动作参数 `value`，不要从 `event` 取值。该参数可能是原始值、`{ value, actionType }`，开启 `useDetailValue=true` 后也可能是 `{ value: { label, value }, actionType }`。兼容写法：先用 `value && value.value !== undefined ? value.value : value` 取得动作值，再以相同方式取得选项明细值。宜搭动作面板不支持空值合并运算符，使用 `?:`。仅写函数源码不算完成，必须在设计器中绑定事件；OpenYida 写入后也必须回读确认绑定仍存在。
+- 不同组件不能统一 `String(value)`：文本、数字、评分、单选和单日期解包后是标量；多选、复选、部门、国家、附件和图片是数组；日期区间是 `{ start, end }`；成员单选交互可能是对象，但初始化可能是数组。只有 `SelectField useDetailValue` 需要继续取选项对象的 `.value`，其他对象或数组必须保留结构。
+
+官方参考：[动作面板](https://alidocs.dingtalk.com/i/nodes/1zknDm0WRz0NZeXQux7OKZXmWBQEx5rG)、[`this` 调用语义](https://alidocs.dingtalk.com/i/nodes/Exel2BLV5gOAdXr1umO9QPNr8gk9rpMq)、[生命周期](https://alidocs.dingtalk.com/i/nodes/pGBa2Lm8aeP35vxdtEKBlz4D8gN7R35y)、[SelectField](https://developers.aliwork.com/docs/components/form/selectField)、[宜搭 JS API](https://developers.aliwork.com/docs/api/yidaAPI)。
+
 ---
 
 ## 目录

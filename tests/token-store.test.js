@@ -455,6 +455,60 @@ describe('token-store', () => {
     expect(loaded.auth_store).toBe('project_cache');
   });
 
+  test('env token mode ignores a project cache from another sandbox binding', () => {
+    const options = {
+      projectRoot,
+      envName: 'public',
+      authDir,
+      env: {
+        OPENYIDA_AUTH_MODE: 'token',
+        OPENYIDA_ACCESS_TOKEN: 'fresh-env-access-token',
+        OPENYIDA_REFRESH_TOKEN: 'fresh-env-refresh-token',
+        OPENYIDA_SANDBOX_BINDING_ID: 'binding-new',
+      },
+    };
+    saveProjectLegacyTokenSession({
+      access_token: 'stale-local-access-token',
+      refresh_token: 'stale-local-refresh-token',
+      runtime_binding_id: 'binding-old',
+    }, options);
+
+    const loaded = loadTokenSession(options);
+
+    expect(loaded.access_token).toBe('fresh-env-access-token');
+    expect(loaded.refresh_token).toBe('fresh-env-refresh-token');
+    expect(loaded.runtime_binding_id).toBe('binding-new');
+    expect(loaded.auth_source).toBe('env');
+    expect(loaded.auth_store).toBe('env');
+  });
+
+  test('env token mode keeps a rotated project cache for the same sandbox binding', () => {
+    const options = {
+      projectRoot,
+      envName: 'public',
+      authDir,
+      env: {
+        OPENYIDA_AUTH_MODE: 'token',
+        OPENYIDA_ACCESS_TOKEN: 'bootstrap-env-access-token',
+        OPENYIDA_REFRESH_TOKEN: 'bootstrap-env-refresh-token',
+        OPENYIDA_SANDBOX_BINDING_ID: 'binding-current',
+      },
+    };
+    saveProjectLegacyTokenSession({
+      access_token: 'rotated-local-access-token',
+      refresh_token: 'rotated-local-refresh-token',
+      runtime_binding_id: 'binding-current',
+    }, options);
+
+    const loaded = loadTokenSession(options);
+
+    expect(loaded.access_token).toBe('rotated-local-access-token');
+    expect(loaded.refresh_token).toBe('rotated-local-refresh-token');
+    expect(loaded.runtime_binding_id).toBe('binding-current');
+    expect(loaded.auth_source).toBe('project_legacy');
+    expect(loaded.auth_store).toBe('project_cache');
+  });
+
   test('env token mode does not use project cache for another injected corp', () => {
     const options = {
       projectRoot,

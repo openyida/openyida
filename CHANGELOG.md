@@ -12,6 +12,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.9.1] - 2026-09-01
+
+### Changed
+
+- `openyida create-app` 创建应用时默认启用现代主题（注册请求带上 `createWithModernTheme=y`）；`import-app` 行为保持不变。
+
+## [2026.8.31-2] - 2026-08-31
+
+### Fixed
+
+- 修复普通表单字段动作绑定「写入成功但设计器仍显示新建动作」的问题：`create-form patch` 的 `bind-field-action` 现在同时写入设计器原生事件结构（`JSExpression` + `actionRef`）与动作面板目录条目，保存后回读校验「导出函数 + 动作目录条目 + 原生事件结构」三要素齐全，任一缺失即以结构化错误失败，不再误报成功。
+- 修复动作目录同步会抹掉条目元数据的问题：`syncDesignerActionCatalog` 改为合并语义（只增不删），生命周期/组件事件条目的 `relatedEventId`、`type`、`params` 得以保留；仅清理已失效的 `openyidaRuleChange_*` 自有包装动作，用户与平台自有条目不再被静默删除。
+- 修复动作源码校验把业务常量误认作动作的问题：改用只识别顶层 `export function` 的窄提取器，`export const` 常量不再注册进动作面板。
+- 修复字段查找在写入侧与回读侧不对称的问题：回读时同时匹配 `field.fieldId` 与 `props.fieldId`，避免写入成功却回读报 `FIELD_NOT_FOUND`。
+
+### Changed
+
+- 补充下拉单选 `onChange` 取值契约文档：动作参数从 `value` 传入而非 `event`，可能是原始值、`{ value, actionType }` 或开启 `useDetailValue` 后的 `{ value: { label, value } }`；并新增各组件动作值形态对照表（标量 / 数组 / `{ start, end }` / 成员对象），说明不能统一 `String(value)`。
+
 ## [2026.8.31-1] - 2026-08-31
 
 ### Changed

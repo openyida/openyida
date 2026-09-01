@@ -48,7 +48,7 @@ description: 表单页面创建与更新，默认加载 yida-form-detail 作为�
 |------|------|
 | 创建新表单 / 设计字段结构 | 本技能 `create` 模式 |
 | 增删改字段结构 | 本技能 `update` 模式 |
-| 配置 OpenYida 尚未封装的平台字段属性/动作 | 本技能 `patch` 模式，先读 [advanced-form-modes.md](references/advanced-form-modes.md) |
+| 配置 OpenYida 尚未封装的平台字段属性/动作 | 本技能 `patch` 模式；字段事件动作使用原子 `field-action`，先读 [advanced-form-modes.md](references/advanced-form-modes.md) |
 | 字段显示隐藏、只读、自动赋值 | 本技能 `rule` 模式，先读 [advanced-form-modes.md](references/advanced-form-modes.md) |
 | 选项字段远程搜索数据源 | 本技能 `bind-datasource` 模式，先读 [advanced-form-modes.md](references/advanced-form-modes.md) |
 | 表单数据记录增删改查 | `yida-data-management` |
@@ -185,7 +185,7 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 
 | 模式 | 命令 | 何时使用 |
 |------|------|------|
-| `patch` | `openyida create-form patch <appType> <formUuid> <patchJsonOrFile>` | 受控修改底层 Schema、字段 props、动作模块、自定义校验 |
+| `patch` | `openyida create-form patch <appType> <formUuid> <patchJsonOrFile>` | 受控修改底层 Schema；字段事件动作必须用 `field-action` 并确认 `designerBindingFound: true`、`readbackVerified: true` |
 | `rule` | `openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>` | 字段显示隐藏、只读、自动赋值、onChange 带出 |
 | `validation` | `openyida create-form validation <appType> <formUuid> <validationsJsonOrFile>` | 字段校验规则，优先用内置校验，复杂场景再用 customValidate |
 | `bind-datasource` | `openyida create-form bind-datasource <appType> <formUuid> <fieldLabelOrId> <dataSourceJsonOrFile>` | 选项字段绑定远程搜索数据源；成功输出 `resolved` |

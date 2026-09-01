@@ -18,6 +18,10 @@ jest.mock('../lib/core/chalk', () => ({
 jest.mock('../lib/integration/integration-api', () => ({
   getFormSchema: jest.fn(),
 }));
+jest.mock('../lib/report/runtime-probe', () => ({
+  probeReportSchema: jest.fn(),
+  repairMetadataFieldCodes: jest.fn(),
+}));
 
 const utils = require('../lib/core/utils');
 const { warn } = require('../lib/core/chalk');
@@ -26,6 +30,7 @@ const createReport = require('../lib/report/index');
 const appendReport = require('../lib/report/append');
 const { STALE_SCHEMA_MESSAGE } = require('../lib/core/server-revision');
 const { getFormSchema } = require('../lib/integration/integration-api');
+const { probeReportSchema, repairMetadataFieldCodes } = require('../lib/report/runtime-probe');
 
 const authRef = {
   baseUrl: 'https://demo.aliwork.com',
@@ -87,6 +92,19 @@ describe('report command helpers', () => {
       { componentName: 'DateField', props: { fieldId: 'dateField_hireDate', label: '入职日期' } },
       { componentName: 'SelectField', props: { fieldId: 'selectField_status', label: '状态' } },
     ]);
+    probeReportSchema.mockResolvedValue({
+      success: true,
+      runtimeQueryVerified: true,
+      probes: [{
+        cid: 'cid_1',
+        className: 'YoushuGroupedBarChart',
+        dataSetKey: 'chartData',
+        fields: [],
+        status: 'QUERY_OK',
+        success: true,
+      }],
+    });
+    repairMetadataFieldCodes.mockReturnValue({ schema: {}, changed: 0, replacements: [] });
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
@@ -163,9 +181,11 @@ describe('report command helpers', () => {
       appType: 'APP_XXX',
       chartCount: 1,
       readbackVerified: true,
+      runtimeQueryVerified: true,
       verificationLevel: 'strict-schema-content',
       omitted: expect.any(Array),
       url: 'https://demo.aliwork.com/APP_XXX/workbench/REPORT_1',
+      workbenchUrl: 'https://demo.aliwork.com/APP_XXX/workbench/REPORT_1',
     });
     const saveBody = querystring.parse(utils.httpPost.mock.calls[1][2]);
     expect(JSON.parse(saveBody.content)).toMatchObject({
@@ -182,6 +202,108 @@ describe('report command helpers', () => {
     expect(JSON.parse(logSpy.mock.calls[0][0])).toEqual(result);
     expect(warn.mock.calls.flat().join(' ')).toContain('敏感标识已隐藏');
     expect(warn.mock.calls.flat().join(' ')).not.toContain('corp-1');
+  });
+
+  test('create-report repairs a metadata field mismatch on the same report before success', async () => {
+    utils.httpPost
+      .mockResolvedValueOnce({ success: true, content: { formUuid: 'REPORT_REPAIR' } })
+      .mockResolvedValueOnce({ success: true })
+      .mockResolvedValueOnce({ success: true });
+    utils.httpGet
+      .mockResolvedValueOnce({ success: true, content: { gmtModified: 100 } })
+      .mockImplementationOnce(async () => {
+        const saveBody = querystring.parse(utils.httpPost.mock.calls[1][2]);
+        return { success: true, content: { ...JSON.parse(saveBody.content), gmtModified: 101 } };
+      })
+      .mockImplementationOnce(async () => {
+        const saveBody = querystring.parse(utils.httpPost.mock.calls[2][2]);
+        return { success: true, content: { ...JSON.parse(saveBody.content), gmtModified: 102 } };
+      });
+    probeReportSchema
+      .mockResolvedValueOnce({
+        success: false,
+        runtimeQueryVerified: false,
+        probes: [{
+          cid: 'cid_status',
+          className: 'YoushuPieChart',
+          dataSetKey: 'chartData',
+          fields: [{ fieldCode: 'selectField_status_value' }],
+          status: 'QUERY_FAILED',
+          success: false,
+          errorCode: 'REPORT_METADATA_FIELD_NOT_FOUND',
+          errorMsg: 'metadata missing',
+        }],
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        runtimeQueryVerified: true,
+        probes: [{
+          cid: 'cid_status',
+          className: 'YoushuPieChart',
+          dataSetKey: 'chartData',
+          fields: [{ fieldCode: 'selectField_status' }],
+          status: 'QUERY_OK',
+          success: true,
+        }],
+      });
+    repairMetadataFieldCodes.mockImplementation(schema => ({
+      schema,
+      changed: 1,
+      replacements: [{ cid: 'cid_status', from: 'selectField_status_value', to: 'selectField_status' }],
+    }));
+
+    const result = await createReport.run(['APP_XXX', '状态报表', JSON.stringify(chartConfig)]);
+
+    expect(result).toMatchObject({
+      success: true,
+      reportId: 'REPORT_REPAIR',
+      runtimeQueryVerified: true,
+      runtimeRepair: { attempted: true, changed: 1 },
+    });
+    expect(createBlankReport).toBeDefined();
+    expect(utils.httpPost.mock.calls.filter(call => call[1].includes('saveFormSchemaInfo'))).toHaveLength(1);
+    expect(probeReportSchema).toHaveBeenCalledTimes(2);
+  });
+
+  test('create-report returns one owned residual when runtime query still fails', async () => {
+    utils.httpPost
+      .mockResolvedValueOnce({ success: true, content: { formUuid: 'REPORT_RUNTIME_FAIL' } })
+      .mockResolvedValueOnce({ success: true });
+    utils.httpGet
+      .mockResolvedValueOnce({ success: true, content: { gmtModified: 100 } })
+      .mockImplementationOnce(async () => {
+        const saveBody = querystring.parse(utils.httpPost.mock.calls[1][2]);
+        return { success: true, content: { ...JSON.parse(saveBody.content), gmtModified: 101 } };
+      });
+    probeReportSchema.mockResolvedValueOnce({
+      success: false,
+      runtimeQueryVerified: false,
+      probes: [{
+        cid: 'cid_status',
+        className: 'YoushuPieChart',
+        dataSetKey: 'chartData',
+        fields: [{ fieldCode: 'selectField_status_value' }],
+        status: 'QUERY_FAILED',
+        success: false,
+        errorCode: 'REPORT_METADATA_FIELD_NOT_FOUND',
+        errorMsg: 'metadata missing',
+      }],
+    });
+
+    await expect(createReport.run([
+      'APP_XXX',
+      '状态报表',
+      JSON.stringify(chartConfig),
+    ])).rejects.toMatchObject({
+      code: 'REPORT_RUNTIME_QUERY_FAILED',
+      details: {
+        partial: true,
+        retrySafe: false,
+        residual: { reportId: 'REPORT_RUNTIME_FAIL', owned: true },
+        failedCharts: [expect.objectContaining({ cid: 'cid_status' })],
+      },
+    });
+    expect(utils.httpPost.mock.calls.filter(call => call[1].includes('saveFormSchemaInfo'))).toHaveLength(1);
   });
 
   test('create-report accepts readback after platform strips client-only filter metadata', async () => {
@@ -389,6 +511,8 @@ describe('report command helpers', () => {
           type: 'report',
           appType: 'APP_XXX',
           reportId: 'REPORT_PARTIAL',
+          url: 'https://demo.aliwork.com/APP_XXX/workbench/REPORT_PARTIAL',
+          workbenchUrl: 'https://demo.aliwork.com/APP_XXX/workbench/REPORT_PARTIAL',
           owned: true,
           ownershipStatus: 'owned_created_by_current_invocation',
           provenance: {
@@ -428,6 +552,8 @@ describe('report command helpers', () => {
           type: 'report',
           appType: 'APP_XXX',
           reportId: 'REPORT_PARTIAL',
+          url: 'https://demo.aliwork.com/APP_XXX/workbench/REPORT_PARTIAL',
+          workbenchUrl: 'https://demo.aliwork.com/APP_XXX/workbench/REPORT_PARTIAL',
           owned: true,
           ownershipStatus: 'owned_created_by_current_invocation',
           provenance: {
@@ -446,6 +572,8 @@ describe('report command helpers', () => {
         sideEffectState: 'partial',
         readbackAllowed: true,
         recommendedRecovery: 'inspect_then_stop',
+        url: 'https://demo.aliwork.com/APP_XXX/workbench/REPORT_PARTIAL',
+        workbenchUrl: 'https://demo.aliwork.com/APP_XXX/workbench/REPORT_PARTIAL',
         nextAction: {
           type: 'report.inspect',
           commandId: 'report.inspect',
@@ -489,6 +617,7 @@ describe('report command helpers', () => {
       verificationLevel: 'strict-schema-content',
       omitted: expect.any(Array),
       url: 'https://demo.aliwork.com/APP_XXX/workbench/REPORT_1',
+      workbenchUrl: 'https://demo.aliwork.com/APP_XXX/workbench/REPORT_1',
     });
     expect(utils.httpGet.mock.calls[0][1]).toBe('/alibaba/web/APP_XXX/_view/query/formdesign/getFormSchema.json');
     const saveBody = querystring.parse(utils.httpPost.mock.calls[0][2]);

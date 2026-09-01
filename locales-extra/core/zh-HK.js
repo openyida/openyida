@@ -739,6 +739,12 @@ module.exports = {
     patch_must_not_be_empty: '补丁数组不能为空',
     patch_invalid_shape: '补丁必须是数组、{operations: []} 或单个操作对象',
     patch_parse_failed: '补丁 JSON 解析失败: ',
+    action_event_conflict: '欄位「{0}」的 {1} 已綁定動作「{2}」；預設禁止靜默覆蓋。確認替換時明確設定 replaceExisting=true。',
+    action_source_export_missing: '動作原始碼未匯出指定函式「{0}」。',
+    action_source_missing: '找不到動作函式「{0}」；請提供 source/sourceFile，或先在動作模組中定義該函式。',
+    action_binding_incomplete: '表單動作函式、動作註冊和欄位事件綁定不完整，Schema 未儲存。',
+    action_readback_failed: '表單動作儲存已被接受，但回讀失敗：{0}',
+    action_readback_mismatch: '表單動作儲存已被接受，但遠端回讀的函式、動作註冊或欄位事件綁定不一致。',
     rule_file_not_found: '规则文件不存在: ',
     rule_array_empty: '规则数组不能为空',
     rules_array_empty: 'rules 数组不能为空',
@@ -1830,6 +1836,13 @@ Object.assign(module.exports.process_diagnostics || (module.exports.process_diag
 
 Object.assign(module.exports.create_process || (module.exports.create_process = {}), {
   login_required: '未取得有效宜搭登入狀態，請先執行 openyida login。',
+});
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  instance_target_mismatch: '實例 {0} 不屬於預期業務資源 {1}，已在寫入前停止。',
+  instance_target_unverified: '無法核驗實例 {0} 的業務資源歸屬，已在寫入前停止。',
+  target_expectation_invalid: '--expect-form-type 必須為 {0}，已在寫入前停止。',
+  target_identity_mismatch: '目標資源 {0} 與預期名稱或類型不一致，已在寫入前停止。',
+  target_identity_unverified: '無法回讀目標資源 {0} 的名稱和類型，已在寫入前停止。',
 });
 module.exports.connector_test = {
   usage: '用法: openyida connector test --connector-id <id> --action <actionId> [--params <json>] [--path-json <json>] [--query-json <json>] [--header-json <json>] [--body-json <json>] [--account-id <id>] [--json]',

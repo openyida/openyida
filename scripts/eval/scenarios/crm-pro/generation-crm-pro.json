@@ -163,6 +163,11 @@
           "minTextLength": 80,
           "requireSettled": true,
           "forbiddenTextAny": ["暂无数据", "加载失败"]
+        },
+        "byName": {
+          "CRM工作台": {
+            "requireKnownDataEvidence": true
+          }
         }
       },
       "portalNames": ["CRM工作台"],

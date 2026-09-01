@@ -99,7 +99,8 @@ function buildGenerationPrompt({ request, skillContext = '', cliName = 'openyida
     '  "appUrl": "应用主页 URL（如有）",',
     '  "targets": [',
     '    {"type": "page", "url": "已发布页面 URL"},',
-    '    {"type": "dashboard", "url": "数据看板 URL"}',
+    '    {"type": "dashboard", "url": "数据看板 URL"},',
+    '    {"type": "report", "url": "CLI 返回的原生报表 URL（如有）"}',
     '  ],',
     '  "skillsUsed": ["本次实际读取和使用的 yida-* 子技能名"],',
     '  "summary": "一句话说明你创建了什么、包含哪些关键字段/页面",',
@@ -474,6 +475,7 @@ function evaluateGenerationScenario(options = {}) {
   }
 
   const result = parseGenerationResult(res);
+  result.reportedTargets = (result.targets || []).map((target) => ({ ...target }));
   const afterEvidence = runEvidenceCollector(collector, { phase: 'after', scenario, result, agentResult: res });
   const extraEvidence = mergeEvidence(beforeEvidence, afterEvidence);
   mergeGenerationTargets(result, extraEvidence.targets);

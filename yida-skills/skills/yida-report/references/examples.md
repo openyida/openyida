@@ -12,10 +12,10 @@
 openyida get-schema APP_XXX FORM-TASK
 # 从 stdout 中提取字段信息，并用结构化文件写入工具更新 <projectRoot>/.cache/<项目名>-schema.json：
 # 任务名称：textField_taskName（STRING）
-# 优先级：selectField_priority（STRING，需加 _value 后缀）
-# 状态：selectField_status（STRING，需加 _value 后缀）
+# 优先级：selectField_priority（STRING；raw/_value 候选由运行时探针确认）
+# 状态：selectField_status（STRING；raw/_value 候选由运行时探针确认）
 # 完成时间：dateField_finishDate（DATE）
-# 负责人：employeeField_owner（STRING，需加 _value 后缀）
+# 负责人：employeeField_owner（STRING；raw/_value 候选由运行时探针确认）
 ```
 
 ### 使用结构化文件写入工具创建报表配置文件 `<projectRoot>/.cache/openyida/task-report/task-report-config.json`
@@ -43,7 +43,7 @@ openyida get-schema APP_XXX FORM-TASK
       "type": "pie",
       "cubeCode": "FORM_TASK",
       "xField": {
-        "fieldCode": "selectField_priority_value",
+        "fieldCode": "selectField_priority",
         "aliasName": "优先级",
         "dataType": "STRING",
         "aggregateType": "NONE"
@@ -62,7 +62,7 @@ openyida get-schema APP_XXX FORM-TASK
       "type": "bar",
       "cubeCode": "FORM_TASK",
       "xField": {
-        "fieldCode": "selectField_status_value",
+        "fieldCode": "selectField_status",
         "aliasName": "状态",
         "dataType": "STRING",
         "aggregateType": "NONE"
@@ -82,9 +82,9 @@ openyida get-schema APP_XXX FORM-TASK
       "cubeCode": "FORM_TASK",
       "columnFields": [
         { "fieldCode": "textField_taskName", "aliasName": "任务名称", "dataType": "STRING", "aggregateType": "NONE" },
-        { "fieldCode": "selectField_priority_value", "aliasName": "优先级", "dataType": "STRING", "aggregateType": "NONE" },
-        { "fieldCode": "selectField_status_value", "aliasName": "状态", "dataType": "STRING", "aggregateType": "NONE" },
-        { "fieldCode": "employeeField_owner_value", "aliasName": "负责人", "dataType": "STRING", "aggregateType": "NONE" },
+        { "fieldCode": "selectField_priority", "aliasName": "优先级", "dataType": "STRING", "aggregateType": "NONE" },
+        { "fieldCode": "selectField_status", "aliasName": "状态", "dataType": "STRING", "aggregateType": "NONE" },
+        { "fieldCode": "employeeField_owner", "aliasName": "负责人", "dataType": "STRING", "aggregateType": "NONE" },
         { "fieldCode": "dateField_finishDate", "aliasName": "完成时间", "dataType": "DATE", "aggregateType": "NONE" }
       ]
     }
@@ -114,16 +114,9 @@ openyida report inspect APP_XXX REPORT_XXX --json
 
 ---
 
-## 示例 2：fieldCode 后缀规则速查
+## 示例 2：fieldCode 运行时确认
 
-| 字段组件类型 | 报表中的 fieldCode | 示例 |
-|------------|-------------------|------|
-| `SelectField` | 加 `_value` 后缀 | `selectField_priority` → `selectField_priority_value` |
-| `EmployeeField` | 加 `_value` 后缀 | `employeeField_owner` → `employeeField_owner_value` |
-| `TextField` | 原样使用 | `textField_taskName` |
-| `NumberField` | 原样使用 | `numberField_amount` |
-| `DateField` | 原样使用 | `dateField_finishDate` |
-| 内置字段（计数用） | 原样使用 | `pid`（用于 COUNT） |
+表单 Schema 只提供 raw fieldId 以及可能的 `_value` 候选。以 `create-report` / `report inspect` 的逐图表 `queryProbe` 为最终依据，不手工固定后缀规则。
 
 ---
 
@@ -143,6 +136,6 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU
 | 错误 | 原因 | 解决方式 |
 |------|------|---------|
 | 图表显示为空 | `dataSetModelMap` 两层字段定义不完整 | 确保 `dataViewQueryModel.fieldDefinitionList` 和外层字段数组都正确填充 |
-| `SelectField` 数据不显示 | 未加 `_value` 后缀 | `selectField_xxx` → `selectField_xxx_value` |
+| 图表提示 metadata missing | fieldCode 与 cube 实际元数据不一致 | 检查 `queryProbe`；只修复既有 reportId，不重新创建 |
 | 报表名称错误 | 第二个参数传了 formUuid | 第二个参数必须是业务含义的中文名称，如"任务管理数据报表" |
 | 命令执行失败 | 登录态过期 | 执行 `openyida env` 检查登录态，重新登录后重试 |

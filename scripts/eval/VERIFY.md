@@ -170,8 +170,8 @@ OPENYIDA_E2E=1 npm run eval:generate -- --screenshot
   - `integration list`、`nav-group list`、`i18n overview` 证明治理资源；
   - `permissionFormNames` 与 `sharePageNames` 只回查场景点名的表单/页面；
   - `dataPresenceFormNames` 对点名业务表执行只读 `data query ... --size 1`，仅记录实例数量，不把表单正文写进报告；
-  - `reportInspect=true` 回查报表版本、组件、图表和未知 cube；
-  - `pageRuntime` 为截图目标附加浏览器运行时契约，检查 console/page error、破图、加载收敛、正文长度和空数据文案；
+  - `reportInspect=true` 回查报表版本、组件、未知 cube 和逐图表真实查询探针；任一探针失败会生成 `report-runtime-query-failed`；
+  - `pageRuntime` 为截图目标附加浏览器运行时契约，检查 console/page error、破图、加载收敛、正文长度和空数据文案；看板可按页面名启用 `requireKnownDataEvidence`，与 `dataPresenceFormNames` 的只读记录数交叉验证；
   - `portalNames` 将平台上的 display 页面按场景语义额外标记为 portal。
 - readback 资源标记为 `source=platform-readback`，与 `agent-report` 分离；readback 命令不计入 agent 的 `expectedCommands`。
 - 命令轨迹只保存脱敏参数、顺序、退出码和耗时，不保存 stdout/stderr；agent 自报的 commands 不会被采信。

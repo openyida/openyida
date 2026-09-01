@@ -137,6 +137,25 @@ function evaluatePageRuntime(runtime = {}, expectations = {}) {
     add('forbiddenTextAny', matched.length === 0,
       matched.length ? `命中禁止文案：${matched.join('、')}` : '未命中禁止文案');
   }
+  if (expected.requireKnownDataEvidence) {
+    const bodyText = String(runtime.bodyText || '');
+    const positiveCounts = (Array.isArray(expected.knownDataCounts) ? expected.knownDataCounts : [])
+      .filter(item => item && Number(item.count) > 0);
+    const matched = positiveCounts.find(item => (
+      bodyText.includes(String(item.name || '')) && bodyText.includes(String(item.count))
+    ));
+    let detail = '已知业务数据非空，但页面未显示任何对应数据源名称与数量';
+    if (positiveCounts.length === 0) {
+      detail = '只读回读未发现非空业务数据，不要求页面显示非零数量';
+    } else if (matched) {
+      detail = `页面显示已回读数据源 ${matched.name} 的数量 ${matched.count}`;
+    }
+    add(
+      'knownDataEvidence',
+      positiveCounts.length === 0 || !!matched,
+      detail
+    );
+  }
   return { pass: checks.every((check) => check.ok), checks };
 }
 

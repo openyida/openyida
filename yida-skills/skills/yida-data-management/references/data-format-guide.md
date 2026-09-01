@@ -127,7 +127,7 @@ openyida data query form APP_xxx FORM-客户表 --size 1
 # 返回: formInstId: "FINST-ABC123"
 
 # 2. 创建带关联的数据
-openyida data create form APP_xxx FORM-商机表 --data-json '{
+openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --expect-form-type receipt --data-json '{
   "textField_xxx": "商机名称",
   "associationFormField_xxx": [{"appType":"APP_xxx","formUuid":"FORM-客户表","instanceId":"FINST-ABC123"}]
 }'

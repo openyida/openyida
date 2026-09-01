@@ -17,16 +17,19 @@ describe('eval OpenYida platform readback', () => {
     expect(reportInspectMetadata({
       schemaVersion: 'V5',
       componentCount: 3,
+      runtimeQueryVerified: true,
       components: [
-        { componentName: 'YoushuGroupedBarChart', cubeCodes: ['FORM_A'] },
+        { componentName: 'YoushuGroupedBarChart', cubeCodes: ['FORM_A'], queryProbe: { success: true } },
         { componentName: 'YoushuPieChart', cubeCodes: ['FORM_EXTERNAL'] },
         { componentName: 'YoushuSelectFilter', cubeCodes: ['FORM_A'] },
       ],
       layout: [{ i: 'a' }, { i: 'b' }],
     }, ['FORM-A'])).toEqual({
       schemaVersion: 'V5', componentCount: 3, chartCount: 2, layoutCount: 2,
+      componentNames: ['YoushuGroupedBarChart', 'YoushuPieChart', 'YoushuSelectFilter'],
       cubeCodes: ['FORM_A', 'FORM_EXTERNAL'],
       unknownCubeCodes: ['FORM_EXTERNAL'], unknownCubeCount: 1,
+      runtimeQueryVerified: true, failedQueryProbeCount: 0,
     });
   });
 
@@ -60,8 +63,8 @@ describe('eval OpenYida platform readback', () => {
       ['get-page-config APP_X FORM_D', { isOpen: true, openUrl: '/o/crm' }],
       ['data query form APP_X FORM_A --page 1 --size 1', { success: true, totalCount: 2, data: [{}] }],
       ['report inspect APP_X REPORT_R --json', {
-        success: true, schemaVersion: 'V5', componentCount: 2,
-        components: [{ componentName: 'YoushuPieChart', cubeCodes: ['FORM_A'] }],
+        success: true, schemaVersion: 'V5', componentCount: 2, runtimeQueryVerified: true,
+        components: [{ componentName: 'YoushuPieChart', cubeCodes: ['FORM_A'], queryProbe: { success: true } }],
         layout: [{ i: 'chart' }],
       }],
     ]);
@@ -81,7 +84,7 @@ describe('eval OpenYida platform readback', () => {
           reportInspect: true,
           pageRuntime: {
             enabled: true,
-            defaults: { maxConsoleErrors: 0 },
+            defaults: { maxConsoleErrors: 0, requireKnownDataEvidence: true },
             byName: { CRM工作台: { minTextLength: 100 } },
           },
           permissionFormNames: ['线索'],
@@ -100,7 +103,8 @@ describe('eval OpenYida platform readback', () => {
       expect.objectContaining({ type: 'portal', id: 'FORM_D' }),
       expect.objectContaining({
         type: 'report', id: 'REPORT_R', schemaVersion: 'V5', componentCount: 2,
-        chartCount: 1, unknownCubeCount: 0,
+        chartCount: 1, componentNames: ['YoushuPieChart'], unknownCubeCount: 0,
+        runtimeQueryVerified: true, failedQueryProbeCount: 0,
       }),
       expect.objectContaining({ type: 'integration', id: 'LPROC_X' }),
       expect.objectContaining({ type: 'nav', id: 'NAV_X' }),
@@ -114,7 +118,12 @@ describe('eval OpenYida platform readback', () => {
     expect(evidence.targets).toEqual(expect.arrayContaining([
       expect.objectContaining({
         type: 'page', name: 'CRM工作台', url: 'https://ding.aliwork.com/APP_X/workbench/FORM_D',
-        runtimeExpectations: { maxConsoleErrors: 0, minTextLength: 100 },
+        runtimeExpectations: {
+          maxConsoleErrors: 0,
+          requireKnownDataEvidence: true,
+          minTextLength: 100,
+          knownDataCounts: [{ name: '线索', formUuid: 'FORM_A', count: 2 }],
+        },
       }),
       expect.objectContaining({ type: 'report', url: 'https://ding.aliwork.com/APP_X/workbench/REPORT_R' }),
     ]));

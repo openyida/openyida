@@ -179,6 +179,53 @@ describe('buildSemanticAnalysis', () => {
     expect(JSON.stringify(output)).not.toContain('compiled-secret');
     expect(output.resource.schemaHash).toMatch(/^sha256:[a-f0-9]{64}$/);
   });
+
+  test('correlates a field event binding with its action function and registry entry', () => {
+    const schema = {
+      content: {
+        actions: {
+          module: {
+            source: 'export function handleStatusChange() {}',
+            compiled: 'compiled',
+          },
+          list: [{ id: 'handleStatusChange', title: 'handleStatusChange' }],
+        },
+        pages: [{
+          componentsTree: [{
+            componentName: 'FormContainer',
+            children: [{
+              componentName: 'SelectField',
+              props: {
+                fieldId: 'selectField_status',
+                label: { zh_CN: '状态' },
+                onChange: {
+                  type: 'JSExpression',
+                  value: 'this.utils.legaoBuiltin.execEventFlow.bind(this, [this.handleStatusChange])',
+                  events: [{
+                    type: 'actionRef',
+                    id: 'handleStatusChange',
+                    name: 'handleStatusChange',
+                    params: {},
+                    uuid: '123_0',
+                  }],
+                },
+              },
+            }],
+          }],
+        }],
+      },
+    };
+
+    const output = buildSemanticAnalysis('APP_X', 'FORM_X', schema, []);
+    expect(output.semantics.actions.bindings).toContainEqual(expect.objectContaining({
+      fieldId: 'selectField_status',
+      event: 'onChange',
+      actionName: 'handleStatusChange',
+      actionFunctionFound: true,
+      actionEntryFound: true,
+      verified: true,
+    }));
+  });
 });
 
 describe('extractFieldSummary', () => {
@@ -233,6 +280,7 @@ describe('extractFieldSummary', () => {
         fieldId: 'textField_name',
         alias: 'customerName',
         reportFieldCode: 'textField_name',
+        reportFieldCodeCandidates: ['textField_name'],
         options: [],
         optionCount: 0,
         optionsTruncated: false,
@@ -242,7 +290,8 @@ describe('extractFieldSummary', () => {
         componentName: 'SelectField',
         fieldId: 'selectField_status',
         alias: '',
-        reportFieldCode: 'selectField_status_value',
+        reportFieldCode: 'selectField_status',
+        reportFieldCodeCandidates: ['selectField_status', 'selectField_status_value'],
         options: [
           { label: '待访', value: 'pending' },
           { label: '已离开', value: 'left' },
@@ -273,7 +322,9 @@ describe('extractFieldSummary', () => {
     });
     expect(summary.map(item => item.componentName)).toEqual(advancedTypes);
     expect(summary.find(item => item.componentName === 'MultiSelectField').reportFieldCode)
-      .toBe('field_4_value');
+      .toBe('field_4');
+    expect(summary.find(item => item.componentName === 'MultiSelectField').reportFieldCodeCandidates)
+      .toEqual(['field_4', 'field_4_value']);
   });
 
   test('extracts lightweight options from static props', () => {

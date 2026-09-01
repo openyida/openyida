@@ -114,6 +114,10 @@ function resourceMatches(resource = {}, expected) {
   if (Number.isFinite(spec.minInstanceCount) && Number(resource.instanceCount || 0) < spec.minInstanceCount) {return false;}
   if (Number.isFinite(spec.minComponentCount) && Number(resource.componentCount || 0) < spec.minComponentCount) {return false;}
   if (Number.isFinite(spec.minChartCount) && Number(resource.chartCount || 0) < spec.minChartCount) {return false;}
+  if (Array.isArray(spec.componentNamesIncludes)) {
+    const actualNames = new Set(asArray(resource.componentNames).map(String));
+    if (spec.componentNamesIncludes.some((name) => !actualNames.has(String(name)))) {return false;}
+  }
   if (Number.isFinite(spec.maxUnknownCubeCount)
       && Number(resource.unknownCubeCount || 0) > spec.maxUnknownCubeCount) {return false;}
   return true;
@@ -144,6 +148,49 @@ function checkExpectedResources(actualResources = [], expectedResources) {
       maxCount,
       actualCount: count,
       detail: `期望 ${expectedDetail}，实际 ${count}`,
+    });
+  };
+  groups.required.forEach((item) => check(item, true));
+  groups.optional.forEach((item) => check(item, false));
+  return { pass: checks.filter((item) => item.required).every((item) => item.ok), checks };
+}
+
+function targetMatches(target = {}, expected) {
+  const spec = typeof expected === 'string' ? { type: expected } : (expected || {});
+  const type = String(target.type || target.stage || '');
+  const url = String(target.url || '');
+  if (spec.type && type !== String(spec.type)) {return false;}
+  if (spec.url && url !== String(spec.url)) {return false;}
+  if (spec.urlIncludes && !url.includes(String(spec.urlIncludes))) {return false;}
+  if (spec.urlNotIncludes && url.includes(String(spec.urlNotIncludes))) {return false;}
+  if (spec.urlPattern) {
+    try {
+      if (!new RegExp(String(spec.urlPattern)).test(url)) {return false;}
+    } catch (_error) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function checkExpectedTargets(actualTargets = [], expectedTargets) {
+  const groups = splitExpectations(expectedTargets);
+  const checks = [];
+  const check = (item, required) => {
+    const spec = typeof item === 'object' && item ? item : {};
+    const minCount = Number.isFinite(spec.minCount) ? spec.minCount : 1;
+    const count = asArray(actualTargets).filter((target) => targetMatches(target, item)).length;
+    const label = expectationName(item, 'target');
+    checks.push({
+      name: `target:${label}`,
+      ok: count >= minCount,
+      required,
+      kind: 'target',
+      key: label,
+      expectation: typeof item === 'object' && item ? { ...item } : { type: label },
+      minCount,
+      actualCount: count,
+      detail: `期望 Agent 原始交付目标 ≥${minCount}，实际 ${count}`,
     });
   };
   groups.required.forEach((item) => check(item, true));
@@ -271,6 +318,10 @@ function runEvidenceCollector(collector, context) {
 function buildGenerationEvidence({ scenario = {}, result = {}, agentResult = {}, extraEvidence = {} } = {}) {
   const reported = result.evidence && typeof result.evidence === 'object' ? result.evidence : {};
   const commands = Array.isArray(agentResult.commandTrace) ? agentResult.commandTrace : [];
+  const reportedTargets = asArray(result.reportedTargets || result.targets).map((target) => ({
+    ...target,
+    source: target && target.source || 'agent-report',
+  }));
   const targetResources = asArray(result.targets).map((target) => ({
     type: target.type || 'page',
     name: target.stage || target.type || 'page',
@@ -281,12 +332,15 @@ function buildGenerationEvidence({ scenario = {}, result = {}, agentResult = {},
   let evidence = mergeEvidence({ ...reported, commands: [] }, {
     commands,
     resources: targetResources,
+    targets: reportedTargets,
     sources: [
       ...(commands.length ? ['harness-cli-trace'] : []),
       ...(Object.keys(reported).length ? ['agent-report'] : []),
     ],
   });
   evidence = mergeEvidence(evidence, extraEvidence);
+  // URL 交付断言只信任 Agent 原始输出，平台 readback 不能修正或掩盖错误链接。
+  evidence.targets = reportedTargets;
 
   if (!evidence.schemaDiff && evidence.schemaSnapshots && evidence.schemaSnapshots.before !== undefined
       && evidence.schemaSnapshots.after !== undefined) {
@@ -302,7 +356,7 @@ function buildGenerationEvidence({ scenario = {}, result = {}, agentResult = {},
 }
 
 function hasEvidenceExpectations(scenario = {}) {
-  return ['expectedSkills', 'expectedCommands', 'expectedResources', 'forbiddenFindings', 'expectedSchemaDiff']
+  return ['expectedSkills', 'expectedCommands', 'expectedResources', 'expectedTargets', 'forbiddenFindings', 'expectedSchemaDiff']
     .some((key) => scenario[key] !== undefined);
 }
 
@@ -311,6 +365,7 @@ function evaluateGenerationEvidence(scenario = {}, evidence = {}) {
     checkExpectedSkills(evidence.skills, scenario.expectedSkills),
     checkExpectedCommands(evidence.commands, scenario.expectedCommands),
     checkExpectedResources(evidence.resources, scenario.expectedResources),
+    checkExpectedTargets(evidence.targets, scenario.expectedTargets),
     checkForbiddenFindings(evidence.findings, scenario.forbiddenFindings),
   ];
   if (scenario.expectedSchemaDiff !== undefined) {
@@ -333,6 +388,8 @@ module.exports = {
   checkExpectedCommands,
   resourceMatches,
   checkExpectedResources,
+  targetMatches,
+  checkExpectedTargets,
   findingMatches,
   checkForbiddenFindings,
   deriveCommandFindings,
