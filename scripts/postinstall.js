@@ -261,7 +261,7 @@ openyida copy
 
 用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，加载 \`yida-app\` 走完整应用统一编排。
 
-统一编排只做：解析资源上下文 → \`yida-design\` 输出 \`prd.md\` 和 \`design.md\` → 创建/复用应用 → 核心表单/流程 → 主页面 → 编写主页面源码 → 发布 + 轻量导航排序 → 返回 2-3 句业务交付总结和一个主入口链接。资源创建顺序按 PRD 执行：应用先落位，表单/流程先于自定义页面。发布主页面成功后，PRD 写明导航顺序时执行 \`openyida nav-group order <appType> <页面/表单...>\`；PRD 只写宽泛分组或缺少导航顺序时，执行 \`openyida publish ... --auto-nav-order\` 或 \`openyida nav-group auto-order <appType>\` 兜底，兜底顺序为门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
+统一编排只做：解析资源上下文 → 只调用一次 \`yida-design\`，由其路由 Fast / Plan 并输出 \`prd.md\` 和 \`design.md\`（Plan 等用户确认后返回，且不再运行 Fast）→ 创建/复用应用 → 核心表单/流程 → 主页面 → 编写主页面源码 → 发布 + 轻量导航排序 → 返回 2-3 句业务交付总结和一个主入口链接。资源创建顺序按 PRD 执行：应用先落位，表单/流程先于自定义页面。发布主页面成功后，PRD 写明导航顺序时执行 \`openyida nav-group order <appType> <页面/表单...>\`；PRD 只写宽泛分组或缺少导航顺序时，执行 \`openyida publish ... --auto-nav-order\` 或 \`openyida nav-group auto-order <appType>\` 兜底，兜底顺序为门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
 
 表单页开发默认加载 \`yida-form-detail\` 做表单视觉引导，并把 Divider 分割线语义分组合并进字段 JSON；拿到真实 formUuid 后默认注入 formDetail CSS。
 
@@ -273,7 +273,7 @@ openyida copy
 
 使用 \`YidaCodeCanvas\` 组件实现的自定义页面统一直接写最终 \`.canvas.jsx\`：先读 PRD 的页面场景、业务区块、数据来源和主操作，再读 design.md 的主题、布局、材质、组件和状态规则，然后用 \`compileCanvasLocal\` 快检或 \`openyida publish\` 的编译阶段验证发布。\`openyida check-page\` / \`openyida compile\` 只用于历史平台 JSX 组件页面维护。
 
-完整应用需求分析和产品设计由 \`yida-design\` 承担，并输出两份文件：\`prd/<项目名>/prd.md\` 写业务目标、数据结构、页面与功能、资源顺序、导航顺序和验收标准；\`prd/<项目名>/design.md\` 写主题色、themeProfile、tokens、视觉系统、组件和状态规则。页面实现先读 PRD 的页面场景、页面区块、数据来源、主操作和表单入口，再读 design.md 的主题、布局、材质、组件和状态规则，然后交给 \`yida-canvas-custom-page\` 落地。只有已识别为历史平台 JSX 组件页面维护时，才由 \`yida-custom-page\` 自身闭环处理。
+完整应用需求分析和产品设计由 \`yida-design\` 统一入口承担：用户明确直接执行时走 Fast，明确先对焦 / 先出计划时走 Plan，模式不明时由 Gate 询问；Plan 只有用户确认当前搭建计划后才完成。两个分支都输出两份文件：\`prd/<项目名>/prd.md\` 写业务目标、数据结构、页面与功能、资源顺序、导航顺序和验收标准；\`prd/<项目名>/design.md\` 写主题色、themeProfile、tokens、视觉系统、组件和状态规则。页面实现先读 PRD 的页面场景、页面区块、数据来源、主操作和表单入口，再读 design.md 的主题、布局、材质、组件和状态规则，然后交给 \`yida-canvas-custom-page\` 落地。只有已识别为历史平台 JSX 组件页面维护时，才由 \`yida-custom-page\` 自身闭环处理。
 
 默认只加载当前阶段必需技能；示例数据、精细导航分组、截图验收、公开访问、数据源深接、数据管理和原生报表只在用户明确要求或 PRD 验收标准命中时执行。发布后的轻量导航排序是统一编排默认收尾，不等于精细导航分组。
 

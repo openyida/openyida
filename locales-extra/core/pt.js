@@ -20,6 +20,8 @@ module.exports = {
     cmd_app_list: 'Listar meus aplicativos Yida',
     cmd_corp_efficiency: 'Consultar visão geral de eficiência empresarial e relatórios detalhados',
     cmd_create_app: 'Criar um aplicativo Yida',
+    cmd_design_plan_materialize: 'Gerar e validar artefatos a partir de build-plan.json',
+    cmd_design_plan_patch: 'Alterar o plano por caminho e invalidar a confirmação anterior',
     cmd_update_app: 'Atualizar informações do aplicativo',
     cmd_app_online: 'Ativar um aplicativo Yida',
     cmd_app_offline: 'Desativar um aplicativo Yida',

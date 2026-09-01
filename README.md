@@ -380,6 +380,8 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida app-list [--size N]` | List my Yida apps |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency overview and detail reports |
 | `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a Yida app |
+| `openyida design-plan materialize <build-plan.json> [--output-dir <dir>] [--check] [--json]` | Generate and validate design-plan artifacts from build-plan.json |
+| `openyida design-plan patch <build-plan.json> --set <path=value> [--set <path=value> ...] [--materialize] [--output-dir <dir>] [--json]` | Patch a design plan by field path and invalidate prior confirmation |
 | `openyida update-app <appType> [--name "..."] [--layout slide\|ver] [--theme deepBlue] [--hide-app-nav\|--show-app-nav]` | Update app info |
 | `openyida app-online <appType> [--to-ding-app-center] [--show-app-center]` | Enable a Yida app |
 | `openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]` | Disable a Yida app |

@@ -137,7 +137,7 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 ## 品牌 token 实现消费
 
-品牌 token 的完整语义由 `yida-design/workflow/output-design.md` 与 `yida-design/references/theme/theme-token-presets.md` 维护。YidaCodeCanvas 不重新解释 token，只按 `design.md` 的 `tokens` 和 token 语义把它们接到组件、CSS 和图表。
+品牌 token 的完整语义由 `yida-design/sub_skill/yida-design-fast/workflow/output-design.md` 与 `yida-design/sub_skill/yida-design-fast/references/theme/theme-token-presets.md` 维护。YidaCodeCanvas 不重新解释 token，只按 `design.md` 的 `tokens` 和 token 语义把它们接到组件、CSS 和图表。
 
 | token | design.md 语义 | YidaCodeCanvas 使用方式 |
 | --- | --- | --- |
@@ -163,7 +163,7 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 `themeScope: page` 是默认安全模式：真实业务页默认使用应用主题 token profile，不污染应用其他页面。页面重构/局部美化即使是 page scope，也先以当前应用主题为基准，只补当前页密度、间距、状态色和图表色阶。用户明确要求完全不同风格、显式传了 `themeColor`，或页面是独立品牌/活动页时，在当前页面根节点注入 CSS 变量做页面级覆盖。
 
-`podBlue`、`podGreen`、`podOrange` 是常用浅底候选，不是固定默认。`blue`、`green`、`orange`、`podBlue`、`podGreen`、`podOrange` 都作为应用主题 token profile 保留原名，不互相改写；完整变量和语义以 `yida-design/references/theme/theme-token-presets.md` 为准。自定义品牌色必须在页面源码里注入 `style#yida-global-theme` 或 scoped vars，不能假装是平台 `--theme`。需要注入时复制 [Yida Global Theme Runtime Helpers](theme-runtime-helpers.md) 的 YidaCodeCanvas helper；它会同时写入当前文档、同源可访问的父级 iframe 文档，以及 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 文档。
+`podBlue`、`podGreen`、`podOrange` 是常用浅底候选，不是固定默认。`blue`、`green`、`orange`、`podBlue`、`podGreen`、`podOrange` 都作为应用主题 token profile 保留原名，不互相改写；完整变量和语义以 `yida-design/sub_skill/yida-design-fast/references/theme/theme-token-presets.md` 为准。自定义品牌色必须在页面源码里注入 `style#yida-global-theme` 或 scoped vars，不能假装是平台 `--theme`。需要注入时复制 [Yida Global Theme Runtime Helpers](theme-runtime-helpers.md) 的 YidaCodeCanvas helper；它会同时写入当前文档、同源可访问的父级 iframe 文档，以及 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 文档。
 
 ```jsx
 var THEME_COLOR_LEVELS = {

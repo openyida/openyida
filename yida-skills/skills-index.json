@@ -43,7 +43,7 @@
       "name": "yida-design",
       "path": "skills/yida-design/SKILL.md",
       "display_name": "宜搭应用设计",
-      "description": "当用户要做完整应用产品设计、单页 UI 改造、主页面视觉设计、应用主题色或全局换肤时使用。本技能基于需求分析和资源上下文，输出 prd/<项目名>/prd.md 与 prd/<项目名>/design.md；prd.md 写业务目标、数据结构、页面功能、资源顺序、导航顺序和验收标准，design.md 写主题 token、布局、材质、圆角、密度、组件和状态规则。本技能不写页面源码；页面实现交给 yida-canvas-custom-page。",
+      "description": "宜搭设计统一入口。完整应用时根据用户偏好在 Fast Design 与 Plan Design 之间路由：Fast 直接设计，Plan 先对焦需求并生成搭建计划，用户确认后再返回 yida-app；单页 UI 改造、主页面视觉设计、应用主题色或全局换肤直接走 Fast。两个分支统一输出 prd/<项目名>/prd.md 与 prd/<项目名>/design.md，本技能不写页面源码。",
       "category": "yida-skills/design",
       "tags": [
         "应用设计",

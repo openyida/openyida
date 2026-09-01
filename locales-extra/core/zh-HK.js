@@ -20,6 +20,8 @@ module.exports = {
     cmd_app_list: '查詢我的應用程式清單',
     cmd_corp_efficiency: '查詢企業效能概覽和明細報表',
     cmd_create_app: '建立宜搭應用程式',
+    cmd_design_plan_materialize: '從 build-plan.json 產生並校驗搭建計畫產物',
+    cmd_design_plan_patch: '按欄位路徑調整搭建計畫並使舊確認失效',
     cmd_update_app: '更新應用程式資料',
     cmd_app_online: '啟用宜搭應用程式',
     cmd_app_offline: '停用宜搭應用程式',

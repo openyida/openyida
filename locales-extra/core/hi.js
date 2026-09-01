@@ -20,6 +20,8 @@ module.exports = {
     cmd_app_list: 'मेरे Yida ऐप सूचीबद्ध करें',
     cmd_corp_efficiency: 'एंटरप्राइज दक्षता अवलोकन और विवरण रिपोर्ट क्वेरी करें',
     cmd_create_app: 'Yida ऐप बनाएं',
+    cmd_design_plan_materialize: 'build-plan.json से योजना आउटपुट बनाएं और जाँचें',
+    cmd_design_plan_patch: 'फ़ील्ड पथ से योजना बदलें और पुरानी पुष्टि अमान्य करें',
     cmd_update_app: 'ऐप जानकारी अपडेट करें',
     cmd_app_online: 'Yida ऐप सक्षम करें',
     cmd_app_offline: 'Yida ऐप अक्षम करें',

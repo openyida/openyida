@@ -20,6 +20,8 @@ module.exports = {
     cmd_app_list: '내 Yida 앱 목록 조회',
     cmd_corp_efficiency: '기업 효율 개요 및 상세 보고서 조회',
     cmd_create_app: 'Yida 앱 생성',
+    cmd_design_plan_materialize: 'build-plan.json에서 설계 계획 산출물 생성 및 검증',
+    cmd_design_plan_patch: '필드 경로로 계획을 수정하고 이전 확인 무효화',
     cmd_update_app: '앱 정보 업데이트',
     cmd_app_online: 'Yida 앱 활성화',
     cmd_app_offline: 'Yida 앱 비활성화',

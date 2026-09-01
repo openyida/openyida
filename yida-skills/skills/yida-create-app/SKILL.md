@@ -60,7 +60,7 @@ openyida create-app <appName> [description] [icon] [iconColor] [colour] [navThem
 
 ## 创建应用壳层兜底
 
-如果用户只说“创建一个律所/茶叶官网/数据大屏应用”，不要直接使用通用默认壳。先由 `yida-design` 根据行业、品牌、业务情绪和视觉目标做创意色彩判断，再决定是否适合平台预置主题 key；禁止把行业词直接映射成固定颜色，例如“科技=蓝、宠物=橙、法律=蓝”。完整应用主题 key 只查 `yida-design/references/theme/theme-token-presets.md`。只有 PRD 明确 `themePresetKey` 命中平台预置 key 时，才把该 key 作为 `colour/theme` 传给创建命令；否则不传主题，由页面或全局 token 注入落地。
+如果用户只说“创建一个律所/茶叶官网/数据大屏应用”，不要直接使用通用默认壳。先由 `yida-design` 根据行业、品牌、业务情绪和视觉目标做创意色彩判断，再决定是否适合平台预置主题 key；禁止把行业词直接映射成固定颜色，例如“科技=蓝、宠物=橙、法律=蓝”。完整应用主题 key 只查 `yida-design/sub_skill/yida-design-fast/references/theme/theme-token-presets.md`。只有 PRD 明确 `themePresetKey` 命中平台预置 key 时，才把该 key 作为 `colour/theme` 传给创建命令；否则不传主题，由页面或全局 token 注入落地。
 
 | 场景语义 | CLI 壳层 fallback 主题（非设计结论） | create-app 壳层 fallback | 创建后的首屏页面 |
 |------|------|------|------|
@@ -78,7 +78,7 @@ CLI 已内置上述行业推断作为创建壳层的兜底能力，不代表 `yi
 
 这里的 `colour` / `--theme` 只能选平台预置 key；不能填 AI 自己设计的任意主题名或色值。`blue`、`green`、`orange` 作为应用主题 token profile 保留原名；新应用如果采用自定义色盘，创建应用时不要显式传 `theme/colour`，页面实现必须注入 `style#yida-global-theme` 或等价 scoped CSS vars。
 
-完整应用主题 key、颜色倾向和 token 变量统一维护在 `yida-design/references/theme/theme-token-presets.md`，本技能不重复维护完整清单。
+完整应用主题 key、颜色倾向和 token 变量统一维护在 `yida-design/sub_skill/yida-design-fast/references/theme/theme-token-presets.md`，本技能不重复维护完整清单。
 
 ## 输出
 

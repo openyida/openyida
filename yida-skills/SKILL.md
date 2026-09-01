@@ -70,7 +70,7 @@ description: >
 | --- | --- | --- |
 | `yida-skills/context` | 登录、退出、切换组织、组织版本/容量、Schema、fieldId、执行前检查 | `yida-login`、`yida-logout`、`yida-basic-info`、`yida-get-schema`、`yida-corp-efficiency` |
 | `yida-skills/app` | 从零搭应用、完整系统、应用启停、应用导航、多语言 | `yida-app`、`yida-create-app`、`yida-app-lifecycle`、`yida-nav-group`、`yida-i18n` |
-| `yida-skills/design` | 完整应用产品设计、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、PRD 和 design.md | `yida-design` |
+| `yida-skills/design` | 完整应用 Fast / Plan 设计入口、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、PRD 和 design.md | `yida-design` |
 | `yida-skills/form` | 表单字段、公式、校验、业务关联规则、详情页、批量录入、数据记录 | `yida-create-form-page`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-form-detail`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-agent-center` |
 | `yida-skills/page` | 自定义展示页、页面源码开发、平台 JSX 组件页面维护、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
@@ -84,7 +84,7 @@ description: >
 
 | 用户意图 | 选哪个 |
 | --- | --- |
-| 从零搭一个完整应用/系统 | `yida-app`；统一编排，先由 `yida-design` 完成产品设计 |
+| 从零搭一个完整应用/系统 | `yida-app`；统一编排，Step 2 只调用一次 `yida-design`，由其 Gate 路由 Fast / Plan |
 | 已有 app 但没有任何页面，需要补成完整系统 | `yida-app`；复用已有 `appType`，按 PRD 补齐表单、流程、页面（如需要）和导航 |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
@@ -136,7 +136,7 @@ description: >
 10. **读取与复核用合适工具**：读取或定位 workspace 文件优先用当前工具的 Read / Glob / Grep 或 `rg`；OpenYida CLI 已返回成功 JSON、URL、`appType`、`formUuid` 或 `fieldId` 时，以 CLI 结果作为证据。
 11. **资源 ID 必须精确**：`appType`、`formUuid`、`fieldId` 等应用、表单、字段 ID 必须来自 CLI/API/cache 证据并一字不差传入命令和源码；不得凭名称、截图、相似前缀或记忆补写、改写、截断。
 12. **字段和 Schema 以证据为准**：字段级表单操作优先交给 `create-form update/add-option/bind-datasource/validation/rule` 的 schema-aware 解析；页面代码、数据、流程、公式等需要字段映射时，每表单一次性执行 `openyida get-schema --field-map-json` 并缓存字段摘要。
-13. **设计事实源固定**：完整应用和真实业务页先由 `yida-design` 输出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`；页面目标、区块、数据和交互以 PRD 为准，布局、主题、材质和状态视觉以 design.md 为准。
+13. **设计事实源固定**：完整应用和真实业务页先由 `yida-design` 统一入口路由 Fast / Plan，再输出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`；Plan 必须等用户确认当前计划后才能进入资源生成，确认后不得再运行 Fast。页面目标、区块、数据和交互以 PRD 为准，布局、主题、材质和状态视觉以 design.md 为准。
 14. **配置优先于页面代码**：字段、公式、联动、报表、审批和集成交给对应技能；自定义页面负责展示数据、放置业务入口，并串联表单、流程、报表和导航入口。
 15. **数据性能优先**：统计聚合用 `yida-report` 服务端聚合，不在前端拉全量后自行聚合。
 16. **避免无效重试**：失败先查登录态、组织、参数和字段 ID；无修改不连续重试超 1 次。

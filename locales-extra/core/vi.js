@@ -20,6 +20,8 @@ module.exports = {
     cmd_app_list: 'Liệt kê ứng dụng Yida của tôi',
     cmd_corp_efficiency: 'Truy vấn tổng quan hiệu quả doanh nghiệp và báo cáo chi tiết',
     cmd_create_app: 'Tạo ứng dụng Yida',
+    cmd_design_plan_materialize: 'Tạo và xác thực sản phẩm từ build-plan.json',
+    cmd_design_plan_patch: 'Sửa kế hoạch theo đường dẫn và vô hiệu xác nhận trước',
     cmd_update_app: 'Cập nhật thông tin ứng dụng',
     cmd_app_online: 'Bật ứng dụng Yida',
     cmd_app_offline: 'Tắt ứng dụng Yida',

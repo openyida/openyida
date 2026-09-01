@@ -18,7 +18,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | 步骤 | 名称 | 目标 | 产出 |
 | --- | --- | --- | --- |
 | 1 | [解析资源上下文](workflow/step-1-resource-context.md) | 合并本轮显式资源、绑定上下文、workspace 配置/缓存和会话历史，确认复用还是允许创建 | 目标 app/page/form/process 上下文 |
-| 2 | [产品设计](workflow/step-2-design.md) | 执行 `use_skill("yida-design", "完整应用产品设计")`，产出完整 PRD 和视觉契约 | `prd/<项目名>/prd.md` + `prd/<项目名>/design.md` |
+| 2 | [产品设计](workflow/step-2-design.md) | 执行一次 `use_skill("yida-design", "完整应用产品设计")`；由统一入口路由 Fast / Plan，Plan 等用户确认后再返回 | `prd/<项目名>/prd.md` + `prd/<项目名>/design.md` |
 | 3 | [创建或复用应用](workflow/step-3-create-or-reuse-app.md) | 已有 `appType` 直接复用；缺少 app 且允许创建时执行 `use_skill("yida-create-app")` | 真实目标 `appType` |
 | 4 | [创建或更新表单/流程](workflow/step-4-forms-processes.md) | 执行 `use_skill("yida-form-detail")`、`use_skill("yida-create-form-page")`，需要流程时执行 `use_skill("yida-create-process")` | 真实 `formUuid`、`processCode`、必要 `fieldId` |
 | 5 | [写入初始表单数据](workflow/step-5-seed-records.md) | 执行 `use_skill("yida-data-management")`，为核心普通表单写入 1-3 条业务化 seed records 并 query 抽查 | 真实表单记录或明确跳过原因 |

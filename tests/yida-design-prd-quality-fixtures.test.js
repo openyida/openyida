@@ -50,9 +50,9 @@ describe('yida-design PRD quality fixtures', () => {
   });
 
   test('style registry documents built-in visual DNA templates', () => {
-    const registry = read('yida-skills/skills/yida-design/references/style-designs/registry.md');
-    const template = read('yida-skills/skills/yida-design/references/style-designs/_design-md-template.md');
-    const styleDesignEntries = fs.readdirSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/style-designs')).sort();
+    const registry = read('yida-skills/skills/yida-design/sub_skill/yida-design-fast/references/style-designs/registry.md');
+    const template = read('yida-skills/skills/yida-design/sub_skill/yida-design-fast/references/style-designs/_design-md-template.md');
+    const styleDesignEntries = fs.readdirSync(path.join(ROOT, 'yida-skills/skills/yida-design/sub_skill/yida-design-fast/references/style-designs')).sort();
 
     expect(registry).toContain('_design-md-template.md');
     expect(registry).toContain('内置设计风格');
@@ -77,10 +77,10 @@ describe('yida-design PRD quality fixtures', () => {
   });
 
   test('design skill uses prd.md and design.md instead of scene docs', () => {
-    const scenesDir = path.join(ROOT, 'yida-skills/skills/yida-design/references', 'scenes');
-    const skill = read('yida-skills/skills/yida-design/SKILL.md');
-    const step3 = read('yida-skills/skills/yida-design/workflow/step-3-information-architecture.md');
-    const step5 = read('yida-skills/skills/yida-design/workflow/step-5-visual-states.md');
+    const scenesDir = path.join(ROOT, 'yida-skills/skills/yida-design/sub_skill/yida-design-fast/references', 'scenes');
+    const skill = read('yida-skills/skills/yida-design/sub_skill/yida-design-fast/SKILL.md');
+    const step3 = read('yida-skills/skills/yida-design/sub_skill/yida-design-fast/workflow/step-3-information-architecture.md');
+    const step5 = read('yida-skills/skills/yida-design/sub_skill/yida-design-fast/workflow/step-5-visual-states.md');
     const pageGeneration = read('yida-skills/skills/yida-canvas-custom-page/references/page-generation-guide.md');
 
     expect(fs.existsSync(scenesDir)).toBe(false);
