@@ -398,7 +398,7 @@ export function didMount() {
   this.loadStatistics();
 }
 export function loadStatistics() {
-  this.utils.yida.searchFormDatas({ formUuid: 'FORM-XXX', pageSize: 10 });
+  this.utils.yida.searchFormDatas({ formUuid: 'FORM-XXX', pageSize: 50 });
 }
 
 // ❌ 错误①：缺少 export，无法被宜搭运行时识别，this 丢失
@@ -471,7 +471,7 @@ export function renderJsx() {
 
 ### 8. pageSize 上限
 
-调用 `searchFormDatas`、`searchFormDataIds`、`getProcessInstances`、`getProcessInstanceIds` 等分页接口时，`pageSize` 最大值为 **100**，超过会导致接口报错。禁止将 `pageSize` 设置为超过 100 的值，推荐使用 `10`～`100` 之间的合理值。
+调用 `searchFormDatas`、`searchFormDataIds`、`getProcessInstances`、`getProcessInstanceIds` 等分页接口时，`pageSize` 一般显式写 `50`，最大值为 **100**，超过会导致接口报错。除非用户明确要求小页或大页，不写其他值。
 
 ### 9. 输入框使用非受控组件
 
@@ -625,13 +625,13 @@ export function closeYidaForm() {
 }
 ```
 
-`renderJsx` 中根据 `formOpenRequest` 渲染右侧抽屉和 `<iframe src={state.formOpenRequest.iframeUrl}>`；PC 抽屉宽度使用 `state.formOpenRequest.drawerWidth || '50vw'`，提交页和详情页默认一致。iframe 必须带 `ref` 或 DOM 查询句柄，并在 `onload` 后调用 `installYidaGlobalThemeIntoFrame(CUSTOM_THEME_TOKENS, iframeElement)`，把当前主题同步到同源提交页/详情页子文档。关闭抽屉时清空 `formOpenRequest` 并重新查询列表。不要假设平台提供 `openDrawer` 内置方法，也不要为提交和详情各写一套 drawer 状态。
+`renderJsx` 中根据 `formOpenRequest` 渲染右侧抽屉和 `<iframe src={state.formOpenRequest.iframeUrl}>`；PC 抽屉宽度使用 `state.formOpenRequest.drawerWidth || '50vw'`，提交页和详情页默认一致。iframe 由新版主题运行时加载与应用一致的自定义主题 CSS。关闭抽屉时清空 `formOpenRequest` 并重新查询列表。不要假设平台提供 `openDrawer` 内置方法，也不要为提交和详情各写一套 drawer 状态。
 
 > `viewUuid` 可选，从宜搭「数据管理」→「报表视图」页面的 URL 中获取，不传则使用默认视图。
 
-### 16.1 自定义主题注入到 iframe 窗口
+### 16.1 自定义主题消费
 
-平台 JSX 组件页面需要自定义色盘、页面级沉浸页、应用导航隐藏后的自绘壳或 iframe 中承载原生表单时，复制 `yida-canvas-custom-page/references/theme-runtime-helpers.md` 的 Ordinary JSX helper。该 helper 会向当前文档、同源可访问的所有父级窗口文档，以及 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 文档注入 `style#yida-global-theme`；跨域窗口静默降级。不要只向当前页面 `document.head` 写 style，否则嵌套 iframe 时父级壳层和抽屉内表单可能读不到同一套 token。
+平台 JSX 页面和 `FormOpenContainer` 的表单 iframe 由运行容器分别加载同一份应用级主题 CSS，并使用一致的主题变量。需要不同主题时通过应用级 `update-app --theme-file/--nav-theme/--logo-source/--layout` 配置，主色由 CSS 的 `--color-brand1-6` 自动派生。
 
 ### 17. 下拉选项控制选项卡（Tabs）表格页显示/隐藏
 
@@ -671,7 +671,7 @@ this.utils.yida.searchFormDatas({
   formUuid: 'FORM-XXX',
   searchFieldJson: JSON.stringify(searchCondition),
   currentPage: 1,
-  pageSize: 20,
+  pageSize: 50,
 });
 
 // ✅ 构建提交数据时使用别名

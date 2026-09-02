@@ -6,7 +6,7 @@
 
 `deepBlue`、`deepPurple`、`purple`、`yellow`、`magenta`、`red`、`greyBlue`、`coffee`、`black` 等属于平台支持主题；仅在用户明确指定、品牌匹配或业务确实需要时使用。普通业务页默认使用浅底主题，`black` 不作为默认主题。
 
-注意：`openyida create-app/update-app --theme` 只能传平台支持的应用主题 key。若设计结果是任意自定义品牌色、渐变色盘或不在清单里的主题名，创建应用时不要显式传 `theme/colour`；把色盘写成 `style#yida-global-theme` 或 `customThemeStyle.tokens` 注入。页面级 `--theme-profile` / `style#yida-global-theme` 可以使用本文的应用主题 token profile。
+注意：下方预置只作为 AI 设计色阶时的参考，不再限制新版应用主题。复制 [app-custom-theme-template.css](app-custom-theme-template.css) 生成应用主题文件时，必须完整保留平台实际生成的 `--color-brand1-1/2/3/5/6/9/10`、`--color-brand-1` 至 `--color-brand-4` 和 `--color-group`，不要补造 `--color-brand1-4/7/8`。模板默认采用 coffee 咖啡色与大圆角；AI 只有在 `design.md` 明确选择其他主题时，才成套替换品牌色阶、基础色阶、图表色组和组件品牌态。将主色字面量写入 `--color-brand1-6` 后，通过 `create-app/update-app --theme-file/--nav-theme/--logo-source/--layout` 联合保存。主题由服务端加载该文件，页面和表单只消费其中的变量。
 
 ## 应用主题 key 清单
 
@@ -34,7 +34,7 @@
 
 ## 应用主题 token profile
 
-每个 profile 都按平台变量名记录。`--color-brand1-*` 是页面和 PC 端主要消费的品牌色阶，`--color-brand-*` 是移动端和部分原生表单/壳层桥接仍会消费的品牌色阶，不能删掉、改名或替换为别的变量。`--color-group` 用于图表和分组配色。
+每个 profile 都按平台变量名记录。平台实际品牌色阶是 `--color-brand1-1/2/3/5/6/9/10`；历史 profile 若未列出 `--color-brand1-5`，AI 只补这一档并写入最终主题文件，不得生成不存在的 `4/7/8`。`--color-brand1-*` 是页面和 PC 端主要消费的品牌色阶，`--color-brand-*` 是移动端和部分原生表单/壳层桥接仍会消费的品牌色阶，不能删掉、改名或替换为别的变量。`--color-group` 用于图表和分组配色。
 
 ## 平台 token 语义
 
@@ -45,7 +45,6 @@
 | `--color-brand1-3` | 品牌透明/浅边界 | 选中边框、禁用/弱化品牌态、浅描边 |
 | `--color-brand1-5` | 主色 hover 档 | 主按钮 hover、链接 hover、可点击强调 hover |
 | `--color-brand1-6` | 主品牌色 | 主按钮、链接、选中态、重点标签、图表主序列 |
-| `--color-brand1-7` | 主色 active 档 | 按下态、active、pressed |
 | `--color-brand1-9` | 深主色 | 深色强调、深底按钮、强调标题、深色场景锚点 |
 | `--color-brand1-10` | 深色或透明强调档 | 深色 hover、强强调背景、深色主题补充 |
 | `--color-brand-1` | 移动端品牌浅/透明档 1 | 移动端壳层、移动端表单、旧版移动组件浅品牌态 |
@@ -364,6 +363,7 @@
   "--color-brand1-1": "rgba(155, 136, 121, 0.8)",
   "--color-brand1-2": "rgba(243, 240, 239, 1)",
   "--color-brand1-3": "rgba(155, 136, 121, 0.2)",
+  "--color-brand1-5": "rgba(52, 50, 44, 1)",
   "--color-brand1-6": "rgba(155, 136, 121, 1)",
   "--color-brand1-9": "rgba(58, 55, 49, 1)",
   "--color-brand1-10": "rgba(155, 136, 121, 0.32)",

@@ -239,7 +239,7 @@ this.utils.yida.updateFormData({
 | :--- | :--- | :--- | :--- | :--- |
 | formUuid | String | 是 | 表单ID | `FORM-XXX` |
 | currentPage | Number | 否 | 当前页，默认 1 | `1` |
-| pageSize | Number | 否 | 每页记录数，默认 10，**最大 100，超过 100 会报错** | `10` |
+| pageSize | Number | 否 | 每页记录数；OpenYida 生成代码一般显式传 50，**最大 100，超过 100 会报错** | `50` |
 | searchFieldJson | String | 否 | 根据表单内组件值查询（JSON字符串） | `JSON.stringify({ textField_xxx: '值' })` |
 
 **请求示例**：
@@ -248,7 +248,7 @@ this.utils.yida.updateFormData({
 this.utils.yida.searchFormDataIds({
   formUuid: 'FORM-XXX',
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 50,
   searchFieldJson: JSON.stringify({
     textField_m1g4dcpy: '单行文本',
   }),
@@ -346,7 +346,7 @@ this.utils.yida.getFormDataById({
 | formUuid | String | 是 | 表单ID | `FORM-XXX` |
 | searchFieldJson | String | 否 | 根据表单内组件值查询（JSON字符串） | `JSON.stringify({ textField_xxx: '值' })` |
 | currentPage | Number | 否 | 当前页，默认 1 | `1` |
-| pageSize | Number | 否 | 每页记录数，默认 10，**最大 100，超过 100 会报错** | `10` |
+| pageSize | Number | 否 | 每页记录数；OpenYida 生成代码一般显式传 50，**最大 100，超过 100 会报错** | `50` |
 | originatorId | String | 否 | 根据数据提交人工号查询 | `'2134'` |
 | createFrom | String | 否 | 创建时间范围起始，格式 yyyy-MM-dd | `'2024-01-01'` |
 | createTo | String | 否 | 创建时间范围结束，格式 yyyy-MM-dd | `'2024-02-01'` |
@@ -402,7 +402,7 @@ this.utils.yida.getFormDataById({
 >
 > 使用 `openyida data query form` CLI 命令时，工具已自动归一化为直接结构，无需手动兼容。
 
-> ⚠️ **pageSize 上限**：`pageSize` 最大值为 **100**，超过 100 会导致宜搭 API 返回 HTTP 500 错误（错误信息为"参数校验失败pageSize"）。推荐使用 `10`～`100` 之间的值。
+> ⚠️ **pageSize 上限**：OpenYida 生成代码一般显式写 `pageSize: 50`。`pageSize` 最大值为 **100**，超过 100 会导致宜搭 API 返回 HTTP 500 错误（错误信息为"参数校验失败pageSize"）。除非用户明确要求小页或大页，不写其他值。
 
 > 📌 **appType 参数说明**：
 > - **页面内部调用**（即在宜搭自定义页面的 JS 代码中调用 `this.utils.yida.searchFormDatas`）：**不需要传 `appType`**，SDK 会自动从当前页面上下文中获取。
@@ -417,7 +417,7 @@ this.utils.yida.searchFormDatas({
   formUuid: 'FORM-XXX',
   searchFieldJson: '',
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 50,
   originatorId: '',
   createFrom: '2024-01-01',
   createTo: '2024-02-01',
@@ -588,7 +588,7 @@ this.utils.yida.deleteProcessInstance({
 | instanceStatus | String | 否 | 实例状态 | `'RUNNING'` |
 | approvedResult | String | 否 | 流程审批结果 | `'agree'` |
 | currentPage | Number | 否 | 当前页，默认 1 | `1` |
-| pageSize | Number | 否 | 每页记录数，默认 10，**最大 100，超过 100 会报错** | `10` |
+| pageSize | Number | 否 | 每页记录数；OpenYida 生成代码一般显式传 50，**最大 100，超过 100 会报错** | `50` |
 | originatorId | String | 否 | 流程发起人工号 | `'2134'` |
 | createFrom | String | 否 | 创建时间范围起始，格式 yyyy-MM-dd | `'2024-01-01'` |
 | createTo | String | 否 | 创建时间范围结束，格式 yyyy-MM-dd | `'2024-02-01'` |
@@ -605,7 +605,7 @@ this.utils.yida.getProcessInstances({
   instanceStatus: 'RUNNING',
   approvedResult: 'agree',
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 50,
   originatorId: '2134',
   createFrom: '2024-01-01',
   createTo: '2024-02-01',
@@ -636,7 +636,7 @@ this.utils.yida.getProcessInstances({
 | instanceStatus | String | 否 | 实例状态 | `'RUNNING'` |
 | approvedResult | String | 否 | 流程审批结果 | `'agree'` |
 | currentPage | Number | 否 | 当前页，默认 1 | `1` |
-| pageSize | Number | 否 | 每页记录数，默认 10，**最大 100，超过 100 会报错** | `10` |
+| pageSize | Number | 否 | 每页记录数；OpenYida 生成代码一般显式传 50，**最大 100，超过 100 会报错** | `50` |
 | originatorId | String | 否 | 流程发起人工号 | `'2134'` |
 | createFrom | String | 否 | 创建时间范围起始，格式 yyyy-MM-dd | `'2024-01-01'` |
 | createTo | String | 否 | 创建时间范围结束，格式 yyyy-MM-dd | `'2024-02-01'` |
@@ -644,7 +644,7 @@ this.utils.yida.getProcessInstances({
 | modifiedTo | String | 否 | 修改时间范围结束，格式 yyyy-MM-dd | `'2024-02-01'` |
 | searchFieldJson | String | 否 | 根据表单内组件值查询（JSON字符串） | `JSON.stringify({ textField_xxx: '值' })` |
 
-> ⚠️ **注意**：`pageSize` 最大值为 **100**，禁止设置超过 100 的值，否则接口会报错。
+> ⚠️ **注意**：OpenYida 生成代码一般显式写 `pageSize: 50`。`pageSize` 最大值为 **100**，禁止设置超过 100 的值，否则接口会报错。
 
 **请求示例**：
 
@@ -655,7 +655,7 @@ this.utils.yida.getProcessInstanceIds({
   instanceStatus: 'RUNNING',
   approvedResult: 'agree',
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 50,
   originatorId: '2134',
   createFrom: '2024-01-01',
   createTo: '2024-02-01',

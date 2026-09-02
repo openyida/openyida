@@ -4,6 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { compileCanvasLocal } = require('../lib/app/canvas-compile');
+const createForm = require('../lib/app/create-form');
 const { applyTemplateVariables, run } = require('../lib/core/sample');
 
 describe('sample templates', () => {
@@ -46,11 +47,61 @@ describe('sample templates', () => {
     expect(JSON.parse(chartResult.importedModules)).toEqual(['antd', 'react', 'recharts']);
     expect(chartSource).toContain('sample/seed 聚合数据');
     expect(chartSource).not.toMatch(/\.(?:reduce|groupBy)\(/);
+    expect(chartSource).not.toContain('data-theme-scope');
+    expect(chartSource).toContain('min-height: 100vh');
+    expect(chartSource).toContain('var(--pod-page-bg-color, ${THEME.canvas})');
 
     expect(JSON.parse(tableResult.importedModules)).toEqual(['antd', 'dayjs', 'react']);
     expect(tableSource).toContain('writeBridge.verified');
     expect(tableSource).toContain('Promise.all');
+    expect(tableSource).toContain('readThemeColor');
+    expect(tableSource).toContain('min-height: 100vh');
+    expect(tableSource).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(tableSource).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
+    expect(tableSource).not.toContain('linear-gradient(145deg, #F0F9F7');
     expect(tableSource).not.toContain('this.utils.yida');
+    expect(tableSource).not.toContain('data-theme-scope');
+  });
+
+  test('OpenYida scaffold samples validate form fields and compile the drawer container', async () => {
+    const formOutput = path.join(tmpDir, 'form-fields.json');
+    const pageOutput = path.join(tmpDir, 'canvas-form-drawer.canvas.jsx');
+
+    await run(['openyida-scaffold', 'form-fields', '--output', formOutput]);
+    await run([
+      'openyida-scaffold',
+      'canvas-form-drawer',
+      '--output',
+      pageOutput,
+      '--var',
+      'APP_TYPE=APP_SAMPLE',
+      '--var',
+      'FORM_UUID=FORM_SAMPLE',
+    ]);
+
+    const fields = JSON.parse(fs.readFileSync(formOutput, 'utf8'));
+    const pageSource = fs.readFileSync(pageOutput, 'utf8');
+    const pageResult = compileCanvasLocal(pageSource, { sourcePath: pageOutput });
+
+    expect(() => createForm._private.validateFormFieldDefinitions(fields)).not.toThrow();
+    expect(JSON.parse(pageResult.importedModules)).toEqual(['antd', 'lucide-react', 'react']);
+    expect(pageSource).toContain('function FormOpenContainer');
+    expect(pageSource).toContain('readThemeColor');
+    expect(pageSource).toContain('min-height: 100vh');
+    expect(pageSource).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(pageSource).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
+    expect(pageSource).toContain('border: var(--pod-card-border, none)');
+    expect(pageSource).toContain('border-radius: var(--pod-card-border-radius, 20px)');
+    expect(pageSource).not.toContain('linear-gradient(180deg, #F5FAF9');
+    expect(pageSource).toContain("'navConfig.layout': 1180");
+    expect(pageSource).toContain('row.formInstId || row.formInstanceId || row.instanceId || row.id');
+    expect(pageSource).not.toContain('yida-global-theme');
+    expect(pageSource).not.toContain('onLoad={syncThemeToIframe}');
+    expect(pageSource).not.toContain('data-yida-theme-root');
+    expect(pageSource).not.toContain('data-theme-scope');
+    expect(pageSource).not.toContain('FORM_INST_SAMPLE');
+    expect(pageSource).not.toContain('{{APP_TYPE}}');
+    expect(pageSource).not.toContain('{{FORM_UUID}}');
   });
 
   test('remaining samples avoid near-black default business surfaces', () => {
@@ -58,6 +109,7 @@ describe('sample templates', () => {
       path.join(__dirname, '..', 'lib', 'samples', 'yida-density'),
       path.join(__dirname, '..', 'lib', 'samples', 'yida-table-form'),
       path.join(__dirname, '..', 'lib', 'samples', 'yida-chart'),
+      path.join(__dirname, '..', 'lib', 'samples', 'openyida-scaffold'),
     ];
     const appThemePattern = /followRuntimeTheme:\s*true|var\(--color-brand/i;
     const nearBlackThemePattern = /#111827|#0f172a|#1f2937|rgba\(17,\s*24,\s*39|rgba\(23,?\s*26,?\s*29|rgba\(31,?\s*41,?\s*55/i;

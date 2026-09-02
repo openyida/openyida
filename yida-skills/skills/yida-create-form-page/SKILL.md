@@ -1,6 +1,6 @@
 ---
 name: yida-create-form-page
-description: 表单页面创建与更新，默认加载 yida-form-detail 作为表单视觉引导，并合并 Divider 分割线语义分组；拿到 formUuid 后必须注入表单全局主题和 formDetail CSS；支持 19 种业务字段和 Divider、ColumnContainer 等表单展示布局组件，PageSection/GroupContainer 仅少量特殊场景使用；支持联动规则和数据源绑定。
+description: 表单页面创建与更新，默认加载 yida-form-detail 作为表单视觉引导，并合并 Divider 分割线语义分组；新版主题由运行容器在表单与 formDetail 中加载同一应用级主题 CSS；支持 19 种业务字段和 Divider、ColumnContainer 等表单展示布局组件，PageSection/GroupContainer 仅少量特殊场景使用；支持联动规则和数据源绑定。
 ---
 
 # 表单页面创建与更新
@@ -29,8 +29,8 @@ description: 表单页面创建与更新，默认加载 yida-form-detail 作为�
 
 ## 严格要求 (MUST DO)
 
-- 表单页开发默认先加载 `yida-form-detail` 作为视觉引导和详情页样式默认注入策略，再由本技能落地字段 JSON；视觉引导必须和 `Divider` 分割线语义分组合并执行。
-- 拿到或确认真实 `formUuid` 后，必须执行 `openyida form-detail-style check/apply/check`，最终确认 `globalThemeActionFound: true` 与 `formDetailStyleActionFound: true`；这是完整应用和表单更新的完成项，不是可选美化。
+- 表单页开发默认先加载 `yida-form-detail` 作为视觉引导和详情页主题消费策略，再由本技能落地字段 JSON；视觉引导必须和 `Divider` 分割线语义分组合并执行。
+- 拿到或确认真实 `formUuid` 后确认应用级自定义主题 CSS 已保存，并由提交页和 formDetail 运行容器加载。
 - create 成功后，将 formUuid 记录到 `.cache/<项目名>-schema.json`
 - 完整应用生成场景中，create 成功并记录 formUuid 后，把核心普通表单交给 `yida-data-management` 默认写入 1-3 条业务化示例记录；不要在本技能里直接操作数据记录。
 - update / add-option / bind-datasource / validation / rule 等字段级操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会内部读取 schema、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败/歧义时按 `diagnostics[].candidates` 补 `tableLabel`、修正 label 或再执行一次 compact `get-schema`。
@@ -76,7 +76,7 @@ description: 表单页面创建与更新，默认加载 yida-form-detail 作为�
 - 全局 `--layout double`：只有用户明确要求“整个表单双列”时才使用；一般更推荐在字段 JSON 内用 `ColumnContainer` 做局部多列。
 - 语义分组：按业务含义分段，不按字段数量平均分。常见分组包括“基本信息”“业务信息”“时间计划”“补充材料”“审批信息”。
 - Divider 样式：默认 `bold-with-thin`；显式样式按 `bold-with-thin` → `double-color-trapezoid` → `left-dot-title` → `solid` / `dashed` / `thick` / `dotted` 优先级选择；门户/强分区场景可统一显式使用 `multi-parallelograms-end`。
-- 表单主题和 formDetail CSS 注入是表单保存后的必做动作，不是字段 JSON 本身的字段表达；新建表单在 Schema JS 中默认带上 `openyida:theme` 和 `openyidaThemeDidMount`，已有表单在 update/patch/rule/bind-datasource 保存前默认补齐，执行失败时必须说明阻塞原因。
+- 新版主题与 formDetail 样式来自应用级自定义主题 CSS，字段 JSON 和表单 Schema JS 只承载表单结构与业务动作。
 
 推荐结构：
 
@@ -100,12 +100,12 @@ Divider > Field
 
 ## 表单全局主题规则
 
-表单和流程表单必须和应用、自定义页面使用同一套主题 token。本技能只生成表单字段 JSON；OpenYida 在表单创建和保存时必须把 `style#yida-global-theme` 注入代码写入表单 JS。提交页必须在自身运行文档内注入该样式；详情页由同一个 `openyidaThemeDidMount` 判断 `formDetail` 后注入 `style#yida-form-detail-style`。自定义页面用抽屉 iframe 打开提交页或详情页时，还必须由 `FormOpenContainer` 在 iframe `onLoad` 后把父页面当前主题 tokens 同步到同源子文档，保证自定义页面、表单、详情页和应用主题色一致。
+表单和流程表单必须和应用、自定义页面使用同一套主题 token。运行容器把应用 `customThemeStyle.cssUrl` 分别加载到提交页、详情页、自定义页面和抽屉 iframe，本技能只生成表单字段 JSON。
 
 - 普通业务分组：`Divider` 标题跟随应用主题，下面直接接字段或 `ColumnContainer`
 - 默认 `Divider` 不写颜色属性，或保持 `colorType: "theme"`
-- 表单 JS 必须默认注入 `style#yida-global-theme`，让提交页自身、表单内部、同源父窗口和 `window.top` 都尽量获得同一套主题 token；详情页 CSS 也写在同一段表单 JS 中，但只在 formDetail 页面条件注入；跨域窗口只跳过，不报错
-- 新表单页默认消费`podBlue`、`podGreen`、`podOrange` 等应用主题对应 token；`blue`、`green`、`orange` 作为应用主题 token profile 保留原名。本技能只消费注入后的变量，不把 legacy 名称当作表单 `--theme` 或应用 `--theme` 参数
+- 详情差异统一写入应用主题 CSS 的语义 token，由提交页和详情页运行容器加载
+- 新表单页默认消费 `podBlue`、`podGreen`、`podOrange` 等应用主题对应 token；`blue`、`green`、`orange` 作为应用主题 token profile 保留原名。本技能只消费服务端加载的应用主题变量，不把 legacy 名称当作表单 `--theme` 或应用 `--theme` 参数
 - 局部多列容器：保持背景克制，避免给每个列容器单独上色
 - 流程表单：更偏单列和清晰分段，颜色只用于章节识别，不要做大面积品牌色块
 - 自定义色：只有用户明确说“红色警示”“绿色成功态”“品牌色 #xxx”时才写 `colorType: "custom"` 和具体色值
@@ -119,12 +119,16 @@ openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout d
 # 文件路径示例：.cache/openyida/<项目名或任务名>/<表单名>-fields.json
 ```
 
+创建成功后 CLI 会根据表单标题和字段语义选择导航图标，再更新导航节点并回读校验。需要指定时传 `--icon <iconName>`；用 `openyida create-form icons --json` 查看与 yida-next 页面导航选择器一致的 86 个可用值。表单导航图标是纯图标名（如 `name-card`、`Project`、`Todo`、`clock`），不是应用图标的 `xian-*%%color` 协议。
+
+导航图标更新必须先读取 `getFormNavigationListByOrder.json` 的当前节点，像 yida-next 的 `DB.Nav.update({ ...node, title: JSON.stringify(node.title), formUuid: node.formUuid || 'NAV-SYSTEM-FROM-ME-UUID', icon })` 一样保留 `gmtModified`、`formType`、`isNewForm`、`listOrder` 等原值，再请求带 `_api=Nav.update&_mock=false&_stamp=...` 的 `updateFormNavigation.json`，最后重新读取导航列表校验图标。禁止仅凭 formUuid 拼一个精简更新 payload。
+
 > 文件先用 create_file / Write / file edit tool 创建。上方路径默认从 OpenYida project 工作目录执行；如果从 workspace 根执行命令，传 `project/.cache/openyida/<项目名或任务名>/<表单名>-fields.json`。
 
 输出：
 
 ```json
-{"success":true,"formUuid":"FORM-XXX","formTitle":"用户信息表","appType":"APP_xxx","fieldCount":4,"url":"{base_url}/APP_xxx/workbench/FORM-XXX"}
+{"success":true,"formUuid":"FORM-XXX","formTitle":"用户信息表","appType":"APP_xxx","fieldCount":4,"icon":"name-card","iconSource":"auto","url":"{base_url}/APP_xxx/workbench/FORM-XXX"}
 ```
 
 完整应用模式下的下一步：
@@ -249,7 +253,7 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 | [field-definition-guide.md](references/field-definition-guide.md) | 需要完整字段属性、布局组件、update changes 或字段类型表时 |
 | [advanced-form-modes.md](references/advanced-form-modes.md) | 使用 patch / rule / validation / bind-datasource 高级模式前必须读取 |
 | [form-field-properties.md](references/form-field-properties.md) | 需要字段属性细节或平台属性映射时 |
-| `yida-form-detail` | 表单页开发默认加载；产出表单视觉引导、Divider 分组策略和默认 formDetail 样式注入边界 |
+| `yida-form-detail` | 表单页开发默认加载；产出表单视觉引导、Divider 分组策略和应用级 formDetail 主题适配边界 |
 | [employee-field.md](references/employee-field.md) | 成员字段配置 |
 | [association-form-field.md](references/association-form-field.md) | 关联表单字段配置 |
 | [serial-number-field.md](references/serial-number-field.md) | 流水号字段配置 |

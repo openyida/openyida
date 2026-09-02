@@ -280,7 +280,7 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 
 ## 注意事项
 
-- `pageSize` 最大 100，QPS 限制约 40 次/秒
+- `pageSize` 一般写 50，最大 100，QPS 限制约 40 次/秒
 - `searchFieldJson` 和 `dynamicOrder` 必须传字符串
 - 需要稳定顺序的分页、比对或配对必须显式传 `--dynamic-order '{"fieldId":"+"}'`（升序）或 `--dynamic-order '{"fieldId":"-"}'`（降序）；未传时不得依赖默认返回顺序
 - 字段 ID 通过 `openyida get-schema` 获取，不要手写猜测

@@ -33,7 +33,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 
 真实业务页的 `page-spec.json` 至少写清业务名称与定位、业务模块/对象、指标口径、用户动作或下钻方式、`sourceOfTruth`、`designFile`、`designRefs` 和 `themeSummary`；页面美感提升/页面重构写入 `functionContract`，保留现有数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限和业务状态；看板/列表/详情如果本轮已经创建或解析业务表单，写入 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射，并默认读取 `yida-app` 通过 `yida-data-management` 写入的 1-3 条 seed records；官网/品牌页写入 `assets` 或素材缺口。
 
-`dataBinding.mode=form` 的页面实现必须读取 [data-bridge-guide.md](data-bridge-guide.md) 的表单数据契约。源码使用本地 `useYidaData(binding)` / `DataBridge`，默认调用发布层注入的 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；只有桥不可用时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。生成器或手写页面如果没有 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射，只能标记为未接真实表单数据。
+`dataBinding.mode=form` 的页面实现必须读取 [data-bridge-guide.md](data-bridge-guide.md) 的表单数据契约。源码使用本地 `useYidaData(binding)` / `DataBridge`，默认调用发布层注入的 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；根级 `toast`、`router.push`、`openPage` 等工具通过 `window.__OPENYIDA_UTILS__` 访问。只有桥不可用时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。生成器或手写页面如果没有 `dataBinding.mode=form`、真实 `appType/formUuid` 和字段映射，只能标记为未接真实表单数据。
 
 ## 修复路径
 
@@ -94,13 +94,13 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 | 表单新建/提交 | `targetType: "submission"` + `openMode: "responsive-drawer"` | PC 用 `FormOpenContainer` 右侧抽屉 iframe，URL 带 `isRenderNav=false` |
 | 表单查看详情 | `targetType: "detail"` + 目标 `formUuid` + 真实 `formInstId` 来源 | PC 用同一套抽屉宽度，详情 URL 带 `navConfig.layout=1180&isRenderNav=false` |
 
-表单提交/详情里的 `isRenderNav=false` 只隐藏原生表单页或详情页的页面导航，不用于隐藏自定义页应用导航。PC 抽屉 iframe 不会自动继承父页面 CSS 变量，`FormOpenContainer` 必须接收 design.md 派生的 `themeTokens`，并在 iframe `onLoad` 后调用 `installYidaGlobalThemeIntoFrame(themeTokens, iframeElement)`，保证提交页和详情页同源子文档也有 `style#yida-global-theme`。移动端整页或新页打开隐藏导航原生表单页。
+表单提交/详情里的 `isRenderNav=false` 只隐藏原生表单页或详情页的页面导航，不用于隐藏自定义页应用导航。PC 抽屉 iframe 与移动端整页都由服务端自行加载应用主题文件；`FormOpenContainer` 不接收或同步父页面主题数据。
 
 ## 官网与品牌页素材流程
 
 实现 `official-homepage` 时，先读取 PRD 中的素材清单；缺少素材时按下方补齐素材清单。
 
-强视觉品牌以 PRD 的素材清单和 `design.md.assetStrategy` 为准。官网完成条件包括：场景 Hero、产品/服务、过程/空间三类素材，从真实材质推导的页面级品牌 token，不同 section 的构图节奏，以及一个明确 CTA。
+强视觉品牌以 PRD 的素材清单和 `design.md.assetStrategy` 为准。官网完成条件包括：场景 Hero、产品/服务、过程/空间三类素材，消费应用主题变量的视觉表达，不同 section 的构图节奏，以及一个明确 CTA。
 
 素材清单至少包含：
 
@@ -128,27 +128,11 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 
 ## 主题实现
 
-主题色决策来自 `yida-design` 的 `design.md`，业务场景和页面边界来自 `prd.md` 或派生的 `page-spec.json`。页面重构 / 局部美化先以当前应用主题为基准；缺少主题证据时，按业务气质选择平台预置主题或自定义 token，不固定回到 `podBlue` / #1677ff。`themeProfile: { "name": "yida-app-theme" }` 表示跟随宜搭运行态主题：线上由 `style#yida-global-theme` 的 `--color-brand1-*` 和 `--color-group` 决定页面主色、图表色组和局部强调色。
+主题色决策来自 `yida-design` 的 `design.md`，业务场景和页面边界来自 `prd.md` 或派生的 `page-spec.json`。所有页面都以当前应用主题为唯一主题来源；缺少主题证据时，按业务气质选择平台预置主题或生成应用自定义主题文件，不固定回到 `podBlue` / #1677ff。`themeProfile: { "name": "yida-app-theme" }` 表示跟随宜搭运行态主题：新版线上由应用自定义主题 CSS 中的 `--color-brand1-*` 和 `--color-group` 决定页面主色、图表色组和强调色。
 
-`page-spec.json` 只保存与 design.md 一致的主题摘要。只有平台预置 key 才能传给应用 `theme/colour`；自定义主题名必须在 design.md 中配套输出 tokens，并在页面源码中复制 `theme-runtime-helpers.md` 的 `YidaCodeCanvas` helper，注入 `style#yida-global-theme` 或 scoped CSS vars。页面包含 `FormOpenContainer` 时，同一份 tokens 还要传给容器，由容器在提交页/详情页 iframe `onLoad` 后同步到同源子文档。
+`page-spec.json` 只保存与 design.md 一致的主题摘要。新版主题必须在 design.md 中写清应用主题模板、CSS 产物、`--color-brand1-6`、`navTheme`、`logoSource` 和 `layoutDirection`，并通过 `create-app/update-app --theme-file/--nav-theme/--logo-source/--layout` 联合保存。运行容器在自定义页面与 `FormOpenContainer` 的提交页/详情页 iframe 中加载同一应用主题文件。
 
-`themeScope` 决定主题影响范围：
-
-| 作用域 | 行为 | 何时使用 |
-| --- | --- | --- |
-| `page` | 只在当前页面根节点注入主题变量，不影响导航和其他页面 | 默认安全选择 |
-| `app` | 页面加载时调用 `window.__YIDA__.updateShellConfig({ themeConfig })`，请求壳层一起换肤 | 需要左侧导航、顶部壳层和内容区统一 |
-
-从 PRD 或派生的 `page-spec.json` 读取业务边界，从 design.md 读取主题 token 与视觉执行规则：
-
-| 设计输入 | 实现方式 |
-| --- | --- |
-| 整个应用统一、全局换肤、系统整体主题、应用主题也改 | `themeScope: app` |
-| 左侧导航/菜单/顶部壳层也一起变色，导航和内容区同色 | `themeScope: app` |
-| 某个页面、首页、看板、自定义页变好看、页面重构或局部美化 | `themeScope: page`，主题基准为当前应用主题 |
-| 保持导航不变、其他页面不变、只改当前页 | `themeScope: page` |
-
-PRD 给出品牌色、色值、独立品牌/活动页诉求，或明确要求做成和当前应用很不一样时，在页面作用域写入覆盖色。
+从 PRD 或派生的 `page-spec.json` 读取业务边界，从 design.md 读取应用主题 token 与视觉执行规则。全局换肤、导航与内容统一换色或新品牌色都通过应用主题 CSS、`themeColor` 和 `navTheme` 配置；单页美化沿用该应用主题并调整页面结构和视觉语言。
 
 ## Page Spec 结构化字段
 
@@ -166,7 +150,7 @@ PRD 给出品牌色、色值、独立品牌/活动页诉求，或明确要求做
 | `insights` | 看板/报告/工作台的数据洞察 | 无则空数组或场景默认洞察 |
 | `designFile` | 当前项目设计契约路径 | 来自 `yida-design` Step 5 |
 | `designRefs` | 当前页面引用的 design.md 章节 ID | 来自 PRD 的 pageSpecHandoff |
-| `themeSummary` | 应用主题色、风格关键词、themeScope 摘要 | 来自 PRD 摘要，必须与 design.md 一致 |
+| `themeSummary` | 应用主题色、风格关键词、主题交付方式摘要 | 来自 PRD 摘要，必须与 design.md 一致 |
 | `contentBlocks` | 页面区块清单，工作台/首页/门户/看板/展示页/业务入口页推荐 8-10 个有业务目的的区块以上，但不作为硬门槛；KPI 组、快捷入口组、列表组各只算 1 个区块 | 来自 `yida-design` Step 4 |
 | `domainFidelity` | 实现后由 CLI 回填，标记业务化程度 | 无需手写 |
 
@@ -187,7 +171,7 @@ PRD 给出品牌色、色值、独立品牌/活动页诉求，或明确要求做
   "themeSummary": {
     "themeColor": "青绿色应用主题",
     "styleKeywords": ["运营洞察", "轻量玻璃感", "高密信息"],
-    "themeScope": "page"
+    "themeDelivery": "app-custom-theme-file"
   },
   "researchLevel": "none",
   "archetype": "analysis",

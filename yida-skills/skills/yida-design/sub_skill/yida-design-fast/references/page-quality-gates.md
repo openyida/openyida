@@ -58,10 +58,10 @@
 
 - 平台导航可见时，页面主按钮、链接、选中态、重点标签和图表主序列跟随应用主题。
 - 模型生成的业务色相只作为辅助色、浅背景、图表第二序列或装饰气质；最终以当前项目 `design.md` 和应用主题关系为准。
-- 页面级独立色盘只用于页面级沉浸页、应用导航隐藏后的自绘壳、独立品牌页、活动页、公开落地页或用户明确要求。
+- 沉浸页、自绘壳、独立品牌页、活动页和公开落地页由运行容器加载应用主题，差异通过布局、材质、素材和构图表达。
 - 默认业务页使用 light 模式；暗色只用于用户明确说暗色、夜间、高对比、黑金或暗色科技风。
 - 主色不能无思考地固定为 `podBlue` / #1677ff；缺少主题证据时先根据行业、品牌、业务情绪和视觉目标做创意色彩判断，再选择平台预置主题或自定义 token；不得套用“科技=蓝、宠物=橙、法律=蓝”这类行业刻板配色。
-- `shouldPassCreateAppTheme=true` 仅限 `themePresetKey` 命中平台预置 key；自定义色盘必须 `shouldPassCreateAppTheme=false`，创建应用时不传 `theme/colour`，并写清 `style#yida-global-theme` / `customThemeStyle.tokens` 注入方案。
+- 新版应用必须写清主题 CSS 模板、产物路径、平台实际生成的完整 `--color-brand1-1/2/3/5/6/9/10` 色阶、`--color-brand1-6` 字面量主色，以及 `--theme-file/--nav-theme/--logo-source/--layout` 联合保存方案；不得补造 `--color-brand1-4/7/8`。
 
 ## 5. 视觉层次门禁
 
@@ -111,7 +111,7 @@
   - pageStructure：<workbench / dashboard-overview / business-list / detail-profile / split-pane-detail / portal-shell-home / official-homepage / data-screen>
   - scene：<workbench / dashboard / list / detail / landing / screen>
   - contentBlocks：<推荐 8-10 个区块以上；KPI/快捷入口/列表/图表子项不分别计数>
-  - themeSummary：<应用主题色 / 风格关键词 / themeScope 摘要；必须与 design.md 一致>
+  - themeSummary：<应用主题色 / 风格关键词 / 主题交付方式摘要；必须与 design.md 一致>
   - designFile：<prd/<项目名>/design.md>
   - designRefs：<themeProfile / sceneRecipes.<scene> / components.<name> / states.<name>>
   - dataBinding：<form / report / connector / static-empty>

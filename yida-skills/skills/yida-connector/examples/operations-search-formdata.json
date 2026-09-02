@@ -61,7 +61,7 @@
           },
           {
             "componentName": "NumberField",
-            "desc": "每页条数(最大100)",
+            "desc": "每页条数，默认填 50，最大 100",
             "name": "pageSize",
             "required": false
           },
@@ -128,7 +128,7 @@
           },
           "pageSize": {
             "type": "integer",
-            "description": "每页条数"
+            "description": "每页条数，默认填 50，最大 100"
           }
         }
       }

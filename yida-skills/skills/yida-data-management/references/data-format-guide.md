@@ -156,4 +156,4 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 - 统一把 CLI 传入的 JSON 参数当作字符串接收
 - 在发送请求前再做 `json.dumps(...)` 或直接透传字符串
 - `currentPage` 从 `1` 开始
-- `pageSize` 建议不超过 `100`
+- `pageSize` 一般写 `50`，并且不超过 `100`

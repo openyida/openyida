@@ -518,9 +518,8 @@ describe('buildSchemaSummary', () => {
   test('adds native custom page signals for legacy display pages', () => {
     const sourceCode = 'export function renderJsx() { return React.createElement("div", null, "ok"); }';
     const compiledCode = 'function renderJsx(){return React.createElement("div",null,"ok");}';
-    const summary = buildSchemaSummary('APP_XXX', 'FORM-NATIVE', {
-      content: buildNativePageSchemaContent(sourceCode, compiledCode, 'FORM-NATIVE'),
-    });
+    const content = buildNativePageSchemaContent(sourceCode, compiledCode, 'FORM-NATIVE');
+    const summary = buildSchemaSummary('APP_XXX', 'FORM-NATIVE', { content });
 
     expect(summary.displayPage).toMatchObject({
       hasYidaCodeCanvas: false,
@@ -530,6 +529,14 @@ describe('buildSchemaSummary', () => {
       compiledCodeBytes: Buffer.byteLength(compiledCode, 'utf8'),
       importedModules: [],
       componentCount: 1,
+    });
+
+    const deepYidaComponents = JSON.parse(content).pages[0].componentsMap.filter(
+      (entry) => entry.package === '@ali/vc-deep-yida'
+    );
+    expect(deepYidaComponents.length).toBeGreaterThan(0);
+    deepYidaComponents.forEach((entry) => {
+      expect(entry).not.toHaveProperty('version');
     });
   });
 });

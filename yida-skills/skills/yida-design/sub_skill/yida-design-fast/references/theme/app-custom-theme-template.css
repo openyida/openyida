@@ -1,0 +1,672 @@
+@charset "UTF-8";
+
+/*
+ * OpenYida 新版应用主题模板
+ *
+ * AI 使用说明：
+ * 1. 本模板与 yida-next 新主题模板保持同源，以 yc-common 0.4.0 的 PC/Pod 配置为基线，
+ *    默认呈现大圆角与 coffee 咖啡色主题；它是可直接使用的初始化方案，不是所有业务的固定配色。
+ * 2. 应用品牌色阶只使用平台实际生成的 --color-brand1-1、2、3、5、6、9、10；
+ *    --color-brand-1 至 --color-brand-4 和 --color-group 也必须保留并成套修改，不要补造 4、7、8。
+ * 3. 若 design.md 选择其他主色，必须同步替换品牌色阶、基础色阶、图表色组，以及模板中按钮、
+ *    表单、选中态、导航、日期组件等品牌相关直接色值；成功、警告、错误、通知等语义色保持独立。
+ * 4. 默认保留页面/卡片/抽屉 20px、组件 8-12px、按钮胶囊形的大圆角层级；
+ *    只有 design.md 明确给出其他 roundedRule 时才成套调整。
+ * 5. 保留变量名和 nav/light/dark 选择器结构，运行容器会在各页面上下文加载本文件。
+ * 6. 新建使用：openyida create-app --name "应用名" --theme-file ./app-theme.css --nav-theme light --logo-source appIcon --layout l_shape
+ * 7. 已有应用使用：openyida update-app <appType> --theme-file ./app-theme.css --nav-theme light --logo-source appIcon --layout side
+ */
+
+/*
+@font-face {
+  font-family: "yida-custom-font";
+  src: url("文字模板资源") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+*/
+
+:root {
+  /* 应用品牌色阶：按 coffee 预设生成，分别用于浅色背景、选中态、深色背景及透明交互态。 */
+  --color-brand1-1: rgba(155, 136, 121, 0.8);
+  --color-brand1-2: rgba(243, 240, 239, 1);
+  --color-brand1-3: rgba(155, 136, 121, 0.2);
+  --color-brand1-5: rgba(52, 50, 44, 1);
+  --color-brand1-6: rgba(155, 136, 121, 1);
+  --color-brand1-9: rgba(58, 55, 49, 1);
+  --color-brand1-10: rgba(155, 136, 121, 0.32);
+
+  /* 基础品牌色阶与图表色组：与 coffee 预设保持一致。 */
+  --color-brand-1: rgba(155, 136, 121, 0.32);
+  --color-brand-2: rgba(155, 136, 121, 0.8);
+  --color-brand-3: rgba(155, 136, 121, 1);
+  --color-brand-4: rgba(58, 55, 49, 1);
+  --color-group: rgba(155, 136, 121, 1), rgba(210, 200, 171, 1), rgba(180, 158, 134, 1),
+    rgba(230, 209, 190, 1), rgba(136, 122, 111, 1), rgba(58, 55, 49, 1);
+
+  /* 基础文字色：从弱提示到正文逐级加深，白色用于深色背景上的文字。 */
+  --color-text1-1: rgba(24, 28, 31, 0.24);
+  --color-text1-2: rgba(24, 28, 31, 0.4);
+  --color-text1-3: rgba(24, 28, 31, 0.6);
+  --color-text1-4: rgb(24, 28, 31);
+  --color-text1-5: rgb(255, 255, 255);
+  --color-text1-10: rgba(24, 28, 31, 0.8);
+
+  /* 基础填充色：用于禁用、悬浮、按下、遮罩及浮层背景。 */
+  --color-fill1-1: rgb(242, 243, 244);
+  --color-fill1-2: rgb(237, 238, 239);
+  --color-fill1-3: rgb(227, 228, 230);
+  --color-fill1-4: rgb(214, 215, 217);
+  --color-fill1-5: rgb(169, 174, 179);
+  --color-fill1-6: rgba(24, 28, 31, 0.05);
+  --color-fill1-7: rgba(255, 255, 255, 0.4);
+  --color-fill1-9: rgb(239, 239, 239);
+  --color-fill1-10: rgba(46, 48, 51, 0.9);
+
+  /* 基础线条色：用于不同层级的分割线、描边和高对比边框。 */
+  --color-line1-1: rgba(24, 28, 31, 0.08);
+  --color-line1-2: rgba(24, 28, 31, 0.12);
+  --color-line1-3: rgba(24, 28, 31, 0.05);
+  --color-line1-4: rgb(195, 199, 202);
+
+  /* 基础模板 · 语义颜色：通用色、链接及反馈状态色。 */
+  --color-white: #fff;
+  --color-black: #000;
+  --color-transparent: transparent;
+  --color-link-1: #006bd7;
+  --color-link-2: #0058b1;
+  --color-link-3: #007fff;
+  --color-error-1: rgba(225, 74, 0, 0.12);
+  --color-error-2: #f5743d;
+  --color-error-3: #f2510c;
+  --color-error-4: #c2410a;
+  --color-success-1: #e0f4e6;
+  --color-success-2: #33bf67;
+  --color-success-3: #00a532;
+  --color-success-4: #008c2a;
+  --color-warning-1: rgba(255, 146, 0, 0.12);
+  --color-warning-2: #ffa733;
+  --color-warning-3: #ff9200;
+  --color-warning-4: #cc7400;
+  --color-notice-1: rgba(0, 102, 255, 0.12);
+  --color-notice-2: #33a0ff;
+  --color-notice-3: #0066ff;
+  --color-notice-4: #0052cc;
+  --color-help-1: rgba(0, 102, 255, 0.12);
+  --color-help-2: #33a0ff;
+  --color-help-3: #0066ff;
+  --color-help-4: #0052cc;
+
+  /* 基础模板 · 字体体系：字体族、字号、字重与行高。 */
+  --font-family: "yida-custom-font", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --font-family-base: var(--font-family);
+  --font-size-caption: 12px;
+  --font-size-body-1: 14px;
+  --font-size-body-2: 16px;
+  --font-size-subhead: 18px;
+  --font-size-title: 20px;
+  --font-size-headline: 24px;
+  --font-size-display-1: 32px;
+  --font-weight-2: normal;
+  --font-weight-3: bold;
+  --font-weight-medium: 500;
+  --font-weight-semi-bold: 600;
+  --font-lineheight-2: 1.5;
+  --font-lineheight-3: 1.5;
+
+  /* 基础模板 · 边框与阴影：线宽、线型及向下投影层级。 */
+  --line-zero: 0px;
+  --line-1: 1px;
+  --line-2: 2px;
+  --line-3: 3px;
+  --line-solid: solid;
+  --line-dashed: dashed;
+  --shadow-zero: none;
+  --shadow-1-down: 0 2px 4px 0 rgba(0, 0, 0, 0.12);
+  --shadow-2-down: 0 4px 20px -1px rgba(0, 0, 0, 0.16);
+  --shadow-3-down: 0 10px 28px -2px rgba(0, 0, 0, 0.24);
+
+  /* 基础圆角：组件可直接消费这些平台级圆角变量。 */
+  --corner-1: 4px;
+  --corner-2: 8px;
+  --corner-3: 12px;
+  --corner-circle: 50%;
+  --corner-semicircle: 500px;
+  --corner-zero: 0px;
+
+  /* 基础尺寸：圆角和间距从小到大分级，修改后请同时检查 PC 与移动端布局。 */
+  --pod-xs-border-radius: 4px;
+  --pod-sm-border-radius: 8px;
+  --pod-md-border-radius: 12px;
+  --pod-lg-border-radius: 16px;
+  --pod-xl-border-radius: 20px;
+  --pod-xs-gap-pad-margin: 4px;
+  --pod-sm-gap-pad-margin: 8px;
+  --pod-md-gap-pad-margin: 12px;
+  --pod-lg-gap-pad-margin: 16px;
+  --pod-mxl-gap-pad-margin: 20px;
+  --pod-xxl-gap-pad-margin: 24px;
+  --pod-full-raduis: 999px;
+  /* 滚动条：控制滚动条圆角、宽度及滑块颜色。 */
+  --pod-scrollbar-radius: 4px;
+  --pod-scrollbar-width: 8px;
+  /* 通用容器：控制卡片间距、容器留白、基础背景和文字层级。 */
+  --pod-element-card-gap: 12px;
+  --pod-container-common-pad-margin: 12px;
+  --pod-common-container-pad: 20px;
+  --pod-common-container-margin: 12px;
+  --pod-common-container-padding: 20px;
+  --pod-common-bg-color: #f0f2f5;
+  --pod-common-level1-base-color: #181c1f;
+  --pod-common-level3-base-color: rgba(24, 28, 31, 0.4);
+  --pod-common-level2-base-color: rgba(24, 28, 31, 0.6);
+  --pod-common-level4-base-color: rgba(24, 28, 31, 0.24);
+  --pod-overlay-color: rgba(83, 88, 97, 0.1);
+  --pod-overlay-color-hover: rgba(83, 88, 97, 0.16);
+  --pod-overlay-color-active: rgba(83, 88, 97, 0.24);
+  --pod-danger-color: #f2510c;
+  --pod-scrollbar-thumb-color: rgba(0, 0, 0, 0.2);
+  --pod-background-mask-light-gradient: linear-gradient(
+    142deg,
+    rgba(255, 255, 255, 0.37) 0%,
+    rgba(255, 255, 255, 0.43) 72%
+  );
+  --pod-sticky-footer-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05),
+    0 4px 8px 0 rgba(0, 0, 0, 0.08);
+  /* 宜搭历史组件兼容：供仍使用 --yida-* 的页面和组件消费。 */
+  --yida-sm-border-radius: 6px;
+  --yida-sm-gap-size: 6px;
+  --yida-s-gap-size: 8px;
+  --yida-sm-font-size: 12px;
+  --yida-sm-line-height: 18px;
+  --yida-md-line-height: 24px;
+  --yida-lg-line-height: 36px;
+  --yida-md-font-weight: 500;
+  --yida-data-manage-s-font-size: 13px;
+  --yida-danger-color: #f2510c;
+  --pod-default-border-radius: 20px;
+  --pod-drawer-border-radius: 20px;
+  --pod-drawer-shadow: 0 0 32px 0 rgba(0, 0, 0, 0.1);
+  /* 新版主题公共变量：Shell、页面、卡片、字段、导航和数据管理。 */
+  /* Shell 外框：控制四种导航背景、外层留白和 L 型导航圆角。 */
+  --pod-shell-bg-color-light: rgba(243, 240, 239, 1);
+  --pod-shell-bg-color-white: #fff;
+  --pod-shell-bg-color-gray: #f0f2f5;
+  --pod-shell-bg-color-dark: rgba(52, 50, 44, 1);
+  --pod-shell-padding: 4px;
+  --pod-shell-lshape-border-radius: 16px;
+  /* Shell 主内容容器：控制内容层的留白、边框与背景。 */
+  --pod-shell-content-container-padding: 0px;
+  --pod-shell-content-container-margin: 0px;
+  --pod-shell-content-container-border: none;
+  --pod-shell-content-container-bg-color: transparent;
+  /* 页面 Surface：控制 Shell 子内容层的留白、边框、背景、圆角和阴影。 */
+  --pod-page-surface-padding: 0px;
+  --pod-page-surface-margin: 0px;
+  --pod-page-surface-border: none;
+  --pod-page-surface-bg-color: transparent;
+  --pod-page-surface-border-radius: 12px;
+  --pod-page-surface-shadow: none;
+  /* 页面容器：控制页面边框、背景、圆角、间距和标题。 */
+  --pod-page-border: 1px solid rgba(24, 28, 31, 0.08);
+  --pod-page-bg-color: #ffffff;
+  --pod-page-border-radius: 20px;
+  --pod-page-padding: 20px;
+  --pod-page-mobile-margin: 12px;
+  --pod-page-mobile-padding: 12px;
+  --pod-page-with-side-nav-margin: 0px;
+  --pod-page-auto-width-margin: 8px;
+  --pod-page-inner-group-spacing: 12px;
+  --pod-page-title-height: 24px;
+  --pod-page-title-font-size: 16px;
+  --pod-page-title-font-weight: 500;
+  --pod-page-data-manage-top-padding: 16px;
+  --pod-page-header-bg-color: #fff;
+  --pod-data-manager-title-padding: 12px 8px 0;
+  --pod-data-manager-container-padding: 16px 20px 20px;
+  --pod-detail-container-padding: 8px;
+  --pod-detail-container-margin: 0px;
+  --pod-detail-shell-padding: 8px;
+  --pod-field-preview-min-height: 32px;
+  --pod-field-preview-padding: 0 8px;
+  --pod-field-preview-gap: 4px;
+  --pod-field-preview-bg-color: rgba(24, 28, 31, 0.04);
+  --pod-field-preview-border-radius: 8px;
+  --pod-field-preview-indicator-color: #e1e3e7;
+  --pod-field-preview-shadow: inset 2px 0 0 0 #e1e3e7;
+  --pod-field-preview-text-color: #181c1f;
+  --pod-field-preview-line-height: 20px;
+  /* 页面内部：控制卡片、页脚、内容宽度和导航页面容器。 */
+  --pod-card-padding: 20px;
+  --pod-card-border-radius: 20px;
+  --pod-card-border: none;
+  --pod-card-bg-color: #fff;
+  --pod-card-spacing: 12px;
+  --pod-page-footer-bg-color: #fff;
+  --pod-page-footer-border-radius: 9999px;
+  --pod-page-content-max-width: 1180px;
+  --pod-nav-page-bg-color: #fff;
+  --pod-nav-page-white-bg-color: rgba(246, 247, 247, 1);
+  --pod-nav-page-padding: 16px;
+  --pod-nav-top-main-border-width: 1px;
+  --pod-nav-top-main-border-color: #00000014;
+  --pod-nav-l-sub-main-bg-color: #fff;
+  --pod-nav-l-header-gap: 28px;
+  --pod-nav-l-header-padding: 8px 16px;
+  --pod-nav-l-aside-padding: 8px;
+  --pod-nav-slide-aside-gap: 12px;
+  --pod-nav-slide-aside-padding: 8px 8px 8px calc(8px - 4px);
+  --pod-nav-slide-aside-collapsed-padding: 8px 12px 8px calc(12px - 4px);
+  --pod-nav-slide-collapsed-menu-gap: 4px;
+  --pod-nav-slide-branding-height: 40px;
+  --pod-nav-side-collapsed-width: 56px;
+  --pod-nav-side-collapsed-item-size: 32px;
+  /* 顶部导航与 L 型导航：控制 Logo、Header、导航标签和指示条。 */
+  --pod-nav-custom-logo-max-width: 160px;
+  --pod-nav-top-header-padding: 2px 16px;
+  --pod-nav-top-header-gap: 40px;
+  --pod-nav-top-navigation-padding: 0 12px;
+  --pod-nav-top-tab-height: 44px;
+  --pod-nav-top-tab-item-max-width: 120px;
+  --pod-nav-top-tab-item-padding: 0 12px;
+  --pod-nav-top-tab-item-inner-padding: 12px 0;
+  --pod-nav-top-tab-indicator-width: 2px;
+  /* 平台 Header 与操作区：控制行高、按钮、图标和角标尺寸。 */
+  --pod-nav-platform-header-height: 48px;
+  --pod-nav-platform-row-height: 32px;
+  --pod-nav-platform-action-gap: 6px;
+  --pod-nav-platform-action-item-size: 28px;
+  --pod-nav-platform-action-icon-size: 18px;
+  --pod-nav-platform-action-radius: 999px;
+  --pod-nav-avater-border-radius: 6px;
+  --pod-nav-platform-action-badge-size: 13px;
+  --pod-nav-platform-action-badge-font-size: 9px;
+  --pod-nav-platform-action-badge-radius: 7px;
+  --pod-nav-platform-action-badge-digit-width: 6px;
+  --pod-nav-action-border: 0.5px solid rgba(24, 28, 31, 0.12);
+  --pod-nav-ai-wenban-border-color: #ffffff3d;
+  --pod-nav-ai-wenban-bg: radial-gradient(64px 24px at 31% 0%, transparent, rgba(0, 0, 0, 0.6)),
+    linear-gradient(
+      161deg,
+      rgba(155, 136, 121, 0.8) 5.22%,
+      rgba(52, 50, 44, 1) 50.54%,
+      rgba(58, 55, 49, 1) 89.61%
+    );
+  --pod-nav-ai-wenban-text-color: #fff;
+  --pod-nav-logo-gap: 8px;
+  --pod-nav-logo-padding: 4px 8px;
+  --pod-nav-logo-bg: rgba(155, 136, 121, 1);
+  --pod-nav-logo-border: none;
+  --pod-nav-logo-icon: #fff;
+  --pod-nav-logo-border-radius: 6px;
+  --pod-nav-logo-size: 32px;
+  --pod-nav-logo-img-size: 26px;
+  /* 导航搜索、菜单和弹层：控制尺寸、间距、圆角及阴影。 */
+  --pod-nav-search-height: 32px;
+  --pod-nav-search-border-color: transparent;
+  --pod-nav-search-menu-gap: 8px;
+  --pod-nav-menu-panel-search-padding-top: 8px;
+  --pod-nav-menu-panel-top: 12px;
+  --pod-nav-menu-panel-after-collapse-top: 40px;
+  --pod-nav-menu-item-height: 36px;
+  --pod-nav-menu-item-padding: 8px;
+  --pod-nav-menu-item-radius: 8px;
+  --pod-nav-menu-font-size: 14px;
+  --pod-nav-menu-item-selected-font-weight: 400;
+  --pod-nav-menu-line-height: 20px;
+  --pod-nav-menu-icon-size: 16px;
+  --pod-nav-menu-arrow-icon-size: 12px;
+  --pod-nav-menu-gap: 8px;
+  --pod-nav-menu-item-gap: 4px;
+  --pod-nav-popup-width: 220px;
+  --pod-nav-popup-max-height: 400px;
+  --pod-nav-popup-padding: 8px;
+  --pod-nav-popup-border-radius: 12px;
+  --pod-nav-popup-shadow: 0 8px 24px rgba(31, 35, 41, 0.12);
+  /* 侧导菜单滚动区底部渐隐遮罩高度，并预留等高底部空间。 */
+  --pod-nav-menu-fade-height: 32px;
+  /* 新版侧导二级菜单缩进与分割线。 */
+  --pod-nav-sub-divider-left: 16px;
+  --pod-nav-sub-indent: 24px;
+  --yida-help-tips-color: #878f95;
+
+  /* 高级模板 · 按钮：尺寸、圆角，以及主按钮和普通按钮的交互状态。 */
+  --btn-size-s-height: 28px;
+  --btn-size-s-padding: 12px;
+  --btn-size-s-border-width: 1px;
+  --btn-size-s-corner: 500px;
+  --btn-size-s-font: 12px;
+  --btn-size-m-height: 32px;
+  --btn-size-m-padding: 16px;
+  --btn-size-m-border-width: 1px;
+  --btn-size-m-corner: 500px;
+  --btn-size-m-font: 14px;
+  --btn-size-l-height: 36px;
+  --btn-size-l-padding: 16px;
+  --btn-size-l-border-width: 1px;
+  --btn-size-l-corner: 500px;
+  --btn-size-l-font: 16px;
+  --btn-pure-primary-color: #fff;
+  --btn-pure-primary-bg: rgba(155, 136, 121, 1);
+  --btn-pure-primary-border-color: transparent;
+  --btn-pure-primary-color-hover: #fff;
+  --btn-pure-primary-bg-hover: rgba(155, 136, 121, 0.8);
+  --btn-pure-primary-border-color-hover: transparent;
+  --btn-pure-primary-color-active: #fff;
+  --btn-pure-primary-bg-active: rgba(58, 55, 49, 1);
+  --btn-pure-primary-border-color-active: transparent;
+  --btn-pure-primary-color-disabled: rgba(24, 28, 31, 0.24);
+  --btn-pure-primary-bg-disabled: #f2f3f4;
+  --btn-pure-primary-border-color-disabled: rgba(24, 28, 31, 0.12);
+  --btn-pure-normal-color: #181c1f;
+  --btn-pure-normal-bg: #fff;
+  --btn-pure-normal-border-color: rgba(24, 28, 31, 0.12);
+  --btn-pure-normal-color-hover: rgba(155, 136, 121, 1);
+  --btn-pure-normal-bg-hover: #fff;
+  --btn-pure-normal-border-color-hover: rgba(155, 136, 121, 1);
+  --btn-pure-normal-color-active: rgba(58, 55, 49, 1);
+  --btn-pure-normal-bg-active: #fff;
+  --btn-pure-normal-border-color-active: rgba(58, 55, 49, 1);
+  --btn-pure-normal-color-disabled: rgba(24, 28, 31, 0.24);
+  --btn-pure-normal-bg-disabled: #f2f3f4;
+  --btn-pure-normal-border-color-disabled: #edeeef;
+
+  /* 高级模板 · 表单：尺寸、边框、焦点、禁用与错误状态。 */
+  --form-element-small-height: 28px;
+  --form-element-small-corner: 8px;
+  --form-element-small-font-size: 12px;
+  --form-element-medium-height: 32px;
+  --form-element-medium-corner: 8px;
+  --form-element-medium-font-size: 14px;
+  --form-element-large-height: 36px;
+  --form-element-large-corner: 12px;
+  --form-element-large-font-size: 16px;
+  --form-error-color: #f2510c;
+  --form-warning-color: #ff9200;
+  --input-bg-color: #fff;
+  --input-text-color: rgba(24, 28, 31, 0.8);
+  --input-border-color: rgba(24, 28, 31, 0.12);
+  --input-border-width: 1px;
+  --input-hover-bg-color: transparent;
+  --input-hover-border-color: rgba(155, 136, 121, 1);
+  --input-focus-bg-color: #fff;
+  --input-focus-border-color: rgba(58, 55, 49, 1);
+  --input-focus-shadow-spread: 2px;
+  --input-disabled-bg-color: #f2f3f4;
+  --input-disabled-border-color: rgba(24, 28, 31, 0.08);
+  --input-disabled-color: rgba(24, 28, 31, 0.4);
+  --input-feedback-error-bg-color: #fff;
+  --input-feedback-error-border-color: #f2510c;
+  --select-color: rgba(24, 28, 31, 0.8);
+  --select-hint-color: rgba(24, 28, 31, 0.4);
+  --select-highlight-color: rgba(155, 136, 121, 1);
+  --select-s-lineheight: 20px;
+  --select-m-lineheight: 24px;
+  --select-l-lineheight: 28px;
+  --checkbox-size: 16px;
+  --checkbox-border-radius: 4px;
+  --checkbox-border-width: 2px;
+  --checkbox-bg-color: #fff;
+  --checkbox-border-color: rgba(24, 28, 31, 0.08);
+  --checkbox-hovered-bg-color: #fff;
+  --checkbox-hovered-border-color: rgba(155, 136, 121, 1);
+  --checkbox-checked-bg-color: rgba(155, 136, 121, 1);
+  --checkbox-checked-border-color: transparent;
+  --checkbox-checked-hovered-bg-color: rgba(155, 136, 121, 0.8);
+  --checkbox-disabled-bg-color: #edeeef;
+  --checkbox-disabled-border-color: rgba(24, 28, 31, 0.08);
+  --checkbox-disabled-label-color: rgba(24, 28, 31, 0.4);
+  --radio-width: 16px;
+  --radio-radius-size: 50%;
+  --radio-bg-color: #fff;
+  --radio-border-color: rgba(24, 28, 31, 0.12);
+  --radio-hovered-border-color: rgba(155, 136, 121, 1);
+  --radio-checked-bg-color: rgba(155, 136, 121, 1);
+  --radio-checked-border-color: rgba(155, 136, 121, 1);
+  --radio-checked-hovered-bg-color: rgba(58, 55, 49, 1);
+  --radio-checked-disabled-bg-color: #f2f3f4;
+  --radio-disabled-border-color: rgba(24, 28, 31, 0.08);
+  --radio-normal-font-color-disabled: rgba(24, 28, 31, 0.24);
+  --switch-size-s-width: 48px;
+  --switch-size-s-trigger: 16px;
+  --switch-size-s-radius-container: 500px;
+  --switch-size-s-radius-trigger: 50%;
+  --switch-size-m-width: 56px;
+  --switch-size-m-trigger: 20px;
+  --switch-size-m-radius-container: 500px;
+  --switch-size-m-radius-trigger: 500px;
+  --switch-normal-on-bg-color: rgba(155, 136, 121, 1);
+  --switch-hover-on-bg-color: rgba(155, 136, 121, 0.8);
+  --switch-disabled-on-bg-color: rgba(155, 136, 121, 0.32);
+  --switch-normal-on-trigger-bg-color: #fff;
+  --switch-normal-off-bg-color: rgba(24, 28, 31, 0.24);
+  --switch-hover-off-bg-color: rgba(24, 28, 31, 0.4);
+  --switch-disabled-off-bg-color: #edeeef;
+  --switch-normal-off-trigger-bg-color: #fff;
+  --switch-disabled-off-trigger-bg-color: #d6d7d9;
+
+  /* 高级模板 · 数据展示：表格、Tabs 和 Pagination 的常用状态。 */
+  --table-normal-border-color: rgba(24, 28, 31, 0.08);
+  --table-normal-border-width: 1px;
+  --table-normal-border-style: solid;
+  --table-header-corner-top: 8px;
+  --table-header-corner-bottom: 0px;
+  --table-th-bg: #edeeef;
+  --table-row-color: rgba(24, 28, 31, 0.8);
+  --table-row-bg: #fff;
+  --table-row-hover-color: #181c1f;
+  --table-row-hover-bg: #f2f3f4;
+  --table-row-selected-color: rgba(24, 28, 31, 0.6);
+  --table-row-selected-bg: rgba(243, 240, 239, 1);
+  --tab-pure-bg-color: transparent;
+  --tab-pure-text-color-normal: rgba(24, 28, 31, 0.6);
+  --tab-pure-text-color-hover: #181c1f;
+  --tab-pure-text-color-selected: rgba(155, 136, 121, 1);
+  --tab-pure-text-color-disabled: rgba(24, 28, 31, 0.4);
+  --tab-pure-ink-bar-color: rgba(155, 136, 121, 1);
+  --tab-pure-ink-bar-width: 3px;
+  --tab-item-font-weight-selected: 500;
+  --pagination-item-bg: #fff;
+  --pagination-item-color: #181c1f;
+  --pagination-item-border-color: rgba(24, 28, 31, 0.12);
+  --pagination-item-corner: 8px;
+  --pagination-item-hover-bg: #f2f3f4;
+  --pagination-item-hover-color: #181c1f;
+  --pagination-item-hover-border-color: #c3c7ca;
+  --pagination-item-current-bg: rgba(155, 136, 121, 1);
+  --pagination-item-current-color: #fff;
+  --pagination-item-current-border-color: transparent;
+  --pagination-arrow-color: rgba(24, 28, 31, 0.4);
+  --pagination-arrow-hover-color: rgba(155, 136, 121, 1);
+
+  /* 高级模板 · 浮层：Menu、Balloon、Dialog 和 Drawer 的背景、圆角与阴影。 */
+  --menu-background: #fff;
+  --menu-background-hover: rgba(24, 28, 31, 0.05);
+  --menu-background-selected: transparent;
+  --menu-item-border-radius: 8px;
+  --menu-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.12);
+  --balloon-normal-color-bg: #fff;
+  --balloon-normal-color-border: rgba(24, 28, 31, 0.08);
+  --balloon-corner: 12px;
+  --balloon-normal-shadow: 0 4px 20px -1px rgba(0, 0, 0, 0.16);
+  --balloon-primary-color-bg: rgba(46, 48, 51, 0.9);
+  --balloon-primary-shadow: 0 4px 20px -1px rgba(0, 0, 0, 0.16);
+  --balloon-tooltip-color-bg: rgba(46, 48, 51, 0.9);
+  --balloon-tooltip-color-border: transparent;
+  --balloon-tooltip-shadow: 0 4px 20px -1px rgba(0, 0, 0, 0.16);
+  --dialog-bg: #fff;
+  --dialog-border-color: #fff;
+  --dialog-corner: 12px;
+  --dialog-shadow: 0 10px 28px -2px rgba(0, 0, 0, 0.24);
+  --drawer-bg: #fff;
+  --drawer-border-color: rgba(24, 28, 31, 0.12);
+  --drawer-corner: 4px;
+  --drawer-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.12);
+
+  /* 高级模板 · 日期时间：Calendar 与 DatePicker 的选中、区间和禁用状态。 */
+  --calendar-panel-header-background: #fff;
+  --calendar-card-table-cell-normal-background: #fff;
+  --calendar-card-table-cell-hover-background: rgba(24, 28, 31, 0.05);
+  --calendar-card-table-cell-select-background: rgba(155, 136, 121, 1);
+  --calendar-card-table-cell-select-color: #fff;
+  --calendar-card-table-cell-select-border-color: rgba(155, 136, 121, 1);
+  --calendar-card-table-cell-inrange-background: rgba(243, 240, 239, 1);
+  --calendar-card-table-cell-inrange-color: rgba(155, 136, 121, 1);
+  --calendar-card-table-cell-disabled-background: transparent;
+  --calendar-card-table-cell-disabled-color: rgba(24, 28, 31, 0.24);
+  --calendar-fullscreen-table-cell-hover-background: rgba(24, 28, 31, 0.05);
+  --calendar-fullscreen-table-cell-select-background: rgba(155, 136, 121, 1);
+  --calendar-fullscreen-table-cell-select-color: #fff;
+  --calendar-fullscreen-table-cell-disabled-background: transparent;
+  --calendar-fullscreen-table-cell-disabled-color: rgba(24, 28, 31, 0.24);
+  --date-picker-panel-background: #fff;
+  --date-picker-panel-time-panel-separator-color: rgba(24, 28, 31, 0.12);
+
+  /* 数据管理与弹层背景：控制表格边框、表头、单元格和弹层背景。 */
+  --table-cell-border: rgba(24, 28, 31, 0.08);
+  --table-border: rgba(131, 137, 143, 0.24);
+  --table-header-bg: rgba(242, 243, 244, 1);
+  --table-cell-bg: #fff;
+  --pod-table-cell-color: #fff;
+  --page-bg: #fff;
+  --card-bg: #fff;
+  --popup-bg: #fff;
+}
+
+/* 新版主题与 Fusion 组件统一消费同一字体变量，补齐旧版模板已有的字体自定义能力。 */
+body,
+body button,
+body input,
+body textarea,
+body select,
+body .next-btn,
+body .next-input,
+body .next-menu,
+body .next-nav {
+  font-family: var(--font-family) !important;
+}
+
+/* 白色导航背景与白色卡片相邻时，用描边保留卡片层级。 */
+.pod-premium.nav-white,
+.pod-premium.nav-theme-white {
+  --pod-card-border: 1px solid rgba(24, 28, 31, 0.08);
+}
+
+/* 新版主题移动端保留滚动能力，统一隐藏各业务滚动容器的滚动条。 */
+.mobile .pod-premium,
+.mobile .pod-premium *,
+.pod-premium.is-phone,
+.pod-premium.is-phone *,
+.pod-premium .is-phone,
+.pod-premium .is-phone * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.mobile .pod-premium::-webkit-scrollbar,
+.mobile .pod-premium *::-webkit-scrollbar,
+.pod-premium.is-phone::-webkit-scrollbar,
+.pod-premium.is-phone *::-webkit-scrollbar,
+.pod-premium .is-phone::-webkit-scrollbar,
+.pod-premium .is-phone *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+:root {
+  /* 浅色主题默认颜色：导航文字、搜索、菜单、Logo 和操作按钮。 */
+  --pod-nav-logo-text: #181c1f;
+  --pod-nav-sub-divider-color: rgba(24, 28, 31, 0.08);
+  --pod-nav-item-text-color: #181c1f;
+  --pod-nav-item-text-hover-color: #181c1f;
+  --pod-nav-item-text-disabled-color: rgba(24, 28, 31, 0.24);
+  --pod-nav-item-text-selected-color: rgba(155, 136, 121, 1);
+  --pod-nav-menu-bg-hover-color: rgba(24, 28, 31, 0.05);
+  --pod-nav-menu-bg-selected-color: rgba(155, 136, 121, 0.2);
+  --pod-nav-l-container-bg: rgba(255, 255, 255, 0.4);
+  --pod-nav-l-group-label-color: rgba(24, 28, 31, 0.4);
+  --pod-nav-l-search-border-color: rgba(0, 0, 0, 0);
+  --pod-nav-popup-bg-color: #fff;
+  --pod-nav-tab-line-hover-color: rgba(155, 136, 121, 1);
+  --pod-nav-tab-line-selected-color: rgba(155, 136, 121, 1);
+  --pod-nav-search-bg-color: rgba(24, 28, 31, 0.06);
+  --pod-nav-search-bg-hover-color: rgba(24, 28, 31, 0.06);
+  --pod-nav-search-bg-active-color: rgba(83, 88, 97, 0.24);
+  --pod-nav-search-placeholder-color: rgba(24, 28, 31, 0.24);
+  --pod-nav-search-text-color: #181c1f;
+  --pod-nav-search-icon-color: #a3a4a5;
+  --pod-nav-search-border-hover-color: rgba(155, 136, 121, 1);
+  --pod-nav-search-border-active-color: rgba(155, 136, 121, 1);
+  --pod-nav-action-icon-color: rgba(24, 28, 31, 0.4);
+  --pod-nav-action-border-color: rgba(24, 28, 31, 0.12);
+  --pod-nav-action-bg-hover-color: rgba(83, 88, 97, 0.16);
+  --pod-nav-action-bg-active-color: rgba(83, 88, 97, 0.24);
+  --pod-theme-text-color: #181c1f;
+  --pod-page-header-text-color: #181c1f;
+}
+
+.pod-premium.nav-light {
+  --pod-shell-theme-bg-color: rgba(243, 240, 239, 1);
+  --pod-page-header-bg-color: rgba(243, 240, 239, 1);
+}
+
+.pod-premium.nav-dark {
+  --pod-shell-theme-bg-color: rgba(52, 50, 44, 1);
+  --pod-page-header-bg-color: rgba(52, 50, 44, 1);
+}
+
+.pod-premium.nav-white {
+  --pod-shell-theme-bg-color: #fff;
+  --pod-page-header-bg-color: #fff;
+}
+
+.pod-premium.nav-gray {
+  --pod-shell-theme-bg-color: #f0f2f5;
+  --pod-page-header-bg-color: #f0f2f5;
+}
+
+.pod-premium.is-light {
+  --pod-theme-text-color: #181c1f;
+  --pod-page-header-text-color: #181c1f;
+  --pod-nav-logo-bg: rgba(155, 136, 121, 1);
+  --pod-nav-logo-border: none;
+  --pod-nav-item-text-selected-color: rgba(155, 136, 121, 1);
+  --pod-nav-menu-bg-selected-color: rgba(155, 136, 121, 0.2);
+  --pod-nav-popup-bg-color: #fff;
+}
+
+.pod-premium.is-dark {
+  --pod-theme-text-color: #fff;
+  --pod-page-header-text-color: #fff;
+  /* 深色主题覆盖：仅保留与浅色主题真实不同的导航颜色。 */
+  --pod-nav-logo-bg: transparent;
+  --pod-nav-logo-border: 1px solid rgba(255, 246, 246, 0.15);
+  --pod-nav-logo-text: #fff;
+  --pod-nav-sub-divider-color: rgba(255, 255, 255, 0.24);
+  --pod-nav-item-text-color: #fff;
+  --pod-nav-item-text-hover-color: #fff;
+  --pod-nav-item-text-disabled-color: rgba(255, 255, 255, 0.24);
+  --pod-nav-item-text-selected-color: #fff;
+  --pod-nav-menu-bg-hover-color: rgba(255, 255, 255, 0.12);
+  --pod-nav-menu-bg-selected-color: rgba(255, 255, 255, 0.24);
+  --pod-nav-l-container-bg: rgba(255, 255, 255, 0.08);
+  --pod-nav-l-group-label-color: rgba(255, 255, 255, 0.4);
+  --pod-nav-l-search-border-color: rgba(255, 255, 255, 0.05);
+  --pod-nav-popup-bg-color: rgba(52, 50, 44, 1);
+  --pod-nav-tab-line-hover-color: #fff;
+  --pod-nav-tab-line-selected-color: #fff;
+  --pod-nav-search-bg-color: rgba(255, 255, 255, 0.12);
+  --pod-nav-search-bg-hover-color: rgba(255, 255, 255, 0.16);
+  --pod-nav-search-bg-active-color: rgba(255, 255, 255, 0.16);
+  --pod-nav-search-placeholder-color: rgba(255, 255, 255, 0.24);
+  --pod-nav-search-text-color: #fff;
+  --pod-nav-search-icon-color: rgba(255, 255, 255, 0.24);
+  --pod-nav-search-border-hover-color: rgba(255, 255, 255, 0);
+  --pod-nav-search-border-active-color: rgba(255, 255, 255, 0);
+  --pod-nav-action-icon-color: rgba(255, 255, 255, 0.6);
+  --pod-nav-action-border-color: rgba(255, 255, 255, 0.2);
+  --pod-nav-action-border: 0.5px solid rgba(255, 255, 255, 0.2);
+  --pod-nav-action-bg-hover-color: rgba(255, 255, 255, 0.12);
+  --pod-nav-action-bg-active-color: rgba(255, 255, 255, 0.16);
+}

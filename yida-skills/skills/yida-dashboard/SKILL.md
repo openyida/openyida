@@ -37,7 +37,7 @@ metadata:
 
 1. 单屏控制塔结构，见 `references/structure-and-layout.md`。
 2. 真实数据绑定：聚合指标走报表/聚合结果，明细走分页查询；禁止前端拉全量后聚合。
-3. 视觉主题和信息层级，见 `references/theme-presets.md`。默认从 `podBlue`、`podGreen`、`podOrange` 等应用主题中选择，用同名 profile 注入页面 token 并可同步应用 `--theme`。
+3. 视觉主题和信息层级，见 `references/theme-presets.md`。默认从 `podBlue`、`podGreen`、`podOrange` 等应用主题中选择；平台预置主题使用应用 `--theme`，自定义色盘使用应用级主题 CSS 文件，页面只消费运行时变量。
 4. 筛选与图表联动；控件必须受控并真实改变下方数据。
 5. 每元素可派单：`saveFormData → 集成自动化 → 待办2.0 ConnectorCall`。
 6. 卡片截图分享：真实可点击，截图时排除截图按钮本身。

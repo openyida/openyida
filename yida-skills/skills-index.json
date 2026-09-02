@@ -23,7 +23,7 @@
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
-      "description": "完整搭建或补齐普通 OpenYida 应用的流程编排技能。先解析资源上下文并消费 yida-design 的 prd.md 与 design.md，再按 PRD 创建或复用应用、表单、流程和页面；表单/流程先于自定义页面；发布后优先按 PRD 导航顺序排序，缺少明确页面清单时自动排序兜底；最终先输出 2-3 句业务交付总结，再给一个主入口链接。",
+      "description": "完整搭建或补齐普通 OpenYida 应用的流程编排技能。先解析资源上下文并消费 yida-design 的 prd.md 与 design.md，再按 PRD 创建或复用应用、表单、流程和页面；表单/流程先于自定义页面；页面阶段默认使用 Canvas 发布脚手架注入 yida/utils window 桥；发布后优先按 PRD 导航顺序排序，缺少明确页面清单时自动排序兜底；最终先输出 2-3 句业务交付总结，再给一个主入口链接。",
       "done_when": "PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md；若本轮 Write/Edit 单个页面源码，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 并返回当前页面 URL；其他完整应用、表单、流程、权限、主题、导航或批量资源场景返回 {base_url}/{appType}/workbench；final 先用 2-3 句业务语言总结创建/复用了哪些表单、页面和流程，以及完成了哪些功能，再给主入口链接；不默认输出表格、长列表或资源 ID；没有 publish 证据只能声明源码已修改，尚未发布。",
       "category": "yida-skills/app",
       "tags": [
@@ -240,13 +240,14 @@
       "name": "yida-canvas-custom-page",
       "path": "skills/yida-canvas-custom-page/SKILL.md",
       "display_name": "自定义页面开发",
-      "description": "宜搭自定义页面开发规范，使用 YidaCodeCanvas 组件实现现代 React18 自定义页面。用于官网、看板、工作台、列表、详情、门户壳、可视化和 hooks 交互。",
+      "description": "宜搭自定义页面开发规范，使用 YidaCodeCanvas 组件实现现代 React18 自定义页面。用于官网、看板、工作台、列表、详情、门户壳、可视化、表单入口和 hooks 交互；发布层自动注入 window.__OPENYIDA_YIDA_API__ 与 window.__OPENYIDA_UTILS__。",
       "category": "yida-skills/page",
       "tags": [
         "YidaCodeCanvas",
         "React18",
         "runtimeCode",
-        "自定义页面"
+        "自定义页面",
+        "Canvas 脚手架桥"
       ],
       "aliases": [
         "YidaCodeCanvas",
@@ -255,6 +256,9 @@
       "positive_signals": [
         "YidaCodeCanvas",
         "现代 React 页面",
+        "表单入口",
+        "FormOpenContainer",
+        "window.__OPENYIDA_UTILS__",
         "官网首页",
         "工作台",
         "看板页面",
@@ -274,13 +278,14 @@
       "name": "yida-canvas-data-binding",
       "path": "skills/yida-canvas-data-binding/SKILL.md",
       "display_name": "自定义页面数据绑定",
-      "description": "使用 YidaCodeCanvas 组件实现的自定义页面接真实数据，覆盖 dataBinding、DataBridge、外层 yida JS-API 桥、返回体解析、totalCount 保护和静默轮询刷新。",
+      "description": "使用 YidaCodeCanvas 组件实现的自定义页面接真实数据，覆盖 dataBinding、DataBridge、发布层 yida/utils window 桥、表单与流程 API、返回体解析、totalCount 保护和静默轮询刷新。",
       "category": "yida-skills/page",
       "tags": [
         "YidaCodeCanvas",
         "dataBinding",
         "DataBridge",
-        "真实数据"
+        "真实数据",
+        "window.__OPENYIDA_UTILS__"
       ],
       "aliases": [
         "自定义页面数据绑定",
@@ -291,7 +296,7 @@
       "name": "yida-canvas-table-form",
       "path": "skills/yida-canvas-table-form/SKILL.md",
       "display_name": "自定义页面表格批量录入",
-      "description": "使用 YidaCodeCanvas 组件和 antd 实现批量录入，支持草稿、行级校验、分批并发和行级错误保留；写入默认消费发布层注入的 window.__OPENYIDA_YIDA_API__，也可走已验证连接器或同源业务桥。",
+      "description": "使用 YidaCodeCanvas 组件和 antd 实现批量录入，支持草稿、行级校验、分批并发和行级错误保留；写入默认消费发布层注入的 window.__OPENYIDA_YIDA_API__，根级工具消费 window.__OPENYIDA_UTILS__，也可走已验证连接器或同源业务桥。",
       "category": "yida-skills/form",
       "tags": [
         "YidaCodeCanvas",
@@ -313,7 +318,7 @@
       "negative_signals": [
         "普通自定义页面",
         "平台 JSX 组件页面",
-        "this.utils.yida.saveFormData",
+        "平台 JSX/native 直接 this.utils.yida.saveFormData",
         "仅用 CLI 批量写数据"
       ],
       "command_ids": [
@@ -726,7 +731,7 @@
       "name": "yida-form-detail",
       "path": "skills/yida-form-detail/SKILL.md",
       "display_name": "表单详情页美化",
-      "description": "表单页视觉引导与表单详情页 formDetail 样式优化。表单页开发默认加载本技能合并 Divider 分割线语义分组；拿到 formUuid 后默认使用 openyida form-detail-style 写入表单 Schema JS。",
+      "description": "表单页视觉引导与表单详情页 formDetail 样式优化。默认只合并 Divider 语义分组；运行容器在表单、详情页和表单 iframe 中加载同一应用级自定义主题 CSS。",
       "category": "yida-skills/form",
       "tags": [
         "表单视觉引导",
@@ -740,11 +745,7 @@
         "详情页样式",
         "表单视觉"
       ],
-      "command_ids": [
-        "form-detail-style.check",
-        "form-detail-style.apply",
-        "form-detail-style.remove"
-      ]
+      "command_ids": []
     },
     {
       "name": "yida-form-permission",
@@ -1019,7 +1020,7 @@
       "name": "yida-publish-page",
       "path": "skills/yida-publish-page/SKILL.md",
       "display_name": "发布自定义页面",
-      "description": "将自定义页面源码编译为宜搭可运行 Schema 并发布；源码依赖 dataSourceMap 但发布无数据源时不能视为完成。",
+      "description": "将自定义页面源码编译为宜搭可运行 Schema 并发布；发布 YidaCodeCanvas 页面时自动注入 yida/utils window 桥；源码依赖 dataSourceMap 但发布无数据源时不能视为完成。",
       "command_ids": [
         "publish"
       ],
@@ -1284,10 +1285,12 @@
     {
       "name": "yida-skills/page",
       "display_name": "自定义页面",
-      "description": "自定义展示页创建、自定义页面开发、平台 JSX 组件页面维护、真实数据绑定、YidaCodeCanvas 迁移、页面发布、防覆盖、页面内导航壳和 PPT 页面。",
+      "description": "自定义展示页创建、自定义页面开发、Canvas 脚手架桥、平台 JSX 组件页面维护、真实数据绑定、YidaCodeCanvas 迁移、页面发布、防覆盖、页面内导航壳和 PPT 页面。",
       "signals": [
         "自定义页面",
         "YidaCodeCanvas",
+        "Canvas 脚手架桥",
+        "window.__OPENYIDA_UTILS__",
         "JSX",
         "React",
         "发布页面",

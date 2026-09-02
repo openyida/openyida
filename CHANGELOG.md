@@ -10,6 +10,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.9.2-1] - 2026-09-02
+
+### Added
+
+- `create-form create` 新增 `--icon auto|<name>`：表单创建并保存 Schema 后，按标题与字段语义从宜搭表单导航图标集中自动选图标，也可显式指定；新增 `create-form icons --json` 查询全部可选图标。
+
+### Changed
+
+- 表单导航图标更新对齐 yida-next 的 `Nav.update` 请求契约，并在写入后回读校验；命令参数同步注册到 command manifest 与 agent capabilities，确保云端 yida-agent 可发现和调用。
+
+## [2026.9.2] - 2026-09-02
+
+### Added
+
+- `create-app` / `update-app` 新增应用级自定义主题 CSS 支持：通过 `--theme-file` 在远程写入前完成文件、安全协议与品牌色阶校验，自动从 `--color-brand1-6` 派生 `themeColor`，并与 `navTheme` / `logoSource` / `layoutDirection` 联合保存。
+- 新增 `openyida-scaffold` 预置脚手架，提供 `form-fields` 表单字段配置和 `canvas-form-drawer` Canvas 表单抽屉入口模板。
+- Canvas 发布层扩展表单、流程、表单设计与通用 yida API 桥，并新增 `window.__OPENYIDA_UTILS__` 运行时工具桥及能力枚举。
+
+### Changed
+
+- 新建应用默认使用 `l_shape` 布局；未命中行业预设时从平台图标集中选择图标，系统图标颜色与应用主色保持同步。
+- 完整应用编排改为由同一份应用级主题 CSS 统一覆盖自定义页、普通/流程表单、提交页、详情页和 `FormOpenContainer` iframe；主题模板补齐 Shell、页面、表单、表格、导航与浮层等语义 token。
+- 预置 Canvas 页面统一消费 `--pod-page-bg-color` / `--pod-card-bg-color` 等应用主题变量，移除页内独立主题作用域和固定渐变背景。
+- 安装阶段会将技能目录中的历史备份移出宿主扫描路径，同步已有 Codex 插件缓存，并在能力可用时尝试刷新当前插件安装。
+
+### Removed
+
+- 移除 `form-detail-style apply/remove/check` 命令及表单 Schema 内的主题/formDetail CSS 注入链路，表单和详情页改由运行容器加载应用级主题文件。
+
 ## [2026.9.1-1] - 2026-09-01
 
 ### Fixed
