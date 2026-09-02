@@ -90,19 +90,6 @@ describe('OpenYida skill contracts', () => {
         .filter((file) => file.endsWith('.js'))
         .map((file) => path.join(localeDir, file))),
     ];
-    const generatedCreateAppDoc = path.join(
-      ROOT,
-      'dist',
-      'skills',
-      'openyida',
-      'references',
-      'subskills',
-      'yida-create-app',
-      'README.md'
-    );
-    if (fs.existsSync(generatedCreateAppDoc)) {
-      files.push(generatedCreateAppDoc);
-    }
     const source = files.map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 
     expect(source).toContain('chaxun');
