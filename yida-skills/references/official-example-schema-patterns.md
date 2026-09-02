@@ -43,6 +43,8 @@ GET /query/loginFreeFormData/listFormDataByType.json?type=templateCenter
 }
 ```
 
+以上只读抓取参数保留官方页面原值。OpenYida 生成新的分页查询代码时，一般显式写 `pageSize: 50`，除非用户明确要求其他页大小。
+
 3. 通过模板 ID 获取源模板应用：
 
 ```text

@@ -39,7 +39,6 @@ const MUTATING_SUBCOMMANDS = new Map([
   ['ai-form-setting', new Set(['enable', 'disable', 'save'])],
   ['app-permission', new Set(['set', 'add', 'remove'])],
   ['connector', new Set(['create', 'add-action', 'update-action', 'delete-action', 'create-connection'])],
-  ['form-detail-style', new Set(['apply', 'remove'])],
   ['i18n', new Set(['config', 'upsert', 'delete', 'translate', 'translate-all', 'upgrade'])],
   ['integration', new Set(['create', 'update', 'enable', 'disable'])],
   ['nav-group', new Set(['create', 'rename', 'delete', 'move', 'order', 'auto-order', 'hide', 'show'])],

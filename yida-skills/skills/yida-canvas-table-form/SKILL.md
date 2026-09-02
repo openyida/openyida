@@ -1,6 +1,6 @@
 ---
 name: yida-canvas-table-form
-description: 自定义页面表格批量录入技能。使用 `YidaCodeCanvas` 组件和 antd Table、Input、Select、DatePicker、React hooks 实现草稿、行级校验、分批并发提交和行级错误保留。`YidaCodeCanvas` 组件内不能直接调用 this.utils.yida.*；写入默认消费发布层注入的 window.__OPENYIDA_YIDA_API__，也可走已验证连接器或同源业务桥，未验证时不得声称提交闭环。
+description: 自定义页面表格批量录入技能。使用 `YidaCodeCanvas` 组件和 antd Table、Input、Select、DatePicker、React hooks 实现草稿、行级校验、分批并发提交和行级错误保留。`YidaCodeCanvas` 组件内不能直接调用 this.utils.yida.*；写入默认消费发布层注入的 window.__OPENYIDA_YIDA_API__，提示、跳转等根级工具消费 window.__OPENYIDA_UTILS__，也可走已验证连接器或同源业务桥，未验证时不得声称提交闭环。
 ---
 
 # 自定义页面表格批量录入
@@ -15,7 +15,7 @@ description: 自定义页面表格批量录入技能。使用 `YidaCodeCanvas` �
 - 分批并发写入，每行独立记录成功或失败。
 - 写入能力由显式、已验证的数据桥提供。
 
-`yida-table-form` 保留给已检测到的平台 JSX 组件页面或 native 页面：仅当目标页面已确认依赖平台实例桥，或存量源码已确认使用 `this.utils.yida.saveFormData` 时使用。
+`yida-table-form` 保留给已检测到的平台 JSX 组件页面或 native 页面：仅当目标页面已确认依赖平台实例桥，或存量平台源码已确认直接使用实例 `this.utils.yida.saveFormData` 时使用。新建或默认 `YidaCodeCanvas` 批量录入即使需要 `saveFormData`，也走本技能和 `window.__OPENYIDA_YIDA_API__.saveFormData`。
 
 ## 路由边界
 
@@ -24,19 +24,21 @@ description: 自定义页面表格批量录入技能。使用 `YidaCodeCanvas` �
 | 默认批量录入、表格填写、多行编辑 | `yida-canvas-table-form` |
 | YidaCodeCanvas 组件 + antd Table | `yida-canvas-table-form` |
 | 已检测到平台 JSX 组件页面/native 页面 | `yida-table-form` |
-| 明确要求 `this.utils.yida.saveFormData` | `yida-table-form` |
+| 新建 Canvas 页面里需要保存/更新表单数据 | `yida-canvas-table-form`，消费 `window.__OPENYIDA_YIDA_API__.saveFormData/updateFormData` |
+| 存量平台 JSX/native 源码直接要求实例 `this.utils.yida.saveFormData` | `yida-table-form` |
 | 只需 CLI 批量写入数据，不开发页面 | `yida-data-management` |
 | 需要创建或调整表单字段 | `yida-create-form-page` |
 
 ## 致命规则（FATAL）
 
-1. **YidaCodeCanvas 组件内没有平台 JSX 组件实例桥**：禁止在 `YidaComp` 源码中直接调用 `this.utils.yida.*`、`this.$(...)` 或 `this.dataSourceMap`；需要宜搭表单写入时消费发布层注入的 `window.__OPENYIDA_YIDA_API__`。
-2. **写入桥必须先验证**：默认使用 `window.__OPENYIDA_YIDA_API__.saveFormData/updateFormData`，也可使用已验证连接器代理或同源业务桥。必须确认目标 `appType/formUuid`、请求体、返回体和错误码。
+1. **YidaCodeCanvas 组件内没有平台 JSX 组件实例桥**：禁止在 `YidaComp` 源码中直接调用 `this.utils.yida.*`、`this.$(...)` 或 `this.dataSourceMap`；需要宜搭表单写入时消费发布层注入的 `window.__OPENYIDA_YIDA_API__`，提示、跳转、移动端判断等根级工具消费 `window.__OPENYIDA_UTILS__`。
+2. **写入桥必须先验证**：默认使用 `window.__OPENYIDA_YIDA_API__.saveFormData/updateFormData`，也可使用已验证连接器代理或同源业务桥。必须确认目标 `appType/formUuid`、请求体、返回体和错误码；`window.__OPENYIDA_UTILS__.yida` 与 yida API 桥必须指向同一对象。
 3. **未验证不得伪装闭环**：桥未配置或未验证时，提交按钮禁用或进入清晰的“待接入”状态；不得模拟成功、生成假 `formInstId` 或宣称数据已写入宜搭。
 4. **提交前先验证并确认**：先完成行级校验，再向用户展示待提交行数和关键字段摘要，获得确认后发起写入。
 5. **分批并发而非无限并发**：按固定批次切分，批次内使用 `Promise.all` 并发，批次间顺序推进；不得逐行串行，也不得一次性无限并发。
 6. **失败行必须保留**：每行保存 `_status`、`_errors` 和 `_submitError`；部分失败后只重试失败行，成功行不能重复提交。
 7. **真实交付要发布证据**：创建或修改 `.canvas.jsx` / `.canvas.tsx` 页面源码后，只有 `openyida publish <source> <appType> <displayPageFormUuid>` 成功才能声明页面已发布。
+8. **页面表面跟随应用主题**：运行容器加载应用主题文件后，`YidaCodeCanvas` 下生成页面的根画布使用 `min-height: 100vh`，背景使用 `var(--pod-page-bg-color, var(--color-white, #fff))`；表格面板使用 `--pod-card-bg-color`、`--pod-card-border` 和 `--pod-card-border-radius`，antd 主色读取 `--color-brand1-6`。不得固定绿色渐变或纯白卡片。
 
 ## 数据桥契约
 
@@ -140,6 +142,7 @@ openyida publish project/pages/src/table-form-batch-submit.canvas.jsx <appType> 
 - [ ] 分批并发受控，成功/失败数量可见。
 - [ ] 部分失败后失败行可编辑、可单独重试，成功行不会重复写入。
 - [ ] 未验证写入桥时按钮禁用并显示未闭环原因。
+- [ ] 页面根画布使用 `min-height: 100vh` 并绑定 `--pod-page-bg-color`，表格面板和 antd 主色使用运行容器加载的应用主题变量。
 - [ ] 真实接口验证与页面发布都有证据后，才声明完整交付。
 
 ## 完成证据

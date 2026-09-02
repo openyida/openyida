@@ -9,17 +9,17 @@ description: 宜搭单页设计子流程。用于已有应用里的单个自定�
 
 ## Step 1：读取应用主题与功能契约
 
-单页设计和页面重构先确认当前应用主题，同时记录现有功能契约，再决定页面级主题是跟随、增强还是局部差异化。页面美感提升默认属于 UI-only 改造：换颜色、布局、密度、间距、视觉层级、素材和图标表达，业务功能保持原样。
+单页设计和页面重构先确认当前应用主题，同时记录现有功能契约。页面美感提升默认属于 UI-only 改造：调整布局、密度、间距、视觉层级、素材和图标表达，业务功能保持原样；页面使用运行容器加载的应用主题。
 
 | 证据来源 | 读取内容 | 写入 PRD |
 | --- | --- | --- |
 | 用户给出的应用 URL、`appType`、页面 URL、resource context | 目标应用、目标页面、页面所处业务上下文 | `appType`、`pageFormUuid`、`themeEvidence.source` |
-| `project/config.json`、`.cache/<项目名>-schema.json`、`.openyida-page.json` | 已记录的 app/page/form、themeProfile、themeScope、页面视觉摘要 | `themeEvidence.source=workspace` |
-| 本轮或历史命令输出中的 `colour`、`theme`、`navTheme`、`customThemeStyle.tokens` | 当前应用主题 key、导航明暗、已有页面 token | `currentAppTheme` |
-| 已有 Page Spec / 页面源码中的 `OPENYIDA_THEME_PROFILE_JSON`、`style#yida-global-theme` | 页面正在使用的 token、是否页面级覆盖 | `currentPageTheme` |
+| `project/config.json`、`.cache/<项目名>-schema.json`、`.openyida-page.json` | 已记录的 app/page/form、themeProfile、页面视觉摘要 | `themeEvidence.source=workspace` |
+| 本轮或历史命令输出中的 `colour`、`themeColor`、`navTheme`、`customThemeStyle.cssUrl` | 当前应用主题 key/主色、导航明暗、应用主题文件 | `currentAppTheme` |
+| 已有 Page Spec / 页面源码中的 `themeProfile`、应用主题消费方式 | 页面正在消费的应用主题 token | `currentPageTheme` |
 | 已有 Page Spec / 页面源码 / 用户描述中的按钮、筛选、数据源、表单入口、跳转、权限、状态 | 当前页面功能契约和业务动作 | `functionContract` |
 
-主题证据齐全时，页面重构、局部美化、列表/看板/详情优化默认沿用当前应用 `colour` / `themeProfile.appThemeKey`。主题证据缺失时，记录 `themeEvidence.status=missing`，根据行业、品牌、业务情绪和视觉目标做创意色彩判断，再选择平台预置主题或自定义 token，不固定回到 `podBlue` / #1677ff，也不套用行业刻板配色。用户明确要求完全不同的品牌风格、独立活动/官网页、页面级沉浸页、应用导航隐藏后的自绘壳或给出新品牌色时，再写 `themeDecision=page-independent`，并用 `style#yida-global-theme` 或 scoped vars 注入页面级色盘。
+主题证据齐全时，页面重构、局部美化、列表/看板/详情优化沿用当前应用 `colour` / `themeColor`。主题证据缺失时，记录 `themeEvidence.status=missing`，根据行业、品牌、业务情绪和视觉目标选择平台预置主题或生成应用自定义主题文件，不固定回到 `podBlue` / #1677ff，也不套用行业刻板配色。用户给出新品牌色或要求完全不同风格时，将主题变更交给应用级主题配置，由运行容器在各页面上下文加载。
 
 ## 完整步骤
 
@@ -27,7 +27,7 @@ description: 宜搭单页设计子流程。用于已有应用里的单个自定�
 | --- | --- | --- |
 | 1 | 本文件：读取应用主题与功能契约 | 获取 `currentAppTheme`、`currentPageTheme`、`themeEvidence`、`functionContract` |
 | 2 | [分析需求和资源](../../workflow/step-1-positioning.md) | 聚焦当前页面的用户、任务、业务对象和 UI-only 改造目标 |
-| 3 | [选择主题色和 token](../../workflow/step-2-theme-system.md) | 基于 Step 1 的应用主题，优先跟随应用主题；强差异化诉求再决定 `themeScope=page` 独立覆盖 |
+| 3 | [选择主题色和 token](../../workflow/step-2-theme-system.md) | 基于 Step 1 的应用主题；需要换色时生成或更新应用主题文件 |
 | 4 | [规划页面和导航](../../workflow/step-3-information-architecture.md) | 只补当前页与平台导航、上游入口、下钻页面、原生表单/流程的关系 |
 | 5 | [页面结构和交互设计](../../workflow/step-4-wireframe-interaction.md) | 明确布局骨架、主操作、详情抽屉、表单提交入口和 PC/移动端差异 |
 | 6 | [UI 视觉和状态设计](../../workflow/step-5-visual-states.md) | 细化当前页视觉、素材、图标、空态、加载态、错误态和业务化自检 |
@@ -35,13 +35,13 @@ description: 宜搭单页设计子流程。用于已有应用里的单个自定�
 
 ## 主题决策口径
 
-- 当前应用主题清楚：`themeDecision=follow-app` 或 `page-enhance`，`themeProfile.name` 使用当前应用主题 key，`themeColorSource=application-theme`，页面按业务需要调整构图、密度、素材和局部强调色。
-- 当前页面已有页面级 token：保留可用 token，补齐 `themeScope=page`、`navTheme=light`、状态色、图表色和组件语义。
-- 页面重构/局部美化：默认以当前应用主题为基准；页面级变量只补密度、间距、状态色、图表色阶和局部强调，不整体改主色相。
+- 当前应用主题清楚：`themeDecision=follow-app` 或 `page-enhance`，`themeProfile.name` 使用当前应用主题 key，`themeColorSource=application-theme`，页面按业务需要调整构图、密度、素材和辅助视觉。
+- 当前页面存在历史页面级主题 token：将其主色和语义变量迁移到应用主题文件，再由运行容器统一加载。
+- 页面重构/局部美化：以当前应用主题为基准，使用运行容器加载的品牌色阶和语义变量。
 - 页面美感提升/改 UI：`functionContract` 保持稳定，现有数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限和业务状态按原有实现交付。
-- 用户明确要很不一样、独立品牌页、活动页、页面级沉浸页或应用导航隐藏后的自绘壳：写 `themeDecision=page-independent`，并说明页面级独立色盘与应用主题的关系。
-- 用户明确要全应用换肤：将诉求回到 `yida-design` 的主题色和 token 分支，输出 `themeScope=app` 和 `customThemeStyle.tokens`。
-- 单页只做局部美化：保持平台导航和应用主题稳定，页面级 `style#yida-global-theme` 只覆盖当前页视觉变量。
+- 用户明确要很不一样、独立品牌页、活动页、沉浸页或应用导航隐藏后的自绘壳：通过布局、材质、素材和构图实现差异；需要换主色时生成应用主题 CSS 并配置 `themeColor` 和 `navTheme`。
+- 用户明确要全应用换肤：将诉求回到 `yida-design` 的主题色和 token 分支，输出应用主题 CSS、`themeColor` 和 `navTheme`。
+- 单页只做局部美化：保持平台导航和应用主题稳定，直接使用运行容器加载的主题变量。
 
 ## 输出补充字段
 
@@ -50,8 +50,8 @@ description: 宜搭单页设计子流程。用于已有应用里的单个自定�
 ```markdown
 - themeEvidence：<source/status/currentAppTheme/currentPageTheme>
 - currentAppTheme：<colour/navTheme/config.COLOUR 或 missing>
-- currentPageTheme：<themeProfile/style#yida-global-theme/customThemeStyle.tokens 或 missing>
-- themeDecision：<follow-app / page-enhance / page-independent / app-scope-handoff>
+- currentPageTheme：<themeProfile/customThemeStyle.cssUrl 或 missing>
+- themeDecision：<follow-app / page-enhance / app-theme-update>
 - functionContract：<保留的数据源/字段映射/按钮动作/筛选逻辑/提交 URL/权限/状态>
 - changeScope：<UI-only：颜色/布局/密度/间距/视觉层级/素材/图标>
 ```

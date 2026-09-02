@@ -1,8 +1,10 @@
 # YidaCodeCanvas 组件样式实现指南
 
-本文件是 `YidaCodeCanvas` 组件的样式实现适配指南，不是新的设计系统，也不产出配色、视觉 DNA 或页面风格。设计事实唯一来自 `yida-design` 输出的 `prd.md` 与 `design.md`：PRD 给业务场景和页面边界，`design.md` 给完整主题、token、视觉 DNA、布局、材质、圆角、密度、呼吸感、背景层、组件和状态规则。`YidaCodeCanvas` 组件只负责把这些规则落到 antd token、CSS 变量、Tailwind、图表、控件状态、背景 CSS 和表单 iframe 主题同步。
+本文件是 `YidaCodeCanvas` 组件的样式实现适配指南，不是新的设计系统，也不产出配色、视觉 DNA 或页面风格。设计事实唯一来自 `yida-design` 输出的 `prd.md` 与 `design.md`：PRD 给业务场景和页面边界，`design.md` 给完整主题、token、视觉 DNA、布局、材质、圆角、密度、呼吸感、背景层、组件和状态规则。`YidaCodeCanvas` 组件只负责消费服务端加载的应用主题变量，并把布局、材质、密度、图表、控件状态和背景规则落到页面实现。
 
-真实业务页、页面重构和局部美化以当前应用主题色为基准；缺少主题证据时先按业务气质选择平台预置主题或自定义色盘，不固定回到 `podBlue` / #1677ff。独立品牌/活动页、页面级沉浸页、应用导航隐藏后的自绘壳和用户明确要求完全不同风格的页面使用页面级固定主题和差异化色盘。
+所有页面都以当前应用主题为唯一主题来源。缺少主题证据时先按业务气质选择平台预置主题或生成应用自定义主题文件，不固定回到 `podBlue` / #1677ff。运行容器在各页面上下文加载同一应用主题文件；需要不同主题时更新应用主题配置，页面差异通过布局、材质、密度、素材和辅助视觉表达。
+
+页面表面也必须跟随应用主题：`YidaCodeCanvas` 下生成页面的根画布使用 `min-height: 100vh` 并消费 `--pod-page-bg-color`，卡片和面板消费 `--pod-card-bg-color`、`--pod-card-border`、`--pod-card-border-radius`、`--pod-card-padding`。fallback 只用于兼容旧运行态，不能把默认页面重新固定成某一种品牌色、绿色渐变或纯白卡片；页面只通过 `var(...)` 读取这些变量，不在根节点、`style` 标签、父窗口或 iframe 中声明或同步它们。
 
 ## 应用主题与页面风格冲突处理
 
@@ -10,8 +12,8 @@
 | --- | --- |
 | 左侧平台导航选中态是应用主题色，页面主按钮 / 标题强调 / 卡片选中态用了另一套主色 | 页面主操作、链接、选中态、重点标签和图表主序列改回应用主题 `--color-brand1-*` |
 | design.md 生成了青绿、紫色、蓝色等辅助色，但当前应用主题是橙色或其他色 | 保留 `design.md` 的布局、卡片、密度、图表语言，把生成色彩降为辅助色、浅底背景、分组色或第二图表序列 |
-| 用户要求导航和内容一起换色 | 走 `themeScope=app`，由应用主题配置或壳层主题更新统一处理 |
-| 页面是页面级沉浸页、应用导航隐藏后的自绘壳、独立官网、活动页、公开落地页 | 走 `themeScope=page`，页面根节点注入 scoped CSS vars，并在 PRD 写明独立色盘原因 |
+| 用户要求导航和内容一起换色 | 生成或更新应用主题文件，通过 `update-app --theme-file/--nav-theme/--logo-source/--layout` 联合保存 |
+| 页面是沉浸页、自绘壳、独立官网、活动页或公开落地页 | 仍消费应用主题变量；页面差异通过布局、材质、素材、构图和辅助色表达，不覆盖品牌 token |
 
 实现时先读取 `themeRelation`。默认值是 `跟随应用主题`，不是 `跟随生成色盘色相`。
 
@@ -56,7 +58,7 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 推荐结构：
 
 ```jsx
-<div className="oy-page-root" data-yida-theme-root="true">
+<div className="oy-page-root">
   <style>{OPENYIDA_BACKGROUND_LAYER_CSS}</style>
   <main className="oy-page-content">{/* content */}</main>
 </div>
@@ -70,16 +72,18 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
   isolation: isolate;
   min-height: 100vh;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 78% 8%, rgba(120, 170, 255, .16), transparent 34%),
-    linear-gradient(135deg, #f7fbff 0%, #fff8f0 48%, #f4faf7 100%);
+  background: var(--pod-page-bg-color, var(--color-white, #fff));
 }
 .oy-page-root::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
   height: 320px;
-  background: linear-gradient(120deg, rgba(255, 210, 222, .42), rgba(204, 238, 231, .38));
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--color-brand1-2, #e8f2ff) 55%, transparent),
+    color-mix(in srgb, var(--color-brand1-1, #f4f8ff) 38%, transparent)
+  );
   clip-path: polygon(0 0, 100% 0, 100% 68%, 78% 78%, 52% 68%, 29% 84%, 0 72%);
   pointer-events: none;
   z-index: -2;
@@ -99,6 +103,12 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
   position: relative;
   z-index: 1;
 }
+.oy-card {
+  padding: var(--pod-card-padding, 20px);
+  background: var(--pod-card-bg-color, var(--color-white, #fff));
+  border: var(--pod-card-border, none);
+  border-radius: var(--pod-card-border-radius, 20px);
+}
 @keyframes oy-flow-light {
   0%, 100% { transform: translateX(-28%); opacity: .22; }
   50% { transform: translateX(28%); opacity: .42; }
@@ -110,6 +120,7 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 落地要求：
 
+- 页面根画布和业务卡片先按上述 `--pod-page-*` / `--pod-card-*` 契约消费应用主题；装饰层只能叠在主题表面之上，不能用固定渐变或固定白底替代主题表面。
 - `softTintCanvas`：根节点使用低饱和浅底、带弱渐变的近白画布或深色舞台；不要为了背景感强行铺满高饱和色。
 - `topIrregularWash`：用 `::before`、`clip-path`、局部 SVG 背景或伪元素形成顶部波浪、斜切、有机边界、细线曲线或图形标记；内容层固定在规则栅格上。
 - `radialGlowWash`：使用大面积柔和径向光或光洗，禁止离散装饰圆球、bokeh 和随机漂浮点。
@@ -152,76 +163,22 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 语义色保持固定：成功、警告、错误继续用 antd 默认或平台语义变量，避免被主色覆盖。
 
-## themeScope：主题作用域落地
+## 应用主题落地
 
-使用 `YidaCodeCanvas` 组件实现的页面 `page-spec.json` 会把主题拆成两个概念：
+`podBlue`、`podGreen`、`podOrange` 是常用浅底候选，不是固定默认。`blue`、`green`、`orange`、`podBlue`、`podGreen`、`podOrange` 都作为应用主题 token profile 保留原名，不互相改写；完整变量和语义以 `yida-design/references/theme/theme-token-presets.md` 为准。
 
-| 字段 | 默认 | 说明 |
-| --- | --- | --- |
-| `themeProfile` | 当前应用主题；缺证据时按业务气质选择平台预置 key 或自定义 token | 应用主题；页面重构/局部美化先沿用当前应用主题 |
-| `themeScope` | `page` | 主题作用域，决定只影响当前页还是请求应用壳层一起换肤 |
-
-`themeScope: page` 是默认安全模式：真实业务页默认使用应用主题 token profile，不污染应用其他页面。页面重构/局部美化即使是 page scope，也先以当前应用主题为基准，只补当前页密度、间距、状态色和图表色阶。用户明确要求完全不同风格、显式传了 `themeColor`，或页面是独立品牌/活动页时，在当前页面根节点注入 CSS 变量做页面级覆盖。
-
-`podBlue`、`podGreen`、`podOrange` 是常用浅底候选，不是固定默认。`blue`、`green`、`orange`、`podBlue`、`podGreen`、`podOrange` 都作为应用主题 token profile 保留原名，不互相改写；完整变量和语义以 `yida-design/references/theme/theme-token-presets.md` 为准。自定义品牌色必须在页面源码里注入 `style#yida-global-theme` 或 scoped vars，不能假装是平台 `--theme`。需要注入时复制 [Yida Global Theme Runtime Helpers](theme-runtime-helpers.md) 的 YidaCodeCanvas helper；它会同时写入当前文档、同源可访问的父级 iframe 文档，以及 `FormOpenContainer` 打开的同源提交页/详情页子 iframe 文档。
-
-```jsx
-var THEME_COLOR_LEVELS = {
-  themeColor: 6,
-  themeColorSoft: 2,
-  themeColorTint: 3,
-  themeColorDeep: 9,
-};
-
-function getThemeColor(profile, key, defaultColor) {
-  if (profile && profile.followRuntimeTheme && THEME_COLOR_LEVELS[key]) {
-    return readBrandColor(THEME_COLOR_LEVELS[key], defaultColor);
-  }
-  return (profile && profile[key]) || defaultColor;
-}
-
-function buildScopedThemeVars(scope, profile) {
-  if (scope !== 'page' || (profile && profile.followRuntimeTheme)) { return {}; }
-  return {
-    '--color-brand1-6': getThemeColor(profile, 'themeColor', '#6B7CAB'),
-    '--color-brand1-2': getThemeColor(profile, 'themeColorSoft', '#F3F5FB'),
-    '--color-brand1-3': getThemeColor(profile, 'themeColorTint', 'rgba(107, 124, 171, 0.2)'),
-    '--color-brand1-9': getThemeColor(profile, 'themeColorDeep', '#435480'),
-  };
-}
-```
-
-`themeScope: app` 用于用户明确希望导航、顶部壳层和内容页统一换肤时。此时页面加载后调用壳层桥接能力；桥不存在时静默跳过，不阻塞页面渲染。
-
-```jsx
-React.useEffect(function () {
-  if (themeScope !== 'app') { return; }
-  try {
-    window.__YIDA__ && window.__YIDA__.updateShellConfig && window.__YIDA__.updateShellConfig({
-      themeConfig: {
-        theme: profile.navTheme || 'light',
-        colorMode: profile.colorMode || 'gradient',
-        mode: profile.mode || 'color_color',
-        themeColor: getThemeColor(profile, 'themeColor', readBrandColor(6, '#6B7CAB')),
-        mobileNavStyle: profile.mobileNavStyle || 'top',
-      },
-    });
-  } catch (e) {}
-}, []);
-```
-
-页面重构先把当前应用主题写入 spec；缺少主题证据时按业务气质判断，而不是固定三选一。页面级换肤写 scoped 变量；用户明确要求应用主题风格/应用主题色时，使用 `themeProfile: yida-app-theme` 或显式 `themeScope: app`。
+新版自定义品牌色必须基于 `yida-design/references/theme/app-custom-theme-template.css` 生成应用主题文件，并通过 `update-app --theme-file/--nav-theme/--logo-source/--layout` 联合保存；`themeColor` 由 CSS 的 `--color-brand1-6` 自动派生。运行容器在自定义页面、提交页、详情页和表单 iframe 中加载同一文件，页面直接使用对应主题变量。
 
 ## PRD 与 design.md 字段落地规则
 
-从 PRD 或派生的 `page-spec.json` 读取业务边界，从 design.md 读取主题 token 与视觉执行规则，并落地 `themeScope`：
+从 PRD 或派生的 `page-spec.json` 读取业务边界，从 design.md 读取应用主题 token 与视觉执行规则：
 
 | 用户说法 | spec |
 | --- | --- |
-| 整个应用统一、全局换肤、系统整体主题、应用主题也改 | `{ "themeScope": "app" }` |
-| 左侧导航/菜单/顶部壳层也一起变色，导航和内容区同色 | `{ "themeScope": "app" }` |
-| 某个页面/首页/看板/自定义页变好看、页面重构或局部美化 | `{ "themeScope": "page", "themeBase": "current-app-theme" }` |
-| 明确说保持导航不变、其他页面不变、只改当前页 | `{ "themeScope": "page" }` |
+| 整个应用统一、全局换肤、系统整体主题、应用主题也改 | 生成应用主题文件并通过 `update-app` 联合保存主题色、导航主题和 CSS 文件 |
+| 左侧导航/菜单/顶部壳层也一起变色，导航和内容区同色 | 使用同一应用主题配置，不从页面调用壳层更新能力 |
+| 某个页面/首页/看板/自定义页变好看、页面重构或局部美化 | 沿用应用主题，只调整布局、材质、密度、素材和辅助视觉 |
+| 明确说保持导航不变、其他页面不变、只改当前页 | 保持当前应用主题配置，只调整页面局部布局、材质和视觉层级 |
 
 设计输入冲突时，回到 `yida-design` 补齐明确值，再进入自定义页面实现。
 

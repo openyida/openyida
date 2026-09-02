@@ -168,7 +168,7 @@
     "note": "平台左侧菜单分组 → nav-group"
   },
   {
-    "id": "form-detail-style",
+    "id": "form-detail-visual",
     "prompt": "美化一下表单详情页的样式，用卡片化布局",
     "expectedSkill": "yida-form-detail",
     "group": "应用配置与平台",

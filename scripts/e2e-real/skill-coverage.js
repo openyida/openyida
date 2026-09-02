@@ -38,7 +38,7 @@ const SKILL_COVERAGE = {
   'yida-document-markdown': { level: 'offline-unit', tests: ['tests/document-tools.test.js'], reason: 'document content depends on authenticated tenant data; unit coverage validates endpoint parameters, text response handling, envelope unwrapping, output modes, and error behavior' },
   'yida-export-conversation': { level: 'offline-unit', tests: ['conversation exporter unit coverage'], reason: 'depends on local conversation artifacts, not Yida API' },
   'yida-flash-note-to-prd': { level: 'opt-in', stages: ['ai'], commands: ['flash-to-prd'], reason: 'remote AI service can timeout; excluded from deterministic default full run' },
-  'yida-form-detail': { level: 'offline-unit', tests: ['tests/form-detail-style.test.js', 'tests/skill-contracts.test.js'], reason: 'form-detail-style mutates real form Schema; shared E2E validates the form stage while unit and contract tests cover default Html/CSS injection behavior' },
+  'yida-form-detail': { level: 'offline-unit', tests: ['tests/custom-theme.test.js', 'tests/create-form.test.js', 'tests/skill-contracts.test.js'], reason: 'form detail visual guidance is implemented through the application custom theme CSS contract; unit and contract tests verify theme upload configuration and the absence of form Schema injection' },
   'yida-form-permission': { level: 'real-e2e', stages: ['permission'], commands: ['get-permission'] },
   'yida-formula': { level: 'offline', stages: ['offline'], commands: ['formula evaluate'] },
   'yida-formula-evaluate': { level: 'offline', stages: ['offline'], commands: ['formula evaluate --json'] },

@@ -10,6 +10,7 @@ const {
   resolveWindowAlias,
 } = require('../lib/app/canvas-compile');
 const {
+  CANVAS_YIDA_API_BRIDGE_SOURCE,
   buildCanvasPageSchemaObject,
 } = require('../lib/app/services/canvas-page-schema-builder');
 
@@ -1036,6 +1037,34 @@ describe('compileCanvasLocal', () => {
     expectCanvasEntry(runtimeCode);
   });
 
+  test('compiles the OpenYida form drawer scaffold without theme iframe injection', () => {
+    const templatePath = path.join(
+      __dirname,
+      '..',
+      'lib',
+      'samples',
+      'openyida-scaffold',
+      'canvas-form-drawer.canvas.jsx'
+    );
+    const src = fs.readFileSync(templatePath, 'utf8');
+    const { runtimeCode, importedModules } = compileCanvasLocal(src, { sourcePath: templatePath });
+
+    expect(JSON.parse(importedModules)).toEqual(['antd', 'lucide-react', 'react']);
+    expect(runtimeCode).toMatch(/window\.antd/);
+    expect(runtimeCode).toMatch(/window\.LucideReact/);
+    expect(runtimeCode).toContain('FormOpenContainer');
+    expect(runtimeCode).toContain('readThemeColor');
+    expect(src).toContain('min-height: 100vh');
+    expect(src).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(src).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
+    expect(src).toContain('border: var(--pod-card-border, none)');
+    expect(src).toContain('border-radius: var(--pod-card-border-radius, 20px)');
+    expect(src).not.toContain('linear-gradient(180deg, #F5FAF9');
+    expect(runtimeCode).not.toContain('installYidaGlobalThemeIntoFrame');
+    expect(runtimeCode).not.toContain('yida-global-theme');
+    expectCanvasEntry(runtimeCode);
+  });
+
   test('Canvas page schema installs yida JS API bridge for iframe data access', () => {
     let nodeIndex = 0;
     const schema = buildCanvasPageSchemaObject(
@@ -1050,16 +1079,180 @@ describe('compileCanvasLocal', () => {
     );
 
     const root = schema.pages[0].componentsTree[0];
+    expect(root.props.contentBgColor).toBe('var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(root.props.contentBgColorMobile).toBe('var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(root.props.pageStyle).toEqual({
+      backgroundColor: 'var(--pod-page-bg-color, var(--color-white, #fff))',
+    });
+    expect(root.css).toContain('background-color:var(--pod-page-bg-color,var(--color-white,#fff))');
+    expect(root.css).not.toContain('background-color:#f2f3f5');
+    const deepYidaComponents = schema.pages[0].componentsMap.filter(
+      (entry) => entry.package === '@ali/vc-deep-yida'
+    );
+    expect(deepYidaComponents.length).toBeGreaterThan(0);
+    deepYidaComponents.forEach((entry) => {
+      expect(entry).not.toHaveProperty('version');
+    });
     expect(root.lifeCycles.componentDidMount).toMatchObject({
       name: 'didMount',
       type: 'actionRef',
     });
     expect(schema.actions.module.source).toContain('openyidaInstallYidaApiBridge');
     expect(schema.actions.module.source).toContain('window.__OPENYIDA_YIDA_API__');
+    expect(schema.actions.module.source).toContain('window.__OPENYIDA_UTILS__');
     expect(schema.actions.module.source).toContain('this.utils.yida');
     expect(schema.actions.module.source).toContain('searchFormDatas');
+    expect(schema.actions.module.source).toContain('startProcessInstance');
+    expect(schema.actions.module.source).toContain('getProcessInstances');
+    expect(schema.actions.module.source).toContain('saveFormSchema');
+    expect(schema.actions.module.source).toContain('searchUserList');
+    expect(schema.actions.module.source).toContain('request');
     expect(schema.actions.module.compiled).toContain('openyidaInstallYidaApiBridge');
     expect(schema.actions.module.compiled).toContain('exports.didMount = didMount');
+  });
+
+  test('Canvas yida bridge includes documented form, process, design, and runtime helpers', () => {
+    [
+      'saveFormData',
+      'updateFormData',
+      'searchFormDataIds',
+      'getFormComponentDefinationList',
+      'deleteFormData',
+      'getFormDataById',
+      'searchFormDatas',
+      'startProcessInstance',
+      'updateProcessInstance',
+      'deleteProcessInstance',
+      'getProcessInstances',
+      'getProcessInstanceIds',
+      'getProcessInstanceById',
+      'saveFormSchemaInfo',
+      'getFormSchema',
+      'saveFormSchema',
+      'updateFormConfig',
+      'request',
+      'searchUserList',
+    ].forEach((methodName) => {
+      expect(CANVAS_YIDA_API_BRIDGE_SOURCE).toContain("'" + methodName + "'");
+    });
+  });
+
+  test('Yida API bridge forwards form, process, design, and runtime-discovered methods', async () => {
+    const hadWindow = Object.prototype.hasOwnProperty.call(global, 'window');
+    const previousWindow = global.window;
+    const parentWindow = {};
+    const topWindow = {};
+    const rootWindow = { parent: parentWindow, top: topWindow };
+    const yida = {
+      searchFormDatas: jest.fn((params) => ({ api: 'searchFormDatas', params })),
+      saveFormData: jest.fn((params) => ({ api: 'saveFormData', params })),
+      startProcessInstance: jest.fn((params) => ({ api: 'startProcessInstance', params })),
+      getProcessInstances: jest.fn((params) => ({ api: 'getProcessInstances', params })),
+      saveFormSchema: jest.fn((params) => ({ api: 'saveFormSchema', params })),
+      request: jest.fn((params) => ({ api: 'request', params })),
+      searchUserList: jest.fn((params) => ({ api: 'searchUserList', params })),
+      customRuntimeMethod: jest.fn((params) => ({ api: 'customRuntimeMethod', params })),
+    };
+    const utils = {
+      yida,
+      toast: jest.fn((params) => ({ api: 'toast', params })),
+      isMobile: jest.fn(() => false),
+      router: {
+        push: jest.fn((target, params, newTab, isExternal) => ({
+          api: 'router.push',
+          target,
+          params,
+          newTab,
+          isExternal,
+        })),
+      },
+    };
+
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      const bridge = installBridge.call({ utils });
+      const utilsBridge = rootWindow.__OPENYIDA_UTILS__;
+
+      expect(bridge.ready).toBe(true);
+      expect(bridge.apiGroups.form).toContain('saveFormData');
+      expect(bridge.apiGroups.process).toContain('startProcessInstance');
+      expect(bridge.apiGroups.formDesign).toContain('saveFormSchema');
+      expect(bridge.apiGroups.generic).toEqual(expect.arrayContaining(['request', 'searchUserList']));
+      expect(bridge.availableMethods).toEqual(expect.arrayContaining([
+        'searchFormDatas',
+        'saveFormData',
+        'startProcessInstance',
+        'getProcessInstances',
+        'saveFormSchema',
+        'request',
+        'searchUserList',
+        'customRuntimeMethod',
+      ]));
+      expect(rootWindow.__OPENYIDA_YIDA_API__).toBe(bridge);
+      expect(parentWindow.__OPENYIDA_YIDA_API__).toBe(bridge);
+      expect(topWindow.__OPENYIDA_YIDA_API__).toBe(bridge);
+      expect(utilsBridge.yida).toBe(bridge);
+      expect(utilsBridge.availableMethods).toEqual(expect.arrayContaining(['toast', 'isMobile']));
+      expect(parentWindow.__OPENYIDA_UTILS__).toBe(utilsBridge);
+      expect(topWindow.__OPENYIDA_UTILS__).toBe(utilsBridge);
+
+      await expect(bridge.startProcessInstance({ processCode: 'TPROC-1' })).resolves.toMatchObject({
+        api: 'startProcessInstance',
+        params: { processCode: 'TPROC-1' },
+      });
+      await expect(bridge.getProcessInstances({ query: { status: 'RUNNING' } })).resolves.toMatchObject({
+        api: 'getProcessInstances',
+        params: { searchFieldJson: JSON.stringify({ status: 'RUNNING' }) },
+      });
+      await expect(bridge.saveFormSchema({ formUuid: 'FORM-1', content: '{}' })).resolves.toMatchObject({
+        api: 'saveFormSchema',
+        params: { formUuid: 'FORM-1', content: '{}' },
+      });
+      await expect(bridge.request({ path: '/example' })).resolves.toMatchObject({
+        api: 'request',
+        params: { path: '/example' },
+      });
+      await expect(bridge.searchUserList({ keyword: '张' })).resolves.toMatchObject({
+        api: 'searchUserList',
+        params: { keyword: '张' },
+      });
+      await expect(bridge.customRuntimeMethod({ value: 1 })).resolves.toMatchObject({
+        api: 'customRuntimeMethod',
+        params: { value: 1 },
+      });
+      await expect(bridge.customRuntimeMethod({ query: { keep: 'query' } })).resolves.toMatchObject({
+        api: 'customRuntimeMethod',
+        params: { query: { keep: 'query' } },
+      });
+      await bridge.searchFormDatas({ query: { name: 'A' } });
+      await bridge.saveFormData({ formUuid: 'FORM-1', formDataJson: '{}' });
+
+      expect(yida.searchFormDatas.mock.calls[0][0]).toMatchObject({
+        searchFieldJson: JSON.stringify({ name: 'A' }),
+      });
+      expect(yida.saveFormData.mock.calls[0][0]).not.toHaveProperty('searchFieldJson');
+      expect(utilsBridge.toast({ title: '完成', type: 'success' })).toMatchObject({
+        api: 'toast',
+        params: { title: '完成', type: 'success' },
+      });
+      expect(utilsBridge.isMobile()).toBe(false);
+      expect(utilsBridge.router.push('FORM-1', { id: '1' }, false)).toMatchObject({
+        api: 'router.push',
+        target: 'FORM-1',
+        params: { id: '1' },
+        newTab: false,
+      });
+    } finally {
+      if (hadWindow) {
+        global.window = previousWindow;
+      } else {
+        delete global.window;
+      }
+    }
   });
 
 });

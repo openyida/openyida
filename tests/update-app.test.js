@@ -13,6 +13,11 @@ const {
   hasShellUpdate,
   buildUpdateAppNamePostData,
   buildUpdateAppPostData,
+  normalizeThemeColor,
+  assertNavTheme,
+  assertLogoSource,
+  normalizeLayoutDirection,
+  syncSystemIconColor,
 } = require('../lib/app/update-app');
 
 describe('update-app helpers', () => {
@@ -21,17 +26,46 @@ describe('update-app helpers', () => {
       'APP_1',
       '--theme', 'podBlue',
       '--nav-theme', 'light',
-      '--layout', 'ver',
+      '--layout', 'side',
+      '--logo-source', 'appIcon',
       '--icon', 'xian-yingyong',
       '--icon-color', '#0089FF',
     ])).toMatchObject({
       appType: 'APP_1',
       colour: 'podBlue',
       navTheme: 'light',
-      layoutDirection: 'ver',
+      layoutDirection: 'side',
+      logoSource: 'appIcon',
       icon: 'xian-yingyong',
       iconColor: '#0089FF',
     });
+  });
+
+  test('parseArgs supports a custom theme file, theme color, and modern nav theme together', () => {
+    expect(parseArgs([
+      'APP_1',
+      '--theme-color', '#1677ff',
+      '--theme-file', './app-theme.css',
+      '--nav-theme', 'white',
+    ])).toMatchObject({
+      appType: 'APP_1',
+      themeColor: '#1677ff',
+      themeFile: './app-theme.css',
+      navTheme: 'white',
+    });
+    expect(hasShellUpdate(parseArgs(['APP_1', '--theme-file', './app-theme.css']))).toBe(true);
+  });
+
+  test('validates the custom theme color and nav theme contract', () => {
+    expect(normalizeThemeColor('#1677ff')).toBe('#1677FF');
+    expect(normalizeThemeColor('rgb(22, 119, 255)')).toBe('rgb(22, 119, 255)');
+    expect(() => normalizeThemeColor('blue')).toThrow('#RGB, #RRGGBB, rgb(a), or hsl(a)');
+    expect(() => assertNavTheme('brand')).toThrow('light, dark, white, gray');
+    expect(() => assertLogoSource('logo')).toThrow('appIcon, customImage');
+    expect(normalizeLayoutDirection('ver')).toBe('side');
+    expect(normalizeLayoutDirection('hoz')).toBe('top');
+    expect(normalizeLayoutDirection('l_shape')).toBe('l_shape');
+    expect(() => normalizeLayoutDirection('vertical')).toThrow('side, top, l_shape');
   });
 
   test('parseArgs supports app nav visibility flags', () => {
@@ -119,7 +153,8 @@ describe('update-app helpers', () => {
         navTheme: 'light',
         navType: 'top_side',
         navLayout: 'auto',
-        layoutDirection: 'ver',
+        layoutDirection: 'side',
+        logoSource: 'appIcon',
         showIcon: 'n',
         showNav: 'y',
         showCrumb: 'y',
@@ -139,7 +174,8 @@ describe('update-app helpers', () => {
       type: 'single',
       navType: 'top_side',
       navLayout: 'auto',
-      layoutDirection: 'ver',
+      layoutDirection: 'side',
+      logoSource: 'appIcon',
     });
     expect(payload).not.toHaveProperty('appMode');
     expect(payload).not.toHaveProperty('hideAppNav');
@@ -175,6 +211,124 @@ describe('update-app helpers', () => {
     )).toMatchObject({
       appType: 'APP_1',
       hideAppNav: 'n',
+    });
+  });
+
+  test('buildUpdateAppPostData saves custom theme fields together and preserves existing theme files', () => {
+    const customThemeStyle = JSON.stringify({
+      enabled: true,
+      iframePropagation: false,
+      cssUrl: 'https://example.com/app-theme.css',
+      cssFileName: 'app-theme.css',
+    });
+    const payload = buildUpdateAppPostData(
+      {
+        ...parseArgs(['APP_1', '--theme-color', '#1677FF', '--nav-theme', 'dark', '--logo-source', 'appIcon', '--layout', 'l_shape']),
+        themeColor: '#1677FF',
+        customThemeStyle,
+      },
+      {
+        appName: { zh_CN: '应用' },
+        description: { zh_CN: '描述' },
+        mode: 'normal',
+        type: 'single',
+      },
+      { csrfToken: 'csrf' }
+    );
+
+    expect(payload).toMatchObject({
+      colour: 'custom',
+      themeColor: '#1677FF',
+      navTheme: 'dark',
+      logoSource: 'appIcon',
+      layoutDirection: 'l_shape',
+      customThemeStyle,
+    });
+
+    const preserved = buildUpdateAppPostData(
+      parseArgs(['APP_1', '--nav-theme', 'white']),
+      {
+        appName: { zh_CN: '应用' },
+        description: { zh_CN: '描述' },
+        themeColor: '#334455',
+        customThemeStyle: JSON.parse(customThemeStyle),
+        mode: 'normal',
+        type: 'single',
+      },
+      { csrfToken: 'csrf' }
+    );
+    expect(preserved).toMatchObject({
+      themeColor: '#334455',
+      customThemeStyle,
+      navTheme: 'white',
+    });
+  });
+
+  test('custom theme files synchronize system app icon color to --color-brand1-6', () => {
+    const payload = buildUpdateAppPostData(
+      {
+        ...parseArgs(['APP_1', '--theme-file', './app-theme.css']),
+        themeColor: 'rgb(22, 119, 255)',
+        customThemeStyle: JSON.stringify({ cssUrl: 'https://example.com/app-theme.css', enabled: true }),
+      },
+      {
+        appName: { zh_CN: '法律服务应用' },
+        description: { zh_CN: '描述' },
+        icon: 'xian-falv%%#111827',
+        mode: 'normal',
+        type: 'single',
+      },
+      { csrfToken: 'csrf' }
+    );
+
+    expect(payload).toMatchObject({
+      icon: 'xian-falv%%#1677FF',
+      iconUrl: 'xian-falv%%#1677FF',
+      themeColor: 'rgb(22, 119, 255)',
+    });
+  });
+
+  test('custom theme files do not rewrite uploaded image app icons', () => {
+    const imageIcon = 'https://cdn.example.com/app-icon.png';
+    const payload = buildUpdateAppPostData(
+      {
+        ...parseArgs(['APP_1', '--theme-file', './app-theme.css']),
+        themeColor: '#B421FD',
+        customThemeStyle: JSON.stringify({ cssUrl: 'https://example.com/app-theme.css', enabled: true }),
+      },
+      {
+        appName: { zh_CN: '品牌应用' },
+        description: { zh_CN: '描述' },
+        icon: imageIcon,
+        mode: 'normal',
+        type: 'single',
+      },
+      { csrfToken: 'csrf' }
+    );
+
+    expect(payload).toMatchObject({ icon: imageIcon, iconUrl: imageIcon });
+    expect(syncSystemIconColor('data:image/png;base64,AAAA', '#B421FD'))
+      .toBe('data:image/png;base64,AAAA');
+  });
+
+  test('switching to a preset theme clears the previously uploaded custom CSS', () => {
+    const payload = buildUpdateAppPostData(
+      parseArgs(['APP_1', '--theme', 'podGreen']),
+      {
+        appName: { zh_CN: '应用' },
+        description: { zh_CN: '描述' },
+        mode: 'normal',
+        type: 'single',
+        themeColor: '#8F66FF',
+        customThemeStyle: JSON.stringify({ cssUrl: 'https://example.com/old.css', enabled: true }),
+      },
+      { csrfToken: 'csrf' }
+    );
+
+    expect(payload).toMatchObject({
+      colour: 'podGreen',
+      themeColor: '',
+      customThemeStyle: '',
     });
   });
 });

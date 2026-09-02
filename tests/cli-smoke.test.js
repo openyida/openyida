@@ -698,6 +698,14 @@ describe('CLI offline smoke', () => {
         expect.objectContaining({ name: 'appType', source: 'positional', required: true }),
         expect.objectContaining({ name: 'formTitle', source: 'positional', required: true }),
         expect.objectContaining({ name: 'fieldsJsonFile', source: 'positional', required: true }),
+        expect.objectContaining({
+          name: 'icon',
+          source: 'option',
+          required: false,
+          builder_options: ['--icon'],
+          default: 'auto',
+          value_catalog_command_id: 'create-form.icons',
+        }),
       ],
       canonical: {
         command_id: 'create-form.create',
@@ -721,34 +729,34 @@ describe('CLI offline smoke', () => {
         expect.stringContaining('openyida create-form create APP_XXX'),
       ]),
     });
+    expect(commandById['create-form.icons']).toMatchObject({
+      path: ['create-form', 'icons'],
+      requires_login: false,
+      output: 'json',
+      args: [
+        expect.objectContaining({
+          name: 'json',
+          type: 'boolean',
+          source: 'option',
+          builder_options: ['--json'],
+        }),
+      ],
+      canonical: {
+        command_id: 'create-form.icons',
+        path: ['create-form', 'icons'],
+        argv_template: ['create-form', 'icons', '[--json]'],
+        display: 'openyida create-form icons [--json]',
+      },
+    });
     expect(commandById['generate-page']).toBeUndefined();
     expect(commandById['dws.contact-user-search'].side_effect).toMatchObject({
       kind: 'remote_read',
       mutates_yida: false,
       mutates_local: false,
     });
-    expect(commandById['form-detail-style.check']).toMatchObject({
-      path: ['form-detail-style', 'check'],
-      side_effect: {
-        kind: 'remote_read',
-        mutates_yida: false,
-        mutates_local: false,
-      },
-      permission: {
-        mode: 'allow',
-        effect: 'read',
-      },
-    });
-    expect(commandById['form-detail-style.apply'].side_effect).toMatchObject({
-      kind: 'remote_write',
-      mutates_yida: true,
-      mutates_local: false,
-    });
-    expect(commandById['form-detail-style.remove'].side_effect).toMatchObject({
-      kind: 'remote_write',
-      mutates_yida: true,
-      mutates_local: false,
-    });
+    expect(commandById['form-detail-style.check']).toBeUndefined();
+    expect(commandById['form-detail-style.apply']).toBeUndefined();
+    expect(commandById['form-detail-style.remove']).toBeUndefined();
     expect(commandById['create-form.validate']).toBeUndefined();
     expect(commandById['create-form.validate-fields'].requires_login).toBe(false);
     expect(commandById['create-form.validate-fields'].side_effect).toMatchObject({
@@ -1064,6 +1072,35 @@ describe('CLI offline smoke', () => {
     ]);
   });
 
+  test('commands validate recognizes the manifest-declared create-form icon option', () => {
+    const output = runOk([
+      'commands',
+      'validate',
+      '--json',
+      '--',
+      'create-form',
+      'create',
+      'APP_xxx',
+      '访客登记',
+      '.cache/openyida/visitor/fields.json',
+      '--icon',
+      'name-card',
+    ]);
+    const parsed = JSON.parse(output);
+
+    expect(parsed).toMatchObject({
+      ok: true,
+      command_id: 'create-form.create',
+      params: {
+        appType: 'APP_xxx',
+        formTitle: '访客登记',
+        fieldsJsonFile: '.cache/openyida/visitor/fields.json',
+        icon: 'name-card',
+      },
+      display: 'openyida create-form create APP_xxx "访客登记" .cache/openyida/visitor/fields.json --icon name-card',
+    });
+  });
+
   test('commands build renders canonical create-form argv without executing', () => {
     const manifestEntry = readManifestCommand('create-form.create');
     const output = runOk([
@@ -1090,6 +1127,41 @@ describe('CLI offline smoke', () => {
       canonical: manifestEntry.canonical,
     });
     expect(parsed.argv.slice(0, manifestEntry.path.length)).toEqual(manifestEntry.path);
+  });
+
+  test('commands build recognizes the manifest-declared create-form icon option', () => {
+    const output = runOk([
+      'commands',
+      'build',
+      'create-form.create',
+      '--app-type',
+      'APP_xxx',
+      '--form-title',
+      '访客登记',
+      '--fields-json-file',
+      '.cache/openyida/visitor/fields.json',
+      '--icon',
+      'name-card',
+      '--json',
+    ]);
+    const parsed = JSON.parse(output);
+
+    expect(parsed).toMatchObject({
+      ok: true,
+      command_id: 'create-form.create',
+      argv: [
+        'create-form',
+        'create',
+        'APP_xxx',
+        '访客登记',
+        '.cache/openyida/visitor/fields.json',
+        '--icon',
+        'name-card',
+      ],
+      params: {
+        icon: 'name-card',
+      },
+    });
   });
 
   test('direct create-form hallucinated shape returns clean JSON error before execution', () => {
@@ -1203,6 +1275,7 @@ describe('CLI offline smoke', () => {
             'get-schema',
             'create-app',
             'create-form.create',
+            'create-form.icons',
             'create-page',
             'publish',
           ]),
@@ -1576,11 +1649,19 @@ describe('CLI offline smoke', () => {
       'save-permission',
       'create-app',
       'create-form.create',
+      'create-form.icons',
       'create-page',
       'publish',
     ]));
     const builderCommands = new Map(parsed.builder_path.command_contract.canonical_builder_commands
       .map(entry => [entry.id, entry]));
+    expect(builderCommands.get('create-form.create').args).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'icon', source: 'option', builder_options: ['--icon'] }),
+    ]));
+    expect(builderCommands.get('create-form.icons')).toMatchObject({
+      usage: 'openyida create-form icons [--json]',
+      args: [expect.objectContaining({ name: 'json', source: 'option' })],
+    });
     expect(builderCommands.get('data').examples[0]).toContain('1787932800000');
     expect(builderCommands.get('nav-group').examples).toContain('openyida nav-group move APP_XXX FORM_XXX --to NAV_XXX');
     expect(builderCommands.get('save-permission').examples[0]).toContain('get-permission APP_XXX FORM_XXX');
@@ -1732,7 +1813,10 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('Code Templates');
     expect(output).toContain('yida-chart');
     expect(output).toContain('yida-canvas-table-form');
+    expect(output).toContain('openyida-scaffold');
     expect(output).toContain('table-form-batch-submit');
+    expect(output).toContain('canvas-form-drawer');
+    expect(output).toContain('form-fields');
     expect(output).not.toContain('yida-custom-page');
     expect(output).not.toContain('yida-canvas-custom-page');
     expect(output).not.toContain('product-homepage');

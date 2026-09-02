@@ -5,6 +5,7 @@
 ## 运行态事实
 
 - 宜搭应用壳根据 `navUuid/formUuid` 和 `workbench` 路径维护选中态；同应用页面应进入 `/{appType}/workbench/{formUuid}` 或对应壳层路由。
+- 发布层会把根级工具注册到 `window.__OPENYIDA_UTILS__`；可用时优先通过 `window.__OPENYIDA_UTILS__.router.push` 做应用内跳转，通过 `window.__OPENYIDA_UTILS__.openPage` 打开外部链接或新窗口场景。
 - `openPage` / `window.open` 更适合外部链接、新标签、钉钉链接、文件预览等场景；同应用页面默认在当前应用壳内切换。
 - 页面隐藏应用导航后，页面内自绘导航壳接管跨视图切换；导航可见时使用平台导航承载同级页面切换。
 
@@ -81,10 +82,10 @@
 
 自定义页面内凡是点击按钮去新增、提交或查看表单详情，统一封装成同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；外部 URL 才使用新标签。PC 端容器表现为右侧抽屉 + iframe，移动端直接进入原生表单页，关闭抽屉后触发当前页刷新。
 
-YidaCodeCanvas 推荐使用 antd `Drawer`。复制本示例前，先把 [theme-runtime-helpers.md](theme-runtime-helpers.md) 中的 `installYidaGlobalThemeIntoFrame` 一并放到页面源码；父页面 CSS 变量不会自动继承到提交页/详情页 iframe。
+YidaCodeCanvas 推荐使用 antd `Drawer`。新版主题运行容器在自定义页面、提交页和详情页 iframe 中分别加载同一应用级自定义主题 CSS，确保主题变量一致。
 
 ```jsx
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Button, Drawer } from 'antd';
 
 function isMobileViewport() {
@@ -119,12 +120,8 @@ function buildYidaFormUrl(request, currentAppType) {
 
 const FORM_OPEN_DRAWER_WIDTH = '50vw';
 
-function FormOpenContainer({ request, currentAppType, themeTokens, onClose, onAfterClose }) {
-  const iframeRef = useRef(null);
+function FormOpenContainer({ request, currentAppType, onClose, onAfterClose }) {
   const iframeSrc = useMemo(() => request ? buildYidaFormUrl(request, currentAppType) : '', [request, currentAppType]);
-  const syncThemeToIframe = useCallback(() => {
-    installYidaGlobalThemeIntoFrame(themeTokens, iframeRef.current);
-  }, [themeTokens]);
 
   return (
     <Drawer
@@ -140,10 +137,8 @@ function FormOpenContainer({ request, currentAppType, themeTokens, onClose, onAf
     >
       {iframeSrc ? (
         <iframe
-          ref={iframeRef}
           title={request && request.title ? request.title : '表单'}
           src={iframeSrc}
-          onLoad={syncThemeToIframe}
           style={{ width: '100%', height: '100%', minHeight: 'calc(100vh - 56px)', border: 0, display: 'block' }}
         />
       ) : null}
@@ -151,7 +146,7 @@ function FormOpenContainer({ request, currentAppType, themeTokens, onClose, onAf
   );
 }
 
-function useYidaFormOpen(currentAppType, refreshData, themeTokens) {
+function useYidaFormOpen(currentAppType, refreshData) {
   const [formRequest, setFormRequest] = useState(null);
   function openForm(request) {
     if (request && request.type === 'detail' && !request.formInstId) {
@@ -171,7 +166,6 @@ function useYidaFormOpen(currentAppType, refreshData, themeTokens) {
     <FormOpenContainer
       request={formRequest}
       currentAppType={currentAppType}
-      themeTokens={themeTokens}
       onClose={() => setFormRequest(null)}
       onAfterClose={refreshData}
     />
@@ -184,7 +178,7 @@ function getYidaFormInstId(row) {
 }
 
 function ExampleToolbar({ appType, customerFormUuid, selectedCustomer, reload }) {
-  const { openForm, formOpenContainer } = useYidaFormOpen(appType, reload, CUSTOM_THEME_TOKENS);
+  const { openForm, formOpenContainer } = useYidaFormOpen(appType, reload);
   const selectedFormInstId = getYidaFormInstId(selectedCustomer);
   return (
     <>
@@ -210,6 +204,18 @@ function ExampleToolbar({ appType, customerFormUuid, selectedCustomer, reload })
 Canvas 自绘快捷入口时，表单提交和详情入口沿用 `useYidaFormOpen` 返回的 `openForm`。应用内页面用同页跳转，外部链接才新开；提交页在 PC 端进入抽屉，移动端才整页或新页打开，提交页 URL 默认追加 `isRenderNav=false`；详情页 URL 必须包含真实 `formInstId`，并默认追加 `navConfig.layout=1180` 和 `isRenderNav=false`：
 
 ```js
+function getOpenYidaUtilsBridge() {
+  var candidates = [];
+  try { candidates.push(window.__OPENYIDA_UTILS__); } catch (err) {}
+  try { candidates.push(window.parent && window.parent.__OPENYIDA_UTILS__); } catch (err) {}
+  try {
+    if (typeof parentWindow !== 'undefined') {
+      candidates.push(parentWindow.__OPENYIDA_UTILS__);
+    }
+  } catch (err) {}
+  return candidates.find(function (item) { return item && item.ready; }) || null;
+}
+
 function buildYidaPath(entry, currentAppType) {
   const appType = entry.appType || currentAppType;
   if (entry.targetType === 'app') return `/${appType}/workbench`;
@@ -238,8 +244,17 @@ function openEntry(entry, currentAppType, runtime) {
 
   const href = buildYidaPath(entry, currentAppType);
   if (!href) return;
+  const utilsBridge = getOpenYidaUtilsBridge();
   if (entry.targetType === 'url' || entry.openMode === 'new-tab') {
+    if (utilsBridge && typeof utilsBridge.openPage === 'function') {
+      utilsBridge.openPage({ url: href });
+      return;
+    }
     window.open(href, '_blank');
+    return;
+  }
+  if (utilsBridge && utilsBridge.router && typeof utilsBridge.router.push === 'function') {
+    utilsBridge.router.push(href);
     return;
   }
   window.location.href = href;
@@ -252,7 +267,7 @@ function openEntry(entry, currentAppType, runtime) {
 
 详情页实例 ID 以 `searchFormDatas` 返回行的 `row.formInstId` 为准，兼容兜底顺序只能写成 `row.formInstId || row.formInstanceId || row.instanceId || row.id`。缺少实例 ID 时禁用详情按钮或提示“未找到数据实例”，禁止打开 `formInstId=` 为空的详情页。
 
-如果运行态明确向 Canvas 暴露了壳层 router / history API，可把同应用 `page/app` 的同页跳转替换成壳层 `push/replace`；没有明确 API 时，不猜内部对象，使用上面的工作台 URL。
+如果 `window.__OPENYIDA_UTILS__.router.push` 可用，可把同应用 `page/app` 的同页跳转替换成壳层 `push`；没有该桥时，不猜内部对象，使用上面的工作台 URL。
 
 PC 抽屉内的 iframe 高度随内容区拉满，提交页和详情页抽屉默认使用同一半屏宽度 `50vw`，占当前视口宽度的 50%；只有用户明确要求更窄/更宽，或页面需要主从分栏并给出具体验收时，才调整该宽度。提交成功或查看结束后的刷新可以先用抽屉关闭事件触发列表 reload，若平台 postMessage 事件已验证，再接入精确的提交完成回调。移动端不强塞抽屉，避免键盘和表单字段被压缩。
 

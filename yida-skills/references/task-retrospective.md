@@ -21,7 +21,7 @@ OpenYida 任务完成后，除了交付当前结果，还要判断是否有可�
 | 技能路由、工作流、验收纪律 | `yida-skills/SKILL.md` 或对应子技能 `SKILL.md` | 主题任务必须先读 `yida-design`，页面视觉先读 `yida-design` |
 | 页面视觉、Dribbble/优秀案例参考方法 | `yida-design` workflow/reference | 参考案例要转译为布局、视觉锚点、密度、色彩、组件细节 |
 | 自定义页面共性规则 | `yida-canvas-custom-page` | 独立页面按场景确定主题、演示数据有标识、发布后回读 Schema |
-| 应用主题、全局 CSS 变量 | `yida-design` | `--theme` 只接受平台预置 key，自定义主题走 `style#yida-global-theme` |
+| 应用主题、全局 CSS 变量 | `yida-design` | `--theme` 只接受平台预置 key，自定义主题走应用级主题 CSS 文件 |
 | 表单/流程/报表等领域规则 | 对应子技能 | 字段、公式、流程规则、报表配置分别沉淀到所属 skill |
 | 临时经验但暂不适合入主技能 | 子技能 references 或新增 reference | 一组可复用接口探测、截图验收清单、素材流程 |
 
@@ -34,11 +34,11 @@ OpenYida 任务完成后，除了交付当前结果，还要判断是否有可�
 1. **参考 Dribbble 不是一句话**
    用户要求参考 Dribbble / 优秀示例时，必须把参考转成可执行设计变量：页面类型、构图、视觉锚点、信息密度、色彩关系、组件细节、反默认点。交付时说明“参考转译成了什么”。
 
-2. **独立品牌页使用页面级主题**
-   独立品牌页、活动页、页面级沉浸页和应用导航隐藏后的自绘壳应自带页面级主题 token。普通业务页、页面重构和局部美化优先读取当前应用主题色。
+2. **所有页面统一消费应用主题**
+   独立品牌页、活动页、沉浸页和应用导航隐藏后的自绘壳也统一加载应用主题文件；页面差异通过布局、材质、素材、构图和辅助视觉表达。
 
 3. **`--theme` 只能填平台预置 key**
-   `deepBlue/podBlue/royalBlue/lightBlue/teal/podGreen/deepPurple/purple/podOrange/yellow/magenta/red/greyBlue/coffee/black` 才能作为 app `colour`。默认优先使用 `podBlue`、`podGreen`、`podOrange`；自定义“活力橙”“深玫红”“暗黑金”等设计主题，应在每个页面注入 `style#yida-global-theme` 或 scoped tokens，`blue`、`green`、`orange` 作为应用主题 token profile 保留原名。
+   `deepBlue/podBlue/royalBlue/lightBlue/teal/podGreen/deepPurple/purple/podOrange/yellow/magenta/red/greyBlue/coffee/black` 才能作为 app `colour`。默认优先使用 `podBlue`、`podGreen`、`podOrange`；自定义“活力橙”“深玫红”“暗黑金”等应用主题统一生成应用级 CSS，并联合保存 `themeColor`、`navTheme` 与 `customThemeStyle.cssUrl`，由运行容器在各页面上下文加载。
 
 4. **CLI 成功不等于线上生效**
    修改应用主题后必须回读 `getAppIncludingAecpInfo`，确认 `colour` 和 `config.COLOUR`。如果接口回包成功但字段没变，要修 CLI 链路和测试，而不是只用一次性脚本绕过。
@@ -64,7 +64,7 @@ OpenYida 任务完成后，除了交付当前结果，还要判断是否有可�
 | --- | --- | --- |
 | `business-list` / 业务协同列表 | 主题色蓝色、像真实协同列表 | 蓝色品牌主色；顶部指标、筛选条、批量操作、表格状态标签、详情入口都要完整，避免灰黑按钮和空表格。 |
 | `detail-profile` / 详情页 | 看 Dribbble 的详情页再优化 | 单对象 hero、关键元信息侧栏、摘要指标、时间线、关联对象和操作区；不要只堆字段卡片。 |
-| `portal-shell-home` / 门户壳 | 紫色，导航色要完整覆盖，内容更丰富 | 紫色页面级主题；侧栏 / 顶栏全高或全宽覆盖，不留下断层；补角色入口、常用应用、动态、指标、团队模块。 |
+| `portal-shell-home` / 门户壳 | 紫色，导航色要完整覆盖，内容更丰富 | 通过应用主题文件统一配置紫色；侧栏 / 顶栏全高或全宽覆盖，不留下断层；补角色入口、常用应用、动态、指标、团队模块。 |
 | `product-homepage` / 产品首页 | 暗黑高级，像产品网站首页 | 首屏必须是产品 / 品牌信号，使用真实或生成图片作为视觉锚点；不要做成业务面板或普通卡片页。 |
 | 工作台 / 业务首页 | 不能有大面积空白，是真工作台 | 全屏操作面板，侧栏贴边、主区密集，包含待办、行动队列、指标、快捷入口、动态流；去掉设计过程标签。 |
 | `data-management` / 数据管理 | 参考飞书和钉钉多维表 | 多维表工具栏、视图切换、字段管理、筛选、分组、排序、行高、彩色标签、冻结列和批量操作。 |

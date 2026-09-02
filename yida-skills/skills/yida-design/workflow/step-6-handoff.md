@@ -30,15 +30,15 @@
 
 | 模块 | 必填内容 |
 | --- | --- |
-| frontmatter | version、design_id、baseDesignSource、styleDesignSelection、themeProfile、themeAdaptationResult、yidaThemeRuntime、tokens、visual_dna、scenes、density、layout、tone |
+| frontmatter | version、design_id、baseDesignSource、styleDesignSelection、themeProfile、themeAdaptationResult、yidaThemeDelivery、tokens、visual_dna、scenes、density、layout、tone |
 | 总览 / 设计风格选择依据 / 主题色与换肤结果 / 适用场景 / 视觉氛围 | 可复用设计意图、选中风格和排除风格、主题色来源、换肤策略、适合与不适合场景、密度、气质和页面组织方式 |
 | 视觉 DNA / 设计母体 | 所有页面都必须保留的 2-5 个视觉 DNA，每个包含证据、规则、实现钩子、失败表现和置信度 |
 | 色彩角色 / 字体 / 布局 / 深度 / 形状 | token、字体栈、字号、网格、间距、层级、圆角和材质规则 |
 | 组件样式 / 快捷入口区域 | 按组件写 default、hover、active、focus、disabled、loading、selected、error；工作台等必须写快捷入口区域 |
 | 页面结构配方 | 中性槽位、`visualScaffold`、`surfaceMap`、`componentRecipe` |
 | 状态与交互 / 响应式 / 可访问性 | loading、empty、error、mobile、reduced motion、焦点和对比度 |
-| 实现适配 | CSS 变量、Yida / YidaCodeCanvas 容器重置、`Yida Global Theme Runtime Contract`、YidaCodeCanvas / 平台 JSX 组件 helper 使用规则 |
-| 包含项 / 禁止项 / 错误 vs 正确 / Agent 使用提示 / 交付自检 | 保护视觉 DNA、contentBlocks 推荐 8-10 个区块以上、禁大白卡、自定义色 token 注入、实现前读取双文件 |
+| 实现适配 | CSS 变量、Yida / YidaCodeCanvas 容器重置、`Yida Application Theme Delivery Contract`、YidaCodeCanvas / 平台 JSX 组件消费规则 |
+| 包含项 / 禁止项 / 错误 vs 正确 / Agent 使用提示 / 交付自检 | 保护视觉 DNA、contentBlocks 推荐 8-10 个区块以上、禁大白卡、应用自定义主题文件交付、实现前读取双文件 |
 
 ## 写文件前检查
 
