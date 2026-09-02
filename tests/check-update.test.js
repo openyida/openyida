@@ -34,13 +34,43 @@ describe('isNewer', () => {
     expect(isNewer('1.5.0', '1.4.9')).toBe(false);
   });
 
-  test('空字符串版本号不抛错', () => {
+  test('beta 版本升级到同号 stable', () => {
+    expect(isNewer('2026.8.27-beta.0', '2026.8.27')).toBe(true);
+  });
+
+  test('按 SemVer 比较预发布标识', () => {
+    expect(isNewer('1.0.0-beta.1', '1.0.0-beta.2')).toBe(true);
+    expect(isNewer('1.0.0-beta.2', '1.0.0-beta.11')).toBe(true);
+    expect(isNewer('1.0.0-beta', '1.0.0-beta.1')).toBe(true);
+    expect(isNewer('1.0.0-beta.1', '1.0.0-beta.alpha')).toBe(true);
+  });
+
+  test('stable 不降级到同号 beta', () => {
+    expect(isNewer('1.0.0', '1.0.0-beta.1')).toBe(false);
+  });
+
+  test('构建元数据不影响版本优先级', () => {
+    expect(isNewer('1.0.0+build.1', '1.0.0+build.2')).toBe(false);
+  });
+
+  test('超出 Number 安全范围的数字标识仍按 SemVer 比较', () => {
+    expect(isNewer('9007199254740992.0.0', '9007199254740993.0.0')).toBe(true);
+    expect(isNewer('1.0.0-beta.9007199254740992', '1.0.0-beta.9007199254740993')).toBe(true);
+  });
+
+  test('空字符串版本号不抛错并视为无可用更新', () => {
     expect(() => isNewer('', '1.0.0')).not.toThrow();
-    expect(isNewer('', '1.0.0')).toBe(true);
+    expect(isNewer('', '1.0.0')).toBe(false);
   });
 
   test('undefined 版本号不抛错', () => {
     expect(() => isNewer(undefined, '1.0.0')).not.toThrow();
+    expect(isNewer(undefined, '1.0.0')).toBe(false);
+  });
+
+  test('非法 latest 版本不会触发更新', () => {
+    expect(isNewer('1.0.0', 'latest')).toBe(false);
+    expect(isNewer('1.0.0', '01.0.0')).toBe(false);
   });
 });
 
@@ -89,7 +119,7 @@ describe('fetchLatestVersion', () => {
     expect(version).toBeNull();
   });
 
-  test('请求和 socket 使用 unref，避免更新检查阻塞 CLI 退出', async () => {
+  test('同步版本检查不会 unref 请求，确保主命令等待检查完成', async () => {
     const socket = { unref: jest.fn() };
     const mockResponse = {
       on: jest.fn((event, handler) => {
@@ -113,8 +143,8 @@ describe('fetchLatestVersion', () => {
 
     await fetchLatestVersion();
 
-    expect(mockReq.unref).toHaveBeenCalled();
-    expect(socket.unref).toHaveBeenCalled();
+    expect(mockReq.unref).not.toHaveBeenCalled();
+    expect(socket.unref).not.toHaveBeenCalled();
   });
 
   test('响应非 JSON 时返回 null', async () => {

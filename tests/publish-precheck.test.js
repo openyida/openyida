@@ -26,6 +26,7 @@ const {
   mergePageDataSource,
   verifyPublishTarget,
 } = require('../lib/app/publish');
+const publishPage = require('../lib/app/publish');
 const {
   verifyPublishedContentMatch,
 } = require('../lib/app/display-page-readback');
@@ -94,6 +95,47 @@ describe('publish prechecks', () => {
     expect(mismatches).toEqual([
       { sourcePath, duplicatePath: artifactPath },
     ]);
+  });
+
+  test('publish rejects unsupported authoring hooks with CliError before login or process exit', async () => {
+    const sourcePath = path.join(workspace, 'reducer.oyd.jsx');
+    fs.writeFileSync(sourcePath, `
+import React, { useReducer } from 'react';
+export default function Page() {
+  const [state] = useReducer((value) => value, {});
+  return <div>{state.name}</div>;
+}
+`, 'utf8');
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit should not be called');
+    });
+
+    await expect(publishPage([
+      sourcePath,
+      'APP_XXX',
+      'FORM-PAGE',
+      '--compat',
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'BUILD_PAGE_FAILED',
+      details: {
+        retryable: false,
+        retrySafe: true,
+        sideEffectState: 'none',
+        sourceRepairable: true,
+        primaryIssue: {
+          code: 'UNSUPPORTED_HOOK',
+          hook: 'useReducer',
+          line: 4,
+        },
+        nextAction: {
+          type: 'edit_source_then_recheck',
+          commandId: 'check-page',
+        },
+      },
+    });
+    expect(exitSpy).not.toHaveBeenCalled();
+    exitSpy.mockRestore();
   });
 
   test('suggests pages/src path when cwd is already the OpenYida project directory', () => {

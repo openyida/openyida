@@ -17,10 +17,27 @@ function buildValidConfig(overrides = {}) {
     }],
     aggregatedFields: [{ id: 'REL-1', name: '名称' }],
     auxFields: [],
-    formulaFields: [{ id: 'metric_count', formula: 'COUNT(field_name)' }],
+    formulaFields: [{ id: 'metric_count', name: '数量', formula: 'COUNT(field_name)' }],
     validators: [],
     ...overrides,
   };
+}
+
+function buildTwoSourceConfig(overrides = {}) {
+  return buildValidConfig({
+    relationForms: [
+      { formUuid: 'FORM-SOURCE-A' },
+      { formUuid: 'FORM-SOURCE-B' },
+    ],
+    relationships: [{
+      relationId: 'REL-1',
+      relationshipInfos: [
+        { id: 'field_name_a', name: '名称', formUuid: 'FORM-SOURCE-A' },
+        { id: 'field_name_b', name: '名称', formUuid: 'FORM-SOURCE-B' },
+      ],
+    }],
+    ...overrides,
+  });
 }
 
 describe('aggregate-table frontend contract', () => {
@@ -84,6 +101,76 @@ describe('aggregate-table frontend contract', () => {
     ]));
   });
 
+  test('rejects malformed array values instead of normalizing them into an empty design', () => {
+    const invalid = validateAggregateDesignConfig(buildValidConfig({
+      auxFields: { id: 'aux-1', name: '辅助列' },
+    }), { mode: 'draft' });
+
+    expect(invalid.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'AGGREGATE_DESIGN_ARRAY_REQUIRED',
+        path: 'auxFields',
+      }),
+    ]));
+  });
+
+  test('requires each relationship to describe every selected source', () => {
+    const invalid = validateAggregateDesignConfig(buildTwoSourceConfig({
+      relationships: [{
+        relationId: 'REL-1',
+        relationshipInfos: [{ id: 'field_name_a', name: '名称' }],
+      }],
+    }), { mode: 'publish' });
+
+    expect(invalid.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'AGGREGATE_RELATIONSHIP_SOURCE_COUNT_MISMATCH' }),
+    ]));
+  });
+
+  test('enforces unique relationship ids and exact published column mapping', () => {
+    const invalid = validateAggregateDesignConfig(buildValidConfig({
+      relationships: [
+        { relationId: 'REL-1', relationshipInfos: [{ id: 'field_a', name: '名称' }] },
+        { relationId: 'REL-1', relationshipInfos: [{ id: 'field_b', name: '编号' }] },
+      ],
+      aggregatedFields: [{ id: 'REL-OTHER', name: '名称' }],
+    }), { mode: 'publish' });
+
+    expect(invalid.errors.map((error) => error.code)).toEqual(expect.arrayContaining([
+      'AGGREGATE_RELATIONSHIP_ID_DUPLICATE',
+      'AGGREGATE_COLUMN_RELATION_MISMATCH',
+    ]));
+  });
+
+  test('validates metric names, validator prompt text, filters, and auxiliary field uniqueness', () => {
+    const invalid = validateAggregateDesignConfig(buildValidConfig({
+      relationForms: [{
+        formUuid: 'FORM-SOURCE',
+        filter: {
+          logicOperator: 'AND',
+          rules: Array.from({ length: 11 }, (_, index) => ({
+            id: `rule-${index}`,
+            operator: index === 0 ? '' : 'EQ',
+          })),
+        },
+      }],
+      auxFields: [
+        { id: 'aux-1', name: '辅助列' },
+        { id: 'aux-1', name: '重复辅助列' },
+      ],
+      formulaFields: [{ id: 'metric_count', name: '', formula: 'COUNT(field_name)' }],
+      validators: [{ formula: 'metric_count > 0', text: { zh_CN: '' } }],
+    }), { mode: 'publish' });
+
+    expect(invalid.errors.map((error) => error.code)).toEqual(expect.arrayContaining([
+      'AGGREGATE_FILTER_LIMIT',
+      'AGGREGATE_FILTER_OPERATOR_REQUIRED',
+      'AGGREGATE_AUX_FIELD_ID_DUPLICATE',
+      'AGGREGATE_FORMULA_FIELD_INVALID',
+      'AGGREGATE_VALIDATOR_INVALID',
+    ]));
+  });
+
   test('assert helper throws a stable contract error before a remote write', () => {
     expect(() => assertAggregateDesignConfig(buildValidConfig({
       formulaFields: [],
@@ -107,7 +194,7 @@ describe('aggregate-table frontend contract', () => {
       }],
       aggregatedFields: [{ id: 'REL-1', name: '名称' }],
       auxFields: [],
-      formulaFields: [{ id: 'metric_count', formula: 'COUNT(field_name)' }],
+      formulaFields: [{ id: 'metric_count', name: '数量', formula: 'COUNT(field_name)' }],
       validators: [],
     });
   });
@@ -172,6 +259,17 @@ describe('aggregate-table frontend contract', () => {
     expect(() => require('../lib/aggregate-table/contract')
       .assertAggregateDesignReadback(expected, actual)).toThrow(expect.objectContaining({
       code: 'AGGREGATE_DESIGN_READBACK_MISMATCH',
+    }));
+  });
+
+  test('readback rejects an explicit non-array even when the expected designer array is empty', () => {
+    const expected = buildValidConfig({ auxFields: [] });
+    const actual = buildValidConfig({ auxFields: { id: 'server-invalid' } });
+
+    expect(() => require('../lib/aggregate-table/contract')
+      .assertAggregateDesignReadback(expected, actual)).toThrow(expect.objectContaining({
+      code: 'AGGREGATE_DESIGN_READBACK_MISMATCH',
+      path: 'auxFields',
     }));
   });
 });

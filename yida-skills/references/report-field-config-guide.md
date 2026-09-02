@@ -11,37 +11,19 @@
 | **TextField** (单行文本) | `textField_xxx` | `STRING` | 直接使用原始 fieldCode |
 | **TextareaField** (多行文本) | `textareaField_xxx` | `STRING` | 直接使用原始 fieldCode |
 | **NumberField** (数字) | `numberField_xxx` | `DOUBLE` | 直接使用原始 fieldCode |
-| **SelectField** (下拉单选) | `selectField_xxx_value` | `STRING` | **必须加 `_value` 后缀** |
-| **RadioField** (单选) | `radioField_xxx_value` | `STRING` | **必须加 `_value` 后缀** |
-| **MultiSelectField** (下拉多选) | `multiSelectField_xxx_value` | `STRING` | **必须加 `_value` 后缀** |
-| **CheckboxField** (多选) | `checkboxField_xxx_value` | `STRING` | **必须加 `_value` 后缀** |
+| **SelectField** (下拉单选) | `selectField_xxx` / `selectField_xxx_value` | `STRING` | 以当前 cube 运行时探针为准 |
+| **RadioField** (单选) | `radioField_xxx` / `radioField_xxx_value` | `STRING` | 以当前 cube 运行时探针为准 |
+| **MultiSelectField** (下拉多选) | `multiSelectField_xxx` / `multiSelectField_xxx_value` | `STRING` | 以当前 cube 运行时探针为准 |
+| **CheckboxField** (多选) | `checkboxField_xxx` / `checkboxField_xxx_value` | `STRING` | 以当前 cube 运行时探针为准 |
 | **DateField** (日期) | `dateField_xxx` | `DATE` | 直接使用原始 fieldCode,**不要拆分** |
 | **EmployeeField** (成员) | `employeeField_xxx` | `STRING` | 直接使用原始 fieldCode |
 | **DepartmentSelectField** (部门) | `departmentSelectField_xxx` | `STRING` | 直接使用原始 fieldCode |
 
 ### 2. 关键注意事项
 
-#### SelectField/RadioField/MultiSelectField/CheckboxField 必须加 `_value` 后缀
+#### Select/Radio/MultiSelect/Checkbox 的后缀不是静态契约
 
-**错误示例**:
-```json
-{
-  "fieldCode": "selectField_k2ak55yx3",  //❌错误
-  "aliasName": "行业",
-  "dataType": "STRING",
-  "aggregateType": "NONE"
-}
-```
-
-**正确示例**:
-```json
-{
-  "fieldCode": "selectField_k2ak55yx3_value",  // ✅ 正确
-  "aliasName": "行业",
-  "dataType": "STRING",
-  "aggregateType": "NONE"
-}
-```
+`get-schema` 会给出 raw 与 `_value` 候选，但只有报表组件的真实 `getDataAsync` 查询能证明当前 cube 暴露哪个 fieldCode。`create-report` 必须在同一 reportId 内验证并做至多一次候选切换，不能靠重复创建报表试错。
 
 #### DateField 不要拆分为年月日时分秒
 
@@ -243,9 +225,9 @@
 
 ### 错误 1: SelectField 字段显示为空
 
-**原因**: 未加 `_value` 后缀
+**原因**: fieldCode 与当前 cube 实际元数据不一致
 
-**解决**: 将 `selectField_xxx` 改为 `selectField_xxx_value`
+**解决**: 查看 `report inspect` 的 `queryProbe`；只修复已有 reportId，并重新执行运行时查询
 
 ### 错误 2: DateField 字段报错或显示异常
 
@@ -287,8 +269,8 @@ openyida get-schema <appType> <formUuid>
 
 配置报表字段时,牢记以下三点:
 
-1. **SelectField/RadioField/MultiSelectField/CheckboxField**: 必须加 `_value` 后缀
+1. **SelectField/RadioField/MultiSelectField/CheckboxField**: raw / `_value` 候选必须由运行时查询确认
 2. **DateField**: 直接使用原始 fieldCode,不要拆分
 3. **其他字段**: 直接使用原始 fieldCode
 
-遵循这些规则,可以避免 90% 以上的报表配置错误。
+遵循这些规则，可避免把“Schema 已保存”误判成“图表运行时可查询”。

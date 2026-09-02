@@ -72,9 +72,9 @@
   {
     "id": "aggregate-table-list",
     "prompt": "帮我列一下当前应用有哪些聚合表",
-    "expectedSkill": "openyida aggregate-table",
+    "expectedSkill": "yida-aggregate-table",
     "group": "页面与表单",
-    "note": "聚合表操作 → aggregate-table CLI"
+    "note": "聚合表操作 → yida-aggregate-table"
   },
   {
     "id": "data-source-connector-page",

@@ -18,7 +18,8 @@
 | 页面 | resourceType | scene | 用途 | 实现链路 |
 | --- | --- | --- | --- | --- |
 | 主页 / 首页 / 工作台 | `display-page` | `workbench/dashboard/landing` | 应用第一入口、指标概览、快捷入口 | 自定义页面 |
-| 管理列表页 | `display-page` | `list` | 查询、筛选、批量操作、详情入口 | 自定义页面 |
+| 表单数据管理页 | `normal-form` | `native-list` | 查询、筛选、查看、编辑和维护 | 宜搭表单数据管理页（默认） |
+| 自定义列表页 | `display-page` | `list` | 用户明确要求自定义列表页 | 自定义页面 |
 | 详情页 | `display-page` | `detail` | 单对象信息总览、时间线、关联对象 | 自定义页面 |
 | 数据大屏 / 看板 | `display-page` 或报表 | `screen/dashboard` | 指标监控、经营分析、投屏展示 | Canvas / Recharts / 报表 |
 
@@ -31,6 +32,8 @@
 
 资源清单使用业务语义和资源类型；`appType/corpId/baseUrl` 写入 PRD 的应用配置，`formUuid`、`fieldId`、`processCode` 等细节 ID 由实现阶段写入 `.cache/<项目名>-schema.json`。
 
+同一业务对象默认使用普通表单的数据管理页；用户明确要求时才增加自定义列表页。
+
 ## 给页面标场景
 
 页面 `scene` 只作为分类标签和实现提示，不作为固定页面样式。页面结构必须来自当前业务目标、用户任务、资源关系和后续 `design.md`。
@@ -40,7 +43,7 @@
 | workbench | 进入应用后处理任务、看状态、做高频动作 | 当前业务 `contentBlocks` + `design.md.visualScaffold` |
 | dashboard | 经营分析、指标判断、趋势和排行 | 指标口径 + 图表目的 + `design.md.visualScaffold` |
 | screen | 投屏、监控、态势感知 | 实时信息层级 + 大屏展示目标 + `design.md.visualScaffold` |
-| list | 查询、筛选、批量操作、详情入口 | 数据字段、筛选条件、操作路径 + `design.md.visualScaffold` |
+| list | 用户明确要求的自定义列表 | 数据字段、筛选、操作路径 + `design.md.visualScaffold` |
 | detail | 单对象总览、时间线、关联对象 | 对象信息架构 + 关联关系 + `design.md.visualScaffold` |
 | landing | 对外介绍、品牌表达、价值转化 | 价值路径、素材清单、CTA + `design.md.visualScaffold` |
 | split-pane | 左列表右详情、处理台 | 主从关系、处理路径 + `design.md.visualScaffold` |

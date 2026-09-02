@@ -9,6 +9,9 @@ const AGENT_ENV_KEYS = [
   'OPENCODE_CLIENT',
   'QODER_IDE',
   'QODER_AGENT',
+  'QODER_PRODUCT_ID',
+  'QODER_SESSION_TYPE',
+  'QODER_CLI',
   'QODERCLI_INTEGRATION_MODE',
   'QWENWORK_INTEGRATION_MODE',
   'QWENWORKCN_INTEGRATION_MODE',
@@ -166,6 +169,7 @@ describe('create-app argument parsing', () => {
       group: 'ALL',
       openExclusive: 'n',
       openPhysicColumn: 'n',
+      createWithModernTheme: 'y',
       fromBuilderAi: 'y',
       builderAiSource: 'local',
     });
@@ -188,6 +192,24 @@ describe('create-app argument parsing', () => {
     expect(payload).toMatchObject({
       fromBuilderAi: 'y',
       builderAiSource: 'codex',
+    });
+  });
+
+  test('reports new Qoder with the existing qoder builder source contract', () => {
+    process.env.QODER_PRODUCT_ID = 'qoder';
+    process.env.QODER_SESSION_TYPE = 'app';
+    const params = parseCreateAppArgs(['--name', '普通宜搭应用']);
+    const payload = buildCreateAppPayload(
+      params,
+      { csrfToken: 'csrf-token' },
+      'zh_CN',
+      'n',
+      'n'
+    );
+
+    expect(payload).toMatchObject({
+      fromBuilderAi: 'y',
+      builderAiSource: 'qoder',
     });
   });
 

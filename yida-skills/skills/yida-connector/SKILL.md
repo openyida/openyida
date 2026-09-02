@@ -14,7 +14,7 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 
 ## 严格要求 (MUST DO)
 
-- 优先使用 `smart-create` 从 curl 命令或接口文档智能创建
+- 优先使用 `smart-create` 从 curl 命令生成脱敏动作草稿；它不创建或更新远端连接器，后续创建/追加仍需显式执行对应命令
 - 创建连接器后，将 connector-id 记录到 `.cache/<项目名>-schema.json`
 - `--operations`、`--action` 等文件参数必须先用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/connector/` 或该技能更具体的目录，再传给命令；不要写仓库根目录或系统临时目录
 - **本技能不读写 memory**：连接器配置通过 CLI 命令写入宜搭平台，不依赖跨会话的 memory 状态
@@ -102,14 +102,24 @@ openyida connector list-actions <connector-id>
 # 添加执行动作（智能匹配已有连接器）
 openyida connector add-action --operations <action-file> --host <域名>
 
+# 仅更新已有动作中已声明的 Query 默认值
+openyida connector update-action --connector-id <id> --action <operationId> \
+  --query-json '{"currentPage":"1"}' --confirm
+
 # 删除执行动作
 openyida connector delete-action <connector-id> <action-id>
 
-# 测试连接器
-openyida connector test --connector-id <id> --action <action-file>
+# 测试连接器（--action 必须是稳定的 operationId）
+openyida connector test --connector-id <id> --action <operationId> \
+  --path-json '{"id":"42"}' \
+  --query-json '{"page":1}' \
+  --header-json '{"X-Trace":"owned"}' \
+  --body-json '{"name":"Ada"}'
 ```
 
-> `<action-file>` 先用 create_file / Write / file edit tool 创建，例如 `.cache/openyida/<项目名或任务名>/connector/actions.json`；从 workspace 根执行命令时路径加 `project/` 前缀。
+> `--params` 仍兼容旧调用，但每个字段只会按动作 Schema 分发到 path/query/header/body；未知或位置冲突字段会停止执行。需要鉴权时必须传属于当前连接器的 `--account-id`。只有 canonical `statusLine` 为 2xx 才算测试成功；测试前后可用 `list-actions` 确认动作未被修改。
+
+`add-action` 只允许追加新稳定 ID，发现既有 `operationId` 或 `id` 冲突时停止，不覆盖。编辑已有动作时使用 `update-action`；它只接受非空 `--query-json`，要求 Query 在 `inputs` 与 `parameters` 中各自唯一且可回读，完整集合 replace-all 后必须证明连接器非目标 fingerprint、动作数量、其他动作和稳定 ID 不变。写入结果 unknown 时不自动重试。
 
 ### 鉴权账号管理
 
@@ -118,10 +128,10 @@ openyida connector list-connections <connector-id>
 openyida connector create-connection <connector-id> "<账号名>" [鉴权参数]
 ```
 
-### 智能创建（推荐）
+### 智能生成动作草稿（推荐）
 
 ```bash
-# 从 curl 命令创建
+# 从 curl 命令生成脱敏草稿（不创建远端资源）
 openyida connector smart-create --curl "curl 'https://api.example.com/v1/data' -H 'Authorization: Bearer xxx'" --name "<连接器名>"
 
 # 解析接口文档
@@ -147,6 +157,10 @@ openyida connector create "钉钉API" "api.dingtalk.com" --auth "钉钉开放平
 ## 执行动作配置
 
 详见 [连接器执行动作配置文件格式](references/connector-action-format.md)。
+
+- `id` 使用稳定的 `operation-<operationId>`，同一接口重复生成不得随时间变化。
+- 同一批动作中的 `operationId` 必须唯一；重复时停止保存，不覆盖或猜测选择。
+- Authorization、Cookie、token、API Key 等敏感 Header 的示例值不得序列化进 action，统一保留空默认值并通过鉴权账号在运行时注入。
 
 ## 模板
 

@@ -453,11 +453,11 @@
         "frontendComponentOrApi": ["/query/formLogicflowBinding/switchflow.json"],
         "skillDeclarationLocation": ["yida-skills/skills/yida-integration/references/integration-node-schemas.md#switchLogicflow开启关闭逻辑流"],
         "cliImplementationLocation": ["lib/integration/integration-api.js#switchLogicflow", "lib/integration/integration-list.js#runEnable", "lib/integration/integration-list.js#runDisable"],
-        "unitTestCoverage": ["tests/integration-list.test.js"],
+        "unitTestCoverage": ["tests/integration-list.test.js", "tests/integration-readback.test.js"],
         "realE2ECoverage": "none",
         "currentVerdict": "PLATFORM_PROBE_REQUIRED",
         "verificationLevel": "PLATFORM_PROBE_REQUIRED",
-        "notes": "No reliable enable/disable API contract was found in the pinned designer bundle. Absence of a string is not evidence that the platform lacks the feature."
+        "notes": "The CLI now requires exact paginated list status plus non-empty detail presence after switch and fails closed otherwise. The honest result is PLATFORM_LIST_EXACT_DETAIL_PRESENT, not detail exact; the endpoint wrapper, idempotency and real final state remain PLATFORM_PROBE_REQUIRED until a real owned-resource run."
       },
       {
         "capability": "integration_detail_readback_wrapper",
@@ -474,12 +474,12 @@
         "evidenceLocator": "fixtures/pinned-bundle-protocol-extract.json#save-process-view-payload",
         "frontendComponentOrApi": ["/query/simpleProcess/getProcess.json", "/query/simpleProcess/getProcessById.json"],
         "skillDeclarationLocation": ["yida-skills/skills/yida-integration/references/integration-node-schemas.md#saveProcess保存逻辑流"],
-        "cliImplementationLocation": ["lib/integration/integration-update.js#detectIntegrationUpdateCapability"],
-        "unitTestCoverage": ["tests/integration-update.test.js"],
+        "cliImplementationLocation": ["lib/integration/integration-update.js#detectIntegrationUpdateCapability", "lib/integration/integration-api.js#getLogicflowDetail", "lib/integration/integration-readback.js"],
+        "unitTestCoverage": ["tests/integration-update.test.js", "tests/integration-api.test.js", "tests/integration-readback.test.js"],
         "realE2ECoverage": "getProcess and getProcessById returned content containing view schema/globalSetting only; getConfig returned designer component package configuration; no runtime process JSON wrapper was observed",
         "currentVerdict": "PLATFORM_PROBE_REQUIRED",
         "verificationLevel": "PLATFORM_PROBE_REQUIRED",
-        "notes": "One tenant/run established a view-only content wrapper for getProcess/getProcessById, but did not expose runtime process JSON. Object-versus-string fields, json-versus-processJson naming and cross-tenant/version behavior still require an independent captured runtime definition response."
+        "notes": "One tenant/run established view-only content for getProcess/getProcessById without a proven identity-bearing wrapper or runtime process JSON. The CLI labels this as detail presence, validates optional top-level processCode/formUuid projections when present, and never promotes it to detail exact; integration update remains PLATFORM_PROBE_REQUIRED."
       },
       {
         "capability": "execution_log_and_status_contract",
@@ -555,11 +555,11 @@
         "frontendComponentOrApi": ["ConnectorNode", "ConnectorSetter"],
         "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#参数说明", "yida-skills/skills/yida-integration/SKILL.md#运行日志巡检与诊断"],
         "cliImplementationLocation": ["lib/integration/integration-process-builder.js", "lib/integration/integration-view-builder.js", "lib/integration/integration-create.js", "lib/integration/integration-diagnostics.js"],
-        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-create.test.js", "tests/integration-diagnostics.test.js"],
+        "unitTestCoverage": ["tests/integration-process-builder.test.js", "tests/integration-create.test.js", "tests/integration-connector-schema.test.js", "tests/integration-diagnostics.test.js", "tests/e2e-real-integration-runtime-runner.test.js"],
         "realE2ECoverage": "none",
         "currentVerdict": "PLATFORM_PROBE_REQUIRED",
         "verificationLevel": "PLATFORM_PROBE_REQUIRED",
-        "notes": "Connector inputs are known, while output schemas, error payloads and retry behavior require captured or runtime platform evidence."
+        "notes": "Unknown connector/action schemas no longer synthesize TextField inputs. Creation requires a fixed proven preset or exact read-only platform action discovery, while output payloads, runtime errors and retry behavior still require real runtime evidence."
       },
       {
         "capability": "initiate_approval_runtime_behavior",
@@ -595,11 +595,11 @@
         "frontendComponentOrApi": ["/query/simpleProcess/publishProcess.json", "/query/formLogicflowBinding/switchflow.json"],
         "skillDeclarationLocation": ["yida-skills/skills/yida-integration/SKILL.md#功能概述", "yida-skills/skills/yida-integration/references/integration-node-schemas.md#switchLogicflow开启关闭逻辑流"],
         "cliImplementationLocation": ["lib/integration/integration-create.js", "lib/integration/integration-api.js#switchLogicflow", "lib/integration/integration-list.js"],
-        "unitTestCoverage": ["tests/integration-create.test.js", "tests/integration-list.test.js"],
+        "unitTestCoverage": ["tests/integration-create.test.js", "tests/integration-list.test.js", "tests/integration-readback.test.js"],
         "realE2ECoverage": "none",
         "currentVerdict": "PLATFORM_PROBE_REQUIRED",
         "verificationLevel": "PLATFORM_PROBE_REQUIRED",
-        "notes": "A publish endpoint reference is confirmed, but final published/enabled status and read-after-write behavior require a platform probe."
+        "notes": "Publish and switch now require exact full-pagination list status plus non-empty process detail presence and fail closed otherwise. The returned level is PLATFORM_LIST_EXACT_DETAIL_PRESENT; no real platform write was run, so the server-side final-state and identity-bearing detail contracts remain PLATFORM_PROBE_REQUIRED."
       }
     ]
   },

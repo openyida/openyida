@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-28T10:13:48+08:00",
+  "campaign": {
+    "runId": "wk-20260828-sixcap-27616a5",
+    "branch": "feat/six-capability-frontend-gap-e2e",
+    "head": "27616a563ef5311e44c71df8653611d4eacc3661",
+    "commandEntry": "node bin/yida.js",
+    "npmLinkUsed": false,
+    "pushPerformed": false,
+    "releaseDelta": {
+      "range": "v2026.8.20..v2026.8.25",
+      "from": "7748c786067d6117285e13e52d35fcd50258532b",
+      "to": "3bbc2ad4e4432c024bbfc3c9da7b55bb96380504",
+      "commits": 2,
+      "files": 120,
+      "insertions": 18842,
+      "deletions": 896,
+      "officialRelease": "https://github.com/openyida/openyida/releases/tag/v2026.8.25",
+      "officialCompare": "https://github.com/openyida/openyida/compare/v2026.8.20...v2026.8.25"
+    },
+    "postReleaseDelta": {
+      "range": "v2026.8.25..27616a563ef5311e44c71df8653611d4eacc3661",
+      "commits": 47,
+      "files": 211,
+      "insertions": 19682,
+      "deletions": 4641
+    }
+  },
+  "qoderRuns": [
+    {
+      "runId": "20260828-093052-f8d6bb64",
+      "purpose": "只读审计两段 release delta、最终 tree 与遗漏风险",
+      "status": "complete",
+      "command": "qodercli -w <feature-worktree> --max-turns 25 --max-output-tokens 16k -p <prompt>",
+      "promptSha256": "1e861a3395dd8692dea433a3935ce4b100dd00e8f0e9022971ec3fa17ed148c5",
+      "summarySha256": "2f9ab9eb10de54025b52e2f5ae39b86d9fdef10eede90336fbc3e2c16ed7a919",
+      "findingsSha256": "0ebc8dcec60117c14c1c4a47bc4cdfe5d697ed955b459e506732886135505409",
+      "ownerConclusion": "25 个实质 change_id；release/merge/version-only 提交只作为谱系，不虚构能力。"
+    },
+    {
+      "runId": "20260828-093448-c4f51c09",
+      "purpose": "读取当前集成代码和 OpenYida skills，以自然语言真实搭建 owned 应用",
+      "status": "complete",
+      "startedAt": "2026-08-28T09:34:49+08:00",
+      "finishedAt": "2026-08-28T10:10:00+08:00",
+      "qoderVersion": "1.1.3",
+      "command": "qodercli -w <feature-worktree> --max-turns 25 --max-output-tokens 16k --dangerously-skip-permissions -p <prompt>",
+      "promptSha256": "234a07ebc4bf3fda03c487c4d9f49473fd2d514c595372647fc234262acf598a",
+      "summarySha256": "e8d77591545034961c98453a708ea5d4fd092ee597cc0d9db1986425177f3203",
+      "findingsSha256": "25b02d8b7d6d9f8ce941047eb83ff97b28f4d6762f6aefc2662344710084e7a9",
+      "registrySha256": "6639495c6be9dcd688ae8e9633cd812887325909cf51ffa96c3d5a0f706c9b6c",
+      "rawBuildLogSha256": "93c42f66b1a61a25ea09afbd2e579441b55f53e7cf3e2d1e54bcca6aaf3a9861",
+      "qoderClaim": "8 PASS, 1 PLATFORM_PROBE_REQUIRED",
+      "ownerConclusion": "Qoder 的资源创建与节点数量可追溯，但其 PASS 口径被独立平台 readback 推翻：集成节点未配置、聚合表为空、报表运行异常、工作台只有 marker。"
+    }
+  ],
+  "ownedApplication": {
+    "name": "跨域运营变更治理中心-wk-20260828-sixcap-27616a5",
+    "appType": "APP_CTPBSLJ5DFONUFM0NFZ6",
+    "mainEntry": "https://ding.aliwork.com/APP_CTPBSLJ5DFONUFM0NFZ6/workbench",
+    "resources": [
+      {"kind": "form", "name": "变更申请台账", "id": "FORM-2A9293198CAB4825A304B9B30872D83AKH9O", "fields": 7, "seedRows": 2, "verdict": "PLATFORM_READBACK_VERIFIED"},
+      {"kind": "form", "name": "资产清单", "id": "FORM-95B51A911B594CAB993D086FB6943A5901XD", "fields": 7, "seedRows": 1, "verdict": "PLATFORM_READBACK_VERIFIED"},
+      {"kind": "form", "name": "执行回执", "id": "FORM-A0AEBC2C3C0748079CEFF29E041F604885HO", "fields": 6, "seedRows": 1, "verdict": "PLATFORM_READBACK_VERIFIED"},
+      {"kind": "process", "name": "重大变更审批流程", "id": "FORM-6B254C6DC36C42BF9615B23B4899B673V5CM", "processCode": "TPROC--XPH66BB1L3P8QMSQGD5UVBGBMOV023TRHACTM3", "version": 3, "nodes": 12, "verdict": "PLATFORM_VIEW_VERIFIED_RUNTIME_BLOCKED_SECOND_IDENTITY"},
+      {"kind": "integration", "name": "变更治理集成V3-sixcap", "processCode": "LPROC-51B66KD19BO83TQMPP2QDB9GHPU83FKK6BCTMP6", "nodes": 15, "verdict": "BLOCKED_INTEGRATION_NODES_UNCONFIGURED"},
+      {"kind": "aggregate", "name": "变更治理聚合视图", "id": "FORM-70A3F7B5B9774888BA99ED86CF14561DSSND", "verdict": "BLOCKED_AGGREGATE_EMPTY_CONFIG"},
+      {"kind": "report", "name": "变更治理分析报表", "id": "REPORT-2PE66Q91SGP8WDXKITQX0APAT5462T8RMACTM5", "verdict": "BLOCKED_REPORT_RUNTIME_QUERY_ERROR"},
+      {"kind": "report", "name": "变更治理分析报表（Qoder 重试副本）", "id": "REPORT-CPE66VB1Z0P83SK9KMN5V686BVML3XVEPACTM7", "verdict": "BLOCKED_REPORT_RUNTIME_QUERY_ERROR"},
+      {"kind": "display", "name": "变更治理工作台", "id": "FORM-FF7B3423D5EF45F583D901AEC522D0DBQJGX", "verdict": "BLOCKED_WORKBENCH_MARKER_ONLY"},
+      {"kind": "permission", "name": "表单权限包", "count": 2, "mode": "read_only", "verdict": "PLATFORM_READBACK_VERIFIED_MUTATION_PROBE_REQUIRED"},
+      {"kind": "connector", "verdict": "BLOCKED_CONTROLLED_FIXTURE"}
+    ]
+  },
+  "artifacts": [
+    {"path": "project/.cache/openyida/wk-20260828-sixcap-27616a5/owner-verify/readback-summary.json", "sha256": "c289b5080dc9a50a32a93688888edb7d7317d38ad459c25ea558671d72e3c5c9", "sensitiveScan": "PASS"},
+    {"path": "project/.cache/openyida/wk-20260828-sixcap-27616a5/validation-summary.txt", "sha256": "eb9dda857d2965364b558d75369f52bb544348c77e7b5ea2810ef9dd2ed4c534", "sensitiveScan": "PASS"},
+    {"path": "docs/reports/openyida-v2026.8.25-integration-e2e-matrix.json", "sha256AtIndexCreation": "dad6941dd48791fccb329bbf4244ad91eb7cdf4e6f02f611c72c525f51418546"}
+  ],
+  "screenshots": [
+    {"id": "S01", "changeIds": ["B-FORM-SCHEMA-001", "B-DATA-INTEGRATION-SAFETY-001"], "resource": "变更申请台账", "urlType": "authenticated form runtime", "capturedAt": "2026-08-28T10:06:22+08:00", "path": "project/.cache/openyida/wk-20260828-sixcap-27616a5/screenshots/S01-form-submit-safe.png", "sha256": "2e74679391552c0dfe7b76e3db655a6632c9d41f9524525d01795c80aa05dbc4"},
+    {"id": "S02-top", "changeIds": ["A-PROCESS-001", "B-PROCESS-READBACK-001"], "resource": "重大变更审批流程", "urlType": "authenticated process designer", "capturedAt": "2026-08-28T10:04:49+08:00", "path": "project/.cache/openyida/wk-20260828-sixcap-27616a5/screenshots/S02b-process-designer-12-node-readback-zoom.png", "sha256": "6a2536a3aed555f52daec28dea4c1237bc0f1146c4f542a2cdb2cd725ce2a4ba"},
+    {"id": "S02-bottom", "changeIds": ["A-PROCESS-001", "B-PROCESS-READBACK-001"], "resource": "重大变更审批流程", "urlType": "authenticated process designer", "capturedAt": "2026-08-28T10:04:59+08:00", "path": "project/.cache/openyida/wk-20260828-sixcap-27616a5/screenshots/S02c-process-designer-bottom.png", "sha256": "1ce9c63afdc98589fbb027be714e9b7ca880226fe9e67e457027e56f680bd3db"},
+    {"id": "S03", "changeIds": ["B-REPORT-001", "B-REPORT-TIME-001"], "resource": "变更治理分析报表", "urlType": "authenticated report runtime", "capturedAt": "2026-08-28T10:06:28+08:00", "path": "project/.cache/openyida/wk-20260828-sixcap-27616a5/screenshots/S03-report-runtime-query-error-safe.png", "sha256": "c5969df4b0f0205d66ec4dc2bdaaf96f415baffb4983b16acdfe3a68a3e1f6b6"},
+    {"id": "S04", "changeIds": ["B-AGGREGATE-001"], "resource": "变更治理聚合视图", "urlType": "authenticated aggregate configuration", "capturedAt": "2026-08-28T09:59:58+08:00", "path": "project/.cache/openyida/wk-20260828-sixcap-27616a5/screenshots/S04-aggregate-empty-config.png", "sha256": "b42898b61ea5b45a4d14ebe785b8a7dae1a1d9df40f545b6f8dbbf8bb3de0db2"},
+    {"id": "S05", "changeIds": ["B-CANVAS-COMPILE-001", "B-CANVAS-RUNTIME-001"], "resource": "变更治理工作台", "urlType": "authenticated custom-page runtime", "capturedAt": "2026-08-28T10:06:33+08:00", "path": "project/.cache/openyida/wk-20260828-sixcap-27616a5/screenshots/S05-workbench-marker-only-safe.png", "sha256": "056fd1466c7c5d20fabc45048908072a4d7ddc36bb16b82a83681963b081be18"},
+    {"id": "S06", "changeIds": ["A-PERMISSION-001", "B-PERMISSION-READBACK-001"], "resource": "表单权限配置", "urlType": "authenticated permission configuration", "capturedAt": "2026-08-28T10:00:51+08:00", "path": "project/.cache/openyida/wk-20260828-sixcap-27616a5/screenshots/S06-permission-config.png", "sha256": "3253d36b771134a55427772129094682d9626ddf244fb2db1079358462431534"},
+    {"id": "S07-intermediate", "changeIds": ["A-INTEGRATION-001", "B-INTEGRATION-RUNTIME-001"], "resource": "变更集成-sixcap-27616a5", "urlType": "authenticated integration designer", "capturedAt": "2026-08-28T10:01:49+08:00", "path": "project/.cache/openyida/wk-20260828-sixcap-27616a5/screenshots/S07-integration-designer-2-nodes.png", "sha256": "cdbb2ad63af8af8f69d201a7e3f2cf08a1c844a181f719143c0501988c54c03e"},
+    {"id": "S07-final-top", "changeIds": ["A-INTEGRATION-001", "B-INTEGRATION-RUNTIME-001"], "resource": "变更治理集成V3-sixcap", "urlType": "authenticated integration designer", "capturedAt": "2026-08-28T10:10:49+08:00", "path": "project/.cache/openyida/wk-20260828-sixcap-27616a5/screenshots/S07-integration-v3-15-nodes-top.png", "sha256": "8c99ee5417f78c9f9257895d84eb75e4f5d3a1f668464bebeb41d97813e3effa"},
+    {"id": "S07-final-bottom", "changeIds": ["A-INTEGRATION-001", "B-INTEGRATION-RUNTIME-001"], "resource": "变更治理集成V3-sixcap", "urlType": "authenticated integration designer", "capturedAt": "2026-08-28T10:10:51+08:00", "path": "project/.cache/openyida/wk-20260828-sixcap-27616a5/screenshots/S07b-integration-v3-15-nodes-bottom.png", "sha256": "12600255a740d56bcccc40ab41ee761ad2f0800056dfcdf7665eeafcf90ca4d3"}
+  ],
+  "validation": [
+    {"command": "focused Jest regression", "verdict": "PASS", "detail": "30 suites / 596 tests"},
+    {"command": "npm run check:ci", "verdict": "PASS", "detail": "162 suites / 2283 tests; lint 0 errors/28 warnings; release risk 0 errors/2 manual warnings"},
+    {"command": "npm run check:skills", "verdict": "PASS", "detail": "168 Markdown files"},
+    {"command": "npm run build:skills", "verdict": "BLOCKED_MISSING_SCRIPT", "detail": "script and scripts/build-skills-package.js are absent in final tree after retired Wukong/Aone path removal"},
+    {"command": "npm run check:i18n", "verdict": "PASS", "detail": "11 target locales; 0 missing/type conflict"},
+    {"command": "npm run check:i18n:audit", "verdict": "PASS"},
+    {"command": "npm pack gate within check:ci", "verdict": "PASS", "detail": "1.29 MiB tarball; 4.53 MiB unpacked; 393 files"},
+    {"command": "dependency audit during install", "verdict": "RESIDUAL", "detail": "1 low / 2 high existing findings"},
+    {"command": "git diff --check + JSON + scope/sensitive scan + final diff review", "verdict": "PASS", "detail": "all JSON parsed; no whitespace errors; tracked scope limited to 4 campaign/report files; sensitive-value shape matches 0"}
+  ],
+  "cleanupLedger": [
+    {"scope": "remote owned application and child resources", "status": "cleanup_blocked", "reason": "保留作为浏览器证据；且没有证明应用、集成、报表、聚合表均具备安全 exact-delete 契约。"},
+    {"scope": "permission", "status": "not_mutated", "reason": "只读 readback，没有需要恢复的 owned permission dimension。"},
+    {"scope": "connector", "status": "not_created", "reason": "BLOCKED_CONTROLLED_FIXTURE。"},
+    {"scope": "process runtime", "status": "not_triggered", "reason": "BLOCKED_SECOND_IDENTITY。"},
+    {"scope": "local raw owner API files", "status": "removed", "reason": "只保留脱敏 readback-summary；含操作者显示名的原始列表响应已删除。"},
+    {"scope": "unsafe uncropped screenshots", "status": "moved_to_trash", "reason": "可恢复；最终索引仅保留不含个人头像/姓名的安全截图。"}
+  ],
+  "oldStateScreenshot": {
+    "status": "unavailable",
+    "reason": "没有冻结旧平台版本和独立受控登录态；未回退或破坏当前集成代码来伪造旧态。"
+  }
+}

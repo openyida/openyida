@@ -71,6 +71,7 @@ module.exports = {
     group_report: 'レポート',
     cmd_create_report: '宜搭レポートを作成',
     cmd_append_chart: '既存レポートにチャートを追加',
+    cmd_report_inspect: 'レポートのランタイムバインドを読み取り専用で検査',
     group_connector: 'コネクタ',
     cmd_connector_list: 'HTTP コネクタ一覧',
     cmd_connector_create: 'コネクタを作成',
@@ -82,7 +83,7 @@ module.exports = {
     cmd_connector_test: 'アクションをテスト',
     cmd_connector_list_connections: '認証アカウント一覧を表示',
     cmd_connector_create_connection: '認証アカウントを作成',
-    cmd_connector_smart: 'スマート作成（cURL から）',
+    cmd_connector_smart: 'Generate a redacted action draft from cURL (no remote create)',
     cmd_connector_parse_api: 'API 情報を解析',
     cmd_connector_gen_template: 'API ドキュメントテンプレートを生成',
     cmd_connector_more: 'その他のサブコマンドを表示',
@@ -165,9 +166,9 @@ module.exports = {
       '  import <file> [name]                                         移行パッケージをインポートしてアプリを再構築\n' +
       '  get-permission <appType> <formUuid>                          フォーム権限設定を照会\n' +
       '  save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  フォーム権限設定を保存\n' +
-      '  configure-process <appType> <formUuid> <processDefinitionFile> [processCode]  プロセスを設定して公開\n' +
+      '  configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]  プロセスを設定して公開\n' +
       '  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>  プロセスフォームを作成（一体化）\n' +
-      '  create-process <appType> --formUuid <formUuid> <processDefinitionFile>         既存フォームでプロセス作成\n' +
+      '  create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]         既存フォームでプロセス作成\n' +
       '  connector list [オプション]                                  HTTP コネクター一覧\n' +
       '  connector create "名前" "ドメイン" --operations <file> [オプション]  コネクター作成\n' +
       '  connector detail <connector-id>                              コネクター詳細を表示\n' +
@@ -240,7 +241,7 @@ module.exports = {
     integration_help: 'Usage: openyida integration <create|update|list|enable|disable|check|diagnose> ...',
     integration_unknown: '不明な integration サブコマンド: {0}',
     integration_help_hint: '利用可能なサブコマンドは openyida integration --help で確認してください',
-    integration_list_usage: '使用方法: openyida integration list <appType> [--form-uuid <uuid>] [--status y|n] [--key <kw>] [--page <n>] [--size <n>] [--json]',
+    integration_list_usage: '使用方法: openyida integration list <appType> [--form-uuid <uuid>] [--status y|n] [--key <kw>] [--size <n>] [--json]',
     integration_list_example: '例: openyida integration list APP_XXX --form-uuid FORM-XXX --json',
     integration_enable_usage: '使用方法: openyida integration enable <appType> <formUuid> <processCode>',
     integration_enable_example: '例: openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
@@ -276,10 +277,10 @@ module.exports = {
     import_usage: '使用方法: openyida import <file> [name]',
     import_example1: '例: openyida import ./yida-export.json',
     import_example2: '    openyida import ./yida-export.json "品質追跡システム（本番環境）"',
-    configure_process_usage: 'Usage: openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode]',
+    configure_process_usage: 'Usage: openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]',
     configure_process_example: 'Example: openyida configure-process "APP_XXX" "FORM-YYY" .cache/openyida/process/process-definition.json',
     create_process_usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>\n' +
-      '        openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile>',
+      '        openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]',
     create_process_example: 'Example: openyida create-process "APP_XXX" "Order Form" .cache/openyida/process/fields.json .cache/openyida/process/process-definition.json',
     process_usage: 'Usage: openyida process <subcommand>\n' +
       '\n' +
@@ -287,9 +288,9 @@ module.exports = {
       '  preview <appType> <processInstanceId> [--output <path>]  Preview process instance (generate visual flowchart)',
     process_preview_usage: 'Usage: openyida process preview <appType> <processInstanceId> [--output <path>]',
     process_preview_example: 'Example: openyida process preview APP_XXX proc-inst-id-xxx',
-    get_permission_usage: 'Usage: openyida get-permission <appType> <formUuid>',
+    get_permission_usage: 'Usage: openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>]',
     get_permission_example: 'Example: openyida get-permission APP_XXX FORM-XXX',
-    save_permission_usage: 'Usage: openyida save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]',
+    save_permission_usage: 'Usage: openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>]',
     save_permission_example: `Example: openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ 実行に失敗しました: {0}',
     login_usage: 'Usage: openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
@@ -310,7 +311,7 @@ module.exports = {
     first_run_tip1: '  1. {0}openyida env{1} を実行して環境とログイン状態を確認',
     first_run_tip2: '  2. {0}openyida login{1} を実行してYida にログイン',
     first_run_tip3: '  3. AI ツールで作りたいアプリを説明してください 🚀',
-    first_run_footer1: '  対応 AI ツール：Codex / Claude Code / Aone Copilot / Cursor / OpenCode',
+    first_run_footer1: '  対応 AI ツール：Codex / Claude Code / Cursor / OpenCode',
     first_run_footer2: '  📚 ドキュメント：https://github.com/openyida/openyida',
     first_run_footer3: '  （このガイドは初回起動時のみ表示されます。openyida --help で全コマンドを確認できます）',
     auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch>',
@@ -356,6 +357,25 @@ module.exports = {
     excel_exported: 'Excel exported: {0}'
   },
   integration: {
+    spec_mixed_structural_flag: '{0} cannot be mixed with --spec. Put the complete node in the spec to prevent silently dropped parameters.',
+    spec_message_node_required: 'Notification flags mixed with --spec require an explicit sendMessage node in the spec.',
+    spec_get_process_schema: 'Fetch process-form Schema for {0}',
+    spec_get_process_schema_failed: 'Failed to fetch process-form Schema for {0}; remote writes were stopped: {1}',
+    spec_data_retrieve_conditions_required: 'dataRetrieve conditions must be non-empty; use getSelf for the triggering record.',
+    spec_data_create_assignments_required: 'dataCreate assignments must be non-empty.',
+    spec_data_update_assignments_required: 'dataUpdate assignments must be non-empty.',
+    spec_approval_form_required: 'initiateApproval requires formUuid.',
+    spec_approval_assignments_required: 'initiateApproval assignments must be non-empty.',
+    spec_approval_initiator_type: 'initiateApproval initiator must be current_user or select_user.',
+    spec_approval_initiator_value_required: 'initiateApproval select_user initiator requires value.',
+    spec_approval_initiator_identity_invalid: 'initiateApproval select_user initiator must be valid employee identity JSON.',
+    spec_route_branches_required: 'route must contain non-empty branches.',
+    spec_approval_current_user_required: 'initiateApproval current_user requires an authenticated user.',
+    spec_approval_initiator_missing: 'initiateApproval initiator is not configured.',
+    spec_desc_retrieve: 'Retrieve data from [{0}] using {1} condition(s)',
+    spec_desc_create: 'Write {1} field(s) to [{0}]',
+    spec_desc_update: 'Update {0} field(s) on upstream data',
+    spec_desc_approval: 'Initiate approval in [{0}] and write {1} field(s)',
     create_usage: 'Usage: openyida integration create <appType> <formUuid> <flowName> [options]',
     create_args_title: 'Arguments:',
     create_arg_app_type: '  appType              App ID, such as APP_XXX',
@@ -431,6 +451,32 @@ module.exports = {
     update_usage: 'Usage: openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]',
     update_missing_args: 'Missing required arguments: appType, formUuid, processCode, and --spec are required.',
     update_capability_blocked: 'Safe integration update is unavailable: full platform processJson + viewJson readback is not proven. No authentication or remote write was attempted.',
+    publish_readback_unverified: 'The publish response succeeded, but the final state could not be read back exactly: {0}',
+    readback_exact_match_failed: 'The logic flow could not be read back by exact processCode after the write: {0}',
+    readback_status_mismatch: 'The final logic-flow status did not match: expected {0}, received {1}',
+    readback_detail_failed: 'Logic-flow detail readback failed: {0}',
+    readback_detail_empty: 'Logic-flow detail readback was empty: {0}',
+    readback_detail_identity_mismatch: 'ロジックフロー詳細の識別情報が対象と一致しません：{0}',
+    readback_assignments_mismatch: 'ロジックフロー詳細の追加データ割り当てが保存済み定義と一致しません。',
+    detail_api_failed: 'Failed to read logic-flow detail: {0}',
+    list_pagination_limit: '集成自動化一覧が安全なページネーション上限を超えました。',
+    form_list_pagination_limit: 'The form integration flow list exceeded the safe pagination limit.',
+    connector_schema_file_unverified: 'Caller-provided --connector-inputs is no longer trusted; connector schema must come from read-only platform discovery or a fixed proven preset.',
+    connector_not_found: 'Connector not found through read-only discovery: {0}',
+    connector_schema_discovery_failed: 'Read-only connector schema discovery failed: {0}',
+    connector_schema_missing: 'The read-only connector detail did not contain a verifiable operations schema.',
+    connector_action_not_found: 'Connector action not found by exact read-only discovery: {0}',
+    connector_action_schema_missing: 'The connector action does not contain a verifiable inputs/outputs schema.',
+    connector_input_unknown: 'Connector input was not found in the verified schema: {0}',
+    connector_schema_unverified: 'Connector action schema is unverified: {0}::{1}',
+    runtime_case_unknown: 'Unknown integration runtime case: {0}',
+    runtime_adapter_missing: '集成自動化ランタイムアダプターが設定されていません。',
+    runtime_preflight_not_read_only: 'Integration runtime preflight was not read-only with zero writes: {0}',
+    runtime_ownership_unverified: 'Integration runtime ownership is unverified: {0}',
+    runtime_trigger_rejected: 'Integration runtime trigger was not accepted: {0}',
+    runtime_contract_failed: 'Integration runtime contract failed: {0}',
+    runtime_cleanup_failed: 'Integration runtime cleanup failed: {0}',
+    runtime_primary_cleanup_failed: 'Integration runtime execution and cleanup both failed: {0}',
   },
   env: {
     title: '  openyida env - 環境検出',
@@ -474,6 +520,13 @@ module.exports = {
     playwright_install1: '   npm install -g playwright',
     playwright_install2: '   npx playwright install chromium',
     browser_opening: '\n🔐 ブラウザを開いて OAuth ログインを開始します...',
+    oauth_success_title: 'ログインしました',
+    oauth_success_message: 'ログインが完了しました。元のウィンドウに戻って操作を続けてください。',
+    oauth_closing: 'このウィンドウを自動的に閉じています…',
+    oauth_manual_close: 'このウィンドウを自動で閉じることができませんでした。手動で閉じて、元のウィンドウに戻って操作を続けてください。',
+    oauth_failure_title: 'ログインが完了していません',
+    oauth_invalid_state: 'ログイン要求を確認できませんでした。ターミナルに戻ってもう一度お試しください。',
+    oauth_missing_code: '認証情報を受信できませんでした。ターミナルに戻ってもう一度お試しください。',
     login_url_label: '  ログイン URL: {0}',
     waiting_login: '  ログイン完了を待機中（最大 10 分）...',
     login_timeout: '  ⏰ ログインがタイムアウトしました（10 分）。再試行してください。',
@@ -695,6 +748,12 @@ module.exports = {
     patch_must_not_be_empty: 'Patch array must not be empty',
     patch_invalid_shape: 'Patch must be an array, {operations: []}, or a single operation object',
     patch_parse_failed: 'Failed to parse patch JSON: ',
+    action_event_conflict: 'Field "{0}" event {1} is already bound to action "{2}"; silent replacement is blocked. Set replaceExisting=true only after confirming replacement.',
+    action_source_export_missing: 'The action source does not export the requested function "{0}".',
+    action_source_missing: 'Action function "{0}" was not found. Provide source/sourceFile or define it in the action module first.',
+    action_binding_incomplete: 'The form action function, action registry entry, and field event binding are incomplete. The Schema was not saved.',
+    action_readback_failed: 'The form action save was accepted, but readback failed: {0}',
+    action_readback_mismatch: 'The form action save was accepted, but the remote function, action registry entry, or field event binding did not match.',
     rule_file_not_found: 'Rule file not found: ',
     rule_array_empty: 'Rule array must not be empty',
     rules_array_empty: 'The rules array must not be empty',
@@ -806,6 +865,13 @@ module.exports = {
     '  openyida org list --json                    # List accessible organizations\n' +
     '  openyida org switch --corp-id dingXXX       # Switch by OAuth re-login to the specified organization',
   title: '  openyida import - Yida App Import Tool',
+  save_permission: {
+    package_uuid_create_conflict: '--package-uuid は --create と同時に使用できません',
+    package_uuid_not_found: 'packageUuid={0} の権限グループが見つからないため、書き込みなしで中止しました',
+    before_unknown: '書き込み前の完全な権限状態を取得できないため中止しました: {0}',
+    verify_failed: '権限書き込み後の厳密な再取得結果が一致しません (packageUuid={0})',
+    verify_unknown: '権限書き込み結果が不明です (packageUuid={0})。再試行前に厳密に照会してください',
+  },
   get_page_config: {
     usage: '使用方法: openyida get-page-config <appType> <formUuid>',
     example: '例: openyida get-page-config APP_XXX FORM-XXX',
@@ -824,13 +890,14 @@ module.exports = {
     usage: '使用方法: openyida save-share-config <appType> <formUuid> <openUrl> <isOpen> [openAuth]',
     example: '例: openyida save-share-config "APP_XXX" "FORM-XXX" "/o/xxx" "y" "n"',
     is_open_hint: '  isOpen: y=公開アクセスを有効化, n=公開アクセスを無効化',
-    open_auth_hint: '  openAuth: y=認証が必要, n=認証不要（デフォルト）',
+    open_auth_hint: '  openAuth: y=認証が必要, n=認証不要。省略時は既存の認証設定全体を保持',
     title: '  save-share-config - Yida 公開アクセス設定保存ツール',
     app_id: '\n  アプリ ID:      {0}',
     form_uuid: '  フォーム UUID:  {0}',
     open_url: '  公開 URL:       {0}',
     is_open: '  公開設定:       {0}',
     open_auth: '  認証が必要:     {0}',
+    open_auth_preserve: '現在の値を保持',
     step_validate: '\n📋 Step 0: パラメータを検証',
     validate_ok: '  ✅ パラメータ検証通過',
     validate_failed: '  ❌ 検証失敗: {0}',
@@ -918,10 +985,16 @@ module.exports = {
     done: 'Process form creation completed',
     url: 'URL',
     usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>',
-    usage2: '       openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile>',
+    usage2: '       openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]',
     example: 'Example: openyida create-process "APP_XXX" "Order Form" .cache/openyida/process/fields.json .cache/openyida/process/process-definition.json',
     example2: '         openyida create-process "APP_XXX" --formUuid FORM-YYY .cache/openyida/process/process-definition.json'
   },
+  configure_process: {
+    replace_required: '公開済みプロセスまたは保存済み下書きがあります。完全置換には --replace の明示指定が必要です。リモート書き込みは行われていません。',
+    ownership_unverified: 'processCode がこのフォームに属することを確認できません。別のプロセスを上書きしないよう、リモート書き込みは行われていません。',
+    published_unverified: '公開要求は成功しましたが、PUBLISHED バージョンのプラットフォームビューを完全に検証できませんでした。再試行前に状態を読み戻してください。',
+  },
+
   update_form_config: {
     usage: '使用方法: openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: '例: openyida update-form-config "APP_XXX" "FORM_XXX" "false" "マイページ"',
@@ -991,9 +1064,9 @@ module.exports = {
     no_package: '\n❌ openyida パッケージディレクトリが見つかりません',
     no_package_hint1: '   openyida がグローバルにインストールされていることを確認してください：',
     no_package_hint2: '   npm install -g openyida',
-    no_ai_tool: '\n❌ アクティブな AI ツール環境が検出されませんでした\n   対応ツール：悟空、Codex、OpenCode、Claude Code、Aone Copilot、Cursor、Qoder\n\n   現在の検出結果：',
+    no_ai_tool: '\n❌ アクティブな AI ツール環境が検出されませんでした\n   対応ツール：Codex、OpenCode、Claude Code、Cursor、Qoder\n\n   現在の検出結果：',
     no_active_tool: '\n❌ アクティブな AI ツール環境が検出されませんでした',
-    supported_tools: '   対応ツール：悟空、Codex、OpenCode、Claude Code、Aone Copilot、Cursor、Qoder',
+    supported_tools: '   対応ツール：Codex、OpenCode、Claude Code、Cursor、Qoder',
     current_result: '\n   現在の検出結果：',
     force_hint: '\n   現在のディレクトリに強制コピーするには、次を実行してください：\n   openyida copy --force',
     force_cmd: '   openyida copy --force',
@@ -1014,12 +1087,10 @@ module.exports = {
     symlinks_created: '   作成したシンボリックリンク: {0} 個',
     result_symlink: '   {0} → {1}（シンボリックリンク）',
     result_copy: '   {0} → {1}（{2} ファイル）',
-    wukong_skills_cleanup: '\n🗑️  悟空環境：yida-skills/ シンボリックリンクを削除中（悟空はスキルを手動アップロードするため、シンボリックリンク不要）...',
-    wukong_skills_cleaned: '削除済み',
-    wukong_skills_not_found: '    ℹ️  yida-skills/ シンボリックリンクまたはディレクトリが見つかりません: {0}',
     remove_failed: '    ❌ 削除失敗: {0} ({1})',
     symlink_fallback_copy: '    ⚠️  Windows でシンボリックリンク作成失敗（管理者権限が必要）、ディレクトリコピーにフォールバック: {0}',
-    symlink_failed: '    ❌ シンボリックリンク作成失敗: {0} ({1})'
+    symlink_failed: '    ❌ シンボリックリンク作成失敗: {0} ({1})',
+    source_destination_overlap: 'コピー元とコピー先のディレクトリが重複しているため、コピーを停止しました。コピー元: {0}、コピー先: {1}'
   },
   check_update: {
     new_version: '\n' +
@@ -1243,7 +1314,7 @@ module.exports = {
     install_success: '  ✅ インストール完了！{0} Yida AI 開発ツールが使用可能になりました。',
     update_success: '  ✅ 更新完了！{0} OpenYida が最新バージョンにアップグレードされました。',
     ai_mode_title: '  🚀 AI 会話モードを開始',
-    ai_mode_desc: '  Codex / Claude Code / Aone Copilot / Cursor などの AI ツールで直接チャット：',
+    ai_mode_desc: '  Codex / Claude Code / Cursor などの AI ツールで直接チャット：',
     prompt1: '  📋  「Yida で勤怠管理システムを作ってください」',
     prompt2: '  💰  「個人給与計算アプリを構築してください」',
     prompt3: '  🏢  「CRM 顧客管理システムを作成してください」',
@@ -1623,6 +1694,7 @@ module.exports = {
     disabled: 'AI approval prompts disabled',
     unknown_subcommand: 'Unknown ai-form-setting subcommand: {0}'
   },
+  report_runtime: require('../../lib/report/i18n-messages').ja,
   safe_json: {
     hint_unquoted_key: 'キー名がダブルクォートで囲まれていない可能性があります（JSON ではすべてのキーをダブルクォートで囲む必要があります。例: {"name":1}）',
     hint_single_quote: `シングルクォートが使用されている可能性があります（JSON はダブルクォート " のみ許可し、シングルクォート ' は許可しません）`,
@@ -1638,7 +1710,7 @@ module.exports = {
   },
   codex_login: {
     title: '  openyida login {0} - {1} Login Mode',
-    not_codex: 'Current environment is not detected as Codex / Qoder / Wukong; returning an in-app browser login handoff only.',
+    not_codex: 'Current environment is not detected as Codex / Qoder; returning an in-app browser login handoff only.',
     no_playwright: '{0} mode does not require Playwright or a separate Chromium install.',
     using_browser: '{0} in-app Browser is only suitable for unauthenticated page previews; use openyida login for CLI auth.',
     browser_handoff_hint: '{0} in-app Browser is not used for CLI auth. Use openyida login.',
@@ -1756,6 +1828,14 @@ Object.assign(module.exports.publish || (module.exports.publish = {}), {
 });
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  command_unsupported: '未対応のデータコマンドです: {0} {1}。実際の機能は openyida commands --json で確認してください。',
+  delete_confirmation_required: 'フォームレコードを削除する前に対象を読み取り、概要をユーザーに提示し、明示的な承認後にのみ --confirm を追加してください。削除は実行されていません。',
+  delete_preflight_failed: '削除前確認のためフォームレコード {0} を読み取れませんでした。削除は実行されていません。',
+  delete_process_unsupported: 'このバージョンではプロセスインスタンスの削除に対応していません。処理を停止して機能不足を報告し、スクリプトや非公開 API を使用しないでください。',
+  delete_readback_mismatch: '削除要求は受理されましたが、再読み取り時にフォームレコード {0} が残っています。結果は未検証です。削除を自動再試行しないでください。',
+  delete_result_unknown: 'フォームレコード {0} の削除結果は不明です。読み取り専用で確認し、削除を自動再試行しないでください。',
+  delete_target_mismatch: 'フォームレコード {0} は対象フォーム {1} に属していません。削除前に処理を停止しました。',
+  delete_target_unverified: 'フォームレコード {0} の識別情報と所属を検証できませんでした。削除前に処理を停止しました。',
   form_mode_unverified: 'フォーム {0} の種類を検証できませんでした。データを書き込まずに作成を停止しました。',
   resource_required: 'data query にリソース種別 form がありません。推奨コマンド: {0}',
 });
@@ -1763,3 +1843,66 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
 Object.assign(module.exports.common || (module.exports.common = {}), {
   non_idempotent_result_unknown: '作成リクエスト中に認証状態が変化したため、作成結果を確認できません。再試行する前に対象の状態を確認してください。',
 });
+
+Object.assign(module.exports.permission_common || (module.exports.permission_common = {}), {
+  unsupported_argument: 'サポートされていない引数: {0}',
+});
+
+Object.assign(module.exports.permission_list || (module.exports.permission_list = {}), {
+  query_failed: '権限グループの照会に失敗しました',
+  query_success: '  ✅ 権限設定の照会に成功しました：{0} グループ',
+  query_success_message: '権限設定の照会に成功しました',
+  invalid_structure: '権限グループの照会で認識できないリスト構造が返されました',
+  duplicate_uuid: '権限グループのページング結果で packageUuid={0} が重複しました',
+  pagination_limit: '権限グループの照会が安全なページ上限（{0} ページ）に達したため、結果の完全性を証明できません',
+});
+
+Object.assign(module.exports.save_permission || (module.exports.save_permission = {}), {
+  write_accepted_readback: '    ✅ 書き込み要求が成功しました。正確な再読み取りを開始します',
+  saved_message: '権限設定を保存しました',
+});
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  platform_view_json_invalid: 'getProcessById の内容は有効な JSON である必要があります: {0}',
+  platform_view_request_failed: 'getProcessById は成功レスポンスを返しませんでした。',
+  platform_view_content_invalid: 'getProcessById の内容はオブジェクトとして解決される必要があります。',
+  platform_view_schema_missing: 'プラットフォームビューには CanvasEngine schema が必要です。',
+  platform_view_nodes_missing: 'プラットフォームビューの schema.children は配列である必要があります。',
+  multi_approval_mode_invalid: '複数承認モードは all、or、oneByOne のいずれかである必要があります: {0}',
+  form_mode_operation_failed: 'フォームモード操作に失敗しました。',
+});
+
+Object.assign(module.exports.process_diagnostics || (module.exports.process_diagnostics = {}), {
+  preflight_form_mode: '再試行する前に appType、formUuid、プロセスの関連付けを確認してください。',
+  authorize_replacement: '完全な置換概要を提示し、明示的な確認を得てから --replace を指定してください。',
+  verify_published_view: '公開済みの可能性があります。書き込みを再試行せず、正確な PUBLISHED バージョンとプラットフォームビューを読み取り専用で確認してください。',
+  unknown_result: '書き込み結果は不明です。読み取り専用の状態確認または手動検証のみを行い、書き込みを直接再試行しないでください。',
+});
+
+Object.assign(module.exports.create_process || (module.exports.create_process = {}), {
+  login_required: '有効な宜搭ログイン状態がありません。先に openyida login を実行してください。',
+});
+module.exports.connector_test = {
+  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--json]',
+  invalid_json: '{0} is not valid JSON: {1}', json_object_required: '{0} must be a JSON object',
+  unknown_flat_param: 'Parameter {0} is not in the action schema; use structured JSON options', ambiguous_flat_param: 'Parameter {0} belongs to multiple locations; use structured JSON options',
+  auth_account_required: 'This connector requires an owned auth account passed with --account-id', auth_account_not_owned: 'Account {0} does not belong to this connector',
+  arguments_required: '--connector-id and --action are required', connector_not_found: 'Connector ID not found: {0}', operations_invalid: 'Connector operations are not valid JSON', action_not_found: 'Action not found: {0}',
+  success: '✅ Test succeeded', status_label: 'HTTP status:', headers_label: 'Response headers:', content_label: 'Response body:',
+};
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  instance_target_mismatch: 'Instance {0} does not belong to expected business resource {1}. The operation stopped before mutation.',
+  instance_target_unverified: 'Could not verify the business resource ownership of instance {0}. The operation stopped before mutation.',
+  target_expectation_invalid: '--expect-form-type must be {0}. The operation stopped before mutation.',
+  target_identity_mismatch: 'Target resource {0} does not match the expected name or type. The operation stopped before mutation.',
+  target_identity_unverified: 'Could not read the name and type of target resource {0}. The operation stopped before mutation.',
+});
+
+const connectorSafetyMessages = require('../../lib/core/locales/en');
+module.exports.connector_contract = connectorSafetyMessages.connector_contract;
+module.exports.connector_api = connectorSafetyMessages.connector_api;
+module.exports.connector_e2e = connectorSafetyMessages.connector_e2e;
+module.exports.connector_action_update = connectorSafetyMessages.connector_action_update;
+module.exports.connector_update_action = connectorSafetyMessages.connector_update_action;
+module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e2e;
+module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;

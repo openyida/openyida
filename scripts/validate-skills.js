@@ -10,7 +10,6 @@ const SKILLS_ROOT = path.join(ROOT, 'yida-skills');
 const SKILLS_DIR = path.join(SKILLS_ROOT, 'skills');
 const INDEX_FILE = path.join(SKILLS_ROOT, 'SKILL.md');
 const SKILLS_INDEX_FILE = path.join(SKILLS_ROOT, 'skills-index.json');
-const GENERATED_SKILL_ROOT = path.join(ROOT, 'dist', 'skills', 'openyida');
 const MAX_RECOMMENDED_LINES = 500;
 const SKILLS_INDEX_ENTRY_ALLOWED_FIELDS = new Set([
   'name',
@@ -140,21 +139,6 @@ function validateRootSkillFrontmatter() {
   if (!frontmatter) {
     errors.push(toRelative(INDEX_FILE) + ': missing YAML frontmatter');
     return;
-  }
-
-  const fieldNames = frontmatter.split(/\r?\n/).filter(function(line) {
-    return /^[a-zA-Z0-9_-]+:\s*/.test(line);
-  }).map(function(line) {
-    return line.split(':')[0];
-  });
-
-  const allowedFields = ['name', 'description'];
-  const unexpectedFields = fieldNames.filter(function(fieldName) {
-    return !allowedFields.includes(fieldName);
-  });
-
-  if (unexpectedFields.length > 0) {
-    errors.push(toRelative(INDEX_FILE) + ': Wukong root skill frontmatter must only contain name and description');
   }
 
   const name = frontmatterField(frontmatter, 'name');
@@ -367,81 +351,6 @@ function validateSkillsIndex(skillDirNames, options = {}) {
   return index;
 }
 
-function comparableSkillEntry(entry) {
-  return Object.keys(entry).sort().reduce(function(result, key) {
-    if (key !== 'path') {
-      result[key] = entry[key];
-    }
-    return result;
-  }, {});
-}
-
-function validateGeneratedSkillsIndex(sourceIndex, generatedIndexFile) {
-  const generatedIndex = validateSkillsIndex(sourceIndex.skills.map(function(skill) {
-    return skill.name;
-  }).sort(), {
-    indexFile: generatedIndexFile,
-    indexRoot: GENERATED_SKILL_ROOT,
-    pathPattern: /^references\/subskills\/[a-z0-9-]+\/README\.md$/,
-    pathForSkill: function(skillName) {
-      return 'references/subskills/' + skillName + '/README.md';
-    },
-    skillNameFromPath: function(entryPath) {
-      return entryPath.split('/')[2];
-    },
-    frontmatterRequired: false,
-  });
-
-  if (!generatedIndex) {
-    return;
-  }
-
-  const generatedNames = generatedIndex.skills.map(function(skill) { return skill.name; }).sort();
-  const sourceNames = sourceIndex.skills.map(function(skill) { return skill.name; }).sort();
-  if (JSON.stringify(generatedNames) !== JSON.stringify(sourceNames)) {
-    errors.push(toRelative(generatedIndexFile) + ': skill set must match source yida-skills/skills-index.json');
-    return;
-  }
-
-  const sourceByName = new Map(sourceIndex.skills.map(function(skill) {
-    return [skill.name, comparableSkillEntry(skill)];
-  }));
-  for (const generatedSkill of generatedIndex.skills) {
-    const sourceSkill = sourceByName.get(generatedSkill.name);
-    if (JSON.stringify(comparableSkillEntry(generatedSkill)) !== JSON.stringify(sourceSkill)) {
-      errors.push(toRelative(generatedIndexFile) + ': metadata for "' + generatedSkill.name + '" must match source except path');
-    }
-  }
-
-  if (JSON.stringify(generatedIndex.route_groups) !== JSON.stringify(sourceIndex.route_groups)) {
-    errors.push(toRelative(generatedIndexFile) + ': route_groups must match source yida-skills/skills-index.json');
-  }
-}
-
-function validateGeneratedSkillRoot() {
-  if (!fs.existsSync(GENERATED_SKILL_ROOT)) {
-    warnings.push(toRelative(GENERATED_SKILL_ROOT) + ': generated skill root not found; run npm run build:skills to validate package output');
-    return;
-  }
-
-  for (const fileName of ['SKILL.md', 'skills-index.json']) {
-    const filePath = path.join(GENERATED_SKILL_ROOT, fileName);
-    if (!fs.existsSync(filePath)) {
-      errors.push(toRelative(GENERATED_SKILL_ROOT) + ': generated skill root must contain ' + fileName);
-    }
-  }
-
-  const generatedIndexFile = path.join(GENERATED_SKILL_ROOT, 'skills-index.json');
-  if (fs.existsSync(generatedIndexFile)) {
-    try {
-      const sourceIndex = readJson(SKILLS_INDEX_FILE);
-      validateGeneratedSkillsIndex(sourceIndex, generatedIndexFile);
-    } catch (error) {
-      errors.push(toRelative(generatedIndexFile) + ': invalid JSON: ' + error.message);
-    }
-  }
-}
-
 function validateSkillLoadingInstructions(instructionFiles) {
   const forbiddenPatterns = [
     {
@@ -585,7 +494,6 @@ function run() {
     }
   }
   validateSkillLoadingInstructions(instructionFiles);
-  validateGeneratedSkillRoot();
 
   if (warnings.length > 0) {
     console.warn('Skill validation warnings:');

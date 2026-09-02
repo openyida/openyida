@@ -37,6 +37,9 @@ function baseEnv() {
     OPENYIDA_SKIP_UPDATE_CHECK: '1',
     QODER_IDE: '',
     QODER_AGENT: '',
+    QODER_PRODUCT_ID: '',
+    QODER_SESSION_TYPE: '',
+    QODER_CLI: '',
     QODERCLI_INTEGRATION_MODE: '',
     CODEX_SHELL: '',
     CODEX_CI: '',
@@ -235,6 +238,13 @@ describe('CLI: unknown command', () => {
   test('未知命令输出错误提示', () => {
     const result = runAny(['nonexistent-command']);
     expect(result.output.length).toBeGreaterThan(0);
+  });
+
+  test('eval 仅作为源码仓 npm script，不再暴露为安装版 CLI 命令', () => {
+    const result = runAny(['eval', '--mode', 'doc-quality']);
+    expect(result.status).toBe(1);
+    expect(result.output).toContain('未知命令');
+    expect(result.output).not.toContain('Cannot find module');
   });
 });
 

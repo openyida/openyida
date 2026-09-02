@@ -173,6 +173,9 @@ describe('token-auth', () => {
           'openyida auth profile switch <auth_profile>',
         ],
       });
+      expect(status.next_step).toContain('current project auth pointer');
+      expect(status.next_step).not.toContain('For one command');
+      expect(status.next_step).not.toContain('pass --profile');
       expect(status.candidates).toEqual(expect.arrayContaining([
         expect.objectContaining({ corp_id: 'corp-a', corp_name: '组织 A', user_id: 'user-a' }),
         expect.objectContaining({ corp_id: 'corp-b', corp_name: '组织 B', user_id: 'user-b' }),
@@ -529,6 +532,7 @@ describe('token-auth', () => {
     const env = {
       OPENYIDA_AUTH_MODE: 'token',
       OPENYIDA_REFRESH_TOKEN: 'env-refresh-token',
+      OPENYIDA_SANDBOX_BINDING_ID: 'binding-current',
       OPENYIDA_ENDPOINT: `http://127.0.0.1:${port}`,
       OPENYIDA_TOKEN_CORP_ID: 'corp-env',
     };
@@ -556,6 +560,7 @@ describe('token-auth', () => {
       expect(JSON.parse(fs.readFileSync(tokenFile, 'utf8'))).toMatchObject({
         access_token: 'new-env-access-token',
         refresh_token: 'new-env-refresh-token',
+        runtime_binding_id: 'binding-current',
       });
       const contextFile = getBusinessContextFilePath({ projectRoot: tmpDir });
       const context = JSON.parse(fs.readFileSync(contextFile, 'utf8'));
@@ -574,6 +579,7 @@ describe('token-auth', () => {
           YIDA_AUTH_ENABLED: 'true',
           OPENYIDA_AUTH_MODE: 'token',
           OPENYIDA_REFRESH_TOKEN: 'next-process-refresh-token',
+          OPENYIDA_SANDBOX_BINDING_ID: 'binding-current',
           OPENYIDA_ENDPOINT: `http://127.0.0.1:${port}`,
           OPENYIDA_TOKEN_CORP_ID: 'corp-env',
         },
@@ -581,6 +587,22 @@ describe('token-auth', () => {
         base_url: 'https://customer.example.com',
         refresh_token: 'new-env-refresh-token',
         auth_source: 'project_legacy',
+      });
+      expect(loadTokenSession({
+        projectRoot: tmpDir,
+        authDir,
+        env: {
+          YIDA_AUTH_ENABLED: 'true',
+          OPENYIDA_AUTH_MODE: 'token',
+          OPENYIDA_REFRESH_TOKEN: 'replacement-refresh-token',
+          OPENYIDA_SANDBOX_BINDING_ID: 'binding-replacement',
+          OPENYIDA_ENDPOINT: `http://127.0.0.1:${port}`,
+          OPENYIDA_TOKEN_CORP_ID: 'corp-env',
+        },
+      })).toMatchObject({
+        refresh_token: 'replacement-refresh-token',
+        runtime_binding_id: 'binding-replacement',
+        auth_source: 'env',
       });
     } finally {
       await closeServer(server);

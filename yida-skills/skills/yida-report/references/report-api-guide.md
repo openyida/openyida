@@ -2,6 +2,8 @@
 
 > 本文档是 `yida-report` 技能的参考文档，说明报表 API 调用方式、数据解析、常见风险和处理规则。
 
+调用数据接口前，先执行 `openyida report inspect <appType> <REPORT_xxx> --json`，从当前 V5/tEXDRG Schema 获取真实 `cid`、`dataSetKey`、`filterKey`、`prdId` 和 `pageId`。inspect 返回缺失值时必须阻断，不得从示例或旧应用绑定猜测。
+
 ## 报表 API 详解
 
 ### 接口地址

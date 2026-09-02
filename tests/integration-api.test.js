@@ -8,7 +8,12 @@ jest.mock('../lib/core/utils', () => ({
 
 const { httpGet } = require('../lib/core/utils');
 const { createYidaClient } = require('../lib/core/yida-client');
-const { getFormSchema, listFormLogicflows, listLogicflowLogs } = require('../lib/integration/integration-api');
+const {
+  getFormSchema,
+  getLogicflowDetail,
+  listFormLogicflows,
+  listLogicflowLogs,
+} = require('../lib/integration/integration-api');
 
 jest.mock('../lib/core/yida-client', () => ({
   createYidaClient: jest.fn(),
@@ -85,6 +90,27 @@ describe('integration api', () => {
     expect(query).toMatchObject({
       _api: 'Connector.getTriggerList',
       formUuid: 'FORM_TEST',
+    });
+    expect(options).toEqual({ silentStatus: true });
+  });
+
+  test('getLogicflowDetail reads the exact processCode through the confirmed designer endpoint', async () => {
+    httpGet.mockResolvedValue({
+      success: true,
+      content: { schema: { componentName: 'CanvasEngine' }, globalSetting: {} },
+    });
+
+    await getLogicflowDetail({ baseUrl: 'https://example.com' }, {
+      appType: 'APP_TEST', formUuid: 'FORM_TEST', processCode: 'LPROC-TEST',
+    });
+
+    const [, path, query, options] = httpGet.mock.calls[0];
+    expect(path).toBe('/alibaba/web/APP_TEST/query/simpleProcess/getProcess.json');
+    expect(query).toMatchObject({
+      _api: 'SimpleProcess.getProcess',
+      appType: 'APP_TEST',
+      formUuid: 'FORM_TEST',
+      processCode: 'LPROC-TEST',
     });
     expect(options).toEqual({ silentStatus: true });
   });

@@ -41,18 +41,10 @@ node --check lib/xxx.js  # 语法检查
 - 不要使用已删除的 `--codex`、`--qr`、`--agent-qr` 等旧登录 flag，也不要引导安装 Playwright 修复登录
 - 多组织账号请在支持的命令中显式传 `--corp-id <corpId>`；不要由 AI 代理代替用户选择组织
 
-## 悟空（Wukong）特殊说明
-
-- 工作区路径含动态 uuid：`~/.real/users/{uuid}/workspace/`，通过 `AGENT_WORK_ROOT` 环境变量获取
-- `detectActiveTool()` 直接读取 `AGENT_WORK_ROOT` 作为 `workspaceRoot`，不能硬编码 `~/.real/workspace/`
-- `openyida copy` 在空目录时直接铺入 `project/` 内容（不创建 `project/` 子目录）
-- 悟空通过手动上传技能包，`postinstall` 不安装 `yida-skills/`
-
 ## 禁止事项
 
 - 不要在代码中硬编码任何 Cookie、Token 或凭证
 - 不要修改 `yida-skills/` 文档（除非明确要求更新技能）
 - 不要引入需要编译的依赖（项目是纯 JS，无构建步骤）
 - 不要直接推送 main 分支
-- 不要硬编码悟空工作区路径，必须通过 `AGENT_WORK_ROOT` 读取
 - 不要硬编码 Cookie、CSRF Token、corpId 等登录凭证或用户身份上下文

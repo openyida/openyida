@@ -21,7 +21,6 @@
 
 | 意图 | 直接执行 |
 | --- | --- |
-| 聚合表 / 虚拟视图 | `openyida aggregate-table` |
 | 流程表单 AI 审批提示 | `openyida ai-form-setting` |
 | 文生文 / 识图通用 AI 能力 | `openyida ai` |
 | 批量顺序执行 OpenYida 命令 | `openyida batch` |

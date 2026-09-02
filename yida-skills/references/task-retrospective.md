@@ -121,7 +121,7 @@ OpenYida 任务完成后，除了交付当前结果，还要判断是否有可�
 3. 是否发现 CLI 行为缺口，需要补到 `lib/**` 和 `tests/**`。
 4. 是否新增/修改页面生成器或通用页面骨架，需要跑相关本地编译、Jest 和 `git diff --check`。
 5. 是否发布到线上，需要用 schema 或详情接口回读关键字段。
-6. 是否修改 skill，需要跑 `npm run check:skills`，必要时跑 `npm run build:skills`。
+6. 是否修改 skill，需要跑 `npm run check:skills`。
 7. 最终回复里说明本次沉淀到哪里；如果判断“不需要沉淀”，说明原因。
 
 ## 不要过度沉淀

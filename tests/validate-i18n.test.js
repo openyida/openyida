@@ -9,6 +9,8 @@ const optionalLocales = ['ar', 'de', 'es', 'fr', 'hi', 'ja', 'ko', 'pt', 'vi', '
 const translatedKeys = {
   app_permission: Object.keys(en.app_permission),
   corp_manager: Object.keys(en.corp_manager),
+  permission_common: Object.keys(en.permission_common),
+  permission_list: Object.keys(en.permission_list),
   save_permission: Object.keys(en.save_permission),
   save_share_config: ['err_page_url_prefix', 'verify_failed', 'current_state_incomplete'],
   publish: [

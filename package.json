@@ -1,6 +1,6 @@
 {
   "name": "openyida",
-  "version": "2026.8.26",
+  "version": "2026.9.1-1",
   "description": "OpenYida CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
   "bin": {
     "openyida": "bin/yida.js",
@@ -9,15 +9,11 @@
   "files": [
     "bin/",
     "lib/",
-    "agent/",
     "project/config.json",
     "project/prd/demo-*.md",
     "yida-skills/",
     "!lib/samples/**/assets/**",
-    "scripts/",
-    "!scripts/e2e-real/",
-    "!scripts/eval/",
-    "docs/capabilities.md",
+    "scripts/postinstall.js",
     "README.md",
     "LICENSE"
   ],
@@ -32,9 +28,12 @@
     "test:e2e:real:skills": "node scripts/e2e-real/skill-coverage.js",
     "test:e2e:real:cleanup": "node scripts/e2e-real/cleanup.js",
     "test:e2e:real:permission": "node scripts/e2e-real/permission/runner.js",
+    "test:e2e:real:aggregate": "node scripts/e2e-real/aggregate/runner.js",
+    "test:e2e:real:report": "node scripts/e2e-real/report/runner.js",
     "eval:e2e": "node scripts/eval/runner.js --mode e2e",
     "eval:routing": "node scripts/eval/runner.js --mode routing",
     "eval:generate": "node scripts/eval/runner.js --mode generate",
+    "eval:replay": "node scripts/eval/replay-generation.js",
     "eval:all": "node scripts/eval/runner.js --mode all",
     "eval:doc-quality": "node scripts/eval/runner.js --mode doc-quality",
     "eval:safety": "node scripts/eval/runner.js --mode safety",
@@ -47,7 +46,6 @@
     "lint": "eslint bin/ lib/ scripts/ tests/ --ext .js",
     "lint:fix": "eslint bin/ lib/ scripts/ tests/ --ext .js --fix",
     "solution:runner": "node scripts/solution-center-runner.js",
-    "build:skills": "node scripts/build-skills-package.js",
     "docs:commands": "node scripts/generate-command-docs.js",
     "check:quick": "npm run check:structure && npm run check:commands && npm run check:docs && npm run check:i18n && npm run check:syntax && npm run lint",
     "check:structure": "node scripts/validate-structure.js",
@@ -74,7 +72,6 @@
     "low-code",
     "ai",
     "qoder",
-    "wukong",
     "mulerun"
   ],
   "author": "OpenYida Contributors",
@@ -89,7 +86,6 @@
   "homepage": "https://github.com/openyida/openyida#readme",
   "dependencies": {
     "@babel/standalone": "^7.15.1",
-    "ajv": "^8.20.0",
     "globals": "^17.11.0",
     "uglify-js": "^3.19.3"
   },

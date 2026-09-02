@@ -24,6 +24,8 @@ const {
   extractFieldSummary,
   extractOptionSummary,
   buildSchemaSummary,
+  buildSemanticAnalysis,
+  isSuccessfulSchemaResult,
   buildComponentAliasMaps,
   parseArgs,
   filterForms,
@@ -73,6 +75,7 @@ describe('parseArgs', () => {
       field: '',
       json: false,
       summaryJson: false,
+      analysisJson: false,
     });
   });
 
@@ -109,6 +112,116 @@ describe('parseArgs', () => {
     });
     expect(parseArgs(['APP_XXX', 'FORM-AAA', '--field-map-json']).summaryJson).toBe(true);
     expect(parseArgs(['APP_XXX', 'FORM-AAA', '--field-map']).summaryJson).toBe(false);
+    expect(parseArgs(['APP_XXX', 'FORM-AAA', '--analysis-json']).analysisJson).toBe(true);
+  });
+});
+
+describe('buildSemanticAnalysis', () => {
+  test('summarizes actions, url params and field behavior without returning source', () => {
+    const schema = {
+      content: {
+        actions: {
+          module: {
+            source: `export function didMount() {
+              if (this.state.urlParams.type === 'my') {
+                this.$('employeeField_owner').setValue({ value: 'u1' });
+                this.$('employeeField_owner').setBehavior('READONLY');
+              }
+            }`,
+            compiled: 'compiled-secret',
+          },
+          list: [{ id: 'didMount', title: 'didMount' }],
+        },
+        pages: [{
+          componentsTree: [{
+            componentName: 'FormContainer',
+            props: { associationRules: [{ rules: ['x'] }] },
+            children: [{
+              componentName: 'EmployeeField',
+              props: {
+                fieldId: 'employeeField_owner',
+                label: { zh_CN: '负责人' },
+                behavior: 'READONLY',
+                validation: [{ type: 'required' }],
+              },
+            }],
+          }],
+        }],
+      },
+    };
+    const output = buildSemanticAnalysis('APP_X', 'FORM_X', schema, [{ fieldId: 'employeeField_owner' }]);
+    expect(output).toMatchObject({
+      kind: 'yida_schema_semantic_analysis',
+      contractVersion: 1,
+      resource: { appType: 'APP_X', formUuid: 'FORM_X' },
+      fieldCount: 1,
+      semantics: {
+        actions: {
+          functions: ['didMount'],
+          urlParams: ['type'],
+          referencedMutationFields: ['employeeField_owner'],
+        },
+        fieldBehaviors: [{
+          fieldId: 'employeeField_owner',
+          behavior: 'READONLY',
+          validationTypes: ['required'],
+        }],
+        associationRuleCount: 1,
+      },
+    });
+    expect(output.semantics.actions.fieldMutations).toEqual([
+      { fieldId: 'employeeField_owner', operation: 'setValue' },
+      { fieldId: 'employeeField_owner', operation: 'setBehavior' },
+    ]);
+    expect(JSON.stringify(output)).not.toContain('compiled-secret');
+    expect(output.resource.schemaHash).toMatch(/^sha256:[a-f0-9]{64}$/);
+  });
+
+  test('correlates a field event binding with its action function and registry entry', () => {
+    const schema = {
+      content: {
+        actions: {
+          module: {
+            source: 'export function handleStatusChange() {}',
+            compiled: 'compiled',
+          },
+          list: [{ id: 'handleStatusChange', title: 'handleStatusChange' }],
+        },
+        pages: [{
+          componentsTree: [{
+            componentName: 'FormContainer',
+            children: [{
+              componentName: 'SelectField',
+              props: {
+                fieldId: 'selectField_status',
+                label: { zh_CN: '状态' },
+                onChange: {
+                  type: 'JSExpression',
+                  value: 'this.utils.legaoBuiltin.execEventFlow.bind(this, [this.handleStatusChange])',
+                  events: [{
+                    type: 'actionRef',
+                    id: 'handleStatusChange',
+                    name: 'handleStatusChange',
+                    params: {},
+                    uuid: '123_0',
+                  }],
+                },
+              },
+            }],
+          }],
+        }],
+      },
+    };
+
+    const output = buildSemanticAnalysis('APP_X', 'FORM_X', schema, []);
+    expect(output.semantics.actions.bindings).toContainEqual(expect.objectContaining({
+      fieldId: 'selectField_status',
+      event: 'onChange',
+      actionName: 'handleStatusChange',
+      actionFunctionFound: true,
+      actionEntryFound: true,
+      verified: true,
+    }));
   });
 });
 
@@ -164,6 +277,7 @@ describe('extractFieldSummary', () => {
         fieldId: 'textField_name',
         alias: 'customerName',
         reportFieldCode: 'textField_name',
+        reportFieldCodeCandidates: ['textField_name'],
         options: [],
         optionCount: 0,
         optionsTruncated: false,
@@ -173,7 +287,8 @@ describe('extractFieldSummary', () => {
         componentName: 'SelectField',
         fieldId: 'selectField_status',
         alias: '',
-        reportFieldCode: 'selectField_status_value',
+        reportFieldCode: 'selectField_status',
+        reportFieldCodeCandidates: ['selectField_status', 'selectField_status_value'],
         options: [
           { label: '待访', value: 'pending' },
           { label: '已离开', value: 'left' },
@@ -182,6 +297,31 @@ describe('extractFieldSummary', () => {
         optionsTruncated: false,
       },
     ]);
+  });
+
+  test('includes advanced field types supported by form creation', () => {
+    const advancedTypes = [
+      'SerialNumberField', 'DepartmentSelectField', 'AddressField',
+      'AssociationFormField', 'MultiSelectField', 'CascadeDateField',
+    ];
+    const summary = extractFieldSummary({
+      content: {
+        pages: [{
+          componentsTree: [{
+            componentName: 'FormContainer',
+            children: advancedTypes.map((componentName, index) => ({
+              componentName,
+              props: { fieldId: `field_${index}`, label: componentName },
+            })),
+          }],
+        }],
+      },
+    });
+    expect(summary.map(item => item.componentName)).toEqual(advancedTypes);
+    expect(summary.find(item => item.componentName === 'MultiSelectField').reportFieldCode)
+      .toBe('field_4');
+    expect(summary.find(item => item.componentName === 'MultiSelectField').reportFieldCodeCandidates)
+      .toEqual(['field_4', 'field_4_value']);
   });
 
   test('extracts lightweight options from static props', () => {
@@ -222,6 +362,46 @@ describe('extractFieldSummary', () => {
     expect(field.optionsTruncated).toBe(true);
   });
 
+  test('includes required and effective default value when present', () => {
+    const [field] = extractFieldSummary({
+      content: {
+        pages: [{
+          componentsTree: [{
+            componentName: 'FormContainer',
+            children: [{
+              componentName: 'SelectField',
+              props: {
+                fieldId: 'selectField_risk',
+                label: '风险等级',
+                required: true,
+                complexValue: { value: '低' },
+                options: ['低', '中', '高'],
+              },
+            }],
+          }],
+        }],
+      },
+    });
+    expect(field).toMatchObject({ required: true, defaultValue: '低' });
+  });
+
+  test('detects required validation rules when props.required is absent', () => {
+    const [field] = extractFieldSummary({
+      content: { pages: [{ componentsTree: [{
+        componentName: 'FormContainer',
+        children: [{
+          componentName: 'TextField',
+          props: {
+            fieldId: 'text_required',
+            label: '必填字段',
+            validation: [{ type: 'required', message: '必填' }],
+          },
+        }],
+      }] }] },
+    });
+    expect(field.required).toBe(true);
+  });
+
   test('builds alias maps and finds fields by alias', () => {
     const schema = {
       content: {
@@ -258,6 +438,15 @@ describe('extractFieldSummary', () => {
 });
 
 describe('buildSchemaSummary', () => {
+  test('rejects success envelopes that do not contain a schema pages container', () => {
+    expect(isSuccessfulSchemaResult({ success: true, content: {} })).toBe(false);
+    expect(isSuccessfulSchemaResult({ success: true, content: { pages: [] } })).toBe(true);
+    expect(isSuccessfulSchemaResult({
+      success: true,
+      content: { pages: [{ componentsTree: [] }] },
+    })).toBe(true);
+  });
+
   test('builds compact field map without full schema pages', () => {
     const summary = buildSchemaSummary('APP_XXX', 'FORM-A', {
       content: {

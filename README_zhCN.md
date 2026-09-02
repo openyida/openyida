@@ -4,7 +4,7 @@
 
 **面向 AI 编程工具的宜搭低代码 CLI。**
 
-OpenYida 把 Codex、Claude Code、Cursor、QwenWork（千问办公）、Qoder、悟空等 AI 编程助手连接到宜搭低代码平台，让开发者可以通过自然语言和命令行完成应用创建、表单建模、流程审批、自定义页面、报表、连接器和发布配置。
+OpenYida 把 Codex、Claude Code、Cursor、QwenWork（千问办公）、Qoder 等 AI 编程助手连接到宜搭低代码平台，让开发者可以通过自然语言和命令行完成应用创建、表单建模、流程审批、自定义页面、报表、连接器和发布配置。
 
 [快速开始](#快速开始) · [帮助网站&文档](https://demo.aliwork.com/o/openyida/helpCenter) · [核心能力](#核心能力) · [完整功能列表](https://demo.aliwork.com/o/openyida/helpCenter?openyidaPath=capabilities) · [案例展示](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=showcase) · [自定义页面开发](#自定义页面开发) · [常用命令](https://demo.aliwork.com/o/openyida/helpCenter?openyidaPath=features/skills) · [开发与校验](#开发与校验)
 
@@ -47,6 +47,10 @@ npm install -g openyida
 ```
 
 OpenYida 要求 Node.js 18 或更高版本。安装后会提供 `openyida` 和 `yida` 两个命令。
+
+如果 OpenYida 是通过 npm 全局安装的，普通命令执行前至多每 24 小时检查一次 npm registry；发现新版本后安装查询到的精确版本，再用新版本重跑原命令。本地终端、Codex、Claude Code、Qoder 启动的命令采用同一策略。托管云端 Agent 会在读取缓存、访问 registry 或调用 npm 之前直接跳过，不受这一机制影响。
+
+设置 `OPENYIDA_NO_AUTO_UPDATE=1` 可关闭自动更新；开发和测试时可用 `OPENYIDA_AUTO_UPDATE_SECS` 调整检查间隔。显式的 `openyida update` 命令仍然保留。
 
 如果本机已安装 Codex，OpenYida 会在安装后尝试导入本地 Codex 插件。重启 Codex 后，在输入框中输入 `@宜搭` 或 `@openyida` 即可挂载 OpenYida 上下文。
 
@@ -113,20 +117,6 @@ openyida login --intl
 ```
 
 Agent 会读取 `yida-skills/` 中的技能说明，调用 OpenYida CLI 创建应用、表单、页面、流程和报表，并返回最终访问链接。
-
-## 悟空安装
-
-悟空使用手动上传技能包：
-
-1. 从 GitHub Releases 下载最新 `.zip` 技能包。
-2. 打开悟空。
-3. 进入 **技能中心** > **上传技能**，选择下载的 zip。
-
-悟空终端执行 Node/npm 命令前，先设置内置 Node 路径：
-
-```bash
-export PATH="$HOME/.real/.bin/node/bin:$PATH"
-```
 
 ## 语言包
 
@@ -213,6 +203,10 @@ openyida configure-process APP_XXX FORM_XXX .cache/openyida/process/process.json
 openyida process preview APP_XXX PROC_INST_XXX --output .cache/openyida/process/process.html
 ```
 
+`configure-process` 在发现已有已发布流程或已保存草稿时要求显式传入 `--replace`；如果无法证明目标流程属于指定表单，则不会执行任何写入。草稿创建、保存和发布均按 one-shot 执行，认证或网络异常导致结果未知时不会自动重试。
+
+发布成功后，CLI 会精确回读 `PUBLISHED` 版本及 `getProcessById` 的平台可见视图，校验节点、组件、名称、顺序和审批模式。只有完整通过才返回 `PLATFORM_VIEW_VERIFIED`；无法完整验证时返回 `PUBLISHED_UNVERIFIED`，不得把本地 `processJson` 当作平台已验证结果。
+
 ### 数据管理
 
 ```bash
@@ -245,6 +239,10 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 ```
 
 连接器鉴权信息通过宜搭连接器配置管理，不写入页面源码。`--operations`、`--action`、`--spec` 等 JSON 文件放到 `.cache/openyida/<项目名或任务名>/` 下。
+
+已有动作的 Query 默认值必须通过窄命令安全更新：`openyida connector update-action --connector-id <id> --action <operationId> --query-json '{"currentPage":"1"}' --confirm`。命令先完整回读连接器和全部动作，只修改 `inputs` / `parameters` 中唯一且已声明的同名 Query 默认值，再一次性提交完整动作集合；回读必须证明连接器 fingerprint、动作数量、非目标动作和稳定 ID 均未变化。参数缺失、空值、未知参数、重复 ID、平台详情不完整或写入结果未知都会 fail-closed，且不会自动重试。`add-action` 不再覆盖既有动作 ID。
+
+真实回归入口为 `OPENYIDA_E2E=1 OPENYIDA_E2E_CONNECTOR_ACTION_UPDATE=1 node scripts/e2e-real/connector/action-update-runner.js`。它只创建一个 owned、NONE-auth 测试连接器（含目标动作和 preservation sentinel），逐项验证 `currentPage`、`pageSize`、`userLanguage`、`searchFieldJson`、动态 `_stamp` 并恢复 baseline；证据仅记录响应结构、数量和 SHA-256，不保存真实响应行值、Cookie/token/profile/corpId。由于没有已证明的删除 API，连接器保留为 `cleanup_blocked` residual。
 
 `integration create --process-code` 是整图替换，必须显式传 `--replace`，不能当作安全更新。`integration update` 当前只做 capability 检测：由于平台完整 `processJson` + `viewJson` readback 契约尚未证明，它只写入脱敏的本地 probe artifact，并在认证、读取 spec 或远端写入之前返回 `PLATFORM_PROBE_REQUIRED`。当前不会编辑逻辑流，禁止猜测接口或降级成整图替换。
 
@@ -298,7 +296,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | 更新表单页面 |
 | `openyida list-forms <appType> [--keyword <text>]` | 列出应用下的表单/页面 |
 | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | 管理聚合表（virtualView） |
-| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json]` | 获取单个或全部表单 Schema |
+| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | 获取单个或全部表单 Schema |
 | `openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]` | 检查 PRD 页面/资源数量风险 |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | 导出应用实体关系图 |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义展示页面 |
@@ -316,13 +314,13 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida data <action> <resource> [args]` | 统一数据管理（表单/流程/任务/子表单） |
+| `openyida data <query\|get\|create\|update> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | 统一数据管理（表单/流程/任务/子表单） |
 | `openyida task-center <type> [options]` | 全局任务中心（待办/已处理/抄送等） |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | 查询组织基本信息、容量、额度和域名设置 |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | 获取钉钉文档的 Markdown 内容 |
 | `openyida read-dingtalk-tingji <taskUuid> [--json]` | 按任务 UUID 获取钉钉听记详情 |
-| `openyida get-permission <appType> <formUuid>` | 查询表单权限配置 |
-| `openyida save-permission <appType> <formUuid> ...` | 保存表单权限配置 |
+| `openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--json]` | 查询表单权限配置 |
+| `openyida save-permission <appType> <formUuid> --package-uuid <packageUuid> [--data-permission <json>\|--action-permission <json>\|--field-permission <json>]` | 保存表单权限配置 |
 | `openyida corp-manager <search-user\|list\|add\|remove\|address-book> ...` | 管理平台管理员与通讯录权限 |
 | `openyida agent-center <list\|create\|update\|cancel\|range\|search-user> ...` | 管理流程代理和离职代理 |
 
@@ -330,8 +328,8 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida configure-process <appType> ...` | 配置并发布流程规则 |
-| `openyida create-process <appType> ...` | 创建流程表单（一体化） |
+| `openyida configure-process <appType> <formUuid> <definition> [processCode] [--replace]` | 配置并发布流程规则 |
+| `openyida create-process <appType> ... [--replace]` | 创建流程表单（一体化） |
 | `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | 管理流程表单 AI 审批提示 |
 | `openyida process preview <appType> ...` | 预览流程实例（可视化流程图） |
 
@@ -348,8 +346,9 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida create-report <appType> "<name>" ... [--open\|--no-open]` | 创建宜搭报表 |
-| `openyida append-chart <appType> <reportId> ... [--open\|--no-open]` | 向已有报表追加图表 |
+| `openyida create-report <appType> "<name>" ... [--json] [--open\|--no-open]` | 创建宜搭报表 |
+| `openyida append-chart <appType> <reportId> ... [--json] [--open\|--no-open]` | 向已有报表追加图表 |
+| `openyida report inspect <appType> <reportId> --json` | 只读检查报表运行时绑定摘要 |
 
 ### 连接器
 
@@ -360,12 +359,13 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida connector detail <id>` | 查看连接器详情 |
 | `openyida connector delete <id> [--force]` | 显示平台手工删除指引（CLI 不执行删除） |
 | `openyida connector add-action --operations <file> --connector-id <id>` | 添加执行动作 |
+| `openyida connector update-action --connector-id <id> --action <operationId> --query-json JSON --confirm` | 安全更新动作 Query 默认值 |
 | `openyida connector list-actions <id>` | 列出执行动作 |
 | `openyida connector delete-action <id> <operation-id>` | 删除执行动作 |
-| `openyida connector test --connector-id <id> --action <actionId>` | 测试执行动作 |
+| `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>]` | 测试执行动作 |
 | `openyida connector list-connections <id>` | 列出鉴权账号 |
 | `openyida connector create-connection <id> <name>` | 创建鉴权账号 |
-| `openyida connector smart-create --curl "..."` | 智能创建连接器（从 cURL） |
+| `openyida connector smart-create --curl "..."` | 从 cURL 生成脱敏动作草稿（不创建远端资源） |
 | `openyida connector parse-api [options]` | 解析接口信息 |
 | `openyida connector gen-template [output]` | 生成接口文档模板 |
 
@@ -375,7 +375,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 |------|------|
 | `openyida integration create <appType> ... [--spec file.json]` | 创建集成自动化逻辑流 |
 | `openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]` | 检测集成自动化安全更新能力（完整 readback 未证明，当前阻断） |
-| `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | 列出集成自动化逻辑流 |
+| `openyida integration list <appType> [--flow-types 1,2,3,5,6] [--form-uuid <uuid>] [--status y\|n] [--json]` | 列出集成自动化逻辑流 |
 | `openyida integration enable <appType> <formUuid> <processCode>` | 启用集成自动化逻辑流 |
 | `openyida integration disable <appType> <formUuid> <processCode>` | 停用集成自动化逻辑流 |
 | `openyida integration check <appType...>` | 检查集成自动化异常运行日志 |
@@ -395,7 +395,6 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida copy [--force]` | 复制 project 工作目录 |
 | `openyida sample [--list]` | 输出代码示例/骨架 |
 | `openyida doctor [--fix]` | 环境诊断与自动修复 |
-| `openyida eval --mode <mode> [--skill <name>] [--runs N]` | 技能多维评测（文档质量、路由准确率、安全合规等） |
 | `openyida db-seq-fix [--fix]` | PostgreSQL Sequence 漂移检测与修复 |
 | `openyida formula evaluate <formula\|file> [--schema file]` | 静态检查宜搭公式语法和字段引用 |
 | `openyida update` | 检查并更新到最新版本 |
@@ -421,27 +420,15 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `yida-skills/skills/<skill-name>/SKILL.md` | 每个子技能的独立说明 |
 | `yida-skills/references/` | 跨技能共享参考文档 |
 
-构建悟空可上传技能包：
+QwenWork（千问办公）使用用户级全局 skill 目录：`~/.qwenworkcn/skills/yida-skills/`；未检测到 `~/.qwenworkcn` 时跳过。
 
-```bash
-npm run build:skills
-```
-
-输出：
-
-```text
-dist/skills/openyida/
-openyida-skills.zip
-```
-
-QwenWork（千问办公）与 QoderWork 一样使用用户级全局 skill 目录：`~/.qwenworkcn/skills/yida-skills/`；未检测到 `~/.qwenworkcn` 时跳过。
+新 Qoder 与 Qoder IDE 共享用户级 `~/.qoder/skills/yida-skills/` 目录；QoderWork 是独立产品，继续使用 `~/.qoderwork/skills/yida-skills/`。
 
 ## 开发与校验
 
 ```bash
 npm test
 npm run check:skills
-npm run build:skills
 npm run check:ci
 ```
 
@@ -458,6 +445,7 @@ Skill 路由和生成质量评测：
 npm run eval:routing
 OPENYIDA_E2E=1 npm run eval:e2e -- --skill yida-dashboard --screenshot
 OPENYIDA_E2E=1 npm run eval:generate -- --screenshot
+npm run eval:replay -- --report <generation-report.json> --scenario <scenario.json> --app-type APP_XXX
 npm run eval:dashboard
 ```
 
@@ -467,7 +455,6 @@ npm run eval:dashboard
 
 ```bash
 npm run check:skills
-npm run build:skills
 ```
 
 更多说明见 [CONTRIBUTING.md](./CONTRIBUTING.md)。

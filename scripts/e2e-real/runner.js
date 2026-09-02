@@ -118,8 +118,15 @@ function parseLastJson(output) {
   return parsed.length > 0 ? parsed[parsed.length - 1] : null;
 }
 
+function formatCommandForLog(args) {
+  return args.includes('--quiet')
+    ? 'openyida [quiet command]'
+    : `openyida ${args.join(' ')}`;
+}
+
 function runCli(args, env = process.env) {
-  console.log(`Running: openyida ${args.join(' ')}`);
+  const quiet = args.includes('--quiet');
+  if (!quiet) {console.log(`Running: ${formatCommandForLog(args)}`);}
   const result = spawnSync(process.execPath, [BIN, ...args], {
     cwd: ROOT,
     encoding: 'utf8',
@@ -134,8 +141,10 @@ function runCli(args, env = process.env) {
   const stdout = result.stdout || '';
   const stderr = result.stderr || '';
   if (result.status !== 0) {
-    const details = (stderr.trim() || stdout.trim()).slice(0, 1600);
-    throw new Error(`Command failed: openyida ${args.join(' ')}\n${details}`);
+    const details = quiet
+      ? 'quiet command failed; inspect sanitized registry evidence'
+      : (stderr.trim() || stdout.trim()).slice(0, 1600);
+    throw new Error(`Command failed: ${formatCommandForLog(args)}\n${details}`);
   }
   return {
     stdout,
@@ -285,6 +294,7 @@ module.exports = {
   addResource,
   createRegistry,
   extractJsonObjects,
+  formatCommandForLog,
   getConfig,
   parseLastJson,
   requireCanvasPublishHealth,

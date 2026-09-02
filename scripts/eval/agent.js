@@ -119,6 +119,7 @@ function extractJsonObject(text) {
  * @param {number} [options.timeoutMs=180000]
  * @param {string[]} [options.extraArgs] 追加到 `claude -p <prompt> --output-format json` 之后的额外 flag
  *   （如真实生成测评需要 `--permission-mode bypassPermissions --allowedTools Bash Read --add-dir <repo>`）
+ * @param {object} [options.env] 子进程环境变量；默认继承 process.env
  * @param {function} [options.spawn] 注入用，便于测试
  * @returns {{available:boolean, ok:boolean, text:string|null, json:object|null, raw:string|null, error:string|null}}
  */
@@ -141,7 +142,13 @@ function runAgent(options = {}) {
     result = spawn(
       command,
       ['-p', options.prompt, '--output-format', 'json', ...extraArgs],
-      { encoding: 'utf8', timeout, cwd: options.cwd, maxBuffer: 32 * 1024 * 1024 },
+      {
+        encoding: 'utf8',
+        timeout,
+        cwd: options.cwd,
+        env: options.env || process.env,
+        maxBuffer: 32 * 1024 * 1024,
+      },
     );
   } catch (error) {
     return { available: true, ok: false, text: null, json: null, raw: null, error: error.message };

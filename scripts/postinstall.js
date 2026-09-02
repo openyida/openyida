@@ -13,14 +13,11 @@
  *   ~/.claude/skills/yida-skills/          ← <package>/yida-skills (copy)
  *   ~/.codex/skills/yida-skills/           ← <package>/yida-skills (copy)
  *   ~/.opencode/skills/yida-skills/        ← <package>/yida-skills (copy)
- *   ~/.aone_copilot/skills/yida-skills/    ← <package>/yida-skills (copy)
  *   ~/.cursor/skills/yida-skills/          ← <package>/yida-skills (copy)
  *   ~/.qwenworkcn/skills/yida-skills/      ← <package>/yida-skills (copy)
  *   ~/.qoderwork/skills/yida-skills/       ← <package>/yida-skills (copy)
  *   ~/.qoder/skills/yida-skills/           ← <package>/yida-skills (copy)
  *   ~/.mulerun/skills/yida-skills/          ← <package>/yida-skills (copy)
- *
- * 悟空（Wukong）通过手动上传技能，不在此安装。
  */
 
 'use strict';
@@ -410,7 +407,7 @@ function installCodexPlugin() {
 }
 
 // ── 1. Skills 安装 ───────────────────────────────────────────────────
-// 安装到各 AI 工具的正确 skills 目录（悟空跳过，悟空通过手动上传技能）
+// 安装到各 AI 工具的正确 skills 目录
 
 let codexPluginInstalled = false;
 
@@ -431,13 +428,6 @@ safeExec(() => {
 safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, '.opencode'))) {
     installSkillsToTool(path.join(HOME_DIR, '.opencode'));
-  }
-});
-
-// Aone Copilot — 仅在已安装时安装
-safeExec(() => {
-  if (fs.existsSync(path.join(HOME_DIR, '.aone_copilot'))) {
-    installSkillsToTool(path.join(HOME_DIR, '.aone_copilot'));
   }
 });
 
@@ -487,11 +477,6 @@ safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, '.mulerun'))) {
     installSkillsToTool(path.join(HOME_DIR, '.mulerun'));
   }
-});
-
-// 悟空（Wukong）— 跳过安装，只清理旧版遗留
-safeExec(() => {
-  cleanupLegacy(path.join(HOME_DIR, '.real', 'yida-skills'));
 });
 
 // ── 2. 首次安装欢迎引导 ──────────────────────────────────────────────
@@ -546,7 +531,7 @@ function printWelcomeGuide(isFirstInstall, hasCodexPlugin) {
   console.log('');
   console.log(`${BOLD}${CYAN}  🚀 开启 AI 问答模式${RESET}`);
   console.log(
-    '  在 Codex / Claude Code / MuleRun / Aone Copilot / Cursor 等 AI 工具中直接对话：',
+    '  在 Codex / Claude Code / MuleRun / Cursor 等 AI 工具中直接对话：',
   );
   console.log('');
 

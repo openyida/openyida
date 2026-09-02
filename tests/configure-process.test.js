@@ -19,6 +19,24 @@ function getViewApprovalNode(result) {
   });
 }
 
+function platformView(formUuid) {
+  return {
+    success: true,
+    content: JSON.stringify({
+      bindingForm: formUuid,
+      formulaRules: [],
+      globalSetting: {},
+      schema: {
+        componentName: 'CanvasEngine',
+        children: [
+          { componentName: 'ApplyNode', props: { name: { zh_CN: '发起' } } },
+          { componentName: 'EndNode', props: { name: { zh_CN: '结束' } } },
+        ],
+      },
+    }),
+  };
+}
+
 describe('configure-process detail urls', () => {
   test('builds mobile custom detail url with DingTalk formInstId parameter', () => {
     const result = _private.buildProcessAndViewJson({
@@ -39,6 +57,36 @@ describe('configure-process detail urls', () => {
 });
 
 describe('configure-process approver DSL', () => {
+  test.each([
+    ['all', 'all'],
+    ['or', 'or'],
+    ['oneByOne', 'oneByOne'],
+  ])('builds MultiApprovalNode protocol for %s mode', (inputMode, expectedMode) => {
+    const result = _private.buildProcessAndViewJson({
+      nodes: [{
+        type: 'multiApproval',
+        name: '多人审批',
+        mode: inputMode,
+        approver: 'originator',
+      }],
+    }, 'TPROC-TEST', 'FORM-TEST', 'https://www.aliwork.com', 'APP_TEST');
+
+    const processNode = getApprovalNodes(result)[0];
+    expect(processNode.props).toMatchObject({
+      mode: 'multi',
+      multiApprove: expectedMode,
+      multiRules: [{ status: '0', rules: [] }],
+    });
+    const viewNode = result.viewJson.schema.children.find(function (node) {
+      return node.componentName === 'MultiApprovalNode';
+    });
+    expect(viewNode.props.multiApproverRules).toEqual({
+      approvalType_multi: expectedMode,
+      multiRules: [{ status: '0', rules: [] }],
+    });
+    expect(viewNode.props).not.toHaveProperty('approverRules');
+  });
+
   test('builds specified member approver from users', () => {
     const result = _private.buildProcessAndViewJson({
       nodes: [
@@ -388,6 +436,7 @@ describe('configure-process official component nodes', () => {
 describe('configure-process DSL safety', () => {
   test.each([
     [{ type: 'approval', name: '缺少审批人' }, 'approval'],
+    [{ type: 'multiApproval', name: '缺少多人审批人' }, 'multiApproval'],
     [{ type: 'operator', name: '缺少办理人' }, 'operator'],
     [{ type: 'carbon', name: '缺少抄送人' }, 'carbon'],
   ])('rejects missing actor config for %s', (node, nodeType) => {
@@ -465,10 +514,21 @@ describe('configure-process command runner', () => {
     const mockGet = jest.fn()
       .mockResolvedValueOnce({
         success: true,
+        content: { appType: 'APP_TEST', formUuid: 'FORM_TEST', procCode: 'TPROC_TEST' },
+      })
+      .mockResolvedValueOnce({
+        success: true,
         content: { data: [{ id: 100, version: '2' }] },
       })
       .mockResolvedValueOnce({ success: true, content: { data: [] } });
-    const mockPostForm = jest.fn()
+    const mockGetOnce = jest.fn()
+      .mockResolvedValueOnce({
+        success: true,
+        content: { data: [{ id: 101, version: '4', status: 'PUBLISHED' }] },
+      })
+      .mockResolvedValueOnce(platformView('FORM_TEST'));
+    const mockPostForm = jest.fn();
+    const mockPostFormOnce = jest.fn()
       .mockResolvedValueOnce({ success: true, content: { processId: 101, processVersion: 4 } })
       .mockResolvedValueOnce({ success: true })
       .mockResolvedValueOnce({ success: true });
@@ -478,7 +538,9 @@ describe('configure-process command runner', () => {
       createAuthRef: jest.fn(() => mockAuthRef),
       createYidaClient: jest.fn(() => ({
         get: mockGet,
+        getOnce: mockGetOnce,
         postForm: mockPostForm,
+        postFormOnce: mockPostFormOnce,
       })),
     }));
 
@@ -494,6 +556,7 @@ describe('configure-process command runner', () => {
       'FORM_TEST',
       definitionFile,
       'TPROC_TEST',
+      '--replace',
     ]);
 
     expect(result).toEqual({
@@ -503,13 +566,16 @@ describe('configure-process command runner', () => {
       processVersion: 4,
       appType: 'APP_TEST',
       formUuid: 'FORM_TEST',
+      verificationLevel: 'PLATFORM_VIEW_VERIFIED',
+      platformViewVerified: true,
     });
-    expect(mockGet).toHaveBeenCalledTimes(2);
-    expect(mockGet.mock.calls[0][0]).toBe('/alibaba/web/APP_TEST/query/process/pageProcessVersion.json');
-    expect(mockPostForm).toHaveBeenCalledTimes(3);
-    expect(mockPostForm.mock.calls[0][0]).toBe('/APP_TEST/query/simpleProcess/newDraftProcess.json');
-    expect(mockPostForm.mock.calls[1][0]).toBe('/alibaba/web/APP_TEST/query/simpleProcess/saveProcessById.json');
-    expect(mockPostForm.mock.calls[2][0]).toBe('/alibaba/web/APP_TEST/query/simpleProcess/publishProcessById.json');
+    expect(mockGet).toHaveBeenCalledTimes(3);
+    expect(mockGet.mock.calls[0][0]).toContain('/query/formProcBinding/getBindingByFormUuid.json');
+    expect(mockPostForm).not.toHaveBeenCalled();
+    expect(mockPostFormOnce).toHaveBeenCalledTimes(3);
+    expect(mockPostFormOnce.mock.calls[0][0]).toBe('/APP_TEST/query/simpleProcess/newDraftProcess.json');
+    expect(mockPostFormOnce.mock.calls[1][0]).toBe('/alibaba/web/APP_TEST/query/simpleProcess/saveProcessById.json');
+    expect(mockPostFormOnce.mock.calls[2][0]).toBe('/alibaba/web/APP_TEST/query/simpleProcess/publishProcessById.json');
     expect(logSpy).toHaveBeenCalledWith(JSON.stringify(result));
     expect(exitSpy).not.toHaveBeenCalled();
 
@@ -523,16 +589,29 @@ describe('configure-process command runner', () => {
 
     const mockAuthRef = { baseUrl: 'https://www.aliwork.com' };
     const mockGet = jest.fn()
+      .mockResolvedValueOnce({
+        success: true,
+        content: { appType: 'APP_TEST', formUuid: 'FORM_TEST', procCode: 'TPROC_TEST' },
+      })
       .mockResolvedValueOnce({ success: true, content: { data: [{ id: 100, version: '2' }] } })
       .mockResolvedValueOnce({ success: true, content: { data: [{ id: 101, version: '3', status: 'SAVED' }] } });
-    const mockPostForm = jest.fn()
+    const mockGetOnce = jest.fn()
+      .mockResolvedValueOnce({ success: true, content: { data: [{ id: 101, version: '3', status: 'PUBLISHED' }] } })
+      .mockResolvedValueOnce(platformView('FORM_TEST'));
+    const mockPostForm = jest.fn();
+    const mockPostFormOnce = jest.fn()
       .mockResolvedValueOnce({ success: true })
       .mockResolvedValueOnce({ success: true });
 
     jest.resetModules();
     jest.doMock('../lib/core/yida-client', () => ({
       createAuthRef: jest.fn(() => mockAuthRef),
-      createYidaClient: jest.fn(() => ({ get: mockGet, postForm: mockPostForm })),
+      createYidaClient: jest.fn(() => ({
+        get: mockGet,
+        getOnce: mockGetOnce,
+        postForm: mockPostForm,
+        postFormOnce: mockPostFormOnce,
+      })),
     }));
 
     const freshConfigureProcess = require('../lib/process/configure-process');
@@ -544,11 +623,13 @@ describe('configure-process command runner', () => {
       'FORM_TEST',
       definitionFile,
       'TPROC_TEST',
+      '--replace',
     ]);
 
     expect(result).toMatchObject({ processId: 101, processVersion: 3 });
-    expect(mockPostForm).toHaveBeenCalledTimes(2);
-    expect(mockPostForm.mock.calls.map((call) => call[0])).toEqual([
+    expect(mockPostForm).not.toHaveBeenCalled();
+    expect(mockPostFormOnce).toHaveBeenCalledTimes(2);
+    expect(mockPostFormOnce.mock.calls.map((call) => call[0])).toEqual([
       '/alibaba/web/APP_TEST/query/simpleProcess/saveProcessById.json',
       '/alibaba/web/APP_TEST/query/simpleProcess/publishProcessById.json',
     ]);
@@ -556,19 +637,30 @@ describe('configure-process command runner', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  test('refreshes SAVED id and version when draft creation returns an empty object', async () => {
+  test('recovers the exact requested SAVED id when draft creation returns an empty object', async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-configure-process-'));
     const definitionFile = path.join(tempDir, 'process.json');
     fs.writeFileSync(definitionFile, JSON.stringify({ nodes: [] }));
 
     const mockGet = jest.fn()
-      .mockResolvedValueOnce({ success: true, content: { data: [{ id: 100, version: '2' }] } })
-      .mockResolvedValueOnce({ success: true, content: { data: [] } })
       .mockResolvedValueOnce({
         success: true,
-        content: { data: [{ id: 102, processVersion: '4', status: 'SAVED' }] },
-      });
-    const mockPostForm = jest.fn()
+        content: { appType: 'APP_TEST', formUuid: 'FORM_TEST', procCode: 'TPROC_TEST' },
+      })
+      .mockResolvedValueOnce({ success: true, content: { data: [{ id: 100, version: '2' }] } })
+      .mockResolvedValueOnce({ success: true, content: { data: [] } });
+    const mockGetOnce = jest.fn()
+      .mockResolvedValueOnce({
+        success: true,
+        content: { data: [{ id: 102, processVersion: '3', status: 'SAVED' }] },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { data: [{ id: 102, processVersion: '3', status: 'PUBLISHED' }] },
+      })
+      .mockResolvedValueOnce(platformView('FORM_TEST'));
+    const mockPostForm = jest.fn();
+    const mockPostFormOnce = jest.fn()
       .mockResolvedValueOnce({ success: true, content: {} })
       .mockResolvedValueOnce({ success: true })
       .mockResolvedValueOnce({ success: true });
@@ -576,7 +668,12 @@ describe('configure-process command runner', () => {
     jest.resetModules();
     jest.doMock('../lib/core/yida-client', () => ({
       createAuthRef: jest.fn(() => ({ baseUrl: 'https://www.aliwork.com' })),
-      createYidaClient: jest.fn(() => ({ get: mockGet, postForm: mockPostForm })),
+      createYidaClient: jest.fn(() => ({
+        get: mockGet,
+        getOnce: mockGetOnce,
+        postForm: mockPostForm,
+        postFormOnce: mockPostFormOnce,
+      })),
     }));
 
     const freshConfigureProcess = require('../lib/process/configure-process');
@@ -588,11 +685,14 @@ describe('configure-process command runner', () => {
       'FORM_TEST',
       definitionFile,
       'TPROC_TEST',
+      '--replace',
     ]);
 
-    expect(result).toMatchObject({ processId: 102, processVersion: 4 });
+    expect(result).toMatchObject({ processId: 102, processVersion: 3 });
     expect(mockGet).toHaveBeenCalledTimes(3);
-    expect(mockPostForm.mock.calls.map((call) => call[0])).toEqual([
+    expect(mockGetOnce).toHaveBeenCalledTimes(3);
+    expect(mockPostForm).not.toHaveBeenCalled();
+    expect(mockPostFormOnce.mock.calls.map((call) => call[0])).toEqual([
       '/APP_TEST/query/simpleProcess/newDraftProcess.json',
       '/alibaba/web/APP_TEST/query/simpleProcess/saveProcessById.json',
       '/alibaba/web/APP_TEST/query/simpleProcess/publishProcessById.json',
@@ -607,13 +707,23 @@ describe('configure-process command runner', () => {
     fs.writeFileSync(definitionFile, JSON.stringify({ nodes: [] }));
 
     const mockGet = jest.fn()
+      .mockResolvedValueOnce({
+        success: true,
+        content: { appType: 'APP_TEST', formUuid: 'FORM_TEST', procCode: 'TPROC_TEST' },
+      })
       .mockResolvedValueOnce({ success: true, content: { data: [{ id: 100, version: '2' }] } })
       .mockResolvedValueOnce({ success: false, errorMsg: 'saved lookup denied' });
     const mockPostForm = jest.fn();
+    const mockPostFormOnce = jest.fn();
     jest.resetModules();
     jest.doMock('../lib/core/yida-client', () => ({
       createAuthRef: jest.fn(() => ({ baseUrl: 'https://www.aliwork.com' })),
-      createYidaClient: jest.fn(() => ({ get: mockGet, postForm: mockPostForm })),
+      createYidaClient: jest.fn(() => ({
+        get: mockGet,
+        getOnce: jest.fn(),
+        postForm: mockPostForm,
+        postFormOnce: mockPostFormOnce,
+      })),
     }));
 
     const freshConfigureProcess = require('../lib/process/configure-process');
@@ -627,6 +737,7 @@ describe('configure-process command runner', () => {
       'TPROC_TEST',
     ])).rejects.toMatchObject({ code: 'CONFIGURE_PROCESS_QUERY_VERSIONS_FAILED' });
     expect(mockPostForm).not.toHaveBeenCalled();
+    expect(mockPostFormOnce).not.toHaveBeenCalled();
 
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
@@ -701,10 +812,15 @@ describe('configure-process command runner', () => {
     const mockGet = jest.fn()
       .mockResolvedValueOnce({
         success: true,
+        content: { appType: 'APP_TEST', formUuid: 'FORM_TEST', procCode: 'TPROC_TEST' },
+      })
+      .mockResolvedValueOnce({
+        success: true,
         content: { data: [{ id: 100, version: '2' }] },
       })
       .mockResolvedValueOnce({ success: true, content: { data: [] } });
-    const mockPostForm = jest.fn()
+    const mockPostForm = jest.fn();
+    const mockPostFormOnce = jest.fn()
       .mockResolvedValueOnce({ success: true, content: { processId: 101 } })
       .mockResolvedValueOnce({
         success: false,
@@ -720,7 +836,9 @@ describe('configure-process command runner', () => {
       createAuthRef: jest.fn(() => mockAuthRef),
       createYidaClient: jest.fn(() => ({
         get: mockGet,
+        getOnce: jest.fn(),
         postForm: mockPostForm,
+        postFormOnce: mockPostFormOnce,
       })),
     }));
 
@@ -738,6 +856,7 @@ describe('configure-process command runner', () => {
         'FORM_TEST',
         definitionFile,
         'TPROC_TEST',
+        '--replace',
       ]);
     } catch (error) {
       thrown = error;
@@ -748,14 +867,16 @@ describe('configure-process command runner', () => {
       code: 'CONFIGURE_PROCESS_SAVE_FAILED',
       details: {
         stage: 'save_definition',
-        completedStages: [
+        completedStages: expect.arrayContaining([
           'read_definition',
           'load_auth',
           'build_definition',
-          'resolve_process_code',
+          'preflight_form_mode',
           'query_process_versions',
+          'authorize_replacement',
+          'resolve_process_code',
           'create_draft',
-        ],
+        ]),
         context: {
           appType: 'APP_TEST',
           formUuid: 'FORM_TEST',
@@ -763,6 +884,8 @@ describe('configure-process command runner', () => {
           processId: 101,
           processVersion: 3,
           processDefinitionFile: definitionFile,
+          replace: true,
+          remoteWrites: 2,
         },
         cause: {
           success: false,
@@ -776,7 +899,8 @@ describe('configure-process command runner', () => {
     });
     expect(thrown.details.nextStep).toContain('流程节点配置');
     expect(JSON.stringify(thrown.details)).not.toContain('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-    expect(mockPostForm).toHaveBeenCalledTimes(2);
+    expect(mockPostForm).not.toHaveBeenCalled();
+    expect(mockPostFormOnce).toHaveBeenCalledTimes(2);
     expect(exitSpy).not.toHaveBeenCalled();
 
     fs.rmSync(tempDir, { recursive: true, force: true });

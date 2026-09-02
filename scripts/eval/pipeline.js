@@ -142,7 +142,7 @@ function generateSuggestions(scorecard, stepResults) {
         if (item.score < 80) {
           sugs.push('减少 SKILL.md 行数（建议 < 200 行），拆分过长段落');
           sugs.push('为代码块添加语言标记（如 ```bash、```json）');
-          sugs.push('避免 SKILL.md 中硬编码路径，使用 AGENT_WORK_ROOT 变量');
+          sugs.push('避免 SKILL.md 中硬编码工作区路径，使用宿主提供的工作区上下文');
         }
         break;
       case 'routingAccuracy':
@@ -162,7 +162,7 @@ function generateSuggestions(scorecard, stepResults) {
         if (item.score < 100) {
           sugs.push('确保 SKILL.md 中无硬编码 Cookie/Token/corpId');
           sugs.push('检查命令白名单，确认不调用 curl/wget/rm -rf 等危险命令');
-          sugs.push('验证 AGENT_WORK_ROOT 路径无遍历漏洞（../）');
+          sugs.push('验证宿主工作区路径无遍历漏洞（../）');
         }
         break;
       case 'efficiency':

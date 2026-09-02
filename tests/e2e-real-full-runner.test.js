@@ -102,7 +102,17 @@ function buildProcessStageHarness(tmpDir, registry, readbackMarker = marker => m
         if (command === 'create-form' && sub === 'create') {return { json: { success: true, formUuid: 'FORM-PROC' } };}
         if (command === 'get-schema') {return { json: buildProcessStageSchema() };}
         if (command === 'create-process') {
-          const json = { success: true, processCode: 'TPROC-PROC', formUuid: 'FORM-PROC', appType: 'APP_PROC', url: 'https://www.aliwork.com/APP_PROC/workbench/FORM-PROC' };
+          const json = {
+            success: true,
+            processCode: 'TPROC-PROC',
+            processId: 'PID-PROC',
+            processVersion: 2,
+            formUuid: 'FORM-PROC',
+            appType: 'APP_PROC',
+            url: 'https://www.aliwork.com/APP_PROC/workbench/FORM-PROC',
+            verificationLevel: 'PLATFORM_VIEW_VERIFIED',
+            platformViewVerified: true,
+          };
           return { stdout: JSON.stringify(json), json };
         }
         if (command === 'data' && sub === 'create' && resource === 'form') {
@@ -327,6 +337,63 @@ describe('full real E2E runner', () => {
       url: 'https://www.aliwork.com/APP_FULL/custom/PAGE-FULL?isRenderNav=false',
       sharePath: '/o/oy_e2e_full-business-dashboard',
     });
+  });
+
+  test('keeps an auth/app/form stage selection closed and records exact owned identities', async () => {
+    const calls = [];
+    const registry = { resources: [], commands: [] };
+    const config = {
+      enabled: true,
+      prefix: 'OY_E2E_MINIMAL',
+      appName: 'OY_E2E_MINIMAL_App',
+      formName: 'OY_E2E_MINIMAL_Form',
+      pageName: 'OY_E2E_MINIMAL_Page',
+      updateAppName: 'OY_E2E_MINIMAL_App_Renamed',
+      resultAppName: 'OY_E2E_MINIMAL_PASSED',
+      importAppName: 'OY_E2E_MINIMAL_Imported',
+      fieldsFile: path.join(__dirname, '..', 'scripts', 'e2e-real', 'fixtures', 'form-fields.json'),
+      pageSource: path.join(__dirname, '..', 'project', 'pages', 'src', 'demo-compat-smoke.oyd.jsx'),
+      registryDir: '/tmp/openyida-e2e-minimal-test',
+      stages: ['auth', 'app', 'form'],
+    };
+
+    await run({
+      env: { OPENYIDA_E2E: '1' },
+      config,
+      createRegistry: () => ({ registry, registryPath: '/tmp/openyida-e2e-minimal-test/OY_E2E_MINIMAL.json' }),
+      writeRegistry: () => {},
+      addResource: (currentRegistry, registryPath, resource) => {
+        currentRegistry.resources.push(resource);
+      },
+      writeJson: (filePath) => filePath,
+      writeText: (filePath) => filePath,
+      runCli: (args) => {
+        calls.push(args);
+        if (args[0] === 'create-app') {
+          return { json: { success: true, appType: 'APP-MINIMAL' } };
+        }
+        if (args[0] === 'create-form' && args[1] === 'create') {
+          return { json: { success: true, formUuid: 'FORM-MINIMAL' } };
+        }
+        if (args[0] === 'get-schema') {
+          return { json: { success: true, content: { pages: [] } } };
+        }
+        return { json: { success: true, status: 'ok' } };
+      },
+    });
+
+    expect(calls.some((args) => args[0] === 'create-page')).toBe(false);
+    expect(calls).not.toContainEqual([
+      'update-app', 'APP-MINIMAL', '--name', 'OY_E2E_MINIMAL_PASSED', '--quiet',
+    ]);
+    expect(registry.resources).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        runId: 'OY_E2E_MINIMAL', owned: true, type: 'app', exactId: 'APP-MINIMAL',
+      }),
+      expect.objectContaining({
+        runId: 'OY_E2E_MINIMAL', owned: true, type: 'form', exactId: 'FORM-MINIMAL',
+      }),
+    ]));
   });
 
   test('runs the opt-in process stage with mocked CLI calls', async () => {

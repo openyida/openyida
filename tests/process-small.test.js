@@ -3,7 +3,6 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const querystring = require('querystring');
 const { CliError } = require('../lib/core/cli-error');
 
 jest.mock('child_process', () => ({
@@ -26,7 +25,14 @@ jest.mock('../lib/core/chalk', () => ({
 }));
 
 jest.mock('../lib/process/configure-process', () => ({
-  run: jest.fn(async () => ({ success: true })),
+  run: jest.fn(async () => ({
+    success: true,
+    processCode: 'TPROC_1',
+    processId: 101,
+    processVersion: 1,
+    verificationLevel: 'PLATFORM_VIEW_VERIFIED',
+    platformViewVerified: true,
+  })),
 }));
 
 jest.mock('../lib/app/create-form', () => ({
@@ -35,6 +41,8 @@ jest.mock('../lib/app/create-form', () => ({
 
 const childProcess = require('child_process');
 const utils = require('../lib/core/utils');
+const chalk = require('../lib/core/chalk');
+const i18n = require('../lib/core/i18n');
 const configureProcess = require('../lib/process/configure-process');
 const createForm = require('../lib/app/create-form');
 const createProcess = require('../lib/process/create-process');
@@ -59,6 +67,7 @@ describe('small process commands', () => {
     utils.findProjectRoot.mockReturnValue(tmpDir);
     utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
     childProcess.spawnSync.mockReturnValue({ status: 0 });
+    i18n.setLanguage('zh');
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
@@ -67,18 +76,9 @@ describe('small process commands', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test('create-process reuses a form, switches type, and runs configure-process', async () => {
+  test('create-process reuses a form and delegates conversion and publishing to configure-process', async () => {
     const processDefPath = path.join(tmpDir, 'process.json');
     fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }), 'utf8');
-    utils.httpPost.mockResolvedValueOnce({ success: true });
-    utils.httpGet.mockResolvedValueOnce({
-      success: true,
-      content: {
-        appType: 'APP_XXX',
-        procCode: 'TPROC_1',
-      },
-    });
-
     const result = await createProcess.run(['APP_XXX', '--formUuid', 'FORM_1', processDefPath]);
 
     expect(result).toMatchObject({
@@ -87,18 +87,53 @@ describe('small process commands', () => {
       formUuid: 'FORM_1',
       processCode: 'TPROC_1',
     });
-    expect(utils.httpPost.mock.calls[0][1]).toContain('/APP_XXX/query/formdesign/switchFormType.json');
-    expect(utils.httpGet.mock.calls[0][1]).toContain('/APP_XXX/query/formProcBinding/getBindingByFormUuid.json');
-    expect(querystring.parse(utils.httpPost.mock.calls[0][2])).toMatchObject({
-      toFormType: 'process',
-      formUuid: 'FORM_1',
-    });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+    expect(utils.httpGet).not.toHaveBeenCalled();
     expect(configureProcess.run).toHaveBeenCalledWith(
-      ['APP_XXX', 'FORM_1', processDefPath, 'TPROC_1'],
+      ['APP_XXX', 'FORM_1', processDefPath],
       { suppressOutput: true }
     );
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(JSON.parse(logSpy.mock.calls[0][0])).toEqual(result);
+  });
+
+  test('create-process rejects an invalid process definition before creating or converting a form', async () => {
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    const processDefPath = path.join(tmpDir, 'process.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([{ type: 'TextField', label: '姓名' }]), 'utf8');
+    fs.writeFileSync(processDefPath, JSON.stringify({
+      nodes: [{ type: 'multiApproval', name: '缺少多人审批人', mode: 'all' }],
+    }), 'utf8');
+
+    await expect(createProcess.run([
+      'APP_XXX', '流程表单', fieldsPath, processDefPath,
+    ])).rejects.toMatchObject({
+      code: 'PROCESS_COMPILE_APPROVER_REQUIRED',
+    });
+    expect(createForm.createFormForLegacyProcess).not.toHaveBeenCalled();
+    expect(utils.httpPost).not.toHaveBeenCalled();
+    expect(configureProcess.run).not.toHaveBeenCalled();
+  });
+
+  test('create-process returns localized compiler errors through the public English call chain', async () => {
+    const processDefPath = path.join(tmpDir, 'process-en.json');
+    fs.writeFileSync(processDefPath, JSON.stringify({
+      nodes: [{
+        type: 'multiApproval',
+        name: 'Joint review',
+        mode: 'invalid',
+        approver: { type: 'user', users: [{ id: 'user-1', name: 'Reviewer' }] },
+      }],
+    }), 'utf8');
+    i18n.setLanguage('en');
+
+    await expect(createProcess.run([
+      'APP_XXX', '--formUuid', 'FORM_1', processDefPath,
+    ])).rejects.toMatchObject({
+      code: 'PROCESS_COMPILE_MULTI_APPROVAL_MODE_INVALID',
+      message: 'Multi-approval mode must be all, or, or oneByOne: invalid',
+    });
+    expect(configureProcess.run).not.toHaveBeenCalled();
   });
 
   test('create-process creates a form through the JS bridge without invoking the CLI subprocess', async () => {
@@ -113,13 +148,13 @@ describe('small process commands', () => {
       formTitle: '流程表单',
       fieldCount: 1,
     });
-    utils.httpPost.mockResolvedValueOnce({ success: true });
-    utils.httpGet.mockResolvedValueOnce({
+    configureProcess.run.mockResolvedValueOnce({
       success: true,
-      content: {
-        appType: 'APP_XXX',
-        procCode: 'TPROC_CREATED',
-      },
+      processCode: 'TPROC_CREATED',
+      processId: 202,
+      processVersion: 1,
+      verificationLevel: 'PLATFORM_VIEW_VERIFIED',
+      platformViewVerified: true,
     });
 
     const result = await createProcess.run([
@@ -143,7 +178,6 @@ describe('small process commands', () => {
         'APP_XXX',
         'FORM_CREATED',
         processDefPath,
-        'TPROC_CREATED',
       ],
       { suppressOutput: true }
     );
@@ -154,23 +188,27 @@ describe('small process commands', () => {
       appType: 'APP_XXX',
       fieldCount: 1,
       processCode: 'TPROC_CREATED',
+      processId: 202,
+      processVersion: 1,
+      verificationLevel: 'PLATFORM_VIEW_VERIFIED',
+      platformViewVerified: true,
       url: 'https://www.aliwork.com/APP_XXX/workbench/FORM_CREATED',
     });
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(JSON.parse(logSpy.mock.calls[0][0])).toEqual(result);
   });
 
-  test('create-process reports switch stage with compact failure details', async () => {
+  test('create-process preserves configure-process conversion failure details', async () => {
     const processDefPath = path.join(tmpDir, 'process.json');
     fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }), 'utf8');
-    utils.httpPost.mockResolvedValueOnce({
-      success: false,
-      errorMsg: 'permission denied',
-      content: {
-        nested: 'x'.repeat(2000),
-        token: 'private-token-value',
+    configureProcess.run.mockRejectedValueOnce(new CliError('permission denied', {
+      code: 'CONFIGURE_PROCESS_SWITCH_FAILED',
+      details: {
+        stage: 'switch_form_type',
+        completedStages: ['read_definition', 'load_auth', 'build_definition'],
+        nextStep: '确认当前账号有表单管理权限。',
       },
-    });
+    }));
 
     let thrown;
     try {
@@ -181,40 +219,21 @@ describe('small process commands', () => {
 
     expect(thrown).toMatchObject({
       isCliError: true,
-      code: 'CREATE_PROCESS_SWITCH_FAILED',
+      code: 'CREATE_PROCESS_CONFIGURE_FAILED',
       details: {
         stage: 'switch_form_type',
-        completedStages: ['load_auth', 'reuse_form'],
-        context: {
-          appType: 'APP_XXX',
-          formUuid: 'FORM_1',
-          processDefinitionFile: processDefPath,
-        },
-        cause: {
-          success: false,
-          errorMsg: 'permission denied',
-          content: {
-            type: 'object',
-            keys: ['nested', 'token'],
-          },
+        configureProcess: {
+          stage: 'switch_form_type',
         },
       },
     });
-    expect(thrown.details.nextStep).toContain('表单管理权限');
-    expect(JSON.stringify(thrown.details)).not.toContain('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+    expect(configureProcess.run).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost).not.toHaveBeenCalled();
   });
 
   test('create-process preserves configure-process inner failure stage', async () => {
     const processDefPath = path.join(tmpDir, 'process.json');
     fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }), 'utf8');
-    utils.httpPost.mockResolvedValueOnce({ success: true });
-    utils.httpGet.mockResolvedValueOnce({
-      success: true,
-      content: {
-        appType: 'APP_XXX',
-        procCode: 'TPROC_1',
-      },
-    });
     configureProcess.run.mockRejectedValueOnce(new CliError('save denied', {
       code: 'CONFIGURE_PROCESS_SAVE_FAILED',
       details: {
@@ -239,19 +258,21 @@ describe('small process commands', () => {
 
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(configureProcess.run).toHaveBeenCalledWith(
-      ['APP_XXX', 'FORM_1', processDefPath, 'TPROC_1'],
+      ['APP_XXX', 'FORM_1', processDefPath],
       { suppressOutput: true }
     );
     expect(payload).toMatchObject({
       success: false,
+      errorCode: 'CONFIGURE_PROCESS_SAVE_FAILED',
       formUuid: 'FORM_1',
       appType: 'APP_XXX',
       error: expect.stringContaining('save denied'),
       stage: 'save_definition',
-      completedStages: ['load_auth', 'reuse_form', 'switch_form_type', 'resolve_process_code'],
+      completedStages: ['validate_inputs', 'load_auth', 'reuse_form'],
       nextStep: '检查流程节点配置后重试。',
       retryCommand: 'openyida create-process APP_XXX --formUuid FORM_1 ' + path.basename(processDefPath),
       configureProcess: {
+        code: 'CONFIGURE_PROCESS_SAVE_FAILED',
         stage: 'save_definition',
         completedStages: ['read_definition', 'load_auth', 'build_definition'],
         nextStep: '检查流程节点配置后重试。',
@@ -263,16 +284,17 @@ describe('small process commands', () => {
       code: 'CREATE_PROCESS_CONFIGURE_FAILED',
       details: {
         stage: 'save_definition',
-        completedStages: ['load_auth', 'reuse_form', 'switch_form_type', 'resolve_process_code'],
+        completedStages: ['validate_inputs', 'load_auth', 'reuse_form'],
         nextStep: '检查流程节点配置后重试。',
         createProcessStage: 'configure_process',
         context: {
           appType: 'APP_XXX',
           formUuid: 'FORM_1',
-          processCode: 'TPROC_1',
+          processCode: null,
           retryCommand: 'openyida create-process APP_XXX --formUuid FORM_1 ' + path.basename(processDefPath),
         },
         configureProcess: {
+          code: 'CONFIGURE_PROCESS_SAVE_FAILED',
           stage: 'save_definition',
           completedStages: ['read_definition', 'load_auth', 'build_definition'],
           nextStep: '检查流程节点配置后重试。',
@@ -280,6 +302,44 @@ describe('small process commands', () => {
       },
     });
     expect(thrown.details.stage).not.toBe('configure_process');
+  });
+
+  test.each([
+    ['draft unknown', 'NON_IDEMPOTENT_RESULT_UNKNOWN', 'create_draft'],
+    ['save unknown', 'NON_IDEMPOTENT_RESULT_UNKNOWN', 'save_definition'],
+    ['publish unknown', 'NON_IDEMPOTENT_RESULT_UNKNOWN', 'publish_process'],
+    ['published unverified', 'PUBLISHED_UNVERIFIED', 'verify_published_view'],
+  ])('create-process preserves %s and never emits a write retry command', async (_label, code, stage) => {
+    const processDefPath = path.join(tmpDir, 'process.json');
+    fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }), 'utf8');
+    configureProcess.run.mockRejectedValueOnce(new CliError('unsafe result', {
+      code,
+      details: {
+        stage,
+        completedStages: ['read_definition', 'load_auth', 'build_definition'],
+        nextStep: '修正后重试写入。',
+      },
+    }));
+
+    let thrown;
+    try {
+      await createProcess.run(['APP_XXX', '--formUuid', 'FORM_1', processDefPath]);
+    } catch (error) {
+      thrown = error;
+    }
+    const payload = logSpy.mock.calls
+      .map(call => call[0])
+      .filter(line => typeof line === 'string' && line.startsWith('{'))
+      .map(line => JSON.parse(line))
+      .find(item => item && item.success === false);
+    const warnings = chalk.warn.mock.calls.map(call => call.join(' ')).join('\n');
+
+    expect(thrown).toMatchObject({ code });
+    expect(payload).toMatchObject({ errorCode: code, stage });
+    expect(payload).not.toHaveProperty('retryCommand');
+    expect(payload.nextStep).toMatch(/只读|人工/);
+    expect(thrown.details.context).not.toHaveProperty('retryCommand');
+    expect(warnings).not.toContain('openyida create-process');
   });
 
   test('preview-process writes an HTML preview and returns metadata', async () => {

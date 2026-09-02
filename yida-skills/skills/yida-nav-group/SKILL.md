@@ -55,6 +55,8 @@ openyida nav-group move <appType> <formUuid> --to <groupNavUuid> --before <sibli
 openyida nav-group move <appType> <formUuid> --to root --after <siblingNavUuid>
 ```
 
+目标分组必须通过 `--to` 传入，不能作为第三个位置参数。
+
 常见场景：把新建表单放入已有分组：
 
 ```bash

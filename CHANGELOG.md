@@ -10,7 +10,134 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
-## [Unreleased]
+## [2026.9.1-1] - 2026-09-01
+
+### Fixed
+
+- 报表链接返回规范化的工作台地址：`create-report` / `append` / `inspect` 及 owned residual 分支统一由 `lib/report/url.js` 单点构造，同时返回 `url` 与 `workbenchUrl`，不再出现无法打开的拼接链接。
+- 数据看板与报表新增语义护栏：`query-data` / `get-schema` / 报表契约在配置缺失或字段语义不成立时给出结构化失败，避免生成空看板或错绑字段。
+- 登录态缓存按沙箱绑定隔离：`token-store` 以沙箱绑定信息作为 token 缓存的围栏，防止不同沙箱环境间复用同一份 token session。
+
+## [2026.9.1] - 2026-09-01
+
+### Changed
+
+- `openyida create-app` 创建应用时默认启用现代主题（注册请求带上 `createWithModernTheme=y`）；`import-app` 行为保持不变。
+
+## [2026.8.31-2] - 2026-08-31
+
+### Fixed
+
+- 修复普通表单字段动作绑定「写入成功但设计器仍显示新建动作」的问题：`create-form patch` 的 `bind-field-action` 现在同时写入设计器原生事件结构（`JSExpression` + `actionRef`）与动作面板目录条目，保存后回读校验「导出函数 + 动作目录条目 + 原生事件结构」三要素齐全，任一缺失即以结构化错误失败，不再误报成功。
+- 修复动作目录同步会抹掉条目元数据的问题：`syncDesignerActionCatalog` 改为合并语义（只增不删），生命周期/组件事件条目的 `relatedEventId`、`type`、`params` 得以保留；仅清理已失效的 `openyidaRuleChange_*` 自有包装动作，用户与平台自有条目不再被静默删除。
+- 修复动作源码校验把业务常量误认作动作的问题：改用只识别顶层 `export function` 的窄提取器，`export const` 常量不再注册进动作面板。
+- 修复字段查找在写入侧与回读侧不对称的问题：回读时同时匹配 `field.fieldId` 与 `props.fieldId`，避免写入成功却回读报 `FIELD_NOT_FOUND`。
+
+### Changed
+
+- 补充下拉单选 `onChange` 取值契约文档：动作参数从 `value` 传入而非 `event`，可能是原始值、`{ value, actionType }` 或开启 `useDetailValue` 后的 `{ value: { label, value } }`；并新增各组件动作值形态对照表（标量 / 数组 / `{ start, end }` / 成员对象），说明不能统一 `String(value)`。
+
+## [2026.8.31-1] - 2026-08-31
+
+### Changed
+
+- 完整应用的列表页策略默认改为普通表单的数据管理页（`native-list`），不再默认创建自定义列表页；只有用户明确要求自定义列表时才规划并实现 `display-page / list`。
+- 同步更新 `yida-design` 信息架构、PRD 输出模板与 `yida-app` 编排约束：资源蓝图、页面实现顺序、导航分组与验收清单均以表单数据管理页为默认数据查看入口。
+- 新增技能契约测试锁定上述默认行为，防止回退到「默认自定义列表页」。
+
+## [2026.8.31] - 2026-08-31
+
+### Added
+
+- 新增 `openyida data delete form <appType> <formUuid> --inst-id <id> --confirm`：单条表单数据精确删除，强制 `--confirm` 确认、删除前目标校验与删除后回读确认；流程实例删除仍不支持，会以 `DATA_PROCESS_DELETE_UNSUPPORTED` 明确拒绝。
+
+### Fixed
+
+- 报表创建/追加图表失败时的恢复路径收敛：区分副作用已发生与未发生，避免在不确定状态下直接重试导致重复写入。
+- `project` 工作目录初始化新增目标路径安全校验，拒绝拷贝到源目录自身或其子目录。
+- 自定义页面构建/检查/发布链路与页面兼容层的异常语义对齐，预检失败不再产出歧义提示。
+
+### Changed
+
+- CLI 错误契约扩展结构化字段（`partial`/`residual`/`retrySafe`/`sideEffectState`/`readbackAllowed`/`recommendedRecovery`/`nextAction` 等），供 agent 判断副作用状态与重试安全性。
+- `create-report` / `append-chart` 补齐 `--json` 输出；README 双语命令表同步。
+- 同步 yida-data-management / yida-report / yida-create-form-page / yida-app 等子技能文档与命令清单。
+
+## [2026.8.30] - 2026-08-30
+
+### Fixed
+
+- 集成逻辑流数据赋值的设计器来源引用 `#{节点别名//字段ID}` 现在会解析为节点 ID 后再写入，修复公式来源字段别名未转换导致的保存失败。
+- 集成逻辑流构建时拒绝悬空（未知）的设计器来源节点别名引用，提前给出明确错误而非产出无效 spec。
+
+### Changed
+
+- `httpGet` 查询串拼接修复：路径已含查询串时改用 `&` 追加，避免产生双 `?` 的非法 URL；`--dynamic-order` 等参数透传更稳。
+- `openyida data query form` 补齐 `--dynamic-order` 文档：`{"fieldId":"+"}` 升序 / `{"fieldId":"-"}` 降序，未指定时不保证结果顺序。
+- 清理报表不支持的图表类型（radar/scatter/area/number）死代码，`getChartSettings` 保持 fail-closed 拒绝。
+- 同步 README、yida-api、yida-data-management、yida-integration 等文档。
+
+## [2026.8.29] - 2026-08-29
+
+### Added
+
+- CRM Pro 评测新增确定性证据链：命令轨迹独立采集（临时 PATH shim + 敏感参数脱敏）、证据断言引擎、平台只读回读、schema-diff 稳定快照、只读重放（`eval:replay`）与浏览器运行时验收。
+- `get-schema` 新增 `--analysis-json` 表单 Schema 语义分析（字段角色、关联与能力诊断）。
+- 报表新增 `map`、`calendarHeatmap` 图表类型，覆盖能力注册、图表构建与数据模型校验。
+
+### Changed
+
+- `openyida integration list` 默认查询范围从仅 `flowType=1` 扩展为全部已知类型 `1,2,3,5,6`。依赖旧口径做数量断言的脚本应显式传入 `--flow-types 1`。
+- 报表保存契约规范化平台省略的 `null` 默认键，修复回读误判；schema 结果校验收紧为要求 `pages` 为数组。
+- CLI `--help` 改为命令清单驱动的按命令帮助，usage 与 examples 与 manifest 保持一致。
+- 同步 yida-get-schema / yida-report / yida-integration 等子技能文档与 README 双语命令表。
+
+## [2026.8.28] - 2026-08-28
+
+### Added
+
+- OAuth 登录回调页新增完整的成功/失败界面、12 语言文案、HTML 转义与自动关闭失败回退，登录完成状态更清晰。
+- 权限、流程、集成自动化、聚合表、报表和连接器新增确定性契约、平台回读、运行态与 UI 证据链，覆盖真实搭建与安全清理边界。
+
+### Changed
+
+- 权限保存采用精确目标匹配和逐字段回读，修改人员时保留部门、角色与动态成员配置，并统一脱敏诊断信息。
+- 流程整图更新要求显式替换，补齐 MultiApproval 与多分支序列化、草稿选择和发布视图验证，避免多义目标与半成品流程。
+- 集成自动化补齐有界分页、精确匹配、节点契约、配置摘要与最终态回读；空配置、未知写入结果和不安全清理统一 fail-closed。
+- 聚合表保存增加 revision/CAS、跨数组引用校验、发布态回读及 ownership/restore 证据，避免并发覆盖和空结果误判成功。
+- 原生报表统一能力注册、布局与严格 Schema 回读，过滤创建期客户端元数据，并拒绝空报表配置。
+- 自定义连接器支持 DingAuth、稳定 action identity 与参数化测试；部分编辑保留未修改的认证、请求参数和返回结构，拒绝无变化写入及误清空配置。
+
+### Security
+
+- 真实 E2E、错误信息和诊断产物统一收紧敏感字段输出；无法证明资源归属或删除安全性时记录为 blocked/cleanup_blocked，不再伪报成功。
+
+## [2026.8.27-2] - 2026-08-27
+
+### Added
+
+- npm 全局安装新增 Homebrew 风格自动更新：普通命令执行前至多每 24 小时检查一次 npm `latest`，发现新版本后安装精确版本并重跑原命令；提供缓存、非阻塞锁、完整 SemVer 比较和关闭开关。托管云端 Agent 在缓存、registry 与 npm 调用前直接跳过。
+
+### Removed
+
+- 移除已退役的悟空 Agent 和 Aone Copilot 专属兼容，包括 `AGENT_WORK_ROOT` / `.real` 工作区、`.aone_copilot` 环境识别与技能安装、悟空自带 Node/npm、技能上传 zip 构建及 GitHub Release 附件；`DingTalkWuKong.app` 的钉钉客户端识别继续保留。
+
+### Fixed
+
+- 新增新 Qoder 桌面应用的跨平台环境识别，并将原 Qoder 正确标识为 Qoder IDE；三者不再因模糊匹配 `qoder` Bundle ID 而误归为 QoderWork，skills 目录与 `builderAiSource` 也会落到对应产品契约。
+
+## [2026.8.27-1] - 2026-08-27
+
+### Fixed
+
+- 报表日期字段的时间粒度此前被硬编码为 `DAY`，用户在图表配置中指定的 `timeGranularityType` 全部被丢弃；现支持 `YEAR | MONTH | DAY | HOUR | MINUTE | SECOND` 并同步写入查询模型与展示字段（通用图 / 组合图 / 表格 / 透视表 / 仪表盘均覆盖），空值默认仍为 `DAY`，非法值在远程写入前即以 `CREATE_REPORT_CHART_CONFIG_INVALID` 拒绝。
+
+## [2026.8.27] - 2026-08-27
+
+### Changed
+
+- 精简 npm 发布包：移除未使用的 `ajv` 依赖，收敛 `files` 白名单，发布包不再携带 `scripts/eval/`、`scripts/e2e-real/` 与 `validate-*` 等评测/校验工具链；包内容校验改为白名单断言，越界文件会在打包检查阶段直接拦截。
+- 移除 `eval` CLI 入口：发布包内不再包含评测命令，`command-manifest` 与命令帮助同步收敛。
 
 ## [2026.8.26] - 2026-08-26
 

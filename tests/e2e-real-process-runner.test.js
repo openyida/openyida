@@ -81,6 +81,8 @@ function createHarness(options = {}) {
             appType: 'APP-PROC',
             formUuid: 'FORM-PROC',
             processCode: 'TPROC-PROC',
+            verificationLevel: options.commandVerificationLevel || 'PLATFORM_VIEW_VERIFIED',
+            platformViewVerified: options.platformViewVerified !== false,
           }),
           stderr: '',
         };
@@ -201,6 +203,25 @@ describe('process deterministic E2E runner', () => {
     expect(function parseDecoratedObject() {
       parseSingleJsonObject('done\n{"success":true}');
     }).toThrow(expect.objectContaining({ code: 'PROCESS_E2E_STDOUT_INVALID' }));
+  });
+
+  test('fails closed when create-process does not return PLATFORM_VIEW_VERIFIED', async () => {
+    const harness = createHarness({
+      commandVerificationLevel: 'PUBLISHED_UNVERIFIED',
+      platformViewVerified: false,
+    });
+    try {
+      await expect(run(harness.runOptions)).rejects.toMatchObject({
+        code: 'PROCESS_E2E_PUBLISH_UNVERIFIED',
+      });
+      expect(harness.commandCalls).toHaveLength(1);
+      expect(harness.apiCalls).toHaveLength(0);
+      expect(harness.registry.resources).not.toContainEqual(expect.objectContaining({
+        type: 'process',
+      }));
+    } finally {
+      harness.cleanup();
+    }
   });
 
   test('preflight failure performs zero command and API writes', async () => {

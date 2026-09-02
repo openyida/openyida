@@ -9,42 +9,45 @@ description: 宜搭表单权限组管理。查询、新增权限组，配置成�
 
 用户要求查询或修改表单权限组、成员范围、数据范围、操作权限或字段权限时使用本技能。
 
-当前 CLI 只查询和保存 `FORM_PACKAGE_VIEW` 权限组。平台模型还包含 `FORM_PACKAGE_START`，本技能不管理该类型。`get-permission` 当前只读取第 1 页、每页 20 条；输出不能代表第 21 条以后的权限组。
+当前 CLI 只查询和保存 `FORM_PACKAGE_VIEW` 权限组。平台模型还包含 `FORM_PACKAGE_START`，本技能不管理该类型。查询会按每页 20 条安全翻页；达到安全上限、分页重复或响应结构不完整时 fail-closed，不把不完整列表当作全量结果。
 
 ## 铁律
 
-1. **目标必须唯一**：更新前按 `DEFAULT`、`MANAGER` 或 `MATRIX` 匹配权限组。匹配 0 个或多个时停止；查询返回满 20 条时也停止，因为无法证明下一页没有同 role 权限组。停止时列出名称和 packageUuid。
+1. **目标必须唯一**：优先使用查询结果中的 `packageUuid`，通过 `--package-uuid` 精确更新；未提供 UUID 时才按 `DEFAULT`、`MANAGER` 或 `MATRIX` 匹配。匹配 0 个或多个、分页无法完整结束时停止。
+   `packageUuid` 只属于本次查询的 `formUuid`；多表单配置必须逐表查询，禁止跨表单复用。
 2. **未知操作键必须保留**：目标组的 `operatePermit` 包含 CLI 白名单外键时，停止 action-permission 修改；修改其他维度时原样保留整个 `operatePermit`。
 3. **成员替换必须展示损失**：执行 `--all-members` 或 `--matrix` 前展示完整 roleData before/after 和会移除的 `DEPARTMENT`、`ROLE`、`PARAM`、`MANAGER` 等条目。CLI 要求确认时，用户确认后追加 `--confirm-member-replace`。
 4. **整块保存必须先确认**：action-permission 会整块替换为 operations 中值为 true 的白名单键；执行前展示完整 before/after。
-5. **平台状态是真相源**：本技能不使用 memory 保存权限状态；每次修改都查询平台并在写后重查。
+5. **平台状态是真相源**：本技能不使用 memory 保存权限状态；CLI 保存前完整查询、只写一次，保存后按 packageUuid 精确回读。目标维度不一致或非目标维度漂移时报 `verify failed`；无法恢复 create UUID、精确目标暂不可见或回读失败时报 `verify unknown`，两者都不得宣称成功或直接重放写入。
 
 ## 标准流程
 
 1. **查询**：运行 `openyida get-permission <appType> <formUuid>`，记录目标组名称、packageUuid 和四个权限维度。
 2. **差异预览**：输出明确的 `before` 与 `after`；未修改的 roleData、dataPermit、operatePermit、fieldPermit 标记为“保持原值”。
 3. **确认**：向用户确认唯一目标、成员损失、操作权限整块替换和数据范围变化。
-4. **写入**：只传需要修改的维度，执行一次 `save-permission`。
-5. **重查验证**：再次运行 `get-permission`，按写入前记录的 packageUuid 找到目标组并逐项比对。找不到目标或实际值不一致时报告验证失败。
+4. **写入**：只传需要修改的维度，更新时追加 `--package-uuid <packageUuid>`，执行一次 `save-permission`。
+5. **重查验证**：CLI 会自动按 packageUuid 做 canonical readback，并返回 `verification.status=verified` 才算成功；Agent 可再用精确查询复核。`failed` 或 `unknown` 时停止且不重放。
 
 新增权限组也先查询现有配置并展示新组的完整 after，再确认、写入和重查。
 
 ## 命令
 
-查询前 20 个查看权限组：
+查询全部查看权限组，或按 packageUuid 精确过滤：
 
 ```bash
 openyida get-permission <appType> <formUuid>
+openyida get-permission <appType> <formUuid> --package-uuid <packageUuid>
 ```
 
 更新唯一权限组：
 
 ```bash
-openyida save-permission <appType> <formUuid> [选项]
+openyida save-permission <appType> <formUuid> --package-uuid <packageUuid> [选项]
 ```
 
 | 选项 | 作用 |
 |------|------|
+| `--package-uuid <packageUuid>` | 精确选择已有权限组；不能与 `--create` 同时使用 |
 | `--data-permission <json>` | 修改 dataPermit；顶层可带 `role` 选择目标组 |
 | `--action-permission <json>` | 整块替换 operatePermit；顶层可带 `role` |
 | `--field-permission <json>` | 修改真实 fieldPermit；顶层可带 `role` |
@@ -139,13 +142,14 @@ openyida save-permission <appType> <formUuid> --create --name <名称> [选项]
 
 | 结果 | 动作 |
 |------|------|
-| 查询为空、目标不唯一或首批返回满 20 条 | 零写入；展示名称/packageUuid，并让用户缩小目标或改在平台处理 |
+| 查询为空、目标不唯一、分页不完整或 UUID 不存在 | 零写入；展示名称/packageUuid，并让用户缩小目标或改在平台处理 |
 | 登录态或权限失败 | 停止；运行 `openyida auth status` 后由用户处理账号或组织 |
 | 参数或结构校验失败 | 零写入；修正 rule、部门 ID、formulaData、矩阵或 fieldStatus |
 | 保存失败 | 停止，不重复写入；保留 before 和错误响应 |
-| 写后不一致 | 报告 expected/actual，停止；不宣称完成 |
+| 写后不一致 | `SAVE_PERMISSION_VERIFY_FAILED`；报告 expected/actual，停止且不宣称完成 |
+| 写后无法精确确认 | `SAVE_PERMISSION_VERIFY_UNKNOWN`；先精确查询，禁止直接重放写入 |
 | 网络超时 | 先重查目标状态；只有证明未写入后才允许用户确认重试 |
 
 ## 明确不支持
 
-`FORM_PACKAGE_START`、新操作键、新成员创建参数、packageUuid 直选、权限组删除/复制/重命名、矩阵 CRUD 和 permission-v2。
+`FORM_PACKAGE_START`、新操作键、新成员创建参数、权限组删除/复制/重命名、矩阵 CRUD 和 permission-v2。

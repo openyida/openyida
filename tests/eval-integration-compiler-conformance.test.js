@@ -228,6 +228,12 @@ function compileProductScenario(scenarioId) {
         actionId: 'sync_order',
         connectorMode: 5,
         connectionId: 'CONNECTION-CONTRACT-001',
+        inputs: [
+          { name: 'orderNo', componentName: 'TextField', paramType: 'String' },
+          { name: 'amount', componentName: 'NumberField', paramType: 'Number' },
+        ],
+        outputs: [],
+        schemaVerificationLevel: 'FIXED_CONTRACT_FIXTURE',
         assignments: [
           { column: 'orderNo', valueType: 'processVar', value: 'textField_order_no' },
           { column: 'amount', valueType: 'processVar', value: 'numberField_order_amount' },

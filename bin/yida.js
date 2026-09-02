@@ -13,83 +13,17 @@
 const { version: currentVersion } = require('../package.json');
 const { t } = require('../lib/core/i18n');
 const { warn } = require('../lib/core/chalk');
-const { CliError, isCliError, toErrorPayload } = require('../lib/core/cli-error');
+const {
+  CliError,
+  isCliError,
+  shouldUseStructuredErrorOutput,
+  toErrorPayload,
+} = require('../lib/core/cli-error');
 const { COMMAND_GROUPS, buildCommandManifest, findCommandSuggestion } = require('../lib/core/command-manifest');
 
 const command = process.argv[2];
 const args = process.argv.slice(3);
 const rawArgs = process.argv.slice(3);
-
-function isAgentEnvironment(env) {
-  return !!(
-    env.CODEX_SHELL ||
-    env.CODEX_CI ||
-    env.CODEX_THREAD_ID ||
-    env.CODEX_HOME ||
-    env.CLAUDE_CODE ||
-    env.CLAUDE_CODE_ENTRYPOINT ||
-    env.MULERUN_CHAT_ID ||
-    env.MULE_DATA_DIR ||
-    env.MULE_WORKSPACE_DIR ||
-    env.OPENCODE ||
-    env.OPENCODE_CLIENT ||
-    env.QODER_IDE ||
-    env.QODER_AGENT ||
-    env.QODERCLI_INTEGRATION_MODE ||
-    env.QODER_WORK_INTEGRATION_PRODUCT ||
-    env.QWENWORK_INTEGRATION_MODE ||
-    env.QWENWORKCN_INTEGRATION_MODE ||
-    env.QWENWORK ||
-    env.QWENWORK_CLIENT ||
-    env.QWENWORK_WORKSPACE_DIR ||
-    env.QWENWORK_SANDBOX_ID ||
-    env.QWENWORK_PREVIEW_URL ||
-    env.QWENWORK_VNC_URL ||
-    (env.AGENT_PLATFORM || '').toLowerCase().includes('qwenwork') ||
-    env.CURSOR_TRACE_ID ||
-    env.AGENT_WORK_ROOT ||
-    env.OPENYIDA_AGENT_MODE ||
-    (env.__CFBundleIdentifier || '').toLowerCase().includes('codex') ||
-    (env.__CFBundleIdentifier || '').toLowerCase().includes('qoder') ||
-    (env.__CFBundleIdentifier || '').toLowerCase().includes('qwenwork') ||
-    (env.__CFBundleIdentifier || '').toLowerCase().includes('qwen-work')
-  );
-}
-
-function shouldRunUpdateCheck() {
-  if (process.env.OPENYIDA_SKIP_UPDATE_CHECK || process.env.NO_UPDATE_NOTIFIER) {
-    return false;
-  }
-  if (process.env.CI || isAgentEnvironment(process.env)) {
-    return false;
-  }
-  if (!process.stderr.isTTY) {
-    return false;
-  }
-  if (!command || command === '--help' || command === '-h' || command === '--version' || command === '-v') {
-    return false;
-  }
-  if (args.includes('--help') || args.includes('-h')) {
-    return false;
-  }
-  if (command === 'commands' || command === 'agent-capabilities' || command === 'mcp') {
-    return false;
-  }
-  if (args.includes('--json') || args.includes('--check-only')) {
-    return false;
-  }
-  return true;
-}
-
-function maybeCheckForUpdate() {
-  if (!shouldRunUpdateCheck()) {
-    return;
-  }
-  const { checkUpdate } = require('../lib/core/check-update');
-  checkUpdate(currentVersion).catch(() => {});
-}
-
-maybeCheckForUpdate();
 
 function shouldUseEnvManagement(argsList) {
   const subCommand = argsList[0];
@@ -369,7 +303,6 @@ const UNSUPPORTED_LEGACY_LOGIN_FLAGS = new Set([
   '--browser',
   '--codex',
   '--qoder',
-  '--wukong',
 ]);
 
 function findUnsupportedLegacyLoginFlag(...argLists) {
@@ -556,6 +489,47 @@ function printCommandUsage(...lines) {
   console.log(lines.filter(Boolean).join('\n'));
 }
 
+const MANIFEST_HELP_PATHS = Object.freeze({
+  'get-schema': ['get-schema'],
+  'query-data': ['data'],
+  'data-manage': ['data'],
+  data: ['data'],
+  report: ['report'],
+  'create-process': ['create-process'],
+  'create-report': ['create-report'],
+  'append-chart': ['append-chart'],
+  'save-share-config': ['save-share-config'],
+  'verify-short-url': ['verify-short-url'],
+  'integration-create': ['integration', 'create'],
+  'save-permission': ['save-permission'],
+  'get-permission': ['get-permission'],
+  copy: ['copy'],
+});
+
+function printManifestCommandHelp(commandName) {
+  const canonicalPath = MANIFEST_HELP_PATHS[commandName];
+  if (!canonicalPath) {
+    return false;
+  }
+
+  const manifest = buildCommandManifest({ t, version: currentVersion });
+  const matches = manifest.commands.filter((entry) =>
+    canonicalPath.every((token, index) => entry.path[index] === token)
+  );
+  const exact = matches.find((entry) => entry.path.length === canonicalPath.length);
+  const entries = exact ? [exact] : matches;
+  if (entries.length === 0) {
+    return false;
+  }
+
+  printCommandUsage(...entries.flatMap((entry) => [
+    entry.usage,
+    entry.description,
+    ...(entry.examples || []),
+  ]));
+  return true;
+}
+
 function printLoginHelp() {
   printCommandUsage(t('cli.login_usage'), t('cli.login_example'));
 }
@@ -598,6 +572,18 @@ async function main() {
   applyQuietFlag();
   applyGlobalEnvironmentFlags();
 
+  const { maybeAutoUpdate } = require('../lib/core/update');
+  const updateResult = await maybeAutoUpdate({
+    currentVersion,
+    command,
+    args,
+    argv: process.argv,
+  });
+  if (updateResult.reexecuted) {
+    process.exitCode = updateResult.exitCode;
+    return;
+  }
+
   if (!command || command === '--help' || command === '-h') {
     handleFirstRunGuide();
     printHelp();
@@ -606,6 +592,10 @@ async function main() {
 
   if (command === '--version' || command === '-v') {
     console.log(currentVersion);
+    return;
+  }
+
+  if (hasHelpFlag(args) && printManifestCommandHelp(command)) {
     return;
   }
 
@@ -1065,6 +1055,16 @@ async function main() {
       break;
     }
 
+    case 'report': {
+      const subCommand = args[0];
+      if (subCommand !== 'inspect') {
+        throwCliUsage('用法: openyida report inspect <appType> <reportId> --json');
+      }
+      const { run } = require('../lib/report/inspect');
+      await run(args.slice(1));
+      break;
+    }
+
     case 'cdn-config': {
       const { run: runCdnConfig } = require('../lib/cdn/cdn-config-cmd');
       await runCdnConfig(args);
@@ -1099,6 +1099,7 @@ async function main() {
         'detail':            '../lib/connector/connector-detail',
         'delete':            '../lib/connector/connector-delete',
         'add-action':        '../lib/connector/connector-add-action',
+        'update-action':     '../lib/connector/connector-update-action',
         'list-actions':      '../lib/connector/connector-list-actions',
         'delete-action':     '../lib/connector/connector-delete-action',
         'test':              '../lib/connector/connector-test',
@@ -1119,12 +1120,13 @@ async function main() {
   detail <connector-id>                        查看连接器详情
   delete <connector-id> [--force]              删除连接器
   add-action --operations <file> --connector-id <id>  添加执行动作
+  update-action --connector-id <id> --action <id> --query-json <JSON> --confirm  安全更新动作 Query 默认值
   list-actions <connector-id>                  列出执行动作
   delete-action <connector-id> <operation-id>  删除执行动作
-  test --connector-id <id> --action <actionId> 测试执行动作
+  test --connector-id <id> --action <actionId> [结构化 JSON 参数] 测试执行动作
   list-connections <connector-id>              列出鉴权账号
   create-connection <connector-id> <name>      创建鉴权账号
-  smart-create --curl "curl命令"               智能创建连接器
+  smart-create --curl "curl命令"               生成脱敏连接器动作草稿（不创建远端资源）
   parse-api [选项]                             解析接口信息
   gen-template [输出路径]                       生成接口文档模板
 
@@ -1264,12 +1266,6 @@ async function main() {
       break;
     }
 
-    case 'eval': {
-      const { main: evalMain } = require('../scripts/eval/runner');
-      await evalMain(args);
-      break;
-    }
-
     default: {
       throwUnknownCommand(command, args);
     }
@@ -1278,7 +1274,7 @@ async function main() {
 
 main()
   .catch((err) => {
-    if (isCliError(err) && args.includes('--json')) {
+    if (shouldUseStructuredErrorOutput(err, args)) {
       console.error(JSON.stringify(toErrorPayload(err), null, 2));
     } else if (isCliError(err)) {
       warn(t('cli.exec_failed', err.message));

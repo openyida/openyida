@@ -106,14 +106,6 @@ function defineTestCases() {
         }),
       },
       {
-        name: 'aggregate-table list',
-        args: ['aggregate-table', 'list', '--json'],
-        validate: (r) => ({
-          pass: r.status === 0,
-          detail: `exit=${r.status}`,
-        }),
-      },
-      {
         name: 'ai-form-setting models',
         args: ['ai-form-setting', 'models', '--json'],
         validate: (r) => ({
@@ -148,6 +140,20 @@ function defineTestCases() {
             pass: !!j && !!j.formUuid,
             detail: j ? `formUuid=${j.formUuid}` : 'no JSON',
             resource: j ? { type: 'form', formUuid: j.formUuid } : null,
+          };
+        },
+      },
+      {
+        name: 'aggregate-table list',
+        args: (ctx) => {
+          if (!ctx.appType) { return null; }
+          return ['aggregate-table', 'list', ctx.appType, '--json'];
+        },
+        validate: (r) => {
+          const list = parseJson(r.stdout);
+          return {
+            pass: r.status === 0 && Array.isArray(list),
+            detail: `exit=${r.status}, array=${Array.isArray(list)}`,
           };
         },
       },

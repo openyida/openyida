@@ -1354,7 +1354,15 @@ async function run(options = {}) {
         '--no-open',
       ]).json;
       context.appType = app.appType;
-      trackResource(registry, registryPath, { type: 'app', appType: context.appType, name: config.appName, url: app.url });
+      trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
+        type: 'app',
+        exactId: context.appType,
+        appType: context.appType,
+        name: config.appName,
+        url: app.url,
+      });
 
       runStep('update-app', ['update-app', context.appType, '--name', config.updateAppName]);
       runStep('app-list-after-create', ['app-list', '--size', '5'], { allowNoJson: true });
@@ -1370,7 +1378,16 @@ async function run(options = {}) {
         '--no-open',
       ]).json;
       context.formUuid = form.formUuid;
-      trackResource(registry, registryPath, { type: 'form', appType: context.appType, formUuid: context.formUuid, name: config.formName, url: form.url });
+      trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
+        type: 'form',
+        exactId: context.formUuid,
+        appType: context.appType,
+        formUuid: context.formUuid,
+        name: config.formName,
+        url: form.url,
+      });
 
       runStep('list-forms', ['list-forms', context.appType]);
       const addOption = runStep('create-form-add-option', [
@@ -1410,7 +1427,16 @@ async function run(options = {}) {
         '--no-open',
       ]).json;
       context.pageId = page.pageId;
-      trackResource(registry, registryPath, { type: 'page', appType: context.appType, pageId: context.pageId, name: config.pageName, url: page.url });
+      trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
+        type: 'page',
+        exactId: context.pageId,
+        appType: context.appType,
+        pageId: context.pageId,
+        name: config.pageName,
+        url: page.url,
+      });
       runStep('update-form-config-page', ['update-form-config', context.appType, context.pageId, 'false', config.pageName], { allowNoJson: true });
       runStep('publish', ['publish', config.pageSource, context.appType, context.pageId, '--health-check', '--no-open']);
     }
@@ -1474,7 +1500,16 @@ async function run(options = {}) {
       const chartsPath = writeJsonFile(path.join(workDir, 'report-charts.json'), buildReportCharts(context.formUuid, context.fields));
       const report = runStep('create-report', ['create-report', context.appType, `${config.prefix}_Report`, chartsPath, '--no-open']).json;
       context.reportId = report.reportId;
-      trackResource(registry, registryPath, { type: 'report', appType: context.appType, reportId: context.reportId, name: `${config.prefix}_Report`, url: report.url });
+      trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
+        type: 'report',
+        exactId: context.reportId,
+        appType: context.appType,
+        reportId: context.reportId,
+        name: `${config.prefix}_Report`,
+        url: report.url,
+      });
 
       const appendPath = writeJsonFile(path.join(workDir, 'append-charts.json'), buildAppendCharts(context.formUuid, context.fields));
       runStep('append-chart', ['append-chart', context.appType, context.reportId, appendPath, '--no-open']);
@@ -1492,7 +1527,16 @@ async function run(options = {}) {
         '--no-open',
       ]).json;
       context.dashboardSkillPageId = dashboardSkillPage.pageId;
-      trackResource(registry, registryPath, { type: 'dashboard-skill', appType: context.appType, pageId: context.dashboardSkillPageId, name: `${config.prefix}_DashboardSkill`, url: dashboardSkillPage.url });
+      trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
+        type: 'dashboard-skill',
+        exactId: context.dashboardSkillPageId,
+        appType: context.appType,
+        pageId: context.dashboardSkillPageId,
+        name: `${config.prefix}_DashboardSkill`,
+        url: dashboardSkillPage.url,
+      });
       runStep('dashboard-skill-publish', ['publish', dashboardSkillSourcePath, context.appType, context.dashboardSkillPageId, '--health-check', '--no-open']);
 
       const businessDashboardSourcePath = writeTextFile(path.join(workDir, 'business-dashboard.oyd.jsx'), buildBusinessDashboardSource(config, context));
@@ -1509,7 +1553,10 @@ async function run(options = {}) {
       context.businessDashboardFormUuid = businessDashboardPage.formUuid || businessDashboardPage.pageId || null;
       context.businessDashboardSharePath = `/o/${config.prefix.toLowerCase()}-business-dashboard`;
       trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
         type: 'business-dashboard',
+        exactId: context.businessDashboardPageId,
         appType: context.appType,
         pageId: context.businessDashboardPageId,
         name: `${config.prefix}_BusinessDashboard`,
@@ -1548,7 +1595,14 @@ async function run(options = {}) {
           persistRegistry(registryPath, registry);
         }
         if (context.importAppType) {
-          trackResource(registry, registryPath, { type: 'imported-app', appType: context.importAppType, name: config.importAppName });
+          trackResource(registry, registryPath, {
+            runId: registry.runId,
+            owned: true,
+            type: 'imported-app',
+            exactId: context.importAppType,
+            appType: context.importAppType,
+            name: config.importAppName,
+          });
         }
       }
     }
@@ -1682,7 +1736,7 @@ async function run(options = {}) {
       persistRegistry(registryPath, registry);
     }
 
-    if (context.appType) {
+    if (context.appType && hasStage(config.stages, 'dashboard')) {
       const dashboardSourcePath = writeTextFile(path.join(workDir, 'result-dashboard.oyd.jsx'), buildDashboardSource(config, context));
       runStep('result-dashboard-check', ['check-page', dashboardSourcePath, '--json']);
       const dashboardPage = runStep('result-dashboard-create-page', [
@@ -1694,7 +1748,16 @@ async function run(options = {}) {
         '--no-open',
       ]).json;
       context.dashboardPageId = dashboardPage.pageId;
-      trackResource(registry, registryPath, { type: 'dashboard', appType: context.appType, pageId: context.dashboardPageId, name: `${config.prefix}_Dashboard`, url: dashboardPage.url });
+      trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
+        type: 'dashboard',
+        exactId: context.dashboardPageId,
+        appType: context.appType,
+        pageId: context.dashboardPageId,
+        name: `${config.prefix}_Dashboard`,
+        url: dashboardPage.url,
+      });
       runStep('result-dashboard-publish', ['publish', dashboardSourcePath, context.appType, context.dashboardPageId, '--health-check', '--no-open']);
       runStep('mark-result-app', ['update-app', context.appType, '--name', config.resultAppName]);
     }

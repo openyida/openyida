@@ -6,6 +6,7 @@ const path = require('path');
 
 const {
   buildSkillsDiagnostics,
+  detectRuntimeCapabilities,
   resolveProjectRoot,
 } = require('../lib/core/utils');
 const { _internal } = require('../lib/core/copy');
@@ -144,6 +145,47 @@ describe('projectRoot / skills runtime integration', () => {
     expect(skills.selected).toMatchObject({
       path: path.join(homeDir, '.qwenworkcn', 'skills', 'yida-skills'),
       source: 'home:.qwenworkcn/skills',
+      scope: 'user',
+      usable: true,
+    });
+  });
+
+  test.each([
+    ['新 Qoder', {
+      QODER_PRODUCT_ID: 'qoder',
+      QODER_SESSION_TYPE: 'app',
+      __CFBundleIdentifier: 'com.qoder.app',
+    }, 'qoder_app'],
+    ['Qoder IDE', {
+      QODER_IDE: '1',
+      QODER_AGENT: 'true',
+      __CFBundleIdentifier: 'com.qoder.ide',
+    }, 'qoder_ide'],
+  ])('%s 使用共享的 .qoder 用户级 skills 目录', (_name, env, subtype) => {
+    const homeDir = path.join(tmpDir, 'home');
+    fs.mkdirSync(homeDir, { recursive: true });
+    const runtime = detectRuntimeCapabilities({
+      env,
+      cwd: tmpDir,
+      platform: 'darwin',
+    });
+    const projectResolution = resolveProjectRoot({ cwd: tmpDir, env, runtime });
+    const skills = buildSkillsDiagnostics({
+      cwd: tmpDir,
+      env,
+      homeDir,
+      runtime,
+      projectResolution,
+    });
+
+    expect(runtime).toMatchObject({
+      tool: 'qoder',
+      dirName: '.qoder',
+      subtype,
+    });
+    expect(skills.selected).toMatchObject({
+      path: path.join(homeDir, '.qoder', 'skills', 'yida-skills'),
+      source: 'home:.qoder/skills',
       scope: 'user',
       usable: true,
     });

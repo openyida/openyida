@@ -214,7 +214,7 @@ Step 6: 编写 ECharts 页面代码
 | **yField** | 纵轴字段（度量） | `{ fieldCode: "textField_xxx", title: "数量", aggregateType: "COUNT" }` |
 | **filterFields** | 关联筛选器字段 | 与已有筛选器一致 |
 
-> ⚠️ `SelectField` 和 `EmployeeField` 在报表中的 `fieldCode` 需要加 `_value` 后缀。
+> ⚠️ `SelectField` 和 `EmployeeField` 的 raw / `_value` 表示必须以当前报表组件的真实查询探针为准，不能只按字段类型猜测。
 
 ### 校验自检清单
 

@@ -3,9 +3,9 @@
   "protocol": "openyida-integration-static-contract",
   "protocolVersion": "yida-logic-flow@0.2.245",
   "scope": "Skill 声明、CLI 实现、单测、静态验收与脱敏真实 E2E 结论；真实 ID、身份与 session 证据仅保留在 project/.cache，不进入本文件",
-  "findingSnapshot": "pre-optimization baseline; current branch disposition is recorded in summary.compilerConformanceEvidence and summary.realE2EEvidence",
+  "findingSnapshot": "pre-optimization baseline plus feat/integration-controlplane-runtime-e2e local deterministic disposition; no new real platform write was run",
   "summary": {
-    "unitTestEvidence": {"suites": 11, "tests": 141, "result": "passed"},
+    "unitTestEvidence": {"suites": 15, "tests": 191, "result": "passed", "scope": "focused integration control-plane, compiler-contract and runtime-runner suites after owner review remediation"},
     "compilerConformance": "passed-supported-scenarios",
     "compilerConformanceEvidence": {
       "scenariosPassed": 6,
@@ -17,6 +17,15 @@
     "runtimeConformance": "passed-integration-data-create-copies-fields-and-source-update-ignored",
     "agentVerification": "not-run",
     "controlPlaneDisposition": "PARTIALLY_OBSERVED_WITH_REMAINING_PLATFORM_PROBE_REQUIRED",
+    "controlPlaneRuntimeCampaign": {
+      "branch": "feat/integration-controlplane-runtime-e2e",
+      "remotePlatformWrites": 0,
+      "publicList": "SAFE_PAGINATOR_REUSED_AND_UNIT_VERIFIED",
+      "publishAndSwitchReadback": "EXACT_LIST_STATUS_PLUS_DETAIL_PRESENCE_UNIT_VERIFIED_REAL_PLATFORM_NOT_RUN",
+      "connectorSchema": "FIXED_PRESET_OR_PLATFORM_READ_ONLY_DISCOVERY_FAIL_CLOSED",
+      "runtimeRunner": "SEVEN_DECLARED_NODE_CASES_WITH_READ_ONLY_PREFLIGHT_OWNERSHIP_GATED_CLEANUP_AND_RESIDUAL_EVIDENCE_REAL_PLATFORM_NOT_RUN",
+      "integrationUpdate": "PLATFORM_PROBE_REQUIRED_REMOTE_WRITES_ZERO_UNCHANGED"
+    },
     "realE2EEvidence": {
       "runId": "OY_INT_E2E_20260825013047_83CB7F",
       "scenario": "integration-data-create",
@@ -186,6 +195,12 @@
         {"location": "scripts/e2e-real/skill-coverage.js:46", "detail": "yida-integration 标记为 opt-in"}
       ],
       "recommendation": "本轮只保留接口，不得把静态 fixture 通过表述为真实 E2E 通过。",
+      "disposition": "DETERMINISTIC_RUNTIME_RUNNER_READY_FOR_SEVEN_DECLARED_NODE_CASES; PREFLIGHT_REMOTE_WRITES_ZERO_AND_STRUCTURED_OWNERSHIP_REQUIRED; CLEANUP_ONLY_AFTER_OWNERSHIP; PRIMARY_AND_CLEANUP_FAILURES_PRESERVE_RESIDUAL; REAL_PLATFORM_NOT_RUN",
+      "dispositionEvidence": [
+        "scripts/e2e-real/integration/runtime-contracts.js",
+        "scripts/e2e-real/integration/runtime-runner.js",
+        "tests/e2e-real-integration-runtime-runner.test.js"
+      ],
       "regressionScenario": "all-seven-p0",
       "acceptanceLayer": "platform-and-runtime-conformance"
     },
@@ -201,6 +216,13 @@
         {"location": "yida-skills/skills/yida-integration/references/integration-node-schemas.md:344-397", "detail": "参考接口说明不能替代固定平台响应 fixture"}
       ],
       "recommendation": "后续使用最小只读 list/detail/log fixture 与可回收启停资源建立独立控制面合同。",
+      "disposition": "PUBLIC_LIST_PAGINATION_AND_EXACT_LIST_STATUS_READBACK_IMPLEMENTED; DETAIL_IS_PRESENCE_ONLY_UNLESS_OPTIONAL_IDENTITY_PROJECTION_MATCHES; SERVER_CONTRACT_STILL_PLATFORM_PROBE_REQUIRED",
+      "dispositionEvidence": [
+        "lib/integration/integration-check.js#listAllLogicflows",
+        "lib/integration/integration-readback.js",
+        "tests/integration-list.test.js",
+        "tests/integration-readback.test.js"
+      ],
       "regressionScenario": null,
       "acceptanceLayer": "platform-conformance"
     },
@@ -226,14 +248,15 @@
       "category": "UNKNOWN",
       "severity": "P1",
       "sourceTags": ["PROTOCOL_FIXTURE_REQUIRED"],
-      "currentBehavior": "numeric-looking literal 会在未读取目标字段类型时转为数字，initiateApproval 的 processCode 与 connector fallback schema 也只能由当前实现自述。",
+      "currentBehavior": "numeric-looking literal 与 initiateApproval 的 processCode 仍需独立协议 fixture；connector fallback schema 已移除，未知 action 仅允许平台只读发现或固定已证 preset，否则零写入失败。",
       "expectedBehavior": "以固定前端转换或捕获 fixture 确认字段类型转换、审批绑定和 connector schema，不用 compiler output 证明自己正确。",
       "evidence": [
         {"location": "lib/integration/integration-process-builder.js:125-142", "detail": "literal 无条件数值转换"},
         {"location": "lib/integration/integration-process-builder.js:376", "detail": "initiateApproval processCode 使用父逻辑流 code"},
-        {"location": "lib/integration/connector-presets.js:187-204", "detail": "未知 connector inputs 合成 TextField fallback"}
+        {"location": "lib/integration/integration-connector-schema.js", "detail": "connector schema 只允许 exact read-only discovery 或固定 preset，未知字段 fail-closed"}
       ],
       "recommendation": "分别建立固定 fixture；证据不足前保持 Unknown。",
+      "disposition": "CONNECTOR_TEXTFIELD_GUESS_REMOVED; NUMERIC_LITERAL_AND_APPROVAL_BINDING_REMAIN_PLATFORM_PROBE_REQUIRED",
       "regressionScenario": "integration-initiate-approval",
       "acceptanceLayer": "protocol-baseline"
     },

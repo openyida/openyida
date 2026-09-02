@@ -14,7 +14,6 @@ const {
   detectActiveTool,
   detectRuntimeCapabilities,
   hasDesktopEnvironment,
-  resolveWukongWorkspaceRoot,
   httpPost,
   httpPostJson,
   httpGet,
@@ -708,6 +707,9 @@ describe('detectActiveTool', () => {
     delete process.env.OPENCODE_CLIENT;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
+    delete process.env.QODER_PRODUCT_ID;
+    delete process.env.QODER_SESSION_TYPE;
+    delete process.env.QODER_CLI;
     delete process.env.QODERCLI_INTEGRATION_MODE;
     delete process.env.QODER_WORK_INTEGRATION_PRODUCT;
     delete process.env.QODERCN_CONFIG_DIR;
@@ -822,12 +824,103 @@ describe('detectActiveTool', () => {
     expect(result.tool).toBe('opencode');
   });
 
-  test('QODER_IDE 环境变量时检测为 Qoder（优先级最高）', () => {
+  test('新 Qoder 真实桌面变量识别为 qoder_app', () => {
+    const result = detectRuntimeCapabilities({
+      env: {
+        QODER_PRODUCT_ID: 'qoder',
+        QODER_SESSION_TYPE: 'app',
+        QODER_CLI: '1',
+        QODER_AGENT_SDK_VERSION: '1.0.27',
+        QODER_AGENT_SDK_ENTRYPOINT: 'sdk-ts',
+        QODERCLI_RUNTIME_PACKAGING: 'worker_mjs',
+        QODER_CONFIG_DIR: '/Users/test/.qoder',
+        QODERCN_CONFIG_DIR: '/Users/test/.qoder',
+        QODER_WORKER_CWD: '/Users/test/Qoder/2026-08-27/task-id',
+        __CFBundleIdentifier: 'com.qoder.app',
+      },
+      cwd: '/tmp/openyida-new-qoder',
+      platform: 'darwin',
+    });
+
+    expect(result).toMatchObject({
+      tool: 'qoder',
+      displayName: 'Qoder',
+      dirName: '.qoder',
+      runtime: 'desktop_shell',
+      subtype: 'qoder_app',
+      workspaceRootSource: 'cwd_project',
+    });
+  });
+
+  test('新 Qoder 在无 macOS Bundle ID 时仍通过跨平台变量识别', () => {
+    const result = detectRuntimeCapabilities({
+      env: {
+        QODER_PRODUCT_ID: 'qoder',
+        QODER_SESSION_TYPE: 'app',
+        QODER_CLI: '1',
+      },
+      cwd: '/tmp/openyida-new-qoder',
+      platform: 'linux',
+    });
+
+    expect(result).toMatchObject({
+      tool: 'qoder',
+      displayName: 'Qoder',
+      dirName: '.qoder',
+      runtime: 'desktop_shell',
+      subtype: 'qoder_app',
+    });
+  });
+
+  test('Qoder IDE 真实变量优先于 QoderWork 兼容路径', () => {
+    const result = detectRuntimeCapabilities({
+      env: {
+        QODER_IDE: '1',
+        QODER_AGENT: 'true',
+        QODER_WORKER_RUNTIME_PATH: '/Users/test/.loongsuite-pilot/hooks/qoderwork-runtime-wrapper.mjs',
+        QW_QODER_WORKER_RUNTIME_PATH: '/Users/test/.loongsuite-pilot/hooks/qoderwork-runtime-wrapper.mjs',
+        __CFBundleIdentifier: 'com.qoder.ide',
+      },
+      cwd: '/tmp/openyida-qoder-ide',
+      platform: 'darwin',
+    });
+
+    expect(result).toMatchObject({
+      tool: 'qoder',
+      displayName: 'Qoder IDE',
+      dirName: '.qoder',
+      subtype: 'qoder_ide',
+    });
+  });
+
+  test('QoderWork 继续通过独立产品精确信号识别', () => {
+    const result = detectRuntimeCapabilities({
+      env: {
+        QODER_IDE: '1',
+        QODER_AGENT: 'true',
+        QODERCLI_INTEGRATION_MODE: 'qoder_work',
+        __CFBundleIdentifier: 'com.qoder.work',
+      },
+      cwd: '/tmp/openyida-qoderwork',
+      platform: 'darwin',
+    });
+
+    expect(result).toMatchObject({
+      tool: 'qoderwork',
+      displayName: 'QoderWork',
+      dirName: '.qoderwork',
+      subtype: 'qoderwork_desktop',
+    });
+  });
+
+  test('QODER_IDE 环境变量时检测为 Qoder IDE（优先于其他 Agent）', () => {
     process.env.QODER_IDE = '1';
     process.env.CLAUDE_CODE = '1';
     process.env.CODEX_SHELL = '1';
     const result = detectActiveTool();
     expect(result.tool).toBe('qoder');
+    expect(result.displayName).toBe('Qoder IDE');
+    expect(result.subtype).toBe('qoder_ide');
   });
 
   test('QWENWORKCN_INTEGRATION_MODE 环境变量时检测为 QwenWork', () => {
@@ -874,7 +967,7 @@ describe('detectActiveTool', () => {
     }
   });
 
-  test('QwenWork 和 QoderWork 环境默认附加浏览器 handoff', () => {
+  test('QwenWork、QoderWork 和新 Qoder 环境默认附加浏览器 handoff', () => {
     process.env.QWENWORKCN_INTEGRATION_MODE = 'qwen_work';
     expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject({
       status: 'open_url',
@@ -883,6 +976,14 @@ describe('detectActiveTool', () => {
 
     delete process.env.QWENWORKCN_INTEGRATION_MODE;
     process.env.QODERCLI_INTEGRATION_MODE = 'qoder_work';
+    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject({
+      status: 'open_url',
+      handoff_type: 'browser',
+    });
+
+    delete process.env.QODERCLI_INTEGRATION_MODE;
+    process.env.QODER_PRODUCT_ID = 'qoder';
+    process.env.QODER_SESSION_TYPE = 'app';
     expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject({
       status: 'open_url',
       handoff_type: 'browser',
@@ -898,66 +999,18 @@ describe('detectActiveTool', () => {
     expect(result.dirName).toBe('.codex');
   });
 
-  test('AGENT_WORK_ROOT 包含 .real 时检测为悟空', () => {
-    delete process.env.CLAUDE_CODE;
-    delete process.env.CLAUDE_CODE_ENTRYPOINT;
-    delete process.env.OPENCODE;
-    delete process.env.OPENCODE_CLIENT;
-    delete process.env.QODER_IDE;
-    delete process.env.QODERCLI_INTEGRATION_MODE;
-    delete process.env.QWENWORK_INTEGRATION_MODE;
-    delete process.env.QWENWORKCN_INTEGRATION_MODE;
-    delete process.env.CODEX_SHELL;
-    delete process.env.CURSOR_TRACE_ID;
+  test('退役的 AGENT_WORK_ROOT 信号不再识别为 AI 工具', () => {
     process.env.AGENT_WORK_ROOT = '/home/user/.real/workspace';
-    const result = detectActiveTool();
-    expect(result.tool).toBe('wukong');
-    expect(result.workspaceRoot).toBe('/home/user/.real/workspace');
+    expect(detectActiveTool()).toBeNull();
   });
 
-  test('resolveWukongWorkspaceRoot 优先使用已有 config.json 的真实工作区', () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wukong-root-'));
-    const workspace = path.join(root, 'workspace');
-    fs.mkdirSync(workspace, { recursive: true });
-    fs.writeFileSync(path.join(workspace, 'config.json'), '{}', 'utf8');
-
-    try {
-      expect(resolveWukongWorkspaceRoot(root)).toBe(workspace);
-    } finally {
-      fs.rmSync(root, { recursive: true, force: true });
-    }
-  });
-
-  test('TERM_PROGRAM=vscode 且有 .aone_copilot 目录时检测为 Aone Copilot', () => {
-    delete process.env.CLAUDE_CODE;
-    delete process.env.CLAUDE_CODE_ENTRYPOINT;
-    delete process.env.OPENCODE;
-    delete process.env.OPENCODE_CLIENT;
-    delete process.env.QODER_IDE;
-    delete process.env.QODER_AGENT;
-    delete process.env.QODERCLI_INTEGRATION_MODE;
-    delete process.env.CODEX_SHELL;
-    delete process.env.CODEX_CI;
-    delete process.env.CODEX_THREAD_ID;
-    delete process.env.CODEX_HOME;
-    delete process.env.__CFBundleIdentifier;
-    delete process.env.CURSOR_TRACE_ID;
-    delete process.env.AGENT_WORK_ROOT;
-    process.env.TERM_PROGRAM = 'vscode';
-
-    // 模拟 .aone_copilot 目录存在（CI 环境可能没有）
-    const originalExistsSync = fs.existsSync;
-    fs.existsSync = (p) => {
-      if (p.includes('.aone_copilot')) {return true;}
-      return originalExistsSync(p);
-    };
-
-    const result = detectActiveTool();
-    expect(result).not.toBeNull();
-    expect(result.tool).toBe('aone-copilot');
-
-    // 恢复 fs.existsSync
-    fs.existsSync = originalExistsSync;
+  test('退役的 Aone Copilot VSCode 环境不再识别为 AI 工具', () => {
+    const result = detectRuntimeCapabilities({
+      env: { TERM_PROGRAM: 'vscode' },
+      cwd: '/tmp/project',
+      platform: 'darwin',
+    });
+    expect(result.tool).toBeNull();
   });
 
   test('无任何 AI 工具环境变量时返回 null', () => {
@@ -967,6 +1020,9 @@ describe('detectActiveTool', () => {
     delete process.env.OPENCODE_CLIENT;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
+    delete process.env.QODER_PRODUCT_ID;
+    delete process.env.QODER_SESSION_TYPE;
+    delete process.env.QODER_CLI;
     delete process.env.QODERCLI_INTEGRATION_MODE;
     delete process.env.CODEX_SHELL;
     delete process.env.CODEX_CI;
@@ -974,23 +1030,12 @@ describe('detectActiveTool', () => {
     delete process.env.CODEX_HOME;
     delete process.env.__CFBundleIdentifier;
     delete process.env.CURSOR_TRACE_ID;
-    delete process.env.AGENT_WORK_ROOT;
     delete process.env.MULERUN_CHAT_ID;
     delete process.env.MULE_DATA_DIR;
     delete process.env.TERM_PROGRAM;
 
-    // 确保 .aone_copilot 目录不存在（避免干扰）
-    const originalExistsSync = fs.existsSync;
-    fs.existsSync = (p) => {
-      if (p.includes('.aone_copilot')) {return false;}
-      return originalExistsSync(p);
-    };
-
     const result = detectActiveTool();
     expect(result).toBeNull();
-
-    // 恢复 fs.existsSync
-    fs.existsSync = originalExistsSync;
   });
 
   test('detectRuntimeCapabilities 在无桌面且无 Agent 浏览器时显式标记无浏览器能力', () => {

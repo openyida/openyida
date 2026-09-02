@@ -386,7 +386,7 @@ Agent 加载 yida-skill-evaluator -> 调用 `openyida eval` CLI -> 输出结果�
 {
   "matrix": {
     "models": ["claude-sonnet-4-6", "claude-opus-4-6"],
-    "agents": ["claude-code", "qoder", "wukong"],
+    "agents": ["claude-code", "qoder"],
     "branches": ["master", "feat/new-skill"]
   }
 }

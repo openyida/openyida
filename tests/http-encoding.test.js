@@ -56,3 +56,24 @@ describe('http response encoding', () => {
     });
   });
 });
+
+describe('httpGet query parameters', () => {
+  test.each([
+    ['/api', { added: '1' }, '/api?added=1'],
+    ['/api?existing=1', { added: '2' }, '/api?existing=1&added=2'],
+    ['/api?', { added: '3' }, '/api?added=3'],
+    ['/api?existing=1&', { added: '4' }, '/api?existing=1&added=4'],
+    ['/api?existing=1', {}, '/api?existing=1'],
+  ])('joins query params onto %s', async (requestPath, queryParams, expectedPath) => {
+    let actualPath = '';
+    await withServer((req, res) => {
+      actualPath = req.url;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ success: true }));
+    }, async (baseUrl) => {
+      await httpGet(baseUrl, requestPath, queryParams, { silentStatus: true });
+    });
+
+    expect(actualPath).toBe(expectedPath);
+  });
+});

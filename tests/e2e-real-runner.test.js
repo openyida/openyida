@@ -6,6 +6,7 @@ const path = require('path');
 
 const {
   extractJsonObjects,
+  formatCommandForLog,
   getConfig,
   parseLastJson,
   requireCanvasPublishHealth,
@@ -44,6 +45,14 @@ describe('real E2E runner', () => {
       appType: 'APP_NEW',
       nested: { ok: true },
     });
+  });
+
+  test('redacts quiet command arguments from runner logs', () => {
+    expect(formatCommandForLog([
+      'create-process', 'APP-SENSITIVE', '--formUuid', 'FORM-SENSITIVE', '--quiet',
+    ])).toBe('openyida [quiet command]');
+    expect(formatCommandForLog(['commands', '--json']))
+      .toBe('openyida commands --json');
   });
 
   test('runs the real E2E command chain and records resources', () => {

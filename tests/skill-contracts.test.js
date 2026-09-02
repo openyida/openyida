@@ -103,6 +103,116 @@ describe('OpenYida skill contracts', () => {
     expect(skill).not.toContain('优先跑一次 `openyida agent-capabilities --json`');
   });
 
+  test('form skills use TextField plus custom validation for phone numbers', () => {
+    const createFormSkill = readSkill('yida-skills/skills/yida-create-form-page/SKILL.md');
+    const appFormStep = readSkill('yida-skills/skills/yida-app/workflow/step-4-forms-processes.md');
+
+    expect(createFormSkill).toContain('电话号码使用 `TextField`');
+    expect(createFormSkill).toContain('不要创建或 patch `PhoneField`');
+    expect(appFormStep).toContain('"type": "TextField"');
+    expect(appFormStep).toContain('"type": "regex"');
+    expect(appFormStep).toContain('"pattern": "^1[3-9]\\\\d{9}$"');
+    expect(appFormStep).not.toContain('"type": "PhoneField"');
+  });
+
+  test('form action guidance requires atomic binding and exact readback', () => {
+    const createFormSkill = readSkill('yida-skills/skills/yida-create-form-page/SKILL.md');
+    const advancedModes = readSkill('yida-skills/skills/yida-create-form-page/references/advanced-form-modes.md');
+    const appFormStep = readSkill('yida-skills/skills/yida-app/workflow/step-4-forms-processes.md');
+
+    expect(createFormSkill).toContain('字段事件动作使用原子 `field-action`');
+    expect(createFormSkill).toContain('`designerBindingFound: true`');
+    expect(createFormSkill).toContain('`readbackVerified: true`');
+    expect(advancedModes).toContain('字段事件动作不得只写 `actions-module`');
+    expect(advancedModes).toContain('"action": "field-action"');
+    expect(advancedModes).toContain('入口动作必须是顶层 `export function`');
+    expect(advancedModes).toContain('export function handleStatusChange(value)');
+    expect(advancedModes).toContain('var actionValue = value && value.value !== undefined ? value.value : value');
+    expect(advancedModes).toContain('actionValue && actionValue.value !== undefined ? actionValue.value : actionValue');
+    expect(advancedModes).not.toContain('export function handleStatusChange(event)');
+    expect(advancedModes).not.toContain('下拉单选 `onChange` 直接接收选中值');
+    expect(advancedModes).toContain('不同组件不能统一 `String(value)`');
+    expect(advancedModes).toContain('AttachmentField / ImageField');
+    expect(advancedModes).toContain('EmployeeField');
+    expect(advancedModes).toContain('运行时发生联动但设计器仍显示“新建动作”属于失败');
+    expect(advancedModes).toContain('replaceExisting: true');
+    expect(appFormStep).toContain('字段事件动作使用 `yida-create-form-page` 的原子 `field-action`');
+  });
+
+  test('shared Yida API guidance uses the SelectField value callback contract', () => {
+    const apiReference = readSkill('yida-skills/references/yida-api.md');
+
+    expect(apiReference).toContain('下拉单选 `onChange` 直接传入动作参数 `value`');
+    expect(apiReference).toContain('value && value.value !== undefined ? value.value : value');
+    expect(apiReference).toContain('再以相同方式取得选项明细值');
+    expect(apiReference).toContain('不要从 `event` 取值');
+    expect(apiReference).toContain('宜搭动作面板不支持空值合并运算符');
+    expect(apiReference).toContain('不同组件不能统一 `String(value)`');
+    expect(apiReference).toContain('日期区间是 `{ start, end }`');
+  });
+
+  test('report skill preserves structured mismatch recovery contract', () => {
+    const skill = readSkill('yida-skills/skills/yida-report/SKILL.md');
+    const contractMatch = skill.match(
+      /<!-- owned-residual-contract:start -->\s*```json\s*([\s\S]*?)\s*```\s*<!-- owned-residual-contract:end -->/
+    );
+
+    expect(skill).toContain('REPORT_SCHEMA_READBACK_MISMATCH');
+    expect(skill).toContain('sideEffectState');
+    expect(skill).toContain('details.nextAction');
+    expect(skill).toContain('report inspect');
+    expect(skill).toContain('--json');
+    expect(skill).toContain('create/inspect 返回的 `workbenchUrl`');
+    expect(skill).toContain('禁止自行拼接 `/{appType}/report/{reportId}`');
+    expect(contractMatch).not.toBeNull();
+
+    const contract = JSON.parse(contractMatch[1]);
+    const residual = { type: 'report', appType: 'APP_1', reportId: 'REPORT_1', owned: true };
+    expect(contract.createReportAllowed).toBe(false);
+    expect(contract.inspect).toMatchObject({
+      commandId: 'report.inspect',
+      appTypeSource: 'residual.appType',
+      reportIdSource: 'residual.reportId',
+      maxAttempts: 1,
+    });
+    expect(contract.allowedRepairCommands).toEqual(['append-chart']);
+    expect(contract.repairReportIdSource).toBe('residual.reportId');
+    expect(contract.deleteAllowed).toBe(false);
+    expect(contract.unsafeRepairFallback).toBe('stop_and_report_residual');
+    expect(residual.reportId).toBe('REPORT_1');
+
+    const finishStep = readSkill('yida-skills/skills/yida-app/workflow/step-9-output-finish.md');
+    expect(finishStep).toContain('原生报表（仅单独交付该报表时）');
+    expect(finishStep).toContain('`{base_url}/{appType}/workbench/{reportId}`');
+    expect(finishStep).toContain('禁止拼接 `/{appType}/report/{reportId}`');
+    expect(finishStep).toContain('最终唯一主入口仍是应用首页');
+  });
+
+  test('data management skill exposes only the verified form delete contract', () => {
+    const skill = readSkill('yida-skills/skills/yida-data-management/SKILL.md');
+    const contractMatch = skill.match(
+      /<!-- data-delete-contract:start -->\s*```json\s*([\s\S]*?)\s*```\s*<!-- data-delete-contract:end -->/
+    );
+
+    expect(contractMatch).not.toBeNull();
+    expect(skill).toContain('openyida data delete form <appType> <formUuid> --inst-id <formInstId> --expect-form-name <name> --expect-form-type receipt --confirm --json');
+    expect(skill).toContain('禁止生成 `openyida data delete process`');
+    expect(skill).toContain('禁止在 CLI 报不支持后探索一次性脚本、浏览器私有请求或底层 API');
+
+    const contract = JSON.parse(contractMatch[1]);
+    expect(contract).toMatchObject({
+      supportedDeleteCommand: 'data delete form',
+      requiredTarget: ['appType', 'formUuid', 'formInstId', 'formName', 'formType'],
+      preflightCommand: 'data get form',
+      businessConfirmationRequired: true,
+      executionFlag: '--confirm',
+      successCondition: 'deleted=true && readbackVerified=true',
+      repeatResult: 'alreadyAbsent=true && mutationPerformed=false',
+      processDeleteSupported: false,
+      privateApiFallbackAllowed: false,
+    });
+  });
+
   test('login skill assigns browser ownership and waits for the original command', () => {
     const skill = readSkill('yida-skills/skills/yida-login/SKILL.md');
 
@@ -376,6 +486,8 @@ describe('OpenYida skill contracts', () => {
     expect(step9).toContain('已完成订单、客户和商品等核心业务表单');
     expect(step9).toContain('主入口：`{base_url}/{appType}/workbench`');
     expect(step9).toContain('不把 `g.alicdn.com` 的 `index.css`、`index.js`、`index.html`、`locales/*.json`');
+    expect(step9).toContain('顶层 `skillsUsed`');
+    expect(step9).toContain('实际读取并使用');
   });
 
   test('unified full app build consumes PRD navigation order and falls back to auto order', () => {
@@ -401,6 +513,7 @@ describe('OpenYida skill contracts', () => {
     expect(navGroup).toContain('PRD 导航优先');
     expect(navGroup).toContain('openyida nav-group order <appType> <页面/表单...>');
     expect(navGroup).toContain('openyida nav-group auto-order <appType>');
+    expect(navGroup).toContain('目标分组必须通过 `--to` 传入');
     expect(manifest).toContain('default_nav_order_policy');
     expect(manifest).toContain('openyida nav-group order <appType> <items...>');
     expect(manifest).toContain('openyida publish ... --auto-nav-order');
@@ -768,6 +881,14 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('openyida get-schema <appType> <formUuid> [--summary-json|--field-map-json]');
     expect(skill).toContain('页面开发默认使用 compact 输出');
     expect(skill).toContain('不内联完整 Schema');
+    expect(skill).toContain('先传 `appType`，再传 `formUuid`');
+  });
+
+  test('form permission keeps package UUID scoped to the queried form', () => {
+    const skill = readSkill('yida-skills/skills/yida-form-permission/SKILL.md');
+
+    expect(skill).toContain('`packageUuid` 只属于本次查询的 `formUuid`');
+    expect(skill).toContain('禁止跨表单复用');
   });
 
   test('builder stopgap docs codify yida-app resource resolution commands and cwd-sensitive paths', () => {
@@ -1197,6 +1318,20 @@ describe('OpenYida skill contracts', () => {
     expect(pageDesign).toContain('页面美感提升/改 UI：`functionContract` 保持稳定');
     expect(pageDesign).toContain('changeScope');
     expect(pageDesign).toContain('themeDecision');
+  });
+
+  test('full app design defaults to form data management pages and requires an explicit custom-list request', () => {
+    const design = readSkill('yida-skills/skills/yida-design/sub_skill/yida-design-fast/SKILL.md');
+    const informationArchitecture = readSkill('yida-skills/skills/yida-design/sub_skill/yida-design-fast/workflow/step-3-information-architecture.md');
+    const outputPrd = readSkill('yida-skills/skills/yida-design/sub_skill/yida-design-fast/workflow/output-prd.md');
+    const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
+
+    expect([design, informationArchitecture, outputPrd, app].join('\n')).not.toContain('customPageReason');
+    expect(design).toContain('普通表单的数据管理页默认作为列表');
+    expect(informationArchitecture).toContain('宜搭表单数据管理页（默认）');
+    expect(informationArchitecture).toContain('用户明确要求时才增加自定义列表页');
+    expect(outputPrd).toContain('默认不创建自定义列表页');
+    expect(app).toContain('默认使用普通表单的数据管理页');
   });
 
   test('custom page form entries use responsive FormOpenContainer guidance', () => {

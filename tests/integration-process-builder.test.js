@@ -281,6 +281,8 @@ describe('integration process builder', () => {
       connectorAssignments: [
         { column: 'month', valueType: 'processVar', value: 'textField_month' },
       ],
+      connectorInputs: [{ name: 'month', componentName: 'TextField', paramType: 'String' }],
+      connectorSchemaVerificationLevel: 'FIXED_CONTRACT_FIXTURE',
     });
 
     expect(processJson.nodes.map((n) => n.type)).toEqual(['trigger', 'httpConnector', 'finish']);
@@ -451,6 +453,8 @@ describe('integration process builder', () => {
       connectorAssignments: [
         { column: 'month', valueType: 'processVar', value: 'textField_month' },
       ],
+      connectorInputs: [{ name: 'month', componentName: 'TextField', paramType: 'String' }],
+      connectorSchemaVerificationLevel: 'FIXED_CONTRACT_FIXTURE',
     });
 
     const connectorNode = viewJson.schema.children.find((node) => node.componentName === 'ConnectorNode');

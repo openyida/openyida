@@ -682,8 +682,12 @@ describe('legacy create-form compact field resolver', () => {
     const tableStatus = findDirectChildByLabel(table, '状态');
     expect(topLevelStatus.props.onChange).toBeUndefined();
     expect(tableStatus.props.onChange).toMatchObject({
-      type: 'actionRef',
-      name: expect.stringMatching(/^openyidaRuleChange_/),
+      type: 'JSExpression',
+      value: expect.stringContaining('legaoBuiltin.execEventFlow'),
+      events: [expect.objectContaining({
+        type: 'actionRef',
+        name: expect.stringMatching(/^openyidaRuleChange_/),
+      })],
     });
 
     consoleSpy.mockRestore();
@@ -1379,6 +1383,51 @@ describe('form presentation components', () => {
         ],
       },
     ])).toBe(2);
+  });
+
+  test('creates phone input as TextField with regex-backed custom validation and rejects PhoneField', () => {
+    const phoneDefinition = {
+      type: 'TextField',
+      label: '联系电话',
+      validation: [{
+        type: 'regex',
+        pattern: '^1[3-9]\\d{9}$',
+        message: '请输入正确的 11 位手机号码',
+      }],
+    };
+    const schema = createForm._private.buildFormSchema(
+      '电话字段测试',
+      [phoneDefinition],
+      'FORM_TEST',
+      'CORP_TEST',
+      'APP_TEST',
+      'single',
+      'default',
+      'top'
+    );
+    const formContainer = findFormContainer(schema.pages[0].componentsTree[0]);
+    const phoneField = findDirectChildByComponentName(formContainer, 'TextField');
+
+    expect(phoneField).toMatchObject({
+      componentName: 'TextField',
+      props: {
+        validationType: 'text',
+        validation: [expect.objectContaining({
+          type: 'customValidate',
+          message: '请输入正确的 11 位手机号码',
+          param: expect.objectContaining({ type: 'js' }),
+        })],
+      },
+    });
+    expect(phoneField.props.validation[0].param.source).toContain('var PATTERN = "^1[3-9]\\\\d{9}$";');
+    const validatePhone = new Function(`return (${phoneField.props.validation[0].param.source});`)();
+    expect(validatePhone('13800138000')).toBe(true);
+    expect(validatePhone('12345')).toBe(false);
+    expect(() => createForm._private.validateFormFieldDefinitions([
+      { type: 'PhoneField', label: '联系电话' },
+    ])).toThrow(expect.objectContaining({
+      code: 'CREATE_FORM_UNSUPPORTED_FIELD_TYPE',
+    }));
   });
 
   test('Divider defaults to bold-with-thin so generated enterprise forms use the recommended section style', () => {
@@ -2277,6 +2326,105 @@ describe('create-form create recovery guardrails', () => {
     expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(0);
 
     consoleSpy.mockRestore();
+  });
+
+  test('field-action patch performs an exact post-save binding readback', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Action Readback',
+      fields: [{ key: 'status', type: 'SelectField', label: '状态', options: ['A', 'B'] }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_ACTION_READBACK',
+    }).schema;
+    initial.gmtModified = 100;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedLegacyForm(initial);
+
+    await isolatedCreateForm.run([
+      'patch',
+      'APP_TEST',
+      'FORM_ACTION_READBACK',
+      JSON.stringify([{
+        action: 'field-action',
+        field: '状态',
+        name: 'handleStatusChange',
+        source: 'export function handleStatusChange(event) { return event && event.value === "A"; }',
+      }]),
+    ]);
+
+    const payload = parseConsoleJsonPayloads(consoleSpy).find(item => item && item.formUuid === 'FORM_ACTION_READBACK');
+    expect(payload).toMatchObject({
+      success: true,
+      readbackVerified: true,
+      eventBindings: [{
+        fieldId: expect.stringMatching(/^selectField_/),
+        event: 'onChange',
+        actionName: 'handleStatusChange',
+        verified: true,
+      }],
+    });
+    expect(mockUtils.requestWithAutoLogin).toHaveBeenCalledTimes(3);
+
+    consoleSpy.mockRestore();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
+  });
+
+  test('field-action patch reports semantic failure when remote readback loses the binding', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Action Readback Mismatch',
+      fields: [{ key: 'status', type: 'SelectField', label: '状态', options: ['A', 'B'] }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_ACTION_READBACK_MISMATCH',
+    }).schema;
+    initial.gmtModified = 100;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedLegacyForm(initial);
+    let savedSchema;
+    let getCount = 0;
+    mockUtils.httpPost.mockImplementation((baseUrl, requestPath, body) => {
+      if (requestPath.includes('/saveFormSchema.json')) {
+        savedSchema = JSON.parse(querystring.parse(body).content);
+      }
+      return Promise.resolve({ success: true });
+    });
+    mockUtils.httpGet.mockImplementation(() => {
+      getCount++;
+      if (getCount === 1) {
+        return Promise.resolve({ success: true, content: initial });
+      }
+      const readback = JSON.parse(JSON.stringify(savedSchema));
+      const container = findFormContainer(readback.pages[0].componentsTree[0]);
+      delete findDirectChildByLabel(container, '状态').props.onChange;
+      return Promise.resolve({ success: true, content: readback });
+    });
+
+    await expect(isolatedCreateForm.run([
+      'patch',
+      'APP_TEST',
+      'FORM_ACTION_READBACK_MISMATCH',
+      JSON.stringify([{
+        action: 'field-action',
+        field: '状态',
+        name: 'handleStatusChange',
+        source: 'export function handleStatusChange() {}',
+      }]),
+      '--json',
+    ])).rejects.toMatchObject({
+      code: 'FORM_ACTION_BINDING_READBACK_MISMATCH',
+      details: {
+        status: 'SEMANTIC_FAILURE',
+        mutationAccepted: true,
+        readbackVerified: false,
+        sideEffectState: 'committed',
+      },
+    });
+    expect(parseConsoleJsonPayloads(consoleSpy).some(item => item && item.success === true)).toBe(false);
+
+    consoleSpy.mockRestore();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
   });
 
   test('add-option mode saves the schema without updateFormConfig', async () => {

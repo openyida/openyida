@@ -15,6 +15,29 @@ const MAX_UNPACKED_BYTES = 5632 * 1024;
 const MAX_ENTRY_COUNT = 440;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
+const REQUIRED_PACKAGE_FILES = [
+  'bin/yida.js',
+  'lib/core/utils.js',
+  'project/config.json',
+  'scripts/postinstall.js',
+  'yida-skills/SKILL.md',
+  'yida-skills/skills-index.json',
+];
+
+const FORBIDDEN_PACKAGE_PREFIXES = [
+  'agent/',
+  'docs/',
+  'scripts/e2e-real/',
+  'scripts/eval/',
+  'tests/',
+];
+
+const ALLOWED_PACKAGE_SCRIPTS = new Set([
+  'scripts/postinstall.js',
+]);
+
+const STATIC_RELATIVE_REQUIRE = /require\(\s*['"](\.{1,2}\/[^'"]+)['"]\s*\)/g;
+
 function formatBytes(bytes) {
   if (bytes < 1024) {
     return `${bytes} B`;
@@ -26,7 +49,7 @@ function formatBytes(bytes) {
 }
 
 function fail(message) {
-  console.error('Package size validation failed:');
+  console.error('npm package validation failed:');
   console.error('  error ' + message);
   process.exit(1);
 }
@@ -86,9 +109,59 @@ function validateLargestFiles(files) {
   return sorted.slice(0, 5).map(file => `${file.path} (${formatBytes(file.size)})`);
 }
 
+function validatePackageContents(files) {
+  const packagePaths = new Set(files.map(file => file.path));
+
+  for (const requiredPath of REQUIRED_PACKAGE_FILES) {
+    if (!packagePaths.has(requiredPath)) {
+      fail(`required runtime file is missing: ${requiredPath}`);
+    }
+  }
+
+  for (const filePath of packagePaths) {
+    const forbiddenPrefix = FORBIDDEN_PACKAGE_PREFIXES.find(prefix => filePath.startsWith(prefix));
+    if (forbiddenPrefix) {
+      fail(`local-only path was included: ${filePath}`);
+    }
+
+    if (filePath.startsWith('scripts/') && !ALLOWED_PACKAGE_SCRIPTS.has(filePath)) {
+      fail(`development script was included: ${filePath}`);
+    }
+  }
+
+  validatePublishedScriptRequires(packagePaths);
+}
+
+// Publishing only a narrow scripts/ allowlist is safe only when packaged runtime
+// modules do not still point at excluded development scripts.
+function validatePublishedScriptRequires(packagePaths) {
+  for (const packagePath of packagePaths) {
+    if (!/\.(?:cjs|js|mjs)$/.test(packagePath)) {
+      continue;
+    }
+
+    const sourcePath = path.join(__dirname, '..', packagePath);
+    const source = fs.readFileSync(sourcePath, 'utf8');
+    let match;
+    while ((match = STATIC_RELATIVE_REQUIRE.exec(source)) !== null) {
+      const resolvedBase = path.posix.normalize(path.posix.join(path.posix.dirname(packagePath), match[1]));
+      if (!resolvedBase.startsWith('scripts/')) {
+        continue;
+      }
+      const candidates = [resolvedBase, `${resolvedBase}.js`, `${resolvedBase}.json`, `${resolvedBase}/index.js`];
+      if (!candidates.some(candidate => packagePaths.has(candidate))) {
+        fail(`${packagePath} requires unpublished script: ${match[1]}`);
+      }
+    }
+    STATIC_RELATIVE_REQUIRE.lastIndex = 0;
+  }
+}
+
 function run() {
   const pack = runNpmPackDryRun();
-  const largestFiles = validateLargestFiles(pack.files || []);
+  const files = pack.files || [];
+  validatePackageContents(files);
+  const largestFiles = validateLargestFiles(files);
 
   if (pack.size > MAX_TARBALL_BYTES) {
     fail(`tarball is ${formatBytes(pack.size)}, above ${formatBytes(MAX_TARBALL_BYTES)}`);

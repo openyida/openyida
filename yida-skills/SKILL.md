@@ -74,7 +74,7 @@ description: >
 | `yida-skills/form` | 表单字段、公式、校验、业务关联规则、详情页、批量录入、数据记录 | `yida-create-form-page`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-form-detail`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-agent-center` |
 | `yida-skills/page` | 自定义展示页、页面源码开发、平台 JSX 组件页面维护、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
-| `yida-skills/analytics` | 报表、统计、图表、Recharts、ECharts、看板、驾驶舱、大屏 | `yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard` |
+| `yida-skills/analytics` | 聚合表、虚拟视图、报表、统计、图表、Recharts、ECharts、看板、驾驶舱、大屏 | `yida-aggregate-table`、`yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard` |
 | `yida-skills/integration` | 连接器、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-integration`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
 | `yida-skills/access` | 平台/应用/表单/页面权限、公开访问、分享 | `yida-corp-manager`、`yida-app-permission`、`yida-form-permission`、`yida-page-config` |
 | `yida-skills/ops` | Sequence、主键冲突、VOC 反馈 | `yida-db-seq-fix`、`yida-voc` |
@@ -114,6 +114,7 @@ description: >
 | 平台左侧导航树分组/排序 | `yida-nav-group` |
 | 应用导航隐藏后自绘导航壳 | `yida-nav-shell` |
 | 普通报表/统计 | `yida-report` |
+| 聚合表 / 虚拟视图的读取、预览、草稿保存或发布 | `yida-aggregate-table`；save 验证 stash revision，publish 验证 live revision |
 | PPT 页面 | `yida-ppt-slider` |
 | 公开访问/组织内分享 | `yida-page-config` |
 | 评测指定技能质量并给出评分建议 | `yida-skill-evaluator` |

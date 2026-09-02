@@ -473,6 +473,15 @@ async function run(options = {}) {
           `create-process did not return a successful processCode: ${JSON.stringify(published)}`
         );
       }
+      if (
+        published.verificationLevel !== 'PLATFORM_VIEW_VERIFIED'
+        || published.platformViewVerified !== true
+      ) {
+        throw processError(
+          'PROCESS_E2E_PUBLISH_UNVERIFIED',
+          'create-process did not prove the exact PUBLISHED platform view'
+        );
+      }
 
       trackResource(registry, registryPath, {
         runId,
@@ -484,6 +493,7 @@ async function run(options = {}) {
         processCode: published.processCode,
         processId: published.processId || null,
         processVersion: published.processVersion || null,
+        verificationLevel: published.verificationLevel,
         name: `${namePrefix}Process`,
         url: published.url || null,
       });

@@ -9,6 +9,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const SKILLS_DIR = path.join(ROOT, 'yida-skills', 'skills');
 
 const SKILL_COVERAGE = {
+  'yida-aggregate-table': { level: 'opt-in-real-e2e', stages: ['aggregate'], commands: ['aggregate-table inspect/preview/save/publish/status'], tests: ['tests/aggregate-table.test.js', 'tests/aggregate-table-contract.test.js', 'tests/e2e-real-aggregate-runner.test.js'], reason: 'aggregate writes require an explicitly owned target and fixed designer fixture; runtime query and physical delete remain PLATFORM_PROBE_REQUIRED, so this domain runner is never part of shared full-runner defaults' },
   'yida-app': { level: 'real-e2e', stages: ['app', 'form', 'page', 'data', 'report', 'dashboard'] },
   'yida-app-lifecycle': { level: 'offline-unit', tests: ['tests/app-lifecycle.test.js', 'tests/cli-smoke.test.js'], reason: 'online/offline commands change real app availability; request contracts and agent permission metadata are validated with mocks and never run in shared real E2E' },
   'yida-app-permission': { level: 'offline-unit', tests: ['tests/app-permission.test.js'], reason: 'app admin mutations affect real application access; shared real E2E only validates safe read paths' },
@@ -55,7 +56,7 @@ const SKILL_COVERAGE = {
   'yida-process-rule': { level: 'opt-in-real-e2e', stages: ['process'], commands: ['configure-process'], reason: 'process stage publishes workflow rules on the disposable E2E form and is excluded from default full E2E unless explicitly requested' },
   'yida-publish-page': { level: 'real-e2e', stages: ['page', 'dashboard'], commands: ['publish --health-check'] },
   'yida-rechart': { level: 'offline-unit', tests: ['skill metadata and packaging validation', 'tests/sample.test.js', 'tests/canvas-compile.test.js'], reason: 'YidaCodeCanvas Recharts skill is covered by metadata/package validation plus sample/canvas compile tests; it consumes already aggregated data and does not perform real Yida remote writes in shared E2E' },
-  'yida-report': { level: 'real-e2e', stages: ['report'], commands: ['create-report', 'append-chart'] },
+  'yida-report': { level: 'real-e2e', stages: ['report'], commands: ['create-report', 'append-chart', 'report inspect'], tests: ['scripts/e2e-real/report/runner.js platform/runtime/ui package probe'] },
   'yida-table-form': { level: 'offline-unit', reason: 'table-form custom page template should be validated with check-page fixture before real publish stage is added' },
   'yida-tingji': { level: 'offline-unit', tests: ['tests/document-tools.test.js'], reason: 'Tingji content depends on authenticated tenant data; unit coverage validates taskUuid passthrough, response handling, and error behavior' },
   'yida-skill-evaluator': { level: 'offline-unit', tests: ['skill metadata and packaging validation', 'eval test suites'], reason: 'evaluator skill reads and scores other skills; no Yida API mutation' },
