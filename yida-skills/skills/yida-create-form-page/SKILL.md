@@ -36,6 +36,7 @@ description: 表单页面创建与更新，默认加载 yida-form-detail 作为�
 - update / add-option / bind-datasource / validation / rule 等字段级操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会内部读取 schema、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败/歧义时按 `diagnostics[].candidates` 补 `tableLabel`、修正 label 或再执行一次 compact `get-schema`。
 - 字段定义或变更定义需要落盘时，必须使用 agent 的结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`，例如 `<projectRoot>/.cache/openyida/pm/pm-fields-team.json`
 - 普通表单分组必须优先使用 `Divider`，多列排版必须通过字段 JSON 中的 `ColumnContainer` 局部表达
+- **重复结构化记录默认使用 `TableField`**：用户未指定具体字段类型时，凡一个业务字段承载多条同构记录，且每条记录由一组固定子字段组成，必须用 `TableField + children` 建模，不以字段名称或业务领域作为判断依据；用户明确指定具体字段类型时按用户要求执行，不将模型推断、跨会话记忆或历史兼容性说法视为用户指定。未在当前应用、当前提交链路验证的限制不能作为字段改型依据。
 - **本技能不读写 memory**：formUuid 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
 ## 适用场景

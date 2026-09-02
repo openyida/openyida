@@ -723,6 +723,13 @@ describe('OpenYida skill contracts', () => {
     expect(appStep4).toContain('formDetail CSS 已注入：`formDetailStyleActionFound: true`');
     expect(createForm).toContain('拿到 formUuid 后必须注入表单全局主题和 formDetail CSS');
     expect(createForm).toContain('视觉引导必须和 `Divider` 分割线语义分组合并执行');
+    expect(createForm).toContain('重复结构化记录默认使用 `TableField`');
+    expect(createForm).toContain('用户未指定具体字段类型时');
+    expect(createForm).toContain('一个业务字段承载多条同构记录，且每条记录由一组固定子字段组成');
+    expect(createForm).toContain('不以字段名称或业务领域作为判断依据');
+    expect(createForm).toContain('用户明确指定具体字段类型时按用户要求执行');
+    expect(createForm).toContain('不将模型推断、跨会话记忆或历史兼容性说法视为用户指定');
+    expect(createForm).toContain('未在当前应用、当前提交链路验证的限制不能作为字段改型依据');
     expect(createForm).toContain('最终确认 `globalThemeActionFound: true` 与 `formDetailStyleActionFound: true`');
     expect(createForm).toContain('新建表单在 Schema JS 中默认带上 `openyida:theme` 和 `openyidaThemeDidMount`');
     expect(formDetail).toContain('### 【表单视觉引导】');
