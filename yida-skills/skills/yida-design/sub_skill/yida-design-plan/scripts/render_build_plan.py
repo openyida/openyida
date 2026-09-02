@@ -555,6 +555,7 @@ def render_overview(data: dict[str, Any]) -> str:
     raw_visual = data.get("visualStyle") or {}
     visual_for_user = raw_visual.get("forUser") or {}
     color_strategy = visual_for_user.get("colorStrategy") or {}
+    navigation_style = visual_for_user.get("navigationStyle") or {}
     graph = overview.get("businessGraph") or {}
     graph_note = graph.get("description") or graph.get("summary") or graph.get("content") or ""
     if isinstance(graph_note, str) and graph_note.strip().startswith("graph "):
@@ -604,6 +605,18 @@ def render_overview(data: dict[str, Any]) -> str:
     </div>"""
     else:
         theme_color_html = '<p class="muted">主题色：-</p>'
+    navigation_structure = {
+        "top": "顶部导航",
+        "side": "侧边导航",
+    }.get(navigation_style.get("structure"), "-")
+    navigation_tone = {
+        "light": "浅色",
+        "dark": "深色",
+    }.get(navigation_style.get("tone"), "-")
+    navigation_reason = navigation_style.get("selectionReason") or ""
+    navigation_html = f"""
+    <p class="summary"><strong>导航结构：</strong>{esc(navigation_structure)}　<strong>导航明暗：</strong>{esc(navigation_tone)}</p>
+    {f'<p class="muted"><strong>选择依据：</strong>{esc(navigation_reason)}</p>' if navigation_reason else ''}"""
     return f"""
 <section id="overview" class="page-section">
   {render_section_heading("overview", overview.get("title") or "需求总览")}
@@ -622,9 +635,10 @@ def render_overview(data: dict[str, Any]) -> str:
   {section_html}
   <section class="overview-subsection">
     <h3>视觉设计</h3>
-    <p class="overview-kicker">整体风格与主题色策略</p>
+    <p class="overview-kicker">整体风格、主题色与导航样式</p>
     <p class="summary">{esc(visual)}</p>
     {theme_color_html}
+    {navigation_html}
   </section>
 </section>
 """

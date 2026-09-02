@@ -46,7 +46,7 @@ openyida design-plan materialize prd/<项目名>/build-plan.json --check --json
 
 正常生成不读取 [主题模板维护说明](../templates/design-themes/README.md) 或 [HTML 维护说明](../assets/README.md)，也不直接调用内部 Python 渲染脚本。四份产物共享同一个 `meta.revision`。
 
-`build-plan.html` 固定展示“需求总览、数据模型、业务流程、页面规划”四章。视觉信息仅在“需求总览 > 视觉设计”中展示视觉概览和主题色，不设置独立视觉章节，也不展开逐页视觉应用、模板路径、内部预设、设计系统正文、对话区、编辑/生成按钮或 `ask_human` 过程。此展示收敛不得删改 `build-plan.json` 中供 `prd.md`、`design.md` 消费的视觉事实。
+`build-plan.html` 固定展示“需求总览、数据模型、业务流程、页面规划”四章。视觉信息仅在“需求总览 > 视觉设计”中展示视觉概览、主题色、导航结构、导航明暗和选择依据，不设置独立视觉章节，也不展开逐页视觉应用、模板路径、内部预设、设计系统正文、对话区、编辑/生成按钮或 `ask_human` 过程。此展示收敛不得删改 `build-plan.json` 中供 `prd.md`、`design.md` 消费的视觉事实。
 
 ### 3. 展示并确认当前版本
 

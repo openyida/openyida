@@ -147,7 +147,7 @@ HTML 本体只包含：
   - 业务流程：关键流转与自动化规则
   - 权限：角色范围与数据边界
   - 导航菜单：主要入口与使用路径
-  - 视觉设计：整体风格与主题色策略
+  - 视觉设计：整体风格、主题色与导航样式
 
 业务全景图必须渲染成“表关系卡片图”：
 
@@ -199,9 +199,10 @@ HTML 本体只包含：
 
 ## 需求总览中的视觉信息
 
-`build-plan.html` 不设置独立“视觉风格”章节，也不在页面详情中重复展示逐页视觉应用。视觉信息只在“需求总览 > 视觉设计”中展示两项：
+`build-plan.html` 不设置独立“视觉风格”章节，也不在页面详情中重复展示逐页视觉应用。视觉信息只在“需求总览 > 视觉设计”中展示三项：
 
 1. 视觉概览：读取 `overview.visualSummary`，缺失时使用 `visualStyle.forUser.styleSummary`。
 2. 主题色：读取 `visualStyle.forUser.colorStrategy.primaryColorName` 和 `primaryColor`，同时展示色块、名称与 HEX 色值。
+3. 导航样式：读取 `visualStyle.forUser.navigationStyle.structure`、`tone` 和 `selectionReason`，展示导航结构、导航明暗和选择依据。
 
 主题画像、逐页视觉应用、视觉记忆点、组件约束和素材策略继续保留在 `build-plan.json`，供 `prd.md` 与 `design.md` 消费；HTML 不展开这些内部设计细节。渲染层不得改写或删减 JSON 中的视觉事实。

@@ -182,6 +182,9 @@ describe('design-plan materialize', () => {
     expect(compactDesign).toContain('- 导航背景：`--color-brand1-5`');
     expect(compactDesign).not.toMatch(/^themeId:/m);
     expect(compactDesign).not.toContain('airy-modular-clarity');
+    expect(html).toContain('<strong>导航结构：</strong>侧边导航');
+    expect(html).toContain('<strong>导航明暗：</strong>深色');
+    expect(html).toContain('高频流程处理需要稳定入口，深色导航加强模块边界。');
   });
 
   test('all registered themes resolve project placeholders and derived color tokens', () => {

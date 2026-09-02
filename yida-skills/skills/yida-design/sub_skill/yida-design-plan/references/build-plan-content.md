@@ -179,6 +179,7 @@
 
 - `overview.visualSummary` 的视觉概览。
 - `visualStyle.forUser.colorStrategy` 的主题色名称、HEX 色值和色块。
+- `visualStyle.forUser.navigationStyle` 的导航结构、导航明暗和选择依据。
 
 这只是 HTML 展示收敛，不得缩减最终 `prd.md` 或 `design.md`。2.0 源 JSON 可以按[紧凑写入契约](build-plan-compact-schema.md)省略索引字段和标准规则副本，由 materialize 在生成产物前补齐完整逻辑结构。
 
