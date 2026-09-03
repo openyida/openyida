@@ -82,7 +82,7 @@
 
 自定义页面内凡是点击按钮去新增、提交或查看表单详情，统一封装成同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；外部 URL 才使用新标签。PC 端容器表现为右侧抽屉 + iframe，移动端直接进入原生表单页，关闭抽屉后触发当前页刷新。
 
-YidaCodeCanvas 推荐使用 antd `Drawer`。主题运行容器在自定义页面、提交页和详情页 iframe 中分别加载同一应用级自定义主题 CSS，确保主题变量一致。
+YidaCodeCanvas 推荐使用 antd `Drawer`。`FormOpenContainer` 只负责打开原生提交页或详情页。
 
 ```jsx
 import React, { useMemo, useState } from 'react';

@@ -1,4 +1,4 @@
-# 自定义页面编写示例 / 脚手架
+# 自定义页面编写示例 / 基准模板
 
 从零写使用 `YidaCodeCanvas` 组件实现的页面时，入口使用普通 React18 函数组件 `YidaComp`，源码导出或返回 `YidaComp` / `YidaComp.default`；`import` 使用可用资源清单内的包；副作用在 `useEffect` 里注册并返回 cleanup。
 

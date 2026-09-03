@@ -1,15 +1,15 @@
 /**
- * OpenYida Code Canvas 表单入口脚手架。
+ * @openyida-page-template-base
+ * OpenYida Code Canvas 表单入口基准模板。
  *
- * 使用方式：
- * openyida sample openyida-scaffold canvas-form-drawer --output project/pages/src/customer-entry.canvas.jsx --var APP_TYPE=APP_XXX --var FORM_UUID=FORM_XXX
+ * 内部生成流程必须先复制本文件，再按 PRD、design.md 和真实数据契约改写。
+ * 发布前必须删除本标记、示例数据和全部占位内容。
  *
  * 关键约定：
  * - PC 端新增和详情使用 FormOpenContainer 右侧抽屉 iframe。
  * - 移动端才整页进入原生提交页或详情页。
  * - 详情页必须先解析真实 formInstId，缺少实例 ID 时禁用入口。
  * - 预览行不携带伪造 formInstId，接入 searchFormDatas 真实 rows 后才启用详情。
- * - 提交页和详情页由新版主题运行时自行加载应用级自定义主题 CSS。
  */
 
 import React, { useMemo, useState } from 'react';
@@ -347,7 +347,7 @@ function YidaComp(props) {
               <Text type="secondary">原生表单负责提交和详情，自定义页负责列表、筛选与当前页面交互。</Text>
             </div>
             <Space wrap>
-              <Tag color={isBound ? 'success' : 'warning'}>{isBound ? '已绑定真实表单' : '脚手架预览'}</Tag>
+              <Tag color={isBound ? 'success' : 'warning'}>{isBound ? '数据源已配置' : '数据源待配置'}</Tag>
               <Tag>{rows.length} 条记录</Tag>
             </Space>
           </div>
@@ -357,8 +357,8 @@ function YidaComp(props) {
               type="warning"
               showIcon
               style={{ marginBottom: 12 }}
-              message="当前仍是脚手架占位资源"
-              description="请通过 --var APP_TYPE=... --var FORM_UUID=... 替换模板变量，或在运行时 props 中传入 appType、formUuid 和 rows。"
+              message="页面数据尚未配置"
+              description="请先完成应用与表单绑定，并接入真实业务数据。"
             />
           ) : null}
 

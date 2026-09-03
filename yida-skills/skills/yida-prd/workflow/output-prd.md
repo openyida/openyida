@@ -27,6 +27,7 @@
 | appType | <已有应用填真实 appType；从零创建时写“待创建后回填”> |
 | corpId | <目标组织 corpId；未知时写“待登录态确认”> |
 | baseUrl | <平台地址，如 https://www.aliwork.com 或私有化域名> |
+| 是否隐藏平台导航 | <否 / 是；默认否。仅自绘应用级导航或用户明确要求隐藏时写“是”，并配置 `hideAppNav='y'`；`isRenderNav=false` 只隐藏当前页面导航> |
 
 ## 3. 数据结构（业务语义，不含细节 ID）
 
@@ -61,7 +62,7 @@
 - 入口模式：<`platform-shell` / `standalone`；信息不足时必须写 `platform-shell`>
 - 页面目标：<这个页面帮助用户完成什么判断或操作>
 - 页面关系：<从哪里进入、下一步去列表 / 看板 / 表单提交 / 详情 / 报表中的哪一个>
-- 设计文件：<display-page 填 `prd/<项目名>/design.md`；普通表单 / 流程表单写“跟随应用主题文件和表单视觉引导”>
+- 设计文件：<display-page 填 `prd/<项目名>/design.md`；普通表单 / 流程表单填写表单结构与填写路径引导>
 - 设计引用：<引用 design.md 中的章节 ID，例如 themeProfile、sceneRecipes.workbench、components.table、states.empty>
 - 风格理由：<一句话说明该页面为什么采用 design.md 中的对应场景规则>
 - 主题关系：<跟随当前应用主题 / 平台预置主题 / 应用自定义主题文件；只写摘要，具体 token 与 UI 规则见 design.md>
@@ -103,7 +104,6 @@
 | 明暗模式 | <light 默认；dark 只在明确暗色/夜间/高对比/黑金时使用；具体色阶见 design.md> |
 | 页面设计引用 | <逐页列出 designRefs，不复制 design.md 内容> |
 | 素材策略摘要 | <官网/品牌页是否需要真实图片或生成图片；具体视觉表达见 design.md> |
-| 表单主题一致性 | <运行容器在普通表单、流程表单、提交页、formDetail 详情页、自定义页面和表单 iframe 中加载同一份应用主题 CSS> |
 | 一致性要求 | <PRD 中主题色和风格摘要必须与 design.md 保持一致；冲突时以 design.md 为准并修正 PRD 摘要> |
 
 ## 6. 业务逻辑与交互状态
@@ -113,8 +113,6 @@
 | 表单提交后 | <刷新列表 / 回到当前工作台 / 触发流程 / 更新状态> |
 | 新增/提交入口 | <PC 侧边抽屉 iframe 承载页面级隐藏导航的 `submission/{formUuid}?isRenderNav=false`，抽屉默认半屏 `50vw`；移动端整页或新页打开；必要时用 `update-form-config` 持久化表单设置 `isRenderNav=false`> |
 | 详情查看 | <PC 侧边抽屉 iframe 承载页面级隐藏导航的 `formDetail/{formUuid}?formInstId={formInstId}&navConfig.layout=1180&isRenderNav=false`，抽屉默认半屏 `50vw`；移动端整页或新页打开；formInstId 来自真实数据记录并优先取 row.formInstId，缺失时禁用详情入口> |
-| 应用主题文件 | <通过 `create-app/update-app --theme-file/--nav-theme/--logo-source/--layout` 联合保存，themeColor 从 CSS 的 --color-brand1-6 自动提取，提交页和详情页由服务端加载同一 CSS> |
-| 详情页样式 | <通过应用主题 CSS 的 `--pod-detail-*`、页面、卡片和字段预览 token 适配，不写表单 Schema JS> |
 | 数据变更 | <自动计算、状态流转、通知或提醒> |
 | 权限规则 | <角色能看、能改、能审批的边界> |
 | 空状态 | <无数据时的说明、主操作入口和下一步> |
@@ -140,9 +138,9 @@
 | --- | --- | --- | --- |
 | 1 | 应用 | 承载所有页面、表单、流程和导航 | `appType` |
 | 2 | 普通表单 / 流程表单 | 自定义页面需要表单 URL、字段语义和数据来源 | `formUuid`、字段映射 |
-| 3 | 应用主题文件配置 | 提交页、详情页、自定义页面和应用主题色必须一致 | `themeColor`、`navTheme`、`customThemeStyle.cssUrl` |
+| 3 | 应用主题与导航配置 | 在应用级统一配置主题，并明确是否隐藏平台导航 | `themeFile`、`themeColor`、`navTheme`、`logoSource`、`layoutDirection`、`hideAppNav` |
 | 4 | 初始示例数据 | 页面需要读取真实表单记录，完整应用默认写入 1-3 条核心业务记录 | 写入数量、抽查结果 |
-| 5 | 主自定义页面 / 业务自定义页面 | 页面消费表单入口、表单数据和主题色配置 | `displayPageFormUuid` |
+| 5 | 主自定义页面 / 业务自定义页面 | 页面消费表单入口和表单数据 | `displayPageFormUuid` |
 | 6 | 报表 / 数据看板数据源 | 看板或大屏需要汇总指标时创建 | `reportId` 或数据源信息 |
 | 7 | 发布与导航排序 | 页面发布成功后再调整导航展示 | 发布 URL、导航状态 |
 
@@ -175,7 +173,7 @@
 | --- | --- |
 | 主页面访问 | <页面发布成功，打开后首屏能完成核心判断> |
 | 数据录入 | <表单能提交，提交后页面能刷新或回到正确入口> |
-| 表单主题和详情页样式 | <应用主题文件已在普通表单、流程表单、提交页、formDetail、自定义页面和表单 iframe 生效，主题色与语义变量一致> |
+| 主题配置与页面消费 | <应用主题文件已配置，自定义页面已消费对应主题变量> |
 | 初始示例数据 | <完整应用默认已为核心普通表单写入 1-3 条业务化示例记录并 query 抽查；跳过时说明原因> |
 | 数据查看 | <默认使用表单数据管理页；自定义列表 / 看板 / 详情显示真实数据或空态> |
 | 权限 / 流程 | <权限规则或流程节点生效> |

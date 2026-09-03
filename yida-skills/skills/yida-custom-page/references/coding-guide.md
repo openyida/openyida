@@ -81,7 +81,7 @@ export function injectNativeControlReset() {
   }
 
   style.innerHTML = [
-    '.oyd-page{--oyd-control-border:#D0D5DD;--oyd-control-hover:var(--color-brand1-4,#8BB8FF);--oyd-control-focus:var(--color-brand1-6,#2F6FED);--oyd-control-focus-ring:rgba(47,111,237,.14);--oyd-control-selected-bg:rgba(47,111,237,.08);--oyd-control-info-bg:rgba(47,111,237,.08);}',
+    '.oyd-page{--oyd-control-border:#D0D5DD;--oyd-control-hover:var(--color-brand1-5,#8BB8FF);--oyd-control-focus:var(--color-brand1-6,#2F6FED);--oyd-control-focus-ring:rgba(47,111,237,.14);--oyd-control-selected-bg:rgba(47,111,237,.08);--oyd-control-info-bg:rgba(47,111,237,.08);}',
     '.oyd-page input,.oyd-page textarea,.oyd-page select,.oyd-page .oyd-input,.oyd-page .oyd-select-trigger{appearance:none;-webkit-appearance:none;font-family:inherit;font-weight:400;color:#1D2939;outline:none!important;box-shadow:none;}',
     '.oyd-page input,.oyd-page textarea,.oyd-page select,.oyd-page .oyd-input{border:1px solid var(--oyd-control-border);border-radius:6px;background:#fff;}',
     '.oyd-page input:hover,.oyd-page textarea:hover,.oyd-page select:hover,.oyd-page .oyd-input:hover,.oyd-page .oyd-select-trigger:hover{border-color:var(--oyd-control-hover)!important;}',
@@ -625,13 +625,9 @@ export function closeYidaForm() {
 }
 ```
 
-`renderJsx` 中根据 `formOpenRequest` 渲染右侧抽屉和 `<iframe src={state.formOpenRequest.iframeUrl}>`；PC 抽屉宽度使用 `state.formOpenRequest.drawerWidth || '50vw'`，提交页和详情页默认一致。iframe 由主题运行时加载与应用一致的自定义主题 CSS。关闭抽屉时清空 `formOpenRequest` 并重新查询列表。不要假设平台提供 `openDrawer` 内置方法，也不要为提交和详情各写一套 drawer 状态。
+`renderJsx` 中根据 `formOpenRequest` 渲染右侧抽屉和 `<iframe src={state.formOpenRequest.iframeUrl}>`；PC 抽屉宽度使用 `state.formOpenRequest.drawerWidth || '50vw'`，提交页和详情页默认一致。关闭抽屉时清空 `formOpenRequest` 并重新查询列表。不要假设平台提供 `openDrawer` 内置方法，也不要为提交和详情各写一套 drawer 状态。
 
 > `viewUuid` 可选，从宜搭「数据管理」→「报表视图」页面的 URL 中获取，不传则使用默认视图。
-
-### 16.1 自定义主题消费
-
-平台 JSX 页面和 `FormOpenContainer` 的表单 iframe 由运行容器分别加载同一份应用级主题 CSS，并使用一致的主题变量。需要不同主题时通过应用级 `update-app --theme-file/--nav-theme/--logo-source/--layout` 配置，主色由 CSS 的 `--color-brand1-6` 自动派生。
 
 ### 17. 下拉选项控制选项卡（Tabs）表格页显示/隐藏
 

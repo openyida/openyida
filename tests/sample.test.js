@@ -63,13 +63,13 @@ describe('sample templates', () => {
     expect(tableSource).not.toContain('data-theme-scope');
   });
 
-  test('OpenYida scaffold samples validate form fields and compile the drawer container', async () => {
+  test('OpenYida page templates are copied, substituted, and compile the drawer container', async () => {
     const formOutput = path.join(tmpDir, 'form-fields.json');
     const pageOutput = path.join(tmpDir, 'canvas-form-drawer.canvas.jsx');
 
-    await run(['openyida-scaffold', 'form-fields', '--output', formOutput]);
+    await run(['openyida-page-template', 'form-fields', '--output', formOutput]);
     await run([
-      'openyida-scaffold',
+      'openyida-page-template',
       'canvas-form-drawer',
       '--output',
       pageOutput,
@@ -102,6 +102,26 @@ describe('sample templates', () => {
     expect(pageSource).not.toContain('FORM_INST_SAMPLE');
     expect(pageSource).not.toContain('{{APP_TYPE}}');
     expect(pageSource).not.toContain('{{FORM_UUID}}');
+    expect(pageSource).not.toContain('脚手架预览');
+    expect(pageSource).not.toContain('当前仍是脚手架占位资源');
+  });
+
+  test('application theme template is copied byte-for-byte through the CLI', async () => {
+    const themeOutput = path.join(tmpDir, 'app-theme.css');
+    const themeSource = path.join(
+      __dirname,
+      '..',
+      'yida-skills',
+      'skills',
+      'yida-design',
+      'references',
+      'theme',
+      'app-custom-theme-template.css'
+    );
+
+    await run(['yida-design', 'app-theme', '--output', themeOutput]);
+
+    expect(fs.readFileSync(themeOutput)).toEqual(fs.readFileSync(themeSource));
   });
 
   test('remaining samples avoid near-black default business surfaces', () => {

@@ -188,10 +188,11 @@ openyida publish pages/src/employee-upload.oyd.jsx APP_XXX FORM_XXX
 ### 表单建模
 
 ```bash
+openyida sample yida-design app-theme --output .cache/openyida/crm/app-theme.css
 openyida create-form create APP_XXX "客户表" .cache/openyida/forms/customer-fields.json
 openyida create-form update APP_XXX FORM_XXX .cache/openyida/forms/customer-changes.json
-openyida sample openyida-scaffold form-fields --output .cache/openyida/forms/customer-fields.json
-openyida sample openyida-scaffold canvas-form-drawer --output project/pages/src/customer-entry.canvas.jsx --var APP_TYPE=APP_XXX --var FORM_UUID=FORM_XXX
+openyida sample openyida-page-template form-fields --output .cache/openyida/forms/customer-fields.json
+openyida sample openyida-page-template canvas-form-drawer --output project/pages/src/customer-entry.canvas.jsx --var APP_TYPE=APP_XXX --var FORM_UUID=FORM_XXX
 openyida get-schema APP_XXX FORM_XXX
 ```
 
@@ -391,7 +392,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida a2a <serve\|agent-card> [options]` | 启动本地只读 A2A Adapter 或输出 Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | 启动 OpenYida 本地网页桥接服务 |
 | `openyida copy [--force]` | 复制 project 工作目录 |
-| `openyida sample [--list]` | 输出代码示例/骨架 |
+| `openyida sample [--list]` | 输出代码模板 |
 | `openyida doctor [--fix]` | 环境诊断与自动修复 |
 | `openyida db-seq-fix [--fix]` | PostgreSQL Sequence 漂移检测与修复 |
 | `openyida formula evaluate <formula\|file> [--schema file]` | 静态检查宜搭公式语法和字段引用 |
@@ -401,7 +402,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | 批量执行 OpenYida 命令 |
 | `openyida flash-to-prd --file <path> --name "<project>"` | 闪记 / 会议纪要转 PRD prompt |
 | `openyida ai <text\|image> [options]` | 调用 AI 文生文和识图能力 |
-| `openyida asset <status\|verify-url\|resolve\|generate> [options]` | 检测素材能力 / 校验图片 URL / 解析回填素材 |
+| `openyida asset <status\|resolve\|generate> [options]` | 检测素材能力 / 解析回填素材 |
 | `openyida cdn-config [options]` | 配置 CDN / OSS 上传 |
 | `openyida cdn-upload <image-path>` | 上传图片到 CDN |
 | `openyida cdn-refresh [options]` | 刷新 CDN 缓存 |
