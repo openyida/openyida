@@ -4,7 +4,7 @@
 
 最终 `design.md` 的依据分四层：结构依据本文件和 `_design-md-template.md`；视觉 DNA、布局机制、组件机制和换肤规则依据选中的设计风格文件；业务内容、页面区块、数据来源和操作路径依据当前 PRD；主题 token 依据主题系统中的主题色来源和所选风格的 `theme_adaptation`。
 
-## join 稳定引用契约
+## 稳定引用规则
 
 `yida-prd` 与 `yida-design` 必须使用同一组可定位锚点，`designRefs` 只允许以下形式：
 
@@ -13,7 +13,7 @@
 - `components.<componentName>`
 - `states.<stateName>`
 
-`sceneKey` 必须直接取自共享 `requirement-brief.json` 的对应 `pageScenes`：对象项使用其 `key`，字符串项原样使用；不得由两个 artifact owner 各自改写、翻译或重新生成。`componentName` 和 `stateName` 必须与本文件 frontmatter 中的实际 key 完全一致。join 只校验这些稳定锚点，不使用标题文本或自然语言近似匹配。
+`sceneKey` 必须直接取自 `requirement-brief.json` 的对应 `pageScenes`：对象项使用其 `key`，字符串项原样使用；`yida-prd` 和 `yida-design` 不得各自改写、翻译或重新生成。`componentName` 和 `stateName` 必须与本文件 frontmatter 中的实际 key 完全一致。一致性校验只检查这些稳定标识，不使用标题文本或自然语言近似匹配。
 
 ## design.md 输出格式
 

@@ -28,14 +28,14 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 ## 严格要求 (MUST DO)
 
 - 创建成功后，将 appType 记录到 `.cache/<项目名>-schema.json`
-- 若完整搭建已完成 artifact join，创建成功后不得回写 `.cache/openyida/<项目名>/requirement-brief.json`，也不得仅因拿到真实 `appType` 重跑 `yida-prd`、`yida-design` 或 join；真实 `appType` 只写入 schema 或当前任务资源上下文。
+- 若完整搭建已确认 PRD 和视觉设计，创建成功后不得回写 `.cache/openyida/<项目名>/requirement-brief.json`，也不得仅因拿到真实 `appType` 重新生成或校验 PRD 和视觉设计；真实 `appType` 只写入 schema 或当前任务资源上下文。
 - 创建前确认当前登录的组织（corpId）与目标组织一致
 - **本技能不读写 memory**：appType 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
 ## 适用场景
 
 用户说"只创建应用壳"、"新建应用并返回 appType"，且 resource context 没有目标 app 时使用此技能。
-创建应用后，若任务只是创建应用壳则返回真实 `appType` 即可；若继续完整搭建，把真实 `appType` 写入 `.cache/<项目名>-schema.json` 或当前任务资源上下文，然后直接按已经 join 的 PRD 与视觉 artifact 执行：创建/更新表单（`yida-create-form-page`）→ 创建或复用页面（`yida-create-page` / existing page）→ 发布页面（`yida-publish-page`）。
+创建应用后，若任务只是创建应用壳则返回真实 `appType` 即可；若继续完整搭建，把真实 `appType` 写入 `.cache/<项目名>-schema.json` 或当前任务资源上下文，然后直接按已经确认的 PRD 与视觉设计执行：创建/更新表单（`yida-create-form-page`）→ 创建或复用页面（`yida-create-page` / existing page）→ 发布页面（`yida-publish-page`）。
 后续如果需要自定义页面，源码写到 `project/pages/src/<页面名>.canvas.jsx` 并发布。
 
 ---

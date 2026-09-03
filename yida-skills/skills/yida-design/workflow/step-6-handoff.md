@@ -1,6 +1,6 @@
 # 写入 design.md
 
-本步骤只写入 `prd/<项目名>/design.md`。完整应用的 `prd.md` 由并行的 `yida-prd` owner 生成；本技能不得等待、读取或覆盖本轮 PRD。
+本步骤只写入 `prd/<项目名>/design.md`。完整应用的 `prd.md` 由同时运行的 `yida-prd` 生成；本技能不得等待、读取或覆盖本轮 PRD。
 
 ## 必填内容
 
@@ -15,10 +15,10 @@
 
 ## 写入前检查
 
-1. 已读取共享需求简报及 [design.md 输出格式](output-design.md)。
+1. 已读取整理后的用户需求及 [design.md 输出格式](output-design.md)。
 2. 已读取 [页面质量门禁](../references/page-quality-gates.md)。
-3. 视觉规则只覆盖 `explicitScope` 或简报中的页面场景，不添加业务资源。
-4. `designRefs` 使用稳定章节 ID，供 join owner 与页面实现阶段引用。
+3. 视觉规则只覆盖 `explicitScope` 或需求文件中的页面场景，不添加业务资源。
+4. `designRefs` 使用稳定章节 ID，供 `yida-app` 校验和页面实现阶段引用。
 
 ## 完成条件
 

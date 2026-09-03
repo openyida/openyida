@@ -1,11 +1,11 @@
 ---
 name: yida-requirement-analysis
-description: 分析完整应用的用户需求与现有资源，生成供 PRD 和视觉设计共同使用的结构化需求简报。
+description: 整理完整应用的用户需求与现有资源，供 PRD 和视觉设计共同使用。
 ---
 
 # yida-requirement-analysis
 
-本技能是完整应用双产物的唯一共享输入 owner。它只生成需求简报，不生成 PRD、视觉设计或页面源码。
+本技能先统一整理用户需求和已确认资源，写入 `requirement-brief.json`。它不生成 PRD、视觉设计或页面源码。
 
 ## 使用场景
 
@@ -39,11 +39,11 @@ description: 分析完整应用的用户需求与现有资源，生成供 PRD �
 2. 用户明确给出的资源和本轮范围原样写入 `explicitScope`，不得扩展同级页面或业务对象。
 3. 真实 `appType`、`formUuid`、`fieldId` 等 ID 只有已有证据时才可放入 `resourceContext`；不得猜测。
 4. 会改变资源范围、权限或业务对象的未知项写入 `openQuestions`，不能静默假设。
-5. 文件成功写入并通过 JSON 解析后，才允许启动两个 artifact owner。
-6. 简报进入 ready 后即冻结。后续创建出的 `appType`、`formUuid`、`fieldId` 等真实资源 ID 写入 schema 或当前任务资源上下文，不回写简报；只有用户需求或已确认资源范围发生实质变化时，才重新生成简报并重跑两个 artifact owner。
+5. 文件成功写入并通过 JSON 解析后，才允许生成 PRD 和视觉设计。
+6. 需求文件校验通过后保持不变。后续创建出的 `appType`、`formUuid`、`fieldId` 等真实资源 ID 写入 schema 或当前任务资源上下文，不回写该文件；只有用户需求或已确认资源范围发生实质变化时，才重新整理需求并重新生成 PRD 和视觉设计。
 
 ## 完成条件
 
-- 共享简报存在且是合法 JSON。
+- `requirement-brief.json` 存在且是合法 JSON。
 - 项目名、用户、业务目标、核心功能、业务对象、页面场景和范围信息完整。
 - 没有生成或覆盖 `prd.md`、`design.md` 和页面源码。

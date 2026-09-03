@@ -69,7 +69,7 @@
     "id": "full-app-milk-tea-multipage",
     "prompt": "基于奶茶品牌场景从零创建一个应用，面向消费者有官网首页，面向经销商有经营数据看板",
     "expectedSkill": "yida-app",
-    "note": "从零多页面应用 → yida-app 编排，内部先生成共享需求简报，再并行走 yida-prd 与 yida-design，join 后进入 Canvas"
+    "note": "从零多页面应用 → yida-app 编排，先整理用户需求，再同时生成并校验 PRD 与视觉设计，然后进入 Canvas"
   },
   {
     "id": "design-app-blueprint",

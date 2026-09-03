@@ -31,7 +31,7 @@
 
 完整搭建收尾前，从本轮真实创建、复用和发布结果写入 `prd/<项目名>/build-manifest.json`。它只是轻量事实源，不是严格 schema；只记录已经拿到的真实资源名、类型和 ID，用于让 `check-prd-completeness` 做一次 app 资源列表 readback 后判断页面/资源数量是否完整。
 
-`build-manifest.json` 与 Step 2 的 `requirement-brief.json`、`prd.md`、`design.md` 一样只供内部编排和验收使用。不得把它们登记为用户可见 artifact、附件或下载卡片。
+`build-manifest.json` 与 Step 2 的 `requirement-brief.json`、`prd.md`、`design.md` 一样只供内部编排和验收使用。不得把它们登记为用户可见附件或下载卡片。
 
 一期检查只消费 `display-page`、`normal-form`、`process-form` 资源项；不检查字段、必填、选项、seed records、导航顺序、表单 Schema、页面发布内容、截图或视觉体验。
 
@@ -55,7 +55,7 @@
 ## 结果输出格式
 
 - 先写 2-3 句业务交付总结，再给一个名为“应用访问入口”的入口组。
-- 一次完整应用搭建只产生这一组用户可见交付，不把表单、流程、报表、页面、资源清单或内部文件分别登记为 artifact、附件、链接卡或下载卡。
+- 一次完整应用搭建只产生这一组用户可见交付，不把表单、流程、报表、页面、资源清单或内部文件分别登记为附件、链接卡或下载卡。
 - 业务资源只在总结中按能力或数量概述，例如“已完成 4 张业务表单、1 条审批流程和 1 个经营看板”；不默认输出资源 ID 表格、资源清单、长列表、appType、formUuid、pageId、reportId。
 - 新增、修改或发布单个具体页面时，仍只交付当前页面，不扩展成完整应用入口组。
 - 完整应用的入口组始终包含“应用工作台” `{base_url}/{appType}/workbench`。
@@ -118,7 +118,7 @@
 
 - [ ] final 先写业务总结，再给唯一一组“应用访问入口”；
 - [ ] 已写入轻量 build-manifest 并运行页面/资源数量完整性风险检查；未通过时没有声称“已按 PRD 完成搭建”；
-- [ ] 未把内部 artifact 或每个业务资源分别交付；
+- [ ] 未把内部文件或每个业务资源分别交付；
 - [ ] 工作台始终存在，custom 只在 `standalone` 写后回读通过时存在，admin 严格跟随 capability；
 - [ ] 未默认暴露资源 ID 或其他管理态链接；
 - [ ] 结构化结果中的 `skillsUsed` 只包含实际读取并使用的技能；

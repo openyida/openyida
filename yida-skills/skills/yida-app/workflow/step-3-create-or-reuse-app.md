@@ -13,7 +13,7 @@
 1. 已有 `appType`、应用 URL 或已绑定 app → 直接复用该 app。
 2. 缺少 app 且 Step 1 判定 `allowCreate=true` → 执行 `use_skill("yida-create-app", "按 PRD 创建应用并获取 appType")`，再按 PRD 创建应用。
 3. 创建或复用后提取真实 `appType`，写入 `.cache/<项目名>-schema.json` 或当前任务资源上下文。
-   - Step 2 已 join 的 requirement brief、PRD 与 design 保持冻结；不得仅因拿到真实 `appType` 回写简报或重跑 artifact owner。
+   - Step 2 已确认的 `requirement-brief.json`、PRD 与 design 保持不变；不得仅因拿到真实 `appType` 回写需求文件或重新生成 PRD 和视觉设计。
 4. 创建完整应用时，先执行以下命令复制模板：
 
    ```bash

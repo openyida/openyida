@@ -87,7 +87,7 @@
   - themeSummary：<应用主题色 / 风格关键词 / 主题交付方式摘要；必须与 design.md 一致，不写 token 和视觉规则>
   - designFile：<prd/<项目名>/design.md>
   - designRefs：<themeProfile / sceneRecipes.<scene> / components.<name> / states.<name>>
-  - 引用规则以 [yida-design 的 join 稳定引用契约](../../yida-design/workflow/output-design.md#join-稳定引用契约) 为准；`sceneRecipes.<sceneKey>` 中的 `sceneKey` 必须逐字取自共享 `requirement-brief.json` 的对应 `pageScenes`（对象项使用其 `key`，字符串项原样使用），不得改写、翻译或重新生成。
+  - 引用规则以 [yida-design 的稳定引用规则](../../yida-design/workflow/output-design.md#稳定引用规则) 为准；`sceneRecipes.<sceneKey>` 中的 `sceneKey` 必须逐字取自 `requirement-brief.json` 的对应 `pageScenes`（对象项使用其 `key`，字符串项原样使用），不得改写、翻译或重新生成。
   - dataBinding：<form / report / connector / static-empty；真实资源 ID 由实现阶段回填>
   - primaryAction：<主操作和打开方式>
 

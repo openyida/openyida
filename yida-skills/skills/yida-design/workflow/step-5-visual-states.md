@@ -8,7 +8,7 @@
 
 1. 读取 [design.md 生成规则](../references/style-design-selection.md)。
 2. 读取 [style-design 风格注册表](../references/style-designs/registry.md)，再读取 `_design-md-template.md`。
-3. 从共享需求简报、主题系统和页面结构产物推演 `inferredUserTask`、`inferredInformationTopology`、`interactionFocus` 和 `requiredVisualDNA`。用户通常不会主动描述视觉结构，agent 必须从业务对象、数据形态、页面区块和操作路径中推演。
+3. 从整理后的用户需求、主题系统和页面结构推演 `inferredUserTask`、`inferredInformationTopology`、`interactionFocus` 和 `requiredVisualDNA`。用户通常不会主动描述视觉结构，agent 必须从业务对象、数据形态、页面区块和操作路径中推演。
 4. 按 `业务任务匹配 30% + 信息拓扑匹配 25% + 视觉 DNA 命中 30% + 实现稳定性 10% - 风险扣分 5%` 选择唯一设计风格，并把对应 `style-designs/*.md` 记录为 `baseDesignSource`；纯表单、长文、品牌营销、移动端单任务、未要求暗色时要过滤明显不合适的风格。
 5. 读取被选中的 style-design 风格文件，抽取 `visual_dna`、`theme_adaptation`、`layout_stability`、`quality_anchors`、`components` 和 `modules`。
 6. 根据主题系统中的主题色来源和主题色输入执行换肤：替换风格文件中的 `theme_adaptation.replace_tokens`，派生 `derive_tokens`，保留 `preserve_tokens` 和 `visual_dna.invariant`。主题色只换 hue，不换 DNA，不改结构。
