@@ -547,12 +547,25 @@ export function buildDirectQuery() {
   var params = { formUuid: 'FORM-X', pageSize: '50', dynamicOrder: '{"gmtCreate":"-"}' };
   return new URLSearchParams(params).toString();
 }
+
+export function buildAppendedQuery() {
+  var params = new URLSearchParams();
+  params.append('dynamicOrder', JSON.stringify({ gmtCreate: '-' }));
+  return params.toString();
+}
+
+export function buildSetQuery() {
+  var order = '{"gmtCreate":"-"}';
+  var params = new URLSearchParams({ pageSize: '50' });
+  params.set('dynamicOrder', order);
+  return params.toString();
+}
 `;
     const result = lintYidaSource(source, '/tmp/searchformdata-dynamic-order-bad.jsx');
     const issues = result.errors.filter(issue => issue.rule === 'searchformdata-dynamic-order-metadata');
 
-    expect(issues).toHaveLength(4);
-    expect(issues.map(issue => issue.line)).toEqual([3, 7, 12, 17]);
+    expect(issues).toHaveLength(6);
+    expect(issues.map(issue => issue.line)).toEqual([3, 7, 12, 17, 23, 30]);
     expect(issues.every(issue => issue.message.includes('gmtCreate'))).toBe(true);
   });
 
@@ -570,6 +583,20 @@ export function loadRows() {
 }
 `;
     const result = lintYidaSource(source, '/tmp/searchformdata-dynamic-order-good.jsx');
+
+    expect(result.errors.map(issue => issue.rule)).not.toContain('searchformdata-dynamic-order-metadata');
+  });
+
+  test('does not treat append/set on ordinary objects as URLSearchParams', () => {
+    const source = `
+export function updateState() {
+  var params = createParams();
+  params.append('dynamicOrder', '{"gmtCreate":"-"}');
+  var cache = new Map();
+  cache.set('dynamicOrder', JSON.stringify({ gmtCreate: '-' }));
+}
+`;
+    const result = lintYidaSource(source, '/tmp/searchformdata-dynamic-order-ordinary-objects.jsx');
 
     expect(result.errors.map(issue => issue.rule)).not.toContain('searchformdata-dynamic-order-metadata');
   });
