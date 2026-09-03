@@ -30,7 +30,7 @@
 |---|---|
 | 查询我的应用 | `openyida app-list [--size N]` |
 | 创建应用 | `openyida create-app "<应用名称>"` |
-| 更新应用名称、布局、主题、访问态应用导航显示 | `openyida update-app <appType> [--name "..."] [--layout slide\|ver] [--theme deepBlue] [--hide-app-nav\|--show-app-nav]` |
+| 更新应用名称、自定义主题、导航风格、Logo 来源、布局、访问态应用导航显示 | `openyida update-app <appType> [--theme-file <css>] [--nav-theme light\|dark\|white\|gray] [--logo-source appIcon\|customImage] [--layout side\|top\|l_shape]` |
 | 启用应用 / 上线应用 | `openyida app-online <appType> [--to-ding-app-center] [--show-app-center]` |
 | 停用应用 / 下线应用 | `openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]` |
 | 导出应用迁移包 | `openyida export <appType> [output]` |
@@ -61,7 +61,6 @@
 | 获取表单 Schema | `openyida get-schema <appType> <formUuid>` |
 | 获取应用全部 Schema | `openyida get-schema <appType> --all` |
 | 导出 ER 关系图 | `openyida er <appType> [--format mermaid\|json] [--output file]` |
-| 注入、移除或检查表单详情页样式 | `openyida form-detail-style <apply\|remove\|check> <appType> <formUuid> ...` |
 | 管理聚合表 virtualView | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` |
 
 ## 自定义页面与发布

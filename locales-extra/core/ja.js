@@ -30,6 +30,7 @@ module.exports = {
     cmd_import: '移行パッケージをインポート、アプリを再構築',
     group_form: 'フォーム & ページ',
     cmd_create_form: 'フォームページを作成',
+    cmd_list_form_icons: '利用可能なフォームナビゲーションアイコンを一覧表示',
     cmd_validate_form: 'フォームフィールド JSON をローカル検証',
     cmd_update_form: 'フォームページを更新',
     cmd_list_forms: 'アプリ内のフォーム/ページを一覧表示',
@@ -45,7 +46,6 @@ module.exports = {
     cmd_publish: 'カスタムページをコンパイル＆公開',
     cmd_update_form_config: 'フォーム設定を更新',
     cmd_get_form_config: 'Query form configuration',
-    cmd_form_detail_style: 'Manage form detail page style',
     group_data: 'データ & 権限',
     cmd_data: '統合データ管理（フォーム/プロセス/タスク/サブフォーム）',
     cmd_task_center: 'グローバルタスクセンター（未処理/処理済/CC等）',
@@ -198,7 +198,7 @@ module.exports = {
       '  openyida login\n' +
       '  openyida logout\n' +
       '  openyida create-app "勤怠管理"\n' +
-      '  openyida create-app "勤怠管理" "従業員勤怠システム" "xian-daka" "#00B853" "deepBlue" "dark" "slide"\n' +
+      '  openyida create-app "勤怠管理" "従業員勤怠システム" "daka" "#00B853" "deepBlue" "dark" "slide"\n' +
       '  openyida create-page APP_XXX "ゲームホーム"\n' +
       '  openyida create-form create APP_XXX "従業員情報" .cache/openyida/forms/employee-fields.json\n' +
       `  openyida create-form update APP_XXX FORM-XXX '[{"action":"add","field":{"type":"TextField","label":"備考"}}]'\n` +
@@ -592,9 +592,9 @@ module.exports = {
     available_icons: '\n利用可能なアイコン:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
-      '  huoche, xian-shenbao, xian-diqiu, xian-qiche, xian-feiji,\n' +
+      '  huoche, shenbao, xian-diqiu, xian-qiche, xian-feiji,\n' +
       '  xian-diannao, xian-gongzuozheng, xian-gouwuche, xian-xinyongka,\n' +
-      '  xian-huodong, xian-jiangbei, xian-liucheng, xian-chaxun, xian-daka',
+      '  xian-huodong, xian-jiangbei, xian-liucheng, chaxun, daka',
     available_colors: '\n利用可能な色:',
     colors_list: '  #0089FF #00B853 #FFA200 #FF7357 #5C72FF\n  #85C700 #FFC505 #FF6B7A #8F66FF #14A9FF',
     app_name: '  アプリ名:   {0}',

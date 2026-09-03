@@ -25,19 +25,19 @@ describe('retired updateFormConfig endpoint', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('is absent from API and form-detail guidance', () => {
+  test('is absent from API guidance and the retired injection guide is removed', () => {
     const apiReference = fs.readFileSync(path.join(ROOT, 'yida-skills', 'references', 'yida-api.md'), 'utf8');
-    const injectionGuide = fs.readFileSync(path.join(
+    const injectionGuidePath = path.join(
       ROOT,
       'yida-skills',
       'skills',
       'yida-form-detail',
       'references',
       'injection-guide.md'
-    ), 'utf8');
+    );
 
     expect(apiReference).not.toContain(RETIRED_ENDPOINT);
-    expect(injectionGuide).not.toContain(RETIRED_ENDPOINT);
+    expect(fs.existsSync(injectionGuidePath)).toBe(false);
   });
 
   test('keeps the independent form schema info configuration command', () => {

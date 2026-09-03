@@ -97,12 +97,12 @@ function YidaComp(props) {
     >
       <style>{`
         .rechart-page {
-          min-height: 100%;
+          min-height: 100vh;
           box-sizing: border-box;
           padding: 28px;
           background:
             radial-gradient(circle at 92% 4%, rgba(37, 99, 235, .12), transparent 30%),
-            ${THEME.canvas};
+            var(--pod-page-bg-color, ${THEME.canvas});
           color: ${THEME.ink};
         }
         .rechart-shell { max-width: 1240px; margin: 0 auto; }
@@ -157,7 +157,7 @@ function YidaComp(props) {
         }
       `}</style>
 
-      <div className="rechart-page" data-theme-scope="page">
+      <div className="rechart-page">
         <div className="rechart-shell">
           <div className="rechart-header">
             <div>

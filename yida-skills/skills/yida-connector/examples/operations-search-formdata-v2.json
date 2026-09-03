@@ -23,7 +23,7 @@
         "required": false
       },
       {
-        "defaultValue": "{\n  \"appType\" : \"APP_PBKT0MFBEBTDO8T7SLVP\",\n  \"systemToken\" : \"hexxx\",\n  \"userId\" : \"173112212211\",\n  \"formUuid\" : \"FORM-EF6Y4G8WO2FN0SUB43TDQ3CGC3FMFQ1G9400RCJ3\",\n  \"searchFieldJson\" : \"{\\\"textField_jcr0069m\\\":\\\"danhang\\\"}\",\n  \"currentPage\" : 1,\n  \"pageSize\" : 10,\n  \"createFromGMT\" : \"2018-01-01\",\n  \"createToGMT\" : \"2018-02-01\",\n  \"updateFromGMT\" : \"2018-01-01\",\n  \"updateToGMT\" : \"2018-02-01\",\n  \"dynamicOrder\" : \"{\\\"numberField_1ac\\\":\\\"+\\\"}\"\n}",
+        "defaultValue": "{\n  \"appType\" : \"APP_PBKT0MFBEBTDO8T7SLVP\",\n  \"systemToken\" : \"hexxx\",\n  \"userId\" : \"173112212211\",\n  \"formUuid\" : \"FORM-EF6Y4G8WO2FN0SUB43TDQ3CGC3FMFQ1G9400RCJ3\",\n  \"searchFieldJson\" : \"{\\\"textField_jcr0069m\\\":\\\"danhang\\\"}\",\n  \"currentPage\" : 1,\n  \"pageSize\" : 50,\n  \"createFromGMT\" : \"2018-01-01\",\n  \"createToGMT\" : \"2018-02-01\",\n  \"updateFromGMT\" : \"2018-01-01\",\n  \"updateToGMT\" : \"2018-02-01\",\n  \"dynamicOrder\" : \"{\\\"numberField_1ac\\\":\\\"+\\\"}\"\n}",
         "desc": "请求体",
         "name": "Body",
         "paramType": "Object",
@@ -97,7 +97,7 @@
             "_key": "searchFormDatasV2%pageSize",
             "name": "pageSize",
             "paramType": "Number",
-            "desc": "每页条数",
+            "desc": "每页条数，默认填 50，最大 100",
             "children": [],
             "childList": [],
             "__level": 0,
@@ -164,7 +164,7 @@
         }
       ],
       "body": {
-        "default": "{\n  \"appType\" : \"APP_PBKT0MFBEBTDO8T7SLVP\",\n  \"systemToken\" : \"hexxx\",\n  \"userId\" : \"173112212211\",\n  \"formUuid\" : \"FORM-EF6Y4G8WO2FN0SUB43TDQ3CGC3FMFQ1G9400RCJ3\",\n  \"searchFieldJson\" : \"{\\\"textField_jcr0069m\\\":\\\"danhang\\\"}\",\n  \"currentPage\" : 1,\n  \"pageSize\" : 10,\n  \"createFromGMT\" : \"2018-01-01\",\n  \"createToGMT\" : \"2018-02-01\",\n  \"updateFromGMT\" : \"2018-01-01\",\n  \"updateToGMT\" : \"2018-02-01\",\n  \"dynamicOrder\" : \"{\\\"numberField_1ac\\\":\\\"+\\\"}\"\n}"
+        "default": "{\n  \"appType\" : \"APP_PBKT0MFBEBTDO8T7SLVP\",\n  \"systemToken\" : \"hexxx\",\n  \"userId\" : \"173112212211\",\n  \"formUuid\" : \"FORM-EF6Y4G8WO2FN0SUB43TDQ3CGC3FMFQ1G9400RCJ3\",\n  \"searchFieldJson\" : \"{\\\"textField_jcr0069m\\\":\\\"danhang\\\"}\",\n  \"currentPage\" : 1,\n  \"pageSize\" : 50,\n  \"createFromGMT\" : \"2018-01-01\",\n  \"createToGMT\" : \"2018-02-01\",\n  \"updateFromGMT\" : \"2018-01-01\",\n  \"updateToGMT\" : \"2018-02-01\",\n  \"dynamicOrder\" : \"{\\\"numberField_1ac\\\":\\\"+\\\"}\"\n}"
       }
     },
     "responses": {

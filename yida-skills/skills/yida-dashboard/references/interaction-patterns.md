@@ -418,7 +418,7 @@ export function searchUsers(keyword) {
     })
   });
 
-  self.utils.yida.searchUserList({ keyword: keyword, pageSize: 20 })
+  self.utils.yida.searchUserList({ keyword: keyword, pageSize: 50 })
     .then(function(res) {
       var users = normalizeUserList(extractUserList(res));
       self.setCustomState({

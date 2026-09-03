@@ -122,7 +122,7 @@ function YidaComp(props) {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ appType: props.appType, formUuid: props.formUuid, pageSize: 20 }),
+      body: JSON.stringify({ appType: props.appType, formUuid: props.formUuid, pageSize: 50 }),
       signal: controller.signal,
     })
       .then(function (r) { if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.json(); })

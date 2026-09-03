@@ -43,7 +43,7 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 ## 命令
 
 ```bash
-openyida create-app <appName> [description] [icon] [iconColor] [colour] [navTheme] [layoutDirection]
+openyida create-app --name <appName> [--desc <description>] [--theme-file <app-theme.css> --nav-theme <light|dark|white|gray> --logo-source appIcon --layout <side|top|l_shape>]
 ```
 
 `openyida create-app` 不支持 `--json` 参数；不要添加 `--json`。创建成功时命令本身会输出一行 JSON，从该输出中提取 `appType`。
@@ -52,15 +52,16 @@ openyida create-app <appName> [description] [icon] [iconColor] [colour] [navThem
 |------|------|--------|------|
 | `appName` | 是 | — | 应用名称 |
 | `description` | 否 | 同 appName | 应用描述 |
-| `icon` | 否 | `xian-yingyong` | 图标标识（见下方图标表） |
-| `iconColor` | 否 | `#0089FF` | 图标背景色 |
-| `colour` | 否 | 平台默认 | 平台壳层应用主题 key；只在 PRD 的 `shouldPassCreateAppTheme=true` 且 `themePresetKey` 命中平台预置 key 时传。自定义品牌色不要传 `colour/theme`，改由页面或全局 `style#yida-global-theme` / `customThemeStyle.tokens` 注入 |
-| `navTheme` | 否 | 不传 | 导航风格：仅用户明确要求时传 `dark`（深色）/ `light`（浅色） |
-| `layoutDirection` | 否 | 不传 | 导航布局：仅用户明确要求时传 `slide`（侧边栏）/ `ver`（L 型顶导） |
+| `icon` | 否 | 见下文 | 显式指定优先；否则优先使用命中的行业图标，仅未命中行业时从平台系统图标中随机选择 |
+| `iconColor` | 否 | 见下文 | 传主题文件时统一跟随 `--color-brand1-6` 的 HEX 值；未传主题文件时保留兼容默认值 |
+| `themeFile` | 否，推荐 | — | 基于 `yida-design/references/theme/app-custom-theme-template.css` 生成的 CSS；必须完整声明平台实际生成的 `--color-brand1-1/2/3/5/6/9/10`，不要补造 `4/7/8`；其中 `--color-brand1-6` 必须为字面量，CLI 自动以它保存 `themeColor` |
+| `navTheme` | 否 | `themeFile` 场景默认 `light` | 导航风格：`light` / `dark` / `white` / `gray` |
+| `logoSource` | 否 | `themeFile` 场景默认 `appIcon` | 新建应用只支持应用图标；`customImage` 需要已有 `homepageLogo`，只在已有应用更新时使用 |
+| `layoutDirection` | 否 | `l_shape` | 新建应用默认使用 L 型导航；可显式改为 `side`（侧边）/ `top`（顶部）/ `l_shape`（L 型） |
 
 ## 创建应用壳层兜底
 
-如果用户只说“创建一个律所/茶叶官网/数据大屏应用”，不要直接使用通用默认壳。先由 `yida-design` 根据行业、品牌、业务情绪和视觉目标做创意色彩判断，再决定是否适合平台预置主题 key；禁止把行业词直接映射成固定颜色，例如“科技=蓝、宠物=橙、法律=蓝”。完整应用主题 key 只查 `yida-design/references/theme/theme-token-presets.md`。只有 PRD 明确 `themePresetKey` 命中平台预置 key 时，才把该 key 作为 `colour/theme` 传给创建命令；否则不传主题，由页面或全局 token 注入落地。
+如果用户只说“创建一个律所/茶叶官网/数据大屏应用”，先由 `yida-design` 根据行业、品牌、业务情绪和视觉目标设计任意合适的品牌色，禁止把行业词直接映射成固定颜色。把完整色盘写入应用主题 CSS；创建命令负责创建应用后立即上传该文件，并联合保存导航主题、Logo 来源和导航布局。
 
 | 场景语义 | CLI 壳层 fallback 主题（非设计结论） | create-app 壳层 fallback | 创建后的首屏页面 |
 |------|------|------|------|
@@ -70,13 +71,21 @@ openyida create-app <appName> [description] [icon] [iconColor] [colour] [navThem
 | 咨询、审计、会计、投顾、企业服务 | `podBlue` | `xian-qiye #5C72FF podBlue` | `official-homepage` 或工作台，按用户目标选择 |
 | 普通内部管理、CRM、OA、项目管理 | `podBlue`，业务强调增长/活力时可选 `podOrange` | 可使用默认或用户指定参数 | `product-homepage --scene workbench` |
 
-CLI 已内置上述行业推断作为创建壳层的兜底能力，不代表 `yida-design` 的主题结论。当用户没有显式传 `icon/iconColor/colour` 时，CLI 会根据应用名和描述自动补齐；`navTheme/layoutDirection` 默认不传，只有用户明确要求时才传。显式参数始终优先。
+CLI 内部的 `colour` 仅用于 `registerApp` 创建阶段兼容，不作为新版主题设计结果。完整应用、带 PRD/design.md 的应用和用户要求新版主题时，默认推荐传主题文件；只有用户明确只要兼容空壳、暂不配置主题或需要保留旧创建方式时才省略。省略 `--theme-file` 不报错，也不会上传或伪造主题配置。
+
+CLI 始终按“显式 `--icon` → 行业推断 → 随机系统图标”的顺序选择图标，只有未显式指定且未命中行业时才随机，与是否传主题文件无关。所有新建应用未显式传 `--layout` 时默认使用 `layoutDirection=l_shape`。传入主题文件时，CLI 还会在创建前校验 CSS，并将图标颜色统一为 `--color-brand1-6` 转换后的 HEX；未显式指定主题导航配置时使用 `navTheme=light`、`logoSource=appIcon`。
 
 **应用主题（colour）口径**：
 
 默认不要把黑色、深灰或灰黑中性色作为普通应用主题色。创建业务系统、工作台、门户、数据管理类应用时，先根据行业、品牌、业务情绪和视觉目标做创意色彩判断；`podBlue`、`podGreen`、`podOrange` 只是常用浅底候选，不是固定默认，也不是行业刻板答案。`black` 仅在用户明确要求暗色模式、高对比、奢侈品牌或极简黑色视觉时使用，`greyBlue` 也只在工业制造、技术工程等稳重场景下作为 fallback。
 
-这里的 `colour` / `--theme` 只能选平台预置 key；不能填 AI 自己设计的任意主题名或色值。`blue`、`green`、`orange` 作为应用主题 token profile 保留原名；新应用如果采用自定义色盘，创建应用时不要显式传 `theme/colour`，页面实现必须注入 `style#yida-global-theme` 或等价 scoped CSS vars。
+主题颜色不受平台预置 key 限制。读取 `yida-design/references/theme/app-custom-theme-template.css` 生成主题文件，将任意设计主色写入 `--color-brand1-6`，再执行：
+
+```bash
+openyida create-app --name "<应用名>" --desc "<描述>" --theme-file <app-theme.css> --nav-theme light --logo-source appIcon --layout l_shape
+```
+
+CLI 会先校验主题文件完整声明平台实际生成的 `--color-brand1-1/2/3/5/6/9/10`，并允许不存在 `--color-brand1-4/7/8`。创建成功后在同一流程中上传 CSS，并联合保存从 `--color-brand1-6` 提取的 `themeColor`、`customThemeStyle`、`navTheme`、`logoSource` 和 `layoutDirection`。创建或更新主题时，系统应用图标会同步保存为 `iconName%%主题色HEX`；外链或上传图片图标保持原值。运行容器会在自定义页面、表单、提交页和 formDetail 中加载同一应用主题文件。
 
 完整应用主题 key、颜色倾向和 token 变量统一维护在 `yida-design/references/theme/theme-token-presets.md`，本技能不重复维护完整清单。
 
@@ -100,10 +109,10 @@ CLI 已内置上述行业推断作为创建壳层的兜底能力，不代表 `yi
 | 经理 | `xian-jingli` | | 活动 | `xian-huodong` |
 | 法律 | `xian-falv` | | 奖杯 | `xian-jiangbei` |
 | 报告 | `xian-baogao` | | 流程 | `xian-liucheng` |
-| 火车 | `huoche` | | 查询 | `xian-chaxun` |
-| 申报 | `xian-shenbao` | | 打卡 | `xian-daka` |
+| 火车 | `huoche` | | 查询 | `chaxun` |
+| 申报 | `shenbao` | | 打卡 | `daka` |
 
-**图标背景色**：`#0089FF` `#00B853` `#FFA200` `#FF7357` `#5C72FF` `#85C700` `#FFC505` `#FF6B7A` `#8F66FF` `#14A9FF`
+**图标背景色**：新版主题固定跟随 CSS 的 `--color-brand1-6`；下面这些颜色仅用于未传主题文件的兼容创建：`#0089FF` `#00B853` `#FFA200` `#FF7357` `#5C72FF` `#85C700` `#FFC505` `#FF6B7A` `#8F66FF` `#14A9FF`
 
 ## 创建后交付约定
 

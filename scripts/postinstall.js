@@ -25,6 +25,7 @@
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const { spawnSync } = require('child_process');
 const {
   detectActiveTool,
   resolveProjectRoot,
@@ -115,6 +116,29 @@ function installSkillsToDest(destPath) {
 }
 
 /**
+ * 将仍位于 skills/ 下的历史备份移出宿主扫描目录。
+ * 这些目录会被 Codex/Qoder 当成独立技能再次加载，不能只保留新版主目录。
+ */
+function archiveStaleSkillBackups(toolConfigDir) {
+  const skillsRoot = path.join(toolConfigDir, 'skills');
+  if (!fs.existsSync(skillsRoot)) {return;}
+
+  const toolName = path.basename(toolConfigDir).replace(/^\./, '') || 'unknown';
+  const archiveRoot = path.join(HOME_DIR, '.openyida', 'skill-backups', toolName);
+  fs.readdirSync(skillsRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && /^yida-skills\.backup-/.test(entry.name))
+    .forEach((entry) => {
+      const sourcePath = path.join(skillsRoot, entry.name);
+      fs.mkdirSync(archiveRoot, { recursive: true });
+      let archivePath = path.join(archiveRoot, entry.name);
+      if (fs.existsSync(archivePath)) {
+        archivePath += '-' + Date.now();
+      }
+      fs.renameSync(sourcePath, archivePath);
+    });
+}
+
+/**
  * 将 yida-skills 安装到 AI 工具的 skills 目录。
  * 正确路径：~/<tool-config>/skills/yida-skills/
  *
@@ -123,6 +147,9 @@ function installSkillsToDest(destPath) {
 function installSkillsToTool(toolConfigDir) {
   // 清理旧版遗留在根目录的错误安装（缺少 skills/ 中间层级）
   cleanupLegacy(path.join(toolConfigDir, 'yida-skills'));
+
+  // 历史备份不能继续留在 skills/ 下，否则宿主会把旧规则当成另一套可用技能。
+  archiveStaleSkillBackups(toolConfigDir);
 
   // 安装到正确路径：~/<tool-config>/skills/yida-skills/
   installSkillsToDest(path.join(toolConfigDir, 'skills', 'yida-skills'));
@@ -260,7 +287,7 @@ openyida copy
 
 统一编排只做：解析资源上下文 → \`yida-design\` 输出 \`prd.md\` 和 \`design.md\` → 创建/复用应用 → 核心表单/流程 → 主页面 → 编写主页面源码 → 发布 + 轻量导航排序 → 返回 2-3 句业务交付总结和一个主入口链接。资源创建顺序按 PRD 执行：应用先落位，表单/流程先于自定义页面。发布主页面成功后，PRD 写明导航顺序时执行 \`openyida nav-group order <appType> <页面/表单...>\`；PRD 只写宽泛分组或缺少导航顺序时，执行 \`openyida publish ... --auto-nav-order\` 或 \`openyida nav-group auto-order <appType>\` 兜底，兜底顺序为门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
 
-表单页开发默认加载 \`yida-form-detail\` 做表单视觉引导，并把 Divider 分割线语义分组合并进字段 JSON；拿到真实 formUuid 后默认注入 formDetail CSS。
+表单页开发默认加载 \`yida-form-detail\` 做表单视觉引导，并把 Divider 分割线语义分组合并进字段 JSON。运行容器在自定义页面、表单、提交页、详情页和 \`FormOpenContainer\` iframe 中加载同一应用级自定义主题 CSS，确保主题变量一致。
 
 完整应用页面源码默认不得使用 \`this.dataSourceMap.*\`，除非本轮已经明确创建并绑定设计器数据源；默认使用入口型页面或 \`this.utils.yida.*\` 查询已创建表单。
 
@@ -362,6 +389,32 @@ function ensureCodexConfig(codexDir, marketplaceRoot) {
 }
 
 /**
+ * 已打开的 Codex 会话可能仍引用旧版本缓存路径。同步其中的技能正文，
+ * 但保留每个缓存目录自己的 manifest/version，避免当前会话继续执行旧规则。
+ */
+function syncExistingCodexPluginSkillCaches(codexDir, pluginRoot) {
+  const cacheRoot = path.join(
+    codexDir,
+    'plugins',
+    'cache',
+    CODEX_MARKETPLACE_NAME,
+    CODEX_PLUGIN_NAME,
+  );
+  if (!fs.existsSync(cacheRoot)) {return;}
+
+  fs.readdirSync(cacheRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .forEach((entry) => {
+      const cachedPluginRoot = path.join(cacheRoot, entry.name);
+      ['skills', 'references'].forEach((folderName) => {
+        const cachedFolder = path.join(cachedPluginRoot, folderName);
+        cleanupLegacy(cachedFolder);
+        copyDirRecursive(path.join(pluginRoot, folderName), cachedFolder);
+      });
+    });
+}
+
+/**
  * 将 OpenYida 导入为 Codex 本地插件。
  */
 function installCodexPlugin() {
@@ -402,8 +455,27 @@ function installCodexPlugin() {
 
   writeCodexMarketplace(marketplaceRoot);
   ensureCodexConfig(codexDir, marketplaceRoot);
+  syncExistingCodexPluginSkillCaches(codexDir, pluginRoot);
 
   return true;
+}
+
+/**
+ * 本地 marketplace 内容更新后，让 Codex 将当前版本重新安装到实际插件缓存。
+ * Codex 不在 PATH、当前版本不支持 plugin 命令或宿主正忙时静默降级，主 skills 安装仍然有效。
+ */
+function refreshCodexPluginInstall() {
+  const codexBin = process.env.OPENYIDA_CODEX_BIN || (process.platform === 'win32' ? 'codex.exe' : 'codex');
+  const result = spawnSync(
+    codexBin,
+    ['plugin', 'add', CODEX_PLUGIN_NAME + '@' + CODEX_MARKETPLACE_NAME, '--json'],
+    {
+      encoding: 'utf8',
+      stdio: 'ignore',
+      timeout: 30000,
+    },
+  );
+  return !result.error && result.status === 0;
 }
 
 // ── 1. Skills 安装 ───────────────────────────────────────────────────
@@ -421,6 +493,9 @@ safeExec(() => {
   if (fs.existsSync(path.join(HOME_DIR, '.codex'))) {
     installSkillsToTool(path.join(HOME_DIR, '.codex'));
     codexPluginInstalled = installCodexPlugin();
+    if (codexPluginInstalled) {
+      refreshCodexPluginInstall();
+    }
   }
 });
 

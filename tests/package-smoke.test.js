@@ -81,6 +81,8 @@ describe('npm package smoke', () => {
       expect(files.some((file) => file.startsWith('lib/templates/'))).toBe(false);
       expect(files).toContain('lib/samples/yida-rechart/trend-combo.canvas.jsx');
       expect(files).toContain('lib/samples/yida-canvas-table-form/table-form-batch-submit.canvas.jsx');
+      expect(files).toContain('lib/samples/openyida-scaffold/form-fields.json');
+      expect(files).toContain('lib/samples/openyida-scaffold/canvas-form-drawer.canvas.jsx');
 
       expect(files.some((file) => file.startsWith('locales-extra/'))).toBe(false);
       expect(files.some((file) => /^lib\/core\/locales\/(?!zh|en)[^/]+\.js$/.test(file))).toBe(false);

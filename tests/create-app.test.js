@@ -1,6 +1,14 @@
 'use strict';
 
-const { parseCreateAppArgs, inferAppDefaults, buildCreateAppPayload } = require('../lib/app/create-app');
+const {
+  APP_ICON_NAMES,
+  DEFAULT_CREATE_LAYOUT_DIRECTION,
+  parseCreateAppArgs,
+  inferAppDefaults,
+  selectRandomAppIcon,
+  applyThemeFileCreateDefaults,
+  buildCreateAppPayload,
+} = require('../lib/app/create-app');
 
 const AGENT_ENV_KEYS = [
   'CLAUDE_CODE',
@@ -64,7 +72,7 @@ describe('create-app argument parsing', () => {
       iconColor: '#00B853',
       colour: 'deepBlue',
       navTheme: 'light',
-      layoutDirection: 'ver',
+      layoutDirection: 'side',
     });
   });
 
@@ -74,16 +82,16 @@ describe('create-app argument parsing', () => {
       '--desc', 'E-commerce operations management dashboard demo',
       '--theme', 'deepBlue',
       '--locale', 'ja_JP',
-    ]);
+    ], () => 0.5);
 
     expect(parsed).toMatchObject({
       appName: '电商经营管理看板',
       description: 'E-commerce operations management dashboard demo',
       colour: 'deepBlue',
-      icon: 'xian-yingyong',
+      icon: APP_ICON_NAMES[12],
       iconColor: '#0089FF',
       navTheme: null,
-      layoutDirection: null,
+      layoutDirection: 'l_shape',
       locale: 'ja_JP',
     });
   });
@@ -92,6 +100,7 @@ describe('create-app argument parsing', () => {
     expect(parseCreateAppArgs(['--name', '普通应用'])).toMatchObject({
       appName: '普通应用',
       colour: 'podBlue',
+      layoutDirection: DEFAULT_CREATE_LAYOUT_DIRECTION,
     });
   });
 
@@ -107,7 +116,7 @@ describe('create-app argument parsing', () => {
       iconColor: '#5C72FF',
       colour: 'podBlue',
       navTheme: null,
-      layoutDirection: null,
+      layoutDirection: 'l_shape',
       industry: 'legal',
     });
   });
@@ -136,13 +145,18 @@ describe('create-app argument parsing', () => {
       iconColor: '#8F66FF',
       colour: 'black',
       navTheme: 'dark',
-      layoutDirection: 'ver',
+      layoutDirection: 'side',
       industry: 'command-screen',
     });
   });
 
   test('rejects unknown flags instead of treating them as the app name', () => {
     expect(() => parseCreateAppArgs(['--unknown'])).toThrow('Unknown option: --unknown');
+  });
+
+  test('does not expose the modern-theme creation marker as a CLI option', () => {
+    expect(() => parseCreateAppArgs(['--name', 'CRM', '--create-with-modern-theme', 'n']))
+      .toThrow('Unknown option: --create-with-modern-theme');
   });
 
   test('rejects unsupported locales', () => {
@@ -152,6 +166,100 @@ describe('create-app argument parsing', () => {
   test('rejects custom theme names because --theme only accepts platform presets', () => {
     expect(() => parseCreateAppArgs(['--name', 'CRM', '--theme', 'vibrantOrange']))
       .toThrow('Unsupported theme: vibrantOrange');
+  });
+
+  test('configures custom theme, nav, logo source, and modern layout as one creation flow', () => {
+    expect(parseCreateAppArgs([
+      '--name', 'CRM',
+      '--theme-file', './app-theme.css',
+      '--nav-theme', 'gray',
+      '--logo-source', 'appIcon',
+      '--layout', 'l_shape',
+    ])).toMatchObject({
+      themeFile: './app-theme.css',
+      navTheme: 'gray',
+      logoSource: 'appIcon',
+      layoutDirection: 'l_shape',
+    });
+  });
+
+  test('uses aligned navigation defaults when a custom theme file is provided', () => {
+    expect(parseCreateAppArgs(['--name', 'CRM', '--theme-file', './app-theme.css']))
+      .toMatchObject({
+        navTheme: 'light',
+        logoSource: 'appIcon',
+        layoutDirection: 'l_shape',
+      });
+    expect(() => parseCreateAppArgs(['--name', 'CRM', '--logo-source', 'appIcon']))
+      .toThrow('--logo-source must be used with --theme-file');
+    expect(() => parseCreateAppArgs([
+      '--name', 'CRM',
+      '--theme-file', './app-theme.css',
+      '--logo-source', 'customImage',
+    ])).toThrow('new app has no homepageLogo image yet');
+  });
+
+  test('keeps custom theme files optional for backward-compatible app creation', () => {
+    expect(parseCreateAppArgs(['--name', 'CRM'], () => 0.5)).toMatchObject({
+      appName: 'CRM',
+      themeFile: null,
+      icon: APP_ICON_NAMES[12],
+      iconColor: '#0089FF',
+      navTheme: null,
+      logoSource: null,
+      layoutDirection: 'l_shape',
+    });
+  });
+
+  test('selects only icons supported by yida-next', () => {
+    expect(APP_ICON_NAMES).toHaveLength(24);
+    expect(selectRandomAppIcon(() => 0)).toBe('xian-xinwen');
+    expect(selectRandomAppIcon(() => 0.999999)).toBe('daka');
+    expect(APP_ICON_NAMES).toEqual(expect.arrayContaining(['huoche', 'chaxun', 'shenbao', 'daka']));
+    expect(APP_ICON_NAMES).not.toEqual(expect.arrayContaining(['xian-chaxun', 'xian-shenbao', 'xian-daka']));
+  });
+
+  test('uses a random system icon and the custom theme brand color for modern app creation', () => {
+    const params = parseCreateAppArgs(
+      ['--name', 'CRM', '--theme-file', './app-theme.css'],
+      () => 0.5
+    );
+    expect(applyThemeFileCreateDefaults(params, { themeColor: 'rgb(22, 119, 255)' }))
+      .toMatchObject({
+        icon: APP_ICON_NAMES[12],
+        iconColor: '#1677FF',
+        navTheme: 'light',
+        logoSource: 'appIcon',
+        layoutDirection: 'l_shape',
+      });
+  });
+
+  test('keeps an inferred industry icon and only syncs its color to --color-brand1-6', () => {
+    const params = parseCreateAppArgs([
+      '--name', '恒信律师事务所',
+      '--desc', '面向企业客户的法律服务官网',
+      '--theme-file', './app-theme.css',
+    ]);
+    expect(applyThemeFileCreateDefaults(params, { themeColor: '#B421FD' }))
+      .toMatchObject({
+        industry: 'legal',
+        icon: 'xian-falv',
+        iconColor: '#B421FD',
+      });
+  });
+
+  test('keeps an explicit icon name but still syncs its color to --color-brand1-6', () => {
+    const params = parseCreateAppArgs([
+      '--name', 'CRM',
+      '--theme-file', './app-theme.css',
+      '--icon', 'xian-qiye',
+      '--icon-color', '#FF0000',
+    ]);
+    expect(applyThemeFileCreateDefaults(params, { themeColor: '#8f66ff' }))
+      .toMatchObject({
+        icon: 'xian-qiye',
+        iconColor: '#8F66FF',
+      });
   });
 
   test('builds registerApp payload with normal app group', () => {
@@ -174,7 +282,7 @@ describe('create-app argument parsing', () => {
       builderAiSource: 'local',
     });
     expect(payload).not.toHaveProperty('navTheme');
-    expect(payload).not.toHaveProperty('layoutDirection');
+    expect(payload).toHaveProperty('layoutDirection', DEFAULT_CREATE_LAYOUT_DIRECTION);
     expect(JSON.parse(payload.appName)).toMatchObject({ zh_CN: '普通宜搭应用' });
   });
 
@@ -213,7 +321,7 @@ describe('create-app argument parsing', () => {
     });
   });
 
-  test('includes nav theme and layout direction only when explicitly provided', () => {
+  test('keeps an explicitly provided navigation layout instead of the L-shaped default', () => {
     const params = parseCreateAppArgs(['--name', '普通宜搭应用', '--nav-theme', 'light', '--layout', 'ver']);
     const payload = buildCreateAppPayload(
       params,
@@ -225,7 +333,7 @@ describe('create-app argument parsing', () => {
 
     expect(payload).toMatchObject({
       navTheme: 'light',
-      layoutDirection: 'ver',
+      layoutDirection: 'side',
     });
   });
 });

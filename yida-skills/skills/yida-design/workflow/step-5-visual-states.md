@@ -28,7 +28,7 @@
 - styleReason：<为什么适合当前应用和页面组合>
 - Visual DNA：<所有页面都必须保留的 2-5 个视觉 DNA>
 - sceneRecipes：<workbench/list/detail/dashboard/landing/screen 各自如何遵守同一 design.md>
-- themeRelation：<应用主题色 / 自定义 token / 页面级独立色盘边界>
+- themeRelation：<继承当前应用主题 / 平台预置主题 / 应用自定义主题文件>
 ```
 
 ## 2. 写 UI 视觉规则
