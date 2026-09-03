@@ -1113,7 +1113,7 @@ async function main() {
   delete-action <connector-id> <operation-id>  删除执行动作
   test --connector-id <id> --action <actionId> [结构化 JSON 参数] 测试执行动作
   list-connections <connector-id>              列出鉴权账号
-  create-connection <connector-id> <name>      创建鉴权账号
+  create-connection <connector-id> <name> [--interactive] 创建鉴权账号；钉钉凭据可在本机隐藏输入
   smart-create --curl "curl命令"               生成脱敏连接器动作草稿（不创建远端资源）
   parse-api [选项]                             解析接口信息
   gen-template [输出路径]                       生成接口文档模板

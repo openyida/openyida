@@ -30,6 +30,12 @@
     "note": "已有连接器+从代码生成 action → safe-actions"
   },
   {
+    "id": "dingtalk-openapi-service",
+    "prompt": "把钉钉日程官方 OpenAPI 做成宜搭连接器，并让自定义页面调用",
+    "expectedSkill": "yida-dingtalk-openapi",
+    "note": "钉钉官方服务端 API → 专用契约与安全鉴权编排"
+  },
+  {
     "id": "create-process",
     "prompt": "帮我创建一个带审批流程的请假申请",
     "expectedSkill": "yida-create-process",

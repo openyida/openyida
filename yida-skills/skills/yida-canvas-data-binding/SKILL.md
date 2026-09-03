@@ -9,7 +9,7 @@ description: 自定义页面真实数据接入技能。用于在使用 `YidaCode
 
 本技能只处理使用 `YidaCodeCanvas` 组件实现的页面里的真实数据接入：把页面所需数据先声明成 `dataBinding` 契约，再由页面生成器或业务组件生成统一的 `DataBridge`。读取宜搭表单数据时，默认消费外层普通自定义页面在 `didMount` 中注册到 `window.__OPENYIDA_YIDA_API__` 的 yida JS-API 桥；根级工具消费同层注册的 `window.__OPENYIDA_UTILS__`，其中 `.yida` 指向同一个 yida API 桥；连接器代理或自定义同源接口仍按自身 endpoint 读取。
 
-`YidaCodeCanvas` 组件运行时是标准 React 组件环境，组件没有普通宜搭自定义页实例对象。因此数据接入要显式写清来源、字段映射、刷新策略和异常处理，不能靠隐式页面实例补齐。
+`YidaCodeCanvas` 组件运行时是标准 React 组件环境，组件没有普通宜搭自定义页实例对象。因此数据接入要显式写清来源、字段映射、刷新策略和异常处理，不能靠隐式页面实例补齐。连接器模式使用发布层注入的 `window.__OPENYIDA_CONNECTOR_API__`。
 
 ## 运行时事实
 
@@ -44,7 +44,7 @@ description: 自定义页面真实数据接入技能。用于在使用 `YidaCode
 | --- | --- | --- | --- |
 | `seed` | 演示兜底 / 本地预览 | 无 | 只用本地演示数据 |
 | `form` | 读宜搭表单数据 | `appType`、`formUuid`、`fields` | 默认 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；桥不存在时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json` |
-| `connector` | 读平台连接器代理 | `endpoint` | 同源代理端点，鉴权留在平台侧 |
+| `connector` | 读平台连接器代理 | `connectorId`、`operationId`；鉴权连接器另需 `connectionId` | 调用 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)`，鉴权留在平台侧 |
 | `url` | 读同源业务接口 | `endpoint` | 同源 `fetch` |
 | `report` | 读报表或聚合结果 | 报表 schema 参数 | 使用平台聚合结果，不在前端拉全量猜聚合 |
 
@@ -171,7 +171,7 @@ async function fetchFormRows(binding, signal) {
 
 ## 表单数据读取要点
 
-实现前先确认 `dataBinding.mode === 'form'`、`appType/formUuid` 和 `fields` 都来自真实表单 Schema。表单查询必须优先走 yida JS-API 桥，桥缺失时才降级同源直连；连接器代理可以使用自己的 endpoint，但不能把连接器代理写成 `/query/form/searchFormDatas.json`。
+实现前先确认 `dataBinding.mode === 'form'`、`appType/formUuid` 和 `fields` 都来自真实表单 Schema。表单查询必须优先走 yida JS-API 桥，桥缺失时才降级同源直连。连接器模式遵守 [Canvas 连接器绑定](references/connector-binding.md)，不得接收任意外部 endpoint。
 
 ## 生成与验收
 

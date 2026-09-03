@@ -7,7 +7,7 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 
 ## 严格禁止 (NEVER DO)
 
-- 不要在代码中硬编码 API Key、密码等凭证，通过连接器鉴权配置管理
+- 不要要求用户在聊天中发送 API Key、密码、App Key、App Secret；也不要把凭据放进源码、JSON 或命令参数
 - 不要编造 connector-id 或 action-id，必须从命令返回中提取
 - 不要把 `connector delete` 当作真实删除命令；CLI 仅查询目标并展示平台手工删除指引
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成连接器 action/config JSON
@@ -21,13 +21,13 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 
 ## 适用场景
 
-用户需要"接入外部接口"、"调用第三方 API"、"连接钉钉开放平台"、"HTTP 连接器"时使用。
+用户需要"接入外部接口"、"调用第三方 API"、"HTTP 连接器"时使用。钉钉官方 OpenAPI 使用 `yida-dingtalk-openapi`，由它再调用本技能。
 
 ## 触发条件
 
 **正向触发**：
 - "接入外部接口"、"调用第三方 API"
-- "连接钉钉开放平台"、"HTTP 连接器"
+- "HTTP 连接器"
 - "打通自建系统"、"API 集成"
 - "配置鉴权"、"创建连接器"
 
@@ -84,7 +84,7 @@ CLI 不执行连接器删除。用户确需删除时，先确认并解除表单�
 openyida connector list
 
 # 创建连接器
-openyida connector create "<名称>" "<域名>" [--auth "<鉴权方式>" --username/--password/--api-key/--app-key/--app-secret]
+openyida connector create "<名称>" "<域名>" --operations <action-file> [--auth "<鉴权方式>"]
 
 # 获取详情
 openyida connector detail <connector-id>
@@ -124,9 +124,11 @@ openyida connector test --connector-id <id> --action <operationId> \
 ### 鉴权账号管理
 
 ```bash
-openyida connector list-connections <connector-id>
-openyida connector create-connection <connector-id> "<账号名>" [鉴权参数]
+openyida connector list-connections <connector-id> --json
+openyida connector create-connection <connector-id> "<账号名>" --interactive  # 仅 DingAuth / DingTrustGW
 ```
+
+需要密钥的连接器创建完成后，把 `connector create --json` 返回的 `detailUrl` 交给用户，引导用户在宜搭页面自行配置账号；DingAuth / DingTrustGW 也可让用户本人在本机 TTY 运行 `--interactive`。用户只回复“已配置”，Agent 用配置前后的 `list-connections --json` 差异确定账号。不得要求用户回传凭据或账号 ID；多个候选时停止，不猜测。
 
 ### 智能生成动作草稿（推荐）
 
@@ -150,8 +152,8 @@ openyida connector create "测试API" "api.example.com"
 # 基本身份验证
 openyida connector create "内部系统" "internal.company.com" --auth "基本身份验证" --username admin --password 123456
 
-# 钉钉开放平台
-openyida connector create "钉钉API" "api.dingtalk.com" --auth "钉钉开放平台验证" --app-key "xxx" --app-secret "xxx"
+# 钉钉开放平台（凭据后续由用户自行配置）
+openyida connector create "钉钉API" "api.dingtalk.com" --auth "钉钉开放平台验证" --operations ./operations.json --json
 ```
 
 ## 执行动作配置

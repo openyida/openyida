@@ -1931,3 +1931,4 @@ module.exports.connector_e2e = {
   test_contract_unverified: '連接器測試未能證明受控 fixture、標記、歸屬和驗證執行階段契約。',
   action_mutated: '連接器測試改變了持久化動作定義。',
 };
+module.exports.connector_auth = require('../../lib/core/locales/zh').connector_auth;

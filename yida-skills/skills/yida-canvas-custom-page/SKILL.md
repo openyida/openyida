@@ -27,8 +27,8 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 - 页面源码路径按 Bash cwd 选择：从仓库根执行命令时用 `project/pages/src/...`；cwd 已是 `<workspace>/project` 时用 `pages/src/...`。
 - `runtimeCode` 在运行页面真实 `window` 中执行，入口必须返回 `YidaComp` / `YidaComp.default` / 组件函数。
 - 推荐入口写法是 `function YidaComp(props) { ... }`，或 `const App = ...; export default App;`。CLI 已兼容 `const/let/class YidaComp; export default YidaComp`，但生成新代码时优先避开同名默认导出，减少不同运行态装配器下的重复声明风险。
-- `YidaCodeCanvas` 组件使用 React 函数组件上下文；数据读写通过 fetch、开放 API、连接器代理或显式 props 数据桥完成。
-- OpenYida 发布层会在外层普通自定义页面 `didMount` 自动注入 `window.__OPENYIDA_YIDA_API__` 和 `window.__OPENYIDA_UTILS__`。前者同步 `this.utils.yida` 下表单、流程、表单设计 API 和运行态已有函数；后者同步 `this.utils` 根级工具，并让 `.yida` 指向同一个 yida API 桥。
+- `YidaCodeCanvas` 组件使用 React 函数组件上下文；表单数据通过 yida JS-API 桥读写，平台连接器通过连接器桥调用，自定义同源接口才使用 `fetch`。
+- OpenYida 发布层会在外层普通自定义页面 `didMount` 自动注入 `window.__OPENYIDA_YIDA_API__`、`window.__OPENYIDA_UTILS__` 和 `window.__OPENYIDA_CONNECTOR_API__`。前两者暴露表单、流程及根级工具；连接器桥只接受已配置的 `connectorId`、`operationId`、`connectionId` 和业务输入。
 - 第三方前端资源只从可用资源清单中选择；React、antd、Ant Design Icons、ahooks、d3、recharts、Radix、framer-motion、lucide-react 等必须按规则 import，由编译器写入 `importedModules`。源码严禁出现 `const { Drawer } = antd`、`const { Search } = lucideReact`、`window.antd`、`window.icons` 等手写依赖全局。
 - 宜搭运行态组件按“先探测、可用增强、fallback 保底、值统一归一化”接入；以 `window.Deep` / `window.DeepYida` 探测为主，`window.YidaNativeComponents` 作为可用主题。嵌入门户数据管理视图时使用 `DataManageViews`，并显式传入目标表单 `form.value/formUuid`。
 
@@ -39,7 +39,7 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 | 需求 | 推荐做法 |
 | --- | --- |
 | 官网、看板、工作台、列表、详情、门户壳 | 同时读取 `yida-design` 的 PRD 与 design.md；生成器路径再读取派生 `page-spec.json`，按页面场景实现 `.canvas.jsx` |
-| 需要开放 API / 连接器读写数据 | 使用本技能，在 `YidaComp` 内自建 HTTP 数据桥 |
+| 需要开放 API / 连接器读写数据 | 同时加载 `yida-canvas-data-binding`；开放 API 先配置平台连接器，页面只保存资源 ID 并调用连接器桥 |
 | 需要门户 topBanner / quickEntry / 数据卡片 | 使用本技能，按“门户组件桥”接入，必要时 fallback 自绘 |
 | 需要成员、部门、附件上传、图片上传 | 使用本技能，按“宜搭组件桥”接入并归一化值 |
 | 需要字段结构、公式、联动、权限、报表、流程 | 使用对应配置型技能完成配置，自定义页面展示结果并分发页面事件 |
@@ -69,7 +69,7 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 - `DepartmentSelectField`：验证部门搜索、弹层、权限提示、单选/多选后启用。
 - `AttachmentField` / `ImageField`：验证 OSS 签名、上传权限、预览、删除、失败提示后启用。
 
-做法：原生组件处理交互输入；页面业务状态保存归一化后的成员、部门、文件结构；提交通过 fetch / 连接器 / 开放 API 完成。组件验证通过时使用原生组件；组件条件不足时使用页面自绘输入、搜索或链接录入。
+做法：原生组件处理交互输入；页面业务状态保存归一化后的成员、部门、文件结构；提交通过 yida JS-API 桥、连接器桥或自定义同源接口完成。组件验证通过时使用原生组件；组件条件不足时使用页面自绘输入、搜索或链接录入。
 
 > 详细桥接规则、值结构和验收清单见 [native-components-bridge.md](references/native-components-bridge.md)。
 
@@ -85,7 +85,7 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 6. **副作用清理**：`useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
 7. **交互控件必须受控且真正驱动数据**：筛选 `Select`、搜索 `Input`/`Input.Search`、周期切换、`Tabs`/`Segmented`、批量/重置 `Button` 等控件都用 `useState` 建立受控状态，绑定 `onChange`/`onClick`，并让 `Table`/列表/卡片的数据源通过 `useMemo` 按状态派生后渲染。切换筛选后若当前选中项失效，回退选中态（如 `selected < filteredRows.length ? selected : 0`）。
 8. **视觉壳层必须消费 design.md**：工作台、门户、看板、首页、展示页和真实交付页写页面源码前，先从 `design.md` 抽取 `backgroundLayer`、`visualScaffold.rootShell`、`surfaceMap`、`componentRecipe`、`roundedRule`、`densityRule` 和 `breathingRule`。页面背景、组件样式和 `ConfigProvider` 都只写在 `YidaComp` 内，并直接消费当前应用的主题 token。若 `design.md` 声明圆润高密和呼吸感规则，源码必须同步到 antd `borderRadius`、CSS `border-radius`、页面 padding/gap、区块间距、列表行高、状态摘要高度、空态高度和内容安全内距，并保证卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px。
-9. **表单数据读取必须使用 dataBinding 契约和 yida JS-API 桥**：完整应用、工作台、列表、看板、详情等真实交付页只要本轮已经创建或解析业务表单，先写入 `dataBinding.mode="form"`、真实 `appType/formUuid` 和字段 ID，再用本地 `useYidaData(binding)` / `DataBridge` 读取。发布层必须在外层页面 `didMount` 注册 `window.__OPENYIDA_YIDA_API__`，把 `this.utils.yida` 下官方表单、流程、表单设计 API 和运行态已有函数同步暴露给 `YidaCodeCanvas` 组件；同时注册 `window.__OPENYIDA_UTILS__`，把 `this.utils.toast/dialog/router.push/openPage/isMobile` 等根级工具暴露给组件，且 `window.__OPENYIDA_UTILS__.yida` 指向同一个 yida API 桥。表单读取默认调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`，流程能力可通过 `startProcessInstance`、`getProcessInstances`、`getProcessInstanceById` 等方法调用，其他运行态方法可通过 `request`、`searchUserList` 或运行时自动枚举出的同名方法调用。只有桥不可用时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。页面不能使用 `/query/form/searchFormDatas.json`，也不能只写前端 seedRows 后声称已接真实数据。
+9. **表单和连接器必须使用各自的 dataBinding 契约**：完整应用、工作台、列表、看板、详情等真实交付页只要本轮已经创建或解析业务表单，先写入 `dataBinding.mode="form"`、真实 `appType/formUuid` 和字段 ID，再用本地 `useYidaData(binding)` / `DataBridge` 读取。发布层必须在外层页面 `didMount` 注册 `window.__OPENYIDA_YIDA_API__`，把 `this.utils.yida` 下官方表单、流程、表单设计 API 和运行态已有函数同步暴露给 `YidaCodeCanvas` 组件；同时注册 `window.__OPENYIDA_UTILS__`，把 `this.utils.toast/dialog/router.push/openPage/isMobile` 等根级工具暴露给组件，且 `window.__OPENYIDA_UTILS__.yida` 指向同一个 yida API 桥。表单读取默认调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`，流程和成员能力通过 `startProcessInstance`、`getProcessInstances`、`getProcessInstanceById`、`searchUserList` 等方法调用。只有桥不可用时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。连接器绑定必须写入真实 `connectorId/operationId/connectionId`，并调用 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)`；页面不能保存 AK/SK、请求任意外部 URL，也不能使用 `/query/form/searchFormDatas.json` 或只写前端 seedRows 后声称已接真实数据。
 10. **分页查询默认写 50**：表单、流程、任务、成员等分页查询参数一般显式写 `pageSize: 50` 或 `pageSize: '50'`。只有用户明确要求小页或大页时才改成其他值，且不得超过平台上限 100。
 11. **源码保持零未绑定标识符**：每个 import、辅助函数、Ref、状态、局部变量和函数参数都在同一文件声明后使用。非标准运行时能力通过 `window.<name>` 或 `parentWindow.<name>` 获取，调用前检查目标方法。`compileCanvasLocal` 报 `OPENYIDA_CANVAS_UNBOUND_IDENTIFIER` 时，一次修复 `details.issues` 中的全部名称，再重新编译。
 
@@ -104,7 +104,7 @@ function setNavigationTitle(title) {
 
 ### 重要规则（IMPORTANT）
 
-1. **数据桥显式化**：表单数据默认通过外层 yida JS-API 桥读写，连接器和同源业务接口通过显式 endpoint 读写；Cookie、CSRF、密钥和签名留在平台、连接器或后端服务侧。
+1. **数据桥显式化**：表单数据默认通过外层 yida JS-API 桥读写；平台连接器只通过 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)` 调用；自定义同源业务接口才通过显式 endpoint 读写。Cookie、CSRF、密钥和签名留在平台、连接器或后端服务侧。
 2. **组件增强可降级**：门户、成员、部门、上传组件都做 feature detect 和 fallback；组件缺失时页面仍展示自绘基线。
 3. **值先归一化**：成员、部门、文件的原始返回值保留到 `raw` 用于检查，业务 payload 使用统一结构。
 4. **UI 改造保持功能契约**：页面美感提升、页面重构和局部美化只调整颜色、布局、密度、间距、视觉层级、素材和图标表达；已有数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限和业务状态按原有实现保留。
@@ -169,7 +169,7 @@ openyida get-schema <appType> <formUuid> --field-map-json
 | [native-components-bridge.md](references/native-components-bridge.md) | 门户、成员、部门、上传组件桥接和值归一化 | 需要宜搭运行态组件时必读 |
 | [dependencies-and-cdn.md](references/dependencies-and-cdn.md) | 可用前端资源、import 写法、运行时加载方式 | 选择或验证前端资源时必读 |
 | [employeefield-verification.md](references/employeefield-verification.md) | 运行时事实、原生组件验证、EmployeeField 验收 | 验证成员/字段组件时阅读 |
-| [data-bridge-guide.md](references/data-bridge-guide.md) | `YidaCodeCanvas` 组件内自建 HTTP 数据桥 | 接入真实数据时阅读 |
+| [data-bridge-guide.md](references/data-bridge-guide.md) | 表单、平台连接器与自定义同源接口的数据桥 | 接入真实数据时阅读 |
 | [canvas-style-implementation-guide.md](references/canvas-style-implementation-guide.md) | 将 `design.md` 的 App 主题色、antd token、背景层、圆角密度、控件焦点/下拉 reset、图表配色落到 `YidaCodeCanvas` 组件 | 写样式和主题时阅读 |
 | [component-library-guide.md](references/component-library-guide.md) | 组件库推荐组合和页面选型建议 | 选择 UI/图表依赖时阅读 |
 | [canvas-authoring-examples.md](references/canvas-authoring-examples.md) | 最小组件、hooks、副作用、图表示例 | 手写 `.canvas.jsx` 代码时阅读 |
