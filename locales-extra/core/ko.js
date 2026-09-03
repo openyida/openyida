@@ -1232,6 +1232,7 @@ module.exports = {
     lint_searchformdata_http_post: 'searchFormDatas.json을 직접 호출할 때는 GET + 쿼리 파라미터가 필수입니다(formUuid/appType을 URL 쿼리에 넣기). POST로 formUuid를 body에 넣으면 "参数校验失败formUuid" 오류가 발생하고 대시보드/목록이 모두 0으로 표시됩니다',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json의 페이지 파라미터 이름은 currentPage입니다(pageNumber 아님). pageNumber를 쓰면 페이징이 작동하지 않습니다',
     lint_searchformdata_http_unwrap: '브라우저 searchFormDatas.json 응답은 목록이 content.data에 중첩됩니다({ content: { data: [...] } }). json.data만 읽으면 0건이 됩니다. (json.content && json.content.data)로 언랩하세요',
+    lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder에는 레코드 메타데이터 필드 {0}을 사용할 수 없습니다. get-schema가 반환한 실제 비즈니스 필드 ID를 사용하세요. 정렬 가능한 비즈니스 날짜 필드가 없으면 dynamicOrder를 제거하고 가져온 현재 페이지만 표시용으로 row.createTime 기준 정렬하세요',
     lint_setstate_non_timestamp: 'this.setState가 timestamp가 아닌 필드를 씁니다. 사용자 정의 페이지의 비즈니스 상태는 _customState에 두고 forceUpdate()/setCustomState()로 업데이트해야 합니다. this.setState는 timestamp 계약 필드만 담아야 합니다',
     lint_self_binding_missing: 'renderJsx가 var self = this; 선언 없이 this를 사용합니다. renderJsx 상단에 var self = this;를 추가하고 closures/callbacks 안에서는 self를 사용해 this 손실을 피하세요',
     lint_echarts_dom_ready: 'echarts.init이 setTimeout으로 감싸져 있지 않습니다. 컨테이너가 아직 마운트되지 않아 차트가 렌더링되지 않을 수 있습니다. setTimeout(function(){ /* echarts.init */ }, 300)을 사용하세요',

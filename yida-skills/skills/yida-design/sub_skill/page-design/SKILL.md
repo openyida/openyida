@@ -26,7 +26,7 @@ description: 宜搭单页设计子流程。用于已有应用里的单个自定�
 | 步骤 | 复用文件 | 单页执行重点 |
 | --- | --- | --- |
 | 1 | 本文件：读取应用主题与功能契约 | 获取 `currentAppTheme`、`currentPageTheme`、`themeEvidence`、`functionContract` |
-| 2 | [读取共享需求简报](../../workflow/step-1-read-brief.md) | 聚焦当前页面的用户、任务、业务对象和 UI-only 改造目标；没有完整应用简报时使用当前页面上下文 |
+| 2 | [读取整理后的用户需求](../../workflow/step-1-read-brief.md) | 聚焦当前页面的用户、任务、业务对象和 UI-only 改造目标；没有完整应用需求文件时使用当前页面上下文 |
 | 3 | [选择主题色和 token](../../workflow/step-2-theme-system.md) | 基于 Step 1 的应用主题；需要换色时生成或更新应用主题文件 |
 | 5 | [页面结构和交互设计](../../workflow/step-4-wireframe-interaction.md) | 明确布局骨架、主操作、详情抽屉、表单提交入口和 PC/移动端差异 |
 | 6 | [UI 视觉和状态设计](../../workflow/step-5-visual-states.md) | 细化当前页视觉、素材、图标、空态、加载态、错误态和业务化自检 |

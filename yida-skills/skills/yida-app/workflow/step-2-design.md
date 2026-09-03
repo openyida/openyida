@@ -1,33 +1,33 @@
 # Step 2：并行生成 PRD 与视觉设计
 
-完整应用使用一个共享需求简报和两个独立 artifact owner。`yida-app` 是 join owner，不直接代写 PRD 或视觉设计。
+先整理一次用户需求，再同时生成 PRD 和视觉设计。`yida-app` 负责检查两份结果，不直接代写。
 
-## 2.1 共享输入
+## 2.1 整理用户需求
 
-执行 `use_skill("yida-requirement-analysis", "生成完整应用共享需求简报")`，写入：
+执行 `use_skill("yida-requirement-analysis", "整理完整应用的用户需求")`，写入：
 
 - `.cache/openyida/<项目名>/requirement-brief.json`
 
-文件存在、可解析且没有会改变资源范围的未决问题后，需求简报进入 ready。
+文件存在、可解析且没有会改变资源范围的未决问题后，才开始生成 PRD 和视觉设计。
 
-需求简报、PRD 和视觉设计都是应用编排的内部 artifact。artifact start/end 只表达 owner 生命周期和 join 状态，不表示要向最终用户交付文件；不得为这三个文件调用宿主的用户可见 artifact、附件或交付工具。
+`requirement-brief.json`、PRD 和视觉设计都是搭建流程的内部文件，不作为用户交付物；不得为这三个文件调用宿主的用户可见附件或交付工具。
 
-需求简报进入 ready 后即作为本轮 artifact 的冻结输入。后续资源创建产生的 `appType`、`formUuid`、`fieldId` 等真实 ID 只写入 schema 或当前任务资源上下文，不回写简报，也不因此重跑两个 artifact owner；只有用户需求或已确认资源范围发生实质变化时，才重新生成简报和 artifact。
+需求文件校验通过后，在本轮搭建中保持不变。后续资源创建产生的 `appType`、`formUuid`、`fieldId` 等真实 ID 只写入 schema 或当前任务资源上下文，不回写该文件，也不因此重新生成 PRD 和视觉设计；只有用户需求或已确认资源范围发生实质变化时，才重新整理需求并生成两份结果。
 
-## 2.2 并行 artifact
+## 2.2 同时生成 PRD 和视觉设计
 
-共享简报 ready 后，同时启动：
+需求文件校验通过后，同时启动：
 
-| artifact | owner skill | 输出 | end 条件 |
+| 内容 | 负责技能 | 输出 | 完成条件 |
 | --- | --- | --- | --- |
 | Product PRD | `yida-prd` | `prd/<项目名>/prd.md` | 资源蓝图、资源创建顺序、页面实现交付顺序、导航顺序、页面 handoff 和验收标准完整 |
 | Visual Design | `yida-design` | `prd/<项目名>/design.md` | 主题 token、视觉 DNA、布局、材质、圆角、密度、组件、状态、响应式和页面场景引用完整 |
 
-两个 owner 读取同一份需求简报，互不等待、互不写对方产物。一个 artifact 失败时只重跑其 owner，不覆盖已经 ready 的另一个 artifact。
+两个技能读取同一份需求文件，互不等待，也不修改对方的文件。某一份生成失败时只重跑对应技能，不覆盖已经完成的另一份。
 
-## 2.3 join
+## 2.3 校验两份结果
 
-`yida-app` 必须等待两个 artifact 都结束，再执行 join 校验：
+`yida-app` 必须等待两个文件都生成完成，再执行一致性校验：
 
 - 两个文件路径存在且非空；
 - PRD 每个 display 页面的 `designFile` 指向当前 `design.md`；
@@ -35,7 +35,7 @@
 - 页面场景、主题摘要和 `explicitScope` 没有冲突；
 - 冲突时业务范围交给 `yida-prd` 修正，视觉规则交给 `yida-design` 修正，不由 `yida-app` 猜测覆盖。
 
-join 未通过时 Step 2 未完成，不得进入资源创建。join 通过后，`prd.md` 和 `design.md` 是后续页面实现的两份唯一事实源；`page-spec.json` 仅为派生 handoff。
+校验未通过时 Step 2 未完成，不得进入资源创建。校验通过后，后续页面实现以 `prd.md` 和 `design.md` 为准；`page-spec.json` 只用于把要求传给页面实现阶段。
 
 ## 主题文件实现指令
 

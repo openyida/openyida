@@ -1,6 +1,6 @@
 ---
 name: yida-app
-description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做完整搭建或补齐时使用；先解析资源上下文并生成共享需求简报，再并行生成 prd.md 与 design.md，join 通过后按 PRD 创建或复用应用、表单、流程和页面；页面阶段默认复制 Canvas 页面基准模板并按业务改写。
+description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做完整搭建或补齐时使用；先确认已有资源并整理用户需求，再同时生成 prd.md 与 design.md，校验通过后按 PRD 创建或复用应用、表单、流程和页面；页面阶段默认复制 Canvas 页面基准模板并按业务改写。
 ---
 
 # yida-app
@@ -18,7 +18,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | 步骤 | 名称 | 目标 | 产出 |
 | --- | --- | --- | --- |
 | 1 | [解析资源上下文](workflow/step-1-resource-context.md) | 合并本轮显式资源、绑定上下文、workspace 配置/缓存和会话历史，确认复用还是允许创建 | 目标 app/page/form/process 上下文 |
-| 2 | [产品与视觉并行设计](workflow/step-2-design.md) | 先执行 `yida-requirement-analysis` 生成共享简报，再并行执行 `yida-prd` 与 `yida-design`，由本技能 join 两份内部产物 | 内部 `requirement-brief.json` + `prd.md` + `design.md` |
+| 2 | [产品与视觉并行设计](workflow/step-2-design.md) | 先执行 `yida-requirement-analysis` 整理用户需求，再同时执行 `yida-prd` 与 `yida-design`，由本技能校验两份结果 | 内部 `requirement-brief.json` + `prd.md` + `design.md` |
 | 3 | [创建或复用应用](workflow/step-3-create-or-reuse-app.md) | 已有 `appType` 直接复用；缺少 app 且允许创建时执行 `use_skill("yida-create-app")` | 真实目标 `appType` |
 | 4 | [创建或更新业务资源](workflow/step-4-forms-processes.md) | 执行 `use_skill("yida-create-form-page")`；按 PRD 执行 `use_skill("yida-create-process")`、`use_skill("yida-get-schema")`、`use_skill("yida-report")` 和 `use_skill("yida-integration")` | 真实 `formUuid`、`processCode`、必要 `fieldId/reportId` |
 | 5 | [写入初始表单数据](workflow/step-5-seed-records.md) | 执行 `use_skill("yida-data-management")`，为核心普通表单写入 1-3 条业务化 seed records 并 query 抽查 | 真实表单记录或明确跳过原因 |
@@ -31,13 +31,13 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 
 1. **资源判断以 Step 1 为准**：已有 app/page/form/process 默认复用；只有用户明确从零创建，或目标缺失且本轮允许创建时，才创建缺失资源。
 2. **显式目标优先**：本轮用户给出的 `appType`、`formUuid`、URL、页面名或流程标识，优先级高于绑定上下文和历史缓存；同级冲突或无法唯一识别时才问用户。
-3. **双产物事实源分工**：`yida-requirement-analysis` 只提供共享输入；业务目标、资源蓝图、页面结构、导航顺序和验收标准由 `yida-prd` 写入 `prd.md`；主题 token、布局、材质、圆角、密度、组件和状态规则由 `yida-design` 写入 `design.md`。两份产物 join 通过前不得创建资源。
+3. **产品与视觉分工**：`yida-requirement-analysis` 先统一整理用户需求；业务目标、资源蓝图、页面结构、导航顺序和验收标准由 `yida-prd` 写入 `prd.md`；主题 token、布局、材质、圆角、密度、组件和状态规则由 `yida-design` 写入 `design.md`。两份文件校验通过前不得创建资源。
 4. **阶段技能按需加载**：进入应用壳、表单、流程、页面、发布、数据写入等阶段时，才执行对应 `use_skill(...)`。
 5. **真实 ID 和真实数据**：不编造 `appType`、`formUuid`、`fieldId`、`processCode`、`reportId`。完整应用默认给核心普通表单写入 1-3 条业务化 seed records 并 query 抽查；不适合造数时说明原因和空态方案。
 6. **自定义页面开发技能固定**：完整应用页面源码按 Step 7 执行。
 7. **删除必须确认**：用户要求删除应用时，先展示应用名称、应用 ID 和影响范围，等待明确“确认删除”后才能执行。
 8. **列表页选择**：默认使用普通表单的数据管理页；用户明确要求自定义列表页时才创建 display 页面。
-9. **交付物收口**：Step 2 的三个文件和 Step 9 的 build manifest 都是内部事实源，不是用户交付物。表单、流程、报表和页面只在业务总结中概述，不逐项调用宿主 artifact/交付工具；宿主支持交付工具时，final 只交付一次“应用访问入口”组。
+9. **交付物收口**：Step 2 的三个文件和 Step 9 的 build manifest 都是内部文件，不是用户交付物。表单、流程、报表和页面只在业务总结中概述，不逐项生成用户可见附件；宿主支持交付工具时，final 只交付一次“应用访问入口”组。
 
 ## 关键决策树
 
@@ -66,7 +66,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | 文档 | 覆盖范围 | 何时阅读 |
 | --- | --- | --- |
 | [Step 1：解析资源上下文](workflow/step-1-resource-context.md) | 只读预检、资源优先级、命令选择、路径口径 | 必读 |
-| [Step 2：产品与视觉并行设计](workflow/step-2-design.md) | 共享需求简报、PRD/视觉 artifact 生命周期、并行执行、join 与主题 key | 必读 |
+| [Step 2：产品与视觉并行设计](workflow/step-2-design.md) | 整理用户需求、同时生成并校验 PRD 与视觉设计、主题 key | 必读 |
 | [Step 3：创建或复用应用](workflow/step-3-create-or-reuse-app.md) | app 复用、app 创建、主题 key | 必读 |
 | [Step 4：创建或更新表单/流程](workflow/step-4-forms-processes.md) | 表单、流程、字段 ID 与表单结构规则 | 必读 |
 | [Step 5：写入初始表单数据](workflow/step-5-seed-records.md) | seed records、字段类型、query 抽查、跳过条件 | 必读 |

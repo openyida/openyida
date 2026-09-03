@@ -347,8 +347,7 @@ describe('OpenYida skill contracts', () => {
     expect(canvasTable.negative_signals).toEqual(expect.arrayContaining(['平台 JSX/native 直接 this.utils.yida.saveFormData']));
 
     const design = byName.get('yida-design');
-    expect(design.description).toContain('Visual Design artifact 的唯一 owner');
-    expect(design.description).toContain('读取共享需求简报');
+    expect(design.description).toContain('读取整理后的用户需求');
     expect(design.description).toContain('本技能不写 PRD 或页面源码');
     expect(design.done_when).toContain('prd/<项目名>/design.md');
     expect(design.done_when).toContain('不写 prd.md');
@@ -358,13 +357,13 @@ describe('OpenYida skill contracts', () => {
     const requirementAnalysis = byName.get('yida-requirement-analysis');
     expect(requirementAnalysis.done_when).toContain('requirement-brief.json');
     const prd = byName.get('yida-prd');
-    expect(prd.description).toContain('Product PRD artifact 的唯一 owner');
+    expect(prd.description).toContain('读取整理后的用户需求');
     expect(prd.done_when).toContain('资源创建顺序');
 
     const designSkill = readSkill('yida-skills/skills/yida-design/SKILL.md');
-    expect(designSkill).toContain('Visual Design artifact 的唯一 owner');
+    expect(designSkill).toContain('只输出 `design.md`');
     expect(designSkill).toContain('只输出 `design.md`，不写 PRD 或页面源码');
-    expect(designSkill).toContain('本技能不读取本轮并行生成中的 `prd.md`');
+    expect(designSkill).toContain('本技能不读取本轮正在生成的 `prd.md`');
 
   });
 
@@ -426,7 +425,7 @@ describe('OpenYida skill contracts', () => {
     const step9 = readSkill('yida-skills/skills/yida-app/workflow/step-9-output-finish.md');
 
     expect(skill).toContain('全局 CLI、ID、存储、发布和输出规则以主入口 `SKILL.md` 为准');
-    expect(step2).toContain('use_skill("yida-requirement-analysis", "生成完整应用共享需求简报")');
+    expect(step2).toContain('use_skill("yida-requirement-analysis", "整理完整应用的用户需求")');
     expect(step2).toContain('`yida-prd`');
     expect(step2).toContain('`yida-design`');
     expect(step2).toContain('prd/<项目名>/prd.md');
@@ -438,7 +437,7 @@ describe('OpenYida skill contracts', () => {
     expect(step9).toContain('先写 2-3 句业务交付总结，再给一个名为“应用访问入口”的入口组');
     expect(step9).toContain('新增、修改或发布单个具体页面时，仍只交付当前页面');
     expect(step9).toContain('完整应用的入口组始终包含“应用工作台” `{base_url}/{appType}/workbench`');
-    expect(step9).toContain('不把表单、流程、报表、页面、资源清单或内部文件分别登记为 artifact');
+    expect(step9).toContain('不把表单、流程、报表、页面、资源清单或内部文件分别登记为附件');
     expect(step9).toContain('已完成订单、客户和商品等核心业务表单');
     expect(step9).toContain('应用工作台：`{base_url}/{appType}/workbench`');
     expect(step9).toContain('独立业务入口：`{base_url}/{appType}/custom/{formUuid}`');
@@ -496,7 +495,7 @@ describe('OpenYida skill contracts', () => {
     expect(manifest).toContain('openyida publish ... --auto-nav-order');
     expect(manifest).toContain('Explicit and automatic ordering are mutually exclusive');
     expect(manifest).toContain('product_design_policy');
-    expect(manifest).toContain('yida-requirement-analysis writes one shared requirement brief');
+    expect(manifest).toContain('yida-requirement-analysis writes the organized user requirements to requirement-brief.json');
     expect(manifest).toContain("mode: 'parallel'");
     expect(manifest).toContain('final_link_policy');
     expect(manifest).toContain('Return exactly one user-visible application entry group');
@@ -509,8 +508,16 @@ describe('OpenYida skill contracts', () => {
   });
 
   test('canvas data bridge never sends record metadata as dynamicOrder field', () => {
+    const skill = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');
     const guide = readSkill('yida-skills/skills/yida-canvas-custom-page/references/data-bridge-guide.md');
 
+    expect(skill).toContain('每行业务字段位于 `row.formData[fieldId]`');
+    expect(skill).toContain('`row.formData || row.data || row` 归一化为页面行模型');
+    expect(skill).toContain('不能把字段 ID 直接作为原始行顶层的 `dataIndex`');
+    expect(skill).toContain('有记录但全部显示空值/--');
+    expect(skill).toContain('`dynamicOrder` key 必须来自当前 `get-schema` 返回的真实业务字段 ID');
+    expect(skill).toContain('禁止使用返回记录的元数据名 `gmtCreate`');
+    expect(skill).toContain('没有可排序的业务日期字段时删除 `dynamicOrder`');
     expect(guide).toContain('`dynamicOrder` 的 key 必须是 `get-schema` 返回的真实业务字段 ID');
     expect(guide).toContain('不要把返回记录里的元数据名 `gmtCreate` 当成可排序字段');
     expect(guide).toContain('按 `row.createTime` 做展示排序');
@@ -528,9 +535,9 @@ describe('OpenYida skill contracts', () => {
     const pageConfig = readSkill('yida-skills/skills/yida-page-config/SKILL.md');
     const feature = readSkill('docs/features/agent-application-entry-links.md');
 
-    expect(root).toContain('不得把需求简报、PRD、视觉设计、build manifest、资源清单');
+    expect(root).toContain('不得把需求信息文件、PRD、视觉设计、build manifest、资源清单');
     expect(app).toContain('宿主支持交付工具时，final 只交付一次“应用访问入口”组');
-    expect(step2).toContain('不得为这三个文件调用宿主的用户可见 artifact、附件或交付工具');
+    expect(step2).toContain('不得为这三个文件调用宿主的用户可见附件或交付工具');
     expect(step9).toContain('一次完整应用搭建只产生这一组用户可见交付');
     expect(step9).toContain('业务资源只在总结中按能力或数量概述');
     expect(outputPrd).toContain('入口模式：<`platform-shell` / `standalone`');
@@ -544,7 +551,7 @@ describe('OpenYida skill contracts', () => {
     expect(feature).toContain('非云端 Agent，已验证 `standalone`');
   });
 
-  test('yida-app joins independent PRD and visual artifacts without losing current design contracts', () => {
+  test('yida-app validates independently generated PRD and visual design without losing current design contracts', () => {
     const root = readSkill('yida-skills/SKILL.md');
     const skill = readSkill('yida-skills/skills/yida-app/SKILL.md');
     const createApp = readSkill('yida-skills/skills/yida-create-app/SKILL.md');
@@ -570,20 +577,20 @@ describe('OpenYida skill contracts', () => {
     const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
     const byName = new Map(index.skills.map((item) => [item.name, item]));
 
-    expect(appStep2).toContain('一个共享需求简报和两个独立 artifact owner');
-    expect(appStep2).toContain('`yida-app` 是 join owner');
-    expect(root).toContain('已 join 的共享需求简报、`prd.md` 与 `design.md` 保持冻结');
+    expect(appStep2).toContain('先整理一次用户需求，再同时生成 PRD 和视觉设计');
+    expect(appStep2).toContain('`yida-app` 负责检查两份结果');
+    expect(root).toContain('已经确认的 `requirement-brief.json`、`prd.md` 与 `design.md` 保持不变');
     expect(root).toContain('`yida-create-page`，之后交给 `yida-canvas-custom-page` 编写页面源码，再交给 `yida-publish-page` 发布');
     expect(createApp).toContain('不得回写 `.cache/openyida/<项目名>/requirement-brief.json`');
-    expect(createApp).toContain('不得仅因拿到真实 `appType` 重跑 `yida-prd`、`yida-design` 或 join');
-    expect(requirementAnalysis).toContain('简报进入 ready 后即冻结');
-    expect(appStep2).toContain('需求简报进入 ready 后即作为本轮 artifact 的冻结输入');
+    expect(createApp).toContain('不得仅因拿到真实 `appType` 重新生成或校验 PRD 和视觉设计');
+    expect(requirementAnalysis).toContain('需求文件校验通过后保持不变');
+    expect(appStep2).toContain('需求文件校验通过后，在本轮搭建中保持不变');
     expect(appStep2).toContain('`prd/<项目名>/prd.md`');
     expect(appStep2).toContain('`prd/<项目名>/design.md`');
     expect(skill).not.toContain('用户说“按默认方案”“不要追问”“直接创建”“尽快搭建”等');
     expect(skill).not.toContain('默认链路：`resolve context → yida-design PRD');
     expect(appStep2).toContain('资源蓝图、资源创建顺序、页面实现交付顺序、导航顺序、页面 handoff 和验收标准完整');
-    expect(appStep2).toContain('`prd.md` 和 `design.md` 是后续页面实现的两份唯一事实源');
+    expect(appStep2).toContain('后续页面实现以 `prd.md` 和 `design.md` 为准');
     expect(appStep7).toContain('从 PRD + `design.md` 派生当前业务自己的 `page-spec.json`');
     expect(appStep7).toContain('conflictPolicy: "prd-design-win"');
     expect(pageGeneration).toContain('PRD 写有 `pageSpecHandoff` 时');
@@ -604,22 +611,22 @@ describe('OpenYida skill contracts', () => {
     expect(skill).not.toContain('## Sample 与业务页边界');
     expect(skill).not.toContain('模板路由');
     expect(skill).not.toContain('去 sample 化检查');
-    expect(requirementAnalysis).toContain('唯一共享输入 owner');
+    expect(requirementAnalysis).toContain('先统一整理用户需求和已确认资源');
     expect(requirementAnalysis).toContain('不生成 PRD、视觉设计或页面源码');
-    expect(prd).toContain('PRD artifact 的唯一 owner');
+    expect(prd).toContain('生成 `prd/<项目名>/prd.md`');
     expect(prd).toContain('不生成 `design.md` 或页面源码');
-    expect(design).toContain('Visual Design artifact 的唯一 owner');
+    expect(design).toContain('只输出 `design.md`');
     expect(design).toContain('不写 PRD 或页面源码');
     expect(design).not.toContain('应用体验蓝图');
     expect(design).not.toContain('推荐模板');
     expect(output).toContain('## PRD 输出格式');
     expect(output).not.toContain('## design.md 输出格式');
     expect(outputDesign).toContain('## design.md 输出格式');
-    expect(outputDesign).toContain('## join 稳定引用契约');
+    expect(outputDesign).toContain('## 稳定引用规则');
     expect(outputDesign).toContain('sceneRecipes.<sceneKey>');
-    expect(outputDesign).toContain('`sceneKey` 必须直接取自共享 `requirement-brief.json`');
-    expect(output).toContain('[yida-design 的 join 稳定引用契约](../../yida-design/workflow/output-design.md#join-稳定引用契约)');
-    expect(output).toContain('`sceneKey` 必须逐字取自共享 `requirement-brief.json` 的对应 `pageScenes`');
+    expect(outputDesign).toContain('`sceneKey` 必须直接取自 `requirement-brief.json`');
+    expect(output).toContain('[yida-design 的稳定引用规则](../../yida-design/workflow/output-design.md#稳定引用规则)');
+    expect(output).toContain('`sceneKey` 必须逐字取自 `requirement-brief.json` 的对应 `pageScenes`');
     expect(outputDesign).toContain('states:');
     expect(fs.existsSync(path.join(ROOT, 'yida-skills/skills/yida-design/workflow/step-1-positioning.md'))).toBe(false);
     expect(fs.existsSync(path.join(ROOT, 'yida-skills/skills/yida-design/workflow/step-3-information-architecture.md'))).toBe(false);
@@ -824,11 +831,11 @@ describe('OpenYida skill contracts', () => {
     expect(appStep2).not.toContain('应用体验蓝图');
     expect(appStep2).not.toContain('需求范围');
     expect(appStep2).not.toContain('## 完整低代码 PRD 模板');
-    expect(byName.get('yida-app').description).toContain('并行调用 yida-prd 与 yida-design');
+    expect(byName.get('yida-app').description).toContain('同时调用 yida-prd 与 yida-design');
     expect(byName.get('yida-app').description).toContain('表单/流程先于自定义页面');
     expect(byName.get('yida-app').description).toContain('Canvas 页面基准模板并按业务改写');
     expect(byName.get('yida-app').description).toContain('发布后优先按 PRD 导航顺序排序');
-    expect(byName.get('yida-create-app').description).toContain('不回写已冻结的共享需求简报');
+    expect(byName.get('yida-create-app').description).toContain('不回写已经确认的 requirement-brief.json');
     expect(byName.get('yida-app').done_when).toContain('PRD 已写入 prd/<项目名>/prd.md');
     expect(byName.get('yida-app').done_when).toContain('design.md 已写入 prd/<项目名>/design.md');
   });

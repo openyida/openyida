@@ -70,7 +70,7 @@ description: >
 | --- | --- | --- |
 | `yida-skills/context` | 登录、退出、切换组织、组织版本/容量、Schema、fieldId、执行前检查 | `yida-login`、`yida-logout`、`yida-basic-info`、`yida-get-schema`、`yida-corp-efficiency` |
 | `yida-skills/app` | 从零搭应用、完整系统、应用启停、应用导航、多语言 | `yida-app`、`yida-create-app`、`yida-app-lifecycle`、`yida-nav-group`、`yida-i18n` |
-| `yida-skills/design` | 完整应用需求简报、PRD、视觉设计、单页 UI 改造、应用主题色、全局换肤 | `yida-requirement-analysis`、`yida-prd`、`yida-design` |
+| `yida-skills/design` | 完整应用需求分析、PRD、视觉设计、单页 UI 改造、应用主题色、全局换肤 | `yida-requirement-analysis`、`yida-prd`、`yida-design` |
 | `yida-skills/form` | 表单字段、公式、校验、业务关联规则、批量录入、数据记录 | `yida-create-form-page`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-agent-center` |
 | `yida-skills/page` | 自定义展示页、页面源码开发、平台 JSX 组件页面维护、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
@@ -84,13 +84,13 @@ description: >
 
 | 用户意图 | 选哪个 |
 | --- | --- |
-| 从零搭一个完整应用/系统 | `yida-app`；统一编排，先生成共享需求简报，再并行生成 `prd.md` 与 `design.md` 并 join |
+| 从零搭一个完整应用/系统 | `yida-app`；统一编排，先整理用户需求，再同时生成并校验 `prd.md` 与 `design.md` |
 | 已有 app 但没有任何页面，需要补成完整系统 | `yida-app`；复用已有 `appType`，按 PRD 补齐表单、流程、页面（如需要）和导航 |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
 | 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成 PRD |
 | 已有会议纪要/闪记内容转 PRD | `yida-flash-note-to-prd`，只处理已有内容，不负责按 taskUuid 拉取听记 |
-| 只创建应用壳并拿 appType | `yida-create-app`；若随后继续完整搭建，已 join 的共享需求简报、`prd.md` 与 `design.md` 保持冻结，真实 `appType` 只写入 schema 或当前任务资源上下文 |
+| 只创建应用壳并拿 appType | `yida-create-app`；若随后继续完整搭建，已经确认的 `requirement-brief.json`、`prd.md` 与 `design.md` 保持不变，真实 `appType` 只写入 schema 或当前任务资源上下文 |
 | 启用/上线或停用/下线已有应用 | `yida-app-lifecycle`；只有用户明确要求时执行，`app-offline` 执行前需再次确认目标应用 |
 | 创建自定义展示页资源 | `yida-create-page`，之后交给 `yida-canvas-custom-page` 编写页面源码，再交给 `yida-publish-page` 发布 |
 | 开发表单字段结构 / 增删改字段 | 使用 `yida-create-form-page` 落地字段结构 |
@@ -137,7 +137,7 @@ description: >
 10. **读取与复核用合适工具**：读取或定位 workspace 文件优先用当前工具的 Read / Glob / Grep 或 `rg`；OpenYida CLI 已返回成功 JSON、URL、`appType`、`formUuid` 或 `fieldId` 时，以 CLI 结果作为证据。
 11. **资源 ID 必须精确**：`appType`、`formUuid`、`fieldId` 等应用、表单、字段 ID 必须来自 CLI/API/cache 证据并一字不差传入命令和源码；不得凭名称、截图、相似前缀或记忆补写、改写、截断。
 12. **字段和 Schema 以证据为准**：字段级表单操作优先交给 `create-form update/add-option/bind-datasource/validation/rule` 的 schema-aware 解析；页面代码、数据、流程、公式等需要字段映射时，每表单一次性执行 `openyida get-schema --field-map-json` 并缓存字段摘要。
-13. **设计事实源固定**：完整应用先由 `yida-requirement-analysis` 生成共享简报，再由 `yida-prd` 与 `yida-design` 并行输出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`，由 `yida-app` join；页面目标、区块、数据和交互以 PRD 为准，布局、主题、材质和状态视觉以 design.md 为准。
+13. **产品与视觉分工固定**：完整应用先由 `yida-requirement-analysis` 整理用户需求，再由 `yida-prd` 与 `yida-design` 同时输出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`，最后由 `yida-app` 做一致性校验；页面目标、区块、数据和交互以 PRD 为准，布局、主题、材质和状态视觉以 design.md 为准。
 14. **配置优先于页面代码**：字段、公式、联动、报表、审批和集成交给对应技能；自定义页面负责展示数据、放置业务入口，并串联表单、流程、报表和导航入口。
 15. **Canvas 运行桥统一口径**：`.canvas.jsx` / `.canvas.tsx` 发布为 `YidaCodeCanvas` 时，外层页面 `didMount` 默认注入 `window.__OPENYIDA_YIDA_API__` 和 `window.__OPENYIDA_UTILS__`。Canvas 组件内部不得直接写 `this.utils.yida.*`；表单/流程/表单设计 API 走 `window.__OPENYIDA_YIDA_API__`，`toast/dialog/openPage/router.push/isMobile` 等根级工具走 `window.__OPENYIDA_UTILS__`，且 `window.__OPENYIDA_UTILS__.yida` 指向同一个 yida API 桥。
 16. **分页查询默认 pageSize 50**：生成表单、流程、任务、成员等分页查询代码时，一般显式写 `pageSize: 50` 或 `pageSize: '50'`。除非用户明确要求小页或大页，不写 `20`、`100` 等其他值；平台上限仍是 100。
@@ -159,7 +159,7 @@ description: >
 20. **报表和可视化先分流**：标准统计与原生报表用 `yida-report`；定制图表页面默认用 `yida-rechart`；只有明确 ECharts、维护旧 ECharts 页面或复杂 option 超出 Recharts 能力时用 `yida-chart`。
 21. **应用主题只有一份**：涉及应用蓝图、页面视觉、应用主题色、品牌色、全局换肤或 `--color-brand1-*` 时先读 `yida-design`。`app-theme.css` 只在应用级统一配置，由平台作用于应用壳、原生表单、详情页和自定义页面外层。严禁在页面级重复写入、同步或向上层注入主题样式；`YidaCodeCanvas` 源码只在 `YidaComp` 内消费现有主题 token。
 22. **默认完成即停止**：完整应用默认以资源发布成功、轻量导航排序完成、示例数据就绪并输出一组有明确名称的应用入口与业务交付总结为 doneWhen；截图、精细导航整理和额外深读属于 optionalAfterDone，除非用户明确要求。
-23. **输出业务化**：最终回复先写 2-3 句业务交付总结，再给一组“应用访问入口”。不得把需求简报、PRD、视觉设计、build manifest、资源清单、Schema 或每个表单/流程/报表分别登记成用户可见交付物；完整应用始终给工作台入口，主页面经 PRD 标记为 `standalone` 且导航配置回读通过时增加独立业务入口，非云端 Agent 再增加开发后台入口。
+23. **输出业务化**：最终回复先写 2-3 句业务交付总结，再给一组“应用访问入口”。不得把需求信息文件、PRD、视觉设计、build manifest、资源清单、Schema 或每个表单/流程/报表分别登记成用户可见交付物；完整应用始终给工作台入口，主页面经 PRD 标记为 `standalone` 且导航配置回读通过时增加独立业务入口，非云端 Agent 再增加开发后台入口。
 24. **任务复盘沉淀**：用户多次纠正、平台接口假成功、页面骨架共性质量问题、线上回读验收方法、一次性脚本可产品化等情况，完成前判断是否需要沉淀到 CLI、测试或 skill。
 
 常见问题见 [常见问题解决方案](references/execution-rules.md)。
