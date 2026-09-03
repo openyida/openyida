@@ -1091,7 +1091,6 @@ describe('form presentation components', () => {
     expect(root.lifeCycles.componentDidMount).toMatchObject({ name: 'didMount', type: 'actionRef' });
     expect(schema.actions.module.source).not.toContain('openyida:theme:start');
     expect(schema.actions.module.source).not.toContain('yida-global-theme');
-    expect(schema.actions.module.source).not.toContain('yida-form-detail-style');
     expect(schema.pages[0].componentsMap.map((item) => item.componentName)).not.toContain('Html');
   });
 
@@ -1550,7 +1549,6 @@ describe('form presentation components', () => {
     ]));
     expect(schema.actions.module.source).not.toContain('openyida:theme:start');
     expect(schema.actions.module.source).not.toContain('yida-global-theme');
-    expect(schema.actions.module.source).not.toContain('yida-form-detail-style');
   });
 
   test('forms without Divider also avoid theme actions', () => {
@@ -2706,7 +2704,6 @@ describe('form compiler field bindings', () => {
     expect(compiled.schema.pages[0].componentsTree[0].lifeCycles.componentDidMount.name).toBe('didMount');
     expect(compiled.schema.actions.module.source).not.toContain('openyida:theme:start');
     expect(compiled.schema.actions.module.source).not.toContain('yida-global-theme');
-    expect(compiled.schema.actions.module.source).not.toContain('yida-form-detail-style');
   });
 
   test('compileFormDefinition reuses existing field bindings by semantic path', () => {

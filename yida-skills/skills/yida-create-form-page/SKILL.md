@@ -1,6 +1,6 @@
 ---
 name: yida-create-form-page
-description: 表单页面创建与更新，默认加载 yida-form-detail 作为表单视觉引导，并合并 Divider 分割线语义分组；应用主题由运行容器在表单与 formDetail 中加载同一应用级主题 CSS；支持 19 种业务字段和 Divider、ColumnContainer 等表单展示布局组件，PageSection/GroupContainer 仅少量特殊场景使用；支持联动规则和数据源绑定。
+description: 表单页面创建与更新；支持 19 种业务字段和 Divider、ColumnContainer 等表单展示布局组件，PageSection/GroupContainer 仅少量特殊场景使用；支持联动规则和数据源绑定。
 ---
 
 # 表单页面创建与更新
@@ -26,11 +26,11 @@ description: 表单页面创建与更新，默认加载 yida-form-detail 作为�
 - OpenYida CLI 不要加 `2>/dev/null`；失败时保留 stdout/stderr 诊断，遇到 DENIED 或重复失败必须换策略
 - 已有目标表单且用户是改字段/联动/属性时，不要创建新表单；必须走 update/patch/rule/bind-datasource。
 - 不要用 `GroupContainer` / `PageSection` 承载普通业务分组；普通分组必须优先用 `Divider`
+- 严禁为原生表单或 `formDetail` 生成、注入 CSS、JS、HTML 或主题代码；详情页由平台渲染。
 
 ## 严格要求 (MUST DO)
 
-- 表单页开发默认先加载 `yida-form-detail` 作为视觉引导和详情页主题消费策略，再由本技能落地字段 JSON；视觉引导必须和 `Divider` 分割线语义分组合并执行。
-- 拿到或确认真实 `formUuid` 后确认应用级自定义主题 CSS 已保存，并由提交页和 formDetail 运行容器加载。
+- 拿到或确认真实 `formUuid` 后，用于后续字段更新、数据绑定和页面入口配置。
 - create 成功后，将 formUuid 记录到 `.cache/<项目名>-schema.json`
 - 完整应用生成场景中，create 成功并记录 formUuid 后，把核心普通表单交给 `yida-data-management` 默认写入 1-3 条业务化示例记录；不要在本技能里直接操作数据记录。
 - update / add-option / bind-datasource / validation / rule 等字段级操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会内部读取 schema、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败/歧义时按 `diagnostics[].candidates` 补 `tableLabel`、修正 label 或再执行一次 compact `get-schema`。
@@ -69,14 +69,14 @@ description: 表单页面创建与更新，默认加载 yida-form-detail 作为�
 
 ## 布局决策规则
 
-默认表单是单列。表单页开发必须先按 `yida-form-detail` 的视觉引导确定填写路径、字段密度和分组结构，再用 `Divider` / `ColumnContainer` / 标准字段表达。不要为了“更高级”默认把整表改成双列，也不要用 `GroupContainer` / `PageSection` 做普通分组。
+默认表单是单列，使用 `Divider` / `ColumnContainer` / 标准字段表达业务结构。严禁为了“更高级”默认把整表改成双列；严禁用 `GroupContainer` / `PageSection` 做普通分组。
 
 - 默认单列：字段较少、流程表单、移动端优先、长文本、说明、附件、地址、子表、审批意见、需要逐项认真填写的字段。
 - 局部多列：短字段且天然成对或成组时使用 `ColumnContainer`，例如开始/结束日期、姓名/工号、部门/岗位、金额/币种、联系人/电话。
 - 全局 `--layout double`：只有用户明确要求“整个表单双列”时才使用；一般更推荐在字段 JSON 内用 `ColumnContainer` 做局部多列。
 - 语义分组：按业务含义分段，不按字段数量平均分。常见分组包括“基本信息”“业务信息”“时间计划”“补充材料”“审批信息”。
 - Divider 样式：默认 `bold-with-thin`；显式样式按 `bold-with-thin` → `double-color-trapezoid` → `left-dot-title` → `solid` / `dashed` / `thick` / `dotted` 优先级选择；门户/强分区场景可统一显式使用 `multi-parallelograms-end`。
-- 应用主题与 formDetail 样式来自应用级自定义主题 CSS，字段 JSON 和表单 Schema JS 只承载表单结构与业务动作。
+- 字段 JSON 和表单 Schema JS 只承载表单结构与业务动作。
 
 推荐结构：
 
@@ -98,17 +98,12 @@ Divider > Field
 - 审批人、审批状态、审批节点等流程运行字段由流程能力承载；表单只收集业务数据。
 - 表单标题、字段 label/title、选项、提示语、校验文案、动作源码、字段 JSON 常量和字段 JSON 文件路径都禁止 emoji；`create-form` / schema compiler 报 emoji 错误时必须改字段 JSON 或路径，不能重复 create 或用同义命令绕过。
 
-## 表单全局主题规则
+## 表单布局样式
 
-表单和流程表单必须和应用、自定义页面使用同一套主题 token。运行容器把应用 `customThemeStyle.cssUrl` 分别加载到提交页、详情页、自定义页面和抽屉 iframe，本技能只生成表单字段 JSON。
-
-- 普通业务分组：`Divider` 标题跟随应用主题，下面直接接字段或 `ColumnContainer`
-- 默认 `Divider` 不写颜色属性，或保持 `colorType: "theme"`
-- 详情差异统一写入应用主题 CSS 的语义 token，由提交页和详情页运行容器加载
-- 新表单页默认消费 `podBlue`、`podGreen`、`podOrange` 等应用主题对应 token；`blue`、`green`、`orange` 作为应用主题 token profile 保留原名。本技能只消费服务端加载的应用主题变量，不把 legacy 名称当作表单 `--theme` 或应用 `--theme` 参数
-- 局部多列容器：保持背景克制，避免给每个列容器单独上色
-- 流程表单：更偏单列和清晰分段，颜色只用于章节识别，不要做大面积品牌色块
-- 自定义色：只有用户明确说“红色警示”“绿色成功态”“品牌色 #xxx”时才写 `colorType: "custom"` 和具体色值
+- 普通业务分组使用 `Divider`，下面直接接字段或 `ColumnContainer`
+- 局部多列容器保持背景克制，避免给每个列容器单独上色
+- 流程表单更偏单列和清晰分段，颜色只用于章节识别
+- 用户明确指定颜色时才写 `colorType: "custom"` 和具体色值
 
 ## create 模式
 
@@ -253,7 +248,6 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 | [field-definition-guide.md](references/field-definition-guide.md) | 需要完整字段属性、布局组件、update changes 或字段类型表时 |
 | [advanced-form-modes.md](references/advanced-form-modes.md) | 使用 patch / rule / validation / bind-datasource 高级模式前必须读取 |
 | [form-field-properties.md](references/form-field-properties.md) | 需要字段属性细节或平台属性映射时 |
-| `yida-form-detail` | 表单页开发默认加载；产出表单视觉引导、Divider 分组策略和应用级 formDetail 主题适配边界 |
 | [employee-field.md](references/employee-field.md) | 成员字段配置 |
 | [association-form-field.md](references/association-form-field.md) | 关联表单字段配置 |
 | [serial-number-field.md](references/serial-number-field.md) | 流水号字段配置 |

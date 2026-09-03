@@ -37,9 +37,19 @@
 
 join 未通过时 Step 2 未完成，不得进入资源创建。join 通过后，`prd.md` 和 `design.md` 是后续页面实现的两份唯一事实源；`page-spec.json` 仅为派生 handoff。
 
-## 主题 key
+## 主题文件实现指令
 
-`design.md` 必须基于 `app-custom-theme-template.css` 给出应用主题 CSS、`navTheme`、`logoSource` 和 `layoutDirection`，不选择或传递平台 `--theme` key。CSS 完整声明平台实际生成的 `--color-brand1-1/2/3/5/6/9/10`，保留 `--color-brand-1` 至 `--color-brand-4` 和 `--color-group`，不得补造 `--color-brand1-4/7/8`。模板默认使用 coffee 咖啡色与大圆角；只有设计结论明确变化时才成套调整。主色写入 `--color-brand1-6`，创建阶段通过 `create-app --theme-file/--nav-theme/--logo-source/--layout` 联合保存。运行容器负责让页面、表单和详情页加载同一应用主题文件。
+Step 2 只在 `design.md` 中确定主题色、`navTheme`、`logoSource` 和 `layoutDirection`，不传递平台 `--theme` key。进入 Step 3 后：
+
+1. 执行复制命令：
+
+   ```bash
+   openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css
+   ```
+
+2. 按 `design.md` 的主题色修改复制文件中的对应 token。严禁重新生成或覆盖整份 CSS。
+3. 主色写入 `--color-brand1-6`；保留 `--color-brand1-1/2/3/5/6/9/10`、`--color-brand-1` 至 `--color-brand-4` 和 `--color-group`；严禁补造 `--color-brand1-4/7/8`。
+4. 创建应用时传入 `--theme-file`、`--nav-theme`、`--logo-source` 和 `--layout`，在应用级统一配置主题。平台统一作用于原生表单、详情页和自定义页面外层；`YidaCodeCanvas` 页面只在组件内部消费主题 token，严禁向上层注入或同步主题样式。
 
 ## 产出
 

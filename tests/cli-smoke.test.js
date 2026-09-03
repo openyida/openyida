@@ -1863,7 +1863,9 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('Code Templates');
     expect(output).toContain('yida-chart');
     expect(output).toContain('yida-canvas-table-form');
-    expect(output).toContain('openyida-scaffold');
+    expect(output).toContain('openyida-page-template');
+    expect(output).toContain('openyida sample yida-design app-theme');
+    expect(output).not.toContain('openyida-scaffold');
     expect(output).toContain('table-form-batch-submit');
     expect(output).toContain('canvas-form-drawer');
     expect(output).toContain('form-fields');

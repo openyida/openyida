@@ -30,21 +30,21 @@
 >
 > | 内容 | 使用方式 | 落地规则 |
 > | --- | --- | --- |
-> | 平台品牌色变量 | `--color-brand1-*` 是平台层品牌色变量；`--color-brand1-6` 是主色，`--color-brand1-1/2/3` 是浅底，`--color-brand1-7/9/10` 是深档或透明档 | 真实业务页的主操作、链接、选中态、信息提示和标签默认读取这些平台变量 |
+> | 平台品牌色变量 | `--color-brand1-*` 是平台层品牌色变量；`--color-brand1-6` 是主色，`--color-brand1-1/2/3` 是浅底，`--color-brand1-9/10` 是深档或透明档 | 真实业务页的主操作、链接、选中态、信息提示和标签默认读取这些平台变量 |
 > | 页面重构与局部美化 | 以当前应用主题为基准 | 优先调整布局、密度、间距、层级、素材、图标表达和局部辅助色 |
 > | 语义色 | 成功、警告、错误使用固定色 | 保持状态含义稳定，不跟随品牌色随意变化 |
 > | 大面积浅底 | 下拉选中项、提示块等使用页面级低透明度 token | 优先使用 `--oyd-control-selected-bg` / `--oyd-control-info-bg` |
 >
 > **light 模式用色**：业务协同表、数据管理页、录入表、工作台和门户在 light 模式下使用深色正文保证可读性，强调、选中、按钮、焦点和批量操作使用平台品牌色变量或当前页面确认的品牌色，边框使用浅色品牌混合。
 >
-> ⚠️ **常见错误**：把 `primaryHover` 设成 `brand1-1`（最浅档）会让填充主按钮 hover 时「泛白」；把 `hover` 设成 `brand1-9`（深档）当行 hover 底会让行「变暗」。填充按钮 hover 要比主色**亮一档**（`brand1-5`）、按下**深一档**（`brand1-7`）；通用浅色 hover 底用 `brand1-1`。
+> ⚠️ **常见错误**：把 `primaryHover` 设成 `brand1-1`（最浅档）会让填充主按钮 hover 时「泛白」；把 `hover` 设成 `brand1-9`（深档）当行 hover 底会让行「变暗」。填充按钮 hover 使用 `brand1-5`，按下使用深色档 `brand1-9`；通用浅色 hover 底用 `brand1-1`。
 
 ```javascript
 export function renderJsx() {
   var colors = {
     primary:       'var(--color-brand1-6)',  // 主色，用于主操作按钮、链接、选中态高亮
     primaryHover:  'var(--color-brand1-5)',  // 主色 hover：填充按钮/链接 hover，比主色亮一档
-    primaryActive: 'var(--color-brand1-7)',  // 主色按下：填充按钮 active，比主色深一档
+    primaryActive: 'var(--color-brand1-9)',  // 主色按下：填充按钮 active 使用深色档
     hover:         'var(--color-brand1-1)',  // 通用浅色 hover 底：列表行 hover、菜单项 hover
     active:        'var(--color-brand1-2)',  // 通用浅色激活/按下底
     disabled:      'var(--color-brand1-3)',  // 禁用态：浅、去饱和

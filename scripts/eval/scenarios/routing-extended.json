@@ -168,13 +168,6 @@
     "note": "平台左侧菜单分组 → nav-group"
   },
   {
-    "id": "form-detail-visual",
-    "prompt": "美化一下表单详情页的样式，用卡片化布局",
-    "expectedSkill": "yida-form-detail",
-    "group": "应用配置与平台",
-    "note": "CSS 美化详情页 → form-detail"
-  },
-  {
     "id": "density-switch",
     "prompt": "这个列表页面太挤了，切换到宽松密度模式",
     "expectedSkill": "yida-density",

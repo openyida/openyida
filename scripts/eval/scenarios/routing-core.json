@@ -108,12 +108,6 @@
     "note": "页面内自绘导航壳 → yida-nav-shell"
   },
   {
-    "id": "form-detail-beautify",
-    "prompt": "这个表单详情页 formDetail 太丑了，帮我注入样式优化详情页卡片和字段展示",
-    "expectedSkill": "yida-form-detail",
-    "note": "表单详情页 schema 注入 Html/CSS → yida-form-detail"
-  },
-  {
     "id": "full-app-visitor-default-build",
     "prompt": "帮我搭建一个访客系统，按默认方案搭建，不要追问，直接创建",
     "expectedSkill": "yida-app",

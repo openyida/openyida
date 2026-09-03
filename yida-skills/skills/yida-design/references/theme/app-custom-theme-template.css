@@ -1,31 +1,22 @@
 @charset "UTF-8";
 
 /*
- * OpenYida 新版应用主题模板
+ * OpenYida 应用主题模板
  *
  * AI 使用说明：
- * 1. 本模板与 yida-next 新主题模板保持同源，以 yc-common 0.4.0 的 PC/Pod 配置为基线，
- *    默认呈现大圆角与 coffee 咖啡色主题；它是可直接使用的初始化方案，不是所有业务的固定配色。
- * 2. 应用品牌色阶只使用平台实际生成的 --color-brand1-1、2、3、5、6、9、10；
+ * 1. 先在 design.md 确定主题色，再执行 openyida sample yida-design app-theme
+ *    --output <app-theme.css> 复制本模板。
+ * 2. 按主题色修改对应 token；严禁重新生成或覆盖整份 CSS。
+ * 3. 本模板与 yida-next 应用主题配置保持同源，以 yc-common 0.4.0 的 PC/Pod 配置为基线，
+ *    默认呈现大圆角与 coffee 咖啡色主题；yida-design 按当前业务的 design.md 调整配色。
+ * 4. 应用品牌色阶只使用平台实际生成的 --color-brand1-1、2、3、5、6、9、10；
  *    --color-brand-1 至 --color-brand-4 和 --color-group 也必须保留并成套修改，不要补造 4、7、8。
- * 3. 若 design.md 选择其他主色，必须同步替换品牌色阶、基础色阶、图表色组，以及模板中按钮、
+ * 5. 若 design.md 选择其他主色，必须同步替换品牌色阶、基础色阶、图表色组，以及模板中按钮、
  *    表单、选中态、导航、日期组件等品牌相关直接色值；成功、警告、错误、通知等语义色保持独立。
- * 4. 默认保留页面/卡片/抽屉 20px、组件 8-12px、按钮胶囊形的大圆角层级；
+ * 6. 默认保留页面/卡片/抽屉 20px、组件 8-12px、按钮胶囊形的大圆角层级；
  *    只有 design.md 明确给出其他 roundedRule 时才成套调整。
- * 5. 保留变量名和 nav/light/dark 选择器结构，运行容器会在各页面上下文加载本文件。
- * 6. 新建使用：openyida create-app --name "应用名" --theme-file ./app-theme.css --nav-theme light --logo-source appIcon --layout l_shape
- * 7. 已有应用使用：openyida update-app <appType> --theme-file ./app-theme.css --nav-theme light --logo-source appIcon --layout side
+ * 7. 保留变量名和 nav/light/dark 选择器结构。
  */
-
-/*
-@font-face {
-  font-family: "yida-custom-font";
-  src: url("文字模板资源") format("truetype");
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-}
-*/
 
 :root {
   /* 应用品牌色阶：按 coffee 预设生成，分别用于浅色背景、选中态、深色背景及透明交互态。 */
@@ -99,7 +90,7 @@
   --color-help-4: #0052cc;
 
   /* 基础模板 · 字体体系：字体族、字号、字重与行高。 */
-  --font-family: "yida-custom-font", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
   --font-family-base: var(--font-family);
   --font-size-caption: 12px;
   --font-size-body-1: 14px;
@@ -174,7 +165,7 @@
   );
   --pod-sticky-footer-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05),
     0 4px 8px 0 rgba(0, 0, 0, 0.08);
-  /* 宜搭历史组件兼容：供仍使用 --yida-* 的页面和组件消费。 */
+  /* 宜搭组件变量：供使用 --yida-* 的页面和组件消费。 */
   --yida-sm-border-radius: 6px;
   --yida-sm-gap-size: 6px;
   --yida-s-gap-size: 8px;
@@ -188,7 +179,7 @@
   --pod-default-border-radius: 20px;
   --pod-drawer-border-radius: 20px;
   --pod-drawer-shadow: 0 0 32px 0 rgba(0, 0, 0, 0.1);
-  /* 新版主题公共变量：Shell、页面、卡片、字段、导航和数据管理。 */
+  /* 应用主题公共变量：Shell、页面、卡片、字段、导航和数据管理。 */
   /* Shell 外框：控制四种导航背景、外层留白和 L 型导航圆角。 */
   --pod-shell-bg-color-light: rgba(243, 240, 239, 1);
   --pod-shell-bg-color-white: #fff;
@@ -534,7 +525,7 @@
   --popup-bg: #fff;
 }
 
-/* 新版主题与 Fusion 组件统一消费同一字体变量，补齐旧版模板已有的字体自定义能力。 */
+/* 主题与 Fusion 组件统一消费同一字体变量。 */
 body,
 body button,
 body input,
@@ -553,7 +544,7 @@ body .next-nav {
   --pod-card-border: 1px solid rgba(24, 28, 31, 0.08);
 }
 
-/* 新版主题移动端保留滚动能力，统一隐藏各业务滚动容器的滚动条。 */
+/* 移动端保留滚动能力，统一隐藏各业务滚动容器的滚动条。 */
 .mobile .pod-premium,
 .mobile .pod-premium *,
 .pod-premium.is-phone,

@@ -50,7 +50,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Removed
 
-- 移除 `form-detail-style apply/remove/check` 命令及表单 Schema 内的主题/formDetail CSS 注入链路，表单和详情页改由运行容器加载应用级主题文件。
+- 移除 `form-detail-style apply/remove/check` 命令及表单 Schema 内的主题/formDetail CSS 注入链路；原生表单和详情页由平台渲染。
 
 ## [2026.9.1-1] - 2026-09-01
 

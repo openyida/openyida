@@ -23,7 +23,7 @@
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
-      "description": "完整搭建或补齐普通 OpenYida 应用的流程编排技能。先解析资源上下文并生成共享需求简报，再并行调用 yida-prd 与 yida-design 生成 prd.md 和 design.md；由 yida-app join 通过后按 PRD 创建或复用应用、表单、流程和页面；表单/流程先于自定义页面；页面阶段默认使用 Canvas 发布脚手架注入 yida/utils window 桥；发布后优先按 PRD 导航顺序排序。",
+      "description": "完整搭建或补齐普通 OpenYida 应用的流程编排技能。先解析资源上下文并生成共享需求简报，再并行调用 yida-prd 与 yida-design 生成 prd.md 和 design.md；由 yida-app join 通过后按 PRD 创建或复用应用、表单、流程和页面；表单/流程先于自定义页面；页面阶段默认复制 Canvas 页面基准模板并按业务改写；发布后优先按 PRD 导航顺序排序。",
       "done_when": "共享需求简报已就绪；yida-prd 与 yida-design 两个 artifact 均结束且 join 通过；PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md；若本轮 Write/Edit 单个页面源码，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 并返回当前页面 URL；其他完整应用、表单、流程、权限、主题、导航或批量资源场景返回 {base_url}/{appType}/workbench 作为应用访问入口组的固定项，仅在 standalone 且 isRenderNav=false 回读通过时增加 /custom/{formUuid}，非云端 Agent 增加 /admin；final 先用 2-3 句业务语言总结创建/复用了哪些表单、页面和流程，再给主入口链接；不默认输出表格、长列表或资源 ID，也不逐项输出内部 artifact；没有 publish 证据只能声明源码已修改，尚未发布。",
       "category": "yida-skills/app",
       "tags": [
@@ -270,7 +270,7 @@
         "React18",
         "runtimeCode",
         "自定义页面",
-        "Canvas 脚手架桥"
+        "Canvas 运行桥"
       ],
       "aliases": [
         "YidaCodeCanvas",
@@ -749,26 +749,6 @@
         "会议纪要转 PRD",
         "taskUuid 转 PRD"
       ]
-    },
-    {
-      "name": "yida-form-detail",
-      "path": "skills/yida-form-detail/SKILL.md",
-      "display_name": "表单详情页美化",
-      "description": "表单页视觉引导与表单详情页 formDetail 样式优化。默认只合并 Divider 语义分组；运行容器在表单、详情页和表单 iframe 中加载同一应用级自定义主题 CSS。",
-      "category": "yida-skills/form",
-      "tags": [
-        "表单视觉引导",
-        "详情页",
-        "Divider",
-        "formDetail",
-        "CSS",
-        "表单 JS"
-      ],
-      "aliases": [
-        "详情页样式",
-        "表单视觉"
-      ],
-      "command_ids": []
     },
     {
       "name": "yida-form-permission",
@@ -1275,16 +1255,14 @@
     {
       "name": "yida-skills/form",
       "display_name": "表单与数据采集",
-      "description": "表单字段结构、表单视觉引导、Divider 分割线分组、字段公式/校验、业务关联规则、表单详情页、自定义页面表格批量录入和表单/流程数据记录管理。",
+      "description": "表单字段结构、Divider 分割线分组、字段公式/校验、业务关联规则、自定义页面表格批量录入和表单/流程数据记录管理。",
       "signals": [
         "创建表单",
         "新增字段",
-        "表单视觉",
         "Divider",
         "公式",
         "校验",
         "业务关联规则",
-        "详情页美化",
         "批量录入",
         "数据查询",
         "造数"
@@ -1308,11 +1286,11 @@
     {
       "name": "yida-skills/page",
       "display_name": "自定义页面",
-      "description": "自定义展示页创建、自定义页面开发、Canvas 脚手架桥、平台 JSX 组件页面维护、真实数据绑定、YidaCodeCanvas 迁移、页面发布、防覆盖、页面内导航壳和 PPT 页面。",
+      "description": "自定义展示页创建、自定义页面开发、Canvas 运行桥、平台 JSX 组件页面维护、真实数据绑定、YidaCodeCanvas 迁移、页面发布、防覆盖、页面内导航壳和 PPT 页面。",
       "signals": [
         "自定义页面",
         "YidaCodeCanvas",
-        "Canvas 脚手架桥",
+        "Canvas 运行桥",
         "window.__OPENYIDA_UTILS__",
         "JSX",
         "React",
