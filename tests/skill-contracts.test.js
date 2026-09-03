@@ -90,19 +90,6 @@ describe('OpenYida skill contracts', () => {
         .filter((file) => file.endsWith('.js'))
         .map((file) => path.join(localeDir, file))),
     ];
-    const generatedCreateAppDoc = path.join(
-      ROOT,
-      'dist',
-      'skills',
-      'openyida',
-      'references',
-      'subskills',
-      'yida-create-app',
-      'README.md'
-    );
-    if (fs.existsSync(generatedCreateAppDoc)) {
-      files.push(generatedCreateAppDoc);
-    }
     const source = files.map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 
     expect(source).toContain('chaxun');
@@ -524,6 +511,15 @@ describe('OpenYida skill contracts', () => {
     expect(manifest).toContain('{base_url}/{appType}/workbench');
     expect(byName.get('yida-app').description).toContain('表单/流程先于自定义页面');
     expect(byName.get('yida-nav-group').description).toContain('PRD 写明导航顺序时用 order');
+  });
+
+  test('canvas data bridge never sends record metadata as dynamicOrder field', () => {
+    const guide = readSkill('yida-skills/skills/yida-canvas-custom-page/references/data-bridge-guide.md');
+
+    expect(guide).toContain('`dynamicOrder` 的 key 必须是 `get-schema` 返回的真实业务字段 ID');
+    expect(guide).toContain('不要把返回记录里的元数据名 `gmtCreate` 当成可排序字段');
+    expect(guide).toContain('按 `row.createTime` 做展示排序');
+    expect(guide).not.toContain('按 `gmtCreate` / 提交日期倒序');
   });
 
   test('full app delivery collapses resources and emits the verified application entry matrix', () => {
