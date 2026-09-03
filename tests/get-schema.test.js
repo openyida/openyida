@@ -10,7 +10,7 @@ jest.mock('../lib/core/utils', () => ({
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
-  httpGetRedirectText: jest.fn(),
+  httpGetCodeBundleText: jest.fn(),
   requestWithAutoLogin: jest.fn(),
 }));
 
@@ -562,7 +562,7 @@ describe('CodeBundle schema compatibility', () => {
       'FORM_XXX',
       { baseUrl: 'https://example.test' }
     )).resolves.toBe(schemaResult);
-    expect(utils.httpGetRedirectText).not.toHaveBeenCalled();
+    expect(utils.httpGetCodeBundleText).not.toHaveBeenCalled();
   });
 
   test('hydrates source/runtime for a new Canvas schema and removes the descriptor', async () => {
@@ -589,7 +589,7 @@ describe('CodeBundle schema compatibility', () => {
         }],
       },
     };
-    utils.httpGetRedirectText
+    utils.httpGetCodeBundleText
       .mockResolvedValueOnce(sourceCode)
       .mockResolvedValueOnce(runtimeCode);
 
@@ -602,8 +602,8 @@ describe('CodeBundle schema compatibility', () => {
     const props = resolved.content.pages[0].componentsTree[0].props;
 
     expect(props).toEqual({ code: sourceCode, runtimeCode });
-    expect(utils.httpGetRedirectText).toHaveBeenCalledTimes(2);
-    expect(utils.httpGetRedirectText.mock.calls.map(call => call[2].artifact).sort())
+    expect(utils.httpGetCodeBundleText).toHaveBeenCalledTimes(2);
+    expect(utils.httpGetCodeBundleText.mock.calls.map(call => call[2].artifact).sort())
       .toEqual(['runtime', 'source']);
   });
 
@@ -628,15 +628,15 @@ describe('CodeBundle schema compatibility', () => {
         }],
       },
     };
-    utils.httpGetRedirectText
+    utils.httpGetCodeBundleText
       .mockImplementationOnce((_baseUrl, _path, _query, options) => {
         options.onResponseMetadata({
           baseUrl: 'https://example.test',
-          finalHost: 'bundle.oss.example.test',
+          finalHost: 'example.test',
           status: 200,
           contentType: 'text/plain',
           eagleeyeTraceId: 'trace-integrity',
-          context: 'baseUrl=https://example.test, finalHost=bundle.oss.example.test, status=200, contentType=text/plain, eagleeyeTraceId=trace-integrity',
+          context: 'baseUrl=https://example.test, finalHost=example.test, status=200, contentType=text/plain, eagleeyeTraceId=trace-integrity',
         });
         return Promise.resolve(sourceCode);
       })
@@ -652,7 +652,7 @@ describe('CodeBundle schema compatibility', () => {
       message: expect.stringContaining('eagleeyeTraceId=trace-integrity'),
       details: expect.objectContaining({
         artifact: 'source',
-        finalHost: 'bundle.oss.example.test',
+        finalHost: 'example.test',
         status: 200,
         eagleeyeTraceId: 'trace-integrity',
       }),

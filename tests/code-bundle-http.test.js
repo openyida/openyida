@@ -5,7 +5,7 @@ jest.mock('../lib/auth/token-auth', () => ({
 }));
 
 const {
-  httpGetRedirectText,
+  httpGetCodeBundleText,
   httpPostMultipart,
 } = require('../lib/core/utils');
 
@@ -49,54 +49,71 @@ describe('CodeBundle HTTP transport', () => {
     await expect(requestOptions.body.get('runtime').text()).resolves.toBe('runtime');
   });
 
-  test('follows the OSS redirect without forwarding first-party authentication headers', async () => {
+  test.each([
+    ['source', 'source', 'text/plain'],
+    ['runtime', 'runtime', 'application/javascript'],
+  ])('downloads %s directly from Tianshu', async (artifact, content, contentType) => {
     const metadata = {};
-    global.fetch = jest.fn()
-      .mockResolvedValueOnce(new Response(null, {
-        status: 302,
-        headers: {
-          location: 'https://bundle.oss.example.test/code-bundle/runtime.js?token=short-lived',
-          'eagleeye-traceid': 'trace-first-party',
-        },
-      }))
-      .mockResolvedValueOnce(new Response('runtime', {
-        status: 200,
-        headers: {
-          'content-length': '7',
-          'content-type': 'application/javascript; charset=UTF-8',
-          'x-oss-request-id': 'oss-request-1',
-        },
-      }));
+    global.fetch = jest.fn().mockResolvedValue(new Response(content, {
+      status: 200,
+      headers: {
+        'content-length': String(Buffer.byteLength(content)),
+        'content-type': `${contentType}; charset=UTF-8`,
+        'eagleeye-traceid': 'trace-tianshu',
+        'x-request-id': 'request-tianshu',
+      },
+    }));
 
-    const response = await httpGetRedirectText(
+    const response = await httpGetCodeBundleText(
       'https://yida.example.test',
       '/alibaba/web/APP_XXX/query/codeBundle/download.json',
-      { formUuid: 'FORM_XXX', bundleId: 'a'.repeat(64), artifact: 'runtime' },
+      { formUuid: 'FORM_XXX', bundleId: 'a'.repeat(64), artifact },
       {
         silentStatus: true,
-        maxBytes: 7,
-        expectedContentTypes: ['application/javascript'],
+        maxBytes: Buffer.byteLength(content),
+        expectedContentTypes: [contentType],
         onResponseMetadata: value => Object.assign(metadata, value),
       }
     );
 
-    expect(response).toBe('runtime');
-    expect(global.fetch).toHaveBeenCalledTimes(2);
-    const firstHeaders = global.fetch.mock.calls[0][1].headers;
-    const ossHeaders = global.fetch.mock.calls[1][1].headers;
-    expect(firstHeaders.Authorization).toBe('Bearer test-access-token');
-    expect(ossHeaders.Authorization).toBeUndefined();
-    expect(ossHeaders.Origin).toBeUndefined();
-    expect(ossHeaders.Referer).toBeUndefined();
-    expect(ossHeaders['x-requested-with']).toBeUndefined();
+    expect(response).toBe(content);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const [requestUrl, requestOptions] = global.fetch.mock.calls[0];
+    expect(requestUrl.searchParams.get('artifact')).toBe(artifact);
+    expect(requestOptions.redirect).toBe('manual');
+    expect(requestOptions.headers.Authorization).toBe('Bearer test-access-token');
     expect(metadata).toMatchObject({
       baseUrl: 'https://yida.example.test',
-      finalHost: 'bundle.oss.example.test',
+      finalHost: 'yida.example.test',
       status: 200,
-      contentType: 'application/javascript',
-      eagleeyeTraceId: 'trace-first-party',
-      requestId: 'oss-request-1',
+      contentType,
+      eagleeyeTraceId: 'trace-tianshu',
+      requestId: 'request-tianshu',
     });
+  });
+
+  test('rejects unexpected redirects without following them', async () => {
+    global.fetch = jest.fn().mockResolvedValue(new Response(null, {
+      status: 302,
+      headers: {
+        location: 'https://unexpected.example.test/runtime.js',
+        'eagleeye-traceid': 'trace-redirect',
+      },
+    }));
+
+    await expect(httpGetCodeBundleText(
+      'https://yida.example.test',
+      '/alibaba/web/APP_XXX/query/codeBundle/download.json',
+      { formUuid: 'FORM_XXX', bundleId: 'a'.repeat(64), artifact: 'runtime' },
+      { silentStatus: true, expectedContentTypes: ['application/javascript'] }
+    )).rejects.toMatchObject({
+      code: 'CODE_BUNDLE_DOWNLOAD_HTTP_ERROR',
+      details: expect.objectContaining({
+        finalHost: 'yida.example.test',
+        status: 302,
+      }),
+    });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
   test('classifies a 200 HTML error page before integrity verification', async () => {
@@ -108,7 +125,7 @@ describe('CodeBundle HTTP transport', () => {
       },
     }));
 
-    await expect(httpGetRedirectText(
+    await expect(httpGetCodeBundleText(
       'https://wrong-env.example.test',
       '/alibaba/web/APP_XXX/query/codeBundle/download.json',
       { formUuid: 'FORM_XXX', bundleId: 'a'.repeat(64), artifact: 'source' },
@@ -138,7 +155,7 @@ describe('CodeBundle HTTP transport', () => {
       },
     }));
 
-    await expect(httpGetRedirectText(
+    await expect(httpGetCodeBundleText(
       'https://wrong-env.example.test',
       '/alibaba/web/APP_XXX/query/codeBundle/download.json',
       { formUuid: 'FORM_XXX', bundleId: 'a'.repeat(64), artifact: 'runtime' },
@@ -157,24 +174,17 @@ describe('CodeBundle HTTP transport', () => {
   test.each([
     [403, 'CODE_BUNDLE_DOWNLOAD_FORBIDDEN'],
     [404, 'CODE_BUNDLE_DOWNLOAD_NOT_FOUND'],
-  ])('classifies OSS HTTP %s responses', async (status, code) => {
-    global.fetch = jest.fn()
-      .mockResolvedValueOnce(new Response(null, {
-        status: 302,
-        headers: {
-          location: 'https://bundle.oss.example.test/code-bundle/runtime.js?token=short-lived',
-          'eagleeye-traceid': 'trace-first-party',
-        },
-      }))
-      .mockResolvedValueOnce(new Response('<Error><Code>AccessDenied</Code></Error>', {
-        status,
-        headers: {
-          'content-type': 'application/xml',
-          'x-oss-request-id': `oss-request-${status}`,
-        },
-      }));
+  ])('classifies Tianshu HTTP %s responses', async (status, code) => {
+    global.fetch = jest.fn().mockResolvedValue(new Response('request failed', {
+      status,
+      headers: {
+        'content-type': 'text/plain',
+        'eagleeye-traceid': 'trace-tianshu',
+        'x-request-id': `request-${status}`,
+      },
+    }));
 
-    await expect(httpGetRedirectText(
+    await expect(httpGetCodeBundleText(
       'https://yida.example.test',
       '/alibaba/web/APP_XXX/query/codeBundle/download.json',
       { formUuid: 'FORM_XXX', bundleId: 'a'.repeat(64), artifact: 'runtime' },
@@ -183,10 +193,10 @@ describe('CodeBundle HTTP transport', () => {
       code,
       details: expect.objectContaining({
         baseUrl: 'https://yida.example.test',
-        finalHost: 'bundle.oss.example.test',
+        finalHost: 'yida.example.test',
         status,
-        eagleeyeTraceId: 'trace-first-party',
-        requestId: `oss-request-${status}`,
+        eagleeyeTraceId: 'trace-tianshu',
+        requestId: `request-${status}`,
       }),
     });
   });
@@ -197,7 +207,7 @@ describe('CodeBundle HTTP transport', () => {
       headers: { 'content-type': 'application/octet-stream' },
     }));
 
-    await expect(httpGetRedirectText(
+    await expect(httpGetCodeBundleText(
       'https://yida.example.test',
       '/alibaba/web/APP_XXX/query/codeBundle/download.json',
       { formUuid: 'FORM_XXX', bundleId: 'a'.repeat(64), artifact: 'runtime' },

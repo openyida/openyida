@@ -7,6 +7,7 @@ const {
   compileCanvas,
   compileCanvasLocal,
   extractImportedModules,
+  minifyCanvasRuntime,
   resolveWindowAlias,
 } = require('../lib/app/canvas-compile');
 const {
@@ -809,7 +810,7 @@ describe('compileCanvasLocal', () => {
 
     const { runtimeCode } = compileCanvasLocal(src);
 
-    expect(runtimeCode).toMatch(/const YidaComp\b/);
+    expect(runtimeCode).toMatch(/(?:const|let) YidaComp\b/);
     expect(runtimeCode).not.toMatch(/var YidaComp\s*=\s*YidaComp/);
 
     const Comp = assembleRuntime(runtimeCode, stubReactWindow());
@@ -883,7 +884,7 @@ describe('compileCanvasLocal', () => {
 
     const { runtimeCode } = compileCanvasLocal(src);
 
-    expect(runtimeCode).toMatch(/const App\b/);
+    expect(runtimeCode).toMatch(/(?:const|let) App\b/);
     expect(runtimeCode).toMatch(/var YidaComp\s*=\s*App/);
 
     const Comp = assembleRuntime(runtimeCode, stubReactWindow());
@@ -1065,6 +1066,37 @@ describe('compileCanvasLocal', () => {
 });
 
 describe('compileCanvas (async wrapper)', () => {
+  test('minifies runtime code while preserving the executable YidaComp entry', () => {
+    const unminifiedRuntime = `
+      var YidaComp = function DescriptivePageComponent() {
+        var unusedValue = 1 + 2;
+        return window.React.createElement('div', null, 'ok');
+      };
+    `;
+
+    const runtimeCode = minifyCanvasRuntime(unminifiedRuntime);
+
+    expect(Buffer.byteLength(runtimeCode, 'utf8')).toBeLessThan(
+      Buffer.byteLength(unminifiedRuntime, 'utf8')
+    );
+    expect(runtimeCode).toContain('YidaComp');
+    expect(runtimeCode).not.toContain('unusedValue');
+    const Comp = assembleRuntime(runtimeCode, stubReactWindow());
+    expect(Comp().children).toEqual(['ok']);
+  });
+
+  test('reports a structured error when runtime minification fails', () => {
+    expect(() => minifyCanvasRuntime('function {', {
+      sourcePath: 'pages/src/bad.canvas.jsx',
+    })).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_MINIFY_FAILED',
+      details: {
+        stage: 'canvas_minify',
+        sourcePath: 'pages/src/bad.canvas.jsx',
+      },
+    }));
+  });
+
   test('resolves with runtimeCode + importedModules', async () => {
     const out = await compileCanvas('export default () => <i>ok</i>;');
     expect(out).toHaveProperty('runtimeCode');
