@@ -513,6 +513,15 @@ describe('OpenYida skill contracts', () => {
     expect(byName.get('yida-nav-group').description).toContain('PRD 写明导航顺序时用 order');
   });
 
+  test('canvas data bridge never sends record metadata as dynamicOrder field', () => {
+    const guide = readSkill('yida-skills/skills/yida-canvas-custom-page/references/data-bridge-guide.md');
+
+    expect(guide).toContain('`dynamicOrder` 的 key 必须是 `get-schema` 返回的真实业务字段 ID');
+    expect(guide).toContain('不要把返回记录里的元数据名 `gmtCreate` 当成可排序字段');
+    expect(guide).toContain('按 `row.createTime` 做展示排序');
+    expect(guide).not.toContain('按 `gmtCreate` / 提交日期倒序');
+  });
+
   test('full app delivery collapses resources and emits the verified application entry matrix', () => {
     const root = readSkill('yida-skills/SKILL.md');
     const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
