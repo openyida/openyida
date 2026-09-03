@@ -509,8 +509,16 @@ describe('OpenYida skill contracts', () => {
   });
 
   test('canvas data bridge never sends record metadata as dynamicOrder field', () => {
+    const skill = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');
     const guide = readSkill('yida-skills/skills/yida-canvas-custom-page/references/data-bridge-guide.md');
 
+    expect(skill).toContain('每行业务字段位于 `row.formData[fieldId]`');
+    expect(skill).toContain('`row.formData || row.data || row` 归一化为页面行模型');
+    expect(skill).toContain('不能把字段 ID 直接作为原始行顶层的 `dataIndex`');
+    expect(skill).toContain('有记录但全部显示空值/--');
+    expect(skill).toContain('`dynamicOrder` key 必须来自当前 `get-schema` 返回的真实业务字段 ID');
+    expect(skill).toContain('禁止使用返回记录的元数据名 `gmtCreate`');
+    expect(skill).toContain('没有可排序的业务日期字段时删除 `dynamicOrder`');
     expect(guide).toContain('`dynamicOrder` 的 key 必须是 `get-schema` 返回的真实业务字段 ID');
     expect(guide).toContain('不要把返回记录里的元数据名 `gmtCreate` 当成可排序字段');
     expect(guide).toContain('按 `row.createTime` 做展示排序');

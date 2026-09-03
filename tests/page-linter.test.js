@@ -527,6 +527,53 @@ export function loadRows() {
     expect(errorResult.warnings.map(issue => issue.rule)).not.toContain('page-size-recommend');
   });
 
+  test('blocks static gmtCreate dynamicOrder values passed to searchFormDatas', () => {
+    const source = `
+export function loadDirect() {
+  return this.utils.yida.searchFormDatas({ formUuid: 'FORM-X', pageSize: 50, dynamicOrder: { gmtCreate: '-' } });
+}
+
+export function loadString() {
+  return this.utils.yida.searchFormDatas({ formUuid: 'FORM-X', pageSize: 50, dynamicOrder: '{"gmtCreate":"-"}' });
+}
+
+export function loadStringified() {
+  var order = { gmtCreate: '-' };
+  var params = { formUuid: 'FORM-X', pageSize: 50, dynamicOrder: JSON.stringify(order) };
+  return this.utils.yida.searchFormDatas(params);
+}
+
+export function buildDirectQuery() {
+  var params = { formUuid: 'FORM-X', pageSize: '50', dynamicOrder: '{"gmtCreate":"-"}' };
+  return new URLSearchParams(params).toString();
+}
+`;
+    const result = lintYidaSource(source, '/tmp/searchformdata-dynamic-order-bad.jsx');
+    const issues = result.errors.filter(issue => issue.rule === 'searchformdata-dynamic-order-metadata');
+
+    expect(issues).toHaveLength(4);
+    expect(issues.map(issue => issue.line)).toEqual([3, 7, 12, 17]);
+    expect(issues.every(issue => issue.message.includes('gmtCreate'))).toBe(true);
+  });
+
+  test('accepts business-field dynamicOrder and unrelated gmtCreate data', () => {
+    const source = `
+export function loadRows() {
+  var auditPreview = { dynamicOrder: '{"gmtCreate":"-"}' };
+  return this.utils.yida.searchFormDatas({
+    formUuid: 'FORM-X',
+    pageSize: 50,
+    dynamicOrder: JSON.stringify({ textField_k2abc: '-' })
+  }).then(function (rows) {
+    return rows.sort(function (a, b) { return b.gmtCreate - a.gmtCreate; });
+  });
+}
+`;
+    const result = lintYidaSource(source, '/tmp/searchformdata-dynamic-order-good.jsx');
+
+    expect(result.errors.map(issue => issue.rule)).not.toContain('searchformdata-dynamic-order-metadata');
+  });
+
   test('flags direct searchFormDatas.json misuse (POST / pageNumber / missing query contract / no content unwrap)', () => {
     const badSource = `
 export function YidaComp() {
