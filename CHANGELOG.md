@@ -14,480 +14,341 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- 业务全景图仅按数据模型建立节点，节点 ID 与唯一简称统一引用原表，避免“商品表/商品”重复；无法唯一对应的数据表引用明确报错，保留孤立表单和关联连线。
-
-- 根技能与 yida-app 开头统一提供 Plan 九步、Fast 八步用户待办清单，明确需求分析、PRD 方案确认、应用、表单审批、示例数据、业务页面、发布导航与交付阶段，并同步流程说明和进度示例。
-
-- Plan 新建草稿默认按已确认主色协调浅色画布、填充与边界，并生成优先于模板灰阶限制的项目配色说明；保留中性文字、状态语义、深色表面与显式 token 覆盖。Fast 与 Canvas 引导同步要求整套表面和 antd 主题映射，避免只改按钮颜色。
-
-- `design-plan preview` 按已确定模块更新 PRD、HTML、设计与主题草稿；HTML 复用模板并替换相关章节，主题更新保留自定义样式。`materialize --from-preview` 汇总校验后统一生成正式文档和主题 CSS。
-
-- `create-form batch` 按依赖并行创建普通表单，自动解析关联表单与字段 ID；创建前校验，完成后回读，保留结果以复用已完成资源，失败仅阻断依赖任务。
-
-- 自定义侧边导航和顶部＋侧边导航支持拖拽调宽、收起展开与键盘调宽，消费应用导航 token；CLI 仅向这两类模板注入共享侧栏组件。
-
-- Plan 初始化复用已确认的视觉选择，标准首版只需补齐业务事实，复杂视觉按需精修；`materialize --business-file --visual-file` 合并规划片段，一次生成全部产物，减少重复规划与物化。
-
-- `design-plan init` 从已确认需求建立计划草稿和当前主题编写上下文，复用项目目录、页面标识与导航选择；生成命令返回校验、PRD、设计、HTML 和写入耗时。
-
-- `sample yida-design app-theme` 支持 `--design-file`：通过 CLI 复制公共 CSS 模板，读取 `design.md` 中的具体 token，统一替换品牌色阶和关联值，保留模板选择器及导航作用域。
-- 新增侧边、顶部、顶部＋侧边、悬浮胶囊和页内标签五种 CodeCanvas 导航代码示例，通过 `sample openyida-page-template canvas-nav-*` 按需查阅交互逻辑，复用应用主题 token；页面外观按已确认设计实现。
-- 新增 `canvas-nav-data` 片段：菜单按 PRD 规划，`getAccessableNavs.json` 判断当前用户可见的入口，过滤后保留规划顺序和分组，并按入口用途生成提交页或数据管理页地址。
+- 新增 Plan 搭建模式：先查看和调整 PRD 方案，确认后再开始搭建；也可选择 Fast 模式直接搭建。
+- 搭建方案支持可视化预览，通过业务全景图查看表单及其关联关系，并了解页面、流程和导航规划。
+- 新增 B 端应用主题与布局参考，让页面风格和信息布局更贴合业务场景。
+- 支持批量创建有关联的表单，复用已完成的表单，减少重复搭建。
 
 ### Changed
 
-- 独立主题更新命令记录上次应用的 token，后续仅更新变化项并保留自定义样式；内容不变时跳过写入，CSS 与记录保存失败时一起回滚。
-
-- 首次搭建在同一轮收集 Fast / Plan、业务模块、页面与表单、导航归属与布局及风格；需求简报仅保存轻量内部 JSON，不再扩写并重复确认。导航选项明确平台 L 型、侧导和顶部使用宜搭原生导航，自定义导航在自定义页面内实现且不使用原生导航，大类不标记“推荐”。
-
-- 统一 Fast / Plan 的 11 章 PRD 与页面交接契约：需求来源读取和澄清归 `yida-requirement-analysis`，业务规划归 `yida-prd`，视觉设计归 `yida-design`，编排与版本确认归 `yida-app`；精简重复说明，明确 Plan 视觉候选与页面视觉应用两个阶段。
-- Plan HTML 保留需求总览、数据模型、业务流程、页面规划四章及业务全景图、摘要，补齐示例数据、页面数据来源、交互状态、视觉与素材说明、搭建顺序和验收标准；HTML 供用户完整审阅，Markdown 供 Agent 执行。
-- 视觉技能增加暗色浮层适配指引：根据整体暗色方案成套配置 Balloon、Menu、Popup、Dialog、Dropdown 的 token，并允许在主题 CSS 末尾添加精确 class 覆盖；整体暗黑与深色导航分别判断。
-- 抽屉背景默认跟随 `--pod-shell-theme-bg-color`，支持通过 `background` 参数为单个抽屉设置颜色、渐变或主题 token。
-- 页面规划明确报名、申请等办理入口使用原生提交页，查询和维护入口使用数据管理页；导航已标明当前页面时，内容区直接展示业务内容，收起重复页头及其间距。
-- 自定义导航恢复“场景选型、布局骨架、小段示例”的设计引导，取消强制复制整页 UI；顶部默认浮导，侧导与混合导航必须支持折叠、恢复宽度和拖拽调宽。同步技能索引、PRD、Fast / Plan 设计、页面生成和发布验收。
-- 用户确认计划或主题后即可生成主题 CSS，与表单创建及页面开发并行；appType 和 CSS 就绪就立即同步应用主题与导航设置，不等待页面开发完成。通过 `update-app --theme-file` 保存；`create-app` 只创建应用，不再接受主题、Logo 来源和布局参数。`colour` 限平台主题键或 `custom`，不接受任意颜色值；CSS 主色写入 `themeColor`。
-- 无直接依赖的页面并行开发、检查并各自发布，每页只等待自身所需资源；共享主题或已就绪表单不构成串行依赖，失败仅重试受影响页面。
-- 导航排序统一等待本轮全部页面开发、发布和相关资源创建完成后执行一次，逐页发布不再触发自动排序；主题同步和页面导航隐藏仍提前并行处理。
-- 应用导航隐藏随主题、布局等应用设置一起同步；页面导航隐藏在页面创建或复用取得 ID 后立即执行，与源码开发并行，发布后回读核对。
-- 明确应用主题 CSS 的职责、token 消费方式和生效链路：它是应用基础设置绑定的主题资源，修改本地文件后需要重新上传保存，页面仍需按设计实现布局和交互。
+- 首次沟通集中确认功能、页面、导航和风格，减少重复提问；搭建进度按用户能理解的业务阶段展示。
+- 加快方案生成，支持按需调整和预览；主题配置、表单和独立页面可同时推进，减少搭建等待。
+- 自定义导航更贴合应用设计：顶部支持悬浮样式，侧边支持折叠和拖拽调宽，菜单按访问权限展示。
+- 优化表单抽屉样式，与应用主题更协调；支持拖拽调宽、全屏切换和新窗口打开，查看和填写更方便。
+- 应用背景、卡片、文字和弹层配色更统一，兼顾深色主题和自定义导航；更新主题时保留已有自定义样式。
+- 主题、Logo 和导航等设置统一在应用创建后更新；导航顺序在页面搭建完成后统一整理。
 
 ### Fixed
 
-- 修复品牌浅底覆盖无应用导航透明画布的回归：品牌氛围写入 Shell 浅色背景，原生页面保留独立底色；Canvas 与导航示例统一消费自定义页背景别名，并明确内层页面根也须隔离浮导外边距折叠，避免顶部异色条。
-
-- Canvas 根容器隔离子元素外边距折叠，避免顶部浮导的 margin 将整个页面下移；宿主和页面背景统一消费应用主题变量，无平台导航默认透明，平台导航默认跟随页面主题，保留显式背景覆盖。
-
-- 主题更新完成后回读应用设置，校验 `colour`、`themeColor` 和 `customThemeStyle` 资源绑定；失败返回可恢复诊断，避免接口成功被误认为主题已应用。
-- 恢复抽屉 iframe 的 `minHeight: calc(100vh - 56px)` 兜底，避免百分比高度链断开后内容塌陷；Canvas 编译增加静态内嵌 CSS 括号、字符串和注释结构校验。
-- 表单管理与提交入口分别使用 workbench 和 submission；导航与抽屉示例保留组织、来源及预填参数，详情真实实例 ID 和必需导航参数不被覆盖。明确本页视图、主内容 iframe、当前标签跳转与新标签的区别。
-
-- Plan patch 支持首次添加契约允许的可选子字段，拒绝未知路径、越界数组及只读主题摘要覆盖；具体视觉差异通过 token 同步到设计契约与应用主题 CSS。
-- 补齐页面场景、入口类型、结构、数据来源、稳定设计引用、示例记录和资源顺序校验，避免计划可以确认但缺少实际搭建依据。
-- 源计划与派生产物采用同批暂存和失败恢复，避免写入失败导致文件版本混杂；方案修改使旧确认失效，执行前核对当前展示版本与确认版本一致。
-- 修复 CodeCanvas 完整地址跳转被重复拼接应用路径而出现 404：路由桥在省略 URL 模式参数时自动识别完整应用地址及 HTTP(S) 地址，保留页面 ID 跳转和显式参数的行为。
-- Canvas 发布时为直接承载整页组件的纯容器设置 `min-height: 100vh`，修复嵌入时宿主高度塌陷的问题；补充原生数据管理页嵌入空白时的高度排查与应用主题 CSS 配置指引。
+- 增强 AI 画布的地址跳转引导，减少自定义页面因跳转路径实现错误而无法打开的问题。
+- 改善应用主题已生成但未实际生效的问题。
+- 修复部分自定义页面顶部留白、背景色不一致和嵌入内容被裁切的问题，并加强发布前的样式检查。
 
 ## [2026.9.3-1] - 2026-09-03
 
 ### Fixed
 
-- 自定义页面发布新增排序字段守卫：`searchFormDatas` 与 `new URLSearchParams(...)` 的 `dynamicOrder` 使用 `gmtCreate` 等记录元数据名时，发布前返回 `searchformdata-dynamic-order-metadata`，覆盖对象字面量、JSON 字符串与常量绑定 + `JSON.stringify` 三种静态写法，避免运行时 `selectListException 无法找到字段:gmtCreate`。
-- `data query form --dynamic-order` 在请求前校验字段引用：未知字段与记录元数据名不再原样提交，统一走 `requireKnownDataFieldRef` 返回确定性错误，并按 `--resolve-aliases` 决定是否做别名翻译。
+- 改善表单查询和列表排序检查，减少字段配置错误导致的查询失败。
+- 改善列表数据展示，避免已有记录却显示为空。
 
 ### Changed
 
-- `yida-canvas-custom-page` 技能补充排序与行数据契约：排序只使用 `get-schema` 返回的真实业务字段 ID，列表行按 `row.formData || row.data || row` 归一化，避免「有记录但全部显示空值」。
-- `yida-prd` / `yida-design` / `yida-requirement-analysis` 技能澄清并行工作流：两者各自读取冻结后的需求简报并独占产物文件，措辞统一为面向用户的表述。
+- 优化业务方案与视觉设计的协作，减少重复处理需求。
 
 ## [2026.9.2-2] - 2026-09-02
 
 ### Added
 
-- 完整应用编排新增共享需求简报与双 artifact 并行链路：`yida-requirement-analysis` 写入 `.cache/openyida/<项目名>/requirement-brief.json` 后冻结，`yida-prd` 与 `yida-design` 分别独占 `prd/<项目名>/prd.md` 和 `design.md` 并行产出，由 `yida-app` 在两者完成后 join 校验稳定引用；command manifest 与 agent capabilities 同步暴露该路由。
-- agent capabilities 新增 `application_entry_policy`：完整应用只交付一组应用访问入口，工作台恒定包含，独立业务入口需 `get-form-config` 回读确认 `isRenderNav=false`，开发后台入口在云端托管 agent 环境下省略。
+- 业务方案与视觉设计可同步准备，加快完整应用搭建。
+- 应用交付入口更清晰，集中提供工作台和必要的业务入口。
 
 ### Fixed
 
-- 导航排序改为幂等且可验证：写入前做差异比对，写入后按 `navUuid` / `parentNavUuid` / `siblingIndex` / `navType` 全量回读，分别返回 `NAV_ORDER_NOT_APPLIED`（可安全重试）、`NAV_ORDER_READBACK_MISMATCH` 和 `NAV_ORDER_RESULT_UNKNOWN`，错误详情只输出首个差异摘要，避免大导航结构下的输出膨胀。
-- 表单数据写入新增 `AssociationFormField` 契约校验：关联表单字段必须提供 `appType` / `formUuid` / `formType` / `instanceId` / `title`，查询派生的 `associationFormField_*_id` 字段拒绝作为写入负载，POST 前返回 `DATA_ASSOCIATION_FORM_VALUE_INVALID` 或 `DATA_ASSOCIATION_FORM_DERIVED_FIELD_READ_ONLY`，不再出现「接口成功、读回为空」。
-- `--resolve-aliases` 遇到未知字段引用时在写入前阻断：显示标签或拼错的 `fieldId` 不再原样提交，改为返回 `DATA_FIELD_REFERENCE_UNKNOWN` 并给出确定性的 `get-schema --field-map-json` 下一步；同时收窄 JSON 解析异常范围，保留业务错误码。
+- 改善导航排序的稳定性，并检查调整是否生效。
+- 加强关联表单和字段检查，减少数据保存后关联信息为空或写入失败的问题。
 
 ## [2026.9.2-1] - 2026-09-02
 
 ### Added
 
-- `create-form create` 新增 `--icon auto|<name>`：表单创建并保存 Schema 后，按标题与字段语义从宜搭表单导航图标集中自动选图标，也可显式指定；新增 `create-form icons --json` 查询全部可选图标。
-
-### Changed
-
-- 表单导航图标更新对齐 yida-next 的 `Nav.update` 请求契约，并在写入后回读校验；命令参数同步注册到 command manifest 与 agent capabilities，确保云端 yida-agent 可发现和调用。
+- 表单创建支持根据业务选择合适的展示图标，也可自行指定。
 
 ## [2026.9.2] - 2026-09-02
 
 ### Added
 
-- `create-app` / `update-app` 新增应用级自定义主题 CSS 支持：通过 `--theme-file` 在远程写入前完成文件、安全协议与品牌色阶校验，自动从 `--color-brand1-6` 派生 `themeColor`，并与 `navTheme` / `logoSource` / `layoutDirection` 联合保存。
-- 新增 `openyida-scaffold` 预置脚手架，提供 `form-fields` 表单字段配置和 `canvas-form-drawer` Canvas 表单抽屉入口模板。
-- Canvas 发布层扩展表单、流程、表单设计与通用 yida API 桥，并新增 `window.__OPENYIDA_UTILS__` 运行时工具桥及能力枚举。
+- 支持 4 种默认导航风格和自定义导航，满足不同应用的布局与风格需求。
+- 支持导入自定义应用主题，统一页面、表单、导航和弹层的视觉风格。
+- 提供表单与抽屉交互示例，自定义页面可接入更多表单和流程操作。
 
 ### Changed
 
-- 新建应用默认使用 `l_shape` 布局；未命中行业预设时从平台图标集中选择图标，系统图标颜色与应用主色保持同步。
-- 完整应用编排改为由同一份应用级主题 CSS 统一覆盖自定义页、普通/流程表单、提交页、详情页和 `FormOpenContainer` iframe；主题模板补齐 Shell、页面、表单、表格、导航与浮层等语义 token。
-- 预置 Canvas 页面统一消费 `--pod-page-bg-color` / `--pod-card-bg-color` 等应用主题变量，移除页内独立主题作用域和固定渐变背景。
-- 安装阶段会将技能目录中的历史备份移出宿主扫描路径，同步已有 Codex 插件缓存，并在能力可用时尝试刷新当前插件安装。
+- 新建应用默认采用 L 型导航，并根据业务选择图标、协调图标与主题配色。
+- 优化技能安装与更新，减少旧版内容重复加载。
 
 ### Removed
 
-- 移除 `form-detail-style apply/remove/check` 命令及表单 Schema 内的主题/formDetail CSS 注入链路；原生表单和详情页由平台渲染。
+- 移除单独修改表单详情样式的旧方式，统一通过应用主题设置外观。
 
 ## [2026.9.1-1] - 2026-09-01
 
 ### Fixed
 
-- 报表链接返回规范化的工作台地址：`create-report` / `append` / `inspect` 及 owned residual 分支统一由 `lib/report/url.js` 单点构造，同时返回 `url` 与 `workbenchUrl`，不再出现无法打开的拼接链接。
-- 数据看板与报表新增语义护栏：`query-data` / `get-schema` / 报表契约在配置缺失或字段语义不成立时给出结构化失败，避免生成空看板或错绑字段。
-- 登录态缓存按沙箱绑定隔离：`token-store` 以沙箱绑定信息作为 token 缓存的围栏，防止不同沙箱环境间复用同一份 token session。
+- 修复部分报表链接无法打开的问题。
+- 加强看板和报表的数据配置检查，减少空看板和字段关联错误。
+- 修复不同沙箱环境之间登录状态相互影响的问题。
 
 ## [2026.9.1] - 2026-09-01
 
-### Changed
+### Added
 
-- `openyida create-app` 创建应用时默认启用现代主题（注册请求带上 `createWithModernTheme=y`）；`import-app` 行为保持不变。
+- 应用支持宜搭新版应用主题。
+- OpenYida 支持通过脚手架创建页面，提高编码速度。
 
 ## [2026.8.31-2] - 2026-08-31
 
 ### Fixed
 
-- 修复普通表单字段动作绑定「写入成功但设计器仍显示新建动作」的问题：`create-form patch` 的 `bind-field-action` 现在同时写入设计器原生事件结构（`JSExpression` + `actionRef`）与动作面板目录条目，保存后回读校验「导出函数 + 动作目录条目 + 原生事件结构」三要素齐全，任一缺失即以结构化错误失败，不再误报成功。
-- 修复动作目录同步会抹掉条目元数据的问题：`syncDesignerActionCatalog` 改为合并语义（只增不删），生命周期/组件事件条目的 `relatedEventId`、`type`、`params` 得以保留；仅清理已失效的 `openyidaRuleChange_*` 自有包装动作，用户与平台自有条目不再被静默删除。
-- 修复动作源码校验把业务常量误认作动作的问题：改用只识别顶层 `export function` 的窄提取器，`export const` 常量不再注册进动作面板。
-- 修复字段查找在写入侧与回读侧不对称的问题：回读时同时匹配 `field.fieldId` 与 `props.fieldId`，避免写入成功却回读报 `FIELD_NOT_FOUND`。
+- 修复表单动作保存后在设计器中未正确显示的问题，更新动作时保留已有配置。
+- 改善表单字段识别，减少字段已存在却提示找不到的问题。
 
 ### Changed
 
-- 补充下拉单选 `onChange` 取值契约文档：动作参数从 `value` 传入而非 `event`，可能是原始值、`{ value, actionType }` 或开启 `useDetailValue` 后的 `{ value: { label, value } }`；并新增各组件动作值形态对照表（标量 / 数组 / `{ start, end }` / 成员对象），说明不能统一 `String(value)`。
+- 完善下拉选择、日期、成员等字段的交互引导，减少表单联动出错。
 
 ## [2026.8.31-1] - 2026-08-31
 
 ### Changed
 
-- 完整应用的列表页策略默认改为普通表单的数据管理页（`native-list`），不再默认创建自定义列表页；只有用户明确要求自定义列表时才规划并实现 `display-page / list`。
-- 同步更新 `yida-design` 信息架构、PRD 输出模板与 `yida-app` 编排约束：资源蓝图、页面实现顺序、导航分组与验收清单均以表单数据管理页为默认数据查看入口。
-- 新增技能契约测试锁定上述默认行为，防止回退到「默认自定义列表页」。
+- 应用列表默认使用宜搭数据管理页，需要个性化展示时再搭建自定义列表。
 
 ## [2026.8.31] - 2026-08-31
 
 ### Added
 
-- 新增 `openyida data delete form <appType> <formUuid> --inst-id <id> --confirm`：单条表单数据精确删除，强制 `--confirm` 确认、删除前目标校验与删除后回读确认；流程实例删除仍不支持，会以 `DATA_PROCESS_DELETE_UNSUPPORTED` 明确拒绝。
+- 支持删除指定的单条普通表单记录，删除前需确认；暂不支持删除流程实例。
 
 ### Fixed
 
-- 报表创建/追加图表失败时的恢复路径收敛：区分副作用已发生与未发生，避免在不确定状态下直接重试导致重复写入。
-- `project` 工作目录初始化新增目标路径安全校验，拒绝拷贝到源目录自身或其子目录。
-- 自定义页面构建/检查/发布链路与页面兼容层的异常语义对齐，预检失败不再产出歧义提示。
-
-### Changed
-
-- CLI 错误契约扩展结构化字段（`partial`/`residual`/`retrySafe`/`sideEffectState`/`readbackAllowed`/`recommendedRecovery`/`nextAction` 等），供 agent 判断副作用状态与重试安全性。
-- `create-report` / `append-chart` 补齐 `--json` 输出；README 双语命令表同步。
-- 同步 yida-data-management / yida-report / yida-create-form-page / yida-app 等子技能文档与命令清单。
+- 改善报表创建失败后的处理，减少重试造成的重复内容。
+- 优化页面发布失败提示，便于判断问题和继续处理。
 
 ## [2026.8.30] - 2026-08-30
 
 ### Fixed
 
-- 集成逻辑流数据赋值的设计器来源引用 `#{节点别名//字段ID}` 现在会解析为节点 ID 后再写入，修复公式来源字段别名未转换导致的保存失败。
-- 集成逻辑流构建时拒绝悬空（未知）的设计器来源节点别名引用，提前给出明确错误而非产出无效 spec。
-
-### Changed
-
-- `httpGet` 查询串拼接修复：路径已含查询串时改用 `&` 追加，避免产生双 `?` 的非法 URL；`--dynamic-order` 等参数透传更稳。
-- `openyida data query form` 补齐 `--dynamic-order` 文档：`{"fieldId":"+"}` 升序 / `{"fieldId":"-"}` 降序，未指定时不保证结果顺序。
-- 清理报表不支持的图表类型（radar/scatter/area/number）死代码，`getChartSettings` 保持 fail-closed 拒绝。
-- 同步 README、yida-api、yida-data-management、yida-integration 等文档。
+- 修复集成自动化引用其他节点数据时可能保存失败的问题。
+- 改善带筛选、排序等条件的数据查询，减少请求出错。
 
 ## [2026.8.29] - 2026-08-29
 
 ### Added
 
-- CRM Pro 评测新增确定性证据链：命令轨迹独立采集（临时 PATH shim + 敏感参数脱敏）、证据断言引擎、平台只读回读、schema-diff 稳定快照、只读重放（`eval:replay`）与浏览器运行时验收。
-- `get-schema` 新增 `--analysis-json` 表单 Schema 语义分析（字段角色、关联与能力诊断）。
-- 报表新增 `map`、`calendarHeatmap` 图表类型，覆盖能力注册、图表构建与数据模型校验。
+- 报表新增地图和日历热力图。
+- 增强表单结构分析，帮助 AI 理解字段用途和关联关系。
 
 ### Changed
 
-- `openyida integration list` 默认查询范围从仅 `flowType=1` 扩展为全部已知类型 `1,2,3,5,6`。依赖旧口径做数量断言的脚本应显式传入 `--flow-types 1`。
-- 报表保存契约规范化平台省略的 `null` 默认键，修复回读误判；schema 结果校验收紧为要求 `pages` 为数组。
-- CLI `--help` 改为命令清单驱动的按命令帮助，usage 与 examples 与 manifest 保持一致。
-- 同步 yida-get-schema / yida-report / yida-integration 等子技能文档与 README 双语命令表。
+- 集成自动化列表支持查看更多类型的自动化任务。
+- 完善命令帮助，使用说明和示例更一致。
+
+### Fixed
+
+- 减少报表已保存却被误判为失败的问题。
 
 ## [2026.8.28] - 2026-08-28
 
-### Added
-
-- OAuth 登录回调页新增完整的成功/失败界面、12 语言文案、HTML 转义与自动关闭失败回退，登录完成状态更清晰。
-- 权限、流程、集成自动化、聚合表、报表和连接器新增确定性契约、平台回读、运行态与 UI 证据链，覆盖真实搭建与安全清理边界。
-
 ### Changed
 
-- 权限保存采用精确目标匹配和逐字段回读，修改人员时保留部门、角色与动态成员配置，并统一脱敏诊断信息。
-- 流程整图更新要求显式替换，补齐 MultiApproval 与多分支序列化、草稿选择和发布视图验证，避免多义目标与半成品流程。
-- 集成自动化补齐有界分页、精确匹配、节点契约、配置摘要与最终态回读；空配置、未知写入结果和不安全清理统一 fail-closed。
-- 聚合表保存增加 revision/CAS、跨数组引用校验、发布态回读及 ownership/restore 证据，避免并发覆盖和空结果误判成功。
-- 原生报表统一能力注册、布局与严格 Schema 回读，过滤创建期客户端元数据，并拒绝空报表配置。
-- 自定义连接器支持 DingAuth、稳定 action identity 与参数化测试；部分编辑保留未修改的认证、请求参数和返回结构，拒绝无变化写入及误清空配置。
+- 登录结果展示更清晰，支持多语言提示。
+- 优化权限调整，修改人员时保留已有部门和角色配置。
+- 改善审批流程、集成自动化、聚合表和报表的保存检查，减少配置遗漏或未生效的问题。
+- 更新连接器时保留未修改的认证和请求配置，减少误覆盖。
 
 ### Security
 
-- 真实 E2E、错误信息和诊断产物统一收紧敏感字段输出；无法证明资源归属或删除安全性时记录为 blocked/cleanup_blocked，不再伪报成功。
+- 减少错误提示和诊断信息中的敏感信息暴露。
 
 ## [2026.8.27-2] - 2026-08-27
 
 ### Added
 
-- npm 全局安装新增 Homebrew 风格自动更新：普通命令执行前至多每 24 小时检查一次 npm `latest`，发现新版本后安装精确版本并重跑原命令；提供缓存、非阻塞锁、完整 SemVer 比较和关闭开关。托管云端 Agent 在缓存、registry 与 npm 调用前直接跳过。
+- 本地安装支持自动检查和更新版本，也可关闭自动更新。
 
 ### Removed
 
-- 移除已退役的悟空 Agent 和 Aone Copilot 专属兼容，包括 `AGENT_WORK_ROOT` / `.real` 工作区、`.aone_copilot` 环境识别与技能安装、悟空自带 Node/npm、技能上传 zip 构建及 GitHub Release 附件；`DingTalkWuKong.app` 的钉钉客户端识别继续保留。
+- 停止支持已退役的悟空 Agent 和 Aone Copilot 专属集成。
 
 ### Fixed
 
-- 新增新 Qoder 桌面应用的跨平台环境识别，并将原 Qoder 正确标识为 Qoder IDE；三者不再因模糊匹配 `qoder` Bundle ID 而误归为 QoderWork，skills 目录与 `builderAiSource` 也会落到对应产品契约。
+- 改善 Qoder、Qoder IDE 和 QoderWork 的识别，避免安装到错误位置。
 
 ## [2026.8.27-1] - 2026-08-27
 
 ### Fixed
 
-- 报表日期字段的时间粒度此前被硬编码为 `DAY`，用户在图表配置中指定的 `timeGranularityType` 全部被丢弃；现支持 `YEAR | MONTH | DAY | HOUR | MINUTE | SECOND` 并同步写入查询模型与展示字段（通用图 / 组合图 / 表格 / 透视表 / 仪表盘均覆盖），空值默认仍为 `DAY`，非法值在远程写入前即以 `CREATE_REPORT_CHART_CONFIG_INVALID` 拒绝。
+- 修复报表忽略日期统计粒度的问题，支持按年、月、日、时、分、秒统计。
 
 ## [2026.8.27] - 2026-08-27
 
 ### Changed
 
-- 精简 npm 发布包：移除未使用的 `ajv` 依赖，收敛 `files` 白名单，发布包不再携带 `scripts/eval/`、`scripts/e2e-real/` 与 `validate-*` 等评测/校验工具链；包内容校验改为白名单断言，越界文件会在打包检查阶段直接拦截。
-- 移除 `eval` CLI 入口：发布包内不再包含评测命令，`command-manifest` 与命令帮助同步收敛。
+- 精简安装包，减少下载和安装体积。
 
 ## [2026.8.26] - 2026-08-26
 
 ### Fixed
 
-- 真实 E2E 默认使用仓内专用、零依赖 Canvas fixture，并在创建远端资源前完成文件存在性与本地编译校验。
-- `create-form`、自定义页面发布、应用导入和表单详情样式的 Schema 保存链路不再调用无实际作用的 `updateFormConfig`，消除冗余请求及误导性 warning；独立 `update-form-config` 命令继续使用有效的 `updateFormSchemaInfo` 接口。
-- 应用导入在创建目标表单后读取目标表单的当前 revision，再保存迁移 Schema，避免沿用源表单 revision 导致“页面已变更”。
-- `create-form` 与 `create-page` 的创建请求不再在登录态变化后被自动重放，避免重复创建表单或页面。创建前先发一次只读探测刷新登录态，创建请求本身只发送一次；若创建期间登录态仍发生变化，返回 `errorCode: NON_IDEMPOTENT_RESULT_UNKNOWN` 并提示先核对目标状态再决定是否重试。只读探测接口自身不可用时不阻塞创建。
-- Canvas 编译新增平台 JSX 实例 API 校验：Code Canvas 组件中使用实例 API 时在本地编译阶段即报 `OPENYIDA_CANVAS_INSTANCE_API_UNAVAILABLE`，并提示改用 React hooks、props 或 `window.__OPENYIDA_YIDA_API__` 数据桥，避免发布后页面运行时才失败。
+- 修复应用导入时可能提示“页面已变更”的问题。
+- 减少登录状态变化导致重复创建表单或页面的问题。
+- 加强 AI 画布发布前检查，提前发现不支持的页面写法。
+- 减少表单保存和页面发布过程中的无效警告。
 
 ### Changed
 
-- `integration create --process-code` 执行整图替换时必须同时传入 `--replace`；LLM 在确认目标 `appType`、`formUuid`、`processCode` 和替换摘要后执行该命令。已有命令补充 `--replace` 后继续使用。
-- Canvas 源码中的非标准运行时能力通过 `window.<name>` 或 `parentWindow.<name>` 访问并检查目标方法；裸 `dd.biz.*` 改为通过 `window.dd` 调用。已发布页面继续运行，重新编译或发布源码时按该写法迁移。
+- 替换已有集成自动化时，需要明确确认替换范围。
 
 ## [2026.8.25-1] - 2026-08-25
 
 ### Fixed
 
-- 修复连接器列表分页失效导致的查找失败：`listConnectors` 此前硬编码 `currentPage=1` 且未使用 `total` 判断后续分页，企业连接器数量超过单页上限（默认 100）时，靠列表匹配定位的命令会误报「连接器不存在」。受影响命令为 `connector detail` / `connector add-action` / `connector delete-action` / `connector list-connections` / `connector create-connection`；现改为逐页遍历，触达 100 页上限时抛 `CONNECTOR_LIST_PAGINATION_LIMIT`（鉴权账号列表同理抛 `CONNECTOR_CONNECTION_PAGINATION_LIMIT`），不再基于不完整列表下结论。
-- 修复 i18n 棘轮校验长期失效：此前 `CORE_CHECK_LOCALES` 将棘轮限定为仅校验 `en`，10 个可选语言完全跳过，且基线记录的缺失数远高于实际值，使 `current > saved` 永不成立。现所有语言均参与棘轮，并改为记录 `missingKeys` 精确路径比对，防止「补一个 key 同时漏一个新 key」在总数不变时绕过校验；`ar` / `de` / `es` / `fr` / `hi` / `ja` / `ko` / `pt` / `vi` / `zh-HK` 已补齐全部缺失文案（含 `publish.lint_*` 等历史欠账），11 个目标语言包与基准 `zh` 完全对齐。
+- 修复连接器较多时，部分连接器无法找到的问题。
+- 补齐多语言提示，减少文案缺失。
 
 ### Changed
 
-- `openyida aggregate-table`、`openyida report`、`openyida connector` 三个业务域统一改为「本地契约校验 → 一次性远端写 → canonical 回读逐字段比对」：校验不通过抛 `AGGREGATE_DESIGN_CONTRACT_INVALID` / `CONNECTOR_CONTRACT_JSON_INVALID`，回读不一致抛 `AGGREGATE_DESIGN_READBACK_MISMATCH` / `REPORT_SCHEMA_READBACK_MISMATCH` / `CONNECTOR_READBACK_MISMATCH`，聚合表写入额外校验服务端 revision 变化（`AGGREGATE_WRITE_REVISION_MISSING` / `AGGREGATE_WRITE_REVISION_UNCHANGED`），不再仅依赖接口返回码判定成功。
-- `openyida connector delete <id> [--force]` 明确为只读指引命令：CLI 仅查询并展示目标连接器，输出平台手工删除入口，不执行删除。因连接器为企业级共享资源，CLI 无法确定性证明其未被表单、页面、流程或集成自动化引用，故不代为执行不可逆删除。README、技能文档与 12 个语言包的命令描述已同步对齐。
-- 连接器保存不再向平台 `description` 字段写入操作者 userId（此前会写入 `👤 创建人` / `✏️ 最近修改人`）。已存在该内容的连接器在下次保存时会自动清除，无需手工处理。
-
-### Added
-
-- 新增聚合表、报表与连接器的契约模块（`lib/aggregate-table/contract.js`、`lib/report/contract.js`、`lib/connector/contract.js`）及配套真实环境 E2E 校验资产；`lib/core/yida-client.js` 新增受 one-shot 鉴权约束的 `postJsonOnce` 写通道。
+- 加强聚合表、报表和连接器的保存结果检查，减少配置未生效却提示成功的问题。
+- 删除共享连接器时提供平台操作入口，由用户在平台完成删除。
+- 连接器描述不再附加操作者信息，保持业务说明简洁。
 
 ## [2026.8.25] - 2026-08-25
 
 ### Changed
 
-- `openyida save-permission` 目标权限包匹配改为 fail-closed：未命中抛 `SAVE_PERMISSION_NO_MATCHING_PACKAGE`、多义抛 `SAVE_PERMISSION_AMBIGUOUS_PACKAGE`、查询结果触达分页上限抛 `SAVE_PERMISSION_QUERY_LIMIT_REACHED`，避免误写到非预期角色；`--members` 仅增删 `PERSONS`，保留原有 `DEPARTMENT`/`ROLE`/`PARAM`/`MANAGER` 配置，压扁复合成员结构必须显式 `--confirm-member-replace`。
-- `openyida get-permission` 返回结果新增 `roleData`（含 `include` 明细）与 `query` 元信息（`pageSize`/`returned`/`mayHaveMore`），便于确认是否存在未返回的权限包。
-- `openyida save-share-config`、`openyida app-permission`、`openyida corp-manager` 全部改为「写前读 + 写后回读逐字段比对」，校验不通过时抛出对应 `*_VERIFY_FAILED` 错误，不再仅依赖接口返回码判定成功。
-- `openyida integration-create` 调整执行顺序为「本地校验与构建全部通过后才发起首次远端写」，并对节点类型、赋值、审批动作、连接器模式、`${alias}` 引用做白名单强校验；发布失败时返回 `success:false / savedAsDraft:true` 并抛 `INTEGRATION_PUBLISH_FAILED`，不再静默当作成功。
-- `openyida configure-process` 先用占位 processCode 完成本地编译，编译失败即抛 `CONFIGURE_PROCESS_BUILD_FAILED` 且零远端写入；流程编译器对路由目标缺失、节点重名、审批人缺失改为 fail-closed 报错（`PROCESS_COMPILE_ROUTE_TARGET_INVALID` / `PROCESS_COMPILE_NODE_NAME_DUPLICATE` / `PROCESS_COMPILE_APPROVER_REQUIRED`）。
-
-### Added
-
-- 新增流程、集成自动化与表单权限的契约测评与真实环境 E2E 校验资产（`scripts/eval/integration-contract/`、`scripts/eval/process-contract/`、`scripts/e2e-real/process/`、`scripts/e2e-real/permission/`），用于在改动上述模块后回归编译产物与平台回读一致性。
+- 改善权限范围识别，减少修改到错误权限组的问题；调整人员时保留已有部门和角色设置。
+- 加强分享设置和管理员权限的更新检查，确认设置实际生效。
+- 审批流程和集成自动化在保存前检查必要配置，发布失败时明确提示，避免将草稿误认为已发布。
 
 ## [2026.8.20] - 2026-08-20
 
 ### Added
 
-- `openyida save-permission` 支持复杂 `dataPermit` 规则透传与权限矩阵成员配置，可在保留原始权限表达能力的同时批量生成成员维度的数据权限。
-- `save-permission --all-members` 新增全员可见全部数据快捷配置，并同步表单权限技能文档中的权限矩阵与全员数据可见说明。
+- 支持按成员批量配置数据权限，也可快捷设置全员查看全部数据。
 
 ### Fixed
 
-- 流程表单数据提交改用 `startInstance` 链路，避免通过通用数据更新路径发起流程实例时出现提交语义不一致。
+- 改善流程表单提交，确保按发起流程的方式处理。
 
 ## [2026.8.19-2] - 2026-08-19
 
 ### Fixed
 
-- 修正 `2026.8.19-1`（#497）引入的 env token 不落盘语义：`OPENYIDA_AUTH_MODE=token` 现在按 **env token bootstrap** 处理，refresh 结果写入项目级 token 缓存（文件权限 0600，原子写入）并优先复用，避免每次命令重复 refresh；也避免 refresh token 轮换场景下新凭证丢失导致后续认证失败。落盘隔离在项目作用域，不污染用户级共享登录档案。
-- refresh-only 的 env token 现在正确上报 `ok` / `can_auto_use=true`。
-
-### Changed
-
-- 保留“不回退 OAuth”保障：env token 模式下 `openyida login` 仍返回 noop 结果（凭证可用→`ok=true`；缺凭证→明确提示请运行环境注入 token），两者均不弹浏览器。
-- 移除 CLI 对 `YIDA_AUTH_ENABLED` 的依赖，判定统一为 `OPENYIDA_AUTH_MODE=token`；`agent-capabilities` 将 `host_injected_token_mode` / `host_token_env_detected` / `env_token_present` 等重叠字段收敛为单一 env token 语义，`auth_runtime` 新增 `env_token_bootstrap`，`missing_token_action` 统一为 `STOP_AND_REQUEST_ENV_TOKEN`（受影响环境：yida-agent 云端等运行环境注入 token 场景；本地 OAuth 与三端浏览器拉起路径不变）。
+- 改善云端登录状态的续期和复用，减少重复认证及后续操作登录失效的问题。
 
 ## [2026.8.19-1] - 2026-08-19
 
 ### Fixed
 
-- 修正云端宿主注入 token 的识别：`OPENYIDA_AUTH_MODE=token` 且存在 `OPENYIDA_ACCESS_TOKEN` 或 `OPENYIDA_REFRESH_TOKEN` 时，即使未设置 `YIDA_AUTH_ENABLED` 也识别为宿主注入登录态，不再回退到 OAuth 浏览器登录（修正 yida-agent 等无浏览器云端环境下 refresh-token 会误触发 OAuth 的问题）。
-- `openyida login` 在宿主注入模式下短路返回 `login_action=noop`：凭证可用时直接报 `ok=true`，缺 token 时给出“请宿主注入 token”的明确提示，两者均不弹浏览器。
-
-### Changed
-
-- host-injected 登录判定收敛为单一事实源：`agent-capabilities` 与 `core/utils` 统一复用 `token-store` 的 `isHostInjectedTokenMode`，CLI 层的 `isEnvAuthMode()` 分支下沉至 `tokenLogin`，消除多处判定漂移（受影响环境：yida-agent 云端等宿主注入 token 场景，本地 OAuth 与三端浏览器拉起路径不变）。
+- 修复云端已有登录状态时仍要求打开浏览器登录的问题。
 
 ## [2026.8.19] - 2026-08-19
 
 ### Added
-- `openyida update-app` 新增 `--hide-app-nav` / `--show-app-nav` 及兼容别名，用于自定义页面自绘顶部导航或侧边导航壳时显式隐藏或恢复访问态应用导航。
+
+- 支持应用导航隐藏与恢复，方便搭建自定义导航和全屏页面。
 
 ### Changed
-- 自定义页面、完整应用设计和导航壳技能规则统一为默认保留平台应用导航，仅在用户明确要求自定义页侧边导航、顶部导航、导航壳或全屏无导航时才开启隐藏应用导航。
-- 同步命令 manifest、README 命令表和能力清单中的 `update-app` 导航隐藏参数，并补齐 `nav-group auto-order` 能力清单说明。
+
+- 默认保留平台导航，根据用户需求切换为自定义导航。
 
 ### Fixed
-- `hideAppNav` 默认不写入更新应用请求，避免普通应用或未明确导航诉求的自定义页面被误隐藏应用导航。
+
+- 避免普通应用设置更新时意外隐藏导航。
+
 ## [2026.8.17-3] - 2026-08-17
 
 ### Added
 
-- auth profile 管理 UX：新增 `openyida auth profiles` 列出共享登录档案、`openyida auth profile switch <profile|corpId>` 非破坏性切换当前项目指针；auth status / agent-capabilities 新增 `profile_required` 候选与 `next_step` 提示。
+- 支持查看和切换已登录账号及组织，方便在不同项目间使用。
 
 ### Changed
 
-- logout 语义拆分：默认 `openyida auth logout` 只解绑当前项目指针 / legacy token，保留共享用户档案；`--profile <id>` 删单个档案，`--all` 删全部。
-- 移除已废弃的 cookie authRef 兼容分支：`createAuthRef` 仅接受 token 登录态，HTTP helper 不再构造 `Cookie` / `global_csrf_token` header，legacy cookie 数组参数被忽略并继续走 Bearer token；与 `agent-capabilities` 的 `cookie_auth_supported:false` 声明对齐。（无破坏性变更：删除的是已声明不支持的 cookie 登录回退路径，OAuth token / host-injected token 路径不受影响。）
+- 默认退出登录只解除当前项目的登录关联，不影响其他项目；也可选择退出指定账号或全部账号。
 
 ## [2026.8.17-2] - 2026-08-17
 
 ### Changed
 
-- 强化 `caller_open_url` 登录模式的 Agent 行为契约：web sandbox 下 `openyida login --no-browser` 后，Agent 必须优先调用宿主沙箱浏览器 / 内置 Browser 打开 CLI 输出的授权 URL，只有无浏览器工具或调用失败时才回退让用户手动打开；`agent-capabilities` 快照新增 `url_source` / `manual_user_open_fallback` / `must_not_only_print_url_when_agent_browser_available` 字段，并同步 yida-login 与环境准备技能文档（受影响平台：QwenWork web sandbox 等 agent browser 环境）。
+- 网页版 AI 工具优先通过内置浏览器打开登录授权页，减少手动复制链接。
 
 ## [2026.8.17-1] - 2026-08-17
 
 ### Added
 
-- 新增 `openyida check-prd-completeness`：对照 PRD 与应用实际资源的交付风险雷达（只读命令，输出结构化 JSON）。
-- 用户级 auth profile store：优先用户级登录档案，保留项目级缓存兼容；宿主注入 token 仍为最高优先且不持久化。
-- `agent-capabilities --summary-json` 暴露登录/浏览器能力提示与项目根/技能目录来源说明。
+- 支持对照 PRD 检查已搭建的应用资源，提示可能遗漏的内容。
+- 登录账号可在多个项目间复用，减少重复登录。
 
 ### Changed
 
-- 发布健康检查改为基于 token 鉴权的 schema 回读比对（指纹校验 Canvas runtimeCode / native compiled），取代已失效的 Cookie + HTML 检查。
-- 稳定 QwenWork / Mule / Qoder 工作区识别，避免 `work` 与 `work/project` 漂移。
-- Release notes 技能包文案改为通用表述。
-
-### Fixed
-
-- 修正 #489 带入的 `package.json` 版本回退（`2026.8.16-beta.1` → `2026.8.17-1`），使仓库版本重新高于已发布的 latest。
+- 改善页面发布结果检查，确认发布内容已保存。
+- 改善千问办公、MuleRun 和 Qoder 等环境的项目识别。
 
 ## [2026.8.17] - 2026-08-17
 
-### Added
-- 新增 2026.8.11 到 2026.8.14 的版本改造对比报告，补充技能体积、文档结构和性能影响分析。
-
 ### Changed
-- 自定义页面默认开发链路收拢到 `yida-canvas-custom-page` 与 `YidaCodeCanvas`，`yida-custom-page` 聚焦历史 `.oyd.jsx` / `.oyb.jsx` / `renderJsx` / 平台 `Jsx` 页面维护。
-- 更新 `yida-app`、技能路由、评测场景和覆盖矩阵，清理普通自定义页面与 Code Canvas 双链路选择提示，减少弱模型误选。
-- 调整自定义页面编译与发布说明，将历史 JSX 编译维护口径归入 `yida-custom-page`，新建自定义页面继续使用 YidaCodeCanvas 组件实现。
-- 新建应用链路默认携带 Builder AI / OpenYida 创建标识，由 CLI 调用接口时自动传入，不再暴露给用户手动填写。
-- 更新现代版主题接口相关技能说明与示例，统一主题运行时、注入和页面设计侧的调用口径。
 
-### Fixed
-- 修正 `renderJsx`、`didMount`、`this.utils.yida`、`this.dataSourceMap` 等平台 JSX 组件能力的描述边界，避免误判为普通新建页面链路。
-- 收窄 `skills-index.json` 和跨技能引用改动范围，保留必要技能指向，同时避免其他技能过度依赖 `yida-custom-page`。
-- 恢复并明确附件上传、图片上传、成员和部门等能力不属于历史 JSX 特性，避免自定义页面能力说明被误删或错误归类。
-- 优化 `yida-publish-page` 严禁事项与发布边界，保留具体约束，避免发布阶段提示过度抽象。
-
-### Tests
-- 更新技能契约、路由测评、`get-schema` 和 CLI smoke 测试，覆盖自定义页面路由收拢、历史 JSX 维护边界和 Builder AI 创建标识。
-- 重新构建并校验技能发布包，确认源码态与悟空发布态的技能索引、子技能引用和路由说明一致。
+- 新建自定义页面默认使用 AI 画布，同时保留已有页面的维护能力。
+- 完善附件、图片上传及成员、部门选择等能力的使用引导。
+- 优化应用主题与页面发布引导，减少搭建过程中的错误选择。
 
 ## [2026.8.16-beta.1] - 2026-08-17
 
 ### Changed
-- auth profile、project pointer、business context、host-injected token 与 `agent-capabilities` 状态输出保留非密钥组织名字段 `corp_name`，便于多组织账号在新会话中识别候选组织。
-- `org list` / `org switch --json` 复用统一组织名解析；登录身份匹配仍以 `corpId` / `userId` / `baseUrl` / `clientId` 为准，`corp_name` 不参与 profile key。
 
-### Tests
-- 补充 auth profile 候选列表脱敏、组织名别名归一化、env token 组织名、自动刷新后 authRef 组织名透传等回归测试。
+- 登录账号和组织切换时展示组织名称，方便辨认和选择。
 
 ## [2026.8.16-beta.0] - 2026-08-16
 
 ### Added
-- 新增用户级 auth profile 存储，OAuth 登录优先写入稳定用户目录，project cache 仅保存非密钥指针；用户目录不可写时显式降级到 project legacy 并报告持久化范围。
-- `agent-capabilities --summary-json` 补充 runtime、project root、skills 目录、auth store 与 interactive login 策略，减少 Agent 反复扫描工作区和登录态目录。
-- 新增 `check-prd-completeness` 命令，用 build manifest 与远端资源列表做 PRD 交付数量风险检查。
+
+- 支持跨项目复用登录账号。
+- 支持检查应用资源与 PRD 是否匹配，提示交付遗漏。
 
 ### Changed
-- 优化千问办公本地版/网页版、MuleRun 继承环境、Qoder/QoderWork 等运行时识别；千问办公强信号优先于 MULE/QODER 兼容变量。
-- 登录浏览器归属改为由能力摘要指导：桌面环境默认 CLI 打开系统浏览器，Web sandbox 使用 `--no-browser` 由 Agent 打开授权 URL；Playwright 仅作为可选兜底，不默认安装。
-- `publish --health-check` 改为发布后读取远端 Schema 并校验发布内容指纹，替代依赖页面 HTML/cookie 的健康检查。
+
+- 改善千问办公、MuleRun 和 Qoder 等环境的识别及登录体验。
+- 加强页面发布后的结果检查。
 
 ### Fixed
-- 修复 `--no-browser --quiet` 与 `OPENYIDA_NO_BROWSER=1 ... --quiet` 下授权 URL 不输出的问题；授权 URL 始终写入 stderr，避免污染 stdout JSON。
-- 修复用户级 auth profile 写入成功但 project pointer 不可写时被误判为登录态不可持久化的问题。
 
-### Tests
-- 新增/更新 OAuth loopback、agent capabilities、project root/skills、auth profile、publish readback、PRD completeness 与 CLI smoke 回归测试。
-- 已用 Codex 和 Qoder 本地 Agent 跑通真实搭建验证；千问办公本地版完成环境识别验证。
+- 修复部分登录方式未显示授权链接的问题。
+- 减少登录状态已保存却提示保存失败的问题。
 
 ## [2026.8.14] - 2026-08-14
 
-### Added
-- `openyida login` 与 `openyida auth login` 新增 `--no-browser` 参数，供明确需要由调用方接管授权链接的 Agent 或无头环境使用；默认行为保持由 CLI 自动打开系统浏览器。
-
 ### Changed
-- 在 Agent capabilities 中公开交互登录的浏览器归属、抑制参数和完成信号，指导 Agent 等待原登录命令退出及最终 JSON，避免重复打开授权页。
-- 更新 `yida-login` 技能与环境参考文档，禁止默认流程中后台提取 URL、再次执行 `open`、固定 `sleep` 或重复轮询 `login --check-only`。
-- 登录等待阶段补充 OAuth 超时和取消提示，降低用户延迟登录或关闭浏览器时的无反馈感。
-- 重构 OpenYida 主入口技能说明，保留搭应用开发总入口、资源上下文、意图识别、技能路由表和必须遵守规则，去掉冗余子技能长列表与重复说明。
-- 将 `yida-app` 拆成 9 个 workflow 阶段文件，完整应用搭建、已有应用无页面、已有资源补齐等场景统一由 `yida-app` 编排。
-- 收拢存储约定、临时文件规范、命令输入文件规则和 FAQ 处理思路，减少主入口、共享 reference 与子技能之间的重复描述。
-- 优化 `yida-publish-page` 与 `yida-flash-note-to-prd` 描述，明确发布目标确认、真实发布证据、闪记/会议内容转 PRD 和交给 `yida-app` 的边界。
 
-### Fixed
-- 删除过时的 `development-rules.md` 与 `app-build-contract.md` 参考文档，将仍有效的规则迁移到主入口、`yida-app` workflow 或常见问题文件。
-- 移除主入口中针对 Wukong 的定制化描述，保留 Codex / yida-agent 使用 OpenYida auth snapshot 的通用约束。
-
-### Tests
-- 新增浏览器归属、`--no-browser`、Agent capabilities 与登录技能编排契约测试。
-- 更新技能契约、路由卫生和技能包构建测试，覆盖主入口路由、`yida-app` workflow、冗余 reference 清理和发布证据约束。
+- 根据使用环境选择登录方式，减少重复打开授权页，并补充超时和取消提示。
+- 统一新建应用、继续搭建空应用和补齐已有功能的处理流程。
+- 完善会议记录转需求方案和页面发布的引导。
 
 ## [2026.8.12-1] - 2026-08-12
 
 ### Changed
-- 调整 `yida-design` 与 `yida-canvas-custom-page` 的页面丰富度说明，将区块数量改为“推荐 8-10 个区块以上”的建议口径，并保留窄场景可精简的说明。
-- 收敛完整应用与技能入口文档，减少重复路由提示，强化按 PRD 与设计契约推进页面实现的边界。
-- 更新 README 贡献者展示内容。
+
+- 页面内容按业务需要安排，简单场景可精简布局。
 
 ### Fixed
-- 移除 Code Canvas 编译和页面 linter 中的内容区块数量硬校验，避免少于指定区块数时阻塞 `check-page`、`compile` 或 `publish`。
+
+- 移除页面区块数量限制，避免内容较少的页面无法发布。
+
 ## [2026.8.12] - 2026-08-12
 
 ### Changed
-- 更新 README 与 CLI 帮助中的 OpenYida 帮助网站入口，统一指向新的 `demo.aliwork.com` helpCenter 路由，并补齐完整功能列表、CLI Reference、案例展示和更新日志等快捷链接。
-- 在自定义页面文档中补充“AI 自定义页面支持的宜搭原生组件”支持清单入口，便于查看 Code Canvas 可用的成员、部门、上传等原生组件能力。
-- 优化 `yida-design` 设计风格选择与 registry 说明，强化风格适用场景、选择边界和弱模型路由提示。
+
+- 更新帮助中心入口，方便查阅功能、使用指南、案例和更新日志。
+- 补充 AI 画布可用组件说明，方便了解成员、部门和上传等能力。
+- 优化页面风格选择引导，让设计更贴合业务场景。
 
 ### Fixed
-- 修复 `nav-group auto-order` 未纳入命令 manifest 权限契约的问题，避免导航自动排序被误判为未知动作并触发额外权限确认。
 
-### Tests
-- 新增 CLI smoke 回归断言，覆盖 `nav-group auto-order` 的 manifest 权限分类，确保自动排序为预授权动作且删除动作仍需确认。
+- 减少导航自动排序时不必要的重复确认。
 
 ## [2026.8.11] - 2026-08-11
 
 ### Added
-- 新增应用生命周期管理命令与 `yida-app-lifecycle` 技能，支持查询、启用和停用已有宜搭应用，并同步中英文文档、命令清单、技能索引和多语言文案。
-- 新增 OpenYida 技能自适应治理方案与执行计划文档，沉淀技能路由、压缩、评测和治理演进路径。
 
-### Changed
-- 优化 `get-schema` 展示页返回信息，补充页面 Schema 摘要信号，便于发布后快速判断页面类型、核心组件和运行时代码状态。
-- 更新 `yida-design` 资源工作流与技能索引说明，进一步收拢应用构建与设计阶段的路由提示。
-
-### Fixed
-- 修正技能路由与测试中的本地化断言边界，降低不同语言环境下的误报。
-
-### Tests
-- 新增应用生命周期命令、CLI smoke、技能契约和技能覆盖矩阵测试。
-- 扩展 `get-schema` 单元测试，覆盖展示页 Schema 摘要解析与输出。
+- 支持查询应用状态、启用和停用已有应用。
 
 ## [2026.8.5] - 2026-08-05
 
