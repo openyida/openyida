@@ -10,6 +10,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.9.3-1] - 2026-09-03
+
+### Fixed
+
+- 自定义页面发布新增排序字段守卫：`searchFormDatas` 与 `new URLSearchParams(...)` 的 `dynamicOrder` 使用 `gmtCreate` 等记录元数据名时，发布前返回 `searchformdata-dynamic-order-metadata`，覆盖对象字面量、JSON 字符串与常量绑定 + `JSON.stringify` 三种静态写法，避免运行时 `selectListException 无法找到字段:gmtCreate`。
+- `data query form --dynamic-order` 在请求前校验字段引用：未知字段与记录元数据名不再原样提交，统一走 `requireKnownDataFieldRef` 返回确定性错误，并按 `--resolve-aliases` 决定是否做别名翻译。
+
+### Changed
+
+- `yida-canvas-custom-page` 技能补充排序与行数据契约：排序只使用 `get-schema` 返回的真实业务字段 ID，列表行按 `row.formData || row.data || row` 归一化，避免「有记录但全部显示空值」。
+- `yida-prd` / `yida-design` / `yida-requirement-analysis` 技能澄清并行工作流：两者各自读取冻结后的需求简报并独占产物文件，措辞统一为面向用户的表述。
+
 ## [2026.9.2-2] - 2026-09-02
 
 ### Added

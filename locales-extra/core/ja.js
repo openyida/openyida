@@ -1182,6 +1182,7 @@ module.exports = {
     lint_searchformdata_http_post: 'searchFormDatas.json を直接呼ぶ場合は GET + クエリパラメータが必須です（formUuid/appType を URL クエリに入れる）。POST で formUuid を body に入れると「参数校验失败formUuid」となり、ダッシュボード/リストがすべて 0 になります',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json のページングパラメータ名は currentPage です（pageNumber ではありません）。pageNumber を使うとページングが機能しません',
     lint_searchformdata_http_unwrap: 'ブラウザの searchFormDatas.json レスポンスはリストが content.data にネストされます（{ content: { data: [...] } }）。json.data だけを読むと 0 件になります。(json.content && json.content.data) でアンラップしてください',
+    lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder にレコードメタデータ項目 {0} は使用できません。get-schema が返す実際の業務項目 ID を使用してください。並べ替え可能な業務日付項目がない場合は dynamicOrder を削除し、取得済みのページ内だけを表示用に row.createTime で並べ替えてください',
     lint_setstate_non_timestamp: 'this.setState が timestamp 以外のフィールドを書き込んでいます。カスタムページの業務状態は _customState に置き、forceUpdate()/setCustomState() で更新してください。this.setState は timestamp 契約フィールドのみを保持するべきです',
     lint_self_binding_missing: 'renderJsx で var self = this; を宣言せずに this を使用しています。renderJsx の先頭に var self = this; を追加し、クロージャ/コールバック内では self を使用して this の喪失を避けてください',
     lint_echarts_dom_ready: 'echarts.init が setTimeout でラップされていません。コンテナがまだマウントされておらず、チャートが描画されない可能性があります。setTimeout(function(){ /* echarts.init */ }, 300) を使用してください',

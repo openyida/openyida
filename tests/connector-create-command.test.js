@@ -38,6 +38,10 @@ describe('connector create machine-readable result', () => {
         readbackVerified: true,
       });
       expect(result.detailUrl).toContain('customConnectorFactory/update?id=910244');
+      const accountManageUrl = new URL(result.accountManageUrl);
+      expect(accountManageUrl.pathname).toBe('/platformManage/customConnectorFactory');
+      expect(accountManageUrl.searchParams.get('connectorName')).toBe(result.connectorName);
+      expect(accountManageUrl.searchParams.get('action')).toBe('accountManage');
       expect(connectorApi.saveConnector.mock.calls[0][0].securitySchemes)
         .toBe('{"DingAuth":{}}');
       expect(JSON.stringify(connectorApi.saveConnector.mock.calls[0][0]))

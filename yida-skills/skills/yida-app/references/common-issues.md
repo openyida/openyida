@@ -25,7 +25,7 @@
 | 本地源码改了但远端没更新 | 是否有成功的 `openyida publish <source> <appType> <displayPageFormUuid>` | 回到 [Step 8](../workflow/step-8-publish-navigation.md) 发布本轮源码 |
 | 发布失败后想重试 | 上一次 stdout/stderr、登录态、组织、参数、输入文件、字段 ID | 修改至少一项输入或上下文后重试；保留错误输出 |
 | 导航顺序不对 | PRD 的导航顺序、`nav-group order` / `nav-group auto-order` 输出 | 回到 Step 8；有明确顺序用 `nav-group order`，无明确顺序用自动排序兜底 |
-| final 输出太技术化或交付卡过多 | 是否把内部 artifact、每个业务资源、资源 ID、管理态链接或 CDN 产物逐项交付 | 回到 [Step 9](../workflow/step-9-output-finish.md)；改成 2-3 句业务总结 + 一组应用访问入口 |
+| final 输出太技术化或交付卡过多 | 是否把内部文件、每个业务资源、资源 ID、管理态链接或 CDN 产物逐项交付 | 回到 [Step 9](../workflow/step-9-output-finish.md)；改成 2-3 句业务总结 + 一组应用访问入口 |
 | 用户要求删除应用 | 应用名称、应用 ID、影响范围、用户确认文本 | 展示影响范围，等待用户明确回复“确认删除”后执行 |
 
 ## 定位顺序

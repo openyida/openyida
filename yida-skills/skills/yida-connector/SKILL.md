@@ -128,7 +128,7 @@ openyida connector list-connections <connector-id> --json
 openyida connector create-connection <connector-id> "<账号名>" --interactive  # 仅 DingAuth / DingTrustGW
 ```
 
-需要密钥的连接器创建完成后，把 `connector create --json` 返回的 `detailUrl` 交给用户，引导用户在宜搭页面自行配置账号；DingAuth / DingTrustGW 也可让用户本人在本机 TTY 运行 `--interactive`。用户只回复“已配置”，Agent 用配置前后的 `list-connections --json` 差异确定账号。不得要求用户回传凭据或账号 ID；多个候选时停止，不猜测。
+需要密钥的连接器创建完成后，把 `connector create --json` 返回的 `accountManageUrl` 交给用户，引导用户在宜搭页面自行添加授权账号；`detailUrl` 只用于查看连接器定义。DingAuth / DingTrustGW 也可让用户本人在本机 TTY 运行 `--interactive`。用户只回复“已配置”，Agent 用配置前后的 `list-connections --json` 差异确定账号。不得要求用户回传凭据或账号 ID；多个候选时停止，不猜测。
 
 ### 智能生成动作草稿（推荐）
 

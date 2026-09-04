@@ -1,13 +1,13 @@
 # 读取视觉设计输入
 
-完整应用视觉 artifact 只读取 `.cache/openyida/<项目名>/requirement-brief.json`，不等待或读取本轮并行生成的 `prd.md`。
+完整应用视觉设计只读取 `.cache/openyida/<项目名>/requirement-brief.json`，不等待或读取本轮同时生成的 `prd.md`。
 
 ## 检查
 
 1. 文件存在且 JSON 可解析，`schemaVersion=1`。
 2. 读取行业、目标用户、业务目标、核心功能、业务对象、页面场景、品牌和色彩偏好。
 3. `explicitScope` 非空时只为明确范围内的页面场景设计视觉规则，不增加同级页面。
-4. 会改变视觉方向的 `openQuestions` 未解决时，本 artifact 保持未完成。
+4. 会改变视觉方向的 `openQuestions` 未解决时，暂停生成视觉设计并交回 `yida-app` 处理。
 
 ## 产出
 

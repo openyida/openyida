@@ -179,7 +179,7 @@ connector list/detail
 
 该值跟随连接器定义提交到宜搭平台，只说明“这个连接器需要钉钉开放平台鉴权”，不包含 AK/SK。
 
-`connector create` 现在不再要求 AK/SK，并明确拒绝 `--app-key` / `--app-secret`，在任何远端操作前返回 `CONNECTOR_CREDENTIALS_NOT_ACCEPTED_ON_CREATE`。创建载荷仍只包含 `securitySchemes`；JSON 成功结果增加 `detailUrl`，供用户自行配置鉴权账号。
+`connector create` 现在不再要求 AK/SK，并明确拒绝 `--app-key` / `--app-secret`，在任何远端操作前返回 `CONNECTOR_CREDENTIALS_NOT_ACCEPTED_ON_CREATE`。创建载荷仍只包含 `securitySchemes`；JSON 成功结果返回 `accountManageUrl` 和 `detailUrl`。前者直接打开授权账号管理，后者查看连接器定义。
 
 ### 5.2 AK/SK 在创建鉴权账号时提交
 
@@ -250,7 +250,8 @@ OpenYida 本地配置、Connector Action 和页面源码都不应保存 AK/SK。
 - 连接器显示名称；
 - `connectorId`；
 - 建议使用的唯一鉴权账号名称；
-- 连接器配置页 `detailUrl`；
+- 授权账号管理页 `accountManageUrl`；
+- 连接器定义页 `detailUrl`；
 - 可选的本地隐藏输入命令；
 - 配置完成后只需回复“已配置”的说明。
 
@@ -263,7 +264,8 @@ OpenYida 本地配置、Connector Action 和页面源码都不应保存 AK/SK。
   "errorCode": "CONNECTOR_AUTH_CONFIGURATION_REQUIRED",
   "connectorId": "910244",
   "connectorName": "Http_xxx",
-  "connectorUrl": "https://yidalogin.aliwork.com/platformManage/customConnectorFactory/update?id=910244&connectorName=Http_xxx&mode=http",
+  "accountManageUrl": "https://yidalogin.aliwork.com/platformManage/customConnectorFactory?connectorName=Http_xxx&action=accountManage",
+  "detailUrl": "https://yidalogin.aliwork.com/platformManage/customConnectorFactory/update?id=910244&connectorName=Http_xxx&mode=http",
   "authType": "DingAuth",
   "expectedConnectionName": "钉钉日程账号",
   "beforeConnectionIds": ["2388"],
@@ -278,7 +280,7 @@ OpenYida 本地配置、Connector Action 和页面源码都不应保存 AK/SK。
 
 用户可以选择：
 
-1. 打开 `connectorUrl`，在宜搭后台填写 AK/SK 并创建鉴权账号；
+1. 打开 `accountManageUrl`，在宜搭后台填写 AK/SK 并创建鉴权账号；
 2. 在自己的本地终端执行 `interactiveCommand`，由 CLI 以不回显方式读取 AK/SK。
 
 无论选择哪种方式，用户都不需要向 AI 返回凭证或 ID，只需回复“已配置”。AI 恢复后执行：
@@ -396,7 +398,7 @@ window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)
 - 新建 `yida-dingtalk-openapi`；
 - 更新 `yida-skills/SKILL.md`、`skills-index.json` 和 postinstall 路由索引；
 - 在 `yida-connector` 中增加钉钉官方文档路由说明；
-- `connector create` 的 DingAuth 模式不再要求或接收 AK/SK，并在 JSON 结果中返回 `detailUrl`；
+- `connector create` 的 DingAuth 模式不再要求或接收 AK/SK，并在 JSON 结果中返回 `accountManageUrl` 与 `detailUrl`；
 - `connector create-connection` 增加仅限 TTY 的 `--interactive` 隐藏输入；
 - 技能在缺少鉴权账号时返回 `CONNECTOR_AUTH_CONFIGURATION_REQUIRED`，记录 before 列表并暂停；
 - 增加服务端 API、Canvas、旧 JSX 的路由回归及事件订阅不支持断言。
@@ -452,7 +454,7 @@ npm run check:ci
 已实现：
 
 - 新增 `yida-dingtalk-openapi` 及两份按需参考文档；`api-contract.md` 提供官方“开放接口一览”业务域链接和逐 Action `sourceUrl` 契约。根技能、机器索引、安装态索引与路由场景已同步。事件订阅只保留不支持声明，不提供专属参考或实现流程。
-- `connector create` 拒绝 DingTalk 凭据并返回 `detailUrl`；`list-connections --json` 不再混入进度文本。
+- `connector create` 拒绝 DingTalk 凭据并返回授权账号管理页 `accountManageUrl` 与连接器定义页 `detailUrl`；`list-connections --json` 不再混入进度文本。
 - `create-connection --interactive` 在 TTY 中隐藏读取 AK/SK，并对非 TTY、冲突、空值和取消做写前阻断。
 - Canvas 发布层注入 `window.__OPENYIDA_CONNECTOR_API__`，固定调用同源 `/query/publicService/invokeService.json`，组装 `connectorId/operationId/connectionId` 并解包业务结果。
 - `yida-connector`、接口模板及 `yida-canvas-data-binding` 已切换到不经聊天传密钥的流程。

@@ -1,6 +1,6 @@
 # 输出：prd.md（兼容入口，owner 已迁移）
 
-> 完整应用的 PRD artifact 由 `yida-prd/workflow/output-prd.md` 负责。本文件只保留旧引用兼容，不得由 `yida-design` 工作流加载或写入 `prd.md`。
+> 完整应用的 PRD 由 `yida-prd/workflow/output-prd.md` 负责。本文件只保留旧引用兼容，不得由 `yida-design` 工作流加载或写入 `prd.md`。
 
 > 本文件定义完整应用的 `prd/<项目名>/prd.md` 输出格式。`prd.md` 记录业务语义、产品设计、页面结构、资源创建顺序、页面实现交付顺序和导航顺序。PRD 不写 UI 视觉设计规范，只写应用主题色和风格摘要，并引用 `design.md` 章节。
 

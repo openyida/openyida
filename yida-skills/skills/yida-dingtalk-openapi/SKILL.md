@@ -32,8 +32,8 @@ description: 将钉钉开放平台官方服务端 API 转成宜搭 HTTP 连接�
 4. 创建 `DingAuth` 连接器；不得传 `--app-key` / `--app-secret`。
 5. 执行 `list-actions` 回读稳定 `operationId`。
 6. 执行一次 `list-connections --json`，记录 `beforeConnectionIds`。
-7. 若没有可确定复用的 ACTIVE 账号，返回连接器详情 URL、建议账号名和以下两种安全操作后暂停：
-   - 用户打开详情 URL，在宜搭中自行配置账号；或
+7. 若没有可确定复用的 ACTIVE 账号，返回授权账号地址 `accountManageUrl`、连接器详情地址 `detailUrl`、建议账号名和以下两种安全操作后暂停：
+   - 用户打开 `accountManageUrl`，在宜搭中自行添加授权账号；或
    - 用户本人在本机终端运行：`openyida connector create-connection <connector-id> "<账号名>" --interactive`
 8. 用户只需回复“已配置”，不要回复密钥或账号 ID。再次执行 `list-connections --json`：
    - 恰好新增一个且名称符合预期：使用该账号；
@@ -54,7 +54,7 @@ openyida connector list-actions <connector-id> --json
 openyida connector list-connections <connector-id> --json
 ```
 
-`connector create --json` 返回的 `detailUrl` 是用户自行配置鉴权的入口。不得要求用户把配置后的 ID 发给 AI；CLI 通过前后两次列表差异自行发现。
+`connector create --json` 返回 `accountManageUrl` 和 `detailUrl`。添加授权账号时优先把 `accountManageUrl` 交给用户；`detailUrl` 用于查看连接器定义。不得要求用户把配置后的 ID 发给 AI；CLI 通过前后两次列表差异自行发现。
 
 ## 完成标准
 
@@ -62,7 +62,7 @@ openyida connector list-connections <connector-id> --json
 - 连接器及动作已回读，账号归属和 ACTIVE 状态已确定。
 - 只读测试返回业务可识别结果；不能仅凭 HTTP 200 宣称完成。
 - Canvas 场景已通过固定平台代理调用，刷新后仍可读取真实数据。
-- 若停在鉴权阶段，明确报告 connectorId、detailUrl、建议账号名和暂停原因，不宣称集成完成。
+- 若停在鉴权阶段，明确报告 connectorId、accountManageUrl、detailUrl、建议账号名和暂停原因，不宣称集成完成。
 
 ## 参考
 

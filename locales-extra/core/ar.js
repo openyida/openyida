@@ -1231,6 +1231,7 @@ module.exports = {
     lint_searchformdata_http_post: 'استدعاء searchFormDatas.json مباشرة يجب أن يستخدم GET + معاملات query (ضع formUuid/appType في query الخاص بعنوان URL). استخدام POST مع formUuid في الـ body يسبب «参数校验失败formUuid» وتظهر اللوحات/القوائم أصفارًا',
     lint_searchformdata_http_pagenumber: 'يستخدم searchFormDatas.json ترقيم الصفحات عبر currentPage (وليس pageNumber)؛ استخدام pageNumber يعطّل الترقيم',
     lint_searchformdata_http_unwrap: 'استجابة المتصفح من searchFormDatas.json تضع القائمة داخل content.data ({ content: { data: [...] } })؛ قراءة json.data فقط تُرجع 0 صفوف — فك التغليف عبر (json.content && json.content.data)',
+    lint_searchformdata_dynamic_order_metadata: 'لا يمكن لـ searchFormDatas.dynamicOrder استخدام حقل بيانات تعريف السجل {0}؛ استخدم معرّف حقل أعمال حقيقيًا يعيده get-schema. إذا لم يوجد حقل تاريخ أعمال قابل للفرز، فاحذف dynamicOrder ورتّب الصفحة المسترجعة فقط حسب row.createTime للعرض',
     lint_setstate_non_timestamp: 'this.setState يكتب حقلا غير timestamp. يجب أن تبقى حالة الأعمال في الصفحة المخصصة داخل _customState ويتم تحديثها عبر forceUpdate()/setCustomState(); يجب أن يحمل this.setState حقل العقد timestamp فقط',
     lint_self_binding_missing: 'renderJsx يستخدم this دون تعريف var self = this;. أضف var self = this; في بداية renderJsx واستخدم self داخل closures/callbacks لتجنب فقدان this',
     lint_echarts_dom_ready: 'echarts.init غير ملفوف داخل setTimeout؛ قد لا يكون الحاوي مركبا بعد، لذلك قد لا يتم عرض المخطط. استخدم setTimeout(function(){ /* echarts.init */ }, 300)',

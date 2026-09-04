@@ -1170,6 +1170,7 @@ module.exports = {
     lint_searchformdata_http_post: '直連 searchFormDatas.json 必須用 GET + query 參數（formUuid/appType 放在 URL query 裡）；用 POST 把 formUuid 放進 body，後端會報「參數校驗失敗formUuid」，看板/列表會全 0',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json 的分頁參數名是 currentPage（不是 pageNumber），寫成 pageNumber 會分頁失效',
     lint_searchformdata_http_unwrap: 'searchFormDatas.json 瀏覽器直連的列表在 content.data（回傳 { content: { data: [...] } }），只讀 json.data 會得到 0 筆；請用 (json.content && json.content.data) 兜底解包',
+    lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder 不能使用記錄元數據欄位 {0}；請改用 get-schema 回傳的真實業務欄位 ID。沒有可排序的業務日期欄位時請刪除 dynamicOrder，只在目前已取回頁內按 row.createTime 做展示排序',
     lint_setstate_non_timestamp: '偵測到 this.setState 寫入非 timestamp 欄位。業務狀態應寫入 _customState 並呼叫 forceUpdate()/setCustomState() 觸發重繪；this.setState 僅用於 timestamp 契約欄位',
     lint_self_binding_missing: 'renderJsx 內使用了 this 但未宣告 var self = this;。請在 renderJsx 開頭加入 var self = this;，閉包/回呼內改用 self，避免 this 指向遺失',
     lint_echarts_dom_ready: 'echarts.init 未包裹在 setTimeout 中，容器可能尚未掛載導致圖表不渲染。建議 setTimeout(function(){ /* echarts.init */ }, 300)',

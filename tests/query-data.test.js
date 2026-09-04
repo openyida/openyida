@@ -399,6 +399,70 @@ describe('run() query form', () => {
     mockError.mockRestore();
   });
 
+  test('dynamicOrder 使用真实 fieldId 时先校验 Schema 再查询', async () => {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet
+      .mockResolvedValueOnce(buildAliasSchema())
+      .mockResolvedValueOnce({
+        success: true,
+        content: { totalCount: 0, data: [] },
+      });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--dynamic-order', '{"textField_phone":"-"}']);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+    expect(utils.httpGet.mock.calls[1][2]).toMatchObject({
+      dynamicOrder: '{"textField_phone":"-"}',
+    });
+
+    mockLog.mockRestore();
+    mockError.mockRestore();
+  });
+
+  test('dynamicOrder 未知字段在查询接口前阻断', async () => {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet.mockResolvedValueOnce(buildAliasSchema());
+
+    const error = await expectCliError(run([
+      'query',
+      'form',
+      'APP_XXX',
+      'FORM-XXX',
+      '--dynamic-order',
+      '{"gmtCreate":"-"}',
+    ]));
+
+    expect(error.code).toBe('DATA_FIELD_REFERENCE_UNKNOWN');
+    expect(error.details).toMatchObject({
+      fieldRef: 'gmtCreate',
+      retrySafe: true,
+      sideEffectState: 'none',
+      nextStep: 'openyida get-schema APP_XXX FORM-XXX --field-map-json',
+    });
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+  });
+
+  test('dynamicOrder 不带 --resolve-aliases 时不接受字段别名', async () => {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet.mockResolvedValueOnce(buildAliasSchema());
+
+    const error = await expectCliError(run([
+      'query',
+      'form',
+      'APP_XXX',
+      'FORM-XXX',
+      '--dynamic-order',
+      '{"phone":"+"}',
+    ]));
+
+    expect(error.code).toBe('DATA_FIELD_REFERENCE_UNKNOWN');
+    expect(error.details.fieldRef).toBe('phone');
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+  });
+
   test('同时传入 --search-json 和 --search-file 时打印错误并退出', async () => {
     await expectCliError(
       run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--search-json', '[]', '--search-file', '.cache/openyida/search.json']),

@@ -1,27 +1,27 @@
 ---
 name: yida-prd
-description: 读取完整应用共享需求简报，独立生成 prd/<项目名>/prd.md，负责业务、资源、页面、顺序和验收契约。
+description: 读取整理后的用户需求，生成 prd/<项目名>/prd.md，负责业务、资源、页面、顺序和验收规则。
 ---
 
 # yida-prd
 
-本技能是完整应用 PRD artifact 的唯一 owner。它读取 `yida-requirement-analysis` 生成的共享简报，生成 `prd/<项目名>/prd.md`；不生成 `design.md` 或页面源码。
+本技能读取 `yida-requirement-analysis` 整理的用户需求，生成 `prd/<项目名>/prd.md`；不生成 `design.md` 或页面源码。
 
 ## 使用场景
 
-- 从零搭建或补齐完整应用：共享简报 ready 后启动，可与 `yida-design` 并行。
-- 已有会议需求稿，需要整理成完整应用 PRD：先形成共享简报，再运行本技能。
+- 从零搭建或补齐完整应用：用户需求整理完成后启动，可与 `yida-design` 并行。
+- 已有会议需求稿，需要整理成完整应用 PRD：先统一整理用户需求，再运行本技能。
 - 只做视觉美化、页面实现、字段或权限操作：使用对应单点技能。
 
-## 产物生命周期
+## 执行条件
 
-- start：`.cache/openyida/<项目名>/requirement-brief.json` 已存在且可解析。
-- end：`prd/<项目名>/prd.md` 已写入并通过下方完成条件；只写完部分章节不算结束。
-- failure：PRD 不完整时只重跑本技能，不重跑或覆盖已经完成的 `design.md`。
+- 开始：`.cache/openyida/<项目名>/requirement-brief.json` 已存在且可解析。
+- 完成：`prd/<项目名>/prd.md` 已写入并通过下方完成条件；只写完部分章节不算完成。
+- 失败：PRD 不完整时只重跑本技能，不重跑或覆盖已经完成的 `design.md`。
 
 ## 标准流程
 
-1. 读取 [共享需求简报](workflow/step-1-read-brief.md)。
+1. 读取 [整理后的用户需求](workflow/step-1-read-brief.md)。
 2. 按 [页面与导航规划](workflow/step-2-information-architecture.md) 形成业务资源蓝图。
 3. 按 [PRD 输出格式](workflow/output-prd.md) 写入 `prd/<项目名>/prd.md`。
 
@@ -38,7 +38,7 @@ description: 读取完整应用共享需求简报，独立生成 prd/<项目名>
 - `prd/<项目名>/prd.md` 存在。
 - PRD 包含资源创建顺序、页面实现交付顺序、导航顺序和验收标准。
 - 资源蓝图覆盖必要表单、流程、页面及明确要求的报表/集成/权限。
-- 每个 display 页面都有可供 join 校验的 `pageSpecHandoff`。
+- 每个 display 页面都有可供一致性校验的 `pageSpecHandoff`。
 - 没有写入 `design.md` 或页面源码。
 
 ## 参考

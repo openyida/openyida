@@ -29,6 +29,8 @@ describe('DingTalk OpenAPI skill contract', () => {
     expect(skill).toContain('App Key、App Secret、access token 永远不进入聊天');
     expect(skill).toContain('用户只需回复“已配置”');
     expect(skill).toContain('list-connections --json');
+    expect(skill).toContain('accountManageUrl');
+    expect(skill).toContain('添加授权账号时优先');
     expect(skill).toContain('--interactive');
     expect(connector).not.toMatch(/connector create[^\n]*--app-(?:key|secret)/);
     expect(template).not.toMatch(/AppKey：ding|AppSecret：x|sk-xxxxxxxx/);
