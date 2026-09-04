@@ -29,6 +29,8 @@
 
 主题准备与表单、页面开发按 [并行依赖](../../yida-app/workflow/parallel-work.md#主题与业务资源的依赖) 调度：计划或主题确认后即生成 CSS，不依赖表单或页面实现；appType 与 CSS 就绪便立即同步应用基础设置。页面先按已确认 token 开发，视觉验收再核对主题加载结果。
 
+页面背景必须按已确认导航归属生成：无平台应用导航时，`--oyd-page-background` 默认 `transparent`，也可按明确设计关联 `--color-brand1-3` 等品牌 token；使用平台导航时默认关联 `--pod-page-bg-color`（回退白色），已确认的深色或自定义背景优先。不要沿用风格参考中的固定浅灰作为所有应用的默认画布。Plan 自动派生默认值，`visualStyle.tokens` 显式覆盖优先；Fast 将同样结果写进 design.md 的 tokens 并生成应用 CSS。Canvas 宿主和页面根使用同一别名，具体消费见 [背景与导航的关联](../../yida-canvas-custom-page/references/canvas-style-implementation-guide.md#背景与导航的关联)。
+
 ## CLI token 契约（Fast / Plan 共用）
 
 `design.md` 必须以 YAML frontmatter 开头，`tokens` 内每个 `--token` 使用一行具体 CSS 值；可平铺或分组，允许引号和行尾注释。不得保留占位符、推导指令、多行值或同名冲突值。必须包含品牌色阶 1/2/3/5/6/9/10；圆角、字体、间距等需要改变平台表现时写入对应 CSS token，不能只写正文描述。
@@ -40,6 +42,14 @@ Plan 修改 `visualStyle.tokens` 并按模块更新草稿，最终由 `materiali
 整体暗色方案按 [浮层适配](../references/theme/theme-token-presets.md#暗色主题浮层适配) 补齐组件 token。实现阶段可在生成的应用主题 CSS 末尾追加精确 classname 覆盖，再上传完整主题文件。
 
 ## design.md 输出格式
+
+### 用户配色与模板的优先级
+
+用户确认的整体色彩氛围高于模板默认灰阶。绿色清新风格应是同色相的低饱和背景、白色或近白卡片、协调填充与边框、绿色焦点；正文仍保持深浅中性色。不得用“雾白 DNA 不可修改”为由把用户选定的浅绿导航改白或把所有品牌氛围收缩到按钮。模板负责结构、圆角、材质与节奏，项目配色负责各表面的协调。
+
+Plan 新建草稿的 `colorStrategy.surfaceTone` 默认 `brand-tinted`，CLI 在浅色主题中同步派生页面、填充与边界，保留文字、语义色和深色表面的明度层级；项目级适配是已确认颜色的落地，优先于导航的通用背景默认值。用户明确仅改强调色、保留中性灰或忠实参考配色时设为 `theme`；旧计划未填写时保持兼容，不自动改色。`visualStyle.tokens` 显式值始终优先。Fast 按同一规则直接写入 tokens 与配色说明，不额外询问实现字段。
+
+配色变化同时更新 `surfaceContrast`、`colorRoles`、组件规则和逐页验收，不只改 YAML 中的一个背景值。近白底配白卡时使用可见细边框；浅彩不等于高饱和大色块。用户指定自定义卡片色时改 `--pod-card-bg-color`，不要为卡片换色全局改写 `--color-white`。
 
 ```markdown
 ---

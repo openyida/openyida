@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#FBFBFB"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-theme-deep": "color-mix(in srgb, var(--color-brand1-6) 34%, #111111)"
       "--oyd-theme-deep-soft": "color-mix(in srgb, var(--oyd-theme-deep) 76%, #FFFFFF)"
       "--oyd-stage-pattern": "rgba(255, 255, 255, 0.10)"
@@ -163,7 +163,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 与 `--oyd-page-background` 均为 `neutral-gray`，Hex 满足 `R = G = B`；所有 rgba 灰阶前三通道相等。
+- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 均为 `neutral-gray`，Hex 满足 `R = G = B`；所有 rgba 灰阶前三通道相等。
 - `--oyd-theme-deep` 与 `--oyd-theme-deep-soft` 是主题派生深色，不声明为灰色；换主题色时必须重新计算。
 - `--oyd-stage-pattern`、`--oyd-stage-secondary-action`、`--oyd-stage-object-overlay` 是等通道白色透明材质，只用于深色表面。
 - 成功、警告、错误和信息状态直接消费平台语义色并配合文字、图标或方向符号；`custom-page` 不重复声明同义状态 Token。

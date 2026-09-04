@@ -68,7 +68,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#FCFCFC"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-pattern-surface": "AI 根据 --color-brand1-6 8% 与 #F3F3F3 92% 混合生成纹理浅底"
       "--oyd-rating-accent": "#F2A900"
       "--oyd-avatar-1": "#B98432"
@@ -164,7 +164,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-white`、所有 `line1`、`fill1`、`text1` 与 `--oyd-page-background` 均为 `neutral-gray`；固定 Hex 的 RGB 三通道相等。
+- `--color-white`、所有 `line1`、`fill1`、`text1` 均为 `neutral-gray`；固定 Hex 的 RGB 三通道相等。
 - `--oyd-pattern-surface` 为 `theme-gray`：由 `--color-brand1-6` 占 8% 与中性基底 `#F3F3F3` 占 92% 派生；项目实例化时必须计算并写入实际值。
 - `--oyd-rating-accent` 仅用于真实评分、等级或星标图形，不代替警告状态；单屏面积不超过 4%。
 - `--oyd-avatar-1` 至 `--oyd-avatar-4` 是等权标识色，仅在真实对象需要区分且没有图片素材时使用；不能形成主题身份。

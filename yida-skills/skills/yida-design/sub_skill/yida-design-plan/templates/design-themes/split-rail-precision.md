@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#FAFAFA"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-structural-ink": "#102B3A"
       "--oyd-focus-hatch": "repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-brand1-6) 72%, transparent) 0 2px, transparent 2px 8px)"
       "--oyd-rating-accent": "#F5B21A"
@@ -157,7 +157,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-10 / --color-text1-3`、`--oyd-page-background` 均为 `neutral-gray`，其 Hex 满足 `R = G = B`；`--color-fill1-10` 为白色等通道 rgba 浮层。
+- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-10 / --color-text1-3` 均为 `neutral-gray`，其 Hex 满足 `R = G = B`；`--color-fill1-10` 为白色等通道 rgba 浮层。
 - 本主题没有 `theme-gray`；如需带主题倾向的浅底，必须生成期声明为 `--color-brand1-6` 3% + `#F7F7F7` 97%，并在实例化时写入实际值，不得保留固定偏色灰。
 - `--color-text1-4` 与 `--oyd-structural-ink` 是明确的深色结构墨色，不声明为灰色，也不随主题色变化。
 - 主题色只用于主操作、关键焦点、选中状态和主要数据；不得铺满画布或普通卡片。

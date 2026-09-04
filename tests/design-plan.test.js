@@ -398,6 +398,67 @@ describe('design-plan materialize', () => {
     expect(html).toContain('高频流程处理需要稳定入口，深色导航加强模块边界。');
   });
 
+  test.each([
+    ['custom', undefined, 'transparent'],
+    ['platform-top', undefined, 'var(--pod-page-bg-color, var(--color-white, #fff))'],
+    ['custom', 'var(--color-brand1-3)', 'var(--color-brand1-3)'],
+    ['platform-side', '#FFF8ED', '#FFF8ED'],
+  ])('page background follows %s navigation while preserving explicit design %s', (navigationType, override, expected) => {
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    plan.execution = { ...plan.execution, appConfig: { navigationType } };
+    plan.visualStyle.tokens = override ? { '--oyd-page-background': override } : {};
+    const { readDesignTokens, applyDesignTokens } = require('../lib/app/theme-from-design');
+    const design = renderDesign(plan);
+    expect(readDesignTokens(design)['--oyd-page-background']).toBe(expected);
+    const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
+    const css = applyDesignTokens(template, design);
+    expect(css).toContain(`--oyd-page-background: ${expected};`);
+  });
+
+  test('brand atmosphere reaches CSS surfaces and preserves text semantics when the primary color changes', () => {
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    delete plan.visualStyle.forUser.themeProfile;
+    plan.visualStyle.forUser.selectedTheme = { themeId: 'mist-layered-signal', templatePath: 'templates/design-themes/mist-layered-signal.md' };
+    plan.visualStyle.forUser.colorStrategy = { primaryColor: '#2F9E63', primaryColorName: '自然绿意', surfaceTone: 'brand-tinted' };
+    const { readDesignTokens, applyDesignTokens } = require('../lib/app/theme-from-design');
+    const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
+    const design = renderDesign(plan);
+    const green = readDesignTokens(design);
+    expect(green['--pod-page-bg-color']).toBe('#F3F9F6');
+    expect(green['--pod-card-bg-color']).toBe('var(--color-white, #fff)');
+    expect(green['--pod-card-border']).toBe('1px solid var(--color-line1-1)');
+    expect(green['--color-line1-2']).toBe('#CDE8DA');
+    expect(green['--color-text1-4']).toBe('#171717');
+    expect(green['--color-text1-10']).toBe('#5F5F5F');
+    expect(green['--color-text1-3']).toBe('#929292');
+    expect(design.indexOf('## 项目配色适配')).toBeLessThan(design.indexOf('## 设计总览'));
+    expect(applyDesignTokens(template, design)).toContain('--pod-page-bg-color: #F3F9F6;');
+    plan.visualStyle.forUser.colorStrategy.primaryColor = '#6F4E37';
+    const brown = readDesignTokens(renderDesign(plan));
+    for (const token of ['--pod-page-bg-color', '--color-line1-2', '--color-fill1-2']) {
+      expect(brown[token]).not.toBe(green[token]);
+    }
+    expect(brown['--color-text1-4']).toBe(green['--color-text1-4']);
+    plan.visualStyle.tokens = { '--oyd-page-background': '#FFFFFF', '--pod-card-bg-color': '#FFF8ED' };
+    const explicitDesign = renderDesign(plan);
+    expect(readDesignTokens(explicitDesign)['--oyd-page-background']).toBe('#FFFFFF');
+    expect(applyDesignTokens(template, explicitDesign)).toContain('--pod-card-bg-color: #FFF8ED;');
+  });
+
+  test('brand atmosphere preserves dark surfaces and rejects unsupported modes', () => {
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    delete plan.visualStyle.forUser.themeProfile;
+    plan.visualStyle.forUser.selectedTheme = { themeId: 'dark-luminous-modular', templatePath: 'templates/design-themes/dark-luminous-modular.md' };
+    plan.execution = { ...plan.execution, appConfig: { navigationType: 'custom' } };
+    plan.visualStyle.forUser.colorStrategy.surfaceTone = 'brand-tinted';
+    const { readDesignTokens } = require('../lib/app/theme-from-design');
+    const tokens = readDesignTokens(renderDesign(plan));
+    expect(tokens['--oyd-page-background']).toBe('#101010');
+    expect(tokens['--color-white']).toBe('#181818');
+    plan.visualStyle.forUser.colorStrategy.surfaceTone = 'invalid';
+    expect(() => renderDesign(plan)).toThrow('surfaceTone');
+  });
+
   test('all registered themes resolve project placeholders and derived color tokens', () => {
     const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
     const themeIndex = JSON.parse(fs.readFileSync(path.join(
@@ -431,12 +492,12 @@ describe('design-plan materialize', () => {
         expect(design).toContain('"--color-brand1-1": "#F1EDEB"');
       }
       if (theme.themeId === 'high-contrast-modular') {
-        expect(design).toContain('"--oyd-page-background": "#F1F0EF"');
+        expect(design).toContain('"--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"');
         expect(design).toContain('"--oyd-surface-soft": "#EBE9E8"');
         expect(design).toContain('"--oyd-accent-deep": "#44352A"');
       }
       if (theme.themeId === 'interlocked-vivid-modules') {
-        expect(design).toContain('"--oyd-page-background": "#F4F4F3"');
+        expect(design).toContain('"--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"');
       }
       if (theme.themeId === 'media-rail-inspector') {
         expect(design).toContain('"--oyd-media-surface": "#F2F0EF"');

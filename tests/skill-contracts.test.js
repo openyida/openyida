@@ -1586,7 +1586,7 @@ describe('OpenYida skill contracts', () => {
     expect(canvasStyleGuide).toContain('宿主属性绑定不是主题注入');
     expect(canvasStyleGuide).toContain('严禁生成 `body` 背景 CSS');
     expect(canvasStyleGuide).toContain('min-height: 100vh;');
-    expect(canvasStyleGuide).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff));');
+    expect(canvasStyleGuide).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)));');
     expect(canvasStyleGuide).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff));');
     expect(canvasStyleGuide).toContain('border: var(--pod-card-border, none);');
     expect(canvasStyleGuide).toContain('border-radius: var(--pod-card-border-radius, 20px);');

@@ -44,7 +44,7 @@
 7. 按 `视觉策略 45% + 视觉强调与密度 15% + 布局兼容性 15% + 内容兼容性 15% + 多样性或用户偏好 10%` 选择唯一风格。内容和布局合计不得超过 30%，避免常见工作台内容把结果塌缩到通用风格。
 8. 做内部近邻比较：生成 `design.md` 前必须在工作记忆中比较最相近的 2-4 个风格；选择 `soft-analytic-workbench` 时必须确认其他更强视觉策略证据不足。近邻比较是选择校验，不默认写入最终 `design.md`。
 9. 读取被选中的 `style-designs/*.md`，抽取 `visual_dna`、`theme_adaptation`、`layout_stability`、`quality_anchors`、`components` 和 `modules`。
-10. 根据主题系统中的主题色来源和主题色输入，按所选风格的 `theme_adaptation` 执行换肤：替换 `replace_tokens`，派生 `derive_tokens`，保留 `preserve_tokens` 和 `visual_dna.invariant`。
+10. 根据主题系统中的主题色来源和主题色输入，按所选风格的 `theme_adaptation` 执行换肤：替换 `replace_tokens`，派生 `derive_tokens`，保留不与用户整体配色冲突的 `preserve_tokens` 和结构性 `visual_dna.invariant`。
 11. 读取 [visual-scaffold-recipes.md](visual-scaffold-recipes.md)，把当前页面组合映射到统一 `visualScaffold` 规则。
 12. 读取 [page-quality-gates.md](page-quality-gates.md)，把质量门禁补进 `acceptanceChecks`。
 13. 需要判断详略时参考 `_design-md-template.md` 的字段粒度、registry 的输出记录和所选风格的质量锚点；只学习“写到多细”，不复制示例业务、色盘、字段、页面顺序或组件组合。
@@ -82,7 +82,7 @@
 
 ## 主题色应用规则
 
-主题色是所选设计风格的换肤输入，不是重新选择视觉风格的理由。生成 `design.md` 时必须先读取所选风格的 `theme_adaptation`，将主题色应用到 `replace_tokens` 和 `derive_tokens`，保持 `preserve_tokens` 与 `visual_dna.invariant` 不变。
+主题色是所选设计风格的换肤输入，不是重新选择视觉风格的理由。生成 `design.md` 时必须先读取所选风格的 `theme_adaptation`，将主题色应用到 `replace_tokens` 和 `derive_tokens`，保留结构、材质与组件机制；`preserve_tokens` 中的固定灰阶不能覆盖用户确认的整体配色要求。
 
 硬规则：
 

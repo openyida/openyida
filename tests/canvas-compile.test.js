@@ -1081,14 +1081,15 @@ describe('compileCanvasLocal', () => {
     );
 
     const root = schema.pages[0].componentsTree[0];
-    expect(root.props.contentBgColor).toBe('var(--pod-page-bg-color, var(--color-white, #fff))');
-    expect(root.props.contentBgColorMobile).toBe('var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(root.props.contentBgColor).toBe('var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
+    expect(root.props.contentBgColorMobile).toBe('var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
     expect(root.props.pageStyle).toEqual({
-      backgroundColor: 'var(--pod-page-bg-color, var(--color-white, #fff))',
+      backgroundColor: 'var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))',
     });
     expect(root.css).not.toContain('body{background-color:');
     expect(root.css).not.toContain('background-color:#f2f3f5');
     expect(root.css).toContain('.vc-page-yida-pure-container:has(> .yida-code-canvas){min-height:100vh}');
+    expect(root.css).toContain('.yida-code-canvas{display:flow-root}');
     expect(root.children[0].componentName).toBe('YidaCodeCanvas');
     const deepYidaComponents = schema.pages[0].componentsMap.filter(
       (entry) => entry.package === '@ali/vc-deep-yida'

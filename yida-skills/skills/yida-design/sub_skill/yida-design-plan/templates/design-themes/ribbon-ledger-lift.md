@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#FAFAFA"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-lift-shadow": "rgba(0, 0, 0, 0.06)"
       "--oyd-category-1": "#8661F1"
       "--oyd-category-2": "#4B77F3"
@@ -157,7 +157,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-white`、`line1`、`fill1`、`text1` 与 `--oyd-page-background` 均为 `neutral-gray`；所有固定 Hex 的 RGB 三通道相等。
+- `--color-white`、`line1`、`fill1`、`text1` 均为 `neutral-gray`；所有固定 Hex 的 RGB 三通道相等。
 - `--oyd-lift-shadow` 是 `neutral-gray` 透明色，前三通道相等，仅用于低扩散阴影，不参与主题推演。
 - `--oyd-category-1` 至 `--oyd-category-4` 为等权独立分类色，只能用于真实类别的分段块、短量轨、图标或小色标；每种颜色单屏面积不超过 8%。
 - 主题同色演变由 `--color-brand1-6` 派生，主色只用于主操作、焦点、链接、选中和少量语义图标，不铺满画布、普通卡片或表格行。

@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#FFFFFF"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-media-surface": "#F6F6F6"
       "--oyd-media-selected": "color-mix(in srgb, var(--color-brand1-6) 5%, #F6F6F6)"
       "--oyd-media-shadow": "rgba(0, 0, 0, 0.028)"
@@ -155,7 +155,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3`、`--oyd-page-background` 与 `--oyd-media-surface` 均为 `neutral-gray`，Hex 满足 `R = G = B`；`--color-fill1-10` 与 `--oyd-media-shadow` 的前三通道相等。
+- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 与 `--oyd-media-surface` 均为 `neutral-gray`，Hex 满足 `R = G = B`；`--color-fill1-10` 与 `--oyd-media-shadow` 的前三通道相等。
 - `--oyd-media-selected` 是 `theme-gray`，由 `--color-brand1-6` 5% 与中性基底 `#F6F6F6` 95% 混合；项目实例化时必须写入实际色值。
 - 真实媒体属于内容素材，允许保留其独立色彩；界面层不得从媒体取色生成随机按钮、标签或卡片底色。
 - 成功、警告、错误和信息状态直接消费平台语义色，并配合文字、图标或方向符号；`custom-page` 不重复声明同义状态 Token。

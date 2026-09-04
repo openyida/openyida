@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#F7F7F7"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-halo-primary": "color-mix(in srgb, var(--color-brand1-6) 10%, transparent)"
       "--oyd-halo-secondary": "color-mix(in srgb, var(--color-brand1-6) 5%, transparent)"
       "--oyd-milk-surface": "rgba(255, 255, 255, 0.78)"
@@ -161,7 +161,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 与 `--oyd-page-background` 均为 `neutral-gray`，Hex 满足 `R = G = B`；`--color-fill1-10`、`--oyd-milk-surface / --oyd-milk-surface-strong` 与 `--oyd-soft-shadow` 的前三通道相等。
+- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 均为 `neutral-gray`，Hex 满足 `R = G = B`；`--color-fill1-10`、`--oyd-milk-surface / --oyd-milk-surface-strong` 与 `--oyd-soft-shadow` 的前三通道相等。
 - `--oyd-halo-primary` 与 `--oyd-halo-secondary` 是主题派生透明色，分别由 `--color-brand1-6` 10% / 5% 与透明基底混合；实例化时写入实际色值。
 - `--oyd-deep-action` 是主题派生深色，由 `--color-brand1-6` 12% 与 `#111111` 88% 混合，不声明为灰色；必须保证白字对比度至少 4.5:1。
 - 成功、警告、错误和信息状态直接消费平台语义色，并配合文字或图标；`custom-page` 不重复声明同义状态 Token。

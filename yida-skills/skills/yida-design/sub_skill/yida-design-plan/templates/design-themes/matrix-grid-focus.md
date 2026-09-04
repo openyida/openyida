@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#FAFAFA"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-matrix-level-1": "color-mix(in srgb, var(--color-brand1-6) 12%, #FFFFFF)"
       "--oyd-matrix-level-2": "color-mix(in srgb, var(--color-brand1-6) 35%, #FFFFFF)"
       "--oyd-matrix-level-3": "color-mix(in srgb, var(--color-brand1-6) 68%, #FFFFFF)"
@@ -163,7 +163,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 与 `--oyd-page-background` 均为 `neutral-gray`，Hex 满足 `R = G = B`；`--color-fill1-10` 为等通道白色 rgba。
+- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 均为 `neutral-gray`，Hex 满足 `R = G = B`；`--color-fill1-10` 为等通道白色 rgba。
 - `--oyd-matrix-level-1 / --oyd-matrix-level-2 / --oyd-matrix-level-3 / --oyd-matrix-level-4` 是 `theme-gray` / 主题同色阶，由 `--color-brand1-6` 分别以 12%、35%、68%、100% 与白色混合；项目实例化时写入实际色值。
 - 除文字外，不得使用 `#000000`、`#111111` 或其他固定纯黑表达主按钮、数据、图例、选中与交互焦点；这些角色必须消费 `--color-brand1-6`。
 - 成功、警告、错误和信息状态直接消费平台语义色，并配合文字、图标或方向符号；`custom-page` 不重复声明同义状态 Token。

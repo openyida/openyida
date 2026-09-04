@@ -83,7 +83,7 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
 {
   "forUser": {
     "visualDirection": {"label":"清晰柔和","description":"突出待办与业务状态，浅色界面搭配暖棕色重点操作","source":"user_selected"},
-    "colorStrategy": {"primaryColor":"#6F4E37","primaryColorName":"暖棕色","source":"user_selected","usage":"主操作与选中状态"},
+    "colorStrategy": {"primaryColor":"#6F4E37","primaryColorName":"暖棕色","source":"user_selected","surfaceTone":"brand-tinted","usage":"暖棕浅底、白色卡片与品牌焦点协调"},
     "navigationStyle": {"structure":"side","tone":"light","source":"user_selected","selectionReason":"沿用已选的左侧导航"},
     "pageApplications": [
       {"pageId":"page-1","visualMemoryApplications":[{"name":"摘要拼接组","renderPolicy":"prd_match_only","target":"采购待办摘要","reason":"页面已有并列的待办状态"}]}

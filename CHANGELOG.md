@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Plan 新建草稿默认按已确认主色协调浅色画布、填充与边界，并生成优先于模板灰阶限制的项目配色说明；保留中性文字、状态语义、深色表面与显式 token 覆盖。Fast 与 Canvas 引导同步要求整套表面和 antd 主题映射，避免只改按钮颜色。
+
 - `design-plan preview` 按已确定模块更新 PRD、HTML、设计与主题草稿；HTML 复用模板并替换相关章节，主题更新保留自定义样式。`materialize --from-preview` 汇总校验后统一生成正式文档和主题 CSS。
 
 - `create-form batch` 按依赖并行创建普通表单，自动解析关联表单与字段 ID；创建前校验，完成后回读，保留结果以复用已完成资源，失败仅阻断依赖任务。
@@ -47,6 +49,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - 明确应用主题 CSS 的职责、token 消费方式和生效链路：它是应用基础设置绑定的主题资源，修改本地文件后需要重新上传保存，页面仍需按设计实现布局和交互。
 
 ### Fixed
+
+- Canvas 根容器隔离子元素外边距折叠，避免顶部浮导的 margin 将整个页面下移；宿主和页面背景统一消费应用主题变量，无平台导航默认透明，平台导航默认跟随页面主题，保留显式背景覆盖。
 
 - 主题更新完成后回读应用设置，校验 `colour`、`themeColor` 和 `customThemeStyle` 资源绑定；失败返回可恢复诊断，避免接口成功被误认为主题已应用。
 - 恢复抽屉 iframe 的 `minHeight: calc(100vh - 56px)` 兜底，避免百分比高度链断开后内容塌陷；Canvas 编译增加静态内嵌 CSS 括号、字符串和注释结构校验。

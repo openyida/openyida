@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#FAFAFA"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-theme-soft": "color-mix(in srgb, var(--color-brand1-6) 12%, #FFFFFF)"
       "--oyd-theme-bar": "color-mix(in srgb, var(--color-brand1-6) 18%, #FFFFFF)"
       "--oyd-theme-spotlight": "color-mix(in srgb, var(--color-brand1-6) 78%, #111111)"
@@ -168,7 +168,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3`、`--oyd-page-background` 与 `--oyd-inverted-marker` 均为 `neutral-gray`，Hex 满足 `R = G = B`；`--color-fill1-10` 的前三通道相等。
+- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 与 `--oyd-inverted-marker` 均为 `neutral-gray`，Hex 满足 `R = G = B`；`--color-fill1-10` 的前三通道相等。
 - `--oyd-theme-soft` 与 `--oyd-theme-bar` 是 `theme-gray` / 主题浅色，分别由 `--color-brand1-6` 12% / 18% 与 `#FFFFFF` 混合；实例化时写入实际色值。
 - `--oyd-theme-spotlight` 与 `--oyd-theme-object` 是主题派生色；前者由主题色 78% 与 `#111111` 22% 混合，后者由主题色 42% 与白色 58% 混合。
 - `--oyd-category-seq-1 / --oyd-category-seq-2 / --oyd-category-seq-3 / --oyd-category-seq-4` 是独立分类色，只占小面积；成功、警告、错误和信息状态仍直接消费平台语义色并配合文字或图标。

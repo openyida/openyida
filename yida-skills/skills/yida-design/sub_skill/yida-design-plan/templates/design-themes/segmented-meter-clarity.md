@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#FAFAFA"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-theme-deep": "color-mix(in srgb, var(--color-brand1-6) 12%, #111111)"
       "--oyd-category-1": "#FF6A1A"
       "--oyd-category-2": "#7B6CF6"

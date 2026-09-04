@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#FCFCFC"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-series-strong": "#2477D4"
       "--oyd-series-soft": "#A9D8F5"
       "--oyd-category-1": "#6F8BFF"
@@ -161,7 +161,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-white`、所有 `line1`、`fill1`、`text1` 与 `--oyd-page-background` 均为 `neutral-gray`；固定 Hex 的 RGB 三通道相等。
+- `--color-white`、所有 `line1`、`fill1`、`text1` 均为 `neutral-gray`；固定 Hex 的 RGB 三通道相等。
 - 本主题不声明固定偏色灰或 `theme-gray`；主题色的浅深变化全部由七枚 Brand Token 承担，并在实例化时写入实际值。
 - `--oyd-series-strong` 与 `--oyd-series-soft` 是一组具有强弱关系的独立数据序列色，仅用于真实配对序列；弱序列允许 22%-36% 透明度，强序列保持实色。
 - `--oyd-category-1` 至 `--oyd-category-4` 为等权独立分类色，只用于阶段跑道、细色标和必要图例；单屏每种色面积不超过 8%。

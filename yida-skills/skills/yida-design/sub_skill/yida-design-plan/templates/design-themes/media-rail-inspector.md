@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#FCFCFC"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-media-surface": "AI 根据 --color-brand1-6 4% 与 #F7F7F7 96% 混合生成媒体浅底"
       "--oyd-tag-surface": "AI 根据 --color-brand1-6 8% 与 #F2F2F2 92% 混合生成标签浅底"
       "--oyd-action-deep": "AI 根据 --color-brand1-6 14% 与 #151515 86% 混合生成深色操作"
@@ -151,7 +151,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-white`、所有 `line1`、`fill1`、`text1` 与 `--oyd-page-background` 均为 `neutral-gray`；固定 Hex 的 RGB 三通道相等。
+- `--color-white`、所有 `line1`、`fill1`、`text1` 均为 `neutral-gray`；固定 Hex 的 RGB 三通道相等。
 - `--oyd-media-surface` 为 `theme-gray`：由 `--color-brand1-6` 4% 与中性基底 `#F7F7F7` 96% 派生；实例化时写入实际值。
 - `--oyd-tag-surface` 为 `theme-gray`：由 `--color-brand1-6` 8% 与中性基底 `#F2F2F2` 92% 派生；仅用于小角标与浅标签。
 - `--oyd-action-deep` 为深色主题派生色：由 `--color-brand1-6` 14% 与中性基底 `#151515` 86% 派生；用于小面积强操作，不是普通灰色表面。

@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#F4F4F4"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-surface-shadow": "rgba(0, 0, 0, 0.065)"
       "--oyd-thread-line": "rgba(24, 24, 24, 0.44)"
       "--oyd-thread-node": "#181818"
@@ -163,7 +163,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3`、`--oyd-page-background` 与 `--oyd-thread-node` 均为 `neutral-gray`，Hex 满足 `R = G = B`；`--color-fill1-10`、`--oyd-surface-shadow` 与 `--oyd-thread-line` 的前三通道相等。
+- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 与 `--oyd-thread-node` 均为 `neutral-gray`，Hex 满足 `R = G = B`；`--color-fill1-10`、`--oyd-surface-shadow` 与 `--oyd-thread-line` 的前三通道相等。
 - `--oyd-theme-halo` 是 `theme-gray` / 主题浅色，由 `--color-brand1-6` 12% 与 `#FFFFFF` 88% 混合；项目实例化时必须写入实际色值。
 - `--oyd-signal-seq-1 / --oyd-signal-seq-2 / --oyd-signal-seq-3 / --oyd-signal-seq-4 / --oyd-signal-seq-5` 是固定独立分类色，角色是区分真实等权序列；单序列或主焦点不得消费它们，避免与主题主色竞争。
 - 成功、警告、错误和信息状态直接消费平台语义色，并配合文字、图标或方向符号；`custom-page` 不重复声明同义状态 Token。

@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page: # 页面专属 Token，仅在指定自定义页生效
     colors:
-      "--oyd-page-background": "#F5F7F9"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-chart-neutral": "#E9EDF3"
       "--oyd-chart-tooltip-background": "#FFFFFF"
       "--oyd-series-green": "#35C98A"

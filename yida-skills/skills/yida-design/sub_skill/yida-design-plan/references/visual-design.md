@@ -87,6 +87,8 @@ Step 4 不重新发起常规视觉 `ask_human`。页面规划新暴露品牌素�
 
 ## 冲突处理
 
+整体配色选择不能被模板默认灰阶覆盖。`colorStrategy.surfaceTone=brand-tinted` 时，CLI 在 design.md 开头注入项目配色适配，并同步派生浅色表面 token；与下方模板的固定无彩限制冲突时按项目适配执行。保持中性参考用 `theme`，显式 `visualStyle.tokens` 优先，深色表面保留。页面先读项目适配，再读组件配方；不能只消费品牌按钮而漏掉卡片、文字、填充与边界。
+
 按以下优先级合并视觉规则：
 
 ```text

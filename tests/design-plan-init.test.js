@@ -56,6 +56,7 @@ test('initializes stable references, preserves explicit facts and returns a boun
   expect(visualPart.ready).toBe(true);
   expect(visualPart.facts.visualStyle).toEqual(plan.visualStyle);
   expect(visualPart.facts.visualStyle.tokens).toEqual(brief.visualSelection.tokens);
+  expect(visualPart.facts.visualStyle.forUser.colorStrategy.surfaceTone).toBe('brand-tinted');
   const context = fs.readFileSync(result.context, 'utf8');
   expect(context).toContain('视觉记忆点应用策略');
   expect(context).toContain('compact-workbench');
@@ -63,6 +64,14 @@ test('initializes stable references, preserves explicit facts and returns a boun
   expect(fs.readFileSync(briefPath, 'utf8')).toBe(original);
   expect(() => materialize(result.output)).toThrow();
   expect(fs.existsSync(path.join(dir, 'prd/prd.md'))).toBe(false);
+});
+
+test('preserves an explicit neutral reference palette at intake', () => {
+  brief.visualSelection.colorStrategy.surfaceTone = 'theme';
+  save();
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  expect(plan.visualStyle.forUser.colorStrategy.surfaceTone).toBe('theme');
 });
 
 test('keeps incomplete visual choices unready and schedules only the missing selection work', () => {

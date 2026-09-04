@@ -63,7 +63,7 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#FAFAFA"
+      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-media-scrim": "rgba(0, 0, 0, 0.16)"
       "--oyd-disabled-media-cover": "rgba(255, 255, 255, 0.58)"
       "--oyd-brand-focus-soft": "<theme-gray：--color-brand1-6 8% + #FFFFFF 92%；项目实例化时计算并写入实际色值>"
@@ -154,7 +154,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--oyd-page-background`、`--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 均为固定 `neutral-gray`，Hex 三通道相等；`--color-fill1-10`、`--oyd-media-scrim` 与 `--oyd-disabled-media-cover` 也是无彩透明层。
+- `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 均为固定 `neutral-gray`，Hex 三通道相等；`--color-fill1-10`、`--oyd-media-scrim` 与 `--oyd-disabled-media-cover` 也是无彩透明层。
 - `--oyd-brand-focus-soft` 是 `theme-gray`，由 `--color-brand1-6` 8% 与 `#FFFFFF` 92% 混合；实例化时必须写入计算后的实际色值。
 - 主题色只用于主操作、关键焦点、选中下划线和少量语义图标；模板实现消费 `--color-brand1-6`，不得写死默认色。
 - 成功、警告、错误和信息状态直接消费平台语义色，并同时配合文字、图标或状态词；`custom-page` 不重复声明同义状态 Token。
