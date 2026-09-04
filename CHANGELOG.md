@@ -54,6 +54,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- 修复品牌浅底覆盖无应用导航透明画布的回归：品牌氛围写入 Shell 浅色背景，原生页面保留独立底色；Canvas 与导航示例统一消费自定义页背景别名，并明确内层页面根也须隔离浮导外边距折叠，避免顶部异色条。
+
 - Canvas 根容器隔离子元素外边距折叠，避免顶部浮导的 margin 将整个页面下移；宿主和页面背景统一消费应用主题变量，无平台导航默认透明，平台导航默认跟随页面主题，保留显式背景覆盖。
 
 - 主题更新完成后回读应用设置，校验 `colour`、`themeColor` 和 `customThemeStyle` 资源绑定；失败返回可恢复诊断，避免接口成功被误认为主题已应用。

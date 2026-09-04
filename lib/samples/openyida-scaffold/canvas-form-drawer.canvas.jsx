@@ -474,10 +474,11 @@ function YidaComp(props) {
     >
       <style>{`
         .oys-page {
+          display: flow-root;
           min-height: 100vh;
           box-sizing: border-box;
           padding: 24px;
-          background: var(--pod-page-bg-color, var(--color-white, #fff));
+          background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)));
           color: var(--color-text1-4);
         }
         .oys-shell {

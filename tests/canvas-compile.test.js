@@ -1055,7 +1055,7 @@ describe('compileCanvasLocal', () => {
     expect(runtimeCode).toContain('FormOpenContainer');
     expect(runtimeCode).toContain('readThemeColor');
     expect(src).toContain('min-height: 100vh');
-    expect(src).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(src).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
     expect(src).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
     expect(src).toContain('border: var(--pod-card-border, none)');
     expect(src).toContain('border-radius: var(--pod-card-border-radius, 20px)');

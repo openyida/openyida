@@ -43,6 +43,8 @@ openyida get-form-config <appType> <formUuid> --json
 
 ## 实现要点
 
+- **画布与浮导间距**：无应用导航时，自定义页根背景消费 `--oyd-page-background`（应用主题默认 `transparent`），透出 Shell 品牌背景；`--pod-page-bg-color` 留给原生页面，卡片用 `--pod-card-bg-color`。根节点使用 `display:flow-root` 或 flex/grid，让浮导上边距留在根节点内；仅在 `.yida-code-canvas` 加 flow-root 不足以防止内层根节点下移。完整分层与示例见 [背景与导航的关联](../yida-canvas-custom-page/references/canvas-style-implementation-guide.md#背景与导航的关联)。
+
 - **先选形态，再写 UI**：根据已确认的 PRD、`design.md` 和用户参考确定布局。模块多用侧栏，模块少且内容需要宽度用顶部，两级业务用顶部＋侧边，沉浸展示可用悬浮 Dock，同模块视图用标签。已确认的选择直接沿用，不重新提问。
 - 自定义顶部导航默认推荐浮导，可按内容宽度设计为紧凑胶囊或悬浮栏；“顶部导航”不等于贴边通栏。位置、比例、留白、材质和选中态根据业务与设计实现，不由现成组件决定。此推荐只针对顶部样式，“平台导航 / 自定义导航”选项保持中性。
 - 需要布局方向和小段代码时读 [导航壳形态目录](references/nav-shell-patterns.md)。按场景设计和手写实现，不强制复制任何导航组件。已有导航符合设计时直接复用，只补缺失功能；不能仅因存在新示例而替换现有外观。

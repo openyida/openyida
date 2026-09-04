@@ -244,7 +244,8 @@ const registration = items.find(item => item.key === 'registration');
 | 菜单高度、圆角、文字、间距 | `--pod-nav-menu-*`、`--pod-nav-top-tab-*` |
 | 悬浮阴影 | `--pod-nav-popup-shadow` |
 | 页内标签 | `--tab-pure-text-color-*`、`--tab-pure-ink-bar-color` |
-| 业务内容区 | `--pod-page-bg-color`、`--pod-nav-page-padding` |
+| 自定义页整页画布 | `--oyd-page-background`（无应用导航默认透明）、`--pod-nav-page-padding` |
+| 业务卡片 | `--pod-card-bg-color`、`--pod-card-border` |
 
 主题由 `yida-design` 在应用级生成和配置；导航组件消费已有变量，必要的默认值放在 `var(...)` 回退中。颜色修改在主题文件完成，固定的布局结构留在组件中。导航深浅由导航主题决定，业务内容明暗由页面主题决定，分别验证。
 
@@ -256,6 +257,7 @@ const registration = items.find(item => item.key === 'registration');
 - 窄屏菜单可展开或滚动，悬浮导航按所在位置留出内容空间；需要覆盖式菜单时接入抽屉。
 - 自定义侧栏已验证折叠、展开后恢复宽度、拖拽上下限及内容区联动；这些功能不能因手写外观而省略。
 - 页面只保留一个应用导航组件，按 `design.md` 或用户参考检查悬浮位置、容器比例、留白和选中态；编译通过不等于视觉验收通过。
+- Canvas 宿主与自定义页根节点顶部对齐，浮导上边距留在根节点内（根节点使用 flow-root 或 flex/grid）；隐藏应用导航时透明画布透出 Shell，原生页面仍保留独立底色，不出现顶部异色条。
 - 本地编译通过后按发布技能更新目标页面；缺少运行态视觉检查时明确记录未验收，不得仅凭用了示例报告视觉完成。
 
 ## 可选代码参考

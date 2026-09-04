@@ -102,7 +102,7 @@ function YidaComp(props) {
           padding: 28px;
           background:
             radial-gradient(circle at 92% 4%, rgba(37, 99, 235, .12), transparent 30%),
-            var(--pod-page-bg-color, ${THEME.canvas});
+            var(--oyd-page-background, var(--pod-page-bg-color, ${THEME.canvas}));
           color: ${THEME.ink};
         }
         .rechart-shell { max-width: 1240px; margin: 0 auto; }

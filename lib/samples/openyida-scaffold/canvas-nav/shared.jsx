@@ -4,7 +4,7 @@ import React from 'react';
 // 这是可选实现示例；导航外观按 design.md 设计，已有 UI 无需替换成示例默认样式。
 // 选中菜单标识当前页面，main 用 aria-label 命名，children 直接承载业务内容。
 const CANVAS_NAV_CSS = `
-  .oy-canvas-nav { min-width: 0; min-height: 100vh; background: var(--pod-page-bg-color, var(--color-white, #fff)); }
+  .oy-canvas-nav { display: flow-root; min-width: 0; min-height: 100vh; background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff))); }
   .oy-canvas-nav .oy-nav-surface {
     background: var(--pod-shell-theme-bg-color, var(--pod-nav-popup-bg-color, var(--color-white, #fff)));
     color: var(--pod-nav-item-text-color, var(--color-text1-4, #1f2329));

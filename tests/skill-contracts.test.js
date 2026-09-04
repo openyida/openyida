@@ -386,7 +386,7 @@ describe('OpenYida skill contracts', () => {
     expect(canvasTable).toContain('未验证不得伪装闭环');
     expect(canvasTable).toContain('Promise.all');
     expect(canvasTable).toContain('根画布使用 `min-height: 100vh`');
-    expect(canvasTable).toContain('背景使用 `var(--pod-page-bg-color, var(--color-white, #fff))`');
+    expect(canvasTable).toContain('背景使用 `var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))`');
     expect(canvasTable).toContain('表格面板使用当前应用主题中的 `--pod-card-bg-color`');
     expect(nativeChart).toContain('# 宜搭 ECharts 高级报表技能');
     expect(nativeTable).toContain('saveFormData');

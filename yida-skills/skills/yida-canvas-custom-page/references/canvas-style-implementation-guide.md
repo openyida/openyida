@@ -77,11 +77,13 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 ## 背景与导航的关联
 
+背景职责分开：Shell 的 `--pod-shell-bg-color-light/white/gray/dark` 承载外层氛围；`--pod-page-bg-color` 是原生页面内容底色，浅色主题通常为白色；`--oyd-page-background` 才是自定义页画布。不要为了自定义页全屏背景改写原生页面 token，也不要在无应用导航时直接给自定义页根使用 `--pod-page-bg-color`，否则会盖住 Shell。卡片继续消费 `--pod-card-bg-color`，不是把所有层一起改透明。
+
 `--oyd-page-background` 是应用主题 CSS 中的自定义页背景别名。无平台应用导航时默认写 `transparent`，透出应用壳的主题背景；需要品牌浅底时显式写 `var(--color-brand1-3)` 等已确认品牌 token。平台导航显示时默认写 `var(--pod-page-bg-color, var(--color-white, #fff))`，允许用户指定其他颜色；已确认的深色画布或项目显式背景优先。颜色值在 app-theme.css 中定义，页面源码仅消费，不能在组件里重设该变量或写死 `#F4F4F4`。
 
 Canvas 根背景使用 `background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)));`，保持与宿主一致。透明只表示透出下面的应用背景，不代表背景必须是白色。
 
-浮导距顶部的留白放在 Canvas 内部。发布层通过 `display: flow-root` 隔离根元素外边距折叠；手写根布局也可用 flow-root，或用根容器 padding 承载顶部间距，避免首子元素 margin-top 把整个 Canvas 顶下去。不要用 overflow:hidden 修复，它可能影响 sticky 和弹层；不要向平台父容器写负 margin 抵消。
+浮导距顶部的留白放在自定义页根节点内部。发布层的 `.yida-code-canvas{display:flow-root}` 只保护宿主，不能阻止 `.doll-page` / `.oy-page-root` 等内层根节点与导航的 margin 折叠。页面根必须使用 `display:flow-root`（已有 flex/grid 可保留），或用根容器 padding 承载顶部间距；不能仅给 Canvas 宿主加 flow-root。验收时分别测量宿主、页面根与导航的 top：宿主和页面根贴齐，导航仍保留设计间距。不要用 overflow:hidden 修复，它可能影响 sticky 和弹层；不要向平台父容器写负 margin 抵消。
 
 ## 背景层实现规则
 
@@ -103,7 +105,7 @@ Canvas 根背景使用 `background: var(--oyd-page-background, var(--pod-page-bg
   position: relative;
   isolation: isolate;
   min-height: 100vh;
-  overflow: hidden;
+  display: flow-root;
   background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)));
 }
 .oy-page-root::before {
