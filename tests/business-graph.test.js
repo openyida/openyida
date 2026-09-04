@@ -12,7 +12,10 @@ function collect(dataModels, graph) {
     'data = json.load(sys.stdin)',
     'nodes, edges = module.collect_graph_data(data["graph"], data["models"])',
     'print(json.dumps({"nodes": nodes, "edges": edges, "html": module.render_business_graph(data["graph"], data["models"])}, ensure_ascii=False))',
-  ].join('\n'), renderer], { encoding: 'utf8', input: JSON.stringify({ models: dataModels, graph }) });
+  ].join('\n'), renderer], {
+    encoding: 'utf8', input: JSON.stringify({ models: dataModels, graph }),
+    env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+  });
   if (result.status !== 0) {throw new Error(result.stderr || result.error?.message);}
   return JSON.parse(result.stdout);
 }

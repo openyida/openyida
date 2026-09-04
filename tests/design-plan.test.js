@@ -106,6 +106,22 @@ describe('design-plan materialize', () => {
     expect(html).toContain('href="#pages"');
   });
 
+  test('renders Chinese artifacts over UTF-8 pipes even with inherited Windows encoding', () => {
+    const originalEncoding = process.env.PYTHONIOENCODING;
+    process.env.PYTHONIOENCODING = 'cp1252';
+    try {
+      const result = materialize(FIXTURE, { outputDir: tempDir });
+      expect(result.success).toBe(true);
+      const html = fs.readFileSync(path.join(tempDir, 'build-plan.html'), 'utf8');
+      expect(html).toContain('采购管理应用');
+      expect(html).toContain('采购申请');
+      expect(html).not.toContain('\uFFFD');
+    } finally {
+      if (originalEncoding === undefined) {delete process.env.PYTHONIOENCODING;}
+      else {process.env.PYTHONIOENCODING = originalEncoding;}
+    }
+  });
+
   test('one render process fills the preset HTML and returns all artifacts from the same plan', () => {
     const input = path.join(tempDir, 'build-plan.json');
     const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
