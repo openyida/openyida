@@ -21,12 +21,12 @@
 
 ## Plan 的 CLI 交接
 
-模块确定后按 [按模块更新方案](incremental-preview.md) 立即更新草稿；全部完成后使用 `materialize --from-preview` 汇总校验。下方双片段交接适用于一次收齐业务与视觉的场景。
+标准 Plan 首版采用一次收齐：业务任务完成一个 `business.json`，视觉直接复用 init 根据已确认选择生成的 `visual.json`，随后合并物化。这样首版只等待一次模型规划。品牌稿、参考图、页面级特殊视觉或明确的视觉精修要求命中时，才由视觉任务更新 `visual.json`；超大需求需要展示中间进展时才使用 [按模块更新方案](incremental-preview.md)，全部完成后再用 `materialize --from-preview` 汇总校验。
 
 `design-plan init` 返回 `parallelTasks` 和两个片段文件：
 
 - `business.json`：业务任务填写 facts 中的 overview、dataModels、businessFlows、pages 和可选 execution。可选 meta 仅填写 businessDomain、experienceTopology，完成后设 ready=true。
-- `visual.json`：视觉任务填写 facts.visualStyle；先完成基础视觉，等业务片段完成后，按真实页面补齐 pageApplications，再设 ready=true。
+- `visual.json`：init 根据需求阶段原子保存的 `visualSelection` 写入 facts.visualStyle；主色、方向和导航明暗完整时设 `ready=true`，否则保持未就绪并返回 `visual-selection` 任务，只补充缺失选择。标准页面的完整主题和页面场景规则由 CLI 补齐。只有命中特殊视觉条件时，视觉任务才按业务页面更新项目差异与 `pageApplications`。
 
 两个文件的 base 由 CLI 生成，保留原值；任务读取同一份需求、草稿和主题上下文。业务片段完成后保持稳定，变更时通知视觉任务重新核对页面设计。
 
@@ -40,7 +40,7 @@ openyida design-plan materialize prd/<项目名>/build-plan.json \
 
 CLI 校验片段完成状态、来源版本、字段职责和页面对应关系，统一写入源计划、三份文档和主题 CSS。失败时保留原文件；合并成功后，后续修改使用当前计划的 patch 流程。
 
-Fast 的业务与基础视觉同样并行，分别维护 PRD 和设计文件；页面内容确定后补齐各页设计，再由主流程核对交接。
+Fast 的业务与基础视觉同样并行，分别维护 PRD 和设计文件；页面内容确定后补齐各页设计，再由主流程核对交接。Plan 标准首版不沿用这组三段等待关系。
 
 ## 耗时记录
 

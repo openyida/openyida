@@ -4,11 +4,19 @@
 
 ## 1. 校验业务与视觉交接
 
-核对范围、场景和设计引用。基础视觉已与业务并行准备；仅页面绑定缺项时由 [Plan 视觉分支](../../../yida-design/sub_skill/yida-design-plan/SKILL.md) 补齐受影响的应用记录，业务缺项交给 `yida-prd` 修正。
+核对范围、场景和设计引用。标准首版复用 init 预填的已确认视觉输入，页面沿用确认时的 pageId 与 sceneKey；仅视觉选择不完整、页面范围变化或存在特殊视觉要求时由 [Plan 视觉分支](../../../yida-design/sub_skill/yida-design-plan/SKILL.md) 补齐受影响记录，业务缺项交给 `yida-prd` 修正。
 
 ## 2. 通过 CLI 生成产物
 
-按模块更新的草稿完成后执行：
+标准首版一次合并完整业务与已准备的视觉文件：
+
+```bash
+openyida design-plan materialize prd/<项目名>/build-plan.json \
+  --business-file prd/<项目名>/business.json \
+  --visual-file prd/<项目名>/visual.json --json
+```
+
+只有已使用按模块更新的草稿才执行：
 
 ```bash
 openyida design-plan materialize prd/<项目名>/build-plan.json --from-preview --json
@@ -16,7 +24,7 @@ openyida design-plan materialize prd/<项目名>/build-plan.json --from-preview 
 
 CLI 完整校验后一起保存源计划、`prd.md`、`design.md`、`build-plan.html` 和 `app-theme.css`。HTML 使用预置模板，业务内容与 PRD 一致。
 
-完整业务与视觉文件按 [完整文件合并](../parallel-work.md#plan-的-cli-交接) 生成。直接维护源计划时先设 `meta.status=awaiting_confirmation`，再执行不带 `--from-preview` 的命令；仅检查源计划时加 `--check`。
+完整文件的职责与版本规则见 [完整文件合并](../parallel-work.md#plan-的-cli-交接)。直接维护源计划时先设 `meta.status=awaiting_confirmation`，再执行 `openyida design-plan materialize prd/<项目名>/build-plan.json --json`；仅做诊断时使用 `openyida design-plan materialize prd/<项目名>/build-plan.json --check --json`。正常生成已经包含完整校验，不先运行一次 --check 再重复生成。
 
 HTML 保留“需求总览、数据模型、业务流程、页面规划”四章，完整展示用户需要确认的业务、视觉、数据、顺序和验收内容；整体视觉放在需求总览，逐页视觉放在页面详情。展示范围见 [HTML 内容契约](../../../yida-design/sub_skill/yida-design-plan/assets/README.md#需求总览中的视觉信息)，Markdown 供 Agent 执行。
 

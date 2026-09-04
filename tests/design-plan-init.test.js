@@ -21,6 +21,12 @@ beforeEach(() => {
     projectName: 'procurement', appName: '采购协作', industry: '采购', businessGoals: ['跟进采购'],
     intake: { firstBuild: true, sourceDetail: 'detailed', designMode: 'plan', confirmed: true }, openQuestions: [],
     navigation: { type: 'custom', variant: 'top', source: 'user_selected' },
+    visualSelection: {
+      visualDirection: { label: '暖棕流程', description: '突出采购待办和业务状态' },
+      colorStrategy: { primaryColor: '#6F4E37', primaryColorName: '暖棕色' },
+      navigationStyle: { structure: 'top', tone: 'light' },
+      tokens: { '--pod-card-border-radius': '16px' },
+    },
     resourceContext: { app: { appType: 'APP_EXISTING' } },
     businessObjects: [{ name: '采购订单', fields: [{ name: '订单号', type: '文本', required: true }] }],
     pageScenes: [{ key: 'dashboard', name: '采购工作台', kind: 'custom-page', purpose: '跟进采购' }, { key: 'orders', name: '订单', kind: 'form' }],
@@ -40,14 +46,16 @@ test('initializes stable references, preserves explicit facts and returns a boun
   expect(plan.dataModels[0].fields).toEqual(brief.businessObjects[0].fields);
   expect(plan.execution.appConfig.appType).toBe('APP_EXISTING');
   expect(plan.execution.explicitScope.navigation.variant).toBe('top');
-  expect(result.parallelTasks.map(task => [task.id, task.dependsOn])).toEqual([
-    ['business', []], ['visual-base', []], ['visual-bindings', ['business', 'visual-base']],
-  ]);
+  expect(result.parallelTasks.map(task => [task.id, task.dependsOn])).toEqual([['business', []]]);
+  expect(result.preparedInputs.visual).toBe(result.parallelTasks[0].output.replace('business.json', 'visual.json'));
+  expect(result.optionalTasks.map(task => [task.id, task.dependsOn])).toEqual([['visual-refinement', ['business']]]);
   const businessPart = JSON.parse(fs.readFileSync(result.parallelTasks[0].output, 'utf8'));
-  const visualPart = JSON.parse(fs.readFileSync(result.parallelTasks[1].output, 'utf8'));
+  const visualPart = JSON.parse(fs.readFileSync(result.preparedInputs.visual, 'utf8'));
   expect(businessPart.base).toEqual(require('../lib/design-plan/parallel').planBase(plan));
   expect(visualPart.base).toEqual(businessPart.base);
-  expect(visualPart.ready).toBe(false);
+  expect(visualPart.ready).toBe(true);
+  expect(visualPart.facts.visualStyle).toEqual(plan.visualStyle);
+  expect(visualPart.facts.visualStyle.tokens).toEqual(brief.visualSelection.tokens);
   const context = fs.readFileSync(result.context, 'utf8');
   expect(context).toContain('视觉记忆点应用策略');
   expect(context).toContain('compact-workbench');
@@ -55,6 +63,35 @@ test('initializes stable references, preserves explicit facts and returns a boun
   expect(fs.readFileSync(briefPath, 'utf8')).toBe(original);
   expect(() => materialize(result.output)).toThrow();
   expect(fs.existsSync(path.join(dir, 'prd/prd.md'))).toBe(false);
+});
+
+test('keeps incomplete visual choices unready and schedules only the missing selection work', () => {
+  delete brief.visualSelection.colorStrategy;
+  save();
+  const result = init();
+  expect(result.preparedInputs.visualReady).toBe(false);
+  expect(result.parallelTasks.map(task => [task.id, task.dependsOn])).toEqual([['business', []], ['visual-selection', []]]);
+  const visual = JSON.parse(fs.readFileSync(result.preparedInputs.visual, 'utf8'));
+  expect(visual.ready).toBe(false);
+});
+
+test('materializes a complete standard Plan from business facts and the prepared visual input without another visual task', () => {
+  const result = init();
+  const source = fixture();
+  source.pages.customPageDetails[0].pageId = 'dashboard';
+  source.pages.customPageDetails[0].sceneKey = 'dashboard';
+  delete source.pages.customPageDetails[0].pageSpecHandoff;
+  const businessFile = result.parallelTasks[0].output;
+  const business = JSON.parse(fs.readFileSync(businessFile, 'utf8'));
+  business.ready = true;
+  business.facts = { overview: source.overview, dataModels: source.dataModels, businessFlows: source.businessFlows, pages: source.pages };
+  fs.writeFileSync(businessFile, JSON.stringify(business));
+  const output = materialize(result.output, { businessFile, visualFile: result.preparedInputs.visual });
+  expect(output.success).toBe(true);
+  const design = fs.readFileSync(output.outputs.design, 'utf8');
+  expect(design).toContain('dashboard');
+  expect(design).toContain('#6F4E37');
+  expect(fs.readFileSync(output.outputs.prd, 'utf8')).toContain('采购');
 });
 
 test.each([

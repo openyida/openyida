@@ -15,7 +15,7 @@ description: Plan 模式的视觉设计分支。基于需求选择视觉方向�
 
 ## 阶段二：完成页面视觉应用
 
-与 `yida-prd` 并行启动，读取同一需求和已选视觉方向，先准备基础主题、token 与素材策略；页面内容确定后，为每页补齐布局、组件和样式说明。
+需求阶段选中视觉方向后，CLI 已将基础主题、主题色和导航样式预填为标准 Plan 输入，并通过主题模板补齐页面通用视觉。普通首版不再启动独立视觉模型任务；存在品牌稿、参考图、页面级特殊风格或用户明确要求视觉精修时，才在业务页面确定后执行本阶段，补充项目差异。
 
 1. 读取 CLI 返回的 `authoring-context.md` 与紧凑计划契约，补齐页面视觉应用和素材策略。完整主题由 CLI 注入；具体组件需要定制时再读取模板对应章节。
 2. 具体 token 差异写入 `visualStyle.tokens`；主色写入 `forUser.colorStrategy.primaryColor`。JSON 保存项目事实与差异，标准规则由模板提供。
@@ -23,4 +23,4 @@ description: Plan 模式的视觉设计分支。基于需求选择视觉方向�
 
 用户选择整体暗色或黑色主题时，按 [暗色主题浮层适配](../../references/theme/theme-token-presets.md#暗色主题浮层适配) 补齐 `visualStyle.tokens`；导航明暗保持独立。
 
-基础视觉完成后按 [按模块更新方案](../../../yida-app/workflow/incremental-preview.md) 提交 `visualStyle`；页面内容确定后补齐 `pageApplications` 并再次提交。主流程负责生成完整方案、展示和确认，主题 CSS 使用 CLI 返回的 `outputs.theme`。
+需要精修时一次更新完整 `visual.json`，避免先提交基础视觉、再提交 `pageApplications` 形成两段等待。仅超大需求需要中间展示时才按 [按模块更新方案](../../../yida-app/workflow/incremental-preview.md) 提交。主流程负责生成完整方案、展示和确认，主题 CSS 使用 CLI 返回的 `outputs.theme`。

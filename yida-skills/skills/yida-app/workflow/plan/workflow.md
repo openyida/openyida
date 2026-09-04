@@ -11,8 +11,9 @@
    openyida design-plan init .cache/openyida/<项目名>/requirement-brief.json --theme-id <已选主题> --json
    ```
 
-3. 按 init 返回的 `parallelTasks` 同时准备业务和基础视觉。已确定内容按 [按模块更新方案](../incremental-preview.md) 更新草稿；页面内容确定后补齐各页设计。
-4. 全部完成后，按 [生成与确认](step-4-deliver.md) 校验、展示并确认当前方案。一次收齐完整文件的情况见 [完整文件合并](../parallel-work.md#plan-的-cli-交接)。
+3. 执行 init 返回的 `parallelTasks`：标准首版只有一个业务规划任务。视觉方向、主题色和导航样式已经在首次提问中确认，CLI 将其预填到 `preparedInputs.visual`，并从主题模板确定性补齐页面标准视觉，不再启动“基础视觉 → 等待页面 → 逐页视觉绑定”两段模型任务。
+4. 业务任务一次写完 `business.json` 后，直接使用预填的 `visual.json` 按 [完整文件合并](../parallel-work.md#plan-的-cli-交接) 物化 PRD、设计文档和 HTML。只有存在品牌稿、参考图、页面级特殊风格或用户明确要求精修时，才执行 `optionalTasks.visual-refinement` 后再物化。
+5. 按 [生成与确认](step-4-deliver.md) 校验、展示并确认当前方案。超大需求需要展示中间进展或用户明确要求边生成边查看时，才使用 [按模块更新方案](../incremental-preview.md)；普通首版不逐模块预览和重复渲染。
 
 初次编写只读 CLI 返回的紧凑契约、当前主题上下文及共享需求；模板全文由 CLI 读取。具体组件定制、暗色浮层或复杂页面需要额外规则时，再读取对应章节。
 
