@@ -76,6 +76,10 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 
 ### 导航生成规则
 
+自定义导航按 PRD 和 `design.md` 直接实现；参考 [导航壳形态目录](../../yida-nav-shell/references/nav-shell-patterns.md) 的场景与骨架，UI 示例按需查阅。顶部默认浮导；侧边及混合布局支持折叠、恢复宽度和拖拽调宽。菜单同时记录入口用途和打开方式：管理走 workbench，填写走 submission；本页视图切状态，保留导航的表单入口更新主内容 iframe，跨页入口默认当前标签跳转。页面内新增/详情按钮沿用 FormOpenContainer。
+
+完整地址通过数据桥使用 `router.push(href, params, false, true)`；省略 URL 模式的自动识别只作兼容，详见 [路由模式与数据桥兜底](../../yida-nav-shell/references/nav-shell-patterns.md#路由模式与数据桥兜底)。导航显示参数不控制是否新开标签。
+
 | 场景 | spec 字段 | 发布后动作 |
 | --- | --- | --- |
 | 普通自定义页、工作台、门户、看板、首页 | 不写 `hideAppNav` | 保留平台应用导航 |

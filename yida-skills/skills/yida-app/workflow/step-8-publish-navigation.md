@@ -14,6 +14,8 @@
 
 PRD 为自定义导航时，发布并检查本轮全部自定义页面，再按 [导航壳必做配置](../../yida-nav-shell/SKILL.md#必做配置) 逐页隐藏平台页面导航并回读。导航顺序由自定义导航实现；核对 Step 4 的表单配置结果和本步骤结果，覆盖 PRD 全部页面后进入 Step 9。下方平台导航排序仅适用于三种平台导航类型。
 
+运行态按 [导航验收](../../yida-nav-shell/references/nav-shell-patterns.md#验证) 检查实际外观与交互：顶部浮导符合已确认设计，侧导可折叠、恢复宽度和拖拽；管理与填写入口分别落到 workbench/submission，主内容 iframe 与当前标签跨页按规划工作，完整地址没有重复应用前缀，query/hash 保留。抽屉 iframe 同时检查高度兜底和可滚动性，不能仅凭编译通过验收。
+
 ## 操作
 
 1. 执行 `use_skill("yida-publish-page", "发布主页面")`。

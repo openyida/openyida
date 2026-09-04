@@ -254,6 +254,24 @@ describe('sample templates', () => {
     const iframe = drawer.children.find((child) => child && child.type === 'iframe');
     expect(iframe.props.style).toMatchObject({ height: '100%', minHeight: 'calc(100vh - 56px)' });
 
+    for (const type of ['submission', 'detail']) {
+      const request = {
+        type, formUuid: 'FORM_SAMPLE', formInstId: 'REAL_INSTANCE',
+        params: { corpid: 'ding_test', source: '活动 A&B', isRenderNav: true, formInstId: 'WRONG_INSTANCE' },
+      };
+      const container = FormOpenContainer({ request, currentAppType: 'APP_SAMPLE' });
+      const frame = container.children.find((child) => child && child.type === 'iframe');
+      const url = new URL(frame.props.src, 'https://example.com');
+      expect(url.searchParams.get('corpid')).toBe('ding_test');
+      expect(url.searchParams.get('source')).toBe('活动 A&B');
+      expect(url.searchParams.get('isRenderNav')).toBe('false');
+      if (type === 'detail') {
+        expect(url.searchParams.get('formInstId')).toBe('REAL_INSTANCE');
+        expect(url.searchParams.get('navConfig.layout')).toBe('1180');
+      }
+    }
+
+
     expect(() => createForm._private.validateFormFieldDefinitions(fields)).not.toThrow();
     expect(JSON.parse(pageResult.importedModules)).toEqual(['antd', 'lucide-react', 'react']);
     expect(pageSource).toContain('function FormOpenContainer');

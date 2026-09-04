@@ -36,6 +36,8 @@
 
 导航选中态已标明当前页面时，内容区直接进入表单、列表或业务区块。独立页头仅用于补充对象名称、任务说明或操作；iframe 的可访问 `title` 与业务分区标题保留。移除与菜单同名的页头后，一并回收标题间距和高度预留。
 
+同一表单的 `workbench/{formUuid}` 是包含管理视图的入口，`submission/{formUuid}` 是直接填写的提交入口。`hideLeftNav=true` 不会改变 workbench 的用途；`corpid` 等原有参数通过 URL 构造函数保留。
+
 先依据入口的主任务选择落点：报名、申请、预约、反馈等面向填写人的入口优先显示原生提交页；查询记录、审核、维护等面向管理人的入口显示数据管理页。自定义导航中的“活动报名”直接在内容区嵌入提交页；页面内“新增/报名”按钮使用下方抽屉。两种用途可以关联同一表单，分别用业务名称表达。
 
 | 目标 | 推荐配置 | 跳转方式 |
@@ -85,7 +87,7 @@
 
 ## 按需接入自定义导航
 
-PRD 确定使用自定义导航时，按 [导航模板](../../yida-nav-shell/references/nav-shell-patterns.md) 通过 `openyida sample` 复制侧边、顶部、混合或悬浮组件。CLI 只输出所选布局；将片段合并到当前 Canvas 单文件，接入现有菜单与选中状态，保留业务内容和路由。样式直接消费应用导航 token，页内标签和表单抽屉分别按需复制。
+PRD 确定使用自定义导航时，按 `design.md` 编写导航 UI，先参考 [导航壳形态目录](../../yida-nav-shell/references/nav-shell-patterns.md) 的场景、布局骨架和小段代码，再按业务设计手写外观或迭代已有导航。自定义顶部默认浮导，侧导必须支持折叠与拖拽调宽。菜单数据、可见性过滤、当前页和跳转按目录中的协议接入，样式消费应用导航 token；不以选择 CLI 导航模板作为起点。
 
 ## 标准 FormOpenContainer
 
@@ -101,11 +103,11 @@ YidaCodeCanvas 推荐使用 antd `Drawer`。`FormOpenContainer` 只负责打开�
 openyida sample openyida-page-template form-open-container --output .cache/samples/form-open-container.jsx
 ```
 
-CLI 从整页脚手架提取同一份抽屉实现。将片段中的 import 合并到现有 `.canvas.jsx`，再合并组件与辅助函数；CodeCanvas 不支持相对路径模块导入。表单入口使用 `useYidaFormOpen(appType, reload)` 并渲染其 `formOpenContainer`；普通业务内容可直接放进 `CanvasDrawer` 的 children，用 `open/title/onClose` 控制。已有同名函数时更新原实现，保持一份定义。整页新建仍使用 `canvas-form-drawer` 模板。
+CLI 从整页脚手架提取同一份抽屉实现。将片段中的 import 合并到现有 `.canvas.jsx`，再合并组件与辅助函数；CodeCanvas 不支持相对路径模块导入。表单入口使用 `useYidaFormOpen(appType, reload)` 并渲染其 `formOpenContainer`；普通业务内容可直接放进 `CanvasDrawer` 的 children，用 `open/title/onClose` 控制。已有同名函数时更新原实现，保持一份定义。整页新建按设计直接编写，`canvas-form-drawer` 仅供完整交互参考；保留 iframe 的 `minHeight` 兜底，避免百分比高度失效。
 
 ### 接入示例
 
-合并片段后，页面只需接入按钮和返回的容器：
+合并片段后，页面只需接入按钮和返回的容器。`openForm` 可传 `params` 保留 `corpid`、来源和预填参数；容器固定的导航参数和真实详情实例 ID 优先，避免被业务参数覆盖：
 
 ```jsx
 import { Button } from 'antd';
@@ -149,7 +151,7 @@ function getOpenYidaUtilsBridge() {
   return candidates.find(function (item) { return item && item.ready; }) || null;
 }
 
-function buildYidaPath(entry, currentAppType) {
+function buildYidaBasePath(entry, currentAppType) {
   const appType = entry.appType || currentAppType;
   if (entry.targetType === 'app') return `/${appType}/workbench`;
   if (entry.targetType === 'page') return `/${appType}/workbench/${entry.navUuid || entry.formUuid}`;
@@ -163,6 +165,19 @@ function buildYidaPath(entry, currentAppType) {
   return entry.url || '';
 }
 
+function buildYidaPath(entry, currentAppType) {
+  const path = buildYidaBasePath(entry, currentAppType);
+  if (!path) return '';
+  const url = new URL(path, window.location.origin);
+  Object.entries(entry.params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      // 路径已带的必需参数（如真实实例 ID）优先，其他业务参数合并。
+      if (!url.searchParams.has(key)) url.searchParams.set(key, String(value));
+    }
+  });
+  return url.href;
+}
+
 function openEntry(entry, currentAppType, runtime) {
   if (entry.targetType === 'submission' || entry.targetType === 'detail') {
     runtime.openForm({
@@ -171,6 +186,7 @@ function openEntry(entry, currentAppType, runtime) {
       appType: entry.appType || currentAppType,
       formUuid: entry.formUuid,
       formInstId: getYidaFormInstId(entry.row) || entry.formInstId,
+      params: entry.params,
     });
     return;
   }
@@ -200,7 +216,7 @@ function openEntry(entry, currentAppType, runtime) {
 
 详情入口使用模板的 `getYidaFormInstId(row)` 解析 `searchFormDatas` 返回行，取值顺序为 `row.formInstId || row.formInstanceId || row.instanceId || row.id`。有实例 ID 时启用详情按钮；缺少时禁用按钮，并提示“未找到数据实例”。
 
-路由参数使用 `push(path, params, newTab, isUrl)`：页面 ID 或应用内路由使用 `push('FORM-xxx', params)`；带应用前缀的完整地址使用 `push(href, params, false, true)`。发布层桥接会在省略 `isUrl` 时为 `/APP_...`、HTTP(S) 和协议相对地址启用 URL 模式；显式传入的模式保持原样。桥不可用时使用 `window.location.href = href` 在当前窗口打开。
+路由参数使用 `push(path, params, newTab, isUrl)`：页面 ID 或应用内路由使用 `push('FORM-xxx', params)`；带应用前缀的完整地址使用 `push(href, params, false, true)`。发布层桥接会在省略 `isUrl` 时为 `/APP_...`、HTTP(S) 和协议相对地址启用 URL 模式；显式传入的模式保持原样，尤其不会纠正显式 `isUrl=false`；新代码仍明确传 `true`，详见 [路由模式与数据桥兜底](../../yida-nav-shell/references/nav-shell-patterns.md#路由模式与数据桥兜底)。桥不可用时使用 `window.location.href = href` 在当前窗口打开。
 
 PC 抽屉内的 iframe 高度随内容区拉满，提交页和详情页默认使用半屏宽度 `50vw`。左边缘支持拖拽调宽，最小 480px（窄视口放宽到半屏），最大为视口的 90%；拖动时捕获指针并暂停 iframe 的鼠标响应，结束后恢复。双击边缘恢复半屏，聚焦边缘后可用左右方向键调宽。点击全屏展开到 `100vw`，退出全屏或关闭后重新打开保留已调整的宽度；窗口缩小时重新限制宽度。
 

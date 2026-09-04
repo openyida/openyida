@@ -26,6 +26,8 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
 
 业务全景节点、数据模型摘要、页面概览和视觉摘要由 CLI 派生。
 
+自定义导航在 `overview.navigationSummary` 记录已选布局、入口用途和打开方式：顶部默认浮导；侧边及混合布局包含折叠/展开、恢复宽度与拖拽调宽。页面的 `firstScreenStructure/signatureInteraction` 保留相应设计与交互，按业务设计手写 UI，CLI 示例不是默认外观。管理入口对应 workbench，直接填写对应 submission；同一表单可规划两个入口。区分本页视图、主内容 iframe 与当前标签跨页跳转，沿用 [导航规则](../../../../yida-nav-shell/SKILL.md)，不另起确认问题。
+
 ## 数据模型与流程
 
 每个 `dataModels[]` 保存：

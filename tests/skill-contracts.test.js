@@ -98,13 +98,15 @@ describe('OpenYida skill contracts', () => {
     expect(source).not.toMatch(/xian-(?:chaxun|shenbao|daka)/);
   });
 
-  test('new Canvas page guidance copies the bundled base file before business edits', () => {
+  test('Canvas UI follows the design and treats bundled layouts as optional examples', () => {
     const appStep7 = readSkill('yida-skills/skills/yida-app/workflow/step-7-page-code.md');
     const canvas = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');
 
-    expect(appStep7).toContain('必须先把内置页面基准模板复制到目标');
+    expect(appStep7).toContain('允许从空文件实现完整 UI');
+    expect(appStep7).not.toContain('不得从空文件重写整页');
     expect(canvas).toContain('openyida sample openyida-page-template canvas-form-drawer');
-    expect(canvas).toContain('未改写的基准模板不得直接发布');
+    expect(canvas).toContain('未改写的示例不得直接发布');
+    expect(canvas).toContain('按设计编写 UI，示例按需参考');
     expect(canvas).not.toContain('脚手架');
   });
 
@@ -833,7 +835,7 @@ describe('OpenYida skill contracts', () => {
     expect(appStep2).not.toContain('## 完整低代码 PRD 模板');
     expect(byName.get('yida-app').description).toContain('由 yida-prd 和 yida-design 同时准备业务与基础视觉');
     expect(byName.get('yida-app').description).toContain('表单/流程先于自定义页面');
-    expect(byName.get('yida-app').description).toContain('Canvas 页面基准模板并按业务改写');
+    expect(byName.get('yida-app').description).toContain('页面 UI 按已确认设计实现，代码示例按需参考');
     expect(byName.get('yida-app').description).toContain('发布后优先按 PRD 导航顺序排序');
     expect(byName.get('yida-create-app').description).toContain('不回写已经确认的 requirement-brief.json');
     expect(byName.get('yida-app').done_when).toContain('PRD 已写入 prd/<项目名>/prd.md');
@@ -1542,8 +1544,10 @@ describe('OpenYida skill contracts', () => {
     expect(density).not.toContain('## Legacy/native fallback');
 
     expect(navShell).toContain('references/nav-shell-patterns.md#菜单契约');
-    expect(navShell).toContain('openyida sample openyida-page-template canvas-nav-side');
-    expect(navShell).toContain('[导航模板](references/nav-shell-patterns.md)');
+    expect(readSkill('yida-skills/skills/yida-nav-shell/references/nav-shell-patterns.md')).toContain('openyida sample openyida-page-template canvas-nav-side');
+    expect(navShell).toContain('[导航壳形态目录](references/nav-shell-patterns.md)');
+    expect(navShell).toContain('不强制复制任何导航组件');
+    expect(navShell).toContain('不能仅因存在新示例而替换现有外观');
     expect(navShell).not.toContain('新建导航壳默认交 **YidaCodeCanvas**');
 
     expect(pageUiux).toContain('视觉设计技能，输出 `design.md`');

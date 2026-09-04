@@ -12,7 +12,7 @@
 
 ## 操作
 
-1. 自定义页面开发执行 `use_skill("yida-canvas-custom-page", "生成主页面源码")`。新建页面源码时，必须先把内置页面基准模板复制到目标 `.canvas.jsx` / `.canvas.tsx`，再按 PRD、`design.md`、真实 ID 和数据契约定点改写；不得从空文件重写整页。
+1. 自定义页面开发执行 `use_skill("yida-canvas-custom-page", "生成主页面源码")`。根据 PRD 和 `design.md` 直接编写 `.canvas.jsx` / `.canvas.tsx`；允许从空文件实现完整 UI。内置示例按需用于理解数据接入、导航和表单交互，不要求复制整页，也不能用示例默认外观替代已确认的设计。已有符合设计的页面可继续迭代。
 2. PRD 或页面名包含看板、工作台、驾驶舱、Dashboard 时，必须执行 `use_skill("yida-dashboard", "实现真实业务看板")`。
 3. 页面读取任一表单数据时，必须执行 `use_skill("yida-canvas-data-binding", "为页面接入真实表单数据")`；不得以“页面已经能发布”为由跳过。
 4. 页面结构已明确且适合生成器时，从 PRD + `design.md` 派生当前业务自己的 `page-spec.json`。
@@ -53,7 +53,7 @@ Plan 模式下，上表涉及 PRD/design 的修正均由对应技能更新 `buil
 - [ ] Canvas 页面消费 `window.__OPENYIDA_YIDA_API__` / `window.__OPENYIDA_UTILS__`，没有直接调用 `this.utils.*`；
 - [ ] 表单新建/详情入口使用 `FormOpenContainer`，详情入口不打开空 `formInstId`；
 - [ ] 页面源码没有 emoji 和裸中文 JSX 表达式；
-- [ ] 页面源码由内置基准模板复制后改写，且已删除模板标记、示例数据、模板变量和占位文案；
+- [ ] 页面视觉符合 `design.md`，未把示例默认外观当成设计结论；使用示例时已删除标记、示例数据、模板变量和占位文案；
 - [ ] Canvas 本地校验不存在未绑定标识符；辅助函数、Ref、状态和局部变量的声明与全部引用同名；非标准运行时能力通过 `window.<name>` / `parentWindow.<name>` 显式访问并先检查属性是否存在；
 - [ ] 本地校验通过，或已有明确错误和修复动作。
 

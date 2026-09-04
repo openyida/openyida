@@ -1,6 +1,7 @@
 import React from 'react';
 
 // CLI 仅将这段公共代码与选定布局合并。颜色直接消费当前应用导航 token。
+// 这是可选实现示例；导航外观按 design.md 设计，已有 UI 无需替换成示例默认样式。
 // 选中菜单标识当前页面，main 用 aria-label 命名，children 直接承载业务内容。
 const CANVAS_NAV_CSS = `
   .oy-canvas-nav { min-width: 0; min-height: 100vh; background: var(--pod-page-bg-color, var(--color-white, #fff)); }

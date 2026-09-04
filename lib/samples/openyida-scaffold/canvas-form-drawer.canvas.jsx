@@ -1,8 +1,8 @@
 /**
  * @openyida-page-template-base
- * OpenYida Code Canvas 表单入口基准模板。
+ * OpenYida Code Canvas 表单入口实现示例。
  *
- * 内部生成流程必须先复制本文件，再按 PRD、design.md 和真实数据契约改写。
+ * 按需参考表单交互与高度兜底；页面 UI 按 PRD、design.md 和真实数据契约实现，不要求复制整页。
  * 发布前必须删除本标记、示例数据和全部占位内容。
  *
  * 关键约定：
@@ -45,12 +45,14 @@ function buildYidaFormUrl(request, currentAppType) {
   const appType = request.appType || currentAppType;
   if (request.type === 'submission') {
     return appendQuery('/' + appType + '/submission/' + request.formUuid, {
+      ...request.params,
       isRenderNav: false,
     });
   }
   if (request.type === 'detail') {
     if (!request.formInstId) return '';
     return appendQuery('/' + appType + '/formDetail/' + request.formUuid, {
+      ...request.params,
       formInstId: request.formInstId,
       'navConfig.layout': 1180,
       isRenderNav: false,

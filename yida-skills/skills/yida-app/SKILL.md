@@ -1,6 +1,6 @@
 ---
 name: yida-app
-description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做完整搭建或补齐时使用；先确认已有资源并整理用户需求，再按 Fast / Plan 生成 prd.md 与 design.md，校验通过后按 PRD 创建或复用应用、表单、流程和页面；页面阶段默认复制 Canvas 页面基准模板并按业务改写。
+description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做完整搭建或补齐时使用；先确认已有资源并整理用户需求，再按 Fast / Plan 生成 prd.md 与 design.md，校验通过后按 PRD 创建或复用应用、表单、流程和页面；页面 UI 按已确认设计实现，代码示例按需参考。
 ---
 
 # yida-app
