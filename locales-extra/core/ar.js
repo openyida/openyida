@@ -17,7 +17,7 @@ module.exports = {
     cmd_env: 'اكتشاف بيئة أداة الذكاء الاصطناعي وحالة تسجيل الدخول',
     cmd_env_management: 'Manage public/private environment profiles',
     group_app: 'إدارة التطبيقات',
-    cmd_app_list: 'عرض تطبيقات Yida الخاصة بي',
+    cmd_app_list: 'عرض التطبيقات المُدارة أو المُنشأة على صفحات',
     cmd_corp_efficiency: 'استعلام عن نظرة عامة على كفاءة المؤسسة وتقارير التفاصيل',
     cmd_create_app: 'إنشاء تطبيق Yida',
     cmd_update_app: 'تحديث معلومات التطبيق',
@@ -122,6 +122,25 @@ module.exports = {
     quickstart_form_name: 'معلومات الموظف',
     docs: '📚 الوثائق:'
   },
+  app_list: {
+    usage: 'الاستخدام: openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: 'الخيارات:',
+    option_type: '  --type TYPE  النطاق: managed (افتراضي) أو created',
+    option_page: '  --page N     رقم الصفحة، الافتراضي: 1',
+    option_size: '  --size N     حجم الصفحة، الافتراضي: 16',
+    option_help: '  --help, -h   عرض هذه المساعدة',
+    invalid_type: 'قيمة --type غير صالحة «{0}»؛ القيم الصالحة: {1}',
+    invalid_positive_integer: 'يجب أن تكون {0} عددًا صحيحًا موجبًا؛ القيمة المستلمة: «{1}»',
+    invalid_argument: 'وسيطة غير صالحة: {0}',
+    query_failed: 'تعذر الاستعلام عن قائمة التطبيقات: {0}',
+    auth_required: 'انتهت صلاحية تسجيل الدخول. يرجى تسجيل الدخول مجددًا.',
+    unknown_error: 'خطأ غير معروف',
+    scope_managed: 'المُدارة',
+    scope_created: 'المُنشأة',
+    found: 'التطبيقات {0}: الصفحة {1}/{2}، {3} في هذه الصفحة، الإجمالي {4}',
+    next_page: 'تتوفر تطبيقات أخرى. تابع باستخدام: {0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +

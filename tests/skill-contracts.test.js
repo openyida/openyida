@@ -967,7 +967,9 @@ describe('OpenYida skill contracts', () => {
 
     expect(appStep1).toContain('已有显式 `appType`、应用 URL 或已绑定上下文中的 `appType` 且能唯一解析时，直接复用');
     expect(appStep1).toContain('不要调用 `app-list` 做存在性确认');
-    expect(appStep1).toContain('才运行 `openyida app-list [--size N]`');
+    expect(appStep1).toContain('才运行 `openyida app-list [--type managed|created] [--page N] [--size N]`');
+    expect(appStep1).toContain('默认查询“我管理的”第 1 页、每页 16 条');
+    expect(appStep1).toContain('不要假设命令会自动拉取全量');
     expect(appStep1).toContain('openyida list-forms <appType> [--keyword <text>]');
     expect(appStep1).toContain('openyida get-schema <appType> <formUuid|--all> ...');
     expect(appStep1).toContain('禁止编造 `list-apps` / `get-app`');

@@ -17,7 +17,7 @@ module.exports = {
     cmd_env: 'KI-Tool-Umgebung und Anmeldestatus erkennen',
     cmd_env_management: 'Public/private environment profiles verwalten',
     group_app: 'App-Verwaltung',
-    cmd_app_list: 'Meine Yida-Apps auflisten',
+    cmd_app_list: 'Verwaltete oder erstellte Apps seitenweise anzeigen',
     cmd_corp_efficiency: 'Unternehmenseffizienz-Übersicht und Detailberichte abrufen',
     cmd_create_app: 'Yida-App erstellen',
     cmd_update_app: 'App-Informationen aktualisieren',
@@ -122,6 +122,25 @@ module.exports = {
     quickstart_form_name: 'Mitarbeiterinfo',
     docs: '📚 Dokumentation:'
   },
+  app_list: {
+    usage: 'Verwendung: openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: 'Optionen:',
+    option_type: '  --type TYPE  Bereich: managed (Standard) oder created',
+    option_page: '  --page N     Seitennummer, Standard: 1',
+    option_size: '  --size N     Seitengröße, Standard: 16',
+    option_help: '  --help, -h   Diese Hilfe anzeigen',
+    invalid_type: 'Ungültiger --type-Wert „{0}“; gültige Werte: {1}',
+    invalid_positive_integer: '{0} muss eine positive Ganzzahl sein; erhalten: „{1}“',
+    invalid_argument: 'Ungültiges Argument: {0}',
+    query_failed: 'App-Liste konnte nicht abgefragt werden: {0}',
+    auth_required: 'Die Anmeldung ist abgelaufen. Bitte erneut anmelden.',
+    unknown_error: 'Unbekannter Fehler',
+    scope_managed: 'Verwaltete',
+    scope_created: 'Erstellte',
+    found: '{0} Apps: Seite {1}/{2}, {3} auf dieser Seite, insgesamt {4}',
+    next_page: 'Weitere Apps sind verfügbar. Fortfahren mit: {0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +

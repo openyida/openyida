@@ -17,7 +17,7 @@ module.exports = {
     cmd_env: "Détecter l'environnement IA et l'état de connexion",
     cmd_env_management: "Gérer les profils d'environnement public/privé",
     group_app: 'Gestion des applications',
-    cmd_app_list: 'Lister mes applications Yida',
+    cmd_app_list: 'Parcourir les applications gérées ou créées',
     cmd_corp_efficiency: "Consulter l'aperçu de l'efficacité entreprise et les rapports détaillés",
     cmd_create_app: 'Créer une application Yida',
     cmd_update_app: "Mettre à jour les infos de l'application",
@@ -122,6 +122,25 @@ module.exports = {
     quickstart_form_name: 'Info employé',
     docs: '📚 Docs :'
   },
+  app_list: {
+    usage: 'Utilisation : openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: 'Options :',
+    option_type: '  --type TYPE  Portée : managed (par défaut) ou created',
+    option_page: '  --page N     Numéro de page, valeur par défaut : 1',
+    option_size: '  --size N     Taille de page, valeur par défaut : 16',
+    option_help: '  --help, -h   Afficher cette aide',
+    invalid_type: 'Valeur --type non valide « {0} » ; valeurs valides : {1}',
+    invalid_positive_integer: '{0} doit être un entier positif ; valeur reçue : « {1} »',
+    invalid_argument: 'Argument non valide : {0}',
+    query_failed: 'Échec de la récupération de la liste des applications : {0}',
+    auth_required: 'La connexion a expiré. Veuillez vous reconnecter.',
+    unknown_error: 'Erreur inconnue',
+    scope_managed: 'Gérées',
+    scope_created: 'Créées',
+    found: 'Applications {0} : page {1}/{2}, {3} sur cette page, {4} au total',
+    next_page: 'D’autres applications sont disponibles. Continuez avec : {0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +

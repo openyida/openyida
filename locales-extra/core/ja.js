@@ -17,7 +17,7 @@ module.exports = {
     cmd_env: 'AI ツール環境とログイン状態を検出',
     cmd_env_management: 'パブリック/プライベート環境プロファイルを管理',
     group_app: 'アプリ管理',
-    cmd_app_list: '自分の Yida アプリ一覧を表示',
+    cmd_app_list: '管理中または作成済みのアプリをページ表示',
     cmd_corp_efficiency: '企業効率の概要と明細レポートを取得',
     cmd_create_app: '宜搭アプリを作成',
     cmd_update_app: 'アプリ情報を更新',
@@ -122,6 +122,25 @@ module.exports = {
     quickstart_form_name: '従業員情報',
     docs: '📚 ドキュメント:'
   },
+  app_list: {
+    usage: '使用方法：openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: 'オプション：',
+    option_type: '  --type TYPE  範囲：managed（管理中、既定）または created（作成済み）',
+    option_page: '  --page N     ページ番号、既定：1',
+    option_size: '  --size N     1 ページの件数、既定：16',
+    option_help: '  --help, -h   ヘルプを表示',
+    invalid_type: '無効な --type 値「{0}」。有効値：{1}',
+    invalid_positive_integer: '{0} は正の整数である必要があります。現在値：「{1}」',
+    invalid_argument: '無効な引数：{0}',
+    query_failed: 'アプリ一覧の取得に失敗しました：{0}',
+    auth_required: 'ログインの有効期限が切れました。再度ログインしてください。',
+    unknown_error: '不明なエラー',
+    scope_managed: '管理中',
+    scope_created: '作成済み',
+    found: '{0}アプリ：{1}/{2} ページ、このページ {3} 件、合計 {4} 件',
+    next_page: 'さらにアプリがあります。次を実行してください：{0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI ツール\n' +
