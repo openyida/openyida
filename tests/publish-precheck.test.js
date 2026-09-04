@@ -19,6 +19,7 @@ const {
   buildMissingSourceHints,
   buildDefaultPageDataSource,
   buildCanvasSchemaContent,
+  buildCanvasSavePayload,
   buildSchemaContent,
   countCustomPageDataSources,
   extractPageDataSource,
@@ -327,6 +328,31 @@ export default function Page() {
     });
   });
 
+  test('builds a code-free Canvas save skeleton while preserving local artifacts', () => {
+    const sourceCode = 'export default function Page() { return null; }';
+    const runtimeCode = 'var YidaComp = function Page() { return null; };';
+    const schemaContent = buildCanvasSchemaContent(
+      sourceCode,
+      runtimeCode,
+      '[]',
+      'FORM-CANVAS'
+    );
+
+    const payload = buildCanvasSavePayload(schemaContent, sourceCode, runtimeCode);
+    const schema = JSON.parse(payload.content);
+    const canvas = schema.pages[0].componentsTree[0].children[0];
+
+    expect(payload).toMatchObject({
+      canvasNodeId: canvas.id,
+      sourceCode,
+      runtimeCode,
+    });
+    expect(canvas.componentName).toBe('YidaCodeCanvas');
+    expect(canvas.props).not.toHaveProperty('code');
+    expect(canvas.props).not.toHaveProperty('runtimeCode');
+    expect(canvas.props).not.toHaveProperty('codeBundle');
+  });
+
   test('publish schema builders reject emoji in stored page source', () => {
     expect(() => buildSchemaContent(
       'export function renderJsx() { return React.createElement("div", null, "✅"); }',
@@ -525,6 +551,15 @@ export default function Page() {
         success: true,
         content: { formUuid: 'FORM-PAGE', version: 7 },
       })),
+      httpPostMultipart: jest.fn(() => Promise.resolve({
+        success: true,
+        content: {
+          formUuid: 'FORM-PAGE',
+          version: 7,
+          storageMode: 'CODE_BUNDLE',
+          bundleId: 'a'.repeat(64),
+        },
+      })),
       requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
     };
 
@@ -565,7 +600,19 @@ export default function Page() {
       })),
     }));
     jest.doMock('../lib/app/services/canvas-page-schema-builder', () => ({
-      buildCanvasPageSchemaContent: jest.fn(() => JSON.stringify({ pages: [] })),
+      buildCanvasPageSchemaContent: jest.fn((sourceCode, runtimeCode) => JSON.stringify({
+        pages: [{
+          componentsTree: [{
+            componentName: 'Page',
+            id: 'page-1',
+            children: [{
+              componentName: 'YidaCodeCanvas',
+              id: 'canvas-1',
+              props: { code: sourceCode, runtimeCode },
+            }],
+          }],
+        }],
+      })),
     }));
     jest.doMock('../lib/app/nav-group', () => ({
       autoOrderNavigation: autoOrderNavigationMock,
@@ -590,8 +637,15 @@ export default function Page() {
       expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('display_component_missing'));
       expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('NAV_ORDER_RESULT_UNKNOWN'));
       expect(autoOrderNavigationMock).toHaveBeenCalledWith('APP_XXX', expect.any(Object));
-      expect(mockUtils.httpPost).toHaveBeenCalledTimes(1);
-      expect(mockUtils.httpPost.mock.calls[0][1]).toContain('/saveFormSchema.json');
+      expect(mockUtils.httpPost).not.toHaveBeenCalled();
+      expect(mockUtils.httpPostMultipart).toHaveBeenCalledTimes(1);
+      expect(mockUtils.httpPostMultipart.mock.calls[0][1]).toContain('/query/codeBundle/save.json');
+      expect(mockUtils.httpPostMultipart.mock.calls[0][2]).toMatchObject({
+        formUuid: 'FORM-PAGE',
+        canvasNodeId: 'canvas-1',
+      });
+      expect(JSON.parse(mockUtils.httpPostMultipart.mock.calls[0][2].content)
+        .pages[0].componentsTree[0].children[0].props).toEqual({});
       const outputPayload = consoleSpy.mock.calls
         .map((call) => call[0])
         .filter((line) => typeof line === 'string' && line.startsWith('{'))
@@ -602,6 +656,8 @@ export default function Page() {
         appType: 'APP_XXX',
         formUuid: 'FORM-PAGE',
         publishMode: 'canvas',
+        storageMode: 'CODE_BUNDLE',
+        bundleId: 'a'.repeat(64),
         healthCheck: {
           ok: false,
           expectedPublishMode: 'canvas',
@@ -665,6 +721,54 @@ export default function Page() {
       );
       expect(httpPost).toHaveBeenCalledTimes(1);
       expect(httpPost.mock.calls[0][3]).toEqual({ silentStatus: true });
+      expect(label).toBeTruthy();
+    } finally {
+      jest.dontMock('../lib/core/utils');
+      jest.resetModules();
+    }
+  });
+
+  test.each([
+    ['login expiry', { __needLogin: true, __httpStatus: 401 }],
+    ['ordinary failure', { success: false, errorCode: 'FAILED' }],
+    ['success', { success: true, content: { storageMode: 'CODE_BUNDLE' } }],
+  ])('Canvas unified save transport delegates once on %s', async (label, responseBody) => {
+    jest.resetModules();
+    const httpPostMultipart = jest.fn().mockResolvedValue(responseBody);
+    jest.doMock('../lib/core/utils', () => {
+      const actual = jest.requireActual('../lib/core/utils');
+      return {
+        ...actual,
+        httpPostMultipart,
+      };
+    });
+    const isolatedPublish = require('../lib/app/publish');
+
+    try {
+      await isolatedPublish.sendCanvasSaveRequestWithAuth(
+        { baseUrl: 'https://example.test', authMode: 'token', authSource: 'token' },
+        {
+          canvasNodeId: 'canvas-1',
+          content: JSON.stringify({ pages: [] }),
+          sourceCode: 'source',
+          runtimeCode: 'runtime',
+        },
+        'APP_XXX',
+        'FORM_XXX',
+        100
+      );
+      expect(httpPostMultipart).toHaveBeenCalledTimes(1);
+      expect(httpPostMultipart.mock.calls[0][1]).toContain('/query/codeBundle/save.json');
+      expect(httpPostMultipart.mock.calls[0][2]).toMatchObject({
+        formUuid: 'FORM_XXX',
+        gmtModified: 100,
+        canvasNodeId: 'canvas-1',
+        importSchema: true,
+      });
+      expect(httpPostMultipart.mock.calls[0][3]).toMatchObject({
+        source: { content: 'source', fileName: 'source.jsx' },
+        runtime: { content: 'runtime', fileName: 'runtime.js' },
+      });
       expect(label).toBeTruthy();
     } finally {
       jest.dontMock('../lib/core/utils');
