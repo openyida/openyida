@@ -2,17 +2,21 @@
 
 按 `prd.md` 和 `design.md` 实现页面。页面源码通过本地校验只表示“可发布”，不表示远端页面已更新。
 
+页面开发消费已确认的设计与 token 契约，不等待主题文件上传或页面导航配置请求。页面创建/复用取得 formUuid 后，页面导航隐藏应由独立配置任务立即执行并回读，与本步骤并行。主题任务应在 CSS 和 appType 就绪时立即更新应用设置；视觉验收前核对其回读结果，不在本步骤结束后才启动主题更新。
+
+无直接依赖的页面按 [页面并行规则](parallel-work.md#页面按实际依赖并行) 同时开发，每页只等待自身需要的资源，不按导航顺序串行。共享主题或同一已就绪表单不构成页面间依赖；当前页就绪即可进入发布步骤，导航排序等待全部页面完成。
+
 ## 输入
 
 - `prd/<项目名>/prd.md`；
 - `prd/<项目名>/design.md`；
-- 真实 `appType`、主页面 `formUuid`；
+- 真实 `appType`、当前页面 `formUuid`；
 - `.cache/<项目名>-schema.json`；
 - Step 5 写入的 seed records 或跳过原因。
 
 ## 操作
 
-1. 自定义页面开发执行 `use_skill("yida-canvas-custom-page", "生成主页面源码")`。根据 PRD 和 `design.md` 直接编写 `.canvas.jsx` / `.canvas.tsx`；允许从空文件实现完整 UI。内置示例按需用于理解数据接入、导航和表单交互，不要求复制整页，也不能用示例默认外观替代已确认的设计。已有符合设计的页面可继续迭代。
+1. 自定义页面开发执行 `use_skill("yida-canvas-custom-page", "生成当前页面源码")`。根据 PRD 和 `design.md` 直接编写 `.canvas.jsx` / `.canvas.tsx`；允许从空文件实现完整 UI。内置示例按需用于理解数据接入、导航和表单交互，不要求复制整页，也不能用示例默认外观替代已确认的设计。已有符合设计的页面可继续迭代。
 2. PRD 或页面名包含看板、工作台、驾驶舱、Dashboard 时，必须执行 `use_skill("yida-dashboard", "实现真实业务看板")`。
 3. 页面读取任一表单数据时，必须执行 `use_skill("yida-canvas-data-binding", "为页面接入真实表单数据")`；不得以“页面已经能发布”为由跳过。
 4. 页面结构已明确且适合生成器时，从 PRD + `design.md` 派生当前业务自己的 `page-spec.json`。

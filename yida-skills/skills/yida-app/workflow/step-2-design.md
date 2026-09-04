@@ -2,7 +2,7 @@
 
 ## 2.0 先分析并确认需求
 
-调用 `yida-requirement-analysis`，按 [需求分析与首次搭建确认](../../yida-requirement-analysis/workflow/prepare-brief.md) 整理来源、复用资源及用户已有计划，在同一轮一次性确认尚未明确的 Fast / Plan、业务模块、页面与表单、导航归属与布局及风格。导航选择直接包含平台或自定义及具体布局，“自定义导航”大类不标记“推荐”；已选自定义顶部时，呈现样式默认推荐浮导，用户明确的其他样式优先；后续阶段复用答案。首次搭建在必要回答写回、`intake.confirmed=true` 后继续。
+调用 `yida-requirement-analysis`，按 [需求分析与首次搭建确认](../../yida-requirement-analysis/workflow/prepare-brief.md) 整理来源、复用资源及用户已有计划，在同一轮一次性确认尚未明确的 Fast / Plan、业务模块、页面与表单、导航归属与布局及风格。导航选择直接包含平台或自定义及具体布局，并按 [导航选项说明](../../yida-requirement-analysis/workflow/prepare-brief.md#导航选项说明) 备注平台原生布局与自定义页面实现的区别，“自定义导航”大类不标记“推荐”；已选自定义顶部时，呈现样式默认推荐浮导，用户明确的其他样式优先；后续阶段复用答案。首次搭建在必要回答写回、`intake.confirmed=true` 后继续。
 
 回答齐全后直接保存内部需求记录并进入 2.1；不把“生成需求简报”列为独立任务，不再扩写或展示简报请用户确认。已有确认记录且需求未变化时直接复用。记录粒度、保存和校验规则统一遵守上述需求分析流程。
 
@@ -40,7 +40,7 @@
 
 ## 主题文件实现指令
 
-在设计中确定配色、导航明暗和布局。Plan 使用 CLI 返回的 `outputs.theme`；Fast 按 [主题文件生成与更新](../../yida-design/workflow/output-design.md#cli-token-契约fast--plan-共用) 准备主题 CSS。进入 Step 3 后，在应用级配置同一份主题文件，页面组件消费主题 token。
+在设计中确定配色、导航明暗和布局。Plan 使用 CLI 返回的 `outputs.theme`；Fast 按 [主题文件生成与更新](../../yida-design/workflow/output-design.md#cli-token-契约fast--plan-共用) 准备主题 CSS。用户确认计划或主题后即可启动 CSS 生成，不等待表单或页面开发；Plan 已生成当前版本的 CSS 时直接复用。拿到真实 appType 后，在应用级配置同一份主题文件，与表单创建和页面开发并行；页面组件按已确认契约消费主题 token，详见 [主题与业务资源的依赖](parallel-work.md#主题与业务资源的依赖)。
 
 ## 产出
 

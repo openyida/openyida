@@ -33,4 +33,4 @@ build-plan.json（业务和视觉的源事实）
 
 草稿按已确定的模块更新，最终校验后统一保存三份文档和主题 CSS。调整由对应技能更新源事实，再由编排重新生成并确认，具体命令与版本条件见 [生成与确认](step-4-deliver.md)。
 
-用户交互按 [可见表达契约](../../../yida-design/references/ask-human-interaction-contract.md) 执行。当前展示版本确认后，将 `prd.md` 和 `design.md` 交给应用主流程 Step 3。
+用户交互按 [可见表达契约](../../../yida-design/references/ask-human-interaction-contract.md) 执行。当前展示版本确认后，将 `prd.md`、`design.md` 和已生成的 `outputs.theme` 立即交给应用主流程 Step 3；取得 appType 后马上同步主题设置，并行创建表单和开发页面，不重复生成 CSS，也不等页面完成。

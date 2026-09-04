@@ -464,9 +464,10 @@ describe('OpenYida skill contracts', () => {
     expect(app).toContain('[Step 8：发布页面并排序导航]');
     expect(step8).toContain('发布本轮修改过的页面源码到真实 display 页面，并执行轻量导航排序');
     expect(step8).toContain('PRD 写明页面/表单清单顺序：');
-    expect(step8).toContain('openyida publish <source> <appType> <displayPageFormUuid> --canvas --health-check\nopenyida nav-group order <appType> <页面/表单...>');
+    expect(step8).toContain('导航排序必须等待本轮全部页面开发、发布和相关资源创建完成');
+    expect(step8).toContain('openyida nav-group order <appType> <页面/表单...>');
     expect(step8).toContain('PRD 缺少明确页面清单：');
-    expect(step8).toContain('openyida publish <source> <appType> <displayPageFormUuid> --canvas --health-check --auto-nav-order');
+    expect(step8).toContain('openyida nav-group auto-order <appType>');
     expect(step8).toContain('同一搭建 Run 不得同时执行显式排序与自动排序');
     const explicitNavBranch = step8.slice(
       step8.indexOf('PRD 写明页面/表单清单顺序：'),
@@ -480,7 +481,8 @@ describe('OpenYida skill contracts', () => {
     const fallbackNavCommands = fallbackNavBranch.match(/```text\n([\s\S]*?)\n```/)[1];
     expect(explicitNavCommands).not.toContain('--auto-nav-order');
     expect(fallbackNavCommands).not.toContain('nav-group order');
-    expect(fallbackNavCommands).not.toContain('nav-group auto-order');
+    expect(fallbackNavCommands).toContain('nav-group auto-order');
+    expect(fallbackNavCommands).not.toContain('openyida publish');
     expect(step8).toContain('不生成逐项 `move` 的 Bash/Python 循环');
     expect(step4).toContain('PRD 包含审批、流程、申请、审核、工单等流程对象时');
     expect(publish).toContain('`--auto-nav-order`');
@@ -1010,7 +1012,7 @@ describe('OpenYida skill contracts', () => {
 
     expect(app).toContain('[Step 7：编写或更新页面]');
     expect(appStep7).toContain('页面源码通过本地校验只表示“可发布”，不表示远端页面已更新');
-    expect(appStep8).toContain('--canvas --health-check --auto-nav-order');
+    expect(appStep8).toContain('完整应用逐页发布均不带 `--auto-nav-order`');
     expect(appStep8).toContain('`publishMode=canvas`');
     expect(appStep8).toContain('`healthCheck.readback.hasYidaCodeCanvas=true`');
     expect(appStep9).toContain('没有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`');

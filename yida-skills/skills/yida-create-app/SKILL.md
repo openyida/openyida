@@ -69,7 +69,7 @@ openyida update-app <appType> --theme-file <app-theme.css> --nav-theme light --l
 | `--logo-source` | `appIcon` / `customImage`；后者要求应用已有 `homepageLogo` |
 | `--hide-app-nav` / `--show-app-nav` | 隐藏或显示应用原生导航 |
 
-OpenYida 统一在 CSS 生成后通过一次 `update-app` 同步 `colour`、`themeColor`、`customThemeStyle`、`navTheme`、`logoSource`、`layoutDirection` 和导航显隐。创建命令不接受或提交这些设置字段。
+主题确认后立即生成 CSS，可与表单创建和页面开发并行；真实 appType 与 CSS 就绪后立即更新，不等待页面完成。OpenYida 统一在 CSS 生成后通过一次 `update-app` 同步 `colour`、`themeColor`、`customThemeStyle`、`navTheme`、`logoSource`、`layoutDirection` 和导航显隐。创建命令不接受或提交这些设置字段。
 
 ## 创建应用壳层兜底
 

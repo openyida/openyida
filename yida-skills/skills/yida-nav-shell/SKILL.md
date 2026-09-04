@@ -26,7 +26,7 @@ description: 自定义页明确要自绘应用级导航时使用；先隐藏应�
 
 ## 必做配置
 
-新建应用时，等 `app-theme.css` 生成后，将 `--hide-app-nav` 与主题、Logo、布局等设置合并到同一次 `update-app`，按 [应用设置同步](../yida-app/workflow/step-3-create-or-reuse-app.md) 执行并回读。已有应用只需切换导航时执行：
+用户确认自定义导航后，就将应用导航隐藏纳入应用基础设置更新：新建应用时，等 `app-theme.css` 生成后，将 `--hide-app-nav` 与主题、Logo、布局等设置合并到同一次 `update-app`，按 [应用设置同步](../yida-app/workflow/step-3-create-or-reuse-app.md) 执行并回读。已有应用只需切换导航时执行：
 
 ```bash
 openyida update-app <appType> --hide-app-nav
@@ -39,7 +39,7 @@ openyida update-form-config <appType> <formUuid> false "<页面标题>"
 openyida get-form-config <appType> <formUuid> --json
 ```
 
-每页回读 `isRenderNav=false` 才完成；失败时修复该页配置并重读。表单在业务资源创建或复用后配置，自定义页在发布后配置，最终按 PRD 清单逐项核对。`create-page --hide-nav` 可用于新建页初始配置，仍需回读；URL 参数不能代替持久化设置。
+每页回读 `isRenderNav=false` 才完成；失败时修复该页配置并重读。表单及自定义页面在创建或复用并取得真实 `formUuid` 后立即配置，可与页面代码开发并行，不等待页面发布。发布后只回读核对；若发布改变了配置才补写修复，最终按 PRD 清单逐项核对。`create-page --hide-nav` 可用于新建页初始配置，仍需回读；URL 参数不能代替持久化设置。
 
 ## 实现要点
 

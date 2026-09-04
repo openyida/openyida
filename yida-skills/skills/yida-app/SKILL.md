@@ -15,7 +15,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 
 完整应用先分析需求；首次搭建按 yida-requirement-analysis/workflow/prepare-brief.md 确认未决事项，再进入已选 Fast / Plan。两种模式共享需求分析与 PRD 契约，以下并行生成规则用于 Fast；Plan 确认当前版本后交接派生文件，直接进入 Step 3。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。
 
-以下 9 步用于内部执行。创建或更新用户可见的步骤列表时，先按 [步骤列表与进度](../yida-design/references/ask-human-interaction-contract.md#步骤列表与进度) 归并为业务步骤。每一步开始前读取对应 workflow 文件；当前步骤达到 doneWhen 后再进入下一步。
+以下 9 步用于内部执行。创建或更新用户可见的步骤列表时，先按 [步骤列表与进度](../yida-design/references/ask-human-interaction-contract.md#步骤列表与进度) 归并为业务步骤。每一步开始前读取对应 workflow 文件；按真实依赖满足下游输入后继续。Step 3 拿到 appType 即可启动表单创建，主题生成与设置同步作为独立分支继续，不将主题完成作为所有后续步骤的串行前置条件。无直接依赖的页面同时开发，每页只等待自身资源，独立校验并发布；全部页面完成后再统一导航排序。
 
 | 步骤 | 名称 | 目标 | 产出 |
 | --- | --- | --- | --- |
@@ -29,7 +29,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | 8 | [发布页面并排序导航](workflow/step-8-publish-navigation.md) | 执行 `use_skill("yida-publish-page")`，发布本轮源码到主页面并执行轻量导航排序 | 已发布主页面 URL |
 | 9 | [输出与收尾](workflow/step-9-output-finish.md) | 核对完成条件，按业务语言输出结果 | 2-3 句业务总结 + 一组应用访问入口 |
 
-独立工作按 [并行执行](workflow/parallel-work.md) 调度，任务分别产出，由主流程汇合。
+独立工作按 [并行执行](workflow/parallel-work.md) 调度，任务分别产出，由主流程汇合。计划或主题确认后立即生成主题 CSS，appType 和 CSS 就绪就同步应用设置，不等待页面开发完成。
 
 ## 核心规则
 
