@@ -17,7 +17,7 @@ module.exports = {
     cmd_env: 'Detectar ambiente de ferramenta IA e estado de login',
     cmd_env_management: 'Gerenciar perfis de ambiente público/privado',
     group_app: 'Gerenciamento de aplicativos',
-    cmd_app_list: 'Listar meus aplicativos Yida',
+    cmd_app_list: 'Paginar aplicativos gerenciados ou criados',
     cmd_corp_efficiency: 'Consultar visão geral de eficiência empresarial e relatórios detalhados',
     cmd_create_app: 'Criar um aplicativo Yida',
     cmd_update_app: 'Atualizar informações do aplicativo',
@@ -122,6 +122,25 @@ module.exports = {
     quickstart_form_name: 'Info do funcionário',
     docs: '📚 Documentação:'
   },
+  app_list: {
+    usage: 'Uso: openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: 'Opções:',
+    option_type: '  --type TYPE  Escopo: managed (padrão) ou created',
+    option_page: '  --page N     Número da página, padrão: 1',
+    option_size: '  --size N     Tamanho da página, padrão: 16',
+    option_help: '  --help, -h   Mostrar esta ajuda',
+    invalid_type: 'Valor de --type inválido “{0}”; valores válidos: {1}',
+    invalid_positive_integer: '{0} deve ser um inteiro positivo; valor recebido: “{1}”',
+    invalid_argument: 'Argumento inválido: {0}',
+    query_failed: 'Falha ao consultar a lista de aplicativos: {0}',
+    auth_required: 'A sessão expirou. Entre novamente.',
+    unknown_error: 'Erro desconhecido',
+    scope_managed: 'Gerenciados',
+    scope_created: 'Criados',
+    found: 'Aplicativos {0}: página {1}/{2}, {3} nesta página, {4} no total',
+    next_page: 'Há mais aplicativos. Continue com: {0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +

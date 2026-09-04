@@ -17,7 +17,7 @@ module.exports = {
     cmd_env: '偵測 AI 工具環境和登入態',
     cmd_env_management: '管理公有雲 / 私有化環境',
     group_app: '應用程式管理',
-    cmd_app_list: '查詢我的應用程式清單',
+    cmd_app_list: '分頁查詢我管理或建立的應用程式',
     cmd_corp_efficiency: '查詢企業效能概覽和明細報表',
     cmd_create_app: '建立宜搭應用程式',
     cmd_update_app: '更新應用程式資料',
@@ -123,6 +123,25 @@ module.exports = {
     quickstart_form_name: '員工資料',
     docs: '📚 文件:'
   },
+  app_list: {
+    usage: '用法：openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: '選項：',
+    option_type: '  --type TYPE  查詢範圍：managed（我管理的，預設）或 created（我建立的）',
+    option_page: '  --page N     頁碼，預設：1',
+    option_size: '  --size N     每頁數量，預設：16',
+    option_help: '  --help, -h   顯示說明',
+    invalid_type: '無效的 --type 值「{0}」，有效值：{1}',
+    invalid_positive_integer: '{0} 必須是正整數，目前值：「{1}」',
+    invalid_argument: '無效參數：{0}',
+    query_failed: '查詢應用程式清單失敗：{0}',
+    auth_required: '登入狀態已失效，請重新登入',
+    unknown_error: '未知錯誤',
+    scope_managed: '我管理的',
+    scope_created: '我建立的',
+    found: '{0}應用程式：第 {1}/{2} 頁，本頁 {3} 個，共 {4} 個',
+    next_page: '還有更多應用程式，請繼續執行：{0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - 宜搭命令列工具\n' +

@@ -17,7 +17,7 @@ module.exports = {
     cmd_env: 'AI 도구 환경 및 로그인 상태 감지',
     cmd_env_management: 'Manage public/private environment profiles',
     group_app: '앱 관리',
-    cmd_app_list: '내 Yida 앱 목록 조회',
+    cmd_app_list: '관리하거나 생성한 앱을 페이지별로 조회',
     cmd_corp_efficiency: '기업 효율 개요 및 상세 보고서 조회',
     cmd_create_app: 'Yida 앱 생성',
     cmd_update_app: '앱 정보 업데이트',
@@ -122,6 +122,25 @@ module.exports = {
     quickstart_form_name: '직원 정보',
     docs: '📚 문서:'
   },
+  app_list: {
+    usage: '사용법: openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: '옵션:',
+    option_type: '  --type TYPE  범위: managed(관리 중, 기본값) 또는 created(내가 생성)',
+    option_page: '  --page N     페이지 번호, 기본값: 1',
+    option_size: '  --size N     페이지 크기, 기본값: 16',
+    option_help: '  --help, -h   도움말 표시',
+    invalid_type: '잘못된 --type 값 "{0}"; 유효한 값: {1}',
+    invalid_positive_integer: '{0}은(는) 양의 정수여야 합니다. 현재 값: "{1}"',
+    invalid_argument: '잘못된 인수: {0}',
+    query_failed: '앱 목록 조회 실패: {0}',
+    auth_required: '로그인이 만료되었습니다. 다시 로그인하세요.',
+    unknown_error: '알 수 없는 오류',
+    scope_managed: '관리 중',
+    scope_created: '내가 생성',
+    found: '{0} 앱: {1}/{2}페이지, 현재 페이지 {3}개, 전체 {4}개',
+    next_page: '앱이 더 있습니다. 다음을 실행하세요: {0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +

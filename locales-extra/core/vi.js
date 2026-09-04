@@ -17,7 +17,7 @@ module.exports = {
     cmd_env: 'Phát hiện môi trường AI và trạng thái đăng nhập',
     cmd_env_management: 'Manage public/private environment profiles',
     group_app: 'Quản lý ứng dụng',
-    cmd_app_list: 'Liệt kê ứng dụng Yida của tôi',
+    cmd_app_list: 'Phân trang ứng dụng tôi quản lý hoặc đã tạo',
     cmd_corp_efficiency: 'Truy vấn tổng quan hiệu quả doanh nghiệp và báo cáo chi tiết',
     cmd_create_app: 'Tạo ứng dụng Yida',
     cmd_update_app: 'Cập nhật thông tin ứng dụng',
@@ -122,6 +122,25 @@ module.exports = {
     quickstart_form_name: 'Thông tin nhân viên',
     docs: '📚 Tài liệu:'
   },
+  app_list: {
+    usage: 'Cách dùng: openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: 'Tùy chọn:',
+    option_type: '  --type TYPE  Phạm vi: managed (mặc định) hoặc created',
+    option_page: '  --page N     Số trang, mặc định: 1',
+    option_size: '  --size N     Kích thước trang, mặc định: 16',
+    option_help: '  --help, -h   Hiển thị trợ giúp',
+    invalid_type: 'Giá trị --type không hợp lệ “{0}”; giá trị hợp lệ: {1}',
+    invalid_positive_integer: '{0} phải là số nguyên dương; giá trị nhận được: “{1}”',
+    invalid_argument: 'Đối số không hợp lệ: {0}',
+    query_failed: 'Không thể truy vấn danh sách ứng dụng: {0}',
+    auth_required: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+    unknown_error: 'Lỗi không xác định',
+    scope_managed: 'Được quản lý',
+    scope_created: 'Đã tạo',
+    found: 'Ứng dụng {0}: trang {1}/{2}, {3} ứng dụng trên trang này, tổng cộng {4}',
+    next_page: 'Còn ứng dụng khác. Tiếp tục bằng lệnh: {0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +

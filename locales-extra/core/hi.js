@@ -17,7 +17,7 @@ module.exports = {
     cmd_env: 'AI टूल वातावरण और लॉगिन स्थिति पहचानें',
     cmd_env_management: 'Manage public/private environment profiles',
     group_app: 'ऐप प्रबंधन',
-    cmd_app_list: 'मेरे Yida ऐप सूचीबद्ध करें',
+    cmd_app_list: 'मेरे प्रबंधित या बनाए गए ऐप पृष्ठवार दिखाएँ',
     cmd_corp_efficiency: 'एंटरप्राइज दक्षता अवलोकन और विवरण रिपोर्ट क्वेरी करें',
     cmd_create_app: 'Yida ऐप बनाएं',
     cmd_update_app: 'ऐप जानकारी अपडेट करें',
@@ -122,6 +122,25 @@ module.exports = {
     quickstart_form_name: 'कर्मचारी जानकारी',
     docs: '📚 दस्तावेज़:'
   },
+  app_list: {
+    usage: 'उपयोग: openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: 'विकल्प:',
+    option_type: '  --type TYPE  दायरा: managed (डिफ़ॉल्ट) या created',
+    option_page: '  --page N     पृष्ठ संख्या, डिफ़ॉल्ट: 1',
+    option_size: '  --size N     प्रति पृष्ठ संख्या, डिफ़ॉल्ट: 16',
+    option_help: '  --help, -h   यह सहायता दिखाएँ',
+    invalid_type: 'अमान्य --type मान “{0}”; मान्य मान: {1}',
+    invalid_positive_integer: '{0} एक धनात्मक पूर्णांक होना चाहिए; प्राप्त मान: “{1}”',
+    invalid_argument: 'अमान्य आर्ग्युमेंट: {0}',
+    query_failed: 'ऐप सूची क्वेरी विफल: {0}',
+    auth_required: 'लॉगिन की अवधि समाप्त हो गई है। कृपया फिर से लॉगिन करें।',
+    unknown_error: 'अज्ञात त्रुटि',
+    scope_managed: 'प्रबंधित',
+    scope_created: 'बनाए गए',
+    found: '{0} ऐप: पृष्ठ {1}/{2}, इस पृष्ठ पर {3}, कुल {4}',
+    next_page: 'और ऐप उपलब्ध हैं। यह चलाएँ: {0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +

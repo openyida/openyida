@@ -462,7 +462,7 @@ describe('CLI offline smoke', () => {
         pattern: 'list-apps',
         matcher: { type: 'argv_prefix', tokens: ['list-apps'] },
         suggested_command_id: 'app-list',
-        suggested_usage: 'openyida app-list [--size N]',
+        suggested_usage: 'openyida app-list [--type managed|created] [--page N] [--size N]',
         message_key: 'cli.forbidden_alias_list_apps',
         message_args: ['list-apps', 'app-list'],
         message: '`list-apps` 不是 OpenYida 命令；请使用 `app-list` 查询应用。',
@@ -2245,14 +2245,14 @@ describe('CLI offline smoke', () => {
     const listApps = runAny(['list-apps']);
     expect(listApps.status).toBe(1);
     expect(listApps.output).toContain('未知命令');
-    expect(listApps.output).toContain('建议命令: openyida app-list [--size N]');
+    expect(listApps.output).toContain('建议命令: openyida app-list [--type managed|created] [--page N] [--size N]');
     expect(listApps.output).toContain('`list-apps` 不是 OpenYida 命令；请使用 `app-list` 查询应用。');
     expect(listApps.output).not.toContain('is not an OpenYida command');
 
     const getApp = runAny(['get-app', '--json']);
     expect(getApp.status).toBe(1);
     const parsed = JSON.parse(getApp.jsonOutput);
-    expect(parsed.errorMsg).toContain('openyida app-list [--size N]');
+    expect(parsed.errorMsg).toContain('openyida app-list [--type managed|created] [--page N] [--size N]');
     expect(parsed.errorMsg).toContain('`get-app` 含义不明确');
     expect(parsed.errorMsg).not.toContain('is ambiguous');
     expect(parsed.details.suggestion).toMatchObject({
@@ -2265,7 +2265,7 @@ describe('CLI offline smoke', () => {
 
     const nearest = runAny(['app-lst']);
     expect(nearest.status).toBe(1);
-    expect(nearest.output).toContain('建议命令: openyida app-list [--size N]');
+    expect(nearest.output).toContain('建议命令: openyida app-list [--type managed|created] [--page N] [--size N]');
     expect(nearest.output).toContain('未知 OpenYida 命令根「app-lst」。你是不是想用「app-list」？');
     expect(nearest.output).not.toContain('Unknown OpenYida command root');
   });

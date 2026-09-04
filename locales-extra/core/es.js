@@ -17,7 +17,7 @@ module.exports = {
     cmd_env: 'Detectar entorno de herramienta IA y estado de sesión',
     cmd_env_management: 'Gestionar perfiles de entorno público/privado',
     group_app: 'Gestión de aplicaciones',
-    cmd_app_list: 'Listar mis aplicaciones Yida',
+    cmd_app_list: 'Paginar aplicaciones administradas o creadas',
     cmd_corp_efficiency: 'Consultar resumen de eficiencia empresarial e informes detallados',
     cmd_create_app: 'Crear una aplicación Yida',
     cmd_update_app: 'Actualizar información de la aplicación',
@@ -122,6 +122,25 @@ module.exports = {
     quickstart_form_name: 'Info del empleado',
     docs: '📚 Documentación:'
   },
+  app_list: {
+    usage: 'Uso: openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: 'Opciones:',
+    option_type: '  --type TYPE  Ámbito: managed (predeterminado) o created',
+    option_page: '  --page N     Número de página, predeterminado: 1',
+    option_size: '  --size N     Tamaño de página, predeterminado: 16',
+    option_help: '  --help, -h   Mostrar esta ayuda',
+    invalid_type: 'Valor de --type no válido «{0}»; valores válidos: {1}',
+    invalid_positive_integer: '{0} debe ser un entero positivo; valor recibido: «{1}»',
+    invalid_argument: 'Argumento no válido: {0}',
+    query_failed: 'No se pudo consultar la lista de aplicaciones: {0}',
+    auth_required: 'La sesión ha caducado. Inicia sesión de nuevo.',
+    unknown_error: 'Error desconocido',
+    scope_managed: 'Administradas',
+    scope_created: 'Creadas',
+    found: 'Aplicaciones {0}: página {1}/{2}, {3} en esta página, {4} en total',
+    next_page: 'Hay más aplicaciones. Continúa con: {0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +
