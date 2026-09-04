@@ -7,7 +7,7 @@ PRD 已确定自定义导航时，按形态复制一个组件，接入现有菜�
 | 形态 | CLI 模板名 | 组件 | 移动端 |
 | --- | --- | --- | --- |
 | 侧边导航 | `canvas-nav-side` | `CanvasNav` | 按钮展开页内菜单 |
-| 顶部导航 | `canvas-nav-top` | `CanvasNav` | 按钮展开页内菜单 |
+| 顶部浮导（自定义顶部导航的默认推荐样式） | `canvas-nav-top` | `CanvasNav` | 按钮展开页内菜单 |
 | 顶部＋侧边 | `canvas-nav-mixed` | `CanvasNav` | 按钮展开二级菜单 |
 | 悬浮胶囊 | `canvas-nav-dock` | `CanvasNav` | 底部横向滚动，预留安全区 |
 | 页内标签 | `canvas-nav-tabs` | `CanvasTabs` | 横向滚动，支持键盘切换 |
@@ -17,6 +17,8 @@ openyida sample openyida-page-template canvas-nav-side --output .cache/samples/c
 ```
 
 替换模板名即可复制其他形态。前四种每页选择一种；标签页按业务需要组合。CLI 在复制时拼接公共代码和选定布局；侧边及顶部＋侧边模板同时带入调宽与收起组件。标签页独立输出自己的样式和交互。
+
+自定义顶部导航默认使用浮导：导航栏与页面顶部、两侧留出间距，使用圆角、边框和导航阴影，滚动时保持在顶部。仍记录 `navigation.variant=top`，复制 `canvas-nav-top`；`canvas-nav-dock` 是底部悬浮胶囊。用户明确要求贴边通栏时传 `floating={false}`，已有明确样式直接沿用。推荐只针对自定义顶部导航的呈现样式，不用于推荐平台或自定义导航归属。
 
 ## 接入已有页面
 
@@ -109,6 +111,7 @@ const registration = items.find(item => item.key === 'registration');
 | `activeKey` | 当前入口；混合导航填写当前叶子项 key |
 | `onSelect(item)` | 页面负责更新视图或执行跳转；混合导航点击分组时传入首个可用子项 |
 | `title / logo / actions` | 应用标题、可选 Logo、可选用户或操作区 |
+| `floating` | 仅顶部导航使用，默认 `true` 为顶部浮导；`false` 为贴边通栏 |
 | `children` | 当前业务内容 |
 
 提供 `href` 且未传 `onSelect` 时使用原生链接；传入 `onSelect` 时普通点击交给页面处理，修饰键点击仍保留原生链接行为。只做当前页切换时在 `onSelect` 中更新 React 状态；需要分享、刷新恢复或前进后退时，复用页面现有 URL hash / 路由同步逻辑。页面卸载时清理 `hashchange`、`matchMedia` 等监听。

@@ -268,7 +268,8 @@ function FormOpenContainer({ request, currentAppType, onClose, onAfterClose }) {
         if (typeof onAfterClose === 'function') onAfterClose();
       }}
     >
-      {iframeSrc ? <iframe title={title} src={iframeSrc} style={{ width: '100%', height: '100%', border: 0, display: 'block' }} /> : null}
+      {/* antd body 的百分比高度链失效时，保留视口高度兜底，避免 iframe 回落到默认 150px。 */}
+      {iframeSrc ? <iframe title={title} src={iframeSrc} style={{ width: '100%', height: '100%', minHeight: 'calc(100vh - 56px)', border: 0, display: 'block' }} /> : null}
     </CanvasDrawer>
   );
 }

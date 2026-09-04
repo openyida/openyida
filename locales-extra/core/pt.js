@@ -140,7 +140,7 @@ module.exports = {
       '  copy [--force]                                               Copy project directory to current AI tool environment\n' +
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
-      '  create-app "<name>" [desc] [icon] [color] [theme] [nav] [layout]  Create an app, output appType\n' +
+      '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
       '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
@@ -620,9 +620,10 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    update_only_option: '{0} só está disponível para atualizar. Crie o aplicativo primeiro e use openyida update-app <appType>.',
     title: '  create-app - Ferramenta de criação de aplicativos Yida',
-    usage: 'Uso: openyida create-app "<nome do app>" ou openyida create-app --name "<nome do app>" [--desc "..."] [--theme deepBlue]',
-    example: 'Exemplo: openyida create-app --name "Meu App" --desc "Descricao do app" --theme deepBlue',
+    usage: 'Uso: openyida create-app "<nome do app>" ou openyida create-app --name "<nome do app>" [--desc "..."]',
+    example: 'Exemplo: openyida create-app --name "Meu App" --desc "Descricao do app"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -967,6 +968,9 @@ module.exports = {
     err_open_url_empty: 'O caminho openUrl não pode estar vazio: {0}'
   },
   update_app: {
+    theme_preset_conflict: 'Um colour predefinido não pode ser combinado com CSS ou themeColor. Use --colour custom ou omita --colour.',
+    custom_theme_color_required: 'colour=custom requer um arquivo de tema ou themeColor válido. Use --theme-file ou --theme-color.',
+    theme_not_persisted: 'Não foi possível confirmar as configurações do tema após salvar. Verifique themeVerification e tente novamente com update-app <appType> --theme-file <css>; não recrie o aplicativo.',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1202,6 +1206,7 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_inline_css_invalid: 'O CSS perto da linha {0} contém delimitador, texto ou comentário não fechado ou incompatível. Corrija antes de publicar.',
     title: '  yida-publish - Ferramenta de publicação de páginas Yida',
     platform: '  Plataforma: {0}',
     base_url: '\n  Platform: {0}',

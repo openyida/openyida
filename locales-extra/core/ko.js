@@ -140,7 +140,7 @@ module.exports = {
       '  copy [--force]                                               Copy project directory to current AI tool environment\n' +
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
-      '  create-app "<name>" [desc] [icon] [color] [theme] [nav] [layout]  Create an app, output appType\n' +
+      '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
       '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
@@ -620,9 +620,10 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    update_only_option: '{0}은 업데이트 전용 옵션입니다. 앱을 만든 후 openyida update-app <appType>을 사용하세요.',
     title: '  create-app - Yida 앱 생성 도구',
-    usage: '사용법: openyida create-app "<앱 이름>" 또는 openyida create-app --name "<앱 이름>" [--desc "..."] [--theme deepBlue]',
-    example: '예시: openyida create-app --name "내 앱" --desc "앱 설명" --theme deepBlue',
+    usage: '사용법: openyida create-app "<앱 이름>" 또는 openyida create-app --name "<앱 이름>" [--desc "..."]',
+    example: '예시: openyida create-app --name "내 앱" --desc "앱 설명"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -966,6 +967,9 @@ module.exports = {
     err_open_url_empty: 'openUrl 경로가 비어 있습니다: {0}'
   },
   update_app: {
+    theme_preset_conflict: '프리셋 colour는 CSS 또는 themeColor와 함께 사용할 수 없습니다. --colour custom을 사용하거나 --colour를 생략하세요.',
+    custom_theme_color_required: 'colour=custom에는 테마 파일 또는 유효한 themeColor가 필요합니다. --theme-file 또는 --theme-color를 지정하세요.',
+    theme_not_persisted: '저장 후 앱 테마 설정을 확인하지 못했습니다. themeVerification을 확인하고 update-app <appType> --theme-file <css>로 다시 시도하세요. 앱을 다시 만들지 마세요.',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1201,6 +1205,7 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_inline_css_invalid: '{0}행 부근 CSS에 닫히지 않거나 일치하지 않는 괄호, 문자열 또는 주석이 있습니다. 게시 전에 수정하세요.',
     title: '  yida-publish - Yida 페이지 배포 도구',
     platform: '  플랫폼: {0}',
     base_url: '\n  Platform: {0}',

@@ -585,9 +585,10 @@ module.exports = {
     unknown: '未知'
   },
   create_app: {
+    update_only_option: '{0} 僅用於更新應用設定，請先建立應用，再使用 openyida update-app <appType>。',
     title: '  openyida create-app - 宜搭應用程式建立工具',
-    usage: '用法：openyida create-app "<appName>" [description] [icon] [iconColor] [themeColor] 或 openyida create-app --name "<appName>" [--desc "..."] [--theme deepBlue]',
-    example: '範例：openyida create-app --name "考勤管理" --desc "員工考勤打卡系統" --theme deepBlue',
+    usage: '用法：openyida create-app "<appName>" [description] [icon] [iconColor] 或 openyida create-app --name "<appName>" [--desc "..."]',
+    example: '範例：openyida create-app --name "考勤管理" --desc "員工考勤打卡系統"',
     available_icons: '\n可用圖示：',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -910,6 +911,9 @@ module.exports = {
     err_open_url_chars: 'openUrl 路徑部分只支援 a-z A-Z 0-9 _ -，可用 / 分隔多級路徑，目前值：{0}'
   },
   update_app: {
+    theme_preset_conflict: '平台預置 colour 不能與自訂 CSS 或 themeColor 同傳；請使用 --colour custom 或省略 --colour。',
+    custom_theme_color_required: 'colour=custom 需要主題檔案或有效 themeColor；請傳 --theme-file 或 --theme-color。',
+    theme_not_persisted: '應用主題儲存後回讀不一致或查詢失敗，CSS 資源尚未確認綁定。請查看 themeVerification，並使用 update-app <appType> --theme-file <css> 重試；不要重複建立應用。',
     usage: '用法: openyida update-app <appType> [--name "新名称"] [--desc "描述"] [--layout slide|ver] [--theme deepBlue]',
     example: '示例: openyida update-app APP_XXX --name "新应用名称" --layout ver --theme deepBlue',
     options: '选项:\n' +
@@ -1139,6 +1143,7 @@ module.exports = {
     failed: '页面规范检查失败'
   },
   publish: {
+    canvas_inline_css_invalid: '第 {0} 行附近的內嵌 CSS 存在未閉合或不匹配的括號、字串或註解，請修復後再發佈。',
     title: '  yida-publish - 宜搭頁面發布工具',
     platform: '  平台位址：{0}',
     base_url: '\n  平台位址：{0}',

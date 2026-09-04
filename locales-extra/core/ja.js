@@ -592,9 +592,10 @@ module.exports = {
     unknown: '不明'
   },
   create_app: {
+    update_only_option: '{0} は更新用のオプションです。アプリ作成後に openyida update-app <appType> を使用してください。',
     title: '  openyida create-app - Yida アプリ作成ツール',
-    usage: 'Usage: openyida create-app "<appName>" [description] [icon] [iconColor] [themeColor] または openyida create-app --name "<appName>" [--desc "..."] [--theme deepBlue]',
-    example: '例: openyida create-app --name "勤怠管理" --desc "従業員勤怠システム" --theme deepBlue',
+    usage: 'Usage: openyida create-app "<appName>" [description] [icon] [iconColor] または openyida create-app --name "<appName>" [--desc "..."]',
+    example: '例: openyida create-app --name "勤怠管理" --desc "従業員勤怠システム"',
     available_icons: '\n利用可能なアイコン:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -919,6 +920,9 @@ module.exports = {
     err_open_url_chars: 'openUrl のパス部分は a-z A-Z 0-9 _ - と区切り文字 / のみ使用できます。現在の値: {0}'
   },
   update_app: {
+    theme_preset_conflict: 'プリセット colour と CSS または themeColor は併用できません。--colour custom を指定するか --colour を省略してください。',
+    custom_theme_color_required: 'colour=custom にはテーマファイルまたは有効な themeColor が必要です。--theme-file または --theme-color を指定してください。',
+    theme_not_persisted: '保存後のアプリテーマ設定を確認できませんでした。themeVerification を確認し、update-app <appType> --theme-file <css> で再試行してください。アプリを作り直さないでください。',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1151,6 +1155,7 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_inline_css_invalid: '{0} 行付近の CSS に閉じていない、または対応しない括弧、文字列、コメントがあります。公開前に修正してください。',
     title: '  yida-publish - Yida ページ公開ツール',
     platform: '  プラットフォーム: {0}',
     base_url: '\n  プラットフォーム: {0}',

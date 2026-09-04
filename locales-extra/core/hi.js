@@ -140,7 +140,7 @@ module.exports = {
       '  copy [--force]                                               Copy project directory to current AI tool environment\n' +
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
-      '  create-app "<name>" [desc] [icon] [color] [theme] [nav] [layout]  Create an app, output appType\n' +
+      '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
       '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
@@ -620,9 +620,10 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    update_only_option: '{0} केवल अपडेट के लिए है। पहले ऐप बनाएँ, फिर openyida update-app <appType> का उपयोग करें।',
     title: '  create-app - Yida ऐप निर्माण टूल',
-    usage: 'उपयोग: openyida create-app "<ऐप नाम>" या openyida create-app --name "<ऐप नाम>" [--desc "..."] [--theme deepBlue]',
-    example: 'उदाहरण: openyida create-app --name "मेरा ऐप" --desc "ऐप विवरण" --theme deepBlue',
+    usage: 'उपयोग: openyida create-app "<ऐप नाम>" या openyida create-app --name "<ऐप नाम>" [--desc "..."]',
+    example: 'उदाहरण: openyida create-app --name "मेरा ऐप" --desc "ऐप विवरण"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -965,6 +966,9 @@ module.exports = {
     err_open_url_empty: 'openUrl पथ खाली नहीं हो सकता: {0}'
   },
   update_app: {
+    theme_preset_conflict: 'प्रीसेट colour को CSS या themeColor के साथ नहीं भेज सकते। --colour custom उपयोग करें या --colour छोड़ दें।',
+    custom_theme_color_required: 'colour=custom के लिए थीम फ़ाइल या मान्य themeColor चाहिए। --theme-file या --theme-color दें।',
+    theme_not_persisted: 'सहेजने के बाद ऐप की थीम सेटिंग की पुष्टि नहीं हो सकी। themeVerification जाँचें और update-app <appType> --theme-file <css> से पुनः प्रयास करें; ऐप दोबारा न बनाएँ।',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1200,6 +1204,7 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_inline_css_invalid: 'पंक्ति {0} के पास CSS में अधूरा या बेमेल कोष्ठक, स्ट्रिंग या टिप्पणी है। प्रकाशित करने से पहले ठीक करें।',
     title: '  yida-publish - Yida पेज प्रकाशन टूल',
     platform: '  प्लेटफ़ॉर्म: {0}',
     base_url: '\n  Platform: {0}',

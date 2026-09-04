@@ -1195,11 +1195,11 @@ describe('OpenYida skill contracts', () => {
     expect(appStep2).toContain('outputs.theme');
     expect(appStep2).toContain('在应用级配置同一份主题文件');
     expect(createApp).toContain('默认传入主题文件');
-    expect(createApp).toContain('省略 `--theme-file` 不报错');
+    expect(createApp).toContain('`create-app` 不接受 `--theme-file` 和 `--logo-source`');
     expect(createApp).toContain('显式 `--icon` → 行业推断 → 随机系统图标');
     expect(createApp).toContain('只有未显式指定且未命中行业时才随机');
-    expect(createApp).toContain('与是否传主题文件无关');
-    expect(createApp).toContain('所有新建应用未显式传 `--layout` 时默认使用 `layoutDirection=l_shape`');
+    expect(createApp).toContain('与后续是否更新主题文件无关');
+    expect(createApp).toContain('主题文件生成后按 PRD 在 `update-app --layout` 中显式设置布局');
     expect(createApp).toContain('系统应用图标会同步保存为 `iconName%%主题色HEX`');
     expect(createApp).toContain('`--color-brand1-6` 转换后的 HEX');
     expect(createApp).toContain('校验主题文件完整声明平台实际生成的 `--color-brand1-1/2/3/5/6/9/10`');

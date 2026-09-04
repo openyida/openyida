@@ -166,9 +166,9 @@ For a user-facing list of supported features and matching CLI commands, see [Ope
 ### Application and Form Management
 
 ```bash
-openyida create-app "CRM"
+openyida create-app --name "CRM" --desc "Customer management"
 openyida sample yida-design app-theme --output .cache/openyida/crm/app-theme.css
-openyida create-app --name "CRM" --desc "Customer management" --theme-file .cache/openyida/crm/app-theme.css --nav-theme light --logo-source appIcon --layout l_shape
+openyida update-app APP_XXX --theme-file .cache/openyida/crm/app-theme.css --nav-theme light --logo-source appIcon --layout l_shape
 openyida app-list --size 20
 openyida corp-efficiency
 openyida create-form create APP_XXX "Customer" .cache/openyida/forms/customer-fields.json

@@ -140,7 +140,7 @@ module.exports = {
       '  copy [--force]                                               Copy project directory to current AI tool environment\n' +
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
-      '  create-app "<name>" [desc] [icon] [color] [theme] [nav] [layout]  Create an app, output appType\n' +
+      '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
       '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
@@ -620,9 +620,10 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    update_only_option: '{0} chỉ dùng để cập nhật. Hãy tạo ứng dụng trước rồi dùng openyida update-app <appType>.',
     title: '  create-app - Công cụ tạo ứng dụng Yida',
-    usage: 'Cách dùng: openyida create-app "<tên ứng dụng>" hoặc openyida create-app --name "<tên ứng dụng>" [--desc "..."] [--theme deepBlue]',
-    example: 'Ví dụ: openyida create-app --name "Ứng dụng của tôi" --desc "Mô tả ứng dụng" --theme deepBlue',
+    usage: 'Cách dùng: openyida create-app "<tên ứng dụng>" hoặc openyida create-app --name "<tên ứng dụng>" [--desc "..."]',
+    example: 'Ví dụ: openyida create-app --name "Ứng dụng của tôi" --desc "Mô tả ứng dụng"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -965,6 +966,9 @@ module.exports = {
     err_open_url_empty: 'Đường dẫn openUrl không được để trống: {0}'
   },
   update_app: {
+    theme_preset_conflict: 'Không thể kết hợp colour có sẵn với CSS hoặc themeColor. Dùng --colour custom hoặc bỏ --colour.',
+    custom_theme_color_required: 'colour=custom cần tệp giao diện hoặc themeColor hợp lệ. Dùng --theme-file hoặc --theme-color.',
+    theme_not_persisted: 'Không thể xác nhận cài đặt giao diện sau khi lưu. Kiểm tra themeVerification và thử lại bằng update-app <appType> --theme-file <css>; không tạo lại ứng dụng.',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1200,6 +1204,7 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_inline_css_invalid: 'CSS gần dòng {0} có dấu ngoặc, chuỗi hoặc chú thích chưa đóng hoặc không khớp. Hãy sửa trước khi xuất bản.',
     title: '  yida-publish - Công cụ xuất bản trang Yida',
     platform: '  Nền tảng: {0}',
     base_url: '\n  Platform: {0}',

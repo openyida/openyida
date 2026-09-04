@@ -64,7 +64,7 @@ AI 默认直接使用模板内 coffee 咖啡色色阶和大圆角层级。若 `d
 - 导航明暗：`themeProfile.navTheme` 单独按导航方案记录；深色导航可以搭配浅色界面。
 - `design.md` 的 `themeProfile.colorMode` 是宜搭配色模式，例如 `gradient`，不表示暗黑模式。
 
-主题 CSS 就绪后，将主题文件路径、`navTheme`、`logoSource` 和 `layoutDirection` 写入 `design.md`，交给应用创建或更新阶段统一配置。平台负责整套应用的主题一致性；只有 `YidaCodeCanvas` 页面源码需要在组件内部使用主题 token。
+主题 CSS 就绪后，将主题文件路径、`navTheme`、`logoSource` 和 `layoutDirection` 写入 `design.md`。获取真实 `appType` 后，必须执行 `openyida update-app <appType> --theme-file <CSS路径>` 更新应用基础设置，并以 `themeVerification.verified=true` 确认资源已绑定；后续修改 CSS 也须重新上传保存。平台负责整套应用的主题一致性；只有 `YidaCodeCanvas` 页面源码需要在组件内部使用主题 token。
 
 ## 写字体层级
 

@@ -239,6 +239,21 @@ describe('sample templates', () => {
     const pageSource = fs.readFileSync(pageOutput, 'utf8');
     const pageResult = compileCanvasLocal(pageSource, { sourcePath: pageOutput });
 
+    // 校验生成并编译后的真实 iframe 属性，防止模板抽取或编译再次丢失高度兜底。
+    const runtimeWindow = {
+      React: {
+        createElement: (type, props, ...children) => ({ type, props, children }),
+        useMemo: (factory) => factory(),
+      },
+      antd: { Typography: {} },
+      LucideReact: {},
+    };
+    // eslint-disable-next-line no-new-func
+    const FormOpenContainer = new Function('window', pageResult.runtimeCode + '; return FormOpenContainer;')(runtimeWindow);
+    const drawer = FormOpenContainer({ request: { type: 'submission', formUuid: 'FORM_SAMPLE' }, currentAppType: 'APP_SAMPLE' });
+    const iframe = drawer.children.find((child) => child && child.type === 'iframe');
+    expect(iframe.props.style).toMatchObject({ height: '100%', minHeight: 'calc(100vh - 56px)' });
+
     expect(() => createForm._private.validateFormFieldDefinitions(fields)).not.toThrow();
     expect(JSON.parse(pageResult.importedModules)).toEqual(['antd', 'lucide-react', 'react']);
     expect(pageSource).toContain('function FormOpenContainer');
