@@ -1,27 +1,21 @@
-# Step 2：确认应用范围与视觉方向
+# Step 2：确定范围、导航与视觉方向
 
-本步骤由 `yida-app` 统一呈现问题，并把回答交回对应技能。计划生成前原则上只确认一次，最多包含两个逻辑问题。
+本步骤由 `yida-app` 组织必要确认，把回答交回对应技能。先确定应用范围与导航类型，再选择视觉方向，最后启动 PRD 规划。
 
-## 准备输入
+## 1. 确定范围与导航
 
-1. 接收 `yida-requirement-analysis` 输出的共享 brief 和范围问题；来源不可读时先交回该技能处理。
-2. 调用 [Plan 视觉分支](../../../yida-design/sub_skill/yida-design-plan/SKILL.md)，基于 brief 生成三套视觉候选。候选字段、差异要求、主题匹配和加载规则统一见 [视觉方向选择](../../../yida-design/sub_skill/yida-design-plan/references/visual-theme-selection.md)。
+接收 `yida-requirement-analysis` 输出的 brief，按 [需求澄清与导航决策](../../../yida-requirement-analysis/workflow/prepare-brief.md) 处理未决项。范围与导航都不明确时可合并询问；已有明确选择时直接复用。
 
-## 统一呈现
+导航问题给出平台L型导航、平台顶部导航、平台侧边导航、自定义导航四种选项，推荐项排在前面并说明原因。自定义导航的选项说明须包含“使用自绘导航，并隐藏应用和各页面的平台导航”。交互文案与工具回退遵守 [用户交互契约](../../../yida-design/references/ask-human-interaction-contract.md)。
 
-| 当前情况 | 本次交互 |
-| --- | --- |
-| 范围有待确认 | 同时呈现范围问题与视觉候选 |
-| 范围已明确 | 只选择视觉方向 |
-| 已指定完整视觉方向或明确继承可信品牌/模板 | 直接采用该方向，只处理未决范围问题 |
-| 用户要求采用推荐方案或不再提问 | 使用推荐方向，记录 `source=ai_inferred`；范围缺口按需求分析的澄清规则处理 |
+需求分析技能将回答更新到 brief，确保 `navigation.type/source/reason` 完整。用户要求采用推荐方案或不再提问时，按需求分析的推荐规则直接记录。
 
-视觉选项向用户展示名称、体验说明和推荐原因，第一项为推荐项。具体提问与工具回退按 [用户交互契约](../../../yida-design/references/ask-human-interaction-contract.md) 执行；需要回答时等待用户回复再继续。
+## 2. 选择视觉方向
 
-## 写回并交接
+范围与导航确定后，调用 [Plan 视觉分支](../../../yida-design/sub_skill/yida-design-plan/SKILL.md) 生成三套候选，遵守 [视觉方向选择规则](../../../yida-design/sub_skill/yida-design-plan/references/visual-theme-selection.md)。候选沿用已确定的导航类型，围绕色彩、材质、组件和导航明暗提供选择。
 
-- 需求回答交给 `yida-requirement-analysis` 更新 brief。
-- 视觉回答交给 `yida-design`，一致地写入 `visualDirection`、`selectedTheme`、`colorStrategy`、`navigationStyle`。最终计划只保存选中方向。
-- 范围变化时，视觉技能按最终范围复核主题绑定；保留用户所选方向。自定义方向缺少可用模板时，按视觉方向选择规则处理。
+已有完整视觉要求时直接采用；用户要求推荐方案时使用推荐方向。需要询问时等待回复，视觉技能将选择一致地写入 `visualDirection`、`selectedTheme`、`colorStrategy`、`navigationStyle`。
 
-完成后，`yida-prd` 基于确认范围规划业务；视觉技能在页面规划完成后补齐逐页视觉应用。
+## 3. 交接业务规划
+
+将导航决策明确的 brief 与已选视觉交给 `yida-prd`。PRD 将 `navigation.type` 写入 `execution.appConfig.navigationType`，再规划业务资源、页面、入口和导航顺序；视觉技能在页面规划完成后补齐逐页视觉应用。

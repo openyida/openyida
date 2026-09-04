@@ -748,9 +748,9 @@ describe('OpenYida skill contracts', () => {
     expect(output).toContain('| appType | <已有应用填真实 appType；从零创建时写“待创建后回填”> |');
     expect(output).toContain('| corpId | <目标组织 corpId；未知时写“待登录态确认”> |');
     expect(output).toContain('| baseUrl | <平台地址，如 https://www.aliwork.com 或私有化域名> |');
-    expect(output).toContain('| 是否隐藏平台导航 | <否 / 是；默认否。');
-    expect(output).toContain("配置 `hideAppNav='y'`");
-    expect(output).toContain('`isRenderNav=false` 只隐藏当前页面导航');
+    expect(output).toContain('| 导航类型 | <平台L型导航 / 平台顶部导航 / 平台侧边导航 / 自定义导航');
+    expect(output).toContain('| 自定义导航 | custom | 保留平台布局配置 | y |');
+    expect(output).toContain('逐页设置 isRenderNav=false 并回读');
     expect(output).not.toContain('## 3. 需求范围与核心旅程');
     expect(output).not.toContain('| 本轮必做 | <1-3 个核心能力，围绕真实闭环> |');
     expect(output).not.toContain('| 后续候选 | <报表、公开访问、示例数据、复杂自动化等可后置能力> |');
@@ -1319,7 +1319,7 @@ describe('OpenYida skill contracts', () => {
 
     expect(pageUiux).toContain('默认保留平台应用导航');
     expect(pageUiux).toContain('普通自定义页、页面内 tab、分段、筛选和快捷入口都不触发 `yida-nav-shell`');
-    expect(pageUiux).toContain("才写 `appBlueprint.hideAppNav: 'y'` 并交给 `yida-nav-shell`");
+    expect(pageUiux).toContain("写 `appBlueprint.hideAppNav: 'y'` 并交给 `yida-nav-shell`");
     expect(pageUiux).toContain('同应用页面优先放入平台导航或导航分组');
     expect(navStep).toContain('默认保留平台应用导航。');
     expect(navStep).toContain('页面内 tab、分段、筛选、卡片切换只是当前页内容结构。');

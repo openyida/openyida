@@ -6,6 +6,8 @@
 
 ## 输入
 
+PRD 规划前必须已确定应用导航类型；读取 brief 的 `navigation.type/source/reason`，按该决策组织整个应用的资源与页面入口。
+
 - Step 2 输出的确认上下文，以及 `visualDirection`、`selectedTheme`、`colorStrategy`、`navigationStyle` 四组已选视觉事实。
 - [build-plan-compact-schema.md](../../yida-design/sub_skill/yida-design-plan/references/build-plan-compact-schema.md)。
 - [build-plan-content.md](../references/plan-content.md)。
@@ -53,6 +55,7 @@
 ### 3. 完成业务校验
 
 - 字段、关系、流程节点与规则、角色权限、页面入口和交互状态覆盖已确认范围。
+- 已知业务规则写入对应 `businessFlows[].rules`，明确条件和执行结果；维护已有计划时，将摘要中的独立规则补入对应明细，保持 HTML 与 PRD 的业务要求一致。
 - 每页写清页面任务、场景、区块、数据来源和主操作，三种顺序分别规划。
 - 视觉规则仅通过设计引用交接，不复制到业务事实。
 - 将业务事实交给 `yida-app` 统一维护 revision 和草稿状态；视觉一致性由 `yida-design` 校验。
@@ -76,9 +79,9 @@
 
 ## 与 Fast 一致的业务交接
 
-每页明确 `scene`、`sceneKey`（原样保留 brief 的 pageScenes key）、`pageStructure`、`entryMode`、`dataBinding` 和 `primaryAction`。`entryMode` 默认 `platform-shell`，不能填 workbench；`scene` 与页面模式 ID 分开。三种顺序、资源蓝图、示例数据计划、交互状态和验收写入 `execution`，无需重复生成章节或视觉规则。
+每页明确 `scene`、`sceneKey`（原样保留 brief 的 pageScenes key）、`pageStructure`、`entryMode`、`dataBinding` 和 `primaryAction`。平台导航的 `entryMode` 默认 `platform-shell`，自定义导航为 `standalone`，不能填 workbench；`scene` 与页面模式 ID 分开。三种顺序、资源蓝图、示例数据计划、交互状态和验收写入 `execution`，无需重复生成章节或视觉规则。
 
-`execution` 可写 `appConfig`（真实已知应用信息）、`resourceBlueprint`、`resourceCreationOrder`、`pageImplementationOrder`、`navigationOrder`、`navigationFallback`、`sampleDataPlan`、`interactionStates` 和 `acceptanceCriteria`；`layoutDirection/navTheme/logoSource` 取视觉事实，不在业务配置中另设冲突值。
+`execution` 可写 `appConfig`（真实已知应用信息）、`resourceBlueprint`、`resourceCreationOrder`、`pageImplementationOrder`、`navigationOrder`、`navigationFallback`、`sampleDataPlan`、`interactionStates` 和 `acceptanceCriteria`；`appConfig.navigationType` 按 [导航类型契约](output-prd.md#导航类型与执行配置) 明确填写，决定 `layoutDirection/hideAppNav`；`navTheme/logoSource` 取视觉事实。CLI 派生逐页 `pageNavigation`，供实现阶段执行隐藏与回读。
 
 ### 可执行的业务细项
 
@@ -86,3 +89,4 @@
 - 每页 `dataBinding` 明确为 form/report/connector/static-empty；前三者写来源名称数组 `dataSources`，form 必须对应数据模型；空态明确 `emptyReason`。不把遗漏来源当作空态规划。
 - `pageSpecHandoff` 可逐项补充 scene、pageStructure、entryMode、contentBlocks、dataSources、dataBinding、emptyReason、primaryAction、themeSummary、designFile、designRefs。引用必须存在于最终设计文档。
 - 资源蓝图、资源创建顺序和页面实现顺序必须覆盖业务事实；显式 `acceptanceCriteria` 不能为空。
+- 资源蓝图 `type` 使用 `normal-form/process-form/display-page/report`，名称唯一；表单类型与数据模型一致，自定义页面对应页面定义，填写 `pageId` 时也须一致。自定义导航的隐藏清单由完整表单、页面及额外报表派生。

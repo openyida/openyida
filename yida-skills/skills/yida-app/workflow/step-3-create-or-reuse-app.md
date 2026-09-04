@@ -24,6 +24,10 @@
 5. CLI 从 CSS 的 `--color-brand1-6` 自动提取 `themeColor`，创建后立即上传主题文件，并把 `customThemeStyle/themeColor/navTheme/logoSource/layoutDirection` 一次保存；不要再额外传 `--theme-color`。
 6. 已有 app 不自动改名。外部工具预创建 app 时，OpenYida 侧只复用 `appType`，但用户明确要求应用级换肤时可以执行上一步主题更新。
 
+## 应用导航配置
+
+按 PRD 的 [导航类型](../../yida-prd/workflow/output-prd.md#导航类型与执行配置) 设置布局。已有应用切换平台导航时执行 `openyida update-app <appType> --layout <l_shape|top|side> --show-app-nav`；自定义导航执行 `openyida update-app <appType> --hide-app-nav`，并将逐页隐藏清单交给 Step 4 与 Step 8。新建应用同样按该类型传入布局，自定义导航在获得 appType 后隐藏应用导航。
+
 ## 产出
 
 - 真实目标 `appType`；

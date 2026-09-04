@@ -224,7 +224,7 @@ openyida design-plan patch prd/<项目名>/build-plan.json \
 
 有明确顺序、验收标准或额外资源时，在顶层 `execution` 中写 `resourceBlueprint`、`resourceCreationOrder`、`pageImplementationOrder`、`navigationOrder`、`acceptanceCriteria`、`explicitScope`，覆盖对应默认值。不要在 `execution` 中复制页面清单。
 
-每个 `pages.customPageDetails[]` 写明 `dataSources`，引用已规划的数据模型名称；只有获得 CLI 证据后才使用真实资源 ID。有明确主操作、页面场景或设计引用时，在该页 `pageSpecHandoff` 写入覆盖项。`designFile` 使用工作区相对路径 `prd/<项目名>/design.md`，`designRefs` 必须指向实际生成的设计章节。页面未声明独立入口时使用 `entryMode=platform-shell`。
+每个 `pages.customPageDetails[]` 写明 `dataSources`，引用已规划的数据模型名称；只有获得 CLI 证据后才使用真实资源 ID。有明确主操作、页面场景或设计引用时，在该页 `pageSpecHandoff` 写入覆盖项。`designFile` 使用工作区相对路径 `prd/<项目名>/design.md`，`designRefs` 必须指向实际生成的设计章节。平台导航页面未声明独立入口时使用 `entryMode=platform-shell`；自定义导航使用 `standalone`。导航类型写入 `execution.appConfig.navigationType`，四种类型与逐页隐藏要求见 [PRD 导航契约](../../../../yida-prd/workflow/output-prd.md#导航类型与执行配置)。
 
 确认前检查这些交接字段满足当前业务。业务依赖、导航或验收标准变化时修改计划并重新物化，不直接编辑派生 PRD。
 

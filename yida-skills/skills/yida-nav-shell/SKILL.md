@@ -32,11 +32,14 @@ description: 自定义页明确要自绘应用级导航时使用；先隐藏应�
 openyida update-app <appType> --hide-app-nav
 ```
 
-只有用户同时要求页面级导航也隐藏时，才额外执行：
+自定义导航必须对 PRD 本轮范围内全部普通表单、流程表单、自定义页面及其他支持页面配置的资源逐页执行；使用已解析的真实 `formUuid` 和原页面标题：
 
 ```bash
 openyida update-form-config <appType> <formUuid> false "<页面标题>"
+openyida get-form-config <appType> <formUuid> --json
 ```
+
+每页回读 `isRenderNav=false` 才完成；失败时修复该页配置并重读。表单在业务资源创建或复用后配置，自定义页在发布后配置，最终按 PRD 清单逐项核对。`create-page --hide-nav` 可用于新建页初始配置，仍需回读；URL 参数不能代替持久化设置。
 
 ## 实现要点
 
@@ -55,7 +58,7 @@ openyida update-form-config <appType> <formUuid> false "<页面标题>"
 - 选中态必须明显，不能只靠很淡的颜色。
 - 图标只用 `lucide-react` 或 `@ant-design/icons` 的具体组件；不要 emoji、字母占位、CSS 画图标。
 - 移动端要收敛：侧边栏变抽屉，顶部导航变汉堡，浮动导航变底部胶囊。
-- 应用配置已开启 `hideAppNav='y'`。
+- 应用配置已开启 `hideAppNav='y'`，本轮全部页面已回读确认 `isRenderNav=false`。
 - 当前视图、选中态、内容区一致。
 - hash 深链、刷新恢复、前进后退可用。
 - 跨页参数不丢，PC 和移动端都能操作。

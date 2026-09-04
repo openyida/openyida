@@ -11,6 +11,8 @@ description: 基于整理好的需求事实规划业务，生成 prd/<项目名>
 
 读取 `.cache/openyida/<项目名>/requirement-brief.json`。发现影响规划的需求缺口时，将具体问题交回 `yida-requirement-analysis`，由 `yida-app` 组织澄清。
 
+开始规划前确认 brief 的 `navigation.type/source/reason` 已明确；导航仍未决时交回需求分析与应用编排处理。Plan 将该类型写入 `execution.appConfig.navigationType`，Fast 在 PRD 应用配置中记录同一选择与依据。
+
 基于输入事实，按 [页面与导航规划](workflow/step-2-information-architecture.md) 形成业务资源蓝图，再按当前模式交付：
 
 | 模式 | 执行与完成条件 |

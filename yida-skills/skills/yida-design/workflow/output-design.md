@@ -4,6 +4,8 @@
 
 最终 `design.md` 的依据分四层：结构依据本文件和 `_design-md-template.md`；视觉 DNA、布局机制、组件机制和换肤规则依据选中的设计风格文件；业务内容、页面场景和显式范围依据共享需求文件；Plan 还读取 `yida-prd` 写入的页面业务事实，单页改造可读取已有 PRD；主题 token 依据主题系统中的主题色来源和所选风格的 `theme_adaptation`。
 
+应用导航类型与 PRD 保持一致，使用 [四类导航契约](../../yida-prd/workflow/output-prd.md#导航类型与执行配置)。`layoutDirection` 按平台布局记录，`navTheme` 仅表示导航明暗；自定义导航同时交接应用隐藏与逐页隐藏要求。
+
 ## 稳定引用规则
 
 `yida-prd` 与 `yida-design` 必须使用同一组可定位锚点，`designRefs` 只允许以下形式：

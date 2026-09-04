@@ -605,10 +605,9 @@ def render_overview(data: dict[str, Any]) -> str:
     </div>"""
     else:
         theme_color_html = '<p class="muted">主题色：-</p>'
-    navigation_structure = {
-        "top": "顶部导航",
-        "side": "侧边导航",
-    }.get(navigation_style.get("structure"), "-")
+    navigation_types = {"platform-l-shape": "平台L型导航", "platform-top": "平台顶部导航", "platform-side": "平台侧边导航", "custom": "自定义导航"}
+    navigation_type = ((data.get("execution") or {}).get("appConfig") or {}).get("navigationType")
+    navigation_structure = navigation_types.get(navigation_type) or {"top": "顶部导航", "side": "侧边导航"}.get(navigation_style.get("structure"), "-")
     navigation_tone = {
         "light": "浅色",
         "dark": "深色",
@@ -929,6 +928,9 @@ def render_execution(data: dict[str, Any]) -> str:
         [item.get("name"), types.get(item.get("type"), item.get("type")), item.get("purpose")]
         for item in execution.get("resourceBlueprint", [])
     ])]
+    hidden_pages = execution.get("pageNavigation") or []
+    if hidden_pages:
+        parts += ["<h3>页面导航</h3>", table(["页面", "平台页面导航"], [[item.get("name"), "隐藏" if item.get("isRenderNav") is False else "显示"] for item in hidden_pages])]
     if execution.get("explicitScope"):
         parts += ["<h3>本轮明确范围</h3>", f'<p>{esc(display_value(execution["explicitScope"]))}</p>']
     for key, title in [("resourceCreationOrder", "搭建顺序"), ("pageImplementationOrder", "页面交付顺序"), ("navigationOrder", "导航顺序"), ("acceptanceCriteria", "验收标准")]:

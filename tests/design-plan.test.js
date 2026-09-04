@@ -106,6 +106,38 @@ describe('design-plan materialize', () => {
     expect(html).toContain('href="#pages"');
   });
 
+  test.each(['legacy', 'compact'])('%s preserves summary-only and detailed business rules in both PRD and HTML', schema => {
+    const source = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    const plan = schema === 'compact' ? compactV2(source) : source;
+    const summaryRule = '采购金额超过十万元必须经理复核';
+    const detailedRule = '采购审批通过后才允许生成订单';
+    plan.overview.flowSummary = [summaryRule];
+    plan.businessFlows[0].rules.push(detailedRule);
+    const input = path.join(tempDir, 'build-plan.json');
+    fs.writeFileSync(input, JSON.stringify(plan));
+
+    materialize(input);
+
+    for (const file of ['prd.md', 'build-plan.html']) {
+      const content = fs.readFileSync(path.join(tempDir, file), 'utf8');
+      expect(content).toContain(summaryRule);
+      expect(content).toContain(detailedRule);
+    }
+    expect(JSON.parse(fs.readFileSync(input, 'utf8'))).toEqual(plan);
+  });
+
+  test('preserves existing summary rules without requiring a business flow', () => {
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    plan.businessFlows = [];
+    plan.overview.flowSummary = ['订单金额必须大于零'];
+    expect(renderPrd(normalizePlan(plan))).toContain('订单金额必须大于零');
+
+    plan.overview.flowSummary = [];
+    const prd = renderPrd(normalizePlan(plan));
+    expect(prd).not.toContain('### 业务流程与规则摘要');
+    expect(prd).toContain('## 6. 业务逻辑与交互状态');
+  });
+
   test('HTML preserves the complete user plan and resolved business overrides', () => {
     const input = path.join(tempDir, 'build-plan.json');
     const plan = compactV2(JSON.parse(fs.readFileSync(FIXTURE, 'utf8')));
@@ -131,6 +163,99 @@ describe('design-plan materialize', () => {
     expect(html).toContain('&lt;script&gt;untrusted()&lt;/script&gt;');
     expect(html).not.toContain('themeId');
     expect(fs.readFileSync(input, 'utf8')).toBe(source);
+  });
+
+  test.each([
+    ['platform-l-shape', '平台L型导航', 'l_shape'],
+    ['platform-top', '平台顶部导航', 'top'],
+    ['platform-side', '平台侧边导航', 'side'],
+    ['custom', '自定义导航', 'side'],
+  ])('navigation %s stays consistent in PRD, design and HTML', (type, label, layout) => {
+    const plan = compactV2(JSON.parse(fs.readFileSync(FIXTURE, 'utf8')));
+    const input = path.join(tempDir, 'build-plan.json');
+    fs.writeFileSync(input, JSON.stringify(plan));
+    patchPlan(input, [`execution.appConfig.navigationType=${type}`], { materialize: true });
+    const prd = fs.readFileSync(path.join(tempDir, 'prd.md'), 'utf8');
+    const design = fs.readFileSync(path.join(tempDir, 'design.md'), 'utf8');
+    const html = fs.readFileSync(path.join(tempDir, 'build-plan.html'), 'utf8');
+    const handoff = JSON.parse(prd.match(/```json\n([\s\S]*?)\n```/)[1]);
+    const profile = require('js-yaml').load(design.match(/^---\n([\s\S]*?)\n---/)[1]).themeProfile;
+    expect(handoff.appConfig).toMatchObject({ navigationType: type, layoutDirection: layout, hideAppNav: type === 'custom' ? 'y' : 'n' });
+    expect(profile).toMatchObject(handoff.appConfig.navigationType === 'custom'
+      ? { navigationType: 'custom', hideAppNav: 'y' } : { navigationType: type, layoutDirection: layout, hideAppNav: 'n' });
+    for (const output of [prd, design, html]) {expect(output).toContain(label);}
+    if (type === 'custom') {
+      expect(handoff.pageNavigation.map(page => page.name)).toEqual(['采购申请', '采购订单', '采购工作台']);
+      expect(handoff.pageNavigation.every(page => page.isRenderNav === false)).toBe(true);
+      expect(handoff.pages[0].pageSpecHandoff.entryMode).toBe('standalone');
+      expect(html).toContain('<h3>页面导航</h3>');
+    } else {expect(handoff.pageNavigation).toEqual([]);}
+  });
+
+  test('custom navigation includes all business pages and extra reports despite blueprint ordering', () => {
+    const plan = compactV2(JSON.parse(fs.readFileSync(FIXTURE, 'utf8')));
+    plan.execution = { appConfig: { navigationType: 'custom' } };
+    const readHandoff = () => JSON.parse(renderPrd(plan).match(/```json\n([\s\S]*?)\n```/)[1]);
+    plan.execution.resourceBlueprint = [
+      { name: '采购汇总', type: 'report' },
+      ...readHandoff().resourceBlueprint.reverse(),
+    ];
+    expect(readHandoff().pageNavigation).toEqual([
+      { name: '采购申请', type: 'process-form', isRenderNav: false },
+      { name: '采购订单', type: 'normal-form', isRenderNav: false },
+      { name: '采购工作台', type: 'display-page', isRenderNav: false },
+      { name: '采购汇总', type: 'report', isRenderNav: false },
+    ]);
+
+    plan.execution.appConfig.navigationType = 'platform-side';
+    expect(readHandoff().pageNavigation).toEqual([]);
+    plan.pages.customPageDetails[0].entryMode = 'standalone';
+    expect(readHandoff().pageNavigation).toEqual([
+      { name: '采购工作台', type: 'display-page', isRenderNav: false },
+    ]);
+  });
+
+  test.each([
+    ['unknown type', blueprint => { blueprint[0].type = 'form'; }, /类型必须/],
+    ['wrong form type', blueprint => { blueprint[0].type = 'normal-form'; }, /类型与业务模型或页面不一致/],
+    ['wrong page type', blueprint => { blueprint[2].type = 'report'; }, /类型与业务模型或页面不一致/],
+    ['missing form', blueprint => { blueprint.splice(0, 1); }, /遗漏业务表单或页面/],
+    ['duplicate name', blueprint => { blueprint.push({ ...blueprint[0] }); }, /名称重复/],
+    ['undefined form', blueprint => { blueprint.push({ name: '未规划表单', type: 'normal-form' }); }, /必须有对应定义/],
+    ['wrong page ID', blueprint => { blueprint[2].pageId = 'another-page'; }, /pageId 与页面定义不一致/],
+    ['null resource', blueprint => { blueprint.push(null); }, /资源蓝图缺少名称/],
+  ])('rejects %s before writing navigation artifacts', (_, change, error) => {
+    const plan = compactV2(JSON.parse(fs.readFileSync(FIXTURE, 'utf8')));
+    plan.execution = { appConfig: { navigationType: 'custom' } };
+    const handoff = JSON.parse(renderPrd(plan).match(/```json\n([\s\S]*?)\n```/)[1]);
+    plan.execution.resourceBlueprint = handoff.resourceBlueprint;
+    change(plan.execution.resourceBlueprint);
+    const input = path.join(tempDir, 'build-plan.json');
+    fs.writeFileSync(input, JSON.stringify(plan));
+    expect(() => materialize(input)).toThrow(error);
+    expect(fs.readdirSync(tempDir)).toEqual(['build-plan.json']);
+  });
+
+  test('rejects ambiguous names shared by a form and a custom page', () => {
+    const plan = compactV2(JSON.parse(fs.readFileSync(FIXTURE, 'utf8')));
+    plan.pages.customPageDetails[0].name = plan.dataModels[0].name;
+    expect(() => renderPrd(plan)).toThrow(/业务表单与页面名称重复/);
+  });
+
+  test('rejects contradictory navigation choices', () => {
+    const plan = compactV2(JSON.parse(fs.readFileSync(FIXTURE, 'utf8')));
+    for (const config of [
+      { navigationType: 'unknown' },
+      { navigationType: 'custom', hideAppNav: 'n' },
+      { navigationType: 'platform-top', layoutDirection: 'side' },
+      { navigationType: 'platform-side', hideAppNav: 'y' },
+    ]) {
+      plan.execution = { appConfig: config };
+      expect(() => renderPrd(plan)).toThrow(/导航/);
+    }
+    plan.execution = { appConfig: { navigationType: 'custom' } };
+    plan.pages.customPageDetails[0].entryMode = 'platform-shell';
+    expect(() => renderPrd(plan)).toThrow(/standalone/);
   });
 
   test('check validates all derived artifacts without writing them', () => {
@@ -213,12 +338,12 @@ describe('design-plan materialize', () => {
     expect(prd.match(/^## \d+\./gm)).toHaveLength(11);
     expect(prd).not.toContain('主题模板：');
     expect(compactDesign).toContain('- 视觉方向：稳重流程型');
-    expect(compactDesign).toContain('- 导航结构：侧边导航');
+    expect(compactDesign).toContain('- 导航类型：平台侧边导航');
     expect(compactDesign).toContain('- 导航明暗：深色');
     expect(compactDesign).toContain('- 导航背景：`--color-brand1-5`');
     expect(compactDesign).not.toMatch(/^themeId:/m);
     expect(compactDesign).not.toContain('airy-modular-clarity');
-    expect(html).toContain('<strong>导航结构：</strong>侧边导航');
+    expect(html).toContain('<strong>导航结构：</strong>平台侧边导航');
     expect(html).toContain('<strong>导航明暗：</strong>深色');
     expect(html).toContain('高频流程处理需要稳定入口，深色导航加强模块边界。');
   });

@@ -7,8 +7,8 @@
 | 阶段 | 负责技能与入口 | 输入与输出 |
 | --- | --- | --- |
 | 1. 整理需求 | `yida-requirement-analysis`，见 [整理需求](step-1-understand.md) | 用户来源与资源上下文 → 共享 `requirement-brief.json`、范围问题 |
-| 2. 确认范围与视觉 | `yida-app`，见 [统一确认](step-2-confirm.md) | 需求分析的范围问题、视觉技能的候选 → 已确认需求与视觉选择 |
-| 3. 规划业务 | `yida-prd`，见 [Plan 业务规划](../../../yida-prd/workflow/plan-business.md) | 已确认需求 → 业务、数据、流程、页面和执行顺序 |
+| 2. 确定范围、导航与视觉 | `yida-app`，见 [统一确认](step-2-confirm.md) | 先确定范围与应用导航，再选视觉 → 导航决策明确的需求与视觉选择 |
+| 3. 规划业务 | `yida-prd`，见 [Plan 业务规划](../../../yida-prd/workflow/plan-business.md) | 已确认需求与导航类型 → 业务、数据、流程、页面和执行顺序 |
 | 4. 完成视觉并交付 | `yida-design` 补齐视觉，`yida-app` 执行 [生成与确认](step-4-deliver.md) | 业务页面与视觉选择 → 同版本产物及用户确认 |
 
 `yida-app` 按 [紧凑计划契约](../../../yida-design/sub_skill/yida-design-plan/references/build-plan-compact-schema.md) 初始化 `schemaVersion=2.0` 和版本状态。业务字段由 `yida-prd` 维护，`visualStyle` 由 `yida-design` 维护；编排负责交接校验、物化、展示和确认。

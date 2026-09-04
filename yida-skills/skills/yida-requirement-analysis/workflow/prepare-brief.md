@@ -16,6 +16,16 @@
 - Fast：完成必要澄清后写入共享需求文件。
 - Plan：将需要确认的范围问题交给 `yida-app`，由其与视觉选择合并呈现。收到回答后，由本技能更新 `explicitScope`、相关业务事实和 `openQuestions`，再交给 PRD 与视觉设计。
 
+## 在 PRD 规划前确定应用导航
+
+结合模块数量、层级、跨页任务、已有应用配置和用户明确要求，判断整个应用采用 [哪一种导航](../../yida-prd/workflow/output-prd.md#导航类型与执行配置)。导航类型、来源和理由写入 brief 的 `navigation.type/source/reason`。
+
+- 用户已明确类型，或确认保留现有应用导航：直接记录，来源为 `user_explicit` 或 `existing_app`。
+- 非 Fast 模式且现有信息不足以确定导航需求：将导航问题交给 `yida-app`，可向用户询问四种类型并给出推荐理由；回答前保持未决，回答后记录 `user_selected`。
+- Fast 模式，或用户明确采用推荐方案、不再提问：根据需求和已有应用选择，记录 `ai_inferred` 与理由；缺少其他依据时优先平台L型导航。
+
+先确定是否使用平台导航，再确定平台布局或自定义导航。仅提出页面内 tab、筛选或深色导航，不代表选择自定义导航。导航决策明确后，才将需求交给 `yida-prd` 规划整套资源、页面与入口。
+
 ## 输出与检查
 
 写入 `.cache/openyida/<项目名>/requirement-brief.json`，字段遵守 [技能输出契约](../SKILL.md#输出)。

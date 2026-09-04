@@ -556,7 +556,6 @@ describe('CLI offline smoke', () => {
         'create-process',
         'create-page',
         'publish',
-        'nav-group',
       ]),
       do_not_default_skill_ids: expect.arrayContaining([
         'yida-data-source-connectors',
@@ -1599,7 +1598,6 @@ describe('CLI offline smoke', () => {
         'create-process',
         'create-page',
         'publish',
-        'nav-group',
       ]),
       do_not_default_skill_ids: expect.arrayContaining([
         'yida-data-source-connectors',
@@ -2368,4 +2366,42 @@ describe('CLI offline smoke', () => {
       fs.rmSync(workspace, { recursive: true, force: true });
     }
   });
+});
+
+
+test('Plan and navigation commands are discoverable with their existing permission metadata', () => {
+  const manifest = JSON.parse(runOk(['commands', '--json']));
+  const summary = JSON.parse(runOk(['agent-capabilities', '--summary-json']));
+  const commands = new Map(manifest.commands.map(command => [command.id, command]));
+  const local = ['design-plan.materialize', 'design-plan.patch', 'sample'];
+  const remote = ['update-app', 'update-form-config', 'get-form-config'];
+  for (const id of [...local, ...remote]) {
+    expect(commands.get(id).permission.mode).toBe('allow');
+    expect(summary.builder_path.command_contract.canonical_builder_command_ids).toContain(id);
+  }
+  for (const id of local) {
+    expect(commands.get(id)).toMatchObject({ requires_login: false, side_effect: { kind: 'local_write', mutates_yida: false } });
+  }
+  for (const id of remote) {expect(commands.get(id).requires_login).toBe(true);}
+  expect(commands.get('sample').usage).toContain('--design-file');
+  expect(commands.get('update-form-config').usage).toContain('<true|false|keep>');
+  expect(summary.full_app_artifact_route.plan_command_ids).toEqual(local.slice(0, 2));
+  expect(summary.full_app_artifact_route.navigation_command_ids.custom).toEqual(remote);
+  expect(summary.full_app_artifact_route.navigation_policy).toContain('before PRD planning');
+});
+
+test('Plan CLI and design-file sample work locally without a login', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-plan-cli-'));
+  try {
+    const input = path.join(dir, 'build-plan.json');
+    fs.copyFileSync(path.join(ROOT, 'tests/fixtures/design-plan.json'), input);
+    const check = JSON.parse(runOk(['design-plan', 'materialize', input, '--check', '--json']));
+    expect(check.checked).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'design.md'))).toBe(false);
+    const result = JSON.parse(runOk(['design-plan', 'patch', input, '--set', 'execution.appConfig.navigationType=custom', '--set', 'visualStyle.tokens.--pod-card-border-radius=16px', '--materialize', '--output-dir', dir, '--json']));
+    expect(result.changed).toBe(true);
+    const cssPath = path.join(dir, 'app-theme.css');
+    runOk(['sample', 'yida-design', 'app-theme', '--design-file', path.join(dir, 'design.md'), '--output', cssPath]);
+    expect(fs.readFileSync(cssPath, 'utf8')).toContain('--pod-card-border-radius: 16px');
+  } finally {fs.rmSync(dir, { recursive: true, force: true });}
 });
