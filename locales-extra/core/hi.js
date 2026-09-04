@@ -1233,6 +1233,7 @@ module.exports = {
     lint_searchformdata_http_post: 'searchFormDatas.json को सीधे call करते समय GET + query params ज़रूरी है (formUuid/appType को URL query में रखें)। POST में formUuid को body में डालने पर «参数校验失败formUuid» error आता है और dashboard/list सब 0 दिखते हैं',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json का pagination param currentPage है (pageNumber नहीं); pageNumber से pagination टूट जाता है',
     lint_searchformdata_http_unwrap: 'Browser की searchFormDatas.json response में list content.data में nested होती है ({ content: { data: [...] } }); सिर्फ json.data पढ़ने पर 0 rows मिलते हैं — (json.content && json.content.data) से unwrap करें',
+    lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder रिकॉर्ड metadata field {0} का उपयोग नहीं कर सकता; get-schema से मिला वास्तविक business field ID इस्तेमाल करें। यदि sortable business date field नहीं है, तो dynamicOrder हटाएँ और केवल प्राप्त page को display के लिए row.createTime से sort करें',
     lint_setstate_non_timestamp: 'this.setState non-timestamp field लिखता है। Custom page business state _customState में होना चाहिए और forceUpdate()/setCustomState() से update होना चाहिए; this.setState में केवल timestamp contract field होना चाहिए',
     lint_self_binding_missing: 'renderJsx var self = this; घोषित किए बिना this का उपयोग करता है। renderJsx के शीर्ष पर var self = this; जोड़ें और this खोने से बचने के लिए closures/callbacks में self उपयोग करें',
     lint_echarts_dom_ready: 'echarts.init setTimeout में wrapped नहीं है; container अभी mounted न हो तो chart render नहीं हो सकता। setTimeout(function(){ /* echarts.init */ }, 300) उपयोग करें',
@@ -1909,6 +1910,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   delete_result_unknown: 'फ़ॉर्म रिकॉर्ड {0} को हटाने का परिणाम अज्ञात है। केवल पढ़ने वाली जाँच करें और हटाने को अपने आप दोबारा न चलाएँ।',
   delete_target_mismatch: 'फ़ॉर्म रिकॉर्ड {0} लक्ष्य फ़ॉर्म {1} से संबंधित नहीं है। हटाने से पहले कार्रवाई रोक दी गई।',
   delete_target_unverified: 'फ़ॉर्म रिकॉर्ड {0} की पहचान और संबंध सत्यापित नहीं हो सके। हटाने से पहले कार्रवाई रोक दी गई।',
+  field_reference_unknown: 'फ़ील्ड संदर्भ {0} लक्ष्य फ़ॉर्म का वास्तविक fieldId या कंपोनेंट उपनाम नहीं है। लिखने से पहले कार्रवाई रोक दी गई।',
   form_mode_unverified: 'फ़ॉर्म {0} का प्रकार सत्यापित नहीं हो सका। किसी भी डेटा लेखन से पहले निर्माण रोक दिया गया।',
   resource_required: 'data query में संसाधन प्रकार form नहीं है। सुझाया गया कमांड: {0}',
 });
@@ -1964,6 +1966,8 @@ module.exports.connector_test = {
 };
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  association_derived_field_read_only: 'Derived association-form query field {0} is read-only and cannot be saved or updated. Write the source association field without the _id suffix.',
+  association_value_invalid: 'The write value for association-form field {0} is invalid. Use an array of objects where every item includes appType, formUuid, formType, instanceId, and title.',
   instance_target_mismatch: 'Instance {0} does not belong to expected business resource {1}. The operation stopped before mutation.',
   instance_target_unverified: 'Could not verify the business resource ownership of instance {0}. The operation stopped before mutation.',
   target_expectation_invalid: '--expect-form-type must be {0}. The operation stopped before mutation.',

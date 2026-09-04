@@ -1,0 +1,289 @@
+{
+  "schemaVersion": "1.0",
+  "meta": {
+    "projectName": "采购管理应用",
+    "revision": "2026-08-31-01",
+    "status": "draft",
+    "businessDomain": "procurement",
+    "experienceTopology": "internal_management"
+  },
+  "overview": {
+    "title": "需求总览",
+    "summary": "应用定位、核心用户、业务对象和核心问题",
+    "businessGraph": {
+      "relations": [
+        {
+          "from": "采购申请",
+          "to": "采购订单",
+          "label": "承接",
+          "description": "审批通过后生成采购订单。"
+        }
+      ],
+      "content": "只有存在不可由关系数组表达的补充内容时才写",
+      "type": "table_relation_graph",
+      "nodes": [
+        {
+          "id": "model-1",
+          "name": "采购申请",
+          "source": "宜搭流程表单",
+          "group": "业务数据",
+          "color": "#5B8FF9"
+        },
+        {
+          "id": "model-2",
+          "name": "采购订单",
+          "source": "宜搭表单",
+          "group": "业务数据",
+          "color": "#61C5A8"
+        }
+      ]
+    },
+    "navigationSummary": [
+      "采购执行：采购申请、采购订单"
+    ],
+    "rolePermissionSummary": [
+      "采购专员：维护供应商并处理采购全流程"
+    ],
+    "dataModelSummary": [
+      "采购申请：记录采购需求并审批",
+      "采购订单：跟踪采购订单"
+    ],
+    "flowSummary": [
+      "采购审批：审批通过后建立订单"
+    ],
+    "pageSummary": [
+      "采购工作台：判断并处理当天最重要的采购事项。"
+    ],
+    "visualSummary": "稳重流程型：强调流程状态、任务处理和异常识别，界面稳定而不沉闷。；暖咖啡棕 #6F4E37 按项目色彩策略使用。"
+  },
+  "pages": {
+    "customPageDetails": [
+      {
+        "pageId": "procurement-workbench",
+        "name": "采购工作台",
+        "type": "AI 自定义页面",
+        "positioning": "采购团队的每日工作入口。",
+        "primaryUsers": [
+          "采购专员",
+          "采购主管"
+        ],
+        "primaryTask": "判断并处理当天最重要的采购事项。",
+        "contentPriority": [
+          "待处理事项",
+          "临期与异常",
+          "最近记录"
+        ],
+        "blocks": [
+          "状态摘要",
+          "优先任务队列",
+          "最近动态"
+        ],
+        "firstScreenStructure": "顶部摘要，主区任务队列，右侧最近动态。",
+        "signatureInteraction": "处理返回后数量与队列同步刷新。",
+        "layoutPattern": {
+          "id": "compact-workbench",
+          "reason": "每日入口需要先判断处理优先级。",
+          "adaptations": [
+            "增加持续展开的采购上下文区"
+          ],
+          "mode": "adapted",
+          "mustKeep": [
+            "高频动作显眼",
+            "分组清楚",
+            "首屏至少两层信息"
+          ]
+        },
+        "contentRichness": {
+          "contentLayers": [
+            "决策层：待处理与临期异常",
+            "主任务层：采购任务队列与处理动作",
+            "上下文层：供应商与最近记录",
+            "异常层：到货、对账和付款异常",
+            "承接层：申请、收货和付款入口"
+          ],
+          "requirement": "rich-but-relevant",
+          "antiFiller": [
+            "不使用无业务承接的 KPI、图表或装饰卡片凑内容",
+            "不使用重复快捷入口或大段占位文案凑内容"
+          ]
+        },
+        "density": "compact",
+        "permissionSummary": "组织内可见；按角色和负责人过滤。"
+      }
+    ],
+    "overview": [
+      {
+        "name": "采购工作台",
+        "type": "AI 自定义页面",
+        "purpose": "判断并处理当天最重要的采购事项。"
+      },
+      {
+        "name": "采购申请",
+        "type": "宜搭流程表单",
+        "purpose": "记录采购需求并审批"
+      },
+      {
+        "name": "采购订单",
+        "type": "宜搭表单",
+        "purpose": "跟踪采购订单"
+      }
+    ]
+  },
+  "visualStyle": {
+    "evidence": [],
+    "constraints": {},
+    "forUser": {
+      "visualDirection": {
+        "label": "稳重流程型",
+        "description": "强调流程状态、任务处理和异常识别，界面稳定而不沉闷。",
+        "source": "user_selected"
+      },
+      "colorStrategy": {
+        "source": "user_selected",
+        "primaryColor": "#6F4E37",
+        "primaryColorName": "咖啡棕",
+        "usage": "只用于主操作、关键焦点和选中状态",
+        "confidence": "high"
+      },
+      "navigationStyle": {
+        "structure": "side",
+        "tone": "dark",
+        "source": "user_selected",
+        "selectionReason": "高频流程处理需要稳定入口，深色导航加强模块边界。"
+      },
+      "pageApplications": [
+        {
+          "pageId": "procurement-workbench",
+          "pageName": "采购工作台",
+          "layoutPatternMode": "adapted",
+          "layoutPatternId": "compact-workbench",
+          "visualApplication": "继承项目设计系统的完整 Token、组件、状态与响应式规则，不改变 采购工作台 的 compact-workbench 页面模式。",
+          "surface": "画布、容器、边框、圆角与阴影按项目设计系统执行，不另写页面级标准。",
+          "primaryAction": "按钮与动作层级按项目设计系统执行；只用于主操作、关键焦点和选中状态。",
+          "states": "默认、悬停、按下、聚焦、禁用、加载、空态、错误、无权限和选中状态按项目设计系统执行。",
+          "visualMemoryApplications": [
+            {
+              "name": "摘要拼接组",
+              "renderPolicy": "prd_match_only",
+              "target": "待审批、待收货、待付款和临期订单摘要",
+              "reason": "页面已有四个同层级摘要字段，满足内容契约。"
+            }
+          ],
+          "visualMemories": [
+            "摘要拼接组"
+          ]
+        }
+      ],
+      "assetStrategy": {
+        "materialStatus": "none",
+        "missingAssets": [],
+        "notes": "内部管理应用不强行添加装饰图片。"
+      },
+      "themeProfile": {
+        "tone": "airy-modular",
+        "surfaceStyle": "joined-light-panels",
+        "contrastLevel": "medium",
+        "brandIntensity": "low",
+        "radiusScale": "large",
+        "shadowLevel": "subtle",
+        "iconStyle": "rounded-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-brand-focus"
+      },
+      "styleSource": "user_selected",
+      "styleSummary": "稳重流程型：强调流程状态、任务处理和异常识别，界面稳定而不沉闷。；暖咖啡棕 #6F4E37 按项目色彩策略使用。",
+      "hierarchySummary": "页面层次、表面和容器关系遵循统一项目设计系统。",
+      "componentToneSummary": "按钮、输入、卡片、表格和反馈组件遵循统一项目设计系统。",
+      "stateSummary": "默认、悬停、按下、聚焦、禁用、加载、空态、错误、无权限和选中状态保持一致。",
+      "responsiveSummary": "响应式断点、重排和触控规则保持统一，并维持页面主任务顺序。",
+      "iconSummary": "图标风格、尺寸和语义保持一致。",
+      "designMdReady": "materialize 将从所选完整主题模板生成 design.md。",
+      "selectedTheme": {
+        "themeId": "airy-modular-clarity",
+        "source": "user_selected",
+        "customText": "",
+        "label": "轻盈拼接",
+        "templatePath": "templates/design-themes/airy-modular-clarity.md",
+        "summary": "近白画布承托连续拼接的浅色模块，以条件式主辅层级、轻网格单焦点和图标化明细形成清楚克制的模块秩序。"
+      }
+    },
+    "forDesignMd": {
+      "productTopologyApplication": "内部管理型应用；工作台与原生表单共享全应用设计语言，视觉记忆点只绑定已有内容。",
+      "designTemplate": {
+        "themeId": "airy-modular-clarity",
+        "templatePath": "templates/design-themes/airy-modular-clarity.md",
+        "instanceRule": "完整读取主题模板，注入项目业务差异与逐页视觉记忆点绑定。"
+      },
+      "pagePatterns": [
+        {
+          "pageId": "procurement-workbench",
+          "mode": "adapted",
+          "id": "compact-workbench",
+          "adaptations": [
+            "增加持续展开的采购上下文区"
+          ],
+          "contentRichness": "rich-but-relevant",
+          "mustKeep": [
+            "高频动作显眼",
+            "分组清楚",
+            "首屏至少两层信息"
+          ]
+        }
+      ],
+      "themeStrategy": {
+        "colorSource": "user_selected",
+        "colorRoles": [
+          "主色",
+          "辅助色",
+          "中性色",
+          "语义色"
+        ],
+        "notes": "主题色策略与页面模式相互独立。"
+      }
+    }
+  },
+  "dataModels": [
+    {
+      "name": "采购申请",
+      "formType": "宜搭流程表单",
+      "description": "记录采购需求并审批",
+      "fields": [
+        {
+          "name": "申请金额",
+          "type": "NumberField",
+          "required": true,
+          "description": "本次采购预算"
+        }
+      ]
+    },
+    {
+      "name": "采购订单",
+      "formType": "宜搭表单",
+      "description": "跟踪采购订单",
+      "fields": [
+        {
+          "name": "订单名称",
+          "type": "TextField",
+          "required": true,
+          "description": "采购订单标题"
+        }
+      ]
+    }
+  ],
+  "businessFlows": [
+    {
+      "name": "采购审批",
+      "type": "审批流程",
+      "trigger": "提交采购申请",
+      "nodes": [
+        "申请",
+        "主管审批",
+        "采购执行"
+      ],
+      "description": "审批通过后建立订单",
+      "rules": [
+        "主管审批通过后进入采购执行"
+      ]
+    }
+  ]
+}

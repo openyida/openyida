@@ -1233,6 +1233,7 @@ module.exports = {
     lint_searchformdata_http_post: 'Gọi trực tiếp searchFormDatas.json phải dùng GET + tham số query (đặt formUuid/appType trong query URL). Dùng POST với formUuid trong body sẽ gây lỗi «参数校验失败formUuid» và dashboard/danh sách hiển thị toàn số 0',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json phân trang bằng currentPage (không phải pageNumber); dùng pageNumber sẽ hỏng phân trang',
     lint_searchformdata_http_unwrap: 'Phản hồi trình duyệt của searchFormDatas.json lồng danh sách trong content.data ({ content: { data: [...] } }); chỉ đọc json.data sẽ ra 0 dòng — hãy giải nén qua (json.content && json.content.data)',
+    lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder không được dùng trường siêu dữ liệu bản ghi {0}; hãy dùng ID trường nghiệp vụ thực do get-schema trả về. Nếu không có trường ngày nghiệp vụ có thể sắp xếp, hãy xóa dynamicOrder và chỉ sắp xếp trang đã tải theo row.createTime để hiển thị',
     lint_setstate_non_timestamp: 'this.setState ghi một trường không phải timestamp. Trạng thái nghiệp vụ của trang tùy chỉnh nên nằm trong _customState và được cập nhật qua forceUpdate()/setCustomState(); this.setState chỉ nên chứa trường hợp đồng timestamp',
     lint_self_binding_missing: 'renderJsx dùng this mà không khai báo var self = this;. Thêm var self = this; ở đầu renderJsx và dùng self trong closure/callback để tránh mất this',
     lint_echarts_dom_ready: 'echarts.init chưa được bọc trong setTimeout; container có thể chưa mount nên biểu đồ có thể không render. Dùng setTimeout(function(){ /* echarts.init */ }, 300)',
@@ -1909,6 +1910,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   delete_result_unknown: 'Không xác định được kết quả xóa bản ghi {0}. Chỉ kiểm tra bằng thao tác đọc và không tự động thử xóa lại.',
   delete_target_mismatch: 'Bản ghi biểu mẫu {0} không thuộc biểu mẫu đích {1}. Thao tác đã dừng trước khi xóa.',
   delete_target_unverified: 'Không thể xác minh danh tính và biểu mẫu sở hữu của bản ghi {0}. Thao tác đã dừng trước khi xóa.',
+  field_reference_unknown: 'Tham chiếu trường {0} không phải fieldId thực hoặc bí danh thành phần trong biểu mẫu đích. Thao tác đã dừng trước khi ghi.',
   form_mode_unverified: 'Không thể xác minh loại của biểu mẫu {0}. Việc tạo đã dừng trước khi ghi dữ liệu.',
   resource_required: 'data query thiếu loại tài nguyên form. Lệnh đề xuất: {0}',
 });
@@ -1964,6 +1966,8 @@ module.exports.connector_test = {
 };
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  association_derived_field_read_only: 'Derived association-form query field {0} is read-only and cannot be saved or updated. Write the source association field without the _id suffix.',
+  association_value_invalid: 'The write value for association-form field {0} is invalid. Use an array of objects where every item includes appType, formUuid, formType, instanceId, and title.',
   instance_target_mismatch: 'Instance {0} does not belong to expected business resource {1}. The operation stopped before mutation.',
   instance_target_unverified: 'Could not verify the business resource ownership of instance {0}. The operation stopped before mutation.',
   target_expectation_invalid: '--expect-form-type must be {0}. The operation stopped before mutation.',

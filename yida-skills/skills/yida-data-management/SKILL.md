@@ -242,7 +242,7 @@ openyida data query tasks <appType> --type todo|done|submitted|cc [--page 1 --si
 | 成员 | `["userId"]` | `["userId"]` |
 | 部门 | `["deptId"]` | `["deptId"]` |
 | 子表 | `"模糊搜索"` | `[{"textField_xxx":"值"}]` |
-| 关联表单 | 不支持直接查询 | `[{"appType":"xxx","formUuid":"xxx","instanceId":"xxx"}]` |
+| 关联表单 | 不支持直接查询 | `[{"appType":"xxx","formUuid":"xxx","formType":"receipt","instanceId":"xxx","title":"关联记录标题"}]` |
 
 ### 日期字段写入约定
 
@@ -261,17 +261,19 @@ openyida data create form APP_xxx FORM-xxx --expect-form-name 合同信息 --exp
 
 ### 关联表单字段
 
-关联表单字段保存时必须使用数组对象格式，包含三个必填字段：
+关联表单字段保存时必须使用数组对象格式，每项包含五个必填字段；`subTitle` 可选，省略时 CLI 会补为空字符串：
 
 ```bash
 # 示例：创建带关联客户的商机
 openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --expect-form-type receipt --data-json '{
   "textField_xxx": "商机名称",
-  "associationFormField_xxx": [{"appType":"APP_xxx","formUuid":"FORM-客户表","instanceId":"FINST-xxx"}]
+  "associationFormField_xxx": [{"appType":"APP_xxx","formUuid":"FORM-客户表","formType":"receipt","instanceId":"FINST-xxx","title":"客户名称","subTitle":""}]
 }'
 ```
 
-> 注意：字段名是 `instanceId`（不是 formInstId），三个字段缺一不可
+> 注意：字段名是 `instanceId`（不是 `formInstId`）。`appType`、`formUuid`、`formType`、`instanceId`、`title` 五个字段缺一不可。
+>
+> 查询结果中的 `associationFormField_xxx_id` 是只读派生字段，只用于读取关联 ID；保存和更新必须写原始的 `associationFormField_xxx` 字段。
 
 
 ## 实现前准备

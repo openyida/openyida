@@ -9,50 +9,57 @@ function read(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
 }
 
-describe('yida-design PRD quality fixtures', () => {
-  test('fixture prompts assert pageSpecHandoff and visualScaffold primitives', () => {
+describe('parallel PRD and visual artifact quality fixtures', () => {
+  test('fixture prompts keep PRD and visual owner contracts independent', () => {
     const fixturePath = 'scripts/eval/scenarios/yida-design-prd-quality.json';
     const scenarios = JSON.parse(read(fixturePath));
 
     expect(scenarios).toHaveLength(4);
     expect(scenarios.map((scenario) => scenario.id)).toEqual([
-      'student-management-workbench',
-      'pet-social-workbench',
-      'coffee-inventory-dashboard',
-      'ops-command-center',
+      'student-management-prd',
+      'pet-social-prd',
+      'coffee-inventory-prd',
+      'ops-command-center-visual',
     ]);
 
-    for (const scenario of scenarios) {
-      expect(scenario.expectedSkill).toBe('yida-design');
+    for (const scenario of scenarios.slice(0, 3)) {
+      expect(scenario.expectedSkill).toBe('yida-prd');
       expect(scenario.requiredPatterns).toEqual(expect.arrayContaining([
         'pageSpecHandoff',
         'prd.md',
-        'design.md',
         'designFile',
         'designRefs',
-        'contentBlocks',
-        'prioritySurface',
-        'contentPrimitive',
-        'statePrimitive',
-        'backgroundLayer',
-        'surfaceMaterial',
-        'surfaceContrast',
-        'colorRoles',
-        'densityRule',
-        'breathingRule',
-        'roundedRule',
-        'themePresetKey',
-        'shouldPassCreateAppTheme',
-        'globalThemeInjection',
       ]));
       expect(scenario.forbiddenPatterns.length).toBeGreaterThan(0);
     }
+
+    const visual = scenarios[3];
+    expect(visual.expectedSkill).toBe('yida-design');
+    expect(visual.requiredPatterns).toEqual(expect.arrayContaining([
+      'design.md',
+      'visualScaffold',
+      'prioritySurface',
+      'contentPrimitive',
+      'statePrimitive',
+      'backgroundLayer',
+      'surfaceMaterial',
+      'surfaceContrast',
+      'colorRoles',
+      'densityRule',
+      'breathingRule',
+      'roundedRule',
+    ]));
+    expect(visual.forbiddenPatterns).toEqual(expect.arrayContaining([
+      'pageSpecHandoff',
+      '资源创建顺序',
+      '导航顺序',
+    ]));
   });
 
   test('style registry documents built-in visual DNA templates', () => {
-    const registry = read('yida-skills/skills/yida-design/sub_skill/yida-design-fast/references/style-designs/registry.md');
-    const template = read('yida-skills/skills/yida-design/sub_skill/yida-design-fast/references/style-designs/_design-md-template.md');
-    const styleDesignEntries = fs.readdirSync(path.join(ROOT, 'yida-skills/skills/yida-design/sub_skill/yida-design-fast/references/style-designs')).sort();
+    const registry = read('yida-skills/skills/yida-design/references/style-designs/registry.md');
+    const template = read('yida-skills/skills/yida-design/references/style-designs/_design-md-template.md');
+    const styleDesignEntries = fs.readdirSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/style-designs')).sort();
 
     expect(registry).toContain('_design-md-template.md');
     expect(registry).toContain('内置设计风格');
@@ -76,16 +83,17 @@ describe('yida-design PRD quality fixtures', () => {
     expect(template).toContain('gray-bg-white-card');
   });
 
-  test('design skill uses prd.md and design.md instead of scene docs', () => {
-    const scenesDir = path.join(ROOT, 'yida-skills/skills/yida-design/sub_skill/yida-design-fast/references', 'scenes');
-    const skill = read('yida-skills/skills/yida-design/sub_skill/yida-design-fast/SKILL.md');
-    const step3 = read('yida-skills/skills/yida-design/sub_skill/yida-design-fast/workflow/step-3-information-architecture.md');
-    const step5 = read('yida-skills/skills/yida-design/sub_skill/yida-design-fast/workflow/step-5-visual-states.md');
+  test('visual skill owns design.md without taking PRD ownership', () => {
+    const scenesDir = path.join(ROOT, 'yida-skills/skills/yida-design/references', 'scenes');
+    const skill = read('yida-skills/skills/yida-design/SKILL.md');
+    const step3 = read('yida-skills/skills/yida-prd/workflow/step-2-information-architecture.md');
+    const step5 = read('yida-skills/skills/yida-design/workflow/step-5-visual-states.md');
     const pageGeneration = read('yida-skills/skills/yida-canvas-custom-page/references/page-generation-guide.md');
 
     expect(fs.existsSync(scenesDir)).toBe(false);
-    expect(skill).toContain('设计事实源唯一');
-    expect(skill).toContain('页面 `scene` 只作为分类标签');
+    expect(skill).toContain('只输出 `design.md`');
+    expect(skill).toContain('不写 PRD 或页面源码');
+    expect(skill).toContain('本技能不读取本轮正在生成的 `prd.md`');
     expect(step3).toContain('页面 `scene` 只作为分类标签和实现提示，不作为固定页面样式');
     expect(step5).toContain('同一个 `prd/<项目名>/design.md`');
     expect(pageGeneration).toContain('强视觉品牌以 PRD 的素材清单和 `design.md.assetStrategy` 为准');

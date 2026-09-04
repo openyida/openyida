@@ -217,3 +217,13 @@ openyida design-plan patch prd/<项目名>/build-plan.json \
 ```
 
 不要让模型重写整份 JSON，也不要 patch 派生字段。字段变化后由 materialize 重新生成摘要、主题实例和三份产物。
+
+## 搭建交接
+
+物化器在 PRD 的“搭建交接”中生成资源蓝图、三种顺序、验收标准和 `pageSpecHandoff`。默认应用先落位、模型先于自定义页；模型按输入顺序创建，关联依赖必须在规划时排好。
+
+有明确顺序、验收标准或额外资源时，在顶层 `execution` 中写 `resourceBlueprint`、`resourceCreationOrder`、`pageImplementationOrder`、`navigationOrder`、`acceptanceCriteria`、`explicitScope`，覆盖对应默认值。不要在 `execution` 中复制页面清单。
+
+每个 `pages.customPageDetails[]` 写明 `dataSources`，引用已规划的数据模型名称；只有获得 CLI 证据后才使用真实资源 ID。有明确主操作、页面场景或设计引用时，在该页 `pageSpecHandoff` 写入覆盖项。`designFile` 默认相对当前 PRD 为 `design.md`，`designRefs` 必须指向实际生成的设计章节。页面未声明独立入口时使用 `entryMode=workbench`。
+
+确认前检查这些交接字段满足当前业务。业务依赖、导航或验收标准变化时修改计划并重新物化，不直接编辑派生 PRD。

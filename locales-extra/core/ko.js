@@ -1234,6 +1234,7 @@ module.exports = {
     lint_searchformdata_http_post: 'searchFormDatas.json을 직접 호출할 때는 GET + 쿼리 파라미터가 필수입니다(formUuid/appType을 URL 쿼리에 넣기). POST로 formUuid를 body에 넣으면 "参数校验失败formUuid" 오류가 발생하고 대시보드/목록이 모두 0으로 표시됩니다',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json의 페이지 파라미터 이름은 currentPage입니다(pageNumber 아님). pageNumber를 쓰면 페이징이 작동하지 않습니다',
     lint_searchformdata_http_unwrap: '브라우저 searchFormDatas.json 응답은 목록이 content.data에 중첩됩니다({ content: { data: [...] } }). json.data만 읽으면 0건이 됩니다. (json.content && json.content.data)로 언랩하세요',
+    lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder에는 레코드 메타데이터 필드 {0}을 사용할 수 없습니다. get-schema가 반환한 실제 비즈니스 필드 ID를 사용하세요. 정렬 가능한 비즈니스 날짜 필드가 없으면 dynamicOrder를 제거하고 가져온 현재 페이지만 표시용으로 row.createTime 기준 정렬하세요',
     lint_setstate_non_timestamp: 'this.setState가 timestamp가 아닌 필드를 씁니다. 사용자 정의 페이지의 비즈니스 상태는 _customState에 두고 forceUpdate()/setCustomState()로 업데이트해야 합니다. this.setState는 timestamp 계약 필드만 담아야 합니다',
     lint_self_binding_missing: 'renderJsx가 var self = this; 선언 없이 this를 사용합니다. renderJsx 상단에 var self = this;를 추가하고 closures/callbacks 안에서는 self를 사용해 this 손실을 피하세요',
     lint_echarts_dom_ready: 'echarts.init이 setTimeout으로 감싸져 있지 않습니다. 컨테이너가 아직 마운트되지 않아 차트가 렌더링되지 않을 수 있습니다. setTimeout(function(){ /* echarts.init */ }, 300)을 사용하세요',
@@ -1910,6 +1911,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   delete_result_unknown: '폼 레코드 {0}의 삭제 결과를 알 수 없습니다. 읽기 전용으로 확인하고 삭제를 자동 재시도하지 마세요.',
   delete_target_mismatch: '폼 레코드 {0}은(는) 대상 폼 {1}에 속하지 않습니다. 삭제 전에 실행을 중단했습니다.',
   delete_target_unverified: '폼 레코드 {0}의 ID와 소속을 검증할 수 없습니다. 삭제 전에 실행을 중단했습니다.',
+  field_reference_unknown: '필드 참조 {0}은 대상 폼의 실제 fieldId 또는 컴포넌트 별칭이 아닙니다. 쓰기 전에 실행을 중단했습니다.',
   form_mode_unverified: '폼 {0}의 유형을 확인할 수 없어 데이터 쓰기 전에 생성을 중지했습니다.',
   resource_required: 'data query에 리소스 유형 form이 없습니다. 권장 명령: {0}',
 });
@@ -1965,6 +1967,8 @@ module.exports.connector_test = {
 };
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  association_derived_field_read_only: 'Derived association-form query field {0} is read-only and cannot be saved or updated. Write the source association field without the _id suffix.',
+  association_value_invalid: 'The write value for association-form field {0} is invalid. Use an array of objects where every item includes appType, formUuid, formType, instanceId, and title.',
   instance_target_mismatch: 'Instance {0} does not belong to expected business resource {1}. The operation stopped before mutation.',
   instance_target_unverified: 'Could not verify the business resource ownership of instance {0}. The operation stopped before mutation.',
   target_expectation_invalid: '--expect-form-type must be {0}. The operation stopped before mutation.',

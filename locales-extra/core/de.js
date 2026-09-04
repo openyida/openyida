@@ -1233,6 +1233,7 @@ module.exports = {
     lint_searchformdata_http_post: 'Ein direkter searchFormDatas.json-Aufruf muss GET + Query-Parameter verwenden (formUuid/appType in die URL-Query). POST mit formUuid im Body löst „参数校验失败formUuid" aus und Dashboards/Listen zeigen nur Nullen',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json paginiert mit currentPage (nicht pageNumber); pageNumber bricht die Paginierung',
     lint_searchformdata_http_unwrap: 'Die Browser-Antwort von searchFormDatas.json verschachtelt die Liste unter content.data ({ content: { data: [...] } }); nur json.data zu lesen ergibt 0 Zeilen — mit (json.content && json.content.data) entpacken',
+    lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder darf das Datensatz-Metadatenfeld {0} nicht verwenden; verwenden Sie eine echte, von get-schema zurückgegebene Geschäftsfeld-ID. Wenn kein sortierbares Datumsfeld vorhanden ist, entfernen Sie dynamicOrder und sortieren Sie nur die abgerufene Seite für die Anzeige nach row.createTime',
     lint_setstate_non_timestamp: 'this.setState schreibt ein Nicht-timestamp-Feld. Fachlicher Zustand benutzerdefinierter Seiten sollte in _customState liegen und über forceUpdate()/setCustomState() aktualisiert werden; this.setState sollte nur das Vertragsfeld timestamp tragen',
     lint_self_binding_missing: 'renderJsx verwendet this, ohne var self = this; zu deklarieren. Fügen Sie var self = this; am Anfang von renderJsx hinzu und verwenden Sie self in Closures/Callbacks, um den Verlust von this zu vermeiden',
     lint_echarts_dom_ready: 'echarts.init ist nicht in setTimeout gekapselt; der Container ist möglicherweise noch nicht gemountet, sodass das Diagramm nicht gerendert wird. Verwenden Sie setTimeout(function(){ /* echarts.init */ }, 300)',
@@ -1909,6 +1910,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   delete_result_unknown: 'Das Löschergebnis für den Formulareintrag {0} ist unbekannt. Prüfen Sie das Ziel nur lesend und wiederholen Sie die Löschung nicht automatisch.',
   delete_target_mismatch: 'Der Formulareintrag {0} gehört nicht zum Zielformular {1}. Der Vorgang wurde vor dem Löschen beendet.',
   delete_target_unverified: 'Identität und Zuordnung des Formulareintrags {0} konnten nicht verifiziert werden. Der Vorgang wurde vor dem Löschen beendet.',
+  field_reference_unknown: 'Die Feldreferenz {0} ist keine gültige fieldId oder kein Komponentenalias im Zielformular. Der Vorgang wurde vor dem Schreiben beendet.',
   form_mode_unverified: 'Der Typ des Formulars {0} konnte nicht verifiziert werden. Die Erstellung wurde vor jedem Datenschreibvorgang beendet.',
   resource_required: 'Bei data query fehlt der Ressourcentyp form. Empfohlener Befehl: {0}',
 });
@@ -1964,6 +1966,8 @@ module.exports.connector_test = {
 };
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  association_derived_field_read_only: 'Derived association-form query field {0} is read-only and cannot be saved or updated. Write the source association field without the _id suffix.',
+  association_value_invalid: 'The write value for association-form field {0} is invalid. Use an array of objects where every item includes appType, formUuid, formType, instanceId, and title.',
   instance_target_mismatch: 'Instance {0} does not belong to expected business resource {1}. The operation stopped before mutation.',
   instance_target_unverified: 'Could not verify the business resource ownership of instance {0}. The operation stopped before mutation.',
   target_expectation_invalid: '--expect-form-type must be {0}. The operation stopped before mutation.',

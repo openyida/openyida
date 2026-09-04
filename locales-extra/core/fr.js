@@ -1235,6 +1235,7 @@ module.exports = {
     lint_searchformdata_http_post: "Un appel direct à searchFormDatas.json doit utiliser GET + paramètres de requête (placez formUuid/appType dans la query de l'URL). Utiliser POST avec formUuid dans le body déclenche « 参数校验失败formUuid » et les tableaux de bord/listes affichent des zéros",
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json pagine avec currentPage (et non pageNumber) ; utiliser pageNumber casse la pagination',
     lint_searchformdata_http_unwrap: 'La réponse navigateur de searchFormDatas.json imbrique la liste sous content.data ({ content: { data: [...] } }) ; lire seulement json.data renvoie 0 ligne — décomposez via (json.content && json.content.data)',
+    lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder ne peut pas utiliser le champ de métadonnées d’enregistrement {0} ; utilisez un véritable ID de champ métier renvoyé par get-schema. S’il n’existe aucun champ de date triable, supprimez dynamicOrder et triez uniquement la page récupérée par row.createTime pour l’affichage',
     lint_setstate_non_timestamp: "this.setState écrit un champ autre que timestamp. L'état métier des pages personnalisées doit être stocké dans _customState et mis à jour via forceUpdate()/setCustomState(); this.setState doit uniquement porter le champ contractuel timestamp",
     lint_self_binding_missing: 'renderJsx utilise this sans déclarer var self = this;. Ajoutez var self = this; au début de renderJsx et utilisez self dans les closures/callbacks pour éviter de perdre this',
     lint_echarts_dom_ready: "echarts.init n'est pas enveloppé dans setTimeout ; le conteneur peut ne pas encore être monté et le graphique peut ne pas s'afficher. Utilisez setTimeout(function(){ /* echarts.init */ }, 300)",
@@ -1911,6 +1912,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   delete_result_unknown: 'Le résultat de la suppression de la fiche {0} est inconnu. Effectuez uniquement une vérification en lecture et ne relancez pas automatiquement la suppression.',
   delete_target_mismatch: 'La fiche {0} n’appartient pas au formulaire cible {1}. L’opération a été arrêtée avant la suppression.',
   delete_target_unverified: 'Impossible de vérifier l’identité et l’appartenance de la fiche {0}. L’opération a été arrêtée avant la suppression.',
+  field_reference_unknown: 'La référence de champ {0} n’est ni un fieldId valide ni un alias de composant du formulaire cible. L’opération a été arrêtée avant toute écriture.',
   form_mode_unverified: 'Impossible de vérifier le type du formulaire {0}. La création a été arrêtée avant toute écriture de données.',
   resource_required: 'Le type de ressource form manque à data query. Commande suggérée : {0}',
 });
@@ -1966,6 +1968,8 @@ module.exports.connector_test = {
 };
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  association_derived_field_read_only: 'Derived association-form query field {0} is read-only and cannot be saved or updated. Write the source association field without the _id suffix.',
+  association_value_invalid: 'The write value for association-form field {0} is invalid. Use an array of objects where every item includes appType, formUuid, formType, instanceId, and title.',
   instance_target_mismatch: 'Instance {0} does not belong to expected business resource {1}. The operation stopped before mutation.',
   instance_target_unverified: 'Could not verify the business resource ownership of instance {0}. The operation stopped before mutation.',
   target_expectation_invalid: '--expect-form-type must be {0}. The operation stopped before mutation.',

@@ -1,10 +1,10 @@
 # YidaCodeCanvas 组件样式实现指南
 
-本文件是 `YidaCodeCanvas` 组件的样式实现适配指南，不是新的设计系统，也不产出配色、视觉 DNA 或页面风格。设计事实唯一来自 `yida-design` 输出的 `prd.md` 与 `design.md`：PRD 给业务场景和页面边界，`design.md` 给完整主题、token、视觉 DNA、布局、材质、圆角、密度、呼吸感、背景层、组件和状态规则。`YidaCodeCanvas` 组件只负责消费服务端加载的应用主题变量，并把布局、材质、密度、图表、控件状态和背景规则落到页面实现。
+本文件是 `YidaCodeCanvas` 组件的样式实现适配指南，不是新的设计系统，也不产出配色、视觉 DNA 或页面风格。业务事实来自 `yida-prd` 输出的 `prd.md`，视觉事实来自 `yida-design` 输出的 `design.md`。`YidaCodeCanvas` 页面只在 `YidaComp` 内消费当前应用的主题 token，并把布局、材质、密度、图表、控件状态和背景规则落到组件内部。
 
-所有页面都以当前应用主题为唯一主题来源。缺少主题证据时先按业务气质选择平台预置主题或生成应用自定义主题文件，不固定回到 `podBlue` / #1677ff。运行容器在各页面上下文加载同一应用主题文件；需要不同主题时更新应用主题配置，页面差异通过布局、材质、密度、素材和辅助视觉表达。
+`app-theme.css` 只在应用级配置，平台负责应用壳、原生表单、详情页和 `YidaCodeCanvas` 外层的主题一致性。Canvas Page 宿主的 `contentBgColor`、`pageStyle.backgroundColor` 和 `contentBgColorMobile` 使用 `var(--pod-page-bg-color, var(--color-white, #fff))`，让宿主背景直接消费应用 token。
 
-页面表面也必须跟随应用主题：`YidaCodeCanvas` 下生成页面的根画布使用 `min-height: 100vh` 并消费 `--pod-page-bg-color`，卡片和面板消费 `--pod-card-bg-color`、`--pod-card-border`、`--pod-card-border-radius`、`--pod-card-padding`。fallback 只用于兼容旧运行态，不能把默认页面重新固定成某一种品牌色、绿色渐变或纯白卡片；页面只通过 `var(...)` 读取这些变量，不在根节点、`style` 标签、父窗口或 iframe 中声明或同步它们。
+宿主属性绑定不是主题注入。严禁生成 `body` 背景 CSS，也严禁 `YidaComp` 修改 `document.documentElement`、`document.body`、父页面或平台容器的主题变量。组件自己的背景、卡片和控件样式留在 `YidaComp` 内，并使用 `--pod-page-*`、`--pod-card-*`、`--color-brand1-*` 和 `--color-group`。
 
 ## 应用主题与页面风格冲突处理
 
@@ -12,7 +12,7 @@
 | --- | --- |
 | 左侧平台导航选中态是应用主题色，页面主按钮 / 标题强调 / 卡片选中态用了另一套主色 | 页面主操作、链接、选中态、重点标签和图表主序列改回应用主题 `--color-brand1-*` |
 | design.md 生成了青绿、紫色、蓝色等辅助色，但当前应用主题是橙色或其他色 | 保留 `design.md` 的布局、卡片、密度、图表语言，把生成色彩降为辅助色、浅底背景、分组色或第二图表序列 |
-| 用户要求导航和内容一起换色 | 生成或更新应用主题文件，通过 `update-app --theme-file/--nav-theme/--logo-source/--layout` 联合保存 |
+| 用户要求导航和内容一起换色 | 交给 `yida-design` 更新应用主题设计 |
 | 页面是沉浸页、自绘壳、独立官网、活动页或公开落地页 | 仍消费应用主题变量；页面差异通过布局、材质、素材、构图和辅助色表达，不覆盖品牌 token |
 
 实现时先读取 `themeRelation`。默认值是 `跟随应用主题`，不是 `跟随生成色盘色相`。
@@ -148,26 +148,26 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 ## 品牌 token 实现消费
 
-品牌 token 的完整语义由 `yida-design/sub_skill/yida-design-fast/workflow/output-design.md` 与 `yida-design/sub_skill/yida-design-fast/references/theme/theme-token-presets.md` 维护。YidaCodeCanvas 不重新解释 token，只按 `design.md` 的 `tokens` 和 token 语义把它们接到组件、CSS 和图表。
+品牌 token 的完整语义由 `yida-design/workflow/output-design.md` 与 `yida-design/references/theme/theme-token-presets.md` 维护。YidaCodeCanvas 不重新解释 token，只按 `design.md` 的 `tokens` 和 token 语义把它们接到组件、CSS 和图表。
 
 | token | design.md 语义 | YidaCodeCanvas 使用方式 |
 | --- | --- | --- |
 | `--color-brand1-6` | 主色 | 主按钮、链接、选中态、信息强调、图表主序列 |
 | `--color-brand1-1` / `--color-brand1-2` / `--color-brand1-3` | 浅底色阶 | 标签浅底、提示块、筛选选中底、弱强调背景 |
-| `--color-brand1-5` / `--color-brand1-7` | 交互色阶 | hover / active / pressed 状态 |
+| `--color-brand1-5` / `--color-brand1-9` | 交互色阶 | hover / active / pressed 状态 |
 | `--color-brand1-9` / `--color-brand1-10` | 深色阶 | 深色标题、深底按钮、深色主题强调 |
-| `--color-brand-1` ~ `--color-brand-4` | 移动端品牌色阶 | 移动端桥接、原生表单、表单提交/详情 iframe 和平台移动壳层 |
+| `--color-brand-1` ~ `--color-brand-4` | 移动端品牌色阶 | 当前自定义页面的移动端布局和品牌状态 |
 | `--color-group` | 平台图表色组 | 多系列折线、柱状、排名、环形图配色 |
 | `--oyd-control-selected-bg` | 页面级选中浅底 | 下拉选中项、Tabs 选中底、轻量筛选块 |
 | `--oyd-control-info-bg` | 页面级信息浅底 | 提示块、空态引导、数据说明背景 |
 
 语义色保持固定：成功、警告、错误继续用 antd 默认或平台语义变量，避免被主色覆盖。
 
-## 应用主题落地
+## 应用主题消费
 
-`podBlue`、`podGreen`、`podOrange` 是常用浅底候选，不是固定默认。`blue`、`green`、`orange`、`podBlue`、`podGreen`、`podOrange` 都作为应用主题 token profile 保留原名，不互相改写；完整变量和语义以 `yida-design/sub_skill/yida-design-fast/references/theme/theme-token-presets.md` 为准。
+`podBlue`、`podGreen`、`podOrange` 是常用浅底候选，不是固定默认。`blue`、`green`、`orange`、`podBlue`、`podGreen`、`podOrange` 都作为应用主题 token profile 保留原名，不互相改写；完整变量和语义以 `yida-design/references/theme/theme-token-presets.md` 为准。
 
-新版自定义品牌色必须基于 `yida-design/sub_skill/yida-design-fast/references/theme/app-custom-theme-template.css` 生成应用主题文件，并通过 `update-app --theme-file/--nav-theme/--logo-source/--layout` 联合保存；`themeColor` 由 CSS 的 `--color-brand1-6` 自动派生。运行容器在自定义页面、提交页、详情页和表单 iframe 中加载同一文件，页面直接使用对应主题变量。
+主题文件由 `yida-design` 生成。当前自定义页面直接使用 `design.md` 中确定的主题变量。
 
 ## PRD 与 design.md 字段落地规则
 
@@ -175,7 +175,7 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 | 用户说法 | spec |
 | --- | --- |
-| 整个应用统一、全局换肤、系统整体主题、应用主题也改 | 生成应用主题文件并通过 `update-app` 联合保存主题色、导航主题和 CSS 文件 |
+| 整个应用统一、全局换肤、系统整体主题、应用主题也改 | 交给 `yida-design` 更新应用主题设计 |
 | 左侧导航/菜单/顶部壳层也一起变色，导航和内容区同色 | 使用同一应用主题配置，不从页面调用壳层更新能力 |
 | 某个页面/首页/看板/自定义页变好看、页面重构或局部美化 | 沿用应用主题，只调整布局、材质、密度、素材和辅助视觉 |
 | 明确说保持导航不变、其他页面不变、只改当前页 | 保持当前应用主题配置，只调整页面局部布局、材质和视觉层级 |
@@ -188,7 +188,7 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 | 消费方 | 品牌色怎么给 | 原因 |
 | --- | --- | --- |
-| 普通 DOM / Tailwind 元素（`style` / `className`） | **直接用 CSS 变量** `var(--color-brand1-6)` | CSS 变量沿 DOM 树级联，`YidaCodeCanvas` 节点在页面 DOM 树内，能读到平台注入的 `--color-brand1-*` |
+| 普通 DOM / Tailwind 元素（`style` / `className`） | **直接用 CSS 变量** `var(--color-brand1-6)` | CSS 变量沿 DOM 树级联，`YidaCodeCanvas` 节点能直接读取当前应用提供的 `--color-brand1-*` |
 | antd 组件（Button / Table / Tabs…） | **JS 解析成真实色值**喂 `ConfigProvider.theme.token.colorPrimary` | antd 的色板（hover/active/disabled）由 JS 算法从一个真实颜色推导，`var(...)` 是字符串塞不进算法 |
 | JS 消费的颜色：recharts `stroke`/`fill`、canvas 绘制、图表配色数组 | **JS 解析成真实色值** | 传给库的是运行时字符串，不走 CSS 级联 |
 
@@ -196,7 +196,7 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 ## 读品牌色的 helper（JS 消费场景用）
 
-因为跑在真 window，直接读根节点计算样式即可。helper 必须带兜底逻辑：先读运行态 `--color-brand1-*`，读不到、空串或读取异常时返回传入的 `defaultColor`。`defaultColor` 必须来自当前项目 `design.md` 的 tokens 或当前应用主题 token profile，不能另起一套旧默认方案。
+因为跑在真 window，直接读根节点计算样式即可。helper 必须带兜底逻辑：先读当前应用的 `--color-brand1-*`，读不到、空串或读取异常时返回传入的 `defaultColor`。`defaultColor` 必须来自当前项目 `design.md` 的 tokens，不能使用与当前主题无关的固定色。
 
 ```jsx
 // 品牌色阶：1 最浅 → 6 主色 → 10 最深，与平台 --color-brand1-* 对齐
@@ -219,7 +219,7 @@ function useBrandColor(level, defaultColor) {
 
 > **变量作用域**：平台把 `--color-brand1-*` 定义在页面容器时，给组件根节点挂 `ref`，在 `useEffect` 里读 `getComputedStyle(rootRef.current)`，读到后 `setState` 触发一次重渲染。默认先用 `documentElement` 同步取值，空串时再用根节点 ref 读取。
 
-## antd：ConfigProvider 注入 colorPrimary
+## antd：ConfigProvider 使用 colorPrimary
 
 用 `readBrandColor` 取主色，交给 `ConfigProvider`，antd 会自动推导 hover/active/disabled 整套色板。语义色（success/warning/error）用 antd 默认，不覆盖，保证语义稳定。
 
@@ -257,7 +257,7 @@ function YidaComp(props) {
 export default YidaComp;
 ```
 
-**要点**：`ConfigProvider` 包在组件最外层，页面内所有 antd 组件统一吃到品牌色。主色统一从 `colorPrimary` 注入，组件级颜色只保留必要的业务语义色。
+**要点**：`ConfigProvider` 包在组件最外层，页面内所有 antd 组件统一使用品牌色。主色统一配置为 `colorPrimary`，组件级颜色只保留必要的业务语义色。
 
 ## 默认 light 模式避免灰黑主题
 
@@ -265,7 +265,7 @@ export default YidaComp;
 
 ## 控件焦点态与下拉浮层 reset
 
-使用 `YidaCodeCanvas` 组件实现的页面只要出现搜索框、筛选下拉、日期选择、文本输入、成员/部门/上传等运行态控件，就在页面 `<style>` 顶部注入控件 reset，统一输入框、下拉触发器、focus ring 和字体粗细。
+使用 `YidaCodeCanvas` 组件实现的页面只要出现搜索框、筛选下拉、日期选择、文本输入、成员/部门/上传等运行态控件，就在组件内部的 `<style>` 顶部声明控件 reset，统一输入框、下拉触发器、focus ring 和字体粗细。
 
 实现规则：
 
@@ -321,7 +321,7 @@ Canvas 节点在页面 DOM 树内，Tailwind 运行时对普通元素直接用 a
 </button>
 ```
 
-色阶对应以 `design.md` 和 yida-design 主题 token 语义为准：主色 `brand1-6`、填充按钮 hover 亮一档 `brand1-5`、按下深一档 `brand1-7`、通用浅色 hover 底 `brand1-1`、选中/标签浅底 `brand1-2`。
+色阶对应以 `design.md` 和 yida-design 主题 token 语义为准：主色 `brand1-6`、填充按钮 hover 使用 `brand1-5`、按下使用深色档 `brand1-9`、通用浅色 hover 底使用 `brand1-1`、选中/标签浅底使用 `brand1-2`。
 
 ## 图表 / recharts：用解析后的品牌色组
 
@@ -371,7 +371,7 @@ export default YidaComp;
 ## 自查清单（主色相关）
 
 - 页面最外层有 `ConfigProvider` 且 `token.colorPrimary` 来自 `readBrandColor`，不是硬编码色值。
-- 有输入/筛选/下拉/日期/运行态字段组件时，已注入控件 focus/dropdown reset，focus 后没有黑色粗边或突兀加粗。
+- 有输入/筛选/下拉/日期/运行态字段组件时，已在组件内部声明控件 focus/dropdown reset，focus 后没有黑色粗边或突兀加粗。
 - Tailwind 主色类用 `var(--color-brand1-*)`，没有散落的 `#1677ff` / `bg-blue-500`。
 - 图表 / canvas 绘制颜色走 `readBrandColor` 或 `--color-group`，无硬编码蓝。
 - 语义色（成功/警告/错误）保持 antd 默认或平台语义变量，未被主色覆盖。

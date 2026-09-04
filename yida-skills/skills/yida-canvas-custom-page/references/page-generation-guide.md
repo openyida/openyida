@@ -1,10 +1,10 @@
 # 自定义页面实现入口
 
-使用 `YidaCodeCanvas` 组件实现的自定义页面消费 `yida-design` 输出的 `prd.md` 与 `design.md`，或单页 PRD 章节 + design spec，把页面场景、区块、主题、交互、数据绑定和素材清单实现成 `.canvas.jsx` / `.canvas.tsx`。
+使用 `YidaCodeCanvas` 组件实现的自定义页面消费 `yida-prd` 输出的 `prd.md` 与 `yida-design` 输出的 `design.md`，或单页 PRD 章节 + design spec，把页面场景、区块、主题、交互、数据绑定和素材清单实现成 `.canvas.jsx` / `.canvas.tsx`。
 
 ## 页面场景到实现入口
 
-用户描述页面目标后，先读取 `yida-design` 的 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md`，或单页 PRD 章节和对应 design spec。PRD 用来确认页面场景、区块、数据来源、主操作和移动端要求；design.md 用来确认主题色、页面风格、视觉 DNA、布局配方、材质、圆角、密度、呼吸感、组件和状态规则。实现时按下表选择页面结构；页面结构、数据桥和样式细节已经明确时，直接手写 `.canvas.jsx`。
+用户描述页面目标后，先读取 `yida-prd` 的 `prd/<项目名>/prd.md` 和 `yida-design` 的 `prd/<项目名>/design.md`，或单页 PRD 章节和对应 design spec。PRD 用来确认页面场景、区块、数据来源、主操作和移动端要求；design.md 用来确认主题色、页面风格、视觉 DNA、布局配方、材质、圆角、密度、呼吸感、组件和状态规则。实现时按下表选择页面结构；页面结构、数据桥和样式细节已经明确时，直接手写 `.canvas.jsx`。
 
 结构化实现工具提供可编译运行时结构、数据桥、主题变量和基础 primitives。真实业务页结合 `prd.md` 落地业务化区块顺序、数据和文案，结合 `design.md` 落地信息层级、局部构图和样式节奏。
 
@@ -94,7 +94,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 | 表单新建/提交 | `targetType: "submission"` + `openMode: "responsive-drawer"` | PC 用 `FormOpenContainer` 右侧抽屉 iframe，URL 带 `isRenderNav=false` |
 | 表单查看详情 | `targetType: "detail"` + 目标 `formUuid` + 真实 `formInstId` 来源 | PC 用同一套抽屉宽度，详情 URL 带 `navConfig.layout=1180&isRenderNav=false` |
 
-表单提交/详情里的 `isRenderNav=false` 只隐藏原生表单页或详情页的页面导航，不用于隐藏自定义页应用导航。PC 抽屉 iframe 与移动端整页都由服务端自行加载应用主题文件；`FormOpenContainer` 不接收或同步父页面主题数据。
+表单提交/详情里的 `isRenderNav=false` 只隐藏原生表单页或详情页的页面导航，不用于隐藏自定义页应用导航。
 
 ## 官网与品牌页素材流程
 
@@ -128,9 +128,9 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 
 ## 主题实现
 
-主题色决策来自 `yida-design` 的 `design.md`，业务场景和页面边界来自 `prd.md` 或派生的 `page-spec.json`。所有页面都以当前应用主题为唯一主题来源；缺少主题证据时，按业务气质选择平台预置主题或生成应用自定义主题文件，不固定回到 `podBlue` / #1677ff。`themeProfile: { "name": "yida-app-theme" }` 表示跟随宜搭运行态主题：新版线上由应用自定义主题 CSS 中的 `--color-brand1-*` 和 `--color-group` 决定页面主色、图表色组和强调色。
+主题色决策来自 `yida-design` 的 `design.md`。`app-theme.css` 只在应用级配置，由平台统一作用于整个应用。
 
-`page-spec.json` 只保存与 design.md 一致的主题摘要。新版主题必须在 design.md 中写清应用主题模板、CSS 产物、`--color-brand1-6`、`navTheme`、`logoSource` 和 `layoutDirection`，并通过 `create-app/update-app --theme-file/--nav-theme/--logo-source/--layout` 联合保存。运行容器在自定义页面与 `FormOpenContainer` 的提交页/详情页 iframe 中加载同一应用主题文件。
+`page-spec.json` 只保存与 `design.md` 一致的主题摘要。自定义页面只在 `YidaComp` 内消费当前应用的 `--color-brand1-*`、`--color-group` 和 `--pod-*`，不向上层写入或同步主题样式。
 
 从 PRD 或派生的 `page-spec.json` 读取业务边界，从 design.md 读取应用主题 token 与视觉执行规则。全局换肤、导航与内容统一换色或新品牌色都通过应用主题 CSS、`themeColor` 和 `navTheme` 配置；单页美化沿用该应用主题并调整页面结构和视觉语言。
 
@@ -170,8 +170,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
   "designRefs": ["themeProfile", "sceneRecipes.dashboard", "components.charts", "states.empty"],
   "themeSummary": {
     "themeColor": "青绿色应用主题",
-    "styleKeywords": ["运营洞察", "轻量玻璃感", "高密信息"],
-    "themeDelivery": "app-custom-theme-file"
+    "styleKeywords": ["运营洞察", "轻量玻璃感", "高密信息"]
   },
   "researchLevel": "none",
   "archetype": "analysis",

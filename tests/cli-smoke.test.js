@@ -535,8 +535,19 @@ describe('CLI offline smoke', () => {
     ]);
     expect(parsed.summary.core_workflows.full_app_build).toMatchObject({
       mode: 'unified_build',
+      orchestrator_skill_id: 'yida-app',
       default_page_skill_id: 'yida-canvas-custom-page',
       default_ui_guidance_skill_id: 'yida-design',
+      requirement_analysis_skill_id: 'yida-requirement-analysis',
+      requirement_brief_path: '.cache/openyida/<project>/requirement-brief.json',
+      artifact_generation: {
+        mode: 'parallel',
+        tasks: [
+          { skill_id: 'yida-prd', output_path: 'prd/<project>/prd.md' },
+          { skill_id: 'yida-design', output_path: 'prd/<project>/design.md' },
+        ],
+        join_owner_skill_id: 'yida-app',
+      },
       ordinary_jsx_skill_id: 'yida-custom-page',
       required_command_ids: expect.arrayContaining([
         'agent-capabilities',
@@ -551,7 +562,7 @@ describe('CLI offline smoke', () => {
         'yida-data-source-connectors',
         'yida-data-management',
       ]),
-      product_design_policy: expect.stringContaining('resource creation order, page implementation delivery order, navigation order'),
+      product_design_policy: expect.stringContaining('read that same file and run in parallel'),
       ui_guidance_policy: expect.stringContaining('only design sources of truth'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),
       completion_contract: expect.stringContaining('PRD navigation order or lightweight fallback navigation order'),
@@ -1213,6 +1224,19 @@ describe('CLI offline smoke', () => {
       command_manifest_digest_algorithm: 'sha256',
       command_count: manifest.summary.command_count,
       full_capabilities_command: 'openyida agent-capabilities --json',
+      full_app_artifact_route: {
+        orchestrator_skill_id: 'yida-app',
+        requirement_analysis_skill_id: 'yida-requirement-analysis',
+        requirement_brief_path: '.cache/openyida/<project>/requirement-brief.json',
+        artifact_generation: {
+          mode: 'parallel',
+          tasks: [
+            { skill_id: 'yida-prd', output_path: 'prd/<project>/prd.md' },
+            { skill_id: 'yida-design', output_path: 'prd/<project>/design.md' },
+          ],
+          join_owner_skill_id: 'yida-app',
+        },
+      },
       runtime: {
         tool: null,
         runtime: 'unknown',
@@ -1553,8 +1577,19 @@ describe('CLI offline smoke', () => {
     expect(parsed.commands.read_only_command_ids).toContain('agent-capabilities');
     expect(parsed.commands.core_workflows.full_app_build).toMatchObject({
       mode: 'unified_build',
+      orchestrator_skill_id: 'yida-app',
       default_page_skill_id: 'yida-canvas-custom-page',
       default_ui_guidance_skill_id: 'yida-design',
+      requirement_analysis_skill_id: 'yida-requirement-analysis',
+      requirement_brief_path: '.cache/openyida/<project>/requirement-brief.json',
+      artifact_generation: {
+        mode: 'parallel',
+        tasks: [
+          { skill_id: 'yida-prd', output_path: 'prd/<project>/prd.md' },
+          { skill_id: 'yida-design', output_path: 'prd/<project>/design.md' },
+        ],
+        join_owner_skill_id: 'yida-app',
+      },
       ordinary_jsx_skill_id: 'yida-custom-page',
       required_command_ids: expect.arrayContaining([
         'create-app',
@@ -1568,7 +1603,7 @@ describe('CLI offline smoke', () => {
         'yida-data-source-connectors',
         'yida-data-management',
       ]),
-      product_design_policy: expect.stringContaining('resource creation order, page implementation delivery order, navigation order'),
+      product_design_policy: expect.stringContaining('read that same file and run in parallel'),
       ui_guidance_policy: expect.stringContaining('only design sources of truth'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),
       completion_contract: expect.stringContaining('PRD navigation order or lightweight fallback navigation order'),
@@ -1590,7 +1625,21 @@ describe('CLI offline smoke', () => {
       mode: 'unified_build',
       completion_contract: expect.stringContaining('create or reuse app'),
     });
-    expect(parsed.recommended.default_full_app_workflow.completion_contract).toContain('Markdown table');
+    expect(parsed.recommended.default_full_app_workflow.completion_contract).toContain('one named application entry group');
+    expect(parsed.recommended.default_full_app_workflow.application_entry_policy).toEqual({
+      delivery_unit: 'single_application_entry_group',
+      workbench: { include: 'always', url: '{base_url}/{appType}/workbench' },
+      custom: {
+        include: 'when_entry_mode_standalone_and_is_render_nav_false_readback',
+        url: '{base_url}/{appType}/custom/{formUuid}',
+      },
+      admin: {
+        include: 'follow_agent_capabilities_application_entry_policy',
+        url: '{base_url}/{appType}/admin',
+      },
+      internal_artifacts: 'never_user_visible',
+      business_resources: 'summary_only',
+    });
     expect(parsed.builder_path.bound_context).toMatchObject({
       existing_app_type_policy: 'do_not_call_app_list_by_default',
       skip_app_list_when: expect.arrayContaining([
@@ -1695,7 +1744,8 @@ describe('CLI offline smoke', () => {
     expect(parsed.sideEffects.read_only_preflight).toContain('openyida agent-capabilities --summary-json');
     expect(parsed.sideEffects.read_only_preflight).not.toContain('openyida agent-capabilities --json');
     expect(parsed.sideEffects.completion_contracts.full_app).toContain('creating or reusing the app');
-    expect(parsed.sideEffects.completion_contracts.full_app).toContain('Markdown table');
+    expect(parsed.sideEffects.completion_contracts.full_app).toContain('one named application entry group');
+    expect(parsed.sideEffects.completion_contracts.full_app).toContain('do not deliver one artifact or link card per resource');
     expect(parsed.sideEffects.full_app_data_contract).toContain('this.dataSourceMap');
     const commandIds = parsed.command_manifest.commands.map(entry => entry.id);
     const commandById = Object.fromEntries(parsed.command_manifest.commands.map(entry => [entry.id, entry]));
@@ -1813,7 +1863,9 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('Code Templates');
     expect(output).toContain('yida-chart');
     expect(output).toContain('yida-canvas-table-form');
-    expect(output).toContain('openyida-scaffold');
+    expect(output).toContain('openyida-page-template');
+    expect(output).toContain('openyida sample yida-design app-theme');
+    expect(output).not.toContain('openyida-scaffold');
     expect(output).toContain('table-form-batch-submit');
     expect(output).toContain('canvas-form-drawer');
     expect(output).toContain('form-fields');

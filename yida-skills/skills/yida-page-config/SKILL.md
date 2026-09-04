@@ -66,13 +66,15 @@ openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]
 
 ## 页面级导航
 
-用户明确要求页面隐藏导航、无导航或全屏无框时执行：
+用户明确要求页面隐藏导航、无导航或全屏无框，或者 `yida-app` 的 PRD 已把主页面明确标记为 `entryMode=standalone` 时执行：
 
 ```bash
 openyida update-form-config <appType> <formUuid> false "<页面标题>"
 ```
 
 这条命令只设置页面级 `isRenderNav=false`。自定义页要自绘应用侧边或顶部导航时，先使用 `openyida update-app <appType> --hide-app-nav` 隐藏应用导航；两者不是同一配置。
+
+完整应用的独立入口必须在写入后再执行 `openyida get-form-config <appType> <formUuid> --json`。只有回读确认 `isRenderNav=false` 后，才输出不带查询参数的 `/custom/{formUuid}`；失败时保留 `/workbench`，不把 URL 参数当作持久配置成功证据。
 
 创建 dashboard 页面时，只有用户明确要求隐藏页面导航才使用：
 

@@ -153,7 +153,7 @@ openyida/
 │   ├── core/                   # Environment detection, i18n, diagnostics, data commands
 │   ├── process/                # Process form creation, configuration, preview
 │   ├── report/                 # Yida report and chart generation
-│   └── samples/                # Sample skeletons emitted by openyida sample
+│   └── samples/                # Reusable code templates emitted by openyida sample
 ├── project/                    # Default workspace template for generated Yida projects
 ├── yida-skills/                # Source skill docs and Yida API references
 └── scripts/                    # CI, packaging, and installation helpers
@@ -167,13 +167,14 @@ For a user-facing list of supported features and matching CLI commands, see [Ope
 
 ```bash
 openyida create-app "CRM"
-openyida create-app --name "CRM" --desc "Customer management" --theme-file ./app-theme.css --nav-theme light --logo-source appIcon --layout l_shape
+openyida sample yida-design app-theme --output .cache/openyida/crm/app-theme.css
+openyida create-app --name "CRM" --desc "Customer management" --theme-file .cache/openyida/crm/app-theme.css --nav-theme light --logo-source appIcon --layout l_shape
 openyida app-list --size 20
 openyida corp-efficiency
 openyida create-form create APP_XXX "Customer" .cache/openyida/forms/customer-fields.json
 openyida create-form update APP_XXX FORM_XXX .cache/openyida/forms/customer-changes.json
-openyida sample openyida-scaffold form-fields --output .cache/openyida/forms/customer-fields.json
-openyida sample openyida-scaffold canvas-form-drawer --output project/pages/src/customer-entry.canvas.jsx --var APP_TYPE=APP_XXX --var FORM_UUID=FORM_XXX
+openyida sample openyida-page-template form-fields --output .cache/openyida/forms/customer-fields.json
+openyida sample openyida-page-template canvas-form-drawer --output project/pages/src/customer-entry.canvas.jsx --var APP_TYPE=APP_XXX --var FORM_UUID=FORM_XXX
 openyida get-schema APP_XXX FORM_XXX
 openyida get-schema APP_XXX FORM_XXX --compact --resolve-fields "Customer Name,Status"
 openyida get-schema APP_XXX --all --output-dir .cache/schemas
@@ -521,7 +522,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run OpenYida commands in batch |
 | `openyida flash-to-prd --file <path> --name "<project>"` | Convert flash notes or meeting notes to a PRD prompt |
 | `openyida ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
-| `openyida asset <status\|verify-url\|resolve\|generate> [options]` | Detect asset capability / verify image URLs / resolve materials |
+| `openyida asset <status\|resolve\|generate> [options]` | Detect asset capability / resolve materials |
 | `openyida cdn-config [options]` | Configure CDN / OSS upload |
 | `openyida cdn-upload <image-path>` | Upload image to CDN |
 | `openyida cdn-refresh [options]` | Refresh CDN cache |
@@ -552,7 +553,7 @@ The runner rejects public generic echo services such as httpbin and example.com.
 
 The opt-in `node scripts/e2e-real/connector/action-update-runner.js` regression uses the owner-confirmed login-free `www.aliwork.com` fixture and a single owned NONE-auth connector containing a target action plus one preservation sentinel. Enable it with `OPENYIDA_E2E=1 OPENYIDA_E2E_CONNECTOR_ACTION_UPDATE=1`. It verifies isolated `currentPage`, `pageSize`, `userLanguage`, `searchFieldJson`, and dynamic `_stamp` edits, restores each field and the final baseline, and persists only response structure, data count, and SHA-256. It never stores response row values or auth/profile/corp identifiers, never retries unknown writes, and intentionally leaves the owned connector as a `cleanup_blocked` residual because no proven delete API exists.
 
-`openyida asset resolve --hero <path-or-url> --product <path-or-url> --require-hero --upload-assets --json` is the preferred preflight for homepage visuals. It verifies public image URLs, uploads local images when CDN is configured, mirrors verified external images to CDN when `--upload-assets` is passed, and returns `materialStatus: final|draft|none` so agents do not claim an unfinished visual page is final.
+`openyida asset resolve --hero <path-or-url> --product <path-or-url> --require-hero --upload-assets --json` is the preferred preflight for homepage visuals. It handles local files and external image references in one flow, uploads or mirrors them when CDN is configured, and returns `materialStatus: final|draft|none` so agents do not claim an unfinished visual page is final.
 
 #### Environment and Localization
 

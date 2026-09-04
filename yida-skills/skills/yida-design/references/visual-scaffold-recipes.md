@@ -1,11 +1,11 @@
-# 视觉脚手架配方库
+# 视觉结构配方库
 
 本文件把高质量页面的视觉结构沉淀成可执行槽位。设计阶段输出 `visualScaffold` 时，从这里选择一套配方，再把当前业务对象、字段、动作和状态填进去。实现阶段按槽位写页面，不复制示例业务文案、不套默认卡片墙。
 
 ## 使用规则
 
 1. 先按页面场景选择一套配方。
-2. 把 `contentBlocks` 映射到配方槽位；工作台、首页、门户、看板、展示页和业务入口页推荐 8-10 个区块以上。如果业务是窄场景或用户要求精简，可以减少区块，并在 Step 4 说明取舍。
+2. 把 `contentBlocks` 映射到配方槽位；工作台、首页、门户、看板、展示页和业务入口页推荐 8-10 个区块以上。如果业务是窄场景或用户要求精简，可以减少区块，并在页面结构和交互设计中说明取舍。
 3. 把配方写入 `design.md` 的 `visualScaffold`：`layoutRecipe`、`surfaceMap`、`sectionRhythm`、`densityRule`、`breathingRule`、`componentRecipe`、`emptyStateRecipe`、`responsiveSlots`、`acceptanceChecks`。PRD 只引用 `designFile/designRefs` 和主题风格摘要。
 4. 实现阶段逐项消费，不从“高级 / 简洁 / 好看”等形容词直接写 CSS。
 5. 默认业务页采用圆润高密且有呼吸感的规则：卡片 padding 默认 22-28px 且必须大于 20px，卡片与卡片的 gap 默认 12-18px 且必须小于 20px，卡片圆角范围 0-32px，控件 10-14px；状态摘要、动作条、列表和空态必须紧凑，间距服务分组和扫读，不用额外 margin 或空白高度撑面积。

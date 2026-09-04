@@ -222,12 +222,14 @@ openyida/
 
 ### yida-skills 技能路由规则（Agent 必读）
 
-**当用户首次创建完整应用/系统/平台时，AI agent 必须加载 `yida-app` 子技能作为唯一编排入口**，由 `yida-app` 按阶段调度 `yida-design`（统一 Fast / Plan 设计入口）、`yida-create-app`、`yida-create-form-page`、`yida-canvas-custom-page`、`yida-publish-page` 等子技能。`yida-app` Step 2 只调用一次 `yida-design`；Plan 分支必须等用户确认，确认后直接进入 Step 3，不再执行 Fast 分支。
+完整应用在 `yida-app` Step 2 按 `yida-design/references/design-mode.md` 选择一次 Fast / Plan。Fast 沿用下方需求分析和并行生成流程；Plan 只在用户确认当前版本后交接派生文件，不再运行 Fast。
+
+**当用户首次创建完整应用/系统/平台时，AI agent 必须加载 `yida-app` 子技能作为唯一编排入口**，由 `yida-app` 按阶段调度 `yida-design`（PRD 设计）、`yida-create-app`、`yida-create-form-page`、`yida-canvas-custom-page`、`yida-publish-page` 等子技能。
 
 | 禁止（NEVER DO） | 正确做法（MUST DO） |
 |------|------|
 | 首次搭建应用时直接调用 `openyida create-app` 然后手动拼接 create-form / create-page / publish | 首次搭建时加载 `yida-app` 子技能，由它按标准编排流程执行 |
-| 跳过设计阶段，凭感觉定义字段和页面结构 | 先由 `yida-design` 路由 Fast / Plan 并输出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`；Plan 等用户确认后再创建资源 |
+| 跳过 PRD 设计阶段，凭感觉定义字段和页面结构 | 先由 `yida-design` 输出 `prd/<项目名>.md`，再按 PRD 创建资源 |
 | 把 `yida-create-app` 当作“搭建应用”的入口 | `yida-create-app` 只是 `yida-app` 编排流程中的一个阶段步骤 |
 
 触发条件：用户消息包含“搭建应用”“创建系统”“做一个管理系统”“从零创建应用”“build an app”等完整应用构建意图，必须路由到 `yida-app`。完整路由规则详见 `yida-skills/SKILL.md` 的"第二步：意图路由"章节。

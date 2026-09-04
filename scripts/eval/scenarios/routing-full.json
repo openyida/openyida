@@ -462,26 +462,12 @@
   },
 
   {
-    "id": "form-detail-pos-1",
-    "prompt": "表单详情页太丑了，帮我优化一下样式布局",
-    "expectedSkill": "yida-form-detail",
-    "type": "positive",
-    "note": "表单详情页样式优化"
-  },
-  {
-    "id": "form-detail-pos-2",
-    "prompt": "提交后的表单详情展示页需要美化一下，字段排列和标签样式都要调",
-    "expectedSkill": "yida-form-detail",
-    "type": "positive",
-    "note": "详情页样式调整"
-  },
-  {
     "id": "form-detail-neg-1",
     "prompt": "帮我给这个表单新增几个字段，加上「联系电话」和「备注」",
     "expectedSkill": "yida-create-form-page",
     "type": "negative",
     "category": "disambiguation",
-    "note": "新增表单字段主路由仍是 create-form-page；执行阶段默认加载 yida-form-detail 做视觉引导和详情页样式补齐"
+    "note": "新增表单字段只路由 create-form-page；严禁额外注入详情页样式"
   },
 
   {

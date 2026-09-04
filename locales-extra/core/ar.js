@@ -1233,6 +1233,7 @@ module.exports = {
     lint_searchformdata_http_post: 'استدعاء searchFormDatas.json مباشرة يجب أن يستخدم GET + معاملات query (ضع formUuid/appType في query الخاص بعنوان URL). استخدام POST مع formUuid في الـ body يسبب «参数校验失败formUuid» وتظهر اللوحات/القوائم أصفارًا',
     lint_searchformdata_http_pagenumber: 'يستخدم searchFormDatas.json ترقيم الصفحات عبر currentPage (وليس pageNumber)؛ استخدام pageNumber يعطّل الترقيم',
     lint_searchformdata_http_unwrap: 'استجابة المتصفح من searchFormDatas.json تضع القائمة داخل content.data ({ content: { data: [...] } })؛ قراءة json.data فقط تُرجع 0 صفوف — فك التغليف عبر (json.content && json.content.data)',
+    lint_searchformdata_dynamic_order_metadata: 'لا يمكن لـ searchFormDatas.dynamicOrder استخدام حقل بيانات تعريف السجل {0}؛ استخدم معرّف حقل أعمال حقيقيًا يعيده get-schema. إذا لم يوجد حقل تاريخ أعمال قابل للفرز، فاحذف dynamicOrder ورتّب الصفحة المسترجعة فقط حسب row.createTime للعرض',
     lint_setstate_non_timestamp: 'this.setState يكتب حقلا غير timestamp. يجب أن تبقى حالة الأعمال في الصفحة المخصصة داخل _customState ويتم تحديثها عبر forceUpdate()/setCustomState(); يجب أن يحمل this.setState حقل العقد timestamp فقط',
     lint_self_binding_missing: 'renderJsx يستخدم this دون تعريف var self = this;. أضف var self = this; في بداية renderJsx واستخدم self داخل closures/callbacks لتجنب فقدان this',
     lint_echarts_dom_ready: 'echarts.init غير ملفوف داخل setTimeout؛ قد لا يكون الحاوي مركبا بعد، لذلك قد لا يتم عرض المخطط. استخدم setTimeout(function(){ /* echarts.init */ }, 300)',
@@ -1909,6 +1910,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   delete_result_unknown: 'نتيجة حذف سجل النموذج {0} غير معروفة. نفّذ فحصًا للقراءة فقط ولا تُعد الحذف تلقائيًا.',
   delete_target_mismatch: 'سجل النموذج {0} لا ينتمي إلى النموذج الهدف {1}. توقف التنفيذ قبل الحذف.',
   delete_target_unverified: 'تعذر التحقق من هوية سجل النموذج {0} وملكيته. توقف التنفيذ قبل الحذف.',
+  field_reference_unknown: 'مرجع الحقل {0} ليس fieldId حقيقيًا أو اسمًا مستعارًا للمكوّن في النموذج الهدف. توقف التنفيذ قبل الكتابة.',
   form_mode_unverified: 'تعذر التحقق من نوع النموذج {0}. تم إيقاف الإنشاء قبل كتابة أي بيانات.',
   resource_required: 'يفتقد data query إلى نوع المورد form. الأمر المقترح: {0}',
 });
@@ -1966,6 +1968,8 @@ module.exports.connector_test = {
 };
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  association_derived_field_read_only: 'Derived association-form query field {0} is read-only and cannot be saved or updated. Write the source association field without the _id suffix.',
+  association_value_invalid: 'The write value for association-form field {0} is invalid. Use an array of objects where every item includes appType, formUuid, formType, instanceId, and title.',
   instance_target_mismatch: 'Instance {0} does not belong to expected business resource {1}. The operation stopped before mutation.',
   instance_target_unverified: 'Could not verify the business resource ownership of instance {0}. The operation stopped before mutation.',
   target_expectation_invalid: '--expect-form-type must be {0}. The operation stopped before mutation.',

@@ -18,6 +18,34 @@ describe('agent-capabilities summary', () => {
     jest.dontMock('../lib/core/utils');
   });
 
+  test('delivery runtime detector keeps local Codex non-cloud and honors managed cloud signals', () => {
+    const { buildApplicationEntryPolicy } = require('../lib/core/agent-capabilities');
+
+    expect(buildApplicationEntryPolicy({
+      auth: { auth_runtime: 'env_token_bootstrap' },
+      runtime: { runtime: 'desktop_shell' },
+    }, { CODEX_SHELL: '1', CODEX_CI: '1' })).toMatchObject({
+      environment: 'non_cloud_agent',
+      entries: { admin: 'include' },
+    });
+
+    expect(buildApplicationEntryPolicy({
+      auth: { auth_runtime: 'token_oauth_session' },
+      runtime: { runtime: 'unknown' },
+    }, { OPENYIDA_MANAGED_RUNTIME: 'cloud' })).toMatchObject({
+      environment: 'managed_cloud_agent',
+      entries: { admin: 'omit' },
+    });
+
+    expect(buildApplicationEntryPolicy({
+      auth: { auth_runtime: 'token_oauth_session' },
+      runtime: { runtime: 'web_sandbox', tool: 'qwenwork' },
+    }, {})).toMatchObject({
+      environment: 'managed_cloud_agent',
+      entries: { admin: 'omit' },
+    });
+  });
+
   test('YIDA_AUTH_ENABLED does not skip environment snapshot or auth status checks', () => {
     const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-agent-cap-fast-'));
     const buildEnvironmentSnapshot = jest.fn(() => ({
@@ -47,6 +75,7 @@ describe('agent-capabilities summary', () => {
     jest.doMock('../lib/core/utils', () => ({ findProjectRoot, getAuthStatus }));
 
     process.env.YIDA_AUTH_ENABLED = 'true';
+    process.env.OPENYIDA_MANAGED_RUNTIME = 'cloud';
     process.env.OPENYIDA_ACCESS_TOKEN = 'runtime-access-token';
     process.env.OPENYIDA_TOKEN_CORP_ID = 'corpRuntime';
     process.env.OPENYIDA_TOKEN_CORP_NAME = '运行时组织';
@@ -103,6 +132,18 @@ describe('agent-capabilities summary', () => {
       expect(JSON.stringify(summary)).not.toContain('host_token');
       expect(JSON.stringify(summary)).not.toContain('runtime_auth_provisioned');
       expect(summary.command_manifest_digest).toMatch(/^[a-f0-9]{64}$/);
+      expect(summary.application_entry_policy).toEqual({
+        schema_version: 1,
+        environment: 'managed_cloud_agent',
+        delivery_unit: 'single_application_entry_group',
+        resource_delivery: 'summary_only',
+        internal_artifact_delivery: 'never',
+        entries: {
+          workbench: 'always',
+          custom: 'when_entry_mode_standalone_and_is_render_nav_false_readback',
+          admin: 'omit',
+        },
+      });
     } finally {
       fs.rmSync(projectRoot, { recursive: true, force: true });
     }
@@ -195,6 +236,14 @@ describe('agent-capabilities summary', () => {
           'openyida auth profiles',
           'openyida auth profile switch <auth_profile>',
         ],
+      });
+      expect(summary.application_entry_policy).toMatchObject({
+        environment: 'non_cloud_agent',
+        entries: {
+          workbench: 'always',
+          custom: 'when_entry_mode_standalone_and_is_render_nav_false_readback',
+          admin: 'include',
+        },
       });
       expect(summary.builder_path.auth).not.toHaveProperty('runtime_auth_provisioned');
     } finally {

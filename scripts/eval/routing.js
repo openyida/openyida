@@ -58,7 +58,7 @@ function normalizeSkill(name) {
 function buildRoutingPrompt({ request, routingContext, skillNames }) {
   return [
     '下面是宜搭应用开发技能（openyida）的路由说明文档。请严格依据它，',
-    '判断针对用户请求应当选择哪一个**子技能**来处理。根路由中的完整应用搭建统一选择 yida-app；Fast / Plan 由 yida-app Step 2 调用的 yida-design 内部 Gate 决定。',
+    '判断针对用户请求应当选择哪一个**子技能**来处理。根路由中的完整应用搭建统一选择 yida-app；Fast / Plan 由 yida-app Step 2 按设计模式路由决定。',
     '',
     '=== 路由说明文档开始 ===',
     routingContext,
@@ -73,7 +73,7 @@ function buildRoutingPrompt({ request, routingContext, skillNames }) {
     '',
     '要求：',
     '- skill 必须是上面可选子技能名之一。',
-    '- 根路由不要输出 mode；完整应用搭建统一由 yida-app 编排，Fast / Plan 只在 yida-design 内部选择。',
+    '- 根路由不要输出 mode；完整应用搭建统一由 yida-app 编排，Fast / Plan 只在 yida-app Step 2 选择。',
     '- defaultLoadSkills 只列默认会加载的技能；optionalAfterDone 不要列入默认加载。',
   ].join('\n');
 }

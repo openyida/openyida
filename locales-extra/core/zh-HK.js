@@ -1172,6 +1172,7 @@ module.exports = {
     lint_searchformdata_http_post: '直連 searchFormDatas.json 必須用 GET + query 參數（formUuid/appType 放在 URL query 裡）；用 POST 把 formUuid 放進 body，後端會報「參數校驗失敗formUuid」，看板/列表會全 0',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json 的分頁參數名是 currentPage（不是 pageNumber），寫成 pageNumber 會分頁失效',
     lint_searchformdata_http_unwrap: 'searchFormDatas.json 瀏覽器直連的列表在 content.data（回傳 { content: { data: [...] } }），只讀 json.data 會得到 0 筆；請用 (json.content && json.content.data) 兜底解包',
+    lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder 不能使用記錄元數據欄位 {0}；請改用 get-schema 回傳的真實業務欄位 ID。沒有可排序的業務日期欄位時請刪除 dynamicOrder，只在目前已取回頁內按 row.createTime 做展示排序',
     lint_setstate_non_timestamp: '偵測到 this.setState 寫入非 timestamp 欄位。業務狀態應寫入 _customState 並呼叫 forceUpdate()/setCustomState() 觸發重繪；this.setState 僅用於 timestamp 契約欄位',
     lint_self_binding_missing: 'renderJsx 內使用了 this 但未宣告 var self = this;。請在 renderJsx 開頭加入 var self = this;，閉包/回呼內改用 self，避免 this 指向遺失',
     lint_echarts_dom_ready: 'echarts.init 未包裹在 setTimeout 中，容器可能尚未掛載導致圖表不渲染。建議 setTimeout(function(){ /* echarts.init */ }, 300)',
@@ -1785,6 +1786,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   delete_result_unknown: '表單實例 {0} 的刪除結果未知。請只讀回查目標，不要自動重試刪除。',
   delete_target_mismatch: '表單實例 {0} 不屬於目標表單 {1}，已停止且未執行刪除。',
   delete_target_unverified: '無法驗證表單實例 {0} 的身分和歸屬，已停止且未執行刪除。',
+  field_reference_unknown: '欄位引用 {0} 不是目標表單的真實 fieldId 或元件別名，已在寫入前停止。',
   form_mode_unverified: '無法驗證表單 {0} 的類型，已停止建立；未執行任何資料寫入。',
   resource_required: 'data query 缺少資源類型 form。建議：{0}',
 });
@@ -1831,6 +1833,8 @@ Object.assign(module.exports.create_process || (module.exports.create_process = 
   login_required: '未取得有效宜搭登入狀態，請先執行 openyida login。',
 });
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  association_derived_field_read_only: '關聯表單查詢衍生欄位 {0} 是唯讀欄位，不能用於儲存或更新。請寫入不帶 _id 後綴的原始關聯表單欄位。',
+  association_value_invalid: '關聯表單欄位 {0} 的寫入值無效。必須使用物件陣列，每項完整包含 appType、formUuid、formType、instanceId 和 title。',
   instance_target_mismatch: '實例 {0} 不屬於預期業務資源 {1}，已在寫入前停止。',
   instance_target_unverified: '無法核驗實例 {0} 的業務資源歸屬，已在寫入前停止。',
   target_expectation_invalid: '--expect-form-type 必須為 {0}，已在寫入前停止。',

@@ -5,6 +5,7 @@ const https = require('https');
 const os = require('os');
 const path = require('path');
 const { EventEmitter } = require('events');
+const { CliError } = require('../lib/core/cli-error');
 
 jest.mock('../lib/app/form-navigation', () => ({
   fetchFormPageList: jest.fn(),
@@ -489,7 +490,16 @@ export default function Page() {
     });
     const warnMock = jest.fn();
     const resultMock = jest.fn();
-    const autoOrderNavigationMock = jest.fn(() => Promise.reject(new Error('nav order broke')));
+    const autoOrderNavigationMock = jest.fn(() => Promise.reject(new CliError('NAV_ORDER_RESULT_UNKNOWN', {
+      code: 'NAV_ORDER_RESULT_UNKNOWN',
+      details: {
+        retryable: false,
+        retrySafe: false,
+        sideEffectState: 'unknown',
+        readbackVerified: false,
+        nextStep: 'openyida nav-group list APP_XXX --flat',
+      },
+    })));
     const requestSpy = jest.spyOn(https, 'request').mockImplementation((options, callback) => {
       const response = new EventEmitter();
       response.statusCode = 200;
@@ -578,7 +588,7 @@ export default function Page() {
       expect(exitSpy).not.toHaveBeenCalled();
       expect(resultMock).toHaveBeenCalledWith(true, expect.any(String), expect.any(Array));
       expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('display_component_missing'));
-      expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('nav order broke'));
+      expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('NAV_ORDER_RESULT_UNKNOWN'));
       expect(autoOrderNavigationMock).toHaveBeenCalledWith('APP_XXX', expect.any(Object));
       expect(mockUtils.httpPost).toHaveBeenCalledTimes(1);
       expect(mockUtils.httpPost.mock.calls[0][1]).toContain('/saveFormSchema.json');
@@ -597,7 +607,16 @@ export default function Page() {
           expectedPublishMode: 'canvas',
           reason: 'display_component_missing',
         },
-        navOrderWarning: 'nav order broke',
+        navOrder: {
+          success: false,
+          errorCode: 'NAV_ORDER_RESULT_UNKNOWN',
+          retryable: false,
+          retrySafe: false,
+          sideEffectState: 'unknown',
+          readbackVerified: false,
+          nextStep: 'openyida nav-group list APP_XXX --flat',
+        },
+        navOrderWarning: 'NAV_ORDER_RESULT_UNKNOWN',
       });
     } finally {
       requestSpy.mockRestore();

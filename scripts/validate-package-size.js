@@ -11,8 +11,9 @@ const path = require('path');
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
 const MAX_TARBALL_BYTES = 1792 * 1024;
-const MAX_UNPACKED_BYTES = 5632 * 1024;
-const MAX_ENTRY_COUNT = 440;
+// Plan adds its renderer, 19 theme templates, and the design-mode reference.
+const MAX_UNPACKED_BYTES = 5760 * 1024;
+const MAX_ENTRY_COUNT = 465;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

@@ -7,7 +7,7 @@ const { materialize, normalizePlan, renderDesign, renderPrd } = require('../lib/
 const { patchPlan } = require('../lib/design-plan/patch');
 
 const ROOT = path.join(__dirname, '..');
-const FIXTURE = path.join(ROOT, 'prd', '采购管理', 'build-plan.json');
+const FIXTURE = path.join(__dirname, 'fixtures', 'design-plan.json');
 
 function compactV2(source) {
   const plan = JSON.parse(JSON.stringify(source));
@@ -89,6 +89,13 @@ describe('design-plan materialize', () => {
     const html = fs.readFileSync(path.join(tempDir, 'build-plan.html'), 'utf8');
     expect(prd).toContain('# 采购管理应用 搭建计划（PRD）');
     expect(prd).toContain('buildPlanRevision: "2026-08-31-01"');
+    const handoff = JSON.parse(prd.match(/```json\n([\s\S]*?)\n```/)[1]);
+    expect(handoff.resourceCreationOrder).toEqual(['应用', '采购申请', '采购订单', '采购工作台']);
+    expect(handoff.resourceBlueprint.map(resource => resource.type)).toEqual(['process', 'form', 'display']);
+    expect(handoff.pages[0].pageSpecHandoff.designFile).toBe('design.md');
+    for (const reference of handoff.pages[0].pageSpecHandoff.designRefs) {
+      expect(design).toContain(`## ${reference}`);
+    }
     expect(design).toContain('"--color-brand1-6": "#6F4E37"');
     expect(design).toContain('buildPlanRevision: "2026-08-31-01"');
     expect(design).toContain('## 项目视觉选择');
@@ -304,7 +311,45 @@ describe('design-plan materialize', () => {
 
     expect(() => patchPlan(input, ['visualStyle.forUser.missingField=value'])).toThrow(/字段路径不存在/);
     expect(() => patchPlan(input, ['meta.revision=manual'])).toThrow(/自动维护/);
+    expect(() => patchPlan(input, ['meta={}'])).toThrow(/自动维护/);
+    expect(() => patchPlan(input, ['meta.planState[0]=true'])).toThrow(/自动维护/);
+    expect(() => patchPlan(input, ['meta.projectName[0]=X'])).toThrow(/字段路径不存在/);
+    expect(() => patchPlan(input, ['meta.__proto__.polluted=true'])).toThrow(/危险字段路径/);
     expect(fs.readFileSync(input, 'utf8')).toBe(before);
+  });
+
+  test('a patch that restores the original value preserves revision and confirmation', () => {
+    const input = path.join(tempDir, 'build-plan.json');
+    fs.copyFileSync(FIXTURE, input);
+    const before = fs.readFileSync(input, 'utf8');
+    const result = patchPlan(input, [
+      'visualStyle.forUser.colorStrategy.primaryColor=#123456',
+      'visualStyle.forUser.colorStrategy.primaryColor=#6F4E37',
+    ]);
+    expect(result.changed).toBe(false);
+    expect(result.confirmationInvalidated).toBe(false);
+    expect(fs.readFileSync(input, 'utf8')).toBe(before);
+  });
+
+  test('invalid theme changes leave the source and generated artifacts intact', () => {
+    const input = path.join(tempDir, 'build-plan.json');
+    fs.copyFileSync(FIXTURE, input);
+    materialize(input);
+    const files = ['build-plan.json', 'prd.md', 'design.md', 'build-plan.html'];
+    const before = files.map(file => fs.readFileSync(path.join(tempDir, file), 'utf8'));
+    expect(() => patchPlan(input, ['visualStyle.forUser.colorStrategy.primaryColor=invalid'], { materialize: true }))
+      .toThrow(/HEX/);
+    expect(files.map(file => fs.readFileSync(path.join(tempDir, file), 'utf8'))).toEqual(before);
+  });
+
+  test('execution overrides preserve explicit resource order and page requirements', () => {
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    plan.execution = { resourceCreationOrder: ['应用', '采购订单', '采购申请', '采购工作台'], navigationOrder: ['采购工作台', '采购订单'] };
+    plan.pages.customPageDetails[0].dataSources = ['采购申请', '采购订单'];
+    const handoff = JSON.parse(renderPrd(plan).match(/```json\n([\s\S]*?)\n```/)[1]);
+    expect(handoff.resourceCreationOrder).toEqual(plan.execution.resourceCreationOrder);
+    expect(handoff.navigationOrder).toEqual(plan.execution.navigationOrder);
+    expect(handoff.pages[0].pageSpecHandoff.dataSources).toEqual(['采购申请', '采购订单']);
   });
 
   test('compact v2 adjustments stay patch-only and rematerialize derived fields', () => {

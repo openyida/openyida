@@ -17,7 +17,7 @@ OpenYida 任务完成后，除了交付当前结果，还要判断是否有可�
 
 | 经验类型 | 首选落盘位置 | 示例 |
 | --- | --- | --- |
-| 命令行为、参数校验、平台 API 链路 | `lib/**` + `tests/**` | `update-app --theme` 不能只走 `updateAppName`，需回读详情后用 `updateApp` 保存 |
+| 应用主题文件生成 | `yida-design` + 主题模板 | 复制完整模板后只修改设计确定的 token |
 | 技能路由、工作流、验收纪律 | `yida-skills/SKILL.md` 或对应子技能 `SKILL.md` | 主题任务必须先读 `yida-design`，页面视觉先读 `yida-design` |
 | 页面视觉、Dribbble/优秀案例参考方法 | `yida-design` workflow/reference | 参考案例要转译为布局、视觉锚点、密度、色彩、组件细节 |
 | 自定义页面共性规则 | `yida-canvas-custom-page` | 独立页面按场景确定主题、演示数据有标识、发布后回读 Schema |
@@ -34,11 +34,11 @@ OpenYida 任务完成后，除了交付当前结果，还要判断是否有可�
 1. **参考 Dribbble 不是一句话**
    用户要求参考 Dribbble / 优秀示例时，必须把参考转成可执行设计变量：页面类型、构图、视觉锚点、信息密度、色彩关系、组件细节、反默认点。交付时说明“参考转译成了什么”。
 
-2. **所有页面统一消费应用主题**
-   独立品牌页、活动页、沉浸页和应用导航隐藏后的自绘壳也统一加载应用主题文件；页面差异通过布局、材质、素材、构图和辅助视觉表达。
+2. **主题文件统一由 yida-design 生成**
+   页面实现读取 `design.md` 的布局、材质、素材、构图和辅助视觉规则，并使用当前应用主题变量。
 
 3. **`--theme` 只能填平台预置 key**
-   `deepBlue/podBlue/royalBlue/lightBlue/teal/podGreen/deepPurple/purple/podOrange/yellow/magenta/red/greyBlue/coffee/black` 才能作为 app `colour`。默认优先使用 `podBlue`、`podGreen`、`podOrange`；自定义“活力橙”“深玫红”“暗黑金”等应用主题统一生成应用级 CSS，并联合保存 `themeColor`、`navTheme` 与 `customThemeStyle.cssUrl`，由运行容器在各页面上下文加载。
+   `deepBlue/podBlue/royalBlue/lightBlue/teal/podGreen/deepPurple/purple/podOrange/yellow/magenta/red/greyBlue/coffee/black` 才能作为 app `colour`。应用级 CSS 由 `yida-design` 生成，应用创建或更新阶段直接消费；页面技能不处理主题保存链路。
 
 4. **CLI 成功不等于线上生效**
    修改应用主题后必须回读 `getAppIncludingAecpInfo`，确认 `colour` 和 `config.COLOUR`。如果接口回包成功但字段没变，要修 CLI 链路和测试，而不是只用一次性脚本绕过。

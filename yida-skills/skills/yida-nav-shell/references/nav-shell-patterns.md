@@ -28,7 +28,7 @@
 
 - **先判定层级**：应用导航隐藏看 `hideAppNav='y'`；页面导航隐藏看 `isRenderNav=false`。两者不要互相代替。
 - **选中态要一眼可辨**：左侧边用「左侧 3px 主色条 + 浅色底 + 字重加粗」；顶部用「底部 2px 主色下划线 + 主色文字」。别只靠淡淡变色。
-- **图标只作功能用途**：导航项用 `lucide-react` 或 `@ant-design/icons` 的具体组件 + 文字，默认 `lucide-react`，同页一套图标风格；**禁 emoji**、CSS 绘制图形、字母占位和每项前配装饰图标（见 [yida-design-fast UI 视觉和状态设计](../../yida-design/sub_skill/yida-design-fast/workflow/step-5-visual-states.md)）。
+- **图标只作功能用途**：导航项用 `lucide-react` 或 `@ant-design/icons` 的具体组件 + 文字，默认 `lucide-react`，同页一套图标风格；**禁 emoji**、CSS 绘制图形、字母占位和每项前配装饰图标（见 [yida-design UI 视觉和状态设计](../../yida-design/workflow/step-5-visual-states.md)）。
 - **不做营销脸**：没有巨 Logo Hero、没有渐变横幅。顶部条左侧放「应用名/模块名 + 面包屑」，右侧放「用户/操作」，克制。
 - **密度可偏高**：B 端导航允许信息密集，但要有主次；分组用小标题或分隔线，不要一长串平铺。
 - **主色策略**：导航隐藏时主色相可自立（见 yida-design 入口路由）；仍要么走品牌 `var(--color-brand1-*)`、要么用自定主色一以贯之，语义色固定。

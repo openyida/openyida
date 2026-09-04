@@ -1,21 +1,21 @@
 # 应用主题与 token 参考
 
-本文件是 OpenYida 应用主题的统一参考。其他 skill 需要应用主题 key、平台候选主题或 token 变量时，引用本文，不在各自文档里重复维护完整主题清单。
+本文件是 `yida-design` 确定 OpenYida 应用主题色阶和 token 修改清单时使用的参考。
 
 主题选择先根据行业、品牌、业务情绪和视觉目标做创意判断，不能固定回到 `podBlue` 或 #1677ff，也不能套用“科技=蓝、宠物=橙、法律=蓝”这类行业刻板配色。`podBlue`、`podGreen`、`podOrange` 是常用浅底候选，不是默认答案；`blue`、`green`、`orange` 也是应用主题 token profile，保留原名，不自动改写成其他主题名。
 
-`deepBlue`、`deepPurple`、`purple`、`yellow`、`magenta`、`red`、`greyBlue`、`coffee`、`black` 等属于平台支持主题；仅在用户明确指定、品牌匹配或业务确实需要时使用。普通业务页默认使用浅底主题，`black` 不作为默认主题。
+`deepBlue`、`deepPurple`、`purple`、`yellow`、`magenta`、`red`、`greyBlue`、`coffee`、`black` 等色盘仅在用户明确指定、品牌匹配或业务确实需要时使用。普通业务页默认使用浅底主题，`black` 不作为默认主题。
 
-注意：下方预置只作为 AI 设计色阶时的参考，不再限制新版应用主题。复制 [app-custom-theme-template.css](app-custom-theme-template.css) 生成应用主题文件时，必须完整保留平台实际生成的 `--color-brand1-1/2/3/5/6/9/10`、`--color-brand-1` 至 `--color-brand-4` 和 `--color-group`，不要补造 `--color-brand1-4/7/8`。模板默认采用 coffee 咖啡色与大圆角；AI 只有在 `design.md` 明确选择其他主题时，才成套替换品牌色阶、基础色阶、图表色组和组件品牌态。将主色字面量写入 `--color-brand1-6` 后，通过 `create-app/update-app --theme-file/--nav-theme/--logo-source/--layout` 联合保存。主题由服务端加载该文件，页面和表单只消费其中的变量。
+注意：下方预置只用于确定主题色阶。执行 `openyida sample yida-design app-theme --output <app-theme.css>` 复制 [app-custom-theme-template.css](app-custom-theme-template.css)，再按主题色修改对应 token；严禁重新生成或覆盖整份 CSS。保留 `--color-brand1-1/2/3/5/6/9/10`、`--color-brand-1` 至 `--color-brand-4` 和 `--color-group`，严禁补造 `--color-brand1-4/7/8`。主色写入 `--color-brand1-6`。
 
-## 应用主题 key 清单
+## 色盘参考清单
 
-| key | 颜色倾向 | 使用口径 |
+| 色盘名 | 颜色倾向 | 使用口径 |
 | --- | --- | --- |
 | `blue` | 基础蓝 | 按需 |
 | `green` | 基础绿 | 按需 |
 | `orange` | 基础橙 | 按需 |
-| `podBule` | 平台蓝色 key | 按需 |
+| `podBule` | 平台蓝色 | 按需 |
 | `podBlue` | 平台蓝 | 常用候选，不默认 |
 | `teal` | 青色 | 按需 |
 | `podGreen` | 平台绿 | 常用候选，不默认 |
@@ -34,7 +34,7 @@
 
 ## 应用主题 token profile
 
-每个 profile 都按平台变量名记录。平台实际品牌色阶是 `--color-brand1-1/2/3/5/6/9/10`；历史 profile 若未列出 `--color-brand1-5`，AI 只补这一档并写入最终主题文件，不得生成不存在的 `4/7/8`。`--color-brand1-*` 是页面和 PC 端主要消费的品牌色阶，`--color-brand-*` 是移动端和部分原生表单/壳层桥接仍会消费的品牌色阶，不能删掉、改名或替换为别的变量。`--color-group` 用于图表和分组配色。
+每个 profile 都按平台变量名记录。平台实际品牌色阶是 `--color-brand1-1/2/3/5/6/9/10`；生成主题文件时必须完整写入这些色阶，不得生成不存在的 `4/7/8`。`--color-brand1-*` 是页面和 PC 端主要消费的品牌色阶，`--color-brand-*` 是移动端和部分原生表单/壳层消费的品牌色阶，不能删掉、改名或替换为别的变量。`--color-group` 用于图表和分组配色。
 
 ## 平台 token 语义
 
@@ -47,7 +47,7 @@
 | `--color-brand1-6` | 主品牌色 | 主按钮、链接、选中态、重点标签、图表主序列 |
 | `--color-brand1-9` | 深主色 | 深色强调、深底按钮、强调标题、深色场景锚点 |
 | `--color-brand1-10` | 深色或透明强调档 | 深色 hover、强强调背景、深色主题补充 |
-| `--color-brand-1` | 移动端品牌浅/透明档 1 | 移动端壳层、移动端表单、旧版移动组件浅品牌态 |
+| `--color-brand-1` | 移动端品牌浅/透明档 1 | 移动端壳层、移动端表单、移动组件浅品牌态 |
 | `--color-brand-2` | 移动端品牌浅/中档 2 | 移动端 hover、轻量强调、移动端组件浅色面 |
 | `--color-brand-3` | 移动端主品牌档 3 | 移动端主操作、选中态、原生表单移动主色 |
 | `--color-brand-4` | 移动端深品牌档 4 | 移动端 active、深色强调、移动壳层深色态 |

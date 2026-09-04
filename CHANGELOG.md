@@ -10,6 +10,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.9.3-1] - 2026-09-03
+
+### Fixed
+
+- 自定义页面发布新增排序字段守卫：`searchFormDatas` 与 `new URLSearchParams(...)` 的 `dynamicOrder` 使用 `gmtCreate` 等记录元数据名时，发布前返回 `searchformdata-dynamic-order-metadata`，覆盖对象字面量、JSON 字符串与常量绑定 + `JSON.stringify` 三种静态写法，避免运行时 `selectListException 无法找到字段:gmtCreate`。
+- `data query form --dynamic-order` 在请求前校验字段引用：未知字段与记录元数据名不再原样提交，统一走 `requireKnownDataFieldRef` 返回确定性错误，并按 `--resolve-aliases` 决定是否做别名翻译。
+
+### Changed
+
+- `yida-canvas-custom-page` 技能补充排序与行数据契约：排序只使用 `get-schema` 返回的真实业务字段 ID，列表行按 `row.formData || row.data || row` 归一化，避免「有记录但全部显示空值」。
+- `yida-prd` / `yida-design` / `yida-requirement-analysis` 技能澄清并行工作流：两者各自读取冻结后的需求简报并独占产物文件，措辞统一为面向用户的表述。
+
+## [2026.9.2-2] - 2026-09-02
+
+### Added
+
+- 完整应用编排新增共享需求简报与双 artifact 并行链路：`yida-requirement-analysis` 写入 `.cache/openyida/<项目名>/requirement-brief.json` 后冻结，`yida-prd` 与 `yida-design` 分别独占 `prd/<项目名>/prd.md` 和 `design.md` 并行产出，由 `yida-app` 在两者完成后 join 校验稳定引用；command manifest 与 agent capabilities 同步暴露该路由。
+- agent capabilities 新增 `application_entry_policy`：完整应用只交付一组应用访问入口，工作台恒定包含，独立业务入口需 `get-form-config` 回读确认 `isRenderNav=false`，开发后台入口在云端托管 agent 环境下省略。
+
+### Fixed
+
+- 导航排序改为幂等且可验证：写入前做差异比对，写入后按 `navUuid` / `parentNavUuid` / `siblingIndex` / `navType` 全量回读，分别返回 `NAV_ORDER_NOT_APPLIED`（可安全重试）、`NAV_ORDER_READBACK_MISMATCH` 和 `NAV_ORDER_RESULT_UNKNOWN`，错误详情只输出首个差异摘要，避免大导航结构下的输出膨胀。
+- 表单数据写入新增 `AssociationFormField` 契约校验：关联表单字段必须提供 `appType` / `formUuid` / `formType` / `instanceId` / `title`，查询派生的 `associationFormField_*_id` 字段拒绝作为写入负载，POST 前返回 `DATA_ASSOCIATION_FORM_VALUE_INVALID` 或 `DATA_ASSOCIATION_FORM_DERIVED_FIELD_READ_ONLY`，不再出现「接口成功、读回为空」。
+- `--resolve-aliases` 遇到未知字段引用时在写入前阻断：显示标签或拼错的 `fieldId` 不再原样提交，改为返回 `DATA_FIELD_REFERENCE_UNKNOWN` 并给出确定性的 `get-schema --field-map-json` 下一步；同时收窄 JSON 解析异常范围，保留业务错误码。
+
 ## [2026.9.2-1] - 2026-09-02
 
 ### Added
@@ -37,7 +62,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Removed
 
-- 移除 `form-detail-style apply/remove/check` 命令及表单 Schema 内的主题/formDetail CSS 注入链路，表单和详情页改由运行容器加载应用级主题文件。
+- 移除 `form-detail-style apply/remove/check` 命令及表单 Schema 内的主题/formDetail CSS 注入链路；原生表单和详情页由平台渲染。
 
 ## [2026.9.1-1] - 2026-09-01
 

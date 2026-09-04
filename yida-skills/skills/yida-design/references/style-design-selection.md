@@ -17,7 +17,7 @@
 
 ## 输入
 
-从 Step 1-4 产物中提取：
+从整理后的用户需求、主题系统和页面结构中提取：
 
 | 信号 | 示例 |
 | --- | --- |
@@ -44,7 +44,7 @@
 7. 按 `视觉策略 45% + 视觉强调与密度 15% + 布局兼容性 15% + 内容兼容性 15% + 多样性或用户偏好 10%` 选择唯一风格。内容和布局合计不得超过 30%，避免常见工作台内容把结果塌缩到通用风格。
 8. 做内部近邻比较：生成 `design.md` 前必须在工作记忆中比较最相近的 2-4 个风格；选择 `soft-analytic-workbench` 时必须确认其他更强视觉策略证据不足。近邻比较是选择校验，不默认写入最终 `design.md`。
 9. 读取被选中的 `style-designs/*.md`，抽取 `visual_dna`、`theme_adaptation`、`layout_stability`、`quality_anchors`、`components` 和 `modules`。
-10. 根据 Step 2 的主题色来源和主题色输入，按所选风格的 `theme_adaptation` 执行换肤：替换 `replace_tokens`，派生 `derive_tokens`，保留 `preserve_tokens` 和 `visual_dna.invariant`。
+10. 根据主题系统中的主题色来源和主题色输入，按所选风格的 `theme_adaptation` 执行换肤：替换 `replace_tokens`，派生 `derive_tokens`，保留 `preserve_tokens` 和 `visual_dna.invariant`。
 11. 读取 [visual-scaffold-recipes.md](visual-scaffold-recipes.md)，把当前页面组合映射到统一 `visualScaffold` 规则。
 12. 读取 [page-quality-gates.md](page-quality-gates.md)，把质量门禁补进 `acceptanceChecks`。
 13. 需要判断详略时参考 `_design-md-template.md` 的字段粒度、registry 的输出记录和所选风格的质量锚点；只学习“写到多细”，不复制示例业务、色盘、字段、页面顺序或组件组合。
@@ -52,7 +52,7 @@
 15. 写入 `densityRule`、`breathingRule`、`spacing` 和 `rounded` 的具体数值。默认业务工具页使用 high density + 圆润形状 + 有呼吸感的分组节奏：页面边距 20-28px，卡片与卡片 gap 12-18px 且必须小于 20px，卡片 padding 默认 22-28px 且必须大于 20px，卡片圆角范围 0-32px；只有品牌展示、官网或用户明确要求舒展时才降低密度。
 16. 写入 `surfaceContrast`：页面背景与卡片背景必须形成明显层次对比，不可相近或相同；默认浅色背景保持清爽，但必须按“白色/浅色背景 + 有边框卡片、浅灰背景（如 `#F3F4F6`）+ 白色无边框卡片、浅彩色背景 + 白色无边框卡片、渐变背景 + 玻璃感卡片”四类方案选择。
 17. 写入 `emptyStateRecipe` 和 `acceptanceChecks`：空态必须是薄行、面板内提示或右侧上下文，不使用 160px 以上大白卡；状态摘要不能是横跨整页且内容稀疏的空矩形。
-18. 页面主按钮、链接、选中态、重点标签和图表主序列跟随应用主题；自定义色盘通过应用主题文件交付，由运行容器在各页面上下文加载。
+18. 页面主按钮、链接、选中态、重点标签和图表主序列跟随 `yida-design` 确定的应用主题。
 
 ## 内容兼容与视觉策略
 
@@ -98,7 +98,7 @@
 | --- | --- | --- |
 | 平台导航 / 应用菜单可见 | `跟随应用主题` | 主按钮、链接、选中态、重点标签、图表主序列使用应用主题；风格色相仅作为辅助色、浅背景、图表第二序列或装饰色 |
 | 生成色盘与应用主题不同 | `应用主题主导，生成色彩作为辅助色` | 保留所选风格的视觉 DNA、布局、密度和组件语言，不把页面主色改成与应用主题冲突的色相 |
-| 用户要求换肤 / 导航也一起变色 / 指定新品牌色 | `应用级换肤` | 实现阶段生成应用主题 CSS，并联合保存 `themeColor`、`navTheme` 与 `customThemeStyle.cssUrl` |
+| 用户要求换肤 / 导航也一起变色 / 指定新品牌色 | `应用级换肤` | 由 `yida-design` 生成应用主题文件并记录导航主题与布局 |
 | 沉浸页、应用导航隐藏后的自绘壳、独立品牌页、活动页、公开落地页 | `跟随应用主题的差异化页面` | 主色仍消费应用主题，差异通过布局、材质、素材、构图和辅助视觉表达 |
 
 ## 输出字段

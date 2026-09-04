@@ -29,15 +29,17 @@ ${buildBrandScale({ '--color-brand1-6': '#1677FF' })}
     `)).not.toThrow();
   });
 
-  test('accepts the shipped coffee theme template and ignores commented font placeholders', () => {
+  test('accepts the shipped coffee theme template without URL placeholders', () => {
     const templatePath = path.join(
       __dirname,
-      '../yida-skills/skills/yida-design/sub_skill/yida-design-fast/references/theme/app-custom-theme-template.css'
+      '../yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'
     );
     const css = fs.readFileSync(templatePath, 'utf8');
 
     expect(() => validateThemeCssContent(css)).not.toThrow();
     expect(extractThemeColor(css)).toBe('rgba(155, 136, 121, 1)');
+    expect(css).not.toContain('文字模板资源');
+    expect(css).not.toMatch(/url\s*\(/i);
   });
 
   test('requires the complete platform --color-brand1 scale', () => {

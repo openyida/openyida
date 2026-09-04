@@ -1235,6 +1235,7 @@ module.exports = {
     lint_searchformdata_http_post: 'Uma chamada direta a searchFormDatas.json deve usar GET + parâmetros de query (coloque formUuid/appType na query da URL). Usar POST com formUuid no body dispara «参数校验失败formUuid» e os painéis/listas mostram zeros',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json pagina com currentPage (não pageNumber); usar pageNumber quebra a paginação',
     lint_searchformdata_http_unwrap: 'A resposta do navegador de searchFormDatas.json aninha a lista em content.data ({ content: { data: [...] } }); ler apenas json.data retorna 0 linhas — desembrulhe via (json.content && json.content.data)',
+    lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder não pode usar o campo de metadados do registro {0}; use um ID de campo de negócio real retornado por get-schema. Se não houver um campo de data ordenável, remova dynamicOrder e ordene apenas a página recuperada por row.createTime para exibição',
     lint_setstate_non_timestamp: 'this.setState grava um campo diferente de timestamp. O estado de negócio da página personalizada deve ficar em _customState e ser atualizado via forceUpdate()/setCustomState(); this.setState deve carregar apenas o campo contratual timestamp',
     lint_self_binding_missing: 'renderJsx usa this sem declarar var self = this;. Adicione var self = this; no início de renderJsx e use self dentro de closures/callbacks para evitar perder this',
     lint_echarts_dom_ready: 'echarts.init não está envolvido em setTimeout; o contêiner pode ainda não estar montado e o gráfico pode não renderizar. Use setTimeout(function(){ /* echarts.init */ }, 300)',
@@ -1911,6 +1912,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   delete_result_unknown: 'O resultado da exclusão do registro {0} é desconhecido. Faça apenas uma verificação de leitura e não repita a exclusão automaticamente.',
   delete_target_mismatch: 'O registro de formulário {0} não pertence ao formulário de destino {1}. A operação foi interrompida antes da exclusão.',
   delete_target_unverified: 'Não foi possível verificar a identidade e a associação do registro de formulário {0}. A operação foi interrompida antes da exclusão.',
+  field_reference_unknown: 'A referência de campo {0} não é um fieldId real nem um alias de componente no formulário de destino. A operação foi interrompida antes da gravação.',
   form_mode_unverified: 'Não foi possível verificar o tipo do formulário {0}. A criação foi interrompida antes de qualquer gravação de dados.',
   resource_required: 'O tipo de recurso form está ausente em data query. Comando sugerido: {0}',
 });
@@ -1966,6 +1968,8 @@ module.exports.connector_test = {
 };
 
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  association_derived_field_read_only: 'Derived association-form query field {0} is read-only and cannot be saved or updated. Write the source association field without the _id suffix.',
+  association_value_invalid: 'The write value for association-form field {0} is invalid. Use an array of objects where every item includes appType, formUuid, formType, instanceId, and title.',
   instance_target_mismatch: 'Instance {0} does not belong to expected business resource {1}. The operation stopped before mutation.',
   instance_target_unverified: 'Could not verify the business resource ownership of instance {0}. The operation stopped before mutation.',
   target_expectation_invalid: '--expect-form-type must be {0}. The operation stopped before mutation.',
