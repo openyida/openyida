@@ -11,15 +11,16 @@ const path = require('path');
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
 const MAX_TARBALL_BYTES = 1792 * 1024;
-// Includes sidebar interactions and dependency-aware form batch runtime/docs.
-const MAX_UNPACKED_BYTES = 5880 * 1024;
-// Plan workflow, shared sidebar runtime, and form batch runtime/reference are shipped.
-const MAX_ENTRY_COUNT = 483;
+// Includes theme/navigation workflow updates and the inline CSS guard (6071113 bytes).
+const MAX_UNPACKED_BYTES = 5936 * 1024;
+// The inline CSS guard adds one runtime file to the previous 483-file package.
+const MAX_ENTRY_COUNT = 484;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
   'bin/yida.js',
   'lib/app/create-form/batch.js',
+  'lib/app/inline-css-guard.js',
   'lib/design-plan/preview.js',
   'yida-skills/skills/yida-app/workflow/incremental-preview.md',
   'yida-skills/skills/yida-create-form-page/references/batch-forms.md',

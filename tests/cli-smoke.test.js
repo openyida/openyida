@@ -252,7 +252,7 @@ describe('CLI offline smoke', () => {
     expect(result.status).toBe(0);
     expect(output).toContain('create-app');
     expect(output).toContain('--name');
-    expect(output).toContain('--theme');
+    expect(output).not.toContain('--theme');
     expect(output).not.toContain('读取登录态');
   });
 
