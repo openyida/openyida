@@ -15,18 +15,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - `sample yida-design app-theme` 支持 `--design-file`：通过 CLI 复制公共 CSS 模板，读取 `design.md` 中的具体 token，统一替换品牌色阶和关联值，保留模板选择器及导航作用域。
+- 新增侧边、顶部、顶部＋侧边、悬浮胶囊和页内标签五种 CodeCanvas 导航模板，通过 `sample openyida-page-template canvas-nav-*` 按需复制，复用应用主题 token，仅输出所选布局及必要的公共代码。
+- 新增 `canvas-nav-data` 片段：菜单按 PRD 规划，`getAccessableNavs.json` 判断当前用户可见的入口，过滤后保留规划顺序和分组，并按入口用途生成提交页或数据管理页地址。
 
 ### Changed
 
 - 统一 Fast / Plan 的 11 章 PRD 与页面交接契约：需求来源读取和澄清归 `yida-requirement-analysis`，业务规划归 `yida-prd`，视觉设计归 `yida-design`，编排与版本确认归 `yida-app`；精简重复说明，明确 Plan 视觉候选与页面视觉应用两个阶段。
 - Plan HTML 保留需求总览、数据模型、业务流程、页面规划四章及业务全景图、摘要，补齐示例数据、页面数据来源、交互状态、视觉与素材说明、搭建顺序和验收标准；HTML 供用户完整审阅，Markdown 供 Agent 执行。
 - 视觉技能增加暗色浮层适配指引：根据整体暗色方案成套配置 Balloon、Menu、Popup、Dialog、Dropdown 的 token，并允许在主题 CSS 末尾添加精确 class 覆盖；整体暗黑与深色导航分别判断。
+- 抽屉背景默认跟随 `--pod-shell-theme-bg-color`，支持通过 `background` 参数为单个抽屉设置颜色、渐变或主题 token。
+- 页面规划明确报名、申请等办理入口使用原生提交页，查询和维护入口使用数据管理页；导航已标明当前页面时，内容区直接展示业务内容，收起重复页头及其间距。
+- 精简导航与抽屉技能：入口保留复制和接入步骤，详细规则集中到参考文档，复用模板已实现的行为。
 
 ### Fixed
 
 - Plan patch 支持首次添加契约允许的可选子字段，拒绝未知路径、越界数组及只读主题摘要覆盖；具体视觉差异通过 token 同步到设计契约与应用主题 CSS。
 - 补齐页面场景、入口类型、结构、数据来源、稳定设计引用、示例记录和资源顺序校验，避免计划可以确认但缺少实际搭建依据。
 - 源计划与派生产物采用同批暂存和失败恢复，避免写入失败导致文件版本混杂；方案修改使旧确认失效，执行前核对当前展示版本与确认版本一致。
+- 修复 CodeCanvas 完整地址跳转被重复拼接应用路径而出现 404：路由桥在省略 URL 模式参数时自动识别完整应用地址及 HTTP(S) 地址，保留页面 ID 跳转和显式参数的行为。
+- Canvas 发布时为直接承载整页组件的纯容器设置 `min-height: 100vh`，修复嵌入时宿主高度塌陷的问题；补充原生数据管理页嵌入空白时的高度排查与应用主题 CSS 配置指引。
 
 ## [2026.9.3-1] - 2026-09-03
 
