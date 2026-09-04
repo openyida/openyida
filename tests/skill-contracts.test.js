@@ -363,7 +363,7 @@ describe('OpenYida skill contracts', () => {
     const designSkill = readSkill('yida-skills/skills/yida-design/SKILL.md');
     expect(designSkill).toContain('输出 `design.md`');
     expect(designSkill).toContain('视觉设计技能，输出 `design.md`');
-    expect(designSkill).toContain('Fast 的 PRD 与视觉技能各自基于该文件独立生成');
+    expect(designSkill).toContain('业务规划与配色、组件样式同时准备，页面内容确定后补齐各页设计');
 
   });
 
@@ -425,7 +425,7 @@ describe('OpenYida skill contracts', () => {
     const step9 = readSkill('yida-skills/skills/yida-app/workflow/step-9-output-finish.md');
 
     expect(skill).toContain('全局 CLI、ID、存储、发布和输出规则以主入口 `SKILL.md` 为准');
-    expect(step2).toContain('use_skill("yida-requirement-analysis", "整理完整应用的用户需求")');
+    expect(step2).toContain('调用 `yida-requirement-analysis`');
     expect(step2).toContain('`yida-prd`');
     expect(step2).toContain('`yida-design`');
     expect(step2).toContain('prd/<项目名>/prd.md');
@@ -495,7 +495,7 @@ describe('OpenYida skill contracts', () => {
     expect(manifest).toContain('openyida publish ... --auto-nav-order');
     expect(manifest).toContain('Explicit and automatic ordering are mutually exclusive');
     expect(manifest).toContain('product_design_policy');
-    expect(manifest).toContain('yida-requirement-analysis writes the organized user requirements to requirement-brief.json');
+    expect(manifest).toContain('yida-requirement-analysis owns shared facts and first-time intake');
     expect(manifest).toContain("mode: 'parallel'");
     expect(manifest).toContain('final_link_policy');
     expect(manifest).toContain('Return exactly one user-visible application entry group');
@@ -537,7 +537,7 @@ describe('OpenYida skill contracts', () => {
 
     expect(root).toContain('不得把需求信息文件、PRD、视觉设计、build manifest、资源清单');
     expect(app).toContain('宿主支持交付工具时，final 只交付一次“应用访问入口”组');
-    expect(step2).toContain('不得为这三个文件调用宿主的用户可见附件或交付工具');
+    expect(step2).toContain('需求文件与实施文档供内部执行，Plan 的 HTML 用于用户查看和确认方案');
     expect(step9).toContain('一次完整应用搭建只产生这一组用户可见交付');
     expect(step9).toContain('业务资源只在总结中按能力或数量概述');
     expect(outputPrd).toContain('入口模式：<`platform-shell` / `standalone`');
@@ -577,14 +577,14 @@ describe('OpenYida skill contracts', () => {
     const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
     const byName = new Map(index.skills.map((item) => [item.name, item]));
 
-    expect(appStep2).toContain('先整理一次用户需求，再同时生成 PRD 和视觉设计');
-    expect(appStep2).toContain('`yida-app` 负责检查两份结果');
+    expect(appStep2).toContain('业务规划与基础视觉同时准备');
+    expect(appStep2).toContain('`yida-app` 必须等待两个文件都生成完成');
     expect(root).toContain('已经确认的 `requirement-brief.json`、`prd.md` 与 `design.md` 保持不变');
     expect(root).toContain('`yida-create-page`，之后交给 `yida-canvas-custom-page` 编写页面源码，再交给 `yida-publish-page` 发布');
     expect(createApp).toContain('不得回写 `.cache/openyida/<项目名>/requirement-brief.json`');
     expect(createApp).toContain('不得仅因拿到真实 `appType` 重新生成或校验 PRD 和视觉设计');
     expect(requirementAnalysis).toContain('需求文件校验通过后保持不变');
-    expect(appStep2).toContain('需求文件校验通过后，在本轮搭建中保持不变');
+    expect(appStep2).toContain('用户需求或范围实质变化时再更新需求与相关规划');
     expect(appStep2).toContain('`prd/<项目名>/prd.md`');
     expect(appStep2).toContain('`prd/<项目名>/design.md`');
     expect(skill).not.toContain('用户说“按默认方案”“不要追问”“直接创建”“尽快搭建”等');
@@ -831,7 +831,7 @@ describe('OpenYida skill contracts', () => {
     expect(appStep2).not.toContain('应用体验蓝图');
     expect(appStep2).not.toContain('需求范围');
     expect(appStep2).not.toContain('## 完整低代码 PRD 模板');
-    expect(byName.get('yida-app').description).toContain('同时调用 yida-prd 与 yida-design');
+    expect(byName.get('yida-app').description).toContain('由 yida-prd 和 yida-design 同时准备业务与基础视觉');
     expect(byName.get('yida-app').description).toContain('表单/流程先于自定义页面');
     expect(byName.get('yida-app').description).toContain('Canvas 页面基准模板并按业务改写');
     expect(byName.get('yida-app').description).toContain('发布后优先按 PRD 导航顺序排序');
@@ -1105,7 +1105,7 @@ describe('OpenYida skill contracts', () => {
     expect(design).toContain('应用主题与 token 参考');
     expect(design).toContain('`YidaCodeCanvas` 页面只在 `YidaComp` 内消费');
     expect(design).toContain('主色不固定为 `podBlue` 或 #1677ff');
-    expect(design).toContain('主色写入 `--color-brand1-6`');
+    expect(design).toContain('workflow/output-design.md#cli-token-契约fast--plan-共用');
     expect(chart).toContain('已有 ECharts 页面 / 跨应用迁移修复流程');
     expect(chart).toContain('getFormNavigationListByOrder');
     expect(chart).toContain('report-binding.json');
@@ -1190,9 +1190,10 @@ describe('OpenYida skill contracts', () => {
     expect(presets).toContain('## 色盘参考清单');
     expect(presets).toContain('## 应用主题 token profile');
     expect(presets).toContain('`blue`、`green`、`orange` 也是应用主题 token profile，保留原名，不自动改写成其他主题名');
-    expect(presets).toContain('下方预置只用于确定主题色阶');
+    expect(presets).toContain('下方预置用于确定主题色阶');
     expect(presets).toContain('`yida-design` 确定 OpenYida 应用主题色阶和 token 修改清单时使用的参考');
-    expect(appStep2).toContain('不传递平台 `--theme` key');
+    expect(appStep2).toContain('outputs.theme');
+    expect(appStep2).toContain('在应用级配置同一份主题文件');
     expect(createApp).toContain('默认传入主题文件');
     expect(createApp).toContain('省略 `--theme-file` 不报错');
     expect(createApp).toContain('显式 `--icon` → 行业推断 → 随机系统图标');
@@ -1210,13 +1211,11 @@ describe('OpenYida skill contracts', () => {
     expect(theme).toContain('应用主题统一');
     expect(theme).toContain('`YidaCodeCanvas` 页面只在 `YidaComp` 内消费');
     expect(theme).toContain('严禁页面代码修改或向上层注入主题变量');
-    expect(theme).toContain('openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css');
-    expect(theme).toContain('主题文件先复制再修改');
-    expect(theme).toContain('严禁重新生成或覆盖整份 CSS');
+    expect(theme).toContain('workflow/output-design.md#cli-token-契约fast--plan-共用');
+    expect(theme).toContain('outputs.theme');
     expect(theme).not.toContain('文件复制能力');
-    expect(step2).toContain('openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css');
-    expect(step2).toContain('CLI 按 `design.md` 修改对应 token');
-    expect(step2).toContain('严禁重新生成或覆盖整份 CSS');
+    expect(step2).toContain('output-design.md#cli-token-契约fast--plan-共用');
+    expect(step2).toContain('Plan 复用已生成的主题 CSS');
     expect(step2).not.toContain('文件复制能力');
     expect(step2).toContain('若截图或预览中出现左侧导航选中态与页面主操作颜色不一致');
     expect(styleSelection).toContain('应用主题主导，生成色彩作为辅助色');
@@ -1550,7 +1549,7 @@ describe('OpenYida skill contracts', () => {
     expect(pageUiux).toContain('视觉设计技能，输出 `design.md`');
     expect(pageUiux).toContain('常规业务图表使用 `yida-rechart`');
     expect(pageUiux).toContain('ECharts 例外');
-    expect(pageUiux).toContain('主题文件先复制再修改');
+    expect(pageUiux).toContain('workflow/output-design.md#cli-token-契约fast--plan-共用');
     expect(canvas).toContain('产品与视觉输入来自 `yida-prd` 输出的 `prd/<项目名>/prd.md` 和 `yida-design` 输出的 `prd/<项目名>/design.md`');
     expect(canvas).toContain('主题只消费、不上注');
     expect(canvas).not.toContain('update-app <appType> --theme-file');

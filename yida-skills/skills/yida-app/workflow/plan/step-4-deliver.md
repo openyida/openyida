@@ -1,6 +1,6 @@
 # Step 4：生成交付产物并确认
 
-输入为业务与视觉并行准备、经编排合并的 `build-plan.json`。本步骤由 `yida-app` 校验交接、一次生成文件并确认当前版本。
+输入为业务与视觉片段，或已整理完成的 `build-plan.json`。本步骤由 `yida-app` 校验交接、一次生成文件并确认当前版本。
 
 ## 1. 校验业务与视觉交接
 
@@ -8,28 +8,26 @@
 
 ## 2. 通过 CLI 生成产物
 
-```bash
-openyida design-plan materialize prd/<项目名>/build-plan.json --json
-```
-
-这一条命令完成校验，并从同一 `meta.revision` 整批生成 `prd.md`、`design.md` 和 `build-plan.html`。HTML 使用包内 `assets/build-plan-template.html` 的固定布局、样式与交互，由渲染器填入标题、目录和完整正文。模型只维护源事实，三个输出文件均由 CLI 生成；HTML 的业务内容与 PRD 一致，差别在展示结构。
-
-正常交付使用上述命令一次完成校验和生成。仅校验源事实时运行：
+按模块更新的草稿完成后执行：
 
 ```bash
-openyida design-plan materialize prd/<项目名>/build-plan.json --check --json
+openyida design-plan materialize prd/<项目名>/build-plan.json --from-preview --json
 ```
+
+CLI 完整校验后一起保存源计划、`prd.md`、`design.md`、`build-plan.html` 和 `app-theme.css`。HTML 使用预置模板，业务内容与 PRD 一致。
+
+完整业务与视觉文件按 [完整文件合并](../parallel-work.md#plan-的-cli-交接) 生成。直接维护源计划时先设 `meta.status=awaiting_confirmation`，再执行不带 `--from-preview` 的命令；仅检查源计划时加 `--check`。
 
 HTML 保留“需求总览、数据模型、业务流程、页面规划”四章，完整展示用户需要确认的业务、视觉、数据、顺序和验收内容；整体视觉放在需求总览，逐页视觉放在页面详情。展示范围见 [HTML 内容契约](../../../yida-design/sub_skill/yida-design-plan/assets/README.md#需求总览中的视觉信息)，Markdown 供 Agent 执行。
 
-校验失败时由对应技能修正源事实后重试。写入失败由 CLI 恢复旧文件；若恢复失败，保留报错给出的备份路径并处理恢复后再继续。
+校验失败时按返回的 `details.issues` 集中修正对应字段后重试。写入失败由 CLI 恢复旧文件；若恢复失败，保留报错给出的备份路径并处理恢复后再继续。
 
 ## 3. 展示并确认当前版本
 
 按 [用户交互契约](../../../yida-design/references/ask-human-interaction-contract.md) 执行：
 
 1. 在会话中展示“当前这版方案”、3–7 条业务摘要和可打开的 `build-plan.html`。
-2. 内部记录 `presentedRevision=meta.revision`。用户可见版本称为“第 N 版方案”，展示序号与内部 revision 绑定。
+2. 展示成功后内部记录 `presentedRevision=meta.revision`，记录后直接提问；收到确认或修改业务事实后再重新生成。用户可见版本称为“第 N 版方案”，展示序号与内部 revision 绑定。
 3. 询问“确认并开始搭建”或“继续调整”，将确认结果绑定到本次展示版本。
 
 只有以下条件同时成立才交接：
@@ -38,7 +36,7 @@ HTML 保留“需求总览、数据模型、业务流程、页面规划”四章
 - `meta.planState.planConfirmed=true`
 - `meta.revision=presentedRevision=confirmedRevision`
 
-交接前再次运行物化命令同步确认状态，将同版本 `prd.md`、`design.md` 返回应用主流程 Step 3，执行 [公共主题 CSS 交接](../step-2-design.md#主题文件实现指令)。
+交接前运行不带 `--from-preview` 的生成命令同步确认状态，将同版本 `prd.md`、`design.md` 返回应用主流程 Step 3，执行 [公共主题 CSS 交接](../step-2-design.md#主题文件实现指令)。
 
 ## 4. 处理调整
 

@@ -391,7 +391,9 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida app-list [--size N]` | List my Yida apps |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency overview and detail reports |
 | `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a Yida app |
-| `openyida design-plan materialize <build-plan.json> [--output-dir <dir>] [--check] [--json]` | Generate and validate design-plan artifacts from build-plan.json |
+| `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | Initialize a plan draft from confirmed requirements |
+| `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | Update plan drafts by module |
+| `openyida design-plan materialize <build-plan.json> [--from-preview \| --business-file <json> --visual-file <json>] [--output-dir <dir>] [--check] [--json]` | Generate and validate design-plan artifacts from build-plan.json |
 | `openyida design-plan patch <build-plan.json> --set <path=value> [--set <path=value> ...] [--materialize] [--output-dir <dir>] [--json]` | Patch a design plan by field path and invalidate prior confirmation |
 | `openyida update-app <appType> [--name "..."] [--theme-file <css>] [--nav-theme light\|dark\|white\|gray] [--logo-source appIcon\|customImage] [--layout side\|top\|l_shape] [--hide-app-nav\|--show-app-nav]` | Update app info |
 | `openyida app-online <appType> [--to-ding-app-center] [--show-app-center]` | Enable a Yida app |
@@ -406,6 +408,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
+| `openyida create-form batch <appType> <plan.json> [--concurrency 1..4] [--check] [--json]` | Create forms concurrently by dependency |
 | `openyida create-form create <appType> "<formTitle>" <fieldsJsonFile> [--icon auto\|<iconName>] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a form page |
 | `openyida create-form icons [--json]` | List available form navigation icons |
 | `openyida create-form validate-fields <fieldsJsonOrFile> [--json]` | Validate form field JSON locally |

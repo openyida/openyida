@@ -10,7 +10,7 @@ description: >
 
 宜搭应用和页面视觉设计技能，输出 `design.md`。
 
-完整应用的 Fast / Plan 选择由 `yida-app` Step 2 按 [设计模式路由](references/design-mode.md) 执行一次。Fast 使用下方视觉流程；Plan 使用 [视觉分支](sub_skill/yida-design-plan/SKILL.md) 维护视觉事实，由 `yida-app` 调用物化命令并确认；业务规划始终归 `yida-prd`。单页设计和主题调整直接继续。
+完整应用沿用需求分析阶段确认的模式与风格，按 [设计模式路由](references/design-mode.md) 推进。Fast 使用下方视觉流程；Plan 使用 [视觉分支](sub_skill/yida-design-plan/SKILL.md) 维护视觉事实，由 `yida-app` 生成方案并请用户确认；业务规划始终归 `yida-prd`。单页设计和主题调整直接继续。
 
 ---
 
@@ -31,7 +31,7 @@ description: >
 
 ## Fast 视觉流程
 
-输入为校验通过的共享 `requirement-brief.json`。Fast 的 PRD 与视觉技能各自基于该文件独立生成；两份文件完成后，由 `yida-app` 核对页面范围和设计引用。
+输入为校验通过的共享 `requirement-brief.json`。沿用已确认的风格；业务规划与配色、组件样式同时准备，页面内容确定后补齐各页设计，由 `yida-app` 核对页面范围和设计引用。
 
 | 步骤 | 名称 | 功能描述 | 产出物 |
 | --- | --- | --- | --- |
@@ -41,7 +41,7 @@ description: >
 | 4 | [UI 视觉和状态设计](workflow/step-5-visual-states.md) | 从业务任务、信息拓扑和视觉 DNA 选择设计风格 | `design.md` 内容草稿 |
 | 5 | [写入 design.md](workflow/step-6-handoff.md) | 写入唯一视觉事实源和稳定 `designRefs` | `prd/<项目名>/design.md` |
 
-完整应用输出一份应用级 `design.md`，包含主题、布局、组件、状态和响应式规则，格式见 [视觉输出契约](workflow/output-design.md)。页面实现同时读取业务 PRD 和视觉契约。
+完整应用输出一份应用级 `design.md`，包含主题、布局、组件、状态和响应式规则，Fast 手写格式见 [视觉输出契约](workflow/output-design.md)；Plan 使用紧凑契约，由 CLI 生成完整文档。页面实现同时读取业务 PRD 和视觉契约。
 
 ---
 
@@ -52,7 +52,7 @@ description: >
 3. **默认保留平台应用导航**：普通自定义页、页面内 tab、分段、筛选和快捷入口都不触发 `yida-nav-shell`。PRD 选择自定义导航，或用户明确要求自绘应用级导航、隐藏应用导航时，写 `appBlueprint.hideAppNav: 'y'` 并交给 `yida-nav-shell`。用户只说全屏、无导航或 `isRenderNav=false` 时，只写页面级隐藏配置。
 4. **同应用页面入口归导航**：同应用页面优先放入平台导航或导航分组；自定义页内容区放当前页动作、原生表单新建/查看、外部链接和跨应用资源。
 5. **表单入口响应式**：新增/提交页 URL 默认使用页面级隐藏导航的 `submission/{formUuid}?isRenderNav=false`；详情页 URL 默认使用 `formDetail/{formUuid}?formInstId={formInstId}&navConfig.layout=1180&isRenderNav=false`，且 `formInstId` 必须来自真实数据记录并优先取 `row.formInstId`；PC 端默认在侧边抽屉中用 iframe 承载宜搭原生表单，抽屉默认半屏 `50vw`，提交页和详情页使用同一宽度规则；移动端整页或新页打开。
-6. **主题文件先复制再修改**：先在 `design.md` 确定主题色。实现阶段执行 `openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css --design-file prd/<项目名>/design.md` 复制模板并按 `design.md` 自动替换 token。严禁重新生成或覆盖整份 CSS。主色写入 `--color-brand1-6`；保留 `--color-brand1-1/2/3/5/6/9/10`、`--color-brand-1` 至 `--color-brand-4` 和 `--color-group`；严禁补造 `--color-brand1-4/7/8`。
+6. **主题文件**：Plan 直接使用 CLI 返回的 `outputs.theme`；Fast 和已有主题调整按 [主题文件生成与更新](workflow/output-design.md#cli-token-契约fast--plan-共用) 执行。
 7. **默认主题先做业务判断**：工作台、门户、列表、详情、普通看板和数据大屏默认都是浅底 / light 模式，但主色不固定为 `podBlue` 或 #1677ff；先根据行业、品牌、业务情绪和视觉目标做创意色彩判断，主题色可以是任意合法 CSS 颜色。只有用户明确说暗色/深色/夜间/高对比时才用深色沉浸。
 8. **页面布局要到可实现粒度**：每个页面至少写清顶部/左侧/主体/右侧/底部区域、核心组件、信息密度、主操作位置、PC/移动端差异和空/载/错态。
 9. **页面丰富度建议**：工作台、首页、门户、看板、展示页和业务入口页推荐规划 8-10 个有业务目的的区块以上，例如上下文标题、状态摘要、主操作、筛选、任务列表、最近记录、动态流、洞察、提醒、空态行动、右侧上下文和底部辅助信息。区块数量不是硬门槛，窄场景、单任务页面或用户明确要求精简时可以更少，但要写清每个区块的业务目的和取舍原因。计数按“区块组”算，不按子项算：`KPI 卡片: 学生总数, 课程总数, 出勤率, 平均分` 只能算 1 个状态摘要区块，`快捷入口: 录入学生/登记成绩/记录考勤/管理课程` 只能算 1 个动作区块；不能用重复 KPI 卡、重复快捷入口或大空白卡凑数量。
@@ -77,7 +77,7 @@ description: >
 | [UI 视觉和状态设计](workflow/step-5-visual-states.md) | 设计风格选择、视觉 DNA、主题换肤、素材图标、空/载/错态、去 AI 味 | 输出前自检 |
 | [写入 design.md](workflow/step-6-handoff.md) | `design.md` 必填内容、稳定引用和完成条件 | 输出前 |
 | [page-design 单页设计](sub_skill/page-design/SKILL.md) | 单页主题证据、页面级设计流程、输出补充字段 | 单个自定义页设计 |
-| [design.md 输出格式](workflow/output-design.md) | `design.md` 字段示例 | 写入前 |
+| [design.md 输出格式](workflow/output-design.md) | `design.md` 字段示例 | Fast 写入前；Plan 定制时按需 |
 | [design.md 生成规则](references/style-design-selection.md) | 从业务推演视觉 DNA，选择设计风格并按主题色换肤，生成应用级 `design.md` | UI 视觉设计 |
 | [视觉结构配方库](references/visual-scaffold-recipes.md) | 将高质量页面结构转成 `visualScaffold` 槽位，约束页面实现落地 | UI 视觉设计 |
 | [页面质量门禁](references/page-quality-gates.md) | 区块数量、源码槽位、低密大卡片、主题一致性和 `pageSpecHandoff` 检查 | 页面结构、视觉与交接阶段 |

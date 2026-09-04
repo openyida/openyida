@@ -11,7 +11,7 @@ description: 识别并读取需求来源，理解和澄清用户需求，输出�
 
 ## 流程
 
-按 [整理需求事实](workflow/prepare-brief.md) 完成来源读取、范围澄清和输出校验。Fast 与 Plan 使用同一套需求整理流程；Plan 的范围与导航问题由 `yida-app` 与视觉选项统一呈现，回答由本技能写回共享需求事实。
+按 [整理需求事实](workflow/prepare-brief.md) 完成来源读取、范围澄清和输出校验。Fast 与 Plan 使用同一套需求整理流程；首次搭建的未决事项由 `yida-app` 集中询问，回答由本技能写回；确认完成后再进入业务和视觉规划。
 
 ## 输出
 
@@ -27,8 +27,10 @@ description: 识别并读取需求来源，理解和澄清用户需求，输出�
 | `businessGoals` | 要解决的问题和成功结果 |
 | `coreFunctions` | 核心功能与必要辅助功能 |
 | `businessObjects` | 客户、订单、项目、工单等核心对象 |
-| `pageScenes` | 工作台、列表、详情、看板等页面场景候选 |
-| `navigation` | 应用导航决策：`type`、`source`、`reason`；类型遵守四类导航契约，未决时 type 为 null，规划前补齐 |
+| `pageScenes` | 已确认的页面与表单范围，记录稳定 key、name、kind、purpose 及已有细项 |
+| `intake` | 首次搭建判断、来源详细程度、搭建方式和需求确认状态 |
+| `visualSelection` | 已确认风格及其主题、主色、导航明暗映射 |
+| `navigation` | 应用导航决策：`type`、`source`、`reason`，自定义导航增加 `variant`；类型遵守四类导航契约，未决时 type 为 null，规划前补齐 |
 | `resourceContext` | 已确认可复用的 app/page/form/process 业务上下文，不写猜测 ID |
 | `explicitScope` | 用户明确指定的页面、表单、流程、报表、导航项和本轮范围；没有时为 `null` |
 | `brandHints` / `colorHints` | 明确的品牌、参考页面、已有主题、偏好色与避用色 |

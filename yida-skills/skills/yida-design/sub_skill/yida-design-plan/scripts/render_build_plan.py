@@ -1090,7 +1090,7 @@ def validate_plan(data: dict[str, Any]) -> None:
 
 def render(data: dict[str, Any], template: str) -> str:
     meta = data.get("meta") or {}
-    title = meta.get("projectName") or "OpenYida 应用"
+    title = meta.get("appName") or meta.get("projectName") or "OpenYida 应用"
     content = "\n".join(
         [
             render_overview(data),
@@ -1111,6 +1111,7 @@ def main() -> None:
         "--template",
         help="Optional template path. Defaults to ../assets/build-plan-template.html",
     )
+    parser.add_argument("--sections", help="Render selected draft sections as JSON; full validation runs at materialize")
     args = parser.parse_args()
 
     script_dir = Path(__file__).resolve().parent
@@ -1120,6 +1121,18 @@ def main() -> None:
         else script_dir.parent / "assets" / "build-plan-template.html"
     )
     data = json.loads(sys.stdin.read() if args.input == "-" else Path(args.input).read_text(encoding="utf-8"))
+    if args.sections:
+        renderers = {"overview": render_overview, "data-models": render_data_models,
+                     "business-flows": render_business_flows, "pages": render_pages}
+        names = args.sections.split(",")
+        if any(name not in renderers for name in names):
+            raise ValueError("Unknown draft section")
+        output = json.dumps({name: renderers[name](data) for name in names}, ensure_ascii=False)
+        if args.output == "-":
+            sys.stdout.write(output)
+        else:
+            Path(args.output).write_text(output, encoding="utf-8")
+        return
     validate_plan(data)
     template = template_path.read_text(encoding="utf-8")
     output = render(data, template)

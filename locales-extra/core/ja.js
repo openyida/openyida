@@ -20,6 +20,9 @@ module.exports = {
     cmd_app_list: '自分の Yida アプリ一覧を表示',
     cmd_corp_efficiency: '企業効率の概要と明細レポートを取得',
     cmd_create_app: '宜搭アプリを作成',
+    cmd_design_plan_preview: 'モジュールごとに計画草稿を更新',
+    design_plan_preview_invalid: '草稿の更新に失敗しました。詳細を確認してください',
+    cmd_design_plan_init: '確認済みの要件から計画の下書きを作成',
     cmd_design_plan_materialize: 'build-plan.json から設計計画成果物を生成・検証',
     cmd_design_plan_patch: 'フィールドパスで計画を更新し以前の確認を無効化',
     cmd_update_app: 'アプリ情報を更新',
@@ -31,6 +34,7 @@ module.exports = {
     cmd_export: 'アプリをエクスポート（移行パッケージ生成）',
     cmd_import: '移行パッケージをインポート、アプリを再構築',
     group_form: 'フォーム & ページ',
+    cmd_create_form_batch: '依存関係に従ってフォームを並列作成',
     cmd_create_form: 'フォームページを作成',
     cmd_list_form_icons: '利用可能なフォームナビゲーションアイコンを一覧表示',
     cmd_validate_form: 'フォームフィールド JSON をローカル検証',
@@ -672,6 +676,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    batch_invalid: 'フォームのバッチ設定が無効です。エラー詳細を確認してください',
     create_title: '  yida-create-form-page - Yida フォームページ作成ツール',
     update_title: '  yida-create-form-page - Yida フォームページ更新ツール',
     app_id: '\n  アプリ ID:    {0}',

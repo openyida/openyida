@@ -414,6 +414,24 @@ describe('CLI offline smoke', () => {
     });
   });
 
+  test('planning and sample commands expose every documented option and permission', () => {
+    const manifest = JSON.parse(runOk(['commands', '--json']));
+    const entries = Object.fromEntries(manifest.commands.map(entry => [entry.id, entry]));
+    for (const id of ['design-plan.init', 'design-plan.preview', 'design-plan.materialize', 'design-plan.patch', 'create-form.batch', 'sample']) {
+      const entry = entries[id];
+      expect(entry).toBeDefined();
+      const documented = [...new Set(entry.usage.match(/--[a-z][a-z-]*/g))].sort();
+      const registered = entry.args.filter(arg => arg.source === 'option').flatMap(arg => arg.builder_options).sort();
+      expect({ id, options: registered }).toEqual({ id, options: documented });
+      expect(entry.permission).toMatchObject({ mode: 'allow', effect: 'write' });
+      expect(entry.side_effect.kind).toBe(id === 'create-form.batch' ? 'remote_write' : 'local_write');
+    }
+    expect(entries['create-form.batch'].side_effect.mutates_local).toBe(true);
+    expect(entries['design-plan.patch'].args.find(arg => arg.name === 'set')).toMatchObject({ required: true, repeatable: true });
+    expect(entries.sample.args.find(arg => arg.name === 'var')).toMatchObject({ repeatable: true });
+    expect(entries['create-form.batch'].args.find(arg => arg.name === 'concurrency')).toMatchObject({ type: 'integer', default: 3 });
+  });
+
   test('commands --json renders machine-readable command manifest', () => {
     const output = runOk(['commands', '--json']);
     const parsed = JSON.parse(output);
@@ -560,7 +578,7 @@ describe('CLI offline smoke', () => {
       do_not_default_skill_ids: expect.arrayContaining([
         'yida-data-source-connectors',
       ]),
-      product_design_policy: expect.stringContaining('read that same file and run in parallel'),
+      product_design_policy: expect.stringContaining('Prepare business and base visuals concurrently'),
       ui_guidance_policy: expect.stringContaining('only design sources of truth'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),
       completion_contract: expect.stringContaining('PRD navigation order or lightweight fallback navigation order'),
@@ -1602,7 +1620,7 @@ describe('CLI offline smoke', () => {
       do_not_default_skill_ids: expect.arrayContaining([
         'yida-data-source-connectors',
       ]),
-      product_design_policy: expect.stringContaining('read that same file and run in parallel'),
+      product_design_policy: expect.stringContaining('Prepare business and base visuals concurrently'),
       ui_guidance_policy: expect.stringContaining('only design sources of truth'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),
       completion_contract: expect.stringContaining('PRD navigation order or lightweight fallback navigation order'),
@@ -2373,7 +2391,7 @@ test('Plan and navigation commands are discoverable with their existing permissi
   const manifest = JSON.parse(runOk(['commands', '--json']));
   const summary = JSON.parse(runOk(['agent-capabilities', '--summary-json']));
   const commands = new Map(manifest.commands.map(command => [command.id, command]));
-  const local = ['design-plan.materialize', 'design-plan.patch', 'sample'];
+  const local = ['design-plan.init', 'design-plan.preview', 'design-plan.materialize', 'design-plan.patch', 'sample'];
   const remote = ['update-app', 'update-form-config', 'get-form-config'];
   for (const id of [...local, ...remote]) {
     expect(commands.get(id).permission.mode).toBe('allow');
@@ -2385,9 +2403,9 @@ test('Plan and navigation commands are discoverable with their existing permissi
   for (const id of remote) {expect(commands.get(id).requires_login).toBe(true);}
   expect(commands.get('sample').usage).toContain('--design-file');
   expect(commands.get('update-form-config').usage).toContain('<true|false|keep>');
-  expect(summary.full_app_artifact_route.plan_command_ids).toEqual(local.slice(0, 2));
+  expect(summary.full_app_artifact_route.plan_command_ids).toEqual(local.slice(0, 4));
   expect(summary.full_app_artifact_route.navigation_command_ids.custom).toEqual(remote);
-  expect(summary.full_app_artifact_route.navigation_policy).toContain('before PRD planning');
+  expect(summary.full_app_artifact_route.navigation_policy.toLowerCase()).toContain('before prd planning');
 });
 
 test('Plan CLI and design-file sample work locally without a login', () => {

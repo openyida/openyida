@@ -11,21 +11,25 @@ const path = require('path');
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
 const MAX_TARBALL_BYTES = 1792 * 1024;
-// Plan assets, Canvas overlays, and navigation fragments are shipped source.
-const MAX_UNPACKED_BYTES = 5824 * 1024;
-// Includes seven selectively assembled navigation fragments.
-const MAX_ENTRY_COUNT = 474;
+// Includes sidebar interactions and dependency-aware form batch runtime/docs.
+const MAX_UNPACKED_BYTES = 5880 * 1024;
+// Plan workflow, shared sidebar runtime, and form batch runtime/reference are shipped.
+const MAX_ENTRY_COUNT = 483;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
   'bin/yida.js',
+  'lib/app/create-form/batch.js',
+  'lib/design-plan/preview.js',
+  'yida-skills/skills/yida-app/workflow/incremental-preview.md',
+  'yida-skills/skills/yida-create-form-page/references/batch-forms.md',
   'lib/core/utils.js',
   'project/config.json',
   'scripts/postinstall.js',
   'yida-skills/SKILL.md',
   'yida-skills/skills-index.json',
   'lib/samples/openyida-scaffold/canvas-dialog.canvas.jsx',
-  ...['shared', 'side', 'top', 'mixed', 'dock', 'tabs', 'data'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
+  ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
   'yida-skills/skills/yida-canvas-custom-page/references/dialog-guide.md',
 ];
 

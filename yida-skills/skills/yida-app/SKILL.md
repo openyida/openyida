@@ -13,7 +13,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 
 ## 工作流
 
-完整应用先在 yida-app Step 2 按 yida-design/references/design-mode.md 选择一次 Fast / Plan。两种模式共享需求分析与 PRD 契约，以下并行生成规则用于 Fast；Plan 确认当前版本后交接派生文件，直接进入 Step 3。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。
+完整应用先分析需求；首次搭建按 yida-requirement-analysis/workflow/prepare-brief.md 确认未决事项，再进入已选 Fast / Plan。两种模式共享需求分析与 PRD 契约，以下并行生成规则用于 Fast；Plan 确认当前版本后交接派生文件，直接进入 Step 3。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。
 
 以下 9 步用于内部执行。创建或更新用户可见的步骤列表时，先按 [步骤列表与进度](../yida-design/references/ask-human-interaction-contract.md#步骤列表与进度) 归并为业务步骤。每一步开始前读取对应 workflow 文件；当前步骤达到 doneWhen 后再进入下一步。
 
@@ -28,6 +28,8 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | 7 | [编写或更新页面](workflow/step-7-page-code.md) | 执行 `use_skill("yida-canvas-custom-page")`；看板/工作台/驾驶舱必须再执行 `use_skill("yida-dashboard")`，读取表单数据时必须执行 `use_skill("yida-canvas-data-binding")` | 页面源码和真实 dataBinding 通过校验 |
 | 8 | [发布页面并排序导航](workflow/step-8-publish-navigation.md) | 执行 `use_skill("yida-publish-page")`，发布本轮源码到主页面并执行轻量导航排序 | 已发布主页面 URL |
 | 9 | [输出与收尾](workflow/step-9-output-finish.md) | 核对完成条件，按业务语言输出结果 | 2-3 句业务总结 + 一组应用访问入口 |
+
+独立工作按 [并行执行](workflow/parallel-work.md) 调度，任务分别产出，由主流程汇合。
 
 ## 核心规则
 

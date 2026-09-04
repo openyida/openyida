@@ -20,6 +20,9 @@ module.exports = {
     cmd_app_list: '查詢我的應用程式清單',
     cmd_corp_efficiency: '查詢企業效能概覽和明細報表',
     cmd_create_app: '建立宜搭應用程式',
+    cmd_design_plan_preview: '按模組更新方案草稿',
+    design_plan_preview_invalid: '方案草稿更新失敗，請檢查錯誤詳情',
+    cmd_design_plan_init: '從已確認需求初始化計劃草稿',
     cmd_design_plan_materialize: '從 build-plan.json 產生並校驗搭建計畫產物',
     cmd_design_plan_patch: '按欄位路徑調整搭建計畫並使舊確認失效',
     cmd_update_app: '更新應用程式資料',
@@ -31,6 +34,7 @@ module.exports = {
     cmd_export: '匯出應用程式（產生遷移包）',
     cmd_import: '匯入遷移包，重建應用程式',
     group_form: '表單 & 頁面',
+    cmd_create_form_batch: '按依賴並行建立表單',
     cmd_create_form: '建立表單頁面',
     cmd_list_form_icons: '列出可用的表單導覽圖示',
     cmd_validate_form: '本機校驗表單欄位 JSON',
@@ -665,6 +669,7 @@ module.exports = {
     no_login: '  ❌ 无法获取有效登录态'
   },
   create_form: {
+    batch_invalid: '表單批量任務設定無效，請檢查錯誤詳情',
     create_title: '  yida-create-form-page - 宜搭表单页面创建工具',
     update_title: '  yida-create-form-page - 宜搭表单页面更新工具',
     app_id: '\n  应用 ID:    {0}',

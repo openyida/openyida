@@ -14,11 +14,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- `design-plan preview` 按已确定模块更新 PRD、HTML、设计与主题草稿；HTML 复用模板并替换相关章节，主题更新保留自定义样式。`materialize --from-preview` 汇总校验后统一生成正式文档和主题 CSS。
+
+- `create-form batch` 按依赖并行创建普通表单，自动解析关联表单与字段 ID；创建前校验，完成后回读，保留结果以复用已完成资源，失败仅阻断依赖任务。
+
+- 自定义侧边导航和顶部＋侧边导航支持拖拽调宽、收起展开与键盘调宽，消费应用导航 token；CLI 仅向这两类模板注入共享侧栏组件。
+
+- Plan 初始化返回业务、基础视觉和页面视觉绑定的任务依赖；`materialize --business-file --visual-file` 合并独立规划片段，校验版本与职责后一次生成全部产物。技能统一说明可并行步骤、文件归属和汇合条件。
+
+- `design-plan init` 从已确认需求建立计划草稿和当前主题编写上下文，复用项目目录、页面标识与导航选择；生成命令返回校验、PRD、设计、HTML 和写入耗时。
+
 - `sample yida-design app-theme` 支持 `--design-file`：通过 CLI 复制公共 CSS 模板，读取 `design.md` 中的具体 token，统一替换品牌色阶和关联值，保留模板选择器及导航作用域。
 - 新增侧边、顶部、顶部＋侧边、悬浮胶囊和页内标签五种 CodeCanvas 导航模板，通过 `sample openyida-page-template canvas-nav-*` 按需复制，复用应用主题 token，仅输出所选布局及必要的公共代码。
 - 新增 `canvas-nav-data` 片段：菜单按 PRD 规划，`getAccessableNavs.json` 判断当前用户可见的入口，过滤后保留规划顺序和分组，并按入口用途生成提交页或数据管理页地址。
 
 ### Changed
+
+- 独立主题更新命令记录上次应用的 token，后续仅更新变化项并保留自定义样式；内容不变时跳过写入，CSS 与记录保存失败时一起回滚。
+
+- 首次搭建先分析需求，再集中确认未决的模式、导航、风格和页面范围；已有详细计划直接复用，已有应用增改只澄清本次问题。精简 Plan 编写契约，业务与基础视觉同时准备，一次校验并生成全部产物，集中报告可独立检查的字段问题。
 
 - 统一 Fast / Plan 的 11 章 PRD 与页面交接契约：需求来源读取和澄清归 `yida-requirement-analysis`，业务规划归 `yida-prd`，视觉设计归 `yida-design`，编排与版本确认归 `yida-app`；精简重复说明，明确 Plan 视觉候选与页面视觉应用两个阶段。
 - Plan HTML 保留需求总览、数据模型、业务流程、页面规划四章及业务全景图、摘要，补齐示例数据、页面数据来源、交互状态、视觉与素材说明、搭建顺序和验收标准；HTML 供用户完整审阅，Markdown 供 Agent 执行。

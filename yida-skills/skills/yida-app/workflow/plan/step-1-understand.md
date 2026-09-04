@@ -1,7 +1,5 @@
-# Plan 输入：共享需求事实
+# Plan 输入：已确认需求
 
-调用 `yida-requirement-analysis` 读取用户指定来源，输出 `.cache/openyida/<项目名>/requirement-brief.json`。已有可用文件直接复用。
+复用 `.cache/openyida/<项目名>/requirement-brief.json`。首次搭建检查 `intake.confirmed=true`，搭建方式为 Plan；来源中的详细计划、页面范围、导航与风格保持已确认结果。
 
-Fast 和 Plan 使用同一份需求事实，不重复抽取附件或生成另一套需求格式。来源不可读时先处理来源问题；显式范围、品牌约束和缺口保持原样。模式沿用 `yida-app` 已记录的 `designMode`。
-
-有影响资源范围的未决项时交给下一步范围确认；一般字段、角色和流程细节由 `yida-prd` 在范围内规划，并记录假设。视觉推断交给 `yida-design`。
+新发现的业务缺口交回 [需求分析](../../../yida-requirement-analysis/workflow/prepare-brief.md) 补齐；一般字段与实现细节在已确认范围内规划。

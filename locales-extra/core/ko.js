@@ -20,6 +20,9 @@ module.exports = {
     cmd_app_list: '내 Yida 앱 목록 조회',
     cmd_corp_efficiency: '기업 효율 개요 및 상세 보고서 조회',
     cmd_create_app: 'Yida 앱 생성',
+    cmd_design_plan_preview: '모듈별 계획 초안 업데이트',
+    design_plan_preview_invalid: '초안 업데이트 실패. 오류 세부 정보를 확인하세요',
+    cmd_design_plan_init: '확인된 요구 사항으로 계획 초안 만들기',
     cmd_design_plan_materialize: 'build-plan.json에서 설계 계획 산출물 생성 및 검증',
     cmd_design_plan_patch: '필드 경로로 계획을 수정하고 이전 확인 무효화',
     cmd_update_app: '앱 정보 업데이트',
@@ -31,6 +34,7 @@ module.exports = {
     cmd_export: '앱 내보내기 (마이그레이션 패키지 생성)',
     cmd_import: '마이그레이션 패키지 가져오기, 앱 재구축',
     group_form: '양식 & 페이지',
+    cmd_create_form_batch: '종속성에 따라 양식을 병렬 생성',
     cmd_create_form: '양식 페이지 생성',
     cmd_list_form_icons: '사용 가능한 양식 탐색 아이콘 목록',
     cmd_validate_form: 'Validate form field JSON locally',
@@ -706,6 +710,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    batch_invalid: '양식 일괄 설정이 잘못되었습니다. 오류 세부 정보를 확인하세요',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
     app_id: '\n  앱 ID:    {0}',

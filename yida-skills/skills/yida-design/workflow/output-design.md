@@ -21,9 +21,9 @@
 
 `design.md` 必须以 YAML frontmatter 开头，`tokens` 内每个 `--token` 使用一行具体 CSS 值；可平铺或分组，允许引号和行尾注释。不得保留占位符、推导指令、多行值或同名冲突值。必须包含品牌色阶 1/2/3/5/6/9/10；圆角、字体、间距等需要改变平台表现时写入对应 CSS token，不能只写正文描述。
 
-执行 `openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css --design-file prd/<项目名>/design.md`。CLI 复制公共 CSS，按值替换 token、同步品牌关联值，保留选择器和导航作用域，并校验完整品牌色阶；失败不覆盖目标文件。不传 `--design-file` 时仅原样复制。
+Fast 或单独更新主题时，执行 `openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css --design-file prd/<项目名>/design.md`。首次从公共模板生成；已有 CSS 只更新设计中变化的 token，保留其他 token 和自定义样式。CLI 自动保存更新记录，内容相同时跳过写入，写入失败回滚。省略 `--design-file` 会用公共模板重置目标 CSS。
 
-Plan 的具体差异写入 `visualStyle.tokens` 后重新物化；不要直接修改派生 `design.md`。Fast 由 `yida-design` 直接维护 `design.md`。应用阶段由 `yida-app` 使用 `--theme-file` 应用同一份产物。
+Plan 修改 `visualStyle.tokens` 并按模块更新草稿，最终由 `materialize` 同时生成设计文档和主题 CSS，使用返回的 `outputs.theme`。Fast 由 `yida-design` 直接维护 `design.md`。应用阶段由 `yida-app` 使用 `--theme-file` 应用同一份产物。
 
 整体暗色方案按 [浮层适配](../references/theme/theme-token-presets.md#暗色主题浮层适配) 补齐组件 token。实现阶段可在生成的应用主题 CSS 末尾追加精确 classname 覆盖，再上传完整主题文件。
 
@@ -333,7 +333,7 @@ inferred_modules:
 | 项目         | 规则                                                                                                                                                                         |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 自定义色盘   | 颜色可任意设计，必须完整输出平台实际生成的 `--color-brand1-1/2/3/5/6/9/10`，不得补造 `4/7/8`；其中 `--color-brand1-6` 写字面量颜色                                   |
-| 应用级换肤   | 执行 `openyida sample yida-design app-theme --output <app-theme.css> --design-file prd/<项目名>/design.md` 复制模板并按 `design.md` 自动替换 token |
+| 应用级换肤   | 使用 CLI token 契约生成或更新的主题文件，在应用级统一配置 |
 | 自定义页面   | 当前页面在自身运行上下文消费应用主题变量                                                                                                                   |
 | 页面局部样式 | 自定义页面使用自身运行上下文中的应用主题变量，页面局部样式直接引用语义 token                                                                            |
 
@@ -374,7 +374,7 @@ inferred_modules:
 
 ## 22. Agent 使用提示
 
-提供一段简洁提示词，明确告诉 AI 如何使用该 design.md。实现自定义色盘时先执行 `openyida sample yida-design app-theme --output <app-theme.css> --design-file prd/<项目名>/design.md` 复制模板并按 `design.md` 自动替换 token；严禁重新生成或覆盖整份 CSS。
+简要说明如何按本文档实现页面，并给出当前应用主题文件的位置。主题更新统一遵守本文件的 CLI token 契约。
 
 ## 23. 交付自检清单
 

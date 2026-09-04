@@ -20,6 +20,9 @@ module.exports = {
     cmd_app_list: 'Liệt kê ứng dụng Yida của tôi',
     cmd_corp_efficiency: 'Truy vấn tổng quan hiệu quả doanh nghiệp và báo cáo chi tiết',
     cmd_create_app: 'Tạo ứng dụng Yida',
+    cmd_design_plan_preview: 'Cập nhật bản nháp theo mô-đun',
+    design_plan_preview_invalid: 'Cập nhật bản nháp thất bại; kiểm tra chi tiết lỗi',
+    cmd_design_plan_init: 'Khởi tạo bản nháp kế hoạch từ yêu cầu đã xác nhận',
     cmd_design_plan_materialize: 'Tạo và xác thực sản phẩm từ build-plan.json',
     cmd_design_plan_patch: 'Sửa kế hoạch theo đường dẫn và vô hiệu xác nhận trước',
     cmd_update_app: 'Cập nhật thông tin ứng dụng',
@@ -31,6 +34,7 @@ module.exports = {
     cmd_export: 'Xuất ứng dụng (tạo gói di chuyển)',
     cmd_import: 'Nhập gói di chuyển, xây dựng lại ứng dụng',
     group_form: 'Biểu mẫu & Trang',
+    cmd_create_form_batch: 'Tạo biểu mẫu song song theo quan hệ phụ thuộc',
     cmd_create_form: 'Tạo trang biểu mẫu',
     cmd_list_form_icons: 'Liệt kê biểu tượng điều hướng biểu mẫu khả dụng',
     cmd_validate_form: 'Validate form field JSON locally',
@@ -706,6 +710,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    batch_invalid: 'Lô biểu mẫu không hợp lệ; kiểm tra chi tiết lỗi',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
     app_id: '\n  ID ứng dụng:  {0}',

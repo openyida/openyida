@@ -2,7 +2,7 @@
 
 ## 用途与边界
 
-本文件是 Plan Design 生成项目 `design.md` 的唯一运行时规则。完整主题模板决定视觉设计内容和文档结构；本文件负责选择结果校验、项目事实融合、页面视觉应用和交付检查。
+本文件供复杂视觉定制时按需查阅。常规规划使用紧凑契约和 CLI 返回的主题上下文。完整主题模板决定视觉设计内容和文档结构；本文件负责选择结果校验、项目事实融合、页面视觉应用和交付检查。
 
 ```text
 PRD 决定做什么
@@ -14,14 +14,14 @@ PRD 决定做什么
 
 ## 运行时输入
 
-生成项目 `design.md` 时读取：
+CLI 生成项目 `design.md` 时读取：
 
 1. 当前版本 `build-plan.json`：项目事实、产品形态、页面规划、视觉证据、项目视觉方向、主题色、导航选择和内部选中主题。
 2. [主题索引](../templates/design-themes/index.json)：校验内部 `selectedTheme`，取得 `defaultProfile` 和模板路径。
 3. 内部选中主题对应的完整模板：作为项目 `design.md` 的设计底稿。
 4. [page-patterns.md](page-patterns.md)：解释各页面已经确定的页面模式。
 
-外层生成逻辑完整读取选中的模板，不假设模板的章节、frontmatter 或内容组织方式。主题模板内部结构由模板自身维护。
+CLI 完整读取选中的模板，不假设模板的章节、frontmatter 或内容组织方式。主题模板内部结构由模板自身维护。
 
 ## 产物关系
 
@@ -36,7 +36,7 @@ PRD 决定做什么
 ## 生成顺序
 
 1. 校验 `visualStyle.internal.selectedTheme.themeId`，并从索引确定性取得模板路径；兼容旧计划时可读取 `forUser.selectedTheme`。
-2. 完整读取该路径指向的模板，只加载最终选中的一份。
+2. CLI 完整读取该路径指向的模板；模型使用初始化返回的主题上下文。
 3. 以索引中的 `defaultProfile` 为起点，由 materialize 补齐 `themeProfile`；该摘要只读。模型将用户要求、品牌规范和可访问性约束落实为 `visualStyle.tokens`，主题色写入 `colorStrategy`。
 4. 根据 `meta.experienceTopology`、页面范围和前后台边界生成 `visualStyle.forDesignMd.productTopologyApplication`，说明全应用共享主题基础语言、记忆点按真实页面内容使用；该字段不判断主题是否适用，也不增删页面或业务能力。
 5. 保持 `pages.customPageDetails[]` 中的页面模式、内容优先级、首屏结构和信息密度；模型只生成每页 `visualMemoryApplications`，页面基础视觉应用由 materialize 从主题模板补齐。

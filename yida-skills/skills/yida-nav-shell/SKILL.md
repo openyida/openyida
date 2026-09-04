@@ -45,6 +45,6 @@ openyida get-form-config <appType> <formUuid> --json
 
 1. 按 PRD 确定菜单数量、名称、顺序、分组和用途，通常将工作台放在第一位。
 2. `getAccessableNavs.json` 用来判断“工作台”“活动报名”等应用菜单是否可见；菜单数量、名称和顺序按 PRD 设计。按 [导航数据来源](references/nav-shell-patterns.md#导航数据来源) 接入 `canvas-nav-data`。
-3. 按 [导航模板](references/nav-shell-patterns.md) 复制所需形态，例如 `openyida sample openyida-page-template canvas-nav-side --output .cache/samples/canvas-nav.jsx`，合并到当前 Canvas，接入过滤后的菜单、选中状态和业务内容。
+3. 按 [导航模板](references/nav-shell-patterns.md) 复制所需形态，例如 `openyida sample openyida-page-template canvas-nav-side --output .cache/samples/canvas-nav.jsx`，合并到当前 Canvas，接入过滤后的菜单、选中状态和业务内容；侧栏调宽与收起由模板提供。
 4. 按 [入口用途与嵌入页面](references/nav-shell-patterns.md#入口用途与嵌入页面) 配置提交、查询和管理入口；按 [菜单契约](references/nav-shell-patterns.md#菜单契约) 接入页面切换。
 5. 按 [验证清单](references/nav-shell-patterns.md#验证) 检查权限、跳转、主题和移动端显示，再通过 `yida-publish-page` 发布。

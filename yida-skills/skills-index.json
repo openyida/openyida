@@ -23,7 +23,7 @@
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
-      "description": "完整搭建或补齐普通 OpenYida 应用的流程编排技能。先确认已有资源，在 Step 2 选择一次 Fast / Plan。Plan 确认当前版本后交接派生文件，不再运行 Fast；Fast 整理用户需求，再同时调用 yida-prd 与 yida-design 生成 prd.md 和 design.md；由 yida-app 校验通过后按 PRD 创建或复用应用、表单、流程和页面；表单/流程先于自定义页面；页面阶段默认复制 Canvas 页面基准模板并按业务改写；发布后优先按 PRD 导航顺序排序。",
+      "description": "完整搭建或补齐普通 OpenYida 应用的流程编排技能。先分析需求并确认已有资源；首次搭建确认尚未明确的搭建方式、导航、风格和页面范围。复用用户提供的详细计划，Fast 直接搭建，Plan 先确认 PRD。需求确认后由 yida-prd 和 yida-design 同时准备业务与基础视觉；由 yida-app 校验通过后按 PRD 创建或复用应用、表单、流程和页面；表单/流程先于自定义页面；页面阶段默认复制 Canvas 页面基准模板并按业务改写；发布后优先按 PRD 导航顺序排序。",
       "done_when": "用户需求已整理；yida-prd 与 yida-design 均已完成且一致性校验通过；PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md；若本轮 Write/Edit 单个页面源码，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 并返回当前页面 URL；其他完整应用、表单、流程、权限、主题、导航或批量资源场景返回 {base_url}/{appType}/workbench 作为应用访问入口组的固定项，仅在 standalone 且 isRenderNav=false 回读通过时增加 /custom/{formUuid}，非云端 Agent 增加 /admin；final 先用 2-3 句业务语言总结创建/复用了哪些表单、页面和流程，再给主入口链接；不默认输出表格、长列表或资源 ID，也不逐项输出内部文件；没有 publish 证据只能声明源码已修改，尚未发布。",
       "category": "yida-skills/app",
       "tags": [
@@ -513,6 +513,7 @@
       ],
       "command_ids": [
         "create-form.create",
+        "create-form.batch",
         "create-form.update",
         "create-form.patch",
         "create-form.rule",

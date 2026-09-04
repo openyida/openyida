@@ -20,6 +20,9 @@ module.exports = {
     cmd_app_list: 'عرض تطبيقات Yida الخاصة بي',
     cmd_corp_efficiency: 'استعلام عن نظرة عامة على كفاءة المؤسسة وتقارير التفاصيل',
     cmd_create_app: 'إنشاء تطبيق Yida',
+    cmd_design_plan_preview: 'تحديث مسودة الخطة حسب الوحدة',
+    design_plan_preview_invalid: 'فشل تحديث المسودة؛ تحقق من تفاصيل الخطأ',
+    cmd_design_plan_init: 'تهيئة مسودة خطة من المتطلبات المؤكدة',
     cmd_design_plan_materialize: 'إنشاء مخرجات الخطة والتحقق منها من build-plan.json',
     cmd_design_plan_patch: 'تعديل الخطة حسب مسار الحقل وإبطال التأكيد السابق',
     cmd_update_app: 'تحديث معلومات التطبيق',
@@ -31,6 +34,7 @@ module.exports = {
     cmd_export: 'تصدير التطبيق (حزمة الترحيل)',
     cmd_import: 'استيراد حزمة الترحيل، إعادة بناء التطبيق',
     group_form: 'النماذج & الصفحات',
+    cmd_create_form_batch: 'إنشاء النماذج بالتوازي حسب التبعيات',
     cmd_create_form: 'إنشاء صفحة نموذج',
     cmd_list_form_icons: 'عرض رموز تنقل النماذج المتاحة',
     cmd_validate_form: 'Validate form field JSON locally',
@@ -706,6 +710,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    batch_invalid: 'دفعة النماذج غير صالحة؛ تحقق من تفاصيل الخطأ',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
     app_id: '\n  معرّف التطبيق: {0}',

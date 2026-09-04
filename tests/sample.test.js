@@ -38,16 +38,55 @@ describe('sample templates', () => {
     const fragment = fs.readFileSync(output, 'utf8');
     const component = layout === 'tabs' ? 'CanvasTabs' : 'CanvasNav';
     const result = compileCanvasLocal(`${fragment}\nfunction YidaComp() { return <${component} items={[]} activeKey="home" onSelect={() => {}}><p>已有业务内容</p></${component}>; }`);
-    expect(JSON.parse(result.importedModules)).toEqual(['side', 'top'].includes(layout) ? ['lucide-react', 'react'] : ['react']);
+    expect(JSON.parse(result.importedModules)).toEqual(['side', 'top', 'mixed'].includes(layout) ? ['lucide-react', 'react'] : ['react']);
     expect(fragment).not.toMatch(/function YidaComp|export default|ConfigProvider|Drawer|iframe|fetch\(|hashchange|document\.body|:root|--pod-nav-[\w-]+\s*:/);
     for (const other of ['side', 'top', 'mixed', 'dock'].filter(name => name !== layout)) {
       expect(fragment).not.toContain(`oy-nav-${other} `);
     }
-    expect(Buffer.byteLength(fragment)).toBeLessThan(7000);
+    expect(Buffer.byteLength(fragment)).toBeLessThan(['side', 'mixed'].includes(layout) ? 14000 : 7000);
+    expect(fragment.includes('function CanvasSidebar')).toBe(['side', 'mixed'].includes(layout));
     if (layout !== 'tabs') {
       expect(fragment).toContain('--pod-nav-item-text-disabled-color');
       expect(fragment).toContain('--pod-nav-menu-bg-selected-color');
     }
+  });
+
+  test('sidebar keyboard resizing uses current DOM width and respects bounds', async () => {
+    const output = path.join(tmpDir, 'nav-side.jsx');
+    await run(['openyida-page-template', 'canvas-nav-side', '--output', output]);
+    const fragment = fs.readFileSync(output, 'utf8');
+    const { runtimeCode } = compileCanvasLocal(`${fragment}\nfunction YidaComp() { return CanvasSidebar({}); }`);
+    const setters = [];
+    const React = {
+      createElement: (type, props, ...children) => ({ type, props, children }),
+      useState: initial => {
+        const setter = jest.fn();
+        setters.push(setter);
+        return [typeof initial === 'function' ? initial() : initial, setter];
+      },
+      useRef: current => ({ current }),
+      useId: () => 'sidebar',
+      useEffect: () => {},
+      useLayoutEffect: () => {},
+    };
+    const sidebar = new Function('window', `${runtimeCode}; return YidaComp();`)({ React, LucideReact: {}, innerWidth: 1280 });
+    let domWidth = 180;
+    sidebar.props.ref.current = { getBoundingClientRect: () => ({ width: domWidth }) };
+    const handle = sidebar.children.find(child => child?.props?.role === 'separator');
+    const resize = key => {
+      const preventDefault = jest.fn();
+      handle.props.onKeyDown({ key, preventDefault });
+      expect(preventDefault).toHaveBeenCalled();
+      domWidth = setters[2].mock.calls.at(-1)[0];
+      return domWidth;
+    };
+    // The observed width is still 216; rapid key presses must use the actual width.
+    expect(resize('ArrowRight')).toBe(204);
+    expect(resize('ArrowRight')).toBe(228);
+    expect(resize('Home')).toBe(180);
+    expect(resize('ArrowLeft')).toBe(180);
+    expect(resize('End')).toBe(400);
+    expect(resize('ArrowRight')).toBe(400);
   });
 
   test('navigation data filters PRD menus by viewer visibility without adopting server order or extra entries', async () => {
@@ -379,6 +418,67 @@ describe('application theme from design.md', () => {
     expect(structure(withoutExtra)).toBe(structure(template));
   });
 
+  test('CLI applies only changed tokens and skips identical writes', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-theme-delta-'));
+    const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const design = path.join(dir, 'design.md');
+      const css = path.join(dir, 'app-theme.css');
+      const snapshot = `${css}.tokens.md`;
+      const apply = () => run(['yida-design', 'app-theme', '--design-file', design, '--output', css]);
+      fs.writeFileSync(design, fastDesign);
+      await apply();
+      fs.writeFileSync(css, fs.readFileSync(css, 'utf8')
+        .replace('--pod-card-border-radius: 16px;', '--pod-card-border-radius: 27px;')
+        .replace(/--color-brand-1:[^;]+;/, '--color-brand-1: #123456;') + '\n.my-popup { padding: 23px; }\n');
+      fs.writeFileSync(design, fastDesign.replace('#315BCC', '#8844AA'));
+      await apply();
+      const updated = fs.readFileSync(css, 'utf8');
+      expect(updated).toContain('--color-brand1-6: #8844AA;');
+      expect(updated).toContain('--pod-card-border-radius: 27px;');
+      expect(updated).toContain('--color-brand-1: #123456;');
+      expect(updated).toContain('.my-popup { padding: 23px; }');
+      fs.writeFileSync(css, updated.replace(':root {', ':root\n{'));
+      const modified = [css, snapshot].map(file => fs.statSync(file).mtimeMs);
+      await apply();
+      expect([css, snapshot].map(file => fs.statSync(file).mtimeMs)).toEqual(modified);
+      fs.writeFileSync(design, fastDesign.replace('#315BCC', '#8844AA').replace('16px', '18px'));
+      await apply();
+      expect(fs.readFileSync(css, 'utf8')).toContain('--pod-card-border-radius: 18px;');
+      // Explicit template reset clears the previous baseline so the next application is complete.
+      await run(['yida-design', 'app-theme', '--output', css]);
+      await apply();
+      expect(fs.readFileSync(css, 'utf8')).toContain('--color-brand1-6: #8844AA;');
+    } finally {
+      log.mockRestore(); fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('failed baseline installation rolls back CSS and its previous token snapshot', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-theme-rollback-'));
+    const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+    let rename;
+    try {
+      const design = path.join(dir, 'design.md');
+      const css = path.join(dir, 'app-theme.css');
+      const snapshot = `${css}.tokens.md`;
+      fs.writeFileSync(design, fastDesign);
+      const apply = () => run(['yida-design', 'app-theme', '--design-file', design, '--output', css]);
+      await apply();
+      const before = [css, snapshot].map(file => fs.readFileSync(file, 'utf8'));
+      fs.writeFileSync(design, fastDesign.replace('16px', '18px'));
+      const original = fs.renameSync;
+      rename = jest.spyOn(fs, 'renameSync').mockImplementation((from, to) => {
+        if (to === snapshot && from.endsWith('next')) { throw new Error('snapshot write failed'); }
+        return original(from, to);
+      });
+      await expect(apply()).rejects.toThrow('snapshot write failed');
+      expect([css, snapshot].map(file => fs.readFileSync(file, 'utf8'))).toEqual(before);
+    } finally {
+      rename?.mockRestore(); log.mockRestore(); fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   test('CLI generates CSS and leaves an existing output intact when design tokens are invalid', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-theme-cli-'));
     const log = jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -388,7 +488,10 @@ describe('application theme from design.md', () => {
       const cssPath = path.join(dir, 'app-theme.css');
       fs.writeFileSync(designPath, fastDesign);
       await run(['yida-design', 'app-theme', '--design-file', designPath, '--output', cssPath]);
+      fs.appendFileSync(cssPath, '\n.custom-popup { padding: 23px; }\n');
+      await run(['yida-design', 'app-theme', '--design-file', designPath, '--output', cssPath]);
       const before = fs.readFileSync(cssPath, 'utf8');
+      expect(before).toContain('.custom-popup { padding: 23px; }');
       expect(before).toContain('--color-brand1-6: #315BCC;');
       fs.writeFileSync(designPath, fastDesign.replace('#315BCC', '<待生成>'));
       await expect(run(['yida-design', 'app-theme', '--design-file', designPath, '--output', cssPath])).rejects.toThrow(/单行 CSS/);

@@ -8,7 +8,7 @@ PRD 已确定自定义导航时，按形态复制一个组件，接入现有菜�
 | --- | --- | --- | --- |
 | 侧边导航 | `canvas-nav-side` | `CanvasNav` | 按钮展开页内菜单 |
 | 顶部导航 | `canvas-nav-top` | `CanvasNav` | 按钮展开页内菜单 |
-| 顶部＋侧边 | `canvas-nav-mixed` | `CanvasNav` | 上下两行可滚动菜单 |
+| 顶部＋侧边 | `canvas-nav-mixed` | `CanvasNav` | 按钮展开二级菜单 |
 | 悬浮胶囊 | `canvas-nav-dock` | `CanvasNav` | 底部横向滚动，预留安全区 |
 | 页内标签 | `canvas-nav-tabs` | `CanvasTabs` | 横向滚动，支持键盘切换 |
 
@@ -16,12 +16,12 @@ PRD 已确定自定义导航时，按形态复制一个组件，接入现有菜�
 openyida sample openyida-page-template canvas-nav-side --output .cache/samples/canvas-nav.jsx
 ```
 
-替换模板名即可复制其他形态。前四种每页选择一种；标签页按业务需要组合。CLI 在复制时拼接公共代码和选定布局，输出中只保留这一种布局。标签页独立输出自己的样式和交互。
+替换模板名即可复制其他形态。前四种每页选择一种；标签页按业务需要组合。CLI 在复制时拼接公共代码和选定布局；侧边及顶部＋侧边模板同时带入调宽与收起组件。标签页独立输出自己的样式和交互。
 
 ## 接入已有页面
 
 1. 将生成片段的 import 合并到当前 `.canvas.jsx`，保留一份 React 导入；CodeCanvas 使用单文件源码，组件片段合并到该文件。
-2. 合并 `CanvasNav`、菜单项组件及样式常量。已有导航时替换原导航实现，同名组件保留一份。
+2. 合并生成文件中的组件与样式常量，包含所选布局需要的侧栏组件。已有导航时替换原导航实现，同名组件保留一份。
 3. 按 PRD 配置菜单，经下方接口过滤后生成 `items`，接入 `activeKey` 和 `onSelect`，把原业务内容作为 children。路由选中态和内容入口与可见菜单保持一致。
 4. 需要二级标签时，再复制 `canvas-nav-tabs`；需要表单抽屉时，再复制 `form-open-container`。
 
@@ -40,6 +40,12 @@ openyida sample openyida-page-template canvas-nav-side --output .cache/samples/c
 组件只提供导航与内容容器，业务内容、数据请求和表单由调用方接入。生成文件保留 CSS 变量引用，应用主题在应用级加载一次。
 
 导航选中态承担当前页面标识，`children` 直接从表单、列表或业务区块开始。`title` 用于应用品牌名称；内容区的独立页头只承载新增信息，例如具体客户名、任务说明和操作。通过内容容器的 `aria-label` 和 iframe 的 `title` 保留可访问名称；“报名信息”等业务分区标题继续显示。移动端菜单折叠后，当前页名称可显示在导航栏内。
+
+## 侧栏交互
+
+侧边及顶部＋侧边模板默认支持拖动右侧边缘调宽、按钮收起与展开；展开时恢复原宽度。调宽限制在 180–400px，并随视口收窄。边缘支持方向键调宽、Home/End 切到最小/最大宽度、双击恢复默认值。移动端使用菜单展开按钮。
+
+默认宽度消费 `--shell-dark-aside-width`，收起宽度消费 `--pod-nav-side-collapsed-width`。可传 `sidebarWidth={240}` 或 CSS 长度指定默认宽度，`defaultCollapsed` 控制初始收起。菜单图标、名称和可见性沿用原配置。
 
 ## 导航数据来源
 

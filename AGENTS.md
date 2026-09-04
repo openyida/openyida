@@ -222,7 +222,7 @@ openyida/
 
 ### yida-skills 技能路由规则（Agent 必读）
 
-完整应用在 `yida-app` Step 2 按 `yida-design/references/design-mode.md` 选择一次 Fast / Plan。Fast 沿用下方需求分析和并行生成流程；Plan 只在用户确认当前版本后交接派生文件，不再运行 Fast。
+完整应用先分析需求，首次搭建按 `yida-requirement-analysis/workflow/prepare-brief.md` 确认未决事项，再按已选 Fast / Plan 推进。Fast 沿用下方需求分析和并行生成流程；Plan 只在用户确认当前版本后交接派生文件，不再运行 Fast。
 
 **当用户首次创建完整应用/系统/平台时，AI agent 必须加载 `yida-app` 子技能作为唯一编排入口**，由 `yida-app` 按阶段调度 `yida-prd`（业务 PRD）、`yida-design`（视觉设计）、`yida-create-app`、`yida-create-form-page`、`yida-canvas-custom-page`、`yida-publish-page` 等子技能。
 

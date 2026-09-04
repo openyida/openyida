@@ -20,6 +20,9 @@ module.exports = {
     cmd_app_list: 'मेरे Yida ऐप सूचीबद्ध करें',
     cmd_corp_efficiency: 'एंटरप्राइज दक्षता अवलोकन और विवरण रिपोर्ट क्वेरी करें',
     cmd_create_app: 'Yida ऐप बनाएं',
+    cmd_design_plan_preview: 'मॉड्यूल के अनुसार योजना का मसौदा अपडेट करें',
+    design_plan_preview_invalid: 'मसौदा अपडेट विफल; त्रुटि विवरण देखें',
+    cmd_design_plan_init: 'पुष्टि की गई आवश्यकताओं से योजना का मसौदा बनाएँ',
     cmd_design_plan_materialize: 'build-plan.json से योजना आउटपुट बनाएं और जाँचें',
     cmd_design_plan_patch: 'फ़ील्ड पथ से योजना बदलें और पुरानी पुष्टि अमान्य करें',
     cmd_update_app: 'ऐप जानकारी अपडेट करें',
@@ -31,6 +34,7 @@ module.exports = {
     cmd_export: 'ऐप निर्यात करें (माइग्रेशन पैकेज)',
     cmd_import: 'माइग्रेशन पैकेज आयात करें, ऐप पुनर्निर्माण',
     group_form: 'फॉर्म & पेज',
+    cmd_create_form_batch: 'निर्भरताओं के अनुसार फ़ॉर्म समानांतर बनाएँ',
     cmd_create_form: 'फॉर्म पेज बनाएं',
     cmd_list_form_icons: 'उपलब्ध फ़ॉर्म नेविगेशन आइकन सूचीबद्ध करें',
     cmd_validate_form: 'Validate form field JSON locally',
@@ -706,6 +710,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    batch_invalid: 'अमान्य फ़ॉर्म बैच; त्रुटि विवरण देखें',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
     app_id: '\n  ऐप ID:    {0}',

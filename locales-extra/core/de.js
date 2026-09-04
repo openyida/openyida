@@ -20,6 +20,9 @@ module.exports = {
     cmd_app_list: 'Meine Yida-Apps auflisten',
     cmd_corp_efficiency: 'Unternehmenseffizienz-Übersicht und Detailberichte abrufen',
     cmd_create_app: 'Yida-App erstellen',
+    cmd_design_plan_preview: 'Planentwürfe pro Modul aktualisieren',
+    design_plan_preview_invalid: 'Entwurfsaktualisierung fehlgeschlagen; Details prüfen',
+    cmd_design_plan_init: 'Planentwurf aus bestätigten Anforderungen erstellen',
     cmd_design_plan_materialize: 'Planartefakte aus build-plan.json erzeugen und validieren',
     cmd_design_plan_patch: 'Plan per Feldpfad ändern und frühere Bestätigung verwerfen',
     cmd_update_app: 'App-Informationen aktualisieren',
@@ -31,6 +34,7 @@ module.exports = {
     cmd_export: 'App exportieren (Migrationspaket erstellen)',
     cmd_import: 'Migrationspaket importieren, App neu aufbauen',
     group_form: 'Formulare & Seiten',
+    cmd_create_form_batch: 'Formulare nach Abhängigkeiten parallel erstellen',
     cmd_create_form: 'Formularseite erstellen',
     cmd_list_form_icons: 'Verfügbare Formular-Navigationssymbole auflisten',
     cmd_validate_form: 'Validate form field JSON locally',
@@ -706,6 +710,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    batch_invalid: 'Ungültiger Formularstapel; Fehlerdetails prüfen',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
     app_id: '\n  App-ID:       {0}',

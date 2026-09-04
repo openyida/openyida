@@ -19,13 +19,8 @@
 
 1. 先判断业务气质：行业、目标用户、品牌关键词、业务情绪、视觉目标，以及是否需要亲和/专业/活力/稳重/科技/自然感。
 2. 在 `design.md` 中记录主题色、`navTheme`、`logoSource` 和 `layoutDirection`。
-3. 实现阶段执行以下命令复制主题模板：
-
-   ```bash
-   openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css --design-file prd/<项目名>/design.md
-   ```
-
-4. CLI 按 `design.md` 修改对应 token；整体暗色时再按 [浮层适配](../references/theme/theme-token-presets.md#暗色主题浮层适配) 补齐必要的 classname 覆盖。严禁重新生成或覆盖整份 CSS。主色写入 `--color-brand1-6`；保留 `--color-brand1-1/2/3/5/6/9/10`、`--color-brand-1` ~ `--color-brand-4` 和 `--color-group`；严禁补造 `--color-brand1-4/7/8`。
+3. 主题文件按 [生成与更新规则](output-design.md#cli-token-契约fast--plan-共用) 准备；Plan 复用已生成的主题 CSS。
+4. 整体暗色时，按 [浮层适配](../references/theme/theme-token-presets.md#暗色主题浮层适配) 补齐组件 token 和必要的 classname 覆盖。
 5. `podBlue`、`podGreen`、`podOrange` 只是常用浅底候选，不是固定默认。不要因为没有特别说明就自动回到 #1677ff，也不要套用“科技=蓝、宠物=橙、法律=蓝”这类行业刻板配色。
 6. 主题色只作为后续所选设计风格的换肤输入；除用户明确要求深色/夜间/高对比外，不用主题色反向决定风格。
 
@@ -69,7 +64,7 @@ AI 默认直接使用模板内 coffee 咖啡色色阶和大圆角层级。若 `d
 - 导航明暗：`themeProfile.navTheme` 单独按导航方案记录；深色导航可以搭配浅色界面。
 - `design.md` 的 `themeProfile.colorMode` 是宜搭配色模式，例如 `gradient`，不表示暗黑模式。
 
-通过 CLI 复制并定点修改应用主题 CSS 后，将主题文件路径、`navTheme`、`logoSource` 和 `layoutDirection` 写入 `design.md`，交给应用创建或更新阶段统一配置。平台负责整套应用的主题一致性；只有 `YidaCodeCanvas` 页面源码需要在组件内部使用主题 token。
+主题 CSS 就绪后，将主题文件路径、`navTheme`、`logoSource` 和 `layoutDirection` 写入 `design.md`，交给应用创建或更新阶段统一配置。平台负责整套应用的主题一致性；只有 `YidaCodeCanvas` 页面源码需要在组件内部使用主题 token。
 
 ## 写字体层级
 

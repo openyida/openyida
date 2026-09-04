@@ -29,7 +29,7 @@ const CANVAS_NAV_CSS = `
 function CanvasNavItem({ item, activeKey, onSelect }) {
   const Icon = item.icon;
   const content = <>{Icon ? <Icon aria-hidden="true" /> : null}<span>{item.label}</span></>;
-  const props = { className: 'oy-nav-item', 'aria-current': item.key === activeKey ? 'page' : undefined };
+  const props = { className: 'oy-nav-item', title: item.label, 'aria-label': item.label, 'data-has-icon': !!Icon, 'aria-current': item.key === activeKey ? 'page' : undefined };
   if (item.href && !item.disabled) {
     return <a {...props} href={item.href} target={item.targetNew ? '_blank' : undefined} rel={item.targetNew ? 'noopener noreferrer' : undefined} onClick={(event) => {
       if (onSelect && !item.targetNew && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) {

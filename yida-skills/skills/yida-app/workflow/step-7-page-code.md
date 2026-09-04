@@ -60,3 +60,5 @@ Plan 模式下，上表涉及 PRD/design 的修正均由对应技能更新 `buil
 ## 下一步
 
 → [Step 8：发布页面并排序导航](step-8-publish-navigation.md)
+
+不同页面的源码和本地检查按 [并行执行](parallel-work.md) 分配独立文件与输出目录，共享导航与组件由主流程维护。
