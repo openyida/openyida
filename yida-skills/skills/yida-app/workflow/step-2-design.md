@@ -1,5 +1,11 @@
 # Step 2：需求分析与设计
 
+本阶段对应的用户待办：
+
+- 需求识别与分析
+- 设计功能和页面
+- 生成PRD方案&确认（仅 Plan）
+
 ## 2.0 先分析并确认需求
 
 调用 `yida-requirement-analysis`，按 [需求分析与首次搭建确认](../../yida-requirement-analysis/workflow/prepare-brief.md) 整理来源、复用资源及用户已有计划，在同一轮一次性确认尚未明确的 Fast / Plan、业务模块、页面与表单、导航归属与布局及风格。导航选择直接包含平台或自定义及具体布局，并按 [导航选项说明](../../yida-requirement-analysis/workflow/prepare-brief.md#导航选项说明) 备注平台原生布局与自定义页面实现的区别，“自定义导航”大类不标记“推荐”；已选自定义顶部时，呈现样式默认推荐浮导，用户明确的其他样式优先；后续阶段复用答案。首次搭建在必要回答写回、`intake.confirmed=true` 后继续。

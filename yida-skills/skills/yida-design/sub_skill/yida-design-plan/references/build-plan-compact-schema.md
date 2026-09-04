@@ -20,7 +20,7 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
 | `meta.status/planState` | 编排维护草稿、展示和确认状态，规则见下文 |
 | `overview.summary` | 应用定位、核心用户、业务目标 |
 | `overview.rolePermissionSummary` | 角色与可见、可操作的数据范围，非空文本数组 |
-| `overview.businessGraph.relations` | `{from,to,label,description}` 数组，from/to 对应数据模型名称；无关系写 `[]` |
+| `overview.businessGraph.relations` | `{from,to,label,description}` 数组，from/to 使用 `dataModels[].name` 的完整表名；一表一节点，不为简称另建节点，无关系写 `[]` |
 | `overview.navigationSummary` | 有菜单分组或特殊入口安排时填写文本数组 |
 | `overview.flowSummary` | 存在独立业务规则或额外流程说明时保留；规则同时写入对应流程明细 |
 

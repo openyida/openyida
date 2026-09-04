@@ -186,50 +186,71 @@ def truncate_text(value: Any, length: int = 12) -> str:
 def collect_graph_data(
     graph: dict[str, Any], data_models: list[dict[str, Any]]
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
-    model_by_name = {str(model.get("name")): model for model in data_models if model.get("name")}
+    # dataModels is the closed set of forms. Graph labels and edge endpoints
+    # reference these forms; they must never create extra business objects.
     nodes: dict[str, dict[str, Any]] = {}
+    exact: dict[str, set[str]] = {}
+    aliases: dict[str, set[str]] = {}
+    short_names: dict[str, set[str]] = {}
 
-    def add_node(raw: Any, fallback_source: str = "宜搭表单") -> str:
+    def register(index: dict[str, set[str]], value: Any, identifier: str) -> None:
+        key = str(value or "").strip()
+        if key:
+            index.setdefault(key, set()).add(identifier)
+
+    def short_name(value: Any) -> str:
+        return re.sub(r"(?:信息表|表单|表)$", "", str(value or "").strip())
+
+    for index, model in enumerate(data_models):
+        name = str(model.get("name") or "").strip()
+        if not name:
+            raise ValueError("业务全景图的数据表缺少名称")
+        if name in exact:
+            raise ValueError(f"业务全景图的数据表名称重复：{name}")
+        identifier = f"model-{index + 1}"
+        nodes[identifier] = {"id": identifier, "name": name,
+                             "source": model.get("formType") or "宜搭表单",
+                             "group": model.get("group") or "", "color": ""}
+        register(exact, name, identifier)
+        register(short_names, short_name(name), identifier)
+        for key in ("id", "modelId", "formUuid"):
+            register(aliases, model.get(key), identifier)
+
+    def resolve(value: Any) -> str:
+        key = str(value or "").strip()
+        candidates = exact.get(key) or aliases.get(key) or short_names.get(short_name(key)) or set()
+        if len(candidates) == 1:
+            return next(iter(candidates))
+        if len(candidates) > 1:
+            raise ValueError(f"业务全景图引用不明确：{key}，请使用数据表完整名称或明确绑定 modelName")
+        raise ValueError(f"业务全景图引用未定义的数据表：{key or '(空)'}，请修正为 dataModels 中的名称")
+
+    for raw in graph.get("nodes") or graph.get("tables") or []:
         if isinstance(raw, dict):
-            name = raw.get("name") or raw.get("label") or raw.get("id")
-            source = raw.get("source") or raw.get("formType") or fallback_source
-            group = raw.get("group") or raw.get("category") or ""
-            color = raw.get("color") or ""
+            # Explicit model binding supports labels that differ from form names.
+            reference = raw.get("modelName") or raw.get("modelId") or raw.get("formUuid")
+            identifier = resolve(reference or raw.get("name") or raw.get("label") or raw.get("id"))
+            for key in ("id", "name", "label"):
+                register(aliases, raw.get(key), identifier)
+            for key in ("group", "color"):
+                if raw.get(key):
+                    nodes[identifier][key] = raw[key]
         else:
-            name = raw
-            source = fallback_source
-            group = ""
-            color = ""
-        identifier = node_id(name)
-        if not identifier:
-            return ""
-        model = model_by_name.get(str(name))
-        if model:
-            source = model.get("formType") or source
-        nodes.setdefault(
-            identifier,
-            {
-                "id": identifier,
-                "name": str(name),
-                "source": source,
-                "group": group,
-                "color": color,
-            },
-        )
-        return identifier
+            identifier = resolve(raw)
+            register(aliases, raw, identifier)
 
-    for raw_node in graph.get("nodes") or graph.get("tables") or []:
-        add_node(raw_node)
-    for model in data_models:
-        add_node({"name": model.get("name"), "formType": model.get("formType")})
+    # Generated node IDs are also valid relation endpoints. Keep explicitly
+    # bound graph IDs authoritative when the graph uses a different ordering.
+    for identifier in nodes:
+        aliases.setdefault(identifier, {identifier})
 
     relations: list[dict[str, str]] = []
     seen_relations: set[tuple[str, str, str]] = set()
     seen_pairs: set[tuple[str, str]] = set()
 
     def add_relation(source: Any, target: Any, label: Any = "关联") -> None:
-        source_id = add_node(source)
-        target_id = add_node(target)
+        source_id = resolve(source)
+        target_id = resolve(target)
         relation_label = str(label or "关联")
         if not source_id or not target_id or source_id == target_id:
             return
@@ -260,12 +281,11 @@ def collect_graph_data(
     # relations are only a fallback; merging both creates duplicate or reverse
     # edges and makes a correct business overview look like a dependency graph.
     if not explicit_relations and not relations:
-        model_names = set(model_by_name)
         for model in data_models:
             model_name = model.get("name")
             for field in model.get("fields") or []:
                 relation = field.get("relation")
-                if relation in (None, "", "-") or relation not in model_names:
+                if relation in (None, "", "-"):
                     continue
                 label = field.get("name") or "关联"
                 add_relation(relation, model_name, label)

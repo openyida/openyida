@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- 业务全景图仅按数据模型建立节点，节点 ID 与唯一简称统一引用原表，避免“商品表/商品”重复；无法唯一对应的数据表引用明确报错，保留孤立表单和关联连线。
+
+- 根技能与 yida-app 开头统一提供 Plan 九步、Fast 八步用户待办清单，明确需求分析、PRD 方案确认、应用、表单审批、示例数据、业务页面、发布导航与交付阶段，并同步流程说明和进度示例。
+
 - Plan 新建草稿默认按已确认主色协调浅色画布、填充与边界，并生成优先于模板灰阶限制的项目配色说明；保留中性文字、状态语义、深色表面与显式 token 覆盖。Fast 与 Canvas 引导同步要求整套表面和 antd 主题映射，避免只改按钮颜色。
 
 - `design-plan preview` 按已确定模块更新 PRD、HTML、设计与主题草稿；HTML 复用模板并替换相关章节，主题更新保留自定义样式。`materialize --from-preview` 汇总校验后统一生成正式文档和主题 CSS。
