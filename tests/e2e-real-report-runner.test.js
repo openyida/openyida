@@ -625,7 +625,13 @@ describe('report domain E2E runner', () => {
     const inspect = spawnSync(process.execPath, ['bin/yida.js', 'report', 'inspect', '--json'], {
       cwd: root,
       encoding: 'utf8',
-      env: { ...process.env, OPENYIDA_LANG: 'en-US', LANG: 'de_DE.UTF-8', LC_ALL: '' },
+      env: {
+        ...process.env,
+        OPENYIDA_LANG: 'en-US',
+        LANG: 'de_DE.UTF-8',
+        LC_ALL: '',
+        npm_config_userconfig: os.devNull,
+      },
     });
     const inspectOutput = JSON.parse((inspect.stdout || inspect.stderr).trim());
     expect(inspect.status).toBe(1);

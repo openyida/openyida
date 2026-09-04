@@ -66,7 +66,7 @@
 | 部门 | `1123456` 或 `["1123456"]` | `["1123456"]` |
 | 城市 | `[省ID,市ID,区ID]` | `[省ID,市ID,区ID]` |
 | 子表单 | `"模糊搜索文本"` | `[{"textField_xxx":"值"}]` |
-| 关联表单 | 不支持直接查询 | `[{"appType":"xxx","formUuid":"xxx","instanceId":"xxx"}]` |
+| 关联表单 | 不支持直接查询 | `[{"appType":"xxx","formUuid":"xxx","formType":"receipt","instanceId":"xxx","title":"关联记录标题"}]` |
 
 ## 日期字段（DateField / CascadeDateField）
 
@@ -101,14 +101,17 @@ new Date('2024-06-30T00:00:00+08:00').getTime()
 
 ### 保存格式
 
-必须传入**数组对象**，每个对象包含三个必填字段：
+必须传入**数组对象**，每个对象包含五个必填字段；`subTitle` 可选，省略时 CLI 会补为空字符串：
 
 ```json
 [
   {
     "appType": "APP_xxx",
     "formUuid": "FORM-xxx",
-    "instanceId": "FINST-xxx"
+    "formType": "receipt",
+    "instanceId": "FINST-xxx",
+    "title": "客户名称",
+    "subTitle": ""
   }
 ]
 ```
@@ -117,7 +120,10 @@ new Date('2024-06-30T00:00:00+08:00').getTime()
 | --- | --- |
 | `appType` | 被关联表单所属应用的 appType |
 | `formUuid` | 被关联表单的 formUuid |
+| `formType` | 被关联表单类型，普通表单使用 `receipt` |
 | `instanceId` | 被关联数据的 formInstId（注意：字段名是 instanceId，不是 formInstId） |
+| `title` | 被关联记录在关联组件中展示的标题，应取真实记录标题字段值 |
+| `subTitle` | 可选的展示副标题；无值时传空字符串或省略 |
 
 ### 示例
 
@@ -129,7 +135,7 @@ openyida data query form APP_xxx FORM-客户表 --size 1
 # 2. 创建带关联的数据
 openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --expect-form-type receipt --data-json '{
   "textField_xxx": "商机名称",
-  "associationFormField_xxx": [{"appType":"APP_xxx","formUuid":"FORM-客户表","instanceId":"FINST-ABC123"}]
+  "associationFormField_xxx": [{"appType":"APP_xxx","formUuid":"FORM-客户表","formType":"receipt","instanceId":"FINST-ABC123","title":"杭州客户"}]
 }'
 ```
 
@@ -143,11 +149,13 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 }
 ```
 
+`associationFormField_xxx_id` 是查询投影出的只读派生字段，不能复制回 create/update payload。写入时必须使用不带 `_id` 后缀的原始字段 `associationFormField_xxx`。
+
 ### 注意事项
 
 - **instanceId 命名**：保存时字段名必须是 `instanceId`，不是 `formInstId`
 - **数组格式**：即使只关联一条数据，也必须使用数组格式 `[{...}]`
-- **三字段必填**：`appType`、`formUuid`、`instanceId` 缺一不可，否则返回参数校验失败
+- **五字段必填**：`appType`、`formUuid`、`formType`、`instanceId`、`title` 缺一不可；CLI 会在请求前拒绝不完整值
 - **跨应用关联**：如果关联的是其他应用的表单，需要使用对应应用的 appType
 - **API 限制**：部分宜搭环境可能限制通过 API 写入关联表单数据，建议在表单界面手动测试确认
 

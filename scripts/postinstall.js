@@ -285,9 +285,9 @@ openyida copy
 
 用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，加载 \`yida-app\` 走完整应用统一编排。
 
-统一编排只做：解析资源上下文 → \`yida-design\` 输出 \`prd.md\` 和 \`design.md\` → 创建/复用应用 → 核心表单/流程 → 主页面 → 编写主页面源码 → 发布 + 轻量导航排序 → 返回 2-3 句业务交付总结和一个主入口链接。资源创建顺序按 PRD 执行：应用先落位，表单/流程先于自定义页面。发布主页面成功后，PRD 写明导航顺序时执行 \`openyida nav-group order <appType> <页面/表单...>\`；PRD 只写宽泛分组或缺少导航顺序时，执行 \`openyida publish ... --auto-nav-order\` 或 \`openyida nav-group auto-order <appType>\` 兜底，兜底顺序为门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
+统一编排只做：解析资源上下文并整理用户需求 → 同时调用 \`yida-prd\` 输出 \`prd.md\`、\`yida-design\` 输出 \`design.md\` → 由 \`yida-app\` 校验两份结果 → 创建/复用应用 → 核心表单/流程 → 主页面 → 编写主页面源码 → 发布 + 轻量导航排序 → 返回 2-3 句业务交付总结和一个主入口链接。资源创建顺序按 PRD 执行：应用先落位，表单/流程先于自定义页面。发布主页面成功后，PRD 写明导航顺序时执行 \`openyida nav-group order <appType> <页面/表单...>\`；PRD 只写宽泛分组或缺少导航顺序时，执行 \`openyida publish ... --auto-nav-order\` 或 \`openyida nav-group auto-order <appType>\` 兜底，兜底顺序为门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
 
-表单页开发默认加载 \`yida-form-detail\` 做表单视觉引导，并把 Divider 分割线语义分组合并进字段 JSON。运行容器在自定义页面、表单、提交页、详情页和 \`FormOpenContainer\` iframe 中加载同一应用级自定义主题 CSS，确保主题变量一致。
+应用主题只在应用级统一配置。严禁页面代码向原生表单、详情页、父页面或平台容器写入主题样式；\`YidaCodeCanvas\` 页面只在 \`YidaComp\` 内消费现有主题 token。字段结构统一交给 \`yida-create-form-page\`。
 
 完整应用页面源码默认不得使用 \`this.dataSourceMap.*\`，除非本轮已经明确创建并绑定设计器数据源；默认使用入口型页面或 \`this.utils.yida.*\` 查询已创建表单。
 
@@ -297,7 +297,7 @@ openyida copy
 
 使用 \`YidaCodeCanvas\` 组件实现的自定义页面统一直接写最终 \`.canvas.jsx\`：先读 PRD 的页面场景、业务区块、数据来源和主操作，再读 design.md 的主题、布局、材质、组件和状态规则，然后用 \`compileCanvasLocal\` 快检或 \`openyida publish\` 的编译阶段验证发布。\`openyida check-page\` / \`openyida compile\` 只用于历史平台 JSX 组件页面维护。
 
-完整应用需求分析和产品设计由 \`yida-design\` 承担，并输出两份文件：\`prd/<项目名>/prd.md\` 写业务目标、数据结构、页面与功能、资源顺序、导航顺序和验收标准；\`prd/<项目名>/design.md\` 写主题色、themeProfile、tokens、视觉系统、组件和状态规则。页面实现先读 PRD 的页面场景、页面区块、数据来源、主操作和表单入口，再读 design.md 的主题、布局、材质、组件和状态规则，然后交给 \`yida-canvas-custom-page\` 落地。只有已识别为历史平台 JSX 组件页面维护时，才由 \`yida-custom-page\` 自身闭环处理。
+完整应用先由 \`yida-requirement-analysis\` 整理用户需求，再同时执行两个技能：\`yida-prd\` 写 \`prd/<项目名>/prd.md\`，负责业务目标、数据结构、页面与功能、资源顺序、导航顺序和验收标准；\`yida-design\` 写 \`prd/<项目名>/design.md\`，负责主题色、themeProfile、tokens、视觉系统、组件和状态规则。\`yida-app\` 必须等待两份文件完成并通过一致性校验后才能创建业务资源。页面实现先读 PRD 的页面场景、页面区块、数据来源、主操作和表单入口，再读 design.md 的主题、布局、材质、组件和状态规则，然后交给 \`yida-canvas-custom-page\` 落地。只有已识别为历史平台 JSX 组件页面维护时，才由 \`yida-custom-page\` 自身闭环处理。
 
 默认只加载当前阶段必需技能；示例数据、精细导航分组、截图验收、公开访问、数据源深接、数据管理和原生报表只在用户明确要求或 PRD 验收标准命中时执行。发布后的轻量导航排序是统一编排默认收尾，不等于精细导航分组。
 
@@ -309,8 +309,8 @@ openyida copy
 | --- | --- | --- |
 | \`yida-skills/context\` | 登录、退出、组织信息、Schema、fieldId、只读预检 | \`yida-login\`, \`yida-logout\`, \`yida-basic-info\`, \`yida-get-schema\`, \`yida-corp-efficiency\` |
 | \`yida-skills/app\` | 从零搭应用、导航、多语言 | \`yida-app\`, \`yida-create-app\`, \`yida-nav-group\`, \`yida-i18n\` |
-| \`yida-skills/design\` | 完整应用产品设计、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、PRD 和 design.md | \`yida-design\` |
-| \`yida-skills/form\` | 表单字段、公式、校验、业务规则、详情页、批量录入、数据记录 | \`yida-create-form-page\`, \`yida-formula\`, \`yida-formula-evaluate\`, \`yida-business-rule\`, \`yida-form-detail\`, \`yida-canvas-table-form\`, \`yida-table-form\`, \`yida-data-management\` |
+| \`yida-skills/design\` | 完整应用需求分析、产品 PRD、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤 | \`yida-requirement-analysis\`, \`yida-prd\`, \`yida-design\` |
+| \`yida-skills/form\` | 表单字段、公式、校验、业务规则、批量录入、数据记录 | \`yida-create-form-page\`, \`yida-formula\`, \`yida-formula-evaluate\`, \`yida-business-rule\`, \`yida-canvas-table-form\`, \`yida-table-form\`, \`yida-data-management\` |
 | \`yida-skills/process\` | 审批、流程表单、流程规则、代理人 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\` |
 | \`yida-skills/page\` | 自定义展示页、YidaCodeCanvas 组件、历史平台 JSX 组件页面维护、发布、导航壳、PPT | \`yida-create-page\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\` |
 | \`yida-skills/analytics\` | 报表、统计、图表、Recharts、ECharts、看板、驾驶舱 | \`yida-report\`, \`yida-rechart\`, \`yida-chart\`, \`yida-dashboard\` |

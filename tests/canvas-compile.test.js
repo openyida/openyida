@@ -1038,7 +1038,7 @@ describe('compileCanvasLocal', () => {
     expectCanvasEntry(runtimeCode);
   });
 
-  test('compiles the OpenYida form drawer scaffold without theme iframe injection', () => {
+  test('compiles the OpenYida form drawer base template without theme iframe injection', () => {
     const templatePath = path.join(
       __dirname,
       '..',
@@ -1061,12 +1061,14 @@ describe('compileCanvasLocal', () => {
     expect(src).toContain('border: var(--pod-card-border, none)');
     expect(src).toContain('border-radius: var(--pod-card-border-radius, 20px)');
     expect(src).not.toContain('linear-gradient(180deg, #F5FAF9');
+    expect(src).not.toContain('脚手架预览');
+    expect(src).not.toContain('当前仍是脚手架占位资源');
     expect(runtimeCode).not.toContain('installYidaGlobalThemeIntoFrame');
     expect(runtimeCode).not.toContain('yida-global-theme');
     expectCanvasEntry(runtimeCode);
   });
 
-  test('Canvas page schema installs yida JS API bridge for iframe data access', () => {
+  test('Canvas page schema binds the host background token and installs the yida JS API bridge', () => {
     let nodeIndex = 0;
     const schema = buildCanvasPageSchemaObject(
       'function YidaComp() { return null; }',
@@ -1085,7 +1087,7 @@ describe('compileCanvasLocal', () => {
     expect(root.props.pageStyle).toEqual({
       backgroundColor: 'var(--pod-page-bg-color, var(--color-white, #fff))',
     });
-    expect(root.css).toContain('background-color:var(--pod-page-bg-color,var(--color-white,#fff))');
+    expect(root.css).not.toContain('body{background-color:');
     expect(root.css).not.toContain('background-color:#f2f3f5');
     const deepYidaComponents = schema.pages[0].componentsMap.filter(
       (entry) => entry.package === '@ali/vc-deep-yida'

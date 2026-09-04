@@ -24,14 +24,6 @@
     "note": "改数据记录 → data-management（不是 create-form-page / get-schema）"
   },
   {
-    "id": "confusion-field-structure-vs-schema-4",
-    "prompt": "把员工表单详情页改成卡片化布局，美化一下样式",
-    "expectedSkill": "yida-form-detail",
-    "group": "易混淆-字段vs结构vs数据vs样式",
-    "confusionPair": true,
-    "note": "详情页 CSS 美化 → form-detail（不是 create-form-page / data-management）"
-  },
-  {
     "id": "confusion-formula-vs-integration-vs-business-1",
     "prompt": "帮我在金额字段写个公式，自动算出税额等于金额乘以0.13",
     "expectedSkill": "yida-formula",

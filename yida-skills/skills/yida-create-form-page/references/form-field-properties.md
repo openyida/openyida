@@ -48,14 +48,13 @@ Divider > Field
 
 ### 主题规则
 
-表单布局组件应跟随运行态主题变量。本参考只说明字段 JSON 如何使用主题；新版主题运行容器将同一应用级自定义主题 CSS 分别加载到提交页、详情页、自定义页面和表单 iframe。
+本参考只说明字段 JSON 和表单布局属性。
 
 生成建议：
 
 - 默认 `Divider` 使用主题模式：不写 `colorType` 或写 `"theme"`。
 - 不要为了“更好看”给每个 Divider 随机写 `backgroundColor` / `secondaryColor`。
 - 只有用户明确指定颜色时，才使用 `colorType: "custom"` 并写 `backgroundColor`、`secondaryColor`、`titleColor`。
-- 新表单页默认消费 `podBlue`、`podGreen`、`podOrange` 对应主题变量；`blue`、`green`、`orange` 作为应用主题 token profile 保留原名。本参考只消费运行态变量，不把 legacy 名称当作表单 `--theme` 或应用 `--theme` 参数。
 
 ### Divider
 
@@ -70,8 +69,6 @@ Divider > Field
 5. `multi-parallelograms-end` 只用于用户明确要求门户、强分区、流程阶段强调，或已有线上表单已使用该样式且需要保持一致的场景。
 
 生成 Schema 时默认写入 `props.type: "bold-with-thin"`。只有在用户明确指定样式时才通过 `dividerType` 覆盖 `props.type`。同一张表单中的 `Divider` 必须保持同一个 `props.type`，避免章节样式跳变。如果是修改已有表单，先看线上 Schema 中 Divider 的原始 `props.type`，属于上述支持清单或强分区特殊值时优先复用。
-
-执行规则：OpenYida 生成字段结构和业务动作；表单主题由运行容器加载应用主题文件。
 
 | 属性 | 默认值 | 说明 |
 | --- | --- | --- |

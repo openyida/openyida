@@ -149,4 +149,28 @@ describe('CliError', () => {
     });
     expect(shouldUseStructuredErrorOutput(error, [])).toBe(true);
   });
+
+  test('forces structured output for every navigation order failure', () => {
+    ['NAV_ORDER_NOT_APPLIED', 'NAV_ORDER_READBACK_MISMATCH', 'NAV_ORDER_RESULT_UNKNOWN']
+      .forEach((code) => {
+        expect(shouldUseStructuredErrorOutput(new CliError(code, { code }), [])).toBe(true);
+      });
+  });
+
+  test('promotes navigation order mutation metadata', () => {
+    const payload = toErrorPayload(new CliError('NAV_ORDER_NOT_APPLIED', {
+      code: 'NAV_ORDER_NOT_APPLIED',
+      details: {
+        changed: true,
+        mutationPerformed: false,
+        readbackVerified: true,
+      },
+    }));
+
+    expect(payload).toMatchObject({
+      changed: true,
+      mutationPerformed: false,
+      readbackVerified: true,
+    });
+  });
 });

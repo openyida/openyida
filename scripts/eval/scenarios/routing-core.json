@@ -69,19 +69,19 @@
     "id": "full-app-milk-tea-multipage",
     "prompt": "基于奶茶品牌场景从零创建一个应用，面向消费者有官网首页，面向经销商有经营数据看板",
     "expectedSkill": "yida-app",
-    "note": "从零多页面应用 → yida-app 编排，内部再走 yida-design 与 Canvas"
+    "note": "从零多页面应用 → yida-app 编排，先整理用户需求，再同时生成并校验 PRD 与视觉设计，然后进入 Canvas"
   },
   {
     "id": "design-app-blueprint",
     "prompt": "这个应用需要官网、数据大屏、工作台、列表和详情页，先帮我规划角色路径、页面清单和导航分组",
-    "expectedSkill": "yida-design",
-    "note": "多页面结构规划 → yida-design"
+    "expectedSkill": "yida-prd",
+    "note": "多页面角色路径、页面清单和导航分组属于 PRD owner"
   },
   {
     "id": "design-landing-too-plain",
     "prompt": "这个律所官网首页太像工作台卡片堆了，先重新思考 UI 视觉方向和素材策略",
     "expectedSkill": "yida-design",
-    "note": "写代码前的单页 PRD → yida-design"
+    "note": "页面视觉方向和素材策略 → yida-design"
   },
   {
     "id": "design-screen-impact",
@@ -106,12 +106,6 @@
     "prompt": "自定义页隐藏应用导航后，需要页面内自带多入口门户导航壳，并且跳转时保留 isRenderNav=false",
     "expectedSkill": "yida-nav-shell",
     "note": "页面内自绘导航壳 → yida-nav-shell"
-  },
-  {
-    "id": "form-detail-beautify",
-    "prompt": "这个表单详情页 formDetail 太丑了，帮我注入样式优化详情页卡片和字段展示",
-    "expectedSkill": "yida-form-detail",
-    "note": "表单详情页 schema 注入 Html/CSS → yida-form-detail"
   },
   {
     "id": "full-app-visitor-default-build",

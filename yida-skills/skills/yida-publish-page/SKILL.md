@@ -81,7 +81,7 @@ openyida publish <源文件路径> <appType> <formUuid> [--compat] [--canvas] [-
 | `--compat` / `--modern` | 否 | 兼容构建开关；仅在确认源文件属于平台 JSX 组件页面且扩展名不规范时使用；`.oyd.jsx` 默认自动启用 |
 | `--canvas` | 否 | 显式写入 `YidaCodeCanvas` Schema；`.canvas.jsx` / `.canvas.tsx` 扩展名已自动启用，仅当扩展名不规范但确认为 `YidaCodeCanvas` 组件源码时需要 |
 | `--health-check` | 否 | 发布成功后用 token 读回目标页面 Schema，校验 `YidaCodeCanvas.runtimeCode` 或平台 `Jsx + actions.module.compiled` 与本次发布内容匹配；不请求页面 HTML，不依赖 Cookie |
-| `--auto-nav-order` | 否 | 发布成功后立刻执行轻量导航排序；PRD 已写明导航顺序时优先用 `openyida nav-group order <appType> <页面/表单...>`，PRD 缺少明确页面清单时才用本参数兜底；排序失败只警告，不回滚已发布页面 |
+| `--auto-nav-order` | 否 | 仅在 PRD 缺少明确导航清单时使用；PRD 已写明顺序时不要传本参数，发布后只执行一次 `openyida nav-group order <appType> <页面/表单...>`。排序失败不回滚页面，结果保留在结构化 `navOrder` 中 |
 | `--force` | 否 | 显式绕过发布目标类型保护；只有确认目标是自定义页面但导航接口暂时无法识别时才使用 |
 
 ## 确认命令

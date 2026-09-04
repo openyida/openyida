@@ -1,4 +1,4 @@
-# Step 4：页面结构和交互设计
+# 页面结构和交互设计
 
 > 低保真不追求好看，先把结构、区块和操作路径定清楚。
 
@@ -44,9 +44,9 @@
 - 功能契约：<保留的数据源/字段映射/按钮动作/筛选逻辑/提交 URL/权限/状态>
 - 响应式策略：<PC / 移动端差异>
 - 原生表单入口：<新增/提交/编辑打开方式>
-- pageSpecHandoff 草稿：<pageStructure/scene/contentBlocks/themeSummary/designFile/designRefs/dataBinding/primaryAction；视觉源码槽位待 Step 5 写入 design.md>
+- pageSpecHandoff 草稿：<pageStructure/scene/contentBlocks/themeSummary/designFile/designRefs/dataBinding/primaryAction；视觉源码槽位待 UI 视觉设计阶段写入 design.md>
 ```
 
 ## 下一步
 
-→ [Step 5：UI 视觉和状态设计](step-5-visual-states.md)
+→ [UI 视觉和状态设计](step-5-visual-states.md)
