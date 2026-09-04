@@ -20,6 +20,11 @@ module.exports = {
     cmd_app_list: '내 Yida 앱 목록 조회',
     cmd_corp_efficiency: '기업 효율 개요 및 상세 보고서 조회',
     cmd_create_app: 'Yida 앱 생성',
+    cmd_design_plan_preview: '모듈별 계획 초안 업데이트',
+    design_plan_preview_invalid: '초안 업데이트 실패. 오류 세부 정보를 확인하세요',
+    cmd_design_plan_init: '확인된 요구 사항으로 계획 초안 만들기',
+    cmd_design_plan_materialize: 'build-plan.json에서 설계 계획 산출물 생성 및 검증',
+    cmd_design_plan_patch: '필드 경로로 계획을 수정하고 이전 확인 무효화',
     cmd_update_app: '앱 정보 업데이트',
     cmd_app_online: 'Yida 앱 활성화',
     cmd_app_offline: 'Yida 앱 비활성화',
@@ -29,6 +34,7 @@ module.exports = {
     cmd_export: '앱 내보내기 (마이그레이션 패키지 생성)',
     cmd_import: '마이그레이션 패키지 가져오기, 앱 재구축',
     group_form: '양식 & 페이지',
+    cmd_create_form_batch: '종속성에 따라 양식을 병렬 생성',
     cmd_create_form: '양식 페이지 생성',
     cmd_list_form_icons: '사용 가능한 양식 탐색 아이콘 목록',
     cmd_validate_form: 'Validate form field JSON locally',
@@ -134,7 +140,7 @@ module.exports = {
       '  copy [--force]                                               Copy project directory to current AI tool environment\n' +
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
-      '  create-app "<name>" [desc] [icon] [color] [theme] [nav] [layout]  Create an app, output appType\n' +
+      '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
       '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
@@ -614,9 +620,10 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    update_only_option: '{0}은 업데이트 전용 옵션입니다. 앱을 만든 후 openyida update-app <appType>을 사용하세요.',
     title: '  create-app - Yida 앱 생성 도구',
-    usage: '사용법: openyida create-app "<앱 이름>" 또는 openyida create-app --name "<앱 이름>" [--desc "..."] [--theme deepBlue]',
-    example: '예시: openyida create-app --name "내 앱" --desc "앱 설명" --theme deepBlue',
+    usage: '사용법: openyida create-app "<앱 이름>" 또는 openyida create-app --name "<앱 이름>" [--desc "..."]',
+    example: '예시: openyida create-app --name "내 앱" --desc "앱 설명"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -704,6 +711,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    batch_invalid: '양식 일괄 설정이 잘못되었습니다. 오류 세부 정보를 확인하세요',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
     app_id: '\n  앱 ID:    {0}',
@@ -959,6 +967,9 @@ module.exports = {
     err_open_url_empty: 'openUrl 경로가 비어 있습니다: {0}'
   },
   update_app: {
+    theme_preset_conflict: '프리셋 colour는 CSS 또는 themeColor와 함께 사용할 수 없습니다. --colour custom을 사용하거나 --colour를 생략하세요.',
+    custom_theme_color_required: 'colour=custom에는 테마 파일 또는 유효한 themeColor가 필요합니다. --theme-file 또는 --theme-color를 지정하세요.',
+    theme_not_persisted: '저장 후 앱 테마 설정을 확인하지 못했습니다. themeVerification을 확인하고 update-app <appType> --theme-file <css>로 다시 시도하세요. 앱을 다시 만들지 마세요.',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1194,6 +1205,7 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_inline_css_invalid: '{0}행 부근 CSS에 닫히지 않거나 일치하지 않는 괄호, 문자열 또는 주석이 있습니다. 게시 전에 수정하세요.',
     title: '  yida-publish - Yida 페이지 배포 도구',
     platform: '  플랫폼: {0}',
     base_url: '\n  Platform: {0}',

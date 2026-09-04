@@ -1,11 +1,42 @@
 ---
 name: yida-app
-description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做完整搭建或补齐时使用；先确认已有资源并整理用户需求，再同时生成 prd.md 与 design.md，校验通过后按 PRD 创建或复用应用、表单、流程和页面；页面阶段默认复制 Canvas 页面基准模板并按业务改写。
+description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做完整搭建或补齐时使用；先确认已有资源并整理用户需求，再按 Fast / Plan 生成 prd.md 与 design.md，校验通过后按 PRD 创建或复用应用、表单、流程和页面；页面 UI 按已确认设计实现，代码示例按需参考。
 ---
 
 # yida-app
 
 完整应用编排技能。它负责把一次“创建/搭建/补齐应用”的需求拆成资源解析、产品设计、资源落地、页面发布和结果输出。全局 CLI、ID、存储、发布和输出规则以主入口 `SKILL.md` 为准；按步骤执行该步骤所需 `use_skill(...)`。
+
+## 步骤模版（进行时展示给用户看的步骤）
+
+完整应用搭建时，直接使用对应模式的步骤名称。
+
+**Plan 模式**
+
+1. 需求识别与分析
+2. 设计功能和页面
+3. 生成PRD方案&确认
+4. 创建应用
+5. 搭建表单与审批流
+6. 准备示例数据
+7. 搭建业务页面
+8. 发布页面与配置导航
+9. 检查功能并交付
+
+**Fast 模式**
+
+1. 需求识别与分析
+2. 设计功能和页面
+3. 创建应用
+4. 搭建表单与审批流
+5. 准备示例数据
+6. 搭建业务页面
+7. 发布页面与配置导航
+8. 检查功能并交付
+
+已有应用时，直接省略“创建应用”，不另列“复用现有应用”待办，后续步骤重新编号；无需示例数据时跳过对应步骤。步骤状态按真实进度更新，有独立输入的工作可同时进行。
+
+禁区：待办标题、说明和进度不出现技能名、命令、文件路径、登录账号、内部资源 ID；这些留在工具调用里。用户明确询问技术细节时再解释。
 
 ## 触发条件
 
@@ -13,12 +44,14 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 
 ## 工作流
 
-按以下 9 个执行步骤顺序推进。每一步开始前先读取对应 workflow 文件；当前步骤达到 doneWhen 后再进入下一步。
+完整应用先分析需求；首次搭建按 yida-requirement-analysis/workflow/prepare-brief.md 确认未决事项，再进入已选 Fast / Plan。两种模式共享需求分析与 PRD 契约，以下并行生成规则用于 Fast；Plan 确认当前版本后交接派生文件，直接进入 Step 3。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。
+
+以下 9 步仅用于内部执行，不复制为宿主待办；用户可见的步骤名称直接使用上方“步骤模版”。每一步开始前读取对应 workflow 文件；按真实依赖满足下游输入后继续。Step 3 拿到 appType 即可启动表单创建，主题生成与设置同步作为独立分支继续，不将主题完成作为所有后续步骤的串行前置条件。无直接依赖的页面同时开发，每页只等待自身资源，独立校验并发布；全部页面完成后再统一导航排序。
 
 | 步骤 | 名称 | 目标 | 产出 |
 | --- | --- | --- | --- |
 | 1 | [解析资源上下文](workflow/step-1-resource-context.md) | 合并本轮显式资源、绑定上下文、workspace 配置/缓存和会话历史，确认复用还是允许创建 | 目标 app/page/form/process 上下文 |
-| 2 | [产品与视觉并行设计](workflow/step-2-design.md) | 先执行 `yida-requirement-analysis` 整理用户需求，再同时执行 `yida-prd` 与 `yida-design`，由本技能校验两份结果 | 内部 `requirement-brief.json` + `prd.md` + `design.md` |
+| 2 | [业务与视觉设计](workflow/step-2-design.md) | 整理需求后按 Fast 并行生成，或按 Plan 生成方案并确认；校验 PRD 与视觉契约 | 内部 `requirement-brief.json` + `prd.md` + `design.md` |
 | 3 | [创建或复用应用](workflow/step-3-create-or-reuse-app.md) | 已有 `appType` 直接复用；缺少 app 且允许创建时执行 `use_skill("yida-create-app")` | 真实目标 `appType` |
 | 4 | [创建或更新业务资源](workflow/step-4-forms-processes.md) | 执行 `use_skill("yida-create-form-page")`；按 PRD 执行 `use_skill("yida-create-process")`、`use_skill("yida-get-schema")`、`use_skill("yida-report")` 和 `use_skill("yida-integration")` | 真实 `formUuid`、`processCode`、必要 `fieldId/reportId` |
 | 5 | [写入初始表单数据](workflow/step-5-seed-records.md) | 执行 `use_skill("yida-data-management")`，为核心普通表单写入 1-3 条业务化 seed records 并 query 抽查 | 真实表单记录或明确跳过原因 |
@@ -26,6 +59,8 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | 7 | [编写或更新页面](workflow/step-7-page-code.md) | 执行 `use_skill("yida-canvas-custom-page")`；看板/工作台/驾驶舱必须再执行 `use_skill("yida-dashboard")`，读取表单数据时必须执行 `use_skill("yida-canvas-data-binding")` | 页面源码和真实 dataBinding 通过校验 |
 | 8 | [发布页面并排序导航](workflow/step-8-publish-navigation.md) | 执行 `use_skill("yida-publish-page")`，发布本轮源码到主页面并执行轻量导航排序 | 已发布主页面 URL |
 | 9 | [输出与收尾](workflow/step-9-output-finish.md) | 核对完成条件，按业务语言输出结果 | 2-3 句业务总结 + 一组应用访问入口 |
+
+独立工作按 [并行执行](workflow/parallel-work.md) 调度，任务分别产出，由主流程汇合。计划或主题确认后立即生成主题 CSS，appType 和 CSS 就绪就同步应用设置，不等待页面开发完成。
 
 ## 核心规则
 
@@ -66,8 +101,8 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | 文档 | 覆盖范围 | 何时阅读 |
 | --- | --- | --- |
 | [Step 1：解析资源上下文](workflow/step-1-resource-context.md) | 只读预检、资源优先级、命令选择、路径口径 | 必读 |
-| [Step 2：产品与视觉并行设计](workflow/step-2-design.md) | 整理用户需求、同时生成并校验 PRD 与视觉设计、主题 key | 必读 |
-| [Step 3：创建或复用应用](workflow/step-3-create-or-reuse-app.md) | app 复用、app 创建、主题 key | 必读 |
+| [Step 2：业务与视觉设计](workflow/step-2-design.md) | 模式选择、业务与视觉交接、主题文件交付 | 必读 |
+| [Step 3：创建或复用应用](workflow/step-3-create-or-reuse-app.md) | app 复用、app 创建、主题文件与导航配置 | 必读 |
 | [Step 4：创建或更新表单/流程](workflow/step-4-forms-processes.md) | 表单、流程、字段 ID 与表单结构规则 | 必读 |
 | [Step 5：写入初始表单数据](workflow/step-5-seed-records.md) | seed records、字段类型、query 抽查、跳过条件 | 必读 |
 | [Step 6：创建或复用主页面](workflow/step-6-main-page.md) | display 页面复用、页面创建、corpId 一致性检查 | 必读 |

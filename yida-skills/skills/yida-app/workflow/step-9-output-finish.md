@@ -2,6 +2,8 @@
 
 最终输出让用户先理解业务能力，再看到一组用途明确的应用访问入口。内部 ID、构建产物、中间文件和逐项业务资源不作为用户可见交付物。
 
+交付话术遵循 [用户可见表达契约](../../yida-design/references/ask-human-interaction-contract.md)。本文件中的接口字段用于内部核验；对用户描述已验证的业务效果。例如，自定义导航完成配置和跨页跳转验证后写“已启用自定义导航，可在各业务页面间切换”。尚未验证的部分如实说明待验证的页面或操作。
+
 ## 输入
 
 - 发布成功证据；
@@ -21,7 +23,7 @@
 4. 获得可访问 URL；
 5. 轻量导航排序已执行，或给出明确 warning；
 6. 新建或作为页面数据源的核心普通表单已写入 1-3 条真实示例记录并 query 抽查，或明确说明跳过原因；
-7. 应用主题文件已在应用级统一配置，自定义页面只在 `YidaComp` 内消费对应 token，未向上层注入或同步主题样式。
+7. 汇合此前并行执行的主题任务，确认 `themeVerification.verified=true`、`colour=custom`、`themeColor`、`navTheme`、`layoutDirection` 与已确认设置一致，`customThemeStyle.cssUrl` 非空；这里是完成检查，不是首次更新主题的时机。应用主题文件已在应用级统一配置，自定义页面只在 `YidaComp` 内消费对应 token，未向上层注入或同步主题样式。
 8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；该命令只证明页面/资源数量完整性，不能替代第 3 条运行态数据验收。只有 `verdict=pass` 且运行态数据证据通过时才说“已按 PRD 完成搭建”；`verdict=needs_review` 时可以交付但必须列出 `items` 中 `status=needs_review/not_checked` 的复核项，`verdict=fail` 时列出 `hardFailures` 并说明未完成；
 9. 未继续执行用户未要求的公开访问、截图验收、报表、大屏、数据源深接或精细导航分组。
 
@@ -124,3 +126,5 @@
 - [ ] 结构化结果中的 `skillsUsed` 只包含实际读取并使用的技能；
 - [ ] 未把 CDN 构建产物当作交付链接；
 - [ ] 未执行用户未要求的可选后置动作。
+
+自定义导航应用交付前，核对应用导航已隐藏，且 PRD 清单中每个表单、流程表单和自定义页面均有 `get-form-config` 返回 `isRenderNav=false` 的记录。任一页面配置失败时，该导航方案尚未完成。

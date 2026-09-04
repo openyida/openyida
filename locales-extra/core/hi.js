@@ -20,6 +20,11 @@ module.exports = {
     cmd_app_list: 'मेरे Yida ऐप सूचीबद्ध करें',
     cmd_corp_efficiency: 'एंटरप्राइज दक्षता अवलोकन और विवरण रिपोर्ट क्वेरी करें',
     cmd_create_app: 'Yida ऐप बनाएं',
+    cmd_design_plan_preview: 'मॉड्यूल के अनुसार योजना का मसौदा अपडेट करें',
+    design_plan_preview_invalid: 'मसौदा अपडेट विफल; त्रुटि विवरण देखें',
+    cmd_design_plan_init: 'पुष्टि की गई आवश्यकताओं से योजना का मसौदा बनाएँ',
+    cmd_design_plan_materialize: 'build-plan.json से योजना आउटपुट बनाएं और जाँचें',
+    cmd_design_plan_patch: 'फ़ील्ड पथ से योजना बदलें और पुरानी पुष्टि अमान्य करें',
     cmd_update_app: 'ऐप जानकारी अपडेट करें',
     cmd_app_online: 'Yida ऐप सक्षम करें',
     cmd_app_offline: 'Yida ऐप अक्षम करें',
@@ -29,6 +34,7 @@ module.exports = {
     cmd_export: 'ऐप निर्यात करें (माइग्रेशन पैकेज)',
     cmd_import: 'माइग्रेशन पैकेज आयात करें, ऐप पुनर्निर्माण',
     group_form: 'फॉर्म & पेज',
+    cmd_create_form_batch: 'निर्भरताओं के अनुसार फ़ॉर्म समानांतर बनाएँ',
     cmd_create_form: 'फॉर्म पेज बनाएं',
     cmd_list_form_icons: 'उपलब्ध फ़ॉर्म नेविगेशन आइकन सूचीबद्ध करें',
     cmd_validate_form: 'Validate form field JSON locally',
@@ -134,7 +140,7 @@ module.exports = {
       '  copy [--force]                                               Copy project directory to current AI tool environment\n' +
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
-      '  create-app "<name>" [desc] [icon] [color] [theme] [nav] [layout]  Create an app, output appType\n' +
+      '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
       '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
@@ -614,9 +620,10 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    update_only_option: '{0} केवल अपडेट के लिए है। पहले ऐप बनाएँ, फिर openyida update-app <appType> का उपयोग करें।',
     title: '  create-app - Yida ऐप निर्माण टूल',
-    usage: 'उपयोग: openyida create-app "<ऐप नाम>" या openyida create-app --name "<ऐप नाम>" [--desc "..."] [--theme deepBlue]',
-    example: 'उदाहरण: openyida create-app --name "मेरा ऐप" --desc "ऐप विवरण" --theme deepBlue',
+    usage: 'उपयोग: openyida create-app "<ऐप नाम>" या openyida create-app --name "<ऐप नाम>" [--desc "..."]',
+    example: 'उदाहरण: openyida create-app --name "मेरा ऐप" --desc "ऐप विवरण"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -704,6 +711,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    batch_invalid: 'अमान्य फ़ॉर्म बैच; त्रुटि विवरण देखें',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
     app_id: '\n  ऐप ID:    {0}',
@@ -958,6 +966,9 @@ module.exports = {
     err_open_url_empty: 'openUrl पथ खाली नहीं हो सकता: {0}'
   },
   update_app: {
+    theme_preset_conflict: 'प्रीसेट colour को CSS या themeColor के साथ नहीं भेज सकते। --colour custom उपयोग करें या --colour छोड़ दें।',
+    custom_theme_color_required: 'colour=custom के लिए थीम फ़ाइल या मान्य themeColor चाहिए। --theme-file या --theme-color दें।',
+    theme_not_persisted: 'सहेजने के बाद ऐप की थीम सेटिंग की पुष्टि नहीं हो सकी। themeVerification जाँचें और update-app <appType> --theme-file <css> से पुनः प्रयास करें; ऐप दोबारा न बनाएँ।',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1193,6 +1204,7 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_inline_css_invalid: 'पंक्ति {0} के पास CSS में अधूरा या बेमेल कोष्ठक, स्ट्रिंग या टिप्पणी है। प्रकाशित करने से पहले ठीक करें।',
     title: '  yida-publish - Yida पेज प्रकाशन टूल',
     platform: '  प्लेटफ़ॉर्म: {0}',
     base_url: '\n  Platform: {0}',

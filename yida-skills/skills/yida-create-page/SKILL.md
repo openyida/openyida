@@ -60,6 +60,8 @@ openyida create-page <appType> <pageName> [--mode dashboard] [--hide-nav]
 | `--mode dashboard` | 否 | 看板/驾驶舱页面推荐使用；只表达页面模式，不会自动隐藏导航 |
 | `--hide-nav` | 否 | 仅当用户显式要求页面隐藏导航 / 无导航 / 全屏无框时使用；创建后隐藏页面级导航，并输出带 `isRenderNav=false` 的页面 URL；这不等同于应用导航隐藏，自绘应用侧导航需另执行 `openyida update-app <appType> --hide-app-nav` |
 
+页面导航需要隐藏时，创建成功拿到真实 `formUuid` 就配置并回读，可与源码开发并行；不等待页面发布。已确认的自定义应用导航隐藏在应用设置更新时同步保存，与这里的页面级配置分开执行。
+
 默认生成页面导航可见；仅说“看板 / 驾驶舱 / 首页 / 门户 / 工作台”不等于隐藏导航。
 
 ## 输出

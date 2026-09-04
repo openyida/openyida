@@ -11,17 +11,27 @@ const path = require('path');
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
 const MAX_TARBALL_BYTES = 1792 * 1024;
-const MAX_UNPACKED_BYTES = 5632 * 1024;
-const MAX_ENTRY_COUNT = 433;
+// Includes theme/navigation workflow updates and the inline CSS guard (6071113 bytes).
+const MAX_UNPACKED_BYTES = 5936 * 1024;
+// The inline CSS guard adds one runtime file to the previous 483-file package.
+const MAX_ENTRY_COUNT = 484;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
   'bin/yida.js',
+  'lib/app/create-form/batch.js',
+  'lib/app/inline-css-guard.js',
+  'lib/design-plan/preview.js',
+  'yida-skills/skills/yida-app/workflow/incremental-preview.md',
+  'yida-skills/skills/yida-create-form-page/references/batch-forms.md',
   'lib/core/utils.js',
   'project/config.json',
   'scripts/postinstall.js',
   'yida-skills/SKILL.md',
   'yida-skills/skills-index.json',
+  'lib/samples/openyida-scaffold/canvas-dialog.canvas.jsx',
+  ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
+  'yida-skills/skills/yida-canvas-custom-page/references/dialog-guide.md',
 ];
 
 const FORBIDDEN_PACKAGE_PREFIXES = [

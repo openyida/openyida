@@ -1055,7 +1055,7 @@ describe('compileCanvasLocal', () => {
     expect(runtimeCode).toContain('FormOpenContainer');
     expect(runtimeCode).toContain('readThemeColor');
     expect(src).toContain('min-height: 100vh');
-    expect(src).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(src).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
     expect(src).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
     expect(src).toContain('border: var(--pod-card-border, none)');
     expect(src).toContain('border-radius: var(--pod-card-border-radius, 20px)');
@@ -1081,13 +1081,16 @@ describe('compileCanvasLocal', () => {
     );
 
     const root = schema.pages[0].componentsTree[0];
-    expect(root.props.contentBgColor).toBe('var(--pod-page-bg-color, var(--color-white, #fff))');
-    expect(root.props.contentBgColorMobile).toBe('var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(root.props.contentBgColor).toBe('var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
+    expect(root.props.contentBgColorMobile).toBe('var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
     expect(root.props.pageStyle).toEqual({
-      backgroundColor: 'var(--pod-page-bg-color, var(--color-white, #fff))',
+      backgroundColor: 'var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))',
     });
     expect(root.css).not.toContain('body{background-color:');
     expect(root.css).not.toContain('background-color:#f2f3f5');
+    expect(root.css).toContain('.vc-page-yida-pure-container:has(> .yida-code-canvas){min-height:100vh}');
+    expect(root.css).toContain('.yida-code-canvas{display:flow-root}');
+    expect(root.children[0].componentName).toBe('YidaCodeCanvas');
     const deepYidaComponents = schema.pages[0].componentsMap.filter(
       (entry) => entry.package === '@ali/vc-deep-yida'
     );
@@ -1137,6 +1140,36 @@ describe('compileCanvasLocal', () => {
     ].forEach((methodName) => {
       expect(CANVAS_YIDA_API_BRIDGE_SOURCE).toContain("'" + methodName + "'");
     });
+  });
+
+  test.each([
+    ['/APP_HOTEL/workbench/FORM-BOARD', true],
+    ['/APP_HOTEL/workbench/FORM-BOARD?status=empty#/rooms', true],
+    ['/APP_OTHER/submission/FORM-1', true],
+    ['/APP_HOTEL/workbench', true],
+    ['https://example.com/APP_HOTEL/workbench/FORM-BOARD', true],
+    ['//example.com/APP_HOTEL/workbench', true],
+    ['FORM-BOARD', false],
+    ['/FORM-BOARD', false],
+    ['/room-board', false],
+  ])('router bridge opens %s without duplicating the application prefix', (path, isUrl) => {
+    const router = {
+      basename: '/APP_HOTEL/workbench',
+      push: jest.fn(function(target, params, newTab, fullUrl = false) {
+        return { href: fullUrl ? target : this.basename + '/' + target.replace(/^\//, ''), params, newTab };
+      }),
+    };
+    const createBridge = new Function(CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaCreateRouterBridge;')();
+    const bridge = createBridge({ router });
+    const params = { status: 'empty' };
+    expect(bridge.push(path, params, false)).toEqual({
+      href: isUrl ? path : router.basename + '/' + path.replace(/^\//, ''), params, newTab: false,
+    });
+    expect(bridge.push(path, params, true).newTab).toBe(true);
+    bridge.push(path, params, false, false, 'replace');
+    expect(router.push).toHaveBeenLastCalledWith(path, params, false, false, 'replace');
+    bridge.push(path, params, false, true);
+    expect(router.push).toHaveBeenLastCalledWith(path, params, false, true);
   });
 
   test('Yida API bridge forwards form, process, design, and runtime-discovered methods', async () => {

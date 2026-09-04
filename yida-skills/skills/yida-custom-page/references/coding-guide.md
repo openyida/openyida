@@ -566,6 +566,8 @@ this.utils.toast({ title: '调试信息', type: 'info' });
 
 ### 16. iframe 嵌入表单 URL 规范
 
+同一表单的 workbench 入口包含管理视图，submission 入口直接填写提交；`hideLeftNav` 等显示参数不改变入口用途或标签打开方式。应用级办理导航可在主内容区嵌入提交页，页面内新增/详情按钮使用抽屉；URL 参数保留规则见 [链接参考](../../../references/field-and-url-reference.md)。本节适用于平台 JSX 组件维护；Canvas 页面通过数据桥跳转，完整地址的 URL 模式及兼容兜底见 [导航路由说明](../../yida-nav-shell/references/nav-shell-patterns.md#路由模式与数据桥兜底)。
+
 在自定义页面中通过 iframe 嵌入宜搭表单时，需使用正确的 URL 格式：
 
 | 场景 | URL 格式 |

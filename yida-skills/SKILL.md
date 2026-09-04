@@ -10,6 +10,37 @@ description: >
 
 在执行宜搭应用/页面/审批流等任务前先确认环境与登录态，再根据用户需求和已解析的 app/page/form/process 等上下文资源，分析任务属于完整搭建、已有资源补齐还是单点任务，并加载对应子技能执行。
 
+## 步骤模版（进行时展示给用户看的步骤）
+
+完整应用搭建时，直接使用对应模式的步骤名称。
+
+**Plan 模式**
+
+1. 需求识别与分析
+2. 设计功能和页面
+3. 生成PRD方案&确认
+4. 创建应用
+5. 搭建表单与审批流
+6. 准备示例数据
+7. 搭建业务页面
+8. 发布页面与配置导航
+9. 检查功能并交付
+
+**Fast 模式**
+
+1. 需求识别与分析
+2. 设计功能和页面
+3. 创建应用
+4. 搭建表单与审批流
+5. 准备示例数据
+6. 搭建业务页面
+7. 发布页面与配置导航
+8. 检查功能并交付
+
+已有应用时，直接省略“创建应用”，不另列“复用现有应用”待办，后续步骤重新编号；无需示例数据时跳过对应步骤。步骤状态按真实进度更新，有独立输入的工作可同时进行。
+
+禁区：待办标题、说明和进度不出现技能名、命令、文件路径、登录账号、内部资源 ID；这些留在工具调用里。用户明确询问技术细节时再解释。
+
 ## 执行步骤
 
 ### Step 1：环境与登录态确认
@@ -84,8 +115,8 @@ description: >
 
 | 用户意图 | 选哪个 |
 | --- | --- |
-| 从零搭一个完整应用/系统 | `yida-app`；统一编排，先整理用户需求，再同时生成并校验 `prd.md` 与 `design.md` |
-| 已有 app 但没有任何页面，需要补成完整系统 | `yida-app`；复用已有 `appType`，按 PRD 补齐表单、流程、页面（如需要）和导航 |
+| 从零搭一个完整应用/系统 | `yida-app`；先分析需求并完成首次搭建确认，再规划与搭建 |
+| 已有 app 但没有任何页面，需要补成完整系统 | `yida-app`；属于首次搭建，同样先询问搭建方式，复用已有 `appType` 补齐资源 |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
 | 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成 PRD |
@@ -137,7 +168,7 @@ description: >
 10. **读取与复核用合适工具**：读取或定位 workspace 文件优先用当前工具的 Read / Glob / Grep 或 `rg`；OpenYida CLI 已返回成功 JSON、URL、`appType`、`formUuid` 或 `fieldId` 时，以 CLI 结果作为证据。
 11. **资源 ID 必须精确**：`appType`、`formUuid`、`fieldId` 等应用、表单、字段 ID 必须来自 CLI/API/cache 证据并一字不差传入命令和源码；不得凭名称、截图、相似前缀或记忆补写、改写、截断。
 12. **字段和 Schema 以证据为准**：字段级表单操作优先交给 `create-form update/add-option/bind-datasource/validation/rule` 的 schema-aware 解析；页面代码、数据、流程、公式等需要字段映射时，每表单一次性执行 `openyida get-schema --field-map-json` 并缓存字段摘要。
-13. **产品与视觉分工固定**：完整应用先由 `yida-requirement-analysis` 整理用户需求，再由 `yida-prd` 与 `yida-design` 同时输出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`，最后由 `yida-app` 做一致性校验；页面目标、区块、数据和交互以 PRD 为准，布局、主题、材质和状态视觉以 design.md 为准。
+13. **产品与视觉分工固定**：完整应用先分析需求；首次搭建按 yida-requirement-analysis/workflow/prepare-brief.md 确认未决事项，再进入已选 Fast / Plan。两种模式共享需求分析与 PRD 契约，以下并行生成规则用于 Fast；Plan 确认当前版本后交接派生文件，直接进入 Step 3。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。完整应用先由 `yida-requirement-analysis` 整理用户需求，再由 `yida-prd` 与 `yida-design` 同时输出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`，最后由 `yida-app` 做一致性校验；页面目标、区块、数据和交互以 PRD 为准，布局、主题、材质和状态视觉以 design.md 为准。
 14. **配置优先于页面代码**：字段、公式、联动、报表、审批和集成交给对应技能；自定义页面负责展示数据、放置业务入口，并串联表单、流程、报表和导航入口。
 15. **Canvas 运行桥统一口径**：`.canvas.jsx` / `.canvas.tsx` 发布为 `YidaCodeCanvas` 时，外层页面 `didMount` 默认注入 `window.__OPENYIDA_YIDA_API__` 和 `window.__OPENYIDA_UTILS__`。Canvas 组件内部不得直接写 `this.utils.yida.*`；表单/流程/表单设计 API 走 `window.__OPENYIDA_YIDA_API__`，`toast/dialog/openPage/router.push/isMobile` 等根级工具走 `window.__OPENYIDA_UTILS__`，且 `window.__OPENYIDA_UTILS__.yida` 指向同一个 yida API 桥。
 16. **分页查询默认 pageSize 50**：生成表单、流程、任务、成员等分页查询代码时，一般显式写 `pageSize: 50` 或 `pageSize: '50'`。除非用户明确要求小页或大页，不写 `20`、`100` 等其他值；平台上限仍是 100。
@@ -159,7 +190,7 @@ description: >
 20. **报表和可视化先分流**：标准统计与原生报表用 `yida-report`；定制图表页面默认用 `yida-rechart`；只有明确 ECharts、维护旧 ECharts 页面或复杂 option 超出 Recharts 能力时用 `yida-chart`。
 21. **应用主题只有一份**：涉及应用蓝图、页面视觉、应用主题色、品牌色、全局换肤或 `--color-brand1-*` 时先读 `yida-design`。`app-theme.css` 只在应用级统一配置，由平台作用于应用壳、原生表单、详情页和自定义页面外层。严禁在页面级重复写入、同步或向上层注入主题样式；`YidaCodeCanvas` 源码只在 `YidaComp` 内消费现有主题 token。
 22. **默认完成即停止**：完整应用默认以资源发布成功、轻量导航排序完成、示例数据就绪并输出一组有明确名称的应用入口与业务交付总结为 doneWhen；截图、精细导航整理和额外深读属于 optionalAfterDone，除非用户明确要求。
-23. **输出业务化**：最终回复先写 2-3 句业务交付总结，再给一组“应用访问入口”。不得把需求信息文件、PRD、视觉设计、build manifest、资源清单、Schema 或每个表单/流程/报表分别登记成用户可见交付物；完整应用始终给工作台入口，主页面经 PRD 标记为 `standalone` 且导航配置回读通过时增加独立业务入口，非云端 Agent 再增加开发后台入口。
+23. **输出业务化**：对话、任务列表、步骤标题、进度和提问面向非技术用户，用“需求识别与分析”“设计页面”“搭建应用”等简短动作描述；文件名、路径、技能名和调用方式留在内部执行。PRD 业务说明、HTML 和消息使用功能与体验描述；接口参数、配置键值及内部 ID 留在 Agent 实施交接，遵循[用户可见表达契约](skills/yida-design/references/ask-human-interaction-contract.md)。最终回复先写 2-3 句业务交付总结，再给一组“应用访问入口”。不得把需求信息文件、PRD、视觉设计、build manifest、资源清单、Schema 或每个表单/流程/报表分别登记成用户可见交付物；完整应用始终给工作台入口，主页面经 PRD 标记为 `standalone` 且导航配置回读通过时增加独立业务入口，非云端 Agent 再增加开发后台入口。
 24. **任务复盘沉淀**：用户多次纠正、平台接口假成功、页面骨架共性质量问题、线上回读验收方法、一次性脚本可产品化等情况，完成前判断是否需要沉淀到 CLI、测试或 skill。
 
 常见问题见 [常见问题解决方案](references/execution-rules.md)。

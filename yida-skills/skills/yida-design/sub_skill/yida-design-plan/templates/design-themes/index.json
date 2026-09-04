@@ -1,0 +1,329 @@
+{
+  "schemaVersion": "1.0",
+  "description": "视觉主题候选与完整 design.md 模板之间的轻量映射。",
+  "themes": [
+    {
+      "themeId": "airy-structured-clarity",
+      "label": "轻盈结构",
+      "description": "冷灰画布承托大圆角白色面板，以强信息层级、条件式精细构图和单一主题色焦点形成轻盈清楚的结构化体验。",
+      "templatePath": "templates/design-themes/airy-structured-clarity.md",
+      "defaultProfile": {
+        "tone": "airy-structured",
+        "surfaceStyle": "floating-white-panels",
+        "contrastLevel": "high",
+        "brandIntensity": "medium",
+        "radiusScale": "large",
+        "shadowLevel": "subtle",
+        "iconStyle": "minimal-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-brand-focus"
+      }
+    },
+    {
+      "themeId": "airy-modular-clarity",
+      "label": "轻盈拼接",
+      "description": "近白画布承托连续拼接的浅色模块，以条件式主辅层级、轻网格单焦点和图标化明细形成清楚克制的模块秩序。",
+      "templatePath": "templates/design-themes/airy-modular-clarity.md",
+      "defaultProfile": {
+        "tone": "airy-modular",
+        "surfaceStyle": "joined-light-panels",
+        "contrastLevel": "medium",
+        "brandIntensity": "low",
+        "radiusScale": "large",
+        "shadowLevel": "subtle",
+        "iconStyle": "rounded-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-brand-focus"
+      }
+    },
+    {
+      "themeId": "dark-focus-layered",
+      "label": "深色焦点层次",
+      "description": "柔和中性画布与白色浮岛中嵌入唯一深色聚焦摘要舞台，并以半透明信息组、主题色派生离散纹理和材质化对比形成鲜明而克制的层次体验。",
+      "templatePath": "templates/design-themes/dark-focus-layered.md",
+      "defaultProfile": {
+        "tone": "dark-focused-layered",
+        "surfaceStyle": "deep-focus-stage-floating-panels",
+        "contrastLevel": "high",
+        "brandIntensity": "medium",
+        "radiusScale": "large",
+        "shadowLevel": "subtle",
+        "iconStyle": "rounded-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "derived-single-brand"
+      }
+    },
+    {
+      "themeId": "high-contrast-modular",
+      "label": "高对比模块",
+      "description": "柔和中性画布承托大圆角白色浮岛，以唯一高对比主题焦点、软灰嵌套模块、深色稳定块和纹理化数据组件形成清爽醒目的模块化体验。",
+      "templatePath": "templates/design-themes/high-contrast-modular.md",
+      "defaultProfile": {
+        "tone": "crisp-modular",
+        "surfaceStyle": "nested-floating-islands",
+        "contrastLevel": "high",
+        "brandIntensity": "medium",
+        "radiusScale": "large",
+        "shadowLevel": "subtle",
+        "iconStyle": "rounded-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-high-contrast-focus"
+      }
+    },
+    {
+      "themeId": "airy-media-grid",
+      "label": "轻盈媒体栅格",
+      "description": "以纯白画布、分隔式无卡底摘要带、单行命令工具条和低对比大圆角媒体栅格构成宽松、克制、对象优先的轻量主题。",
+      "templatePath": "templates/design-themes/airy-media-grid.md",
+      "defaultProfile": {
+        "tone": "airy-object-focused",
+        "surfaceStyle": "open-white-media-grid",
+        "contrastLevel": "low",
+        "brandIntensity": "low",
+        "radiusScale": "large",
+        "shadowLevel": "minimal",
+        "iconStyle": "minimal-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-brand-focus"
+      }
+    },
+    {
+      "themeId": "ambient-halo-layered",
+      "label": "环境光晕层次",
+      "description": "以低饱和环境光晕画布、乳白半透大圆角表面、柔线微趋势和深色胶囊主操作构成宽松、轻盈而连续的层次主题。",
+      "templatePath": "templates/design-themes/ambient-halo-layered.md",
+      "defaultProfile": {
+        "tone": "ambient-airy-layered",
+        "surfaceStyle": "translucent-milk-panels",
+        "contrastLevel": "low",
+        "brandIntensity": "low",
+        "radiusScale": "large",
+        "shadowLevel": "soft",
+        "iconStyle": "rounded-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "derived-single-brand"
+      }
+    },
+    {
+      "themeId": "deep-stage-duotone",
+      "label": "深色双色舞台",
+      "description": "以浅色画布、深色聚焦舞台、同主题深浅双色数据和条件式主辅面板构成中等密度、清晰对比的层次主题。",
+      "templatePath": "templates/design-themes/deep-stage-duotone.md",
+      "defaultProfile": {
+        "tone": "deep-stage-layered",
+        "surfaceStyle": "deep-stage-light-panels",
+        "contrastLevel": "high",
+        "brandIntensity": "medium",
+        "radiusScale": "large",
+        "shadowLevel": "subtle",
+        "iconStyle": "rounded-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "derived-duotone-single-brand"
+      }
+    },
+    {
+      "themeId": "hairline-runway-clarity",
+      "label": "发丝跑道秩序",
+      "description": "以近白开放画布、无卡片分区、横纵发丝轨道、错位大数值和低饱和阶段条构成宽松、直接且高度秩序化的结构主题。",
+      "templatePath": "templates/design-themes/hairline-runway-clarity.md",
+      "defaultProfile": {
+        "tone": "airy-ordered-structural",
+        "surfaceStyle": "open-hairline-sections",
+        "contrastLevel": "medium",
+        "brandIntensity": "low",
+        "radiusScale": "small",
+        "shadowLevel": "none",
+        "iconStyle": "minimal-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-brand-with-data-series"
+      }
+    },
+    {
+      "themeId": "interlocked-vivid-modules",
+      "label": "互锁活力模块",
+      "description": "以低彩度浅画布、白色大圆角表面、互锁多强调摘要带和柔和数据纹理构成中等密度、轻阴影的活力主题。",
+      "templatePath": "templates/design-themes/interlocked-vivid-modules.md",
+      "defaultProfile": {
+        "tone": "vivid-interlocked",
+        "surfaceStyle": "interlocked-rounded-panels",
+        "contrastLevel": "medium",
+        "brandIntensity": "high",
+        "radiusScale": "large",
+        "shadowLevel": "subtle",
+        "iconStyle": "rounded-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "multi-accent-brand-led"
+      }
+    },
+    {
+      "themeId": "matrix-grid-focus",
+      "label": "矩阵网格焦点",
+      "description": "以浅中性画布、细描边表面、单主题数据标记、离散矩阵纹理和紧凑工具栏构成中高密度的精确主题。",
+      "templatePath": "templates/design-themes/matrix-grid-focus.md",
+      "defaultProfile": {
+        "tone": "precise-dense",
+        "surfaceStyle": "outlined-data-panels",
+        "contrastLevel": "medium",
+        "brandIntensity": "medium",
+        "radiusScale": "medium",
+        "shadowLevel": "minimal",
+        "iconStyle": "minimal-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-brand-data-scale"
+      }
+    },
+    {
+      "themeId": "media-rail-inspector",
+      "label": "媒体轨道检查",
+      "description": "以三轨分栏、开放筛选脊柱、图像优先对象卡和黏性对象检查器构成中高密度、柔和克制且强调真实媒体的结构主题。",
+      "templatePath": "templates/design-themes/media-rail-inspector.md",
+      "defaultProfile": {
+        "tone": "media-inspector-structured",
+        "surfaceStyle": "open-rail-media-panels",
+        "contrastLevel": "medium",
+        "brandIntensity": "low",
+        "radiusScale": "large",
+        "shadowLevel": "subtle",
+        "iconStyle": "minimal-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "derived-single-brand"
+      }
+    },
+    {
+      "themeId": "mist-layered-signal",
+      "label": "雾感层叠信号",
+      "description": "以雾白画布、无描边软阴影大圆角表面、细线微趋势和斜线带状数据纹理构成宽松、低对比而精密的层次主题。",
+      "templatePath": "templates/design-themes/mist-layered-signal.md",
+      "defaultProfile": {
+        "tone": "misty-layered",
+        "surfaceStyle": "soft-shadow-floating-panels",
+        "contrastLevel": "low",
+        "brandIntensity": "low",
+        "radiusScale": "large",
+        "shadowLevel": "soft",
+        "iconStyle": "rounded-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-brand-with-data-series"
+      }
+    },
+    {
+      "themeId": "modular-rail-signal",
+      "label": "模块轨道信号",
+      "description": "以近白画布、细描边模块、方形图标焦点、条件式主辅双列和复合趋势信号构成中等密度、清晰而富有节奏的层次主题。",
+      "templatePath": "templates/design-themes/modular-rail-signal.md",
+      "defaultProfile": {
+        "tone": "modular-rhythmic",
+        "surfaceStyle": "outlined-modular-panels",
+        "contrastLevel": "medium",
+        "brandIntensity": "medium",
+        "radiusScale": "medium",
+        "shadowLevel": "minimal",
+        "iconStyle": "rounded-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-brand-with-category-series"
+      }
+    },
+    {
+      "themeId": "mono-grid-signal",
+      "label": "单色网格信号",
+      "description": "以点阵感等宽排版、浅灰模块框、矩阵式数值单元、中央输入舞台和斜纹数据纹理构成中等密度、理性且带轻复古数字感的结构主题。",
+      "templatePath": "templates/design-themes/mono-grid-signal.md",
+      "defaultProfile": {
+        "tone": "mono-digital-structured",
+        "surfaceStyle": "framed-mono-grid",
+        "contrastLevel": "medium",
+        "brandIntensity": "medium",
+        "radiusScale": "small",
+        "shadowLevel": "minimal",
+        "iconStyle": "geometric-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "monochrome-brand-signal"
+      }
+    },
+    {
+      "themeId": "ribbon-ledger-lift",
+      "label": "丝带账册悬浮",
+      "description": "以近白画布、轻悬浮圆角表面、独立摘要卡、比例分段带与虚线分隔账册构成中高密度、清晰且具有柔和空间感的结构主题。",
+      "templatePath": "templates/design-themes/ribbon-ledger-lift.md",
+      "defaultProfile": {
+        "tone": "soft-lifted-structured",
+        "surfaceStyle": "lightly-floating-ledger-panels",
+        "contrastLevel": "medium",
+        "brandIntensity": "medium",
+        "radiusScale": "large",
+        "shadowLevel": "subtle",
+        "iconStyle": "rounded-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-brand-with-category-series"
+      }
+    },
+    {
+      "themeId": "segmented-meter-clarity",
+      "label": "分段计量秩序",
+      "description": "以近白画布、细描边圆角框架、分隔式指标带、分段微计量尺和连续网格内容构成中高密度、精确而克制的结构主题。",
+      "templatePath": "templates/design-themes/segmented-meter-clarity.md",
+      "defaultProfile": {
+        "tone": "precise-segmented",
+        "surfaceStyle": "outlined-continuous-grid",
+        "contrastLevel": "medium",
+        "brandIntensity": "medium",
+        "radiusScale": "medium",
+        "shadowLevel": "minimal",
+        "iconStyle": "minimal-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-brand-with-category-series"
+      }
+    },
+    {
+      "themeId": "split-rail-precision",
+      "label": "分轨精密",
+      "description": "以白色画布、细线分区、条件式边缘辅助轨和双重对比焦点构成中等密度、低阴影的精密主题。",
+      "templatePath": "templates/design-themes/split-rail-precision.md",
+      "defaultProfile": {
+        "tone": "precise-split-rail",
+        "surfaceStyle": "open-lined-sections",
+        "contrastLevel": "high",
+        "brandIntensity": "medium",
+        "radiusScale": "medium",
+        "shadowLevel": "minimal",
+        "iconStyle": "minimal-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-brand-dual-focus"
+      }
+    },
+    {
+      "themeId": "status-framed-media-grid",
+      "label": "状态框选媒体栅格",
+      "description": "以独立指标带、线性分类轨、媒体封面卡和叠加状态标记构成中等密度、弱边界、轻阴影且对象状态清晰的视觉主题。",
+      "templatePath": "templates/design-themes/status-framed-media-grid.md",
+      "defaultProfile": {
+        "tone": "media-status-structured",
+        "surfaceStyle": "framed-media-cards",
+        "contrastLevel": "medium",
+        "brandIntensity": "medium",
+        "radiusScale": "large",
+        "shadowLevel": "subtle",
+        "iconStyle": "rounded-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "single-brand-with-status-overlays"
+      }
+    },
+    {
+      "themeId": "dark-luminous-modular",
+      "label": "深色微光模块",
+      "description": "以近黑画布、分层暗面板、微光数据纹理和条件式主辅拼图构成中高密度、高对比且克制的视觉主题。",
+      "templatePath": "templates/design-themes/dark-luminous-modular.md",
+      "defaultProfile": {
+        "tone": "dark-luminous-modular",
+        "surfaceStyle": "layered-dark-panels",
+        "contrastLevel": "high",
+        "brandIntensity": "medium",
+        "radiusScale": "large",
+        "shadowLevel": "subtle",
+        "iconStyle": "rounded-line",
+        "motionLevel": "subtle",
+        "colorStrategy": "derived-single-brand-luminous"
+      }
+    }
+  ]
+}
