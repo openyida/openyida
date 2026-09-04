@@ -41,24 +41,10 @@ openyida get-form-config <appType> <formUuid> --json
 
 每页回读 `isRenderNav=false` 才完成；失败时修复该页配置并重读。表单在业务资源创建或复用后配置，自定义页在发布后配置，最终按 PRD 清单逐项核对。`create-page --hide-nav` 可用于新建页初始配置，仍需回读；URL 参数不能代替持久化设置。
 
-## 实现要点
+## 接入步骤
 
-- 形态按场景选：模块多用左侧栏；模块少用顶部导航；两级结构用顶部 + 侧边；大屏/沉浸页用浮动 Dock；同模块视图切换用标签。
-- 只在当前页切视图用 `React.useState`；需要分享、刷新恢复、前进后退时用 URL hash。
-- `hashchange`、`matchMedia` 等监听必须 cleanup。
-- 导航项保存 `type`、`formUuid`、`params`，不要只存 `formUuid`。
-- 跨自定义页用 `/{appType}/custom/{formUuid}`；应用导航隐藏靠 `hideAppNav`，不要给自定义页 URL 拼 `isRenderNav=false`。
-- 表单列表 iframe 用 `/{appType}/workbench/{formUuid}?iframe=true`。
-- 原生提交页/详情页需要隐藏页面导航时，才使用 `submission/{formUuid}?isRenderNav=false` 或 `formDetail/{formUuid}?formInstId=...&isRenderNav=false`。
-- 用 `URL` / `URLSearchParams` 构造地址，保留 `corpid`、`locale` 和业务参数。
-- 需要代码骨架时读 [导航壳形态目录](references/nav-shell-patterns.md)。
-
-## UI 和验收
-
-- 选中态必须明显，不能只靠很淡的颜色。
-- 图标只用 `lucide-react` 或 `@ant-design/icons` 的具体组件；不要 emoji、字母占位、CSS 画图标。
-- 移动端要收敛：侧边栏变抽屉，顶部导航变汉堡，浮动导航变底部胶囊。
-- 应用配置已开启 `hideAppNav='y'`，本轮全部页面已回读确认 `isRenderNav=false`。
-- 当前视图、选中态、内容区一致。
-- hash 深链、刷新恢复、前进后退可用。
-- 跨页参数不丢，PC 和移动端都能操作。
+1. 按 PRD 确定菜单数量、名称、顺序、分组和用途，通常将工作台放在第一位。
+2. `getAccessableNavs.json` 用来判断“工作台”“活动报名”等应用菜单是否可见；菜单数量、名称和顺序按 PRD 设计。按 [导航数据来源](references/nav-shell-patterns.md#导航数据来源) 接入 `canvas-nav-data`。
+3. 按 [导航模板](references/nav-shell-patterns.md) 复制所需形态，例如 `openyida sample openyida-page-template canvas-nav-side --output .cache/samples/canvas-nav.jsx`，合并到当前 Canvas，接入过滤后的菜单、选中状态和业务内容。
+4. 按 [入口用途与嵌入页面](references/nav-shell-patterns.md#入口用途与嵌入页面) 配置提交、查询和管理入口；按 [菜单契约](references/nav-shell-patterns.md#菜单契约) 接入页面切换。
+5. 按 [验证清单](references/nav-shell-patterns.md#验证) 检查权限、跳转、主题和移动端显示，再通过 `yida-publish-page` 发布。

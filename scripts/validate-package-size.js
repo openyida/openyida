@@ -11,10 +11,10 @@ const path = require('path');
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
 const MAX_TARBALL_BYTES = 1792 * 1024;
-// Plan assets, mode guidance, and reusable Canvas overlays are shipped source.
-const MAX_UNPACKED_BYTES = 5792 * 1024;
-// Includes the standalone dialog template and its integration guide.
-const MAX_ENTRY_COUNT = 467;
+// Plan assets, Canvas overlays, and navigation fragments are shipped source.
+const MAX_UNPACKED_BYTES = 5824 * 1024;
+// Includes seven selectively assembled navigation fragments.
+const MAX_ENTRY_COUNT = 474;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -25,6 +25,7 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/SKILL.md',
   'yida-skills/skills-index.json',
   'lib/samples/openyida-scaffold/canvas-dialog.canvas.jsx',
+  ...['shared', 'side', 'top', 'mixed', 'dock', 'tabs', 'data'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
   'yida-skills/skills/yida-canvas-custom-page/references/dialog-guide.md',
 ];
 

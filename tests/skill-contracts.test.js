@@ -1338,7 +1338,8 @@ describe('OpenYida skill contracts', () => {
     expect(navPatterns).toContain('不要用 `isRenderNav=false` 表达应用导航隐藏');
     expect(navShell).toContain('openyida update-app <appType> --hide-app-nav');
     expect(navShell).toContain('不要用 `isRenderNav=false` 代替 `hideAppNav`');
-    expect(navShell).toContain('跨自定义页用 `/{appType}/custom/{formUuid}`；应用导航隐藏靠 `hideAppNav`');
+    expect(navShell).toContain('references/nav-shell-patterns.md#入口用途与嵌入页面');
+    expect(readSkill('yida-skills/skills/yida-nav-shell/references/nav-shell-patterns.md')).toContain('`/{appType}/custom/{formUuid}` 地址可继续使用');
     expect(createPage).toContain('默认生成页面导航可见');
     expect(createPage).toContain('`--mode dashboard` | 否 | 看板/驾驶舱页面推荐使用；只表达页面模式，不会自动隐藏导航');
     expect(createPage).toContain('这不等同于应用导航隐藏');
@@ -1464,7 +1465,8 @@ describe('OpenYida skill contracts', () => {
     expect(pageUiux).toContain('formDetail/{formUuid}?formInstId={formInstId}&navConfig.layout=1180&isRenderNav=false');
     expect(canvas).toContain('表单打开入口统一容器');
     expect(canvas).toContain('FormOpenContainer');
-    expect(canvas).toContain('按钮事件只能调用 `openForm({ type: "submission" | "detail", ... })`');
+    expect(canvas).toContain('openyida sample openyida-page-template form-open-container');
+    expect(canvas).toContain('references/navigation-and-entry-guide.md#接入示例');
     expect(navGuide).toContain('"openMode": "responsive-drawer"');
     expect(navGuide).toContain('"hideNav": true');
     expect(navGuide).toContain('openyida sample openyida-page-template form-open-container');
@@ -1481,7 +1483,7 @@ describe('OpenYida skill contracts', () => {
     expect(navGuide).toContain('formDetail/${entry.formUuid}?formInstId=');
     expect(navGuide).toContain('navConfig.layout=1180');
     expect(navGuide).toContain('row.formInstId || row.formInstanceId || row.instanceId || row.id');
-    expect(navGuide).toContain('禁止打开 `formInstId=` 为空的详情页');
+    expect(navGuide).toContain('有实例 ID 时启用详情按钮；缺少时禁用按钮，并提示“未找到数据实例”');
     expect(navGuide).toContain('&isRenderNav=false');
     expect(navGuide).toContain('FormOpenContainer');
     expect(navGuide).toContain('按钮事件只调用 `openForm(request)`');
@@ -1540,8 +1542,9 @@ describe('OpenYida skill contracts', () => {
     expect(density).toContain('## 平台 JSX 组件维护注意事项');
     expect(density).not.toContain('## Legacy/native fallback');
 
-    expect(navShell).toContain('需要分享、刷新恢复、前进后退时用 URL hash');
-    expect(navShell).toContain('需要代码骨架时读 [导航壳形态目录]');
+    expect(navShell).toContain('references/nav-shell-patterns.md#菜单契约');
+    expect(navShell).toContain('openyida sample openyida-page-template canvas-nav-side');
+    expect(navShell).toContain('[导航模板](references/nav-shell-patterns.md)');
     expect(navShell).not.toContain('新建导航壳默认交 **YidaCodeCanvas**');
 
     expect(pageUiux).toContain('视觉设计技能，输出 `design.md`');

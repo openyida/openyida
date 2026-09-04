@@ -8,6 +8,7 @@
 - 发布层会把根级工具注册到 `window.__OPENYIDA_UTILS__`；可用时优先通过 `window.__OPENYIDA_UTILS__.router.push` 做应用内跳转，通过 `window.__OPENYIDA_UTILS__.openPage` 打开外部链接或新窗口场景。
 - `openPage` / `window.open` 更适合外部链接、新标签、钉钉链接、文件预览等场景；同应用页面默认在当前应用壳内切换。
 - 页面隐藏应用导航后，页面内自绘导航壳接管跨视图切换；导航可见时使用平台导航承载同级页面切换。
+- 自绘应用导航按 PRD 安排数量、顺序、分组和任务入口，通常工作台在首位；当前用户的 `getAccessableNavs.json` 结果只用于过滤不可见入口。数据片段和接入规则见 [导航数据来源](../../yida-nav-shell/references/nav-shell-patterns.md#导航数据来源)。
 
 ## 导航决策
 
@@ -32,6 +33,10 @@
 - 不要让平台应用导航和自绘应用级导航同时出现。
 
 ## 目标分类
+
+导航选中态已标明当前页面时，内容区直接进入表单、列表或业务区块。独立页头仅用于补充对象名称、任务说明或操作；iframe 的可访问 `title` 与业务分区标题保留。移除与菜单同名的页头后，一并回收标题间距和高度预留。
+
+先依据入口的主任务选择落点：报名、申请、预约、反馈等面向填写人的入口优先显示原生提交页；查询记录、审核、维护等面向管理人的入口显示数据管理页。自定义导航中的“活动报名”直接在内容区嵌入提交页；页面内“新增/报名”按钮使用下方抽屉。两种用途可以关联同一表单，分别用业务名称表达。
 
 | 目标 | 推荐配置 | 跳转方式 |
 | --- | --- | --- |
@@ -78,13 +83,17 @@
 }
 ```
 
+## 按需接入自定义导航
+
+PRD 确定使用自定义导航时，按 [导航模板](../../yida-nav-shell/references/nav-shell-patterns.md) 通过 `openyida sample` 复制侧边、顶部、混合或悬浮组件。CLI 只输出所选布局；将片段合并到当前 Canvas 单文件，接入现有菜单与选中状态，保留业务内容和路由。样式直接消费应用导航 token，页内标签和表单抽屉分别按需复制。
+
 ## 标准 FormOpenContainer
 
-自定义页面内凡是点击按钮去新增、提交或查看表单详情，统一封装成同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；新标签只用于外部 URL 或用户主动点击抽屉标题栏的新窗口操作。PC 端容器表现为右侧抽屉 + iframe，移动端直接进入原生表单页，关闭抽屉后触发当前页刷新。
+页面内操作按钮去新增、提交或查看表单详情时，统一封装成同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；新标签只用于外部 URL 或用户主动点击抽屉标题栏的新窗口操作。PC 端容器表现为右侧抽屉 + iframe，移动端直接进入原生表单页，关闭抽屉后触发当前页刷新。应用级办理导航的提交页在主内容区嵌入，导航选中态与当前任务一致。
 
 YidaCodeCanvas 推荐使用 antd `Drawer`。`FormOpenContainer` 只负责打开原生提交页或详情页。通用 `CanvasDrawer` 提供标题栏、全屏/退出全屏、关闭、内容卡片和 `extra` 操作区，表单容器额外提供新窗口打开。
 
-抽屉优先消费当前应用的 `--pod-shell-theme-bg-color`、`--pod-page-header-*`、`--pod-drawer-border-radius`、`--pod-drawer-shadow` 和 `--pod-card-*`，保留 Fusion `--drawer-*` 与基础色回退。样式由 `rootClassName` 限定，Drawer 挂载到 body 时也能命中；保留 CSS `var(...)` 响应主题变化。整体暗色需配套设置背景、文字和卡片 token，导航明暗不作为整体暗色的判断依据。iframe 内容由平台渲染，不注入样式；内层容器零内边距，高度随抽屉伸缩。
+模板已内置抽屉主题样式，背景默认使用 `--pod-shell-theme-bg-color`。自定义背景时传入 `CanvasDrawer.background`；表单入口通过 `openForm({ type: 'submission', formUuid, background: 'var(--pod-card-bg-color)' })` 设置。iframe 内页面使用平台主题。
 
 ### 给已有页面添加抽屉
 
@@ -178,7 +187,7 @@ function openEntry(entry, currentAppType, runtime) {
     return;
   }
   if (utilsBridge && utilsBridge.router && typeof utilsBridge.router.push === 'function') {
-    utilsBridge.router.push(href);
+    utilsBridge.router.push(href, {}, false, true);
     return;
   }
   window.location.href = href;
@@ -189,9 +198,9 @@ function openEntry(entry, currentAppType, runtime) {
 
 验收时检查抽屉 `iframeSrc` 或移动端打开地址包含 `isRenderNav=false`；详情页还必须包含真实 `formInstId`。如果目标表单已另有 query 参数，必须用统一 URL 构造函数合并为 `&isRenderNav=false`，不要丢掉 `corpid`、来源页或业务参数。
 
-详情页实例 ID 以 `searchFormDatas` 返回行的 `row.formInstId` 为准，兼容兜底顺序只能写成 `row.formInstId || row.formInstanceId || row.instanceId || row.id`。缺少实例 ID 时禁用详情按钮或提示“未找到数据实例”，禁止打开 `formInstId=` 为空的详情页。
+详情入口使用模板的 `getYidaFormInstId(row)` 解析 `searchFormDatas` 返回行，取值顺序为 `row.formInstId || row.formInstanceId || row.instanceId || row.id`。有实例 ID 时启用详情按钮；缺少时禁用按钮，并提示“未找到数据实例”。
 
-如果 `window.__OPENYIDA_UTILS__.router.push` 可用，可把同应用 `page/app` 的同页跳转替换成壳层 `push`；没有该桥时，不猜内部对象，使用上面的工作台 URL。
+路由参数使用 `push(path, params, newTab, isUrl)`：页面 ID 或应用内路由使用 `push('FORM-xxx', params)`；带应用前缀的完整地址使用 `push(href, params, false, true)`。发布层桥接会在省略 `isUrl` 时为 `/APP_...`、HTTP(S) 和协议相对地址启用 URL 模式；显式传入的模式保持原样。桥不可用时使用 `window.location.href = href` 在当前窗口打开。
 
 PC 抽屉内的 iframe 高度随内容区拉满，提交页和详情页默认使用半屏宽度 `50vw`。左边缘支持拖拽调宽，最小 480px（窄视口放宽到半屏），最大为视口的 90%；拖动时捕获指针并暂停 iframe 的鼠标响应，结束后恢复。双击边缘恢复半屏，聚焦边缘后可用左右方向键调宽。点击全屏展开到 `100vw`，退出全屏或关闭后重新打开保留已调整的宽度；窗口缩小时重新限制宽度。
 
@@ -205,6 +214,7 @@ PC 抽屉内的 iframe 高度随内容区拉满，提交页和详情页默认使
 
 ## 验收
 
+- 从实际工作台点击每类页面入口，核对最终地址仅包含一层应用路径、目标页面正常显示、平台导航选中态同步；包含 query 或 hash 时确认业务参数保留。
 - 点击同应用页面入口后，没有新浏览器标签或新钉钉窗口。
 - 点击 PC 端「新建 / 提交表单 / 查看详情」后，在当前自定义页侧边抽屉打开原生表单页，不直接弹新标签。
 - 点击移动端「新建 / 提交表单」后，可以整页或新页进入原生提交页。

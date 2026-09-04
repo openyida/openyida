@@ -1,321 +1,133 @@
-# B 端导航壳形态目录
+# CodeCanvas 导航模板
 
-当页面被用户显式要求隐藏应用导航，或在自定义页面中加顶部导航/侧边导航/导航壳时，页面要**自带导航壳**接管应用级导航，并先用 `use_skill("yida-design", "判定导航与视觉策略")` 完成入口判断。本文件是 B 端常见导航形态的选型 + 骨架 + 代码示例目录。挑一种主形态，可与标签页叠加做二级导航。
+PRD 已确定自定义导航时，按形态复制一个组件，接入现有菜单和页面状态。应用及页面导航配置按 [导航技能](../SKILL.md#必做配置) 执行。
 
-> 这里给**方向 + 骨架 + 可直接改的代码示例**。正文以 React hooks + antd/自绘组件为主；文中 `_customState`、`renderJsx`、`this.utils.isMobile()` 代码统一视为 **平台 JSX 组件/native 示例**，只用于对应运行时维护。
+## 按需复制
 
-## 先做这三步
+| 形态 | CLI 模板名 | 组件 | 移动端 |
+| --- | --- | --- | --- |
+| 侧边导航 | `canvas-nav-side` | `CanvasNav` | 按钮展开页内菜单 |
+| 顶部导航 | `canvas-nav-top` | `CanvasNav` | 按钮展开页内菜单 |
+| 顶部＋侧边 | `canvas-nav-mixed` | `CanvasNav` | 上下两行可滚动菜单 |
+| 悬浮胶囊 | `canvas-nav-dock` | `CanvasNav` | 底部横向滚动，预留安全区 |
+| 页内标签 | `canvas-nav-tabs` | `CanvasTabs` | 横向滚动，支持键盘切换 |
 
-| 步骤 | 要做什么 | 说明 |
-| --- | --- | --- |
-| 1 | 确认用户真的要自绘应用级导航 | 只有顶部导航、侧边导航、导航壳、自绘应用导航才进入本文件 |
-| 2 | 执行 `openyida update-app <appType> --hide-app-nav` | 这是应用基础设置，字段为 `hideAppNav='y'` |
-| 3 | 自定义页内实现导航壳 | 自定义页 URL 不拼 `isRenderNav=false` 来隐藏应用导航 |
+```bash
+openyida sample openyida-page-template canvas-nav-side --output .cache/samples/canvas-nav.jsx
+```
 
-只要求页面全屏、无导航或 `isRenderNav=false` 时，不走这里，走页面级隐藏配置。
+替换模板名即可复制其他形态。前四种每页选择一种；标签页按业务需要组合。CLI 在复制时拼接公共代码和选定布局，输出中只保留这一种布局。标签页独立输出自己的样式和交互。
 
-## 选型速查
+## 接入已有页面
 
-| 形态 | 何时用 | 顶级项数量 | 移动端收敛 |
-|---|---|---|---|
-| **左侧边栏** | 模块多、需常驻导航的后台/门户（最通用 B 端形态） | 5–12，支持分组/二级 | 抽屉（汉堡唤出） |
-| **顶部导航** | 模块少、内容要占满宽度的看板/门户 | 2–6 | 汉堡菜单 |
-| **顶部 + 侧边混合** | 两级结构复杂应用（顶部分域，侧边分子模块） | 顶 2–5 × 侧 3–10 | 顶部汉堡 + 侧边抽屉 |
-| **浮动导航（悬浮胶囊/Dock）** | 沉浸/大屏/展示页，chrome 要极简，导航不常驻 | 3–6 | 底部胶囊/收起 |
-| **标签页** | 一个模块内切同级视图（常叠加在上面几种之上） | 2–8 | 横向滚动标签 |
-
-## 通用纪律（B 端 + 去 AI 味）
-
-- **先判定层级**：应用导航隐藏看 `hideAppNav='y'`；页面导航隐藏看 `isRenderNav=false`。两者不要互相代替。
-- **选中态要一眼可辨**：左侧边用「左侧 3px 主色条 + 浅色底 + 字重加粗」；顶部用「底部 2px 主色下划线 + 主色文字」。别只靠淡淡变色。
-- **图标只作功能用途**：导航项用 `lucide-react` 或 `@ant-design/icons` 的具体组件 + 文字，默认 `lucide-react`，同页一套图标风格；**禁 emoji**、CSS 绘制图形、字母占位和每项前配装饰图标（见 [yida-design UI 视觉和状态设计](../../yida-design/workflow/step-5-visual-states.md)）。
-- **不做营销脸**：没有巨 Logo Hero、没有渐变横幅。顶部条左侧放「应用名/模块名 + 面包屑」，右侧放「用户/操作」，克制。
-- **密度可偏高**：B 端导航允许信息密集，但要有主次；分组用小标题或分隔线，不要一长串平铺。
-- **主色策略**：导航隐藏时主色相可自立（见 yida-design 入口路由）；仍要么走品牌 `var(--color-brand1-*)`、要么用自定主色一以贯之，语义色固定。
-- **先关应用导航**：用户显式要求自定义页面顶部导航/侧边导航/导航壳时，先执行 `openyida update-app <appType> --hide-app-nav`；不要因为普通页面内 tab / 内容区导航默认关闭平台导航。
-- **URL 参数不丢失**：跨页导航项要保存 `params` 并统一构造 URL；自定义页目标不靠 `isRenderNav=false` 隐藏应用导航，需要跨组织或深链时合并 `corpid`、`tab`、`view` 等白名单参数。
-
-## 多视图切换机制（导航壳的核心）
-
-导航壳 = 一个自定义页内切多个视图。默认实现方式：
-
-- `React.useState('home')` 管本地视图；需要可分享/可后退时用 URL hash，并在 `useEffect` 注册 `hashchange`、cleanup 移除监听。
-- 平台 JSX 组件/native 示例使用 `_customState.activeView`、`this.setCustomState({ activeView: key })` 和 `renderJsx` 分支，仅作对应运行时维护参考。
-- **跨页跳转**（跳到别的自定义页/表单）：用 [field-and-url-reference.md](../../../references/field-and-url-reference.md) 的模板拼 URL；自定义页目标用 `/custom/{formUuid}`，应用导航隐藏由应用配置控制。不要只调用 `router.push(formUuid, {}, false)`，它无法表达完整业务参数。
-
-### Canvas 跨页导航 URL 模板
+1. 将生成片段的 import 合并到当前 `.canvas.jsx`，保留一份 React 导入；CodeCanvas 使用单文件源码，组件片段合并到该文件。
+2. 合并 `CanvasNav`、菜单项组件及样式常量。已有导航时替换原导航实现，同名组件保留一份。
+3. 按 PRD 配置菜单，经下方接口过滤后生成 `items`，接入 `activeKey` 和 `onSelect`，把原业务内容作为 children。路由选中态和内容入口与可见菜单保持一致。
+4. 需要二级标签时，再复制 `canvas-nav-tabs`；需要表单抽屉时，再复制 `form-open-container`。
 
 ```jsx
-const BASE_URL = 'https://www.aliwork.com';
-const APP_TYPE = 'APP_XXX';
-
-const NAV = [
-  { key: 'overview', label: '概览', type: 'custom', formUuid: 'FORM-OVERVIEW', params: { tab: 'overview' } },
-  { key: 'orders', label: '订单', type: 'workbench', formUuid: 'FORM-ORDERS', params: { iframe: 'true' } }
-];
-
-function buildNavUrl(item) {
-  const path = item.type === 'workbench'
-    ? '/' + APP_TYPE + '/workbench/' + item.formUuid
-    : '/' + APP_TYPE + '/custom/' + item.formUuid;
-  const url = new URL(path, BASE_URL);
-  const params = { ...(item.params || {}) };
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      url.searchParams.set(key, String(value));
-    }
-  });
-  return url.toString();
-}
-
-function openNavItem(item) {
-  window.open(buildNavUrl(item), '_top');
-}
+// navigationItems、activeKey、openNavigationItem、content 使用当前页面已有数据和逻辑。
+<CanvasNav
+  title={appName}
+  items={navigationItems}
+  activeKey={activeKey}
+  onSelect={openNavigationItem}
+>
+  {content}
+</CanvasNav>
 ```
 
-### Canvas 状态骨架
+组件只提供导航与内容容器，业务内容、数据请求和表单由调用方接入。生成文件保留 CSS 变量引用，应用主题在应用级加载一次。
+
+导航选中态承担当前页面标识，`children` 直接从表单、列表或业务区块开始。`title` 用于应用品牌名称；内容区的独立页头只承载新增信息，例如具体客户名、任务说明和操作。通过内容容器的 `aria-label` 和 iframe 的 `title` 保留可访问名称；“报名信息”等业务分区标题继续显示。移动端菜单折叠后，当前页名称可显示在导航栏内。
+
+## 导航数据来源
+
+自定义导航的数量、名称、顺序、分组和用途来自 PRD，通常工作台或首页在第一位。使用当前访问者登录态请求 `/{appType}/query/formdesign/getAccessableNavs.json`，获取可见范围；`formUuid` 和 CSRF 值来自当前页面运行态。已有此请求时复用，并调用 `filterCanvasNavigation(plannedItems, navs, hiddenNav)`；首次接入时复制数据片段，与选定布局合并：
+
+```bash
+openyida sample openyida-page-template canvas-nav-data --output .cache/samples/canvas-nav-data.jsx
+```
 
 ```jsx
-function YidaComp() {
-  const [activeView, setActiveView] = React.useState('overview');
-  const ActiveView = VIEW_COMPONENTS[activeView] || NotFoundView;
-  return (
-    <Layout className="app-shell">
-      <ShellMenu items={NAV} activeKey={activeView} onSelect={setActiveView} />
-      <Layout.Content><ActiveView /></Layout.Content>
-    </Layout>
-  );
-}
+const items = await loadCanvasNavigation({
+  items: plannedItems, // PRD 导航配置，叶子项绑定真实 navUuid 或 formUuid
+  appType,
+  formUuid,
+  csrfToken, // 当前页面运行态的 CSRF 值
+  hiddenNav, // 当前 g_config.navConfig.hiddenNav，未配置时传 []
+  signal: controller.signal, // 页面 effect 清理时调用 controller.abort()
+});
 ```
 
----
+`plannedItems` 使用下方菜单契约：每个任务入口有独立 key，绑定真实 `navUuid/formUuid`，保存业务 label、图标、入口用途及跳转参数。工作台的本地视图绑定承载它的自定义页面 formUuid；同一资源可以对应多个任务入口。分组可只配置 label 和 children，具有独立资源约束时同时绑定该资源。
 
-## 形态 1：左侧边栏（最通用）
+数据片段递归过滤接口中 `hidden` 的节点，以及 `g_config.navConfig.hiddenNav` 命中 `slug` 或 `navUuid` 的节点及子树，再以可见资源 ID 筛选 PRD 菜单。返回值保持 PRD 的顺序、分组和展示配置；未规划的接口资源不会自动增加到菜单，失去所有可见子项的分组会移除。侧边、顶部和 Dock 使用规划的扁平入口；混合导航使用规划的两级结构。
 
-```
-┌──────┬─────────────────────────────┐
-│ 应用名 │  顶部条：面包屑        用户   │
-│ ─────│─────────────────────────────│
-│▎概览  │                             │  ▎ = 选中项左侧主色条
-│  订单 │        内容区（activeView）   │
-│  客户 │                             │
-│  报表 │                             │
-│ ─────│                             │
-│ ‹收起 │                             │
-└──────┴─────────────────────────────┘
-```
+页面首次加载或应用切换时清空旧菜单，取消旧请求，再加载当前应用菜单。按以下状态展示：
 
-**何时用**：顶级模块 5–12，需要常驻导航。**自定义页面默认**：antd `Layout` + `Layout.Sider` + `Menu`（`mode="inline"`）。
+| 状态 | 页面处理 |
+| --- | --- |
+| 加载中 | 显示加载提示，菜单和对应内容等待加载完成 |
+| 请求失败 | 显示重试入口 |
+| 没有可见入口 | 显示“无可用导航” |
+| 菜单加载完成 | 按当前地址选中可见入口；未指定入口时按 PRD 选择，通常先进入工作台 |
+| 地址中的 hash 指向不可见入口 | 切至 PRD 顺序中的首个可见入口；没有可见入口时显示“无可用导航” |
+
+页面访问和数据权限继续由平台校验。
+
+## 入口用途与嵌入页面
+
+按 PRD 主任务为可见节点配置 `targetType`：填写、报名、申请等入口用 `submission`；查询、审核、管理入口用 `page`；外部链接用 `url`。同一表单可对应不同任务入口，接口结果控制可见性，页面映射补充入口用途。
 
 ```jsx
-// Legacy/native：_customState.activeView / collapsed；仅维护旧普通自定义页时使用
-var NAV = [
-  { key: 'overview', label: '概览', icon: ICONS.dashboard },
-  { key: 'orders',   label: '订单', icon: ICONS.list },
-  { key: 'customers',label: '客户', icon: ICONS.user },
-  { key: 'reports',  label: '报表', icon: ICONS.chart },
-];
-
-export function renderSidebar() {
-  var self = this;
-  var state = this.getCustomState();
-  var collapsed = state.collapsed;
-  var isMobile = this.utils.isMobile();
-
-  return (
-    <nav style={{
-      width: collapsed ? 56 : 216,
-      flexShrink: 0,
-      height: '100%',
-      background: '#fff',
-      borderRight: '1px solid #e5e6eb',
-      display: 'flex',
-      flexDirection: 'column',
-      transition: 'width .2s',
-    }}>
-      <div style={{ height: 52, display: 'flex', alignItems: 'center', padding: '0 16px', fontWeight: 700 }}>
-        {collapsed ? '' : '进销存中台'}
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {NAV.map(function (item) {
-          var active = state.activeView === item.key;
-          return (
-            <div key={item.key}
-              onClick={function () { self.setCustomState({ activeView: item.key }); }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                height: 40, padding: '0 16px', cursor: 'pointer',
-                borderLeft: active ? '3px solid var(--color-brand1-6)' : '3px solid transparent',
-                background: active ? 'var(--color-brand1-1)' : 'transparent',
-                color: active ? 'var(--color-brand1-6)' : '#4e5969',
-                fontWeight: active ? 600 : 400,
-              }}>
-              {self.renderIcon(item.icon, 18, active ? 'var(--color-brand1-6)' : '#86909c')}
-              {collapsed ? null : <span>{item.label}</span>}
-            </div>
-          );
-        })}
-      </div>
-      <div onClick={function () { self.setCustomState({ collapsed: !collapsed }); }}
-        style={{ height: 44, display: 'flex', alignItems: 'center', padding: '0 16px', cursor: 'pointer', color: '#86909c', borderTop: '1px solid #f2f3f5' }}>
-        {collapsed ? '›' : '‹ 收起'}
-      </div>
-    </nav>
-  );
-}
+// 此入口来自过滤后的 PRD 菜单，其 targetType 已规划为 submission。
+const registration = items.find(item => item.key === 'registration');
+<iframe title="活动报名" src={buildCanvasNavigationUrl(registration, appType, { embedded: true })} />
 ```
 
-移动端：窄屏时侧边栏改为默认隐藏，顶部条放汉堡按钮，点开滑出为覆盖层抽屉（`position: fixed` + 半透明遮罩），选完自动收起。
+`canvas-nav-data` 同时提供 `buildCanvasNavigationUrl`：`submission` 生成原生提交页地址，`page` 生成 workbench 地址；嵌入时自动补对应导航参数，`params` 保留预填值和业务参数。入口用途明确后再生成 URL。导航任务占主内容区；页面内新增或详情按钮复用 [FormOpenContainer 抽屉](../../yida-canvas-custom-page/references/navigation-and-entry-guide.md#标准-formopencontainer)。原生表单的页面导航参数由容器生成；自定义页面的应用导航按技能中的应用设置隐藏。已有自定义页的 `/{appType}/custom/{formUuid}` 地址可继续使用。用 `URL` / `URLSearchParams` 构造地址，保留 `corpid`、`locale` 和业务参数。
 
-## 形态 2：顶部导航（水平）
+## 菜单契约
 
-```
-┌─────────────────────────────────────┐
-│ 应用名   概览  订单  客户  报表    用户 │  选中项底部 2px 主色下划线
-├─────────────────────────────────────┤
-│            内容区（activeView）        │
-└─────────────────────────────────────┘
-```
+| 字段 / 参数 | 用途 |
+| --- | --- |
+| `items[].key` | 稳定且唯一的菜单标识 |
+| `items[].navUuid / formUuid` | 规划入口绑定的平台资源标识，用于可见性过滤；本地视图绑定所属页面 |
+| `items[].label` | 业务名称 |
+| `items[].icon` | 可选图标组件，页面已导入的 `lucide-react` 或 `@ant-design/icons` 图标 |
+| `items[].href` | 可选完整跳转地址，由页面按真实资源构造，保留业务参数 |
+| `items[].targetNew` | 沿用平台导航的新窗口配置，配合 href 使用 |
+| `items[].disabled` | 禁用入口 |
+| `items[].children` | 混合导航的二级菜单；其他形态使用扁平菜单 |
+| `activeKey` | 当前入口；混合导航填写当前叶子项 key |
+| `onSelect(item)` | 页面负责更新视图或执行跳转；混合导航点击分组时传入首个可用子项 |
+| `title / logo / actions` | 应用标题、可选 Logo、可选用户或操作区 |
+| `children` | 当前业务内容 |
 
-**何时用**：顶级模块 2–6、内容要占满宽度（看板/门户）。**自定义页面默认**：antd `Menu mode="horizontal"` 或 `Tabs`。
+提供 `href` 且未传 `onSelect` 时使用原生链接；传入 `onSelect` 时普通点击交给页面处理，修饰键点击仍保留原生链接行为。只做当前页切换时在 `onSelect` 中更新 React 状态；需要分享、刷新恢复或前进后退时，复用页面现有 URL hash / 路由同步逻辑。页面卸载时清理 `hashchange`、`matchMedia` 等监听。
 
-```jsx
-export function renderTopnav() {
-  var self = this;
-  var state = this.getCustomState();
-  return (
-    <header style={{
-      height: 52, display: 'flex', alignItems: 'center',
-      padding: '0 20px', gap: 4,
-      background: '#fff', borderBottom: '1px solid #e5e6eb',
-    }}>
-      <span style={{ fontWeight: 700, marginRight: 24 }}>营销中台</span>
-      {NAV.map(function (item) {
-        var active = state.activeView === item.key;
-        return (
-          <div key={item.key}
-            onClick={function () { self.setCustomState({ activeView: item.key }); }}
-            style={{
-              height: 52, display: 'flex', alignItems: 'center', padding: '0 14px', cursor: 'pointer',
-              color: active ? 'var(--color-brand1-6)' : '#4e5969',
-              fontWeight: active ? 600 : 400,
-              borderBottom: active ? '2px solid var(--color-brand1-6)' : '2px solid transparent',
-            }}>
-            {item.label}
-          </div>
-        );
-      })}
-      <div style={{ marginLeft: 'auto', color: '#86909c' }}>管理员</div>
-    </header>
-  );
-}
-```
+混合导航从 `activeKey` 推导当前分组，分组及子项使用全局唯一 key。标签页接收 `items/activeKey/onSelect/children`，使用叶子项的 key；支持左右方向键、Home、End，自动跳过禁用项。
 
-移动端：把中间菜单收进右侧汉堡下拉，只留应用名 + 汉堡。
+## 主题 token
 
-## 形态 3：顶部 + 侧边混合
+| 样式 | 使用的应用变量 |
+| --- | --- |
+| 导航表面与标题 | `--pod-shell-theme-bg-color`、`--pod-nav-logo-text` |
+| 普通 / 悬停 / 选中 / 禁用文字 | `--pod-nav-item-text-*` |
+| 悬停 / 选中背景 | `--pod-nav-menu-bg-hover-color`、`--pod-nav-menu-bg-selected-color` |
+| 分隔线、选中指示、焦点 | `--pod-nav-sub-divider-color`、`--pod-nav-tab-line-selected-color` |
+| 菜单高度、圆角、文字、间距 | `--pod-nav-menu-*`、`--pod-nav-top-tab-*` |
+| 悬浮阴影 | `--pod-nav-popup-shadow` |
+| 页内标签 | `--tab-pure-text-color-*`、`--tab-pure-ink-bar-color` |
+| 业务内容区 | `--pod-page-bg-color`、`--pod-nav-page-padding` |
 
-```
-┌─────────────────────────────────────┐
-│ 应用名   销售域 │ 采购域 │ 财务域    用户 │  顶部=一级域
-├──────┬──────────────────────────────┤
-│▎订单  │                             │  侧边=当前域的子模块
-│  客户 │        内容区                 │
-│  合同 │                             │
-└──────┴──────────────────────────────┘
-```
+主题由 `yida-design` 在应用级生成和配置；导航组件消费已有变量，必要的默认值放在 `var(...)` 回退中。颜色修改在主题文件完成，固定的布局结构留在组件中。导航深浅由导航主题决定，业务内容明暗由页面主题决定，分别验证。
 
-**何时用**：两级结构、模块多的复杂应用（顶部切「域」，侧边切该域「子模块」）。顶部选中切换时，侧边导航切换到该域的子项，`activeView` 重置到该域第一项。**自定义页面默认**：antd `Layout`（Header + Sider + Content）。
+## 验证
 
-## 形态 4：浮动导航（悬浮胶囊 / Dock）
-
-```
-        ┌───────────────────────┐
-        │      内容/大屏区        │
-        │                       │
-        │   ╭─────────────────╮ │  悬浮胶囊：固定底部居中，
-        │   │ 概览 订单 客户 报表│ │  半透明底 + 模糊，不占布局
-        │   ╰─────────────────╯ │
-        └───────────────────────┘
-```
-
-**何时用**：沉浸/大屏/展示页，chrome 要极简、导航不常驻。**自定义页面默认**：自定义悬浮容器或 antd `FloatButton.Group`。
-
-```jsx
-export function renderFloatDock() {
-  var self = this;
-  var state = this.getCustomState();
-  return (
-    <div style={{
-      position: 'fixed', left: '50%', bottom: 24, transform: 'translateX(-50%)',
-      display: 'flex', gap: 4, padding: 6, zIndex: 50,
-      background: 'rgba(255,255,255,.82)', backdropFilter: 'blur(12px)',
-      border: '1px solid #e5e6eb', borderRadius: 999,
-      boxShadow: '0 6px 24px rgba(0,0,0,.12)',
-    }}>
-      {NAV.map(function (item) {
-        var active = state.activeView === item.key;
-        return (
-          <div key={item.key}
-            onClick={function () { self.setCustomState({ activeView: item.key }); }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              height: 36, padding: '0 14px', cursor: 'pointer', borderRadius: 999,
-              background: active ? 'var(--color-brand1-6)' : 'transparent',
-              color: active ? '#fff' : '#4e5969',
-              fontWeight: active ? 600 : 400,
-            }}>
-            {item.label}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-```
-
-注意：浮动导航**叠在内容之上**（`position: fixed` + `zIndex`），内容区底部留出安全间距别被遮住。移动端收窄胶囊或改底部标签栏。
-
-## 形态 5：标签页（叠加二级导航）
-
-一个模块内切同级视图，通常叠在侧边/顶部之下。**自定义页面默认**：antd `Tabs`。
-
-```jsx
-export function renderTabs() {
-  var self = this;
-  var state = this.getCustomState();
-  var TABS = [{ key: 'pending', label: '待处理' }, { key: 'done', label: '已完成' }];
-  return (
-    <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid #e5e6eb', padding: '0 4px' }}>
-      {TABS.map(function (t) {
-        var active = state.tab === t.key;
-        return (
-          <div key={t.key}
-            onClick={function () { self.setCustomState({ tab: t.key }); }}
-            style={{
-              height: 40, display: 'flex', alignItems: 'center', cursor: 'pointer',
-              color: active ? 'var(--color-brand1-6)' : '#4e5969',
-              fontWeight: active ? 600 : 400,
-              borderBottom: active ? '2px solid var(--color-brand1-6)' : '2px solid transparent',
-            }}>
-            {t.label}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-```
-
----
-
-## 自查清单（导航壳）
-
-- 选中态一眼可辨（主色条/下划线 + 字重），不是只靠淡变色。
-- 导航项 = 功能性 SVG + 文字，同页一套图标风格，无 emoji、无每项装饰图标。
-- 顶部/侧边有应用名或面包屑，用户知道「在哪、能去哪」，不是孤零零一个返回按钮。
-- 内容区按 `activeView` 切换（自定义页面默认 `useState`/hash；普通页 `_customState` 仅 legacy），切换有状态、可回来。
-- 已执行 `openyida update-app <appType> --hide-app-nav`，应用原导航不再出现。
-- 跨页跳转用 URL 模板拼；自定义页目标不靠 `isRenderNav=false` 隐藏应用导航，导航项的 `params` 没丢。
-- 移动端：侧边→抽屉、顶部→汉堡、浮动→底部胶囊；自定义页面用 media query/`matchMedia` hook，legacy 普通页才用 `this.utils.isMobile()`。
-- 浮动导航留出内容安全间距，不遮关键信息。
+- 用权限不同的账号检查平台与自定义导航的可见入口，覆盖隐藏分组、空结果、请求失败及指向不可见入口的 hash。
+- 菜单选中项与当前业务视图一致；点击、深链、刷新和浏览器前进后退由页面现有路由正确处理。
+- 浅色及深色导航下，文字、背景、选中态、禁用态、焦点与分隔线可辨认。
+- 窄屏菜单可展开或滚动，悬浮导航留有底部内容空间；需要覆盖式菜单时接入抽屉。
+- 模板合并后只保留一个应用导航组件；用本地编译检查，再按发布技能更新目标页面。

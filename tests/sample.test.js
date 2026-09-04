@@ -32,6 +32,123 @@ describe('sample templates', () => {
     expect(output).toBe('Hello OpenKuma / OpenKuma');
   });
 
+  test.each(['side', 'top', 'mixed', 'dock', 'tabs'])('navigation %s copies only the selected layout and compiles with existing content', async (layout) => {
+    const output = path.join(tmpDir, `nav-${layout}.jsx`);
+    await run(['openyida-page-template', `canvas-nav-${layout}`, '--output', output]);
+    const fragment = fs.readFileSync(output, 'utf8');
+    const component = layout === 'tabs' ? 'CanvasTabs' : 'CanvasNav';
+    const result = compileCanvasLocal(`${fragment}\nfunction YidaComp() { return <${component} items={[]} activeKey="home" onSelect={() => {}}><p>已有业务内容</p></${component}>; }`);
+    expect(JSON.parse(result.importedModules)).toEqual(['side', 'top'].includes(layout) ? ['lucide-react', 'react'] : ['react']);
+    expect(fragment).not.toMatch(/function YidaComp|export default|ConfigProvider|Drawer|iframe|fetch\(|hashchange|document\.body|:root|--pod-nav-[\w-]+\s*:/);
+    for (const other of ['side', 'top', 'mixed', 'dock'].filter(name => name !== layout)) {
+      expect(fragment).not.toContain(`oy-nav-${other} `);
+    }
+    expect(Buffer.byteLength(fragment)).toBeLessThan(7000);
+    if (layout !== 'tabs') {
+      expect(fragment).toContain('--pod-nav-item-text-disabled-color');
+      expect(fragment).toContain('--pod-nav-menu-bg-selected-color');
+    }
+  });
+
+  test('navigation data filters PRD menus by viewer visibility without adopting server order or extra entries', async () => {
+    const output = path.join(tmpDir, 'nav-data.jsx');
+    await run(['openyida-page-template', 'canvas-nav-data', '--output', output]);
+    const source = fs.readFileSync(output, 'utf8');
+    expect(source).not.toMatch(/CANVAS_NAV_CSS|function CanvasNav|import /);
+    const navs = [
+      { navUuid: 'hidden', hidden: true, children: [{ navUuid: 'hidden-child' }] },
+      { navUuid: 'group', children: [{ navUuid: 'allowed', url: '/target', targetNew: true }, { navUuid: 'blocked', slug: 'hidden-slug' }] },
+      { navUuid: 'vm-hidden', children: [{ navUuid: 'vm-hidden-child' }] },
+      { navUuid: 'last', children: [] },
+      { navUuid: 'unplanned', children: [] },
+    ];
+    const items = [
+      { key: 'workbench', label: '工作台', formUuid: 'last', children: [] },
+      { key: 'tasks', label: '任务入口', children: [
+        { key: 'submit', label: '活动报名', formUuid: 'allowed', targetType: 'submission' },
+        { key: 'manage', label: '报名管理', navUuid: 'allowed', targetType: 'page' },
+        { key: 'blocked', formUuid: 'blocked' },
+        { key: 'hidden-child', formUuid: 'hidden-child' },
+        { key: 'vm-hidden-child', formUuid: 'vm-hidden-child' },
+      ] },
+      { key: 'empty-group', children: [{ key: 'missing', formUuid: 'not-returned' }] },
+      { key: 'unbound-view', label: '未绑定资源的视图' },
+    ];
+    const fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true, content: { navs } }) });
+    const load = new Function('fetch', `${source}; return loadCanvasNavigation;`)(fetch);
+    const input = { items, appType: 'APP_TEST', formUuid: 'FORM_CURRENT', csrfToken: 'runtime-token', hiddenNav: ['hidden-slug', 'vm-hidden'] };
+    const result = await load(input);
+    expect(result.map(item => item.key)).toEqual(['workbench', 'tasks']);
+    expect(result[0]).toEqual(items[0]);
+    expect(result[1]).toEqual({ ...items[1], children: items[1].children.slice(0, 2) });
+    expect(items[1].children).toHaveLength(5);
+    expect(navs[1].children).toHaveLength(2);
+    const [url, options] = fetch.mock.calls[0];
+    expect(url).toContain('/APP_TEST/query/formdesign/getAccessableNavs.json?');
+    expect(new URL(url, 'https://example.com').searchParams.get('formUuid')).toBe('FORM_CURRENT');
+    expect(options).toMatchObject({ credentials: 'include', cache: 'no-store' });
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ success: true, content: { navs: [...navs].reverse() } }) });
+    await expect(load(input)).resolves.toEqual(result);
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ success: true, content: { navs: navs.filter(nav => nav.navUuid !== 'last') } }) });
+    await expect(load(input)).resolves.toEqual([result[1]]);
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ success: true, content: { navs: [] } }) });
+    await expect(load(input)).resolves.toEqual([]);
+    for (const payload of [{ success: false, content: { navs } }, { success: true, content: {} }]) {
+      fetch.mockResolvedValue({ ok: true, json: async () => payload });
+      await expect(load(input)).rejects.toThrow('导航加载失败');
+    }
+    fetch.mockResolvedValue({ ok: false });
+    await expect(load(input)).rejects.toThrow('导航加载失败');
+    await expect(load({ appType: 'APP_TEST' })).rejects.toThrow('缺少 PRD 导航配置');
+  });
+
+  test('navigation task selects submission or management for the same form', async () => {
+    const output = path.join(tmpDir, 'nav-data.jsx');
+    await run(['openyida-page-template', 'canvas-nav-data', '--output', output]);
+    const source = fs.readFileSync(output, 'utf8');
+    const build = new Function(`${source}; return buildCanvasNavigationUrl;`)();
+    const item = { navUuid: 'FORM_TEST', params: { activity: '活动 A' } };
+    const submission = new URL(build({ ...item, targetType: 'submission' }, 'APP_TEST', { embedded: true }), 'https://example.com');
+    expect(submission.pathname).toBe('/APP_TEST/submission/FORM_TEST');
+    expect(submission.searchParams.get('isRenderNav')).toBe('false');
+    expect(submission.searchParams.get('activity')).toBe('活动 A');
+    const management = new URL(build({ ...item, targetType: 'page' }, 'APP_TEST', { embedded: true }), 'https://example.com');
+    expect(management.pathname).toBe('/APP_TEST/workbench/FORM_TEST');
+    expect(management.searchParams.get('iframe')).toBe('true');
+    expect(build({ navUuid: 'FORM_TEST', targetType: 'submission' }, 'APP_TEST')).toBe('/APP_TEST/submission/FORM_TEST');
+    expect(() => build(item, 'APP_TEST')).toThrow('请明确导航入口用途');
+  });
+
+  test('navigation links preserve href and modified clicks while local selection stays controlled', async () => {
+    const output = path.join(tmpDir, 'nav.jsx');
+    await run(['openyida-page-template', 'canvas-nav-dock', '--output', output]);
+    const fragment = fs.readFileSync(output, 'utf8');
+    const { runtimeCode } = compileCanvasLocal(`${fragment}\nfunction YidaComp(props) { return CanvasNavItem(props); }`);
+    const render = new Function('window', `${runtimeCode}; return YidaComp;`)({
+      React: { createElement: (type, props, ...children) => ({ type, props, children }) },
+    });
+    const item = { key: 'orders', label: '订单', href: '/custom/FORM?locale=zh_CN#/orders' };
+    const onSelect = jest.fn();
+    const preventDefault = jest.fn();
+    const link = render({ item, activeKey: 'orders', onSelect });
+    expect(link.type).toBe('a');
+    expect(link.props.href).toBe(item.href);
+    expect(link.props['aria-current']).toBe('page');
+    link.props.onClick({ button: 0, metaKey: true, preventDefault });
+    expect(preventDefault).not.toHaveBeenCalled();
+    expect(onSelect).not.toHaveBeenCalled();
+    link.props.onClick({ button: 0, preventDefault });
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(onSelect).toHaveBeenCalledWith(item);
+    const newWindow = render({ item: { ...item, targetNew: true }, onSelect });
+    expect(newWindow.props.target).toBe('_blank');
+    newWindow.props.onClick({ button: 0, preventDefault });
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    const disabled = render({ item: { ...item, disabled: true }, onSelect });
+    expect(disabled.type).toBe('button');
+    expect(disabled.props.disabled).toBe(true);
+  });
+
   test('Canvas-first chart and table-form samples are discoverable and compile', async () => {
     const chartOutput = path.join(tmpDir, 'trend-combo.canvas.jsx');
     const tableOutput = path.join(tmpDir, 'table-form-batch-submit.canvas.jsx');

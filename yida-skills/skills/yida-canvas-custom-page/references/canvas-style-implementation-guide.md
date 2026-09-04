@@ -6,6 +6,30 @@
 
 宿主属性绑定不是主题注入。严禁生成 `body` 背景 CSS，也严禁 `YidaComp` 修改 `document.documentElement`、`document.body`、父页面或平台容器的主题变量。组件自己的背景、卡片和控件样式留在 `YidaComp` 内，并使用 `--pod-page-*`、`--pod-card-*`、`--color-brand1-*` 和 `--color-group`。
 
+## 嵌入页面的宿主高度
+
+`openyida publish --canvas` 在 Page Schema 中统一配置宿主最小高度：
+
+```css
+.vc-page-yida-pure-container:has(> .yida-code-canvas) {
+  min-height: 100vh;
+}
+```
+
+该规则用于直接承载整页 CodeCanvas 的纯容器，保证嵌入时页面有可见高度；iframe 内的 `100vh` 使用当前 iframe 的视口高度。页面内部仍按业务内容布局，局部 Canvas 组件按所在区块确定高度。
+
+排查空白时，分别测量外层 Canvas、iframe 元素和 iframe 内部容器的高度。外层 Canvas 的宿主样式通过重新发布原 Canvas 源文件更新；iframe 内的页面使用自身文档加载的 CSS。
+
+原生数据管理页在隐藏导航后，若 `.vc-yida-form-manage--fixed` 已有数据但高度为零，在当前应用主题 CSS 中补充以下规则，为绝对定位的表格提供可伸展的父容器：
+
+```css
+body.pod-premium.page-type-workbench .vc-page-yida-pure-container:has(> .vc-rootcontent-pure-container > .vc-yida-form-manage--fixed) {
+  min-height: 100vh;
+}
+```
+
+读取并保留线上应用的完整主题 CSS，追加规则后执行 `openyida update-app <appType> --theme-file <app-theme.css>`。刷新页面，确认 iframe 内已加载新主题文件，再验证表格、分页、滚动与新增抽屉；独立入口也需保持正常。此规则只匹配原生数据管理纯容器，颜色继续使用现有 token。
+
 ## 应用主题与页面风格冲突处理
 
 | 冲突现象 | 处理方式 |

@@ -6,7 +6,8 @@
  * 发布前必须删除本标记、示例数据和全部占位内容。
  *
  * 关键约定：
- * - PC 端新增和详情使用 FormOpenContainer 右侧抽屉 iframe。
+ * - PC 端页面内新增和详情按钮使用 FormOpenContainer 右侧抽屉 iframe。
+ * - 应用导航中的报名、申请等办理任务在主内容区嵌入 submission；查询和管理任务嵌入 workbench。
  * - 抽屉左边缘可拖拽调宽，双击恢复半屏，全屏切换保留拖拽宽度。
  * - 移动端才整页进入原生提交页或详情页。
  * - 详情页必须先解析真实 formInstId，缺少实例 ID 时禁用入口。
@@ -58,7 +59,11 @@ function buildYidaFormUrl(request, currentAppType) {
   return '';
 }
 
-function CanvasDrawer({ open, title, onClose, onOpenInNewWindow, extra, children }) {
+/** 抽屉外壳默认跟随应用主题，background 可为当前抽屉指定颜色、渐变或 CSS token。 */
+function CanvasDrawer({
+  open, title, onClose, onOpenInNewWindow, extra, children,
+  background = 'var(--pod-shell-theme-bg-color, var(--drawer-bg, var(--color-brand1-1, #f4f6ff)))',
+}) {
   const [fullScreen, setFullScreen] = useState(false);
   const [drawerWidth, setDrawerWidth] = useState(null);
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
@@ -199,7 +204,7 @@ function CanvasDrawer({ open, title, onClose, onOpenInNewWindow, extra, children
             ...(resizing ? { transition: 'none' } : {}),
           },
           content: {
-            background: 'var(--pod-shell-theme-bg-color, var(--drawer-bg, var(--color-brand1-1, #f4f6ff)))',
+            background,
             color: 'var(--drawer-content-color, var(--color-text1-4, #1f2329))',
             borderLeft: 'var(--drawer-border-width, 0px) var(--drawer-border-style, solid) var(--drawer-border-color, transparent)',
             borderRadius: fullScreen ? 0 : 'var(--pod-drawer-border-radius, var(--pod-drawer-radius, var(--drawer-corner, 20px))) 0 0 var(--pod-drawer-border-radius, var(--pod-drawer-radius, var(--drawer-corner, 20px)))',
@@ -256,6 +261,7 @@ function FormOpenContainer({ request, currentAppType, onClose, onAfterClose }) {
     <CanvasDrawer
       title={title}
       open={!!request}
+      background={request?.background}
       onOpenInNewWindow={iframeSrc ? () => window.open(iframeSrc, '_blank', 'noopener,noreferrer') : undefined}
       onClose={() => {
         onClose();
