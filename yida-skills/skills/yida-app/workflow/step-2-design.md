@@ -4,8 +4,10 @@
 
 先执行 [设计模式路由](../../yida-design/references/design-mode.md)，本轮只选择一次。
 
+首次搭建（无 `appType`，或已有 `appType` 但无页面）也必须执行此步骤。用户尚未为本次搭建选择方式时，仅展示“Plan（先确认方案） / Fast（直接搭建）”并等待回答，再继续规划。
+
 - Fast：继续下方 2.1–2.3，沿用独立需求分析、PRD 与视觉设计。
-- Plan：执行 [Plan 编排](plan/workflow.md)；确认当前版本后直接校验派生的 `prd.md` 与 `design.md`，不再执行 2.1–2.2。Plan 确认后不再运行 Fast。
+- Plan：执行 [Plan 编排](plan/workflow.md)；确认当前版本后校验派生的 `prd.md` 与 `design.md`，完成主题文件交接后进入 Step 3。
 
 Plan 交接同样需要资源蓝图、资源创建顺序、页面实现交付顺序、导航顺序和页面 handoff。缺失时回写计划并重新生成，业务事实交给 `yida-prd`、视觉事实交给 `yida-design` 更新，不直接覆盖派生文件；事实变化后重新确认。
 
@@ -58,7 +60,7 @@ Step 2 只在 `design.md` 中确定主题色、`navTheme`、`logoSource` 和 `la
    openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css --design-file prd/<项目名>/design.md
    ```
 
-2. CLI 按 `design.md` 自动替换复制文件中的对应 token；不再让模型手工重写 CSS。严禁重新生成或覆盖整份 CSS。
+2. CLI 按 `design.md` 定点替换复制文件中的对应 token，保留公共模板的其他规则和作用域。
 3. 主色写入 `--color-brand1-6`；保留 `--color-brand1-1/2/3/5/6/9/10`、`--color-brand-1` 至 `--color-brand-4` 和 `--color-group`；严禁补造 `--color-brand1-4/7/8`。
 4. 创建应用时传入 `--theme-file`、`--nav-theme`、`--logo-source` 和 `--layout`，在应用级统一配置主题。平台统一作用于原生表单、详情页和自定义页面外层；`YidaCodeCanvas` 页面只在组件内部消费主题 token，严禁向上层注入或同步主题样式。
 

@@ -285,7 +285,7 @@ openyida copy
 
 用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，加载 \`yida-app\` 走完整应用统一编排。
 
-完整应用先在 yida-app Step 2 按 yida-design/references/design-mode.md 选择一次 Fast / Plan。以下需求分析与并行设计规则用于 Fast；Plan 确认当前版本后直接交接派生文件，不再运行 Fast。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。
+完整应用先在 yida-app Step 2 按 yida-design/references/design-mode.md 选择一次 Fast / Plan。首次搭建包括没有 appType 和已有 appType 但无页面的空应用；用户尚未为本次搭建明确选择方式时，仅询问“Plan（先确认方案） / Fast（直接搭建）”并等待回答；两种模式都完成业务规划和视觉设计，技能与工具不作为模式选项。模式与导航类型的提问使用固定顺序和中性说明，不标记推荐或默认，不预选或引导选择。以下需求分析与并行设计规则用于 Fast；Plan 确认当前版本后直接交接派生文件，不再运行 Fast。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。
 
 统一编排只做：解析资源上下文并整理用户需求 → 同时调用 \`yida-prd\` 输出 \`prd.md\`、\`yida-design\` 输出 \`design.md\` → 由 \`yida-app\` 校验两份结果 → 创建/复用应用 → 核心表单/流程 → 主页面 → 编写主页面源码 → 发布 + 轻量导航排序 → 返回 2-3 句业务交付总结和一个主入口链接。资源创建顺序按 PRD 执行：应用先落位，表单/流程先于自定义页面。发布主页面成功后，PRD 写明导航顺序时执行 \`openyida nav-group order <appType> <页面/表单...>\`；PRD 只写宽泛分组或缺少导航顺序时，执行 \`openyida publish ... --auto-nav-order\` 或 \`openyida nav-group auto-order <appType>\` 兜底，兜底顺序为门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
 

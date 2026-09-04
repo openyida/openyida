@@ -62,7 +62,7 @@
 - `navigationSummary`，当它表达菜单分组、入口组织或路径选择时保留。
 - `rolePermissionSummary`，因为权限边界不能从字段表可靠推导。
 
-不要写：
+下列内容按职责处理，源 JSON 保存项目事实与差异：
 
 - `businessGraph.nodes`：由 `dataModels` 派生。
 - `dataModelSummary`：由 `dataModels` 派生。
@@ -109,7 +109,7 @@
 }
 ```
 
-不要写：
+下列内容按职责处理，源 JSON 保存项目事实与差异：
 
 - `pages.overview`：由自定义页面和 `dataModels` 派生。
 - `layoutPattern.mode`：无改造项为 `preset`，有改造项为 `adapted`，`custom-page-pattern` 为 `custom`。
@@ -187,9 +187,9 @@
 - 素材现状、真实来源和缺口。
 - 产品形态如何应用主题的项目差异。
 
-不要写：
+下列内容按职责处理，源 JSON 保存项目事实与差异：
 
-- `candidateThemes`、`candidateVisualDirections`：确认完成后不再保存候选副本。
+- `candidateThemes`、`candidateVisualDirections`：用于视觉选择阶段，确认后的计划保存所选方向。
 - `selectedTheme.label/templatePath/summary`：从主题索引补齐。
 - `themeProfile`：从主题索引 `defaultProfile` 派生，只读；用户差异写入 `visualStyle.tokens`。
 - `styleSummary`、`hierarchySummary`、`componentToneSummary`、`stateSummary`、`responsiveSummary`、`iconSummary`、`designMdReady`：确定性派生。

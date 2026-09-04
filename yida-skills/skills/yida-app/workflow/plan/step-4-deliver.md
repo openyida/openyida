@@ -1,10 +1,10 @@
 # Step 4：生成交付产物并确认
 
-输入为 `yida-prd` 完成业务规划的 `build-plan.json`。本步骤由 `yida-app` 调度视觉技能、生成文件并确认当前版本。
+输入为业务与视觉并行准备、经编排合并的 `build-plan.json`。本步骤由 `yida-app` 校验交接、一次生成文件并确认当前版本。
 
-## 1. 完成视觉与交接校验
+## 1. 校验业务与视觉交接
 
-调用 [Plan 视觉分支](../../../yida-design/sub_skill/yida-design-plan/SKILL.md)，根据业务页面和已选方向补齐 `visualStyle`。核对范围、场景和设计引用；业务缺项交给 `yida-prd`，视觉缺项交给 `yida-design` 修正。
+核对范围、场景和设计引用。基础视觉已与业务并行准备；仅页面绑定缺项时由 [Plan 视觉分支](../../../yida-design/sub_skill/yida-design-plan/SKILL.md) 补齐受影响的应用记录，业务缺项交给 `yida-prd` 修正。
 
 ## 2. 通过 CLI 生成产物
 
@@ -12,7 +12,9 @@
 openyida design-plan materialize prd/<项目名>/build-plan.json --json
 ```
 
-CLI 校验源事实，并从同一 `meta.revision` 生成 `prd.md`、`design.md` 和 `build-plan.html`。只校验时运行：
+这一条命令完成校验，并从同一 `meta.revision` 整批生成 `prd.md`、`design.md` 和 `build-plan.html`。HTML 使用包内 `assets/build-plan-template.html` 的固定布局、样式与交互，由渲染器填入标题、目录和完整正文。模型只维护源事实，三个输出文件均由 CLI 生成；HTML 的业务内容与 PRD 一致，差别在展示结构。
+
+正常交付使用上述命令一次完成校验和生成。仅校验源事实时运行：
 
 ```bash
 openyida design-plan materialize prd/<项目名>/build-plan.json --check --json

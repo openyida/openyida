@@ -272,11 +272,24 @@
       border: 0;
       overflow: hidden;
       margin: 18px 0 22px;
-      aspect-ratio: 16 / 9;
+      height: var(--graph-height, 280px);
+      min-height: min(220px, 65vh);
+      max-height: min(480px, 65vh);
+      padding-top: 60px;
       display: block;
       position: relative;
       background: #f7f8f9;
     }
+    .object-graph:fullscreen,
+    .object-graph.is-expanded {
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      max-height: none;
+      margin: 0;
+      border-radius: 0;
+    }
+    .object-graph.is-expanded { position: fixed; inset: 0; z-index: 1000; }
     .object-graph-toolbar {
       display: flex;
       align-items: center;
@@ -391,13 +404,15 @@
     .object-graph-stage {
       width: 100%;
       height: 100%;
-      display: block;
+      display: grid;
+      place-items: center;
     }
     .object-graph-svg {
       display: block;
       width: 100%;
       height: 100%;
-      max-width: none;
+      max-width: calc(var(--graph-width) * var(--graph-zoom, 1));
+      max-height: calc(var(--graph-content-height) * var(--graph-zoom, 1));
     }
     .object-edge {
       fill: none;
@@ -414,6 +429,17 @@
       opacity: 1;
     }
     .object-edge.is-dimmed { opacity: 0.06; }
+    .object-edge-label {
+      fill: #667085;
+      font-size: 11px;
+      paint-order: stroke;
+      stroke: #f7f8f9;
+      stroke-width: 4px;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+    .object-edge.is-highlighted + .object-edge-label { fill: #0066ff; }
+    .object-edge.is-dimmed + .object-edge-label { opacity: 0.15; }
     .object-node {
       cursor: pointer;
       transition: opacity 150ms ease;
@@ -695,7 +721,6 @@
       {{content}}
     </article>
   </main>
-  <script src="https://cdn.jsdelivr.net/npm/@antv/g6@5.1.1/dist/g6.min.js"></script>
   <script>
     (() => {
       function initSectionNavigation() {
@@ -831,6 +856,7 @@
 
           stage.style.width = `${zoom * 100}%`;
           stage.style.height = `${zoom * 100}%`;
+          stage.style.setProperty('--graph-zoom', zoom);
           stage.style.marginLeft = zoom < 1 ? `${(1 - zoom) * 50}%` : '0';
           stage.style.marginTop = zoom < 1 ? `${(1 - zoom) * 50}%` : '0';
           value.textContent = `${Math.round(zoom * 100)}%`;
@@ -851,6 +877,46 @@
         zoomOut.addEventListener('click', () => setZoom(zoom - zoomStep));
         zoomIn.addEventListener('click', () => setZoom(zoom + zoomStep));
         zoomFit.addEventListener('click', () => setZoom(1, true));
+        const fullscreen = graph.querySelector('[data-graph-fullscreen]');
+        let previousOverflow;
+        function syncFullscreen() {
+          const expanded = document.fullscreenElement === graph || graph.classList.contains('is-expanded');
+          fullscreen.setAttribute('aria-pressed', String(expanded));
+          fullscreen.setAttribute('aria-label', expanded ? '退出业务全景图全屏' : '全屏查看业务全景图');
+          fullscreen.title = expanded ? '退出全屏' : '全屏查看';
+          fullscreen.querySelector('span').textContent = expanded ? '退出全屏' : '全屏';
+          window.requestAnimationFrame(() => {
+            const api = graph.closest('[data-business-graph]').__g6Graph;
+            if (api) api.resize();
+            setZoom(1, true);
+          });
+          if (!expanded) fullscreen.focus();
+        }
+        function closeExpanded() {
+          graph.classList.remove('is-expanded');
+          document.body.style.overflow = previousOverflow;
+          syncFullscreen();
+        }
+        fullscreen.addEventListener('click', async () => {
+          if (document.fullscreenElement === graph) {
+            await document.exitFullscreen();
+          } else if (graph.classList.contains('is-expanded')) {
+            closeExpanded();
+          } else {
+            try {
+              await graph.requestFullscreen();
+            } catch {
+              previousOverflow = document.body.style.overflow;
+              document.body.style.overflow = 'hidden';
+              graph.classList.add('is-expanded');
+              syncFullscreen();
+            }
+          }
+        });
+        document.addEventListener('fullscreenchange', syncFullscreen);
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && graph.classList.contains('is-expanded')) closeExpanded();
+        });
         viewport.addEventListener('keydown', (event) => {
           if (event.key === '+' || event.key === '=') {
             event.preventDefault();
@@ -985,7 +1051,7 @@
         resetGraphFocus();
       });
 
-      document.querySelectorAll('.object-graph-component[data-business-graph]').forEach((component) => {
+      const initRichGraphs = () => document.querySelectorAll('.object-graph-component[data-business-graph]').forEach((component) => {
         const graphElement = component.querySelector('.object-graph');
         const mount = component.querySelector('[data-g6-mount]');
         const dataElement = component.querySelector('.object-graph-data');
@@ -994,7 +1060,7 @@
         if (!graphElement || !mount || !dataElement || !status) return;
 
         if (!window.G6 || !window.G6.Graph) {
-          status.textContent = 'AntV G6 未加载，当前显示静态回退视图';
+          status.textContent = '当前显示基础关系图';
           return;
         }
 
@@ -1029,7 +1095,7 @@
               style: {
                 stroke: '#aeb6c2',
                 lineWidth: 1.4,
-                opacity: 0.62,
+                strokeOpacity: 0.62,
                 lineCap: 'round',
                 lineJoin: 'round',
                 controlPoints: (datum) => datum.controlPoints || [],
@@ -1040,14 +1106,24 @@
                 endArrowOffset: 5,
                 endArrowFill: '#aeb6c2',
                 endArrowStroke: '#8f99a6',
+                labelText: (datum) => datum.data?.label || '关联',
+                labelFontSize: 11,
+                labelFill: '#667085',
+                labelAutoRotate: false,
+                labelOffsetY: (datum) => datum.controlPoints?.length ? 12 : -8,
+                labelBackground: true,
+                labelBackgroundFill: '#f7f8f9',
+                labelPadding: [2, 4],
               },
               state: {
                 highlight: {
                   stroke: '#0066ff',
+                  strokeOpacity: 1,
                   lineWidth: 2.2,
                   opacity: 1,
                   endArrowFill: '#0066ff',
                   endArrowStroke: '#0066ff',
+                  labelFill: '#0066ff',
                 },
                 inactive: { opacity: 0.06 },
               },
@@ -1077,7 +1153,7 @@
               return undefined;
             })
             .then(() => {
-              status.textContent = 'AntV G6 · 点击节点聚焦关系，拖动画布查看细节';
+              status.textContent = '点击节点聚焦关系，拖动画布查看细节';
               if (zoomValue) zoomValue.textContent = `${Math.round(antvGraph.getZoom() * 100)}%`;
               component.__resetGraphFocus?.();
             })
@@ -1085,12 +1161,20 @@
               component.__g6Graph = null;
               graphElement.classList.remove('is-g6-ready');
               mount.setAttribute('aria-hidden', 'true');
-              status.textContent = 'AntV G6 渲染失败，当前显示静态回退视图';
+              status.textContent = '当前显示基础关系图';
             });
         } catch (error) {
-          status.textContent = 'AntV G6 数据解析失败，当前显示静态回退视图';
+          status.textContent = '当前显示基础关系图';
         }
       });
+      // 正文、目录和基础关系图先可用，图表增强资源异步加载。
+      if (document.querySelector('[data-g6-mount]')) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@antv/g6@5.1.1/dist/g6.min.js';
+        script.async = true;
+        script.onload = initRichGraphs;
+        document.head.appendChild(script);
+      }
     })();
   </script>
 </body>

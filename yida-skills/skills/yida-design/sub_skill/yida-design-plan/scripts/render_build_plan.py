@@ -402,7 +402,7 @@ def render_business_graph(graph: dict[str, Any], data_models: list[dict[str, Any
     max_rows = max((len(items) for items in level_groups.values()), default=1)
     card_width = 154
     card_height = 36
-    gap_x = 58
+    gap_x = max(112, min(180, max((len(str(r.get("label", ""))) for r in relations), default=2) * 12 + 48))
     gap_y = 24
     margin = 44
     width = margin * 2 + (max_level + 1) * card_width + max_level * gap_x
@@ -462,10 +462,16 @@ def render_business_graph(graph: dict[str, Any], data_models: list[dict[str, Any
         path = rounded_orthogonal_path(
             [(start_x, start_y), *control_points, (end_x, end_y)], radius=12
         )
+        label_x = ((control_points[-1][0] if control_points else start_x) + end_x) / 2
+        label_y = end_y - 7
+        if control_points:
+            label_x, label_y = control_points[0][0] + 8, (start_y + end_y) / 2 + 4
+        label_anchor = "start" if control_points else "middle"
 
         edge_svg.append(
             f'''
-<path class="object-edge" data-edge-id="edge-{edge_index}" data-source="{esc(relation['from'])}" data-target="{esc(relation['to'])}" data-label="{esc(relation.get('label'))}" d="{path}" marker-end="url(#relationArrow)"><title>{esc(relation.get('label'))}</title></path>'''
+<path class="object-edge" data-edge-id="edge-{edge_index}" data-source="{esc(relation['from'])}" data-target="{esc(relation['to'])}" data-label="{esc(relation.get('label'))}" d="{path}" marker-end="url(#relationArrow)"><title>{esc(relation.get('label'))}</title></path>
+<text class="object-edge-label" x="{label_x}" y="{label_y}" text-anchor="{label_anchor}"><title>{esc(relation.get('label'))}</title>{esc(truncate_text(relation.get('label'), 10))}</text>'''
         )
 
     node_names = {node["id"]: node.get("name") or node["id"] for node in nodes}
@@ -512,7 +518,7 @@ def render_business_graph(graph: dict[str, Any], data_models: list[dict[str, Any
 
     return (
         '<div class="object-graph-component" data-business-graph>'
-        '<div class="object-graph" data-graph-zoom>'
+        f'<div class="object-graph" data-graph-zoom style="--graph-height:{height + 60}px;--graph-width:{width}px;--graph-content-height:{height}px">'
         '<div class="object-graph-toolbar" role="group" aria-label="业务全景图缩放控制">'
         '<span class="object-graph-status" data-graph-status>选择一张表，可聚焦查看关联关系</span>'
         '<div class="object-graph-actions">'
@@ -526,6 +532,9 @@ def render_business_graph(graph: dict[str, Any], data_models: list[dict[str, Any
         '<button class="object-graph-zoom-button is-icon-only" type="button" data-graph-zoom-fit aria-label="完整显示业务全景图" title="适应画布">'
         + render_action_icon("fit")
         + '</button>'
+        '<button class="object-graph-zoom-button has-label" type="button" data-graph-fullscreen aria-label="全屏查看业务全景图" aria-pressed="false" title="全屏查看">'
+        + render_action_icon("fit")
+        + '<span>全屏</span></button>'
         '<button class="object-graph-zoom-button has-label" type="button" data-graph-clear aria-label="显示全部业务关系">'
         + render_action_icon("relations")
         + '<span>全部关系</span></button>'
@@ -1090,17 +1099,14 @@ def render(data: dict[str, Any], template: str) -> str:
             render_pages(data),
         ]
     )
-    return (
-        template.replace("{{title}}", esc(title))
-        .replace("{{nav_items}}", render_nav())
-        .replace("{{content}}", content)
-    )
+    slots = {"title": esc(title), "nav_items": render_nav(), "content": content}
+    return re.sub(r"\{\{(title|nav_items|content)\}\}", lambda match: slots[match[1]], template)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input", required=True, help="Path to build-plan.json")
-    parser.add_argument("--output", required=True, help="Path to build-plan.html")
+    parser.add_argument("--input", required=True, help="Path to build-plan.json, or - for stdin")
+    parser.add_argument("--output", required=True, help="Path to build-plan.html, or - for stdout")
     parser.add_argument(
         "--template",
         help="Optional template path. Defaults to ../assets/build-plan-template.html",
@@ -1113,13 +1119,16 @@ def main() -> None:
         if args.template
         else script_dir.parent / "assets" / "build-plan-template.html"
     )
-    data = json.loads(Path(args.input).read_text(encoding="utf-8"))
+    data = json.loads(sys.stdin.read() if args.input == "-" else Path(args.input).read_text(encoding="utf-8"))
     validate_plan(data)
     template = template_path.read_text(encoding="utf-8")
     output = render(data, template)
-    output_path = Path(args.output)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(output, encoding="utf-8")
+    if args.output == "-":
+        sys.stdout.write(output)
+    else:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(output, encoding="utf-8")
 
 
 if __name__ == "__main__":

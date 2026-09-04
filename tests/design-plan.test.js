@@ -106,6 +106,52 @@ describe('design-plan materialize', () => {
     expect(html).toContain('href="#pages"');
   });
 
+  test('one render process fills the preset HTML and returns all artifacts from the same plan', () => {
+    const input = path.join(tempDir, 'build-plan.json');
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    plan.overview.dataModelSummary = ['采购订单负责记录每批交货的核对结果'];
+    plan.overview.navigationSummary = ['审核人员从待办入口进入采购审批'];
+    plan.overview.businessGraph.description = '采购申请关联订单，订单承接交付核对';
+    fs.writeFileSync(input, JSON.stringify(plan));
+    const spawn = jest.spyOn(require('child_process'), 'spawnSync');
+    try {
+      jest.isolateModules(() => require('../lib/design-plan/materialize').materialize(input));
+      expect(spawn).toHaveBeenCalledTimes(1);
+      const [, args, options] = spawn.mock.calls[0];
+      expect(args.slice(1)).toEqual(['--input', '-', '--output', '-']);
+      const normalized = JSON.parse(options.input);
+      const prd = fs.readFileSync(path.join(tempDir, 'prd.md'), 'utf8');
+      const html = fs.readFileSync(path.join(tempDir, 'build-plan.html'), 'utf8');
+      const handoff = JSON.parse(prd.match(/```json\n([\s\S]*?)\n```/)[1]);
+      expect(normalized.execution).toEqual(handoff);
+      for (const value of [...plan.overview.dataModelSummary, ...plan.overview.navigationSummary, plan.overview.businessGraph.description]) {
+        expect(prd).toContain(value);
+        expect(html).toContain(value);
+      }
+      expect(html).toContain('script.async = true');
+      expect(html).not.toMatch(/<script\s+src=/);
+      expect(html).not.toMatch(/\{\{(?:title|nav_items|content)\}\}/);
+    } finally {
+      spawn.mockRestore();
+    }
+  });
+
+  test('business graph renders a visible label for every edge and uses bounded content height', () => {
+    materialize(FIXTURE, { outputDir: tempDir });
+    const html = fs.readFileSync(path.join(tempDir, 'build-plan.html'), 'utf8');
+    const edges = [...html.matchAll(/<path class="object-edge"[^>]*data-label="([^"]+)"/g)];
+    const labels = [...html.matchAll(/<text class="object-edge-label"[^>]*><title>(.*?)<\/title>(.*?)<\/text>/g)];
+    expect(edges.length).toBeGreaterThan(0);
+    expect(labels.map(label => label[1])).toEqual(edges.map(edge => edge[1]));
+    expect(labels.every(label => label[2].length > 0)).toBe(true);
+    const graphHeight = Number(html.match(/--graph-height:(\d+)px/)[1]);
+    const contentHeight = Number(html.match(/--graph-content-height:(\d+)px/)[1]);
+    expect(graphHeight).toBe(contentHeight + 60);
+    expect(html).toContain('max-height: min(480px, 65vh)');
+    expect(html).not.toContain('aspect-ratio: 16 / 9');
+    expect(html).toContain('data-graph-fullscreen aria-label="全屏查看业务全景图"');
+  });
+
   test.each(['legacy', 'compact'])('%s preserves summary-only and detailed business rules in both PRD and HTML', schema => {
     const source = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
     const plan = schema === 'compact' ? compactV2(source) : source;
@@ -180,6 +226,10 @@ describe('design-plan materialize', () => {
     const html = fs.readFileSync(path.join(tempDir, 'build-plan.html'), 'utf8');
     const handoff = JSON.parse(prd.match(/```json\n([\s\S]*?)\n```/)[1]);
     const profile = require('js-yaml').load(design.match(/^---\n([\s\S]*?)\n---/)[1]).themeProfile;
+    const appSection = prd.split('## 2. 应用配置')[1].split('## 3.')[0];
+    expect(appSection).not.toMatch(/appType|corpId|navigationType|hideAppNav|isRenderNav|navTheme|layoutDirection/);
+    expect(appSection).toContain(`| 平台应用导航 | ${type === 'custom' ? '隐藏' : '显示'} |`);
+    expect(html).not.toMatch(/hideAppNav|isRenderNav/);
     expect(handoff.appConfig).toMatchObject({ navigationType: type, layoutDirection: layout, hideAppNav: type === 'custom' ? 'y' : 'n' });
     expect(profile).toMatchObject(handoff.appConfig.navigationType === 'custom'
       ? { navigationType: 'custom', hideAppNav: 'y' } : { navigationType: type, layoutDirection: layout, hideAppNav: 'n' });

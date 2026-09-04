@@ -106,6 +106,46 @@ describe('sample templates', () => {
     expect(pageSource).not.toContain('当前仍是脚手架占位资源');
   });
 
+  test('standalone drawer sample integrates into an existing Canvas page without page scaffolding', async () => {
+    const output = path.join(tmpDir, 'form-open-container.jsx');
+    await run(['openyida-page-template', 'form-open-container', '--output', output]);
+    const fragment = fs.readFileSync(output, 'utf8');
+    const source = `${fragment}\nfunction YidaComp() {
+      const { openForm, formOpenContainer } = useYidaFormOpen('APP_EXISTING', () => {});
+      return <><button onClick={() => openForm({ type: 'submission', formUuid: 'FORM_EXISTING' })}>新增</button>{formOpenContainer}</>;
+    }\nexport default YidaComp;`;
+    const result = compileCanvasLocal(source, { sourcePath: output });
+    expect(JSON.parse(result.importedModules)).toEqual(['antd', 'lucide-react', 'react']);
+    expect(fragment).not.toMatch(/SAMPLE_ROWS|RAW_APP_TYPE|ConfigProvider|function YidaComp|export default|\{\{APP_TYPE\}\}/);
+
+    const generic = compileCanvasLocal(`${fragment}\nfunction YidaComp() { return <CanvasDrawer open title="客户资料" onClose={() => {}}><p>客户信息</p></CanvasDrawer>; }`, { sourcePath: output });
+    const element = new Function('window', `${generic.runtimeCode}; return YidaComp();`)({
+      React: { createElement: (type, props, ...children) => ({ type, props, children }) },
+      antd: {}, LucideReact: {},
+    });
+    expect(element.type.name).toBe('CanvasDrawer');
+    expect(element.children[0].children).toEqual(['客户信息']);
+  });
+
+  test('dialog sample compiles with controlled actions and custom footer props', async () => {
+    const output = path.join(tmpDir, 'canvas-dialog.jsx');
+    await run(['openyida-page-template', 'canvas-dialog', '--output', output]);
+    const fragment = fs.readFileSync(output, 'utf8');
+    const result = compileCanvasLocal(`${fragment}\nfunction YidaComp() {
+      return <CanvasDialog open title="归档" footer={null} confirmLoading onOk={() => 'ok'} onCancel={() => 'cancel'} rootClassName="customer-dialog"><p>记录</p></CanvasDialog>;
+    }`, { sourcePath: output });
+    expect(JSON.parse(result.importedModules)).toEqual(['antd', 'react']);
+    const element = new Function('window', `${result.runtimeCode}; return YidaComp();`)({
+      React: { createElement: (type, props, ...children) => ({ type, props: { ...props, children }, children }) },
+      antd: { Modal: 'Modal' },
+    });
+    const modal = element.type(element.props).children[1];
+    expect(modal.type).toBe('Modal');
+    expect(modal.props).toMatchObject({ open: true, footer: null, confirmLoading: true, rootClassName: 'openyida-dialog customer-dialog' });
+    expect(modal.props.onOk()).toBe('ok');
+    expect(modal.props.onCancel()).toBe('cancel');
+  });
+
   test('application theme template is copied byte-for-byte through the CLI', async () => {
     const themeOutput = path.join(tmpDir, 'app-theme.css');
     const themeSource = path.join(
@@ -137,7 +177,8 @@ describe('sample templates', () => {
     sampleRoots.forEach((root) => {
       fs.readdirSync(root).filter((filename) => /\.(js|jsx)$/.test(filename)).forEach((filename) => {
         const source = fs.readFileSync(path.join(root, filename), 'utf8');
-        expect(source).not.toMatch(appThemePattern);
+        // Canvas templates consume the application theme; legacy samples keep their own defaults.
+        if (!filename.endsWith('.canvas.jsx')) {expect(source).not.toMatch(appThemePattern);}
         expect(source).not.toMatch(nearBlackThemePattern);
       });
     });

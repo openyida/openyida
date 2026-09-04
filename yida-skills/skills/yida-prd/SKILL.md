@@ -24,6 +24,7 @@ Plan 的业务调整通过字段级 patch 更新源事实，再由编排重新�
 
 ## 业务要求
 
+- PRD 的业务说明和验收标准遵循 [用户可见表达契约](../yida-design/references/ask-human-interaction-contract.md)，用功能和使用效果描述方案；接口参数及配置键值写入 Agent 实施交接。Plan 的摘要、规则和验收文案会直接展示在 HTML 中，填写时使用同一业务表达。
 - 规划目标、角色、对象、字段语义、流程、资源、页面任务、数据来源和验收标准；写清资源创建、页面实现交付和导航三种顺序。
 - 用户存在 `explicitScope` 时，以该范围规划页面、表单、流程、报表和本轮交付。
 - 真实 `appType`、`formUuid`、`fieldId`、`processCode` 以资源证据为准；实现阶段产生的 ID 写入 `.cache/<项目名>-schema.json`。

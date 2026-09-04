@@ -25,7 +25,9 @@ PRD 规划前必须已确定应用导航类型；读取 brief 的 `navigation.ty
 
 读取共享需求文件，在 `yida-app` 建立的 `schemaVersion: "2.0"` 计划中写入需求总览、完整数据模型、业务流程、页面业务差异与 `execution`。元信息和确认由 `yida-app` 维护，`visualStyle` 由 `yida-design` 维护。
 
-模型不得重复写可确定性派生的信息：
+与基础视觉设计并行准备业务事实；页面任务、区块和 sceneKey 确定后立即交接。业务事实以独立片段返回，由编排合并写入计划。
+
+以下内容由 CLI 从事实、索引和模板派生：
 
 - `overview` 中的数据模型、流程、页面和视觉摘要副本。
 - 页面模式的 `mode`、`mustKeep`、固定 `rich-but-relevant` 和全局防填充规则。
@@ -59,7 +61,7 @@ PRD 规划前必须已确定应用导航类型；读取 brief 的 `navigation.ty
 - 每页写清页面任务、场景、区块、数据来源和主操作，三种顺序分别规划。
 - 视觉规则仅通过设计引用交接，不复制到业务事实。
 - 将业务事实交给 `yida-app` 统一维护 revision 和草稿状态；视觉一致性由 `yida-design` 校验。
-- 不先生成 `prd.md`、`design.md` 或 HTML 再反向补 JSON。
+- 完成源 JSON 后，由编排调用 CLI 生成 `prd.md`、`design.md` 和 HTML。
 
 ## 输出
 
@@ -79,7 +81,7 @@ PRD 规划前必须已确定应用导航类型；读取 brief 的 `navigation.ty
 
 ## 与 Fast 一致的业务交接
 
-每页明确 `scene`、`sceneKey`（原样保留 brief 的 pageScenes key）、`pageStructure`、`entryMode`、`dataBinding` 和 `primaryAction`。平台导航的 `entryMode` 默认 `platform-shell`，自定义导航为 `standalone`，不能填 workbench；`scene` 与页面模式 ID 分开。三种顺序、资源蓝图、示例数据计划、交互状态和验收写入 `execution`，无需重复生成章节或视觉规则。
+每页明确 `scene`、`sceneKey`（原样保留 brief 的 pageScenes key）、`pageStructure`、`entryMode`、`dataBinding` 和 `primaryAction`。平台导航的 `entryMode` 默认 `platform-shell`，自定义导航为 `standalone`，不能填 workbench；`scene` 与页面模式 ID 分开。三种顺序、资源蓝图、示例数据计划、交互状态和验收写入 `execution`，由 CLI 生成对应章节。
 
 `execution` 可写 `appConfig`（真实已知应用信息）、`resourceBlueprint`、`resourceCreationOrder`、`pageImplementationOrder`、`navigationOrder`、`navigationFallback`、`sampleDataPlan`、`interactionStates` 和 `acceptanceCriteria`；`appConfig.navigationType` 按 [导航类型契约](output-prd.md#导航类型与执行配置) 明确填写，决定 `layoutDirection/hideAppNav`；`navTheme/logoSource` 取视觉事实。CLI 派生逐页 `pageNavigation`，供实现阶段执行隐藏与回读。
 

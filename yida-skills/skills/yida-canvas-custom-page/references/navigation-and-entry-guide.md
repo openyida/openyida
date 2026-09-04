@@ -80,102 +80,26 @@
 
 ## 标准 FormOpenContainer
 
-自定义页面内凡是点击按钮去新增、提交或查看表单详情，统一封装成同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；外部 URL 才使用新标签。PC 端容器表现为右侧抽屉 + iframe，移动端直接进入原生表单页，关闭抽屉后触发当前页刷新。
+自定义页面内凡是点击按钮去新增、提交或查看表单详情，统一封装成同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；新标签只用于外部 URL 或用户主动点击抽屉标题栏的新窗口操作。PC 端容器表现为右侧抽屉 + iframe，移动端直接进入原生表单页，关闭抽屉后触发当前页刷新。
 
-YidaCodeCanvas 推荐使用 antd `Drawer`。`FormOpenContainer` 只负责打开原生提交页或详情页。
+YidaCodeCanvas 推荐使用 antd `Drawer`。`FormOpenContainer` 只负责打开原生提交页或详情页。通用 `CanvasDrawer` 提供标题栏、全屏/退出全屏、关闭、内容卡片和 `extra` 操作区，表单容器额外提供新窗口打开。
+
+抽屉优先消费当前应用的 `--pod-shell-theme-bg-color`、`--pod-page-header-*`、`--pod-drawer-border-radius`、`--pod-drawer-shadow` 和 `--pod-card-*`，保留 Fusion `--drawer-*` 与基础色回退。样式由 `rootClassName` 限定，Drawer 挂载到 body 时也能命中；保留 CSS `var(...)` 响应主题变化。整体暗色需配套设置背景、文字和卡片 token，导航明暗不作为整体暗色的判断依据。iframe 内容由平台渲染，不注入样式；内层容器零内边距，高度随抽屉伸缩。
+
+### 给已有页面添加抽屉
+
+```bash
+openyida sample openyida-page-template form-open-container --output .cache/samples/form-open-container.jsx
+```
+
+CLI 从整页脚手架提取同一份抽屉实现。将片段中的 import 合并到现有 `.canvas.jsx`，再合并组件与辅助函数；CodeCanvas 不支持相对路径模块导入。表单入口使用 `useYidaFormOpen(appType, reload)` 并渲染其 `formOpenContainer`；普通业务内容可直接放进 `CanvasDrawer` 的 children，用 `open/title/onClose` 控制。已有同名函数时更新原实现，保持一份定义。整页新建仍使用 `canvas-form-drawer` 模板。
+
+### 接入示例
+
+合并片段后，页面只需接入按钮和返回的容器：
 
 ```jsx
-import React, { useMemo, useState } from 'react';
-import { Button, Drawer } from 'antd';
-
-function isMobileViewport() {
-  return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
-}
-
-function appendQuery(url, params) {
-  const joiner = url.indexOf('?') === -1 ? '?' : '&';
-  const query = Object.keys(params).filter((key) => params[key] !== undefined && params[key] !== null && params[key] !== '').map((key) => (
-    encodeURIComponent(key) + '=' + encodeURIComponent(params[key])
-  )).join('&');
-  return query ? url + joiner + query : url;
-}
-
-function buildYidaFormUrl(request, currentAppType) {
-  const appType = request.appType || currentAppType;
-  if (request.type === 'submission') {
-    return appendQuery(`/${appType}/submission/${request.formUuid}`, { isRenderNav: false });
-  }
-  if (request.type === 'detail') {
-    if (!request.formInstId) {
-      return '';
-    }
-    return appendQuery(`/${appType}/formDetail/${request.formUuid}`, {
-      formInstId: request.formInstId,
-      'navConfig.layout': 1180,
-      isRenderNav: false,
-    });
-  }
-  return request.url || '';
-}
-
-const FORM_OPEN_DRAWER_WIDTH = '50vw';
-
-function FormOpenContainer({ request, currentAppType, onClose, onAfterClose }) {
-  const iframeSrc = useMemo(() => request ? buildYidaFormUrl(request, currentAppType) : '', [request, currentAppType]);
-
-  return (
-    <Drawer
-      title={request && request.title ? request.title : '表单'}
-      open={!!request}
-      width={FORM_OPEN_DRAWER_WIDTH}
-      destroyOnClose
-      onClose={() => {
-        onClose();
-        if (typeof onAfterClose === 'function') onAfterClose();
-      }}
-      bodyStyle={{ padding: 0, overflow: 'hidden' }}
-    >
-      {iframeSrc ? (
-        <iframe
-          title={request && request.title ? request.title : '表单'}
-          src={iframeSrc}
-          style={{ width: '100%', height: '100%', minHeight: 'calc(100vh - 56px)', border: 0, display: 'block' }}
-        />
-      ) : null}
-    </Drawer>
-  );
-}
-
-function useYidaFormOpen(currentAppType, refreshData) {
-  const [formRequest, setFormRequest] = useState(null);
-  function openForm(request) {
-    if (request && request.type === 'detail' && !request.formInstId) {
-      return;
-    }
-    const href = buildYidaFormUrl(request, currentAppType);
-    if (!href) {
-      return;
-    }
-    if (isMobileViewport()) {
-      window.location.href = href;
-      return;
-    }
-    setFormRequest(request);
-  }
-  const container = (
-    <FormOpenContainer
-      request={formRequest}
-      currentAppType={currentAppType}
-      onClose={() => setFormRequest(null)}
-      onAfterClose={refreshData}
-    />
-  );
-  return { openForm, formOpenContainer: container };
-}
-
-function getYidaFormInstId(row) {
-  return row && (row.formInstId || row.formInstanceId || row.instanceId || row.id);
-}
+import { Button } from 'antd';
 
 function ExampleToolbar({ appType, customerFormUuid, selectedCustomer, reload }) {
   const { openForm, formOpenContainer } = useYidaFormOpen(appType, reload);
@@ -261,7 +185,7 @@ function openEntry(entry, currentAppType, runtime) {
 }
 ```
 
-`getYidaFormInstId` 复用上方标准 `FormOpenContainer` 示例中的同名 helper。复制或重命名 helper 时必须连同声明和全部调用点一起修改，不能只生成 `getInstId(...)` 等新调用名。
+`getYidaFormInstId` 复用 CLI 抽屉片段中的同名 helper。复制或重命名 helper 时必须连同声明和全部调用点一起修改，不能只生成 `getInstId(...)` 等新调用名。
 
 验收时检查抽屉 `iframeSrc` 或移动端打开地址包含 `isRenderNav=false`；详情页还必须包含真实 `formInstId`。如果目标表单已另有 query 参数，必须用统一 URL 构造函数合并为 `&isRenderNav=false`，不要丢掉 `corpid`、来源页或业务参数。
 
@@ -269,7 +193,9 @@ function openEntry(entry, currentAppType, runtime) {
 
 如果 `window.__OPENYIDA_UTILS__.router.push` 可用，可把同应用 `page/app` 的同页跳转替换成壳层 `push`；没有该桥时，不猜内部对象，使用上面的工作台 URL。
 
-PC 抽屉内的 iframe 高度随内容区拉满，提交页和详情页抽屉默认使用同一半屏宽度 `50vw`，占当前视口宽度的 50%；只有用户明确要求更窄/更宽，或页面需要主从分栏并给出具体验收时，才调整该宽度。提交成功或查看结束后的刷新可以先用抽屉关闭事件触发列表 reload，若平台 postMessage 事件已验证，再接入精确的提交完成回调。移动端不强塞抽屉，避免键盘和表单字段被压缩。
+PC 抽屉内的 iframe 高度随内容区拉满，提交页和详情页默认使用半屏宽度 `50vw`。左边缘支持拖拽调宽，最小 480px（窄视口放宽到半屏），最大为视口的 90%；拖动时捕获指针并暂停 iframe 的鼠标响应，结束后恢复。双击边缘恢复半屏，聚焦边缘后可用左右方向键调宽。点击全屏展开到 `100vw`，退出全屏或关闭后重新打开保留已调整的宽度；窗口缩小时重新限制宽度。
+
+提交成功或查看结束后的刷新可以先用抽屉关闭事件触发列表 reload，若平台 postMessage 事件已验证，再接入精确的提交完成回调。移动端直接进入原生表单页。
 
 ## PortalQuickEntry / QuickAccessCard 边界
 
