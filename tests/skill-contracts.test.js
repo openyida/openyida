@@ -361,9 +361,9 @@ describe('OpenYida skill contracts', () => {
     expect(prd.done_when).toContain('资源创建顺序');
 
     const designSkill = readSkill('yida-skills/skills/yida-design/SKILL.md');
-    expect(designSkill).toContain('只输出 `design.md`');
-    expect(designSkill).toContain('只输出 `design.md`，不写 PRD 或页面源码');
-    expect(designSkill).toContain('本技能不读取本轮正在生成的 `prd.md`');
+    expect(designSkill).toContain('输出 `design.md`');
+    expect(designSkill).toContain('视觉设计技能，输出 `design.md`');
+    expect(designSkill).toContain('Fast 的 PRD 与视觉技能各自基于该文件独立生成');
 
   });
 
@@ -611,12 +611,12 @@ describe('OpenYida skill contracts', () => {
     expect(skill).not.toContain('## Sample 与业务页边界');
     expect(skill).not.toContain('模板路由');
     expect(skill).not.toContain('去 sample 化检查');
-    expect(requirementAnalysis).toContain('先统一整理用户需求和已确认资源');
-    expect(requirementAnalysis).toContain('不生成 PRD、视觉设计或页面源码');
+    expect(requirementAnalysis).toContain('来源识别、内容读取、需求理解与澄清');
+    expect(requirementAnalysis).toContain('workflow/prepare-brief.md');
     expect(prd).toContain('生成 `prd/<项目名>/prd.md`');
-    expect(prd).toContain('不生成 `design.md` 或页面源码');
-    expect(design).toContain('只输出 `design.md`');
-    expect(design).toContain('不写 PRD 或页面源码');
+    expect(prd).toContain('基于输入事实');
+    expect(design).toContain('输出 `design.md`');
+    expect(design).toContain('宜搭应用和页面视觉设计技能');
     expect(design).not.toContain('应用体验蓝图');
     expect(design).not.toContain('推荐模板');
     expect(output).toContain('## PRD 输出格式');
@@ -680,11 +680,11 @@ describe('OpenYida skill contracts', () => {
     expect(step3).not.toContain('推荐模板');
     expect(step5).toContain('示例品牌名、默认指标和通用卖点');
     expect(step5).not.toContain('sample 品牌名');
-    expect(design).toContain('视觉设计规范只写 design.md');
-    expect(design).toContain('visualScaffold');
-    expect(design).toContain('写入 `design.md`');
+    expect(design).toContain('完整应用输出一份应用级 `design.md`');
+    expect(outputDesign).toContain('visualScaffold');
+    expect(design).toContain('[视觉输出契约](workflow/output-design.md)');
     expect(design).toContain('实现交接明确');
-    expect(prd).toContain('每个 display 页面必须有 `pageSpecHandoff`');
+    expect(prd).toContain('每个 display 页面提供 `pageSpecHandoff`');
     expect(step5).toContain('`visualScaffold`：给所有页面实现使用的硬骨架');
     expect(step5).toContain('读取 [视觉结构配方库](../references/visual-scaffold-recipes.md)');
     expect(step5).toContain('读取 [页面质量门禁](../references/page-quality-gates.md)');
@@ -1214,7 +1214,7 @@ describe('OpenYida skill contracts', () => {
     expect(theme).toContain('严禁重新生成或覆盖整份 CSS');
     expect(theme).not.toContain('文件复制能力');
     expect(step2).toContain('openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css');
-    expect(step2).toContain('按主题色修改对应 token');
+    expect(step2).toContain('CLI 按 `design.md` 修改对应 token');
     expect(step2).toContain('严禁重新生成或覆盖整份 CSS');
     expect(step2).not.toContain('文件复制能力');
     expect(step2).toContain('若截图或预览中出现左侧导航选中态与页面主操作颜色不一致');
@@ -1288,7 +1288,12 @@ describe('OpenYida skill contracts', () => {
     expect(pageUiux).toContain('工作台、门户、列表、详情、普通看板和数据大屏默认都是浅底 / light 模式');
     expect(step4).toContain('视觉方向要从“高级 / 简洁 / 商务”继续落细');
     expect(step4).toContain('主色：先按行业、品牌、业务情绪和视觉目标做创意判断，可选择平台预置主题，也可设计自定义品牌色盘');
-    expect(step4).toContain('明暗模式：默认 `light`；`design.md` 的 `themeProfile.navTheme` 保持 `light`');
+    expect(step4).toContain('界面明暗：默认浅色');
+    expect(step4).toContain('导航明暗：`themeProfile.navTheme` 单独按导航方案记录');
+    const overlayGuide = readSkill('yida-skills/skills/yida-design/references/theme/theme-token-presets.md');
+    expect(overlayGuide).toContain('`navTheme=dark` 只表示导航深色，不触发本节');
+    expect(overlayGuide).toContain('允许在复制后的 `app-theme.css` 末尾追加精确 classname 规则');
+    expect(overlayGuide).toContain('.deep-cascader-select-popup');
     expect(step4).toContain('`design.md` 的 `themeProfile.colorMode` 是宜搭配色模式');
     expect(outputBlock).toContain('| 明暗模式 | <light 默认；dark 只在明确暗色/夜间/高对比/黑金时使用；具体色阶见 design.md> |');
     expect(outputBlock).toContain('| 应用主题色 | <平台预置 key 或自定义色盘名称；必须与 design.md 的 Theme Profile 一致> |');
@@ -1538,7 +1543,7 @@ describe('OpenYida skill contracts', () => {
     expect(navShell).toContain('需要代码骨架时读 [导航壳形态目录]');
     expect(navShell).not.toContain('新建导航壳默认交 **YidaCodeCanvas**');
 
-    expect(pageUiux).toContain('只输出 `design.md`，不写 PRD 或页面源码');
+    expect(pageUiux).toContain('视觉设计技能，输出 `design.md`');
     expect(pageUiux).toContain('常规业务图表使用 `yida-rechart`');
     expect(pageUiux).toContain('ECharts 例外');
     expect(pageUiux).toContain('主题文件先复制再修改');

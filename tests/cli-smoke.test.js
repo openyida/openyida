@@ -560,7 +560,6 @@ describe('CLI offline smoke', () => {
       ]),
       do_not_default_skill_ids: expect.arrayContaining([
         'yida-data-source-connectors',
-        'yida-data-management',
       ]),
       product_design_policy: expect.stringContaining('read that same file and run in parallel'),
       ui_guidance_policy: expect.stringContaining('only design sources of truth'),
@@ -580,6 +579,9 @@ describe('CLI offline smoke', () => {
     expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('prd.md + design.md');
     expect(parsed.summary.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
     expect(parsed.summary.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
+    expect(parsed.summary.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-data-management');
+    expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('Core normal forms default to 1-3 business sample records');
+    expect(parsed.summary.core_workflows.full_app_build.optional_after_done_command_ids).not.toContain('data');
     expect(commands).toContain('env');
     expect(commands).not.toContain('env-management');
     expect(commands).toContain('login');
@@ -1601,7 +1603,6 @@ describe('CLI offline smoke', () => {
       ]),
       do_not_default_skill_ids: expect.arrayContaining([
         'yida-data-source-connectors',
-        'yida-data-management',
       ]),
       product_design_policy: expect.stringContaining('read that same file and run in parallel'),
       ui_guidance_policy: expect.stringContaining('only design sources of truth'),
@@ -1621,6 +1622,9 @@ describe('CLI offline smoke', () => {
     expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('prd.md + design.md');
     expect(parsed.commands.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
     expect(parsed.commands.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
+    expect(parsed.commands.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-data-management');
+    expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('Core normal forms default to 1-3 business sample records');
+    expect(parsed.commands.core_workflows.full_app_build.optional_after_done_command_ids).not.toContain('data');
     expect(parsed.recommended.default_full_app_workflow).toMatchObject({
       mode: 'unified_build',
       completion_contract: expect.stringContaining('create or reuse app'),

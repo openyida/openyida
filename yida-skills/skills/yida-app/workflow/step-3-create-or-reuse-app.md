@@ -17,10 +17,10 @@
 4. 创建完整应用时，先执行以下命令复制模板：
 
    ```bash
-   openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css
+   openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css --design-file prd/<项目名>/design.md
    ```
 
-   复制后按 `design.md` 的主题色修改对应 token，严禁重新生成或覆盖整份 CSS。随后在 `create-app` 中同时传 `--theme-file`、`--nav-theme`、`--logo-source` 和 `--layout`。只有用户明确只创建空壳或暂不配置主题时才省略主题文件。
+   CLI 复制公共模板并按 `design.md` 的具体 token 值定点替换，严禁重新生成或覆盖整份 CSS。整体暗色方案还需按 [浮层适配](../../yida-design/references/theme/theme-token-presets.md#暗色主题浮层适配) 在该文件末尾补充必要的 class 覆盖；仅深色导航不触发此操作。随后在 `create-app` 中同时传 `--theme-file`、`--nav-theme`、`--logo-source` 和 `--layout`。只有用户明确只创建空壳或暂不配置主题时才省略主题文件。
 5. CLI 从 CSS 的 `--color-brand1-6` 自动提取 `themeColor`，创建后立即上传主题文件，并把 `customThemeStyle/themeColor/navTheme/logoSource/layoutDirection` 一次保存；不要再额外传 `--theme-color`。
 6. 已有 app 不自动改名。外部工具预创建 app 时，OpenYida 侧只复用 `appType`，但用户明确要求应用级换肤时可以执行上一步主题更新。
 

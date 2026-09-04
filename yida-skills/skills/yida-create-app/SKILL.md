@@ -54,7 +54,7 @@ openyida create-app --name <appName> [--desc <description>] [--theme-file <app-t
 | `description` | 否 | 同 appName | 应用描述 |
 | `icon` | 否 | 见下文 | 显式指定优先；否则优先使用命中的行业图标，仅未命中行业时从平台系统图标中随机选择 |
 | `iconColor` | 否 | 见下文 | 传主题文件时统一跟随 `--color-brand1-6` 的 HEX 值；未传主题文件时保留兼容默认值 |
-| `themeFile` | 否，推荐 | — | 先通过 `openyida sample yida-design app-theme --output <app-theme.css>` 复制模板，再按主题色修改对应 token。严禁重新生成或覆盖整份 CSS；主色写入 `--color-brand1-6` |
+| `themeFile` | 否，推荐 | — | 先通过 `openyida sample yida-design app-theme --output <app-theme.css> --design-file prd/<项目名>/design.md` 复制模板并按 `design.md` 自动替换 token。严禁重新生成或覆盖整份 CSS；主色写入 `--color-brand1-6` |
 | `navTheme` | 否 | `themeFile` 场景默认 `light` | 导航风格：`light` / `dark` / `white` / `gray` |
 | `logoSource` | 否 | `themeFile` 场景默认 `appIcon` | 新建应用只支持应用图标；`customImage` 需要已有 `homepageLogo`，只在已有应用更新时使用 |
 | `layoutDirection` | 否 | `l_shape` | 新建应用默认使用 L 型导航；可显式改为 `side`（侧边）/ `top`（顶部）/ `l_shape`（L 型） |
@@ -82,7 +82,7 @@ CLI 始终按“显式 `--icon` → 行业推断 → 随机系统图标”的顺
 主题颜色不受平台预置 key 限制。先执行以下命令复制内置主题模板，再定点修改品牌相关 token：
 
 ```bash
-openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css
+openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css --design-file prd/<项目名>/design.md
 ```
 
 将任意设计主色写入 `--color-brand1-6` 后执行：

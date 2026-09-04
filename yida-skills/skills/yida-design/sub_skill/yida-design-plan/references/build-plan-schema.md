@@ -2,7 +2,7 @@
 
 ## 用途
 
-本文件描述 materialize 使用的完整逻辑结构，并用于校验或迁移 1.x 计划。新计划不要按本文逐字段生成，改读 [2.0 紧凑写入契约](build-plan-compact-schema.md)；用户可见内容要求读取 [build-plan-content.md](build-plan-content.md)。
+本文件描述 materialize 使用的完整逻辑结构，并用于校验或迁移 1.x 计划。新计划不要按本文逐字段生成，改读 [2.0 紧凑写入契约](build-plan-compact-schema.md)；用户可见内容要求读取 [build-plan-content.md](../../../../yida-prd/references/plan-content.md)。
 
 `build-plan.json` 是搭建计划的结构化事实源。`prd.md`、`design.md` 和 `build-plan.html` 都从它转化，不得各自推导互相冲突的业务、页面或视觉结论。
 
@@ -448,7 +448,7 @@
 - 页面视觉应用先消费全应用 Token 和页面已有组件，再匹配视觉记忆点；新计划不维护一份固定页面类型规则表。
 - 1.x 结构中的 `candidateThemes` 与 `selectedTheme` 必须从 [主题索引](../templates/design-themes/index.json) 取得；2.0 不保存任何未选候选，模板路径由 `visualStyle.internal.selectedTheme.themeId` 确定性补齐。
 - `forDesignMd.designTemplate` 必须与 `visualStyle.internal.selectedTheme` 指向同一模板；生成的 `design.md` 不得残留 `{{...}}` 占位符、Token 推导指令、主题 ID、模板名称或模板路径。
-- 主题 ID 仅保存在 2.0 `build-plan.json` 的内部字段，模板路径由主题索引补齐；用户可见派生产物只展示视觉方向、主题色、导航结构和导航明暗。
+- 主题 ID 仅保存在 2.0 `build-plan.json` 的内部字段，模板路径由主题索引补齐；用户可见 HTML 完整展示业务和视觉方案，内部主题 ID 与模板路径保留给执行过程。
 - 视觉变化不得改写 `pages`；页面规划变化时允许重新生成 `visualStyle.forUser.pageApplications`。
 - `prd.md`、`design.md` 和 `build-plan.html` 必须来自同一个 `meta.revision`；用户确认后把 `meta.status` 更新为 `confirmed`。
 - 确认生成应用前，`build-plan.json` 是唯一搭建计划事实源。

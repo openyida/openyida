@@ -37,7 +37,7 @@ ALLOWED_PLACEHOLDERS = {
 }
 
 CANDIDATE_RULE_FILES = (
-    "workflow/step-2-confirm.md",
+    "../../../yida-app/workflow/plan/step-2-confirm.md",
     "references/visual-theme-selection.md",
     "references/build-plan-schema.md",
 )

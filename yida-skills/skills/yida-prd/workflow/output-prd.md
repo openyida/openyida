@@ -1,6 +1,6 @@
 # 输出：prd.md
 
-> 本文件定义完整应用的 `prd/<项目名>/prd.md` 输出格式。`prd.md` 记录业务语义、产品设计、页面结构、资源创建顺序、页面实现交付顺序和导航顺序。PRD 不写 UI 视觉设计规范，只写应用主题色和风格摘要，并引用 `design.md` 章节。
+> 本文件定义完整应用的 `prd/<项目名>/prd.md` 输出格式。`prd.md` 记录业务语义、产品设计、页面结构、资源创建顺序、页面实现交付顺序和导航顺序。视觉部分记录应用主题色和风格摘要，通过 `design.md` 引用具体规范。
 
 ## PRD 输出格式
 
@@ -88,7 +88,9 @@
   - designFile：<prd/<项目名>/design.md>
   - designRefs：<themeProfile / sceneRecipes.<scene> / components.<name> / states.<name>>
   - 引用规则以 [yida-design 的稳定引用规则](../../yida-design/workflow/output-design.md#稳定引用规则) 为准；`sceneRecipes.<sceneKey>` 中的 `sceneKey` 必须逐字取自 `requirement-brief.json` 的对应 `pageScenes`（对象项使用其 `key`，字符串项原样使用），不得改写、翻译或重新生成。
-  - dataBinding：<form / report / connector / static-empty；真实资源 ID 由实现阶段回填>
+  - dataBinding：<form / report / connector / static-empty；必须明确，真实资源 ID 由实现阶段回填>
+  - dataSources：<已规划的来源名称数组；form 对应业务数据模型>
+  - emptyReason：<static-empty 必填，说明为何本轮只交付空态或入口；其他绑定方式需要非空来源>
   - primaryAction：<主操作和打开方式>
 
 `entryMode=standalone` 只用于页面自身已经具备完整导航壳，或不依赖宜搭工作台导航即可完成主要业务闭环的员工自助/轻量业务入口。页面只有 tab、筛选、分段、卡片切换、普通看板，或仍依赖平台导航进入核心表单/流程时必须使用 `platform-shell`。不得根据访问者角色猜测；证据不足时默认 `platform-shell`。

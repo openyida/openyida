@@ -10,6 +10,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.9.4] - 2026-09-04
+
+### Added
+
+- `sample yida-design app-theme` 支持 `--design-file`：通过 CLI 复制公共 CSS 模板，读取 `design.md` 中的具体 token，统一替换品牌色阶和关联值，保留模板选择器及导航作用域。
+
+### Changed
+
+- 统一 Fast / Plan 的 11 章 PRD 与页面交接契约：需求来源读取和澄清归 `yida-requirement-analysis`，业务规划归 `yida-prd`，视觉设计归 `yida-design`，编排与版本确认归 `yida-app`；精简重复说明，明确 Plan 视觉候选与页面视觉应用两个阶段。
+- Plan HTML 保留需求总览、数据模型、业务流程、页面规划四章及业务全景图、摘要，补齐示例数据、页面数据来源、交互状态、视觉与素材说明、搭建顺序和验收标准；HTML 供用户完整审阅，Markdown 供 Agent 执行。
+- 视觉技能增加暗色浮层适配指引：根据整体暗色方案成套配置 Balloon、Menu、Popup、Dialog、Dropdown 的 token，并允许在主题 CSS 末尾添加精确 class 覆盖；整体暗黑与深色导航分别判断。
+
+### Fixed
+
+- Plan patch 支持首次添加契约允许的可选子字段，拒绝未知路径、越界数组及只读主题摘要覆盖；具体视觉差异通过 token 同步到设计契约与应用主题 CSS。
+- 补齐页面场景、入口类型、结构、数据来源、稳定设计引用、示例记录和资源顺序校验，避免计划可以确认但缺少实际搭建依据。
+- 源计划与派生产物采用同批暂存和失败恢复，避免写入失败导致文件版本混杂；方案修改使旧确认失效，执行前核对当前展示版本与确认版本一致。
+
 ## [2026.9.3-1] - 2026-09-03
 
 ### Fixed

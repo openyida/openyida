@@ -35,6 +35,8 @@
 | `page-spec.json` 缺少 sourceOfTruth、design 指针、dataBinding，或与 PRD/design.md 不一致 | 丢弃并从最新 PRD + `design.md` 重生成 |
 | PRD、design.md 和 spec 都完整，但源码有 className、布局比例、字段映射、响应式、loading/empty/error 或编译错误 | 小范围 patch 源码 |
 
+Plan 模式下，上表涉及 PRD/design 的修正均由对应技能更新 `build-plan.json` 源事实，再物化并重新确认；不得直接编辑派生产物。主题 token 变化后重新运行带 `--design-file` 的 sample 命令生成 CSS。
+
 ## 产出
 
 - 本轮修改过的页面源码路径；

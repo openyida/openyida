@@ -181,3 +181,65 @@ describe('sample templates', () => {
     expect(tableForm).toContain('最近操作');
   });
 });
+
+describe('application theme from design.md', () => {
+  const { readDesignTokens, applyDesignTokens } = require('../lib/app/theme-from-design');
+  const { renderDesign } = require('../lib/design-plan/materialize');
+  const template = fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
+  const fixture = require('./fixtures/design-plan.json');
+  const themeIndex = require('../yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/design-themes/index.json');
+  const tokens = {
+    '--color-brand1-1': '#7197EE', '--color-brand1-2': '#EFF3FE', '--color-brand1-3': '#DAE3FD',
+    '--color-brand1-5': '#2245AA', '--color-brand1-6': '#315BCC', '--color-brand1-9': '#1F3D99',
+    '--color-brand1-10': '#B5C4EE', '--pod-card-border-radius': '16px',
+  };
+  const fastDesign = `---\ntokens:\n${Object.entries(tokens).map(([k, v]) => `  ${k}: ${v}`).join('\n')}\n---\n`;
+  const structure = css => css.replace(/(--[\w-]+)\s*:[^;]+;/g, '$1: TOKEN;');
+
+  test('Fast changes token values while preserving selectors and semantic colors', () => {
+    const css = applyDesignTokens(template, fastDesign);
+    expect(css).toContain('--color-brand1-6: #315BCC;');
+    expect(css).toContain('--pod-card-border-radius: 16px;');
+    expect(css).not.toContain('rgba(155, 136, 121, 1)');
+    expect(structure(css)).toBe(structure(template));
+    expect(css.match(/--color-error[^;]+;/g)).toEqual(template.match(/--color-error[^;]+;/g));
+  });
+
+  test.each(themeIndex.themes.map(theme => [theme.id || theme.themeId]))('Plan theme %s uses the public CSS pipeline', themeId => {
+    const plan = JSON.parse(JSON.stringify(fixture));
+    delete plan.visualStyle.forUser.themeProfile;
+    plan.visualStyle.forUser.selectedTheme = themeIndex.themes.find(theme => theme.themeId === themeId);
+    plan.visualStyle.tokens = { '--pod-card-border-radius': '16px' };
+    const design = renderDesign(plan);
+    const css = applyDesignTokens(template, design);
+    expect(readDesignTokens(design)['--pod-card-border-radius']).toBe('16px');
+    expect(css).toContain('--pod-card-border-radius: 16px;');
+    expect(css).toContain('--color-brand1-6: #6F4E37;');
+    // Ignore added custom-page tokens when comparing the template's selectors and scope.
+    const originalNames = new Set([...template.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
+    const withoutExtra = css.replace(/^[ \t]*(--[\w-]+)\s*:[^;]+;\n/gm, (line, name) => originalNames.has(name) ? line : '');
+    expect(structure(withoutExtra)).toBe(structure(template));
+  });
+
+  test('CLI generates CSS and leaves an existing output intact when design tokens are invalid', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-theme-cli-'));
+    const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const err = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const designPath = path.join(dir, 'design.md');
+      const cssPath = path.join(dir, 'app-theme.css');
+      fs.writeFileSync(designPath, fastDesign);
+      await run(['yida-design', 'app-theme', '--design-file', designPath, '--output', cssPath]);
+      const before = fs.readFileSync(cssPath, 'utf8');
+      expect(before).toContain('--color-brand1-6: #315BCC;');
+      fs.writeFileSync(designPath, fastDesign.replace('#315BCC', '<待生成>'));
+      await expect(run(['yida-design', 'app-theme', '--design-file', designPath, '--output', cssPath])).rejects.toThrow(/单行 CSS/);
+      expect(fs.readFileSync(cssPath, 'utf8')).toBe(before);
+      await expect(run(['yida-design', 'app-theme', '--design-file', designPath, '--output', designPath])).rejects.toThrow(/不能覆盖/);
+      expect(() => readDesignTokens(fastDesign.replace('---\n', '---\ntokensOther:\n  --color-brand1-6: #000000\n'))).toThrow(/冲突/);
+    } finally {
+      log.mockRestore(); err.mockRestore();
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});

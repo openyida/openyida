@@ -1,6 +1,6 @@
 ---
 name: yida-app
-description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做完整搭建或补齐时使用；先确认已有资源并整理用户需求，再同时生成 prd.md 与 design.md，校验通过后按 PRD 创建或复用应用、表单、流程和页面；页面阶段默认复制 Canvas 页面基准模板并按业务改写。
+description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做完整搭建或补齐时使用；先确认已有资源并整理用户需求，再按 Fast / Plan 生成 prd.md 与 design.md，校验通过后按 PRD 创建或复用应用、表单、流程和页面；页面阶段默认复制 Canvas 页面基准模板并按业务改写。
 ---
 
 # yida-app
@@ -13,14 +13,14 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 
 ## 工作流
 
-完整应用先在 yida-app Step 2 按 yida-design/references/design-mode.md 选择一次 Fast / Plan。以下需求分析与并行设计规则用于 Fast；Plan 确认当前版本后直接交接派生文件，不再运行 Fast。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。
+完整应用先在 yida-app Step 2 按 yida-design/references/design-mode.md 选择一次 Fast / Plan。两种模式共享需求分析与 PRD 契约，以下并行生成规则用于 Fast；Plan 确认当前版本后直接交接派生文件，不再运行 Fast。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。
 
 按以下 9 个执行步骤顺序推进。每一步开始前先读取对应 workflow 文件；当前步骤达到 doneWhen 后再进入下一步。
 
 | 步骤 | 名称 | 目标 | 产出 |
 | --- | --- | --- | --- |
 | 1 | [解析资源上下文](workflow/step-1-resource-context.md) | 合并本轮显式资源、绑定上下文、workspace 配置/缓存和会话历史，确认复用还是允许创建 | 目标 app/page/form/process 上下文 |
-| 2 | [产品与视觉并行设计](workflow/step-2-design.md) | 先执行 `yida-requirement-analysis` 整理用户需求，再同时执行 `yida-prd` 与 `yida-design`，由本技能校验两份结果 | 内部 `requirement-brief.json` + `prd.md` + `design.md` |
+| 2 | [业务与视觉设计](workflow/step-2-design.md) | 整理需求后按 Fast 并行生成，或按 Plan 生成方案并确认；校验 PRD 与视觉契约 | 内部 `requirement-brief.json` + `prd.md` + `design.md` |
 | 3 | [创建或复用应用](workflow/step-3-create-or-reuse-app.md) | 已有 `appType` 直接复用；缺少 app 且允许创建时执行 `use_skill("yida-create-app")` | 真实目标 `appType` |
 | 4 | [创建或更新业务资源](workflow/step-4-forms-processes.md) | 执行 `use_skill("yida-create-form-page")`；按 PRD 执行 `use_skill("yida-create-process")`、`use_skill("yida-get-schema")`、`use_skill("yida-report")` 和 `use_skill("yida-integration")` | 真实 `formUuid`、`processCode`、必要 `fieldId/reportId` |
 | 5 | [写入初始表单数据](workflow/step-5-seed-records.md) | 执行 `use_skill("yida-data-management")`，为核心普通表单写入 1-3 条业务化 seed records 并 query 抽查 | 真实表单记录或明确跳过原因 |
@@ -68,8 +68,8 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | 文档 | 覆盖范围 | 何时阅读 |
 | --- | --- | --- |
 | [Step 1：解析资源上下文](workflow/step-1-resource-context.md) | 只读预检、资源优先级、命令选择、路径口径 | 必读 |
-| [Step 2：产品与视觉并行设计](workflow/step-2-design.md) | 整理用户需求、同时生成并校验 PRD 与视觉设计、主题 key | 必读 |
-| [Step 3：创建或复用应用](workflow/step-3-create-or-reuse-app.md) | app 复用、app 创建、主题 key | 必读 |
+| [Step 2：业务与视觉设计](workflow/step-2-design.md) | 模式选择、业务与视觉交接、主题文件交付 | 必读 |
+| [Step 3：创建或复用应用](workflow/step-3-create-or-reuse-app.md) | app 复用、app 创建、主题文件与导航配置 | 必读 |
 | [Step 4：创建或更新表单/流程](workflow/step-4-forms-processes.md) | 表单、流程、字段 ID 与表单结构规则 | 必读 |
 | [Step 5：写入初始表单数据](workflow/step-5-seed-records.md) | seed records、字段类型、query 抽查、跳过条件 | 必读 |
 | [Step 6：创建或复用主页面](workflow/step-6-main-page.md) | display 页面复用、页面创建、corpId 一致性检查 | 必读 |

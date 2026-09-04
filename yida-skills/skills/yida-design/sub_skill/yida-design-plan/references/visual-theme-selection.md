@@ -105,8 +105,7 @@ CRM 与采购管理可以产生不同推荐方向，但依据不是行业名本�
     }
   ],
   "allowCustom": true,
-  "aiDefault": "<first.directionId>",
-  "writeBackPath": "visualStyle.selectedVisualDirection"
+  "aiDefault": "<first.directionId>"
 }
 ```
 

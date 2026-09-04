@@ -87,14 +87,15 @@ describe('design-plan materialize', () => {
     const prd = fs.readFileSync(path.join(tempDir, 'prd.md'), 'utf8');
     const design = fs.readFileSync(path.join(tempDir, 'design.md'), 'utf8');
     const html = fs.readFileSync(path.join(tempDir, 'build-plan.html'), 'utf8');
-    expect(prd).toContain('# 采购管理应用 搭建计划（PRD）');
+    expect(prd).toContain('# 采购管理应用 PRD');
     expect(prd).toContain('buildPlanRevision: "2026-08-31-01"');
     const handoff = JSON.parse(prd.match(/```json\n([\s\S]*?)\n```/)[1]);
-    expect(handoff.resourceCreationOrder).toEqual(['应用', '采购申请', '采购订单', '采购工作台']);
-    expect(handoff.resourceBlueprint.map(resource => resource.type)).toEqual(['process', 'form', 'display']);
-    expect(handoff.pages[0].pageSpecHandoff.designFile).toBe('design.md');
+    expect(handoff.resourceCreationOrder).toEqual(['应用与主题配置', '采购申请', '采购订单', '初始示例数据', '采购工作台', '发布与导航排序']);
+    expect(handoff.resourceBlueprint.map(resource => resource.type)).toEqual(['process-form', 'normal-form', 'display-page']);
+    expect(handoff.pages[0].pageSpecHandoff.designFile).toBe('prd/采购管理应用/design.md');
     for (const reference of handoff.pages[0].pageSpecHandoff.designRefs) {
-      expect(design).toContain(`## ${reference}`);
+      const frontmatter = require('js-yaml').load(design.match(/^---\n([\s\S]*?)\n---/)[1]);
+      expect(reference.split('.').reduce((value, key) => value?.[key], frontmatter)).toBeDefined();
     }
     expect(design).toContain('"--color-brand1-6": "#6F4E37"');
     expect(design).toContain('buildPlanRevision: "2026-08-31-01"');
@@ -103,6 +104,33 @@ describe('design-plan materialize', () => {
     expect(design).not.toMatch(/\{\{[^}]+\}\}|<基于 --color-brand1-6/);
     expect(html).toContain('href="#overview"');
     expect(html).toContain('href="#pages"');
+  });
+
+  test('HTML preserves the complete user plan and resolved business overrides', () => {
+    const input = path.join(tempDir, 'build-plan.json');
+    const plan = compactV2(JSON.parse(fs.readFileSync(FIXTURE, 'utf8')));
+    const page = plan.pages.customPageDetails[0];
+    page.pageSpecHandoff = { primaryAction: '核对采购差异', contentBlocks: ['差异核对区'] };
+    plan.execution = {
+      acceptanceCriteria: ['每笔订单金额与采购明细一致'],
+      interactionStates: { error: '采购系统离线时显示重试入口' },
+    };
+    plan.visualStyle.forUser.assetStrategy = { missingAssets: ['企业标志待提供'], notes: '<script>untrusted()</script>' };
+    const source = JSON.stringify(plan);
+    fs.writeFileSync(input, source);
+    materialize(input);
+    const html = fs.readFileSync(path.join(tempDir, 'build-plan.html'), 'utf8');
+    for (const text of ['核对采购差异', '差异核对区', '每笔订单金额与采购明细一致', '采购系统离线时显示重试入口', '企业标志待提供', '初始示例数据', '数据来源', '页面视觉方案', '搭建顺序', '页面交付顺序', '导航顺序']) {
+      expect(html).toContain(text);
+    }
+    const sample = plan.dataModels.find(model => model.sampleRecords?.length).sampleRecords[0];
+    for (const value of Object.values(sample)) {expect(html).toContain(String(value));}
+    expect(html.match(/class="nav-item"/g)).toHaveLength(4);
+    expect(html).toContain('待审批、待收货、待付款和临期订单摘要');
+    expect(html).not.toContain('<script>untrusted()</script>');
+    expect(html).toContain('&lt;script&gt;untrusted()&lt;/script&gt;');
+    expect(html).not.toContain('themeId');
+    expect(fs.readFileSync(input, 'utf8')).toBe(source);
   });
 
   test('check validates all derived artifacts without writing them', () => {
@@ -181,7 +209,8 @@ describe('design-plan materialize', () => {
       expect(prd).toContain(flow.name);
       expect(html).toContain(flow.name);
     }
-    expect(prd).toContain('按钮、输入、卡片、表格和反馈组件遵循统一项目设计系统');
+    expect(prd).not.toContain('按钮、输入、卡片、表格和反馈组件遵循统一项目设计系统');
+    expect(prd.match(/^## \d+\./gm)).toHaveLength(11);
     expect(prd).not.toContain('主题模板：');
     expect(compactDesign).toContain('- 视觉方向：稳重流程型');
     expect(compactDesign).toContain('- 导航结构：侧边导航');
@@ -210,6 +239,7 @@ describe('design-plan materialize', () => {
     expect(themeIndex.themes).toHaveLength(19);
 
     for (const theme of themeIndex.themes) {
+      delete plan.visualStyle.forUser.themeProfile;
       plan.visualStyle.forUser.selectedTheme.themeId = theme.themeId;
       plan.visualStyle.forUser.selectedTheme.templatePath = theme.templatePath;
       const design = renderDesign(plan);
@@ -376,20 +406,157 @@ describe('design-plan materialize', () => {
     expect(prd).toContain('暖咖啡棕 #8B5E3C');
   });
 
+  test('token patches propagate through design and CSS and invalidate confirmation', () => {
+    const input = path.join(tempDir, 'build-plan.json');
+    fs.copyFileSync(FIXTURE, input);
+    patchPlan(input, ['visualStyle.tokens={"--pod-card-border-radius":"16px"}'], { materialize: true });
+    const saved = JSON.parse(fs.readFileSync(input, 'utf8'));
+    expect(saved.meta.planState.planConfirmed).toBe(false);
+    const design = fs.readFileSync(path.join(tempDir, 'design.md'), 'utf8');
+    const { readDesignTokens } = require('../lib/app/theme-from-design');
+    expect(readDesignTokens(design)['--pod-card-border-radius']).toBe('16px');
+    const before = fs.readFileSync(input, 'utf8');
+    expect(() => patchPlan(input, ['visualStyle.tokens={"--pod-card-border-radius":"<待定>"}'], { materialize: true })).toThrow();
+    expect(fs.readFileSync(input, 'utf8')).toBe(before);
+  });
+
+  test('business navigation cannot silently override visual choices', () => {
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    plan.execution = { appConfig: { navTheme: 'light' } };
+    expect(() => renderPrd(plan)).toThrow(/视觉事实冲突/);
+  });
+
   test('Plan Skill delegates derived artifacts to the CLI materializer', () => {
     const workflow = fs.readFileSync(path.join(
       ROOT,
       'yida-skills',
       'skills',
-      'yida-design',
-      'sub_skill',
-      'yida-design-plan',
+      'yida-app',
       'workflow',
+      'plan',
       'step-4-deliver.md'
     ), 'utf8');
 
     expect(workflow).toContain('openyida design-plan materialize prd/<项目名>/build-plan.json --json');
     expect(workflow).toContain('--check --json');
     expect(workflow).not.toContain('python scripts/render_build_plan.py');
+  });
+});
+
+describe('Plan contract and file consistency', () => {
+  let dir;
+  let input;
+  const read = () => JSON.parse(fs.readFileSync(input, 'utf8'));
+  const save = plan => fs.writeFileSync(input, JSON.stringify(plan));
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-plan-contract-'));
+    input = path.join(dir, 'build-plan.json');
+    fs.copyFileSync(FIXTURE, input);
+  });
+  afterEach(() => { jest.restoreAllMocks(); fs.rmSync(dir, { recursive: true, force: true }); });
+
+  test('adds optional children without replacing siblings and rejects unknown or derived fields', () => {
+    patchPlan(input, ['execution.appConfig.corpId=CORP1', 'visualStyle.tokens.--pod-card-border-radius=12px']);
+    patchPlan(input, ['execution.acceptanceCriteria=["采购登记后可查询"]', 'visualStyle.tokens.--corner-2=6px']);
+    expect(read().execution.appConfig.corpId).toBe('CORP1');
+    expect(read().visualStyle.tokens).toEqual({ '--pod-card-border-radius': '12px', '--corner-2': '6px' });
+    const before = fs.readFileSync(input, 'utf8');
+    for (const expression of ['execution.unknown=true', 'execution.appConfig.corpId={}', 'pages.customPageDetails[99].scene=detail', 'visualStyle.forUser.themeProfile.radiusScale=small', 'execution.acceptanceCriteria=[]', 'pages.customPageDetails[0].pageSpecHandoff={"unknown":true}']) {
+      expect(() => patchPlan(input, [expression])).toThrow();
+      expect(fs.readFileSync(input, 'utf8')).toBe(before);
+    }
+  });
+
+  test.each(['1.0', '2.0'])('rejects silent themeProfile overrides for schema %s', schemaVersion => {
+    const plan = read(); plan.schemaVersion = schemaVersion;
+    plan.visualStyle.forUser.themeProfile.radiusScale = 'small';
+    save(plan);
+    expect(() => materialize(input)).toThrow(/只读主题摘要/);
+    expect(fs.existsSync(path.join(dir, 'design.md'))).toBe(false);
+  });
+
+  test('preserves explicit references and validates them against generated design keys', () => {
+    patchPlan(input, ['pages.customPageDetails[0].pageSpecHandoff.designRefs=["states.empty","components.table"]'], { materialize: true });
+    const prd = fs.readFileSync(path.join(dir, 'prd.md'), 'utf8');
+    const handoff = JSON.parse(prd.match(/```json\n([\s\S]*?)\n```/)[1]).pages[0].pageSpecHandoff;
+    expect(handoff.designRefs).toEqual(['themeProfile', 'sceneRecipes.workbench', 'states.empty', 'components.table']);
+    const design = require('js-yaml').load(fs.readFileSync(path.join(dir, 'design.md'), 'utf8').match(/^---\n([\s\S]*?)\n---/)[1]);
+    expect(design.components.table.rules).toContain('--color-fill1-1');
+    for (const expression of ['pages.customPageDetails[0].pageStructure=unknown', 'pages.customPageDetails[0].pageSpecHandoff.designRefs=["components.missing"]', 'pages.customPageDetails[0].pageSpecHandoff.designFile=wrong.md']) {
+      expect(() => patchPlan(input, [expression], { materialize: true })).toThrow();
+    }
+  });
+
+  test('requires meaningful sample records and explicit data binding or an explained empty state', () => {
+    const plan = read();
+    delete plan.dataModels[1].sampleRecords;
+    save(plan);
+    expect(() => materialize(input)).toThrow(/业务示例记录/);
+    plan.dataModels[1].skipSampleReason = '用户明确不要示例数据';
+    delete plan.pages.customPageDetails[0].dataBinding;
+    save(plan);
+    expect(() => materialize(input)).toThrow(/明确 dataBinding/);
+    Object.assign(plan.pages.customPageDetails[0], { dataBinding: 'static-empty', dataSources: [], emptyReason: '本轮只交付登记入口，暂不展示记录' });
+    save(plan);
+    materialize(input);
+    const prd = fs.readFileSync(path.join(dir, 'prd.md'), 'utf8');
+    expect(prd).toContain('用户明确不要示例数据');
+    expect(prd).toContain('本轮只交付登记入口');
+    expect(() => patchPlan(input, ['dataModels[1].sampleRecords=[{"不存在的字段":"值"}]'])).toThrow();
+  });
+
+  test.each([1, 2, 3, 4])('failed replacement %i restores source and all existing artifacts', failure => {
+    materialize(input);
+    const files = ['build-plan.json', 'prd.md', 'design.md', 'build-plan.html'].map(name => path.join(dir, name));
+    const before = files.map(file => fs.readFileSync(file));
+    const rename = fs.renameSync;
+    let replacements = 0;
+    jest.spyOn(fs, 'renameSync').mockImplementation((from, to) => {
+      if (path.basename(from) === 'next' && ++replacements === failure) {throw new Error('injected install failure');}
+      return rename(from, to);
+    });
+    expect(() => patchPlan(input, ['visualStyle.forUser.colorStrategy.primaryColor=#123456'], { materialize: true })).toThrow(/injected/);
+    expect(files.map(file => fs.readFileSync(file))).toEqual(before);
+    expect(fs.readdirSync(dir).filter(name => name.startsWith('.openyida-write-'))).toEqual([]);
+  });
+
+  test('failed first materialization removes newly installed files', () => {
+    const before = fs.readFileSync(input);
+    const rename = fs.renameSync;
+    let replacements = 0;
+    jest.spyOn(fs, 'renameSync').mockImplementation((from, to) => {
+      if (path.basename(from) === 'next' && ++replacements === 3) {throw new Error('injected install failure');}
+      return rename(from, to);
+    });
+    expect(() => materialize(input)).toThrow(/injected/);
+    expect(fs.readFileSync(input)).toEqual(before);
+    expect(fs.readdirSync(dir)).toEqual(['build-plan.json']);
+  });
+
+  test('human output hides raw revision while JSON preserves exact confirmation identity', async () => {
+    const { run } = require('../lib/design-plan/design-plan');
+    const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+    await run(['patch', input, '--set', 'visualStyle.tokens.--corner-2=6px']);
+    expect(log.mock.calls.flat().join(' ')).not.toContain(read().meta.revision);
+    log.mockClear();
+    await run(['materialize', input, '--check', '--json']);
+    expect(JSON.parse(log.mock.calls[0][0]).revision).toBe(read().meta.revision);
+    const workflow = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-app/workflow/plan/step-4-deliver.md'), 'utf8');
+    expect(workflow).toContain('展示“当前这版方案”');
+    expect(workflow).not.toContain('展示当前 revision');
+    expect(workflow).toContain('presentedRevision=meta.revision');
+  });
+
+  test('staging failure changes no source or artifact', () => {
+    materialize(input);
+    const files = ['build-plan.json', 'prd.md', 'design.md', 'build-plan.html'].map(name => path.join(dir, name));
+    const before = files.map(file => fs.readFileSync(file));
+    const write = fs.writeFileSync;
+    jest.spyOn(fs, 'writeFileSync').mockImplementation((file, ...args) => {
+      if (path.basename(file) === 'next') {throw new Error('injected staging failure');}
+      return write(file, ...args);
+    });
+    expect(() => patchPlan(input, ['visualStyle.tokens.--corner-2=4px'], { materialize: true })).toThrow(/staging/);
+    expect(files.map(file => fs.readFileSync(file))).toEqual(before);
   });
 });

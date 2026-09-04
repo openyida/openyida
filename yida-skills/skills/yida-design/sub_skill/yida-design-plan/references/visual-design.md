@@ -37,7 +37,7 @@ PRD 决定做什么
 
 1. 校验 `visualStyle.internal.selectedTheme.themeId`，并从索引确定性取得模板路径；兼容旧计划时可读取 `forUser.selectedTheme`。
 2. 完整读取该路径指向的模板，只加载最终选中的一份。
-3. 以索引中的 `defaultProfile` 为起点，由 materialize 补齐 `themeProfile`；模型只写用户明确要求、品牌规范、参考素材、可访问性约束与 `colorStrategy` 项目覆盖。
+3. 以索引中的 `defaultProfile` 为起点，由 materialize 补齐 `themeProfile`；该摘要只读。模型将用户要求、品牌规范和可访问性约束落实为 `visualStyle.tokens`，主题色写入 `colorStrategy`。
 4. 根据 `meta.experienceTopology`、页面范围和前后台边界生成 `visualStyle.forDesignMd.productTopologyApplication`，说明全应用共享主题基础语言、记忆点按真实页面内容使用；该字段不判断主题是否适用，也不增删页面或业务能力。
 5. 保持 `pages.customPageDetails[]` 中的页面模式、内容优先级、首屏结构和信息密度；模型只生成每页 `visualMemoryApplications`，页面基础视觉应用由 materialize 从主题模板补齐。
 6. 根据 `PRIMARY_COLOR` 推导模板要求的 Brand Token 和自定义页主题衍生色；导航背景按 `light → --color-brand1-3`、`dark → --color-brand1-5` 映射。
@@ -120,7 +120,7 @@ Step 4 不重新发起常规视觉 `ask_human`。页面规划新暴露品牌素�
 - `visualDirection`、`colorStrategy` 和 `navigationStyle` 完整，导航结构与明暗值合法。
 - `design.md` 包含项目视觉选择章节，导航背景 Token 与明暗选择一致。
 - `design.md` 不包含主题 ID、模板名称或模板路径。
-- 物化后的 `themeProfile` 以同一索引记录的 `defaultProfile` 为基础，并应用用户与品牌覆盖。
+- 物化后的 `themeProfile` 以同一索引记录的 `defaultProfile` 为基础，；用户与品牌的具体 CSS 差异写入 `visualStyle.tokens`，再由 CLI 应用到 `design.md`。
 - `design.md` 没有未解析的 `{{...}}` 占位符、Token 推导指令或无关示例业务数据。
 - `PRODUCT_TOPOLOGY_APPLICATION` 已由产品形态、页面范围和前后台边界生成，且没有改变页面规划。
 - 每个自定义页面都有页面模式摘要和页面视觉应用。
@@ -131,3 +131,5 @@ Step 4 不重新发起常规视觉 `ask_human`。页面规划新暴露品牌素�
 - 状态覆盖加载、空态、错误、禁用、无权限、选中和移动端。
 - 官网、品牌页和展示页记录真实素材来源或素材缺口。
 - `build-plan.json`、`prd.md` 和 `design.md` 使用同一版本。
+
+具体 token 差异写入 `visualStyle.tokens`（单行字符串值），不能只修改 `themeProfile.radiusScale` 等摘要而期待 CSS 改变。应用主题使用公共模板与 `sample --design-file` 流程；主题 Markdown 模板用于设计规则，不能替代公共 CSS 模板。

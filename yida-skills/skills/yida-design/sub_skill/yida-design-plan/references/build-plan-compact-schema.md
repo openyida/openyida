@@ -191,7 +191,7 @@
 
 - `candidateThemes`、`candidateVisualDirections`：确认完成后不再保存候选副本。
 - `selectedTheme.label/templatePath/summary`：从主题索引补齐。
-- `themeProfile`：从主题索引 `defaultProfile` 补齐；只有用户明确覆盖项才写同名字段。
+- `themeProfile`：从主题索引 `defaultProfile` 派生，只读；用户差异写入 `visualStyle.tokens`。
 - `styleSummary`、`hierarchySummary`、`componentToneSummary`、`stateSummary`、`responsiveSummary`、`iconSummary`、`designMdReady`：确定性派生。
 - `pageName/layoutPatternMode/layoutPatternId/visualApplication/surface/primaryAction/states/visualMemories`：由页面事实、主题模板和记忆点绑定派生。
 - `forDesignMd.designTemplate/pagePatterns/themeStrategy`：确定性派生。
@@ -207,7 +207,7 @@
 
 ## 用户调整
 
-用户调整时只修改紧凑事实源中的已有字段：
+用户调整通过字段级 patch 修改源事实；支持的可选字段见下方说明：
 
 ```bash
 openyida design-plan patch prd/<项目名>/build-plan.json \
@@ -224,6 +224,26 @@ openyida design-plan patch prd/<项目名>/build-plan.json \
 
 有明确顺序、验收标准或额外资源时，在顶层 `execution` 中写 `resourceBlueprint`、`resourceCreationOrder`、`pageImplementationOrder`、`navigationOrder`、`acceptanceCriteria`、`explicitScope`，覆盖对应默认值。不要在 `execution` 中复制页面清单。
 
-每个 `pages.customPageDetails[]` 写明 `dataSources`，引用已规划的数据模型名称；只有获得 CLI 证据后才使用真实资源 ID。有明确主操作、页面场景或设计引用时，在该页 `pageSpecHandoff` 写入覆盖项。`designFile` 默认相对当前 PRD 为 `design.md`，`designRefs` 必须指向实际生成的设计章节。页面未声明独立入口时使用 `entryMode=workbench`。
+每个 `pages.customPageDetails[]` 写明 `dataSources`，引用已规划的数据模型名称；只有获得 CLI 证据后才使用真实资源 ID。有明确主操作、页面场景或设计引用时，在该页 `pageSpecHandoff` 写入覆盖项。`designFile` 使用工作区相对路径 `prd/<项目名>/design.md`，`designRefs` 必须指向实际生成的设计章节。页面未声明独立入口时使用 `entryMode=platform-shell`。
 
 确认前检查这些交接字段满足当前业务。业务依赖、导航或验收标准变化时修改计划并重新物化，不直接编辑派生 PRD。
+
+## 共同交接契约
+
+业务与 PRD 章节由 [yida-prd](../../../../yida-prd/SKILL.md) 统一维护，遵守其 11 章输出格式。`execution` 业务字段见 [Plan 业务规划](../../../../yida-prd/workflow/plan-business.md)。
+
+`visualStyle.tokens` 是可选的 CSS token 差异对象，例如 `{"--corner-2":"8px","--pod-card-border-radius":"16px"}`，值必须为具体单行字符串。品牌色阶统一由 `forUser.colorStrategy.primaryColor` 派生，不能在此重复定义。`themeProfile` 只作为派生摘要；具体视觉差异用 tokens 表达并由 CLI 写入 design.md 和应用 CSS。
+
+每页的 `sceneKey` 原样保留共享需求 pageScenes 的 key，`scene` 使用标准场景枚举；两者不能用页面预设 ID 代替。生成的 PRD 与 design.md 共享 `themeProfile`、`sceneRecipes.<sceneKey>` 引用。
+
+## 可选字段 patch 与完成校验
+
+可直接添加 `execution` 的资源、顺序、验收、示例数据、交互状态和应用配置子字段，`visualStyle.tokens.--<token>`，已有页面的场景、数据交接字段，以及已有数据模型的 `sampleRecords` / `skipSampleReason`。父对象自动建立，数组项必须已存在，未知字段拒绝写入。具体字段名称以 [Plan 业务规划](../../../../yida-prd/workflow/plan-business.md) 为准。
+
+旧计划中的 `themeProfile` 与主题默认值一致时允许读取；自定义覆盖需迁移为具体 token 或 primaryColor。
+
+页面必须明确 `dataBinding`。`form/report/connector` 必须有非空 `dataSources`，form 来源必须对应数据模型；`static-empty` 必须明确 `emptyReason` 且来源为空。不能以缺少来源自动推断空态。
+
+普通表单必须有 1–3 条 `sampleRecords`，以字段业务名称为键并覆盖必填字段；允许跳过时写 `skipSampleReason`。若使用 `execution.sampleDataPlan`，逐表提供 `form/records` 或 `form/skipReason`，数量须与记录一致，不得遗漏表单。空数组不表示规划完成。
+
+`pageStructure` 限于统一 PRD 枚举；显式 `designRefs` 会保留并与实际生成的 themeProfile、sceneRecipes、components、states 校验；无效引用报错。CLI 同时检查目标、角色、字段、流程、资源覆盖、交付顺序和验收的必需内容。

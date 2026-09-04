@@ -108,7 +108,12 @@
           ]
         },
         "density": "compact",
-        "permissionSummary": "组织内可见；按角色和负责人过滤。"
+        "permissionSummary": "组织内可见；按角色和负责人过滤。",
+        "dataBinding": "form",
+        "dataSources": [
+          "采购申请",
+          "采购订单"
+        ]
       }
     ],
     "overview": [
@@ -266,6 +271,11 @@
           "type": "TextField",
           "required": true,
           "description": "采购订单标题"
+        }
+      ],
+      "sampleRecords": [
+        {
+          "订单名称": "办公设备采购订单"
         }
       ]
     }

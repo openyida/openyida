@@ -1,16 +1,15 @@
 ---
 name: yida-requirement-analysis
-description: 整理完整应用的用户需求与现有资源，供 PRD 和视觉设计共同使用。
+description: 识别并读取需求来源，理解和澄清用户需求，输出供 PRD 与视觉设计共同使用的需求事实。
 ---
 
 # yida-requirement-analysis
 
-本技能先统一整理用户需求和已确认资源，写入 `requirement-brief.json`。它不生成 PRD、视觉设计或页面源码。
+本技能负责来源识别、内容读取、需求理解与澄清，结合已确认资源输出 `requirement-brief.json`。
 
-## 使用场景
+## 流程
 
-- 从零搭建或补齐完整应用：先运行本技能，再并行加载 `yida-prd` 与 `yida-design`。
-- 只改字段、流程、页面源码、权限或发布：使用对应单点技能，不运行本技能。
+按 [整理需求事实](workflow/prepare-brief.md) 完成来源读取、范围澄清和输出校验。Fast 与 Plan 使用同一套需求整理流程；Plan 的范围问题由 `yida-app` 与视觉选项统一呈现，回答由本技能写回共享需求事实。
 
 ## 输出
 
@@ -33,17 +32,9 @@ description: 整理完整应用的用户需求与现有资源，供 PRD 和视�
 | `constraints` | 组织、设备、权限、交付等约束 |
 | `assumptions` / `openQuestions` | 可安全默认的事项与会改变范围的未决问题 |
 
-## 规则
+## 交付与更新
 
-1. 读取用户原始需求和 Step 1 已确认的资源上下文，只记录可证实事实。
-2. 用户明确给出的资源和本轮范围原样写入 `explicitScope`，不得扩展同级页面或业务对象。
-3. 真实 `appType`、`formUuid`、`fieldId` 等 ID 只有已有证据时才可放入 `resourceContext`；不得猜测。
-4. 会改变资源范围、权限或业务对象的未知项写入 `openQuestions`，不能静默假设。
-5. 文件成功写入并通过 JSON 解析后，才允许生成 PRD 和视觉设计。
-6. 需求文件校验通过后保持不变。后续创建出的 `appType`、`formUuid`、`fieldId` 等真实资源 ID 写入 schema 或当前任务资源上下文，不回写该文件；只有用户需求或已确认资源范围发生实质变化时，才重新整理需求并重新生成 PRD 和视觉设计。
-
-## 完成条件
-
-- `requirement-brief.json` 存在且是合法 JSON。
-- 项目名、用户、业务目标、核心功能、业务对象、页面场景和范围信息完整。
-- 没有生成或覆盖 `prd.md`、`design.md` 和页面源码。
+- brief 必须可解析，项目名、目标、用户、对象、功能、场景及范围完整；会改变资源范围、权限或业务对象的问题写入 `openQuestions`，由编排组织确认后再进入规划。
+- 用户指定的资源和范围原样保留在 `explicitScope`；真实 ID 有证据时写入 `resourceContext`。
+- 需求文件校验通过后保持不变。后续创建出的真实 ID 写入 schema 或当前任务资源上下文。
+- 用户需求或已确认范围实质变化时，由本技能更新 brief，并交给 `yida-app` 同步业务与视觉规划。

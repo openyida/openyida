@@ -625,6 +625,7 @@ def render_overview(data: dict[str, Any]) -> str:
     <h3>应用概述</h3>
     <p class="overview-kicker">产品定位、核心用户与待解决问题</p>
     <p class="summary">{esc(overview.get("summary"))}</p>
+    {f'<p><strong>业务目标：</strong>{esc(overview["businessGoal"])}</p>' if overview.get("businessGoal") else ""}
   </section>
   <section class="overview-subsection">
     <h3>业务全景图</h3>
@@ -639,6 +640,7 @@ def render_overview(data: dict[str, Any]) -> str:
     <p class="summary">{esc(visual)}</p>
     {theme_color_html}
     {navigation_html}
+    {render_visual_details(data)}
   </section>
 </section>
 """
@@ -677,6 +679,14 @@ def render_data_models(data: dict[str, Any]) -> str:
                 rows,
             )
         )
+        sample = next((item for item in (data.get("execution") or {}).get("sampleDataPlan", []) if item.get("form") == model.get("name")), {})
+        records = sample.get("records", model.get("sampleRecords", []))
+        skip_reason = sample.get("skipReason") or model.get("skipSampleReason")
+        if records:
+            columns = list(dict.fromkeys(key for record in records for key in record))
+            parts += ["<h4>初始示例数据</h4>", table(columns, [[display_value(record.get(key)) for key in columns] for record in records])]
+        elif skip_reason:
+            parts.append(f'<p><strong>示例数据安排：</strong>{esc(skip_reason)}</p>')
     if not models:
         parts.append('<p class="muted">-</p>')
     parts.append("</section>")
@@ -719,6 +729,10 @@ def render_business_flows(data: dict[str, Any]) -> str:
 </div>
 """
         )
+    states = (data.get("execution") or {}).get("interactionStates") or {}
+    labels = {"empty": "无数据", "loading": "加载中", "error": "加载失败", "formEntry": "表单入口", "detail": "详情入口"}
+    if states:
+        parts += ["<h3>交互与异常处理</h3>", table(["场景", "处理方式"], [[labels.get(key, key), value] for key, value in states.items()])]
     if not flows:
         parts.append('<p class="muted">-</p>')
     parts.append("</section>")
@@ -738,10 +752,13 @@ def render_pages(data: dict[str, Any]) -> str:
         table(["页面名称", "类型", "用途"], rows),
         "<h3>自定义页面详情</h3>",
     ]
+    execution_pages = (data.get("execution") or {}).get("pages", [])
+    applications = ((data.get("visualStyle") or {}).get("forUser") or {}).get("pageApplications", [])
     for detail in details:
+        handoff = next((item.get("pageSpecHandoff", {}) for item in execution_pages if item.get("pageId") == detail.get("pageId")), detail.get("pageSpecHandoff") or {})
         primary_users = detail.get("primaryUsers") or []
         content_priority = detail.get("contentPriority") or []
-        blocks = detail.get("blocks") or detail.get("functionalSections") or []
+        blocks = handoff.get("contentBlocks") or detail.get("blocks") or detail.get("functionalSections") or []
         first_screen = detail.get("firstScreenStructure") or detail.get("firstScreen")
         signature = detail.get("signatureInteraction") or detail.get("signatureMoment")
         layout_pattern = detail.get("layoutPattern") or {}
@@ -825,6 +842,22 @@ def render_pages(data: dict[str, Any]) -> str:
   <p><strong>内容层次：</strong></p>{list_items(richness_layers)}
   <p><strong>避免填充：</strong></p>{list_items(richness_anti_filler)}
 """
+        binding_labels = {"form": "表单数据", "report": "报表数据", "connector": "外部系统数据", "static-empty": "静态内容或空态"}
+        binding = handoff.get("dataBinding") or detail.get("dataBinding")
+        data_rows = [
+            ["数据接入", binding_labels.get(binding, binding)],
+            ["数据来源", display_value(handoff.get("dataSources") or detail.get("dataSources"))],
+            ["主操作", handoff.get("primaryAction") or detail.get("primaryTask")],
+            ["空态原因", handoff.get("emptyReason") or detail.get("emptyReason")],
+        ]
+        data_html = table(["功能", "说明"], [row for row in data_rows if row[1]])
+        application = next((item for item in applications if item.get("pageId") == detail.get("pageId") or item.get("pageName") == detail.get("name")), {})
+        visual_rows = [[label, display_value(application.get(key))] for key, label in [
+            ("visualApplication", "视觉应用"), ("surface", "表面层次"), ("primaryAction", "操作呈现"), ("states", "状态表达")
+        ] if application.get(key)]
+        for memory in application.get("visualMemoryApplications", []):
+            visual_rows.append([memory.get("name") or "视觉重点", "；".join(display_value(memory.get(key)) for key in ["target", "reason", "application", "contentBinding", "userValue", "rule"] if memory.get(key))])
+        visual_html = ("<h4>页面视觉方案</h4>" + table(["设计项", "说明"], visual_rows)) if visual_rows else ""
         first_screen_label = "首屏结构" if is_new_page_schema else "首屏印象"
         signature_label = "标志性交互" if is_new_page_schema else "标志性时刻"
         parts.append(
@@ -839,194 +872,74 @@ def render_pages(data: dict[str, Any]) -> str:
   {richness_context}
   {pattern_context}
   <p><strong>权限说明：</strong>{esc(permission)}</p>
+  {data_html}
+  {visual_html}
 </div>
 """
         )
     if not details:
         parts.append('<p class="muted">-</p>')
+    parts.append(render_execution(data))
     parts.append("</section>")
     return "".join(parts)
 
 
-def render_visual_style(data: dict[str, Any]) -> str:
-    raw_visual = data.get("visualStyle") or {}
-    visual = raw_visual.get("forUser") or {}
-    asset_strategy = visual.get("assetStrategy") or {}
-    selected_theme = visual.get("selectedTheme") or {}
-    legacy_option = visual.get("selectedStyleOption") or {}
-    color_strategy = visual.get("colorStrategy") or {}
-    legacy_theme_color = legacy_option.get("themeColorIntent") or {}
-    theme_profile = visual.get("themeProfile") or {}
-    visual_memories = visual.get("visualMemories") or []
-    page_applications = visual.get("pageApplications") or raw_visual.get("pageApplications") or []
-    legacy_page_planning = visual.get("pageVisualPlanning") or []
+def render_visual_details(data: dict[str, Any]) -> str:
+    visual = (data.get("visualStyle") or {}).get("forUser") or {}
+    direction = visual.get("visualDirection") or {}
+    assets = visual.get("assetStrategy") or {}
+    rows = [
+        ("视觉方向", direction.get("label")), ("设计说明", direction.get("description")),
+        ("色彩用法", (visual.get("colorStrategy") or {}).get("usage")),
+        ("层次表达", visual.get("hierarchySummary")), ("组件形态", visual.get("componentToneSummary")),
+        ("状态反馈", visual.get("stateSummary")), ("响应式布局", visual.get("responsiveSummary")),
+        ("图标风格", visual.get("iconSummary")),
+        ("素材现状", assets.get("materialStatus")), ("品牌素材", assets.get("brandAssets")),
+        ("主视觉图片", assets.get("heroImage")), ("产品与案例图片", assets.get("productImages")),
+        ("素材缺口", assets.get("missingAssets")), ("素材说明", assets.get("notes")),
+    ]
+    profile = visual.get("themeProfile") or {}
+    rows += [(label, profile.get(key)) for key, label in [
+        ("tone", "整体气质"), ("surfaceStyle", "表面风格"), ("contrastLevel", "对比强度"),
+        ("brandIntensity", "品牌表达"), ("iconStyle", "图标形态"), ("motionLevel", "动效程度")
+    ]]
+    memories = visual.get("visualMemories") or []
+    for memory in memories if isinstance(memories, list) else [memories]:
+        if isinstance(memory, dict):
+            rows.append((memory.get("name") or "视觉重点", "；".join(display_value(memory.get(key)) for key in ["rule", "userValue", "failureMode"] if memory.get(key))))
+        else:
+            rows.append(("视觉重点", memory))
+    rows = [(label, {"none": "暂无", "partial": "部分已有", "provided": "已提供"}.get(value, value) if isinstance(value, str) else value) for label, value in rows]
+    return table(["设计项", "方案"], [[label, display_value(value)] for label, value in rows if value])
 
-    def value_list(value: Any) -> str:
-        if isinstance(value, list):
-            return esc("、".join(str(item) for item in value if item) or "-")
-        if isinstance(value, dict):
-            parts = []
-            for key, item in value.items():
-                if isinstance(item, list):
-                    display = "、".join(str(i) for i in item if i) or "-"
-                else:
-                    display = str(item) if item not in (None, "") else "-"
-                parts.append(f"{key}: {display}")
-            return esc("；".join(parts) or "-")
-        return esc(value)
 
-    def key_value_card(title: str, rows: list[tuple[str, Any]]) -> str:
-        body = "".join(
-            f"<tr><th>{esc(label)}</th><td>{value_list(value)}</td></tr>"
-            for label, value in rows
-        )
-        return f'<div class="table-wrap"><table><tbody>{body}</tbody></table></div>'
+def display_value(value: Any) -> str:
+    if isinstance(value, list):
+        return "；".join(display_value(item) for item in value)
+    if isinstance(value, dict):
+        return "；".join(f"{key}：{display_value(item)}" for key, item in value.items())
+    return str(value) if value is not None else ""
 
-    if isinstance(visual_memories, str):
-        memories_html = f'<div class="card"><h4>{esc(visual_memories)}</h4></div>'
-    else:
-        memory_cards = []
-        for memory in visual_memories:
-            if isinstance(memory, dict):
-                memory_cards.append(
-                    f"""
-<div class="card">
-  <h4>{esc(memory.get("name"))}</h4>
-  <p><strong>规则：</strong>{esc(memory.get("rule"))}</p>
-  <p><strong>用户价值：</strong>{esc(memory.get("userValue"))}</p>
-  <p><strong>失败表现：</strong>{esc(memory.get("failureMode"))}</p>
-</div>
-"""
-                )
-            else:
-                memory_cards.append(f'<div class="card"><h4>{esc(memory)}</h4></div>')
-        memories_html = "".join(memory_cards) or '<p class="muted">-</p>'
 
-    if page_applications:
-        def memory_names(item: dict[str, Any]) -> str:
-            applications = item.get("visualMemoryApplications") or []
-            names = [
-                application.get("name")
-                for application in applications
-                if isinstance(application, dict) and application.get("name")
-            ]
-            if not names:
-                legacy_names = item.get("visualMemories") or []
-                if isinstance(legacy_names, list):
-                    names = [str(name) for name in legacy_names if name]
-                elif legacy_names:
-                    names = [str(legacy_names)]
-            return "、".join(names) or "-"
-
-        page_rows = [
-            [
-                item.get("pageName"),
-                item.get("visualApplication"),
-                item.get("surface"),
-                item.get("primaryAction"),
-                item.get("states"),
-                memory_names(item),
-            ]
-            for item in page_applications
-            if isinstance(item, dict)
-        ]
-        page_plan_html = table(
-            ["页面", "视觉应用", "表面层次", "主操作", "状态表达", "视觉记忆点"],
-            page_rows,
-        )
-        page_section_title = "页面视觉应用"
-    elif legacy_page_planning:
-        page_rows = [
-            [
-                item.get("pageName"),
-                item.get("layoutRhythm"),
-                item.get("density"),
-                item.get("firstScreenFocus"),
-                item.get("experience"),
-            ]
-            for item in legacy_page_planning
-            if isinstance(item, dict)
-        ]
-        page_plan_html = table(
-            ["页面", "布局节奏", "信息密度", "首屏重点", "使用感受"],
-            page_rows,
-        )
-        page_section_title = "页面视觉规划"
-    else:
-        page_plan_html = '<p class="muted">-</p>'
-        page_section_title = "页面视觉应用"
-
-    selected_label = selected_theme.get("label") or legacy_option.get("label")
-    selected_summary = selected_theme.get("summary") or selected_label
-    selected_source = selected_theme.get("source") or legacy_option.get("source")
-    primary_color = (
-        color_strategy.get("primaryColorName")
-        or color_strategy.get("primaryColor")
-        or visual.get("primaryColorIntent")
-        or legacy_theme_color.get("name")
-    )
-    recommendation_reasons = (
-        selected_theme.get("recommendationReasons")
-        or legacy_theme_color.get("reason")
-    )
-    theme_profile_html = ""
-    if theme_profile:
-        theme_profile_html = f"""
-  <h3>主题画像</h3>
-  {key_value_card("主题画像", [
-      ("整体气质", theme_profile.get("tone")),
-      ("表面语言", theme_profile.get("surfaceStyle")),
-      ("对比强度", theme_profile.get("contrastLevel")),
-      ("品牌表达", theme_profile.get("brandIntensity")),
-      ("圆角", theme_profile.get("radiusScale")),
-      ("阴影", theme_profile.get("shadowLevel")),
-      ("图标", theme_profile.get("iconStyle")),
-      ("动效", theme_profile.get("motionLevel")),
-  ])}
-"""
-
-    return f"""
-<section id="visual-style" class="page-section">
-  <h2>视觉风格</h2>
-  <p class="section-desc">视觉主题、色彩策略</p>
-  <div class="card">
-    <p><strong>一句话主题：</strong>{esc(visual.get("styleSummary") or selected_summary)}</p>
-    <p><strong>视觉主题：</strong>{esc(selected_label or visual.get("userVisualIntent") or legacy_option.get("visualDirection"))}</p>
-    <p><strong>主题色：</strong>{esc(primary_color)}</p>
-    <p><strong>风格来源：</strong>{esc(visual.get("styleSource"))}</p>
-  </div>
-  <h3>主题与色彩</h3>
-  {key_value_card("主题与色彩", [
-      ("主题来源", visual.get("styleSource") or selected_source),
-      ("色彩来源", color_strategy.get("source") or visual.get("styleSource") or selected_source),
-      ("色彩用法", color_strategy.get("usage") or visual.get("themeRelationSummary")),
-      ("推荐理由", recommendation_reasons),
-  ])}
-  {theme_profile_html}
-  <h3>{page_section_title}</h3>
-  {page_plan_html}
-  <h3>视觉记忆点</h3>
-  {memories_html}
-  <h3>层次与组件</h3>
-  {key_value_card("层次与组件", [
-      ("层次摘要", visual.get("hierarchySummary")),
-      ("组件基调", visual.get("componentToneSummary")),
-      ("状态反馈", visual.get("stateSummary")),
-      ("响应式摘要", visual.get("responsiveSummary")),
-  ])}
-  <h3>图标与素材</h3>
-  {key_value_card("图标与素材", [
-      ("图标风格", visual.get("iconSummary")),
-      ("素材状态", asset_strategy.get("materialStatus")),
-      ("Hero 图", asset_strategy.get("heroImage")),
-      ("产品 / 案例图", asset_strategy.get("productImages")),
-      ("素材缺口", asset_strategy.get("missingAssets")),
-      ("说明", asset_strategy.get("notes")),
-  ])}
-  <h3>应用生成准备</h3>
-  <div class="soft-card">{esc(visual.get("designMdReady") or "已同步生成 design.md，后续 AI 开发读取完整设计契约。")}</div>
-</section>
-"""
+def render_execution(data: dict[str, Any]) -> str:
+    execution = data.get("execution") or {}
+    page_names = {page.get("pageId"): page.get("name") for page in (data.get("pages") or {}).get("customPageDetails", [])}
+    types = {"normal-form": "普通表单", "process-form": "流程表单", "display-page": "自定义页面", "report": "报表", "integration": "集成自动化"}
+    parts = ["<h3>搭建范围</h3>", table(["资源", "类型", "用途"], [
+        [item.get("name"), types.get(item.get("type"), item.get("type")), item.get("purpose")]
+        for item in execution.get("resourceBlueprint", [])
+    ])]
+    if execution.get("explicitScope"):
+        parts += ["<h3>本轮明确范围</h3>", f'<p>{esc(display_value(execution["explicitScope"]))}</p>']
+    for key, title in [("resourceCreationOrder", "搭建顺序"), ("pageImplementationOrder", "页面交付顺序"), ("navigationOrder", "导航顺序"), ("acceptanceCriteria", "验收标准")]:
+        values = [page_names.get(item, item) if isinstance(item, str) else display_value(item) for item in execution.get(key, [])]
+        values = [str(item).replace("design.md", "视觉方案").replace("token", "主题变量") for item in values]
+        if key == "navigationOrder" and not values:
+            fallback = execution.get("navigationFallback") or "按页面用途安排导航入口"
+            values = [fallback.replace("--auto-nav-order", "自动导航排序")]
+        if values:
+            parts += [f"<h3>{title}</h3>", list_items(values)]
+    return "".join(parts)
 
 
 def validate_plan(data: dict[str, Any]) -> None:
