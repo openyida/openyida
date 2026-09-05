@@ -44,7 +44,7 @@ description: 自定义页面真实数据接入技能。用于在使用 `YidaCode
 | --- | --- | --- | --- |
 | `seed` | 演示兜底 / 本地预览 | 无 | 只用本地演示数据 |
 | `form` | 读宜搭表单数据 | `appType`、`formUuid`、`fields` | 默认 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；桥不存在时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json` |
-| `connector` | 读平台连接器代理 | `connectorId`、`operationId`；鉴权连接器另需 `connectionId` | 调用 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)`，鉴权留在平台侧 |
+| `connector` | 读平台连接器代理 | `connectorName`（`Http_*`）、`operationId`；鉴权连接器另需 `connectionId` | 调用 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)`，鉴权留在平台侧 |
 | `url` | 读同源业务接口 | `endpoint` | 同源 `fetch` |
 | `report` | 读报表或聚合结果 | 报表 schema 参数 | 使用平台聚合结果，不在前端拉全量猜聚合 |
 

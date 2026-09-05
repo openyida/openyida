@@ -16,6 +16,7 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 
 - 优先使用 `smart-create` 从 curl 命令生成脱敏动作草稿；它不创建或更新远端连接器，后续创建/追加仍需显式执行对应命令
 - 创建连接器后，将 connector-id 记录到 `.cache/<项目名>-schema.json`
+- 同时记录 `connectorName`。数字 `connectorId` 只用于 CLI 管理；自定义页面调用网关必须使用以 `Http_` 开头的 `connectorName`
 - `--operations`、`--action` 等文件参数必须先用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/connector/` 或该技能更具体的目录，再传给命令；不要写仓库根目录或系统临时目录
 - **本技能不读写 memory**：连接器配置通过 CLI 命令写入宜搭平台，不依赖跨会话的 memory 状态
 
@@ -121,14 +122,15 @@ openyida connector test --connector-id <id> --action <operationId> \
 
 `add-action` 只允许追加新稳定 ID，发现既有 `operationId` 或 `id` 冲突时停止，不覆盖。编辑已有动作时使用 `update-action`；它只接受非空 `--query-json`，要求 Query 在 `inputs` 与 `parameters` 中各自唯一且可回读，完整集合 replace-all 后必须证明连接器非目标 fingerprint、动作数量、其他动作和稳定 ID 不变。写入结果 unknown 时不自动重试。
 
+`connector create/add-action` 返回 `CONNECTOR_READBACK_MISMATCH` 时必须停止。动作已经存在不代表配置正确；按错误中的 `firstDifference` 和 `nextStep` 检查，不得继续生成页面或调用该动作。
+
 ### 鉴权账号管理
 
 ```bash
 openyida connector list-connections <connector-id> --json
-openyida connector create-connection <connector-id> "<账号名>" --interactive  # 仅 DingAuth / DingTrustGW
 ```
 
-需要密钥的连接器创建完成后，把 `connector create --json` 返回的 `accountManageUrl` 交给用户，引导用户在宜搭页面自行添加授权账号；`detailUrl` 只用于查看连接器定义。DingAuth / DingTrustGW 也可让用户本人在本机 TTY 运行 `--interactive`。用户只回复“已配置”，Agent 用配置前后的 `list-connections --json` 差异确定账号。不得要求用户回传凭据或账号 ID；多个候选时停止，不猜测。
+需要密钥的连接器创建完成后，把 `connector create --json` 返回的 `accountManageUrl` 交给用户，引导用户在宜搭页面自行添加授权账号；`detailUrl` 只用于查看连接器定义。用户只回复“已配置”，Agent 用配置前后的 `list-connections --json` 差异确定账号。不得要求用户回传凭据或账号 ID；多个候选时停止，不猜测。
 
 ### 智能生成动作草稿（推荐）
 
@@ -163,6 +165,9 @@ openyida connector create "钉钉API" "api.dingtalk.com" --auth "钉钉开放平
 - `id` 使用稳定的 `operation-<operationId>`，同一接口重复生成不得随时间变化。
 - 同一批动作中的 `operationId` 必须唯一；重复时停止保存，不覆盖或猜测选择。
 - Authorization、Cookie、token、API Key 等敏感 Header 的示例值不得序列化进 action，统一保留空默认值并通过鉴权账号在运行时注入。
+- Header 分组及其子字段统一保存为 `required=false`，规避平台运行时把已传值误判为空。`Content-Type` 作为非空固定默认值保留；可选 Header 没有默认值时不写入 `parameters.header`。业务真正必填的 Header 由调用方在执行前检查并传入。
+- 宜搭 OpenAPI 的 `systemToken` 字段保留空默认值。真实测试使用 `connector test ... --system-token-app <appType>`；业务调用使用 `yida-integration` 的服务端安全绑定。普通 `--params`、`--body-json`、`--connector-assignment` 和 Action 文件均不得携带该值。
+- Canvas 调用的 `inputs.body` 必须是对象，不能传 `JSON.stringify(...)` 的字符串。
 
 ## 模板
 

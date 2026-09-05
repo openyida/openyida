@@ -1282,7 +1282,7 @@ describe('compileCanvasLocal', () => {
       installBridge.call({ utils: {} });
 
       const result = await rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({
-        connectorId: '910244',
+        connectorName: 'Http_calendar',
         operationId: 'calendar-list',
         connectionId: 'account-7',
       }, {
@@ -1310,7 +1310,7 @@ describe('compileCanvasLocal', () => {
       });
       expect(JSON.parse(params.get('serviceInfo'))).toEqual({
         connectorInfo: {
-          connectorId: '910244',
+          connectorId: 'Http_calendar',
           actionId: 'calendar-list',
           type: 'httpConnector',
           connection: 'account-7',
@@ -1336,8 +1336,8 @@ describe('compileCanvasLocal', () => {
         CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
       )();
       installBridge.call({ utils: {} });
-      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({ connectorId: '910244' }, {}))
-        .rejects.toThrow('connectorId and operationId are required');
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({ connectorName: 'Http_calendar' }, {}))
+        .rejects.toThrow('connectorName and operationId are required');
       expect(fetch).not.toHaveBeenCalled();
     } finally {
       global.window = previousWindow;
@@ -1363,12 +1363,85 @@ describe('compileCanvasLocal', () => {
       )();
       installBridge.call({ utils: {} });
       await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({
-        connectorId: '910244',
+        connectorName: 'Http_calendar',
         operationId: 'calendar-list',
       }, {})).resolves.toEqual({ ok: true });
       expect(fetch.mock.calls[0][0]).toBe('/query/publicService/invokeService.json');
     } finally {
       global.window = previousWindow;
+    }
+  });
+
+  test('Canvas connector bridge rejects numeric management ids and stringified bodies before fetch', async () => {
+    const previousWindow = global.window;
+    const fetch = jest.fn();
+    const rootWindow = { parent: {}, top: {}, fetch };
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      installBridge.call({ utils: {} });
+
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({
+        connectorId: '917319',
+        operationId: 'calendar-create',
+      }, { body: {} })).rejects.toMatchObject({
+        code: 'CONNECTOR_RUNTIME_NAME_REQUIRED',
+      });
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({
+        connectorName: 'Http_calendar',
+        operationId: 'calendar-create',
+      }, { body: '{"summary":"测试日程"}' })).rejects.toMatchObject({
+        code: 'CONNECTOR_BODY_OBJECT_REQUIRED',
+      });
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      if (previousWindow === undefined) { delete global.window; }
+      else { global.window = previousWindow; }
+    }
+  });
+
+  test('Canvas connector bridge surfaces nested gateway and service errors', async () => {
+    const previousWindow = global.window;
+    const fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: false,
+          content: { errorMessage: '必填字段值为空: Content-Type' },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          content: {
+            serviceReturnValue: JSON.stringify({
+              success: false,
+              errors: [{ message: '日程创建失败: userId 无效' }],
+            }),
+          },
+        }),
+      });
+    const rootWindow = { parent: {}, top: {}, fetch };
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      installBridge.call({ utils: {} });
+      const binding = { connectorName: 'Http_calendar', operationId: 'calendar-create' };
+
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke(binding, { body: {} }))
+        .rejects.toThrow('必填字段值为空: Content-Type');
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke(binding, { body: {} }))
+        .rejects.toThrow('日程创建失败: userId 无效');
+    } finally {
+      if (previousWindow === undefined) { delete global.window; }
+      else { global.window = previousWindow; }
     }
   });
 

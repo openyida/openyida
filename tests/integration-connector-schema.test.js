@@ -36,6 +36,9 @@ describe('integration connector schema discovery', () => {
       id: 7, connectorName: 'Http_owned', connectorMode: 5,
     });
     connectorApi.getConnectorDetail.mockResolvedValue({
+      scheme: 'https',
+      host: 'api.dingtalk.com',
+      baseUrl: '/',
       operations: JSON.stringify([{
         operationId: 'sync',
         inputs: [
@@ -53,6 +56,10 @@ describe('integration connector schema discovery', () => {
     expect(result.verificationLevel).toBe('PLATFORM_READ_ONLY_DISCOVERY');
     expect(result.inputs.map((input) => input.componentName)).toEqual(['NumberField', 'CheckboxField']);
     expect(result.outputs).toHaveLength(1);
+    expect(result.connectorTarget).toEqual({
+      scheme: 'https', host: 'api.dingtalk.com', baseUrl: '/',
+    });
+    expect(result.operation.operationId).toBe('sync');
   });
 
   test('discovers common Http_ connector names when the numeric-id lookup has no match', async () => {
@@ -89,6 +96,19 @@ describe('integration connector schema discovery', () => {
       [{ column: 'unknown', valueType: 'literal', value: 'x' }],
       [{ name: 'amount', componentName: 'NumberField' }]
     )).toThrow(expect.objectContaining({ code: 'INTEGRATION_CONNECTOR_INPUT_UNKNOWN' }));
+  });
+
+  test('requires a full path when nested connector input names are ambiguous', () => {
+    const inputs = [
+      { name: 'Query', childList: [{ name: 'id' }] },
+      { name: 'Body', childList: [{ name: 'id' }] },
+    ];
+    expect(() => validateConnectorAssignmentsAgainstSchema(
+      [{ column: 'id', valueType: 'literal', value: 'x' }], inputs
+    )).toThrow(expect.objectContaining({ code: 'INTEGRATION_CONNECTOR_INPUT_AMBIGUOUS' }));
+    expect(() => validateConnectorAssignmentsAgainstSchema(
+      [{ column: 'Body.id', valueType: 'literal', value: 'x' }], inputs
+    )).not.toThrow();
   });
 
   test('all 12 locale packs expose control-plane readback and connector fail-closed messages', () => {

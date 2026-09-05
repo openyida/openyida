@@ -48,7 +48,17 @@ Agent 先按业务域进入官方目录，再打开目标接口页。目录页�
     "header": ["x-client-token"],
     "body": {},
     "permission": [],
-    "idempotency": "x-client-token"
+    "idempotency": "x-client-token",
+    "fixedInputs": {
+      "path.calendarId": "primary"
+    },
+    "inputDependencies": [{
+      "target": "path.userId",
+      "semanticType": "unionId",
+      "sourceUrl": "https://open.dingtalk.com/document/development/query-user-details",
+      "sourceInput": "body.userid",
+      "sourceOutput": "result.unionid"
+    }]
   }]
 }
 ```
@@ -58,3 +68,31 @@ Agent 先按业务域进入官方目录，再打开目标接口页。目录页�
 - path 参数必须保留在 URL 占位符及参数 Schema 中。
 - 官方文档声明的权限、应用类型限制、分页和幂等字段必须保留。
 - 文档不明确的字段标为 `unknown` 并停止相关动作创建，不自行猜测。
+
+## 入参依赖
+
+读取每个必填参数的完整描述。描述中出现“固定为”“调用某接口获取”或官方链接时，把来源写入契约，不能只按参数名猜值：
+
+- 固定值写入 `fixedInputs`。
+- 页面或业务数据已经提供且语义一致的值，记录为运行态输入。
+- 需要其他接口返回值时，写入 `inputDependencies`，并保存前置接口的精确 `sourceUrl`、输入字段和输出路径。
+- 每个前置接口都按同一流程生成宜搭自定义连接器 Action；设计态用 `connector test` 调用，页面运行态用 `window.__OPENYIDA_CONNECTOR_API__` 调用。不能用 `curl`、`fetch`、临时 Node/Python 脚本或其他底层 HTTP 请求绕过连接器。
+- 前置接口与主接口的 Host 或鉴权不同，分别创建或复用连接器；不能把完整外部 URL 塞进主连接器 Action，也不能假设鉴权账号可以跨连接器复用。
+- 前置输入、输出路径或鉴权方式不能确认时停止，不用相似字段名代替。
+- `fixedInputs` 和 `inputDependencies` 只用于 Agent 编排；生成平台 Action JSON 时转成对应的参数默认值和页面调用顺序，不把这两个元数据字段原样提交给平台。
+
+### 创建日程示例
+
+[创建日程](https://open.dingtalk.com/document/development/create-schedule) 的路径参数名虽然是 `userId`，企业内部应用和第三方企业应用实际必须传日程组织者的 `unionId`：
+
+```text
+已知通讯录 userId
+  → 调用查询用户详情（body.userid）
+  → 读取 result.unionid
+  → 写入创建日程 path.userId
+```
+
+- 前置接口：[查询用户详情](https://open.dingtalk.com/document/development/query-user-details)。
+- `calendarId` 固定传 `primary`。
+- 第三方个人应用按创建日程文档链接改用[获取用户通讯录个人信息](https://open.dingtalk.com/document/development/dingtalk-retrieve-user-information)，不能套用企业应用链路。
+- 如果 EmployeeField 或已有业务数据已经返回经过验证的 `unionId`，可以直接使用；只有普通 `userId` 时必须先转换。

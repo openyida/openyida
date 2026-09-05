@@ -14,6 +14,21 @@ jest.mock('../lib/integration/integration-node-ids', () => {
 const { buildProcessJson } = require('../lib/integration/integration-process-builder');
 const { buildViewJson } = require('../lib/integration/integration-view-builder');
 const { buildSpecProcessAndViewJson } = require('../lib/integration/integration-spec-builder');
+const { buildConnectorRulesFromInputs } = require('../lib/integration/connector-presets');
+
+test('keeps nested body assignments on connector child rules', () => {
+  const rules = buildConnectorRulesFromInputs([
+    {
+      name: 'Body', componentName: 'ObjectField',
+      childList: [{ name: 'systemToken', componentName: 'TextField' }],
+    },
+  ], [{ column: 'systemToken', valueType: 'literal', value: 'secret' }]);
+  expect(rules[0].childList[0]).toMatchObject({
+    id: 'Body%systemToken',
+    parentId: 'Body',
+    rules: [expect.objectContaining({ value: 'secret', valueType: 'literal' })],
+  });
+});
 
 function getFlatMessagePair(options = {}) {
   const common = {

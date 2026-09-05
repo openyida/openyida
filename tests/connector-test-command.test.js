@@ -33,6 +33,7 @@ describe('connector test command parameter contract', () => {
       '--header-json', '{"X-E2E":"h"}',
       '--body-json', '{"message":"b"}',
       '--account-id', '7',
+      '--system-token-app', 'APP_TARGET',
     ])).toMatchObject({
       connectorId: '101',
       actionId: 'echoOwned',
@@ -41,6 +42,7 @@ describe('connector test command parameter contract', () => {
       headerJson: '{"X-E2E":"h"}',
       bodyJson: '{"message":"b"}',
       accountId: '7',
+      systemTokenApp: 'APP_TARGET',
     });
   });
 

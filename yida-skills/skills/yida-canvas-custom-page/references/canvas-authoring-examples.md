@@ -122,10 +122,10 @@ function YidaComp(props) {
 
     bridge.invoke({
       mode: 'connector',
-      connectorId: props.connectorId,
+      connectorName: props.connectorName,
       operationId: props.operationId,
       connectionId: props.connectionId,
-    }, { pageSize: 50 })
+    }, { path: {}, query: {}, header: {}, body: { pageSize: 50 } })
       .then(function (json) {
         if (cancelled) { return; }
         var rows = (json && json.result && json.result.data) || [];
@@ -137,7 +137,7 @@ function YidaComp(props) {
       });
 
     return function () { cancelled = true; };
-  }, [props.connectorId, props.operationId, props.connectionId]);
+  }, [props.connectorName, props.operationId, props.connectionId]);
 
   if (state.loading) { return <div>加载中…</div>; }
   if (state.error) { return <div style={{ color: 'red' }}>加载失败：{state.error}</div>; }

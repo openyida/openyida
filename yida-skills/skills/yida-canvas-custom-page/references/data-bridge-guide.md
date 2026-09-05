@@ -9,7 +9,7 @@
 | 外层 yida JS-API 桥 `window.__OPENYIDA_YIDA_API__` | **表单默认** | 发布使用 `YidaCodeCanvas` 组件实现的页面时由外层页面 `didMount` 自动注册，底层调用官方 `this.utils.yida.searchFormDatas`、`saveFormData`、`startProcessInstance`、`getProcessInstances` 等表单/流程 API，并同步运行态已有的 `this.utils.yida` 函数。 |
 | 根级 utils 桥 `window.__OPENYIDA_UTILS__` | **工具默认** | 同一个发布层自动注册，暴露 `toast`、`dialog`、`router.push`、`openPage`、`isMobile` 等根级工具；`window.__OPENYIDA_UTILS__.yida` 指向 `window.__OPENYIDA_YIDA_API__`。 |
 | 宜搭开放 API（OpenAPI，`appKey`/`appSecret` 签名） | 服务端 / 平台连接器 | 需服务端签名；浏览器直连会泄露 secret。由后端或已鉴权的平台连接器调用。 |
-| 平台已配置连接器 `window.__OPENYIDA_CONNECTOR_API__` | **第三方 API 默认** | 页面只保存 `connectorId/operationId/connectionId` 和业务输入，由固定的同源运行时桥调用；鉴权与密钥留在平台侧。 |
+| 平台已配置连接器 `window.__OPENYIDA_CONNECTOR_API__` | **第三方 API 默认** | 页面只保存 `Http_*` `connectorName`、`operationId`、`connectionId` 和业务输入，由固定的同源运行时桥调用；鉴权与密钥留在平台侧。 |
 | 内部表单数据端点（同源、依赖登录 cookie + CSRF） | 降级可用 | 仅在 yida JS-API 桥不存在时使用；必须使用同源相对路径、`credentials: 'include'` 和运行态 CSRF token。 |
 
 选路原则：读本应用或本轮创建的宜搭表单，默认走 yida JS-API 桥；读第三方或复杂后端数据，走平台连接器桥；只有桥不存在且必须读表单时，才同源直连内部端点。Cookie、CSRF、AK/SK 和签名由平台上下文、连接器或后端服务提供，页面不能接收或保存密钥。
@@ -42,7 +42,7 @@
 数据绑定规则：
 
 - `mode=form` 使用真实 `appType/formUuid` 和字段 ID，字段来源为 `get-schema`、表单创建结果或已确认的业务 Schema。
-- `mode=connector` 必须使用真实 `connectorId/operationId/connectionId`，通过 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)` 调用；不得把连接器伪装成页面可配置 URL。
+- `mode=connector` 必须使用真实 `connectorName/operationId/connectionId`，其中 `connectorName` 以 `Http_` 开头；通过 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)` 调用，不得把连接器伪装成页面可配置 URL。
 - `mode=url` 只允许自定义同源业务端点；第三方密钥留在后端服务侧。
 - `mode=seed` 只用于离线预览或明确标注的演示页；完整应用/真实交付页默认先由 `yida-app` 调用 `yida-data-management` 把 1-3 条 demo records 写入真实表单，再用 `mode=form` 读取。
 - 页面生成或手写的 `DataBridge` 状态要保留，用于呈现“接口没通 / 结构没识别 / 权限不足”等运行时状态。
@@ -250,7 +250,7 @@ function getConnectorBridge() {
 
 var CONNECTOR_BINDING = {
   mode: 'connector',
-  connectorId: '<CONNECTOR_ID>',
+  connectorName: '<HTTP_CONNECTOR_NAME>',
   operationId: '<OPERATION_ID>',
   connectionId: '<CONNECTION_ID>'
 };
@@ -263,10 +263,15 @@ function loadConnectorData(inputs) {
   return bridge.invoke(CONNECTOR_BINDING, inputs);
 }
 
-loadConnectorData({ pageSize: 50 });
+loadConnectorData({
+  path: {},
+  query: {},
+  header: {},
+  body: { pageSize: 50 }
+});
 ```
 
-`connectorId` 来自创建或查询连接器结果，`operationId` 来自动作清单，`connectionId` 来自用户完成账号鉴权后的连接列表。页面只传业务参数；不得传 AK/SK、拼接连接器代理 URL 或直接访问钉钉开放平台域名。
+`connectorName` 来自创建或详情回读结果，值必须以 `Http_` 开头。数字 `connectorId` 只用于 CLI 管理命令，不能写入页面。`operationId` 来自动作清单，`connectionId` 来自用户完成账号鉴权后的连接列表。`inputs.body` 直接传对象，不使用 `JSON.stringify`；Header 在页面调用前校验后传入 `inputs.header`。页面不得传 AK/SK、拼接连接器代理 URL 或直接访问钉钉开放平台域名。
 
 ## 轮询只刷新数据，不刷新整页
 

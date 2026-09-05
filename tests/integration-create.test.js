@@ -44,16 +44,22 @@ jest.mock('../lib/integration/integration-api', () => ({
 jest.mock('../lib/integration/integration-readback', () => ({
   verifyLogicflowFinalState: jest.fn(),
   projectAddDataAssignments: jest.fn(() => []),
+  projectSystemTokenBindings: jest.fn(() => []),
 }));
 jest.mock('../lib/integration/integration-connector-schema', () => ({
   resolveConnectorActionSchema: jest.fn(),
   validateConnectorAssignmentsAgainstSchema: jest.fn(),
 }));
+jest.mock('../lib/connector/yida-system-token', () => {
+  const actual = jest.requireActual('../lib/connector/yida-system-token');
+  return { ...actual, resolveYidaSystemToken: jest.fn() };
+});
 
 const { fetchFormPageList } = require('../lib/app/form-navigation');
 const integrationApi = require('../lib/integration/integration-api');
 const integrationReadback = require('../lib/integration/integration-readback');
 const connectorSchema = require('../lib/integration/integration-connector-schema');
+const systemToken = require('../lib/connector/yida-system-token');
 const { run } = require('../lib/integration/integration-create');
 const { loadIntegrationScenarios } = require('../scripts/eval/integration-contract/scenario-loader');
 
@@ -91,6 +97,7 @@ describe('integration create command', () => {
       openDevSchemaType: 'normal',
       verificationLevel: 'PLATFORM_READ_ONLY_DISCOVERY',
     });
+    systemToken.resolveYidaSystemToken.mockResolvedValue('secret-system-token');
     tempDirs = [];
   });
 
@@ -685,6 +692,120 @@ describe('integration create command', () => {
       },
     });
     expect(exitSpy).not.toHaveBeenCalled();
+  });
+
+  test('injects yida systemToken only after trusted action preflight and never prints it', async () => {
+    connectorSchema.resolveConnectorActionSchema.mockResolvedValue({
+      inputs: [{
+        name: 'Body', paramLocation: 'body', componentName: 'ObjectField',
+        childList: [{ name: 'systemToken', componentName: 'TextField', paramType: 'String' }],
+      }],
+      outputs: [],
+      operation: {
+        operationId: 'createData',
+        url: '/v1.0/yida/forms/instances',
+        inputs: [{
+          name: 'Body', paramLocation: 'body',
+          childList: [{ name: 'systemToken', componentName: 'TextField' }],
+        }],
+      },
+      connectorTarget: { scheme: 'https', host: 'api.dingtalk.com', baseUrl: '/' },
+      verificationLevel: 'PLATFORM_READ_ONLY_DISCOVERY',
+    });
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await run([
+      'APP_TEST', 'FORM-A', 'secure yida API flow',
+      '--connector-id', 'Http_yida', '--action-id', 'createData',
+      '--connector-system-token-app', 'APP_TARGET123',
+    ]);
+
+    expect(systemToken.resolveYidaSystemToken).toHaveBeenCalledWith(
+      expect.objectContaining({ corpId: 'corp-1' }), 'APP_TARGET123'
+    );
+    const saveParams = integrationApi.saveProcess.mock.calls[0][1];
+    const processNode = saveParams.processJson.nodes.find(node => node.type === 'httpConnector');
+    expect(processNode.props.inputs.assignments).toEqual(expect.arrayContaining([
+      expect.objectContaining({ column: 'systemToken', value: 'secret-system-token' }),
+    ]));
+    expect(JSON.stringify(logSpy.mock.calls)).not.toContain('secret-system-token');
+    expect(JSON.stringify(logSpy.mock.calls)).toContain('credentialExposed');
+  });
+
+  test('rejects explicit systemToken connector assignments before any remote write', async () => {
+    await expect(run([
+      'APP_TEST', 'FORM-A', 'unsafe yida API flow',
+      '--connector-id', 'Http_yida', '--action-id', 'createData',
+      '--connector-assignment', 'systemToken:literal:secret',
+    ])).rejects.toMatchObject({ code: 'YIDA_SYSTEM_TOKEN_EXPLICIT_VALUE_FORBIDDEN' });
+
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+  });
+
+  test('rejects untrusted systemToken connector targets before any remote write', async () => {
+    connectorSchema.resolveConnectorActionSchema.mockResolvedValue({
+      inputs: [{ name: 'systemToken', paramLocation: 'body' }],
+      outputs: [],
+      operation: {
+        url: '/v1.0/yida/forms/instances',
+        inputs: [{ name: 'systemToken', paramLocation: 'body' }],
+      },
+      connectorTarget: { scheme: 'https', host: 'evil.example.com' },
+    });
+
+    await expect(run([
+      'APP_TEST', 'FORM-A', 'untrusted yida API flow',
+      '--connector-id', 'Http_untrusted', '--action-id', 'createData',
+      '--connector-system-token-app', 'APP_TARGET123',
+    ])).rejects.toMatchObject({ code: 'YIDA_SYSTEM_TOKEN_TARGET_UNTRUSTED' });
+
+    expect(systemToken.resolveYidaSystemToken).not.toHaveBeenCalled();
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+  });
+
+  test('resolves spec secretBindings and strips the binding metadata before save', async () => {
+    connectorSchema.resolveConnectorActionSchema.mockResolvedValue({
+      inputs: [{
+        name: 'Body', paramLocation: 'body', componentName: 'ObjectField',
+        childList: [
+          { name: 'systemToken', componentName: 'TextField' },
+          { name: 'formUuid', componentName: 'TextField' },
+        ],
+      }],
+      outputs: [],
+      operation: {
+        url: '/v1.0/yida/forms/instances/search',
+        inputs: [{
+          name: 'Body', paramLocation: 'body',
+          childList: [{ name: 'systemToken' }, { name: 'formUuid' }],
+        }],
+      },
+      connectorTarget: { scheme: 'https', host: 'api.dingtalk.com' },
+      verificationLevel: 'PLATFORM_READ_ONLY_DISCOVERY',
+    });
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+    const specPath = writeTempSpec({
+      events: ['insert'],
+      nodes: [{
+        type: 'connector', connectorId: 'Http_yida', actionId: 'search',
+        secretBindings: [{
+          target: 'body.systemToken', provider: 'yidaSystemToken', appType: 'APP_TARGET123',
+        }],
+        assignments: [{ column: 'formUuid', valueType: 'literal', value: 'FORM_TARGET' }],
+      }],
+    });
+
+    await run(['APP_TEST', 'FORM-A', 'secure spec flow', '--spec', specPath]);
+
+    expect(systemToken.resolveYidaSystemToken).toHaveBeenCalledTimes(1);
+    const serializedSave = JSON.stringify(integrationApi.saveProcess.mock.calls[0][1]);
+    expect(serializedSave).toContain('secret-system-token');
+    expect(serializedSave).not.toContain('secretBindings');
+    expect(JSON.stringify(logSpy.mock.calls)).not.toContain('secret-system-token');
   });
 
   test('infers HTTP connector mode from Http_ connector ids', async () => {

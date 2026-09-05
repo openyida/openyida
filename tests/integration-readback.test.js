@@ -9,7 +9,11 @@ jest.mock('../lib/integration/integration-api', () => ({
 
 const { listAllLogicflows } = require('../lib/integration/integration-check');
 const { getLogicflowDetail } = require('../lib/integration/integration-api');
-const { projectAddDataAssignments, verifyLogicflowFinalState } = require('../lib/integration/integration-readback');
+const {
+  projectAddDataAssignments,
+  projectSystemTokenBindings,
+  verifyLogicflowFinalState,
+} = require('../lib/integration/integration-readback');
 const { setLanguage } = require('../lib/core/i18n');
 
 describe('integration control-plane readback', () => {
@@ -23,6 +27,58 @@ describe('integration control-plane readback', () => {
     getLogicflowDetail.mockResolvedValue({
       success: true,
       content: { schema: { componentName: 'CanvasEngine', children: [] }, globalSetting: {} },
+    });
+  });
+
+  test('projects systemToken binding presence without exposing its value', () => {
+    const projected = projectSystemTokenBindings({ schema: { children: [{
+      id: 'connector-1',
+      componentName: 'ConnectorNode',
+      props: {
+        connectorRules: {
+          connectorId: 'Http_yida',
+          actionId: 'query',
+          rules: [{
+            name: 'Body',
+            childList: [{
+              name: 'systemToken',
+              rules: [{ valueType: 'literal', value: 'secret-system-token' }],
+            }],
+          }],
+        },
+      },
+    }] } });
+
+    expect(projected).toEqual([{
+      nodeId: 'connector-1',
+      connectorId: 'Http_yida',
+      actionId: 'query',
+      bindings: [{ target: 'body.systemToken', bound: true }],
+    }]);
+    expect(JSON.stringify(projected)).not.toContain('secret-system-token');
+  });
+
+  test('requires the systemToken server-side binding in published detail readback', async () => {
+    const expected = [{
+      nodeId: 'connector-1', connectorId: 'Http_yida', actionId: 'query',
+      bindings: [{ target: 'body.systemToken', bound: true }],
+    }];
+    getLogicflowDetail.mockResolvedValue({
+      success: true,
+      content: { schema: { children: [{
+        id: 'connector-1', componentName: 'ConnectorNode',
+        props: { connectorRules: {
+          connectorId: 'Http_yida', actionId: 'query',
+          rules: [{ name: 'Body', childList: [{ name: 'systemToken', rules: [] }] }],
+        } },
+      }] } },
+    });
+    await expect(verifyLogicflowFinalState({}, {
+      appType: 'APP-A', formUuid: 'FORM-A', processCode: 'LPROC-TARGET',
+      expectedStatus: 'y', expectedSystemTokenBindings: expected,
+    })).rejects.toMatchObject({
+      code: 'INTEGRATION_READBACK_SYSTEM_TOKEN_BINDING_MISMATCH',
+      details: expect.not.objectContaining({ value: expect.anything() }),
     });
   });
 
