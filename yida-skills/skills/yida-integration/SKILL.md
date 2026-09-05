@@ -289,6 +289,45 @@ openyida integration create APP_XXX FORM-XXX "获取自身后分支更新" \
 }
 ```
 
+从上游节点的子表取一行或新增一行，只用于 `--spec` 新建草稿，不要用来改现网自动化，也不要调用 `integration update`。
+
+- `dataRetrieve`：`originalType: "sub_table"`，`source` 必须是拓扑上游的 `getSelf` 或 `dataRetrieve` 别名，`subSourceId` 为子表 fieldId；不要再填目标表 `formUuid`
+- `dataCreate`：`insertType: "sub_table"`，`source` 为同一类上游节点，`subFormUuid` 为子表 fieldId；赋值字段必须落在该子表下。`parentFormUuid` 可选；来源是 `getSelf` 时回退到触发表单 UUID，否则从上游节点的 `formUuid` 推断
+
+```json
+{
+  "id": "lookupRow",
+  "type": "dataRetrieve",
+  "originalType": "sub_table",
+  "source": "school",
+  "subSourceId": "tableField_history",
+  "subSourceLabel": "经销商履历",
+  "conditions": [
+    {
+      "bFieldId": "textField_dealer_code",
+      "bFieldName": "经销商编号",
+      "aFieldId": "textField_selected_dealer_code",
+      "componentType": "TextField",
+      "opCode": "Equal",
+      "valueType": "processVar"
+    }
+  ]
+}
+```
+
+```json
+{
+  "id": "appendRow",
+  "type": "dataCreate",
+  "insertType": "sub_table",
+  "source": "school",
+  "subFormUuid": "tableField_history",
+  "assignments": [
+    { "column": "textField_dealer_code", "valueType": "processVar", "value": "textField_selected_dealer_code" }
+  ]
+}
+```
+
 ## 字段变量引用格式
 
 在通知标题和内容中，可以使用 `#{fieldId-ComponentType}#` 格式引用触发表单的字段值：

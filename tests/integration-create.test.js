@@ -121,6 +121,119 @@ describe('integration create command', () => {
     expect(integrationApi.saveProcess).not.toHaveBeenCalled();
   });
 
+  test.each([
+    ['sendMessage', {
+      events: ['insert'],
+      nodes: [
+        { id: 'notify', type: 'sendMessage', receivers: ['user-1'], content: 'done' },
+        {
+          id: 'lookupRow',
+          type: 'dataRetrieve',
+          originalType: 'sub_table',
+          source: 'notify',
+          subSourceId: 'tableField_history',
+          conditions: [{ fieldId: 'textField_dealer_code', value: 'x', valueType: 'literal' }],
+        },
+      ],
+    }, /getSelf or dataRetrieve/],
+    ['a downstream node', {
+      events: ['insert'],
+      nodes: [
+        {
+          id: 'lookupRow',
+          type: 'dataRetrieve',
+          originalType: 'sub_table',
+          source: 'school',
+          subSourceId: 'tableField_history',
+          conditions: [{ fieldId: 'textField_dealer_code', value: 'x', valueType: 'literal' }],
+        },
+        {
+          id: 'school',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-SCHOOL',
+          conditions: [{ fieldId: 'serialNumberField_code', value: 'x', valueType: 'literal' }],
+        },
+      ],
+    }, /upstream node/],
+    ['an unknown alias', {
+      events: ['insert'],
+      nodes: [{
+        id: 'lookupRow',
+        type: 'dataRetrieve',
+        originalType: 'sub_table',
+        source: 'missing',
+        subSourceId: 'tableField_history',
+        conditions: [{ fieldId: 'textField_dealer_code', value: 'x', valueType: 'literal' }],
+      }],
+    }, /Unknown integration spec node alias/],
+    ['a conditional branch node after the route', {
+      events: ['insert'],
+      nodes: [
+        {
+          type: 'route',
+          branches: [
+            {
+              conditions: [{ fieldId: 'textField_a', opCode: 'ExistValue' }],
+              nodes: [{
+                id: 'school',
+                type: 'dataRetrieve',
+                formUuid: 'FORM-SCHOOL',
+                conditions: [{ fieldId: 'serialNumberField_code', value: 'x', valueType: 'literal' }],
+              }],
+            },
+            {
+              default: true,
+              nodes: [{ type: 'sendMessage', receivers: ['user-1'], content: 'other' }],
+            },
+          ],
+        },
+        {
+          id: 'lookupRow',
+          type: 'dataRetrieve',
+          originalType: 'sub_table',
+          source: 'school',
+          subSourceId: 'tableField_history',
+          conditions: [{ fieldId: 'textField_dealer_code', value: 'x', valueType: 'literal' }],
+        },
+      ],
+    }, /upstream node/],
+    ['a mismatched parentFormUuid', {
+      events: ['insert'],
+      nodes: [
+        {
+          id: 'school',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-A',
+          conditions: [{ fieldId: 'serialNumberField_code', value: 'x', valueType: 'literal' }],
+        },
+        {
+          type: 'dataCreate',
+          insertType: 'sub_table',
+          source: 'school',
+          subFormUuid: 'tableField_history',
+          parentFormUuid: 'FORM-B',
+          assignments: [{ column: 'textField_dealer_code', valueType: 'literal', value: 'D-1' }],
+        },
+      ],
+    }, /parentFormUuid must match the source form/],
+  ])('rejects sub_table source %s before any remote write', async (_label, spec, message) => {
+    const specPath = writeTempSpec(spec);
+
+    await expect(run([
+      'APP_TEST',
+      'FORM-A',
+      'invalid sub table source',
+      '--spec',
+      specPath,
+    ])).rejects.toThrow(message);
+
+    expect(require('../lib/core/utils').loadAuthData).not.toHaveBeenCalled();
+    expect(fetchFormPageList).not.toHaveBeenCalled();
+    expect(integrationApi.getFormSchema).not.toHaveBeenCalled();
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+  });
+
   test('rejects dangling designer source node IDs before any remote write', async () => {
     const specPath = writeTempSpec({
       events: ['insert'],

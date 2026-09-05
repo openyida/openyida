@@ -144,6 +144,24 @@ trigger
 }
 ```
 
+结构化 `--spec` 在子表中新增一行时，运行态和画布的 `formUuid` 都是上游节点 id，不是目标表单 UUID：
+
+```json
+{
+  "type": "dataCreate",
+  "insertType": "sub_table",
+  "source": "school",
+  "subFormUuid": "tableField_history",
+  "assignments": [
+    { "column": "textField_dealer_code", "valueType": "processVar", "value": "textField_selected_dealer_code" }
+  ]
+}
+```
+
+- `insertType: "sub_table"` 时 `source` 和 `subFormUuid` 必填；`source` 必须是拓扑上游的 `getSelf` 或 `dataRetrieve` 节点；赋值字段必须是该子表字段
+- 编译后 `props.formUuid` / `addDataRules.formUuid` 为上游 `nodeId`，`subFormUuid` 为子表 fieldId
+- 可选 `parentFormUuid` 只用于读取主表 Schema；不写时：来源是 `getSelf` 则回退触发表单 UUID，否则从上游节点的 `formUuid` 推断
+
 ---
 
 ### 获取单条数据节点（dataRetrieve）
@@ -187,6 +205,8 @@ trigger
 - `quantity: "1"` 表示只取一条
 - 过滤条件中 `extValue: "processVar"` 表示右侧值来自触发表单的流程变量
 - 该节点的 `nodeId`（如 `node_ocmmzsdai63`）在后续节点中通过 `${nodeId}.fieldId` 引用其查询结果
+- 从上游节点子表取数时，spec 写 `originalType: "sub_table"`、`source` 为拓扑上游的 `getSelf` 或 `dataRetrieve` 别名、`subSourceId` 为子表 fieldId；不要再填目标表 `formUuid`
+- 编译后运行态 `sourceId` 为上游 `nodeId`；画布 `targetItem.value` 也是该 `nodeId`，`relativeItem` 指向子表，且没有 `targetItem.formItem.formUuid`
 
 ---
 
