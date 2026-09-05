@@ -187,6 +187,7 @@ trigger
 - `quantity: "1"` 表示只取一条
 - 过滤条件中 `extValue: "processVar"` 表示右侧值来自触发表单的流程变量
 - 该节点的 `nodeId`（如 `node_ocmmzsdai63`）在后续节点中通过 `${nodeId}.fieldId` 引用其查询结果
+- 来源为流程表单时，运行态 `processJson` 的实例条件字段使用 `pid`，设计器 `viewJson` 的对应字段使用 `proc_inst_id`；普通表单两侧均使用 `form_inst_id`。
 
 ---
 

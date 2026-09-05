@@ -36,6 +36,8 @@ describe('integration diagnostics', () => {
       severity: 'error',
     });
     expect(fieldFinding.recommendation).toContain('pid');
+    expect(fieldFinding.recommendation).toContain('proc_inst_id');
+    expect(fieldFinding.recommendation).toContain('form_inst_id');
     expect(fieldFinding.recommendation).toContain('__masterdata_form_inst_id');
   });
 
@@ -55,7 +57,7 @@ describe('integration diagnostics', () => {
     expect(listPitfallRules().map((rule) => rule.id)).toContain('direct-update-no-recursive-trigger');
     expect(buildCheckHints().map((hint) => hint.id)).toContain('get-self-standard');
     expect(buildCheckHints({ lang: 'en' }).find((hint) => hint.id === 'get-self-standard').message)
-      .toContain('pid equals trigger field __masterdata_form_inst_id');
+      .toContain('pid at runtime and proc_inst_id in the designer');
   });
 
   test('diagnose command reads positional text', () => {

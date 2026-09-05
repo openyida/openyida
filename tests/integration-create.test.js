@@ -909,4 +909,394 @@ describe('integration create command', () => {
       appType: 'APP_TEST', formUuid: 'FORM-PROCESS',
     });
   });
+
+  test('rejects dangling designer source node IDs before any remote write', async () => {
+    const specPath = writeTempSpec({
+      events: ['insert'],
+      nodes: [
+        {
+          id: 'lookup',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-B',
+          conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+        },
+        {
+          id: 'update',
+          type: 'dataUpdate',
+          source: 'lookup',
+          assignments: [{
+            column: 'numberField_total',
+            valueType: 'column',
+            value: '${lookup}.numberField_total+1',
+            __source: '#{node_typo//numberField_total}+1',
+          }],
+        },
+      ],
+    });
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'FORM-B', formName: 'B普通表单', formType: 'receipt' },
+    ]);
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-SHOULD-NOT-EXIST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await expect(run([
+      'APP_TEST',
+      'FORM-A',
+      'dangling designer source',
+      '--spec',
+      specPath,
+    ])).rejects.toThrow(/Unknown integration spec node alias: node_typo/);
+
+    expect(integrationApi.getFormSchema).not.toHaveBeenCalled();
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['process', 'FORM-PROCESS', 'processFinish', 'agree', 'process_form', 'pid', 'proc_inst_id', 'process', '流程实例ID'],
+    ['receipt', 'FORM-RECEIPT', 'insert', '', 'form', 'form_inst_id', 'form_inst_id', 'receipt', '表单实例ID'],
+  ])('uses source form metadata for simple %s get-self flows', async (
+    name, formUuid, event, approvalAction, originalType, queryField, viewQueryField, formType, queryFieldName
+  ) => {
+    fetchFormPageList.mockResolvedValue([
+      { formUuid, formName: `${name} form`, formType },
+    ]);
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    const args = ['APP_TEST', formUuid, `${name} get-self`, '--events', event, '--get-self'];
+    if (approvalAction) {
+      args.push('--approval-actions', approvalAction);
+    }
+    await run(args);
+
+    const saveParams = integrationApi.saveProcess.mock.calls[0][1];
+    const processDataNode = saveParams.processJson.nodes.find((node) => node.type === 'dataRetrieve');
+    const viewDataNode = saveParams.viewJson.schema.children.find((node) => node.componentName === 'GetSingleDataNode');
+    expect(processDataNode.props).toMatchObject({
+      originalType,
+      condition: { rules: [{ id: queryField, name: queryFieldName }] },
+    });
+    expect(viewDataNode.props.getData).toMatchObject({
+      originalType,
+      condition: { rules: [{ id: viewQueryField, name: queryFieldName }] },
+      targetItem: { formItem: { formType, title: `${name} form` } },
+    });
+  });
+
+  test('converts explicit process get-self proc_inst_id override to runtime pid', async () => {
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'FORM-PROCESS', formName: 'process form', formType: 'process' },
+    ]);
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await run([
+      'APP_TEST',
+      'FORM-PROCESS',
+      'explicit proc_inst_id get-self',
+      '--events',
+      'processFinish',
+      '--approval-actions',
+      'agree',
+      '--get-self',
+      '--get-self-query-field',
+      'proc_inst_id',
+    ]);
+
+    const saveParams = integrationApi.saveProcess.mock.calls[0][1];
+    const processDataNode = saveParams.processJson.nodes.find((node) => node.type === 'dataRetrieve');
+    const viewDataNode = saveParams.viewJson.schema.children.find((node) => node.componentName === 'GetSingleDataNode');
+    expect(processDataNode.props.condition.rules).toMatchObject([
+      { id: 'pid', name: '流程实例ID' },
+    ]);
+    expect(viewDataNode.props.getData.condition.rules).toMatchObject([
+      { id: 'proc_inst_id', name: '流程实例ID' },
+    ]);
+  });
+
+  test('converts explicit process get-self pid override to designer proc_inst_id', async () => {
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'FORM-PROCESS', formName: 'process form', formType: 'process' },
+    ]);
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await run([
+      'APP_TEST',
+      'FORM-PROCESS',
+      'explicit pid get-self',
+      '--events',
+      'processFinish',
+      '--approval-actions',
+      'agree',
+      '--get-self',
+      '--get-self-query-field',
+      'pid',
+    ]);
+
+    const saveParams = integrationApi.saveProcess.mock.calls[0][1];
+    const processDataNode = saveParams.processJson.nodes.find((node) => node.type === 'dataRetrieve');
+    const viewDataNode = saveParams.viewJson.schema.children.find((node) => node.componentName === 'GetSingleDataNode');
+    expect(processDataNode.props.condition.rules).toMatchObject([
+      { id: 'pid', name: '流程实例ID' },
+    ]);
+    expect(viewDataNode.props.getData.condition.rules).toMatchObject([
+      { id: 'proc_inst_id', name: '流程实例ID' },
+    ]);
+  });
+
+  test('keeps an explicit get-self business query field on both process and view json', async () => {
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'FORM-PROCESS', formName: 'process form', formType: 'process' },
+    ]);
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await run([
+      'APP_TEST',
+      'FORM-PROCESS',
+      'explicit business get-self',
+      '--events',
+      'processFinish',
+      '--approval-actions',
+      'agree',
+      '--get-self',
+      '--get-self-query-field',
+      'textField_code',
+    ]);
+
+    const saveParams = integrationApi.saveProcess.mock.calls[0][1];
+    const processDataNode = saveParams.processJson.nodes.find((node) => node.type === 'dataRetrieve');
+    const viewDataNode = saveParams.viewJson.schema.children.find((node) => node.componentName === 'GetSingleDataNode');
+    expect(processDataNode.props.condition.rules.map((rule) => rule.id)).toEqual(['textField_code']);
+    expect(viewDataNode.props.getData.condition.rules.map((rule) => rule.id)).toEqual(['textField_code']);
+  });
+
+  test('converts process dataRetrieve pid conditions for simple parameters', async () => {
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'FORM-PROCESS', formName: 'B流程表单', formType: 'process' },
+    ]);
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-PROCESS-DATA');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await run([
+      'APP_TEST',
+      'FORM-A',
+      'process data retrieve',
+      '--data-form-uuid',
+      'FORM-PROCESS',
+      '--data-condition',
+      'pid:流程实例ID:__masterdata_form_inst_id:TextField:Equal:processVar',
+      '--data-condition',
+      'textField_code:业务编码:A-1:TextField:Equal:literal',
+    ]);
+
+    const saveParams = integrationApi.saveProcess.mock.calls[0][1];
+    const processNode = saveParams.processJson.nodes.find((node) => node.type === 'dataRetrieve');
+    const viewNode = saveParams.viewJson.schema.children.find((node) => node.componentName === 'GetSingleDataNode');
+    expect(processNode.props.condition.rules.map((rule) => rule.id)).toEqual(['pid', 'textField_code']);
+    expect(viewNode.props.getData.condition.rules.map((rule) => rule.id)).toEqual(['proc_inst_id', 'textField_code']);
+  });
+
+  test('converts process dataRetrieve proc_inst_id conditions for simple parameters', async () => {
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'FORM-PROCESS', formName: 'B流程表单', formType: 'process' },
+    ]);
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-PROCESS-DATA');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await run([
+      'APP_TEST',
+      'FORM-A',
+      'process retrieve designer',
+      '--data-form-uuid',
+      'FORM-PROCESS',
+      '--data-condition',
+      'proc_inst_id:流程实例ID:__masterdata_form_inst_id:TextField:Equal:processVar',
+      '--data-condition',
+      'textField_code:业务编码:A-1:TextField:Equal:literal',
+    ]);
+
+    const saveParams = integrationApi.saveProcess.mock.calls[0][1];
+    const processNode = saveParams.processJson.nodes.find((node) => node.type === 'dataRetrieve');
+    const viewNode = saveParams.viewJson.schema.children.find((node) => node.componentName === 'GetSingleDataNode');
+    expect(processNode.props.condition.rules.map((rule) => rule.id)).toEqual(['pid', 'textField_code']);
+    expect(viewNode.props.getData.condition.rules.map((rule) => rule.id)).toEqual(['proc_inst_id', 'textField_code']);
+  });
+
+  test('fails closed when the source form navigation cannot be read', async () => {
+    fetchFormPageList.mockRejectedValue(new Error('navigation unavailable'));
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-SHOULD-NOT-EXIST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await expect(run([
+      'APP_TEST',
+      'FORM-PROCESS',
+      'unverified source',
+      '--get-self',
+    ])).rejects.toThrow(/navigation unavailable/);
+
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+  });
+
+  test('allows a structured source fallback only with a validated explicit form type', async () => {
+    const specPath = writeTempSpec({
+      events: ['insert'],
+      nodes: [{
+        id: 'self',
+        type: 'getSelf',
+        formType: 'process',
+        formName: '显式流程来源',
+      }],
+    });
+    fetchFormPageList.mockRejectedValue(new Error('navigation unavailable'));
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await run([
+      'APP_TEST',
+      'FORM-PROCESS',
+      'explicit source type',
+      '--spec',
+      specPath,
+    ]);
+
+    expect(integrationApi.createLogicflow).toHaveBeenCalledTimes(1);
+    const saveParams = integrationApi.saveProcess.mock.calls[0][1];
+    const viewDataNode = saveParams.viewJson.schema.children.find((node) => node.componentName === 'GetSingleDataNode');
+    expect(viewDataNode.props.getData).toMatchObject({
+      originalType: 'process_form',
+      targetItem: { formItem: { formType: 'process', title: '显式流程来源' } },
+    });
+  });
+
+  test('rejects conflicting source form type declarations before any remote write', async () => {
+    const specPath = writeTempSpec({
+      events: ['insert'],
+      nodes: [
+        {
+          id: 'processLookup',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-B',
+          formType: 'process',
+          conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+        },
+        {
+          id: 'receiptLookup',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-B',
+          formType: 'receipt',
+          conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+        },
+      ],
+    });
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'FORM-B', formName: 'B普通表单', formType: 'receipt' },
+    ]);
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-SHOULD-NOT-EXIST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await expect(run([
+      'APP_TEST',
+      'FORM-A',
+      'conflicting source types',
+      '--spec',
+      specPath,
+    ])).rejects.toThrow(/Conflicting source form types for FORM-B/);
+
+    expect(fetchFormPageList).not.toHaveBeenCalled();
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+  });
+
+  test('rejects a known non-form navigation target even with an explicit source type', async () => {
+    const specPath = writeTempSpec({
+      events: ['insert'],
+      nodes: [{
+        id: 'pageLookup',
+        type: 'dataRetrieve',
+        formUuid: 'PAGE-B',
+        formType: 'receipt',
+        conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+      }],
+    });
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'PAGE-B', formName: 'B看板', formType: 'display' },
+    ]);
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-SHOULD-NOT-EXIST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await expect(run([
+      'APP_TEST',
+      'FORM-A',
+      'non-form source target',
+      '--spec',
+      specPath,
+    ])).rejects.toThrow(/display/);
+
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+  });
+
+  test('rejects a missing navigation target even with an explicit source type', async () => {
+    const specPath = writeTempSpec({
+      events: ['insert'],
+      nodes: [{
+        id: 'missingLookup',
+        type: 'dataRetrieve',
+        formUuid: 'FORM-MISSING',
+        formType: 'receipt',
+        conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+      }],
+    });
+    fetchFormPageList.mockResolvedValue([]);
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-SHOULD-NOT-EXIST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await expect(run([
+      'APP_TEST',
+      'FORM-A',
+      'missing source target',
+      '--spec',
+      specPath,
+    ])).rejects.toThrow(/FORM-MISSING/);
+
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+  });
+
+  test('uses source form metadata for structured process getSelf on insert/update events', async () => {
+    const specPath = writeTempSpec({
+      events: ['insert', 'update'],
+      nodes: [{ id: 'self', type: 'getSelf' }],
+    });
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'FORM-PROCESS', formName: '流程来源表单', formType: 'process' },
+    ]);
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+
+    await run([
+      'APP_TEST',
+      'FORM-PROCESS',
+      'structured process get-self',
+      '--spec',
+      specPath,
+    ]);
+
+    const saveParams = integrationApi.saveProcess.mock.calls[0][1];
+    const processDataNode = saveParams.processJson.nodes.find((node) => node.type === 'dataRetrieve');
+    const viewDataNode = saveParams.viewJson.schema.children.find((node) => node.componentName === 'GetSingleDataNode');
+    expect(processDataNode.props).toMatchObject({
+      originalType: 'process_form',
+      condition: { rules: [{ id: 'pid', name: '流程实例ID' }] },
+    });
+    expect(viewDataNode.props.getData).toMatchObject({
+      originalType: 'process_form',
+      condition: { rules: [{ id: 'proc_inst_id', name: '流程实例ID' }] },
+      targetItem: { formItem: { formType: 'process', title: '流程来源表单' } },
+    });
+  });
 });

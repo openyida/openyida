@@ -115,9 +115,9 @@ openyida integration check <appType...> [--json] [--output result.xlsx] [--no-pr
 | `--trigger-condition <fieldId:fieldName:opCode:value[:componentType[:valueType]]>` | 空 | 触发器过滤条件，可多次传入；示例：`radioField_xxx:采购类型:Equal:材料采购:RadioField:literal` |
 | `--trigger-recursively` | 关闭 | 允许自动触发，对应设计器里的“允许自动触发” |
 | `--spec <file.json>` | 不启用 | 使用结构化编排文件创建复杂自动化，支持 `getSelf`、`dataRetrieve`、`dataCreate`、`dataUpdate`、`route`、`sendMessage`、`connector`、`initiateApproval` |
-| `--get-self` | 关闭 | 自动插入“获取自身”节点：来源表单为当前触发表，过滤条件为 `pid 等于 字段 __masterdata_form_inst_id` |
+| `--get-self` | 关闭 | 自动插入“获取自身”节点：流程表单运行态查询字段为 `pid`、设计器字段为 `proc_inst_id`；普通表单两侧使用 `form_inst_id`，均等于触发事件字段 `__masterdata_form_inst_id` |
 | `--get-self-field <field>` | `__masterdata_form_inst_id` | 覆盖右侧触发事件系统字段；仅在确认环境变量名不同后使用 |
-| `--get-self-query-field <field>` | `pid` | 覆盖左侧查询系统字段；仅在确认平台查询字段名不同后使用 |
+| `--get-self-query-field <field>` | 自动按来源表单类型选择 | 覆盖左侧查询系统字段；流程表单运行态使用 `pid` / `流程实例ID`、设计器使用 `proc_inst_id`，普通表单两侧使用 `form_inst_id` / `表单实例ID`；仅在确认平台字段名不同后使用 |
 | `--data-form-uuid <formUuid>` | 不启用 | 获取单条数据节点的目标表单 UUID（B 表单），传入后在触发节点和通知节点之间插入 GetSingleDataNode |
 | `--data-condition <bFieldId:bFieldName:aFieldId[:componentType[:opCode[:valueType]]]>` | 无 | 获取单条数据的过滤条件，可多次传入；格式：`B表单字段ID:B表单字段名:A表单字段ID[:组件类型[:操作符[:值类型]]]`，组件类型默认 `TextField`，操作符默认 `Contain` |
 | `--add-data-form-uuid <formUuid>` | 不启用 | 新增数据节点的目标表单 UUID，传入后在通知节点之后插入 AddDataNode；目标必须是普通表单（如 `formType=receipt`），不能是流程表单（`formType=process`） |
@@ -218,7 +218,7 @@ openyida integration create APP_XXX FORM-A-XXX "调用 HTTP 连接器" \
 {
   "events": ["insert"],
   "nodes": [
-    { "id": "self", "type": "getSelf" },
+    { "id": "self", "type": "getSelf", "formType": "receipt" },
     {
       "id": "branch",
       "type": "route",
@@ -228,7 +228,7 @@ openyida integration create APP_XXX FORM-A-XXX "调用 HTTP 连接器" \
           "name": "已获取自身",
           "conditions": [
             {
-              "fieldId": "${self}.pid",
+              "fieldId": "${self}.form_inst_id",
               "fieldName": "表单实例ID",
               "opCode": "ExistValue",
               "componentType": "TextField"
@@ -349,7 +349,7 @@ openyida integration diagnose --file project/tickets/automation-error.txt --json
 
 ## 集成自动化闭坑规则
 
-- 获取自身：优先使用 `--get-self`，标准条件为查询侧系统字段 `pid` 等于触发事件字段 `__masterdata_form_inst_id`。不要用 `formInstId = formInstId`、不要用“包含”或非唯一字段做自身匹配。
+- 获取自身：优先使用 `--get-self`；流程表单运行态使用查询侧 `pid（流程实例ID）`、设计器使用 `proc_inst_id`，普通表单两侧使用 `form_inst_id（表单实例ID）`，均等于触发事件字段 `__masterdata_form_inst_id`。不要用 `formInstId = formInstId`、不要用“包含”或非唯一字段做自身匹配。
 - 流水号：新增/编辑触发时，触发 payload 中的流水号可能为空或不是最新值；需要先获取自身，再引用获取节点里的流水号。
 - 定时自动化：定时触发值可能是历史数据；需要最新值时先获取自身或获取目标数据。
 - 直接更新：匹配字段只能消费当前触发表字段，不能随意匹配前置节点字段；文本字段不要匹配单选/多选字段。直接更新不会触发被更新表单上的集成自动化。
