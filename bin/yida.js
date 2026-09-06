@@ -746,6 +746,12 @@ async function main() {
       break;
     }
 
+    case 'design-plan': {
+      const { run } = require('../lib/design-plan/design-plan');
+      await run(args);
+      break;
+    }
+
     case 'create-page': {
       const { run } = require('../lib/app/create-page');
       await run(args);

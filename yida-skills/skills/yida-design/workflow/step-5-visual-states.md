@@ -11,7 +11,7 @@
 3. 从整理后的用户需求、主题系统和页面结构推演 `inferredUserTask`、`inferredInformationTopology`、`interactionFocus` 和 `requiredVisualDNA`。用户通常不会主动描述视觉结构，agent 必须从业务对象、数据形态、页面区块和操作路径中推演。
 4. 按 `业务任务匹配 30% + 信息拓扑匹配 25% + 视觉 DNA 命中 30% + 实现稳定性 10% - 风险扣分 5%` 选择唯一设计风格，并把对应 `style-designs/*.md` 记录为 `baseDesignSource`；纯表单、长文、品牌营销、移动端单任务、未要求暗色时要过滤明显不合适的风格。
 5. 读取被选中的 style-design 风格文件，抽取 `visual_dna`、`theme_adaptation`、`layout_stability`、`quality_anchors`、`components` 和 `modules`。
-6. 根据主题系统中的主题色来源和主题色输入执行换肤：替换风格文件中的 `theme_adaptation.replace_tokens`，派生 `derive_tokens`，保留 `preserve_tokens` 和 `visual_dna.invariant`。主题色只换 hue，不换 DNA，不改结构。
+6. 根据主题系统中的主题色来源和主题色输入执行换肤：替换风格文件中的 `theme_adaptation.replace_tokens`，派生 `derive_tokens`，保留不与用户整体配色冲突的 `preserve_tokens` 和结构性 `visual_dna.invariant`。主题色只换 hue，不换 DNA，不改结构。
 7. 需要判断详略时读取唯一示例 `generated-business-design.example.md`；只学习结构和粒度，不复制示例业务、色盘、字段、页面顺序或组件组合。
 8. 读取 [视觉结构配方库](../references/visual-scaffold-recipes.md)，把应用内各类页面映射到统一 `visualScaffold` 规则。
 9. 读取 [页面质量门禁](../references/page-quality-gates.md)，把质量门禁补进 `acceptanceChecks`。
@@ -96,7 +96,7 @@
 15. 页面背景与卡片背景是否形成明显层次对比，并按白色/浅色背景配边框、浅灰/浅彩背景配白色无边框、渐变背景配玻璃卡片的方案落地。
 16. 圆角、padding、gap 是否同时满足现代感和信息密度：卡片 padding >20px，卡片 gap <20px，卡片圆角 0-32px，状态摘要、任务列表、右侧上下文和空态没有被撑成大空白容器。
 17. `styleDesignSelection` 是否能从业务任务、信息拓扑和 requiredVisualDNA 解释风格选择，而不是按行业、颜色或主观喜好套风格。
-18. `themeAdaptationResult` 是否遵守所选风格的 `theme_adaptation`：换 hue，不换 DNA；换 token，不换结构；保留 `preserve_tokens` 和 `visual_dna.invariant`。
+18. `themeAdaptationResult` 是否遵守所选风格的 `theme_adaptation`：换 hue，不换 DNA；换 token，不换结构；保留不与用户整体配色冲突的 `preserve_tokens` 和结构性 `visual_dna.invariant`。
 
 ## 产出
 

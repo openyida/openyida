@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{title}} - 搭建计划</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text-primary: #181c1f;
+      --text-secondary: rgba(24, 28, 31, 0.6);
+      --text-tertiary: rgba(24, 28, 31, 0.4);
+      --text: var(--text-primary);
+      --muted: var(--text-tertiary);
+      --line: #e8eaed;
+      --soft: #f5f6f7;
+      --blue: #1677ff;
+      --orange: #f59e0b;
+      --green: #16a34a;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.7;
+      letter-spacing: 0;
+    }
+    .layout {
+      min-height: 100vh;
+      display: block;
+    }
+    .top-nav {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      width: fit-content;
+      max-width: calc(100% - 32px);
+      min-width: 0;
+      min-height: 48px;
+      margin: 12px auto 0;
+      padding: 6px 8px;
+      border: 1px solid rgba(24, 28, 31, 0.1);
+      border-radius: 999px;
+      position: sticky;
+      top: 12px;
+      z-index: 20;
+      overflow-x: auto;
+      scrollbar-width: none;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 10px 30px rgba(24, 28, 31, 0.1), 0 2px 8px rgba(24, 28, 31, 0.05);
+      -webkit-backdrop-filter: blur(16px) saturate(150%);
+      backdrop-filter: blur(16px) saturate(150%);
+    }
+    .top-nav::-webkit-scrollbar { display: none; }
+    .nav-heading {
+      flex: 0 0 auto;
+      color: var(--text-tertiary);
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.35;
+      margin: 0 6px 0 0;
+      padding: 0 14px 0 8px;
+      border-right: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    .nav-item {
+      display: inline-flex;
+      align-items: center;
+      flex: 0 0 auto;
+      gap: 8px;
+      width: auto;
+      min-height: 0;
+      padding: 8px 12px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-primary);
+      cursor: pointer;
+      font: inherit;
+      margin: 0;
+      text-align: center;
+      transition: background-color 160ms ease, color 160ms ease;
+    }
+    .nav-item:hover, .nav-item:focus-visible {
+      background: rgba(24, 28, 31, 0.06);
+      outline: none;
+    }
+    .nav-item.is-active {
+      background: rgba(0, 102, 255, 0.09);
+    }
+    .nav-item.is-active .nav-title {
+      color: #0066ff;
+      font-weight: 600;
+    }
+    .nav-item { text-decoration: none; }
+    .nav-item:focus-visible { outline: 2px solid var(--line); }
+    .nav-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 16px;
+      margin: 0;
+    }
+    .nav-icon-img {
+      width: 16px;
+      height: 16px;
+      display: block;
+      object-fit: contain;
+    }
+    .nav-icon-fallback {
+      width: 16px;
+      height: 16px;
+      border: 1.8px solid var(--text-primary);
+      border-radius: 4px;
+    }
+    .nav-copy {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+    }
+    .nav-title {
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.25;
+    }
+    .nav-subtitle {
+      display: none;
+    }
+    .content {
+      padding: 32px;
+      width: 100%;
+      min-width: 0;
+      max-width: none;
+      color: var(--text-primary);
+    }
+    .page-section {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      margin-bottom: 44px;
+      padding-bottom: 44px;
+      border-bottom: 1px solid var(--line);
+      scroll-margin-top: 84px;
+    }
+    .page-section:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+    h2 { margin: 0 0 24px; color: var(--text-primary); font-size: 20px; line-height: 1.35; }
+    .section-heading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-heading-icon {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .section-heading-icon img {
+      width: 20px;
+      height: 20px;
+      display: block;
+      object-fit: contain;
+    }
+    h3 { margin: 24px 0 8px; color: var(--text-primary); font-size: 16px; line-height: 1.4; }
+    h4 { margin: 0 0 8px; color: var(--text-primary); font-size: 16px; line-height: 1.4; }
+    h2:has(+ .section-desc) { margin-bottom: 0; }
+    .section-desc { color: var(--muted); margin: 2px 0 22px; font-size: 12px; }
+    h3:has(+ .muted) { margin-bottom: 0; }
+    h3 + .muted { margin-top: 2px; }
+    .summary { width: 100%; margin: 0 0 22px; color: var(--text-primary); }
+    .overview-subsection {
+      margin: 0 0 26px;
+    }
+    .overview-subsection.first {
+      margin-top: 0;
+    }
+    .overview-kicker {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .overview-subsection h3 {
+      margin: 0 0 2px;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+    .overview-subsection ul {
+      margin-top: 8px;
+      color: var(--text-primary);
+    }
+    .overview-subsection li + li {
+      margin-top: 3px;
+    }
+    .theme-color-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 28px;
+      margin-top: -10px;
+    }
+    .theme-color-swatch {
+      width: 24px;
+      height: 24px;
+      flex: 0 0 24px;
+      border: 1px solid rgba(24, 28, 31, 0.12);
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(24, 28, 31, 0.08);
+    }
+    .theme-color-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .theme-color-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .theme-color-value {
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: var(--soft);
+      color: var(--text-primary);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      background: #fff;
+      margin: 14px 0;
+    }
+    .soft-card {
+      border-radius: 12px;
+      background: var(--soft);
+      padding: 14px 16px;
+      color: var(--text-primary);
+      margin-top: 12px;
+    }
+    .graph {
+      border-radius: 14px;
+      background: linear-gradient(180deg, #fafafa, #f5f6f7);
+      border: 1px solid var(--line);
+      padding: 18px;
+      overflow-x: auto;
+      margin: 18px 0 22px;
+      white-space: pre;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      color: var(--text-primary);
+    }
+    .graph-fallback {
+      white-space: pre;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .object-graph {
+      border-radius: 14px;
+      border: 0;
+      overflow: hidden;
+      margin: 18px 0 22px;
+      height: var(--graph-height, 280px);
+      min-height: min(220px, 65vh);
+      max-height: min(480px, 65vh);
+      padding-top: 60px;
+      display: block;
+      position: relative;
+      background: #f7f8f9;
+    }
+    .object-graph:fullscreen,
+    .object-graph.is-expanded {
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      max-height: none;
+      margin: 0;
+      border-radius: 0;
+    }
+    .object-graph.is-expanded { position: fixed; inset: 0; z-index: 1000; }
+    .object-graph-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: absolute;
+      inset: 12px 12px auto;
+      z-index: 3;
+      pointer-events: none;
+    }
+    .object-graph-status {
+      color: var(--text-tertiary);
+      font-size: 12px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+    }
+    .object-graph-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex: 0 0 auto;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 8px 24px rgba(24, 28, 31, 0.1), 0 2px 6px rgba(24, 28, 31, 0.05);
+      -webkit-backdrop-filter: blur(14px) saturate(145%);
+      backdrop-filter: blur(14px) saturate(145%);
+      pointer-events: auto;
+    }
+    .object-graph-zoom-button {
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-primary);
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .object-graph-zoom-button.is-icon-only {
+      width: 32px;
+      padding: 0;
+    }
+    .object-graph-action-icon {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      display: block;
+    }
+    .object-graph-zoom-button:hover,
+    .object-graph-zoom-button:focus-visible {
+      background: rgba(24, 28, 31, 0.06);
+      outline: none;
+    }
+    .object-graph-zoom-button:disabled {
+      color: var(--text-tertiary);
+      background: transparent;
+      cursor: not-allowed;
+    }
+    .object-graph-zoom-value {
+      min-width: 48px;
+      color: var(--text-tertiary);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+    }
+    .object-graph-viewport {
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      overflow: auto;
+      position: relative;
+      background:
+        radial-gradient(circle at 18px 18px, rgba(24, 28, 31, 0.035), transparent 22px),
+        linear-gradient(180deg, #fafbfc, #f4f5f7);
+      overscroll-behavior: contain;
+    }
+    .object-graph-viewport:focus-visible {
+      outline: 2px solid rgba(24, 28, 31, 0.24);
+      outline-offset: -2px;
+    }
+    .object-graph-g6 {
+      display: block;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .object-graph.is-g6-ready .object-graph-g6 {
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .object-graph.is-g6-ready .object-graph-fallback { display: none; }
+    .object-graph-g6 canvas,
+    .object-graph-g6 svg { display: block; }
+    .object-graph-fallback {
+      width: 100%;
+      height: 100%;
+    }
+    .object-graph-stage {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+    }
+    .object-graph-svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-width: calc(var(--graph-width) * var(--graph-zoom, 1));
+      max-height: calc(var(--graph-content-height) * var(--graph-zoom, 1));
+    }
+    .object-edge {
+      fill: none;
+      stroke: #aeb6c2;
+      stroke-width: 1.4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.58;
+      transition: opacity 150ms ease, stroke 150ms ease, stroke-width 150ms ease;
+    }
+    .object-edge.is-highlighted {
+      stroke: #0066ff;
+      stroke-width: 2.2;
+      opacity: 1;
+    }
+    .object-edge.is-dimmed { opacity: 0.06; }
+    .object-edge-label {
+      fill: #667085;
+      font-size: 11px;
+      paint-order: stroke;
+      stroke: #f7f8f9;
+      stroke-width: 4px;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+    .object-edge.is-highlighted + .object-edge-label { fill: #0066ff; }
+    .object-edge.is-dimmed + .object-edge-label { opacity: 0.15; }
+    .object-node {
+      cursor: pointer;
+      transition: opacity 150ms ease;
+    }
+    .object-node.is-dimmed { opacity: 0.28; }
+    .object-node.is-selected .object-card {
+      stroke: #0066ff;
+      stroke-width: 2;
+    }
+    .object-node.is-highlighted .object-card {
+      stroke: #8f99a6;
+      stroke-width: 1.6;
+    }
+    .object-node:focus-visible { outline: none; }
+    .object-node:focus-visible .object-card {
+      stroke: #8f99a6;
+      stroke-width: 2;
+    }
+    .object-card {
+      fill: #fff;
+      stroke: #d4d9df;
+      filter: url(#cardShadow);
+    }
+    .object-title {
+      fill: #181c1f;
+      font-size: 14px;
+      font-weight: 650;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+    .object-node-icon { pointer-events: none; }
+    .g6-object-node-card {
+      box-sizing: border-box;
+      width: 154px;
+      height: 36px;
+      padding: 0 12px;
+      border: 1px solid #d4d9df;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 3px 10px rgba(24, 28, 31, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #181c1f;
+      cursor: pointer;
+      user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+    .g6-object-node-card img {
+      display: block;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+    }
+    .g6-object-node-card span {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 650;
+    }
+    .g6-object-node-card.is-selected {
+      border-color: #0066ff;
+      box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.12), 0 4px 12px rgba(0, 102, 255, 0.14);
+    }
+    .g6-object-node-card.is-highlighted {
+      border-color: #8f99a6;
+      box-shadow: 0 4px 12px rgba(24, 28, 31, 0.1);
+    }
+    .g6-object-node-card.is-inactive { opacity: 0.2; }
+    .object-graph-relations {
+      margin: -10px 0 24px;
+      border: 0;
+      border-radius: 12px;
+      padding: 14px;
+      background: #fafbfb;
+    }
+    .object-graph-relations-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .object-graph-relations-head span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .object-graph-relations-head strong { color: var(--text-primary); }
+    .object-relation-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .object-relation-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 7px 10px;
+      border: 1px solid #e1e5e9;
+      border-radius: 9px;
+      background: #fff;
+      color: var(--text-primary);
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      text-align: left;
+      transition: border-color 150ms ease, background 150ms ease, opacity 150ms ease;
+    }
+    .object-relation-item:hover,
+    .object-relation-item:focus-visible {
+      border-color: #c5cbd3;
+      background: #f4f5f6;
+      outline: none;
+    }
+    .object-relation-item.is-highlighted {
+      border-color: #80afff;
+      background: #f0f5ff;
+      outline: none;
+    }
+    .object-relation-item.is-dimmed { opacity: 0.34; }
+    .object-relation-source,
+    .object-relation-target {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .object-relation-target { text-align: right; }
+    .object-relation-label {
+      border-radius: 999px;
+      padding: 2px 7px;
+      background: #eef0f2;
+      color: #5f6873;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .object-relation-item.is-highlighted .object-relation-label {
+      background: #eaf2ff;
+      color: #0052cc;
+    }
+    ul { margin: 8px 0 0; padding-left: 20px; }
+    .table-wrap {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: auto;
+      margin: 12px 0 26px;
+    }
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th {
+      background: #f1f2f4;
+      color: var(--text-primary);
+      font-weight: 650;
+      text-align: left;
+    }
+    th, td {
+      padding: 9px 14px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      font-size: 14px;
+    }
+    td { color: var(--text-primary); }
+    th:last-child, td:last-child { border-right: 0; }
+    tr:last-child td { border-bottom: 0; }
+    .muted { color: var(--muted); }
+    .content .muted { font-size: 12px; }
+    .flow-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      margin: 14px 0;
+      background: #fff;
+    }
+    .flow-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .flow-title {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      color: var(--text-primary);
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .tag.auto { background: #e8f2ff; color: var(--blue); }
+    .tag.approval { background: #fff4df; color: var(--orange); }
+    .tag.business { background: #eaf8ef; color: var(--green); }
+    .trigger { color: var(--muted); white-space: nowrap; font-size: 12px; }
+    .nodes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0 12px;
+    }
+    .node {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 12px;
+      background: #fff;
+    }
+    .arrow { color: #c1c7d0; }
+    .page-detail h4 { display: flex; gap: 8px; align-items: center; }
+    .page-detail h4:has(+ p) { margin-bottom: 0; }
+    .page-detail h4 + p { margin-top: 2px; }
+    .visual-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .visual-list div {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+    }
+    @media (max-width: 820px) {
+      .top-nav {
+        width: calc(100% - 24px);
+        max-width: none;
+        margin-top: 10px;
+        padding-inline: 6px;
+        top: 10px;
+      }
+      .nav-heading { margin-right: 4px; padding-inline: 8px 12px; }
+      .nav-item { padding-inline: 10px; }
+      .content { padding: 28px 18px 48px; }
+      .visual-list { grid-template-columns: 1fr; }
+      .trigger { white-space: normal; }
+      .object-graph-toolbar { inset: 10px 10px auto; justify-content: flex-end; }
+      .object-graph-actions { max-width: 100%; overflow-x: auto; }
+      .object-graph-zoom-button { flex: 0 0 auto; }
+      .object-graph-status { display: none; }
+      .object-relation-list { grid-template-columns: 1fr; }
+    }
+  </style>
+  <noscript>
+    <style>
+      /* 无脚本环境降级（如沙箱预览）：平铺全部章节，保证内容可读 */
+      .object-graph-toolbar { display: none; }
+      .js-only { display: none !important; }
+      .noscript-hint { display: block !important; }
+    </style>
+  </noscript>
+</head>
+<body>
+  <p class="noscript-hint" style="display: none; margin: 0; padding: 10px 16px; font-size: 12px; line-height: 1.6; color: #8A939C; background: #F5F6F7; border-bottom: 1px solid #E3E7EA;">
+    当前环境不支持脚本，目录锚点仍可使用；业务全景图已显示静态回退视图。
+  </p>
+  <main class="layout">
+    <nav class="top-nav" aria-label="搭建计划目录">
+      <div class="nav-heading">需求&amp;计划</div>
+      {{nav_items}}
+    </nav>
+    <article class="content">
+      {{content}}
+    </article>
+  </main>
+  <script>
+    (() => {
+      function initSectionNavigation() {
+        const nav = document.querySelector('.top-nav');
+        if (!nav) return;
+
+        const items = Array.from(nav.querySelectorAll('.nav-item[data-section-id]'))
+          .map((link) => ({ link, section: document.getElementById(link.dataset.sectionId) }))
+          .filter((item) => item.section);
+        if (!items.length) return;
+
+        let activeId = '';
+        let scrollFrame = 0;
+
+        function revealActive(link) {
+          const itemLeft = link.offsetLeft;
+          const itemRight = itemLeft + link.offsetWidth;
+          const visibleLeft = nav.scrollLeft;
+          const visibleRight = visibleLeft + nav.clientWidth;
+          if (itemLeft < visibleLeft || itemRight > visibleRight) {
+            nav.scrollTo({
+              left: Math.max(0, itemLeft - (nav.clientWidth - link.offsetWidth) / 2),
+              behavior: 'smooth',
+            });
+          }
+        }
+
+        function setActive(sectionId) {
+          if (!sectionId || sectionId === activeId) return;
+          activeId = sectionId;
+          items.forEach(({ link }) => {
+            const current = link.dataset.sectionId === sectionId;
+            link.classList.toggle('is-active', current);
+            if (current) {
+              link.setAttribute('aria-current', 'location');
+              revealActive(link);
+            } else {
+              link.removeAttribute('aria-current');
+            }
+          });
+        }
+
+        function updateFromScroll() {
+          scrollFrame = 0;
+          const activationLine = nav.getBoundingClientRect().bottom + 24;
+          let current = items[0];
+          items.forEach((item) => {
+            if (item.section.getBoundingClientRect().top <= activationLine) current = item;
+          });
+          if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+            current = items[items.length - 1];
+          }
+          setActive(current.link.dataset.sectionId);
+        }
+
+        function scheduleUpdate() {
+          if (scrollFrame) return;
+          scrollFrame = window.requestAnimationFrame(updateFromScroll);
+        }
+
+        items.forEach(({ link }) => {
+          link.addEventListener('click', () => setActive(link.dataset.sectionId));
+        });
+        window.addEventListener('scroll', scheduleUpdate, { passive: true });
+        window.addEventListener('resize', scheduleUpdate);
+        window.addEventListener('hashchange', scheduleUpdate);
+
+        const initialId = window.location.hash.slice(1);
+        if (items.some(({ link }) => link.dataset.sectionId === initialId)) setActive(initialId);
+        scheduleUpdate();
+      }
+
+      initSectionNavigation();
+
+      function createObjectNodeHTML(datum) {
+        const data = datum.data || {};
+        const card = document.createElement('div');
+        card.className = 'g6-object-node-card';
+        card.dataset.g6NodeId = datum.id;
+        card.title = `${data.name || datum.id} · ${data.source || '宜搭表单'}`;
+
+        const icon = document.createElement('img');
+        icon.src = data.iconSrc || '';
+        icon.alt = '';
+        icon.setAttribute('aria-hidden', 'true');
+
+        const name = document.createElement('span');
+        name.textContent = data.name || datum.id;
+
+        card.append(icon, name);
+        return card;
+      }
+
+      document.querySelectorAll('.object-graph[data-graph-zoom]').forEach((graph) => {
+        const viewport = graph.querySelector('.object-graph-viewport');
+        const stage = graph.querySelector('.object-graph-stage');
+        const value = graph.querySelector('.object-graph-zoom-value');
+        const zoomOut = graph.querySelector('[data-graph-zoom-out]');
+        const zoomIn = graph.querySelector('[data-graph-zoom-in]');
+        const zoomFit = graph.querySelector('[data-graph-zoom-fit]');
+        if (!viewport || !stage || !value || !zoomOut || !zoomIn || !zoomFit) return;
+
+        const minZoom = 0.5;
+        const maxZoom = 3;
+        const zoomStep = 0.25;
+        let zoom = 1;
+
+        function setZoom(nextZoom, fit = false) {
+          zoom = Math.min(maxZoom, Math.max(minZoom, nextZoom));
+          const component = graph.closest('.object-graph-component[data-business-graph]');
+          const antvGraph = component && component.__g6Graph;
+          if (antvGraph) {
+            const action = fit
+              ? antvGraph.fitView({ when: 'always', direction: 'both' }, { duration: 180 })
+              : antvGraph.zoomTo(zoom, { duration: 160 });
+            Promise.resolve(action).then(() => {
+              const fittedZoom = antvGraph.getZoom();
+              if (fit && fittedZoom > 1) return antvGraph.zoomTo(1, { duration: 160 });
+              return undefined;
+            }).then(() => {
+              if (fit) zoom = antvGraph.getZoom();
+              value.textContent = `${Math.round(zoom * 100)}%`;
+              zoomOut.disabled = zoom <= minZoom;
+              zoomIn.disabled = zoom >= maxZoom;
+            });
+            return;
+          }
+
+          const oldScrollWidth = Math.max(viewport.scrollWidth, 1);
+          const oldScrollHeight = Math.max(viewport.scrollHeight, 1);
+          const centerX = (viewport.scrollLeft + viewport.clientWidth / 2) / oldScrollWidth;
+          const centerY = (viewport.scrollTop + viewport.clientHeight / 2) / oldScrollHeight;
+
+          stage.style.width = `${zoom * 100}%`;
+          stage.style.height = `${zoom * 100}%`;
+          stage.style.setProperty('--graph-zoom', zoom);
+          stage.style.marginLeft = zoom < 1 ? `${(1 - zoom) * 50}%` : '0';
+          stage.style.marginTop = zoom < 1 ? `${(1 - zoom) * 50}%` : '0';
+          value.textContent = `${Math.round(zoom * 100)}%`;
+          zoomOut.disabled = zoom <= minZoom;
+          zoomIn.disabled = zoom >= maxZoom;
+
+          window.requestAnimationFrame(() => {
+            if (fit) {
+              viewport.scrollLeft = 0;
+              viewport.scrollTop = 0;
+              return;
+            }
+            viewport.scrollLeft = Math.max(0, centerX * viewport.scrollWidth - viewport.clientWidth / 2);
+            viewport.scrollTop = Math.max(0, centerY * viewport.scrollHeight - viewport.clientHeight / 2);
+          });
+        }
+
+        zoomOut.addEventListener('click', () => setZoom(zoom - zoomStep));
+        zoomIn.addEventListener('click', () => setZoom(zoom + zoomStep));
+        zoomFit.addEventListener('click', () => setZoom(1, true));
+        const fullscreen = graph.querySelector('[data-graph-fullscreen]');
+        let previousOverflow;
+        function syncFullscreen() {
+          const expanded = document.fullscreenElement === graph || graph.classList.contains('is-expanded');
+          fullscreen.setAttribute('aria-pressed', String(expanded));
+          fullscreen.setAttribute('aria-label', expanded ? '退出业务全景图全屏' : '全屏查看业务全景图');
+          fullscreen.title = expanded ? '退出全屏' : '全屏查看';
+          fullscreen.querySelector('span').textContent = expanded ? '退出全屏' : '全屏';
+          window.requestAnimationFrame(() => {
+            const api = graph.closest('[data-business-graph]').__g6Graph;
+            if (api) api.resize();
+            setZoom(1, true);
+          });
+          if (!expanded) fullscreen.focus();
+        }
+        function closeExpanded() {
+          graph.classList.remove('is-expanded');
+          document.body.style.overflow = previousOverflow;
+          syncFullscreen();
+        }
+        fullscreen.addEventListener('click', async () => {
+          if (document.fullscreenElement === graph) {
+            await document.exitFullscreen();
+          } else if (graph.classList.contains('is-expanded')) {
+            closeExpanded();
+          } else {
+            try {
+              await graph.requestFullscreen();
+            } catch {
+              previousOverflow = document.body.style.overflow;
+              document.body.style.overflow = 'hidden';
+              graph.classList.add('is-expanded');
+              syncFullscreen();
+            }
+          }
+        });
+        document.addEventListener('fullscreenchange', syncFullscreen);
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && graph.classList.contains('is-expanded')) closeExpanded();
+        });
+        viewport.addEventListener('keydown', (event) => {
+          if (event.key === '+' || event.key === '=') {
+            event.preventDefault();
+            setZoom(zoom + zoomStep);
+          } else if (event.key === '-') {
+            event.preventDefault();
+            setZoom(zoom - zoomStep);
+          } else if (event.key === '0') {
+            event.preventDefault();
+            setZoom(1, true);
+          }
+        });
+
+        setZoom(1, true);
+      });
+
+      document.querySelectorAll('.object-graph-component[data-business-graph]').forEach((component) => {
+        const nodes = Array.from(component.querySelectorAll('.object-node[data-node-id]'));
+        const edges = Array.from(component.querySelectorAll('.object-edge[data-edge-id]'));
+        const relationItems = Array.from(component.querySelectorAll('.object-relation-item[data-edge-id]'));
+        const status = component.querySelector('[data-graph-status]');
+        const clearButton = component.querySelector('[data-graph-clear]');
+        if (!nodes.length || !edges.length || !status || !clearButton) return;
+
+        function setAntVStates(stateMap) {
+          if (!component.__g6Graph) return;
+          component.querySelectorAll('.g6-object-node-card[data-g6-node-id]').forEach((card) => {
+            const states = stateMap[card.dataset.g6NodeId] || [];
+            card.classList.toggle('is-selected', states.includes('selected'));
+            card.classList.toggle('is-highlighted', states.includes('highlight'));
+            card.classList.toggle('is-inactive', states.includes('inactive'));
+          });
+          component.__g6Graph.setElementState(stateMap, false).catch(() => {});
+        }
+
+        function resetGraphFocus() {
+          nodes.forEach((node) => node.classList.remove('is-selected', 'is-highlighted', 'is-dimmed'));
+          edges.forEach((edge) => edge.classList.remove('is-highlighted', 'is-dimmed'));
+          relationItems.forEach((item) => item.classList.remove('is-highlighted', 'is-dimmed'));
+          const stateMap = {};
+          nodes.forEach((node) => { stateMap[node.dataset.nodeId] = []; });
+          edges.forEach((edge) => { stateMap[edge.dataset.edgeId] = []; });
+          setAntVStates(stateMap);
+          status.textContent = '选择一张表，可聚焦查看关联关系';
+        }
+
+        function focusNode(nodeId) {
+          const connected = new Set([nodeId]);
+          let relationCount = 0;
+          edges.forEach((edge) => {
+            const related = edge.dataset.source === nodeId || edge.dataset.target === nodeId;
+            edge.classList.toggle('is-highlighted', related);
+            edge.classList.toggle('is-dimmed', !related);
+            if (related) {
+              relationCount += 1;
+              connected.add(edge.dataset.source);
+              connected.add(edge.dataset.target);
+            }
+          });
+          nodes.forEach((node) => {
+            const current = node.dataset.nodeId === nodeId;
+            node.classList.toggle('is-selected', current);
+            node.classList.toggle('is-highlighted', connected.has(node.dataset.nodeId) && !current);
+            node.classList.toggle('is-dimmed', !connected.has(node.dataset.nodeId));
+          });
+          relationItems.forEach((item) => {
+            const related = item.dataset.source === nodeId || item.dataset.target === nodeId;
+            item.classList.toggle('is-highlighted', related);
+            item.classList.toggle('is-dimmed', !related);
+          });
+          const stateMap = {};
+          nodes.forEach((node) => {
+            if (node.dataset.nodeId === nodeId) stateMap[node.dataset.nodeId] = ['selected'];
+            else stateMap[node.dataset.nodeId] = connected.has(node.dataset.nodeId) ? ['highlight'] : ['inactive'];
+          });
+          edges.forEach((edge) => {
+            stateMap[edge.dataset.edgeId] = edge.dataset.source === nodeId || edge.dataset.target === nodeId
+              ? ['highlight']
+              : ['inactive'];
+          });
+          setAntVStates(stateMap);
+          const selectedNode = nodes.find((node) => node.dataset.nodeId === nodeId);
+          status.textContent = `${selectedNode?.dataset.nodeName || '当前表'} · ${relationCount} 条关联`;
+        }
+
+        function focusRelation(edgeId) {
+          const selectedEdge = edges.find((edge) => edge.dataset.edgeId === edgeId);
+          if (!selectedEdge) return;
+          const endpoints = new Set([selectedEdge.dataset.source, selectedEdge.dataset.target]);
+          edges.forEach((edge) => {
+            edge.classList.toggle('is-highlighted', edge === selectedEdge);
+            edge.classList.toggle('is-dimmed', edge !== selectedEdge);
+          });
+          nodes.forEach((node) => {
+            node.classList.remove('is-selected');
+            node.classList.toggle('is-highlighted', endpoints.has(node.dataset.nodeId));
+            node.classList.toggle('is-dimmed', !endpoints.has(node.dataset.nodeId));
+          });
+          relationItems.forEach((item) => {
+            item.classList.toggle('is-highlighted', item.dataset.edgeId === edgeId);
+            item.classList.toggle('is-dimmed', item.dataset.edgeId !== edgeId);
+          });
+          const stateMap = {};
+          nodes.forEach((node) => {
+            stateMap[node.dataset.nodeId] = endpoints.has(node.dataset.nodeId) ? ['highlight'] : ['inactive'];
+          });
+          edges.forEach((edge) => {
+            stateMap[edge.dataset.edgeId] = edge.dataset.edgeId === edgeId ? ['highlight'] : ['inactive'];
+          });
+          setAntVStates(stateMap);
+          const item = relationItems.find((relationItem) => relationItem.dataset.edgeId === edgeId);
+          status.textContent = item ? item.innerText.replace(/\s+/g, ' ').trim() : '已聚焦一条关系';
+        }
+
+        nodes.forEach((node) => {
+          node.addEventListener('click', () => {
+            if (node.classList.contains('is-selected')) resetGraphFocus();
+            else focusNode(node.dataset.nodeId);
+          });
+          node.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              node.click();
+            }
+          });
+        });
+        relationItems.forEach((item) => item.addEventListener('click', () => focusRelation(item.dataset.edgeId)));
+        clearButton.addEventListener('click', resetGraphFocus);
+        component.__resetGraphFocus = resetGraphFocus;
+        component.__focusGraphNode = focusNode;
+        component.__focusGraphRelation = focusRelation;
+        resetGraphFocus();
+      });
+
+      const initRichGraphs = () => document.querySelectorAll('.object-graph-component[data-business-graph]').forEach((component) => {
+        const graphElement = component.querySelector('.object-graph');
+        const mount = component.querySelector('[data-g6-mount]');
+        const dataElement = component.querySelector('.object-graph-data');
+        const status = component.querySelector('[data-graph-status]');
+        const zoomValue = component.querySelector('.object-graph-zoom-value');
+        if (!graphElement || !mount || !dataElement || !status) return;
+
+        if (!window.G6 || !window.G6.Graph) {
+          status.textContent = '当前显示基础关系图';
+          return;
+        }
+
+        try {
+          const data = JSON.parse(dataElement.textContent || '{}');
+          const antvGraph = new window.G6.Graph({
+            container: mount,
+            data,
+            layout: { type: 'preset' },
+            autoFit: 'view',
+            autoResize: true,
+            padding: 36,
+            zoomRange: [0.5, 3],
+            behaviors: ['drag-canvas', 'zoom-canvas', 'drag-element'],
+            node: {
+              type: 'html',
+              style: {
+                size: [154, 36],
+                dx: -77,
+                dy: -18,
+                innerHTML: createObjectNodeHTML,
+                cursor: 'pointer',
+              },
+              state: {
+                selected: { opacity: 1 },
+                highlight: { opacity: 1 },
+                inactive: { opacity: 1 },
+              },
+            },
+            edge: {
+              type: 'polyline',
+              style: {
+                stroke: '#aeb6c2',
+                lineWidth: 1.4,
+                strokeOpacity: 0.62,
+                lineCap: 'round',
+                lineJoin: 'round',
+                controlPoints: (datum) => datum.controlPoints || [],
+                radius: 12,
+                endArrow: true,
+                endArrowType: 'simple',
+                endArrowSize: 7,
+                endArrowOffset: 5,
+                endArrowFill: '#aeb6c2',
+                endArrowStroke: '#8f99a6',
+                labelText: (datum) => datum.data?.label || '关联',
+                labelFontSize: 11,
+                labelFill: '#667085',
+                labelAutoRotate: false,
+                labelOffsetY: (datum) => datum.controlPoints?.length ? 12 : -8,
+                labelBackground: true,
+                labelBackgroundFill: '#f7f8f9',
+                labelPadding: [2, 4],
+              },
+              state: {
+                highlight: {
+                  stroke: '#0066ff',
+                  strokeOpacity: 1,
+                  lineWidth: 2.2,
+                  opacity: 1,
+                  endArrowFill: '#0066ff',
+                  endArrowStroke: '#0066ff',
+                  labelFill: '#0066ff',
+                },
+                inactive: { opacity: 0.06 },
+              },
+            },
+          });
+          component.__g6Graph = antvGraph;
+
+          const nodeClickEvent = window.G6.NodeEvent?.CLICK || 'node:click';
+          const edgeClickEvent = window.G6.EdgeEvent?.CLICK || 'edge:click';
+          const canvasClickEvent = window.G6.CanvasEvent?.CLICK || 'canvas:click';
+          antvGraph.on(nodeClickEvent, (event) => component.__focusGraphNode?.(event.target.id));
+          antvGraph.on(edgeClickEvent, (event) => component.__focusGraphRelation?.(event.target.id));
+          antvGraph.on(canvasClickEvent, () => component.__resetGraphFocus?.());
+
+          Promise.resolve(antvGraph.render())
+            .then(() => {
+              graphElement.classList.add('is-g6-ready');
+              mount.setAttribute('aria-hidden', 'false');
+              return new Promise((resolve) => window.requestAnimationFrame(resolve));
+            })
+            .then(() => {
+              antvGraph.resize();
+              return antvGraph.fitView({ when: 'always', direction: 'both' });
+            })
+            .then(() => {
+              if (antvGraph.getZoom() > 1) return antvGraph.zoomTo(1);
+              return undefined;
+            })
+            .then(() => {
+              status.textContent = '点击节点聚焦关系，拖动画布查看细节';
+              if (zoomValue) zoomValue.textContent = `${Math.round(antvGraph.getZoom() * 100)}%`;
+              component.__resetGraphFocus?.();
+            })
+            .catch(() => {
+              component.__g6Graph = null;
+              graphElement.classList.remove('is-g6-ready');
+              mount.setAttribute('aria-hidden', 'true');
+              status.textContent = '当前显示基础关系图';
+            });
+        } catch (error) {
+          status.textContent = '当前显示基础关系图';
+        }
+      });
+      // 正文、目录和基础关系图先可用，图表增强资源异步加载。
+      if (document.querySelector('[data-g6-mount]')) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@antv/g6@5.1.1/dist/g6.min.js';
+        script.async = true;
+        script.onload = initRichGraphs;
+        document.head.appendChild(script);
+      }
+    })();
+  </script>
+</body>
+</html>

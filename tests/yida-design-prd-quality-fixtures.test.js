@@ -91,9 +91,12 @@ describe('parallel PRD and visual artifact quality fixtures', () => {
     const pageGeneration = read('yida-skills/skills/yida-canvas-custom-page/references/page-generation-guide.md');
 
     expect(fs.existsSync(scenesDir)).toBe(false);
-    expect(skill).toContain('只输出 `design.md`');
-    expect(skill).toContain('不写 PRD 或页面源码');
-    expect(skill).toContain('本技能不读取本轮正在生成的 `prd.md`');
+    expect(skill).toContain('视觉设计技能，输出 `design.md`');
+    expect(skill).toContain('业务规划始终归 `yida-prd`');
+    expect(skill).toContain('输入为校验通过的共享 `requirement-brief.json`');
+    expect(skill).toContain('业务规划与配色、组件样式同时准备');
+    expect(skill).toContain('页面内容确定后补齐各页设计');
+    expect(skill).toContain('由 `yida-app` 核对页面范围和设计引用');
     expect(step3).toContain('页面 `scene` 只作为分类标签和实现提示，不作为固定页面样式');
     expect(step5).toContain('同一个 `prd/<项目名>/design.md`');
     expect(pageGeneration).toContain('强视觉品牌以 PRD 的素材清单和 `design.md.assetStrategy` 为准');

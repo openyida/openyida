@@ -3,6 +3,11 @@
 /*
  * OpenYida 应用主题模板
  *
+ * 生成后的 CSS 是应用级主题资源：平台组件和自定义页面消费这里的 token 与样式。
+ * 文件名可以是 app-theme.css 或 app_theme.css，以 --theme-file 的实际路径为准。
+ * 修改后需通过 update-app --theme-file 上传并绑定应用设置；本地文件存在不代表已生效。
+ * 布局、导航交互和 iframe 高度仍由页面/容器实现，iframe 不自动继承父文档变量。
+ *
  * AI 使用说明：
  * 1. 先在 design.md 确定主题色，再执行 openyida sample yida-design app-theme
  *    --output <app-theme.css> 复制本模板。
@@ -199,7 +204,10 @@
   --pod-page-surface-bg-color: transparent;
   --pod-page-surface-border-radius: 12px;
   --pod-page-surface-shadow: none;
-  /* 页面容器：控制页面边框、背景、圆角、间距和标题。 */
+  /* 原生页面容器：控制页面边框、背景、圆角、间距和标题。
+   * 自定义页整页画布另用 design.md 中的 --oyd-page-background：隐藏应用导航默认 transparent，
+   * 显示平台导航默认 var(--pod-page-bg-color, var(--color-white, #fff))。
+   * 品牌外层氛围放在 Shell，不为自定义页背景改写原生页面底色。 */
   --pod-page-border: 1px solid rgba(24, 28, 31, 0.08);
   --pod-page-bg-color: #ffffff;
   --pod-page-border-radius: 20px;

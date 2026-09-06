@@ -38,7 +38,7 @@ description: 自定义页面表格批量录入技能。使用 `YidaCodeCanvas` �
 5. **分批并发而非无限并发**：按固定批次切分，批次内使用 `Promise.all` 并发，批次间顺序推进；不得逐行串行，也不得一次性无限并发。
 6. **失败行必须保留**：每行保存 `_status`、`_errors` 和 `_submitError`；部分失败后只重试失败行，成功行不能重复提交。
 7. **真实交付要发布证据**：创建或修改 `.canvas.jsx` / `.canvas.tsx` 页面源码后，只有 `openyida publish <source> <appType> <displayPageFormUuid>` 成功才能声明页面已发布。
-8. **页面表面跟随应用主题**：`YidaCodeCanvas` 下生成页面的根画布使用 `min-height: 100vh`，背景使用 `var(--pod-page-bg-color, var(--color-white, #fff))`；表格面板使用当前应用主题中的 `--pod-card-bg-color`、`--pod-card-border` 和 `--pod-card-border-radius`，antd 主色读取 `--color-brand1-6`。
+8. **页面表面跟随应用主题**：`YidaCodeCanvas` 下生成页面的根画布使用 `min-height: 100vh`，背景使用 `var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))`；表格面板使用当前应用主题中的 `--pod-card-bg-color`、`--pod-card-border` 和 `--pod-card-border-radius`，antd 主色读取 `--color-brand1-6`。
 
 ## 数据桥契约
 
@@ -142,7 +142,7 @@ openyida publish project/pages/src/table-form-batch-submit.canvas.jsx <appType> 
 - [ ] 分批并发受控，成功/失败数量可见。
 - [ ] 部分失败后失败行可编辑、可单独重试，成功行不会重复写入。
 - [ ] 未验证写入桥时按钮禁用并显示未闭环原因。
-- [ ] 页面根画布使用 `min-height: 100vh` 并绑定 `--pod-page-bg-color`，表格面板和 antd 主色直接使用当前应用主题变量。
+- [ ] 页面根画布使用 `min-height: 100vh` 并绑定 `--oyd-page-background`（无应用导航默认透明），保持原生页面的 `--pod-page-bg-color` 独立，表格面板和 antd 主色直接使用当前应用主题变量。
 - [ ] 真实接口验证与页面发布都有证据后，才声明完整交付。
 
 ## 完成证据

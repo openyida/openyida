@@ -53,6 +53,8 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 
 实现页面背景和卡片时必须消费 `surfaceContrast`：页面背景与卡片背景不可相近或相同。白色/浅色背景配有边框卡片；浅灰背景（如 `#F3F4F6`）配白色无边框卡片；浅彩色背景配白色无边框卡片；渐变背景配玻璃感卡片。源码不得输出浅底白卡无边框、同色背景同色卡片，或只靠弱阴影区分层级。
 
+design.md 存在“项目配色适配”时先应用该节，它高于模板默认灰阶/品牌面积约束；整体绿色风格不能只让按钮变绿。卡片背景使用 `var(--pod-card-bg-color, var(--color-white, #fff))`，边界消费 `--pod-card-border`；页面、卡片、导航、表头、文字与控件一并核对。antd 不能只设置 colorPrimary，按样式指南同步映射容器、文字、填充、边框和应用语义色。
+
 实现背景层时先写根节点和伪元素，再写内容网格：`.oy-page-root` 承载基础底色、`::before` 承载不规则顶部色块或光洗、`::after` 承载低速流光或弱纹理，`.oy-page-content` 使用 `position: relative; z-index: 1;`。背景可以不规则，内容必须规则；标题、筛选、表格、图表、按钮和列表都保持稳定栅格、对齐和对比度。
 
 数据真实性边界：
@@ -75,6 +77,10 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 如果用户要求“门户组件 / 成员 / 部门 / 上传组件”，继续使用本技能，并按 [native-components-bridge.md](native-components-bridge.md) 的桥接规则用 `YidaCodeCanvas` 组件实现。
 
 ### 导航生成规则
+
+自定义导航按 PRD 和 `design.md` 直接实现；参考 [导航壳形态目录](../../yida-nav-shell/references/nav-shell-patterns.md) 的场景与骨架，UI 示例按需查阅。顶部默认浮导；侧边及混合布局支持折叠、恢复宽度和拖拽调宽。菜单同时记录入口用途和打开方式：管理走 workbench，填写走 submission；本页视图切状态，保留导航的表单入口更新主内容 iframe，跨页入口默认当前标签跳转。页面内新增/详情按钮沿用 FormOpenContainer。
+
+完整地址通过数据桥使用 `router.push(href, params, false, true)`；省略 URL 模式的自动识别只作兼容，详见 [路由模式与数据桥兜底](../../yida-nav-shell/references/nav-shell-patterns.md#路由模式与数据桥兜底)。导航显示参数不控制是否新开标签。
 
 | 场景 | spec 字段 | 发布后动作 |
 | --- | --- | --- |

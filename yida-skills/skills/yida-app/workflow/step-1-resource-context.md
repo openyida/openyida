@@ -34,6 +34,8 @@
 
 若已有 app 来自外部工具预创建资源，OpenYida 技能侧只复用 `appType`，不自动修改应用名称；应用名修正由外部工具侧负责。
 
+首次完整搭建无论是缺少 app，还是已有 app 但没有页面，都进入 Step 2 分析需求并完成首次搭建确认。已有 app 的复用结论不代表模式已选；具体判断遵守 [设计模式路由](../../yida-design/references/design-mode.md)。
+
 ## 命令选择
 
 - 已有显式 `appType`、应用 URL 或已绑定上下文中的 `appType` 且能唯一解析时，直接复用；不要调用 `app-list` 做存在性确认。

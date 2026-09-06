@@ -1,0 +1,4 @@
+interface:
+  display_name: "Yida Plan Design"
+  short_description: "对焦需求并生成可确认的宜搭搭建计划"
+  default_prompt: "Use $yida-design-plan after the yida-design Gate selects Plan Design."

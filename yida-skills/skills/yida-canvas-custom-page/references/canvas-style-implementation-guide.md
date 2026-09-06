@@ -2,9 +2,33 @@
 
 本文件是 `YidaCodeCanvas` 组件的样式实现适配指南，不是新的设计系统，也不产出配色、视觉 DNA 或页面风格。业务事实来自 `yida-prd` 输出的 `prd.md`，视觉事实来自 `yida-design` 输出的 `design.md`。`YidaCodeCanvas` 页面只在 `YidaComp` 内消费当前应用的主题 token，并把布局、材质、密度、图表、控件状态和背景规则落到组件内部。
 
-`app-theme.css` 只在应用级配置，平台负责应用壳、原生表单、详情页和 `YidaCodeCanvas` 外层的主题一致性。Canvas Page 宿主的 `contentBgColor`、`pageStyle.backgroundColor` 和 `contentBgColorMobile` 使用 `var(--pod-page-bg-color, var(--color-white, #fff))`，让宿主背景直接消费应用 token。
+`app-theme.css` 只在应用级配置，平台负责应用壳、原生表单、详情页和 `YidaCodeCanvas` 外层的主题一致性。Canvas Page 宿主的 `contentBgColor`、`pageStyle.backgroundColor` 和 `contentBgColorMobile` 使用 `var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))`，让宿主与 Canvas 内部使用同一背景 token。
 
 宿主属性绑定不是主题注入。严禁生成 `body` 背景 CSS，也严禁 `YidaComp` 修改 `document.documentElement`、`document.body`、父页面或平台容器的主题变量。组件自己的背景、卡片和控件样式留在 `YidaComp` 内，并使用 `--pod-page-*`、`--pod-card-*`、`--color-brand1-*` 和 `--color-group`。
+
+## 嵌入页面的宿主高度
+
+`openyida publish --canvas` 在 Page Schema 中统一配置宿主最小高度：
+
+```css
+.vc-page-yida-pure-container:has(> .yida-code-canvas) {
+  min-height: 100vh;
+}
+```
+
+该规则用于直接承载整页 CodeCanvas 的纯容器，保证嵌入时页面有可见高度；iframe 内的 `100vh` 使用当前 iframe 的视口高度。页面内部仍按业务内容布局，局部 Canvas 组件按所在区块确定高度。
+
+排查空白时，分别测量外层 Canvas、iframe 元素和 iframe 内部容器的高度。外层 Canvas 的宿主样式通过重新发布原 Canvas 源文件更新；iframe 内的页面使用自身文档加载的 CSS。
+
+原生数据管理页在隐藏导航后，若 `.vc-yida-form-manage--fixed` 已有数据但高度为零，在当前应用主题 CSS 中补充以下规则，为绝对定位的表格提供可伸展的父容器：
+
+```css
+body.pod-premium.page-type-workbench .vc-page-yida-pure-container:has(> .vc-rootcontent-pure-container > .vc-yida-form-manage--fixed) {
+  min-height: 100vh;
+}
+```
+
+读取并保留线上应用的完整主题 CSS，追加规则后执行 `openyida update-app <appType> --theme-file <app-theme.css>`。刷新页面，确认 iframe 内已加载新主题文件，再验证表格、分页、滚动与新增抽屉；独立入口也需保持正常。此规则只匹配原生数据管理纯容器，颜色继续使用现有 token。
 
 ## 应用主题与页面风格冲突处理
 
@@ -51,6 +75,16 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 5. `componentRecipe`：统一按钮、入口、标签、图标、列表、图表、空态和弹层。
 6. `acceptanceChecks`：逐项检查 contentBlocks 是否支撑业务目标、无大空白卡、主色跟随应用主题、KPI/快捷入口子项不计数、移动端不挤压；区块数量不作为硬门槛。
 
+## 背景与导航的关联
+
+背景职责分开：Shell 的 `--pod-shell-bg-color-light/white/gray/dark` 承载外层氛围；`--pod-page-bg-color` 是原生页面内容底色，浅色主题通常为白色；`--oyd-page-background` 才是自定义页画布。不要为了自定义页全屏背景改写原生页面 token，也不要在无应用导航时直接给自定义页根使用 `--pod-page-bg-color`，否则会盖住 Shell。卡片继续消费 `--pod-card-bg-color`，不是把所有层一起改透明。
+
+`--oyd-page-background` 是应用主题 CSS 中的自定义页背景别名。无平台应用导航时默认写 `transparent`，透出应用壳的主题背景；需要品牌浅底时显式写 `var(--color-brand1-3)` 等已确认品牌 token。平台导航显示时默认写 `var(--pod-page-bg-color, var(--color-white, #fff))`，允许用户指定其他颜色；已确认的深色画布或项目显式背景优先。颜色值在 app-theme.css 中定义，页面源码仅消费，不能在组件里重设该变量或写死 `#F4F4F4`。
+
+Canvas 根背景使用 `background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)));`，保持与宿主一致。透明只表示透出下面的应用背景，不代表背景必须是白色。
+
+浮导距顶部的留白放在自定义页根节点内部。发布层的 `.yida-code-canvas{display:flow-root}` 只保护宿主，不能阻止 `.doll-page` / `.oy-page-root` 等内层根节点与导航的 margin 折叠。页面根必须使用 `display:flow-root`（已有 flex/grid 可保留），或用根容器 padding 承载顶部间距；不能仅给 Canvas 宿主加 flow-root。验收时分别测量宿主、页面根与导航的 top：宿主和页面根贴齐，导航仍保留设计间距。不要用 overflow:hidden 修复，它可能影响 sticky 和弹层；不要向平台父容器写负 margin 抵消。
+
 ## 背景层实现规则
 
 实现 `design.md` 的 `backgroundLayer` 时，先考虑页面根画布，再做内容面板。不要先堆白卡片再临时补装饰。展示型页面、工作台、看板、门户、官网、登录页和空状态页推荐有非纯空白的画布；近白画布可以保留，但要通过淡渐变、细线、星芒、局部装饰、素材或内容密度形成背景感。如果 `design.md` 指定 `topIrregularWash`、`radialGlowWash`、`flowLight` 或 `organicNoise`，必须在源码里落成对应 CSS。
@@ -71,8 +105,8 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
   position: relative;
   isolation: isolate;
   min-height: 100vh;
-  overflow: hidden;
-  background: var(--pod-page-bg-color, var(--color-white, #fff));
+  display: flow-root;
+  background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)));
 }
 .oy-page-root::before {
   content: "";
@@ -219,45 +253,28 @@ function useBrandColor(level, defaultColor) {
 
 > **变量作用域**：平台把 `--color-brand1-*` 定义在页面容器时，给组件根节点挂 `ref`，在 `useEffect` 里读 `getComputedStyle(rootRef.current)`，读到后 `setState` 触发一次重渲染。默认先用 `documentElement` 同步取值，空串时再用根节点 ref 读取。
 
-## antd：ConfigProvider 使用 colorPrimary
+## antd：完整消费应用配色
 
-用 `readBrandColor` 取主色，交给 `ConfigProvider`，antd 会自动推导 hover/active/disabled 整套色板。语义色（success/warning/error）用 antd 默认，不覆盖，保证语义稳定。
+`ConfigProvider` 放在页面组件外层。应用主题不是只有 `colorPrimary`；页面、卡片、输入、表格和浮层应消费同一套设计值：
 
-```jsx
-import React from 'react';
-import { ConfigProvider, Button, Table } from 'antd';
+| antd token | 应用 token / 用途 |
+| --- | --- |
+| colorPrimary / colorLink | --color-brand1-6，主操作、链接与选中焦点 |
+| colorBgLayout | --oyd-page-background；透明时取实际承接它的页面/壳背景 |
+| colorBgContainer | --pod-card-bg-color，回退 --color-white |
+| colorBgElevated | --pod-card-bg-color，浮层的可读表面；有独立浮层设计时使用其已确认 token |
+| colorText / colorTextHeading | --color-text1-4，正文与标题 |
+| colorTextSecondary / colorTextDescription | --color-text1-3，辅助说明 |
+| colorTextPlaceholder | --color-text1-10，表头与 placeholder 层级 |
+| colorBorder / colorBorderSecondary | --color-line1-2 / --color-line1-1 |
+| colorFillAlter / colorFillSecondary | --color-fill1-1 / --color-fill1-2 |
+| colorSuccess / colorWarning / colorError / colorInfo | 对应应用语义 token，未配置时保留 antd 默认语义色；不要统一替换成品牌色 |
 
-function readBrandColor(level, defaultColor) {
-  try {
-    var v = getComputedStyle(document.documentElement)
-      .getPropertyValue('--color-brand1-' + (level || 6)).trim();
-    return v || defaultColor;
-  } catch (e) { return defaultColor; }
-}
+这些映射不改变业务数据和操作。表格表头、卡片外壳、自绘文字等 CSS 同步消费对应 token；外壳卡片使用 `background: var(--pod-card-bg-color, var(--color-white, #fff))` 与 `border: var(--pod-card-border, none)`，不能只映射 antd 而遗漏自绘表面。
 
-function YidaComp(props) {
-  var colorPrimary = readBrandColor(6, 'rgb(0, 137, 255)'); // 兜底值来自当前 design.md 或应用主题 token profile
-  return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: colorPrimary,   // 主色来自应用主题 token；显式要求时才跟随应用品牌
-          borderRadius: 12,             // 控件圆角来自 design.md；业务面板的大圆角用 CSS 单独写
-        },
-        // 不覆盖 colorSuccess/colorWarning/colorError，语义色保持固定
-      }}
-    >
-      <div style={{ padding: 24 }}>
-        <Button type="primary">主操作</Button>
-      </div>
-    </ConfigProvider>
-  );
-}
+antd 会在 JS 中推导色板，传入值必须是解析后的真实颜色。根元素挂 ref，挂载后在组件作用域读取主题；别只读取 documentElement，否则会漏掉定义在页面容器上的变量。遇到 var() / color-mix() 等引用时，用组件内部的颜色探针交给浏览器计算后读取 getComputedStyle(...).color，不能把未解析表达式或空串传给 antd。初始值使用 design.md 同角色兜底；主题切换后重新解析并 setState，禁止模块加载时读取一次后永久缓存。
 
-export default YidaComp;
-```
-
-**要点**：`ConfigProvider` 包在组件最外层，页面内所有 antd 组件统一使用品牌色。主色统一配置为 `colorPrimary`，组件级颜色只保留必要的业务语义色。
+最终传入 `theme={{ token: resolvedTheme }}`；`resolvedTheme` 覆盖上表中当前页面使用的角色及设计圆角。浅色品牌背景仍搭配清晰的深色文字，深色主题使用其深色表面和浅色文字。既不把正文全部染绿，也不让组件悄悄退回默认蓝色/灰色。
 
 ## 默认 light 模式避免灰黑主题
 
@@ -370,7 +387,7 @@ export default YidaComp;
 
 ## 自查清单（主色相关）
 
-- 页面最外层有 `ConfigProvider` 且 `token.colorPrimary` 来自 `readBrandColor`，不是硬编码色值。
+- 页面最外层有 `ConfigProvider`，主色、表面、文字、填充和边界均来自组件作用域解析后的应用 token；与自绘 CSS 一致，主题切换后可更新。
 - 有输入/筛选/下拉/日期/运行态字段组件时，已在组件内部声明控件 focus/dropdown reset，focus 后没有黑色粗边或突兀加粗。
 - Tailwind 主色类用 `var(--color-brand1-*)`，没有散落的 `#1677ff` / `bg-blue-500`。
 - 图表 / canvas 绘制颜色走 `readBrandColor` 或 `--color-group`，无硬编码蓝。

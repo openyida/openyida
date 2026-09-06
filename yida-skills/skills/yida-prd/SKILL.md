@@ -1,48 +1,37 @@
 ---
 name: yida-prd
-description: 读取整理后的用户需求，生成 prd/<项目名>/prd.md，负责业务、资源、页面、顺序和验收规则。
+description: 基于整理好的需求事实规划业务，生成 prd/<项目名>/prd.md，负责业务、资源、页面、顺序和验收规则。
 ---
 
 # yida-prd
 
-本技能读取 `yida-requirement-analysis` 整理的用户需求，生成 `prd/<项目名>/prd.md`；不生成 `design.md` 或页面源码。
+本技能负责业务规划，基于 `yida-requirement-analysis` 的需求事实生成 `prd/<项目名>/prd.md`。适用于完整应用的初次规划与业务方案调整。
 
-## 使用场景
+## 输入与执行
 
-- 从零搭建或补齐完整应用：用户需求整理完成后启动，可与 `yida-design` 并行。
-- 已有会议需求稿，需要整理成完整应用 PRD：先统一整理用户需求，再运行本技能。
-- 只做视觉美化、页面实现、字段或权限操作：使用对应单点技能。
+读取 `.cache/openyida/<项目名>/requirement-brief.json`。发现影响规划的需求缺口时，将具体问题交回 `yida-requirement-analysis`，由 `yida-app` 组织澄清。
 
-## 执行条件
+开始规划前确认 brief 的 `navigation.type/source/reason` 已明确；导航仍未决时交回需求分析与应用编排处理。Plan 将该类型写入 `execution.appConfig.navigationType`，Fast 在 PRD 应用配置中记录同一选择与依据。
 
-- 开始：`.cache/openyida/<项目名>/requirement-brief.json` 已存在且可解析。
-- 完成：`prd/<项目名>/prd.md` 已写入并通过下方完成条件；只写完部分章节不算完成。
-- 失败：PRD 不完整时只重跑本技能，不重跑或覆盖已经完成的 `design.md`。
+基于输入事实，按 [页面与导航规划](workflow/step-2-information-architecture.md) 形成业务资源蓝图，再按当前模式交付：
 
-## 标准流程
+| 模式 | 执行与完成条件 |
+| --- | --- |
+| Fast | 与 `yida-design` 并行，按 [11 章 PRD 契约](workflow/output-prd.md) 写入完整 `prd.md` |
+| Plan | 按 [计划业务规划](workflow/plan-business.md) 补齐 `build-plan.json` 的 `overview`、`dataModels`、`businessFlows`、`pages` 和业务 `execution`，交给 `yida-app` 调用 CLI 派生同一契约的 PRD |
 
-1. 读取 [整理后的用户需求](workflow/step-1-read-brief.md)。
-2. 按 [页面与导航规划](workflow/step-2-information-architecture.md) 形成业务资源蓝图。
-3. 按 [PRD 输出格式](workflow/output-prd.md) 写入 `prd/<项目名>/prd.md`。
+Plan 的业务调整通过字段级 patch 更新源事实，再由编排重新物化和确认。
 
-## 核心规则
+## 业务要求
 
-1. PRD 只写业务目标、角色、对象、字段语义、资源、页面结构、数据来源、业务逻辑、三种顺序和验收标准。
-2. 视觉规则只写主题色和风格摘要，并通过 `designFile` / `designRefs` 引用并行产出的 `design.md`。
-3. 用户存在 `explicitScope` 时，页面、表单、流程、报表和本轮交付范围不得扩展。
-4. `appType`、`formUuid`、`fieldId`、`processCode` 等真实 ID 不得编造；运行 ID 由实现阶段写入 `.cache/<项目名>-schema.json`。
-5. 每个 display 页面必须有 `pageSpecHandoff`，明确场景、区块、数据来源、主操作、`designFile` 和 `designRefs`。
+- PRD 的业务说明和验收标准遵循 [用户可见表达契约](../yida-design/references/ask-human-interaction-contract.md)，用功能和使用效果描述方案；接口参数及配置键值写入 Agent 实施交接。Plan 的摘要、规则和验收文案会直接展示在 HTML 中，填写时使用同一业务表达。
+- 规划目标、角色、对象、字段语义、流程、资源、页面任务、数据来源和验收标准；写清资源创建、页面实现交付和导航三种顺序。
+- 用户存在 `explicitScope` 时，以该范围规划页面、表单、流程、报表和本轮交付。
+- 真实 `appType`、`formUuid`、`fieldId`、`processCode` 以资源证据为准；实现阶段产生的 ID 写入 `.cache/<项目名>-schema.json`。
+- 每个 display 页面提供 `pageSpecHandoff`，包含场景、区块、数据来源、主操作，以及指向对应 `design.md` 的 `designFile` / `designRefs`。视觉细则由 `yida-design` 维护。
 
-## 完成条件
+## 按需参考
 
-- `prd/<项目名>/prd.md` 存在。
-- PRD 包含资源创建顺序、页面实现交付顺序、导航顺序和验收标准。
-- 资源蓝图覆盖必要表单、流程、页面及明确要求的报表/集成/权限。
-- 每个 display 页面都有可供一致性校验的 `pageSpecHandoff`。
-- 没有写入 `design.md` 或页面源码。
-
-## 参考
-
-- [应用结构参考](references/app/blueprint.md)
-- [导航模式参考](references/app/navigation-patterns.md)
-- [角色旅程参考](references/app/role-journey.md)
+- [应用结构](references/app/blueprint.md)：规划资源与页面关系。
+- [导航模式](references/app/navigation-patterns.md)：安排导航结构。
+- [角色旅程](references/app/role-journey.md)：规划跨页面业务流程。

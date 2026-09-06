@@ -8,7 +8,7 @@
 
 ## 选择主题色
 
-先确定主题色来源，再生成应用主题文件。主题色来源优先级如下：
+先确定主题色来源，再生成应用主题文件。用户确认“自然绿意”等整体风格时，页面浅底、卡片、填充、边界和交互一起协调，不能只改主按钮；字体保持清晰中性层级，状态保持语义色。模板固定雾白/灰阶不能覆盖该选择。完整规则见 [用户配色与模板的优先级](output-design.md#用户配色与模板的优先级)。主题色来源优先级如下：
 
 | 优先级 | themeColorSource | 触发条件 | 输出规则 |
 | --- | --- | --- | --- |
@@ -19,13 +19,8 @@
 
 1. 先判断业务气质：行业、目标用户、品牌关键词、业务情绪、视觉目标，以及是否需要亲和/专业/活力/稳重/科技/自然感。
 2. 在 `design.md` 中记录主题色、`navTheme`、`logoSource` 和 `layoutDirection`。
-3. 实现阶段执行以下命令复制主题模板：
-
-   ```bash
-   openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css
-   ```
-
-4. 打开复制后的 `app-theme.css`，按主题色修改对应 token。严禁重新生成或覆盖整份 CSS。主色写入 `--color-brand1-6`；保留 `--color-brand1-1/2/3/5/6/9/10`、`--color-brand-1` ~ `--color-brand-4` 和 `--color-group`；严禁补造 `--color-brand1-4/7/8`。
+3. 主题文件按 [生成与更新规则](output-design.md#cli-token-契约fast--plan-共用) 准备；Plan 复用已生成的主题 CSS。
+4. 整体暗色时，按 [浮层适配](../references/theme/theme-token-presets.md#暗色主题浮层适配) 补齐组件 token 和必要的 classname 覆盖。
 5. `podBlue`、`podGreen`、`podOrange` 只是常用浅底候选，不是固定默认。不要因为没有特别说明就自动回到 #1677ff，也不要套用“科技=蓝、宠物=橙、法律=蓝”这类行业刻板配色。
 6. 主题色只作为后续所选设计风格的换肤输入；除用户明确要求深色/夜间/高对比外，不用主题色反向决定风格。
 
@@ -65,10 +60,11 @@ AI 默认直接使用模板内 coffee 咖啡色色阶和大圆角层级。若 `d
 - 辅助色：用于按钮强调、状态提示、图表分组和重点指标。
 - 中性色：背景、文字、边框、分割线，默认保持浅底业务风。
 - 语义色：成功、警告、错误、信息保持稳定，不随意改成品牌色。
-- 明暗模式：默认 `light`；`design.md` 的 `themeProfile.navTheme` 保持 `light`。
+- 界面明暗：默认浅色；用户选择暗色、黑色或夜间主题时，按 [暗色主题浮层适配](../references/theme/theme-token-presets.md#暗色主题浮层适配) 确定浮层 token 与必要的 class 覆盖。
+- 导航明暗：`themeProfile.navTheme` 单独按导航方案记录；深色导航可以搭配浅色界面。
 - `design.md` 的 `themeProfile.colorMode` 是宜搭配色模式，例如 `gradient`，不表示暗黑模式。
 
-通过 CLI 复制并定点修改应用主题 CSS 后，将主题文件路径、`navTheme`、`logoSource` 和 `layoutDirection` 写入 `design.md`，交给应用创建或更新阶段统一配置。平台负责整套应用的主题一致性；只有 `YidaCodeCanvas` 页面源码需要在组件内部使用主题 token。
+主题 CSS 就绪后，将主题文件路径、`navTheme`、`logoSource` 和 `layoutDirection` 写入 `design.md`。获取真实 `appType` 后，必须执行 `openyida update-app <appType> --theme-file <CSS路径>` 更新应用基础设置，并以 `themeVerification.verified=true` 确认资源已绑定；后续修改 CSS 也须重新上传保存。平台负责整套应用的主题一致性；只有 `YidaCodeCanvas` 页面源码需要在组件内部使用主题 token。
 
 ## 写字体层级
 

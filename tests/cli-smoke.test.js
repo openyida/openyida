@@ -252,7 +252,7 @@ describe('CLI offline smoke', () => {
     expect(result.status).toBe(0);
     expect(output).toContain('create-app');
     expect(output).toContain('--name');
-    expect(output).toContain('--theme');
+    expect(output).not.toContain('--theme');
     expect(output).not.toContain('读取登录态');
   });
 
@@ -414,6 +414,24 @@ describe('CLI offline smoke', () => {
     });
   });
 
+  test('planning and sample commands expose every documented option and permission', () => {
+    const manifest = JSON.parse(runOk(['commands', '--json']));
+    const entries = Object.fromEntries(manifest.commands.map(entry => [entry.id, entry]));
+    for (const id of ['design-plan.init', 'design-plan.preview', 'design-plan.materialize', 'design-plan.patch', 'create-form.batch', 'sample']) {
+      const entry = entries[id];
+      expect(entry).toBeDefined();
+      const documented = [...new Set(entry.usage.match(/--[a-z][a-z-]*/g))].sort();
+      const registered = entry.args.filter(arg => arg.source === 'option').flatMap(arg => arg.builder_options).sort();
+      expect({ id, options: registered }).toEqual({ id, options: documented });
+      expect(entry.permission).toMatchObject({ mode: 'allow', effect: 'write' });
+      expect(entry.side_effect.kind).toBe(id === 'create-form.batch' ? 'remote_write' : 'local_write');
+    }
+    expect(entries['create-form.batch'].side_effect.mutates_local).toBe(true);
+    expect(entries['design-plan.patch'].args.find(arg => arg.name === 'set')).toMatchObject({ required: true, repeatable: true });
+    expect(entries.sample.args.find(arg => arg.name === 'var')).toMatchObject({ repeatable: true });
+    expect(entries['create-form.batch'].args.find(arg => arg.name === 'concurrency')).toMatchObject({ type: 'integer', default: 3 });
+  });
+
   test('commands --json renders machine-readable command manifest', () => {
     const output = runOk(['commands', '--json']);
     const parsed = JSON.parse(output);
@@ -556,13 +574,11 @@ describe('CLI offline smoke', () => {
         'create-process',
         'create-page',
         'publish',
-        'nav-group',
       ]),
       do_not_default_skill_ids: expect.arrayContaining([
         'yida-data-source-connectors',
-        'yida-data-management',
       ]),
-      product_design_policy: expect.stringContaining('read that same file and run in parallel'),
+      product_design_policy: expect.stringContaining('Prepare business and base visuals concurrently'),
       ui_guidance_policy: expect.stringContaining('only design sources of truth'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),
       completion_contract: expect.stringContaining('PRD navigation order or lightweight fallback navigation order'),
@@ -580,6 +596,9 @@ describe('CLI offline smoke', () => {
     expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('prd.md + design.md');
     expect(parsed.summary.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
     expect(parsed.summary.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
+    expect(parsed.summary.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-data-management');
+    expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('Core normal forms default to 1-3 business sample records');
+    expect(parsed.summary.core_workflows.full_app_build.optional_after_done_command_ids).not.toContain('data');
     expect(commands).toContain('env');
     expect(commands).not.toContain('env-management');
     expect(commands).toContain('login');
@@ -1597,13 +1616,11 @@ describe('CLI offline smoke', () => {
         'create-process',
         'create-page',
         'publish',
-        'nav-group',
       ]),
       do_not_default_skill_ids: expect.arrayContaining([
         'yida-data-source-connectors',
-        'yida-data-management',
       ]),
-      product_design_policy: expect.stringContaining('read that same file and run in parallel'),
+      product_design_policy: expect.stringContaining('Prepare business and base visuals concurrently'),
       ui_guidance_policy: expect.stringContaining('only design sources of truth'),
       default_nav_order_policy: expect.stringContaining('openyida nav-group order <appType> <items...>'),
       completion_contract: expect.stringContaining('PRD navigation order or lightweight fallback navigation order'),
@@ -1621,6 +1638,9 @@ describe('CLI offline smoke', () => {
     expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('prd.md + design.md');
     expect(parsed.commands.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
     expect(parsed.commands.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
+    expect(parsed.commands.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-data-management');
+    expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('Core normal forms default to 1-3 business sample records');
+    expect(parsed.commands.core_workflows.full_app_build.optional_after_done_command_ids).not.toContain('data');
     expect(parsed.recommended.default_full_app_workflow).toMatchObject({
       mode: 'unified_build',
       completion_contract: expect.stringContaining('create or reuse app'),
@@ -2364,4 +2384,42 @@ describe('CLI offline smoke', () => {
       fs.rmSync(workspace, { recursive: true, force: true });
     }
   });
+});
+
+
+test('Plan and navigation commands are discoverable with their existing permission metadata', () => {
+  const manifest = JSON.parse(runOk(['commands', '--json']));
+  const summary = JSON.parse(runOk(['agent-capabilities', '--summary-json']));
+  const commands = new Map(manifest.commands.map(command => [command.id, command]));
+  const local = ['design-plan.init', 'design-plan.preview', 'design-plan.materialize', 'design-plan.patch', 'sample'];
+  const remote = ['update-app', 'update-form-config', 'get-form-config'];
+  for (const id of [...local, ...remote]) {
+    expect(commands.get(id).permission.mode).toBe('allow');
+    expect(summary.builder_path.command_contract.canonical_builder_command_ids).toContain(id);
+  }
+  for (const id of local) {
+    expect(commands.get(id)).toMatchObject({ requires_login: false, side_effect: { kind: 'local_write', mutates_yida: false } });
+  }
+  for (const id of remote) {expect(commands.get(id).requires_login).toBe(true);}
+  expect(commands.get('sample').usage).toContain('--design-file');
+  expect(commands.get('update-form-config').usage).toContain('<true|false|keep>');
+  expect(summary.full_app_artifact_route.plan_command_ids).toEqual(local.slice(0, 4));
+  expect(summary.full_app_artifact_route.navigation_command_ids.custom).toEqual(remote);
+  expect(summary.full_app_artifact_route.navigation_policy.toLowerCase()).toContain('before prd planning');
+});
+
+test('Plan CLI and design-file sample work locally without a login', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-plan-cli-'));
+  try {
+    const input = path.join(dir, 'build-plan.json');
+    fs.copyFileSync(path.join(ROOT, 'tests/fixtures/design-plan.json'), input);
+    const check = JSON.parse(runOk(['design-plan', 'materialize', input, '--check', '--json']));
+    expect(check.checked).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'design.md'))).toBe(false);
+    const result = JSON.parse(runOk(['design-plan', 'patch', input, '--set', 'execution.appConfig.navigationType=custom', '--set', 'visualStyle.tokens.--pod-card-border-radius=16px', '--materialize', '--output-dir', dir, '--json']));
+    expect(result.changed).toBe(true);
+    const cssPath = path.join(dir, 'app-theme.css');
+    runOk(['sample', 'yida-design', 'app-theme', '--design-file', path.join(dir, 'design.md'), '--output', cssPath]);
+    expect(fs.readFileSync(cssPath, 'utf8')).toContain('--pod-card-border-radius: 16px');
+  } finally {fs.rmSync(dir, { recursive: true, force: true });}
 });

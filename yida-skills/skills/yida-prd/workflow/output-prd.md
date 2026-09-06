@@ -1,6 +1,6 @@
 # 输出：prd.md
 
-> 本文件定义完整应用的 `prd/<项目名>/prd.md` 输出格式。`prd.md` 记录业务语义、产品设计、页面结构、资源创建顺序、页面实现交付顺序和导航顺序。PRD 不写 UI 视觉设计规范，只写应用主题色和风格摘要，并引用 `design.md` 章节。
+> 本文件定义完整应用的 `prd/<项目名>/prd.md` 输出格式。`prd.md` 记录业务语义、产品设计、页面结构、资源创建顺序、页面实现交付顺序和导航顺序。视觉部分记录应用主题色和风格摘要，通过 `design.md` 引用具体规范。业务说明使用功能与体验描述，接口字段集中在 Agent 实施交接中。
 
 ## PRD 输出格式
 
@@ -24,10 +24,11 @@
 
 | 配置项 | 值 |
 | --- | --- |
-| appType | <已有应用填真实 appType；从零创建时写“待创建后回填”> |
-| corpId | <目标组织 corpId；未知时写“待登录态确认”> |
-| baseUrl | <平台地址，如 https://www.aliwork.com 或私有化域名> |
-| 是否隐藏平台导航 | <否 / 是；默认否。仅自绘应用级导航或用户明确要求隐藏时写“是”，并配置 `hideAppNav='y'`；`isRenderNav=false` 只隐藏当前页面导航> |
+| 导航类型 | <平台L型导航 / 平台顶部导航 / 平台侧边导航 / 自定义导航；必须明确选择> |
+| 是否使用平台应用导航 | <前三种为是，自定义导航为否> |
+| 页面导航配置 | <自定义导航：列出本轮全部表单、流程表单、自定义页面及需配置的其他页面，统一隐藏平台页面导航；平台导航：保留页面设置，明确独立入口例外> |
+
+导航方案说明页面入口和跨页切换方式；导航配色单独说明深色或浅色。
 
 ## 3. 数据结构（业务语义，不含细节 ID）
 
@@ -88,7 +89,9 @@
   - designFile：<prd/<项目名>/design.md>
   - designRefs：<themeProfile / sceneRecipes.<scene> / components.<name> / states.<name>>
   - 引用规则以 [yida-design 的稳定引用规则](../../yida-design/workflow/output-design.md#稳定引用规则) 为准；`sceneRecipes.<sceneKey>` 中的 `sceneKey` 必须逐字取自 `requirement-brief.json` 的对应 `pageScenes`（对象项使用其 `key`，字符串项原样使用），不得改写、翻译或重新生成。
-  - dataBinding：<form / report / connector / static-empty；真实资源 ID 由实现阶段回填>
+  - dataBinding：<form / report / connector / static-empty；必须明确，真实资源 ID 由实现阶段回填>
+  - dataSources：<已规划的来源名称数组；form 对应业务数据模型>
+  - emptyReason：<static-empty 必填，说明为何本轮只交付空态或入口；其他绑定方式需要非空来源>
   - primaryAction：<主操作和打开方式>
 
 `entryMode=standalone` 只用于页面自身已经具备完整导航壳，或不依赖宜搭工作台导航即可完成主要业务闭环的员工自助/轻量业务入口。页面只有 tab、筛选、分段、卡片切换、普通看板，或仍依赖平台导航进入核心表单/流程时必须使用 `platform-shell`。不得根据访问者角色猜测；证据不足时默认 `platform-shell`。
@@ -107,6 +110,8 @@
 | 一致性要求 | <PRD 中主题色和风格摘要必须与 design.md 保持一致；冲突时以 design.md 为准并修正 PRD 摘要> |
 
 ## 6. 业务逻辑与交互状态
+
+有业务规则时，逐项写清适用对象、触发条件、判断条件、执行结果和已知例外，例如金额阈值审批、字段联动、状态流转、计算口径与权限限制。已有流程摘要中的规则也必须保留在 PRD，确保 HTML 展示的业务要求能够交接给实施阶段。
 
 | 类型 | 规则 |
 | --- | --- |
@@ -164,7 +169,7 @@
 | 门户 / 首页 | <主页面 / 工作台 / 官网首页> | <平台导航 / 顶部导航 / 侧边导航 / 单页入口> | 第一入口放最前 |
 | 业务办理 | <流程表单 / 新增入口 / 待办相关页面> | <平台导航或页面内快捷入口> | 高频动作靠前 |
 | 数据管理 | <表单数据管理页 / 用户要求的自定义列表页 / 详情页> | <平台导航分组> | 数据录入、查询和维护集中 |
-| 经营分析 | <看板 / 报表 / 大屏> | <平台导航 / 大屏全屏入口 / 页面级隐藏导航 isRenderNav=false> | 管理者查看，放在业务操作之后或独立分组 |
+| 经营分析 | <看板 / 报表 / 大屏> | <平台导航 / 大屏全屏入口 / 隐藏平台页面导航的独立入口> | 管理者查看，放在业务操作之后或独立分组 |
 | 系统配置 | <配置表 / 字典表 / 权限说明> | <平台导航靠后分组> | 低频维护靠后 |
 
 ## 11. 验收标准
@@ -186,3 +191,26 @@
 - `yida-app` 读取 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md` 后创建或复用资源。
 - 真实 ID 写入 `.cache/<项目名>-schema.json`。
 - 页面实现阶段读取 `prd.md` 的业务内容，并直接读取 `design.md` 的主题、布局、材质、圆角、密度、呼吸感、组件和状态规则；只有走页面生成器或需要稳定交接时才派生 `page-spec.json`，再交给 `yida-canvas-custom-page` 实现。
+
+
+### Agent 导航实施映射
+
+| 导航类型 | navigationType | layoutDirection | hideAppNav | 页面动作 |
+| --- | --- | --- | --- | --- |
+| 平台L型导航 | platform-l-shape | l_shape | n | 使用平台导航，按入口需求设置页面导航 |
+| 平台顶部导航 | platform-top | top | n | 同上 |
+| 平台侧边导航 | platform-side | side | n | 同上 |
+| 自定义导航 | custom | 保留平台布局配置 | y | 本轮涉及页面逐一设置 isRenderNav=false，加载 yida-nav-shell 实现导航 |
+
+导航类型是业务入口方案，`navTheme` 只控制导航明暗。新方案明确填写 navigationType；已有应用以确认后的导航方案为准。自定义导航的 display 页面使用 `entryMode=standalone`。实施时按 [导航壳必做配置](../../yida-nav-shell/SKILL.md#必做配置) 调用应用和页面接口，不能仅靠 URL 参数隐藏。
+
+
+应用上下文在 Agent 实施交接中按下表记录：
+
+| 字段 | 值 |
+| --- | --- |
+| appType | <已有应用填真实 appType；从零创建时写“待创建后回填”> |
+| corpId | <目标组织 corpId；未知时写“待登录态确认”> |
+| baseUrl | <平台地址，如 https://www.aliwork.com 或私有化域名> |
+
+自定义导航逐页设置 isRenderNav=false 并回读；业务说明写平台导航的显示方式及页面切换行为。
