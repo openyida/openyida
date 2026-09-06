@@ -25,13 +25,15 @@
 8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；该命令只证明页面/资源数量完整性，不能替代第 3 条运行态数据验收。只有 `verdict=pass` 且运行态数据证据通过时才说“已按 PRD 完成搭建”；`verdict=needs_review` 时可以交付但必须列出 `items` 中 `status=needs_review/not_checked` 的复核项，`verdict=fail` 时列出 `hardFailures` 并说明未完成；
 9. 未继续执行用户未要求的公开访问、截图验收、报表、大屏、数据源深接或精细导航分组。
 
+第 6 条按资源独立核验：每个被 final 声称“已写入”“已验证”或给出记录数的表单/流程，都必须有该资源自己的成功 create 返回值和只读 query/readback 证据。不得把一张表单的 3 条记录复制成其他表单也有 3 条；没有证据的资源只能写“未写入”“未抽查”或“跳过”，不能用应用发布成功替代数据核验。
+
 若本轮修改过页面源码但没有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，只能交付“源码已修改，尚未发布”的说明。
 
 ## build-manifest 约定
 
 完整搭建收尾前，从本轮真实创建、复用和发布结果写入 `prd/<项目名>/build-manifest.json`。它只是轻量事实源，不是严格 schema；只记录已经拿到的真实资源名、类型和 ID，用于让 `check-prd-completeness` 做一次 app 资源列表 readback 后判断页面/资源数量是否完整。
 
-`build-manifest.json` 与 Step 2 的 `requirement-brief.json`、`prd.md`、`design.md` 一样只供内部编排和验收使用。不得把它们登记为用户可见附件或下载卡片。
+`build-manifest.json` 与 Step 2 的 `requirement-brief.json`、`prd.md`、`design.md` 一样只供内部编排和验收使用。不得把它们登记为用户可见附件或下载卡片。若 final 将概述 seed records，manifest 中为每个资源分别记录实际写入数、query 抽查数和核验状态；未知值保持未知，不得从其他资源推导。
 
 一期检查只消费 `display-page`、`normal-form`、`process-form` 资源项；不检查字段、必填、选项、seed records、导航顺序、表单 Schema、页面发布内容、截图或视觉体验。
 
@@ -48,6 +50,10 @@
   ],
   "forms": [
     { "name": "客户信息", "type": "normal-form", "formUuid": "FORM-CUSTOMER", "required": true }
+  ],
+  "seedEvidence": [
+    { "name": "客户信息", "formUuid": "FORM-CUSTOMER", "createdCount": 3, "queriedCount": 3, "verified": true },
+    { "name": "商机信息", "formUuid": "FORM-OPPORTUNITY", "createdCount": 0, "queriedCount": 0, "verified": true }
   ]
 }
 ```
@@ -56,7 +62,9 @@
 
 - 先写 2-3 句业务交付总结，再给一个名为“应用访问入口”的入口组。
 - 一次完整应用搭建只产生这一组用户可见交付，不把表单、流程、报表、页面、资源清单或内部文件分别登记为附件、链接卡或下载卡。
-- 业务资源只在总结中按能力或数量概述，例如“已完成 4 张业务表单、1 条审批流程和 1 个经营看板”；不默认输出资源 ID 表格、资源清单、长列表、appType、formUuid、pageId、reportId。
+- 业务资源只在总结中按能力或数量概述是默认规则，例如“已完成 4 张业务表单、1 条审批流程和 1 个经营看板”；不默认输出资源 ID 表格、资源清单、长列表、appType、formUuid、pageId、reportId。
+- 用户或调用方明确要求资源清单、资源 UUID/ID、发布状态或测试数据摘要时，final 必须在业务总结与唯一入口组之间补充一个简洁的“交付清单”。清单只列本轮已通过真实返回值或只读 readback 核验的资源名称、类型和 ID，并同时写明主页面发布状态及 seed records 写入/抽查摘要；不得遗漏已创建或发布的资源，不得用链接卡代替正文清单，也不得编造未知 ID。
+- 即使用户没有要求技术清单，业务总结中的资源数量、seed records 数量以及“已写入/已验证/已就绪”等完成状态也必须逐资源来自真实返回值或只读 readback。证据不完整时缩小表述范围并明确未核验项，禁止为了让总结完整而补齐推测数字。
 - 新增、修改或发布单个具体页面时，仍只交付当前页面，不扩展成完整应用入口组。
 - 完整应用的入口组始终包含“应用工作台” `{base_url}/{appType}/workbench`。
 - 主页面在 PRD 中为 `entryMode=standalone`，且 Step 8 回读确认 `isRenderNav=false` 时，入口组额外包含“独立业务入口” `{base_url}/{appType}/custom/{formUuid}`；否则不得输出。
@@ -77,7 +85,7 @@
 - 应用开发后台：`{base_url}/{appType}/admin`（仅 capability 明确为 `include`）
 ```
 
-只有用户明确要求排障、复盘资源 ID、迁移或复制配置时，才补充技术 ID。
+只有用户或调用方明确要求资源清单、资源 UUID/ID、发布状态、测试数据摘要、排障、复盘、迁移或复制配置时，才补充技术 ID。显式要求一旦命中，这些正文信息属于本轮验收结果，不能被“默认隐藏技术 ID”规则覆盖。
 
 ## URL 规则
 
@@ -117,6 +125,8 @@
 ## Checklist
 
 - [ ] final 先写业务总结，再给唯一一组“应用访问入口”；
+- [ ] final 中每个资源数量和数据完成声明都有对应资源自己的成功返回值/readback；未把一张表单的记录数套用到其他表单；
+- [ ] 用户或调用方显式要求资源清单/UUID/发布状态/测试数据摘要时，正文已完整列出经核验的交付清单，未只返回链接卡；
 - [ ] 已写入轻量 build-manifest 并运行页面/资源数量完整性风险检查；未通过时没有声称“已按 PRD 完成搭建”；
 - [ ] 未把内部文件或每个业务资源分别交付；
 - [ ] 工作台始终存在，custom 只在 `standalone` 写后回读通过时存在，admin 严格跟随 capability；

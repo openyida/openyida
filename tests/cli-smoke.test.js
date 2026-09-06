@@ -1638,7 +1638,7 @@ describe('CLI offline smoke', () => {
         url: '{base_url}/{appType}/admin',
       },
       internal_artifacts: 'never_user_visible',
-      business_resources: 'summary_only',
+      business_resources: 'summary_only_unless_explicit_verified_manifest_requested',
     });
     expect(parsed.builder_path.bound_context).toMatchObject({
       existing_app_type_policy: 'do_not_call_app_list_by_default',

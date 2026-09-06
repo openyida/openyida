@@ -223,12 +223,16 @@ describe('OpenYida skill contracts', () => {
       requiredTarget: ['appType', 'formUuid', 'formInstId', 'formName', 'formType'],
       preflightCommand: 'data get form',
       businessConfirmationRequired: true,
+      runtimePermissionPreferred: true,
+      runtimePermissionPreconfirmation: 'forbidden',
       executionFlag: '--confirm',
       successCondition: 'deleted=true && readbackVerified=true',
       repeatResult: 'alreadyAbsent=true && mutationPerformed=false',
       processDeleteSupported: false,
       privateApiFallbackAllowed: false,
     });
+    expect(skill).toContain('不得先调用 `ask_human`');
+    expect(skill).toContain('只有宿主没有运行时权限确认能力时');
   });
 
   test('login skill assigns browser ownership and waits for the original command', () => {
@@ -438,6 +442,11 @@ describe('OpenYida skill contracts', () => {
     expect(step9).toContain('新增、修改或发布单个具体页面时，仍只交付当前页面');
     expect(step9).toContain('完整应用的入口组始终包含“应用工作台” `{base_url}/{appType}/workbench`');
     expect(step9).toContain('不把表单、流程、报表、页面、资源清单或内部文件分别登记为附件');
+    expect(step9).toContain('用户或调用方明确要求资源清单、资源 UUID/ID、发布状态或测试数据摘要时');
+    expect(step9).toContain('不得用链接卡代替正文清单');
+    expect(step9).toContain('每个被 final 声称“已写入”“已验证”或给出记录数的表单/流程');
+    expect(step9).toContain('不得把一张表单的 3 条记录复制成其他表单也有 3 条');
+    expect(step9).toContain('每个资源数量和数据完成声明都有对应资源自己的成功返回值/readback');
     expect(step9).toContain('已完成订单、客户和商品等核心业务表单');
     expect(step9).toContain('应用工作台：`{base_url}/{appType}/workbench`');
     expect(step9).toContain('独立业务入口：`{base_url}/{appType}/custom/{formUuid}`');
@@ -499,6 +508,8 @@ describe('OpenYida skill contracts', () => {
     expect(manifest).toContain("mode: 'parallel'");
     expect(manifest).toContain('final_link_policy');
     expect(manifest).toContain('Return exactly one user-visible application entry group');
+    expect(manifest).toContain('include one concise verified delivery manifest in the final prose');
+    expect(manifest).toContain("every resource count, seed-record count, and completed/verified claim");
     expect(manifest).toContain('never one artifact or link card per form, process, report');
     expect(manifest).toContain('when PRD entryMode=standalone');
     expect(manifest).toContain('application_entry_policy.entries.admin=include');
@@ -1016,6 +1027,10 @@ describe('OpenYida skill contracts', () => {
     expect(appStep9).toContain('显示至少一条已 query 确认的记录');
 
     expect(canvas).toContain('final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`');
+    expect(canvas).toContain('不得用 Python、Node、Shell 或 `run_workspace_script`');
+    expect(canvas).toContain('已有 JSX/CSS/JSON 源码只做定点 Edit');
+    expect(canvas).toContain('不要写 `project/.cache/...`');
+    expect(canvas).toContain('现成的 `./lib/app/canvas-compile`');
     expect(canvas).toContain('该历史源码只由 `yida-custom-page` 自身闭环维护');
     expect(canvas).toContain('交给 `yida-canvas-upgrade`');
     expect(canvas).toContain('有 publish 成功证据时表述为“页面已发布”');
