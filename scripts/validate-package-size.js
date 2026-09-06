@@ -11,10 +11,10 @@ const path = require('path');
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
 const MAX_TARBALL_BYTES = 1792 * 1024;
-// Includes theme/navigation workflow updates and the inline CSS guard (6071113 bytes).
-const MAX_UNPACKED_BYTES = 5936 * 1024;
-// The inline CSS guard adds one runtime file to the previous 483-file package.
-const MAX_ENTRY_COUNT = 484;
+// Includes the DingTalk OpenAPI connector skill and integration contract guards (6143421 bytes).
+const MAX_UNPACKED_BYTES = 6010 * 1024;
+// Connector runtime guards and skill references add five files to the previous 484-file package.
+const MAX_ENTRY_COUNT = 489;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
