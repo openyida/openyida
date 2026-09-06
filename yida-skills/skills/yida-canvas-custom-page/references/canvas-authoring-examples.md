@@ -103,40 +103,41 @@ export default YidaComp;
 
 ## 4. 数据拉取组件（接数据桥）
 
-结合 [data-bridge-guide.md](data-bridge-guide.md) 的 `useYidaFetch`：同源 `fetch` + `credentials: 'include'` + AbortController 清理。此处只演示消费侧结构。
+结合 [data-bridge-guide.md](data-bridge-guide.md) 的连接器桥：页面只保存连接器资源 ID 和业务输入，鉴权留在平台连接器。此处只演示消费侧结构。
 
 ```jsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 function YidaComp(props) {
   var st = React.useState({ loading: true, rows: [], error: null });
   var state = st[0];
   var setState = st[1];
-  var abortRef = React.useRef(null);
-
   React.useEffect(function () {
-    var controller = new AbortController();
-    abortRef.current = controller;
+    var cancelled = false;
+    var bridge = window.__OPENYIDA_CONNECTOR_API__;
+    if (!bridge || typeof bridge.invoke !== 'function') {
+      setState({ loading: false, rows: [], error: '连接器运行时桥不可用' });
+      return undefined;
+    }
 
-    fetch('/your-connector-proxy/searchFormDatas', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ appType: props.appType, formUuid: props.formUuid, pageSize: 50 }),
-      signal: controller.signal,
-    })
-      .then(function (r) { if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.json(); })
+    bridge.invoke({
+      mode: 'connector',
+      connectorName: props.connectorName,
+      operationId: props.operationId,
+      connectionId: props.connectionId,
+    }, { path: {}, query: {}, header: {}, body: { pageSize: 50 } })
       .then(function (json) {
+        if (cancelled) { return; }
         var rows = (json && json.result && json.result.data) || [];
         setState({ loading: false, rows: rows, error: null });
       })
       .catch(function (e) {
-        if (e.name === 'AbortError') { return; }
+        if (cancelled) { return; }
         setState({ loading: false, rows: [], error: e.message });
       });
 
-    return function () { controller.abort(); };
-  }, [props.appType, props.formUuid]);
+    return function () { cancelled = true; };
+  }, [props.connectorName, props.operationId, props.connectionId]);
 
   if (state.loading) { return <div>加载中…</div>; }
   if (state.error) { return <div style={{ color: 'red' }}>加载失败：{state.error}</div>; }

@@ -402,6 +402,44 @@
       "done_when": "ECharts 页面源码完成并发布，必要时报表数据源已绑定。"
     },
     {
+      "name": "yida-dingtalk-openapi",
+      "path": "skills/yida-dingtalk-openapi/SKILL.md",
+      "display_name": "钉钉开放平台连接器",
+      "description": "将钉钉开放平台官方服务端 API 转为宜搭连接器动作，处理 DingAuth 安全配置和 Canvas 调用。",
+      "category": "yida-skills/integration",
+      "tags": [
+        "钉钉开放平台",
+        "api.dingtalk.com",
+        "DingAuth"
+      ],
+      "aliases": [
+        "钉钉 OpenAPI",
+        "钉钉官方接口"
+      ],
+      "positive_signals": [
+        "钉钉开放平台接口",
+        "api.dingtalk.com",
+        "x-acs-dingtalk-access-token"
+      ],
+      "negative_signals": [
+        "自建系统 API",
+        "普通第三方 API",
+        "已有连接器生成动作",
+        "事件订阅",
+        "Stream 模式",
+        "HTTP 回调接收"
+      ],
+      "command_ids": [
+        "connector.create",
+        "connector.list-actions",
+        "connector.list-connections",
+        "connector.create-connection",
+        "connector.test",
+        "publish"
+      ],
+      "done_when": "官方 API 契约可追溯且无凭据；连接器、动作和鉴权账号已确定性回读，测试成功；Canvas 调用已验证。"
+    },
+    {
       "name": "yida-connector",
       "path": "skills/yida-connector/SKILL.md",
       "display_name": "HTTP 连接器管理",
@@ -415,6 +453,17 @@
       ],
       "aliases": [
         "连接器创建"
+      ],
+      "positive_signals": [
+        "HTTP 连接器",
+        "第三方 API",
+        "自建系统 API",
+        "配置鉴权"
+      ],
+      "negative_signals": [
+        "钉钉开放平台官方接口",
+        "钉钉事件订阅",
+        "已有连接器生成动作"
       ]
     },
     {
@@ -1328,6 +1377,8 @@
         "执行动作",
         "dataSourceMap",
         "远程接口",
+        "钉钉开放平台",
+        "api.dingtalk.com",
         "集成自动化",
         "逻辑流"
       ]

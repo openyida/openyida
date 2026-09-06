@@ -104,6 +104,24 @@ describe('connector frontend API contract', () => {
     });
   });
 
+  test('save uses the connector id from detail readback when the write response id differs', async () => {
+    const params = buildConnectorParams();
+    utils.httpPost.mockResolvedValue({
+      success: true,
+      content: { id: 917319, connectorName: params.connectorName },
+    });
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: { content: { ...params, id: 917307, templateId: '0' } },
+    });
+
+    await expect(saveConnector(params, authRef)).resolves.toMatchObject({
+      connectorId: 917307,
+      connectorName: params.connectorName,
+      readbackVerified: true,
+    });
+  });
+
   test('save still fails closed when a semantic connector field changes', async () => {
     const params = buildConnectorParams();
     utils.httpPost.mockResolvedValue({
@@ -117,6 +135,23 @@ describe('connector frontend API contract', () => {
 
     await expect(saveConnector(params, authRef)).rejects.toMatchObject({
       code: 'CONNECTOR_READBACK_MISMATCH',
+      details: expect.objectContaining({
+        partial: true,
+        retrySafe: false,
+        sideEffectState: 'committed',
+        readbackVerified: false,
+        firstDifference: {
+          path: '$.host',
+          expected: 'api.example.com',
+          actual: 'different.example.com',
+        },
+        residual: expect.objectContaining({
+          type: 'connector',
+          connectorId: '101',
+          connectorName: 'Http_owned',
+          state: 'created_or_updated_unverified',
+        }),
+      }),
     });
   });
 

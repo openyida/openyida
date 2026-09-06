@@ -421,6 +421,7 @@ module.exports = {
     create_opt_initiate_approval_assignment: '  --initiate-approval-assignment <rule> Initiate-approval assignment: targetField:valueType:value',
     create_opt_connector_mode: '  --connector-mode <mode>       Connector mode; use 5 for HTTP connectors',
     create_opt_connection_id: '  --connection-id <id>          HTTP connector auth connection ID',
+    create_opt_connector_system_token_app: '  --connector-system-token-app <appType>  Bind systemToken server-side for a Yida OpenAPI action',
     create_opt_connector_display_name: '  --connector-display-name <name> Connector display name',
     create_opt_publish: '  --publish                     Publish after saving',
     create_examples_title: 'Examples:',
@@ -488,6 +489,11 @@ module.exports = {
     connector_action_not_found: 'Connector action not found by exact read-only discovery: {0}',
     connector_action_schema_missing: 'The connector action does not contain a verifiable inputs/outputs schema.',
     connector_input_unknown: 'Connector input was not found in the verified schema: {0}',
+    connector_input_ambiguous: 'Connector input exists in multiple parameter groups; use its full path: {0}',
+    connector_assignment_duplicate: 'Multiple connector assignments target the same input: {0}',
+    connector_assignment_value_required: 'Connector input assignment cannot be empty: {0}',
+    connector_required_input_missing: 'Required connector input has no assignment: {0}',
+    readback_connector_assignments_mismatch: 'Connector input assignments in the integration readback differ from the published content.',
     connector_schema_unverified: 'Connector action schema is unverified: {0}::{1}',
     runtime_case_unknown: 'Unknown integration runtime case: {0}',
     runtime_adapter_missing: 'Integration runtime adapter is not configured.',
@@ -1251,6 +1257,8 @@ module.exports = {
     lint_yida_api_catch: 'this.utils.yida API 호출에 .catch()가 감지되지 않았습니다. 오류 처리를 추가하고 사용자에게 toast를 표시하세요',
     lint_echarts_legacy_map_china: 'ECharts 5는 더 이상 echarts/map/js/china.js를 지원하지 않습니다. 대신 DataV GeoJSON을 로드하고 echarts.registerMap("china", geoJson)을 호출하세요',
     lint_echarts_rich_label_formatter: 'ECharts label.formatter가 반환하는 rich text 템플릿은 Yida 사용자 정의 페이지에서 불안정합니다. 일반 formatter 문자열이나 미리 계산한 라벨 텍스트를 권장합니다',
+    lint_system_token_frontend_forbidden: '사용자 정의 페이지에서 systemToken을 읽거나 전달할 수 없습니다. Yida 통합 자동화에서 서버 측으로 안전하게 바인딩하세요.',
+    lint_connector_runtime_name_required: 'Custom pages must invoke connectors with connectorName (Http_*); numeric connectorId is only for CLI management.',
     lint_const_let: 'const/let 선언을 사용했습니다. var로 변경하는 것을 권장합니다 (이다 런타임 호환성)',
     lint_computed_property: 'ES6 계산된 속성 이름 { [key]: value }을 사용했습니다. 이다 JS 엔진에서 지원하지 않아 자동 실패합니다. var obj = {}; obj[key] = value;로 변경하세요',
     lint_pad_method: 'String.{0}()을 사용했습니다. 이다 JS 엔진에서 지원하지 않아 Promise 콜백이 자동 중단됩니다. 삼항 연산자로 대체하세요 (예: x < 10 ? "0" + x : "" + x)',
@@ -1988,6 +1996,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
 
 const connectorSafetyMessages = require('../../lib/core/locales/en');
 module.exports.connector_contract = connectorSafetyMessages.connector_contract;
+module.exports.connector_auth = connectorSafetyMessages.connector_auth;
 module.exports.connector_api = connectorSafetyMessages.connector_api;
 module.exports.connector_e2e = connectorSafetyMessages.connector_e2e;
 module.exports.connector_action_update = connectorSafetyMessages.connector_action_update;

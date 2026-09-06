@@ -398,6 +398,7 @@ module.exports = {
     create_opt_initiate_approval_assignment: '  --initiate-approval-assignment <rule> 发起审批字段赋值：目标字段:valueType:value',
     create_opt_connector_mode: '  --connector-mode <mode>       连接器类型，HTTP 连接器传 5',
     create_opt_connection_id: '  --connection-id <id>          HTTP 连接器鉴权连接 ID',
+    create_opt_connector_system_token_app: '  --connector-system-token-app <appType>  為宜搭 OpenAPI 在服務端綁定 systemToken',
     create_opt_connector_display_name: '  --connector-display-name <name> 连接器展示名称',
     create_opt_publish: '  --publish                     保存后立即发布',
     create_examples_title: '示例:',
@@ -465,6 +466,11 @@ module.exports = {
     connector_action_not_found: 'Connector action not found by exact read-only discovery: {0}',
     connector_action_schema_missing: 'The connector action does not contain a verifiable inputs/outputs schema.',
     connector_input_unknown: 'Connector input was not found in the verified schema: {0}',
+    connector_input_ambiguous: '連接器輸入欄位存在於多個參數群組，請使用完整路徑：{0}',
+    connector_assignment_duplicate: '多個連接器賦值指向同一輸入欄位：{0}',
+    connector_assignment_value_required: '連接器輸入欄位的賦值不可為空：{0}',
+    connector_required_input_missing: '連接器必填輸入欄位尚未賦值：{0}',
+    readback_connector_assignments_mismatch: '整合自動化遠端回讀的連接器輸入賦值與發布內容不一致。',
     connector_schema_unverified: 'Connector action schema is unverified: {0}::{1}',
     runtime_case_unknown: 'Unknown integration runtime case: {0}',
     runtime_adapter_missing: 'Integration runtime adapter is not configured.',
@@ -1189,6 +1195,8 @@ module.exports = {
     lint_yida_api_catch: 'this.utils.yida API 調用未偵測到 .catch()，請補充錯誤處理並 toast 給用戶',
     lint_echarts_legacy_map_china: 'ECharts 5 已廢棄 echarts/map/js/china.js，請載入 DataV GeoJSON 後調用 echarts.registerMap("china", geoJson)',
     lint_echarts_rich_label_formatter: 'ECharts label.formatter 返回 rich text 模板在宜搭自定義頁面環境不穩定，建議使用普通 formatter 字串或預先拼好的標籤文字',
+    lint_system_token_frontend_forbidden: '自定義頁面不得讀取或傳入 systemToken；請改用宜搭集成自動化，在服務端安全綁定憑據。',
+    lint_connector_runtime_name_required: '自定義頁面調用連接器時必須使用 connectorName（Http_*）；數字 connectorId 只用於 CLI 管理。',
     lint_const_let: '使用了 const/let 宣告，建議改為 var（宜搭執行環境相容性）',
     lint_computed_property: '使用了 ES6 計算屬性名 { [key]: value }，宜搭 JS 引擎不支援此語法，會導致靜默失敗。請改為 var obj = {}; obj[key] = value;',
     lint_pad_method: '使用了 String.{0}()，宜搭 JS 引擎不支援此方法，會導致 Promise 回呼靜默中斷。請用三元運算子替代，如：x < 10 ? "0" + x : "" + x',
@@ -1875,6 +1883,7 @@ module.exports.connector_contract = {
   security_schemes_invalid: '連接器 securitySchemes 必須是 JSON 物件。',
   test_envelope_failed: '連接器測試回應信封報告失敗。',
   test_response_invalid: '連接器測試傳回了無法識別的回應契約。',
+  test_business_failed: '連接器測試傳回業務失敗，錯誤碼：{0}',
   test_status_invalid: '連接器測試回應缺少規範 HTTP 狀態列。',
   test_http_failed: '連接器測試失敗：{0}。',
 };
@@ -1944,3 +1953,4 @@ module.exports.connector_e2e = {
   test_contract_unverified: '連接器測試未能證明受控 fixture、標記、歸屬和驗證執行階段契約。',
   action_mutated: '連接器測試改變了持久化動作定義。',
 };
+module.exports.connector_auth = require('../../lib/core/locales/zh').connector_auth;

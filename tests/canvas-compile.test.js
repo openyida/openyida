@@ -1105,6 +1105,7 @@ describe('compileCanvasLocal', () => {
     expect(schema.actions.module.source).toContain('openyidaInstallYidaApiBridge');
     expect(schema.actions.module.source).toContain('window.__OPENYIDA_YIDA_API__');
     expect(schema.actions.module.source).toContain('window.__OPENYIDA_UTILS__');
+    expect(schema.actions.module.source).toContain('window.__OPENYIDA_CONNECTOR_API__');
     expect(schema.actions.module.source).toContain('this.utils.yida');
     expect(schema.actions.module.source).toContain('searchFormDatas');
     expect(schema.actions.module.source).toContain('startProcessInstance');
@@ -1287,6 +1288,193 @@ describe('compileCanvasLocal', () => {
       } else {
         delete global.window;
       }
+    }
+  });
+
+  test('Canvas connector bridge invokes only the fixed same-origin connector endpoint', async () => {
+    const previousWindow = global.window;
+    const fetch = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        success: true,
+        content: { serviceReturnValue: '{"events":[{"id":"event-1"}]}' },
+      }),
+    }));
+    const rootWindow = {
+      parent: {},
+      top: {},
+      fetch,
+      g_config: { _csrf_token: 'csrf-test' },
+    };
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      installBridge.call({ utils: {} });
+
+      const result = await rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({
+        connectorName: 'Http_calendar',
+        operationId: 'calendar-list',
+        connectionId: 'account-7',
+      }, {
+        query: { maxResults: 20 },
+      });
+
+      expect(result).toEqual({ events: [{ id: 'event-1' }] });
+      expect(fetch).toHaveBeenCalledTimes(1);
+      const [url, request] = fetch.mock.calls[0];
+      expect(url).toBe('/query/publicService/invokeService.json?_csrf_token=csrf-test');
+      expect(request).toMatchObject({
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          global_csrf_token: 'csrf-test',
+        },
+      });
+      const params = new URLSearchParams(request.body);
+      expect(JSON.parse(params.get('inputs'))).toEqual({
+        path: {},
+        query: { maxResults: 20 },
+        header: {},
+        body: {},
+      });
+      expect(JSON.parse(params.get('serviceInfo'))).toEqual({
+        connectorInfo: {
+          connectorId: 'Http_calendar',
+          actionId: 'calendar-list',
+          type: 'httpConnector',
+          connection: 'account-7',
+        },
+      });
+      expect(rootWindow.parent.__OPENYIDA_CONNECTOR_API__)
+        .toBe(rootWindow.__OPENYIDA_CONNECTOR_API__);
+      expect(rootWindow.top.__OPENYIDA_CONNECTOR_API__)
+        .toBe(rootWindow.__OPENYIDA_CONNECTOR_API__);
+    } finally {
+      global.window = previousWindow;
+    }
+  });
+
+  test('Canvas connector bridge fails before fetch when binding identity is incomplete', async () => {
+    const previousWindow = global.window;
+    const fetch = jest.fn();
+    const rootWindow = { parent: {}, top: {}, fetch };
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      installBridge.call({ utils: {} });
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({ connectorName: 'Http_calendar' }, {}))
+        .rejects.toThrow('connectorName and operationId are required');
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      global.window = previousWindow;
+    }
+  });
+
+  test('Canvas connector bridge tolerates an inaccessible parent window while reading CSRF', async () => {
+    const previousWindow = global.window;
+    const inaccessibleParent = {};
+    Object.defineProperty(inaccessibleParent, 'g_config', {
+      get() { throw new Error('cross-origin'); },
+    });
+    const fetch = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({ success: true, content: { serviceReturnValue: { ok: true } } }),
+    }));
+    const rootWindow = { parent: inaccessibleParent, top: {}, fetch };
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      installBridge.call({ utils: {} });
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({
+        connectorName: 'Http_calendar',
+        operationId: 'calendar-list',
+      }, {})).resolves.toEqual({ ok: true });
+      expect(fetch.mock.calls[0][0]).toBe('/query/publicService/invokeService.json');
+    } finally {
+      global.window = previousWindow;
+    }
+  });
+
+  test('Canvas connector bridge rejects numeric management ids and stringified bodies before fetch', async () => {
+    const previousWindow = global.window;
+    const fetch = jest.fn();
+    const rootWindow = { parent: {}, top: {}, fetch };
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      installBridge.call({ utils: {} });
+
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({
+        connectorId: '917319',
+        operationId: 'calendar-create',
+      }, { body: {} })).rejects.toMatchObject({
+        code: 'CONNECTOR_RUNTIME_NAME_REQUIRED',
+      });
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({
+        connectorName: 'Http_calendar',
+        operationId: 'calendar-create',
+      }, { body: '{"summary":"测试日程"}' })).rejects.toMatchObject({
+        code: 'CONNECTOR_BODY_OBJECT_REQUIRED',
+      });
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      if (previousWindow === undefined) { delete global.window; }
+      else { global.window = previousWindow; }
+    }
+  });
+
+  test('Canvas connector bridge surfaces nested gateway and service errors', async () => {
+    const previousWindow = global.window;
+    const fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: false,
+          content: { errorMessage: '必填字段值为空: Content-Type' },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          content: {
+            serviceReturnValue: JSON.stringify({
+              success: false,
+              errors: [{ message: '日程创建失败: userId 无效' }],
+            }),
+          },
+        }),
+      });
+    const rootWindow = { parent: {}, top: {}, fetch };
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      installBridge.call({ utils: {} });
+      const binding = { connectorName: 'Http_calendar', operationId: 'calendar-create' };
+
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke(binding, { body: {} }))
+        .rejects.toThrow('必填字段值为空: Content-Type');
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke(binding, { body: {} }))
+        .rejects.toThrow('日程创建失败: userId 无效');
+    } finally {
+      if (previousWindow === undefined) { delete global.window; }
+      else { global.window = previousWindow; }
     }
   });
 

@@ -36,6 +36,9 @@ describe('integration connector schema discovery', () => {
       id: 7, connectorName: 'Http_owned', connectorMode: 5,
     });
     connectorApi.getConnectorDetail.mockResolvedValue({
+      scheme: 'https',
+      host: 'api.dingtalk.com',
+      baseUrl: '/',
       operations: JSON.stringify([{
         operationId: 'sync',
         inputs: [
@@ -53,6 +56,10 @@ describe('integration connector schema discovery', () => {
     expect(result.verificationLevel).toBe('PLATFORM_READ_ONLY_DISCOVERY');
     expect(result.inputs.map((input) => input.componentName)).toEqual(['NumberField', 'CheckboxField']);
     expect(result.outputs).toHaveLength(1);
+    expect(result.connectorTarget).toEqual({
+      scheme: 'https', host: 'api.dingtalk.com', baseUrl: '/',
+    });
+    expect(result.operation.operationId).toBe('sync');
   });
 
   test('discovers common Http_ connector names when the numeric-id lookup has no match', async () => {
@@ -89,6 +96,66 @@ describe('integration connector schema discovery', () => {
       [{ column: 'unknown', valueType: 'literal', value: 'x' }],
       [{ name: 'amount', componentName: 'NumberField' }]
     )).toThrow(expect.objectContaining({ code: 'INTEGRATION_CONNECTOR_INPUT_UNKNOWN' }));
+  });
+
+  test('requires a full path when nested connector input names are ambiguous', () => {
+    const inputs = [
+      { name: 'Query', childList: [{ name: 'id' }] },
+      { name: 'Body', childList: [{ name: 'id' }] },
+    ];
+    expect(() => validateConnectorAssignmentsAgainstSchema(
+      [{ column: 'id', valueType: 'literal', value: 'x' }], inputs
+    )).toThrow(expect.objectContaining({ code: 'INTEGRATION_CONNECTOR_INPUT_AMBIGUOUS' }));
+    expect(() => validateConnectorAssignmentsAgainstSchema(
+      [{ column: 'Body.id', valueType: 'literal', value: 'x' }], inputs
+    )).not.toThrow();
+  });
+
+  test('rejects duplicate aliases that resolve to the same connector input', () => {
+    const inputs = [{ name: 'Body', childList: [{ name: 'userid', required: true }] }];
+    expect(() => validateConnectorAssignmentsAgainstSchema([
+      { column: 'userid', valueType: 'literal', value: 'user-1' },
+      { column: 'Body.userid', valueType: 'literal', value: 'user-2' },
+    ], inputs)).toThrow(expect.objectContaining({
+      code: 'INTEGRATION_CONNECTOR_ASSIGNMENT_DUPLICATE',
+      details: expect.objectContaining({ path: 'Body.userid', remoteWrites: 0 }),
+    }));
+  });
+
+  test('rejects empty assignments and missing required leaves before a remote write', () => {
+    const inputs = [{
+      name: 'Body', paramLocation: 'body',
+      childList: [
+        { name: 'userid', required: true },
+        { name: 'optional', required: false },
+      ],
+    }];
+    expect(() => validateConnectorAssignmentsAgainstSchema([
+      { column: 'Body.userid', valueType: 'literal', value: '' },
+    ], inputs)).toThrow(expect.objectContaining({ code: 'INTEGRATION_CONNECTOR_ASSIGNMENT_VALUE_REQUIRED' }));
+    expect(() => validateConnectorAssignmentsAgainstSchema([], inputs)).toThrow(expect.objectContaining({
+      code: 'INTEGRATION_CONNECTOR_REQUIRED_INPUT_MISSING',
+      details: expect.objectContaining({ path: 'Body.userid', paramLocation: 'body', remoteWrites: 0 }),
+    }));
+    expect(() => validateConnectorAssignmentsAgainstSchema([
+      { column: 'Body.userid', valueType: 'literal', value: 'user-1' },
+      { column: 'Body.optional', valueType: 'literal', value: '' },
+    ], inputs)).not.toThrow();
+  });
+
+  test('accepts required leaves with schema defaults and supports the pre-injection phase', () => {
+    const inputs = [{
+      name: 'Body', paramLocation: 'body',
+      childList: [
+        { name: 'systemToken', required: true },
+        { name: 'locale', required: true, defaultValue: 'zh_CN' },
+      ],
+    }];
+    expect(validateConnectorAssignmentsAgainstSchema([], inputs, { requireRequired: false }))
+      .toMatchObject({ assignmentCount: 0, consumedCount: 0 });
+    expect(() => validateConnectorAssignmentsAgainstSchema([
+      { column: 'Body.systemToken', valueType: 'literal', value: 'in-memory-token' },
+    ], inputs)).not.toThrow();
   });
 
   test('all 12 locale packs expose control-plane readback and connector fail-closed messages', () => {

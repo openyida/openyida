@@ -106,7 +106,7 @@ description: >
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-agent-center` |
 | `yida-skills/page` | 自定义展示页、页面源码开发、平台 JSX 组件页面维护、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
 | `yida-skills/analytics` | 聚合表、虚拟视图、报表、统计、图表、Recharts、ECharts、看板、驾驶舱、大屏 | `yida-aggregate-table`、`yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard` |
-| `yida-skills/integration` | 连接器、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-integration`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
+| `yida-skills/integration` | 连接器、钉钉开放平台、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-integration`、`yida-dingtalk-openapi`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
 | `yida-skills/access` | 平台/应用/表单/页面权限、公开访问、分享 | `yida-corp-manager`、`yida-app-permission`、`yida-form-permission`、`yida-page-config` |
 | `yida-skills/ops` | Sequence、主键冲突、VOC 反馈 | `yida-db-seq-fix`、`yida-voc` |
 | `yida-skills/agent` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | `yida-export-conversation`、`yida-document-markdown`、`yida-tingji`、`yida-flash-note-to-prd` |
@@ -119,6 +119,8 @@ description: >
 | 已有 app 但没有任何页面，需要补成完整系统 | `yida-app`；属于首次搭建，同样先询问搭建方式，复用已有 `appType` 补齐资源 |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
+| 将钉钉开放平台官方 API 接入宜搭或 Canvas | `yida-dingtalk-openapi`；密钥不进聊天，账号由用户在宜搭或本机 TTY 配置 |
+| 钉钉事件订阅、Stream 或 HTTP 回调 | OpenYida 不支持；直接说明能力边界并停止，不生成连接器动作 |
 | 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成 PRD |
 | 已有会议纪要/闪记内容转 PRD | `yida-flash-note-to-prd`，只处理已有内容，不负责按 taskUuid 拉取听记 |
 | 只创建应用壳并拿 appType | `yida-create-app`；若随后继续完整搭建，已经确认的 `requirement-brief.json`、`prd.md` 与 `design.md` 保持不变，真实 `appType` 只写入 schema 或当前任务资源上下文 |

@@ -316,7 +316,7 @@ openyida copy
 | \`yida-skills/process\` | 审批、流程表单、流程规则、代理人 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\` |
 | \`yida-skills/page\` | 自定义展示页、YidaCodeCanvas 组件、历史平台 JSX 组件页面维护、发布、导航壳、PPT | \`yida-create-page\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\` |
 | \`yida-skills/analytics\` | 报表、统计、图表、Recharts、ECharts、看板、驾驶舱 | \`yida-report\`, \`yida-rechart\`, \`yida-chart\`, \`yida-dashboard\` |
-| \`yida-skills/integration\` | 连接器、外部 API、数据源、集成自动化 | \`yida-integration\`, \`yida-connector\`, \`yida-connector-safe-actions\`, \`yida-data-source-connectors\` |
+| \`yida-skills/integration\` | 连接器、钉钉开放平台、外部 API、数据源、集成自动化 | \`yida-integration\`, \`yida-dingtalk-openapi\`, \`yida-connector\`, \`yida-connector-safe-actions\`, \`yida-data-source-connectors\` |
 | \`yida-skills/access\` | 平台/应用/表单/页面权限、公开访问、分享 | \`yida-corp-manager\`, \`yida-app-permission\`, \`yida-form-permission\`, \`yida-page-config\` |
 | \`yida-skills/ops\` | Sequence、VOC | \`yida-db-seq-fix\`, \`yida-voc\` |
 | \`yida-skills/agent\` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | \`yida-export-conversation\`, \`yida-document-markdown\`, \`yida-tingji\`, \`yida-flash-note-to-prd\` |

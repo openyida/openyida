@@ -22,6 +22,15 @@ inputs 中的字段按照以下规则分组：
 | `Path` | 路径变量 | URL 中 `{variable}` 形式的参数 |
 | `Body` | 请求体参数 | POST/PUT 接口的 JSON body |
 
+### Header 运行时约束
+
+- `Headers` 分组和所有 Header 子字段统一设置 `required: false`。平台运行时可能把 `required: true` 的 Header 误判为空，即使页面已传值。
+- `Content-Type` 使用 `required: false`，并在 `parameters.header` 中保存非空固定值，例如 `application/json`。
+- `x-client-token` 等可选 Header 没有固定值时，不在 `parameters.header` 中保存空条目；调用方有值时通过 `inputs.header` 传入。
+- API 语义要求 Header 必填时，页面或自动化在调用前校验非空，Action Schema 仍保持 `required: false`。
+
+Canvas 传递 JSON Body 时直接传对象，例如 `body: { summary: '测试日程' }`，不能传 `body: JSON.stringify(...)`。
+
 ### GET 接口处理规则
 
 GET 接口没有 Body，所有业务参数放在 `Query` 分组中：
