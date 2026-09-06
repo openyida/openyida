@@ -223,12 +223,16 @@ describe('OpenYida skill contracts', () => {
       requiredTarget: ['appType', 'formUuid', 'formInstId', 'formName', 'formType'],
       preflightCommand: 'data get form',
       businessConfirmationRequired: true,
+      runtimePermissionPreferred: true,
+      runtimePermissionPreconfirmation: 'forbidden',
       executionFlag: '--confirm',
       successCondition: 'deleted=true && readbackVerified=true',
       repeatResult: 'alreadyAbsent=true && mutationPerformed=false',
       processDeleteSupported: false,
       privateApiFallbackAllowed: false,
     });
+    expect(skill).toContain('不得先调用 `ask_human`');
+    expect(skill).toContain('只有宿主没有运行时权限确认能力时');
   });
 
   test('login skill assigns browser ownership and waits for the original command', () => {
