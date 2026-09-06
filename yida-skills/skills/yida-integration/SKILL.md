@@ -28,7 +28,9 @@ description: 创建/管理宜搭集成自动化。
 - 创建成功后记录逻辑流 ID 到 `.cache/<项目名>-schema.json`
 - `--spec` JSON 文件必须先用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/integration/`；不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向写文件，也不要写仓库根目录或系统临时目录
 - 连接器 action schema 只能来自 CLI 的平台只读发现或固定已证 preset；不得使用 `--connector-inputs` 自行声明未知字段类型，未知连接器、动作或输入字段必须停止且保持零写入
+- 连接器嵌套输入使用完整路径赋值，如 `Body.userid`、`Path.unionId`；只有 schema 中唯一的叶子名可以使用短名称
 - 需要宜搭 `systemToken` 的连接器动作使用 `--connector-system-token-app <appType>`，或在 spec 中声明 `secretBindings`。CLI 校验官方目标后从当前登录态读取凭据并只注入服务端流程 payload；普通 assignment 不接收该值
+- `integration create --publish` 的成功只证明控制面保存、启用和配置回读；输出 `runtimeVerified=false` 时必须真实触发并独立读回业务结果，不能宣称连接器动作已经执行成功
 - 参考官方示例时不要只看默认页面 schema：集成自动化示例的默认页通常只是触发表单或说明页，逻辑流本体需要通过集成自动化接口/命令查询或创建
 - 分析已有应用时先执行不带筛选的 `integration list --json` 获取全部已知触发类型；不得只看表单事件就声称已完成自动化盘点
 
@@ -58,6 +60,7 @@ description: 创建/管理宜搭集成自动化。
 | `INTEGRATION_FULL_REPLACEMENT_REQUIRES_REPLACE` | 已获得整图替换确认时，补 `--replace` 重试一次；未获得确认时，展示替换摘要并请求确认 |
 | `INTEGRATION_CONNECTOR_SCHEMA_UNVERIFIED` / `INTEGRATION_CONNECTOR_ACTION_NOT_FOUND` | 停止创建；确认连接器与 action 可由平台只读详情精确发现，不得用 `TextField` 或自写 schema 猜测 |
 | `INTEGRATION_PUBLISH_READBACK_UNVERIFIED` / `INTEGRATION_READBACK_*` | 写响应不作为完成证据；报告状态未验证，不得宣称已发布或已启停 |
+| `INTEGRATION_CONNECTOR_REQUIRED_INPUT_MISSING` / `INTEGRATION_CONNECTOR_ASSIGNMENT_*` | 在零写入状态修正完整字段路径和值；不得绕过校验或改用短名称猜测 |
 | 命令执行失败 | 停止执行，向用户展示错误信息，询问是否重试或调整参数 |
 | 参数缺失（appType/formUuid/userId 等） | 主动询问用户补充，不得猜测或编造 |
 | 权限不足 / 登录态失效 | 停止执行，提示用户执行 `openyida auth status` 检查登录态 |

@@ -44,6 +44,7 @@ jest.mock('../lib/integration/integration-api', () => ({
 jest.mock('../lib/integration/integration-readback', () => ({
   verifyLogicflowFinalState: jest.fn(),
   projectAddDataAssignments: jest.fn(() => []),
+  projectConnectorAssignments: jest.fn(() => []),
   projectSystemTokenBindings: jest.fn(() => []),
 }));
 jest.mock('../lib/integration/integration-connector-schema', () => ({
@@ -433,6 +434,9 @@ describe('integration create command', () => {
     expect(JSON.parse(logSpy.mock.calls[0][0])).toMatchObject({
       success: true,
       published: true,
+      controlPlaneVerified: true,
+      runtimeVerified: false,
+      requiresRuntimeVerification: true,
       verificationLevel: 'PLATFORM_LIST_EXACT_DETAIL_PRESENT',
       verification: { verificationLevel: 'PLATFORM_LIST_EXACT_DETAIL_PRESENT' },
     });
@@ -692,6 +696,49 @@ describe('integration create command', () => {
       },
     });
     expect(exitSpy).not.toHaveBeenCalled();
+  });
+
+  test('publishes with an exact ConnectorNode assignment projection', async () => {
+    const expectedConnectorAssignments = [{
+      nodeId: 'node-2',
+      connectorId: 'Http_owned',
+      actionId: 'queryUser',
+      connectionId: '',
+      assignments: [{ path: 'Body.userid', valueType: 'processVar', value: 'textField_owner' }],
+    }];
+    connectorSchema.resolveConnectorActionSchema.mockResolvedValue({
+      inputs: [{
+        name: 'Body', paramLocation: 'body', componentName: 'ObjectField',
+        childList: [{ name: 'userid', required: true, componentName: 'TextField' }],
+      }],
+      outputs: [],
+      verificationLevel: 'PLATFORM_READ_ONLY_DISCOVERY',
+    });
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+    integrationReadback.projectConnectorAssignments.mockReturnValueOnce(expectedConnectorAssignments);
+
+    await run([
+      'APP_TEST', 'FORM-A', 'connector publish verified',
+      '--connector-id', 'Http_owned',
+      '--action-id', 'queryUser',
+      '--connector-assignment', 'Body.userid:processVar:textField_owner',
+      '--publish',
+    ]);
+
+    expect(integrationReadback.verifyLogicflowFinalState).toHaveBeenCalledWith(expect.any(Object), {
+      appType: 'APP_TEST',
+      formUuid: 'FORM-A',
+      processCode: 'LPROC-TEST',
+      expectedStatus: 'y',
+      expectedConnectorAssignments,
+    });
+    expect(connectorSchema.validateConnectorAssignmentsAgainstSchema).toHaveBeenNthCalledWith(
+      1, expect.any(Array), expect.any(Array), { requireRequired: false }
+    );
+    expect(connectorSchema.validateConnectorAssignmentsAgainstSchema).toHaveBeenNthCalledWith(
+      2, expect.any(Array), expect.any(Array)
+    );
   });
 
   test('injects yida systemToken only after trusted action preflight and never prints it', async () => {

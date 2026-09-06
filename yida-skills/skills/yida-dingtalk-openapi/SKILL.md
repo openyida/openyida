@@ -39,8 +39,8 @@ description: 将钉钉开放平台官方服务端 API 转成宜搭 HTTP 连接�
    - 恰好新增一个且名称符合预期：使用该账号；
    - 没有新增，但存在唯一同名 ACTIVE 账号：复用；
    - 多个新增、同名不唯一、名称不符或状态非 ACTIVE：停止，展示低敏候选信息，不猜测。
-11. 用 `connector test --account-id` 做真实只读探针；宜搭 OpenAPI 额外传 `--system-token-app <appType>`，CLI 只在内存中注入 `body.systemToken`。写类接口需单独确认业务副作用。
-12. 不需要 `systemToken` 的页面调用加载 `yida-canvas-data-binding`，页面 binding 写 `connectorName: "Http_*"`，Body 传对象。需要 `systemToken` 时加载 `yida-integration`，创建服务端自动化；不生成前端连接器调用。
+11. 读接口用 `connector test --account-id` 做真实探针；写接口先展示目标与副作用，用户确认后只调用一次。宜搭 OpenAPI 额外传 `--system-token-app <appType>`，CLI 只在内存中注入 `body.systemToken`。HTTP 200 只表示请求到达；CLI 还必须确认响应契约和钉钉 `errcode`。
+12. 不需要 `systemToken` 的页面调用加载 `yida-canvas-data-binding`，页面 binding 写 `connectorName: "Http_*"`，Body 传对象。需要 `systemToken` 时加载 `yida-integration`，创建服务端自动化；嵌套 assignment 使用 `Body.userid` 等完整路径。发布回读只证明控制面配置，真实触发与业务读回成功后才能报告业务完成。
 
 ## 创建命令
 
@@ -64,6 +64,7 @@ openyida connector list-connections <connector-id> --json
 - Action Header 均为 `required=false`，固定 `Content-Type` 有非空默认值，可选 Header 不保存空默认项。
 - 连接器及动作已回读，账号归属和 ACTIVE 状态已确定。
 - 只读测试返回业务可识别结果；不能仅凭 HTTP 200 宣称完成。
+- 集成自动化发布返回 `controlPlaneVerified=true`；`runtimeVerified=false` 时继续执行真实触发与业务读回，不宣称钉钉动作已经完成。
 - Canvas 场景已通过固定平台代理调用，刷新后仍可读取真实数据。
 - 若停在鉴权阶段，明确报告 connectorId、accountManageUrl、detailUrl、建议账号名和暂停原因，不宣称集成完成。
 

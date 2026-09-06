@@ -11,7 +11,7 @@
 
 钉钉开放平台包含日程、通讯录、考勤、审批、待办、文档、即时通信等大量服务端 API，接口文档会持续更新。OpenYida 当前已有通用 HTTP 连接器管理能力，但缺少一个专门负责理解钉钉官方文档、鉴权与权限约束，并稳定生成连接器 Action 的领域技能。
 
-本方案需要完成三个闭环：
+本设计需要完成四项结果：
 
 1. 钉钉官方接口文档转换为可验证的连接器 Action。
 2. 普通连接器 Action 可由宜搭自定义页面稳定调用；需要宜搭 `systemToken` 的 Action 只允许由集成自动化在服务端调用。
@@ -183,7 +183,9 @@ yida-skills/skills/yida-dingtalk-openapi/
 ```text
 connector list/detail
 → 创建或复用连接器
-→ list-connections/create-connection
+→ list-connections 读取账号快照
+→ 用户通过 accountManageUrl 配置账号
+→ list-connections 回读新增账号
 → add-action
 → list-actions 回读
 → connector test
@@ -253,12 +255,12 @@ OpenYida 本地配置、Connector Action 和页面源码都不应保存 AK/SK。
 
 [`connector-test.js`](../../lib/connector/connector-test.js#L185) 会先确认 `--account-id` 对应的连接账号属于当前连接器，然后把账号 ID 写入测试载荷的 `connection` 字段。
 
-运行态调用使用相同引用模型：
+集成自动化运行态使用连接器内部名；数字 ID 只用于 CLI 管理命令：
 
 ```json
 {
   "connectorInfo": {
-    "connectorId": "910244",
+    "connectorId": "Http_xxx",
     "actionId": "createCalendarEvent",
     "type": "httpConnector",
     "connection": 2391
@@ -640,13 +642,13 @@ npm run check:ci
 - 接口契约记录 `fixedInputs` 和 `inputDependencies`；创建日程明确通过自定义连接器执行通讯录 `userId → result.unionid → path.userId`，并固定 `calendarId=primary`，不再按字段名猜值或绕过连接器调用前置接口。
 - `connector create` 拒绝 DingTalk 凭据并返回授权账号管理页 `accountManageUrl` 与连接器定义页 `detailUrl`；创建结果的 `connectorId` 以详情回读为准，避免写接口返回的非资源 ID 污染后续命令；`list-connections --json` 不再混入进度文本。
 - `create-connection --interactive` 保留为兼容命令，但技能只引导用户通过 `accountManageUrl` 配置鉴权。
-- Canvas 发布层注入 `window.__OPENYIDA_CONNECTOR_API__`，固定调用同源 `/query/publicService/invokeService.json`，组装 `connectorId/operationId/connectionId` 并解包业务结果。
+- Canvas 发布层注入 `window.__OPENYIDA_CONNECTOR_API__`，固定调用同源 `/query/publicService/invokeService.json`，把 `connectorName/operationId/connectionId` 映射为网关请求并解包业务结果。
 - `yida-connector`、接口模板及 `yida-canvas-data-binding` 已切换到不经聊天传密钥的流程。
 
 本地与真实只读验证：
 
 - 连接器鉴权、JSON 输出、Canvas bridge、技能契约定向测试 109/109 通过。
-- 当前分支的 CI Step 2–12 通过：181 个测试套件、2590 个测试全部通过；结构、技能、命令清单、生成文档、i18n、语法、lint、发布风险、包体与包内容均通过。整体 `check:ci` 的 Step 1 `npm ci --ignore-scripts` 在本机新建 npm cache 时 4.5 分钟无进展，手动停止后用现有完整依赖逐项执行后续检查。
+- 本地逐项验证中 181 个测试套件、2590 个测试全部通过；结构、技能、命令清单、生成文档、i18n、语法、lint 与发布风险检查通过。GitHub CI 的同批测试也全部通过，但最新提交在 Step 11 包体门禁失败：解包后 5.85 MiB，超过 5.80 MiB 上限；在修复包体门禁前不得把 PR 记为可发布。
 - 全局 `openyida` 已 link 到本分支并验证凭据参数在登录和远端读取前被结构化阻断。
 - Eval Pipeline Gate 通过；本机无可用 `claude` CLI，因此真实 agent 路由项降级为 WARN，不影响静态路由用例。
 - `systemToken` 定向回归 9 个套件、138 个用例通过；覆盖可信 Host/Path、Body 唯一位置、明文值拒绝、连接器测试注入、集成 spec 安全绑定、脱敏回读与页面 linter。
@@ -701,7 +703,208 @@ Done Contract：错误身份、Header 和 Body 均在网络调用或远端保存
 - `inputs.body` 字符串会在 fetch 前返回 `CONNECTOR_BODY_OBJECT_REQUIRED`；合法对象按平台表单协议序列化。
 - 网关顶层错误与 `content/serviceReturnValue/result/data/errors` 中的嵌套错误均可提取；业务响应为 `success=false` 时不再被当作成功值返回。
 - `CONNECTOR_READBACK_MISMATCH` 现在返回低敏 `firstDifference`、残留资源身份、`sideEffectState=committed` 和只读 `nextStep`，技能明确要求立即停止。
-- 14 个相关测试套件、237 个用例通过；新增 linter 变体后 Canvas/linter 96 个用例通过。CI Step 2–12 全部通过；Step 1 使用全新临时 npm cache 的依赖下载在本机无网络进展，因此未把该等待计为代码失败。
+- 14 个相关测试套件、237 个用例通过；新增 linter 变体后 Canvas/linter 96 个用例通过。最新 GitHub CI 的全量 Jest 通过，但包体门禁仍失败；真实场景与发布状态均不得仅以定向单测通过代替。
 - 当前登录组织 `ding8196cd9a2b2405da24f2f5cc6abecb85` 中只读查询不到现场连接器 `917319`，因此本轮没有修改远端资源，也不能在该组织复跑原按钮。真实页面验收仍需提供该连接器所在组织，或在当前组织完成一个新连接器的账号鉴权后执行。
 
 Done Contract 状态：源码、技能和本地运行契约已完成；原现场资源的真实按钮复验因当前组织不可见该连接器而待补，不影响本地 fail-fast 与请求映射结论。
+
+## 14. 集成自动化嵌套连接器现场 case 与收口计划
+
+### 14.1 问题背景
+
+一个真实应用需要完成以下服务端自动化链路：
+
+```text
+任务负责人 userId
+→ 自建 DingAuth 通讯录连接器查询 unionId
+→ 自建待办连接器创建钉钉待办
+→ 将 unionId、待办 ID 写回宜搭映射表和任务表
+```
+
+现场已确认钉钉应用权限和直连 API 可用，自建连接器及鉴权账号也能够完成控制面回读。OpenYida 可以生成、保存并发布包含连接器节点的集成自动化，但真实触发后，第一个通讯录连接器节点持续返回“自定义连接器运行失败”，下游待办创建与数据回写均未执行。设计态 `connector test` 多次收到 HTTP 200，CLI 却返回 `CONNECTOR_TEST_RESPONSE_INVALID`，没有保留足以定位真实 envelope 的低敏结构信息。
+
+为排查问题，调用方重复执行了创建、发布、触发和 `integration check`。其中 `integration check` 虽然查到了业务异常，但命令仍以退出码 0 结束；外层脚本再经过 `grep`、`head` 或 `tail` 后被执行环境记录为成功，导致上层继续沿同一路径重试。控制面“已发布”、工具“退出码为 0”和业务“真实运行成功”因此被错误混为一件事。
+
+现场连接器 Action 的关键输入结构为分组后的嵌套字段：
+
+```text
+Body
+└── userid  (required=true, paramLocation=body)
+```
+
+旧实现的 `buildConnectorRulesFromInputs()` 只会为顶层输入生成赋值规则。它能识别 assignment 中的 `userid`，也能给子节点补 `Body%userid` 的 `id/parentId`，但不会把 assignment 写入 `Body%userid.rules[0]`。生成结果因此可以通过控制面保存，却在运行时缺少真实 Body 参数。这是当前 case 与 PR #544 嵌套规则修复之间的直接对应关系。
+
+### 14.2 PR #544 已覆盖的部分
+
+当前 PR 已递归生成子字段规则，并支持以下两种无歧义写法：
+
+```text
+userid
+Body.userid
+```
+
+同时已处理同名叶子字段歧义、嵌套 `id/parentId`、空 Header 默认项和 Header `required` 误判。对于上述 `Body.userid` 丢失问题，这些改动是必要修复；重新使用新版本 OpenYida 生成并发布流程后，预期应出现：
+
+```text
+connectorRules.rules[Body].childList[userid].rules[0]
+```
+
+但当前证据只证明本地编译结构正确，尚未证明目标组织中的 DingAuth 连接器完成真实自动化运行。既有已发布流程也不会自动获得新规则，必须由新版本重新生成、回读并发布。
+
+### 14.3 P0：解决该 case 必须补齐的能力
+
+#### P0-1 发布前校验 required leaf 和 assignment 消费结果（已本地实现）
+
+`validateConnectorAssignmentsAgainstSchema()` 当前只检查字段名是否存在及是否歧义，还需要生成规范化叶子字段索引并验证：
+
+- 每个 `required=true` 的可赋值叶子字段都有 assignment、非空固定默认值或受支持的安全绑定；
+- 每个用户提供的 assignment 恰好被消费一次；
+- assignment 的 `paramLocation` 与完整路径一致；
+- 最终生成的 leaf rule 非空，且 `valueType/value/ruleId` 完整。
+
+任一条件不满足时，在 `createLogicflow` 之前返回稳定 `CliError`，包含低敏 `path`、`required`、`assignmentState` 和 `remoteWrites=0`。推荐涉及文件：
+
+- `lib/integration/integration-connector-schema.js`
+- `lib/integration/connector-presets.js`
+- `tests/integration-connector-schema.test.js`
+- `tests/integration-view-builder.test.js`
+
+#### P0-2 发布后回读通用 ConnectorNode assignments（已本地实现）
+
+当前最终回读只精确检查 AddData assignments 和 `systemToken` binding，没有通用投影 ConnectorNode 的输入规则。需要在 `integration-readback.js` 增加 `projectConnectorAssignments()`，至少投影并比较：
+
+```text
+nodeId
+connectorId
+actionId
+connectionId
+input path
+valueType
+value（敏感字段只比较 bound 状态）
+```
+
+本 case 必须验证 `Body.userid` 已持久化为 `Body%userid.rules[0]`。平台回读丢失或改写规则时，`integration create --publish` 应非零失败，并返回 `INTEGRATION_READBACK_CONNECTOR_ASSIGNMENTS_MISMATCH`；不能只因流程存在且状态为启用就输出业务完成。
+
+推荐涉及文件：
+
+- `lib/integration/integration-readback.js`
+- `lib/integration/integration-create.js`
+- `tests/integration-readback.test.js`
+- `tests/integration-create.test.js`
+
+#### P0-3 让 connector test 对真实 envelope 可诊断、可验收（通用契约已本地实现）
+
+`canonicalizeConnectorTestResponse()` 仍只接受 canonical response 或一层已证 success envelope。遇到未知 envelope 时应继续 fail closed，但错误详情必须提供脱敏后的：
+
+```json
+{
+  "errorCode": "CONNECTOR_TEST_RESPONSE_INVALID",
+  "topLevelKeys": [],
+  "contentKeys": [],
+  "responseShape": "object(...)"
+}
+```
+
+取得真实平台 fixture 后，只增加对该精确 envelope 的适配，不得把任意 HTTP 200 视为成功。通用契约识别钉钉 `errcode/errmsg`，`errcode != 0` 返回非零退出码；`result.unionid` 等具体业务字段由对应 Action 的验收用例断言，不硬编码进共享连接器契约。所有错误详情必须经过统一脱敏，不输出 access token、Cookie、AK/SK 或请求 Body 中的凭据。
+
+推荐涉及文件：
+
+- `lib/connector/contract.js`
+- `lib/connector/api.js`
+- `lib/connector/connector-test.js`
+- `tests/connector-contract.test.js`
+- `tests/connector-api.test.js`
+
+#### P0-4 为 integration check 增加确定性严格模式
+
+需要支持按单次业务运行定位，而不是扫描整个应用后再依赖文本管道筛选：
+
+```bash
+openyida integration check APP_TEST \
+  --process-code LPROC_TEST \
+  --form-inst-id FINST_TEST \
+  --start-time <timestamp> \
+  --wait-seconds 60 \
+  --fail-on-abnormal \
+  --json
+```
+
+严格模式契约：
+
+- 唯一目标运行成功时退出 0；
+- 命中异常日志、查询失败或等待超时时退出非零；
+- JSON 稳定返回 `success/status/errorCode/processCode/procInstId/formInstId/exceptionEntity`；
+- 不要求调用方通过 `grep/head/tail` 判断业务成败。
+
+为兼容现有批量报表用途，`--fail-on-abnormal` 可以先作为显式选项；`yida-integration` 技能中的自动验收命令必须使用该选项。
+
+推荐涉及文件：
+
+- `lib/integration/integration-check.js`
+- `lib/integration/integration-api.js`
+- `tests/integration-check.test.js`
+- `tests/integration-api.test.js`
+- `yida-skills/skills/yida-integration/SKILL.md`
+
+#### P0-5 补真实 grouped connector Runtime E2E
+
+现有 runtime contract 已声明 connector case，但缺少可运行的真实平台 adapter。应使用自有、可清理的测试资源补一条最小链路：
+
+```text
+只读确认 fixture ownership
+→ 生成并发布包含 Body.userid 的连接器自动化
+→ 创建带 correlation marker 的触发记录
+→ 等待唯一运行日志
+→ 独立读回 unionId 和下游写入结果
+→ 清理测试记录和自动化
+```
+
+断言至少包含：
+
+- `Body%userid.rules[0]` 精确存在；
+- `connectionId` 与 owned fixture 一致；
+- 自定义连接器只执行一次；
+- `result.unionid` 非空并完成映射表写入；
+- 下游待办创建只执行一次并回写待办 ID；
+- 异常时 runner 非零失败并报告 residual；
+- cleanup 失败不能覆盖主失败。
+
+真实资源 ID、组织 ID、用户 ID 和凭据只进入本地 E2E 配置，不得硬编码进源码、fixture 或文档。
+
+推荐涉及文件：
+
+- `scripts/e2e-real/integration/runtime-contracts.js`
+- `scripts/e2e-real/integration/runtime-runner.js`
+- 新增受环境变量驱动的真实平台 adapter
+- `tests/e2e-real-integration-runtime-runner.test.js`
+
+### 14.4 P1：减少重复创建和错误完成声明
+
+完成 P0 后再处理以下防复发能力：
+
+1. `integration create` 在写入前检查同一表单下的同名流程；默认返回已有 `processCode` 并停止，只有显式 `--allow-duplicate` 才允许重复创建。
+2. 发布结果明确区分：
+
+   ```json
+   {
+     "controlPlaneVerified": true,
+     "runtimeVerified": false,
+     "requiresRuntimeVerification": true
+   }
+   ```
+
+3. 技能要求嵌套字段优先使用完整路径，如 `Body.userid`、`Path.unionId`；唯一叶子名只作为兼容快捷写法，避免 Action 后续新增同名字段导致歧义。
+4. 新流程真实运行成功前不得自动停用或覆盖旧流程；新流程验收通过后，再按明确 processCode 停用旧流程，避免故障窗口和重复触发并存。
+
+### 14.5 Done Contract
+
+该现场 case 只有在以下证据全部具备时才算完成：
+
+1. PR CI 全绿并发布包含修复的新 OpenYida 版本。
+2. 新版本重新生成流程后，控制面回读确认 `Body%userid.rules[0]` 与期望 assignment 一致。
+3. `connector test` 能识别真实平台 envelope；成功时返回非空 `result.unionid`，业务失败时返回稳定非零错误。
+4. 严格模式 `integration check` 确认目标运行成功，且不依赖 shell 文本过滤判断结果。
+5. 通讯录查询、待办创建、unionId 回写和待办 ID 回写均由独立读回证明，调用次数均为一次。
+6. 注入缺少 `Body.userid`、错误 connectionId、DingTalk 业务错误和运行超时后，OpenYida 都能在正确边界非零失败，不生成重复流程或错误完成声明。
+
+当前状态：嵌套 child rule、required leaf 完整性、assignment 唯一消费、通用 ConnectorNode assignment 回读、测试响应低敏结构诊断、钉钉 `errcode` 判断及控制面/运行时状态区分已在本地实现并通过定向测试。真实平台 envelope 适配、`integration check` 严格模式和真实 grouped connector Runtime E2E 仍待补，因此本 case 仍不能仅凭控制面发布成功宣告完成。
