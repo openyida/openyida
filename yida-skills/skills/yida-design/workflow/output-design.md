@@ -17,6 +17,18 @@
 
 `sceneKey` 必须直接取自 `requirement-brief.json` 的对应 `pageScenes`：对象项使用其 `key`，字符串项原样使用；`yida-prd` 和 `yida-design` 不得各自改写、翻译或重新生成。`componentName` 和 `stateName` 必须与本文件 frontmatter 中的实际 key 完全一致。一致性校验只检查这些稳定标识，不使用标题文本或自然语言近似匹配。
 
+## 图片素材交接
+
+`assetStrategy` 必须按页面记录：
+
+- `pages[].pageId` 与 PRD 页面标识一致；
+- `pages[].imageNeed` 只允许 `required`、`beneficial`、`none`；
+- 需要图片时，`slots[]` 写稳定 `slotId`、`usage`、`count`、`aspectRatio`、`minSize`、`focus`、`objectFit` 和 `generationAllowed`；
+- `materialStatus` 反映当前素材落地状态；已验证素材标记为 `final`，待搜索或待生成素材标记为 `draft`；
+- `yida-design` 只定义需求，`yida-image-assets` 负责搜索、生成、来源核验和 `asset-manifest.json`。
+
+没有图片槽位的业务操作页写 `imageNeed: none`，不为增加装饰而激活素材分支。
+
 ## 应用主题 CSS 的职责
 
 `app-theme.css` 是当前应用的主题资源产物，承载品牌色阶、语义色、字体、间距、圆角、阴影，以及 Shell、导航、页面、表单、表格和浮层的主题 token 与必要样式覆盖。`app_theme.css` 等其他 `.css` 文件名同样可用；CLI 根据 `--theme-file` 路径读取内容，不靠固定文件名识别用途。Plan 使用 `outputs.theme`，其他流程使用已记录的产物路径，避免生成多份后上传错文件。

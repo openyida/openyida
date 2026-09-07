@@ -390,10 +390,27 @@
     "iconSummary": "使用统一线性图标体系，具体图标在开发阶段映射。",
     "assetStrategy": {
       "materialStatus": "final | draft | none",
-      "heroImage": "官网或品牌页需要；内部管理应用可为空",
-      "productImages": [],
+      "pages": [
+        {
+          "pageId": "page-home",
+          "imageNeed": "required | beneficial | none",
+          "reason": "<页面图片用途与素材目标>",
+          "slots": [
+            {
+              "slotId": "home.hero",
+              "usage": "hero | background | product | scene | cover | empty-state",
+              "count": 1,
+              "aspectRatio": "16:9",
+              "minSize": "1600x900",
+              "focus": "主体靠右，左侧保留文字安全区",
+              "objectFit": "cover | contain",
+              "generationAllowed": true
+            }
+          ]
+        }
+      ],
       "missingAssets": [],
-      "notes": "不得编造图片 URL；素材缺失时标记草稿"
+      "notes": "图片槽位由 yida-image-assets 获取并验证；素材缺口记录为草稿"
     },
     "designMdReady": "已同步生成 design.md，后续 AI 开发读取完整设计契约。"
   },

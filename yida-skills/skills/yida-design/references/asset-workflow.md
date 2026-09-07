@@ -1,18 +1,18 @@
 # 素材工作流：官网 / 品牌页的真实图片如何落地
 
-> 官网、品牌首页、活动落地页需要真实产品或场景图时，由智能体准备素材，再统一交给 `openyida asset resolve` 解析和回填。绝不编造图片 URL。
+> 图片需求与槽位由 `yida-design` 定义；需要素材时加载 `yida-image-assets`，再统一交给 `openyida asset resolve` 解析和回填。所有图片 URL 来自实际素材结果。
 
 ## 核心原则
 
-1. **图片由智能体来源，不由 CLI 凭空生成**：`openyida ai` 只有文生文 / 识图，没有文生图。图片可以由智能体生成，也可以从免费可商用素材库获取。
-2. **素材统一解析**：本地文件和外链都交给 `openyida asset resolve`；已配置 CDN 时可转存为稳定 URL。
-3. **区分生产交付与离线展示**：没有 CDN 时不得声称素材已经上传；离线展示可使用受控压缩的 JPEG/WebP data URI，但不能把它当作生产资源方案。
-4. **没有素材就诚实标注草稿**：用文字排版、数据图示或插画替代，并在交付说明中标注素材缺口。
+1. **图片由宿主素材工具提供**：使用宿主图片生成能力或免费可商用素材库获取图片；`openyida ai` 继续提供文生文和识图能力。
+2. **素材统一解析**：本地文件和外链都交给 `openyida asset resolve`；只有来源条款允许镜像且已配置 CDN 时才可转存为稳定 URL。
+3. **区分生产交付与离线展示**：CDN 上传成功后记录生产 URL；离线展示可使用受控压缩的 JPEG/WebP data URI，并保持 draft 状态。
+4. **素材缺口保持可见**：用文字排版、数据图示或插画承接页面，并在交付说明中记录缺口。
 
 ## 执行流程
 
-1. 运行 `openyida asset status --json`，了解当前素材能力。
-2. 由智能体生成本地图片，或从 Unsplash、Pexels、Pixabay、unDraw 等免费可商用素材库取得图片直链。
+1. 运行 `openyida agent-capabilities --summary-json` 和 `openyida asset status --json`，读取独立的在线搜索、图片搜索和图片生成三态能力；能力结论以本轮宿主工具清单或显式声明为准。
+2. 执行 `yida-image-assets`，由智能体使用本轮真实可用的宿主工具生成或检索图片，并遵守各来源不同的授权与落地规则。
 3. 使用 `openyida asset resolve` 处理本地文件或外链，并回填 `spec.assets`。
 4. 根据结果将 `materialStatus` 设为 `final`、`draft` 或 `none`；素材不足时保留草稿标记。
 
@@ -33,10 +33,10 @@ openyida asset status --json
 openyida asset resolve --hero ./hero.webp --upload-assets --json
 ```
 
-使用外链时：
+使用允许直接落地的外链时（同时在 manifest 记录来源与授权）：
 
 ```bash
-openyida asset resolve --hero "https://images.unsplash.com/photo-xxxx" --json
+openyida asset resolve --hero "https://images.example.com/photo.jpg" --json
 ```
 
 暂无素材时：

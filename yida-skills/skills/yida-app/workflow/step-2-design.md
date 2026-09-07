@@ -46,6 +46,18 @@
 
 校验未通过时 Step 2 未完成，不得进入资源创建。校验通过后，后续页面实现以 `prd.md` 和 `design.md` 为准；`page-spec.json` 只用于把要求传给页面实现阶段。
 
+## 2.4 条件式素材分支
+
+`yida-design` 必须在 `design.md.assetStrategy` 中逐页给出 `required`、`beneficial` 或 `none`：
+
+- 品牌官网、活动营销、商品/菜单/课程/资讯封面、旅游/酒店/餐饮/地产/作品案例等媒体型页面通常为 `required`；
+- 门户、工作台、档案、知识库、数据故事、引导和空态只有明确图片槽位时为 `beneficial`；
+- 纯表单、审批、财务、权限、设置、普通 CRUD 台账、工单列表和内部统计默认 `none`。
+
+这是页面级判断。同一库存系统中，商品目录可标记为 `required`，库存流水可标记为 `none`。
+
+存在 `required`，或存在带图片槽位的 `beneficial` 时，启动 `yida-image-assets` 素材分支。该分支可与应用、表单和流程创建并行，只阻塞依赖这些图片的页面实现；输出 `prd/<项目名>/asset-manifest.json`。全部为 `none` 时直接进入后续资源创建。
+
 ## 主题文件实现指令
 
 在设计中确定配色、导航明暗和布局。未禁止 `theme-file` 时，Plan 使用 CLI 返回的 `outputs.theme`，Fast 按 [主题文件生成与更新](../../yida-design/workflow/output-design.md#cli-token-契约fast--plan-共用) 准备主题 CSS；用户确认计划或主题后即可启动 CSS 生成，不等待表单或页面开发。Plan 已生成当前版本的 CSS 时直接复用。拿到真实 appType 后，在应用级配置同一份主题文件，与表单创建和页面开发并行；页面组件按已确认契约消费主题 token。若 `theme-file` 被禁止，跳过生成、复制、修改和上传，沿用现有平台主题并在交付中说明未更改主题。详见 [主题与业务资源的依赖](parallel-work.md#主题与业务资源的依赖)。

@@ -110,6 +110,19 @@
       "done_when": "输出 prd/<项目名>/design.md，写清所有页面共同遵守的主题 token、视觉 DNA、布局、材质、圆角、密度、组件、状态和响应式规则；不写 prd.md；只有走页面生成器或需要稳定交接时才派生 page-spec.json。"
     },
     {
+      "name": "yida-image-assets",
+      "path": "skills/yida-image-assets/SKILL.md",
+      "display_name": "宜搭图片素材准备",
+      "description": "评估宜搭页面的图片素材需求，检测当前 Agent 的在线搜索、图片搜索与图片生成工具，为 Hero、背景、商品、场景、封面和空态准备可追溯素材。",
+      "category": "yida-skills/design",
+      "tags": ["图片素材", "联网搜图", "图片生成", "背景图", "商品图"],
+      "aliases": ["素材设计", "图片搜索", "生成图片", "商品占位图"],
+      "positive_signals": ["Hero 图", "背景图", "商品图片", "场景图片", "联网搜索图片", "生成 UI 素材"],
+      "negative_signals": ["纯表单", "审批配置", "权限设置", "普通 CRUD 台账"],
+      "command_ids": ["agent-capabilities", "asset"],
+      "done_when": "逐页完成 required/beneficial/none 判断；触发时生成 prd/<项目名>/asset-manifest.json，记录能力证据、素材 URL、来源、授权、尺寸、替代文本和缺口；必需素材未落地时保持 draft/none。"
+    },
+    {
       "name": "yida-app-permission",
       "path": "skills/yida-app-permission/SKILL.md",
       "display_name": "应用权限管理",
@@ -1302,7 +1315,11 @@
         "页面结构规划",
         "应用主题",
         "品牌色",
-        "全局换肤"
+        "全局换肤",
+        "图片素材",
+        "联网搜图",
+        "背景图",
+        "商品图"
       ]
     },
     {
