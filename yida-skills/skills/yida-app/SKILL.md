@@ -84,11 +84,13 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 
 ## 页面数据契约
 
+- Canvas 数据接入先做小页计数。真实 `totalCount > 2000` 时，按 `yida-canvas-data-binding/references/report-integration.md` 确认用户选择；选择聚合时配置或复用原生报表并使用 `mode=report`，选择明细时使用服务端分页或缩小范围。
+
 - 默认页面源码不得使用 `this.dataSourceMap.*`，除非本轮已经创建并绑定对应设计器数据源。
 - 真实表单数据默认通过页面数据桥或 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)` 读取；流程发起、流程列表、表单保存/更新等能力也通过发布层注入的同一个 yida API 桥调用；不要用前端 seedRows 冒充真实表单数据。
 - 页面根级运行态工具通过 `window.__OPENYIDA_UTILS__` 读取，`toast/dialog/openPage/router.push/isMobile` 等工具不能在 `YidaComp` 内直接写 `this.utils.*`。
 - 表单新建/提交/详情入口统一使用 `FormOpenContainer`，详情页必须从真实行数据解析 `formInstId`。
-- 用户明确要求的自定义列表、看板和详情页优先读取真实表单数据；`page-spec.json` 写 `dataBinding.mode=form`、真实 `appType/formUuid/fieldId` 和字段映射。表单数据管理页不另生成页面源码。
+- 用户明确要求的自定义列表和详情页，分页明细在 `page-spec.json` 写 `dataBinding.mode=form`、真实 `appType/formUuid/fieldId` 和字段映射；用户确认使用聚合的分析看板写 `mode=report` 和真实报表绑定。表单数据管理页不另生成页面源码。
 - 完整应用默认先写入 1-3 条业务化 seed records 并 query 抽查；没写入成功时，页面展示空态、表单入口、刷新或登记按钮，并在 final 说明原因。
 - 若页面确实依赖 `this.dataSourceMap.*`，必须执行 `use_skill("yida-data-source-connectors")` 创建/绑定数据源，并在发布后确认页面 Schema 中存在对应数据源；发布输出出现 `No custom page data sources to preserve` 时，本次发布不能视为完成。
 

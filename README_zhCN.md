@@ -229,6 +229,8 @@ openyida append-chart APP_XXX REPORT_XXX .cache/openyida/reports/chart.json
 
 普通“报表 / 统计”默认使用原生报表 `yida-report`。高级视觉、ECharts、大屏等场景先创建或复用原生报表数据源，再由 `yida-chart` 或 Code Canvas 页面承载展示层。
 
+Canvas 数据接入先用小页查询取得真实总数。超过 2000 条时，Agent 会询问用户选择服务端聚合或分页明细。服务端聚合配置原生报表，分页明细使用服务端分页。`openyida report inspect <appType> <reportId> --json` 返回可用的 `canvasBindings`，`openyida sample yida-canvas-data-binding report-data` 提供异步查询、状态、刷新和分页示例。详见 [Canvas 报表集成流程](yida-skills/skills/yida-canvas-data-binding/references/report-integration.md)。
+
 ## 连接器与集成
 
 ```bash

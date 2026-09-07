@@ -192,6 +192,8 @@ openyida publish pages/src/home.canvas.jsx APP_XXX FORM_XXX
 
 Custom page source is authored directly from PRD and design guidance. Custom page development uses `yida-canvas-custom-page` and `.canvas.jsx`.
 
+For Canvas analysis, inspect the source's total count with a one-row query first. Above 2,000 rows, the agent asks the user to choose server aggregation or paged details. Server aggregation reuses a native report model and its asynchronous query API; paged details stay on server pagination. Get a working integration template with `openyida sample yida-canvas-data-binding report-data` and use verified `canvasBindings` from `openyida report inspect <appType> <reportId> --json`. See the [Canvas report integration contract](yida-skills/skills/yida-canvas-data-binding/references/report-integration.md).
+
 For member, department, attachment, and image upload components, `.canvas.jsx` pages should follow `yida-canvas-custom-page/references/native-components-bridge.md` for feature detection, fallback, and value normalization.
 
 For the current custom page native-component support matrix, see [Yida native components supported by custom pages](https://demo.aliwork.com/o/openyida/sample/canvas-native-components).

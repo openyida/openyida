@@ -7,6 +7,9 @@ description: "创建宜搭原生报表。"
 
 ## 适用范围
 
+- 为 CodeCanvas 提供聚合数据时，执行 [Canvas 数据量确认与集成流程](../yida-canvas-data-binding/references/report-integration.md)。超过 2000 条且当前范围尚无明确选择时，先询问用户选择服务端聚合或分页明细。
+- `report inspect --json` 的 `canvasBindings` 用于生成 Canvas 绑定；`queryProbes` 按实际数据集列出最终查询结果。运行态通过 `getDataAsync -> getCacheData` 获取聚合数据。
+
 - 不得把不支持、冲突或状态不确定的任务改走 `create-report` 写入，不得按标题、组件类型或数组位置 adopt、猜 report/chart/filter ID。
 - 只有报表目标明确属于当前普通 OpenYida 资源时，以下示例、stdout/stderr 和返回行为才按本技能契约使用；所有权不明确时零远端写。
 
@@ -92,9 +95,9 @@ ECharts 页面出现 `no permission for the report` 时，优先怀疑页面绑�
 
 | 对比项 | `searchFormDatas` 前端聚合 | 原生报表 API |
 |--------|--------------------------|-------------|
-| 数据准确性 | ❌ pageSize 最大 100，数据量大时不完整 | ✅ 服务端聚合，数据 100% 准确 |
+| 数据准确性 | 返回当前分页的真实明细 | 按配置口径在服务端聚合并核对筛选和权限 |
 | 性能 | ❌ 需要分页拉取全部数据再前端计算 | ✅ 服务端直接返回聚合结果 |
-| 适用场景 | 数据量 < 100 条的简单统计 | 任意数据量的聚合统计 |
+| 适用场景 | 分页明细展示 | 大数据量聚合统计 |
 
 ---
 

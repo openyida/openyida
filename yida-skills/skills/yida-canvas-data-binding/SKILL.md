@@ -5,6 +5,12 @@ description: 自定义页面真实数据接入技能。用于在使用 `YidaCode
 
 # 自定义页面数据绑定
 
+## 数据量与分析方式确认
+
+接入 Canvas 业务数据前，按 [报表集成与 2000 条确认流程](references/report-integration.md) 取得真实总数。**超过 2000 条且当前范围尚无明确选择时，先询问用户选择服务端聚合或分页明细。** 选择聚合后配置报表并集成；选择明细时采用服务端分页或缩小范围；总数未知时先完成规模确认。
+
+`mode=report` 使用发布层的 `window.__OPENYIDA_REPORT__` 和 `openyida sample yida-canvas-data-binding report-data`；绑定取自 `report inspect` 的 `canvasBindings`。`mode=form` 使用下方表单桥示例。
+
 ## 核心定位
 
 本技能只处理使用 `YidaCodeCanvas` 组件实现的页面里的真实数据接入：把页面所需数据先声明成 `dataBinding` 契约，再由页面生成器或业务组件生成统一的 `DataBridge`。读取宜搭表单数据时，默认消费外层普通自定义页面在 `didMount` 中注册到 `window.__OPENYIDA_YIDA_API__` 的 yida JS-API 桥；根级工具消费同层注册的 `window.__OPENYIDA_UTILS__`，其中 `.yida` 指向同一个 yida API 桥；连接器代理或自定义同源接口仍按自身 endpoint 读取。
@@ -62,7 +68,7 @@ description: 自定义页面真实数据接入技能。用于在使用 `YidaCode
 2. 首屏可以显示 loading；后续轮询或手动刷新必须 silent，不清空旧列表，不重置整页。
 3. 返回体解析必须兼容多层包裹：`data`、`result.data`、`content.data`、`content.result.data`、`list`、`records`、`values`。
 4. `totalCount > 0 && rows.length === 0` 必须视为数据桥故障，页面显式报错，不能静默显示“暂无数据”。
-5. seed 数据只能作为接口失败时的低保真兜底，并在状态区标记“示例数据”或“接口异常”。
+5. 接口失败时保留明确标注的上次成功结果并显示错误；首次失败显示错误态。
 6. `useEffect` 内请求要用 `AbortController` 或等价 cleanup，避免页面切换后继续 setState。
 7. 轮询间隔需要可控，常规业务页不低于 5 秒；实时大屏可更短，但必须避免重复并发请求。
 

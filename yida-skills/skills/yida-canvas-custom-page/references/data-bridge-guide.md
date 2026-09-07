@@ -2,6 +2,8 @@
 
 `YidaCodeCanvas` 组件运行时提供 React 函数组件上下文；`YidaComp` 内没有普通页面实例 `this`。发布层会在外层普通自定义页面 `didMount` 中注册 yida JS-API、根级 utils 和连接器三个 window 桥。表单读写使用 `window.__OPENYIDA_YIDA_API__`，平台连接器使用 `window.__OPENYIDA_CONNECTOR_API__`，只有自定义同源接口才直接使用 HTTP 数据桥。
 
+Canvas 分析数据接入按 [原生报表集成流程](../../yida-canvas-data-binding/references/report-integration.md) 完成数据量确认和报表绑定。`mode=report` 页面使用 `window.__OPENYIDA_REPORT__`；运行 `openyida sample yida-canvas-data-binding report-data` 可生成可编译示例。
+
 ## 数据路径，先选对
 
 | 路径 | 是否可在浏览器页面内直接调 | 说明 |

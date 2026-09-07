@@ -5,6 +5,10 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 
 # 数据管理
 
+## Canvas 分析接入前的计数
+
+为 Canvas 选择数据模式时，执行 `data query form <appType> <formUuid> --page 1 --size 1 --no-hydrate-subforms`，并携带当前分析范围的筛选条件。以返回的真实 `totalCount` 作为计数。超过 2000 条的成功查询会返回 `_openyidaAnalysis.requiresUserDecision=true`，按 [数据绑定确认流程](../yida-canvas-data-binding/references/report-integration.md) 询问用户选择服务端聚合或分页明细；总数未知时先核实规模。该确认用于 Canvas 配置阶段。
+
 ## 创建/录入数据强制闭环
 
 涉及新增记录、生成测试数据、批量导入或发起流程时，必须连续完成下面 5 步；任一步断开都不算完成。

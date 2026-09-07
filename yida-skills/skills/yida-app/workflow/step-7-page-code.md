@@ -23,7 +23,7 @@
 3. 页面读取任一表单数据时，必须执行 `use_skill("yida-canvas-data-binding", "为页面接入真实表单数据")`；不得以“页面已经能发布”为由跳过。
 4. 页面结构已明确且适合生成器时，从 PRD + `design.md` 派生当前业务自己的 `page-spec.json`。
 5. `page-spec.json` 写 `sourceOfTruth`、`prdFile`、`designFile`、`designRefs` 和 `conflictPolicy: "prd-design-win"`。
-6. 列表、看板、详情页读取真实表单数据时，写 `dataBinding.mode=form`、真实 `appType/formUuid/fieldId` 和字段映射；禁止静态 0 或 mock 数据作为交付值。
+6. 数据接入先按 `yida-canvas-data-binding` 做小页计数。超过 2000 条时确认用户选择；选择聚合后配置原生报表并写 `dataBinding.mode=report`，使用 `report inspect` 的真实 `canvasBindings` 和报表数据桥；选择分页明细时使用 `mode=form`。交付值来自真实查询结果。
 7. 页面代码默认消费发布层自动注入的 `window.__OPENYIDA_YIDA_API__` 和 `window.__OPENYIDA_UTILS__`：表单/流程/表单设计 API 走 yida API 桥，`toast/dialog/openPage/router.push/isMobile` 走 utils 桥；`YidaComp` 内不得直接调用 `this.utils.yida.*` 或 `this.utils.*`。
 8. 表单、流程、任务、成员等分页查询一般显式写 `pageSize: 50` 或 `pageSize: '50'`，除非用户明确要求其他页大小。
 9. 表单新建/提交/详情入口统一使用 `FormOpenContainer`，PC 端右侧抽屉 iframe，移动端整页或新页打开；详情必须从真实行解析 `formInstId`，缺失时禁用入口或提示。
