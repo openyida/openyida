@@ -81,7 +81,7 @@ openyida publish <源文件路径> <appType> <formUuid> [--compat] [--canvas] [-
 | `--compat` / `--modern` | 否 | 兼容构建开关；仅在确认源文件属于平台 JSX 组件页面且扩展名不规范时使用；`.oyd.jsx` 默认自动启用 |
 | `--canvas` | 否 | 显式写入 `YidaCodeCanvas` Schema；`.canvas.jsx` / `.canvas.tsx` 扩展名已自动启用，仅当扩展名不规范但确认为 `YidaCodeCanvas` 组件源码时需要 |
 | `--health-check` | 否 | 发布成功后用 token 读回目标页面 Schema，校验 `YidaCodeCanvas.runtimeCode` 或平台 `Jsx + actions.module.compiled` 与本次发布内容匹配；不请求页面 HTML，不依赖 Cookie |
-| `--auto-nav-order` | 否 | 仅在 PRD 缺少明确导航清单时使用；PRD 已写明顺序时不要传本参数，发布后只执行一次 `openyida nav-group order <appType> <页面/表单...>`。排序失败不回滚页面，结果保留在结构化 `navOrder` 中 |
+| `--auto-nav-order` | 否 | 仅在 PRD 缺少明确导航清单时使用；完整应用逐页发布不传此参数，全部页面开发并发布完成后由主流程单独执行 `nav-group auto-order`；PRD 已写明顺序时不要传本参数，发布后只执行一次 `openyida nav-group order <appType> <页面/表单...>`。排序失败不回滚页面，结果保留在结构化 `navOrder` 中 |
 | `--force` | 否 | 显式绕过发布目标类型保护；只有确认目标是自定义页面但导航接口暂时无法识别时才使用 |
 
 ## 确认命令
@@ -96,7 +96,8 @@ openyida list-forms <appType> --keyword <页面名>
 
 ## Final 证据契约
 
-- final 中“Canvas 页面已更新 / 已重新发布 / 已上线”的依据是成功的 `openyida publish <source> <appType> <displayPageFormUuid> --canvas --health-check`，且结果包含 `publishMode=canvas`、`healthCheck.ok=true`、`healthCheck.readback.hasYidaCodeCanvas=true` 和 `runtimeCodeBytes>0`。
+- final 中“Canvas 页面已更新 / 已重新发布”的依据是成功的 `openyida publish <source> <appType> <displayPageFormUuid> --canvas --health-check`，且结果包含 `publishMode=canvas`、`publishReadbackVerified=true`、`healthCheck.ok=true`、`healthCheck.readback.hasYidaCodeCanvas=true` 和 `runtimeCodeBytes>0`。
+- `--health-check` 是发布内容读回校验，不是浏览器运行态 smoke。输出中的 `runtimeSmokeVerified=false`、`runtimeSmokeStatus=not_checked` 表示本命令没有验证页面渲染与交互；需要宣称“页面可运行”时，必须另有专项运行态证据。
 - `<source>` 必须是本轮实际 Write/Edit/Create 过的页面源码；`<displayPageFormUuid>` 必须是已解析的 display 自定义页面。发布了其他文件或其他目标页面，不满足本轮源码修改的 doneWhen。
 - 若 publish 没执行、执行失败、目标不明、登录态/组织不一致或用户要求先暂停，final 只能说“源码已修改，尚未发布”，并给出下一步需要执行的 publish 命令或阻塞原因。
 - 平台 JSX 组件页面的 `check-page` / `compile`、使用 `YidaCodeCanvas` 组件实现页面的 `compileCanvasLocal` 都是发布前 guard，不是远端完成证据。
@@ -129,7 +130,7 @@ openyida list-forms <appType> --keyword <页面名>
 ## 输出
 
 ```json
-{"success":true,"formUuid":"FORM-XXX","version":0,"publishMode":"canvas","healthCheck":{"ok":true,"mode":"publish_readback","expectedPublishMode":"canvas","displayComponentPresent":true,"publishedContentMatched":true,"readback":{"hasYidaCodeCanvas":true,"runtimeCodeBytes":1024}}}
+{"success":true,"formUuid":"FORM-XXX","version":0,"publishMode":"canvas","publishReadbackVerified":true,"runtimeSmokeVerified":false,"runtimeSmokeStatus":"not_checked","healthCheck":{"ok":true,"mode":"publish_readback","expectedPublishMode":"canvas","displayComponentPresent":true,"publishedContentMatched":true,"readback":{"hasYidaCodeCanvas":true,"runtimeCodeBytes":1024}}}
 ```
 
 ## 自动注入的 CSS

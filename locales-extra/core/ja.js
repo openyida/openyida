@@ -17,9 +17,14 @@ module.exports = {
     cmd_env: 'AI ツール環境とログイン状態を検出',
     cmd_env_management: 'パブリック/プライベート環境プロファイルを管理',
     group_app: 'アプリ管理',
-    cmd_app_list: '自分の Yida アプリ一覧を表示',
+    cmd_app_list: '管理中または作成済みのアプリをページ表示',
     cmd_corp_efficiency: '企業効率の概要と明細レポートを取得',
     cmd_create_app: '宜搭アプリを作成',
+    cmd_design_plan_preview: 'モジュールごとに計画草稿を更新',
+    design_plan_preview_invalid: '草稿の更新に失敗しました。詳細を確認してください',
+    cmd_design_plan_init: '確認済みの要件から計画の下書きを作成',
+    cmd_design_plan_materialize: 'build-plan.json から設計計画成果物を生成・検証',
+    cmd_design_plan_patch: 'フィールドパスで計画を更新し以前の確認を無効化',
     cmd_update_app: 'アプリ情報を更新',
     cmd_app_online: 'Yida アプリを有効化',
     cmd_app_offline: 'Yida アプリを無効化',
@@ -29,6 +34,7 @@ module.exports = {
     cmd_export: 'アプリをエクスポート（移行パッケージ生成）',
     cmd_import: '移行パッケージをインポート、アプリを再構築',
     group_form: 'フォーム & ページ',
+    cmd_create_form_batch: '依存関係に従ってフォームを並列作成',
     cmd_create_form: 'フォームページを作成',
     cmd_list_form_icons: '利用可能なフォームナビゲーションアイコンを一覧表示',
     cmd_validate_form: 'フォームフィールド JSON をローカル検証',
@@ -122,6 +128,25 @@ module.exports = {
     quickstart_form_name: '従業員情報',
     docs: '📚 ドキュメント:'
   },
+  app_list: {
+    usage: '使用方法：openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: 'オプション：',
+    option_type: '  --type TYPE  範囲：managed（管理中、既定）または created（作成済み）',
+    option_page: '  --page N     ページ番号、既定：1',
+    option_size: '  --size N     1 ページの件数、既定：16',
+    option_help: '  --help, -h   ヘルプを表示',
+    invalid_type: '無効な --type 値「{0}」。有効値：{1}',
+    invalid_positive_integer: '{0} は正の整数である必要があります。現在値：「{1}」',
+    invalid_argument: '無効な引数：{0}',
+    query_failed: 'アプリ一覧の取得に失敗しました：{0}',
+    auth_required: 'ログインの有効期限が切れました。再度ログインしてください。',
+    unknown_error: '不明なエラー',
+    scope_managed: '管理中',
+    scope_created: '作成済み',
+    found: '{0}アプリ：{1}/{2} ページ、このページ {3} 件、合計 {4} 件',
+    next_page: 'さらにアプリがあります。次を実行してください：{0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI ツール\n' +
@@ -399,6 +424,7 @@ module.exports = {
     create_opt_initiate_approval_assignment: '  --initiate-approval-assignment <rule> Initiate-approval assignment: targetField:valueType:value',
     create_opt_connector_mode: '  --connector-mode <mode>       Connector mode; use 5 for HTTP connectors',
     create_opt_connection_id: '  --connection-id <id>          HTTP connector auth connection ID',
+    create_opt_connector_system_token_app: '  --connector-system-token-app <appType>  Bind systemToken server-side for a Yida OpenAPI action',
     create_opt_connector_display_name: '  --connector-display-name <name> Connector display name',
     create_opt_publish: '  --publish                     Publish after saving',
     create_examples_title: 'Examples:',
@@ -466,6 +492,11 @@ module.exports = {
     connector_action_not_found: 'Connector action not found by exact read-only discovery: {0}',
     connector_action_schema_missing: 'The connector action does not contain a verifiable inputs/outputs schema.',
     connector_input_unknown: 'Connector input was not found in the verified schema: {0}',
+    connector_input_ambiguous: 'Connector input exists in multiple parameter groups; use its full path: {0}',
+    connector_assignment_duplicate: 'Multiple connector assignments target the same input: {0}',
+    connector_assignment_value_required: 'Connector input assignment cannot be empty: {0}',
+    connector_required_input_missing: 'Required connector input has no assignment: {0}',
+    readback_connector_assignments_mismatch: 'Connector input assignments in the integration readback differ from the published content.',
     connector_schema_unverified: 'Connector action schema is unverified: {0}::{1}',
     runtime_case_unknown: 'Unknown integration runtime case: {0}',
     runtime_adapter_missing: '集成自動化ランタイムアダプターが設定されていません。',
@@ -586,9 +617,10 @@ module.exports = {
     unknown: '不明'
   },
   create_app: {
+    update_only_option: '{0} は更新用のオプションです。アプリ作成後に openyida update-app <appType> を使用してください。',
     title: '  openyida create-app - Yida アプリ作成ツール',
-    usage: 'Usage: openyida create-app "<appName>" [description] [icon] [iconColor] [themeColor] または openyida create-app --name "<appName>" [--desc "..."] [--theme deepBlue]',
-    example: '例: openyida create-app --name "勤怠管理" --desc "従業員勤怠システム" --theme deepBlue',
+    usage: 'Usage: openyida create-app "<appName>" [description] [icon] [iconColor] または openyida create-app --name "<appName>" [--desc "..."]',
+    example: '例: openyida create-app --name "勤怠管理" --desc "従業員勤怠システム"',
     available_icons: '\n利用可能なアイコン:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -670,6 +702,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    batch_invalid: 'フォームのバッチ設定が無効です。エラー詳細を確認してください',
     create_title: '  yida-create-form-page - Yida フォームページ作成ツール',
     update_title: '  yida-create-form-page - Yida フォームページ更新ツール',
     app_id: '\n  アプリ ID:    {0}',
@@ -921,6 +954,9 @@ module.exports = {
     err_open_url_chars: 'openUrl のパス部分は a-z A-Z 0-9 _ - と区切り文字 / のみ使用できます。現在の値: {0}'
   },
   update_app: {
+    theme_preset_conflict: 'プリセット colour と CSS または themeColor は併用できません。--colour custom を指定するか --colour を省略してください。',
+    custom_theme_color_required: 'colour=custom にはテーマファイルまたは有効な themeColor が必要です。--theme-file または --theme-color を指定してください。',
+    theme_not_persisted: '保存後のアプリテーマ設定を確認できませんでした。themeVerification を確認し、update-app <appType> --theme-file <css> で再試行してください。アプリを作り直さないでください。',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1153,6 +1189,7 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_inline_css_invalid: '{0} 行付近の CSS に閉じていない、または対応しない括弧、文字列、コメントがあります。公開前に修正してください。',
     title: '  yida-publish - Yida ページ公開ツール',
     platform: '  プラットフォーム: {0}',
     base_url: '\n  プラットフォーム: {0}',
@@ -1198,6 +1235,8 @@ module.exports = {
     lint_yida_api_catch: 'this.utils.yida API 呼び出しに .catch() が検出されません。エラー処理を追加し、ユーザーに toast を表示してください',
     lint_echarts_legacy_map_china: 'ECharts 5 は echarts/map/js/china.js をサポートしなくなりました。代わりに DataV GeoJSON を読み込み、echarts.registerMap("china", geoJson) を呼び出してください',
     lint_echarts_rich_label_formatter: 'ECharts label.formatter が返す rich text テンプレートは Yida カスタムページ環境では不安定です。通常の formatter 文字列または事前計算したラベルテキストを推奨します',
+    lint_system_token_frontend_forbidden: 'カスタムページで systemToken を読み取り、または渡すことはできません。Yida の統合自動化でサーバー側に安全にバインドしてください。',
+    lint_connector_runtime_name_required: 'Custom pages must invoke connectors with connectorName (Http_*); numeric connectorId is only for CLI management.',
     lint_const_let: 'const/let 宣言を使用しています。var に変更することをお勧めします（宜搭ランタイム互換性）',
     lint_computed_property: 'ES6 計算プロパティ名 { [key]: value } を使用しています。宜搭 JS エンジンはこの構文をサポートしておらず、サイレント失敗を引き起こします。var obj = {}; obj[key] = value; に変更してください',
     lint_pad_method: 'String.{0}() を使用しています。宜搭 JS エンジンはこのメソッドをサポートしておらず、Promise コールバックがサイレント中断します。三項演算子で代替してください（例：x < 10 ? "0" + x : "" + x）',
@@ -1911,6 +1950,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
 
 const connectorSafetyMessages = require('../../lib/core/locales/en');
 module.exports.connector_contract = connectorSafetyMessages.connector_contract;
+module.exports.connector_auth = connectorSafetyMessages.connector_auth;
 module.exports.connector_api = connectorSafetyMessages.connector_api;
 module.exports.connector_e2e = connectorSafetyMessages.connector_e2e;
 module.exports.connector_action_update = connectorSafetyMessages.connector_action_update;

@@ -361,4 +361,36 @@ describe('connector operation normalization', () => {
       { operationId: 'duplicate', path: '/b', method: 'GET' },
     ])).toThrow(expect.objectContaining({ code: 'CONNECTOR_OPERATION_ID_DUPLICATE' }));
   });
+
+  test('normalizes connector headers for the platform runtime contract', () => {
+    const [operation] = normalizeOperations([{
+      operationId: 'calendarCreate',
+      url: '/v1.0/calendar/events',
+      method: 'POST',
+      inputs: [{
+        name: 'Headers',
+        paramLocation: 'header',
+        required: true,
+        childList: [
+          { name: 'Content-Type', required: true, defaultValue: 'application/json' },
+          { name: 'x-client-token', required: true, defaultValue: '' },
+        ],
+      }],
+      parameters: {
+        header: [
+          { name: 'Content-Type', value: 'application/json' },
+          { name: 'x-client-token', value: '' },
+        ],
+      },
+    }]);
+
+    expect(operation.inputs[0].required).toBe(false);
+    expect(operation.inputs[0].childList).toEqual([
+      expect.objectContaining({ name: 'Content-Type', required: false }),
+      expect.objectContaining({ name: 'x-client-token', required: false }),
+    ]);
+    expect(operation.parameters.header).toEqual([
+      { name: 'Content-Type', value: 'application/json' },
+    ]);
+  });
 });

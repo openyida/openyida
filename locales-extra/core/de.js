@@ -17,9 +17,14 @@ module.exports = {
     cmd_env: 'KI-Tool-Umgebung und Anmeldestatus erkennen',
     cmd_env_management: 'Public/private environment profiles verwalten',
     group_app: 'App-Verwaltung',
-    cmd_app_list: 'Meine Yida-Apps auflisten',
+    cmd_app_list: 'Verwaltete oder erstellte Apps seitenweise anzeigen',
     cmd_corp_efficiency: 'Unternehmenseffizienz-Übersicht und Detailberichte abrufen',
     cmd_create_app: 'Yida-App erstellen',
+    cmd_design_plan_preview: 'Planentwürfe pro Modul aktualisieren',
+    design_plan_preview_invalid: 'Entwurfsaktualisierung fehlgeschlagen; Details prüfen',
+    cmd_design_plan_init: 'Planentwurf aus bestätigten Anforderungen erstellen',
+    cmd_design_plan_materialize: 'Planartefakte aus build-plan.json erzeugen und validieren',
+    cmd_design_plan_patch: 'Plan per Feldpfad ändern und frühere Bestätigung verwerfen',
     cmd_update_app: 'App-Informationen aktualisieren',
     cmd_app_online: 'Yida-App aktivieren',
     cmd_app_offline: 'Yida-App deaktivieren',
@@ -29,6 +34,7 @@ module.exports = {
     cmd_export: 'App exportieren (Migrationspaket erstellen)',
     cmd_import: 'Migrationspaket importieren, App neu aufbauen',
     group_form: 'Formulare & Seiten',
+    cmd_create_form_batch: 'Formulare nach Abhängigkeiten parallel erstellen',
     cmd_create_form: 'Formularseite erstellen',
     cmd_list_form_icons: 'Verfügbare Formular-Navigationssymbole auflisten',
     cmd_validate_form: 'Validate form field JSON locally',
@@ -122,6 +128,25 @@ module.exports = {
     quickstart_form_name: 'Mitarbeiterinfo',
     docs: '📚 Dokumentation:'
   },
+  app_list: {
+    usage: 'Verwendung: openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: 'Optionen:',
+    option_type: '  --type TYPE  Bereich: managed (Standard) oder created',
+    option_page: '  --page N     Seitennummer, Standard: 1',
+    option_size: '  --size N     Seitengröße, Standard: 16',
+    option_help: '  --help, -h   Diese Hilfe anzeigen',
+    invalid_type: 'Ungültiger --type-Wert „{0}“; gültige Werte: {1}',
+    invalid_positive_integer: '{0} muss eine positive Ganzzahl sein; erhalten: „{1}“',
+    invalid_argument: 'Ungültiges Argument: {0}',
+    query_failed: 'App-Liste konnte nicht abgefragt werden: {0}',
+    auth_required: 'Die Anmeldung ist abgelaufen. Bitte erneut anmelden.',
+    unknown_error: 'Unbekannter Fehler',
+    scope_managed: 'Verwaltete',
+    scope_created: 'Erstellte',
+    found: '{0} Apps: Seite {1}/{2}, {3} auf dieser Seite, insgesamt {4}',
+    next_page: 'Weitere Apps sind verfügbar. Fortfahren mit: {0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +
@@ -134,7 +159,7 @@ module.exports = {
       '  copy [--force]                                               Copy project directory to current AI tool environment\n' +
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
-      '  create-app "<name>" [desc] [icon] [color] [theme] [nav] [layout]  Create an app, output appType\n' +
+      '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
       '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
@@ -415,6 +440,7 @@ module.exports = {
     create_opt_initiate_approval_assignment: '  --initiate-approval-assignment <rule> Initiate-approval assignment: targetField:valueType:value',
     create_opt_connector_mode: '  --connector-mode <mode>       Connector mode; use 5 for HTTP connectors',
     create_opt_connection_id: '  --connection-id <id>          HTTP connector auth connection ID',
+    create_opt_connector_system_token_app: '  --connector-system-token-app <appType>  Bind systemToken server-side for a Yida OpenAPI action',
     create_opt_connector_display_name: '  --connector-display-name <name> Connector display name',
     create_opt_publish: '  --publish                     Publish after saving',
     create_examples_title: 'Examples:',
@@ -482,6 +508,11 @@ module.exports = {
     connector_action_not_found: 'Connector action not found by exact read-only discovery: {0}',
     connector_action_schema_missing: 'The connector action does not contain a verifiable inputs/outputs schema.',
     connector_input_unknown: 'Connector input was not found in the verified schema: {0}',
+    connector_input_ambiguous: 'Connector input exists in multiple parameter groups; use its full path: {0}',
+    connector_assignment_duplicate: 'Multiple connector assignments target the same input: {0}',
+    connector_assignment_value_required: 'Connector input assignment cannot be empty: {0}',
+    connector_required_input_missing: 'Required connector input has no assignment: {0}',
+    readback_connector_assignments_mismatch: 'Connector input assignments in the integration readback differ from the published content.',
     connector_schema_unverified: 'Connector action schema is unverified: {0}::{1}',
     runtime_case_unknown: 'Unknown integration runtime case: {0}',
     runtime_adapter_missing: 'Integration runtime adapter is not configured.',
@@ -614,9 +645,10 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    update_only_option: '{0} ist nur für Updates verfügbar. Erstellen Sie zuerst die App und verwenden Sie dann openyida update-app <appType>.',
     title: '  create-app - Yida-App-Erstellungstool',
-    usage: 'Verwendung: openyida create-app "<App-Name>" oder openyida create-app --name "<App-Name>" [--desc "..."] [--theme deepBlue]',
-    example: 'Beispiel: openyida create-app --name "Meine App" --desc "App-Beschreibung" --theme deepBlue',
+    usage: 'Verwendung: openyida create-app "<App-Name>" oder openyida create-app --name "<App-Name>" [--desc "..."]',
+    example: 'Beispiel: openyida create-app --name "Meine App" --desc "App-Beschreibung"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -704,6 +736,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    batch_invalid: 'Ungültiger Formularstapel; Fehlerdetails prüfen',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
     app_id: '\n  App-ID:       {0}',
@@ -967,6 +1000,9 @@ module.exports = {
     err_open_url_empty: 'openUrl-Pfad darf nicht leer sein: {0}'
   },
   update_app: {
+    theme_preset_conflict: 'Voreingestellte colour kann nicht mit CSS oder themeColor kombiniert werden. Verwenden Sie --colour custom oder lassen Sie --colour weg.',
+    custom_theme_color_required: 'colour=custom benötigt eine Theme-Datei oder gültige themeColor. Verwenden Sie --theme-file oder --theme-color.',
+    theme_not_persisted: 'Die App-Theme-Einstellungen konnten nach dem Speichern nicht bestätigt werden. Prüfen Sie themeVerification und wiederholen Sie update-app <appType> --theme-file <css>; erstellen Sie die App nicht erneut.',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1202,6 +1238,7 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_inline_css_invalid: 'Inline-CSS nahe Zeile {0} enthält eine nicht geschlossene oder unpassende Klammer, Zeichenfolge oder einen Kommentar. Vor Veröffentlichung korrigieren.',
     title: '  yida-publish - Yida-Seitenveröffentlichungstool',
     platform: '  Plattform: {0}',
     base_url: '\n  Platform: {0}',
@@ -1247,6 +1284,8 @@ module.exports = {
     lint_yida_api_catch: 'Für den API-Aufruf this.utils.yida wurde kein .catch() erkannt; fügen Sie Fehlerbehandlung hinzu und zeigen Sie dem Benutzer einen Toast',
     lint_echarts_legacy_map_china: 'ECharts 5 unterstützt echarts/map/js/china.js nicht mehr. Laden Sie DataV GeoJSON und rufen Sie stattdessen echarts.registerMap("china", geoJson) auf',
     lint_echarts_rich_label_formatter: 'Von ECharts label.formatter zurückgegebene Rich-Text-Templates sind in Yida-Benutzerdefinierten Seiten instabil; bevorzugen Sie einfache formatter-Strings oder vorab berechneten Label-Text',
+    lint_system_token_frontend_forbidden: 'Benutzerdefinierte Seiten dürfen systemToken nicht lesen oder übergeben. Binden Sie ihn serverseitig über Yida Integration Automation.',
+    lint_connector_runtime_name_required: 'Custom pages must invoke connectors with connectorName (Http_*); numeric connectorId is only for CLI management.',
     lint_const_let: 'Verwendet const/let-Deklaration, empfohlen auf var zu ändern (Yida-Laufzeitkompatibilität)',
     lint_computed_property: 'Verwendet ES6 berechneten Eigenschaftsnamen { [key]: value }, wird von der Yida JS-Engine nicht unterstützt und verursacht stilles Fehlschlagen. Verwenden Sie var obj = {}; obj[key] = value;',
     lint_pad_method: 'Verwendet String.{0}(), wird von der Yida JS-Engine nicht unterstützt und verursacht stilles Abbrechen von Promise-Callbacks. Verwenden Sie den ternären Operator: x < 10 ? "0" + x : "" + x',
@@ -1984,6 +2023,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
 
 const connectorSafetyMessages = require('../../lib/core/locales/en');
 module.exports.connector_contract = connectorSafetyMessages.connector_contract;
+module.exports.connector_auth = connectorSafetyMessages.connector_auth;
 module.exports.connector_api = connectorSafetyMessages.connector_api;
 module.exports.connector_e2e = connectorSafetyMessages.connector_e2e;
 module.exports.connector_action_update = connectorSafetyMessages.connector_action_update;

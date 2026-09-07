@@ -186,7 +186,14 @@
     "category": "disambiguation",
     "note": "页面数据源接入连接器 → data-source-connectors，不是创建连接器"
   },
-
+  {
+    "id": "dingtalk-openapi-pos-1",
+    "prompt": "根据钉钉开放平台创建日程接口文档，生成宜搭连接器并安全配置 DingAuth",
+    "expectedSkill": "yida-dingtalk-openapi",
+    "mustNotTrigger": ["yida-connector-safe-actions"],
+    "type": "positive",
+    "note": "钉钉官方文档到连接器 → dingtalk-openapi"
+  },
   {
     "id": "connector-safe-actions-pos-1",
     "prompt": "我有一段调用钉钉开放 API 的代码，帮我自动生成连接器执行动作",

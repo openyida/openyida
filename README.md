@@ -166,10 +166,11 @@ For a user-facing list of supported features and matching CLI commands, see [Ope
 ### Application and Form Management
 
 ```bash
-openyida create-app "CRM"
+openyida create-app --name "CRM" --desc "Customer management"
 openyida sample yida-design app-theme --output .cache/openyida/crm/app-theme.css
 openyida create-app --name "CRM" --desc "Customer management" --theme-file .cache/openyida/crm/app-theme.css --nav-theme light --logo-source appIcon --layout l_shape
-openyida app-list --size 20
+openyida app-list --type managed --page 1 --size 16
+openyida update-app APP_XXX --theme-file .cache/openyida/crm/app-theme.css --nav-theme light --logo-source appIcon --layout l_shape
 openyida corp-efficiency
 openyida create-form create APP_XXX "Customer" .cache/openyida/forms/customer-fields.json
 openyida create-form update APP_XXX FORM_XXX .cache/openyida/forms/customer-changes.json
@@ -388,9 +389,13 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida app-list [--size N]` | List my Yida apps |
+| `openyida app-list [--type managed\|created] [--page N] [--size N]` | Page through apps I manage or created |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency overview and detail reports |
 | `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a Yida app |
+| `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | Initialize a plan draft from confirmed requirements |
+| `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | Update plan drafts by module |
+| `openyida design-plan materialize <build-plan.json> [--from-preview \| --business-file <json> --visual-file <json>] [--output-dir <dir>] [--check] [--json]` | Generate and validate design-plan artifacts from build-plan.json |
+| `openyida design-plan patch <build-plan.json> --set <path=value> [--set <path=value> ...] [--materialize] [--output-dir <dir>] [--json]` | Patch a design plan by field path and invalidate prior confirmation |
 | `openyida update-app <appType> [--name "..."] [--theme-file <css>] [--nav-theme light\|dark\|white\|gray] [--logo-source appIcon\|customImage] [--layout side\|top\|l_shape] [--hide-app-nav\|--show-app-nav]` | Update app info |
 | `openyida app-online <appType> [--to-ding-app-center] [--show-app-center]` | Enable a Yida app |
 | `openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]` | Disable a Yida app |
@@ -404,6 +409,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
+| `openyida create-form batch <appType> <plan.json> [--concurrency 1..4] [--check] [--json]` | Create forms concurrently by dependency |
 | `openyida create-form create <appType> "<formTitle>" <fieldsJsonFile> [--icon auto\|<iconName>] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a form page |
 | `openyida create-form icons [--json]` | List available form navigation icons |
 | `openyida create-form validate-fields <fieldsJsonOrFile> [--json]` | Validate form field JSON locally |
@@ -424,7 +430,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida check-page <src> [--compat]` | Check custom page standards |
 | `openyida compile <src>` | Compile custom page locally |
 | `openyida publish <src> <appType> <formUuid> [--health-check] [--force] [--canvas] [--auto-nav-order] [--open\|--no-open]` | Compile and publish custom page |
-| `openyida update-form-config <appType> ...` | Update form configuration |
+| `openyida update-form-config <appType> <formUuid> <true\|false\|keep> "<title>" [--locale zh_CN\|en_US\|ja_JP]` | Update form configuration |
 | `openyida get-form-config <appType> <formUuid> [--json]` | Query form configuration |
 
 ### Data & Permissions
@@ -479,9 +485,9 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida connector update-action --connector-id <id> --action <operationId> --query-json JSON --confirm` | Safely update action query defaults |
 | `openyida connector list-actions <id>` | List actions |
 | `openyida connector delete-action <id> <operation-id>` | Delete an action |
-| `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>]` | Test an action |
+| `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>]` | Test an action |
 | `openyida connector list-connections <id>` | List auth connections |
-| `openyida connector create-connection <id> <name>` | Create an auth connection |
+| `openyida connector create-connection <id> <name> [--interactive]` | Create an auth connection |
 | `openyida connector smart-create --curl "..."` | Generate a redacted action draft from cURL (no remote create) |
 | `openyida connector parse-api [options]` | Parse API information |
 | `openyida connector gen-template [output]` | Generate API document template |
@@ -490,7 +496,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida integration create <appType> ... [--spec file.json]` | Create integration automation flow |
+| `openyida integration create <appType> ... [--spec file.json] [--connector-system-token-app <appType>]` | Create integration automation flow |
 | `openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]` | Probe integration update capability (currently blocked without full readback) |
 | `openyida integration list <appType> [--flow-types 1,2,3,5,6] [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
 | `openyida integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
@@ -510,7 +516,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start OpenYida local web bridge service |
 | `openyida copy [--force]` | Copy project working directory |
-| `openyida sample [--list]` | Output code samples/templates |
+| `openyida sample [--list] [<skill> <name>] [--output <file>] [--var KEY=VALUE ...] [--design-file <design.md>]` | Output code samples/templates |
 | `openyida doctor [--fix]` | Environment diagnostics & auto-fix |
 | `openyida db-seq-fix [--fix]` | Detect and repair PostgreSQL sequence drift |
 | `openyida formula evaluate <formula\|file> [--schema file]` | Static-check Yida formula syntax and field refs |
@@ -563,7 +569,7 @@ The CLI package ships the core UI languages `zh` and `en` by default. Other CLI 
 
 #### Forms and Pages
 
-Form field definitions can include `alias` or `componentAlias` to populate Yida designer component aliases, stored as `pages[0].componentAlias.items`. Yida runtime resolves these aliases in page JS, so `this.$('phone')` can be used instead of `this.$('textField_xxx')`; OpenYida form rules, validations, and `openyida data ... --resolve-aliases` JSON inputs also accept aliases as field references. For server-side DingTalk OpenAPI calls, use `GET /v2.0/yida/forms/component/alias/{appType}/{formUuid}` to read the `{ fieldId, alias }` mapping, then translate aliases before sending form data/search JSON. That endpoint requires `systemToken`, `userId`, an access token, and the Yida form data read permission; grant that permission in DingTalk developer console API permissions and publish the DingTalk app. Yida app code and app secret are available under app settings > deployment/maintenance.
+Form field definitions can include `alias` or `componentAlias` to populate Yida designer component aliases, stored as `pages[0].componentAlias.items`. Yida runtime resolves these aliases in page JS, so `this.$('phone')` can be used instead of `this.$('textField_xxx')`; OpenYida form rules, validations, and `openyida data ... --resolve-aliases` JSON inputs also accept aliases as field references. For server-side DingTalk OpenAPI calls, use `GET /v2.0/yida/forms/component/alias/{appType}/{formUuid}` to read the `{ fieldId, alias }` mapping, then translate aliases before sending form data/search JSON. That endpoint requires `systemToken`, `userId`, an access token, and the Yida form data read permission. Use `connector test --system-token-app <appType>` for a transient test or `integration create --connector-system-token-app <appType>` for a server-side automation; OpenYida resolves `systemToken` internally and never prints it or stores it in page source and Action defaults.
 
 `openyida publish` preserves existing custom page data sources by default. Before saving the new compiled JSX Schema, it reads the current page Schema and merges the Page-level `dataSource` with the built-in `urlParams` and `timestamp` sources, so manually configured data sources are not deleted during republish.
 

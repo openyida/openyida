@@ -17,9 +17,14 @@ module.exports = {
     cmd_env: '偵測 AI 工具環境和登入態',
     cmd_env_management: '管理公有雲 / 私有化環境',
     group_app: '應用程式管理',
-    cmd_app_list: '查詢我的應用程式清單',
+    cmd_app_list: '分頁查詢我管理或建立的應用程式',
     cmd_corp_efficiency: '查詢企業效能概覽和明細報表',
     cmd_create_app: '建立宜搭應用程式',
+    cmd_design_plan_preview: '按模組更新方案草稿',
+    design_plan_preview_invalid: '方案草稿更新失敗，請檢查錯誤詳情',
+    cmd_design_plan_init: '從已確認需求初始化計劃草稿',
+    cmd_design_plan_materialize: '從 build-plan.json 產生並校驗搭建計畫產物',
+    cmd_design_plan_patch: '按欄位路徑調整搭建計畫並使舊確認失效',
     cmd_update_app: '更新應用程式資料',
     cmd_app_online: '啟用宜搭應用程式',
     cmd_app_offline: '停用宜搭應用程式',
@@ -29,6 +34,7 @@ module.exports = {
     cmd_export: '匯出應用程式（產生遷移包）',
     cmd_import: '匯入遷移包，重建應用程式',
     group_form: '表單 & 頁面',
+    cmd_create_form_batch: '按依賴並行建立表單',
     cmd_create_form: '建立表單頁面',
     cmd_list_form_icons: '列出可用的表單導覽圖示',
     cmd_validate_form: '本機校驗表單欄位 JSON',
@@ -123,6 +129,25 @@ module.exports = {
     quickstart_form_name: '員工資料',
     docs: '📚 文件:'
   },
+  app_list: {
+    usage: '用法：openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: '選項：',
+    option_type: '  --type TYPE  查詢範圍：managed（我管理的，預設）或 created（我建立的）',
+    option_page: '  --page N     頁碼，預設：1',
+    option_size: '  --size N     每頁數量，預設：16',
+    option_help: '  --help, -h   顯示說明',
+    invalid_type: '無效的 --type 值「{0}」，有效值：{1}',
+    invalid_positive_integer: '{0} 必須是正整數，目前值：「{1}」',
+    invalid_argument: '無效參數：{0}',
+    query_failed: '查詢應用程式清單失敗：{0}',
+    auth_required: '登入狀態已失效，請重新登入',
+    unknown_error: '未知錯誤',
+    scope_managed: '我管理的',
+    scope_created: '我建立的',
+    found: '{0}應用程式：第 {1}/{2} 頁，本頁 {3} 個，共 {4} 個',
+    next_page: '還有更多應用程式，請繼續執行：{0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - 宜搭命令列工具\n' +
@@ -392,6 +417,7 @@ module.exports = {
     create_opt_initiate_approval_assignment: '  --initiate-approval-assignment <rule> 发起审批字段赋值：目标字段:valueType:value',
     create_opt_connector_mode: '  --connector-mode <mode>       连接器类型，HTTP 连接器传 5',
     create_opt_connection_id: '  --connection-id <id>          HTTP 连接器鉴权连接 ID',
+    create_opt_connector_system_token_app: '  --connector-system-token-app <appType>  為宜搭 OpenAPI 在服務端綁定 systemToken',
     create_opt_connector_display_name: '  --connector-display-name <name> 连接器展示名称',
     create_opt_publish: '  --publish                     保存后立即发布',
     create_examples_title: '示例:',
@@ -459,6 +485,11 @@ module.exports = {
     connector_action_not_found: 'Connector action not found by exact read-only discovery: {0}',
     connector_action_schema_missing: 'The connector action does not contain a verifiable inputs/outputs schema.',
     connector_input_unknown: 'Connector input was not found in the verified schema: {0}',
+    connector_input_ambiguous: '連接器輸入欄位存在於多個參數群組，請使用完整路徑：{0}',
+    connector_assignment_duplicate: '多個連接器賦值指向同一輸入欄位：{0}',
+    connector_assignment_value_required: '連接器輸入欄位的賦值不可為空：{0}',
+    connector_required_input_missing: '連接器必填輸入欄位尚未賦值：{0}',
+    readback_connector_assignments_mismatch: '整合自動化遠端回讀的連接器輸入賦值與發布內容不一致。',
     connector_schema_unverified: 'Connector action schema is unverified: {0}::{1}',
     runtime_case_unknown: 'Unknown integration runtime case: {0}',
     runtime_adapter_missing: 'Integration runtime adapter is not configured.',
@@ -579,9 +610,10 @@ module.exports = {
     unknown: '未知'
   },
   create_app: {
+    update_only_option: '{0} 僅用於更新應用設定，請先建立應用，再使用 openyida update-app <appType>。',
     title: '  openyida create-app - 宜搭應用程式建立工具',
-    usage: '用法：openyida create-app "<appName>" [description] [icon] [iconColor] [themeColor] 或 openyida create-app --name "<appName>" [--desc "..."] [--theme deepBlue]',
-    example: '範例：openyida create-app --name "考勤管理" --desc "員工考勤打卡系統" --theme deepBlue',
+    usage: '用法：openyida create-app "<appName>" [description] [icon] [iconColor] 或 openyida create-app --name "<appName>" [--desc "..."]',
+    example: '範例：openyida create-app --name "考勤管理" --desc "員工考勤打卡系統"',
     available_icons: '\n可用圖示：',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -663,6 +695,7 @@ module.exports = {
     no_login: '  ❌ 无法获取有效登录态'
   },
   create_form: {
+    batch_invalid: '表單批量任務設定無效，請檢查錯誤詳情',
     create_title: '  yida-create-form-page - 宜搭表单页面创建工具',
     update_title: '  yida-create-form-page - 宜搭表单页面更新工具',
     app_id: '\n  应用 ID:    {0}',
@@ -912,6 +945,9 @@ module.exports = {
     err_open_url_chars: 'openUrl 路徑部分只支援 a-z A-Z 0-9 _ -，可用 / 分隔多級路徑，目前值：{0}'
   },
   update_app: {
+    theme_preset_conflict: '平台預置 colour 不能與自訂 CSS 或 themeColor 同傳；請使用 --colour custom 或省略 --colour。',
+    custom_theme_color_required: 'colour=custom 需要主題檔案或有效 themeColor；請傳 --theme-file 或 --theme-color。',
+    theme_not_persisted: '應用主題儲存後回讀不一致或查詢失敗，CSS 資源尚未確認綁定。請查看 themeVerification，並使用 update-app <appType> --theme-file <css> 重試；不要重複建立應用。',
     usage: '用法: openyida update-app <appType> [--name "新名称"] [--desc "描述"] [--layout slide|ver] [--theme deepBlue]',
     example: '示例: openyida update-app APP_XXX --name "新应用名称" --layout ver --theme deepBlue',
     options: '选项:\n' +
@@ -1141,6 +1177,7 @@ module.exports = {
     failed: '页面规范检查失败'
   },
   publish: {
+    canvas_inline_css_invalid: '第 {0} 行附近的內嵌 CSS 存在未閉合或不匹配的括號、字串或註解，請修復後再發佈。',
     title: '  yida-publish - 宜搭頁面發布工具',
     platform: '  平台位址：{0}',
     base_url: '\n  平台位址：{0}',
@@ -1186,6 +1223,8 @@ module.exports = {
     lint_yida_api_catch: 'this.utils.yida API 調用未偵測到 .catch()，請補充錯誤處理並 toast 給用戶',
     lint_echarts_legacy_map_china: 'ECharts 5 已廢棄 echarts/map/js/china.js，請載入 DataV GeoJSON 後調用 echarts.registerMap("china", geoJson)',
     lint_echarts_rich_label_formatter: 'ECharts label.formatter 返回 rich text 模板在宜搭自定義頁面環境不穩定，建議使用普通 formatter 字串或預先拼好的標籤文字',
+    lint_system_token_frontend_forbidden: '自定義頁面不得讀取或傳入 systemToken；請改用宜搭集成自動化，在服務端安全綁定憑據。',
+    lint_connector_runtime_name_required: '自定義頁面調用連接器時必須使用 connectorName（Http_*）；數字 connectorId 只用於 CLI 管理。',
     lint_const_let: '使用了 const/let 宣告，建議改為 var（宜搭執行環境相容性）',
     lint_computed_property: '使用了 ES6 計算屬性名 { [key]: value }，宜搭 JS 引擎不支援此語法，會導致靜默失敗。請改為 var obj = {}; obj[key] = value;',
     lint_pad_method: '使用了 String.{0}()，宜搭 JS 引擎不支援此方法，會導致 Promise 回呼靜默中斷。請用三元運算子替代，如：x < 10 ? "0" + x : "" + x',
@@ -1872,6 +1911,7 @@ module.exports.connector_contract = {
   security_schemes_invalid: '連接器 securitySchemes 必須是 JSON 物件。',
   test_envelope_failed: '連接器測試回應信封報告失敗。',
   test_response_invalid: '連接器測試傳回了無法識別的回應契約。',
+  test_business_failed: '連接器測試傳回業務失敗，錯誤碼：{0}',
   test_status_invalid: '連接器測試回應缺少規範 HTTP 狀態列。',
   test_http_failed: '連接器測試失敗：{0}。',
 };
@@ -1941,3 +1981,4 @@ module.exports.connector_e2e = {
   test_contract_unverified: '連接器測試未能證明受控 fixture、標記、歸屬和驗證執行階段契約。',
   action_mutated: '連接器測試改變了持久化動作定義。',
 };
+module.exports.connector_auth = require('../../lib/core/locales/zh').connector_auth;

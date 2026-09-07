@@ -45,7 +45,10 @@ describe('skill resource boundary copy', () => {
     expect(root).not.toMatch(/resolve_resource_context/);
     expect(root).not.toMatch(/resolve forms\/processes → seed records → reserve main page/);
     expect(root).not.toMatch(/字段级命令内置解析/);
-    expect(app).toMatch(/按以下 9 个执行步骤顺序推进/);
+    expect(app).toContain('以下 9 步仅用于内部执行，不复制为宿主待办');
+    expect(app).toContain('每一步开始前读取对应 workflow 文件');
+    expect(app).toContain('按真实依赖满足下游输入后继续');
+    expect(app).toContain('每页只等待自身资源，独立校验并发布');
     expect(root).not.toMatch(RETIRED_ARCHITECTURE_PATTERN);
   });
 

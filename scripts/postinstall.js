@@ -285,6 +285,8 @@ openyida copy
 
 用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，加载 \`yida-app\` 走完整应用统一编排。
 
+完整应用先在 yida-app Step 2 按 yida-design/references/design-mode.md 选择一次 Fast / Plan。首次搭建包括没有 appType 和已有 appType 但无页面的空应用；用户尚未为本次搭建明确选择方式时，仅询问“Plan（先确认方案） / Fast（直接搭建）”并等待回答；两种模式都完成业务规划和视觉设计，技能与工具不作为模式选项。模式与导航类型的提问使用固定顺序和中性说明，不标记推荐或默认，不预选或引导选择。以下需求分析与并行设计规则用于 Fast；Plan 确认当前版本后直接交接派生文件，不再运行 Fast。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。
+
 统一编排只做：解析资源上下文并整理用户需求 → 同时调用 \`yida-prd\` 输出 \`prd.md\`、\`yida-design\` 输出 \`design.md\` → 由 \`yida-app\` 校验两份结果 → 创建/复用应用 → 核心表单/流程 → 主页面 → 编写主页面源码 → 发布 + 轻量导航排序 → 返回 2-3 句业务交付总结和一个主入口链接。资源创建顺序按 PRD 执行：应用先落位，表单/流程先于自定义页面。发布主页面成功后，PRD 写明导航顺序时执行 \`openyida nav-group order <appType> <页面/表单...>\`；PRD 只写宽泛分组或缺少导航顺序时，执行 \`openyida publish ... --auto-nav-order\` 或 \`openyida nav-group auto-order <appType>\` 兜底，兜底顺序为门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
 
 应用主题只在应用级统一配置。严禁页面代码向原生表单、详情页、父页面或平台容器写入主题样式；\`YidaCodeCanvas\` 页面只在 \`YidaComp\` 内消费现有主题 token。字段结构统一交给 \`yida-create-form-page\`。
@@ -314,7 +316,7 @@ openyida copy
 | \`yida-skills/process\` | 审批、流程表单、流程规则、代理人 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\` |
 | \`yida-skills/page\` | 自定义展示页、YidaCodeCanvas 组件、历史平台 JSX 组件页面维护、发布、导航壳、PPT | \`yida-create-page\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\` |
 | \`yida-skills/analytics\` | 报表、统计、图表、Recharts、ECharts、看板、驾驶舱 | \`yida-report\`, \`yida-rechart\`, \`yida-chart\`, \`yida-dashboard\` |
-| \`yida-skills/integration\` | 连接器、外部 API、数据源、集成自动化 | \`yida-integration\`, \`yida-connector\`, \`yida-connector-safe-actions\`, \`yida-data-source-connectors\` |
+| \`yida-skills/integration\` | 连接器、钉钉开放平台、外部 API、数据源、集成自动化 | \`yida-integration\`, \`yida-dingtalk-openapi\`, \`yida-connector\`, \`yida-connector-safe-actions\`, \`yida-data-source-connectors\` |
 | \`yida-skills/access\` | 平台/应用/表单/页面权限、公开访问、分享 | \`yida-corp-manager\`, \`yida-app-permission\`, \`yida-form-permission\`, \`yida-page-config\` |
 | \`yida-skills/ops\` | Sequence、VOC | \`yida-db-seq-fix\`, \`yida-voc\` |
 | \`yida-skills/agent\` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | \`yida-export-conversation\`, \`yida-document-markdown\`, \`yida-tingji\`, \`yida-flash-note-to-prd\` |

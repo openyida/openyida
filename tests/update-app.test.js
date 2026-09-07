@@ -2,6 +2,7 @@
 
 const {
   assertPresetThemeKey,
+  assertAppThemeKey,
   APP_THEME_TOKEN_PRESETS,
   APP_THEME_TOKEN_PRESET_KEYS,
   getAppThemeTokenPreset,
@@ -21,6 +22,17 @@ const {
 } = require('../lib/app/update-app');
 
 describe('update-app helpers', () => {
+  test('colour accepts only platform keys or custom, never CSS colors or invented keys', () => {
+    ['podBlue', 'podGreen', 'podOrange', 'black', 'custom'].forEach((key) => expect(() => assertAppThemeKey(key)).not.toThrow());
+    ['#C89B5A', 'rgb(200,155,90)', 'desertWarm', 'podBXXXX'].forEach((key) => expect(() => assertAppThemeKey(key)).toThrow());
+  });
+
+  test('explicit custom preserves existing CSS and color while preset switches clear them', () => {
+    const current = { colour: 'custom', themeColor: '#C89B5A', customThemeStyle: '{"enabled":true,"cssUrl":"https://example.com/theme.css"}' };
+    expect(buildUpdateAppPostData(parseArgs(['APP_1', '--colour', 'custom']), current, {})).toMatchObject(current);
+    expect(() => buildUpdateAppPostData(parseArgs(['APP_1', '--colour', 'custom']), {}, {})).toThrow();
+    expect(() => buildUpdateAppPostData(parseArgs(['APP_1', '--colour', 'podBlue', '--theme-file', './theme.css']), current, {})).toThrow();
+  });
   test('parseArgs supports app shell theme flags', () => {
     expect(parseArgs([
       'APP_1',

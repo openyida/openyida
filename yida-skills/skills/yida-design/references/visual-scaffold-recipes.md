@@ -9,6 +9,7 @@
 3. 把配方写入 `design.md` 的 `visualScaffold`：`layoutRecipe`、`surfaceMap`、`sectionRhythm`、`densityRule`、`breathingRule`、`componentRecipe`、`emptyStateRecipe`、`responsiveSlots`、`acceptanceChecks`。PRD 只引用 `designFile/designRefs` 和主题风格摘要。
 4. 实现阶段逐项消费，不从“高级 / 简洁 / 好看”等形容词直接写 CSS。
 5. 默认业务页采用圆润高密且有呼吸感的规则：卡片 padding 默认 22-28px 且必须大于 20px，卡片与卡片的 gap 默认 12-18px 且必须小于 20px，卡片圆角范围 0-32px，控件 10-14px；状态摘要、动作条、列表和空态必须紧凑，间距服务分组和扫读，不用额外 margin 或空白高度撑面积。
+6. 标题槽位按信息增量使用：导航已标明当前页面时，首个内容槽位直接承载表单、列表或业务区块；独立页头用于具体对象名、任务说明或操作。业务分区标题保留，顶部间距按实际内容重新分配。
 
 ## 源码级槽位
 

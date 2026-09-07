@@ -69,6 +69,7 @@ describe('npm package smoke', () => {
       const files = pack.files.map((file) => file.path);
 
       expect(files).toContain('bin/yida.js');
+      expect(files).toContain('lib/app/inline-css-guard.js');
       expect(files).toContain('lib/core/utils.js');
       expect(files).toContain('lib/core/locales/zh.js');
       expect(files).toContain('lib/core/locales/en.js');

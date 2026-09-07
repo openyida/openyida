@@ -270,9 +270,13 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida app-list [--size N]` | 查询我的应用列表 |
+| `openyida app-list [--type managed\|created] [--page N] [--size N]` | 分页查询我管理的或我创建的应用 |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | 查询企业效能概览和明细报表 |
 | `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建宜搭应用 |
+| `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | 从已确认需求初始化计划草稿 |
+| `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | 按模块更新方案草稿 |
+| `openyida design-plan materialize <build-plan.json> [--from-preview \| --business-file <json> --visual-file <json>] [--output-dir <dir>] [--check] [--json]` | 从 build-plan.json 生成并校验搭建计划产物 |
+| `openyida design-plan patch <build-plan.json> --set <path=value> [--set <path=value> ...] [--materialize] [--output-dir <dir>] [--json]` | 按字段路径调整搭建计划并使旧确认失效 |
 | `openyida update-app <appType> [--name "..."] [--theme-file <css>] [--nav-theme light\|dark\|white\|gray] [--logo-source appIcon\|customImage] [--layout side\|top\|l_shape] [--hide-app-nav\|--show-app-nav]` | 更新应用信息 |
 | `openyida app-online <appType> [--to-ding-app-center] [--show-app-center]` | 启用宜搭应用 |
 | `openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]` | 停用宜搭应用 |
@@ -286,6 +290,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
+| `openyida create-form batch <appType> <plan.json> [--concurrency 1..4] [--check] [--json]` | 按依赖并行创建表单 |
 | `openyida create-form create <appType> "<formTitle>" <fieldsJsonFile> [--icon auto\|<iconName>] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建表单页面 |
 | `openyida create-form icons [--json]` | 列出可用的表单导航图标 |
 | `openyida create-form validate-fields <fieldsJsonOrFile> [--json]` | 本地校验表单字段 JSON |
@@ -306,7 +311,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida check-page <src> [--compat]` | 检查自定义页面规范 |
 | `openyida compile <src>` | 本地编译自定义页面 |
 | `openyida publish <src> <appType> <formUuid> [--health-check] [--force] [--canvas] [--auto-nav-order] [--open\|--no-open]` | 编译并发布自定义页面 |
-| `openyida update-form-config <appType> ...` | 更新表单配置 |
+| `openyida update-form-config <appType> <formUuid> <true\|false\|keep> "<title>" [--locale zh_CN\|en_US\|ja_JP]` | 更新表单配置 |
 | `openyida get-form-config <appType> <formUuid> [--json]` | 查询表单配置 |
 
 ### 数据 & 权限
@@ -361,9 +366,9 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida connector update-action --connector-id <id> --action <operationId> --query-json JSON --confirm` | 安全更新动作 Query 默认值 |
 | `openyida connector list-actions <id>` | 列出执行动作 |
 | `openyida connector delete-action <id> <operation-id>` | 删除执行动作 |
-| `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>]` | 测试执行动作 |
+| `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>]` | 测试执行动作 |
 | `openyida connector list-connections <id>` | 列出鉴权账号 |
-| `openyida connector create-connection <id> <name>` | 创建鉴权账号 |
+| `openyida connector create-connection <id> <name> [--interactive]` | 创建鉴权账号 |
 | `openyida connector smart-create --curl "..."` | 从 cURL 生成脱敏动作草稿（不创建远端资源） |
 | `openyida connector parse-api [options]` | 解析接口信息 |
 | `openyida connector gen-template [output]` | 生成接口文档模板 |
@@ -372,7 +377,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida integration create <appType> ... [--spec file.json]` | 创建集成自动化逻辑流 |
+| `openyida integration create <appType> ... [--spec file.json] [--connector-system-token-app <appType>]` | 创建集成自动化逻辑流 |
 | `openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]` | 检测集成自动化安全更新能力（完整 readback 未证明，当前阻断） |
 | `openyida integration list <appType> [--flow-types 1,2,3,5,6] [--form-uuid <uuid>] [--status y\|n] [--json]` | 列出集成自动化逻辑流 |
 | `openyida integration enable <appType> <formUuid> <processCode>` | 启用集成自动化逻辑流 |
@@ -392,7 +397,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida a2a <serve\|agent-card> [options]` | 启动本地只读 A2A Adapter 或输出 Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | 启动 OpenYida 本地网页桥接服务 |
 | `openyida copy [--force]` | 复制 project 工作目录 |
-| `openyida sample [--list]` | 输出代码模板 |
+| `openyida sample [--list] [<skill> <name>] [--output <file>] [--var KEY=VALUE ...] [--design-file <design.md>]` | 输出代码模板 |
 | `openyida doctor [--fix]` | 环境诊断与自动修复 |
 | `openyida db-seq-fix [--fix]` | PostgreSQL Sequence 漂移检测与修复 |
 | `openyida formula evaluate <formula\|file> [--schema file]` | 静态检查宜搭公式语法和字段引用 |

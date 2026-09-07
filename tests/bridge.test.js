@@ -336,28 +336,32 @@ describe('bridge HTTP protocol', () => {
   });
 
   test('app-list action is authenticated and returns whitelisted app fields', async () => {
+    let receivedParams;
     const baseUrl = await startTestBridge({
-      listApps: () => ([
-        {
-          appName: '售后工单',
-          appType: 'APP_AFTER_SALES',
-          systemLink: 'https://www.aliwork.com/APP_AFTER_SALES/workbench',
-          access_token: 'secret-token',
-        },
-        {
-          name: '异常链接',
-          appType: 'APP_UNSAFE_LINK',
-          url: 'javascript:alert(1)',
-          cookie: 'secret-cookie',
-        },
-      ]),
+      listApps: (params) => {
+        receivedParams = params;
+        return ([
+          {
+            appName: '售后工单',
+            appType: 'APP_AFTER_SALES',
+            systemLink: 'https://www.aliwork.com/APP_AFTER_SALES/workbench',
+            access_token: 'secret-token',
+          },
+          {
+            name: '异常链接',
+            appType: 'APP_UNSAFE_LINK',
+            url: 'javascript:alert(1)',
+            cookie: 'secret-cookie',
+          },
+        ]);
+      },
     });
 
     const blocked = await requestJson(baseUrl, {
       path: '/v1/actions/app-list',
       method: 'POST',
       origin,
-      body: { size: 20 },
+      body: { type: 'created', page: 2 },
     });
     expect(blocked.status).toBe(401);
 
@@ -373,9 +377,10 @@ describe('bridge HTTP protocol', () => {
       method: 'POST',
       origin,
       token: pair.body.token,
-      body: { size: 20 },
+      body: { type: 'created', page: 2 },
     });
     expect(listed.status).toBe(200);
+    expect(receivedParams).toEqual({ type: 'created', page: 2, size: 16 });
     expect(listed.body).toMatchObject({
       ok: true,
       action: 'openyida.app-list',
@@ -395,6 +400,19 @@ describe('bridge HTTP protocol', () => {
     });
     expect(JSON.stringify(listed.body)).not.toContain('secret-token');
     expect(JSON.stringify(listed.body)).not.toContain('secret-cookie');
+
+    const invalid = await requestJson(baseUrl, {
+      path: '/v1/actions/app-list',
+      method: 'POST',
+      origin,
+      token: pair.body.token,
+      body: { type: 'all', page: 0 },
+    });
+    expect(invalid.status).toBe(400);
+    expect(invalid.body).toMatchObject({
+      ok: false,
+      error: 'invalid_app_list_payload',
+    });
   });
 
   test('jsonp fallback pairs and calls authenticated actions without fetch', async () => {

@@ -45,7 +45,7 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 - 所有 create/update/delete/execute 写操作必须携带只读预检确认的资源名称和类型；CLI 校验不一致时停止，不得换目标重试
 - 新增记录、生成测试数据、批量导入或发起流程必须遵守上方“创建/录入数据强制闭环”
 - 批量操作单次不超过 30 条记录；多条实例必须逐条/分批执行 `openyida data create ...`
-- 删除普通表单记录前，必须先执行 `openyida data get form <appType> --inst-id <formInstId> --form-uuid <formUuid> --json`，核对返回实例 ID 与目标表单，并向用户展示记录数量、标题/关键字段和实例 ID；只有用户明确确认后，才执行带 `--confirm` 的正式删除命令
+- 删除普通表单记录前，必须先执行 `openyida data get form <appType> --inst-id <formInstId> --form-uuid <formUuid> --json`，核对返回实例 ID 与目标表单，并向用户展示记录数量、标题/关键字段和实例 ID。宿主支持并会在执行删除命令前触发 runtime permission/approval 时，直接发起一次带 `--confirm` 的受保护删除命令，由该唯一权限卡完成用户确认；无需且不得预先调用 `ask_human` 或其他业务确认工具。宿主不支持 runtime permission/approval 时，必须先通过 `ask_human` 或等价交互工具获得用户明确确认；只有用户确认后才能执行删除，用户拒绝或未确认时不得执行
 - 删除完成只以 `deleted=true && readbackVerified=true` 为准；`alreadyAbsent=true` 表示本次未再次发删除请求，可按幂等成功处理
 - 当前不支持删除流程实例；禁止生成 `openyida data delete process`，禁止在 CLI 报不支持后探索一次性脚本、浏览器私有请求或底层 API 绕过正式能力
 - **录入/更新数据前，必须先执行 `openyida get-schema` 获取真实字段 ID，并将字段 ID 映射记录到 `.cache/<项目名>-schema.json`**
@@ -97,8 +97,9 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 
 删除数据记录为不可逆操作，执行前必须：
 1. 展示将删除的记录摘要（数量 + 关键字段）
-2. 等待用户明确确认
-3. 执行删除
+2. 根据宿主是否支持 runtime permission/approval，只选择以下一条确认路径：
+   - 宿主支持并会在执行删除命令前触发 runtime permission/approval：直接发起一次受保护的删除命令，由该唯一权限卡完成用户确认；无需且不得预先调用 `ask_human`
+   - 宿主不支持 runtime permission/approval：必须先通过 `ask_human` 或等价交互工具获得用户明确确认；只有用户确认后才能执行删除，用户拒绝或未确认时不得执行
 
 <!-- data-delete-contract:start -->
 ```json
@@ -107,6 +108,9 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
   "requiredTarget": ["appType", "formUuid", "formInstId", "formName", "formType"],
   "preflightCommand": "data get form",
   "businessConfirmationRequired": true,
+  "runtimePermissionPreferred": true,
+  "runtimePermissionPreconfirmation": "forbidden",
+  "confirmationFallback": "ask_human_or_equivalent",
   "executionFlag": "--confirm",
   "successCondition": "deleted=true && readbackVerified=true",
   "repeatResult": "alreadyAbsent=true && mutationPerformed=false",
@@ -311,7 +315,7 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 | 参数缺失（appType/formUuid/fieldId 等） | 主动询问用户补充，或引导用户使用 `yida-get-schema` 获取 |
 | 权限不足 / 登录态失效 | 停止执行，提示用户执行 `openyida login` 重新登录 |
 | 字段 ID 无效 | 停止执行，引导用户执行 `openyida get-schema` 获取真实字段 ID |
-| 删除操作前 | 必须先展示操作摘要（数量 + 关键字段），等待用户明确确认 |
+| 删除操作前 | 必须先展示操作摘要（数量 + 关键字段）；宿主支持 runtime permission/approval 时直接发起一次受保护命令，不得预先调用 `ask_human`；宿主不支持时，必须先通过 `ask_human` 或等价交互工具获得用户明确确认 |
 | QPS 超限 | 降低请求频率，单次批量操作不超过 30 条，间隔 1 秒重试 |
 | 表单/流程接口混用 | 停止执行，提示用户检查接口类型（表单用 `/v1/form/`，流程用 `/v1/process/`） |
 | 网络超时 | 重试 1 次，仍失败则停止并提示用户检查网络 |

@@ -658,6 +658,9 @@ export default function Page() {
         publishMode: 'canvas',
         storageMode: 'CODE_BUNDLE',
         bundleId: 'a'.repeat(64),
+        publishReadbackVerified: false,
+        runtimeSmokeVerified: false,
+        runtimeSmokeStatus: 'not_checked',
         healthCheck: {
           ok: false,
           expectedPublishMode: 'canvas',

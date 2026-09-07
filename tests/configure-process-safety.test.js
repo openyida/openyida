@@ -97,6 +97,68 @@ describe('configure-process replacement and verification safety', () => {
     fs.rmSync(harness.tempDir, { recursive: true, force: true });
   });
 
+  test('polls the converted binding until a processCode becomes visible', async () => {
+    const harness = loadSubject();
+    harness.mockGetOnce
+      .mockResolvedValueOnce({
+        success: true,
+        content: { appType: 'APP_TEST', formUuid: 'FORM_TEST', procCode: '' },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { appType: 'APP_TEST', formUuid: 'FORM_TEST', procCode: 'TPROC_TEST' },
+      });
+
+    const result = await harness.subject._private.readConvertedProcessMode(
+      {},
+      { appType: 'APP_TEST', formUuid: 'FORM_TEST' },
+      { attempts: 4, delayMs: 0 }
+    );
+
+    expect(result).toMatchObject({
+      attempts: 2,
+      mode: { mode: 'process', processCode: 'TPROC_TEST' },
+    });
+    expect(harness.mockGetOnce).toHaveBeenCalledTimes(2);
+    fs.rmSync(harness.tempDir, { recursive: true, force: true });
+  });
+
+  test('fails closed after conversion readback is exhausted and never repeats the write', async () => {
+    const harness = loadSubject();
+    harness.mockGet.mockResolvedValueOnce({
+      success: true,
+      content: { appType: 'APP_TEST', formUuid: 'FORM_TEST', procCode: '' },
+    });
+    harness.mockPostFormOnce.mockResolvedValueOnce({ success: true });
+    harness.mockGetOnce.mockResolvedValue({
+      success: true,
+      content: { appType: 'APP_TEST', formUuid: 'FORM_TEST', procCode: '' },
+    });
+
+    await expect(harness.subject.run(
+      ['APP_TEST', 'FORM_TEST', harness.definitionFile],
+      { processCodeReadbackAttempts: 3, processCodeReadbackDelayMs: 0 }
+    )).rejects.toMatchObject({
+      code: 'NON_IDEMPOTENT_RESULT_UNKNOWN',
+      details: expect.objectContaining({
+        operation: 'switchFormType',
+        resultUnknown: true,
+        retryable: false,
+        retrySafe: false,
+        sideEffectState: 'unknown',
+        readbackAttempts: 3,
+        readbackTarget: {
+          appType: 'APP_TEST',
+          formUuid: 'FORM_TEST',
+          resourceType: 'form_process_binding',
+        },
+      }),
+    });
+    expect(harness.mockPostFormOnce).toHaveBeenCalledTimes(1);
+    expect(harness.mockGetOnce).toHaveBeenCalledTimes(3);
+    fs.rmSync(harness.tempDir, { recursive: true, force: true });
+  });
+
   test.each([
     ['PUBLISHED process', { published: true, saved: [] }],
     ['SAVED draft', { published: false, saved: [{ id: 101, version: '1', status: 'SAVED' }] }],

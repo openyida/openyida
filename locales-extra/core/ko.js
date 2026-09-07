@@ -17,9 +17,14 @@ module.exports = {
     cmd_env: 'AI 도구 환경 및 로그인 상태 감지',
     cmd_env_management: 'Manage public/private environment profiles',
     group_app: '앱 관리',
-    cmd_app_list: '내 Yida 앱 목록 조회',
+    cmd_app_list: '관리하거나 생성한 앱을 페이지별로 조회',
     cmd_corp_efficiency: '기업 효율 개요 및 상세 보고서 조회',
     cmd_create_app: 'Yida 앱 생성',
+    cmd_design_plan_preview: '모듈별 계획 초안 업데이트',
+    design_plan_preview_invalid: '초안 업데이트 실패. 오류 세부 정보를 확인하세요',
+    cmd_design_plan_init: '확인된 요구 사항으로 계획 초안 만들기',
+    cmd_design_plan_materialize: 'build-plan.json에서 설계 계획 산출물 생성 및 검증',
+    cmd_design_plan_patch: '필드 경로로 계획을 수정하고 이전 확인 무효화',
     cmd_update_app: '앱 정보 업데이트',
     cmd_app_online: 'Yida 앱 활성화',
     cmd_app_offline: 'Yida 앱 비활성화',
@@ -29,6 +34,7 @@ module.exports = {
     cmd_export: '앱 내보내기 (마이그레이션 패키지 생성)',
     cmd_import: '마이그레이션 패키지 가져오기, 앱 재구축',
     group_form: '양식 & 페이지',
+    cmd_create_form_batch: '종속성에 따라 양식을 병렬 생성',
     cmd_create_form: '양식 페이지 생성',
     cmd_list_form_icons: '사용 가능한 양식 탐색 아이콘 목록',
     cmd_validate_form: 'Validate form field JSON locally',
@@ -122,6 +128,25 @@ module.exports = {
     quickstart_form_name: '직원 정보',
     docs: '📚 문서:'
   },
+  app_list: {
+    usage: '사용법: openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: '옵션:',
+    option_type: '  --type TYPE  범위: managed(관리 중, 기본값) 또는 created(내가 생성)',
+    option_page: '  --page N     페이지 번호, 기본값: 1',
+    option_size: '  --size N     페이지 크기, 기본값: 16',
+    option_help: '  --help, -h   도움말 표시',
+    invalid_type: '잘못된 --type 값 "{0}"; 유효한 값: {1}',
+    invalid_positive_integer: '{0}은(는) 양의 정수여야 합니다. 현재 값: "{1}"',
+    invalid_argument: '잘못된 인수: {0}',
+    query_failed: '앱 목록 조회 실패: {0}',
+    auth_required: '로그인이 만료되었습니다. 다시 로그인하세요.',
+    unknown_error: '알 수 없는 오류',
+    scope_managed: '관리 중',
+    scope_created: '내가 생성',
+    found: '{0} 앱: {1}/{2}페이지, 현재 페이지 {3}개, 전체 {4}개',
+    next_page: '앱이 더 있습니다. 다음을 실행하세요: {0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +
@@ -134,7 +159,7 @@ module.exports = {
       '  copy [--force]                                               Copy project directory to current AI tool environment\n' +
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
-      '  create-app "<name>" [desc] [icon] [color] [theme] [nav] [layout]  Create an app, output appType\n' +
+      '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
       '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
@@ -415,6 +440,7 @@ module.exports = {
     create_opt_initiate_approval_assignment: '  --initiate-approval-assignment <rule> Initiate-approval assignment: targetField:valueType:value',
     create_opt_connector_mode: '  --connector-mode <mode>       Connector mode; use 5 for HTTP connectors',
     create_opt_connection_id: '  --connection-id <id>          HTTP connector auth connection ID',
+    create_opt_connector_system_token_app: '  --connector-system-token-app <appType>  Bind systemToken server-side for a Yida OpenAPI action',
     create_opt_connector_display_name: '  --connector-display-name <name> Connector display name',
     create_opt_publish: '  --publish                     Publish after saving',
     create_examples_title: 'Examples:',
@@ -482,6 +508,11 @@ module.exports = {
     connector_action_not_found: 'Connector action not found by exact read-only discovery: {0}',
     connector_action_schema_missing: 'The connector action does not contain a verifiable inputs/outputs schema.',
     connector_input_unknown: 'Connector input was not found in the verified schema: {0}',
+    connector_input_ambiguous: 'Connector input exists in multiple parameter groups; use its full path: {0}',
+    connector_assignment_duplicate: 'Multiple connector assignments target the same input: {0}',
+    connector_assignment_value_required: 'Connector input assignment cannot be empty: {0}',
+    connector_required_input_missing: 'Required connector input has no assignment: {0}',
+    readback_connector_assignments_mismatch: 'Connector input assignments in the integration readback differ from the published content.',
     connector_schema_unverified: 'Connector action schema is unverified: {0}::{1}',
     runtime_case_unknown: 'Unknown integration runtime case: {0}',
     runtime_adapter_missing: 'Integration runtime adapter is not configured.',
@@ -614,9 +645,10 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    update_only_option: '{0}은 업데이트 전용 옵션입니다. 앱을 만든 후 openyida update-app <appType>을 사용하세요.',
     title: '  create-app - Yida 앱 생성 도구',
-    usage: '사용법: openyida create-app "<앱 이름>" 또는 openyida create-app --name "<앱 이름>" [--desc "..."] [--theme deepBlue]',
-    example: '예시: openyida create-app --name "내 앱" --desc "앱 설명" --theme deepBlue',
+    usage: '사용법: openyida create-app "<앱 이름>" 또는 openyida create-app --name "<앱 이름>" [--desc "..."]',
+    example: '예시: openyida create-app --name "내 앱" --desc "앱 설명"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -704,6 +736,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    batch_invalid: '양식 일괄 설정이 잘못되었습니다. 오류 세부 정보를 확인하세요',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
     app_id: '\n  앱 ID:    {0}',
@@ -968,6 +1001,9 @@ module.exports = {
     err_open_url_empty: 'openUrl 경로가 비어 있습니다: {0}'
   },
   update_app: {
+    theme_preset_conflict: '프리셋 colour는 CSS 또는 themeColor와 함께 사용할 수 없습니다. --colour custom을 사용하거나 --colour를 생략하세요.',
+    custom_theme_color_required: 'colour=custom에는 테마 파일 또는 유효한 themeColor가 필요합니다. --theme-file 또는 --theme-color를 지정하세요.',
+    theme_not_persisted: '저장 후 앱 테마 설정을 확인하지 못했습니다. themeVerification을 확인하고 update-app <appType> --theme-file <css>로 다시 시도하세요. 앱을 다시 만들지 마세요.',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1203,6 +1239,7 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_inline_css_invalid: '{0}행 부근 CSS에 닫히지 않거나 일치하지 않는 괄호, 문자열 또는 주석이 있습니다. 게시 전에 수정하세요.',
     title: '  yida-publish - Yida 페이지 배포 도구',
     platform: '  플랫폼: {0}',
     base_url: '\n  Platform: {0}',
@@ -1248,6 +1285,8 @@ module.exports = {
     lint_yida_api_catch: 'this.utils.yida API 호출에 .catch()가 감지되지 않았습니다. 오류 처리를 추가하고 사용자에게 toast를 표시하세요',
     lint_echarts_legacy_map_china: 'ECharts 5는 더 이상 echarts/map/js/china.js를 지원하지 않습니다. 대신 DataV GeoJSON을 로드하고 echarts.registerMap("china", geoJson)을 호출하세요',
     lint_echarts_rich_label_formatter: 'ECharts label.formatter가 반환하는 rich text 템플릿은 Yida 사용자 정의 페이지에서 불안정합니다. 일반 formatter 문자열이나 미리 계산한 라벨 텍스트를 권장합니다',
+    lint_system_token_frontend_forbidden: '사용자 정의 페이지에서 systemToken을 읽거나 전달할 수 없습니다. Yida 통합 자동화에서 서버 측으로 안전하게 바인딩하세요.',
+    lint_connector_runtime_name_required: 'Custom pages must invoke connectors with connectorName (Http_*); numeric connectorId is only for CLI management.',
     lint_const_let: 'const/let 선언을 사용했습니다. var로 변경하는 것을 권장합니다 (이다 런타임 호환성)',
     lint_computed_property: 'ES6 계산된 속성 이름 { [key]: value }을 사용했습니다. 이다 JS 엔진에서 지원하지 않아 자동 실패합니다. var obj = {}; obj[key] = value;로 변경하세요',
     lint_pad_method: 'String.{0}()을 사용했습니다. 이다 JS 엔진에서 지원하지 않아 Promise 콜백이 자동 중단됩니다. 삼항 연산자로 대체하세요 (예: x < 10 ? "0" + x : "" + x)',
@@ -1985,6 +2024,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
 
 const connectorSafetyMessages = require('../../lib/core/locales/en');
 module.exports.connector_contract = connectorSafetyMessages.connector_contract;
+module.exports.connector_auth = connectorSafetyMessages.connector_auth;
 module.exports.connector_api = connectorSafetyMessages.connector_api;
 module.exports.connector_e2e = connectorSafetyMessages.connector_e2e;
 module.exports.connector_action_update = connectorSafetyMessages.connector_action_update;

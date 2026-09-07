@@ -3,6 +3,52 @@
 const { lintYidaSource } = require('../lib/app/page-linter');
 
 describe('page linter', () => {
+  test('blocks systemToken use in custom-page source', () => {
+    const source = `
+export function renderJsx() { return <button>run</button>; }
+export function run() {
+  var body = { systemToken: 'must-not-be-here' };
+  return fetch('/query/app/getSystemToken.json', { method: 'POST', body: body });
+}
+`;
+    const result = lintYidaSource(source, '/tmp/system-token.jsx');
+    expect(result.errors.filter(issue => issue.rule === 'system-token-frontend-forbidden'))
+      .toHaveLength(2);
+  });
+
+  test('blocks numeric connector management ids in custom-page bindings', () => {
+    const source = `
+export function renderJsx() { return <button>run</button>; }
+export function run() {
+  return window.__OPENYIDA_CONNECTOR_API__.invoke({
+    connectorId: '917319',
+    operationId: 'calendarCreate'
+  }, { body: {} });
+}
+`;
+    const result = lintYidaSource(source, '/tmp/connector-runtime-id.jsx');
+    expect(result.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ rule: 'connector-runtime-name-required', line: 5 }),
+    ]));
+  });
+
+  test('blocks numeric connector ids in object and JSON-style bindings', () => {
+    const source = `
+export function renderJsx() { return <button>run</button>; }
+export function run() {
+  var objectBinding = { connectorId: 917319, operationId: 'calendarCreate' };
+  var jsonBinding = { "connectorId": "917320", "operationId": "calendarQuery" };
+  return [objectBinding, jsonBinding];
+}
+`;
+    const result = lintYidaSource(source, '/tmp/connector-runtime-id-variants.jsx');
+    expect(result.errors.filter(issue => issue.rule === 'connector-runtime-name-required'))
+      .toEqual([
+        expect.objectContaining({ line: 4 }),
+        expect.objectContaining({ line: 5 }),
+      ]);
+  });
+
   test('accepts a hand-authored Yida custom page', () => {
     const source = `
 export function renderJsx() {

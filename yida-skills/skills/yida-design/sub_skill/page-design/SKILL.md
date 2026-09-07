@@ -38,7 +38,7 @@ description: 宜搭单页设计子流程。用于已有应用里的单个自定�
 - 当前页面存在页面级主题 token：由 `yida-design` 将主色和语义变量收敛到应用主题文件。
 - 页面重构/局部美化：以当前应用主题为基准，使用 `design.md` 确定的品牌色阶和语义变量。
 - 页面美感提升/改 UI：`functionContract` 保持稳定，现有数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限和业务状态按原有实现交付。
-- 用户明确要求换主色时，执行 `openyida sample yida-design app-theme --output <app-theme.css>` 复制模板，再按主题色修改对应 token；严禁重新生成或覆盖整份 CSS。
+- 用户明确要求换主色时，执行 `openyida sample yida-design app-theme --output <app-theme.css> --design-file prd/<项目名>/design.md` 复制模板并按 `design.md` 自动替换 token；严禁重新生成或覆盖整份 CSS。
 - 用户明确要全应用换肤：将诉求回到 `yida-design` 的主题色和 token 分支，输出应用主题 CSS、`themeColor` 和 `navTheme`。
 - 单页只做局部美化：保持平台导航和应用主题稳定，直接使用当前主题变量。
 

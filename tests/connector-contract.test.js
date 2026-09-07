@@ -63,11 +63,26 @@ describe('connector shared contract', () => {
   });
 
   test('fails closed for unknown envelopes and non-2xx status lines', () => {
-    expect(() => canonicalizeConnectorTestResponse({
-      statusCode: 200,
-      headers: {},
-      body: '{"ok":true}',
-    })).toThrow(expect.objectContaining({ code: 'CONNECTOR_TEST_RESPONSE_INVALID' }));
+    try {
+      canonicalizeConnectorTestResponse({
+        statusCode: 200,
+        headers: {},
+        body: '{"ok":true}',
+      });
+      throw new Error('expected invalid envelope');
+    } catch (error) {
+      expect(error).toMatchObject({
+        code: 'CONNECTOR_TEST_RESPONSE_INVALID',
+        details: {
+          responseShape: 'object',
+          topLevelKeys: ['body', 'headers', 'statusCode'],
+          contentShape: 'undefined',
+          contentKeys: [],
+          retrySafe: false,
+          sideEffectState: 'unknown',
+        },
+      });
+    }
     expect(() => canonicalizeConnectorTestResponse({
       success: false,
       content: {
@@ -81,6 +96,27 @@ describe('connector shared contract', () => {
       responseHeaders: {},
       content: '{"message":"denied"}',
     })).toThrow(expect.objectContaining({ code: 'CONNECTOR_TEST_HTTP_FAILED' }));
+  });
+
+  test('treats DingTalk errcode responses as business failures without exposing arbitrary values', () => {
+    expect(() => canonicalizeConnectorTestResponse({
+      statusLine: 'HTTP/1.1 200 OK',
+      responseHeaders: {},
+      content: JSON.stringify({ errcode: 40035, errmsg: 'invalid secret-value', requestId: 'req-1' }),
+    })).toThrow(expect.objectContaining({
+      code: 'CONNECTOR_TEST_BUSINESS_FAILED',
+      details: expect.objectContaining({
+        businessErrorCode: '40035',
+        businessErrorMessage: expect.any(String),
+        contentKeys: ['errcode', 'errmsg', 'requestId'],
+        retrySafe: false,
+        sideEffectState: 'unknown',
+      }),
+    }));
+
+    expect(canonicalizeConnectorTestResponse({
+      statusLine: 'HTTP/1.1 200 OK', responseHeaders: {}, content: { errcode: 0, result: { unionid: 'u1' } },
+    })).toMatchObject({ content: { errcode: 0, result: { unionid: 'u1' } } });
   });
 
   test('localizes contract errors outside zh', () => {

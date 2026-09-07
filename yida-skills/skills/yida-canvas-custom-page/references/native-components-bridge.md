@@ -123,7 +123,7 @@ Smoke 页验证方式：编写最小 YidaCodeCanvas 探测页，只包含组件�
 - 先拿到 `form.value/formUuid`，再渲染 `DataManageViews`。
 - 组件依赖页面运行环境的登录态、权限、CSRF 和平台数据管理样式；组件缺失或权限不足时保留 Canvas fallback。
 - `DataManageViews` 会自动过滤 `viewType === 'form'` 的视图，并关闭导入、导出、批量操作等门户不需要的能力；页面侧统一使用它渲染门户数据管理视图。
-- 只需要展示少量业务数据时，用 Canvas 自绘表格 + HTTP 数据桥 / 连接器 / `openyida data`；需要复用门户数据管理视图时使用 `DataManageViews`。
+- 只需要展示少量业务数据时，用 Canvas 自绘表格 + yida JS-API 桥 / 连接器桥；需要复用门户数据管理视图时使用 `DataManageViews`。
 
 ## 成员组件接入规则
 

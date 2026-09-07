@@ -28,7 +28,7 @@
 
 | 功能 | 执行操作 |
 |---|---|
-| 查询我的应用 | `openyida app-list [--size N]` |
+| 查询我管理的或我创建的应用（手动分页） | `openyida app-list [--type managed\|created] [--page N] [--size N]` |
 | 创建应用 | `openyida create-app "<应用名称>"` |
 | 更新应用名称、自定义主题、导航风格、Logo 来源、布局、访问态应用导航显示 | `openyida update-app <appType> [--theme-file <css>] [--nav-theme light\|dark\|white\|gray] [--logo-source appIcon\|customImage] [--layout side\|top\|l_shape]` |
 | 启用应用 / 上线应用 | `openyida app-online <appType> [--to-ding-app-center] [--show-app-center]` |

@@ -17,9 +17,14 @@ module.exports = {
     cmd_env: 'Phát hiện môi trường AI và trạng thái đăng nhập',
     cmd_env_management: 'Manage public/private environment profiles',
     group_app: 'Quản lý ứng dụng',
-    cmd_app_list: 'Liệt kê ứng dụng Yida của tôi',
+    cmd_app_list: 'Phân trang ứng dụng tôi quản lý hoặc đã tạo',
     cmd_corp_efficiency: 'Truy vấn tổng quan hiệu quả doanh nghiệp và báo cáo chi tiết',
     cmd_create_app: 'Tạo ứng dụng Yida',
+    cmd_design_plan_preview: 'Cập nhật bản nháp theo mô-đun',
+    design_plan_preview_invalid: 'Cập nhật bản nháp thất bại; kiểm tra chi tiết lỗi',
+    cmd_design_plan_init: 'Khởi tạo bản nháp kế hoạch từ yêu cầu đã xác nhận',
+    cmd_design_plan_materialize: 'Tạo và xác thực sản phẩm từ build-plan.json',
+    cmd_design_plan_patch: 'Sửa kế hoạch theo đường dẫn và vô hiệu xác nhận trước',
     cmd_update_app: 'Cập nhật thông tin ứng dụng',
     cmd_app_online: 'Bật ứng dụng Yida',
     cmd_app_offline: 'Tắt ứng dụng Yida',
@@ -29,6 +34,7 @@ module.exports = {
     cmd_export: 'Xuất ứng dụng (tạo gói di chuyển)',
     cmd_import: 'Nhập gói di chuyển, xây dựng lại ứng dụng',
     group_form: 'Biểu mẫu & Trang',
+    cmd_create_form_batch: 'Tạo biểu mẫu song song theo quan hệ phụ thuộc',
     cmd_create_form: 'Tạo trang biểu mẫu',
     cmd_list_form_icons: 'Liệt kê biểu tượng điều hướng biểu mẫu khả dụng',
     cmd_validate_form: 'Validate form field JSON locally',
@@ -122,6 +128,25 @@ module.exports = {
     quickstart_form_name: 'Thông tin nhân viên',
     docs: '📚 Tài liệu:'
   },
+  app_list: {
+    usage: 'Cách dùng: openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: 'Tùy chọn:',
+    option_type: '  --type TYPE  Phạm vi: managed (mặc định) hoặc created',
+    option_page: '  --page N     Số trang, mặc định: 1',
+    option_size: '  --size N     Kích thước trang, mặc định: 16',
+    option_help: '  --help, -h   Hiển thị trợ giúp',
+    invalid_type: 'Giá trị --type không hợp lệ “{0}”; giá trị hợp lệ: {1}',
+    invalid_positive_integer: '{0} phải là số nguyên dương; giá trị nhận được: “{1}”',
+    invalid_argument: 'Đối số không hợp lệ: {0}',
+    query_failed: 'Không thể truy vấn danh sách ứng dụng: {0}',
+    auth_required: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+    unknown_error: 'Lỗi không xác định',
+    scope_managed: 'Được quản lý',
+    scope_created: 'Đã tạo',
+    found: 'Ứng dụng {0}: trang {1}/{2}, {3} ứng dụng trên trang này, tổng cộng {4}',
+    next_page: 'Còn ứng dụng khác. Tiếp tục bằng lệnh: {0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +
@@ -134,7 +159,7 @@ module.exports = {
       '  copy [--force]                                               Copy project directory to current AI tool environment\n' +
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
-      '  create-app "<name>" [desc] [icon] [color] [theme] [nav] [layout]  Create an app, output appType\n' +
+      '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
       '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
@@ -415,6 +440,7 @@ module.exports = {
     create_opt_initiate_approval_assignment: '  --initiate-approval-assignment <rule> Initiate-approval assignment: targetField:valueType:value',
     create_opt_connector_mode: '  --connector-mode <mode>       Connector mode; use 5 for HTTP connectors',
     create_opt_connection_id: '  --connection-id <id>          HTTP connector auth connection ID',
+    create_opt_connector_system_token_app: '  --connector-system-token-app <appType>  Bind systemToken server-side for a Yida OpenAPI action',
     create_opt_connector_display_name: '  --connector-display-name <name> Connector display name',
     create_opt_publish: '  --publish                     Publish after saving',
     create_examples_title: 'Examples:',
@@ -482,6 +508,11 @@ module.exports = {
     connector_action_not_found: 'Connector action not found by exact read-only discovery: {0}',
     connector_action_schema_missing: 'The connector action does not contain a verifiable inputs/outputs schema.',
     connector_input_unknown: 'Connector input was not found in the verified schema: {0}',
+    connector_input_ambiguous: 'Connector input exists in multiple parameter groups; use its full path: {0}',
+    connector_assignment_duplicate: 'Multiple connector assignments target the same input: {0}',
+    connector_assignment_value_required: 'Connector input assignment cannot be empty: {0}',
+    connector_required_input_missing: 'Required connector input has no assignment: {0}',
+    readback_connector_assignments_mismatch: 'Connector input assignments in the integration readback differ from the published content.',
     connector_schema_unverified: 'Connector action schema is unverified: {0}::{1}',
     runtime_case_unknown: 'Unknown integration runtime case: {0}',
     runtime_adapter_missing: 'Integration runtime adapter is not configured.',
@@ -614,9 +645,10 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    update_only_option: '{0} chỉ dùng để cập nhật. Hãy tạo ứng dụng trước rồi dùng openyida update-app <appType>.',
     title: '  create-app - Công cụ tạo ứng dụng Yida',
-    usage: 'Cách dùng: openyida create-app "<tên ứng dụng>" hoặc openyida create-app --name "<tên ứng dụng>" [--desc "..."] [--theme deepBlue]',
-    example: 'Ví dụ: openyida create-app --name "Ứng dụng của tôi" --desc "Mô tả ứng dụng" --theme deepBlue',
+    usage: 'Cách dùng: openyida create-app "<tên ứng dụng>" hoặc openyida create-app --name "<tên ứng dụng>" [--desc "..."]',
+    example: 'Ví dụ: openyida create-app --name "Ứng dụng của tôi" --desc "Mô tả ứng dụng"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
@@ -704,6 +736,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    batch_invalid: 'Lô biểu mẫu không hợp lệ; kiểm tra chi tiết lỗi',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
     app_id: '\n  ID ứng dụng:  {0}',
@@ -967,6 +1000,9 @@ module.exports = {
     err_open_url_empty: 'Đường dẫn openUrl không được để trống: {0}'
   },
   update_app: {
+    theme_preset_conflict: 'Không thể kết hợp colour có sẵn với CSS hoặc themeColor. Dùng --colour custom hoặc bỏ --colour.',
+    custom_theme_color_required: 'colour=custom cần tệp giao diện hoặc themeColor hợp lệ. Dùng --theme-file hoặc --theme-color.',
+    theme_not_persisted: 'Không thể xác nhận cài đặt giao diện sau khi lưu. Kiểm tra themeVerification và thử lại bằng update-app <appType> --theme-file <css>; không tạo lại ứng dụng.',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1202,6 +1238,7 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_inline_css_invalid: 'CSS gần dòng {0} có dấu ngoặc, chuỗi hoặc chú thích chưa đóng hoặc không khớp. Hãy sửa trước khi xuất bản.',
     title: '  yida-publish - Công cụ xuất bản trang Yida',
     platform: '  Nền tảng: {0}',
     base_url: '\n  Platform: {0}',
@@ -1247,6 +1284,8 @@ module.exports = {
     lint_yida_api_catch: 'Lệnh gọi API this.utils.yida chưa phát hiện .catch(); hãy thêm xử lý lỗi và toast cho người dùng',
     lint_echarts_legacy_map_china: 'ECharts 5 không còn hỗ trợ echarts/map/js/china.js. Hãy tải DataV GeoJSON và gọi echarts.registerMap("china", geoJson) thay thế',
     lint_echarts_rich_label_formatter: 'Template rich text trả về từ ECharts label.formatter không ổn định trong trang tùy chỉnh Yida; nên dùng chuỗi formatter đơn giản hoặc text nhãn tính sẵn',
+    lint_system_token_frontend_forbidden: 'Trang tùy chỉnh không được đọc hoặc truyền systemToken. Hãy dùng tự động hóa tích hợp Yida để liên kết ở phía máy chủ.',
+    lint_connector_runtime_name_required: 'Custom pages must invoke connectors with connectorName (Http_*); numeric connectorId is only for CLI management.',
     lint_const_let: 'Sử dụng khai báo const/let, khuyến nghị đổi thành var (tương thích môi trường Yida)',
     lint_computed_property: 'Sử dụng tên thuộc tính tính toán ES6 { [key]: value }, không được hỗ trợ bởi engine JS Yida, gây lỗi im lặng. Hãy dùng var obj = {}; obj[key] = value;',
     lint_pad_method: 'Sử dụng String.{0}(), không được hỗ trợ bởi engine JS Yida, gây gián đoạn im lặng callback Promise. Hãy dùng toán tử ba ngôi: x < 10 ? "0" + x : "" + x',
@@ -1984,6 +2023,7 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
 
 const connectorSafetyMessages = require('../../lib/core/locales/en');
 module.exports.connector_contract = connectorSafetyMessages.connector_contract;
+module.exports.connector_auth = connectorSafetyMessages.connector_auth;
 module.exports.connector_api = connectorSafetyMessages.connector_api;
 module.exports.connector_e2e = connectorSafetyMessages.connector_e2e;
 module.exports.connector_action_update = connectorSafetyMessages.connector_action_update;

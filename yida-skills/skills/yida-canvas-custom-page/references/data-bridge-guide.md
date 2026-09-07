@@ -1,18 +1,18 @@
 # YidaCodeCanvas 组件数据桥
 
-`YidaCodeCanvas` 组件运行时提供 React 函数组件上下文；`YidaComp` 内没有普通页面实例 `this`。读写宜搭表单数据时，发布层必须在外层普通自定义页面 `didMount` 中把 `this.utils.yida.*` 注册成 `window.__OPENYIDA_YIDA_API__`，并把根级 `this.utils.*` 方法注册成 `window.__OPENYIDA_UTILS__`，`YidaCodeCanvas` 组件只消费这些 window 桥。连接器代理和自定义同源接口仍用 HTTP 数据桥。
+`YidaCodeCanvas` 组件运行时提供 React 函数组件上下文；`YidaComp` 内没有普通页面实例 `this`。发布层会在外层普通自定义页面 `didMount` 中注册 yida JS-API、根级 utils 和连接器三个 window 桥。表单读写使用 `window.__OPENYIDA_YIDA_API__`，平台连接器使用 `window.__OPENYIDA_CONNECTOR_API__`，只有自定义同源接口才直接使用 HTTP 数据桥。
 
-## 三条数据路径，先选对
+## 数据路径，先选对
 
 | 路径 | 是否可在浏览器页面内直接调 | 说明 |
 | --- | --- | --- |
 | 外层 yida JS-API 桥 `window.__OPENYIDA_YIDA_API__` | **表单默认** | 发布使用 `YidaCodeCanvas` 组件实现的页面时由外层页面 `didMount` 自动注册，底层调用官方 `this.utils.yida.searchFormDatas`、`saveFormData`、`startProcessInstance`、`getProcessInstances` 等表单/流程 API，并同步运行态已有的 `this.utils.yida` 函数。 |
 | 根级 utils 桥 `window.__OPENYIDA_UTILS__` | **工具默认** | 同一个发布层自动注册，暴露 `toast`、`dialog`、`router.push`、`openPage`、`isMobile` 等根级工具；`window.__OPENYIDA_UTILS__.yida` 指向 `window.__OPENYIDA_YIDA_API__`。 |
-| 宜搭开放 API（OpenAPI，`appKey`/`appSecret` 签名） | 服务端 / 连接器代理 | 需服务端签名；浏览器直连会泄露 secret。由后端 / 连接器代理调用。 |
-| 平台已配置**连接器**（HTTP 连接器暴露的同源代理端点） | **推荐** | 同源 `fetch(url, { credentials: 'include' })` 带 cookie 即可，鉴权与密钥留在平台侧，符合数据源治理。 |
+| 宜搭开放 API（OpenAPI，`appKey`/`appSecret` 签名） | 服务端 / 平台连接器 | 需服务端签名；浏览器直连会泄露 secret。由后端或已鉴权的平台连接器调用。 |
+| 平台已配置连接器 `window.__OPENYIDA_CONNECTOR_API__` | **第三方 API 默认** | 页面只保存 `Http_*` `connectorName`、`operationId`、`connectionId` 和业务输入，由固定的同源运行时桥调用；鉴权与密钥留在平台侧。 |
 | 内部表单数据端点（同源、依赖登录 cookie + CSRF） | 降级可用 | 仅在 yida JS-API 桥不存在时使用；必须使用同源相对路径、`credentials: 'include'` 和运行态 CSRF token。 |
 
-选路原则：读本应用或本轮创建的宜搭表单，默认走 yida JS-API 桥；读第三方或复杂后端数据，走连接器代理；只有桥不存在且必须读表单时，才同源直连内部端点。Cookie / CSRF / appSecret 由平台上下文、连接器或后端服务提供。
+选路原则：读本应用或本轮创建的宜搭表单，默认走 yida JS-API 桥；读第三方或复杂后端数据，走平台连接器桥；只有桥不存在且必须读表单时，才同源直连内部端点。Cookie、CSRF、AK/SK 和签名由平台上下文、连接器或后端服务提供，页面不能接收或保存密钥。
 
 ## 推荐：先写 dataBinding，再实现数据桥
 
@@ -42,7 +42,8 @@
 数据绑定规则：
 
 - `mode=form` 使用真实 `appType/formUuid` 和字段 ID，字段来源为 `get-schema`、表单创建结果或已确认的业务 Schema。
-- `mode=connector/url` 使用同源代理端点，第三方密钥留在连接器或后端服务侧。
+- `mode=connector` 必须使用真实 `connectorName/operationId/connectionId`，其中 `connectorName` 以 `Http_` 开头；通过 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)` 调用，不得把连接器伪装成页面可配置 URL。
+- `mode=url` 只允许自定义同源业务端点；第三方密钥留在后端服务侧。
 - `mode=seed` 只用于离线预览或明确标注的演示页；完整应用/真实交付页默认先由 `yida-app` 调用 `yida-data-management` 把 1-3 条 demo records 写入真实表单，再用 `mode=form` 读取。
 - 页面生成或手写的 `DataBridge` 状态要保留，用于呈现“接口没通 / 结构没识别 / 权限不足”等运行时状态。
 
@@ -230,44 +231,47 @@ function normalizeFormRow(row) {
 - 如果 `getTotalCount(json) > 0` 且 `unwrapRows(json).length === 0`，展示“接口返回结构未识别”，并保留原始错误状态供定位。
 - 用 `openyida data query form <appType> <formUuid> --size 20` 或数据管理页核对总数，页面统计必须和真实表单一致。
 
-## 在组件里用
+## 在组件里调用平台连接器
 
 ```jsx
-function YidaComp(props) {
-  var appType = props.appType || '<APP_TYPE>';        // 来自 props 或页面约定
-  var formUuid = props.formUuid || '<FORM_UUID>';
-
-  var q = useYidaFetch(function () {
-    return {
-      url: '/your-connector-proxy/searchFormDatas',    // 连接器同源代理端点（示意，不是宜搭表单直连端点）
-      method: 'POST',
-      body: { appType: appType, formUuid: formUuid, pageSize: 50, pageNumber: 1 },
-    };
-  }, [appType, formUuid]);
-
-  if (q.loading) { return <div>加载中…</div>; }
-  if (q.error) { return <div style={{ color: 'red' }}>加载失败：{q.error}</div>; }
-
-  var rows = unwrapRows(q.data);
-  var totalCount = getTotalCount(q.data);
-  if (totalCount > 0 && rows.length === 0) {
-    return <div style={{ color: 'red' }}>接口返回结构未识别，请检查响应包装层</div>;
-  }
-
-  return (
-    <ul>
-      {rows.map(function (row) {
-        var item = normalizeFormRow(row);
-        return <li key={item.id}>{item.title}</li>;
-      })}
-    </ul>
-  );
+function getConnectorBridge() {
+  var candidates = [];
+  try { candidates.push(window.__OPENYIDA_CONNECTOR_API__); } catch (err) {}
+  try { candidates.push(window.parent && window.parent.__OPENYIDA_CONNECTOR_API__); } catch (err) {}
+  try {
+    if (typeof parentWindow !== 'undefined') {
+      candidates.push(parentWindow.__OPENYIDA_CONNECTOR_API__);
+    }
+  } catch (err) {}
+  return candidates.find(function (item) {
+    return item && typeof item.invoke === 'function';
+  }) || null;
 }
 
-export default YidaComp;
+var CONNECTOR_BINDING = {
+  mode: 'connector',
+  connectorName: '<HTTP_CONNECTOR_NAME>',
+  operationId: '<OPERATION_ID>',
+  connectionId: '<CONNECTION_ID>'
+};
+
+function loadConnectorData(inputs) {
+  var bridge = getConnectorBridge();
+  if (!bridge) {
+    return Promise.reject(new Error('连接器运行时桥不可用'));
+  }
+  return bridge.invoke(CONNECTOR_BINDING, inputs);
+}
+
+loadConnectorData({
+  path: {},
+  query: {},
+  header: {},
+  body: { pageSize: 50 }
+});
 ```
 
-`url`、`body` 字段按实际连接器 / 端点契约填写；示例结构用于说明数据桥写法。直连宜搭表单数据时不要复用这个连接器代理示例，必须使用下文 `searchFormDatas.json` 请求契约。
+`connectorName` 来自创建或详情回读结果，值必须以 `Http_` 开头。数字 `connectorId` 只用于 CLI 管理命令，不能写入页面。`operationId` 来自动作清单，`connectionId` 来自用户完成账号鉴权后的连接列表。`inputs.body` 直接传对象，不使用 `JSON.stringify`；Header 在页面调用前校验后传入 `inputs.header`。页面不得传 AK/SK、拼接连接器代理 URL 或直接访问钉钉开放平台域名。
 
 ## 轮询只刷新数据，不刷新整页
 

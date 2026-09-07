@@ -37,6 +37,7 @@ const SKILL_COVERAGE = {
   'yida-data-management': { level: 'real-e2e', stages: ['data', 'task'], commands: ['data create/query/update form', 'data query tasks'] },
   'yida-db-seq-fix': { level: 'offline-unit', tests: ['tests/db-seq-fix.test.js'], reason: 'PostgreSQL admin repair is not safe for shared real org E2E' },
   'yida-density': { level: 'offline-unit', tests: ['sample/check-page coverage'], reason: 'visual density template is validated through page build/lint rather than real data mutation' },
+  'yida-dingtalk-openapi': { level: 'offline-unit', tests: ['tests/dingtalk-openapi-skill.test.js', 'tests/connector-auth-safety.test.js', 'tests/canvas-compile.test.js'], reason: 'DingTalk OpenAPI contract routing, secret isolation, unsupported inbound-event guard, and Canvas connector bridge are deterministic offline; real DingAuth requires user-owned credentials and an explicitly authorized tenant connector' },
   'yida-document-markdown': { level: 'offline-unit', tests: ['tests/document-tools.test.js'], reason: 'document content depends on authenticated tenant data; unit coverage validates endpoint parameters, text response handling, envelope unwrapping, output modes, and error behavior' },
   'yida-export-conversation': { level: 'offline-unit', tests: ['conversation exporter unit coverage'], reason: 'depends on local conversation artifacts, not Yida API' },
   'yida-flash-note-to-prd': { level: 'opt-in', stages: ['ai'], commands: ['flash-to-prd'], reason: 'remote AI service can timeout; excluded from deterministic default full run' },

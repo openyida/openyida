@@ -398,10 +398,11 @@ function YidaComp(props) {
     >
       <style>{`
         .canvas-table-page {
+          display: flow-root;
           min-height: 100vh;
           box-sizing: border-box;
           padding: 28px;
-          background: var(--pod-page-bg-color, var(--color-white, #fff));
+          background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)));
         }
         .canvas-table-shell { max-width: 1320px; margin: 0 auto; }
         .canvas-table-header {

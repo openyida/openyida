@@ -132,6 +132,14 @@ describe('agent-capabilities summary', () => {
       expect(JSON.stringify(summary)).not.toContain('host_token');
       expect(JSON.stringify(summary)).not.toContain('runtime_auth_provisioned');
       expect(summary.command_manifest_digest).toMatch(/^[a-f0-9]{64}$/);
+      expect(summary.build_identity).toEqual({
+        schema_version: 1,
+        package_version: expect.any(String),
+        build_id: expect.any(String),
+        commit_sha: 'unknown',
+        bundle_digest: 'unknown',
+        command_manifest_digest: summary.command_manifest_digest,
+      });
       expect(summary.application_entry_policy).toEqual({
         schema_version: 1,
         environment: 'managed_cloud_agent',
@@ -147,6 +155,27 @@ describe('agent-capabilities summary', () => {
     } finally {
       fs.rmSync(projectRoot, { recursive: true, force: true });
     }
+  });
+
+  test('reports immutable CI build identity in summary and full diagnostics', () => {
+    process.env.OPENYIDA_BUILD_ID = 'openyida-phase6-build';
+    process.env.OPENYIDA_COMMIT_SHA = 'abc123def456';
+    process.env.OPENYIDA_BUNDLE_DIGEST = 'sha256:bundle123';
+
+    const capabilities = require('../lib/core/agent-capabilities');
+    const summary = capabilities.buildAgentCapabilitiesSummary();
+    const full = capabilities.buildAgentCapabilities();
+
+    expect(summary.build_identity).toEqual({
+      schema_version: 1,
+      package_version: expect.any(String),
+      build_id: 'openyida-phase6-build',
+      commit_sha: 'abc123def456',
+      bundle_digest: 'sha256:bundle123',
+      command_manifest_digest: summary.command_manifest_digest,
+    });
+    expect(full.build_identity).toEqual(summary.build_identity);
+    expect(full.openyida.build_identity).toEqual(summary.build_identity);
   });
 
   test('non-runtime access token path still uses existing summary checks', () => {

@@ -56,6 +56,10 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 | 流程审批规则 | `yida-process-rule` |
 | 连接器动作创建 | `yida-connector` |
 
+## 多表单创建
+
+多个普通表单按 [并行创建表单](references/batch-forms.md) 准备任务，执行 `openyida create-form batch <appType> <任务文件> --json`。CLI 同时创建独立表单，等待关联表单与真实字段就绪后创建依赖表单。
+
 ## 官方表单示例范式
 
 官方示例中心的表单类能力大多用 `FormContainer + 标准字段 + 字段属性/公式/联动` 承载，少量 `RichText` 用于说明。创建或更新表单时优先按这个顺序落地：

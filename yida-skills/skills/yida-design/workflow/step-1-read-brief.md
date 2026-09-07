@@ -1,12 +1,12 @@
 # 读取视觉设计输入
 
-完整应用视觉设计只读取 `.cache/openyida/<项目名>/requirement-brief.json`，不等待或读取本轮同时生成的 `prd.md`。
+完整应用视觉设计读取已确认的 `.cache/openyida/<项目名>/requirement-brief.json`，沿用 visualSelection 准备基础主题；业务页面的任务和区块确定后补齐逐页视觉绑定。
 
 ## 检查
 
 1. 文件存在且 JSON 可解析，`schemaVersion=1`。
 2. 读取行业、目标用户、业务目标、核心功能、业务对象、页面场景、品牌和色彩偏好。
-3. `explicitScope` 非空时只为明确范围内的页面场景设计视觉规则，不增加同级页面。
+3. 按已确认范围设计；自定义页面生成逐页场景规则，表单与流程沿用应用主题。
 4. 会改变视觉方向的 `openQuestions` 未解决时，暂停生成视觉设计并交回 `yida-app` 处理。
 
 ## 产出
