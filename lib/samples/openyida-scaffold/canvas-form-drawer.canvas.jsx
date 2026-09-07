@@ -346,11 +346,6 @@ function resolveConfigValue(value, fallback) {
   return isUnresolvedTemplate(value) ? fallback : String(value);
 }
 
-function readThemeColor(name, fallback) {
-  if (typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') return fallback;
-  return window.getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
-}
-
 function normalizeRows(rows) {
   const source = Array.isArray(rows) && rows.length ? rows : SAMPLE_ROWS;
   return source.map((row, index) => ({
@@ -367,7 +362,83 @@ function normalizeRows(rows) {
   }));
 }
 
+// @openyida-canvas-theme:start
+// Standalone samples keep this fragment identical; see canvas-theme.test.js.
+function readCanvasTheme(root, fallback) {
+  const roles = {
+    colorPrimary: '--color-brand1-6', colorLink: '--color-brand1-6',
+    colorPrimaryHover: '--color-brand1-5', colorPrimaryActive: '--color-brand1-9',
+    colorBgLayout: '--pod-page-bg-color', colorBgContainer: '--pod-card-bg-color',
+    colorBgElevated: '--pod-card-bg-color', colorText: '--color-text1-4',
+    colorTextHeading: '--color-text1-4', colorTextSecondary: '--color-text1-3',
+    colorTextDescription: '--color-text1-3', colorTextPlaceholder: '--color-text1-10',
+    colorBorder: '--color-line1-2', colorBorderSecondary: '--color-line1-1',
+    colorFillAlter: '--color-fill1-1', colorFillSecondary: '--color-fill1-2',
+  };
+  const token = { ...fallback };
+  if (!root) return token;
+  const doc = root.ownerDocument;
+  const view = doc.defaultView;
+  const scope = view.getComputedStyle(root);
+  const probe = doc.createElement('span');
+  probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;';
+  root.appendChild(probe);
+  try {
+    Object.keys(roles).forEach((role) => {
+      const value = scope.getPropertyValue(roles[role]).trim();
+      if (!value || !view.CSS.supports('color', value)) return;
+      probe.style.color = value;
+      const color = view.getComputedStyle(probe).color;
+      if (color) token[role] = color;
+    });
+  } finally {
+    probe.remove();
+  }
+  return token;
+}
+
+function useCanvasTheme(fallback) {
+  const rootRef = React.useRef(null);
+  const fallbackRef = React.useRef(fallback);
+  const [token, setToken] = React.useState(fallback);
+  React.useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return undefined;
+    const doc = root.ownerDocument;
+    const view = doc.defaultView;
+    let frame;
+    const refresh = () => {
+      const next = readCanvasTheme(root, fallbackRef.current);
+      setToken((previous) => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
+    };
+    const schedule = () => {
+      view.cancelAnimationFrame(frame);
+      frame = view.requestAnimationFrame(refresh);
+    };
+    refresh();
+    // Observe only theme-bearing ancestors and stylesheet changes, not business DOM.
+    const observer = new view.MutationObserver(schedule);
+    for (let node = root; node; node = node.parentElement) {
+      observer.observe(node, { attributes: true });
+    }
+    if (doc.head) observer.observe(doc.head, { subtree: true, childList: true, characterData: true, attributes: true });
+    doc.addEventListener('load', schedule, true);
+    view.addEventListener('resize', schedule);
+    view.addEventListener('openyida:theme-change', schedule);
+    return () => {
+      observer.disconnect();
+      view.cancelAnimationFrame(frame);
+      doc.removeEventListener('load', schedule, true);
+      view.removeEventListener('resize', schedule);
+      view.removeEventListener('openyida:theme-change', schedule);
+    };
+  }, []);
+  return { rootRef, token };
+}
+// @openyida-canvas-theme:end
+
 function YidaComp(props) {
+  const { rootRef, token } = useCanvasTheme({ colorPrimary: "#1677ff", borderRadius: 9 });
   const rawAppType = props && props.appType ? props.appType : RAW_APP_TYPE;
   const rawFormUuid = props && props.formUuid ? props.formUuid : RAW_FORM_UUID;
   const appType = resolveConfigValue(rawAppType, 'APP_XXX');
@@ -461,15 +532,7 @@ function YidaComp(props) {
 
   return (
     <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: readThemeColor('--color-brand1-6', '#1677FF'),
-          colorInfo: readThemeColor('--color-brand1-6', '#1677FF'),
-          colorText: readThemeColor('--color-text1-4', '#1F2329'),
-          colorBgLayout: readThemeColor('--color-fill1-1', '#F5F6F7'),
-          borderRadius: 8,
-        },
-      }}
+      theme={{ token }}
       getPopupContainer={(triggerNode) => (triggerNode && triggerNode.parentElement) || document.body}
     >
       <style>{`
@@ -536,7 +599,7 @@ function YidaComp(props) {
         }
       `}</style>
 
-      <div className="oys-page">
+      <div ref={rootRef} className="oys-page">
         <div className="oys-shell">
           <div className="oys-header">
             <div>

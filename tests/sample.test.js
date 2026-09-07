@@ -210,7 +210,7 @@ describe('sample templates', () => {
     expect(JSON.parse(tableResult.importedModules)).toEqual(['antd', 'dayjs', 'react']);
     expect(tableSource).toContain('writeBridge.verified');
     expect(tableSource).toContain('Promise.all');
-    expect(tableSource).toContain('readThemeColor');
+    expect(tableSource).toContain('readCanvasTheme');
     expect(tableSource).toContain('min-height: 100vh');
     expect(tableSource).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
     expect(tableSource).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
@@ -275,7 +275,7 @@ describe('sample templates', () => {
     expect(() => createForm._private.validateFormFieldDefinitions(fields)).not.toThrow();
     expect(JSON.parse(pageResult.importedModules)).toEqual(['antd', 'lucide-react', 'react']);
     expect(pageSource).toContain('function FormOpenContainer');
-    expect(pageSource).toContain('readThemeColor');
+    expect(pageSource).toContain('readCanvasTheme');
     expect(pageSource).toContain('min-height: 100vh');
     expect(pageSource).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
     expect(pageSource).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');

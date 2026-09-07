@@ -1275,9 +1275,9 @@ describe('OpenYida skill contracts', () => {
     expect(canvasStyleGuide).toContain('业务事实来自 `yida-prd` 输出的 `prd.md`，视觉事实来自 `yida-design` 输出的 `design.md`');
     expect(canvasStyleGuide).toContain('## 应用主题与页面风格冲突处理');
     expect(canvasStyleGuide).toContain('默认值是 `跟随应用主题`，不是 `跟随生成色盘色相`');
-    expect(canvasStyleGuide).toContain('helper 必须带兜底逻辑');
-    expect(canvasStyleGuide).toContain('读不到、空串或读取异常时返回传入的 `defaultColor`');
-    expect(canvasStyleGuide).toContain('`defaultColor` 必须来自当前项目 `design.md` 的 tokens');
+    expect(canvasStyleGuide).toContain('openyida sample openyida-page-template canvas-theme');
+    expect(canvasStyleGuide).toContain('变量缺失或移除时回退设计值');
+    expect(canvasStyleGuide).toContain('fallback 来自 design.md 同角色 token');
     expect(step2).toContain('`--color-brand1-*` 是页面和 PC 端主要消费的品牌色阶');
     expect(step2).toContain('是平台主题契约要求的品牌色阶，由应用自定义主题文件统一提供');
     expect(step2).toContain('`--color-brand-*` 是移动端和部分原生表单/壳层消费的品牌色阶');

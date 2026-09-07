@@ -89,11 +89,6 @@ function isFieldMapReady(fieldMap) {
   );
 }
 
-function readThemeColor(name, fallback) {
-  if (typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') return fallback;
-  return window.getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
-}
-
 function toPayload(row, fieldMap) {
   return {
     [fieldMap.name]: String(row.name).trim(),
@@ -115,7 +110,84 @@ function getBridgeState(props) {
   return { ready: true, reason: '', writeBridge, fieldMap };
 }
 
+// @openyida-canvas-theme:start
+// Standalone samples keep this fragment identical; see canvas-theme.test.js.
+function readCanvasTheme(root, fallback) {
+  const roles = {
+    colorPrimary: '--color-brand1-6', colorLink: '--color-brand1-6',
+    colorPrimaryHover: '--color-brand1-5', colorPrimaryActive: '--color-brand1-9',
+    colorBgLayout: '--pod-page-bg-color', colorBgContainer: '--pod-card-bg-color',
+    colorBgElevated: '--pod-card-bg-color', colorText: '--color-text1-4',
+    colorTextHeading: '--color-text1-4', colorTextSecondary: '--color-text1-3',
+    colorTextDescription: '--color-text1-3', colorTextPlaceholder: '--color-text1-10',
+    colorBorder: '--color-line1-2', colorBorderSecondary: '--color-line1-1',
+    colorFillAlter: '--color-fill1-1', colorFillSecondary: '--color-fill1-2',
+  };
+  const token = { ...fallback };
+  if (!root) return token;
+  const doc = root.ownerDocument;
+  const view = doc.defaultView;
+  const scope = view.getComputedStyle(root);
+  const probe = doc.createElement('span');
+  probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;';
+  root.appendChild(probe);
+  try {
+    Object.keys(roles).forEach((role) => {
+      const value = scope.getPropertyValue(roles[role]).trim();
+      if (!value || !view.CSS.supports('color', value)) return;
+      probe.style.color = value;
+      const color = view.getComputedStyle(probe).color;
+      if (color) token[role] = color;
+    });
+  } finally {
+    probe.remove();
+  }
+  return token;
+}
+
+function useCanvasTheme(fallback) {
+  const rootRef = React.useRef(null);
+  const fallbackRef = React.useRef(fallback);
+  const [token, setToken] = React.useState(fallback);
+  React.useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return undefined;
+    const doc = root.ownerDocument;
+    const view = doc.defaultView;
+    let frame;
+    const refresh = () => {
+      const next = readCanvasTheme(root, fallbackRef.current);
+      setToken((previous) => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
+    };
+    const schedule = () => {
+      view.cancelAnimationFrame(frame);
+      frame = view.requestAnimationFrame(refresh);
+    };
+    refresh();
+    // Observe only theme-bearing ancestors and stylesheet changes, not business DOM.
+    const observer = new view.MutationObserver(schedule);
+    for (let node = root; node; node = node.parentElement) {
+      observer.observe(node, { attributes: true });
+    }
+    if (doc.head) observer.observe(doc.head, { subtree: true, childList: true, characterData: true, attributes: true });
+    doc.addEventListener('load', schedule, true);
+    view.addEventListener('resize', schedule);
+    view.addEventListener('openyida:theme-change', schedule);
+    return () => {
+      observer.disconnect();
+      view.cancelAnimationFrame(frame);
+      doc.removeEventListener('load', schedule, true);
+      view.removeEventListener('resize', schedule);
+      view.removeEventListener('openyida:theme-change', schedule);
+    };
+  }, []);
+  return { rootRef, token };
+}
+// @openyida-canvas-theme:end
+
 function YidaComp(props) {
+  const [modal, modalContextHolder] = Modal.useModal();
+  const { rootRef, token } = useCanvasTheme({ colorPrimary: "#1677ff", borderRadius: 9 });
   const formUuid = props && props.formUuid ? props.formUuid : 'sample-unbound';
   const draftKey = 'openyida_canvas_table_form_draft_' + formUuid;
   const [rows, setRows] = useState(() => loadDraft(draftKey));
@@ -262,7 +334,7 @@ function YidaComp(props) {
     }
     if (!validated.length) return;
 
-    Modal.confirm({
+    modal.confirm({
       title: '确认批量提交',
       content: '将提交 ' + validated.length + ' 行数据，首行事项为“' + validated[0].name + '”。提交后成功行不会重复写入。',
       okText: '确认提交',
@@ -386,15 +458,7 @@ function YidaComp(props) {
 
   return (
     <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: readThemeColor('--color-brand1-6', '#1677FF'),
-          colorInfo: readThemeColor('--color-brand1-6', '#1677FF'),
-          borderRadius: 9,
-          colorText: readThemeColor('--color-text1-4', '#1F2329'),
-          colorBgLayout: readThemeColor('--color-fill1-1', '#F5F6F7'),
-        },
-      }}
+      theme={{ token }}
     >
       <style>{`
         .canvas-table-page {
@@ -437,7 +501,8 @@ function YidaComp(props) {
         }
       `}</style>
 
-      <div className="canvas-table-page">
+      <div ref={rootRef} className="canvas-table-page">
+        {modalContextHolder}
         <div className="canvas-table-shell">
           <div className="canvas-table-header">
             <div>

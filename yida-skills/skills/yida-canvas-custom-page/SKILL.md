@@ -128,6 +128,10 @@ function setNavigationTitle(title) {
 
 21. **对话框统一消费主题 token**：新增或改造对话框时，执行 `openyida sample openyida-page-template canvas-dialog --output .cache/samples/canvas-dialog.jsx`，将 `CanvasDialog` 合并到当前页面并接入业务状态，见 [对话框](references/dialog-guide.md)。标题、正文、背景、页脚、关闭按钮和操作按钮均消费应用 token；整体暗色适配与导航明暗分别判断。
 
+## 主题实现入口
+
+主按钮、链接、选中态默认跟随应用主题；次按钮保持中性，危险操作保留语义色。antd 页面使用 `openyida sample openyida-page-template canvas-theme` 的作用域读取与更新 hook，给内容根节点挂 ref，并通过 `ConfigProvider` 消费解析后的 token。不要写死主按钮颜色、只读 documentElement 或只在初始化时读一次。完整接入、覆盖优先级和主题更新边界见 [样式实现指南](references/canvas-style-implementation-guide.md#统一主题适配-hook)。
+
 ## 数据真实性边界
 
 - 完整应用或真实交付页先解析真实 `appType/formUuid/fieldId`，并在 `page-spec.json` 写入 `dataBinding.mode=form`。

@@ -1095,7 +1095,7 @@ describe('compileCanvasLocal', () => {
     expect(runtimeCode).toMatch(/window\.antd/);
     expect(runtimeCode).toMatch(/window\.LucideReact/);
     expect(runtimeCode).toContain('FormOpenContainer');
-    expect(runtimeCode).toContain('readThemeColor');
+    expect(runtimeCode).toContain('readCanvasTheme');
     expect(src).toContain('min-height: 100vh');
     expect(src).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
     expect(src).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');

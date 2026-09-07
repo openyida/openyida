@@ -228,30 +228,42 @@ Canvas 根背景使用 `background: var(--oyd-page-background, var(--pod-page-bg
 
 所以只有「JS 要拿到真实颜色」的场景才需要读值，其余直接用 CSS 变量最省事。
 
-## 读品牌色的 helper（JS 消费场景用）
+## 统一主题适配 hook
 
-因为跑在真 window，直接读根节点计算样式即可。helper 必须带兜底逻辑：先读当前应用的 `--color-brand1-*`，读不到、空串或读取异常时返回传入的 `defaultColor`。`defaultColor` 必须来自当前项目 `design.md` 的 tokens，不能使用与当前主题无关的固定色。
+手写页面和改造已有页面时，先取可复用片段，合并 React import 和 helper 到页面源码：
+
+```bash
+openyida sample openyida-page-template canvas-theme --output .cache/samples/canvas-theme.jsx
+```
 
 ```jsx
-// 品牌色阶：1 最浅 → 6 主色 → 10 最深，与平台 --color-brand1-* 对齐
-function readBrandColor(level, defaultColor) {
-  try {
-    var el = document.documentElement;
-    var v = getComputedStyle(el).getPropertyValue('--color-brand1-' + (level || 6)).trim();
-    return v || defaultColor;
-  } catch (e) {
-    return defaultColor;
-  }
-}
-
-// hook 形式：首帧同步取值，无闪烁
-function useBrandColor(level, defaultColor) {
-  var s = React.useState(function () { return readBrandColor(level, defaultColor); });
-  return s[0];
+function YidaComp() {
+  // fallback 来自 design.md 同角色 token；示例颜色仅用于无应用主题的预览。
+  const { rootRef, token } = useCanvasTheme({ colorPrimary: '#1677ff', borderRadius: 9 });
+  return <ConfigProvider theme={{ token }}>
+    <main ref={rootRef} style={{ minHeight: '100vh', background: 'var(--pod-page-bg-color, #fff)' }}>
+      <Button type="primary">新建</Button>
+      <Button>取消</Button>
+      <Button danger>删除</Button>
+    </main>
+  </ConfigProvider>;
 }
 ```
 
-> **变量作用域**：平台把 `--color-brand1-*` 定义在页面容器时，给组件根节点挂 `ref`，在 `useEffect` 里读 `getComputedStyle(rootRef.current)`，读到后 `setState` 触发一次重渲染。默认先用 `documentElement` 同步取值，空串时再用根节点 ref 读取。
+从组件根节点的计算样式读取变量，不能只读 `documentElement`。hook 在布局 effect 中解析，监听祖先属性、head 样式变化和样式表加载，合并到一帧内更新；卸载时清理监听。变量缺失或移除时回退设计值，不永久缓存旧主题。不要在页面根节点重新声明应用品牌变量。
+
+通过 CSSOM `insertRule` / `replaceSync` 修改样式不会触发 DOM observer；这种主题更新方需在完成后派发 `window.dispatchEvent(new Event('openyida:theme-change'))`。这只是页面适配 hook 的刷新约定，不能假设平台已经派发该事件。媒体查询引起的窗口尺寸变化由 resize 覆盖；其他外部主题状态改变也使用该刷新约定。
+
+三个独立可发布示例内嵌同一片段，`canvas-theme` 从表单抽屉示例提取，测试保证副本一致。无需引入新的运行态包或向编译器添加隐式主题注入。
+
+### 按钮语义与优先级
+
+- 主按钮、链接、选中态跟随应用品牌 token；普通按钮使用中性表面、文字和边框。
+- 删除、失败、成功、警告保留语义色，不能把所有按钮和提示都染成品牌色。
+- 原生 DOM 按钮直接消费 CSS 变量；antd 控件使用 `ConfigProvider` 的解析值，保留库的 disabled/loading/focus 行为。
+- 应用 token 优先于 design.md 兜底。内层 `ConfigProvider` 或按钮行内 `background/color` 会覆盖外层主题；仅在明确的业务语义或用户要求下覆盖，不能复制固定蓝色主按钮。
+- 浮层保持 React provider 上下文；CSS 变量还取决于实际挂载 DOM。优先使用声明式 Modal/Drawer 和上下文内的消息 API，避免静态调用绕过主题；根据滚动和裁剪情况选择弹层容器并验收。
+- 页面差异通过布局、密度、圆角、材质和素材实现，默认不创建另一套页面品牌色。
 
 ## antd：完整消费应用配色
 
@@ -342,38 +354,27 @@ Canvas 节点在页面 DOM 树内，Tailwind 运行时对普通元素直接用 a
 
 ## 图表 / recharts：用解析后的品牌色组
 
-图表颜色是 JS 传给库的字符串，使用 `readBrandColor` 或解析 `--color-group`。多系列图表优先读 `--color-group`，这样应用主题里的色组可以控制趋势线、柱状、排名和环形图的层次。
+图表颜色是 JS 传给库的字符串，使用 `useCanvasTheme` 的 `token.colorPrimary` 或在组件作用域解析 `--color-group`。多系列图表优先读 `--color-group`，这样应用主题里的色组可以控制趋势线、柱状、排名和环形图的层次。
 
 ```jsx
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-function readBrandColor(level, defaultColor) {
-  try {
-    var v = getComputedStyle(document.documentElement)
-      .getPropertyValue('--color-brand1-' + (level || 6)).trim();
-    return v || defaultColor;
-  } catch (e) { return defaultColor; }
-}
-
+// 合并 canvas-theme 片段后使用。
 function YidaComp(props) {
-  var brand = readBrandColor(6, '#6b7cab');
-  var groupValue = getComputedStyle(document.documentElement).getPropertyValue('--color-group').trim();
-  var colorGroup = groupValue.match(/rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}/g) || [
-    brand, '#00c4c4', '#4caf50', '#006868', '#ff6b35', '#a070ff',
-  ];
+  const { rootRef, token } = useCanvasTheme({ colorPrimary: '#6b7cab' });
   var data = [
     { name: '1月', value: 120 }, { name: '2月', value: 200 },
     { name: '3月', value: 150 }, { name: '4月', value: 320 },
   ];
   return (
-    <div style={{ width: '100%', height: 300, padding: 16 }}>
+    <div ref={rootRef} style={{ width: '100%', height: 300, padding: 16 }}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data}>
           <XAxis dataKey="name" />
           <YAxis />
           <Tooltip />
-          <Line type="monotone" dataKey="value" stroke={colorGroup[0]} />
+          <Line type="monotone" dataKey="value" stroke={token.colorPrimary} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -390,6 +391,6 @@ export default YidaComp;
 - 页面最外层有 `ConfigProvider`，主色、表面、文字、填充和边界均来自组件作用域解析后的应用 token；与自绘 CSS 一致，主题切换后可更新。
 - 有输入/筛选/下拉/日期/运行态字段组件时，已在组件内部声明控件 focus/dropdown reset，focus 后没有黑色粗边或突兀加粗。
 - Tailwind 主色类用 `var(--color-brand1-*)`，没有散落的 `#1677ff` / `bg-blue-500`。
-- 图表 / canvas 绘制颜色走 `readBrandColor` 或 `--color-group`，无硬编码蓝。
+- 图表 / canvas 绘制颜色走 `useCanvasTheme` 或组件作用域的 `--color-group`，无硬编码蓝。
 - 语义色（成功/警告/错误）保持 antd 默认或平台语义变量，未被主色覆盖。
 - 视觉方向来自 `yida-design`：配色、圆角、图标和文案都完成业务化处理。
