@@ -108,6 +108,10 @@ describe('report inspect', () => {
       url: 'https://demo.aliwork.com/APP_1/workbench/REPORT_1',
       workbenchUrl: 'https://demo.aliwork.com/APP_1/workbench/REPORT_1',
       runtimeQueryVerified: true,
+      canvasBindings: [{
+        mode: 'report', appType: 'APP_1', reportUuid: 'REPORT_1', cid: 'cid_1',
+        componentClassName: 'YoushuGroupedBarChart', dataSetKey: 'chartData', filterKeys: ['filter-1'], aliases: [],
+      }],
       components: [expect.objectContaining({
         cid: 'cid_1',
         queryProbe: { status: 'QUERY_OK', success: true, errorCode: null, errorMsg: null },

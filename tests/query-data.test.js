@@ -186,6 +186,19 @@ describe('run() 未登录场景', () => {
 // ── query form 场景 ───────────────────────────────────────────────────
 
 describe('run() query form', () => {
+  test('a one-row count probe above 2000 tells the agent to ask before configuring aggregation', async () => {
+    utils.requestWithAutoLogin.mockResolvedValue({ success: true, content: { totalCount: 30000, data: [{ id: 'one' }] } });
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      await run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--page', '1', '--size', '1', '--no-hydrate-subforms']);
+      expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(1);
+      expect(getLoggedJson(mockLog)).toMatchObject({
+        totalCount: 30000, data: [{ id: 'one' }],
+        _openyidaAnalysis: { appType: 'APP_XXX', formUuid: 'FORM-XXX', threshold: 2000, requiresUserDecision: true, nextAction: 'ask_user_before_configuring_aggregation' },
+      });
+    } finally {mockLog.mockRestore();}
+  });
+
   test('查询成功时输出 JSON 结果', async () => {
     utils.requestWithAutoLogin.mockResolvedValue({
       success: true,

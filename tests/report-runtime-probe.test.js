@@ -56,6 +56,19 @@ function reportSchema(fieldCode = 'selectField_status_value') {
 }
 
 describe('report runtime query probe', () => {
+  test('does not mark an asynchronous pending response as query verified', async () => {
+    jest.useFakeTimers();
+    try {
+      utils.httpPost
+        .mockResolvedValueOnce({ success: true, content: { continuePolling: true, traceId: 'trace' } })
+        .mockResolvedValueOnce({ success: false, errorCode: 'NO_PERMISSION', errorMsg: 'denied on polling' });
+      const pending = probeReportSchema(authRef, 'APP_1', 'REPORT_1', reportSchema());
+      await jest.advanceTimersByTimeAsync(3000);
+      await expect(pending).resolves.toMatchObject({ runtimeQueryVerified: false, probes: [{ errorCode: 'NO_PERMISSION' }] });
+      expect(utils.httpPost.mock.calls[1][1]).toContain('/getCacheData.json');
+    } finally {jest.useRealTimers();}
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -117,7 +130,7 @@ describe('report runtime query probe', () => {
     delete schema.config.prdId;
     utils.httpGet.mockResolvedValue({
       success: true,
-      content: [{ formUuid: 'REPORT_1', topicId: 'TOPIC_1' }],
+      content: [{ children: [{ formUuid: 'REPORT_1', appType: 'APP_1', topicId: 'TOPIC_1' }] }],
     });
     utils.httpPost.mockResolvedValue({ success: true, content: { data: [] } });
 
