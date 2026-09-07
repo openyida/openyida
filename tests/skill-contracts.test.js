@@ -28,6 +28,31 @@ function isSampleRoutingGuidanceFile(file) {
 }
 
 describe('OpenYida skill contracts', () => {
+  test('image assets are an optional page-level branch with host capability evidence', () => {
+    const root = readSkill('yida-skills/SKILL.md');
+    const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
+    const step2 = readSkill('yida-skills/skills/yida-app/workflow/step-2-design.md');
+    const step7 = readSkill('yida-skills/skills/yida-app/workflow/step-7-page-code.md');
+    const imageAssets = readSkill('yida-skills/skills/yida-image-assets/SKILL.md');
+    const sourcePolicy = readSkill('yida-skills/skills/yida-image-assets/references/source-policy.md');
+    const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
+    const entry = index.skills.find(item => item.name === 'yida-image-assets');
+
+    expect(root).toContain('`yida-image-assets`');
+    expect(app).toContain('design.md.assetStrategy');
+    expect(step2).toMatch(/商品目录[^\n]+`required`/);
+    expect(step2).toMatch(/库存流水[^\n]+`none`/);
+    expect(step7).toContain('use_skill("yida-image-assets"');
+    expect(imageAssets).toContain('required');
+    expect(imageAssets).toContain('beneficial');
+    expect(imageAssets).toContain('none');
+    expect(imageAssets).toContain('requires_host_tool_inventory_check');
+    expect(imageAssets).toContain('asset-manifest.json');
+    expect(sourcePolicy).toContain('Unsplash API');
+    expect(sourcePolicy).toMatch(/Pixabay API[^\n]+自托管 URL/);
+    expect(entry).toMatchObject({ category: 'yida-skills/design' });
+    expect(entry.positive_signals).toContain('联网搜索图片');
+  });
   test('agent-facing docs use token auth wording instead of legacy cookie login guidance', () => {
     const docs = [
       'AGENTS.md',
