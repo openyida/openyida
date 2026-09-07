@@ -10,8 +10,53 @@ const {
   getMaterialSourcingGuidance,
   FREE_STOCK_LIBRARIES,
 } = require('../lib/asset/ai-image');
-const { resolveAssets, resolveOne, isHttpUrl, isLocalFile } = require('../lib/asset/asset-resolve');
+const {
+  resolveAssets,
+  resolveOne,
+  isHttpUrl,
+  isLocalFile,
+  getExternalDeliveryPolicy,
+} = require('../lib/asset/asset-resolve');
 const { parseArgs: parseAssetArgs } = require('../lib/asset/asset-cmd');
+const {
+  readDeclaredCapability,
+  buildHostAssetCapabilities,
+} = require('../lib/asset/host-capabilities');
+
+describe('host asset capabilities', () => {
+  test('keeps undeclared host tools unknown instead of guessing from agent name or browser', () => {
+    const capabilities = buildHostAssetCapabilities({
+      env: {},
+      runtime: { tool: 'codex', runtime: 'desktop_shell', subtype: 'codex' },
+    });
+
+    expect(capabilities.image_search).toEqual({
+      status: 'unknown',
+      available: null,
+      source: 'host_tool_inventory_required',
+    });
+    expect(capabilities.image_generation.available).toBeNull();
+    expect(capabilities.requires_host_tool_inventory_check).toBe(true);
+    expect(capabilities.detection_policy).toMatch(/product name do not prove/);
+  });
+
+  test('accepts explicit independent declarations for search and generation', () => {
+    const capabilities = buildHostAssetCapabilities({
+      env: {
+        OPENYIDA_AGENT_ONLINE_SEARCH: 'true',
+        OPENYIDA_AGENT_IMAGE_SEARCH: '0',
+        OPENYIDA_AGENT_IMAGE_GENERATION: 'available',
+      },
+      runtime: { tool: 'qwenwork', runtime: 'web_sandbox', subtype: 'qwenwork_web' },
+    });
+
+    expect(capabilities.online_search.available).toBe(true);
+    expect(capabilities.image_search.available).toBe(false);
+    expect(capabilities.image_generation.available).toBe(true);
+    expect(capabilities.requires_host_tool_inventory_check).toBe(false);
+    expect(readDeclaredCapability('unexpected').status).toBe('unknown');
+  });
+});
 
 describe('ai-image (honest, agent-delegated image sourcing)', () => {
   test('detectImageGenerator is unavailable by default and delegates to agent', () => {
@@ -28,6 +73,18 @@ describe('ai-image (honest, agent-delegated image sourcing)', () => {
     expect(g.delegateToAgent).toBe(false);
   });
 
+  test('detectImageGenerator accepts an explicit host image generation capability', () => {
+    const g = detectImageGenerator({
+      hostCapabilities: buildHostAssetCapabilities({
+        env: { OPENYIDA_AGENT_IMAGE_GENERATION: '1' },
+        runtime: { tool: 'codex' },
+      }),
+    });
+    expect(g.available).toBe(true);
+    expect(g.delegateToAgent).toBe(true);
+    expect(g.source).toBe('host-capability-declaration');
+  });
+
   test('free stock libraries are free/commercial and returned as copies', () => {
     const libs = getFreeStockLibraries();
     expect(libs.length).toBe(FREE_STOCK_LIBRARIES.length);
@@ -35,9 +92,12 @@ describe('ai-image (honest, agent-delegated image sourcing)', () => {
     const names = libs.map((l) => l.name);
     expect(names).toEqual(expect.arrayContaining(['Unsplash', 'Pexels']));
     libs.forEach((lib) => {
-      expect(lib.license).toMatch(/免费可商用/);
+      expect(typeof lib.license).toBe('string');
       expect(typeof lib.site).toBe('string');
+      expect(typeof lib.deliveryPolicy).toBe('string');
     });
+    expect(libs.find((lib) => lib.name === 'Unsplash').deliveryPolicy).toMatch(/不得镜像/);
+    expect(libs.find((lib) => lib.name === 'Pixabay').deliveryPolicy).toMatch(/禁止永久热链/);
     // returned as copies, not the internal objects
     libs[0].name = 'MUTATED';
     expect(getFreeStockLibraries()[0].name).not.toBe('MUTATED');
@@ -77,6 +137,45 @@ describe('asset-resolve helpers', () => {
 });
 
 describe('resolveOne (controlled ctx, no network)', () => {
+  test('provider delivery policies distinguish required hotlinking and self-hosting', () => {
+    expect(getExternalDeliveryPolicy('https://images.unsplash.com/photo-1')).toBe('hotlink-only');
+    expect(getExternalDeliveryPolicy('https://cdn.pixabay.com/photo/2020/x.jpg')).toBe('self-host-required');
+    expect(getExternalDeliveryPolicy('https://images.pexels.com/photos/1/x.jpg')).toBe('standard');
+  });
+
+  test('Unsplash API image remains hotlinked even when mirroring was requested', async () => {
+    const uploadFn = jest.fn();
+    const downloadFn = jest.fn();
+    const r = await resolveOne('https://images.unsplash.com/photo-1', {
+      canUpload: true,
+      mirrorExternal: true,
+      uploadFn,
+      downloadFn,
+      verifyFn: async url => ({ ok: true, finalUrl: url }),
+    });
+    expect(r).toMatchObject({
+      resolved: true,
+      source: 'external',
+      deliveryPolicy: 'hotlink-only',
+      reason: 'OK_HOTLINK_REQUIRED',
+    });
+    expect(downloadFn).not.toHaveBeenCalled();
+    expect(uploadFn).not.toHaveBeenCalled();
+  });
+
+  test('Pixabay API image is not final until explicit self-hosting is available', async () => {
+    const r = await resolveOne('https://cdn.pixabay.com/photo/2020/x.jpg', {
+      canUpload: false,
+      mirrorExternal: false,
+      verifyFn: async url => ({ ok: true, finalUrl: url }),
+    });
+    expect(r).toMatchObject({
+      resolved: false,
+      deliveryPolicy: 'self-host-required',
+      reason: 'PROVIDER_REQUIRES_SELF_HOSTING',
+    });
+  });
+
   test('empty candidate is an empty gap', async () => {
     const r = await resolveOne('', { canUpload: false });
     expect(r.resolved).toBe(false);

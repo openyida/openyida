@@ -18,6 +18,32 @@ describe('agent-capabilities summary', () => {
     jest.dontMock('../lib/core/utils');
   });
 
+  test('exposes host-declared image capabilities without inferring them from the runtime tool', () => {
+    const { buildAssetCapabilities } = require('../lib/core/agent-capabilities');
+    const unknown = buildAssetCapabilities({ tool: 'codex', runtime: 'desktop_shell', subtype: 'codex' }, {});
+    expect(unknown).toMatchObject({
+      host: { tool: 'codex' },
+      image_search: { status: 'unknown', available: null },
+      image_generation: { status: 'unknown', available: null },
+      requires_host_tool_inventory_check: true,
+    });
+
+    const declared = buildAssetCapabilities(
+      { tool: 'qwenwork', runtime: 'web_sandbox', subtype: 'qwenwork_web' },
+      {
+        OPENYIDA_AGENT_ONLINE_SEARCH: '1',
+        OPENYIDA_AGENT_IMAGE_SEARCH: '1',
+        OPENYIDA_AGENT_IMAGE_GENERATION: '0',
+      }
+    );
+    expect(declared).toMatchObject({
+      online_search: { status: 'available', available: true },
+      image_search: { status: 'available', available: true },
+      image_generation: { status: 'unavailable', available: false },
+      requires_host_tool_inventory_check: false,
+    });
+  });
+
   test('delivery runtime detector keeps local Codex non-cloud and honors managed cloud signals', () => {
     const { buildApplicationEntryPolicy } = require('../lib/core/agent-capabilities');
 
