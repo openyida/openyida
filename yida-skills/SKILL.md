@@ -145,7 +145,7 @@ description: >
 | 批量录入、表格填写、多行编辑 | 默认 `yida-canvas-table-form`；已检测到平台 JSX 组件页面、native 页面或存量源码使用 `this.utils.yida.saveFormData` 时用 `yida-table-form` |
 | 页面视觉方向、页面美化、去 AI 味 | `yida-design` 只产出或更新 `prd/<项目名>/design.md`；若业务/页面契约也变化，由 `yida-prd` 更新 `prd.md`；实现阶段默认交给 `yida-canvas-custom-page` |
 | 应用级主题、品牌色、全局换肤 | `yida-design` |
-| 图片素材判断、联网搜图、生成背景图、Hero 图、商品占位图 | `yida-image-assets`；完整应用中由 `yida-app` 根据 `design.md.assetStrategy` 条件加载 |
+| 图片需求、搜图、生图 | `yida-image-assets`；完整应用按 `design.md.assetStrategy` 加载 |
 | 平台左侧导航树分组/排序 | `yida-nav-group` |
 | 应用导航隐藏后自绘导航壳 | `yida-nav-shell` |
 | 普通报表/统计 | `yida-report` |

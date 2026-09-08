@@ -13,14 +13,13 @@
 - 真实 `appType`、当前页面 `formUuid`；
 - `.cache/<项目名>-schema.json`；
 - Step 5 写入的 seed records 或跳过原因。
-- 素材分支触发时读取 `prd/<项目名>/asset-manifest.json`；其他页面直接消费 PRD 与视觉契约。
+- 需要图片时读取 `prd/<项目名>/asset-manifest.json`。
 
 ## 操作
 
 先读取 `constraints.prohibitedActions`。命中 `page-source` 时，本步骤只能做 Read、编译/静态检查等只读诊断，不得 Write/Edit/Create 页面源码，也不得用脚本、格式化器或生成器间接改写；输出应明确“源码未修改”并跳过依赖源码变更的发布。未命中时才执行下列源码实现动作。
 
-当前页面的 `assetStrategy` 为 `required`，或为 `beneficial` 且声明图片槽位时，先执行 `use_skill("yida-image-assets", "准备当前页面所需图片素材")`。只等待当前页槽位；必需图片未达到 `final` 时将真实缺口写入 draft 和 manifest gaps。
-素材分支已触发时，页面源码同时消费 `asset-manifest.json` 中当前页的已验证素材。
+当前页为 `required`，或为带槽位的 `beneficial` 时，先执行 `use_skill("yida-image-assets", "准备当前页图片")`。页面只使用 manifest 中已验证的素材；缺口保持 `draft`。
 
 1. 自定义页面开发执行 `use_skill("yida-canvas-custom-page", "生成当前页面源码")`。根据 PRD 和 `design.md` 直接编写 `.canvas.jsx` / `.canvas.tsx`；允许从空文件实现完整 UI。内置示例按需用于理解数据接入、导航和表单交互，不要求复制整页，也不能用示例默认外观替代已确认的设计。已有符合设计的页面可继续迭代。
 2. PRD 或页面名包含看板、工作台、驾驶舱、Dashboard 时，必须执行 `use_skill("yida-dashboard", "实现真实业务看板")`。
@@ -57,7 +56,7 @@ Plan 模式下，上表涉及 PRD/design 的修正均由对应技能更新 `buil
 ## Checklist
 
 - [ ] 页面实现已读取 PRD 和 `design.md`；
-- [ ] 素材分支判定已执行；触发时页面消费 manifest 中经过验证的 URL，`none` 页面使用图标、图表、数据与排版完成表达；
+- [ ] 需要图片时只使用 manifest 中已验证的素材；
 - [ ] 页面没有默认自绘应用级侧边导航 / 顶部导航；如有页面内自绘导航，已有用户显式要求和 `yida-nav-shell` 依据；
 - [ ] 页面数据优先接真实表单；
 - [ ] 看板/工作台/驾驶舱已加载 `yida-dashboard`，读取表单数据时已加载 `yida-canvas-data-binding`；

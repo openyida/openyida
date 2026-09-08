@@ -64,7 +64,7 @@ description: >
 15. **参考转成可执行选择**：参考 Dribbble / 优秀案例时，落到主色、背景素材、首屏构图、信息密度、动线、区块数量和反默认点。
 16. **页面文案和图标使用专业表达**：渲染文案使用纯文本；图标只使用 `lucide-react` 或 `@ant-design/icons` 的具体组件，默认选择 `lucide-react`，并在 `design.md` 的 `iconSystem` 中写清业务动作、状态、导航和空态到图标组件的映射。emoji 不能改成 CSS 形状、字母占位、Unicode 符号或临时 SVG；如果需要图标，必须映射到上述两类库的具体组件。
 17. **实现交接明确**：设计产物只定义页面结构、视觉系统和验收标准；常规业务图表使用 `yida-rechart`；ECharts 例外只用于用户明确要求复杂 ECharts option 或维护旧图表。
-18. **素材按页面分级**：`design.md.assetStrategy` 对每个页面标记 `required`、`beneficial` 或 `none`，并写明图片槽位、比例、用途、文字安全区和是否允许生成图。`yida-design` 聚焦素材需求定义，需要素材时交给 `yida-image-assets` 完成获取和验证。
+18. **素材按页面分级**：在 `assetStrategy` 中记录图片等级和槽位；需要素材时交给 `yida-image-assets`。
 
 ---
 

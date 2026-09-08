@@ -56,7 +56,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | 4 | [创建或更新业务资源](workflow/step-4-forms-processes.md) | 执行 `use_skill("yida-create-form-page")`；按 PRD 执行 `use_skill("yida-create-process")`、`use_skill("yida-get-schema")`、`use_skill("yida-report")` 和 `use_skill("yida-integration")` | 真实 `formUuid`、`processCode`、必要 `fieldId/reportId` |
 | 5 | [写入初始表单数据](workflow/step-5-seed-records.md) | 执行 `use_skill("yida-data-management")`，为核心普通表单写入 1-3 条业务化 seed records 并 query 抽查 | 真实表单记录或明确跳过原因 |
 | 6 | [创建或复用主页面](workflow/step-6-main-page.md) | 已有 display 页面直接复用；缺少主页面且允许创建时执行 `use_skill("yida-create-page")` | 真实主页面 `formUuid` |
-| 7 | [编写或更新页面](workflow/step-7-page-code.md) | `design.md.assetStrategy` 判定需要图片时先执行 `use_skill("yida-image-assets")`；再执行 `use_skill("yida-canvas-custom-page")`。看板/工作台/驾驶舱加载 `yida-dashboard`，读取表单数据时加载 `yida-canvas-data-binding` | 素材就绪或诚实标记缺口；页面源码和真实 dataBinding 通过校验 |
+| 7 | [编写或更新页面](workflow/step-7-page-code.md) | 按 `design.md.assetStrategy` 加载素材、页面、看板和数据绑定技能 | 素材状态明确；页面源码和 dataBinding 通过校验 |
 | 8 | [发布页面并排序导航](workflow/step-8-publish-navigation.md) | 执行 `use_skill("yida-publish-page")`，发布本轮源码到主页面并执行轻量导航排序 | 已发布主页面 URL |
 | 9 | [输出与收尾](workflow/step-9-output-finish.md) | 核对完成条件，按业务语言输出结果 | 2-3 句业务总结 + 一组应用访问入口 |
 
@@ -81,7 +81,6 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 - 需要标准统计：优先创建原生报表；明确高级图表或大屏时，再选择 `yida-rechart` / `yida-chart`。
 - 主页面语义为看板、工作台、驾驶舱或 Dashboard：必须加载 `yida-dashboard`；页面读取任何表单业务数据时必须继续加载 `yida-canvas-data-binding`，不能只加载 `yida-canvas-custom-page`。
 - PRD 明确包含报表或集成自动化时，它们属于 Step 4 主流程资源，不得推迟到 final 后置建议；自动化动作必须按通知、数据新增/更新、审批完成、定时或手动触发分别建模，不得统一退化成新增通知。
-- `design.md.assetStrategy` 将任一页面判为 `required`，或判为 `beneficial` 且设计了图片槽位时，Step 7 加载 `yida-image-assets`。`none` 页面继续使用图标、图表、数据和排版完成表达。
 
 ## 页面数据契约
 

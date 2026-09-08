@@ -19,15 +19,7 @@
 
 ## 图片素材交接
 
-`assetStrategy` 必须按页面记录：
-
-- `pages[].pageId` 与 PRD 页面标识一致；
-- `pages[].imageNeed` 只允许 `required`、`beneficial`、`none`；
-- 需要图片时，`slots[]` 写稳定 `slotId`、`usage`、`count`、`aspectRatio`、`minSize`、`focus`、`objectFit` 和 `generationAllowed`；
-- `materialStatus` 反映当前素材落地状态；已验证素材标记为 `final`，待搜索或待生成素材标记为 `draft`；
-- `yida-design` 只定义需求，`yida-image-assets` 负责搜索、生成、来源核验和 `asset-manifest.json`。
-
-没有图片槽位的业务操作页写 `imageNeed: none`，不为增加装饰而激活素材分支。
+`assetStrategy.pages[]` 记录页面等级和图片槽位。槽位包含用途、数量、比例、尺寸、焦点、填充方式和生成许可。需要图片时交给 `yida-image-assets`；无槽位时写 `imageNeed: none`。
 
 ## 应用主题 CSS 的职责
 

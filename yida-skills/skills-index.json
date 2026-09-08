@@ -113,14 +113,14 @@
       "name": "yida-image-assets",
       "path": "skills/yida-image-assets/SKILL.md",
       "display_name": "宜搭图片素材准备",
-      "description": "评估宜搭页面的图片素材需求，检测当前 Agent 的在线搜索、图片搜索与图片生成工具，为 Hero、背景、商品、场景、封面和空态准备可追溯素材。",
+      "description": "按页面判断图片需求，检查搜图和生图能力，准备并验证素材。",
       "category": "yida-skills/design",
       "tags": ["图片素材", "联网搜图", "图片生成", "背景图", "商品图"],
       "aliases": ["素材设计", "图片搜索", "生成图片", "商品占位图"],
       "positive_signals": ["Hero 图", "背景图", "商品图片", "场景图片", "联网搜索图片", "生成 UI 素材"],
       "negative_signals": ["纯表单", "审批配置", "权限设置", "普通 CRUD 台账"],
       "command_ids": ["agent-capabilities", "asset"],
-      "done_when": "逐页完成 required/beneficial/none 判断；触发时生成 prd/<项目名>/asset-manifest.json，记录能力证据、素材 URL、来源、授权、尺寸、替代文本和缺口；必需素材未落地时保持 draft/none。"
+      "done_when": "生成 prd/<项目名>/asset-manifest.json，记录能力、来源、授权、尺寸和缺口；必需素材不完整时保持 draft。"
     },
     {
       "name": "yida-app-permission",

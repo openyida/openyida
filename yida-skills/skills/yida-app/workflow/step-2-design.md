@@ -48,15 +48,13 @@
 
 ## 2.4 条件式素材分支
 
-`yida-design` 必须在 `design.md.assetStrategy` 中逐页给出 `required`、`beneficial` 或 `none`：
+`design.md.assetStrategy` 按页面分级：
 
-- 品牌官网、活动营销、商品/菜单/课程/资讯封面、旅游/酒店/餐饮/地产/作品案例等媒体型页面通常为 `required`；
-- 门户、工作台、档案、知识库、数据故事、引导和空态只有明确图片槽位时为 `beneficial`；
-- 纯表单、审批、财务、权限、设置、普通 CRUD 台账、工单列表和内部统计默认 `none`。
+- 商品目录、品牌、营销和媒体展示页通常为 `required`；
+- 门户、工作台、档案、知识库和引导页有图片槽位时为 `beneficial`；
+- 表单、审批、台账、设置和库存流水默认 `none`。
 
-这是页面级判断。同一库存系统中，商品目录可标记为 `required`，库存流水可标记为 `none`。
-
-存在 `required`，或存在带图片槽位的 `beneficial` 时，启动 `yida-image-assets` 素材分支。该分支可与应用、表单和流程创建并行，只阻塞依赖这些图片的页面实现；输出 `prd/<项目名>/asset-manifest.json`。全部为 `none` 时直接进入后续资源创建。
+存在 `required` 或带槽位的 `beneficial` 时启动 `yida-image-assets`，输出 `prd/<项目名>/asset-manifest.json`。素材只阻塞使用它的页面。
 
 ## 主题文件实现指令
 

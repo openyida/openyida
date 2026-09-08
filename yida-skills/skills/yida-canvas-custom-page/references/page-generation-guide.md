@@ -124,10 +124,10 @@ design.md 存在“项目配色适配”时先应用该节，它高于模板默�
 
 联网图库来源固定为：
 
-1. Unsplash：使用官方图片 URL，并遵守热链、署名和下载统计要求。
-2. Pexels：使用官方图片 URL，记录来源页和摄影师信息。
+1. Unsplash：使用官方 URL，保留热链和署名，记录下载动作。
+2. Pexels：使用官方 URL，记录来源页和摄影师。
 
-图库图片统一经过 `yida-image-assets` 和 `openyida asset resolve --source search` 校验。
+图库图片统一由 `yida-image-assets` 准备，并通过 `asset resolve --source search` 校验。
 
 若 `openyida cdn-config --show` 显示缺少 `accessKeyId/accessKeySecret/cdnDomain/ossBucket`，交付状态标为“素材待上传”；可先用已验证公开 URL 测试，或提示用户补 CDN 配置。
 

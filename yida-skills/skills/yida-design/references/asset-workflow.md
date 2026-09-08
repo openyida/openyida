@@ -1,27 +1,26 @@
-# 素材工作流：官网 / 品牌页的真实图片如何落地
+# 图片素材落地
 
-> 图片需求与槽位由 `yida-design` 定义；需要素材时加载 `yida-image-assets`，再统一交给 `openyida asset resolve` 解析和回填。所有图片 URL 来自实际素材结果。
+> `yida-design` 定义槽位，`yida-image-assets` 准备素材，`asset resolve` 负责校验。
 
 ## 核心原则
 
-1. **图片由宿主素材工具提供**：使用宿主图片生成能力，或只从 Unsplash/Pexels 搜索采集图片；`openyida ai` 继续提供文生文和识图能力。
-2. **素材统一解析**：本地文件和外链都交给 `openyida asset resolve`；搜索素材使用 `--source search`，用户有权使用的自带外链使用 `--source user`。
-3. **区分生产交付与离线展示**：CDN 上传成功后记录生产 URL；离线展示可使用受控压缩的 JPEG/WebP data URI，并保持 draft 状态。
-4. **素材缺口保持可见**：用文字排版、数据图示或插画承接页面，并在交付说明中记录缺口。
+1. 使用宿主生图工具，或只从 Unsplash/Pexels 搜图。
+2. 本地图和外链都经过 `asset resolve`。
+3. 只有稳定 URL 可标记 `final`；其余保持 `draft/none`。
 
 ## 执行流程
 
-1. 运行 `openyida agent-capabilities --summary-json` 和 `openyida asset status --json`，读取独立的在线搜索、图片搜索和图片生成三态能力；能力结论以本轮宿主工具清单或显式声明为准。
-2. 执行 `yida-image-assets`，由智能体使用本轮真实可用的宿主工具生成图片，或将图片检索域限定为 Unsplash/Pexels，并记录来源元数据。
-3. 使用 `openyida asset resolve` 处理本地文件或外链，并回填 `spec.assets`。
-4. 根据结果将 `materialStatus` 设为 `final`、`draft` 或 `none`；素材不足时保留草稿标记。
+1. 运行 `agent-capabilities --summary-json` 和 `asset status --json`。
+2. 执行 `yida-image-assets`，准备图片并记录来源。
+3. 使用 `asset resolve` 校验和回填。
+4. 按结果设置 `materialStatus`。
 
 ## 命令速查
 
 | 子命令 | 作用 | 关键参数 |
 |---|---|---|
-| `openyida asset status` | 检测 CDN、上传和素材生成能力 | `--online`、`--json` |
-| `openyida asset resolve` | 解析本地或外链素材，按来源白名单校验并回填 | `--hero <url\|path>`、`--product <url\|path>`、`--source search\|user`、`--require-hero`、`--upload-assets`、`--offline`、`--json` |
+| `openyida asset status` | 检测素材能力 | `--offline`、`--json` |
+| `openyida asset resolve` | 校验并回填图片 | `--hero <url\|path>`、`--product <url\|path>`、`--source search\|user`、`--require-hero`、`--upload-assets`、`--offline`、`--json` |
 | `openyida asset generate` | 输出素材来源引导和免费素材库清单 | `--json` |
 
 ## 示例
@@ -33,13 +32,13 @@ openyida asset status --json
 openyida asset resolve --hero ./hero.webp --upload-assets --json
 ```
 
-使用 Pexels 搜索结果时（同时在 manifest 记录来源与授权）：
+Pexels 搜索图：
 
 ```bash
 openyida asset resolve --hero "https://images.pexels.com/photos/123/example.jpg" --source search --json
 ```
 
-使用用户明确提供并确认有权使用的外链时：
+用户授权外链：
 
 ```bash
 openyida asset resolve --hero "https://assets.example.com/authorized-photo.jpg" --source user --json
