@@ -122,11 +122,12 @@ design.md 存在“项目配色适配”时先应用该节，它高于模板默�
 }
 ```
 
-素材来源优先级：
+联网图库来源固定为：
 
-1. 用户提供或已有官网图片。若有防盗链，优先用 `openyida cdn-upload` 转存。
-2. AI 生成图片。先生成本地图片，再确认 CDN 配置，之后上传并回填 URL。
-3. 公开图库。只使用可公开访问且通过 HTTP 200 校验的图片 URL；生产交付优先转存到自有 CDN。
+1. Unsplash：使用官方图片 URL，并遵守热链、署名和下载统计要求。
+2. Pexels：使用官方图片 URL，记录来源页和摄影师信息。
+
+图库图片统一经过 `yida-image-assets` 和 `openyida asset resolve --source search` 校验。
 
 若 `openyida cdn-config --show` 显示缺少 `accessKeyId/accessKeySecret/cdnDomain/ossBucket`，交付状态标为“素材待上传”；可先用已验证公开 URL 测试，或提示用户补 CDN 配置。
 
