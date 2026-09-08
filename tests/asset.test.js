@@ -24,23 +24,48 @@ const {
 } = require('../lib/asset/host-capabilities');
 
 describe('host asset capabilities', () => {
-  test('keeps undeclared host tools unknown instead of guessing from agent name or browser', () => {
+  test('enables asset search for a verified non-cloud runtime', () => {
     const capabilities = buildHostAssetCapabilities({
       env: {},
       runtime: { tool: 'codex', runtime: 'desktop_shell', subtype: 'codex' },
     });
 
-    expect(capabilities.image_search).toEqual({
-      status: 'unknown',
-      available: null,
-      source: 'host_tool_inventory_required',
+    expect(capabilities.online_search).toEqual({
+      status: 'available',
+      available: true,
+      source: 'non_cloud_runtime_default',
     });
+    expect(capabilities.image_search).toEqual(capabilities.online_search);
     expect(capabilities.image_generation.available).toBeNull();
     expect(capabilities.requires_host_tool_inventory_check).toBe(true);
-    expect(capabilities.detection_policy).toMatch(/product name do not prove/);
+    expect(capabilities.host.class).toBe('non_cloud');
   });
 
-  test('accepts explicit independent declarations for search and generation', () => {
+  test('enables generation for QwenWork and keeps cloud search inventory-driven', () => {
+    const cloud = buildHostAssetCapabilities({
+      env: {},
+      runtime: { tool: 'qwenwork', runtime: 'web_sandbox', subtype: 'qwenwork_web' },
+    });
+
+    expect(cloud.image_generation).toEqual({
+      status: 'available',
+      available: true,
+      source: 'qwenwork_runtime_default',
+    });
+    expect(cloud.image_search.available).toBeNull();
+    expect(cloud.host.class).toBe('managed_cloud');
+
+    const local = buildHostAssetCapabilities({
+      env: {},
+      runtime: { tool: 'qwenwork', runtime: 'desktop_shell', subtype: 'qwenwork_desktop' },
+    });
+    expect(local.online_search.available).toBe(true);
+    expect(local.image_search.available).toBe(true);
+    expect(local.image_generation.available).toBe(true);
+    expect(local.requires_host_tool_inventory_check).toBe(false);
+  });
+
+  test('accepts explicit independent declarations ahead of runtime defaults', () => {
     const capabilities = buildHostAssetCapabilities({
       env: {
         OPENYIDA_AGENT_ONLINE_SEARCH: 'true',
@@ -55,6 +80,17 @@ describe('host asset capabilities', () => {
     expect(capabilities.image_generation.available).toBe(true);
     expect(capabilities.requires_host_tool_inventory_check).toBe(false);
     expect(readDeclaredCapability('unexpected').status).toBe('unknown');
+  });
+
+  test('honors an explicit managed-cloud marker for otherwise local runtimes', () => {
+    const capabilities = buildHostAssetCapabilities({
+      env: { OPENYIDA_MANAGED_RUNTIME: 'cloud' },
+      runtime: { tool: 'codex', runtime: 'desktop_shell', subtype: 'codex' },
+    });
+
+    expect(capabilities.host.class).toBe('managed_cloud');
+    expect(capabilities.online_search.available).toBeNull();
+    expect(capabilities.image_search.available).toBeNull();
   });
 });
 
@@ -82,7 +118,19 @@ describe('ai-image (honest, agent-delegated image sourcing)', () => {
     });
     expect(g.available).toBe(true);
     expect(g.delegateToAgent).toBe(true);
-    expect(g.source).toBe('host-capability-declaration');
+    expect(g.source).toBe('environment_declaration');
+  });
+
+  test('detectImageGenerator recognizes the QwenWork runtime default', () => {
+    const g = detectImageGenerator({
+      hostCapabilities: buildHostAssetCapabilities({
+        env: {},
+        runtime: { tool: 'qwenwork', runtime: 'web_sandbox', subtype: 'qwenwork_web' },
+      }),
+    });
+    expect(g.available).toBe(true);
+    expect(g.delegateToAgent).toBe(true);
+    expect(g.source).toBe('qwenwork_runtime_default');
   });
 
   test('free stock libraries are free/commercial and returned as copies', () => {

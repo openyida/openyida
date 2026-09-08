@@ -24,7 +24,7 @@ description: >
 ## 工作流
 
 1. 读取 PRD 页面场景与 `design.md.assetStrategy`，逐页列出 `slotId`、用途、数量、比例、最小尺寸、主体位置、文字安全区、`object-fit`、是否允许生成图。
-2. 运行 `openyida agent-capabilities --summary-json`，读取 `asset_capabilities`。若能力为 `unknown`，检查当前宿主实际可调用工具；宿主工具清单优先于 CLI 推断。
+2. 运行 `openyida agent-capabilities --summary-json`，读取 `asset_capabilities`。显式能力声明优先于运行时默认值；若能力为 `unknown`，检查当前宿主实际可调用工具。
 3. 按“用户已有素材 → 宿主图片搜索 → 合规图库 API/人工检索 → 宿主图片生成 → 中性占位”的顺序选择来源。真实人物、商品、房源、证件和案例使用来源可验证的真实素材。
 4. 搜索时从业务、对象、场景、构图、色调和留白方向生成查询词；每个关键槽位比较候选图，实际查看图片及来源元数据后再选择。
 5. 使用图库或外链时读取 [来源与落地规则](references/source-policy.md)，选择授权和落地规则清晰的来源。
@@ -37,13 +37,15 @@ description: >
 
 当 `asset_capabilities.requires_host_tool_inventory_check=true` 时，必须查看本轮宿主工具清单后再决定；这不是能力不可用的结论。
 
+- `host.class=non_cloud`：默认具备联网搜索与图片搜索能力，可直接进入素材检索。
+- `host.tool=qwenwork`：默认具备图片生成能力；生成后查看结果并经过 `asset resolve`。
 - `image_search=available`：可以使用宿主的图片搜索工具。
 - 只有 `online_search=available`：用于查询官网和授权说明；取得真实候选图片和来源元数据后再进入选图。
 - `image_generation=available`：只为允许生成的槽位生成本地图片；生成后仍需查看结果并经过 `asset resolve`。
-- 能力为 `unknown`：检查本轮工具清单；仍无法确认就按 unavailable 降级。
-- Codex、千问办公等宿主名称和 `agent_browser=true` 用于识别运行环境；搜索与生成能力以本轮工具清单或显式声明为准。
+- cloud 或无法识别的运行时能力为 `unknown` 时，检查本轮工具清单；仍无法确认就按 unavailable 降级。
+- `agent_browser=true` 只描述浏览器交互能力；素材能力使用显式声明、上述运行时默认值或本轮工具清单。
 
-宿主可通过 `OPENYIDA_AGENT_ONLINE_SEARCH`、`OPENYIDA_AGENT_IMAGE_SEARCH`、`OPENYIDA_AGENT_IMAGE_GENERATION` 注入能力声明；值为 `1/true/available` 或 `0/false/unavailable`。API Key 保存在宿主安全凭据环境中。
+宿主可通过 `OPENYIDA_AGENT_ONLINE_SEARCH`、`OPENYIDA_AGENT_IMAGE_SEARCH`、`OPENYIDA_AGENT_IMAGE_GENERATION` 覆盖运行时默认值；值为 `1/true/available` 或 `0/false/unavailable`。API Key 保存在宿主安全凭据环境中。
 
 ## 输出契约
 

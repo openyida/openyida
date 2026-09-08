@@ -18,14 +18,27 @@ describe('agent-capabilities summary', () => {
     jest.dontMock('../lib/core/utils');
   });
 
-  test('exposes host-declared image capabilities without inferring them from the runtime tool', () => {
+  test('exposes non-cloud search and QwenWork generation runtime defaults', () => {
     const { buildAssetCapabilities } = require('../lib/core/agent-capabilities');
-    const unknown = buildAssetCapabilities({ tool: 'codex', runtime: 'desktop_shell', subtype: 'codex' }, {});
-    expect(unknown).toMatchObject({
-      host: { tool: 'codex' },
-      image_search: { status: 'unknown', available: null },
+    const local = buildAssetCapabilities({ tool: 'codex', runtime: 'desktop_shell', subtype: 'codex' }, {});
+    expect(local).toMatchObject({
+      host: { tool: 'codex', class: 'non_cloud' },
+      online_search: { status: 'available', available: true },
+      image_search: { status: 'available', available: true },
       image_generation: { status: 'unknown', available: null },
       requires_host_tool_inventory_check: true,
+    });
+
+    const qwenwork = buildAssetCapabilities(
+      { tool: 'qwenwork', runtime: 'desktop_shell', subtype: 'qwenwork_desktop' },
+      {}
+    );
+    expect(qwenwork).toMatchObject({
+      host: { tool: 'qwenwork', class: 'non_cloud' },
+      online_search: { status: 'available', available: true },
+      image_search: { status: 'available', available: true },
+      image_generation: { status: 'available', available: true },
+      requires_host_tool_inventory_check: false,
     });
 
     const declared = buildAssetCapabilities(
