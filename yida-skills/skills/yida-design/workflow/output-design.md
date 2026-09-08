@@ -29,7 +29,7 @@
 
 主题准备与表单、页面开发按 [并行依赖](../../yida-app/workflow/parallel-work.md#主题与业务资源的依赖) 调度：计划或主题确认后即生成 CSS，不依赖表单或页面实现；appType 与 CSS 就绪便立即同步应用基础设置。页面先按已确认 token 开发，视觉验收再核对主题加载结果。
 
-页面背景必须按已确认导航归属生成：无平台应用导航时，`--oyd-page-background` 默认 `transparent`，也可按明确设计关联 `--color-brand1-3` 等品牌 token；使用平台导航时默认关联 `--pod-page-bg-color`（回退白色），已确认的深色或自定义背景优先。不要沿用风格参考中的固定浅灰作为所有应用的默认画布。Plan 自动派生默认值，`visualStyle.tokens` 显式覆盖优先；Fast 将同样结果写进 design.md 的 tokens 并生成应用 CSS。Canvas 宿主和页面根使用同一别名，具体消费见 [背景与导航的关联](../../yida-canvas-custom-page/references/canvas-style-implementation-guide.md#背景与导航的关联)。
+页面背景统一使用 `--pod-page-bg-color`，卡片和面板使用 `--pod-card-bg-color`，默认回退 `--color-white`。导航归属不改变页面底色，隐藏导航不自动透明；深色或明确的应用背景通过同一平台 token 配置。Plan 和 Fast 将设计值写入 design.md 并生成 app-theme.css，Canvas 宿主、页面根和 antd 统一消费；渐变、纹理和素材作为页面局部装饰层。
 
 ## CLI token 契约（Fast / Plan 共用）
 

@@ -100,3 +100,16 @@ test('sample command extracts a reusable theme hook with React import', async ()
     fs.rmSync(directory, { recursive: true, force: true });
   }
 });
+
+
+test('page and panel roles use their own platform token before the shared white fallback', () => {
+  const fixture = setup();
+  fixture.values['--color-white'] = 'rgb(250, 250, 250)';
+  fixture.values['--pod-page-bg-color'] = 'rgb(240, 240, 240)';
+  const token = fixture.context.readCanvasTheme(fixture.root, {});
+  expect(token.colorBgLayout).toBe('rgb(240, 240, 240)');
+  expect(token.colorBgContainer).toBe('rgb(250, 250, 250)');
+  expect(token.colorBgElevated).toBe(token.colorBgContainer);
+  fixture.values['--pod-card-bg-color'] = 'rgb(255, 255, 255)';
+  expect(fixture.context.readCanvasTheme(fixture.root, {}).colorBgContainer).toBe('rgb(255, 255, 255)');
+});

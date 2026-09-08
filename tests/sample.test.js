@@ -205,14 +205,14 @@ describe('sample templates', () => {
     expect(chartSource).not.toMatch(/\.(?:reduce|groupBy)\(/);
     expect(chartSource).not.toContain('data-theme-scope');
     expect(chartSource).toContain('min-height: 100vh');
-    expect(chartSource).toContain('var(--pod-page-bg-color, ${THEME.canvas})');
+    expect(chartSource).toContain('var(--pod-page-bg-color, var(--color-white, #fff))');
 
     expect(JSON.parse(tableResult.importedModules)).toEqual(['antd', 'dayjs', 'react']);
     expect(tableSource).toContain('writeBridge.verified');
     expect(tableSource).toContain('Promise.all');
     expect(tableSource).toContain('readCanvasTheme');
     expect(tableSource).toContain('min-height: 100vh');
-    expect(tableSource).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
+    expect(tableSource).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff))');
     expect(tableSource).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
     expect(tableSource).not.toContain('linear-gradient(145deg, #F0F9F7');
     expect(tableSource).not.toContain('this.utils.yida');
@@ -277,7 +277,7 @@ describe('sample templates', () => {
     expect(pageSource).toContain('function FormOpenContainer');
     expect(pageSource).toContain('readCanvasTheme');
     expect(pageSource).toContain('min-height: 100vh');
-    expect(pageSource).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
+    expect(pageSource).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff))');
     expect(pageSource).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
     expect(pageSource).toContain('border: var(--pod-card-border, none)');
     expect(pageSource).toContain('border-radius: var(--pod-card-border-radius, 20px)');

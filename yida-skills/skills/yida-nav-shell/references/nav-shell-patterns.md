@@ -244,7 +244,7 @@ const registration = items.find(item => item.key === 'registration');
 | 菜单高度、圆角、文字、间距 | `--pod-nav-menu-*`、`--pod-nav-top-tab-*` |
 | 悬浮阴影 | `--pod-nav-popup-shadow` |
 | 页内标签 | `--tab-pure-text-color-*`、`--tab-pure-ink-bar-color` |
-| 自定义页整页画布 | `--oyd-page-background`（无应用导航默认透明）、`--pod-nav-page-padding` |
+| 自定义页整页画布 | `--pod-page-bg-color`（与原生页面统一）、`--pod-nav-page-padding` |
 | 业务卡片 | `--pod-card-bg-color`、`--pod-card-border` |
 
 主题由 `yida-design` 在应用级生成和配置；导航组件消费已有变量，必要的默认值放在 `var(...)` 回退中。颜色修改在主题文件完成，固定的布局结构留在组件中。导航深浅由导航主题决定，业务内容明暗由页面主题决定，分别验证。

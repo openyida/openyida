@@ -395,7 +395,7 @@ describe('OpenYida skill contracts', () => {
     expect(canvasTable).toContain('未验证不得伪装闭环');
     expect(canvasTable).toContain('Promise.all');
     expect(canvasTable).toContain('根画布使用 `min-height: 100vh`');
-    expect(canvasTable).toContain('背景使用 `var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))`');
+    expect(canvasTable).toContain('背景使用 `var(--pod-page-bg-color, var(--color-white, #fff))`');
     expect(canvasTable).toContain('表格面板使用当前应用主题中的 `--pod-card-bg-color`');
     expect(nativeChart).toContain('# 宜搭 ECharts 高级报表技能');
     expect(nativeTable).toContain('saveFormData');
@@ -1276,8 +1276,8 @@ describe('OpenYida skill contracts', () => {
     expect(canvasStyleGuide).toContain('## 应用主题与页面风格冲突处理');
     expect(canvasStyleGuide).toContain('默认值是 `跟随应用主题`，不是 `跟随生成色盘色相`');
     expect(canvasStyleGuide).toContain('openyida sample openyida-page-template canvas-theme');
-    expect(canvasStyleGuide).toContain('变量缺失或移除时回退设计值');
-    expect(canvasStyleGuide).toContain('fallback 来自 design.md 同角色 token');
+    expect(canvasStyleGuide).toContain('当前脚本不自动映射尺寸、圆角、字体、图表色组或完整 CSS 选择器');
+    expect(canvasStyleGuide).toContain('新 antd 页面使用');
     expect(step2).toContain('`--color-brand1-*` 是页面和 PC 端主要消费的品牌色阶');
     expect(step2).toContain('是平台主题契约要求的品牌色阶，由应用自定义主题文件统一提供');
     expect(step2).toContain('`--color-brand-*` 是移动端和部分原生表单/壳层消费的品牌色阶');
@@ -1629,12 +1629,12 @@ describe('OpenYida skill contracts', () => {
     expect(pageUiux).not.toContain('Canvas 设计系统');
     expect(canvasStyleGuide).toContain('| `--color-brand1-6` | 主色 |');
     expect(canvasStyleGuide).toContain('| `--color-brand-1` ~ `--color-brand-4` | 移动端品牌色阶 |');
-    expect(canvas).toContain('页面背景、组件样式和 `ConfigProvider` 都只写在 `YidaComp` 内');
+    expect(canvas).toContain('页面背景、组件样式和主题 Provider 只作用于 `YidaComp` 的组件子树');
     expect(canvasStyleGuide).toContain('组件自己的背景、卡片和控件样式留在 `YidaComp` 内');
     expect(canvasStyleGuide).toContain('宿主属性绑定不是主题注入');
     expect(canvasStyleGuide).toContain('严禁生成 `body` 背景 CSS');
     expect(canvasStyleGuide).toContain('min-height: 100vh;');
-    expect(canvasStyleGuide).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)));');
+    expect(canvasStyleGuide).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff));');
     expect(canvasStyleGuide).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff));');
     expect(canvasStyleGuide).toContain('border: var(--pod-card-border, none);');
     expect(canvasStyleGuide).toContain('border-radius: var(--pod-card-border-radius, 20px);');

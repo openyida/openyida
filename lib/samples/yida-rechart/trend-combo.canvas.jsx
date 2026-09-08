@@ -78,8 +78,9 @@ function readCanvasTheme(root, fallback) {
   const roles = {
     colorPrimary: '--color-brand1-6', colorLink: '--color-brand1-6',
     colorPrimaryHover: '--color-brand1-5', colorPrimaryActive: '--color-brand1-9',
-    colorBgLayout: '--pod-page-bg-color', colorBgContainer: '--pod-card-bg-color',
-    colorBgElevated: '--pod-card-bg-color', colorText: '--color-text1-4',
+    colorBgLayout: ['--pod-page-bg-color', '--color-white'],
+    colorBgContainer: ['--pod-card-bg-color', '--color-white'],
+    colorBgElevated: ['--pod-card-bg-color', '--color-white'], colorText: '--color-text1-4',
     colorTextHeading: '--color-text1-4', colorTextSecondary: '--color-text1-3',
     colorTextDescription: '--color-text1-3', colorTextPlaceholder: '--color-text1-10',
     colorBorder: '--color-line1-2', colorBorderSecondary: '--color-line1-1',
@@ -95,7 +96,8 @@ function readCanvasTheme(root, fallback) {
   root.appendChild(probe);
   try {
     Object.keys(roles).forEach((role) => {
-      const value = scope.getPropertyValue(roles[role]).trim();
+      const names = Array.isArray(roles[role]) ? roles[role] : [roles[role]];
+      const value = names.map((name) => scope.getPropertyValue(name).trim()).find(Boolean) || '';
       if (!value || !view.CSS.supports('color', value)) return;
       probe.style.color = value;
       const color = view.getComputedStyle(probe).color;
@@ -179,7 +181,7 @@ function YidaComp(props) {
           padding: 28px;
           background:
             radial-gradient(circle at 92% 4%, color-mix(in srgb, var(--color-brand1-6, #1677ff) 12%, transparent), transparent 30%),
-            var(--oyd-page-background, var(--pod-page-bg-color, ${THEME.canvas}));
+            var(--pod-page-bg-color, var(--color-white, #fff));
           color: ${THEME.ink};
         }
         .rechart-shell { max-width: 1240px; margin: 0 auto; }

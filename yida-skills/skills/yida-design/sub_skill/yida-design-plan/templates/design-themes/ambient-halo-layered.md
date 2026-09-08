@@ -5,6 +5,7 @@ themeId: ambient-halo-layered
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "var(--color-white, #fff)"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 14%，用于悬停>"
       "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与白色混合 88%，用于平台品牌浅色>"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-halo-primary": "color-mix(in srgb, var(--color-brand1-6) 10%, transparent)"
       "--oyd-halo-secondary": "color-mix(in srgb, var(--color-brand1-6) 5%, transparent)"
       "--oyd-milk-surface": "rgba(255, 255, 255, 0.78)"
@@ -109,7 +109,7 @@ tokens:
 
 | 视觉记忆组件或构图 | 内容契约 | 落地策略 | 可迁移机制与适配目标 | 无匹配内容时 |
 | --- | --- | --- | --- | --- |
-| 主题派生环境光晕 | `content_contract`: 页面允许装饰性背景层且不影响阅读、性能与品牌约束。 | `render_policy: adapt_existing_slot`；`direct_trigger`: `{{PROJECT_CONSTRAINTS}}` 允许低透明背景光层。 | `transferable_mechanism`: 大尺度模糊光晕、主题同色双层透明度；`adaptation_targets`: 页面底层画布、聚焦区背景。 | `fallback`: 受限时使用纯 `--oyd-page-background`；`forbidden`: 不得引入额外业务信息或高饱和多色背景。 |
+| 主题派生环境光晕 | `content_contract`: 页面允许装饰性背景层且不影响阅读、性能与品牌约束。 | `render_policy: adapt_existing_slot`；`direct_trigger`: `{{PROJECT_CONSTRAINTS}}` 允许低透明背景光层。 | `transferable_mechanism`: 大尺度模糊光晕、主题同色双层透明度；`adaptation_targets`: 页面底层画布、聚焦区背景。 | `fallback`: 受限时使用纯 `--pod-page-bg-color`；`forbidden`: 不得引入额外业务信息或高饱和多色背景。 |
 | 乳白微趋势指标组 | `content_contract`: 至少两个同层摘要，每项具有主值与可选真实微趋势或状态。 | `render_policy: prd_match_only`；`direct_trigger`: PRD 提供 `primary_metrics` 和真实短序列。 | `transferable_mechanism`: 半透明白卡、圆形图标、右上微线、底部主值与胶囊；`adaptation_targets`: `primary_metrics`、`primary_summary`。 | `fallback`: 无短序列时移除微线；`forbidden`: 不得编造趋势、变化率、人数、次数或比较周期。 |
 | 深色胶囊主操作 | `content_contract`: 页面有一个明确且合法的最高优先级操作。 | `render_policy: adapt_existing_slot`；`direct_trigger`: PRD 定义单一 `global_actions.primary`。 | `transferable_mechanism`: 深色胶囊、白色线性图标与文字、右上对齐；`adaptation_targets`: 页面主操作、提交或创建操作。 | `fallback`: 无主操作时不保留空按钮；`forbidden`: 不得新增导出、创建、邀请或批量操作。 |
 | 连续明细壳体 | `content_contract`: 存在结构化记录，以及可选的搜索、筛选、统计或行操作。 | `render_policy: adapt_existing_slot`；`direct_trigger`: PRD 提供 `detail_table` 或结构化 `detail_list`。 | `transferable_mechanism`: 大圆角单壳体、标题工具区、连续表头与行；`adaptation_targets`: `detail_table`、`detail_list`、记录队列。 | `fallback`: 无明细时不渲染壳体；`forbidden`: 不得新增搜索、筛选、字段、状态或行操作。 |
@@ -142,7 +142,7 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔、表格行线和微图辅助线 | `--color-line1-1` | 应用全局 |
 | 输入、按钮和必要容器边界 | `--color-line1-2` | 应用全局 |
-| 页面底层近白画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层近白画布 | `--pod-page-bg-color` | 自定义页 |
 | 常规实色面板、弹窗和表单容器 | `--color-white` | 应用全局 |
 | 主题同色主环境光层 | `--oyd-halo-primary` | 自定义页 |
 | 主题同色次环境光层 | `--oyd-halo-secondary` | 自定义页 |
@@ -194,7 +194,7 @@ tokens:
 
 ## 表面与层级
 
-- 页面背景由 `--oyd-page-background` 与两个 radial-gradient 光层组成；光晕模糊半径建议为视口短边的 22%-36%，不得形成可见硬边。
+- 页面背景由 `--pod-page-bg-color` 与两个 radial-gradient 光层组成；光晕模糊半径建议为视口短边的 22%-36%，不得形成可见硬边。
 - 指标卡和明细壳体使用 `--oyd-milk-surface`、1px `rgba(255,255,255,0.62)` 与 `0 12px 34px --oyd-soft-shadow`；在支持环境可使用 `backdrop-filter: blur(18px)`，不支持时回退为 `--oyd-milk-surface-strong`。
 - 搜索、筛选、表头和圆形行操作使用 `--oyd-milk-surface-strong`；tooltip、popover 复用 `--color-fill1-10`、`--corner-3` 和 `0 10px 28px rgba(0,0,0,0.10)`。
 - 嵌套层只用乳白强度、轻边界或留白区分，不重复叠加重阴影；禁止霓虹辉光、厚描边和高对比多色渐变。
