@@ -3,6 +3,8 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const http = require('http');
+const { spawnSync } = require('child_process');
 
 const {
   detectImageGenerator,
@@ -20,10 +22,33 @@ const {
   ALLOWED_STOCK_IMAGE_PROVIDERS,
 } = require('../lib/asset/asset-resolve');
 const { parseArgs: parseAssetArgs } = require('../lib/asset/asset-cmd');
+const { parseImageMetadata } = require('../lib/asset/image-metadata');
+const { verifyImageUrl } = require('../lib/asset/url-verify');
 const {
   readDeclaredCapability,
   buildHostAssetCapabilities,
 } = require('../lib/asset/host-capabilities');
+
+function pngHeader(width, height) {
+  const buffer = Buffer.alloc(24);
+  Buffer.from('89504e470d0a1a0a', 'hex').copy(buffer);
+  buffer.writeUInt32BE(width, 16);
+  buffer.writeUInt32BE(height, 20);
+  return buffer;
+}
+
+function startImageServer(body, contentType = 'application/octet-stream') {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      res.writeHead(200, { 'Content-Type': contentType, 'Content-Length': body.length });
+      res.end(body);
+    });
+    server.listen(0, '127.0.0.1', () => resolve({
+      server,
+      url: `http://127.0.0.1:${server.address().port}/image.bin`,
+    }));
+  });
+}
 
 describe('host asset capabilities', () => {
   test('enables asset search for a verified non-cloud runtime', () => {
@@ -97,17 +122,24 @@ describe('host asset capabilities', () => {
 });
 
 describe('ai-image (honest, agent-delegated image sourcing)', () => {
-  test('detectImageGenerator is unavailable by default and delegates to agent', () => {
+  test('detectImageGenerator keeps unknown distinct from unavailable', () => {
     const g = detectImageGenerator();
-    expect(g.available).toBe(false);
+    expect(g.status).toBe('unknown');
+    expect(g.available).toBeNull();
     expect(g.delegateToAgent).toBe(true);
     expect(typeof g.reason).toBe('string');
-    expect(g.reason).toMatch(/文生图|素材库|asset resolve/);
+    expect(g.reason).toContain('图片生成能力');
   });
 
-  test('detectImageGenerator honors an explicit image-gen connector', () => {
-    const g = detectImageGenerator({ hasImageGenConnector: true });
-    expect(g.available).toBe(true);
+  test('detectImageGenerator honors an explicit unavailable declaration', () => {
+    const g = detectImageGenerator({
+      hostCapabilities: buildHostAssetCapabilities({
+        env: { OPENYIDA_AGENT_IMAGE_GENERATION: '0' },
+        runtime: { tool: 'codex', runtime: 'desktop_shell' },
+      }),
+    });
+    expect(g.status).toBe('unavailable');
+    expect(g.available).toBe(false);
     expect(g.delegateToAgent).toBe(false);
   });
 
@@ -145,7 +177,7 @@ describe('ai-image (honest, agent-delegated image sourcing)', () => {
       expect(typeof lib.site).toBe('string');
       expect(typeof lib.deliveryPolicy).toBe('string');
     });
-    expect(libs.find((lib) => lib.name === 'Unsplash').deliveryPolicy).toMatch(/不得镜像/);
+    expect(libs.find((lib) => lib.name === 'Unsplash').deliveryPolicy).toContain('热链');
     // returned as copies, not the internal objects
     libs[0].name = 'MUTATED';
     expect(getFreeStockLibraries()[0].name).not.toBe('MUTATED');
@@ -157,13 +189,21 @@ describe('ai-image (honest, agent-delegated image sourcing)', () => {
     expect(g.steps.length).toBeGreaterThan(0);
     expect(g.libraries.length).toBeGreaterThan(0);
     const rulesText = g.rules.join('\n');
-    expect(rulesText).toMatch(/绝不编造图片 URL/);
-    expect(rulesText).toMatch(/无 CDN 时不得声称/);
-    expect(rulesText).toMatch(/仅使用 Unsplash \/ Pexels/);
+    expect(rulesText).toContain('不编造图片 URL');
+    expect(rulesText).toContain('未配置 CDN');
+    expect(rulesText).toContain('联网搜图仅使用 Unsplash / Pexels');
   });
 });
 
 describe('asset-resolve helpers', () => {
+  test('reads PNG dimensions from the image header', () => {
+    expect(parseImageMetadata(pngHeader(1600, 900))).toEqual({
+      type: 'png',
+      width: 1600,
+      height: 900,
+    });
+  });
+
   test('isHttpUrl distinguishes http(s) from local refs', () => {
     expect(isHttpUrl('https://images.unsplash.com/photo-1')).toBe(true);
     expect(isHttpUrl('http://example.com/a.png')).toBe(true);
@@ -181,6 +221,29 @@ describe('asset-resolve helpers', () => {
       expect(isLocalFile(tmp)).toBe(true);
     } finally {
       fs.rmSync(tmp, { force: true });
+    }
+  });
+});
+
+describe('url image verification', () => {
+  test('accepts binary content when the image magic is valid and returns dimensions', async () => {
+    const { server, url } = await startImageServer(pngHeader(1200, 800));
+    try {
+      const result = await verifyImageUrl(url, { minWidth: 1000, minHeight: 600 });
+      expect(result).toMatchObject({ ok: true, imageType: 'png', width: 1200, height: 800 });
+    } finally {
+      await new Promise(resolve => server.close(resolve));
+    }
+  });
+
+  test('rejects an image below the minimum dimensions', async () => {
+    const { server, url } = await startImageServer(pngHeader(640, 360), 'image/png');
+    try {
+      const result = await verifyImageUrl(url, { minWidth: 1200, minHeight: 675 });
+      expect(result.ok).toBe(false);
+      expect(result.reason).toBe('WIDTH_TOO_SMALL');
+    } finally {
+      await new Promise(resolve => server.close(resolve));
     }
   });
 });
@@ -248,6 +311,16 @@ describe('resolveOne (controlled ctx, no network)', () => {
     });
   });
 
+  test('offline mode rejects external URLs without verification', async () => {
+    const verifyFn = jest.fn();
+    const result = await resolveOne('https://images.pexels.com/photos/1/x.jpg', {
+      online: false,
+      verifyFn,
+    });
+    expect(result.reason).toBe('OFFLINE_EXTERNAL_URL');
+    expect(verifyFn).not.toHaveBeenCalled();
+  });
+
   test('user-provided authorized external image may use a non-stock host', async () => {
     const r = await resolveOne('https://assets.example.com/authorized.jpg', {
       assetSource: 'user',
@@ -277,7 +350,7 @@ describe('resolveOne (controlled ctx, no network)', () => {
 
   test('local file without CDN is a LOCAL_NO_CDN gap (no phantom upload)', async () => {
     const tmp = path.join(os.tmpdir(), `openyida-local-${Date.now()}.png`);
-    fs.writeFileSync(tmp, 'fake');
+    fs.writeFileSync(tmp, pngHeader(800, 600));
     try {
       const r = await resolveOne(tmp, { canUpload: false });
       expect(r.resolved).toBe(false);
@@ -289,16 +362,37 @@ describe('resolveOne (controlled ctx, no network)', () => {
 
   test('local file WITH CDN is uploaded via injected uploadFn', async () => {
     const tmp = path.join(os.tmpdir(), `openyida-up-${Date.now()}.png`);
-    fs.writeFileSync(tmp, 'fake');
+    fs.writeFileSync(tmp, pngHeader(800, 600));
     const uploadFn = jest.fn(async (files) => [
       { success: true, originalPath: files[0], cdnUrl: 'https://cdn.example.com/x.png' },
     ]);
     try {
-      const r = await resolveOne(tmp, { canUpload: true, uploadFn });
+      const r = await resolveOne(tmp, { online: true, canUpload: true, uploadFn });
       expect(uploadFn).toHaveBeenCalledWith([tmp]);
       expect(r.resolved).toBe(true);
       expect(r.source).toBe('cdn');
       expect(r.url).toBe('https://cdn.example.com/x.png');
+      expect(r.width).toBe(800);
+      expect(r.height).toBe(600);
+    } finally {
+      fs.rmSync(tmp, { force: true });
+    }
+  });
+
+  test('Unsplash search assets cannot be converted to local uploads', async () => {
+    const tmp = path.join(os.tmpdir(), `openyida-unsplash-${Date.now()}.png`);
+    fs.writeFileSync(tmp, pngHeader(800, 600));
+    const uploadFn = jest.fn();
+    try {
+      const result = await resolveOne(tmp, {
+        assetSource: 'search',
+        provider: 'unsplash',
+        online: true,
+        canUpload: true,
+        uploadFn,
+      });
+      expect(result.reason).toBe('UNSPLASH_HOTLINK_REQUIRED');
+      expect(uploadFn).not.toHaveBeenCalled();
     } finally {
       fs.rmSync(tmp, { force: true });
     }
@@ -306,109 +400,284 @@ describe('resolveOne (controlled ctx, no network)', () => {
 });
 
 describe('asset command parsing', () => {
-  test('resolve defaults to stock search and accepts explicit user source', () => {
+  test('resolve accepts a generic slot', () => {
     const parsed = parseAssetArgs([
       'resolve',
-      '--hero',
-      'https://images.example.com/hero.jpg',
-      '--product',
-      'https://images.example.com/product.jpg',
+      '--slot',
+      'home.hero=https://images.example.com/hero.jpg',
       '--upload-assets',
       '--source',
       'user',
-      '--require-hero',
       '--json',
     ]);
     expect(parsed.subCommand).toBe('resolve');
     expect(parsed.uploadAssets).toBe(true);
     expect(parsed.source).toBe('user');
-    expect(parsed.requireHero).toBe(true);
-    expect(parsed.hero).toBe('https://images.example.com/hero.jpg');
-    expect(parsed.products).toEqual(['https://images.example.com/product.jpg']);
+    expect(parsed.slots).toEqual([{
+      slotId: 'home.hero',
+      input: 'https://images.example.com/hero.jpg',
+      required: true,
+    }]);
 
     expect(parseAssetArgs(['resolve']).source).toBe('search');
   });
+
+  test('resolve accepts input and output manifest paths', () => {
+    const parsed = parseAssetArgs([
+      'resolve',
+      '--input',
+      'manifest-draft.json',
+      '--manifest',
+      'asset-manifest.json',
+    ]);
+    expect(parsed.input).toBe('manifest-draft.json');
+    expect(parsed.manifest).toBe('asset-manifest.json');
+    expect(parsed.slots).toEqual([]);
+  });
+
+  test('does not keep hero/product compatibility arguments', () => {
+    const parsed = parseAssetArgs(['resolve', '--hero', 'x.jpg', '--product', 'y.jpg']);
+    expect(parsed.errors).toEqual([
+      '未知参数：--hero',
+      '未知参数：x.jpg',
+      '未知参数：--product',
+      '未知参数：y.jpg',
+    ]);
+  });
+
+  test('rejects empty slot identifiers and values', () => {
+    expect(parseAssetArgs(['resolve', '--slot', '=x.jpg']).errors).toHaveLength(1);
+    expect(parseAssetArgs(['resolve', '--slot', 'home.hero=']).errors).toHaveLength(1);
+  });
 });
 
-describe('resolveAssets material gating (no network)', () => {
-  test('requireHero with no material yields materialStatus none', async () => {
-    const r = await resolveAssets({}, { requireHero: true, online: false });
-    expect(r.materialStatus).toBe('none');
-    expect(r.materialGaps.length).toBeGreaterThan(0);
-    expect(r.assets.heroImage).toBe('');
+describe('resolveAssets manifest contract', () => {
+  test('no declared slots yields materialStatus none', async () => {
+    const result = await resolveAssets([], { online: false });
+    expect(result.materialStatus).toBe('none');
+    expect(result.assets).toEqual([]);
+    expect(result.gaps).toEqual([]);
   });
 
-  test('no image required and none provided is final', async () => {
-    const r = await resolveAssets({}, { requireHero: false, online: false });
-    expect(r.materialStatus).toBe('final');
-    expect(r.materialGaps).toEqual([]);
+  test('an invalid draft source remains a visible gap', async () => {
+    const result = await resolveAssets([{
+      slotId: 'home.hero',
+      usage: 'hero',
+      input: 'https://images.pexels.com/photos/1/x.jpg',
+      source: 'other-library',
+      alt: '首页主视觉',
+    }], { online: true });
+    expect(result.materialStatus).toBe('draft');
+    expect(result.gaps[0].code).toBe('INVALID_SOURCE');
   });
 
-  test('missing local hero degrades to none and never fabricates a url', async () => {
-    const r = await resolveAssets(
-      { heroImage: 'assets/missing.png' },
-      { requireHero: true, online: false }
-    );
-    expect(r.materialStatus).toBe('none');
-    expect(r.assets.heroImage).toBe('');
-    expect(r.materialGaps.join('\n')).toMatch(/NOT_FOUND/);
+  test('a missing required slot stays draft', async () => {
+    const result = await resolveAssets([{
+      slotId: 'home.hero',
+      usage: 'hero',
+      input: 'assets/missing.png',
+      source: 'generated',
+      alt: '首页主视觉',
+    }], { online: false });
+    expect(result.materialStatus).toBe('draft');
+    expect(result.assets[0].url).toBe('');
+    expect(result.gaps[0].code).toBe('NOT_FOUND');
   });
 
-  test('resolved local hero via CDN uploadFn is final', async () => {
+  test('resolved generated image produces a final manifest with dimensions', async () => {
     const tmp = path.join(os.tmpdir(), `openyida-hero-${Date.now()}.png`);
-    fs.writeFileSync(tmp, 'fake');
-    const uploadFn = jest.fn(async (files) => [
+    fs.writeFileSync(tmp, pngHeader(1600, 900));
+    const uploadFn = jest.fn(async files => [
       { success: true, originalPath: files[0], cdnUrl: 'https://cdn.example.com/hero.png' },
     ]);
     try {
-      const r = await resolveAssets(
-        { heroImage: tmp },
-        { requireHero: true, online: false, uploadFn }
-      );
-      expect(uploadFn).toHaveBeenCalledWith([tmp]);
-      expect(r.materialStatus).toBe('final');
-      expect(r.assets.heroImage).toBe('https://cdn.example.com/hero.png');
+      const result = await resolveAssets([{
+        slotId: 'home.hero',
+        usage: 'hero',
+        input: tmp,
+        source: 'generated',
+        alt: '首页主视觉',
+        minSize: '1200x675',
+      }], { online: true, uploadFn });
+      expect(result.materialStatus).toBe('final');
+      expect(result.assets[0]).toMatchObject({
+        slotId: 'home.hero',
+        url: 'https://cdn.example.com/hero.png',
+        width: 1600,
+        height: 900,
+        isIllustrative: true,
+      });
+      expect(result.capabilityEvidence).toBeDefined();
     } finally {
       fs.rmSync(tmp, { force: true });
     }
   });
 
-  test('verified external hero can be mirrored to CDN when requested', async () => {
-    const tmp = path.join(os.tmpdir(), `openyida-mirror-${Date.now()}.png`);
-    fs.writeFileSync(tmp, 'fake-png');
-    const verifyFn = jest.fn(async (url) => ({
-      url,
-      ok: true,
-      status: 200,
-      contentType: 'image/png',
-      bytes: 8,
-      reason: 'OK',
-      finalUrl: url,
-    }));
-    const downloadFn = jest.fn(async () => tmp);
-    const uploadFn = jest.fn(async (files) => [
-      { success: true, originalPath: files[0], cdnUrl: 'https://cdn.example.com/mirrored-hero.png' },
-    ]);
+  test('minimum dimensions are enforced before upload', async () => {
+    const tmp = path.join(os.tmpdir(), `openyida-small-${Date.now()}.png`);
+    fs.writeFileSync(tmp, pngHeader(640, 360));
+    const uploadFn = jest.fn();
     try {
-      const r = await resolveAssets(
-        { heroImage: 'https://images.example.com/hero.png' },
-        {
-          requireHero: true,
-          mirrorExternal: true,
-          assetSource: 'user',
-          verifyFn,
-          downloadFn,
-          uploadFn,
-        }
-      );
-      expect(verifyFn).toHaveBeenCalledWith('https://images.example.com/hero.png', expect.any(Object));
-      expect(downloadFn).toHaveBeenCalledWith('https://images.example.com/hero.png', expect.any(Object));
-      expect(uploadFn).toHaveBeenCalledTimes(1);
-      expect(r.materialStatus).toBe('final');
-      expect(r.actions[0].source).toBe('cdn-mirrored');
-      expect(r.assets.heroImage).toBe('https://cdn.example.com/mirrored-hero.png');
+      const result = await resolveAssets([{
+        slotId: 'home.hero',
+        usage: 'hero',
+        input: tmp,
+        source: 'generated',
+        alt: '首页主视觉',
+        minSize: '1600x900',
+      }], { online: true, uploadFn });
+      expect(result.materialStatus).toBe('draft');
+      expect(result.gaps[0].code).toBe('WIDTH_TOO_SMALL');
+      expect(uploadFn).not.toHaveBeenCalled();
     } finally {
       fs.rmSync(tmp, { force: true });
     }
+  });
+
+  test('search assets require traceable provider metadata', async () => {
+    const verifyFn = jest.fn(async url => ({
+      ok: true,
+      finalUrl: url,
+      width: 1600,
+      height: 900,
+      imageType: 'jpeg',
+    }));
+    const result = await resolveAssets([{
+      slotId: 'home.hero',
+      usage: 'hero',
+      input: 'https://images.pexels.com/photos/1/x.jpg',
+      source: 'search',
+      alt: '首页主视觉',
+    }], { online: true, verifyFn });
+    expect(result.materialStatus).toBe('draft');
+    expect(result.gaps[0]).toMatchObject({ code: 'MISSING_METADATA' });
+    expect(result.gaps[0].message).toMatch(/sourcePage, creator, license, attribution/);
+  });
+
+  test('Unsplash requires download tracking before final', async () => {
+    const asset = {
+      slotId: 'home.hero',
+      usage: 'hero',
+      input: 'https://images.unsplash.com/photo-1',
+      source: 'search',
+      sourcePage: 'https://unsplash.com/photos/example',
+      creator: 'Example Creator',
+      license: 'Unsplash License',
+      attribution: 'Photo by Example Creator on Unsplash',
+      downloadLocation: 'https://api.unsplash.com/photos/example/download',
+      alt: '首页主视觉',
+    };
+    const verifyFn = async url => ({
+      ok: true,
+      finalUrl: url,
+      width: 1600,
+      height: 900,
+      imageType: 'jpeg',
+    });
+    const draft = await resolveAssets([asset], { online: true, verifyFn });
+    expect(draft.materialStatus).toBe('draft');
+    expect(draft.gaps[0].message).toContain('downloadTracked');
+
+    const final = await resolveAssets([{ ...asset, downloadTracked: true }], { online: true, verifyFn });
+    expect(final.materialStatus).toBe('final');
+  });
+
+  test('resolves slots concurrently and preserves their order', async () => {
+    const pending = [];
+    const verifyFn = jest.fn(url => new Promise(resolve => pending.push({ url, resolve })));
+    const promise = resolveAssets([
+      {
+        slotId: 'home.first',
+        usage: 'scene',
+        input: 'https://assets.example.com/first.jpg',
+        source: 'user',
+        alt: '第一张',
+      },
+      {
+        slotId: 'home.second',
+        usage: 'scene',
+        input: 'https://assets.example.com/second.jpg',
+        source: 'user',
+        alt: '第二张',
+      },
+    ], { online: true, verifyFn });
+    await Promise.resolve();
+    expect(verifyFn).toHaveBeenCalledTimes(2);
+    pending.reverse().forEach(({ url, resolve }) => resolve({
+      ok: true,
+      finalUrl: url,
+      width: 800,
+      height: 600,
+      imageType: 'jpeg',
+    }));
+    const result = await promise;
+    expect(result.assets.map(asset => asset.slotId)).toEqual(['home.first', 'home.second']);
+    expect(result.materialStatus).toBe('final');
+  });
+
+  test('json mode returns a non-zero exit code for draft assets', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-manifest-'));
+    const manifest = path.join(dir, 'asset-manifest.json');
+    try {
+      const result = spawnSync(process.execPath, [
+        path.join(__dirname, '..', 'bin', 'yida.js'),
+        'asset',
+        'resolve',
+        '--slot',
+        'home.hero=assets/missing.png',
+        '--source',
+        'generated',
+        '--manifest',
+        manifest,
+        '--offline',
+        '--json',
+      ], { encoding: 'utf8' });
+      expect(result.status).toBe(2);
+      const error = JSON.parse(result.stderr);
+      expect(error.errorCode).toBe('ASSET_MATERIAL_NOT_FINAL');
+      expect(error.details.materialStatus).toBe('draft');
+      expect(result.stderr).not.toContain('[Circular]');
+      expect(JSON.parse(fs.readFileSync(manifest, 'utf8')).materialStatus).toBe('draft');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('an empty input manifest writes materialStatus none successfully', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-empty-manifest-'));
+    const input = path.join(dir, 'draft.json');
+    const manifest = path.join(dir, 'asset-manifest.json');
+    fs.writeFileSync(input, '{"assets":[]}\n');
+    try {
+      const result = spawnSync(process.execPath, [
+        path.join(__dirname, '..', 'bin', 'yida.js'),
+        'asset',
+        'resolve',
+        '--input',
+        input,
+        '--manifest',
+        manifest,
+        '--offline',
+        '--json',
+      ], { encoding: 'utf8' });
+      expect(result.status).toBe(0);
+      expect(JSON.parse(result.stdout).materialStatus).toBe('none');
+      expect(JSON.parse(fs.readFileSync(manifest, 'utf8')).materialStatus).toBe('none');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('status rejects resolve-only options instead of ignoring them', () => {
+    const result = spawnSync(process.execPath, [
+      path.join(__dirname, '..', 'bin', 'yida.js'),
+      'asset',
+      'status',
+      '--manifest',
+      'ignored.json',
+      '--json',
+    ], { encoding: 'utf8' });
+    expect(result.status).not.toBe(0);
+    expect(JSON.parse(result.stderr).errorCode).toBe('ASSET_INVALID_ARGUMENTS');
   });
 });

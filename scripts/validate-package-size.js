@@ -14,8 +14,8 @@ const MAX_TARBALL_BYTES = 1792 * 1024;
 // Includes the conditional image-asset skill, provider delivery rules and host
 // capability detection (6224625 bytes in the 2026.9.7 package baseline).
 const MAX_UNPACKED_BYTES = 6080 * 1024;
-// The image-asset skill and host capability module bring the package to 493 files.
-const MAX_ENTRY_COUNT = 493;
+// The image metadata parser and manifest contract bring the package to 495 files.
+const MAX_ENTRY_COUNT = 495;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

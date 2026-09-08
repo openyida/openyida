@@ -526,7 +526,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run OpenYida commands in batch |
 | `openyida flash-to-prd --file <path> --name "<project>"` | Convert flash notes or meeting notes to a PRD prompt |
 | `openyida ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
-| `openyida asset <status\|resolve\|generate> [options]` | Detect asset capability / resolve materials |
+| `openyida asset <status\|resolve\|sources> [options]` | Detect asset capability / resolve materials |
 | `openyida cdn-config [options]` | Configure CDN / OSS upload |
 | `openyida cdn-upload <image-path>` | Upload image to CDN |
 | `openyida cdn-refresh [options]` | Refresh CDN cache |
@@ -557,7 +557,7 @@ The runner rejects public generic echo services such as httpbin and example.com.
 
 The opt-in `node scripts/e2e-real/connector/action-update-runner.js` regression uses the owner-confirmed login-free `www.aliwork.com` fixture and a single owned NONE-auth connector containing a target action plus one preservation sentinel. Enable it with `OPENYIDA_E2E=1 OPENYIDA_E2E_CONNECTOR_ACTION_UPDATE=1`. It verifies isolated `currentPage`, `pageSize`, `userLanguage`, `searchFieldJson`, and dynamic `_stamp` edits, restores each field and the final baseline, and persists only response structure, data count, and SHA-256. It never stores response row values or auth/profile/corp identifiers, never retries unknown writes, and intentionally leaves the owned connector as a `cleanup_blocked` residual because no proven delete API exists.
 
-`openyida asset resolve --hero <path-or-url> --product <path-or-url> --source <search|user> --require-hero --upload-assets --json` is the preferred preflight for homepage visuals. Stock-image collection defaults to `source=search` and accepts only Unsplash/Pexels image URLs; `source=user` is reserved for user-provided URLs with confirmed usage rights. The command handles local files and allowed external references in one flow, uploads or mirrors them when permitted and CDN is configured, and returns `materialStatus: final|draft|none` so agents do not claim an unfinished visual page is final.
+`openyida asset resolve --input manifest-draft.json --manifest asset-manifest.json --json` validates every image slot and writes a traceable manifest. Search assets only accept Unsplash/Pexels; draft results exit with code 2. Use `--offline` to block URL checks and uploads.
 
 #### Environment and Localization
 
