@@ -35,6 +35,8 @@ describe('OpenYida skill contracts', () => {
     const step7 = readSkill('yida-skills/skills/yida-app/workflow/step-7-page-code.md');
     const imageAssets = readSkill('yida-skills/skills/yida-image-assets/SKILL.md');
     const sourcePolicy = readSkill('yida-skills/skills/yida-image-assets/references/source-policy.md');
+    const customPageAssets = readSkill('yida-skills/skills/yida-custom-page/references/assets-guide.md');
+    const imageSources = customPageAssets.split('## 音乐/音效素材')[0];
     const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
     const entry = index.skills.find(item => item.name === 'yida-image-assets');
 
@@ -49,7 +51,11 @@ describe('OpenYida skill contracts', () => {
     expect(imageAssets).toContain('requires_host_tool_inventory_check');
     expect(imageAssets).toContain('asset-manifest.json');
     expect(sourcePolicy).toContain('Unsplash API');
-    expect(sourcePolicy).toMatch(/Pixabay API[^\n]+自托管 URL/);
+    expect(sourcePolicy).toContain('Pexels API');
+    expect(sourcePolicy).toMatch(/source=search[^\n]+provider=unsplash\|pexels/);
+    expect(sourcePolicy).not.toMatch(/Pixabay API|unDraw/);
+    expect(imageSources).toMatch(/图片搜索与采集仅使用 Unsplash \/ Pexels/);
+    expect(imageSources).not.toMatch(/Pixabay|Lorem Picsum|Wikimedia Commons/);
     expect(entry).toMatchObject({ category: 'yida-skills/design' });
     expect(entry.positive_signals).toContain('联网搜索图片');
   });

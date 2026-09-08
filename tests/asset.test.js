@@ -16,6 +16,8 @@ const {
   isHttpUrl,
   isLocalFile,
   getExternalDeliveryPolicy,
+  getCollectedImageProvider,
+  ALLOWED_STOCK_IMAGE_PROVIDERS,
 } = require('../lib/asset/asset-resolve');
 const { parseArgs: parseAssetArgs } = require('../lib/asset/asset-cmd');
 const {
@@ -133,19 +135,17 @@ describe('ai-image (honest, agent-delegated image sourcing)', () => {
     expect(g.source).toBe('qwenwork_runtime_default');
   });
 
-  test('free stock libraries are free/commercial and returned as copies', () => {
+  test('stock collection libraries are exactly Unsplash and Pexels and returned as copies', () => {
     const libs = getFreeStockLibraries();
     expect(libs.length).toBe(FREE_STOCK_LIBRARIES.length);
-    expect(libs.length).toBeGreaterThanOrEqual(3);
     const names = libs.map((l) => l.name);
-    expect(names).toEqual(expect.arrayContaining(['Unsplash', 'Pexels']));
+    expect(names).toEqual(['Unsplash', 'Pexels']);
     libs.forEach((lib) => {
       expect(typeof lib.license).toBe('string');
       expect(typeof lib.site).toBe('string');
       expect(typeof lib.deliveryPolicy).toBe('string');
     });
     expect(libs.find((lib) => lib.name === 'Unsplash').deliveryPolicy).toMatch(/不得镜像/);
-    expect(libs.find((lib) => lib.name === 'Pixabay').deliveryPolicy).toMatch(/禁止永久热链/);
     // returned as copies, not the internal objects
     libs[0].name = 'MUTATED';
     expect(getFreeStockLibraries()[0].name).not.toBe('MUTATED');
@@ -159,6 +159,7 @@ describe('ai-image (honest, agent-delegated image sourcing)', () => {
     const rulesText = g.rules.join('\n');
     expect(rulesText).toMatch(/绝不编造图片 URL/);
     expect(rulesText).toMatch(/无 CDN 时不得声称/);
+    expect(rulesText).toMatch(/仅使用 Unsplash \/ Pexels/);
   });
 });
 
@@ -185,9 +186,16 @@ describe('asset-resolve helpers', () => {
 });
 
 describe('resolveOne (controlled ctx, no network)', () => {
-  test('provider delivery policies distinguish required hotlinking and self-hosting', () => {
+  test('stock provider allowlist recognizes only Unsplash and Pexels image hosts', () => {
+    expect(Object.keys(ALLOWED_STOCK_IMAGE_PROVIDERS)).toEqual(['unsplash', 'pexels']);
+    expect(getCollectedImageProvider('https://images.unsplash.com/photo-1')).toBe('unsplash');
+    expect(getCollectedImageProvider('https://images.pexels.com/photos/1/x.jpg')).toBe('pexels');
+    expect(getCollectedImageProvider('https://cdn.pixabay.com/photo/2020/x.jpg')).toBeNull();
+    expect(getCollectedImageProvider('https://images.unsplash.com.evil.example/photo.jpg')).toBeNull();
+  });
+
+  test('provider delivery policies preserve Unsplash hotlinking', () => {
     expect(getExternalDeliveryPolicy('https://images.unsplash.com/photo-1')).toBe('hotlink-only');
-    expect(getExternalDeliveryPolicy('https://cdn.pixabay.com/photo/2020/x.jpg')).toBe('self-host-required');
     expect(getExternalDeliveryPolicy('https://images.pexels.com/photos/1/x.jpg')).toBe('standard');
   });
 
@@ -211,16 +219,47 @@ describe('resolveOne (controlled ctx, no network)', () => {
     expect(uploadFn).not.toHaveBeenCalled();
   });
 
-  test('Pixabay API image is not final until explicit self-hosting is available', async () => {
+  test('default stock collection blocks Pixabay before URL verification', async () => {
+    const verifyFn = jest.fn();
     const r = await resolveOne('https://cdn.pixabay.com/photo/2020/x.jpg', {
+      canUpload: false,
+      mirrorExternal: false,
+      verifyFn,
+    });
+    expect(r).toMatchObject({
+      resolved: false,
+      deliveryPolicy: 'blocked',
+      reason: 'STOCK_PROVIDER_NOT_ALLOWED',
+      allowedProviders: ['unsplash', 'pexels'],
+    });
+    expect(verifyFn).not.toHaveBeenCalled();
+  });
+
+  test('stock collection blocks a redirect away from an allowed provider', async () => {
+    const r = await resolveOne('https://images.pexels.com/photos/1/x.jpg', {
+      canUpload: false,
+      mirrorExternal: false,
+      verifyFn: async () => ({ ok: true, finalUrl: 'https://images.example.com/x.jpg' }),
+    });
+    expect(r).toMatchObject({
+      resolved: false,
+      deliveryPolicy: 'blocked',
+      reason: 'STOCK_PROVIDER_REDIRECT_NOT_ALLOWED',
+    });
+  });
+
+  test('user-provided authorized external image may use a non-stock host', async () => {
+    const r = await resolveOne('https://assets.example.com/authorized.jpg', {
+      assetSource: 'user',
       canUpload: false,
       mirrorExternal: false,
       verifyFn: async url => ({ ok: true, finalUrl: url }),
     });
     expect(r).toMatchObject({
-      resolved: false,
-      deliveryPolicy: 'self-host-required',
-      reason: 'PROVIDER_REQUIRES_SELF_HOSTING',
+      resolved: true,
+      source: 'external',
+      provider: 'user',
+      reason: 'OK',
     });
   });
 
@@ -267,7 +306,7 @@ describe('resolveOne (controlled ctx, no network)', () => {
 });
 
 describe('asset command parsing', () => {
-  test('resolve accepts --upload-assets for external mirroring', () => {
+  test('resolve defaults to stock search and accepts explicit user source', () => {
     const parsed = parseAssetArgs([
       'resolve',
       '--hero',
@@ -275,14 +314,19 @@ describe('asset command parsing', () => {
       '--product',
       'https://images.example.com/product.jpg',
       '--upload-assets',
+      '--source',
+      'user',
       '--require-hero',
       '--json',
     ]);
     expect(parsed.subCommand).toBe('resolve');
     expect(parsed.uploadAssets).toBe(true);
+    expect(parsed.source).toBe('user');
     expect(parsed.requireHero).toBe(true);
     expect(parsed.hero).toBe('https://images.example.com/hero.jpg');
     expect(parsed.products).toEqual(['https://images.example.com/product.jpg']);
+
+    expect(parseAssetArgs(['resolve']).source).toBe('search');
   });
 });
 
@@ -348,7 +392,14 @@ describe('resolveAssets material gating (no network)', () => {
     try {
       const r = await resolveAssets(
         { heroImage: 'https://images.example.com/hero.png' },
-        { requireHero: true, mirrorExternal: true, verifyFn, downloadFn, uploadFn }
+        {
+          requireHero: true,
+          mirrorExternal: true,
+          assetSource: 'user',
+          verifyFn,
+          downloadFn,
+          uploadFn,
+        }
       );
       expect(verifyFn).toHaveBeenCalledWith('https://images.example.com/hero.png', expect.any(Object));
       expect(downloadFn).toHaveBeenCalledWith('https://images.example.com/hero.png', expect.any(Object));

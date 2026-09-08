@@ -25,10 +25,10 @@ description: >
 
 1. 读取 PRD 页面场景与 `design.md.assetStrategy`，逐页列出 `slotId`、用途、数量、比例、最小尺寸、主体位置、文字安全区、`object-fit`、是否允许生成图。
 2. 运行 `openyida agent-capabilities --summary-json`，读取 `asset_capabilities`。显式能力声明优先于运行时默认值；若能力为 `unknown`，检查当前宿主实际可调用工具。
-3. 按“用户已有素材 → 宿主图片搜索 → 合规图库 API/人工检索 → 宿主图片生成 → 中性占位”的顺序选择来源。真实人物、商品、房源、证件和案例使用来源可验证的真实素材。
+3. 按“用户已有素材 → Unsplash/Pexels 图片搜索 → 宿主图片生成 → 中性占位”的顺序选择来源。自动图片采集仅使用 Unsplash 与 Pexels；真实人物、商品、房源、证件和案例使用来源可验证的真实素材。
 4. 搜索时从业务、对象、场景、构图、色调和留白方向生成查询词；每个关键槽位比较候选图，实际查看图片及来源元数据后再选择。
-5. 使用图库或外链时读取 [来源与落地规则](references/source-policy.md)，选择授权和落地规则清晰的来源。
-6. 本地生成图或允许镜像的外链交给 `openyida asset resolve`；Unsplash API 图保留官方热链并记录选用动作。
+5. 使用图库或外链时读取 [来源与落地规则](references/source-policy.md)。宿主图片搜索必须限定到 Unsplash/Pexels 官方来源，不使用其他第三方图库结果。
+6. Unsplash/Pexels 搜索图交给默认的 `openyida asset resolve --source search`；用户明确提供并确认有权使用的外链使用 `--source user`；本地生成图直接解析。Unsplash API 图保留官方热链并记录选用动作。
 7. 写入 `asset-manifest.json`，再把 `design.md.assetStrategy.materialStatus` 和缺口同步为真实状态。只有相关必需槽位全部可用时才是 `final`。
 
 ## 能力判断
@@ -67,7 +67,7 @@ description: >
       "url": "https://...",
       "localPath": null,
       "source": "user|search|generated|placeholder",
-      "provider": "pexels",
+      "provider": "unsplash|pexels",
       "sourcePage": "https://...",
       "creator": "...",
       "license": "...",
@@ -89,5 +89,6 @@ manifest、页面源码和 `design.md` 只记录能力证据与公开来源元�
 - 每个触发页面都得到 `required/beneficial/none` 判定。
 - 能力结论包含本轮宿主工具或显式声明证据。
 - 已选图片经过实际查看、URL 校验与来源规则检查。
+- `source=search` 的每项素材都来自 Unsplash 或 Pexels，且 `provider` 与来源页一致。
 - manifest 的 URL、替代文本、来源、授权、尺寸与示意图标记完整。
 - 必需槽位有缺口时状态保持 `draft/none`，占位图保留清晰的示意标记。
