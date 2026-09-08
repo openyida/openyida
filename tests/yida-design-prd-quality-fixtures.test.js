@@ -99,6 +99,7 @@ describe('parallel PRD and visual artifact quality fixtures', () => {
     expect(skill).toContain('由 `yida-app` 核对页面范围和设计引用');
     expect(step3).toContain('页面 `scene` 只作为分类标签和实现提示，不作为固定页面样式');
     expect(step5).toContain('同一个 `prd/<项目名>/design.md`');
-    expect(pageGeneration).toContain('强视觉品牌以 PRD 的素材清单和 `design.md.assetStrategy` 为准');
+    expect(pageGeneration).toContain('按 `design.md.assetStrategy` 调用 `yida-image-assets`');
+    expect(pageGeneration).toContain('`materialStatus=final`');
   });
 });

@@ -102,36 +102,11 @@ design.md 存在“项目配色适配”时先应用该节，它高于模板默�
 
 表单提交/详情里的 `isRenderNav=false` 只隐藏原生表单页或详情页的页面导航，不用于隐藏自定义页应用导航。
 
-## 官网与品牌页素材流程
+## 官网与品牌页素材
 
-实现 `official-homepage` 时，先读取 PRD 中的素材清单；缺少素材时按下方补齐素材清单。
+按 `design.md.assetStrategy` 调用 `yida-image-assets`。仅当 `asset-manifest.json` 的 `materialStatus=final` 时读取图片 URL；不手拼 URL，也不内嵌 data URI。
 
-强视觉品牌以 PRD 的素材清单和 `design.md.assetStrategy` 为准。官网完成条件包括：场景 Hero、产品/服务、过程/空间三类素材，消费应用主题变量的视觉表达，不同 section 的构图节奏，以及一个明确 CTA。
-
-素材清单至少包含：
-
-```json
-{
-  "assets": {
-    "heroImage": "https://...",
-    "heroImageAlt": "品牌主视觉",
-    "productImages": [
-      { "url": "https://...", "alt": "明星产品" }
-    ]
-  }
-}
-```
-
-联网图库来源固定为：
-
-1. Unsplash：使用官方 URL，保留热链和署名，记录下载动作。
-2. Pexels：使用官方 URL，记录来源页和摄影师。
-
-图库图片统一由 `yida-image-assets` 准备，并通过 `asset resolve --source search` 校验。
-
-若 `openyida cdn-config --show` 显示缺少 `accessKeyId/accessKeySecret/cdnDomain/ossBucket`，交付状态标为“素材待上传”；可先用已验证公开 URL 测试，或提示用户补 CDN 配置。
-
-离线展示在无 CDN 时允许内嵌经过压缩的 JPEG/WebP data URI，保证源码原样发布也有真实图片；建议 3-5 张、单张不超过 250 KB、总量不超过 800 KB。生产页面使用稳定 CDN 素材 URL。
+联网搜图仅使用 Unsplash/Pexels。Unsplash 保留 API 热链和署名；Pexels 保留来源页和摄影师信息。
 
 ## 主题实现
 

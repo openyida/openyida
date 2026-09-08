@@ -289,7 +289,7 @@ metric-emphasis → tokens.custom-page.typography.metric-emphasis
 
 ### 素材要求
 
-- 已有品牌与真实素材：{{BRAND_ASSETS}}
+- 页面图片需求：{{PAGE_IMAGE_NEEDS}}
 - 素材缺口：{{ASSET_GAPS}}
 - 数据图表、产品缩略图和辅助图形必须有真实来源；没有素材时使用结构化数据或中性占位，不编造客户、商品、指标或图片地址。
 
