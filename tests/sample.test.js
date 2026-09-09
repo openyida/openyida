@@ -239,7 +239,7 @@ describe('sample templates', () => {
     const pageSource = fs.readFileSync(pageOutput, 'utf8');
     const pageResult = compileCanvasLocal(pageSource, { sourcePath: pageOutput });
 
-    // 校验生成并编译后的真实 iframe 属性，防止模板抽取或编译再次丢失高度兜底。
+    // 校验生成并编译后的 iframe 使用容器高度，避免外层再次出现滚动。
     const runtimeWindow = {
       React: {
         createElement: (type, props, ...children) => ({ type, props, children }),
@@ -248,11 +248,31 @@ describe('sample templates', () => {
       antd: { Typography: {} },
       LucideReact: {},
     };
+    Object.assign(runtimeWindow.React, {
+      useState: (initial) => [typeof initial === 'function' ? initial() : initial, () => {}],
+      useEffect: () => {},
+      useRef: (current) => ({ current }),
+    });
+    runtimeWindow.innerWidth = 1440;
     // eslint-disable-next-line no-new-func
     const FormOpenContainer = new Function('window', pageResult.runtimeCode + '; return FormOpenContainer;')(runtimeWindow);
     const drawer = FormOpenContainer({ request: { type: 'submission', formUuid: 'FORM_SAMPLE' }, currentAppType: 'APP_SAMPLE' });
     const iframe = drawer.children.find((child) => child && child.type === 'iframe');
-    expect(iframe.props.style).toMatchObject({ height: '100%', minHeight: 'calc(100vh - 56px)' });
+    expect(drawer.props.contentMode).toBe('iframe');
+    expect(iframe.props.style).toMatchObject({ position: 'absolute', inset: 0, height: '100%', minHeight: 0 });
+    const renderShell = (props) => drawer.type(props).children.find((child) => child?.props?.styles);
+    const frameShell = renderShell({ ...drawer.props, children: iframe });
+    expect(frameShell.props.styles.header).toMatchObject({
+      height: 'var(--pod-nav-platform-header-height, 48px)',
+      flex: '0 0 var(--pod-nav-platform-header-height, 48px)',
+      background: 'transparent',
+    });
+    expect(frameShell.props.styles.body).toMatchObject({ display: 'flex', flex: '1 1 0', padding: 0, minHeight: 0, overflow: 'hidden' });
+    expect(frameShell.children.some((child) => child?.props?.className === 'oy-drawer-frame')).toBe(true);
+    const contentShell = renderShell({ open: true, children: '正文' });
+    expect(contentShell.props.styles.body.padding).toBe('0 8px 8px');
+    expect(contentShell.children.some((child) => child?.props?.className === 'oy-drawer-card')).toBe(true);
+
 
     for (const type of ['submission', 'detail']) {
       const request = {
@@ -261,6 +281,11 @@ describe('sample templates', () => {
       };
       const container = FormOpenContainer({ request, currentAppType: 'APP_SAMPLE' });
       const frame = container.children.find((child) => child && child.type === 'iframe');
+      expect(container.props.contentMode).toBe('iframe');
+      const formShell = renderShell({ ...container.props, children: frame });
+      expect(formShell.props.styles.body.padding).toBe(0);
+      expect(formShell.children.some((child) => child?.props?.className === 'oy-drawer-card')).toBe(false);
+      expect(formShell.children.some((child) => child?.props?.className === 'oy-drawer-frame')).toBe(true);
       const url = new URL(frame.props.src, 'https://example.com');
       expect(url.searchParams.get('corpid')).toBe('ding_test');
       expect(url.searchParams.get('source')).toBe('活动 A&B');

@@ -64,6 +64,7 @@ function buildYidaFormUrl(request, currentAppType) {
 /** 抽屉外壳默认跟随应用主题，background 可为当前抽屉指定颜色、渐变或 CSS token。 */
 function CanvasDrawer({
   open, title, onClose, onOpenInNewWindow, extra, children,
+  contentMode = 'content',
   background = 'var(--pod-shell-theme-bg-color, var(--drawer-bg, var(--color-brand1-1, #f4f6ff)))',
 }) {
   const [fullScreen, setFullScreen] = useState(false);
@@ -147,6 +148,12 @@ function CanvasDrawer({
           outline: 2px solid var(--color-brand1-6, #1677ff);
           outline-offset: 2px;
         }
+        .openyida-form-drawer .oy-drawer-frame {
+          position: relative;
+          flex: 1 1 0;
+          min-height: 0;
+          overflow: hidden;
+        }
         .openyida-form-drawer .oy-drawer-card {
           height: 100%;
           min-height: 0;
@@ -213,13 +220,21 @@ function CanvasDrawer({
             overflow: 'hidden',
           },
           header: {
-            background: 'var(--drawer-title-bg-color, var(--pod-page-header-bg-color, transparent))',
+            background: 'transparent',
+            boxSizing: 'border-box',
+            height: 'var(--pod-nav-platform-header-height, 48px)',
+            minHeight: 'var(--pod-nav-platform-header-height, 48px)',
+            flex: '0 0 var(--pod-nav-platform-header-height, 48px)',
             color: 'var(--drawer-title-color, var(--pod-page-header-text-color, var(--color-text1-4, #1f2329)))',
             fontSize: 'var(--drawer-title-font-size, 16px)',
-            padding: 'var(--drawer-title-padding-top, 12px) var(--drawer-title-padding-left-right, 20px) var(--drawer-title-padding-bottom, 12px)',
+            padding: '0 var(--drawer-title-padding-left-right, 20px)',
             borderBottom: 'var(--drawer-title-border-width, 0px) solid var(--drawer-title-border-color, var(--drawer-border-color, transparent))',
           },
-          body: { padding: '0 8px 8px', minHeight: 0, overflow: 'hidden' },
+          body: {
+            display: 'flex', flexDirection: 'column', flex: '1 1 0',
+            padding: contentMode === 'iframe' ? 0 : '0 8px 8px',
+            minHeight: 0, overflow: 'hidden',
+          },
         }}
       >
         {!fullScreen ? (
@@ -250,12 +265,13 @@ function CanvasDrawer({
             }}
           />
         ) : null}
-        <div className="oy-drawer-card">{children}</div>
+        <div className={contentMode === 'iframe' ? 'oy-drawer-frame' : 'oy-drawer-card'}>{children}</div>
       </Drawer>
     </>
   );
 }
 
+/** 原生提交页和详情页自带页面布局，外层只提供 iframe 视口，不再套内容卡片。 */
 function FormOpenContainer({ request, currentAppType, onClose, onAfterClose }) {
   const iframeSrc = useMemo(() => buildYidaFormUrl(request, currentAppType), [request, currentAppType]);
   const title = request && request.title ? request.title : '表单';
@@ -263,6 +279,7 @@ function FormOpenContainer({ request, currentAppType, onClose, onAfterClose }) {
     <CanvasDrawer
       title={title}
       open={!!request}
+      contentMode="iframe"
       background={request?.background}
       onOpenInNewWindow={iframeSrc ? () => window.open(iframeSrc, '_blank', 'noopener,noreferrer') : undefined}
       onClose={() => {
@@ -270,8 +287,8 @@ function FormOpenContainer({ request, currentAppType, onClose, onAfterClose }) {
         if (typeof onAfterClose === 'function') onAfterClose();
       }}
     >
-      {/* antd body 的百分比高度链失效时，保留视口高度兜底，避免 iframe 回落到默认 150px。 */}
-      {iframeSrc ? <iframe title={title} src={iframeSrc} style={{ width: '100%', height: '100%', minHeight: 'calc(100vh - 56px)', border: 0, display: 'block' }} /> : null}
+      {/* iframe 填满 flex 分配的剩余空间，只由内页滚动，不按视口猜测标题高度。 */}
+      {iframeSrc ? <iframe title={title} src={iframeSrc} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', minHeight: 0, border: 0, display: 'block' }} /> : null}
     </CanvasDrawer>
   );
 }
