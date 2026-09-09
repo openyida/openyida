@@ -119,6 +119,34 @@ describe('dependency-aware form batches', () => {
     execute.mockClear();
     expect((await run(['APP_X', file], { execute })).success).toBe(false);
     expect(execute.mock.calls.some(([args]) => args[1] === 'create')).toBe(false);
+    expect(execute.mock.calls.some(([args]) => args[1] === 'resume' && args[3] === 'FORM-a')).toBe(true);
+  });
+
+  test('a post-create failure with a known ID resumes the same form inside the batch', async () => {
+    write([form('a')]);
+    const execute = jest.fn(async args => {
+      if (args[0] === 'login' || args[1] === 'validate-fields') { return { success: true }; }
+      if (args[1] === 'create') {
+        throw Object.assign(new Error('schema save failed'), {
+          output: { success: false, formUuid: 'FORM-HALF-A', stage: 'saveFormSchema' },
+        });
+      }
+      if (args[1] === 'resume') {
+        return { success: true, formUuid: args[3], recoveredBlankShell: true };
+      }
+      return { success: true, formUuid: args[2], fields: [{ label: '名称', fieldId: 'textField_name' }] };
+    });
+
+    const output = await run(['APP_X', file], { execute });
+
+    expect(output).toMatchObject({
+      success: true,
+      results: { a: { status: 'success', formUuid: 'FORM-HALF-A' } },
+    });
+    expect(execute.mock.calls.filter(([args]) => args[1] === 'create')).toHaveLength(1);
+    expect(execute.mock.calls.filter(([args]) => args[1] === 'resume')).toEqual([[
+      ['create-form', 'resume', 'APP_X', 'FORM-HALF-A', JSON.stringify(form('a').fields), '--json'],
+    ]]);
   });
 
   test('reuse and plan fingerprints prevent accidental duplicate resources', async () => {

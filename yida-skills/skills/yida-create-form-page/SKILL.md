@@ -58,7 +58,7 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 
 ## 多表单创建
 
-多个普通表单按 [并行创建表单](references/batch-forms.md) 准备任务，执行 `openyida create-form batch <appType> <任务文件> --json`。CLI 同时创建独立表单，等待关联表单与真实字段就绪后创建依赖表单。
+同一轮需要新建两个及以上普通表单时，必须按 [并行创建表单](references/batch-forms.md) 把全部表单写入同一个 `forms.json`，并且只调用一次 `openyida create-form batch <appType> <任务文件> --json`。独立表单和关联表单放在同一任务文件中，依赖通过 `dependsOn` / `$form` 表达，由 CLI 在一次 batch 内部完成分组、真实 `formUuid/fieldId` 回读和依赖调度；不要手工拆成多次 batch，也不要逐个调用 `create-form create`。只有修改已有表单、恢复已有 `formUuid`，或当前 batch 契约无法表达依赖时，才走明确的非 batch 路径并说明原因。
 
 ## 官方表单示例范式
 
@@ -118,7 +118,7 @@ openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout d
 # 文件路径示例：.cache/openyida/<项目名或任务名>/<表单名>-fields.json
 ```
 
-创建成功后 CLI 会根据表单标题和字段语义选择导航图标，再更新导航节点并回读校验。需要指定时传 `--icon <iconName>`；用 `openyida create-form icons --json` 查看与 yida-next 页面导航选择器一致的 86 个可用值。表单导航图标是纯图标名（如 `name-card`、`Project`、`Todo`、`clock`），不是应用图标的 `xian-*%%color` 协议。
+默认不传 `--icon`，由 CLI 根据表单标题和字段语义选择导航图标，再更新导航节点并回读校验。只有用户明确指定某个图标时才传 `--icon <iconName>`；普通搭建不得调用 `openyida create-form icons` 枚举候选，也不得先猜图标、失败后再探索。`icons` 仅供用户明确指定但值不合法时的人工诊断。表单导航图标是纯图标名（如 `name-card`、`Project`、`Todo`、`clock`），不是应用图标的 `xian-*%%color` 协议。
 
 导航图标更新必须先读取 `getFormNavigationListByOrder.json` 的当前节点，像 yida-next 的 `DB.Nav.update({ ...node, title: JSON.stringify(node.title), formUuid: node.formUuid || 'NAV-SYSTEM-FROM-ME-UUID', icon })` 一样保留 `gmtModified`、`formType`、`isNewForm`、`listOrder` 等原值，再请求带 `_api=Nav.update&_mock=false&_stamp=...` 的 `updateFormNavigation.json`，最后重新读取导航列表校验图标。禁止仅凭 formUuid 拼一个精简更新 payload。
 
@@ -142,7 +142,7 @@ openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout d
 create 命令失败后，不要立刻重复同一条 create：
 
 1. 先确认字段 JSON 文件存在，且内容是结构化写入后的最终字段数组/对象，不是半截 JSON、update changes 或 shell 拼接残留。
-2. 运行 `openyida list-forms <appType> --keyword "<表单名>"` 查同名表单；若本轮刚创建过空白表单或已有同名目标表单，优先走 `create-form update` / `patch` / 后续显式 resume 能力复用，不再 create。
+2. 运行 `openyida list-forms <appType> --keyword "<表单名>"` 查同名表单；若失败结果已给出本轮创建的 `formUuid`，使用 `openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json` 先回读、比较并仅补缺失字段。冲突或结果未知时停止，不能重新 create；普通已知修改仍用 `update` / `patch`。
 3. 只有确认远端没有同名目标表单，并且已经修改输入文件、参数、登录态或组织后，才重试 create。
 4. 同一 create 命令最多重试 2 次；仍失败时停止并带上完整 stdout/stderr、字段文件路径、appType、表单名和已发现的 formUuid 给用户。
 
@@ -152,8 +152,22 @@ create 命令失败后，不要立刻重复同一条 create：
 
 ```bash
 openyida create-form update <appType> <formUuid> <changesJsonOrFile>
+openyida create-form update <appType> <formUuid> --data-file <changesJsonOrFile>
 # 文件路径示例：.cache/openyida/<项目名或任务名>/<表单名>-changes.json
 ```
+
+位置参数和 `--data-file` 是同一输入的两种写法，不能同时使用。
+
+## 半成功 create 恢复
+
+create 已返回真实 `formUuid`、但后续 schema 保存或回读失败时，使用保守恢复命令：
+
+```bash
+openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
+```
+
+该命令先回读目标表单并核对字段，只添加可唯一判定的缺失字段，保存后再次回读；同名异类型、重复
+目标字段、归属不匹配或回读不确定时均停止且不写入。它不会新建替代表单，也不会覆盖已有字段。
 
 输出：
 

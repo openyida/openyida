@@ -1499,6 +1499,18 @@ describe('OpenYida skill contracts', () => {
     expect(app).toContain('默认使用普通表单的数据管理页');
   });
 
+  test('full app creates dependent forms in one batch and delivers only authoritative URLs', () => {
+    const formStep = readSkill('yida-skills/skills/yida-app/workflow/step-4-forms-processes.md');
+    const finishStep = readSkill('yida-skills/skills/yida-app/workflow/step-9-output-finish.md');
+
+    expect(formStep).toContain('同一个 `forms.json`');
+    expect(formStep).toContain('只调用一次 `openyida create-form batch`');
+    expect(formStep).toContain('`dependsOn` / `$form`');
+    expect(formStep).not.toContain('关联表单等待前置表单完成');
+    expect(finishStep).toContain('CLI 成功结果返回的 `appUrl`、`workbenchUrl` 或 `url`');
+    expect(finishStep).toContain('不得由模型根据 `appType` 自行拼接');
+  });
+
   test('custom page form entries use responsive FormOpenContainer guidance', () => {
     const pageUiux = readSkill('yida-skills/skills/yida-design/SKILL.md');
     const canvas = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');

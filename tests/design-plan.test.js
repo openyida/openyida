@@ -825,6 +825,32 @@ describe('Plan contract and file consistency', () => {
     expect(workflow).toContain('presentedRevision=meta.revision');
   });
 
+  test('plan confirmation atomically delivers the workspace preview and revision', () => {
+    const interactionContract = fs.readFileSync(
+      path.join(
+        ROOT,
+        'yida-skills/skills/yida-design/references/ask-human-interaction-contract.md',
+      ),
+      'utf8',
+    );
+    const workflow = fs.readFileSync(
+      path.join(
+        ROOT,
+        'yida-skills/skills/yida-app/workflow/plan/step-4-deliver.md',
+      ),
+      'utf8',
+    );
+
+    for (const content of [interactionContract, workflow]) {
+      expect(content).toContain('attachments');
+      expect(content).toContain('prd/<项目名>/build-plan.html');
+      expect(content).toContain('revision');
+    }
+    expect(interactionContract).toContain('同一次 `ask_human`');
+    expect(interactionContract).toContain('不得先发普通文本附件');
+    expect(workflow).toContain('同一次结构化提问');
+  });
+
   test('staging failure changes no source or artifact', () => {
     materialize(input);
     const files = ['build-plan.json', 'prd.md', 'design.md', 'build-plan.html'].map(name => path.join(dir, name));

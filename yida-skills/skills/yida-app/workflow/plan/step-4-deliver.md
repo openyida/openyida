@@ -34,9 +34,9 @@ HTML 保留“需求总览、数据模型、业务流程、页面规划”四章
 
 按 [用户交互契约](../../../yida-design/references/ask-human-interaction-contract.md) 执行：
 
-1. 在会话中展示“当前这版方案”、3–7 条业务摘要和可打开的 `build-plan.html`。
-2. 展示成功后内部记录 `presentedRevision=meta.revision`，记录后直接提问；收到确认或修改业务事实后再重新生成。用户可见版本称为“第 N 版方案”，展示序号与内部 revision 绑定。
-3. 询问“确认并开始搭建”或“继续调整”，将确认结果绑定到本次展示版本。
+1. 在会话中展示“当前这版方案”，并用 3–7 条业务摘要说明方案内容。
+2. 通过同一次结构化提问的 `attachments` 携带可打开的 `prd/<项目名>/build-plan.html`，并将 `revision` 设为当前 `meta.revision`；不得先发普通文本附件、再单独提问。
+3. 结构化交互成功创建后内部记录 `presentedRevision=meta.revision`。询问“确认并开始搭建”或“继续调整”，提交时由宿主原样回传 revision，将确认结果绑定到本次展示版本；收到确认或修改业务事实后再重新生成。用户可见版本称为“第 N 版方案”，展示序号与内部 revision 绑定。
 
 只有以下条件同时成立才交接：
 

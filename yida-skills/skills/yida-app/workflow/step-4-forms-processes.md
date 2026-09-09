@@ -1,6 +1,6 @@
 # Step 4：创建或更新表单/流程
 
-按 PRD 的依赖创建或复用表单和流程。独立普通表单通过 [批量命令](../../yida-create-form-page/references/batch-forms.md) 同时创建；关联表单等待前置表单完成。某页所需表单、流程就绪后即可接入该页；不要因其他页面的资源未完成而阻塞无依赖页面开发。
+按 PRD 的依赖创建或复用表单和流程。同一轮需要新建两个及以上普通表单时，把独立表单和关联表单写入同一个 `forms.json`，通过 `dependsOn` / `$form` 表达依赖，并且只调用一次 `openyida create-form batch`；由 CLI 内部完成分组、真实 ID 回读和依赖调度，不逐个 create，也不由模型拆成多次 batch。某页所需表单、流程就绪后即可接入该页；不要因其他页面的资源未完成而阻塞无依赖页面开发。
 
 拿到真实 `appType` 和已确认的业务契约即可开始本步骤，不等待主题 CSS 上传或应用主题设置回读。主题分支与本步骤并行，按 [主题与业务资源的依赖](parallel-work.md#主题与业务资源的依赖) 汇合。
 
@@ -15,7 +15,7 @@
 
 1. 执行 `use_skill("yida-create-form-page", "创建或更新核心表单字段结构")`，创建或更新普通表单字段结构。
 2. 已有目标表单时，使用 update/patch/rule/bind-datasource。
-3. 缺少支撑 MVP 的核心普通表单且允许创建时，创建普通表单。
+3. 缺少支撑 MVP 的核心普通表单且允许创建时，按上述单批次契约创建；只有一个新表单或 batch 契约无法表达当前依赖时才使用单表单 create，并说明原因。
 4. 字段配置文件写入 `.cache/openyida/<项目名>/`。
 5. 拿到真实 `formUuid` 后写入资源上下文。
 6. 批量创建返回的字段映射直接复用。其他页面、数据、流程或公式确需多字段映射时，对每个目标表单最多一次性执行 `openyida get-schema <appType> <formUuid> --field-map-json`，合并写回 `.cache/<项目名>-schema.json`。
