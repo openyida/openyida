@@ -52,7 +52,7 @@ test('the maintained full application theme can generate a compilable preview', 
   expect(compileCanvasLocal(fs.readFileSync(output, 'utf8')).runtimeCode).toContain('CanvasThemeProvider');
 });
 
-test('runtime resolver maps scoped surfaces and removes its probe even on failure', () => {
+test.each(['\n', '\r\n'])('runtime resolver maps scoped surfaces and removes its probe even on failure (%j)', (eol) => {
   const vm = require('vm');
   const values = { '--color-brand1-6': '#246834', '--color-white': '#fff', '--pod-page-bg-color': '#eee' };
   const probe = { style: {}, remove: jest.fn() };
@@ -68,7 +68,7 @@ test('runtime resolver maps scoped surfaces and removes its probe even on failur
   };
   const context = { React: { createContext: () => ({}) } };
   vm.createContext(context);
-  const source = buildProvider(css).split('// preview=true')[0].replace(/^import .*;\n/gm, '');
+  const source = buildProvider(css).replace(/\r?\n/g, eol).split('// preview=true')[0].replace(/^import .*;\r?\n/gm, '');
   vm.runInContext(source, context);
   const theme = context.resolveCanvasTheme(root);
   expect(theme.colorPrimary).toBe('#246834');

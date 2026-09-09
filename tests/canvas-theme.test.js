@@ -11,7 +11,7 @@ const samples = [
   'yida-rechart/trend-combo.canvas.jsx',
 ];
 const fragment = (file) => fs.readFileSync(path.join(__dirname, '../lib/samples', file), 'utf8')
-  .match(/\/\/ @openyida-canvas-theme:start\n([\s\S]*?)\/\/ @openyida-canvas-theme:end/)[1];
+  .match(/\/\/ @openyida-canvas-theme:start\r?\n([\s\S]*?)\/\/ @openyida-canvas-theme:end/)[1];
 
 function setup() {
   const values = { '--color-brand1-6': 'rgb(0, 128, 0)' };
