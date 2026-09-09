@@ -97,7 +97,9 @@ YidaCodeCanvas 推荐使用 antd `Drawer`。`FormOpenContainer` 只负责打开�
 
 模板已内置抽屉主题样式，背景默认使用 `--pod-shell-theme-bg-color`。自定义背景时传入 `CanvasDrawer.background`；表单入口通过 `openForm({ type: 'submission', formUuid, background: 'var(--pod-card-bg-color)' })` 设置。iframe 内页面使用平台主题。
 
-提交页和详情页统一由 `FormOpenContainer` 使用 `contentMode="iframe"`：iframe 直接填满标题栏下方的剩余空间，外层不加 `oy-drawer-card`、卡片底色、圆角或 padding，也不设置外层滚动。`oy-drawer-frame` 仅负责尺寸定位和裁切；滚动由 iframe 内页面负责。不要恢复 `calc(100vh - 56px)` 等猜测高度的兜底。标题栏使用 `--pod-nav-platform-header-height`，默认 48px。
+提交页和详情页统一由 `FormOpenContainer` 使用 `contentMode="iframe"`：iframe 直接填满标题栏下方的剩余空间，外层不加 `oy-drawer-card`、卡片底色、圆角或 padding，也不设置外层滚动。`oy-drawer-frame` 仅负责尺寸定位和裁切；滚动由 iframe 内页面负责。不要恢复 `calc(100vh - 56px)` 等猜测高度的兜底。
+
+标题栏高度使用 `--pod-nav-platform-header-height`，默认 48px。标题字号、字重对齐页面标题，分别使用 `--pod-page-title-font-size`（默认 16px）和 `--pod-page-title-font-weight`（默认 500）；antd 标题元素继承这两个值。这里不使用通用 `--drawer-title-font-size`，避免主题中的大号抽屉标题使表单容器过于突出。
 
 旧页面复制过的抽屉实现不会随 CLI 升级自动改变；需重新提取片段并替换旧实现，编译、发布后才生效。
 

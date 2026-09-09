@@ -121,6 +121,7 @@ function CanvasDrawer({
         .openyida-form-drawer.ant-drawer .ant-drawer-title {
           color: inherit;
           font-size: inherit;
+          font-weight: inherit;
         }
         .openyida-form-drawer .oy-drawer-actions {
           display: flex;
@@ -226,7 +227,8 @@ function CanvasDrawer({
             minHeight: 'var(--pod-nav-platform-header-height, 48px)',
             flex: '0 0 var(--pod-nav-platform-header-height, 48px)',
             color: 'var(--drawer-title-color, var(--pod-page-header-text-color, var(--color-text1-4, #1f2329)))',
-            fontSize: 'var(--drawer-title-font-size, 16px)',
+            fontSize: 'var(--pod-page-title-font-size, 16px)',
+            fontWeight: 'var(--pod-page-title-font-weight, 500)',
             padding: '0 var(--drawer-title-padding-left-right, 20px)',
             borderBottom: 'var(--drawer-title-border-width, 0px) solid var(--drawer-title-border-color, var(--drawer-border-color, transparent))',
           },
