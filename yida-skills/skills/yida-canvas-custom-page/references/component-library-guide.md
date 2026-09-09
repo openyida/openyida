@@ -6,7 +6,7 @@
 
 | 场景 | 推荐库 | 何时使用 | 使用要点 |
 | --- | --- | --- | --- |
-| B 端业务界面 | `antd` | 表格、表单控件、按钮、弹窗、Tabs、Tag、Dropdown、分页 | 最外层包 `ConfigProvider`，主色用 `readBrandColor` 注入；资源加载交给 YidaCodeCanvas runtime |
+| B 端业务界面 | `antd` | 表格、表单控件、按钮、弹窗、Tabs、Tag、Dropdown、分页 | 通过 [CanvasThemeProvider 脚本](canvas-theme-provider.md) 统一接入主题；资源加载交给 YidaCodeCanvas runtime |
 | 图表看板 | `recharts` | 折线、柱状、面积、饼图、简单仪表盘 | 容器必须有稳定高度；颜色用品牌色和语义色，不硬编码默认蓝 |
 | 复杂可视化 | `d3` | 自定义关系图、力导向、桑基、特殊坐标系 | 只在 Recharts 覆盖不了时使用；自己管理 DOM/cleanup |
 | 图标 | `lucide-react`，必要时 `@ant-design/icons` | 按钮、操作、状态、导航等功能性图标 | 默认使用 `lucide-react` named import；antd 语境可使用 `@ant-design/icons` Outlined 图标 |
@@ -102,6 +102,6 @@ node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/c
 
 - 所有 `import` 都在可用前端资源清单内，并能出现在 `importedModules`。
 - 页面视觉方向来自 `yida-design`，组件库服务于既定视觉方向。
-- antd 主色通过 `ConfigProvider` 跟随 App 品牌色。
+- antd 主色通过生成的 CanvasThemeProvider 跟随应用品牌色。
 - 图表和图标服务于信息层级；图标默认使用 `lucide-react`，antd 组件语境可使用 `@ant-design/icons`。
 - 页面依赖和推荐话术只包含当前已验证可用资源能力。

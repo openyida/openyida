@@ -93,17 +93,25 @@ PRD 确定使用自定义导航时，按 `design.md` 编写导航 UI，先参考
 
 页面内操作按钮去新增、提交或查看表单详情时，统一封装成同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；新标签只用于外部 URL 或用户主动点击抽屉标题栏的新窗口操作。PC 端容器表现为右侧抽屉 + iframe，移动端直接进入原生表单页，关闭抽屉后触发当前页刷新。应用级办理导航的提交页在主内容区嵌入，导航选中态与当前任务一致。
 
-YidaCodeCanvas 推荐使用 antd `Drawer`。`FormOpenContainer` 只负责打开原生提交页或详情页。通用 `CanvasDrawer` 提供标题栏、全屏/退出全屏、关闭、内容卡片和 `extra` 操作区，表单容器额外提供新窗口打开。
+YidaCodeCanvas 推荐使用 antd `Drawer`。`FormOpenContainer` 只负责打开原生提交页或详情页。通用 `CanvasDrawer` 提供标题栏、全屏/退出全屏、关闭和 `extra` 操作区，表单容器额外提供新窗口打开。只有普通业务内容模式使用内容卡片。
+
+抽屉 header 的工具操作统一使用图标按钮：新窗口打开用 `ExternalLink`，全屏/退出全屏用 `Maximize2` / `Minimize2`，关闭用 `X`。表单抽屉三个操作必须齐全，不得替换为“在新窗口打开”“关闭”等可见文字链接，也不得省略全屏。每个按钮提供对应的 `title`、`aria-label` 和可见键盘焦点；全屏按钮同时更新图标、提示和 `aria-pressed`。按钮默认使用中性色，hover、focus 跟随主题。发布前逐一验证三个按钮的实际行为，不以按钮已渲染代替验收。
 
 模板已内置抽屉主题样式，背景默认使用 `--pod-shell-theme-bg-color`。自定义背景时传入 `CanvasDrawer.background`；表单入口通过 `openForm({ type: 'submission', formUuid, background: 'var(--pod-card-bg-color)' })` 设置。iframe 内页面使用平台主题。
 
-### 给已有页面添加抽屉
+提交页和详情页统一由 `FormOpenContainer` 使用 `contentMode="iframe"`：iframe 直接填满标题栏下方的剩余空间，外层不加 `oy-drawer-card`、卡片底色、圆角或 padding，也不设置外层滚动。`oy-drawer-frame` 仅负责尺寸定位和裁切；滚动由 iframe 内页面负责。不要恢复 `calc(100vh - 56px)` 等猜测高度的兜底。
+
+标题栏高度使用 `--pod-nav-platform-header-height`，默认 48px。标题字号、字重对齐页面标题，分别使用 `--pod-page-title-font-size`（默认 16px）和 `--pod-page-title-font-weight`（默认 500）；antd 标题元素继承这两个值。这里不使用通用 `--drawer-title-font-size`，避免主题中的大号抽屉标题使表单容器过于突出。
+
+旧页面复制过的抽屉实现不会随 CLI 升级自动改变；需重新提取片段并替换旧实现，编译、发布后才生效。
+
+### MUST：接入标准抽屉
 
 ```bash
 openyida sample openyida-page-template form-open-container --output .cache/samples/form-open-container.jsx
 ```
 
-CLI 从整页脚手架提取同一份抽屉实现。将片段中的 import 合并到现有 `.canvas.jsx`，再合并组件与辅助函数；CodeCanvas 不支持相对路径模块导入。表单入口使用 `useYidaFormOpen(appType, reload)` 并渲染其 `formOpenContainer`；普通业务内容可直接放进 `CanvasDrawer` 的 children，用 `open/title/onClose` 控制。已有同名函数时更新原实现，保持一份定义。整页新建按设计直接编写，`canvas-form-drawer` 仅供完整交互参考；保留 iframe 的 `minHeight` 兜底，避免百分比高度失效。
+含页面内表单新建、提交或详情入口的 Canvas 页面，**MUST** 先执行上面的命令拉取当前模板，不得跳过后凭记忆手写。CLI 从整页脚手架提取同一份抽屉实现。整体合并 `CanvasDrawer`、`FormOpenContainer`、`useYidaFormOpen` 及其 import、辅助函数；CodeCanvas 不支持相对路径模块导入。表单入口使用 `useYidaFormOpen(appType, reload)` 并渲染其 `formOpenContainer`；普通业务内容可直接放进 `CanvasDrawer` 的 children，用 `open/title/onClose` 控制。已有同名函数时更新原实现，保持一份定义。禁止自绘 fixed 遮罩 + iframe 抽屉壳，也禁止仅补 `.openyida-form-drawer` 类名冒充模板接入。页面其余内容按设计编写；保留 flex 剩余空间布局和 `minHeight: 0`，不要添加视口高度兜底。
 
 ### 接入示例
 

@@ -5,6 +5,7 @@ themeId: "segmented-meter-clarity"
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "var(--color-white, #fff)"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "AI 根据 --color-brand1-6 与白色混合生成 10% 品牌色"
       "--color-brand1-2": "AI 根据 --color-brand1-6 与白色混合生成 18% 品牌色"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-theme-deep": "color-mix(in srgb, var(--color-brand1-6) 12%, #111111)"
       "--oyd-category-1": "#FF6A1A"
       "--oyd-category-2": "#7B6CF6"
@@ -128,7 +128,7 @@ tokens:
 
 - 色彩来源：{{COLOR_SOURCE}}
 - 颜色 Token 的名称和值以文档顶部 YAML 的 `tokens` 为唯一事实源；AI 可以根据主题调整色值，不改变宜搭应用全局变量名。
-- 画布使用 `--oyd-page-background`，一级面板使用 `--color-white`，边界依次使用 `--color-line1-1` 与 `--color-line1-2`；层级主要靠边界与留白，不靠大阴影。
+- 画布使用 `--pod-page-bg-color`，一级面板使用 `--color-white`，边界依次使用 `--color-line1-1` 与 `--color-line1-2`；层级主要靠边界与留白，不靠大阴影。
 
 ### 设计变量消费规则
 
@@ -143,7 +143,7 @@ tokens:
 | 主题色交互元素禁用 | `--color-brand1-10` | 应用全局 |
 | 弱分隔、表格行线和辅助轨道 | `--color-line1-1` | 应用全局 |
 | 控件与一级容器边界 | `--color-line1-2` | 应用全局 |
-| 页面底层画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层画布 | `--pod-page-bg-color` | 自定义页 |
 | 面板、卡片与浮层基础表面 | `--color-white` | 应用全局 |
 | 悬停、弱标签和默认浅填充 | `--color-fill1-1` | 应用全局 |
 | 中性选中底与按下填充 | `--color-fill1-2` | 应用全局 |
@@ -159,7 +159,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-white`、所有 `line1`、`fill1`、`text1` 和 `--oyd-page-background` 均为 `neutral-gray`；固定 Hex 的 RGB 三通道相等。
+- `--color-white`、所有 `line1`、`fill1`、`text1` 和 `--pod-page-bg-color` 均为 `neutral-gray`；固定 Hex 的 RGB 三通道相等。
 - `--oyd-theme-deep` 为 `theme-gray`：由 `--color-brand1-6` 占 12% 与中性基底 `#111111` 占 88% 派生；最终实例化时写入计算后的实际值。
 - `--oyd-category-1` 至 `--oyd-category-5` 是等权类别色，不参与主题同色推演，只可用于确有类别对应关系的小面积图标、计量段和进度线；单屏每个类别色的可见面积不超过 6%。
 - 主题同色演变只由 `--color-brand1-6` 派生，用于主操作、焦点、选中和链接；不得把主题色铺满画布或普通面板。
@@ -199,7 +199,7 @@ tokens:
 
 ## 表面与层级
 
-- 页面画布为 `--oyd-page-background`，一级面板为 `--color-white`、1px `--color-line1-2` 边界；常规面板不使用可见投影。
+- 页面画布为 `--pod-page-bg-color`，一级面板为 `--color-white`、1px `--color-line1-2` 边界；常规面板不使用可见投影。
 - 嵌套事件项、进度项和工具栏控件使用 `--color-white` 或 `--color-fill1-1`，配 1px `--color-line1-1`；同一位置最多出现两层边界。
 - tooltip、popover 和菜单使用 `--color-fill1-10`，边界为 `--color-line1-2`，仅允许 `0 8px 24px rgba(0,0,0,.08)` 的局部浮层阴影。
 - 禁止玻璃模糊、强渐变和大面积纹理；主题色浅底仅可出现在图标槽、标签与 focus ring。

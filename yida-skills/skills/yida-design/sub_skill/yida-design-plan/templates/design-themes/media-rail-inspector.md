@@ -5,6 +5,7 @@ themeId: "media-rail-inspector"
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "var(--color-white, #fff)"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "AI 根据 --color-brand1-6 与白色混合生成 10% 品牌色"
       "--color-brand1-2": "AI 根据 --color-brand1-6 与白色混合生成 18% 品牌色"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-media-surface": "AI 根据 --color-brand1-6 4% 与 #F7F7F7 96% 混合生成媒体浅底"
       "--oyd-tag-surface": "AI 根据 --color-brand1-6 8% 与 #F2F2F2 92% 混合生成标签浅底"
       "--oyd-action-deep": "AI 根据 --color-brand1-6 14% 与 #151515 86% 混合生成深色操作"
@@ -120,7 +120,7 @@ tokens:
 
 - 色彩来源：{{COLOR_SOURCE}}
 - 颜色 Token 的名称和值以文档顶部 YAML 的 `tokens` 为唯一事实源；AI 可以根据主题调整色值，不改变宜搭应用全局变量名。
-- 画布使用 `--oyd-page-background`，一级面板与对象卡使用白色；媒体区使用 `--oyd-media-surface`，标签使用更明显的 `--oyd-tag-surface`，边界仍保持中性。
+- 画布使用 `--pod-page-bg-color`，一级面板与对象卡使用白色；媒体区使用 `--oyd-media-surface`，标签使用更明显的 `--oyd-tag-surface`，边界仍保持中性。
 
 ### 设计变量消费规则
 
@@ -142,7 +142,7 @@ tokens:
 | 标题、价格、正文与主要图标 | `--color-text1-4` | 应用全局 |
 | 表头、输入占位和次级标签 | `--color-text1-10` | 应用全局 |
 | 说明、计数、时间与元信息 | `--color-text1-3` | 应用全局 |
-| 页面底层近白画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层近白画布 | `--pod-page-bg-color` | 自定义页 |
 | 对象卡与详情的柔焦媒体底 | `--oyd-media-surface` | 自定义页 |
 | 媒体角标和主题浅标签底 | `--oyd-tag-surface` | 自定义页 |
 | 深色主操作与媒体区强焦点 | `--oyd-action-deep` | 自定义页 |
@@ -190,7 +190,7 @@ tokens:
 
 ## 表面与层级
 
-- 页面使用 `--oyd-page-background`；中部大面板与详情检查器使用白底、1px `--color-line1-2`、14-18px 圆角，常规不投影。
+- 页面使用 `--pod-page-bg-color`；中部大面板与详情检查器使用白底、1px `--color-line1-2`、14-18px 圆角，常规不投影。
 - 左侧筛选脊柱保持开放画布，仅用 `--color-line1-1` 分组；对象卡为白底、1px 常规边界和 14px 圆角。
 - 媒体舞台使用 `--oyd-media-surface`；角标使用 `--oyd-tag-surface`；tooltip 与菜单复用 `--color-fill1-10`。
 - 局部浮层允许 `0 8px 24px rgba(0,0,0,.07)`；禁止玻璃模糊、重投影、全卡渐变和媒体上的深色遮罩。
