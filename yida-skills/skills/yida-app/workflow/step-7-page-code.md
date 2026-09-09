@@ -54,6 +54,7 @@ Plan 模式下，上表涉及 PRD/design 的修正均由对应技能更新 `buil
 
 - [ ] 页面实现已读取 PRD 和 `design.md`；
 - [ ] 页面没有默认自绘应用级侧边导航 / 顶部导航；如有页面内自绘导航，已有用户显式要求和 `yida-nav-shell` 依据；
+- [ ] 自定义应用导航默认只切主内容区；原生提交/管理入口嵌入 iframe，整页跳转仅用于已确认保留同一导航壳的目标，不直接离开到无导航的原生页面；
 - [ ] 页面数据优先接真实表单；
 - [ ] 看板/工作台/驾驶舱已加载 `yida-dashboard`，读取表单数据时已加载 `yida-canvas-data-binding`；
 - [ ] Canvas 页面消费 `window.__OPENYIDA_YIDA_API__` / `window.__OPENYIDA_UTILS__`，没有直接调用 `this.utils.*`；
@@ -64,6 +65,7 @@ Plan 模式下，上表涉及 PRD/design 的修正均由对应技能更新 `buil
 - [ ] 页面源码没有 emoji 和裸中文 JSX 表达式；
 - [ ] 页面视觉符合 `design.md`，未把示例默认外观当成设计结论；使用示例时已删除标记、示例数据、模板变量和占位文案；
 - [ ] Canvas 本地校验不存在未绑定标识符；辅助函数、Ref、状态和局部变量的声明与全部引用同名；非标准运行时能力通过 `window.<name>` / `parentWindow.<name>` 显式访问并先检查属性是否存在；
+- [ ] 白色或近白背景上的白卡已有主题细边框或清晰投影；浅灰、浅彩背景上的白卡默认无边框并有足够底色对比；方案在 `design.md` 中明确，未给表单 iframe 外层加卡片；
 - [ ] 本地校验通过，或已有明确错误和修复动作；若禁止 `page-source`，修复动作只作为建议，未实际改写源码。
 
 上述搜索用于检查必要标记，不证明接入或交互正确。可执行 `rg -n 'openyida-form-drawer|CanvasDrawer|FormOpenContainer|useYidaFormOpen|openForm|formOpenContainer|oy-drawer-frame|oy-drawer-resize|contentMode|ExternalLink|Maximize2|Minimize2' <页面源码>` 辅助核对；注释、未使用的定义或仅类名命中不能勾选通过。发布后的 DOM 与按钮行为由 Step 8 验证。

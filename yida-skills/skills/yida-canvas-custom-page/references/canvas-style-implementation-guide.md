@@ -85,6 +85,36 @@ Canvas 根背景使用 `background: var(--pod-page-bg-color, var(--color-white, 
 
 浮导距顶部的留白放在自定义页根节点内部。发布层的 `.yida-code-canvas{display:flow-root}` 只保护宿主，不能阻止 `.doll-page` / `.oy-page-root` 等内层根节点与导航的 margin 折叠。页面根必须使用 `display:flow-root`（已有 flex/grid 可保留），或用根容器 padding 承载顶部间距；不能仅给 Canvas 宿主加 flow-root。验收时分别测量宿主、页面根与导航的 top：宿主和页面根贴齐，导航仍保留设计间距。不要用 overflow:hidden 修复，它可能影响 sticky 和弹层；不要向平台父容器写负 margin 抵消。
 
+## 同色表面的卡片边界
+
+根据页面与卡片的底色搭配选择边界，不统一给所有卡片加框：
+
+| 页面背景 | 推荐卡片表现 |
+| --- | --- |
+| 白色或近白色 | 白卡添加 1px 细边框或清晰柔和的投影，二选一即可 |
+| 浅灰色，例如 `#F3F4F6` | 白色无边框卡片，利用底色对比形成层级 |
+| 浅彩色，例如浅蓝、浅暖灰 | 白色无边框卡片，利用底色对比形成层级 |
+
+颜色仅说明搭配关系，不要求在源码里写死背景色；页面和卡片继续消费应用主题 token。投影沿用 `design.md` 已确认的阴影规则，不默认同时叠加边框和投影。最终以实际对比为准：近白底色与卡片仍难区分时，补边框或投影；仅圆角或几乎不可见的阴影不算有效边界。
+
+选择边框方案时，优先消费可见的 `--pod-card-border`。若该变量未定义、为 `none`、零宽或透明，在该卡片自己的选择器中显式使用下面的边框；不要修改根节点或应用主题变量：
+
+```css
+/* 用于已确认需要边界的同色卡片，不自动套到所有区块。 */
+.oy-card-on-white {
+  background: var(--pod-card-bg-color, var(--color-white, #fff));
+  border: 1px solid var(--color-line1-2, rgba(24, 28, 31, 0.12));
+}
+```
+
+`var(--pod-card-border, ...)` 的回退只在变量缺失时生效；采用边框方案且主题显式配置 `none` 时，在该卡片局部覆盖；采用投影方案或浅灰、浅彩底上的无框方案时不补边框。普通卡片用中性边框，品牌描边留给选中或强调状态。不要在页面运行时比较两个颜色字符串来自动开关边框；在 `design.md` 的 `surfaceMap` 中明确哪些区域是独立卡片、哪些是无框内容区，并按实际主题验收。
+
+明确设计为无框排版的内容区不强行加边框；已有清晰底色对比的卡片按主题处理。嵌套区块避免层层套框，分组可用分隔线。表单抽屉的 iframe 外层仍不加卡片或边框，原生内页负责自己的布局。
+
+- [ ] 白色或近白背景上的白卡已有可见细边框或清晰投影；浅灰、浅彩色背景上的白卡默认无边框且有足够底色对比；有意采用无框排版的区域在 `surfaceMap` 中明确标注。
+- [ ] 按所选方案检查实际 computed style：边框方案宽度非零、非透明；投影方案 `box-shadow` 非 `none` 且实际可见；无框方案有足够底色对比。截图中能区分卡片与页面，仅搜索到 `border` 或 `box-shadow` 不能视为通过。
+- [ ] 边框跟随主题中性分割线，投影遵循应用阴影规则，切换主题后仍可辨认，没有全局覆盖、重复套框或 iframe 外层卡片。
+
 ## 背景层实现规则
 
 实现 `design.md` 的 `backgroundLayer` 时，先考虑页面根画布，再做内容面板。不要先堆白卡片再临时补装饰。展示型页面、工作台、看板、门户、官网、登录页和空状态页推荐有非纯空白的画布；近白画布可以保留，但要通过淡渐变、细线、星芒、局部装饰、素材或内容密度形成背景感。如果 `design.md` 指定 `topIrregularWash`、`radialGlowWash`、`flowLight` 或 `organicNoise`，必须在源码里落成对应 CSS。
@@ -260,7 +290,7 @@ Canvas 根背景使用 `background: var(--pod-page-bg-color, var(--color-white, 
 | colorFillAlter / colorFillSecondary | --color-fill1-1 / --color-fill1-2 |
 | colorSuccess / colorWarning / colorError / colorInfo | 当前不自动映射，保留 antd 默认语义色 |
 
-这些映射不改变业务数据和操作。表格表头、卡片外壳、自绘文字等 CSS 同步消费对应 token；外壳卡片使用 `background: var(--pod-card-bg-color, var(--color-white, #fff))` 与 `border: var(--pod-card-border, none)`，不能只映射 antd 而遗漏自绘表面。
+这些映射不改变业务数据和操作。表格表头、卡片外壳、自绘文字等 CSS 同步消费对应 token；外壳卡片使用 `background: var(--pod-card-bg-color, var(--color-white, #fff))` 与主题卡片边框；卡片边界按上文背景搭配选择细边框、投影或无框，不能只映射 antd 而遗漏自绘表面。
 
 颜色解析和刷新由 Provider 处理。当前脚本不自动映射尺寸、圆角、字体、图表色组或完整 CSS 选择器，也不会把平台所有组件样式转换成 antd 样式。布局与圆角仍按 design.md 实现；需要 antd 局部配置时仅覆盖所需的尺寸、圆角等属性，保留外层颜色主题。
 

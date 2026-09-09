@@ -43,6 +43,8 @@ openyida get-form-config <appType> <formUuid> --json
 
 ## 实现要点
 
+- **MUST：应用内切换保留导航壳**：点击自定义导航后，导航必须仍然可见且可继续操作；默认只切换主内容区。原生提交页、数据管理页嵌入主内容 iframe，本地工作台切换 React 内容。只有确认目标页面也承载同一套导航壳时才允许整页跳转；不能直接跳到隐藏导航的原生页面。外链和用户主动新窗口打开单独处理。见 [保留导航壳的最小示例](references/nav-shell-patterns.md#保留导航壳的最小示例)。
+
 - **画布与浮导间距**：自定义页根背景统一消费 `--pod-page-bg-color`，卡片用 `--pod-card-bg-color`；隐藏导航不自动透明。根节点使用 `display:flow-root` 或 flex/grid，让浮导上边距留在根节点内。
 
 - **先选形态，再写 UI**：根据已确认的 PRD、`design.md` 和用户参考确定布局。模块多用侧栏，模块少且内容需要宽度用顶部，两级业务用顶部＋侧边，沉浸展示可用悬浮 Dock，同模块视图用标签。已确认的选择直接沿用，不重新提问。
@@ -51,7 +53,7 @@ openyida get-form-config <appType> <formUuid> --json
 - 自定义侧边导航（含顶部＋侧边）的 PC 端必须支持折叠/展开和拖拽调宽；展开恢复折叠前宽度，宽度变化时内容区同步调整。移动端改为可展开/收起的菜单，详见 [侧栏交互](references/nav-shell-patterns.md#侧栏交互)。
 - 菜单数量、名称、顺序、分组和入口用途来自 PRD，通常工作台在首位；用当前访问者的 `getAccessableNavs.json` 过滤可见范围，详见 [导航数据来源](references/nav-shell-patterns.md#导航数据来源)。数据逻辑可直接复用，不要求采用同一套 UI。
 - 只在当前页切视图时用 React 状态；需要分享、刷新恢复、前进后退时同步 URL hash。跨真实页面时沿用应用路由与数据桥，详见 [菜单契约](references/nav-shell-patterns.md#菜单契约)。`hashchange`、`matchMedia` 等监听必须 cleanup。
-- **当前标签跨页跳转，避免重复应用前缀**：完整的 `/APP_xxx/workbench/FORM_xxx` 地址通过数据桥调用 `router.push(href, params, false, true)`，第三参 `false` 表示不新开标签，第四参 `true` 表示 URL 模式。数据桥已修复省略第四参时的自动识别，但不会覆盖显式传入的 `false`；生成代码仍须明确传 `true`，详见 [路由模式与数据桥兜底](references/nav-shell-patterns.md#路由模式与数据桥兜底)。
+- **满足导航壳保留条件后的跨页跳转，避免重复应用前缀**：完整的 `/APP_xxx/workbench/FORM_xxx` 地址通过数据桥调用 `router.push(href, params, false, true)`，第三参 `false` 表示不新开标签，第四参 `true` 表示 URL 模式。数据桥已修复省略第四参时的自动识别，但不会覆盖显式传入的 `false`；生成代码仍须明确传 `true`，详见 [路由模式与数据桥兜底](references/nav-shell-patterns.md#路由模式与数据桥兜底)。
 - 导航项保存真实资源 ID、入口用途和 `params`；办理任务、数据管理与页面内新增/详情按钮按 [入口用途与嵌入页面](references/nav-shell-patterns.md#入口用途与嵌入页面) 分别处理。用 `URL` / `URLSearchParams` 保留 `corpid`、`locale` 和业务参数。
 
 ## UI 和验收
@@ -61,4 +63,5 @@ openyida get-form-config <appType> <formUuid> --json
 - 导航选中态已标明当前页时，内容区从业务开始；独立页头只补充对象、任务说明或操作，避免重复菜单标题。
 - 侧栏已验证折叠、恢复宽度、拖拽上下限和内容联动；顶部窄屏可展开菜单，Dock 不遮内容和主要操作。
 - 应用 `hideAppNav` 与各页 `isRenderNav=false` 均已持久化并回读；菜单可见性、选中态、内容与路由一致，深链、刷新及前进后退正常。
+- 逐项点击应用内导航，确认导航壳、当前选中项和主内容同时正确；切换后还能返回工作台。不能只验证目标页面打开成功。
 - 完整检查见 [验证清单](references/nav-shell-patterns.md#验证)。本地编译后按 `yida-publish-page` 发布并检查实际页面，编译通过不等于视觉验收通过。

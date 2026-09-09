@@ -64,6 +64,7 @@ openyida nav-group auto-order <appType>
 - [ ] 发布目标是已解析的 display 页面；
 - [ ] Canvas 发布结果为 `publishMode=canvas`，且 `healthCheck.ok=true`、`healthCheck.readback.hasYidaCodeCanvas=true`、`runtimeCodeBytes>0`；
 - [ ] 已获得可访问 URL；
+- [ ] 使用自定义导航时逐项点击，导航仍可见、可操作，选中项与主内容一致且能返回工作台；刷新、前进后退恢复任务，无双导航和双滚动条，不能仅以目标页打开成功验收；
 - [ ] 含页面内表单打开入口时，PC 打开后 DOM 存在 `.openyida-form-drawer`；实测新窗口打开、全屏/退出全屏、关闭三个图标按钮、左边缘拖拽调宽及关闭刷新；详情和提交 iframe 填满剩余空间，外层无多余卡片和滚动条。无此类入口时标记不适用；
 - [ ] 全部页面开发与发布、相关资源创建均已完成后才执行排序；显式排序和自动排序只执行其一；成功结果 `readbackVerified=true`。
 - [ ] `standalone` 主页面已回读确认 `isRenderNav=false`；否则没有声明独立业务入口。

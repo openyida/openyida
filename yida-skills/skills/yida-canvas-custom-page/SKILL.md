@@ -130,6 +130,8 @@ function setNavigationTitle(title) {
 
 22. **Header 工具操作默认用图标按钮**：页面、卡片、弹窗和抽屉标题栏中的刷新、新窗口打开、全屏、关闭等工具操作，默认使用无可见文字的图标按钮，并提供 `title` 提示、`aria-label` 和键盘焦点样式。新增、提交、保存等业务主操作可保留文字。表单抽屉必须保留新窗口打开、全屏/退出全屏、关闭三个图标按钮，不能简化为文字链接或省略全屏；实现与验收见 [标准 FormOpenContainer](references/navigation-and-entry-guide.md#标准-formopencontainer)。
 
+23. **同色页面与卡片要有边界**：白色或近白背景上的白色独立卡片、面板、表格外壳，使用细边框或清晰柔和的投影区分层级；浅灰或浅彩色背景上的白卡默认无边框，利用底色对比形成层级。边框使用主题中性分割线 token，投影沿用应用已确认的阴影规则，不默认叠加边框和投影。无框内容区不强行卡片化，iframe 外层不加卡片。实现及验收见 [同色表面的卡片边界](references/canvas-style-implementation-guide.md#同色表面的卡片边界)。
+
 ## 主题实现入口
 
 纯 DOM 页面直接消费平台 CSS 变量，不必引入 antd 或 Provider。
