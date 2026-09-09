@@ -14,7 +14,7 @@
 
 PRD 为自定义导航时，页面导航已在 Step 4 / Step 6 创建或复用页面后按 [导航壳必做配置](../../yida-nav-shell/SKILL.md#必做配置) 隐藏并回读，与源码开发并行。本步骤发布并检查本轮全部自定义页面，再回读核对 `isRenderNav=false`；缺失或被发布改变时才补写修复，不把首次隐藏推迟到发布后。导航顺序由自定义导航实现；汇总 Step 4 / Step 6 的配置结果与发布后回读结果，覆盖 PRD 全部页面后进入 Step 9。下方平台导航排序仅适用于三种平台导航类型。
 
-运行态按 [导航验收](../../yida-nav-shell/references/nav-shell-patterns.md#验证) 检查实际外观与交互：顶部浮导符合已确认设计，侧导可折叠、恢复宽度和拖拽；管理与填写入口分别落到 workbench/submission，主内容 iframe 与当前标签跨页按规划工作，完整地址没有重复应用前缀，query/hash 保留。抽屉 iframe 同时检查高度兜底和可滚动性，不能仅凭编译通过验收。
+运行态按 [导航验收](../../yida-nav-shell/references/nav-shell-patterns.md#验证) 检查实际外观与交互：顶部浮导符合已确认设计，侧导可折叠、恢复宽度和拖拽；管理与填写入口分别落到 workbench/submission，主内容 iframe 与当前标签跨页按规划工作，完整地址没有重复应用前缀，query/hash 保留。抽屉 iframe 同时检查填满剩余高度、外层无重复滚动和内页可滚动性，不能仅凭编译通过验收。
 
 ## 操作
 
@@ -64,6 +64,7 @@ openyida nav-group auto-order <appType>
 - [ ] 发布目标是已解析的 display 页面；
 - [ ] Canvas 发布结果为 `publishMode=canvas`，且 `healthCheck.ok=true`、`healthCheck.readback.hasYidaCodeCanvas=true`、`runtimeCodeBytes>0`；
 - [ ] 已获得可访问 URL；
+- [ ] 含页面内表单打开入口时，PC 打开后 DOM 存在 `.openyida-form-drawer`；实测新窗口打开、全屏/退出全屏、关闭三个图标按钮、左边缘拖拽调宽及关闭刷新；详情和提交 iframe 填满剩余空间，外层无多余卡片和滚动条。无此类入口时标记不适用；
 - [ ] 全部页面开发与发布、相关资源创建均已完成后才执行排序；显式排序和自动排序只执行其一；成功结果 `readbackVerified=true`。
 - [ ] `standalone` 主页面已回读确认 `isRenderNav=false`；否则没有声明独立业务入口。
 
