@@ -1,5 +1,7 @@
 # 自定义页面实现入口
 
+**MUST：先读实现规范再写页面。** 新建页面或调整视觉前，完整读取 [canvas-style-implementation-guide.md](canvas-style-implementation-guide.md)，并按 [编码前必读](../SKILL.md#编码前必读must) 记录本页规则与落点。卡片边界、导航画布和控件主题规则不能仅凭 design.md 或历史示例推断；生成器和手写路径都遵守这一前置条件。
+
 使用 `YidaCodeCanvas` 组件实现的自定义页面消费 `yida-prd` 输出的 `prd.md` 与 `yida-design` 输出的 `design.md`，或单页 PRD 章节 + design spec，把页面场景、区块、主题、交互、数据绑定和素材清单实现成 `.canvas.jsx` / `.canvas.tsx`。
 
 ## 页面场景到实现入口

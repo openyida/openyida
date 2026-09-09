@@ -5,6 +5,14 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 
 # 自定义页面开发
 
+## 编码前必读（MUST）
+
+新建自定义页面，或修改页面布局、卡片、背景、主题与控件样式时，**第一次写入页面源码前**必须通过文件读取工具完整读取 [canvas-style-implementation-guide.md](references/canvas-style-implementation-guide.md)，再结合当前 PRD 和 `design.md` 实现。它是实现规范，不是可选示例；不能用本技能中的摘要、历史记忆、搜索命中几行或仅阅读 `design.md` 替代。输出被截断时分段读完；同一任务已完整读取且文件未变化时可复用，无须反复读取。仅改数据逻辑且不涉及视觉时可标记不适用并说明原因。
+
+在现有实现计划或检查记录中留下：实际读取的文件路径、本页适用的章节、采用的规则与对应页面区块。例如：`同色表面的卡片边界 → 客户列表白底白卡 → 主题中性细边框`。至少明确画布与浮导搭配（无自绘导航则不适用）、卡片边界、控件主题和密度留白。不要把这份记录放进页面 UI，也不要求另建文档。
+
+读取记录只能证明输入已获取。交付前还必须按该文件检查源码及实际页面；仅写“已读”、加注释或搜索到 `border` 不代表卡片层级验收通过。尚未实测的项目标记待验证，不能勾选通过。
+
 ## 核心定位
 
 本技能是宜搭自定义页面开发的默认实现：用户写标准 React18 函数组件源码，OpenYida 本地编译为 `runtimeCode` + `importedModules`，运行时由 `YidaCodeCanvas` 组件加载前端资源并执行 `YidaComp`。
@@ -188,6 +196,6 @@ openyida get-schema <appType> <formUuid> --field-map-json
 | [employeefield-verification.md](references/employeefield-verification.md) | 运行时事实、原生组件验证、EmployeeField 验收 | 验证成员/字段组件时阅读 |
 | [data-bridge-guide.md](references/data-bridge-guide.md) | 表单、平台连接器与自定义同源接口的数据桥 | 接入真实数据时阅读 |
 | [canvas-theme-provider.md](references/canvas-theme-provider.md) | 主题脚本、新页面接入、旧页面迁移、预览与发布 | 新写或迁移 antd 页面时必读 |
-| [canvas-style-implementation-guide.md](references/canvas-style-implementation-guide.md) | 将 `design.md` 的 App 主题色、antd token、背景层、圆角密度、控件焦点/下拉 reset、图表配色落到 `YidaCodeCanvas` 组件 | 写样式和主题时阅读 |
+| [canvas-style-implementation-guide.md](references/canvas-style-implementation-guide.md) | 将 `design.md` 的 App 主题色、antd token、背景层、卡片边界、圆角密度、控件焦点/下拉 reset、图表配色落到 `YidaCodeCanvas` 组件 | MUST：新建页面或调整视觉前完整读取，见顶部编码前必读 |
 | [component-library-guide.md](references/component-library-guide.md) | 组件库推荐组合和页面选型建议 | 选择 UI/图表依赖时阅读 |
 | [canvas-authoring-examples.md](references/canvas-authoring-examples.md) | 最小组件、hooks、副作用、图表示例 | 手写 `.canvas.jsx` 代码时阅读 |
