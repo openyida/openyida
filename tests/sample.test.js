@@ -51,6 +51,34 @@ describe('sample templates', () => {
     }
   });
 
+  test('navigation content sample compiles and switches scroll ownership for embedded pages', async () => {
+    const output = path.join(tmpDir, 'nav-content.jsx');
+    await run(['openyida-page-template', 'canvas-nav-content', '--output', output]);
+    const fragment = fs.readFileSync(output, 'utf8');
+    expect(fragment).not.toMatch(/function CanvasNav\(|CANVAS_NAV_CSS/);
+    const { runtimeCode, importedModules } = compileCanvasLocal(`${fragment}
+      function YidaComp() { return CanvasNavigationContent(window.testProps); }`);
+    expect(JSON.parse(importedModules)).toEqual(['react']);
+    const render = props => new Function('window', `${runtimeCode}; return YidaComp();`)({
+      React: { createElement: (type, props, ...children) => ({ type, props, children }) },
+      testProps: props,
+    });
+    const local = render({ navigation: '导航', children: '工作台', height: 640 });
+    expect(local.props.style.height).toBe(640);
+    expect(local.children[0].children).toContain('导航');
+    const localViewport = local.children[1].children[0];
+    expect(localViewport.props.style.overflow).toBe('auto');
+    expect(localViewport.children).toContain('工作台');
+    const embedded = render({ iframeSrc: '/submission/form', title: '报修', contentKey: 'repair' });
+    const viewport = embedded.children[1].children[0];
+    expect(viewport.props.style.overflow).toBe('hidden');
+    expect(viewport.props.style.maxWidth).toBe(localViewport.props.style.maxWidth);
+    expect(viewport.children[0]).toMatchObject({ type: 'iframe', props: {
+      src: '/submission/form', title: '报修', style: { position: 'absolute', height: '100%' },
+    } });
+    expect(render({ children: '无可用导航' }).children[1].children[0].children).toContain('无可用导航');
+  });
+
   test('sidebar keyboard resizing uses current DOM width and respects bounds', async () => {
     const output = path.join(tmpDir, 'nav-side.jsx');
     await run(['openyida-page-template', 'canvas-nav-side', '--output', output]);

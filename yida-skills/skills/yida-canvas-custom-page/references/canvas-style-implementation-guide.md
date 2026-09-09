@@ -2,7 +2,7 @@
 
 本文件是 `YidaCodeCanvas` 组件的样式实现适配指南，不是新的设计系统，也不产出配色、视觉 DNA 或页面风格。业务事实来自 `yida-prd` 输出的 `prd.md`，视觉事实来自 `yida-design` 输出的 `design.md`。`YidaCodeCanvas` 页面只在 `YidaComp` 内消费当前应用的主题 token，并把布局、材质、密度、图表、控件状态和背景规则落到组件内部。
 
-`app-theme.css` 只在应用级配置，平台负责应用壳、原生表单、详情页和 `YidaCodeCanvas` 外层的主题一致性。Canvas Page 宿主的 `contentBgColor`、`pageStyle.backgroundColor` 和 `contentBgColorMobile` 使用 `var(--pod-page-bg-color, var(--color-white, #fff))`，让宿主与 Canvas 内部使用同一背景 token。
+`app-theme.css` 只在应用级配置，平台负责应用壳、原生表单、详情页和 `YidaCodeCanvas` 外层的主题一致性。Canvas Page 宿主的 `contentBgColor`、`pageStyle.backgroundColor` 和 `contentBgColorMobile` 使用 `var(--pod-page-bg-color, var(--color-white, #fff))`，保证平台宿主背景一致；自绘导航页的内部画布允许采用下文的局部背景方案。
 
 宿主属性绑定不是主题注入。严禁生成 `body` 背景 CSS，也严禁 `YidaComp` 修改 `document.documentElement`、`document.body`、父页面或平台容器的主题变量。组件自己的背景、卡片和控件样式留在 `YidaComp` 内，并使用 `--pod-page-*`、`--pod-card-*`、`--color-brand1-*` 和 `--color-group`。
 
@@ -81,9 +81,30 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 导航布局和页面底色分别配置。隐藏应用导航不自动把 Canvas 改为透明；深色或明确的应用底色在 `design.md` 的平台 token 中定义，生成 `app-theme.css` 后统一生效。页面局部视觉不能通过修改应用 token 影响其他页面。
 
-Canvas 根背景使用 `background: var(--pod-page-bg-color, var(--color-white, #fff));`，与 PC/移动宿主和 antd 的布局背景保持一致。
+普通 Canvas 根背景默认使用 `background: var(--pod-page-bg-color, var(--color-white, #fff));`。自绘应用导航页的内部画布按下节设计，不要求可见底色与平台宿主相同。
 
 浮导距顶部的留白放在自定义页根节点内部。发布层的 `.yida-code-canvas{display:flow-root}` 只保护宿主，不能阻止 `.doll-page` / `.oy-page-root` 等内层根节点与导航的 margin 折叠。页面根必须使用 `display:flow-root`（已有 flex/grid 可保留），或用根容器 padding 承载顶部间距；不能仅给 Canvas 宿主加 flow-root。验收时分别测量宿主、页面根与导航的 top：宿主和页面根贴齐，导航仍保留设计间距。不要用 overflow:hidden 修复，它可能影响 sticky 和弹层；不要向平台父容器写负 margin 抵消。
+
+## 自定义导航页的独立画布
+
+**MUST** 区分平台宿主与自绘应用画布：宿主继续使用平台背景 token；内部导航壳可按 `design.md` 使用浅灰、浅彩、低饱和渐变或局部纹理，不强制使用 `--pod-page-bg-color` 作为唯一可见底色。`design.md` 明确 `canvasBackground`、`navigationSurface` 和 `cardSurface`，仅在当前页面根选择器实现，不修改 body、父页面或全局变量。
+
+浅色非白或渐变画布，顶部浮导默认白色或近白半透明、柔和投影；白卡默认无框，品牌色留给 Logo、导航选中态和主操作。白色画布上的白卡用细边框或投影。深色画布按独立对比方案设计，不强制白色浮导。渐变应低饱和、集中于顶部或局部，内容区域保持安静，不能遮挡文字或滚动内容。
+
+```css
+/* 自定义导航页局部设计示例，色值由本页 design.md 确认。 */
+.custom-nav-canvas {
+  min-height: 100dvh;
+  display: flow-root;
+  background: radial-gradient(ellipse at 20% 0%, #f5dfc9 0%, transparent 55%), #f4f2ef;
+}
+.custom-nav-canvas .floating-nav {
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 6px 24px rgba(50, 40, 30, 0.08);
+}
+```
+
+验收覆盖首屏、滚动底部、窄屏和导航切换：画布铺满内容区，无意外白边；浮导与卡片边界清楚，品牌色不过度铺满导航；原生 iframe 不被跨框样式修改。工作台同时压缩重复操作条、等权大指标卡和过高空态，不能仅靠渐变声称完成设计优化。
 
 ## 同色表面的卡片边界
 
@@ -184,7 +205,7 @@ Canvas 根背景使用 `background: var(--pod-page-bg-color, var(--color-white, 
 
 落地要求：
 
-- 页面根画布和业务卡片先按上述 `--pod-page-*` / `--pod-card-*` 契约消费应用主题；装饰层只能叠在主题表面之上，不能用固定渐变或固定白底替代主题表面。
+- 普通页面和业务卡片按上述主题契约实现；自绘应用导航页的局部画布、浮导按下述独立画布规则实现，不覆盖平台或原生内页主题。
 - `softTintCanvas`：根节点使用低饱和浅底、带弱渐变的近白画布或深色舞台；不要为了背景感强行铺满高饱和色。
 - `topIrregularWash`：用 `::before`、`clip-path`、局部 SVG 背景或伪元素形成顶部波浪、斜切、有机边界、细线曲线或图形标记；内容层固定在规则栅格上。
 - `radialGlowWash`：使用大面积柔和径向光或光洗，禁止离散装饰圆球、bokeh 和随机漂浮点。

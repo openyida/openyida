@@ -54,7 +54,9 @@ Plan 模式下，上表涉及 PRD/design 的修正均由对应技能更新 `buil
 
 - [ ] 页面实现已读取 PRD 和 `design.md`；
 - [ ] 页面没有默认自绘应用级侧边导航 / 顶部导航；如有页面内自绘导航，已有用户显式要求和 `yida-nav-shell` 依据；
+- [ ] 自定义导航已提取 `canvas-nav-content` 并合并 `CanvasNavigationContent`；源码和 DOM 存在 `.openyida-nav-layout`、`.openyida-nav-content`，且实际测量内容撑满剩余空间、iframe 与视口等高、底部按钮可到达；只加类名不算通过；
 - [ ] 自定义应用导航默认只切主内容区；原生提交/管理入口嵌入 iframe，整页跳转仅用于已确认保留同一导航壳的目标，不直接离开到无导航的原生页面；
+- [ ] 自定义导航页已明确画布、浮导与卡片搭配；浅色非白或渐变画布默认白色浮导、白色无框卡片，局部背景未修改平台宿主或全局变量；
 - [ ] 页面数据优先接真实表单；
 - [ ] 看板/工作台/驾驶舱已加载 `yida-dashboard`，读取表单数据时已加载 `yida-canvas-data-binding`；
 - [ ] Canvas 页面消费 `window.__OPENYIDA_YIDA_API__` / `window.__OPENYIDA_UTILS__`，没有直接调用 `this.utils.*`；

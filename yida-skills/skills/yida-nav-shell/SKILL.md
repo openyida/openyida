@@ -45,7 +45,9 @@ openyida get-form-config <appType> <formUuid> --json
 
 - **MUST：应用内切换保留导航壳**：点击自定义导航后，导航必须仍然可见且可继续操作；默认只切换主内容区。原生提交页、数据管理页嵌入主内容 iframe，本地工作台切换 React 内容。只有确认目标页面也承载同一套导航壳时才允许整页跳转；不能直接跳到隐藏导航的原生页面。外链和用户主动新窗口打开单独处理。见 [保留导航壳的最小示例](references/nav-shell-patterns.md#保留导航壳的最小示例)。
 
-- **画布与浮导间距**：自定义页根背景统一消费 `--pod-page-bg-color`，卡片用 `--pod-card-bg-color`；隐藏导航不自动透明。根节点使用 `display:flow-root` 或 flex/grid，让浮导上边距留在根节点内。
+- **MUST：内容区撑满剩余空间**：先执行 `openyida sample openyida-page-template canvas-nav-content` 并整体合并 `CanvasNavigationContent`，保持 `.openyida-nav-layout` / `.openyida-nav-content` 布局结构；顶部导航通过 `navigation` 接入，侧栏布局在右侧确定高度的内容区域使用。从确定高度的导航壳到 main、iframe 视口建立完整 flex 高度链，每个可收缩内容层设置 `min-height:0`；工作台自身滚动，原生页仅 iframe 内滚动。切换视图保持内容宽度和外侧留白连续，禁止父级 block、子级只写 `flex:1` 的无效布局。实现与验收见 [主内容撑满剩余空间](references/nav-shell-patterns.md#must主内容撑满剩余空间)。
+
+- **画布与浮导间距**：平台宿主继续消费 `--pod-page-bg-color`；自绘导航页的内部画布由 `design.md` 定义，可采用浅灰、浅彩、渐变或局部纹理，不强制跟随白色平台底色。浅色非白画布上，顶部浮导默认白色或近白半透明，卡片默认白色无框；品牌色集中于选中态和主操作，深色方案单独设计。只作用于当前页面选择器，不修改应用全局变量。根节点使用 `display:flow-root` 或 flex/grid，让浮导上边距留在根节点内。
 
 - **先选形态，再写 UI**：根据已确认的 PRD、`design.md` 和用户参考确定布局。模块多用侧栏，模块少且内容需要宽度用顶部，两级业务用顶部＋侧边，沉浸展示可用悬浮 Dock，同模块视图用标签。已确认的选择直接沿用，不重新提问。
 - 自定义顶部导航默认推荐浮导，可按内容宽度设计为紧凑胶囊或悬浮栏；“顶部导航”不等于贴边通栏。位置、比例、留白、材质和选中态根据业务与设计实现，不由现成组件决定。此推荐只针对顶部样式，“平台导航 / 自定义导航”选项保持中性。

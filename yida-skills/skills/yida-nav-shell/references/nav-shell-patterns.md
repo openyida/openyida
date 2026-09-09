@@ -213,6 +213,14 @@ const registration = items.find(item => item.key === 'registration');
 
 例如供应商应用：导航“工作台”显示本地工作台，“准入申请”嵌入原生 submission 页，“供应商档案”嵌入原生 workbench 页；工作台里的“提交申请”“详情”按钮仍用标准 `FormOpenContainer` 抽屉。导航项不打开抽屉。
 
+先提取并整体合并标准内容容器（合并重复 import）：
+
+```bash
+openyida sample openyida-page-template canvas-nav-content --output .cache/samples/canvas-nav-content.jsx
+```
+
+`CanvasNavigationContent` 的 `navigation` 接顶部导航，`children` 接本地工作台，`iframeSrc` 接原生页面地址；不传地址时显示 children，可用于无权限或加载失败提示。`contentKey` 变化会卸载旧内容并重置滚动。`height` 默认 `100dvh`，已有宿主或侧栏分配高度时传入该区域的确定高度（只有父级高度确定时才能用 `100%`）。`maxWidth`、`gutter`、`radius`、`background` 按 design.md 设置并在视图间保持一致；默认透明背景承接页面画布，不跨 iframe 改色。容器不负责鉴权、路由、草稿保存或判断跨域加载失败。
+
 下面是交互骨架，导航外观按 `design.md` 实现。先执行 `openyida sample openyida-page-template canvas-nav-data` 获取并合并导航数据 helper（包含 `buildCanvasNavigationUrl`）。`items` 是已完成权限过滤的可见叶子菜单，仅包含当前壳内工作台与原生任务入口；资源 ID、`targetType` 和 `params` 来自真实配置。外链及带自身导航壳的跨页入口另走对应路由，不放入本例的 iframe 分支。
 
 ```jsx
@@ -241,22 +249,21 @@ function AppShell({ items, homeKey, appType, renderWorkbench }) {
     setRequestedKey(item.key);
   }
   return (
-    <div className="oy-app-shell" style={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      <nav aria-label="应用导航" style={{ flexShrink: 0 }}>
+    <CanvasNavigationContent
+      title={active?.label || '页面内容'}
+      contentKey={active?.key}
+      iframeSrc={active && active.key !== homeKey
+        ? buildCanvasNavigationUrl(active, appType, { embedded: true }) : undefined}
+      navigation={<nav aria-label="应用导航">
         {items.map(item => (
           <button key={item.key} type="button" disabled={item.disabled}
             aria-current={item.key === active?.key ? 'page' : undefined}
             onClick={() => select(item)}>{item.label}</button>
         ))}
-      </nav>
-      <main style={{ flex: '1 1 0', minHeight: 0, overflow: active?.key === homeKey ? 'auto' : 'hidden' }}>
-        {!active ? <p>无可用导航</p> : active.key === homeKey ? renderWorkbench() : (
-          <iframe key={active.key} title={active.label}
-            src={buildCanvasNavigationUrl(active, appType, { embedded: true })}
-            style={{ width: '100%', height: '100%', border: 0, display: 'block' }} />
-        )}
-      </main>
-    </div>
+      </nav>}
+    >
+      {!active ? <p>无可用导航</p> : renderWorkbench()}
+    </CanvasNavigationContent>
   );
 }
 ```
@@ -264,6 +271,18 @@ function AppShell({ items, homeKey, appType, renderWorkbench }) {
 hash 的 `view` 保存任务入口 key，刷新及前进后退恢复选中内容，其他 query/hash 参数保留。该例约定 hash 为参数形式；已有路由协议的页面沿用原协议，不强行覆盖。嵌入地址必须指向真实内容资源，不能再次嵌入当前壳页或带同一导航的壳页，避免递归和双导航。仅 iframe 内页滚动；不再给 iframe 外套滚动卡片。嵌入失败时保留导航并显示错误和明确的新窗口入口，不自动跳走。
 
 切换会卸载当前内容；存在未提交表单时，应结合原生页面支持的通信能力处理离开提示，不能声称本例自动保存草稿或能读取所有 iframe 的脏状态。
+
+## MUST：主内容撑满剩余空间
+
+自定义导航壳必须有确定的可用高度。独立全屏壳可用 `height: 100dvh`；已有宿主占用高度时使用宿主实际分配的确定高度，不能再叠加一个视口高度。仅 `min-height` 不能保证百分比高度链成立，也不要猜测 `calc(100vh - 80px)` 之类固定导航高度。
+
+布局链逐层成立：壳 `display:flex; flex-direction:column`，导航 `flex-shrink:0`，main 同时具有 `display:flex; flex-direction:column; flex:1 1 0; min-height:0; overflow:hidden`；iframe 视口为 `position:relative; flex:1 1 0; min-height:0; overflow:hidden`，iframe 绝对定位填满该视口。仅给子级写 `flex:1`、父级仍为 block 不合格。工作台分支使用独立 `overflow:auto` 的滚动容器；原生页面分支仅 iframe 内页滚动。
+
+切换后的连续性：工作台与嵌入页共享画布、内容最大宽度及左右边距，导航与内容保持相同的顶部间距。不能从居中工作台突然变成贴边满屏表单；宽表格确需更宽时在 design.md 明确。iframe 视口可裁切圆角，但不额外加白卡、内边距或另一层滚动；留白放在视口外侧，让画布自然衔接原生表面，不跨 iframe 修改原生页面 CSS。
+
+- [ ] 各导航视图、窗口高度变化及窄屏下，内容视口高度均等于壳的剩余可用高度减去设计外侧留白；短内容不塌到 150px，长内容不撑开外层。
+- [ ] 比较 main、iframe 视口和 iframe 的实际边界；iframe 与其视口等高，底部按钮可到达，无重复滚动条或大段意外空白。
+- [ ] 工作台与原生页面来回切换，内容宽度、留白和画布连续；导航选中项及返回操作仍然正常。
 
 ## 菜单契约
 
