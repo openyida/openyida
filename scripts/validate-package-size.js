@@ -11,11 +11,11 @@ const path = require('path');
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
 const MAX_TARBALL_BYTES = 1792 * 1024;
-// Includes deterministic form resume/update workflows from PR #556
-// (6223716 bytes after generated command docs are synchronized).
-const MAX_UNPACKED_BYTES = 6080 * 1024;
-// The process-form metadata helper brings the merged package to 490 files.
-const MAX_ENTRY_COUNT = 490;
+// Includes Canvas theme Provider, navigation content sample and design guidance
+// from PR #559: 6269057 unpacked bytes; round up to the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 6128 * 1024;
+// Theme Provider script/template/reference plus the navigation content sample.
+const MAX_ENTRY_COUNT = 494;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -31,7 +31,7 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/SKILL.md',
   'yida-skills/skills-index.json',
   'lib/samples/openyida-scaffold/canvas-dialog.canvas.jsx',
-  ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
+  ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data', 'content'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
   'yida-skills/skills/yida-canvas-custom-page/references/dialog-guide.md',
 ];
 
