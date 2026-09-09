@@ -60,6 +60,26 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 
 同一轮需要新建两个及以上普通表单时，必须按 [并行创建表单](references/batch-forms.md) 把全部表单写入同一个 `forms.json`，并且只调用一次 `openyida create-form batch <appType> <任务文件> --json`。独立表单和关联表单放在同一任务文件中，依赖通过 `dependsOn` / `$form` 表达，由 CLI 在一次 batch 内部完成分组、真实 `formUuid/fieldId` 回读和依赖调度；不要手工拆成多次 batch，也不要逐个调用 `create-form create`。只有修改已有表单、恢复已有 `formUuid`，或当前 batch 契约无法表达依赖时，才走明确的非 batch 路径并说明原因。
 
+最小 `forms.json` 结构如下；`fieldsFile` 相对 `forms.json` 所在目录解析：
+
+```json
+{
+  "forms": [
+    { "key": "customer", "title": "客户", "fieldsFile": "customer-fields.json" },
+    {
+      "key": "order",
+      "title": "订单",
+      "fieldsFile": "order-fields.json",
+      "dependsOn": ["customer"]
+    }
+  ]
+}
+```
+
+关联字段必须把引用放在 `associationForm` 内。推荐使用紧凑写法 `"associationForm": { "$form": "customer", "field": "客户名称" }`；batch 会将其规范化为 `associationForm.formUuid` 和 `associationForm.mainFieldId`。完整写法则分别在 `formUuid` 使用 `{ "$form": "customer" }`、在 `mainFieldId` 使用 `{ "$form": "customer", "field": "客户名称" }`。不要把 `$form` 放在 `AssociationFormField` 顶层，也不要用 `batch --help`、空参数或临时计划探索格式；技能中的结构就是正式契约。
+
+批量命令超过前台时限进入后台属于正常行为。此时必须保留原任务和 `<forms.json>.state.json`，等待运行时自动回传结果；禁止调用 `ToolStop`，禁止删除 `.state.json`/`.lock`，禁止改变参数再次调用 batch。若最终返回 `FORM_BATCH_PARTIAL_FAILURE`，在本轮原样保留结构化错误并停止；禁止模型侧再调用 `create-form create`、`update` 或 `resume` 补洞。CLI 会在同一次 batch 内对已取得真实 `formUuid` 的空壳表单执行一次保守恢复。
+
 ## 官方表单示例范式
 
 官方示例中心的表单类能力大多用 `FormContainer + 标准字段 + 字段属性/公式/联动` 承载，少量 `RichText` 用于说明。创建或更新表单时优先按这个顺序落地：
