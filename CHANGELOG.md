@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- 支持在本地预览自定义页面的主题配色，方便发布前检查按钮、文字和背景的搭配。
+- 支持自定义页面主题配色检查，帮助检查按钮、文字和背景的配色一致性。
 
 ### Changed
 
