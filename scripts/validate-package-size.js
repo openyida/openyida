@@ -10,10 +10,12 @@ const path = require('path');
 // Budgets are ratchets that track legitimate content growth (12 locale packs,
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
-const MAX_TARBALL_BYTES = 1792 * 1024;
-// Includes Canvas theme Provider, navigation content sample and design guidance
-// from PR #559: 6269057 unpacked bytes; round up to the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 6128 * 1024;
+const MAX_TARBALL_BYTES = 1808 * 1024;
+// Includes Canvas theme Provider, navigation content sample, design guidance,
+// and the phase 6 batch recovery/readback plus scoped diagnostics contracts
+// (6299139 unpacked bytes);
+// round up to the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 6160 * 1024;
 // Theme Provider script/template/reference plus the navigation content sample.
 const MAX_ENTRY_COUNT = 494;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;

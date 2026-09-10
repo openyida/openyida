@@ -848,7 +848,8 @@ describe('Plan contract and file consistency', () => {
     }
     expect(interactionContract).toContain('同一次 `ask_human`');
     expect(interactionContract).toContain('不得先发普通文本附件');
-    expect(workflow).toContain('同一次结构化提问');
+    expect(workflow).toContain('必须实际调用 `ask_human`');
+    expect(workflow).toContain('严禁用它替代 `ask_human`');
   });
 
   test('staging failure changes no source or artifact', () => {
