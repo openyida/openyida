@@ -107,6 +107,24 @@ describe('dependency-aware form batches', () => {
     write(forms); expect(() => loadPlan(file)).toThrow();
   });
 
+  test.each([
+    [{ ...form('customer'), icon: 'xian-qiye' }, 'CREATE_FORM_NAV_ICON_INVALID'],
+    [{ ...form('customer'), locale: 'klingon' }, 'CREATE_FORM_INVALID_ARGUMENTS'],
+    [{ ...form('customer'), title: '客户📇' }, 'OPENYIDA_ARTIFACT_EMOJI_FORBIDDEN'],
+  ])('rejects invalid static definition before any batch execution: %j', async (invalidForm, errorCode) => {
+    write([invalidForm]);
+    const execute = executor();
+
+    await expect(run(['APP_X', file], { execute })).rejects.toMatchObject({
+      code: 'FORM_BATCH_INVALID',
+      details: {
+        reason: expect.objectContaining({ formKey: 'customer', errorCode }),
+      },
+    });
+    expect(execute).not.toHaveBeenCalled();
+    expect(fs.existsSync(file + '.state.json')).toBe(false);
+  });
+
   test('limits concurrency and starts ready dependents without waiting for unrelated forms', async () => {
     const a = deferred(); const b = deferred(); const c = deferred();
     const calls = [];

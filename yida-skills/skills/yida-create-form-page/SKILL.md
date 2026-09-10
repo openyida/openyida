@@ -89,7 +89,7 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 }
 ```
 
-`fieldsFile` 也可替代内联 `fields`，其路径相对 `forms.json` 所在目录；每项还可设置 `icon`、`locale`，已有完整表单可提供 `formUuid` 回读复用。普通多表单创建的执行顺序固定为：确认 `projectRoot` → Write 一个任务文件 → Read 确认文件 → 唯一一次真实 batch → 使用 batch 结果和必要的 compact `get-schema` 回读。
+`fieldsFile` 也可替代内联 `fields`，其路径相对 `forms.json` 所在目录；已有完整表单可提供 `formUuid` 回读复用。普通搭建的 batch 项必须省略 `icon`，由 CLI 按标题和字段语义自动选择；只有用户明确给出 `openyida create-form icons --json` 目录中的表单图标名时才设置，应用图标 `xian-*` 绝不是表单图标。`locale` 同样只在用户明确指定时设置。普通多表单创建的执行顺序固定为：确认 `projectRoot` → Write 一个任务文件 → Read 确认文件 → 唯一一次真实 batch → 使用 batch 结果和必要的 compact `get-schema` 回读。
 
 最小 `forms.json` 结构如下；`fieldsFile` 相对 `forms.json` 所在目录解析：
 

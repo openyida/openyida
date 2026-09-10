@@ -140,6 +140,25 @@ test('normalizes equivalent role, sample-record and navigation authoring shapes 
   expect(collectIssues(normalized)).toEqual([]);
 });
 
+test('normalizes skipped samples and object data sources without materialize probing', () => {
+  const plan = fixture();
+  plan.schemaVersion = '2.0';
+  plan.dataModels[0].formType = '宜搭表单';
+  plan.dataModels[0].sampleRecords = { skipReason: '本轮不创建示例数据' };
+  plan.pages.customPageDetails[0].dataBinding = '回访记录表单数据';
+  plan.pages.customPageDetails[0].dataSources = [{ source: `${plan.dataModels[0].name}表单`, type: 'form' }];
+
+  const normalized = normalizePlan(plan);
+
+  expect(normalized.dataModels[0]).not.toHaveProperty('sampleRecords');
+  expect(normalized.dataModels[0].skipSampleReason).toBe('本轮不创建示例数据');
+  expect(normalized.pages.customPageDetails[0]).toMatchObject({
+    dataBinding: 'form',
+    dataSources: [plan.dataModels[0].name],
+  });
+  expect(collectIssues(normalized)).toEqual([]);
+});
+
 test('drops actor edges from the table-only business graph', () => {
   const plan = fixture();
   plan.schemaVersion = '2.0';

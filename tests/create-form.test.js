@@ -1984,6 +1984,11 @@ describe('create-form create recovery guardrails', () => {
     ])).rejects.toMatchObject({
       code: 'CREATE_FORM_OPTION_FIELD_DATASOURCE_MISSING',
       details: expect.objectContaining({
+        stage: 'preflight',
+        retrySafe: true,
+        sideEffectState: 'not_started',
+        mutationAccepted: false,
+        mutationPerformed: false,
         diagnostics: expect.arrayContaining([
           expect.objectContaining({
             code: 'OPTION_FIELD_DATASOURCE_MISSING',

@@ -20,7 +20,7 @@ openyida create-form batch <appType> .cache/openyida/<项目名>/forms.json --js
 }
 ```
 
-`fieldsFile` 相对任务文件所在目录，也可使用 `fields` 直接填写字段定义。每项可设置 `icon`、`locale`；已有完整表单填写 `formUuid`，CLI 回读并复用。
+`fieldsFile` 相对任务文件所在目录，也可使用 `fields` 直接填写字段定义。普通 batch 项省略 `icon`，由 CLI 自动选择；只有用户明确给出表单图标目录中的合法名称时才设置，禁止写应用图标 `xian-*`。`locale` 也只在用户明确指定时设置。已有完整表单填写 `formUuid`，CLI 回读并复用。
 
 客户和商品同时创建。订单的前置表单完成后开始创建；其他独立任务继续执行。依赖环、未知依赖、重复 key 和无效字段会在创建前报错。
 
