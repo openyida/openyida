@@ -5,6 +5,7 @@ themeId: dark-luminous-modular
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "#101010"
       "--color-white": "#181818"
       "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 10%，用于悬停>"
       "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与 #181818 混合 76%，用于品牌浅色>"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "#101010"
       "--oyd-brand-glow-soft": "<基于 --color-brand1-6 生成的实际色值：主题色 18% + 透明 82%，用于局部辉光>"
       "--oyd-brand-chart-strong": "<基于 --color-brand1-6 生成的实际色值：与白色混合 6%，用于主图形>"
       "--oyd-brand-chart-muted": "<基于 --color-brand1-6 生成的实际色值：主题色 46% + 透明 54%，用于次图形>"
@@ -101,7 +101,7 @@ tokens:
 
 | 设计母体 | 可见证据与置信度 | 复用规则与实现钩子 | 缺失后的失败表现 |
 | --- | --- | --- | --- |
-| 低照度分层暗面 | 近黑画布上叠放略亮面板，边界和阴影都极弱，面板内部仍有可辨层级。`observed` | 不可变：画布、一级表面、嵌套表面至少三级明度；可变：模块内容与数量。复用 `--oyd-page-background`、`--color-white` 与 Fill Token。 | 退化为纯黑平面或高灰卡片堆叠，暗色质感与层级同时消失。 |
+| 低照度分层暗面 | 近黑画布上叠放略亮面板，边界和阴影都极弱，面板内部仍有可辨层级。`observed` | 不可变：画布、一级表面、嵌套表面至少三级明度；可变：模块内容与数量。复用 `--pod-page-bg-color`、`--color-white` 与 Fill Token。 | 退化为纯黑平面或高灰卡片堆叠，暗色质感与层级同时消失。 |
 | 微图嵌入指标卡 | 等宽摘要卡内同时出现标签、主值、趋势说明、图标与迷你趋势纹理。`observed` | 不可变：主值左上、微图右下、趋势贴底、图标置于柔光区域；可变：数据语义和微图类型。使用固定卡高与 SVG/canvas 小图。 | 指标卡退化为只有数字的通用卡，首屏缺少细节密度。 |
 | 发光双轨网格 | 主图使用细密暗网格、两条同色相不同强度曲线、轻面积雾化与悬浮对齐线。`observed` | 不可变：主序列高亮、次序列降权、网格克制、tooltip 与定位线共同出现；可变：序列数量不超过三条、数据和轴语义。 | 退化为默认图表库样式，线条与背景没有空间感。 |
 | 外置标注分段环 | 分段圆环留出明显间隙，关键值居中，少量标签悬浮在环外，底部以短条图例收束。`observed` | 不可变：圆角弧段、分段间隙、中心值、外置短标与底部对齐图例；可变：2-5 个分段及文案。 | 退化为普通饼图或满环仪表，失去辨识度和层次。 |
@@ -129,7 +129,7 @@ tokens:
 
 - 色彩来源：{{COLOR_SOURCE}}
 - 颜色 Token 的名称和值以文档顶部 YAML 的 `tokens` 为唯一事实源；AI 可以根据主题调整色值，不改变宜搭应用全局变量名。
-- 画布消费 `--oyd-page-background`（当前值 `#101010`），一级表面消费 `--color-white`（当前值 `#181818`），普通嵌套填充消费 `--color-fill1-1`（当前值 `#202020`）；文字依次消费 `--color-text1-4`、`--color-text1-10`、`--color-text1-3`。括号内色值仅说明本主题当前取值，组件实现禁止硬编码。
+- 画布消费 `--pod-page-bg-color`（当前值 `#101010`），一级表面消费 `--color-white`（当前值 `#181818`），普通嵌套填充消费 `--color-fill1-1`（当前值 `#202020`）；文字依次消费 `--color-text1-4`、`--color-text1-10`、`--color-text1-3`。括号内色值仅说明本主题当前取值，组件实现禁止硬编码。
 
 ### 设计变量消费规则
 
@@ -144,7 +144,7 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔线、表格行线和图表网格 | `--color-line1-1` | 应用全局 |
 | 控件与一级面板常规边界 | `--color-line1-2` | 应用全局 |
-| 页面底层画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层画布 | `--pod-page-bg-color` | 自定义页 |
 | 一级暗面板、卡片和表单容器 | `--color-white` | 应用全局 |
 | 图标井、节点和局部边缘柔光 | `--oyd-brand-glow-soft` | 自定义页 |
 | 图表主序列与关键短条 | `--oyd-brand-chart-strong` | 自定义页 |
@@ -160,7 +160,7 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-white`、`--color-line1-1`、`--color-line1-2`、`--color-fill1-1`、`--color-fill1-2`、`--color-fill1-3`、`--color-text1-4`、`--color-text1-10`、`--color-text1-3` 与 `--oyd-page-background` 均为固定 `neutral-gray`，Hex 三通道相等；`--color-fill1-10` 也是无彩透明层。
+- `--color-white`、`--color-line1-1`、`--color-line1-2`、`--color-fill1-1`、`--color-fill1-2`、`--color-fill1-3`、`--color-text1-4`、`--color-text1-10`、`--color-text1-3` 与 `--pod-page-bg-color` 均为固定 `neutral-gray`，Hex 三通道相等；`--color-fill1-10` 也是无彩透明层。
 - `--oyd-brand-glow-soft`、`--oyd-brand-chart-strong`、`--oyd-brand-chart-muted`、`--oyd-brand-chart-area` 均由 `--color-brand1-6` 派生，实例化时必须写入实际色值；它们是主题同色演变，不是独立分类色。
 - 主题色只用于主操作、关键焦点、选中状态、主图形和少量图标辉光；不得用主题色铺满画布或普通面板。
 - 成功、警告、错误和信息状态直接消费平台语义色，并同时配合文字、图标或方向符号；`custom-page` 不重复声明同义状态 Token。
@@ -197,7 +197,7 @@ tokens:
 
 ## 表面与层级
 
-- 页面画布必须消费 `--oyd-page-background`，一级面板必须消费 `--color-white`，普通嵌套块消费 `--color-fill1-1`，悬停、选中或需要提高层级的嵌套块消费 `--color-fill1-2`；面板弱边界使用 `1px solid var(--color-line1-1)`，常规阴影为 `0 10px 28px rgba(0,0,0,0.24)`。这些 Token 的当前值以 YAML 为唯一事实源，组件实现不得直接写入 Hex。
+- 页面画布必须消费 `--pod-page-bg-color`，一级面板必须消费 `--color-white`，普通嵌套块消费 `--color-fill1-1`，悬停、选中或需要提高层级的嵌套块消费 `--color-fill1-2`；面板弱边界使用 `1px solid var(--color-line1-1)`，常规阴影为 `0 10px 28px rgba(0,0,0,0.24)`。这些 Token 的当前值以 YAML 为唯一事实源，组件实现不得直接写入 Hex。
 - 面板可增加 `inset 0 1px 0 rgba(255,255,255,0.025)` 形成精细内缘；主题辉光只允许围绕图标井、活跃节点和图形端点，范围 18-32px、透明度受 `--oyd-brand-glow-soft` 控制。
 - tooltip 与 popover 复用 `--color-fill1-10`，边界为 `--color-line1-2`，阴影 `0 14px 36px rgba(0,0,0,0.42)`；背景模糊只用于浮层，普通面板不使用玻璃效果。
 - 嵌套层级优先使用明度与 1px 分隔线，不无限叠加阴影；一个面板内最多一层可见嵌套卡。
@@ -333,7 +333,7 @@ tokens:
 
 ### 错误与正确
 
-- 错误：所有暗色层级都用纯黑或在组件中硬编码 Hex；正确：依次消费 `--oyd-page-background`、`--color-white`、`--color-fill1-1`，交互层消费 `--color-fill1-2`，并以 `--color-line1-1` 建立弱边界。
+- 错误：所有暗色层级都用纯黑或在组件中硬编码 Hex；正确：依次消费 `--pod-page-bg-color`、`--color-white`、`--color-fill1-1`，交互层消费 `--color-fill1-2`，并以 `--color-line1-1` 建立弱边界。
 - 错误：指标卡只保留大数字；正确：契约满足时固定标签、主值、趋势、图标井与微图的五点构图。
 - 错误：图表使用高亮粗网格和彩色多线；正确：细暗网格、单主题主次线、轻面积雾化和对齐 tooltip。
 - 错误：构成数据使用无间隙饼图；正确：2-5 个圆角弧段、外置短标、中心值与底部图例共同表达。

@@ -5,6 +5,7 @@ themeId: interlocked-vivid-modules
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "<theme-gray：基于 --color-brand1-6 2% + #F7F7F7 98% 生成的实际色值>"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 12%，用于悬停>"
       "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与白色混合 88%，用于平台品牌浅色>"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "<theme-gray：基于 --color-brand1-6 2% + #F7F7F7 98% 生成的实际色值>"
       "--oyd-category-surface-1": "var(--color-brand1-6)"
       "--oyd-category-surface-2": "#3168D5"
       "--oyd-category-surface-3": "#9339C9"
@@ -143,7 +143,7 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔线、图表网格和表格行线 | `--color-line1-1` | 应用全局 |
 | 输入框、按钮和面板常规边界 | `--color-line1-2` | 应用全局 |
-| 页面底层主题灰画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层主题灰画布 | `--pod-page-bg-color` | 自定义页 |
 | 面板、卡片、弹窗和表单容器 | `--color-white` | 应用全局 |
 | 首个分类摘要表面 | `--oyd-category-surface-1` | 自定义页 |
 | 其余独立分类摘要与比较序列 | `--oyd-category-surface-2` 至 `--oyd-category-surface-4` | 自定义页 |
@@ -162,7 +162,7 @@ tokens:
 ### 本主题的配色约束
 
 - `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 均为 `neutral-gray`，Hex 满足 `R = G = B`；`--color-fill1-10`、`--oyd-card-watermark` 与 `--oyd-segment-muted` 为等通道白色 rgba。
-- `--oyd-page-background` 是 `theme-gray`，由 `--color-brand1-6` 2% 与 `#F7F7F7` 98% 混合；项目实例化时必须写入实际色值，不得保留生成期标记。
+- `--pod-page-bg-color` 是 `theme-gray`，由 `--color-brand1-6` 2% 与 `#F7F7F7` 98% 混合；项目实例化时必须写入实际色值，不得保留生成期标记。
 - `--oyd-category-surface-1` 与 `--oyd-primary-area-fill` 从 `--color-brand1-6` 派生；其余分类色保持独立分类角色。
 - 成功、警告、错误和信息状态直接消费平台语义色，并配合文字、图标或方向符号；`custom-page` 不重复声明同义状态 Token。
 - 多强调卡仅用于真实并列分类；单个页面最多四种分类表面，同一大面板中的强调序列不超过两种。
@@ -195,7 +195,7 @@ tokens:
 
 ## 表面与层级
 
-- 页面画布消费 `--oyd-page-background`；一级面板使用白色、无可见边框或 1px `--color-line1-1`，阴影 `0 6px 20px rgba(0,0,0,0.035)`。
+- 页面画布消费 `--pod-page-bg-color`；一级面板使用白色、无可见边框或 1px `--color-line1-1`，阴影 `0 6px 20px rgba(0,0,0,0.035)`。
 - 彩色摘要卡无阴影，依靠高饱和表面、白色连接件和 `--corner-5` 建立层级；普通面板禁止使用同等高饱和背景。
 - tooltip 与 popover 使用 `--color-fill1-10`、`--color-line1-2`、`0 8px 24px rgba(0,0,0,0.10)`；嵌套内容使用 `--color-fill1-1`，不重复加阴影。
 - 不使用毛玻璃、强辉光或大面积装饰渐变；只允许主题派生的图表面积渐变和卡内低对比水印。
@@ -339,7 +339,7 @@ tokens:
 - [ ] 文字对比是否保持 `text1-4` 高于 `text1-10`、`text1-10` 高于 `text1-3`？
 - [ ] 主题身份、DNA、组件标题和总结是否没有绑定默认色相或页面类型？
 - [ ] 描述中的中等密度、局部留白、大圆角、轻阴影和受控多强调是否与正文及 Token 一致？
-- [ ] `neutral-gray` 是否全部满足 `R = G = B`；`--oyd-page-background` 是否按主题色 2% 与 `#F7F7F7` 98% 计算并写入实际值？
+- [ ] `neutral-gray` 是否全部满足 `R = G = B`；`--pod-page-bg-color` 是否按主题色 2% 与 `#F7F7F7` 98% 计算并写入实际值？
 - [ ] 所有真实页面是否共享全应用 Token，视觉记忆点是否按内容契约条件式落地？
 - [ ] `{{PAGE_APPLICATIONS}}` 是否只展开真实页面？
 - [ ] 同类面板是否等高，图表是否固定高度，长内容是否内部处理？

@@ -415,20 +415,20 @@ describe('design-plan materialize', () => {
   });
 
   test.each([
-    ['custom', undefined, 'transparent'],
-    ['platform-top', undefined, 'var(--pod-page-bg-color, var(--color-white, #fff))'],
+    ['custom', undefined, 'var(--color-white, #fff)'],
+    ['platform-top', undefined, 'var(--color-white, #fff)'],
     ['custom', 'var(--color-brand1-3)', 'var(--color-brand1-3)'],
     ['platform-side', '#FFF8ED', '#FFF8ED'],
-  ])('page background follows %s navigation while preserving explicit design %s', (navigationType, override, expected) => {
+  ])('page background is shared for %s navigation while preserving explicit design %s', (navigationType, override, expected) => {
     const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
     plan.execution = { ...plan.execution, appConfig: { navigationType } };
-    plan.visualStyle.tokens = override ? { '--oyd-page-background': override } : {};
+    plan.visualStyle.tokens = override ? { '--pod-page-bg-color': override } : {};
     const { readDesignTokens, applyDesignTokens } = require('../lib/app/theme-from-design');
     const design = renderDesign(plan);
-    expect(readDesignTokens(design)['--oyd-page-background']).toBe(expected);
+    expect(readDesignTokens(design)['--pod-page-bg-color']).toBe(expected);
     const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
     const css = applyDesignTokens(template, design);
-    expect(css).toContain(`--oyd-page-background: ${expected};`);
+    expect(css).toContain(`--pod-page-bg-color: ${expected};`);
   });
 
   test('brand atmosphere reaches CSS surfaces and preserves text semantics when the primary color changes', () => {
@@ -441,7 +441,7 @@ describe('design-plan materialize', () => {
     const design = renderDesign(plan);
     const green = readDesignTokens(design);
     expect(green['--pod-shell-bg-color-light']).toBe('#F3F9F6');
-    expect(green['--pod-page-bg-color']).toBeUndefined();
+    expect(green['--pod-page-bg-color']).toBe('var(--color-white, #fff)');
     expect(green['--pod-card-bg-color']).toBe('var(--color-white, #fff)');
     expect(green['--pod-card-border']).toBe('1px solid var(--color-line1-1)');
     expect(green['--color-line1-2']).toBe('#CDE8DA');
@@ -450,16 +450,16 @@ describe('design-plan materialize', () => {
     expect(green['--color-text1-3']).toBe('#929292');
     expect(design.indexOf('## 项目配色适配')).toBeLessThan(design.indexOf('## 设计总览'));
     expect(applyDesignTokens(template, design)).toContain('--pod-shell-bg-color-light: #F3F9F6;');
-    expect(applyDesignTokens(template, design)).toContain('--pod-page-bg-color: #ffffff;');
+    expect(applyDesignTokens(template, design)).toContain('--pod-page-bg-color: var(--color-white, #fff);');
     plan.visualStyle.forUser.colorStrategy.primaryColor = '#6F4E37';
     const brown = readDesignTokens(renderDesign(plan));
     for (const token of ['--pod-shell-bg-color-light', '--color-line1-2', '--color-fill1-2']) {
       expect(brown[token]).not.toBe(green[token]);
     }
     expect(brown['--color-text1-4']).toBe(green['--color-text1-4']);
-    plan.visualStyle.tokens = { '--oyd-page-background': '#FFFFFF', '--pod-card-bg-color': '#FFF8ED' };
+    plan.visualStyle.tokens = { '--pod-page-bg-color': '#FFFFFF', '--pod-card-bg-color': '#FFF8ED' };
     const explicitDesign = renderDesign(plan);
-    expect(readDesignTokens(explicitDesign)['--oyd-page-background']).toBe('#FFFFFF');
+    expect(readDesignTokens(explicitDesign)['--pod-page-bg-color']).toBe('#FFFFFF');
     expect(applyDesignTokens(template, explicitDesign)).toContain('--pod-card-bg-color: #FFF8ED;');
   });
 
@@ -474,11 +474,9 @@ describe('design-plan materialize', () => {
       const design = renderDesign(plan);
       const tokens = readDesignTokens(design);
       expect(tokens['--pod-shell-bg-color-light']).toBe('#F3F9F6');
-      expect(tokens['--oyd-page-background']).toBe(navigationType === 'custom'
-        ? 'transparent' : 'var(--pod-page-bg-color, var(--color-white, #fff))');
-      expect(applyDesignTokens(template, design)).toContain('--pod-page-bg-color: #ffffff;');
+      expect(tokens['--pod-page-bg-color']).toBe('var(--color-white, #fff)');
+      expect(applyDesignTokens(template, design)).toContain('--pod-page-bg-color: var(--color-white, #fff);');
       plan.visualStyle.tokens = {
-        '--oyd-page-background': 'var(--color-brand1-3)',
         '--pod-page-bg-color': '#FFF8ED',
         '--pod-shell-bg-color-light': '#FAF0E6',
       };
@@ -497,7 +495,7 @@ describe('design-plan materialize', () => {
     plan.visualStyle.forUser.colorStrategy.surfaceTone = 'brand-tinted';
     const { readDesignTokens } = require('../lib/app/theme-from-design');
     const tokens = readDesignTokens(renderDesign(plan));
-    expect(tokens['--oyd-page-background']).toBe('#101010');
+    expect(tokens['--pod-page-bg-color']).toBe('#101010');
     expect(tokens['--color-white']).toBe('#181818');
     plan.visualStyle.forUser.colorStrategy.surfaceTone = 'invalid';
     expect(() => renderDesign(plan)).toThrow('surfaceTone');
@@ -536,12 +534,12 @@ describe('design-plan materialize', () => {
         expect(design).toContain('"--color-brand1-1": "#F1EDEB"');
       }
       if (theme.themeId === 'high-contrast-modular') {
-        expect(design).toContain('"--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"');
+        expect(design).toContain('"--pod-page-bg-color": "var(--color-white, #fff)"');
         expect(design).toContain('"--oyd-surface-soft": "#EBE9E8"');
         expect(design).toContain('"--oyd-accent-deep": "#44352A"');
       }
       if (theme.themeId === 'interlocked-vivid-modules') {
-        expect(design).toContain('"--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"');
+        expect(design).toContain('"--pod-page-bg-color": "var(--color-white, #fff)"');
       }
       if (theme.themeId === 'media-rail-inspector') {
         expect(design).toContain('"--oyd-media-surface": "#F2F0EF"');

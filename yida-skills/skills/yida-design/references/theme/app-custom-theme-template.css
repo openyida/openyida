@@ -204,10 +204,8 @@
   --pod-page-surface-bg-color: transparent;
   --pod-page-surface-border-radius: 12px;
   --pod-page-surface-shadow: none;
-  /* 原生页面容器：控制页面边框、背景、圆角、间距和标题。
-   * 自定义页整页画布另用 design.md 中的 --oyd-page-background：隐藏应用导航默认 transparent，
-   * 显示平台导航默认 var(--pod-page-bg-color, var(--color-white, #fff))。
-   * 品牌外层氛围放在 Shell，不为自定义页背景改写原生页面底色。 */
+  /* 页面容器：原生页面与自定义页面共用底色；卡片使用 --pod-card-bg-color。
+   * 导航隐藏不自动改变底色；品牌氛围放在 Shell，局部装饰留在页面。 */
   --pod-page-border: 1px solid rgba(24, 28, 31, 0.08);
   --pod-page-bg-color: #ffffff;
   --pod-page-border-radius: 20px;

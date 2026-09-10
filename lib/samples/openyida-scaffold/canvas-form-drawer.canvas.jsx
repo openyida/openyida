@@ -64,6 +64,7 @@ function buildYidaFormUrl(request, currentAppType) {
 /** 抽屉外壳默认跟随应用主题，background 可为当前抽屉指定颜色、渐变或 CSS token。 */
 function CanvasDrawer({
   open, title, onClose, onOpenInNewWindow, extra, children,
+  contentMode = 'content',
   background = 'var(--pod-shell-theme-bg-color, var(--drawer-bg, var(--color-brand1-1, #f4f6ff)))',
 }) {
   const [fullScreen, setFullScreen] = useState(false);
@@ -120,6 +121,7 @@ function CanvasDrawer({
         .openyida-form-drawer.ant-drawer .ant-drawer-title {
           color: inherit;
           font-size: inherit;
+          font-weight: inherit;
         }
         .openyida-form-drawer .oy-drawer-actions {
           display: flex;
@@ -146,6 +148,12 @@ function CanvasDrawer({
         .openyida-form-drawer .oy-drawer-action:focus-visible {
           outline: 2px solid var(--color-brand1-6, #1677ff);
           outline-offset: 2px;
+        }
+        .openyida-form-drawer .oy-drawer-frame {
+          position: relative;
+          flex: 1 1 0;
+          min-height: 0;
+          overflow: hidden;
         }
         .openyida-form-drawer .oy-drawer-card {
           height: 100%;
@@ -213,13 +221,22 @@ function CanvasDrawer({
             overflow: 'hidden',
           },
           header: {
-            background: 'var(--drawer-title-bg-color, var(--pod-page-header-bg-color, transparent))',
+            background: 'transparent',
+            boxSizing: 'border-box',
+            height: 'var(--pod-nav-platform-header-height, 48px)',
+            minHeight: 'var(--pod-nav-platform-header-height, 48px)',
+            flex: '0 0 var(--pod-nav-platform-header-height, 48px)',
             color: 'var(--drawer-title-color, var(--pod-page-header-text-color, var(--color-text1-4, #1f2329)))',
-            fontSize: 'var(--drawer-title-font-size, 16px)',
-            padding: 'var(--drawer-title-padding-top, 12px) var(--drawer-title-padding-left-right, 20px) var(--drawer-title-padding-bottom, 12px)',
+            fontSize: 'var(--pod-page-title-font-size, 16px)',
+            fontWeight: 'var(--pod-page-title-font-weight, 500)',
+            padding: '0 var(--drawer-title-padding-left-right, 20px)',
             borderBottom: 'var(--drawer-title-border-width, 0px) solid var(--drawer-title-border-color, var(--drawer-border-color, transparent))',
           },
-          body: { padding: '0 8px 8px', minHeight: 0, overflow: 'hidden' },
+          body: {
+            display: 'flex', flexDirection: 'column', flex: '1 1 0',
+            padding: contentMode === 'iframe' ? 0 : '0 8px 8px',
+            minHeight: 0, overflow: 'hidden',
+          },
         }}
       >
         {!fullScreen ? (
@@ -250,12 +267,13 @@ function CanvasDrawer({
             }}
           />
         ) : null}
-        <div className="oy-drawer-card">{children}</div>
+        <div className={contentMode === 'iframe' ? 'oy-drawer-frame' : 'oy-drawer-card'}>{children}</div>
       </Drawer>
     </>
   );
 }
 
+/** 原生提交页和详情页自带页面布局，外层只提供 iframe 视口，不再套内容卡片。 */
 function FormOpenContainer({ request, currentAppType, onClose, onAfterClose }) {
   const iframeSrc = useMemo(() => buildYidaFormUrl(request, currentAppType), [request, currentAppType]);
   const title = request && request.title ? request.title : '表单';
@@ -263,6 +281,7 @@ function FormOpenContainer({ request, currentAppType, onClose, onAfterClose }) {
     <CanvasDrawer
       title={title}
       open={!!request}
+      contentMode="iframe"
       background={request?.background}
       onOpenInNewWindow={iframeSrc ? () => window.open(iframeSrc, '_blank', 'noopener,noreferrer') : undefined}
       onClose={() => {
@@ -270,8 +289,8 @@ function FormOpenContainer({ request, currentAppType, onClose, onAfterClose }) {
         if (typeof onAfterClose === 'function') onAfterClose();
       }}
     >
-      {/* antd body 的百分比高度链失效时，保留视口高度兜底，避免 iframe 回落到默认 150px。 */}
-      {iframeSrc ? <iframe title={title} src={iframeSrc} style={{ width: '100%', height: '100%', minHeight: 'calc(100vh - 56px)', border: 0, display: 'block' }} /> : null}
+      {/* iframe 填满 flex 分配的剩余空间，只由内页滚动，不按视口猜测标题高度。 */}
+      {iframeSrc ? <iframe title={title} src={iframeSrc} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', minHeight: 0, border: 0, display: 'block' }} /> : null}
     </CanvasDrawer>
   );
 }
@@ -346,11 +365,6 @@ function resolveConfigValue(value, fallback) {
   return isUnresolvedTemplate(value) ? fallback : String(value);
 }
 
-function readThemeColor(name, fallback) {
-  if (typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') return fallback;
-  return window.getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
-}
-
 function normalizeRows(rows) {
   const source = Array.isArray(rows) && rows.length ? rows : SAMPLE_ROWS;
   return source.map((row, index) => ({
@@ -367,7 +381,85 @@ function normalizeRows(rows) {
   }));
 }
 
+// @openyida-canvas-theme:start
+// Standalone samples keep this fragment identical; see canvas-theme.test.js.
+function readCanvasTheme(root, fallback) {
+  const roles = {
+    colorPrimary: '--color-brand1-6', colorLink: '--color-brand1-6',
+    colorPrimaryHover: '--color-brand1-5', colorPrimaryActive: '--color-brand1-9',
+    colorBgLayout: ['--pod-page-bg-color', '--color-white'],
+    colorBgContainer: ['--pod-card-bg-color', '--color-white'],
+    colorBgElevated: ['--pod-card-bg-color', '--color-white'], colorText: '--color-text1-4',
+    colorTextHeading: '--color-text1-4', colorTextSecondary: '--color-text1-3',
+    colorTextDescription: '--color-text1-3', colorTextPlaceholder: '--color-text1-10',
+    colorBorder: '--color-line1-2', colorBorderSecondary: '--color-line1-1',
+    colorFillAlter: '--color-fill1-1', colorFillSecondary: '--color-fill1-2',
+  };
+  const token = { ...fallback };
+  if (!root) return token;
+  const doc = root.ownerDocument;
+  const view = doc.defaultView;
+  const scope = view.getComputedStyle(root);
+  const probe = doc.createElement('span');
+  probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;';
+  root.appendChild(probe);
+  try {
+    Object.keys(roles).forEach((role) => {
+      const names = Array.isArray(roles[role]) ? roles[role] : [roles[role]];
+      const value = names.map((name) => scope.getPropertyValue(name).trim()).find(Boolean) || '';
+      if (!value || !view.CSS.supports('color', value)) return;
+      probe.style.color = value;
+      const color = view.getComputedStyle(probe).color;
+      if (color) token[role] = color;
+    });
+  } finally {
+    probe.remove();
+  }
+  return token;
+}
+
+function useCanvasTheme(fallback) {
+  const rootRef = React.useRef(null);
+  const fallbackRef = React.useRef(fallback);
+  const [token, setToken] = React.useState(fallback);
+  React.useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return undefined;
+    const doc = root.ownerDocument;
+    const view = doc.defaultView;
+    let frame;
+    const refresh = () => {
+      const next = readCanvasTheme(root, fallbackRef.current);
+      setToken((previous) => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
+    };
+    const schedule = () => {
+      view.cancelAnimationFrame(frame);
+      frame = view.requestAnimationFrame(refresh);
+    };
+    refresh();
+    // Observe only theme-bearing ancestors and stylesheet changes, not business DOM.
+    const observer = new view.MutationObserver(schedule);
+    for (let node = root; node; node = node.parentElement) {
+      observer.observe(node, { attributes: true });
+    }
+    if (doc.head) observer.observe(doc.head, { subtree: true, childList: true, characterData: true, attributes: true });
+    doc.addEventListener('load', schedule, true);
+    view.addEventListener('resize', schedule);
+    view.addEventListener('openyida:theme-change', schedule);
+    return () => {
+      observer.disconnect();
+      view.cancelAnimationFrame(frame);
+      doc.removeEventListener('load', schedule, true);
+      view.removeEventListener('resize', schedule);
+      view.removeEventListener('openyida:theme-change', schedule);
+    };
+  }, []);
+  return { rootRef, token };
+}
+// @openyida-canvas-theme:end
+
 function YidaComp(props) {
+  const { rootRef, token } = useCanvasTheme({ colorPrimary: "#1677ff", borderRadius: 9 });
   const rawAppType = props && props.appType ? props.appType : RAW_APP_TYPE;
   const rawFormUuid = props && props.formUuid ? props.formUuid : RAW_FORM_UUID;
   const appType = resolveConfigValue(rawAppType, 'APP_XXX');
@@ -461,15 +553,7 @@ function YidaComp(props) {
 
   return (
     <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: readThemeColor('--color-brand1-6', '#1677FF'),
-          colorInfo: readThemeColor('--color-brand1-6', '#1677FF'),
-          colorText: readThemeColor('--color-text1-4', '#1F2329'),
-          colorBgLayout: readThemeColor('--color-fill1-1', '#F5F6F7'),
-          borderRadius: 8,
-        },
-      }}
+      theme={{ token }}
       getPopupContainer={(triggerNode) => (triggerNode && triggerNode.parentElement) || document.body}
     >
       <style>{`
@@ -478,7 +562,7 @@ function YidaComp(props) {
           min-height: 100vh;
           box-sizing: border-box;
           padding: 24px;
-          background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)));
+          background: var(--pod-page-bg-color, var(--color-white, #fff));
           color: var(--color-text1-4);
         }
         .oys-shell {
@@ -536,7 +620,7 @@ function YidaComp(props) {
         }
       `}</style>
 
-      <div className="oys-page">
+      <div ref={rootRef} className="oys-page">
         <div className="oys-shell">
           <div className="oys-header">
             <div>

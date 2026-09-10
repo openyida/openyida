@@ -5,6 +5,7 @@ themeId: dark-focus-layered
 tokens:
   application-global: # 全应用 Token，原生页面和自定义页面共同使用
     colors:
+      "--pod-page-bg-color": "#F7F7F7" # neutral-gray；固定中性画布，不随主题色变化
       "--color-white": "#FFFFFF" # 全应用基础表面色
       "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值>" # 悬停色
       "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值>" # 品牌浅色，保留平台既有消费关系
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page: # 页面专属 Token，仅在指定自定义页生效
     colors:
-      "--oyd-page-background": "#F7F7F7" # neutral-gray；固定中性画布，不随主题色变化
       "--oyd-surface-soft": "#F3F3F3" # neutral-gray；固定中性弱表面
       "--oyd-stage-top": "#121212" # neutral-gray；固定中性深色舞台基底
       "--oyd-stage-bottom": "<由 --color-brand1-6 与 --oyd-stage-top 混合生成的低明度实际色值>"
@@ -109,7 +109,7 @@ tokens:
 
 | 设计母体 | 可见证据与置信度 | 复用规则与实现钩子 | 缺失后的失败表现 |
 | --- | --- | --- | --- |
-| 中性灰画布上的白色分析浮岛 | 页面底色为中性浅灰，数据模块使用纯白大圆角面板，阴影极弱，主要靠明度差与留白分层。`observed` | 画布消费 `--oyd-page-background`，一级面板消费 `--color-white`、`--corner-5` 和极弱中性阴影；主题色变化不得染色普通面板。 | 会退化成纯白后台页面，丢失柔和画布和精致浮岛感。 |
+| 中性灰画布上的白色分析浮岛 | 页面底色为中性浅灰，数据模块使用纯白大圆角面板，阴影极弱，主要靠明度差与留白分层。`observed` | 画布消费 `--pod-page-bg-color`，一级面板消费 `--color-white`、`--corner-5` 和极弱中性阴影；主题色变化不得染色普通面板。 | 会退化成纯白后台页面，丢失柔和画布和精致浮岛感。 |
 | 深色聚焦横向摘要舞台 | 首屏存在一块全宽深色渐变舞台，顶部保留标题说明，底部排列多个半透明指标单元，并在下沿形成主题色派生光带。`observed` | `summary_stage` 使用中性 `--oyd-stage-top` 到由 `--color-brand1-6` 派生的低明度同色相渐变；指标单元消费 `--oyd-stage-card`、`--oyd-stage-border` 和白色文字。换色时只重算派生光带，不改变深色舞台与横向指标阵列。 | 页面会变成普通白色 KPI 卡组，失去最强视觉识别点和首屏聚焦。 |
 | 同色相热力矩阵与离散色阶 | 主分析区使用规则小方格表达二维强度分布，色阶从近白中性色过渡到当前主题色，顶部带筛选和离散图例。`observed` | `intensity_matrix` 使用由 `--color-brand1-6` 派生的 5 档 `--oyd-heat-1 / --oyd-heat-2 / --oyd-heat-3 / --oyd-heat-4 / --oyd-heat-5` 色阶、统一小圆角单元、固定行列间距和清楚的横纵标签；数据和维度由 PRD 决定。 | 若替换为普通折线图或连续彩虹热图，页面会失去精密、可扫描的矩阵纹理。 |
 | 纹理化三柱对比 | 辅助分析面板以三根宽柱表达并列比例：一根主题色斜纹、一根深色实心、一根浅色实心，标签悬浮于柱顶。`observed` | `ratio_triptych` 保留三类材质、统一圆角、底部对齐和顶部浮动标签；颜色可随主题同色相适配，但斜纹/深色/浅色的材质对比不可改变。 | 会退化为普通同色柱图，失去鲜明材质差和小面板记忆点。 |
@@ -151,7 +151,7 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔线、表格行分隔线和辅助线 | `--color-line1-1` | 应用全局 |
 | 输入框、按钮和面板常规边界 | `--color-line1-2` | 应用全局 |
-| 页面底层中性灰画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层中性灰画布 | `--pod-page-bg-color` | 自定义页 |
 | 面板、卡片、弹窗和表单容器 | `--color-white` | 应用全局 |
 | 分段控件、弱状态和内嵌工具区 | `--oyd-surface-soft` | 自定义页 |
 | 摘要舞台深色上沿和同色相下沿 | `--oyd-stage-top` / `--oyd-stage-bottom` | 自定义页 |
