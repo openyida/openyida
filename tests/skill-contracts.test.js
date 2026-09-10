@@ -679,6 +679,14 @@ describe('OpenYida skill contracts', () => {
     expect(skill).not.toContain('去 sample 化检查');
     expect(requirementAnalysis).toContain('来源识别、内容读取、需求理解与澄清');
     expect(requirementAnalysis).toContain('workflow/prepare-brief.md');
+    const requirementBrief = readSkill('yida-skills/skills/yida-requirement-analysis/workflow/prepare-brief.md');
+    const designMode = readSkill('yida-skills/skills/yida-design/references/design-mode.md');
+    expect(requirementBrief).toContain('立即把草稿的 `intake.designMode` 设为 `plan`');
+    expect(requirementBrief).toContain('已锁定的搭建方式不再进入提问选项');
+    expect(requirementBrief).toContain('不能因为回答里没有重复提到模式');
+    expect(requirementBrief).toContain('写回值必须与提问前一致');
+    expect(appStep2).toContain('显式搭建方式属于本次任务的粘性输入');
+    expect(designMode).toContain('回答未重复提到模式不代表改选');
     expect(prd).toContain('生成 `prd/<项目名>/prd.md`');
     expect(prd).toContain('基于输入事实');
     expect(design).toContain('输出 `design.md`');
