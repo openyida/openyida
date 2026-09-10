@@ -28,6 +28,34 @@ function isSampleRoutingGuidanceFile(file) {
 }
 
 describe('OpenYida skill contracts', () => {
+  test('Plan keeps explicit resource-only delivery narrow and writes its first business part once', () => {
+    const requirement = readSkill('yida-skills/skills/yida-requirement-analysis/SKILL.md');
+    const prepareBrief = readSkill('yida-skills/skills/yida-requirement-analysis/workflow/prepare-brief.md');
+    const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
+    const planWorkflow = readSkill('yida-skills/skills/yida-app/workflow/plan/workflow.md');
+    const parallel = readSkill('yida-skills/skills/yida-app/workflow/parallel-work.md');
+    const planBusiness = readSkill('yida-skills/skills/yida-prd/workflow/plan-business.md');
+    const compactSchema = readSkill('yida-skills/skills/yida-design/sub_skill/yida-design-plan/references/build-plan-compact-schema.md');
+    const formsStep = readSkill('yida-skills/skills/yida-app/workflow/step-4-forms-processes.md');
+
+    expect(requirement).toContain('`allowInferredResources:false`');
+    expect(prepareBrief).toContain('不把“应用”自动扩展为示例数据、工作台、自定义列表或其他未点名资源');
+    expect(app).toContain('即使需求背景使用“应用/系统”');
+    expect(app).toContain('窄范围停止点');
+    expect(planWorkflow).toContain('命令第一次就传入 `visualSelection.themeId`');
+    expect(planWorkflow).toContain('不再额外读取 `step-1-understand.md` 或 `step-2-confirm.md`');
+    expect(planWorkflow).toContain('先 Read 该文件');
+    expect(planWorkflow).toContain('绝不写 `visualStyle`');
+    expect(planWorkflow).toContain('只物化一次');
+    expect(parallel).toContain('业务任务必须先读后写');
+    expect(planBusiness).toContain('普通表单的 sampleDataPlan 用 skipReason');
+    expect(compactSchema).toContain('避免用多轮 materialize 探测必填字段');
+    expect(app).toContain('禁止用 Glob 查找 Plan 文件');
+    expect(app).toContain('不要再调用 `get-schema`、`list-forms`');
+    expect(formsStep).toContain('成功结果已包含真实 formUuid/链接时，直接交付并停止');
+    expect(prepareBrief).toContain('不要留到 `design-plan init` 失败后再选择');
+  });
+
   test('agent-facing docs use token auth wording instead of legacy cookie login guidance', () => {
     const docs = [
       'AGENTS.md',
@@ -1501,12 +1529,24 @@ describe('OpenYida skill contracts', () => {
 
   test('full app creates dependent forms in one batch and delivers only authoritative URLs', () => {
     const formStep = readSkill('yida-skills/skills/yida-app/workflow/step-4-forms-processes.md');
+    const formSkill = readSkill('yida-skills/skills/yida-create-form-page/SKILL.md');
+    const batchForms = readSkill('yida-skills/skills/yida-create-form-page/references/batch-forms.md');
     const finishStep = readSkill('yida-skills/skills/yida-app/workflow/step-9-output-finish.md');
 
     expect(formStep).toContain('同一个 `forms.json`');
     expect(formStep).toContain('只调用一次 `openyida create-form batch`');
     expect(formStep).toContain('`dependsOn` / `$form`');
+    expect(formStep).toContain('Write 的绝对路径与 Bash');
+    expect(formStep).toContain('收到 background pending 后也不要重试 batch');
     expect(formStep).not.toContain('关联表单等待前置表单完成');
+    expect(formSkill).toContain('<workspace>/project/.cache/openyida/<项目名>/forms.json');
+    expect(formSkill).toContain('先用 Read 确认任务文件存在');
+    expect(formSkill).toContain('batch 返回 background pending 时等待运行时投递完成结果');
+    expect(formSkill).toContain('不要再调用 `create-form batch --help`、`create-form batch --check`');
+    expect(formSkill).toContain('执行普通批量创建无需再查 help、sample 或 CLI 源码');
+    expect(formSkill).toContain('确认 `projectRoot` → Write 一个任务文件 → Read 确认文件 → 唯一一次真实 batch');
+    expect(formSkill).toContain('"formUuid": { "$form": "customer" }');
+    expect(batchForms).toContain('pending 不是失败，也不是重试信号');
     expect(finishStep).toContain('CLI 成功结果返回的 `appUrl`、`workbenchUrl` 或 `url`');
     expect(finishStep).toContain('不得由模型根据 `appType` 自行拼接');
   });

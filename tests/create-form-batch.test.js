@@ -3,7 +3,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { run, parseArgs, loadPlan, schedule, mapReferences, parseOutput } = require('../lib/app/create-form/batch');
+const { run, parseArgs, loadPlan, schedule, mapReferences, parseOutput, execute } = require('../lib/app/create-form/batch');
 
 describe('dependency-aware form batches', () => {
   let dir;
@@ -163,5 +163,25 @@ describe('dependency-aware form batches', () => {
     expect(parseOutput('progress\n{"success":false,"formUuid":"FORM-A"}\n')).toEqual({ success: false, formUuid: 'FORM-A' });
     expect(parseOutput('progress\n{"success":false,"formUuid":"FORM-A"}\n{"success":false,"errorCode":"ERROR"}').formUuid).toBe('FORM-A');
     expect(() => parseArgs(['APP_X', file, '--concurrency', '0'])).toThrow();
+  });
+
+  test('child-process failures preserve structured stderr diagnostics', async () => {
+    const execFile = jest.fn((_command, _args, _options, callback) => {
+      callback(
+        Object.assign(new Error('Command failed'), { code: 1 }),
+        '',
+        'request failed\n{"success":false,"error":"HTTP 409 concurrent mutation","formUuid":"FORM-PARTIAL"}\n',
+      );
+    });
+
+    await expect(execute(['create-form', 'create', 'APP_X', '产品', '[]'], { execFile }))
+      .rejects.toMatchObject({
+        message: 'HTTP 409 concurrent mutation',
+        output: {
+          success: false,
+          error: 'HTTP 409 concurrent mutation',
+          formUuid: 'FORM-PARTIAL',
+        },
+      });
   });
 });

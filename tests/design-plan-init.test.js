@@ -4,7 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { initialize } = require('../lib/design-plan/init');
-const { materialize } = require('../lib/design-plan/materialize');
+const { materialize, normalizePlan } = require('../lib/design-plan/materialize');
 const { collectIssues } = require('../lib/design-plan/validate');
 
 const fixture = () => JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/design-plan.json'), 'utf8'));
@@ -48,10 +48,16 @@ test('initializes stable references, preserves explicit facts and returns a boun
   expect(plan.execution.explicitScope.navigation.variant).toBe('top');
   expect(result.parallelTasks.map(task => [task.id, task.dependsOn])).toEqual([['business', []]]);
   expect(result.preparedInputs.visual).toBe(result.parallelTasks[0].output.replace('business.json', 'visual.json'));
+  expect(result.materialize).toMatchObject({ mode: 'complete_files_once', maxCalls: 1 });
+  expect(result.materialize.command).toContain('--business-file');
+  expect(result.materialize.command).toContain('--visual-file');
+  expect(result.preview).toBeUndefined();
   expect(result.optionalTasks.map(task => [task.id, task.dependsOn])).toEqual([['visual-refinement', ['business']]]);
   const businessPart = JSON.parse(fs.readFileSync(result.parallelTasks[0].output, 'utf8'));
   const visualPart = JSON.parse(fs.readFileSync(result.preparedInputs.visual, 'utf8'));
   expect(businessPart.base).toEqual(require('../lib/design-plan/parallel').planBase(plan));
+  expect(Object.keys(businessPart.facts)).toEqual(['overview', 'dataModels', 'businessFlows', 'pages', 'execution']);
+  expect(businessPart.facts.overview.summary).toBe('跟进采购');
   expect(visualPart.base).toEqual(businessPart.base);
   expect(visualPart.ready).toBe(true);
   expect(visualPart.facts.visualStyle).toEqual(plan.visualStyle);
@@ -64,6 +70,114 @@ test('initializes stable references, preserves explicit facts and returns a boun
   expect(fs.readFileSync(briefPath, 'utf8')).toBe(original);
   expect(() => materialize(result.output)).toThrow();
   expect(fs.existsSync(path.join(dir, 'prd/prd.md'))).toBe(false);
+});
+
+test('normalizes a single business goal string without crashing', () => {
+  brief.businessGoals = '只完成回访记录表单';
+  save();
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  expect(plan.overview.summary).toBe('只完成回访记录表单');
+});
+
+test('prefills resource-only execution with deterministic sample-data skips and root resource context', () => {
+  brief.appName = undefined;
+  brief.projectDisplayName = '采购协作显示名';
+  brief.resourceContext = { appType: 'APP_ROOT_CONTEXT' };
+  brief.explicitScope = { forms: ['采购订单'], allowInferredResources: false };
+  save();
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  const business = JSON.parse(fs.readFileSync(result.preparedInputs.business, 'utf8'));
+  expect(plan.meta.appName).toBe('采购协作显示名');
+  expect(plan.execution.appConfig.appType).toBe('APP_ROOT_CONTEXT');
+  expect(business.facts.execution.sampleDataPlan).toEqual([
+    { form: '采购订单', skipReason: '本轮显式窄范围不包含示例数据' },
+  ]);
+  expect(result.preparedInputs.businessReady).toBe(true);
+  expect(result.parallelTasks).toEqual([]);
+});
+
+test('infers a complete form-only scope and drops an unconfirmed custom page invention', () => {
+  brief.intake.confirmed = false;
+  brief.pageScenes = [{ key: 'visit-form', name: '回访记录表', kind: 'form', purpose: '登记回访' }];
+  brief.explicitScope = {
+    forms: [{ name: '回访记录表', fields: [{ name: '客户名称', type: 'text', required: true }] }],
+    pages: [{ key: 'invented-workbench', name: '臆造工作台', kind: 'custom-page' }],
+    delivery: ['回访记录表单'],
+  };
+  save();
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  expect(plan.execution.explicitScope).toMatchObject({ allowInferredResources: false, pages: [] });
+  expect(plan.pages.customPageDetails).toEqual([]);
+  expect(plan.dataModels).toHaveLength(1);
+  expect(plan.dataModels[0].name).toBe('回访记录表');
+  expect(result.preparedInputs.businessReady).toBe(true);
+  expect(result.parallelTasks).toEqual([]);
+  expect(materialize(result.output, {
+    businessFile: result.preparedInputs.business,
+    visualFile: result.preparedInputs.visual,
+  }).success).toBe(true);
+});
+
+test('normalizes equivalent role, sample-record and navigation authoring shapes before validation', () => {
+  const plan = fixture();
+  plan.schemaVersion = '2.0';
+  plan.overview.rolePermissionSummary = [{ role: '采购专员', permissions: '维护采购申请' }];
+  plan.dataModels[0].formType = '宜搭表单';
+  plan.dataModels[0].fields[0].key = 'amount';
+  plan.dataModels[0].fields[0].fieldType = plan.dataModels[0].fields[0].type;
+  delete plan.dataModels[0].fields[0].type;
+  plan.dataModels[0].sampleRecords = [{ purpose: '验收记录', fields: { amount: 100 } }];
+  plan.visualStyle.forUser.navigationStyle.structure = 'platform-side';
+  const normalized = normalizePlan(plan);
+  expect(normalized.overview.rolePermissionSummary).toEqual(['采购专员：维护采购申请']);
+  expect(normalized.dataModels[0].sampleRecords).toEqual([{ 申请金额: 100 }]);
+  expect(normalized.dataModels[0].fields[0]).toMatchObject({ type: expect.any(String) });
+  expect(normalized.dataModels[0].fields[0]).not.toHaveProperty('fieldType');
+  expect(normalized.visualStyle.forUser.navigationStyle.structure).toBe('side');
+  expect(collectIssues(normalized)).toEqual([]);
+});
+
+test('drops actor edges from the table-only business graph', () => {
+  const plan = fixture();
+  plan.schemaVersion = '2.0';
+  plan.overview.businessGraph.relations = [
+    { from: '采购专员', label: '创建', to: plan.dataModels[0].name },
+    { from: plan.dataModels[0].name, label: '自关联', to: plan.dataModels[0].name },
+  ];
+  const normalized = normalizePlan(plan);
+  expect(normalized.overview.businessGraph.relations).toEqual([
+    { from: plan.dataModels[0].name, label: '自关联', to: plan.dataModels[0].name },
+  ]);
+});
+
+test('resource-only execution excludes theme, seed and navigation work', () => {
+  const plan = fixture();
+  plan.schemaVersion = '2.0';
+  plan.execution = { explicitScope: { forms: [plan.dataModels[0].name], allowInferredResources: false } };
+  const input = path.join(dir, 'resource-only-plan.json');
+  fs.writeFileSync(input, JSON.stringify(plan));
+  const result = materialize(input);
+  const prd = fs.readFileSync(result.outputs.prd, 'utf8');
+  expect(prd).not.toContain('- 应用与主题配置');
+  expect(prd).not.toContain('- 初始示例数据');
+  expect(prd).not.toContain('- 发布与导航排序');
+  expect(prd).not.toContain('- 应用主题按 design.md 配置');
+  expect(prd).toContain('本轮显式窄范围不执行导航排序');
+});
+
+test('normalizes omitted sample data to an explicit skip for resource-only plans', () => {
+  const plan = fixture();
+  plan.schemaVersion = '2.0';
+  plan.dataModels[0].formType = '宜搭表单';
+  plan.execution = {};
+  plan.execution.explicitScope = { forms: ['采购申请'], allowInferredResources: false };
+  const normalized = normalizePlan(plan);
+  expect(normalized.execution.sampleDataPlan).toEqual(
+    plan.dataModels.map(model => ({ form: model.name, skipReason: '本轮显式窄范围不包含示例数据' })),
+  );
 });
 
 test('preserves an explicit neutral reference palette at intake', () => {
@@ -111,6 +225,30 @@ test.each([
 ])('rejects unconfirmed or invalid intake without writing files', change => {
   change(brief); save();
   expect(init).toThrow();
+  expect(fs.existsSync(path.join(dir, 'prd'))).toBe(false);
+});
+
+test('diagnoses a projectName misplaced under meta without writing files', () => {
+  brief.meta = { projectName: brief.projectName };
+  delete brief.projectName;
+  save();
+
+  try {
+    init();
+    throw new Error('initialization should fail');
+  } catch (error) {
+    expect(error).toMatchObject({
+      code: 'DESIGN_PLAN_PROJECT_NAME_MISPLACED',
+      details: {
+        expectedPath: 'projectName',
+        actualPath: 'meta.projectName',
+        nextAction: 'move_project_name_to_root',
+        retryable: true,
+        retrySafe: true,
+      },
+    });
+    expect(error.message).toContain('不要更换项目名');
+  }
   expect(fs.existsSync(path.join(dir, 'prd'))).toBe(false);
 });
 

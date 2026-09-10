@@ -24,6 +24,7 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 - 不要用此命令操作数据记录（增删改查），应使用 `yida-data-management`
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成字段、变更、补丁、规则、数据源 JSON 文件
 - OpenYida CLI 不要加 `2>/dev/null`；失败时保留 stdout/stderr 诊断，遇到 DENIED 或重复失败必须换策略
+- 多表单 batch 契约已在本技能给出时，不要再调用 `create-form batch --help`、`create-form batch --check`，也不要搜索 CLI 安装目录或源码来探测格式；这些调用同样占用本轮唯一一次 batch 调用名额
 - 已有目标表单且用户是改字段/联动/属性时，不要创建新表单；必须走 update/patch/rule/bind-datasource。
 - 不要用 `GroupContainer` / `PageSection` 承载普通业务分组；普通分组必须优先用 `Divider`
 - 严禁为原生表单或 `formDetail` 生成、注入 CSS、JS、HTML 或主题代码；详情页由平台渲染。
@@ -58,7 +59,37 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 
 ## 多表单创建
 
-同一轮需要新建两个及以上普通表单时，必须按 [并行创建表单](references/batch-forms.md) 把全部表单写入同一个 `forms.json`，并且只调用一次 `openyida create-form batch <appType> <任务文件> --json`。独立表单和关联表单放在同一任务文件中，依赖通过 `dependsOn` / `$form` 表达，由 CLI 在一次 batch 内部完成分组、真实 `formUuid/fieldId` 回读和依赖调度；不要手工拆成多次 batch，也不要逐个调用 `create-form create`。只有修改已有表单、恢复已有 `formUuid`，或当前 batch 契约无法表达依赖时，才走明确的非 batch 路径并说明原因。
+同一轮需要新建两个及以上普通表单时，必须按 [并行创建表单](references/batch-forms.md) 把全部表单写入同一个 `forms.json`，并且只调用一次 `openyida create-form batch <appType> <任务文件> --json`。独立表单和关联表单放在同一任务文件中，依赖通过 `dependsOn` / `$form` 表达，由 CLI 在一次 batch 内部完成分组、真实 `formUuid/fieldId` 回读和依赖调度；不要手工拆成多次 batch，也不要逐个调用 `create-form create`。调用前先确认 CLI 的实际项目根目录，并让 Write 创建的绝对路径与 Bash 使用的任务文件指向同一个物理文件：常见 `<workspace>/project` 布局中应写入 `<workspace>/project/.cache/openyida/<项目名>/forms.json`，再从该项目根传 `.cache/openyida/<项目名>/forms.json`。先用 Read 确认任务文件存在，不要通过试跑 batch 探测路径。batch 返回 background pending 时等待运行时投递完成结果，不得再次调用 batch。只有修改已有表单、恢复已有 `formUuid`，或当前 batch 契约无法表达依赖时，才走明确的非 batch 路径并说明原因。
+
+主技能内的最小任务文件契约如下，执行普通批量创建无需再查 help、sample 或 CLI 源码：
+
+```json
+{
+  "forms": [
+    { "key": "customer", "title": "客户", "fields": [{ "type": "TextField", "label": "客户名称", "required": true }] },
+    { "key": "contact", "title": "联系人", "fields": [{ "type": "TextField", "label": "联系人姓名", "required": true }] },
+    {
+      "key": "relation",
+      "title": "客户联系人关系",
+      "dependsOn": ["customer", "contact"],
+      "fields": [{
+        "type": "AssociationFormField",
+        "label": "关联客户",
+        "associationForm": {
+          "appType": "APP_XXX",
+          "formUuid": { "$form": "customer" },
+          "formTitle": "客户",
+          "mainFieldId": { "$form": "customer", "field": "客户名称" },
+          "mainFieldLabel": "客户名称",
+          "mainComponentName": "TextField"
+        }
+      }]
+    }
+  ]
+}
+```
+
+`fieldsFile` 也可替代内联 `fields`，其路径相对 `forms.json` 所在目录；每项还可设置 `icon`、`locale`，已有完整表单可提供 `formUuid` 回读复用。普通多表单创建的执行顺序固定为：确认 `projectRoot` → Write 一个任务文件 → Read 确认文件 → 唯一一次真实 batch → 使用 batch 结果和必要的 compact `get-schema` 回读。
 
 ## 官方表单示例范式
 
