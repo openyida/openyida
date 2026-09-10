@@ -291,20 +291,20 @@ describe('dependency-aware form batches', () => {
     expect(() => parseArgs(['APP_X', file, '--concurrency', '0'])).toThrow();
   });
 
-  test('preserves structured child diagnostics from stderr on command failure', async () => {
+  test('merges partial resource identity with structured child diagnostics on failure', async () => {
     const stdout = 'progress\n{"formUuid":"FORM-HALF-A"}\n';
-    const stderr = '{"success":false,"errorCode":"SAVE_FAILED","errorMsg":"schema save failed"}\n';
+    const stderr = '{"success":false,"errorCode":"SAVE_FAILED","message":"schema save failed"}\n';
     expect(mergeCommandOutput(stdout, stderr, true)).toEqual({
       formUuid: 'FORM-HALF-A',
       success: false,
       errorCode: 'SAVE_FAILED',
-      errorMsg: 'schema save failed',
+      message: 'schema save failed',
     });
 
     const execFileImpl = jest.fn((runtime, argv, options, callback) => {
       callback(new Error('Command failed'), stdout, stderr);
     });
-    await expect(execute(['create-form', 'create'], execFileImpl)).rejects.toMatchObject({
+    await expect(execute(['create-form', 'create'], { execFile: execFileImpl })).rejects.toMatchObject({
       message: 'schema save failed',
       output: {
         formUuid: 'FORM-HALF-A',
@@ -314,23 +314,15 @@ describe('dependency-aware form batches', () => {
     });
   });
 
-  test('child-process failures preserve structured stderr diagnostics', async () => {
-    const execFile = jest.fn((_command, _args, _options, callback) => {
-      callback(
-        Object.assign(new Error('Command failed'), { code: 1 }),
-        '',
-        'request failed\n{"success":false,"error":"HTTP 409 concurrent mutation","formUuid":"FORM-PARTIAL"}\n',
-      );
+  test.each([
+    ['errorMsg', 'schema save failed'],
+    ['error', 'HTTP 409 concurrent mutation'],
+  ])('uses structured %s before raw stderr diagnostics', async (field, message) => {
+    const execFileImpl = jest.fn((_command, _args, _options, callback) => {
+      callback(new Error('Command failed'), '', `request failed\n${JSON.stringify({ success: false, [field]: message })}\n`);
     });
 
-    await expect(execute(['create-form', 'create', 'APP_X', '产品', '[]'], { execFile }))
-      .rejects.toMatchObject({
-        message: 'HTTP 409 concurrent mutation',
-        output: {
-          success: false,
-          error: 'HTTP 409 concurrent mutation',
-          formUuid: 'FORM-PARTIAL',
-        },
-      });
+    await expect(execute(['create-form', 'create'], { execFile: execFileImpl }))
+      .rejects.toMatchObject({ message, output: { success: false, [field]: message } });
   });
 });
