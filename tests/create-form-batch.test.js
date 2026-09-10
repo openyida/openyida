@@ -313,4 +313,24 @@ describe('dependency-aware form batches', () => {
       },
     });
   });
+
+  test('child-process failures preserve structured stderr diagnostics', async () => {
+    const execFile = jest.fn((_command, _args, _options, callback) => {
+      callback(
+        Object.assign(new Error('Command failed'), { code: 1 }),
+        '',
+        'request failed\n{"success":false,"error":"HTTP 409 concurrent mutation","formUuid":"FORM-PARTIAL"}\n',
+      );
+    });
+
+    await expect(execute(['create-form', 'create', 'APP_X', '产品', '[]'], { execFile }))
+      .rejects.toMatchObject({
+        message: 'HTTP 409 concurrent mutation',
+        output: {
+          success: false,
+          error: 'HTTP 409 concurrent mutation',
+          formUuid: 'FORM-PARTIAL',
+        },
+      });
+  });
 });

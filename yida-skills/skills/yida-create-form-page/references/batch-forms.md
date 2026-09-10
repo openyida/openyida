@@ -6,6 +6,8 @@
 openyida create-form batch <appType> .cache/openyida/<项目名>/forms.json --json
 ```
 
+这条相对路径以 CLI 的实际项目根目录为准。先确认项目根，再让文件工具的写入位置和 Bash 参数落到同一个物理文件；例如项目根是 `<workspace>/project` 时，Write 应创建 `<workspace>/project/.cache/openyida/<项目名>/forms.json`，Bash 从 `<workspace>/project` 执行并传 `.cache/openyida/<项目名>/forms.json`。调用前用 Read 确认文件存在，不要用 batch 试错路径。
+
 ## 任务文件
 
 ```json
@@ -64,5 +66,6 @@ batch 会在预校验前把紧凑写法规范化为下面的完整结构；前�
 - 当前批次返回 `success:false` 时，以返回的 `results`、子命令诊断和 `.state.json` 为准停止本轮创建；不得为补齐失败项改用单条 `create-form create`，也不得把剩余项拆成新的 batch。修正输入或为已知资源补入 `formUuid` 后，后续恢复仍使用原任务文件执行 batch。
 - 恢复失败任务前，核对已创建资源并修复。准备新任务文件时，用 `formUuid` 复用完整表单，仅为确认尚未创建的表单保留创建任务。
 - `.lock` 防止同一任务重复启动。进程异常退出遗留锁时，确认原进程已结束、核对已创建资源后再清理。
+- 首次 batch 返回 background pending 时等待运行时自动投递完成结果；pending 不是失败，也不是重试信号，不得再次调用 batch。
 
 已有表单的字段修改仍使用 update/patch 等命令；不同表单可分别更新，同一张表单由一个任务维护。流程审批按 `yida-create-process` 执行，等待其依赖的表单就绪后再配置。

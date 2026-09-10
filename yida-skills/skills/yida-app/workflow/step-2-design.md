@@ -21,6 +21,8 @@
 - Fast：继续 2.2–2.3；已有详细需求直接作为规划基础。
 - Plan：执行 [Plan 编排](plan/workflow.md)，用户确认当前方案后完成主题交接并进入 Step 3。
 
+Plan 分支从已加载 `yida-app` 的 Available Files 读取精确路径 `workflow/plan/workflow.md`；不要把当前文件名当目录拼成 `workflow/step-2-design/plan/workflow.md`，也不要用 Glob 猜路径。
+
 共享需求只整理一次。创建出的资源 ID 写入执行上下文；用户需求或范围实质变化时再更新需求与相关规划。需求文件与实施文档供内部执行，Plan 的 HTML 用于用户查看和确认方案。
 
 ## 2.2 同时生成 PRD 和视觉设计
