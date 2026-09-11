@@ -629,12 +629,19 @@ describe('ReportGenerator', () => {
 
   test('未知格式默认生成 Markdown', () => {
     const tmpDir = createTempProject();
-    const reporter = new ReportGenerator({ projectRoot: tmpDir });
-    const reportPath = reporter.generate(mockResults, mockSummary, 'unknown');
+    const mockWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const reporter = new ReportGenerator({ projectRoot: tmpDir });
+      const reportPath = reporter.generate(mockResults, mockSummary, 'unknown');
 
-    expect(reportPath).toContain('.md');
-
-    cleanupTempDir(tmpDir);
+      expect(reportPath).toContain('.md');
+      expect(fs.existsSync(reportPath)).toBe(true);
+      expect(mockWarn).toHaveBeenCalledTimes(1);
+      expect(mockWarn).toHaveBeenCalledWith('未知报告格式：unknown，使用 markdown');
+    } finally {
+      mockWarn.mockRestore();
+      cleanupTempDir(tmpDir);
+    }
   });
 });
 

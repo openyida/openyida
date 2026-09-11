@@ -294,7 +294,7 @@ data-emphasis → tokens.custom-page.typography.data-emphasis
 
 ### 素材要求
 
-- 已有品牌与真实素材：{{BRAND_ASSETS}}
+- 页面图片需求：{{PAGE_IMAGE_NEEDS}}
 - 素材缺口：{{ASSET_GAPS}}
 - 图标、图表数据、头像、缩略内容和辅助图形必须有真实来源；没有素材时使用中性占位，不编造人物、机构、指标、联系方式、品牌或外部资源地址。
 

@@ -21,12 +21,21 @@ const auth = { baseUrl: 'https://example.com', csrfToken: 'csrf' };
 const style = { enabled: true, iframePropagation: false, cssUrl: 'https://example.com/desert.css', cssFileName: 'desert.css' };
 const saved = { colour: 'custom', themeColor: '#C89B5A', customThemeStyle: JSON.stringify(style), hideAppNav: 'y' };
 const response = (content) => ({ success: true, content });
+let errorSpy;
+let stderrSpy;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  stderrSpy = jest.spyOn(process.stderr, 'write').mockReturnValue(true);
   createAuthRef.mockReturnValue(auth);
   httpPost.mockResolvedValue(response(true));
   uploadCustomThemeFile.mockResolvedValue(response({ url: style.cssUrl, name: style.cssFileName }));
+});
+
+afterEach(() => {
+  errorSpy.mockRestore();
+  stderrSpy.mockRestore();
 });
 
 test.each([

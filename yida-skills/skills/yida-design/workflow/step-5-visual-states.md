@@ -72,7 +72,8 @@
 
 - 官网、产品首页、品牌页、视觉化工作台默认要有真实图片或生成图片。
 - 强视觉官网至少形成“场景 Hero + 产品/服务 + 过程/空间”的素材故事。
-- 素材暂缺时标注 draft，并写清缺口，例如 heroImage、productImages、brandLogo、caseImages。
+- 素材暂缺时标注 `draft`，并按 `slotId` 写清缺口。
+- 逐页写 `imageNeed: required|beneficial|none`；需要图片时列出槽位、比例、尺寸、焦点、填充方式和生成许可。
 - 图标只使用 `lucide-react` 或 `@ant-design/icons`，默认使用 `lucide-react`。在 `design.md` 中输出 `iconSystem`、尺寸、描边/Outlined 风格、`actionIconMap`、`statusIconMap`、`navigationIconMap` 和 `emptyStateIconMap`，把新增、查询、刷新、查看、入库、出库、组织、告警、完成等业务语义映射到具体图标组件。emoji 不能退成 CSS 形状、字母占位、Unicode 符号或临时 SVG。
 
 ## 5. 检查页面是否像真实产品

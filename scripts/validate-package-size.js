@@ -10,16 +10,16 @@ const path = require('path');
 // Budgets are ratchets that track legitimate content growth (12 locale packs,
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
-const MAX_TARBALL_BYTES = 1808 * 1024;
+// Node 20 / npm 10 produces 1870752 bytes for the same 508 files;
+// compressed sizes vary by Node/npm/zlib. Round up to the next 16 KiB boundary.
+const MAX_TARBALL_BYTES = 1840 * 1024;
 // Includes Canvas theme Provider, navigation content sample, design guidance,
-// phase 6 batch recovery/readback, scoped diagnostics, and the two-option
-// navigation intake, platform-layout guidance, and process append/forward
-// compiler, help, skill reference, and Canvas report integration
-// (6356027 unpacked bytes);
+// ImageField attachment delivery, process append/forward, and Canvas report
+// integration (6389761 unpacked bytes);
 // round up to the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 6224 * 1024;
-// Includes the process action compiler/reference and CLI report integration.
-const MAX_ENTRY_COUNT = 501;
+const MAX_UNPACKED_BYTES = 6256 * 1024;
+// Includes asset delivery, process action files, and CLI report integration.
+const MAX_ENTRY_COUNT = 508;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -30,6 +30,8 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-app/workflow/incremental-preview.md',
   'yida-skills/skills/yida-create-form-page/references/batch-forms.md',
   'lib/core/utils.js',
+  'lib/asset/asset-plan.js',
+  'lib/asset/attachment-upload.js',
   'lib/process/services/process-actions.js',
   'project/config.json',
   'scripts/postinstall.js',
@@ -63,6 +65,10 @@ function formatBytes(bytes) {
     return `${(bytes / 1024).toFixed(1)} KiB`;
   }
   return `${(bytes / 1024 / 1024).toFixed(2)} MiB`;
+}
+
+function sizeLimitMessage(label, actual, limit) {
+  return `${label} is ${formatBytes(actual)} (${actual} bytes), above ${formatBytes(limit)} (${limit} bytes) by ${actual - limit} bytes`;
 }
 
 function fail(message) {
@@ -120,7 +126,7 @@ function validateLargestFiles(files) {
   const sorted = [...files].sort((a, b) => b.size - a.size);
   const oversized = sorted.find(file => file.size > MAX_SINGLE_FILE_BYTES);
   if (oversized) {
-    fail(`${oversized.path} is ${formatBytes(oversized.size)}, above ${formatBytes(MAX_SINGLE_FILE_BYTES)}`);
+    fail(sizeLimitMessage(oversized.path, oversized.size, MAX_SINGLE_FILE_BYTES));
   }
 
   return sorted.slice(0, 5).map(file => `${file.path} (${formatBytes(file.size)})`);
@@ -181,10 +187,10 @@ function run() {
   const largestFiles = validateLargestFiles(files);
 
   if (pack.size > MAX_TARBALL_BYTES) {
-    fail(`tarball is ${formatBytes(pack.size)}, above ${formatBytes(MAX_TARBALL_BYTES)}`);
+    fail(sizeLimitMessage('tarball', pack.size, MAX_TARBALL_BYTES));
   }
   if (pack.unpackedSize > MAX_UNPACKED_BYTES) {
-    fail(`unpacked package is ${formatBytes(pack.unpackedSize)}, above ${formatBytes(MAX_UNPACKED_BYTES)}`);
+    fail(sizeLimitMessage('unpacked package', pack.unpackedSize, MAX_UNPACKED_BYTES));
   }
   if (pack.entryCount > MAX_ENTRY_COUNT) {
     fail(`package has ${pack.entryCount} files, above ${MAX_ENTRY_COUNT}`);

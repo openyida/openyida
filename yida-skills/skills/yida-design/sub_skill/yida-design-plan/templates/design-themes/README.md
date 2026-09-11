@@ -56,7 +56,7 @@
 | `{{PRODUCT_TOPOLOGY_APPLICATION}}` | `visualStyle.forDesignMd.productTopologyApplication` |
 | `{{PAGE_PATTERN_SUMMARY}}` | `pages.customPageDetails[]` 的页面模式与内容丰富度摘要 |
 | `{{PAGE_APPLICATIONS}}` | materialize 根据页面事实、主题标准和 `visualStyle.forUser.pageApplications[].visualMemoryApplications` 生成的完整逐页应用 |
-| `{{BRAND_ASSETS}}` | 已有品牌与真实素材摘要 |
+| `{{PAGE_IMAGE_NEEDS}}` | 页面图片等级和槽位摘要 |
 | `{{ASSET_GAPS}}` | `visualStyle.forUser.assetStrategy.missingAssets` |
 
 模板中的 `<基于……生成的实际色值>` 和 `<由……生成的实际色值>` 是 Token 推导指令。生成项目 `design.md` 时必须替换成具体 CSS 色值。

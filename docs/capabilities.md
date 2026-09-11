@@ -174,9 +174,9 @@
 | AI 文生文 | `openyida ai text [options]` |
 | AI 识图 | `openyida ai image [options]` |
 | 检测素材能力 | `openyida asset status [options]` |
-| 校验图片 URL | `openyida asset verify-url <url> [options]` |
-| 解析并回填页面素材 | `openyida asset resolve [options]` |
-| 生成 AI 图片素材 | `openyida asset generate [options]` |
+| 检查单个图片槽位 | `openyida asset resolve --slot <slotId>=<路径或URL> [options]` |
+| 生成素材清单 | `openyida asset resolve --input <草稿> --manifest <清单> [options]` |
+| 查看图片来源规则 | `openyida asset sources [--json]` |
 | 检查宜搭公式 | `openyida formula evaluate <formula\|file> [--schema file]` |
 | 读取钉钉文档并转为 Markdown | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` |
 | 按 taskUuid 读取钉钉听记 | `openyida read-dingtalk-tingji <taskUuid> [--json]` |

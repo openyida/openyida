@@ -172,7 +172,7 @@ tokens:
 
 ## 字体与排版
 
-- 全局使用 `tokens.application-global.typography.base` 的等宽字体栈；若项目提供合法的品牌点阵字体，由 `{{BRAND_ASSETS}}` 声明并置于同一回退栈首位。
+- 全局使用 `tokens.application-global.typography.base` 的等宽字体栈；若项目提供合法的品牌点阵字体，将其置于同一回退栈首位。
 - `page-title` 使用 `tokens.application-global.typography.subhead`：24px / 600 / 1.3 / 0.01em；普通页面不得新增超大展示标题。
 - `panel-title` 使用 `tokens.application-global.typography.body-2`：16px / 600 / 1.4 / 0.025em；可使用大写处理，但不得改变真实专名的大小写。
 - `content-title` 和正文使用 `tokens.application-global.typography.body-1`：14px / 400 / 1.5 / 0.015em。
@@ -323,7 +323,7 @@ tokens:
 
 ### 素材要求
 
-- 已有品牌与真实素材：{{BRAND_ASSETS}}
+- 页面图片需求：{{PAGE_IMAGE_NEEDS}}
 - 素材缺口：{{ASSET_GAPS}}
 - 图片、图表、缩略图、字体和辅助图形必须有真实来源；没有素材时使用系统等宽字体、结构化数据或中性占位，不编造人物、指标、对话、评分、图表或图片地址。
 

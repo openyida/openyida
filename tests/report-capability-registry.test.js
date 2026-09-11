@@ -3,6 +3,12 @@
 const fs = require('fs');
 const path = require('path');
 
+jest.mock('../lib/core/chalk', () => ({
+  ...jest.requireActual('../lib/core/chalk'),
+  warn: jest.fn(),
+}));
+const { warn } = require('../lib/core/chalk');
+
 const {
   REPORT_CHART_CAPABILITIES,
   getReportChartCapability,
@@ -27,6 +33,10 @@ const SUPPORTED_TYPES = [
 ];
 
 describe('report capability registry', () => {
+  beforeEach(() => {
+    warn.mockClear();
+  });
+
   test('only exposes chart types with an implemented component and dataset contract', () => {
     expect(listReportChartTypes()).toEqual(SUPPORTED_TYPES);
     for (const type of SUPPORTED_TYPES) {
@@ -51,6 +61,8 @@ describe('report capability registry', () => {
       xField: { fieldCode: 'textField_1' },
       yField: [{ fieldCode: 'numberField_1' }],
     }, 0)).toBe(false);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('charts[0].type:'));
   });
 
   test('does not export builders for unsupported legacy chart types', () => {

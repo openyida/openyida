@@ -28,6 +28,44 @@ function isSampleRoutingGuidanceFile(file) {
 }
 
 describe('OpenYida skill contracts', () => {
+  test('image assets are an optional page-level branch with host capability evidence', () => {
+    const root = readSkill('yida-skills/SKILL.md');
+    const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
+    const step2 = readSkill('yida-skills/skills/yida-app/workflow/step-2-design.md');
+    const step7 = readSkill('yida-skills/skills/yida-app/workflow/step-7-page-code.md');
+    const imageAssets = readSkill('yida-skills/skills/yida-image-assets/SKILL.md');
+    const sourcePolicy = readSkill('yida-skills/skills/yida-image-assets/references/source-policy.md');
+    const customPageAssets = readSkill('yida-skills/skills/yida-custom-page/references/assets-guide.md');
+    const canvasPageGuide = readSkill('yida-skills/skills/yida-canvas-custom-page/references/page-generation-guide.md');
+    const imageSources = customPageAssets.split('## 音乐/音效素材')[0];
+    const index = JSON.parse(readSkill('yida-skills/skills-index.json'));
+    const entry = index.skills.find(item => item.name === 'yida-image-assets');
+
+    expect(root).toContain('`yida-image-assets`');
+    expect(app).toContain('design.md.assetStrategy');
+    expect(step2).toMatch(/商品目录[^\n]+`required`/);
+    expect(step2).toMatch(/库存流水[^\n]+`none`/);
+    expect(step7).toContain('use_skill("yida-image-assets"');
+    expect(imageAssets).toContain('required');
+    expect(imageAssets).toContain('beneficial');
+    expect(imageAssets).toContain('none');
+    expect(imageAssets).toContain('requires_host_tool_inventory_check');
+    expect(imageAssets).toContain('asset-manifest.json');
+    expect(imageAssets).toContain('--input <草稿> --manifest <asset-manifest.json>');
+    expect(sourcePolicy).toContain('Unsplash API');
+    expect(sourcePolicy).toContain('Pexels API');
+    expect(sourcePolicy).toMatch(/source=search[^\n]+provider=unsplash\|pexels/);
+    expect(sourcePolicy).not.toMatch(/Pixabay API|unDraw/);
+    expect(imageSources).toMatch(/图片搜索与采集仅使用 Unsplash \/ Pexels/);
+    expect(imageSources).not.toMatch(/Pixabay|Lorem Picsum|Wikimedia Commons/);
+    expect(canvasPageGuide).toContain('联网搜图仅使用 Unsplash/Pexels');
+    expect(canvasPageGuide).toContain('asset-manifest.json');
+    expect(canvasPageGuide).not.toMatch(/heroImage|productImages/);
+    expect(canvasPageGuide).toContain('不内嵌 data URI');
+    expect(entry).toMatchObject({ category: 'yida-skills/design' });
+    expect(entry.positive_signals).toContain('联网搜索图片');
+  });
+
   test('Plan keeps explicit resource-only delivery narrow and writes its first business part once', () => {
     const requirement = readSkill('yida-skills/skills/yida-requirement-analysis/SKILL.md');
     const prepareBrief = readSkill('yida-skills/skills/yida-requirement-analysis/workflow/prepare-brief.md');
