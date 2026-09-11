@@ -63,8 +63,8 @@ module.exports = {
     cmd_corp_manager: 'Gérer les permissions de plateforme',
     cmd_agent_center: 'Gérer les délégations de processus et départs',
     group_process: 'Processus',
-    cmd_configure_process: 'Configurer et publier les règles de processus',
-    cmd_create_process: 'Créer un formulaire de processus (tout-en-un)',
+    cmd_configure_process: 'Configurer et publier les règles de processus; Ajout d’approbateur et transfert via JSON nodes[].actions.normalActions/appendActions',
+    cmd_create_process: 'Créer un formulaire de processus (tout-en-un); Ajout d’approbateur et transfert via JSON nodes[].actions.normalActions/appendActions',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: "Aperçu de l'instance de processus (organigramme)",
     group_share: 'Configuration & Partage de page',
@@ -2036,3 +2036,7 @@ module.exports.connector_action_update = connectorSafetyMessages.connector_actio
 module.exports.connector_update_action = connectorSafetyMessages.connector_update_action;
 module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e2e;
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: 'Configuration des actions d’approbation invalide pour le nœud {0} : {1}',
+});

@@ -63,8 +63,8 @@ module.exports = {
     cmd_corp_manager: 'प्लेटफ़ॉर्म अनुमतियां प्रबंधित करें',
     cmd_agent_center: 'प्रक्रिया और प्रस्थान प्रतिनिधि प्रबंधित करें',
     group_process: 'प्रक्रिया',
-    cmd_configure_process: 'प्रक्रिया नियम कॉन्फ़िगर और प्रकाशित करें',
-    cmd_create_process: 'प्रक्रिया फॉर्म बनाएं (एकीकृत)',
+    cmd_configure_process: 'प्रक्रिया नियम कॉन्फ़िगर और प्रकाशित करें; JSON nodes[].actions.normalActions/appendActions से अनुमोदक जोड़ें और अग्रेषित करें',
+    cmd_create_process: 'प्रक्रिया फॉर्म बनाएं (एकीकृत); JSON nodes[].actions.normalActions/appendActions से अनुमोदक जोड़ें और अग्रेषित करें',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'प्रक्रिया इंस्टेंस पूर्वावलोकन (फ्लोचार्ट)',
     group_share: 'पेज कॉन्फ़िगरेशन & शेयरिंग',
@@ -2034,3 +2034,7 @@ module.exports.connector_action_update = connectorSafetyMessages.connector_actio
 module.exports.connector_update_action = connectorSafetyMessages.connector_update_action;
 module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e2e;
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: 'नोड {0} के लिए अमान्य अनुमोदन कार्रवाई कॉन्फ़िगरेशन: {1}',
+});

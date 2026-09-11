@@ -63,8 +63,8 @@ module.exports = {
     cmd_corp_manager: 'Quản lý quyền nền tảng',
     cmd_agent_center: 'Quản lý ủy quyền quy trình và nghỉ việc',
     group_process: 'Quy trình',
-    cmd_configure_process: 'Cấu hình và xuất bản quy tắc quy trình',
-    cmd_create_process: 'Tạo biểu mẫu quy trình (tích hợp)',
+    cmd_configure_process: 'Cấu hình và xuất bản quy tắc quy trình; Thêm người phê duyệt và chuyển giao qua JSON nodes[].actions.normalActions/appendActions',
+    cmd_create_process: 'Tạo biểu mẫu quy trình (tích hợp); Thêm người phê duyệt và chuyển giao qua JSON nodes[].actions.normalActions/appendActions',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'Xem trước phiên bản quy trình (sơ đồ luồng)',
     group_share: 'Cấu hình & Chia sẻ trang',
@@ -2034,3 +2034,7 @@ module.exports.connector_action_update = connectorSafetyMessages.connector_actio
 module.exports.connector_update_action = connectorSafetyMessages.connector_update_action;
 module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e2e;
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: 'Cấu hình thao tác phê duyệt không hợp lệ cho nút {0}: {1}',
+});

@@ -298,6 +298,8 @@ describe('CLI offline smoke', () => {
       { args: ['data', 'create', '--help'], text: 'openyida data' },
       { args: ['report', '--help'], text: 'openyida report inspect' },
       { args: ['create-process', '--help'], text: 'openyida create-process' },
+      { args: ['configure-process', '--help'], text: 'nodes[].actions.normalActions/appendActions' },
+      { args: ['configure-process', '-h'], text: 'openyida configure-process' },
       { args: ['create-report', '--help'], text: 'openyida create-report' },
       { args: ['append-chart', '--help'], text: 'openyida append-chart' },
       { args: ['append-chart', '-h'], text: 'openyida append-chart' },

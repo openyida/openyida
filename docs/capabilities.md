@@ -105,6 +105,7 @@
 |---|---|
 | 创建流程表单并配置流程 | `openyida create-process <appType> ...` |
 | 配置并发布流程规则 | `openyida configure-process <appType> ...` |
+| 配置审批节点的加签、转交 | 在流程定义的 `nodes[].actions.normalActions/appendActions` 中声明，由上述创建/配置命令编译；见 [操作权限配置](../yida-skills/skills/yida-process-rule/references/approval-actions.md) |
 | 预览流程实例 | `openyida process preview <appType> <processInstanceId> [--output <path>]` |
 | 查询 AI 审批提示配置 | `openyida ai-form-setting get <appType> <formUuid>` |
 | 查询 AI 审批可用字段 | `openyida ai-form-setting fields <appType> <formUuid>` |

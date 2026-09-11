@@ -13,12 +13,12 @@ const path = require('path');
 const MAX_TARBALL_BYTES = 1808 * 1024;
 // Includes Canvas theme Provider, navigation content sample, design guidance,
 // phase 6 batch recovery/readback, scoped diagnostics, and the two-option
-// navigation intake plus explicit platform-layout parameter/readback guidance
-// (6309915 unpacked bytes);
+// navigation intake, platform-layout guidance, and process append/forward
+// compiler, help, and skill reference (6325736 unpacked bytes);
 // round up to the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 6176 * 1024;
-// Theme Provider script/template/reference plus the navigation content sample.
-const MAX_ENTRY_COUNT = 494;
+const MAX_UNPACKED_BYTES = 6192 * 1024;
+// Adds the process action compiler and its skill reference.
+const MAX_ENTRY_COUNT = 496;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -29,6 +29,7 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-app/workflow/incremental-preview.md',
   'yida-skills/skills/yida-create-form-page/references/batch-forms.md',
   'lib/core/utils.js',
+  'lib/process/services/process-actions.js',
   'project/config.json',
   'scripts/postinstall.js',
   'yida-skills/SKILL.md',
@@ -36,6 +37,7 @@ const REQUIRED_PACKAGE_FILES = [
   'lib/samples/openyida-scaffold/canvas-dialog.canvas.jsx',
   ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data', 'content'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
   'yida-skills/skills/yida-canvas-custom-page/references/dialog-guide.md',
+  'yida-skills/skills/yida-process-rule/references/approval-actions.md',
 ];
 
 const FORBIDDEN_PACKAGE_PREFIXES = [
