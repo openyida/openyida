@@ -1,132 +1,75 @@
 [
   {
-    "id": "student-management-workbench",
+    "id": "student-management-prd",
     "prompt": "帮我设计一个学生管理工作台，包含学生、课程、成绩和考勤，先输出 PRD，不写代码",
-    "expectedSkill": "yida-design",
+    "expectedSkill": "yida-prd",
     "requiredPatterns": [
-      "pageSpecHandoff",
       "prd.md",
-      "design.md",
+      "pageSpecHandoff",
       "designFile",
       "designRefs",
       "contentBlocks",
-      "visualScaffold",
-      "rootShell",
-      "prioritySurface",
-      "statusPrimitive",
-      "actionPrimitive",
-      "contentPrimitive",
-      "contextPrimitive",
-      "statePrimitive",
-      "responsiveRule",
-      "backgroundLayer",
-      "surfaceMaterial",
-      "surfaceContrast",
-      "colorRoles",
-      "depthRule",
-      "densityRule",
-      "breathingRule",
-      "roundedRule",
-      "themeRelation",
-      "themePresetKey",
-      "shouldPassCreateAppTheme",
-      "globalThemeInjection",
+      "资源创建顺序",
+      "页面实现交付顺序",
+      "导航顺序",
       "submission/{formUuid}?isRenderNav=false"
     ],
     "forbiddenPatterns": [
-      "KPI 卡片: 学生总数, 课程总数, 本月出勤率, 平均分",
-      "4 个等宽大 KPI",
-      "暂无数据"
-    ]
-  },
-  {
-    "id": "pet-social-workbench",
-    "prompt": "宠物社交应用首页搭得太空了，重新做产品设计和主页面 PRD，要有宠物档案、主人管理、动态和社区活动",
-    "expectedSkill": "yida-design",
-    "requiredPatterns": [
-      "pageSpecHandoff",
-      "prd.md",
-      "design.md",
-      "designFile",
-      "designRefs",
-      "10",
-      "contentBlocks",
-      "workbench",
-      "prioritySurface",
-      "contentPrimitive",
-      "contextPrimitive",
-      "statePrimitive",
+      "visualScaffold",
       "backgroundLayer",
-      "surfaceMaterial",
-      "surfaceContrast",
-      "colorRoles",
-      "densityRule",
-      "breathingRule",
       "roundedRule",
-      "themePresetKey",
-      "shouldPassCreateAppTheme",
-      "globalThemeInjection",
-      "高频动作",
-      "右侧上下文",
-      "themeRelation"
-    ],
-    "forbiddenPatterns": [
-      "图标快捷卡",
-      "大空态白卡",
       "4 个等宽大 KPI"
     ]
   },
   {
-    "id": "coffee-inventory-dashboard",
-    "prompt": "咖啡进销存系统需要一个门店采购、库存预警和销售出库工作台，先设计 PRD",
-    "expectedSkill": "yida-design",
+    "id": "pet-social-prd",
+    "prompt": "宠物社交应用首页搭得太空了，重新做产品设计和主页面 PRD，要有宠物档案、主人管理、动态和社区活动",
+    "expectedSkill": "yida-prd",
     "requiredPatterns": [
-      "pageSpecHandoff",
       "prd.md",
-      "design.md",
+      "pageSpecHandoff",
       "designFile",
       "designRefs",
-      "dashboard",
-      "workbench",
       "contentBlocks",
-      "visualScaffold",
-      "rootShell",
-      "prioritySurface",
-      "actionPrimitive",
-      "contentPrimitive",
-      "contextPrimitive",
-      "statePrimitive",
-      "backgroundLayer",
-      "surfaceMaterial",
-      "surfaceContrast",
-      "colorRoles",
-      "densityRule",
-      "breathingRule",
-      "roundedRule",
-      "themePresetKey",
-      "shouldPassCreateAppTheme",
-      "globalThemeInjection",
-      "低库存",
-      "submission/{formUuid}?isRenderNav=false"
+      "workbench",
+      "宠物档案",
+      "主人管理",
+      "动态",
+      "社区活动"
     ],
     "forbiddenPatterns": [
-      "大白卡",
-      "平铺 KPI",
-      "只构成 4 个聚合区块"
+      "surfaceMaterial",
+      "colorRoles",
+      "globalThemeInjection"
     ]
   },
   {
-    "id": "ops-command-center",
-    "prompt": "设计一个运营驾驶舱，老板要一眼看趋势、风险、事件流和下一步动作",
-    "expectedSkill": "yida-design",
+    "id": "coffee-inventory-prd",
+    "prompt": "咖啡进销存系统需要一个门店采购、库存预警和销售出库工作台，先设计 PRD",
+    "expectedSkill": "yida-prd",
     "requiredPatterns": [
-      "pageSpecHandoff",
       "prd.md",
-      "design.md",
+      "pageSpecHandoff",
       "designFile",
       "designRefs",
-      "generated-from-business-context",
-      "contentBlocks",
+      "采购",
+      "低库存",
+      "销售出库",
+      "资源创建顺序",
+      "验收标准"
+    ],
+    "forbiddenPatterns": [
+      "visualScaffold",
+      "surfaceContrast",
+      "globalThemeInjection"
+    ]
+  },
+  {
+    "id": "ops-command-center-visual",
+    "prompt": "设计一个运营驾驶舱的视觉方案，老板要一眼看趋势、风险、事件流和下一步动作；业务范围已经确定，只输出 design.md，不写 PRD",
+    "expectedSkill": "yida-design",
+    "requiredPatterns": [
+      "design.md",
       "三栏",
       "主趋势",
       "风险",
@@ -143,15 +86,13 @@
       "densityRule",
       "breathingRule",
       "roundedRule",
-      "themePresetKey",
-      "shouldPassCreateAppTheme",
-      "globalThemeInjection",
       "themeRelation"
     ],
     "forbiddenPatterns": [
-      "四张等宽 KPI",
-      "每张 KPI 卡配彩色渐变背景",
-      "无分组卡片瀑布"
+      "pageSpecHandoff",
+      "资源创建顺序",
+      "导航顺序",
+      "四张等宽 KPI"
     ]
   }
 ]

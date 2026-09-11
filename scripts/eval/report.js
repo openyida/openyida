@@ -126,13 +126,95 @@ function renderCard(shot, score, rubric, index) {
     ? `<div class="score human">人工打分：overall=${escapeHtml(human.overall ?? 'n/a')}${human.comment ? ` — ${escapeHtml(human.comment)}` : ''}</div>`
     : '<div class="score human muted">人工打分：待填写（见 scoring.md）</div>';
 
+  const runtimeBlock = Array.isArray(shot.runtimeChecks)
+    ? `<div class="score ${shot.runtimePass ? 'runtime-pass' : 'auto err'}">运行时验收：${shot.runtimePass ? '通过' : '失败'} · ${shot.runtimeChecks
+      .map((check) => `${escapeHtml(check.name)}=${check.ok ? 'pass' : 'fail'}`)
+      .join(' / ')}</div>`
+    : '';
+
   return `<section class="card">
     <h3>${title}</h3>
     <div class="meta">${urlLine}</div>
     ${media}
+    ${runtimeBlock}
     ${autoBlock}
     ${humanBlock}
   </section>`;
+}
+
+function renderGenerationEvidence(results = []) {
+  const rows = [];
+  for (const result of results) {
+    const checks = result && result.evidenceChecks && Array.isArray(result.evidenceChecks.checks)
+      ? result.evidenceChecks.checks
+      : [];
+    for (const check of checks) {
+      const status = check.ok ? 'pass' : (check.required === false ? 'skip' : 'fail');
+      rows.push(`<tr>
+        <td>${escapeHtml(result.id || '—')}</td>
+        <td>${escapeHtml(check.name || '—')}</td>
+        <td>${statusBadge(status)}</td>
+        <td>${escapeHtml(check.detail || '')}</td>
+      </tr>`);
+    }
+  }
+  if (!rows.length) {return '';}
+  return `<h2>执行证据断言</h2>
+  <table>
+    <thead><tr><th>场景</th><th>断言</th><th>结果</th><th>说明</th></tr></thead>
+    <tbody>${rows.join('')}</tbody>
+  </table>`;
+}
+
+function renderOptimizationFindings(backlog = {}) {
+  const findings = Array.isArray(backlog.findings) ? backlog.findings : [];
+  if (!findings.length) {return '';}
+  const groups = Array.isArray(backlog.groups) && backlog.groups.length
+    ? backlog.groups
+    : findings.map((finding) => ({
+      severity: finding.severity,
+      title: finding.title || finding.findingId,
+      owner: finding.attribution && finding.attribution.owner,
+      scope: finding.scope || 'unknown',
+      confidences: [finding.attribution && finding.attribution.confidence],
+      statuses: [finding.status],
+      findingCount: 1,
+      targetSkills: finding.targets && finding.targets.skills || [],
+      targetCommands: finding.targets && finding.targets.commands || [],
+      targetFiles: finding.targets && finding.targets.files || [],
+      affectedSkills: finding.affected && finding.affected.skills || [],
+      affectedCommands: finding.affected && finding.affected.commands || [],
+      suggestedChange: finding.suggestedChange,
+    }));
+  const scopeLabels = {
+    'application-gap': 'CRM 应用缺口',
+    diagnostic: '待确定性诊断',
+    'openyida-optimization': 'OpenYida 优化',
+    resolved: '已解决',
+  };
+  const rows = groups.map((group) => `<tr>
+    <td>${escapeHtml(group.severity || '—')}</td>
+    <td>${escapeHtml(group.title || group.groupId || '—')}</td>
+    <td>${escapeHtml(scopeLabels[group.scope] || group.scope || 'unknown')}</td>
+    <td>${escapeHtml(group.owner || 'unknown')}</td>
+    <td>${escapeHtml((group.confidences || []).join(', ') || 'unknown')}</td>
+    <td>${escapeHtml((group.statuses || []).join(', ') || 'unknown')}</td>
+    <td>${escapeHtml(group.findingCount || 0)}</td>
+    <td>${escapeHtml([
+    ...(group.affectedSkills || []).map((item) => `skill:${item}`),
+    ...(group.affectedCommands || []).map((item) => `CLI:${item}`),
+  ].join(' / ') || '—')}</td>
+    <td>${escapeHtml([
+    ...(group.targetSkills || []).map((item) => `skill:${item}`),
+    ...(group.targetCommands || []).map((item) => `CLI:${item}`),
+  ].join(' / ') || '—')}</td>
+    <td>${escapeHtml(group.suggestedChange && group.suggestedChange.action || '')}</td>
+  </tr>`).join('');
+  return `<h2>验收缺口与 OpenYida 优化（${findings.length} 条证据 / ${groups.length} 个问题组）</h2>
+  <table>
+    <thead><tr><th>级别</th><th>问题组</th><th>范围</th><th>责任层</th><th>置信度</th><th>证据状态</th><th>证据数</th><th>受影响能力 / 诊断对象</th><th>确认的 OpenYida 优化目标</th><th>建议</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
 }
 
 /**
@@ -154,6 +236,8 @@ function renderEvalReportHtml(options = {}) {
     guardrails = [],
     screenshots = [],
     scores = [],
+    generationResults = [],
+    optimizationBacklog = {},
     rubric = DEFAULT_RUBRIC,
   } = options;
   const generatedAt = options.generatedAt || new Date().toISOString();
@@ -179,6 +263,8 @@ function renderEvalReportHtml(options = {}) {
   const cards = screenshots.length
     ? screenshots.map((shot, i) => renderCard(shot, scoreByUrl.get(shot.url), rubric, i + 1)).join('\n')
     : '<p class="muted">本次没有可截图/打分的已发布页面目标。</p>';
+  const evidenceHtml = renderGenerationEvidence(generationResults);
+  const optimizationHtml = renderOptimizationFindings(optimizationBacklog);
 
   // 若所有截图都因环境原因（浏览器/Playwright 缺失）被跳过，顶部统一提示一次，不再逐卡片刷屏。
   const envSkipCodes = new Set(['browser-missing', 'playwright-missing']);
@@ -278,6 +364,8 @@ function renderEvalReportHtml(options = {}) {
   <div class="grid">
     ${cards}
   </div>
+  ${evidenceHtml}
+  ${optimizationHtml}
 </main>
 <footer>
   评分量表：${escapeHtml(rubric.scale)}（整数，10 为最佳）·
@@ -301,6 +389,8 @@ function writeReport(workDir, html, fileName = 'eval-report.html') {
 module.exports = {
   escapeHtml,
   imageToDataUri,
+  renderGenerationEvidence,
+  renderOptimizationFindings,
   renderEvalReportHtml,
   writeReport,
 };

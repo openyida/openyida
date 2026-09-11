@@ -1,0 +1,440 @@
+{
+  "schemaVersion": 1,
+  "protocol": "openyida-integration-static-contract",
+  "extractRevision": 1,
+  "source": {
+    "package": "yida-logic-flow",
+    "version": "0.2.245",
+    "url": "https://g.alicdn.com/yida-platform/yida-logic-flow/0.2.245/index.js",
+    "bundleSizeBytes": 12655678,
+    "sha256": "2963c6a8dcce3a8f56efcd2a2d847d33167f23d71fbf515be24d60a008901c89",
+    "bundleCommitted": false,
+    "ciNetworkRequired": false
+  },
+  "extraction": {
+    "kind": "offline-structured-audit-extract",
+    "byteEncoding": "UTF-8",
+    "locatorWindowRule": "For each anchor, hash the exact source bytes from max(0, byteOffset - 512) through byteOffset + UTF8ByteLength(anchor) + 512, with the end offset exclusive.",
+    "hashAlgorithm": "SHA-256",
+    "containsFullBundle": false,
+    "containsLargeSourceSnippets": false,
+    "containsCredentials": false,
+    "notes": "This file stores anchors, byte windows, hashes and short semantic facts only. It is not a substitute for the pinned bundle when re-extracting a future revision."
+  },
+  "locators": [
+    {
+      "id": "node-runtime-type-map",
+      "anchor": "zsn={StartNode:\"trigger\"",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 4747330,
+      "windowStart": 4746818,
+      "windowEnd": 4747866,
+      "windowSizeBytes": 1048,
+      "windowSha256": "f09d9ec0d89d235358cec097bc38d11e80aab8ac6360e30eddf77ac3fd7fd16d",
+      "facts": [
+        "StartNode lowers to trigger.",
+        "ConditionContainer lowers to route and ConditionNode/ParallelNode lower to condition.",
+        "GetSingleDataNode/GetBatchDataNode lower to dataRetrieve.",
+        "AddDataNode, UpdateDataNode, InitiateApprovalNode and SendMessageNode lower to their corresponding runtime business types."
+      ]
+    },
+    {
+      "id": "graph-next-and-children",
+      "anchor": "const wsn=function",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 4746216,
+      "windowStart": 4745704,
+      "windowEnd": 4746746,
+      "windowSizeBytes": 1042,
+      "windowSha256": "0ade185f5b0727461c0e1ec375f4f9d2d72be8fd8a73dea8ee403784c751bcbe",
+      "facts": [
+        "nextId is derived as an array.",
+        "ConditionContainer targets each child branch.",
+        "Nested branch and cycle structures participate in next-node derivation."
+      ]
+    },
+    {
+      "id": "runtime-process-root",
+      "anchor": "Isn=(e,t)=>",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 4752782,
+      "windowStart": 4752270,
+      "windowEnd": 4753305,
+      "windowSizeBytes": 1035,
+      "windowSha256": "22736c2d0668c2d8c1facf3be42524b1563709c9ee97399390921249b92d56c1",
+      "facts": [
+        "The runtime root has props and nodes.",
+        "Runtime props include processCode and designer defaults.",
+        "Each converted node retains nodeId, prevId, nextId, props and childNodes."
+      ]
+    },
+    {
+      "id": "save-process-view-payload",
+      "anchor": "viewJson:JSON.stringify({schema:a,globalSetting:{}})",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 4781516,
+      "windowStart": 4781004,
+      "windowEnd": 4782080,
+      "windowSizeBytes": 1076,
+      "windowSha256": "614251aca8982f4067ea79091bd4b426c78128b2db26d905a5d291358f129be2",
+      "facts": [
+        "The save payload carries runtime JSON in json and designer JSON in viewJson.",
+        "The view root contains schema and globalSetting.",
+        "The payload also carries isLogic, formUuid, isOnline and processCode."
+      ]
+    },
+    {
+      "id": "form-event-runtime-inputs",
+      "anchor": "n.inputs={formEventType:r,formEventField:e.formEventField",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 4749184,
+      "windowStart": 4748672,
+      "windowEnd": 4749753,
+      "windowSizeBytes": 1081,
+      "windowSha256": "de41eb5748dfe5820f425e67a59d002c5b0f20e787f88f761287e3c474839698",
+      "facts": [
+        "FormEvent inputs retain formEventType, formEventField, formUuid and conditions.",
+        "Approval activity action/id/task selectors are serialized when present.",
+        "triggerFormEventRecursively defaults to false when absent."
+      ]
+    },
+    {
+      "id": "connector-mode-map",
+      "anchor": "Nsn={1:\"innerConnector\"",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 4751974,
+      "windowStart": 4751462,
+      "windowEnd": 4752509,
+      "windowSizeBytes": 1047,
+      "windowSha256": "c16f1425d22f267a82bdccf85fde68c523f71e938ccd008b240a7969a161f802",
+      "facts": [
+        "Connector mode 1 maps to innerConnector.",
+        "Connector modes 3, 5, 8 and 9 map to thirdConnector, httpConnector, iPaaSCustomConnector and faasConnector.",
+        "ConnectorNode runtime type is selected through this mode map."
+      ]
+    },
+    {
+      "id": "recursive-assignment-map",
+      "anchor": "Rhe=function(e)",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 2165066,
+      "windowStart": 2164554,
+      "windowEnd": 2165593,
+      "windowSizeBytes": 1039,
+      "windowSha256": "36d7ea7c5c09e723867530168c86ff937da55c227af724fa25f766084822743d",
+      "facts": [
+        "Assignments recursively retain column, valueType, value and assignments.",
+        "Literal organization-member values are reduced to IDs.",
+        "Certain processVar values are normalized to a runtime variable reference form."
+      ]
+    },
+    {
+      "id": "initiate-approval-transform",
+      "anchor": "Whe=function(e,t)",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 2167091,
+      "windowStart": 2166579,
+      "windowEnd": 2167620,
+      "windowSizeBytes": 1041,
+      "windowSha256": "ee1fcc6f851bfebfb4a86041c76376dffbc43c0f01865386419437dd5eb03b7c",
+      "facts": [
+        "initiateApprovalRules are retained.",
+        "Approval assignments are serialized as column, value and valueType."
+      ]
+    },
+    {
+      "id": "send-message-transform",
+      "anchor": "jhe=function(e,t)",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 2167286,
+      "windowStart": 2166774,
+      "windowEnd": 2167815,
+      "windowSizeBytes": 1041,
+      "windowSha256": "7460276c23cb6ec12c2013be91308980396fb3518cabcccd0d55f44e58d72495",
+      "facts": [
+        "sendMessageRules are copied to runtime props.",
+        "The design-only description field is removed."
+      ]
+    },
+    {
+      "id": "data-retrieve-transform",
+      "anchor": "Uhe=function(e)",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 2167616,
+      "windowStart": 2167104,
+      "windowEnd": 2168143,
+      "windowSizeBytes": 1039,
+      "windowSha256": "4c25fb3e5f418d27eb2bebb2f3289e1b1f35decb65dde924d06cfa721ec1b764",
+      "facts": [
+        "dataRetrieve retains source, filter, sort, quantity, data rules and assignments.",
+        "Empty conditions are normalized to null."
+      ]
+    },
+    {
+      "id": "data-create-transform",
+      "anchor": "Ghe=function(e)",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 2168525,
+      "windowStart": 2168013,
+      "windowEnd": 2169052,
+      "windowSizeBytes": 1039,
+      "windowSha256": "891c4fb0059aaa1a894eed3b402afae763def930b7e1eac41ce3aa4cbd746e16",
+      "facts": [
+        "dataCreate retains target form/app/subform, insert/source type and assignments."
+      ]
+    },
+    {
+      "id": "data-update-transform",
+      "anchor": "Khe=function(e)",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 2168897,
+      "windowStart": 2168385,
+      "windowEnd": 2169424,
+      "windowSizeBytes": 1039,
+      "windowSha256": "317cbd1484b13dc71a526e1bec92f8a84ce60103403e5d5f99eecef0ca719809",
+      "facts": [
+        "updateDataRules are copied to runtime props.",
+        "Literal employee assignment values are reduced to IDs."
+      ]
+    },
+    {
+      "id": "route-condition-props",
+      "anchor": "Fhe=function(e,t)",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 2166131,
+      "windowStart": 2165619,
+      "windowEnd": 2166660,
+      "windowSizeBytes": 1041,
+      "windowSha256": "1c2e2e0016c6bd5259590a8503fe41302466bb9756588e6775384d8bb7e8e4cb",
+      "facts": [
+        "Condition branches retain priority, isDefault, conditions, calculate and expression.",
+        "Missing priority defaults to 2147483647."
+      ]
+    },
+    {
+      "id": "simple-process-api-table",
+      "anchor": "SLe={getProcess:",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 2686412,
+      "windowStart": 2685900,
+      "windowEnd": 2686940,
+      "windowSizeBytes": 1040,
+      "windowSha256": "34390a747b54171883156dc9b2b61b6c941d43ab7c63805e8935089b257055b2",
+      "facts": [
+        "The API table includes getProcess, getConfig, saveProcess and publishProcess.",
+        "The same table includes ID-based save, publish and get endpoints plus newDraftProcess."
+      ]
+    },
+    {
+      "id": "create-logicflow-api",
+      "anchor": "createLogicflow:function(e)",
+      "occurrence": 1,
+      "occurrenceCount": 2,
+      "byteOffset": 2691349,
+      "windowStart": 2690837,
+      "windowEnd": 2691888,
+      "windowSizeBytes": 1051,
+      "windowSha256": "af74b3345eebf857978cd238669e11c35b7138e16446c9ac522ad19c0ca8ae71",
+      "facts": [
+        "The frontend posts to formLogicflowBinding/createLogicflow.json."
+      ]
+    },
+    {
+      "id": "data-update-empty-result-options",
+      "anchor": "name:\"noneOperation\"",
+      "occurrence": 1,
+      "occurrenceCount": 2,
+      "byteOffset": 4484369,
+      "windowStart": 4483857,
+      "windowEnd": 4484901,
+      "windowSizeBytes": 1044,
+      "windowSha256": "54dcd8003b988756cf31417bfc3cf2fde1c0dca0057a08e0f3dd5b762fa1e6fe",
+      "facts": [
+        "The update editor exposes noneOperation values ignored and add.",
+        "The editor default is ignored."
+      ]
+    },
+    {
+      "id": "frontend-preflight-error-map",
+      "anchor": "Tme={MULT_RULE_ERROR:",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 2179057,
+      "windowStart": 2178545,
+      "windowEnd": 2179590,
+      "windowSizeBytes": 1045,
+      "windowSha256": "c82e034ef6ddae1f4d62b9e415b9c48ac5d2b9abf11007e3d82491954d0b5b97",
+      "facts": [
+        "The designer defines incomplete-configuration errors for start, branch, connector, data, message and approval nodes.",
+        "These errors are design-time preflight evidence only."
+      ]
+    },
+    {
+      "id": "send-message-required-fields",
+      "anchor": "r=n.toVars,o=n.toGroups",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 2185042,
+      "windowStart": 2184530,
+      "windowEnd": 2185577,
+      "windowSizeBytes": 1047,
+      "windowSha256": "5934d9dc5eb3ded855b78da3ec6cb99714295b03367d56ba5e75f12cd17678b2",
+      "facts": [
+        "Recipient sources include variables, groups, roles, users, user fields, robot URLs and group variables.",
+        "messageType and messageInfo.content are required by designer preflight.",
+        "Custom buttons require both name and value."
+      ]
+    },
+    {
+      "id": "approval-value-types",
+      "anchor": "valueTypeOptions:[{label:Hfe(\"flow-common.setters.InitiateApprovalSetter.Value\")",
+      "occurrence": 1,
+      "occurrenceCount": 2,
+      "byteOffset": 4738902,
+      "windowStart": 4738390,
+      "windowEnd": 4739494,
+      "windowSizeBytes": 1104,
+      "windowSha256": "2e147d3b22b0e930d0783a7db79a2f2e3e43815e824cb7b43c0e2d2315c3951b",
+      "facts": [
+        "Approval field mappings expose literal, processVar and column value types."
+      ]
+    },
+    {
+      "id": "form-event-basic-options",
+      "anchor": "value:\"insert\"",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 4816656,
+      "windowStart": 4816144,
+      "windowEnd": 4817182,
+      "windowSizeBytes": 1038,
+      "windowSha256": "28cbcbd917adf5f640de348501d520beb23789191886c7f63fc9e2ca2a126bc7",
+      "facts": [
+        "Form event choices include insert, update, delete and comment.",
+        "The same editor initializes condition groups with an AND relation."
+      ]
+    },
+    {
+      "id": "form-event-process-option",
+      "anchor": "value:\"processEvents\"",
+      "occurrence": 1,
+      "occurrenceCount": 1,
+      "byteOffset": 4817847,
+      "windowStart": 4817335,
+      "windowEnd": 4818380,
+      "windowSizeBytes": 1045,
+      "windowSha256": "00f474730a311165561237bde88fc20debdd8d870687750744bab13e37b92e64",
+      "facts": [
+        "Process forms may add the processEvents trigger option."
+      ]
+    }
+  ],
+  "facts": {
+    "runtimeNodeTypes": [
+      "trigger",
+      "route",
+      "condition",
+      "initiateApproval",
+      "sendMessage",
+      "dataRetrieve",
+      "dataCreate",
+      "dataUpdate",
+      "finish"
+    ],
+    "frontendComponentsInOpenYidaScope": [
+      "StartNode",
+      "ConditionContainer",
+      "ConditionNode",
+      "ParallelNode",
+      "ConnectorNode",
+      "InitiateApprovalNode",
+      "SendMessageNode",
+      "GetSingleDataNode",
+      "GetBatchDataNode",
+      "AddDataNode",
+      "UpdateDataNode",
+      "EndNode"
+    ],
+    "formEventValues": [
+      "insert",
+      "update",
+      "delete",
+      "comment",
+      "processEvents"
+    ],
+    "connectorModes": {
+      "1": "innerConnector",
+      "3": "thirdConnector",
+      "5": "httpConnector",
+      "8": "iPaaSCustomConnector",
+      "9": "faasConnector"
+    },
+    "nodeSpecificValueTypes": [
+      "literal",
+      "processVar",
+      "column"
+    ],
+    "simpleProcessApiPaths": [
+      "/query/simpleProcess/getProcess.json",
+      "/query/simpleProcess/getConfig.json",
+      "/query/simpleProcess/saveProcess.json",
+      "/query/simpleProcess/publishProcess.json",
+      "/query/simpleProcess/saveProcessById.json",
+      "/query/simpleProcess/publishProcessById.json",
+      "/query/simpleProcess/getProcessById.json",
+      "/query/simpleProcess/newDraftProcess.json"
+    ],
+    "defaultValues": {
+      "triggerFormEventRecursively": false,
+      "routePriority": 2147483647,
+      "dataUpdateNoneOperation": "ignored"
+    }
+  },
+  "bundleNegativeStringObservations": {
+    "id": "bundle-negative-string-observations",
+    "observations": [
+      {
+        "value": "processJson",
+        "occurrenceCount": 0
+      },
+      {
+        "value": "enableProcess",
+        "occurrenceCount": 0
+      },
+      {
+        "value": "disableProcess",
+        "occurrenceCount": 0
+      },
+      {
+        "value": "getInstanceLog",
+        "occurrenceCount": 0
+      },
+      {
+        "value": "logicflowInstance",
+        "occurrenceCount": 0
+      }
+    ],
+    "interpretation": "A zero count means only that the exact token was absent from this pinned mixed bundle. It must not be interpreted as proof that the platform lacks the corresponding capability."
+  },
+  "auditWarnings": [
+    "The bundle contains unrelated SDK and application code. Global status or API-like string matches are not accepted as integration protocol evidence unless anchored in the logic-flow converter or API table.",
+    "The save payload uses json while some adapters may expose processJson. A captured detail fixture is required before normalizing these names as equivalent.",
+    "Designer preflight proves configuration checks, not platform execution behavior.",
+    "Static bundle evidence does not establish permissions, server response wrappers, final publish/enable state, log schemas or runtime retry behavior.",
+    "Capabilities visible in the frontend bundle but not declared by OpenYida are not classified as OpenYida defects."
+  ]
+}

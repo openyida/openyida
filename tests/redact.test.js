@@ -13,6 +13,7 @@ describe('redact utilities', () => {
       Authorization: 'Bearer abcdefghijklmnopqrstuvwxyz',
       nested: {
         csrf_token: 'csrf-token-value',
+        systemToken: 'system-token-value',
         publicName: 'Ada',
       },
     };
@@ -21,17 +22,23 @@ describe('redact utilities', () => {
       Authorization: 'Bear***wxyz',
       nested: {
         csrf_token: 'csrf***alue',
+        systemToken: 'syst***alue',
         publicName: 'Ada',
       },
     });
   });
 
   test('redacts secrets, emails, and phone numbers inside strings', () => {
-    const text = 'Authorization: Bearer abc123 token=secret user ada@example.com phone 13812345678';
+    const text = 'Authorization: Bearer abc123 token=secret systemToken=owned-secret user ada@example.com phone 13812345678';
 
     expect(redactString(text)).toBe(
-      'Authorization: Bearer *** token=*** user a***@example.com phone 138****5678'
+      'Authorization: Bearer *** token=*** systemToken=*** user a***@example.com phone 138****5678'
     );
+  });
+
+  test('redacts systemToken in serialized JSON strings', () => {
+    expect(redactString('{"systemToken":"owned-secret","name":"safe"}'))
+      .toBe('{"systemToken":"***","name":"safe"}');
   });
 
   test('handles circular references for JSON output', () => {

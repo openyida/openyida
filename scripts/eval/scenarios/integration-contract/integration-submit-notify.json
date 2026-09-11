@@ -1,0 +1,45 @@
+{
+  "id": "integration-submit-notify",
+  "title": "表单提交后发送工作通知",
+  "publicPrompt": "当员工提交请假申请时，向指定 HR 发送工作通知，标题包含申请人，正文包含请假类型；不允许自动化递归触发。",
+  "requiredCapabilities": [
+    "form-event-trigger",
+    "send-message",
+    "process-view-consistency"
+  ],
+  "expectedResources": {
+    "triggerForm": "leaveRequest",
+    "users": [
+      "hrRecipient"
+    ]
+  },
+  "runtimeCases": [
+    {
+      "id": "insert-sends-once",
+      "trigger": "insert",
+      "expected": "exactly-one-notification"
+    },
+    {
+      "id": "update-does-not-send",
+      "trigger": "update",
+      "expected": "no-execution"
+    }
+  ],
+  "protocolEvidence": [
+    {
+      "id": "form-event-runtime-inputs",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "send-message-transform",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "process_view_semantic_equivalence",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    }
+  ]
+}

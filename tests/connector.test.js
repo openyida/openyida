@@ -254,8 +254,10 @@ describe('connector response and API document parsing', () => {
     expect(bodyInput.childList.map((node) => node.paramLocation)).toEqual(['body', 'body']);
     expect(operation.parameters.header[0]).toEqual({
       name: 'Authorization',
-      value: 'Bearer token',
+      value: '',
     });
+    expect(operation.inputs.find((input) => input.name === 'Headers').childList[0].defaultValue).toBe('');
+    expect(JSON.stringify(operation)).not.toContain('Bearer token');
     expect(operation.parameters.query[0]).toEqual({ name: 'page', value: '1' });
     expect(operation.outputs[0].childList.map((node) => node.name)).toContain('data');
   });
@@ -280,6 +282,22 @@ describe('connector response and API document parsing', () => {
     expect(operation.inputs.map((input) => input.name)).not.toContain('Body');
     expect(operation.parameters.body).toBeUndefined();
     expect(operation.outputs[0].childList.map((node) => node.name)).toContain('data');
+  });
+
+  test('document action IDs stay stable when a localized title cannot form an ASCII ID', () => {
+    const parseResult = new MarkdownParser([
+      '# 查询用户',
+      '',
+      '- URL',
+      'https://api.example.com/v1/users/search',
+      '- Method',
+      'GET',
+    ].join('\n')).parse();
+
+    expect(convertToOperationConfig(parseResult)).toMatchObject({
+      id: 'operation-v1_users_search',
+      operationId: 'v1_users_search',
+    });
   });
 
   test('parseAPIDoc reads markdown files through the parser factory', () => {
@@ -329,5 +347,50 @@ describe('connector operation normalization', () => {
     expect(buildOperationsSummary([
       { name: '测试接口', path: '/test', method: 'get' },
     ])).toBe('支持测试接口');
+  });
+
+  test('normalization keeps generated IDs stable and rejects duplicate operation IDs in one batch', () => {
+    const input = [
+      { name: 'Ping', path: '/v1/ping', method: 'GET' },
+    ];
+    expect(normalizeOperations(input)[0].id).toBe('operation-v1_ping');
+    expect(normalizeOperations(input)[0].id).toBe(normalizeOperations(input)[0].id);
+
+    expect(() => normalizeOperations([
+      { operationId: 'duplicate', path: '/a', method: 'GET' },
+      { operationId: 'duplicate', path: '/b', method: 'GET' },
+    ])).toThrow(expect.objectContaining({ code: 'CONNECTOR_OPERATION_ID_DUPLICATE' }));
+  });
+
+  test('normalizes connector headers for the platform runtime contract', () => {
+    const [operation] = normalizeOperations([{
+      operationId: 'calendarCreate',
+      url: '/v1.0/calendar/events',
+      method: 'POST',
+      inputs: [{
+        name: 'Headers',
+        paramLocation: 'header',
+        required: true,
+        childList: [
+          { name: 'Content-Type', required: true, defaultValue: 'application/json' },
+          { name: 'x-client-token', required: true, defaultValue: '' },
+        ],
+      }],
+      parameters: {
+        header: [
+          { name: 'Content-Type', value: 'application/json' },
+          { name: 'x-client-token', value: '' },
+        ],
+      },
+    }]);
+
+    expect(operation.inputs[0].required).toBe(false);
+    expect(operation.inputs[0].childList).toEqual([
+      expect.objectContaining({ name: 'Content-Type', required: false }),
+      expect.objectContaining({ name: 'x-client-token', required: false }),
+    ]);
+    expect(operation.parameters.header).toEqual([
+      { name: 'Content-Type', value: 'application/json' },
+    ]);
   });
 });

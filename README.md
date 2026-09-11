@@ -50,6 +50,10 @@ npm install -g openyida
 
 OpenYida requires Node.js 18 or later. The package exposes both `openyida` and `yida` commands.
 
+For npm global installations, OpenYida checks the npm registry before a normal command at most once every 24 hours. When a newer version is available, it installs that exact version and then reruns the original command. This behavior is identical whether the local command is launched from a terminal, Codex, Claude Code, or Qoder. Managed cloud Agent runtimes are excluded before any cache access, registry request, or npm invocation.
+
+Set `OPENYIDA_NO_AUTO_UPDATE=1` to disable automatic updates. `OPENYIDA_AUTO_UPDATE_SECS` can override the check interval for development and testing. The explicit `openyida update` command remains available.
+
 If Codex is already installed, OpenYida also imports a local Codex plugin during postinstall. Restart Codex after installation, then type `@宜搭` or `@openyida` in the composer to attach the OpenYida context.
 
 ### 2. Check Your Environment
@@ -105,21 +109,7 @@ Build an IPD workflow for chip production, including approval nodes and dashboar
 Generate a public landing page and publish it to my Yida app.
 ```
 
-The agent can then call OpenYida commands to create the application, generate source files, publish pages, and return the final Yida URLs. In Codex, QwenWork, QoderWork, Qoder, and Wukong environments, successful creation and publish commands also include a browser handoff so the agent can open the resulting Yida page in the in-app browser. Use `--open` to force this handoff or `--no-open` to suppress it.
-
-## Wukong Installation
-
-Wukong uses manual skill package installation instead of npm:
-
-1. Download the latest `.zip` skill package from [GitHub Releases](https://github.com/openyida/openyida/releases).
-2. Open Wukong.
-3. Go to **Skill Center** > **Upload Skill** and select the downloaded package.
-
-For Wukong terminal work, make sure its bundled Node.js path is active before running `node`, `npm`, or `npx` commands:
-
-```bash
-export PATH="$HOME/.real/.bin/node/bin:$PATH"
-```
+The agent can then call OpenYida commands to create the application, generate source files, publish pages, and return the final Yida URLs. In Codex, QwenWork, Qoder, Qoder IDE, and QoderWork environments, successful creation and publish commands also include a browser handoff so the agent can open the resulting Yida page in the in-app browser. Use `--open` to force this handoff or `--no-open` to suppress it.
 
 ## Supported AI Coding Tools
 
@@ -128,14 +118,13 @@ export PATH="$HOME/.real/.bin/node/bin:$PATH"
 | [Codex](https://openai.com/codex/) | Full support |
 | [Claude Code](https://claude.ai/code) | Full support |
 | [MuleRun](https://mulerun.com) | Full support |
-| [Aone Copilot](https://copilot.code.alibaba-inc.com) | Full support |
 | [OpenCode](https://opencode.ai) | Full support |
 | [Cursor](https://cursor.com/) | Full support |
 | [Visual Studio Code](https://code.visualstudio.com/) | Full support |
 | QwenWork（千问办公） | Full support |
-| [QoderWork](https://qoder.com) | Full support |
-| [Qoder](https://qoder.com) | Full support |
-| [Wukong](https://dingtalk.com/wukong) | Full support |
+| [Qoder](https://qoder.com/download) | Full support |
+| [Qoder IDE](https://qoder.com/ide) | Full support |
+| [QoderWork](https://qoder.com/download) | Full support |
 
 ## How It Works
 
@@ -164,7 +153,7 @@ openyida/
 │   ├── core/                   # Environment detection, i18n, diagnostics, data commands
 │   ├── process/                # Process form creation, configuration, preview
 │   ├── report/                 # Yida report and chart generation
-│   └── samples/                # Sample skeletons emitted by openyida sample
+│   └── samples/                # Reusable code templates emitted by openyida sample
 ├── project/                    # Default workspace template for generated Yida projects
 ├── yida-skills/                # Source skill docs and Yida API references
 └── scripts/                    # CI, packaging, and installation helpers
@@ -177,12 +166,18 @@ For a user-facing list of supported features and matching CLI commands, see [Ope
 ### Application and Form Management
 
 ```bash
-openyida create-app "CRM"
-openyida create-app --name "CRM" --desc "Customer management" --theme deepBlue
-openyida app-list --size 20
+openyida create-app --name "CRM" --desc "Customer management"
+openyida sample yida-design app-theme --output .cache/openyida/crm/app-theme.css
+openyida create-app --name "CRM" --desc "Customer management" --theme-file .cache/openyida/crm/app-theme.css --nav-theme light --logo-source appIcon --layout l_shape
+openyida app-list --type managed --page 1 --size 16
+openyida update-app APP_XXX --theme-file .cache/openyida/crm/app-theme.css --nav-theme light --logo-source appIcon --layout l_shape
 openyida corp-efficiency
 openyida create-form create APP_XXX "Customer" .cache/openyida/forms/customer-fields.json
 openyida create-form update APP_XXX FORM_XXX .cache/openyida/forms/customer-changes.json
+openyida create-form update APP_XXX FORM_XXX --data-file .cache/openyida/forms/customer-changes.json
+openyida create-form resume APP_XXX FORM_XXX .cache/openyida/forms/customer-fields.json --json
+openyida sample openyida-page-template form-fields --output .cache/openyida/forms/customer-fields.json
+openyida sample openyida-page-template canvas-form-drawer --output project/pages/src/customer-entry.canvas.jsx --var APP_TYPE=APP_XXX --var FORM_UUID=FORM_XXX
 openyida get-schema APP_XXX FORM_XXX
 openyida get-schema APP_XXX FORM_XXX --compact --resolve-fields "Customer Name,Status"
 openyida get-schema APP_XXX --all --output-dir .cache/schemas
@@ -210,7 +205,8 @@ openyida create-process APP_XXX "Purchase Request" .cache/openyida/process/field
 openyida configure-process APP_XXX FORM_XXX .cache/openyida/process/process.json
 openyida process preview APP_XXX PROC_INST_XXX --output .cache/openyida/process/process.html
 openyida data query form APP_XXX FORM_XXX --page 1 --size 20
-openyida data create form APP_XXX FORM_XXX --data-file .cache/openyida/data-import/record.json
+openyida data query form APP_XXX FORM_XXX --dynamic-order '{"dateField_xxx":"-"}'
+openyida data create form APP_XXX FORM_XXX --expect-form-name 客户 --expect-form-type receipt --data-file .cache/openyida/data-import/record.json
 openyida get-permission APP_XXX FORM_XXX
 ```
 
@@ -232,7 +228,12 @@ openyida get-permission APP_XXX FORM_XXX
 }
 ```
 
+`configure-process` 会先通过表单绑定和流程版本只读接口证明 `processCode` ownership。目标已有 PUBLISHED 流程或 SAVED 草稿时，整图替换必须在人工确认后显式传入 `--replace`；未确认或 ownership 不匹配时远程写入数为 0。draft/save/publish 均为 one-shot，认证异常返回 `NON_IDEMPOTENT_RESULT_UNKNOWN`，不得自动重试。
+
+发布成功还必须精确回读同一 PUBLISHED `processId/processVersion` 的 `getProcessById` 平台视图，并验证可见节点的组件、名称、顺序和审批模式。只有输出 `verificationLevel: "PLATFORM_VIEW_VERIFIED"` 才表示平台 view 已验证；`PUBLISHED_UNVERIFIED` 表示发布可能已生效但回读不完整，不能宣称 `processJson` 已验证，也不能直接重放写请求。
+
 When creating or updating test data with `openyida data`, Yida date fields must use 13-digit millisecond timestamps, for example `"dateField_xxx": 1719705600000`. Do not submit `YYYY-MM-DD` strings for `DateField` or `CascadeDateField` values.
+For deterministic query order, pass `--dynamic-order '{"fieldId":"+"}'` for ascending order or `--dynamic-order '{"fieldId":"-"}'` for descending order. Without `--dynamic-order`, `searchFormDatas` does not guarantee a stable result order; pagination, comparison, and pairing logic must not depend on the default order.
 Temporary JSON, CSV, and one-off import scripts should live under `.cache/openyida/` so generated run artifacts do not clutter the repository root.
 
 ### Real Environment E2E
@@ -312,6 +313,10 @@ OPENYIDA_E2E=1 npm run eval:e2e -- --skill yida-dashboard --screenshot --auto-sc
 # above, here the agent self-orchestrates.
 OPENYIDA_E2E=1 npm run eval:generate -- --screenshot
 
+# Re-evaluate an archived real CLI trace against the latest scenario contract and
+# current read-only platform state. This does not run an agent or mutate resources.
+npm run eval:replay -- --report <generation-report.json> --scenario <scenario.json> --app-type APP_XXX
+
 # Run all three in one pass (routing + tool-pipeline baseline + real generation).
 OPENYIDA_E2E=1 npm run eval:all -- --skill yida-dashboard --screenshot
 
@@ -320,8 +325,6 @@ OPENYIDA_E2E=1 npm run eval:all -- --skill yida-dashboard --screenshot
 # whitelist. Use the Node version you start it with, so run `nvm use 20` first.
 npm run eval:dashboard          # http://127.0.0.1:4500
 
-# You can also run eval directly via the CLI:
-openyida eval --mode comprehensive --skill yida-dashboard
 ```
 
 Configuration precedence is `CLI flag > env (OPENYIDA_EVAL_*) > scripts/eval/eval.config.json > defaults`.
@@ -349,9 +352,23 @@ openyida connector list
 openyida integration create APP_XXX FORM_XXX "Sync customer data"
 openyida integration create APP_XXX FORM_XXX "Approval result notify" \
   --events processFinish --approval-actions agree,disagree --receivers 123456
+# Capability probe only; currently fails closed before auth/spec reads/remote writes
+openyida integration update APP_XXX FORM_XXX LPROC_XXX \
+  --spec .cache/openyida/integration/desired-spec.json
 openyida create-report APP_XXX "Sales Dashboard" .cache/openyida/reports/charts.json
 openyida append-chart APP_XXX REPORT_XXX .cache/openyida/reports/chart.json
+
+# Aggregate tables use two independent optimistic-concurrency axes.
+openyida aggregate-table inspect APP_XXX FORM_XXX --json
+openyida aggregate-table preview APP_XXX FORM_XXX .cache/openyida/aggregate/design.json --json
+openyida aggregate-table save APP_XXX FORM_XXX .cache/openyida/aggregate/design.json --json --no-open
+openyida aggregate-table publish APP_XXX FORM_XXX .cache/openyida/aggregate/design.json --json --no-open
+openyida aggregate-table status APP_XXX FORM_XXX --json
 ```
+
+Aggregate-table `save` verifies the draft `stashGmtModified` axis; `publish` verifies the live `gmtModified` axis. Both commands require the corresponding GET readback revision to advance; when a response revision exists it must equal that readback axis. Both commands also require canonical readback of `relationForms`, `relationships`, `aggregatedFields`, `auxFields`, `formulaFields`, and `validators`. The CLI intentionally does not expose aggregate-table deletion, AI authoring, a high-level design DSL, or tenant-dynamic limits until the corresponding platform contracts are proven.
+
+The opt-in aggregate real-E2E runner additionally requires `OPENYIDA_AGGREGATE_E2E_RUN_ID` and an exact `OPENYIDA_AGGREGATE_E2E_OWNED_MARKER` beginning with `<runId>__`. Before its first write it verifies the exact list/inspect identity and name, persists a redacted manifest, registry, and baseline snapshot, then conditionally restores the baseline using the latest live revision. Missing ownership proof or concurrent revision movement produces `PLATFORM_PROBE_REQUIRED` / `restore_blocked` without a restore write.
 
 ## CLI Reference
 
@@ -374,10 +391,14 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida app-list [--size N]` | List my Yida apps |
+| `openyida app-list [--type managed\|created] [--page N] [--size N]` | Page through apps I manage or created |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency overview and detail reports |
 | `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a Yida app |
-| `openyida update-app <appType> [--name "..."] [--layout slide\|ver] [--theme deepBlue] [--hide-app-nav\|--show-app-nav]` | Update app info |
+| `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | Initialize a plan draft from confirmed requirements |
+| `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | Update plan drafts by module |
+| `openyida design-plan materialize <build-plan.json> [--from-preview \| --business-file <json> --visual-file <json>] [--output-dir <dir>] [--check] [--json]` | Generate and validate design-plan artifacts from build-plan.json |
+| `openyida design-plan patch <build-plan.json> --set <path=value> [--set <path=value> ...] [--materialize] [--output-dir <dir>] [--json]` | Patch a design plan by field path and invalidate prior confirmation |
+| `openyida update-app <appType> [--name "..."] [--theme-file <css>] [--nav-theme light\|dark\|white\|gray] [--logo-source appIcon\|customImage] [--layout side\|top\|l_shape] [--hide-app-nav\|--show-app-nav]` | Update app info |
 | `openyida app-online <appType> [--to-ding-app-center] [--show-app-center]` | Enable a Yida app |
 | `openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]` | Disable a Yida app |
 | `openyida nav-group <list\|create\|rename\|delete\|move\|order\|auto-order\|hide\|show> <appType> ...` | Manage app sidebar navigation groups |
@@ -390,9 +411,12 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida create-form create <appType> "<formTitle>" <fieldsJsonFile> [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a form page |
+| `openyida create-form batch <appType> <plan.json> [--concurrency 1..4] [--check] [--json]` | Create forms concurrently by dependency |
+| `openyida create-form create <appType> "<formTitle>" <fieldsJsonFile> [--icon auto\|<iconName>] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a form page |
+| `openyida create-form icons [--json]` | List available form navigation icons |
 | `openyida create-form validate-fields <fieldsJsonOrFile> [--json]` | Validate form field JSON locally |
-| `openyida create-form update <appType> ... [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Update a form page |
+| `openyida create-form update <appType> <formUuid> (<changesJsonOrFile> \| --data-file <changesJsonOrFile>) [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Update a form page |
+| `openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> [--json]` | Update a form page |
 | `openyida create-form patch <appType> <formUuid> <patchJsonOrFile> [--open\|--no-open]` | Update a form page |
 | `openyida create-form rule <appType> <formUuid> <rulesJsonOrFile> [--open\|--no-open]` | Update a form page |
 | `openyida create-form validation <appType> <formUuid> <validationsJsonOrFile> [--open\|--no-open]` | Update a form page |
@@ -401,7 +425,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | Update a form page |
 | `openyida list-forms <appType> [--keyword <text>]` | List forms/pages in an app |
 | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | Manage aggregate tables (virtualView) |
-| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json]` | Get one form Schema or all form Schemas |
+| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | Get one form Schema or all form Schemas |
 | `openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]` | Check PRD page/resource count risk |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | Export app entity relationship diagram |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page |
@@ -409,23 +433,20 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida check-page <src> [--compat]` | Check custom page standards |
 | `openyida compile <src>` | Compile custom page locally |
 | `openyida publish <src> <appType> <formUuid> [--health-check] [--force] [--canvas] [--auto-nav-order] [--open\|--no-open]` | Compile and publish custom page |
-| `openyida update-form-config <appType> ...` | Update form configuration |
+| `openyida update-form-config <appType> <formUuid> <true\|false\|keep> "<title>" [--locale zh_CN\|en_US\|ja_JP]` | Update form configuration |
 | `openyida get-form-config <appType> <formUuid> [--json]` | Query form configuration |
-| `openyida form-detail-style apply <appType> <formUuid> [--css file\|--preset clean-card] [--json]` | Manage form detail page style |
-| `openyida form-detail-style remove <appType> <formUuid> [--json]` | Manage form detail page style |
-| `openyida form-detail-style check <appType> <formUuid> [--json]` | Manage form detail page style |
 
 ### Data & Permissions
 
 | Command | Description |
 |---------|-------------|
-| `openyida data <action> <resource> [args]` | Unified data management (form/process/task/subform) |
+| `openyida data <query\|get\|create\|update> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | Unified data management (form/process/task/subform) |
 | `openyida task-center <type> [options]` | Global task center (todo/processed/cc etc.) |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, and domain settings |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | Fetch Markdown content from a DingTalk document |
 | `openyida read-dingtalk-tingji <taskUuid> [--json]` | Fetch DingTalk Tingji details by task UUID |
-| `openyida get-permission <appType> <formUuid>` | Query form permission config |
-| `openyida save-permission <appType> <formUuid> ...` | Save form permission config |
+| `openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--json]` | Query form permission config |
+| `openyida save-permission <appType> <formUuid> --package-uuid <packageUuid> [--data-permission <json>\|--action-permission <json>\|--field-permission <json>]` | Save form permission config |
 | `openyida corp-manager <search-user\|list\|add\|remove\|address-book> ...` | Manage platform admins and address book permissions |
 | `openyida agent-center <list\|create\|update\|cancel\|range\|search-user> ...` | Manage process and departure delegation |
 
@@ -433,8 +454,8 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida configure-process <appType> ...` | Configure and publish process rules |
-| `openyida create-process <appType> ...` | Create process form (all-in-one) |
+| `openyida configure-process <appType> <formUuid> <definition> [processCode] [--replace]` | Configure and publish process rules |
+| `openyida create-process <appType> ... [--replace]` | Create process form (all-in-one) |
 | `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | Manage process form AI approval prompts |
 | `openyida process preview <appType> ...` | Preview process instance (visual flowchart) |
 
@@ -451,8 +472,9 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida create-report <appType> "<name>" ... [--open\|--no-open]` | Create a Yida report |
-| `openyida append-chart <appType> <reportId> ... [--open\|--no-open]` | Append chart to existing report |
+| `openyida create-report <appType> "<name>" ... [--json] [--open\|--no-open]` | Create a Yida report |
+| `openyida append-chart <appType> <reportId> ... [--json] [--open\|--no-open]` | Append chart to existing report |
+| `openyida report inspect <appType> <reportId> --json` | Inspect report runtime bindings (read-only) |
 
 ### Connectors
 
@@ -461,14 +483,15 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida connector list` | List HTTP connectors |
 | `openyida connector create "name" "domain" ...` | Create a connector |
 | `openyida connector detail <id>` | View connector details |
-| `openyida connector delete <id>` | Delete a connector |
+| `openyida connector delete <id> [--force]` | Show manual deletion guidance (CLI does not delete) |
 | `openyida connector add-action --operations <file> --connector-id <id>` | Add an action |
+| `openyida connector update-action --connector-id <id> --action <operationId> --query-json JSON --confirm` | Safely update action query defaults |
 | `openyida connector list-actions <id>` | List actions |
 | `openyida connector delete-action <id> <operation-id>` | Delete an action |
-| `openyida connector test --connector-id <id> --action <actionId>` | Test an action |
+| `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>]` | Test an action |
 | `openyida connector list-connections <id>` | List auth connections |
-| `openyida connector create-connection <id> <name>` | Create an auth connection |
-| `openyida connector smart-create --curl "..."` | Smart create connector (from cURL) |
+| `openyida connector create-connection <id> <name> [--interactive]` | Create an auth connection |
+| `openyida connector smart-create --curl "..."` | Generate a redacted action draft from cURL (no remote create) |
 | `openyida connector parse-api [options]` | Parse API information |
 | `openyida connector gen-template [output]` | Generate API document template |
 
@@ -476,8 +499,9 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida integration create <appType> ... [--spec file.json]` | Create integration automation flow |
-| `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
+| `openyida integration create <appType> ... [--spec file.json] [--connector-system-token-app <appType>]` | Create integration automation flow |
+| `openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]` | Probe integration update capability (currently blocked without full readback) |
+| `openyida integration list <appType> [--flow-types 1,2,3,5,6] [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
 | `openyida integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
 | `openyida integration disable <appType> <formUuid> <processCode>` | Disable integration automation flow |
 | `openyida integration check <appType...>` | Check abnormal integration automation run logs |
@@ -495,9 +519,8 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start OpenYida local web bridge service |
 | `openyida copy [--force]` | Copy project working directory |
-| `openyida sample [--list]` | Output code samples/templates |
+| `openyida sample [--list] [<skill> <name>] [--output <file>] [--var KEY=VALUE ...] [--design-file <design.md>]` | Output code samples/templates |
 | `openyida doctor [--fix]` | Environment diagnostics & auto-fix |
-| `openyida eval --mode <mode> [--skill <name>] [--runs N]` | Multi-dimensional skill evaluation (doc quality, routing accuracy, safety, etc.) |
 | `openyida db-seq-fix [--fix]` | Detect and repair PostgreSQL sequence drift |
 | `openyida formula evaluate <formula\|file> [--schema file]` | Static-check Yida formula syntax and field refs |
 | `openyida update` | Check and update to latest version |
@@ -506,7 +529,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run OpenYida commands in batch |
 | `openyida flash-to-prd --file <path> --name "<project>"` | Convert flash notes or meeting notes to a PRD prompt |
 | `openyida ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
-| `openyida asset <status\|verify-url\|resolve\|generate> [options]` | Detect asset capability / verify image URLs / resolve materials |
+| `openyida asset <status\|resolve\|generate> [options]` | Detect asset capability / resolve materials |
 | `openyida cdn-config [options]` | Configure CDN / OSS upload |
 | `openyida cdn-upload <image-path>` | Upload image to CDN |
 | `openyida cdn-refresh [options]` | Refresh CDN cache |
@@ -515,7 +538,29 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 ### CLI Notes
 
-`openyida asset resolve --hero <path-or-url> --product <path-or-url> --require-hero --upload-assets --json` is the preferred preflight for homepage visuals. It verifies public image URLs, uploads local images when CDN is configured, mirrors verified external images to CDN when `--upload-assets` is passed, and returns `materialStatus: final|draft|none` so agents do not claim an unfinished visual page is final.
+#### Connector Safety and Real E2E
+
+`connector test` keeps the legacy flat `--params` option, but dispatches each key only to the location proven by the action schema. Unknown or ambiguous keys fail closed. Authenticated connectors require `--account-id`, and that account must belong to the selected connector. The test response follows the frontend canonical contract `{statusLine,responseHeaders,content}`; unknown envelopes and non-2xx status lines are failures.
+
+`connector update-action --connector-id <id> --action <operationId> --query-json '{"currentPage":"1"}' --confirm` is the narrow safe path for editing existing query defaults. It requires a complete connector/action preflight, changes only declared query defaults mirrored in `inputs` and `parameters`, submits the complete action collection once, and verifies an unchanged connector fingerprint, action count, non-target actions, and stable IDs. Missing/empty/unknown parameters, duplicate IDs, incomplete readback, and unknown write outcomes fail closed without automatic retry. `add-action` no longer overwrites an existing action ID; use `update-action` for query-only edits.
+
+The opt-in connector E2E is intentionally separate from the shared full runner:
+
+```bash
+OPENYIDA_E2E=1 \
+OPENYIDA_E2E_CONNECTOR=1 \
+OPENYIDA_E2E_CORP_ID='<target-corp-id>' \
+OPENYIDA_E2E_CONNECTOR_ECHO_URL='https://<team-controlled-host>/<stable-echo-path>' \
+OPENYIDA_E2E_CONNECTOR_FIXTURE_MARKER='<expected-response-marker>' \
+OPENYIDA_E2E_CONNECTOR_FIXTURE_OWNER='<expected-owner-header-value>' \
+node scripts/e2e-real/connector/runner.js
+```
+
+The runner rejects public generic echo services such as httpbin and example.com. Before its first remote write it selects and verifies the explicit organization profile, prints a redacted resource plan, and persists synchronized registry/manifest evidence plus the SHA-256 of the preserved operations fixture. The controlled fixture must return exact JSON fields `content.runId`, `content.fixtureMarker`, and `content.authorization === "Basic ***"`, plus the exact `x-openyida-fixture-owner` response header. Substring matches, malformed JSON, and wrong fields fail closed. Each remote create is persisted as `attempted` before execution and becomes `completed` only after exact readback; an exception is recorded as `outcome_unknown` with a non-owned residual candidate and is never retried. The runner deletes only its temporary local copy and reports remote connector/account cleanup as blocked because the CLI has no proven delete API. If organization or fixture ownership cannot be proven, it returns `PLATFORM_PROBE_REQUIRED` with zero remote writes.
+
+The opt-in `node scripts/e2e-real/connector/action-update-runner.js` regression uses the owner-confirmed login-free `www.aliwork.com` fixture and a single owned NONE-auth connector containing a target action plus one preservation sentinel. Enable it with `OPENYIDA_E2E=1 OPENYIDA_E2E_CONNECTOR_ACTION_UPDATE=1`. It verifies isolated `currentPage`, `pageSize`, `userLanguage`, `searchFieldJson`, and dynamic `_stamp` edits, restores each field and the final baseline, and persists only response structure, data count, and SHA-256. It never stores response row values or auth/profile/corp identifiers, never retries unknown writes, and intentionally leaves the owned connector as a `cleanup_blocked` residual because no proven delete API exists.
+
+`openyida asset resolve --hero <path-or-url> --product <path-or-url> --require-hero --upload-assets --json` is the preferred preflight for homepage visuals. It handles local files and external image references in one flow, uploads or mirrors them when CDN is configured, and returns `materialStatus: final|draft|none` so agents do not claim an unfinished visual page is final.
 
 #### Environment and Localization
 
@@ -527,7 +572,7 @@ The CLI package ships the core UI languages `zh` and `en` by default. Other CLI 
 
 #### Forms and Pages
 
-Form field definitions can include `alias` or `componentAlias` to populate Yida designer component aliases, stored as `pages[0].componentAlias.items`. Yida runtime resolves these aliases in page JS, so `this.$('phone')` can be used instead of `this.$('textField_xxx')`; OpenYida form rules, validations, and `openyida data ... --resolve-aliases` JSON inputs also accept aliases as field references. For server-side DingTalk OpenAPI calls, use `GET /v2.0/yida/forms/component/alias/{appType}/{formUuid}` to read the `{ fieldId, alias }` mapping, then translate aliases before sending form data/search JSON. That endpoint requires `systemToken`, `userId`, an access token, and the Yida form data read permission; grant that permission in DingTalk developer console API permissions and publish the DingTalk app. Yida app code and app secret are available under app settings > deployment/maintenance.
+Form field definitions can include `alias` or `componentAlias` to populate Yida designer component aliases, stored as `pages[0].componentAlias.items`. Yida runtime resolves these aliases in page JS, so `this.$('phone')` can be used instead of `this.$('textField_xxx')`; OpenYida form rules, validations, and `openyida data ... --resolve-aliases` JSON inputs also accept aliases as field references. For server-side DingTalk OpenAPI calls, use `GET /v2.0/yida/forms/component/alias/{appType}/{formUuid}` to read the `{ fieldId, alias }` mapping, then translate aliases before sending form data/search JSON. That endpoint requires `systemToken`, `userId`, an access token, and the Yida form data read permission. Use `connector test --system-token-app <appType>` for a transient test or `integration create --connector-system-token-app <appType>` for a server-side automation; OpenYida resolves `systemToken` internally and never prints it or stores it in page source and Action defaults.
 
 `openyida publish` preserves existing custom page data sources by default. Before saving the new compiled JSX Schema, it reads the current page Schema and merges the Page-level `dataSource` with the built-in `urlParams` and `timestamp` sources, so manually configured data sources are not deleted during republish.
 
@@ -537,25 +582,23 @@ Form field definitions can include `alias` or `componentAlias` to populate Yida 
 
 #### Workflow, Reports, and Integrations
 
-`openyida integration create` supports form events (`insert`, `update`, `delete`, `comment`) and approval events (`processFinish`, `activityTask`; aliases: `approval`, `approvalNode`). Approval events require `--approval-actions agree,disagree,terminated`; `activityTask` also requires `--approval-node-ids <nodeId,...>`.
+`openyida integration create` supports form events (`insert`, `update`, `delete`, `comment`) and approval events (`processFinish`, `activityTask`; aliases: `approval`, `approvalNode`). Approval events require `--approval-actions agree,disagree,terminated`; `activityTask` also requires `--approval-node-ids <nodeId,...>`. Passing `--process-code` selects a full graph replacement and now requires explicit `--replace`; it is not a safe update. `integration update` currently performs capability detection only: because full platform `processJson` + `viewJson` readback is unproven, it writes a redacted local probe artifact and returns `PLATFORM_PROBE_REQUIRED` before authentication, spec reading, or remote writes. It does not edit a flow.
 
 ## Agent Skills
 
-The `yida-skills/` directory is the source skill library used by OpenYida during development. Release assets for Wukong are generated by `npm run build:skills`: the expanded package is written to `dist/skills/openyida/`, and the upload-ready zip is written to `openyida-skills.zip`.
+The `yida-skills/` directory is the source skill library used by OpenYida during development and distributed with the npm package.
 
 | Path | Purpose |
 |------|---------|
 | `yida-skills/SKILL.md` | Entry point and skill index |
 | `yida-skills/skills/` | Self-contained sub-skills for app, form, process, page, data, and integration work |
 | `yida-skills/references/` | Shared Yida API, model API, and query-condition references |
-| `dist/skills/openyida/` | Generated Wukong upload package root; contains one root `SKILL.md` and reference-only subskill docs |
-| `openyida-skills.zip` | Generated Wukong upload package; upload this file in Wukong |
 
 When OpenYida is used inside a supported AI coding environment, these skills help the agent choose the right command sequence and file conventions.
 
-For Wukong manual import, upload the generated `openyida-skills.zip`. The package follows Wukong's custom skill rules: folder name and `frontmatter.name` are both `openyida`, root frontmatter only contains `name` and `description`, and long references live under `references/`.
-
 For QwenWork, use the same user-level global skills layout as QoderWork: `~/.qwenworkcn/skills/yida-skills/`. Skip QwenWork setup when `~/.qwenworkcn` is not present.
+
+Qoder and Qoder IDE share the user-level `~/.qoder/skills/yida-skills/` directory. QoderWork remains a separate product and uses `~/.qoderwork/skills/yida-skills/`.
 
 For Codex, `npm install -g openyida` additionally creates a local plugin marketplace under `~/.openyida/codex-plugin` and enables `openyida@openyida` in `~/.codex/config.toml` when Codex is detected. This makes OpenYida show up in Codex's `@` plugin menu as **宜搭** after Codex reloads.
 

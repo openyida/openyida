@@ -91,6 +91,35 @@ describe('import-app helpers', () => {
     jest.resetModules();
   });
 
+  test('reads the target form revision before importing Schema', async () => {
+    jest.resetModules();
+    const httpGet = jest.fn().mockResolvedValue({ success: true, content: { pages: [] }, gmtModified: 23 });
+    const requestWithAutoLogin = jest.fn((requestFn, authRef) => requestFn(authRef));
+    jest.doMock('../lib/core/utils', () => ({
+      triggerLogin: jest.fn(),
+      resolveBaseUrl: jest.fn(() => 'https://example.test'),
+      httpGet,
+      httpPost: jest.fn(),
+      requestWithAutoLogin,
+    }));
+    const isolated = require('../lib/app/import-app').__test__;
+    const authRef = { baseUrl: 'https://example.test', projectRoot: '/tmp/project' };
+
+    await expect(isolated.fetchFormSchema('APP_NEW', 'FORM_NEW', authRef)).resolves.toMatchObject({
+      success: true,
+      gmtModified: 23,
+    });
+    expect(httpGet).toHaveBeenCalledWith(
+      'https://example.test',
+      '/alibaba/web/APP_NEW/_view/query/formdesign/getFormSchema.json',
+      { formUuid: 'FORM_NEW', schemaVersion: 'V5' },
+      { projectRoot: '/tmp/project' }
+    );
+
+    jest.dontMock('../lib/core/utils');
+    jest.resetModules();
+  });
+
   test('adapts app and form identifiers inside exported schema content', () => {
     const schema = {
       pages: [{ id: 'FORM-OLD', props: { appType: 'APP_OLD' } }],

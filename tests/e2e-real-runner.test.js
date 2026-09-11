@@ -6,10 +6,13 @@ const path = require('path');
 
 const {
   extractJsonObjects,
+  formatCommandForLog,
   getConfig,
   parseLastJson,
+  requireCanvasPublishHealth,
   run,
 } = require('../scripts/e2e-real/runner');
+const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 
 describe('real E2E runner', () => {
   test('stays opt-in by default', () => {
@@ -18,6 +21,14 @@ describe('real E2E runner', () => {
     expect(config.enabled).toBe(false);
     expect(config.missing).toEqual(['OPENYIDA_E2E=1']);
     expect(config.prefix).toBe('OY_E2E_20260511000000');
+  });
+
+  test('default Canvas fixture exists and compiles without project templates', () => {
+    const config = getConfig({}, new Date('2026-05-11T00:00:00Z'));
+    const source = fs.readFileSync(config.pageSource, 'utf8');
+
+    expect(config.pageSource).toBe(path.join(__dirname, '..', 'scripts', 'e2e-real', 'fixtures', 'page.canvas.jsx'));
+    expect(() => compileCanvasLocal(source, { sourcePath: config.pageSource })).not.toThrow();
   });
 
   test('extracts the last JSON object from decorated CLI output', () => {
@@ -36,13 +47,19 @@ describe('real E2E runner', () => {
     });
   });
 
+  test('redacts quiet command arguments from runner logs', () => {
+    expect(formatCommandForLog([
+      'create-process', 'APP-SENSITIVE', '--formUuid', 'FORM-SENSITIVE', '--quiet',
+    ])).toBe('openyida [quiet command]');
+    expect(formatCommandForLog(['commands', '--json']))
+      .toBe('openyida commands --json');
+  });
+
   test('runs the real E2E command chain and records resources', () => {
     const calls = [];
     const resources = [];
     const registry = { resources: [], commands: [] };
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-e2e-page-'));
-    const pageSource = path.join(tmpDir, 'dashboard.canvas.jsx');
-    fs.writeFileSync(pageSource, 'export default function YidaComp() { return <div>Dashboard</div>; }');
+    const pageSource = getConfig({}).pageSource;
     const config = {
       enabled: true,
       missing: [],
@@ -73,6 +90,20 @@ describe('real E2E runner', () => {
         if (command === 'create-app') {return { stdout: '{"success":true,"appType":"APP_E2E"}', json: { success: true, appType: 'APP_E2E' } };}
         if (command === 'create-form') {return { stdout: '{"success":true,"formUuid":"FORM-E2E"}', json: { success: true, formUuid: 'FORM-E2E' } };}
         if (command === 'create-page') {return { stdout: '{"success":true,"pageId":"PAGE-E2E"}', json: { success: true, pageId: 'PAGE-E2E' } };}
+        if (command === 'publish') {
+          return {
+            stdout: '{"success":true,"publishMode":"canvas"}',
+            json: {
+              success: true,
+              publishMode: 'canvas',
+              healthCheck: {
+                ok: true,
+                expectedPublishMode: 'canvas',
+                readback: { hasYidaCodeCanvas: true, runtimeCodeBytes: 128 },
+              },
+            },
+          };
+        }
         return { stdout: '{"success":true}', json: { success: true } };
       },
     });
@@ -86,10 +117,53 @@ describe('real E2E runner', () => {
       ['get-schema', 'APP_E2E', 'FORM-E2E', '--json', '--quiet'],
       ['data', 'query', 'form', 'APP_E2E', 'FORM-E2E', '--size', '1', '--quiet'],
       ['create-page', 'APP_E2E', 'OY_E2E_TEST_Page', '--mode', 'dashboard', '--no-open', '--quiet'],
-      ['publish', config.pageSource, 'APP_E2E', 'PAGE-E2E', '--health-check', '--no-open', '--quiet'],
+      ['publish', config.pageSource, 'APP_E2E', 'PAGE-E2E', '--canvas', '--health-check', '--no-open', '--quiet'],
     ]);
     expect(resources.map((resource) => resource.type)).toEqual(['app', 'form', 'page']);
     expect(registry.status).toBe('passed');
+  });
+
+  test('requires Canvas mode and non-empty Canvas runtime readback', () => {
+    expect(() => requireCanvasPublishHealth({
+      success: true,
+      publishMode: 'native',
+      healthCheck: {
+        ok: true,
+        expectedPublishMode: 'native',
+        readback: { hasYidaCodeCanvas: false, runtimeCodeBytes: 0 },
+      },
+    })).toThrow(/publish Canvas health check failed/);
+
+    expect(() => requireCanvasPublishHealth({
+      success: true,
+      publishMode: 'canvas',
+      healthCheck: {
+        ok: true,
+        expectedPublishMode: 'canvas',
+        readback: { hasYidaCodeCanvas: true, runtimeCodeBytes: 128 },
+      },
+    })).not.toThrow();
+  });
+
+  test('rejects an invalid Canvas fixture before running any CLI command', () => {
+    const calls = [];
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-e2e-invalid-page-'));
+    const pageSource = path.join(tmpDir, 'invalid.canvas.jsx');
+    fs.writeFileSync(pageSource, 'export default function YidaComp( {');
+    const config = {
+      ...getConfig({ OPENYIDA_E2E: '1' }),
+      pageSource,
+    };
+
+    expect(() => run({
+      config,
+      runCli: (args) => {
+        calls.push(args);
+        return { stdout: '{}', json: {} };
+      },
+    })).toThrow(/E2E page source is not compilable/);
+    expect(calls).toEqual([]);
+
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 });

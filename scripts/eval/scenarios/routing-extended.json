@@ -72,9 +72,9 @@
   {
     "id": "aggregate-table-list",
     "prompt": "帮我列一下当前应用有哪些聚合表",
-    "expectedSkill": "openyida aggregate-table",
+    "expectedSkill": "yida-aggregate-table",
     "group": "页面与表单",
-    "note": "聚合表操作 → aggregate-table CLI"
+    "note": "聚合表操作 → yida-aggregate-table"
   },
   {
     "id": "data-source-connector-page",
@@ -166,13 +166,6 @@
     "expectedSkill": "yida-nav-group",
     "group": "应用配置与平台",
     "note": "平台左侧菜单分组 → nav-group"
-  },
-  {
-    "id": "form-detail-style",
-    "prompt": "美化一下表单详情页的样式，用卡片化布局",
-    "expectedSkill": "yida-form-detail",
-    "group": "应用配置与平台",
-    "note": "CSS 美化详情页 → form-detail"
   },
   {
     "id": "density-switch",

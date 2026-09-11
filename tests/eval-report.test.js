@@ -37,6 +37,60 @@ describe('eval report', () => {
     expect(html).toContain('（无护栏记录）');
   });
 
+  test('renderEvalReportHtml 展示页面运行时验收', () => {
+    const html = renderEvalReportHtml({
+      screenshots: [{
+        stage: 'crm:page', url: 'https://x/page', ok: false, path: null,
+        runtimePass: false,
+        runtimeChecks: [
+          { name: 'brokenImages', ok: true },
+          { name: 'forbiddenTextAny', ok: false },
+        ],
+      }],
+    });
+    expect(html).toContain('运行时验收：失败');
+    expect(html).toContain('forbiddenTextAny=fail');
+  });
+
+  test('renderEvalReportHtml 展示 generation 执行证据断言', () => {
+    const html = renderEvalReportHtml({
+      generationResults: [{
+        id: 'crm-pro',
+        evidenceChecks: { checks: [
+          { name: 'command:create-app', ok: true, required: true, detail: '实际 1' },
+          { name: 'skill:yida-report', ok: false, required: false, detail: '未覆盖可选技能' },
+        ] },
+      }],
+    });
+    expect(html).toContain('执行证据断言');
+    expect(html).toContain('crm-pro');
+    expect(html).toContain('command:create-app');
+    expect(html).toContain('未覆盖可选技能');
+  });
+
+  test('renderEvalReportHtml 展示 OpenYida 优化建议', () => {
+    const html = renderEvalReportHtml({
+      optimizationBacklog: {
+        findings: [{
+          severity: 'P1',
+          title: '缺少 18 个报表',
+          status: 'confirmed',
+          scope: 'openyida-optimization',
+          attribution: { owner: 'skill-guidance', confidence: 'high' },
+          targets: { skills: ['yida-report'], commands: ['openyida create-report'] },
+          suggestedChange: { action: '增加 PRD 逐项核销' },
+        }],
+      },
+    });
+    expect(html).toContain('验收缺口与 OpenYida 优化（1 条证据 / 1 个问题组）');
+    expect(html).toContain('OpenYida 优化');
+    expect(html).toContain('缺少 18 个报表');
+    expect(html).toContain('skill-guidance');
+    expect(html).toContain('skill:yida-report');
+    expect(html).toContain('CLI:openyida create-report');
+    expect(html).toContain('增加 PRD 逐项核销');
+  });
+
   test('renderEvalReportHtml 转义 URL/评语，防止注入破坏结构', () => {
     const html = renderEvalReportHtml({
       screenshots: [{ stage: 's', url: 'https://x/<script>', ok: false, path: null }],

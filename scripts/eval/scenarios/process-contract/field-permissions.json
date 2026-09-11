@@ -1,0 +1,6 @@
+{
+  "id": "field-permissions",
+  "title": "字段权限",
+  "template": "fieldPermissions",
+  "request": "构建审批流程：审批节点对标题字段可编辑、金额字段只读、内部备注字段隐藏。"
+}

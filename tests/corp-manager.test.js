@@ -11,6 +11,12 @@ jest.mock('../lib/core/utils', () => ({
   requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
 }));
 
+jest.mock('../lib/core/i18n', () => {
+  const i18n = jest.requireActual('../lib/core/i18n');
+  i18n.setLanguage('zh');
+  return { t: i18n.t };
+});
+
 const utils = require('../lib/core/utils');
 const {
   buildSubAdminConfig,
@@ -20,6 +26,7 @@ const {
   getAddressBookVisible,
   saveAddressBookVisible,
 } = require('../lib/corp-manager/api');
+const { run, sameStringSet } = require('../lib/corp-manager/corp-manager');
 
 const mockAuthData = {
   base_url: 'https://www.aliwork.com',
@@ -31,10 +38,17 @@ const mockAuthData = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  utils.httpGet.mockReset();
+  utils.httpPost.mockReset();
   utils.loadAuthData.mockReturnValue(mockAuthData);
 });
 
 describe('corp-manager api', () => {
+  test('sub-admin scope comparison uses set semantics', () => {
+    expect(sameStringSet(['dept-2', 'dept-1', 'dept-1'], ['dept-1', 'dept-2'])).toBe(true);
+    expect(sameStringSet(['appManage'], ['bulletinBoard'])).toBe(false);
+  });
+
   test('searchUsers normalizes same-name employees and supports department filtering', async () => {
     utils.httpGet.mockResolvedValueOnce({
       success: true,
@@ -130,10 +144,15 @@ describe('corp-manager api', () => {
   });
 
   test('address book set preserves omitted visibility flags', async () => {
-    utils.httpGet.mockResolvedValueOnce({
-      success: true,
-      content: { isAllVisible: 'n', isAdminVisible: 'n' },
-    });
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { isAllVisible: 'n', isAdminVisible: 'n' },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { isAllVisible: 'n', isAdminVisible: 'y' },
+      });
     utils.httpPost.mockResolvedValueOnce({ success: true, content: {} });
 
     const result = await saveAddressBookVisible({ adminVisible: 'y' });
@@ -146,7 +165,24 @@ describe('corp-manager api', () => {
     expect(result).toMatchObject({
       isAllVisible: 'n',
       isAdminVisible: 'y',
+      before: { isAllVisible: 'n', isAdminVisible: 'n' },
+      after: { isAllVisible: 'n', isAdminVisible: 'y' },
     });
+  });
+
+  test('address book set fails when readback differs from the requested values', async () => {
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { isAllVisible: 'n', isAdminVisible: 'n' },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { isAllVisible: 'n', isAdminVisible: 'n' },
+      });
+    utils.httpPost.mockResolvedValueOnce({ success: true, content: {} });
+
+    await expect(saveAddressBookVisible({ adminVisible: 'y' })).rejects.toThrow('验证失败');
   });
 
   test('getAddressBookVisible normalizes empty response defaults', async () => {
@@ -156,5 +192,79 @@ describe('corp-manager api', () => {
       isAllVisible: 'n',
       isAdminVisible: 'n',
     });
+  });
+
+  test('corp-manager add queries before and verifies the saved role', async () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    utils.httpPost
+      .mockResolvedValueOnce({
+        success: true,
+        content: { currentPage: 1, totalCount: 0, values: [] },
+      })
+      .mockResolvedValueOnce({ success: true, content: {} })
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          currentPage: 1,
+          totalCount: 1,
+          values: [{ userId: 'u1', roleType: 'applicationCreateRole' }],
+        },
+      });
+
+    try {
+      await run(['add', 'app', '--user', 'u1']);
+      const output = JSON.parse(logSpy.mock.calls[0][0]);
+      expect(output).toMatchObject({
+        success: true,
+        userId: 'u1',
+        before: { totalCount: 0 },
+        after: {
+          totalCount: 1,
+          admins: [{ userId: 'u1' }],
+        },
+      });
+      expect(utils.httpPost).toHaveBeenCalledTimes(3);
+    } finally {
+      logSpy.mockRestore();
+    }
+  });
+
+  test('corp-manager sub add fails closed when department or scene readback differs', async () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    utils.httpPost
+      .mockResolvedValueOnce({
+        success: true,
+        content: { currentPage: 1, totalCount: 0, values: [] },
+      })
+      .mockResolvedValueOnce({ success: true, content: {} })
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          currentPage: 1,
+          totalCount: 1,
+          values: [{
+            userId: 'u1',
+            roleType: 'subCorpAdminRole',
+            manageDeptIds: ['dept-other'],
+            manageScene: ['appManage'],
+          }],
+        },
+      });
+
+    try {
+      await expect(run([
+        'add',
+        'sub',
+        '--user',
+        'u1',
+        '--dept-ids',
+        'dept-1,dept-2',
+        '--scenes',
+        'bulletinBoard,appManage',
+      ])).rejects.toThrow('范围验证失败');
+      expect(logSpy).not.toHaveBeenCalled();
+    } finally {
+      logSpy.mockRestore();
+    }
   });
 });

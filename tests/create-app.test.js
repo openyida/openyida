@@ -1,6 +1,12 @@
 'use strict';
 
-const { parseCreateAppArgs, inferAppDefaults, buildCreateAppPayload } = require('../lib/app/create-app');
+const {
+  APP_ICON_NAMES,
+  parseCreateAppArgs,
+  inferAppDefaults,
+  selectRandomAppIcon,
+  buildCreateAppPayload,
+} = require('../lib/app/create-app');
 
 const AGENT_ENV_KEYS = [
   'CLAUDE_CODE',
@@ -9,6 +15,9 @@ const AGENT_ENV_KEYS = [
   'OPENCODE_CLIENT',
   'QODER_IDE',
   'QODER_AGENT',
+  'QODER_PRODUCT_ID',
+  'QODER_SESSION_TYPE',
+  'QODER_CLI',
   'QODERCLI_INTEGRATION_MODE',
   'QWENWORK_INTEGRATION_MODE',
   'QWENWORKCN_INTEGRATION_MODE',
@@ -49,9 +58,6 @@ describe('create-app argument parsing', () => {
       'Customer management',
       'xian-qiye',
       '#00B853',
-      'deepBlue',
-      'light',
-      'ver',
     ]);
 
     expect(parsed).toMatchObject({
@@ -59,9 +65,6 @@ describe('create-app argument parsing', () => {
       description: 'Customer management',
       icon: 'xian-qiye',
       iconColor: '#00B853',
-      colour: 'deepBlue',
-      navTheme: 'light',
-      layoutDirection: 'ver',
     });
   });
 
@@ -69,18 +72,17 @@ describe('create-app argument parsing', () => {
     const parsed = parseCreateAppArgs([
       '--name', '电商经营管理看板',
       '--desc', 'E-commerce operations management dashboard demo',
-      '--theme', 'deepBlue',
+
       '--locale', 'ja_JP',
-    ]);
+    ], () => 0.5);
 
     expect(parsed).toMatchObject({
       appName: '电商经营管理看板',
       description: 'E-commerce operations management dashboard demo',
-      colour: 'deepBlue',
-      icon: 'xian-yingyong',
+
+      icon: APP_ICON_NAMES[12],
       iconColor: '#0089FF',
-      navTheme: null,
-      layoutDirection: null,
+
       locale: 'ja_JP',
     });
   });
@@ -88,7 +90,6 @@ describe('create-app argument parsing', () => {
   test('creates normal apps by default', () => {
     expect(parseCreateAppArgs(['--name', '普通应用'])).toMatchObject({
       appName: '普通应用',
-      colour: 'podBlue',
     });
   });
 
@@ -102,9 +103,7 @@ describe('create-app argument parsing', () => {
       appName: '恒信律师事务所',
       icon: 'xian-falv',
       iconColor: '#5C72FF',
-      colour: 'podBlue',
-      navTheme: null,
-      layoutDirection: null,
+
       industry: 'legal',
     });
   });
@@ -113,7 +112,7 @@ describe('create-app argument parsing', () => {
     expect(inferAppDefaults('云山茶叶官网', '绿色茶园品牌展示')).toMatchObject({
       icon: 'xian-diqiu',
       iconColor: '#00B853',
-      colour: 'podGreen',
+
       industry: 'tea-ecology',
     });
   });
@@ -123,17 +122,12 @@ describe('create-app argument parsing', () => {
       '--name', '水质情况实时监控预警系统',
       '--icon', 'xian-diannao',
       '--icon-color', '#8F66FF',
-      '--theme', 'black',
-      '--nav-theme', 'dark',
-      '--layout', 'ver',
     ]);
 
     expect(parsed).toMatchObject({
       icon: 'xian-diannao',
       iconColor: '#8F66FF',
-      colour: 'black',
-      navTheme: 'dark',
-      layoutDirection: 'ver',
+
       industry: 'command-screen',
     });
   });
@@ -142,13 +136,30 @@ describe('create-app argument parsing', () => {
     expect(() => parseCreateAppArgs(['--unknown'])).toThrow('Unknown option: --unknown');
   });
 
+  test('does not expose the modern-theme creation marker as a CLI option', () => {
+    expect(() => parseCreateAppArgs(['--name', 'CRM', '--create-with-modern-theme', 'n']))
+      .toThrow('Unknown option: --create-with-modern-theme');
+  });
+
   test('rejects unsupported locales', () => {
     expect(() => parseCreateAppArgs(['--name', 'CRM', '--locale', 'ko_KR'])).toThrow('Unsupported locale: ko_KR');
   });
 
-  test('rejects custom theme names because --theme only accepts platform presets', () => {
+  test('rejects theme configuration during creation', () => {
     expect(() => parseCreateAppArgs(['--name', 'CRM', '--theme', 'vibrantOrange']))
-      .toThrow('Unsupported theme: vibrantOrange');
+      .toThrow('update-app');
+  });
+
+  test.each(['--theme', '--colour', '--nav-theme', '--navTheme', '--layout', '--layout-direction', '--layoutDirection', '--themeColor', '--theme-file', '--custom-theme-file', '--logo-source', '--logoSource', '--theme-color', '--hide-app-nav', '--show-app-nav'])('rejects update-only option %s before creating an app', (option) => {
+    expect(() => parseCreateAppArgs(['--name', 'CRM', option, 'value'])).toThrow('update-app');
+  });
+
+  test('selects only icons supported by yida-next', () => {
+    expect(APP_ICON_NAMES).toHaveLength(24);
+    expect(selectRandomAppIcon(() => 0)).toBe('xian-xinwen');
+    expect(selectRandomAppIcon(() => 0.999999)).toBe('daka');
+    expect(APP_ICON_NAMES).toEqual(expect.arrayContaining(['huoche', 'chaxun', 'shenbao', 'daka']));
+    expect(APP_ICON_NAMES).not.toEqual(expect.arrayContaining(['xian-chaxun', 'xian-shenbao', 'xian-daka']));
   });
 
   test('builds registerApp payload with normal app group', () => {
@@ -166,11 +177,12 @@ describe('create-app argument parsing', () => {
       group: 'ALL',
       openExclusive: 'n',
       openPhysicColumn: 'n',
+      createWithModernTheme: 'y',
       fromBuilderAi: 'y',
       builderAiSource: 'local',
     });
     expect(payload).not.toHaveProperty('navTheme');
-    expect(payload).not.toHaveProperty('layoutDirection');
+    ['colour', 'navTheme', 'layoutDirection', 'logoSource', 'themeColor', 'customThemeStyle', 'themeFile'].forEach((field) => expect(payload).not.toHaveProperty(field));
     expect(JSON.parse(payload.appName)).toMatchObject({ zh_CN: '普通宜搭应用' });
   });
 
@@ -191,8 +203,10 @@ describe('create-app argument parsing', () => {
     });
   });
 
-  test('includes nav theme and layout direction only when explicitly provided', () => {
-    const params = parseCreateAppArgs(['--name', '普通宜搭应用', '--nav-theme', 'light', '--layout', 'ver']);
+  test('reports new Qoder with the existing qoder builder source contract', () => {
+    process.env.QODER_PRODUCT_ID = 'qoder';
+    process.env.QODER_SESSION_TYPE = 'app';
+    const params = parseCreateAppArgs(['--name', '普通宜搭应用']);
     const payload = buildCreateAppPayload(
       params,
       { csrfToken: 'csrf-token' },
@@ -202,8 +216,13 @@ describe('create-app argument parsing', () => {
     );
 
     expect(payload).toMatchObject({
-      navTheme: 'light',
-      layoutDirection: 'ver',
+      fromBuilderAi: 'y',
+      builderAiSource: 'qoder',
     });
+  });
+
+  test('rejects legacy positional theme settings instead of silently applying them', () => {
+    expect(() => parseCreateAppArgs(['CRM', 'Description', 'xian-qiye', '#00B853', 'podBlue', 'light', 'top']))
+      .toThrow('update-app');
   });
 });

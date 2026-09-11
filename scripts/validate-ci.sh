@@ -17,47 +17,43 @@ echo "=== Step 2: Validate project structure ==="
 npm run check:structure
 
 echo ""
-echo "=== Step 3: Build Wukong skills package ==="
-npm run build:skills
-
-echo ""
-echo "=== Step 4: Validate skills ==="
+echo "=== Step 3: Validate skills ==="
 npm run check:skills
 
 echo ""
-echo "=== Step 5: Validate command manifest ==="
+echo "=== Step 4: Validate command manifest ==="
 npm run check:commands
 
 echo ""
-echo "=== Step 6: Validate generated command docs ==="
+echo "=== Step 5: Validate generated command docs ==="
 npm run check:docs
 
 echo ""
-echo "=== Step 7: Validate i18n locale parity (ratchet) ==="
+echo "=== Step 6: Validate i18n locale parity (ratchet) ==="
 npm run check:i18n
 
 echo ""
-echo "=== Step 8: Check JavaScript syntax ==="
+echo "=== Step 7: Check JavaScript syntax ==="
 npm run check:syntax
 
 echo ""
-echo "=== Step 9: Run lint ==="
+echo "=== Step 8: Run lint ==="
 npm run lint
 
 echo ""
-echo "=== Step 10: Scan cross-platform release risks ==="
+echo "=== Step 9: Scan cross-platform release risks ==="
 npm run check:release-risks
 
 echo ""
-echo "=== Step 11: Run tests ==="
+echo "=== Step 10: Run tests ==="
 npm run test:unit -- --runInBand
 
 echo ""
-echo "=== Step 12: Validate npm package size budget ==="
+echo "=== Step 11: Validate npm package size budget ==="
 npm run check:package-size
 
 echo ""
-echo "=== Step 13: Validate npm package contents ==="
+echo "=== Step 12: Validate npm package contents ==="
 npm run check:package
 
 echo ""

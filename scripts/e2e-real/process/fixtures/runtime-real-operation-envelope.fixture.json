@@ -1,0 +1,74 @@
+{
+  "success": true,
+  "content": [
+    {
+      "action": "START",
+      "actionExt": {},
+      "activityId": "START_ACTIVITY_PLACEHOLDER",
+      "domains": [],
+      "id": "START_OPERATION_PLACEHOLDER",
+      "operateTime": "2026-08-24T09:59:00.000Z",
+      "operateType": "START",
+      "operator": {
+        "displayName": "ORIGINATOR_DISPLAY_PLACEHOLDER"
+      },
+      "operatorAgentIds": [],
+      "operatorDisplayName": "ORIGINATOR_DISPLAY_PLACEHOLDER",
+      "operatorName": "ORIGINATOR_DISPLAY_PLACEHOLDER",
+      "operatorPhotoUrl": "PHOTO_URL_PLACEHOLDER",
+      "processInstanceId": "INSTANCE_ID_PLACEHOLDER",
+      "remark": "REMARK_PLACEHOLDER",
+      "showName": "START_SHOW_NAME_PLACEHOLDER",
+      "size": 0,
+      "taskHoldTime": 0,
+      "taskId": "START_TASK_ID_PLACEHOLDER",
+      "type": "START_TYPE_PLACEHOLDER"
+    },
+    {
+      "action": "同意",
+      "actionExt": {},
+      "activityId": "APPROVAL_B_ACTIVITY_PLACEHOLDER",
+      "domains": [],
+      "id": "APPROVAL_B_OPERATION_PLACEHOLDER",
+      "operateTime": "2026-08-24T10:00:00.000Z",
+      "operateType": "EXECUTE_TASK_NORMAL",
+      "operator": {
+        "displayName": "ACTOR_B_DISPLAY_PLACEHOLDER"
+      },
+      "operatorAgentIds": [],
+      "operatorDisplayName": "ACTOR_B_DISPLAY_PLACEHOLDER",
+      "operatorName": "ACTOR_B_DISPLAY_PLACEHOLDER",
+      "operatorPhotoUrl": "PHOTO_URL_PLACEHOLDER",
+      "processInstanceId": "INSTANCE_ID_PLACEHOLDER",
+      "remark": "REMARK_PLACEHOLDER",
+      "showName": "APPROVAL_B_SHOW_NAME_PLACEHOLDER",
+      "size": 0,
+      "taskHoldTime": 0,
+      "taskId": "TASK_B_ID_PLACEHOLDER",
+      "type": "APPROVAL_TYPE_PLACEHOLDER"
+    },
+    {
+      "action": "同意",
+      "actionExt": {},
+      "activityId": "APPROVAL_A_ACTIVITY_PLACEHOLDER",
+      "domains": [],
+      "id": "APPROVAL_A_OPERATION_PLACEHOLDER",
+      "operateTime": "2026-08-24T10:01:00.000Z",
+      "operateType": "EXECUTE_TASK_NORMAL",
+      "operator": {
+        "displayName": "ACTOR_A_DISPLAY_PLACEHOLDER"
+      },
+      "operatorAgentIds": [],
+      "operatorDisplayName": "ACTOR_A_DISPLAY_PLACEHOLDER",
+      "operatorName": "ACTOR_A_DISPLAY_PLACEHOLDER",
+      "operatorPhotoUrl": "PHOTO_URL_PLACEHOLDER",
+      "processInstanceId": "INSTANCE_ID_PLACEHOLDER",
+      "remark": "REMARK_PLACEHOLDER",
+      "showName": "APPROVAL_A_SHOW_NAME_PLACEHOLDER",
+      "size": 0,
+      "taskHoldTime": 0,
+      "taskId": "TASK_A_ID_PLACEHOLDER",
+      "type": "APPROVAL_TYPE_PLACEHOLDER"
+    }
+  ]
+}

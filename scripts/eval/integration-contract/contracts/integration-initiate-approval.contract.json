@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "sourceBundle": {
+    "package": "yida-logic-flow",
+    "version": "0.2.245"
+  },
+  "contractRevision": 1,
+  "scenarioId": "integration-initiate-approval",
+  "artifactKind": "definition",
+  "semantic": {
+    "trigger": {
+      "key": "trigger",
+      "type": "trigger",
+      "componentName": "StartNode",
+      "eventTypes": [
+        "insert"
+      ],
+      "recursive": false,
+      "conditions": []
+    },
+    "nodes": [
+      {
+        "key": "trigger",
+        "type": "trigger",
+        "componentName": "StartNode",
+        "name": "表单事件触发",
+        "nextKeys": [
+          "initiateApproval"
+        ],
+        "config": {}
+      },
+      {
+        "key": "initiateApproval",
+        "type": "initiateApproval",
+        "componentName": "InitiateApprovalNode",
+        "name": "发起审批",
+        "nextKeys": [
+          "finish"
+        ],
+        "config": {
+          "initiateApproval": {
+            "targetForm": "paymentApproval",
+            "initiator": {
+              "valueType": "user",
+              "value": "approvalInitiator"
+            },
+            "assignments": [
+              {
+                "field": "approvalRequestNo",
+                "valueType": "processVar",
+                "sourceField": "requestNo"
+              },
+              {
+                "field": "approvalAmount",
+                "valueType": "processVar",
+                "sourceField": "requestAmount"
+              },
+              {
+                "field": "approvalSource",
+                "valueType": "literal",
+                "value": "采购申请"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "key": "finish",
+        "type": "finish",
+        "componentName": "EndNode",
+        "name": "结束",
+        "nextKeys": [],
+        "config": {}
+      }
+    ],
+    "branches": [],
+    "requireProcessViewConsistency": true
+  },
+  "evidenceProfile": {
+    "confirmedProtocol": [
+      "form-event-runtime-inputs",
+      "initiate-approval-transform",
+      "recursive-assignment-map",
+      "approval-value-types"
+    ],
+    "inferredProtocol": [
+      "process_view_semantic_equivalence"
+    ],
+    "contractInvariants": [
+      "FormEvent insert trigger",
+      "initiateApproval target form and initiator",
+      "processVar and literal approval assignments",
+      "process/view semantic equivalence"
+    ],
+    "testAuthorExpectations": [
+      "A newly created purchase request starts one target approval with mapped values."
+    ]
+  }
+}

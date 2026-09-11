@@ -1,0 +1,1 @@
+{"schemaVersion":1,"scenarioId":"integration-submit-notify","resourceAliases":{"forms":{"leaveRequest":"FORM-CONTRACT-LEAVE"},"fields":{"applicant":"employeeField_applicant","leaveType":"selectField_leave_type"},"connectors":{},"actions":{},"connections":{},"users":{"hrRecipient":"USER-CONTRACT-HR"},"roles":{}}}

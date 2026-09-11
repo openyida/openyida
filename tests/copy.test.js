@@ -166,95 +166,6 @@ describe('createSymlink Windows 降级逻辑', () => {
   });
 });
 
-// ── detectActiveTool Windows 路径兼容测试 ────────────────────────────
-
-describe('detectActiveTool Windows 路径兼容', () => {
-  const { detectActiveTool } = require('../lib/core/utils');
-  const originalEnv = { ...process.env };
-
-  afterEach(() => {
-    Object.keys(process.env).forEach((key) => {
-      if (!(key in originalEnv)) {delete process.env[key];}
-    });
-    Object.assign(process.env, originalEnv);
-  });
-
-  test('AGENT_WORK_ROOT 使用正斜杠路径时检测为悟空', () => {
-    delete process.env.CLAUDE_CODE;
-    delete process.env.CLAUDE_CODE_ENTRYPOINT;
-    delete process.env.OPENCODE;
-    delete process.env.OPENCODE_CLIENT;
-    delete process.env.QODER_IDE;
-    delete process.env.QODER_AGENT;
-    delete process.env.QODERCLI_INTEGRATION_MODE;
-    delete process.env.QODER_WORK_INTEGRATION_PRODUCT;
-    delete process.env.QODERCN_CONFIG_DIR;
-    delete process.env.QODER_CONFIG_DIR;
-    delete process.env.QODER_WORKER_CWD;
-    delete process.env.QWENWORK;
-    delete process.env.QWENWORK_INTEGRATION_MODE;
-    delete process.env.QWENWORKCN_INTEGRATION_MODE;
-    delete process.env.QWENWORK_CLIENT;
-    delete process.env.QWENWORK_WORKSPACE_DIR;
-    delete process.env.QWENWORK_SANDBOX_ID;
-    delete process.env.QWENWORK_PREVIEW_URL;
-    delete process.env.QWENWORK_VNC_URL;
-    delete process.env.AGENT_PLATFORM;
-    delete process.env.CODEX_SHELL;
-    delete process.env.CODEX_CI;
-    delete process.env.CODEX_THREAD_ID;
-    delete process.env.CODEX_HOME;
-    delete process.env.__CFBundleIdentifier;
-    delete process.env.CURSOR_TRACE_ID;
-    delete process.env.MULERUN_CHAT_ID;
-    delete process.env.MULE_DATA_DIR;
-    delete process.env.MULE_WORKSPACE_DIR;
-    delete process.env.MULE_SANDBOX_ID;
-    process.env.AGENT_WORK_ROOT = '/home/user/.real/workspace';
-    const result = detectActiveTool();
-    expect(result).not.toBeNull();
-    expect(result.tool).toBe('wukong');
-  });
-
-  test('AGENT_WORK_ROOT 使用 Windows 反斜杠路径时检测为悟空', () => {
-    delete process.env.CLAUDE_CODE;
-    delete process.env.CLAUDE_CODE_ENTRYPOINT;
-    delete process.env.OPENCODE;
-    delete process.env.OPENCODE_CLIENT;
-    delete process.env.QODER_IDE;
-    delete process.env.QODER_AGENT;
-    delete process.env.QODERCLI_INTEGRATION_MODE;
-    delete process.env.QODER_WORK_INTEGRATION_PRODUCT;
-    delete process.env.QODERCN_CONFIG_DIR;
-    delete process.env.QODER_CONFIG_DIR;
-    delete process.env.QODER_WORKER_CWD;
-    delete process.env.QWENWORK;
-    delete process.env.QWENWORK_INTEGRATION_MODE;
-    delete process.env.QWENWORKCN_INTEGRATION_MODE;
-    delete process.env.QWENWORK_CLIENT;
-    delete process.env.QWENWORK_WORKSPACE_DIR;
-    delete process.env.QWENWORK_SANDBOX_ID;
-    delete process.env.QWENWORK_PREVIEW_URL;
-    delete process.env.QWENWORK_VNC_URL;
-    delete process.env.AGENT_PLATFORM;
-    delete process.env.CODEX_SHELL;
-    delete process.env.CODEX_CI;
-    delete process.env.CODEX_THREAD_ID;
-    delete process.env.CODEX_HOME;
-    delete process.env.__CFBundleIdentifier;
-    delete process.env.CURSOR_TRACE_ID;
-    delete process.env.MULERUN_CHAT_ID;
-    delete process.env.MULE_DATA_DIR;
-    delete process.env.MULE_WORKSPACE_DIR;
-    delete process.env.MULE_SANDBOX_ID;
-    // Windows 风格路径，包含 path.join(".real") 的结果
-    process.env.AGENT_WORK_ROOT = 'C:\\Users\\user\\.real\\workspace';
-    const result = detectActiveTool();
-    expect(result).not.toBeNull();
-    expect(result.tool).toBe('wukong');
-  });
-});
-
 // ── resolveDestBaseFromEnv 逻辑测试 ──────────────────────────────────
 
 describe('resolveDestBaseFromEnv 逻辑验证', () => {
@@ -262,59 +173,10 @@ describe('resolveDestBaseFromEnv 逻辑验证', () => {
   const path = require('path');
   const { _internal } = require('../lib/core/copy');
 
-  test('悟空环境且 activeProjectRoot 是扁平工作区时，返回工作区本身', () => {
-    const activeProjectRoot = path.join(os.homedir(), '.real', 'workspace');
-    const expectedBase = activeProjectRoot;
-
-    // 模拟 resolveDestBaseFromEnv 的核心逻辑
-    const activeToolName = '悟空（Wukong）';
-    const envResults = [{ displayName: '悟空（Wukong）', dirName: '.real', isActive: true }];
-    const activeResult = envResults.find((r) => r.displayName === activeToolName);
-    const isWukong = activeResult && activeResult.dirName === '.real';
-
-    let destBase;
-    if (isWukong) {
-      destBase = activeProjectRoot
-        ? (path.basename(activeProjectRoot) === 'project' ? path.dirname(activeProjectRoot) : activeProjectRoot)
-        : path.join(os.homedir(), '.real', 'workspace');
-    } else if (activeToolName) {
-      destBase = process.cwd();
-    }
-
-    expect(destBase).toBe(expectedBase);
-  });
-
-  test('悟空环境且无 activeProjectRoot 时，返回默认 workspace 路径', () => {
-    const expectedBase = path.join(os.homedir(), '.real', 'workspace');
-
-    const activeToolName = '悟空（Wukong）';
-    const envResults = [{ displayName: '悟空（Wukong）', dirName: '.real', isActive: true }];
-    const activeResult = envResults.find((r) => r.displayName === activeToolName);
-    const isWukong = activeResult && activeResult.dirName === '.real';
-
-    const activeProjectRoot = null;
-    let destBase;
-    if (isWukong) {
-      destBase = activeProjectRoot
-        ? (path.basename(activeProjectRoot) === 'project' ? path.dirname(activeProjectRoot) : activeProjectRoot)
-        : path.join(os.homedir(), '.real', 'workspace');
-    }
-
-    expect(destBase).toBe(expectedBase);
-  });
-
-  test('非悟空环境时，返回 process.cwd()', () => {
+  test('普通活跃工具默认返回 process.cwd()', () => {
     const activeToolName = 'Claude Code';
     const envResults = [{ displayName: 'Claude Code', dirName: '.claudecode', isActive: true }];
-    const activeResult = envResults.find((r) => r.displayName === activeToolName);
-    const isWukong = activeResult && activeResult.dirName === '.real';
-
-    let destBase;
-    if (isWukong) {
-      destBase = 'should-not-reach';
-    } else if (activeToolName) {
-      destBase = process.cwd();
-    }
+    const destBase = _internal.resolveDestBaseFromEnv(activeToolName, null, envResults);
 
     expect(destBase).toBe(process.cwd());
   });
@@ -368,6 +230,54 @@ describe('forceCopyDir 行为', () => {
     expect(process.cwd()).toBe(fs.realpathSync(destDir));
     expect(fs.existsSync(path.join(destDir, 'stale.txt'))).toBe(false);
     expect(fs.readFileSync(path.join(destDir, 'fresh.txt'), 'utf8')).toBe('fresh');
+  });
+});
+
+describe('copy 源目标重叠保护', () => {
+  const { _internal } = require('../lib/core/copy');
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yida-copy-overlap-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('拒绝复制到源目录自身或子目录', () => {
+    const sourceDir = path.join(tmpDir, 'source');
+    fs.mkdirSync(sourceDir);
+
+    expect(() => _internal.assertCopyDestinationSafe(sourceDir, sourceDir)).toThrow(expect.objectContaining({
+      code: 'COPY_SOURCE_DESTINATION_OVERLAP',
+      details: expect.objectContaining({ sideEffectState: 'none' }),
+    }));
+    expect(() => _internal.assertCopyDestinationSafe(sourceDir, path.join(sourceDir, 'project'))).toThrow(expect.objectContaining({
+      code: 'COPY_SOURCE_DESTINATION_OVERLAP',
+      details: expect.objectContaining({ relation: 'destination_inside_source' }),
+    }));
+  });
+
+  test('拒绝 force 目标包含源目录，避免清空源文件', () => {
+    const destinationDir = path.join(tmpDir, 'destination');
+    const sourceDir = path.join(destinationDir, 'project');
+    fs.mkdirSync(sourceDir, { recursive: true });
+    fs.writeFileSync(path.join(sourceDir, 'keep.txt'), 'keep', 'utf8');
+
+    expect(() => _internal.assertCopyDestinationSafe(sourceDir, destinationDir)).toThrow(expect.objectContaining({
+      code: 'COPY_SOURCE_DESTINATION_OVERLAP',
+      details: expect.objectContaining({ relation: 'source_inside_destination' }),
+    }));
+    expect(fs.readFileSync(path.join(sourceDir, 'keep.txt'), 'utf8')).toBe('keep');
+  });
+
+  test('允许互不重叠的源目录和目标目录', () => {
+    const sourceDir = path.join(tmpDir, 'source');
+    const destinationDir = path.join(tmpDir, 'destination');
+    fs.mkdirSync(sourceDir);
+
+    expect(() => _internal.assertCopyDestinationSafe(sourceDir, destinationDir)).not.toThrow();
   });
 });
 

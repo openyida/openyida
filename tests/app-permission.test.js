@@ -30,6 +30,8 @@ const mockAuthData = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  utils.httpGet.mockReset();
+  utils.httpPost.mockReset();
   utils.loadAuthData.mockReturnValue(mockAuthData);
 });
 
@@ -123,6 +125,54 @@ describe('app-permission api', () => {
       action: 'add',
       previousUserIds: ['u1'],
       userIds: ['u1', 'u2'],
+    });
+  });
+
+  test('updateRoleManagers set reads and reports the previous member list', async () => {
+    utils.httpGet.mockResolvedValueOnce({
+      success: true,
+      content: {
+        appType: 'APP_1',
+        dataManagerUserIdList: 'u1,u2',
+      },
+    });
+    utils.httpPost.mockResolvedValueOnce({ success: true, content: true });
+
+    const result = await updateRoleManagers({
+      action: 'set',
+      appType: 'APP_1',
+      role: 'data',
+      userIds: ['u3'],
+    });
+
+    expect(result).toMatchObject({
+      action: 'set',
+      previousUserIds: ['u1', 'u2'],
+      userIds: ['u3'],
+    });
+  });
+
+  test('run fails closed when manager readback does not match the saved members', async () => {
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { appType: 'APP_1', dataManagerUserIdList: 'u1' },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { appType: 'APP_1', dataManagerUserIdList: 'u1' },
+      });
+    utils.httpPost.mockResolvedValueOnce({ success: true, content: true });
+
+    await expect(run([
+      'set',
+      'APP_1',
+      'data',
+      '--users',
+      'u2',
+    ])).rejects.toMatchObject({
+      isCliError: true,
+      code: 'APP_PERMISSION_VERIFY_FAILED',
     });
   });
 

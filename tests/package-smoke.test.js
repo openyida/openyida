@@ -14,6 +14,7 @@ describe('npm package smoke', () => {
     expect(packageJson.dependencies).not.toHaveProperty('playwright');
     expect(packageJson.dependencies).not.toHaveProperty('playwright-core');
     expect(packageJson.dependencies).not.toHaveProperty('qrcode');
+    expect(packageJson.dependencies).not.toHaveProperty('ajv');
   });
 
   test('package size validator reports missing npm without TypeError', () => {
@@ -68,10 +69,10 @@ describe('npm package smoke', () => {
       const files = pack.files.map((file) => file.path);
 
       expect(files).toContain('bin/yida.js');
+      expect(files).toContain('lib/app/inline-css-guard.js');
       expect(files).toContain('lib/core/utils.js');
       expect(files).toContain('lib/core/locales/zh.js');
       expect(files).toContain('lib/core/locales/en.js');
-      expect(files).toContain('docs/capabilities.md');
       expect(files).toContain('project/config.json');
       expect(files).toContain('yida-skills/SKILL.md');
       expect(files).toContain('yida-skills/references/setup-and-env.md');
@@ -81,9 +82,16 @@ describe('npm package smoke', () => {
       expect(files.some((file) => file.startsWith('lib/templates/'))).toBe(false);
       expect(files).toContain('lib/samples/yida-rechart/trend-combo.canvas.jsx');
       expect(files).toContain('lib/samples/yida-canvas-table-form/table-form-batch-submit.canvas.jsx');
+      expect(files).toContain('lib/samples/openyida-scaffold/form-fields.json');
+      expect(files).toContain('lib/samples/openyida-scaffold/canvas-form-drawer.canvas.jsx');
 
       expect(files.some((file) => file.startsWith('locales-extra/'))).toBe(false);
       expect(files.some((file) => /^lib\/core\/locales\/(?!zh|en)[^/]+\.js$/.test(file))).toBe(false);
+      expect(files.some((file) => file.startsWith('agent/'))).toBe(false);
+      expect(files.some((file) => file.startsWith('docs/'))).toBe(false);
+      expect(files.filter((file) => file.startsWith('scripts/'))).toEqual([
+        'scripts/postinstall.js',
+      ]);
       expect(files).not.toContain('.env.local');
       expect(files.some((file) => file.startsWith('tests/'))).toBe(false);
       expect(files.some((file) => file.startsWith('node_modules/'))).toBe(false);

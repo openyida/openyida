@@ -7,33 +7,34 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 
 ## 严格禁止 (NEVER DO)
 
-- 不要在代码中硬编码 API Key、密码等凭证，通过连接器鉴权配置管理
+- 不要要求用户在聊天中发送 API Key、密码、App Key、App Secret；也不要把凭据放进源码、JSON 或命令参数
 - 不要编造 connector-id 或 action-id，必须从命令返回中提取
-- 不要删除连接器前确认是否有表单/页面正在使用
+- 不要把 `connector delete` 当作真实删除命令；CLI 仅查询目标并展示平台手工删除指引
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成连接器 action/config JSON
 
 ## 严格要求 (MUST DO)
 
-- 优先使用 `smart-create` 从 curl 命令或接口文档智能创建
+- 优先使用 `smart-create` 从 curl 命令生成脱敏动作草稿；它不创建或更新远端连接器，后续创建/追加仍需显式执行对应命令
 - 创建连接器后，将 connector-id 记录到 `.cache/<项目名>-schema.json`
+- 同时记录 `connectorName`。数字 `connectorId` 只用于 CLI 管理；自定义页面调用网关必须使用以 `Http_` 开头的 `connectorName`
 - `--operations`、`--action` 等文件参数必须先用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/connector/` 或该技能更具体的目录，再传给命令；不要写仓库根目录或系统临时目录
 - **本技能不读写 memory**：连接器配置通过 CLI 命令写入宜搭平台，不依赖跨会话的 memory 状态
 
 ## 适用场景
 
-用户需要"接入外部接口"、"调用第三方 API"、"连接钉钉开放平台"、"HTTP 连接器"时使用。
+用户需要"接入外部接口"、"调用第三方 API"、"HTTP 连接器"时使用。钉钉官方 OpenAPI 使用 `yida-dingtalk-openapi`，由它再调用本技能。
 
 ## 触发条件
 
 **正向触发**：
 - "接入外部接口"、"调用第三方 API"
-- "连接钉钉开放平台"、"HTTP 连接器"
+- "HTTP 连接器"
 - "打通自建系统"、"API 集成"
 - "配置鉴权"、"创建连接器"
 
 ## 危险操作确认
 
-删除连接器为不可逆操作，执行前必须确认无表单/页面依赖此连接器。
+CLI 不执行连接器删除。用户确需删除时，先确认并解除表单、页面、流程和集成自动化中的全部依赖，再根据命令指引前往宜搭平台管理后台手工删除；平台删除不可逆。
 
 ## 异常处理
 
@@ -43,7 +44,7 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 | 鉴权失败（401/403） | 检查鉴权方式和凭证配置，重新创建连接器或更新鉴权账号 |
 | API 调用超时 | 检查目标域名是否可达，确认网络连通性后重试 |
 | action-id 不存在 | 执行 `openyida connector list-actions <connector-id>` 重新获取有效 action-id |
-| 连接器被依赖无法删除 | 先在宜搭平台确认哪些表单/页面依赖此连接器，解除依赖后再删除 |
+| 需要删除连接器 | 执行 `openyida connector delete <connector-id> --force` 仅查询目标并获取平台指引；确认并解除全部依赖后，在宜搭平台管理后台手工删除 |
 | 智能创建解析失败 | 改用 `openyida connector gen-template` 生成模板，手动填写后再创建 |
 
 ## Agent 错误处理策略
@@ -58,7 +59,7 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 | 鉴权配置错误 | 停止执行，引导用户检查鉴权方式和凭证配置 |
 | 智能创建解析失败 | 降级为模板创建方式，引导用户使用 `gen-template` |
 | 网络超时 | 重试 1 次，仍失败则停止并提示用户检查网络 |
-| 删除操作前 | 必须先确认无依赖，展示确认提示后再执行 |
+| 用户要求删除连接器 | 明确说明 CLI 不执行删除；仅查询目标并展示平台手工删除指引，不得宣称命令已删除资源 |
 | 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |
 
 ---
@@ -84,13 +85,13 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 openyida connector list
 
 # 创建连接器
-openyida connector create "<名称>" "<域名>" [--auth "<鉴权方式>" --username/--password/--api-key/--app-key/--app-secret]
+openyida connector create "<名称>" "<域名>" --operations <action-file> [--auth "<鉴权方式>"]
 
 # 获取详情
 openyida connector detail <connector-id>
 
-# 删除连接器
-openyida connector delete <connector-id>
+# 查询连接器并获取平台手工删除指引（CLI 不执行删除）
+openyida connector delete <connector-id> --force
 ```
 
 ### 执行动作管理
@@ -102,26 +103,39 @@ openyida connector list-actions <connector-id>
 # 添加执行动作（智能匹配已有连接器）
 openyida connector add-action --operations <action-file> --host <域名>
 
+# 仅更新已有动作中已声明的 Query 默认值
+openyida connector update-action --connector-id <id> --action <operationId> \
+  --query-json '{"currentPage":"1"}' --confirm
+
 # 删除执行动作
 openyida connector delete-action <connector-id> <action-id>
 
-# 测试连接器
-openyida connector test --connector-id <id> --action <action-file>
+# 测试连接器（--action 必须是稳定的 operationId）
+openyida connector test --connector-id <id> --action <operationId> \
+  --path-json '{"id":"42"}' \
+  --query-json '{"page":1}' \
+  --header-json '{"X-Trace":"owned"}' \
+  --body-json '{"name":"Ada"}'
 ```
 
-> `<action-file>` 先用 create_file / Write / file edit tool 创建，例如 `.cache/openyida/<项目名或任务名>/connector/actions.json`；从 workspace 根执行命令时路径加 `project/` 前缀。
+> `--params` 仍兼容旧调用，但每个字段只会按动作 Schema 分发到 path/query/header/body；未知或位置冲突字段会停止执行。需要鉴权时必须传属于当前连接器的 `--account-id`。只有 canonical `statusLine` 为 2xx 才算测试成功；测试前后可用 `list-actions` 确认动作未被修改。
+
+`add-action` 只允许追加新稳定 ID，发现既有 `operationId` 或 `id` 冲突时停止，不覆盖。编辑已有动作时使用 `update-action`；它只接受非空 `--query-json`，要求 Query 在 `inputs` 与 `parameters` 中各自唯一且可回读，完整集合 replace-all 后必须证明连接器非目标 fingerprint、动作数量、其他动作和稳定 ID 不变。写入结果 unknown 时不自动重试。
+
+`connector create/add-action` 返回 `CONNECTOR_READBACK_MISMATCH` 时必须停止。动作已经存在不代表配置正确；按错误中的 `firstDifference` 和 `nextStep` 检查，不得继续生成页面或调用该动作。
 
 ### 鉴权账号管理
 
 ```bash
-openyida connector list-connections <connector-id>
-openyida connector create-connection <connector-id> "<账号名>" [鉴权参数]
+openyida connector list-connections <connector-id> --json
 ```
 
-### 智能创建（推荐）
+需要密钥的连接器创建完成后，把 `connector create --json` 返回的 `accountManageUrl` 交给用户，引导用户在宜搭页面自行添加授权账号；`detailUrl` 只用于查看连接器定义。用户只回复“已配置”，Agent 用配置前后的 `list-connections --json` 差异确定账号。不得要求用户回传凭据或账号 ID；多个候选时停止，不猜测。
+
+### 智能生成动作草稿（推荐）
 
 ```bash
-# 从 curl 命令创建
+# 从 curl 命令生成脱敏草稿（不创建远端资源）
 openyida connector smart-create --curl "curl 'https://api.example.com/v1/data' -H 'Authorization: Bearer xxx'" --name "<连接器名>"
 
 # 解析接口文档
@@ -140,13 +154,20 @@ openyida connector create "测试API" "api.example.com"
 # 基本身份验证
 openyida connector create "内部系统" "internal.company.com" --auth "基本身份验证" --username admin --password 123456
 
-# 钉钉开放平台
-openyida connector create "钉钉API" "api.dingtalk.com" --auth "钉钉开放平台验证" --app-key "xxx" --app-secret "xxx"
+# 钉钉开放平台（凭据后续由用户自行配置）
+openyida connector create "钉钉API" "api.dingtalk.com" --auth "钉钉开放平台验证" --operations ./operations.json --json
 ```
 
 ## 执行动作配置
 
 详见 [连接器执行动作配置文件格式](references/connector-action-format.md)。
+
+- `id` 使用稳定的 `operation-<operationId>`，同一接口重复生成不得随时间变化。
+- 同一批动作中的 `operationId` 必须唯一；重复时停止保存，不覆盖或猜测选择。
+- Authorization、Cookie、token、API Key 等敏感 Header 的示例值不得序列化进 action，统一保留空默认值并通过鉴权账号在运行时注入。
+- Header 分组及其子字段统一保存为 `required=false`，规避平台运行时把已传值误判为空。`Content-Type` 作为非空固定默认值保留；可选 Header 没有默认值时不写入 `parameters.header`。业务真正必填的 Header 由调用方在执行前检查并传入。
+- 宜搭 OpenAPI 的 `systemToken` 字段保留空默认值。真实测试使用 `connector test ... --system-token-app <appType>`；业务调用使用 `yida-integration` 的服务端安全绑定。普通 `--params`、`--body-json`、`--connector-assignment` 和 Action 文件均不得携带该值。
+- Canvas 调用的 `inputs.body` 必须是对象，不能传 `JSON.stringify(...)` 的字符串。
 
 ## 模板
 

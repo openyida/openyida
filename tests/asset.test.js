@@ -19,7 +19,7 @@ describe('ai-image (honest, agent-delegated image sourcing)', () => {
     expect(g.available).toBe(false);
     expect(g.delegateToAgent).toBe(true);
     expect(typeof g.reason).toBe('string');
-    expect(g.reason).toMatch(/文生图|素材库|verify-url/);
+    expect(g.reason).toMatch(/文生图|素材库|asset resolve/);
   });
 
   test('detectImageGenerator honors an explicit image-gen connector', () => {

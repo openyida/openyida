@@ -23,6 +23,8 @@ description: 配置已有流程表单审批规则。
 - 不要用此技能创建流程表单，应使用 `yida-create-process`
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成流程定义 JSON
 - 已有 process/form context 时不要新建同类流程表单；在原流程上配置/更新。
+- 不要把 `configure-process` 当作局部 patch；它会替换完整流程图。已有 PUBLISHED 流程或 SAVED 草稿时，未获得用户对替换摘要的明确确认，不得传 `--replace`。
+- `NON_IDEMPOTENT_RESULT_UNKNOWN` 或 `PUBLISHED_UNVERIFIED` 后不得自动重试 draft/save/publish；先只读核对平台状态。
 
 ## 严格要求 (MUST DO)
 
@@ -31,6 +33,8 @@ description: 配置已有流程表单审批规则。
 - 存在回退/循环语义时，必须配置 `routeRules` 跳转规则
 - 配置前先用 `yida-get-schema` 获取所有字段 ID
 - 流程定义 JSON 必须用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`，不要在仓库根目录、系统临时目录或 `.cache/` 顶层生成 `process-definition.json` 等临时文件
+- 必须以表单 binding 只读结果证明 `processCode` 属于目标 `formUuid`；`CONFIGURE_PROCESS_OWNERSHIP_UNVERIFIED` 时停止，不得换一个 processCode 猜测重试
+- 命令成功必须同时返回 `verificationLevel: "PLATFORM_VIEW_VERIFIED"` 和 `platformViewVerified: true`；这只证明平台可见 view 的节点、组件、名称、顺序和审批模式，不代表平台返回了可独立验证的 `processJson`
 
 ## 适用场景
 
@@ -77,7 +81,7 @@ description: 配置已有流程表单审批规则。
 ## 使用方式
 
 ```bash
-openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode]
+openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]
 ```
 
 **参数说明**：
@@ -88,6 +92,7 @@ openyida configure-process <appType> <formUuid> <processDefinitionFile> [process
 | `formUuid` | 是 | 表单 UUID，如 `FORM-XXX` |
 | `processDefinitionFile` | 是 | 流程定义 JSON 文件路径 |
 | `processCode` | 否 | 流程 Code，如 `TPROC--XXX`。不传则自动获取 |
+| `--replace` | 条件必填 | 已有 PUBLISHED 流程或 SAVED 草稿时，显式确认整图替换；未确认时命令零写入退出 |
 
 **示例**：
 
@@ -106,7 +111,28 @@ openyida configure-process "APP_XXX" "FORM-YYY" .cache/openyida/order/process-de
   "processId": "83145794990",
   "processVersion": 2,
   "appType": "APP_XXX",
-  "formUuid": "FORM-YYY"
+  "formUuid": "FORM-YYY",
+  "verificationLevel": "PLATFORM_VIEW_VERIFIED",
+  "platformViewVerified": true
+}
+```
+
+### 多人审批（MultiApproval）
+
+多人审批必须使用 `type: "multiApproval"`、必填 `approver`，并从固定的三种模式中选择 `mode`：`all`（会签）、`or`（或签）、`oneByOne`（依次审批）。CLI 会生成前端固定协议：process 侧 `mode: "multi"` / `multiApprove` / `multiRules`，view 侧 `MultiApprovalNode` / `multiApproverRules`。
+
+```json
+{
+  "type": "multiApproval",
+  "name": "多人会审",
+  "mode": "all",
+  "approver": {
+    "type": "user",
+    "users": [
+      { "id": "user001", "name": "审批人 A" },
+      { "id": "user002", "name": "审批人 B" }
+    ]
+  }
 }
 ```
 

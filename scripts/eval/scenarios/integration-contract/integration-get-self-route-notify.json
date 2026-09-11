@@ -1,0 +1,92 @@
+{
+  "id": "integration-get-self-route-notify",
+  "title": "获取自身后按条件通知",
+  "publicPrompt": "记录新增或更新后，按表单实例 ID 重新获取当前记录；状态为待处理或金额大于等于 1000 时通知负责人，否则走默认分支结束。允许自动化递归触发。",
+  "requiredCapabilities": [
+    "form-event-trigger",
+    "get-self",
+    "route",
+    "default-branch",
+    "send-message",
+    "process-view-consistency"
+  ],
+  "expectedResources": {
+    "triggerForm": "workOrder",
+    "users": [
+      "ownerRecipient"
+    ]
+  },
+  "runtimeCases": [
+    {
+      "id": "pending-notifies",
+      "input": {
+        "status": "待处理",
+        "amount": 100
+      },
+      "expectedBranch": "condition"
+    },
+    {
+      "id": "large-amount-notifies",
+      "input": {
+        "status": "已完成",
+        "amount": 1000
+      },
+      "expectedBranch": "condition"
+    },
+    {
+      "id": "other-defaults",
+      "input": {
+        "status": "已完成",
+        "amount": 10
+      },
+      "expectedBranch": "condition~2"
+    }
+  ],
+  "protocolEvidence": [
+    {
+      "id": "form-event-runtime-inputs",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "data-retrieve-transform",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "route-condition-props",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "send-message-transform",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "get_self_is_data_retrieve_specialization",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    },
+    {
+      "id": "route_or_relation_encoding",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    },
+    {
+      "id": "single_default_branch_constraint",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    },
+    {
+      "id": "process_view_semantic_equivalence",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    },
+    {
+      "id": "multi_step_output_variable_reference",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    }
+  ]
+}

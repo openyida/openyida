@@ -102,7 +102,7 @@ openyida/
 
 ## AI / Vibe-Coded PRs Welcome! 🤖
 
-PRs assisted by Codex, Claude Code, Cursor, Aone Copilot, OpenCode, Wukong, or any other AI tool are fully welcome!
+PRs assisted by Codex, Claude Code, Cursor, OpenCode, or any other AI tool are fully welcome!
 Please mention which AI tool you used in the PR description.
 
 ## License

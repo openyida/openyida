@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "sourceBundle": {
+    "package": "yida-logic-flow",
+    "version": "0.2.245"
+  },
+  "contractRevision": 1,
+  "scenarioId": "integration-connector",
+  "artifactKind": "definition",
+  "semantic": {
+    "trigger": {
+      "key": "trigger",
+      "type": "trigger",
+      "componentName": "StartNode",
+      "eventTypes": [
+        "insert"
+      ],
+      "recursive": false,
+      "conditions": []
+    },
+    "nodes": [
+      {
+        "key": "trigger",
+        "type": "trigger",
+        "componentName": "StartNode",
+        "name": "表单事件触发",
+        "nextKeys": [
+          "httpConnector"
+        ],
+        "config": {}
+      },
+      {
+        "key": "httpConnector",
+        "type": "httpConnector",
+        "componentName": "ConnectorNode",
+        "name": "同步订单",
+        "nextKeys": [
+          "finish"
+        ],
+        "config": {
+          "connector": {
+            "mode": 5,
+            "connector": "orderSyncConnector",
+            "action": "syncOrderAction",
+            "connection": "orderSyncConnection",
+            "inputs": [
+              {
+                "field": "orderNoInput",
+                "valueType": "processVar",
+                "sourceField": "sourceOrderNo"
+              },
+              {
+                "field": "amountInput",
+                "valueType": "processVar",
+                "sourceField": "sourceAmount"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "key": "finish",
+        "type": "finish",
+        "componentName": "EndNode",
+        "name": "结束",
+        "nextKeys": [],
+        "config": {}
+      }
+    ],
+    "branches": [],
+    "requireProcessViewConsistency": true
+  },
+  "evidenceProfile": {
+    "confirmedProtocol": [
+      "form-event-runtime-inputs",
+      "connector-mode-map",
+      "recursive-assignment-map",
+      "save-process-view-payload"
+    ],
+    "inferredProtocol": [
+      "process_view_semantic_equivalence"
+    ],
+    "contractInvariants": [
+      "HTTP connector mode 5",
+      "connector/action/connection identity",
+      "connector input mappings",
+      "process/view semantic equivalence"
+    ],
+    "testAuthorExpectations": [
+      "An inserted order calls the configured connector action once with mapped inputs."
+    ]
+  }
+}

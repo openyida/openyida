@@ -19,11 +19,13 @@
 | 页面视觉和设计不一致 | `design.md` 的 token、布局、背景、圆角、密度、组件和状态规则 | 回写或重读 `design.md`，再回到 Step 7 |
 | `page-spec.json` 和 PRD/design.md 冲突 | `sourceOfTruth`、`designFile`、`designRefs`、dataBinding | 丢弃旧 spec，从最新 PRD + `design.md` 重生成 |
 | JSX 运行时报中文变量未定义 | 页面源码中的 `{所有级别}`、`{处理中}` 等裸中文表达式 | 改成纯文本或 `{'所有级别'}` 形式，再重新校验 |
+| Canvas 编译报 `OPENYIDA_CANVAS_UNBOUND_IDENTIFIER`，名称是辅助函数、Ref、状态或局部变量，或运行时报 `<name> is not defined` | `details.issues` 中的全部名称和行列 | 回到 [Step 7](../workflow/step-7-page-code.md)；一次补齐声明或统一重命名，再重新执行 Canvas 本地校验 |
+| Canvas 编译报 `OPENYIDA_CANVAS_UNBOUND_IDENTIFIER`，名称由非标准运行时提供 | `details.issues` 中的名称和运行时能力路径 | 回到 [Step 7](../workflow/step-7-page-code.md)；通过 `window.<name>` / `parentWindow.<name>` 获取能力，检查目标方法后重新执行 Canvas 本地校验 |
 | emoji 导致 create/publish 失败 | 字段 JSON、`page-spec.json`、页面源码、发布 Schema、路径 | 删除 emoji；页面图标改成 `lucide-react` 或 `@ant-design/icons` 标准 import |
 | 本地源码改了但远端没更新 | 是否有成功的 `openyida publish <source> <appType> <displayPageFormUuid>` | 回到 [Step 8](../workflow/step-8-publish-navigation.md) 发布本轮源码 |
 | 发布失败后想重试 | 上一次 stdout/stderr、登录态、组织、参数、输入文件、字段 ID | 修改至少一项输入或上下文后重试；保留错误输出 |
 | 导航顺序不对 | PRD 的导航顺序、`nav-group order` / `nav-group auto-order` 输出 | 回到 Step 8；有明确顺序用 `nav-group order`，无明确顺序用自动排序兜底 |
-| final 输出太技术化 | 是否默认暴露资源 ID、管理态链接、CDN 产物 | 回到 [Step 9](../workflow/step-9-output-finish.md)；改成 2-3 句业务总结 + 一个主入口链接 |
+| final 输出太技术化或交付卡过多 | 是否把内部文件、每个业务资源、资源 ID、管理态链接或 CDN 产物逐项交付 | 回到 [Step 9](../workflow/step-9-output-finish.md)；改成 2-3 句业务总结 + 一组应用访问入口 |
 | 用户要求删除应用 | 应用名称、应用 ID、影响范围、用户确认文本 | 展示影响范围，等待用户明确回复“确认删除”后执行 |
 
 ## 定位顺序

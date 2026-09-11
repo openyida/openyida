@@ -38,6 +38,22 @@ const mockAuthData = {
   user_id: 'user-1',
 };
 
+function buildPublishableDesign(overrides = {}) {
+  return {
+    formUuid: 'FORM-VIEW',
+    relationForms: [{ formUuid: 'FORM-SOURCE' }],
+    relationships: [{
+      relationId: 'REL-1',
+      relationshipInfos: [{ id: 'field_name', name: '名称' }],
+    }],
+    aggregatedFields: [{ id: 'REL-1', name: '名称' }],
+    auxFields: [],
+    formulaFields: [{ id: 'metric_count', name: '数量', formula: 'COUNT(field_name)' }],
+    validators: [],
+    ...overrides,
+  };
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
   utils.loadAuthData.mockReturnValue(mockAuthData);
@@ -95,6 +111,21 @@ describe('aggregate-table helpers', () => {
       formulaFields: [{ id: 'numberField_total' }],
       validators: [],
     });
+  });
+
+  test('normalizeDesignConfig preserves an explicit invalid array value for contract rejection', () => {
+    const normalized = normalizeDesignConfig({
+      viewDesignConfig: {
+        relationForms: [],
+        relationships: [],
+        aggregatedFields: [],
+        auxFields: { id: 'aux-1' },
+        formulaFields: [],
+        validators: [],
+      },
+    }, 'FORM-VIEW');
+
+    expect(normalized.auxFields).toEqual({ id: 'aux-1' });
   });
 
   test('buildDesignPostData preserves blank gmtModified for first draft save', () => {
@@ -169,7 +200,352 @@ describe('aggregate-table run', () => {
       formType: 'virtualView',
       designUrl: 'https://www.aliwork.com/alibaba/web/APP_XXX/design/virtualViewDesigner.html?formUuid=FORM-VIEW&fromNew=true',
     });
+    expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(1);
 
+    mockLog.mockRestore();
+  });
+
+  test('create-empty fails closed when the single write returns no form identity', async () => {
+    utils.httpPost
+      .mockResolvedValueOnce({ success: true, content: true })
+      .mockResolvedValueOnce({ success: true, content: {} });
+
+    await expect(run([
+      'create-empty',
+      'APP_XXX',
+      '客户聚合表',
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_CREATE_IDENTITY_MISSING',
+    });
+
+    expect(utils.httpPost).toHaveBeenCalledTimes(2);
+    expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(1);
+  });
+
+  test('publish rejects an incomplete frontend contract before the remote write', async () => {
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: { gmtModified: 1, stashGmtModified: 1 },
+    });
+
+    await expect(run([
+      'publish',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(buildPublishableDesign({ formulaFields: [] })),
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_DESIGN_CONTRACT_INVALID',
+    });
+
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('publish performs one write and requires exact designer-owned readback', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 1, stashGmtModified: 1 },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 2, stashGmtModified: 1, serverOnly: true },
+      });
+    utils.httpPost.mockResolvedValue({ success: true, content: { gmtModified: 2 } });
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await run([
+      'publish',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ]);
+
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost.mock.calls[0][1]).toBe(
+      '/alibaba/web/APP_XXX/query/virtualview/update.json'
+    );
+    const output = JSON.parse(mockLog.mock.calls[0][0]);
+    expect(output).toMatchObject({
+      success: true,
+      action: 'publish',
+      readbackVerified: true,
+    });
+
+    mockLog.mockRestore();
+  });
+
+  test('publish fails closed when the platform readback differs', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 1, stashGmtModified: 1 },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          ...design,
+          aggregatedFields: [{ id: 'REL-1', name: '平台返回了不同列名' }],
+          gmtModified: 2,
+        },
+      });
+    utils.httpPost.mockResolvedValue({ success: true, content: { gmtModified: 2 } });
+
+    await expect(run([
+      'publish',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_DESIGN_READBACK_MISMATCH',
+    });
+
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  });
+
+  test('publish accepts a success response without a response revision when exact readback advances', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 1, stashGmtModified: 1 },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 2, stashGmtModified: 1 },
+      });
+    utils.httpPost.mockResolvedValue({ success: true, content: {} });
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await run([
+      'publish',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ]);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(mockLog.mock.calls[0][0])).toMatchObject({
+      success: true,
+      readbackVerified: true,
+    });
+    mockLog.mockRestore();
+  });
+
+  test('publish rejects a revision-less response when readback did not advance', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: { ...design, gmtModified: 1, stashGmtModified: 1 },
+    });
+    utils.httpPost.mockResolvedValue({ success: true, content: {} });
+
+    await expect(run([
+      'publish',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_WRITE_READBACK_REVISION_UNCHANGED',
+    });
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+  });
+
+  test('save accepts a revision-less response only when the stash revision advances', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 7, stashGmtModified: 11 },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 7, stashGmtModified: 12 },
+      });
+    utils.httpPost.mockResolvedValue({ success: true, content: {} });
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await run([
+      'save',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ]);
+
+    const postBody = querystring.parse(utils.httpPost.mock.calls[0][2]);
+    expect(postBody.gmtModified).toBe('11');
+    expect(JSON.parse(mockLog.mock.calls[0][0])).toMatchObject({
+      action: 'save',
+      revisionAxis: 'stashGmtModified',
+      readbackRevision: 12,
+    });
+    mockLog.mockRestore();
+  });
+
+  test('save rejects a revision-less response when only the live revision advances', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 7, stashGmtModified: 11 },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 8, stashGmtModified: 11 },
+      });
+    utils.httpPost.mockResolvedValue({ success: true, content: {} });
+
+    await expect(run([
+      'save',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_WRITE_READBACK_REVISION_UNCHANGED',
+    });
+  });
+
+  test('save rejects a response revision when the stash readback axis did not advance', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 7, stashGmtModified: 11 },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: { ...design, gmtModified: 7, stashGmtModified: 11 },
+      });
+    utils.httpPost.mockResolvedValue({ success: true, content: { gmtModified: 12 } });
+    await expect(run([
+      'save',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_WRITE_READBACK_REVISION_UNCHANGED',
+    });
+  });
+
+  test('publish rejects a response revision when the live readback axis did not advance', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: { ...design, gmtModified: 7, stashGmtModified: 11 },
+    });
+    utils.httpPost.mockResolvedValue({ success: true, content: { gmtModified: 8 } });
+
+    await expect(run([
+      'publish',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_WRITE_READBACK_REVISION_UNCHANGED',
+    });
+  });
+
+  test.each([
+    ['save', 'stashGmtModified', { gmtModified: 7, stashGmtModified: 11 }, { gmtModified: 7, stashGmtModified: 13 }, 12],
+    ['publish', 'gmtModified', { gmtModified: 7, stashGmtModified: 11 }, { gmtModified: 9, stashGmtModified: 11 }, 8],
+  ])('%s rejects response/readback disagreement on the %s axis', async (action, _axis, before, after, responseRevision) => {
+    const design = buildPublishableDesign();
+    utils.httpGet
+      .mockResolvedValueOnce({ success: true, content: { ...design, ...before } })
+      .mockResolvedValueOnce({ success: true, content: { ...design, ...after } });
+    utils.httpPost.mockResolvedValue({ success: true, content: { gmtModified: responseRevision } });
+
+    await expect(run([
+      action,
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_WRITE_RESPONSE_READBACK_REVISION_MISMATCH',
+    });
+  });
+
+  test('publish expected revision precondition fails before the restore write', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: { ...design, gmtModified: 9, stashGmtModified: 11 },
+    });
+
+    await expect(run([
+      'publish',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--expected-revision',
+      '8',
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_WRITE_PRECONDITION_FAILED',
+      details: {
+        revisionAxis: 'gmtModified',
+        expectedRevision: '8',
+        observedRevision: 9,
+      },
+    });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('save expected stash revision precondition fails before the initial write', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet.mockResolvedValue({
+      success: true,
+      content: { ...design, gmtModified: 9, stashGmtModified: 21 },
+    });
+
+    await expect(run([
+      'save',
+      'APP_XXX',
+      'FORM-VIEW',
+      JSON.stringify(design),
+      '--expected-revision',
+      '20',
+      '--no-open',
+    ])).rejects.toMatchObject({
+      code: 'AGGREGATE_WRITE_PRECONDITION_FAILED',
+      details: {
+        revisionAxis: 'stashGmtModified',
+        expectedRevision: '20',
+        observedRevision: 21,
+      },
+    });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('inspect, preview, and status expose their command contracts', async () => {
+    const design = buildPublishableDesign();
+    utils.httpGet
+      .mockResolvedValueOnce({ success: true, content: { ...design, gmtModified: 1 } })
+      .mockResolvedValueOnce({ success: true, content: { status: 'SUCCESS' } });
+    utils.httpPost.mockResolvedValueOnce({ success: true, content: [{ metric_count: 1 }] });
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await run(['inspect', 'APP_XXX', 'FORM-VIEW', '--json']);
+    await run(['preview', 'APP_XXX', 'FORM-VIEW', JSON.stringify(design), '--json']);
+    await run(['status', 'APP_XXX', 'FORM-VIEW', '--json']);
+
+    const outputs = mockLog.mock.calls.map((call) => JSON.parse(call[0]));
+    expect(outputs[0]).toMatchObject({ success: true, aggregateTableId: 'FORM-VIEW' });
+    expect(outputs[1]).toMatchObject({ success: true, rowCount: 1 });
+    expect(outputs[2]).toMatchObject({ success: true, status: 'SUCCESS' });
     mockLog.mockRestore();
   });
 });

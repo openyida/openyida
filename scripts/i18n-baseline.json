@@ -1,50 +1,72 @@
 {
   "base": "zh",
-  "basePathCount": 1392,
+  "basePathCount": 1457,
   "locales": {
     "ar": {
-      "missing": 697,
-      "typeMismatch": 0
+      "missing": 0,
+      "missingKeys": [],
+      "typeMismatch": 0,
+      "typeMismatchKeys": []
     },
     "de": {
-      "missing": 697,
-      "typeMismatch": 0
+      "missing": 0,
+      "missingKeys": [],
+      "typeMismatch": 0,
+      "typeMismatchKeys": []
     },
     "en": {
-      "missing": 7,
-      "typeMismatch": 0
+      "missing": 0,
+      "missingKeys": [],
+      "typeMismatch": 0,
+      "typeMismatchKeys": []
     },
     "es": {
-      "missing": 697,
-      "typeMismatch": 0
+      "missing": 0,
+      "missingKeys": [],
+      "typeMismatch": 0,
+      "typeMismatchKeys": []
     },
     "fr": {
-      "missing": 697,
-      "typeMismatch": 0
+      "missing": 0,
+      "missingKeys": [],
+      "typeMismatch": 0,
+      "typeMismatchKeys": []
     },
     "hi": {
-      "missing": 697,
-      "typeMismatch": 0
+      "missing": 0,
+      "missingKeys": [],
+      "typeMismatch": 0,
+      "typeMismatchKeys": []
     },
     "ja": {
-      "missing": 396,
-      "typeMismatch": 0
+      "missing": 0,
+      "missingKeys": [],
+      "typeMismatch": 0,
+      "typeMismatchKeys": []
     },
     "ko": {
-      "missing": 696,
-      "typeMismatch": 0
+      "missing": 0,
+      "missingKeys": [],
+      "typeMismatch": 0,
+      "typeMismatchKeys": []
     },
     "pt": {
-      "missing": 697,
-      "typeMismatch": 0
+      "missing": 0,
+      "missingKeys": [],
+      "typeMismatch": 0,
+      "typeMismatchKeys": []
     },
     "vi": {
-      "missing": 697,
-      "typeMismatch": 0
+      "missing": 0,
+      "missingKeys": [],
+      "typeMismatch": 0,
+      "typeMismatchKeys": []
     },
     "zh-HK": {
-      "missing": 356,
-      "typeMismatch": 0
+      "missing": 0,
+      "missingKeys": [],
+      "typeMismatch": 0,
+      "typeMismatchKeys": []
     }
   }
 }

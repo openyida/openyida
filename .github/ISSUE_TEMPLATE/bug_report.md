@@ -33,7 +33,7 @@ assignees: ''
 - **Node.js 版本**：<!-- 运行 `node -v` -->
 - **npm 版本**：<!-- 运行 `npm -v` -->
 - **OpenYida 版本**：<!-- 运行 `openyida --version` 或 `npm list -g openyida` -->
-- **AI 工具**：<!-- 如 Codex / Claude Code / Cursor / Aone Copilot / OpenCode / Qoder / Wukong -->
+- **AI 工具**：<!-- 如 Codex / Claude Code / Cursor / Aone Copilot / OpenCode / Qoder -->
 - **AI 工具版本**：<!-- 如适用 -->
 - **宜搭环境**：<!-- 公有云 / 私有化部署；如为私有化请说明 base URL 是否已配置 -->
 - **组织上下文**：<!-- 如涉及多组织，请说明是否使用 `--corp-id` -->

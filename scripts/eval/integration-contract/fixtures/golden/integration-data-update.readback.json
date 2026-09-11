@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "scenarioId": "integration-data-update",
+  "artifactKind": "synthetic-protocol-fixture",
+  "content": {
+    "processCode": "LPROC-CONTRACT-UPDATE",
+    "formUuid": "FORM-CONTRACT-ORDER",
+    "json": "{\"props\":{\"processCode\":\"LPROC-CONTRACT-UPDATE\"},\"nodes\":[{\"name\":{\"zh_CN\":\"表单事件触发\"},\"type\":\"trigger\",\"nodeId\":\"node_raw_update_trigger\",\"nextId\":[\"node_raw_update_data\"],\"props\":{\"inputs\":{\"formEventType\":[\"update\"],\"formUuid\":\"FORM-CONTRACT-ORDER\",\"triggerFormEventRecursively\":false,\"conditions\":{\"condition\":\"AND\",\"rules\":[{\"id\":\"selectField_order_status\",\"opCode\":\"Equal\",\"valueType\":\"literal\",\"value\":\"已支付\"}]}}}},{\"name\":{\"zh_CN\":\"更新统计数据\"},\"type\":\"dataUpdate\",\"nodeId\":\"node_raw_update_data\",\"nextId\":[\"node_raw_update_finish\"],\"props\":{\"type\":\"condition\",\"formUuid\":\"FORM-CONTRACT-ORDER-STATS\",\"condition\":{\"condition\":\"AND\",\"rules\":[{\"id\":\"textField_stats_order_no\",\"opCode\":\"Equal\",\"valueType\":\"processVar\",\"value\":\"textField_order_no\"}]},\"assignments\":[{\"column\":\"selectField_payment_status\",\"valueType\":\"literal\",\"value\":\"已支付\"},{\"column\":\"numberField_paid_amount\",\"valueType\":\"processVar\",\"value\":\"numberField_order_amount\"}]}},{\"name\":{\"zh_CN\":\"结束\"},\"type\":\"finish\",\"nodeId\":\"node_raw_update_finish\",\"nextId\":[],\"props\":{}}]}",
+    "viewJson": "{\"schema\":{\"componentName\":\"CanvasEngine\",\"id\":\"canvas_raw_update\",\"children\":[{\"componentName\":\"StartNode\",\"id\":\"node_raw_update_trigger\",\"props\":{\"name\":\"表单事件触发\",\"start\":{\"triggerType\":\"FormEvent\",\"formEventType\":[\"update\"],\"formUuid\":\"FORM-CONTRACT-ORDER\",\"triggerFormEventRecursively\":false,\"conditions\":{\"condition\":\"AND\",\"rules\":[{\"id\":\"selectField_order_status\",\"opCode\":\"Equal\",\"valueType\":\"literal\",\"value\":\"已支付\"}]}}}},{\"componentName\":\"UpdateDataNode\",\"id\":\"node_raw_update_data\",\"props\":{\"name\":\"更新统计数据\",\"updateDataRules\":{\"type\":\"condition\",\"formUuid\":\"FORM-CONTRACT-ORDER-STATS\",\"condition\":{\"condition\":\"AND\",\"rules\":[{\"id\":\"textField_stats_order_no\",\"opCode\":\"Equal\",\"valueType\":\"processVar\",\"value\":\"textField_order_no\"}]},\"assignments\":[{\"column\":\"selectField_payment_status\",\"valueType\":\"literal\",\"value\":\"已支付\"},{\"column\":\"numberField_paid_amount\",\"valueType\":\"processVar\",\"value\":\"numberField_order_amount\"}]}}},{\"componentName\":\"EndNode\",\"id\":\"node_raw_update_finish\",\"props\":{\"name\":\"结束\"}}]},\"globalSetting\":{}}"
+  },
+  "provenance": {
+    "kind": "synthetic-protocol-fixture",
+    "authoredBy": "test-author",
+    "platformCaptured": false,
+    "builderGenerated": false,
+    "evidence": [
+      "form-event-runtime-inputs",
+      "data-update-transform",
+      "recursive-assignment-map",
+      "save-process-view-payload"
+    ]
+  }
+}

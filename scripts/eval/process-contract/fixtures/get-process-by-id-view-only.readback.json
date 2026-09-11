@@ -1,0 +1,12 @@
+{
+  "fixtureVersion": 1,
+  "source": "sanitized-platform-readback-shape",
+  "response": {
+    "success": true,
+    "content": "{\"bindingForm\":\"FORM-READBACK-REDACTED\",\"formulaRules\":[],\"globalSetting\":{\"allNodeMerge\":false,\"approvalSummary\":[],\"behaviorList\":[],\"enableSignature\":false,\"needOpenDigitalSignNodes\":[],\"noRecordRecall\":false,\"nodeMerge\":false,\"originatorMerge\":false,\"stopAssociationRulesIfFailed\":false,\"untimedRule\":[]},\"schema\":{\"componentName\":\"CanvasEngine\",\"id\":\"canvas-readback-redacted\",\"props\":{},\"children\":[{\"componentName\":\"ApplyNode\",\"id\":\"node-readback-start\",\"props\":{\"name\":{\"zh_CN\":\"发起\",\"en_US\":\"Start\"}}},{\"componentName\":\"ApprovalNode\",\"id\":\"node-readback-manager\",\"props\":{\"name\":{\"zh_CN\":\"直属主管审批\",\"en_US\":\"Manager approval\"},\"nodeName\":\"ApprovalNode\",\"approverRules\":{\"type\":\"ext_target_approval\",\"multiApproverType\":\"all\"}}},{\"componentName\":\"ApprovalNode\",\"id\":\"node-readback-hr\",\"props\":{\"name\":{\"zh_CN\":\"人事审批\",\"en_US\":\"HR approval\"},\"nodeName\":\"ApprovalNode\",\"approverRules\":{\"type\":\"ext_target_approval\",\"multiApproverType\":\"all\"}}},{\"componentName\":\"EndNode\",\"id\":\"node-readback-end\",\"props\":{\"name\":{\"zh_CN\":\"结束\",\"en_US\":\"End\"}}}]}}",
+    "errorCode": null,
+    "errorMsg": null,
+    "throwable": null,
+    "traceId": null
+  }
+}

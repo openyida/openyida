@@ -2,9 +2,56 @@
 
 > 本文件定义完整应用的 `prd/<项目名>/design.md` 输出格式。`design.md` 是应用级 UI 视觉设计系统，结构以本文件为准，并参考 `references/style-designs/_design-md-template.md` 的字段完整度：先记录设计风格选择依据和主题换肤结果，再写可复用视觉 DNA、token、布局、组件、状态和自检，最后在“实现适配”里写清宜搭运行时主题契约。PRD 只写主题色和风格摘要，完整 UI 设计以本文件为准。
 
-最终 `design.md` 的依据分四层：结构依据本文件和 `_design-md-template.md`；视觉 DNA、布局机制、组件机制和换肤规则依据选中的设计风格文件；业务内容、页面区块、数据来源和操作路径依据当前 PRD；主题 token 依据 Step 2 的主题色来源和所选风格的 `theme_adaptation`。
+最终 `design.md` 的依据分四层：结构依据本文件和 `_design-md-template.md`；视觉 DNA、布局机制、组件机制和换肤规则依据选中的设计风格文件；业务内容、页面场景和显式范围依据共享需求文件；Plan 还读取 `yida-prd` 写入的页面业务事实，单页改造可读取已有 PRD；主题 token 依据主题系统中的主题色来源和所选风格的 `theme_adaptation`。
+
+应用导航类型与 PRD 保持一致，使用 [四类导航契约](../../yida-prd/workflow/output-prd.md#导航类型与执行配置)。`layoutDirection` 按平台布局记录，`navTheme` 仅表示导航明暗；自定义导航同时交接应用隐藏与逐页隐藏要求。
+
+## 稳定引用规则
+
+`yida-prd` 与 `yida-design` 必须使用同一组可定位锚点，`designRefs` 只允许以下形式：
+
+- `themeProfile`
+- `sceneRecipes.<sceneKey>`
+- `components.<componentName>`
+- `states.<stateName>`
+
+`sceneKey` 必须直接取自 `requirement-brief.json` 的对应 `pageScenes`：对象项使用其 `key`，字符串项原样使用；`yida-prd` 和 `yida-design` 不得各自改写、翻译或重新生成。`componentName` 和 `stateName` 必须与本文件 frontmatter 中的实际 key 完全一致。一致性校验只检查这些稳定标识，不使用标题文本或自然语言近似匹配。
+
+## 应用主题 CSS 的职责
+
+`app-theme.css` 是当前应用的主题资源产物，承载品牌色阶、语义色、字体、间距、圆角、阴影，以及 Shell、导航、页面、表单、表格和浮层的主题 token 与必要样式覆盖。`app_theme.css` 等其他 `.css` 文件名同样可用；CLI 根据 `--theme-file` 路径读取内容，不靠固定文件名识别用途。Plan 使用 `outputs.theme`，其他流程使用已记录的产物路径，避免生成多份后上传错文件。
+
+- `design.md` 定义视觉意图、布局和交互；主题 CSS 把对应的平台样式契约落成可加载的资源。导航是否悬浮、侧栏如何折叠和拖拽、业务内容如何排布，仍由页面代码实现。
+- 平台组件与自定义页面通过对应 token 消费主题。保留原有变量名和明暗导航作用域；页面组件用 `var(--token, fallback)`，不在每页重新注入全局主题。只有实际引用该 token 或命中 CSS 选择器的内容才会改变外观。
+- 文件生成后，通过 `update-app --theme-file <实际路径>` 上传，再更新应用基础设置中的 `colour=custom`、`themeColor` 和 `customThemeStyle`；导航、Logo 来源与布局在同一次更新中同步。创建应用或仅修改本地 CSS 均不等于绑定了主题。
+- iframe 是独立文档，不能假定它继承父页面的 CSS 变量。原生表单页依靠该应用的平台主题加载链路；自绘抽屉外壳由所在页面消费 token，高度兜底由容器代码保证。
+- `themeVerification.verified=true` 证明应用设置已绑定资源，不证明所有页面视觉正确。发布后仍需检查实际页面及表单 iframe 的资源加载、计算样式与布局；CLI 无法仅凭 CSS 文件判断最终视觉效果。
+
+主题准备与表单、页面开发按 [并行依赖](../../yida-app/workflow/parallel-work.md#主题与业务资源的依赖) 调度：计划或主题确认后即生成 CSS，不依赖表单或页面实现；appType 与 CSS 就绪便立即同步应用基础设置。页面先按已确认 token 开发，视觉验收再核对主题加载结果。
+
+页面背景统一使用 `--pod-page-bg-color`，卡片和面板使用 `--pod-card-bg-color`，默认回退 `--color-white`。导航归属不改变页面底色，隐藏导航不自动透明；深色或明确的应用背景通过同一平台 token 配置。Plan 和 Fast 将设计值写入 design.md 并生成 app-theme.css，Canvas 宿主、页面根和 antd 统一消费；渐变、纹理和素材作为页面局部装饰层。
+
+## CLI token 契约（Fast / Plan 共用）
+
+`design.md` 必须以 YAML frontmatter 开头，`tokens` 内每个 `--token` 使用一行具体 CSS 值；可平铺或分组，允许引号和行尾注释。不得保留占位符、推导指令、多行值或同名冲突值。必须包含品牌色阶 1/2/3/5/6/9/10；圆角、字体、间距等需要改变平台表现时写入对应 CSS token，不能只写正文描述。
+
+Fast 或单独更新主题时，执行 `openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css --design-file prd/<项目名>/design.md`。首次从公共模板生成；已有 CSS 只更新设计中变化的 token，保留其他 token 和自定义样式。CLI 自动保存更新记录，内容相同时跳过写入，写入失败回滚。省略 `--design-file` 会用公共模板重置目标 CSS。
+
+主题文件只能由上述 OpenYida CLI 契约生成或更新。不得另写 Python、Node、Shell 或 `run_workspace_script` 临时脚本来生成、复制、整文件重写、正则替换或 retheme 主题 CSS；校验脚本只能读取并报告问题，不能改写主题文件。需要调整 CLI 未覆盖的精确 classname 覆盖时，只允许在现有文件末尾做小范围编辑，并重新通过 `update-app --theme-file` 上传完整文件。
+
+Plan 修改 `visualStyle.tokens` 并按模块更新草稿，最终由 `materialize` 同时生成设计文档和主题 CSS，使用返回的 `outputs.theme`。Fast 由 `yida-design` 直接维护 `design.md`。应用阶段由 `yida-app` 使用 `--theme-file` 应用同一份产物。
+
+整体暗色方案按 [浮层适配](../references/theme/theme-token-presets.md#暗色主题浮层适配) 补齐组件 token。实现阶段可在生成的应用主题 CSS 末尾追加精确 classname 覆盖，再上传完整主题文件。
 
 ## design.md 输出格式
+
+### 用户配色与模板的优先级
+
+用户确认的整体色彩氛围高于模板默认灰阶。绿色清新风格应是同色相的低饱和背景、白色或近白卡片、协调填充与边框、绿色焦点；正文仍保持深浅中性色。不得用“雾白 DNA 不可修改”为由把用户选定的浅绿导航改白或把所有品牌氛围收缩到按钮。模板负责结构、圆角、材质与节奏，项目配色负责各表面的协调。
+
+Plan 新建草稿的 `colorStrategy.surfaceTone` 默认 `brand-tinted`，CLI 在浅色主题中同步派生 Shell 浅色背景（`--pod-shell-bg-color-light`）、填充与边界，保留文字、语义色和深色表面的明度层级。品牌氛围不得覆盖导航对应的 Canvas 背景默认值，也不得自动把原生页面底色染色；`--pod-page-bg-color` 保留原生表单/数据管理的独立底色（浅色主题通常为白色）。其他 Shell 明暗模式保留对应主题设定，不强制把深色或白色导航改成浅彩。用户明确仅改强调色、保留中性灰或忠实参考配色时设为 `theme`；旧计划未填写时保持兼容，不自动改色。`visualStyle.tokens` 显式值始终优先。Fast 按同一规则直接写入 tokens 与配色说明，不额外询问实现字段。
+
+配色变化同时更新 `surfaceContrast`、`colorRoles`、组件规则和逐页验收，不只改 YAML 中的一个背景值。近白底配白卡时使用可见细边框；浅彩不等于高饱和大色块。用户指定自定义卡片色时改 `--pod-card-bg-color`，不要为卡片换色全局改写 `--color-white`。
 
 ```markdown
 ---
@@ -34,13 +81,14 @@ tone: <视觉气质关键词>
 tags: [<业务领域>, <角色>, <数据形态>]
 avoid: [<不适合场景>]
 themeProfile:
-  name: <平台预置 key 或自定义色盘名称>
-  themeScope: <app / page>
-  themeColorSource: <user-specified / application-theme / platform-preset-match / business-inferred / template-default>
-  themePresetKey: <命中平台预置时填写；自定义色盘留空>
-  shouldPassCreateAppTheme: <true 仅限平台预置；false 表示 create-app 不传 theme/colour>
-  globalThemeInjection: <style#yida-global-theme / customThemeStyle.tokens / none>
-  navTheme: light
+  name: <主题名称>
+  themeColorSource: <user-specified / application-theme / business-inferred / template-default>
+  themeColorToken: <--color-brand1-6 的字面量值>
+  themeDelivery: <app-custom-theme-file / current-app-theme>
+  customThemeTemplate: yida-design/references/theme/app-custom-theme-template.css
+  customThemeFile: <生成的 .css 路径；沿用当前应用主题时留空>
+  themeColor: <#RRGGBB>
+  navTheme: <light / dark / white / gray>
   colorMode: <宜搭配色模式，如 gradient；不表示暗黑>
 themeAdaptationResult:
   inputThemeColor: <主题色 key 或色值>
@@ -54,22 +102,15 @@ themeAdaptationResult:
     - <dna-id>
   preservedMechanisms:
     - <画布 / 面板 / 布局 / 深色舞台 / 右侧栏等>
-yidaThemeRuntime:
-  globalThemeInjection: <style#yida-global-theme / customThemeStyle.tokens / none>
-  formRuntimeInjection: style#yida-global-theme
-  formDetailStyleInjection: style#yida-form-detail-style
-  themeConsistency: app, custom pages, normal forms, process forms, submission pages, and formDetail pages share the same themeProfile tokens
-  styleElementId: yida-global-theme
-  helperRef: yida-canvas-custom-page/references/theme-runtime-helpers.md
-  injectTargets: [currentDocument, sameOriginParentDocuments]
-  rootAttribute: data-yida-theme-root
+yidaThemeDelivery:
+  generatedFile: <.cache/openyida/<项目名>/app-theme.css / inherit-current-app-theme>
+  customThemeTemplate: yida-design/references/theme/app-custom-theme-template.css
 tokens:
   --color-brand1-1: <明亮品牌浅色或浅 hover 色>
   --color-brand1-2: <浅背景>
   --color-brand1-3: <透明/浅边界>
   --color-brand1-5: <主色 hover 档>
   --color-brand1-6: <主色>
-  --color-brand1-7: <主色 active 档>
   --color-brand1-9: <深主色>
   --color-brand1-10: <深色或透明强调档>
   --color-brand-1: <移动端品牌色 1>
@@ -159,6 +200,15 @@ components:
     maxHeight: <默认 88-120>
   metric-strip:
     height: <默认 64-88>
+sceneRecipes:
+  <sceneKey>:
+    layoutRecipe: <该页面场景的布局配方>
+    componentRefs: [components.<componentName>]
+    stateRefs: [states.loading, states.empty, states.error]
+states:
+  loading: <加载反馈和骨架规则>
+  empty: <空态说明、主操作和高度规则>
+  error: <错误反馈、恢复动作和信息边界>
 inferred_modules:
   quick_actions:
     required_for: [工作台, 仪表盘, 管理后台, 运营首页]
@@ -178,7 +228,7 @@ inferred_modules:
 
 ## 3. 主题色与换肤结果
 
-说明 `themeProfile` 和 `themeAdaptationResult`：主题色来源、是否命中平台主题 key、是否允许传给 `create-app/update-app --theme`、如何替换所选风格的 `replace_tokens`、派生 `derive_tokens`、保留 `preserve_tokens` 和 `visual_dna.invariant`。必须明确“换 hue，不换 DNA；换 token，不换结构”。
+说明 `themeProfile` 和 `themeAdaptationResult`：主题色来源、如何替换所选风格的 `replace_tokens`、派生 `derive_tokens`、保留 `preserve_tokens` 和 `visual_dna.invariant`。必须明确“换 hue，不换 DNA；换 token，不换结构”。
 
 ## 4. 适用场景
 
@@ -196,7 +246,7 @@ inferred_modules:
 
 ## 7. 色彩角色
 
-用表格列出 token、取值和用途，覆盖背景、表面、文字、边框、品牌色、状态色和图表序列。必须包含 `themeProfile` 和 `yidaThemeRuntime` 中声明的主题 token。
+用表格列出 token、取值和用途，覆盖背景、表面、文字、边框、品牌色、状态色和图表序列。必须包含 `themeProfile` 和 `yidaThemeDelivery` 中声明的应用主题 token。
 
 | token               | 取值                        | 用途                                               |
 | ------------------- | --------------------------- | -------------------------------------------------- |
@@ -205,16 +255,15 @@ inferred_modules:
 | `--color-brand1-3`  | <透明/浅边界>               | 选中边框、禁用/弱化品牌态、浅描边                  |
 | `--color-brand1-5`  | <主色 hover 档>             | 主按钮 hover、链接 hover、可点击强调 hover         |
 | `--color-brand1-6`  | <主色>                      | 主按钮、链接、选中态、重点标签、图表主序列         |
-| `--color-brand1-7`  | <主色 active 档>            | 按下态、active、pressed                            |
 | `--color-brand1-9`  | <深主色>                    | 强调文字、深底按钮、深色强调块                     |
 | `--color-brand1-10` | <深色或透明强调档>          | 深色 hover、强强调背景、深色主题补充               |
-| `--color-brand-1`   | <移动端品牌浅/透明档 1>     | 移动端壳层、移动端表单、旧版移动组件浅品牌态       |
+| `--color-brand-1`   | <移动端品牌浅/透明档 1>     | 移动端壳层、移动端表单、移动组件浅品牌态           |
 | `--color-brand-2`   | <移动端品牌浅/中档 2>       | 移动端 hover、轻量强调、移动端组件浅色面           |
 | `--color-brand-3`   | <移动端主品牌档 3>          | 移动端主操作、选中态、原生表单移动主色             |
 | `--color-brand-4`   | <移动端深品牌档 4>          | 移动端 active、深色强调、移动壳层深色态            |
 | `--color-group`     | <色组>                      | 图表、分类、状态序列                               |
 
-`--color-brand1-*` 是页面和 PC 端主要消费的品牌色阶；`--color-brand-*` 是移动端和部分原生表单/壳层桥接仍会消费的品牌色阶，必须保留，不能删掉、改名或替换成其他 token。
+平台实际生成的 `--color-brand1-1/2/3/5/6/9/10` 必须完整输出，是页面和 PC 端主要消费的品牌色阶；不要补造 `--color-brand1-4/7/8`。`--color-brand-*` 是移动端和部分原生表单/壳层消费的品牌色阶，必须保留，不能删掉、改名或替换成其他 token。
 
 ## 8. 字体规则
 
@@ -303,28 +352,18 @@ inferred_modules:
 
 只包含相关适配，例如 CSS 变量、Ant Design ConfigProvider、Tailwind class 映射、Yida / YidaCodeCanvas 容器重置或 React 组件建议。宜搭主题必须写成可执行契约：
 
-### Yida Global Theme Runtime Contract
+### Yida Application Theme Delivery Contract
 
 | 项目         | 规则                                                                                                                                                                         |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 平台预置主题 | 只有 `themePresetKey` 命中平台预置 key 且 `shouldPassCreateAppTheme=true` 时，`create-app/update-app` 才传 `theme/colour`                                                    |
-| 自定义色盘   | `shouldPassCreateAppTheme=false`，创建应用时不传 `theme/colour`                                                                                                              |
-| 页面注入     | 自定义色盘、页面级沉浸页、应用导航隐藏后的自绘壳、页面级独立主题使用 `style#yida-global-theme`                                                                                                     |
-| 应用级换肤   | 需要全应用换肤时写 `customThemeStyle.tokens`，页面运行态统一注入 `style#yida-global-theme`                                                                                   |
-| 表单运行态   | 普通表单、流程表单、提交页和 formDetail 详情页必须消费同一套应用主题 token；表单 JS 固定注入 `style#yida-global-theme`                                                        |
-| 详情页样式   | formDetail 页面必须由同一个 `openyidaThemeDidMount` 条件注入 `style#yida-form-detail-style`，不得只完成页面主题而漏掉详情页样式                                                |
-| 主题一致性   | 自定义页面、普通表单、流程表单、提交页、formDetail 详情页和应用主题色必须一致；抽屉 iframe 打开表单时同步父页面当前主题 tokens                                                 |
-| 注入目标     | 当前窗口 `document` 和所有同源可访问父级窗口 `document`；跨域父级静默跳过                                                                                                    |
-| Helper       | YidaCodeCanvas 和平台 JSX 组件页面都复制 `yida-canvas-custom-page/references/theme-runtime-helpers.md`，使用其中的 `collectYidaThemeDocuments` 收集当前文档和同源父级文档，不要临场重写 |
-| 样式 ID      | 固定为 `yida-global-theme`，重复执行只更新同一个 style                                                                                                                       |
-| 根节点       | 页面根节点加 `data-yida-theme-root="true"`，让 token 在当前页和父级 iframe 壳层都能命中                                                                                      |
+| 自定义色盘   | 颜色可任意设计，必须完整输出平台实际生成的 `--color-brand1-1/2/3/5/6/9/10`，不得补造 `4/7/8`；其中 `--color-brand1-6` 写字面量颜色                                   |
+| 应用级换肤   | 使用 CLI token 契约生成或更新的主题文件，在应用级统一配置 |
+| 自定义页面   | 当前页面在自身运行上下文消费应用主题变量                                                                                                                   |
+| 页面局部样式 | 自定义页面使用自身运行上下文中的应用主题变量，页面局部样式直接引用语义 token                                                                            |
 
 ### 自定义页面实现要求
 
-- 使用 `YidaCodeCanvas` 组件实现时，复制 `theme-runtime-helpers.md` 的 YidaCodeCanvas Helper。
-- 在根组件中调用 `useYidaGlobalTheme(CUSTOM_THEME_TOKENS)`。
-- `CUSTOM_THEME_TOKENS` 必须来自本 design.md 的 `tokens`，不能临场另配。
-- 根节点写 `<div data-yida-theme-root className="...">`。
+- 页面直接使用当前运行上下文中的 CSS 变量。
 - `backgroundLayer` 必须落到根节点背景、`::before` 顶部不规则色块或大面积光洗、`::after` 流光/纹理层；内容层使用相对定位和更高 `z-index`，保证背景不盖住操作区。
 - `surfaceContrast` 必须落到页面根背景和卡片/面板样式：白色/浅色背景配有边框卡片，浅灰或浅彩背景配白色无边框卡片，渐变背景配玻璃感卡片。
 - `flowLight` 动效必须写 `@media (prefers-reduced-motion: reduce)` 停止动画。
@@ -332,19 +371,18 @@ inferred_modules:
 
 ### 平台 JSX 组件实现要求
 
-- 复制 `theme-runtime-helpers.md` 的 Ordinary JSX Helper。
-- 在 `didMount` 或等价初始化中调用 `installYidaGlobalTheme(CUSTOM_THEME_TOKENS, window)`。
+- 平台 JSX 组件页直接使用当前运行上下文中的应用主题 CSS 变量。
 - 平台 JSX 组件页面发布后落到平台 `Jsx` 组件，不支持 `import/require`。
 - 平台 JSX 组件页面的图标来源仍只允许 `lucide-react` 或 `@ant-design/icons`，默认 `lucide-react`；但加载方式不是 import，而是已验证运行时脚本/global。emoji 报错时按 `iconSystem` 映射到这两类图标来源，不退成 CSS 图形、字母占位、Unicode 符号、iconfont 或临时 SVG。
 - 使用 ES5 写法，避免平台 JSX 组件编译链不支持的语法；若当前平台 JSX 组件运行环境无法稳定加载图标库，必须去掉非必要图标或改用已验证资源，不能绕过图标规范。
 
 ## 19. 必须包含
 
-列出硬性正向要求。每个视觉 DNA 都必须作为明确必选规则出现。必须包含 `styleDesignSelection`、`themeAdaptationResult` 和 `baseDesignSource`。若 `globalThemeInjection` 不是 `none`，必须包含 `style#yida-global-theme` / `customThemeStyle.tokens` 的落地规则。
+列出硬性正向要求。每个视觉 DNA 都必须作为明确必选规则出现。必须包含 `styleDesignSelection`、`themeAdaptationResult` 和 `baseDesignSource`。若 `themeDelivery=app-custom-theme-file`，必须包含模板路径和 CSS 产物路径。
 
 ## 20. 禁止项
 
-列出硬性负向约束，覆盖会抹掉每个 DNA 的错误做法。必须包含：不得按行业或颜色直接套风格；不得为了还原风格凭空创造 PRD 未要求的模块；自定义主题名或任意色值不得传给 `create-app --theme`；不得只向当前页面 `document.head` 注入主题而漏掉同源父级 iframe。
+列出硬性负向约束，覆盖会抹掉每个 DNA 的错误做法。必须包含：不得按行业或颜色直接套风格；不得为了还原风格凭空创造 PRD 未要求的模块。
 
 ## 21. 错误 vs 正确
 
@@ -354,13 +392,13 @@ inferred_modules:
 | ------------------------------------ | ---------------------------------------------------------------------- |
 | 看到绿色业务就选 `teal-rail`         | 先推演用户任务、信息拓扑和 requiredVisualDNA，再选风格；绿色只用于换肤 |
 | 为了套时间轴风格新增不存在的阶段模块 | PRD 没有阶段/里程碑时排除时间轴风格                                    |
-| 自定义色盘仍传 `--theme myBrand`     | 不传应用 theme，在页面复制 helper 注入 `style#yida-global-theme`       |
-| 只在当前 iframe 写 style             | 同步当前文档和同源父级窗口文档                                         |
+| 重新生成或覆盖整份主题 CSS | 先复制模板，再修改对应 token |
+| 自定义页面颜色与设计结果不一致 | 对照 `design.md` 和当前应用主题变量修正页面用色 |
 | PRD 里复制完整视觉规则               | PRD 只写摘要，完整 UI 规则写 design.md                                 |
 
 ## 22. Agent 使用提示
 
-提供一段简洁提示词，明确告诉 AI 如何使用该 design.md。必须说明选中 style-design 只是设计风格来源，最终事实源是当前项目 `design.md`；视觉 DNA 在内容替换后也要保留；实现自定义色盘时必须读取 `yida-canvas-custom-page/references/theme-runtime-helpers.md` 并复制对应 helper。
+简要说明如何按本文档实现页面，并给出当前应用主题文件的位置。主题更新统一遵守本文件的 CLI token 契约。
 
 ## 23. 交付自检清单
 
@@ -381,18 +419,17 @@ inferred_modules:
 - [ ] 已明确紧凑密度默认值：状态摘要、动作条、列表行、空态高度、卡片 padding >20px、卡片 gap <20px 都有数值范围。
 - [ ] 工作台/首页首屏没有超宽空 KPI 框、大空态白卡、无内容右栏或靠 margin/padding 撑出的空白。
 - [ ] 响应式和可访问性规则完整。
-- [ ] `themeProfile`、`yidaThemeRuntime` 和 `tokens` 一致。
+- [ ] `themeProfile`、`yidaThemeDelivery` 和 `tokens` 一致。
 - [ ] `backgroundLayer` 已说明基础画布、装饰方式和是否使用背景 primitive；若选择近白画布，已说明如何通过渐变、细线、素材或内容密度形成背景感。
 - [ ] `surfaceContrast` 已说明页面背景与卡片背景的明确层次搭配，不存在相近或相同背景。
 - [ ] 若使用 `topIrregularWash`、`flowLight` 或 `organicNoise`，已写清对比度、内容栅格和 reduced motion 静态降级。
-- [ ] 自定义色盘没有传给 `create-app/update-app --theme`。
-- [ ] 需要运行时主题时，已声明复制 `theme-runtime-helpers.md`，并覆盖当前窗口与同源父级窗口。
+- [ ] 自定义页面消费应用主题变量。
 - [ ] 不依赖原截图，也能指导生成一个新页面。
 ```
 
 ## 交给实现阶段
 
 - `yida-app` 读取 `prd/<项目名>/prd.md` 和 `prd/<项目名>/design.md` 后创建或复用资源。
-- 页面实现阶段读取 `prd.md` 的业务内容，并直接读取 `design.md` 的视觉 DNA、token、布局、组件、状态和 `Yida Global Theme Runtime Contract`。
+- 页面实现阶段读取 `prd.md` 的业务内容，并直接读取 `design.md` 的视觉 DNA、token、布局、组件、状态和 `Yida Application Theme Delivery Contract`。
 - 页面实现交给 `yida-canvas-custom-page`。
 - 只有走页面生成器或需要稳定交接时才派生 `page-spec.json`，并标记 `sourceOfTruth.prdFile/designFile`。`page-spec.json` 不复制完整 design.md，只保存与 design.md 一致的主题摘要和引用。

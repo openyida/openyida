@@ -5,12 +5,13 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { compileCanvasLocal } = require('../../lib/app/canvas-compile');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const BIN = path.join(ROOT, 'bin', 'yida.js');
 const DEFAULT_REGISTRY_DIR = path.join(ROOT, 'project', '.cache', 'e2e-real');
 const DEFAULT_FIELDS_FILE = path.join(__dirname, 'fixtures', 'form-fields.json');
-const DEFAULT_PAGE_SOURCE = path.join(ROOT, 'lib', 'templates', 'yida-canvas-custom-page', 'dashboard-starter.canvas.jsx');
+const DEFAULT_PAGE_SOURCE = path.join(__dirname, 'fixtures', 'page.canvas.jsx');
 
 function nowStamp(date = new Date()) {
   return date.toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
@@ -117,8 +118,15 @@ function parseLastJson(output) {
   return parsed.length > 0 ? parsed[parsed.length - 1] : null;
 }
 
+function formatCommandForLog(args) {
+  return args.includes('--quiet')
+    ? 'openyida [quiet command]'
+    : `openyida ${args.join(' ')}`;
+}
+
 function runCli(args, env = process.env) {
-  console.log(`Running: openyida ${args.join(' ')}`);
+  const quiet = args.includes('--quiet');
+  if (!quiet) {console.log(`Running: ${formatCommandForLog(args)}`);}
   const result = spawnSync(process.execPath, [BIN, ...args], {
     cwd: ROOT,
     encoding: 'utf8',
@@ -133,8 +141,10 @@ function runCli(args, env = process.env) {
   const stdout = result.stdout || '';
   const stderr = result.stderr || '';
   if (result.status !== 0) {
-    const details = (stderr.trim() || stdout.trim()).slice(0, 1600);
-    throw new Error(`Command failed: openyida ${args.join(' ')}\n${details}`);
+    const details = quiet
+      ? 'quiet command failed; inspect sanitized registry evidence'
+      : (stderr.trim() || stdout.trim()).slice(0, 1600);
+    throw new Error(`Command failed: ${formatCommandForLog(args)}\n${details}`);
   }
   return {
     stdout,
@@ -151,6 +161,25 @@ function requireSuccess(stepName, commandResult) {
     throw new Error(`${stepName} failed: ${JSON.stringify(commandResult.json)}`);
   }
   return commandResult.json;
+}
+
+function requireCanvasPublishHealth(publishResult) {
+  const health = publishResult && publishResult.healthCheck;
+  const readback = health && health.readback;
+  if (
+    publishResult &&
+    publishResult.publishMode === 'canvas' &&
+    health && health.ok === true &&
+    health.expectedPublishMode === 'canvas' &&
+    readback && readback.hasYidaCodeCanvas === true &&
+    Number(readback.runtimeCodeBytes) > 0
+  ) {
+    return publishResult;
+  }
+  throw new Error(`publish Canvas health check failed: ${JSON.stringify({
+    publishMode: publishResult && publishResult.publishMode,
+    healthCheck: health || null,
+  })}`);
 }
 
 function run(options = {}) {
@@ -170,6 +199,15 @@ function run(options = {}) {
   }
   if (!config.skipPublish && !fs.existsSync(config.pageSource)) {
     throw new Error(`E2E page source not found: ${config.pageSource}`);
+  }
+  if (!config.skipPublish) {
+    try {
+      compileCanvasLocal(fs.readFileSync(config.pageSource, 'utf8'), {
+        sourcePath: config.pageSource,
+      });
+    } catch (error) {
+      throw new Error(`E2E page source is not compilable: ${config.pageSource}\n${error.message}`);
+    }
   }
 
   const { registry, registryPath } = registryFactory(config);
@@ -217,14 +255,16 @@ function run(options = {}) {
         '--no-open',
       ]));
       trackResource(registry, registryPath, { type: 'page', appType: app.appType, pageId: page.pageId, name: config.pageName, url: page.url });
-      requireSuccess('publish page', runStep('publish', [
+      const publishResult = requireSuccess('publish page', runStep('publish', [
         'publish',
         config.pageSource,
         app.appType,
         page.pageId,
+        '--canvas',
         '--health-check',
         '--no-open',
       ]));
+      requireCanvasPublishHealth(publishResult);
     }
 
     registry.status = 'passed';
@@ -254,8 +294,10 @@ module.exports = {
   addResource,
   createRegistry,
   extractJsonObjects,
+  formatCommandForLog,
   getConfig,
   parseLastJson,
+  requireCanvasPublishHealth,
   run,
   runCli,
   writeRegistry,

@@ -27,6 +27,7 @@ const DEFAULTS = {
   autoScore: false,
   scenariosDir: DEFAULT_SCENARIOS_DIR,
   generationScenarios: DEFAULT_GENERATION_DIR,
+  generationTimeoutMs: 600000,
   agentCommand: 'claude', // headless agent CLI；阿里内网可设为 qodercli
 };
 
@@ -143,6 +144,8 @@ function parseArgs(argv = []) {
       out.generationScenarios = takeValue();
     } else if (arg === '--agent-cmd' || arg.startsWith('--agent-cmd=')) {
       out.agentCommand = takeValue();
+    } else if (arg === '--gen-timeout-ms' || arg.startsWith('--gen-timeout-ms=')) {
+      out.generationTimeoutMs = parseInt(takeValue(), 10) || DEFAULTS.generationTimeoutMs;
     } else if (arg === '--screenshot') {
       out.screenshot = true;
     } else if (arg === '--no-screenshot') {
@@ -204,6 +207,9 @@ function readEnvConfig(env = process.env) {
   if (env.OPENYIDA_EVAL_SCENARIOS) {cfg.scenariosDir = env.OPENYIDA_EVAL_SCENARIOS;}
   if (env.OPENYIDA_EVAL_GEN_SCENARIOS) {cfg.generationScenarios = env.OPENYIDA_EVAL_GEN_SCENARIOS;}
   if (env.OPENYIDA_EVAL_AGENT_CMD) {cfg.agentCommand = env.OPENYIDA_EVAL_AGENT_CMD;}
+  if (env.OPENYIDA_EVAL_GEN_TIMEOUT_MS) {
+    cfg.generationTimeoutMs = parseInt(env.OPENYIDA_EVAL_GEN_TIMEOUT_MS, 10) || DEFAULTS.generationTimeoutMs;
+  }
   if (env.OPENYIDA_EVAL_SCREENSHOT !== undefined) {
     cfg.screenshot = toBool(env.OPENYIDA_EVAL_SCREENSHOT, undefined);
   }
@@ -245,6 +251,7 @@ function resolveConfig(options = {}) {
     autoScore: toBool(pick('autoScore'), DEFAULTS.autoScore),
     scenariosDir: pick('scenariosDir'),
     generationScenarios: pick('generationScenarios'),
+    generationTimeoutMs: parseInt(pick('generationTimeoutMs'), 10) || DEFAULTS.generationTimeoutMs,
     agentCommand: pick('agentCommand') || DEFAULTS.agentCommand,
     // 并行/批量/缓存与产物开关：此前遗漏未透传，导致 --parallel/--batch-size/
     // --concurrency/--no-cache/--fix/--format/--baseline 被静默忽略（评测退化为串行）。

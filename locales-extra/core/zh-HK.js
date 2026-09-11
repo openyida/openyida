@@ -17,9 +17,14 @@ module.exports = {
     cmd_env: '偵測 AI 工具環境和登入態',
     cmd_env_management: '管理公有雲 / 私有化環境',
     group_app: '應用程式管理',
-    cmd_app_list: '查詢我的應用程式清單',
+    cmd_app_list: '分頁查詢我管理或建立的應用程式',
     cmd_corp_efficiency: '查詢企業效能概覽和明細報表',
     cmd_create_app: '建立宜搭應用程式',
+    cmd_design_plan_preview: '按模組更新方案草稿',
+    design_plan_preview_invalid: '方案草稿更新失敗，請檢查錯誤詳情',
+    cmd_design_plan_init: '從已確認需求初始化計劃草稿',
+    cmd_design_plan_materialize: '從 build-plan.json 產生並校驗搭建計畫產物',
+    cmd_design_plan_patch: '按欄位路徑調整搭建計畫並使舊確認失效',
     cmd_update_app: '更新應用程式資料',
     cmd_app_online: '啟用宜搭應用程式',
     cmd_app_offline: '停用宜搭應用程式',
@@ -29,7 +34,9 @@ module.exports = {
     cmd_export: '匯出應用程式（產生遷移包）',
     cmd_import: '匯入遷移包，重建應用程式',
     group_form: '表單 & 頁面',
+    cmd_create_form_batch: '按依賴並行建立表單',
     cmd_create_form: '建立表單頁面',
+    cmd_list_form_icons: '列出可用的表單導覽圖示',
     cmd_validate_form: '本機校驗表單欄位 JSON',
     cmd_update_form: '更新表單頁面',
     cmd_list_forms: '列出應用程式下的表單/頁面',
@@ -45,7 +52,6 @@ module.exports = {
     cmd_publish: '編譯並發布自訂頁面',
     cmd_update_form_config: '更新表單設定',
     cmd_get_form_config: '查询表单配置',
-    cmd_form_detail_style: 'Manage form detail page style',
     group_data: '資料 & 權限',
     cmd_data: '統一資料管理（表單/流程/任務/子表單）',
     cmd_task_center: '全域任務中心（待辦/已處理/抄送等）',
@@ -69,23 +75,26 @@ module.exports = {
     group_report: '報表',
     cmd_create_report: '建立宜搭報表',
     cmd_append_chart: '向已有報表追加圖表',
+    cmd_report_inspect: '唯讀檢查報表執行階段綁定摘要',
     group_connector: '連接器',
     cmd_connector_list: '列出 HTTP 連接器',
     cmd_connector_create: '建立連接器',
     cmd_connector_detail: '查看連接器詳情',
-    cmd_connector_delete: '刪除連接器',
+    cmd_connector_delete: '顯示平台手動刪除指引（CLI 不執行刪除）',
     cmd_connector_add_action: '新增執行動作',
+    cmd_connector_update_action: '安全更新動作 Query 預設值',
     cmd_connector_list_actions: '列出執行動作',
     cmd_connector_delete_action: '刪除執行動作',
     cmd_connector_test: '測試執行動作',
     cmd_connector_list_connections: '列出認證帳戶',
     cmd_connector_create_connection: '建立認證帳戶',
-    cmd_connector_smart: '智慧建立連接器（從 cURL）',
+    cmd_connector_smart: '從 cURL 產生脫敏動作草稿（不建立遠端資源）',
     cmd_connector_parse_api: '解析 API 資料',
     cmd_connector_gen_template: '產生 API 文件模板',
     cmd_connector_more: '查看更多子命令',
     group_integration: '整合 & 釘釘',
     cmd_integration: '建立整合自動化邏輯流',
+    cmd_integration_update: 'Probe integration update capability (currently blocked without full readback)',
     cmd_integration_list: '列出整合自動化邏輯流',
     cmd_integration_enable: '啟用整合自動化邏輯流',
     cmd_integration_disable: '停用整合自動化邏輯流',
@@ -120,6 +129,25 @@ module.exports = {
     quickstart_form_name: '員工資料',
     docs: '📚 文件:'
   },
+  app_list: {
+    usage: '用法：openyida app-list [--type managed|created] [--page N] [--size N]',
+    options: '選項：',
+    option_type: '  --type TYPE  查詢範圍：managed（我管理的，預設）或 created（我建立的）',
+    option_page: '  --page N     頁碼，預設：1',
+    option_size: '  --size N     每頁數量，預設：16',
+    option_help: '  --help, -h   顯示說明',
+    invalid_type: '無效的 --type 值「{0}」，有效值：{1}',
+    invalid_positive_integer: '{0} 必須是正整數，目前值：「{1}」',
+    invalid_argument: '無效參數：{0}',
+    query_failed: '查詢應用程式清單失敗：{0}',
+    auth_required: '登入狀態已失效，請重新登入',
+    unknown_error: '未知錯誤',
+    scope_managed: '我管理的',
+    scope_created: '我建立的',
+    found: '{0}應用程式：第 {1}/{2} 頁，本頁 {3} 個，共 {4} 個',
+    next_page: '還有更多應用程式，請繼續執行：{0}',
+  },
+
   cli: {
     help: '\n' +
       'openyida - 宜搭命令列工具\n' +
@@ -162,13 +190,13 @@ module.exports = {
       '  import <file> [name]                                         匯入遷移包，在目標環境重建應用程式\n' +
       '  get-permission <appType> <formUuid>                          查詢表單權限設定\n' +
       '  save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  儲存表單權限設定\n' +
-      '  configure-process <appType> <formUuid> <processDefinitionFile> [processCode]  設定並發布流程\n' +
+      '  configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]  設定並發布流程\n' +
       '  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>  建立流程表單（一體化）\n' +
-      '  create-process <appType> --formUuid <formUuid> <processDefinitionFile>         複用已有表單建立流程\n' +
+      '  create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]         複用已有表單建立流程\n' +
       '  connector list [選項]                                        列出 HTTP 連接器\n' +
       '  connector create "名稱" "網域" --operations <file> [選項]    建立連接器\n' +
       '  connector detail <connector-id>                              查看連接器詳情\n' +
-      '  connector delete <connector-id> [--force]                    刪除連接器\n' +
+      '  connector delete <connector-id> [--force]                    顯示平台手動刪除指引（CLI 不執行刪除）\n' +
       '  connector add-action --operations <file> --connector-id <id> 新增執行動作到連接器\n' +
       '  connector list-actions <connector-id>                        列出執行動作\n' +
       '  connector delete-action <connector-id> <operation-id>        刪除執行動作\n' +
@@ -179,6 +207,7 @@ module.exports = {
       '  connector parse-api [選項]                                   解析 API 資料\n' +
       '  connector gen-template [輸出路徑]                             產生介面文件範本\n' +
       '  integration create <appType> <formUuid> <flowName> [選項]    建立整合&自動化邏輯流\n' +
+      '  integration update <appType> <formUuid> <processCode> --spec <file>  Probe blocked update capability\n' +
       '  create-report <appType> "<報表名稱>" <圖表JSON|檔案路徑>     建立宜搭報表\n' +
       '  append-chart <appType> <reportId> <圖表JSON|檔案路徑>        向已有報表追加圖表\n' +
       '  dws <command> [args]                                         釘釘 CLI（通訊錄/日曆/待辦/審批等）\n' +
@@ -195,7 +224,7 @@ module.exports = {
       '  openyida login\n' +
       '  openyida logout\n' +
       '  openyida create-app "考勤管理"\n' +
-      '  openyida create-app "考勤管理" "員工考勤系統" "xian-daka" "#00B853" "deepBlue" "dark" "slide"\n' +
+      '  openyida create-app "考勤管理" "員工考勤系統" "daka" "#00B853" "deepBlue" "dark" "slide"\n' +
       '  openyida create-page APP_XXX "遊戲主頁"\n' +
       '  openyida create-form create APP_XXX "員工資料" .cache/openyida/forms/employee-fields.json\n' +
       `  openyida create-form update APP_XXX FORM-XXX '[{"action":"add","field":{"type":"TextField","label":"備註"}}]'\n` +
@@ -232,10 +261,10 @@ module.exports = {
     forbidden_alias_get_schema_form_uuid_option: '`{0}` 使用第二個位置參數傳入 formUuid，不使用 `{1}`。',
     nearest_command_suggestion: '未知 OpenYida 指令根「{0}」。你是不是想用「{1}」？',
     run_help: '執行 openyida --help 查看說明',
-    integration_help: '用法：openyida integration <create|list|enable|disable> ...',
+    integration_help: 'Usage: openyida integration <create|update|list|enable|disable|check|diagnose> ...',
     integration_unknown: '未知的 integration 子指令：{0}',
     integration_help_hint: '執行 openyida integration --help 查看可用子指令',
-    integration_list_usage: '用法：openyida integration list <appType> [--form-uuid <uuid>] [--status y|n] [--key <kw>] [--page <n>] [--size <n>] [--json]',
+    integration_list_usage: '用法：openyida integration list <appType> [--form-uuid <uuid>] [--status y|n] [--key <kw>] [--size <n>] [--json]',
     integration_list_example: '範例：openyida integration list APP_XXX --form-uuid FORM-XXX --json',
     integration_enable_usage: '用法：openyida integration enable <appType> <formUuid> <processCode>',
     integration_enable_example: '範例：openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
@@ -271,17 +300,17 @@ module.exports = {
     import_usage: '用法：openyida import <file> [name]',
     import_example1: '範例：openyida import ./yida-export.json',
     import_example2: '      openyida import ./yida-export.json "品質追溯系統（正式環境）"',
-    configure_process_usage: '用法：openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode]',
+    configure_process_usage: '用法：openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]',
     configure_process_example: '範例：openyida configure-process "APP_XXX" "FORM-YYY" .cache/openyida/process/process-definition.json',
     create_process_usage: '用法：openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>\n' +
-      '      openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile>',
+      '      openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]',
     create_process_example: '範例：openyida create-process "APP_XXX" "訂單處理表" .cache/openyida/process/fields.json .cache/openyida/process/process-definition.json',
     process_usage: '用法：openyida process <子指令>\n\n子指令：\n  preview <appType> <processInstanceId> [--output <path>]  預覽流程實例（產生視覺化流程圖）',
     process_preview_usage: '用法：openyida process preview <appType> <processInstanceId> [--output <path>]',
     process_preview_example: '範例：openyida process preview APP_XXX proc-inst-id-xxx',
-    get_permission_usage: '用法：openyida get-permission <appType> <formUuid>',
+    get_permission_usage: '用法：openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>]',
     get_permission_example: '範例：openyida get-permission APP_XXX FORM-XXX',
-    save_permission_usage: '用法：openyida save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]',
+    save_permission_usage: '用法：openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>]',
     save_permission_example: `範例：openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ 執行失敗：{0}',
     login_usage: '用法：openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
@@ -302,7 +331,7 @@ module.exports = {
     first_run_tip1: '  1. 執行 {0}openyida env{1}   偵測環境和登入態',
     first_run_tip2: '  2. 執行 {0}openyida login{1} 登入宜搭帳戶',
     first_run_tip3: '  3. 在 AI 工具中直接對話，描述你想要的應用程式 🚀',
-    first_run_footer1: '  支援的 AI 工具：Codex / Claude Code / Aone Copilot / Cursor / OpenCode',
+    first_run_footer1: '  支援的 AI 工具：Codex / Claude Code / Cursor / OpenCode',
     first_run_footer2: '  📚 文件：https://github.com/openyida/openyida',
     first_run_footer3: '  （此引導僅首次執行時顯示，執行 openyida --help 查看所有指令）'
   },
@@ -344,13 +373,33 @@ module.exports = {
     excel_exported: 'Excel 已匯出：{0}'
   },
   integration: {
+    spec_mixed_structural_flag: '{0} cannot be mixed with --spec. Put the complete node in the spec to prevent silently dropped parameters.',
+    spec_message_node_required: 'Notification flags mixed with --spec require an explicit sendMessage node in the spec.',
+    spec_get_process_schema: 'Fetch process-form Schema for {0}',
+    spec_get_process_schema_failed: 'Failed to fetch process-form Schema for {0}; remote writes were stopped: {1}',
+    spec_data_retrieve_conditions_required: 'dataRetrieve conditions must be non-empty; use getSelf for the triggering record.',
+    spec_data_create_assignments_required: 'dataCreate assignments must be non-empty.',
+    spec_data_update_assignments_required: 'dataUpdate assignments must be non-empty.',
+    spec_approval_form_required: 'initiateApproval requires formUuid.',
+    spec_approval_assignments_required: 'initiateApproval assignments must be non-empty.',
+    spec_approval_initiator_type: 'initiateApproval initiator must be current_user or select_user.',
+    spec_approval_initiator_value_required: 'initiateApproval select_user initiator requires value.',
+    spec_approval_initiator_identity_invalid: 'initiateApproval select_user initiator must be valid employee identity JSON.',
+    spec_route_branches_required: 'route must contain non-empty branches.',
+    spec_approval_current_user_required: 'initiateApproval current_user requires an authenticated user.',
+    spec_approval_initiator_missing: 'initiateApproval initiator is not configured.',
+    spec_desc_retrieve: 'Retrieve data from [{0}] using {1} condition(s)',
+    spec_desc_create: 'Write {1} field(s) to [{0}]',
+    spec_desc_update: 'Update {0} field(s) on upstream data',
+    spec_desc_approval: 'Initiate approval in [{0}] and write {1} field(s)',
     create_usage: '用法: openyida integration create <appType> <formUuid> <flowName> [选项]',
     create_args_title: '参数:',
     create_arg_app_type: '  appType              应用 ID，如 APP_XXX',
     create_arg_form_uuid: '  formUuid             触发表单 UUID，如 FORM-XXX',
     create_arg_flow_name: '  flowName             集成自动化名称',
     create_options_title: '选项:',
-    create_opt_process_code: '  --process-code <code>       更新已有逻辑流的 processCode',
+    create_opt_process_code: '  --process-code <code>       Select an existing flow for full replacement',
+    create_opt_replace: '  --replace                     Confirm --process-code is a full replacement, not a safe update',
     create_opt_receivers: '  --receivers <ids>            钉钉工作通知接收人 userId，多个用逗号分隔',
     create_opt_title: '  --title <text>                通知标题，支持 #{fieldId-ComponentType}#',
     create_opt_content: '  --content <text>              通知内容，支持 #{fieldId-ComponentType}#',
@@ -358,9 +407,9 @@ module.exports = {
     create_opt_spec: '  --spec <file.json>            使用结构化编排文件创建复杂自动化（dataUpdate/route 等）',
     create_opt_data_form_uuid: '  --data-form-uuid <uuid>     插入获取单条数据节点的目标表单 UUID',
     create_opt_data_condition: '  --data-condition <rule>     获取数据过滤条件：目标字段:字段名:触发字段[:组件[:操作符[:值类型]]]',
-    create_opt_get_self: '  --get-self                    自动插入获取自身节点（pid 等于触发事件表单实例ID）',
+    create_opt_get_self: '  --get-self                    自動插入取得自身節點（流程表單運行態使用 pid、設計器使用 proc_inst_id；普通表單兩側使用 form_inst_id）',
     create_opt_get_self_field: '  --get-self-field <field>     覆盖右侧触发事件系统字段，默认 __masterdata_form_inst_id',
-    create_opt_get_self_query_field: '  --get-self-query-field <f>  覆盖左侧查询系统字段，默认 pid',
+    create_opt_get_self_query_field: '  --get-self-query-field <f>  覆蓋左側查詢系統欄位（流程表單預設 pid，普通表單預設 form_inst_id）',
     create_opt_add_data_form_uuid: '  --add-data-form-uuid <uuid> 插入新增数据节点的目标表单 UUID',
     create_opt_add_data_assignment: '  --add-data-assignment <rule> 新增数据赋值：目标字段:valueType:value',
     create_opt_initiate_approval_form_uuid: '  --initiate-approval-form-uuid <uuid> 发起审批节点的目标流程表单 UUID',
@@ -368,19 +417,27 @@ module.exports = {
     create_opt_initiate_approval_assignment: '  --initiate-approval-assignment <rule> 发起审批字段赋值：目标字段:valueType:value',
     create_opt_connector_mode: '  --connector-mode <mode>       连接器类型，HTTP 连接器传 5',
     create_opt_connection_id: '  --connection-id <id>          HTTP 连接器鉴权连接 ID',
+    create_opt_connector_system_token_app: '  --connector-system-token-app <appType>  為宜搭 OpenAPI 在服務端綁定 systemToken',
     create_opt_connector_display_name: '  --connector-display-name <name> 连接器展示名称',
     create_opt_publish: '  --publish                     保存后立即发布',
     create_examples_title: '示例:',
     create_example1: '  openyida integration create APP_XXX FORM-XXX "新增通知" --receivers user123 --publish',
     create_example2: '  openyida integration create APP_XXX FORM-XXX "获取自身后通知" --get-self --publish',
     create_missing_args: '缺少必要参数。',
+    create_replace_required: 'Using --process-code fully replaces the existing flow. Pass --replace explicitly. Safe editing is not currently available; integration update only reports capability status.',
+    create_source_form_fetch_failed: '讀取取數來源表單資訊失敗，已停止遠端寫入: {0}',
+    create_source_form_not_found: '取數來源表單資訊中找不到表單 {0}，已停止遠端寫入',
+    create_source_form_type_unknown: '取數來源表單資訊未返回可確認的表單類型，已停止遠端寫入',
+    create_source_form_type_invalid: '取數來源表單類型「{0}」不支援取數，已停止遠端寫入',
+    create_source_form_type_mismatch: '顯式 formType={0} 與導航元資料 {1} 不一致，已停止遠端寫入',
+    create_flow_name_too_long: '邏輯流程名稱不能超過 {0} 個字元（目前 {1} 個）。',
     create_invalid_events: '未识别到有效触发事件。',
     create_no_receivers: '未指定通知接收人或成员字段，将不会生成消息通知节点。',
     create_title: '创建集成自动化逻辑流',
     create_app_type: '应用 ID: {0}',
     create_form_uuid: '触发表单: {0}',
     create_flow_name: '逻辑流名称: {0}',
-    create_mode_update: '模式: 更新已有逻辑流',
+    create_mode_update: 'Mode: full replacement of existing logic flow (not a safe update)',
     create_mode_new: '模式: 新建逻辑流',
     create_process_code: '逻辑流 ID: {0}',
     create_events: '触发事件: {0}',
@@ -390,7 +447,7 @@ module.exports = {
     create_notify_content: '通知内容: {0}',
     create_data_form: '获取数据表单: {0}',
     create_data_conditions: '获取数据条件数: {0}',
-    create_get_self_summary: '获取自身闭坑: {0} 等于 字段 {1}',
+    create_get_self_summary: '获取自身闭坑: 运行态查询字段 {0} 等于字段 {1}；流程表单设计器对应 proc_inst_id，普通表单设计器保持一致',
     create_op_mode_publish: '操作模式: 保存并发布',
     create_op_mode_draft: '操作模式: 仅保存草稿',
     create_step: '[{0}/{1}] {2}',
@@ -412,7 +469,41 @@ module.exports = {
     create_published_ok: '逻辑流已发布',
     create_done_published: '集成自动化创建并发布完成',
     create_done_draft: '集成自动化草稿已保存',
-    create_draft_hint: '可在宜搭设计器确认配置后手动发布。'
+    create_draft_hint: '可在宜搭设计器确认配置后手动发布。',
+    update_usage: 'Usage: openyida integration update <appType> <formUuid> <processCode> --spec <desired-spec.json> [--publish]',
+    update_missing_args: 'Missing required arguments: appType, formUuid, processCode, and --spec are required.',
+    update_capability_blocked: 'Safe integration update is unavailable: full platform processJson + viewJson readback is not proven. No authentication or remote write was attempted.',
+    publish_readback_unverified: 'The publish response succeeded, but the final state could not be read back exactly: {0}',
+    readback_exact_match_failed: 'The logic flow could not be read back by exact processCode after the write: {0}',
+    readback_status_mismatch: 'The final logic-flow status did not match: expected {0}, received {1}',
+    readback_detail_failed: 'Logic-flow detail readback failed: {0}',
+    readback_detail_empty: 'Logic-flow detail readback was empty: {0}',
+    readback_detail_identity_mismatch: 'Logic-flow detail identity did not match the target: {0}',
+    readback_assignments_mismatch: '邏輯流程詳情中的新增資料賦值與儲存前不一致。',
+    detail_api_failed: 'Failed to read logic-flow detail: {0}',
+    list_pagination_limit: 'The integration flow list exceeded the safe pagination limit.',
+    form_list_pagination_limit: 'The form integration flow list exceeded the safe pagination limit.',
+    connector_schema_file_unverified: 'Caller-provided --connector-inputs is no longer trusted; connector schema must come from read-only platform discovery or a fixed proven preset.',
+    connector_not_found: 'Connector not found through read-only discovery: {0}',
+    connector_schema_discovery_failed: 'Read-only connector schema discovery failed: {0}',
+    connector_schema_missing: 'The read-only connector detail did not contain a verifiable operations schema.',
+    connector_action_not_found: 'Connector action not found by exact read-only discovery: {0}',
+    connector_action_schema_missing: 'The connector action does not contain a verifiable inputs/outputs schema.',
+    connector_input_unknown: 'Connector input was not found in the verified schema: {0}',
+    connector_input_ambiguous: '連接器輸入欄位存在於多個參數群組，請使用完整路徑：{0}',
+    connector_assignment_duplicate: '多個連接器賦值指向同一輸入欄位：{0}',
+    connector_assignment_value_required: '連接器輸入欄位的賦值不可為空：{0}',
+    connector_required_input_missing: '連接器必填輸入欄位尚未賦值：{0}',
+    readback_connector_assignments_mismatch: '整合自動化遠端回讀的連接器輸入賦值與發布內容不一致。',
+    connector_schema_unverified: 'Connector action schema is unverified: {0}::{1}',
+    runtime_case_unknown: 'Unknown integration runtime case: {0}',
+    runtime_adapter_missing: 'Integration runtime adapter is not configured.',
+    runtime_preflight_not_read_only: 'Integration runtime preflight was not read-only with zero writes: {0}',
+    runtime_ownership_unverified: 'Integration runtime ownership is unverified: {0}',
+    runtime_trigger_rejected: 'Integration runtime trigger was not accepted: {0}',
+    runtime_contract_failed: 'Integration runtime contract failed: {0}',
+    runtime_cleanup_failed: 'Integration runtime cleanup failed: {0}',
+    runtime_primary_cleanup_failed: 'Integration runtime execution and cleanup both failed: {0}',
   },
   env: {
     title: '  openyida env - 環境偵測',
@@ -456,6 +547,13 @@ module.exports = {
     playwright_install1: '   npm install -g playwright',
     playwright_install2: '   npx playwright install chromium',
     browser_opening: '\n🔐 正在開啟瀏覽器完成 OAuth 登入...',
+    oauth_success_title: '登入成功',
+    oauth_success_message: '登入已完成，請返回剛才的視窗繼續操作。',
+    oauth_closing: '正在自動關閉此視窗…',
+    oauth_manual_close: '此視窗未能自動關閉，請手動關閉後返回剛才的視窗繼續操作。',
+    oauth_failure_title: '登入未完成',
+    oauth_invalid_state: '登入驗證資訊無效，請返回終端機重新發起登入。',
+    oauth_missing_code: '未收到登入授權資訊，請返回終端機重新發起登入。',
     login_url_label: '  登入網址：{0}',
     waiting_login: '  等待登入完成（最長等待 10 分鐘）...',
     login_timeout: '  ⏰ 登入逾時（10 分鐘），請重試。',
@@ -517,15 +615,16 @@ module.exports = {
     unknown: '未知'
   },
   create_app: {
+    update_only_option: '{0} 僅用於更新應用設定，請先建立應用，再使用 openyida update-app <appType>。',
     title: '  openyida create-app - 宜搭應用程式建立工具',
-    usage: '用法：openyida create-app "<appName>" [description] [icon] [iconColor] [themeColor] 或 openyida create-app --name "<appName>" [--desc "..."] [--theme deepBlue]',
-    example: '範例：openyida create-app --name "考勤管理" --desc "員工考勤打卡系統" --theme deepBlue',
+    usage: '用法：openyida create-app "<appName>" [description] [icon] [iconColor] 或 openyida create-app --name "<appName>" [--desc "..."]',
+    example: '範例：openyida create-app --name "考勤管理" --desc "員工考勤打卡系統"',
     available_icons: '\n可用圖示：',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
       '  xian-danju, xian-shichang, xian-jingli, xian-falv, xian-baogao,\n' +
-      '  huoche, xian-shenbao, xian-diqiu, xian-qiche, xian-feiji,\n' +
+      '  huoche, shenbao, xian-diqiu, xian-qiche, xian-feiji,\n' +
       '  xian-diannao, xian-gongzuozheng, xian-gouwuche, xian-xinyongka,\n' +
-      '  xian-huodong, xian-jiangbei, xian-liucheng, xian-chaxun, xian-daka',
+      '  xian-huodong, xian-jiangbei, xian-liucheng, chaxun, daka',
     available_colors: '\n可用顏色：',
     colors_list: '  #0089FF #00B853 #FFA200 #FF7357 #5C72FF\n  #85C700 #FFC505 #FF6B7A #8F66FF #14A9FF',
     app_name: '  應用程式名稱：{0}',
@@ -601,6 +700,7 @@ module.exports = {
     no_login: '  ❌ 无法获取有效登录态'
   },
   create_form: {
+    batch_invalid: '表單批量任務設定無效，請檢查錯誤詳情',
     create_title: '  yida-create-form-page - 宜搭表单页面创建工具',
     update_title: '  yida-create-form-page - 宜搭表单页面更新工具',
     app_id: '\n  应用 ID:    {0}',
@@ -632,8 +732,6 @@ module.exports = {
     version_label: '  当前版本: {0}',
     save_schema_failed: '\n❌ 保存 Schema 失败: {0}',
     save_failed: '\n❌ 保存 Schema 失败: {0}',
-    step_update_config: '\n⚙️  步骤 {0}: 更新表单配置',
-    sending_config: '  正在发送 updateFormConfig 请求...',
     step_get_schema: '\n📄 步骤 {0}: 获取当前表单 Schema',
     sending_get_schema: '  正在发送 getFormSchema 请求...',
     sending_get: '  正在发送 getFormSchema 请求...',
@@ -657,12 +755,7 @@ module.exports = {
     update_success: '  ✅ 表单更新成功！',
     form_uuid_label: '  formUuid: {0}',
     url_label: '  URL: {0}',
-    config_updated_0: '  配置已更新: MINI_RESOURCE = 0',
-    config_updated: '  配置已更新: MINI_RESOURCE = 0',
     changes_applied: '  已应用变更: {0}',
-    config_failed: '  ⚠️  配置更新失败: {0}',
-    schema_ok_config_failed: '  Schema 已保存，但配置更新失败',
-    schema_saved_config_failed: '  Schema 已保存，但配置更新失败',
     create_post_failure_retry_advice: '不要直接重複 create。先執行 openyida list-forms {0} --keyword "{1}" 確認同名表單；若是本輪建立的空白/已有表單，優先使用 create-form update 或後續 --resume-form-uuid 復用。',
     error: '\n❌ 錯誤：{0}',
     usage_create: '用法：openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
@@ -672,6 +765,14 @@ module.exports = {
     usage_label: '用法：',
     usage_create_short: '  建立：openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  更新：openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
+    resume_readback_failed: 'Unable to read the target form before resume.',
+    resume_ownership_unverified: 'The target form does not belong to the requested app; resume stopped.',
+    resume_identity_mismatch: 'The target form identity does not match the readback; resume stopped.',
+    resume_schema_invalid: 'The target form schema is unavailable.',
+    resume_container_invalid: 'The target form container is unavailable.',
+    resume_field_conflict: 'Existing fields conflict with the requested definition; resume stopped.',
+    resume_field_resolution_failed: 'Resume field resolution failed.',
+    resume_readback_mismatch: 'Resume readback did not confirm all requested fields.',
     example_label: '\n範例：',
     fields_file_not_found: '  ❌ 欄位定義檔案不存在：',
     fields_format_invalid: '欄位定義格式不正確',
@@ -684,6 +785,12 @@ module.exports = {
     patch_must_not_be_empty: '补丁数组不能为空',
     patch_invalid_shape: '补丁必须是数组、{operations: []} 或单个操作对象',
     patch_parse_failed: '补丁 JSON 解析失败: ',
+    action_event_conflict: '欄位「{0}」的 {1} 已綁定動作「{2}」；預設禁止靜默覆蓋。確認替換時明確設定 replaceExisting=true。',
+    action_source_export_missing: '動作原始碼未匯出指定函式「{0}」。',
+    action_source_missing: '找不到動作函式「{0}」；請提供 source/sourceFile，或先在動作模組中定義該函式。',
+    action_binding_incomplete: '表單動作函式、動作註冊和欄位事件綁定不完整，Schema 未儲存。',
+    action_readback_failed: '表單動作儲存已被接受，但回讀失敗：{0}',
+    action_readback_mismatch: '表單動作儲存已被接受，但遠端回讀的函式、動作註冊或欄位事件綁定不一致。',
     rule_file_not_found: '规则文件不存在: ',
     rule_array_empty: '规则数组不能为空',
     rules_array_empty: 'rules 数组不能为空',
@@ -793,6 +900,13 @@ module.exports = {
   org_usage: '用法：openyida org <list|switch>',
   org_example: '範例：\n  openyida org list                    # 列出可訪問的組織\n  openyida org switch --corp-id dingXXX  # 切換到指定組織',
   title: '  openyida import - 宜搭應用程式匯入工具',
+  save_permission: {
+    package_uuid_create_conflict: '--package-uuid 只可更新現有權限組，不能與 --create 同時使用',
+    package_uuid_not_found: '找不到 packageUuid={0} 的權限組，已中止且零寫入',
+    before_unknown: '寫入前無法完整讀取權限狀態，已中止：{0}',
+    verify_failed: '權限寫入後精確回讀不一致（packageUuid={0}）',
+    verify_unknown: '權限寫入結果未知（packageUuid={0}），重試前請先精確查詢',
+  },
   get_page_config: {
     usage: '用法：openyida get-page-config <appType> <formUuid>',
     example: '範例：openyida get-page-config APP_XXX FORM-XXX',
@@ -811,13 +925,14 @@ module.exports = {
     usage: '用法：openyida save-share-config <appType> <formUuid> <openUrl> <isOpen> [openAuth]',
     example: '範例：openyida save-share-config "APP_XXX" "FORM-XXX" "/o/xxx" "y" "n"',
     is_open_hint: '  isOpen：y=開啟公開訪問，n=關閉公開訪問',
-    open_auth_hint: '  openAuth：y=需要授權，n=不需要授權（預設）',
+    open_auth_hint: '  openAuth：y=需要授權，n=不需要授權；省略時保留完整現有授權設定',
     title: '  save-share-config - 宜搭公開訪問設定儲存工具',
     app_id: '\n  應用程式 ID：      {0}',
     form_uuid: '  表單 UUID：    {0}',
     open_url: '  公開訪問路徑：{0}',
     is_open: '  是否開放：     {0}',
     open_auth: '  是否需要授權：{0}',
+    open_auth_preserve: '保留現有值',
     step_validate: '\n📋 Step 0：驗證參數',
     validate_ok: '  ✅ 參數驗證通過',
     validate_failed: '  ❌ 參數驗證失敗：{0}',
@@ -834,6 +949,9 @@ module.exports = {
     err_open_url_chars: 'openUrl 路徑部分只支援 a-z A-Z 0-9 _ -，可用 / 分隔多級路徑，目前值：{0}'
   },
   update_app: {
+    theme_preset_conflict: '平台預置 colour 不能與自訂 CSS 或 themeColor 同傳；請使用 --colour custom 或省略 --colour。',
+    custom_theme_color_required: 'colour=custom 需要主題檔案或有效 themeColor；請傳 --theme-file 或 --theme-color。',
+    theme_not_persisted: '應用主題儲存後回讀不一致或查詢失敗，CSS 資源尚未確認綁定。請查看 themeVerification，並使用 update-app <appType> --theme-file <css> 重試；不要重複建立應用。',
     usage: '用法: openyida update-app <appType> [--name "新名称"] [--desc "描述"] [--layout slide|ver] [--theme deepBlue]',
     example: '示例: openyida update-app APP_XXX --name "新应用名称" --layout ver --theme deepBlue',
     options: '选项:\n' +
@@ -905,10 +1023,16 @@ module.exports = {
     done: '流程表单创建完成',
     url: '访问地址',
     usage: '用法: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>',
-    usage2: '      openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile>',
+    usage2: '      openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]',
     example: '示例: openyida create-process "APP_XXX" "订单处理表" .cache/openyida/process/fields.json .cache/openyida/process/process-definition.json',
     example2: '      openyida create-process "APP_XXX" --formUuid FORM-YYY .cache/openyida/process/process-definition.json'
   },
+  configure_process: {
+    replace_required: '偵測到已發布流程或已儲存草稿；完整取代必須明確傳入 --replace。未授權時不會執行遠端寫入。',
+    ownership_unverified: '無法證明 processCode 屬於目前表單；為避免覆蓋其他流程，不會執行遠端寫入。',
+    published_unverified: '發布請求已成功，但未能透過 PUBLISHED 版本的平台檢視完整驗證；請先回讀平台狀態，不要直接重試寫入。',
+  },
+
   update_form_config: {
     usage: '用法：openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: '範例：openyida update-form-config "APP_XXX" "FORM_XXX" "false" "我的頁面"',
@@ -978,9 +1102,9 @@ module.exports = {
     no_package: '\n❌ 未找到 openyida 安裝套件目錄',
     no_package_hint1: '   請確認 openyida 已正確全域安裝：',
     no_package_hint2: '   npm install -g openyida',
-    no_ai_tool: '\n❌ 未偵測到活躍的 AI 工具環境\n   支援的工具：悟空、Codex、OpenCode、Claude Code、Aone Copilot、Cursor、Qoder\n\n   目前偵測結果：',
+    no_ai_tool: '\n❌ 未偵測到活躍的 AI 工具環境\n   支援的工具：Codex、OpenCode、Claude Code、Cursor、Qoder\n\n   目前偵測結果：',
     no_active_tool: '\n❌ 未偵測到活躍的 AI 工具環境',
-    supported_tools: '   支援的工具：悟空、Codex、OpenCode、Claude Code、Aone Copilot、Cursor、Qoder',
+    supported_tools: '   支援的工具：Codex、OpenCode、Claude Code、Cursor、Qoder',
     current_result: '\n   目前偵測結果：',
     force_hint: '\n   如需強制複製到目前目錄，請執行：\n   openyida copy --force',
     force_cmd: '   openyida copy --force',
@@ -1001,12 +1125,10 @@ module.exports = {
     symlinks_created: '   建立符號連結：{0} 個',
     result_symlink: '   {0} → {1}（符號連結）',
     result_copy: '   {0} → {1}（{2} 個檔案）',
-    wukong_skills_cleanup: '\n🗑️  悟空環境：清理 yida-skills/ 符號連結（悟空透過手動上傳技能，不需要符號連結）...',
-    wukong_skills_cleaned: '已清理',
-    wukong_skills_not_found: '    ℹ️  未找到 yida-skills/ 符號連結或目錄，無需清理：{0}',
     remove_failed: '    ❌ 刪除失敗：{0}（{1}）',
     symlink_fallback_copy: '    ⚠️  Windows 符號連結建立失敗（需要管理員權限），降級為目錄複製：{0}',
-    symlink_failed: '    ❌ 符號連結建立失敗：{0}（{1}）'
+    symlink_failed: '    ❌ 符號連結建立失敗：{0}（{1}）',
+    source_destination_overlap: '已停止複製：來源目錄與目標目錄重疊。來源：{0}；目標：{1}'
   },
   check_update: {
     new_version: '\n💡 發現新版本 {0}（目前 {1}）\n   執行以下指令更新：\n   npm install -g openyida@latest\n'
@@ -1059,6 +1181,7 @@ module.exports = {
     failed: '页面规范检查失败'
   },
   publish: {
+    canvas_inline_css_invalid: '第 {0} 行附近的內嵌 CSS 存在未閉合或不匹配的括號、字串或註解，請修復後再發佈。',
     title: '  yida-publish - 宜搭頁面發布工具',
     platform: '  平台位址：{0}',
     base_url: '\n  平台位址：{0}',
@@ -1097,12 +1220,15 @@ module.exports = {
     lint_searchformdata_http_post: '直連 searchFormDatas.json 必須用 GET + query 參數（formUuid/appType 放在 URL query 裡）；用 POST 把 formUuid 放進 body，後端會報「參數校驗失敗formUuid」，看板/列表會全 0',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json 的分頁參數名是 currentPage（不是 pageNumber），寫成 pageNumber 會分頁失效',
     lint_searchformdata_http_unwrap: 'searchFormDatas.json 瀏覽器直連的列表在 content.data（回傳 { content: { data: [...] } }），只讀 json.data 會得到 0 筆；請用 (json.content && json.content.data) 兜底解包',
+    lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder 不能使用記錄元數據欄位 {0}；請改用 get-schema 回傳的真實業務欄位 ID。沒有可排序的業務日期欄位時請刪除 dynamicOrder，只在目前已取回頁內按 row.createTime 做展示排序',
     lint_setstate_non_timestamp: '偵測到 this.setState 寫入非 timestamp 欄位。業務狀態應寫入 _customState 並呼叫 forceUpdate()/setCustomState() 觸發重繪；this.setState 僅用於 timestamp 契約欄位',
     lint_self_binding_missing: 'renderJsx 內使用了 this 但未宣告 var self = this;。請在 renderJsx 開頭加入 var self = this;，閉包/回呼內改用 self，避免 this 指向遺失',
     lint_echarts_dom_ready: 'echarts.init 未包裹在 setTimeout 中，容器可能尚未掛載導致圖表不渲染。建議 setTimeout(function(){ /* echarts.init */ }, 300)',
     lint_yida_api_catch: 'this.utils.yida API 調用未偵測到 .catch()，請補充錯誤處理並 toast 給用戶',
     lint_echarts_legacy_map_china: 'ECharts 5 已廢棄 echarts/map/js/china.js，請載入 DataV GeoJSON 後調用 echarts.registerMap("china", geoJson)',
     lint_echarts_rich_label_formatter: 'ECharts label.formatter 返回 rich text 模板在宜搭自定義頁面環境不穩定，建議使用普通 formatter 字串或預先拼好的標籤文字',
+    lint_system_token_frontend_forbidden: '自定義頁面不得讀取或傳入 systemToken；請改用宜搭集成自動化，在服務端安全綁定憑據。',
+    lint_connector_runtime_name_required: '自定義頁面調用連接器時必須使用 connectorName（Http_*）；數字 connectorId 只用於 CLI 管理。',
     lint_const_let: '使用了 const/let 宣告，建議改為 var（宜搭執行環境相容性）',
     lint_computed_property: '使用了 ES6 計算屬性名 { [key]: value }，宜搭 JS 引擎不支援此語法，會導致靜默失敗。請改為 var obj = {}; obj[key] = value;',
     lint_pad_method: '使用了 String.{0}()，宜搭 JS 引擎不支援此方法，會導致 Promise 回呼靜默中斷。請用三元運算子替代，如：x < 10 ? "0" + x : "" + x',
@@ -1144,6 +1270,8 @@ module.exports = {
     canvas_compiling: '  🎨 本機編譯自訂頁面源碼...',
     canvas_compile_done: '  ✅ 自訂頁面編譯完成！',
     canvas_compile_failed: '  ❌ 自訂頁面編譯失敗：{0}',
+    canvas_unbound_identifiers: 'Code Canvas 原始碼存在未宣告識別字：{0}。請在同一檔案補齊 import、函式、Ref、狀態或區域變數宣告，並保持宣告與全部引用同名。若識別字由非標準執行環境提供，請改用 window.<name> 或 parentWindow.<name> 明確存取，並先檢查是否存在。',
+    canvas_instance_api_unavailable: 'Code Canvas 元件不能使用平台 JSX 執行個體 API：{0}。請使用 React hooks、props 或 window.__OPENYIDA_YIDA_API__ 資料橋接。',
     step_login: '\n🔑 Step 2：讀取登入態',
     step_publish: '\n📤 Step 3：發布 Schema\n',
     resend_save_csrf: '  🔄 重新傳送 saveFormSchema 請求（csrf_token 已刷新）...',
@@ -1155,18 +1283,8 @@ module.exports = {
     schema_success: '  ✅ Schema 發布成功！',
     form_uuid_label: '  formUuid：{0}',
     version_label: '  version：  {0}',
-    step_config: '\n⚙️  Step 4：更新表單設定\n',
-    sending_config: '  傳送 updateFormConfig 請求...',
-    resend_config_csrf: '  🔄 重新傳送 updateFormConfig 請求（csrf_token 已刷新）...',
-    resend_config: '  🔄 重新傳送 updateFormConfig 請求...',
-    config_csrf_retry: '  🔄 重新傳送 updateFormConfig 請求（csrf_token 已刷新）...',
-    config_relogin_retry: '  🔄 重新傳送 updateFormConfig 請求...',
     success: '  ✅ 發布成功！',
     publish_success: '  ✅ 發布成功！',
-    config_updated: '  設定已更新：MINI_RESOURCE = 8',
-    config_failed: '  ⚠️  設定更新失敗：{0}',
-    schema_ok_config_failed: '  Schema 已發布，但設定更新失敗',
-    schema_published_config_failed: '  Schema 已發布，但設定更新失敗',
     step_health_check: '\n🩺 Step 5: Publish readback check\n',
     health_check_ok: '  ✅ Publish readback check passed: {0}',
     health_check_failed: '  ⚠️  Publish readback check failed: {0} {1}',
@@ -1235,7 +1353,7 @@ module.exports = {
     install_success: '  ✅ 安裝成功！{0} 宜搭 AI 應用程式開發工具已就緒。',
     update_success: '  ✅ 更新成功！{0} OpenYida 已升級至最新版本。',
     ai_mode_title: '  🚀 開啟 AI 問答模式',
-    ai_mode_desc: '  在 Codex / Claude Code / Aone Copilot / Cursor 等 AI 工具中直接對話：',
+    ai_mode_desc: '  在 Codex / Claude Code / Cursor 等 AI 工具中直接對話：',
     prompt1: '  📋  「幫我用宜搭建立一個考勤管理系統」',
     prompt2: '  💰  「幫我搭建個人薪資計算器應用程式」',
     prompt3: '  🏢  「建立一個 CRM 客戶管理系統」',
@@ -1615,6 +1733,7 @@ module.exports = {
     disabled: 'AI 審批提示已關閉',
     unknown_subcommand: '未知的 ai-form-setting 子命令: {0}'
   },
+  report_runtime: require('../../lib/report/i18n-messages')['zh-HK'],
   safe_json: {
     hint_unquoted_key: '疑似鍵名未加雙引號（JSON 要求所有鍵用雙引號包裹，如 {"name":1}）',
     hint_single_quote: `疑似使用了單引號（JSON 只允許雙引號 "，不允許單引號 '）`,
@@ -1630,7 +1749,7 @@ module.exports = {
   },
   codex_login: {
     title: '  openyida login {0} - {1} 登入模式',
-    not_codex: '目前環境未偵測為 Codex / Qoder / 悟空，僅返回內建瀏覽器登入 handoff。',
+    not_codex: '目前環境未偵測為 Codex / Qoder，僅返回內建瀏覽器登入 handoff。',
     no_playwright: '{0} 登入模式不需要安裝 Playwright 或額外 Chromium。',
     using_browser: '{0} in-app Browser is only suitable for unauthenticated page previews; use openyida login for CLI auth.',
     browser_handoff_hint: '{0} in-app Browser is not used for CLI auth. Use openyida login.',
@@ -1638,3 +1757,232 @@ module.exports = {
     cache_available: '已存在可用的 CLI token session 緩存，無需重新開啟瀏覽器登入。'
   }
 };
+
+// Safety-critical verification and publish lint messages.
+Object.assign(module.exports.app_permission || (module.exports.app_permission = {}), {
+  verify_failed: '應用管理員保存後驗證失敗',
+});
+
+Object.assign(module.exports.corp_manager || (module.exports.corp_manager = {}), {
+  address_book_verify_failed: '保存通訊錄權限後驗證失敗：expected={0}, actual={1}',
+  admin_verify_failed: '管理員保存後驗證失敗：{0} 未出現在 {1} 列表中',
+  sub_admin_scope_verify_failed: '平台子管理員保存後範圍驗證失敗：expected={0}, actual={1}',
+  admin_remove_verify_failed: '管理員移除後驗證失敗：{0} 仍在 {1} 列表中',
+});
+
+Object.assign(module.exports.save_permission || (module.exports.save_permission = {}), {
+  confirm_member_replace_usage: '複合成員替換需要額外傳入 --confirm-member-replace',
+  data_object_required: '數據權限必須是 JSON 物件',
+  data_rule_required: '數據權限 rule 不能為空',
+  data_rule_type_required: '數據權限 rule 每一項都必須包含 type',
+  data_rule_value_invalid: '數據權限 rule {0} 的 value 只支援 y/n 或 boolean',
+  data_enabled_required: '數據權限至少需要一個啟用的數據範圍',
+  custom_department_ids_required: 'CUSTOM_DEPARTMENT 必須提供非空 customDepartmentData.departmentIds',
+  formula_data_required: 'FORMULA 必須提供非空 formulaData',
+  data_range_required: '數據權限必須提供非空 dataRange 或 rule',
+  action_enabled_required: '操作權限至少需要一個值為 true 的操作',
+  action_value_boolean: '操作權限 {0} 的值必須是 boolean',
+  field_range_invalid: '字段權限 fieldRange 只支援 FORM 或 CUSTOM',
+  field_status_required: 'CUSTOM 字段權限必須包含非空 fieldStatus 數組',
+  field_status_item_required: 'fieldStatus 每一項必須包含 label、fieldName、componentName 和 value',
+  field_status_value_invalid: '無效字段權限值：{0}，有效值：{1}',
+  json_object_required: '{0} 必須是 JSON 物件',
+  parse_failed: '{0} 解析失敗：{1}',
+  role_conflict: '權限參數中的 role 不一致：{0}',
+  matrix_role_only: '--matrix 只能更新 role=MATRIX 的權限組',
+  all_members_role_only: '--all-members 只能更新 role=DEFAULT 的權限組',
+  target_role_invalid: '無效 role: {0}，有效值：{1}',
+  unnamed_package: '未命名',
+  missing_package_uuid: '無 UUID',
+  target_no_match: 'role={0} 未匹配；為防止誤更新已中止（零寫入）。目前權限組：\n{2}',
+  target_ambiguous: 'role={0} 匹配 {1} 個權限組；為防止誤更新已中止（零寫入）。\n{2}',
+  unknown_operate_keys: '當前權限組包含 CLI 未識別的操作權限鍵，不能修改 action-permission: {0}。可只修改其他維度，未知鍵會原樣保留。',
+  matrix_role_value_required: 'MATRIX roleData.roleValue 必須是非空數組',
+  matrix_data_required: '成員選擇為 MATRIX 時，數據權限 rule 必須包含 MATRIX',
+  data_matrix_member_required: '數據權限包含 MATRIX 時，成員必須選擇有效權限矩陣',
+  members_all_conflict: '--members 與 --all-members 互斥，請勿同時指定',
+  invalid_arguments: '參數驗證失敗：{0}',
+  query_limit: '權限組查詢已達到當前 20 條上限，無法證明 role 目標全局唯一，已中止（零寫入）。\n{0}',
+  unique_target: '  ✅ 唯一目標：{0}',
+  member_before: '  成員 before: {0}',
+  member_after: '  成員 after： {0}',
+  member_removed: '  將移除成員角色：{0}',
+  member_replace_confirm: '成員替換會移除現有複合角色，請核對 before/after 後加入 --confirm-member-replace。將遺失：{0}',
+});
+
+Object.assign(module.exports.save_share_config || (module.exports.save_share_config = {}), {
+  err_page_url_prefix: 'openUrl 必須以 /o/ 或 /s/ 開頭，當前值：{0}',
+  verify_failed: '保存後驗證失敗：{0}',
+  current_state_incomplete: '保存已中止：當前公開訪問配置缺少 openPageAuthConfig，無法證明可安全保留',
+});
+
+Object.assign(module.exports.publish || (module.exports.publish = {}), {
+  lint_jsx_text_identifier: 'JSX 中文文案不能寫成 {{0}}，這會被當作變量並導致 {0} is not defined；請改成純文本 {0} 或字符串 {\'{0}\'}。',
+  lint_form_open_container: '自定義頁內打開表單提交/詳情只能使用 FormOpenContainer：PC 端用 50vw 抽屜 iframe，移動端才整頁或新頁打開。按鈕事件請調用 openForm({ type: "submission" | "detail", ... })。',
+  lint_form_detail_link: '表單詳情頁必須使用真實 formInstId：優先讀取 row.formInstId，缺少實例 ID 時禁用詳情入口或提示，不能打開空 formInstId 的 formDetail 鏈接。',
+  lint_searchformdata_http_path: '直連 searchFormDatas.json 必須使用 /dingtalk/web/<appType>/v1/form/searchFormDatas.json；/query/form/searchFormDatas.json 不是有效表單數據端點',
+  lint_searchformdata_http_query_params: '直連 searchFormDatas.json 的 URL query 缺少必要參數：{0}；請用 URLSearchParams 寫入 appType、formUuid、currentPage、pageSize 和 searchFieldJson',
+  lint_searchformdata_http_csrf: '直連 searchFormDatas.json 需要把運行態 CSRF 同時放入 URL query 的 _csrf_token 和請求頭 global_csrf_token',
+  lint_searchformdata_http_credentials: '直連 searchFormDatas.json 必須設置 credentials: "include"，讓瀏覽器攜帶同源登錄態',
+  lint_canvas_yida_api_bridge_missing: 'YidaCodeCanvas 表單數據讀取必須優先消費 window.__OPENYIDA_YIDA_API__（發布層由外層 didMount 注入 this.utils.yida 橋）；不要默認手寫內部 searchFormDatas fetch',
+});
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  command_unsupported: '不支援的資料命令：{0} {1}。請執行 openyida commands --json 查詢實際能力。',
+  delete_confirmation_required: '刪除表單實例前，必須先查詢並向使用者展示目標摘要；只有取得明確確認後才可加入 --confirm。未執行刪除。',
+  delete_preflight_failed: '無法讀取表單實例 {0} 完成刪除前檢查，未執行刪除。',
+  delete_process_unsupported: '目前版本不支援刪除流程實例。請停止並回報能力缺口，不要嘗試腳本或私有 API。',
+  delete_readback_mismatch: '刪除請求已被接受，但回讀仍能找到表單實例 {0}。結果尚未驗證，禁止自動重試刪除。',
+  delete_result_unknown: '表單實例 {0} 的刪除結果未知。請只讀回查目標，不要自動重試刪除。',
+  delete_target_mismatch: '表單實例 {0} 不屬於目標表單 {1}，已停止且未執行刪除。',
+  delete_target_unverified: '無法驗證表單實例 {0} 的身分和歸屬，已停止且未執行刪除。',
+  field_reference_unknown: '欄位引用 {0} 不是目標表單的真實 fieldId 或元件別名，已在寫入前停止。',
+  form_mode_unverified: '無法驗證表單 {0} 的類型，已停止建立；未執行任何資料寫入。',
+  resource_required: 'data query 缺少資源類型 form。建議：{0}',
+});
+
+Object.assign(module.exports.common || (module.exports.common = {}), {
+  non_idempotent_result_unknown: '建立請求期間的身份驗證發生變化；建立結果未知。請先檢查目標狀態，再決定是否重試。',
+});
+
+Object.assign(module.exports.permission_common || (module.exports.permission_common = {}), {
+  unsupported_argument: '不支援的參數：{0}',
+});
+
+Object.assign(module.exports.permission_list || (module.exports.permission_list = {}), {
+  query_failed: '權限群組查詢失敗',
+  query_success: '  ✅ 權限設定查詢成功！共 {0} 個權限群組',
+  query_success_message: '權限設定查詢成功',
+  invalid_structure: '權限群組查詢傳回無法識別的清單結構',
+  duplicate_uuid: '權限群組分頁結果重複出現 packageUuid={0}',
+  pagination_limit: '權限群組查詢達到安全分頁上限（{0} 頁），無法證明結果完整',
+});
+
+Object.assign(module.exports.save_permission || (module.exports.save_permission = {}), {
+  write_accepted_readback: '    ✅ 寫入請求成功，開始精確回讀',
+  saved_message: '權限設定已儲存',
+});
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  platform_view_json_invalid: 'getProcessById 返回內容必須是有效 JSON：{0}',
+  platform_view_request_failed: 'getProcessById 未返回成功回應。',
+  platform_view_content_invalid: 'getProcessById 返回內容必須解析為物件。',
+  platform_view_schema_missing: '平台視圖必須包含 CanvasEngine schema。',
+  platform_view_nodes_missing: '平台視圖的 schema.children 必須是陣列。',
+  multi_approval_mode_invalid: '多人審批模式必須是 all、or 或 oneByOne：{0}',
+  form_mode_operation_failed: '表單模式操作失敗。',
+});
+
+Object.assign(module.exports.process_diagnostics || (module.exports.process_diagnostics = {}), {
+  preflight_form_mode: '核對 appType、formUuid 與流程綁定後重試。',
+  authorize_replacement: '展示完整替換摘要並取得明確確認後，才可傳入 --replace。',
+  verify_published_view: '發佈可能已生效；先唯讀查詢精確 PUBLISHED 版本和平台視圖，不要直接重試寫入。',
+  unknown_result: '寫入結果未知；只能唯讀回讀平台狀態或人工核驗，不得直接重試寫入。',
+});
+
+Object.assign(module.exports.create_process || (module.exports.create_process = {}), {
+  login_required: '未取得有效宜搭登入狀態，請先執行 openyida login。',
+});
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  association_derived_field_read_only: '關聯表單查詢衍生欄位 {0} 是唯讀欄位，不能用於儲存或更新。請寫入不帶 _id 後綴的原始關聯表單欄位。',
+  association_value_invalid: '關聯表單欄位 {0} 的寫入值無效。必須使用物件陣列，每項完整包含 appType、formUuid、formType、instanceId 和 title。',
+  instance_target_mismatch: '實例 {0} 不屬於預期業務資源 {1}，已在寫入前停止。',
+  instance_target_unverified: '無法核驗實例 {0} 的業務資源歸屬，已在寫入前停止。',
+  target_expectation_invalid: '--expect-form-type 必須為 {0}，已在寫入前停止。',
+  target_identity_mismatch: '目標資源 {0} 與預期名稱或類型不一致，已在寫入前停止。',
+  target_identity_unverified: '無法回讀目標資源 {0} 的名稱和類型，已在寫入前停止。',
+});
+module.exports.connector_test = {
+  usage: '用法: openyida connector test --connector-id <id> --action <actionId> [--params <json>] [--path-json <json>] [--query-json <json>] [--header-json <json>] [--body-json <json>] [--account-id <id>] [--json]',
+  invalid_json: '{0} 不是合法 JSON: {1}',
+  json_object_required: '{0} 必須是 JSON 物件',
+  unknown_flat_param: '參數 {0} 不在動作 Schema 中；請改用對應的結構化 JSON 參數',
+  ambiguous_flat_param: '參數 {0} 在動作 Schema 中屬於多個位置；請改用結構化 JSON 參數',
+  auth_account_required: '此連接器已設定認證，必須以 --account-id 指定所屬帳戶',
+  auth_account_not_owned: '帳戶 {0} 不屬於目前連接器',
+  arguments_required: '必須提供 --connector-id 和 --action',
+  connector_not_found: '找不到連接器 ID: {0}',
+  operations_invalid: '連接器動作設定不是合法 JSON',
+  action_not_found: '找不到執行動作: {0}',
+  success: '✅ 測試成功',
+  status_label: 'HTTP 狀態:',
+  headers_label: '回應標頭:',
+  content_label: '回應內容:',
+};
+
+module.exports.connector_contract = {
+  invalid_json: '連接器定義包含無效 JSON。',
+  readback_mismatch: '連接器回讀結果與提交的定義不一致。',
+  security_schemes_invalid: '連接器 securitySchemes 必須是 JSON 物件。',
+  test_envelope_failed: '連接器測試回應信封報告失敗。',
+  test_response_invalid: '連接器測試傳回了無法識別的回應契約。',
+  test_business_failed: '連接器測試傳回業務失敗，錯誤碼：{0}',
+  test_status_invalid: '連接器測試回應缺少規範 HTTP 狀態列。',
+  test_http_failed: '連接器測試失敗：{0}。',
+};
+
+module.exports.connector_api = {
+  connector_pagination_limit: '連接器清單超過安全分頁上限。',
+  write_identity_missing: '連接器寫入成功，但未傳回可恢復的資源識別。',
+  connection_pagination_limit: '驗證帳號清單超過安全分頁上限。',
+  connection_name_exists: '指定歸屬名稱的驗證帳號已存在。',
+  connection_readback_mismatch: '無法透過精確歸屬回讀恢復新建的驗證帳號。',
+  save_failed: '儲存連接器失敗。',
+};
+
+module.exports.connector_action_update = {
+  preflight_incomplete: '平台連接器詳情或完整動作集合不完整；已停止且未寫入。',
+  operation_id_duplicate: '動作集合包含重複的穩定 ID：{0}。',
+  operation_id_conflict: '動作 ID 已存在：{0}；add-action 不允許覆寫，請使用 update-action。',
+  query_invalid: 'Query 更新必須是非空物件，且每個值必須為非空純量。',
+  target_not_unique: '目標 operationId 缺失、不存在或不唯一。',
+  query_schema_incomplete: '目標 Query 參數在 inputs/parameters 中不完整或不唯一。',
+  query_unknown: '目標動作未宣告 Query 參數：{0}。',
+  readback_mismatch: '動作更新回讀不一致；連接器設定、動作集合或穩定 ID 未能保持。',
+  connector_not_found: '找不到唯一的目標連接器。',
+  no_changes: 'Query 更新與平台目前值一致；已停止且未發起遠端寫入。',
+  write_outcome_unknown: '動作更新請求後的遠端結果未知；不會自動重試，請人工核對殘留狀態。',
+};
+
+module.exports.connector_update_action = {
+  usage: '用法: openyida connector update-action --connector-id <id> --action <operationId> --query-json <JSON> --confirm [--json]',
+  invalid_arguments: '必須提供 connector-id、action、非空 query-json 和 --confirm，且不接受未知參數。',
+  query_json_invalid: '--query-json 必須是非空 JSON 物件。',
+  success: '✅ 動作 {0} 已安全更新並精確回讀；動作總數：{1}',
+};
+
+module.exports.connector_action_e2e = {
+  skip_missing: '略過連接器動作更新真實 E2E；缺少：{0}',
+  resource_plan: '連接器動作更新 E2E 資源計劃：{0}',
+  response_invalid: '受控 fixture 未傳回可證明的 2xx application/json 契約。',
+  count_mismatch: '受控 fixture 傳回的資料數量與預期不一致。',
+  current_page_mismatch: '受控 fixture 未精確回顯預期的 currentPage。',
+  cli_contract_invalid: '連接器 E2E 命令未傳回成功的 JSON 契約。',
+  action_invalid: '目標動作缺少完整且唯一的 Query/Header 契約。',
+  prewrite_missing: '首次遠端寫入前的 manifest、registry 或 artifact 證據不完整。',
+  state_incomplete: '連接器詳情、完整動作集合或 NONE-auth 帳號歸屬回讀不完整。',
+  update_unverified: '動作更新未傳回 connector fingerprint 不變的精確回讀證據。',
+  create_unverified: '測試連接器建立未傳回精確歸屬回讀證據。',
+  restore_mismatch: '最終動作集合未精確恢復到 baseline。',
+  failed: '連接器動作更新真實 E2E 失敗；已保留脫敏證據且不會自動重試。',
+};
+
+module.exports.connector_e2e = {
+  skip_missing: '略過連接器真實 E2E；缺少：{0}',
+  resource_plan: '已脫敏的連接器 E2E 資源計劃：{0}',
+  probe_required: 'PLATFORM_PROBE_REQUIRED：{0}；未發起遠端寫入。',
+  result_contract_invalid: '{0} 未傳回成功的 JSON 契約。',
+  step_login_check: '登入狀態核驗',
+  step_connector_create: '建立連接器',
+  step_connection_create: '建立驗證帳號',
+  step_action_readback_before: '測試前動作回讀',
+  step_connector_test: '連接器測試',
+  step_action_readback_after: '測試後動作回讀',
+  auth_selection_unverified: '無法證明選中的登入 profile 屬於目標組織。',
+  prewrite_evidence_missing: '缺少遠端寫入前證據檢查點。',
+  connector_identity_unverified: '連接器建立未傳回經核驗的歸屬資源識別。',
+  connection_identity_unverified: '驗證帳號建立未傳回經核驗的歸屬資源識別。',
+  action_readback_mismatch: '測試前連接器動作回讀與確定性 fixture 不一致。',
+  test_contract_unverified: '連接器測試未能證明受控 fixture、標記、歸屬和驗證執行階段契約。',
+  action_mutated: '連接器測試改變了持久化動作定義。',
+};
+module.exports.connector_auth = require('../../lib/core/locales/zh').connector_auth;

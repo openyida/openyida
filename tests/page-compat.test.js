@@ -4,7 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const vm = require('vm');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 
 const { buildPageSource, ensureYidaRuntimeContract, fixYidaSource } = require('../lib/app/page-compat');
 const { lintYidaSource } = require('../lib/app/page-linter');
@@ -262,7 +262,23 @@ export default function Page() {
     const result = buildPageSource(source, '/tmp/reducer.oyd.jsx');
 
     expect(result.ok).toBe(false);
-    expect(result.errors.map(issue => issue.code)).toContain('UNSUPPORTED_HOOK');
+    expect(result.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'UNSUPPORTED_HOOK',
+        hook: 'useReducer',
+        line: 4,
+        retryable: false,
+        retrySafe: true,
+        sideEffectState: 'none',
+        sourceRepairable: true,
+        recommendedAuthoringMode: 'canvas',
+        replacement: expect.stringContaining('useState'),
+        nextAction: {
+          type: 'edit_source_then_recheck',
+          commandId: 'check-page',
+        },
+      }),
+    ]));
   });
 
   test('rejects useEffect with dependency arrays that cannot be lowered safely', () => {
@@ -601,5 +617,44 @@ export default function Page() {
 
     expect(parsed.ok).toBe(true);
     expect(parsed.build.mode).toBe('modern-authoring');
+  });
+
+  test('check-page returns one structured repairable error for unsupported hooks', () => {
+    fs.writeFileSync(path.join(tmpDir, 'pages', 'src', 'reducer.oyd.jsx'), `
+import React, { useReducer } from 'react';
+export default function Page() {
+  const [state] = useReducer((value) => value, {});
+  return <div>{state.name}</div>;
+}
+`, 'utf8');
+
+    const result = spawnSync(process.execPath, [BIN, 'check-page', 'pages/src/reducer.oyd.jsx', '--json'], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toBe('');
+    expect(JSON.parse(result.stderr)).toMatchObject({
+      success: false,
+      errorCode: 'CHECK_PAGE_FAILED',
+      details: {
+        retryable: false,
+        retrySafe: true,
+        sideEffectState: 'none',
+        sourceRepairable: true,
+        primaryIssue: {
+          code: 'UNSUPPORTED_HOOK',
+          hook: 'useReducer',
+          line: 4,
+        },
+        nextAction: {
+          type: 'edit_source_then_recheck',
+          commandId: 'check-page',
+        },
+      },
+    });
   });
 });

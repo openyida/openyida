@@ -283,11 +283,11 @@ describe('org switch auth profile behavior', () => {
     });
   });
 
-  test('does not run OAuth or write local store in host-injected token mode mismatch', async () => {
+  test('does not run OAuth or write local store in env token mode mismatch', async () => {
     const env = {
-      YIDA_AUTH_ENABLED: 'true',
-      OPENYIDA_ACCESS_TOKEN: 'host-a',
-      OPENYIDA_REFRESH_TOKEN: 'host-a-refresh',
+      OPENYIDA_AUTH_MODE: 'token',
+      OPENYIDA_ACCESS_TOKEN: 'env-a',
+      OPENYIDA_REFRESH_TOKEN: 'env-a-refresh',
       OPENYIDA_ENDPOINT: 'https://www.aliwork.com',
       OPENYIDA_TOKEN_CLIENT_ID: 'openyida-cli',
       OPENYIDA_TOKEN_CORP_ID: 'corp-a',
@@ -303,18 +303,18 @@ describe('org switch auth profile behavior', () => {
       env,
       tokenLogin,
     })).rejects.toMatchObject({
-      code: 'ORG_SWITCH_HOST_INJECTED_MISMATCH',
-      status: 'host_injected_token_mismatch',
+      code: 'ORG_SWITCH_ENV_TOKEN_MISMATCH',
+      status: 'env_token_mismatch',
       targetCorpId: 'corp-b',
       actualCorpId: 'corp-a',
-      auth_store: 'host_injected',
+      auth_store: 'env',
     });
 
     expect(tokenLogin).not.toHaveBeenCalled();
     expect(loadTokenSession({ projectRoot, authDir, env })).toMatchObject({
-      access_token: 'host-a',
+      access_token: 'env-a',
       auth_source: 'env',
-      auth_store: 'host_injected',
+      auth_store: 'env',
       corp_id: 'corp-a',
     });
     expect(loadTokenSession({ projectRoot, authDir, env: {} })).toBe(null);

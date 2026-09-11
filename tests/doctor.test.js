@@ -334,12 +334,12 @@ describe('EnvironmentChecker', () => {
   });
 
   test('checkLoginStatus 在运行环境 token 注入模式缺 token 时不提示本地登录', () => {
-    const originalAuthEnabled = process.env.YIDA_AUTH_ENABLED;
+    const originalAuthMode = process.env.OPENYIDA_AUTH_MODE;
     const originalAccessToken = process.env.OPENYIDA_ACCESS_TOKEN;
     const originalRefreshToken = process.env.OPENYIDA_REFRESH_TOKEN;
     const tmpDir = createTempProject();
     try {
-      process.env.YIDA_AUTH_ENABLED = 'true';
+      process.env.OPENYIDA_AUTH_MODE = 'token';
       delete process.env.OPENYIDA_ACCESS_TOKEN;
       delete process.env.OPENYIDA_REFRESH_TOKEN;
       const checker = new EnvironmentChecker({ projectRoot: tmpDir });
@@ -357,10 +357,10 @@ describe('EnvironmentChecker', () => {
       expect(result.message).toContain('OPENYIDA_REFRESH_TOKEN');
       expect(result.message).not.toContain('openyida login');
     } finally {
-      if (originalAuthEnabled === undefined) {
-        delete process.env.YIDA_AUTH_ENABLED;
+      if (originalAuthMode === undefined) {
+        delete process.env.OPENYIDA_AUTH_MODE;
       } else {
-        process.env.YIDA_AUTH_ENABLED = originalAuthEnabled;
+        process.env.OPENYIDA_AUTH_MODE = originalAuthMode;
       }
       if (originalAccessToken === undefined) {
         delete process.env.OPENYIDA_ACCESS_TOKEN;

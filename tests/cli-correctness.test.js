@@ -37,6 +37,9 @@ function baseEnv() {
     OPENYIDA_SKIP_UPDATE_CHECK: '1',
     QODER_IDE: '',
     QODER_AGENT: '',
+    QODER_PRODUCT_ID: '',
+    QODER_SESSION_TYPE: '',
+    QODER_CLI: '',
     QODERCLI_INTEGRATION_MODE: '',
     CODEX_SHELL: '',
     CODEX_CI: '',
@@ -236,6 +239,13 @@ describe('CLI: unknown command', () => {
     const result = runAny(['nonexistent-command']);
     expect(result.output.length).toBeGreaterThan(0);
   });
+
+  test('eval 仅作为源码仓 npm script，不再暴露为安装版 CLI 命令', () => {
+    const result = runAny(['eval', '--mode', 'doc-quality']);
+    expect(result.status).toBe(1);
+    expect(result.output).toContain('未知命令');
+    expect(result.output).not.toContain('Cannot find module');
+  });
 });
 
 // ─── 12. 参数校验 ─────────────────────────────────────────────────────
@@ -253,6 +263,26 @@ describe('CLI: argument validation', () => {
   test('data 缺少子命令返回错误', () => {
     const result = runAny(['data']);
     expect(result.status).not.toBe(0);
+  });
+
+  test('data query 漏写 form 时在登录检查前返回精确纠错', () => {
+    const result = runAny(['data', 'query', 'APP_XXX', 'FORM_XXX', '--json']);
+    expect(result.status).not.toBe(0);
+    expect(JSON.parse(result.stderr)).toMatchObject({
+      errorCode: 'DATA_RESOURCE_REQUIRED',
+      errorMsg: expect.stringContaining('openyida data query form APP_XXX FORM_XXX'),
+    });
+    expect(result.output).not.toContain('无法获取有效 token 登录态');
+  });
+
+  test('data query 漏写 form 且使用 FORM- 前缀时同样在登录检查前纠错', () => {
+    const result = runAny(['data', 'query', 'APP_XXX', 'FORM-XXX', '--json']);
+    expect(result.status).not.toBe(0);
+    expect(JSON.parse(result.stderr)).toMatchObject({
+      errorCode: 'DATA_RESOURCE_REQUIRED',
+      errorMsg: expect.stringContaining('openyida data query form APP_XXX FORM-XXX'),
+    });
+    expect(result.output).not.toContain('无法获取有效 token 登录态');
   });
 
   test('connector 无参数显示帮助', () => {

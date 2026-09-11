@@ -1,4 +1,4 @@
-# 自定义页面编写示例 / 脚手架
+# 自定义页面编写示例
 
 从零写使用 `YidaCodeCanvas` 组件实现的页面时，入口使用普通 React18 函数组件 `YidaComp`，源码导出或返回 `YidaComp` / `YidaComp.default`；`import` 使用可用资源清单内的包；副作用在 `useEffect` 里注册并返回 cleanup。
 
@@ -60,83 +60,45 @@ export default YidaComp;
 
 ## 3. 可视化：recharts 图表
 
-`recharts` 在可用资源清单内。标准 `import` 即可，CLI 本地编译会把它计入 `importedModules`。图表容器给定高度，保证首屏可渲染。图表颜色是 JS 传给库的字符串，用 `readBrandColor` 读取当前应用主题 token；用户明确要求应用主题风格时才跟随运行态应用主题（见 [canvas-style-implementation-guide.md](canvas-style-implementation-guide.md)）。
-
-```jsx
-import React from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-
-// 读当前品牌色 token（跑在真 window，getComputedStyle 可直接解析），缺失时退`podBlue` 应用主题 主色
-function readBrandColor(level, fallback) {
-  try {
-    var v = getComputedStyle(document.documentElement)
-      .getPropertyValue('--color-brand1-' + (level || 6)).trim();
-    return v || fallback;
-  } catch (e) { return fallback; }
-}
-
-function YidaComp(props) {
-  var brand = readBrandColor(6, '#6b7cab');
-  var data = [
-    { name: '1月', value: 120 },
-    { name: '2月', value: 200 },
-    { name: '3月', value: 150 },
-    { name: '4月', value: 320 },
-  ];
-
-  return (
-    <div style={{ width: '100%', height: 300, padding: 16 }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Line type="monotone" dataKey="value" stroke={brand} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-export default YidaComp;
-```
+`recharts` 在可用资源清单内，使用标准 import。图表容器给定高度，品牌主序列默认跟随应用主题，不需要用户额外要求。完整示例统一维护在 [样式指南的图表章节](canvas-style-implementation-guide.md#图表--recharts用解析后的品牌色组)：业务图表使用 useCanvasThemeContext 读取解析色值，通过主题脚本装配后编译。不要重新添加只读 documentElement 的 helper。
 
 ## 4. 数据拉取组件（接数据桥）
 
-结合 [data-bridge-guide.md](data-bridge-guide.md) 的 `useYidaFetch`：同源 `fetch` + `credentials: 'include'` + AbortController 清理。此处只演示消费侧结构。
+结合 [data-bridge-guide.md](data-bridge-guide.md) 的连接器桥：页面只保存连接器资源 ID 和业务输入，鉴权留在平台连接器。此处只演示消费侧结构。
 
 ```jsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 function YidaComp(props) {
   var st = React.useState({ loading: true, rows: [], error: null });
   var state = st[0];
   var setState = st[1];
-  var abortRef = React.useRef(null);
-
   React.useEffect(function () {
-    var controller = new AbortController();
-    abortRef.current = controller;
+    var cancelled = false;
+    var bridge = window.__OPENYIDA_CONNECTOR_API__;
+    if (!bridge || typeof bridge.invoke !== 'function') {
+      setState({ loading: false, rows: [], error: '连接器运行时桥不可用' });
+      return undefined;
+    }
 
-    fetch('/your-connector-proxy/searchFormDatas', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ appType: props.appType, formUuid: props.formUuid, pageSize: 20 }),
-      signal: controller.signal,
-    })
-      .then(function (r) { if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.json(); })
+    bridge.invoke({
+      mode: 'connector',
+      connectorName: props.connectorName,
+      operationId: props.operationId,
+      connectionId: props.connectionId,
+    }, { path: {}, query: {}, header: {}, body: { pageSize: 50 } })
       .then(function (json) {
+        if (cancelled) { return; }
         var rows = (json && json.result && json.result.data) || [];
         setState({ loading: false, rows: rows, error: null });
       })
       .catch(function (e) {
-        if (e.name === 'AbortError') { return; }
+        if (cancelled) { return; }
         setState({ loading: false, rows: [], error: e.message });
       });
 
-    return function () { controller.abort(); };
-  }, [props.appType, props.formUuid]);
+    return function () { cancelled = true; };
+  }, [props.connectorName, props.operationId, props.connectionId]);
 
   if (state.loading) { return <div>加载中…</div>; }
   if (state.error) { return <div style={{ color: 'red' }}>加载失败：{state.error}</div>; }
@@ -160,5 +122,5 @@ export default YidaComp;
 - 文案：JSX 文案只能写成纯文本 `所有级别` 或带引号字符串 `{'所有级别'}`；花括号里只放真实变量/表达式，不写 `{所有级别}` 这类裸中文表达式。
 - 副作用：每个 `useEffect` 的定时器 / 监听 / 图表实例都有 cleanup。
 - 数据：读写走同源 `fetch` + `credentials: 'include'`，无硬编码 Cookie / CSRF / appSecret。
-- 主色：antd 走 `ConfigProvider.colorPrimary`、Tailwind 走 `var(--color-brand1-*)`、图表走 `readBrandColor`，无散落的 `#1677ff` / `bg-blue-500`（见 [canvas-style-implementation-guide.md](canvas-style-implementation-guide.md)）。
+- 主色：antd 走 CanvasThemeProvider、Tailwind 走 `var(--color-brand1-*)`、图表走 `useCanvasThemeContext`，无散落的 `#1677ff` / `bg-blue-500`（见 [canvas-style-implementation-guide.md](canvas-style-implementation-guide.md)）。
 - 原生字段组件（`EmployeeField` 等）：先按 [employeefield-verification.md](employeefield-verification.md) 最小验证，缺证据就降级。

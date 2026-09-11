@@ -1,0 +1,74 @@
+[
+  {
+    "type": "Divider",
+    "title": "基础信息",
+    "dividerType": "bold-with-thin"
+  },
+  {
+    "type": "ColumnContainer",
+    "layout": "6:6",
+    "columnGap": "16px",
+    "rowGap": "16px",
+    "children": [
+      [
+        {
+          "type": "TextField",
+          "label": "事项名称",
+          "required": true,
+          "placeholder": "请输入事项名称"
+        }
+      ],
+      [
+        {
+          "type": "SelectField",
+          "label": "优先级",
+          "required": true,
+          "dataSource": ["P0", "P1", "P2", "P3"],
+          "placeholder": "请选择优先级"
+        }
+      ]
+    ]
+  },
+  {
+    "type": "ColumnContainer",
+    "layout": "6:6",
+    "columnGap": "16px",
+    "rowGap": "16px",
+    "children": [
+      [
+        {
+          "type": "EmployeeField",
+          "label": "负责人",
+          "required": true
+        }
+      ],
+      [
+        {
+          "type": "DateField",
+          "label": "计划完成日期",
+          "required": true
+        }
+      ]
+    ]
+  },
+  {
+    "type": "Divider",
+    "title": "处理信息",
+    "dividerType": "bold-with-thin"
+  },
+  {
+    "type": "SelectField",
+    "label": "处理状态",
+    "required": true,
+    "dataSource": ["待处理", "处理中", "已完成", "已取消"]
+  },
+  {
+    "type": "TextareaField",
+    "label": "处理说明",
+    "placeholder": "请输入处理过程、风险或下一步动作"
+  },
+  {
+    "type": "AttachmentField",
+    "label": "相关附件"
+  }
+]

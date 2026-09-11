@@ -32,6 +32,8 @@ description: 流程表单一体化创建（创建表单 → 转流程 → 配置
 - 流程定义中字段 ≥ 3 且审批节点 ≥ 2 时，必须自动配置字段权限
 - 字段定义和流程定义文件必须用 agent 的结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`；不要在仓库根目录、系统临时目录或 `.cache/` 顶层生成 `fields.json`、`process-definition.json` 等临时文件
 - **本技能不读写 memory**：formUuid 和 processCode 输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
+- 创建或转换任何远程资源前，CLI 必须先完成字段和流程定义的纯本地编译；本地编译失败时远程写入数必须为 0
+- 复用普通表单时由 `configure-process` 统一执行表单模式只读 preflight、必要转换、发布与平台 view 回读，不要在外层先手动转换表单
 
 ## 适用场景
 
@@ -60,7 +62,7 @@ openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitio
 ## 用法 2：复用已有表单（推荐）
 
 ```bash
-openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile>
+openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]
 ```
 
 > **推荐用法 2**：先用 `openyida create-form create` 创建表单获取字段 ID，再用 `--formUuid` 转流程表单。
@@ -72,11 +74,12 @@ openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile>
 | `fieldsJsonFile` | 用法 1 必填 | 字段定义文件（格式同 `yida-create-form-page`） |
 | `--formUuid` | 用法 2 必填 | 已有表单 UUID |
 | `processDefinitionFile` | 是 | 流程定义文件（格式同 `yida-process-rule`） |
+| `--replace` | 条件必填 | 仅当目标已存在 PUBLISHED 流程或 SAVED 草稿，并已获得用户对整图替换的明确确认时传入 |
 
 ## 输出
 
 ```json
-{"success":true,"formUuid":"FORM-YYY","formTitle":"订单处理表","appType":"APP_XXX","fieldCount":6,"processCode":"TPROC--XXX","url":"{base_url}/APP_XXX/workbench/FORM-YYY"}
+{"success":true,"formUuid":"FORM-YYY","formTitle":"订单处理表","appType":"APP_XXX","fieldCount":6,"processCode":"TPROC--XXX","processId":"83145794990","processVersion":2,"verificationLevel":"PLATFORM_VIEW_VERIFIED","platformViewVerified":true,"url":"{base_url}/APP_XXX/workbench/FORM-YYY"}
 ```
 
 ## 流程定义最小 DSL 合约
@@ -92,6 +95,7 @@ openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile>
 | 条件分支 | `route` |
 | 并行分支 | `parallel` |
 | 抄送 | `carbon` |
+| 多人审批 | `multiApproval`，并设置 `mode: all\|or\|oneByOne` 与必填 `approver` |
 
 常见误写必须修正：
 
@@ -199,7 +203,11 @@ openyida create-process "APP_XXX" --formUuid "FORM-YYY" .cache/openyida/order/pr
 | 登录态失效 | 执行 `openyida login` 重新登录后再试 |
 | appType 格式错误 | 确认格式为 `APP_` 开头的字符串 |
 | formUuid 格式错误 | 确认格式为 `FORM-` 开头的字符串 |
-| 网络超时 | 检查网络连接，等待后重试 |
+| `CONFIGURE_PROCESS_REPLACE_REQUIRED` | 展示完整替换摘要并再次取得用户明确确认；确认后才可补 `--replace` 执行一次 |
+| `CONFIGURE_PROCESS_OWNERSHIP_UNVERIFIED` | 停止；核对 appType、formUuid 和 binding，不得猜测 processCode |
+| `NON_IDEMPOTENT_RESULT_UNKNOWN` | 写入结果未知；不得自动重试，先只读查询目标版本和平台状态 |
+| `PUBLISHED_UNVERIFIED` | 发布可能已生效但平台 view 未完整验证；不得宣称成功或 processJson verified，不得直接重试写入 |
+| 网络超时 | 若发生在只读 preflight 可检查网络后重试；若发生在写入边界按结果未知处理，先只读核对状态 |
 
 ## Agent 错误处理策略
 
@@ -211,6 +219,8 @@ openyida create-process "APP_XXX" --formUuid "FORM-YYY" .cache/openyida/order/pr
 | 参数格式错误 | 停止执行，提示正确的参数格式，引导用户修正 |
 | 登录态失效 | 提示用户执行 `openyida login` 重新登录 |
 | processCode 缺失 | 停止执行，不得编造，提示用户重新执行命令 |
+| 已有流程或草稿但缺少 `--replace` | 展示替换摘要并请求明确确认；未确认不执行写入 |
+| 写入结果未知或发布未验证 | 停止自动重试，只读核对平台状态并报告机器码 |
 | fieldId 不存在 | 停止执行，提示用户先执行 `yida-get-schema` 获取真实 ID |
 | 用户拒绝确认 | 停止执行，询问用户是否需要调整配置 |
 | 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |

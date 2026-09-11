@@ -5,9 +5,9 @@
 ## 运行时事实
 
 - `.canvas.jsx` 源码在运行页面 `window` 中执行，`YidaComp` 是普通 React 函数组件。
-- `YidaCodeCanvas` 组件使用 React 函数组件上下文；数据读写、生命周期和渲染通过 hooks、props、HTTP 数据桥或连接器完成。
+- `YidaCodeCanvas` 组件使用 React 函数组件上下文；数据读写、生命周期和渲染通过 hooks、props、yida JS-API 桥、连接器桥或自定义同源 HTTP 数据桥完成。
 - 代码执行后必须返回 `YidaComp`、`YidaComp.default` 或组件函数。
-- 页面要读写宜搭数据，只能在组件内使用 HTTP 数据桥、连接器代理或显式 props 注入。
+- 页面要读写宜搭数据时，表单使用 yida JS-API 桥，平台连接器使用 `window.__OPENYIDA_CONNECTOR_API__`，自定义同源接口才使用 HTTP 数据桥。
 
 > 可用资源清单、import 写法与运行时加载方式已拆到 [dependencies-and-cdn.md](dependencies-and-cdn.md)。
 

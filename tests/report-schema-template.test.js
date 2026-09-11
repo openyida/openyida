@@ -9,6 +9,10 @@ const {
   buildSchema,
 } = require('../lib/report/schema-template');
 
+test('schema template does not expose the legacy unused radarChart builder', () => {
+  expect(buildSchema).not.toHaveProperty('radarChart');
+});
+
 // ── buildDataViewQueryModel ───────────────────────────────────────────────────
 
 describe('buildDataViewQueryModel', () => {

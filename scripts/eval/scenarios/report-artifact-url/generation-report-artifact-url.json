@@ -1,0 +1,65 @@
+[
+  {
+    "id": "contract-report-artifact-workbench-url",
+    "prompt": "请在当前已登录组织中真实搭建一个最小合同管理应用。任何资源写入前必须先执行 openyida login --check-only --json。应用名称加本次运行时间戳，内部表单固定命名为合同台账，原生报表固定命名为合同分析报表。只需要一个合同台账普通表单和一个基于该表单的宜搭原生合同分析报表；合同台账至少包含合同名称、客户名称、合同金额和合同状态，写入 2 条业务化示例数据。报表固定包含合同状态分布饼图和合同金额汇总指标卡：合同状态作为饼图分类维度、记录 ID 做合同数量统计，合同金额按 SUM 汇总到指标卡。必须以 yida-app 作为完整应用入口，使用 yida-report 创建原生报表，创建后执行 report inspect 回读。最终 JSON 的 targets 中必须分别列出 type=app 的应用首页和 type=report 的 CLI 返回报表 URL，不得自行拼接平台路由，不得创建自定义报表页面，不得删除任何远端资源。",
+    "expectedFeatures": {
+      "minTargets": 2,
+      "targetTypes": ["app", "report"],
+      "keywords": ["合同"]
+    },
+    "expectedSkills": {
+      "required": ["yida-app", "yida-report"],
+      "optional": ["yida-login", "yida-create-app", "yida-create-form-page", "yida-data-management", "yida-get-schema"]
+    },
+    "expectedCommands": {
+      "required": [
+        {"name": "login", "argsIncludes": ["--check-only"], "minCount": 1},
+        {"name": "create-app", "minCount": 1},
+        {"name": "create-form create", "minCount": 1},
+        {"name": "data create", "minCount": 2},
+        {"name": "create-report", "minCount": 1},
+        {"name": "report inspect", "minCount": 1}
+      ]
+    },
+    "expectedResources": {
+      "required": [
+        {"type": "app", "exactCount": 1},
+        {"type": "form", "minCount": 1},
+        {"type": "report", "exactCount": 1},
+        {
+          "type": "report",
+          "schemaVersion": "V5",
+          "minComponentCount": 1,
+          "minChartCount": 2,
+          "componentNamesIncludes": ["YoushuPieChart", "YoushuSimpleIndicatorCard"],
+          "maxUnknownCubeCount": 0,
+          "exactCount": 1
+        }
+      ]
+    },
+    "expectedTargets": {
+      "required": [
+        {
+          "type": "app",
+          "urlPattern": "^https://[^/]+/APP_[^/]+/workbench/?$",
+          "urlNotIncludes": "/report/"
+        },
+        {
+          "type": "report",
+          "urlPattern": "^https://[^/]+/APP_[^/]+/workbench/REPORT[-_]",
+          "urlNotIncludes": "/report/"
+        }
+      ]
+    },
+    "forbiddenFindings": [
+      "resource-before-login-check"
+    ],
+    "readback": {
+      "enabled": true,
+      "baseUrl": "https://ding.aliwork.com",
+      "reportInspect": true,
+      "dataPresenceFormNames": ["合同台账"]
+    },
+    "note": "显式运行的原生报表交付 URL 回归场景；验证 Agent 原始 targets，平台 readback 不得覆盖错误 URL。该场景不覆盖 yida-agent notify_human/UI 卡片，卡片点击需在 yida-agent 产品 E2E 中另验。"
+  }
+]

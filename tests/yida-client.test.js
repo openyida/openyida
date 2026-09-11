@@ -173,4 +173,23 @@ describe('yida-client', () => {
       { referer: 'https://example.yida.test/settings' }
     );
   });
+
+  test.each([
+    ['login expiry', { __needLogin: true }],
+    ['CSRF expiry', { __csrfExpired: true }],
+    ['ordinary failure', { success: false, errorCode: 'FAILED' }],
+  ])('postJsonOnce sends exactly once on %s', async (label, response) => {
+    utils.httpPostJson.mockResolvedValue(response);
+    const client = createYidaClient();
+
+    await expect(client.postJsonOnce(
+      '/query/newconnector/testOperation.json',
+      { method: 'get' },
+      { referer: 'https://example.yida.test/settings' }
+    )).resolves.toEqual(response);
+
+    expect(label).toBeTruthy();
+    expect(utils.httpPostJson).toHaveBeenCalledTimes(1);
+    expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
+  });
 });

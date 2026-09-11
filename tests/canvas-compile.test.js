@@ -7,9 +7,11 @@ const {
   compileCanvas,
   compileCanvasLocal,
   extractImportedModules,
+  assertDependencyManifestConsistent,
   resolveWindowAlias,
 } = require('../lib/app/canvas-compile');
 const {
+  CANVAS_YIDA_API_BRIDGE_SOURCE,
   buildCanvasPageSchemaObject,
 } = require('../lib/app/services/canvas-page-schema-builder');
 
@@ -407,6 +409,47 @@ describe('compileCanvasLocal', () => {
     expect(result.runtimeCode).toContain('window.antd');
   });
 
+  test('rejects a self-referential React dependency binding before JSX compilation', () => {
+    const observedFailureSource = `
+      var React = React;
+      var useState = React.useState;
+      export default function App() {
+        const [value] = useState('ready');
+        return <div>{value}</div>;
+      }
+    `;
+
+    expect(() => compileCanvasLocal(observedFailureSource, {
+      sourcePath: 'pages/src/observed.canvas.jsx',
+    })).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_SELF_REFERENTIAL_DEPENDENCY_BINDING',
+      details: expect.objectContaining({
+        globalName: 'React',
+        packageName: 'react',
+      }),
+    }));
+  });
+
+  test('validates that generated runtime dependency aliases are present in importedModules', () => {
+    expect(() => assertDependencyManifestConsistent(
+      'var React = window.React; var antd = window.antd;',
+      ['react'],
+      { sourcePath: 'pages/src/mismatch.canvas.jsx' }
+    )).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_DEPENDENCY_MANIFEST_MISMATCH',
+      details: expect.objectContaining({
+        issues: [{ alias: 'antd', packageName: 'antd' }],
+      }),
+    }));
+  });
+
+  test('dependency manifest validation ignores window aliases in comments and strings', () => {
+    expect(() => assertDependencyManifestConsistent(
+      'var note = "window.antd"; /* window.ReactDOM */',
+      []
+    )).not.toThrow();
+  });
+
   test('rejects bare antd globals before publish', () => {
     const badSource = `
       const { Drawer, Button } = antd;
@@ -443,6 +486,109 @@ describe('compileCanvasLocal', () => {
         line: 2,
         globalName: 'lucideReact',
         packageName: 'lucide-react',
+      }),
+    }));
+  });
+
+  test('rejects every unbound helper and ref identifier before publish', () => {
+    const badSource = `
+      import React from 'react';
+      export default function App() {
+        const row = { id: 'ROW-1' };
+        return <div>{getInstId(row)}{loadedRef.current ? '已加载' : '加载中'}</div>;
+      }
+    `;
+
+    let error;
+    try {
+      compileCanvasLocal(badSource, {
+        sourcePath: 'pages/src/customer-management.canvas.jsx',
+      });
+    } catch (compileError) {
+      error = compileError;
+    }
+
+    expect(error).toEqual(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_UNBOUND_IDENTIFIER',
+      details: expect.objectContaining({
+        sourcePath: 'pages/src/customer-management.canvas.jsx',
+        issues: expect.arrayContaining([
+          expect.objectContaining({ name: 'getInstId', line: 5 }),
+          expect.objectContaining({ name: 'loadedRef', line: 5 }),
+        ]),
+      }),
+    }));
+    expect(error.message).toContain('getInstId');
+    expect(error.message).toContain('loadedRef');
+  });
+
+  test('allows standard ECMAScript, browser, and Canvas wrapper globals', () => {
+    const source = `
+      import React from 'react';
+      export default function App() {
+        const query = new URLSearchParams({ page: '1' });
+        const image = new Image();
+        const audio = new Audio();
+        const imageRef = new WeakRef(image);
+        const modernWebApis = [URLPattern, navigation, cookieStore, scheduler, Temporal];
+        const timer = setTimeout(function () { console.log(Math.max(1, 2)); }, 0);
+        const idle = requestIdleCallback(function () { WebAssembly.validate(new Uint8Array()); });
+        clearTimeout(timer);
+        cancelIdleCallback(idle);
+        if (document.hidden || !window || !parentWindow || !localStorage) {
+          return <div>不可见</div>;
+        }
+        fetch('/health?' + query.toString());
+        return <div>{audio && imageRef && modernWebApis.length ? '正常' : '异常'}</div>;
+      }
+    `;
+
+    expect(() => compileCanvasLocal(source)).not.toThrow();
+  });
+
+  test('allows intentional non-standard runtime capabilities through window properties', () => {
+    const source = `
+      export default function App() {
+        const hostApi = typeof window.customHostApi === 'undefined'
+          ? null
+          : window.customHostApi;
+        return <div>{hostApi ? hostApi.getVersion() : '不支持'}</div>;
+      }
+    `;
+
+    expect(() => compileCanvasLocal(source)).not.toThrow();
+  });
+
+  test('rejects an unknown bare runtime global even when probed with typeof', () => {
+    const source = `
+      export default function App() {
+        return <div>{typeof customHostApi === 'undefined' ? '不支持' : customHostApi.getVersion()}</div>;
+      }
+    `;
+
+    expect(() => compileCanvasLocal(source)).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_UNBOUND_IDENTIFIER',
+      message: expect.stringContaining('window.<name>'),
+      details: expect.objectContaining({
+        issues: [expect.objectContaining({ name: 'customHostApi' })],
+      }),
+    }));
+  });
+
+  test('rejects Node-only globals that are unavailable in the Canvas browser runtime', () => {
+    const source = `
+      export default function App() {
+        return <div>{process.env.NODE_ENV}{Buffer.from('x')}</div>;
+      }
+    `;
+
+    expect(() => compileCanvasLocal(source)).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_UNBOUND_IDENTIFIER',
+      details: expect.objectContaining({
+        issues: expect.arrayContaining([
+          expect.objectContaining({ name: 'process' }),
+          expect.objectContaining({ name: 'Buffer' }),
+        ]),
       }),
     }));
   });
@@ -571,6 +717,44 @@ describe('compileCanvasLocal', () => {
           setFormRequest({ type: 'detail', title: '订单详情', formUuid: 'FORM_XXX', formInstId });
         }
         return <button onClick={() => openDetail({ formInstId: 'FINST_1' })}>{formRequest ? '打开中' : '详情'}</button>;
+      }
+    `;
+
+    expect(() => compileCanvasLocal(source)).not.toThrow();
+  });
+
+  test.each([
+    ['props.utils.getDataList', 'props.utils.getDataList({})'],
+    ['this.utils.yida.searchFormDatas', 'this.utils.yida.searchFormDatas({})'],
+    ['this.dataSourceMap.orders.load', 'this.dataSourceMap.orders.load()'],
+    ['this.$', 'this.$("textField_x")'],
+  ])('rejects unavailable Canvas instance API %s', (_label, expression) => {
+    const source = `
+      import React from 'react';
+      export default function App(props) {
+        function load() { return ${expression}; }
+        return <button onClick={load}>加载</button>;
+      }
+    `;
+
+    expect(() => compileCanvasLocal(source, {
+      sourcePath: 'pages/src/workbench.canvas.jsx',
+    })).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_INSTANCE_API_UNAVAILABLE',
+      details: expect.objectContaining({
+        issues: expect.arrayContaining([
+          expect.objectContaining({ api: expect.any(String) }),
+        ]),
+      }),
+    }));
+  });
+
+  test('allows ordinary component props in Canvas source', () => {
+    const source = `
+      import React from 'react';
+      export default function App(props) {
+        const title = props.utils ? props.utils.format(props.title) : props.title;
+        return <div>{title || '标题'}</div>;
       }
     `;
 
@@ -895,7 +1079,37 @@ describe('compileCanvasLocal', () => {
     expectCanvasEntry(runtimeCode);
   });
 
-  test('Canvas page schema installs yida JS API bridge for iframe data access', () => {
+  test('compiles the OpenYida form drawer base template without theme iframe injection', () => {
+    const templatePath = path.join(
+      __dirname,
+      '..',
+      'lib',
+      'samples',
+      'openyida-scaffold',
+      'canvas-form-drawer.canvas.jsx'
+    );
+    const src = fs.readFileSync(templatePath, 'utf8');
+    const { runtimeCode, importedModules } = compileCanvasLocal(src, { sourcePath: templatePath });
+
+    expect(JSON.parse(importedModules)).toEqual(['antd', 'lucide-react', 'react']);
+    expect(runtimeCode).toMatch(/window\.antd/);
+    expect(runtimeCode).toMatch(/window\.LucideReact/);
+    expect(runtimeCode).toContain('FormOpenContainer');
+    expect(runtimeCode).toContain('readCanvasTheme');
+    expect(src).toContain('min-height: 100vh');
+    expect(src).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(src).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
+    expect(src).toContain('border: var(--pod-card-border, none)');
+    expect(src).toContain('border-radius: var(--pod-card-border-radius, 20px)');
+    expect(src).not.toContain('linear-gradient(180deg, #F5FAF9');
+    expect(src).not.toContain('脚手架预览');
+    expect(src).not.toContain('当前仍是脚手架占位资源');
+    expect(runtimeCode).not.toContain('installYidaGlobalThemeIntoFrame');
+    expect(runtimeCode).not.toContain('yida-global-theme');
+    expectCanvasEntry(runtimeCode);
+  });
+
+  test('Canvas page schema binds the host background token and installs the yida JS API bridge', () => {
     let nodeIndex = 0;
     const schema = buildCanvasPageSchemaObject(
       'function YidaComp() { return null; }',
@@ -909,16 +1123,401 @@ describe('compileCanvasLocal', () => {
     );
 
     const root = schema.pages[0].componentsTree[0];
+    expect(root.props.contentBgColor).toBe('var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(root.props.contentBgColorMobile).toBe('var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(root.props.pageStyle).toEqual({
+      backgroundColor: 'var(--pod-page-bg-color, var(--color-white, #fff))',
+    });
+    expect(root.css).not.toContain('body{background-color:');
+    expect(root.css).not.toContain('background-color:#f2f3f5');
+    expect(root.css).toContain('.vc-page-yida-pure-container:has(> .yida-code-canvas){min-height:100vh}');
+    expect(root.css).toContain('.yida-code-canvas{display:flow-root}');
+    expect(root.children[0].componentName).toBe('YidaCodeCanvas');
+    const deepYidaComponents = schema.pages[0].componentsMap.filter(
+      (entry) => entry.package === '@ali/vc-deep-yida'
+    );
+    expect(deepYidaComponents.length).toBeGreaterThan(0);
+    deepYidaComponents.forEach((entry) => {
+      expect(entry).not.toHaveProperty('version');
+    });
     expect(root.lifeCycles.componentDidMount).toMatchObject({
       name: 'didMount',
       type: 'actionRef',
     });
     expect(schema.actions.module.source).toContain('openyidaInstallYidaApiBridge');
     expect(schema.actions.module.source).toContain('window.__OPENYIDA_YIDA_API__');
+    expect(schema.actions.module.source).toContain('window.__OPENYIDA_UTILS__');
+    expect(schema.actions.module.source).toContain('window.__OPENYIDA_CONNECTOR_API__');
     expect(schema.actions.module.source).toContain('this.utils.yida');
     expect(schema.actions.module.source).toContain('searchFormDatas');
+    expect(schema.actions.module.source).toContain('startProcessInstance');
+    expect(schema.actions.module.source).toContain('getProcessInstances');
+    expect(schema.actions.module.source).toContain('saveFormSchema');
+    expect(schema.actions.module.source).toContain('searchUserList');
+    expect(schema.actions.module.source).toContain('request');
     expect(schema.actions.module.compiled).toContain('openyidaInstallYidaApiBridge');
     expect(schema.actions.module.compiled).toContain('exports.didMount = didMount');
+  });
+
+  test('Canvas yida bridge includes documented form, process, design, and runtime helpers', () => {
+    [
+      'saveFormData',
+      'updateFormData',
+      'searchFormDataIds',
+      'getFormComponentDefinationList',
+      'deleteFormData',
+      'getFormDataById',
+      'searchFormDatas',
+      'startProcessInstance',
+      'updateProcessInstance',
+      'deleteProcessInstance',
+      'getProcessInstances',
+      'getProcessInstanceIds',
+      'getProcessInstanceById',
+      'saveFormSchemaInfo',
+      'getFormSchema',
+      'saveFormSchema',
+      'updateFormConfig',
+      'request',
+      'searchUserList',
+    ].forEach((methodName) => {
+      expect(CANVAS_YIDA_API_BRIDGE_SOURCE).toContain("'" + methodName + "'");
+    });
+  });
+
+  test.each([
+    ['/APP_HOTEL/workbench/FORM-BOARD', true],
+    ['/APP_HOTEL/workbench/FORM-BOARD?status=empty#/rooms', true],
+    ['/APP_OTHER/submission/FORM-1', true],
+    ['/APP_HOTEL/workbench', true],
+    ['https://example.com/APP_HOTEL/workbench/FORM-BOARD', true],
+    ['//example.com/APP_HOTEL/workbench', true],
+    ['FORM-BOARD', false],
+    ['/FORM-BOARD', false],
+    ['/room-board', false],
+  ])('router bridge opens %s without duplicating the application prefix', (path, isUrl) => {
+    const router = {
+      basename: '/APP_HOTEL/workbench',
+      push: jest.fn(function(target, params, newTab, fullUrl = false) {
+        return { href: fullUrl ? target : this.basename + '/' + target.replace(/^\//, ''), params, newTab };
+      }),
+    };
+    const createBridge = new Function(CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaCreateRouterBridge;')();
+    const bridge = createBridge({ router });
+    const params = { status: 'empty' };
+    expect(bridge.push(path, params, false)).toEqual({
+      href: isUrl ? path : router.basename + '/' + path.replace(/^\//, ''), params, newTab: false,
+    });
+    expect(bridge.push(path, params, true).newTab).toBe(true);
+    bridge.push(path, params, false, false, 'replace');
+    expect(router.push).toHaveBeenLastCalledWith(path, params, false, false, 'replace');
+    bridge.push(path, params, false, true);
+    expect(router.push).toHaveBeenLastCalledWith(path, params, false, true);
+  });
+
+  test('Yida API bridge forwards form, process, design, and runtime-discovered methods', async () => {
+    const hadWindow = Object.prototype.hasOwnProperty.call(global, 'window');
+    const previousWindow = global.window;
+    const parentWindow = {};
+    const topWindow = {};
+    const rootWindow = { parent: parentWindow, top: topWindow };
+    const yida = {
+      searchFormDatas: jest.fn((params) => ({ api: 'searchFormDatas', params })),
+      saveFormData: jest.fn((params) => ({ api: 'saveFormData', params })),
+      startProcessInstance: jest.fn((params) => ({ api: 'startProcessInstance', params })),
+      getProcessInstances: jest.fn((params) => ({ api: 'getProcessInstances', params })),
+      saveFormSchema: jest.fn((params) => ({ api: 'saveFormSchema', params })),
+      request: jest.fn((params) => ({ api: 'request', params })),
+      searchUserList: jest.fn((params) => ({ api: 'searchUserList', params })),
+      customRuntimeMethod: jest.fn((params) => ({ api: 'customRuntimeMethod', params })),
+    };
+    const utils = {
+      yida,
+      toast: jest.fn((params) => ({ api: 'toast', params })),
+      isMobile: jest.fn(() => false),
+      router: {
+        push: jest.fn((target, params, newTab, isExternal) => ({
+          api: 'router.push',
+          target,
+          params,
+          newTab,
+          isExternal,
+        })),
+      },
+    };
+
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      const bridge = installBridge.call({ utils });
+      const utilsBridge = rootWindow.__OPENYIDA_UTILS__;
+
+      expect(bridge.ready).toBe(true);
+      expect(bridge.apiGroups.form).toContain('saveFormData');
+      expect(bridge.apiGroups.process).toContain('startProcessInstance');
+      expect(bridge.apiGroups.formDesign).toContain('saveFormSchema');
+      expect(bridge.apiGroups.generic).toEqual(expect.arrayContaining(['request', 'searchUserList']));
+      expect(bridge.availableMethods).toEqual(expect.arrayContaining([
+        'searchFormDatas',
+        'saveFormData',
+        'startProcessInstance',
+        'getProcessInstances',
+        'saveFormSchema',
+        'request',
+        'searchUserList',
+        'customRuntimeMethod',
+      ]));
+      expect(rootWindow.__OPENYIDA_YIDA_API__).toBe(bridge);
+      expect(parentWindow.__OPENYIDA_YIDA_API__).toBe(bridge);
+      expect(topWindow.__OPENYIDA_YIDA_API__).toBe(bridge);
+      expect(utilsBridge.yida).toBe(bridge);
+      expect(utilsBridge.availableMethods).toEqual(expect.arrayContaining(['toast', 'isMobile']));
+      expect(parentWindow.__OPENYIDA_UTILS__).toBe(utilsBridge);
+      expect(topWindow.__OPENYIDA_UTILS__).toBe(utilsBridge);
+
+      await expect(bridge.startProcessInstance({ processCode: 'TPROC-1' })).resolves.toMatchObject({
+        api: 'startProcessInstance',
+        params: { processCode: 'TPROC-1' },
+      });
+      await expect(bridge.getProcessInstances({ query: { status: 'RUNNING' } })).resolves.toMatchObject({
+        api: 'getProcessInstances',
+        params: { searchFieldJson: JSON.stringify({ status: 'RUNNING' }) },
+      });
+      await expect(bridge.saveFormSchema({ formUuid: 'FORM-1', content: '{}' })).resolves.toMatchObject({
+        api: 'saveFormSchema',
+        params: { formUuid: 'FORM-1', content: '{}' },
+      });
+      await expect(bridge.request({ path: '/example' })).resolves.toMatchObject({
+        api: 'request',
+        params: { path: '/example' },
+      });
+      await expect(bridge.searchUserList({ keyword: '张' })).resolves.toMatchObject({
+        api: 'searchUserList',
+        params: { keyword: '张' },
+      });
+      await expect(bridge.customRuntimeMethod({ value: 1 })).resolves.toMatchObject({
+        api: 'customRuntimeMethod',
+        params: { value: 1 },
+      });
+      await expect(bridge.customRuntimeMethod({ query: { keep: 'query' } })).resolves.toMatchObject({
+        api: 'customRuntimeMethod',
+        params: { query: { keep: 'query' } },
+      });
+      await bridge.searchFormDatas({ query: { name: 'A' } });
+      await bridge.saveFormData({ formUuid: 'FORM-1', formDataJson: '{}' });
+
+      expect(yida.searchFormDatas.mock.calls[0][0]).toMatchObject({
+        searchFieldJson: JSON.stringify({ name: 'A' }),
+      });
+      expect(yida.saveFormData.mock.calls[0][0]).not.toHaveProperty('searchFieldJson');
+      expect(utilsBridge.toast({ title: '完成', type: 'success' })).toMatchObject({
+        api: 'toast',
+        params: { title: '完成', type: 'success' },
+      });
+      expect(utilsBridge.isMobile()).toBe(false);
+      expect(utilsBridge.router.push('FORM-1', { id: '1' }, false)).toMatchObject({
+        api: 'router.push',
+        target: 'FORM-1',
+        params: { id: '1' },
+        newTab: false,
+      });
+    } finally {
+      if (hadWindow) {
+        global.window = previousWindow;
+      } else {
+        delete global.window;
+      }
+    }
+  });
+
+  test('Canvas connector bridge invokes only the fixed same-origin connector endpoint', async () => {
+    const previousWindow = global.window;
+    const fetch = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        success: true,
+        content: { serviceReturnValue: '{"events":[{"id":"event-1"}]}' },
+      }),
+    }));
+    const rootWindow = {
+      parent: {},
+      top: {},
+      fetch,
+      g_config: { _csrf_token: 'csrf-test' },
+    };
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      installBridge.call({ utils: {} });
+
+      const result = await rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({
+        connectorName: 'Http_calendar',
+        operationId: 'calendar-list',
+        connectionId: 'account-7',
+      }, {
+        query: { maxResults: 20 },
+      });
+
+      expect(result).toEqual({ events: [{ id: 'event-1' }] });
+      expect(fetch).toHaveBeenCalledTimes(1);
+      const [url, request] = fetch.mock.calls[0];
+      expect(url).toBe('/query/publicService/invokeService.json?_csrf_token=csrf-test');
+      expect(request).toMatchObject({
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          global_csrf_token: 'csrf-test',
+        },
+      });
+      const params = new URLSearchParams(request.body);
+      expect(JSON.parse(params.get('inputs'))).toEqual({
+        path: {},
+        query: { maxResults: 20 },
+        header: {},
+        body: {},
+      });
+      expect(JSON.parse(params.get('serviceInfo'))).toEqual({
+        connectorInfo: {
+          connectorId: 'Http_calendar',
+          actionId: 'calendar-list',
+          type: 'httpConnector',
+          connection: 'account-7',
+        },
+      });
+      expect(rootWindow.parent.__OPENYIDA_CONNECTOR_API__)
+        .toBe(rootWindow.__OPENYIDA_CONNECTOR_API__);
+      expect(rootWindow.top.__OPENYIDA_CONNECTOR_API__)
+        .toBe(rootWindow.__OPENYIDA_CONNECTOR_API__);
+    } finally {
+      global.window = previousWindow;
+    }
+  });
+
+  test('Canvas connector bridge fails before fetch when binding identity is incomplete', async () => {
+    const previousWindow = global.window;
+    const fetch = jest.fn();
+    const rootWindow = { parent: {}, top: {}, fetch };
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      installBridge.call({ utils: {} });
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({ connectorName: 'Http_calendar' }, {}))
+        .rejects.toThrow('connectorName and operationId are required');
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      global.window = previousWindow;
+    }
+  });
+
+  test('Canvas connector bridge tolerates an inaccessible parent window while reading CSRF', async () => {
+    const previousWindow = global.window;
+    const inaccessibleParent = {};
+    Object.defineProperty(inaccessibleParent, 'g_config', {
+      get() { throw new Error('cross-origin'); },
+    });
+    const fetch = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({ success: true, content: { serviceReturnValue: { ok: true } } }),
+    }));
+    const rootWindow = { parent: inaccessibleParent, top: {}, fetch };
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      installBridge.call({ utils: {} });
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({
+        connectorName: 'Http_calendar',
+        operationId: 'calendar-list',
+      }, {})).resolves.toEqual({ ok: true });
+      expect(fetch.mock.calls[0][0]).toBe('/query/publicService/invokeService.json');
+    } finally {
+      global.window = previousWindow;
+    }
+  });
+
+  test('Canvas connector bridge rejects numeric management ids and stringified bodies before fetch', async () => {
+    const previousWindow = global.window;
+    const fetch = jest.fn();
+    const rootWindow = { parent: {}, top: {}, fetch };
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      installBridge.call({ utils: {} });
+
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({
+        connectorId: '917319',
+        operationId: 'calendar-create',
+      }, { body: {} })).rejects.toMatchObject({
+        code: 'CONNECTOR_RUNTIME_NAME_REQUIRED',
+      });
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke({
+        connectorName: 'Http_calendar',
+        operationId: 'calendar-create',
+      }, { body: '{"summary":"测试日程"}' })).rejects.toMatchObject({
+        code: 'CONNECTOR_BODY_OBJECT_REQUIRED',
+      });
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      if (previousWindow === undefined) { delete global.window; }
+      else { global.window = previousWindow; }
+    }
+  });
+
+  test('Canvas connector bridge surfaces nested gateway and service errors', async () => {
+    const previousWindow = global.window;
+    const fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: false,
+          content: { errorMessage: '必填字段值为空: Content-Type' },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          content: {
+            serviceReturnValue: JSON.stringify({
+              success: false,
+              errors: [{ message: '日程创建失败: userId 无效' }],
+            }),
+          },
+        }),
+      });
+    const rootWindow = { parent: {}, top: {}, fetch };
+    try {
+      global.window = rootWindow;
+      // eslint-disable-next-line no-new-func
+      const installBridge = new Function(
+        CANVAS_YIDA_API_BRIDGE_SOURCE + '\nreturn openyidaInstallYidaApiBridge;'
+      )();
+      installBridge.call({ utils: {} });
+      const binding = { connectorName: 'Http_calendar', operationId: 'calendar-create' };
+
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke(binding, { body: {} }))
+        .rejects.toThrow('必填字段值为空: Content-Type');
+      await expect(rootWindow.__OPENYIDA_CONNECTOR_API__.invoke(binding, { body: {} }))
+        .rejects.toThrow('日程创建失败: userId 无效');
+    } finally {
+      if (previousWindow === undefined) { delete global.window; }
+      else { global.window = previousWindow; }
+    }
   });
 
 });

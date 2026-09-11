@@ -52,6 +52,15 @@ describe('real E2E skill coverage matrix', () => {
     });
   });
 
+  test('aggregate table uses its domain-only opt-in E2E runner', () => {
+    expect(SKILL_COVERAGE['yida-aggregate-table']).toMatchObject({
+      level: 'opt-in-real-e2e',
+      stages: ['aggregate'],
+      commands: ['aggregate-table inspect/preview/save/publish/status'],
+      reason: expect.stringMatching(/PLATFORM_PROBE_REQUIRED|domain runner/i),
+    });
+  });
+
   test('app lifecycle stays offline because it changes real app availability', () => {
     expect(SKILL_COVERAGE['yida-app-lifecycle']).toMatchObject({
       level: 'offline-unit',

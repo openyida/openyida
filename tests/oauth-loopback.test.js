@@ -1,6 +1,8 @@
 'use strict';
 
 const EventEmitter = require('events');
+const http = require('http');
+const vm = require('vm');
 
 const {
   buildDingtalkOAuthUrl,
@@ -16,7 +18,98 @@ const {
   parseWindowsCommandExec,
   parseLinuxExec,
   launchLoginBrowser,
+  runDingtalkLoopback,
 } = require('../lib/auth/oauth-loopback');
+const { getLanguage, setLanguage } = require('../lib/core/i18n');
+
+function requestText(url) {
+  return new Promise((resolve, reject) => {
+    const request = http.get(url, (response) => {
+      const chunks = [];
+      response.on('data', (chunk) => chunks.push(chunk));
+      response.on('end', () => resolve({
+        statusCode: response.statusCode,
+        body: Buffer.concat(chunks).toString('utf8'),
+      }));
+    });
+    request.on('error', reject);
+  });
+}
+
+describe('OAuth callback page experience', () => {
+  test('renders a friendly success page and reveals manual-close guidance when closing is blocked', async () => {
+    const originalLanguage = getLanguage();
+    let resolveAuthUrl;
+    const authUrlPromise = new Promise((resolve) => {
+      resolveAuthUrl = resolve;
+    });
+
+    setLanguage('zh');
+    try {
+      const loginPromise = runDingtalkLoopback({
+        clientId: 'test-client',
+        state: 'known-state',
+        quiet: true,
+        timeoutMs: 2000,
+        openBrowser: (url) => {
+          resolveAuthUrl(url);
+          return true;
+        },
+      });
+      const authUrl = await authUrlPromise;
+      await new Promise((resolve) => setImmediate(resolve));
+      const callbackUrl = new URL(new URL(authUrl).searchParams.get('redirect_uri'));
+      callbackUrl.searchParams.set('state', 'known-state');
+      callbackUrl.searchParams.set('code', 'test-code');
+
+      const response = await requestText(callbackUrl);
+      const callback = await loginPromise;
+
+      expect(response.statusCode).toBe(200);
+      expect(callback.code).toBe('test-code');
+      expect(response.body).toContain('<html lang="zh" dir="ltr">');
+      expect(response.body).toContain('<meta name="viewport"');
+      expect(response.body).toContain('<h1 id="page-title">登录成功</h1>');
+      expect(response.body).toContain('登录已完成，请返回刚才的窗口继续操作。');
+      expect(response.body).toContain('正在自动关闭此窗口…');
+      expect(response.body).toContain('id="manual-close"');
+      expect(response.body).toContain('此窗口未能自动关闭，请手动关闭后返回刚才的窗口继续操作。');
+
+      const scriptMatch = response.body.match(/<script>([\s\S]*?)<\/script>/);
+      expect(scriptMatch).not.toBeNull();
+
+      const closingStatus = { hidden: false };
+      const manualClose = { hidden: true };
+      const timers = [];
+      const browserWindow = {
+        opener: null,
+        closed: false,
+        close: jest.fn(),
+        open: jest.fn(),
+      };
+      browserWindow.open.mockReturnValue(browserWindow);
+
+      vm.runInNewContext(scriptMatch[1], {
+        window: browserWindow,
+        document: {
+          getElementById: (id) => id === 'closing-status' ? closingStatus : manualClose,
+        },
+        setTimeout: (callbackFn, delay) => timers.push({ callbackFn, delay }),
+      });
+
+      expect(timers.map(({ delay }) => delay)).toEqual([1200, 2100]);
+      timers[0].callbackFn();
+      expect(browserWindow.close).toHaveBeenCalledTimes(2);
+      expect(manualClose.hidden).toBe(true);
+
+      timers[1].callbackFn();
+      expect(closingStatus.hidden).toBe(true);
+      expect(manualClose.hidden).toBe(false);
+    } finally {
+      setLanguage(originalLanguage);
+    }
+  });
+});
 
 describe('launchLoginBrowser browser ownership', () => {
   test('requests one browser launch by default', () => {

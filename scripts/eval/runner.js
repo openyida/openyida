@@ -28,6 +28,7 @@ const scoreUtil = require('./score');
 const reportUtil = require('./report');
 const routing = require('./routing');
 const generate = require('./generate');
+const { buildOptimizationBacklog, findingFromEvidenceFinding } = require('./optimization-findings');
 const docQuality = require('./doc-quality');
 const coverage = require('./coverage');
 const safety = require('./safety');
@@ -247,6 +248,7 @@ async function runGenerate(config) {
       scenarioPath,
       concurrency: config.concurrency || 3,
       agentCommand: config.agentCommand,
+      timeoutMs: config.generationTimeoutMs,
       onProgress: (done, total) => {
         log(`[generate] 进度：${done}/${total}`);
       },
@@ -256,7 +258,7 @@ async function runGenerate(config) {
       log(`[generate] 完成：${outcome.stats.agentCalls} 次调用 耗时 ${elapsed}s`);
     }
   } else {
-    outcome = generate.runGenerationEval({ scenarioPath });
+    outcome = generate.runGenerationEval({ scenarioPath, timeoutMs: config.generationTimeoutMs });
   }
 
   const { summary } = outcome;
@@ -268,12 +270,13 @@ async function runGenerate(config) {
   if (summary.agentError) {log(`[generate] ⚠ ${summary.agentError} 条 agent 调用失败`);}
   if (summary.noOutput) {log(`[generate] ⚠ ${summary.noOutput} 条未解析到产物 URL`);}
   if (summary.featureMiss) {log(`[generate] ⚠ ${summary.featureMiss} 条产物未满足期望特征`);}
+  if (summary.evidenceMiss) {log(`[generate] ⚠ ${summary.evidenceMiss} 条执行证据未满足场景契约`);}
 
   // 汇总所有 scenario 的产物 URL 为统一截图/打分目标（stage 用 scenario id 区分）。
   const targets = [];
   for (const r of outcome.results) {
     for (const t of (r.targets || [])) {
-      targets.push({ stage: `${r.id}:${t.type}`, type: t.type, url: t.url });
+      targets.push({ ...t, scenarioId: r.id, stage: `${r.id}:${t.type}` });
     }
   }
 
@@ -297,6 +300,23 @@ async function runGenerate(config) {
     log('[generate] 截图未开启（--no-screenshot）。');
   }
 
+  const runtimeFindings = screenshotUtil.runtimeFindingsFromScreenshots(screenshots);
+  for (const result of outcome.results) {
+    const resultFindings = runtimeFindings.filter((finding) => finding.scenarioId === result.id);
+    if (!resultFindings.length) {continue;}
+    result.evidence = result.evidence || {};
+    result.evidence.findings = [...(result.evidence.findings || []), ...resultFindings];
+    result.optimizationFindings = result.optimizationFindings || [];
+    for (const finding of resultFindings) {
+      result.optimizationFindings.push(findingFromEvidenceFinding({
+        scenario: { id: result.id },
+        finding,
+        evidence: result.evidence,
+        index: result.optimizationFindings.length,
+      }));
+    }
+  }
+
   // 打分
   let scores;
   if (config.autoScore) {
@@ -312,22 +332,42 @@ async function runGenerate(config) {
 
   const scoringMd = scoreUtil.renderScoringMarkdown({ config, scores, workDir });
   const scoringDocPath = scoreUtil.writeScoringDoc(workDir, scoringMd);
+  const optimizationBacklog = buildOptimizationBacklog(outcome.results);
+  const optimizationBacklogPath = writeJson(
+    path.join(workDir, 'optimization-backlog.json'),
+    optimizationBacklog,
+  );
   const reportHtml = reportUtil.renderEvalReportHtml({
     config,
     registry: { runId: path.basename(workDir) },
     guardrails: [],
     screenshots,
     scores,
+    generationResults: outcome.results,
+    optimizationBacklog,
   });
   const reportPath = reportUtil.writeReport(workDir, reportHtml);
   const jsonPath = writeJson(path.join(workDir, 'generation-report.json'), {
-    summary, results: outcome.results, scoringDoc: scoringDocPath, reportHtml: reportPath,
+    summary,
+    results: outcome.results,
+    optimizationBacklog: optimizationBacklogPath,
+    optimizationSummary: optimizationBacklog.summary,
+    scoringDoc: scoringDocPath,
+    reportHtml: reportPath,
   });
+  log(`[generate] 优化清单：${optimizationBacklogPath}`);
   log(`[generate] 打分表：${scoringDocPath}`);
   log(`[generate] HTML 报告：${reportPath}`);
   log(`[generate] 生成报告：${jsonPath}`);
 
-  return { skipped: false, summary, workDir, reportPath, scoringDocPath };
+  return {
+    skipped: false,
+    summary,
+    workDir,
+    reportPath,
+    scoringDocPath,
+    optimizationBacklogPath,
+  };
 }
 
 /**
@@ -345,7 +385,7 @@ async function runE2e(config) {
     }
   }
 
-  const result = fullRunner.run({ env });
+  const result = await fullRunner.run({ env });
   if (result.skipped) {
     log('[e2e] 已跳过真实链路（需 OPENYIDA_E2E=1 与有效 token session）。');
     return { skipped: true };

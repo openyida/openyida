@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "yida-logic-flow@0.2.245",
+  "scenarioId": "integration-data-retrieve-default",
+  "artifactKind": "synthetic-protocol-fixture",
+  "content": {
+    "processCode": "LPROC-CONTRACT-RETRIEVE",
+    "formUuid": "FORM-CONTRACT-TICKET",
+    "json": "{\"props\":{\"processCode\":\"LPROC-CONTRACT-RETRIEVE\"},\"nodes\":[{\"name\":{\"zh_CN\":\"表单事件触发\"},\"type\":\"trigger\",\"nodeId\":\"node_raw_retrieve_trigger\",\"nextId\":[\"node_raw_retrieve_data\"],\"props\":{\"inputs\":{\"formEventType\":[\"insert\"],\"formUuid\":\"FORM-CONTRACT-TICKET\",\"conditions\":null,\"triggerFormEventRecursively\":false}}},{\"name\":{\"zh_CN\":\"获取客户\"},\"type\":\"dataRetrieve\",\"nodeId\":\"node_raw_retrieve_data\",\"nextId\":[\"node_raw_retrieve_route\"],\"props\":{\"type\":\"single\",\"sourceId\":\"FORM-CONTRACT-CUSTOMER\",\"condition\":{\"condition\":\"AND\",\"conditionCode\":\"&&\",\"rules\":[{\"id\":\"textField_customer_no\",\"opCode\":\"Equal\",\"valueType\":\"processVar\",\"value\":\"textField_ticket_customer_no\"}]},\"assignments\":[]}},{\"name\":{\"zh_CN\":\"查询结果分支\"},\"type\":\"route\",\"nodeId\":\"node_raw_retrieve_route\",\"nextId\":[\"node_raw_retrieve_found\",\"node_raw_retrieve_default\"],\"props\":{\"outgoingType\":\"priority\"},\"childNodes\":[{\"name\":{\"zh_CN\":\"查到客户\"},\"type\":\"condition\",\"nodeId\":\"node_raw_retrieve_found\",\"nextId\":[\"node_raw_retrieve_manager\"],\"props\":{\"priority\":1,\"isDefault\":false,\"conditions\":{\"condition\":\"AND\",\"rules\":[{\"id\":\"${node_raw_retrieve_data}.textField_customer_name\",\"opCode\":\"ExistValue\",\"valueType\":\"literal\"}]}},\"childNodes\":[{\"name\":{\"zh_CN\":\"通知客户经理\"},\"type\":\"sendMessage\",\"nodeId\":\"node_raw_retrieve_manager\",\"nextId\":[\"node_raw_retrieve_finish\"],\"props\":{\"messageInfo\":{\"title\":\"客户工单\",\"content\":\"客户 ${node_raw_retrieve_data}.textField_customer_name 有新工单\"},\"toUsers\":[{\"userId\":\"USER-CONTRACT-MANAGER\"}],\"userFields\":[]}}]},{\"name\":{\"zh_CN\":\"未查到客户\"},\"type\":\"condition\",\"nodeId\":\"node_raw_retrieve_default\",\"nextId\":[\"node_raw_retrieve_admin\"],\"props\":{\"priority\":2147483647,\"isDefault\":true},\"childNodes\":[{\"name\":{\"zh_CN\":\"通知数据管理员\"},\"type\":\"sendMessage\",\"nodeId\":\"node_raw_retrieve_admin\",\"nextId\":[\"node_raw_retrieve_finish\"],\"props\":{\"messageInfo\":{\"title\":\"客户资料缺失\",\"content\":\"未找到客户资料\"},\"toUsers\":[{\"userId\":\"USER-CONTRACT-ADMIN\"}],\"userFields\":[]}}]}]},{\"name\":{\"zh_CN\":\"结束\"},\"type\":\"finish\",\"nodeId\":\"node_raw_retrieve_finish\",\"nextId\":[],\"props\":{}}]}",
+    "viewJson": "{\"schema\":{\"componentName\":\"CanvasEngine\",\"id\":\"canvas_raw_retrieve\",\"children\":[{\"componentName\":\"StartNode\",\"id\":\"node_raw_retrieve_trigger\",\"props\":{\"name\":\"表单事件触发\",\"start\":{\"triggerType\":\"FormEvent\",\"formEventType\":[\"insert\"],\"formUuid\":\"FORM-CONTRACT-TICKET\",\"conditions\":null,\"triggerFormEventRecursively\":false}}},{\"componentName\":\"GetSingleDataNode\",\"id\":\"node_raw_retrieve_data\",\"props\":{\"name\":\"获取客户\",\"getData\":{\"type\":\"single\",\"sourceId\":\"FORM-CONTRACT-CUSTOMER\",\"condition\":{\"condition\":\"AND\",\"conditionCode\":\"&&\",\"rules\":[{\"id\":\"textField_customer_no\",\"opCode\":\"Equal\",\"valueType\":\"processVar\",\"value\":\"textField_ticket_customer_no\"}]},\"assignments\":[]}}},{\"componentName\":\"ConditionContainer\",\"id\":\"node_raw_retrieve_route\",\"props\":{\"name\":\"查询结果分支\"},\"children\":[{\"componentName\":\"ConditionNode\",\"id\":\"node_raw_retrieve_found\",\"props\":{\"name\":\"查到客户\",\"conditions\":{\"isDefault\":false,\"priority\":1,\"conditions\":{\"condition\":\"AND\",\"rules\":[{\"id\":\"${node_raw_retrieve_data}.textField_customer_name\",\"opCode\":\"ExistValue\",\"valueType\":\"literal\"}]}}},\"children\":[{\"componentName\":\"SendMessageNode\",\"id\":\"node_raw_retrieve_manager\",\"props\":{\"name\":\"通知客户经理\",\"sendMessageRules\":{\"messageInfo\":{\"title\":\"客户工单\",\"content\":\"客户 ${node_raw_retrieve_data}.textField_customer_name 有新工单\"},\"toUsers\":[{\"userId\":\"USER-CONTRACT-MANAGER\"}],\"userFields\":[]}}}]},{\"componentName\":\"ConditionNode\",\"id\":\"node_raw_retrieve_default\",\"props\":{\"name\":\"未查到客户\",\"isDefault\":true,\"priority\":2147483647},\"children\":[{\"componentName\":\"SendMessageNode\",\"id\":\"node_raw_retrieve_admin\",\"props\":{\"name\":\"通知数据管理员\",\"sendMessageRules\":{\"messageInfo\":{\"title\":\"客户资料缺失\",\"content\":\"未找到客户资料\"},\"toUsers\":[{\"userId\":\"USER-CONTRACT-ADMIN\"}],\"userFields\":[]}}}]}]},{\"componentName\":\"EndNode\",\"id\":\"node_raw_retrieve_finish\",\"props\":{\"name\":\"结束\"}}]},\"globalSetting\":{}}"
+  },
+  "provenance": {
+    "kind": "synthetic-protocol-fixture",
+    "authoredBy": "test-author",
+    "platformCaptured": false,
+    "builderGenerated": false,
+    "evidence": [
+      "form-event-runtime-inputs",
+      "data-retrieve-transform",
+      "route-condition-props",
+      "send-message-transform",
+      "graph-next-and-children"
+    ]
+  }
+}

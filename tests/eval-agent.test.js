@@ -52,6 +52,16 @@ describe('eval agent adapter', () => {
     expect(res.json).toEqual({ skill: 'yida-app' });
   });
 
+  test('runAgent 把指定 env 传给 agent 子进程', () => {
+    const calls = [];
+    const fakeSpawn = (command, args, options) => {
+      calls.push({ command, args, options });
+      return { status: 0, stdout: JSON.stringify({ result: '{}', is_error: false }), stderr: '' };
+    };
+    runAgent({ prompt: 'hi', spawn: fakeSpawn, env: { PATH: '/trace/bin', TRACE: '1' } });
+    expect(calls[0].options.env).toEqual({ PATH: '/trace/bin', TRACE: '1' });
+  });
+
   test('runAgent 识别 is_error 信封为调用失败（未登录等）', () => {
     const fakeSpawn = () => ({
       status: 0,

@@ -3,6 +3,52 @@
 const { lintYidaSource } = require('../lib/app/page-linter');
 
 describe('page linter', () => {
+  test('blocks systemToken use in custom-page source', () => {
+    const source = `
+export function renderJsx() { return <button>run</button>; }
+export function run() {
+  var body = { systemToken: 'must-not-be-here' };
+  return fetch('/query/app/getSystemToken.json', { method: 'POST', body: body });
+}
+`;
+    const result = lintYidaSource(source, '/tmp/system-token.jsx');
+    expect(result.errors.filter(issue => issue.rule === 'system-token-frontend-forbidden'))
+      .toHaveLength(2);
+  });
+
+  test('blocks numeric connector management ids in custom-page bindings', () => {
+    const source = `
+export function renderJsx() { return <button>run</button>; }
+export function run() {
+  return window.__OPENYIDA_CONNECTOR_API__.invoke({
+    connectorId: '917319',
+    operationId: 'calendarCreate'
+  }, { body: {} });
+}
+`;
+    const result = lintYidaSource(source, '/tmp/connector-runtime-id.jsx');
+    expect(result.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ rule: 'connector-runtime-name-required', line: 5 }),
+    ]));
+  });
+
+  test('blocks numeric connector ids in object and JSON-style bindings', () => {
+    const source = `
+export function renderJsx() { return <button>run</button>; }
+export function run() {
+  var objectBinding = { connectorId: 917319, operationId: 'calendarCreate' };
+  var jsonBinding = { "connectorId": "917320", "operationId": "calendarQuery" };
+  return [objectBinding, jsonBinding];
+}
+`;
+    const result = lintYidaSource(source, '/tmp/connector-runtime-id-variants.jsx');
+    expect(result.errors.filter(issue => issue.rule === 'connector-runtime-name-required'))
+      .toEqual([
+        expect.objectContaining({ line: 4 }),
+        expect.objectContaining({ line: 5 }),
+      ]);
+  });
+
   test('accepts a hand-authored Yida custom page', () => {
     const source = `
 export function renderJsx() {
@@ -525,6 +571,80 @@ export function loadRows() {
     const errorResult = lintYidaSource(errorSource, '/tmp/pagesize-error.jsx');
     expect(errorResult.errors.map(issue => issue.rule)).toContain('page-size-limit');
     expect(errorResult.warnings.map(issue => issue.rule)).not.toContain('page-size-recommend');
+  });
+
+  test('blocks static gmtCreate dynamicOrder values passed to searchFormDatas', () => {
+    const source = `
+export function loadDirect() {
+  return this.utils.yida.searchFormDatas({ formUuid: 'FORM-X', pageSize: 50, dynamicOrder: { gmtCreate: '-' } });
+}
+
+export function loadString() {
+  return this.utils.yida.searchFormDatas({ formUuid: 'FORM-X', pageSize: 50, dynamicOrder: '{"gmtCreate":"-"}' });
+}
+
+export function loadStringified() {
+  var order = { gmtCreate: '-' };
+  var params = { formUuid: 'FORM-X', pageSize: 50, dynamicOrder: JSON.stringify(order) };
+  return this.utils.yida.searchFormDatas(params);
+}
+
+export function buildDirectQuery() {
+  var params = { formUuid: 'FORM-X', pageSize: '50', dynamicOrder: '{"gmtCreate":"-"}' };
+  return new URLSearchParams(params).toString();
+}
+
+export function buildAppendedQuery() {
+  var params = new URLSearchParams();
+  params.append('dynamicOrder', JSON.stringify({ gmtCreate: '-' }));
+  return params.toString();
+}
+
+export function buildSetQuery() {
+  var order = '{"gmtCreate":"-"}';
+  var params = new URLSearchParams({ pageSize: '50' });
+  params.set('dynamicOrder', order);
+  return params.toString();
+}
+`;
+    const result = lintYidaSource(source, '/tmp/searchformdata-dynamic-order-bad.jsx');
+    const issues = result.errors.filter(issue => issue.rule === 'searchformdata-dynamic-order-metadata');
+
+    expect(issues).toHaveLength(6);
+    expect(issues.map(issue => issue.line)).toEqual([3, 7, 12, 17, 23, 30]);
+    expect(issues.every(issue => issue.message.includes('gmtCreate'))).toBe(true);
+  });
+
+  test('accepts business-field dynamicOrder and unrelated gmtCreate data', () => {
+    const source = `
+export function loadRows() {
+  var auditPreview = { dynamicOrder: '{"gmtCreate":"-"}' };
+  return this.utils.yida.searchFormDatas({
+    formUuid: 'FORM-X',
+    pageSize: 50,
+    dynamicOrder: JSON.stringify({ textField_k2abc: '-' })
+  }).then(function (rows) {
+    return rows.sort(function (a, b) { return b.gmtCreate - a.gmtCreate; });
+  });
+}
+`;
+    const result = lintYidaSource(source, '/tmp/searchformdata-dynamic-order-good.jsx');
+
+    expect(result.errors.map(issue => issue.rule)).not.toContain('searchformdata-dynamic-order-metadata');
+  });
+
+  test('does not treat append/set on ordinary objects as URLSearchParams', () => {
+    const source = `
+export function updateState() {
+  var params = createParams();
+  params.append('dynamicOrder', '{"gmtCreate":"-"}');
+  var cache = new Map();
+  cache.set('dynamicOrder', JSON.stringify({ gmtCreate: '-' }));
+}
+`;
+    const result = lintYidaSource(source, '/tmp/searchformdata-dynamic-order-ordinary-objects.jsx');
+
+    expect(result.errors.map(issue => issue.rule)).not.toContain('searchformdata-dynamic-order-metadata');
   });
 
   test('flags direct searchFormDatas.json misuse (POST / pageNumber / missing query contract / no content unwrap)', () => {

@@ -1,6 +1,11 @@
 'use strict';
 
-const { CliError, isCliError, toErrorPayload } = require('../lib/core/cli-error');
+const {
+  CliError,
+  isCliError,
+  shouldUseStructuredErrorOutput,
+  toErrorPayload,
+} = require('../lib/core/cli-error');
 
 describe('CliError', () => {
   test('keeps exit code and code metadata', () => {
@@ -56,6 +61,138 @@ describe('CliError', () => {
         nextStep: '检查流程节点配置后重试。',
         authToken: 'priv***oken',
       },
+    });
+  });
+
+  test('promotes owned residual metadata and forces structured output without --json', () => {
+    const error = new CliError('Readback mismatch', {
+      code: 'REPORT_SCHEMA_READBACK_MISMATCH',
+      details: {
+        partial: true,
+        residual: {
+          type: 'report',
+          appType: 'APP_1',
+          reportId: 'REPORT_1',
+          url: 'https://demo.aliwork.com/APP_1/workbench/REPORT_1',
+          workbenchUrl: 'https://demo.aliwork.com/APP_1/workbench/REPORT_1',
+          owned: true,
+          state: 'created_partial',
+        },
+        retryable: false,
+        retrySafe: false,
+        sideEffectState: 'partial',
+        nextAction: {
+          commandId: 'report.inspect',
+          args: { appType: 'APP_1', reportId: 'REPORT_1' },
+        },
+        nextStep: 'openyida report inspect APP_1 REPORT_1 --json',
+      },
+    });
+
+    expect(toErrorPayload(error)).toMatchObject({
+      success: false,
+      errorCode: 'REPORT_SCHEMA_READBACK_MISMATCH',
+      partial: true,
+      residual: {
+        type: 'report',
+        appType: 'APP_1',
+        reportId: 'REPORT_1',
+        url: 'https://demo.aliwork.com/APP_1/workbench/REPORT_1',
+        workbenchUrl: 'https://demo.aliwork.com/APP_1/workbench/REPORT_1',
+        owned: true,
+        state: 'created_partial',
+      },
+      retryable: false,
+      retrySafe: false,
+      sideEffectState: 'partial',
+      nextStep: 'openyida report inspect APP_1 REPORT_1 --json',
+    });
+    expect(shouldUseStructuredErrorOutput(error, [])).toBe(true);
+    expect(shouldUseStructuredErrorOutput(new CliError('Bad input'), [])).toBe(false);
+    expect(shouldUseStructuredErrorOutput(new CliError('Bad input'), ['--json'])).toBe(true);
+  });
+
+  test('promotes unknown mutation outcome and forces structured output without --json', () => {
+    const error = new CliError('Delete outcome unknown', {
+      code: 'DATA_DELETE_RESULT_UNKNOWN',
+      details: {
+        target: {
+          type: 'formInstance',
+          appType: 'APP_1',
+          formUuid: 'FORM_1',
+          formInstId: 'FINST_1',
+        },
+        deleted: false,
+        mutationAccepted: true,
+        readbackVerified: false,
+        status: 'RESULT_UNKNOWN',
+        retryable: false,
+        retrySafe: false,
+        sideEffectState: 'unknown',
+        nextStep: 'openyida data get form APP_1 --inst-id FINST_1 --json',
+      },
+    });
+
+    expect(toErrorPayload(error)).toMatchObject({
+      errorCode: 'DATA_DELETE_RESULT_UNKNOWN',
+      target: {
+        type: 'formInstance',
+        formInstId: 'FINST_1',
+      },
+      deleted: false,
+      mutationAccepted: true,
+      readbackVerified: false,
+      status: 'RESULT_UNKNOWN',
+      retryable: false,
+      retrySafe: false,
+      sideEffectState: 'unknown',
+    });
+    expect(shouldUseStructuredErrorOutput(error, [])).toBe(true);
+  });
+
+  test('forces structured output for deterministic mutation-free preflight failures', () => {
+    const error = new CliError('Invalid field type', {
+      code: 'CREATE_FORM_FIELD_TYPE_INVALID',
+      details: {
+        stage: 'preflight',
+        retrySafe: true,
+        sideEffectState: 'not_started',
+        mutationAccepted: false,
+        mutationPerformed: false,
+      },
+    });
+
+    expect(shouldUseStructuredErrorOutput(error, [])).toBe(true);
+    expect(toErrorPayload(error)).toMatchObject({
+      stage: 'preflight',
+      retrySafe: true,
+      sideEffectState: 'not_started',
+      mutationAccepted: false,
+      mutationPerformed: false,
+    });
+  });
+
+  test('forces structured output for every navigation order failure', () => {
+    ['NAV_ORDER_NOT_APPLIED', 'NAV_ORDER_READBACK_MISMATCH', 'NAV_ORDER_RESULT_UNKNOWN']
+      .forEach((code) => {
+        expect(shouldUseStructuredErrorOutput(new CliError(code, { code }), [])).toBe(true);
+      });
+  });
+
+  test('promotes navigation order mutation metadata', () => {
+    const payload = toErrorPayload(new CliError('NAV_ORDER_NOT_APPLIED', {
+      code: 'NAV_ORDER_NOT_APPLIED',
+      details: {
+        changed: true,
+        mutationPerformed: false,
+        readbackVerified: true,
+      },
+    }));
+
+    expect(payload).toMatchObject({
+      changed: true,
+      mutationPerformed: false,
+      readbackVerified: true,
     });
   });
 });

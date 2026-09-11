@@ -1,4 +1,4 @@
-# Step 4：页面结构和交互设计
+# 页面结构和交互设计
 
 > 低保真不追求好看，先把结构、区块和操作路径定清楚。
 
@@ -10,6 +10,12 @@
 - 看板页：KPI 卡组 + 图表组 + 排行/明细 + 刷新时间。
 - 大屏页：中心态势 + 左右信息塔 + 告警/趋势 + 投屏可读层级。
 - 官网页：首屏主张 + 产品/服务 + 过程/案例 + 信任背书 + CTA。
+
+## 自定义导航设计
+
+沿用需求阶段用户选择的导航归属，以及根据场景确定或用户指定的布局；不再询问顶部、侧边等布局选项。参考 [导航壳形态目录](../../yida-nav-shell/references/nav-shell-patterns.md) 设计位置、比例、留白与选中态，代码示例只按需参考。顶部默认浮导；侧导及顶部＋侧边布局写清折叠/展开、恢复宽度、拖拽边界、内容区联动和移动端收起方式。已有满意的导航保留外观，只补缺失交互。
+
+区分三种操作：本页视图切换、保留导航并更新主内容 iframe、当前标签跨页跳转。管理入口使用 workbench，办理入口使用 submission；不要把应用级办理导航设计为每次弹抽屉。页面内新增/详情按钮才采用下面的抽屉规则。设计结果写入当前 `design.md`；Plan 模式先更新计划源事实再物化。
 
 ## 列内容区块
 
@@ -44,9 +50,9 @@
 - 功能契约：<保留的数据源/字段映射/按钮动作/筛选逻辑/提交 URL/权限/状态>
 - 响应式策略：<PC / 移动端差异>
 - 原生表单入口：<新增/提交/编辑打开方式>
-- pageSpecHandoff 草稿：<pageStructure/scene/contentBlocks/themeSummary/designFile/designRefs/dataBinding/primaryAction；视觉源码槽位待 Step 5 写入 design.md>
+- pageSpecHandoff 草稿：<pageStructure/scene/contentBlocks/themeSummary/designFile/designRefs/dataBinding/primaryAction；视觉源码槽位待 UI 视觉设计阶段写入 design.md>
 ```
 
 ## 下一步
 
-→ [Step 5：UI 视觉和状态设计](step-5-visual-states.md)
+→ [UI 视觉和状态设计](step-5-visual-states.md)

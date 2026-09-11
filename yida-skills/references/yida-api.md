@@ -4,6 +4,16 @@
 
 所有接口返回 Promise，统一使用 `.then()` 和 `.catch()` 处理结果和异常。
 
+## 页面 JS 与动作面板基础契约
+
+- 只有顶层 `export function actionName(...) {}` 会出现在动作面板，供组件事件和生命周期绑定。
+- 一个导出动作调用另一个导出动作时使用 `this.actionName(...)`；未导出的纯 helper 可直接调用，但不能依赖宜搭注入的 `this`。
+- 表单字段通过 `this.$('fieldId')` 访问，读值用 `getValue()`，赋值用 `setValue(value, options)`；需要触发目标字段 `onChange` 时显式设置 `options.triggerChange`。
+- 组件事件参数以对应组件 API 为准。下拉单选 `onChange` 直接传入动作参数 `value`，不要从 `event` 取值。该参数可能是原始值、`{ value, actionType }`，开启 `useDetailValue=true` 后也可能是 `{ value: { label, value }, actionType }`。兼容写法：先用 `value && value.value !== undefined ? value.value : value` 取得动作值，再以相同方式取得选项明细值。宜搭动作面板不支持空值合并运算符，使用 `?:`。仅写函数源码不算完成，必须在设计器中绑定事件；OpenYida 写入后也必须回读确认绑定仍存在。
+- 不同组件不能统一 `String(value)`：文本、数字、评分、单选和单日期解包后是标量；多选、复选、部门、国家、附件和图片是数组；日期区间是 `{ start, end }`；成员单选交互可能是对象，但初始化可能是数组。只有 `SelectField useDetailValue` 需要继续取选项对象的 `.value`，其他对象或数组必须保留结构。
+
+官方参考：[动作面板](https://alidocs.dingtalk.com/i/nodes/1zknDm0WRz0NZeXQux7OKZXmWBQEx5rG)、[`this` 调用语义](https://alidocs.dingtalk.com/i/nodes/Exel2BLV5gOAdXr1umO9QPNr8gk9rpMq)、[生命周期](https://alidocs.dingtalk.com/i/nodes/pGBa2Lm8aeP35vxdtEKBlz4D8gN7R35y)、[SelectField](https://developers.aliwork.com/docs/components/form/selectField)、[宜搭 JS API](https://developers.aliwork.com/docs/api/yidaAPI)。
+
 ---
 
 ## 目录
@@ -27,7 +37,6 @@
   - [saveFormSchemaInfo](#saveformschemainfo) - 创建空白表单
   - [getFormSchema](#getformschema) - 获取表单 Schema
   - [saveFormSchema](#saveformschema) - 保存表单 Schema
-  - [updateFormConfig](#updateformconfig) - 更新表单配置
 - [工具类 API](#工具类-api)
   - [dialog](#dialog) - 对话框
   - [formatter](#formatter) - 格式化工具
@@ -230,7 +239,7 @@ this.utils.yida.updateFormData({
 | :--- | :--- | :--- | :--- | :--- |
 | formUuid | String | 是 | 表单ID | `FORM-XXX` |
 | currentPage | Number | 否 | 当前页，默认 1 | `1` |
-| pageSize | Number | 否 | 每页记录数，默认 10，**最大 100，超过 100 会报错** | `10` |
+| pageSize | Number | 否 | 每页记录数；OpenYida 生成代码一般显式传 50，**最大 100，超过 100 会报错** | `50` |
 | searchFieldJson | String | 否 | 根据表单内组件值查询（JSON字符串） | `JSON.stringify({ textField_xxx: '值' })` |
 
 **请求示例**：
@@ -239,7 +248,7 @@ this.utils.yida.updateFormData({
 this.utils.yida.searchFormDataIds({
   formUuid: 'FORM-XXX',
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 50,
   searchFieldJson: JSON.stringify({
     textField_m1g4dcpy: '单行文本',
   }),
@@ -337,13 +346,13 @@ this.utils.yida.getFormDataById({
 | formUuid | String | 是 | 表单ID | `FORM-XXX` |
 | searchFieldJson | String | 否 | 根据表单内组件值查询（JSON字符串） | `JSON.stringify({ textField_xxx: '值' })` |
 | currentPage | Number | 否 | 当前页，默认 1 | `1` |
-| pageSize | Number | 否 | 每页记录数，默认 10，**最大 100，超过 100 会报错** | `10` |
+| pageSize | Number | 否 | 每页记录数；OpenYida 生成代码一般显式传 50，**最大 100，超过 100 会报错** | `50` |
 | originatorId | String | 否 | 根据数据提交人工号查询 | `'2134'` |
 | createFrom | String | 否 | 创建时间范围起始，格式 yyyy-MM-dd | `'2024-01-01'` |
 | createTo | String | 否 | 创建时间范围结束，格式 yyyy-MM-dd | `'2024-02-01'` |
 | modifiedFrom | String | 否 | 修改时间范围起始，格式 yyyy-MM-dd | `'2024-01-01'` |
 | modifiedTo | String | 否 | 修改时间范围结束，格式 yyyy-MM-dd | `'2024-02-01'` |
-| dynamicOrder | String | 否 | 指定排序字段 | `'{"numberField_1ac":"+"}'` |
+| dynamicOrder | String | 否 | 指定排序字段；`+` 升序，`-` 降序。不传时返回顺序无稳定性保证 | `'{"numberField_1ac":"+"}'` |
 
 **searchFieldJson 示例**：
 
@@ -393,11 +402,13 @@ this.utils.yida.getFormDataById({
 >
 > 使用 `openyida data query form` CLI 命令时，工具已自动归一化为直接结构，无需手动兼容。
 
-> ⚠️ **pageSize 上限**：`pageSize` 最大值为 **100**，超过 100 会导致宜搭 API 返回 HTTP 500 错误（错误信息为"参数校验失败pageSize"）。推荐使用 `10`～`100` 之间的值。
+> ⚠️ **pageSize 上限**：OpenYida 生成代码一般显式写 `pageSize: 50`。`pageSize` 最大值为 **100**，超过 100 会导致宜搭 API 返回 HTTP 500 错误（错误信息为"参数校验失败pageSize"）。除非用户明确要求小页或大页，不写其他值。
 
 > 📌 **appType 参数说明**：
 > - **页面内部调用**（即在宜搭自定义页面的 JS 代码中调用 `this.utils.yida.searchFormDatas`）：**不需要传 `appType`**，SDK 会自动从当前页面上下文中获取。
 > - **外部 HTTP 直接调用**（如通过 `openyida data query form` CLI 或服务端脚本）：**必须传 `appType`**，即应用的唯一标识（可在宜搭应用 URL 中找到，格式如 `APP_XXXXXXXX`）。
+
+> 📌 **排序说明**：需要稳定顺序的分页、比对或配对逻辑必须显式传入 `dynamicOrder`。不传时不得依赖接口当前返回顺序；CLI 对应参数为 `--dynamic-order '{"fieldId":"+"}'` 或 `--dynamic-order '{"fieldId":"-"}'`。
 
 **请求示例**：
 
@@ -406,13 +417,13 @@ this.utils.yida.searchFormDatas({
   formUuid: 'FORM-XXX',
   searchFieldJson: '',
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 50,
   originatorId: '',
   createFrom: '2024-01-01',
   createTo: '2024-02-01',
   modifiedFrom: '2024-01-01',
   modifiedTo: '2024-02-01',
-  dynamicOrder: '',
+  dynamicOrder: '{"dateField_xxx":"-"}',
 }).then((res) => {
   // 兼容两种返回结构
   var data = (res && res.data) || (res && res.content && res.content.data) || [];
@@ -577,7 +588,7 @@ this.utils.yida.deleteProcessInstance({
 | instanceStatus | String | 否 | 实例状态 | `'RUNNING'` |
 | approvedResult | String | 否 | 流程审批结果 | `'agree'` |
 | currentPage | Number | 否 | 当前页，默认 1 | `1` |
-| pageSize | Number | 否 | 每页记录数，默认 10，**最大 100，超过 100 会报错** | `10` |
+| pageSize | Number | 否 | 每页记录数；OpenYida 生成代码一般显式传 50，**最大 100，超过 100 会报错** | `50` |
 | originatorId | String | 否 | 流程发起人工号 | `'2134'` |
 | createFrom | String | 否 | 创建时间范围起始，格式 yyyy-MM-dd | `'2024-01-01'` |
 | createTo | String | 否 | 创建时间范围结束，格式 yyyy-MM-dd | `'2024-02-01'` |
@@ -594,7 +605,7 @@ this.utils.yida.getProcessInstances({
   instanceStatus: 'RUNNING',
   approvedResult: 'agree',
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 50,
   originatorId: '2134',
   createFrom: '2024-01-01',
   createTo: '2024-02-01',
@@ -625,7 +636,7 @@ this.utils.yida.getProcessInstances({
 | instanceStatus | String | 否 | 实例状态 | `'RUNNING'` |
 | approvedResult | String | 否 | 流程审批结果 | `'agree'` |
 | currentPage | Number | 否 | 当前页，默认 1 | `1` |
-| pageSize | Number | 否 | 每页记录数，默认 10，**最大 100，超过 100 会报错** | `10` |
+| pageSize | Number | 否 | 每页记录数；OpenYida 生成代码一般显式传 50，**最大 100，超过 100 会报错** | `50` |
 | originatorId | String | 否 | 流程发起人工号 | `'2134'` |
 | createFrom | String | 否 | 创建时间范围起始，格式 yyyy-MM-dd | `'2024-01-01'` |
 | createTo | String | 否 | 创建时间范围结束，格式 yyyy-MM-dd | `'2024-02-01'` |
@@ -633,7 +644,7 @@ this.utils.yida.getProcessInstances({
 | modifiedTo | String | 否 | 修改时间范围结束，格式 yyyy-MM-dd | `'2024-02-01'` |
 | searchFieldJson | String | 否 | 根据表单内组件值查询（JSON字符串） | `JSON.stringify({ textField_xxx: '值' })` |
 
-> ⚠️ **注意**：`pageSize` 最大值为 **100**，禁止设置超过 100 的值，否则接口会报错。
+> ⚠️ **注意**：OpenYida 生成代码一般显式写 `pageSize: 50`。`pageSize` 最大值为 **100**，禁止设置超过 100 的值，否则接口会报错。
 
 **请求示例**：
 
@@ -644,7 +655,7 @@ this.utils.yida.getProcessInstanceIds({
   instanceStatus: 'RUNNING',
   approvedResult: 'agree',
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 50,
   originatorId: '2134',
   createFrom: '2024-01-01',
   createTo: '2024-02-01',
@@ -741,34 +752,6 @@ this.utils.yida.getProcessInstanceById({
 ```json
 { "success": true }
 ```
-
-### updateFormConfig（更新表单配置）
-
-- **地址**：`POST /dingtalk/web/{appType}/query/formdesign/updateFormConfig.json`
-- **Content-Type**：`application/x-www-form-urlencoded`
-- **参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `_csrf_token` | String | 是 | CSRF Token（由 yida-login 获取） |
-| `formUuid` | String | 是 | 表单 UUID |
-| `version` | Number | 是 | 版本号（新创建的表单从 1 开始） |
-| `configType` | String | 是 | 固定 `MINI_RESOURCE` |
-| `value` | Number | 是 | 固定 `0`（表单页面配置值） |
-
-- **返回值**：
-
-```json
-{
-  "success": true,
-  "traceId": null,
-  "throwable": null,
-  "errorCode": null,
-  "content": null,
-  "errorMsg": null
-}
-```
-
 
 ## 工具类 API
 

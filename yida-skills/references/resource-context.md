@@ -68,7 +68,7 @@
 ## 命令选择
 
 - 已有显式 `appType`、应用 URL 或已绑定资源上下文中的 `appType` 且能唯一解析时，直接复用该 app，不要调用 `app-list` 做存在性确认。
-- 只有用户只给应用名称、存在多个候选、resource context 冲突，或需要诊断目标 app 访问失败时，才运行 `openyida app-list [--size N]`。
+- 只有用户只给应用名称、存在多个候选、resource context 冲突，或需要诊断目标 app 访问失败时，才运行 `openyida app-list [--type managed|created] [--page N] [--size N]`。默认查询“我管理的”第 1 页、每页 16 条；需要继续查找时按返回提示逐页查询，不要假设命令会自动拉取全量。
 - 已知 `appType` 后，查询应用下表单/页面用 `openyida list-forms <appType> [--keyword <text>]`；选择页面发布目标时只用 `formType=display`。
 - 查询表单/页面 Schema、字段 ID 或批量字段摘要用 `openyida get-schema <appType> <formUuid|--all> ...`。
 - 页面、流程、公式或多表 dataBinding 确实需要多个 `fieldId` 时，对每个目标业务表单最多一次性执行 `openyida get-schema <appType> <formUuid> --field-map-json`，读取完整 JSON 并合并到 `.cache/<项目名>-schema.json`。

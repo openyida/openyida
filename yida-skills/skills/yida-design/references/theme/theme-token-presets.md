@@ -1,21 +1,63 @@
 # 应用主题与 token 参考
 
-本文件是 OpenYida 应用主题的统一参考。其他 skill 需要应用主题 key、平台候选主题或 token 变量时，引用本文，不在各自文档里重复维护完整主题清单。
+本文件是 `yida-design` 确定 OpenYida 应用主题色阶和 token 修改清单时使用的参考。
 
 主题选择先根据行业、品牌、业务情绪和视觉目标做创意判断，不能固定回到 `podBlue` 或 #1677ff，也不能套用“科技=蓝、宠物=橙、法律=蓝”这类行业刻板配色。`podBlue`、`podGreen`、`podOrange` 是常用浅底候选，不是默认答案；`blue`、`green`、`orange` 也是应用主题 token profile，保留原名，不自动改写成其他主题名。
 
-`deepBlue`、`deepPurple`、`purple`、`yellow`、`magenta`、`red`、`greyBlue`、`coffee`、`black` 等属于平台支持主题；仅在用户明确指定、品牌匹配或业务确实需要时使用。普通业务页默认使用浅底主题，`black` 不作为默认主题。
+`deepBlue`、`deepPurple`、`purple`、`yellow`、`magenta`、`red`、`greyBlue`、`coffee`、`black` 等色盘仅在用户明确指定、品牌匹配或业务确实需要时使用。普通业务页默认使用浅底主题，`black` 不作为默认主题。
 
-注意：`openyida create-app/update-app --theme` 只能传平台支持的应用主题 key。若设计结果是任意自定义品牌色、渐变色盘或不在清单里的主题名，创建应用时不要显式传 `theme/colour`；把色盘写成 `style#yida-global-theme` 或 `customThemeStyle.tokens` 注入。页面级 `--theme-profile` / `style#yida-global-theme` 可以使用本文的应用主题 token profile。
+下方预置用于确定主题色阶。主题文件的生成与更新统一按 [CLI token 契约](../../workflow/output-design.md#cli-token-契约fast--plan-共用) 执行，品牌变量含义见下方“平台 token 语义”。
 
-## 应用主题 key 清单
+## 暗色主题浮层适配
 
-| key | 颜色倾向 | 使用口径 |
+CodeCanvas 对话框通过 [CanvasDialog 模板](../../../yida-canvas-custom-page/references/dialog-guide.md) 消费本节的 `--dialog-*` 和按钮 token，浅色与暗色共用组件；视觉设计提供 token，页面实现通过 CLI 复制组件。
+
+用户选择暗色、黑色、夜间主题，或已有应用整体采用暗色界面时，执行本节。普通浅色界面继续使用基础主题；仅品牌色偏暗时，先根据用户要求和页面背景判断是否需要暗色浮层。
+
+`navTheme=dark` 只表示导航深色，不触发本节；`colorMode` 是平台配色模式，也不表示整体暗黑。浮层明暗以界面视觉方案为准，分别记录品牌色、界面背景和导航明暗。
+
+### 设计与实现
+
+1. `yida-design` 根据用户要求确定浮层的背景、正文、弱文字、边框和交互状态，在 `design.md` 中写入实际组件消费的 token。Plan 将差异写入 `visualStyle.tokens` 后物化；视觉方向的说明保留整体明暗意图。
+2. 实现阶段使用 CLI 生成的主题文件。对平台 CSS 中写死颜色的组件，允许在复制后的 `app-theme.css` 末尾追加精确 classname 规则；保留模板及其导航作用域。
+3. 按当前加载的组件 CSS 和实际 DOM 确定选择器。优先覆盖组件已有变量，确实没有变量时覆盖具体属性；避免用通配选择器修改整个弹层子树。
+4. 应用自定义 CSS 在组件 CSS 之后加载。同等优先级时后加载的声明可覆盖前面的声明；仍需核对更高优先级选择器、内联样式与 `!important`。变量需定义在浮层实际节点或其祖先可继承的位置。
+5. classname 补丁写入主题 CSS 的独立标记区块；按设计更新 token 时会保留该区块。设计正文中的样式说明由页面实现阶段转成具体 CSS。
+
+### 逐组件检查
+
+| 组件 | 需要成套检查的变量或样式 |
+| --- | --- |
+| Menu / Dropdown | `--menu-background`、`--menu-color`，hover / selected 的背景与文字，disabled 文字、箭头和分割线；面板边框与阴影检查 `--popup-local-*` |
+| Balloon / Tooltip | normal / primary / tooltip 各自的背景、文字、边框、阴影；normal / primary 的关闭按钮及 hover；箭头伪元素与面板表面一致 |
+| Dialog | `--dialog-bg`、标题背景与文字、正文文字、页脚背景与边框、关闭按钮及 hover、阴影 |
+| Popup / Select / Cascader / TreeSelect | 实际承载面板的组件背景、菜单状态和分隔线；有硬编码色值时补 class 规则，不能只设置 `--popup-bg` |
+
+例如当前 Deep Cascader 面板写死白底，暗色方案下可在应用主题 CSS 末尾增加：
+
+```css
+/* dark-overlay-overrides:start */
+.deep-cascader-select-popup {
+  background: var(--menu-background);
+  color: var(--menu-color);
+}
+/* dark-overlay-overrides:end */
+```
+
+该示例仅用于已确认整体暗色、且该选择器与当前组件一致的应用。混合明暗区域或支持模式切换时，使用实际存在且覆盖浮层挂载位置的主题作用域；不能用导航的深色 class 代替。切回浅色时恢复对应 token 并移除不再适用的补丁。
+
+### 验收
+
+实际打开 Balloon、Menu、Popup、Dialog、Dropdown，检查文字、箭头、关闭按钮、hover、selected、disabled 和边框。对挂到 `body` 的浮层核对 computed style 与变量继承，并检查页面内菜单和导航未被误改；记录实际检查结果。
+
+## 色盘参考清单
+
+| 色盘名 | 颜色倾向 | 使用口径 |
 | --- | --- | --- |
 | `blue` | 基础蓝 | 按需 |
 | `green` | 基础绿 | 按需 |
 | `orange` | 基础橙 | 按需 |
-| `podBule` | 平台蓝色 key | 按需 |
+| `podBule` | 平台蓝色 | 按需 |
 | `podBlue` | 平台蓝 | 常用候选，不默认 |
 | `teal` | 青色 | 按需 |
 | `podGreen` | 平台绿 | 常用候选，不默认 |
@@ -34,7 +76,7 @@
 
 ## 应用主题 token profile
 
-每个 profile 都按平台变量名记录。`--color-brand1-*` 是页面和 PC 端主要消费的品牌色阶，`--color-brand-*` 是移动端和部分原生表单/壳层桥接仍会消费的品牌色阶，不能删掉、改名或替换为别的变量。`--color-group` 用于图表和分组配色。
+每个 profile 都按平台变量名记录。平台实际品牌色阶是 `--color-brand1-1/2/3/5/6/9/10`；生成主题文件时必须完整写入这些色阶，不得生成不存在的 `4/7/8`。`--color-brand1-*` 是页面和 PC 端主要消费的品牌色阶，`--color-brand-*` 是移动端和部分原生表单/壳层消费的品牌色阶，不能删掉、改名或替换为别的变量。`--color-group` 用于图表和分组配色。
 
 ## 平台 token 语义
 
@@ -45,10 +87,9 @@
 | `--color-brand1-3` | 品牌透明/浅边界 | 选中边框、禁用/弱化品牌态、浅描边 |
 | `--color-brand1-5` | 主色 hover 档 | 主按钮 hover、链接 hover、可点击强调 hover |
 | `--color-brand1-6` | 主品牌色 | 主按钮、链接、选中态、重点标签、图表主序列 |
-| `--color-brand1-7` | 主色 active 档 | 按下态、active、pressed |
 | `--color-brand1-9` | 深主色 | 深色强调、深底按钮、强调标题、深色场景锚点 |
 | `--color-brand1-10` | 深色或透明强调档 | 深色 hover、强强调背景、深色主题补充 |
-| `--color-brand-1` | 移动端品牌浅/透明档 1 | 移动端壳层、移动端表单、旧版移动组件浅品牌态 |
+| `--color-brand-1` | 移动端品牌浅/透明档 1 | 移动端壳层、移动端表单、移动组件浅品牌态 |
 | `--color-brand-2` | 移动端品牌浅/中档 2 | 移动端 hover、轻量强调、移动端组件浅色面 |
 | `--color-brand-3` | 移动端主品牌档 3 | 移动端主操作、选中态、原生表单移动主色 |
 | `--color-brand-4` | 移动端深品牌档 4 | 移动端 active、深色强调、移动壳层深色态 |
@@ -364,6 +405,7 @@
   "--color-brand1-1": "rgba(155, 136, 121, 0.8)",
   "--color-brand1-2": "rgba(243, 240, 239, 1)",
   "--color-brand1-3": "rgba(155, 136, 121, 0.2)",
+  "--color-brand1-5": "rgba(52, 50, 44, 1)",
   "--color-brand1-6": "rgba(155, 136, 121, 1)",
   "--color-brand1-9": "rgba(58, 55, 49, 1)",
   "--color-brand1-10": "rgba(155, 136, 121, 0.32)",

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "1.0",
+  "description": "页面体验模式的确定性派生索引。build-plan.json 只保存模式选择和项目差异，标准规则由 materialize 从本索引补齐。",
+  "contentRichness": {
+    "requirement": "rich-but-relevant",
+    "antiFiller": [
+      "不使用无业务承接的 KPI、图表或装饰卡片凑内容",
+      "不使用重复快捷入口或大段占位文案凑内容"
+    ]
+  },
+  "patterns": [
+    {
+      "id": "enterprise-control",
+      "label": "企业管理控制台",
+      "mustKeep": ["清晰业务边界", "高效扫描", "稳定的状态与操作位置"]
+    },
+    {
+      "id": "compact-workbench",
+      "label": "紧凑工作台",
+      "mustKeep": ["高频动作显眼", "分组清楚", "首屏至少两层信息"]
+    },
+    {
+      "id": "data-insight",
+      "label": "数据洞察",
+      "mustKeep": ["数据层级", "异常与趋势", "指标口径"]
+    },
+    {
+      "id": "action-command",
+      "label": "行动指挥台",
+      "mustKeep": ["行动优先", "当前任务突出", "反馈明确可追踪"]
+    },
+    {
+      "id": "progress-narrative",
+      "label": "进度叙事",
+      "mustKeep": ["阶段感", "责任归属", "下一步动作", "风险"]
+    },
+    {
+      "id": "catalog-browse",
+      "label": "目录浏览",
+      "mustKeep": ["筛选路径", "对象可比较性", "稳定卡片高度"]
+    },
+    {
+      "id": "form-focused",
+      "label": "聚焦表单",
+      "mustKeep": ["填写路径", "即时校验", "明确提交结果"]
+    },
+    {
+      "id": "brand-landing",
+      "label": "品牌落地页",
+      "mustKeep": ["明确主张", "真实素材", "清楚 CTA"]
+    },
+    {
+      "id": "split-pane-ops",
+      "label": "主从处理台",
+      "mustKeep": ["稳定主从关系", "上下文不丢失", "当前对象和反馈清楚"]
+    },
+    {
+      "id": "custom-page-pattern",
+      "label": "自定义页面模式",
+      "mustKeep": []
+    }
+  ]
+}

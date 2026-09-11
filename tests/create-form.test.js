@@ -18,6 +18,8 @@ const createFormSplitSource = [
   'commands.js',
   'definition-reader.js',
   'field-normalizers.js',
+  'nav-icon.js',
+  'nav-icon-service.js',
   'rule-builder.js',
   'api-path.js',
   'schema-patch.js',
@@ -35,37 +37,103 @@ function stripNodeRuntimeWarnings(output) {
     .replace(/^\(Use `node --trace-warnings \.\.\.` to show where the warning was created\)\n?/gm, '');
 }
 
+async function requestNonIdempotentOnce(requestFn, preflightFn, authRef) {
+  const preflightResult = await preflightFn(authRef);
+  if (!preflightResult || preflightResult.success === false) {
+    return preflightResult;
+  }
+  return requestFn(authRef);
+}
+
+function createSuccessfulFormHttpMocks(formUuid, options = {}) {
+  let created = false;
+  let navigationIcon = '';
+  const navigationNode = function () {
+    return {
+      id: 101,
+      navUuid: formUuid,
+      formUuid,
+      parentNavUuid: 'NAV-SYSTEM-PARENT-UUID',
+      navType: 'PAGE',
+      formType: 'receipt',
+      title: { zh_CN: options.formTitle || '测试表单', en_US: options.formTitle || 'Test form', type: 'i18n' },
+      hidden: 'n',
+      mobileHidden: 'n',
+      icon: navigationIcon,
+      gmtModified: 1787765189000,
+      gmtCreate: 1787284627000,
+      i18nTitle: { zh_CN: options.formTitle || '测试表单' },
+      isNewReport: '',
+      isNewForm: 'y',
+      slug: '',
+      isNew: 'n',
+      parentId: 0,
+      url: '',
+      topicId: '',
+      displayType: '',
+      relateFormUuid: formUuid,
+      processCode: '',
+      listOrder: 21,
+      formStatus: 'ONLINE',
+      relateFormType: '',
+    };
+  };
+
+  return {
+    httpGet: jest.fn((baseUrl, requestPath) => {
+      if (requestPath.includes('getFormNavigationListByOrder')) {
+        return Promise.resolve({ success: true, content: created ? [navigationNode()] : [] });
+      }
+      return Promise.resolve({ success: true, content: { gmtModified: 100 } });
+    }),
+    httpPost: jest.fn((baseUrl, requestPath, postData) => {
+      if (requestPath.includes('saveFormSchemaInfo')) {
+        created = true;
+        return Promise.resolve({ success: true, content: { formUuid } });
+      }
+      if (requestPath.includes('updateFormNavigation')) {
+        if (!options.ignoreNavigationUpdate) {
+          navigationIcon = querystring.parse(postData).icon;
+        }
+        return Promise.resolve({ success: true });
+      }
+      if (requestPath.includes('updateFormConfig') && options.updateFormConfigResponse) {
+        return Promise.resolve(options.updateFormConfigResponse);
+      }
+      return Promise.resolve({ success: true });
+    }),
+    getNavigationIcon() {
+      return navigationIcon;
+    },
+  };
+}
+
 // ── Bug #1: HTTP helpers must use master token auth / auto-login plumbing ──
 
 describe('create-form.js imports', () => {
   test('uses token-first authRef HTTP helpers while keeping auto-login wrapper', () => {
     expect(sourceCode).toContain("require('../core/yida-client')");
     expect(sourceCode).toContain('createAuthRef');
-    const requireLine = sourceCode
-      .split('\n')
-      .find((line) => line.includes('require("../core/utils")') || line.includes("require('../core/utils')"));
-    expect(requireLine).toBeDefined();
-    expect(requireLine).toContain('httpPost');
-    expect(requireLine).toContain('httpGet');
-    expect(requireLine).toContain('requestWithAutoLogin');
+    expect(sourceCode).toContain("require('../core/utils')");
+    expect(sourceCode).toContain('httpPost');
+    expect(sourceCode).toContain('httpGet');
+    expect(sourceCode).toContain('requestWithAutoLogin');
+    expect(sourceCode).toContain('requestNonIdempotentWithAuthPreflight');
   });
 
   test('request wrappers delegate to token auth HTTP helpers', () => {
     const getBody = extractFunctionBody(sourceCode, 'sendGetRequest');
     const postBody = extractFunctionBody(sourceCode, 'sendPostRequest');
-    const updateBody = extractFunctionBody(sourceCode, 'sendUpdateConfigRequest');
     expect(getBody).toContain('httpGet(baseUrl, requestPath, queryParams)');
     expect(postBody).toContain('httpPost(baseUrl, requestPath, postData');
-    expect(updateBody).toMatch(/httpPost\(\s*baseUrl,/);
     expect(postBody).not.toContain('authRef && authRef.cookies');
-    expect(updateBody).not.toContain('authRef && authRef.cookies');
     expect(postBody).not.toContain('Cookie:');
-    expect(updateBody).not.toContain('Cookie:');
+    expect(sourceCode).not.toContain('updateFormConfig');
   });
 });
 
 describe('legacy process form bridge', () => {
-  test('creates through shared form services without stdout and tolerates config warnings', async () => {
+  test('creates through shared form services without stdout or updateFormConfig', async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-process-form-'));
     const fieldsPath = path.join(tmpDir, 'fields.json');
     fs.writeFileSync(fieldsPath, JSON.stringify({
@@ -76,6 +144,7 @@ describe('legacy process form bridge', () => {
 
     jest.resetModules();
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const formHttpMocks = createSuccessfulFormHttpMocks('FORM_BRIDGE', { formTitle: '流程申请' });
     const mockUtils = {
       loadAuthData: jest.fn(() => ({
         corp_id: 'corp',
@@ -83,22 +152,12 @@ describe('legacy process form bridge', () => {
         auth_mode: 'token',
         auth_source: 'token',
       })),
-      httpPost: jest.fn((baseUrl, requestPath) => {
-        if (requestPath.includes('saveFormSchemaInfo')) {
-          return Promise.resolve({ success: true, content: { formUuid: 'FORM_BRIDGE' } });
-        }
-        if (requestPath.includes('/_view/query/formdesign/saveFormSchema.json')) {
-          return Promise.resolve({ success: true });
-        }
-        if (requestPath.includes('updateFormConfig')) {
-          return Promise.resolve({ success: false, errorMsg: 'config warning' });
-        }
-        return Promise.resolve({ success: true });
-      }),
+      httpPost: formHttpMocks.httpPost,
       requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
+      requestNonIdempotentWithAuthPreflight: jest.fn(requestNonIdempotentOnce),
       triggerLogin: jest.fn(),
       resolveBaseUrl: jest.fn(() => 'https://example.test'),
-      httpGet: jest.fn(() => Promise.resolve({ success: true, content: { gmtModified: 100 } })),
+      httpGet: formHttpMocks.httpGet,
     };
 
     jest.doMock('../lib/core/utils', () => mockUtils);
@@ -120,7 +179,6 @@ describe('legacy process form bridge', () => {
       formUuid: 'FORM_BRIDGE',
       formTitle: '流程申请',
       fieldCount: 1,
-      configResult: { success: false, errorMsg: 'config warning' },
     });
     const saveCall = mockUtils.httpPost.mock.calls.find(function (call) {
       return call[1].includes('/_view/query/formdesign/saveFormSchema.json');
@@ -129,6 +187,8 @@ describe('legacy process form bridge', () => {
     const savedText = JSON.stringify(savedSchema);
     expect(savedText).toContain('textField_');
     expect(savedText).toContain('required');
+    expect(formHttpMocks.getNavigationIcon()).toBe('liucheng');
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(0);
     expect(consoleSpy).not.toHaveBeenCalled();
 
     consoleSpy.mockRestore();
@@ -161,7 +221,7 @@ describe('legacy create-form server revision isolation', () => {
     const saveBody = querystring.parse(saveCall[2]);
     expect(saveBody.gmtModified).toBe('100');
     expect(JSON.parse(saveBody.content).gmtModified).toBe(999);
-    expect(mockUtils.requestWithAutoLogin).toHaveBeenCalledTimes(3);
+    expect(mockUtils.requestWithAutoLogin).toHaveBeenCalledTimes(2);
     consoleSpy.mockRestore();
     jest.dontMock('../lib/core/utils');
     jest.dontMock('../lib/core/chalk');
@@ -678,8 +738,12 @@ describe('legacy create-form compact field resolver', () => {
     const tableStatus = findDirectChildByLabel(table, '状态');
     expect(topLevelStatus.props.onChange).toBeUndefined();
     expect(tableStatus.props.onChange).toMatchObject({
-      type: 'actionRef',
-      name: expect.stringMatching(/^openyidaRuleChange_/),
+      type: 'JSExpression',
+      value: expect.stringContaining('legaoBuiltin.execEventFlow'),
+      events: [expect.objectContaining({
+        type: 'actionRef',
+        name: expect.stringMatching(/^openyidaRuleChange_/),
+      })],
     });
 
     consoleSpy.mockRestore();
@@ -796,6 +860,7 @@ function loadIsolatedLegacyForm(schema) {
       return Promise.resolve({ success: true });
     }),
     requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
+    requestNonIdempotentWithAuthPreflight: jest.fn(requestNonIdempotentOnce),
     detectActiveTool: jest.fn(() => null),
   };
   const mockChalk = {
@@ -961,6 +1026,9 @@ describe('form presentation components', () => {
       'NumberField',
     ]));
     expect(componentsMapNames).not.toContain('Html');
+    schema.pages[0].componentsMap.forEach((entry) => {
+      expect(entry).not.toHaveProperty('version');
+    });
     const pageSection = findDirectChildByComponentName(formContainer, 'PageSection');
     expect(formContainer.children.map((child) => child.componentName)).not.toContain('Html');
     expect(pageSection).toMatchObject({
@@ -1005,7 +1073,7 @@ describe('form presentation components', () => {
     expect(divider.props.title.zh_CN).toBe('联系方式');
   });
 
-  test('buildFormSchema injects default formDetail CSS through the form action', () => {
+  test('buildFormSchema does not inject form theme or formDetail CSS', () => {
     const schema = createForm._private.buildFormSchema(
       '默认详情样式',
       [{ type: 'TextField', label: '姓名' }],
@@ -1020,10 +1088,9 @@ describe('form presentation components', () => {
     const formContainer = findFormContainer(root);
 
     expect(formContainer.children.map((child) => child.componentName)).not.toContain('Html');
-    expect(schema.actions.module.source).toContain('openyida:theme:start');
-    expect(schema.actions.module.source).toContain('openyidaThemeDidMount');
-    expect(schema.actions.module.source).toContain('yida-form-detail detail page style');
-    expect(schema.actions.module.source).toContain('openyidaThemeIsFormDetail');
+    expect(root.lifeCycles.componentDidMount).toMatchObject({ name: 'didMount', type: 'actionRef' });
+    expect(schema.actions.module.source).not.toContain('openyida:theme:start');
+    expect(schema.actions.module.source).not.toContain('yida-global-theme');
     expect(schema.pages[0].componentsMap.map((item) => item.componentName)).not.toContain('Html');
   });
 
@@ -1376,6 +1443,51 @@ describe('form presentation components', () => {
     ])).toBe(2);
   });
 
+  test('creates phone input as TextField with regex-backed custom validation and rejects PhoneField', () => {
+    const phoneDefinition = {
+      type: 'TextField',
+      label: '联系电话',
+      validation: [{
+        type: 'regex',
+        pattern: '^1[3-9]\\d{9}$',
+        message: '请输入正确的 11 位手机号码',
+      }],
+    };
+    const schema = createForm._private.buildFormSchema(
+      '电话字段测试',
+      [phoneDefinition],
+      'FORM_TEST',
+      'CORP_TEST',
+      'APP_TEST',
+      'single',
+      'default',
+      'top'
+    );
+    const formContainer = findFormContainer(schema.pages[0].componentsTree[0]);
+    const phoneField = findDirectChildByComponentName(formContainer, 'TextField');
+
+    expect(phoneField).toMatchObject({
+      componentName: 'TextField',
+      props: {
+        validationType: 'text',
+        validation: [expect.objectContaining({
+          type: 'customValidate',
+          message: '请输入正确的 11 位手机号码',
+          param: expect.objectContaining({ type: 'js' }),
+        })],
+      },
+    });
+    expect(phoneField.props.validation[0].param.source).toContain('var PATTERN = "^1[3-9]\\\\d{9}$";');
+    const validatePhone = new Function(`return (${phoneField.props.validation[0].param.source});`)();
+    expect(validatePhone('13800138000')).toBe(true);
+    expect(validatePhone('12345')).toBe(false);
+    expect(() => createForm._private.validateFormFieldDefinitions([
+      { type: 'PhoneField', label: '联系电话' },
+    ])).toThrow(expect.objectContaining({
+      code: 'CREATE_FORM_UNSUPPORTED_FIELD_TYPE',
+    }));
+  });
+
   test('Divider defaults to bold-with-thin so generated enterprise forms use the recommended section style', () => {
     const schema = createForm._private.buildFormSchema(
       '分割线测试',
@@ -1418,7 +1530,7 @@ describe('form presentation components', () => {
     expect(dividers[2].props.type).toBe('bold-with-thin');
   });
 
-  test('all forms inject yida global theme style into the current form document and same-origin parents', () => {
+  test('forms keep the ordinary lifecycle without theme injection', () => {
     const schema = createForm._private.buildFormSchema(
       '全局主题测试',
       [{ type: 'TextField', label: '姓名' }],
@@ -1431,28 +1543,15 @@ describe('form presentation components', () => {
     );
     const root = schema.pages[0].componentsTree[0];
 
-    expect(root.lifeCycles.componentDidMount).toMatchObject({
-      name: 'openyidaThemeDidMount',
-      type: 'actionRef',
-    });
-    expect(schema.actions.list).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'openyidaThemeDidMount',
-        relatedEventId: 'lifecycle:didMount',
-      }),
+    expect(root.lifeCycles.componentDidMount).toMatchObject({ name: 'didMount', type: 'actionRef' });
+    expect(schema.actions.list).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'openyidaThemeDidMount' }),
     ]));
-    expect(schema.actions.module.source).toContain('openyida:theme:start');
-    expect(schema.actions.module.source).toContain('yida-global-theme');
-    expect(schema.actions.module.source).toContain('cursor.parent');
-    expect(schema.actions.module.source).toContain('docs.indexOf(cursor.document)');
-    expect(schema.actions.module.source).toContain('--color-brand1-9');
-    expect(schema.actions.module.source).toContain("deepBlue: '#3954E4'");
-    expect(schema.actions.module.source).toContain('openyidaThemeIsFormDetail');
-    expect(schema.actions.module.source).toContain('yida-form-detail-style');
-    expect(schema.actions.module.compiled).toContain('openyidaThemeDidMount');
+    expect(schema.actions.module.source).not.toContain('openyida:theme:start');
+    expect(schema.actions.module.source).not.toContain('yida-global-theme');
   });
 
-  test('forms without Divider still inject yida global theme action', () => {
+  test('forms without Divider also avoid theme actions', () => {
     const schema = createForm._private.buildFormSchema(
       '普通字段测试',
       [{ type: 'TextField', label: '姓名' }],
@@ -1464,49 +1563,9 @@ describe('form presentation components', () => {
       'top'
     );
 
-    expect(schema.pages[0].componentsTree[0].lifeCycles.componentDidMount.name).toBe('openyidaThemeDidMount');
-    expect(schema.actions.module.source).toContain('openyida:theme:start');
-    expect(schema.actions.module.source).toContain('yida-global-theme');
-  });
-
-  test('yida global theme action rewrites existing unified theme schema contract', () => {
-    const schema = createForm._private.buildFormSchema(
-      '统一主题块重写测试',
-      [{ type: 'TextField', label: '姓名' }],
-      'FORM_TEST',
-      'CORP_TEST',
-      'APP_TEST',
-      'single',
-      'default',
-      'top'
-    );
-    schema.actions.module.source = [
-      'export function didMount() {}',
-      '/* openyida:theme:start */',
-      'export function openyidaThemeDidMount() {}',
-      '/* openyida:theme:end */',
-    ].join('\n');
-    schema.actions.list.push({
-      id: 'openyidaThemeDidMount',
-      name: 'openyidaThemeDidMount',
-      relatedEventId: 'lifecycle:didMount',
-      type: 'lifeCycleEvent',
-      params: {},
-    });
-
-    createForm._private.ensureYidaGlobalThemeAction(schema);
-
-    expect((schema.actions.module.source.match(/openyida:theme:start/g) || [])).toHaveLength(1);
-    expect(schema.actions.module.source).toContain('openyida:theme:start');
-    expect(schema.actions.module.source).toContain('openyidaThemeDidMount');
-    expect(schema.actions.module.source).toContain('openyidaInjectTheme');
-    const themeActionItems = schema.actions.list.filter(function (item) {
-      return item.id === 'openyidaThemeDidMount';
-    });
-    expect(themeActionItems).toHaveLength(1);
-    expect(themeActionItems[0]).toEqual(expect.objectContaining({
-      relatedEventId: 'lifecycle:didMount',
-    }));
+    expect(schema.pages[0].componentsTree[0].lifeCycles.componentDidMount.name).toBe('didMount');
+    expect(schema.actions.module.source).not.toContain('openyida:theme:start');
+    expect(schema.actions.module.source).not.toContain('yida-global-theme');
   });
 
   test('update add can insert presentation components inside nested containers', () => {
@@ -1543,9 +1602,33 @@ describe('form presentation components', () => {
     expect(firstColumnChildren.map((child) => child.componentName)).toEqual(['TextField', 'Divider']);
     expect(firstColumnChildren[1].props.title.zh_CN).toBe('联系方式');
     expect(schema.pages[0].componentsMap.map((item) => item.componentName)).toContain('Divider');
+    expect(schema.pages[0].componentsMap.find((item) => item.componentName === 'Divider')).not.toHaveProperty('version');
   });
 
-  test('update schemas keep yida global theme action after adding Divider', () => {
+  test('form schema generators leave vc-deep-yida version selection to the runtime', () => {
+    const compiled = formCompiler.compileFormDefinition({
+      formTitle: '运行时版本测试',
+      fields: [{ type: 'TextField', label: '姓名' }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_RUNTIME_VERSION',
+    });
+    const emptySchema = formCompiler.buildEmptyFormSchema();
+
+    [compiled.schema, emptySchema].forEach((schema) => {
+      const entries = schema.pages[0].componentsMap.filter(
+        (entry) => entry.package === '@ali/vc-deep-yida'
+      );
+      expect(entries.length).toBeGreaterThan(0);
+      entries.forEach((entry) => {
+        expect(entry).not.toHaveProperty('version');
+      });
+    });
+    expect(sourceCode).not.toMatch(/package:\s*'@ali\/vc-deep-yida',\s*version:/);
+    expect(compilerSourceCode).not.toMatch(/package:\s*'@ali\/vc-deep-yida',\s*version:/);
+  });
+
+  test('update schemas do not add theme actions after adding Divider', () => {
     const schema = createForm._private.buildFormSchema(
       '后续新增分割线',
       [{ type: 'TextField', label: '姓名' }],
@@ -1560,12 +1643,9 @@ describe('form presentation components', () => {
       { action: 'add', field: { type: 'Divider', title: '联系方式' }, after: '姓名' },
     ]);
 
-    const applied = createForm._private.ensureYidaGlobalThemeAction(schema);
-
-    expect(applied).toBe(true);
-    expect(schema.pages[0].componentsTree[0].lifeCycles.componentDidMount.name).toBe('openyidaThemeDidMount');
-    expect(schema.actions.module.source).toContain('openyida:theme:start');
-    expect(schema.actions.module.source).toContain('openyidaInjectTheme');
+    expect(schema.pages[0].componentsTree[0].lifeCycles.componentDidMount.name).toBe('didMount');
+    expect(schema.actions.module.source).not.toContain('openyida:theme:start');
+    expect(schema.actions.module.source).not.toContain('yida-global-theme');
   });
 });
 
@@ -1650,6 +1730,67 @@ describe('create-form module API', () => {
     });
   });
 
+  test('parseArgs supports explicit form navigation icons and local icon listing', () => {
+    expect(createForm.parseArgs([
+      'create',
+      'APP_XXX',
+      '客户登记',
+      '.cache/openyida/forms/fields.json',
+      '--icon',
+      'name-card',
+    ])).toMatchObject({
+      mode: 'create',
+      icon: 'name-card',
+    });
+    expect(createForm.parseArgs(['icons', '--json'])).toMatchObject({
+      mode: 'icons',
+      json: true,
+    });
+  });
+
+  test('parseArgs accepts update --data-file as the same changesJsonOrFile input', () => {
+    expect(createForm.parseArgs([
+      'update',
+      'APP_XXX',
+      'FORM_XXX',
+      '--data-file',
+      '.cache/openyida/forms/changes.json',
+      '--json',
+    ])).toMatchObject({
+      mode: 'update',
+      appType: 'APP_XXX',
+      formUuid: 'FORM_XXX',
+      changesJsonOrFile: '.cache/openyida/forms/changes.json',
+      json: true,
+    });
+  });
+
+  test.each([
+    ['both positional and --data-file', ['update', 'APP_XXX', 'FORM_XXX', 'positional.json', '--data-file', 'flag.json']],
+    ['missing --data-file value', ['update', 'APP_XXX', 'FORM_XXX', '--data-file']],
+    ['duplicate --data-file', ['update', 'APP_XXX', 'FORM_XXX', '--data-file', 'one.json', '--data-file', 'two.json']],
+  ])('parseArgs rejects %s before login or remote calls', (_label, args) => {
+    expect(() => createForm.parseArgs(args)).toThrow(expect.objectContaining({
+      code: 'CREATE_FORM_INVALID_ARGUMENTS',
+    }));
+  });
+
+  test('parseArgs accepts the conservative resume command', () => {
+    expect(createForm.parseArgs([
+      'resume',
+      'APP_XXX',
+      'FORM_XXX',
+      '.cache/openyida/forms/fields.json',
+      '--json',
+    ])).toMatchObject({
+      mode: 'resume',
+      appType: 'APP_XXX',
+      formUuid: 'FORM_XXX',
+      fieldsJsonOrFile: '.cache/openyida/forms/fields.json',
+      json: true,
+    });
+  });
+
   test('parseArgs keeps validate inline rule compatibility', () => {
     expect(createForm.parseArgs([
       'validate',
@@ -1718,9 +1859,24 @@ describe('create-form module API', () => {
   });
 });
 
+describe('phase 6 actual five-form batch fixture', () => {
+  test('preflights three independent forms before one dependent group', () => {
+    const batch = require('../lib/app/create-form/batch');
+    const plan = batch.loadPlan(path.join(
+      __dirname,
+      'fixtures/create-form/five-form-batch.json',
+    ));
+
+    expect(plan.forms).toHaveLength(5);
+    expect(plan.groups).toEqual([
+      ['customer', 'contact', 'product'],
+      ['customerContact', 'customerProduct'],
+    ]);
+  });
+});
+
 describe('create-form create recovery guardrails', () => {
   afterEach(() => {
-    delete process.env.OPENYIDA_UPDATE_FORM_CONFIG_RETRY_DELAYS_MS;
     process.exitCode = undefined;
     jest.restoreAllMocks();
     jest.dontMock('../lib/core/utils');
@@ -1828,6 +1984,11 @@ describe('create-form create recovery guardrails', () => {
     ])).rejects.toMatchObject({
       code: 'CREATE_FORM_OPTION_FIELD_DATASOURCE_MISSING',
       details: expect.objectContaining({
+        stage: 'preflight',
+        retrySafe: true,
+        sideEffectState: 'not_started',
+        mutationAccepted: false,
+        mutationPerformed: false,
         diagnostics: expect.arrayContaining([
           expect.objectContaining({
             code: 'OPTION_FIELD_DATASOURCE_MISSING',
@@ -1885,6 +2046,242 @@ describe('create-form create recovery guardrails', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
+  test('create-form resume reads the exact form, adds only missing fields, and verifies the final schema', async () => {
+    let currentSchema = formCompiler.compileFormDefinition({
+      formTitle: '半成功表单',
+      fields: [{ key: 'name', type: 'TextField', label: '姓名' }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_HALF_CREATED',
+    }).schema;
+    const mockHttpGet = jest.fn(() => Promise.resolve({
+      success: true,
+      appType: 'APP_TEST',
+      formUuid: 'FORM_HALF_CREATED',
+      gmtModified: 100,
+      content: currentSchema,
+    }));
+    const mockHttpPost = jest.fn((baseUrl, requestPath, postData) => {
+      if (requestPath.includes('/saveFormSchema.json')) {
+        currentSchema = JSON.parse(querystring.parse(postData).content);
+      }
+      return Promise.resolve({ success: true });
+    });
+    const { isolatedCreateForm, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpGet: mockHttpGet,
+      httpPost: mockHttpPost,
+    });
+
+    const output = await isolatedCreateForm.run([
+      'resume',
+      'APP_TEST',
+      'FORM_HALF_CREATED',
+      JSON.stringify([
+        { key: 'name', type: 'TextField', label: '姓名' },
+        { key: 'phone', type: 'TextField', label: '手机号' },
+      ]),
+      '--json',
+    ]);
+
+    expect(output).toMatchObject({
+      success: true,
+      formUuid: 'FORM_HALF_CREATED',
+      existingFieldCount: 1,
+      addedFieldCount: 1,
+      requestedFieldCount: 2,
+      completedStages: [
+        'read_target',
+        'verify_ownership',
+        'compare_fields',
+        'add_missing_fields',
+        'save_schema',
+        'verify_final_schema',
+      ],
+      url: 'https://example.test/APP_TEST/workbench/FORM_HALF_CREATED',
+    });
+    expect(mockHttpGet).toHaveBeenCalledTimes(2);
+    expect(mockHttpPost.mock.calls.filter((call) => call[1].includes('/saveFormSchema.json'))).toHaveLength(1);
+    expect(mockHttpPost.mock.calls.filter((call) => call[1].includes('saveFormSchemaInfo'))).toHaveLength(0);
+    expect(JSON.stringify(currentSchema)).toContain('手机号');
+    consoleSpy.mockRestore();
+  });
+
+  test('create-form resume is a read-only no-op when every requested field already exists', async () => {
+    const currentSchema = formCompiler.compileFormDefinition({
+      formTitle: '完整表单',
+      fields: [
+        { key: 'name', type: 'TextField', label: '姓名' },
+        { key: 'phone', type: 'TextField', label: '手机号' },
+      ],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_COMPLETE',
+    }).schema;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpGet: jest.fn(() => Promise.resolve({
+        success: true,
+        appType: 'APP_TEST',
+        formUuid: 'FORM_COMPLETE',
+        gmtModified: 100,
+        content: currentSchema,
+      })),
+    });
+
+    const output = await isolatedCreateForm.run([
+      'resume',
+      'APP_TEST',
+      'FORM_COMPLETE',
+      JSON.stringify([
+        { key: 'name', type: 'TextField', label: '姓名' },
+        { key: 'phone', type: 'TextField', label: '手机号' },
+      ]),
+      '--json',
+    ]);
+
+    expect(output).toMatchObject({
+      success: true,
+      existingFieldCount: 2,
+      addedFieldCount: 0,
+    });
+    expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  test('create-form resume rebuilds a verified blank shell without creating a replacement form', async () => {
+    let currentSchema = {
+      schemaType: 'superform',
+      schemaVersion: '5.0',
+      pages: [{
+        componentsTree: [{ componentName: 'Page', children: [] }],
+        componentsMap: [{ package: '@ali/vc-deep-yida', componentName: 'Page' }],
+      }],
+    };
+    const mockHttpGet = jest.fn(() => Promise.resolve({
+      success: true,
+      appType: 'APP_TEST',
+      formUuid: 'FORM_BLANK_SHELL',
+      title: '产品',
+      gmtModified: 100,
+      content: currentSchema,
+    }));
+    const mockHttpPost = jest.fn((baseUrl, requestPath, postData) => {
+      if (requestPath.includes('/saveFormSchema.json')) {
+        currentSchema = JSON.parse(querystring.parse(postData).content);
+      }
+      return Promise.resolve({ success: true });
+    });
+    const { isolatedCreateForm, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpGet: mockHttpGet,
+      httpPost: mockHttpPost,
+    });
+
+    const output = await isolatedCreateForm.run([
+      'resume',
+      'APP_TEST',
+      'FORM_BLANK_SHELL',
+      JSON.stringify([
+        { type: 'Divider', title: '基本信息' },
+        {
+          type: 'ColumnContainer',
+          children: [[
+            { type: 'TextField', label: '产品名称' },
+          ], [
+            { type: 'NumberField', label: '标准价格' },
+          ]],
+        },
+      ]),
+      '--json',
+    ]);
+
+    expect(output).toMatchObject({
+      success: true,
+      formUuid: 'FORM_BLANK_SHELL',
+      recoveredBlankShell: true,
+      existingFieldCount: 0,
+      addedFieldCount: 2,
+      finalFieldCount: 2,
+      completedStages: [
+        'read_target',
+        'verify_ownership',
+        'rebuild_blank_schema',
+        'save_schema',
+        'verify_final_schema',
+      ],
+    });
+    expect(mockHttpGet).toHaveBeenCalledTimes(2);
+    expect(mockHttpPost.mock.calls.filter((call) => call[1].includes('/saveFormSchema.json'))).toHaveLength(1);
+    expect(mockHttpPost.mock.calls.filter((call) => call[1].includes('saveFormSchemaInfo'))).toHaveLength(0);
+    expect(JSON.stringify(currentSchema)).toContain('产品名称');
+    expect(JSON.stringify(currentSchema)).toContain('标准价格');
+    consoleSpy.mockRestore();
+  });
+
+  test('create-form resume rejects a mismatched readback identity without writing', async () => {
+    const currentSchema = formCompiler.compileFormDefinition({
+      formTitle: '其他应用表单',
+      fields: [{ key: 'name', type: 'TextField', label: '姓名' }],
+    }, {
+      appType: 'APP_OTHER',
+      formUuid: 'FORM_OTHER',
+    }).schema;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpGet: jest.fn(() => Promise.resolve({
+        success: true,
+        appType: 'APP_OTHER',
+        formUuid: 'FORM_OTHER',
+        gmtModified: 100,
+        content: currentSchema,
+      })),
+    });
+
+    await expect(isolatedCreateForm.run([
+      'resume',
+      'APP_TEST',
+      'FORM_EXPECTED',
+      JSON.stringify([{ key: 'name', type: 'TextField', label: '姓名' }]),
+      '--json',
+    ])).rejects.toMatchObject({
+      code: 'CREATE_FORM_RESUME_OWNERSHIP_UNVERIFIED',
+    });
+    expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  test('create-form resume fails closed on same-label type conflict without writing', async () => {
+    const currentSchema = formCompiler.compileFormDefinition({
+      formTitle: '冲突表单',
+      fields: [{ key: 'phone', type: 'NumberField', label: '手机号' }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_CONFLICT',
+    }).schema;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpGet: jest.fn(() => Promise.resolve({
+        success: true,
+        appType: 'APP_TEST',
+        formUuid: 'FORM_CONFLICT',
+        gmtModified: 100,
+        content: currentSchema,
+      })),
+    });
+
+    await expect(isolatedCreateForm.run([
+      'resume',
+      'APP_TEST',
+      'FORM_CONFLICT',
+      JSON.stringify([{ key: 'phone', type: 'TextField', label: '手机号' }]),
+      '--json',
+    ])).rejects.toMatchObject({
+      code: 'CREATE_FORM_RESUME_CONFLICT',
+      details: expect.objectContaining({
+        retryable: false,
+        remoteWrites: 0,
+      }),
+    });
+    expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
   test('create-form validate-fields runs local JSON gate and returns diagnostics without login or platform APIs', async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-field-validate-'));
     const fieldsPath = path.join(tmpDir, 'fields.json');
@@ -1926,6 +2323,46 @@ describe('create-form create recovery guardrails', () => {
     process.exitCode = previousExitCode;
     consoleSpy.mockRestore();
     fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('create-form icons lists the local yida-next catalog without login or platform APIs', async () => {
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand();
+
+    await expect(isolatedCreateForm.run(['icons', '--json'])).resolves.toMatchObject({
+      success: true,
+      count: 86,
+      default: 'auto',
+    });
+
+    const payload = JSON.parse(consoleSpy.mock.calls[0][0]);
+    expect(payload.groups).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'defaultIcons', icons: expect.any(Array) }),
+      expect.objectContaining({ key: 'systemIcons', icons: expect.any(Array) }),
+    ]));
+    expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    expect(mockUtils.httpGet).not.toHaveBeenCalled();
+    expect(mockUtils.requestWithAutoLogin).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  test('invalid explicit navigation icon fails before creating a blank form', async () => {
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand();
+
+    await expect(isolatedCreateForm.run([
+      'create',
+      'APP_TEST',
+      '客户登记',
+      JSON.stringify([{ type: 'TextField', label: '客户姓名' }]),
+      '--icon',
+      'not-an-icon',
+    ])).rejects.toMatchObject({
+      code: 'CREATE_FORM_NAV_ICON_INVALID',
+      details: expect.objectContaining({ availableIconCount: 86 }),
+    });
+
+    expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    expect(mockUtils.httpGet).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
   });
 
   test('create-form validate-fields CLI emits exactly one JSON payload for invalid input', () => {
@@ -2010,12 +2447,14 @@ describe('create-form create recovery guardrails', () => {
     ]));
 
     const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
-      httpGet: jest.fn(() => Promise.resolve({
-        success: false,
-        errorMsg: 'schema read failed',
-        errorCode: 'READ_FAILED',
-        content: { shouldNotLeak: true },
-      })),
+      httpGet: jest.fn()
+        .mockResolvedValueOnce({ success: true, content: [] })
+        .mockResolvedValueOnce({
+          success: false,
+          errorMsg: 'schema read failed',
+          errorCode: 'READ_FAILED',
+          content: { shouldNotLeak: true },
+        }),
     });
 
     await expect(isolatedCreateForm.run([
@@ -2050,30 +2489,15 @@ describe('create-form create recovery guardrails', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test('post-create updateFormConfig retries transient form not found and then succeeds', async () => {
-    process.env.OPENYIDA_UPDATE_FORM_CONFIG_RETRY_DELAYS_MS = '0,0';
+  test('create mode saves the schema without updateFormConfig', async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-config-retry-'));
     const fieldsPath = path.join(tmpDir, 'fields.json');
     fs.writeFileSync(fieldsPath, JSON.stringify([
       { type: 'TextField', label: '姓名' },
     ]));
 
-    let updateConfigAttempts = 0;
-    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
-      httpPost: jest.fn((baseUrl, requestPath) => {
-        if (requestPath.includes('saveFormSchemaInfo')) {
-          return Promise.resolve({ success: true, content: { formUuid: 'FORM_CONFIG_RETRY' } });
-        }
-        if (requestPath.includes('updateFormConfig')) {
-          updateConfigAttempts += 1;
-          if (updateConfigAttempts === 1) {
-            return Promise.resolve({ success: false, errorMsg: '表单不存在' });
-          }
-          return Promise.resolve({ success: true });
-        }
-        return Promise.resolve({ success: true });
-      }),
-    });
+    const formHttpMocks = createSuccessfulFormHttpMocks('FORM_CONFIG_RETRY', { formTitle: '配置重试表单' });
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand(formHttpMocks);
 
     await expect(isolatedCreateForm.run([
       'create',
@@ -2094,33 +2518,101 @@ describe('create-form create recovery guardrails', () => {
       formTitle: '配置重试表单',
       formUuid: 'FORM_CONFIG_RETRY',
       fieldCount: 1,
+      icon: 'shezhi',
+      iconSource: 'auto',
     });
     expect(payload).not.toHaveProperty('configWarning');
-    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(2);
+    expect(formHttpMocks.getNavigationIcon()).toBe('shezhi');
+    const navigationUpdateCalls = mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormNavigation'));
+    expect(navigationUpdateCalls).toHaveLength(1);
+    expect(navigationUpdateCalls[0][1]).toMatch(
+      /updateFormNavigation\.json\?_api=Nav\.update&_mock=false&_stamp=\d+$/
+    );
+    expect(querystring.parse(navigationUpdateCalls[0][2])).toMatchObject({
+      _locale_time_zone_offset: '28800000',
+      gmtModified: '1787765189000',
+      parentNavUuid: 'NAV-SYSTEM-PARENT-UUID',
+      hidden: 'n',
+      mobileHidden: 'n',
+      i18nTitle: '[object Object]',
+      isNewReport: '',
+      isNewForm: 'y',
+      slug: '',
+      formType: 'receipt',
+      formUuid: 'FORM_CONFIG_RETRY',
+      navUuid: 'FORM_CONFIG_RETRY',
+      navType: 'PAGE',
+      isNew: 'n',
+      gmtCreate: '1787284627000',
+      parentId: '0',
+      url: '',
+      topicId: '',
+      displayType: '',
+      relateFormUuid: 'FORM_CONFIG_RETRY',
+      processCode: '',
+      listOrder: '21',
+      formStatus: 'ONLINE',
+      relateFormType: '',
+      icon: 'shezhi',
+    });
+    expect(querystring.parse(navigationUpdateCalls[0][2])).not.toHaveProperty('appType');
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(0);
 
     consoleSpy.mockRestore();
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test('post-create updateFormConfig retry exhaustion reports post-save warning', async () => {
+  test('create mode reports a partial-create failure when navigation icon readback mismatches', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-icon-readback-'));
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([
+      { type: 'TextField', label: '客户姓名' },
+    ]));
+    const formHttpMocks = createSuccessfulFormHttpMocks('FORM_ICON_MISMATCH', {
+      formTitle: '客户登记',
+      ignoreNavigationUpdate: true,
+    });
+    const { isolatedCreateForm, consoleSpy } = loadIsolatedCreateFormCommand(formHttpMocks);
+
+    await expect(isolatedCreateForm.run([
+      'create',
+      'APP_TEST',
+      '客户登记',
+      fieldsPath,
+      '--icon',
+      'name-card',
+    ])).rejects.toMatchObject({
+      code: 'CREATE_FORM_NAV_ICON_READBACK_MISMATCH',
+    });
+
+    const recoveryPayload = consoleSpy.mock.calls
+      .map((call) => call[0])
+      .filter((line) => typeof line === 'string' && line.startsWith('{'))
+      .map((line) => JSON.parse(line))
+      .find((payload) => payload && payload.formUuid === 'FORM_ICON_MISMATCH');
+    expect(recoveryPayload).toMatchObject({
+      success: false,
+      formUuid: 'FORM_ICON_MISMATCH',
+      stage: 'updateFormNavigationIcon',
+      errorCode: 'CREATE_FORM_NAV_ICON_READBACK_MISMATCH',
+    });
+
+    consoleSpy.mockRestore();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('create mode ignores obsolete updateFormConfig responses', async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-config-failed-'));
     const fieldsPath = path.join(tmpDir, 'fields.json');
     fs.writeFileSync(fieldsPath, JSON.stringify([
       { type: 'TextField', label: '姓名' },
     ]));
-    process.env.OPENYIDA_UPDATE_FORM_CONFIG_RETRY_DELAYS_MS = '0,0';
 
-    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
-      httpPost: jest.fn((baseUrl, requestPath) => {
-        if (requestPath.includes('saveFormSchemaInfo')) {
-          return Promise.resolve({ success: true, content: { formUuid: 'FORM_CONFIG_FAILED' } });
-        }
-        if (requestPath.includes('updateFormConfig')) {
-          return Promise.resolve({ success: false, errorMsg: '表单不存在', content: { shouldNotLeak: true } });
-        }
-        return Promise.resolve({ success: true });
-      }),
+    const formHttpMocks = createSuccessfulFormHttpMocks('FORM_CONFIG_FAILED', {
+      formTitle: '配置失败表单',
+      updateFormConfigResponse: { success: false, errorMsg: '表单不存在', content: { shouldNotLeak: true } },
     });
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand(formHttpMocks);
 
     await expect(isolatedCreateForm.run([
       'create',
@@ -2140,40 +2632,28 @@ describe('create-form create recovery guardrails', () => {
       appType: 'APP_TEST',
       formTitle: '配置失败表单',
       formUuid: 'FORM_CONFIG_FAILED',
-      stage: 'updateFormConfig',
-      schemaSaved: true,
-      configWarning: '表单不存在',
-      configResult: {
-        success: false,
-        errorMsg: '表单不存在',
-      },
     });
+    expect(recoveryPayload).not.toHaveProperty('configWarning');
     expect(recoveryPayload.retryAdvice).toBeUndefined();
     expect(JSON.stringify(recoveryPayload)).not.toContain('shouldNotLeak');
-    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(3);
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(0);
 
     consoleSpy.mockRestore();
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test('post-create updateFormConfig does not retry non-retryable permission errors', async () => {
+  test('create mode does not call updateFormConfig for permission responses', async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-config-permission-'));
     const fieldsPath = path.join(tmpDir, 'fields.json');
     fs.writeFileSync(fieldsPath, JSON.stringify([
       { type: 'TextField', label: '姓名' },
     ]));
 
-    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
-      httpPost: jest.fn((baseUrl, requestPath) => {
-        if (requestPath.includes('saveFormSchemaInfo')) {
-          return Promise.resolve({ success: true, content: { formUuid: 'FORM_CONFIG_PERMISSION' } });
-        }
-        if (requestPath.includes('updateFormConfig')) {
-          return Promise.resolve({ success: false, errorMsg: '权限不足', errorCode: 'PERMISSION_DENIED' });
-        }
-        return Promise.resolve({ success: true });
-      }),
+    const formHttpMocks = createSuccessfulFormHttpMocks('FORM_CONFIG_PERMISSION', {
+      formTitle: '配置权限表单',
+      updateFormConfigResponse: { success: false, errorMsg: '权限不足', errorCode: 'PERMISSION_DENIED' },
     });
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand(formHttpMocks);
 
     await expect(isolatedCreateForm.run([
       'create',
@@ -2193,22 +2673,15 @@ describe('create-form create recovery guardrails', () => {
       appType: 'APP_TEST',
       formTitle: '配置权限表单',
       formUuid: 'FORM_CONFIG_PERMISSION',
-      stage: 'updateFormConfig',
-      schemaSaved: true,
-      configWarning: '权限不足',
-      configResult: {
-        success: false,
-        errorMsg: '权限不足',
-        errorCode: 'PERMISSION_DENIED',
-      },
     });
-    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(1);
+    expect(warningPayload).not.toHaveProperty('configWarning');
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(0);
 
     consoleSpy.mockRestore();
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test('update mode keeps success true when post-save updateFormConfig fails', async () => {
+  test('update mode saves the schema without updateFormConfig', async () => {
     const initial = formCompiler.compileFormDefinition({
       formTitle: 'Update Warning',
       fields: [{ key: 'name', type: 'TextField', label: '姓名' }],
@@ -2242,21 +2715,14 @@ describe('create-form create recovery guardrails', () => {
       success: true,
       appType: 'APP_TEST',
       formUuid: 'FORM_UPDATE_WARNING',
-      stage: 'updateFormConfig',
-      schemaSaved: true,
-      configWarning: '权限不足',
-      configResult: {
-        success: false,
-        errorMsg: '权限不足',
-        errorCode: 'PERMISSION_DENIED',
-      },
     });
-    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(1);
+    expect(warningPayload).not.toHaveProperty('configWarning');
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(0);
 
     consoleSpy.mockRestore();
   });
 
-  test('patch mode reports post-save updateFormConfig failure as warning', async () => {
+  test('patch mode saves the schema without updateFormConfig', async () => {
     const initial = formCompiler.compileFormDefinition({
       formTitle: 'Patch Warning',
       fields: [{ key: 'name', type: 'TextField', label: '姓名' }],
@@ -2290,24 +2756,116 @@ describe('create-form create recovery guardrails', () => {
       success: true,
       appType: 'APP_TEST',
       formUuid: 'FORM_PATCH_WARNING',
-      stage: 'updateFormConfig',
-      schemaSaved: true,
-      configWarning: '权限不足',
-      configResult: {
-        success: false,
-        errorMsg: '权限不足',
-        errorCode: 'PERMISSION_DENIED',
-      },
     });
+    expect(warningPayload).not.toHaveProperty('configWarning');
     expect(mockChalk.result.mock.calls.some((call) => call[0] === false)).toBe(false);
     expect(mockChalk.result).toHaveBeenCalledWith(true, 'Schema 补丁保存成功', expect.any(Array));
-    expect(mockChalk.warn).toHaveBeenCalledWith(expect.stringContaining('权限不足'));
-    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(1);
+    expect(mockChalk.warn).not.toHaveBeenCalledWith(expect.stringContaining('权限不足'));
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(0);
 
     consoleSpy.mockRestore();
   });
 
-  test('add-option mode reports post-save updateFormConfig failure as warning', async () => {
+  test('field-action patch performs an exact post-save binding readback', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Action Readback',
+      fields: [{ key: 'status', type: 'SelectField', label: '状态', options: ['A', 'B'] }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_ACTION_READBACK',
+    }).schema;
+    initial.gmtModified = 100;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedLegacyForm(initial);
+
+    await isolatedCreateForm.run([
+      'patch',
+      'APP_TEST',
+      'FORM_ACTION_READBACK',
+      JSON.stringify([{
+        action: 'field-action',
+        field: '状态',
+        name: 'handleStatusChange',
+        source: 'export function handleStatusChange(event) { return event && event.value === "A"; }',
+      }]),
+    ]);
+
+    const payload = parseConsoleJsonPayloads(consoleSpy).find(item => item && item.formUuid === 'FORM_ACTION_READBACK');
+    expect(payload).toMatchObject({
+      success: true,
+      readbackVerified: true,
+      eventBindings: [{
+        fieldId: expect.stringMatching(/^selectField_/),
+        event: 'onChange',
+        actionName: 'handleStatusChange',
+        verified: true,
+      }],
+    });
+    expect(mockUtils.requestWithAutoLogin).toHaveBeenCalledTimes(3);
+
+    consoleSpy.mockRestore();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
+  });
+
+  test('field-action patch reports semantic failure when remote readback loses the binding', async () => {
+    const initial = formCompiler.compileFormDefinition({
+      formTitle: 'Action Readback Mismatch',
+      fields: [{ key: 'status', type: 'SelectField', label: '状态', options: ['A', 'B'] }],
+    }, {
+      appType: 'APP_TEST',
+      formUuid: 'FORM_ACTION_READBACK_MISMATCH',
+    }).schema;
+    initial.gmtModified = 100;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedLegacyForm(initial);
+    let savedSchema;
+    let getCount = 0;
+    mockUtils.httpPost.mockImplementation((baseUrl, requestPath, body) => {
+      if (requestPath.includes('/saveFormSchema.json')) {
+        savedSchema = JSON.parse(querystring.parse(body).content);
+      }
+      return Promise.resolve({ success: true });
+    });
+    mockUtils.httpGet.mockImplementation(() => {
+      getCount++;
+      if (getCount === 1) {
+        return Promise.resolve({ success: true, content: initial });
+      }
+      const readback = JSON.parse(JSON.stringify(savedSchema));
+      const container = findFormContainer(readback.pages[0].componentsTree[0]);
+      delete findDirectChildByLabel(container, '状态').props.onChange;
+      return Promise.resolve({ success: true, content: readback });
+    });
+
+    await expect(isolatedCreateForm.run([
+      'patch',
+      'APP_TEST',
+      'FORM_ACTION_READBACK_MISMATCH',
+      JSON.stringify([{
+        action: 'field-action',
+        field: '状态',
+        name: 'handleStatusChange',
+        source: 'export function handleStatusChange() {}',
+      }]),
+      '--json',
+    ])).rejects.toMatchObject({
+      code: 'FORM_ACTION_BINDING_READBACK_MISMATCH',
+      details: {
+        status: 'SEMANTIC_FAILURE',
+        mutationAccepted: true,
+        readbackVerified: false,
+        sideEffectState: 'committed',
+      },
+    });
+    expect(parseConsoleJsonPayloads(consoleSpy).some(item => item && item.success === true)).toBe(false);
+
+    consoleSpy.mockRestore();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
+  });
+
+  test('add-option mode saves the schema without updateFormConfig', async () => {
     const initial = formCompiler.compileFormDefinition({
       formTitle: 'Add Option Warning',
       fields: [{ key: 'status', type: 'SelectField', label: '状态', options: ['待处理'] }],
@@ -2344,19 +2902,12 @@ describe('create-form create recovery guardrails', () => {
       formUuid: 'FORM_ADD_OPTION_WARNING',
       fieldLabel: '状态',
       added: ['已完成'],
-      stage: 'updateFormConfig',
-      schemaSaved: true,
-      configWarning: '权限不足',
-      configResult: {
-        success: false,
-        errorMsg: '权限不足',
-        errorCode: 'PERMISSION_DENIED',
-      },
     });
+    expect(warningPayload).not.toHaveProperty('configWarning');
     expect(mockChalk.result.mock.calls.some((call) => call[0] === false)).toBe(false);
     expect(mockChalk.result).toHaveBeenCalledWith(true, '选项追加成功', expect.any(Array));
-    expect(mockChalk.warn).toHaveBeenCalledWith(expect.stringContaining('权限不足'));
-    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(1);
+    expect(mockChalk.warn).not.toHaveBeenCalledWith(expect.stringContaining('权限不足'));
+    expect(mockUtils.httpPost.mock.calls.filter((call) => call[1].includes('updateFormConfig'))).toHaveLength(0);
 
     consoleSpy.mockRestore();
   });
@@ -2382,6 +2933,7 @@ function loadIsolatedCreateFormCommand(overrides = {}) {
       return Promise.resolve({ success: true });
     }),
     requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
+    requestNonIdempotentWithAuthPreflight: jest.fn(requestNonIdempotentOnce),
     detectActiveTool: jest.fn(() => null),
   }, overrides);
   jest.doMock('../lib/core/utils', () => mockUtils);
@@ -2441,6 +2993,19 @@ describe('create-form definition readers', () => {
 });
 
 describe('form compiler field bindings', () => {
+  test('compileFormDefinition does not inject theme actions for process form schemas', () => {
+    const compiled = formCompiler.compileFormDefinition({
+      formTitle: '流程表单主题测试',
+      appType: 'APP_XXX',
+      formUuid: 'FORM_XXX',
+      fields: [{ key: 'name', type: 'TextField', label: '姓名' }],
+    });
+
+    expect(compiled.schema.pages[0].componentsTree[0].lifeCycles.componentDidMount.name).toBe('didMount');
+    expect(compiled.schema.actions.module.source).not.toContain('openyida:theme:start');
+    expect(compiled.schema.actions.module.source).not.toContain('yida-global-theme');
+  });
+
   test('compileFormDefinition reuses existing field bindings by semantic path', () => {
     const compiled = formCompiler.compileFormDefinition({
       formTitle: '访客登记',
@@ -3053,6 +3618,7 @@ describe('legacy create-form compatibility', () => {
   test('create mode reads only the shell revision and does not discover semantic keys', async () => {
     jest.resetModules();
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const formHttpMocks = createSuccessfulFormHttpMocks('FORM_TEST', { formTitle: '访客登记' });
     const mockUtils = {
       loadAuthData: jest.fn(() => ({
         corp_id: 'corp',
@@ -3062,20 +3628,10 @@ describe('legacy create-form compatibility', () => {
       })),
       triggerLogin: jest.fn(),
       resolveBaseUrl: jest.fn(() => 'https://example.test'),
-      httpGet: jest.fn(() => Promise.resolve({ success: true, content: { gmtModified: 100 } })),
-      httpPost: jest.fn((baseUrl, requestPath) => {
-        if (requestPath.includes('saveFormSchemaInfo')) {
-          return Promise.resolve({ success: true, content: { formUuid: 'FORM_TEST' } });
-        }
-        if (requestPath.includes('saveFormSchema')) {
-          return Promise.resolve({ success: true });
-        }
-        if (requestPath.includes('updateFormConfig')) {
-          return Promise.resolve({ success: true });
-        }
-        return Promise.resolve({ success: true });
-      }),
+      httpGet: formHttpMocks.httpGet,
+      httpPost: formHttpMocks.httpPost,
       requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
+      requestNonIdempotentWithAuthPreflight: jest.fn(requestNonIdempotentOnce),
       detectActiveTool: jest.fn(() => null),
     };
 
@@ -3103,7 +3659,18 @@ describe('legacy create-form compatibility', () => {
       JSON.stringify([{ key: 'visitorName', type: 'TextField', label: '访客姓名' }]),
     ]);
 
-    expect(mockUtils.httpGet).toHaveBeenCalledTimes(1);
+    expect(mockUtils.httpGet).toHaveBeenCalledTimes(4);
+    expect(mockUtils.httpGet.mock.calls[0][1]).toContain(
+      'getFormNavigationListByOrder.json'
+    );
+    expect(mockUtils.httpGet.mock.calls[1][1]).toContain('getFormSchema.json');
+    expect(mockUtils.httpGet.mock.calls[2][1]).toContain('getFormNavigationListByOrder.json');
+    expect(mockUtils.httpGet.mock.calls[3][1]).toContain('getFormNavigationListByOrder.json');
+    expect(
+      mockUtils.httpPost.mock.calls.filter((call) =>
+        call[1].includes('saveFormSchemaInfo.json')
+      )
+    ).toHaveLength(1);
     expect(consoleSpy).toHaveBeenCalledTimes(1);
     expect(JSON.parse(consoleSpy.mock.calls[0][0])).toMatchObject({
       success: true,
@@ -3111,6 +3678,8 @@ describe('legacy create-form compatibility', () => {
       formTitle: '访客登记',
       appType: 'APP_XXX',
       fieldCount: 1,
+      icon: 'name-card',
+      iconSource: 'auto',
       url: 'https://example.test/APP_XXX/workbench/FORM_TEST',
     });
 

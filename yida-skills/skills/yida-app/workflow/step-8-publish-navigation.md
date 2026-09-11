@@ -1,42 +1,74 @@
 # Step 8：发布页面并排序导航
 
-发布本轮修改过的页面源码到真实 display 页面，并执行轻量导航排序。
+发布本轮修改过的页面源码到真实 display 页面，并执行轻量导航排序。导航排序必须等待本轮全部页面开发、发布和相关资源创建完成；逐页发布期间不排序，主页面先完成也不能提前触发排序。
 
 ## 输入
 
 - 本轮修改过的页面源码路径；
 - 真实 `appType`；
 - 主页面 display `formUuid`；
-- PRD 中的导航顺序。
+- PRD 中的导航顺序；
+- PRD 主页面的 `entryMode`。
+
+## 自定义导航分支
+
+PRD 为自定义导航时，页面导航已在 Step 4 / Step 6 创建或复用页面后按 [导航壳必做配置](../../yida-nav-shell/SKILL.md#必做配置) 隐藏并回读，与源码开发并行。本步骤发布并检查本轮全部自定义页面，再回读核对 `isRenderNav=false`；缺失或被发布改变时才补写修复，不把首次隐藏推迟到发布后。导航顺序由自定义导航实现；汇总 Step 4 / Step 6 的配置结果与发布后回读结果，覆盖 PRD 全部页面后进入 Step 9。下方平台导航排序仅适用于三种平台导航类型。
+
+运行态按 [导航验收](../../yida-nav-shell/references/nav-shell-patterns.md#验证) 检查实际外观与交互：顶部浮导符合已确认设计，侧导可折叠、恢复宽度和拖拽；管理与填写入口分别落到 workbench/submission，主内容 iframe 与当前标签跨页按规划工作，完整地址没有重复应用前缀，query/hash 保留。抽屉 iframe 同时检查填满剩余高度、外层无重复滚动和内页可滚动性，不能仅凭编译通过验收。
 
 ## 操作
 
-1. 执行 `use_skill("yida-publish-page", "发布主页面")`。
-2. 只要本轮 Write/Edit/Create 了 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}`，final 前必须执行：
+若 `constraints.prohibitedActions` 含 `publish`，跳过本步骤的所有 `openyida publish` 写操作并记录“未发布”；不得以历史版本、编译成功或现有 URL 冒充本轮发布。若因 `page-source` 禁止而本轮没有源码变更，也不得用一次无变化发布伪造完成证据。
+
+1. 对本轮各页面执行 `use_skill("yida-publish-page", "发布已完成页面")`；`<source>` 使用本轮修改过的源码，`<displayPageFormUuid>` 使用该页真实 ID。逐页发布不触发导航排序：
 
 ```text
-openyida publish <source> <appType> <displayPageFormUuid> --auto-nav-order
+openyida publish <source> <appType> <displayPageFormUuid> --canvas --health-check
 ```
 
-3. `<source>` 使用本轮修改过的页面源码。
-4. `<displayPageFormUuid>` 使用已解析的 display 自定义页面。
-5. PRD 写明页面/表单清单顺序时，执行 `openyida nav-group order <appType> <页面/表单...>`。
-6. PRD 缺少明确页面清单时，用 `--auto-nav-order` / `nav-group auto-order` 兜底。
-7. 兜底顺序为：门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
-8. 本步骤配置宜搭平台导航，不要求页面源码实现侧边栏或顶部应用导航；除非用户显式要求页面内自绘导航，否则不要回头在自定义页面中补导航壳。
+2. 主流程核对本轮全部页面已开发完成并发布成功、表单/流程等导航目标已创建。仍有任务未完成或失败时，继续处理对应任务，暂不排序。
+3. 全部页面与资源汇合后，根据 PRD 只选择一个互斥分支：
+
+PRD 写明页面/表单清单顺序：
+
+```text
+openyida nav-group order <appType> <页面/表单...>
+```
+
+显式排序只执行一次。
+
+PRD 缺少明确页面清单：
+
+```text
+openyida nav-group auto-order <appType>
+```
+
+此分支只执行一次 `auto-order`，不再执行显式 `order`。完整应用逐页发布均不带 `--auto-nav-order`；存量平台 JSX 页面发布去掉 `--canvas`。
+
+4. 同一搭建 Run 不得同时执行显式排序与自动排序，不生成逐项 `move` 的 Bash/Python 循环。
+5. 兜底顺序为：门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
+6. 本步骤配置宜搭平台导航，不要求页面源码实现侧边栏或顶部应用导航；除非用户显式要求页面内自绘导航，否则不要回头在自定义页面中补导航壳。
+7. 主页面 `entryMode=standalone` 时，Step 6 已在取得页面 ID 后隐藏页面导航；发布和健康检查通过后执行 `openyida get-form-config <appType> <displayPageFormUuid> --json` 核对。配置缺失或变化时才执行 `openyida update-form-config <appType> <displayPageFormUuid> false "<页面标题>"` 并再次回读。只有回读明确为 `isRenderNav=false` 时，才把干净的 `{base_url}/{appType}/custom/{displayPageFormUuid}` 交给 Step 9 作为独立业务入口；写入或回读失败时只保留工作台入口，不用 `?isRenderNav=false` 猜测成功。
+8. 主页面 `entryMode=platform-shell` 或缺失时，不修改页面导航配置，也不输出独立业务入口。
 
 ## 产出
 
 - 成功的 `openyida publish` 命令结果；
 - 可访问主页面 URL；
-- 导航排序结果或明确 warning。
+- 导航排序的结构化结果；失败时保留发布结果和可恢复诊断；
+- `standalone` 页面导航配置的写后回读结果，或明确未启用独立入口。
 
 ## Checklist
 
 - [ ] 发布 source 是本轮修改过的源码；
 - [ ] 发布目标是已解析的 display 页面；
+- [ ] Canvas 发布结果为 `publishMode=canvas`，且 `healthCheck.ok=true`、`healthCheck.readback.hasYidaCodeCanvas=true`、`runtimeCodeBytes>0`；
 - [ ] 已获得可访问 URL；
-- [ ] 导航排序已执行，或已有明确 warning。
+- [ ] 自定义导航切换后的 main 和 iframe 撑满剩余空间；检查短/长内容、窗口高度变化、窄屏和底部操作可达性，无双滚动；工作台与原生页内容边界和外侧留白连续；
+- [ ] 使用自定义导航时逐项点击，导航仍可见、可操作，选中项与主内容一致且能返回工作台；刷新、前进后退恢复任务，无双导航和双滚动条，不能仅以目标页打开成功验收；
+- [ ] 含页面内表单打开入口时，PC 打开后 DOM 存在 `.openyida-form-drawer`；实测新窗口打开、全屏/退出全屏、关闭三个图标按钮、左边缘拖拽调宽及关闭刷新；详情和提交 iframe 填满剩余空间，外层无多余卡片和滚动条。无此类入口时标记不适用；
+- [ ] 全部页面开发与发布、相关资源创建均已完成后才执行排序；显式排序和自动排序只执行其一；成功结果 `readbackVerified=true`。
+- [ ] `standalone` 主页面已回读确认 `isRenderNav=false`；否则没有声明独立业务入口。
 
 ## 下一步
 

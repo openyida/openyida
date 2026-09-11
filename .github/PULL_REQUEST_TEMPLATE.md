@@ -40,7 +40,6 @@
 - [ ] `npm run lint`
 - [ ] `npm run check:syntax`
 - [ ] `npm run check:skills`（如涉及 `yida-skills/`）
-- [ ] `npm run build:skills`（如涉及 Wukong 技能包）
 - [ ] `npm run check:package`（如涉及发布包内容）
 - [ ] 已在真实宜搭环境验证相关功能（如适用）
 - [ ] 私有化部署场景已验证或确认不受影响（如适用）

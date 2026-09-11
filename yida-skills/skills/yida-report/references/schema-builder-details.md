@@ -2,6 +2,8 @@
 
 > 从 yida-report 主技能迁出。只有需要理解底层 schema 结构、组件示例或 settings 字段时读取；普通创建报表优先使用 `openyida create-report` 的结构化配置。
 
+> CLI runtime registry 当前只开放 `bar`、`combo`、`funnel`、`gauge`、`indicator`、`line`、`pie`、`pivot`、`table`。本文中的底层组件库示例不等于 CLI 能力声明；未列入 registry 的组件必须先完成 platform/runtime probe，当前一律 fail-closed。
+
 ### 核心工具函数
 
 Schema 构建脚本提供以下核心函数，使用前需先引入：
@@ -31,7 +33,7 @@ buildDataSetEntry({
       isDim: true,                    // true=维度，false=度量
       dataType: 'DATE',              // STRING | NUMBER | DATE | BOOLEAN | ARRAY
       aggregateType: 'NONE',         // NONE | SUM | AVG | COUNT | MAX | MIN | COUNT_DISTINCT
-      timeGranularityType: 'DAY',    // YEAR | QUARTER | MONTH | WEEK | DAY | HOUR | MINUTE | null
+      timeGranularityType: 'DAY',    // YEAR | MONTH | DAY | HOUR | MINUTE | SECOND | null
     }),
     buildFieldDefinition({
       alias: 'sales',

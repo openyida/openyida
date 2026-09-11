@@ -3,6 +3,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { getLanguage, setLanguage } = require('../lib/core/i18n');
 
 jest.mock('../lib/integration/integration-node-ids', () => {
   let counter = 0;
@@ -18,6 +19,7 @@ jest.mock('../lib/integration/integration-node-ids', () => {
 const {
   buildSpecProcessAndViewJson,
   collectAddDataFormUuids,
+  collectDataSourceFormDescriptors,
   readIntegrationSpec,
   validateIntegrationSpec,
   _private,
@@ -108,7 +110,7 @@ describe('integration spec builder', () => {
       'finish',
     ]);
     expect(built.processJson.nodes[1].props.condition.rules[0]).toMatchObject({
-      id: 'pid',
+      id: 'form_inst_id',
       value: '__masterdata_form_inst_id',
       opCode: 'Equal',
     });
@@ -166,13 +168,99 @@ describe('integration spec builder', () => {
     }).sort()).toEqual(['FORM-A', 'FORM-B']);
   });
 
+  test('collectAddDataFormUuids infers the parent form for sub_table inserts', () => {
+    expect(collectAddDataFormUuids({
+      nodes: [
+        {
+          id: 'school',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-SCHOOL',
+          conditions: [{ fieldId: 'serialNumberField_code', value: 'x', valueType: 'literal' }],
+        },
+        {
+          type: 'dataCreate',
+          insertType: 'sub_table',
+          source: 'school',
+          subFormUuid: 'tableField_history',
+          assignments: [{ column: 'textField_dealer_code', valueType: 'literal', value: 'D-1' }],
+        },
+      ],
+    })).toEqual(['FORM-SCHOOL']);
+  });
+
+  test('collectAddDataFormUuids falls back to the trigger form for getSelf sub_table inserts', () => {
+    expect(collectAddDataFormUuids({
+      nodes: [
+        { id: 'self', type: 'getSelf' },
+        {
+          type: 'dataCreate',
+          insertType: 'sub_table',
+          source: 'self',
+          subFormUuid: 'tableField_history',
+          assignments: [{ column: 'textField_dealer_code', valueType: 'literal', value: 'D-1' }],
+        },
+      ],
+    }, 'FORM-A')).toEqual(['FORM-A']);
+  });
+
+  test('rejects conflicting source form type declarations for one form UUID', () => {
+    expect(() => collectDataSourceFormDescriptors({
+      nodes: [
+        { type: 'dataRetrieve', formUuid: 'FORM-B', formType: 'process' },
+        { type: 'dataRetrieve', formUuid: 'FORM-B', formType: 'receipt' },
+      ],
+    }, 'FORM-A')).toThrow(/Conflicting source form types for FORM-B/);
+  });
+
+  test('rejects unsupported source form type declarations', () => {
+    expect(() => collectDataSourceFormDescriptors({
+      nodes: [{ type: 'dataRetrieve', formUuid: 'FORM-B', formType: 'display' }],
+    }, 'FORM-A')).toThrow(/Unsupported source form type: display/);
+  });
+
+  test('does not treat sub_table originalType as a source form type', () => {
+    const spec = {
+      nodes: [
+        {
+          id: 'processRecord',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-PROCESS',
+          formType: 'process',
+          conditions: [{ fieldId: 'pid', value: 'P-1', valueType: 'literal' }],
+        },
+        {
+          type: 'dataRetrieve',
+          originalType: 'sub_table',
+          source: 'processRecord',
+          subSourceId: 'tableField_detail',
+          conditions: [{ fieldId: 'textField_code', value: 'D-1', valueType: 'literal' }],
+        },
+      ],
+    };
+    expect(collectDataSourceFormDescriptors(spec, 'FORM-A')).toEqual([
+      { formUuid: 'FORM-PROCESS', formType: 'process' },
+    ]);
+    expect(() => validateIntegrationSpec({ ...spec, events: ['insert'] })).not.toThrow();
+  });
+
+  test('rejects conflicting source form metadata fields on one node', () => {
+    expect(() => collectDataSourceFormDescriptors({
+      nodes: [{
+        type: 'dataRetrieve',
+        formUuid: 'FORM-B',
+        formType: 'process',
+        originalType: 'form',
+      }],
+    }, 'FORM-A')).toThrow(/Conflicting source form types on node/);
+  });
+
   test('validates spec shape before remote calls are needed', () => {
     expect(() => validateIntegrationSpec({ nodes: [{ type: 'getSelf' }] }, ['insert'])).not.toThrow();
     expect(() => validateIntegrationSpec({ events: ['insert'], nodes: [] })).toThrow(/non-empty nodes array/);
-    expect(() => validateIntegrationSpec({ events: ['unknown'], nodes: [{ type: 'getSelf' }] })).toThrow(/valid event/);
+    expect(() => validateIntegrationSpec({ events: ['unknown'], nodes: [{ type: 'getSelf' }] })).toThrow(/Unsupported integration event/);
   });
 
-  test('accepts route condition objects with explicit logic', () => {
+  test('accepts route condition objects with explicit logic and adds a missing default branch', () => {
     const built = buildSpecProcessAndViewJson({
       spec: {
         events: ['insert'],
@@ -215,6 +303,46 @@ describe('integration spec builder', () => {
       conditionCode: '||',
     });
     expect(route.childNodes[0].props.conditions.rules).toHaveLength(2);
+    expect(route.childNodes).toHaveLength(2);
+    expect(route.childNodes[1].props).toMatchObject({
+      isDefault: true,
+      priority: 2147483647,
+    });
+    const routeView = built.viewJson.schema.children.find((node) => node.componentName === 'ConditionContainer');
+    expect(routeView.children[1].props.isDefault).toBe(true);
+    expect(routeView.children[1].props.priority).toBe(2147483647);
+  });
+
+  test('resolves declared upstream aliases inside sendMessage title and content', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          { id: 'self', type: 'getSelf' },
+          {
+            id: 'notify',
+            type: 'sendMessage',
+            receivers: ['user-1'],
+            title: 'Record ${self}.pid',
+            content: 'Status ${self}.textField_status',
+          },
+        ],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+    });
+    const processMessage = built.processJson.nodes.find((node) => node.type === 'sendMessage');
+    const viewMessage = built.viewJson.schema.children.find((node) => node.componentName === 'SendMessageNode');
+
+    expect(processMessage.props.messageInfo).toMatchObject({
+      title: `Record \${${built.nodeIdMap.self}}.pid`,
+      content: `Status \${${built.nodeIdMap.self}}.textField_status`,
+    });
+    expect(viewMessage.props.sendMessageRules.messageInfo).toMatchObject(
+      processMessage.props.messageInfo
+    );
   });
 
   test('does not use duplicate display names as node aliases', () => {
@@ -222,8 +350,8 @@ describe('integration spec builder', () => {
       spec: {
         events: ['insert'],
         nodes: [
-          { type: 'sendMessage', name: 'Notify', content: 'first' },
-          { type: 'sendMessage', name: 'Notify', content: 'second' },
+          { type: 'sendMessage', name: 'Notify', receivers: ['user-1'], content: 'first' },
+          { type: 'sendMessage', name: 'Notify', receivers: ['user-1'], content: 'second' },
         ],
       },
       processCode: 'LPROC-SPEC',
@@ -246,8 +374,8 @@ describe('integration spec builder', () => {
       spec: {
         events: ['insert'],
         nodes: [
-          { id: 'notify', type: 'sendMessage', content: 'first' },
-          { id: 'notify', type: 'sendMessage', content: 'second' },
+          { id: 'notify', type: 'sendMessage', receivers: ['user-1'], content: 'first' },
+          { id: 'notify', type: 'sendMessage', receivers: ['user-1'], content: 'second' },
         ],
       },
       processCode: 'LPROC-SPEC',
@@ -268,13 +396,14 @@ describe('integration spec builder', () => {
               {
                 name: 'Matched',
                 conditions: [{ fieldId: 'textField_a', opCode: 'ExistValue' }],
-                nodes: [{ type: 'sendMessage', content: 'first' }],
+                nodes: [{ type: 'sendMessage', receivers: ['user-1'], content: 'first' }],
               },
               {
                 name: 'Matched',
                 conditions: [{ fieldId: 'textField_b', opCode: 'ExistValue' }],
-                nodes: [{ type: 'sendMessage', content: 'second' }],
+                nodes: [{ type: 'sendMessage', receivers: ['user-1'], content: 'second' }],
               },
+              { id: 'fallback', name: 'Other', default: true },
             ],
           },
         ],
@@ -324,6 +453,278 @@ describe('integration spec builder', () => {
     });
   });
 
+  test('preserves dataRetrieve primitive literals in process and view JSON', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [{
+          id: 'lookup',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-B',
+          conditions: [
+            {
+              fieldId: 'numberField_zero',
+              aFieldId: 0,
+              componentType: 'NumberField',
+              opCode: 'Equal',
+              valueType: 'literal',
+            },
+            {
+              fieldId: 'checkboxField_false',
+              value: false,
+              componentType: 'CheckboxField',
+              opCode: 'Equal',
+              valueType: 'literal',
+            },
+            {
+              fieldId: 'textField_empty',
+              ruleValue: '',
+              componentType: 'TextField',
+              opCode: 'Equal',
+              valueType: 'literal',
+            },
+          ],
+        }],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+    });
+    const processRules = built.processJson.nodes.find((node) => node.type === 'dataRetrieve').props.condition.rules;
+    const viewRules = built.viewJson.schema.children.find((node) => node.componentName === 'GetSingleDataNode')
+      .props.getData.condition.rules;
+
+    expect(processRules.map((rule) => rule.value)).toEqual([0, false, '']);
+    expect(processRules.map((rule) => rule.ruleValue)).toEqual([0, false, '']);
+    expect(viewRules.map((rule) => rule.value)).toEqual([0, false, '']);
+    expect(viewRules.map((rule) => rule.ruleValue)).toEqual([0, false, '']);
+  });
+
+  test.each([
+    ['process', ['processFinish'], ['agree'], 'process_form', 'process', 'pid', 'proc_inst_id', '流程实例ID'],
+    ['receipt', ['insert'], [], 'form', 'receipt', 'form_inst_id', 'form_inst_id', '表单实例ID'],
+  ])('maps %s getSelf metadata for the designer', (name, events, approvalActions, originalType, formType, queryField, viewQueryField, queryFieldName) => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events,
+        approvalActions,
+        nodes: [{ id: 'self', type: 'getSelf' }],
+      },
+      processCode: `LPROC-${name.toUpperCase()}`,
+      appType: 'APP-SPEC',
+      formUuid: `FORM-${name.toUpperCase()}`,
+      flowName: `${name} flow`,
+      dataFormType: formType,
+      dataFormName: `${name} source form`,
+    });
+    const processNode = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.self);
+    const viewNode = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.self);
+    expect(processNode.props).toMatchObject({
+      originalType,
+      condition: { rules: [{ id: queryField, name: queryFieldName }] },
+    });
+    expect(viewNode.props.getData).toMatchObject({
+      originalType,
+      condition: { rules: [{ id: viewQueryField, name: queryFieldName }] },
+      targetItem: { formItem: { formType } },
+    });
+    expect(viewNode.props.getData.targetItem.formItem.title).toBe(`${name} source form`);
+  });
+
+  test('converts explicit getSelf queryField pid to designer proc_inst_id', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['processFinish'],
+        approvalActions: ['agree'],
+        nodes: [{ id: 'self', type: 'getSelf', queryField: 'pid' }],
+      },
+      processCode: 'LPROC-PROCESS-QUERY',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-PROCESS',
+      flowName: 'explicit pid getSelf',
+      dataFormType: 'process',
+      dataFormName: '流程来源表单',
+    });
+    const processNode = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.self);
+    const viewNode = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.self);
+    expect(processNode.props.condition.rules.map((rule) => rule.id)).toEqual(['pid']);
+    expect(viewNode.props.getData.condition.rules.map((rule) => rule.id)).toEqual(['proc_inst_id']);
+  });
+
+  test('converts explicit getSelf queryField proc_inst_id to runtime pid', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['processFinish'],
+        approvalActions: ['agree'],
+        nodes: [{ id: 'self', type: 'getSelf', queryField: 'proc_inst_id' }],
+      },
+      processCode: 'LPROC-PROCESS-QUERY-DESIGNER',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-PROCESS',
+      flowName: 'explicit proc_inst_id getSelf',
+      dataFormType: 'process',
+      dataFormName: '流程来源表单',
+    });
+    const processNode = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.self);
+    const viewNode = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.self);
+    expect(processNode.props.condition.rules).toMatchObject([
+      { id: 'pid', name: '流程实例ID' },
+    ]);
+    expect(viewNode.props.getData.condition.rules).toMatchObject([
+      { id: 'proc_inst_id', name: '流程实例ID' },
+    ]);
+  });
+
+  test('does not infer a process source from insert/update events', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert', 'update'],
+        nodes: [{ id: 'self', type: 'getSelf' }],
+      },
+      processCode: 'LPROC-PROCESS-INSERT',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-PROCESS',
+      flowName: 'process insert flow',
+      dataSourceFormsByUuid: new Map([
+        ['FORM-PROCESS', { formUuid: 'FORM-PROCESS', formName: '流程来源表单', formType: 'process' }],
+      ]),
+    });
+    const processNode = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.self);
+    const viewNode = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.self);
+    expect(processNode.props).toMatchObject({
+      originalType: 'process_form',
+      condition: { rules: [{ id: 'pid', name: '流程实例ID' }] },
+    });
+    expect(viewNode.props.getData).toMatchObject({
+      originalType: 'process_form',
+      condition: { rules: [{ id: 'proc_inst_id', name: '流程实例ID' }] },
+      targetItem: { formItem: { formType: 'process', title: '流程来源表单' } },
+    });
+  });
+
+  test('converts process dataRetrieve pid conditions for the designer only', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [{
+          id: 'lookup',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-PROCESS',
+          conditions: [
+            { fieldId: 'pid', fieldName: '流程实例ID', value: 'A-1', opCode: 'Equal' },
+            { fieldId: 'textField_code', fieldName: '业务编码', value: 'B-1', valueType: 'literal', opCode: 'Equal' },
+          ],
+        }],
+      },
+      processCode: 'LPROC-PROCESS-DATA',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Process data retrieve flow',
+      dataSourceFormsByUuid: new Map([
+        ['FORM-PROCESS', { formUuid: 'FORM-PROCESS', formName: '流程来源表单', formType: 'process' }],
+      ]),
+    });
+    const processNode = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.lookup);
+    const viewNode = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.lookup);
+    expect(processNode.props.condition.rules.map((rule) => rule.id)).toEqual(['pid', 'textField_code']);
+    expect(viewNode.props.getData.condition.rules.map((rule) => rule.id)).toEqual(['proc_inst_id', 'textField_code']);
+  });
+
+  test('converts process dataRetrieve proc_inst_id conditions to runtime pid', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [{
+          id: 'lookup',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-PROCESS',
+          conditions: [
+            { fieldId: 'proc_inst_id', fieldName: '流程实例ID', value: 'A-1', opCode: 'Equal' },
+            { fieldId: 'textField_code', fieldName: '业务编码', value: 'B-1', valueType: 'literal', opCode: 'Equal' },
+          ],
+        }],
+      },
+      processCode: 'LPROC-PROCESS-DATA-DESIGNER',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Process data retrieve designer field flow',
+      dataSourceFormsByUuid: new Map([
+        ['FORM-PROCESS', { formUuid: 'FORM-PROCESS', formName: '流程来源表单', formType: 'process' }],
+      ]),
+    });
+    const processNode = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.lookup);
+    const viewNode = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.lookup);
+    expect(processNode.props.condition.rules.map((rule) => rule.id)).toEqual(['pid', 'textField_code']);
+    expect(viewNode.props.getData.condition.rules.map((rule) => rule.id)).toEqual(['proc_inst_id', 'textField_code']);
+  });
+
+  test('normalizes process dataRetrieve pid condition names in process and designer json', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [{
+          id: 'lookup',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-PROCESS',
+          conditions: [
+            { fieldId: 'pid', fieldName: '旧字段名称', value: 'A-1', opCode: 'Equal' },
+          ],
+        }],
+      },
+      processCode: 'LPROC-PROCESS-DATA-NAME',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Process data retrieve field name flow',
+      dataSourceFormsByUuid: new Map([
+        ['FORM-PROCESS', { formUuid: 'FORM-PROCESS', formName: '流程来源表单', formType: 'process' }],
+      ]),
+    });
+    const processNode = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.lookup);
+    const viewNode = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.lookup);
+    expect(processNode.props.condition.rules).toMatchObject([
+      { id: 'pid', name: '流程实例ID' },
+    ]);
+    expect(viewNode.props.getData.condition.rules).toMatchObject([
+      { id: 'proc_inst_id', name: '流程实例ID' },
+    ]);
+  });
+
+  test('uses verified source form name over a stale spec formName', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [{
+          id: 'lookup',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-B',
+          formName: '过期名称',
+          conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+        }],
+      },
+      processCode: 'LPROC-FORM-NAME',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Source form name flow',
+      dataSourceFormsByUuid: new Map([
+        ['FORM-B', { formUuid: 'FORM-B', formName: '导航真实名称', formType: 'receipt' }],
+      ]),
+    });
+    const viewNode = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.lookup);
+    expect(viewNode.props.getData.targetItem.formItem.title).toBe('导航真实名称');
+  });
+
+  test('rejects undeclared sendMessage messageInfo.content instead of silently using a default', () => {
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{
+        type: 'sendMessage',
+        receivers: ['user-1'],
+        messageInfo: { content: 'declared in an unsupported shape' },
+      }],
+    })).toThrow(/sendMessage node content is required/);
+  });
+
   test('resolveNodeRefs replaces spec aliases only inside ${alias}', () => {
     const context = {
       aliasToNodeId: new Map([['self', 'node-self']]),
@@ -331,6 +732,371 @@ describe('integration spec builder', () => {
 
     expect(_private.resolveNodeRefs('${self}.numberField_count+1', context)).toBe('${node-self}.numberField_count+1');
     expect(_private.resolveNodeRefs('literal-self', context)).toBe('literal-self');
+  });
+
+  test('resolves __source references on update assignments', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          {
+            id: 'lookup',
+            type: 'dataRetrieve',
+            formUuid: 'FORM-B',
+            conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+          },
+          {
+            id: 'update',
+            type: 'dataUpdate',
+            source: 'lookup',
+            assignments: [{
+              column: 'numberField_total',
+              valueType: 'column',
+              value: '${lookup}.numberField_total+1',
+              __source: '#{lookup//numberField_total}+1',
+              __display: '获取单条数据.总数+1',
+            }],
+          },
+        ],
+      },
+      processCode: 'LPROC-SOURCE',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Formula source flow',
+    });
+
+    const updateNode = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.update);
+    const updateViewNode = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.update);
+    const expectedAssignment = {
+      value: `\${${built.nodeIdMap.lookup}}.numberField_total+1`,
+      __source: `#{${built.nodeIdMap.lookup}//numberField_total}+1`,
+      __display: '获取单条数据.总数+1',
+    };
+    expect(updateNode.props.assignments[0]).toMatchObject(expectedAssignment);
+    expect(updateViewNode.props.updateDataRules.assignments[0]).toMatchObject(expectedAssignment);
+  });
+
+  test('preserves registered node IDs in __source references', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          {
+            id: 'lookup',
+            nodeId: 'node-fixed',
+            type: 'dataRetrieve',
+            formUuid: 'FORM-B',
+            conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+          },
+          {
+            id: 'update',
+            nodeId: 'node-update',
+            type: 'dataUpdate',
+            source: 'lookup',
+            assignments: [{
+              column: 'numberField_total',
+              valueType: 'column',
+              value: '${lookup}.numberField_total+1',
+              __source: '#{node-fixed//numberField_total}+1',
+            }],
+          },
+        ],
+      },
+      processCode: 'LPROC-SOURCE-ID',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Formula source node ID flow',
+    });
+
+    const expectedSource = '#{node-fixed//numberField_total}+1';
+    const updateNode = built.processJson.nodes.find((node) => node.nodeId === 'node-update');
+    const updateViewNode = built.viewJson.schema.children.find((node) => node.id === 'node-update');
+    expect(updateNode.props.assignments[0].__source).toBe(expectedSource);
+    expect(updateViewNode.props.updateDataRules.assignments[0].__source).toBe(expectedSource);
+  });
+
+  test.each(['node_typo', 'node-missing'])('rejects unregistered designer source node ID %s', (nodeId) => {
+    expect(() => buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          {
+            id: 'lookup',
+            type: 'dataRetrieve',
+            formUuid: 'FORM-B',
+            conditions: [{ fieldId: 'textField_marker', fieldName: '标记', value: 'x', valueType: 'literal' }],
+          },
+          {
+            id: 'update',
+            type: 'dataUpdate',
+            source: 'lookup',
+            assignments: [{
+              column: 'numberField_total',
+              valueType: 'column',
+              value: '${lookup}.numberField_total+1',
+              __source: `#{${nodeId}//numberField_total}+1`,
+            }],
+          },
+        ],
+      },
+      processCode: 'LPROC-SOURCE-INVALID',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Invalid formula source flow',
+    })).toThrow(`Unknown integration spec node alias: ${nodeId}`);
+  });
+
+  test('rejects unresolved aliases, invalid assignments, and routes with multiple default branches', () => {
+    const base = {
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+    };
+
+    expect(() => buildSpecProcessAndViewJson({
+      ...base,
+      spec: {
+        events: ['insert'],
+        nodes: [{
+          type: 'dataUpdate',
+          source: 'missingAlias',
+          assignments: [{ column: 'textField_a', valueType: 'literal', value: 'x' }],
+        }],
+      },
+    })).toThrow(/Unknown integration spec node alias: missingAlias/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{
+        type: 'dataCreate',
+        formUuid: 'FORM-B',
+        assignments: [{ valueType: 'literal', value: 'x' }],
+      }],
+    })).toThrow(/assignment column/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{
+        type: 'dataCreate',
+        formUuid: 'FORM-B',
+        assignments: [{ column: 'textField_a', valueType: 'unknown', value: 'x' }],
+      }],
+    })).toThrow(/assignment valueType/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{
+        type: 'dataCreate',
+        formUuid: 'FORM-B',
+        assignments: [{ column: 'textField_a', valueType: 'literal' }],
+      }],
+    })).toThrow(/assignment value/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{ type: 'connector', connectorId: 'G-CONN-ONLY' }],
+    })).toThrow(/connectorId and actionId/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{ type: 'notADeclaredNode' }],
+    })).toThrow(/Unsupported integration spec node type/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{ type: 'route', branches: [{ id: 'a', default: true }, { id: 'b', default: true }] }],
+    })).toThrow(/at most one default branch/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{ type: 'route', branches: [] }],
+    })).toThrow(/branches/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{
+        type: 'initiateApproval',
+        formUuid: 'FORM-PROCESS',
+        initiator: { type: 'select_user', value: 'not-json' },
+        assignments: [{ column: 'textField_title', valueType: 'literal', value: 'x' }],
+      }],
+    })).toThrow(/身份 JSON|employee identity JSON/);
+  });
+
+  test('preserves primitive literal types exactly in spec JSON', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [{
+          id: 'create',
+          type: 'dataCreate',
+          formUuid: 'FORM-B',
+          assignments: [
+            { column: 'textField_code', valueType: 'literal', value: '00123' },
+            { column: 'numberField_count', valueType: 'literal', value: 123 },
+            { column: 'checkboxField_flag', valueType: 'literal', value: false },
+          ],
+        }],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+      formSchemasByUuid: new Map([['FORM-B', [
+        { componentName: 'TextField', props: { fieldId: 'textField_code' } },
+        { componentName: 'NumberField', props: { fieldId: 'numberField_count' } },
+        { componentName: 'CheckboxField', props: { fieldId: 'checkboxField_flag' } },
+      ]]]),
+    });
+    const processValues = built.processJson.nodes.find((node) => node.type === 'dataCreate')
+      .props.assignments.map((item) => item.value);
+    const viewValues = built.viewJson.schema.children.find((node) => node.componentName === 'AddDataNode')
+      .props.addDataRules.rules.rules.map((item) => item.value);
+    const viewAssignments = built.viewJson.schema.children.find((node) => node.componentName === 'AddDataNode')
+      .props.addDataRules.assignments.map((item) => item.value);
+
+    expect(processValues).toEqual(['00123', 123, false]);
+    expect(viewValues).toEqual(processValues);
+    expect(viewAssignments).toEqual(processValues);
+  });
+
+  test('hydrates visible form names and configured summaries for getSelf, dataCreate and message nodes', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          { type: 'getSelf', id: 'self', name: '读取当前申请' },
+          {
+            type: 'dataCreate',
+            id: 'create',
+            name: '登记回执',
+            formUuid: 'FORM-B',
+            assignments: [{ fieldId: 'textField_code', valueType: 'literal', value: 'R-1' }],
+          },
+          {
+            type: 'sendMessage',
+            name: '发送通知',
+            userFields: ['form_inst_creator'],
+            title: '已登记',
+            content: '完成',
+          },
+        ],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+      formNamesByUuid: new Map([
+        ['FORM-A', '变更申请'],
+        ['FORM-B', '执行回执'],
+      ]),
+      formSchemasByUuid: new Map([['FORM-B', [
+        { componentName: 'TextField', props: { fieldId: 'textField_code', label: { zh_CN: '回执编号' } } },
+      ]]]),
+    });
+    const viewNodes = built.viewJson.schema.children;
+    const getSelf = viewNodes.find((node) => node.componentName === 'GetSingleDataNode');
+    const create = viewNodes.find((node) => node.componentName === 'AddDataNode');
+    const message = viewNodes.find((node) => node.componentName === 'SendMessageNode');
+
+    expect(getSelf.props.description).toContain('变更申请');
+    expect(getSelf.props.getData.targetItem.formItem.title).toBe('变更申请');
+    expect(create.props.description).toContain('执行回执');
+    expect(create.props.addDataRules.assignments).toHaveLength(1);
+    expect(create.props.addDataRules.description).toBe(create.props.description);
+    expect(message.props.description).toContain('已配置通知');
+  });
+
+  test('serializes activityTask trigger semantics consistently in process and view JSON', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['activityTask'],
+        approvalActions: ['agree'],
+        approvalNodeIds: ['activity-1'],
+        nodes: [{ type: 'sendMessage', receivers: ['user-1'], content: 'done' }],
+      },
+      processCode: 'LPROC-SPEC',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Spec Flow',
+    });
+    const processStart = built.processJson.nodes[0].props.inputs;
+    const viewStart = built.viewJson.schema.children[0].props.start;
+
+    expect(processStart).toMatchObject({
+      formEventType: ['activityTask'],
+      activityAction: ['agree'],
+      activityId: ['activity-1'],
+      activityTask: [{ activityId: ['activity-1'], activityAction: ['agree'] }],
+    });
+    expect(viewStart).toMatchObject({
+      examineApproveType: 'activityTask',
+      formEventType: ['processEvents'],
+      examineApproveNode: 'activity-1',
+      examineApproveActiveList: ['agree'],
+      examineApproveActiveTask: [{ activityId: ['activity-1'], activityAction: ['agree'] }],
+    });
+  });
+
+  test.each([
+    [{ type: 'dataRetrieve', formUuid: 'FORM-B', conditions: [] }, /conditions/],
+    [{ type: 'dataCreate', formUuid: 'FORM-B', assignments: [] }, /assignments/],
+    [{ type: 'dataUpdate', source: 'self', assignments: [] }, /assignments/],
+  ])('rejects semantically empty data nodes before building platform JSON', (node, errorPattern) => {
+    expect(() => validateIntegrationSpec({ events: ['insert'], nodes: [node] }))
+      .toThrow(errorPattern);
+  });
+
+  test('builds a configured initiateApproval node using the authenticated current user without persisting an id in spec', () => {
+    const originalLanguage = getLanguage();
+    setLanguage('zh');
+    try {
+      const built = buildSpecProcessAndViewJson({
+        spec: {
+          events: ['insert'],
+          nodes: [{
+            id: 'approval',
+            type: 'initiateApproval',
+            formUuid: 'FORM-PROCESS',
+            initiator: { type: 'current_user' },
+            assignments: [{ column: 'textField_title', valueType: 'literal', value: '重大变更审批' }],
+          }],
+        },
+        processCode: 'LPROC-SPEC',
+        appType: 'APP-SPEC',
+        formUuid: 'FORM-A',
+        flowName: 'Spec Flow',
+        currentUserId: 'user-current',
+        formNamesByUuid: new Map([['FORM-PROCESS', '重大变更审批流程']]),
+        formSchemasByUuid: new Map([['FORM-PROCESS', [
+          { componentName: 'TextField', props: { fieldId: 'textField_title', label: '审批标题' } },
+        ]]]),
+      });
+      const processNode = built.processJson.nodes.find((node) => node.type === 'initiateApproval');
+      const viewNode = built.viewJson.schema.children.find((node) => node.componentName === 'InitiateApprovalNode');
+
+      expect(processNode.description).toBe('在[重大变更审批流程]中发起审批并写入1个字段');
+      expect(processNode.props.initiator).toEqual({
+        type: 'select_user',
+        value: JSON.stringify({ id: 'user-current', label: '', type: 'employee' }),
+      });
+      expect(viewNode.props.description).toBe(processNode.description);
+      expect(viewNode.props.initiateApprovalRules.assignments).toEqual([
+        { column: 'textField_title', valueType: 'literal', value: '重大变更审批', required: false },
+      ]);
+    } finally {
+      setLanguage(originalLanguage);
+    }
+  });
+
+  test('documents recursive form-event triggering as default false', () => {
+    const doc = fs.readFileSync(path.join(
+      __dirname,
+      '../yida-skills/skills/yida-integration/references/integration-node-schemas.md'
+    ), 'utf8');
+    expect(doc).toMatch(/triggerFormEventRecursively[^\n]*默认[^\n]*false/i);
+    expect(doc).not.toMatch(/triggerFormEventRecursively[^\n]*固定[^\n]*true/i);
   });
 
   test('readIntegrationSpec accepts UTF-8 BOM files', () => {
@@ -342,5 +1108,712 @@ describe('integration spec builder', () => {
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  test('binds sub_table retrieve/create to the upstream node instead of a form UUID', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          {
+            id: 'school',
+            type: 'dataRetrieve',
+            name: '定位履历学校',
+            formUuid: 'FORM-SCHOOL',
+            conditions: [{
+              bFieldId: 'serialNumberField_code',
+              bFieldName: '学校编码',
+              aFieldId: 'textField_selected_school_code',
+              componentType: 'TextField',
+              opCode: 'Equal',
+              valueType: 'processVar',
+            }],
+          },
+          {
+            id: 'lookupRow',
+            type: 'dataRetrieve',
+            originalType: 'sub_table',
+            source: 'school',
+            subSourceId: 'tableField_history',
+            subSourceLabel: '经销商履历',
+            conditions: [{
+              bFieldId: 'textField_dealer_code',
+              bFieldName: '经销商编号',
+              aFieldId: 'textField_selected_dealer_code',
+              componentType: 'TextField',
+              opCode: 'Equal',
+              valueType: 'processVar',
+            }],
+          },
+          {
+            id: 'appendRow',
+            type: 'dataCreate',
+            insertType: 'sub_table',
+            source: 'school',
+            subFormUuid: 'tableField_history',
+            assignments: [
+              { column: 'textField_dealer_code', valueType: 'processVar', value: 'textField_selected_dealer_code' },
+              { column: 'radioField_status', valueType: 'literal', value: '在网' },
+            ],
+          },
+        ],
+      },
+      processCode: 'LPROC-SUB-TABLE',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Sub table flow',
+      formSchemasByUuid: new Map([['FORM-SCHOOL', [
+        { componentName: 'TextField', props: { fieldId: 'serialNumberField_code', label: { zh_CN: '学校编码' } } },
+        { componentName: 'TableField', props: { fieldId: 'tableField_history', label: { zh_CN: '经销商履历' } } },
+        {
+          componentName: 'TextField',
+          props: {
+            fieldId: 'textField_dealer_code',
+            label: { zh_CN: '经销商编号' },
+            parentId: 'tableField_history',
+          },
+        },
+        {
+          componentName: 'RadioField',
+          props: {
+            fieldId: 'radioField_status',
+            label: { zh_CN: '状态' },
+            parentId: 'tableField_history',
+            dataSource: [
+              { text: '在网', value: '在网' },
+              { text: '离网', value: '离网' },
+            ],
+          },
+        },
+        {
+          componentName: 'AssociationFormField',
+          props: {
+            fieldId: 'associationFormField_dealer',
+            label: { zh_CN: '经销商' },
+            parentId: 'tableField_history',
+            assoFormUuid: 'FORM-DEALER',
+            formType: 'receipt',
+            mainFieldId: 'textField_name',
+          },
+        },
+      ]]]),
+    });
+
+    const schoolId = built.nodeIdMap.school;
+    const schoolView = built.viewJson.schema.children.find((node) => node.id === schoolId);
+    const retrieve = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.lookupRow);
+    const retrieveView = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.lookupRow);
+    const create = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.appendRow);
+    const createView = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.appendRow);
+    const childFieldIds = createView.props.addDataRules.inputs.childList.map((item) => item.fieldId);
+    const radioChild = createView.props.addDataRules.inputs.childList
+      .find((item) => item.fieldId === 'radioField_status');
+    const associationChild = createView.props.addDataRules.inputs.childList
+      .find((item) => item.fieldId === 'associationFormField_dealer');
+
+    expect(retrieve.props).toMatchObject({
+      sourceId: schoolId,
+      originalType: 'sub_table',
+      subSourceId: 'tableField_history',
+    });
+    expect(retrieveView.props.getData).toMatchObject({
+      sourceId: schoolId,
+      originalType: 'sub_table',
+      targetItem: { value: schoolId, label: '定位履历学校' },
+      relativeItem: { value: 'tableField_history', label: '经销商履历' },
+    });
+    expect(retrieveView.props.getData.targetItem.formItem).toBeUndefined();
+    expect(schoolView.props.getData.targetItem.formItem).toMatchObject({
+      formUuid: 'FORM-SCHOOL',
+      hasTableField: true,
+    });
+    expect(schoolView.props.getData.targetItem.formItem.fields).toEqual([
+      expect.objectContaining({
+        fieldId: 'tableField_history',
+        label: '经销商履历',
+        componentName: 'TableField',
+      }),
+    ]);
+    expect(create.props).toMatchObject({
+      formUuid: schoolId,
+      insertType: 'sub_table',
+      subFormUuid: 'tableField_history',
+      sourceId: '',
+    });
+    expect(createView.props.addDataRules).toMatchObject({
+      formUuid: schoolId,
+      insertType: 'sub_table',
+      subFormUuid: 'tableField_history',
+      sourceId: '',
+      targetItem: { value: schoolId, label: '定位履历学校' },
+      relativeItem: { value: 'tableField_history', label: '经销商履历' },
+    });
+    expect(createView.props.addDataRules.crossForm).toMatchObject({
+      value: schoolId,
+      label: '定位履历学校',
+      formItem: {
+        formUuid: 'FORM-SCHOOL',
+        hasTableField: true,
+        fields: null,
+      },
+    });
+    expect(createView.props.addDataRules.crossForm.formItem.formUuid).not.toBe(schoolId);
+    expect(createView.props.addDataRules.targetItem.formItem).toMatchObject({
+      formUuid: 'FORM-SCHOOL',
+      hasTableField: true,
+      fields: null,
+    });
+    expect(createView.props.addDataRules.targetItem.formItem.formUuid).not.toBe(schoolId);
+    expect(createView.props.addDataRules.relativeList).toEqual([
+      expect.objectContaining({ value: 'tableField_history', label: '经销商履历' }),
+    ]);
+    expect(createView.props.description).toBe('在 [定位履历学校] 中新增数据');
+    expect(childFieldIds).toEqual([
+      'tableField_history',
+      'textField_dealer_code',
+      'radioField_status',
+      'associationFormField_dealer',
+    ]);
+    expect(createView.props.addDataRules.inputs.childList[0]).toMatchObject({
+      fieldId: 'tableField_history',
+      componentName: 'TableField',
+      label: '经销商履历',
+    });
+    expect(createView.props.addDataRules.inputs.childList[0].children.map((item) => item.fieldId)).toEqual([
+      'textField_dealer_code',
+      'radioField_status',
+      'associationFormField_dealer',
+    ]);
+    expect(createView.props.addDataRules.rules.childList.map((item) => item.fieldId)).toEqual([
+      'textField_dealer_code',
+      'radioField_status',
+      'associationFormField_dealer',
+    ]);
+    expect(createView.props.addDataRules.rules.rules).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        name: 'textField_dealer_code',
+        label: '经销商编号',
+        valueLabel: '经销商编号',
+      }),
+    ]));
+    expect(radioChild.componentOption).toBe(JSON.stringify([
+      { text: '在网', value: '在网' },
+      { text: '离网', value: '离网' },
+    ]));
+    expect(radioChild.props.dataSource).toEqual([
+      { text: '在网', value: '在网' },
+      { text: '离网', value: '离网' },
+    ]);
+    expect(associationChild).toMatchObject({
+      assoFormUuid: 'FORM-DEALER',
+      formType: 'receipt',
+      mainFieldId: 'textField_name',
+    });
+  });
+
+  test('preserves process-form metadata when retrieving and creating its sub-table rows', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          {
+            id: 'approval',
+            type: 'dataRetrieve',
+            formUuid: 'FORM-PROCESS',
+            conditions: [{ fieldId: 'pid', valueType: 'literal', value: 'PROC-1' }],
+          },
+          {
+            id: 'detail',
+            type: 'dataRetrieve',
+            originalType: 'sub_table',
+            source: 'approval',
+            subSourceId: 'tableField_detail',
+            conditions: [{ fieldId: 'textField_item', valueType: 'literal', value: 'A' }],
+          },
+          {
+            id: 'appendDetail',
+            type: 'dataCreate',
+            insertType: 'sub_table',
+            source: 'approval',
+            subFormUuid: 'tableField_detail',
+            assignments: [{ column: 'textField_item', valueType: 'literal', value: 'B' }],
+          },
+        ],
+      },
+      processCode: 'LPROC-PROCESS-SUB-TABLE',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-TRIGGER',
+      flowName: 'Process sub-table flow',
+      dataSourceFormsByUuid: new Map([[
+        'FORM-PROCESS',
+        { formUuid: 'FORM-PROCESS', formName: '采购审批', formType: 'process' },
+      ]]),
+      formSchemasByUuid: new Map([['FORM-PROCESS', [
+        { componentName: 'TableField', props: { fieldId: 'tableField_detail', label: { zh_CN: '采购明细' } } },
+        { componentName: 'TextField', props: { fieldId: 'textField_item', label: { zh_CN: '物品' }, parentId: 'tableField_detail' } },
+      ]]]),
+    });
+
+    const approvalId = built.nodeIdMap.approval;
+    const approvalProcess = built.processJson.nodes.find((node) => node.nodeId === approvalId);
+    const approvalView = built.viewJson.schema.children.find((node) => node.id === approvalId);
+    const detailProcess = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.detail);
+    const detailView = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.detail);
+    const createProcess = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.appendDetail);
+    const createView = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.appendDetail);
+
+    expect(approvalProcess.props).toMatchObject({
+      sourceId: 'FORM-PROCESS',
+      originalType: 'process_form',
+      condition: { rules: [{ id: 'pid', name: '流程实例ID' }] },
+    });
+    expect(approvalView.props.getData).toMatchObject({
+      originalType: 'process_form',
+      condition: { rules: [{ id: 'proc_inst_id', name: '流程实例ID' }] },
+      targetItem: { formItem: { formType: 'process', formUuid: 'FORM-PROCESS', title: '采购审批' } },
+    });
+    expect(detailProcess.props).toMatchObject({
+      sourceId: approvalId,
+      originalType: 'sub_table',
+      subSourceId: 'tableField_detail',
+    });
+    expect(detailView.props.getData.targetItem.formItem).toBeUndefined();
+    expect(createProcess.props).toMatchObject({
+      formUuid: approvalId,
+      insertType: 'sub_table',
+      subFormUuid: 'tableField_detail',
+    });
+    expect(createView.props.addDataRules.targetItem.formItem).toMatchObject({
+      formType: 'process',
+      formUuid: 'FORM-PROCESS',
+      title: '采购审批',
+    });
+  });
+
+  test('rejects main-form assignments on sub_table create and accepts sub-table fields', () => {
+    const base = {
+      processCode: 'LPROC-SUB-TABLE',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Sub table flow',
+      formSchemasByUuid: new Map([['FORM-SCHOOL', [
+        { componentName: 'TextField', props: { fieldId: 'serialNumberField_code', label: { zh_CN: '学校编码' } } },
+        {
+          componentName: 'TextField',
+          props: {
+            fieldId: 'textField_dealer_code',
+            label: { zh_CN: '经销商编号' },
+            parentId: 'tableField_history',
+          },
+        },
+      ]]]),
+    };
+    const schoolRetrieve = () => ({
+      id: 'school',
+      type: 'dataRetrieve',
+      formUuid: 'FORM-SCHOOL',
+      conditions: [{ fieldId: 'serialNumberField_code', value: 'x', valueType: 'literal' }],
+    });
+
+    expect(() => buildSpecProcessAndViewJson({
+      ...base,
+      spec: {
+        events: ['insert'],
+        nodes: [
+          schoolRetrieve(),
+          {
+            type: 'dataCreate',
+            insertType: 'sub_table',
+            source: 'school',
+            subFormUuid: 'tableField_history',
+            assignments: [{ column: 'serialNumberField_code', valueType: 'literal', value: 'S-1' }],
+          },
+        ],
+      },
+    })).toThrow(/serialNumberField_code/);
+
+    const built = buildSpecProcessAndViewJson({
+      ...base,
+      spec: {
+        events: ['insert'],
+        nodes: [
+          schoolRetrieve(),
+          {
+            id: 'appendRow',
+            type: 'dataCreate',
+            insertType: 'sub_table',
+            source: 'school',
+            subFormUuid: 'tableField_history',
+            assignments: [{ column: 'textField_dealer_code', valueType: 'literal', value: 'D-1' }],
+          },
+        ],
+      },
+    });
+    expect(built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.appendRow)
+      .props.assignments[0].column).toBe('textField_dealer_code');
+  });
+
+  test('reads nested TableField children when parentId is absent', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          {
+            id: 'school',
+            type: 'dataRetrieve',
+            formUuid: 'FORM-SCHOOL',
+            conditions: [{ fieldId: 'serialNumberField_code', value: 'x', valueType: 'literal' }],
+          },
+          {
+            id: 'appendRow',
+            type: 'dataCreate',
+            insertType: 'sub_table',
+            source: 'school',
+            subFormUuid: 'tableField_history',
+            assignments: [{ column: 'textField_dealer_code', valueType: 'literal', value: 'D-1' }],
+          },
+        ],
+      },
+      processCode: 'LPROC-SUB-TABLE',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Sub table flow',
+      formSchemasByUuid: new Map([['FORM-SCHOOL', [
+        { componentName: 'TextField', props: { fieldId: 'serialNumberField_code' } },
+        {
+          componentName: 'TableField',
+          props: { fieldId: 'tableField_history', label: { zh_CN: '经销商履历' } },
+          children: [
+            { componentName: 'TextField', props: { fieldId: 'textField_dealer_code', label: { zh_CN: '经销商编号' } } },
+          ],
+        },
+      ]]]),
+    });
+    expect(built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.appendRow)
+      .props.addDataRules.inputs.childList.map((item) => item.fieldId)).toEqual([
+      'tableField_history',
+      'textField_dealer_code',
+    ]);
+  });
+
+  test('keeps ordinary formUuid retrieve/create targeting a form', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          {
+            id: 'lookup',
+            type: 'dataRetrieve',
+            formUuid: 'FORM-B',
+            conditions: [{ fieldId: 'textField_b', value: 'x', valueType: 'literal' }],
+          },
+          {
+            id: 'create',
+            type: 'dataCreate',
+            formUuid: 'FORM-C',
+            assignments: [{ column: 'textField_name', valueType: 'literal', value: 'n' }],
+          },
+        ],
+      },
+      processCode: 'LPROC-FORM',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Form flow',
+      formSchemasByUuid: new Map([['FORM-C', [
+        { componentName: 'TextField', props: { fieldId: 'textField_name', label: { zh_CN: '名称' } } },
+      ]]]),
+    });
+    const retrieve = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.lookup);
+    const retrieveView = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.lookup);
+    const create = built.processJson.nodes.find((node) => node.nodeId === built.nodeIdMap.create);
+    const createView = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.create);
+
+    expect(retrieve.props).toMatchObject({ sourceId: 'FORM-B', originalType: 'form' });
+    expect(retrieveView.props.getData.targetItem.formItem.formUuid).toBe('FORM-B');
+    expect(retrieveView.props.getData.relativeItem).toEqual({});
+    expect(create.props).toMatchObject({ formUuid: 'FORM-C', insertType: 'form' });
+    expect(createView.props.addDataRules).toMatchObject({
+      formUuid: 'FORM-C',
+      insertType: 'form',
+    });
+  });
+
+  test('validates sub_table retrieve/create require source and sub-table ids', () => {
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{
+        type: 'dataRetrieve',
+        originalType: 'sub_table',
+        subSourceId: 'tableField_history',
+        conditions: [{ fieldId: 'textField_dealer_code', value: 'x', valueType: 'literal' }],
+      }],
+    })).toThrow(/source and subSourceId/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [{
+        type: 'dataCreate',
+        insertType: 'sub_table',
+        subFormUuid: 'tableField_history',
+        assignments: [{ column: 'textField_dealer_code', valueType: 'literal', value: 'D-1' }],
+      }],
+    })).toThrow(/source and subFormUuid/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [
+        {
+          id: 'school',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-SCHOOL',
+          conditions: [{ fieldId: 'serialNumberField_code', value: 'x', valueType: 'literal' }],
+        },
+        {
+          type: 'dataRetrieve',
+          originalType: 'sub_table',
+          source: 'school',
+          subSourceId: 'tableField_history',
+          conditions: [{ fieldId: 'textField_dealer_code', value: 'x', valueType: 'literal' }],
+        },
+      ],
+    })).not.toThrow();
+  });
+
+  test('rejects sub_table retrieve sourced from sendMessage, a downstream node, or an unknown alias', () => {
+    const subTableRetrieve = (source) => ({
+      id: 'lookupRow',
+      type: 'dataRetrieve',
+      originalType: 'sub_table',
+      source,
+      subSourceId: 'tableField_history',
+      conditions: [{ fieldId: 'textField_dealer_code', value: 'x', valueType: 'literal' }],
+    });
+    const schoolRetrieve = {
+      id: 'school',
+      type: 'dataRetrieve',
+      formUuid: 'FORM-SCHOOL',
+      conditions: [{ fieldId: 'serialNumberField_code', value: 'x', valueType: 'literal' }],
+    };
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [
+        { id: 'notify', type: 'sendMessage', receivers: ['user-1'], content: 'done' },
+        subTableRetrieve('notify'),
+      ],
+    })).toThrow(/getSelf or dataRetrieve/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [
+        subTableRetrieve('school'),
+        schoolRetrieve,
+      ],
+    })).toThrow(/upstream node/);
+
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [subTableRetrieve('missing')],
+    })).toThrow(/Unknown integration spec node alias: missing/);
+
+    expect(() => buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          { id: 'notify', type: 'sendMessage', receivers: ['user-1'], content: 'done' },
+          subTableRetrieve('notify'),
+        ],
+      },
+      processCode: 'LPROC-SUB-TABLE',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Invalid source',
+    })).toThrow(/getSelf or dataRetrieve/);
+  });
+
+  test('rejects a route-branch retrieve as a stable upstream for later sub_table nodes', () => {
+    const spec = {
+      events: ['insert'],
+      nodes: [
+        {
+          type: 'route',
+          branches: [
+            {
+              conditions: [{ fieldId: 'textField_a', opCode: 'ExistValue' }],
+              nodes: [{
+                id: 'school',
+                type: 'dataRetrieve',
+                formUuid: 'FORM-SCHOOL',
+                conditions: [{ fieldId: 'serialNumberField_code', value: 'x', valueType: 'literal' }],
+              }],
+            },
+            {
+              default: true,
+              nodes: [{ type: 'sendMessage', receivers: ['user-1'], content: 'other' }],
+            },
+          ],
+        },
+        {
+          id: 'lookupRow',
+          type: 'dataRetrieve',
+          originalType: 'sub_table',
+          source: 'school',
+          subSourceId: 'tableField_history',
+          conditions: [{ fieldId: 'textField_dealer_code', value: 'x', valueType: 'literal' }],
+        },
+      ],
+    };
+
+    expect(() => validateIntegrationSpec(spec)).toThrow(/upstream node/);
+    expect(() => buildSpecProcessAndViewJson({
+      spec,
+      processCode: 'LPROC-SUB-TABLE',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'Conditional branch source',
+    })).toThrow(/upstream node/);
+  });
+
+  test('allows a stable pre-route retrieve as the sub_table source after the route', () => {
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [
+        {
+          id: 'school',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-SCHOOL',
+          conditions: [{ fieldId: 'serialNumberField_code', value: 'x', valueType: 'literal' }],
+        },
+        {
+          type: 'route',
+          branches: [
+            {
+              conditions: [{ fieldId: 'textField_a', opCode: 'ExistValue' }],
+              nodes: [{ type: 'sendMessage', receivers: ['user-1'], content: 'matched' }],
+            },
+            { default: true, nodes: [{ type: 'sendMessage', receivers: ['user-1'], content: 'other' }] },
+          ],
+        },
+        {
+          id: 'lookupRow',
+          type: 'dataRetrieve',
+          originalType: 'sub_table',
+          source: 'school',
+          subSourceId: 'tableField_history',
+          conditions: [{ fieldId: 'textField_dealer_code', value: 'x', valueType: 'literal' }],
+        },
+      ],
+    })).not.toThrow();
+  });
+
+  test('rejects an explicit parentFormUuid that does not match the source form', () => {
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [
+        {
+          id: 'school',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-A',
+          conditions: [{ fieldId: 'serialNumberField_code', value: 'x', valueType: 'literal' }],
+        },
+        {
+          type: 'dataCreate',
+          insertType: 'sub_table',
+          source: 'school',
+          subFormUuid: 'tableField_history',
+          parentFormUuid: 'FORM-B',
+          assignments: [{ column: 'textField_dealer_code', valueType: 'literal', value: 'D-1' }],
+        },
+      ],
+    })).toThrow(/parentFormUuid must match the source form/);
+  });
+
+  test('accepts an explicit parentFormUuid that matches the inferred source form', () => {
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [
+        {
+          id: 'school',
+          type: 'dataRetrieve',
+          formUuid: 'FORM-SCHOOL',
+          conditions: [{ fieldId: 'serialNumberField_code', value: 'x', valueType: 'literal' }],
+        },
+        {
+          type: 'dataCreate',
+          insertType: 'sub_table',
+          source: 'school',
+          subFormUuid: 'tableField_history',
+          parentFormUuid: 'FORM-SCHOOL',
+          assignments: [{ column: 'textField_dealer_code', valueType: 'literal', value: 'D-1' }],
+        },
+      ],
+    })).not.toThrow();
+  });
+
+  test('rejects getSelf parentFormUuid that does not match the trigger form', () => {
+    expect(() => validateIntegrationSpec({
+      events: ['insert'],
+      nodes: [
+        { id: 'self', type: 'getSelf' },
+        {
+          type: 'dataRetrieve',
+          originalType: 'sub_table',
+          source: 'self',
+          subSourceId: 'tableField_history',
+          parentFormUuid: 'FORM-B',
+          conditions: [{ fieldId: 'textField_dealer_code', value: 'x', valueType: 'literal' }],
+        },
+      ],
+    }, ['insert'], { formUuid: 'FORM-A' })).toThrow(/parentFormUuid must match the source form/);
+  });
+
+  test('resolves getSelf as the sub_table retrieve parent form for Chinese table names', () => {
+    const built = buildSpecProcessAndViewJson({
+      spec: {
+        events: ['insert'],
+        nodes: [
+          { id: 'self', type: 'getSelf' },
+          {
+            id: 'lookupRow',
+            type: 'dataRetrieve',
+            originalType: 'sub_table',
+            source: 'self',
+            subSourceId: 'tableField_history',
+            conditions: [{
+              fieldId: 'textField_dealer_code',
+              value: 'x',
+              valueType: 'literal',
+            }],
+          },
+        ],
+      },
+      processCode: 'LPROC-SUB-TABLE',
+      appType: 'APP-SPEC',
+      formUuid: 'FORM-A',
+      flowName: 'GetSelf sub table',
+      formNamesByUuid: new Map([['FORM-A', '变更申请']]),
+      formSchemasByUuid: new Map([['FORM-A', [
+        {
+          componentName: 'TableField',
+          props: { fieldId: 'tableField_history', label: { zh_CN: '经销商履历' } },
+        },
+        {
+          componentName: 'TextField',
+          props: {
+            fieldId: 'textField_dealer_code',
+            label: { zh_CN: '经销商编号' },
+            parentId: 'tableField_history',
+          },
+        },
+      ]]]),
+    });
+
+    const retrieveView = built.viewJson.schema.children.find((node) => node.id === built.nodeIdMap.lookupRow);
+    expect(retrieveView.props.getData).toMatchObject({
+      sourceId: built.nodeIdMap.self,
+      originalType: 'sub_table',
+      relativeItem: { value: 'tableField_history', label: '经销商履历' },
+    });
+    expect(retrieveView.props.getData.relativeItem.label).not.toBe('tableField_history');
   });
 });

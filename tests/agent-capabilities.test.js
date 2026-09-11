@@ -18,86 +18,36 @@ describe('agent-capabilities summary', () => {
     jest.dontMock('../lib/core/utils');
   });
 
-  test('runtime access token fast path skips environment snapshot and auth status checks', () => {
-    const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-agent-cap-fast-'));
-    const buildEnvironmentSnapshot = jest.fn(() => {
-      throw new Error('slow environment precheck should be skipped');
+  test('delivery runtime detector keeps local Codex non-cloud and honors managed cloud signals', () => {
+    const { buildApplicationEntryPolicy } = require('../lib/core/agent-capabilities');
+
+    expect(buildApplicationEntryPolicy({
+      auth: { auth_runtime: 'env_token_bootstrap' },
+      runtime: { runtime: 'desktop_shell' },
+    }, { CODEX_SHELL: '1', CODEX_CI: '1' })).toMatchObject({
+      environment: 'non_cloud_agent',
+      entries: { admin: 'include' },
     });
-    const getAuthStatus = jest.fn(() => {
-      throw new Error('auth status check should be skipped');
+
+    expect(buildApplicationEntryPolicy({
+      auth: { auth_runtime: 'token_oauth_session' },
+      runtime: { runtime: 'unknown' },
+    }, { OPENYIDA_MANAGED_RUNTIME: 'cloud' })).toMatchObject({
+      environment: 'managed_cloud_agent',
+      entries: { admin: 'omit' },
     });
-    const findProjectRoot = jest.fn(() => projectRoot);
 
-    jest.doMock('../lib/core/env', () => ({ buildEnvironmentSnapshot }));
-    jest.doMock('../lib/core/utils', () => ({ findProjectRoot, getAuthStatus }));
-
-    process.env.YIDA_AUTH_ENABLED = 'true';
-    process.env.OPENYIDA_ACCESS_TOKEN = 'runtime-access-token';
-    process.env.OPENYIDA_TOKEN_CORP_ID = 'corpRuntime';
-    process.env.OPENYIDA_TOKEN_CORP_NAME = '运行时组织';
-    process.env.OPENYIDA_TOKEN_USER_ID = 'userRuntime';
-
-    try {
-      const { buildAgentCapabilitiesSummary } = require('../lib/core/agent-capabilities');
-      const summary = buildAgentCapabilitiesSummary();
-
-      expect(buildEnvironmentSnapshot).not.toHaveBeenCalled();
-      expect(getAuthStatus).not.toHaveBeenCalled();
-      expect(findProjectRoot).toHaveBeenCalledTimes(1);
-      expect(() => JSON.parse(JSON.stringify(summary))).not.toThrow();
-      expect(summary).toMatchObject({
-        schema_version: 1,
-        name: 'openyida-agent-capabilities-summary',
-        login: {
-          status: 'ok',
-          auth_mode: 'token',
-          auth_source: 'env',
-          auth_store: 'host_injected',
-          corp_id: 'corpRuntime',
-          corp_name: '运行时组织',
-          user_id: 'userRuntime',
-          user_auth_store_writable: null,
-          persistence_scope: 'host',
-          can_auto_use: true,
-        },
-        precheck: {
-          skipped: true,
-          reason: 'runtime_auth_provisioned',
-        },
-        workdir: projectRoot,
-        workdir_exists: true,
-        builder_path: {
-          auth: {
-            source: 'env',
-            store: 'host_injected',
-            corp_id: 'corpRuntime',
-            corp_name: '运行时组织',
-            user_id: 'userRuntime',
-            user_auth_store_writable: null,
-            persistence_scope: 'host',
-            can_auto_use: true,
-            host_injected_token_mode: true,
-            env_token_present: true,
-            runtime_auth_provisioned: true,
-            interactive_login_allowed: false,
-            browser_session_auth_allowed: false,
-          },
-          interactive_login: {
-            mode: 'not_required',
-            browser_owner: 'none',
-            recommended_command: null,
-            reason: 'host_token_env_detected',
-          },
-        },
-      });
-      expect(summary.command_manifest_digest).toMatch(/^[a-f0-9]{64}$/);
-    } finally {
-      fs.rmSync(projectRoot, { recursive: true, force: true });
-    }
+    expect(buildApplicationEntryPolicy({
+      auth: { auth_runtime: 'token_oauth_session' },
+      runtime: { runtime: 'web_sandbox', tool: 'qwenwork' },
+    }, {})).toMatchObject({
+      environment: 'managed_cloud_agent',
+      entries: { admin: 'omit' },
+    });
   });
 
-  test('OPENYIDA_AUTH_MODE=token refresh token is treated as host-injected auth', () => {
-    const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-agent-cap-cloud-'));
+  test('YIDA_AUTH_ENABLED does not skip environment snapshot or auth status checks', () => {
+    const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-agent-cap-fast-'));
     const buildEnvironmentSnapshot = jest.fn(() => ({
       active: {
         projectRoot,
@@ -108,28 +58,28 @@ describe('agent-capabilities summary', () => {
       ok: true,
       auth_mode: 'token',
       auth_source: 'env',
-      auth_store: 'host_injected',
-      corp_id: 'corpCloud',
-      corp_name: '云端组织',
-      user_id: 'userCloud',
+      auth_store: 'env',
+      corp_id: 'corpRuntime',
+      corp_name: '运行时组织',
+      user_id: 'userRuntime',
       user_auth_store_writable: null,
-      persistence_scope: 'host',
-      status: 'refresh_required',
+      persistence_scope: 'process',
+      status: 'ok',
       can_auto_use: true,
     }));
     const findProjectRoot = jest.fn(() => {
-      throw new Error('findProjectRoot is only needed by the runtime fast path');
+      throw new Error('findProjectRoot should not be needed when env snapshot provides project root');
     });
 
     jest.doMock('../lib/core/env', () => ({ buildEnvironmentSnapshot }));
     jest.doMock('../lib/core/utils', () => ({ findProjectRoot, getAuthStatus }));
 
-    delete process.env.YIDA_AUTH_ENABLED;
-    process.env.OPENYIDA_AUTH_MODE = 'token';
-    process.env.OPENYIDA_REFRESH_TOKEN = 'runtime-refresh-token';
-    process.env.OPENYIDA_TOKEN_CORP_ID = 'corpCloud';
-    process.env.OPENYIDA_TOKEN_CORP_NAME = '云端组织';
-    process.env.OPENYIDA_TOKEN_USER_ID = 'userCloud';
+    process.env.YIDA_AUTH_ENABLED = 'true';
+    process.env.OPENYIDA_MANAGED_RUNTIME = 'cloud';
+    process.env.OPENYIDA_ACCESS_TOKEN = 'runtime-access-token';
+    process.env.OPENYIDA_TOKEN_CORP_ID = 'corpRuntime';
+    process.env.OPENYIDA_TOKEN_CORP_NAME = '运行时组织';
+    process.env.OPENYIDA_TOKEN_USER_ID = 'userRuntime';
 
     try {
       const { buildAgentCapabilitiesSummary } = require('../lib/core/agent-capabilities');
@@ -138,51 +88,94 @@ describe('agent-capabilities summary', () => {
       expect(buildEnvironmentSnapshot).toHaveBeenCalledTimes(1);
       expect(getAuthStatus).toHaveBeenCalledWith({ projectRoot, includeSecrets: false });
       expect(findProjectRoot).not.toHaveBeenCalled();
+      expect(() => JSON.parse(JSON.stringify(summary))).not.toThrow();
+      expect(summary).toMatchObject({
+        schema_version: 1,
+        name: 'openyida-agent-capabilities-summary',
+        login: {
+          status: 'ok',
+          auth_mode: 'token',
+          auth_source: 'env',
+          auth_store: 'env',
+          corp_id: 'corpRuntime',
+          corp_name: '运行时组织',
+          user_id: 'userRuntime',
+          user_auth_store_writable: null,
+          persistence_scope: 'process',
+          can_auto_use: true,
+        },
+        workdir: projectRoot,
+        workdir_exists: true,
+        builder_path: {
+          auth: {
+            source: 'env',
+            store: 'env',
+            corp_id: 'corpRuntime',
+            corp_name: '运行时组织',
+            user_id: 'userRuntime',
+            user_auth_store_writable: null,
+            persistence_scope: 'process',
+            can_auto_use: true,
+            interactive_login_allowed: false,
+            browser_session_auth_allowed: false,
+          },
+          interactive_login: {
+            mode: 'not_required',
+            browser_owner: 'none',
+            recommended_command: null,
+            reason: 'env_token_bootstrap',
+          },
+        },
+      });
       expect(summary).not.toHaveProperty('precheck');
-      expect(summary.login).toMatchObject({
-        status: 'refresh_required',
-        auth_mode: 'token',
-        auth_source: 'env',
-        auth_store: 'host_injected',
-        corp_id: 'corpCloud',
-        corp_name: '云端组织',
-        user_id: 'userCloud',
-        user_auth_store_writable: null,
-        persistence_scope: 'host',
-        can_auto_use: true,
+      expect(JSON.stringify(summary)).not.toContain('host_injected');
+      expect(JSON.stringify(summary)).not.toContain('host_token');
+      expect(JSON.stringify(summary)).not.toContain('runtime_auth_provisioned');
+      expect(summary.command_manifest_digest).toMatch(/^[a-f0-9]{64}$/);
+      expect(summary.build_identity).toEqual({
+        schema_version: 1,
+        package_version: expect.any(String),
+        build_id: expect.any(String),
+        commit_sha: 'unknown',
+        bundle_digest: 'unknown',
+        command_manifest_digest: summary.command_manifest_digest,
       });
-      expect(summary.builder_path.auth).toMatchObject({
-        source: 'env',
-        store: 'host_injected',
-        corp_id: 'corpCloud',
-        corp_name: '云端组织',
-        user_id: 'userCloud',
-        user_auth_store_writable: null,
-        persistence_scope: 'host',
-        can_auto_use: true,
-        host_injected_token_mode: true,
-        host_token_env_detected: true,
-        env_token_present: true,
-        interactive_login_allowed: false,
-        browser_session_auth_allowed: false,
-        missing_token_action: 'STOP_AND_REQUEST_HOST_TOKEN',
-      });
-      expect(summary.builder_path.auth).not.toHaveProperty('runtime_auth_provisioned');
-      expect(summary.builder_path.interactive_login).toMatchObject({
-        mode: 'not_required',
-        browser_owner: 'none',
-        recommended_command: null,
-        reason: 'host_token_env_detected',
-      });
-      expect(summary.builder_path.environment_check_simplification).toMatchObject({
-        can_skip_default_exploration_when_summary_ok: true,
-        skip_login_check_only_default: true,
-        skip_browser_login_default: true,
-        stop_when_host_token_missing: false,
+      expect(summary.application_entry_policy).toEqual({
+        schema_version: 1,
+        environment: 'managed_cloud_agent',
+        delivery_unit: 'single_application_entry_group',
+        resource_delivery: 'summary_only',
+        internal_artifact_delivery: 'never',
+        entries: {
+          workbench: 'always',
+          custom: 'when_entry_mode_standalone_and_is_render_nav_false_readback',
+          admin: 'omit',
+        },
       });
     } finally {
       fs.rmSync(projectRoot, { recursive: true, force: true });
     }
+  });
+
+  test('reports immutable CI build identity in summary and full diagnostics', () => {
+    process.env.OPENYIDA_BUILD_ID = 'openyida-phase6-build';
+    process.env.OPENYIDA_COMMIT_SHA = 'abc123def456';
+    process.env.OPENYIDA_BUNDLE_DIGEST = 'sha256:bundle123';
+
+    const capabilities = require('../lib/core/agent-capabilities');
+    const summary = capabilities.buildAgentCapabilitiesSummary();
+    const full = capabilities.buildAgentCapabilities();
+
+    expect(summary.build_identity).toEqual({
+      schema_version: 1,
+      package_version: expect.any(String),
+      build_id: 'openyida-phase6-build',
+      commit_sha: 'abc123def456',
+      bundle_digest: 'sha256:bundle123',
+      command_manifest_digest: summary.command_manifest_digest,
+    });
+    expect(full.build_identity).toEqual(summary.build_identity);
+    expect(full.openyida.build_identity).toEqual(summary.build_identity);
   });
 
   test('non-runtime access token path still uses existing summary checks', () => {
@@ -272,6 +265,14 @@ describe('agent-capabilities summary', () => {
           'openyida auth profiles',
           'openyida auth profile switch <auth_profile>',
         ],
+      });
+      expect(summary.application_entry_policy).toMatchObject({
+        environment: 'non_cloud_agent',
+        entries: {
+          workbench: 'always',
+          custom: 'when_entry_mode_standalone_and_is_render_nav_false_readback',
+          admin: 'include',
+        },
       });
       expect(summary.builder_path.auth).not.toHaveProperty('runtime_auth_provisioned');
     } finally {

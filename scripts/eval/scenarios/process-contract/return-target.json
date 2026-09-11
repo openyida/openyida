@@ -1,0 +1,6 @@
+{
+  "id": "return-target",
+  "title": "退回目标",
+  "template": "returnTarget",
+  "request": "构建申请复核流程：初审后进入复核；复核不同意时退回初审，同意后抄送申请人并结束。"
+}

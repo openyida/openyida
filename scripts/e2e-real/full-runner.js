@@ -13,6 +13,10 @@ const {
   writeRegistry,
 } = require('./runner');
 const { validateSkillCoverage } = require('./skill-coverage');
+const {
+  DEFAULT_DEFINITION_FILE: DEFAULT_PROCESS_DEFINITION_FILE,
+  run: runProcessMvp,
+} = require('./process/runner');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const DEFAULT_PAGE_SOURCE = path.join(ROOT, 'project', 'pages', 'src', 'demo-compat-smoke.oyd.jsx');
@@ -129,23 +133,112 @@ function fieldByLabel(fields, label) {
   return field;
 }
 
-function findValueByKeys(node, keys) {
-  if (!node || typeof node !== 'object') {return null;}
-  for (const key of keys) {
-    if (node[key]) {return node[key];}
+function requireVerifiedResourceId(result, resourceType, idKey) {
+  const id = result && result[idKey];
+  const resource = result && result.resource;
+  if (
+    result &&
+    result.idVerified === true &&
+    typeof id === 'string' &&
+    id.length > 0 &&
+    resource &&
+    resource.type === resourceType &&
+    resource.id === id
+  ) {
+    return id;
   }
-  for (const value of Object.values(node)) {
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        const found = findValueByKeys(item, keys);
-        if (found) {return found;}
-      }
-    } else if (value && typeof value === 'object') {
-      const found = findValueByKeys(value, keys);
-      if (found) {return found;}
+  throw new Error(`Data create did not return a verified root-level ${idKey} contract.`);
+}
+
+function parseFormDataCandidate(value) {
+  if (!value) {return null;}
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+    } catch {
+      return null;
     }
   }
-  return null;
+  return typeof value === 'object' && !Array.isArray(value) ? value : null;
+}
+
+function extractReadbackField(result, fieldId) {
+  const content = result && result.content;
+  const data = result && result.data;
+  const nestedResult = result && result.result;
+  const candidates = [
+    result && result.formData,
+    result && result.formDataJson,
+    content && content.formData,
+    content && content.formDataJson,
+    content && content.data && content.data.formData,
+    content && content.data && content.data.formDataJson,
+    content && content.data,
+    data && data.formData,
+    data && data.formDataJson,
+    data,
+    nestedResult && nestedResult.formData,
+    nestedResult && nestedResult.formDataJson,
+    nestedResult && nestedResult.data && nestedResult.data.formData,
+    nestedResult && nestedResult.data && nestedResult.data.formDataJson,
+    nestedResult && nestedResult.data,
+    content,
+    nestedResult,
+  ];
+
+  for (const candidate of candidates) {
+    const formData = parseFormDataCandidate(candidate);
+    if (
+      formData &&
+      Object.prototype.hasOwnProperty.call(formData, fieldId) &&
+      formData[fieldId] !== undefined
+    ) {
+      return { found: true, value: formData[fieldId] };
+    }
+  }
+  return { found: false, value: undefined };
+}
+
+function assessDataReadback(result, fieldId, marker) {
+  const extracted = extractReadbackField(result, fieldId);
+  if (!extracted.found) {
+    return {
+      readback: {
+        status: 'blocked',
+        capability: 'BLOCKED',
+        markerVerified: false,
+        fieldId,
+      },
+      residual: {
+        code: 'DATA_READBACK_MARKER_CAPABILITY_BLOCKED',
+        message: `Readback payload does not expose marker field ${fieldId}.`,
+      },
+    };
+  }
+  if (extracted.value !== marker) {
+    return {
+      readback: {
+        status: 'failed',
+        capability: 'SUPPORTED',
+        markerVerified: false,
+        fieldId,
+      },
+      residual: {
+        code: 'DATA_READBACK_MARKER_MISMATCH',
+        message: `Readback marker for ${fieldId} does not match the create marker.`,
+      },
+    };
+  }
+  return {
+    readback: {
+      status: 'passed',
+      capability: 'SUPPORTED',
+      markerVerified: true,
+      fieldId,
+    },
+    residual: null,
+  };
 }
 
 function buildReportCharts(formUuid, fields) {
@@ -474,7 +567,7 @@ function statusRow(name, index) {
         fontSize: 13,
         fontWeight: 800,
         flex: '0 0 auto',
-      }}>✓</span>
+      }}>OK</span>
       <span>{name}</span>
     </div>
   );
@@ -890,6 +983,7 @@ function buildAcceptanceManifest(registry, registryPath) {
       optInReason: stageResults[name].optInReason,
     })),
     resources: registry.resources || [],
+    dataContracts: registry.dataContracts || {},
     urls: {
       adminUrl: resultApp.adminUrl || null,
       workbenchUrl: resultApp.workbenchUrl || null,
@@ -927,6 +1021,7 @@ function buildAcceptanceReport(registry, registryPath) {
       artifactCount: (registry.artifacts || []).length,
     },
     stages,
+    dataContracts: registry.dataContracts || {},
   };
 }
 
@@ -1019,8 +1114,8 @@ function recordConfiguredStageResults(registry, registryPath, config, context, w
     },
     data: {
       commands: ['data-create-form', 'data-get-form', 'data-update-form', 'data-query-form', 'data-query-form-ids'],
-      summary: 'Form data create/get/update/query/ids-only loop verified',
-      resources: [],
+      summary: 'Receipt form instance root contract and independent marker readback verified',
+      resources: ['form-instance'],
     },
     permission: {
       commands: ['get-permission'],
@@ -1070,10 +1165,11 @@ function recordConfiguredStageResults(registry, registryPath, config, context, w
       resources: [],
     },
     process: {
-      commands: ['create-process', 'configure-process'],
-      summary: `Process form configured and republished: ${context.processCode || 'n/a'}`,
-      resources: ['process'],
-      artifacts: ['process-definition', 'process-rule-definition', 'process-official-node-fixture'],
+      status: registry.processMvp && registry.processMvp.status,
+      commands: ['process-mvp-create-publish', 'data-create-process-form', 'data-get-process'],
+      summary: `Process form and process instance contract/readback verified: ${context.processInstanceId || 'n/a'}`,
+      resources: ['process', 'process-instance'],
+      artifacts: ['process-readback-raw', 'process-readback-canonical', 'process-acceptance-manifest'],
     },
     'connector-local': {
       commands: ['connector-gen-template', 'connector-parse-api'],
@@ -1092,7 +1188,7 @@ function recordConfiguredStageResults(registry, registryPath, config, context, w
     if (!definition) {continue;}
     const commands = commandsByName(registry, definition.commands);
     recordStageResult(registry, null, stageName, {
-      status: 'passed',
+      status: definition.status || 'passed',
       commands: commandNames(commands),
       resources: resourcesByType(registry, definition.resources || []),
       artifacts: artifactsByType(registry, definition.artifacts || []),
@@ -1102,7 +1198,7 @@ function recordConfiguredStageResults(registry, registryPath, config, context, w
   if (registryPath) {writeRegistry(registryPath, registry);}
 }
 
-function run(options = {}) {
+async function run(options = {}) {
   const env = options.env || process.env;
   const config = options.config || getFullConfig(env);
   const executeCli = options.runCli || runCli;
@@ -1120,6 +1216,8 @@ function run(options = {}) {
   const { registry, registryPath } = registryFactory(config);
   registry.suite = 'full';
   registry.stages = config.stages;
+  registry.runId = registry.runId || config.prefix;
+  registry.dataContracts = registry.dataContracts || {};
   persistRegistry(registryPath, registry);
 
   const workDir = path.join(config.registryDir, config.prefix);
@@ -1152,6 +1250,93 @@ function run(options = {}) {
     return commandResult;
   }
 
+  function runDataCreateReadbackContract(contractOptions) {
+    const contract = {
+      kind: contractOptions.kind,
+      marker: contractOptions.marker,
+      resource: null,
+      contract: {
+        status: 'pending',
+        resourceType: contractOptions.resourceType,
+        idKey: contractOptions.idKey,
+        idVerified: false,
+      },
+      readback: {
+        status: 'pending',
+        capability: 'UNKNOWN',
+        markerVerified: false,
+        fieldId: contractOptions.markerFieldId,
+      },
+      residual: null,
+    };
+    registry.dataContracts[contractOptions.kind] = contract;
+    persistRegistry(registryPath, registry);
+
+    let createResult;
+    let resourceId;
+    try {
+      createResult = runStep(
+        contractOptions.createStepName,
+        contractOptions.createArgs
+      ).json;
+      resourceId = requireVerifiedResourceId(
+        createResult,
+        contractOptions.resourceType,
+        contractOptions.idKey
+      );
+    } catch (error) {
+      contract.contract.status = 'failed';
+      contract.residual = {
+        code: 'DATA_CREATE_CONTRACT_FAILED',
+        message: error.message,
+      };
+      persistRegistry(registryPath, registry);
+      throw error;
+    }
+
+    contract.resource = { type: contractOptions.resourceType, id: resourceId };
+    contract.contract.status = 'passed';
+    contract.contract.idVerified = true;
+    persistRegistry(registryPath, registry);
+
+    trackResource(registry, registryPath, {
+      runId: registry.runId,
+      owned: true,
+      type: contractOptions.ownedResourceType,
+      exactId: resourceId,
+      appType: contractOptions.appType,
+      formUuid: contractOptions.formUuid,
+      [contractOptions.idKey]: resourceId,
+      marker: contractOptions.marker,
+    });
+
+    const readbackResult = runStep(
+      contractOptions.readbackStepName,
+      contractOptions.readbackArgs(resourceId)
+    ).json;
+    const assessment = assessDataReadback(
+      readbackResult,
+      contractOptions.markerFieldId,
+      contractOptions.marker
+    );
+    contract.readback = assessment.readback;
+    contract.residual = assessment.residual;
+    persistRegistry(registryPath, registry);
+
+    if (assessment.readback.status === 'blocked') {
+      const error = new Error(`${contractOptions.kind} readback capability BLOCKED: ${assessment.residual.message}`);
+      error.code = assessment.residual.code;
+      throw error;
+    }
+    if (assessment.readback.status !== 'passed') {
+      const error = new Error(`${contractOptions.kind} readback marker mismatch: ${assessment.residual.message}`);
+      error.code = assessment.residual.code;
+      throw error;
+    }
+
+    return { resourceId, contract };
+  }
+
   try {
     if (hasStage(config.stages, 'auth')) {
       runStep('commands', ['commands', '--json']);
@@ -1169,7 +1354,15 @@ function run(options = {}) {
         '--no-open',
       ]).json;
       context.appType = app.appType;
-      trackResource(registry, registryPath, { type: 'app', appType: context.appType, name: config.appName, url: app.url });
+      trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
+        type: 'app',
+        exactId: context.appType,
+        appType: context.appType,
+        name: config.appName,
+        url: app.url,
+      });
 
       runStep('update-app', ['update-app', context.appType, '--name', config.updateAppName]);
       runStep('app-list-after-create', ['app-list', '--size', '5'], { allowNoJson: true });
@@ -1185,7 +1378,16 @@ function run(options = {}) {
         '--no-open',
       ]).json;
       context.formUuid = form.formUuid;
-      trackResource(registry, registryPath, { type: 'form', appType: context.appType, formUuid: context.formUuid, name: config.formName, url: form.url });
+      trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
+        type: 'form',
+        exactId: context.formUuid,
+        appType: context.appType,
+        formUuid: context.formUuid,
+        name: config.formName,
+        url: form.url,
+      });
 
       runStep('list-forms', ['list-forms', context.appType]);
       const addOption = runStep('create-form-add-option', [
@@ -1225,7 +1427,16 @@ function run(options = {}) {
         '--no-open',
       ]).json;
       context.pageId = page.pageId;
-      trackResource(registry, registryPath, { type: 'page', appType: context.appType, pageId: context.pageId, name: config.pageName, url: page.url });
+      trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
+        type: 'page',
+        exactId: context.pageId,
+        appType: context.appType,
+        pageId: context.pageId,
+        name: config.pageName,
+        url: page.url,
+      });
       runStep('update-form-config-page', ['update-form-config', context.appType, context.pageId, 'false', config.pageName], { allowNoJson: true });
       runStep('publish', ['publish', config.pageSource, context.appType, context.pageId, '--health-check', '--no-open']);
     }
@@ -1234,26 +1445,40 @@ function run(options = {}) {
       const textField = fieldByLabel(context.fields, 'E2E Text');
       const numberField = fieldByLabel(context.fields, 'E2E Number');
       const statusField = fieldByLabel(context.fields, 'E2E Status');
+      const receiptMarker = `${registry.runId}__receipt_data_contract`;
       const createData = {};
-      createData[textField.fieldId] = `${config.prefix} record`;
+      createData[textField.fieldId] = receiptMarker;
       createData[numberField.fieldId] = 42;
       createData[statusField.fieldId] = 'New';
-      const createResult = runStep('data-create-form', [
-        'data',
-        'create',
-        'form',
-        context.appType,
-        context.formUuid,
-        '--data-json',
-        JSON.stringify(createData),
-      ]).json;
-      const formInstId = findValueByKeys(createResult, ['formInstId', 'formInstanceId', 'instanceId']);
-      if (formInstId) {
-        runStep('data-get-form', ['data', 'get', 'form', context.appType, '--inst-id', formInstId]);
-        const updateData = {};
-        updateData[textField.fieldId] = `${config.prefix} record updated`;
-        runStep('data-update-form', ['data', 'update', 'form', context.appType, '--inst-id', formInstId, '--data-json', JSON.stringify(updateData)]);
-      }
+      const receiptContract = runDataCreateReadbackContract({
+        kind: 'receipt',
+        marker: receiptMarker,
+        markerFieldId: textField.fieldId,
+        resourceType: 'formInstance',
+        idKey: 'formInstId',
+        ownedResourceType: 'form-instance',
+        appType: context.appType,
+        formUuid: context.formUuid,
+        createStepName: 'data-create-form',
+        createArgs: [
+          'data',
+          'create',
+          'form',
+          context.appType,
+          context.formUuid,
+          '--data-json',
+          JSON.stringify(createData),
+        ],
+        readbackStepName: 'data-get-form',
+        readbackArgs: formInstId => [
+          'data', 'get', 'form', context.appType, '--inst-id', formInstId,
+        ],
+      });
+      const formInstId = receiptContract.resourceId;
+      context.formInstId = formInstId;
+      const updateData = {};
+      updateData[textField.fieldId] = `${config.prefix} record updated`;
+      runStep('data-update-form', ['data', 'update', 'form', context.appType, '--inst-id', formInstId, '--data-json', JSON.stringify(updateData)]);
       runStep('data-query-form', ['data', 'query', 'form', context.appType, context.formUuid, '--size', '1']);
       runStep('data-query-form-ids', ['data', 'query', 'form', context.appType, context.formUuid, '--size', '1', '--ids-only']);
     }
@@ -1275,7 +1500,16 @@ function run(options = {}) {
       const chartsPath = writeJsonFile(path.join(workDir, 'report-charts.json'), buildReportCharts(context.formUuid, context.fields));
       const report = runStep('create-report', ['create-report', context.appType, `${config.prefix}_Report`, chartsPath, '--no-open']).json;
       context.reportId = report.reportId;
-      trackResource(registry, registryPath, { type: 'report', appType: context.appType, reportId: context.reportId, name: `${config.prefix}_Report`, url: report.url });
+      trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
+        type: 'report',
+        exactId: context.reportId,
+        appType: context.appType,
+        reportId: context.reportId,
+        name: `${config.prefix}_Report`,
+        url: report.url,
+      });
 
       const appendPath = writeJsonFile(path.join(workDir, 'append-charts.json'), buildAppendCharts(context.formUuid, context.fields));
       runStep('append-chart', ['append-chart', context.appType, context.reportId, appendPath, '--no-open']);
@@ -1293,7 +1527,16 @@ function run(options = {}) {
         '--no-open',
       ]).json;
       context.dashboardSkillPageId = dashboardSkillPage.pageId;
-      trackResource(registry, registryPath, { type: 'dashboard-skill', appType: context.appType, pageId: context.dashboardSkillPageId, name: `${config.prefix}_DashboardSkill`, url: dashboardSkillPage.url });
+      trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
+        type: 'dashboard-skill',
+        exactId: context.dashboardSkillPageId,
+        appType: context.appType,
+        pageId: context.dashboardSkillPageId,
+        name: `${config.prefix}_DashboardSkill`,
+        url: dashboardSkillPage.url,
+      });
       runStep('dashboard-skill-publish', ['publish', dashboardSkillSourcePath, context.appType, context.dashboardSkillPageId, '--health-check', '--no-open']);
 
       const businessDashboardSourcePath = writeTextFile(path.join(workDir, 'business-dashboard.oyd.jsx'), buildBusinessDashboardSource(config, context));
@@ -1310,7 +1553,10 @@ function run(options = {}) {
       context.businessDashboardFormUuid = businessDashboardPage.formUuid || businessDashboardPage.pageId || null;
       context.businessDashboardSharePath = `/o/${config.prefix.toLowerCase()}-business-dashboard`;
       trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
         type: 'business-dashboard',
+        exactId: context.businessDashboardPageId,
         appType: context.appType,
         pageId: context.businessDashboardPageId,
         name: `${config.prefix}_BusinessDashboard`,
@@ -1349,7 +1595,14 @@ function run(options = {}) {
           persistRegistry(registryPath, registry);
         }
         if (context.importAppType) {
-          trackResource(registry, registryPath, { type: 'imported-app', appType: context.importAppType, name: config.importAppName });
+          trackResource(registry, registryPath, {
+            runId: registry.runId,
+            owned: true,
+            type: 'imported-app',
+            exactId: context.importAppType,
+            appType: context.importAppType,
+            name: config.importAppName,
+          });
         }
       }
     }
@@ -1386,55 +1639,68 @@ function run(options = {}) {
       if (!context.appType || !context.formUuid) {
         throw new Error('Process stage requires app and form stages');
       }
-      const processCreateDefinitionPath = writeJsonFile(
-        path.join(workDir, 'process-create-definition.json'),
-        buildProcessCreateDefinition(context.fields),
-      );
-      const processRuleDefinitionPath = writeJsonFile(
-        path.join(workDir, 'process-rule-definition.json'),
-        buildProcessRuleDefinition(context.fields),
-      );
-      const officialNodeFixturePath = writeJsonFile(
-        path.join(workDir, 'process-official-node-fixture.json'),
-        buildOfficialProcessNodeFixture(context),
-      );
-      registry.artifacts = registry.artifacts || [];
-      registry.artifacts.push(
-        { type: 'process-definition', path: processCreateDefinitionPath },
-        { type: 'process-rule-definition', path: processRuleDefinitionPath },
-        { type: 'process-official-node-fixture', path: officialNodeFixturePath },
-      );
+      const processMvp = await runProcessMvp({
+        env,
+        config: {
+          enabled: true,
+          appType: context.appType,
+          formUuid: context.formUuid,
+          scenarioId: env.OPENYIDA_E2E_PROCESS_SCENARIO || 'serial-approval',
+          definitionFile: env.OPENYIDA_E2E_PROCESS_DEFINITION || DEFAULT_PROCESS_DEFINITION_FILE,
+          registryDir: config.registryDir,
+          baseUrl: config.baseUrl || 'https://www.aliwork.com',
+        },
+        registry,
+        registryPath,
+        writeRegistry: persistRegistry,
+        addResource: trackResource,
+        commandAdapter: {
+          run: function runProcessCommand(args) {
+            return executeCli(args, env);
+          },
+        },
+        apiAdapter: options.processApiAdapter,
+        removePath: options.removeProcessPath,
+      });
+      context.processCode = processMvp.processCode || null;
+      context.processId = processMvp.processId || null;
+      context.processVersion = processMvp.processVersion || null;
+      registry.processMvp = processMvp;
       persistRegistry(registryPath, registry);
 
-      const processCreate = runStep('create-process', [
-        'create-process',
-        context.appType,
-        '--formUuid',
-        context.formUuid,
-        processCreateDefinitionPath,
-      ]).json;
-      context.processCode = processCreate.processCode;
-      if (!context.processCode) {
-        throw new Error(`create-process did not return processCode: ${JSON.stringify(processCreate)}`);
-      }
-      trackResource(registry, registryPath, {
-        type: 'process',
+      const processTextField = fieldByLabel(context.fields, 'E2E Text');
+      const processNumberField = fieldByLabel(context.fields, 'E2E Number');
+      const processStatusField = fieldByLabel(context.fields, 'E2E Status');
+      const processMarker = `${registry.runId}__process_data_contract`;
+      const processCreateData = {};
+      processCreateData[processTextField.fieldId] = processMarker;
+      processCreateData[processNumberField.fieldId] = 84;
+      processCreateData[processStatusField.fieldId] = 'New';
+      const processContract = runDataCreateReadbackContract({
+        kind: 'process',
+        marker: processMarker,
+        markerFieldId: processTextField.fieldId,
+        resourceType: 'processInstance',
+        idKey: 'processInstanceId',
+        ownedResourceType: 'process-instance',
         appType: context.appType,
         formUuid: context.formUuid,
-        processCode: context.processCode,
-        name: `${config.prefix}_Process`,
-        url: processCreate.url,
+        createStepName: 'data-create-process-form',
+        createArgs: [
+          'data',
+          'create',
+          'form',
+          context.appType,
+          context.formUuid,
+          '--data-json',
+          JSON.stringify(processCreateData),
+        ],
+        readbackStepName: 'data-get-process',
+        readbackArgs: processInstanceId => [
+          'data', 'get', 'process', context.appType, '--process-inst-id', processInstanceId,
+        ],
       });
-
-      const processRule = runStep('configure-process', [
-        'configure-process',
-        context.appType,
-        context.formUuid,
-        processRuleDefinitionPath,
-        context.processCode,
-      ]).json;
-      context.processId = processRule.processId || null;
-      context.processVersion = processRule.processVersion || null;
+      context.processInstanceId = processContract.resourceId;
     }
 
     if (hasStage(config.stages, 'connector-local')) {
@@ -1470,7 +1736,7 @@ function run(options = {}) {
       persistRegistry(registryPath, registry);
     }
 
-    if (context.appType) {
+    if (context.appType && hasStage(config.stages, 'dashboard')) {
       const dashboardSourcePath = writeTextFile(path.join(workDir, 'result-dashboard.oyd.jsx'), buildDashboardSource(config, context));
       runStep('result-dashboard-check', ['check-page', dashboardSourcePath, '--json']);
       const dashboardPage = runStep('result-dashboard-create-page', [
@@ -1482,12 +1748,23 @@ function run(options = {}) {
         '--no-open',
       ]).json;
       context.dashboardPageId = dashboardPage.pageId;
-      trackResource(registry, registryPath, { type: 'dashboard', appType: context.appType, pageId: context.dashboardPageId, name: `${config.prefix}_Dashboard`, url: dashboardPage.url });
+      trackResource(registry, registryPath, {
+        runId: registry.runId,
+        owned: true,
+        type: 'dashboard',
+        exactId: context.dashboardPageId,
+        appType: context.appType,
+        pageId: context.dashboardPageId,
+        name: `${config.prefix}_Dashboard`,
+        url: dashboardPage.url,
+      });
       runStep('result-dashboard-publish', ['publish', dashboardSourcePath, context.appType, context.dashboardPageId, '--health-check', '--no-open']);
       runStep('mark-result-app', ['update-app', context.appType, '--name', config.resultAppName]);
     }
 
-    registry.status = 'passed';
+    registry.status = registry.processMvp && registry.processMvp.status === 'cleanup_blocked'
+      ? 'cleanup_blocked'
+      : 'passed';
     registry.finishedAt = new Date().toISOString();
     registry.context = context;
     registry.resultApp = buildResultApp(context, config.resultAppName);
@@ -1496,7 +1773,7 @@ function run(options = {}) {
     persistRegistry(registryPath, registry);
     printResultApp(registry.resultApp);
     printAcceptanceSummary(registry, registryPath);
-    console.log(`Full real E2E passed. Registry: ${registryPath}`);
+    console.log(`Full real E2E ${registry.status}. Registry: ${registryPath}`);
     return { skipped: false, registryPath, registry };
   } catch (error) {
     registry.status = 'failed';
@@ -1523,12 +1800,10 @@ function run(options = {}) {
 }
 
 if (require.main === module) {
-  try {
-    run();
-  } catch (error) {
+  run().catch(function (error) {
     console.error(error.message);
-    process.exit(1);
-  }
+    process.exitCode = 1;
+  });
 }
 
 module.exports = {
@@ -1547,11 +1822,11 @@ module.exports = {
   buildProcessRuleDefinition,
   collectFields,
   fieldByLabel,
-  findValueByKeys,
   getFullConfig,
   parseStages,
   printAcceptanceSummary,
   recordStageResult,
+  requireVerifiedResourceId,
   run,
   writeAcceptanceArtifacts,
 };

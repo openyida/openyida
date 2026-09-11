@@ -1,0 +1,54 @@
+{
+  "id": "integration-data-update",
+  "title": "按条件更新目标表数据",
+  "publicPrompt": "订单状态更新为已支付后，按订单号精确匹配统计表记录，更新支付状态并把支付金额映射过去。",
+  "requiredCapabilities": [
+    "form-event-trigger",
+    "trigger-condition",
+    "data-update",
+    "assignment-value-types",
+    "process-view-consistency"
+  ],
+  "expectedResources": {
+    "triggerForm": "order",
+    "targetForm": "orderStats"
+  },
+  "runtimeCases": [
+    {
+      "id": "paid-updates",
+      "input": {
+        "status": "已支付"
+      },
+      "expected": "one-target-record-updated"
+    },
+    {
+      "id": "unpaid-skips",
+      "input": {
+        "status": "待支付"
+      },
+      "expected": "no-execution"
+    }
+  ],
+  "protocolEvidence": [
+    {
+      "id": "form-event-runtime-inputs",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "data-update-transform",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "recursive-assignment-map",
+      "status": "CONFIRMED",
+      "source": "pinned-bundle-locator"
+    },
+    {
+      "id": "process_view_semantic_equivalence",
+      "status": "INFERRED",
+      "source": "capability-manifest"
+    }
+  ]
+}
