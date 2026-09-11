@@ -149,7 +149,27 @@ describe('dependency-aware form batches', () => {
     expect(results.a).toMatchObject({ status: 'failed', formUuid: 'FORM-A' });
     expect(results.b.status).toBe('blocked');
     expect(results.c.status).toBe('success');
-    expect(worker).toHaveBeenCalledTimes(2);
+    expect(worker).toHaveBeenCalledTimes(3);
+  });
+
+  test('a newly known form ID is resumed once before dependents are classified as blocked', async () => {
+    const results = {};
+    const calls = [];
+    const forms = [{ key: 'a', dependsOn: [] }, { key: 'b', dependsOn: ['a'] }];
+    const worker = jest.fn(async item => {
+      calls.push(item.key);
+      if (item.key === 'a' && calls.filter(key => key === 'a').length === 1) {
+        results.a.formUuid = 'FORM-A';
+        throw new Error('post-create readback failed');
+      }
+      return { formUuid: item.key === 'a' ? 'FORM-A' : 'FORM-B' };
+    });
+
+    await schedule(forms, 2, results, worker, () => {});
+
+    expect(calls).toEqual(['a', 'a', 'b']);
+    expect(results.a).toMatchObject({ status: 'success', formUuid: 'FORM-A' });
+    expect(results.b).toMatchObject({ status: 'success', formUuid: 'FORM-B' });
   });
 
   test('failure propagates through a reverse-ordered dependency chain', async () => {
