@@ -210,6 +210,8 @@ openyida data create form APP_XXX FORM_XXX --expect-form-name 客户 --expect-fo
 openyida get-permission APP_XXX FORM_XXX
 ```
 
+Append and forward permissions are configured in the process definition through `nodes[].actions.normalActions/appendActions`. Both `create-process` and `configure-process` compile these settings into matching designer and runtime properties. See [approval action configuration](yida-skills/skills/yida-process-rule/references/approval-actions.md) for the JSON example, defaults, and verification limits.
+
 `configure-process` 的流程 JSON 中，审批人可配置为发起人、指定成员、指定角色、部门主管或直属主管，例如：
 
 ```json
@@ -454,8 +456,8 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida configure-process <appType> <formUuid> <definition> [processCode] [--replace]` | Configure and publish process rules |
-| `openyida create-process <appType> ... [--replace]` | Create process form (all-in-one) |
+| `openyida configure-process <appType> <formUuid> <definition> [processCode] [--replace]` | Configure and publish process rules; Supports append/forward via JSON nodes[].actions.normalActions/appendActions |
+| `openyida create-process <appType> ... [--replace]` | Create process form (all-in-one); Supports append/forward via JSON nodes[].actions.normalActions/appendActions |
 | `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | Manage process form AI approval prompts |
 | `openyida process preview <appType> ...` | Preview process instance (visual flowchart) |
 

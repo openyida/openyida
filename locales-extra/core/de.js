@@ -63,8 +63,8 @@ module.exports = {
     cmd_corp_manager: 'Plattformberechtigungen verwalten',
     cmd_agent_center: 'Prozess- und Austrittsvertretungen verwalten',
     group_process: 'Prozesse',
-    cmd_configure_process: 'Prozessregeln konfigurieren & veröffentlichen',
-    cmd_create_process: 'Prozessformular erstellen (All-in-One)',
+    cmd_configure_process: 'Prozessregeln konfigurieren & veröffentlichen; Zusätzliche Genehmiger und Weiterleitung über JSON nodes[].actions.normalActions/appendActions',
+    cmd_create_process: 'Prozessformular erstellen (All-in-One); Zusätzliche Genehmiger und Weiterleitung über JSON nodes[].actions.normalActions/appendActions',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'Prozessinstanz-Vorschau (Flussdiagramm)',
     group_share: 'Seitenkonfiguration & Freigabe',
@@ -2034,3 +2034,7 @@ module.exports.connector_action_update = connectorSafetyMessages.connector_actio
 module.exports.connector_update_action = connectorSafetyMessages.connector_update_action;
 module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e2e;
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: 'Ungültige Genehmigungsaktion für Knoten {0}: {1}',
+});

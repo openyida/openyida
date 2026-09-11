@@ -97,6 +97,23 @@ describe('configure-process replacement and verification safety', () => {
     fs.rmSync(harness.tempDir, { recursive: true, force: true });
   });
 
+  test('rejects incomplete append settings before any platform read or write', async () => {
+    const harness = loadSubject({ definition: { nodes: [{
+      type: 'approval', approver: 'originator',
+      actions: { normalActions: [{ action: 'append', hidden: false, appendPosition: [] }] },
+    }] } });
+    try {
+      await expect(harness.subject.run(['APP_TEST', 'FORM_TEST', harness.definitionFile], { suppressOutput: true }))
+        .rejects.toMatchObject({ code: 'PROCESS_COMPILE_ACTION_CONFIG_INVALID' });
+      expect(harness.mockGet).not.toHaveBeenCalled();
+      expect(harness.mockGetOnce).not.toHaveBeenCalled();
+      expect(harness.mockPostForm).not.toHaveBeenCalled();
+      expect(harness.mockPostFormOnce).not.toHaveBeenCalled();
+    } finally {
+      fs.rmSync(harness.tempDir, { recursive: true, force: true });
+    }
+  });
+
   test('polls the converted binding until a processCode becomes visible', async () => {
     const harness = loadSubject();
     harness.mockGetOnce

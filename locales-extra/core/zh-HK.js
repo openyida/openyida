@@ -63,8 +63,8 @@ module.exports = {
     cmd_corp_manager: '管理平台管理員與通訊錄權限',
     cmd_agent_center: '管理流程代理和離職代理',
     group_process: '流程',
-    cmd_configure_process: '設定並發布流程規則',
-    cmd_create_process: '建立流程表單（一體化）',
+    cmd_configure_process: '設定並發布流程規則; 支援加簽/轉交，設定位於 JSON nodes[].actions.normalActions/appendActions',
+    cmd_create_process: '建立流程表單（一體化）; 支援加簽/轉交，設定位於 JSON nodes[].actions.normalActions/appendActions',
     cmd_ai_form_setting: '管理流程表單 AI 審批提示',
     cmd_process_preview: '預覽流程實例（視覺化流程圖）',
     group_share: '頁面設定 & 分享',
@@ -1986,3 +1986,7 @@ module.exports.connector_e2e = {
   action_mutated: '連接器測試改變了持久化動作定義。',
 };
 module.exports.connector_auth = require('../../lib/core/locales/zh').connector_auth;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: '節點 {0} 的審批動作設定無效：{1}',
+});
