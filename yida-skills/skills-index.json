@@ -113,7 +113,7 @@
       "name": "yida-image-assets",
       "path": "skills/yida-image-assets/SKILL.md",
       "display_name": "宜搭图片素材准备",
-      "description": "按页面判断图片需求，检查搜图和生图能力，准备并验证素材。",
+      "description": "按页面选图，默认上传宜搭图片附件获取链接；超过 20 MiB 保留原链接。",
       "category": "yida-skills/design",
       "tags": ["图片素材", "联网搜图", "图片生成", "背景图", "商品图"],
       "aliases": ["素材设计", "图片搜索", "生成图片", "商品占位图"],

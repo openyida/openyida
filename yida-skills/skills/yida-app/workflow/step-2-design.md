@@ -58,7 +58,7 @@ Plan 分支从已加载 `yida-app` 的 Available Files 读取精确路径 `workf
 - 门户、工作台、档案、知识库和引导页有图片槽位时为 `beneficial`；
 - 表单、审批、台账、设置和库存流水默认 `none`。
 
-存在 `required` 或带槽位的 `beneficial` 时启动 `yida-image-assets`，输出 `prd/<项目名>/asset-manifest.json`。素材只阻塞使用它的页面；通过 `--design design.md` 校验槽位，并以清单的页面级状态判断能否继续。
+存在 `required` 或带槽位的 `beneficial` 时启动 `yida-image-assets`，先选图并保存 `prd/<项目名>/manifest-draft.json`。宜搭附件上传需要真实 `appType`；已有应用可直接上传，否则等 Step 3 创建应用后再落地，不因缺少 appType 阻塞应用创建。素材只阻塞使用它的页面；Step 7 通过 `--design design.md --app-type <真实appType>` 上传并校验，以输出清单的页面级状态判断能否继续。
 
 ## 主题文件实现指令
 

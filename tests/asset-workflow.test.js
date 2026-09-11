@@ -30,7 +30,7 @@ beforeEach(async () => {
   responseType = 'image/png';
   server = http.createServer((req, res) => {
     if (req.url === '/missing') {res.writeHead(404); res.end(); return;}
-    res.writeHead(200, { 'Content-Type': responseType });
+    res.writeHead(200, { 'Content-Type': responseType, 'Content-Length': responseBody.length });
     res.end(responseBody);
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -51,15 +51,15 @@ function upload() {
 test.each(['image/png', 'application/octet-stream'])('declared dimensions and %s cannot make text final', async contentType => {
   responseBody = Buffer.from('this is not an image');
   responseType = contentType;
-  const result = await resolveAssets([asset({ width: 1600, height: 900 })], { status });
+  const result = await resolveAssets([asset({ width: 1600, height: 900 })], { status, uploadFn: upload() });
   expect(result.materialStatus).toBe('draft');
-  expect(result.gaps[0].code).toBe('INVALID_IMAGE_CONTENT');
+  expect(result.gaps[0].code).toBe('NOT_IMAGE_FILE');
   expect(result.assets[0]).toMatchObject({ width: 0, height: 0, url: '', materialStatus: 'draft' });
 });
 
 test('failed remote input and dimension requirements survive retries', async () => {
-  const first = await resolveAssets([asset({ minSize: '1600x900' })], { status });
-  const second = await resolveAssets(first.assets, { status });
+  const first = await resolveAssets([asset({ minSize: '1600x900' })], { status, uploadFn: upload() });
+  const second = await resolveAssets(first.assets, { status, uploadFn: upload() });
   expect(first.assets[0]).toMatchObject({ input: `${baseUrl}/image.png`, minSize: '1600x900', minWidth: 1600, minHeight: 900 });
   expect(second.gaps[0].code).toBe('WIDTH_TOO_SMALL');
 });
@@ -80,7 +80,7 @@ test.each([null, 'bad', {}, { slotId: 'home.hero', minSize: 'invalid' }])('malfo
 });
 
 test('missing required design slots block only their own page', async () => {
-  const result = await resolveAssets([asset()], { status, assetStrategy: strategy });
+  const result = await resolveAssets([asset()], { status, uploadFn: upload(), assetStrategy: strategy });
   expect(result.materialStatus).toBe('draft');
   expect(result.pages.map(page => [page.pageId, page.materialStatus])).toEqual([
     ['home', 'final'], ['catalog', 'draft'], ['settings', 'none'],
@@ -90,26 +90,26 @@ test('missing required design slots block only their own page', async () => {
 });
 
 test('empty assets cannot erase declared image requirements', async () => {
-  const result = await resolveAssets([], { status, assetStrategy: strategy });
+  const result = await resolveAssets([], { status, uploadFn: upload(), assetStrategy: strategy });
   expect(result.materialStatus).toBe('draft');
   expect(result.assets).toHaveLength(2);
-  const noSlots = await resolveAssets([], { status, assetStrategy: { pages: [{ pageId: 'home', imageNeed: 'required', slots: [] }] } });
+  const noSlots = await resolveAssets([], { status, uploadFn: upload(), assetStrategy: { pages: [{ pageId: 'home', imageNeed: 'required', slots: [] }] } });
   expect(noSlots.pages[0].materialStatus).toBe('draft');
   expect(noSlots.gaps[0].code).toBe('MISSING_PAGE_SLOTS');
 });
 
 test('design membership and minimum size override weakened input declarations', async () => {
   const current = { pages: [{ pageId: 'home', imageNeed: 'required', slots: [{ slotId: 'home.hero', usage: 'hero', minSize: '1600x900' }] }] };
-  const result = await resolveAssets([asset({ required: false, pageId: 'other', minSize: '1x1' })], { status, assetStrategy: current });
+  const result = await resolveAssets([asset({ required: false, pageId: 'other', minSize: '1x1' })], { status, uploadFn: upload(), assetStrategy: current });
   expect(result.assets[0]).toMatchObject({ required: true, pageId: 'home', minWidth: 1600 });
   expect(result.pages[0].materialStatus).toBe('draft');
-  await expect(resolveAssets([asset({ slotId: 'typo' })], { status, assetStrategy: current }))
+  await expect(resolveAssets([asset({ slotId: 'typo' })], { status, uploadFn: upload(), assetStrategy: current }))
     .rejects.toMatchObject({ code: 'ASSET_UNDECLARED_SLOT' });
 });
 
 test('optional gaps remain visible without blocking a ready page', async () => {
   const current = { pages: [{ pageId: 'home', imageNeed: 'beneficial', slots: [{ slotId: 'home.hero', usage: 'hero', required: false }] }] };
-  const result = await resolveAssets([], { status, assetStrategy: current });
+  const result = await resolveAssets([], { status, uploadFn: upload(), assetStrategy: current });
   expect(result.materialStatus).toBe('draft');
   expect(result.pages[0]).toMatchObject({ materialStatus: 'final' });
   expect(result.pages[0].gaps).toHaveLength(1);
@@ -118,12 +118,12 @@ test('optional gaps remain visible without blocking a ready page', async () => {
 
 test('counted slots expand deterministically and missing items stay visible', async () => {
   const current = { pages: [{ pageId: 'home', imageNeed: 'required', slots: [{ slotId: 'gallery', usage: 'scene', count: 2 }] }] };
-  const result = await resolveAssets([asset({ slotId: 'gallery[0]' })], { status, assetStrategy: current });
+  const result = await resolveAssets([asset({ slotId: 'gallery[0]' })], { status, uploadFn: upload(), assetStrategy: current });
   expect(result.pages[0].slotIds).toEqual(['gallery[0]', 'gallery[1]']);
   expect(result.assets.map(item => item.materialStatus)).toEqual(['final', 'draft']);
 });
 
-test('local retries verify and reuse delivery, but changed content uploads again', async () => {
+test('local retries reuse delivery, but changed content uploads again', async () => {
   const input = path.join(dir, 'local.png');
   fs.writeFileSync(input, image);
   const uploadFn = upload();
@@ -136,18 +136,18 @@ test('local retries verify and reuse delivery, but changed content uploads again
   expect(uploadFn).toHaveBeenCalledTimes(2);
 });
 
-test('a stale CDN URL is reuploaded instead of being trusted', async () => {
+test('a malformed attachment URL triggers reupload', async () => {
   const input = path.join(dir, 'local.png');
   fs.writeFileSync(input, image);
   const uploadFn = upload();
   const first = await resolveAssets([asset({ input, source: 'generated' })], { status, uploadFn });
-  first.assets[0].url = `${baseUrl}/missing`;
+  first.assets[0].url = 'invalid-url';
   const result = await resolveAssets(first.assets, { status, uploadFn });
   expect(result.materialStatus).toBe('final');
   expect(uploadFn).toHaveBeenCalledTimes(2);
 });
 
-test('mirrored remote images reuse CDN delivery even when --upload-assets is omitted on retry', async () => {
+test('remote images reuse attachment delivery without requiring --upload-assets', async () => {
   const uploadFn = upload();
   const first = await resolveAssets([asset()], { status, uploadFn, mirrorExternal: true });
   const second = await resolveAssets(first.assets, { status, uploadFn });
@@ -170,6 +170,8 @@ test('offline retry makes no network or upload calls', async () => {
 });
 
 test('Plan hands the full strategy to design.md and the CLI preserves it through retries', async () => {
+  // Large images retain the original URL, so this CLI test needs no live login.
+  responseBody = Buffer.concat([image, Buffer.alloc(20 * 1024 * 1024 + 1 - image.length)]);
   const plan = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/design-plan.json'), 'utf8'));
   plan.visualStyle.forUser.assetStrategy = strategy;
   const design = path.join(dir, 'design.md');
@@ -198,25 +200,25 @@ test('Plan hands the full strategy to design.md and the CLI preserves it through
 test('embedded SVG in HTML is not accepted as an image document', async () => {
   responseBody = Buffer.from('<html><body><svg width="1600" height="900"></svg></body></html>');
   responseType = 'image/svg+xml';
-  const result = await resolveAssets([asset()], { status });
-  expect(result.gaps[0].code).toBe('INVALID_IMAGE_CONTENT');
+  const result = await resolveAssets([asset()], { status, uploadFn: upload() });
+  expect(result.gaps[0].code).toBe('NOT_IMAGE_FILE');
 });
 
 test('SVG dimensions come from the root viewBox, not percentages or child shapes', async () => {
   responseBody = Buffer.from('<svg width="100%" height="100%" viewBox="0 0 1200 800"><rect width="10" height="10"/></svg>');
   responseType = 'image/svg+xml';
-  const result = await resolveAssets([asset({ minSize: '1200x800' })], { status });
+  const result = await resolveAssets([asset({ minSize: '1200x800' })], { status, uploadFn: upload() });
   expect(result.materialStatus).toBe('final');
   expect(result.assets[0]).toMatchObject({ width: 1200, height: 800 });
 });
 
 test('numeric zero cannot weaken a declared minSize', async () => {
-  const result = await resolveAssets([asset({ minSize: '1600x900', minWidth: 0, minHeight: 0 })], { status });
+  const result = await resolveAssets([asset({ minSize: '1600x900', minWidth: 0, minHeight: 0 })], { status, uploadFn: upload() });
   expect(result.gaps[0].code).toBe('WIDTH_TOO_SMALL');
   expect(result.assets[0]).toMatchObject({ minWidth: 1600, minHeight: 900 });
 });
 
-test('Pexels keeps search provenance when its CDN delivery is reused', async () => {
+test('Pexels keeps search provenance when its attachment delivery is reused', async () => {
   const uploadFn = upload();
   const input = 'https://images.pexels.com/photos/1/image.jpg';
   const downloadFn = jest.fn(async () => {

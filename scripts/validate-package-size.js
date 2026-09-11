@@ -13,11 +13,11 @@ const path = require('path');
 const MAX_TARBALL_BYTES = 1808 * 1024;
 // Includes Canvas theme Provider, navigation content sample, design guidance,
 // phase 6 recovery/readback, image-asset page contracts and retry delivery,
-// plus the two-option navigation intake and platform-layout guidance
-// (6339661 unpacked bytes); round up to the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 6192 * 1024;
-// Includes the merged theme/navigation files and image-asset skill/runtime files.
-const MAX_ENTRY_COUNT = 500;
+// plus navigation intake and ImageField attachment delivery guidance;
+// round up to the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 6208 * 1024;
+// Includes the theme/navigation files, asset skills and attachment upload adapter.
+const MAX_ENTRY_COUNT = 501;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -29,6 +29,7 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-create-form-page/references/batch-forms.md',
   'lib/core/utils.js',
   'lib/asset/asset-plan.js',
+  'lib/asset/attachment-upload.js',
   'project/config.json',
   'scripts/postinstall.js',
   'yida-skills/SKILL.md',
