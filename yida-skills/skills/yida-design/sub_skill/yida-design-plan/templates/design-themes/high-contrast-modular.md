@@ -5,6 +5,7 @@ themeId: high-contrast-modular
 tokens:
   application-global: # 全应用 Token，原生页面和自定义页面共同使用
     colors:
+      "--pod-page-bg-color": "<theme-gray：由 --color-brand1-6 3% + #F5F5F5 97% 混合生成的实际色值>"
       "--color-white": "#FFFFFF" # 全应用基础表面色
       "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值>" # 悬停色
       "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值>" # 品牌浅色，保留平台既有消费关系
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page: # 页面专属 Token，仅在指定自定义页生效
     colors:
-      "--oyd-page-background": "<theme-gray：由 --color-brand1-6 3% + #F5F5F5 97% 混合生成的实际色值>"
       "--oyd-surface-soft": "<theme-gray：由 --color-brand1-6 5% + #F1F1F1 95% 混合生成的实际色值>"
       "--oyd-accent-deep": "<由 --color-brand1-6 与 --oyd-chart-dark 混合生成的低明度实际色值>"
       "--oyd-chart-dark": "#202020" # neutral-gray；固定中性深色图表基段
@@ -104,7 +104,7 @@ tokens:
 
 | 设计母体 | 可见证据与置信度 | 复用规则与实现钩子 | 缺失后的失败表现 |
 | --- | --- | --- | --- |
-| 低彩度主题灰画布上的大圆角白色浮岛 | 页面使用极浅主题灰底，主要内容由独立白色大圆角面板承载；阴影极弱，边界主要靠明度差形成。`observed` | 画布消费 `--oyd-page-background`：由 `--color-brand1-6` 3% 与 `#F5F5F5` 97% 混合；一级面板消费 `--color-white` 与 `--corner-5`。边框使用固定 `neutral-gray` 的 `--color-line1-1`，阴影不超过 `0 12px 36px rgba(20, 20, 20, 0.04)`。 | 会退化为纯白页面上的普通后台卡片，失去柔和浮岛层次和主题关联。 |
+| 低彩度主题灰画布上的大圆角白色浮岛 | 页面使用极浅主题灰底，主要内容由独立白色大圆角面板承载；阴影极弱，边界主要靠明度差形成。`observed` | 画布消费 `--pod-page-bg-color`：由 `--color-brand1-6` 3% 与 `#F5F5F5` 97% 混合；一级面板消费 `--color-white` 与 `--corner-5`。边框使用固定 `neutral-gray` 的 `--color-line1-1`，阴影不超过 `0 12px 36px rgba(20, 20, 20, 0.04)`。 | 会退化为纯白页面上的普通后台卡片，失去柔和浮岛层次和主题关联。 |
 | 高对比主题焦点到深同色相的摘要舞台 | 一个核心摘要块使用主题色上沿、深同色相下沿和白色内容，周围模块保持中性。`observed` | `accent_summary` 使用由 `--color-brand1-6` 派生的主题色与深色同色相渐变，文字为白色，趋势标签使用低透明白色胶囊；换肤时重新派生两端色值，但保留渐变方向、对比关系和唯一焦点地位。 | 若改成普通白卡或多个彩色卡，主题会失去最强识别点并出现注意力竞争。 |
 | 主题灰容器内的模块嵌套 | 大面板内部包含主题灰圆角工具条、分组区和多个白色小单元，形成“白色外壳—主题灰内层—白色内容”的三层结构。`observed` | `nested_cluster` 使用由主题色 5% 与 `#F1F1F1` 95% 派生的 `--oyd-surface-soft`、`--corner-4` 和 16-24px 内边距；内部单元使用白色、`--corner-3`、无明显阴影。内容数量可由 PRD 改变，但三层色调关系与统一间距不可改变。 | 页面会变成一组平铺卡片，缺少组件之间的归属关系和精密模块感。 |
 | 双色胶囊柱与斜纹高亮 | 图表以深色下段和主题色上段组成圆角堆叠柱，高亮部分带轻斜纹；网格和坐标轴极淡。`observed` | `split_capsule_chart` 使用固定高度堆叠柱、8-12px 圆角、深色基段与主题色顶段；顶段使用低对比同色斜纹，序列顺序和数据由 PRD 决定。主题色替换后斜纹仍使用同色系。 | 会退化成常规多色柱图，失去深色重心与主题斜纹构成的鲜明节奏。 |
@@ -146,7 +146,7 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔线、表格行分隔线和辅助线 | `--color-line1-1` | 应用全局 |
 | 输入框、按钮和面板常规边界 | `--color-line1-2` | 应用全局 |
-| 由主题色 3% 与中性基底 97% 派生的页面主题灰画布 | `--oyd-page-background` | 自定义页 |
+| 由主题色 3% 与中性基底 97% 派生的页面主题灰画布 | `--pod-page-bg-color` | 自定义页 |
 | 面板、卡片、弹窗和表单容器 | `--color-white` | 应用全局 |
 | 由主题色 5% 与中性基底 95% 派生的工具区、分组区和弱内容底 | `--oyd-surface-soft` | 自定义页 |
 | 摘要渐变深端和深色主题对象 | `--oyd-accent-deep` | 自定义页 |

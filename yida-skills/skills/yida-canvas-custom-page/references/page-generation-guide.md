@@ -1,5 +1,7 @@
 # 自定义页面实现入口
 
+**MUST：先读实现规范再写页面。** 新建页面或调整视觉前，完整读取 [canvas-style-implementation-guide.md](canvas-style-implementation-guide.md)，并按 [编码前必读](../SKILL.md#编码前必读must) 记录本页规则与落点。卡片边界、导航画布和控件主题规则不能仅凭 design.md 或历史示例推断；生成器和手写路径都遵守这一前置条件。
+
 使用 `YidaCodeCanvas` 组件实现的自定义页面消费 `yida-prd` 输出的 `prd.md` 与 `yida-design` 输出的 `design.md`，或单页 PRD 章节 + design spec，把页面场景、区块、主题、交互、数据绑定和素材清单实现成 `.canvas.jsx` / `.canvas.tsx`。
 
 ## 页面场景到实现入口
@@ -53,7 +55,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 
 实现页面背景和卡片时必须消费 `surfaceContrast`：页面背景与卡片背景不可相近或相同。白色/浅色背景配有边框卡片；浅灰背景（如 `#F3F4F6`）配白色无边框卡片；浅彩色背景配白色无边框卡片；渐变背景配玻璃感卡片。源码不得输出浅底白卡无边框、同色背景同色卡片，或只靠弱阴影区分层级。
 
-design.md 存在“项目配色适配”时先应用该节，它高于模板默认灰阶/品牌面积约束；整体绿色风格不能只让按钮变绿。卡片背景使用 `var(--pod-card-bg-color, var(--color-white, #fff))`，边界消费 `--pod-card-border`；页面、卡片、导航、表头、文字与控件一并核对。antd 不能只设置 colorPrimary，按样式指南同步映射容器、文字、填充、边框和应用语义色。
+design.md 存在“项目配色适配”时先应用该节，它高于模板默认灰阶/品牌面积约束；整体绿色风格不能只让按钮变绿。卡片背景使用 `var(--pod-card-bg-color, var(--color-white, #fff))`，边界消费 `--pod-card-border`；页面、卡片、导航、表头、文字与控件一并核对。antd 页面通过主题脚本统一映射主色、容器、文字、填充和边框；语义色暂用 antd 默认值，不能把所有状态改成品牌色。
 
 实现背景层时先写根节点和伪元素，再写内容网格：`.oy-page-root` 承载基础底色、`::before` 承载不规则顶部色块或光洗、`::after` 承载低速流光或弱纹理，`.oy-page-content` 使用 `position: relative; z-index: 1;`。背景可以不规则，内容必须规则；标题、筛选、表格、图表、按钮和列表都保持稳定栅格、对齐和对比度。
 
@@ -109,6 +111,8 @@ design.md 存在“项目配色适配”时先应用该节，它高于模板默�
 联网搜图仅使用 Unsplash/Pexels。Unsplash 保留 API 热链和署名；Pexels 保留来源页和摄影师信息。
 
 ## 主题实现
+
+新 antd 页面按 [CanvasThemeProvider 指南](canvas-theme-provider.md) 装配主题；只编译和发布装配后的文件。纯 DOM 页面不需要 Provider；旧 hook 页面按该指南迁移，不能重复接入。
 
 主题色决策来自 `yida-design` 的 `design.md`。`app-theme.css` 只在应用级配置，由平台统一作用于整个应用。
 
@@ -208,4 +212,4 @@ design.md 存在“项目配色适配”时先应用该节，它高于模板默�
 6. 按源码 primitive 写组件：外层壳、首屏最大视觉锚点、状态摘要、动作条、主要内容、右侧上下文、状态处理和响应式规则都要落成真实 JSX/CSS。
 7. 写完源码后逐条核对 `acceptanceChecks`，不通过就继续 patch。
 
-所有使用 `YidaCodeCanvas` 组件实现的页面都带控件样式护栏：`ConfigProvider.getPopupContainer` 让 Select / DatePicker 弹层留在页面作用域，`OPENYIDA_CANVAS_CONTROL_CSS` 统一输入框、下拉、日期、运行态字段组件的 hover / focus / dropdown 样式。出现黑色粗边、浏览器原生 outline、下拉浮层脱离页面风格时，优先检查这两项是否保留。
+控件默认保留组件库样式，仅在实际受到宿主样式干扰时修正：需要局部浮层样式时，通过 `CanvasThemeProvider.getPopupContainer` 选择不会裁剪弹层的容器，`OPENYIDA_CANVAS_CONTROL_CSS` 统一输入框、下拉、日期、运行态字段组件的 hover / focus / dropdown 样式。出现黑色粗边、浏览器原生 outline、下拉浮层脱离页面风格时，先检查主题与挂载位置，再按样式指南增加局部 reset。

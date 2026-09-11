@@ -24,6 +24,8 @@ openyida design-plan materialize prd/<项目名>/build-plan.json --from-preview 
 
 CLI 完整校验后一起保存源计划、`prd.md`、`design.md`、`build-plan.html` 和 `app-theme.css`。HTML 使用预置模板，业务内容与 PRD 一致。
 
+标准首版必须直接执行 init 返回的 `materialize.command`；不得先试 `--from-preview`、`preview`、无参数 materialize 或 shell 重定向。成功 JSON 已包含 `outputs.html` 和 `revision`，直接用于下一步同一次结构化提问，不再 Glob 目录，也不额外 Read `prd.md`、`design.md` 或 `build-plan.json`。
+
 完整文件的职责与版本规则见 [完整文件合并](../parallel-work.md#plan-的-cli-交接)。直接维护源计划时先设 `meta.status=awaiting_confirmation`，再执行 `openyida design-plan materialize prd/<项目名>/build-plan.json --json`；仅做诊断时使用 `openyida design-plan materialize prd/<项目名>/build-plan.json --check --json`。正常生成已经包含完整校验，不先运行一次 --check 再重复生成。
 
 HTML 保留“需求总览、数据模型、业务流程、页面规划”四章，完整展示用户需要确认的业务、视觉、数据、顺序和验收内容；整体视觉放在需求总览，逐页视觉放在页面详情。展示范围见 [HTML 内容契约](../../../yida-design/sub_skill/yida-design-plan/assets/README.md#需求总览中的视觉信息)，Markdown 供 Agent 执行。
@@ -34,17 +36,17 @@ HTML 保留“需求总览、数据模型、业务流程、页面规划”四章
 
 按 [用户交互契约](../../../yida-design/references/ask-human-interaction-contract.md) 执行：
 
-1. 在会话中展示“当前这版方案”、3–7 条业务摘要和可打开的 `build-plan.html`。
-2. 展示成功后内部记录 `presentedRevision=meta.revision`，记录后直接提问；收到确认或修改业务事实后再重新生成。用户可见版本称为“第 N 版方案”，展示序号与内部 revision 绑定。
-3. 询问“确认并开始搭建”或“继续调整”，将确认结果绑定到本次展示版本。
+1. 在会话中展示“当前这版方案”，并用 3–7 条业务摘要说明方案内容。
+2. 必须实际调用 `ask_human` 创建结构化提问，并通过同一次调用的 `attachments` 携带可打开的 `prd/<项目名>/build-plan.html`；附件对象固定使用 `name: "build-plan.html"`，并将 `revision` 设为当前 `meta.revision`。只输出方案正文或普通 assistant 文本后结束本轮属于未完成，严禁用它替代 `ask_human`；也不得改成项目标题，或先发普通文本附件、再单独提问。
+3. 结构化交互成功创建后内部记录 `presentedRevision=meta.revision`。询问“确认并开始搭建”或“继续调整”，提交时由宿主原样回传 revision，将确认结果绑定到本次展示版本。用户可见版本称为“第 N 版方案”，展示序号与内部 revision 绑定。
 
-只有以下条件同时成立才交接：
+只有以下条件同时成立才交接；它们由本轮 ask_human 请求和回传在运行时判定，不要求把确认状态写回 workspace 文件：
 
 - `meta.status=confirmed`
 - `meta.planState.planConfirmed=true`
 - `meta.revision=presentedRevision=confirmedRevision`
 
-交接前运行不带 `--from-preview` 的生成命令同步确认状态，将同版本 `prd.md`、`design.md` 返回应用主流程 Step 3，执行 [公共主题 CSS 交接](../step-2-design.md#主题文件实现指令)。
+收到“确认并开始搭建”且回传 revision 等于展示 revision 后，直接进入同版本资源实施。确认之后严禁再次 materialize、patch、Edit 或 Read 计划来“同步确认状态”；不存在可写 `meta.planState.planConfirmed` 的确认命令。`explicitScope.allowInferredResources=false` 时也不执行主题 CSS、应用设置或导航交接，只创建范围内资源并回读、交付。
 
 ## 4. 处理调整
 

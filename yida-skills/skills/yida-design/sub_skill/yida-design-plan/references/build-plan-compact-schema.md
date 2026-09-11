@@ -4,6 +4,8 @@
 
 `design-plan init` 从已确认需求建立草稿、主题上下文和业务/视觉片段，返回必要任务与可选视觉精修。标准首版只编写业务事实，视觉片段复用已确认选择，由 CLI 补齐标准页面视觉；视觉选择不完整时返回补齐任务，有特殊视觉要求时执行可选精修。片段写入与合并见 [并行交接](../../../../yida-app/workflow/parallel-work.md#plan-的-cli-交接)。保留生成的项目目录名、页面 ID 与 sceneKey；业务名称使用 `meta.appName`。补齐业务与视觉片段后执行交接命令；直接维护单一计划时使用：
 
+init 已预填 `business.json` 结构，业务任务先读后写并保留 base。业务 facts 仅允许 overview、dataModels、businessFlows、pages、execution；visualStyle 只属于 `visual.json`。首次合并前一次补齐每个普通表单的 sampleDataPlan（跳过则写 skipReason）和每个自定义页面的 permissionSummary，避免用多轮 materialize 探测必填字段。
+
 ```bash
 openyida design-plan materialize prd/<项目名>/build-plan.json --json
 ```
@@ -108,7 +110,7 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
 | 字段 | 格式 |
 | --- | --- |
 | `appConfig` | 已知真实 `appType/corpId/baseUrl`；`navigationType` 为 platform-l-shape/platform-top/platform-side/custom。hideAppNav/layoutDirection/navTheme/logoSource 由导航与视觉派生 |
-| `explicitScope` | 用户明确的页面、表单、流程和导航范围；自定义导航布局保留在 navigation.variant |
+| `explicitScope` | 用户明确的页面、表单、流程、报表、导航和交付范围；`allowInferredResources=false` 时不增加未点名的 seed records、自定义页面、主题或导航任务；自定义导航布局保留在 navigation.variant |
 | `resourceBlueprint` | `{name,type,purpose,pageId?}` 数组；type 为 normal-form/process-form/display-page/report，名称与模型、页面对应且唯一 |
 | `resourceCreationOrder` | 覆盖全部资源的有序名称数组，先应用，再被依赖模型，最后依赖它们的页面 |
 | `pageImplementationOrder` | 覆盖全部页面的 pageId 或名称数组 |

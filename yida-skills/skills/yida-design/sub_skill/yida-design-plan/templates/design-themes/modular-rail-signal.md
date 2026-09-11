@@ -5,6 +5,7 @@ themeId: modular-rail-signal
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "var(--color-white, #fff)"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 14%，用于悬停>"
       "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与白色混合 88%，用于平台品牌浅色>"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-theme-soft": "color-mix(in srgb, var(--color-brand1-6) 12%, #FFFFFF)"
       "--oyd-theme-bar": "color-mix(in srgb, var(--color-brand1-6) 18%, #FFFFFF)"
       "--oyd-theme-spotlight": "color-mix(in srgb, var(--color-brand1-6) 78%, #111111)"
@@ -149,7 +149,7 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔、图表网格、表格和列表行线 | `--color-line1-1` | 应用全局 |
 | 输入、按钮和面板常规边界 | `--color-line1-2` | 应用全局 |
-| 页面底层近白画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层近白画布 | `--pod-page-bg-color` | 自定义页 |
 | 面板、卡片、弹窗和表单容器 | `--color-white` | 应用全局 |
 | 主题浅状态底、当前项背景与图标浅底 | `--oyd-theme-soft` | 自定义页 |
 | 复合趋势图的主题浅柱 | `--oyd-theme-bar` | 自定义页 |

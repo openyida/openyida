@@ -1095,9 +1095,9 @@ describe('compileCanvasLocal', () => {
     expect(runtimeCode).toMatch(/window\.antd/);
     expect(runtimeCode).toMatch(/window\.LucideReact/);
     expect(runtimeCode).toContain('FormOpenContainer');
-    expect(runtimeCode).toContain('readThemeColor');
+    expect(runtimeCode).toContain('readCanvasTheme');
     expect(src).toContain('min-height: 100vh');
-    expect(src).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
+    expect(src).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff))');
     expect(src).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
     expect(src).toContain('border: var(--pod-card-border, none)');
     expect(src).toContain('border-radius: var(--pod-card-border-radius, 20px)');
@@ -1123,10 +1123,10 @@ describe('compileCanvasLocal', () => {
     );
 
     const root = schema.pages[0].componentsTree[0];
-    expect(root.props.contentBgColor).toBe('var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
-    expect(root.props.contentBgColorMobile).toBe('var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
+    expect(root.props.contentBgColor).toBe('var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(root.props.contentBgColorMobile).toBe('var(--pod-page-bg-color, var(--color-white, #fff))');
     expect(root.props.pageStyle).toEqual({
-      backgroundColor: 'var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))',
+      backgroundColor: 'var(--pod-page-bg-color, var(--color-white, #fff))',
     });
     expect(root.css).not.toContain('body{background-color:');
     expect(root.css).not.toContain('background-color:#f2f3f5');

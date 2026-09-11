@@ -5,6 +5,7 @@ themeId: airy-modular-clarity
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "var(--color-white, #fff)"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 12%，用于悬停>"
       "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与白色混合 88%，用于平台品牌浅色>"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-chart-line": "color-mix(in srgb, var(--color-brand1-6) 92%, #FFFFFF)"
       "--oyd-chart-point-ring": "color-mix(in srgb, var(--color-brand1-6) 20%, #FFFFFF)"
       "--oyd-category-1": "#22BE76"
@@ -126,7 +126,7 @@ tokens:
 
 - 色彩来源：{{COLOR_SOURCE}}
 - 颜色 Token 的名称和值以文档顶部 YAML 的 `tokens` 为唯一事实源；AI 可以根据主题调整色值，不改变宜搭应用全局变量名。
-- 页面底层使用近白冷灰 `--oyd-page-background`，一级容器使用 `--color-white`，模块边界由 `--color-line1-1 / --color-line1-2` 建立，禁止靠大面积灰底或重阴影切割区域。
+- 页面底层使用近白冷灰 `--pod-page-bg-color`，一级容器使用 `--color-white`，模块边界由 `--color-line1-1 / --color-line1-2` 建立，禁止靠大面积灰底或重阴影切割区域。
 
 ### 设计变量消费规则
 
@@ -141,7 +141,7 @@ tokens:
 | 主题色交互元素禁用状态                               | `--color-brand1-10`                      | 应用全局 |
 | 弱分隔线、表格行分隔线和辅助线                       | `--color-line1-1`                        | 应用全局 |
 | 输入框、按钮和面板常规边界                           | `--color-line1-2`                        | 应用全局 |
-| 页面底层画布                                         | `--oyd-page-background`                  | 自定义页 |
+| 页面底层画布                                         | `--pod-page-bg-color`                  | 自定义页 |
 | 面板、卡片、弹窗和表单容器                           | `--color-white`                          | 应用全局 |
 | 图表单一主序列                                       | `--oyd-chart-line`                       | 自定义页 |
 | 图表焦点外环                                         | `--oyd-chart-point-ring`                 | 自定义页 |

@@ -5,6 +5,7 @@ themeId: airy-media-grid
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "var(--color-white, #fff)"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 14%，用于悬停>"
       "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与白色混合 88%，用于平台品牌浅色>"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-media-surface": "#F6F6F6"
       "--oyd-media-selected": "color-mix(in srgb, var(--color-brand1-6) 5%, #F6F6F6)"
       "--oyd-media-shadow": "rgba(0, 0, 0, 0.028)"
@@ -139,7 +139,7 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔、摘要竖线、网格边界与行线 | `--color-line1-1` | 应用全局 |
 | 输入、按钮和必要容器边界 | `--color-line1-2` | 应用全局 |
-| 页面底层纯白画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层纯白画布 | `--pod-page-bg-color` | 自定义页 |
 | 常规面板、弹窗和表单容器 | `--color-white` | 应用全局 |
 | 对象卡的低对比媒体舞台 | `--oyd-media-surface` | 自定义页 |
 | 对象卡的主题派生选中表面 | `--oyd-media-selected` | 自定义页 |

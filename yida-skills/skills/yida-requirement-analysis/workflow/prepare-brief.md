@@ -10,9 +10,13 @@
 
 首次搭建包括新应用，以及已有应用但尚无业务页面的情况；占位页面按空应用处理。已有业务应用的增改只确认本次变更中的疑问。
 
+用户已把本轮限定为一个或若干命名资源且交付条件明确时，这是“显式窄范围”，不是完整首次搭建问卷：只追问会改变这些资源本身或阻塞创建的事实。导航、主题、示例数据、工作台和额外页面不在交付范围时，不询问其偏好；为满足 Plan 输入可记录当前平台值或稳定默认值并标记 `source: "ai_default"`，但下游不得据此执行应用设置。用户已明确 Plan 时也不再询问搭建方式。此类请求中的 Plan 确认卡就是唯一必需的方案确认交互。特别是“随后完成一个表单并交付链接”只允许把该表单写入 `explicitScope.forms/delivery`，`explicitScope.pages` 必须为 `[]`，不得根据“查看、管理、统计”等普通表单能力臆造工作台或自定义列表。
+
 ## 2. 确认首次搭建的未决事项
 
 先分析再提问。用户已明确的信息直接采用；同一次搭建已回答的问题直接复用。首次提问必须在同一轮一次性收集所有尚未明确的搭建方式（Fast / Plan）、业务模块、页面与表单范围、导航归属（平台或自定义）、导航布局和设计风格。不要先问模块、导航和风格，收到回答后再另起一轮补问模式、导航位置或页面。
+
+先锁定用户已经明确的搭建方式：用户写明 `Plan`、先出 PRD/方案并确认后搭建时，立即把草稿的 `intake.designMode` 设为 `plan`；用户写明 `Fast` 或直接快速搭建时设为 `fast`。已锁定的搭建方式不再进入提问选项。后续 `ask_human` 只补齐其他未决事项，合并回答时必须保留已有 `intake.designMode`；不能因为回答里没有重复提到模式、结构化问题被合并、上下文压缩或重新生成 brief 而回退到 Fast。只有用户明确说“改用 Fast/Plan”时才能切换，并以最后一次明确选择为准。
 
 将整组问题放在一次结构化提问调用中。宿主限制问题数量时，合并为“搭建方式”“导航归属与布局”“业务模块、页面与风格”等复合问题；选项数量或多选能力不足时，用允许自由输入的同组问题列出完整选择。不得因为工具数量限制而拆成多轮。只有回答遗漏、互相冲突或产生新的关键业务疑问时才针对性追问。
 
@@ -48,9 +52,12 @@
 
 写入 `.cache/openyida/<项目名>/requirement-brief.json`，遵守 [输出契约](../SKILL.md#输出)。
 
+`Write` 会创建所需父目录；不要为此先调用 Bash `mkdir`。
+
 本步骤是保存答案，不是重新撰写需求文档：
 
 - 合并已读取的需求、资源信息和本轮回答，完成必要确认后一次写入；中断恢复可保存未确认草稿，但不得把草稿当作已确认输入。
+- 合并采用保留式更新：未被本轮提问的已确认字段不得用默认值覆盖。尤其 `intake.designMode` 是同一次搭建的粘性选择；若本轮没有询问搭建方式，写回值必须与提问前一致。
 - 简短需求使用简短事实、列表和必要的页面标识，不扩写背景、价值分析、完整字段表、页面区块或验收标准；这些设计工作由后续 PRD 与视觉设计负责。用户已提供的字段、关系、流程和页面细项必须保留，不为精简而丢弃，也不重复改写成多份摘要。
 - 不另建 `brief.md`、简报 HTML 或简报附件，不为保存 JSON 单独安排一次模型扩写或用户确认。用户回答清楚后直接记录，不能再展示整份简报询问“是否确认需求”。
 - 已有确认记录且需求未变化时直接复用；后续只补充已确定的视觉映射或更新用户变更涉及的字段，不因阶段切换重写全文或重新生成页面 key。
@@ -58,11 +65,26 @@
 - `intake` 记录 `firstBuild`、`sourceDetail`（`detailed/brief`）、`designMode`（`fast/plan`）、`confirmed`。未决事项处理完毕后才将 confirmed 设为 true。
 - `navigation` 记录 `type/source/reason`；自定义导航的 `variant` 为 `side/top/mixed/dock`。顶部浮导使用 `top`，默认浮导或用户指定的通栏样式写入 `reason`，PRD 与视觉设计共同沿用；`dock` 表示底部悬浮胶囊。导航明暗由视觉选择记录。
 - 业务模块答案写入 `coreFunctions/businessObjects/explicitScope`；与页面范围合问时，分别保存模块事实与 `pageScenes`，不要只保留模块或页面数量。
+- `targetUsers/businessGoals/coreFunctions/businessObjects/pageScenes` 一律保持数组类型；单个目标也写成单元素数组。Plan 的 `visualSelection.themeId` 在保存 confirmed brief 前补齐；导航 type 使用 `platform-l-shape/platform-top/platform-side/custom` 精确枚举。
+- 用户先用“应用/系统”描述背景、后续又明确“只完成/随后完成一个”具体资源并交付时，以具体资源作为本轮执行边界。`explicitScope` 写对应的 forms/processes/reports/pages/delivery 数组并设置 `allowInferredResources:false`；不把“应用”自动扩展为示例数据、工作台、自定义列表或其他未点名资源。
 - `pageScenes` 使用 `{key,name,kind,purpose}`，key 是稳定场景标识，kind 为 `custom-page/form/process-form/report`。保留用户提供的细项；工作台通常排在首位。
 - `visualSelection` 保存已确认的风格要求；视觉技能将其映射为主题、主色和导航明暗，具体字段见计划编写契约。
 - `resourceContext` 记录已验证的复用资源，`explicitScope` 保留明确范围；来源中的完整业务细节保留在对应事实中。
 - `constraints.prohibitedActions` 贯穿 PRD、design 与实现，不得在下游被“默认主题”“默认发布”或“修复后重试”覆盖。
 
-全部必要回答写回后，直接进入已选 Fast / Plan 的规划流程；Plan 仍在方案生成后确认当前搭建方案。内部只检查 JSON 可解析、已确认选择完整、页面 key 唯一且稳定、没有影响搭建的未决问题，不另起简报评审。交互工具与面向用户的文案遵守 [用户交互契约](../../yida-design/references/ask-human-interaction-contract.md)。
+Plan 的视觉选择直接使用下面的对象结构，不另写 `styleDescription/primaryColor/navigationStyle` 等平级别名：
+
+```json
+{
+  "themeId": "airy-structured-clarity",
+  "visualDirection": {"label": "轻盈结构", "description": "清晰、简洁、适合持续业务操作", "source": "requirement"},
+  "colorStrategy": {"primaryColor": "#1677FF", "primaryColorName": "专业蓝", "source": "requirement", "usage": "主操作与选中态", "surfaceTone": "brand-tinted"},
+  "navigationStyle": {"structure": "side", "tone": "light", "source": "requirement", "selectionReason": "沿用平台侧边导航"}
+}
+```
+
+用户未指定色值但允许代为设计时，可按所选主题给出一个明确色值并标记 `source: "ai_default"`；不要留到 `design-plan init` 失败后再选择。
+
+全部必要回答写回后，直接进入已选 Fast / Plan 的规划流程；进入路由前再次核对 `intake.designMode` 与本轮最后一次明确选择一致。Plan 仍在方案生成后确认当前搭建方案。内部只检查 JSON 可解析、已确认选择完整、页面 key 唯一且稳定、没有影响搭建的未决问题，不另起简报评审。交互工具与面向用户的文案遵守 [用户交互契约](../../yida-design/references/ask-human-interaction-contract.md)。
 
 后续创建的资源 ID 写入执行上下文；用户需求发生变化时更新同一份 brief，并通知下游修改受影响的内容。

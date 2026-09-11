@@ -5,6 +5,14 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 
 # 自定义页面开发
 
+## 编码前必读（MUST）
+
+新建自定义页面，或修改页面布局、卡片、背景、主题与控件样式时，**第一次写入页面源码前**必须通过文件读取工具完整读取 [canvas-style-implementation-guide.md](references/canvas-style-implementation-guide.md)，再结合当前 PRD 和 `design.md` 实现。它是实现规范，不是可选示例；不能用本技能中的摘要、历史记忆、搜索命中几行或仅阅读 `design.md` 替代。输出被截断时分段读完；同一任务已完整读取且文件未变化时可复用，无须反复读取。仅改数据逻辑且不涉及视觉时可标记不适用并说明原因。
+
+在现有实现计划或检查记录中留下：实际读取的文件路径、本页适用的章节、采用的规则与对应页面区块。例如：`同色表面的卡片边界 → 客户列表白底白卡 → 主题中性细边框`。至少明确画布与浮导搭配（无自绘导航则不适用）、卡片边界、控件主题和密度留白。不要把这份记录放进页面 UI，也不要求另建文档。
+
+读取记录只能证明输入已获取。交付前还必须按该文件检查源码及实际页面；仅写“已读”、加注释或搜索到 `border` 不代表卡片层级验收通过。尚未实测的项目标记待验证，不能勾选通过。
+
 ## 核心定位
 
 本技能是宜搭自定义页面开发的默认实现：用户写标准 React18 函数组件源码，OpenYida 本地编译为 `runtimeCode` + `importedModules`，运行时由 `YidaCodeCanvas` 组件加载前端资源并执行 `YidaComp`。
@@ -79,12 +87,12 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 
 1. **YidaComp 入口明确**：源码必须导出或返回 `YidaComp`，并把主组件作为默认导出或 `YidaComp` 暴露。
 2. **发布方式正确**：使用 `YidaCodeCanvas` 组件实现的源码写成 `.canvas.jsx` / `.canvas.tsx`，或发布时显式加 `--canvas`。
-3. **源码修改发布闭环**：本轮 Write/Edit/Create 了 `project/pages/src/*.canvas.jsx` 或 `project/pages/src/*.canvas.tsx` 后，final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`。有 publish 成功证据时表述为“页面已发布”；只有本地校验证据时表述为“源码已修改，尚未发布”。
+3. **源码修改发布闭环**：用户要求发布时，本轮 Write/Edit/Create 了 `project/pages/src/*.canvas.jsx` 或 `project/pages/src/*.canvas.tsx` 后，final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`。有 publish 成功证据时表述为“页面已发布”；只有本地校验证据时表述为“源码已修改，尚未发布”。
 4. **依赖可加载**：普通 import 只使用 `YidaCodeCanvas` 可用资源清单内的前端资源；React、antd、Ant Design Icons、Recharts、ahooks、lucide-react 等包依赖必须写 `import ... from '包名'`。严禁写未声明裸变量依赖或手写 window 依赖，例如 `const { Drawer } = antd`、`const { Search } = lucideReact`、`const { ConfigProvider } = window.antd`、`const React = window.React`、`window.icons`。宜搭运行态组件才通过 `window.Deep`、`window.DeepYida`、`window.YidaNativeComponents` 探测。
 5. **使用 `YidaCodeCanvas` 组件契约**：页面代码写 `YidaComp` React 函数组件；数据、生命周期和渲染都通过 hooks、props、外层 yida JS-API 桥或连接器完成。组件内部不能直接写 `this.$(fieldId)`、`this.utils.yida.*` 或 `this.dataSourceMap`。
 6. **副作用清理**：`useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
 7. **交互控件必须受控且真正驱动数据**：筛选 `Select`、搜索 `Input`/`Input.Search`、周期切换、`Tabs`/`Segmented`、批量/重置 `Button` 等控件都用 `useState` 建立受控状态，绑定 `onChange`/`onClick`，并让 `Table`/列表/卡片的数据源通过 `useMemo` 按状态派生后渲染。切换筛选后若当前选中项失效，回退选中态（如 `selected < filteredRows.length ? selected : 0`）。
-8. **视觉壳层必须消费 design.md**：工作台、门户、看板、首页、展示页和真实交付页写页面源码前，先从 `design.md` 抽取 `backgroundLayer`、`visualScaffold.rootShell`、`surfaceMap`、`componentRecipe`、`roundedRule`、`densityRule` 和 `breathingRule`。页面背景、组件样式和 `ConfigProvider` 都只写在 `YidaComp` 内，并直接消费当前应用的主题 token。若 `design.md` 声明圆润高密和呼吸感规则，源码必须同步到 antd `borderRadius`、CSS `border-radius`、页面 padding/gap、区块间距、列表行高、状态摘要高度、空态高度和内容安全内距，并保证卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px。
+8. **视觉壳层必须消费 design.md**：工作台、门户、看板、首页、展示页和真实交付页写页面源码前，先从 `design.md` 抽取 `backgroundLayer`、`visualScaffold.rootShell`、`surfaceMap`、`componentRecipe`、`roundedRule`、`densityRule` 和 `breathingRule`。页面背景、组件样式和主题 Provider 只作用于 `YidaComp` 的组件子树，不修改平台容器；新页面的颜色映射由生成的 CanvasThemeProvider 负责。若 `design.md` 声明圆润高密和呼吸感规则，源码必须同步到 antd `borderRadius`、CSS `border-radius`、页面 padding/gap、区块间距、列表行高、状态摘要高度、空态高度和内容安全内距，并保证卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px。
 9. **表单和连接器必须使用各自的 dataBinding 契约**：完整应用、工作台、列表、看板、详情等真实交付页只要本轮已经创建或解析业务表单，先写入 `dataBinding.mode="form"`、真实 `appType/formUuid` 和字段 ID，再用本地 `useYidaData(binding)` / `DataBridge` 读取。发布层必须在外层页面 `didMount` 注册 `window.__OPENYIDA_YIDA_API__`，把 `this.utils.yida` 下官方表单、流程、表单设计 API 和运行态已有函数同步暴露给 `YidaCodeCanvas` 组件；同时注册 `window.__OPENYIDA_UTILS__`，把 `this.utils.toast/dialog/router.push/openPage/isMobile` 等根级工具暴露给组件，且 `window.__OPENYIDA_UTILS__.yida` 指向同一个 yida API 桥。表单读取默认调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`，流程能力可通过 `startProcessInstance`、`getProcessInstances`、`getProcessInstanceById` 等方法调用，其他运行态方法可通过 `request`、`searchUserList` 或运行时自动枚举出的同名方法调用。只有桥不可用时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。`searchFormDatas` 的每行业务字段位于 `row.formData[fieldId]`；列表、卡片和详情展示必须先用真实字段 ID 把 `row.formData || row.data || row` 归一化为页面行模型，不能把字段 ID 直接作为原始行顶层的 `dataIndex`，否则会出现“有记录但全部显示空值/--”的伪成功。连接器绑定必须写入真实 `connectorName/operationId/connectionId`，其中 `connectorName` 以 `Http_` 开头；Body 直接传对象，不使用 `JSON.stringify`。页面调用 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)`；页面不能保存 AK/SK、请求任意外部 URL，也不能使用 `/query/form/searchFormDatas.json` 或只写前端 seedRows 后声称已接真实数据。
 10. **表单排序只使用真实业务字段 ID**：`searchFormDatas` 的 `dynamicOrder` key 必须来自当前 `get-schema` 返回的真实业务字段 ID，禁止使用返回记录的元数据名 `gmtCreate`，不得生成 `dynamicOrder: { "gmtCreate": "-" }`。没有可排序的业务日期字段时删除 `dynamicOrder`；如仅需调整当前已取回页的展示顺序，可在响应解包后按 `row.createTime` 排序，但不能声称实现了跨页稳定排序。遇到 `selectListException 无法找到字段:gmtCreate` 时，先移除错误排序参数、重新回读 Schema 并使用真实字段 ID，再重新发布。
 11. **分页查询默认写 50**：表单、流程、任务、成员等分页查询参数一般显式写 `pageSize: 50` 或 `pageSize: '50'`。只有用户明确要求小页或大页时才改成其他值，且不得超过平台上限 100。
@@ -109,10 +117,10 @@ function setNavigationTitle(title) {
 2. **组件增强可降级**：门户、成员、部门、上传组件都做 feature detect 和 fallback；组件缺失时页面仍展示自绘基线。
 3. **值先归一化**：成员、部门、文件的原始返回值保留到 `raw` 用于检查，业务 payload 使用统一结构。
 4. **UI 改造保持功能契约**：页面美感提升、页面重构和局部美化只调整颜色、布局、密度、间距、视觉层级、素材和图标表达；已有数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限和业务状态按原有实现保留。
-5. **主题只消费、不上注**：`app-theme.css` 是应用级唯一主题文件。CLI 生成的 Canvas Page 宿主必须让 `contentBgColor`、`pageStyle.backgroundColor` 和 `contentBgColorMobile` 使用 `var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))`；自定义页根节点也消费该别名，无应用导航时默认透明以透出 Shell，不能直接把原生页面的 `--pod-page-bg-color` 用作整个自绘导航画布。根节点使用 `display:flow-root` 或 flex/grid，保留浮导间距在根节点内部；这是宿主容器消费应用 token，不是注入主题。`YidaComp` 内使用 `--color-brand1-*`、`--color-group` 和 `--pod-*`；严禁修改 `document.documentElement`、`document.body`、父页面或平台容器的主题变量，也不得从页面代码上传或更新应用主题。
+5. **主题只消费、不上注**：`app-theme.css` 是应用级唯一主题文件。CLI 生成的 Canvas Page 宿主必须让 `contentBgColor`、`pageStyle.backgroundColor` 和 `contentBgColorMobile` 使用 `var(--pod-page-bg-color, var(--color-white, #fff))`；普通自定义页根节点默认消费同一平台背景 token；自绘应用导航页可按 `design.md` 为内部画布设置局部背景或渐变，平台宿主仍消费原 token，不能向全局注入另一套背景。隐藏导航本身不自动改变底色，卡片和面板消费 `--pod-card-bg-color`。根节点使用 `display:flow-root` 或 flex/grid，保留浮导间距在根节点内部；这是宿主容器消费应用 token，不是注入主题。`YidaComp` 内使用 `--color-brand1-*`、`--color-group` 和 `--pod-*`；严禁修改 `document.documentElement`、`document.body`、父页面或平台容器的主题变量，也不得从页面代码上传或更新应用主题。
 6. **先验证再扩展业务**：原生组件、上传、组织搜索、弹层类能力先做 smoke 页面，确认 PC/移动端都可用后再进入复杂业务页面。
-7. **按设计编写 UI，示例按需参考**：新建 `.canvas.jsx` / `.canvas.tsx` 时，直接按 PRD、`design.md`、真实数据和页面交互实现，允许从空文件编写。需要参考完整表单交互时，可执行 `openyida sample openyida-page-template canvas-form-drawer --output .cache/samples/form-drawer.canvas.jsx --var APP_TYPE=<appType> --var FORM_UUID=<formUuid>`；只复用需要的能力，布局、材质、留白、圆角和选中态按设计实现。未改写的示例不得直接发布；页面 UI、业务文案、交付说明和 final 中不出现内部示例名、生成过程或实现代号。使用示例时，发布前删除 `@openyida-page-template-base`、`SAMPLE_ROWS`、`{{APP_TYPE}}` / `{{FORM_UUID}}`、示例数据和占位文案。
-8. **交付源码只用文件编辑工具改写**：新建交付源码时，用 Write 建立可编译骨架，再用 Edit/patch 按组件、状态、数据桥和样式分块完成；已有 JSX/CSS/JSON 源码只做定点 Edit。不得用 Python、Node、Shell 或 `run_workspace_script` 生成、搬运、整文件重写、正则替换或 retheme 完整交付源码；脚本仍可做只读校验或准备重复的非源码测试数据，但不能接收或输出交付源码。单次 Write 被大小门禁拒绝时，保留已写骨架并继续分块 Edit，不能改用脚本绕过门禁。尤其禁止用脚本修改 `app-theme.css`，避免破坏 CSS 语法。
+7. **按设计编写 UI，示例按需参考**：新建 `.canvas.jsx` / `.canvas.tsx` 时，直接按 PRD、`design.md`、真实数据和页面交互实现，允许从空文件编写。需要参考完整表单交互时，可执行 `openyida sample openyida-page-template canvas-form-drawer --output .cache/samples/form-drawer.canvas.jsx --var APP_TYPE=<appType> --var FORM_UUID=<formUuid>`；整页示例按需参考；含表单打开入口时，必须按第 19 条整体合并抽屉片段，不能裁剪交互能力。页面其余布局、材质、留白、圆角和选中态按设计实现。未改写的示例不得直接发布；页面 UI、业务文案、交付说明和 final 中不出现内部示例名、生成过程或实现代号。使用示例时，发布前删除 `@openyida-page-template-base`、`SAMPLE_ROWS`、`{{APP_TYPE}}` / `{{FORM_UUID}}`、示例数据和占位文案。
+8. **业务源码用文件编辑工具维护**：业务组件通过 Write/Edit/patch 编写；已有 JSX/CSS/JSON 源码只做定点 Edit。不得用 Python、Node、Shell 或 `run_workspace_script` 任意生成、搬运或整文件改写业务源码。唯一的主题装配例外是本技能 `scripts/build-canvas-theme.js`：它只在一个显式标记处插入受维护的 Provider，输出独立派生文件，不改业务输入和 app-theme.css。修改业务仍回到输入文件；此例外不允许绕过用户的只读要求或源码修改禁令。
 9. **light 页面使用清爽业务色**：业务列表、协同表、数据管理页、工作台和门户默认使用 light 模式；主操作、选中态、筛选焦点和批量操作使用品牌色，边框用浅色品牌混合。用户明确要求暗色大屏/夜间模式/高对比风格时使用深色主视觉。
 10. **门户运行态组件要补必需 props 和局部降级**：`QuickAccessCard` / `RecentlyUsedCard` 传 `theme="row-white"` 等必需 props；所有门户/字段/上传增强组件外层加局部 ErrorBoundary，单个组件不兼容时只降级该块，整页保持可用。
 11. **消费设计结果**：页面直接使用 `yida-design` 已确定的视觉 token、布局、材质和组件规则。
@@ -123,10 +131,20 @@ function setNavigationTitle(title) {
 16. **页面产物使用纯文本业务文案**：`.canvas.jsx` 源码、`page-spec.json` 中会渲染到页面的文案、JS 注释、数据常量和产物文件路径都使用无 emoji 文本。页面生成、`compileCanvasLocal` 或 `publish` 报 emoji 错误时，先改 spec/源码/路径，再重新校验发布。若 emoji 原本承担图标含义，必须按 `design.md.iconSystem` 改成 `lucide-react` 或 `@ant-design/icons` 的具体组件，默认 `lucide-react`；不得用 CSS 绘制图形、单字母、首字母、标点符号、Unicode 符号或临时 SVG 冒充图标。
 17. **JSX 文案只能是文本或字符串**：JSX 文案只能写成纯文本 `所有级别` 或带引号字符串 `{'所有级别'}`；筛选项、按钮、状态、空态和表格列名等中文业务文案都按此规则书写。花括号里只能放真实 JS 变量/表达式，不能把中文文案写成 `{所有级别}`、`{处理中}`；Unicode escape 被工具解码后也必须保留字符串引号。
 18. **应用级导航归平台承载**：默认不要在自定义页面中创建侧边导航、顶部应用导航、门户导航壳或同级模块菜单；同应用页面入口优先写入 `appBlueprint.navigation` 或平台导航分组，由应用导航内切换。自定义页内容区只放当前页动作、表单新建/查看、外部链接、跨应用资源。只有用户显式要求“在自定义页面中实现自己的顶部导航 / 侧边导航 / 导航壳 / 自绘应用级导航 / 隐藏应用导航”时，才执行 `use_skill("yida-nav-shell")`，生成页面内导航壳，并在发布后执行 `openyida update-app <appType> --hide-app-nav`；只要求页面隐藏导航、无导航全屏或 `isRenderNav=false` 时，走页面级配置，不自动配置 `hideAppNav`。其他自定义页默认不配置 `hideAppNav`。
-19. **表单打开入口统一容器**：页面内新增、提交和详情操作统一使用 `FormOpenContainer`，接入真实表单、实例 ID 和刷新函数。可执行 `openyida sample openyida-page-template form-open-container --output .cache/samples/form-open-container.jsx` 参考或复用经过验证的打开行为、关闭刷新、移动端处理和 iframe 高度兜底；容器外观按 `design.md` 实现。调用方式见 [容器接入示例](references/navigation-and-entry-guide.md#接入示例)。应用级报名、申请等导航入口按 [入口用途](../yida-nav-shell/references/nav-shell-patterns.md#入口用途与嵌入页面) 在主内容区嵌入提交页。
+19. **表单打开入口统一容器**：页面内新增、提交和详情操作统一使用 `FormOpenContainer`，接入真实表单、实例 ID 和刷新函数。**MUST** 先执行 `openyida sample openyida-page-template form-open-container --output .cache/samples/form-open-container.jsx` 拉取当前模板，再整体合并 `CanvasDrawer` / `FormOpenContainer` / `useYidaFormOpen` 及依赖的辅助函数和 import。禁止自绘 fixed 遮罩 + iframe 抽屉壳；必须保留 `.openyida-form-drawer`、三个 header 图标操作、拖拽调宽、关闭刷新、移动端处理和 iframe 自适应高度。设计调整通过模板主题变量和已有 props 完成，不得重写外壳。调用方式见 [容器接入示例](references/navigation-and-entry-guide.md#接入示例)。应用级报名、申请等导航入口按 [入口用途](../yida-nav-shell/references/nav-shell-patterns.md#入口用途与嵌入页面) 在主内容区嵌入提交页。
 20. **图标资源固定为可加载库**：页面图标只使用 `lucide-react` 或 `@ant-design/icons`，默认使用 `lucide-react` named import。只有页面已经采用 Ant Design 图标语言、或 antd 组件语境需要 Outlined 图标时，才使用 `@ant-design/icons`。快捷入口、按钮、状态、导航和空态图标在写源码前先建立 `actionIconMap` / `statusIconMap`，按业务语义映射到具体组件，例如 `Plus`、`Upload`、`Download`、`Eye`、`Building2`、`AlertCircle`、`Check`。图标外层可以用 CSS 控制尺寸、颜色、圆角、背景和 hover，但图标本体必须来自上述两类组件，不能用 CSS 形状、字母或 emoji 替代。
 
 21. **对话框统一消费主题 token**：新增或改造对话框时，执行 `openyida sample openyida-page-template canvas-dialog --output .cache/samples/canvas-dialog.jsx`，将 `CanvasDialog` 合并到当前页面并接入业务状态，见 [对话框](references/dialog-guide.md)。标题、正文、背景、页脚、关闭按钮和操作按钮均消费应用 token；整体暗色适配与导航明暗分别判断。
+
+22. **Header 工具操作默认用图标按钮**：页面、卡片、弹窗和抽屉标题栏中的刷新、新窗口打开、全屏、关闭等工具操作，默认使用无可见文字的图标按钮，并提供 `title` 提示、`aria-label` 和键盘焦点样式。新增、提交、保存等业务主操作可保留文字。表单抽屉必须保留新窗口打开、全屏/退出全屏、关闭三个图标按钮，不能简化为文字链接或省略全屏；实现与验收见 [标准 FormOpenContainer](references/navigation-and-entry-guide.md#标准-formopencontainer)。
+
+23. **同色页面与卡片要有边界**：白色或近白背景上的白色独立卡片、面板、表格外壳，使用细边框或清晰柔和的投影区分层级；浅灰或浅彩色背景上的白卡默认无边框，利用底色对比形成层级。边框使用主题中性分割线 token，投影沿用应用已确认的阴影规则，不默认叠加边框和投影。无框内容区不强行卡片化，iframe 外层不加卡片。实现及验收见 [同色表面的卡片边界](references/canvas-style-implementation-guide.md#同色表面的卡片边界)。
+
+## 主题实现入口
+
+纯 DOM 页面直接消费平台 CSS 变量，不必引入 antd 或 Provider。
+
+新写或改造 antd Canvas 页面时，使用本技能 `scripts/build-canvas-theme.js`，输入本地 app-theme.css 和真实上传 URL，生成 CanvasThemeProvider 测试页或展开业务页面的适配层。业务代码只包 Provider，不再手写变量映射和监听；图表按需使用 useCanvasThemeContext。页面底色统一消费 --pod-page-bg-color，卡片消费 --pod-card-bg-color。具体命令、preview 与应用主题模式、编译发布边界见 [CanvasThemeProvider 脚本指南](references/canvas-theme-provider.md)。已有 useCanvasTheme 页面可暂时保留，迁移时移除重复 Provider 和 hook。
 
 ## 数据真实性边界
 
@@ -150,6 +168,7 @@ openyida create-page <appType> "<页面名>"
 # 结构化实现路径：先从 prd.md + design.md 派生 page-spec.json，生成可编译骨架后基于 manifest/摘要做小范围 patch。
 # 手写路径：已明确最终页面结构、数据桥和样式细节时，直接 Write 最终 .canvas.jsx。
 
+# 使用 Provider 标记时，先按主题脚本指南生成 <页面名>.themed.canvas.jsx；以下快检与发布都改用该生成文件。
 # 4. 本地快检
 node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/<页面名>.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
 
@@ -176,6 +195,7 @@ openyida get-schema <appType> <formUuid> --field-map-json
 | [dependencies-and-cdn.md](references/dependencies-and-cdn.md) | 可用前端资源、import 写法、运行时加载方式 | 选择或验证前端资源时必读 |
 | [employeefield-verification.md](references/employeefield-verification.md) | 运行时事实、原生组件验证、EmployeeField 验收 | 验证成员/字段组件时阅读 |
 | [data-bridge-guide.md](references/data-bridge-guide.md) | 表单、平台连接器与自定义同源接口的数据桥 | 接入真实数据时阅读 |
-| [canvas-style-implementation-guide.md](references/canvas-style-implementation-guide.md) | 将 `design.md` 的 App 主题色、antd token、背景层、圆角密度、控件焦点/下拉 reset、图表配色落到 `YidaCodeCanvas` 组件 | 写样式和主题时阅读 |
+| [canvas-theme-provider.md](references/canvas-theme-provider.md) | 主题脚本、新页面接入、旧页面迁移、预览与发布 | 新写或迁移 antd 页面时必读 |
+| [canvas-style-implementation-guide.md](references/canvas-style-implementation-guide.md) | 将 `design.md` 的 App 主题色、antd token、背景层、卡片边界、圆角密度、控件焦点/下拉 reset、图表配色落到 `YidaCodeCanvas` 组件 | MUST：新建页面或调整视觉前完整读取，见顶部编码前必读 |
 | [component-library-guide.md](references/component-library-guide.md) | 组件库推荐组合和页面选型建议 | 选择 UI/图表依赖时阅读 |
 | [canvas-authoring-examples.md](references/canvas-authoring-examples.md) | 最小组件、hooks、副作用、图表示例 | 手写 `.canvas.jsx` 代码时阅读 |

@@ -5,6 +5,7 @@ themeId: "hairline-runway-clarity"
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "var(--color-white, #fff)"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "AI 根据 --color-brand1-6 与白色混合生成 10% 品牌色"
       "--color-brand1-2": "AI 根据 --color-brand1-6 与白色混合生成 18% 品牌色"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-series-strong": "#2477D4"
       "--oyd-series-soft": "#A9D8F5"
       "--oyd-category-1": "#6F8BFF"
@@ -131,7 +131,7 @@ tokens:
 
 - 色彩来源：{{COLOR_SOURCE}}
 - 颜色 Token 的名称和值以文档顶部 YAML 的 `tokens` 为唯一事实源；AI 可以根据主题调整色值，不改变宜搭应用全局变量名。
-- 页面使用 `--oyd-page-background` 作为连续画布，必要浮层与控件使用 `--color-white`；区域层级依靠 `line1` 发丝线，而不是卡片背景或阴影。
+- 页面使用 `--pod-page-bg-color` 作为连续画布，必要浮层与控件使用 `--color-white`；区域层级依靠 `line1` 发丝线，而不是卡片背景或阴影。
 
 ### 设计变量消费规则
 
@@ -153,7 +153,7 @@ tokens:
 | 标题、核心数值、正文与主要图标 | `--color-text1-4` | 应用全局 |
 | 表头、输入占位和次级标签 | `--color-text1-10` | 应用全局 |
 | 时间、说明、坐标和比较基准 | `--color-text1-3` | 应用全局 |
-| 连续近白页面画布 | `--oyd-page-background` | 自定义页 |
+| 连续近白页面画布 | `--pod-page-bg-color` | 自定义页 |
 | 双层柱的强、弱配对序列 | `--oyd-series-strong`、`--oyd-series-soft` | 自定义页 |
 | 阶段跑道与对应细色标 | `--oyd-category-1` 至 `--oyd-category-4` | 自定义页 |
 
@@ -200,7 +200,7 @@ tokens:
 
 ## 表面与层级
 
-- 页面使用连续 `--oyd-page-background`，一级分区不设卡片边框、圆角或阴影；上下只使用 1px `--color-line1-1` 发丝分隔。
+- 页面使用连续 `--pod-page-bg-color`，一级分区不设卡片边框、圆角或阴影；上下只使用 1px `--color-line1-1` 发丝分隔。
 - 控件和 tooltip 是少数独立表面：白底、1px `--color-line1-2`、`--corner-3`；tooltip 可使用 `0 8px 24px rgba(0,0,0,.08)`。
 - 表格表头保持透明或极浅填充，数据行无独立表面；状态标签和头像使用局部轮廓，不形成卡片层。
 - 禁止大面积渐变、玻璃模糊、投影卡阵列和多层嵌套边框；低饱和跑道条允许轻微同色明度渐变。

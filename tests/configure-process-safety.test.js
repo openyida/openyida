@@ -170,7 +170,13 @@ describe('configure-process replacement and verification safety', () => {
       'APP_TEST', 'FORM_TEST', harness.definitionFile, 'TPROC_TEST',
     ])).rejects.toMatchObject({
       code: 'CONFIGURE_PROCESS_REPLACE_REQUIRED',
-      details: expect.objectContaining({ remoteWrites: 0 }),
+      details: expect.objectContaining({
+        remoteWrites: 0,
+        retryable: false,
+        requiresExplicitReplace: true,
+        nextAction: 'request_confirmation_then_replace',
+        suggestedCommand: expect.stringContaining('--replace'),
+      }),
     });
     expect(harness.mockPostForm).not.toHaveBeenCalled();
     expect(harness.mockPostFormOnce).not.toHaveBeenCalled();

@@ -5,6 +5,7 @@ themeId: status-framed-media-grid
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "var(--color-white, #fff)"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：悬停时提高明度约 8%>"
       "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与白色混合 88%>"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-media-scrim": "rgba(0, 0, 0, 0.16)"
       "--oyd-disabled-media-cover": "rgba(255, 255, 255, 0.58)"
       "--oyd-brand-focus-soft": "<theme-gray：--color-brand1-6 8% + #FFFFFF 92%；项目实例化时计算并写入实际色值>"
@@ -124,7 +124,7 @@ tokens:
 
 - 色彩来源：{{COLOR_SOURCE}}
 - 颜色 Token 的名称和值以文档顶部 YAML 的 `tokens` 为唯一事实源；AI 可以根据主题调整色值，不改变宜搭应用全局变量名。
-- 页面以 `--oyd-page-background` 承载底层画布，`--color-white` 承载所有主要卡片；两者通过边界而非强阴影分层。
+- 页面以 `--pod-page-bg-color` 承载底层画布，`--color-white` 承载所有主要卡片；两者通过边界而非强阴影分层。
 
 ### 设计变量消费规则
 
@@ -139,7 +139,7 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔线、表格行线和辅助线 | `--color-line1-1` | 应用全局 |
 | 输入框、按钮和面板常规边界 | `--color-line1-2` | 应用全局 |
-| 页面底层画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层画布 | `--pod-page-bg-color` | 自定义页 |
 | 面板、卡片、弹窗和表单容器 | `--color-white` | 应用全局 |
 | 媒体上文字或图标需要的轻压暗层 | `--oyd-media-scrim` | 自定义页 |
 | 失活对象媒体的明度覆盖层 | `--oyd-disabled-media-cover` | 自定义页 |
