@@ -101,11 +101,12 @@ describe('batch loadCommandsFromFile', () => {
   });
 
   test('文件不存在时退出', () => {
+    const missingFile = path.join(os.tmpdir(), `openyida-batch-missing-${process.pid}-${Date.now()}.txt`);
     const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => { throw new Error('__exit__'); });
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     try {
-      expect(() => loadCommandsFromFile('/nonexistent/file.txt')).toThrow('__exit__');
-      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('命令文件不存在: /nonexistent/file.txt'));
+      expect(() => loadCommandsFromFile(missingFile)).toThrow('__exit__');
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining(`命令文件不存在: ${path.resolve(missingFile)}`));
       expect(exitSpy).toHaveBeenCalledWith(1);
     } finally {
       errorSpy.mockRestore();
