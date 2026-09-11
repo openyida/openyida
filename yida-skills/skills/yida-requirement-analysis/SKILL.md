@@ -32,7 +32,7 @@ description: 识别并读取需求来源，理解和澄清用户需求，输出�
 | `pageScenes` | 已确认的页面与表单范围，数组；记录稳定 key、name、kind、purpose 及已有细项 |
 | `intake` | 首次搭建判断、来源详细程度、搭建方式和需求确认状态 |
 | `visualSelection` | 已确认风格及其主题、主色、导航明暗映射；Plan 初始化前必须含非空 `themeId` |
-| `navigation` | 应用导航决策：`type` 只能是 `platform-l-shape/platform-top/platform-side/custom`，并记录 `source/reason`；自定义导航增加 `variant: side/top/mixed/dock`；未决时 type 为 null，规划前补齐 |
+| `navigation` | 用户仅选择宜搭原生导航（即平台导航）或自定义导航；Agent 按场景确定布局并在 `reason` 区分选择与推断。应用导航决策：`type` 只能是 `platform-l-shape/platform-top/platform-side/custom`，并记录 `source/reason`；自定义导航增加 `variant: side/top/mixed/dock`；未决时 type 为 null，规划前补齐 |
 | `resourceContext` | 已确认可复用的 app/page/form/process 业务上下文，不写猜测 ID |
 | `explicitScope` | 用户明确指定的页面、表单、流程、报表、导航项和本轮交付；明确窄范围时写对应数组及 `allowInferredResources:false`，没有时为 `null` |
 | `brandHints` / `colorHints` | 明确的品牌、参考页面、已有主题、偏好色与避用色 |
