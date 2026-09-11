@@ -128,7 +128,7 @@ description: >
 | 创建自定义展示页资源 | `yida-create-page`，之后交给 `yida-canvas-custom-page` 编写页面源码，再交给 `yida-publish-page` 发布 |
 | 开发表单字段结构 / 增删改字段 | 使用 `yida-create-form-page` 落地字段结构 |
 | 创建带审批的流程表单 | `yida-create-process` |
-| 修改已有流程节点/分支/字段权限 | `yida-process-rule` |
+| 修改已有流程节点/分支/字段权限，配置加签/转交操作权限 | `yida-process-rule`；加签/转交先读其 `references/approval-actions.md` |
 | 查字段 ID / 保存 Schema 证据 | `yida-get-schema`；凡涉及 fieldId 的数据、流程、公式、页面代码先取证 |
 | 改表单数据记录 | `yida-data-management`，不是 `yida-create-form-page` |
 | 配字段默认值、计算、校验 | `yida-formula`；静态检查用 `yida-formula-evaluate` |

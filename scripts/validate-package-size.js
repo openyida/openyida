@@ -12,12 +12,11 @@ const path = require('path');
 // per-file cap stays fixed to catch accidental large-blob embeds.
 const MAX_TARBALL_BYTES = 1808 * 1024;
 // Includes Canvas theme Provider, navigation content sample, design guidance,
-// phase 6 recovery/readback, image-asset page contracts and retry delivery,
-// plus navigation intake and ImageField attachment delivery guidance;
-// round up to the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 6208 * 1024;
-// Includes the theme/navigation files, asset skills and attachment upload adapter.
-const MAX_ENTRY_COUNT = 501;
+// ImageField attachment delivery and process append/forward compiler, help
+// and skills are included; round up to the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 6224 * 1024;
+// Includes both asset delivery files and process action files.
+const MAX_ENTRY_COUNT = 503;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -30,6 +29,7 @@ const REQUIRED_PACKAGE_FILES = [
   'lib/core/utils.js',
   'lib/asset/asset-plan.js',
   'lib/asset/attachment-upload.js',
+  'lib/process/services/process-actions.js',
   'project/config.json',
   'scripts/postinstall.js',
   'yida-skills/SKILL.md',
@@ -37,6 +37,7 @@ const REQUIRED_PACKAGE_FILES = [
   'lib/samples/openyida-scaffold/canvas-dialog.canvas.jsx',
   ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data', 'content'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
   'yida-skills/skills/yida-canvas-custom-page/references/dialog-guide.md',
+  'yida-skills/skills/yida-process-rule/references/approval-actions.md',
 ];
 
 const FORBIDDEN_PACKAGE_PREFIXES = [

@@ -63,8 +63,8 @@ module.exports = {
     cmd_corp_manager: '플랫폼 권한 관리',
     cmd_agent_center: '프로세스 위임 및 퇴사자 대리 관리',
     group_process: '프로세스',
-    cmd_configure_process: '프로세스 규칙 설정 및 게시',
-    cmd_create_process: '프로세스 양식 생성 (통합형)',
+    cmd_configure_process: '프로세스 규칙 설정 및 게시; JSON nodes[].actions.normalActions/appendActions로 승인자 추가 및 전달 설정',
+    cmd_create_process: '프로세스 양식 생성 (통합형); JSON nodes[].actions.normalActions/appendActions로 승인자 추가 및 전달 설정',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: '프로세스 인스턴스 미리보기 (플로차트)',
     group_share: '페이지 설정 & 공유',
@@ -2035,3 +2035,7 @@ module.exports.connector_action_update = connectorSafetyMessages.connector_actio
 module.exports.connector_update_action = connectorSafetyMessages.connector_update_action;
 module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e2e;
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: '노드 {0}의 승인 작업 설정이 잘못되었습니다: {1}',
+});
