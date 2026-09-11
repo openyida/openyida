@@ -82,6 +82,7 @@ function runOk(args) {
     cwd: ROOT,
     env: cliEnv(),
     encoding: 'utf8',
+    stdio: 'pipe',
     timeout: 10000,
   });
 }
@@ -91,6 +92,7 @@ function runOkWithEnv(args, extraEnv, cwd = ROOT) {
     cwd,
     env: { ...cliEnv(), ...extraEnv },
     encoding: 'utf8',
+    stdio: 'pipe',
     timeout: 10000,
   });
 }

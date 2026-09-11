@@ -576,6 +576,17 @@ describe('fetchSchemaRecord', () => {
 });
 
 describe('run --all', () => {
+  let stderrSpy;
+  let errorSpy;
+  beforeEach(() => {
+    stderrSpy = jest.spyOn(process.stderr, 'write').mockReturnValue(true);
+    errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    errorSpy.mockRestore();
+    stderrSpy.mockRestore();
+  });
+
   test('writes individual schema files and an index when output-dir is provided', async () => {
     const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-schemas-'));
     fetchFormPageList.mockResolvedValue([
@@ -685,6 +696,17 @@ describe('run --all', () => {
 });
 
 describe('run compact compatibility', () => {
+  let stderrSpy;
+  let errorSpy;
+  beforeEach(() => {
+    stderrSpy = jest.spyOn(process.stderr, 'write').mockReturnValue(true);
+    errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    errorSpy.mockRestore();
+    stderrSpy.mockRestore();
+  });
+
   test('compact stdout only contains requested safe field metadata', async () => {
     utils.httpGet.mockResolvedValue({
       success: true,
