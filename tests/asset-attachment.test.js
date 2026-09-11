@@ -162,3 +162,39 @@ test('reused attachment URLs need no extra network verification', async () => {
   expect(requests).toEqual(['/no-extension']);
   expect(uploadFn).toHaveBeenCalledTimes(1);
 });
+
+
+test.each([true, false])('oversized download waits for file close before cleanup (declared size: %s)', async declared => {
+  body = Buffer.concat([image, Buffer.alloc(MAX_IMAGE_BYTES + 1 - image.length)]);
+  declaredSize = declared ? body.length : undefined;
+  const files = [];
+  const createWriteStream = fs.createWriteStream;
+  const rmSync = fs.rmSync;
+  const createSpy = jest.spyOn(fs, 'createWriteStream').mockImplementation((target, options) => {
+    const stream = createWriteStream(target, options);
+    const closed = new Promise(resolve => stream.once('close', resolve));
+    files.push({ target, stream, closed });
+    return stream;
+  });
+  const rmSpy = jest.spyOn(fs, 'rmSync').mockImplementation((target, options) => {
+    // Windows refuses to remove files whose handles are still open.
+    if (files.some(file => path.dirname(file.target) === target && !file.stream.closed)) {
+      throw Object.assign(new Error('Cannot remove an open file'), { code: 'EPERM' });
+    }
+    return rmSync(target, options);
+  });
+  try {
+    const uploadFn = uploader();
+    const result = await resolveAssets([asset()], { uploadFn });
+    expect(result.gaps).toEqual([]);
+    expect(result.assets[0]).toMatchObject({ materialStatus: 'final', url: asset().input, delivery: { reason: 'ASSET_TOO_LARGE' } });
+    expect(uploadFn).not.toHaveBeenCalled();
+    expect(files.length).toBeGreaterThan(0);
+    expect(files.every(file => file.stream.closed && !fs.existsSync(path.dirname(file.target)))).toBe(true);
+  } finally {
+    createSpy.mockRestore();
+    rmSpy.mockRestore();
+    await Promise.all(files.map(file => file.closed));
+    files.forEach(file => rmSync(path.dirname(file.target), { recursive: true, force: true }));
+  }
+});
