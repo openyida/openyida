@@ -1,5 +1,12 @@
 'use strict';
 
+jest.mock('../lib/core/chalk', () => ({
+  ...jest.requireActual('../lib/core/chalk'),
+  warn: jest.fn(),
+}));
+
+const { warn } = require('../lib/core/chalk');
+
 const { buildDataSetModelMap } = require('../lib/report/data-model');
 const { validateChartConfig } = require('../lib/report/chart-builder');
 
@@ -118,8 +125,13 @@ describe('report timeGranularityType', () => {
 
   test.each(['QUARTER', 'WEEK', 'DECADE'])('%s 不能通过配置校验，也不能被构建器静默回落', (granularity) => {
     const chart = chartCases[0].chart(granularity);
+    warn.mockClear();
 
     expect(validateChartConfig(chart, 0)).toBe(false);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining(
+      'charts[0].fields[0].timeGranularityType: 不支持的 timeGranularityType'
+    ));
     expect(() => buildDataSetModelMap(chart, 'corp-1')).toThrow(
       new RegExp(`timeGranularityType.*${granularity}`)
     );
