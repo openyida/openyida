@@ -914,6 +914,19 @@ describe('OpenYida skill contracts', () => {
     expect(byName.get('yida-app').done_when).toContain('design.md 已写入 prd/<项目名>/design.md');
   });
 
+  test('repeated structured records default to TableField unless the user specifies a field type', () => {
+    const createForm = readSkill('yida-skills/skills/yida-create-form-page/SKILL.md');
+
+    expect(createForm).toContain('重复结构化记录默认使用 `TableField`');
+    expect(createForm).toContain('用户未指定具体字段类型时');
+    expect(createForm).toContain('一个业务字段承载多条同构记录，且每条记录由一组固定子字段组成');
+    expect(createForm).toContain('必须用 `TableField + children` 建模');
+    expect(createForm).toContain('不以字段名称或业务领域作为判断依据');
+    expect(createForm).toContain('用户明确指定具体字段类型时按用户要求执行');
+    expect(createForm).toContain('不将模型推断、跨会话记忆或历史兼容性说法视为用户指定');
+    expect(createForm).toContain('未在当前应用、当前提交链路验证的限制不能作为字段改型依据');
+  });
+
   test('native form pages rely on platform rendering', () => {
     const root = readSkill('yida-skills/SKILL.md');
     const appStep4 = readSkill('yida-skills/skills/yida-app/workflow/step-4-forms-processes.md');
