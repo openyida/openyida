@@ -507,6 +507,7 @@ describe('application theme from design.md', () => {
   test('CLI applies only changed tokens and skips identical writes', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-theme-delta-'));
     const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const err = jest.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const design = path.join(dir, 'design.md');
       const css = path.join(dir, 'app-theme.css');
@@ -536,13 +537,14 @@ describe('application theme from design.md', () => {
       await apply();
       expect(fs.readFileSync(css, 'utf8')).toContain('--color-brand1-6: #8844AA;');
     } finally {
-      log.mockRestore(); fs.rmSync(dir, { recursive: true, force: true });
+      err.mockRestore(); log.mockRestore(); fs.rmSync(dir, { recursive: true, force: true });
     }
   });
 
   test('failed baseline installation rolls back CSS and its previous token snapshot', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-theme-rollback-'));
     const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const err = jest.spyOn(console, 'error').mockImplementation(() => {});
     let rename;
     try {
       const design = path.join(dir, 'design.md');
@@ -561,7 +563,7 @@ describe('application theme from design.md', () => {
       await expect(apply()).rejects.toThrow('snapshot write failed');
       expect([css, snapshot].map(file => fs.readFileSync(file, 'utf8'))).toEqual(before);
     } finally {
-      rename?.mockRestore(); log.mockRestore(); fs.rmSync(dir, { recursive: true, force: true });
+      rename?.mockRestore(); err.mockRestore(); log.mockRestore(); fs.rmSync(dir, { recursive: true, force: true });
     }
   });
 

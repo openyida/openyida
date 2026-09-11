@@ -145,6 +145,14 @@ function buildProcessStageHarness(tmpDir, registry, readbackMarker = marker => m
 }
 
 describe('full real E2E runner', () => {
+  let logSpy;
+  beforeEach(() => {
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    logSpy.mockRestore();
+  });
+
   test('defaults to the broad real-environment stage set', () => {
     const config = getFullConfig({
       OPENYIDA_E2E: '1',

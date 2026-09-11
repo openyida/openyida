@@ -90,7 +90,7 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
     "pageApplications": [
       {"pageId":"page-1","visualMemoryApplications":[{"name":"摘要拼接组","renderPolicy":"prd_match_only","target":"采购待办摘要","reason":"页面已有并列的待办状态"}]}
     ],
-    "assetStrategy": {"materialStatus":"none","missingAssets":[],"notes":"使用业务内容，不添加装饰图片"}
+    "assetStrategy": {"materialStatus":"none","pages":[{"pageId":"page-1","imageNeed":"none","reason":"纯数据操作页","slots":[]}],"missingAssets":[],"notes":"无图片需求"}
   },
   "internal": {"selectedTheme":{"themeId":"airy-modular-clarity","source":"user_selected"}},
   "forDesignMd": {"productTopologyApplication":"工作台与表单共享主题，视觉重点绑定已有采购任务"}

@@ -90,6 +90,7 @@ test('refreshes after late theme load and falls back after removal, then cleans 
 
 test('sample command extracts a reusable theme hook with React import', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'canvas-theme-'));
+  const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
   try {
     const output = path.join(directory, 'theme.jsx');
     await run(['openyida-page-template', 'canvas-theme', '--output', output]);
@@ -97,6 +98,7 @@ test('sample command extracts a reusable theme hook with React import', async ()
     expect(source).toBe("import React from 'react';\n\n" + fragment(samples[0]));
     expect(source).not.toContain('function YidaComp');
   } finally {
+    errorSpy.mockRestore();
     fs.rmSync(directory, { recursive: true, force: true });
   }
 });

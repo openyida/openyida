@@ -104,35 +104,11 @@ design.md 存在“项目配色适配”时先应用该节，它高于模板默�
 
 表单提交/详情里的 `isRenderNav=false` 只隐藏原生表单页或详情页的页面导航，不用于隐藏自定义页应用导航。
 
-## 官网与品牌页素材流程
+## 官网与品牌页素材
 
-实现 `official-homepage` 时，先读取 PRD 中的素材清单；缺少素材时按下方补齐素材清单。
+按 `design.md.assetStrategy` 调用 `yida-image-assets`。读取 `asset-manifest.json` 中当前页面 `pages[].materialStatus`；当前页为 `final` 时，只读取该页 `assets[].materialStatus=final` 的图片 URL。总状态为 `draft` 不阻塞已就绪的页面；不手拼 URL，也不内嵌 data URI。
 
-强视觉品牌以 PRD 的素材清单和 `design.md.assetStrategy` 为准。官网完成条件包括：场景 Hero、产品/服务、过程/空间三类素材，消费应用主题变量的视觉表达，不同 section 的构图节奏，以及一个明确 CTA。
-
-素材清单至少包含：
-
-```json
-{
-  "assets": {
-    "heroImage": "https://...",
-    "heroImageAlt": "品牌主视觉",
-    "productImages": [
-      { "url": "https://...", "alt": "明星产品" }
-    ]
-  }
-}
-```
-
-素材来源优先级：
-
-1. 用户提供或已有官网图片。若有防盗链，优先用 `openyida cdn-upload` 转存。
-2. AI 生成图片。先生成本地图片，再确认 CDN 配置，之后上传并回填 URL。
-3. 公开图库。只使用可公开访问且通过 HTTP 200 校验的图片 URL；生产交付优先转存到自有 CDN。
-
-若 `openyida cdn-config --show` 显示缺少 `accessKeyId/accessKeySecret/cdnDomain/ossBucket`，交付状态标为“素材待上传”；可先用已验证公开 URL 测试，或提示用户补 CDN 配置。
-
-离线展示在无 CDN 时允许内嵌经过压缩的 JPEG/WebP data URI，保证源码原样发布也有真实图片；建议 3-5 张、单张不超过 250 KB、总量不超过 800 KB。生产页面使用稳定 CDN 素材 URL。
+联网搜图仅使用 Unsplash/Pexels。Unsplash 保留 API 热链和署名；Pexels 保留来源页和摄影师信息。
 
 ## 主题实现
 

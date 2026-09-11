@@ -38,26 +38,29 @@ const mockAuth = {
   userId: 'user001',
 };
 
+let stderrSpy;
+
 beforeEach(() => {
   jest.clearAllMocks();
+  stderrSpy = jest.spyOn(process.stderr, 'write').mockReturnValue(true);
   utils.loadAuthData.mockReturnValue(mockAuthData);
   utils.resolveBaseUrl.mockReturnValue('https://www.aliwork.com');
   // requestWithAutoLogin 默认透传执行 requestFn
   utils.requestWithAutoLogin.mockImplementation((requestFn) => requestFn(mockAuth));
 });
 
+afterEach(() => {
+  stderrSpy.mockRestore();
+});
+
 // ── 正常查询：单页 ────────────────────────────────────────────────────
 
 describe('run() 正常查询', () => {
   test('--help 只输出用法，不读取登录态', async () => {
-    const mockWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {});
-
     await run(['--help']);
 
     expect(utils.loadAuthData).not.toHaveBeenCalled();
-    expect(mockWrite).toHaveBeenCalledWith(expect.stringContaining('app_list.usage'));
-
-    mockWrite.mockRestore();
+    expect(stderrSpy).toHaveBeenCalledWith(expect.stringContaining('app_list.usage'));
   });
 
   test('单页结果：正确输出 JSON 到 stdout', async () => {

@@ -922,8 +922,7 @@ def render_visual_details(data: dict[str, Any]) -> str:
         ("层次表达", visual.get("hierarchySummary")), ("组件形态", visual.get("componentToneSummary")),
         ("状态反馈", visual.get("stateSummary")), ("响应式布局", visual.get("responsiveSummary")),
         ("图标风格", visual.get("iconSummary")),
-        ("素材现状", assets.get("materialStatus")), ("品牌素材", assets.get("brandAssets")),
-        ("主视觉图片", assets.get("heroImage")), ("产品与案例图片", assets.get("productImages")),
+        ("素材现状", assets.get("materialStatus")), ("页面素材", assets.get("pages")),
         ("素材缺口", assets.get("missingAssets")), ("素材说明", assets.get("notes")),
     ]
     profile = visual.get("themeProfile") or {}

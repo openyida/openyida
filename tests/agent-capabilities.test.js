@@ -18,6 +18,45 @@ describe('agent-capabilities summary', () => {
     jest.dontMock('../lib/core/utils');
   });
 
+  test('exposes non-cloud search and QwenWork generation runtime defaults', () => {
+    const { buildAssetCapabilities } = require('../lib/core/agent-capabilities');
+    const local = buildAssetCapabilities({ tool: 'codex', runtime: 'desktop_shell', subtype: 'codex' }, {});
+    expect(local).toMatchObject({
+      host: { tool: 'codex', class: 'non_cloud' },
+      online_search: { status: 'available', available: true },
+      image_search: { status: 'available', available: true },
+      image_generation: { status: 'unknown', available: null },
+      requires_host_tool_inventory_check: true,
+    });
+
+    const qwenwork = buildAssetCapabilities(
+      { tool: 'qwenwork', runtime: 'desktop_shell', subtype: 'qwenwork_desktop' },
+      {}
+    );
+    expect(qwenwork).toMatchObject({
+      host: { tool: 'qwenwork', class: 'non_cloud' },
+      online_search: { status: 'available', available: true },
+      image_search: { status: 'available', available: true },
+      image_generation: { status: 'available', available: true },
+      requires_host_tool_inventory_check: false,
+    });
+
+    const declared = buildAssetCapabilities(
+      { tool: 'qwenwork', runtime: 'web_sandbox', subtype: 'qwenwork_web' },
+      {
+        OPENYIDA_AGENT_ONLINE_SEARCH: '1',
+        OPENYIDA_AGENT_IMAGE_SEARCH: '1',
+        OPENYIDA_AGENT_IMAGE_GENERATION: '0',
+      }
+    );
+    expect(declared).toMatchObject({
+      online_search: { status: 'available', available: true },
+      image_search: { status: 'available', available: true },
+      image_generation: { status: 'unavailable', available: false },
+      requires_host_tool_inventory_check: false,
+    });
+  });
+
   test('delivery runtime detector keeps local Codex non-cloud and honors managed cloud signals', () => {
     const { buildApplicationEntryPolicy } = require('../lib/core/agent-capabilities');
 

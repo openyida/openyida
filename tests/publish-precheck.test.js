@@ -69,13 +69,19 @@ function createSandboxIdentityFs(options = {}) {
 
 describe('publish prechecks', () => {
   let workspace;
+  let errorSpy;
+  let stderrSpy;
 
   beforeEach(() => {
     workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-publish-precheck-'));
     jest.clearAllMocks();
+    errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    stderrSpy = jest.spyOn(process.stderr, 'write').mockReturnValue(true);
   });
 
   afterEach(() => {
+    errorSpy.mockRestore();
+    stderrSpy.mockRestore();
     fs.rmSync(workspace, { recursive: true, force: true });
   });
 

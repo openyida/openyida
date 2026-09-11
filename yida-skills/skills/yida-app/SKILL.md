@@ -64,7 +64,7 @@ Plan 模式只读取 `workflow/step-1-resource-context.md`、`workflow/step-2-de
 | 4 | [创建或更新业务资源](workflow/step-4-forms-processes.md) | 执行 `use_skill("yida-create-form-page")`；按 PRD 执行 `use_skill("yida-create-process")`、`use_skill("yida-get-schema")`、`use_skill("yida-report")` 和 `use_skill("yida-integration")` | 真实 `formUuid`、`processCode`、必要 `fieldId/reportId` |
 | 5 | [写入初始表单数据](workflow/step-5-seed-records.md) | 执行 `use_skill("yida-data-management")`，为核心普通表单写入 1-3 条业务化 seed records 并 query 抽查 | 真实表单记录或明确跳过原因 |
 | 6 | [创建或复用主页面](workflow/step-6-main-page.md) | 已有 display 页面直接复用；缺少主页面且允许创建时执行 `use_skill("yida-create-page")` | 真实主页面 `formUuid` |
-| 7 | [编写或更新页面](workflow/step-7-page-code.md) | 执行 `use_skill("yida-canvas-custom-page")`；看板/工作台/驾驶舱必须再执行 `use_skill("yida-dashboard")`，读取表单数据时必须执行 `use_skill("yida-canvas-data-binding")` | 页面源码和真实 dataBinding 通过校验 |
+| 7 | [编写或更新页面](workflow/step-7-page-code.md) | 按 `design.md.assetStrategy` 加载素材、页面、看板和数据绑定技能 | 素材状态明确；页面源码和 dataBinding 通过校验 |
 | 8 | [发布页面并排序导航](workflow/step-8-publish-navigation.md) | 执行 `use_skill("yida-publish-page")`，发布本轮源码到主页面并执行轻量导航排序 | 已发布主页面 URL |
 | 9 | [输出与收尾](workflow/step-9-output-finish.md) | 核对完成条件，按业务语言输出结果 | 2-3 句业务总结 + 一组应用访问入口 |
 

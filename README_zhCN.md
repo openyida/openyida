@@ -410,7 +410,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | 批量执行 OpenYida 命令 |
 | `openyida flash-to-prd --file <path> --name "<project>"` | 闪记 / 会议纪要转 PRD prompt |
 | `openyida ai <text\|image> [options]` | 调用 AI 文生文和识图能力 |
-| `openyida asset <status\|resolve\|generate> [options]` | 检测素材能力 / 解析回填素材 |
+| `openyida asset <status\|resolve\|sources> [options]` | 检测素材能力 / 解析回填素材 |
 | `openyida cdn-config [options]` | 配置 CDN / OSS 上传 |
 | `openyida cdn-upload <image-path>` | 上传图片到 CDN |
 | `openyida cdn-refresh [options]` | 刷新 CDN 缓存 |

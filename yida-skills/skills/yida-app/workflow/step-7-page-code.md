@@ -13,12 +13,15 @@
 - 真实 `appType`、当前页面 `formUuid`；
 - `.cache/<项目名>-schema.json`；
 - Step 5 写入的 seed records 或跳过原因。
+- 需要图片时读取 `prd/<项目名>/asset-manifest.json`。
 
 ## 操作
 
 **编码前置条件（MUST）**：新建 Canvas 页面或调整视觉时，执行页面开发的模型必须先完整读取 [canvas-style-implementation-guide.md](../../yida-canvas-custom-page/references/canvas-style-implementation-guide.md)，按 [编码前必读](../../yida-canvas-custom-page/SKILL.md#编码前必读must) 记录适用规则与落点，再写源码。派发页面任务时必须带上这个文件路径和读取要求；不能只传递设计摘要或认为主流程读过就等于页面实现者读过。
 
 先读取 `constraints.prohibitedActions`。命中 `page-source` 时，本步骤只能做 Read、编译/静态检查等只读诊断，不得 Write/Edit/Create 页面源码，也不得用脚本、格式化器或生成器间接改写；输出应明确“源码未修改”并跳过依赖源码变更的发布。未命中时才执行下列源码实现动作。
+
+当前页为 `required`，或为带槽位的 `beneficial` 时，先执行 `use_skill("yida-image-assets", "准备当前页图片")`。使用 `--design design.md --app-type <真实appType>` 核对槽位、默认上传宜搭图片附件，输出 `asset-manifest.json`；超过 20 MiB 的外链保留原地址。读取 manifest 中当前页 `pages[].materialStatus`；该页为 `final` 时只使用 `assets[].materialStatus=final` 的图片。必需槽位缺口只阻塞当前页，总状态 `draft` 不阻塞其他已就绪页面。
 
 1. 自定义页面开发执行 `use_skill("yida-canvas-custom-page", "生成当前页面源码")`。根据 PRD 和 `design.md` 直接编写 `.canvas.jsx` / `.canvas.tsx`；允许从空文件实现完整 UI。内置整页示例按需用于理解数据接入和导航；表单抽屉片段必须按第 9 条整体合并，不要求复制整页，也不能用示例默认外观替代已确认的设计。已有符合设计的页面可继续迭代。
 2. PRD 或页面名包含看板、工作台、驾驶舱、Dashboard 时，必须执行 `use_skill("yida-dashboard", "实现真实业务看板")`。
@@ -55,6 +58,7 @@ Plan 模式下，上表涉及 PRD/design 的修正均由对应技能更新 `buil
 ## Checklist
 
 - [ ] 页面实现已读取 PRD 和 `design.md`；
+- [ ] 需要图片时只使用 manifest 中已验证的素材；
 - [ ] 新建页面或调整视觉前，实际实现者已完整读取 `canvas-style-implementation-guide.md`；检查记录包含文件路径、适用章节和页面落点，工具读取结果未遗漏截断部分；仅改数据逻辑时说明不适用原因；
 - [ ] 页面没有默认自绘应用级侧边导航 / 顶部导航；如有页面内自绘导航，已有用户显式要求和 `yida-nav-shell` 依据；
 - [ ] 自定义导航已提取 `canvas-nav-content` 并合并 `CanvasNavigationContent`；源码和 DOM 存在 `.openyida-nav-layout`、`.openyida-nav-content`，且实际测量内容撑满剩余空间、iframe 与视口等高、底部按钮可到达；只加类名不算通过；
