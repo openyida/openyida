@@ -10,12 +10,14 @@ const path = require('path');
 // Budgets are ratchets that track legitimate content growth (12 locale packs,
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
-const MAX_TARBALL_BYTES = 1792 * 1024;
-// Includes process-form metadata and integration sub-table compiler contracts
-// (6205451 bytes after PRs #507 and #527).
-const MAX_UNPACKED_BYTES = 6070 * 1024;
-// The process-form metadata helper brings the merged package to 490 files.
-const MAX_ENTRY_COUNT = 490;
+const MAX_TARBALL_BYTES = 1808 * 1024;
+// Includes Canvas theme Provider, navigation content sample, design guidance,
+// phase 6 batch recovery/readback, and Canvas report integration
+// (6340689 unpacked bytes);
+// round up to the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 6208 * 1024;
+// Includes the report runtime, query protocol, sample and integration guidance.
+const MAX_ENTRY_COUNT = 500;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -31,7 +33,7 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/SKILL.md',
   'yida-skills/skills-index.json',
   'lib/samples/openyida-scaffold/canvas-dialog.canvas.jsx',
-  ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
+  ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data', 'content'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
   'yida-skills/skills/yida-canvas-custom-page/references/dialog-guide.md',
 ];
 

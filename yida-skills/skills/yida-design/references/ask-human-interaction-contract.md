@@ -115,6 +115,13 @@ Fast / Plan 是面向用户的模式名称，可以展示。已有详细计划�
 - `allowCustom`：是否允许用户补充自定义答案。
 - `writeBackPath`：答案写回位置。
 
+需要让用户查看 workspace 产物后再回答时，同一次 `ask_human` 还必须携带：
+
+- `attachments`：待查看文件列表；workspace 文件使用 `{ "name": "搭建方案", "path": "prd/<项目名>/build-plan.html" }`。路径必须位于当前项目工作区，不能传运行时内部路径或外部绝对路径。
+- `revision`：本次问题绑定的事实版本。宿主提交回答时必须原样回传；版本已变化时拒绝旧回答并重新展示最新版本。
+
+附件、问题与 `revision` 是一个原子交互。不得先发普通文本附件、再单独调用 `ask_human`，也不得只在问题文案中写文件路径；否则实时界面和历史回放无法可靠证明用户确认的是哪一版方案。
+
 ## 首次搭建确认
 
 先完成需求分析，再按 [首次搭建确认表](../../yida-requirement-analysis/workflow/prepare-brief.md#2-确认首次搭建的未决事项) 询问尚未明确的事项。该表统一维护详细计划复用、搭建方式、业务模块、导航归属与布局、风格和页面范围；已有业务应用的局部增改按本次疑问澄清。
@@ -128,9 +135,9 @@ Fast / Plan 是面向用户的模式名称，可以展示。已有详细计划�
 Plan Design 完成当前版本后，按以下顺序与用户交互：
 
 1. 在会话中使用“当前这版方案”或“第 N 版方案”，给出 3-7 条业务摘要；原始 `meta.revision` 仅用于内部状态绑定。
-2. 以宿主支持的文件链接、附件或可打开产物形式展示 `prd/<项目名>/build-plan.html`。
-3. 展示成功后令 `meta.planState.presentedRevision` 等于 `meta.revision`；awaiting_confirmation 在生成前写入，展示记账完成后继续询问。
-4. 执行“最新搭建计划确认”类型的 `ask_human`，提供“确认并开始搭建”和“继续调整”两个选择。
+2. 在“最新搭建计划确认”的同一次 `ask_human` 中，通过 `attachments` 展示可打开的 `prd/<项目名>/build-plan.html`，并以 `revision` 绑定当前 `meta.revision`。
+3. 结构化交互成功创建后令 `meta.planState.presentedRevision` 等于 `meta.revision`；awaiting_confirmation 在生成前写入。
+4. 提供“确认并开始搭建”和“继续调整”两个选择，并等待用户回答。
 
 `build-plan.html` 不承载对话控件或确认按钮；用户在会话中完成确认。
 
@@ -155,7 +162,14 @@ Plan Design 完成当前版本后，按以下顺序与用户交互：
     }
   ],
   "allowCustom": false,
-  "writeBackPath": "meta.planState"
+  "writeBackPath": "meta.planState",
+  "attachments": [
+    {
+      "name": "当前搭建方案",
+      "path": "prd/<项目名>/build-plan.html"
+    }
+  ],
+  "revision": "{revision}"
 }
 ```
 

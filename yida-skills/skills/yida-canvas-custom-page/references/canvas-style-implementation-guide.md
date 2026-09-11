@@ -2,7 +2,7 @@
 
 本文件是 `YidaCodeCanvas` 组件的样式实现适配指南，不是新的设计系统，也不产出配色、视觉 DNA 或页面风格。业务事实来自 `yida-prd` 输出的 `prd.md`，视觉事实来自 `yida-design` 输出的 `design.md`。`YidaCodeCanvas` 页面只在 `YidaComp` 内消费当前应用的主题 token，并把布局、材质、密度、图表、控件状态和背景规则落到组件内部。
 
-`app-theme.css` 只在应用级配置，平台负责应用壳、原生表单、详情页和 `YidaCodeCanvas` 外层的主题一致性。Canvas Page 宿主的 `contentBgColor`、`pageStyle.backgroundColor` 和 `contentBgColorMobile` 使用 `var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))`，让宿主与 Canvas 内部使用同一背景 token。
+`app-theme.css` 只在应用级配置，平台负责应用壳、原生表单、详情页和 `YidaCodeCanvas` 外层的主题一致性。Canvas Page 宿主的 `contentBgColor`、`pageStyle.backgroundColor` 和 `contentBgColorMobile` 使用 `var(--pod-page-bg-color, var(--color-white, #fff))`，保证平台宿主背景一致；自绘导航页的内部画布允许采用下文的局部背景方案。
 
 宿主属性绑定不是主题注入。严禁生成 `body` 背景 CSS，也严禁 `YidaComp` 修改 `document.documentElement`、`document.body`、父页面或平台容器的主题变量。组件自己的背景、卡片和控件样式留在 `YidaComp` 内，并使用 `--pod-page-*`、`--pod-card-*`、`--color-brand1-*` 和 `--color-group`。
 
@@ -77,13 +77,64 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 ## 背景与导航的关联
 
-背景职责分开：Shell 的 `--pod-shell-bg-color-light/white/gray/dark` 承载外层氛围；`--pod-page-bg-color` 是原生页面内容底色，浅色主题通常为白色；`--oyd-page-background` 才是自定义页画布。不要为了自定义页全屏背景改写原生页面 token，也不要在无应用导航时直接给自定义页根使用 `--pod-page-bg-color`，否则会盖住 Shell。卡片继续消费 `--pod-card-bg-color`，不是把所有层一起改透明。
+背景职责统一：Shell 的 `--pod-shell-bg-color-light/white/gray/dark` 承载外层氛围；原生页面与自定义页面的基础底色统一消费 `--pod-page-bg-color`；卡片、表格外壳和面板消费 `--pod-card-bg-color`，回退 `--color-white`。渐变、纹理和图片作为页面局部装饰层叠加，不另设应用基础背景变量。
 
-`--oyd-page-background` 是应用主题 CSS 中的自定义页背景别名。无平台应用导航时默认写 `transparent`，透出应用壳的主题背景；需要品牌浅底时显式写 `var(--color-brand1-3)` 等已确认品牌 token。平台导航显示时默认写 `var(--pod-page-bg-color, var(--color-white, #fff))`，允许用户指定其他颜色；已确认的深色画布或项目显式背景优先。颜色值在 app-theme.css 中定义，页面源码仅消费，不能在组件里重设该变量或写死 `#F4F4F4`。
+导航布局和页面底色分别配置。隐藏应用导航不自动把 Canvas 改为透明；深色或明确的应用底色在 `design.md` 的平台 token 中定义，生成 `app-theme.css` 后统一生效。页面局部视觉不能通过修改应用 token 影响其他页面。
 
-Canvas 根背景使用 `background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)));`，保持与宿主一致。透明只表示透出下面的应用背景，不代表背景必须是白色。
+普通 Canvas 根背景默认使用 `background: var(--pod-page-bg-color, var(--color-white, #fff));`。自绘应用导航页的内部画布按下节设计，不要求可见底色与平台宿主相同。
 
 浮导距顶部的留白放在自定义页根节点内部。发布层的 `.yida-code-canvas{display:flow-root}` 只保护宿主，不能阻止 `.doll-page` / `.oy-page-root` 等内层根节点与导航的 margin 折叠。页面根必须使用 `display:flow-root`（已有 flex/grid 可保留），或用根容器 padding 承载顶部间距；不能仅给 Canvas 宿主加 flow-root。验收时分别测量宿主、页面根与导航的 top：宿主和页面根贴齐，导航仍保留设计间距。不要用 overflow:hidden 修复，它可能影响 sticky 和弹层；不要向平台父容器写负 margin 抵消。
+
+## 自定义导航页的独立画布
+
+**MUST** 区分平台宿主与自绘应用画布：宿主继续使用平台背景 token；内部导航壳可按 `design.md` 使用浅灰、浅彩、低饱和渐变或局部纹理，不强制使用 `--pod-page-bg-color` 作为唯一可见底色。`design.md` 明确 `canvasBackground`、`navigationSurface` 和 `cardSurface`，仅在当前页面根选择器实现，不修改 body、父页面或全局变量。
+
+浅色非白或渐变画布，顶部浮导默认白色或近白半透明、柔和投影；白卡默认无框，品牌色留给 Logo、导航选中态和主操作。白色画布上的白卡用细边框或投影。深色画布按独立对比方案设计，不强制白色浮导。渐变应低饱和、集中于顶部或局部，内容区域保持安静，不能遮挡文字或滚动内容。
+
+```css
+/* 自定义导航页局部设计示例，色值由本页 design.md 确认。 */
+.custom-nav-canvas {
+  min-height: 100dvh;
+  display: flow-root;
+  background: radial-gradient(ellipse at 20% 0%, #f5dfc9 0%, transparent 55%), #f4f2ef;
+}
+.custom-nav-canvas .floating-nav {
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 6px 24px rgba(50, 40, 30, 0.08);
+}
+```
+
+验收覆盖首屏、滚动底部、窄屏和导航切换：画布铺满内容区，无意外白边；浮导与卡片边界清楚，品牌色不过度铺满导航；原生 iframe 不被跨框样式修改。工作台同时压缩重复操作条、等权大指标卡和过高空态，不能仅靠渐变声称完成设计优化。
+
+## 同色表面的卡片边界
+
+根据页面与卡片的底色搭配选择边界，不统一给所有卡片加框：
+
+| 页面背景 | 推荐卡片表现 |
+| --- | --- |
+| 白色或近白色 | 白卡添加 1px 细边框或清晰柔和的投影，二选一即可 |
+| 浅灰色，例如 `#F3F4F6` | 白色无边框卡片，利用底色对比形成层级 |
+| 浅彩色，例如浅蓝、浅暖灰 | 白色无边框卡片，利用底色对比形成层级 |
+
+颜色仅说明搭配关系，不要求在源码里写死背景色；页面和卡片继续消费应用主题 token。投影沿用 `design.md` 已确认的阴影规则，不默认同时叠加边框和投影。最终以实际对比为准：近白底色与卡片仍难区分时，补边框或投影；仅圆角或几乎不可见的阴影不算有效边界。
+
+选择边框方案时，优先消费可见的 `--pod-card-border`。若该变量未定义、为 `none`、零宽或透明，在该卡片自己的选择器中显式使用下面的边框；不要修改根节点或应用主题变量：
+
+```css
+/* 用于已确认需要边界的同色卡片，不自动套到所有区块。 */
+.oy-card-on-white {
+  background: var(--pod-card-bg-color, var(--color-white, #fff));
+  border: 1px solid var(--color-line1-2, rgba(24, 28, 31, 0.12));
+}
+```
+
+`var(--pod-card-border, ...)` 的回退只在变量缺失时生效；采用边框方案且主题显式配置 `none` 时，在该卡片局部覆盖；采用投影方案或浅灰、浅彩底上的无框方案时不补边框。普通卡片用中性边框，品牌描边留给选中或强调状态。不要在页面运行时比较两个颜色字符串来自动开关边框；在 `design.md` 的 `surfaceMap` 中明确哪些区域是独立卡片、哪些是无框内容区，并按实际主题验收。
+
+明确设计为无框排版的内容区不强行加边框；已有清晰底色对比的卡片按主题处理。嵌套区块避免层层套框，分组可用分隔线。表单抽屉的 iframe 外层仍不加卡片或边框，原生内页负责自己的布局。
+
+- [ ] 白色或近白背景上的白卡已有可见细边框或清晰投影；浅灰、浅彩色背景上的白卡默认无边框且有足够底色对比；有意采用无框排版的区域在 `surfaceMap` 中明确标注。
+- [ ] 按所选方案检查实际 computed style：边框方案宽度非零、非透明；投影方案 `box-shadow` 非 `none` 且实际可见；无框方案有足够底色对比。截图中能区分卡片与页面，仅搜索到 `border` 或 `box-shadow` 不能视为通过。
+- [ ] 边框跟随主题中性分割线，投影遵循应用阴影规则，切换主题后仍可辨认，没有全局覆盖、重复套框或 iframe 外层卡片。
 
 ## 背景层实现规则
 
@@ -106,7 +157,7 @@ Canvas 根背景使用 `background: var(--oyd-page-background, var(--pod-page-bg
   isolation: isolate;
   min-height: 100vh;
   display: flow-root;
-  background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)));
+  background: var(--pod-page-bg-color, var(--color-white, #fff));
 }
 .oy-page-root::before {
   content: "";
@@ -154,7 +205,7 @@ Canvas 根背景使用 `background: var(--oyd-page-background, var(--pod-page-bg
 
 落地要求：
 
-- 页面根画布和业务卡片先按上述 `--pod-page-*` / `--pod-card-*` 契约消费应用主题；装饰层只能叠在主题表面之上，不能用固定渐变或固定白底替代主题表面。
+- 普通页面和业务卡片按上述主题契约实现；自绘应用导航页的局部画布、浮导按下述独立画布规则实现，不覆盖平台或原生内页主题。
 - `softTintCanvas`：根节点使用低饱和浅底、带弱渐变的近白画布或深色舞台；不要为了背景感强行铺满高饱和色。
 - `topIrregularWash`：用 `::before`、`clip-path`、局部 SVG 背景或伪元素形成顶部波浪、斜切、有机边界、细线曲线或图形标记；内容层固定在规则栅格上。
 - `radialGlowWash`：使用大面积柔和径向光或光洗，禁止离散装饰圆球、bokeh 和随机漂浮点。
@@ -228,39 +279,29 @@ Canvas 根背景使用 `background: var(--oyd-page-background, var(--pod-page-bg
 
 所以只有「JS 要拿到真实颜色」的场景才需要读值，其余直接用 CSS 变量最省事。
 
-## 读品牌色的 helper（JS 消费场景用）
+## 统一主题适配
 
-因为跑在真 window，直接读根节点计算样式即可。helper 必须带兜底逻辑：先读当前应用的 `--color-brand1-*`，读不到、空串或读取异常时返回传入的 `defaultColor`。`defaultColor` 必须来自当前项目 `design.md` 的 tokens，不能使用与当前主题无关的固定色。
+新 antd 页面使用 [CanvasThemeProvider 脚本](canvas-theme-provider.md)，不再复制变量映射、读取 hook 或监听代码。纯 DOM 页面直接使用 CSS 变量。
 
-```jsx
-// 品牌色阶：1 最浅 → 6 主色 → 10 最深，与平台 --color-brand1-* 对齐
-function readBrandColor(level, defaultColor) {
-  try {
-    var el = document.documentElement;
-    var v = getComputedStyle(el).getPropertyValue('--color-brand1-' + (level || 6)).trim();
-    return v || defaultColor;
-  } catch (e) {
-    return defaultColor;
-  }
-}
+旧页面已有 `useCanvasTheme` 和 `ConfigProvider` 时可继续维护；不要再叠加新的 Provider。迁移时按脚本指南替换整条主题接入链路。旧示例和 `openyida sample openyida-page-template canvas-theme` 仅保留供存量维护，不作为新页面起点。
 
-// hook 形式：首帧同步取值，无闪烁
-function useBrandColor(level, defaultColor) {
-  var s = React.useState(function () { return readBrandColor(level, defaultColor); });
-  return s[0];
-}
-```
+### 按钮语义与优先级
 
-> **变量作用域**：平台把 `--color-brand1-*` 定义在页面容器时，给组件根节点挂 `ref`，在 `useEffect` 里读 `getComputedStyle(rootRef.current)`，读到后 `setState` 触发一次重渲染。默认先用 `documentElement` 同步取值，空串时再用根节点 ref 读取。
+- 主按钮、链接、选中态跟随应用品牌 token；普通按钮使用中性表面、文字和边框。
+- 删除、失败、成功、警告保留语义色，不能把所有按钮和提示都染成品牌色。
+- 原生 DOM 按钮直接消费 CSS 变量；antd 控件使用 `ConfigProvider` 的解析值，保留库的 disabled/loading/focus 行为。
+- 应用 token 优先于 design.md 兜底。内层 `ConfigProvider` 或按钮行内 `background/color` 会覆盖外层主题；仅在明确的业务语义或用户要求下覆盖，不能复制固定蓝色主按钮。
+- 浮层保持 React provider 上下文；CSS 变量还取决于实际挂载 DOM。优先使用声明式 Modal/Drawer 和上下文内的消息 API，避免静态调用绕过主题；根据滚动和裁剪情况选择弹层容器并验收。
+- 页面差异通过布局、密度、圆角、材质和素材实现，默认不创建另一套页面品牌色。
 
-## antd：完整消费应用配色
+## antd：当前自动映射范围
 
-`ConfigProvider` 放在页面组件外层。应用主题不是只有 `colorPrimary`；页面、卡片、输入、表格和浮层应消费同一套设计值：
+生成的 CanvasThemeProvider 内部提供 ConfigProvider。下表是其自动映射的颜色角色，业务页面无需再实现一次：
 
 | antd token | 应用 token / 用途 |
 | --- | --- |
 | colorPrimary / colorLink | --color-brand1-6，主操作、链接与选中焦点 |
-| colorBgLayout | --oyd-page-background；透明时取实际承接它的页面/壳背景 |
+| colorBgLayout | --pod-page-bg-color，回退 --color-white；与页面根容器一致 |
 | colorBgContainer | --pod-card-bg-color，回退 --color-white |
 | colorBgElevated | --pod-card-bg-color，浮层的可读表面；有独立浮层设计时使用其已确认 token |
 | colorText / colorTextHeading | --color-text1-4，正文与标题 |
@@ -268,13 +309,13 @@ function useBrandColor(level, defaultColor) {
 | colorTextPlaceholder | --color-text1-10，表头与 placeholder 层级 |
 | colorBorder / colorBorderSecondary | --color-line1-2 / --color-line1-1 |
 | colorFillAlter / colorFillSecondary | --color-fill1-1 / --color-fill1-2 |
-| colorSuccess / colorWarning / colorError / colorInfo | 对应应用语义 token，未配置时保留 antd 默认语义色；不要统一替换成品牌色 |
+| colorSuccess / colorWarning / colorError / colorInfo | 当前不自动映射，保留 antd 默认语义色 |
 
-这些映射不改变业务数据和操作。表格表头、卡片外壳、自绘文字等 CSS 同步消费对应 token；外壳卡片使用 `background: var(--pod-card-bg-color, var(--color-white, #fff))` 与 `border: var(--pod-card-border, none)`，不能只映射 antd 而遗漏自绘表面。
+这些映射不改变业务数据和操作。表格表头、卡片外壳、自绘文字等 CSS 同步消费对应 token；外壳卡片使用 `background: var(--pod-card-bg-color, var(--color-white, #fff))` 与主题卡片边框；卡片边界按上文背景搭配选择细边框、投影或无框，不能只映射 antd 而遗漏自绘表面。
 
-antd 会在 JS 中推导色板，传入值必须是解析后的真实颜色。根元素挂 ref，挂载后在组件作用域读取主题；别只读取 documentElement，否则会漏掉定义在页面容器上的变量。遇到 var() / color-mix() 等引用时，用组件内部的颜色探针交给浏览器计算后读取 getComputedStyle(...).color，不能把未解析表达式或空串传给 antd。初始值使用 design.md 同角色兜底；主题切换后重新解析并 setState，禁止模块加载时读取一次后永久缓存。
+颜色解析和刷新由 Provider 处理。当前脚本不自动映射尺寸、圆角、字体、图表色组或完整 CSS 选择器，也不会把平台所有组件样式转换成 antd 样式。布局与圆角仍按 design.md 实现；需要 antd 局部配置时仅覆盖所需的尺寸、圆角等属性，保留外层颜色主题。
 
-最终传入 `theme={{ token: resolvedTheme }}`；`resolvedTheme` 覆盖上表中当前页面使用的角色及设计圆角。浅色品牌背景仍搭配清晰的深色文字，深色主题使用其深色表面和浅色文字。既不把正文全部染绿，也不让组件悄悄退回默认蓝色/灰色。
+应用主题模式主色缺失时为 missing、解析抛异常时为 error；其他缺失颜色保留 antd 默认值；这不代表主题验收通过。本地快照只在显式 preview 模式下使用。
 
 ## 默认 light 模式避免灰黑主题
 
@@ -282,26 +323,22 @@ antd 会在 JS 中推导色板，传入值必须是解析后的真实颜色。�
 
 ## 控件焦点态与下拉浮层 reset
 
-使用 `YidaCodeCanvas` 组件实现的页面只要出现搜索框、筛选下拉、日期选择、文本输入、成员/部门/上传等运行态控件，就在组件内部的 `<style>` 顶部声明控件 reset，统一输入框、下拉触发器、focus ring 和字体粗细。
+默认保留组件库的焦点、禁用和交互样式。仅当宿主样式干扰控件或设计明确要求时，在页面作用域增加局部 reset；不要默认覆盖所有 antd 控件。
 
 实现规则：
 
-- `ConfigProvider` 增加 `getPopupContainer={(triggerNode) => (triggerNode && triggerNode.parentElement) || document.body}`，让 antd Select / DatePicker 等弹层留在当前页面作用域，避免浮层脱离页面样式。
-- 页面根节点使用 `oy-*` 根类，并在 `<style>` 顶部放 `OPENYIDA_CANVAS_CONTROL_CSS` 同款 reset。
-- 控件默认边框使用浅灰蓝，hover 使用品牌色低饱和混合，focus 使用浅品牌描边 + 3px 柔和 ring。
+- 弹层默认保留 antd 挂载行为。若页面局部 CSS 必须覆盖弹层，可给 CanvasThemeProvider 传 getPopupContainer；先检查目标容器是否会裁剪浮层，不能统一强制挂在触发器父节点。
+- 需要 reset 时使用页面根类限制作用域，保留可见的键盘焦点。
+- 边框和焦点消费应用的边框、品牌 token，不能用固定浅灰蓝覆盖主题。
 - 下拉浮层统一 10px 圆角、浅边框、柔和阴影，active / selected 选项使用品牌浅底，不用黑色描边或浏览器原生 select。
 
-最小片段：
+以下是需要局部弹层样式时的内容片段，放在已存在的 CanvasThemeProvider 下；不再创建第二个主题 Provider：
 
 ```jsx
-<ConfigProvider
-  getPopupContainer={(triggerNode) => (triggerNode && triggerNode.parentElement) || document.body}
-  theme={{ token: { colorPrimary: brand, borderRadius: 12 } }}
->
-  <div className="oy-business-list" style={{ '--oy-brand': brand, '--oy-brand-deep': brandDeep }}>
+  <div className="oy-business-list" style={{ '--oy-brand': 'var(--color-brand1-6)' }}>
     <style>{`
       .oy-business-list {
-        --oy-control-border: #d7dee8;
+        --oy-control-border: var(--color-line1-2, #d7dee8);
         --oy-control-focus: color-mix(in srgb, var(--oy-brand, #6B7CAB) 52%, #ffffff);
         --oy-control-focus-ring: color-mix(in srgb, var(--oy-brand, #6B7CAB) 18%, transparent);
       }
@@ -323,7 +360,6 @@ antd 会在 JS 中推导色板，传入值必须是解析后的真实颜色。�
     `}</style>
     {/* page content */}
   </div>
-</ConfigProvider>
 ```
 
 ## Tailwind：CSS 变量直接用
@@ -342,26 +378,15 @@ Canvas 节点在页面 DOM 树内，Tailwind 运行时对普通元素直接用 a
 
 ## 图表 / recharts：用解析后的品牌色组
 
-图表颜色是 JS 传给库的字符串，使用 `readBrandColor` 或解析 `--color-group`。多系列图表优先读 `--color-group`，这样应用主题里的色组可以控制趋势线、柱状、排名和环形图的层次。
+图表颜色是 JS 传给库的字符串，使用 `useCanvasThemeContext()` 的 `token.colorPrimary` 或在组件作用域解析 `--color-group`。多系列图表优先读 `--color-group`，这样应用主题里的色组可以控制趋势线、柱状、排名和环形图的层次。
 
 ```jsx
-import React from 'react';
+/* @canvas-theme-provider */
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-function readBrandColor(level, defaultColor) {
-  try {
-    var v = getComputedStyle(document.documentElement)
-      .getPropertyValue('--color-brand1-' + (level || 6)).trim();
-    return v || defaultColor;
-  } catch (e) { return defaultColor; }
-}
-
-function YidaComp(props) {
-  var brand = readBrandColor(6, '#6b7cab');
-  var groupValue = getComputedStyle(document.documentElement).getPropertyValue('--color-group').trim();
-  var colorGroup = groupValue.match(/rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}/g) || [
-    brand, '#00c4c4', '#4caf50', '#006868', '#ff6b35', '#a070ff',
-  ];
+// 本片段经主题脚本展开后编译。
+function ChartContent() {
+  const { token } = useCanvasThemeContext();
   var data = [
     { name: '1月', value: 120 }, { name: '2月', value: 200 },
     { name: '3月', value: 150 }, { name: '4月', value: 320 },
@@ -373,13 +398,16 @@ function YidaComp(props) {
           <XAxis dataKey="name" />
           <YAxis />
           <Tooltip />
-          <Line type="monotone" dataKey="value" stroke={colorGroup[0]} />
+          <Line type="monotone" dataKey="value" stroke={token.colorPrimary} />
         </LineChart>
       </ResponsiveContainer>
     </div>
   );
 }
 
+function YidaComp() {
+  return <CanvasThemeProvider><ChartContent /></CanvasThemeProvider>;
+}
 export default YidaComp;
 ```
 
@@ -387,9 +415,9 @@ export default YidaComp;
 
 ## 自查清单（主色相关）
 
-- 页面最外层有 `ConfigProvider`，主色、表面、文字、填充和边界均来自组件作用域解析后的应用 token；与自绘 CSS 一致，主题切换后可更新。
-- 有输入/筛选/下拉/日期/运行态字段组件时，已在组件内部声明控件 focus/dropdown reset，focus 后没有黑色粗边或突兀加粗。
+- 新 antd 页面只有一套主题适配层；Provider 的主色、表面、文字、填充和边界与自绘 CSS 一致。应用主题模式和 preview 分别验证，不能只凭 ready 判断全部通过。
+- 检查控件焦点与下拉样式；仅对实际干扰做局部 reset，并保留可见的键盘焦点。
 - Tailwind 主色类用 `var(--color-brand1-*)`，没有散落的 `#1677ff` / `bg-blue-500`。
-- 图表 / canvas 绘制颜色走 `readBrandColor` 或 `--color-group`，无硬编码蓝。
+- 图表 / canvas 绘制颜色走 `useCanvasThemeContext` 或组件作用域的 `--color-group`，无硬编码蓝。
 - 语义色（成功/警告/错误）保持 antd 默认或平台语义变量，未被主色覆盖。
 - 视觉方向来自 `yida-design`：配色、圆角、图标和文案都完成业务化处理。

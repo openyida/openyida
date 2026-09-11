@@ -43,9 +43,11 @@
 
 标准 Plan 首版采用一次收齐：业务任务完成一个 `business.json`，视觉直接复用 init 根据已确认选择生成的 `visual.json`，随后合并物化。这样首版只等待一次模型规划。品牌稿、参考图、页面级特殊视觉或明确的视觉精修要求命中时，才由视觉任务更新 `visual.json`；超大需求需要展示中间进展时才使用 [按模块更新方案](incremental-preview.md)，全部完成后再用 `materialize --from-preview` 汇总校验。
 
+init 返回的 `materialize.command` 是标准首版唯一生成命令。执行成功后直接使用其 `outputs.html` 和 `revision` 展示确认，不通过 `--from-preview`、preview、Glob 或额外 Read 探测产物；确认后不再物化或 patch。`explicitScope.allowInferredResources=false` 时，完整主题仍可作为 Plan 展示的一部分，但不进入应用设置、导航或发布执行。
+
 `design-plan init` 返回 `parallelTasks` 和两个片段文件：
 
-- `business.json`：业务任务填写 facts 中的 overview、dataModels、businessFlows、pages 和可选 execution。可选 meta 仅填写 businessDomain、experienceTopology，完成后设 ready=true。
+- `business.json`：init 已预填业务骨架，业务任务必须先读后写，保留 base；facts 只能填写 overview、dataModels、businessFlows、pages 和可选 execution，禁止加入 visualStyle。一次补齐所有普通表单的 sampleDataPlan（不造数写 skipReason）和所有自定义页面的 permissionSummary，完成后设 ready=true。可选 meta 仅填写 businessDomain、experienceTopology。
 - `visual.json`：init 根据需求阶段原子保存的 `visualSelection` 写入 facts.visualStyle；主色、方向和导航明暗完整时设 `ready=true`，否则保持未就绪并返回 `visual-selection` 任务，只补充缺失选择。标准页面的完整主题和页面场景规则由 CLI 补齐。只有命中特殊视觉条件时，视觉任务才按业务页面更新项目差异与 `pageApplications`。
 
 两个文件的 base 由 CLI 生成，保留原值；任务读取同一份需求、草稿和主题上下文。业务片段完成后保持稳定，变更时通知视觉任务重新核对页面设计。

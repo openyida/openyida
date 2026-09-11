@@ -5,6 +5,7 @@ themeId: "ribbon-ledger-lift"
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "var(--color-white, #fff)"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "AI 根据 --color-brand1-6 与白色混合生成 10% 品牌色"
       "--color-brand1-2": "AI 根据 --color-brand1-6 与白色混合生成 18% 品牌色"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-lift-shadow": "rgba(0, 0, 0, 0.06)"
       "--oyd-category-1": "#8661F1"
       "--oyd-category-2": "#4B77F3"
@@ -127,7 +127,7 @@ tokens:
 
 - 色彩来源：{{COLOR_SOURCE}}
 - 颜色 Token 的名称和值以文档顶部 YAML 的 `tokens` 为唯一事实源；AI 可以根据主题调整色值，不改变宜搭应用全局变量名。
-- `--oyd-page-background` 承载底层画布，`--color-white` 承载所有一级表面；`line1` 只做细轮廓与虚线分隔，空间层级由白度、边界和低扩散阴影共同建立。
+- `--pod-page-bg-color` 承载底层画布，`--color-white` 承载所有一级表面；`line1` 只做细轮廓与虚线分隔，空间层级由白度、边界和低扩散阴影共同建立。
 
 ### 设计变量消费规则
 
@@ -149,7 +149,7 @@ tokens:
 | 标题、核心数字、正文与主要图标 | `--color-text1-4` | 应用全局 |
 | 表头、输入占位与次级标签 | `--color-text1-10` | 应用全局 |
 | 时间、说明、比较基准与元信息 | `--color-text1-3` | 应用全局 |
-| 页面底层近白画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层近白画布 | `--pod-page-bg-color` | 自定义页 |
 | 轻悬浮卡片的低扩散阴影 | `--oyd-lift-shadow` | 自定义页 |
 | 等权类别的分段块、量轨和色标 | `--oyd-category-1` 至 `--oyd-category-4` | 自定义页 |
 
@@ -196,7 +196,7 @@ tokens:
 
 ## 表面与层级
 
-- 页面底层使用 `--oyd-page-background`，一级面板使用白底、1px `--color-line1-2` 边界、20px 圆角和 `0 6px 18px --oyd-lift-shadow`。
+- 页面底层使用 `--pod-page-bg-color`，一级面板使用白底、1px `--color-line1-2` 边界、20px 圆角和 `0 6px 18px --oyd-lift-shadow`。
 - 摘要卡允许使用上述完整轻阴影；大型内容面板将阴影减弱为 `0 4px 14px --oyd-lift-shadow`，避免大面积浮起。
 - 嵌套表头、提示条和次级行容器使用 `--color-fill1-1` 或白底、1px `--color-line1-1`；同一区域最多两层轮廓。
 - tooltip、popover 与菜单使用 `--color-fill1-10`、`--color-line1-2` 和 `0 8px 24px rgba(0,0,0,.08)`。

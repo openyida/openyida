@@ -105,7 +105,7 @@
 
 ## 视图切换骨架
 
-同页视图与跨真实页面分别处理：同页只切内容可用 React 状态；要分享、刷新恢复、前进后退则同步 URL hash；跨页面使用现有路由与数据桥。不要为了套用一个导航示例，把 PRD 的多个真实页面改造成一个静态页。
+同页视图与跨真实页面分别处理：同页只切内容可用 React 状态；要分享、刷新恢复、前进后退则同步 URL hash；跨页面仅在目标保留同一导航壳时使用现有路由与数据桥；原生页面嵌入主内容区。不要为了套用一个导航示例，把 PRD 的多个真实页面改造成一个静态页。
 
 下面只演示已过滤菜单的选中态与视图绑定。`views` 是当前页面自己的业务组件映射，布局与样式按选定形态补齐；需要 URL 同步的场景复用已有路由，不直接使用这个纯本地状态版本。
 
@@ -207,6 +207,83 @@ const registration = items.find(item => item.key === 'registration');
 
 `canvas-nav-data` 同时提供 `buildCanvasNavigationUrl`：`submission` 生成原生提交页地址，`page` 生成 workbench 地址；嵌入时自动补对应导航参数，`params` 保留预填值和业务参数。入口用途明确后再生成 URL。导航任务占主内容区；页面内新增或详情按钮复用 [FormOpenContainer 抽屉](../../yida-canvas-custom-page/references/navigation-and-entry-guide.md#标准-formopencontainer)。原生表单的页面导航参数由容器生成；自定义页面的应用导航按技能中的应用设置隐藏。已有自定义页的 `/{appType}/custom/{formUuid}` 地址可继续使用。用 `URL` / `URLSearchParams` 构造地址，保留 `corpid`、`locale` 和业务参数。
 
+## 保留导航壳的最小示例
+
+**MUST**：自定义导航属于应用外壳，点击应用内导航后必须仍可见、可操作。原生提交页和数据管理页不包含这套自绘导航，不能直接用 `location.href` / `router.push` 替换顶层页面。`isRenderNav=false` 只隐藏原生导航，不会自动保留自绘导航。
+
+例如供应商应用：导航“工作台”显示本地工作台，“准入申请”嵌入原生 submission 页，“供应商档案”嵌入原生 workbench 页；工作台里的“提交申请”“详情”按钮仍用标准 `FormOpenContainer` 抽屉。导航项不打开抽屉。
+
+先提取并整体合并标准内容容器（合并重复 import）：
+
+```bash
+openyida sample openyida-page-template canvas-nav-content --output .cache/samples/canvas-nav-content.jsx
+```
+
+`CanvasNavigationContent` 的 `navigation` 接顶部导航，`children` 接本地工作台，`iframeSrc` 接原生页面地址；不传地址时显示 children，可用于无权限或加载失败提示。`contentKey` 变化会卸载旧内容并重置滚动。`height` 默认 `100dvh`，已有宿主或侧栏分配高度时传入该区域的确定高度（只有父级高度确定时才能用 `100%`）。`maxWidth`、`gutter`、`radius`、`background` 按 design.md 设置并在视图间保持一致；默认透明背景承接页面画布，不跨 iframe 改色。容器不负责鉴权、路由、草稿保存或判断跨域加载失败。
+
+下面是交互骨架，导航外观按 `design.md` 实现。先执行 `openyida sample openyida-page-template canvas-nav-data` 获取并合并导航数据 helper（包含 `buildCanvasNavigationUrl`）。`items` 是已完成权限过滤的可见叶子菜单，仅包含当前壳内工作台与原生任务入口；资源 ID、`targetType` 和 `params` 来自真实配置。外链及带自身导航壳的跨页入口另走对应路由，不放入本例的 iframe 分支。
+
+```jsx
+import React, { useEffect, useState } from 'react';
+
+function AppShell({ items, homeKey, appType, renderWorkbench }) {
+  const readKey = () => new URLSearchParams(window.location.hash.slice(1)).get('view');
+  const [requestedKey, setRequestedKey] = useState(readKey);
+  useEffect(() => {
+    const sync = () => setRequestedKey(readKey());
+    window.addEventListener('hashchange', sync);
+    window.addEventListener('popstate', sync);
+    return () => {
+      window.removeEventListener('hashchange', sync);
+      window.removeEventListener('popstate', sync);
+    };
+  }, []);
+  const active = items.find(item => item.key === requestedKey) || items[0];
+  function select(item) {
+    if (item.disabled || item.key === active?.key) return;
+    const url = new URL(window.location.href);
+    const hash = new URLSearchParams(url.hash.slice(1));
+    hash.set('view', item.key);
+    url.hash = hash.toString();
+    window.history.pushState(null, '', url.toString());
+    setRequestedKey(item.key);
+  }
+  return (
+    <CanvasNavigationContent
+      title={active?.label || '页面内容'}
+      contentKey={active?.key}
+      iframeSrc={active && active.key !== homeKey
+        ? buildCanvasNavigationUrl(active, appType, { embedded: true }) : undefined}
+      navigation={<nav aria-label="应用导航">
+        {items.map(item => (
+          <button key={item.key} type="button" disabled={item.disabled}
+            aria-current={item.key === active?.key ? 'page' : undefined}
+            onClick={() => select(item)}>{item.label}</button>
+        ))}
+      </nav>}
+    >
+      {!active ? <p>无可用导航</p> : renderWorkbench()}
+    </CanvasNavigationContent>
+  );
+}
+```
+
+hash 的 `view` 保存任务入口 key，刷新及前进后退恢复选中内容，其他 query/hash 参数保留。该例约定 hash 为参数形式；已有路由协议的页面沿用原协议，不强行覆盖。嵌入地址必须指向真实内容资源，不能再次嵌入当前壳页或带同一导航的壳页，避免递归和双导航。仅 iframe 内页滚动；不再给 iframe 外套滚动卡片。嵌入失败时保留导航并显示错误和明确的新窗口入口，不自动跳走。
+
+切换会卸载当前内容；存在未提交表单时，应结合原生页面支持的通信能力处理离开提示，不能声称本例自动保存草稿或能读取所有 iframe 的脏状态。
+
+## MUST：主内容撑满剩余空间
+
+自定义导航壳必须有确定的可用高度。独立全屏壳可用 `height: 100dvh`；已有宿主占用高度时使用宿主实际分配的确定高度，不能再叠加一个视口高度。仅 `min-height` 不能保证百分比高度链成立，也不要猜测 `calc(100vh - 80px)` 之类固定导航高度。
+
+布局链逐层成立：壳 `display:flex; flex-direction:column`，导航 `flex-shrink:0`，main 同时具有 `display:flex; flex-direction:column; flex:1 1 0; min-height:0; overflow:hidden`；iframe 视口为 `position:relative; flex:1 1 0; min-height:0; overflow:hidden`，iframe 绝对定位填满该视口。仅给子级写 `flex:1`、父级仍为 block 不合格。工作台分支使用独立 `overflow:auto` 的滚动容器；原生页面分支仅 iframe 内页滚动。
+
+切换后的连续性：工作台与嵌入页共享画布、内容最大宽度及左右边距，导航与内容保持相同的顶部间距。不能从居中工作台突然变成贴边满屏表单；宽表格确需更宽时在 design.md 明确。iframe 视口可裁切圆角，但不额外加白卡、内边距或另一层滚动；留白放在视口外侧，让画布自然衔接原生表面，不跨 iframe 修改原生页面 CSS。
+
+- [ ] 各导航视图、窗口高度变化及窄屏下，内容视口高度均等于壳的剩余可用高度减去设计外侧留白；短内容不塌到 150px，长内容不撑开外层。
+- [ ] 比较 main、iframe 视口和 iframe 的实际边界；iframe 与其视口等高，底部按钮可到达，无重复滚动条或大段意外空白。
+- [ ] 工作台与原生页面来回切换，内容宽度、留白和画布连续；导航选中项及返回操作仍然正常。
+
 ## 菜单契约
 
 | 菜单数据 | 用途 |
@@ -221,7 +298,7 @@ const registration = items.find(item => item.key === 'registration');
 
 这是一份数据约定，手写 UI 的组件名和 props 不受限制。当前入口从可见菜单与当前 URL / 状态推导；两级导航从叶子项反推所在分组。跨页入口保留原生链接语义及修饰键点击行为。
 
-应用内页面优先使用数据桥。已构造的完整地址调用 `router.push(href, params, false, true)`；桥不可用时当前窗口跳转，详见 [Canvas 点击骨架](../../yida-canvas-custom-page/references/navigation-and-entry-guide.md#canvas-点击骨架)。只做本地视图切换时更新 React 状态，需要 URL 同步时清理相应监听。
+应用内导航默认切换壳内内容。只有确认目标页面保留同一导航壳后，整页跳转才使用数据桥；已构造的完整地址调用 `router.push(href, params, false, true)`；桥不可用时当前窗口跳转，详见 [Canvas 点击骨架](../../yida-canvas-custom-page/references/navigation-and-entry-guide.md#canvas-点击骨架)。只做本地视图切换时更新 React 状态，需要 URL 同步时清理相应监听。
 
 ### 路由模式与数据桥兜底
 
@@ -244,12 +321,16 @@ const registration = items.find(item => item.key === 'registration');
 | 菜单高度、圆角、文字、间距 | `--pod-nav-menu-*`、`--pod-nav-top-tab-*` |
 | 悬浮阴影 | `--pod-nav-popup-shadow` |
 | 页内标签 | `--tab-pure-text-color-*`、`--tab-pure-ink-bar-color` |
-| 自定义页整页画布 | `--oyd-page-background`（无应用导航默认透明）、`--pod-nav-page-padding` |
+| 自定义页整页画布 | `--pod-page-bg-color`（与原生页面统一）、`--pod-nav-page-padding` |
 | 业务卡片 | `--pod-card-bg-color`、`--pod-card-border` |
 
 主题由 `yida-design` 在应用级生成和配置；导航组件消费已有变量，必要的默认值放在 `var(...)` 回退中。颜色修改在主题文件完成，固定的布局结构留在组件中。导航深浅由导航主题决定，业务内容明暗由页面主题决定，分别验证。
 
 ## 验证
+
+- [ ] 点击每个应用内菜单后，自定义导航仍存在且可操作；选中项与主内容一致，并能通过导航返回工作台。
+- [ ] 原生提交/管理入口只切主内容 iframe；页面内新增/详情仍走标准抽屉，无双导航、递归 iframe 和双滚动条。
+- [ ] 深链刷新及前进后退恢复相应任务；嵌入失败也不丢导航。
 
 - 用权限不同的账号检查平台与自定义导航的可见入口，覆盖隐藏分组、空结果、请求失败及指向不可见入口的 hash。
 - 菜单选中项与当前业务视图一致；点击、深链、刷新和浏览器前进后退由页面现有路由正确处理。

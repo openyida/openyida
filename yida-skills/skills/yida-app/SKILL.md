@@ -7,6 +7,10 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 
 完整应用编排技能。它负责把一次“创建/搭建/补齐应用”的需求拆成资源解析、产品设计、资源落地、页面发布和结果输出。全局 CLI、ID、存储、发布和输出规则以主入口 `SKILL.md` 为准；按步骤执行该步骤所需 `use_skill(...)`。
 
+## 模式入口（先按这里路由）
+
+Plan 模式只读取 `workflow/step-1-resource-context.md`、`workflow/step-2-design.md` 和精确路径 `workflow/plan/workflow.md`；后者已经包含完整 Plan 入口。禁止用 Glob 查找 Plan 文件，也不要额外读取 `workflow/plan/step-1-understand.md` 或 `workflow/plan/step-2-confirm.md`。Plan 确认恢复后，若 `explicitScope.allowInferredResources=false`，直接读取 `workflow/step-4-forms-processes.md` 实施范围内资源，不再重读 Step 1、调用 list-forms 或做应用设置预检。
+
 ## 步骤模版（进行时展示给用户看的步骤）
 
 完整应用搭建时，直接使用对应模式的步骤名称。
@@ -36,6 +40,10 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 
 已有应用时，直接省略“创建应用”，不另列“复用现有应用”待办，后续步骤重新编号；无需示例数据时跳过对应步骤。步骤状态按真实进度更新，有独立输入的工作可同时进行。
 
+用户明确把本轮交付限定为一个或若干具体表单、流程、报表或页面时，按 `explicitScope` 只保留达到该交付所需的步骤；即使需求背景使用“应用/系统”，也不自动补示例数据、自定义工作台、主题设置、导航排序或其他资源。Plan 模式仍生成并确认方案，但确认后只执行该窄范围。
+
+若窄范围只要求创建一个普通表单并交付链接，成功的 `create-form create` 结果就是本轮资源回读证据：立即交付其中的真实链接并停止。不要再调用 `get-schema`、`list-forms`、数据管理技能、示例数据、主题或导航命令，除非创建结果明确缺少 ID/链接或用户另外要求这些内容。
+
 禁区：待办标题、说明和进度不出现技能名、命令、文件路径、登录账号、内部资源 ID；这些留在工具调用里。用户明确询问技术细节时再解释。
 
 ## 触发条件
@@ -60,7 +68,7 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 | 8 | [发布页面并排序导航](workflow/step-8-publish-navigation.md) | 执行 `use_skill("yida-publish-page")`，发布本轮源码到主页面并执行轻量导航排序 | 已发布主页面 URL |
 | 9 | [输出与收尾](workflow/step-9-output-finish.md) | 核对完成条件，按业务语言输出结果 | 2-3 句业务总结 + 一组应用访问入口 |
 
-独立工作按 [并行执行](workflow/parallel-work.md) 调度，任务分别产出，由主流程汇合。计划或主题确认后立即生成主题 CSS，appType 和 CSS 就绪就同步应用设置，不等待页面开发完成。
+独立工作按 [并行执行](workflow/parallel-work.md) 调度，任务分别产出，由主流程汇合。完整应用在计划或主题确认后生成主题 CSS，appType 和 CSS 就绪就同步应用设置；`explicitScope.allowInferredResources=false` 的资源级交付不生成或上传主题、不修改应用设置、不排序导航。
 
 ## 核心规则
 
@@ -68,11 +76,12 @@ description: 宜搭完整应用开发编排技能。对普通 OpenYida 应用做
 2. **显式目标优先**：本轮用户给出的 `appType`、`formUuid`、URL、页面名或流程标识，优先级高于绑定上下文和历史缓存；同级冲突或无法唯一识别时才问用户。
 3. **产品与视觉分工**：`yida-requirement-analysis` 先统一整理用户需求；业务目标、资源蓝图、页面结构、导航顺序和验收标准由 `yida-prd` 写入 `prd.md`；主题 token、布局、材质、圆角、密度、组件和状态规则由 `yida-design` 写入 `design.md`。两份文件校验通过前不得创建资源。
 4. **阶段技能按需加载**：进入应用壳、表单、流程、页面、发布、数据写入等阶段时，才执行对应 `use_skill(...)`。
-5. **真实 ID 和真实数据**：不编造 `appType`、`formUuid`、`fieldId`、`processCode`、`reportId`。完整应用默认给核心普通表单写入 1-3 条业务化 seed records 并 query 抽查；不适合造数时说明原因和空态方案。
+5. **真实 ID 和真实数据**：不编造 `appType`、`formUuid`、`fieldId`、`processCode`、`reportId`。无显式窄范围的完整应用默认给核心普通表单写入 1-3 条业务化 seed records 并 query 抽查；`explicitScope.allowInferredResources=false` 时不得增加未点名的 seed records 或页面。
 6. **自定义页面开发技能固定**：完整应用页面源码按 Step 7 执行。
 7. **删除必须确认**：用户要求删除应用时，先展示应用名称、应用 ID 和影响范围，等待明确“确认删除”后才能执行。
 8. **列表页选择**：默认使用普通表单的数据管理页；用户明确要求自定义列表页时才创建 display 页面。
 9. **交付物收口**：Step 2 的三个文件和 Step 9 的 build manifest 都是内部文件，不是用户交付物。表单、流程、报表和页面只在业务总结中概述，不逐项生成用户可见附件；宿主支持交付工具时，final 只交付一次“应用访问入口”组。
+10. **窄范围停止点**：完成 `explicitScope` 中的资源回读与真实链接交付后立即停止；不得为了满足完整应用默认完成条件继续进入被裁剪的 Step 5-8。
 
 ## 关键决策树
 

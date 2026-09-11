@@ -5,6 +5,7 @@ themeId: mist-layered-signal
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "var(--color-white, #fff)"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 14%，用于悬停>"
       "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与白色混合 88%，用于平台品牌浅色>"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-surface-shadow": "rgba(0, 0, 0, 0.065)"
       "--oyd-thread-line": "rgba(24, 24, 24, 0.44)"
       "--oyd-thread-node": "#181818"
@@ -145,7 +145,7 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔线、表格行线和图表辅助线 | `--color-line1-1` | 应用全局 |
 | 输入、按钮和必要容器边界 | `--color-line1-2` | 应用全局 |
-| 页面底层雾白画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层雾白画布 | `--pod-page-bg-color` | 自定义页 |
 | 面板、卡片、弹窗和表单容器 | `--color-white` | 应用全局 |
 | 软悬浮表面的扩散阴影 | `--oyd-surface-shadow` | 自定义页 |
 | 斜线带的中性连接线 | `--oyd-thread-line` | 自定义页 |

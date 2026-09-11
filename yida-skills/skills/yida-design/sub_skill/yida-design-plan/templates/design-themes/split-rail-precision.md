@@ -5,6 +5,7 @@ themeId: split-rail-precision
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "var(--color-white, #fff)"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 12%，用于悬停>"
       "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与白色混合 88%，用于平台品牌浅色>"
@@ -63,7 +64,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-structural-ink": "#102B3A"
       "--oyd-focus-hatch": "repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-brand1-6) 72%, transparent) 0 2px, transparent 2px 8px)"
       "--oyd-rating-accent": "#F5B21A"
@@ -140,7 +140,7 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔线、图表网格与表格行线 | `--color-line1-1` | 应用全局 |
 | 输入框、按钮和面板常规边界 | `--color-line1-2` | 应用全局 |
-| 页面底层画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层画布 | `--pod-page-bg-color` | 自定义页 |
 | 面板、卡片、弹窗和表单容器 | `--color-white` | 应用全局 |
 | 深色结构线、图表基线与第二视觉锚点 | `--oyd-structural-ink` | 自定义页 |
 | 选中数据的主题派生斜纹 | `--oyd-focus-hatch` | 自定义页 |

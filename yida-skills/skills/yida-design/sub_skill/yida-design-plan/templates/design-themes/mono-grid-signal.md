@@ -5,6 +5,7 @@ themeId: "mono-grid-signal"
 tokens:
   application-global:
     colors:
+      "--pod-page-bg-color": "var(--color-white, #fff)"
       "--color-white": "#FFFFFF"
       "--color-brand1-1": "AI 根据 --color-brand1-6 与白色混合生成 10% 品牌色"
       "--color-brand1-2": "AI 根据 --color-brand1-6 与白色混合生成 18% 品牌色"
@@ -68,7 +69,6 @@ tokens:
       "--corner-semicircle": 500px
   custom-page:
     colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
       "--oyd-pattern-surface": "AI 根据 --color-brand1-6 8% 与 #F3F3F3 92% 混合生成纹理浅底"
       "--oyd-rating-accent": "#F2A900"
       "--oyd-avatar-1": "#B98432"
@@ -133,7 +133,7 @@ tokens:
 
 - 色彩来源：{{COLOR_SOURCE}}
 - 颜色 Token 的名称和值以文档顶部 YAML 的 `tokens` 为唯一事实源；AI 可以根据主题调整色值，不改变宜搭应用全局变量名。
-- 页面由 `--oyd-page-background`、白色面板和 `line1` 边界组成；浅灰只分隔区域，深色仅用于核心文字、深色操作和图表聚焦。
+- 页面由 `--pod-page-bg-color`、白色面板和 `line1` 边界组成；浅灰只分隔区域，深色仅用于核心文字、深色操作和图表聚焦。
 
 ### 设计变量消费规则
 
@@ -155,7 +155,7 @@ tokens:
 | 标题、核心数字、正文和主要图标 | `--color-text1-4` | 应用全局 |
 | 表头、输入占位和次级标签 | `--color-text1-10` | 应用全局 |
 | 时间、说明、坐标和元信息 | `--color-text1-3` | 应用全局 |
-| 页面底层近白画布 | `--oyd-page-background` | 自定义页 |
+| 页面底层近白画布 | `--pod-page-bg-color` | 自定义页 |
 | 斜纹、点阵和主题浅纹理表面 | `--oyd-pattern-surface` | 自定义页 |
 | 真实评分图形的独立强调 | `--oyd-rating-accent` | 自定义页 |
 | 真实等权标识的圆形底色 | `--oyd-avatar-1` 至 `--oyd-avatar-4` | 自定义页 |
@@ -203,7 +203,7 @@ tokens:
 
 ## 表面与层级
 
-- 页面底层使用 `--oyd-page-background`；一级面板使用白底、1px `--color-line1-2`、12-16px 圆角，不使用常规投影。
+- 页面底层使用 `--pod-page-bg-color`；一级面板使用白底、1px `--color-line1-2`、12-16px 圆角，不使用常规投影。
 - 状态横幅和命令提示舞台使用 `--color-fill1-1`；指标小卡使用白底与 1px 常规边界；嵌套层最多两级。
 - tooltip、popover 和菜单使用 `--color-fill1-10`、`--color-line1-2` 与 `0 8px 22px rgba(0,0,0,.07)`；深色提交按钮不投射辉光。
 - 纹理只出现在选中数据、图表面积或极浅主题表面，不铺满面板；禁止玻璃模糊、强渐变、霓虹和厚重阴影。

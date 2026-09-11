@@ -51,6 +51,34 @@ describe('sample templates', () => {
     }
   });
 
+  test('navigation content sample compiles and switches scroll ownership for embedded pages', async () => {
+    const output = path.join(tmpDir, 'nav-content.jsx');
+    await run(['openyida-page-template', 'canvas-nav-content', '--output', output]);
+    const fragment = fs.readFileSync(output, 'utf8');
+    expect(fragment).not.toMatch(/function CanvasNav\(|CANVAS_NAV_CSS/);
+    const { runtimeCode, importedModules } = compileCanvasLocal(`${fragment}
+      function YidaComp() { return CanvasNavigationContent(window.testProps); }`);
+    expect(JSON.parse(importedModules)).toEqual(['react']);
+    const render = props => new Function('window', `${runtimeCode}; return YidaComp();`)({
+      React: { createElement: (type, props, ...children) => ({ type, props, children }) },
+      testProps: props,
+    });
+    const local = render({ navigation: '导航', children: '工作台', height: 640 });
+    expect(local.props.style.height).toBe(640);
+    expect(local.children[0].children).toContain('导航');
+    const localViewport = local.children[1].children[0];
+    expect(localViewport.props.style.overflow).toBe('auto');
+    expect(localViewport.children).toContain('工作台');
+    const embedded = render({ iframeSrc: '/submission/form', title: '报修', contentKey: 'repair' });
+    const viewport = embedded.children[1].children[0];
+    expect(viewport.props.style.overflow).toBe('hidden');
+    expect(viewport.props.style.maxWidth).toBe(localViewport.props.style.maxWidth);
+    expect(viewport.children[0]).toMatchObject({ type: 'iframe', props: {
+      src: '/submission/form', title: '报修', style: { position: 'absolute', height: '100%' },
+    } });
+    expect(render({ children: '无可用导航' }).children[1].children[0].children).toContain('无可用导航');
+  });
+
   test('sidebar keyboard resizing uses current DOM width and respects bounds', async () => {
     const output = path.join(tmpDir, 'nav-side.jsx');
     await run(['openyida-page-template', 'canvas-nav-side', '--output', output]);
@@ -205,14 +233,14 @@ describe('sample templates', () => {
     expect(chartSource).not.toMatch(/\.(?:reduce|groupBy)\(/);
     expect(chartSource).not.toContain('data-theme-scope');
     expect(chartSource).toContain('min-height: 100vh');
-    expect(chartSource).toContain('var(--pod-page-bg-color, ${THEME.canvas})');
+    expect(chartSource).toContain('var(--pod-page-bg-color, var(--color-white, #fff))');
 
     expect(JSON.parse(tableResult.importedModules)).toEqual(['antd', 'dayjs', 'react']);
     expect(tableSource).toContain('writeBridge.verified');
     expect(tableSource).toContain('Promise.all');
-    expect(tableSource).toContain('readThemeColor');
+    expect(tableSource).toContain('readCanvasTheme');
     expect(tableSource).toContain('min-height: 100vh');
-    expect(tableSource).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
+    expect(tableSource).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff))');
     expect(tableSource).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
     expect(tableSource).not.toContain('linear-gradient(145deg, #F0F9F7');
     expect(tableSource).not.toContain('this.utils.yida');
@@ -239,7 +267,7 @@ describe('sample templates', () => {
     const pageSource = fs.readFileSync(pageOutput, 'utf8');
     const pageResult = compileCanvasLocal(pageSource, { sourcePath: pageOutput });
 
-    // 校验生成并编译后的真实 iframe 属性，防止模板抽取或编译再次丢失高度兜底。
+    // 校验生成并编译后的 iframe 使用容器高度，避免外层再次出现滚动。
     const runtimeWindow = {
       React: {
         createElement: (type, props, ...children) => ({ type, props, children }),
@@ -248,11 +276,31 @@ describe('sample templates', () => {
       antd: { Typography: {} },
       LucideReact: {},
     };
+    Object.assign(runtimeWindow.React, {
+      useState: (initial) => [typeof initial === 'function' ? initial() : initial, () => {}],
+      useEffect: () => {},
+      useRef: (current) => ({ current }),
+    });
+    runtimeWindow.innerWidth = 1440;
     // eslint-disable-next-line no-new-func
     const FormOpenContainer = new Function('window', pageResult.runtimeCode + '; return FormOpenContainer;')(runtimeWindow);
     const drawer = FormOpenContainer({ request: { type: 'submission', formUuid: 'FORM_SAMPLE' }, currentAppType: 'APP_SAMPLE' });
     const iframe = drawer.children.find((child) => child && child.type === 'iframe');
-    expect(iframe.props.style).toMatchObject({ height: '100%', minHeight: 'calc(100vh - 56px)' });
+    expect(drawer.props.contentMode).toBe('iframe');
+    expect(iframe.props.style).toMatchObject({ position: 'absolute', inset: 0, height: '100%', minHeight: 0 });
+    const renderShell = (props) => drawer.type(props).children.find((child) => child?.props?.styles);
+    const frameShell = renderShell({ ...drawer.props, children: iframe });
+    expect(frameShell.props.styles.header).toMatchObject({
+      height: 'var(--pod-nav-platform-header-height, 48px)',
+      flex: '0 0 var(--pod-nav-platform-header-height, 48px)',
+      background: 'transparent',
+    });
+    expect(frameShell.props.styles.body).toMatchObject({ display: 'flex', flex: '1 1 0', padding: 0, minHeight: 0, overflow: 'hidden' });
+    expect(frameShell.children.some((child) => child?.props?.className === 'oy-drawer-frame')).toBe(true);
+    const contentShell = renderShell({ open: true, children: '正文' });
+    expect(contentShell.props.styles.body.padding).toBe('0 8px 8px');
+    expect(contentShell.children.some((child) => child?.props?.className === 'oy-drawer-card')).toBe(true);
+
 
     for (const type of ['submission', 'detail']) {
       const request = {
@@ -261,6 +309,11 @@ describe('sample templates', () => {
       };
       const container = FormOpenContainer({ request, currentAppType: 'APP_SAMPLE' });
       const frame = container.children.find((child) => child && child.type === 'iframe');
+      expect(container.props.contentMode).toBe('iframe');
+      const formShell = renderShell({ ...container.props, children: frame });
+      expect(formShell.props.styles.body.padding).toBe(0);
+      expect(formShell.children.some((child) => child?.props?.className === 'oy-drawer-card')).toBe(false);
+      expect(formShell.children.some((child) => child?.props?.className === 'oy-drawer-frame')).toBe(true);
       const url = new URL(frame.props.src, 'https://example.com');
       expect(url.searchParams.get('corpid')).toBe('ding_test');
       expect(url.searchParams.get('source')).toBe('活动 A&B');
@@ -275,9 +328,9 @@ describe('sample templates', () => {
     expect(() => createForm._private.validateFormFieldDefinitions(fields)).not.toThrow();
     expect(JSON.parse(pageResult.importedModules)).toEqual(['antd', 'lucide-react', 'react']);
     expect(pageSource).toContain('function FormOpenContainer');
-    expect(pageSource).toContain('readThemeColor');
+    expect(pageSource).toContain('readCanvasTheme');
     expect(pageSource).toContain('min-height: 100vh');
-    expect(pageSource).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
+    expect(pageSource).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff))');
     expect(pageSource).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
     expect(pageSource).toContain('border: var(--pod-card-border, none)');
     expect(pageSource).toContain('border-radius: var(--pod-card-border-radius, 20px)');
