@@ -10,6 +10,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.9.11-1] - 2026-09-11
+
+### Changed
+
+- 导航选择简化为“宜搭原生导航”和“自定义导航”，顶部、侧边、L 型等布局根据业务场景确定，不再单独询问。
+- 明确平台导航的参数映射和保存后核对规则，顶部、侧边、L 型分别使用 `layoutDirection=top/side/l_shape`。
+
+### Fixed
+
+- 修复旧应用更新主题或导航设置时丢失原导航布局的问题；按旧 `layoutDirection` 和 `navType` 恢复布局，保留已有 `navType`，不再补写默认旧类型。
+
 ## [2026.9.9] - 2026-09-09
 
 ### Added

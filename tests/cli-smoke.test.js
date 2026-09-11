@@ -2403,9 +2403,34 @@ test('Plan and navigation commands are discoverable with their existing permissi
   for (const id of remote) {expect(commands.get(id).requires_login).toBe(true);}
   expect(commands.get('sample').usage).toContain('--design-file');
   expect(commands.get('update-form-config').usage).toContain('<true|false|keep>');
+  expect(commands.get('update-app').usage).toContain('[--layout side|top|l_shape]');
+  expect(commands.get('update-app').usage).toContain('[--hide-app-nav|--show-app-nav]');
+  expect(commands.get('update-app').usage).not.toContain('--nav-type');
   expect(summary.full_app_artifact_route.plan_command_ids).toEqual(local.slice(0, 4));
   expect(summary.full_app_artifact_route.navigation_command_ids.custom).toEqual(remote);
   expect(summary.full_app_artifact_route.navigation_policy.toLowerCase()).toContain('before prd planning');
+});
+
+test('command and agent navigation choices stay aligned with the two-option Skill intake', () => {
+  const manifest = JSON.parse(runOk(['commands', '--json']));
+  const summary = JSON.parse(runOk(['agent-capabilities', '--summary-json']));
+  const capabilities = JSON.parse(runOk(['agent-capabilities', '--json']));
+  const brief = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-requirement-analysis/workflow/prepare-brief.md'), 'utf8');
+  const optionSection = brief.split('### 导航选项说明')[1].split('### 根据场景确定导航布局')[0];
+  const options = [...optionSection.matchAll(/^\| ([^|]+) \| ([^|]+) \|$/gm)]
+    .map(match => ({ label: match[1].trim(), description: match[2].trim() }))
+    .filter(option => option.label !== '导航选项' && !/^[-:]+$/.test(option.label));
+  expect(options.map(option => option.label)).toEqual(['宜搭原生导航', '自定义导航']);
+
+  const workflow = manifest.summary.core_workflows.full_app_build;
+  for (const route of [workflow, summary.full_app_artifact_route, capabilities.commands.core_workflows.full_app_build]) {
+    expect(route.navigation_policy).toBe(workflow.navigation_policy);
+    expect([...route.navigation_policy.matchAll(/"([^"]+)"/g)].map(match => match[1]))
+      .toEqual(options.map(option => option.label));
+    for (const option of options) {expect(route.navigation_policy).toContain(option.description);}
+    expect(route.design_mode_policy).toBe(workflow.design_mode_policy);
+    expect(route.design_mode_policy).not.toContain('Confirm unresolved navigation, custom navigation layout');
+  }
 });
 
 test('Plan CLI and design-file sample work locally without a login', () => {
