@@ -106,7 +106,7 @@ design.md 存在“项目配色适配”时先应用该节，它高于模板默�
 
 ## 官网与品牌页素材
 
-按 `design.md.assetStrategy` 调用 `yida-image-assets`。仅当 `asset-manifest.json` 的 `materialStatus=final` 时读取图片 URL；不手拼 URL，也不内嵌 data URI。
+按 `design.md.assetStrategy` 调用 `yida-image-assets`。读取 `asset-manifest.json` 中当前页面 `pages[].materialStatus`；当前页为 `final` 时，只读取该页 `assets[].materialStatus=final` 的图片 URL。总状态为 `draft` 不阻塞已就绪的页面；不手拼 URL，也不内嵌 data URI。
 
 联网搜图仅使用 Unsplash/Pexels。Unsplash 保留 API 热链和署名；Pexels 保留来源页和摄影师信息。
 

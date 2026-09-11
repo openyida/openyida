@@ -19,7 +19,7 @@
 
 ## 图片素材交接
 
-`assetStrategy.pages[]` 记录页面等级和图片槽位。槽位包含用途、数量、比例、尺寸、焦点、填充方式和生成许可。需要图片时交给 `yida-image-assets`；无槽位时写 `imageNeed: none`。
+`assetStrategy.pages[]` 记录页面等级和图片槽位。槽位包含用途、数量、比例、尺寸、焦点、填充方式和生成许可。需要图片时交给 `yida-image-assets`；无图片需求时写 `imageNeed: none`。在 frontmatter 中用单行 JSON 写出完整 `assetStrategy`，不能只保留槽位数量。`--design design.md` 会读取该字段核对素材。格式见 [素材清单契约](../../yida-image-assets/references/manifest-contract.md)。
 
 ## 应用主题 CSS 的职责
 

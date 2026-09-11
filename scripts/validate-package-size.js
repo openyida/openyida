@@ -12,12 +12,12 @@ const path = require('path');
 // per-file cap stays fixed to catch accidental large-blob embeds.
 const MAX_TARBALL_BYTES = 1808 * 1024;
 // Includes Canvas theme Provider, navigation content sample, design guidance,
-// phase 6 batch recovery/readback, and the image-asset skill and runtime contracts
-// (6317273 unpacked bytes);
+// phase 6 batch recovery/readback, image-asset page contracts, retry delivery,
+// and the revised skill (6333151 unpacked bytes);
 // round up to the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 6176 * 1024;
+const MAX_UNPACKED_BYTES = 6192 * 1024;
 // Includes the merged theme/navigation files and image-asset skill/runtime files.
-const MAX_ENTRY_COUNT = 499;
+const MAX_ENTRY_COUNT = 500;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -28,6 +28,7 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-app/workflow/incremental-preview.md',
   'yida-skills/skills/yida-create-form-page/references/batch-forms.md',
   'lib/core/utils.js',
+  'lib/asset/asset-plan.js',
   'project/config.json',
   'scripts/postinstall.js',
   'yida-skills/SKILL.md',

@@ -4,7 +4,7 @@
 
 | 来源 | 搜索/使用规则 | 页面落地 |
 | --- | --- | --- |
-| 用户提供 | 确认使用权，保留用途说明 | 上传项目 CDN，不改变真实对象含义 |
+| 用户提供 | 确认使用权，保留用途说明 | 本地图上传项目 CDN；授权外链校验后使用，不改变真实对象含义 |
 | Agent 生成 | 用于背景、抽象视觉、空态和示意图 | 查看后上传；标记 `isIllustrative=true` |
 | [Unsplash API](https://help.unsplash.com/en/articles/2511245-unsplash-api-guidelines) | 使用 API 热链并署名；选用时请求 `download_location` | 保留官方热链 |
 | [Pexels API](https://www.pexels.com/api/documentation/) | 保留 Pexels 链接，尽可能署名摄影师 | 校验后使用或转存 |
