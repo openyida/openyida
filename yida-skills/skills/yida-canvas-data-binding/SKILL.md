@@ -9,7 +9,7 @@ description: 自定义页面真实数据接入技能。用于在使用 `YidaCode
 
 接入 Canvas 业务数据前，按 [报表集成与 2000 条确认流程](references/report-integration.md) 取得真实总数。**超过 2000 条且当前范围尚无明确选择时，先询问用户选择服务端聚合或分页明细。** 选择聚合后配置报表并集成；选择明细时采用服务端分页或缩小范围；总数未知时先完成规模确认。
 
-`mode=report` 使用发布层的 `window.__OPENYIDA_REPORT__` 和 `openyida sample yida-canvas-data-binding report-data`；绑定取自 `report inspect` 的 `canvasBindings`。`mode=form` 使用下方表单桥示例。
+`mode=report` 使用发布层的 `window.__OPENYIDA_YIDA_API__.createReportDataBridge` 和 `openyida sample yida-canvas-data-binding report-data`；绑定取自 `report inspect` 的 `canvasBindings`。`mode=form` 使用下方表单桥示例。
 
 ## 核心定位
 

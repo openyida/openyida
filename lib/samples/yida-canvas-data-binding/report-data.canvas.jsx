@@ -1,49 +1,57 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-// Replace every value from current-app report inspect / Schema evidence before publishing.
+// Only stable identifiers from this app's report inspect; the host resolves the model.
 const DATA_BINDING = {
-  mode: 'report', appType: '{{APP_TYPE}}', reportUuid: '{{REPORT_UUID}}',
-  cid: '{{CID}}', componentClassName: '{{COMPONENT_CLASS_NAME}}', dataSetKey: '{{DATA_SET_KEY}}',
+  reportUuid: '{{REPORT_UUID}}', cid: '{{CID}}', dataSetKey: '{{DATA_SET_KEY}}',
 };
 
-// Local hook, not an import from an official SDK. The publisher installs the report runtime.
+// React owns subscription/debounce only; yc-utils owns requests, cancellation and state.
 function useReportData(binding, query) {
   const bindingKey = JSON.stringify(binding);
   const queryKey = JSON.stringify(query);
+  const bridgeRef = useRef(null);
   const [state, setState] = useState({ loading: true, error: null, rows: [], meta: [], totalCount: null, lastUpdatedAt: null });
   const [revision, setRevision] = useState(0);
-  const connection = useMemo(() => {
+  useEffect(() => {
+    let bridge;
+    let unsubscribe;
     try {
-      if (!window.__OPENYIDA_REPORT__) {throw new Error('Report runtime is unavailable. Republish this Canvas page.');}
-      return { bridge: window.__OPENYIDA_REPORT__.createBridge(JSON.parse(bindingKey)) };
-    } catch (error) {return { error };}
+      const api = window.__OPENYIDA_YIDA_API__;
+      if (!api || !api.availableMethods.includes('createReportDataBridge')) {
+        throw new Error('当前运行环境暂不支持报表查询，请联系应用管理员。');
+      }
+      bridge = api.createReportDataBridge(JSON.parse(bindingKey));
+      bridgeRef.current = bridge;
+      setState(bridge.getState());
+      unsubscribe = bridge.subscribe(setState);
+    } catch (error) {
+      setState(previous => ({ ...previous, loading: false, error }));
+    }
+    return () => {
+      if (unsubscribe) {unsubscribe();}
+      if (bridge) {bridge.dispose();}
+      bridgeRef.current = null;
+    };
   }, [bindingKey]);
   useEffect(() => {
-    if (connection.error) {
-      setState(previous => ({ ...previous, loading: false, error: { message: connection.error.message } }));
-      return undefined;
-    }
-    const unsubscribe = connection.bridge.subscribe(setState);
-    return () => {unsubscribe(); connection.bridge.cancel();};
-  }, [connection]);
-  useEffect(() => {
-    if (!connection.bridge) {return undefined;}
-    // Changing controls cancels the old query immediately; debounce only the new request.
-    connection.bridge.cancel();
+    const bridge = bridgeRef.current;
+    if (!bridge) {return undefined;}
+    // Cancel immediately when controls change; only the replacement request is debounced.
+    bridge.cancel();
     const timer = setTimeout(() => {
-      connection.bridge.refresh(JSON.parse(queryKey)).catch(() => {}); // error is rendered from bridge state
+      bridge.refresh(JSON.parse(queryKey)).catch(() => {}); // error is rendered from shared state
     }, 300);
-    return () => {clearTimeout(timer); connection.bridge.cancel();};
-  }, [connection, queryKey, revision]);
+    return () => {clearTimeout(timer); bridge.cancel();};
+  }, [bindingKey, queryKey, revision]);
   return { ...state, refresh: () => setRevision(value => value + 1) };
 }
 
 export default function YidaComp() {
   const [start, setStart] = useState(0);
   // Add only real filterKey -> values mappings from this component's report model.
-  const query = useMemo(() => ({ filters: {}, start, limit: 50 }), [start]);
+  const query = useMemo(() => ({ filterValueMap: {}, paging: { start, limit: 50 } }), [start]);
   const report = useReportData(DATA_BINDING, query);
-  const columns = report.meta.length ? report.meta.map(field => ({ key: field.alias, title: field.aliasName || field.alias }))
+  const columns = Array.isArray(report.meta) && report.meta.length ? report.meta.map(field => ({ key: field.alias, title: field.aliasName || field.alias }))
     : Object.keys(report.rows[0] || {}).map(key => ({ key, title: key }));
   return <main style={{ minHeight: '100vh', padding: 24, background: 'var(--pod-page-bg-color, #fff)' }}>
     <h1>数据分析</h1>

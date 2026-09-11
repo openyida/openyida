@@ -13,11 +13,11 @@ const path = require('path');
 const MAX_TARBALL_BYTES = 1808 * 1024;
 // Includes Canvas theme Provider, navigation content sample, design guidance,
 // phase 6 batch recovery/readback, and Canvas report integration
-// (6340689 unpacked bytes);
+// (6335577 unpacked bytes);
 // round up to the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 6208 * 1024;
-// Includes the report runtime, query protocol, sample and integration guidance.
-const MAX_ENTRY_COUNT = 500;
+const MAX_UNPACKED_BYTES = 6192 * 1024;
+// Includes the CLI report protocol, shared-API sample and integration guidance.
+const MAX_ENTRY_COUNT = 499;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

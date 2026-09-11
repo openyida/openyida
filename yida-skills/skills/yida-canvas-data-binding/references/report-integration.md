@@ -27,15 +27,12 @@ openyida data query form <appType> <formUuid> --page 1 --size 1 --no-hydrate-sub
 4. 使用 `queryProbes` 确认每个数据集的最终查询结果。成功的 `canvasBindings` 提供 `reportUuid`、`cid`、`componentClassName`、`dataSetKey`、`filterKeys` 和 `aliases`。
 5. 浏览器每次刷新从当前应用导航精确匹配 `reportUuid`，动态解析 `topicId/prdId`，读取运行态报表 Schema 并核对组件和数据集。
 
-`DATA_BINDING` 使用以下结构，所有值均来自本次 `report inspect`：
+`DATA_BINDING` 使用以下结构，仅包含以下三个稳定标识，所有值均来自本次 `report inspect`；`appType/componentClassName/filterKeys/aliases` 留作检查证据，不传给 bridge：
 
 ```javascript
 const DATA_BINDING = {
-  mode: 'report',
-  appType,
   reportUuid,
   cid,
-  componentClassName,
   dataSetKey,
 };
 ```
@@ -48,16 +45,15 @@ const DATA_BINDING = {
 openyida sample yida-canvas-data-binding report-data --output pages/src/analysis.canvas.jsx
 ```
 
-按页面设计调整展示，并用 `canvasBindings` 的真实值替换模板绑定。发布层会为使用 `window.__OPENYIDA_REPORT__` 的 Canvas 页面安装报表客户端。
+按页面设计调整展示，并用 `canvasBindings` 的真实值替换模板绑定。宿主必须加载包含报表能力的 `yc-utils`，并将 `yidaAPIs` 注册到 `context.utils.yida`。发布层只透传共享 API，不安装独立报表客户端。缺少 `createReportDataBridge` 能力时明确报错，不能回退全量明细聚合或模拟数据。
 
 ```javascript
-const bridge = window.__OPENYIDA_REPORT__.createBridge(DATA_BINDING);
+const bridge = window.__OPENYIDA_YIDA_API__.createReportDataBridge(DATA_BINDING);
 const unsubscribe = bridge.subscribe(setReportState);
 
 bridge.refresh({
-  filters: filterValueMap,
-  start: 0,
-  limit: 50,
+  filterValueMap,
+  paging: { start: 0, limit: 50 },
 }).catch(() => {
   // bridge state 已包含可展示的错误。
 });
@@ -67,13 +63,13 @@ unsubscribe();
 bridge.dispose();
 ```
 
-`filters` 使用该数据集的真实 `filterKey -> 值数组` 映射。`orderByList` 使用 `aliases` 中的字段，运行时保留模型中其余默认排序。结果分页大小为 1–100。当前集成使用普通筛选模型；变量筛选返回明确错误，配置时选择普通筛选模型。
+`filterValueMap` 使用该数据集的真实 `filterKey -> 值数组` 映射。`orderByList` 使用 `aliases` 中的字段，运行时保留模型中其余默认排序。结果分页大小为 1–2000（客户端保护上限，仍受平台实际限制）。当前集成使用普通筛选模型；变量筛选返回明确错误，配置时选择普通筛选模型。
 
 ## 4. 运行时协议
 
-客户端通过同源 `POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json` 查询聚合结果，并携带当前访问者登录凭据、CSRF 和 `application/x-www-form-urlencoded` 参数。
+共享层 `yc-utils` 通过同源 `POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json` 查询聚合结果，并携带当前访问者登录凭据、CSRF 和 `application/x-www-form-urlencoded` 参数。
 
-首个请求直接返回数据时完成查询。返回 `continuePolling=true` 和 `traceId` 时，每 3 秒顺序调用 `getCacheData.json`，直到获得数据或达到默认 90 秒总体期限。
+首个请求直接返回数据时完成查询。返回 `continuePolling=true` 和 `traceId` 时，每 1 秒顺序调用 `getCacheData.json`，直到获得数据或达到默认 60 秒总体期限（可用 `timeoutMs` 配置，最大 120 秒）。
 
 每个 bridge 维护以下状态：
 
@@ -83,9 +79,15 @@ bridge.dispose();
 - `meta`
 - `totalCount`
 - `lastUpdatedAt`
-- `appliedQuery`
 
 相同查询复用当前请求；筛选变化取消旧请求并忽略旧响应。刷新期间保留上次成功数据，失败时展示错误，首次失败显示错误态，合法空结果展示空态。`totalCount=null` 表示接口未返回总数。
+
+`createReportDataBridge()` 同步返回 bridge；不要经统一 Promise 包装。`queryReportData(query, { signal, timeoutMs })` 返回 Promise。
+`bridge.cancel()` 取消当前请求并保留旧数据，之后仍可刷新；`dispose()` 用于最终销毁。查询参数统一为 `filterValueMap`、`paging` 和可选 `orderByList`。
+
+本方案复用真实报表与现有原生接口，不新增 Tianshu 接口。Code Canvas 原样透传宿主 utils，不重复注入报表方法。
+需要发布共享包并更新访问态、设计器等实际宿主；仅更新 vc-deep-yida 的依赖或重新发布 Canvas 页面不能补齐旧宿主 API。
+CLI 的 `report inspect` 仍保留服务端查询验证，不向页面打入该 CLI 查询协议。此前含独立 `__OPENYIDA_REPORT__` 客户端的页面需从最新源码重新编译发布后迁移；不自动覆盖线上页面。
 
 ## 5. 验证
 
