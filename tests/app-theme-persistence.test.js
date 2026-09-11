@@ -29,6 +29,28 @@ beforeEach(() => {
   uploadCustomThemeFile.mockResolvedValue(response({ url: style.cssUrl, name: style.cssFileName }));
 });
 
+test.each([
+  [['--nav-theme', 'dark'], { navType: 'top_side' }, 'l_shape'],
+  [['--nav-theme', 'dark'], { config: { LAY_OUT_DIRECTION: 'hoz', NAVTYPE: 'top_side' } }, 'l_shape'],
+  [['--layout', 'top', '--show-app-nav'], { navType: 'top_side', hideAppNav: 'y' }, 'top'],
+  [['--layout', 'side', '--show-app-nav'], { layoutDirection: 'top', navType: 'top_fold' }, 'side'],
+  [['--layout', 'l_shape', '--show-app-nav'], { layoutDirection: 'side', navType: 'side_only' }, 'l_shape'],
+])('CLI %j preserves stored navType and sends layout %s', async (args, current, layout) => {
+  httpGet.mockResolvedValueOnce(response(current));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await run(['APP_1', ...args]);
+    expect(httpPost).toHaveBeenCalledTimes(1);
+    expect(httpPost.mock.calls[0][1]).toContain('/APP_1/query/app/updateApp.json');
+    const body = querystring.parse(httpPost.mock.calls[0][2]);
+    expect(body).toMatchObject({
+      layoutDirection: layout,
+      navType: current.navType || current.config.NAVTYPE,
+    });
+    if (args.includes('--show-app-nav')) {expect(body.hideAppNav).toBe('n');}
+  } finally {log.mockRestore();}
+});
+
 test('theme upload is followed by reading fresh settings, saving updateApp and checking the persisted resource', async () => {
   httpGet.mockResolvedValueOnce(response({ colour: 'podBlue', hideAppNav: 'y', navTheme: 'dark', layoutDirection: 'top', logoSource: 'customImage' }))
     .mockResolvedValueOnce(response(saved));

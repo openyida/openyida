@@ -12,10 +12,11 @@ const path = require('path');
 // per-file cap stays fixed to catch accidental large-blob embeds.
 const MAX_TARBALL_BYTES = 1808 * 1024;
 // Includes Canvas theme Provider, navigation content sample, design guidance,
-// and the phase 6 batch recovery/readback plus scoped diagnostics contracts
-// (6299139 unpacked bytes);
+// phase 6 batch recovery/readback, scoped diagnostics, and the two-option
+// navigation intake plus explicit platform-layout parameter/readback guidance
+// (6309915 unpacked bytes);
 // round up to the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 6160 * 1024;
+const MAX_UNPACKED_BYTES = 6176 * 1024;
 // Theme Provider script/template/reference plus the navigation content sample.
 const MAX_ENTRY_COUNT = 494;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
