@@ -63,8 +63,8 @@ module.exports = {
     cmd_corp_manager: 'إدارة أذونات منصة المؤسسة',
     cmd_agent_center: 'إدارة تفويضات العمليات والمغادرة',
     group_process: 'العمليات',
-    cmd_configure_process: 'تكوين ونشر قواعد العملية',
-    cmd_create_process: 'إنشاء نموذج عملية (متكامل)',
+    cmd_configure_process: 'تكوين ونشر قواعد العملية; إضافة معتمد وإعادة التوجيه عبر JSON nodes[].actions.normalActions/appendActions',
+    cmd_create_process: 'إنشاء نموذج عملية (متكامل); إضافة معتمد وإعادة التوجيه عبر JSON nodes[].actions.normalActions/appendActions',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'معاينة مثيل العملية (مخطط انسيابي)',
     group_share: 'إعدادات & مشاركة الصفحة',
@@ -2036,3 +2036,7 @@ module.exports.connector_action_update = connectorSafetyMessages.connector_actio
 module.exports.connector_update_action = connectorSafetyMessages.connector_update_action;
 module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e2e;
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: 'إعداد إجراء الموافقة غير صالح للعقدة {0}: {1}',
+});

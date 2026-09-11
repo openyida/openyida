@@ -63,8 +63,8 @@ module.exports = {
     cmd_corp_manager: 'プラットフォーム権限を管理',
     cmd_agent_center: 'プロセス委任と退職者代理を管理',
     group_process: 'プロセス',
-    cmd_configure_process: 'プロセスルールを設定＆公開',
-    cmd_create_process: 'プロセスフォームを作成（一体型）',
+    cmd_configure_process: 'プロセスルールを設定＆公開; 承認者の追加・転送は JSON nodes[].actions.normalActions/appendActions で設定',
+    cmd_create_process: 'プロセスフォームを作成（一体型）; 承認者の追加・転送は JSON nodes[].actions.normalActions/appendActions で設定',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'プロセスインスタンスをプレビュー（フローチャート）',
     group_share: 'ページ設定 & 共有',
@@ -1961,3 +1961,7 @@ module.exports.connector_action_update = connectorSafetyMessages.connector_actio
 module.exports.connector_update_action = connectorSafetyMessages.connector_update_action;
 module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e2e;
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: 'ノード {0} の承認アクション設定が無効です：{1}',
+});

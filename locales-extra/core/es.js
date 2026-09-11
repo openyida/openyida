@@ -63,8 +63,8 @@ module.exports = {
     cmd_corp_manager: 'Gestionar permisos de plataforma',
     cmd_agent_center: 'Gestionar delegaciones de proceso y baja',
     group_process: 'Procesos',
-    cmd_configure_process: 'Configurar y publicar reglas de proceso',
-    cmd_create_process: 'Crear formulario de proceso (todo en uno)',
+    cmd_configure_process: 'Configurar y publicar reglas de proceso; Añadir aprobadores y transferir mediante JSON nodes[].actions.normalActions/appendActions',
+    cmd_create_process: 'Crear formulario de proceso (todo en uno); Añadir aprobadores y transferir mediante JSON nodes[].actions.normalActions/appendActions',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'Vista previa de instancia de proceso (diagrama de flujo)',
     group_share: 'Configuración & Compartir página',
@@ -2036,3 +2036,7 @@ module.exports.connector_action_update = connectorSafetyMessages.connector_actio
 module.exports.connector_update_action = connectorSafetyMessages.connector_update_action;
 module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e2e;
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: 'Configuración de acción de aprobación no válida para el nodo {0}: {1}',
+});

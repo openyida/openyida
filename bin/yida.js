@@ -496,6 +496,7 @@ const MANIFEST_HELP_PATHS = Object.freeze({
   data: ['data'],
   report: ['report'],
   'create-process': ['create-process'],
+  'configure-process': ['configure-process'],
   'create-report': ['create-report'],
   'append-chart': ['append-chart'],
   'save-share-config': ['save-share-config'],
