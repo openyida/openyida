@@ -125,7 +125,7 @@ openyida get-schema <appType> <formUuid> --field-map-json
 # 未验证前保持 writeBridge.verified !== true
 
 # 4. 本地快检
-node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/table-form-batch-submit.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
+openyida compile project/pages/src/table-form-batch-submit.canvas.jsx --json
 
 # 5. 真实交付时发布
 openyida publish project/pages/src/table-form-batch-submit.canvas.jsx <appType> <displayPageFormUuid>

@@ -95,7 +95,7 @@ OpenYida 禁止页面源码和 page-spec 中出现 emoji。遇到 `contains emoj
 可直接按推荐组合编写页面并执行本地快检：
 
 ```bash
-node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/dashboard-starter.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
+openyida compile project/pages/src/dashboard-starter.canvas.jsx --json
 ```
 
 ## 自查清单

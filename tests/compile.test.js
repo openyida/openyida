@@ -69,6 +69,39 @@ describe('compile command', () => {
     expect(fs.statSync(compiledPath).size).toBeGreaterThan(1000);
   });
 
+  test('compiles a Canvas page to deterministic JSON without publishing', () => {
+    const sourcePath = path.join(tmpDir, 'pages', 'src', 'dashboard.canvas.jsx');
+    fs.writeFileSync(sourcePath, `
+import React from 'react';
+
+export default function YidaComp() {
+  return <div>访客看板</div>;
+}
+`, 'utf8');
+
+    const stdout = execFileSync(process.execPath, [
+      BIN,
+      'compile',
+      'pages/src/dashboard.canvas.jsx',
+      '--json',
+    ], {
+      cwd: tmpDir,
+      env: { ...cliEnv(), YIDA_QUIET: '1' },
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+    const payload = JSON.parse(stdout.trim());
+
+    expect(payload).toMatchObject({
+      ok: true,
+      pageType: 'canvas',
+      sourcePath: fs.realpathSync(sourcePath),
+    });
+    expect(payload.compiledHash).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(payload.importedModules).toEqual(['react']);
+    expect(fs.existsSync(path.join(tmpDir, 'pages', 'dist', 'dashboard.canvas.js'))).toBe(false);
+  });
+
   test('rejects emoji even when lint is skipped', () => {
     const sourcePath = path.join(tmpDir, 'pages', 'src', 'emoji.jsx');
     fs.writeFileSync(sourcePath, `
