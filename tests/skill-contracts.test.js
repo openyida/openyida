@@ -708,6 +708,12 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('[写入初始表单数据](workflow/step-5-seed-records.md)');
     expect(appStep5).toContain('use_skill("yida-data-management", "为核心业务表单写入 1-3 条示例记录")');
     expect(appStep5).toContain('完整应用默认给本轮新建或页面数据源依赖的核心普通表单写入 1-3 条业务化 seed records');
+    expect(appStep5).toContain('openyida data create form');
+    expect(appStep5).toContain('--expect-form-type receipt');
+    expect(appStep5).toContain('openyida data create process');
+    expect(appStep5).toContain('--process-code <真实 processCode>');
+    expect(appStep5).toContain('--expect-form-type process');
+    expect(appStep5).toContain('流程表单没有确认 `processCode` 时禁止写入实例');
     expect(appStep4).toContain('拿到真实 `formUuid` 后写入资源上下文');
     expect(appStep9).toContain('自定义页面只在 `YidaComp` 内消费对应 token');
     expect(appStep9).toContain('新建或作为页面数据源的核心普通表单已写入 1-3 条真实示例记录并 query 抽查');
@@ -1133,7 +1139,8 @@ describe('OpenYida skill contracts', () => {
     expect(canvas).toContain('不得用 Python、Node、Shell 或 `run_workspace_script`');
     expect(canvas).toContain('已有 JSX/CSS/JSON 源码只做定点 Edit');
     expect(canvas).toContain('不要写 `project/.cache/...`');
-    expect(canvas).toContain('现成的 `./lib/app/canvas-compile`');
+    expect(canvas).toContain('openyida compile <页面源码.canvas.jsx> --json');
+    expect(canvas).not.toContain('node -e');
     expect(canvas).toContain('该历史源码只由 `yida-custom-page` 自身闭环维护');
     expect(canvas).toContain('交给 `yida-canvas-upgrade`');
     expect(canvas).toContain('有 publish 成功证据时表述为“页面已发布”');

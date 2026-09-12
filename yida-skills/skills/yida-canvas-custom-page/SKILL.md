@@ -170,7 +170,7 @@ openyida create-page <appType> "<页面名>"
 
 # 使用 Provider 标记时，先按主题脚本指南生成 <页面名>.themed.canvas.jsx；以下快检与发布都改用该生成文件。
 # 4. 本地快检
-node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/<页面名>.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
+openyida compile project/pages/src/<页面名>.canvas.jsx --json
 
 # 5. 发布（本轮修改源码后的远端完成证据）
 openyida publish project/pages/src/<页面名>.canvas.jsx <appType> <formUuid>
@@ -179,9 +179,11 @@ openyida publish project/pages/src/<页面名>.canvas.jsx <appType> <formUuid>
 openyida get-schema <appType> <formUuid> --field-map-json
 ```
 
-`openyida check-page` / `openyida compile` 当前面向平台 JSX 组件页面 `.oyd.jsx` / `.jsx`；使用 `YidaCodeCanvas` 组件实现的页面以 `compileCanvasLocal` 和 `openyida publish .canvas.jsx` 的构建阶段为准。`compileCanvasLocal` 是发布前快检，`openyida publish` 是远端写入证据。
+`openyida compile` 会自动识别 `.canvas.jsx` / `.canvas.tsx` 并调用 Canvas 编译器；`--json` 返回可机器读取的 hash 和依赖清单。该命令只读、无需登录、不访问网络、不发布页面，也不写入构建产物。`openyida publish` 仍是远端写入证据。
 
-快检固定从 workspace 根使用现成的 `./lib/app/canvas-compile`，不要搜索其他 compiler 路径或安装依赖。`run_workspace_script` 的 `script_path` 以项目根为基准，写 `.cache/yida-agent/scripts/...`；不要写 `project/.cache/...`，否则运行时会解析成 `project/project/.cache/...`。
+云端与本地 Agent 都使用同一条 `openyida compile <页面源码.canvas.jsx> --json` 快检命令，不依赖仅云端 Builder 提供的 `run_workspace_script`。
+
+其他确需保存的云端 workspace 脚本放在项目根 `.cache/yida-agent/scripts/...`，不要写 `project/.cache/...`，否则运行时会解析成重复的 `project/project/.cache/...`；Canvas 快检本身不需要创建脚本。
 
 如需保存完整 Schema，使用 create_file / Write / file edit tool 创建 `<projectRoot>/.cache/openyida/<页面名或任务名>/<页面名>-schema.json`；从 workspace 根执行后续 Bash 命令时路径加 `project/` 前缀。
 
