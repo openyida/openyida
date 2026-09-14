@@ -149,6 +149,31 @@ describe('verify-short-url', () => {
 });
 
 describe('save-share-config', () => {
+  test('closing an uninitialized public page preserves missing auth without bootstrapping it', async () => {
+    const current = { isOpen: 'n', openUrl: '', shareUrl: '/s/keep-existing' };
+    utils.httpPost.mockResolvedValueOnce({ success: true, content: current })
+      .mockResolvedValueOnce({ success: true })
+      .mockResolvedValueOnce({ success: true, content: current });
+
+    const result = await saveShareConfig.run(['APP_XXX', 'FORM_XXX', '', 'n']);
+    const body = querystring.parse(utils.httpPost.mock.calls[1][2]);
+    expect(body).not.toHaveProperty('openPageAuthConfig');
+    expect(body).toMatchObject({ isOpen: 'n', openUrl: '', shareUrl: '/s/keep-existing' });
+    expect(result).toMatchObject({ success: true, isOpen: false, openUrl: null,
+      shareUrl: '/s/keep-existing', verification: { status: 'verified' } });
+  });
+
+  test.each([{ isOpen: 'y' }, { shareUrl: '/s/unexpected' }])(
+    'uninitialized close still verifies the actual state: %j', changed => {
+      const current = { isOpen: 'n', openUrl: '', shareUrl: '' };
+      utils.httpPost.mockResolvedValueOnce({ success: true, content: current })
+        .mockResolvedValueOnce({ success: true })
+        .mockResolvedValueOnce({ success: true, content: { ...current, ...changed } });
+      return expect(saveShareConfig.run(['APP_XXX', 'FORM_XXX', '', 'n']))
+        .rejects.toMatchObject({ code: 'SAVE_SHARE_CONFIG_VERIFY_FAILED' });
+    }
+  );
+
   test('bootstraps a new public config when current state is empty and openAuth is explicit', async () => {
     utils.httpPost
       .mockResolvedValueOnce({
