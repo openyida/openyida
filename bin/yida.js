@@ -24,6 +24,8 @@ const { COMMAND_GROUPS, buildCommandManifest, findCommandSuggestion } = require(
 const command = process.argv[2];
 const args = process.argv.slice(3);
 const rawArgs = process.argv.slice(3);
+const { beginCommandReceipt } = require('../lib/agent/command-receipt');
+let commandReceipt;
 
 function shouldUseEnvManagement(argsList) {
   const subCommand = argsList[0];
@@ -569,6 +571,12 @@ function assertNoUnsupportedLegacyLoginFlags(...argLists) {
 }
 
 async function main() {
+  commandReceipt = beginCommandReceipt({ command, args: rawArgs });
+  process.once('exit', code => {
+    try {commandReceipt.finish(code);} catch {process.exitCode = 1;}
+  });
+  const { assertManagedInvocation } = require('../lib/agent/managed-run');
+  assertManagedInvocation(command, rawArgs);
   applyQuietFlag();
   applyGlobalEnvironmentFlags();
 
@@ -613,6 +621,12 @@ async function main() {
 
     case 'agent-capabilities': {
       const { run } = require('../lib/core/agent-capabilities');
+      await run(args);
+      break;
+    }
+
+    case 'agent': {
+      const { run } = require('../lib/agent/cmd');
       await run(args);
       break;
     }
@@ -877,8 +891,8 @@ async function main() {
       if (args.length < 4) {
         throwCliUsage(t('cli.form_config_usage'), t('cli.form_config_example'));
       }
-      process.argv = [process.argv[0], process.argv[1], ...args];
-      require('../lib/app/update-form-config');
+      const { run: runUpdateFormConfig } = require('../lib/app/update-form-config');
+      await runUpdateFormConfig(args);
       break;
     }
 
@@ -1267,7 +1281,9 @@ async function main() {
 }
 
 main()
+  .then(() => { commandReceipt.finish(process.exitCode || 0); })
   .catch((err) => {
+    try {commandReceipt?.finish(err && err.exitCode ? err.exitCode : 1);} catch { /* Intent remains recoverable. */ }
     if (shouldUseStructuredErrorOutput(err, args)) {
       console.error(JSON.stringify(toErrorPayload(err), null, 2));
     } else if (isCliError(err)) {

@@ -513,6 +513,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 |---------|-------------|
 | `openyida commands [--json]` | Output machine-readable command manifest |
 | `openyida agent-capabilities [--json] [--summary-json\|--compact]` | Output one-shot agent capability snapshot |
+| `openyida agent <doctor\|status\|connect\|run\|disconnect\|logout> [options]` | Connect a local Agent (Go runtime, development preview) |
 | `openyida a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start OpenYida local web bridge service |
 | `openyida copy [--force]` | Copy project working directory |
@@ -580,6 +581,29 @@ Form field definitions can include `alias` or `componentAlias` to populate Yida 
 #### Workflow, Reports, and Integrations
 
 `openyida integration create` supports form events (`insert`, `update`, `delete`, `comment`) and approval events (`processFinish`, `activityTask`; aliases: `approval`, `approvalNode`). Approval events require `--approval-actions agree,disagree,terminated`; `activityTask` also requires `--approval-node-ids <nodeId,...>`. Passing `--process-code` selects a full graph replacement and now requires explicit `--replace`; it is not a safe update. `integration update` currently performs capability detection only: because full platform `processJson` + `viewJson` readback is unproven, it writes a redacted local probe artifact and returns `PLATFORM_PROBE_REQUIRED` before authentication, spec reading, or remote writes. It does not edit a flow.
+
+### Local Agent development preview
+
+`openyida agent` is a thin Node launcher for a separately supplied Go runtime. Node does not connect to the agent service or manage provider sessions. Platform runtime packages are **not published** in this preview; no Go executable is discovered on `PATH` and no provider is installed or invoked by Node.
+
+```bash
+openyida agent doctor --json
+openyida agent doctor --development-runtime --runtime-path /absolute/path/openyida-runtime --runtime-manifest /absolute/path/runtime-manifest.json
+openyida agent connect --development-runtime --runtime-path /absolute/path/openyida-runtime --runtime-manifest /absolute/path/runtime-manifest.json --endpoint https://agent.example.test --endpoint-id configured-platform-id
+openyida agent run --development-runtime --runtime-path /absolute/path/openyida-runtime --runtime-manifest /absolute/path/runtime-manifest.json --endpoint https://agent.example.test --endpoint-id configured-platform-id --provider qoder --provider-path /absolute/path/qodercli
+```
+
+Development manifest v1 specifies runtime version, protocol `1`, Node-style OS/architecture names, and `binary: {file, sha256}`; it requires the explicit `--development-runtime` flag. This is an integrity check, **not a publisher signature**. The production loader requires a strictly validated v2 manifest, exact approved platform-package version/digest, and an Ed25519 signature over the original manifest bytes using trust roots bundled in the Node host. The release catalog is currently empty: no production signing key or package is implied to exist. See the [launcher contract](lib/agent/PROTOCOL.md).
+
+`connect` supports two equivalent enrollment entries. CLI-first opens the Yida browser approval page and returns through a state/PKCE-protected loopback callback. Web-first copies one five-minute command containing `--enroll`; the token is single-use and carries no business authority. Neither path reads or uploads an ordinary OpenYida login profile.
+
+One installation may connect to multiple organizations. Node keeps only a shared Installation ID at the installation root; each organization authorization gets an isolated private Connection state directory, device credentials, journals, control socket, and frozen bundle. `agent connect` keeps the new Connection online in the foreground, while `agent run`, `status`, `disconnect`, and `logout` enumerate every valid Connection. Each Connection registers all locally discovered Qoder, Codex, and OpenCode Runtimes, and the web UI selects computer, CLI, and model.
+
+For each attempt, Go injects `OPENYIDA_MANAGED_RUN=1`, the cloud user/corp/app/run/attempt context, and a fixed-value Tianshu task grant with an initial 60-minute lease. The CLI uses that grant instead of local auth and sends scope-correlation headers. While the authenticated device connection and server-side Run remain active, yida-agent can renew the same bearer server-to-server; the CLI cannot renew it and never receives a task refresh token. Tianshu independently checks the grant against the requested app and rejects application creation, identity/environment changes, arbitrary batches, and cross-application requests. `formUuid` remains optional per-turn page-focus context, so one app-bound session can work across pages in that application. Without `OPENYIDA_MANAGED_RUN`, existing login, token refresh, and command behavior are unchanged.
+
+Before `connect` or `run`, Node now freezes the verified runtime bytes, CLI, full production dependency closure, and packaged Skills into a private content-addressed bundle. Source changes during copying fail closed. Existing bundles are verified, never silently repaired or garbage-collected by Node, and survive replacement/removal of the original npm directory. Go owns active/session references and version activation; the external Node executable and provider installations are not copied or managed by npm. A separate parent-watch pipe and a 15-second stop grace prevent normal config EOF from being mistaken for parent death; an unconfirmed forced stop remains unknown.
+
+This is not an OS sandbox or an authorization boundary against arbitrary shell code. Production signing/release infrastructure, full Go/provider recovery and upgrade acceptance, non-macOS OS security integration, and real-provider E2E are not claimed by these fake-process tests. Auto-update is disabled for `agent` and managed invocations; ordinary CLI commands neither spawn nor download the runtime.
 
 ## Agent Skills
 

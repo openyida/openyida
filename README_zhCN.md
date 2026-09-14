@@ -394,6 +394,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 |------|------|
 | `openyida commands [--json]` | 输出机器可读命令清单 |
 | `openyida agent-capabilities [--json] [--summary-json\|--compact]` | 输出 Agent 一次性能力快照 |
+| `openyida agent <doctor\|status\|connect\|run\|disconnect\|logout> [options]` | 连接本地 Agent（Go runtime，开发预览） |
 | `openyida a2a <serve\|agent-card> [options]` | 启动本地只读 A2A Adapter 或输出 Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | 启动 OpenYida 本地网页桥接服务 |
 | `openyida copy [--force]` | 复制 project 工作目录 |
@@ -413,6 +414,29 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida cdn-refresh [options]` | 刷新 CDN 缓存 |
 
 <!-- OPENYIDA_COMMANDS_END -->
+
+### 本地 Agent 开发预览
+
+`openyida agent` 是独立 Go Runtime 的 Node 薄入口，Node 不连接 Agent 服务、不管理 provider 会话。此预览尚未发布平台 Runtime npm 包，不会从 `PATH` 随意寻找 Go 可执行文件，也不会安装或启动真实 provider。
+
+```bash
+openyida agent doctor --json
+openyida agent doctor --development-runtime --runtime-path /absolute/path/openyida-runtime --runtime-manifest /absolute/path/runtime-manifest.json
+openyida agent connect --development-runtime --runtime-path /absolute/path/openyida-runtime --runtime-manifest /absolute/path/runtime-manifest.json --endpoint https://agent.example.test --endpoint-id configured-platform-id
+openyida agent run --development-runtime --runtime-path /absolute/path/openyida-runtime --runtime-manifest /absolute/path/runtime-manifest.json --endpoint https://agent.example.test --endpoint-id configured-platform-id --provider qoder --provider-path /absolute/path/qodercli
+```
+
+开发 manifest v1 包含 Runtime 版本、协议 `1`、Node 风格 OS/CPU 及 `binary: {file, sha256}`，必须显式提供 `--development-runtime`，只做完整性检查，**不是发布者签名**。生产 loader 要求严格 v2 清单、主包批准的平台包精确版本与摘要，以及由 Node 主包内信任根校验的 Ed25519 原始清单字节签名。目前 release catalog 为空，不表示真实平台包或生产签名密钥已就绪。详见 [启动契约](lib/agent/PROTOCOL.md)。
+
+`connect` 支持两个等价接入入口。路径 A 由 CLI 拉起宜搭网页确认，再通过 state/PKCE 保护的本机回调完成；路径 B 从网页复制一条带 `--enroll` 的五分钟命令，令牌单次使用且没有业务权限。两条路径都不会读取或上传普通 OpenYida 登录 profile。
+
+同一安装可连接多个组织：Node 只在安装根目录保存共享 Installation ID，每次组织授权都有独立的私有 Connection stateDir、设备凭据、journal、控制 socket 和冻结 bundle。`agent connect` 保持新 Connection 前台在线；`agent run`、`status`、`disconnect`、`logout` 会枚举所有有效 Connection。每个 Connection 内同时注册本机发现到的 Qoder、Codex、OpenCode Runtime，网页按电脑、CLI、模型选择。
+
+每次执行前，Go 注入 `OPENYIDA_MANAGED_RUN=1`、云端用户/组织/应用/run/attempt 上下文，以及一个初始租期为 60 分钟、值保持不变的 Tianshu 任务凭据。CLI 只使用该凭据并附带范围关联请求头，不读取本地登录态；当设备认证连接和服务端 Run 都仍活跃时，yida-agent 可以在服务端续租同一个 bearer，CLI 自身不能续期，也不会拿到任务 RefreshToken。Tianshu 再独立核对目标应用，拒绝创建应用、切换身份/环境、任意批处理和跨应用请求。`formUuid` 只作为每轮可选的页面聚焦上下文，同一个应用会话可以处理应用内的多个页面。未设置 `OPENYIDA_MANAGED_RUN` 时，原有登录、token 刷新和命令行为完全不变。
+
+`connect` 与 `run` 启动前已物化固定 Runtime 字节、CLI、完整生产依赖闭包和包内 Skills；复制期间源文件变化会拒绝启动。内容寻址目录使用私有权限，已存在 bundle 必须校验且不会由 Node 静默修复或 GC，原 npm 目录被替换/移除不影响固定内容。活动/会话引用与版本激活由 Go 唯一负责；外部 Node 可执行文件和 provider 安装仍需独立保持可用。独立父进程保活管道区分配置 stdin EOF 与父进程死亡，异常停止保留 15 秒宽限，强杀未确认结果仍是 unknown。
+
+这不是 OS 沙箱，也不能约束任意 shell 代码。生产签名/发布设施、Go/provider 完整恢复与升级验收、非 macOS 平台安全集成和真实 provider E2E 均未由本批假进程测试证明。`agent` 与受管命令已禁用自动更新；普通 CLI 命令不拉起或下载 Runtime。
 
 ## Agent Skills
 

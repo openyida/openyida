@@ -1978,3 +1978,5 @@ module.exports.connector_e2e = {
   action_mutated: '連接器測試改變了持久化動作定義。',
 };
 module.exports.connector_auth = require('../../lib/core/locales/zh').connector_auth;
+module.exports.agent = require('../../lib/core/locales/zh').agent;
+module.exports.help.cmd_agent = '連接本地 Agent（Go runtime，開發預覽）';
