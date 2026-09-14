@@ -149,8 +149,9 @@ describe('verify-short-url', () => {
 });
 
 describe('save-share-config', () => {
-  test('closing an uninitialized public page preserves missing auth without bootstrapping it', async () => {
-    const current = { isOpen: 'n', openUrl: '', shareUrl: '/s/keep-existing' };
+  test.each([{}, { openPageAuthConfig: null }, { openPageAuthConfig: '' }])(
+    'closing an uninitialized public page preserves default auth without bootstrapping it: %j', async auth => {
+    const current = { isOpen: 'n', openUrl: '', shareUrl: '/s/keep-existing', ...auth };
     utils.httpPost.mockResolvedValueOnce({ success: true, content: current })
       .mockResolvedValueOnce({ success: true })
       .mockResolvedValueOnce({ success: true, content: current });
