@@ -64,6 +64,19 @@ openyida agent diagnose --session "<URL>" --output <用户明确指定的目录>
 - `lastSourceSeq=0`：尚未收到本地流事件；
 - 已有 `terminalStatus/errorCode`：按稳定错误码处理，不解析或索要模型输出原文。
 
+`latestRun.errorCode` 的 `agent_error.*` 来自本地 CLI/模型 Provider，不是宜搭
+Task Grant 鉴权。不要把这些错误误诊成 OpenYida 普通登录失效或要求重新关联电脑：
+
+| errorCode | 建议 |
+| --- | --- |
+| `agent_error.provider_auth_or_access` | 在该电脑上检查对应 CLI 的登录账号和所选模型权限；不要打印 API Key 或登录缓存 |
+| `agent_error.provider_quota_limit` | 检查该 CLI/模型账号的额度或余额，不重放宜搭写操作 |
+| `agent_error.provider_capacity_or_rate_limit` | Provider 限流或容量不足；等待后由用户决定是否重试 |
+| `agent_error.provider_network` / `agent_error.provider_server_error` | 检查本机到模型 Provider 的网络或服务状态，保留诊断 ID |
+| `agent_error.model_not_found_or_unavailable` | 从网页刷新该 CLI 的模型目录，选择本机账号实际可用的模型 |
+| `agent_error.missing_config` | 检查 CLI 自身的 Provider 配置，不修改宜搭 Task Grant 或普通登录态 |
+| `agent_error.process_failure` / `agent_error.empty_or_unparseable_output` / `agent_error.unknown` | 核对 CLI 与 Runtime 版本，并按诊断 ID 和本地安全日志定位；不索要 Provider 输出原文 |
+
 ## Managed Run 内的边界
 
 若当前进程本身设置了 `OPENYIDA_MANAGED_RUN=1`，不要在该任务中运行 `agent`
