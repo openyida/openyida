@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 const { EventEmitter } = require('events');
-const { run, parseArgs, buildLaunchConfig, discoverProvider, discoverProviders } = require('../lib/agent/cmd');
+const { run, parseArgs, parseDiagnosticSession, buildLaunchConfig, discoverProvider, discoverProviders } = require('../lib/agent/cmd');
 const { launchRuntime, runtimeEnvironment } = require('../lib/agent/stdio');
 const { resolveRuntime } = require('../lib/agent/runtime-package');
 const { maybeAutoUpdate, shouldSkipAutoUpdateCommand } = require('../lib/core/update');
@@ -35,6 +35,19 @@ describe('local agent thin launcher', () => {
     expect(() => parseArgs(['run', '--enroll', 'x'.repeat(40)])).toThrow(expect.objectContaining({ code: 'AGENT_INPUT_INVALID' }));
     expect(() => parseArgs(['run', '--profile', 'legacy'])).toThrow();
     expect(() => parseArgs(['identity-proof'])).toThrow();
+  });
+
+  test('diagnostics accepts a cloud session URL without retaining unrelated URL data', () => {
+    expect(parseArgs(['diagnose', '--session', 'local_fixture', '--deep'])).toMatchObject({
+      command: 'diagnose', diagnosticSession: 'local_fixture', diagnosticDeep: true,
+    });
+    expect(parseDiagnosticSession('https://pre-yida-vpc.alibaba-inc.com/APP_TEST/admin/?sessionId=local_fixture&agentId=builder')).toEqual({
+      sessionId: 'local_fixture', appType: 'APP_TEST',
+    });
+    expect(() => parseDiagnosticSession('http://pre-yida.example/APP_TEST/admin/?sessionId=local_fixture')).toThrow(
+      expect.objectContaining({ code: 'AGENT_DIAGNOSTIC_SESSION_INVALID' }),
+    );
+    expect(() => parseArgs(['run', '--deep'])).toThrow(expect.objectContaining({ code: 'AGENT_INPUT_INVALID' }));
   });
 
   test('launch config contains control identity but no ordinary profile', () => {
@@ -68,10 +81,21 @@ describe('local agent thin launcher', () => {
       ] });
   });
 
+  test('discovers Windows command shims from Path and PATHEXT', () => {
+    const first = path.join(root, 'windows-a');
+    const second = path.join(root, 'windows-b');
+    fs.mkdirSync(first);
+    fs.mkdirSync(second);
+    fs.writeFileSync(path.join(second, 'codex.cmd'), '@echo off\r\n');
+    expect(discoverProviders({ Path: `${first};${second}`, PATHEXT: '.EXE;.CMD' }, 'win32')).toContainEqual({
+      profileId: 'openyida.codex', provider: 'codex', executable: fs.realpathSync(path.join(second, 'codex.cmd')),
+    });
+  });
+
   test('doctor gives honest unavailable state without spawning', async () => {
     const stdout = { write: jest.fn() };
     const spawn = jest.fn();
-    await run(['doctor', '--json'], { stdout, spawn, env: {} });
+    await run(['doctor', '--json'], { stdout, spawn, env: {}, homedir: root });
     expect(JSON.parse(stdout.write.mock.calls[0][0])).toMatchObject({ type: 'doctor', ready: false, authKnown: false, runtime: { code: 'AGENT_RUNTIME_NOT_CONFIGURED' } });
     expect(spawn).not.toHaveBeenCalled();
   });

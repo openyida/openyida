@@ -67,6 +67,30 @@ describe('multi-Connection foreground supervisor', () => {
     expect(launchRuntime.mock.calls.map(([, config]) => config.command)).toEqual(['status', 'status']);
   });
 
+  test('diagnostics aggregates every organization Connection and preserves only correlation IDs', async () => {
+    launchRuntime.mockImplementation(async (_runtime, config, options) => {
+      options.stdout.write(JSON.stringify({
+        type: 'diagnostic', diagnosticId: config.diagnosticId,
+        findings: [{ severity: 'warning', code: 'SESSION_NOT_SEEN_LOCALLY' }],
+      }));
+    });
+    const stdout = { write: jest.fn() };
+    await run([
+      'diagnose', '--session',
+      'https://pre-yida.example/APP_TEST/admin/?sessionId=local_fixture&ignored=secret',
+      '--state-dir', root, '--json',
+    ], { env: { PATH: providerDir }, signals, stdout });
+    const result = JSON.parse(stdout.write.mock.calls.at(-1)[0]);
+    expect(result).toMatchObject({
+      type: 'diagnostic', phase: 'session', sessionId: 'local_fixture', appType: 'APP_TEST',
+    });
+    expect(result.connections).toHaveLength(2);
+    expect(result.connections.every((item) => item.diagnosticId === result.diagnosticId)).toBe(true);
+    expect(result.findings).toHaveLength(2);
+    expect(JSON.stringify(result)).not.toContain('ignored');
+    expect(materializeBundle).not.toHaveBeenCalled();
+  });
+
   test('multi-organization supervisor permits more than ten Connection listeners', async () => {
     const connectionStore = require('../lib/agent/connection-store');
     connectionStore.listConnections.mockReturnValue(Array.from({ length: 12 }, (_, index) => ({

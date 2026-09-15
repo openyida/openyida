@@ -10,6 +10,14 @@ description: >
 
 在执行宜搭应用/页面/审批流等任务前先确认环境与登录态，再根据用户需求和已解析的 app/page/form/process 等上下文资源，分析任务属于完整搭建、已有资源补齐还是单点任务，并加载对应子技能执行。
 
+## 本地 Agent 故障分流
+
+当用户描述“网页找不到本地 CLI / 电脑离线 / 本地 Agent 忙碌或不执行”，或提供
+带 `sessionId=local_*` 的宜搭会话链接时，先读取并执行
+[本地 Agent 诊断](references/local-agent-diagnostics.md)，不要先要求用户提供
+`runId`、`runtimeId` 或日志文件。排障通常发生在另一个普通本地 Agent 会话中，
+不能只依据 `OPENYIDA_MANAGED_RUN` 判断是否属于云端关联本地 Agent 场景。
+
 ## 步骤模版（进行时展示给用户看的步骤）
 
 完整应用搭建时，直接使用对应模式的步骤名称。
@@ -206,6 +214,7 @@ description: >
 | [路由补充说明](references/routing-supplement.md) | 索引精排方法、无独立子技能 CLI | Step 3 排障或索引匹配不准时 |
 | [常见问题解决方案](references/execution-rules.md) | 常见问题处理路径 | 遇到发布、字段、表单更新或 corpId 问题时 |
 | [环境准备与登录检测](references/setup-and-env.md) | 环境依赖、env 解读、多环境 token 登录、project 初始化 | 环境异常或登录问题时 |
+| [本地 Agent 诊断](references/local-agent-diagnostics.md) | 电脑/CLI 发现、连接鉴权、local_ 会话投递诊断 | 用户反馈网页关联本地 Agent 异常时 |
 | [宜搭 API](references/yida-api.md) | 宜搭 API 完整参数 | 调用 API 前 |
 | [公式函数库](references/formula-functions.md) | 公式函数速查 | 编写公式前 |
 | [官方示例 Schema 范式](references/official-example-schema-patterns.md) | 脱敏 schema 承载范式 | 蒸馏官方示例时 |

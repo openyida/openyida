@@ -513,7 +513,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 |---------|-------------|
 | `openyida commands [--json]` | Output machine-readable command manifest |
 | `openyida agent-capabilities [--json] [--summary-json\|--compact]` | Output one-shot agent capability snapshot |
-| `openyida agent <doctor\|status\|connect\|run\|disconnect\|logout> [options]` | Connect a local Agent (Go runtime, development preview) |
+| `openyida agent <doctor\|diagnose\|status\|connect\|run\|disconnect\|logout> [options]` | Connect a local Agent (Go runtime, development preview) |
 | `openyida a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start OpenYida local web bridge service |
 | `openyida copy [--force]` | Copy project working directory |
