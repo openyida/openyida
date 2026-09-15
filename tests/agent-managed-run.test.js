@@ -90,6 +90,9 @@ describe('managed task-grant preflight', () => {
     expect(classifyManagedMutation('check-prd-completeness', args)).toBeNull();
     expect(() => assertManagedInvocation('check-prd-completeness', ['prd.md', flag, 'APP_OTHER'], { env: context() })).toThrow(expect.objectContaining({ code: 'MANAGED_APP_MISMATCH' }));
   });
+  test.each(['appType', 'buildManifestPath'])('does not treat PRD filename %s as a duplicate option', file => {
+    expect(assertManagedInvocation('check-prd-completeness', [file, '--app-type', 'APP_BOUND', '--build-manifest', 'manifest.json'], { env: context() })).toMatchObject({ appType: 'APP_BOUND' });
+  });
   test.each([
     ['prd.md'], ['prd.md', '--app-type'],
     ['prd.md', '--app-type', '--json'],
