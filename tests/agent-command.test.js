@@ -92,6 +92,19 @@ describe('local agent thin launcher', () => {
     });
   });
 
+  test('prefers qodercli over an earlier Qoder IDE executable', () => {
+    const ideDir = path.join(root, 'qoder-ide');
+    const cliDir = path.join(root, 'qoder-cli');
+    fs.mkdirSync(ideDir);
+    fs.mkdirSync(cliDir);
+    fs.writeFileSync(path.join(ideDir, 'qoder'), 'IDE fixture', { mode: 0o700 });
+    const cli = path.join(cliDir, 'qodercli');
+    fs.writeFileSync(cli, 'CLI fixture', { mode: 0o700 });
+    expect(discoverProviders({ PATH: `${ideDir}:${cliDir}` }, 'linux')).toEqual([
+      { profileId: 'openyida.qoder', provider: 'qoder', executable: fs.realpathSync(cli) },
+    ]);
+  });
+
   test('doctor gives honest unavailable state without spawning', async () => {
     const stdout = { write: jest.fn() };
     const spawn = jest.fn();
@@ -171,6 +184,6 @@ describe('local agent thin launcher', () => {
     expect(result).toMatchObject({ status: 'skipped', reason: 'environment' });
     expect(fetchLatestVersionFn).not.toHaveBeenCalled();
     expect(shouldSkipAutoUpdateCommand('agent', ['run'])).toBe(true);
-    expect(runtimeEnvironment({ OPENYIDA_REFRESH_TOKEN: 'secret' })).toEqual({ OPENYIDA_NO_AUTO_UPDATE: '1', OPENYIDA_MANAGED_RUNTIME: 'local' });
+    expect(runtimeEnvironment({ OPENYIDA_REFRESH_TOKEN: 'secret' })).toEqual({ PATH: path.dirname(process.execPath), OPENYIDA_NO_AUTO_UPDATE: '1', OPENYIDA_MANAGED_RUNTIME: 'local' });
   });
 });
