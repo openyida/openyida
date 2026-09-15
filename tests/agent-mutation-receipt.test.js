@@ -20,6 +20,14 @@ describe('managed mutation receipt', () => {
     ['create-form', ['add-option', 'APP_X', 'FORM_OPTION', '级别', 'P0'], 'update_form'],
     ['create-page', ['APP_X', '首页'], 'create_page'],
     ['create-process', ['APP_X', '采购审批'], 'create_process'],
+    ['configure-process', ['APP_X', 'FORM_PROCESS', 'process.json', 'PROC_X'], 'update_process'],
+    ['integration', ['create', 'APP_X', '自动化'], 'create_process'],
+    ['integration', ['enable', 'APP_X', 'FORM_PROCESS', 'PROC_X'], 'update_process'],
+    ['integration', ['disable', 'APP_X', 'FORM_PROCESS', 'PROC_X'], 'update_process'],
+    ['integration', ['list', 'APP_X', '--json'], null],
+    ['integration', ['check', 'APP_X'], null],
+    ['integration', ['update', 'APP_X', 'FORM_PROCESS', 'PROC_X', '--spec', 'spec.json'], null],
+    ['process', ['preview', 'APP_X', 'FORM_PROCESS'], null],
     ['create-report', ['APP_X', '经营看板'], 'create_report'],
     ['publish', ['page.jsx', 'APP_X', 'FORM_X'], 'publish_page'],
     ['update-form-config', ['APP_X', 'FORM_X', 'true', '客户'], 'update_form_config'],
@@ -55,6 +63,40 @@ describe('managed mutation receipt', () => {
     expect(classifyManagedMutation('i18n', ['translate-all', 'APP_X'])).toBeNull();
     expect(classifyManagedMutation('create-page', ['--help'])).toBeNull();
     expect(classifyManagedMutation('data', ['create', 'process', 'APP_X', 'FORM_X'])).toBeNull();
+  });
+
+  test.each([
+    ['configure-process', ['APP_X', 'FORM_PROCESS', 'process.json']],
+    ['integration', ['enable', 'APP_X', 'FORM_PROCESS', 'PROC_X']],
+    ['integration', ['disable', 'APP_X', 'FORM_PROCESS', 'PROC_X']],
+  ])('%s successful flow write retains the edited form focus', (command, args) => {
+    const fakeConsole = { log() {} };
+    const capture = beginManagedMutationCapture({ command, args, env: managedEnvironment(),
+      consoleObject: fakeConsole, eventId: 'flow-write' });
+    fakeConsole.log(JSON.stringify({ success: true, processCode: 'PROC_X' }));
+    expect(capture.commit()).toMatchObject({ operation: 'update_process', status: 'succeeded', formUuid: 'FORM_PROCESS' });
+    const appIndex = command === 'integration' ? 1 : 0;
+    const other = [...args]; other[appIndex] = 'APP_OTHER';
+    expect(() => assertManagedInvocation(command, other, { env: managedEnvironment() })).toThrow();
+  });
+
+  test('flow readback/probes stay app-bound and never produce mutation receipts', () => {
+    for (const [command, args] of [
+      ['integration', ['list', 'APP_X', '--json']],
+      ['integration', ['update', 'APP_X', 'FORM_PROCESS', 'PROC_X', '--spec', 'spec.json']],
+      ['process', ['preview', 'APP_X', 'FORM_PROCESS']],
+    ]) {
+      expect(() => assertManagedInvocation(command, args, { env: managedEnvironment() })).not.toThrow();
+      const other = [...args]; other[1] = 'APP_OTHER';
+      expect(() => assertManagedInvocation(command, other, { env: managedEnvironment() })).toThrow();
+      const fakeConsole = { log() {} };
+      const capture = beginManagedMutationCapture({ command, args, env: managedEnvironment(),
+        consoleObject: fakeConsole, eventId: 'flow-read' });
+      fakeConsole.log(JSON.stringify({ success: true, formUuid: 'FORM_PROCESS' }));
+      expect(capture.commit()).toBeNull();
+    }
+    expect(() => assertManagedInvocation('integration', ['unknown', 'APP_X'],
+      { env: managedEnvironment() })).toThrow();
   });
 
   test.each(['get-page-config', 'verify-short-url'])('%s allows only the bound application without a receipt', command => {
