@@ -571,11 +571,25 @@ function assertNoUnsupportedLegacyLoginFlags(...argLists) {
 }
 
 async function main() {
+  const { assertManagedInvocation, resolveManagedHelp } = require('../lib/agent/managed-run');
+  const { readManagedContext } = require('../lib/agent/managed-context');
+  if (readManagedContext() && [command, ...rawArgs].some(arg => arg === '--help' || arg === '-h')) {
+    assertManagedInvocation(command, rawArgs);
+    const entries = resolveManagedHelp(command, rawArgs, { t, version: currentVersion });
+    // Managed help is static and local: no Receipt, auth, update, first-run
+    // guide or business command module may run on this path.
+    commandReceipt = { finish() {} };
+    if (rawArgs.includes('--json')) {
+      console.log(JSON.stringify({ name: 'openyida', version: currentVersion, commands: entries }, null, 2));
+    } else {
+      printCommandUsage(...entries.flatMap(entry => [entry.usage, entry.description, ...(entry.examples || [])]));
+    }
+    return;
+  }
   commandReceipt = beginCommandReceipt({ command, args: rawArgs });
   process.once('exit', code => {
     try {commandReceipt.finish(code);} catch {process.exitCode = 1;}
   });
-  const { assertManagedInvocation } = require('../lib/agent/managed-run');
   assertManagedInvocation(command, rawArgs);
   applyQuietFlag();
   applyGlobalEnvironmentFlags();

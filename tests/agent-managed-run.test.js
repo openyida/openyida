@@ -84,6 +84,31 @@ describe('managed task-grant preflight', () => {
     expect(isAutoUpdateDisabled(context())).toBe(true);
   });
 
+  test.each([
+    ['--help', []], ['-h', ['--json']],
+    ['create-form', ['--help']], ['create-form', ['batch', '--help', '--quiet', '--json']],
+    ['create-form', ['create', '-h']], ['create-page', ['--help']],
+    ['publish', ['--help']], ['nav-group', ['--help']], ['agent', ['--help']],
+  ])('accepts static managed help for %s %j', (command, args) => {
+    expect(assertManagedInvocation(command, args, { env: context() })).toMatchObject({ appType: 'APP_BOUND' });
+  });
+
+  test.each([
+    ['unknown-command', ['--help']], ['create-form', ['unknown', '--help']],
+    ['create-page', ['APP_BOUND', '--help']], ['publish', ['source.js', 'APP_BOUND', 'FORM-a', '--help']],
+    ['create-form', ['create', 'APP_BOUND', 'Title', '[]', '--help']],
+    ['nav-group', ['list', 'APP_BOUND', '--help']], ['agent', ['connect', '--help']],
+    ['commands', ['--help', 'unexpected']], ['create-form', ['--help', '--help']],
+    ['--help', ['create-form']], ['create-form', ['batch', '--help', '--check']],
+  ])('rejects non-static managed help for %s %j', (command, args) => {
+    expect(() => assertManagedInvocation(command, args, { env: context() })).toThrow(expect.objectContaining({ code: 'MANAGED_COMMAND_UNSUPPORTED' }));
+  });
+
+  test.each(['--base-url', '--access-token', '--profile', '--corp-id', '--app-type'])('help cannot override identity using %s', flag => {
+    expect(() => assertManagedInvocation('create-page', ['--help', flag, 'override'], { env: context() }))
+      .toThrow(expect.objectContaining({ code: 'MANAGED_OVERRIDE_FORBIDDEN' }));
+  });
+
   test.each(['--app-type', '--appType', '--app_type'])('admits PRD readback only for the explicit bound app using %s', flag => {
     const args = ['prd.md', flag, 'APP_BOUND', '--build-manifest', 'build-manifest.json', '--json'];
     expect(assertManagedInvocation('check-prd-completeness', args, { env: context() })).toMatchObject({ appType: 'APP_BOUND' });
