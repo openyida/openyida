@@ -107,4 +107,26 @@ describe('multi-Connection foreground supervisor', () => {
     await run(['status', '--state-dir', root], { env: {}, signals, stdout: { write() {} } });
     expect(launchRuntime).toHaveBeenCalledTimes(12);
   });
+
+  test('connection diagnosis finds failed enrollment even without a paired Connection', async () => {
+    require('../lib/agent/connection-store').listConnections.mockReturnValueOnce([]);
+    const logs = path.join(root, 'logs');
+    fs.mkdirSync(logs);
+    fs.writeFileSync(path.join(logs, 'openyida-local-agent-runtime-20260915T000000Z-200.0.jsonl'), JSON.stringify({
+      schema: 'openyida.local_agent.diagnostic.v1', event: 'runtime_failed', timestamp: new Date().toISOString(),
+      errorCode: 'DEVICE_CREDENTIAL_RESPONSE_INVALID', credentialReason: 'access_expired', accessRemainingSeconds: -2,
+      accessToken: 'private-token', phase: 'connect',
+    }));
+    launchRuntime.mockImplementation(async (_runtime, config, options) => {
+      options.stdout.write(JSON.stringify({type: 'diagnostic', diagnosticId: config.diagnosticId,
+        findings: [{code: 'DEVICE_NOT_PAIRED', severity: 'error'}]}));
+    });
+    const stdout = { write: jest.fn() };
+    await run(['diagnose', '--state-dir', root, '--json'], {env: {PATH: providerDir}, signals, stdout});
+    const result = JSON.parse(stdout.write.mock.calls.at(-1)[0]);
+    expect(result.recentConnectionFailures).toEqual([expect.objectContaining({historical: true, credentialReason: 'access_expired', accessRemainingSeconds: -2})]);
+    expect(result.findings).toContainEqual(expect.objectContaining({code: 'RECENT_DEVICE_CREDENTIAL_REJECTION', historical: true}));
+    expect(JSON.stringify(result)).not.toContain('private-token');
+    expect(materializeBundle).not.toHaveBeenCalled();
+  });
 });

@@ -55,6 +55,26 @@ openyida agent diagnose --session "<URL>" --output <用户明确指定的目录>
 | `SESSION_NOT_SEEN_LOCALLY` | 本机最近 Journal 中没有该 Session | 继续看 `server.matched`，判断服务端是否投递到这条 Connection |
 | `SESSION_NOT_ASSIGNED_TO_CONNECTION` | 会话不属于当前电脑的组织 Connection | 在网页核对组织、电脑和 CLI 选择，不重新配对其他组织 |
 | `SERVER_DIAGNOSTIC_UNAVAILABLE` | 本机状态可读，但设备鉴权的服务端关联查询失败 | 检查控制域名网络、设备是否过期；保留诊断 ID |
+| `RECENT_DEVICE_CREDENTIAL_REJECTION` | 最近两小时出现过连接/换证响应校验失败，不代表当前仍失败 | 查看 `recentConnectionFailures` 的时间、阶段和原因，再结合当前 Connection 判断 |
+
+连接失败可能发生在创建有效 Connection 之前，因此无参数诊断也会读取安装级的
+安全日志，不需要会话链接。`recentConnectionFailures` 最多返回五条低敏历史摘要，
+包含稳定错误码 `DEVICE_CREDENTIAL_RESPONSE_INVALID`、`credentialReason` 和本机计算的
+access/refresh 剩余秒数，不包含 Token。它不是当前连接在线状态，也不代表某个
+会话的错误；指定 `--session` 时不把安装级旧错误归因到该会话。
+
+- `access_expired` / `refresh_expired`：服务端响应的到期时间已经早于本机时间。
+  先核对操作系统自动时间同步，再检查是否使用过期接入命令；这只是原因线索，
+  不能只凭负剩余秒数就断言服务器时钟错误。不要手工修改 Token 或机器时间来绕过鉴权。
+- `protocol_invalid` / `access_format_invalid` / `refresh_format_invalid` /
+  `device_invalid` / `version_invalid`：核对 OpenYida 和 Go Runtime 版本、控制域名。
+  请求研发按诊断 ID 检查协议，不索要或展示响应中的凭据。
+- `rotation_binding_invalid`：换证结果的设备或版本绑定不一致。保留诊断结果，
+  不清空状态，不自动重放换证或重新配对，让研发核对换证记录。
+
+客户端不限制设备凭据的最长 TTL；服务端签发时间和服务端鉴权是权威。
+若旧版本在刚连接时报告有效期过长而稍后重试成功，应更新 OpenYida/Runtime，
+不要让用户通过等待、反复重连或修改本机时间解决。
 
 `server.matched=true` 后再看 `runtimeStatus`、`sessionActive` 和 `latestRun`：
 
