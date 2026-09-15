@@ -204,4 +204,34 @@ describe('dependency-aware form batches', () => {
     await expect(execute(['create-form', 'validate-fields', '[]']))
       .rejects.toMatchObject({ message: 'Missing command result', output: { errorCode: 'ETIMEDOUT' } });
   });
+
+  test.each([
+    'request failed: {"accessToken":"private-access"}',
+    'request failed: {"refresh_token":"private-refresh","other":"private-tail"}',
+    'request failed: {"authorization":{"value":"private-nested"}}',
+    'request failed: {"accessToken":"private-incomplete',
+    'request failed: {"access\\u0054oken":"private-escaped-key"}',
+    'request failed: {\\"accessToken\\":\\"private-escaped-json\\"}',
+  ])('embedded quoted credentials never enter structured failure summaries: %s', async message => {
+    execFile.mockImplementationOnce((_node, _argv, _options, callback) => {
+      callback(new Error('Command failed: private argv'), '',
+        JSON.stringify({ success: false, errorCode: 'CREATE_FORM_FAILED', errorMsg: message }));
+    });
+    expect.assertions(3);
+    await execute(['create-form', 'validate-fields', '[]']).catch(error => {
+      expect(error.message).toMatch(/^request failed: \{\\?\[REDACTED\]$/);
+      expect(error.output.errorCode).toBe('CREATE_FORM_FAILED');
+      expect(JSON.stringify(error.output)).not.toContain('private-');
+    });
+  });
+
+  test('unparseable stderr with quoted secrets is discarded before batch state persistence', async () => {
+    execFile.mockImplementationOnce((_node, _argv, _options, callback) => {
+      callback(new Error('Command failed: private argv'), '', 'network failed: {"apiKey":"private-key"}\nbroken JSON');
+    });
+    const results = await schedule([{ key: 'a', dependsOn: [] }], 1, {},
+      () => execute(['create-form', 'create', 'APP_X', 'A', '[]']), () => {});
+    expect(results.a.error).toBe('network failed: {[REDACTED]');
+    expect(JSON.stringify(results)).not.toContain('private-key');
+  });
 });
