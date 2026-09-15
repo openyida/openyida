@@ -2016,7 +2016,8 @@ Object.assign(module.exports.create_process || (module.exports.create_process = 
   login_required: 'لم يتم العثور على جلسة Yida صالحة. شغّل openyida login أولاً.',
 });
 module.exports.connector_test = {
-  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--json]',
+  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--ignore-defaults] [--json]',
+  ignore_defaults_system_token_warning: 'يتم تجاهل قيم المعلمات الافتراضية المحفوظة عبر --ignore-defaults (تحتوي على systemToken غير فارغ ولا تُستخدم في هذه العملية)؛ نظّف القيم الافتراضية للإجراء في المصمم قبل الاستخدام في الإنتاج.',
   invalid_json: '{0} is not valid JSON: {1}', json_object_required: '{0} must be a JSON object',
   unknown_flat_param: 'Parameter {0} is not in the action schema; use structured JSON options',
   ambiguous_flat_param: 'Parameter {0} belongs to multiple locations; use structured JSON options',

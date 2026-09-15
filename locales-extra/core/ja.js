@@ -1943,7 +1943,8 @@ Object.assign(module.exports.create_process || (module.exports.create_process = 
   login_required: '有効な宜搭ログイン状態がありません。先に openyida login を実行してください。',
 });
 module.exports.connector_test = {
-  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--json]',
+  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--ignore-defaults] [--json]',
+  ignore_defaults_system_token_warning: '--ignore-defaults により、アクションに保存された既定パラメータ値を無視しました（空でない systemToken を含みますが、今回のリクエストでは使用されません）。本番利用前にデザイナーで既定値を整理してください。',
   invalid_json: '{0} is not valid JSON: {1}', json_object_required: '{0} must be a JSON object',
   unknown_flat_param: 'Parameter {0} is not in the action schema; use structured JSON options', ambiguous_flat_param: 'Parameter {0} belongs to multiple locations; use structured JSON options',
   auth_account_required: 'This connector requires an owned auth account passed with --account-id', auth_account_not_owned: 'Account {0} does not belong to this connector',

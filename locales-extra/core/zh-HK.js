@@ -1901,7 +1901,8 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   target_identity_unverified: '無法回讀目標資源 {0} 的名稱和類型，已在寫入前停止。',
 });
 module.exports.connector_test = {
-  usage: '用法: openyida connector test --connector-id <id> --action <actionId> [--params <json>] [--path-json <json>] [--query-json <json>] [--header-json <json>] [--body-json <json>] [--account-id <id>] [--json]',
+  usage: '用法: openyida connector test --connector-id <id> --action <actionId> [--params <json>] [--path-json <json>] [--query-json <json>] [--header-json <json>] [--body-json <json>] [--account-id <id>] [--ignore-defaults] [--json]',
+  ignore_defaults_system_token_warning: '已按 --ignore-defaults 忽略動作儲存的預設參數值（其中包含非空 systemToken，本次請求不會使用）；生產使用前請先在設計器清理預設值。',
   invalid_json: '{0} 不是合法 JSON: {1}',
   json_object_required: '{0} 必須是 JSON 物件',
   unknown_flat_param: '參數 {0} 不在動作 Schema 中；請改用對應的結構化 JSON 參數',
