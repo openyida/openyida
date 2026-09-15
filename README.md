@@ -490,7 +490,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida connector update-action --connector-id <id> --action <operationId> --query-json JSON --confirm` | Safely update action query defaults |
 | `openyida connector list-actions <id>` | List actions |
 | `openyida connector delete-action <id> <operation-id>` | Delete an action |
-| `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>]` | Test an action |
+| `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>] [--ignore-defaults]` | Test an action |
 | `openyida connector list-connections <id>` | List auth connections |
 | `openyida connector create-connection <id> <name> [--interactive]` | Create an auth connection |
 | `openyida connector smart-create --curl "..."` | Generate a redacted action draft from cURL (no remote create) |
@@ -542,7 +542,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 #### Connector Safety and Real E2E
 
-`connector test` keeps the legacy flat `--params` option, but dispatches each key only to the location proven by the action schema. Unknown or ambiguous keys fail closed. Authenticated connectors require `--account-id`, and that account must belong to the selected connector. The test response follows the frontend canonical contract `{statusLine,responseHeaders,content}`; unknown envelopes and non-2xx status lines are failures.
+`connector test` keeps the legacy flat `--params` option, but dispatches each key only to the location proven by the action schema. Unknown or ambiguous keys fail closed. Authenticated connectors require `--account-id`, and that account must belong to the selected connector. The test response follows the frontend canonical contract `{statusLine,responseHeaders,content}`; unknown envelopes and non-2xx status lines are failures. With `--ignore-defaults`, the test starts from empty parameter sets: saved default values from the action definition (including sensitive placeholder values such as documented `***` samples) are ignored for the run, and a warning is printed when a non-empty systemToken default exists. Declared systemToken actions still require `--system-token-app`, target-trust checks still apply, and explicitly provided systemToken values are still rejected.
 
 `connector update-action --connector-id <id> --action <operationId> --query-json '{"currentPage":"1"}' --confirm` is the narrow safe path for editing existing query defaults. It requires a complete connector/action preflight, changes only declared query defaults mirrored in `inputs` and `parameters`, submits the complete action collection once, and verifies an unchanged connector fingerprint, action count, non-target actions, and stable IDs. Missing/empty/unknown parameters, duplicate IDs, incomplete readback, and unknown write outcomes fail closed without automatic retry. `add-action` no longer overwrites an existing action ID; use `update-action` for query-only edits.
 

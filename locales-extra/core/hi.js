@@ -2016,7 +2016,8 @@ Object.assign(module.exports.create_process || (module.exports.create_process = 
   login_required: 'कोई मान्य Yida लॉगिन सत्र नहीं मिला। पहले openyida login चलाएँ।',
 });
 module.exports.connector_test = {
-  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--json]',
+  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--ignore-defaults] [--json]',
+  ignore_defaults_system_token_warning: '--ignore-defaults के माध्यम से सहेजे गए डिफ़ॉल्ट पैरामीटर मानों को अनदेखा किया गया है (उनमें गैर-रिक्त systemToken है और इस रन में उपयोग नहीं किया जाता); उत्पादन उपयोग से पहले डिज़ाइनर में कार्रवाई के डिफ़ॉल्ट साफ़ करें।',
   invalid_json: '{0} is not valid JSON: {1}', json_object_required: '{0} must be a JSON object',
   unknown_flat_param: 'Parameter {0} is not in the action schema; use structured JSON options', ambiguous_flat_param: 'Parameter {0} belongs to multiple locations; use structured JSON options',
   auth_account_required: 'This connector requires an owned auth account passed with --account-id', auth_account_not_owned: 'Account {0} does not belong to this connector',

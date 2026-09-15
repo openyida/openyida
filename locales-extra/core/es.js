@@ -2018,7 +2018,8 @@ Object.assign(module.exports.create_process || (module.exports.create_process = 
   login_required: 'No se encontró una sesión válida de Yida. Ejecuta primero openyida login.',
 });
 module.exports.connector_test = {
-  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--json]',
+  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--ignore-defaults] [--json]',
+  ignore_defaults_system_token_warning: 'Los valores de parámetros predeterminados guardados se ignoran mediante --ignore-defaults (contienen un systemToken no vacío y no se usan en esta ejecución); limpie los valores predeterminados de la acción en el diseñador antes de usarla en producción.',
   invalid_json: '{0} is not valid JSON: {1}', json_object_required: '{0} must be a JSON object',
   unknown_flat_param: 'Parameter {0} is not in the action schema; use structured JSON options', ambiguous_flat_param: 'Parameter {0} belongs to multiple locations; use structured JSON options',
   auth_account_required: 'This connector requires an owned auth account passed with --account-id', auth_account_not_owned: 'Account {0} does not belong to this connector',

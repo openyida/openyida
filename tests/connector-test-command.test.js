@@ -46,6 +46,23 @@ describe('connector test command parameter contract', () => {
     });
   });
 
+  test('parses the ignore-defaults flag', () => {
+    expect(parseArgs(['--ignore-defaults'])).toMatchObject({ ignoreDefaults: true });
+    expect(parseArgs(['--json']).ignoreDefaults).toBeUndefined();
+  });
+
+  test('ignore-defaults starts from empty sets and keeps explicit values only', () => {
+    expect(buildTestParams(operation, {
+      ignoreDefaults: true,
+      bodyJson: '{"appType":"APP_X"}',
+    })).toEqual({
+      path: {},
+      query: {},
+      header: {},
+      body: { appType: 'APP_X' },
+    });
+  });
+
   test('keeps flat params compatible but dispatches only by action schema', () => {
     expect(buildTestParams(operation, {
       params: '{"id":"42","trace":"q","X-E2E":"h","message":"b"}',

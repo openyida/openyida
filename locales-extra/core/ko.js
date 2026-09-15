@@ -2017,7 +2017,8 @@ Object.assign(module.exports.create_process || (module.exports.create_process = 
   login_required: '유효한 Yida 로그인 상태가 없습니다. 먼저 openyida login을 실행하세요.',
 });
 module.exports.connector_test = {
-  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--json]',
+  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--ignore-defaults] [--json]',
+  ignore_defaults_system_token_warning: '--ignore-defaults 옵션으로 액션에 저장된 기본 매개변수 값을 무시했습니다(비어 있지 않은 systemToken을 포함하며 이번 요청에는 사용되지 않음). 프로덕션 사용 전에 디자이너에서 기본값을 정리하세요.',
   invalid_json: '{0} is not valid JSON: {1}', json_object_required: '{0} must be a JSON object',
   unknown_flat_param: 'Parameter {0} is not in the action schema; use structured JSON options', ambiguous_flat_param: 'Parameter {0} belongs to multiple locations; use structured JSON options',
   auth_account_required: 'This connector requires an owned auth account passed with --account-id', auth_account_not_owned: 'Account {0} does not belong to this connector',
