@@ -17,6 +17,18 @@ function context() {
 }
 
 describe('managed task-grant preflight', () => {
+  test('linked resource reads are selected, read-only and produce no mutation', () => {
+    const env = { ...context(), OPENYIDA_AGENT_INPUT_REFS: JSON.stringify([
+      { type: 'ding_doc', docUrl: 'https://alidocs.dingtalk.com/i/nodes/test' },
+      { type: 'tingji', taskUuid: 'minute-test' },
+    ]) };
+    expect(assertManagedInvocation('read-dingtalk-doc', ['https://alidocs.dingtalk.com/i/nodes/test', '--json'], { env })).not.toBeNull();
+    expect(assertManagedInvocation('read-dingtalk-tingji', ['minute-test', '--json'], { env })).not.toBeNull();
+    expect(() => assertManagedInvocation('read-dingtalk-tingji', ['other'], { env })).toThrow();
+    expect(() => assertManagedInvocation('read-dingtalk-doc', ['https://alidocs.dingtalk.com/i/nodes/test', '--output', 'x'], { env })).toThrow();
+    expect(() => assertManagedInvocation('read-dingtalk-tingji', ['minute-test'], { env: context() })).toThrow();
+    expect(classifyManagedMutation('read-dingtalk-tingji', ['minute-test'], env)).toBeNull();
+  });
   test('ordinary CLI is not a managed run', () => {
     expect(readManagedContext({ OPENYIDA_MANAGED_RUNTIME: 'local' })).toBeNull();
     expect(assertManagedInvocation('create-app', ['name'], { env: {} })).toBeNull();
