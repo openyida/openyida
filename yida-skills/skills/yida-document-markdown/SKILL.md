@@ -34,6 +34,12 @@ openyida read-dingtalk-doc "<docUrl>" --output ./document.md
 
 ## 异常处理
 
+### 宜搭网页关联的本地 Agent（托管任务）
+
+当 `OPENYIDA_MANAGED_RUN=1` 时，使用任务上下文所选的 `ding_doc/docUrl` 原值执行 `openyida read-dingtalk-doc "<docUrl>" --json`。只允许读取本轮选中的文档；续聊需要重新读取时，应请用户重新添加该文档。不要使用 `--output`，需要派生工作文件时在任务工作目录通过本地工具保存返回内容。
+
+托管读取使用注入的 Task Grant；失败时不得执行 `login`、普通 RefreshToken 或个人登录态兜底。报告权限、链接或任务授权问题，由用户在网页重新选择/提交。下表登录指引仅适用于用户直接在本地使用 OpenYida 的非托管场景。
+
 | 场景 | 处理方式 |
 |------|----------|
 | 未登录或登录失效 | 运行 `openyida auth status`，必要时执行 `openyida login` |
