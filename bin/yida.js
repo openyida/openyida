@@ -596,7 +596,8 @@ async function main() {
     return;
   }
 
-  if (hasHelpFlag(args) && printManifestCommandHelp(command)) {
+  const useAttachmentHelp = command === 'data' && args[0] === 'upload-attachment' && args[1] === 'form';
+  if (hasHelpFlag(args) && !useAttachmentHelp && printManifestCommandHelp(command)) {
     return;
   }
 
@@ -928,7 +929,8 @@ async function main() {
       if (args.length < 2) {
         throwCliUsage(
           '用法: openyida data <action> <resource> [args] [options]',
-          '示例: openyida data query form APP_XXX FORM_XXX --page 1 --size 20'
+          '示例: openyida data query form APP_XXX FORM_XXX --page 1 --size 20',
+          '      openyida data upload-attachment form APP_XXX FORM_XXX --inst-id FINST_XXX --attachment-field attachmentField_xxx --file contract.pdf'
         );
       }
       const { run: runDataManagement } = require('../lib/core/query-data');

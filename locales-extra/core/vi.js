@@ -54,6 +54,7 @@ module.exports = {
     cmd_get_form_config: 'Query form configuration',
     group_data: 'Dữ liệu & Quyền',
     cmd_data: 'Quản lý dữ liệu thống nhất (biểu mẫu/quy trình/tác vụ/biểu mẫu con)',
+    cmd_data_upload_attachment: 'Tải tệp cục bộ lên trường đính kèm của bản ghi biểu mẫu hiện có',
     cmd_task_center: 'Trung tâm tác vụ toàn cầu (cần làm/đã xử lý/CC v.v.)',
     cmd_basic_info: 'Truy van thong tin to chuc, dung luong, han muc va mien',
     cmd_read_dingtalk_doc: 'Lấy nội dung Markdown từ tài liệu DingTalk',
@@ -147,6 +148,13 @@ module.exports = {
     next_page: 'Còn ứng dụng khác. Tiếp tục bằng lệnh: {0}',
   },
 
+  attachment_upload: {
+    invalid: 'Đối số tải tệp đính kèm không hợp lệ: {0}',
+    login_required: 'Cần phiên OAuth OpenYida hợp lệ; hãy chạy openyida login trước',
+    stage_failed: 'Tải tệp đính kèm thất bại ở giai đoạn {0}: {1}',
+    partial_failed: 'Một hoặc nhiều tệp tải lên thất bại; biểu mẫu chưa được cập nhật và có thể tồn tại đối tượng OSS mồ côi',
+    verification_failed: 'Tệp đính kèm đã được cập nhật nhưng xác minh bằng cách đọc lại thất bại'
+  },
   cli: {
     help: '\n' +
       'openyida - Yida CLI Tool\n' +

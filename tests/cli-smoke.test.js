@@ -258,6 +258,14 @@ describe('CLI offline smoke', () => {
     expect(output).not.toContain('读取登录态');
   });
 
+  test('attachment upload --help renders its own usage without requiring login', () => {
+    const result = runAny(['data', 'upload-attachment', 'form', '--help']);
+    expect(result.status).toBe(0);
+    expect(result.output).toContain('data upload-attachment form');
+    expect(result.output).toContain('--attachment-field');
+    expect(result.output).toContain('--append');
+  });
+
   test('resource command --help probes exit successfully without requiring login', () => {
     const cases = [
       { args: ['create-form', '--help'], text: 'create-form create' },
@@ -992,6 +1000,26 @@ describe('CLI offline smoke', () => {
     expect(classifyManifestInvocation(parsed.commands, ['data', 'delete'])).toMatchObject({
       entry: { id: 'data' },
       decision: 'ask',
+    });
+    expect(classifyManifestInvocation(parsed.commands, [
+      'data',
+      'upload-attachment',
+      'form',
+      'APP_1',
+      'FORM-1',
+      '--inst-id',
+      'FINST-1',
+      '--attachment-field',
+      'attachmentField_1',
+      '--file',
+      'contract.pdf',
+    ])).toMatchObject({
+      entry: {
+        id: 'data.upload-attachment.form',
+        side_effect: { kind: 'remote_write', mutates_yida: true },
+        permission: { mode: 'allow', effect: 'write' },
+      },
+      decision: 'allow',
     });
     expect(classifyManifestInvocation(parsed.commands, ['app-permission', 'remove'])).toMatchObject({
       entry: { id: 'app-permission' },
