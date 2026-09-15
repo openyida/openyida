@@ -5,6 +5,7 @@ const { readManagedContext } = require('../lib/agent/managed-context');
 const { tokenStatus, tokenRefresh } = require('../lib/auth/token-auth');
 const { resolveBearerAuthHeaders, loadAuthData } = require('../lib/core/utils');
 const { isAutoUpdateDisabled } = require('../lib/core/update');
+const { classifyManagedMutation } = require('../lib/agent/managed-command-map');
 
 function context() {
   return {
@@ -81,5 +82,26 @@ describe('managed task-grant preflight', () => {
 
   test('managed updates are disabled', () => {
     expect(isAutoUpdateDisabled(context())).toBe(true);
+  });
+
+  test.each(['--app-type', '--appType', '--app_type'])('admits PRD readback only for the explicit bound app using %s', flag => {
+    const args = ['prd.md', flag, 'APP_BOUND', '--build-manifest', 'build-manifest.json', '--json'];
+    expect(assertManagedInvocation('check-prd-completeness', args, { env: context() })).toMatchObject({ appType: 'APP_BOUND' });
+    expect(classifyManagedMutation('check-prd-completeness', args)).toBeNull();
+    expect(() => assertManagedInvocation('check-prd-completeness', ['prd.md', flag, 'APP_OTHER'], { env: context() })).toThrow(expect.objectContaining({ code: 'MANAGED_APP_MISMATCH' }));
+  });
+  test.each([
+    ['prd.md'], ['prd.md', '--app-type'],
+    ['prd.md', '--app-type', '--json'],
+    ['prd.md', '--app-type', 'APP_BOUND', '--appType', 'APP_BOUND'],
+    ['prd.md', '--app-type', 'APP_BOUND', '--unknown'],
+    ['prd.md', '--app-type=APP_BOUND'],
+    ['prd.md', '--app-type', 'APP_BOUND', '--build-manifest'],
+    ['prd.md', 'unexpected.md', '--app-type', 'APP_BOUND'],
+  ].map(args => [args]))('rejects ambiguous or unaudited PRD readback args %j', args => {
+    expect(() => assertManagedInvocation('check-prd-completeness', args, { env: context() })).toThrow(expect.objectContaining({ code: 'MANAGED_COMMAND_UNSUPPORTED' }));
+  });
+  test.each(['--corp-id', '--user-id', '--base-url', '--profile', '--access-token'])('PRD readback still rejects identity override %s', flag => {
+    expect(() => assertManagedInvocation('check-prd-completeness', ['prd.md', '--app-type', 'APP_BOUND', flag, 'anything'], { env: context() })).toThrow(expect.objectContaining({ code: 'MANAGED_OVERRIDE_FORBIDDEN' }));
   });
 });

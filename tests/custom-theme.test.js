@@ -10,6 +10,7 @@ const {
   extractThemeColor,
   unwrapUploadResponse,
   buildCustomThemeStyle,
+  uploadCustomThemeFile,
 } = require('../lib/app/custom-theme');
 
 function buildBrandScale(overrides = {}) {
@@ -112,5 +113,76 @@ ${buildBrandScale({ '--color-brand1-6': '#1677FF' })}
       cssUrl: 'https://cdn.example.com/app-theme.css',
       cssFileName: 'app-theme.css',
     });
+  });
+});
+
+describe('custom theme authenticated multipart upload', () => {
+  const originalEnv = process.env;
+  let fetchImpl;
+  const authRef = { baseUrl: 'https://platform.example.test', projectRoot: '/synthetic/project' };
+  const grant = 'task_' + 'g'.repeat(48);
+  function managedEnv() {
+    return {
+      ...process.env, OPENYIDA_MANAGED_RUN: '1',
+      OPENYIDA_AGENT_APP_TYPE: 'APP_BOUND', OPENYIDA_AGENT_CORP_ID: 'corp-test',
+      OPENYIDA_AGENT_USER_ID: 'user-test', OPENYIDA_AGENT_RUN_ID: 'run-test',
+      OPENYIDA_AGENT_ATTEMPT_ID: 'attempt-test', OPENYIDA_AGENT_BASE_URL: authRef.baseUrl,
+      OPENYIDA_AGENT_TASK_GRANT: grant,
+    };
+  }
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+    for (const key of Object.keys(process.env)) {
+      if (key === 'OPENYIDA_MANAGED_RUN' || key.startsWith('OPENYIDA_AGENT_')) {delete process.env[key];}
+    }
+    const content = Buffer.from(`:root { ${buildBrandScale()} }`);
+    jest.spyOn(fs, 'statSync').mockReturnValue({ isFile: () => true, size: content.length });
+    jest.spyOn(fs, 'readFileSync').mockReturnValue(content);
+    fetchImpl = jest.fn().mockResolvedValue({ status: 200, ok: true, json: async () => ({ success: true }) });
+  });
+  afterEach(() => {
+    process.env = originalEnv;
+    jest.restoreAllMocks();
+  });
+  test('managed upload uses only the Task Grant and run identity', async () => {
+    process.env = managedEnv();
+    const ordinaryToken = jest.spyOn(require('../lib/auth/token-auth'), 'getAccessToken').mockRejectedValue(new Error('must not read ordinary auth'));
+    await uploadCustomThemeFile('APP_BOUND', './theme.css', authRef, { fetchImpl });
+    expect(ordinaryToken).not.toHaveBeenCalled();
+    expect(fetchImpl).toHaveBeenCalledWith(expect.any(URL), expect.objectContaining({
+      redirect: 'error',
+      headers: expect.objectContaining({
+        Authorization: `Bearer ${grant}`,
+        'X-OpenYida-Local-Run-Id': 'run-test',
+        'X-OpenYida-Local-Attempt-Id': 'attempt-test',
+        'X-OpenYida-Local-App-Type': 'APP_BOUND',
+      }),
+    }));
+    expect(fetchImpl.mock.calls[0][0].href).toBe(`${authRef.baseUrl}/query/app/customTheme/upload.json`);
+  });
+  test('ordinary upload retains normal getAccessToken authentication', async () => {
+    const ordinaryToken = jest.spyOn(require('../lib/auth/token-auth'), 'getAccessToken').mockResolvedValue('synthetic-ordinary-token');
+    await uploadCustomThemeFile('APP_ORDINARY', './theme.css', authRef, { fetchImpl });
+    expect(ordinaryToken).toHaveBeenCalledWith({ projectRoot: authRef.projectRoot });
+    const request = fetchImpl.mock.calls[0][1];
+    expect(request.headers.Authorization).toBe('Bearer synthetic-ordinary-token');
+    expect(request.headers['X-OpenYida-Local-Run-Id']).toBeUndefined();
+    expect(request.redirect).toBe('error');
+  });
+  test.each([
+    ['APP_OTHER', authRef, 'MANAGED_APP_MISMATCH'],
+    ['APP_BOUND', { ...authRef, baseUrl: 'https://other.example.test' }, 'MANAGED_OVERRIDE_FORBIDDEN'],
+  ])('managed upload refuses changed app or target before sending', async (appType, ref, code) => {
+    process.env = managedEnv();
+    await expect(uploadCustomThemeFile(appType, './theme.css', ref, { fetchImpl })).rejects.toMatchObject({ code });
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(fs.statSync).not.toHaveBeenCalled();
+  });
+  test('an expired Task Grant reports auth failure without ordinary auth fallback', async () => {
+    process.env = managedEnv();
+    const ordinaryToken = jest.spyOn(require('../lib/auth/token-auth'), 'getAccessToken').mockRejectedValue(new Error('must not read ordinary auth'));
+    fetchImpl.mockResolvedValue({ status: 401 });
+    await expect(uploadCustomThemeFile('APP_BOUND', './theme.css', authRef, { fetchImpl })).resolves.toEqual({ __needLogin: true, __httpStatus: 401 });
+    expect(ordinaryToken).not.toHaveBeenCalled();
   });
 });
