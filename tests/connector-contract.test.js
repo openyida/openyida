@@ -48,8 +48,39 @@ describe('connector shared contract', () => {
       query: { trace: 'owned' },
       header: { 'X-E2E': 'owned' },
       connectorMode: 5,
-      body: { ok: true },
+      body: '{"ok":true}',
     });
+  });
+
+  test('pre-serializes the test body as JSON for body-bearing methods', () => {
+    expect(buildConnectorTestPayload({
+      connector: { scheme: 'https', host: 'echo.example.com' },
+      operation: { method: 'post', url: 'echo' },
+      body: { list: ['a', 'b'], nested: { ok: 1 } },
+    }).body).toBe('{"list":["a","b"],"nested":{"ok":1}}');
+
+    expect(buildConnectorTestPayload({
+      connector: { scheme: 'https', host: 'echo.example.com' },
+      operation: { method: 'put', url: 'echo' },
+      body: undefined,
+    }).body).toBe('{}');
+
+    expect(buildConnectorTestPayload({
+      connector: { scheme: 'https', host: 'echo.example.com' },
+      operation: { method: 'post', url: 'echo' },
+      body: '{"already":"serialized"}',
+    }).body).toBe('{"already":"serialized"}');
+  });
+
+  test('omits the body field for GET and DELETE test requests', () => {
+    for (const method of ['get', 'delete']) {
+      const payload = buildConnectorTestPayload({
+        connector: { scheme: 'https', host: 'echo.example.com' },
+        operation: { method, url: 'echo' },
+        body: { ignored: true },
+      });
+      expect(payload).not.toHaveProperty('body');
+    }
   });
 
   test('accepts canonical frontend responses and proven success envelopes', () => {
