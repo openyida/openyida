@@ -3,7 +3,9 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { run, parseArgs, loadPlan, schedule, mapReferences, parseOutput } = require('../lib/app/create-form/batch');
+jest.mock('child_process', () => ({ execFile: jest.fn() }));
+const { execFile } = require('child_process');
+const { run, parseArgs, loadPlan, schedule, mapReferences, parseOutput, execute } = require('../lib/app/create-form/batch');
 
 describe('dependency-aware form batches', () => {
   let dir;
@@ -75,6 +77,14 @@ describe('dependency-aware form batches', () => {
     expect(worker).toHaveBeenCalledTimes(1);
   });
 
+  test('failed child diagnostics preserve the safe error code in batch results', async () => {
+    const error = Object.assign(new Error('save failed'), { output: {
+      errorCode: 'CREATE_FORM_SAVE_FAILED', formUuid: 'FORM-A',
+    } });
+    const results = await schedule([{ key: 'a', dependsOn: [] }], 1, {}, async () => { throw error; }, () => {});
+    expect(results.a).toMatchObject({ status: 'failed', error: 'save failed', errorCode: 'CREATE_FORM_SAVE_FAILED', formUuid: 'FORM-A' });
+  });
+
   test('an interrupted task is blocked from recreation on restart', async () => {
     const worker = jest.fn();
     const results = await schedule([{ key: 'a', dependsOn: [] }, { key: 'b', dependsOn: ['a'] }], 2, { a: { status: 'running' } }, worker, () => {});
@@ -135,5 +145,63 @@ describe('dependency-aware form batches', () => {
     expect(parseOutput('progress\n{"success":false,"formUuid":"FORM-A"}\n')).toEqual({ success: false, formUuid: 'FORM-A' });
     expect(parseOutput('progress\n{"success":false,"formUuid":"FORM-A"}\n{"success":false,"errorCode":"ERROR"}').formUuid).toBe('FORM-A');
     expect(() => parseArgs(['APP_X', file, '--concurrency', '0'])).toThrow();
+  });
+
+  test('machine children request JSON once and parse existing success output', async () => {
+    execFile.mockImplementation((_node, argv, _options, callback) => {
+      expect(argv.filter(arg => arg === '--json')).toHaveLength(1);
+      expect(argv.filter(arg => arg === '--quiet')).toHaveLength(1);
+      callback(null, '{\n"success":true,"formUuid":"FORM-A"\n}', '');
+    });
+    await expect(execute(['create-form', 'create', 'APP_X', 'A', '[]', '--json', '--quiet']))
+      .resolves.toEqual({ success: true, formUuid: 'FORM-A' });
+    execFile.mockImplementationOnce((_node, _argv, _options, callback) => {
+      callback(null, 'progress\n{"success":true,"formUuid":"FORM-B"}', '');
+    });
+    await expect(execute(['create-form', 'create', 'APP_X', 'B', '[]']))
+      .resolves.toEqual({ success: true, formUuid: 'FORM-B' });
+  });
+
+  test('stderr failure retains error code and an earlier created ID without argv', async () => {
+    execFile.mockImplementation((_node, _argv, _options, callback) => {
+      callback(new Error('Command failed: private argv'), '{"success":true,"formUuid":"FORM-A"}',
+        JSON.stringify({ success: false, errorCode: 'CREATE_FORM_SAVE_FAILED', errorMsg: 'save failed', details: { token: 'private-token' } }));
+    });
+    await expect(execute(['create-form', 'create', 'APP_X', 'A', '[]'])).rejects.toMatchObject({
+      message: 'save failed', output: { success: false, errorCode: 'CREATE_FORM_SAVE_FAILED', errorMsg: 'save failed', formUuid: 'FORM-A' },
+    });
+  });
+
+  test('failure diagnostics redact grant and bearer secrets before truncating', async () => {
+    const previous = process.env.OPENYIDA_AGENT_TASK_GRANT;
+    process.env.OPENYIDA_AGENT_TASK_GRANT = 'fixture-secret-grant';
+    execFile.mockImplementation((_node, _argv, _options, callback) => {
+      callback(new Error('Command failed: private argv'), '', JSON.stringify({ success: false, errorCode: 'CREATE_FORM_FAILED',
+        errorMsg: 'fixture-secret-grant Authorization: Bearer private-access-token password=private-password ' + 'x'.repeat(5000) }));
+    });
+    try {
+      expect.assertions(3);
+      await execute(['create-form', 'create', 'APP_X', 'A', '[]']).catch(error => {
+        expect(error.message).toHaveLength(2048);
+        expect(error.message).toContain('***');
+        expect(JSON.stringify(error.output)).not.toMatch(/fixture-secret-grant|private-access-token|private-password|private argv/);
+      });
+    } finally {
+      if (previous === undefined) { delete process.env.OPENYIDA_AGENT_TASK_GRANT; }
+      else { process.env.OPENYIDA_AGENT_TASK_GRANT = previous; }
+    }
+  });
+
+  test('non-JSON stderr is bounded and redacted; empty failures omit argv', async () => {
+    execFile.mockImplementationOnce((_node, _argv, _options, callback) => {
+      callback(new Error('Command failed: private argv'), '', 'Bearer private-access-token');
+    });
+    await expect(execute(['create-form', 'validate-fields', '[]']))
+      .rejects.toMatchObject({ message: 'Bearer ***' });
+    execFile.mockImplementationOnce((_node, _argv, _options, callback) => {
+      callback(Object.assign(new Error('Command failed: private argv'), { code: 'ETIMEDOUT' }), '', '');
+    });
+    await expect(execute(['create-form', 'validate-fields', '[]']))
+      .rejects.toMatchObject({ message: 'Missing command result', output: { errorCode: 'ETIMEDOUT' } });
   });
 });
