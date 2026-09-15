@@ -42,9 +42,11 @@
 
 按 PRD 的 [导航类型](../../yida-prd/workflow/output-prd.md#agent-导航实施映射) 设置布局。已有应用切换平台导航时执行 `openyida update-app <appType> --layout <l_shape|top|side> --show-app-nav`；自定义导航执行 `openyida update-app <appType> --hide-app-nav`，并将逐页隐藏清单交给 Step 4 与 Step 6，在各页面创建后立即配置，Step 8 只做发布后核对。新建应用也在主题文件生成后的同一次 `update-app --theme-file` 中传入布局和 `--hide-app-nav` / `--show-app-nav`，不要提前单独更新导航或在创建时传入布局。用户已确认的应用导航隐藏随这次设置更新一起生效，不等待自定义页面创建、代码开发或发布。
 
+当前步骤只读取应用工作区的 `execution.appConfig.navigationType`。独立前台页面的 `pageSpecHandoff.navigation.type=custom` 不代表应用级 custom；不得据此前台菜单传入 `--hide-app-nav`。前台自定义、后台平台导航时，应用保持 `--show-app-nav`，页面在 Step 6 单独配置。
+
 ### 平台导航参数
 
-与 `yida-next` 的 ThemeNavSetting 一致：`updateApp.json` 接收的字段名是 **`layoutDirection`**。CLI 使用 `--layout` 传入，按下表逐项对应：
+`updateApp.json` 接收的布局字段名是 **`layoutDirection`**。CLI 使用 `--layout` 传入，按下表逐项对应：
 
 | PRD 导航方案 | CLI 参数 | 请求中的 `layoutDirection` | 请求中的 `hideAppNav` |
 | --- | --- | --- | --- |
@@ -56,7 +58,7 @@
 
 Agent 必须显式传入场景选择对应的布局，不依赖 CLI 默认值。`navigationType=platform-top` 是计划内部标识，不能作为 `--layout` 的值；也不能用旧 Shell 的 `navType`、`hoz/ver/slide` 或 `top_fold/top_side/side_only` 代替上述参数。`navTheme` 只控制导航配色，不控制布局。自定义导航的 `variant=top/side/mixed/dock` 描述页面内菜单，不用于设置平台布局；自定义导航仍使用 `--hide-app-nav`。
 
-`navType` 仍是兼容字段：与 `yida-next` 一致，CLI 查询应用后将已有值原样带回；缺失时不补造，也不根据新布局改写。没有新增 `--nav-type` 参数。未传 `--layout` 时，CLI 按 `yc-utils` 的应用配置规则保留原布局：现代 `side/top/l_shape` 优先；旧 `hoz + top_side` 为 L 型，其他 `hoz` 为顶部，`ver` 为侧边；布局缺失时用 `navType=top_fold/top_side` 分别恢复顶部/L 型，其余回退侧边。
+`navType` 是兼容字段：CLI 查询应用后将已有值原样带回；缺失时不补造，也不根据新布局改写。没有 `--nav-type` 参数。未传 `--layout` 时，CLI 保留原布局：现代 `side/top/l_shape` 优先；旧 `hoz + top_side` 为 L 型，其他 `hoz` 为顶部，`ver` 为侧边；布局缺失时用 `navType=top_fold/top_side` 分别恢复顶部/L 型，其余回退侧边。
 
 Shell 渲染阶段才把顶部、侧边、L 型转换为 `top_fold`、`side_only`、`top_side`。详情/提交页的 `top_fold` 强制顶部、`none` 保持无导航属于页面运行态规则，不能反向写入应用配置。
 

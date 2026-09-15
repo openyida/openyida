@@ -52,3 +52,17 @@ describe('redact utilities', () => {
     expect(maskString('abc')).toBe('***');
   });
 });
+
+
+test('shared diagnostics remain complete and redacted in every output location', () => {
+  const shared = { path: '/tmp/missing.png', accessToken: 'sensitive-access-token-value' };
+  const input = { asset: { details: shared }, gaps: [{ details: shared }] };
+  const output = JSON.parse(safeJsonStringify(input));
+  expect(output.asset.details).toEqual(output.gaps[0].details);
+  expect(output.asset.details.path).toBe('/tmp/missing.png');
+  expect(output.asset.details.accessToken).not.toBe(shared.accessToken);
+  expect(safeJsonStringify(input)).not.toContain('[Circular]');
+  const cycle = [];
+  cycle.push(cycle);
+  expect(JSON.parse(safeJsonStringify(cycle))).toEqual(['[Circular]']);
+});

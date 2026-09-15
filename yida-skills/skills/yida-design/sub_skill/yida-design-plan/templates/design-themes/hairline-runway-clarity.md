@@ -5,80 +5,69 @@ themeId: "hairline-runway-clarity"
 tokens:
   application-global:
     colors:
-      "--pod-page-bg-color": "var(--color-white, #fff)"
-      "--color-white": "#FFFFFF"
-      "--color-brand1-1": "AI 根据 --color-brand1-6 与白色混合生成 10% 品牌色"
-      "--color-brand1-2": "AI 根据 --color-brand1-6 与白色混合生成 18% 品牌色"
-      "--color-brand1-3": "AI 根据 --color-brand1-6 与白色混合生成 26% 品牌色"
-      "--color-brand1-5": "AI 根据 --color-brand1-6 与黑色混合生成 18% 深色"
-      "--color-brand1-6": "{{PRIMARY_COLOR}}"
-      "--color-brand1-9": "AI 根据 --color-brand1-6 与黑色混合生成 12% 按下色"
-      "--color-brand1-10": "AI 根据 --color-brand1-6 与白色混合生成 70% 禁用色"
-      "--color-line1-1": "#EEEEEE"
-      "--color-line1-2": "#DCDCDC"
-      "--color-fill1-1": "#F8F8F8"
-      "--color-fill1-2": "#F2F2F2"
-      "--color-fill1-3": "#E8E8E8"
-      "--color-fill1-10": "rgba(255, 255, 255, 0.98)"
-      "--color-text1-4": "#111111"
-      "--color-text1-10": "#666666"
-      "--color-text1-3": "#929292"
+      "--pod-app-root-bg-color": "var(--pod-page-bg-color)" # 应用最底层背景色
+      "--pod-app-root-bg-image": "none" # 应用最底层背景图
+      "--pod-shell-theme-bg-color": "var(--color-brand1-3)" # 顶部导航、侧边导航和应用壳层背景色
+      "--pod-page-bg-color": "var(--color-white, #fff)" # 宜搭全局页面画布背景色
+      "--color-white": "#FFFFFF" # 全应用基础表面色
+      "--pod-card-bg-color": "var(--color-white)" # 一级卡片、表单主容器和详情面板背景色
+      "--color-brand1-1": "AI 根据 --color-brand1-6 与白色混合生成 10% 品牌色" # 悬停色
+      "--color-brand1-2": "AI 根据 --color-brand1-6 与白色混合生成 18% 品牌色" # 品牌浅色，保留平台既有消费关系
+      "--color-brand1-3": "AI 根据 --color-brand1-6 与白色混合生成 26% 品牌色" # 浅色导航框架背景色
+      "--color-brand1-5": "AI 根据 --color-brand1-6 与黑色混合生成 18% 深色" # 深色导航框架背景色
+      "--color-brand1-6": "{{PRIMARY_COLOR}}" # 全应用主题主色，是其他 Brand Token 的生成基准
+      "--color-brand1-9": "AI 根据 --color-brand1-6 与黑色混合生成 12% 按下色" # 激活、按下状态色
+      "--color-brand1-10": "AI 根据 --color-brand1-6 与白色混合生成 70% 禁用色" # 禁用状态色
+      "--color-line1-1": "#EEEEEE" # 弱边界、辅助线和表格行分隔线
+      "--color-line1-2": "#DCDCDC" # 控件和容器常规边界
+      "--color-fill1-1": "#F8F8F8" # 菜单悬停和弱状态填充
+      "--color-fill1-2": "#F2F2F2" # 点击或选中填充
+      "--color-fill1-3": "#E8E8E8" # 更重的中性填充
+      "--color-fill1-10": "#2E3033" # Tooltip 固定深色背景
+      "--color-text1-5": "#FFFFFF" # Tooltip 固定反色文字
+      "--color-text1-4": "#111111" # 默认一级文字色，文字对比最强
+      "--color-text1-10": "#666666" # 表头和 placeholder
+      "--color-text1-3": "#929292" # 二级文字色，弱于 text1-10
+      "--color-text1-2": "rgba(24, 24, 24, 0.4)" # 仅用于禁用态文字，弱于 text1-3
+      "--color-text1-1": "rgba(24, 24, 24, 0.24)" # 仅用于水印文字，文字对比最弱
     typography:
-      base:
-        "--font-family-base": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif"
-      subhead:
-        "--font-size-subhead": 24px
-        "--font-weight-subhead": 600
-        "--font-lineheight-subhead": 1.3
-      body-2:
-        "--font-size-body-2": 16px
-        "--font-weight-body-2": 600
-        "--font-lineheight-body-2": 1.4
-      body-1:
-        "--font-size-body-1": 14px
-        "--font-weight-body-1": 400
-        "--font-lineheight-body-1": 1.5
-      table:
-        "--font-size-table": 14px
-        "--font-weight-table": 400
-        "--font-lineheight-table": 1.45
-      caption:
-        "--font-size-caption": 12px
-        "--font-weight-caption": 400
-        "--font-lineheight-caption": 1.4
+      "--font-family-base": "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      "--font-size-subhead": "18px"
+      "--font-weight-subhead": "500"
+      "--font-lineheight-subhead": "1.3"
+      "--font-size-body-2": "16px"
+      "--font-weight-body-2": "500"
+      "--font-lineheight-body-2": "1.45"
+      "--font-size-body-1": "14px"
+      "--font-weight-body-1": "400"
+      "--font-lineheight-body-1": "1.5"
+      "--font-size-table": "13px"
+      "--font-weight-table": "400"
+      "--font-lineheight-table": "1.45"
+      "--font-size-caption": "12px"
+      "--font-weight-caption": "400"
+      "--font-lineheight-caption": "1.4"
     spacing:
-      "--s-1": 4px
-      "--s-2": 8px
-      "--s-3": 12px
-      "--s-4": 16px
-      "--s-6": 24px
-      "--s-8": 32px
+      "--s-1": "4px"
+      "--s-2": "8px"
+      "--s-3": "12px"
+      "--s-4": "16px"
+      "--s-5": "20px"
+      "--s-6": "24px"
+      "--s-7": "28px"
+      "--s-8": "32px"
+      "--s-9": "36px"
+      "--s-10": "40px"
     rounded:
-      "--corner-zero": 0px
-      "--corner-1": 3px
-      "--corner-2": 6px
-      "--corner-3": 10px
-      "--corner-4": 14px
-      "--corner-5": 18px
-      "--corner-circle": 50%
-      "--corner-semicircle": 500px
-  custom-page:
-    colors:
-      "--oyd-series-strong": "#2477D4"
-      "--oyd-series-soft": "#A9D8F5"
-      "--oyd-category-1": "#6F8BFF"
-      "--oyd-category-2": "#74D4F3"
-      "--oyd-category-3": "#B895EE"
-      "--oyd-category-4": "#A5D9D2"
-    typography:
-      metric-primary:
-        "--font-size-metric-primary": 30px
-        "--font-weight-metric-primary": 600
-        "--font-lineheight-metric-primary": 1.2
-      metric-hero:
-        "--font-size-metric-hero": 42px
-        "--font-weight-metric-hero": 500
-        "--font-lineheight-metric-hero": 1.15
+      "--corner-zero": "0px"
+      "--corner-1": "3px"
+      "--corner-2": "6px"
+      "--corner-3": "10px"
+      "--corner-4": "14px"
+      "--corner-5": "18px"
+      "--corner-circle": "50%"
+      "--corner-semicircle": "500px"
+  custom-page: {}
 ---
 
 # {{PROJECT_NAME}} design.md
@@ -105,7 +94,7 @@ tokens:
 | --- | --- | --- | --- |
 | 连续画布发丝分区 | 一级内容直接落在统一近白画布上，区域之间由贯穿宽度的细横线划分，几乎没有外卡框。`observed`，高置信度 | 连续表面、整行分隔和统一水平内边距不可变；分区数量与内容由 PRD 决定。使用 section border 与父级 padding | 退化为常规圆角卡片墙，开放感和整体节奏消失 |
 | 竖轨摘要带 | 同层摘要并排放置，以短竖线分隔，标签、数值与比较信息共享三条水平基线。`observed`，高置信度 | 无外框、内部竖线、同高三段基线不可变；摘要数量和内容可变。使用 grid 与 `border-inline-start` | 退化为浮动 KPI 卡片，平面编辑式语言被破坏 |
-| 错位数据锚与淡化双层柱 | 左侧用超大数值建立锚点，右侧柱带由低透明全高柱与底部实色短柱叠加，浮层悬于数据上方。`observed`，高置信度 | 左右不对称、双层柱和白色浮层不可变；时间范围、序列和值可变。使用主辅 grid、absolute 双柱与 portal tooltip | 变成普通柱图面板，主数值与趋势之间失去张力 |
+| 错位数据锚与淡化双层柱 | 左侧用超大数值建立锚点，右侧柱带由低透明全高柱与底部实色短柱叠加，浮层悬于数据上方。`observed`，高置信度 | 左右不对称、双层柱和深色提示浮层保持一致；时间范围、序列和值可变。使用主辅 grid、absolute 双柱与 portal tooltip | 变成普通柱图面板，主数值与趋势之间失去张力 |
 | 阶段跑道组 | 多个阶段横向并列，每项先显示细色标、名称与数值，再以低饱和圆角长条压住底部。`observed`，高置信度 | 顶部元信息＋底部长跑道的两层结构不可变；阶段数、比例、标签与分类色可变。使用等分 grid 和固定轨高 | 退化为默认进度条列表，缺少横向推进节奏 |
 | 下划线筛选账册 | 文本型筛选项位于表格上方，激活项以短黑线压底；搜索与导出贴右，明细行无卡片化。`observed`，高置信度 | 文本标签、底部选中线、右侧工具和轻表格不可变；标签、列和操作由 PRD 决定。使用 tablist 与语义 table | 退化为胶囊标签和卡片行，轻量连续性消失 |
 
@@ -125,7 +114,7 @@ tokens:
 
 ### 设计变量范围
 
-`tokens.application-global` 是原生表单、流程页面和自定义页面共同遵守的全应用设计契约；本主题使用高对比文字、极轻边界、紧凑圆角与宽松区块间距形成平面秩序。`tokens.custom-page` 只补充近白连续画布、两枚独立数据序列色、四枚等权阶段色和两级指标数字：序列色与阶段色用于真实数据编码而非主题或状态；两级指标数字是全局字体体系没有的大数值语义，因此不与全局 Token 重复。
+颜色、字体、间距和圆角统一使用 `tokens.application-global` 中的基础变量。组件直接消费对应变量；渐变、透明度和纹理在组件配方中组合基础变量。独立分类色保留在对应图表配方中。
 
 ## 色彩
 
@@ -149,13 +138,14 @@ tokens:
 | 悬停、弱标签和淡化表头 | `--color-fill1-1` | 应用全局 |
 | 中性选中底与按下填充 | `--color-fill1-2` | 应用全局 |
 | 禁用轨道与骨架占位 | `--color-fill1-3` | 应用全局 |
-| tooltip、popover 和菜单表面 | `--color-fill1-10` | 应用全局 |
+| Tooltip 背景和文字 | `--color-fill1-10`、`--color-text1-5` | 应用全局 |
+| popover 和菜单表面 | `--pod-card-bg-color` | 应用全局 |
 | 标题、核心数值、正文与主要图标 | `--color-text1-4` | 应用全局 |
 | 表头、输入占位和次级标签 | `--color-text1-10` | 应用全局 |
 | 时间、说明、坐标和比较基准 | `--color-text1-3` | 应用全局 |
 | 连续近白页面画布 | `--pod-page-bg-color` | 自定义页 |
-| 双层柱的强、弱配对序列 | `--oyd-series-strong`、`--oyd-series-soft` | 自定义页 |
-| 阶段跑道与对应细色标 | `--oyd-category-1` 至 `--oyd-category-4` | 自定义页 |
+| 双层柱的强、弱配对序列 | `#2477D4`、`#A9D8F5` | 自定义页 |
+| 阶段跑道与对应细色标 | `#6F8BFF` 至 `#A5D9D2` | 自定义页 |
 
 `--color-brand1-6` 是唯一品牌色种子。最终项目实例化时必须把其余六枚 Brand Token 的生成期标记解析为实际色值；没有品牌色时使用中等明度、满足对比的暖色作为主操作锚点。换色后至少 90% 的画布、文字、分隔与表格保持中性，独立数据色不参与主题同色推演。
 
@@ -163,22 +153,21 @@ tokens:
 
 - `--color-white`、所有 `line1`、`fill1`、`text1` 均为 `neutral-gray`；固定 Hex 的 RGB 三通道相等。
 - 本主题不声明固定偏色灰或 `theme-gray`；主题色的浅深变化全部由七枚 Brand Token 承担，并在实例化时写入实际值。
-- `--oyd-series-strong` 与 `--oyd-series-soft` 是一组具有强弱关系的独立数据序列色，仅用于真实配对序列；弱序列允许 22%-36% 透明度，强序列保持实色。
-- `--oyd-category-1` 至 `--oyd-category-4` 为等权独立分类色，只用于阶段跑道、细色标和必要图例；单屏每种色面积不超过 8%。
+- `#2477D4` 与 `#A9D8F5` 是一组具有强弱关系的独立数据序列色，仅用于真实配对序列；弱序列允许 22%-36% 透明度，强序列保持实色。
+- `#6F8BFF` 至 `#A5D9D2` 为等权独立分类色，只用于阶段跑道、细色标和必要图例；单屏每种色面积不超过 8%。
 - 主题色只用于主操作、焦点、链接和选中状态；成功、警告、错误和信息状态直接消费平台语义色，并配合文字、图标或方向符号。
 
 ## 字体与排版
 
-- 全局只使用 `tokens.application-global.typography.base` 的字体栈。
-- `page-title` 使用 `tokens.application-global.typography.subhead`：24px / 600 / 1.3；普通页面不引入展示型标题。
-- `panel-title` 使用 `tokens.application-global.typography.body-2`：16px / 600 / 1.4；用于分区标题与重点标签。
-- `content-title` 和正文使用 `tokens.application-global.typography.body-1`：14px / 400 / 1.5；内容标题只提高字重到 600。
-- 表格使用 `tokens.application-global.typography.table`：14px / 400 / 1.45；表头使用同字号、500 字重。
-- 辅助说明使用 `tokens.application-global.typography.caption`：12px / 400 / 1.4。
-- 常规摘要使用 `tokens.custom-page.typography.metric-primary`：30px / 600 / 1.2；主视觉总值使用 `metric-hero`：42px / 500 / 1.15。二者都是全局排版未覆盖的数据语义，不得用于页面标题。
-- 数值使用 `font-variant-numeric: tabular-nums`；小数的次要部分可使用 `--color-text1-3`，但保持同一字号和基线。
-- 标题单行省略；副标题最多两行；表格长文本单行省略并通过 tooltip 或详情操作提供完整信息。
-- 图标为 1.75px 线性描边、圆角端点；常规 18px、强调 20px，与文字首行光学居中。
+字体使用 `--font-family-base`。字号、字重和行高按 YAML 的固定基础变量执行；数字使用 `font-variant-numeric: tabular-nums` 保持列对齐。
+
+| 内容 | 字号 | 字重 | 行高 |
+| --- | --- | --- | --- |
+| 页面标题、强面板标题、重点数字 | `--font-size-subhead` | `--font-weight-subhead` | `--font-lineheight-subhead` |
+| 次级标题、强调正文 | `--font-size-body-2` | `--font-weight-body-2` | `--font-lineheight-body-2` |
+| 普通正文 | `--font-size-body-1` | `--font-weight-body-1` | `--font-lineheight-body-1` |
+| 表格正文 | `--font-size-table` | `--font-weight-table` | `--font-lineheight-table` |
+| 辅助说明、元信息 | `--font-size-caption` | `--font-weight-caption` | `--font-lineheight-caption` |
 
 ## 布局与间距
 
@@ -201,7 +190,7 @@ tokens:
 ## 表面与层级
 
 - 页面使用连续 `--pod-page-bg-color`，一级分区不设卡片边框、圆角或阴影；上下只使用 1px `--color-line1-1` 发丝分隔。
-- 控件和 tooltip 是少数独立表面：白底、1px `--color-line1-2`、`--corner-3`；tooltip 可使用 `0 8px 24px rgba(0,0,0,.08)`。
+- 控件使用 `--pod-card-bg-color`、1px `--color-line1-2`、`--corner-3`；Tooltip 使用 `--color-fill1-10` 背景与 `--color-text1-5` 文字，阴影可使用 `0 8px 24px rgba(0,0,0,.08)`。
 - 表格表头保持透明或极浅填充，数据行无独立表面；状态标签和头像使用局部轮廓，不形成卡片层。
 - 禁止大面积渐变、玻璃模糊、投影卡阵列和多层嵌套边框；低饱和跑道条允许轻微同色明度渐变。
 - 同一分区内部优先用留白、对齐和发丝线分层，嵌套轮廓最多一层。
@@ -235,7 +224,7 @@ tokens:
 ### 卡片与面板
 
 - 一级内容不做卡片，直接成为连续画布中的 section；内边距 24-32px，上下用发丝线分隔。
-- 只有 tooltip、popover、modal 或强独立嵌套内容才使用白底、10-18px 圆角和局部阴影。
+- popover、modal 和独立嵌套内容使用 `--pod-card-bg-color`、基础圆角和局部阴影；Tooltip 使用统一的深底反色文字。
 - 标题区与内容区间隔 16-24px；不能把每段内容、每个指标或每行记录都包成卡。
 
 ### 连续画布发丝分区
@@ -249,7 +238,7 @@ tokens:
 
 - `content_contract`: 2-4 个同层级摘要及可选比较值；`render_policy: prd_match_only`。
 - 无外框等分 grid，每个单元高 120-148px；除首项外使用 1px 竖线分隔，左右内边距 24-32px。
-- 采用“标签 / `metric-primary` 数值 / 趋势＋基准”三段基线；趋势必须使用平台语义色、方向图标和文字。
+- 采用“标签 / `subhead` 数值 / 趋势＋基准”三段基线；趋势必须使用平台语义色、方向图标和文字。
 - 单元 hover 只改变局部文字或弱底，不生成卡片阴影；不可拆成独立悬浮卡。
 
 ### 错位数据锚与淡化双层柱
@@ -257,7 +246,7 @@ tokens:
 - `content_contract`: 一个真实总量和两条共享横轴的真实序列；`render_policy: prd_match_only`。
 - 外层使用约 28/72 grid；左侧大数值靠近底部基线，右侧柱带占据固定 280-340px 高度。
 - 每个横轴位置叠放一根低透明全高柱和一根实色底部短柱，宽 10-14px，gap 10-16px；弱序列在后、强序列在前。
-- tooltip 为白底局部浮层，显示时间键、图例色标和右对齐值；位置不遮挡选中柱，键盘聚焦可触发。
+- tooltip 为深底反色文字的局部浮层，显示时间键、图例色标和右对齐值；位置不遮挡选中柱，键盘聚焦可触发。
 - 不可替换成常规卡片柱图、饼图或面积图；只有单序列时保留大数值锚并降级为单层柱。
 
 ### 阶段跑道组
@@ -270,15 +259,15 @@ tokens:
 ### 下划线筛选账册
 
 - `content_contract`: 可筛选结构化记录；`render_policy: prd_match_only`。
-- tablist 高 48px，项目使用文本标签和 0 背景；选中项以 2px `--color-text1-4` 下划线、600 字重和 `aria-selected` 表达。
+- tablist 高 48px，项目使用文本标签和 0 背景；选中项以 2px `--color-text1-4` 下划线、`--font-weight-body-2` 字重和 `aria-selected` 表达。
 - 搜索与次操作贴右并与 tab 基线对齐；表头高 48px，数据行高 56-60px，只画横向弱分隔。
 - 首列可包含复选框、28px 中性头像和名称；状态使用细描边胶囊＋图标/文字；数字右对齐。
 - 表体内部滚动、表头 sticky、长文本省略；不可把 tab 改成彩色胶囊或把数据行做成卡片。
 
 ### 图表或主内容面板
 
-- 图表必须由 PRD 的真实数据触发；本主题优先使用低饱和双层柱、极少轴线、简洁图例和白色 tooltip。
-- 图表固定高 280-340px；弱基线使用 `--color-line1-1`，轴与说明使用 `--color-text1-3`，配对序列使用 `--oyd-series-strong` 与 `--oyd-series-soft`。
+- 图表必须由 PRD 的真实数据触发；本主题优先使用低饱和双层柱、极少轴线、简洁图例和深色 tooltip。
+- 图表固定高 280-340px；弱基线使用 `--color-line1-1`，轴与说明使用 `--color-text1-3`，配对序列使用 `#2477D4` 与 `#A9D8F5`。
 - 没有配对序列时使用单序列并保留留白和轻轴；没有图表契约时用表格、列表、表单或详情承载主内容。
 
 ### 表格与列表
@@ -336,7 +325,7 @@ tokens:
 
 - 无条件保护连续近白画布、贯穿发丝线、共享左右边线、宽松区块留白和小面积主题焦点。
 - 摘要契约成立时保护无外框等分栏、内部竖线和三段数据基线。
-- 配对时序契约成立时保护左侧大数值锚、右侧双层柱、轻轴与白色 tooltip。
+- 配对时序契约成立时保护左侧大数值锚、右侧双层柱、轻轴与深色 tooltip。
 - 阶段契约成立时保护细色标、顶部元信息与底部长跑道；筛选账册契约成立时保护文本 tab、下划线选中和轻表格。
 - 保护父级拉伸、固定图表高度、面板内部溢出、完整状态、响应式和可访问性。
 
@@ -364,14 +353,14 @@ tokens:
 
 ### AI 使用提示
 
-先读取 PRD，再解析 `{{PRIMARY_COLOR}}` 并生成七枚实际 Brand Token。所有真实页面先继承全应用 Token 与基础组件语言，再按内容契约选择连续发丝分区、竖轨摘要、错位数据锚与淡化双层柱、阶段跑道或下划线筛选账册。代表构图只是视觉配方，不用于创造字段、指标、序列、阶段、筛选、记录或操作；主题色只替换交互色相，不改变连续画布、平面层级、错位构图、留白、形状和发丝轨道。字号与控件尺寸按平台 Token 范围推断，不把图片物理像素当作 CSS 像素。
+先读取 PRD，再解析 `{{PRIMARY_COLOR}}` 并生成七枚实际 Brand Token。所有真实页面先继承全应用 Token 与基础组件语言，再按内容契约选择连续发丝分区、竖轨摘要、错位数据锚与淡化双层柱、阶段跑道或下划线筛选账册。代表构图只是视觉配方，不用于创造字段、指标、序列、阶段、筛选、记录或操作；主题色只替换交互色相，不改变连续画布、平面层级、错位构图、留白、形状和发丝轨道。字号、字重和行高按基础变量执行，控件按业务操作选择平台规格。
 
 ### 交付自检
 
 - [ ] 全部页面内容、字段和模块是否来自 PRD，而非模板来源？
 - [ ] 一级内容是否共享连续画布，并以贯穿发丝线而非卡片墙分区？
 - [ ] 摘要是否在契约成立时保持无外框等分、内部竖线和三段基线？
-- [ ] 主视觉是否在契约成立时保持大数值锚、淡化双层柱、轻轴和白色 tooltip？
+- [ ] 主视觉是否在契约成立时保持大数值锚、淡化双层柱、轻轴和深色 tooltip？
 - [ ] 阶段跑道是否保留细色标、顶部元信息、等高长条和非纯颜色标识？
 - [ ] 筛选账册是否保留文本 tab、短下划线、贴右工具和无卡片数据行？
 - [ ] 每个视觉组件及不对称布局是否都有 `content_contract`、`render_policy`、适配目标、回退与禁止项？
@@ -379,7 +368,7 @@ tokens:
 - [ ] 主操作、焦点和选中是否共享 `--color-brand1-6`，其余画布是否保持中性？
 - [ ] 数据序列色和阶段分类色是否仅用于真实等权类别，平台状态色是否未重复定义？
 - [ ] 所有固定灰色是否为三通道相等的 `neutral-gray`，且没有未声明偏色灰？
-- [ ] `application-global` 语义是否稳定，`custom-page` 是否没有同值同义或角色重复 Token？
+- [ ] 组件配方是否直接消费基础变量，并以表达式组合渐变、透明度和纹理？
 - [ ] 文字对比是否保持 `text1-4` 高于 `text1-10`、`text1-10` 高于 `text1-3`？
 - [ ] `themeId`、描述、DNA、组件标题和正文总结是否与默认色相及页面类型解耦？
 - [ ] 同类区块是否等高、网格是否拉伸、图表是否定高、长内容是否在内部处理？

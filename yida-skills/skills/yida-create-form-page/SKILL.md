@@ -180,7 +180,7 @@ openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout d
 
 默认不传 `--icon`，由 CLI 根据表单标题和字段语义选择导航图标，再更新导航节点并回读校验。只有用户明确指定某个图标时才传 `--icon <iconName>`；普通搭建不得调用 `openyida create-form icons` 枚举候选，也不得先猜图标、失败后再探索。`icons` 仅供用户明确指定但值不合法时的人工诊断。表单导航图标是纯图标名（如 `name-card`、`Project`、`Todo`、`clock`），不是应用图标的 `xian-*%%color` 协议。
 
-导航图标更新必须先读取 `getFormNavigationListByOrder.json` 的当前节点，像 yida-next 的 `DB.Nav.update({ ...node, title: JSON.stringify(node.title), formUuid: node.formUuid || 'NAV-SYSTEM-FROM-ME-UUID', icon })` 一样保留 `gmtModified`、`formType`、`isNewForm`、`listOrder` 等原值，再请求带 `_api=Nav.update&_mock=false&_stamp=...` 的 `updateFormNavigation.json`，最后重新读取导航列表校验图标。禁止仅凭 formUuid 拼一个精简更新 payload。
+导航图标更新必须先读取 `getFormNavigationListByOrder.json` 的当前节点，保留完整节点及 `gmtModified`、`formType`、`isNewForm`、`listOrder` 等原值，将 `title` 序列化为 JSON，沿用节点的 `formUuid`（缺失时使用 `NAV-SYSTEM-FROM-ME-UUID`），仅替换目标 `icon`。再请求带 `_api=Nav.update&_mock=false&_stamp=...` 的 `updateFormNavigation.json`，最后重新读取导航列表校验图标。禁止仅凭 formUuid 拼一个精简更新 payload。
 
 > 文件先用 create_file / Write / file edit tool 创建。上方路径默认从 OpenYida project 工作目录执行；如果从 workspace 根执行命令，传 `project/.cache/openyida/<项目名或任务名>/<表单名>-fields.json`。
 
@@ -220,26 +220,12 @@ openyida create-form update <appType> <formUuid> --data-file <changesJsonOrFile>
 
 位置参数和 `--data-file` 是同一输入的两种写法，不能同时使用。
 
-## 半成功 create 恢复
-
-create 已返回真实 `formUuid`、但后续 schema 保存或回读失败时，使用保守恢复命令：
-
-```bash
-openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
-```
-
-该命令先回读目标表单并核对字段，只添加可唯一判定的缺失字段，保存后再次回读；同名异类型、重复
-目标字段、归属不匹配或回读不确定时均停止且不写入。它不会新建替代表单，也不会覆盖已有字段。
-
-`resume` 的保存端 HTTP 5xx 恢复流程固定为：精确回读目标表单；目标字段已存在时收口为成功，目标字段缺失且无冲突时绑定最新服务端 revision 执行一次保存，再做最终回读。成功 JSON 提供真实 `formUuid`、表单入口 `url`/`formUrl` 和应用工作台入口 `appUrl`，据此完成终态交付；用户要求资源 ID 时，将已验证的 `formUuid` 写入终态 artifact 的可见 `description`。
 
 输出：
 
 ```json
 {"success":true,"formUuid":"FORM-YYY","appType":"APP_XXX","changesApplied":1,"changes":[{"action":"update","label":"备注","changedProps":"required","resolved":{"label":"备注","fieldId":"textField_xxx","componentName":"TextField"},"updatedProps":{"required":true}}],"url":"{base_url}/APP_XXX/workbench/FORM-YYY","formUrl":"{base_url}/APP_XXX/workbench/FORM-YYY","appUrl":"{base_url}/APP_XXX/workbench"}
 ```
-
-`resume` 的终态交付沿用相同入口映射：应用级交付选择 `appUrl` / `app_home`，表单级交付选择 `formUrl` / `form`；`url` 继续兼容表单入口。
 
 常见 compact changes：
 
@@ -261,6 +247,28 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 ```
 
 `validation` / `rule` JSON 可优先写 label，例如 `{ "field": "备注", "type": "required" }`；若位于子表或存在重名，补 `{ "tableLabel": "明细", "field": "备注" }` 或直接使用已知 `fieldId`。成功 JSON 会返回每条规则或事件绑定的 compact `resolved` evidence；失败只返回 compact `diagnostics[].candidates`，不会打印完整字段列表。
+
+## 半成功 create 恢复
+
+create 已返回真实 `formUuid`、但后续 schema 保存或回读失败时，使用保守恢复命令：
+
+```bash
+openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
+```
+
+该命令先回读目标表单并核对字段，只添加可唯一判定的缺失字段，保存后再次回读；同名异类型、重复
+目标字段、归属不匹配或回读不确定时均停止且不写入。它不会新建替代表单，也不会覆盖已有字段。
+
+`resume` 的保存端 HTTP 5xx 恢复流程固定为：精确回读目标表单；目标字段已存在时收口为成功，目标字段缺失且无冲突时绑定最新服务端 revision 执行一次保存，再做最终回读。成功 JSON 提供真实 `formUuid`、表单入口 `url`/`formUrl` 和应用工作台入口 `appUrl`，据此完成终态交付；用户要求资源 ID 时，将已验证的 `formUuid` 写入终态 artifact 的可见 `description`。
+
+
+输出示例（已有两个字段，补齐一个字段）：
+
+```json
+{"success":true,"appType":"APP_XXX","formUuid":"FORM-YYY","completedStages":["read_target","verify_ownership","compare_fields","add_missing_fields","save_schema","verify_final_schema"],"requestedFieldCount":3,"existingFieldCount":2,"addedFieldCount":1,"finalFieldCount":3,"recoveredBlankShell":false,"url":"{base_url}/APP_XXX/workbench/FORM-YYY","formUrl":"{base_url}/APP_XXX/workbench/FORM-YYY","appUrl":"{base_url}/APP_XXX/workbench"}
+```
+
+`resume` 的终态交付沿用相同入口映射：应用级交付选择 `appUrl` / `app_home`，表单级交付选择 `formUrl` / `form`；`url` 继续兼容表单入口。
 
 ## 高级模式
 

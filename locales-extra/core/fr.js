@@ -5,6 +5,10 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  asset: {
+    localFileUnavailable: "Image introuvable : {0}. Vérifiez le répertoire de travail de la commande ou utilisez un chemin absolu.",
+    invalidStrategy: "Les besoins en images doivent être un objet indiquant les emplacements par page.",
+  },
   help: {
     subtitle: 'Outil de développement IA low-code pour Yida',
     usage: 'Utilisation :',
@@ -22,6 +26,7 @@ module.exports = {
     cmd_create_app: 'Créer une application Yida',
     cmd_design_plan_preview: 'Actualiser le brouillon par module',
     design_plan_preview_invalid: 'Échec de mise à jour du brouillon ; consultez les détails',
+    cmd_design_plan_catalog: 'Lister les thèmes et modèles de page disponibles pour la planification',
     cmd_design_plan_init: 'Créer un brouillon de plan à partir des besoins confirmés',
     cmd_design_plan_materialize: 'Générer et valider les livrables depuis build-plan.json',
     cmd_design_plan_patch: 'Modifier le plan par chemin et invalider la confirmation précédente',

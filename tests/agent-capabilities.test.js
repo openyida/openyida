@@ -193,7 +193,7 @@ describe('agent-capabilities summary', () => {
         resource_delivery: 'summary_only',
         internal_artifact_delivery: 'never',
         entries: {
-          workbench: 'always',
+          workbench: 'when_workspace_in_scope',
           custom: 'when_entry_mode_standalone_and_is_render_nav_false_readback',
           admin: 'omit',
         },
@@ -315,7 +315,7 @@ describe('agent-capabilities summary', () => {
       expect(summary.application_entry_policy).toMatchObject({
         environment: 'non_cloud_agent',
         entries: {
-          workbench: 'always',
+          workbench: 'when_workspace_in_scope',
           custom: 'when_entry_mode_standalone_and_is_render_nav_false_readback',
           admin: 'include',
         },

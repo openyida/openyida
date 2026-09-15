@@ -5,6 +5,10 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  asset: {
+    localFileUnavailable: "이미지 파일을 찾을 수 없습니다: {0}. 명령의 작업 디렉터리를 확인하거나 절대 경로를 사용하세요.",
+    invalidStrategy: "이미지 요구사항은 페이지별 이미지 위치를 나열한 객체로 입력하세요.",
+  },
   help: {
     subtitle: 'Yida 로우코드 AI 개발 도구',
     usage: '사용법:',
@@ -22,6 +26,7 @@ module.exports = {
     cmd_create_app: 'Yida 앱 생성',
     cmd_design_plan_preview: '모듈별 계획 초안 업데이트',
     design_plan_preview_invalid: '초안 업데이트 실패. 오류 세부 정보를 확인하세요',
+    cmd_design_plan_catalog: '계획에 사용할 수 있는 테마와 페이지 패턴 조회',
     cmd_design_plan_init: '확인된 요구 사항으로 계획 초안 만들기',
     cmd_design_plan_materialize: 'build-plan.json에서 설계 계획 산출물 생성 및 검증',
     cmd_design_plan_patch: '필드 경로로 계획을 수정하고 이전 확인 무효화',

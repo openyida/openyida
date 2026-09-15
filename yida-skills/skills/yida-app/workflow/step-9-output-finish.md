@@ -20,9 +20,9 @@
 
 ## 完成条件核对
 
-`execution.explicitScope.allowInferredResources=false` 时走范围完成路径：逐项核对清单内资源的成功结果或只读回读、用户要求的入口层级和交付状态；`remainingScope` 为空且真实链接已交付即为完成。下方完整应用检查表仅适用于 `allowInferredResources=true`。
+`execution.explicitScope.allowInferredResources=false` 时，逐项核对范围内资源的成功结果、必要回读和真实链接，完成后交付。下面的完整应用检查表适用于 `allowInferredResources=true`。
 
-完整应用默认完成需要同时满足：
+按 PRD 的有效交付范围核对：第 1–2 条仅适用于本轮有自定义页面发布任务的应用；仅原生管理视图时记录不适用，并验证真实管理列表。frontend-only 不执行平台排序，不能为满足默认条件追加首页。其余条件按实际资源核验：
 
 1. 主页面发布成功；
 2. Canvas 主页面发布结果为 `publishMode=canvas`，读回 `hasYidaCodeCanvas=true` 且 `runtimeCodeBytes>0`；
@@ -39,6 +39,8 @@
 第 6 条按资源独立核验：每个被 final 声称“已写入”“已验证”或给出记录数的表单/流程，都必须有该资源自己的成功 create 返回值和只读 query/readback 证据。不得把一张表单的 3 条记录复制成其他表单也有 3 条；没有证据的资源只能写“未写入”“未抽查”或“跳过”，不能用应用发布成功替代数据核验。
 
 若本轮修改过页面源码但没有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，只能交付“源码已修改，尚未发布”的说明。
+
+需求含 `userTasks` 和 `entryRecommendation` 时，按最终 PRD 核对服务与管理任务的实际访问路径，沿用用户已确认的调整；入口建议不作为完成证据。只有相关页面及访问配置回读通过后才交付对应入口，不为双入口补造后台功能，不用 `/admin` 开发后台代替业务管理工作区。
 
 ## build-manifest 约定
 
@@ -69,23 +71,27 @@
 }
 ```
 
+## 访问态入口验收
+
+按 [访问态入口契约](../references/entry-navigation.md) 分别验收访客与业务管理者。管理端可以直接交付已验证的 `/workbench/{formUuid}?viewUuid=...` 作为本入口的唯一默认任务链接，不展开全部表单地址；根 `/workbench` 只有默认落点符合任务时才使用。管理端没有自定义首页时以原生管理视图和权限验证为准，不要求主页面 KPI。前台必须使用已回读的独立 custom 链接；菜单隐藏不授予权限，未取得真实角色证据时明确标记多身份在线验收未完成。开发后台不属于前后台业务切换。
+
 ## 结果输出格式
 
 - 准备 2-3 句业务交付总结，并给一个名为“应用访问入口”的入口组。
-- `notify_human` 是终态交付动作，其终态 artifact 的可见 `description` 是本轮业务总结、readback 事实和必要上下文的统一载体；用户要求的记录数、资源 ID、发布状态或核验结果也写入这里。调用成功即完成本轮交付。
+- `notify_human` 是终态交付动作，其终态 artifact 的可见 `description` 是本轮业务总结、readback 事实和必要上下文的统一载体；用户要求的记录数、资源 ID、发布状态或核验结果也写入这里。调用成功即完成本轮交付。宿主没有交付工具时，在最终回复中给出相同的总结、核验结果与入口。
 - 一次完整应用 run 交付一组用户可见的“应用访问入口”。同一应用的后续交付从已有资源和已验证 URL 生成当前 run 的入口组；资源变更由用户本轮明确要求的变更范围驱动。
 - 业务资源在总结中按能力或数量概述，例如“已完成 4 张业务表单、1 条审批流程和 1 个经营看板”。
 - 用户或调用方明确要求资源清单、资源 UUID/ID、发布状态或测试数据摘要时，终态 artifact 的 `description` 包含简洁的“交付清单”。清单是本轮真实返回值和只读 readback 的投影，覆盖已创建或发布资源的名称、类型、ID、主页面发布状态及 seed records 写入/抽查摘要；未知信息标记为未核验。
 - 业务总结中的资源数量、seed records 数量和完成状态与逐资源真实返回值/readback 一一对应；证据不完整的资源标记为未核验。
 - 新增、修改或发布单个具体页面时，交付当前页面并保持单页范围。
-- 完整应用的入口组包含“应用工作台” `{base_url}/{appType}/workbench`。
-- 主页面在 PRD 中为 `entryMode=standalone`，且 Step 8 回读确认 `isRenderNav=false` 时，入口组包含“独立业务入口” `{base_url}/{appType}/custom/{formUuid}`。
-- “应用开发后台”的入口谓词是 `application_entry_policy.entries.admin=include`；命中时加入 `{base_url}/{appType}/admin`，值为 `omit` 时入口组保持已有入口。该策略的事实源是 `openyida agent-capabilities --summary-json`，其中 include 由已注入可用鉴权 `builder_path.auth.auth_runtime=env_token_bootstrap && can_auto_use=true` 推导。
-- 工作台、符合条件的独立业务入口和开发后台共同组成同一个应用入口组。
+- 完整应用的入口组按有效范围交付：统一工作区或前后台双入口包含经验证的“业务管理入口”：根 `{base_url}/{appType}/workbench` 或上述指定任务/视图链接；明确仅前台时只交付前台页面，不追加后台。
+- 前台页面在 PRD 中为 `entryMode=standalone`，且 Step 8 回读确认 `isRenderNav=false` 时，入口组额外包含“独立业务入口” `{base_url}/{appType}/custom/{formUuid}`；否则不得输出。
+- 先读取 `openyida agent-capabilities --summary-json` 的 `application_entry_policy.entries.admin`：`application_entry_policy.entries.admin=include` 且本轮包含应用管理交付时，入口组额外包含“应用开发后台” `{base_url}/{appType}/admin`；值为 `omit` 时不得输出。不要根据 Agent 名称或自然语言猜测云端/非云端。
+- 三个入口属于同一个应用入口组，不得各自连同业务资源再生成多组交付。
 - 不把 `g.alicdn.com` 的 `index.css`、`index.js`、`index.html`、`locales/*.json`、构建产物 URL、CDN 资源 URL 或中间文件链接当成最终结果展示。
 - 调用方或评测要求结构化结果时，额外输出顶层 `skillsUsed`，只填写本轮实际读取并使用的 `yida-*` 子技能名；不得把计划使用或未加载的技能写入。
 
-推荐口径：
+交付卡片描述与入口示例（根据本轮实际完成内容填写）：
 
 ```markdown
 已完成订单、客户和商品等核心业务表单，并发布首页、订单管理和库存看板等入口页面。当前应用已支持订单录入、库存预警、销售统计、表单提交入口和详情查看，示例记录、轻量导航排序与统一应用主题也已就绪。
@@ -97,7 +103,7 @@
 - 应用开发后台：`{base_url}/{appType}/admin`（仅 capability 明确为 `include`）
 ```
 
-只有用户或调用方明确要求资源清单、资源 UUID/ID、发布状态、测试数据摘要、排障、复盘、迁移或复制配置时，才补充技术 ID。显式要求一旦命中，这些正文信息属于本轮验收结果，不能被“默认隐藏技术 ID”规则覆盖。
+只有用户或调用方明确要求资源清单、资源 UUID/ID、发布状态、测试数据摘要、排障、复盘、迁移或复制配置时，才补充技术 ID。显式要求一旦命中，这些信息写入交付卡片描述，属于本轮验收结果，不能被“默认隐藏技术 ID”规则覆盖。
 
 ## URL 规则
 
@@ -106,7 +112,7 @@
 | 应用首页 | `{base_url}/{appType}/workbench` |
 | 表单提交页（默认隐藏导航） | `{base_url}/{appType}/submission/{formUuid}?isRenderNav=false` |
 | 自定义页面 | `{base_url}/{appType}/custom/{formUuid}` |
-| 自定义页面（应用导航隐藏） | `{base_url}/{appType}/custom/{formUuid}`；由应用基础设置 `hideAppNav='y'` 控制 |
+| 独立自定义页面 | `{base_url}/{appType}/custom/{formUuid}`；页面 `isRenderNav=false` 回读通过，混合前后台应用保留 `hideAppNav=n` |
 | 原生报表（仅单独交付该报表时） | 使用 CLI 返回的 `{base_url}/{appType}/workbench/{reportId}`；禁止拼接 `/{appType}/report/{reportId}` |
 | 表单详情页（抽屉/隐藏导航） | `{base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&navConfig.layout=1180&isRenderNav=false` |
 | 表单详情页（编辑模式） | `{base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&mode=edit&navConfig.layout=1180&isRenderNav=false` |
@@ -143,10 +149,10 @@
 - [ ] 已写入轻量 build-manifest 并运行页面/资源数量完整性风险检查；未通过时没有声称“已按 PRD 完成搭建”；
 - [ ] 已按 `constraints.prohibitedActions` 调整完成条件；跳过写操作时没有伪造已换肤、已修改源码或已发布；
 - [ ] 未把内部文件或每个业务资源分别交付；
-- [ ] 工作台始终存在，custom 只在 `standalone` 写后回读通过时存在，admin 严格跟随 capability；
+- [ ] 按有效范围交付管理入口，frontend-only 不追加工作台；custom 只在 `standalone` 写后回读通过时存在，admin 严格跟随 capability；
 - [ ] 未默认暴露资源 ID 或其他管理态链接；
 - [ ] 结构化结果中的 `skillsUsed` 只包含实际读取并使用的技能；
 - [ ] 未把 CDN 构建产物当作交付链接；
 - [ ] 未执行用户未要求的可选后置动作。
 
-自定义导航应用交付前，核对应用导航已隐藏，且 PRD 清单中每个表单、流程表单和自定义页面均有 `get-form-config` 返回 `isRenderNav=false` 的记录。任一页面配置失败时，该导航方案尚未完成。
+整个应用采用自定义导航时，交付前核对应用导航已隐藏，且 PRD 清单中每个表单、流程表单和自定义页面均有 `get-form-config` 返回 `isRenderNav=false` 的记录。任一页面配置失败时，该导航方案尚未完成。

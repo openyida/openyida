@@ -5,81 +5,69 @@ themeId: "mono-grid-signal"
 tokens:
   application-global:
     colors:
-      "--pod-page-bg-color": "var(--color-white, #fff)"
-      "--color-white": "#FFFFFF"
-      "--color-brand1-1": "AI 根据 --color-brand1-6 与白色混合生成 10% 品牌色"
-      "--color-brand1-2": "AI 根据 --color-brand1-6 与白色混合生成 18% 品牌色"
-      "--color-brand1-3": "AI 根据 --color-brand1-6 与白色混合生成 26% 品牌色"
-      "--color-brand1-5": "AI 根据 --color-brand1-6 与黑色混合生成 18% 深色"
-      "--color-brand1-6": "{{PRIMARY_COLOR}}"
-      "--color-brand1-9": "AI 根据 --color-brand1-6 与黑色混合生成 12% 按下色"
-      "--color-brand1-10": "AI 根据 --color-brand1-6 与白色混合生成 68% 禁用色"
-      "--color-line1-1": "#EEEEEE"
-      "--color-line1-2": "#DCDCDC"
-      "--color-fill1-1": "#F8F8F8"
-      "--color-fill1-2": "#F2F2F2"
-      "--color-fill1-3": "#E6E6E6"
-      "--color-fill1-10": "rgba(255, 255, 255, 0.97)"
-      "--color-text1-4": "#171717"
-      "--color-text1-10": "#666666"
-      "--color-text1-3": "#929292"
+      "--pod-app-root-bg-color": "var(--pod-page-bg-color)" # 应用最底层背景色
+      "--pod-app-root-bg-image": "none" # 应用最底层背景图
+      "--pod-shell-theme-bg-color": "var(--color-brand1-3)" # 顶部导航、侧边导航和应用壳层背景色
+      "--pod-page-bg-color": "var(--color-white, #fff)" # 宜搭全局页面画布背景色
+      "--color-white": "#FFFFFF" # 全应用基础表面色
+      "--pod-card-bg-color": "var(--color-white)" # 一级卡片、表单主容器和详情面板背景色
+      "--color-brand1-1": "AI 根据 --color-brand1-6 与白色混合生成 10% 品牌色" # 悬停色
+      "--color-brand1-2": "AI 根据 --color-brand1-6 与白色混合生成 18% 品牌色" # 品牌浅色，保留平台既有消费关系
+      "--color-brand1-3": "AI 根据 --color-brand1-6 与白色混合生成 26% 品牌色" # 浅色导航框架背景色
+      "--color-brand1-5": "AI 根据 --color-brand1-6 与黑色混合生成 18% 深色" # 深色导航框架背景色
+      "--color-brand1-6": "{{PRIMARY_COLOR}}" # 全应用主题主色，是其他 Brand Token 的生成基准
+      "--color-brand1-9": "AI 根据 --color-brand1-6 与黑色混合生成 12% 按下色" # 激活、按下状态色
+      "--color-brand1-10": "AI 根据 --color-brand1-6 与白色混合生成 68% 禁用色" # 禁用状态色
+      "--color-line1-1": "#EEEEEE" # 弱边界、辅助线和表格行分隔线
+      "--color-line1-2": "#DCDCDC" # 控件和容器常规边界
+      "--color-fill1-1": "#F8F8F8" # 菜单悬停和弱状态填充
+      "--color-fill1-2": "#F2F2F2" # 点击或选中填充
+      "--color-fill1-3": "#E6E6E6" # 更重的中性填充
+      "--color-fill1-10": "#2E3033" # Tooltip 固定深色背景
+      "--color-text1-5": "#FFFFFF" # Tooltip 固定反色文字
+      "--color-text1-4": "#171717" # 默认一级文字色，文字对比最强
+      "--color-text1-10": "#666666" # 表头和 placeholder
+      "--color-text1-3": "#929292" # 二级文字色，弱于 text1-10
+      "--color-text1-2": "rgba(24, 24, 24, 0.4)" # 仅用于禁用态文字，弱于 text1-3
+      "--color-text1-1": "rgba(24, 24, 24, 0.24)" # 仅用于水印文字，文字对比最弱
     typography:
-      base:
-        "--font-family-base": "ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
-      subhead:
-        "--font-size-subhead": 24px
-        "--font-weight-subhead": 600
-        "--font-lineheight-subhead": 1.3
-        "--font-letterspacing-subhead": 0.01em
-      body-2:
-        "--font-size-body-2": 16px
-        "--font-weight-body-2": 600
-        "--font-lineheight-body-2": 1.4
-        "--font-letterspacing-body-2": 0.025em
-      body-1:
-        "--font-size-body-1": 14px
-        "--font-weight-body-1": 400
-        "--font-lineheight-body-1": 1.5
-        "--font-letterspacing-body-1": 0.015em
-      table:
-        "--font-size-table": 14px
-        "--font-weight-table": 400
-        "--font-lineheight-table": 1.45
-        "--font-letterspacing-table": 0.01em
-      caption:
-        "--font-size-caption": 12px
-        "--font-weight-caption": 400
-        "--font-lineheight-caption": 1.4
-        "--font-letterspacing-caption": 0.025em
+      "--font-family-base": "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      "--font-size-subhead": "18px"
+      "--font-weight-subhead": "500"
+      "--font-lineheight-subhead": "1.3"
+      "--font-size-body-2": "16px"
+      "--font-weight-body-2": "500"
+      "--font-lineheight-body-2": "1.45"
+      "--font-size-body-1": "14px"
+      "--font-weight-body-1": "400"
+      "--font-lineheight-body-1": "1.5"
+      "--font-size-table": "13px"
+      "--font-weight-table": "400"
+      "--font-lineheight-table": "1.45"
+      "--font-size-caption": "12px"
+      "--font-weight-caption": "400"
+      "--font-lineheight-caption": "1.4"
     spacing:
-      "--s-1": 4px
-      "--s-2": 8px
-      "--s-3": 12px
-      "--s-4": 16px
-      "--s-6": 24px
-      "--s-8": 32px
+      "--s-1": "4px"
+      "--s-2": "8px"
+      "--s-3": "12px"
+      "--s-4": "16px"
+      "--s-5": "20px"
+      "--s-6": "24px"
+      "--s-7": "28px"
+      "--s-8": "32px"
+      "--s-9": "36px"
+      "--s-10": "40px"
     rounded:
-      "--corner-zero": 0px
-      "--corner-1": 4px
-      "--corner-2": 8px
-      "--corner-3": 10px
-      "--corner-4": 12px
-      "--corner-5": 16px
-      "--corner-circle": 50%
-      "--corner-semicircle": 500px
-  custom-page:
-    colors:
-      "--oyd-pattern-surface": "AI 根据 --color-brand1-6 8% 与 #F3F3F3 92% 混合生成纹理浅底"
-      "--oyd-rating-accent": "#F2A900"
-      "--oyd-avatar-1": "#B98432"
-      "--oyd-avatar-2": "#4D7058"
-      "--oyd-avatar-3": "#B65B47"
-      "--oyd-avatar-4": "#F0A112"
-    typography:
-      metric-primary:
-        "--font-size-metric-primary": 34px
-        "--font-weight-metric-primary": 500
-        "--font-lineheight-metric-primary": 1.15
+      "--corner-zero": "0px"
+      "--corner-1": "4px"
+      "--corner-2": "8px"
+      "--corner-3": "10px"
+      "--corner-4": "12px"
+      "--corner-5": "16px"
+      "--corner-circle": "50%"
+      "--corner-semicircle": "500px"
+  custom-page: {}
 ---
 
 # {{PROJECT_NAME}} design.md
@@ -127,7 +115,7 @@ tokens:
 
 ### 设计变量范围
 
-`tokens.application-global` 是原生表单、流程页面和自定义页面共同遵守的全应用设计契约；本主题通过等宽字体、轻字距、紧凑圆角、中性表面与清楚边界形成统一语言。`tokens.custom-page` 仅补充近白画布、主题派生纹理浅底、评分强调色、四枚真实标识分类色和大数值语义：纹理浅底是全局填充无法表达的主题派生材质；评分与标识色为独立语义，不承担状态；大数值是全局字体体系缺失的层级，因此均不与全局 Token 重复。
+颜色、字体、间距和圆角统一使用 `tokens.application-global` 中的基础变量。组件直接消费对应变量；渐变、透明度和纹理在组件配方中组合基础变量。独立分类色保留在对应图表配方中。
 
 ## 色彩
 
@@ -151,37 +139,37 @@ tokens:
 | hover、浅标签和弱背景 | `--color-fill1-1` | 应用全局 |
 | 中性选中底与按下填充 | `--color-fill1-2` | 应用全局 |
 | 图表未选表面和骨架 | `--color-fill1-3` | 应用全局 |
-| tooltip、popover 和菜单表面 | `--color-fill1-10` | 应用全局 |
+| Tooltip 背景和文字 | `--color-fill1-10`、`--color-text1-5` | 应用全局 |
+| popover 和菜单表面 | `--pod-card-bg-color` | 应用全局 |
 | 标题、核心数字、正文和主要图标 | `--color-text1-4` | 应用全局 |
 | 表头、输入占位和次级标签 | `--color-text1-10` | 应用全局 |
 | 时间、说明、坐标和元信息 | `--color-text1-3` | 应用全局 |
 | 页面底层近白画布 | `--pod-page-bg-color` | 自定义页 |
-| 斜纹、点阵和主题浅纹理表面 | `--oyd-pattern-surface` | 自定义页 |
-| 真实评分图形的独立强调 | `--oyd-rating-accent` | 自定义页 |
-| 真实等权标识的圆形底色 | `--oyd-avatar-1` 至 `--oyd-avatar-4` | 自定义页 |
+| 斜纹、点阵和主题浅纹理表面 | `color-mix(in srgb, var(--color-brand1-6) 8%, var(--color-fill1-2))` | 自定义页 |
+| 真实评分图形的独立强调 | `#F2A900` | 自定义页 |
+| 真实等权标识的圆形底色 | `#B98432` 至 `#F0A112` | 自定义页 |
 
 `--color-brand1-6` 是唯一品牌色种子。最终项目实例化时必须把其余六枚 Brand Token 的生成期标记解析为实际色值；没有品牌色时以中等明度、满足对比的冷色作为锚点。换色后至少 88% 的画布、表面和边界保持中性，评分与标识分类色不参与主题推演。
 
 ### 本主题的配色约束
 
 - `--color-white`、所有 `line1`、`fill1`、`text1` 均为 `neutral-gray`；固定 Hex 的 RGB 三通道相等。
-- `--oyd-pattern-surface` 为 `theme-gray`：由 `--color-brand1-6` 占 8% 与中性基底 `#F3F3F3` 占 92% 派生；项目实例化时必须计算并写入实际值。
-- `--oyd-rating-accent` 仅用于真实评分、等级或星标图形，不代替警告状态；单屏面积不超过 4%。
-- `--oyd-avatar-1` 至 `--oyd-avatar-4` 是等权标识色，仅在真实对象需要区分且没有图片素材时使用；不能形成主题身份。
+- `color-mix(in srgb, var(--color-brand1-6) 8%, var(--color-fill1-2))` 为 `theme-gray`：由 `--color-brand1-6` 占 8% 与中性基底 `#F3F3F3` 占 92% 派生；项目实例化时必须计算并写入实际值。
+- `#F2A900` 仅用于真实评分、等级或星标图形，不代替警告状态；单屏面积不超过 4%。
+- `#B98432` 至 `#F0A112` 是等权标识色，仅在真实对象需要区分且没有图片素材时使用；不能形成主题身份。
 - 主题色只用于主操作、焦点、链接、选中和纹理浅底；成功、警告、错误与信息状态直接消费平台语义色，并配合文字、图标或方向符号。
 
 ## 字体与排版
 
-- 全局使用 `tokens.application-global.typography.base` 的等宽字体栈；若项目提供合法的品牌点阵字体，将其置于同一回退栈首位。
-- `page-title` 使用 `tokens.application-global.typography.subhead`：24px / 600 / 1.3 / 0.01em；普通页面不得新增超大展示标题。
-- `panel-title` 使用 `tokens.application-global.typography.body-2`：16px / 600 / 1.4 / 0.025em；可使用大写处理，但不得改变真实专名的大小写。
-- `content-title` 和正文使用 `tokens.application-global.typography.body-1`：14px / 400 / 1.5 / 0.015em。
-- 表格使用 `tokens.application-global.typography.table`：14px / 400 / 1.45 / 0.01em；表头只提高到 600 字重。
-- 辅助说明使用 `tokens.application-global.typography.caption`：12px / 400 / 1.4 / 0.025em。
-- 大数值使用 `tokens.custom-page.typography.metric-primary`：34px / 500 / 1.15；全局字体体系没有大指标数字语义，因此独立补充，不用于页面标题。
-- 数字启用 `font-variant-numeric: tabular-nums slashed-zero`，关闭上下文连字；数字、日期与时长保持稳定字宽。
-- 标题单行省略，副文案最多两行；长单词允许安全断行；不对用户输入、姓名、品牌或多语言内容强制全大写。
-- 图标采用 1.5-1.75px 线性描边、直线感轮廓和圆角端点；常规 18px、强调 20px，与等宽文字首行光学居中。
+字体使用 `--font-family-base`。字号、字重和行高按 YAML 的固定基础变量执行；数字使用 `font-variant-numeric: tabular-nums` 保持列对齐。
+
+| 内容 | 字号 | 字重 | 行高 |
+| --- | --- | --- | --- |
+| 页面标题、强面板标题、重点数字 | `--font-size-subhead` | `--font-weight-subhead` | `--font-lineheight-subhead` |
+| 次级标题、强调正文 | `--font-size-body-2` | `--font-weight-body-2` | `--font-lineheight-body-2` |
+| 普通正文 | `--font-size-body-1` | `--font-weight-body-1` | `--font-lineheight-body-1` |
+| 表格正文 | `--font-size-table` | `--font-weight-table` | `--font-lineheight-table` |
+| 辅助说明、元信息 | `--font-size-caption` | `--font-weight-caption` | `--font-lineheight-caption` |
 
 ## 布局与间距
 
@@ -205,7 +193,7 @@ tokens:
 
 - 页面底层使用 `--pod-page-bg-color`；一级面板使用白底、1px `--color-line1-2`、12-16px 圆角，不使用常规投影。
 - 状态横幅和命令提示舞台使用 `--color-fill1-1`；指标小卡使用白底与 1px 常规边界；嵌套层最多两级。
-- tooltip、popover 和菜单使用 `--color-fill1-10`、`--color-line1-2` 与 `0 8px 22px rgba(0,0,0,.07)`；深色提交按钮不投射辉光。
+- Tooltip 使用 `--color-fill1-10` 背景与 `--color-text1-5` 文字；popover 和弹窗使用 `--pod-card-bg-color`、`--color-text1-4` 与 `--color-line1-2`，以局部阴影区分浮层。
 - 纹理只出现在选中数据、图表面积或极浅主题表面，不铺满面板；禁止玻璃模糊、强渐变、霓虹和厚重阴影。
 - 面板间通过 24px gap 分层，内部通过 12-16px gap 分组；不为每段文字再套边框。
 
@@ -245,14 +233,14 @@ tokens:
 
 - `content_contract`: 真实对象标识集合、总体状态、补充说明和一个高优先级操作；`render_policy: prd_match_only`。
 - 横幅使用浅灰表面、12px 圆角和 24-32px 内边距；内部三列垂直居中。
-- 圆形标识 40px，后续标识向前重叠 10px，并以 2px 页面底色描边分离；没有真实图片时才使用 `--oyd-avatar-1 / --oyd-avatar-2 / --oyd-avatar-3 / --oyd-avatar-4` 和首字母。
+- 圆形标识 40px，后续标识向前重叠 10px，并以 2px 页面底色描边分离；没有真实图片时才使用 `#B98432 / #4D7058 / #B65B47 / #F0A112` 和首字母。
 - 中部主行使用 body-2，副行使用 caption；右侧 36-40px 深色操作。小屏操作换行并铺满，不可替换成独立头像卡片阵列。
 
 ### 矩阵式数值单元
 
 - `content_contract`: 3-8 个同层级指标及可选趋势；`render_policy: prd_match_only`。
 - 容器内部使用 `repeat(auto-fit,minmax(180px,1fr))`；桌面优先 2-4 列，单元高 168-200px，间隙 16px。
-- 单元采用“字距标签 / metric-primary / 状态标签”三段结构，数值左对齐，状态标签沉底。
+- 单元采用“字距标签 / subhead / 状态标签”三段结构，数值左对齐，状态标签沉底。
 - 状态标签消费平台语义色并同时包含方向符号或文字；hover 只加深边界，不产生投影。不可替换成一排大彩色卡。
 
 ### 中央命令输入舞台
@@ -266,16 +254,16 @@ tokens:
 ### 纹理化数据表面
 
 - `content_contract`: 已有图表且存在选中、对比或面积语义；`render_policy: adapt_existing_slot`。
-- 选中柱使用 `--color-text1-4` 与由 `--oyd-pattern-surface` 参与的 45deg repeating-linear-gradient；未选柱使用白底、弱边界和极浅斜纹。
+- 选中柱使用 `--color-text1-4` 与由 `color-mix(in srgb, var(--color-brand1-6) 8%, var(--color-fill1-2))` 参与的 45deg repeating-linear-gradient；未选柱使用白底、弱边界和极浅斜纹。
 - 面积图使用 4-6px 点阵或细网格 SVG pattern，纹理裁剪在曲线以下；曲线保持 1.5-2px 实线，不使用辉光。
-- tooltip 为白底小浮层，显示真实键值；键盘选择与 hover 共享同一选中纹理，不能只靠颜色。
+- tooltip 为深底反色文字的小浮层，显示真实键值；键盘选择与 hover 共享同一选中纹理，不能只靠颜色。
 - 不可把所有数据填成纹理；单图仅允许一个主要纹理焦点，其余序列保持中性或主题浅色。
 
 ### 图表或主内容面板
 
 - 图表仅由 PRD 真实数据触发；弱辅助线复用 `--color-line1-1`，tooltip 复用 `--color-fill1-10`，主题色只用于关键焦点。
 - 柱图、线图和分布图固定高 300-360px；坐标与图例使用 `--color-text1-3`，数值等宽。
-- 评分分布若真实存在，可使用 `--oyd-rating-accent` 的短横条与星标；无评分语义时不得保留该组件。
+- 评分分布若真实存在，可使用 `#F2A900` 的短横条与星标；无评分语义时不得保留该组件。
 - 无图表契约时，以列表、表格、表单或详情承载主内容，不编造序列和时间轴。
 
 ### 表格与列表
@@ -361,7 +349,7 @@ tokens:
 
 ### AI 使用提示
 
-先读取 PRD，再解析 `{{PRIMARY_COLOR}}` 并生成七枚实际 Brand Token。所有真实页面先继承全应用等宽排版、灰阶、边界和基础组件，再按内容契约选择重叠标识状态横幅、矩阵式数值单元、中央命令输入舞台或纹理化数据表面。代表构图只是视觉配方，不用于创造参与者、指标、会话、附件、语音、评分、序列或操作；主题色只替换交互和纹理浅底的色相，不改变点阵语调、矩阵构图、密度、形状和纹理机制。字号与控件尺寸按平台 Token 范围推断，不把图片物理像素当作 CSS 像素。
+先读取 PRD，再解析 `{{PRIMARY_COLOR}}` 并生成七枚实际 Brand Token。所有真实页面先继承全应用等宽排版、灰阶、边界和基础组件，再按内容契约选择重叠标识状态横幅、矩阵式数值单元、中央命令输入舞台或纹理化数据表面。代表构图只是视觉配方，不用于创造参与者、指标、会话、附件、语音、评分、序列或操作；主题色只替换交互和纹理浅底的色相，不改变点阵语调、矩阵构图、密度、形状和纹理机制。字号、字重和行高按基础变量执行，控件按业务操作选择平台规格。
 
 ### 交付自检
 
@@ -375,8 +363,8 @@ tokens:
 - [ ] 未被 PRD 触发的母体是否没有强行渲染，且未新增业务能力或假数据？
 - [ ] 主操作、焦点和选中是否共享 `--color-brand1-6`，其余表面是否保持中性？
 - [ ] 评分与标识色是否仅用于真实独立语义，平台状态色是否未重复定义？
-- [ ] 固定灰色是否为三通道相等的 `neutral-gray`，`--oyd-pattern-surface` 是否按 8% 主题色与 92% `#F3F3F3` 计算并写入实际值？
-- [ ] `application-global` 语义是否稳定，`custom-page` 是否没有同值同义或角色重复 Token？
+- [ ] 固定灰色是否为三通道相等的 `neutral-gray`，`color-mix(in srgb, var(--color-brand1-6) 8%, var(--color-fill1-2))` 是否按 8% 主题色与 92% `#F3F3F3` 计算并写入实际值？
+- [ ] 组件配方是否直接消费基础变量，并以表达式组合渐变、透明度和纹理？
 - [ ] 文字对比是否保持 `text1-4` 高于 `text1-10`、`text1-10` 高于 `text1-3`？
 - [ ] `themeId`、描述、DNA、组件标题和正文总结是否与默认色相及页面类型解耦？
 - [ ] 同类面板是否等高、网格是否拉伸、图表是否定高、长内容是否在内部处理？

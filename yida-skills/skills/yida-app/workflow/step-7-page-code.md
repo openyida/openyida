@@ -6,6 +6,8 @@
 
 无直接依赖的页面按 [页面并行规则](parallel-work.md#页面按实际依赖并行) 同时开发，每页只等待自身需要的资源，不按导航顺序串行。共享主题或同一已就绪表单不构成页面间依赖；当前页就绪即可进入发布步骤，导航排序等待全部页面完成。
 
+独立前台只实现本入口的菜单与任务，多视图共用同一页面时按状态或 hash 切换。全码填写直接连接真实表单/流程 API，校验、提交状态、错误处理、权限与结果刷新均要实现；第 9 条容器规则只用于明确复用原生表单的入口，不能静默替换计划中的全码交互。需要平台原生能力才能完成时，在计划说明替代方式。后台按自己的任务和导航实现，不被前台菜单影响。
+
 ## 输入
 
 - `prd/<项目名>/prd.md`；
@@ -13,7 +15,7 @@
 - 真实 `appType`、当前页面 `formUuid`；
 - `.cache/<项目名>-schema.json`；
 - Step 5 写入的 seed records 或跳过原因。
-- 需要图片时读取 `prd/<项目名>/asset-manifest.json`。
+- 需要图片时读取 `prd/<项目名>/asset-manifests/<pageId>.json`；已有总清单按 pageId 读取。
 
 ## 操作
 
@@ -21,7 +23,7 @@
 
 先读取 `constraints.prohibitedActions`。命中 `page-source` 时，本步骤只能做 Read、编译/静态检查等只读诊断，不得 Write/Edit/Create 页面源码，也不得用脚本、格式化器或生成器间接改写；输出应明确“源码未修改”并跳过依赖源码变更的发布。未命中时才执行下列源码实现动作。
 
-当前页为 `required`，或为带槽位的 `beneficial` 时，先执行 `use_skill("yida-image-assets", "准备当前页图片")`。使用 `--design design.md --app-type <真实appType>` 核对槽位、默认上传宜搭图片附件，输出 `asset-manifest.json`；超过 20 MiB 的外链保留原地址。读取 manifest 中当前页 `pages[].materialStatus`；该页为 `final` 时只使用 `assets[].materialStatus=final` 的图片。必需槽位缺口只阻塞当前页，总状态 `draft` 不阻塞其他已就绪页面。
+当前页需要图片时，先接收此前启动的素材任务；可同时编写布局、文字和交互。尚未启动时立即执行 `use_skill("yida-image-assets", "准备当前页图片")`，其余页面继续。使用 `--design design.md --page-id <pageId> --app-type <真实appType>` 核对当前页槽位、默认并发上传宜搭图片附件，输出独立的 `asset-manifests/<pageId>.json`；超过 20 MiB 的外链保留原地址。读取 manifest 中当前页 `pages[].materialStatus`；该页为 `final` 时只使用 `assets[].materialStatus=final` 的图片。必需槽位缺口只阻塞当前页，总状态 `draft` 不阻塞其他已就绪页面。
 
 1. 自定义页面开发执行 `use_skill("yida-canvas-custom-page", "生成当前页面源码")`。根据 PRD 和 `design.md` 直接编写 `.canvas.jsx` / `.canvas.tsx`；允许从空文件实现完整 UI。内置整页示例按需用于理解数据接入和导航；表单抽屉片段必须按第 9 条整体合并，不要求复制整页，也不能用示例默认外观替代已确认的设计。已有符合设计的页面可继续迭代。
 2. PRD 或页面名包含看板、工作台、驾驶舱、Dashboard 时，必须执行 `use_skill("yida-dashboard", "实现真实业务看板")`。
@@ -31,7 +33,7 @@
 6. 列表、看板、详情页读取真实表单数据时，写 `dataBinding.mode=form`、真实 `appType/formUuid/fieldId` 和字段映射；禁止静态 0 或 mock 数据作为交付值。
 7. 页面代码默认消费发布层自动注入的 `window.__OPENYIDA_YIDA_API__` 和 `window.__OPENYIDA_UTILS__`：表单/流程/表单设计 API 走 yida API 桥，`toast/dialog/openPage/router.push/isMobile` 走 utils 桥；`YidaComp` 内不得直接调用 `this.utils.yida.*` 或 `this.utils.*`。
 8. 表单、流程、任务、成员等分页查询一般显式写 `pageSize: 50` 或 `pageSize: '50'`，除非用户明确要求其他页大小。
-9. **MUST**：含页面内表单新建/提交/详情打开入口的 Canvas 页面，必须先执行 `openyida sample openyida-page-template form-open-container --output .cache/samples/form-open-container.jsx` 拉取当前模板，整体合并 `CanvasDrawer` / `FormOpenContainer` / `useYidaFormOpen` 及依赖的 import、辅助函数。禁止自绘 fixed 遮罩 + iframe 抽屉壳；以源码及打开后的 DOM 存在 `.openyida-form-drawer` 为必要检查项，不能只加类名。入口统一使用 `FormOpenContainer`，PC 端右侧抽屉 iframe，移动端整页或新页打开；详情必须从真实行解析 `formInstId`，缺失时禁用入口或提示。应用级办理导航在主内容区嵌入提交页的场景仍按导航规范处理，不强制改成抽屉。
+9. **MUST**：计划选择打开原生表单新建/提交/详情的 Canvas 页面，必须先执行 `openyida sample openyida-page-template form-open-container --output .cache/samples/form-open-container.jsx` 拉取当前模板，整体合并 `CanvasDrawer` / `FormOpenContainer` / `useYidaFormOpen` 及依赖的 import、辅助函数。禁止自绘 fixed 遮罩 + iframe 抽屉壳；以源码及打开后的 DOM 存在 `.openyida-form-drawer` 为必要检查项，不能只加类名。入口统一使用 `FormOpenContainer`，PC 端右侧抽屉 iframe，移动端整页或新页打开；详情必须从真实行解析 `formInstId`，缺失时禁用入口或提示。应用级办理导航在主内容区嵌入提交页的场景仍按导航规范处理，不强制改成抽屉。
 10. 页面源码默认不自绘应用级侧边导航、顶部应用导航或同级模块菜单；PRD 的导航顺序交给 Step 8 的平台导航排序处理。PRD 导航类型为自定义导航，或用户显式要求在自定义页面内实现自己的应用级导航、隐藏应用导航或独立全屏应用壳时，执行 `use_skill("yida-nav-shell")`。
 11. 没有真实数据时，页面展示空态、表单入口、刷新或登记按钮。
 12. 页面源码用 `.canvas.jsx` / `.canvas.tsx`、`YidaComp`、页面生成器或本地快检。
@@ -46,7 +48,7 @@
 | `page-spec.json` 缺少 sourceOfTruth、design 指针、dataBinding，或与 PRD/design.md 不一致 | 丢弃并从最新 PRD + `design.md` 重生成 |
 | PRD、design.md 和 spec 都完整，但源码有 className、布局比例、字段映射、响应式、loading/empty/error 或编译错误 | 小范围 patch 源码 |
 
-Plan 模式下，上表涉及 PRD/design 的修正均由对应技能更新 `build-plan.json` 源事实，再物化并重新确认；不得直接编辑派生产物。主题 token 变化后重新运行带 `--design-file` 的 sample 命令生成 CSS。
+Plan 模式下，业务方案或视觉方案变化时，由对应技能更新 `build-plan.json` 源事实，再物化并确认变更。素材采集结果按 [素材交接](../../yida-image-assets/SKILL.md#6-交给页面使用) 更新后直接继续，沿用已有方案确认。主题 token 变化后重新运行带 `--design-file` 的 sample 命令生成 CSS。
 
 ## 产出
 

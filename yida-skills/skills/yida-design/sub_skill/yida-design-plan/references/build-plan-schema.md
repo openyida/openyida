@@ -142,7 +142,7 @@
 
 约束：
 
-- 计划生成前先确定应用范围，导航方式与布局按 [导航设计](../../../../yida-requirement-analysis/workflow/prepare-brief.md#导航设计) 写入 brief，用户明确要求优先。视觉候选沿用该导航决策，随整体方案确认。其余必要问题必须有 `interactionId` 和 `writeBackPath`。
+- 计划生成前先确定应用范围，导航方式与布局按 [导航设计](../../../../yida-design/references/navigation-decision.md) 写入 brief，用户明确要求优先。视觉候选沿用该导航决策，随整体方案确认。其余必要问题必须有 `interactionId` 和 `writeBackPath`。
 - `questionType` 只取 `single_choice`、`multi_choice`、`free_text` 或最终计划使用的 `confirm`，不设置 AI 代填项中间确认类型。
 - 只有宽泛应用名称且缺少模块、场景、任务、流程和可读需求时才问应用范围。
 - 审批、角色权限、字段、首页、看板、页面和常规流程细节不进入 `ask_human`；用户已提供时承接，未提供时基于业务推断并在最终计划统一呈现。
@@ -158,7 +158,7 @@
 - `draft`：当前版本正在生成或调整。
 - `awaiting_confirmation`：当前版本已通过会话摘要和 `build-plan.html` 展示，`presentedRevision=meta.revision`。
 - `confirmed`：用户已在最终确认交互中确认，`confirmedRevision=meta.revision`、`planConfirmed=true`。
-- 每次影响计划事实的修改都生成新的 `meta.revision`，并清空旧确认信息。
+- 业务方案或视觉方案变化时生成新的 `meta.revision`，并清空旧确认信息；素材进度更新保留版本与已有确认，字段规则见紧凑计划契约。
 - 只有 `meta.status=confirmed`、`planConfirmed=true` 且 `meta.revision=presentedRevision=confirmedRevision` 时，应用生成链路才能消费该计划。
 
 ## overview
@@ -307,153 +307,23 @@
 
 ## visualStyle
 
-```json
-{
-  "evidence": [
-    {
-      "type": "user_explicit | brand_guide | logo | website | image_reference | template | inferred",
-      "value": "用户要求整体克制，不要大面积品牌色",
-      "confidence": "high | medium | low"
-    }
-  ],
-  "constraints": {
-    "brandColors": ["#F26B38"],
-    "preferredTone": ["professional"],
-    "forbiddenColors": [],
-    "avoidPatterns": ["large-kpi-cards", "excessive-whitespace"],
-    "referenceMaterials": [],
-    "accessibilityLevel": "AA"
-  },
-  "forUser": {
-    "visualDirection": {
-      "label": "稳重流程型",
-      "description": "强调流程状态、任务处理和异常识别，界面稳定而不沉闷。",
-      "source": "user_selected | user_explicit | material_extracted | ai_inferred"
-    },
-    "themeProfile": {
-      "tone": "<selectedIndexRecord.defaultProfile.tone>",
-      "surfaceStyle": "<selectedIndexRecord.defaultProfile.surfaceStyle>",
-      "contrastLevel": "<selectedIndexRecord.defaultProfile.contrastLevel>",
-      "brandIntensity": "<selectedIndexRecord.defaultProfile.brandIntensity>",
-      "radiusScale": "<selectedIndexRecord.defaultProfile.radiusScale>",
-      "shadowLevel": "<selectedIndexRecord.defaultProfile.shadowLevel>",
-      "iconStyle": "<selectedIndexRecord.defaultProfile.iconStyle>",
-      "motionLevel": "<selectedIndexRecord.defaultProfile.motionLevel>",
-      "colorStrategy": "<selectedIndexRecord.defaultProfile.colorStrategy>"
-    },
-    "styleSummary": "<已选主题与项目色彩策略的摘要>",
-    "styleSource": "用户选择",
-    "colorStrategy": {
-      "source": "user_selected | user_specified | brand_guide | material_extracted | ai_inferred",
-      "primaryColor": "#F26B38",
-      "primaryColorName": "品牌橙",
-      "usage": "用于主操作、当前状态和少量关键数据，不作为大面积背景",
-      "confidence": "high | medium | low"
-    },
-    "navigationStyle": {
-      "structure": "top | side",
-      "tone": "light | dark",
-      "source": "user_selected | user_explicit | material_extracted | ai_inferred",
-      "selectionReason": "高频流程处理需要稳定入口，深色导航加强模块边界。"
-    },
-    "pageApplications": [
-      {
-        "pageId": "sales-workbench",
-        "pageName": "工作台",
-        "visualApplication": "继承已选主题，在不改变页面模式的前提下说明表面、品牌色、主操作和状态如何呈现。",
-        "surface": "状态摘要和任务区使用轻边框表面，不使用大面积悬浮阴影。",
-        "primaryAction": "品牌色只用于主操作和当前选中对象。",
-        "states": "异常和逾期使用独立语义色、图标和文字共同表达。",
-        "visualMemoryApplications": [
-          {
-            "name": "<选中模板中的视觉记忆组件名称>",
-            "renderPolicy": "adapt_existing_slot | prd_match_only | direct | suggest_only",
-            "target": "<PRD 已有内容槽位>",
-            "reason": "<页面内容满足该记忆点内容契约的依据>"
-          }
-        ],
-        "visualMemories": ["<由 visualMemoryApplications[].name 派生>"]
-      }
-    ],
-    "visualMemories": [
-      {
-        "name": "清楚细边框",
-        "rule": "内容表面主要通过边框和明度差分层。",
-        "userValue": "业务区块边界稳定且易扫描。",
-        "failureMode": "只靠极弱阴影导致白色表面混在一起。"
-      }
-    ],
-    "hierarchySummary": "中性背景承托清楚边界的内容表面，阴影只用于必要浮层。",
-    "componentToneSummary": "组件保持克制，品牌色用于关键操作，状态语义独立。",
-    "stateSummary": "空态、加载、错误、禁用、无权限和选中状态都有文字与视觉反馈。",
-    "responsiveSummary": "移动端保持页面规划中的主任务顺序，控件满足触控尺寸。",
-    "iconSummary": "使用统一线性图标体系，具体图标在开发阶段映射。",
-    "assetStrategy": {
-      "materialStatus": "final | draft | none",
-      "pages": [
-        {
-          "pageId": "page-home",
-          "imageNeed": "required | beneficial | none",
-          "reason": "<图片用途>",
-          "slots": [
-            {
-              "slotId": "home.hero",
-              "usage": "hero | background | product | scene | cover | empty-state",
-              "count": 1,
-              "aspectRatio": "16:9",
-              "minSize": "1600x900",
-              "focus": "主体靠右",
-              "objectFit": "cover | contain",
-              "generationAllowed": true
-            }
-          ]
-        }
-      ],
-      "missingAssets": [],
-      "notes": "素材交给 yida-image-assets；缺口保持草稿"
-    },
-    "designMdReady": "已同步生成 design.md，后续 AI 开发读取完整设计契约。"
-  },
-  "internal": {
-    "selectedTheme": {
-      "themeId": "<selectedIndexRecord.themeId>",
-      "source": "user_selected | user_custom | user_explicit | material_extracted | ai_inferred",
-      "customText": ""
-    }
-  },
-  "forDesignMd": {
-    "designTemplate": {
-      "themeId": "<selectedIndexRecord.themeId>",
-      "templatePath": "<selectedIndexRecord.templatePath>",
-      "instanceRule": "完整读取模板，替换项目变量，注入页面模式与页面视觉应用"
-    },
-    "productTopologyApplication": "<根据 experienceTopology、页面范围和前后台边界生成的主题应用说明，不改变页面规划>",
-    "pagePatterns": [
-      {
-        "pageId": "sales-workbench",
-        "mode": "adapted",
-        "id": "compact-workbench",
-        "adaptations": ["增加持续展开的客户与商机上下文区"],
-        "contentRichness": "rich-but-relevant",
-        "mustKeep": ["高频动作显眼", "首屏至少两层信息"]
-      }
-    ],
-    "themeStrategy": {
-      "colorSource": "user_specified | brand_guide | material_extracted | ai_inferred",
-      "colorRoles": ["主色", "辅助色", "中性色", "语义色"],
-      "notes": "主题色策略与页面模式相互独立。"
-    },
-    "componentRules": [],
-    "stateRules": ["hover", "active", "focus", "disabled", "loading", "empty", "error", "no-permission", "selected"],
-    "responsiveRules": [],
-    "qualityGates": [
-      "视觉主题不得改变页面内容、页面模式和信息密度。",
-      "不使用低密大空白工作台。",
-      "不得编造图片 URL。"
-    ]
-  }
-}
-```
+业务规划复用已确认的视觉选择；字段格式见 [紧凑契约的视觉事实](build-plan-compact-schema.md#视觉事实)。下表区分模型维护的输入与 CLI 派生内容。
+
+| 字段 | 内容与来源 |
+| --- | --- |
+| evidence | 素材或用户要求的证据数组，每项为 type、value、confidence |
+| constraints | 保留 brandColors、preferredTone、forbiddenColors、avoidPatterns、referenceMaterials、accessibilityLevel |
+| forUser.visualDirection | 已选方向的 label、description、source |
+| forUser.colorStrategy | 项目主色、来源与用法；格式沿用紧凑契约 |
+| forUser.navigationStyle | structure=top/side、tone=light/dark、source、selectionReason |
+| internal.selectedTheme | themeId、source、customText；label、templatePath 和 summary 由主题索引补齐 |
+| forUser.themeProfile | 主题索引 defaultProfile 的只读摘要 |
+| forUser.pageApplications | 按 pageId 对应实际页面，仅维护视觉差异和 visualMemoryApplications；每个记忆点含 name、renderPolicy、target、reason，visualMemories 由其名称派生 |
+| forUser.assetStrategy | 页面图片用途、槽位与缺口，沿用[素材交接契约](../../../../yida-image-assets/references/manifest-contract.md)；保留 materialStatus、pages、missingAssets、notes |
+| forUser 的各项 Summary、styleSource、designMdReady | 从主题、项目选择和生成状态派生；已有项目差异保留 |
+| forDesignMd | designTemplate、pagePatterns、themeStrategy 由 CLI 派生，productTopologyApplication 保留项目形态差异 |
+
+逐页视觉应用的 surface、primaryAction、states 和 visualApplication 默认继承全局主题。定制内容写在对应页面；通用 token、组件和响应式规则由完整主题模板提供。
 
 ## 结构约束
 
@@ -471,3 +341,7 @@
 - 确认生成应用前，`build-plan.json` 是唯一搭建计划事实源。
 - 旧数据中的 `selectedStyleOption`、`pageVisualPlanning`、`firstScreen`、`signatureMoment` 和 `visualAtmosphere` 仅用于渲染兼容；新计划不得继续写入。
 - 旧数据只有 `themeId` 时，ID 仍存在于当前索引 → 通过同一记录补齐 `templatePath`；ID 不存在于当前索引 → 返回 Step 2 重新选择当前主题，不凭印象映射旧主题。
+
+### 紧凑区块输入（schemaVersion 2.0）
+
+`blocks` 支持按优先顺序填写 `{name,purpose}` 数组，两项均为非空文本，每个区块只使用这两个键。CLI 将其转换为区块说明，并在省略时派生 contentPriority 和 contentRichness.contentLayers；明确填写的内容原样保留。旧版字符串数组继续沿用原字段。业务验收条件写入 execution.acceptanceCriteria，与按资源生成的通用检查合并去重。

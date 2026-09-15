@@ -71,9 +71,15 @@
 }
 ```
 
+## 业务权限配置
+
+资源 ID 就绪后，按 [访问态入口契约](../references/entry-navigation.md#权限实施) 将菜单 access 和业务角色映射到真实权限。执行 yida-form-permission 的查询、差异、保存与回读流程，保留非目标配置。FORM_PACKAGE_START、视图绑定和页面白名单等未支持项单独记录能力缺口；不得用 app-permission 管理员授权或导航隐藏替代。权限未核验的入口不能宣称业务可用。
+
 ## 页面导航配置
 
-PRD 导航类型为自定义导航时，对本轮创建或复用的每个表单、流程表单及其他业务页面，按 [导航壳必做配置](../../yida-nav-shell/SKILL.md#必做配置) 调用 `update-form-config` 并回读 `isRenderNav=false`。以 PRD 清单及真实 formUuid 逐项记录结果。
+只有 PRD 的应用工作区导航 `execution.appConfig.navigationType=custom` 时，对本轮创建或复用的每个表单、流程表单及其他业务页面，按 [导航壳必做配置](../../yida-nav-shell/SKILL.md#必做配置) 调用 `update-form-config` 并回读 `isRenderNav=false`。以 PRD 清单及真实 formUuid 逐项记录结果。
+
+仅前台页面自定义菜单时，不修改这些后台表单、流程或报表的导航；共用数据不等于共用页面显示设置。
 
 ## 产出
 
@@ -88,6 +94,8 @@ PRD 导航类型为自定义导航时，对本轮创建或复用的每个表单�
 - [ ] 表单/流程资源在自定义页面之前创建或确认；
 - [ ] 必要 `fieldId` 已写入 `.cache/<项目名>-schema.json`；
 - [ ] 表单 Schema 只包含字段、布局和业务动作。
+
+`remainingScope` 是 Agent 运行时维护的剩余任务集合，依据已确认范围和成功结果更新。
 
 ## 下一步
 

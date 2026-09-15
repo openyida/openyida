@@ -5,6 +5,10 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  asset: {
+    localFileUnavailable: "Bilddatei nicht gefunden: {0}. Prüfen Sie das Arbeitsverzeichnis des Befehls oder verwenden Sie einen absoluten Pfad.",
+    invalidStrategy: "Die Bildanforderungen müssen ein Objekt mit Bildpositionen pro Seite sein.",
+  },
   help: {
     subtitle: 'KI-gestütztes Low-Code-Entwicklungstool für Yida',
     usage: 'Verwendung:',
@@ -22,6 +26,7 @@ module.exports = {
     cmd_create_app: 'Yida-App erstellen',
     cmd_design_plan_preview: 'Planentwürfe pro Modul aktualisieren',
     design_plan_preview_invalid: 'Entwurfsaktualisierung fehlgeschlagen; Details prüfen',
+    cmd_design_plan_catalog: 'Verfügbare Planungsthemen und Seitenmuster auflisten',
     cmd_design_plan_init: 'Planentwurf aus bestätigten Anforderungen erstellen',
     cmd_design_plan_materialize: 'Planartefakte aus build-plan.json erzeugen und validieren',
     cmd_design_plan_patch: 'Plan per Feldpfad ändern und frühere Bestätigung verwerfen',

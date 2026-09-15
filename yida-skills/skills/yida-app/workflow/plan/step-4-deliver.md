@@ -46,7 +46,7 @@ HTML 保留“需求总览、数据模型、业务流程、页面规划”四章
 - `meta.planState.planConfirmed=true`
 - `meta.revision=presentedRevision=confirmedRevision`
 
-收到 `confirm_build` 且回传 revision 等于展示 revision 后，以该版本计划作为实施阶段的唯一方案输入并直接创建范围内资源。`explicitScope.allowInferredResources=false` 时，实施范围由 `explicitScope` 决定，完成资源创建、回读和交付。
+收到 `confirm_build`（确认并开始搭建）且回传 revision 等于展示 revision 后，直接进入同版本资源实施。确认结果保存在运行时交接上下文。立即按同版本物化结果的 `assetTasks` 启动素材任务，同时进入应用和表单创建；调度见 [素材与页面同时推进](../parallel-work.md#素材与页面同时推进)。后续素材进度更新保留该确认，业务方案或视觉方案变更按下一节处理。`explicitScope.allowInferredResources=false` 时也不执行主题 CSS、应用设置或导航交接，只创建范围内资源并回读、交付。
 
 ## 4. 处理调整
 
@@ -62,7 +62,7 @@ openyida design-plan patch prd/<项目名>/build-plan.json \
   --materialize --json
 ```
 
-CLI 支持首次添加契约允许的可选字段，自动递增 revision、使旧确认失效，并同步源 JSON 与派生产物。字段限制见 [紧凑计划契约](../../../yida-design/sub_skill/yida-design-plan/references/build-plan-compact-schema.md#可选字段-patch-与完成校验)。
+CLI 支持首次添加契约允许的可选字段。方案变更自动递增 revision、清除旧确认；仅更新素材进度保留 revision 和确认，同步源 JSON 与派生产物。字段限制见 [紧凑计划契约](../../../yida-design/sub_skill/yida-design-plan/references/build-plan-compact-schema.md#可选字段-patch-与完成校验)。
 
 | 调整内容 | 负责技能与传播范围 |
 | --- | --- |
@@ -70,4 +70,4 @@ CLI 支持首次添加契约允许的可选字段，自动递增 revision、使�
 | 页面核心任务、区块或首屏 | `yida-prd` 更新页面，随后 `yida-design` 同步视觉应用 |
 | 主题、品牌色、圆角或阴影 | `yida-design` 更新视觉事实，保持业务范围、页面任务和操作优先级 |
 
-每次调整后重新展示并确认当前版本。
+业务方案或视觉方案调整后重新展示并确认当前版本。素材到位、替换同用途图片或更新缺图状态属于实施进度，按 [素材交接](../../../yida-image-assets/SKILL.md#6-交给页面使用) 更新后直接继续。

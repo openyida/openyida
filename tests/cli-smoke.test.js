@@ -598,7 +598,7 @@ describe('CLI offline smoke', () => {
     expect(parsed.summary.core_workflows.full_app_build.page_skill_policy)
       .not.toContain('deep field two-way binding');
     expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('prd.md + design.md');
-    expect(parsed.summary.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
+    expect(parsed.summary.core_workflows.full_app_build.default_nav_order_policy).toContain('without creating a homepage or putting a frontend page first');
     expect(parsed.summary.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
     expect(parsed.summary.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-data-management');
     expect(parsed.summary.core_workflows.full_app_build.ui_guidance_policy).toContain('Core normal forms default to 1-3 business sample records');
@@ -1640,7 +1640,7 @@ describe('CLI offline smoke', () => {
     expect(parsed.commands.core_workflows.full_app_build.page_skill_policy)
       .not.toContain('deep field two-way binding');
     expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('prd.md + design.md');
-    expect(parsed.commands.core_workflows.full_app_build.default_nav_order_policy).toContain('portal/home/workbench entry > business handling > data management > business analytics > system configuration');
+    expect(parsed.commands.core_workflows.full_app_build.default_nav_order_policy).toContain('without creating a homepage or putting a frontend page first');
     expect(parsed.commands.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-design');
     expect(parsed.commands.core_workflows.full_app_build.do_not_default_skill_ids).not.toContain('yida-data-management');
     expect(parsed.commands.core_workflows.full_app_build.ui_guidance_policy).toContain('Core normal forms default to 1-3 business sample records');
@@ -1652,7 +1652,13 @@ describe('CLI offline smoke', () => {
     expect(parsed.recommended.default_full_app_workflow.completion_contract).toContain('one named application entry group');
     expect(parsed.recommended.default_full_app_workflow.application_entry_policy).toEqual({
       delivery_unit: 'single_application_entry_group',
-      workbench: { include: 'always', url: '{base_url}/{appType}/workbench' },
+      workbench: {
+        include: 'when_workspace_in_scope',
+        url: '{base_url}/{appType}/workbench',
+        task_url: '{base_url}/{appType}/workbench/{formUuid}',
+        view_parameter: 'viewUuid',
+        selection: 'one verified planned management default; use real resource/view IDs; no homepage required',
+      },
       custom: {
         include: 'when_entry_mode_standalone_and_is_render_nav_false_readback',
         url: '{base_url}/{appType}/custom/{formUuid}',
@@ -2410,7 +2416,9 @@ test('Plan and navigation commands are discoverable with their existing permissi
   expect(commands.get('update-app').usage).toContain('[--layout side|top|l_shape]');
   expect(commands.get('update-app').usage).toContain('[--hide-app-nav|--show-app-nav]');
   expect(commands.get('update-app').usage).not.toContain('--nav-type');
-  expect(summary.full_app_artifact_route.plan_command_ids).toEqual(local.slice(0, 4));
+  expect(summary.full_app_artifact_route.plan_command_ids).toEqual(['design-plan.catalog', ...local.slice(0, 4)]);
+  expect(commands.get('design-plan.catalog')).toMatchObject({ requires_login: false, permission: { mode: 'allow' }, side_effect: { kind: 'local_read', mutates_yida: false, mutates_local: false } });
+  expect(summary.builder_path.command_contract.canonical_builder_command_ids).toContain('design-plan.catalog');
   expect(summary.full_app_artifact_route.navigation_command_ids.custom).toEqual(remote);
   expect(summary.full_app_artifact_route.navigation_policy.toLowerCase()).toContain('before prd planning');
 });
@@ -2419,24 +2427,123 @@ test('command and agent navigation policies align with AI intake decisions', () 
   const manifest = JSON.parse(runOk(['commands', '--json']));
   const summary = JSON.parse(runOk(['agent-capabilities', '--summary-json']));
   const capabilities = JSON.parse(runOk(['agent-capabilities', '--json']));
-  const brief = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-requirement-analysis/workflow/prepare-brief.md'), 'utf8');
-  expect(brief).toContain('### 导航设计');
+  const brief = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/navigation-decision.md'), 'utf8');
+  expect(brief).toContain('# 平台导航与自定义导航决策');
   expect(brief).not.toContain('| 导航归属 |');
   expect(brief).not.toContain('你希望应用使用哪种导航菜单');
-  expect(brief).toContain('`ai_default`');
+  expect(brief).toContain('ai_default');
   expect(brief).toContain('`user_selected`');
 
   const workflow = manifest.summary.core_workflows.full_app_build;
   for (const route of [workflow, summary.full_app_artifact_route, capabilities.commands.core_workflows.full_app_build]) {
     expect(route.navigation_policy).toBe(workflow.navigation_policy);
+    expect(route.entry_navigation_contract).toEqual(workflow.entry_navigation_contract);
+    expect(route.application_entry_policy).toEqual(workflow.application_entry_policy);
+    expect(route.default_nav_order_policy).toBe(workflow.default_nav_order_policy);
+    expect(route.final_link_policy).toBe(workflow.final_link_policy);
+    expect(route.final_link_policy).toContain('terminal delivery artifact description');
+    expect(route.final_link_policy).toContain('when no delivery tool is available');
     expect(route.navigation_policy).toContain('Before PRD planning in Fast and Plan, the agent determines navigation ownership and layout from business context');
     expect(route.navigation_policy).toContain('Preserve explicit user requirements and existing navigation');
     expect(route.navigation_policy).toContain('ai_default for agent ownership decisions');
     expect(route.navigation_policy).toContain('Include navigation in the overall Plan confirmation');
+    expect(route.navigation_policy).toContain('Configure a custom frontend menu at page scope');
+    expect(route.navigation_policy).toContain('Choose backend native or coding pages by task efficiency');
     expect(route.navigation_policy).not.toContain('offer exactly two');
     expect(route.design_mode_policy).toBe(workflow.design_mode_policy);
     expect(route.design_mode_policy).not.toContain('Confirm unresolved navigation');
+    expect(route.product_design_policy).toBe(workflow.product_design_policy);
+    expect(route.product_design_policy).toContain('Theme templates use only basic-tokens.json variables');
   }
+  expect(workflow.default_nav_order_policy).toContain('preserves platform navigation for the management workspace');
+  expect(workflow.entry_navigation_contract).toMatchObject({
+    plan_path: 'execution.entryRecommendation',
+    modes: ['unified', 'service-management', 'frontend-only'],
+    runtime: { default_mode: 'platform', builtin_permission_adapter: false },
+  });
+  expect(workflow.application_entry_policy.workbench).toMatchObject({
+    task_url: '{base_url}/{appType}/workbench/{formUuid}', view_parameter: 'viewUuid',
+  });
+  for (const policy of [workflow.ui_guidance_policy, capabilities.commands.core_workflows.full_app_build.ui_guidance_policy]) {
+    expect(policy).toContain('alongside page layout and interaction work');
+    expect(policy).toContain('image binding and acceptance');
+    expect(policy).not.toContain('before that page is implemented');
+  }
+  expect(workflow.completion_contract).toContain('delivery artifact description');
+  expect(workflow.completion_contract).toContain('when no delivery tool is available');
+  expect(workflow.completion_contract).toContain('frontend-only delivery includes only its verified frontend entry');
+  expect(capabilities.recommended.default_full_app_workflow.completion_contract).toBe(workflow.completion_contract);
+});
+
+test('plain user-facing guidance is available from manifest and both agent capability formats', () => {
+  const manifest = JSON.parse(runOk(['commands', '--json']));
+  const summary = JSON.parse(runOk(['agent-capabilities', '--summary-json']));
+  const capabilities = JSON.parse(runOk(['agent-capabilities', '--json']));
+  const policy = manifest.summary.core_workflows.full_app_build.user_visible_expression_policy;
+  expect(policy).toMatchObject({
+    audience: 'nontechnical_user',
+    wording: expect.stringContaining('everyday language'),
+    failures: expect.stringContaining('pending verification'),
+    diagnostics: expect.stringContaining('exact technical fields and error codes'),
+  });
+  expect(summary.full_app_artifact_route.user_visible_expression_policy).toEqual(policy);
+  expect(capabilities.commands.core_workflows.full_app_build.user_visible_expression_policy).toEqual(policy);
+  expect(capabilities.recommended.default_full_app_workflow.user_visible_expression_policy).toEqual(policy);
+  expect(fs.existsSync(path.join(ROOT, policy.reference))).toBe(true);
+});
+
+test('asset fallback and completion policies are shared by the CLI, manifest and agent summary', () => {
+  const sources = JSON.parse(runOk(['asset', 'sources', '--json']));
+  const manifest = JSON.parse(runOk(['commands', '--json']));
+  const summary = JSON.parse(runOk(['agent-capabilities', '--summary-json']));
+  const policy = sources.guidance.failurePolicy;
+  expect(policy).toMatchObject({
+    attemptsPerCandidate: 1,
+    sourceUnavailable: 'switch_source_for_remaining_slots',
+    candidateFailed: 'replace_input',
+    exhausted: 'planned_optional_layout_or_required_gap',
+  });
+  expect(manifest.summary.core_workflows.full_app_build.optional_asset_branch.failure_policy).toEqual(policy);
+  expect(summary.full_app_artifact_route.optional_asset_branch.failure_policy).toEqual(policy);
+  const collection = sources.guidance.collectionPolicy;
+  const scheduling = sources.guidance.schedulingPolicy;
+  expect(scheduling).toMatchObject({ searchConcurrency: 4, searchUnit: 'slot', resultWriter: 'one_per_page' });
+  expect(manifest.summary.core_workflows.full_app_build.optional_asset_branch.scheduling_policy).toEqual(scheduling);
+  expect(summary.full_app_artifact_route.optional_asset_branch.scheduling_policy).toEqual(scheduling);
+  expect(collection).toMatchObject({ maxRoundsPerPage: 2, imagesPerSlot: 1, candidatesPerSlotPerRound: 1, secondRound: 'failed_required_slots_only', roundOwner: 'host_agent' });
+  expect(manifest.summary.core_workflows.full_app_build.optional_asset_branch.collection_policy).toEqual(collection);
+  expect(summary.full_app_artifact_route.optional_asset_branch.collection_policy).toEqual(collection);
+  expect(manifest.commands.find(command => command.id === 'asset').args).toContainEqual(expect.objectContaining({ name: 'pageId', builder_options: ['--page-id'] }));
+  const completion = sources.guidance.completionPolicy;
+  expect(completion).toMatchObject({ resultSource: 'asset-manifests/<pageId>.json', planApproval: 'reuse_existing_approval', nextStep: 'continue_ready_pages' });
+  expect(manifest.summary.core_workflows.full_app_build.optional_asset_branch.completion_policy).toEqual(completion);
+  expect(summary.full_app_artifact_route.optional_asset_branch.completion_policy).toEqual(completion);
+});
+
+test('Plan CLI preserves workspace navigation while materializing and patching a frontend menu', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-entry-cli-'));
+  try {
+    const input = path.join(dir, 'build-plan.json');
+    const plan = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests/fixtures/design-plan.json'), 'utf8'));
+    plan.execution = { appConfig: { navigationType: 'platform-side' } };
+    const frontend = JSON.parse(JSON.stringify(plan.pages.customPageDetails[0]));
+    frontend.pageId = frontend.sceneKey = 'employee-entry';
+    frontend.name = '员工办事入口';
+    frontend.pageSpecHandoff = {
+      entryMode: 'standalone', navigation: { type: 'custom', variant: 'top', reason: '员工办理个人事项' },
+    };
+    plan.pages.customPageDetails.push(frontend);
+    fs.writeFileSync(input, JSON.stringify(plan));
+    runOk(['design-plan', 'materialize', input, '--json']);
+    const handoff = () => JSON.parse(fs.readFileSync(path.join(dir, 'prd.md'), 'utf8').match(/```json\n([\s\S]*?)\n```/)[1]);
+    expect(handoff().appConfig).toMatchObject({ navigationType: 'platform-side', hideAppNav: 'n' });
+    expect(handoff().pageNavigation).toEqual([{ name: frontend.name, type: 'display-page', isRenderNav: false }]);
+    expect(handoff().pages[0].pageSpecHandoff.entryMode).toBe('platform-shell');
+    const menu = { type: 'none', reason: '单步办理' };
+    runOk(['design-plan', 'patch', input, '--set', 'pages.customPageDetails[1].pageSpecHandoff.navigation=' + JSON.stringify(menu), '--materialize', '--json']);
+    expect(handoff().pages[1].pageSpecHandoff.navigation).toEqual(menu);
+    expect(handoff().appConfig.hideAppNav).toBe('n');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
 test('Plan CLI and design-file sample work locally without a login', () => {
@@ -2447,10 +2554,35 @@ test('Plan CLI and design-file sample work locally without a login', () => {
     const check = JSON.parse(runOk(['design-plan', 'materialize', input, '--check', '--json']));
     expect(check.checked).toBe(true);
     expect(fs.existsSync(path.join(dir, 'design.md'))).toBe(false);
+    runOk(['design-plan', 'materialize', input, '--json']);
+    const { readDesignTokens } = require('../lib/app/theme-from-design');
+    const contract = require('../yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/design-themes/basic-tokens.json');
+    const tokens = readDesignTokens(fs.readFileSync(path.join(dir, 'design.md'), 'utf8'));
+    expect(Object.keys(tokens).sort()).toEqual(Object.values(contract.groups).flat().sort());
+    for (const [name, value] of Object.entries(contract.fixedValues)) {
+      expect(tokens[name]).toBe(value);
+    }
     const result = JSON.parse(runOk(['design-plan', 'patch', input, '--set', 'execution.appConfig.navigationType=custom', '--set', 'visualStyle.tokens.--pod-card-border-radius=16px', '--materialize', '--output-dir', dir, '--json']));
     expect(result.changed).toBe(true);
     const cssPath = path.join(dir, 'app-theme.css');
     runOk(['sample', 'yida-design', 'app-theme', '--design-file', path.join(dir, 'design.md'), '--output', cssPath]);
-    expect(fs.readFileSync(cssPath, 'utf8')).toContain('--pod-card-border-radius: 16px');
+    const css = fs.readFileSync(cssPath, 'utf8');
+    expect(css).toContain('--pod-card-border-radius: 16px');
+    for (const [tone, background] of Object.entries({ light: 'var(--color-brand1-3)', dark: 'var(--color-brand1-5)', white: '#fff', gray: '#f0f2f5' })) {
+      const block = css.match(new RegExp(`\\.pod-premium\\.nav-${tone}\\s*\\{([^}]+)\\}`))[1];
+      expect(block).toContain(`--pod-shell-theme-bg-color: ${background};`);
+    }
   } finally {fs.rmSync(dir, { recursive: true, force: true });}
+});
+
+
+test('form recovery command contracts expose bounded recovery and compatible URLs', () => {
+  const manifest = JSON.parse(runOk(['commands', '--json']));
+  const batch = manifest.commands.find(item => item.id === 'create-form.batch');
+  const resume = manifest.commands.find(item => item.id === 'create-form.resume');
+  expect(batch.notes.join(' ')).toContain('rerun_unchanged_plan');
+  expect(batch.notes.join(' ')).toContain('inspect_unknown_write_then_reconcile');
+  expect(batch.notes.join(' ')).toContain('url remains the compatible form entry');
+  expect(resume.notes.join(' ')).toContain('retry missing compatible fields once');
+  expect(resume.usage).toContain('create-form resume <appType> <formUuid> <fieldsJsonOrFile> [--json]');
 });

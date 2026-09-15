@@ -1,91 +1,88 @@
 ---
 name: yida-image-assets
 description: >
-  宜搭页面需要图片时使用。根据设计槽位选图、上传宜搭图片附件、补齐失败项，输出可按页面使用的 asset-manifest.json。
+  宜搭页面图片准备：每个位置一张图，最多两轮，按页并发采集和交接。
 ---
 
 # 准备页面图片
 
-输入是 `design.md.assetStrategy`，输出是 `prd/<项目名>/asset-manifest.json`。按已有设计准备图片，不改业务需求和视觉方案。
+按 `design.md.assetStrategy` 准备图片，每页输出 `prd/<项目名>/asset-manifests/<pageId>.json`。
 
-`asset resolve` 负责下载和上传图片，不负责搜索或生图。搜索、生图、看图由当前宿主工具完成。
+搜索、生图、看图使用当前宿主工具；下载、上传和写清单使用 `asset resolve`。Plan 确认后按 `materialize.assetTasks` 启动；Fast 设计就绪即启动。启动前读取已有页面清单，复用符合当前用途与尺寸要求的 final 图片，其余位置接着原轮次处理。
 
 ## 1. 确定哪些页面需要图片
 
-读取 `assetStrategy.pages[]`，按 `pageId` 找页面，按 `slotId` 找图片位置。
+按 `assetStrategy.pages[].pageId` 找页面，按 `slotId` 找图片位置。
 
-| imageNeed | 常见页面 | 怎么做 |
-| --- | --- | --- |
-| `required` | 品牌、营销、商品目录、菜单、封面、作品展示 | 准备设计要求的图片；缺图时该页面保持草稿 |
-| `beneficial` | 门户、工作台、知识库、引导页、空态 | 有槽位就准备图片；没有槽位则跳过 |
-| `none` | 表单、审批、财务、权限、设置、CRUD 台账、统计 | 跳过素材采集，使用图标、图表和排版 |
+| imageNeed | 怎么做 |
+| --- | --- |
+| `required` | 准备设计要求的图片；缺必需图片时该页保持草稿 |
+| `beneficial` | 有图片位置就准备，没有则跳过 |
+| `none` | 直接使用图标、图表和排版 |
 
-完整应用必须有设计槽位。设计缺失时交回 `yida-design` 补齐，不用空清单代替。多个图片位置使用不同的 `slotId`；`count > 1` 的展开规则见 [清单契约](references/manifest-contract.md)。
+设计缺失时交回 `yida-design` 补齐。每个位置一个 `slotId`、一张图，`count` 省略或填 `1`。
 
-## 2. 检查当前能用的工具
+## 2. 检查工具
 
-运行 `openyida agent-capabilities --summary-json`，分别查看 `online_search`、`image_search`、`image_generation`。
+复用当前环境的能力查询结果；尚未查询时运行 `openyida agent-capabilities --summary-json`，查看 `online_search`、`image_search`、`image_generation`。
 
-- `unavailable`：跳过这项能力。
-- `unknown` 或 `requires_host_tool_inventory_check=true`：检查当前宿主工具清单。
-- `available`：使用实际存在的对应工具；若工具不存在，按不可用处理。CLI 的运行环境默认值不能代替工具调用结果。
+- `unavailable`：跳过。
+- `unknown` 或 `requires_host_tool_inventory_check=true`：查看宿主实际工具清单。
+- `available`：使用实际存在的工具；工具缺失则按不可用处理。
 
-没有搜图或生图能力时，使用用户已提供的素材；仍缺图就记录缺口，继续不依赖这些图片的页面。
+工具不可用时复用用户图片，记录剩余缺口，继续其他页面。
 
-## 3. 选图并查看
+## 3. 最多两轮，按页面并发
 
-按以下顺序准备每个槽位：
+优先用用户图片，其次搜索 **Unsplash / Pexels**；设计允许示意图时可用宿主生图。来源填写 `source=user|search|generated`，生成图标记 `isIllustrative=true`。
 
-1. 用户提供的本地图片或图片链接，记录 `source=user`。
-2. 从 **Unsplash / Pexels** 搜索，记录 `source=search`。图库采集仅支持这两个网站。
-3. 槽位允许生成、且宿主有生图工具时生成图片，记录 `source=generated`、`isIllustrative=true`。
-4. 仍无合适图片时保留缺口。可用中性占位说明缺图，但不能把占位记为已完成素材。
+1. **第一轮**：批量找图，每个位置选一张信息齐全的图片，查看合适后下载上传。
+2. **第二轮**：只补第一轮失败的必需位置，每个位置换一张；允许示意图时可改用生图。
+3. **结束**：可选位置用设计允许的无图布局，必需位置保留缺口。用户后续明确要求补图时再继续。
 
-查看实际图片，确认内容、比例、清晰度和主体位置适合槽位。商品、房源、人员、案例图片表达业务事实，不能用生成图冒充真实对象。
+每页最多两轮，每个位置每轮最多一个候选，同一候选尝试一次。一轮包括选图、看图、来源记录、下载和上传。换来源、换工具或恢复上传都接着当前轮次。Agent 记录各页轮次、失败位置和不可用来源。
 
-采集图库素材前读 [来源规则](references/source-policy.md)：图库图片保留来源页、摄影师、许可、署名和真实下载动作记录。只选择允许下载和转存的图片。不编造图片 URL、来源或下载记录。
+各页及同页各图片位置同时搜索，整次采集共用最多四个在途请求，完成一个就补下一个；使用宿主批量并发调用或并行任务。每个位置返回选图和来源，由该页唯一写入者组装草稿，CLI 并发下载上传。记录请求起止时间确认实际重叠。主流程同时创建应用、表单和无图页面；有图页面先做布局与交互，接图和验收时汇合。
+
+### 失败后立即切换
+
+来源出现 401、403、429、反爬挑战或超时，标记为本次采集不可用；其他页面和后续轮次复用这份记录。图片失效、尺寸不足或来源信息获取失败，记录该位置，按剩余轮次处理。
+
+查看实际图片的内容、比例、清晰度和主体位置。商品、房源、人员、案例使用真实图片。来源记录和使用条件见 [来源规则](references/source-policy.md)。
 
 ## 4. 写草稿并上传
 
-按 [清单契约](references/manifest-contract.md) 写 `manifest-draft.json`。每项填写 `slotId`、`input`、`source`、`alt` 和对应来源信息；尺寸由 CLI 实际读取，不靠手填宽高通过校验。
+按 [清单契约](references/manifest-contract.md) 写每页草稿：
 
 ```bash
-openyida asset resolve --input <草稿> --manifest <asset-manifest.json> --design <design.md> --app-type <真实appType> --json
+openyida asset resolve --input asset-manifests/<pageId>.draft.json --manifest asset-manifests/<pageId>.json --design design.md --page-id <pageId> --app-type <真实appType> --json
 ```
 
-上传前需要有效宜搭登录态和目标应用 `appType`。已有应用直接使用；尚未创建应用时先选图、保存草稿，等应用创建后再执行上传。不编造 appType。省略 `--app-type` 时 CLI 读取当前项目 `config.json.appType`。
+上传需要登录态和真实 `appType`。尚未创建应用时先保存草稿，创建后再上传；省略 `--app-type` 时读取项目配置。
 
-默认按以下规则落地，不需要配置自有 CDN，也不需要加 `--upload-assets`：
+默认上传宜搭图片附件：不超过 20 MiB 的图片上传后使用公开链接；更大的外链保留原地址，更大的本地图记录缺口。尺寸由 CLI 实际读取。下载或上传失败记录缺口，按两轮规则处理。
 
-1. **不超过 20 MiB（20 × 1024 × 1024 字节）**：外链先下载，本地图直接使用；通过宜搭 `ImageField` 附件上传，取得公开图片链接后直接写入清单，不再额外请求原图或上传地址做可用性校验。
-2. **超过 20 MiB**：外链保留原始 `input` 链接，不上传。CLI 检查响应大小和实际下载大小；下载中超过限制立即停止并清理临时文件。
-3. **大于限制的本地图**：没有原始外链可回退，保持 `draft`；补原始图片 URL 或换成较小图片。
-4. **下载失败**：跳过该素材，不重试、不上传、不回退失败外链；记录缺口，需要时换图。登录或上传失败同样记录缺口，不把临时签名链接当公开链接。
+## 5. 处理结果
 
-`--design` 核对全部设计槽位、页面归属和最小尺寸。漏项自动成为缺口，重复或未声明的槽位会报错。格式和尺寸从本次下载内容读取，来源从草稿记录读取，不额外联网校验。
+- 退出码 `0`：清单为 `final` 或 `none`。
+- 退出码 `2`、`ASSET_MATERIAL_NOT_FINAL`：清单已保存，按 `gaps` 找缺口。
+- 其他错误：按错误修正参数或文件。
 
-## 5. 处理结果和补图
-
-- 退出码 `0`：本次清单为 `final` 或 `none`。
-- 退出码 `2`、`ASSET_MATERIAL_NOT_FINAL`：清单已写入，但仍有缺口。读取 `gaps`，只修失败项；其他错误先修参数或输入文件。
-- 缺原图就补 `input`，尺寸不够就换图，缺来源信息就补真实记录；不要手动改状态为 `final`。
-
-修改上次清单中的失败项后重跑：
-
-```bash
-openyida asset resolve --input asset-manifest.json --manifest asset-manifest.json --design design.md --app-type <真实appType> --json
-```
-
-清单保留原始输入和尺寸要求。CLI 在原图内容未变时直接复用已有宜搭附件链接，不额外联网探测。更换素材时修改 `input`，不要只修改输出 `url`。`--offline` 不联网、不上传，离线处理的图片仍保持草稿。
+第二轮修改失败位置的 `input`，将该页清单同时作为 `--input` 和 `--manifest`。CLI 在原图内容未变时复用附件链接。字段、尺寸及错误处理见清单契约。
 
 ## 6. 交给页面使用
 
-读取 `pages[]` 中当前 `pageId` 的 `materialStatus`：
+素材采集完成后直接继续搭建，沿用已有方案确认。读取该页清单的 `pages[].materialStatus`；已有总清单 `asset-manifest.json` 按 `pageId` 读取。
 
-- `final`：当前页面可继续；只使用该页 `assets[]` 中 `materialStatus=final` 的图片 URL。
-- `draft`：当前页面仍缺必需素材，先补图。
-- `none`：当前页面没有图片槽位，直接继续。
+- `final`：该页可继续，只使用 `assets[].materialStatus=final` 的图片 URL。
+- `draft`：该页缺必需图片；剩余轮次内补图，用尽则保留缺口，其他页面继续。
+- `none`：该页直接继续。
 
-根级 `materialStatus` 表示全部素材是否齐备。它是 `draft` 时，已为 `final` 的页面仍可继续。`required=false` 的槽位失败不阻塞页面，但该图片不能使用；采用设计允许的无图布局。
+可选图片失败时采用设计允许的无图布局。根状态只表示当前清单的整体结果。
 
-交付时说明：哪些页面已就绪、哪些页面缺图、每个缺口需要补什么。上传成功后，仍要确认图片内容适合页面。
+页面任务只写自己的清单。需要更新 PRD/design 时，由应用编排汇总后统一处理：
+
+- **Plan**：更新 `visualStyle.forUser.assetStrategy.materialStatus` 和 `missingAssets`，执行一次 `design-plan patch --set ... --materialize --json`。CLI 保留 revision 与已有确认，生成的文档直接用于开发。
+- **Fast**：直接更新文档中的素材进度。
+
+功能、页面结构或整体风格变化时交回规划技能。交付时说明哪些页面可以继续、哪些页面缺什么图。

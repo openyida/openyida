@@ -2,6 +2,8 @@
 
 > 先画功能结构，再定页面。宜搭里优先使用平台导航、原生表单和流程能力，自定义页面负责体验入口和信息展示。
 
+先沿用 brief 的入口分组，分别确定应用工作区导航和独立前台菜单。服务入口自己的自定义菜单不触发应用级 hideAppNav；页面使用 entryMode=standalone，工作区继续保留平台导航。多个前台视图可共用一个页面资源。
+
 ## 确定应用入口
 
 1. 首页/入口页：官网首页、工作台、经营驾驶舱或其他入口。
@@ -9,7 +11,7 @@
 3. 导航分组：按角色路径和业务主次确定入口数量、顺序和分组，通常工作台或首页在第一位。自定义导航按这份规划展示，访问态接口仅过滤当前用户不可见的入口。
 4. 表单/流程关系：录入、审批、权限、校验交给原生表单和流程。
 
-按目标用户的主任务选择入口：填写、报名、申请等办理任务使用原生提交页；查询、审核和维护任务默认使用普通表单的数据管理页。用户明确要求时才增加自定义列表页。同一表单可对应“活动报名”和“报名管理”等不同入口；将用途写入页面 `purpose` 和交互说明，供实现阶段选择路由。
+按目标用户的主任务分别规划：服务前台默认一个 coding 页面完成浏览、填写和结果等已选视图；后台或统一工作区按操作效率选择原生或 coding，不以“后台”强制原生。计划采用原生能力时，办理任务用提交页，查询维护用数据管理页。同一表单可对应“活动报名”和“报名管理”等不同入口；将用途写入页面 `purpose` 和交互说明，供实现阶段选择路由。
 
 自定义导航将每个入口的用途、目标资源和打开方式写清：管理视图走 `workbench/{formUuid}`，直接填写走 `submission/{formUuid}`；同一表单可对应两个独立入口，不重复创建表单。保留自绘导航时，表单在主内容区 iframe 打开；跨真实页面默认当前标签跳转；页面内新增/详情按钮使用抽屉。参数与路由规则见 [链接参考](../../../references/field-and-url-reference.md)。
 
@@ -24,8 +26,8 @@
 | 页面 | resourceType | scene | 用途 | 实现链路 |
 | --- | --- | --- | --- | --- |
 | 主页 / 首页 / 工作台 | `display-page` | `workbench/dashboard/landing` | 应用第一入口、指标概览、快捷入口 | 自定义页面 |
-| 表单数据管理页 | `normal-form` | `native-list` | 查询、筛选、查看、编辑和维护 | 宜搭表单数据管理页（默认） |
-| 自定义列表页 | `display-page` | `list` | 用户明确要求自定义列表页 | 自定义页面 |
+| 表单数据管理页 | `normal-form` | `native-list` | 查询、筛选、查看、编辑和维护 | 宜搭表单数据管理页（适合时复用） |
+| 自定义列表页 | `display-page` | `list` | 任务需要自定义列表交互 | 自定义页面 |
 | 详情页 | `display-page` | `detail` | 单对象信息总览、时间线、关联对象 | 自定义页面 |
 | 数据大屏 / 看板 | `display-page` 或报表 | `screen/dashboard` | 指标监控、经营分析、投屏展示 | Canvas / Recharts / 报表 |
 
@@ -47,7 +49,7 @@
 | workbench | 进入应用后处理任务、看状态、做高频动作 | 当前业务 `contentBlocks` + `design.md.visualScaffold` |
 | dashboard | 经营分析、指标判断、趋势和排行 | 指标口径 + 图表目的 + `design.md.visualScaffold` |
 | screen | 投屏、监控、态势感知 | 实时信息层级 + 大屏展示目标 + `design.md.visualScaffold` |
-| list | 用户明确要求的自定义列表 | 数据字段、筛选、操作路径 + `design.md.visualScaffold` |
+| list | 任务需要自定义列表交互 | 数据字段、筛选、操作路径 + `design.md.visualScaffold` |
 | detail | 单对象总览、时间线、关联对象 | 对象信息架构 + 关联关系 + `design.md.visualScaffold` |
 | landing | 对外介绍、品牌表达、价值转化 | 价值路径、素材清单、CTA + `design.md.visualScaffold` |
 | split-pane | 左列表右详情、处理台 | 主从关系、处理路径 + `design.md.visualScaffold` |
@@ -63,7 +65,7 @@
 
 默认规则：
 
-- 沿用 brief 的导航决策；未明确时按 [导航设计](../../yida-requirement-analysis/workflow/prepare-brief.md#导航设计) 补齐。
+- 沿用 brief 的导航决策；未明确时按 [导航设计](../../yida-design/references/navigation-decision.md) 补齐。
 - 页面内 tab、分段、筛选、卡片切换只是当前页内容结构。
 - 只说「工作台 / 门户 / 看板 / 大屏 / 首页」不是隐藏导航信号。
 - 同应用跨页面入口优先进入平台导航或导航分组。

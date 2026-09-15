@@ -2,7 +2,7 @@
 
 ## 设计槽位
 
-Fast 和 Plan 都在 `design.md` 的 frontmatter 中写一行 JSON 格式的 `assetStrategy`。例如：
+Fast 和 Plan 在 `design.md` 的 frontmatter 保留主题等字段，并用一行 JSON 写 `assetStrategy`：
 
 ```yaml
 ---
@@ -10,78 +10,74 @@ assetStrategy: {"pages":[{"pageId":"home","imageNeed":"required","slots":[{"slot
 ---
 ```
 
-实际文件保留原有主题等 frontmatter 字段。CLI 的 `--design` 读取这行 JSON；不要改成多行 YAML 对象。
-
-- 每页必须有唯一 `pageId`、`imageNeed` 和 `slots` 数组；每个槽位必须有唯一 `slotId` 和 `usage`。
-- 一个槽位对应一张图。`count` 默认 `1`；若为 `3`，CLI 展开为 `slotId[0]`、`slotId[1]`、`slotId[2]`，草稿使用展开后的 ID。`count` 支持 1–100。
-- `required` 默认 `true`。仅在设计允许无图布局时设为 `false`。
-- `minSize` 格式为 `宽x高`，如 `1600x900`；也可写非负整数 `minWidth/minHeight`。草稿不能降低设计的最小尺寸。
-- `generationAllowed=false` 的槽位不接受 `source=generated`。
-- `imageNeed=none` 的页面写空 `slots`；`required` 页面没有槽位时保持 `draft`。
+- 每页有唯一 `pageId`、`imageNeed` 和 `slots`，每个位置有唯一 `slotId` 和 `usage`。
+- 每个位置一张图，`count` 省略或填 `1`。旧计划的 count>1 仍展开为独立位置。
+- `required` 默认 true；设计允许无图布局时可设 false。
+- `minSize` 为 `宽x高`，也可填非负整数 `minWidth/minHeight`。CLI 使用设计和草稿中较高的尺寸要求。
+- `generationAllowed=false` 只接受真实素材。
+- `imageNeed=none` 省略 slots 时 CLI 补空数组；required/beneficial 页面显式填写 slots。Plan 生成方案时即校验位置、用途和尺寸；required 页面空 slots 时保持 draft。
 
 ## 输入草稿
 
-根字段为 `assets` 数组。用户图片和生成图片只需基础字段；图库图片还要填写来源信息。
-
 ```json
-{
-  "assets": [{
-    "slotId": "home.hero",
-    "usage": "hero",
-    "input": "./assets/home-hero.png",
-    "source": "user",
-    "alt": "团队在会议室讨论方案"
-  }]
-}
+{"assets":[{"slotId":"home.hero","usage":"hero","input":"./assets/home.png","source":"user","alt":"团队讨论方案"}]}
 ```
 
-`input` 可用本地路径或 HTTP(S) 图片 URL。本地相对路径相对于运行命令的工作目录；跨目录重跑使用绝对路径。不要写搜索结果页、网页地址或未生成的文件路径。
+`input` 使用实际本地文件或 HTTP(S) 图片地址。相对路径基于命令工作目录，跨目录处理使用绝对路径。NOT_FOUND 返回 resolvedPath 与 baseDir，核对实际查找位置后修正 input；这类文件路径修正直接重跑该页素材任务。
 
-| source | 额外字段 |
+| source | 来源字段 |
 | --- | --- |
-| `user` | 用户提供的图片；保留实际用途 |
-| `generated` | `isIllustrative=true`；查看实际生成结果 |
-| `search` | `provider` 仅 `unsplash` 或 `pexels`；填写 `sourcePage`、`creator`、`license`、`attribution` |
-| Unsplash 搜索结果 | 另填 `downloadLocation`、`downloadTracked=true`；只有真实完成下载动作记录后才能写 true |
+| user | 保留用户图片的用途 |
+| generated | isIllustrative=true，查看实际图片 |
+| search | provider=unsplash 或 pexels，填写 sourcePage、creator、license、attribution |
+| Unsplash 搜索结果 | 实际完成下载动作记录后填写 downloadLocation、downloadTracked=true |
+
+## 按页面执行
 
 ```bash
-openyida asset resolve --input manifest-draft.json --manifest asset-manifest.json --design design.md --app-type <真实appType> --json
+openyida asset resolve --input asset-manifests/home.draft.json --manifest asset-manifests/home.json --design design.md --page-id home --app-type <真实appType> --json
 ```
 
-完整应用始终带 `--design`，以最新设计为准。独立检查单张图片可以省略 `--design`，但它只证明传入素材的状态，不证明应用槽位齐备。`--slot home.hero=<路径或URL> --source user` 适合快速检查，缺少用途、alt 等元数据时仍为 `draft`。
+完整应用带 `--design` 校验槽位。`--page-id` 只处理指定页；省略时处理整份清单。各页使用不同的 `--manifest` 文件，同时运行、独立交接。第二轮更新失败项 input，再将页面清单同时作为输入和输出。轮次和并发规则见 [主流程](../SKILL.md#3-最多两轮按页面并发)。
 
-图片默认下载后上传宜搭 `ImageField` 附件，再换取公开链接；下载前后和上传后均不额外发送 URL 探测请求。`input` 始终保留原图，`url` 是页面使用的最终链接；上传不改变 `source` 的来源分类。超过 20 MiB 的外链直接保留 `input`，不用上传；20 MiB 整仍上传。`--upload-assets` 仅兼容旧命令，已无需手动指定。
+独立图片可用 `--slot home.hero=<图片> --source user` 检查；这只验证传入图片，完整应用仍需设计槽位校验。
 
-## 输出和重跑
+## 下载与上传
 
-输出 `schemaVersion=2`：
+- ≤20 MiB：上传宜搭 ImageField 附件，使用返回的公开链接。
+- >20 MiB：外链保留 input；本地图记录缺口。下载超限时停止并清理临时文件。
+- 下载失败记录缺口。格式和尺寸从下载内容读取，原图和上传结果均省去额外 URL 探测。
+- input 保留原图，url 保存最终链接，source 保留来源分类。原图内容相同时复用已有附件。
+- `--offline` 关闭联网和上传，图片保持 draft；`--upload-assets` 兼容旧命令，默认已上传。
+
+## 输出
+
+`schemaVersion=2`：
 
 | 字段 | 含义 |
 | --- | --- |
-| `materialStatus` | 全部素材的总状态：`final` / `draft` / `none` |
-| `assetStrategy` | 本次设计要求；重跑时保留。再次传 `--design` 时以设计文件覆盖 |
-| `pages[]` | 每页的 `pageId`、`imageNeed`、`slotIds`、`materialStatus`、`gaps` |
-| `assets[]` | 每张图的原始 `input`、页面/槽位 ID、尺寸要求、来源信息、实际宽高、落地 URL、`materialStatus`、`gaps` |
-| `assets[].delivery` | CLI 生成的交付记录，用于内容比较和宜搭附件复用；`source=yida-attachment` 表示上传，`source=external` 且 `reason=ASSET_TOO_LARGE` 表示超限保留原链接；保留原样，不手工构造 |
-| `gaps` | 全部缺口，按 `pageId/slotId` 定位 |
-| `capabilityEvidence` | 宿主能力声明、`uploadTarget`、`maxUploadBytes` 和本次联网开关；旧 `cdnConfigured` 仅兼容字段，不决定上传能力 |
+| materialStatus | 本文件内素材的总状态：final/draft/none |
+| assetStrategy | 本次设计要求；重跑保留，传 --design 时以设计文件为准 |
+| pages[] | pageId、imageNeed、slotIds、materialStatus、gaps |
+| assets[] | input、url、页面/位置 ID、用途、尺寸、来源、alt、materialStatus、gaps |
+| assets[].delivery | CLI 生成的附件复用记录；yida-attachment 表示上传，external 且 reason=ASSET_TOO_LARGE 表示超限保留原地址；原样保留 |
+| gaps | 缺口及错误码，按 pageId/slotId 定位 |
+| capabilityEvidence | 宿主能力、uploadTarget、maxUploadBytes、online；cdnConfigured 是旧兼容字段 |
 
-每张图取得公开 URL（或超限时保留原链接）、实际尺寸及所需元数据齐全时才为 `final`。不支持解析的格式或无法读取尺寸的图片保持 `draft`，应换成可验证的 PNG、JPEG、WebP 等格式。
+取得公开 URL（或超限原地址）、实际尺寸和完整来源信息后，图片才为 final。页面必需位置全部 final 即可继续，可选缺口仍保留在 gaps。旧清单可继续使用，缺原始 input 时先补齐。
 
-页面必需槽位全部为 `final` 时页面可继续；可选槽位失败仍记录缺口，但不阻塞页面。根状态保留 `draft`，便于继续补图。
+## 常见缺口
 
-缺图后可以直接编辑输出清单，再把它同时作为 `--input` 和 `--manifest`。失败项保留原始 `input` 和尺寸要求；成功项在原图内容未变时直接复用附件链接。旧版清单仍可作为输入，但缺失的原始输入需人工补齐，首次重跑不保证复用旧上传结果。
-
-| 缺口/错误 | 处理方式 |
+| 错误 | 处理 |
 | --- | --- |
-| `EMPTY` / `NOT_FOUND` | 补正确的图片输入路径或 URL |
-| `INVALID_IMAGE_CONTENT` / `NOT_IMAGE_FILE` / `DIMENSIONS_UNAVAILABLE` | 换成可读取格式与尺寸的真实图片；不要手填宽高绕过 |
-| `WIDTH_TOO_SMALL` / `HEIGHT_TOO_SMALL` | 换更大图片 |
-| `MISSING_METADATA` | 按缺失字段补用途、alt 或真实来源记录 |
-| `ASSET_APP_TYPE_REQUIRED` | 传入真实 `--app-type`，或在当前项目配置 appType |
-| `ASSET_TOO_LARGE_NO_ORIGINAL_URL` | 本地图超过 20 MiB，补原始图片 URL 或换小图 |
-| `ASSET_ATTACHMENT_URL_INVALID` | 上传接口未返回 HTTP(S) 公开链接，排查转换接口；不使用签名下载地址 |
-| `ASSET_DUPLICATE_SLOT` / `ASSET_UNDECLARED_SLOT` | 修正槽位 ID，使其与设计一致 |
-| `MISSING_PAGE_SLOTS` / `ASSET_DESIGN_INVALID` | 回到设计阶段补齐或修正 `assetStrategy` |
-| 下载错误（如 `HTTP_404`、`TIMEOUT`） | 本次跳过，不上传、不使用原链接；需要该图时换 `input` |
-| 登录、上传、离线错误 | 恢复相应能力后，用保留的原始输入重跑 |
+| EMPTY / NOT_FOUND | 补实际图片路径或地址 |
+| INVALID_IMAGE_CONTENT / NOT_IMAGE_FILE / DIMENSIONS_UNAVAILABLE | 换可读取尺寸的 PNG、JPEG、WebP 等真实图片 |
+| WIDTH_TOO_SMALL / HEIGHT_TOO_SMALL | 换更大图片 |
+| MISSING_METADATA | 补用途、alt、已取得的来源记录；获取失败则换图 |
+| ASSET_APP_TYPE_REQUIRED | 填真实 appType |
+| ASSET_TOO_LARGE_NO_ORIGINAL_URL | 补原始外链或换小图 |
+| ASSET_ATTACHMENT_URL_INVALID | 检查公开链接转换结果 |
+| ASSET_DUPLICATE_SLOT / ASSET_UNDECLARED_SLOT | 对齐设计位置 ID |
+| MISSING_PAGE_SLOTS / ASSET_DESIGN_INVALID | 修正设计槽位 |
+| ASSET_PAGE_REQUIRES_DESIGN / ASSET_PAGE_NOT_FOUND | 提供设计并核对 pageId |
+| 下载、登录、上传错误 | 在剩余轮次内补必需图片，用尽后保留缺口 |

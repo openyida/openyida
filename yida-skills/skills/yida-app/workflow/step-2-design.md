@@ -8,20 +8,30 @@
 
 ## 2.0 先分析并确认需求
 
-调用 `yida-requirement-analysis`，按 [需求分析与首次搭建确认](../../yida-requirement-analysis/workflow/prepare-brief.md) 整理来源、复用资源及用户已有计划，在同一轮一次性确认尚未明确的 Fast / Plan、业务模块、页面与表单及风格。导航方式与布局按 [导航设计](../../yida-requirement-analysis/workflow/prepare-brief.md#导航设计) 确定；用户已明确要求优先，后续阶段复用判断和依据。首次搭建在必要回答与导航判断写回、`intake.confirmed=true` 后继续。
+调用 `yida-requirement-analysis`，按 [首轮需求分析](../../yida-requirement-analysis/workflow/prepare-brief.md) 读取必需来源，尽早确认核心功能和关键用法。该技能统一负责提问、答案合并和需求记录；完成后进入规划准备。
 
-回答齐全后直接保存内部需求记录并进入 2.1；不把“生成需求简报”列为独立任务，不再扩写或展示简报请用户确认。已有确认记录且需求未变化时直接复用。记录粒度、保存和校验规则统一遵守上述需求分析流程。
+取得 `intake.confirmed=true` 的 brief 后进入规划准备；已有确认记录且需求未变化时直接复用。
 
-`intake.designMode` 是本次搭建的权威路由输入。进入 intake 和每次 `ask_human` 恢复后都读取该状态：未初始化时收集明确模式选择，已初始化时按问题声明的写回字段合并回答，新的明确模式选择负责更新模式状态。进入 2.1 时直接按合并后的当前状态路由。
+### 规划准备
+
+澄清结束后，完成以下准备；字段格式按 [交接契约](../../yida-requirement-analysis/references/handoff.md#规划阶段补齐) 写回同一份 brief：
+
+1. 按 Step 1 核验确实需要的资源上下文，保留用户显式目标；纯需求/方案讨论不要求登录，不执行资源写操作。
+2. 按 [模式路由](../../yida-design/references/design-mode.md) 确定执行方式，沿用用户最后一次明确选择。
+3. AI 根据有效功能、`userTasks` 与 `entryRecommendation`，按 [导航决策](../../yida-design/references/navigation-decision.md) 规划各入口的页面和菜单，补齐稳定 `pageScenes` 与主题映射。新增建议标记来源，范围遵守 explicitScope。
+
+进入 2.1 前校验规划字段完整性和 `intake.designMode`。页面、导航、主题等建议随整体搭建方案展示。
 
 执行规划前读取 `constraints.prohibitedActions`。PRD 与 design 必须把禁止项写成实现门禁：`theme-file` 禁止时沿用现有平台主题且不安排主题文件任务；`page-source` 禁止时只允许只读核查与非源码配置；`publish` 禁止时把发布明确标记为跳过。不得为了满足默认九步流程静默删除这些约束。
+
+按 [访问态入口契约](../references/entry-navigation.md) 为每个入口补齐角色、默认任务、菜单、资源/视图/操作权限。Fast PRD 与 Plan execution.entryRecommendation 共用契约；管理端无概览需求时不创建首页。
 
 ## 2.1 按已确认方式推进
 
 按 [模式路由](../../yida-design/references/design-mode.md) 读取本次选择：
 
 - Fast：继续 2.2–2.3；已有详细需求直接作为规划基础。
-- Plan：执行 [Plan 编排](plan/workflow.md)，用户确认当前方案后完成主题交接并进入 Step 3。
+- Plan：执行 [Plan 编排](plan/workflow.md)，用户确认当前方案后，按返回的 `assetTasks` 启动素材任务，同时进入 Step 3 创建应用。
 
 Plan 分支从已加载 `yida-app` 的 Available Files 读取精确路径 `workflow/plan/workflow.md`；不要把当前文件名当目录拼成 `workflow/step-2-design/plan/workflow.md`，也不要用 Glob 猜路径。
 
@@ -58,7 +68,7 @@ Plan 分支从已加载 `yida-app` 的 Available Files 读取精确路径 `workf
 - 门户、工作台、档案、知识库和引导页有图片槽位时为 `beneficial`；
 - 表单、审批、台账、设置和库存流水默认 `none`。
 
-存在 `required` 或带槽位的 `beneficial` 时启动 `yida-image-assets`，先选图并保存 `prd/<项目名>/manifest-draft.json`。宜搭附件上传需要真实 `appType`；已有应用可直接上传，否则等 Step 3 创建应用后再落地，不因缺少 appType 阻塞应用创建。素材只阻塞使用它的页面；Step 7 通过 `--design design.md --app-type <真实appType>` 上传并校验，以输出清单的页面级状态判断能否继续。
+Fast 设计就绪后按 [素材调度](parallel-work.md#素材与页面同时推进) 启动 `yida-image-assets`，主流程继续创建应用和表单。Plan 在方案确认后启动同一流程。各页及同页各图片位置并发搜索，每个位置一张、最多两轮。每页草稿和真实 appType 就绪即执行 `asset resolve --design design.md --page-id <pageId> --app-type <真实appType>`，写入独立清单；页面按自身状态接图并验收。
 
 ## 主题文件实现指令
 

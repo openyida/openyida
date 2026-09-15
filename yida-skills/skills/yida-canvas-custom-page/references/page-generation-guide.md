@@ -10,7 +10,7 @@
 
 结构化实现工具提供可编译运行时结构、数据桥、主题变量和基础 primitives。真实业务页结合 `prd.md` 落地业务化区块顺序、数据和文案，结合 `design.md` 落地信息层级、局部构图和样式节奏。
 
-PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec.json`；其中 `pageStructure`、`scene`、`contentBlocks`、`themeSummary`、`designFile`、`designRefs`、`dataBinding` 和 `primaryAction` 是页面实现的业务输入。随后必须读取 `designFile` 指向的 `design.md`，用 `designRefs` 找到 `visualScaffold`、`backgroundLayer`、`surfaceMaterial`、`surfaceContrast`、`colorRoles`、`depthRule`、`roundedRule`、`densityRule`、`breathingRule`、组件和状态规则。
+PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec.json`；其中 `entryMode`、`navigation`（只作用于当前入口）、`pageStructure`、`scene`、`contentBlocks`、`themeSummary`、`designFile`、`designRefs`、`dataBinding` 和 `primaryAction` 是页面实现的业务输入。随后必须读取 `designFile` 指向的 `design.md`，用 `designRefs` 找到 `visualScaffold`、`backgroundLayer`、`surfaceMaterial`、`surfaceContrast`、`colorRoles`、`depthRule`、`roundedRule`、`densityRule`、`breathingRule`、组件和状态规则。
 
 ## Source Of Truth
 
@@ -80,6 +80,8 @@ design.md 存在“项目配色适配”时先应用该节，它高于模板默�
 
 ### 导航生成规则
 
+先读应用 navigationType 和当前页 pageSpecHandoff。前台 standalone + navigation.custom 只自绘当前入口菜单，不修改 appBlueprint.hideAppNav；后台继续使用平台导航。以下 iframe/原生提交默认只适用于复用原生页面的工作区；前台全码填写与查询直接实现并接入真实数据。
+
 自定义导航按 PRD 和 `design.md` 直接实现；参考 [导航壳形态目录](../../yida-nav-shell/references/nav-shell-patterns.md) 的场景与骨架，UI 示例按需查阅。顶部默认浮导；侧边及混合布局支持折叠、恢复宽度和拖拽调宽。菜单同时记录入口用途和打开方式：管理走 workbench，填写走 submission；本页视图切状态，保留导航的表单入口更新主内容 iframe，跨页入口默认当前标签跳转。页面内新增/详情按钮沿用 FormOpenContainer。
 
 完整地址通过数据桥使用 `router.push(href, params, false, true)`；省略 URL 模式的自动识别只作兼容，详见 [路由模式与数据桥兜底](../../yida-nav-shell/references/nav-shell-patterns.md#路由模式与数据桥兜底)。导航显示参数不控制是否新开标签。
@@ -88,8 +90,8 @@ design.md 存在“项目配色适配”时先应用该节，它高于模板默�
 | --- | --- | --- |
 | 普通自定义页、工作台、门户、看板、首页 | 不写 `hideAppNav` | 保留平台应用导航 |
 | 页面内 tab、分段筛选、内容区快捷入口 | 不写 `hideAppNav` | 保留平台应用导航 |
-| 自定义页顶部导航、侧边导航、导航壳、自绘应用级导航 | 写 `appBlueprint.hideAppNav: 'y'` | 执行 `openyida update-app <appType> --hide-app-nav` |
-| 页面隐藏导航、无导航全屏、`isRenderNav=false` | 写 `appBlueprint.renderNav: false` | 执行 `openyida update-form-config <appType> <formUuid> false "<页面标题>"` |
+| 整个应用的顶部导航、侧边导航、导航壳、自绘应用级导航 | 写 `appBlueprint.hideAppNav: 'y'` | 执行 `openyida update-app <appType> --hide-app-nav` |
+| 独立前台菜单、页面隐藏导航、无导航全屏、`isRenderNav=false` | 写 `appBlueprint.renderNav: false` | 执行 `openyida update-form-config <appType> <formUuid> false "<页面标题>"` |
 
 两条规则必须分开：`hideAppNav` 控制应用导航，`renderNav/isRenderNav=false` 控制页面导航。其他自定义页默认不调用 `update-app --hide-app-nav`。
 
@@ -106,7 +108,7 @@ design.md 存在“项目配色适配”时先应用该节，它高于模板默�
 
 ## 官网与品牌页素材
 
-按 `design.md.assetStrategy` 调用 `yida-image-assets`。读取 `asset-manifest.json` 中当前页面 `pages[].materialStatus`；当前页为 `final` 时，只读取该页 `assets[].materialStatus=final` 的图片 URL。总状态为 `draft` 不阻塞已就绪的页面；不手拼 URL，也不内嵌 data URI。
+按 `design.md.assetStrategy` 调用 `yida-image-assets`。读取当前页的 `asset-manifests/<pageId>.json`（已有项目可用总清单 `asset-manifest.json`）中 `pages[].materialStatus`；当前页为 `final` 时，只读取该页 `assets[].materialStatus=final` 的图片 URL。总状态为 `draft` 不阻塞已就绪的页面；不手拼 URL，也不内嵌 data URI。
 
 联网搜图仅使用 Unsplash/Pexels。Unsplash 保留 API 热链和署名；Pexels 保留来源页和摄影师信息。
 

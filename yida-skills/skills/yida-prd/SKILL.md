@@ -11,7 +11,7 @@ description: 基于整理好的需求事实规划业务，生成 prd/<项目名>
 
 读取 `.cache/openyida/<项目名>/requirement-brief.json`。发现影响规划的需求缺口时，将具体问题交回 `yida-requirement-analysis`，由 `yida-app` 组织澄清。
 
-开始规划前确认 brief 的 `navigation.type/source/reason` 已明确；导航仍未决时交回需求分析与应用编排处理。Plan 将该类型写入 `execution.appConfig.navigationType`，Fast 在 PRD 应用配置中记录同一选择与依据。
+开始规划前复用 brief 的 `navigation.type/source/reason`；导航未补齐时由应用编排按 [导航决策](../yida-design/references/navigation-decision.md) 作出 AI 判断，不交回首轮、不让用户选择平台导航或自定义导航。Plan 将该类型写入 `execution.appConfig.navigationType`，Fast 在 PRD 应用配置中记录同一选择与依据。
 
 基于输入事实，按 [页面与导航规划](workflow/step-2-information-architecture.md) 形成业务资源蓝图，再按当前模式交付：
 
@@ -25,6 +25,7 @@ Plan 的业务调整通过字段级 patch 更新源事实，再由编排重新�
 ## 业务要求
 
 - PRD 的业务说明和验收标准遵循 [用户可见表达契约](../yida-design/references/ask-human-interaction-contract.md)，用功能和使用效果描述方案；接口参数及配置键值写入 Agent 实施交接。Plan 的摘要、规则和验收文案会直接展示在 HTML 中，填写时使用同一业务表达。
+- 消费 brief 的 `userTasks` 和 `entryRecommendation`，将已选业务任务映射到页面、流程和访问路径；双入口不等于两个应用，不新增未选后台，业务管理入口不使用开发后台 `/admin` 代替。Plan 在现有页面/流程/执行字段表达这些要求，不新增未支持的 facts 字段。
 - 规划目标、角色、对象、字段语义、流程、资源、页面任务、数据来源和验收标准；写清资源创建、页面实现交付和导航三种顺序。
 - 用户存在 `explicitScope` 时，以该范围规划页面、表单、流程、报表和本轮交付。
 - 真实 `appType`、`formUuid`、`fieldId`、`processCode` 以资源证据为准；实现阶段产生的 ID 写入 `.cache/<项目名>-schema.json`。

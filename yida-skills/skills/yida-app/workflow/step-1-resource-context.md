@@ -1,12 +1,14 @@
 # Step 1：解析资源上下文
 
-先确认本轮要操作哪个 app/page/form/process，再决定复用、补齐还是创建。不要把 `create-app`、`create-page`、`create-form` 当成默认动作。
+首轮需求澄清前只沿用用户显式资源引用及已有上下文，先进入 Step 2 的 2.0；不预检环境、不登录、不扫描配置或批量查询资源。已有应用的需求材料确实影响核心功能候选时，只读提问所需内容。
+
+需求澄清完成后，或已有需求足够明确而无需提问时，再按本节确认本轮要操作哪个 app/page/form/process，决定复用、补齐还是创建。不要把 `create-app`、`create-page`、`create-form` 当成默认动作。
 
 ## 只读预检
 
 若根入口已经完成只读预检，沿用结果，不要每个阶段重复跑 env/help/login。
 
-若还没有预检，优先跑一次 `openyida agent-capabilities --summary-json`；旧版本没有该命令时，退回 `openyida env --json` 和 `openyida login --check-only --json`。只有登录态可用后，才执行会创建、修改或发布宜搭资源的命令。
+若还没有预检，优先跑一次 `openyida agent-capabilities --summary-json`，将完整 JSON 保存到本轮上下文，按需从同一结果提取字段；组织、登录态或工作目录变化后刷新对应信息。旧版本没有该命令时，退回 `openyida env --json` 和 `openyida login --check-only --json`。只有登录态可用后，才执行会创建、修改或发布宜搭资源的命令。
 
 ## 资源解析顺序
 

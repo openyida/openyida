@@ -499,8 +499,12 @@ describe('application theme from design.md', () => {
     expect(css).toContain('--pod-card-border-radius: 16px;');
     expect(css).toContain('--color-brand1-6: #6F4E37;');
     // Ignore added custom-page tokens when comparing the template's selectors and scope.
-    const originalNames = new Set([...template.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
-    const withoutExtra = css.replace(/^[ \t]*(--[\w-]+)\s*:[^;]+;\n/gm, (line, name) => originalNames.has(name) ? line : '');
+    const rootPattern = /^:root\s*\{([\s\S]*?)^\}/m;
+    const originalRoot = template.match(rootPattern)[1];
+    const originalNames = new Set([...originalRoot.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
+    const withoutExtra = css.replace(rootPattern, root => root.replace(
+      /^[ \t]*(--[\w-]+)\s*:[^;]+;\n/gm, (line, name) => originalNames.has(name) ? line : ''
+    ));
     expect(structure(withoutExtra)).toBe(structure(template));
   });
 

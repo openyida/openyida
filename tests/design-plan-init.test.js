@@ -214,6 +214,37 @@ test('normalizes omitted sample data to an explicit skip for resource-only plans
   );
 });
 
+test.each(['海洋蓝，搭配沙滩暖色', '海洋🌊风格', ''])('keeps a color description as text instead of character properties: %s', description => {
+  brief.visualSelection.colorStrategy = description;
+  save();
+  const original = fs.readFileSync(briefPath, 'utf8');
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  const visual = JSON.parse(fs.readFileSync(result.preparedInputs.visual, 'utf8'));
+  const strategy = visual.facts.visualStyle.forUser.colorStrategy;
+  expect(strategy).toEqual({ primaryColor: '', primaryColorName: '', source: '', usage: description, surfaceTone: 'brand-tinted' });
+  expect(plan.visualStyle.forUser.colorStrategy).toEqual(strategy);
+  expect(visual.ready).toBe(false);
+  expect(result.authoring.pendingFields).toContainEqual(expect.objectContaining({ path: 'facts.visualStyle.forUser.colorStrategy.primaryColor' }));
+  expect(fs.readFileSync(briefPath, 'utf8')).toBe(original);
+});
+
+test.each([undefined, null])('keeps absent color strategies as incomplete objects: %s', value => {
+  brief.visualSelection.colorStrategy = value;
+  save();
+  const result = init();
+  const visual = JSON.parse(fs.readFileSync(result.preparedInputs.visual, 'utf8'));
+  expect(visual.facts.visualStyle.forUser.colorStrategy.usage).toBe('');
+  expect(visual.ready).toBe(false);
+});
+
+test.each([[], ['海洋蓝'], 123, true])('rejects invalid color strategy types before creating files: %j', value => {
+  brief.visualSelection.colorStrategy = value;
+  save();
+  expect(init).toThrow(expect.objectContaining({ code: 'DESIGN_PLAN_INVALID_COLOR_STRATEGY' }));
+  expect(fs.existsSync(path.join(dir, 'prd'))).toBe(false);
+});
+
 test('preserves an explicit neutral reference palette at intake', () => {
   brief.visualSelection.colorStrategy.surfaceTone = 'theme';
   save();
@@ -230,6 +261,87 @@ test('keeps incomplete visual choices unready and schedules only the missing sel
   expect(result.parallelTasks.map(task => [task.id, task.dependsOn])).toEqual([['business', []], ['visual-selection', []]]);
   const visual = JSON.parse(fs.readFileSync(result.preparedInputs.visual, 'utf8'));
   expect(visual.ready).toBe(false);
+  expect(result.authoring.pendingFields).toEqual(expect.arrayContaining([
+    expect.objectContaining({ file: result.preparedInputs.visual, path: 'facts.visualStyle.forUser.colorStrategy.primaryColor' }),
+    expect.objectContaining({ file: result.preparedInputs.visual, path: 'ready' }),
+  ]));
+});
+
+test('init reports only missing authoring fields and keeps type examples outside business facts', () => {
+  brief.targetUsers = ['采购员'];
+  brief.pageScenes[0].permissionSummary = '采购员仅查看自己的订单';
+  save();
+  const result = init();
+  const business = JSON.parse(fs.readFileSync(result.preparedInputs.business, 'utf8'));
+  const pending = result.authoring.pendingFields;
+  expect(pending).toEqual(expect.arrayContaining([
+    expect.objectContaining({ file: result.preparedInputs.business, path: 'facts.pages.customPageDetails[0].primaryTask' }),
+    expect.objectContaining({ file: result.preparedInputs.business, path: 'facts.dataModels[0].sampleRecords' }),
+    expect.objectContaining({ file: result.preparedInputs.business, path: 'ready' }),
+  ]));
+  expect(pending.some(item => item.file === result.preparedInputs.visual)).toBe(false);
+  expect(pending.some(item => item.path.endsWith('.permissionSummary') || item.path === 'facts.overview.summary')).toBe(false);
+  expect(business.facts.dataModels[0].fields).toEqual(brief.businessObjects[0].fields);
+  expect(business.facts.execution.interactionStates).toBeUndefined();
+  expect(business.ready).toBe(false);
+  expect(fs.readFileSync(result.context, 'utf8')).toContain('"interactionStates": {');
+  expect(business.facts.pages.customPageDetails[0]).not.toHaveProperty('contentPriority');
+  expect(business.facts.pages.customPageDetails[0]).not.toHaveProperty('contentRichness');
+  expect(pending.some(item => /contentPriority|contentLayers/.test(item.path))).toBe(false);
+  expect(fs.readFileSync(result.context, 'utf8')).toContain('"purpose":');
+});
+
+test('catalog is read-only and its theme IDs initialize through the public CLI without login', () => {
+  const { execFileSync } = require('child_process');
+  const bin = path.join(__dirname, '../bin/yida.js');
+  const options = { cwd: dir, encoding: 'utf8', env: { ...process.env, OPENYIDA_SKIP_UPDATE_CHECK: '1' } };
+  const before = fs.readdirSync(dir);
+  const result = JSON.parse(execFileSync(process.execPath, [bin, 'design-plan', 'catalog', '--json'], options));
+  expect(fs.readdirSync(dir)).toEqual(before);
+  const themeIndex = require('../yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/design-themes/index.json');
+  const patterns = require('../yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/page-patterns/index.json');
+  expect(result.themes.map(theme => theme.themeId)).toEqual(themeIndex.themes.map(theme => theme.themeId));
+  expect(result.pagePatterns).toEqual(patterns.patterns.map(({ id, label, mustKeep }) => ({ id, label, mustKeep })));
+  const initialized = JSON.parse(execFileSync(process.execPath, [bin, 'design-plan', 'init', briefPath,
+    '--theme-id', result.themes[0].themeId, '--output-dir', path.join(dir, 'catalog-plan'), '--json'], options));
+  expect(initialized.success).toBe(true);
+  const { buildCommandManifest } = require('../lib/core/command-manifest');
+  const command = buildCommandManifest().commands.find(item => item.id === 'design-plan.catalog');
+  expect(command).toMatchObject({ requires_login: false, output: 'json', permission: { mode: 'allow' }, side_effect: { kind: 'local_read', mutates_local: false, mutates_yida: false } });
+});
+
+test('collects interaction state format errors alongside other missing facts', () => {
+  const plan = fixture();
+  plan.execution = { interactionStates: ['empty', 'error'], sampleDataPlan: [] };
+  plan.pages.customPageDetails[0].permissionSummary = '';
+  const issues = collectIssues(plan);
+  expect(issues).toEqual(expect.arrayContaining([
+    expect.objectContaining({ path: 'execution.interactionStates' }),
+    expect.objectContaining({ path: 'execution.sampleDataPlan' }),
+    expect.objectContaining({ path: 'pages.customPageDetails[0].permissionSummary' }),
+  ]));
+  expect(issues.some(issue => issue.path.includes('[-1]'))).toBe(false);
+  plan.execution.interactionStates = { empty: '暂无记录', error: '显示错误' };
+  expect(collectIssues(plan).some(issue => issue.path.startsWith('execution.interactionStates'))).toBe(false);
+});
+
+test('returned materialize command handles spaces, quotes and shell expressions in paths', () => {
+  const { execFileSync } = require('child_process');
+  const result = initialize(briefPath, { themeId: 'airy-modular-clarity', outputDir: path.join(dir, "plan ' $(touch unwanted)") });
+  const source = fixture();
+  source.pages.customPageDetails[0].pageId = 'dashboard';
+  source.pages.customPageDetails[0].sceneKey = 'dashboard';
+  delete source.pages.customPageDetails[0].pageSpecHandoff;
+  const business = JSON.parse(fs.readFileSync(result.preparedInputs.business, 'utf8'));
+  business.ready = true;
+  business.facts = { overview: source.overview, dataModels: source.dataModels, businessFlows: source.businessFlows, pages: source.pages };
+  fs.writeFileSync(result.preparedInputs.business, JSON.stringify(business));
+  const output = JSON.parse(execFileSync('/bin/sh', ['-c', 'openyida() { "$NODE_EXEC" "$YIDA_BIN" "$@"; }\n' + result.materialize.command], {
+    cwd: dir, encoding: 'utf8', env: { ...process.env, OPENYIDA_SKIP_UPDATE_CHECK: '1', NODE_EXEC: process.execPath, YIDA_BIN: path.resolve(__dirname, '../bin/yida.js') },
+  }));
+  expect(output.success).toBe(true);
+  expect(fs.existsSync(output.outputs.html)).toBe(true);
+  expect(fs.existsSync(path.join(dir, 'unwanted'))).toBe(false);
 });
 
 test('materializes a complete standard Plan from business facts and the prepared visual input without another visual task', () => {
@@ -342,4 +454,19 @@ test('CLI init is permitted locally, documents every argument and runs through t
   }));
   expect(result.success).toBe(true);
   expect(fs.existsSync(result.output)).toBe(true);
+});
+
+
+test('preserves a frontend page menu independently of the application navigation', () => {
+  brief.navigation = { type: 'platform-side', source: 'ai_default', reason: '后台用平台菜单' };
+  brief.pageScenes[0].pageSpecHandoff = {
+    entryMode: 'standalone', navigation: { type: 'custom', variant: 'dock', reason: '个人事项入口' },
+  };
+  save();
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  const business = JSON.parse(fs.readFileSync(result.preparedInputs.business, 'utf8'));
+  expect(plan.execution.appConfig.navigationType).toBe('platform-side');
+  expect(plan.execution.appConfig.hideAppNav).toBeUndefined();
+  expect(business.facts.pages.customPageDetails[0].pageSpecHandoff).toEqual(brief.pageScenes[0].pageSpecHandoff);
 });

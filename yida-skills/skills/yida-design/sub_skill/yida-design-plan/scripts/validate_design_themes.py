@@ -70,6 +70,14 @@ def validate(skill_root: Path) -> list[str]:
     if not isinstance(themes, list) or not themes:
         return ["templates/design-themes/index.json 缺少非空 themes 数组"]
 
+    contract_path = index_path.with_name("basic-tokens.json")
+    try:
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+        basic_tokens = {name for names in contract["groups"].values() for name in names}
+        fixed_values = contract["fixedValues"]
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        return [f"无法读取基础变量契约 {contract_path}: {exc}"]
+
     seen_ids: set[str] = set()
     seen_labels: set[str] = set()
     seen_paths: set[str] = set()
@@ -121,6 +129,23 @@ def validate(skill_root: Path) -> list[str]:
             legacy_keys = sorted(set(LEGACY_TOKEN_KEY_RE.findall(frontmatter_match.group(1))))
             if legacy_keys:
                 errors.append(f"{template_path} 含旧式 Token 属性名")
+            declarations = re.findall(r'^\s*"(--[\w-]+)":\s*("(?:[^"\\]|\\.)*")', frontmatter_match.group(1), re.M)
+            declared = dict(declarations)
+            if len(declared) != len(declarations):
+                errors.append(f"{template_path} 基础变量重复定义")
+            if set(declared) != basic_tokens:
+                errors.append(f"{template_path} 变量集合应与 basic-tokens.json 一致")
+            for name, value in fixed_values.items():
+                if name in declared and json.loads(declared[name]) != value:
+                    errors.append(f"{template_path} {name} 应使用固定值 {value}")
+            if not re.search(r'^  custom-page: \{\}$', frontmatter_match.group(1), re.M):
+                errors.append(f"{template_path} custom-page 应保留为空对象")
+
+        extra_references = set(re.findall(r'--[a-z][a-z0-9-]+', text)) - basic_tokens
+        if extra_references:
+            errors.append(f"{template_path} 引用了非基础变量：{', '.join(sorted(extra_references))}")
+        if re.search(r"\b(?:metric-(?:primary|secondary|focus|emphasis)|data-emphasis)\b", text):
+            errors.append(f"{template_path} 正文仍引用已移除的字体语义，请使用基础排版语义")
 
         if TOKEN_SUFFIX_SHORTHAND_RE.search(text):
             errors.append(f"{template_path} 含未展开的 Token 后缀缩写")

@@ -8,7 +8,7 @@ const { execFile } = require('child_process');
 const { promisify } = require('util');
 const { resolveAssets } = require('../lib/asset/asset-resolve');
 const { readDesignAssetStrategy } = require('../lib/asset/asset-plan');
-const { renderDesign } = require('../lib/design-plan/materialize');
+const { renderDesign, materialize } = require('../lib/design-plan/materialize');
 
 const run = promisify(execFile);
 const status = { canUpload: false, cdnConfigured: false, hostCapabilities: {} };
@@ -47,6 +47,67 @@ function asset(overrides = {}) {
 function upload() {
   return jest.fn(async files => [{ success: true, originalPath: files[0], cdnUrl: `${baseUrl}/cdn.png` }]);
 }
+
+test('Plan CLI returns independent searches for slots on the same page before app creation', async () => {
+  const plan = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/design-plan.json'), 'utf8'));
+  const pageId = plan.pages.customPageDetails[0].pageId;
+  plan.visualStyle.forUser.assetStrategy = { pages: [
+    { pageId, imageNeed: 'required', slots: ['hero', 'room', 'garden'].map(slotId => ({ slotId, usage: slotId, minSize: '1200x800' })) },
+    { pageId: 'settings', imageNeed: 'none' },
+  ] };
+  const input = path.join(dir, 'plan.json');
+  fs.writeFileSync(input, JSON.stringify(plan));
+  const output = await run(process.execPath, [path.join(__dirname, '../bin/yida.js'), 'design-plan', 'materialize', input, '--json'], {
+    env: { ...process.env, OPENYIDA_SKIP_UPDATE_CHECK: '1' },
+  });
+  const result = JSON.parse(output.stdout);
+  expect(result.assetTasks).toHaveLength(1);
+  const task = result.assetTasks[0];
+  expect(task).toMatchObject({ pageId, startWhen: 'plan_confirmed', owner: 'host_agent', searchConcurrency: 4,
+    concurrencyScope: 'collection_run', resumePolicy: 'reuse_final_slots_and_remaining_round_budget',
+    runAlongside: ['app_creation', 'form_creation', 'pages_without_images'], resultWriter: 'one_per_page' });
+  const guidance = require('../lib/asset/ai-image').getMaterialSourcingGuidance();
+  expect(task.collectionPolicy).toEqual(guidance.collectionPolicy);
+  expect(task.failurePolicy).toEqual(guidance.failurePolicy);
+  expect(task.searches.map(search => search.slotId)).toEqual(['hero', 'room', 'garden']);
+  task.searches.forEach(search => expect(search).toMatchObject({ dependsOn: [], minWidth: 1200, minHeight: 800 }));
+  expect(task.resolve).toMatchObject({ startWhen: 'page_draft_and_app_type_ready', appTypeRequired: true });
+  expect(task.resolve.argv).toContain(task.draft);
+  expect(task.resolve.argv).toContain(task.manifest);
+  expect(task.resolve.argv).toContain(result.outputs.design);
+  expect(fs.existsSync(task.manifest)).toBe(false);
+  expect(fs.existsSync(task.draft)).toBe(false);
+});
+
+test.each([
+  [{ slotId: 'hero', usage: 'hero', minSize: 1200 }, 'ASSET_INVALID_SIZE'],
+  [{ slotId: 'hero', usage: 'hero', minSize: '0x800' }, 'ASSET_INVALID_SIZE'],
+  [{ slotId: '', usage: 'hero' }, 'ASSET_DESIGN_INVALID'],
+  [{ slotId: 'hero', usage: '' }, 'ASSET_DESIGN_INVALID'],
+])('Plan rejects invalid image requirements before overwriting artifacts: %j', (slot, code) => {
+  const plan = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/design-plan.json'), 'utf8'));
+  plan.visualStyle.forUser.assetStrategy = { pages: [{ pageId: 'home', imageNeed: 'required', slots: [slot] }] };
+  const input = path.join(dir, 'plan.json');
+  fs.writeFileSync(input, JSON.stringify(plan));
+  const outputs = ['prd.md', 'design.md', 'build-plan.html', 'app-theme.css'];
+  outputs.forEach(file => fs.writeFileSync(path.join(dir, file), 'original'));
+  expect(() => materialize(input)).toThrow(expect.objectContaining({ code }));
+  outputs.forEach(file => expect(fs.readFileSync(path.join(dir, file), 'utf8')).toBe('original'));
+});
+
+test('none pages may omit slots in the same contract used by resolve', async () => {
+  const result = await resolveAssets([], { status, online: false, assetStrategy: { pages: [{ pageId: 'settings', imageNeed: 'none' }] } });
+  expect(result.materialStatus).toBe('none');
+  expect(result.assetStrategy.pages[0].slots).toEqual([]);
+});
+
+test('missing local images report the actual path and cwd', async () => {
+  const input = './missing-assets/home.png';
+  const result = await resolveAssets([asset({ input })], { status, online: false });
+  expect(result.gaps[0]).toMatchObject({ code: 'NOT_FOUND',
+    details: { input, resolvedPath: path.resolve(input), baseDir: process.cwd(), pathBase: 'cwd' } });
+  expect(result.gaps[0].message).toContain(path.resolve(input));
+});
 
 test.each(['image/png', 'application/octet-stream'])('declared dimensions and %s cannot make text final', async contentType => {
   responseBody = Buffer.from('this is not an image');
@@ -235,4 +296,86 @@ test('Pexels keeps search provenance when its attachment delivery is reused', as
   expect(second.materialStatus).toBe('final');
   expect(second.assets[0]).toMatchObject({ source: 'search', provider: 'pexels', input, url: `${baseUrl}/cdn.png` });
   expect(uploadFn).toHaveBeenCalledTimes(1);
+});
+
+
+test('asset handoff continues with existing Plan approval across workflow entry points', () => {
+  const skills = path.join(__dirname, '../yida-skills/skills');
+  const assets = fs.readFileSync(path.join(skills, 'yida-image-assets/SKILL.md'), 'utf8');
+  expect(assets).toContain('素材采集完成后直接继续搭建，沿用已有方案确认');
+  expect(assets).toContain('CLI 保留 revision 与已有确认');
+  for (const file of ['yida-app/workflow/step-7-page-code.md', 'yida-app/workflow/plan/step-4-deliver.md']) {
+    const workflow = fs.readFileSync(path.join(skills, file), 'utf8');
+    expect(workflow).toContain('yida-image-assets/SKILL.md#6-交给页面使用');
+    expect(workflow).not.toContain('每次调整后重新展示并确认当前版本');
+    expect(workflow).not.toContain('修正均由对应技能');
+  }
+});
+
+
+test('page selection resolves only its slots and keeps page ownership from the design', async () => {
+  const uploadFn = upload();
+  const result = await resolveAssets([asset({ pageId: 'catalog' })], { status, uploadFn, assetStrategy: strategy, pageId: 'home' });
+  expect(uploadFn).toHaveBeenCalledTimes(1);
+  expect(result.materialStatus).toBe('final');
+  expect(result.pages.map(page => page.pageId)).toEqual(['home']);
+  expect(result.assets.map(item => item.slotId)).toEqual(['home.hero']);
+  expect(result.assetStrategy.pages).toEqual([strategy.pages[0]]);
+  expect(result.gaps).toEqual([]);
+});
+
+test.each([
+  [{ pageId: 'home' }, 'ASSET_PAGE_REQUIRES_DESIGN'],
+  [{ pageId: 'missing', assetStrategy: strategy }, 'ASSET_PAGE_NOT_FOUND'],
+  [{ pageId: '', assetStrategy: strategy }, 'ASSET_PAGE_NOT_FOUND'],
+])('invalid page selection fails before uploading (%j)', async (options, code) => {
+  const uploadFn = upload();
+  await expect(resolveAssets([asset()], { status, uploadFn, ...options })).rejects.toMatchObject({ code });
+  expect(uploadFn).not.toHaveBeenCalled();
+});
+
+test('images within a page upload concurrently', async () => {
+  const file = path.join(dir, 'image.png');
+  fs.writeFileSync(file, image);
+  const selected = { pages: [{ pageId: 'home', imageNeed: 'required', slots: [
+    { slotId: 'hero', usage: 'hero' }, { slotId: 'cover', usage: 'cover' },
+  ] }] };
+  let finish;
+  const barrier = new Promise(resolve => { finish = resolve; });
+  const uploadFn = jest.fn(async () => {
+    if (uploadFn.mock.calls.length === 2) { finish(); }
+    await barrier;
+    return [{ success: true, cdnUrl: `${baseUrl}/cdn.png` }];
+  });
+  const result = await resolveAssets(['hero', 'cover'].map(slotId => asset({ slotId, input: file, source: 'user' })), {
+    assetStrategy: selected, pageId: 'home', status, uploadFn,
+  });
+  expect(uploadFn).toHaveBeenCalledTimes(2);
+  expect(result.pages[0].materialStatus).toBe('final');
+  expect(result.assets).toHaveLength(2);
+});
+
+test('CLI writes independent page results while keeping another page untouched', async () => {
+  const design = path.join(dir, 'design.md');
+  fs.writeFileSync(design, `---\nassetStrategy: ${JSON.stringify(strategy)}\n---\n`);
+  const draft = path.join(dir, 'draft.json');
+  fs.writeFileSync(draft, JSON.stringify({ assets: [asset()] }));
+  const readyFile = path.join(dir, 'settings.json');
+  const blockedFile = path.join(dir, 'catalog.json');
+  const cli = path.join(__dirname, '../bin/yida.js');
+  const args = ['asset', 'resolve', '--input', draft, '--design', design, '--offline', '--json'];
+  const results = await Promise.allSettled([
+    run(process.execPath, [cli, ...args, '--page-id', 'settings', '--manifest', readyFile]),
+    run(process.execPath, [cli, ...args, '--page-id', 'catalog', '--manifest', blockedFile]),
+  ]);
+  expect(results[0].status).toBe('fulfilled');
+  expect(results[1].reason.code).toBe(2);
+  expect(JSON.parse(fs.readFileSync(readyFile)).pages).toEqual([expect.objectContaining({ pageId: 'settings', materialStatus: 'none' })]);
+  const blocked = JSON.parse(fs.readFileSync(blockedFile));
+  expect(blocked.pages).toEqual([expect.objectContaining({ pageId: 'catalog', materialStatus: 'draft' })]);
+  expect(blocked.assets.map(item => item.slotId)).toEqual(['catalog.cover']);
+  for (const subcommand of ['status', 'sources', 'resolve']) {
+    await expect(run(process.execPath, [cli, 'asset', subcommand, '--page-id', '--json']))
+      .rejects.toMatchObject({ code: 1 });
+  }
 });

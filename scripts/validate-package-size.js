@@ -10,12 +10,12 @@ const path = require('path');
 // Budgets are ratchets that track legitimate content growth (12 locale packs,
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
-// Includes phase-eight bounded form recovery and terminal delivery guidance.
-// Node 20/24 package measurements are rounded up to the next 16 KiB boundary.
+// Includes scoped navigation, parallel asset tasks and bounded form recovery.
+// Merged package: 6,455,693 unpacked bytes; rounded to the next 16 KiB boundary.
 const MAX_TARBALL_BYTES = 1840 * 1024;
-const MAX_UNPACKED_BYTES = 6256 * 1024;
-// Includes both asset delivery files and process action files.
-const MAX_ENTRY_COUNT = 503;
+const MAX_UNPACKED_BYTES = 6320 * 1024;
+// Intake references and the shared basic-theme-token contract are packaged.
+const MAX_ENTRY_COUNT = 509;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -23,6 +23,8 @@ const REQUIRED_PACKAGE_FILES = [
   'lib/app/create-form/batch.js',
   'lib/app/inline-css-guard.js',
   'lib/design-plan/preview.js',
+  'lib/design-plan/entry-navigation.js',
+  'yida-skills/skills/yida-app/references/entry-navigation.md',
   'yida-skills/skills/yida-app/workflow/incremental-preview.md',
   'yida-skills/skills/yida-create-form-page/references/batch-forms.md',
   'lib/core/utils.js',
@@ -33,6 +35,10 @@ const REQUIRED_PACKAGE_FILES = [
   'scripts/postinstall.js',
   'yida-skills/SKILL.md',
   'yida-skills/skills-index.json',
+  'yida-skills/skills/yida-requirement-analysis/references/experience-groups.md',
+  'yida-skills/skills/yida-requirement-analysis/references/handoff.md',
+  'yida-skills/skills/yida-design/references/navigation-decision.md',
+  'yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/design-themes/basic-tokens.json',
   'lib/samples/openyida-scaffold/canvas-dialog.canvas.jsx',
   ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data', 'content'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
   'yida-skills/skills/yida-canvas-custom-page/references/dialog-guide.md',

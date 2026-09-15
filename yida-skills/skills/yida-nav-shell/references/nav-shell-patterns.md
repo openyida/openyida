@@ -14,7 +14,7 @@
 | 悬浮胶囊 / Dock | 沉浸展示、轻量门户，减少常驻导航占位 | 3–6 项 | 底部胶囊或可收起菜单 |
 | 标签页 | 同一模块的同级视图，不替代应用主导航 | 2–8 项 | 横向滚动 |
 
-数量是布局参考，不是增删业务模块的依据。用户选择自定义导航后，由 Agent 按场景确定形态，用户已指定的形态优先；不把形态拆成导航提问选项，也不为这些样式再发起一轮提问。
+数量是布局参考，不是增删业务模块的依据。AI 判断采用自定义导航或用户已明确指定后，由 Agent 按场景确定形态，用户已指定的形态优先；不把形态拆成导航提问选项，也不为这些样式再发起一轮提问。
 
 ## 通用设计要点
 
@@ -153,7 +153,7 @@ function LocalViews({ items, views }) {
 
 ## 导航数据来源
 
-自定义导航的数量、名称、顺序、分组和用途来自 PRD，通常工作台或首页在第一位。使用当前访问者登录态请求 `/{appType}/query/formdesign/getAccessableNavs.json`，获取可见范围；`formUuid` 和 CSRF 值来自当前页面运行态。已有请求和正确的过滤逻辑时直接复用；首次接入可使用下面的数据片段，其中 `filterCanvasNavigation(plannedItems, navs, hiddenNav)` 负责可见性过滤，不包含导航 UI：
+自定义导航的数量、名称、顺序、分组、默认任务和用途来自当前入口的 PRD。下面的数据树过滤用于 mode=platform；独立前台用 mode=independent 和真实 resolveAccess，按 [访问态入口契约](../../yida-app/references/entry-navigation.md#自定义菜单过滤) 执行，不能将平台树展示规则当作业务授权。使用当前访问者登录态请求 `/{appType}/query/formdesign/getAccessableNavs.json`，获取可见范围；`formUuid` 和 CSRF 值来自当前页面运行态。已有请求和正确的过滤逻辑时直接复用；首次接入可使用下面的数据片段，其中 `filterCanvasNavigation(plannedItems, navs, hiddenNav)` 负责可见性过滤，不包含导航 UI：
 
 ```bash
 openyida sample openyida-page-template canvas-nav-data --output .cache/samples/canvas-nav-data.jsx
@@ -170,7 +170,7 @@ const items = await loadCanvasNavigation({
 });
 ```
 
-`plannedItems` 使用下方菜单契约：每个任务入口有独立 key，绑定真实 `navUuid/formUuid`，保存业务 label、图标、入口用途及跳转参数。工作台的本地视图绑定承载它的自定义页面 formUuid；同一资源可以对应多个任务入口。分组可只配置 label 和 children，具有独立资源约束时同时绑定该资源。
+`plannedItems` 使用下方菜单契约；新独立入口的 formUuid/viewUuid/access 按访问态入口契约补齐，旧资源 ID 过滤只适用于平台菜单展示。每个任务入口有独立 key，绑定真实 `navUuid/formUuid`，保存业务 label、图标、入口用途及跳转参数。工作台的本地视图绑定承载它的自定义页面 formUuid；同一资源可以对应多个任务入口。分组可只配置 label 和 children，具有独立资源约束时同时绑定该资源。
 
 数据片段递归过滤接口中 `hidden` 的节点，以及 `g_config.navConfig.hiddenNav` 命中 `slug` 或 `navUuid` 的节点及子树，再以可见资源 ID 筛选 PRD 菜单。返回值保持 PRD 的顺序、分组和展示配置；未规划的接口资源不会自动增加到菜单，失去所有可见子项的分组会移除。侧边、顶部和 Dock 使用规划的扁平入口；混合导航使用规划的两级结构。
 
@@ -181,8 +181,8 @@ const items = await loadCanvasNavigation({
 | 加载中 | 显示加载提示，菜单和对应内容等待加载完成 |
 | 请求失败 | 显示重试入口 |
 | 没有可见入口 | 显示“无可用导航” |
-| 菜单加载完成 | 按当前地址选中可见入口；未指定入口时按 PRD 选择，通常先进入工作台 |
-| 地址中的 hash 指向不可见入口 | 切至 PRD 顺序中的首个可见入口；没有可见入口时显示“无可用导航” |
+| 菜单加载完成 | 按当前地址选中可见入口；未指定入口时按 PRD 选择，先进入 defaultMenuKey 对应的可用任务，再回退首个可用任务 |
+| 地址中的 hash 指向不可见入口 | 先切至 defaultMenuKey 对应的可用任务，再回退首个可见入口；没有可见入口时显示“无可用导航” |
 
 页面访问和数据权限继续由平台校验。
 
@@ -238,7 +238,7 @@ function AppShell({ items, homeKey, appType, renderWorkbench }) {
       window.removeEventListener('popstate', sync);
     };
   }, []);
-  const active = items.find(item => item.key === requestedKey) || items[0];
+  const active = selectCanvasNavigation(items, requestedKey, homeKey);
   function select(item) {
     if (item.disabled || item.key === active?.key) return;
     const url = new URL(window.location.href);

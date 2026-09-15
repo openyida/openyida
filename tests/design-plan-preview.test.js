@@ -49,6 +49,25 @@ test('visual module produces design and CSS independently and preserves custom C
   expect(fs.readFileSync(result.outputs.theme, 'utf8')).toContain('.my-dialog { border: 3px solid purple; }');
 });
 
+test('incomplete page drafts display standalone menus but cannot be finalized', () => {
+  const pages = JSON.parse(JSON.stringify(source.pages));
+  const page = pages.customPageDetails[0];
+  delete page.primaryTask;
+  delete page.dataBinding;
+  page.pageSpecHandoff = {
+    entryMode: 'standalone',
+    navigation: { type: 'custom', variant: 'top', reason: '员工只办理自己的事项' },
+  };
+  update({ pages });
+  expect(read('prd.md')).toContain('自定义顶部菜单');
+  expect(read('prd.md')).toContain('应用工作区保留平台导航');
+  expect(read('build-plan.html')).toContain('自定义顶部菜单');
+  expect(JSON.parse(fs.readFileSync(input))).toEqual(source);
+  fs.writeFileSync(input, JSON.stringify({ ...source, pages }));
+  expect(() => materialize(input)).toThrow();
+  expect(fs.existsSync(path.join(dir, 'prd.md'))).toBe(false);
+});
+
 test('stale part and simultaneous writer preserve existing artifacts', () => {
   update({ dataModels: source.dataModels });
   const before = read('prd.md');

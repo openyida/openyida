@@ -40,13 +40,17 @@ CLI 完整读取选中的模板，不假设模板的章节、frontmatter 或内�
 3. 以索引中的 `defaultProfile` 为起点，由 materialize 补齐 `themeProfile`；该摘要只读。模型将用户要求、品牌规范和可访问性约束落实为 `visualStyle.tokens`，主题色写入 `colorStrategy`。
 4. 根据 `meta.experienceTopology`、页面范围和前后台边界生成 `visualStyle.forDesignMd.productTopologyApplication`，说明全应用共享主题基础语言、记忆点按真实页面内容使用；该字段不判断主题是否适用，也不增删页面或业务能力。
 5. 保持 `pages.customPageDetails[]` 中的页面模式、内容优先级、首屏结构和信息密度；模型只生成每页 `visualMemoryApplications`，页面基础视觉应用由 materialize 从主题模板补齐。
-6. 根据 `PRIMARY_COLOR` 推导模板要求的 Brand Token 和自定义页主题衍生色；导航背景按 `light → --color-brand1-3`、`dark → --color-brand1-5` 映射。
+6. 根据 `PRIMARY_COLOR` 推导品牌色及基础表面色；字号、字重、行高、间距和 Tooltip 配色采用 [基础变量契约](../templates/design-themes/basic-tokens.json) 的固定值。组件直接引用基础变量，特殊渐变和纹理在组件中组合。
 7. 由 materialize 在单一位置注入“项目视觉选择”，写明视觉方向、主题色、导航结构、导航明暗、导航背景 Token 和选择依据；不要求所有主题模板预留空字段。
 8. 按模板自身结构写入其他项目事实、页面模式、页面视觉应用和素材状态；模板定义的占位符全部替换。
 9. 保留模板中的视觉 DNA、消费规则、组件规则和交付检查，同时从最终项目文档移除主题 ID、模板名称、路径等内部身份字段。
 10. 将 `build-plan.json`、`prd.md` 和 `design.md` 写入同一个 `meta.revision`，再执行交付检查。
 
 Step 4 不重新发起常规视觉 `ask_human`。页面规划新暴露品牌素材冲突或前后台表达边界冲突时，返回 Step 2 更新视觉选择。
+
+### 导航背景
+
+`--pod-shell-theme-bg-color` 保存应用根层的默认背景。CSS 生成时，平台浅色导航绑定 `--color-brand1-3`，深色导航绑定 `--color-brand1-5`，白色和灰色模式保留各自背景。各模式的页面标题栏使用对应导航背景，切换模式时保持一致。
 
 ## 页面级视觉应用
 
@@ -70,7 +74,7 @@ Step 4 不重新发起常规视觉 `ask_human`。页面规划新暴露品牌素�
 
 ### 全应用继承与逐页生成
 
-1. 原生表单、流程页面和自定义页面共同消费模板 `tokens.application-global` 中的颜色、字体、间距和圆角；自定义页面再消费模板的 `tokens.custom-page`。
+1. 原生表单、流程页面和自定义页面共同消费模板 `tokens.application-global` 中的基础颜色、字体、间距和圆角；组件直接组合这些变量，`tokens.custom-page` 保留为空对象。
 2. 生成器只遍历 `pages.customPageDetails[]` 中真实存在的自定义页面，不预先枚举工作台、列表、表单、详情等全部可能页面类型。
 3. 每页先绑定主题画布、表面、文字、边界、主操作和状态语言，再读取该页的功能区块与真实组件。
 4. 筛选、输入、表格、列表、图表、指标、状态和操作等组件只在页面规划已经包含对应内容时写入 `visualApplication`、`surface`、`primaryAction` 和 `states`。

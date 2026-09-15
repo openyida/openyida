@@ -3,89 +3,71 @@ name: "{{PROJECT_NAME}}"
 description: 以柔和中性画布、深色聚焦舞台、半透明信息组和主题色派生数据纹理构成克制而鲜明的层次化界面主题。
 themeId: dark-focus-layered
 tokens:
-  application-global: # 全应用 Token，原生页面和自定义页面共同使用
+  application-global:
     colors:
-      "--pod-page-bg-color": "#F7F7F7" # neutral-gray；固定中性画布，不随主题色变化
+      "--pod-app-root-bg-color": "var(--pod-page-bg-color)" # 应用最底层背景色
+      "--pod-app-root-bg-image": "none" # 应用最底层背景图
+      "--pod-shell-theme-bg-color": "var(--color-brand1-3)" # 顶部导航、侧边导航和应用壳层背景色
+      "--pod-page-bg-color": "#F7F7F7" # 宜搭全局页面画布背景色
       "--color-white": "#FFFFFF" # 全应用基础表面色
+      "--pod-card-bg-color": "var(--color-white)" # 一级卡片、表单主容器和详情面板背景色
       "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值>" # 悬停色
       "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值>" # 品牌浅色，保留平台既有消费关系
       "--color-brand1-3": "<基于 --color-brand1-6 生成的实际色值>" # 浅色导航框架背景色
       "--color-brand1-5": "<基于 --color-brand1-6 生成的实际色值>" # 深色导航框架背景色
-      "--color-brand1-6": "{{PRIMARY_COLOR}}" # 前置确定的全应用主题主色
+      "--color-brand1-6": "{{PRIMARY_COLOR}}" # 全应用主题主色，是其他 Brand Token 的生成基准
       "--color-brand1-9": "<基于 --color-brand1-6 生成的实际色值>" # 激活、按下状态色
       "--color-brand1-10": "<基于 --color-brand1-6 生成的实际色值>" # 禁用状态色
-      "--color-line1-1": "#E8E8E8" # neutral-gray；弱边界、图表辅助线和表格行分隔线
-      "--color-line1-2": "#DADADA" # neutral-gray；控件和容器常规边界
-      "--color-fill1-1": "#F4F4F4" # neutral-gray；菜单悬停和弱状态填充
-      "--color-fill1-2": "#ECECEC" # neutral-gray；点击或中性选中填充
-      "--color-fill1-3": "#E3E3E3" # neutral-gray；更重的中性填充
-      "--color-fill1-10": "rgba(18, 18, 18, 0.94)" # neutral-gray；气泡浮层背景色
-      "--color-text1-4": "#171717" # neutral-gray；默认一级文字色
-      "--color-text1-10": "#8A8A8A" # neutral-gray；表头和 placeholder
-      "--color-text1-3": "#6F6F6F" # neutral-gray；二级文字色
+      "--color-line1-1": "#E8E8E8" # 弱边界、辅助线和表格行分隔线
+      "--color-line1-2": "#DADADA" # 控件和容器常规边界
+      "--color-fill1-1": "#F4F4F4" # 菜单悬停和弱状态填充
+      "--color-fill1-2": "#ECECEC" # 点击或选中填充
+      "--color-fill1-3": "#E3E3E3" # 更重的中性填充
+      "--color-fill1-10": "#2E3033" # Tooltip 固定深色背景
+      "--color-text1-5": "#FFFFFF" # Tooltip 固定反色文字
+      "--color-text1-4": "#171717" # 默认一级文字色，文字对比最强
+      "--color-text1-10": "#8A8A8A" # 表头和 placeholder
+      "--color-text1-3": "#6F6F6F" # 二级文字色，弱于 text1-10
+      "--color-text1-2": "rgba(24, 24, 24, 0.4)" # 仅用于禁用态文字，弱于 text1-3
+      "--color-text1-1": "rgba(24, 24, 24, 0.24)" # 仅用于水印文字，文字对比最弱
     typography:
-      base:
-        "--font-family-base": "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-      subhead:
-        "--font-size-subhead": 24px
-        "--font-weight-subhead": 600
-        "--font-lineheight-subhead": 1.2
-      body-2:
-        "--font-size-body-2": 16px
-        "--font-weight-body-2": 500
-        "--font-lineheight-body-2": 1.4
-      body-1:
-        "--font-size-body-1": 14px
-        "--font-weight-body-1": 400
-        "--font-lineheight-body-1": 1.5
-      table:
-        "--font-size-table": 13px
-        "--font-weight-table": 400
-        "--font-lineheight-table": 1.45
-      caption:
-        "--font-size-caption": 12px
-        "--font-weight-caption": 400
-        "--font-lineheight-caption": 1.4
+      "--font-family-base": "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      "--font-size-subhead": "18px"
+      "--font-weight-subhead": "500"
+      "--font-lineheight-subhead": "1.3"
+      "--font-size-body-2": "16px"
+      "--font-weight-body-2": "500"
+      "--font-lineheight-body-2": "1.45"
+      "--font-size-body-1": "14px"
+      "--font-weight-body-1": "400"
+      "--font-lineheight-body-1": "1.5"
+      "--font-size-table": "13px"
+      "--font-weight-table": "400"
+      "--font-lineheight-table": "1.45"
+      "--font-size-caption": "12px"
+      "--font-weight-caption": "400"
+      "--font-lineheight-caption": "1.4"
     spacing:
-      "--s-1": 4px
-      "--s-2": 8px
-      "--s-3": 12px
-      "--s-4": 16px
-      "--s-6": 24px
-      "--s-8": 32px
+      "--s-1": "4px"
+      "--s-2": "8px"
+      "--s-3": "12px"
+      "--s-4": "16px"
+      "--s-5": "20px"
+      "--s-6": "24px"
+      "--s-7": "28px"
+      "--s-8": "32px"
+      "--s-9": "36px"
+      "--s-10": "40px"
     rounded:
-      "--corner-zero": 0px
-      "--corner-1": 4px
-      "--corner-2": 8px
-      "--corner-3": 12px
-      "--corner-4": 18px
-      "--corner-5": 24px
-      "--corner-circle": 50%
-      "--corner-semicircle": 500px
-  custom-page: # 页面专属 Token，仅在指定自定义页生效
-    colors:
-      "--oyd-surface-soft": "#F3F3F3" # neutral-gray；固定中性弱表面
-      "--oyd-stage-top": "#121212" # neutral-gray；固定中性深色舞台基底
-      "--oyd-stage-bottom": "<由 --color-brand1-6 与 --oyd-stage-top 混合生成的低明度实际色值>"
-      "--oyd-stage-card": "rgba(255, 255, 255, 0.10)"
-      "--oyd-stage-border": "rgba(255, 255, 255, 0.28)"
-      "--oyd-heat-1": "<由 --color-brand1-6 与白色混合生成的 8% 强度实际色值>"
-      "--oyd-heat-2": "<由 --color-brand1-6 与白色混合生成的 20% 强度实际色值>"
-      "--oyd-heat-3": "<由 --color-brand1-6 与白色混合生成的 38% 强度实际色值>"
-      "--oyd-heat-4": "<由 --color-brand1-6 与白色混合生成的 68% 强度实际色值>"
-      "--oyd-heat-5": "<与 --color-brand1-6 一致的实际色值>"
-      "--oyd-chart-deep": "#161616" # neutral-gray；固定中性深色图表材质
-      "--oyd-chart-stripe": "<基于 --color-brand1-6 生成的实际色值>"
-      "--oyd-chart-pale": "<由 --color-brand1-6 与白色混合生成的 16% 强度实际色值>"
-    typography: # 仅补充全局字体体系没有的指标数字语义
-      metric-primary:
-        "--font-size-metric-primary": 32px
-        "--font-weight-metric-primary": 500
-        "--font-lineheight-metric-primary": 1.1
-      data-emphasis:
-        "--font-size-data-emphasis": 20px
-        "--font-weight-data-emphasis": 600
-        "--font-lineheight-data-emphasis": 1.2
+      "--corner-zero": "0px"
+      "--corner-1": "4px"
+      "--corner-2": "8px"
+      "--corner-3": "12px"
+      "--corner-4": "18px"
+      "--corner-5": "24px"
+      "--corner-circle": "50%"
+      "--corner-semicircle": "500px"
+  custom-page: {}
 ---
 
 # {{PROJECT_NAME}} design.md
@@ -109,11 +91,11 @@ tokens:
 
 | 设计母体 | 可见证据与置信度 | 复用规则与实现钩子 | 缺失后的失败表现 |
 | --- | --- | --- | --- |
-| 中性灰画布上的白色分析浮岛 | 页面底色为中性浅灰，数据模块使用纯白大圆角面板，阴影极弱，主要靠明度差与留白分层。`observed` | 画布消费 `--pod-page-bg-color`，一级面板消费 `--color-white`、`--corner-5` 和极弱中性阴影；主题色变化不得染色普通面板。 | 会退化成纯白后台页面，丢失柔和画布和精致浮岛感。 |
-| 深色聚焦横向摘要舞台 | 首屏存在一块全宽深色渐变舞台，顶部保留标题说明，底部排列多个半透明指标单元，并在下沿形成主题色派生光带。`observed` | `summary_stage` 使用中性 `--oyd-stage-top` 到由 `--color-brand1-6` 派生的低明度同色相渐变；指标单元消费 `--oyd-stage-card`、`--oyd-stage-border` 和白色文字。换色时只重算派生光带，不改变深色舞台与横向指标阵列。 | 页面会变成普通白色 KPI 卡组，失去最强视觉识别点和首屏聚焦。 |
-| 同色相热力矩阵与离散色阶 | 主分析区使用规则小方格表达二维强度分布，色阶从近白中性色过渡到当前主题色，顶部带筛选和离散图例。`observed` | `intensity_matrix` 使用由 `--color-brand1-6` 派生的 5 档 `--oyd-heat-1 / --oyd-heat-2 / --oyd-heat-3 / --oyd-heat-4 / --oyd-heat-5` 色阶、统一小圆角单元、固定行列间距和清楚的横纵标签；数据和维度由 PRD 决定。 | 若替换为普通折线图或连续彩虹热图，页面会失去精密、可扫描的矩阵纹理。 |
+| 中性灰画布上的白色分析浮岛 | 页面底色为中性浅灰，数据模块使用纯白大圆角面板，阴影极弱，主要靠明度差与留白分层。`observed` | 画布消费 `--pod-page-bg-color`，一级面板消费 `--pod-card-bg-color`、`--corner-5` 和极弱中性阴影；主题色变化不得染色普通面板。 | 会退化成纯白后台页面，丢失柔和画布和精致浮岛感。 |
+| 深色聚焦横向摘要舞台 | 首屏存在一块全宽深色渐变舞台，顶部保留标题说明，底部排列多个半透明指标单元，并在下沿形成主题色派生光带。`observed` | `summary_stage` 使用中性 `--color-fill1-10` 到由 `--color-brand1-6` 派生的低明度同色相渐变；指标单元消费 `rgba(255, 255, 255, 0.10)`、`rgba(255, 255, 255, 0.28)` 和白色文字。换色时只重算派生光带，不改变深色舞台与横向指标阵列。 | 页面会变成普通白色 KPI 卡组，失去最强视觉识别点和首屏聚焦。 |
+| 同色相热力矩阵与离散色阶 | 主分析区使用规则小方格表达二维强度分布，色阶从近白中性色过渡到当前主题色，顶部带筛选和离散图例。`observed` | `intensity_matrix` 使用由 `--color-brand1-6` 派生的 5 档 `color-mix(in srgb, var(--color-brand1-6) 8%, var(--color-white)) / color-mix(in srgb, var(--color-brand1-6) 20%, var(--color-white)) / color-mix(in srgb, var(--color-brand1-6) 38%, var(--color-white)) / color-mix(in srgb, var(--color-brand1-6) 68%, var(--color-white)) / color-mix(in srgb, var(--color-brand1-6) 100%, var(--color-white))` 色阶、统一小圆角单元、固定行列间距和清楚的横纵标签；数据和维度由 PRD 决定。 | 若替换为普通折线图或连续彩虹热图，页面会失去精密、可扫描的矩阵纹理。 |
 | 纹理化三柱对比 | 辅助分析面板以三根宽柱表达并列比例：一根主题色斜纹、一根深色实心、一根浅色实心，标签悬浮于柱顶。`observed` | `ratio_triptych` 保留三类材质、统一圆角、底部对齐和顶部浮动标签；颜色可随主题同色相适配，但斜纹/深色/浅色的材质对比不可改变。 | 会退化为普通同色柱图，失去鲜明材质差和小面板记忆点。 |
-| 圆角表头与图标化明细行 | 明细区使用白色大面板、弱化表头、图标化身份列、双行主次信息和克制行分隔。`observed` | `insight_table` 使用固定工具带、44-48px 表头、52-60px 行高、13px 表格字号和 24-28px 图标容器；状态和数值稳定对齐。 | 会回落为组件库默认表格，破坏页面精致度和扫描节奏。 |
+| 圆角表头与图标化明细行 | 明细区使用白色大面板、弱化表头、图标化身份列、双行主次信息和克制行分隔。`observed` | `insight_table` 使用固定工具带、44-48px 表头、52-60px 行高、`--font-size-table` 表格字号和 24-28px 图标容器；状态和数值稳定对齐。 | 会回落为组件库默认表格，破坏页面精致度和扫描节奏。 |
 
 ### 视觉记忆点应用策略
 
@@ -130,7 +112,7 @@ tokens:
 
 ### 设计变量范围
 
-`tokens.application-global` 是原生表单、流程页面和自定义页面共同遵守的全应用设计契约；字号变化先更新全局字体 Token，并严格遵守 `subhead ≤ 24px`。`tokens.custom-page` 只补充中性灰画布、摘要舞台、半透明指标单元、离散热力色阶、对比柱材质和全局体系没有的指标数字语义，不覆盖全应用 Token。
+颜色、字体、间距和圆角统一使用 `tokens.application-global` 中的基础变量。组件直接消费对应变量；渐变、透明度和纹理在组件配方中组合基础变量。独立分类色保留在对应图表配方中。
 
 ## 色彩
 
@@ -152,12 +134,12 @@ tokens:
 | 弱分隔线、表格行分隔线和辅助线 | `--color-line1-1` | 应用全局 |
 | 输入框、按钮和面板常规边界 | `--color-line1-2` | 应用全局 |
 | 页面底层中性灰画布 | `--pod-page-bg-color` | 自定义页 |
-| 面板、卡片、弹窗和表单容器 | `--color-white` | 应用全局 |
-| 分段控件、弱状态和内嵌工具区 | `--oyd-surface-soft` | 自定义页 |
-| 摘要舞台深色上沿和同色相下沿 | `--oyd-stage-top` / `--oyd-stage-bottom` | 自定义页 |
-| 舞台内半透明指标表面与亮边界 | `--oyd-stage-card` / `--oyd-stage-border` | 自定义页 |
-| 离散热力矩阵五档色阶 | `--oyd-heat-1` 至 `--oyd-heat-5` | 自定义页 |
-| 对比柱深色、斜纹和浅色材质 | `--oyd-chart-deep` / `--oyd-chart-stripe` / `--oyd-chart-pale` | 自定义页 |
+| 面板、卡片、弹窗和表单容器 | `--pod-card-bg-color` | 应用全局 |
+| 分段控件、弱状态和内嵌工具区 | `--color-fill1-2` | 自定义页 |
+| 摘要舞台深色上沿和同色相下沿 | `--color-fill1-10` / `color-mix(in srgb, var(--color-brand1-6) 28%, var(--color-fill1-10))` | 自定义页 |
+| 舞台内半透明指标表面与亮边界 | `rgba(255, 255, 255, 0.10)` / `rgba(255, 255, 255, 0.28)` | 自定义页 |
+| 离散热力矩阵五档色阶 | `color-mix(in srgb, var(--color-brand1-6) 8%, var(--color-white))` 至 `color-mix(in srgb, var(--color-brand1-6) 100%, var(--color-white))` | 自定义页 |
+| 对比柱深色、斜纹和浅色材质 | `--color-fill1-10` / `color-mix(in srgb, var(--color-brand1-6) 92%, var(--color-fill1-10))` / `color-mix(in srgb, var(--color-brand1-6) 16%, var(--color-white))` | 自定义页 |
 | 菜单悬停、弱标签和默认浅填充 | `--color-fill1-1` | 应用全局 |
 | 菜单点击和中性选中底 | `--color-fill1-2` | 应用全局 |
 | 标题、核心数字、正文和主要图标 | `--color-text1-4` | 应用全局 |
@@ -177,29 +159,19 @@ tokens:
 
 ## 字体与排版
 
-- 全局只使用 `tokens.application-global.typography.base` 定义的一套无衬线字体。
+字体使用 `--font-family-base`。字号、字重和行高按 YAML 的固定基础变量执行；数字使用 `font-variant-numeric: tabular-nums` 保持列对齐。
 
-```text
-page-title → tokens.application-global.typography.subhead
-panel-title → tokens.application-global.typography.body-2
-content-title → tokens.application-global.typography.body-1
-body → tokens.application-global.typography.body-1
-table → tokens.application-global.typography.table
-caption → tokens.application-global.typography.caption
-metric-primary → tokens.custom-page.typography.metric-primary
-data-emphasis → tokens.custom-page.typography.data-emphasis
-```
-
-- 页面标题消费全局 `subhead`：24px/600/1.2，不新增展示型大标题。
-- 一级面板标题消费全局 `body-2`：16px/500/1.4；内容标题、正文和常规控件标签消费全局 `body-1`：14px/400/1.5。
-- 表格消费全局 `table`：13px/400/1.45；说明、图例和辅助标签消费全局 `caption`：12px/400/1.4。
-- 摘要舞台核心数字消费页面级 `metric-primary`：32px/500/1.1；图表顶部比例等重点数据消费 `data-emphasis`：20px/600/1.2。
-- 数值统一启用 `font-variant-numeric: tabular-nums`；长文本单行截断并提供完整内容查看方式。
-- 图标采用 16-18px 圆角线性风格；摘要指标图标可置于 28-32px 半透明圆角方形容器。
+| 内容 | 字号 | 字重 | 行高 |
+| --- | --- | --- | --- |
+| 页面标题、强面板标题、重点数字 | `--font-size-subhead` | `--font-weight-subhead` | `--font-lineheight-subhead` |
+| 次级标题、强调正文 | `--font-size-body-2` | `--font-weight-body-2` | `--font-lineheight-body-2` |
+| 普通正文 | `--font-size-body-1` | `--font-weight-body-1` | `--font-lineheight-body-1` |
+| 表格正文 | `--font-size-table` | `--font-weight-table` | `--font-lineheight-table` |
+| 辅助说明、元信息 | `--font-size-caption` | `--font-weight-caption` | `--font-lineheight-caption` |
 
 ## 布局与间距
 
-- 所有间距统一消费顶部 YAML 的 `--s-1` 至 `--s-8`；页面外边距 12-20px，主区块间距 20-24px，一级面板内边距 24px，舞台内边距 24-28px。
+- 所有间距统一消费顶部 YAML 的 `--s-1` 至 `--s-10`；页面外边距 12-20px，主区块间距 20-24px，一级面板内边距 24px，舞台内边距 24-28px。
 - 桌面端使用 12 列网格：标题工具带和摘要舞台跨 12 列；中部主分析面板占 7-8 列，辅助分析面板占 4-5 列；明细区跨 12 列。
 - 标题位于左侧，日期、范围、导出或其他 PRD 操作位于右侧；操作组使用 8-12px gap，不挤压标题。
 - 页面结构以 `page_identity / global_actions → primary_summary / primary_metrics → primary_analysis / supporting_analysis → detail_table` 为主，模块是否存在由 PRD 决定。
@@ -220,7 +192,7 @@ data-emphasis → tokens.custom-page.typography.data-emphasis
 - 摘要舞台使用 `--corner-5`、午夜渐变和底部主题色辉光，不再叠加外投影；舞台之外不得使用同等强度的深色大面板。
 - 舞台指标单元使用半透明白色表面、1px 亮边界和极弱内高光，不使用强毛玻璃模糊。
 - 热力矩阵单元使用主题色派生浅阶；分段筛选和顶部浮动标签使用中性表面，无明显阴影。
-- tooltip 使用白色或近黑中性表面、`--corner-3` 和轻阴影；保证深浅场景下文字对比。
+- tooltip 使用 `--color-fill1-10` 背景与 `--color-text1-5` 文字、`--corner-3` 和轻阴影；保证深浅场景下文字对比。
 
 ## 圆角与形状
 
@@ -245,15 +217,15 @@ data-emphasis → tokens.custom-page.typography.data-emphasis
 
 ### 深色聚焦摘要舞台（可见记忆点）
 
-`summary_stage` 使用纵向深色渐变：顶部为 `--oyd-stage-top`，下沿过渡到由主题色派生的 `--oyd-stage-bottom`；可增加低透明径向光带但禁止霓虹外发光。舞台顶部为标题和一行辅助说明，底部为 3-6 个等高 `metric_card`。每个指标单元包含 28-32px 图标容器、14px 短标签和 32px 核心数字；单元背景为 `--oyd-stage-card`，边界为 `--oyd-stage-border`。没有 PRD 指标时不得生成虚构数字。
+`summary_stage` 使用纵向深色渐变：顶部为 `--color-fill1-10`，下沿过渡到由主题色派生的 `color-mix(in srgb, var(--color-brand1-6) 28%, var(--color-fill1-10))`；可增加低透明径向光带但禁止霓虹外发光。舞台顶部为标题和一行辅助说明，底部为 3-6 个等高 `metric_card`。每个指标单元包含 28-32px 图标容器、使用 `body-1` 的短标签和使用 `subhead` 的核心数字；单元背景为 `rgba(255, 255, 255, 0.10)`，边界为 `rgba(255, 255, 255, 0.28)`。没有 PRD 指标时不得生成虚构数字。
 
 ### 离散热力矩阵（可见记忆点）
 
-`intensity_matrix` 由等尺寸小方格构成，单元建议 18-24px、gap 4-6px，使用 `--oyd-heat-1` 至 `--oyd-heat-5` 五档离散色阶。横纵标签固定在矩阵外侧，图例从低到高排列并与色阶一一对应。顶部可放 PRD 已有分段筛选。hover 显示 tooltip，键盘聚焦显示边界；无数据单元使用最浅档，不使用透明消失。
+`intensity_matrix` 由等尺寸小方格构成，单元建议 18-24px、gap 4-6px，使用 `color-mix(in srgb, var(--color-brand1-6) 8%, var(--color-white))` 至 `color-mix(in srgb, var(--color-brand1-6) 100%, var(--color-white))` 五档离散色阶。横纵标签固定在矩阵外侧，图例从低到高排列并与色阶一一对应。顶部可放 PRD 已有分段筛选。hover 显示 tooltip，键盘聚焦显示边界；无数据单元使用最浅档，不使用透明消失。
 
 ### 纹理化比例三柱（可见记忆点）
 
-`ratio_triptych` 使用 2-4 根等宽粗柱，推荐三柱；柱底对齐，宽度 76-104px，柱顶使用 14-18px 圆角。第一材质为主题同色斜纹，第二为 `--oyd-chart-deep` 深色实心，第三为 `--oyd-chart-pale` 浅色实心。比例标签置于柱顶上方的小型浅色胶囊中，重点数字消费 `data-emphasis`。禁止改成彩虹柱、3D 柱、连续渐变或无数据装饰柱。
+`ratio_triptych` 使用 2-4 根等宽粗柱，推荐三柱；柱底对齐，宽度 76-104px，柱顶使用 14-18px 圆角。第一材质为主题同色斜纹，第二为 `--color-fill1-10` 深色实心，第三为 `color-mix(in srgb, var(--color-brand1-6) 16%, var(--color-white))` 浅色实心。比例标签置于柱顶上方的小型浅色胶囊中，重点数字消费 `subhead`。禁止改成彩虹柱、3D 柱、连续渐变或无数据装饰柱。
 
 ### 表格与列表
 
@@ -308,13 +280,13 @@ data-emphasis → tokens.custom-page.typography.data-emphasis
 - PRD 存在比例比较时，使用主题斜纹、深色实心和浅色实心三类材质。
 - PRD 存在重复记录时，使用圆角弱化表头、图标化主列、双行信息和稳定行高。
 - 保持同一行分析面板等高、确定图表高度、父级 `gap` 和内部溢出处理。
-- 页面标题不超过 24px；按钮只使用 28/32/36/40px 四档且不超过 40px。
+- 页面标题使用 `subhead`；按钮只使用 28/32/36/40px 四档且不超过 40px。
 - 保证 hover、active、focus、loading、empty、error、disabled、selected、移动端和 reduced motion 状态完整。
 
 ### 禁止项
 
 - 禁止复制模板来源中的业务字段、人物、机构、指标、示例数据、分类名称或页面专属文案；禁止让 DESIGN.md 覆盖 PRD 内容决策。
-- 禁止把普通 SaaS 工作台改造成官网 Hero，禁止大于 24px 的普通页面标题和大于 40px 的按钮。
+- 普通页面标题使用 `subhead`，按钮按业务操作选择平台规格。
 - 禁止为保留摘要舞台而编造 KPI、角色或趋势，为热力矩阵编造二维数据，为三柱比较编造比例。
 - 禁止把午夜舞台复制成多个深色大面板，或把主题色铺满普通白色卡片。
 - 禁止把离散热力矩阵改成连续彩虹热图，或随意混用不等尺寸单元。
@@ -329,7 +301,7 @@ data-emphasis → tokens.custom-page.typography.data-emphasis
 - 错误：无二维数据也生成热力图；正确：降级为 `recipe_only`，使用 PRD 已有内容面板。
 - 错误：三组比例使用三种高饱和纯色；正确：使用同色相斜纹、深色实心和浅色实心形成材质差。
 - 错误：明细区直接使用默认表格；正确：使用弱化表头、图标化主列、双行信息和克制分隔线。
-- 错误：普通 SaaS 页面使用 48px 标题或 56px 按钮；正确：普通页标题映射到 24px `subhead`，按钮从 28/32/36/40px 中按角色选择。
+- 错误：普通 SaaS 页面使用 48px 标题或 56px 按钮；正确：普通页标题使用 `subhead`，按钮从 28/32/36/40px 中按角色选择。
 
 ### AI 使用提示
 

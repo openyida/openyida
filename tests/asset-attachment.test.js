@@ -34,6 +34,7 @@ beforeEach(async () => {
   server = http.createServer((req, res) => {
     requests.push(req.url);
     if (req.url === '/missing') {res.writeHead(404); res.end(); return;}
+    if (req.url === '/denied') {res.writeHead(403); res.end(); return;}
     const headers = { 'Content-Type': 'image/png' };
     if (declaredSize !== undefined) {headers['Content-Length'] = declaredSize;}
     res.writeHead(200, headers);
@@ -143,14 +144,19 @@ test('CLI accepts the target app and reports missing option values', () => {
 });
 
 
-test('failed download is attempted once, skips upload and leaves a visible gap', async () => {
+test.each([['/missing', 'HTTP_404'], ['/denied', 'HTTP_403']])('failed download %s is attempted once and can be replaced', async (pathname, code) => {
   const uploadFn = uploader();
-  const input = `${baseUrl}/missing`;
+  const input = `${baseUrl}${pathname}`;
   const result = await resolveAssets([asset(input)], { uploadFn });
-  expect(requests).toEqual(['/missing']);
+  expect(requests).toEqual([pathname]);
   expect(uploadFn).not.toHaveBeenCalled();
   expect(result.assets[0]).toMatchObject({ input, url: '', materialStatus: 'draft' });
-  expect(result.gaps[0].code).toBe('HTTP_404');
+  expect(result.gaps[0].code).toBe(code);
+  const replacement = { ...result.assets[0], input: `${baseUrl}/no-extension` };
+  const final = await resolveAssets([replacement], { uploadFn });
+  expect(requests).toEqual([pathname, '/no-extension']);
+  expect(uploadFn).toHaveBeenCalledTimes(1);
+  expect(final.assets[0]).toMatchObject({ input: replacement.input, materialStatus: 'final' });
 });
 
 test('reused attachment URLs need no extra network verification', async () => {
