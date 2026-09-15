@@ -12,8 +12,9 @@ const path = require('path');
 // per-file cap stays fixed to catch accidental large-blob embeds.
 // Includes the latest main assets/process support and CodeBundle download/publish.
 // Node 20/24 package measurements are rounded up to the next 16 KiB boundary.
+// 6256 KiB: connector test --ignore-defaults strings across the 12 locale packs.
 const MAX_TARBALL_BYTES = 1824 * 1024;
-const MAX_UNPACKED_BYTES = 6240 * 1024;
+const MAX_UNPACKED_BYTES = 6256 * 1024;
 // Includes both asset delivery files and process action files.
 const MAX_ENTRY_COUNT = 503;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
