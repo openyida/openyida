@@ -70,3 +70,34 @@ describe('direct Node mutation receipts', () => {
     expect(entries(dir)).toEqual([]);
   });
 });
+
+
+describe('Windows receipt publication conflicts', () => {
+  const windowsTest = process.platform === 'win32' ? test : test.skip;
+  windowsTest('retries a temporary sharing error and publishes exactly once', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'receipt-retry-'));
+    const rename = jest.spyOn(fs, 'renameSync').mockImplementationOnce(() => {
+      throw Object.assign(new Error('sharing conflict'), { code: 'EBUSY' });
+    });
+    try {
+      writeReceipt(dir, { id: 'receipt-1', schemaVersion: 1 });
+      expect(rename).toHaveBeenCalledTimes(2);
+      expect(fs.readdirSync(dir)).toEqual(['receipt-1.json']);
+      expect(JSON.parse(fs.readFileSync(path.join(dir, 'receipt-1.json'))).id).toBe('receipt-1');
+    } finally {rename.mockRestore(); fs.rmSync(dir, { recursive: true, force: true });}
+  });
+  windowsTest('persistent publish failure stays bounded and cleanup cannot mask it', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'receipt-conflict-'));
+    const original = Object.assign(new Error('publish denied'), { code: 'EACCES' });
+    const rename = jest.spyOn(fs, 'renameSync').mockImplementation(() => {throw original;});
+    const unlink = jest.spyOn(fs, 'unlinkSync').mockImplementation(() => {
+      throw Object.assign(new Error('cleanup locked'), { code: 'EBUSY' });
+    });
+    try {
+      expect(() => writeReceipt(dir, { id: 'receipt-1' })).toThrow(original);
+      expect(rename).toHaveBeenCalledTimes(6);
+      expect(unlink).toHaveBeenCalledTimes(6);
+      expect(fs.existsSync(path.join(dir, 'receipt-1.json'))).toBe(false);
+    } finally {rename.mockRestore(); unlink.mockRestore(); fs.rmSync(dir, { recursive: true, force: true });}
+  });
+});

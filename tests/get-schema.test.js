@@ -800,3 +800,13 @@ describe('run compact compatibility', () => {
     mockLog.mockRestore();
   });
 });
+
+test.each(['TextField', 'TextareaField'])('custom %s summary uses the visible value over a stale complex value', (componentName) => {
+  const value = { type: 'i18n', zh_CN: '待处理', en_US: '待处理' };
+  const props = { fieldId: 'textField_status', label: '状态', valueType: 'custom', value,
+    complexValue: { complexType: 'custom', value: { type: 'i18n', zh_CN: '' } } };
+  const schema = { content: { pages: [{ componentsTree: [{ componentName, props }] }] } };
+  expect(extractFieldSummary(schema)[0].defaultValue).toEqual(value);
+  props.value = '';
+  expect(extractFieldSummary(schema)[0].defaultValue).toBe('');
+});
