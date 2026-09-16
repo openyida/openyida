@@ -44,7 +44,10 @@ describe('multi-Connection foreground supervisor', () => {
   afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 
   test('agent run restores every organization Connection with one shared installation', async () => {
-    await run(['run', '--state-dir', root], { env: { PATH: providerDir }, signals, stdout: { write() {} } });
+    await run([
+      'run', '--state-dir', root, '--provider', 'qoder',
+      '--provider-path', path.join(providerDir, 'qoder'),
+    ], { env: { PATH: providerDir, HOME: root }, signals, stdout: { write() {} } });
     expect(materializeBundle).toHaveBeenCalledTimes(2);
     expect(launchRuntime).toHaveBeenCalledTimes(2);
     expect(launchRuntime.mock.calls.map(([, config]) => ({
@@ -68,8 +71,11 @@ describe('multi-Connection foreground supervisor', () => {
       .mockReturnValueOnce(healthy);
 
     let settled = false;
-    const supervised = run(['run', '--state-dir', root], {
-      env: {PATH: providerDir}, signals, stdout: {write() {}},
+    const supervised = run([
+      'run', '--state-dir', root, '--provider', 'qoder',
+      '--provider-path', path.join(providerDir, 'qoder'),
+    ], {
+      env: {PATH: providerDir, HOME: root}, signals, stdout: {write() {}},
     }).then(() => {settled = true;});
     await new Promise(resolve => setImmediate(resolve));
 
