@@ -214,6 +214,7 @@ description: >
 | [路由补充说明](references/routing-supplement.md) | 索引精排方法、无独立子技能 CLI | Step 3 排障或索引匹配不准时 |
 | [常见问题解决方案](references/execution-rules.md) | 常见问题处理路径 | 遇到发布、字段、表单更新或 corpId 问题时 |
 | [环境准备与登录检测](references/setup-and-env.md) | 环境依赖、env 解读、多环境 token 登录、project 初始化 | 环境异常或登录问题时 |
+| [本地 Agent 连接预检](references/local-agent-preflight.md) | connect/doctor、指定 Provider、桌面版与 CLI、安装与登录修复 | 用户需要接入本地 Agent 或预检失败时 |
 | [本地 Agent 诊断](references/local-agent-diagnostics.md) | 电脑/CLI 发现、连接鉴权、local_ 会话投递诊断 | 用户反馈网页关联本地 Agent 异常时 |
 | [宜搭 API](references/yida-api.md) | 宜搭 API 完整参数 | 调用 API 前 |
 | [公式函数库](references/formula-functions.md) | 公式函数速查 | 编写公式前 |

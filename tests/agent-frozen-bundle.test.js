@@ -133,7 +133,7 @@ describe('content-addressed complete local tool bundle', () => {
       '--endpoint', 'https://agent.example.test', '--endpoint-id', 'test', '--state-dir', fixture.config.stateDir], {
       // This test isolates bundle launching; enrolled multi-organization
       // Connections are exercised by agent-connection-manager.test.js.
-      packageRoot: fixture.config.node.packageRoot, stdout, disableConnectionManager: true,
+      packageRoot: fixture.config.node.packageRoot, stdout, disableConnectionManager: true, probe: async () => ({ status: 'passed' }),
     });
     const event = JSON.parse(stdout.write.mock.calls[0][0]);
     expect(event.config).toMatchObject({ command, developmentRuntime: true, parentWatchFD: 3, bundle: { schemaVersion: 1 } });

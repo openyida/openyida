@@ -120,7 +120,7 @@ describe('local agent thin launcher', () => {
       '--provider', 'qoder', '--provider-path', '/bin/sh',
       '--development-runtime', '--runtime-path', binary, '--runtime-manifest', manifestPath,
       '--state-dir', path.join(root, 'state'), '--enroll', `enrollment.${'t'.repeat(40)}`,
-    ], { stdout, env: { PATH: process.env.PATH } });
+    ], { stdout, env: { PATH: process.env.PATH }, probe: async () => ({ status: 'passed' }) });
     const events = stdout.write.mock.calls.map(([value]) => JSON.parse(value));
     expect(events.map((event) => event.config.command)).toEqual(['connect', 'run']);
     expect(events[0].config.installationId).toEqual(expect.any(String));
