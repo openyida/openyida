@@ -60,6 +60,27 @@ describe('multi-Connection foreground supervisor', () => {
     expect(signals.listenerCount('SIGTERM')).toBe(0);
   });
 
+  test('one failed organization Connection does not stop another running Connection', async () => {
+    let finishHealthy;
+    const healthy = new Promise(resolve => {finishHealthy = resolve;});
+    launchRuntime
+      .mockRejectedValueOnce(Object.assign(new Error('refresh conflict'), {code: 'CONTROL_HTTP_FAILED'}))
+      .mockReturnValueOnce(healthy);
+
+    let settled = false;
+    const supervised = run(['run', '--state-dir', root], {
+      env: {PATH: providerDir}, signals, stdout: {write() {}},
+    }).then(() => {settled = true;});
+    await new Promise(resolve => setImmediate(resolve));
+
+    expect(settled).toBe(false);
+    expect(signals.listenerCount('SIGTERM')).toBe(1);
+    finishHealthy();
+    await supervised;
+    expect(signals.listenerCount('SIGINT')).toBe(0);
+    expect(signals.listenerCount('SIGTERM')).toBe(0);
+  });
+
   test('read-only status enumerates Connections without materializing execution bundles', async () => {
     await run(['status', '--state-dir', root], { env: {}, signals, stdout: { write() {} } });
     expect(materializeBundle).not.toHaveBeenCalled();
