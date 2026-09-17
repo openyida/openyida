@@ -10,6 +10,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.9.17] - 2026-09-17
+
+### 体验优化
+
+- **连接器测试可忽略已保存默认值**：`connector test` 新增 `--ignore-defaults`，从空的 Path、Query、Header、Body 参数集开始，仅使用本次显式参数，避免动作定义中的历史默认值或脱敏占位值影响测试；不修改已保存的动作配置。
+- **保留鉴权保护**：忽略默认值时，已保存的非空 `systemToken` 默认值会触发警告；声明该参数的动作仍须使用 `--system-token-app` 由 CLI 安全解析，继续验证可信目标并拒绝显式传入 `systemToken`。需要鉴权的连接器仍须选择属于该连接器的 `--account-id`。
+
+### 问题修复
+
+- **修复连接器测试请求体序列化**：非 GET/DELETE 动作在提交测试请求时预先将请求体序列化为 JSON，保留嵌套对象和数组；已序列化的字符串不重复转换，空请求体使用 `{}`，GET/DELETE 仍不发送 Body 字段。
+
 ## [2026.9.16-2] - 2026-09-16
 
 ### 体验优化
