@@ -21,8 +21,10 @@ function CanvasNavigationContent({
   preserveScroll = false,
   navigationPosition = 'sticky',
   navigationTop = 0,
+  utils,
 }) {
   const embedded = Boolean(iframeSrc);
+  const YidaCanvasIframe = window.YidaCanvasIframe;
   const documentLayout = layout === 'document';
   const rootRef = React.useRef(null);
   const navigationRef = React.useRef(null);
@@ -111,10 +113,17 @@ function CanvasNavigationContent({
           margin: '0 auto', borderRadius: documentLayout ? 0 : radius,
           overflow: documentLayout ? 'visible' : embedded ? 'hidden' : 'auto',
         }}>
-          {embedded ? <iframe title={title} src={iframeSrc} style={{
+          {embedded ? YidaCanvasIframe ? <YidaCanvasIframe title={title} src={iframeSrc} style={{
             position: 'absolute', inset: 0, width: '100%', height: '100%',
             display: 'block', border: 0,
-          }} /> : children}
+          }} /> : <div role="status" style={{ padding: 24 }}>
+            <p>暂时无法在此处打开。</p>
+            <button type="button" onClick={() => {
+              const pageUtils = utils || window.__OPENYIDA_UTILS__;
+              if (typeof pageUtils?.openPage === 'function') return pageUtils.openPage(iframeSrc);
+              return window.open(iframeSrc, '_blank', 'noopener,noreferrer');
+            }}>在新窗口打开</button>
+          </div> : children}
         </div>
       </main>
     </div>

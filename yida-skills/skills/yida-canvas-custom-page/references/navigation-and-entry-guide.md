@@ -10,6 +10,7 @@
 - 宜搭应用壳根据 `navUuid/formUuid` 和 `workbench` 路径维护选中态；同应用页面应进入 `/{appType}/workbench/{formUuid}` 或对应壳层路由。
 - 发布层会把根级工具注册到 `window.__OPENYIDA_UTILS__`；可用时优先通过 `window.__OPENYIDA_UTILS__.router.push` 做应用内跳转，通过 `window.__OPENYIDA_UTILS__.openPage` 打开外部链接或新窗口场景。
 - `openPage` / `window.open` 更适合外部链接、新标签、钉钉链接、文件预览等场景；同应用页面默认在当前应用壳内切换。
+- 宜搭 `utils.openPage(href)` 接收 URL 字符串，不传 `{ url: href }`。组件中优先用注入的 `props.utils`，独立片段可用 `window.__OPENYIDA_UTILS__`；钉钉适配由宜搭工具负责，不直接操作 `window.dd`。
 - 页面隐藏应用导航后，页面内自绘导航壳接管跨视图切换；导航可见时使用平台导航承载同级页面切换。
 - 自绘应用导航按 PRD 安排数量、顺序、分组和任务入口，通常工作台在首位；当前用户的 `getAccessableNavs.json` 结果只用于过滤不可见入口。数据片段和接入规则见 [导航数据来源](../../yida-nav-shell/references/nav-shell-patterns.md#导航数据来源)。
 
@@ -178,6 +179,10 @@ PRD 确定使用自定义导航时，按 `design.md` 编写导航 UI，先参考
 页面内操作按钮去新增、提交或查看表单详情时，统一封装成同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；新标签只用于外部 URL 或用户主动点击抽屉标题栏的新窗口操作。PC 端容器表现为右侧抽屉 + iframe，移动端直接进入原生表单页，关闭抽屉后触发当前页刷新。应用级办理导航的提交页在主内容区嵌入，导航选中态与当前任务一致。
 
 YidaCodeCanvas 推荐使用 antd `Drawer`。`FormOpenContainer` 只负责打开原生提交页或详情页。通用 `CanvasDrawer` 提供标题栏、全屏/退出全屏、关闭和 `extra` 操作区，表单容器额外提供新窗口打开。普通业务内容容器保持透明，跟随抽屉外壳背景。
+
+抽屉和导航内容区统一消费平台提供的 `window.YidaCanvasIframe`，不再自行创建原生 `<iframe>`。该 React 组件在需要免登时先准备同源地址，再加载页面；支持地址切换、准备失败重试及卸载取消。不要在业务代码里注册/覆盖这个全局组件，也不要自行复制票据请求或拼接认证参数。`src` 保留完整业务 URL、实例 ID、query/hash；`onLoad` 不是免登成功或允许嵌入的证明，跨域和 CSP/X-Frame-Options 限制仍需实际验证。
+
+发布顺序：先发布包含 `YidaCanvasIframe` 的 vc-deep-yida 并验证实际页面运行时，再发布 OpenYida 的模板改动。模板在旧运行时缺少此组件时保留原布局，显示提示和用户主动触发的新窗口入口，不退回原生 iframe、不自动跳走。旧页面需替换片段并重新编译发布，CLI 升级不会自动修改线上 runtimeCode。
 
 抽屉 header 的工具操作统一使用图标按钮：新窗口打开用 `ExternalLink`，全屏/退出全屏用 `Maximize2` / `Minimize2`，关闭用 `X`。表单抽屉三个操作必须齐全，不得替换为“在新窗口打开”“关闭”等可见文字链接，也不得省略全屏。每个按钮提供对应的 `title`、`aria-label` 和可见键盘焦点；全屏按钮同时更新图标、提示和 `aria-pressed`。按钮默认使用中性色，hover、focus 跟随主题。发布前逐一验证三个按钮的实际行为，不以按钮已渲染代替验收。
 

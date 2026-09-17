@@ -85,13 +85,16 @@ describe('sample templates', () => {
     const { runtimeCode, importedModules } = compileCanvasLocal(`${fragment}
       function YidaComp() { return CanvasNavigationContent(window.testProps); }`);
     expect(JSON.parse(importedModules)).toEqual(['react']);
-    const render = props => new Function('window', `${runtimeCode}; return YidaComp();`)({
+    const YidaCanvasIframe = { render: () => null };
+    const render = (props, globals = {}) => new Function('window', `${runtimeCode}; return YidaComp();`)({
       React: {
         createElement: (type, props, ...children) => ({ type, props, children }),
         useRef: current => ({ current }),
         useLayoutEffect: () => {},
       },
       testProps: props,
+      YidaCanvasIframe,
+      ...globals,
     });
     const local = render({ navigation: '导航', children: '工作台', height: 640 });
     expect(local.props.style.height).toBe(640);
@@ -103,9 +106,16 @@ describe('sample templates', () => {
     const viewport = embedded.children[1].children[0];
     expect(viewport.props.style.overflow).toBe('hidden');
     expect(viewport.props.style.maxWidth).toBe(localViewport.props.style.maxWidth);
-    expect(viewport.children[0]).toMatchObject({ type: 'iframe', props: {
+    expect(viewport.children[0]).toMatchObject({ type: YidaCanvasIframe, props: {
       src: '/submission/form', title: '报修', style: { position: 'absolute', height: '100%' },
     } });
+    const openPage = jest.fn();
+    const oldRuntime = { YidaCanvasIframe: undefined, __OPENYIDA_UTILS__: { openPage } };
+    const fallback = render({ iframeSrc: '/APP_test/submission/FORM-a' }, oldRuntime).children[1].children[0].children[0];
+    expect(fallback.props.role).toBe('status');
+    expect(openPage).not.toHaveBeenCalled();
+    fallback.children[1].props.onClick();
+    expect(openPage).toHaveBeenCalledWith('/APP_test/submission/FORM-a');
     expect(render({ children: '无可用导航' }).children[1].children[0].children).toContain('无可用导航');
     const document = render({ layout: 'document', navigation: '品牌菜单', children: '首屏与产品区' });
     expect(document.props.style).toMatchObject({ display: 'grid', overflow: 'visible' });
@@ -421,6 +431,9 @@ describe('sample templates', () => {
       },
       antd: { Typography: {} },
       LucideReact: {},
+      YidaCanvasIframe: { render: () => null },
+      __OPENYIDA_UTILS__: { openPage: jest.fn() },
+      open: jest.fn(),
     };
     Object.assign(runtimeWindow.React, {
       useState: (initial) => [typeof initial === 'function' ? initial() : initial, () => {}],
@@ -431,7 +444,7 @@ describe('sample templates', () => {
     // eslint-disable-next-line no-new-func
     const FormOpenContainer = new Function('window', pageResult.runtimeCode + '; return FormOpenContainer;')(runtimeWindow);
     const drawer = FormOpenContainer({ request: { type: 'submission', formUuid: 'FORM_SAMPLE' }, currentAppType: 'APP_SAMPLE' });
-    const iframe = drawer.children.find((child) => child && child.type === 'iframe');
+    const iframe = drawer.children.find((child) => child && child.type === runtimeWindow.YidaCanvasIframe);
     expect(drawer.props.contentMode).toBe('iframe');
     expect(iframe.props.style).toMatchObject({ position: 'absolute', inset: 0, height: '100%', minHeight: 0 });
     const renderShell = (props) => drawer.type(props).children.find((child) => child?.props?.styles);
@@ -462,7 +475,7 @@ describe('sample templates', () => {
         params: { corpid: 'ding_test', source: '活动 A&B', isRenderNav: true, formInstId: 'WRONG_INSTANCE' },
       };
       const container = FormOpenContainer({ request, currentAppType: 'APP_SAMPLE' });
-      const frame = container.children.find((child) => child && child.type === 'iframe');
+      const frame = container.children.find((child) => child && child.type === runtimeWindow.YidaCanvasIframe);
       expect(container.props.contentMode).toBe('iframe');
       const formShell = renderShell({ ...container.props, children: frame });
       expect(formShell.props.styles.body.padding).toBe(0);
@@ -477,6 +490,22 @@ describe('sample templates', () => {
         expect(url.searchParams.get('navConfig.layout')).toBe('1180');
       }
     }
+
+    // 平台能力未上线时不创建原生 iframe，也不自动跳走；用户仍可主动打开新窗口。
+    delete runtimeWindow.YidaCanvasIframe;
+    const oldRuntimeDrawer = FormOpenContainer({ request: { type: 'submission', formUuid: 'FORM_SAMPLE' }, currentAppType: 'APP_SAMPLE' });
+    expect(oldRuntimeDrawer.children.some(child => child?.type === 'iframe')).toBe(false);
+    expect(oldRuntimeDrawer.children.some(child => child?.props?.role === 'status')).toBe(true);
+    expect(runtimeWindow.__OPENYIDA_UTILS__.openPage).not.toHaveBeenCalled();
+    oldRuntimeDrawer.props.onOpenInNewWindow();
+    expect(runtimeWindow.__OPENYIDA_UTILS__.openPage).toHaveBeenCalledWith('/APP_SAMPLE/submission/FORM_SAMPLE?isRenderNav=false');
+    expect(runtimeWindow.open).not.toHaveBeenCalled();
+    const injectedOpenPage = jest.fn();
+    FormOpenContainer({ request: { type: 'submission', formUuid: 'FORM_SAMPLE' }, currentAppType: 'APP_SAMPLE', utils: { openPage: injectedOpenPage } }).props.onOpenInNewWindow();
+    expect(injectedOpenPage).toHaveBeenCalledWith('/APP_SAMPLE/submission/FORM_SAMPLE?isRenderNav=false');
+    delete runtimeWindow.__OPENYIDA_UTILS__;
+    oldRuntimeDrawer.props.onOpenInNewWindow();
+    expect(runtimeWindow.open).toHaveBeenCalledWith('/APP_SAMPLE/submission/FORM_SAMPLE?isRenderNav=false', '_blank', 'noopener,noreferrer');
 
 
     expect(() => createForm._private.validateFormFieldDefinitions(fields)).not.toThrow();

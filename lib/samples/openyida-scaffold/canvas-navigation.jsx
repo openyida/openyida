@@ -47,7 +47,7 @@ function navigateCanvasPage(entry, context = {}) {
   const href = buildCanvasPageUrl(entry, context);
   const utils = context.utils || window.__OPENYIDA_UTILS__;
   if (entry.openMode === 'new-tab' || entry.targetType === 'url') {
-    if (typeof utils?.openPage === 'function') return utils.openPage({ url: href });
+    if (typeof utils?.openPage === 'function') return utils.openPage(href);
     window.open(href, '_blank', 'noopener,noreferrer');
     return;
   }

@@ -6,7 +6,7 @@
  * 发布前必须删除本标记、示例数据和全部占位内容。
  *
  * 关键约定：
- * - PC 端页面内新增和详情按钮使用 FormOpenContainer 右侧抽屉 iframe。
+ * - PC 端页面内新增和详情按钮使用 FormOpenContainer 右侧抽屉与 window.YidaCanvasIframe。
  * - 应用导航中的报名、申请等办理任务在主内容区嵌入 submission；查询和管理任务嵌入 workbench。
  * - 抽屉左边缘可拖拽调宽，双击恢复半屏，全屏切换保留拖拽宽度。
  * - 移动端才整页进入原生提交页或详情页。
@@ -275,28 +275,38 @@ function CanvasDrawer({
 }
 
 /** 原生提交页和详情页自带页面布局，外层只提供 iframe 视口，不再套内容卡片。 */
-function FormOpenContainer({ request, currentAppType, onClose, onAfterClose }) {
+function FormOpenContainer({ request, currentAppType, onClose, onAfterClose, utils }) {
   const iframeSrc = useMemo(() => buildYidaFormUrl(request, currentAppType), [request, currentAppType]);
   const title = request && request.title ? request.title : '表单';
+  const YidaCanvasIframe = window.YidaCanvasIframe;
+  const openInNewWindow = () => {
+    const pageUtils = utils || window.__OPENYIDA_UTILS__;
+    if (typeof pageUtils?.openPage === 'function') return pageUtils.openPage(iframeSrc);
+    return window.open(iframeSrc, '_blank', 'noopener,noreferrer');
+  };
   return (
     <CanvasDrawer
       title={title}
       open={!!request}
       contentMode="iframe"
       background={request?.background}
-      onOpenInNewWindow={iframeSrc ? () => window.open(iframeSrc, '_blank', 'noopener,noreferrer') : undefined}
+      onOpenInNewWindow={iframeSrc ? openInNewWindow : undefined}
       onClose={() => {
         onClose();
         if (typeof onAfterClose === 'function') onAfterClose();
       }}
     >
-      {/* iframe 填满 flex 分配的剩余空间，只由内页滚动，不按视口猜测标题高度。 */}
-      {iframeSrc ? <iframe title={title} src={iframeSrc} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', minHeight: 0, border: 0, display: 'block' }} /> : null}
+      {/* 免登地址由平台组件准备；旧运行时保留显式新窗口入口，不退回原生 iframe。 */}
+      {iframeSrc ? YidaCanvasIframe ? (
+        <YidaCanvasIframe title={title} src={iframeSrc} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', minHeight: 0, border: 0, display: 'block' }} />
+      ) : (
+        <div role="status" style={{ padding: 24 }}>暂时无法在此处打开，请使用标题栏的新窗口按钮。</div>
+      ) : null}
     </CanvasDrawer>
   );
 }
 
-function useYidaFormOpen(currentAppType, refreshData) {
+function useYidaFormOpen(currentAppType, refreshData, utils) {
   const [formRequest, setFormRequest] = useState(null);
 
   function openForm(request) {
@@ -316,6 +326,7 @@ function useYidaFormOpen(currentAppType, refreshData) {
       currentAppType={currentAppType}
       onClose={() => setFormRequest(null)}
       onAfterClose={refreshData}
+      utils={utils}
     />
   );
 
@@ -393,7 +404,7 @@ function PageContent(props) {
   const [notice, setNotice] = useState(null);
   const [refreshCount, setRefreshCount] = useState(0);
   const rows = useMemo(() => normalizeRows(props && props.rows), [props && props.rows, refreshCount]);
-  const { openForm, formOpenContainer } = useYidaFormOpen(appType, refreshData);
+  const { openForm, formOpenContainer } = useYidaFormOpen(appType, refreshData, props?.utils);
 
   function refreshData() {
     setRefreshCount((count) => count + 1);

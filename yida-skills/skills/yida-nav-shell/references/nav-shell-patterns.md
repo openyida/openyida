@@ -154,7 +154,7 @@ const items = await loadCanvasNavigation({
 ```jsx
 // 此入口来自过滤后的 PRD 菜单，其 targetType 已规划为 submission。
 const registration = items.find(item => item.key === 'registration');
-<iframe title="活动报名" src={buildCanvasNavigationUrl(registration, appType, { embedded: true })} />
+<CanvasNavigationContent title="活动报名" iframeSrc={buildCanvasNavigationUrl(registration, appType, { embedded: true })} />
 ```
 
 `canvas-nav-data` 同时提供 `buildCanvasNavigationUrl`：`submission` 生成原生提交页地址，`page` 生成 workbench 地址；嵌入时自动补对应导航参数，`params` 保留预填值和业务参数。入口用途明确后再生成 URL。导航任务占主内容区；页面内新增或详情按钮复用 [FormOpenContainer 抽屉](../../yida-canvas-custom-page/references/navigation-and-entry-guide.md#标准-formopencontainer)。原生表单的页面导航参数由容器生成；自定义页面的应用导航按技能中的应用设置隐藏。已有自定义页的 `/{appType}/custom/{formUuid}` 地址可继续使用。用 `URL` / `URLSearchParams` 构造地址，保留 `corpid`、`locale` 和业务参数。
@@ -171,7 +171,7 @@ const registration = items.find(item => item.key === 'registration');
 openyida sample openyida-page-template canvas-nav-content --output .cache/samples/canvas-nav-content.jsx
 ```
 
-`CanvasNavigationContent` 默认 `layout="workspace"`。`navigation` 只接顶部菜单，`children` 接本地工作台，`iframeSrc` 接原生页面地址；不传地址时显示 children，可用于无权限或加载失败提示。`contentKey` 变化会卸载旧内容，导航保持挂载；默认重置滚动，显式 `preserveScroll` 按任务 key 恢复本地内容区位置。筛选、分页、已载数据和草稿需由稳定父层持有，并在恢复时已渲染足够内容；容器不缓存业务状态、iframe 或异步数据。`height` 默认 `100dvh`，已有宿主或侧栏分配高度时传入该区域的确定高度（只有父级高度确定时才能用 `100%`）。`maxWidth`、`gutter`、`radius`、`background` 按 design.md 设置并在视图间保持一致；默认透明背景承接页面画布，不跨 iframe 改色。容器不负责鉴权、路由、草稿保存或判断跨域加载失败。
+`CanvasNavigationContent` 默认 `layout="workspace"`。嵌入分支使用平台的 `window.YidaCanvasIframe`，让平台组件准备免登地址；缺少组件的旧运行时显示提示及新窗口按钮，不直接渲染原生 iframe。新窗口优先调用传入的 `utils.openPage(href)` 或 `window.__OPENYIDA_UTILS__.openPage(href)`，参数是 URL 字符串。`navigation` 只接顶部菜单，`children` 接本地工作台，`iframeSrc` 接原生页面地址；不传地址时显示 children，可用于无权限或加载失败提示。`contentKey` 变化会卸载旧内容，导航保持挂载；默认重置滚动，显式 `preserveScroll` 按任务 key 恢复本地内容区位置。筛选、分页、已载数据和草稿需由稳定父层持有，并在恢复时已渲染足够内容；容器不缓存业务状态、iframe 或异步数据。`height` 默认 `100dvh`，已有宿主或侧栏分配高度时传入该区域的确定高度（只有父级高度确定时才能用 `100%`）。`maxWidth`、`gutter`、`radius`、`background` 按 design.md 设置并在视图间保持一致；默认透明背景承接页面画布，不跨 iframe 改色。容器不负责鉴权、路由、草稿保存或判断跨域加载失败。
 
 先用 `openyida sample openyida-page-template canvas-nav-data` 合并 helper。下例 items 是权限已就绪的叶子菜单，资源、targetType、params 均真实；只含本地工作台与原生任务，外链及带壳跨页不进 iframe 分支。外观按 design.md。
 
