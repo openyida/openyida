@@ -60,46 +60,7 @@ export default YidaComp;
 
 ## 3. 可视化：recharts 图表
 
-`recharts` 在可用资源清单内。标准 `import` 即可，CLI 本地编译会把它计入 `importedModules`。图表容器给定高度，保证首屏可渲染。图表颜色是 JS 传给库的字符串，用 `readBrandColor` 读取当前应用主题 token；用户明确要求应用主题风格时才跟随运行态应用主题（见 [canvas-style-implementation-guide.md](canvas-style-implementation-guide.md)）。
-
-```jsx
-import React from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-
-// 读当前品牌色 token（跑在真 window，getComputedStyle 可直接解析），缺失时退`podBlue` 应用主题 主色
-function readBrandColor(level, fallback) {
-  try {
-    var v = getComputedStyle(document.documentElement)
-      .getPropertyValue('--color-brand1-' + (level || 6)).trim();
-    return v || fallback;
-  } catch (e) { return fallback; }
-}
-
-function YidaComp(props) {
-  var brand = readBrandColor(6, '#6b7cab');
-  var data = [
-    { name: '1月', value: 120 },
-    { name: '2月', value: 200 },
-    { name: '3月', value: 150 },
-    { name: '4月', value: 320 },
-  ];
-
-  return (
-    <div style={{ width: '100%', height: 300, padding: 16 }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Line type="monotone" dataKey="value" stroke={brand} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-export default YidaComp;
-```
+`recharts` 在可用资源清单内，使用标准 import。图表容器给定高度，品牌主序列默认跟随应用主题，不需要用户额外要求。完整示例统一维护在 [样式指南的图表章节](canvas-style-implementation-guide.md#图表--recharts用解析后的品牌色组)：业务图表使用 useCanvasThemeContext 读取解析色值，通过主题脚本装配后编译。不要重新添加只读 documentElement 的 helper。
 
 ## 4. 数据拉取组件（接数据桥）
 
@@ -161,5 +122,5 @@ export default YidaComp;
 - 文案：JSX 文案只能写成纯文本 `所有级别` 或带引号字符串 `{'所有级别'}`；花括号里只放真实变量/表达式，不写 `{所有级别}` 这类裸中文表达式。
 - 副作用：每个 `useEffect` 的定时器 / 监听 / 图表实例都有 cleanup。
 - 数据：读写走同源 `fetch` + `credentials: 'include'`，无硬编码 Cookie / CSRF / appSecret。
-- 主色：antd 走 `ConfigProvider.colorPrimary`、Tailwind 走 `var(--color-brand1-*)`、图表走 `readBrandColor`，无散落的 `#1677ff` / `bg-blue-500`（见 [canvas-style-implementation-guide.md](canvas-style-implementation-guide.md)）。
+- 主色：antd 走 CanvasThemeProvider、Tailwind 走 `var(--color-brand1-*)`、图表走 `useCanvasThemeContext`，无散落的 `#1677ff` / `bg-blue-500`（见 [canvas-style-implementation-guide.md](canvas-style-implementation-guide.md)）。
 - 原生字段组件（`EmployeeField` 等）：先按 [employeefield-verification.md](employeefield-verification.md) 最小验证，缺证据就降级。

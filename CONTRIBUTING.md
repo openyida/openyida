@@ -34,8 +34,10 @@ Welcome to OpenYida! 🎉 Thank you for your interest in contributing.
 git clone git@github.com:your-username/openyida.git
 cd openyida
 
-# 2. Install dependencies
-npm install
+# 2. Use the CI Node.js version and install locked dependencies
+nvm install
+nvm use
+npm ci --ignore-scripts
 
 # 3. Link globally for local debugging
 npm link
@@ -43,6 +45,8 @@ npm link
 # 4. Run the full local CI check
 npm run check:ci
 ```
+
+CI validation uses the Node.js version in `.nvmrc`. Without nvm, install that version directly. Run `check:ci` with it before pushing: Node.js/npm versions can produce different compressed package sizes from identical files. The test matrix also checks Node.js 18, 20, 22 and 24.
 
 Local CLI login uses OAuth loopback and stores a token session. Use `openyida login`, then verify with `openyida login --check-only --json` or `openyida auth status`. In host-injected agent mode, `YIDA_AUTH_ENABLED=true` means the host provides token env; if the token is missing, fix the host injection rather than using QR/Codex/Playwright login flags.
 

@@ -498,6 +498,7 @@ const MANIFEST_HELP_PATHS = Object.freeze({
   data: ['data'],
   report: ['report'],
   'create-process': ['create-process'],
+  'configure-process': ['configure-process'],
   'create-report': ['create-report'],
   'append-chart': ['append-chart'],
   'save-share-config': ['save-share-config'],
@@ -724,7 +725,10 @@ async function main() {
         console.log(JSON.stringify(listAuthProfiles(buildTokenLoginOptions(authArgs)), null, 2));
       } else if (subCommand === 'profile') {
         const profileSubCommand = authArgs[0];
-        if (profileSubCommand === 'switch') {
+        if (profileSubCommand === 'list') {
+          const { listAuthProfiles } = require('../lib/auth/profile');
+          console.log(JSON.stringify(listAuthProfiles(buildTokenLoginOptions(authArgs.slice(1))), null, 2));
+        } else if (profileSubCommand === 'switch') {
           const target = getFirstPositionalArg(authArgs, 1);
           const { switchAuthProfile } = require('../lib/auth/profile');
           console.log(JSON.stringify(switchAuthProfile(target, buildTokenLoginOptions(authArgs)), null, 2));

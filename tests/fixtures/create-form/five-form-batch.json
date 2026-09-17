@@ -1,0 +1,25 @@
+{
+  "forms": [
+    {"key": "customer", "title": "客户", "fields": [{"key": "customerName", "type": "TextField", "label": "客户名称"}]},
+    {"key": "contact", "title": "联系人", "fields": [{"key": "contactName", "type": "TextField", "label": "联系人姓名"}]},
+    {"key": "product", "title": "产品", "fields": [{"key": "productName", "type": "TextField", "label": "产品名称"}]},
+    {
+      "key": "customerContact",
+      "title": "客户联系人关系",
+      "dependsOn": ["customer", "contact"],
+      "fields": [
+        {"type": "AssociationFormField", "label": "客户", "associationForm": {"formUuid": {"$form": "customer"}}},
+        {"type": "AssociationFormField", "label": "联系人", "associationForm": {"formUuid": {"$form": "contact"}}}
+      ]
+    },
+    {
+      "key": "customerProduct",
+      "title": "客户产品意向",
+      "dependsOn": ["customer", "product"],
+      "fields": [
+        {"type": "AssociationFormField", "label": "客户", "associationForm": {"formUuid": {"$form": "customer"}}},
+        {"type": "AssociationFormField", "label": "产品", "associationForm": {"formUuid": {"$form": "product"}}}
+      ]
+    }
+  ]
+}

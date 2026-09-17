@@ -2,10 +2,12 @@
 
 ## 输入与生成
 
-`design-plan init` 从已确认需求建立草稿、主题上下文和业务/视觉片段，返回必要任务与可选视觉精修。标准首版只编写业务事实，视觉片段复用已确认选择，由 CLI 补齐标准页面视觉；视觉选择不完整时返回补齐任务，有特殊视觉要求时执行可选精修。片段写入与合并见 [并行交接](../../../../yida-app/workflow/parallel-work.md#plan-的-cli-交接)。保留生成的项目目录名、页面 ID 与 sceneKey；业务名称使用 `meta.appName`。补齐业务与视觉片段后执行交接命令；直接维护单一计划时使用：
+`design-plan init` 从已确认需求建立草稿、主题上下文和业务/视觉片段，返回必要任务与可选视觉精修。标准首版只编写业务事实，视觉片段复用已确认选择，由 CLI 补齐标准页面视觉；视觉选择不完整时返回补齐任务，有特殊视觉要求时执行可选精修。片段写入与合并见 [并行交接](../../../../yida-app/workflow/parallel-work.md#plan-的-cli-交接)。保留生成的项目目录名、页面 ID 与 sceneKey；业务名称使用 `meta.appName`。补齐业务与视觉片段后执行交接命令；标准首版使用 init 返回的 `materialize.command`：
+
+init 已预填 `business.json` 结构，业务任务先读后写并保留 base。`authoring.pendingFields` 列出初始化时的待补文件、字段路径与说明；格式示例位于返回的 `context` 文件。示例用于说明类型，实际值按当前业务填写。复核内容后将片段设为 `ready=true`，最终生成继续执行完整校验。业务 facts 仅允许 overview、dataModels、businessFlows、pages、execution；visualStyle 只属于 `visual.json`。首次合并前一次补齐每个普通表单的 sampleDataPlan（跳过则写 skipReason）和每个自定义页面的 permissionSummary，避免用多轮 materialize 探测必填字段。
 
 ```bash
-openyida design-plan materialize prd/<项目名>/build-plan.json --json
+openyida design-plan materialize prd/<项目名>/build-plan.json --business-file prd/<项目名>/business.json --visual-file prd/<项目名>/visual.json --json
 ```
 
 CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 `build-plan.html`。模板标准规则、摘要、设计路径和默认交接字段自动补齐。模型只维护源事实及项目差异。
@@ -26,7 +28,7 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
 
 业务全景节点、数据模型摘要、页面概览和视觉摘要由 CLI 派生。
 
-自定义导航在 `overview.navigationSummary` 记录已选布局、入口用途和打开方式：顶部默认浮导；侧边及混合布局包含折叠/展开、恢复宽度与拖拽调宽。页面的 `firstScreenStructure/signatureInteraction` 保留相应设计与交互，按业务设计手写 UI，CLI 示例不是默认外观。管理入口对应 workbench，直接填写对应 submission；同一表单可规划两个入口。区分本页视图、主内容 iframe 与当前标签跨页跳转，沿用 [导航规则](../../../../yida-nav-shell/SKILL.md)，不另起确认问题。
+自定义导航在 `overview.navigationSummary` 记录布局、用途和打开方式：展示页顶部叠加共同背景，工作区占位；侧边及混合布局支持折叠、恢复宽度和拖拽。`firstScreenStructure/signatureInteraction` 保留相应设计与交互，CLI 示例不是默认外观。管理走 workbench、填写走 submission，同一表单可有两个入口；区分本页视图、主内容 iframe、保留壳的跨页跳转，沿用 [导航规则](../../../../yida-nav-shell/SKILL.md)，不另问实现字段。
 
 ## 数据模型与流程
 
@@ -57,13 +59,16 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
 | --- | --- |
 | `pageId/sceneKey/name` | 稳定 ID、稳定场景 key、业务名称；sceneKey 位于页面顶层 |
 | `positioning/primaryUsers/primaryTask` | 页面定位、用户数组、核心任务 |
-| `contentPriority/blocks` | 内容优先级数组、功能区块数组 |
+| `blocks` | 按优先顺序填写 `{name,purpose}` 数组，每项写区块名称和具体业务用途 |
+| `contentPriority` | 有独立优先级设计时填写；省略时由结构化 blocks 的顺序和名称派生 |
 | `firstScreenStructure/signatureInteraction` | 首屏布局与关键交互 |
 | `layoutPattern` | `{id,reason,adaptations}`；id 从当前上下文的页面模式选择，adaptations 只写项目差异 |
-| `contentRichness.contentLayers` | 实际业务需要的决策、任务、上下文、异常或下一步内容，非空数组 |
+| `contentRichness.contentLayers` | 有额外内容层次设计时填写非空数组；省略时由结构化 blocks 的名称和用途派生 |
 | `density/permissionSummary` | 信息密度与权限说明 |
 | `dataBinding/dataSources` | `form/report/connector/static-empty`；来源为名称数组，form 对应已有模型 |
 | `emptyReason` | static-empty 时填写原因，并将 dataSources 设为 `[]` |
+
+例如 `blocks: [{"name":"客房选择","purpose":"按日期和人数筛选可预约房型"},{"name":"预约结果","purpose":"查看提交结果，失败时保留输入并显示原因"}]`。每项仅使用 name、purpose；业务动作和成功、失败处理写入用途或 signatureInteraction。现有字符串 blocks 继续配合 contentPriority 与 contentRichness.contentLayers 使用；已填写的独立设计原样保留。
 
 页面模式的 mode、mustKeep、丰富度标准、页面概览由 CLI 补齐。页面按任务选择模式，工作台通常在首位。报名、申请、登记入口承接表单提交；查询和维护承接数据管理。
 
@@ -71,13 +76,16 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
 
 - `scene`：`workbench/dashboard/list/detail/landing/screen`，也可写在页面顶层；与页面模式 ID 分开。
 - `pageStructure`：`workbench/dashboard-overview/business-list/detail-profile/official-homepage/data-screen/split-pane-detail/portal-shell-home`。
-- `entryMode`：`platform-shell/standalone`；自定义导航由 CLI 使用 standalone。
+- `entryMode`：`platform-shell/standalone`；应用级 custom 及独立前台使用 standalone，后台平台页面使用 platform-shell。
+- `navigation`：可选的当前入口菜单 `{type:"custom",variant:"top",reason:"员工只办理自己的事项"}`，variant 为 top/side/mixed/dock；无菜单用 `{type:"none",reason:"单步办理"}`。只能用于 standalone，不接受应用设置字段。省略则沿用既有入口规则；CLI 不据此修改应用 navigationType。
 - `contentBlocks/dataSources/dataBinding/emptyReason/primaryAction/themeSummary`：本页交接差异。
 - `designFile/designRefs`：默认由 CLI 生成 `prd/<projectName>/design.md` 和 `themeProfile`、`sceneRecipes.<sceneKey>`。额外引用须存在于最终设计文档的 components、states 或 sceneRecipes 中。
 
 ## 视觉事实
 
 `visualStyle` 保存项目选择和差异：
+
+在 `visual.json` 中它位于 `facts.visualStyle`。沿用 init 生成的 `forUser.visualDirection` 和 `forUser.navigationStyle` 对象，只编辑内部字段，不改成字符串或数组。`DESIGN_PLAN_VISUAL_FIELD_TYPE_INVALID` 会给出字段路径与对象示例；示例只说明结构，实际值沿用已确认的视觉选择。
 
 ```json
 {
@@ -88,7 +96,7 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
     "pageApplications": [
       {"pageId":"page-1","visualMemoryApplications":[{"name":"摘要拼接组","renderPolicy":"prd_match_only","target":"采购待办摘要","reason":"页面已有并列的待办状态"}]}
     ],
-    "assetStrategy": {"materialStatus":"none","missingAssets":[],"notes":"使用业务内容，不添加装饰图片"}
+    "assetStrategy": {"materialStatus":"none","pages":[{"pageId":"page-1","imageNeed":"none","reason":"纯数据操作页","slots":[]}],"missingAssets":[],"notes":"无图片需求"}
   },
   "internal": {"selectedTheme":{"themeId":"airy-modular-clarity","source":"user_selected"}},
   "forDesignMd": {"productTopologyApplication":"工作台与表单共享主题，视觉重点绑定已有采购任务"}
@@ -107,15 +115,28 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
 
 | 字段 | 格式 |
 | --- | --- |
-| `appConfig` | 已知真实 `appType/corpId/baseUrl`；`navigationType` 为 platform-l-shape/platform-top/platform-side/custom。hideAppNav/layoutDirection/navTheme/logoSource 由导航与视觉派生 |
-| `explicitScope` | 用户明确的页面、表单、流程和导航范围；自定义导航布局保留在 navigation.variant |
+| `appConfig` | 已知真实 `appType/corpId/baseUrl`；`navigationType` 为 platform-l-shape/platform-top/platform-side/custom。仅代表应用工作区；hideAppNav/layoutDirection/navTheme/logoSource 由应用导航与视觉派生，不被前台菜单覆盖 |
+| `explicitScope` | 用户明确的页面、表单、流程、报表、导航和交付范围；`allowInferredResources=false` 时不增加未点名的 seed records、自定义页面、主题或导航任务；自定义导航布局保留在 navigation.variant |
 | `resourceBlueprint` | `{name,type,purpose,pageId?}` 数组；type 为 normal-form/process-form/display-page/report，名称与模型、页面对应且唯一 |
 | `resourceCreationOrder` | 覆盖全部资源的有序名称数组，先应用，再被依赖模型，最后依赖它们的页面 |
 | `pageImplementationOrder` | 覆盖全部页面的 pageId 或名称数组 |
-| `navigationOrder/navigationFallback` | 已确认的菜单顺序，或明确的排序策略；权限接口决定可见性 |
+| `entryRecommendation` | 保留 brief 入口建议，按 [访问态入口契约](../../../../yida-app/references/entry-navigation.md) 补齐各入口 role/menu/defaultMenuKey/access；两端均为访问态，管理端无需首页 |
+| `navigationOrder/navigationFallback` | 旧计划的菜单顺序或排序策略；提供 entryRecommendation 时从管理菜单派生，不混入前台菜单，重复声明必须一致 |
 | `sampleDataPlan` | `{form,records}` 或 `{form,skipReason}` 数组，覆盖全部普通表单 |
-| `interactionStates` | 可覆盖 empty/loading/error/formEntry/detail 的业务行为说明 |
-| `acceptanceCriteria` | 非空业务验收标准数组 |
+| `interactionStates` | 对象，键为 empty/loading/error/formEntry/detail，值为非空业务说明；例如 `{"empty":"展示空态和新建入口","error":"保留输入并提示失败原因"}` |
+| `acceptanceCriteria` | 项目特有的业务验收条件，非空文本数组；CLI 与按资源生成的通用检查合并并去重 |
+
+### 派生的页面导航策略
+
+PRD 实施交接中的 `pages[].navigationPolicy` 与 `pageSpecHandoff` 同级，由 CLI 生成，不是 build-plan.json、business.json、brief 或 page-spec.json 的输入字段。派发页面任务时一并传递；Fast 在 PRD/design.md 明确同样边界。
+
+| 条件 | applicationMenuOwner | pageLayout | renderApplicationMenu | localTabs |
+| --- | --- | --- | --- | --- |
+| platform-shell | platform | content-only | false | same-task-only |
+| standalone 且显式 custom 菜单，或沿用应用级 custom | page | standalone | true | planned-views |
+| standalone 显式 none，或未规划菜单且应用保留平台导航 | none | standalone | false | same-task-only |
+
+`duplicatePlatformMenu` 始终为 false；显式 none 优先于应用级 custom。策略描述实现约束，不代表线上导航已配置或已通过视觉验收。实际菜单过滤的 `mode=platform` 仅指自绘菜单的数据来源，不表示平台工作区应再渲染菜单。
 
 源 JSON 保留项目事实；派生后的 PRD 包含完整 11 章业务与实施交接，HTML 展示同一套业务内容。
 
@@ -127,9 +148,9 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
 openyida design-plan patch prd/<项目名>/build-plan.json --set 'visualStyle.forUser.colorStrategy.primaryColor=#8B5E3C' --materialize --json
 ```
 
-CLI 自动递增 revision、清除旧确认，并在使用 `--materialize` 时同步三份文档和主题 CSS。支持首次添加 execution 的可选字段、tokens、已有页面交接字段和模型示例数据；数组项需已存在。
+初始化 revision=1；未展示的首次合并、preview 汇总和内部 patch 保持当前版。已展示或已确认的当前版发生实质修改才升版并清空确认；相同内容不升版。旧文件缺少 planState 时保守升版。片段仍以 base.digest 校验来源，版本相同也不能复用过期片段。仅更新素材 materialStatus/missingAssets 保留版本与确认。
 
-并行合并时 CLI 设置 `meta.status=awaiting_confirmation`；直接维护单一计划时由编排在生成前设置。展示成功后记录 `meta.planState.presentedRevision=meta.revision`；收到明确确认后设置 status=confirmed、planConfirmed=true、confirmedRevision=presentedRevision，再生成文档同步确认状态。详细交互见应用流程的生成与确认步骤。`askhuman` 只保存需要留档的交互事实，未选候选留在会话中。
+展示成功后必须将 `meta.planState.presentedRevision=meta.revision` 写回源 JSON，仅更新展示事实，不再物化。awaiting_confirmation 仅表示准备确认，不证明已展示；收到明确确认后绑定 confirmedRevision、planConfirmed 与同版产物，按应用流程交接。内部补全不得伪造展示或确认记录。`--materialize` 同步文档和主题；可选字段范围见下节。
 
 旧版无 schemaVersion 或 1.x 文件继续使用原结构；维护旧计划时按需查阅旧版结构说明。
 

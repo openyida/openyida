@@ -23,35 +23,34 @@
 
 ### 2.2 业务资源
 
-表单、流程、报表和页面是应用内部资源，不逐项形成最终交付卡片。最终回复按业务能力或数量概述，例如“已完成 4 张业务表单、1 条审批流程和 1 个经营看板”。
+表单、流程、报表和页面是应用内部资源，不逐项形成最终交付卡片。交付卡片的 `description` 按业务能力或数量概述，例如“已完成 4 张业务表单、1 条审批流程和 1 个经营看板”。
 
 只有用户明确要求排障、迁移、复制配置或查看技术 ID 时，才补充资源明细。
 
 ### 2.3 应用入口
 
-一次完整应用搭建只产生一组名为“应用访问入口”的用户可见交付。宿主提供 artifact 或交付工具时，也只在 final 调用一次并承载整组入口。
+一次 run 最多交付一组名为“应用访问入口”的用户可见交付。宿主提供 artifact 或交付工具时，在当前 run 只调用一次并承载整组入口。同一应用在后续 run 中被用户再次请求时，应复用已有资源和已验证 URL，并在当前 run 重新交付一组入口；不得为了重新展示入口而重建、更新或重新发布资源。
 
-## 3. 入口矩阵
+## 3. 入口选择
 
-| 运行环境 / 页面能力 | 应用工作台 | 独立业务入口 | 应用开发后台 |
-| --- | --- | --- | --- |
-| 云端 Agent，`platform-shell` | 必须 | 不输出 | 不输出 |
-| 云端 Agent，已验证 `standalone` | 必须 | 输出 | 不输出 |
-| 非云端 Agent，`platform-shell` | 必须 | 不输出 | 输出 |
-| 非云端 Agent，已验证 `standalone` | 必须 | 输出 | 输出 |
+先按本轮业务范围选择入口，再应用鉴权策略：
 
-URL：
+| 有效范围 | 交付入口 |
+| --- | --- |
+| 仅前台 | 已验证的独立业务入口 |
+| 统一工作区或仅业务管理 | 已验证的业务管理入口 |
+| 前后台双入口 | 独立业务入口和业务管理入口 |
+| 包含应用开发管理 | 仅在 `application_entry_policy.entries.admin=include` 时增加开发后台 |
 
-```text
-应用工作台：{base_url}/{appType}/workbench
-独立业务入口：{base_url}/{appType}/custom/{formUuid}
-应用开发后台：{base_url}/{appType}/admin
-```
+业务管理入口可以是 `/workbench`，也可以是已规划、已验证的 `/workbench/{formUuid}?viewUuid=...` 任务视图。默认落点应让用户直接办理目标业务，原生管理视图满足任务时直接复用。
 
-运行环境不得通过 Agent 名称或自然语言猜测。以 `openyida agent-capabilities --summary-json` 返回的 `application_entry_policy` 为准：
+以 `openyida agent-capabilities --summary-json` 返回的 `application_entry_policy` 为准：
 
-- `entries.admin=omit`：云端 Agent，不输出 `/admin`；
-- `entries.admin=include`：非云端 Agent，输出 `/admin`。
+- `builder_path.auth.auth_runtime=env_token_bootstrap` 且 `can_auto_use=true`：`entries.admin=omit`；
+- 其他情况：`entries.admin=include`，结合本轮开发管理范围决定是否交付；
+- `entries.workbench=when_workspace_in_scope`：仅交付范围内的管理工作区。
+
+URL 取自 CLI 成功结果或必要的只读回查。`appUrl` 是应用工作台，`formUrl` 和兼容字段 `url` 是表单入口。
 
 ## 4. 独立业务入口判定
 
@@ -78,16 +77,13 @@ entryMode: platform-shell | standalone
 
 ## 5. 页面导航持久化
 
-主页面为 `standalone` 时：
+页面为 `standalone` 时，创建页面后配置 `isRenderNav=false` 并回读，随后开发、发布和验证页面。交付前汇合发布与导航配置证据，确认入口可用后输出真实 `/custom/{formUuid}` 链接。配置未完成时说明当前缺项，按已验证的有效范围交付。
 
-1. 发布页面并完成健康检查；
-2. 执行 `openyida update-form-config <appType> <formUuid> false "<页面标题>"`；
-3. 执行 `openyida get-form-config <appType> <formUuid> --json`；
-4. 只有回读确认 `isRenderNav=false` 后，才输出不带查询参数的 `/custom/{formUuid}`。
-
-写入或回读失败时保留 `/workbench`，不追加 `?isRenderNav=false` 猜测持久配置已经生效，也不修改应用维度的 `hideAppNav` 兜底。
+完整规则见 [页面导航配置](../../yida-skills/skills/yida-app/references/entry-navigation.md)。
 
 ## 6. 最终输出示例
+
+业务总结、核验结果和剩余事项放入交付卡片的 `description`，入口放入同一组卡片。宿主没有交付工具时，在最终回复中给出相同内容。
 
 ```markdown
 已完成客户档案、联系人和跟进记录等核心业务能力，并发布经营看板。应用已支持客户维护、跟进记录和经营概览。
@@ -98,18 +94,19 @@ entryMode: platform-shell | standalone
 - 独立业务入口：https://example.aliwork.com/APP_XXX/custom/FORM_XXX
 ```
 
-上例只适用于云端 Agent 且主页面已经通过 `standalone` 写后回读。非云端 Agent 再增加“应用开发后台”；`platform-shell` 页面不显示“独立业务入口”。
+上例适用于已验证前后台双入口的应用。其他场景按第 3 节的实际交付范围选择入口。
 
 ## 7. 验收标准
 
 1. 包含五个以上业务资源的完整应用，最终不出现逐资源交付卡片。
 2. requirement brief、PRD、design、build manifest 和资源清单不出现在用户交付物中。
 3. 最终只有一组“应用访问入口”。
-4. `/workbench` 始终存在。
+4. 管理工作区在有效范围内时交付其真实入口；仅前台时交付前台入口。
 5. `/custom` 只在 `entryMode=standalone` 且 `isRenderNav=false` 回读通过后存在。
-6. `/admin` 只在 `application_entry_policy.entries.admin=include` 时存在。
+6. `/admin` 只在 `application_entry_policy.entries.admin=include` 且本轮包含应用开发管理时存在。
 7. 云端和非云端、`platform-shell` 和 `standalone` 的四种组合均有契约测试。
 8. 单页创建/修改/发布仍只交付当前页面，不被完整应用入口矩阵扩张。
+9. 同一验证 URL 在一次交付调用内去重；用户在后续 run 再次要求入口时可重新交付，且平台 mutation 为 0。
 
 ## 8. 非目标
 

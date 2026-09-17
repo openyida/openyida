@@ -1,0 +1,171 @@
+# 前台、管理端的菜单与权限
+
+本说明用于同一个应用同时服务访客和业务管理者的场景。这里的“管理端”用于处理业务数据，不是开发者修改应用的后台。
+
+例如报修应用：访客使用“我要报修、我的报修”，管理者使用“待处理工单、全部工单”。两端共享报修数据，但菜单名称、数量、顺序和打开后首先显示的内容可以不同。管理端可直接打开待处理列表，无需另建首页，也不必把访客首页放进管理菜单。
+
+## 先确定这四件事
+
+1. **谁来用**：只有一类用户共用工作区，还是分别提供访客入口和管理入口？
+2. **各自做什么**：逐项列出菜单任务，并选定每个入口打开后首先显示的任务。
+3. **在哪里做**：访客端通常在一个自定义页面内完成任务；管理端按需要使用宜搭原生列表、表单或自定义页面。
+4. **能看和能改哪些数据**：分别写清本人、本部门或其他明确范围，以及查看、提交、编辑等操作。
+
+Fast（直接搭建）与 Plan（先确认方案）使用同一份入口规划。只修改指定表单或页面时，不额外创建入口，也不调整无关导航。
+
+管理端选择自定义页面默认仍使用平台导航；管理 `menu` 用于组织平台入口，不直接变成页面内的导航栏。页面只实现当前任务内容，按[管理页面边界](../../yida-canvas-custom-page/references/navigation-and-entry-guide.md#平台导航下的管理页面)区分跨模块菜单、同任务 Tab 与上下文动作。
+
+## 导航设置和访问路径
+
+### 分清四种设置
+
+| 要改变什么 | 对应设置 | 同时有前台和管理端时怎么做 |
+| --- | --- | --- |
+| 整个应用是否显示平台导航 | `hideAppNav` | 保留 `n`，让管理端继续使用平台导航 |
+| 某一页是否显示平台导航 | `isRenderNav` | 独立前台页设为 `false`，其他页面按需配置 |
+| 某个菜单项是否显示 | `hidden/mobileHidden` | 分别设置电脑端、移动端的显示范围 |
+| 某个人能访问和操作什么 | 页面、数据、视图和操作权限 | 按业务角色配置，并重新查询确认 |
+
+隐藏菜单不会撤销权限；显示菜单也不会授予权限。页面隐藏导航后，仍需满足原有登录和访问要求。公开访问或组织内分享要单独配置。
+
+### 使用正确的入口链接
+
+以下路径均接在当前应用地址后：
+
+- **独立前台**：使用 `/custom/{formUuid}`。先查询页面配置，确认 `isRenderNav=false`，再打开链接检查效果。
+- **业务管理端**：使用 `/workbench`，或指定任务的 `/workbench/{formUuid}?viewUuid=...`。使用应用根入口时，要确认它确实打开了预期任务。
+- **管理端的“查看前台”**：如有需要，使用独立前台链接。不要把带有另一套导航的完整页面嵌进管理端内容区。
+- **前台嵌入共用表单**：只设置本次打开链接的嵌入参数，不永久隐藏该表单在管理端的导航。
+
+页面设置和访问路径都可能影响显示效果。保存后既要重新查询配置，也要打开准备交付的链接检查；不能用 `/workbench/{formUuid}` 代替独立前台链接。
+
+### 整理管理菜单
+
+有独立入口规划时，从管理端或共用工作区的菜单生成平台导航顺序：默认任务在前，同一资源只排一次。访客菜单不自动加入。
+
+- 已有 `navigationOrder` 与入口规划冲突时，先修正规划，再生成产物。
+- 整个应用使用自定义导航、只交付前台、或只改指定资源时，跳过平台排序。
+- 同一表单的不同视图可能对应不同任务。排序只决定资源顺序，具体视图仍需真实 `viewUuid` 和入口链接。
+
+## 权限实施
+
+取得真实资源 ID 后，按以下顺序处理：
+
+1. 列出每类用户需要的菜单、操作和数据范围。
+2. 查询现有权限，说明需要改变的配置。
+3. 按权限技能要求完成授权、保存，再重新查询确认；保留本次未涉及的权限。
+4. 使用实际访客和管理者账号检查结果。业务管理者需要的是业务权限，不要自动给他应用管理员身份。
+
+`yida-form-permission` 当前只管理 `FORM_PACKAGE_VIEW`。提交权限包 `FORM_PACKAGE_START`、视图权限绑定和页面人员白名单尚不属于该技能已支持的能力。遇到这些需求，记录具体任务、缺少的权限和平台处理入口，不能靠放宽其他权限完成。
+
+菜单隐藏、方案里的权限说明和页面上的筛选，都不能作为权限配置成功的证据。单条记录的操作权限也不能用来判断整个菜单或管理视图是否允许访问。
+
+## 自定义菜单过滤
+
+页面可使用 `canvas-nav-data`，根据当前用户的实际权限决定显示哪些菜单。
+
+### 选择过滤方式
+
+| 方式 | 什么时候使用 | 判断依据 |
+| --- | --- | --- |
+| `mode=local` | 纯本页公开展示内容 | key/viewKey/targetType=local，不请求平台导航；显式 access 仍核验 |
+| `mode=platform`，默认方式 | 自定义菜单沿用平台菜单的展示范围 | 当前用户的 `getAccessableNavs` 结果，加上 `hidden/hiddenNav` 设置 |
+| `mode=independent` | 独立组织受权限保护的资源任务 | 本入口的任务清单，加上当前用户的真实资源、操作和视图权限 |
+
+平台菜单可见不代表允许提交、编辑或删除。菜单声明了 `access` 权限要求时，即使使用 platform 模式，也要额外查询权限。
+
+独立模式不直接沿用平台菜单的隐藏设置。每个可点击菜单必须声明 `access`，并接入 `resolveAccess`——这是调用实际权限服务的函数，当前未内置，需要按服务能力实现。
+
+### 查询权限后再显示内容
+
+1. 创建资源后，把规划中的资源名称换成真实 `formUuid`，将菜单的权限要求填入 `access`。本页内的业务视图要同时检查承载页面和所用业务数据的权限。
+2. 用当前访问者的登录身份查询权限。不能根据角色名称、管理员预览、静态数组或平台菜单中存在某个节点，就认定允许访问。
+3. 权限服务尚未接入时，不启用独立模式，明确说明功能未接通。查询失败时显示重试提示，不显示未经授权的全量菜单。
+4. 切换应用或账号时，清空旧菜单和内容，取消旧请求。
+5. 权限查询成功后，用 `selectCanvasNavigation(items, requestedKey, defaultMenuKey)` 选择内容：当前请求的任务可用则打开它，否则选默认任务，再选首个可用任务；全部不可用时显示无权限提示。
+
+数据列表、详情和写入接口仍由平台检查数据范围、字段及操作权限。菜单过滤只控制页面展示。
+
+## 验收与已知边界
+
+分别用访客、业务管理者、同时拥有两种身份的用户检查：
+
+- 打开入口后显示的首个任务正确，菜单符合该用户的业务需要。
+- 同一表单的填写、本人记录、管理视图分别遵守对应权限。
+- 无权限用户直接打开链接也不能访问；本人数据范围确实生效。
+- 刷新、直接打开子页面、浏览器前进后退后，菜单与内容仍然一致。
+- 平台菜单隐藏而前台需要的资源，按真实权限正确显示。
+- 电脑端和移动端的隐藏设置分别生效。
+
+导航列表中缺少节点时，分别检查显示设置和用户权限，不能只凭列表判断原因。导航预览或应用创建者账号不能代替实际用户验证。
+
+缺少测试应用、账号或权限服务时，可以完成本地检查，但交付必须标记“多身份在线验收未完成”。
+
+## 规划字段速查（Fast / Plan）
+
+需求文件中的 `entryRecommendation` 在 Plan 初始化后保存在 `execution.entryRecommendation`；Fast 在 PRD 中使用同一结构。旧计划没有此字段时仍可使用；首次完整生成时应明确入口规划。保留已有 `source/reason/taskRefs` 等需求依据。
+
+| 字段 | 含义和要求 |
+| --- | --- |
+| `mode` | `unified`：共用工作区；`service-management`：访客端与管理端分开；`frontend-only`：只交付前台。实施前必须选定，不能为 `undetermined` |
+| `entries[]` | 每个入口填写 `key/name/role/menu/defaultMenuKey`；访客入口或包含 `local` 菜单的任意入口还需 `sceneKey` |
+| `role` | `service`：访客；`management`：业务管理者；`workspace`：共用工作区 |
+| `sceneKey` | 关联唯一承载页面的顶层 `sceneKey`；service 入口必须关联 `entryMode=standalone`；management/workspace 含 local 菜单时也必须填写 |
+| `menu[]` | 分组用 `{key,label,children}`；可点击菜单用 `{key,label,resource,targetType,viewUuid?,viewKey?,access}` |
+| `resource` | 规划中的资源名称；实施时创建或查询资源，换成真实 ID |
+| `targetType` | `local`：本页业务视图，入口 sceneKey 关联承载页面、resource 等于页面 name、viewKey 非空；`submission`：原生填写页；`page`：原生管理工作区；`custom`：独立自定义页面 |
+| `viewUuid` | 仅用于 `page`，填写已查询到的真实视图 ID；尚未取得时省略，实施时补齐，不编造占位 ID |
+| `access[]` | 所有身份的每个叶子菜单必填 `{resource,operation,dataScope,viewUuid?}`；填写需要 `OPERATE_CREATE`，打开页面或视图需要 `OPERATE_VIEW`；声明不等于实际授权，编辑、删除等要求另列 |
+| `dataScope` | 用业务语言写明本人、本部门或具体管理范围；实际限制由平台权限配置执行 |
+| `defaultMenuKey` | 入口打开后首先显示的可点击菜单。只有一个任务时也填写，但无需绘制菜单 UI |
+
+## CLI 与运行时参数边界
+
+例如管理端在同一个自定义页面内切换业务视图时，承载页面为 `{ "sceneKey": "management", "name": "业务管理" }`，入口应写成：
+
+```json
+{
+  "key": "management", "name": "业务管理端", "role": "management",
+  "sceneKey": "management", "defaultMenuKey": "orders",
+  "menu": [{
+    "key": "orders", "label": "订单管理", "targetType": "local",
+    "resource": "业务管理", "viewKey": "orders",
+    "access": [{ "resource": "业务管理", "operation": "OPERATE_VIEW", "dataScope": "已授权管理范围" }]
+  }]
+}
+```
+
+上述资源必须在计划中真实存在，页面需实现 `orders` 视图；其订单数据另列真实数据资源权限。管理端直接打开原生业务页面时使用 `page`，填写时使用 `submission`，这两种情况不要求为入口新增自定义承载页面。
+
+### 传入入口规划
+
+可以通过需求 JSON、Plan JSON，或以下命令更新：
+
+```bash
+openyida design-plan patch <build-plan.json> --set 'execution.entryRecommendation=<JSON>'
+openyida design-plan materialize <build-plan.json> --check --json
+```
+
+这里的 `<JSON>` 需替换为完整入口规划；没有 `--entryRecommendation` 参数。标准业务/视觉文件合并支持 `business.execution`；增量 preview 的 facts 不接收 execution，需要通过完整文件合并交接。`commands --json` 和 `agent-capabilities --summary-json` 提供相同的 `entry_navigation_contract` 字段说明。
+
+### 配置导航显示
+
+```bash
+openyida update-app <appType> --layout <side|top|l_shape> --show-app-nav
+openyida update-form-config <appType> <formUuid> <true|false|keep> "<页面标题>"
+```
+
+导航项显示与隐藏使用 `nav-group show|hide`。应用导航、页面导航、菜单项分别设置和重新查询，不能互相替代。
+
+纯页内公开内容可直接用本地数组或 `mode=local`（key/viewKey/targetType=local），不依赖平台导航树；有 access 的本地业务视图仍需实时权限查询，业务操作权限不变。规划层的 sceneKey/resource/access 不得因此删除。platform 叶子必须绑定真实 formUuid/navUuid；误把 local 交给平台过滤会报错，禁止空菜单或接口失败时回退全量放行。
+
+### 接入页面权限查询
+
+页面函数的 `mode=local|platform|independent` 表示菜单过滤方式，与规划字段 mode 的三种入口方案不同。
+
+`resolveAccess({appType,requirements,signal})` 接收当前应用、权限要求和取消请求信号：
+
+- `requirements`：`[{formUuid,operation,viewUuid?}]`。
+- 返回值：`{appType,grants:[{formUuid,operation,viewUuid?,allowed}]}`。
+- 只有应用、资源、操作、视图匹配且 `allowed` 严格为 `true` 时允许显示；不同视图或操作不能共用一个判断结果。
+- `dataScope` 用于规划和配置平台权限，不是该函数的授权字段。

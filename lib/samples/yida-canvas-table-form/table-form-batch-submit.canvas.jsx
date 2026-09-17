@@ -89,11 +89,6 @@ function isFieldMapReady(fieldMap) {
   );
 }
 
-function readThemeColor(name, fallback) {
-  if (typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') return fallback;
-  return window.getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
-}
-
 function toPayload(row, fieldMap) {
   return {
     [fieldMap.name]: String(row.name).trim(),
@@ -115,7 +110,10 @@ function getBridgeState(props) {
   return { ready: true, reason: '', writeBridge, fieldMap };
 }
 
-function YidaComp(props) {
+/* @canvas-application-theme */
+
+function PageContent(props) {
+  const [modal, modalContextHolder] = Modal.useModal();
   const formUuid = props && props.formUuid ? props.formUuid : 'sample-unbound';
   const draftKey = 'openyida_canvas_table_form_draft_' + formUuid;
   const [rows, setRows] = useState(() => loadDraft(draftKey));
@@ -262,7 +260,7 @@ function YidaComp(props) {
     }
     if (!validated.length) return;
 
-    Modal.confirm({
+    modal.confirm({
       title: '确认批量提交',
       content: '将提交 ' + validated.length + ' 行数据，首行事项为“' + validated[0].name + '”。提交后成功行不会重复写入。',
       okText: '确认提交',
@@ -385,24 +383,14 @@ function YidaComp(props) {
   const pendingCount = rows.filter((row) => row._status !== 'submitted').length;
 
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: readThemeColor('--color-brand1-6', '#1677FF'),
-          colorInfo: readThemeColor('--color-brand1-6', '#1677FF'),
-          borderRadius: 9,
-          colorText: readThemeColor('--color-text1-4', '#1F2329'),
-          colorBgLayout: readThemeColor('--color-fill1-1', '#F5F6F7'),
-        },
-      }}
-    >
+    <>
       <style>{`
         .canvas-table-page {
           display: flow-root;
           min-height: 100vh;
           box-sizing: border-box;
           padding: 28px;
-          background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)));
+          background: var(--pod-page-bg-color, var(--color-white, #fff));
         }
         .canvas-table-shell { max-width: 1320px; margin: 0 auto; }
         .canvas-table-header {
@@ -438,6 +426,7 @@ function YidaComp(props) {
       `}</style>
 
       <div className="canvas-table-page">
+        {modalContextHolder}
         <div className="canvas-table-shell">
           <div className="canvas-table-header">
             <div>
@@ -509,8 +498,12 @@ function YidaComp(props) {
           </div>
         </div>
       </div>
-    </ConfigProvider>
+    </>
   );
+}
+
+function YidaComp(props) {
+  return <CanvasThemeProvider><PageContent {...props} /></CanvasThemeProvider>;
 }
 
 export default YidaComp;

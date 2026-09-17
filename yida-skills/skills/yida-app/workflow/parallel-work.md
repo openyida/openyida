@@ -7,8 +7,9 @@
 | 需求分析 | 读取互不依赖的附件、已知资源与品牌资料 | 汇总事实后，统一询问未决事项 |
 | 需求确认后 | 业务对象、字段、流程与页面规划；基础主题、配色、token 与素材策略 | 页面任务和区块确定后，补齐各页设计 |
 | 计划或主题确认后 | 立即生成主题 CSS（Plan 已有 outputs.theme 时直接复用）；按已确认业务创建应用、表单并编写页面 | CSS 不依赖 appType 或表单；应用就绪后即可创建表单；appType 与 CSS 都就绪就立即更新主题设置 |
+| 图片要求就绪（Plan 已确认） | 搜图与创建应用、表单、页面同时推进；有图页面先做布局和交互，同页各图片位置并发搜索 | 每页草稿就绪即检查直链；上传时使用真实 appType；图片只在所属页面接图和验收时汇合 |
 | 表单创建 | 无依赖表单通过 `create-form batch` 同时创建、回读 | 关联表单和真实字段就绪后创建依赖表单；全部页面开发并发布完成后由主流程统一导航排序 |
-| 页面创建或复用后 | 取得 formUuid 即隐藏所需页面导航并回读；同时编写该页面代码 | 代码开发不等待配置请求，发布后核对 isRenderNav 未被改变 |
+| 页面创建或复用后 | 取得 formUuid 后仅为已规划独立入口或应用级自绘导航的页面隐藏导航并回读；平台导航管理页保留导航，同时编写业务内容 | 代码开发不等待配置请求，发布后核对 isRenderNav 未被改变 |
 | 页面实现 | 无直接依赖的页面同时开发、编译和检查，各自就绪后发布 | 每页只等待自身所需的真实资源；全部页面完成后统一排序与最终验收 |
 | 发布后 | 独立页面的只读配置与数据回读 | 主流程汇总结果，再完成应用级验收 |
 
@@ -18,12 +19,20 @@
 
 - 用户确认计划或主题，且主色、导航明暗与相关 token 已确定，即可开始生成应用主题 CSS；不等待表单字段、页面源码或页面发布。已有符合当前确认版本的 CSS 直接复用。
 - 取得真实 `appType` 后，表单创建与主题生成/上传并行；页面按已确认的设计和 token 契约开发，不等待主题上传结束。业务资源仍遵守已有的方案确认和资源创建条件。
-- `appType + 当前已确认的 CSS + 已确定的导航配置` 就绪后，立即执行一次 `update-app --theme-file`，同步 `colour=custom`、从 CSS 提取的 `themeColor`、`customThemeStyle`、`navTheme`、`layoutDirection`、Logo 来源及导航显隐。其中已确认的应用导航隐藏通过 `--hide-app-nav` 同步保存，不等待页面创建或开发完成。页面级隐藏独立依赖各页真实 `formUuid`，创建/复用成功就执行 `update-form-config` 并回读，可与源码开发并行。
+- `appType + 当前已确认的 CSS + 已确定的导航配置` 就绪后，立即执行一次 `update-app --theme-file`，同步 `colour=custom`、从 CSS 提取的 `themeColor`、`customThemeStyle`、`navTheme`、`layoutDirection`、Logo 来源及导航显隐。其中已确认的应用导航隐藏通过 `--hide-app-nav` 同步保存，不等待页面创建或开发完成。页面级隐藏仅用于已规划独立入口或应用级自绘导航的页面，取得其真实 `formUuid` 后执行 `update-form-config` 并回读；平台导航管理页保留导航，不加入隐藏队列。配置可与源码开发并行。
 - 同一应用的基础设置由主流程单一任务写入；主题上传、导航配置和其他设置更新不能并发覆盖。表单/页面资源的独立写入可继续并行。
 - 生成 CSS 的任务独占主题文件；上传使用已完整写入的版本，不上传仍在修改的文件。主题确认内容变化后，只重做受影响的 CSS 和设置同步，不让旧任务覆盖新版本。
 - 主题同步失败只重试主题分支，其他资源开发继续；视觉验收与最终交付必须汇合 `themeVerification.verified=true` 的结果，不能在主题未生效时报告视觉完成。不要把汇合检查误作“到收尾时才开始更新主题”。
 
 导航排序是所有页面开发、发布和资源创建后的汇合任务，不与它们并行；每个页面发布时不附带 `--auto-nav-order`，主流程最后按 PRD 执行一次 `order` 或 `auto-order`。应用主题更新和页面导航隐藏仍按前述时机提前执行，不随排序一起推迟。
+
+## 素材与页面同时推进
+
+1. Plan 当前方案确认后，先核实宿主 background_agent/background_shell 和实际工具参数，再按物化结果 `assetTasks[].executionContract` 选择真后台 Agent、后台 Bash 或业务优先同步批次；Fast 从 `design.md.assetStrategy` 建立同样任务。按 [后台启动与接收](../../yida-image-assets/SKILL.md#后台启动与接收) 记录真实任务编号、页面、输出和截止时间，复用已有任务。后台派发成功后主流程立即继续创建应用、表单和页面。只有同步 Agent 时禁止整包素材前置：先做已授权资源创建/复用、范围内种子、无图页面及图页布局，再分批素材。QwenWork 若实际 Bash 支持 run_in_background，则用于可脚本化步骤；看图判断仍使用可看图的工具。
+2. 同页的各图片位置也是独立搜索任务。按宿主允许的并发能力同时发起，整次采集共用最多四个在途搜索，完成一个就补下一个；批量调用需实际同时发出请求。每个位置仍只选一张图，最多两轮。只有串行工具时按位置执行并记录限制。
+3. 任务先读取已有页面清单，复用符合当前用途与尺寸要求的 final 图片，继续剩余位置和轮次。搜索任务返回选图及来源信息，由该页唯一写入者组装草稿。每页使用 `assetTasks` 返回的 draft/manifest 路径；草稿就绪即执行 resolve.argv；需要上传时追加 uploadArgs，并填入真实 appType。页内图片由 CLI 并发检查，允许外链就直接交付，需托管时再上传。
+4. 无图页面照常开发；有图页面先做布局、文字、真实数据绑定和交互，当前页接图前读取素材结果。仍在运行时先做其他独立工作，确需图片时只等待所属页；真实图片到位后核对裁切、清晰度和整体效果，再发布。
+5. 记录工具名、后台参数、真实任务编号、派发返回时间，以及素材与业务任务的开始/结束时间；开始早于素材结束不足以证明并行，还需区间确实相交。收尾把 assetTasks、taskState 和 businessWork 汇总进 build-manifest，check-prd-completeness 会标记证据缺失、伪后台或同步路径素材前置为 needs_review。资源或宿主限制记录具体原因；仅回读记录不等于独立核实宿主执行。
 
 ## 页面按实际依赖并行
 
@@ -43,9 +52,11 @@
 
 标准 Plan 首版采用一次收齐：业务任务完成一个 `business.json`，视觉直接复用 init 根据已确认选择生成的 `visual.json`，随后合并物化。这样首版只等待一次模型规划。品牌稿、参考图、页面级特殊视觉或明确的视觉精修要求命中时，才由视觉任务更新 `visual.json`；超大需求需要展示中间进展时才使用 [按模块更新方案](incremental-preview.md)，全部完成后再用 `materialize --from-preview` 汇总校验。
 
+按 init 返回的 `authoring.pendingFields` 和 `context` 中的类型示例补齐事实，复核内容后设置片段 `ready=true`。init 返回的 `materialize.command` 是标准首版唯一生成命令。执行成功后直接展示 `outputs.html`，`revision` 仅用于内部确认绑定，用户可见文案统一称“当前方案”，不展示修订序号；不通过 `--from-preview`、preview、Glob 或额外 Read 探测产物；确认后不再物化或 patch。`explicitScope.allowInferredResources=false` 时，完整主题仍可作为 Plan 展示的一部分，但不进入应用设置、导航或发布执行。
+
 `design-plan init` 返回 `parallelTasks` 和两个片段文件：
 
-- `business.json`：业务任务填写 facts 中的 overview、dataModels、businessFlows、pages 和可选 execution。可选 meta 仅填写 businessDomain、experienceTopology，完成后设 ready=true。
+- `business.json`：init 已预填业务骨架，业务任务必须先读后写，保留 base；facts 只能填写 overview、dataModels、businessFlows、pages 和可选 execution，禁止加入 visualStyle。一次补齐所有普通表单的 sampleDataPlan（不造数写 skipReason）和所有自定义页面的 permissionSummary，完成后设 ready=true。可选 meta 仅填写 businessDomain、experienceTopology。
 - `visual.json`：init 根据需求阶段原子保存的 `visualSelection` 写入 facts.visualStyle；主色、方向和导航明暗完整时设 `ready=true`，否则保持未就绪并返回 `visual-selection` 任务，只补充缺失选择。标准页面的完整主题和页面场景规则由 CLI 补齐。只有命中特殊视觉条件时，视觉任务才按业务页面更新项目差异与 `pageApplications`。
 
 两个文件的 base 由 CLI 生成，保留原值；任务读取同一份需求、草稿和主题上下文。业务片段完成后保持稳定，变更时通知视觉任务重新核对页面设计。

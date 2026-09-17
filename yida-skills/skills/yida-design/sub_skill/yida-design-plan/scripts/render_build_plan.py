@@ -872,7 +872,19 @@ def render_pages(data: dict[str, Any]) -> str:
 """
         binding_labels = {"form": "表单数据", "report": "报表数据", "connector": "外部系统数据", "static-empty": "静态内容或空态"}
         binding = handoff.get("dataBinding") or detail.get("dataBinding")
+        page_menu = handoff.get("navigation") or {}
+        app_custom = ((data.get("execution") or {}).get("appConfig") or {}).get("navigationType") == "custom"
+        standalone = handoff.get("entryMode") == "standalone"
+        variants = {"top": "顶部", "side": "侧边", "mixed": "顶部与侧边", "dock": "底部"}
+        menu_label = ("自定义" + variants.get(page_menu.get("variant"), "") + "菜单") if page_menu.get("type") == "custom" else (
+            "不设菜单" if page_menu.get("type") == "none" else "沿用应用自定义菜单" if app_custom else "未规划应用菜单，仅实现业务内容" if standalone else "沿用平台导航"
+        )
         data_rows = [
+            ["访问方式", "独立页面入口" if standalone else "应用工作区入口"],
+            ["页面菜单", menu_label],
+            ["页面实现边界", "按独立入口方案组织内容" if standalone else "只实现业务内容；跨模块使用平台菜单，同任务分类可用页内 Tab"],
+            ["导航影响范围", "应用采用自定义导航" if app_custom else "仅当前入口，应用工作区保留平台导航" if standalone else "保留平台导航"],
+            ["导航依据", page_menu.get("reason")],
             ["数据接入", binding_labels.get(binding, binding)],
             ["数据来源", display_value(handoff.get("dataSources") or detail.get("dataSources"))],
             ["主操作", handoff.get("primaryAction") or detail.get("primaryTask")],
@@ -922,8 +934,7 @@ def render_visual_details(data: dict[str, Any]) -> str:
         ("层次表达", visual.get("hierarchySummary")), ("组件形态", visual.get("componentToneSummary")),
         ("状态反馈", visual.get("stateSummary")), ("响应式布局", visual.get("responsiveSummary")),
         ("图标风格", visual.get("iconSummary")),
-        ("素材现状", assets.get("materialStatus")), ("品牌素材", assets.get("brandAssets")),
-        ("主视觉图片", assets.get("heroImage")), ("产品与案例图片", assets.get("productImages")),
+        ("素材现状", assets.get("materialStatus")), ("页面素材", assets.get("pages")),
         ("素材缺口", assets.get("missingAssets")), ("素材说明", assets.get("notes")),
     ]
     profile = visual.get("themeProfile") or {}
@@ -960,6 +971,20 @@ def render_execution(data: dict[str, Any]) -> str:
     hidden_pages = execution.get("pageNavigation") or []
     if hidden_pages:
         parts += ["<h3>页面导航</h3>", table(["页面", "平台页面导航"], [[item.get("name"), "隐藏" if item.get("isRenderNav") is False else "显示"] for item in hidden_pages])]
+    for entry in (execution.get("entryRecommendation") or {}).get("entries", []):
+        rows = []
+
+        def entry_rows(items):
+            for item in items:
+                if item.get("children"):
+                    entry_rows(item["children"])
+                    continue
+                rows.append([item.get("label"), item.get("resource"),
+                             "默认进入" if item.get("key") == entry.get("defaultMenuKey") else "",
+                             "；".join(f'{access.get("resource", "")}：{access.get("dataScope", "")}' for access in item.get("access", []))])
+
+        entry_rows(entry.get("menu") or [])
+        parts += [f'<h3>{esc(entry.get("name", "业务入口"))}</h3>', table(["任务菜单", "业务资源", "默认落点", "数据范围"], rows)]
     if execution.get("explicitScope"):
         parts += ["<h3>本轮明确范围</h3>", f'<p>{esc(display_value(execution["explicitScope"]))}</p>']
     for key, title in [("resourceCreationOrder", "搭建顺序"), ("pageImplementationOrder", "页面交付顺序"), ("navigationOrder", "导航顺序"), ("acceptanceCriteria", "验收标准")]:

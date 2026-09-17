@@ -39,15 +39,15 @@ const SAMPLE_ROWS = [
   { label: '07-28', revenue: 83, orders: 249, target: 68 },
 ];
 
-const THEME = {
-  brand: '#2563EB',
-  brandSoft: '#DBEAFE',
+const BASE_THEME = {
+  brand: 'var(--color-brand1-6)',
+  brandSoft: 'var(--color-brand1-1)',
   cyan: '#0891B2',
   amber: '#D97706',
-  ink: '#172033',
-  muted: '#667085',
-  line: '#E4EAF2',
-  panel: '#FFFFFF',
+  ink: 'var(--color-text1-4, #172033)',
+  muted: 'var(--color-text1-3, #667085)',
+  line: 'var(--color-line1-1, #E4EAF2)',
+  panel: 'var(--pod-card-bg-color, #fff)',
   canvas: '#F5F8FC',
 };
 
@@ -72,7 +72,18 @@ function MetricCard({ label, value, note, tone }) {
   );
 }
 
-function YidaComp(props) {
+/* @canvas-application-theme */
+
+function PageContent(props) {
+  const { token } = useCanvasThemeContext();
+  const THEME = {
+    ...BASE_THEME,
+    brand: token.colorPrimary || BASE_THEME.brand,
+    ink: token.colorText || BASE_THEME.ink,
+    muted: token.colorTextSecondary || BASE_THEME.muted,
+    line: token.colorBorderSecondary || BASE_THEME.line,
+    panel: token.colorBgContainer || BASE_THEME.panel,
+  };
   const [windowSize, setWindowSize] = useState(7);
   const hasRealRows = Boolean(props && Array.isArray(props.aggregatedRows) && props.aggregatedRows.length);
   const rows = useMemo(
@@ -85,24 +96,15 @@ function YidaComp(props) {
   const revenueDelta = latest && previous ? latest.revenue - previous.revenue : 0;
 
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: THEME.brand,
-          colorText: THEME.ink,
-          colorBgLayout: THEME.canvas,
-          borderRadius: 10,
-        },
-      }}
-    >
+    <>
       <style>{`
         .rechart-page {
           min-height: 100vh;
           box-sizing: border-box;
           padding: 28px;
           background:
-            radial-gradient(circle at 92% 4%, rgba(37, 99, 235, .12), transparent 30%),
-            var(--oyd-page-background, var(--pod-page-bg-color, ${THEME.canvas}));
+            radial-gradient(circle at 92% 4%, color-mix(in srgb, var(--color-brand1-6) 12%, transparent), transparent 30%),
+            var(--pod-page-bg-color, var(--color-white, #fff));
           color: ${THEME.ink};
         }
         .rechart-shell { max-width: 1240px; margin: 0 auto; }
@@ -246,8 +248,12 @@ function YidaComp(props) {
           </div>
         </div>
       </div>
-    </ConfigProvider>
+    </>
   );
+}
+
+function YidaComp(props) {
+  return <CanvasThemeProvider><PageContent {...props} /></CanvasThemeProvider>;
 }
 
 export default YidaComp;

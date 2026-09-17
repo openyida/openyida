@@ -188,6 +188,7 @@ openyida create-process "APP_XXX" --formUuid "FORM-YYY" .cache/openyida/order/pr
 1. **🔐 字段权限**：当字段 ≥ 3 且审批节点 ≥ 2 时，每个节点只允许编辑相关字段
 2. **🔄 跳转规则**：存在回退/循环语义时，自动配置 `routeRules`
 3. **🔀 并行/办理/高级组件**：需要并行会审、办理节点或连接器/数据/消息等官方组件节点时，流程定义格式直接参考 `yida-process-rule`
+4. **加签/转交操作权限**：用户要求开启时，按 [操作权限配置](../yida-process-rule/references/approval-actions.md) 生成 `nodes[].actions.normalActions/appendActions`；未要求时保持默认关闭。`create-process` 与 `configure-process` 共用编译器，无需新增命令或手写运行字段。禁止仅修改 `hidden` 后提交原始运行 JSON。
 
 需要流程规则细节时，调用 `use_skill("yida-process-rule", "配置已有流程节点、分支和字段权限")`。
 
@@ -198,6 +199,7 @@ openyida create-process "APP_XXX" --formUuid "FORM-YYY" .cache/openyida/order/pr
 | 命令返回失败 | 检查 appType 和 formUuid 是否正确，确认登录态有效 |
 | processCode 获取失败 | 确认表单已成功转为流程表单类型，重新执行 |
 | 流程定义 JSON 格式错误 | 加载 `yida-process-rule` 子技能，按其中的 JSON 格式说明修正 |
+| `PROCESS_COMPILE_ACTION_CONFIG_INVALID` | 本地编译已拦截无效操作权限，修正报错节点的加签位置、结果或按钮配置后再执行；不要通过删除校验或手动补运行 JSON 绕过 |
 | 返回 JSON 中无 processCode | 不要猜测 processCode，重新执行命令获取 |
 | 流程发布失败 | 检查流程定义中的 fieldId 是否为真实 ID（先 get-schema 获取） |
 | 登录态失效 | 执行 `openyida login` 重新登录后再试 |

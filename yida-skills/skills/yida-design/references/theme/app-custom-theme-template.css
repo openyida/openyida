@@ -12,8 +12,8 @@
  * 1. 先在 design.md 确定主题色，再执行 openyida sample yida-design app-theme
  *    --output <app-theme.css> 复制本模板。
  * 2. 按主题色修改对应 token；严禁重新生成或覆盖整份 CSS。
- * 3. 本模板与 yida-next 应用主题配置保持同源，以 yc-common 0.4.0 的 PC/Pod 配置为基线，
- *    默认呈现大圆角与 coffee 咖啡色主题；yida-design 按当前业务的 design.md 调整配色。
+ * 3. 本模板默认呈现大圆角与 coffee 咖啡色主题；
+ *    yida-design 按当前业务的 design.md 调整配色。
  * 4. 应用品牌色阶只使用平台实际生成的 --color-brand1-1、2、3、5、6、9、10；
  *    --color-brand-1 至 --color-brand-4 和 --color-group 也必须保留并成套修改，不要补造 4、7、8。
  * 5. 若 design.md 选择其他主色，必须同步替换品牌色阶、基础色阶、图表色组，以及模板中按钮、
@@ -204,10 +204,8 @@
   --pod-page-surface-bg-color: transparent;
   --pod-page-surface-border-radius: 12px;
   --pod-page-surface-shadow: none;
-  /* 原生页面容器：控制页面边框、背景、圆角、间距和标题。
-   * 自定义页整页画布另用 design.md 中的 --oyd-page-background：隐藏应用导航默认 transparent，
-   * 显示平台导航默认 var(--pod-page-bg-color, var(--color-white, #fff))。
-   * 品牌外层氛围放在 Shell，不为自定义页背景改写原生页面底色。 */
+  /* 页面容器：原生页面与自定义页面共用底色；卡片使用 --pod-card-bg-color。
+   * 导航隐藏不自动改变底色；品牌氛围放在 Shell，局部装饰留在页面。 */
   --pod-page-border: 1px solid rgba(24, 28, 31, 0.08);
   --pod-page-bg-color: #ffffff;
   --pod-page-border-radius: 20px;

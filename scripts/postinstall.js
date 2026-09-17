@@ -275,7 +275,7 @@ openyida login
 
 ## 工作目录
 
-执行宜搭开发前检查当前工作区是否已有 \`project/\` 目录。没有时运行：
+首轮需求澄清完成、准备资源执行时检查当前工作区是否已有 \`project/\` 目录。没有时运行：
 
 \`\`\`bash
 openyida copy
@@ -285,7 +285,7 @@ openyida copy
 
 用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，加载 \`yida-app\` 走完整应用统一编排。
 
-完整应用先在 yida-app Step 2 按 yida-design/references/design-mode.md 选择一次 Fast / Plan。首次搭建包括没有 appType 和已有 appType 但无页面的空应用；用户尚未为本次搭建明确选择方式时，仅询问“Plan（先确认方案） / Fast（直接搭建）”并等待回答；两种模式都完成业务规划和视觉设计，技能与工具不作为模式选项。模式与导航类型的提问使用固定顺序和中性说明，不标记推荐或默认，不预选或引导选择。以下需求分析与并行设计规则用于 Fast；Plan 确认当前版本后直接交接派生文件，不再运行 Fast。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。
+完整应用先由 yida-requirement-analysis 按 prepare-brief.md 读取必需材料，尽早确认核心功能和实际用法。澄清后由 yida-app 核验所需资源，按 yida-design/references/design-mode.md 复用或确定执行方式，保留用户已有选择。AI 先按使用任务判断统一入口、前后台双入口或仅前台，再按 yida-design/references/navigation-decision.md 为各入口确定导航；用户已指定时优先沿用。前台自己的菜单只配置当前页面，后台按自己的导航方案执行。两种模式都完成业务规划与视觉设计；Plan 展示 build-plan.html，确认当前版本后执行对应方案。其余设计文件供内部实施使用。
 
 统一编排只做：解析资源上下文并整理用户需求 → 同时调用 \`yida-prd\` 输出 \`prd.md\`、\`yida-design\` 输出 \`design.md\` → 由 \`yida-app\` 校验两份结果 → 创建/复用应用 → 核心表单/流程 → 主页面 → 编写主页面源码 → 发布 + 轻量导航排序 → 返回 2-3 句业务交付总结和一个主入口链接。资源创建顺序按 PRD 执行：应用先落位，表单/流程先于自定义页面。发布主页面成功后，PRD 写明导航顺序时执行 \`openyida nav-group order <appType> <页面/表单...>\`；PRD 只写宽泛分组或缺少导航顺序时，执行 \`openyida publish ... --auto-nav-order\` 或 \`openyida nav-group auto-order <appType>\` 兜底，兜底顺序为门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
 
@@ -293,7 +293,7 @@ openyida copy
 
 完整应用页面源码默认不得使用 \`this.dataSourceMap.*\`，除非本轮已经明确创建并绑定设计器数据源；默认使用入口型页面或 \`this.utils.yida.*\` 查询已创建表单。
 
-最终结果先输出 2-3 句业务交付总结，再给一个主入口链接：新增/修改/发布单个页面时主入口是当前页面 URL；其他完整应用、表单、流程、权限、主题、导航或批量资源场景主入口是应用首页 \`{base_url}/{appType}/workbench\`。示例：“已完成订单、商品和客户等核心表单，并发布首页、订单管理和库存看板入口。当前应用已支持订单录入、库存预警、销售统计和表单详情查看，示例记录与轻量导航排序也已就绪。主入口：{base_url}/{appType}/workbench”。不要使用表格、资源 ID 清单或长列表；不要把 \`g.alicdn.com\` 静态资源、CDN 构建产物、locale JSON、\`/admin\` 管理页或中间文件 URL 当成最终结果。
+最终结果先输出 2-3 句业务交付总结，再给一个主入口链接：新增/修改/发布单个页面时主入口是当前页面 URL；明确仅前台时只交付已验证的前台页面；其余完整应用、表单、流程、权限、主题、导航或批量资源场景主入口是应用首页 \`{base_url}/{appType}/workbench\`。示例：“已完成订单、商品和客户等核心表单，并发布首页、订单管理和库存看板入口。当前应用已支持订单录入、库存预警、销售统计和表单详情查看，示例记录与轻量导航排序也已就绪。主入口：{base_url}/{appType}/workbench”。不要使用表格、资源 ID 清单或长列表；不要把 \`g.alicdn.com\` 静态资源、CDN 构建产物、locale JSON、\`/admin\` 管理页或中间文件 URL 当成最终结果。
 
 完整应用创建/解析多个表单后，页面阶段需要字段映射时，对每个目标表单默认只执行一次 \`openyida get-schema <appType> <formUuid> --field-map-json\`，读取完整 JSON 并写入/复用 \`.cache/<项目名>-schema.json\`；不要用 \`head\` / \`tail\` / \`grep\` 截断 schema stdout 后重复拉取。
 
@@ -311,7 +311,7 @@ openyida copy
 | --- | --- | --- |
 | \`yida-skills/context\` | 登录、退出、组织信息、Schema、fieldId、只读预检 | \`yida-login\`, \`yida-logout\`, \`yida-basic-info\`, \`yida-get-schema\`, \`yida-corp-efficiency\` |
 | \`yida-skills/app\` | 从零搭应用、导航、多语言 | \`yida-app\`, \`yida-create-app\`, \`yida-nav-group\`, \`yida-i18n\` |
-| \`yida-skills/design\` | 完整应用需求分析、产品 PRD、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤 | \`yida-requirement-analysis\`, \`yida-prd\`, \`yida-design\` |
+| \`yida-skills/design\` | 完整应用需求分析、产品 PRD、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、图片素材 | \`yida-requirement-analysis\`, \`yida-prd\`, \`yida-design\`, \`yida-image-assets\` |
 | \`yida-skills/form\` | 表单字段、公式、校验、业务规则、批量录入、数据记录 | \`yida-create-form-page\`, \`yida-formula\`, \`yida-formula-evaluate\`, \`yida-business-rule\`, \`yida-canvas-table-form\`, \`yida-table-form\`, \`yida-data-management\` |
 | \`yida-skills/process\` | 审批、流程表单、流程规则、代理人 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\` |
 | \`yida-skills/page\` | 自定义展示页、YidaCodeCanvas 组件、历史平台 JSX 组件页面维护、发布、导航壳、PPT | \`yida-create-page\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\` |

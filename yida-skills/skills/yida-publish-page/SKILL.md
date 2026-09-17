@@ -25,7 +25,7 @@ description: 自定义页面编译发布技能；发布 YidaCodeCanvas 页面时
 
 - 不要在未加载对应页面开发技能的情况下临时编写页面源码；使用 `YidaCodeCanvas` 组件实现的页面先看 `yida-canvas-custom-page`。
 - 不要把普通 React / Next / Vite 项目源码直接发布；可发布源码必须是 OpenYida 页面源码，并放在 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}`
-- 不要混用预检命令：`.canvas.jsx` / `.canvas.tsx` 不走 `openyida check-page` / `openyida compile`；`.oyd.jsx` / `.jsx` / `.tsx` 不要当成 `YidaCodeCanvas` 页面发布，除非已明确确认源码就是 `YidaCodeCanvas` 组件源码并使用 `--canvas`
+- 不要混用预检模式：`.canvas.jsx` / `.canvas.tsx` 不走 `openyida check-page`，统一执行 `openyida compile <源文件> --json` 让 CLI 按扩展名选择 Canvas 编译器；`.oyd.jsx` / `.jsx` / `.tsx` 不要当成 `YidaCodeCanvas` 页面发布，除非已明确确认源码就是 `YidaCodeCanvas` 组件源码并使用 `--canvas`
 - 不要在平台 `renderJsx` / `didMount` 形态里手写 React Hooks；需要 Hooks 的页面应交回对应页面开发技能改成可编译的源码形态
 - 不要编造 appType 和 formUuid，必须从已有记录或命令返回中获取
 - 不要把普通表单、流程表单或数据底表的 `formUuid` 当作发布目标；除非已确认目标是自定义展示页面，否则不要用 `--force` 绕过保护
@@ -34,7 +34,12 @@ description: 自定义页面编译发布技能；发布 YidaCodeCanvas 页面时
 
 - 发布前确认页面源码已通过对应页面开发技能编写：`.canvas.jsx` / `.canvas.tsx` 发布为 `YidaCodeCanvas` 组件；`.oyd.jsx` / `.jsx` / `.tsx` 发布为平台 `Jsx` 组件
 - 平台 `Jsx` 组件 / `oyb.jsx` / `renderJsx` 维护源码发布前优先执行 `openyida check-page <源文件路径>` 和 `openyida compile <源文件路径>`；本技能只把它们作为发布前 guard
-- 使用 `YidaCodeCanvas` 组件实现的页面不单独运行普通 JSX 编译命令；执行 `openyida publish <源文件> <appType> <displayPageFormUuid> --canvas --health-check`，由发布流程校验并写入 `runtimeCode + importedModules`
+- 使用 `YidaCodeCanvas` 组件实现的页面发布前必须执行 `openyida compile <源文件> --json`；CLI 会自动选择 Canvas 编译器。失败时直接按结构化 `code/message/details` 修源码并重跑同一命令，不要改用 `node -e`、`compileCanvasLocal` 或 `run_workspace_script` 绕行
+- Canvas 本地编译通过后，执行 `openyida publish <源文件> <appType> <displayPageFormUuid> --canvas --health-check`，由发布流程再次校验并写入 `runtimeCode + importedModules`
+- 主题已集成的页面直接编译发布原文件；只有使用 `/* @canvas-theme-provider */` 标记装配时才生成并发布 `.themed.canvas.jsx`。`OPENYIDA_CANVAS_THEME_NOT_ASSEMBLED` 表示误用了尚未装配的源文件，应先运行主题脚本再编译输出文件。
+- 图标报 `OPENYIDA_CANVAS_ICON_EXPORT_UNAVAILABLE` 时，按 `details.exportName`、源码行列与建议修正 import，并重新 compile；禁止换成动态全局引用绕过。校验以 CLI 内置的宜搭运行时导出清单为准；动态名称仍需组件映射与兜底。`--health-check` 的发布回读不等于浏览器渲染验收，不能据此把 `runtimeSmokeVerified: false` 报为已通过。
+- 导航报 `OPENYIDA_CANVAS_NAVIGATION_INVALID` 时，按 issueType 修正：local_platform 使用 local 页内模式或绑定真实平台资源；document_flex 重新提取 canvas-nav-content 并采用自然高度。发布后需实际检查各菜单、刷新/返回、滚动到页脚并回顶、窄屏展开；不能仅凭编译或回读认定通过。
+- Canvas 编译和发布共用主题结构检查。出现 `OPENYIDA_CANVAS_THEME_PROVIDER_INVALID` 时，按报错位置调整 Provider 和业务组件的层级，再执行原命令；发布后打开实际页面检查首屏和交互。
 - 使用 `YidaCodeCanvas` 组件实现的页面发布时，发布流程会在外层页面 `didMount` 注入 `window.__OPENYIDA_YIDA_API__` 和 `window.__OPENYIDA_UTILS__`；不要在 Canvas 源码内补写 `this.utils.yida.*` 或根级 `this.utils.*`
 - 推荐源码放在 `project/pages/src/`：使用 `YidaCodeCanvas` 组件实现的页面用 `<页面名>.canvas.jsx` / `<页面名>.canvas.tsx`；平台 `Jsx` 组件维护源码用 `<页面名>.oyd.jsx` / `<页面名>.jsx` / `<页面名>.tsx`
 - 发布前注意 CLI 会检查 `<workspace>/project/pages/src/` 与 `<workspace>/projects/<id>/artifacts/` 中同名源码是否内容不一致；出现警告时必须确认实际要发布哪一份
@@ -100,7 +105,7 @@ openyida list-forms <appType> --keyword <页面名>
 - `--health-check` 是发布内容读回校验，不是浏览器运行态 smoke。输出中的 `runtimeSmokeVerified=false`、`runtimeSmokeStatus=not_checked` 表示本命令没有验证页面渲染与交互；需要宣称“页面可运行”时，必须另有专项运行态证据。
 - `<source>` 必须是本轮实际 Write/Edit/Create 过的页面源码；`<displayPageFormUuid>` 必须是已解析的 display 自定义页面。发布了其他文件或其他目标页面，不满足本轮源码修改的 doneWhen。
 - 若 publish 没执行、执行失败、目标不明、登录态/组织不一致或用户要求先暂停，final 只能说“源码已修改，尚未发布”，并给出下一步需要执行的 publish 命令或阻塞原因。
-- 平台 JSX 组件页面的 `check-page` / `compile`、使用 `YidaCodeCanvas` 组件实现页面的 `compileCanvasLocal` 都是发布前 guard，不是远端完成证据。
+- 平台 JSX 组件页面的 `check-page` / `compile`、Canvas 页面统一入口 `openyida compile <源文件> --json` 都是发布前 guard，不是远端完成证据。
 
 ## 数据源保留
 
@@ -117,7 +122,7 @@ openyida list-forms <appType> --keyword <页面名>
 
 `openyida publish` 会在保存 Schema 前执行确定性编译；Agent 不要把这一步改成口头检查：
 
-1. `.canvas.jsx` / `.canvas.tsx`：执行 `YidaCodeCanvas` 页面编译，产出并写入 `runtimeCode` 与 `importedModules`。该类源码不使用 `openyida check-page` / `openyida compile` 作为预检。
+1. `.canvas.jsx` / `.canvas.tsx`：发布前执行 `openyida compile <源文件> --json`；统一入口会按扩展名执行与发布阶段相同的 `YidaCodeCanvas` 编译并返回结构化结果。不要执行 `openyida check-page`，也不要直接调用内部编译函数或临时脚本。
 2. `.oyd.jsx` / `.openyida.jsx` 或显式 `--compat`：先运行 OpenYida compatibility compiler，输出宜搭平台 `Jsx` 组件可执行源码。
 3. 普通 `.jsx` / `.tsx` 源码如果已有 `export function renderJsx()`：视为平台 `Jsx` 组件源码，执行 lint、Babel、UglifyJS 后构建 Schema。
 4. 普通 `.jsx` / `.tsx` 源码如果没有 `renderJsx` 但存在 `export default function Page()`：只允许走有限 authoring 降级；Hooks、生命周期和运行态限制以`yida-custom-page` 为准。

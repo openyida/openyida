@@ -3,6 +3,9 @@
 
 # Force LF for scripts and source files
 *.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
 *.json text eol=lf
 *.md text eol=lf
 *.yml text eol=lf

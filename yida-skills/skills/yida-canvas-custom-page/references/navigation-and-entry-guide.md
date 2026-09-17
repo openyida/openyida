@@ -1,16 +1,100 @@
 # YidaCodeCanvas 应用内导航与快捷入口
 
+作用范围先按 PRD 判断：独立前台的 pageSpecHandoff.navigation 只控制当前入口，配合 standalone 页面配置；后台应用导航继续保留。下文自绘应用级导航与全局隐藏规则，仅适用于整个应用采用 custom。前台全码填写按页面设计接入真实数据，下文原生提交页/iframe 规则只用于计划明确复用原生页面的情况。
+
 自定义页面里的快捷入口先判定目标类型，再选择跳转方式。目标是应用内页面时，用户应感觉是在宜搭应用导航内切换，而不是弹出一个脱离左侧导航的新页面，也不是在当前自定义页面中额外生成一套侧边导航或顶部应用导航。
 
 ## 运行态事实
 
+- `isRenderNav=false` 表示导航展示配置，不证明当前页面位于 iframe。不要仅凭该参数修改 `window.top.location`；嵌入方式、跨域和宿主能力需分别验证。
 - 宜搭应用壳根据 `navUuid/formUuid` 和 `workbench` 路径维护选中态；同应用页面应进入 `/{appType}/workbench/{formUuid}` 或对应壳层路由。
 - 发布层会把根级工具注册到 `window.__OPENYIDA_UTILS__`；可用时优先通过 `window.__OPENYIDA_UTILS__.router.push` 做应用内跳转，通过 `window.__OPENYIDA_UTILS__.openPage` 打开外部链接或新窗口场景。
 - `openPage` / `window.open` 更适合外部链接、新标签、钉钉链接、文件预览等场景；同应用页面默认在当前应用壳内切换。
 - 页面隐藏应用导航后，页面内自绘导航壳接管跨视图切换；导航可见时使用平台导航承载同级页面切换。
 - 自绘应用导航按 PRD 安排数量、顺序、分组和任务入口，通常工作台在首位；当前用户的 `getAccessableNavs.json` 结果只用于过滤不可见入口。数据片段和接入规则见 [导航数据来源](../../yida-nav-shell/references/nav-shell-patterns.md#导航数据来源)。
 
+## 平台导航下的管理页面
+
+业务管理端默认由平台菜单负责跨模块切换，自定义页面只实现业务内容。`entryRecommendation.entries[].menu` 是平台菜单与默认任务的规划，不是要求把整份菜单再渲染进工作台。选择自定义页面只改变内容实现方式，不改变导航归属。
+
+- `entryMode=platform-shell`：保留平台导航，直接实现概览、提醒、列表、筛选和业务操作，不添加品牌顶栏、应用侧栏或覆盖多个管理模块的 Tabs；不要为了容纳重复菜单而改成独立页或隐藏平台导航。
+- 合理的页内切换属于同一任务，例如预约页的“全部 / 待处理 / 已完成”、商品页的“在售 / 下架”。即便使用 React 状态切换，“商品管理 / 资讯管理 / 预约管理”仍是跨模块菜单，不能借页内 Tab 重复平台导航。
+- 概览里的“处理这条预约”“查看低库存商品”等上下文动作可以保留，使用真实资源和应用路由；不要把平台的全部模块再复制成固定菜单或快捷入口区。
+- standalone 只表示独立展示，不自动要求菜单；未规划页面菜单且应用保留平台导航时只实现业务内容，显式 none 同样不创建菜单。
+- 只有确认采用应用级自绘导航或独立前台菜单时才使用导航壳。保留筛选、分页、草稿状态本身不是自绘应用导航的理由；这些状态由业务组件管理。
+
+Plan 输出的 `pages[].navigationPolicy` 明确菜单归属、页面布局和本地切换范围，派发页面任务时与 `pageSpecHandoff` 一并传递，不将它塞进严格的 page-spec 输入。Fast 在 PRD/design.md 记录同样的边界。缺少该字段的旧计划，根据应用导航决策、当前页配置和实际管理链接判断；不能单凭 URL 或页面名称推断导航是否可见。
+
+验收要从真实管理端链接打开：平台菜单与页面内容区合起来只出现一套跨模块导航。若两层菜单重复，修改页面源码中的重复菜单，保留平台导航、业务组件、数据与权限；编译通过不能替代这项页面验收。
+
+## 先建立动作与目标清单
+
+跨页按钮、导航菜单、卡片链接、返回首页共用一份目标映射。编码前为每个动作记录：业务名称、targetType、真实 appType、目标 formUuid/navUuid、必要参数、打开方式；资源来源是创建/查询结果及回读，不从页面名称猜 ID。详情按钮另外记录真实 formInstId 的行数据来源。无目标或无权限时禁用并说明原因，不用空地址或占位链接。
+
+| 动作目标 | targetType | 接入方式 |
+| --- | --- | --- |
+| 本页房型 Tab、筛选、多个本地视图 | local | viewKey + selectView，更新状态或 hash |
+| 独立前台首页、客房、预订自定义页 | custom | `/{appType}/custom/{formUuid}`，utils 路由 URL 模式 |
+| 保留平台应用壳的管理页面 | page | `/{appType}/workbench/{navUuid或formUuid}` |
+| 应用工作台 | app | `/{appType}/workbench` |
+| 原生提交或详情入口 | submission / detail | 交给 useYidaFormOpen；详情必须带 formInstId |
+| 外部网站 | url | 已验证的完整 HTTP(S) 地址，按外链打开 |
+
+先提取可复用片段并整体合并到当前文件；保留现有页面业务实现：
+
+```bash
+openyida sample openyida-page-template canvas-navigation --output .cache/samples/canvas-navigation.jsx
+```
+
+`buildCanvasPageUrl(entry, context)` 生成链接，`navigateCanvasPage(entry, context)` 执行动作。context 的 appType 与必要时的 platformOrigin 来自实际资源；浏览器正常平台页面默认使用当前 origin，非平台或 opaque 嵌入时显式提供已核实的 origin，不猜域名，也不强行读取顶层窗口。表单动作接入已有 openForm；本页视图接入 selectView。跨应用目标在 entry.appType 中显式声明。
+
+```jsx
+// APP_TYPE 与 ROOM_PAGE_ID 必须来自本项目资源映射。
+const roomEntry = { targetType: 'custom', formUuid: ROOM_PAGE_ID };
+const navigationContext = { appType: APP_TYPE };
+// 放进业务组件；href 与普通左键点击共用同一目标，保留修饰键和新标签行为。
+<a href={buildCanvasPageUrl(roomEntry, navigationContext)} onClick={event => {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  navigateCanvasPage(roomEntry, navigationContext);
+}}>查看客房</a>
+```
+
+应用内 HTTP 路径均保留 `/{appType}` 前缀。`/custom/...`、`/workbench/...`、`/submission/...`、`/formDetail/...` 是缺少应用身份的地址，换成绝对域名也不能修复缺失的 appType。纯页面 ID 的 `router.push('FORM-...', params)` 属于平台路由模式，与完整 URL 模式区分。桥不可用时片段在当前窗口打开完整地址；确需离开嵌入容器时先验证宿主约定，不将 `window.top` 作为默认 fallback。
+
+编译/发布会在可静态确定的 href、浏览器导航与 router/openPage 目标中检查缺失前缀，报 `OPENYIDA_CANVAS_PATH_MISSING_APP_TYPE`。字符串片段、注释和动态地址不等于完整目的地，不做全局字符串拦截。该检查不能证明页面 ID 属于正确应用或用户有权限；发布验收仍需逐个点击主动作、返回链接和菜单，核对真实地址、query/hash、目标用途及浏览器返回。
+
+## 管理员返回业务工作台
+
+当前访问者具有应用管理权限时，可在独立前台页头操作区展示次级按钮“业务工作台”。沿用当前主题，不作为普通访客菜单，不跳应用设计器、应用设置或开发后台。先从 PRD 的管理端入口及资源回读确定真实业务管理页，不把当前前台页或任意第一个菜单当作工作台。
+
+```bash
+openyida sample openyida-page-template canvas-admin-entry --output .cache/samples/canvas-admin-entry.jsx
+```
+
+片段包含统一跳转 helper、身份判断、hook 与按钮。整体合并，已有 `canvas-navigation` 或 React/Button import 时去重；按钮放在已接入的 CanvasThemeProvider 子树内：
+
+```jsx
+<CanvasAdminWorkbenchButton
+  appType={APP_TYPE}
+  workbenchFormUuid={MANAGEMENT_PAGE_ID}
+  params={{ corpid: CORP_ID }}
+/>
+```
+
+这些常量必须来自真实应用和资源映射；没有 corpid 需求时省略 params。指定管理视图可传 viewUuid。默认使用 `/{appType}/workbench/{workbenchFormUuid}`，不继承前台的 isRenderNav/iframe/hideLeftNav/navConfig.layout 参数。只有已验证应用默认工作台落点正确时才省略页面 ID 并显式传 `useDefaultWorkbench`；默认工作台可能回到前台首页。整个应用采用自绘管理壳时，应选择实际承载该业务壳的页面，并验证其入口，不能靠按钮擅自开启或隐藏应用导航。
+
+身份来自当前页面服务端注入的 `window.loginUser.isAppAdmin`，同时核对当前窗口的 `window.g_config.appType` / `window.pageConfig.appType` 与目标 appType 一致、userId 非空。访问态可能只提供 pageConfig；至少有一个非空应用标识，存在两个时必须全部一致，冲突仍按未知处理。只把 `"y"` 或布尔 true 视为允许；`"n"`/false 拒绝，其余未知。禁止 `Boolean(isAppAdmin)` 或 `if (isAppAdmin)`，因为 `"n"` 是真值。没有上下文、应用不匹配、匿名访问时隐藏，不读取父窗口另一应用的角色，不写死管理员名单，也不使用 CLI 操作者身份或 token 判断访问者。
+
+这个标识采用平台的 `isSuperOrAppManager` 口径，可能覆盖超级管理员、应用主管理员、数据管理员、开发成员及平台授权角色；它不等价于仅 MAIN，也不等价于某业务角色。若需求限定“仅主管理员”或“业务运营人员”，需另接已验证的当前访问者角色/权限服务，不通过姓名、菜单可见性或复制 CLI 管理员列表代替。
+
+按钮初始隐藏，读取上下文后显示；切换应用时旧状态不复用，回到页面时重读上下文，点击前再次读取。这里读取的是服务端页面上下文快照，刷新事件不会主动向权限服务查询最新授权；账号或权限已变化时需刷新页面，平台页面与数据接口始终承担真实授权。按钮显隐不授予任何业务权限。
+
+双入口应用保留 `hideAppNav=n`，只让独立前台按既定页面配置隐藏导航。验证管理员能进入指定业务工作台、普通访问者及匿名访问者不显示按钮、缺少上下文不会闪现、目标保留平台导航和业务参数。公开页与嵌入页缺少登录上下文时保持隐藏；不要为显示按钮而发起管理员名单查询或修改权限。
+
 ## 导航决策
+
+页内筛选、分页、详情往返与草稿按[状态恢复规则](view-state-recovery.md)设计。无现有路由且无未保存编辑拦截需求时可提取 `canvas-view-state`，不要在点击处理里零散保存状态。管理员入口只负责展示和跳转，业务写操作须加载 `yida-canvas-data-binding` 并核对其业务动作权限清单。
 
 | 用户说法 | 怎么理解 | 怎么做 |
 | --- | --- | --- |
@@ -87,23 +171,31 @@
 
 ## 按需接入自定义导航
 
-PRD 确定使用自定义导航时，按 `design.md` 编写导航 UI，先参考 [导航壳形态目录](../../yida-nav-shell/references/nav-shell-patterns.md) 的场景、布局骨架和小段代码，再按业务设计手写外观或迭代已有导航。自定义顶部默认浮导，侧导必须支持折叠与拖拽调宽。菜单数据、可见性过滤、当前页和跳转按目录中的协议接入，样式消费应用导航 token；不以选择 CLI 导航模板作为起点。
+PRD 确定使用自定义导航时，按 `design.md` 编写导航 UI，先参考 [导航壳形态目录](../../yida-nav-shell/references/nav-shell-patterns.md) 的场景、布局骨架和小段代码，再按业务设计手写外观或迭代已有导航。顶部按连续展示页或业务工作区决定叠加/占位和背景范围，侧导必须支持折叠与拖拽调宽。菜单数据、可见性过滤、当前页和跳转按目录中的协议接入，样式消费应用导航 token；不以选择 CLI 导航模板作为起点。页内切换和跨任务往返均遵循 [页面与导航连续性](../../yida-design/references/page-continuity.md)。
 
 ## 标准 FormOpenContainer
 
 页面内操作按钮去新增、提交或查看表单详情时，统一封装成同一个 `FormOpenContainer`。按钮事件只调用 `openForm(request)`；新标签只用于外部 URL 或用户主动点击抽屉标题栏的新窗口操作。PC 端容器表现为右侧抽屉 + iframe，移动端直接进入原生表单页，关闭抽屉后触发当前页刷新。应用级办理导航的提交页在主内容区嵌入，导航选中态与当前任务一致。
 
-YidaCodeCanvas 推荐使用 antd `Drawer`。`FormOpenContainer` 只负责打开原生提交页或详情页。通用 `CanvasDrawer` 提供标题栏、全屏/退出全屏、关闭、内容卡片和 `extra` 操作区，表单容器额外提供新窗口打开。
+YidaCodeCanvas 推荐使用 antd `Drawer`。`FormOpenContainer` 只负责打开原生提交页或详情页。通用 `CanvasDrawer` 提供标题栏、全屏/退出全屏、关闭和 `extra` 操作区，表单容器额外提供新窗口打开。普通业务内容容器保持透明，跟随抽屉外壳背景。
 
-模板已内置抽屉主题样式，背景默认使用 `--pod-shell-theme-bg-color`。自定义背景时传入 `CanvasDrawer.background`；表单入口通过 `openForm({ type: 'submission', formUuid, background: 'var(--pod-card-bg-color)' })` 设置。iframe 内页面使用平台主题。
+抽屉 header 的工具操作统一使用图标按钮：新窗口打开用 `ExternalLink`，全屏/退出全屏用 `Maximize2` / `Minimize2`，关闭用 `X`。表单抽屉三个操作必须齐全，不得替换为“在新窗口打开”“关闭”等可见文字链接，也不得省略全屏。每个按钮提供对应的 `title`、`aria-label` 和可见键盘焦点；全屏按钮同时更新图标、提示和 `aria-pressed`。按钮默认使用中性色，hover、focus 跟随主题。发布前逐一验证三个按钮的实际行为，不以按钮已渲染代替验收。
 
-### 给已有页面添加抽屉
+抽屉外壳默认使用 `var(--pod-shell-theme-bg-color, var(--color-white, #fff))`，标题栏与正文容器透明承接同一底色，不使用 `--pod-card-bg-color` 铺满抽屉。CanvasThemeProvider 同步设置 antd Drawer 的组件级背景；其他卡片、弹窗保留各自表面。只有明确的设计覆盖才传 CanvasDrawer.background 或 openForm 的 background，不主动生成卡片色覆盖。iframe 内页面继续使用平台主题。
+
+提交页和详情页统一由 `FormOpenContainer` 使用 `contentMode="iframe"`：iframe 直接填满标题栏下方的剩余空间，外层不加 `oy-drawer-card`、卡片底色、圆角或 padding，也不设置外层滚动。`oy-drawer-frame` 仅负责尺寸定位和裁切；滚动由 iframe 内页面负责。不要恢复 `calc(100vh - 56px)` 等猜测高度的兜底。
+
+标题栏高度使用 `--pod-nav-platform-header-height`，默认 48px。标题字号、字重对齐页面标题，分别使用 `--pod-page-title-font-size`（默认 16px）和 `--pod-page-title-font-weight`（默认 500）；antd 标题元素继承这两个值。这里不使用通用 `--drawer-title-font-size`，避免主题中的大号抽屉标题使表单容器过于突出。
+
+旧页面复制过的抽屉实现不会随 CLI 升级自动改变；需重新提取片段并替换旧实现，编译、发布后才生效。
+
+### MUST：接入标准抽屉
 
 ```bash
 openyida sample openyida-page-template form-open-container --output .cache/samples/form-open-container.jsx
 ```
 
-CLI 从整页脚手架提取同一份抽屉实现。将片段中的 import 合并到现有 `.canvas.jsx`，再合并组件与辅助函数；CodeCanvas 不支持相对路径模块导入。表单入口使用 `useYidaFormOpen(appType, reload)` 并渲染其 `formOpenContainer`；普通业务内容可直接放进 `CanvasDrawer` 的 children，用 `open/title/onClose` 控制。已有同名函数时更新原实现，保持一份定义。整页新建按设计直接编写，`canvas-form-drawer` 仅供完整交互参考；保留 iframe 的 `minHeight` 兜底，避免百分比高度失效。
+含页面内表单新建、提交或详情入口的 Canvas 页面，**MUST** 先执行上面的命令拉取当前模板，不得跳过后凭记忆手写。CLI 从整页脚手架提取同一份抽屉实现。整体合并 `CanvasDrawer`、`FormOpenContainer`、`useYidaFormOpen` 及其 import、辅助函数；CodeCanvas 不支持相对路径模块导入。表单入口使用 `useYidaFormOpen(appType, reload)` 并渲染其 `formOpenContainer`；普通业务内容可直接放进 `CanvasDrawer` 的 children，用 `open/title/onClose` 控制。已有同名函数时更新原实现，保持一份定义。禁止自绘 fixed 遮罩 + iframe 抽屉壳，也禁止仅补 `.openyida-form-drawer` 类名冒充模板接入。页面其余内容按设计编写；保留 flex 剩余空间布局和 `minHeight: 0`，不要添加视口高度兜底。
 
 ### 接入示例
 
@@ -132,83 +224,28 @@ function ExampleToolbar({ appType, customerFormUuid, selectedCustomer, reload })
 }
 ```
 
-如果项目没有使用 antd Drawer，可以用自绘 fixed 右侧面板，但组件名、状态结构和 URL 构造仍沿用 `FormOpenContainer / useYidaFormOpen / buildYidaFormUrl`。
+已有页面的表单入口也按标准片段接入，保留业务数据、刷新回调和权限校验；不另写缺少交互能力的抽屉外壳。
 
 ## Canvas 点击骨架
 
 Canvas 自绘快捷入口时，表单提交和详情入口沿用 `useYidaFormOpen` 返回的 `openForm`。应用内页面用同页跳转，外部链接才新开；提交页在 PC 端进入抽屉，移动端才整页或新页打开，提交页 URL 默认追加 `isRenderNav=false`；详情页 URL 必须包含真实 `formInstId`，并默认追加 `navConfig.layout=1180` 和 `isRenderNav=false`：
 
+合并 `canvas-navigation` 片段后，只适配业务数据，不另写一套路径拼接：
+
 ```js
-function getOpenYidaUtilsBridge() {
-  var candidates = [];
-  try { candidates.push(window.__OPENYIDA_UTILS__); } catch (err) {}
-  try { candidates.push(window.parent && window.parent.__OPENYIDA_UTILS__); } catch (err) {}
-  try {
-    if (typeof parentWindow !== 'undefined') {
-      candidates.push(parentWindow.__OPENYIDA_UTILS__);
-    }
-  } catch (err) {}
-  return candidates.find(function (item) { return item && item.ready; }) || null;
-}
-
-function buildYidaBasePath(entry, currentAppType) {
-  const appType = entry.appType || currentAppType;
-  if (entry.targetType === 'app') return `/${appType}/workbench`;
-  if (entry.targetType === 'page') return `/${appType}/workbench/${entry.navUuid || entry.formUuid}`;
-  if (entry.targetType === 'submission') {
-    return `/${appType}/submission/${entry.formUuid}?isRenderNav=false`;
-  }
-  if (entry.targetType === 'detail') {
-    if (!entry.formInstId) return '';
-    return `/${appType}/formDetail/${entry.formUuid}?formInstId=${encodeURIComponent(entry.formInstId)}&navConfig.layout=1180&isRenderNav=false`;
-  }
-  return entry.url || '';
-}
-
-function buildYidaPath(entry, currentAppType) {
-  const path = buildYidaBasePath(entry, currentAppType);
-  if (!path) return '';
-  const url = new URL(path, window.location.origin);
-  Object.entries(entry.params || {}).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      // 路径已带的必需参数（如真实实例 ID）优先，其他业务参数合并。
-      if (!url.searchParams.has(key)) url.searchParams.set(key, String(value));
-    }
-  });
-  return url.href;
-}
-
 function openEntry(entry, currentAppType, runtime) {
-  if (entry.targetType === 'submission' || entry.targetType === 'detail') {
-    runtime.openForm({
-      type: entry.targetType,
-      title: entry.title || '表单',
-      appType: entry.appType || currentAppType,
-      formUuid: entry.formUuid,
-      formInstId: getYidaFormInstId(entry.row) || entry.formInstId,
-      params: entry.params,
-    });
-    return;
-  }
-
-  const href = buildYidaPath(entry, currentAppType);
-  if (!href) return;
-  const utilsBridge = getOpenYidaUtilsBridge();
-  if (entry.targetType === 'url' || entry.openMode === 'new-tab') {
-    if (utilsBridge && typeof utilsBridge.openPage === 'function') {
-      utilsBridge.openPage({ url: href });
-      return;
-    }
-    window.open(href, '_blank');
-    return;
-  }
-  if (utilsBridge && utilsBridge.router && typeof utilsBridge.router.push === 'function') {
-    utilsBridge.router.push(href, {}, false, true);
-    return;
-  }
-  window.location.href = href;
+  const target = entry.targetType === 'detail'
+    ? { ...entry, formInstId: getYidaFormInstId(entry.row) || entry.formInstId }
+    : entry;
+  return navigateCanvasPage(target, {
+    appType: currentAppType,
+    openForm: runtime.openForm,
+    selectView: runtime.selectView,
+    utils: window.__OPENYIDA_UTILS__,
+  });
 }
 ```
+
 
 `getYidaFormInstId` 复用 CLI 抽屉片段中的同名 helper。复制或重命名 helper 时必须连同声明和全部调用点一起修改，不能只生成 `getInstId(...)` 等新调用名。
 

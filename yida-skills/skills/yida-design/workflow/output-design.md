@@ -4,7 +4,7 @@
 
 最终 `design.md` 的依据分四层：结构依据本文件和 `_design-md-template.md`；视觉 DNA、布局机制、组件机制和换肤规则依据选中的设计风格文件；业务内容、页面场景和显式范围依据共享需求文件；Plan 还读取 `yida-prd` 写入的页面业务事实，单页改造可读取已有 PRD；主题 token 依据主题系统中的主题色来源和所选风格的 `theme_adaptation`。
 
-应用导航类型与 PRD 保持一致，使用 [四类导航契约](../../yida-prd/workflow/output-prd.md#导航类型与执行配置)。`layoutDirection` 按平台布局记录，`navTheme` 仅表示导航明暗；自定义导航同时交接应用隐藏与逐页隐藏要求。
+应用导航类型与 PRD 保持一致，使用 [四类导航契约](../../yida-prd/workflow/output-prd.md#导航类型与执行配置)。`layoutDirection` 按平台布局记录，`navTheme` 仅表示导航明暗。先区分影响范围：全应用采用自定义导航时，交接应用隐藏与逐页隐藏要求；只有独立前台自绘菜单时，仅交接该入口的菜单与页面隐藏要求，后台继续使用平台导航。逐个入口写清菜单形式、适用用户和选择依据。
 
 ## 稳定引用规则
 
@@ -16,6 +16,10 @@
 - `states.<stateName>`
 
 `sceneKey` 必须直接取自 `requirement-brief.json` 的对应 `pageScenes`：对象项使用其 `key`，字符串项原样使用；`yida-prd` 和 `yida-design` 不得各自改写、翻译或重新生成。`componentName` 和 `stateName` 必须与本文件 frontmatter 中的实际 key 完全一致。一致性校验只检查这些稳定标识，不使用标题文本或自然语言近似匹配。
+
+## 图片素材交接
+
+`assetStrategy.pages[]` 记录页面等级和图片槽位。槽位包含用途、数量、比例、尺寸、焦点、填充方式和生成许可。需要图片时交给 `yida-image-assets`；无图片需求时写 `imageNeed: none`。在 frontmatter 中用单行 JSON 写出完整 `assetStrategy`，不能只保留槽位数量。`--design design.md` 会读取该字段核对素材。格式见 [素材清单契约](../../yida-image-assets/references/manifest-contract.md)。
 
 ## 应用主题 CSS 的职责
 
@@ -29,7 +33,7 @@
 
 主题准备与表单、页面开发按 [并行依赖](../../yida-app/workflow/parallel-work.md#主题与业务资源的依赖) 调度：计划或主题确认后即生成 CSS，不依赖表单或页面实现；appType 与 CSS 就绪便立即同步应用基础设置。页面先按已确认 token 开发，视觉验收再核对主题加载结果。
 
-页面背景必须按已确认导航归属生成：无平台应用导航时，`--oyd-page-background` 默认 `transparent`，也可按明确设计关联 `--color-brand1-3` 等品牌 token；使用平台导航时默认关联 `--pod-page-bg-color`（回退白色），已确认的深色或自定义背景优先。不要沿用风格参考中的固定浅灰作为所有应用的默认画布。Plan 自动派生默认值，`visualStyle.tokens` 显式覆盖优先；Fast 将同样结果写进 design.md 的 tokens 并生成应用 CSS。Canvas 宿主和页面根使用同一别名，具体消费见 [背景与导航的关联](../../yida-canvas-custom-page/references/canvas-style-implementation-guide.md#背景与导航的关联)。
+页面背景统一使用 `--pod-page-bg-color`，卡片和面板使用 `--pod-card-bg-color`，默认回退 `--color-white`；抽屉整体使用 `--pod-shell-theme-bg-color`，标题栏与正文容器透明承接，不用卡片底色铺满抽屉。导航归属不改变页面底色，隐藏导航不自动透明；深色或明确的应用背景通过同一平台 token 配置。Plan 和 Fast 将设计值写入 design.md 并生成 app-theme.css，Canvas 宿主、页面根和 antd 统一消费；渐变、纹理和素材作为页面局部装饰层。
 
 ## CLI token 契约（Fast / Plan 共用）
 
@@ -82,7 +86,7 @@ tags: [<业务领域>, <角色>, <数据形态>]
 avoid: [<不适合场景>]
 themeProfile:
   name: <主题名称>
-  themeColorSource: <user-specified / application-theme / business-inferred / template-default>
+  themeColorSource: <user-specified / application-theme / business-inferred>
   themeColorToken: <--color-brand1-6 的字面量值>
   themeDelivery: <app-custom-theme-file / current-app-theme>
   customThemeTemplate: yida-design/references/theme/app-custom-theme-template.css
@@ -339,6 +343,8 @@ inferred_modules:
 ## 15. 状态与交互
 
 列出 hover、active、focus、loading、empty、error、disabled、selected、mobile 和 reduced motion 规则。
+
+按 [页面与导航连续性](../references/page-continuity.md) 逐页交接背景、滚动、切换/返回和异常状态；沉浸页导航叠加首屏，工作区导航占位，页内切换不创建应用导航。
 
 ## 16. 响应式
 

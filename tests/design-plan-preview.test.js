@@ -49,6 +49,25 @@ test('visual module produces design and CSS independently and preserves custom C
   expect(fs.readFileSync(result.outputs.theme, 'utf8')).toContain('.my-dialog { border: 3px solid purple; }');
 });
 
+test('incomplete page drafts display standalone menus but cannot be finalized', () => {
+  const pages = JSON.parse(JSON.stringify(source.pages));
+  const page = pages.customPageDetails[0];
+  delete page.primaryTask;
+  delete page.dataBinding;
+  page.pageSpecHandoff = {
+    entryMode: 'standalone',
+    navigation: { type: 'custom', variant: 'top', reason: '员工只办理自己的事项' },
+  };
+  update({ pages });
+  expect(read('prd.md')).toContain('自定义顶部菜单');
+  expect(read('prd.md')).toContain('应用工作区保留平台导航');
+  expect(read('build-plan.html')).toContain('自定义顶部菜单');
+  expect(JSON.parse(fs.readFileSync(input))).toEqual(source);
+  fs.writeFileSync(input, JSON.stringify({ ...source, pages }));
+  expect(() => materialize(input)).toThrow();
+  expect(fs.existsSync(path.join(dir, 'prd.md'))).toBe(false);
+});
+
 test('stale part and simultaneous writer preserve existing artifacts', () => {
   update({ dataModels: source.dataModels });
   const before = read('prd.md');
@@ -81,11 +100,34 @@ test('finalization promotes the accumulated facts and invalidates confirmation o
   update({ visualStyle: source.visualStyle });
   const result = materialize(input, { fromPreview: true });
   expect(result.merged).toBe(true);
+  expect(result.revision).toBe('2026-08-31-02');
   expect(Object.keys(result.outputs)).toEqual(['prd', 'design', 'html', 'theme']);
   expect(JSON.parse(fs.readFileSync(input)).meta.planState.planConfirmed).toBe(false);
   expect(fs.readFileSync(result.outputs.prd, 'utf8')).toContain('更新后的客户管理目标');
   expect(fs.readFileSync(result.outputs.html, 'utf8')).toContain('更新后的客户管理目标');
   expect(fs.readFileSync(result.outputs.html, 'utf8')).not.toContain('方案正在完善');
+});
+
+test('first preview finalization stays at revision 1 and consumes the old draft base', () => {
+  source.meta.revision = '1';
+  source.meta.planState = { presentedRevision: null, confirmedRevision: null, planConfirmed: false };
+  fs.writeFileSync(input, JSON.stringify(source));
+  update({ overview: { ...source.overview, summary: '首次完整方案' }, dataModels: source.dataModels,
+    businessFlows: source.businessFlows, pages: source.pages, visualStyle: source.visualStyle });
+  expect(materialize(input, { fromPreview: true })).toMatchObject({ previousRevision: '1', revision: '1' });
+  expect(() => materialize(input, { fromPreview: true })).toThrow(expect.objectContaining({
+    code: 'DESIGN_PLAN_PREVIEW_INVALID', details: { reason: 'stale base' },
+  }));
+});
+
+test('identical finalized facts preserve an existing confirmation', () => {
+  source.meta.status = 'confirmed';
+  source.meta.planState = { planConfirmed: true, presentedRevision: source.meta.revision, confirmedRevision: source.meta.revision };
+  fs.writeFileSync(input, JSON.stringify(source));
+  update({ overview: source.overview, dataModels: source.dataModels, businessFlows: source.businessFlows,
+    pages: source.pages, visualStyle: source.visualStyle });
+  expect(materialize(input, { fromPreview: true }).revision).toBe(source.meta.revision);
+  expect(JSON.parse(fs.readFileSync(input)).meta).toEqual(source.meta);
 });
 
 test('unchanged design tokens preserve local CSS overrides while changed tokens update', () => {

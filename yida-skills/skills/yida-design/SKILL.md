@@ -10,6 +10,12 @@ description: >
 
 宜搭应用和页面视觉设计技能，输出 `design.md`。
 
+确定风格前，按[设计方向比较](references/style-design-selection.md#设计方向比较)以第一直觉为参照，发展两个更有表现力的方向，在当前规划轮次内选定。已有明确视觉要求时，在其范围内完善设计。
+
+向用户说明设计时，写风格和适用场景：“设计主题风格为轻盈媒体栅格，适合产品展示型品牌官网。”风格名称与场景按当前项目填写；建议阶段使用“建议采用……风格”。
+
+需要业务规划时调用 `use_skill("yida-prd")`。已有 `prd.md` 时直接读取其中的页面任务、区块和业务规则，再做视觉设计；查询业务字段或格式时，按需读取 `yida-prd` 的参考文件。
+
 完整应用沿用需求分析阶段确认的模式与风格，按 [设计模式路由](references/design-mode.md) 推进。Fast 使用下方视觉流程；Plan 使用 [视觉分支](sub_skill/yida-design-plan/SKILL.md) 维护视觉事实，由 `yida-app` 生成方案并请用户确认；业务规划始终归 `yida-prd`。单页设计和主题调整直接继续。
 
 ---
@@ -49,7 +55,7 @@ description: >
 
 1. **平台能力优先**：数据录入、提交、编辑、审批、权限、字段校验走宜搭表单/流程；自定义页负责展示数据、呈现分析结果、放置业务入口、打开详情页，并串联表单、流程、报表和导航入口。
 2. **美感提升保持功能契约**：页面美化、视觉升级和页面重构默认只调整颜色、布局、密度、间距、视觉层级、素材和图标表达；现有数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限和业务状态保持原样。
-3. **默认保留平台应用导航**：普通自定义页、页面内 tab、分段、筛选和快捷入口都不触发 `yida-nav-shell`。PRD 选择自定义导航，或用户明确要求自绘应用级导航、隐藏应用导航时，写 `appBlueprint.hideAppNav: 'y'` 并交给 `yida-nav-shell`。用户只说全屏、无导航或 `isRenderNav=false` 时，只写页面级隐藏配置。
+3. **默认保留平台应用导航**：普通自定义页、页面内 tab、分段、筛选和快捷入口都不触发 `yida-nav-shell`。PRD 的应用工作区选择自定义导航，或用户明确要求自绘应用级导航、隐藏应用导航时，写 `appBlueprint.hideAppNav: 'y'` 并交给 `yida-nav-shell`。独立前台选择自己的菜单时，同样进入 `yida-nav-shell`，但只配置该页独立展示，保留后台应用导航。用户只说全屏、无导航或 `isRenderNav=false` 时，只写页面级隐藏配置。
 4. **同应用页面入口归导航**：同应用页面优先放入平台导航或导航分组；自定义页内容区放当前页动作、原生表单新建/查看、外部链接和跨应用资源。
 5. **表单入口响应式**：新增/提交页 URL 默认使用页面级隐藏导航的 `submission/{formUuid}?isRenderNav=false`；详情页 URL 默认使用 `formDetail/{formUuid}?formInstId={formInstId}&navConfig.layout=1180&isRenderNav=false`，且 `formInstId` 必须来自真实数据记录并优先取 `row.formInstId`；PC 端默认在侧边抽屉中用 iframe 承载宜搭原生表单，抽屉默认半屏 `50vw`，提交页和详情页使用同一宽度规则；移动端整页或新页打开。
 6. **主题文件**：Plan 直接使用 CLI 返回的 `outputs.theme`；Fast 和已有主题调整按 [主题文件生成与更新](workflow/output-design.md#cli-token-契约fast--plan-共用) 执行。主题 CSS 生成后只用 `Read` 查看目标 token、用小范围 `Edit` 逐组修改；不得用 Python、Node、Shell 或 `run_workspace_script` 脚本生成、复制、整文件重写、正则替换或 retheme `app-theme.css`，校验脚本只能读取并报告问题，不能改写主题文件。
@@ -64,6 +70,7 @@ description: >
 15. **参考转成可执行选择**：参考 Dribbble / 优秀案例时，落到主色、背景素材、首屏构图、信息密度、动线、区块数量和反默认点。
 16. **页面文案和图标使用专业表达**：渲染文案使用纯文本；图标只使用 `lucide-react` 或 `@ant-design/icons` 的具体组件，默认选择 `lucide-react`，并在 `design.md` 的 `iconSystem` 中写清业务动作、状态、导航和空态到图标组件的映射。emoji 不能改成 CSS 形状、字母占位、Unicode 符号或临时 SVG；如果需要图标，必须映射到上述两类库的具体组件。
 17. **实现交接明确**：设计产物只定义页面结构、视觉系统和验收标准；常规业务图表使用 `yida-rechart`；ECharts 例外只用于用户明确要求复杂 ECharts option 或维护旧图表。
+18. **素材按页面分级**：在 `assetStrategy` 中记录图片等级和槽位；需要素材时交给 `yida-image-assets`。
 
 ---
 
@@ -82,7 +89,7 @@ description: >
 | [视觉结构配方库](references/visual-scaffold-recipes.md) | 将高质量页面结构转成 `visualScaffold` 槽位，约束页面实现落地 | UI 视觉设计 |
 | [页面质量门禁](references/page-quality-gates.md) | 区块数量、源码槽位、低密大卡片、主题一致性和 `pageSpecHandoff` 检查 | 页面结构、视觉与交接阶段 |
 | [style-design 风格注册表](references/style-designs/registry.md) | 内置视觉 DNA 风格、选择评分、风险扣分、风格消费规则 | UI 视觉设计 |
-| [应用结构参考](references/app/blueprint.md) | 应用角色、导航、页面清单、页面/表单/流程资源蓝图 | 完整应用或主页面 |
+| [应用结构参考](../yida-prd/references/app/blueprint.md) | 应用角色、导航、页面清单、页面/表单/流程资源蓝图 | 完整应用或主页面 |
 | [应用主题与 token 参考](references/theme/theme-token-presets.md) | 平台主题 key、候选主题、token profile | 需要主题 key 或 token |
 | [应用主题 CSS 模板](references/theme/app-custom-theme-template.css) | AI 可复制修改的品牌、Shell、页面、表格和导航 token | 生成自定义应用主题文件时必读 |
 | [yida-canvas-custom-page 样式实现指南](../yida-canvas-custom-page/references/canvas-style-implementation-guide.md) | 将 `design.md` 的 token、背景、圆角、密度和组件规则落到页面源码、antd、CSS、图表和控件状态 | 实现阶段 |

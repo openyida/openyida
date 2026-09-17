@@ -15,6 +15,14 @@ const {
 const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 
 describe('real E2E runner', () => {
+  let logSpy;
+  beforeEach(() => {
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    logSpy.mockRestore();
+  });
+
   test('stays opt-in by default', () => {
     const config = getConfig({}, new Date('2026-05-11T00:00:00Z'));
 

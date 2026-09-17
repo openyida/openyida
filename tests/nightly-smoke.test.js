@@ -6,6 +6,14 @@ const {
 } = require('../scripts/nightly-smoke');
 
 describe('nightly real-environment smoke script', () => {
+  let logSpy;
+  beforeEach(() => {
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    logSpy.mockRestore();
+  });
+
   test('accepts page-only smoke config for custom display pages', () => {
     const env = {
       OPENYIDA_SMOKE_APP_TYPE: 'APP_SMOKE',

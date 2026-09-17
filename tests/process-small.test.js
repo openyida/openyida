@@ -136,6 +136,23 @@ describe('small process commands', () => {
     expect(configureProcess.run).not.toHaveBeenCalled();
   });
 
+  test.each(['new', 'existing'])('create-process rejects invalid append settings before %s form writes', async mode => {
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    const processDefPath = path.join(tmpDir, 'actions.json');
+    fs.writeFileSync(fieldsPath, JSON.stringify([{ type: 'TextField', label: '姓名' }]));
+    fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [{
+      type: 'approval', approver: 'originator',
+      actions: { normalActions: [{ action: 'append', hidden: false, appendPosition: [] }] },
+    }] }));
+    const args = mode === 'new'
+      ? ['APP_XXX', '审批表单', fieldsPath, processDefPath]
+      : ['APP_XXX', '--formUuid', 'FORM_1', processDefPath];
+    await expect(createProcess.run(args)).rejects.toMatchObject({ code: 'PROCESS_COMPILE_ACTION_CONFIG_INVALID' });
+    expect(createForm.createFormForLegacyProcess).not.toHaveBeenCalled();
+    expect(configureProcess.run).not.toHaveBeenCalled();
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
   test('create-process creates a form through the JS bridge without invoking the CLI subprocess', async () => {
     const fieldsPath = path.join(tmpDir, 'fields.json');
     const processDefPath = path.join(tmpDir, 'process.json');

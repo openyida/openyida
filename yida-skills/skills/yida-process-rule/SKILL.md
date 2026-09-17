@@ -34,7 +34,7 @@ description: 配置已有流程表单审批规则。
 - 配置前先用 `yida-get-schema` 获取所有字段 ID
 - 流程定义 JSON 必须用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`，不要在仓库根目录、系统临时目录或 `.cache/` 顶层生成 `process-definition.json` 等临时文件
 - 必须以表单 binding 只读结果证明 `processCode` 属于目标 `formUuid`；`CONFIGURE_PROCESS_OWNERSHIP_UNVERIFIED` 时停止，不得换一个 processCode 猜测重试
-- 命令成功必须同时返回 `verificationLevel: "PLATFORM_VIEW_VERIFIED"` 和 `platformViewVerified: true`；这只证明平台可见 view 的节点、组件、名称、顺序和审批模式，不代表平台返回了可独立验证的 `processJson`
+- 命令成功必须同时返回 `verificationLevel: "PLATFORM_VIEW_VERIFIED"` 和 `platformViewVerified: true`；这只证明平台可见 view 的节点、组件、名称、顺序、审批模式及按钮权限和加签参数，不代表平台返回了可独立验证的 `processJson`
 
 ## 适用场景
 
@@ -173,6 +173,7 @@ OpenYida 会自动兼容常见别名：
 | `approver` | String/Object | 是 | 审批人。`"originator"` 表示发起人；Object 支持 `user`、`role`、`deptLeader`、`directLeader`，也可传入宜搭流程设计器的原始审批人配置 |
 | `description` | String | 否 | 节点描述 |
 | `formConfig` | Object | 否 | 字段权限配置 |
+| `actions` | Object | 否 | 操作权限，包含 `normalActions` 和 `appendActions`，见下文 |
 | `routeRules` | Array | 否 | 跳转规则 |
 
 ### 办理 / 填写节点（operator）
@@ -280,6 +281,10 @@ OpenYida 会自动兼容常见别名：
 | `LessThanOrEqual` | 小于等于 | NumberField |
 | `In` | 属于 | SelectField, RadioField |
 | `NotIn` | 不属于 | SelectField, RadioField |
+
+### 加签和转交（actions）
+
+CLI 支持通过 `node.actions.normalActions/appendActions` 同时生成按钮和完整加签参数。需要开启加签或转交时，先阅读 [操作权限配置](references/approval-actions.md)；不要仅修改原始 JSON 的 `hidden`。未配置时保持历史默认权限。
 
 ### 字段权限配置（formConfig）
 

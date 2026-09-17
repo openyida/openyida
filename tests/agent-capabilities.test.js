@@ -18,31 +18,77 @@ describe('agent-capabilities summary', () => {
     jest.dontMock('../lib/core/utils');
   });
 
-  test('delivery runtime detector keeps local Codex non-cloud and honors managed cloud signals', () => {
+  test('exposes non-cloud search and QwenWork generation runtime defaults', () => {
+    const { buildAssetCapabilities } = require('../lib/core/agent-capabilities');
+    const local = buildAssetCapabilities({ tool: 'codex', runtime: 'desktop_shell', subtype: 'codex' }, {});
+    expect(local).toMatchObject({
+      host: { tool: 'codex', class: 'non_cloud' },
+      online_search: { status: 'available', available: true },
+      image_search: { status: 'available', available: true },
+      image_generation: { status: 'unknown', available: null },
+      requires_host_tool_inventory_check: true,
+    });
+
+    const qwenwork = buildAssetCapabilities(
+      { tool: 'qwenwork', runtime: 'desktop_shell', subtype: 'qwenwork_desktop' },
+      {}
+    );
+    expect(qwenwork).toMatchObject({
+      host: { tool: 'qwenwork', class: 'non_cloud' },
+      online_search: { status: 'available', available: true },
+      image_search: { status: 'available', available: true },
+      image_generation: { status: 'available', available: true },
+      requires_host_tool_inventory_check: true,
+    });
+
+    const declared = buildAssetCapabilities(
+      { tool: 'qwenwork', runtime: 'web_sandbox', subtype: 'qwenwork_web' },
+      {
+        OPENYIDA_AGENT_ONLINE_SEARCH: '1',
+        OPENYIDA_AGENT_IMAGE_SEARCH: '1',
+        OPENYIDA_AGENT_IMAGE_GENERATION: '0',
+      }
+    );
+    expect(declared).toMatchObject({
+      online_search: { status: 'available', available: true },
+      image_search: { status: 'available', available: true },
+      image_generation: { status: 'unavailable', available: false },
+      requires_host_tool_inventory_check: true,
+    });
+  });
+
+  test('application entry policy includes developer admin regardless of injected auth or host signals', () => {
     const { buildApplicationEntryPolicy } = require('../lib/core/agent-capabilities');
 
     expect(buildApplicationEntryPolicy({
-      auth: { auth_runtime: 'env_token_bootstrap' },
+      auth: { auth_runtime: 'env_token_bootstrap', can_auto_use: true },
       runtime: { runtime: 'desktop_shell' },
     }, { CODEX_SHELL: '1', CODEX_CI: '1' })).toMatchObject({
+      environment: 'managed_cloud_agent',
+      entries: { admin: 'include' },
+    });
+
+    expect(buildApplicationEntryPolicy({
+      auth: { auth_runtime: 'token_oauth_session', can_auto_use: true },
+      runtime: { runtime: 'web_sandbox', tool: 'mulerun' },
+    }, { OPENYIDA_MANAGED_RUNTIME: 'cloud' })).toMatchObject({
       environment: 'non_cloud_agent',
       entries: { admin: 'include' },
     });
 
     expect(buildApplicationEntryPolicy({
-      auth: { auth_runtime: 'token_oauth_session' },
-      runtime: { runtime: 'unknown' },
-    }, { OPENYIDA_MANAGED_RUNTIME: 'cloud' })).toMatchObject({
-      environment: 'managed_cloud_agent',
-      entries: { admin: 'omit' },
+      auth: { auth_runtime: 'env_token_bootstrap', can_auto_use: false },
+      runtime: { runtime: 'web_sandbox', tool: 'mulerun' },
+    }, {})).toMatchObject({
+      environment: 'non_cloud_agent',
+      entries: { admin: 'include' },
     });
 
     expect(buildApplicationEntryPolicy({
-      auth: { auth_runtime: 'token_oauth_session' },
-      runtime: { runtime: 'web_sandbox', tool: 'qwenwork' },
-    }, {})).toMatchObject({
-      environment: 'managed_cloud_agent',
-      entries: { admin: 'omit' },
+      runtime: { runtime: 'web_sandbox', tool: 'mulerun' },
+    }, { OPENYIDA_MANAGED_RUNTIME: 'cloud' })).toMatchObject({
+      environment: 'non_cloud_agent',
+      entries: { admin: 'include' },
     });
   });
 
@@ -147,9 +193,9 @@ describe('agent-capabilities summary', () => {
         resource_delivery: 'summary_only',
         internal_artifact_delivery: 'never',
         entries: {
-          workbench: 'always',
+          workbench: 'when_workspace_in_scope',
           custom: 'when_entry_mode_standalone_and_is_render_nav_false_readback',
-          admin: 'omit',
+          admin: 'include',
         },
       });
     } finally {
@@ -269,7 +315,7 @@ describe('agent-capabilities summary', () => {
       expect(summary.application_entry_policy).toMatchObject({
         environment: 'non_cloud_agent',
         entries: {
-          workbench: 'always',
+          workbench: 'when_workspace_in_scope',
           custom: 'when_entry_mode_standalone_and_is_render_nav_false_readback',
           admin: 'include',
         },

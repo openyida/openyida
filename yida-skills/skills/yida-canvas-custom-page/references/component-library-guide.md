@@ -6,7 +6,7 @@
 
 | 场景 | 推荐库 | 何时使用 | 使用要点 |
 | --- | --- | --- | --- |
-| B 端业务界面 | `antd` | 表格、表单控件、按钮、弹窗、Tabs、Tag、Dropdown、分页 | 最外层包 `ConfigProvider`，主色用 `readBrandColor` 注入；资源加载交给 YidaCodeCanvas runtime |
+| B 端业务界面 | `antd` | 表格、表单控件、按钮、弹窗、Tabs、Tag、Dropdown、分页 | 按 [CanvasThemeProvider 接入方式](canvas-theme-provider.md) 统一主题；资源加载交给 YidaCodeCanvas runtime |
 | 图表看板 | `recharts` | 折线、柱状、面积、饼图、简单仪表盘 | 容器必须有稳定高度；颜色用品牌色和语义色，不硬编码默认蓝 |
 | 复杂可视化 | `d3` | 自定义关系图、力导向、桑基、特殊坐标系 | 只在 Recharts 覆盖不了时使用；自己管理 DOM/cleanup |
 | 图标 | `lucide-react`，必要时 `@ant-design/icons` | 按钮、操作、状态、导航等功能性图标 | 默认使用 `lucide-react` named import；antd 语境可使用 `@ant-design/icons` Outlined 图标 |
@@ -73,6 +73,16 @@ import { SearchOutlined, PlusOutlined, EyeOutlined } from '@ant-design/icons';
 
 同一页面选择一套主图标语言。默认主图标语言是 `lucide-react`；选择 `@ant-design/icons` 时，快捷入口、按钮、状态和导航仍然使用具体组件映射。
 
+## 运行时图标校验
+
+`openyida compile <源文件.canvas.jsx> --json` 和 Canvas 发布前编译都会离线检查 `lucide-react`、`@ant-design/icons` 的实际运行时导出。支持 named import（含别名）、命名空间的静态成员、解构和不可变别名；报错 `OPENYIDA_CANVAS_ICON_EXPORT_UNAVAILABLE` 包含 `packageName`、`exportName`、源码行列、`runtimeAsset` 和 `suggestions`。
+
+不要根据业务词拼造组件名，也不要把最新版 npm / 官网图标目录当成宜搭运行时清单。例如当前运行时没有 `Museum`，可按语义选 `Landmark`；保留原 JSX 名称时写 `import { Landmark as Museum } from 'lucide-react'`。CLI 不会自动替换业务图标。
+
+动态配置应先映射到明确导入的组件：`const Icon = actionIconMap[action] || AlertCircle`。任意 `Icons[name]` 的运行时值不在静态校验保证范围内；优先使用上面的显式映射，不能用动态取值或手写 window 全局绕过报错。默认导入的 `DynamicIcon` 及其既有用法保持兼容，仍需验证实际名称和渲染结果。
+
+导出清单随 CLI 分发，编译不访问 CDN。平台升级图标包时维护者需重新核对运行时资产并更新清单。编译通过和发布回读均不代表浏览器渲染验收通过。
+
 ## emoji 报错时的图标修复
 
 OpenYida 禁止页面源码和 page-spec 中出现 emoji。遇到 `contains emoji` 时，先判断该符号是否承担图标语义：
@@ -95,13 +105,13 @@ OpenYida 禁止页面源码和 page-spec 中出现 emoji。遇到 `contains emoj
 可直接按推荐组合编写页面并执行本地快检：
 
 ```bash
-node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/dashboard-starter.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
+openyida compile project/pages/src/dashboard-starter.canvas.jsx --json
 ```
 
 ## 自查清单
 
 - 所有 `import` 都在可用前端资源清单内，并能出现在 `importedModules`。
 - 页面视觉方向来自 `yida-design`，组件库服务于既定视觉方向。
-- antd 主色通过 `ConfigProvider` 跟随 App 品牌色。
+- antd 主色通过生成的 CanvasThemeProvider 跟随应用品牌色。
 - 图表和图标服务于信息层级；图标默认使用 `lucide-react`，antd 组件语境可使用 `@ant-design/icons`。
 - 页面依赖和推荐话术只包含当前已验证可用资源能力。

@@ -6,6 +6,8 @@
 
 已有应用里的单页重构/美化读取并沿用当前应用主题。用户要求更换主色时，更新应用级主题文件，不在页面代码中创建或向上层写入另一套主题。
 
+先按[设计方向比较](../references/style-design-selection.md#设计方向比较)确定本项目的构图、层级、材质和色彩关系，复用已经完成的选择。
+
 ## 选择主题色
 
 先确定主题色来源，再生成应用主题文件。用户确认“自然绿意”等整体风格时，页面浅底、卡片、填充、边界和交互一起协调，不能只改主按钮；字体保持清晰中性层级，状态保持语义色。模板固定雾白/灰阶不能覆盖该选择。完整规则见 [用户配色与模板的优先级](output-design.md#用户配色与模板的优先级)。主题色来源优先级如下：
@@ -15,7 +17,6 @@
 | 1 | `user-specified` | 用户明确给出色值、品牌色、主题 key 或换肤要求 | 原样记录用户意图；命中平台 key 才允许传 `--theme`，任意色值写 token |
 | 2 | `application-theme` | 已有应用或工作区中能读到当前 `theme`、`colour`、`themeColor` 或 `navTheme` | 单页美化和已有应用改造默认跟随；页面主按钮、链接、选中态和图表主序列跟随应用主题 |
 | 3 | `business-inferred` | 无明确主题证据，需要根据行业、品牌气质、业务情绪和视觉目标推导 | 设计任意合法的自定义品牌色盘，写应用主题 token 和文件交付方案 |
-| 4 | `template-default` | 没有任何主题证据且无法稳定推导业务色彩 | 临时使用 UI 视觉设计阶段所选 style-design 的默认 brand token，并明确标记为兜底 |
 
 1. 先判断业务气质：行业、目标用户、品牌关键词、业务情绪、视觉目标，以及是否需要亲和/专业/活力/稳重/科技/自然感。
 2. 在 `design.md` 中记录主题色、`navTheme`、`logoSource` 和 `layoutDirection`。
@@ -97,7 +98,7 @@ AI 默认直接使用模板内 coffee 咖啡色色阶和大圆角层级。若 `d
 
 design.md Theme Profile：
 - themeProfile.name：<平台预置 key 或自定义色盘名称>
-- themeColorSource：<user-specified / application-theme / business-inferred / template-default>
+- themeColorSource：<user-specified / application-theme / business-inferred>
 - themeColorToken：<CSS 中 --color-brand1-6 的字面量值>
 - themeDelivery：<app-custom-theme-file / current-app-theme>
 - customThemeTemplate：yida-design/references/theme/app-custom-theme-template.css

@@ -30,6 +30,7 @@ const mockAuthData = {
 
 let logSpy;
 let errorSpy;
+let stderrSpy;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -37,11 +38,13 @@ beforeEach(() => {
   utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
   logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  stderrSpy = jest.spyOn(process.stderr, 'write').mockReturnValue(true);
 });
 
 afterEach(() => {
   logSpy.mockRestore();
   errorSpy.mockRestore();
+  stderrSpy.mockRestore();
 });
 
 describe('export-app', () => {

@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  asset: {
+    executionReview: 'सामग्री निष्पादन के प्रमाण की समीक्षा करें: {0}। पृष्ठभूमि कार्य की पुष्टि, व्यावसायिक कार्य अवधि और समकालिक विकल्प के कारण जाँचें।',
+    localFileUnavailable: "चित्र फ़ाइल नहीं मिली: {0}। कमांड की कार्य निर्देशिका जाँचें या पूर्ण पथ दें।",
+    invalidStrategy: "चित्र आवश्यकताएँ एक ऑब्जेक्ट में दें, जिसमें हर पृष्ठ के चित्र स्थान हों।",
+  },
   help: {
     subtitle: 'Yida के लिए AI-संचालित लो-कोड विकास उपकरण',
     usage: 'उपयोग:',
@@ -22,6 +27,7 @@ module.exports = {
     cmd_create_app: 'Yida ऐप बनाएं',
     cmd_design_plan_preview: 'मॉड्यूल के अनुसार योजना का मसौदा अपडेट करें',
     design_plan_preview_invalid: 'मसौदा अपडेट विफल; त्रुटि विवरण देखें',
+    cmd_design_plan_catalog: 'योजना के लिए उपलब्ध थीम और पेज पैटर्न दिखाएँ',
     cmd_design_plan_init: 'पुष्टि की गई आवश्यकताओं से योजना का मसौदा बनाएँ',
     cmd_design_plan_materialize: 'build-plan.json से योजना आउटपुट बनाएं और जाँचें',
     cmd_design_plan_patch: 'फ़ील्ड पथ से योजना बदलें और पुरानी पुष्टि अमान्य करें',
@@ -63,8 +69,8 @@ module.exports = {
     cmd_corp_manager: 'प्लेटफ़ॉर्म अनुमतियां प्रबंधित करें',
     cmd_agent_center: 'प्रक्रिया और प्रस्थान प्रतिनिधि प्रबंधित करें',
     group_process: 'प्रक्रिया',
-    cmd_configure_process: 'प्रक्रिया नियम कॉन्फ़िगर और प्रकाशित करें',
-    cmd_create_process: 'प्रक्रिया फॉर्म बनाएं (एकीकृत)',
+    cmd_configure_process: 'प्रक्रिया नियम कॉन्फ़िगर और प्रकाशित करें; JSON nodes[].actions.normalActions/appendActions से अनुमोदक जोड़ें और अग्रेषित करें',
+    cmd_create_process: 'प्रक्रिया फॉर्म बनाएं (एकीकृत); JSON nodes[].actions.normalActions/appendActions से अनुमोदक जोड़ें और अग्रेषित करें',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'प्रक्रिया इंस्टेंस पूर्वावलोकन (फ्लोचार्ट)',
     group_share: 'पेज कॉन्फ़िगरेशन & शेयरिंग',
@@ -148,6 +154,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_local_menu_binding: 'स्थानीय मेनू {0} को होस्ट पेज और viewKey चाहिए: प्रवेश {1} का sceneKey पेज के sceneKey से, resource पेज के name से मेल खाए और viewKey खाली न हो। यह सभी भूमिकाओं पर लागू है।',
+    design_plan_visual_object_required: '{0} एक ऑब्जेक्ट होना चाहिए, स्ट्रिंग या ऐरे नहीं। init द्वारा बनाई संरचना बनाए रखें और मान भरें। उदाहरण: {1}।',
     help: '\n' +
       'openyida - Yida CLI Tool\n' +
       '\n' +
@@ -806,6 +814,14 @@ module.exports = {
     usage_label: 'Usage:',
     usage_create_short: '  create: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  update: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
+    resume_readback_failed: 'Unable to read the target form before resume.',
+    resume_ownership_unverified: 'The target form does not belong to the requested app; resume stopped.',
+    resume_identity_mismatch: 'The target form identity does not match the readback; resume stopped.',
+    resume_schema_invalid: 'The target form schema is unavailable.',
+    resume_container_invalid: 'The target form container is unavailable.',
+    resume_field_conflict: 'Existing fields conflict with the requested definition; resume stopped.',
+    resume_field_resolution_failed: 'Resume field resolution failed.',
+    resume_readback_mismatch: 'Resume readback did not confirm all requested fields.',
     example_label: '\nExamples:',
     fields_file_not_found: '  ❌ Fields definition file not found: ',
     fields_format_invalid: 'Invalid fields definition format',
@@ -892,6 +908,15 @@ module.exports = {
     response_body: '  Response body: {0}',
     response_detail: '  Response detail: {0}',
     response_not_json: 'response is not JSON',
+    code_bundle_download_failed: 'CodeBundle डाउनलोड विफल: {0} ({1})',
+    code_bundle_forbidden: 'अनुमति सत्यापन या OSS पहुँच अस्वीकृत हुई',
+    code_bundle_not_found: 'फ़ाइल मौजूद नहीं है या हटा दी गई है',
+    code_bundle_http_error: 'HTTP {0}',
+    code_bundle_html_response: 'HTML त्रुटि पृष्ठ मिला; वातावरण या रूट गलत हो सकता है',
+    code_bundle_json_response: 'सेवा ने JSON त्रुटि प्रतिक्रिया लौटाई: {0}',
+    code_bundle_unexpected_content_type: 'अनपेक्षित प्रतिक्रिया Content-Type: {0}',
+    code_bundle_invalid_utf8: 'प्रतिक्रिया मान्य UTF-8 पाठ नहीं है',
+    code_bundle_integrity_failed: 'CodeBundle {0} की अखंडता जाँच विफल ({1})',
     login_expired: '  Login session expired: {0}',
     csrf_expired: '  CSRF token expired: {0}',
     csrf_refreshed: '  csrf_token refreshed',
@@ -1234,6 +1259,14 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_path_missing_app_type: 'पंक्ति {0}: नेविगेशन में appType नहीं है। canvas-navigation और सत्यापित ID से /{appType}/{pageType}/{formUuid} बनाएँ; केवल /custom/ पथ न दें।',
+    canvas_theme_fixed_brand: 'पंक्ति {0}: ConfigProvider में ब्रांड रंग स्थिर है। canvas-theme से प्राप्त थीम रंग उपयोग करें; CSS var सीधे केवल DOM स्टाइल में दें।',
+    canvas_navigation_local_platform: 'पंक्ति {0}: स्थानीय व्यू प्लेटफ़ॉर्म मेनू से फ़िल्टर हो रहे हैं। mode=local या स्थानीय स्टेट उपयोग करें; वास्तविक पेजों को formUuid/navUuid से जोड़ें और घोषित अनुमतियाँ जाँचें।',
+    canvas_navigation_document_flex: 'पंक्ति {0}: document में शून्य आधार वाला flex है। canvas-nav-content अपडेट करें: document के लिए प्राकृतिक ऊँचाई और ब्लॉक, workspace के लिए निश्चित ऊँचाई वाला flex।',
+    canvas_theme_not_assembled: 'पंक्ति {0} का थीम मार्कर अभी तैयार नहीं हुआ है। build-canvas-theme.js चलाएँ और अलग आउटपुट फ़ाइल को कंपाइल/प्रकाशित करें। एकीकृत Provider वाले पेजों को इस मार्कर की आवश्यकता नहीं है।',
+    canvas_theme_provider_missing: 'पंक्ति {0} के पास थीम प्रदाता जुड़ा नहीं है। YidaComp से <CanvasThemeProvider><PageContent /></CanvasThemeProvider> लौटाएँ।',
+    canvas_theme_root_hook: 'पंक्ति {0} के पास प्रदाता सक्रिय होने से पहले थीम पढ़ी जा रही है। useCanvasThemeContext को PageContent में ले जाएँ और उसे CanvasThemeProvider के भीतर रेंडर करें।',
+    canvas_theme_context_scope: 'पंक्ति {0} के पास CanvasThemeContext फ़ंक्शन के भीतर घोषित है। संदर्भ और प्रदाता को मॉड्यूल स्तर पर घोषित करें।',
     canvas_inline_css_invalid: 'पंक्ति {0} के पास CSS में अधूरा या बेमेल कोष्ठक, स्ट्रिंग या टिप्पणी है। प्रकाशित करने से पहले ठीक करें।',
     title: '  yida-publish - Yida पेज प्रकाशन टूल',
     platform: '  प्लेटफ़ॉर्म: {0}',
@@ -1323,6 +1356,7 @@ module.exports = {
     canvas_compiling: '  🎨 कस्टम पेज स्रोत को स्थानीय रूप से संकलित किया जा रहा है...',
     canvas_compile_done: '  ✅ कस्टम पेज संकलित!',
     canvas_compile_failed: '  ❌ कस्टम पेज संकलन विफल: {0}',
+    canvas_icon_export_unavailable: 'पंक्ति {2}: Yida रनटाइम आइकन लाइब्रेरी {0}, {1} एक्सपोर्ट नहीं करती। समर्थित आइकन चुनें और फिर से कंपाइल करें। विकल्प: {3}।',
     canvas_unbound_identifiers: 'Code Canvas स्रोत में अघोषित पहचानकर्ता हैं: {0}। उसी फ़ाइल में छूटा हुआ import, फ़ंक्शन, Ref, state या स्थानीय चर घोषित करें और सभी संदर्भों में वही नाम रखें। यदि पहचानकर्ता किसी गैर-मानक runtime से मिलता है, तो window.<name> या parentWindow.<name> से स्पष्ट रूप से पहुँचें और पहले उसके मौजूद होने की जाँच करें।',
     canvas_instance_api_unavailable: 'Code Canvas कॉम्पोनेंट इन प्लेटफ़ॉर्म JSX इंस्टेंस API का उपयोग नहीं कर सकते: {0}। React hooks, props या window.__OPENYIDA_YIDA_API__ डेटा ब्रिज का उपयोग करें।',
     step_login: '\n🔑 Step 2: लॉगिन जानकारी पढ़ें',
@@ -1999,7 +2033,8 @@ Object.assign(module.exports.create_process || (module.exports.create_process = 
   login_required: 'कोई मान्य Yida लॉगिन सत्र नहीं मिला। पहले openyida login चलाएँ।',
 });
 module.exports.connector_test = {
-  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--json]',
+  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--ignore-defaults] [--json]',
+  ignore_defaults_system_token_warning: '--ignore-defaults के माध्यम से सहेजे गए डिफ़ॉल्ट पैरामीटर मानों को अनदेखा किया गया है (उनमें गैर-रिक्त systemToken है और इस रन में उपयोग नहीं किया जाता); उत्पादन उपयोग से पहले डिज़ाइनर में कार्रवाई के डिफ़ॉल्ट साफ़ करें।',
   invalid_json: '{0} is not valid JSON: {1}', json_object_required: '{0} must be a JSON object',
   unknown_flat_param: 'Parameter {0} is not in the action schema; use structured JSON options', ambiguous_flat_param: 'Parameter {0} belongs to multiple locations; use structured JSON options',
   auth_account_required: 'This connector requires an owned auth account passed with --account-id', auth_account_not_owned: 'Account {0} does not belong to this connector',
@@ -2028,3 +2063,7 @@ module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
 module.exports.agent = connectorSafetyMessages.agent;
 module.exports.help.cmd_agent = connectorSafetyMessages.help.cmd_agent;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: 'नोड {0} के लिए अमान्य अनुमोदन कार्रवाई कॉन्फ़िगरेशन: {1}',
+});

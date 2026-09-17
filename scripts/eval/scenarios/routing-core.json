@@ -90,6 +90,12 @@
     "note": "页面视觉方向和素材策略 → yida-design"
   },
   {
+    "id": "image-assets-product-placeholders",
+    "prompt": "商品目录页需要一组免费可商用的商品占位图和一张首页背景图，先检测当前 Agent 能不能联网搜图或生成图片并准备素材",
+    "expectedSkill": "yida-image-assets",
+    "note": "已有图片槽位的搜图与生图准备 → yida-image-assets"
+  },
+  {
     "id": "design-screen-impact",
     "prompt": "水质实时监控预警系统的数据大屏不够惊艳，先给我重新设计视觉方向",
     "expectedSkill": "yida-design",

@@ -107,7 +107,7 @@ export default YidaComp;
 # yida-report 负责统计口径；yida-canvas-data-binding 负责接口接入
 
 # 2. 本地快检
-node -e "const fs=require('fs'); const {compileCanvasLocal}=require('./lib/app/canvas-compile'); const src=fs.readFileSync('project/pages/src/trend-combo.canvas.jsx','utf8'); console.log(compileCanvasLocal(src).importedModules)"
+openyida compile project/pages/src/trend-combo.canvas.jsx --json
 
 # 3. 真实交付时发布
 openyida publish project/pages/src/trend-combo.canvas.jsx <appType> <displayPageFormUuid>

@@ -5,11 +5,22 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const packageJson = require('../package.json');
+const { getPackageBudgetErrors, MAX_TARBALL_BYTES, MAX_UNPACKED_BYTES, MAX_ENTRY_COUNT } = require('../scripts/validate-package-size');
 
 const ROOT = path.join(__dirname, '..');
 const NPM_BIN = process.env.OPENYIDA_NPM_BIN || (process.platform === 'win32' ? 'npm.cmd' : 'npm');
 
 describe('npm package smoke', () => {
+  const budgetLimit = { size: MAX_TARBALL_BYTES, unpackedSize: MAX_UNPACKED_BYTES, entryCount: MAX_ENTRY_COUNT };
+
+  test('package budgets accept their exact boundaries', () => {
+    expect(getPackageBudgetErrors(budgetLimit)).toEqual([]);
+  });
+
+  test.each(['size', 'unpackedSize', 'entryCount'])('package budgets reject %s above its boundary', field => {
+    expect(getPackageBudgetErrors({ ...budgetLimit, [field]: budgetLimit[field] + 1 })).toHaveLength(1);
+  });
+
   test('runtime dependencies stay lightweight for agent installs', () => {
     expect(packageJson.dependencies).not.toHaveProperty('playwright');
     expect(packageJson.dependencies).not.toHaveProperty('playwright-core');
@@ -66,6 +77,7 @@ describe('npm package smoke', () => {
       }
 
       const [pack] = JSON.parse(result.stdout);
+      expect(getPackageBudgetErrors(pack)).toEqual([]);
       const files = pack.files.map((file) => file.path);
 
       expect(files).toContain('bin/yida.js');

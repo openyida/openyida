@@ -150,6 +150,28 @@ describe('CliError', () => {
     expect(shouldUseStructuredErrorOutput(error, [])).toBe(true);
   });
 
+  test('forces structured output for deterministic mutation-free preflight failures', () => {
+    const error = new CliError('Invalid field type', {
+      code: 'CREATE_FORM_FIELD_TYPE_INVALID',
+      details: {
+        stage: 'preflight',
+        retrySafe: true,
+        sideEffectState: 'not_started',
+        mutationAccepted: false,
+        mutationPerformed: false,
+      },
+    });
+
+    expect(shouldUseStructuredErrorOutput(error, [])).toBe(true);
+    expect(toErrorPayload(error)).toMatchObject({
+      stage: 'preflight',
+      retrySafe: true,
+      sideEffectState: 'not_started',
+      mutationAccepted: false,
+      mutationPerformed: false,
+    });
+  });
+
   test('forces structured output for every navigation order failure', () => {
     ['NAV_ORDER_NOT_APPLIED', 'NAV_ORDER_READBACK_MISMATCH', 'NAV_ORDER_RESULT_UNKNOWN']
       .forEach((code) => {

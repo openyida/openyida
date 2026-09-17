@@ -206,9 +206,11 @@ openyida configure-process APP_XXX FORM_XXX .cache/openyida/process/process.json
 openyida process preview APP_XXX PROC_INST_XXX --output .cache/openyida/process/process.html
 ```
 
+加签、转交通过流程定义的 `nodes[].actions.normalActions/appendActions` 配置，`create-process` 和 `configure-process` 共用编译器，生成一致的设计器和运行配置。完整 JSON 示例、默认值及验收边界见 [操作权限配置](yida-skills/skills/yida-process-rule/references/approval-actions.md)。
+
 `configure-process` 在发现已有已发布流程或已保存草稿时要求显式传入 `--replace`；如果无法证明目标流程属于指定表单，则不会执行任何写入。草稿创建、保存和发布均按 one-shot 执行，认证或网络异常导致结果未知时不会自动重试。
 
-发布成功后，CLI 会精确回读 `PUBLISHED` 版本及 `getProcessById` 的平台可见视图，校验节点、组件、名称、顺序和审批模式。只有完整通过才返回 `PLATFORM_VIEW_VERIFIED`；无法完整验证时返回 `PUBLISHED_UNVERIFIED`，不得把本地 `processJson` 当作平台已验证结果。
+发布成功后，CLI 会精确回读 `PUBLISHED` 版本及 `getProcessById` 的平台可见视图，校验节点、组件、名称、顺序、审批模式及按钮权限和加签参数。只有完整通过才返回 `PLATFORM_VIEW_VERIFIED`；无法完整验证时返回 `PUBLISHED_UNVERIFIED`，不得把本地 `processJson` 当作平台已验证结果。
 
 ### 数据管理
 
@@ -273,11 +275,12 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida app-list [--type managed\|created] [--page N] [--size N]` | 分页查询我管理的或我创建的应用 |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | 查询企业效能概览和明细报表 |
 | `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建宜搭应用 |
+| `openyida design-plan catalog [--json]` | 查询规划可用的主题与页面模式 |
 | `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | 从已确认需求初始化计划草稿 |
 | `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | 按模块更新方案草稿 |
 | `openyida design-plan materialize <build-plan.json> [--from-preview \| --business-file <json> --visual-file <json>] [--output-dir <dir>] [--check] [--json]` | 从 build-plan.json 生成并校验搭建计划产物 |
-| `openyida design-plan patch <build-plan.json> --set <path=value> [--set <path=value> ...] [--materialize] [--output-dir <dir>] [--json]` | 按字段路径调整搭建计划并使旧确认失效 |
-| `openyida update-app <appType> [--name "..."] [--theme-file <css>] [--nav-theme light\|dark\|white\|gray] [--logo-source appIcon\|customImage] [--layout side\|top\|l_shape] [--hide-app-nav\|--show-app-nav]` | 更新应用信息 |
+| `openyida design-plan patch <build-plan.json> --set <path=value> [--set <path=value> ...] [--materialize] [--output-dir <dir>] [--json]` | 按字段更新搭建计划，素材进度沿用已有确认 |
+| `openyida update-app <appType> [--name "..."] [--desc "..."] [--icon <name>] [--icon-color <color>] [--colour <key>] [--theme-color <color>] [--theme-file <css>] [--nav-theme light\|dark\|white\|gray] [--logo-source appIcon\|customImage] [--layout side\|top\|l_shape] [--hide-app-nav\|--show-app-nav]` | 更新应用信息 |
 | `openyida app-online <appType> [--to-ding-app-center] [--show-app-center]` | 启用宜搭应用 |
 | `openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]` | 停用宜搭应用 |
 | `openyida nav-group <list\|create\|rename\|delete\|move\|order\|auto-order\|hide\|show> <appType> ...` | 管理应用左侧导航分组 |
@@ -294,7 +297,8 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida create-form create <appType> "<formTitle>" <fieldsJsonFile> [--icon auto\|<iconName>] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建表单页面 |
 | `openyida create-form icons [--json]` | 列出可用的表单导航图标 |
 | `openyida create-form validate-fields <fieldsJsonOrFile> [--json]` | 本地校验表单字段 JSON |
-| `openyida create-form update <appType> ... [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 更新表单页面 |
+| `openyida create-form update <appType> <formUuid> (<changesJsonOrFile> \| --data-file <changesJsonOrFile>) [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 更新表单页面 |
+| `openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> [--json]` | 更新表单页面 |
 | `openyida create-form patch <appType> <formUuid> <patchJsonOrFile> [--open\|--no-open]` | 更新表单页面 |
 | `openyida create-form rule <appType> <formUuid> <rulesJsonOrFile> [--open\|--no-open]` | 更新表单页面 |
 | `openyida create-form validation <appType> <formUuid> <validationsJsonOrFile> [--open\|--no-open]` | 更新表单页面 |
@@ -309,7 +313,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义展示页面 |
 | `openyida build-page <sourceFile> [--output file\|--write]` | 构建宜搭兼容页面源码 |
 | `openyida check-page <src> [--compat]` | 检查自定义页面规范 |
-| `openyida compile <src>` | 本地编译自定义页面 |
+| `openyida compile <src> [--canvas] [--json]` | 本地编译自定义页面 |
 | `openyida publish <src> <appType> <formUuid> [--health-check] [--force] [--canvas] [--auto-nav-order] [--open\|--no-open]` | 编译并发布自定义页面 |
 | `openyida update-form-config <appType> <formUuid> <true\|false\|keep> "<title>" [--locale zh_CN\|en_US\|ja_JP]` | 更新表单配置 |
 | `openyida get-form-config <appType> <formUuid> [--json]` | 查询表单配置 |
@@ -332,8 +336,8 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida configure-process <appType> <formUuid> <definition> [processCode] [--replace]` | 配置并发布流程规则 |
-| `openyida create-process <appType> ... [--replace]` | 创建流程表单（一体化） |
+| `openyida configure-process <appType> <formUuid> <definition> [processCode] [--replace]` | 配置并发布流程规则; 支持加签/转交，配置位于 JSON nodes[].actions.normalActions/appendActions |
+| `openyida create-process <appType> ... [--replace]` | 创建流程表单（一体化）; 支持加签/转交，配置位于 JSON nodes[].actions.normalActions/appendActions |
 | `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | 管理流程表单 AI 审批提示 |
 | `openyida process preview <appType> ...` | 预览流程实例（可视化流程图） |
 
@@ -366,7 +370,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida connector update-action --connector-id <id> --action <operationId> --query-json JSON --confirm` | 安全更新动作 Query 默认值 |
 | `openyida connector list-actions <id>` | 列出执行动作 |
 | `openyida connector delete-action <id> <operation-id>` | 删除执行动作 |
-| `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>]` | 测试执行动作 |
+| `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>] [--ignore-defaults]` | 测试执行动作 |
 | `openyida connector list-connections <id>` | 列出鉴权账号 |
 | `openyida connector create-connection <id> <name> [--interactive]` | 创建鉴权账号 |
 | `openyida connector smart-create --curl "..."` | 从 cURL 生成脱敏动作草稿（不创建远端资源） |
@@ -408,7 +412,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | 批量执行 OpenYida 命令 |
 | `openyida flash-to-prd --file <path> --name "<project>"` | 闪记 / 会议纪要转 PRD prompt |
 | `openyida ai <text\|image> [options]` | 调用 AI 文生文和识图能力 |
-| `openyida asset <status\|resolve\|generate> [options]` | 检测素材能力 / 解析回填素材 |
+| `openyida asset <status\|resolve\|sources> [options]` | 检测素材能力 / 解析回填素材 |
 | `openyida cdn-config [options]` | 配置 CDN / OSS 上传 |
 | `openyida cdn-upload <image-path>` | 上传图片到 CDN |
 | `openyida cdn-refresh [options]` | 刷新 CDN 缓存 |

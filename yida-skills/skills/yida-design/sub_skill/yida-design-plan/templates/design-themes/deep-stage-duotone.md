@@ -5,79 +5,69 @@ themeId: deep-stage-duotone
 tokens:
   application-global:
     colors:
-      "--color-white": "#FFFFFF"
-      "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 12%，用于悬停>"
-      "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与白色混合 88%，用于平台品牌浅色>"
-      "--color-brand1-3": "<基于 --color-brand1-6 生成的实际色值：与白色混合 94%，用于浅色导航框架>"
-      "--color-brand1-5": "<基于 --color-brand1-6 生成的实际色值：与黑色混合 18%，用于深色导航框架>"
-      "--color-brand1-6": "{{PRIMARY_COLOR}}"
-      "--color-brand1-9": "<基于 --color-brand1-6 生成的实际色值：与黑色混合 12%，用于按下与激活>"
-      "--color-brand1-10": "<基于 --color-brand1-6 生成的实际色值：与白色混合 62%，用于禁用>"
-      "--color-line1-1": "#EAEAEA"
-      "--color-line1-2": "#DADADA"
-      "--color-fill1-1": "#F7F7F7"
-      "--color-fill1-2": "#F1F1F1"
-      "--color-fill1-3": "#E7E7E7"
-      "--color-fill1-10": "rgba(255, 255, 255, 0.96)"
-      "--color-text1-4": "#181818"
-      "--color-text1-10": "#5E5E5E"
-      "--color-text1-3": "#888888"
+      "--pod-app-root-bg-color": "var(--pod-page-bg-color)" # 应用最底层背景色
+      "--pod-app-root-bg-image": "none" # 应用最底层背景图
+      "--pod-shell-theme-bg-color": "var(--color-brand1-3)" # 顶部导航、侧边导航和应用壳层背景色
+      "--pod-page-bg-color": "var(--color-white, #fff)" # 宜搭全局页面画布背景色
+      "--color-white": "#FFFFFF" # 全应用基础表面色
+      "--pod-card-bg-color": "var(--color-white)" # 一级卡片、表单主容器和详情面板背景色
+      "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 12%，用于悬停>" # 悬停色
+      "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与白色混合 88%，用于平台品牌浅色>" # 品牌浅色，保留平台既有消费关系
+      "--color-brand1-3": "<基于 --color-brand1-6 生成的实际色值：与白色混合 94%，用于浅色导航框架>" # 浅色导航框架背景色
+      "--color-brand1-5": "<基于 --color-brand1-6 生成的实际色值：与黑色混合 18%，用于深色导航框架>" # 深色导航框架背景色
+      "--color-brand1-6": "{{PRIMARY_COLOR}}" # 全应用主题主色，是其他 Brand Token 的生成基准
+      "--color-brand1-9": "<基于 --color-brand1-6 生成的实际色值：与黑色混合 12%，用于按下与激活>" # 激活、按下状态色
+      "--color-brand1-10": "<基于 --color-brand1-6 生成的实际色值：与白色混合 62%，用于禁用>" # 禁用状态色
+      "--color-line1-1": "#EAEAEA" # 弱边界、辅助线和表格行分隔线
+      "--color-line1-2": "#DADADA" # 控件和容器常规边界
+      "--color-fill1-1": "#F7F7F7" # 菜单悬停和弱状态填充
+      "--color-fill1-2": "#F1F1F1" # 点击或选中填充
+      "--color-fill1-3": "#E7E7E7" # 更重的中性填充
+      "--color-fill1-10": "#2E3033" # Tooltip 固定深色背景
+      "--color-text1-5": "#FFFFFF" # Tooltip 固定反色文字
+      "--color-text1-4": "#181818" # 默认一级文字色，文字对比最强
+      "--color-text1-10": "#5E5E5E" # 表头和 placeholder
+      "--color-text1-3": "#888888" # 二级文字色，弱于 text1-10
+      "--color-text1-2": "rgba(24, 24, 24, 0.4)" # 仅用于禁用态文字，弱于 text1-3
+      "--color-text1-1": "rgba(24, 24, 24, 0.24)" # 仅用于水印文字，文字对比最弱
     typography:
-      base:
-        "--font-family-base": "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif"
-      subhead:
-        "--font-size-subhead": 24px
-        "--font-weight-subhead": 600
-        "--font-lineheight-subhead": 1.3
-      body-2:
-        "--font-size-body-2": 16px
-        "--font-weight-body-2": 600
-        "--font-lineheight-body-2": 1.4
-      body-1:
-        "--font-size-body-1": 14px
-        "--font-weight-body-1": 400
-        "--font-lineheight-body-1": 1.5
-      table:
-        "--font-size-table": 14px
-        "--font-weight-table": 400
-        "--font-lineheight-table": 1.45
-      caption:
-        "--font-size-caption": 12px
-        "--font-weight-caption": 400
-        "--font-lineheight-caption": 1.4
+      "--font-family-base": "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      "--font-size-subhead": "18px"
+      "--font-weight-subhead": "500"
+      "--font-lineheight-subhead": "1.3"
+      "--font-size-body-2": "16px"
+      "--font-weight-body-2": "500"
+      "--font-lineheight-body-2": "1.45"
+      "--font-size-body-1": "14px"
+      "--font-weight-body-1": "400"
+      "--font-lineheight-body-1": "1.5"
+      "--font-size-table": "13px"
+      "--font-weight-table": "400"
+      "--font-lineheight-table": "1.45"
+      "--font-size-caption": "12px"
+      "--font-weight-caption": "400"
+      "--font-lineheight-caption": "1.4"
     spacing:
-      "--s-1": 4px
-      "--s-2": 8px
-      "--s-3": 12px
-      "--s-4": 16px
-      "--s-6": 24px
-      "--s-8": 32px
+      "--s-1": "4px"
+      "--s-2": "8px"
+      "--s-3": "12px"
+      "--s-4": "16px"
+      "--s-5": "20px"
+      "--s-6": "24px"
+      "--s-7": "28px"
+      "--s-8": "32px"
+      "--s-9": "36px"
+      "--s-10": "40px"
     rounded:
-      "--corner-zero": 0px
-      "--corner-1": 4px
-      "--corner-2": 8px
-      "--corner-3": 12px
-      "--corner-4": 16px
-      "--corner-5": 20px
-      "--corner-circle": 50%
-      "--corner-semicircle": 500px
-  custom-page:
-    colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
-      "--oyd-theme-deep": "color-mix(in srgb, var(--color-brand1-6) 34%, #111111)"
-      "--oyd-theme-deep-soft": "color-mix(in srgb, var(--oyd-theme-deep) 76%, #FFFFFF)"
-      "--oyd-stage-pattern": "rgba(255, 255, 255, 0.10)"
-      "--oyd-stage-secondary-action": "rgba(255, 255, 255, 0.18)"
-      "--oyd-stage-object-overlay": "rgba(255, 255, 255, 0.08)"
-    typography:
-      metric-stage:
-        "--font-size-metric-stage": 34px
-        "--font-weight-metric-stage": 500
-        "--font-lineheight-metric-stage": 1.2
-      metric-primary:
-        "--font-size-metric-primary": 28px
-        "--font-weight-metric-primary": 500
-        "--font-lineheight-metric-primary": 1.25
+      "--corner-zero": "0px"
+      "--corner-1": "4px"
+      "--corner-2": "8px"
+      "--corner-3": "12px"
+      "--corner-4": "16px"
+      "--corner-5": "20px"
+      "--corner-circle": "50%"
+      "--corner-semicircle": "500px"
+  custom-page: {}
 ---
 
 # {{PROJECT_NAME}} design.md
@@ -102,7 +92,7 @@ tokens:
 
 | 设计母体 | 可见证据与置信度 | 复用规则与实现钩子 | 缺失后的失败表现 |
 | --- | --- | --- | --- |
-| 深色聚焦摘要舞台 | 横向深色大面板承载单个核心值与右侧操作，背景有低对比线框纹理；主操作使用亮主题色，次操作半透明。`observed` | 保留高对比舞台、左右分区、低对比纹理与一主多次操作；指标和操作由 PRD 决定，舞台消费 `--oyd-theme-deep`。 | 退化为普通白卡或大面积渐变 Hero，核心焦点和产品感丢失。 |
+| 深色聚焦摘要舞台 | 横向深色大面板承载单个核心值与右侧操作，背景有低对比线框纹理；主操作使用亮主题色，次操作半透明。`observed` | 保留高对比舞台、左右分区、低对比纹理与一主多次操作；指标和操作由 PRD 决定，舞台消费 `color-mix(in srgb, var(--color-brand1-6) 34%, #111111)`。 | 退化为普通白卡或大面积渐变 Hero，核心焦点和产品感丢失。 |
 | 零轴双向双色柱 | 主图以零轴为中心，深色柱向上、亮色柱向下，稀疏网格和日期刻度保持轻量。`observed` | 保留共享零轴、上下方向、同主题深浅双色与固定柱宽；序列语义和数据由 PRD 决定。 | 两组柱同向或使用无关分类色，方向关系与主题一致性消失。 |
 | 主图右侧摘要列 | 图表右侧由竖分隔线切出窄列，使用方形主题图标、主值、变化信息与水平分隔组织两项摘要。`observed` | 仅在图表和独立摘要同时存在时使用，保留竖分隔、上下等高与图标—文本层级；具体摘要由 PRD 决定。 | 摘要漂浮在图表内部或无条件生成侧栏，造成遮挡与内容伪造。 |
 | 方向图标明细行 | 明细首列使用浅主题圆形底与方向图标，两级文本、状态和方法信息沿行内网格排列。`observed` | 保留圆形方向锚点、两级文本、轻分隔与等宽数字；方向、状态和字段必须来自真实记录。 | 退化为密集默认表格，方向语义与亲和力下降。 |
@@ -124,7 +114,7 @@ tokens:
 
 ### 设计变量范围
 
-`tokens.application-global` 是原生表单、流程页面和自定义页面共同遵守的全应用契约；本主题使用无彩色灰阶、24px 以内标题、4px 基础间距和 4-20px 圆角阶梯。`tokens.custom-page` 只补充页面画布、主题深色舞台、深色柔化变体、舞台纹理与半透明操作层，以及全局层缺失的舞台主值和常规指标数字。图表网格复用 `--color-line1-1`，tooltip 复用 `--color-fill1-10`，普通浅底复用 `--color-fill1-1 / --color-fill1-2`，不重复声明同义 Token。
+颜色、字体、间距和圆角统一使用 `tokens.application-global` 中的基础变量。组件直接消费对应变量；渐变、透明度和纹理在组件配方中组合基础变量。独立分类色保留在对应图表配方中。
 
 ## 色彩
 
@@ -145,13 +135,13 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔线、图表网格和表格行线 | `--color-line1-1` | 应用全局 |
 | 输入框、按钮和面板常规边界 | `--color-line1-2` | 应用全局 |
-| 页面底层画布 | `--oyd-page-background` | 自定义页 |
-| 面板、卡片、弹窗和表单容器 | `--color-white` | 应用全局 |
-| 深色聚焦舞台、深色数据序列和实体主卡 | `--oyd-theme-deep` | 自定义页 |
-| 深色舞台的次级主题变体 | `--oyd-theme-deep-soft` | 自定义页 |
-| 深色舞台与实体卡的线框纹理 | `--oyd-stage-pattern` | 自定义页 |
-| 深色舞台的次操作表面 | `--oyd-stage-secondary-action` | 自定义页 |
-| 实体卡的低对比几何水印 | `--oyd-stage-object-overlay` | 自定义页 |
+| 页面底层画布 | `--pod-page-bg-color` | 自定义页 |
+| 面板、卡片、弹窗和表单容器 | `--pod-card-bg-color` | 应用全局 |
+| 深色聚焦舞台、深色数据序列和实体主卡 | `color-mix(in srgb, var(--color-brand1-6) 34%, #111111)` | 自定义页 |
+| 深色舞台的次级主题变体 | `color-mix(in srgb, color-mix(in srgb, var(--color-brand1-6) 34%, #111111) 76%, #FFFFFF)` | 自定义页 |
+| 深色舞台与实体卡的线框纹理 | `rgba(255, 255, 255, 0.10)` | 自定义页 |
+| 深色舞台的次操作表面 | `rgba(255, 255, 255, 0.18)` | 自定义页 |
+| 实体卡的低对比几何水印 | `rgba(255, 255, 255, 0.08)` | 自定义页 |
 | 菜单悬停、弱标签和浅图标底 | `--color-fill1-1` | 应用全局 |
 | 菜单点击和中性选中底 | `--color-fill1-2` | 应用全局 |
 | 更重中性填充与禁用轨道 | `--color-fill1-3` | 应用全局 |
@@ -159,28 +149,31 @@ tokens:
 | 表头和输入框 placeholder | `--color-text1-10` | 应用全局 |
 | 辅助说明、坐标轴、时间和元信息 | `--color-text1-3` | 应用全局 |
 
-`--color-brand1-6` 是唯一主题色种子。`--oyd-theme-deep` 由主色 34% 与 `#111111` 66% 混合，`--oyd-theme-deep-soft` 再由深色变体 76% 与白色 24% 混合；项目实例化时必须写入实际色值。同色深浅只改变色相与明度，不改变深色舞台、零轴方向、主辅结构和组件机制。中性与白色区域不少于页面面积的 76%。
+`--color-brand1-6` 是唯一主题色种子。`color-mix(in srgb, var(--color-brand1-6) 34%, #111111)` 由主色 34% 与 `#111111` 66% 混合，`color-mix(in srgb, color-mix(in srgb, var(--color-brand1-6) 34%, #111111) 76%, #FFFFFF)` 再由深色变体 76% 与白色 24% 混合；项目实例化时必须写入实际色值。同色深浅只改变色相与明度，不改变深色舞台、零轴方向、主辅结构和组件机制。中性与白色区域不少于页面面积的 76%。
 
 ### 本主题的配色约束
 
 - `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 均为 `neutral-gray`，Hex 满足 `R = G = B`；所有 rgba 灰阶前三通道相等。
-- `--oyd-theme-deep` 与 `--oyd-theme-deep-soft` 是主题派生深色，不声明为灰色；换主题色时必须重新计算。
-- `--oyd-stage-pattern`、`--oyd-stage-secondary-action`、`--oyd-stage-object-overlay` 是等通道白色透明材质，只用于深色表面。
-- 成功、警告、错误和信息状态直接消费平台语义色并配合文字、图标或方向符号；`custom-page` 不重复声明同义状态 Token。
+- `color-mix(in srgb, var(--color-brand1-6) 34%, #111111)` 与 `color-mix(in srgb, color-mix(in srgb, var(--color-brand1-6) 34%, #111111) 76%, #FFFFFF)` 是主题派生深色，不声明为灰色；换主题色时必须重新计算。
+- `rgba(255, 255, 255, 0.10)`、`rgba(255, 255, 255, 0.18)`、`rgba(255, 255, 255, 0.08)` 是等通道白色透明材质，只用于深色表面。
+- 成功、警告、错误和信息状态直接消费平台语义色并配合文字、图标或方向符号；状态样式使用平台组件的状态配置。
 - 亮主色与深色派生是唯一主数据双调；平台错误色仅用于真实负向状态，不作为第三条数据序列。
 
 ## 字体与排版
 
-- 全局只使用 `tokens.application-global.typography.base` 的字体栈。
-- `page-title` 消费 `tokens.application-global.typography.subhead`；`panel-title` 消费 `body-2`；正文消费 `body-1`；表格消费 `table`；辅助信息消费 `caption`。
-- `subhead` 为 24px / 600 / 1.3；`body-2` 为 16px / 600 / 1.4；`body-1` 为 14px / 400 / 1.5；`table` 为 14px / 400 / 1.45；`caption` 为 12px / 400 / 1.4。
-- `tokens.custom-page.typography.metric-stage` 为 34px / 500 / 1.2，仅用于深色舞台核心值；`metric-primary` 为 28px / 500 / 1.25，用于白色指标卡与图表摘要。两者是全局层缺失的独立数字语义，不替代页面标题。
-- 数值启用等宽数字；深色舞台标题与数值使用白色，辅助说明使用 75%-85% 白色。长标题最多两行，表格主文本单行省略并提供完整值。
-- 图标使用 1.5px 线性描边、圆端点；行首图标 18px，方形摘要图标 20px。图标与首行文字视觉居中。
+字体使用 `--font-family-base`。字号、字重和行高按 YAML 的固定基础变量执行；数字使用 `font-variant-numeric: tabular-nums` 保持列对齐。
+
+| 内容 | 字号 | 字重 | 行高 |
+| --- | --- | --- | --- |
+| 页面标题、强面板标题、重点数字 | `--font-size-subhead` | `--font-weight-subhead` | `--font-lineheight-subhead` |
+| 次级标题、强调正文 | `--font-size-body-2` | `--font-weight-body-2` | `--font-lineheight-body-2` |
+| 普通正文 | `--font-size-body-1` | `--font-weight-body-1` | `--font-lineheight-body-1` |
+| 表格正文 | `--font-size-table` | `--font-weight-table` | `--font-lineheight-table` |
+| 辅助说明、元信息 | `--font-size-caption` | `--font-weight-caption` | `--font-lineheight-caption` |
 
 ## 布局与间距
 
-- 所有间距消费 YAML 的 `--s-1` 至 `--s-8`：微间距用 `--s-1 / --s-2`，控件组用 `--s-3`，卡片内距用 `--s-4 / --s-6`，大区块用 `--s-6 / --s-8`。
+- 所有间距消费 YAML 的 `--s-1` 至 `--s-10`：微间距用 `--s-1 / --s-2`，控件组用 `--s-3`，卡片内距用 `--s-4 / --s-6`，大区块用 `--s-6 / --s-8`。
 - 全页面最大宽度 1760px，安全边距 28-32px；父级使用 `gap`，同类面板拉伸，长内容内部处理。
 - 深色舞台仅在核心摘要契约成立时出现；主图右侧 7:3 摘要列仅在主图与独立摘要同时存在时使用；底部 2:1 明细与实体卡仅在两类内容同时存在时使用。
 - 顶部搜索、日期范围与导出等全局操作是否存在由 PRD 决定；无操作时不保留空白槽位。
@@ -196,9 +189,9 @@ tokens:
 
 ## 表面与层级
 
-- 常规面板使用 `--color-white`、1px `--color-line1-1`、`0 1px 3px rgba(0,0,0,0.03)`；深色舞台无阴影，依靠色面和 `--corner-5` 建立层级。
-- 深色舞台的线框纹理使用 `--oyd-stage-pattern`，线宽 1px、面积不超过舞台右半区域；次操作使用 `--oyd-stage-secondary-action`。
-- tooltip、popover 使用 `--color-fill1-10`、`--color-line1-2` 和 `0 8px 24px rgba(0,0,0,0.10)`；嵌套区使用浅填充或分隔线，不重复投影。
+- 常规面板使用 `--pod-card-bg-color`、1px `--color-line1-1`、`0 1px 3px rgba(0,0,0,0.03)`；深色舞台无阴影，依靠色面和 `--corner-5` 建立层级。
+- 深色舞台的线框纹理使用 `rgba(255, 255, 255, 0.10)`，线宽 1px、面积不超过舞台右半区域；次操作使用 `rgba(255, 255, 255, 0.18)`。
+- Tooltip 使用 `--color-fill1-10` 背景与 `--color-text1-5` 文字；popover 和弹窗使用 `--pod-card-bg-color`、`--color-text1-4` 与 `--color-line1-2`，以局部阴影区分浮层。
 - 禁止毛玻璃、强辉光和全页渐变；深色材质只出现在聚焦舞台、主题图标块和实体主卡。
 
 ## 圆角与形状
@@ -211,7 +204,7 @@ tokens:
 
 ### 按钮与操作
 
-按钮仅使用 28px 行内、32px 紧凑工具栏、36px 常规、40px 强调四档；图标按钮为同档正方形。浅色区域主按钮消费 `--color-brand1-6`；深色舞台主按钮同样用主色，次按钮用 `--oyd-stage-secondary-action` 与白字。hover、active 使用 `--color-brand1-1 / --color-brand1-9`，focus 为 2px 对比外环加 2px offset；disabled 同时降低文字与表面对比。同一操作区只保留一个主操作。
+按钮仅使用 28px 行内、32px 紧凑工具栏、36px 常规、40px 强调四档；图标按钮为同档正方形。浅色区域主按钮消费 `--color-brand1-6`；深色舞台主按钮同样用主色，次按钮用 `rgba(255, 255, 255, 0.18)` 与白字。hover、active 使用 `--color-brand1-1 / --color-brand1-9`，focus 为 2px 对比外环加 2px offset；disabled 同时降低文字与表面对比。同一操作区只保留一个主操作。
 
 ### 输入与筛选控件
 
@@ -227,15 +220,15 @@ tokens:
 
 ### 零轴双向双色柱
 
-固定公式：中心 1px 零轴 + 上下两组 22-32px 圆端柱 + 稀疏水平网格 + 时间刻度。深色序列消费 `--oyd-theme-deep`，亮色序列消费 `--color-brand1-6`；上下方向必须对应真实语义。hover 显示同一维度的双值 tooltip。无方向关系时使用普通分组柱，禁止强制拆成正负。
+固定公式：中心 1px 零轴 + 上下两组 22-32px 圆端柱 + 稀疏水平网格 + 时间刻度。深色序列消费 `color-mix(in srgb, var(--color-brand1-6) 34%, #111111)`，亮色序列消费 `--color-brand1-6`；上下方向必须对应真实语义。hover 显示同一维度的双值 tooltip。无方向关系时使用普通分组柱，禁止强制拆成正负。
 
 ### 主图右侧摘要列
 
-固定公式：1px 竖分隔 + 1-3 个等高摘要块 + 52-60px 方形主题图标 + 主值/变化 + 块间横分隔。深色图标块消费 `--oyd-theme-deep`，亮色块消费主色；变化状态配合方向符号和平台语义色。窄屏移动到主图下方。禁止把摘要浮在绘图区内。
+固定公式：1px 竖分隔 + 1-3 个等高摘要块 + 52-60px 方形主题图标 + 主值/变化 + 块间横分隔。深色图标块消费 `color-mix(in srgb, var(--color-brand1-6) 34%, #111111)`，亮色块消费主色；变化状态配合方向符号和平台语义色。窄屏移动到主图下方。禁止把摘要浮在绘图区内。
 
 ### 三联白色指标卡
 
-当 PRD 有 2-4 个独立指标时，使用等宽白卡、左上主题线性图标、右上周期说明、主值和底部对比说明。主值消费 `metric-primary`，图标消费主色，负向变化消费平台错误色。卡片等高，禁止彩色大底或强阴影。
+当 PRD 有 2-4 个独立指标时，使用等宽白卡、左上主题线性图标、右上周期说明、主值和底部对比说明。主值消费 `subhead`，图标消费主色，负向变化消费平台错误色。卡片等高，禁止彩色大底或强阴影。
 
 ### 方向图标明细
 
@@ -243,7 +236,7 @@ tokens:
 
 ### 层叠实体卡
 
-固定公式：辅助面板 + 前后错位两张 16-20px 圆角实体卡 + 深色主卡 + 低对比几何水印 + 脱敏字段。后卡只露出 12%-18% 高度，前卡消费 `--oyd-theme-deep`。必须检查权限与脱敏规则；无真实实体时不渲染，禁止用假卡填充视觉。
+固定公式：辅助面板 + 前后错位两张 16-20px 圆角实体卡 + 深色主卡 + 低对比几何水印 + 脱敏字段。后卡只露出 12%-18% 高度，前卡消费 `color-mix(in srgb, var(--color-brand1-6) 34%, #111111)`。必须检查权限与脱敏规则；无真实实体时不渲染，禁止用假卡填充视觉。
 
 ### 图表或主内容面板
 
@@ -290,7 +283,7 @@ tokens:
 
 ### 素材要求
 
-- 已有品牌与真实素材：{{BRAND_ASSETS}}
+- 页面图片需求：{{PAGE_IMAGE_NEEDS}}
 - 素材缺口：{{ASSET_GAPS}}
 - 图片、图表、缩略图和辅助图形必须有真实来源；缺少素材时使用结构化数据或中性占位，不编造人物、账户、凭证、指标、状态或图片地址。
 
@@ -339,7 +332,7 @@ tokens:
 - [ ] 舞台、7:3、2:1 和模块顺序是否未被写成全页面硬规则？
 - [ ] 未触发组件是否没有强行渲染，迁移是否没有新增业务内容？
 - [ ] 深色舞台、深色数据和实体主卡是否都从 `--color-brand1-6` 派生？
-- [ ] `custom-page` 是否没有与全局层同值同义或角色重叠的 Token？
+- [ ] 组件配方是否直接消费基础变量，并以表达式组合渐变、透明度和纹理？
 - [ ] 文字对比是否保持 `text1-4` 高于 `text1-10`、`text1-10` 高于 `text1-3`？
 - [ ] 主题身份、DNA、组件标题和总结是否没有绑定默认色相或页面类型？
 - [ ] 描述中的中等密度、充足局部留白、稳定圆角、轻阴影与高对比舞台是否与正文及 Token 一致？

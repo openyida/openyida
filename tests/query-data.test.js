@@ -239,11 +239,17 @@ describe('run() query form', () => {
     const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
     const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    await run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--size', '999']);
-    expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(1);
-
-    mockLog.mockRestore();
-    mockError.mockRestore();
+    const mockWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--size', '999']);
+      expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(1);
+      expect(mockWarn).toHaveBeenCalledTimes(1);
+      expect(mockWarn).toHaveBeenCalledWith(expect.stringContaining('已自动将 999 截断为 100'));
+    } finally {
+      mockWarn.mockRestore();
+      mockLog.mockRestore();
+      mockError.mockRestore();
+    }
   });
 
   test('传入 --search-json 参数时正常执行', async () => {

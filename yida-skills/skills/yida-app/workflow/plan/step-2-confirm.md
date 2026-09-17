@@ -1,6 +1,6 @@
 # Plan 规划入口
 
-首次搭建的范围、导航和风格已在 [需求分析](../../../yida-requirement-analysis/workflow/prepare-brief.md) 确认，本步骤复用回答。
+首次搭建的核心范围与实际用法已在 [需求分析](../../../yida-requirement-analysis/workflow/prepare-brief.md) 澄清，页面、导航和主题由规划准备补齐。本步骤复用回答与 AI 建议，不单独确认平台导航或自定义导航。
 
 将同一份 brief 和已选视觉交给业务与视觉技能。业务按已确认范围规划资源、页面与导航顺序；视觉先准备主题、token 和素材策略，收到页面任务、区块和 sceneKey 后完成逐页应用。
 

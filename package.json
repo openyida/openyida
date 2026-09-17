@@ -1,6 +1,6 @@
 {
   "name": "openyida",
-  "version": "2026.9.7",
+  "version": "2026.9.16-2",
   "description": "OpenYida CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
   "bin": {
     "openyida": "bin/yida.js",
@@ -57,6 +57,7 @@
     "check:i18n:baseline": "node scripts/validate-i18n.js --update-baseline",
     "check:syntax": "node scripts/check-syntax.js",
     "check:release-risks": "node scripts/check-release-risks.js",
+    "check:changelog": "node scripts/release-notes.js",
     "check:package-size": "node scripts/validate-package-size.js",
     "check:package": "npm pack --dry-run",
     "check:release": "npm run check:ci",

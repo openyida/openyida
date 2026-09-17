@@ -203,13 +203,16 @@ describe('forceCopyDir 行为', () => {
 
   let tmpDir;
   let originalCwd;
+  let logSpy;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yida-force-copy-'));
     originalCwd = process.cwd();
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {
+    logSpy.mockRestore();
     process.chdir(originalCwd);
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });

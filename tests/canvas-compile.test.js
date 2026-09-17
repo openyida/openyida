@@ -2,11 +2,13 @@
 
 const fs = require('fs');
 const path = require('path');
+const { assembleApplicationTheme } = require('../yida-skills/skills/yida-canvas-custom-page/scripts/build-canvas-theme');
 
 const {
   compileCanvas,
   compileCanvasLocal,
   extractImportedModules,
+  minifyCanvasRuntime,
   assertDependencyManifestConsistent,
   resolveWindowAlias,
 } = require('../lib/app/canvas-compile');
@@ -852,7 +854,7 @@ describe('compileCanvasLocal', () => {
 
     const { runtimeCode } = compileCanvasLocal(src);
 
-    expect(runtimeCode).toMatch(/const YidaComp\b/);
+    expect(runtimeCode).toMatch(/(?:const|let) YidaComp\b/);
     expect(runtimeCode).not.toMatch(/var YidaComp\s*=\s*YidaComp/);
 
     const Comp = assembleRuntime(runtimeCode, stubReactWindow());
@@ -926,7 +928,7 @@ describe('compileCanvasLocal', () => {
 
     const { runtimeCode } = compileCanvasLocal(src);
 
-    expect(runtimeCode).toMatch(/const App\b/);
+    expect(runtimeCode).toMatch(/(?:const|let) App\b/);
     expect(runtimeCode).toMatch(/var YidaComp\s*=\s*App/);
 
     const Comp = assembleRuntime(runtimeCode, stubReactWindow());
@@ -1051,7 +1053,7 @@ describe('compileCanvasLocal', () => {
       'yida-rechart',
       'trend-combo.canvas.jsx'
     );
-    const src = fs.readFileSync(templatePath, 'utf8');
+    const src = assembleApplicationTheme(fs.readFileSync(templatePath, 'utf8'));
     const { runtimeCode, importedModules } = compileCanvasLocal(src, { sourcePath: templatePath });
 
     expect(JSON.parse(importedModules)).toEqual(['antd', 'react', 'recharts']);
@@ -1069,7 +1071,7 @@ describe('compileCanvasLocal', () => {
       'yida-canvas-table-form',
       'table-form-batch-submit.canvas.jsx'
     );
-    const src = fs.readFileSync(templatePath, 'utf8');
+    const src = assembleApplicationTheme(fs.readFileSync(templatePath, 'utf8'));
     const { runtimeCode, importedModules } = compileCanvasLocal(src, { sourcePath: templatePath });
 
     expect(JSON.parse(importedModules)).toEqual(['antd', 'dayjs', 'react']);
@@ -1088,16 +1090,16 @@ describe('compileCanvasLocal', () => {
       'openyida-scaffold',
       'canvas-form-drawer.canvas.jsx'
     );
-    const src = fs.readFileSync(templatePath, 'utf8');
+    const src = assembleApplicationTheme(fs.readFileSync(templatePath, 'utf8'));
     const { runtimeCode, importedModules } = compileCanvasLocal(src, { sourcePath: templatePath });
 
     expect(JSON.parse(importedModules)).toEqual(['antd', 'lucide-react', 'react']);
     expect(runtimeCode).toMatch(/window\.antd/);
     expect(runtimeCode).toMatch(/window\.LucideReact/);
     expect(runtimeCode).toContain('FormOpenContainer');
-    expect(runtimeCode).toContain('readThemeColor');
+    expect(runtimeCode).toContain('resolveCanvasTheme');
     expect(src).toContain('min-height: 100vh');
-    expect(src).toContain('background: var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
+    expect(src).toContain('background: var(--pod-page-bg-color, var(--color-white, #fff))');
     expect(src).toContain('background: var(--pod-card-bg-color, var(--color-white, #fff))');
     expect(src).toContain('border: var(--pod-card-border, none)');
     expect(src).toContain('border-radius: var(--pod-card-border-radius, 20px)');
@@ -1123,10 +1125,10 @@ describe('compileCanvasLocal', () => {
     );
 
     const root = schema.pages[0].componentsTree[0];
-    expect(root.props.contentBgColor).toBe('var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
-    expect(root.props.contentBgColorMobile).toBe('var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))');
+    expect(root.props.contentBgColor).toBe('var(--pod-page-bg-color, var(--color-white, #fff))');
+    expect(root.props.contentBgColorMobile).toBe('var(--pod-page-bg-color, var(--color-white, #fff))');
     expect(root.props.pageStyle).toEqual({
-      backgroundColor: 'var(--oyd-page-background, var(--pod-page-bg-color, var(--color-white, #fff)))',
+      backgroundColor: 'var(--pod-page-bg-color, var(--color-white, #fff))',
     });
     expect(root.css).not.toContain('body{background-color:');
     expect(root.css).not.toContain('background-color:#f2f3f5');
@@ -1523,6 +1525,37 @@ describe('compileCanvasLocal', () => {
 });
 
 describe('compileCanvas (async wrapper)', () => {
+  test('minifies runtime code while preserving the executable YidaComp entry', () => {
+    const unminifiedRuntime = `
+      var YidaComp = function DescriptivePageComponent() {
+        var unusedValue = 1 + 2;
+        return window.React.createElement('div', null, 'ok');
+      };
+    `;
+
+    const runtimeCode = minifyCanvasRuntime(unminifiedRuntime);
+
+    expect(Buffer.byteLength(runtimeCode, 'utf8')).toBeLessThan(
+      Buffer.byteLength(unminifiedRuntime, 'utf8')
+    );
+    expect(runtimeCode).toContain('YidaComp');
+    expect(runtimeCode).not.toContain('unusedValue');
+    const Comp = assembleRuntime(runtimeCode, stubReactWindow());
+    expect(Comp().children).toEqual(['ok']);
+  });
+
+  test('reports a structured error when runtime minification fails', () => {
+    expect(() => minifyCanvasRuntime('function {', {
+      sourcePath: 'pages/src/bad.canvas.jsx',
+    })).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_MINIFY_FAILED',
+      details: {
+        stage: 'canvas_minify',
+        sourcePath: 'pages/src/bad.canvas.jsx',
+      },
+    }));
+  });
+
   test('resolves with runtimeCode + importedModules', async () => {
     const out = await compileCanvas('export default () => <i>ok</i>;');
     expect(out).toHaveProperty('runtimeCode');

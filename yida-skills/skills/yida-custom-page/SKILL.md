@@ -5,6 +5,8 @@ description: JSX 自定义页面开发规范（React 16 平台 Jsx 组件、expo
 
 # JSX 自定义页面开发
 
+平台导航下的管理页面默认只实现业务内容，跨模块由平台菜单切换；同任务分类可用页内 Tab。维护 JSX 页同样遵守[管理页面边界](../yida-canvas-custom-page/references/navigation-and-entry-guide.md#平台导航下的管理页面)，不默认追加自绘导航或隐藏平台导航。
+
 ## Resource-First 页面开发
 
 编写页面源码前，先按根技能解析目标 app/page/form context：

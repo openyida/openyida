@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  asset: {
+    executionReview: 'Cần kiểm tra bằng chứng thực thi tư liệu: {0}. Kiểm tra xác nhận tác vụ nền, thời gian công việc và lý do chuyển sang đồng bộ.',
+    localFileUnavailable: "Không tìm thấy tệp ảnh: {0}. Kiểm tra thư mục làm việc của lệnh hoặc dùng đường dẫn tuyệt đối.",
+    invalidStrategy: "Yêu cầu về ảnh phải là một đối tượng liệt kê vị trí ảnh theo từng trang.",
+  },
   help: {
     subtitle: 'Công cụ phát triển AI low-code cho Yida',
     usage: 'Cách dùng:',
@@ -22,6 +27,7 @@ module.exports = {
     cmd_create_app: 'Tạo ứng dụng Yida',
     cmd_design_plan_preview: 'Cập nhật bản nháp theo mô-đun',
     design_plan_preview_invalid: 'Cập nhật bản nháp thất bại; kiểm tra chi tiết lỗi',
+    cmd_design_plan_catalog: 'Liệt kê chủ đề và mẫu trang có sẵn để lập kế hoạch',
     cmd_design_plan_init: 'Khởi tạo bản nháp kế hoạch từ yêu cầu đã xác nhận',
     cmd_design_plan_materialize: 'Tạo và xác thực sản phẩm từ build-plan.json',
     cmd_design_plan_patch: 'Sửa kế hoạch theo đường dẫn và vô hiệu xác nhận trước',
@@ -63,8 +69,8 @@ module.exports = {
     cmd_corp_manager: 'Quản lý quyền nền tảng',
     cmd_agent_center: 'Quản lý ủy quyền quy trình và nghỉ việc',
     group_process: 'Quy trình',
-    cmd_configure_process: 'Cấu hình và xuất bản quy tắc quy trình',
-    cmd_create_process: 'Tạo biểu mẫu quy trình (tích hợp)',
+    cmd_configure_process: 'Cấu hình và xuất bản quy tắc quy trình; Thêm người phê duyệt và chuyển giao qua JSON nodes[].actions.normalActions/appendActions',
+    cmd_create_process: 'Tạo biểu mẫu quy trình (tích hợp); Thêm người phê duyệt và chuyển giao qua JSON nodes[].actions.normalActions/appendActions',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'Xem trước phiên bản quy trình (sơ đồ luồng)',
     group_share: 'Cấu hình & Chia sẻ trang',
@@ -148,6 +154,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_local_menu_binding: 'Menu nội bộ {0} cần trang chứa và viewKey: sceneKey của lối vào {1} phải khớp sceneKey của trang, resource bằng name của trang và viewKey không được trống. Áp dụng cho mọi vai trò.',
+    design_plan_visual_object_required: '{0} phải là đối tượng, không phải chuỗi hoặc mảng. Giữ cấu trúc do init tạo và điền giá trị. Ví dụ: {1}.',
     help: '\n' +
       'openyida - Yida CLI Tool\n' +
       '\n' +
@@ -806,6 +814,14 @@ module.exports = {
     usage_label: 'Usage:',
     usage_create_short: '  create: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  update: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
+    resume_readback_failed: 'Unable to read the target form before resume.',
+    resume_ownership_unverified: 'The target form does not belong to the requested app; resume stopped.',
+    resume_identity_mismatch: 'The target form identity does not match the readback; resume stopped.',
+    resume_schema_invalid: 'The target form schema is unavailable.',
+    resume_container_invalid: 'The target form container is unavailable.',
+    resume_field_conflict: 'Existing fields conflict with the requested definition; resume stopped.',
+    resume_field_resolution_failed: 'Resume field resolution failed.',
+    resume_readback_mismatch: 'Resume readback did not confirm all requested fields.',
     example_label: '\nExamples:',
     fields_file_not_found: '  ❌ Fields definition file not found: ',
     fields_format_invalid: 'Invalid fields definition format',
@@ -892,6 +908,15 @@ module.exports = {
     response_body: '  Response body: {0}',
     response_detail: '  Response detail: {0}',
     response_not_json: 'response is not JSON',
+    code_bundle_download_failed: 'Tải CodeBundle thất bại: {0} ({1})',
+    code_bundle_forbidden: 'Xác minh quyền hoặc truy cập OSS bị từ chối',
+    code_bundle_not_found: 'Tệp không tồn tại hoặc đã bị xóa',
+    code_bundle_http_error: 'HTTP {0}',
+    code_bundle_html_response: 'Đã nhận trang lỗi HTML; môi trường hoặc tuyến có thể không chính xác',
+    code_bundle_json_response: 'Dịch vụ trả về phản hồi lỗi JSON: {0}',
+    code_bundle_unexpected_content_type: 'Content-Type phản hồi không mong đợi: {0}',
+    code_bundle_invalid_utf8: 'Phản hồi không phải văn bản UTF-8 hợp lệ',
+    code_bundle_integrity_failed: 'Xác minh tính toàn vẹn của CodeBundle {0} thất bại ({1})',
     login_expired: '  Login session expired: {0}',
     csrf_expired: '  CSRF token expired: {0}',
     csrf_refreshed: '  csrf_token refreshed',
@@ -1234,6 +1259,14 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_path_missing_app_type: 'Dòng {0}: đích điều hướng thiếu appType. Dùng canvas-navigation và ID đã xác minh để tạo /{appType}/{pageType}/{formUuid}, không dùng riêng /custom/.',
+    canvas_theme_fixed_brand: 'Dòng {0}: ConfigProvider cố định màu thương hiệu. Dùng canvas-theme với màu đã phân giải từ chủ đề; chỉ dùng CSS var trực tiếp trong kiểu DOM.',
+    canvas_navigation_local_platform: 'Dòng {0}: các chế độ xem nội bộ bị lọc qua menu nền tảng. Dùng mode=local hoặc trạng thái nội bộ; gắn trang thật với formUuid/navUuid và kiểm tra quyền đã khai báo.',
+    canvas_navigation_document_flex: 'Dòng {0}: document dùng flex với cơ sở bằng 0. Cập nhật canvas-nav-content: chiều cao tự nhiên và khối cho document, flex có chiều cao cố định cho workspace.',
+    canvas_theme_not_assembled: 'Dấu chủ đề ở dòng {0} chưa được xử lý. Chạy build-canvas-theme.js rồi biên dịch/xuất bản tệp đầu ra riêng. Trang đã tích hợp Provider không cần dấu này.',
+    canvas_theme_provider_missing: 'Trang gần dòng {0} chưa được bọc bằng bộ cung cấp giao diện. Hãy trả về <CanvasThemeProvider><PageContent /></CanvasThemeProvider> từ YidaComp.',
+    canvas_theme_root_hook: 'Giao diện được đọc trước khi bộ cung cấp hoạt động gần dòng {0}. Chuyển useCanvasThemeContext vào PageContent và hiển thị nó bên trong CanvasThemeProvider.',
+    canvas_theme_context_scope: 'CanvasThemeContext được khai báo trong hàm gần dòng {0}. Hãy khai báo ngữ cảnh và bộ cung cấp ở cấp mô-đun.',
     canvas_inline_css_invalid: 'CSS gần dòng {0} có dấu ngoặc, chuỗi hoặc chú thích chưa đóng hoặc không khớp. Hãy sửa trước khi xuất bản.',
     title: '  yida-publish - Công cụ xuất bản trang Yida',
     platform: '  Nền tảng: {0}',
@@ -1323,6 +1356,7 @@ module.exports = {
     canvas_compiling: '  🎨 Đang biên dịch mã nguồn trang tùy chỉnh cục bộ...',
     canvas_compile_done: '  ✅ Đã biên dịch trang tùy chỉnh!',
     canvas_compile_failed: '  ❌ Biên dịch trang tùy chỉnh thất bại: {0}',
+    canvas_icon_export_unavailable: 'Dòng {2}: thư viện biểu tượng runtime Yida {0} không xuất {1}. Chọn biểu tượng được hỗ trợ và biên dịch lại. Gợi ý thay thế: {3}.',
     canvas_unbound_identifiers: 'Mã nguồn Code Canvas chứa định danh chưa được khai báo: {0}. Hãy bổ sung import hoặc khai báo hàm, Ref, trạng thái hay biến cục bộ trong cùng tệp và dùng cùng một tên cho mọi tham chiếu. Nếu runtime không chuẩn cung cấp định danh, hãy truy cập rõ ràng qua window.<name> hoặc parentWindow.<name> và kiểm tra sự tồn tại trước.',
     canvas_instance_api_unavailable: 'Thành phần Code Canvas không thể dùng các API phiên bản JSX của nền tảng sau: {0}. Hãy dùng React hooks, props hoặc cầu nối dữ liệu window.__OPENYIDA_YIDA_API__.',
     step_login: '\n🔑 Step 2: Đọc thông tin đăng nhập',
@@ -1999,7 +2033,8 @@ Object.assign(module.exports.create_process || (module.exports.create_process = 
   login_required: 'Không tìm thấy phiên đăng nhập Yida hợp lệ. Hãy chạy openyida login trước.',
 });
 module.exports.connector_test = {
-  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--json]',
+  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--ignore-defaults] [--json]',
+  ignore_defaults_system_token_warning: 'Các giá trị tham số mặc định đã lưu bị bỏ qua qua --ignore-defaults (chúng chứa systemToken khác rỗng và không được dùng trong lần chạy này); hãy dọn dẹp giá trị mặc định của hành động trong trình thiết kế trước khi dùng cho sản xuất.',
   invalid_json: '{0} is not valid JSON: {1}', json_object_required: '{0} must be a JSON object',
   unknown_flat_param: 'Parameter {0} is not in the action schema; use structured JSON options', ambiguous_flat_param: 'Parameter {0} belongs to multiple locations; use structured JSON options',
   auth_account_required: 'This connector requires an owned auth account passed with --account-id', auth_account_not_owned: 'Account {0} does not belong to this connector',
@@ -2028,3 +2063,7 @@ module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
 module.exports.agent = connectorSafetyMessages.agent;
 module.exports.help.cmd_agent = connectorSafetyMessages.help.cmd_agent;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: 'Cấu hình thao tác phê duyệt không hợp lệ cho nút {0}: {1}',
+});

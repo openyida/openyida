@@ -13,6 +13,8 @@ description: 自定义页面真实数据接入技能。用于在使用 `YidaCode
 
 ## 运行时事实
 
+涉及确认、取消、签到、删除等写操作时，编码前先读[业务动作授权](references/business-action-permissions.md)，在当前实现计划中记录角色、真实资源、数据范围、可写字段、前置状态和服务端实现；无法满足约束的动作保持禁用并列为未完成。界面显隐和管理员正向测试不能替代服务端授权及普通用户越权用例验证。
+
 - `YidaCodeCanvas` 组件只透传 `code / runtimeCode / importedModules / pageType`。
 - 组件内没有 `this` 上下文，也没有 `dataSourceMap`。
 - `this.utils.yida.*`、`didMount()`、`_customState` 等普通页面契约在 `YidaComp` 内不可直接使用；发布使用 `YidaCodeCanvas` 组件实现的页面时，外层普通页面的 `didMount` 必须自动把 `this.utils.yida.*` 封装到 `window.__OPENYIDA_YIDA_API__`，并把 `this.utils.toast/dialog/router.push/openPage/isMobile` 等根级工具封装到 `window.__OPENYIDA_UTILS__`，组件内部只能消费这些 window 桥。

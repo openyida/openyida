@@ -247,7 +247,7 @@ describe('connector frontend API contract', () => {
         query: { q: '1' },
         header: { 'X-Trace': 'owned' },
         connectorMode: 5,
-        body: { hello: 'world' },
+        body: '{"hello":"world"}',
       },
       {}
     );

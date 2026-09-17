@@ -1,16 +1,15 @@
 # 素材资源指南
 
-在自定义页面开发中，经常需要使用图片、音乐/音效、Icon 等素材资源。以下是推荐的素材获取方案，确保素材来源稳定、合规、风格一致。
+图片只从指定图库采集；音频和图标按各自规则使用。
 
 ## 图片素材
 
 | 素材库 | API | 授权方式 | 推荐场景 |
 | --- | --- | --- | --- |
-| [Unsplash](https://unsplash.com) | ✅ | 免费商用，无需署名 | 高质量背景图、Banner、配图 |
-| [Pexels](https://pexels.com) | ✅ | 免费商用，无需署名 | 人物、场景、商务类配图 |
-| [Pixabay](https://pixabay.com) | ✅ | 免费商用，无需署名 | 插画、矢量图、通用配图 |
-| [Lorem Picsum](https://picsum.photos) | ✅ | 免费 | 开发阶段占位图 |
-| [Wikimedia Commons](https://commons.wikimedia.org) | ⚠️ | 授权类型多样，需按条目核对 | 知识类/历史类配图 |
+| [Unsplash](https://unsplash.com) | ✅ | 按官方许可使用 | 背景图、Banner、配图 |
+| [Pexels](https://pexels.com) | ✅ | 按官方许可使用 | 人物、场景、商务配图 |
+
+图片搜索与采集仅使用 Unsplash / Pexels。用户素材和生成图按来源规则处理。
 
 ## 音乐/音效素材
 
@@ -38,14 +37,12 @@
 ## 素材使用通用建议
 
 ### 稳定性
-- 生产环境的图片/音频应上传到自有 CDN，避免第三方外链失效
-- 图片/音频优先使用有官方 API 的站点（Unsplash / Pexels / Pixabay / Freesound），避免爬虫方式
-- 同一关键词可并行查 2-3 个库，失败自动切换；对外链下载做本地缓存
+- 图片只从 Unsplash / Pexels 采集；音频按上方规则处理
+- 上线前校验来源、可达性和授权；按条款使用官方 URL 或自有 CDN
 
 ### 合规性
-- 优先使用无署名要求的素材库（Unsplash、Pexels、Pixabay、Mixkit）
-- 使用 CC BY 素材时必须添加署名，至少记录以下字段：`source`（来源站点）、`author`（作者）、`license`（许可证类型）、`requiredAttribution`（是否需要署名）、`sourceUrl`（原始链接）
-- Wikimedia Commons / Freesound / FMA 等站点授权类型多样，务必按条目核对 License
+- 图片记录来源、作者、许可和必要署名
+- CC BY 素材必须署名；音频按条目核对许可
 
 ### 一致性
 - 同一项目中统一使用一套主图标语言，默认 `lucide-react`；只有 antd 图标语境明确时使用 `@ant-design/icons`

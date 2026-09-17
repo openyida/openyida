@@ -12,9 +12,9 @@
 
 ## 自定义导航分支
 
-PRD 为自定义导航时，页面导航已在 Step 4 / Step 6 创建或复用页面后按 [导航壳必做配置](../../yida-nav-shell/SKILL.md#必做配置) 隐藏并回读，与源码开发并行。本步骤发布并检查本轮全部自定义页面，再回读核对 `isRenderNav=false`；缺失或被发布改变时才补写修复，不把首次隐藏推迟到发布后。导航顺序由自定义导航实现；汇总 Step 4 / Step 6 的配置结果与发布后回读结果，覆盖 PRD 全部页面后进入 Step 9。下方平台导航排序仅适用于三种平台导航类型。
+PRD 的应用工作区导航 `execution.appConfig.navigationType=custom` 时，页面导航已在 Step 4 / Step 6 创建或复用页面后按 [导航壳必做配置](../../yida-nav-shell/SKILL.md#必做配置) 隐藏并回读，与源码开发并行。本步骤发布并检查本轮全部自定义页面，再回读核对 `isRenderNav=false`；缺失或被发布改变时才补写修复，不把首次隐藏推迟到发布后。导航顺序由自定义导航实现；汇总 Step 4 / Step 6 的配置结果与发布后回读结果，覆盖 PRD 全部页面后进入 Step 9。下方平台导航排序仅适用于三种平台导航类型。
 
-运行态按 [导航验收](../../yida-nav-shell/references/nav-shell-patterns.md#验证) 检查实际外观与交互：顶部浮导符合已确认设计，侧导可折叠、恢复宽度和拖拽；管理与填写入口分别落到 workbench/submission，主内容 iframe 与当前标签跨页按规划工作，完整地址没有重复应用前缀，query/hash 保留。抽屉 iframe 同时检查高度兜底和可滚动性，不能仅凭编译通过验收。
+运行态按 [导航验收](../../yida-nav-shell/references/nav-shell-patterns.md#验证) 检查实际外观与交互：顶部导航形态与首屏/滚动态符合设计，侧导可折叠、恢复宽度和拖拽；管理与填写入口分别落到 workbench/submission，主内容 iframe 与当前标签跨页按规划工作，完整地址没有重复应用前缀，query/hash 保留。抽屉 iframe 同时检查填满剩余高度、外层无重复滚动和内页可滚动性，不能仅凭编译通过验收。
 
 ## 操作
 
@@ -46,10 +46,20 @@ openyida nav-group auto-order <appType>
 此分支只执行一次 `auto-order`，不再执行显式 `order`。完整应用逐页发布均不带 `--auto-nav-order`；存量平台 JSX 页面发布去掉 `--canvas`。
 
 4. 同一搭建 Run 不得同时执行显式排序与自动排序，不生成逐项 `move` 的 Bash/Python 循环。
-5. 兜底顺序为：门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
-6. 本步骤配置宜搭平台导航，不要求页面源码实现侧边栏或顶部应用导航；除非用户显式要求页面内自绘导航，否则不要回头在自定义页面中补导航壳。
-7. 主页面 `entryMode=standalone` 时，Step 6 已在取得页面 ID 后隐藏页面导航；发布和健康检查通过后执行 `openyida get-form-config <appType> <displayPageFormUuid> --json` 核对。配置缺失或变化时才执行 `openyida update-form-config <appType> <displayPageFormUuid> false "<页面标题>"` 并再次回读。只有回读明确为 `isRenderNav=false` 时，才把干净的 `{base_url}/{appType}/custom/{displayPageFormUuid}` 交给 Step 9 作为独立业务入口；写入或回读失败时只保留工作台入口，不用 `?isRenderNav=false` 猜测成功。
+5. 平台菜单按业务管理任务排序；默认进入高频管理列表，有明确概览需求才将管理概览放前。独立前台菜单单独组织，不自动把前台首页置顶。双入口优先消费 entryRecommendation 派生的 navigationOrder；frontend-only 不执行平台导航排序。
+6. 从真实管理端链接检查平台菜单与页面内容：只保留一套跨模块导航，同任务 Tab 和上下文业务动作可保留。重复时修正页面源码，不通过隐藏平台导航掩盖问题。
+7. 本步骤配置宜搭平台导航，不要求页面源码实现侧边栏或顶部应用导航；只有 PRD 已规划该入口自己的菜单时才实现，不因平台排序再回头补导航壳。
+7. 本轮任一页面 `entryMode=standalone` 时，Step 6 已在取得页面 ID 后隐藏页面导航；发布和健康检查通过后执行 `openyida get-form-config <appType> <displayPageFormUuid> --json` 核对。配置缺失或变化时才执行 `openyida update-form-config <appType> <displayPageFormUuid> false "<页面标题>"` 并再次回读。只有回读明确为 `isRenderNav=false` 时，才把干净的 `{base_url}/{appType}/custom/{displayPageFormUuid}` 交给 Step 9 作为独立业务入口；写入或回读失败时只保留工作台入口，不用 `?isRenderNav=false` 猜测成功。
 8. 主页面 `entryMode=platform-shell` 或缺失时，不修改页面导航配置，也不输出独立业务入口。
+
+## 无自定义页面的管理端
+
+没有本轮源码时跳过 publish，继续核对真实资源、权限、管理菜单和默认入口。缺少 display 主页面不构成失败，不追加自定义首页。新版双入口按 [访问态入口契约](../references/entry-navigation.md) 处理，显式排序不会删除未列出的导航项；需精简平台菜单时单独规划 hide/show 并回读。
+
+## 混合导航验收
+
+应用保留平台导航、前台单独自定义菜单时：只配置 PRD 标记 standalone 的页面；平台导航排序继续服务后台。逐个核对前台页面 URL 与后台 workbench URL：前台可独立办事、菜单不混入管理任务；后台菜单可见、切换可用。任何一边未验证都不能宣称前后台交付完成。不能为修复前台显示而调用全局隐藏。
+
 
 ## 产出
 
@@ -64,6 +74,10 @@ openyida nav-group auto-order <appType>
 - [ ] 发布目标是已解析的 display 页面；
 - [ ] Canvas 发布结果为 `publishMode=canvas`，且 `healthCheck.ok=true`、`healthCheck.readback.hasYidaCodeCanvas=true`、`runtimeCodeBytes>0`；
 - [ ] 已获得可访问 URL；
+- [ ] 自定义导航业务工作区切换后的 main 和 iframe 撑满剩余空间；连续展示页的首屏背景覆盖导航背后，滚动进入第二屏及窄屏展开菜单仍可读；检查短/长内容、窗口高度变化和底部操作可达性，无双滚动、背景断带或意外边距变化；
+- [ ] 按 [页面与导航连续性](../../yida-design/references/page-continuity.md) 验证菜单往返、直接链接、刷新、前进后退、重复/快速点击及加载失败；保留约定的筛选、分页、位置和未保存输入，URL、选中态与内容一致；
+- [ ] 使用自定义导航时逐项点击，导航仍可见、可操作，选中项与主内容一致且能返回工作台；刷新、前进后退恢复任务，无双导航和双滚动条，不能仅以目标页打开成功验收；
+- [ ] 含页面内表单打开入口时，PC 打开后 DOM 存在 `.openyida-form-drawer`；实测新窗口打开、全屏/退出全屏、关闭三个图标按钮、左边缘拖拽调宽及关闭刷新；详情和提交 iframe 填满剩余空间，外层无多余卡片和滚动条。无此类入口时标记不适用；
 - [ ] 全部页面开发与发布、相关资源创建均已完成后才执行排序；显式排序和自动排序只执行其一；成功结果 `readbackVerified=true`。
 - [ ] `standalone` 主页面已回读确认 `isRenderNav=false`；否则没有声明独立业务入口。
 

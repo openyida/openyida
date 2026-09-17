@@ -8,6 +8,7 @@
 
 - [index.json](index.json) 保存主题 ID、用户可读名称、视觉描述、模板路径和默认主题画像。
 - `<themeId>.md` 保存一份完整主题模板。
+- [basic-tokens.json](basic-tokens.json) 保存基础变量清单及固定字体、间距和 Tooltip 配色，作为模板校验依据。
 - [validate_design_themes.py](../../scripts/validate_design_themes.py) 校验索引与模板是否一一对应。
 
 ## 索引记录
@@ -42,6 +43,16 @@
 
 模板通过“视觉 DNA”和“视觉记忆点应用策略”保存主题的稳定识别特征。生成流程按页面内容契约选择记忆点，不为套用主题新增业务内容。
 
+## 基础变量
+
+主题统一在 `tokens.application-global` 中定义 59 个基础变量，按颜色、字体、间距和圆角分组；`custom-page` 保留为空对象。
+
+- 字体与间距采用 `basic-tokens.json` 中的固定值；页面标题使用 subhead，表格正文使用 table。
+- 颜色和圆角保留各主题的视觉差异。Tooltip 固定使用深色背景与反色文字。
+- 应用根背景、Shell、页面画布和卡片分别使用对应基础变量；一级容器消费 `--pod-card-bg-color`。
+- 组件直接引用基础变量；渐变、透明度和纹理在组件配方中组合基础变量，独立分类色在图表配方中说明。
+- 生成器派生品牌色及基础表面色；CSS 输出按平台导航模式分别绑定浅色、深色、白色和灰色背景，根层 Shell 保存默认背景。
+
 ## 项目化占位符
 
 | 占位符 | 数据来源 |
@@ -56,7 +67,7 @@
 | `{{PRODUCT_TOPOLOGY_APPLICATION}}` | `visualStyle.forDesignMd.productTopologyApplication` |
 | `{{PAGE_PATTERN_SUMMARY}}` | `pages.customPageDetails[]` 的页面模式与内容丰富度摘要 |
 | `{{PAGE_APPLICATIONS}}` | materialize 根据页面事实、主题标准和 `visualStyle.forUser.pageApplications[].visualMemoryApplications` 生成的完整逐页应用 |
-| `{{BRAND_ASSETS}}` | 已有品牌与真实素材摘要 |
+| `{{PAGE_IMAGE_NEEDS}}` | 页面图片等级和槽位摘要 |
 | `{{ASSET_GAPS}}` | `visualStyle.forUser.assetStrategy.missingAssets` |
 
 模板中的 `<基于……生成的实际色值>` 和 `<由……生成的实际色值>` 是 Token 推导指令。生成项目 `design.md` 时必须替换成具体 CSS 色值。
@@ -93,6 +104,7 @@ python scripts/validate_design_themes.py
 
 - 索引与主题模板一一对应。
 - 每份模板包含九个一级章节和全部标准占位符。
-- 全局与自定义页 Token 属性均使用完整的 `--` 开头 kebab-case 名称。
+- 模板声明和正文引用均属于基础变量清单，固定值与契约一致。
+- 自动测试对全部登记主题执行完整校验，并用错误样例验证变量、字体和间距检查。
 - 正文中的多个 Token 分别完整书写，不使用后缀缩写或 `*` 通配写法。
 - 候选规则文件没有硬编码主题 ID 或主题名称。

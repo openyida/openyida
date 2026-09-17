@@ -21,12 +21,43 @@ const auth = { baseUrl: 'https://example.com', csrfToken: 'csrf' };
 const style = { enabled: true, iframePropagation: false, cssUrl: 'https://example.com/desert.css', cssFileName: 'desert.css' };
 const saved = { colour: 'custom', themeColor: '#C89B5A', customThemeStyle: JSON.stringify(style), hideAppNav: 'y' };
 const response = (content) => ({ success: true, content });
+let errorSpy;
+let stderrSpy;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  stderrSpy = jest.spyOn(process.stderr, 'write').mockReturnValue(true);
   createAuthRef.mockReturnValue(auth);
   httpPost.mockResolvedValue(response(true));
   uploadCustomThemeFile.mockResolvedValue(response({ url: style.cssUrl, name: style.cssFileName }));
+});
+
+afterEach(() => {
+  errorSpy.mockRestore();
+  stderrSpy.mockRestore();
+});
+
+test.each([
+  [['--nav-theme', 'dark'], { navType: 'top_side' }, 'l_shape'],
+  [['--nav-theme', 'dark'], { config: { LAY_OUT_DIRECTION: 'hoz', NAVTYPE: 'top_side' } }, 'l_shape'],
+  [['--layout', 'top', '--show-app-nav'], { navType: 'top_side', hideAppNav: 'y' }, 'top'],
+  [['--layout', 'side', '--show-app-nav'], { layoutDirection: 'top', navType: 'top_fold' }, 'side'],
+  [['--layout', 'l_shape', '--show-app-nav'], { layoutDirection: 'side', navType: 'side_only' }, 'l_shape'],
+])('CLI %j preserves stored navType and sends layout %s', async (args, current, layout) => {
+  httpGet.mockResolvedValueOnce(response(current));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await run(['APP_1', ...args]);
+    expect(httpPost).toHaveBeenCalledTimes(1);
+    expect(httpPost.mock.calls[0][1]).toContain('/APP_1/query/app/updateApp.json');
+    const body = querystring.parse(httpPost.mock.calls[0][2]);
+    expect(body).toMatchObject({
+      layoutDirection: layout,
+      navType: current.navType || current.config.NAVTYPE,
+    });
+    if (args.includes('--show-app-nav')) {expect(body.hideAppNav).toBe('n');}
+  } finally {log.mockRestore();}
 });
 
 test('theme upload is followed by reading fresh settings, saving updateApp and checking the persisted resource', async () => {

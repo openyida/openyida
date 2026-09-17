@@ -56,6 +56,8 @@ openyida auth refresh
 openyida auth logout
 ```
 
+生成新命令统一使用 `openyida auth profiles --json`。CLI 同时兼容旧写法 `openyida auth profile list --json`，两者都只查询，不切换组织或登录态。
+
 ## Profile 选择原则
 
 - 当前已有多个 profile 且 snapshot 返回 `profile_required` 时，不要根据目录、组织名片段或最近操作猜测组织。

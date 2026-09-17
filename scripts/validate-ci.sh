@@ -3,6 +3,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+echo "Validation runtime: Node $(node --version), npm $(npm --version)"
+
 if [ -z "${npm_config_cache:-}" ]; then
   npm_config_cache="$(mktemp -d "${TMPDIR:-/tmp}/openyida-npm-cache-XXXXXX")"
   export npm_config_cache
@@ -29,6 +31,10 @@ echo "=== Step 5: Validate generated command docs ==="
 npm run check:docs
 
 echo ""
+echo "=== Validate current version release notes ==="
+npm run check:changelog
+
+echo ""
 echo "=== Step 6: Validate i18n locale parity (ratchet) ==="
 npm run check:i18n
 
@@ -45,16 +51,16 @@ echo "=== Step 9: Scan cross-platform release risks ==="
 npm run check:release-risks
 
 echo ""
-echo "=== Step 10: Run tests ==="
-npm run test:unit -- --runInBand
-
-echo ""
-echo "=== Step 11: Validate npm package size budget ==="
+echo "=== Step 10: Validate npm package size budget ==="
 npm run check:package-size
 
 echo ""
-echo "=== Step 12: Validate npm package contents ==="
+echo "=== Step 11: Validate npm package contents ==="
 npm run check:package
+
+echo ""
+echo "=== Step 12: Run tests ==="
+npm run test:unit -- --runInBand
 
 echo ""
 echo "=== All checks passed! ==="

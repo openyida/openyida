@@ -1,8 +1,6 @@
-# B 端导航壳形态目录
+# 自定义导航壳形态目录
 
-这里提供**选型方向 + 布局骨架 + 小段代码示例**。根据已确认的 PRD 和 `design.md` 选择一种主形态，再按业务设计外观；标签页可以叠加为二级导航。用户给过参考或已有满意实现时，沿用其设计，不用示例的默认样式覆盖。
-
-应用及页面导航配置按 [导航技能](../SKILL.md#必做配置) 执行。导航数据、权限和跳转遵守下方契约，UI 按设计手写；不以选择 CLI 组件或拼装整套模板作为实现起点。
+根据 PRD、design.md 和用户参考选形态并设计，不用示例默认外观覆盖已有设计。应用/页面隐藏按 [导航技能](../SKILL.md#必做配置)，权限与跳转按下方契约。
 
 ## 选型速查
 
@@ -14,130 +12,66 @@
 | 悬浮胶囊 / Dock | 沉浸展示、轻量门户，减少常驻导航占位 | 3–6 项 | 底部胶囊或可收起菜单 |
 | 标签页 | 同一模块的同级视图，不替代应用主导航 | 2–8 项 | 横向滚动 |
 
-数量是布局参考，不是增删业务模块的依据。需求已确认导航归属和形态后直接落地；不为这些样式再发起一轮提问。
+数量仅供布局参考，不增删业务模块。沿用用户指定形态，否则 AI 按场景决定，不另问样式选项。
 
 ## 通用设计要点
 
-- 导航需要表达“应用是谁、当前在哪、还能去哪”。菜单名称与层级按业务组织；图标、文字、当前项和分组要有清晰主次。
-- 选中态可用胶囊底色、指示条、下划线或字重组合，按整体设计选择，不规定所有应用采用同一种外观。
-- 图标只作功能用途，使用同一套 `lucide-react` 或 `@ant-design/icons`；不用 emoji、字母占位和 CSS 拼图标。
-- 应用名、用户区、搜索和操作按实际需要安排；少量菜单不必填满整条屏幕，复杂菜单不宜硬塞进一条胶囊。
-- 页面内容与导航共同设计。浮导要留出间距，侧栏要给内容分配宽度；当前页已由菜单标明时，内容区不重复一个同名大标题。
-- 颜色与材质消费应用主题，详见 [主题 token](#主题-token)。导航外观调整不改变业务接口、筛选逻辑、权限与跳转参数。
+导航表达应用身份、当前位置和有效任务。名称、顺序、分组来自 PRD，图标统一用 lucide-react 或 @ant-design/icons。选中态按设计采用胶囊、指示线或字重，不用 emoji、字母或 CSS 拼图标。导航与内容共同构图，避免重复菜单标题；外观变化不改变业务接口、权限、筛选及跳转参数。
 
 ## 形态 1：左侧边栏
 
-```text
-应用名    │ 面包屑 / 页面操作
-─────────┼──────────────────
-概览      │
-业务分组  │     业务内容
-  订单    │
-  客户    │
-折叠按钮  ↔ 可拖拽边缘
-```
-
-适合模块较多且经常跨模块工作的场景。分组可以用小标题、间距或分隔线区分；应用名、常用项、业务分组、底部操作按使用频率安排。可按设计采用实体侧栏或与页面背景留出间距的悬浮侧栏。必须落实下面的折叠和调宽交互。
+适合多模块、分组频繁切换的后台或门户。按使用频率安排应用名、常用入口、业务分组和底部操作；实体或浮动侧栏均需落实下方折叠、调宽交互。
 
 ## 形态 2：顶部导航
 
-```text
-        ╭─────────────────────────────────╮
-        │ 应用名   概览  订单  客户   操作 │
-        ╰─────────────────────────────────╯
+默认贴顶通栏，无顶部/左右外侧留白或胶囊轮廓；内侧内容可居中限宽。悬浮栏仅按明确设计选用，仍记录 navigation.variant=top。业务工作区导航占位；有首屏背景图时叠加背景，默认透明，滚动后加遮罩底色，回顶恢复透明。
 
-                     业务内容
+sticky 本身占位，共享网格建立叠加关系；先检查宿主滚动和祖先 overflow/transform，受限时按宿主边界用 fixed，不能覆盖平台侧栏。位置与首屏/滚动态写入 design.md；固定定位不等于悬浮外观，文字安全区不推下背景。
+
+## 连续展示页共享首屏背景
+
+`canvas-nav-content` 的 `layout="document"` 使导航与 main 共用网格区域，导航默认 sticky，宿主限制时显式用 `navigationPosition="fixed"`，按本页边界定位，main 随已有页面滚动；不固定高度、不裁切内容，也不额外创建滚动条。document 的根、main、content 均使用自然高度，不套 workspace 的 `flex:1 1 0/min-height:0`。导航包裹层保持透明；提取 canvas-nav-top 后传 `headerOnly`，让它只渲染菜单，避免重复 main 和 100vh 外壳。`ResizeObserver` 测量菜单真实高度，在根节点写入局部 `--openyida-navigation-height`；窄屏展开和换行后也能更新安全区。
+
+```jsx
+<div className="brand-page">
+  <style>{`
+    .brand-page .hero {
+      padding: calc(var(--openyida-navigation-height, 0px) + 48px) 24px 72px;
+      background-size: cover; background-position: center;
+    }
+    .brand-page .section {
+      scroll-margin-top: calc(var(--openyida-navigation-height, 0px) + 16px);
+    }
+    .brand-page .content { max-width: 1200px; margin: 0 auto; }
+  `}</style>
+  <CanvasNavigationContent layout="document" navigation={<CanvasNav headerOnly overlay title={brandName} items={items} activeKey={activeKey} onSelect={select} />}>
+    <section className="hero section" id="home" style={{ backgroundImage: heroBackground }}>
+      <div className="content">{renderHeroContent()}</div>
+    </section>
+    <section className="section" id="products">{renderProducts()}</section>
+  </CanvasNavigationContent>
+</div>
 ```
 
-自定义顶部导航默认推荐**浮导**：与顶部和两侧留出间距，根据菜单数量和内容宽度设计成紧凑胶囊、居中悬浮栏或较宽的浮动容器。明确已选贴边通栏时沿用用户选择。仍记录 `navigation.variant=top`，浮导是呈现方式，不需要额外选择一种导航归属。
+这是结构片段，`heroBackground` 来自已验证素材和设计遮罩；品牌、菜单、选择回调及内容函数由页面实现。导航的顶部/左右间距放在菜单内部 padding 中，让测量包含它；不要用折叠 margin 造间距。背景覆盖首屏，内容安全区只加一次。`maxWidth/gutter/radius/height` 是工作区参数，document 模式由页面区块设置内容宽度和间距。
 
-浮导顶部间距必须留在 Canvas 内：根容器用 `display: flow-root` 阻止首子元素 margin 折叠，或改由根 padding 承载，不能让整个 Canvas 产生顶部偏移。
-
-位置、容器宽度、圆角、选中态和滚动行为写入 `design.md` 后实现；不把通栏套一个圆角就视为完成浮导设计。`sticky` 留在布局流中，`fixed` 叠在内容上，需要预留对应高度；移动端改为可展开的菜单，不能挤压文字。
+锚点不改变 contentKey、不卸载整页。容器捕获宿主滚动事件并同步局部 data-scrolled；CanvasNav 的 overlay 随它切换透明/底色，展开时保持底色。锚点选中态仍由页面按实际滚动位置同步，并清理监听。滚动后加底色、回顶透明，文字随背景切换，移动端展开时保留底色。实际宿主验证 sticky，不能仅凭本地预览。document 不支持 iframeSrc，原生任务用 workspace 或表单抽屉。
 
 ## 形态 3：顶部＋侧边
 
-```text
-应用名    业务域 A    业务域 B        用户
-───────────────────────────────────────
-域内模块  │
-域内模块  │           业务内容
-折叠按钮  ↔ 可拖拽边缘
-```
-
-用于真实的两级信息架构。顶部承担业务域切换，侧栏仅显示当前域的模块；切换域时进入该域可见的默认模块或恢复上次入口。两层不要重复同一组菜单。侧栏同样必须支持折叠和拖拽调宽。
+用于真实两级信息架构：顶部切业务域，侧栏显示域内任务；切域进入该域默认或上次可见入口，两层不重复同一组菜单。侧栏支持折叠和拖拽。
 
 ## 形态 4：悬浮胶囊 / Dock
 
-```text
-                  业务内容
-
-          ╭──────────────────────╮
-          │ 概览  活动  我的记录 │
-          ╰──────────────────────╯
-```
-
-适合少量高频入口的沉浸页或轻量门户。可以根据内容构图放在顶部、底部或侧边；已选择顶部导航时优先使用上面的顶部浮导方向。菜单保持紧凑，必要时收起，避开表单提交按钮、图表图例和移动端安全区。
-
-以下是**底部胶囊定位**的小段样式参考，尺寸和材质按设计调整，不是整页 UI 模板：
-
-```css
-.business-nav-dock {
-  position: fixed;
-  left: 50%;
-  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-  transform: translateX(-50%);
-  display: flex;
-  gap: 4px;
-  max-width: calc(100vw - 32px);
-  padding: 6px;
-  border-radius: 999px;
-  background: var(--pod-shell-theme-bg-color, #fff);
-  box-shadow: var(--pod-nav-popup-shadow, 0 6px 24px rgba(0, 0, 0, 0.12));
-}
-```
-
-同时为内容底部预留 Dock 实际高度与安全间距，并设置合适的层级和窄屏菜单策略；不能让导航遮住最后一行数据。
+适合少量高频入口的沉浸页或轻量门户。按构图放在顶部、底部或侧边，避开表单提交按钮、图例和移动端安全区。底部 Dock 可使用 fixed、left:50%、translateX(-50%)、bottom:calc(20px + env(safe-area-inset-bottom, 0px))，内容底部预留实际 Dock 高度及间距；尺寸材质依设计，不遮最后一行数据。
 
 ## 形态 5：标签页
 
-在主导航下切换同模块视图，例如“待处理 / 已完成”。可用 antd `Tabs` 或按设计自绘，标签选中态与内容同步。长标签窄屏横向滚动；键盘支持方向键、Home、End 并跳过禁用项。只有页面内标签时保留平台导航，不因此关闭应用导航。
+同模块视图使用 antd Tabs 或自绘标签，选中态与内容同步；窄屏横向滚动，键盘支持方向键、Home、End，跳过禁用项。页内标签不隐藏平台导航。
 
 ## 视图切换骨架
 
-同页视图与跨真实页面分别处理：同页只切内容可用 React 状态；要分享、刷新恢复、前进后退则同步 URL hash；跨页面使用现有路由与数据桥。不要为了套用一个导航示例，把 PRD 的多个真实页面改造成一个静态页。
-
-下面只演示已过滤菜单的选中态与视图绑定。`views` 是当前页面自己的业务组件映射，布局与样式按选定形态补齐；需要 URL 同步的场景复用已有路由，不直接使用这个纯本地状态版本。
-
-```jsx
-import React from 'react';
-
-function LocalViews({ items, views }) {
-  const [selectedKey, setSelectedKey] = React.useState(null);
-  const activeItem = items.find(item => item.key === selectedKey && !item.disabled)
-    || items.find(item => !item.disabled);
-  if (!activeItem) return <p>无可用导航</p>;
-  const ActiveView = views[activeItem.key];
-  return (
-    <div className="business-shell">
-      <nav aria-label="业务导航">
-        {items.map(item => (
-          <button key={item.key} type="button" disabled={item.disabled}
-            aria-current={item.key === activeItem.key ? 'page' : undefined}
-            onClick={() => setSelectedKey(item.key)}>
-            {item.label}
-          </button>
-        ))}
-      </nav>
-      <main aria-label={activeItem.label}>
-        {ActiveView ? <ActiveView /> : <p>当前入口暂不可用</p>}
-      </main>
-    </div>
-  );
-}
-```
-
-页面变化时选中项必须仍在可见范围内；请求失败、加载中与空菜单按下方状态处理。`hashchange`、`matchMedia`、拖拽等监听在 effect 清理时移除。
+只做本地切换时用 React 状态；分享、刷新、前进后退沿用路由或同步 hash。下方 AppShell 演示保留导航和 URL 的切换，纯本地视图可将 iframe 分支替换为业务组件映射；状态放在稳定父层，不把 PRD 的多个真实页面变成静态占位。快速切换、无权限回退和未保存内容遵循 [页面与导航连续性](../../yida-design/references/page-continuity.md)。
 
 ## 侧栏交互
 
@@ -153,7 +87,25 @@ function LocalViews({ items, views }) {
 
 ## 导航数据来源
 
-自定义导航的数量、名称、顺序、分组和用途来自 PRD，通常工作台或首页在第一位。使用当前访问者登录态请求 `/{appType}/query/formdesign/getAccessableNavs.json`，获取可见范围；`formUuid` 和 CSRF 值来自当前页面运行态。已有请求和正确的过滤逻辑时直接复用；首次接入可使用下面的数据片段，其中 `filterCanvasNavigation(plannedItems, navs, hiddenNav)` 负责可见性过滤，不包含导航 UI：
+自定义导航的数量、名称、顺序、分组、默认任务和用途来自当前入口的 PRD。
+
+先区分页面内展示与真实资源导航。公开官网的首页、文化介绍等页内视图直接使用本地数组；需要统一过滤/选择 helper 时，显式用 local，不请求 getAccessableNavs：
+
+```jsx
+const items = [
+  { key: 'home', label: '首页', targetType: 'local', viewKey: 'home' },
+  { key: 'culture', label: '文化介绍', targetType: 'local', viewKey: 'culture' },
+];
+const menus = await loadCanvasNavigation({ items, mode: 'local' });
+const active = selectCanvasNavigation(menus, requestedKey, 'home');
+// 按 active.viewKey 渲染真实本页组件，URL 同步沿用下方切换骨架。
+```
+
+local 不接受 href/url 或真实页面跳转。含 access 时仍需 appType 和真实 resolveAccess；未授权项隐藏，查询失败不放行。业务数据读取、预约提交和管理操作另按平台权限执行；不得删除受保护菜单的 access。规划中的 sceneKey/resource/access 仍保留，不能把公开内容的菜单显示与受保护业务授权混为一谈。
+
+platform 只接绑定 formUuid/navUuid 的真实页面，local 或未绑定资源的叶子会在网络请求前报错。编译器也拦截静态可识别的误用；动态配置仍要验证。不要将“过滤后为空”或请求失败兜底为全量菜单。
+
+下面的数据树过滤用于 mode=platform；独立资源任务用 mode=independent 和真实 resolveAccess，按 [访问态入口契约](../../yida-app/references/entry-navigation.md#自定义菜单过滤) 执行，不能将平台树展示规则当作业务授权。使用当前访问者登录态请求 `/{appType}/query/formdesign/getAccessableNavs.json`，获取可见范围；`formUuid` 和 CSRF 值来自当前页面运行态。已有请求和正确的过滤逻辑时直接复用；首次接入可使用下面的数据片段，其中 `filterCanvasNavigation(plannedItems, navs, hiddenNav)` 负责可见性过滤，不包含导航 UI：
 
 ```bash
 openyida sample openyida-page-template canvas-nav-data --output .cache/samples/canvas-nav-data.jsx
@@ -170,9 +122,9 @@ const items = await loadCanvasNavigation({
 });
 ```
 
-`plannedItems` 使用下方菜单契约：每个任务入口有独立 key，绑定真实 `navUuid/formUuid`，保存业务 label、图标、入口用途及跳转参数。工作台的本地视图绑定承载它的自定义页面 formUuid；同一资源可以对应多个任务入口。分组可只配置 label 和 children，具有独立资源约束时同时绑定该资源。
+`plannedItems` 遵守菜单及访问态入口契约：任务 key 独立，绑定真实资源、用途与参数，本地视图绑定承载页。同一资源可有多个任务入口；分组仅需 label/children，有资源约束时另绑定。独立入口补齐 formUuid/viewUuid/access，不以平台展示范围代替授权。
 
-数据片段递归过滤接口中 `hidden` 的节点，以及 `g_config.navConfig.hiddenNav` 命中 `slug` 或 `navUuid` 的节点及子树，再以可见资源 ID 筛选 PRD 菜单。返回值保持 PRD 的顺序、分组和展示配置；未规划的接口资源不会自动增加到菜单，失去所有可见子项的分组会移除。侧边、顶部和 Dock 使用规划的扁平入口；混合导航使用规划的两级结构。
+片段递归排除 hidden 节点及 hiddenNav 命中 slug/navUuid 的子树，以可见 ID 过滤 PRD 菜单；保留规划顺序、分组和展示配置，不添加计划外资源，移除空组。侧边/顶部/Dock 用扁平入口，混合导航用两级结构。
 
 页面首次加载或应用切换时清空旧菜单，取消旧请求，再加载当前应用菜单。按以下状态展示：
 
@@ -181,8 +133,8 @@ const items = await loadCanvasNavigation({
 | 加载中 | 显示加载提示，菜单和对应内容等待加载完成 |
 | 请求失败 | 显示重试入口 |
 | 没有可见入口 | 显示“无可用导航” |
-| 菜单加载完成 | 按当前地址选中可见入口；未指定入口时按 PRD 选择，通常先进入工作台 |
-| 地址中的 hash 指向不可见入口 | 切至 PRD 顺序中的首个可见入口；没有可见入口时显示“无可用导航” |
+| 菜单加载完成 | 按当前地址选中可见入口；未指定入口时按 PRD 选择，先进入 defaultMenuKey 对应的可用任务，再回退首个可用任务 |
+| 地址中的 hash 指向不可见入口 | 先切至 defaultMenuKey 对应的可用任务，再回退首个可见入口；没有可见入口时显示“无可用导航” |
 
 页面访问和数据权限继续由平台校验。
 
@@ -207,12 +159,91 @@ const registration = items.find(item => item.key === 'registration');
 
 `canvas-nav-data` 同时提供 `buildCanvasNavigationUrl`：`submission` 生成原生提交页地址，`page` 生成 workbench 地址；嵌入时自动补对应导航参数，`params` 保留预填值和业务参数。入口用途明确后再生成 URL。导航任务占主内容区；页面内新增或详情按钮复用 [FormOpenContainer 抽屉](../../yida-canvas-custom-page/references/navigation-and-entry-guide.md#标准-formopencontainer)。原生表单的页面导航参数由容器生成；自定义页面的应用导航按技能中的应用设置隐藏。已有自定义页的 `/{appType}/custom/{formUuid}` 地址可继续使用。用 `URL` / `URLSearchParams` 构造地址，保留 `corpid`、`locale` 和业务参数。
 
+## 保留导航壳的最小示例
+
+**MUST**：自定义导航属于应用外壳，点击应用内导航后必须仍可见、可操作。原生提交页和数据管理页不包含这套自绘导航，不能直接用 `location.href` / `router.push` 替换顶层页面。`isRenderNav=false` 只隐藏原生导航，不会自动保留自绘导航。
+
+导航任务在主内容区打开；页内新增/详情使用标准 FormOpenContainer 抽屉，不混用。
+
+先提取并整体合并标准内容容器（合并重复 import）：
+
+```bash
+openyida sample openyida-page-template canvas-nav-content --output .cache/samples/canvas-nav-content.jsx
+```
+
+`CanvasNavigationContent` 默认 `layout="workspace"`。`navigation` 只接顶部菜单，`children` 接本地工作台，`iframeSrc` 接原生页面地址；不传地址时显示 children，可用于无权限或加载失败提示。`contentKey` 变化会卸载旧内容，导航保持挂载；默认重置滚动，显式 `preserveScroll` 按任务 key 恢复本地内容区位置。筛选、分页、已载数据和草稿需由稳定父层持有，并在恢复时已渲染足够内容；容器不缓存业务状态、iframe 或异步数据。`height` 默认 `100dvh`，已有宿主或侧栏分配高度时传入该区域的确定高度（只有父级高度确定时才能用 `100%`）。`maxWidth`、`gutter`、`radius`、`background` 按 design.md 设置并在视图间保持一致；默认透明背景承接页面画布，不跨 iframe 改色。容器不负责鉴权、路由、草稿保存或判断跨域加载失败。
+
+先用 `openyida sample openyida-page-template canvas-nav-data` 合并 helper。下例 items 是权限已就绪的叶子菜单，资源、targetType、params 均真实；只含本地工作台与原生任务，外链及带壳跨页不进 iframe 分支。外观按 design.md。
+
+```jsx
+import React, { useEffect, useState } from 'react';
+
+function AppShell({ items, homeKey, appType, renderWorkbench }) {
+  const readKey = () => new URLSearchParams(window.location.hash.slice(1)).get('view');
+  const [requestedKey, setRequestedKey] = useState(readKey);
+  useEffect(() => {
+    const sync = () => setRequestedKey(readKey());
+    window.addEventListener('hashchange', sync);
+    window.addEventListener('popstate', sync);
+    return () => {
+      window.removeEventListener('hashchange', sync);
+      window.removeEventListener('popstate', sync);
+    };
+  }, []);
+  const active = selectCanvasNavigation(items, requestedKey, homeKey);
+  function select(item) {
+    if (item.disabled || item.key === active?.key) return;
+    const url = new URL(window.location.href);
+    const hash = new URLSearchParams(url.hash.slice(1));
+    hash.set('view', item.key);
+    url.hash = hash.toString();
+    window.history.pushState(window.history.state, '', url.toString());
+    setRequestedKey(item.key);
+  }
+  return (
+    <CanvasNavigationContent
+      title={active?.label || '页面内容'}
+      contentKey={active?.key}
+      preserveScroll
+      iframeSrc={active && active.key !== homeKey
+        ? buildCanvasNavigationUrl(active, appType, { embedded: true }) : undefined}
+      navigation={<nav aria-label="应用导航">
+        {items.map(item => (
+          <button key={item.key} type="button" disabled={item.disabled}
+            aria-current={item.key === active?.key ? 'page' : undefined}
+            onClick={() => select(item)}>{item.label}</button>
+        ))}
+      </nav>}
+    >
+      {!active ? <p>无可用导航</p> : renderWorkbench()}
+    </CanvasNavigationContent>
+  );
+}
+```
+
+hash 的 `view` 保存任务入口 key，刷新及前进后退恢复选中内容，其他 query/hash 参数和 history.state 保留。该例约定 hash 为参数形式；已有路由协议的页面沿用原协议，不强行覆盖。权限完成后，若请求入口不可用，按 active.key 用 replaceState 校正 view，不新增历史；没有可用入口则移除 view 并显示无权限内容。嵌入地址必须指向真实内容资源，不能再次嵌入当前壳页或带同一导航的壳页，避免递归和双导航。仅 iframe 内页滚动；不再给 iframe 外套滚动卡片。嵌入失败时保留导航并显示错误和明确的新窗口入口，不自动跳走。
+
+切换会卸载当前内容；存在未提交表单时，应结合原生页面支持的通信能力处理离开提示，不能声称本例自动保存草稿或能读取所有 iframe 的脏状态。
+
+## MUST：主内容撑满剩余空间
+
+本节仅用于业务工作区的 `layout="workspace"`，连续展示页使用上方 document 布局。工作区导航壳必须有确定的可用高度。独立全屏壳可用 `height: 100dvh`；已有宿主占用高度时使用宿主实际分配的确定高度，不能再叠加一个视口高度。仅 `min-height` 不能保证百分比高度链成立，也不要猜测 `calc(100vh - 80px)` 之类固定导航高度。
+
+布局链逐层成立：壳 `display:flex; flex-direction:column`，导航 `flex-shrink:0`，main 同时具有 `display:flex; flex-direction:column; flex:1 1 0; min-height:0; overflow:hidden`；iframe 视口为 `position:relative; flex:1 1 0; min-height:0; overflow:hidden`，iframe 绝对定位填满该视口。仅给子级写 `flex:1`、父级仍为 block 不合格。工作台分支使用独立 `overflow:auto` 的滚动容器；原生页面分支仅 iframe 内页滚动。
+
+切换后的连续性：工作台与嵌入页共享画布、内容最大宽度及左右边距，导航与内容保持相同的顶部间距。不能从居中工作台突然变成贴边满屏表单；宽表格确需更宽时在 design.md 明确。iframe 视口可裁切圆角，但不额外加白卡、内边距或另一层滚动；留白放在视口外侧，让画布自然衔接原生表面，不跨 iframe 修改原生页面 CSS。
+
+- [ ] 各导航视图、窗口高度变化及窄屏下，内容视口高度均等于壳的剩余可用高度减去设计外侧留白；短内容不塌到 150px，长内容不撑开外层。
+- [ ] 比较 main、iframe 视口和 iframe 的实际边界；iframe 与其视口等高，底部按钮可到达，无重复滚动条或大段意外空白。
+- [ ] 工作台与原生页面来回切换，内容宽度、留白和画布连续；导航选中项及返回操作仍然正常。
+
 ## 菜单契约
 
 | 菜单数据 | 用途 |
 | --- | --- |
 | `key` | 稳定且唯一的入口标识；分组和叶子项不重名 |
-| `navUuid / formUuid` | 真实平台资源标识，用于权限过滤；本地视图绑定承载页面 |
+| `navUuid / formUuid` | platform/independent 的真实资源标识；local 展示项使用 viewKey |
+| `viewKey` | local 的本页视图标识，不是平台资源 ID |
 | `label / icon` | PRD 业务名称、可选功能图标 |
 | `targetType` | 提交、页面或外链等入口用途，按上节确定 |
 | `params` | 预填、来源和其他业务参数，构造 URL 时保留 |
@@ -221,17 +252,11 @@ const registration = items.find(item => item.key === 'registration');
 
 这是一份数据约定，手写 UI 的组件名和 props 不受限制。当前入口从可见菜单与当前 URL / 状态推导；两级导航从叶子项反推所在分组。跨页入口保留原生链接语义及修饰键点击行为。
 
-应用内页面优先使用数据桥。已构造的完整地址调用 `router.push(href, params, false, true)`；桥不可用时当前窗口跳转，详见 [Canvas 点击骨架](../../yida-canvas-custom-page/references/navigation-and-entry-guide.md#canvas-点击骨架)。只做本地视图切换时更新 React 状态，需要 URL 同步时清理相应监听。
+应用内导航默认切换壳内内容。只有确认目标页面保留同一导航壳后，整页跳转才使用数据桥；已构造的完整地址调用 `router.push(href, params, false, true)`；桥不可用时当前窗口跳转，详见 [Canvas 点击骨架](../../yida-canvas-custom-page/references/navigation-and-entry-guide.md#canvas-点击骨架)。只做本地视图切换时更新 React 状态，需要 URL 同步时清理相应监听。
 
 ### 路由模式与数据桥兜底
 
-曾出现的错误：将完整 `/APP_xxx/workbench/FORM_xxx` 地址当成页面 ID 或相对路由传入，平台再次添加当前应用前缀，产生重复的应用路径，无法正常切页。
-
-- 生成代码通过 `window.__OPENYIDA_UTILS__.router` 数据桥跳转，完整地址明确使用 `router.push(href, params, false, true)`：第三参控制新标签，第四参控制 URL 模式。
-- 数据桥已有兼容修复：仅在第四参 `isUrl` 未传或为 `undefined` 时，自动识别 `/APP_...`、HTTP(S) 和协议相对地址，并补为 `true`；路径中的 query/hash 保持原样。
-- 显式传入 `isUrl=false` 时保持调用方选择，不会自动纠正。因此不要对完整地址写 `router.push(href, params, false, false)`，也不要绕过数据桥直接调用底层平台工具。
-- 仅传页面 ID 时仍可用 `router.push('FORM-xxx', params, false)`；不要把页面 ID 与完整 URL 混用。
-- 验收：普通点击保持当前标签，最终 URL 仅含一层应用路径，目标页面、选中态和业务参数正确。新代码显式传 URL 模式，自动识别只作兼容兜底。
+完整地址使用 `window.__OPENYIDA_UTILS__.router.push(href, params, false, true)`，避免平台重复添加应用前缀；第三参控制新标签，第四参控制 URL 模式。数据桥仅在第四参缺省时自动识别 /APP_、HTTP(S) 和协议相对地址，保留 query/hash；显式 false 不会纠正。页面 ID 仍用 `router.push('FORM-xxx', params, false)`，不要与 URL 混用或绕过数据桥。验收最终地址只有一层应用路径，选中态、参数和目标正确。
 
 ## 主题 token
 
@@ -244,24 +269,17 @@ const registration = items.find(item => item.key === 'registration');
 | 菜单高度、圆角、文字、间距 | `--pod-nav-menu-*`、`--pod-nav-top-tab-*` |
 | 悬浮阴影 | `--pod-nav-popup-shadow` |
 | 页内标签 | `--tab-pure-text-color-*`、`--tab-pure-ink-bar-color` |
-| 自定义页整页画布 | `--oyd-page-background`（无应用导航默认透明）、`--pod-nav-page-padding` |
+| 自定义页整页画布 | `--pod-page-bg-color`（与原生页面统一）、`--pod-nav-page-padding` |
 | 业务卡片 | `--pod-card-bg-color`、`--pod-card-border` |
 
 主题由 `yida-design` 在应用级生成和配置；导航组件消费已有变量，必要的默认值放在 `var(...)` 回退中。颜色修改在主题文件完成，固定的布局结构留在组件中。导航深浅由导航主题决定，业务内容明暗由页面主题决定，分别验证。
 
 ## 验证
 
-- 用权限不同的账号检查平台与自定义导航的可见入口，覆盖隐藏分组、空结果、请求失败及指向不可见入口的 hash。
-- 菜单选中项与当前业务视图一致；点击、深链、刷新和浏览器前进后退由页面现有路由正确处理。
-- 浅色及深色导航下，文字、背景、选中态、禁用态、焦点与分隔线可辨认。
-- 窄屏菜单可展开或滚动，悬浮导航按所在位置留出内容空间；需要覆盖式菜单时接入抽屉。
-- 自定义侧栏已验证折叠、展开后恢复宽度、拖拽上下限及内容区联动；这些功能不能因手写外观而省略。
-- 页面只保留一个应用导航组件，按 `design.md` 或用户参考检查悬浮位置、容器比例、留白和选中态；编译通过不等于视觉验收通过。
-- Canvas 宿主与自定义页根节点顶部对齐，浮导上边距留在根节点内（根节点使用 flow-root 或 flex/grid）；隐藏应用导航时透明画布透出 Shell，原生页面仍保留独立底色，不出现顶部异色条。
-- 本地编译通过后按发布技能更新目标页面；缺少运行态视觉检查时明确记录未验收，不得仅凭用了示例报告视觉完成。
+按 [页面与导航连续性](../../yida-design/references/page-continuity.md) 验证首屏、往返及异常；补测不同权限的隐藏分组/不可见 hash，侧栏折叠、恢复宽度与拖拽，浅深色导航的文字/焦点。无递归 iframe、双导航和双滚动；局部背景不修改宿主主题，未做运行态检查须明确记录。
 
 ## 可选代码参考
 
-需要具体交互实现时，可用 `openyida sample openyida-page-template canvas-nav-side --output .cache/samples/canvas-nav.jsx` 查看侧栏折叠、调宽逻辑；其他现有示例 `canvas-nav-top`、`canvas-nav-mixed`、`canvas-nav-dock`、`canvas-nav-tabs` 同样按需参考。它们保留供兼容和查阅，不是导航设计流程，也不是默认交付 UI。
+按需用 `openyida sample openyida-page-template canvas-nav-side --output .cache/samples/canvas-nav.jsx` 查看折叠/调宽；top、mixed、dock、tabs 示例同理，外观仍按设计。
 
-只提取需要的逻辑；CodeCanvas 使用单文件源码，合并片段时处理 import 和同名函数。菜单数据片段可独立复用，导航外观仍按上面的选型和业务设计实现。
+CodeCanvas 是单文件，合并片段时去重 import 和同名函数；只提取需要的逻辑。

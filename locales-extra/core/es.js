@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  asset: {
+    executionReview: 'Revise las pruebas de ejecución de recursos: {0}. Compruebe las respuestas de tareas en segundo plano, los intervalos de trabajo y los motivos del modo síncrono.',
+    localFileUnavailable: "No se encontró la imagen: {0}. Comprueba el directorio de trabajo del comando o usa una ruta absoluta.",
+    invalidStrategy: "Los requisitos de imágenes deben ser un objeto con las posiciones de imágenes por página.",
+  },
   help: {
     subtitle: 'Herramienta de desarrollo IA low-code para Yida',
     usage: 'Uso:',
@@ -22,6 +27,7 @@ module.exports = {
     cmd_create_app: 'Crear una aplicación Yida',
     cmd_design_plan_preview: 'Actualizar borradores por módulo',
     design_plan_preview_invalid: 'Error al actualizar el borrador; revise los detalles',
+    cmd_design_plan_catalog: 'Mostrar temas y patrones de página disponibles para la planificación',
     cmd_design_plan_init: 'Crear un borrador del plan a partir de requisitos confirmados',
     cmd_design_plan_materialize: 'Generar y validar artefactos desde build-plan.json',
     cmd_design_plan_patch: 'Modificar el plan por ruta e invalidar la confirmación previa',
@@ -63,8 +69,8 @@ module.exports = {
     cmd_corp_manager: 'Gestionar permisos de plataforma',
     cmd_agent_center: 'Gestionar delegaciones de proceso y baja',
     group_process: 'Procesos',
-    cmd_configure_process: 'Configurar y publicar reglas de proceso',
-    cmd_create_process: 'Crear formulario de proceso (todo en uno)',
+    cmd_configure_process: 'Configurar y publicar reglas de proceso; Añadir aprobadores y transferir mediante JSON nodes[].actions.normalActions/appendActions',
+    cmd_create_process: 'Crear formulario de proceso (todo en uno); Añadir aprobadores y transferir mediante JSON nodes[].actions.normalActions/appendActions',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'Vista previa de instancia de proceso (diagrama de flujo)',
     group_share: 'Configuración & Compartir página',
@@ -148,6 +154,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_local_menu_binding: 'El menú local {0} requiere una página anfitriona y viewKey: sceneKey de la entrada {1} debe coincidir con el de la página, resource con su name y viewKey no puede estar vacío. Se aplica a todos los roles.',
+    design_plan_visual_object_required: '{0} debe ser un objeto, no una cadena ni una lista. Conserve la estructura generada por init y complete los valores. Ejemplo: {1}.',
     help: '\n' +
       'openyida - Yida CLI Tool\n' +
       '\n' +
@@ -806,6 +814,14 @@ module.exports = {
     usage_label: 'Usage:',
     usage_create_short: '  create: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  update: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
+    resume_readback_failed: 'Unable to read the target form before resume.',
+    resume_ownership_unverified: 'The target form does not belong to the requested app; resume stopped.',
+    resume_identity_mismatch: 'The target form identity does not match the readback; resume stopped.',
+    resume_schema_invalid: 'The target form schema is unavailable.',
+    resume_container_invalid: 'The target form container is unavailable.',
+    resume_field_conflict: 'Existing fields conflict with the requested definition; resume stopped.',
+    resume_field_resolution_failed: 'Resume field resolution failed.',
+    resume_readback_mismatch: 'Resume readback did not confirm all requested fields.',
     example_label: '\nExamples:',
     fields_file_not_found: '  ❌ Fields definition file not found: ',
     fields_format_invalid: 'Invalid fields definition format',
@@ -894,6 +910,15 @@ module.exports = {
     response_body: '  Response body: {0}',
     response_detail: '  Response detail: {0}',
     response_not_json: 'response is not JSON',
+    code_bundle_download_failed: 'Error al descargar CodeBundle: {0} ({1})',
+    code_bundle_forbidden: 'Se denegó la verificación de permisos o el acceso a OSS',
+    code_bundle_not_found: 'El archivo no existe o fue eliminado',
+    code_bundle_http_error: 'HTTP {0}',
+    code_bundle_html_response: 'Se recibió una página de error HTML; el entorno o la ruta pueden ser incorrectos',
+    code_bundle_json_response: 'El servicio devolvió una respuesta de error JSON: {0}',
+    code_bundle_unexpected_content_type: 'Content-Type de respuesta inesperado: {0}',
+    code_bundle_invalid_utf8: 'La respuesta no es texto UTF-8 válido',
+    code_bundle_integrity_failed: 'Falló la verificación de integridad de CodeBundle {0} ({1})',
     login_expired: '  Login session expired: {0}',
     csrf_expired: '  CSRF token expired: {0}',
     csrf_refreshed: '  csrf_token refreshed',
@@ -1236,6 +1261,14 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_path_missing_app_type: 'Línea {0}: falta appType en el destino. Use canvas-navigation e ID verificados para /{appType}/{pageType}/{formUuid}, no una ruta /custom/ aislada.',
+    canvas_theme_fixed_brand: 'Línea {0}: ConfigProvider fija un color de marca. Use canvas-theme con colores resueltos del tema; reserve CSS var para estilos DOM.',
+    canvas_navigation_local_platform: 'Línea {0}: las vistas locales se filtran por la navegación de plataforma. Use mode=local o estado local; vincule páginas reales a formUuid/navUuid y compruebe los permisos declarados.',
+    canvas_navigation_document_flex: 'Línea {0}: document usa flex con base cero. Actualice canvas-nav-content: altura natural y bloques para document, flex de altura fija para workspace.',
+    canvas_theme_not_assembled: 'El marcador de tema de la línea {0} no está ensamblado. Ejecute build-canvas-theme.js y compile/publique el archivo de salida independiente. Las páginas con Provider integrado no necesitan este marcador.',
+    canvas_theme_provider_missing: 'Falta el proveedor del tema cerca de la línea {0}. Devuelve <CanvasThemeProvider><PageContent /></CanvasThemeProvider> desde YidaComp.',
+    canvas_theme_root_hook: 'El tema se lee antes de activar su proveedor cerca de la línea {0}. Mueve useCanvasThemeContext a PageContent y renderízalo dentro de CanvasThemeProvider.',
+    canvas_theme_context_scope: 'CanvasThemeContext se declara dentro de una función cerca de la línea {0}. Declara el contexto y el proveedor a nivel de módulo.',
     canvas_inline_css_invalid: 'El CSS cerca de la línea {0} contiene un delimitador, cadena o comentario sin cerrar o incorrecto. Corrígelo antes de publicar.',
     title: '  yida-publish - Herramienta de publicación de páginas Yida',
     platform: '  Plataforma: {0}',
@@ -1325,6 +1358,7 @@ module.exports = {
     canvas_compiling: '  🎨 Compilando la fuente de la página personalizada localmente...',
     canvas_compile_done: '  ✅ ¡Página personalizada compilada!',
     canvas_compile_failed: '  ❌ Error al compilar la página personalizada: {0}',
+    canvas_icon_export_unavailable: 'Línea {2}: la biblioteca de iconos del entorno Yida {0} no exporta {1}. Elija un icono compatible y vuelva a compilar. Alternativas: {3}.',
     canvas_unbound_identifiers: 'El código fuente de Code Canvas contiene identificadores no declarados: {0}. Añade en el mismo archivo la importación o declaración de función, Ref, estado o variable local que falte y usa el mismo nombre en todas las referencias. Si un entorno de ejecución no estándar proporciona el identificador, accede a él explícitamente mediante window.<name> o parentWindow.<name> y comprueba antes que exista.',
     canvas_instance_api_unavailable: 'Los componentes de Code Canvas no pueden usar estas API de instancia JSX de la plataforma: {0}. Usa hooks de React, props o el puente de datos window.__OPENYIDA_YIDA_API__.',
     step_login: '\n🔑 Step 2: Leer credenciales de sesión',
@@ -2001,7 +2035,8 @@ Object.assign(module.exports.create_process || (module.exports.create_process = 
   login_required: 'No se encontró una sesión válida de Yida. Ejecuta primero openyida login.',
 });
 module.exports.connector_test = {
-  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--json]',
+  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--ignore-defaults] [--json]',
+  ignore_defaults_system_token_warning: 'Los valores de parámetros predeterminados guardados se ignoran mediante --ignore-defaults (contienen un systemToken no vacío y no se usan en esta ejecución); limpie los valores predeterminados de la acción en el diseñador antes de usarla en producción.',
   invalid_json: '{0} is not valid JSON: {1}', json_object_required: '{0} must be a JSON object',
   unknown_flat_param: 'Parameter {0} is not in the action schema; use structured JSON options', ambiguous_flat_param: 'Parameter {0} belongs to multiple locations; use structured JSON options',
   auth_account_required: 'This connector requires an owned auth account passed with --account-id', auth_account_not_owned: 'Account {0} does not belong to this connector',
@@ -2030,3 +2065,7 @@ module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
 module.exports.agent = connectorSafetyMessages.agent;
 module.exports.help.cmd_agent = connectorSafetyMessages.help.cmd_agent;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: 'Configuración de acción de aprobación no válida para el nodo {0}: {1}',
+});

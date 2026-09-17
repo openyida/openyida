@@ -1,10 +1,10 @@
 # Step 4：生成交付产物并确认
 
-输入为业务与视觉片段，或已整理完成的 `build-plan.json`。本步骤由 `yida-app` 校验交接、一次生成文件并确认当前版本。
+由 `yida-app` 校验业务/视觉输入、生成产物并确认当前版本。
 
 ## 1. 校验业务与视觉交接
 
-核对范围、场景和设计引用。标准首版复用 init 预填的已确认视觉输入，页面沿用确认时的 pageId 与 sceneKey；仅视觉选择不完整、页面范围变化或存在特殊视觉要求时由 [Plan 视觉分支](../../../yida-design/sub_skill/yida-design-plan/SKILL.md) 补齐受影响记录，业务缺项交给 `yida-prd` 修正。
+核对范围、场景与设计引用；复用 init 的已确认视觉输入和 pageId/sceneKey。选择缺失、范围变化或特殊设计交给 [Plan 视觉分支](../../../yida-design/sub_skill/yida-design-plan/SKILL.md) 补齐，业务缺项交给 `yida-prd`。
 
 ## 2. 通过 CLI 生成产物
 
@@ -22,11 +22,11 @@ openyida design-plan materialize prd/<项目名>/build-plan.json \
 openyida design-plan materialize prd/<项目名>/build-plan.json --from-preview --json
 ```
 
-CLI 完整校验后一起保存源计划、`prd.md`、`design.md`、`build-plan.html` 和 `app-theme.css`。HTML 使用预置模板，业务内容与 PRD 一致。
+CLI 完整校验后一起保存源计划、`prd.md`、`design.md`、`build-plan.html` 和 `app-theme.css`。
 
-完整文件的职责与版本规则见 [完整文件合并](../parallel-work.md#plan-的-cli-交接)。直接维护源计划时先设 `meta.status=awaiting_confirmation`，再执行 `openyida design-plan materialize prd/<项目名>/build-plan.json --json`；仅做诊断时使用 `openyida design-plan materialize prd/<项目名>/build-plan.json --check --json`。正常生成已经包含完整校验，不先运行一次 --check 再重复生成。
+执行 init 返回的 `materialize.command`，使用其 `materialize.shell`：Windows 为 PowerShell，其他平台为 POSIX shell。成功结果的 `outputs.html` 用于展示方案，`revision` 仅用于内部确认绑定，不透出给用户。片段职责见 [完整文件合并](../parallel-work.md#plan-的-cli-交接)。直接维护源 JSON 时先设 status=awaiting_confirmation，再运行 `openyida design-plan materialize prd/<项目名>/build-plan.json --json`；诊断加 `--check --json`，正常生成不重复预检。
 
-HTML 保留“需求总览、数据模型、业务流程、页面规划”四章，完整展示用户需要确认的业务、视觉、数据、顺序和验收内容；整体视觉放在需求总览，逐页视觉放在页面详情。展示范围见 [HTML 内容契约](../../../yida-design/sub_skill/yida-design-plan/assets/README.md#需求总览中的视觉信息)，Markdown 供 Agent 执行。
+HTML 使用预置模板，保留需求总览、数据模型、业务流程、页面规划四章；整体视觉在总览、逐页视觉在详情，业务与 PRD 一致。见 [HTML 内容契约](../../../yida-design/sub_skill/yida-design-plan/assets/README.md#需求总览中的视觉信息)。
 
 校验失败时按返回的 `details.issues` 集中修正对应字段后重试。写入失败由 CLI 恢复旧文件；若恢复失败，保留报错给出的备份路径并处理恢复后再继续。
 
@@ -34,19 +34,21 @@ HTML 保留“需求总览、数据模型、业务流程、页面规划”四章
 
 按 [用户交互契约](../../../yida-design/references/ask-human-interaction-contract.md) 执行：
 
-1. 在会话中展示“当前这版方案”、3–7 条业务摘要和可打开的 `build-plan.html`。
-2. 展示成功后内部记录 `presentedRevision=meta.revision`，记录后直接提问；收到确认或修改业务事实后再重新生成。用户可见版本称为“第 N 版方案”，展示序号与内部 revision 绑定。
-3. 询问“确认并开始搭建”或“继续调整”，将确认结果绑定到本次展示版本。
+1. 在会话中展示“当前方案”，并用 3–7 条业务摘要说明方案内容；有前后台时说明各入口导航归属，平台导航管理页只实现业务内容。导航随整体方案确认，不另设技术选型确认。
+2. 实际调用 `ask_human` 创建结构化提问。调用对象严格采用交互契约中的唯一 payload schema；`attachments` 携带 `name: "build-plan.html"`、`path: "prd/<项目名>/build-plan.html"`，`revision` 使用当前 `meta.revision`，`options` 固定为 `confirm_build` 和 `continue_editing`。一次成功调用同时建立方案展示、版本绑定和最终选择。
+3. 结构化交互成功创建后将 `meta.planState.presentedRevision=meta.revision` 写回源 JSON，仅保存展示事实，不重新物化。询问“确认并开始搭建”或“继续调整”，提交时由宿主原样回传 revision，将确认结果绑定到本次展示版本。用户可见标题、摘要、附件名称与确认问题统一使用“搭建方案”或“当前方案”，不展示修订序号。内部 revision、展示记录和确认失效机制照常维护。
 
-只有以下条件同时成立才交接：
+只有以下条件同时成立才交接；它们由本轮 ask_human 请求和回传在运行时判定，确认结果可保留在运行时，但展示版本必须写回源文件：
 
 - `meta.status=confirmed`
 - `meta.planState.planConfirmed=true`
 - `meta.revision=presentedRevision=confirmedRevision`
 
-交接前运行不带 `--from-preview` 的生成命令同步确认状态，将同版本 `prd.md`、`design.md` 返回应用主流程 Step 3，执行 [公共主题 CSS 交接](../step-2-design.md#主题文件实现指令)。
+收到 `confirm_build` 且回传 revision 与展示版本一致后，保存运行时确认并实施同版产物。按 `assetTasks` 派发素材任务、记录编号后继续创建资源和页面，见 [并行调度](../parallel-work.md#素材与页面同时推进)。素材进度沿用确认，业务/视觉变更按下节处理；`explicitScope.allowInferredResources=false` 只实施范围内资源，不改主题、应用设置或导航。
 
 ## 4. 处理调整
+
+`continue_editing` 把工作流从 `awaiting_confirmation` 转为 `editing`。下一次交互收集变更内容；收到变更后更新当前计划源，物化新 revision，并重新进入最终确认。
 
 按字段更新源事实并重新生成，例如同时调整品牌色和圆角：
 
@@ -58,7 +60,7 @@ openyida design-plan patch prd/<项目名>/build-plan.json \
   --materialize --json
 ```
 
-CLI 支持首次添加契约允许的可选字段，自动递增 revision、使旧确认失效，并同步源 JSON 与派生产物。字段限制见 [紧凑计划契约](../../../yida-design/sub_skill/yida-design-plan/references/build-plan-compact-schema.md#可选字段-patch-与完成校验)。
+首版从 1 开始，内部补全保持当前版；已展示方案实质变更升一版并清空确认，相同内容及素材进度不升版。可选字段与旧计划兼容规则见 [紧凑计划契约](../../../yida-design/sub_skill/yida-design-plan/references/build-plan-compact-schema.md#可选字段-patch-与完成校验)。
 
 | 调整内容 | 负责技能与传播范围 |
 | --- | --- |
@@ -66,4 +68,4 @@ CLI 支持首次添加契约允许的可选字段，自动递增 revision、使�
 | 页面核心任务、区块或首屏 | `yida-prd` 更新页面，随后 `yida-design` 同步视觉应用 |
 | 主题、品牌色、圆角或阴影 | `yida-design` 更新视觉事实，保持业务范围、页面任务和操作优先级 |
 
-每次调整后重新展示并确认当前版本。
+业务方案或视觉方案调整后重新展示并确认当前版本。素材到位、替换同用途图片或更新缺图状态属于实施进度，按 [素材交接](../../../yida-image-assets/SKILL.md#6-交给页面使用) 更新后直接继续。

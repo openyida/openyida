@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  asset: {
+    executionReview: '素材の実行記録を確認してください：{0}。バックグラウンド実行の応答、業務の実行時間、同期処理への切り替え理由を確認してください。',
+    localFileUnavailable: "画像ファイルが見つかりません：{0}。コマンドの作業ディレクトリを確認するか、絶対パスを指定してください。",
+    invalidStrategy: "画像の要件は、ページごとの画像の配置を記述したオブジェクトで指定してください。",
+  },
   help: {
     subtitle: '宜搭ローコード AI 開発ツール',
     usage: '使用方法:',
@@ -22,6 +27,7 @@ module.exports = {
     cmd_create_app: '宜搭アプリを作成',
     cmd_design_plan_preview: 'モジュールごとに計画草稿を更新',
     design_plan_preview_invalid: '草稿の更新に失敗しました。詳細を確認してください',
+    cmd_design_plan_catalog: '計画に利用できるテーマとページパターンを一覧表示',
     cmd_design_plan_init: '確認済みの要件から計画の下書きを作成',
     cmd_design_plan_materialize: 'build-plan.json から設計計画成果物を生成・検証',
     cmd_design_plan_patch: 'フィールドパスで計画を更新し以前の確認を無効化',
@@ -63,8 +69,8 @@ module.exports = {
     cmd_corp_manager: 'プラットフォーム権限を管理',
     cmd_agent_center: 'プロセス委任と退職者代理を管理',
     group_process: 'プロセス',
-    cmd_configure_process: 'プロセスルールを設定＆公開',
-    cmd_create_process: 'プロセスフォームを作成（一体型）',
+    cmd_configure_process: 'プロセスルールを設定＆公開; 承認者の追加・転送は JSON nodes[].actions.normalActions/appendActions で設定',
+    cmd_create_process: 'プロセスフォームを作成（一体型）; 承認者の追加・転送は JSON nodes[].actions.normalActions/appendActions で設定',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'プロセスインスタンスをプレビュー（フローチャート）',
     group_share: 'ページ設定 & 共有',
@@ -148,6 +154,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_local_menu_binding: 'ローカルメニュー {0} には表示ページと viewKey が必要です。入口 {1} の sceneKey はページの sceneKey、resource はページの name と一致し、viewKey は空でない必要があります。すべての役割に適用されます。',
+    design_plan_visual_object_required: '{0} は文字列や配列ではなくオブジェクトで指定してください。init が生成した構造を維持して値を入力します。例: {1}。',
     help: '\n' +
       'openyida - Yida CLI ツール\n' +
       '\n' +
@@ -772,6 +780,14 @@ module.exports = {
     usage_label: '使用方法:',
     usage_create_short: '  作成: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  更新: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
+    resume_readback_failed: 'Unable to read the target form before resume.',
+    resume_ownership_unverified: 'The target form does not belong to the requested app; resume stopped.',
+    resume_identity_mismatch: 'The target form identity does not match the readback; resume stopped.',
+    resume_schema_invalid: 'The target form schema is unavailable.',
+    resume_container_invalid: 'The target form container is unavailable.',
+    resume_field_conflict: 'Existing fields conflict with the requested definition; resume stopped.',
+    resume_field_resolution_failed: 'Resume field resolution failed.',
+    resume_readback_mismatch: 'Resume readback did not confirm all requested fields.',
     example_label: '\n例:',
     fields_file_not_found: '  ❌ フィールド定義ファイルが見つかりません: ',
     fields_format_invalid: 'フィールド定義の形式が正しくありません',
@@ -851,6 +867,15 @@ module.exports = {
     response_body: '  レスポンス内容: {0}',
     response_detail: '  レスポンス詳細: {0}',
     response_not_json: 'レスポンスが JSON ではありません',
+    code_bundle_download_failed: 'CodeBundle のダウンロードに失敗しました: {0} ({1})',
+    code_bundle_forbidden: '権限確認または OSS へのアクセスが拒否されました',
+    code_bundle_not_found: 'ファイルが存在しないか、削除されています',
+    code_bundle_http_error: 'HTTP {0}',
+    code_bundle_html_response: 'HTML エラーページが返されました。環境またはルートが正しくない可能性があります',
+    code_bundle_json_response: 'サービスから JSON エラーレスポンスが返されました: {0}',
+    code_bundle_unexpected_content_type: '予期しないレスポンス Content-Type: {0}',
+    code_bundle_invalid_utf8: 'レスポンスは有効な UTF-8 テキストではありません',
+    code_bundle_integrity_failed: 'CodeBundle {0} の整合性検証に失敗しました ({1})',
     login_expired: '  ログインセッション期限切れ: {0}',
     csrf_expired: '  CSRF トークン期限切れ: {0}',
     csrf_refreshed: '  csrf_token を更新しました',
@@ -1185,6 +1210,14 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_path_missing_app_type: '行 {0}: 遷移先に appType がありません。canvas-navigation と確認済み ID で /{appType}/{pageType}/{formUuid} を構築し、/custom/ 単独のパスを避けてください。',
+    canvas_theme_fixed_brand: '行 {0}: ConfigProvider がブランド色を固定しています。canvas-theme で解決したテーマ色を使い、CSS var は DOM スタイルにのみ直接使用してください。',
+    canvas_navigation_local_platform: '行 {0}: ローカルビューをプラットフォームナビゲーションで絞り込んでいます。mode=local またはローカル状態を使い、実際のページには formUuid/navUuid を指定して権限を検証してください。',
+    canvas_navigation_document_flex: '行 {0}: document にゼロ基準の flex が使用されています。canvas-nav-content を更新し、document は自然な高さのブロック、workspace は固定高さの flex を使用してください。',
+    canvas_theme_not_assembled: '行 {0} のテーママーカーは未展開です。build-canvas-theme.js を実行し、別の出力ファイルをコンパイル・公開してください。Provider 組み込み済みのページにはマーカーは不要です。',
+    canvas_theme_provider_missing: '{0} 行付近でテーマの Provider が適用されていません。YidaComp から <CanvasThemeProvider><PageContent /></CanvasThemeProvider> を返してください。',
+    canvas_theme_root_hook: '{0} 行付近で Provider の適用前にテーマを参照しています。useCanvasThemeContext を PageContent に移し、CanvasThemeProvider の子として描画してください。',
+    canvas_theme_context_scope: '{0} 行付近の CanvasThemeContext が関数内で定義されています。Context と Provider をモジュールのトップレベルに配置してください。',
     canvas_inline_css_invalid: '{0} 行付近の CSS に閉じていない、または対応しない括弧、文字列、コメントがあります。公開前に修正してください。',
     title: '  yida-publish - Yida ページ公開ツール',
     platform: '  プラットフォーム: {0}',
@@ -1274,6 +1307,7 @@ module.exports = {
     canvas_compiling: '  🎨 カスタムページソースをローカルでコンパイル中...',
     canvas_compile_done: '  ✅ カスタムページのコンパイルが完了しました！',
     canvas_compile_failed: '  ❌ カスタムページのコンパイルに失敗しました：{0}',
+    canvas_icon_export_unavailable: '行 {2}: 宜搭ランタイムのアイコンライブラリ {0} は {1} をエクスポートしていません。対応するアイコンを選択し、再コンパイルしてください。代替候補: {3}。',
     canvas_unbound_identifiers: 'Code Canvas ソースに未宣言の識別子があります：{0}。同じファイルに import、関数、Ref、state、またはローカル変数の宣言を追加し、すべての参照で同じ名前を使用してください。非標準ランタイムが提供する識別子は window.<name> または parentWindow.<name> から明示的に参照し、先に存在を確認してください。',
     canvas_instance_api_unavailable: 'Code Canvas コンポーネントでは、次のプラットフォーム JSX インスタンス API を使用できません：{0}。React Hooks、props、または window.__OPENYIDA_YIDA_API__ データブリッジを使用してください。',
     step_login: '\n🔑 Step 2: ログイン情報を読み込む',
@@ -1926,7 +1960,8 @@ Object.assign(module.exports.create_process || (module.exports.create_process = 
   login_required: '有効な宜搭ログイン状態がありません。先に openyida login を実行してください。',
 });
 module.exports.connector_test = {
-  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--json]',
+  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--ignore-defaults] [--json]',
+  ignore_defaults_system_token_warning: '--ignore-defaults により、アクションに保存された既定パラメータ値を無視しました（空でない systemToken を含みますが、今回のリクエストでは使用されません）。本番利用前にデザイナーで既定値を整理してください。',
   invalid_json: '{0} is not valid JSON: {1}', json_object_required: '{0} must be a JSON object',
   unknown_flat_param: 'Parameter {0} is not in the action schema; use structured JSON options', ambiguous_flat_param: 'Parameter {0} belongs to multiple locations; use structured JSON options',
   auth_account_required: 'This connector requires an owned auth account passed with --account-id', auth_account_not_owned: 'Account {0} does not belong to this connector',
@@ -1955,3 +1990,7 @@ module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
 module.exports.agent = connectorSafetyMessages.agent;
 module.exports.help.cmd_agent = connectorSafetyMessages.help.cmd_agent;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: 'ノード {0} の承認アクション設定が無効です：{1}',
+});

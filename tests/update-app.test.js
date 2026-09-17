@@ -1,6 +1,7 @@
 'use strict';
 
 const querystring = require('querystring');
+const { buildCommandManifest } = require('../lib/core/command-manifest');
 
 const {
   assertPresetThemeKey,
@@ -24,6 +25,26 @@ const {
 } = require('../lib/app/update-app');
 
 describe('update-app helpers', () => {
+  test('manifest covers every parsed option and alias with matching values', () => {
+    const command = buildCommandManifest().commands.find(entry => entry.id === 'update-app');
+    expect(command.args.find(arg => arg.name === 'appType')).toMatchObject({ required: true, source: 'positional', position: 0 });
+    const options = command.args.filter(arg => arg.source === 'option');
+    const parserOptions = [...parseArgs.toString().matchAll(/case '([^']+)':/g)].map(match => match[1]);
+    expect(options.flatMap(arg => arg.builder_options).sort()).toEqual(parserOptions.sort());
+    const values = {
+      name: '测试应用', desc: '业务说明', icon: 'xian-yingyong', iconColor: '#0089FF',
+      colour: 'custom', themeColor: '#123456', themeFile: './app-theme.css',
+      navTheme: 'white', logoSource: 'appIcon', layoutDirection: 'side',
+    };
+    for (const arg of options) {
+      const boolean = arg.type === 'boolean';
+      const expected = boolean ? { hideAppNav: arg.name === 'hideAppNav' ? 'y' : 'n' } : { [arg.name]: values[arg.name] };
+      if (!boolean) { expect(values).toHaveProperty(arg.name); }
+      for (const option of arg.builder_options) {
+        expect(parseArgs(['APP_1', option, ...(boolean ? [] : [values[arg.name]])])).toMatchObject({ appType: 'APP_1', ...expected });
+      }
+    }
+  });
   test('colour accepts only platform keys or custom, never CSS colors or invented keys', () => {
     ['podBlue', 'podGreen', 'podOrange', 'black', 'custom'].forEach((key) => expect(() => assertAppThemeKey(key)).not.toThrow());
     ['#C89B5A', 'rgb(200,155,90)', 'desertWarm', 'podBXXXX'].forEach((key) => expect(() => assertAppThemeKey(key)).toThrow());
@@ -91,6 +112,56 @@ describe('update-app helpers', () => {
       appType: 'APP_1',
       hideAppNav: 'n',
     });
+  });
+
+  test.each(['top', 'side', 'l_shape'])('platform %s reaches the request body and restores hidden navigation', (layout) => {
+    const params = parseArgs(['APP_1', '--layout', layout, '--show-app-nav']);
+    params.layoutDirection = normalizeLayoutDirection(params.layoutDirection);
+    const payload = buildUpdateAppPostData(params, {
+      layoutDirection: layout === 'side' ? 'top' : 'side',
+      hideAppNav: 'y',
+      navType: 'top_side',
+      config: { LAY_OUT_DIRECTION: 'side', HIDE_APP_NAV: 'y' },
+    }, { csrfToken: 'csrf' });
+    const body = querystring.parse(querystring.stringify(payload));
+    expect(body).toMatchObject({ layoutDirection: layout, hideAppNav: 'n', navType: 'top_side' });
+  });
+
+  // Application normalization from yc-utils trunk-master-gray b21b02d7.
+  // Shell page overrides (top_fold/none) are not application-save rules.
+  test.each([
+    ['top', 'top_side', 'top'],
+    ['side', 'top_fold', 'side'],
+    ['l_shape', 'side_only', 'l_shape'],
+    ['hoz', 'top_side', 'l_shape'],
+    ['hoz', 'top_fold', 'top'],
+    ['ver', 'top_side', 'side'],
+    ['slide', undefined, 'side'],
+    ['slide', 'top_side', 'l_shape'],
+    [undefined, 'top_side', 'l_shape'],
+    [undefined, 'top_fold', 'top'],
+    [undefined, 'side_only', 'side'],
+    [undefined, 'none', 'side'],
+    [undefined, undefined, 'side'],
+  ])('updating color preserves app layout %s / legacy navType %s as %s', (layoutDirection, navType, expected) => {
+    for (const current of [
+      { layoutDirection, navType },
+      { config: { LAY_OUT_DIRECTION: layoutDirection, NAVTYPE: navType } },
+    ]) {
+      const body = querystring.parse(querystring.stringify(buildUpdateAppPostData(
+        parseArgs(['APP_1', '--nav-theme', 'dark']), current, { csrfToken: 'csrf' }
+      )));
+      expect(body.layoutDirection).toBe(expected);
+      if (navType) {expect(body.navType).toBe(navType);}
+      else {expect(body).not.toHaveProperty('navType');}
+    }
+  });
+
+  test('an explicit layout overrides legacy app data without rewriting navType', () => {
+    const body = buildUpdateAppPostData(parseArgs(['APP_1', '--layout', 'side', '--show-app-nav']), {
+      layoutDirection: 'hoz', navType: 'top_side', hideAppNav: 'y',
+    }, {});
+    expect(body).toMatchObject({ layoutDirection: 'side', navType: 'top_side', hideAppNav: 'n' });
   });
 
   test('theme presets list documents the only values accepted by --theme', () => {

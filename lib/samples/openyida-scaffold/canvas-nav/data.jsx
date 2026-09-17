@@ -1,48 +1,131 @@
-/** PRD 决定菜单结构，平台结果只过滤不可见入口；同一资源可对应多个任务入口。 */
-function filterCanvasNavigation(items, navs, hiddenNav = []) {
+/** local 只切页内视图；platform 沿用平台导航；independent 按真实资源权限过滤。 */
+function validateCanvasNavigationItems(items, mode) {
+  if (!['local', 'platform', 'independent'].includes(mode)) throw new Error('未知导航模式');
+  for (const item of items) {
+    if (Array.isArray(item.children) && item.children.length) {
+      validateCanvasNavigationItems(item.children, mode);
+    } else if (mode === 'local') {
+      if (item.targetType !== 'local' || !String(item.key || '').trim() || !String(item.viewKey || '').trim()
+        || item.href || item.url) throw new Error('local 模式只接受含 key/viewKey 的本页菜单，真实页面请使用 platform 或 independent');
+    } else if (mode === 'platform' && (item.targetType === 'local' || (!item.formUuid && !item.navUuid))) {
+      throw new Error('页内菜单不能按平台导航过滤：使用 mode=local 或直接管理本地视图；真实页面需绑定 formUuid/navUuid');
+    }
+  }
+}
+
+function filterCanvasNavigation(items, navs, hiddenNav = [], { mode = 'platform', access } = {}) {
+  validateCanvasNavigationItems(items, mode);
+  const isHidden = value => value === true || value === 'y' || value === 'true';
   const visibleIds = new Set();
   function collectVisible(nodes) {
     for (const nav of nodes) {
-      if (nav.hidden || hiddenNav.includes(nav.slug) || hiddenNav.includes(nav.navUuid)) continue;
+      if (isHidden(nav.hidden) || hiddenNav.includes(nav.slug) || hiddenNav.includes(nav.navUuid)) continue;
       if (nav.navUuid) visibleIds.add(nav.navUuid);
+      if (nav.formUuid) visibleIds.add(nav.formUuid);
       collectVisible(nav.children || []);
     }
   }
-  collectVisible(navs);
+  if (mode === 'platform') collectVisible(navs);
+  const validRequirement = requirement => requirement && typeof requirement.formUuid === 'string' && requirement.formUuid.trim()
+    && typeof requirement.operation === 'string' && requirement.operation.trim()
+    && (requirement.viewUuid === undefined || (typeof requirement.viewUuid === 'string' && requirement.viewUuid.trim()));
+  const grantKey = requirement => JSON.stringify([requirement.formUuid, requirement.viewUuid || '', requirement.operation]);
+  const grants = new Map();
+  for (const grant of access?.grants || []) {
+    if (!validRequirement(grant)) continue;
+    const key = grantKey(grant);
+    // 重复结果存在拒绝或未知时，不采用其中的允许结果。
+    grants.set(key, grant.allowed === true && grants.get(key) !== false);
+  }
+  function allowed(item, leaf) {
+    const requirements = item.access;
+    if (requirements === undefined) return mode === 'local' || mode === 'platform' || (!leaf && !item.formUuid && !item.navUuid);
+    if (!Array.isArray(requirements) || !requirements.length || !requirements.every(validRequirement)) return false;
+    if (leaf && mode !== 'local') {
+      const operation = item.targetType === 'submission' ? 'OPERATE_CREATE' : 'OPERATE_VIEW';
+      if (!item.formUuid || !requirements.some(requirement => requirement.formUuid === item.formUuid
+        && (requirement.viewUuid || '') === (item.viewUuid || item.params?.viewUuid || '') && requirement.operation === operation)) return false;
+    }
+    return requirements.every(requirement => grants.get(grantKey(requirement)) === true);
+  }
   function filterItems(nodes) {
     return nodes.flatMap(item => {
       const resourceId = item.navUuid || item.formUuid;
-      if (item.hidden || (resourceId && !visibleIds.has(resourceId))) return [];
+      if (isHidden(item.hidden) || (mode === 'platform' && resourceId && !visibleIds.has(resourceId))) return [];
+      if (item.children !== undefined && !Array.isArray(item.children)) return [];
       if (item.children?.length) {
+        if (!allowed(item, false)) return [];
         const children = filterItems(item.children);
         return children.length ? [{ ...item, children }] : [];
       }
-      return visibleIds.has(resourceId) ? [item] : [];
+      if (!allowed(item, true)) return [];
+      return mode !== 'platform' || visibleIds.has(resourceId) ? [item] : [];
     });
   }
   return filterItems(items);
 }
 
-/** 按入口任务选择提交页或管理页；targetType 由 PRD 明确，表单类型不决定入口用途。 */
+/** 只在过滤后的叶子菜单中选择内容；无可用入口时返回 undefined。 */
+function selectCanvasNavigation(items, requestedKey, defaultKey) {
+  const leaves = [];
+  function collect(nodes) {
+    for (const item of nodes) {
+      if (item.children?.length) collect(item.children);
+      else if (!item.disabled) leaves.push(item);
+    }
+  }
+  collect(items);
+  return leaves.find(item => item.key === requestedKey) || leaves.find(item => item.key === defaultKey) || leaves[0];
+}
+
+/** 用途决定路由；独立页面走 custom，管理视图保留真实 viewUuid。 */
 function buildCanvasNavigationUrl(item, appType, { embedded = false } = {}) {
   if (item.targetType === 'url') return item.url;
-  if (!['submission', 'page'].includes(item.targetType)) throw new Error('请明确导航入口用途');
+  if (!['submission', 'page', 'custom'].includes(item.targetType)) throw new Error('请明确导航入口用途');
   const formUuid = item.formUuid || item.navUuid;
   if (!appType || !formUuid) throw new Error('缺少导航目标');
   const query = new URLSearchParams(item.params || {});
-  const route = item.targetType === 'submission' ? 'submission' : 'workbench';
+  const route = { submission: 'submission', page: 'workbench', custom: 'custom' }[item.targetType];
+  if (item.viewUuid) {
+    if (route !== 'workbench') throw new Error('管理视图必须使用 workbench 入口');
+    query.set('viewUuid', item.viewUuid);
+  }
+  if (route === 'custom') query.delete('isRenderNav');
   if (embedded) {
-    if (route === 'submission') query.set('isRenderNav', 'false');
-    else query.set('iframe', 'true');
+    if (route === 'workbench') query.set('iframe', 'true');
+    else query.set('isRenderNav', 'false');
   }
   const suffix = query.toString();
   return `/${encodeURIComponent(appType)}/${route}/${encodeURIComponent(formUuid)}${suffix ? '?' + suffix : ''}`;
 }
 
-/** 使用当前访问者的登录态读取导航；csrfToken、hiddenNav 由当前页面运行态提供。 */
-async function loadCanvasNavigation({ items, appType, formUuid, csrfToken, hiddenNav = [], signal }) {
+/** resolveAccess 是调用方对真实权限服务的适配，不是平台已有的接口或静态授权清单。 */
+async function loadCanvasNavigation({ items, appType, formUuid, csrfToken, hiddenNav = [], signal, mode = 'platform', resolveAccess }) {
   if (!Array.isArray(items)) throw new Error('缺少 PRD 导航配置');
-  if (!appType) throw new Error('缺少应用标识');
+  validateCanvasNavigationItems(items, mode);
+  if (mode !== 'local' && !appType) throw new Error('缺少应用标识');
+  let needsAccess = mode === 'independent';
+  const requirements = [];
+  function collect(nodes) {
+    for (const item of nodes) {
+      if (item.access !== undefined) {
+        needsAccess = true;
+        if (Array.isArray(item.access)) requirements.push(...item.access);
+      }
+      if (Array.isArray(item.children)) collect(item.children);
+    }
+  }
+  collect(items);
+  let access;
+  if (needsAccess) {
+    if (!appType) throw new Error('权限查询需要应用标识');
+    if (typeof resolveAccess !== 'function') throw new Error('缺少当前访问者的权限查询能力');
+    access = await resolveAccess({ appType, requirements, signal });
+    if (access?.appType !== appType || !Array.isArray(access.grants)) throw new Error('权限查询失败，请重试');
+  }
+  if (signal?.aborted) throw new Error('导航加载已取消');
+  // 独立菜单不依赖平台树是否含有被隐藏的资源；授权必须来自上述实时权限查询。
+  if (mode !== 'platform') return filterCanvasNavigation(items, [], [], { mode, access });
   const query = new URLSearchParams({ _api: 'nattyFetch', _mock: 'false' });
   if (formUuid) query.set('formUuid', formUuid);
   if (csrfToken) query.set('_csrf_token', csrfToken);
@@ -53,8 +136,7 @@ async function loadCanvasNavigation({ items, appType, formUuid, csrfToken, hidde
   });
   if (!response.ok) throw new Error('导航加载失败，请重试');
   const result = await response.json();
-  if (result.success !== true || !Array.isArray(result.content?.navs)) {
-    throw new Error('导航加载失败，请重试');
-  }
-  return filterCanvasNavigation(items, result.content.navs, hiddenNav);
+  if (result.success !== true || !Array.isArray(result.content?.navs)) throw new Error('导航加载失败，请重试');
+  if (signal?.aborted) throw new Error('导航加载已取消');
+  return filterCanvasNavigation(items, result.content.navs, hiddenNav, { mode, access });
 }

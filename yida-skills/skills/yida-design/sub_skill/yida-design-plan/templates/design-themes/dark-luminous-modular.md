@@ -5,78 +5,69 @@ themeId: dark-luminous-modular
 tokens:
   application-global:
     colors:
-      "--color-white": "#181818"
-      "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 10%，用于悬停>"
-      "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与 #181818 混合 76%，用于品牌浅色>"
-      "--color-brand1-3": "<基于 --color-brand1-6 生成的实际色值：与 #101010 混合 90%，用于浅层导航框架>"
-      "--color-brand1-5": "<基于 --color-brand1-6 生成的实际色值：降低明度约 18%，用于深层导航框架>"
-      "--color-brand1-6": "{{PRIMARY_COLOR}}"
-      "--color-brand1-9": "<基于 --color-brand1-6 生成的实际色值：降低明度约 10%，用于激活和按下>"
-      "--color-brand1-10": "<基于 --color-brand1-6 生成的实际色值：与 #181818 混合 58%，用于禁用>"
-      "--color-line1-1": "#292929"
-      "--color-line1-2": "#3B3B3B"
-      "--color-fill1-1": "#202020"
-      "--color-fill1-2": "#252525"
-      "--color-fill1-3": "#303030"
-      "--color-fill1-10": "rgba(28, 28, 28, 0.96)"
-      "--color-text1-4": "#F5F5F5"
-      "--color-text1-10": "#B8B8B8"
-      "--color-text1-3": "#777777"
+      "--pod-app-root-bg-color": "var(--pod-page-bg-color)" # 应用最底层背景色
+      "--pod-app-root-bg-image": "none" # 应用最底层背景图
+      "--pod-shell-theme-bg-color": "var(--color-brand1-3)" # 顶部导航、侧边导航和应用壳层背景色
+      "--pod-page-bg-color": "#101010" # 宜搭全局页面画布背景色
+      "--color-white": "#181818" # 全应用基础表面色
+      "--pod-card-bg-color": "var(--color-white)" # 一级卡片、表单主容器和详情面板背景色
+      "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 10%，用于悬停>" # 悬停色
+      "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与 #181818 混合 76%，用于品牌浅色>" # 品牌浅色，保留平台既有消费关系
+      "--color-brand1-3": "<基于 --color-brand1-6 生成的实际色值：与 #101010 混合 90%，用于浅层导航框架>" # 浅色导航框架背景色
+      "--color-brand1-5": "<基于 --color-brand1-6 生成的实际色值：降低明度约 18%，用于深层导航框架>" # 深色导航框架背景色
+      "--color-brand1-6": "{{PRIMARY_COLOR}}" # 全应用主题主色，是其他 Brand Token 的生成基准
+      "--color-brand1-9": "<基于 --color-brand1-6 生成的实际色值：降低明度约 10%，用于激活和按下>" # 激活、按下状态色
+      "--color-brand1-10": "<基于 --color-brand1-6 生成的实际色值：与 #181818 混合 58%，用于禁用>" # 禁用状态色
+      "--color-line1-1": "#292929" # 弱边界、辅助线和表格行分隔线
+      "--color-line1-2": "#3B3B3B" # 控件和容器常规边界
+      "--color-fill1-1": "#202020" # 菜单悬停和弱状态填充
+      "--color-fill1-2": "#252525" # 点击或选中填充
+      "--color-fill1-3": "#303030" # 更重的中性填充
+      "--color-fill1-10": "#2E3033" # Tooltip 固定深色背景
+      "--color-text1-5": "#FFFFFF" # Tooltip 固定反色文字
+      "--color-text1-4": "#F5F5F5" # 默认一级文字色，文字对比最强
+      "--color-text1-10": "#B8B8B8" # 表头和 placeholder
+      "--color-text1-3": "#777777" # 二级文字色，弱于 text1-10
+      "--color-text1-2": "rgba(255, 255, 255, 0.4)" # 仅用于禁用态文字，弱于 text1-3
+      "--color-text1-1": "rgba(255, 255, 255, 0.24)" # 仅用于水印文字，文字对比最弱
     typography:
-      base:
-        "--font-family-base": "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-      subhead:
-        "--font-size-subhead": 24px
-        "--font-weight-subhead": 600
-        "--font-lineheight-subhead": 1.3
-      body-2:
-        "--font-size-body-2": 16px
-        "--font-weight-body-2": 600
-        "--font-lineheight-body-2": 1.45
-      body-1:
-        "--font-size-body-1": 14px
-        "--font-weight-body-1": 400
-        "--font-lineheight-body-1": 1.5
-      table:
-        "--font-size-table": 14px
-        "--font-weight-table": 500
-        "--font-lineheight-table": 1.45
-      caption:
-        "--font-size-caption": 12px
-        "--font-weight-caption": 400
-        "--font-lineheight-caption": 1.4
+      "--font-family-base": "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      "--font-size-subhead": "18px"
+      "--font-weight-subhead": "500"
+      "--font-lineheight-subhead": "1.3"
+      "--font-size-body-2": "16px"
+      "--font-weight-body-2": "500"
+      "--font-lineheight-body-2": "1.45"
+      "--font-size-body-1": "14px"
+      "--font-weight-body-1": "400"
+      "--font-lineheight-body-1": "1.5"
+      "--font-size-table": "13px"
+      "--font-weight-table": "400"
+      "--font-lineheight-table": "1.45"
+      "--font-size-caption": "12px"
+      "--font-weight-caption": "400"
+      "--font-lineheight-caption": "1.4"
     spacing:
-      "--s-1": 4px
-      "--s-2": 8px
-      "--s-3": 12px
-      "--s-4": 16px
-      "--s-6": 20px
-      "--s-8": 24px
+      "--s-1": "4px"
+      "--s-2": "8px"
+      "--s-3": "12px"
+      "--s-4": "16px"
+      "--s-5": "20px"
+      "--s-6": "24px"
+      "--s-7": "28px"
+      "--s-8": "32px"
+      "--s-9": "36px"
+      "--s-10": "40px"
     rounded:
-      "--corner-zero": 0px
-      "--corner-1": 4px
-      "--corner-2": 8px
-      "--corner-3": 12px
-      "--corner-4": 16px
-      "--corner-5": 20px
-      "--corner-circle": 50%
-      "--corner-semicircle": 500px
-  custom-page:
-    colors:
-      "--oyd-page-background": "#101010"
-      "--oyd-brand-glow-soft": "<基于 --color-brand1-6 生成的实际色值：主题色 18% + 透明 82%，用于局部辉光>"
-      "--oyd-brand-chart-strong": "<基于 --color-brand1-6 生成的实际色值：与白色混合 6%，用于主图形>"
-      "--oyd-brand-chart-muted": "<基于 --color-brand1-6 生成的实际色值：主题色 46% + 透明 54%，用于次图形>"
-      "--oyd-brand-chart-area": "<基于 --color-brand1-6 生成的实际色值：主题色 14% + 透明 86%，用于面积填充>"
-    typography:
-      metric-primary:
-        "--font-size-metric-primary": 30px
-        "--font-weight-metric-primary": 500
-        "--font-lineheight-metric-primary": 1.18
-      chart-emphasis:
-        "--font-size-chart-emphasis": 40px
-        "--font-weight-chart-emphasis": 500
-        "--font-lineheight-chart-emphasis": 1.1
+      "--corner-zero": "0px"
+      "--corner-1": "4px"
+      "--corner-2": "8px"
+      "--corner-3": "12px"
+      "--corner-4": "16px"
+      "--corner-5": "20px"
+      "--corner-circle": "50%"
+      "--corner-semicircle": "500px"
+  custom-page: {}
 ---
 
 # {{PROJECT_NAME}} design.md
@@ -101,7 +92,7 @@ tokens:
 
 | 设计母体 | 可见证据与置信度 | 复用规则与实现钩子 | 缺失后的失败表现 |
 | --- | --- | --- | --- |
-| 低照度分层暗面 | 近黑画布上叠放略亮面板，边界和阴影都极弱，面板内部仍有可辨层级。`observed` | 不可变：画布、一级表面、嵌套表面至少三级明度；可变：模块内容与数量。复用 `--oyd-page-background`、`--color-white` 与 Fill Token。 | 退化为纯黑平面或高灰卡片堆叠，暗色质感与层级同时消失。 |
+| 低照度分层暗面 | 近黑画布上叠放略亮面板，边界和阴影都极弱，面板内部仍有可辨层级。`observed` | 不可变：画布、一级表面、嵌套表面至少三级明度；可变：模块内容与数量。复用 `--pod-page-bg-color`、`--color-white` 与 Fill Token。 | 退化为纯黑平面或高灰卡片堆叠，暗色质感与层级同时消失。 |
 | 微图嵌入指标卡 | 等宽摘要卡内同时出现标签、主值、趋势说明、图标与迷你趋势纹理。`observed` | 不可变：主值左上、微图右下、趋势贴底、图标置于柔光区域；可变：数据语义和微图类型。使用固定卡高与 SVG/canvas 小图。 | 指标卡退化为只有数字的通用卡，首屏缺少细节密度。 |
 | 发光双轨网格 | 主图使用细密暗网格、两条同色相不同强度曲线、轻面积雾化与悬浮对齐线。`observed` | 不可变：主序列高亮、次序列降权、网格克制、tooltip 与定位线共同出现；可变：序列数量不超过三条、数据和轴语义。 | 退化为默认图表库样式，线条与背景没有空间感。 |
 | 外置标注分段环 | 分段圆环留出明显间隙，关键值居中，少量标签悬浮在环外，底部以短条图例收束。`observed` | 不可变：圆角弧段、分段间隙、中心值、外置短标与底部对齐图例；可变：2-5 个分段及文案。 | 退化为普通饼图或满环仪表，失去辨识度和层次。 |
@@ -123,13 +114,13 @@ tokens:
 
 ### 设计变量范围
 
-`tokens.application-global` 是原生表单、流程页面和自定义页面共同遵守的全应用设计契约；本主题保留平台变量名，但将基础表面语义映射为深色：`--color-white` 在本主题中承担全应用一级暗表面，而不是字面白色。`tokens.custom-page` 只补充近黑画布、主题辉光与三档主题派生图形色，以及全局字体层级缺少的指标数字和图表强调值；弱网格复用 `--color-line1-1`，常规浮层复用 `--color-fill1-10`，不重复声明。
+颜色、字体、间距和圆角统一使用 `tokens.application-global` 中的基础变量。组件直接消费对应变量；渐变、透明度和纹理在组件配方中组合基础变量。独立分类色保留在对应图表配方中。
 
 ## 色彩
 
 - 色彩来源：{{COLOR_SOURCE}}
 - 颜色 Token 的名称和值以文档顶部 YAML 的 `tokens` 为唯一事实源；AI 可以根据主题调整色值，不改变宜搭应用全局变量名。
-- 画布消费 `--oyd-page-background`（当前值 `#101010`），一级表面消费 `--color-white`（当前值 `#181818`），普通嵌套填充消费 `--color-fill1-1`（当前值 `#202020`）；文字依次消费 `--color-text1-4`、`--color-text1-10`、`--color-text1-3`。括号内色值仅说明本主题当前取值，组件实现禁止硬编码。
+- 画布消费 `--pod-page-bg-color`（当前值 `#101010`），一级表面消费 `--pod-card-bg-color`（当前值 `#181818`），普通嵌套填充消费 `--color-fill1-1`（当前值 `#202020`）；文字依次消费 `--color-text1-4`、`--color-text1-10`、`--color-text1-3`。括号内色值仅说明本主题当前取值，组件实现禁止硬编码。
 
 ### 设计变量消费规则
 
@@ -144,12 +135,12 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔线、表格行线和图表网格 | `--color-line1-1` | 应用全局 |
 | 控件与一级面板常规边界 | `--color-line1-2` | 应用全局 |
-| 页面底层画布 | `--oyd-page-background` | 自定义页 |
-| 一级暗面板、卡片和表单容器 | `--color-white` | 应用全局 |
-| 图标井、节点和局部边缘柔光 | `--oyd-brand-glow-soft` | 自定义页 |
-| 图表主序列与关键短条 | `--oyd-brand-chart-strong` | 自定义页 |
-| 图表次序列与非主分段 | `--oyd-brand-chart-muted` | 自定义页 |
-| 图表面积雾化填充 | `--oyd-brand-chart-area` | 自定义页 |
+| 页面底层画布 | `--pod-page-bg-color` | 自定义页 |
+| 一级暗面板、卡片和表单容器 | `--pod-card-bg-color` | 应用全局 |
+| 图标井、节点和局部边缘柔光 | `color-mix(in srgb, var(--color-brand1-6) 18%, transparent)` | 自定义页 |
+| 图表主序列与关键短条 | `color-mix(in srgb, var(--color-brand1-6) 94%, var(--color-text1-5))` | 自定义页 |
+| 图表次序列与非主分段 | `color-mix(in srgb, var(--color-brand1-6) 46%, transparent)` | 自定义页 |
+| 图表面积雾化填充 | `color-mix(in srgb, var(--color-brand1-6) 14%, transparent)` | 自定义页 |
 | 菜单悬停、弱标签和嵌套暗底 | `--color-fill1-1` | 应用全局 |
 | 菜单点击和中性选中底 | `--color-fill1-2` | 应用全局 |
 | 标题、核心数字、正文和主要图标 | `--color-text1-4` | 应用全局 |
@@ -160,23 +151,24 @@ tokens:
 
 ### 本主题的配色约束
 
-- `--color-white`、`--color-line1-1`、`--color-line1-2`、`--color-fill1-1`、`--color-fill1-2`、`--color-fill1-3`、`--color-text1-4`、`--color-text1-10`、`--color-text1-3` 与 `--oyd-page-background` 均为固定 `neutral-gray`，Hex 三通道相等；`--color-fill1-10` 也是无彩透明层。
-- `--oyd-brand-glow-soft`、`--oyd-brand-chart-strong`、`--oyd-brand-chart-muted`、`--oyd-brand-chart-area` 均由 `--color-brand1-6` 派生，实例化时必须写入实际色值；它们是主题同色演变，不是独立分类色。
+- `--color-white`、`--color-line1-1`、`--color-line1-2`、`--color-fill1-1`、`--color-fill1-2`、`--color-fill1-3`、`--color-text1-4`、`--color-text1-10`、`--color-text1-3` 与 `--pod-page-bg-color` 均为固定 `neutral-gray`，Hex 三通道相等；`--color-fill1-10` 也是无彩透明层。
+- `color-mix(in srgb, var(--color-brand1-6) 18%, transparent)`、`color-mix(in srgb, var(--color-brand1-6) 94%, var(--color-text1-5))`、`color-mix(in srgb, var(--color-brand1-6) 46%, transparent)`、`color-mix(in srgb, var(--color-brand1-6) 14%, transparent)` 均由 `--color-brand1-6` 派生，实例化时必须写入实际色值；它们是主题同色演变，不是独立分类色。
 - 主题色只用于主操作、关键焦点、选中状态、主图形和少量图标辉光；不得用主题色铺满画布或普通面板。
-- 成功、警告、错误和信息状态直接消费平台语义色，并同时配合文字、图标或方向符号；`custom-page` 不重复声明同义状态 Token。
+- 成功、警告、错误和信息状态直接消费平台语义色，并同时配合文字、图标或方向符号；状态样式使用平台组件的状态配置。
 - 同一图表最多三条主题派生序列；外部分类色仅在 PRD 明确要求区分类别且同色相无法满足辨识时使用，面积不超过可视区 10%。
 - 默认强调色可被任意合法主题色替换；换色不改变近黑画布、面板明度阶、发光强度、圆角、网格密度或主辅构图。
 
 ## 字体与排版
 
-- 全局只使用 `tokens.application-global.typography.base.--font-family-base` 定义的字体栈。
-- 视觉材料原始尺寸为 2174×1810、工具展示尺寸为 1728×1438；viewport、DPR、浏览器缩放和导出倍率未知，因此字号按平台 Token 范围推断，不按图片物理像素换算。
-- `page-title` 消费 `tokens.application-global.typography.subhead`：`--font-size-subhead: 24px`、`--font-weight-subhead: 600`、`--font-lineheight-subhead: 1.3`。
-- `panel-title` 消费 `body-2`：16px / 600 / 1.45；内容标题与正文消费 `body-1`：14px / 400 / 1.5。
-- 表格与结构化列表消费 `table`：14px / 500 / 1.45；轴标签、趋势说明和元信息消费 `caption`：12px / 400 / 1.4。
-- 主要指标消费 `tokens.custom-page.typography.metric-primary`：30px / 500 / 1.18；主图内独立强调值消费 `chart-emphasis`：40px / 500 / 1.1。二者是全局层缺失的数据展示语义，不覆盖页面或面板标题。
-- 数值启用 `font-variant-numeric: tabular-nums`；标签单行省略，说明最多两行，长内容在面板内部滚动或进入详情。
-- 图标使用 1.5px 线宽、圆角端点和 18-20px 视图盒；图标默认消费高对比文字色，柔光只作为背景，不降低轮廓可读性。
+字体使用 `--font-family-base`。字号、字重和行高按 YAML 的固定基础变量执行；数字使用 `font-variant-numeric: tabular-nums` 保持列对齐。
+
+| 内容 | 字号 | 字重 | 行高 |
+| --- | --- | --- | --- |
+| 页面标题、强面板标题、重点数字 | `--font-size-subhead` | `--font-weight-subhead` | `--font-lineheight-subhead` |
+| 次级标题、强调正文 | `--font-size-body-2` | `--font-weight-body-2` | `--font-lineheight-body-2` |
+| 普通正文 | `--font-size-body-1` | `--font-weight-body-1` | `--font-lineheight-body-1` |
+| 表格正文 | `--font-size-table` | `--font-weight-table` | `--font-lineheight-table` |
+| 辅助说明、元信息 | `--font-size-caption` | `--font-weight-caption` | `--font-lineheight-caption` |
 
 ## 布局与间距
 
@@ -197,9 +189,9 @@ tokens:
 
 ## 表面与层级
 
-- 页面画布必须消费 `--oyd-page-background`，一级面板必须消费 `--color-white`，普通嵌套块消费 `--color-fill1-1`，悬停、选中或需要提高层级的嵌套块消费 `--color-fill1-2`；面板弱边界使用 `1px solid var(--color-line1-1)`，常规阴影为 `0 10px 28px rgba(0,0,0,0.24)`。这些 Token 的当前值以 YAML 为唯一事实源，组件实现不得直接写入 Hex。
-- 面板可增加 `inset 0 1px 0 rgba(255,255,255,0.025)` 形成精细内缘；主题辉光只允许围绕图标井、活跃节点和图形端点，范围 18-32px、透明度受 `--oyd-brand-glow-soft` 控制。
-- tooltip 与 popover 复用 `--color-fill1-10`，边界为 `--color-line1-2`，阴影 `0 14px 36px rgba(0,0,0,0.42)`；背景模糊只用于浮层，普通面板不使用玻璃效果。
+- 页面画布必须消费 `--pod-page-bg-color`，一级面板必须消费 `--pod-card-bg-color`，普通嵌套块消费 `--color-fill1-1`，悬停、选中或需要提高层级的嵌套块消费 `--color-fill1-2`；面板弱边界使用 `1px solid var(--color-line1-1)`，常规阴影为 `0 10px 28px rgba(0,0,0,0.24)`。这些 Token 的当前值以 YAML 为唯一事实源，组件实现不得直接写入 Hex。
+- 面板可增加 `inset 0 1px 0 rgba(255,255,255,0.025)` 形成精细内缘；主题辉光只允许围绕图标井、活跃节点和图形端点，范围 18-32px、透明度受 `color-mix(in srgb, var(--color-brand1-6) 18%, transparent)` 控制。
+- Tooltip 使用 `--color-fill1-10` 背景与 `--color-text1-5` 文字；popover 复用 `--pod-card-bg-color`，边界为 `--color-line1-2`，阴影 `0 14px 36px rgba(0,0,0,0.42)`；背景模糊只用于浮层，普通面板不使用玻璃效果。
 - 嵌套层级优先使用明度与 1px 分隔线，不无限叠加阴影；一个面板内最多一层可见嵌套卡。
 
 ## 圆角与形状
@@ -226,15 +218,15 @@ tokens:
 
 ### 卡片与面板
 
-- 一级面板使用 `--color-white`、1px 弱边界、`--corner-4` 和低扩散暗阴影；嵌套块使用 `--color-fill1-1` 或 `--color-fill1-2`，不重复阴影。
+- 一级面板使用 `--pod-card-bg-color`、1px 弱边界、`--corner-4` 和低扩散暗阴影；嵌套块使用 `--color-fill1-1` 或 `--color-fill1-2`，不重复阴影。
 - 标题区高 48-56px，内容区 `flex: 1; min-height: 0`；标题与操作两端对齐。面板 padding 使用 `--s-6`，高密度列表可收为 `--s-4`。
 - 不把每段内容包成独立卡；图例、工具提示和行项目通过明度、分隔线和局部填充区分。
 
 ### 微图指标卡带
 
 - 公式：左上标签 → 下方主值 → 左下变化信息；右上图标井 → 右下固定高度微图。卡片保持 196-220px 等高。
-- 微柱宽 6-8px、间距 5-7px、圆角端帽；微线最多两条，主线消费 `--oyd-brand-chart-strong`，次线消费 `--oyd-brand-chart-muted`，面积消费 `--oyd-brand-chart-area`。
-- 图标井为 40px 圆角块，使用 `--oyd-brand-glow-soft`，轮廓不低于 3:1 对比。趋势同时显示方向和文字，不只依赖颜色。
+- 微柱宽 6-8px、间距 5-7px、圆角端帽；微线最多两条，主线消费 `color-mix(in srgb, var(--color-brand1-6) 94%, var(--color-text1-5))`，次线消费 `color-mix(in srgb, var(--color-brand1-6) 46%, transparent)`，面积消费 `color-mix(in srgb, var(--color-brand1-6) 14%, transparent)`。
+- 图标井为 40px 圆角块，使用 `color-mix(in srgb, var(--color-brand1-6) 18%, transparent)`，轮廓不低于 3:1 对比。趋势同时显示方向和文字，不只依赖颜色。
 
 ### 发光双轨网格
 
@@ -307,7 +299,7 @@ tokens:
 
 ### 素材要求
 
-- 已有品牌与真实素材：{{BRAND_ASSETS}}
+- 页面图片需求：{{PAGE_IMAGE_NEEDS}}
 - 素材缺口：{{ASSET_GAPS}}
 - 图片、图表、缩略图和辅助图形必须有真实来源；没有素材时使用结构化数据或中性占位，不编造客户、对象、指标或图片地址。
 
@@ -333,7 +325,7 @@ tokens:
 
 ### 错误与正确
 
-- 错误：所有暗色层级都用纯黑或在组件中硬编码 Hex；正确：依次消费 `--oyd-page-background`、`--color-white`、`--color-fill1-1`，交互层消费 `--color-fill1-2`，并以 `--color-line1-1` 建立弱边界。
+- 错误：所有暗色层级都用纯黑或在组件中硬编码 Hex；正确：依次消费 `--pod-page-bg-color`、`--color-white`、`--color-fill1-1`，交互层消费 `--color-fill1-2`，并以 `--color-line1-1` 建立弱边界。
 - 错误：指标卡只保留大数字；正确：契约满足时固定标签、主值、趋势、图标井与微图的五点构图。
 - 错误：图表使用高亮粗网格和彩色多线；正确：细暗网格、单主题主次线、轻面积雾化和对齐 tooltip。
 - 错误：构成数据使用无间隙饼图；正确：2-5 个圆角弧段、外置短标、中心值与底部图例共同表达。
@@ -360,7 +352,7 @@ tokens:
 - [ ] 主操作、关键焦点、主图形和选中状态是否共享 `--color-brand1-6`，其余表面保持暗中性？
 - [ ] `application-global` 的变量名和消费语义是否稳定，具体值是否依据当前主题生成？
 - [ ] 全局与自定义页 Token 属性是否全部使用以 `--` 开头的完整 kebab-case 名称？
-- [ ] `custom-page` 是否逐项通过全局语义复用检查，没有同值同义或角色重叠的重复 Token？
+- [ ] 组件配方是否直接消费基础变量，并以表达式组合渐变、透明度和纹理？
 - [ ] 文字对比是否保持 `text1-4` 高于 `text1-10`、`text1-10` 高于 `text1-3`？
 - [ ] `themeId`、描述、视觉 DNA、组件标题和正文总结是否没有绑定默认色相？
 - [ ] `themeId` 和描述是否只表达视觉机制，没有把某种页面任务或业务领域写成主题身份？
@@ -368,7 +360,7 @@ tokens:
 - [ ] 是否没有建立适用/不适用产品形态清单，页面类型只用于视觉解读？
 - [ ] 所有真实页面是否共享全应用 Token 和基础组件语言，视觉记忆点是否只按内容契约条件式落地？
 - [ ] `{{PAGE_APPLICATIONS}}` 是否只展开项目真实存在的页面？
-- [ ] 主题同色演变是否由 `--color-brand1-6` 派生；独立分类色是否角色明确；平台状态色是否未在 `custom-page` 重复声明？
+- [ ] 主题同色演变是否由 `--color-brand1-6` 派生；独立分类色是否角色明确；平台状态色是否未在 组件配方 重复声明？
 - [ ] 所有固定灰色 Token 是否为 `neutral-gray` 且满足三通道相等；是否没有未声明的偏色灰？
 - [ ] 同类面板是否等高对齐，图表是否有固定高度，长内容是否在内部处理？
 - [ ] 快捷入口如有生成，是否由 PRD 触发并继承本主题的组件语言？

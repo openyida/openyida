@@ -19,6 +19,11 @@ jobs:
         node-version: '20'
         cache: 'npm'
 
+    - name: Validate release notes for this tag
+      run: node scripts/release-notes.js "$RELEASE_TAG"
+      env:
+        RELEASE_TAG: ${{ github.ref_name }}
+
     - name: Install dependencies
       run: npm install --ignore-scripts
 
@@ -90,6 +95,11 @@ jobs:
           echo "exists=false" >> $GITHUB_OUTPUT
         fi
 
+    - name: Prepare user-facing release notes
+      run: node scripts/release-notes.js "$RELEASE_TAG" "$RUNNER_TEMP/openyida-release-notes.md"
+      env:
+        RELEASE_TAG: ${{ github.ref_name }}
+
     - name: Publish to npm
       if: steps.npm-version.outputs.exists != 'true'
       run: npm publish --access public --tag ${{ steps.npm-tag.outputs.tag }}
@@ -102,21 +112,5 @@ jobs:
         tag_name: ${{ github.ref_name }}
         name: ${{ github.ref_name }}
         prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') || contains(github.ref_name, '-rc') }}
-        body: |
-          ## 安装 / 更新
-
-          Beta / RC 预发布：
-
-          ```bash
-          npm install -g openyida@beta
-          ```
-
-          正式版：
-
-          ```bash
-          npm install -g openyida
-          ```
-
-          安装后即可在 Codex / Claude Code / OpenCode / Cursor / QwenWork / Qoder / Qoder IDE / QoderWork 中直接使用，零配置。
-
-        generate_release_notes: true
+        body_path: ${{ runner.temp }}/openyida-release-notes.md
+        generate_release_notes: false

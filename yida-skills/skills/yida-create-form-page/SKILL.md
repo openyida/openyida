@@ -24,6 +24,7 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 - 不要用此命令操作数据记录（增删改查），应使用 `yida-data-management`
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成字段、变更、补丁、规则、数据源 JSON 文件
 - OpenYida CLI 不要加 `2>/dev/null`；失败时保留 stdout/stderr 诊断，遇到 DENIED 或重复失败必须换策略
+- 多表单 batch 契约已在本技能给出时，不要再调用 `create-form batch --help`、`create-form batch --check`，也不要搜索 CLI 安装目录或源码来探测格式；这些调用同样占用本轮唯一一次 batch 调用名额
 - 已有目标表单且用户是改字段/联动/属性时，不要创建新表单；必须走 update/patch/rule/bind-datasource。
 - 不要用 `GroupContainer` / `PageSection` 承载普通业务分组；普通分组必须优先用 `Divider`
 - 严禁为原生表单或 `formDetail` 生成、注入 CSS、JS、HTML 或主题代码；详情页由平台渲染。
@@ -36,6 +37,7 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 - update / add-option / bind-datasource / validation / rule 等字段级操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会内部读取 schema、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败/歧义时按 `diagnostics[].candidates` 补 `tableLabel`、修正 label 或再执行一次 compact `get-schema`。
 - 字段定义或变更定义需要落盘时，必须使用 agent 的结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`，例如 `<projectRoot>/.cache/openyida/pm/pm-fields-team.json`
 - 普通表单分组必须优先使用 `Divider`，多列排版必须通过字段 JSON 中的 `ColumnContainer` 局部表达
+- **重复结构化记录默认使用 `TableField`**：用户未指定具体字段类型时，凡一个业务字段承载多条同构记录，且每条记录由一组固定子字段组成，必须用 `TableField + children` 建模，不以字段名称或业务领域作为判断依据；用户明确指定具体字段类型时按用户要求执行，不将模型推断、跨会话记忆或历史兼容性说法视为用户指定。未在当前应用、当前提交链路验证的限制不能作为字段改型依据。
 - **本技能不读写 memory**：formUuid 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
 ## 适用场景
@@ -58,7 +60,65 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 
 ## 多表单创建
 
-多个普通表单按 [并行创建表单](references/batch-forms.md) 准备任务，执行 `openyida create-form batch <appType> <任务文件> --json`。CLI 同时创建独立表单，等待关联表单与真实字段就绪后创建依赖表单。
+同一轮需要新建两个及以上普通表单时，必须按 [并行创建表单](references/batch-forms.md) 把全部表单写入同一个 `forms.json`，并且只调用一次 `openyida create-form batch <appType> <任务文件> --json`。独立表单和关联表单放在同一任务文件中，依赖通过 `dependsOn` / `$form` 表达，由 CLI 在一次 batch 内部完成分组、真实 `formUuid/fieldId` 回读和依赖调度；不要手工拆成多次 batch，也不要逐个调用 `create-form create`。调用前先确认 CLI 的实际项目根目录，并让 Write 创建的绝对路径与 Bash 使用的任务文件指向同一个物理文件：常见 `<workspace>/project` 布局中应写入 `<workspace>/project/.cache/openyida/<项目名>/forms.json`，再从该项目根传 `.cache/openyida/<项目名>/forms.json`。先用 Read 确认任务文件存在，不要通过试跑 batch 探测路径。batch 返回 background pending 时等待运行时投递完成结果，不得再次调用 batch。只有修改已有表单、恢复已有 `formUuid`，或当前 batch 契约无法表达依赖时，才走明确的非 batch 路径并说明原因。
+
+主技能内的最小任务文件契约如下，执行普通批量创建无需再查 help、sample 或 CLI 源码：
+
+```json
+{
+  "forms": [
+    { "key": "customer", "title": "客户", "fields": [{ "type": "TextField", "label": "客户名称", "required": true }] },
+    { "key": "contact", "title": "联系人", "fields": [{ "type": "TextField", "label": "联系人姓名", "required": true }] },
+    {
+      "key": "relation",
+      "title": "客户联系人关系",
+      "dependsOn": ["customer", "contact"],
+      "fields": [{
+        "type": "AssociationFormField",
+        "label": "关联客户",
+        "associationForm": {
+          "appType": "APP_XXX",
+          "formUuid": { "$form": "customer" },
+          "formTitle": "客户",
+          "mainFieldId": { "$form": "customer", "field": "客户名称" },
+          "mainFieldLabel": "客户名称",
+          "mainComponentName": "TextField"
+        }
+      }]
+    }
+  ]
+}
+```
+
+`fieldsFile` 也可替代内联 `fields`，其路径相对 `forms.json` 所在目录；已有完整表单可提供 `formUuid` 回读复用。普通搭建的 batch 项必须省略 `icon`，由 CLI 按标题和字段语义自动选择；只有用户明确给出 `openyida create-form icons --json` 目录中的表单图标名时才设置，应用图标 `xian-*` 绝不是表单图标。`locale` 同样只在用户明确指定时设置。普通多表单创建的执行顺序固定为：确认 `projectRoot` → Write 一个任务文件 → Read 确认文件 → 唯一一次真实 batch → 使用 batch 结果和必要的 compact `get-schema` 回读。
+
+最小 `forms.json` 结构如下；`fieldsFile` 相对 `forms.json` 所在目录解析：
+
+```json
+{
+  "forms": [
+    { "key": "customer", "title": "客户", "fieldsFile": "customer-fields.json" },
+    {
+      "key": "order",
+      "title": "订单",
+      "fieldsFile": "order-fields.json",
+      "dependsOn": ["customer"]
+    }
+  ]
+}
+```
+
+关联字段必须把引用放在 `associationForm` 内。推荐使用紧凑写法 `"associationForm": { "$form": "customer", "field": "客户名称" }`；batch 会将其规范化为 `associationForm.formUuid` 和 `associationForm.mainFieldId`。完整写法则分别在 `formUuid` 使用 `{ "$form": "customer" }`、在 `mainFieldId` 使用 `{ "$form": "customer", "field": "客户名称" }`。不要把 `$form` 放在 `AssociationFormField` 顶层，也不要用 `batch --help`、空参数或临时计划探索格式；技能中的结构就是正式契约。
+
+Batch 以任务文件指纹和 `<forms.json>.state.json` 共同标识一次批量操作，恢复动作由结果中的 `recoveryAction` 唯一决定：
+
+| 当前结果 | 状态事实 | 下一动作 |
+| --- | --- | --- |
+| background pending | 原任务仍在执行，task/state/lock 保持为同一操作 | 保持当前执行单元，后续只接收该任务的最终结果 |
+| `FORM_BATCH_PARTIAL_FAILURE` + `rerun_unchanged_plan` | 已知 `formUuid` 已记录在 state，原任务指纹可安全恢复 | 后续使用原任务文件和原参数重新执行同一 batch，由 CLI 从 state 复用已知资源 |
+| `FORM_BATCH_PARTIAL_FAILURE` + `inspect_unknown_write_then_reconcile` | 至少一个远端写结果缺少资源 ID，当前指纹进入待核对状态 | 先回读远端资源；核对完成后建立新的 reconcile 任务，用已确认 `formUuid` 表示已有表单，仅保留确定尚未创建的任务 |
+
+CLI 在同一次 batch 内对已取得真实 `formUuid` 的空壳表单执行一次保守恢复。每个结果状态只沿表中对应的下一动作推进。
 
 ## 官方表单示例范式
 
@@ -118,17 +178,19 @@ openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout d
 # 文件路径示例：.cache/openyida/<项目名或任务名>/<表单名>-fields.json
 ```
 
-创建成功后 CLI 会根据表单标题和字段语义选择导航图标，再更新导航节点并回读校验。需要指定时传 `--icon <iconName>`；用 `openyida create-form icons --json` 查看与 yida-next 页面导航选择器一致的 86 个可用值。表单导航图标是纯图标名（如 `name-card`、`Project`、`Todo`、`clock`），不是应用图标的 `xian-*%%color` 协议。
+默认不传 `--icon`，由 CLI 根据表单标题和字段语义选择导航图标，再更新导航节点并回读校验。只有用户明确指定某个图标时才传 `--icon <iconName>`；普通搭建不得调用 `openyida create-form icons` 枚举候选，也不得先猜图标、失败后再探索。`icons` 仅供用户明确指定但值不合法时的人工诊断。表单导航图标是纯图标名（如 `name-card`、`Project`、`Todo`、`clock`），不是应用图标的 `xian-*%%color` 协议。
 
-导航图标更新必须先读取 `getFormNavigationListByOrder.json` 的当前节点，像 yida-next 的 `DB.Nav.update({ ...node, title: JSON.stringify(node.title), formUuid: node.formUuid || 'NAV-SYSTEM-FROM-ME-UUID', icon })` 一样保留 `gmtModified`、`formType`、`isNewForm`、`listOrder` 等原值，再请求带 `_api=Nav.update&_mock=false&_stamp=...` 的 `updateFormNavigation.json`，最后重新读取导航列表校验图标。禁止仅凭 formUuid 拼一个精简更新 payload。
+导航图标更新必须先读取 `getFormNavigationListByOrder.json` 的当前节点，保留完整节点及 `gmtModified`、`formType`、`isNewForm`、`listOrder` 等原值，将 `title` 序列化为 JSON，沿用节点的 `formUuid`（缺失时使用 `NAV-SYSTEM-FROM-ME-UUID`），仅替换目标 `icon`。再请求带 `_api=Nav.update&_mock=false&_stamp=...` 的 `updateFormNavigation.json`，最后重新读取导航列表校验图标。禁止仅凭 formUuid 拼一个精简更新 payload。
 
 > 文件先用 create_file / Write / file edit tool 创建。上方路径默认从 OpenYida project 工作目录执行；如果从 workspace 根执行命令，传 `project/.cache/openyida/<项目名或任务名>/<表单名>-fields.json`。
 
 输出：
 
 ```json
-{"success":true,"formUuid":"FORM-XXX","formTitle":"用户信息表","appType":"APP_xxx","fieldCount":4,"icon":"name-card","iconSource":"auto","url":"{base_url}/APP_xxx/workbench/FORM-XXX"}
+{"success":true,"formUuid":"FORM-XXX","formTitle":"用户信息表","appType":"APP_xxx","fieldCount":4,"icon":"name-card","iconSource":"auto","url":"{base_url}/APP_xxx/workbench/FORM-XXX","formUrl":"{base_url}/APP_xxx/workbench/FORM-XXX","appUrl":"{base_url}/APP_xxx/workbench"}
 ```
+
+`url` 是兼容字段，与 `formUrl` 表示同一表单入口；`appUrl` 表示应用工作台入口。普通表单保存成功后进入可用状态，自定义展示页使用 `publish-page` 生命周期。终态交付按用户请求的层级选择对应权威入口和 `resourceType`/`resourceId`：应用级使用 `appUrl`、`app_home`、`appType`，表单级使用 `formUrl`、`form`、`formUuid`。
 
 完整应用模式下的下一步：
 
@@ -142,7 +204,7 @@ openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout d
 create 命令失败后，不要立刻重复同一条 create：
 
 1. 先确认字段 JSON 文件存在，且内容是结构化写入后的最终字段数组/对象，不是半截 JSON、update changes 或 shell 拼接残留。
-2. 运行 `openyida list-forms <appType> --keyword "<表单名>"` 查同名表单；若本轮刚创建过空白表单或已有同名目标表单，优先走 `create-form update` / `patch` / 后续显式 resume 能力复用，不再 create。
+2. 运行 `openyida list-forms <appType> --keyword "<表单名>"` 查同名表单；若失败结果已给出本轮创建的 `formUuid`，使用 `openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json` 先回读、比较并仅补缺失字段。冲突或结果未知时停止，不能重新 create；普通已知修改仍用 `update` / `patch`。
 3. 只有确认远端没有同名目标表单，并且已经修改输入文件、参数、登录态或组织后，才重试 create。
 4. 同一 create 命令最多重试 2 次；仍失败时停止并带上完整 stdout/stderr、字段文件路径、appType、表单名和已发现的 formUuid 给用户。
 
@@ -152,13 +214,17 @@ create 命令失败后，不要立刻重复同一条 create：
 
 ```bash
 openyida create-form update <appType> <formUuid> <changesJsonOrFile>
+openyida create-form update <appType> <formUuid> --data-file <changesJsonOrFile>
 # 文件路径示例：.cache/openyida/<项目名或任务名>/<表单名>-changes.json
 ```
+
+位置参数和 `--data-file` 是同一输入的两种写法，不能同时使用。
+
 
 输出：
 
 ```json
-{"success":true,"formUuid":"FORM-YYY","appType":"APP_XXX","changesApplied":1,"changes":[{"action":"update","label":"备注","changedProps":"required","resolved":{"label":"备注","fieldId":"textField_xxx","componentName":"TextField"},"updatedProps":{"required":true}}],"url":"{base_url}/APP_XXX/workbench/FORM-YYY"}
+{"success":true,"formUuid":"FORM-YYY","appType":"APP_XXX","changesApplied":1,"changes":[{"action":"update","label":"备注","changedProps":"required","resolved":{"label":"备注","fieldId":"textField_xxx","componentName":"TextField"},"updatedProps":{"required":true}}],"url":"{base_url}/APP_XXX/workbench/FORM-YYY","formUrl":"{base_url}/APP_XXX/workbench/FORM-YYY","appUrl":"{base_url}/APP_XXX/workbench"}
 ```
 
 常见 compact changes：
@@ -181,6 +247,28 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 ```
 
 `validation` / `rule` JSON 可优先写 label，例如 `{ "field": "备注", "type": "required" }`；若位于子表或存在重名，补 `{ "tableLabel": "明细", "field": "备注" }` 或直接使用已知 `fieldId`。成功 JSON 会返回每条规则或事件绑定的 compact `resolved` evidence；失败只返回 compact `diagnostics[].candidates`，不会打印完整字段列表。
+
+## 半成功 create 恢复
+
+create 已返回真实 `formUuid`、但后续 schema 保存或回读失败时，使用保守恢复命令：
+
+```bash
+openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
+```
+
+该命令先回读目标表单并核对字段，只添加可唯一判定的缺失字段，保存后再次回读；同名异类型、重复
+目标字段、归属不匹配或回读不确定时均停止且不写入。它不会新建替代表单，也不会覆盖已有字段。
+
+`resume` 的保存端 HTTP 5xx 恢复流程固定为：精确回读目标表单；目标字段已存在时收口为成功，目标字段缺失且无冲突时绑定最新服务端 revision 执行一次保存，再做最终回读。成功 JSON 提供真实 `formUuid`、表单入口 `url`/`formUrl` 和应用工作台入口 `appUrl`，据此完成终态交付；用户要求资源 ID 时，将已验证的 `formUuid` 写入终态 artifact 的可见 `description`。
+
+
+输出示例（已有两个字段，补齐一个字段）：
+
+```json
+{"success":true,"appType":"APP_XXX","formUuid":"FORM-YYY","completedStages":["read_target","verify_ownership","compare_fields","add_missing_fields","save_schema","verify_final_schema"],"requestedFieldCount":3,"existingFieldCount":2,"addedFieldCount":1,"finalFieldCount":3,"recoveredBlankShell":false,"url":"{base_url}/APP_XXX/workbench/FORM-YYY","formUrl":"{base_url}/APP_XXX/workbench/FORM-YYY","appUrl":"{base_url}/APP_XXX/workbench"}
+```
+
+`resume` 的终态交付沿用相同入口映射：应用级交付选择 `appUrl` / `app_home`，表单级交付选择 `formUrl` / `form`；`url` 继续兼容表单入口。
 
 ## 高级模式
 

@@ -793,7 +793,12 @@ describe('configure-process command runner', () => {
       definitionFile,
     ])).rejects.toMatchObject({
       code: errorCode,
-      details: { stage: 'build_definition' },
+      details: expect.objectContaining({
+        stage: 'build_definition',
+        retryable: false,
+        nextAction: 'fix_definition_file',
+        diagnostics: expect.any(Array),
+      }),
     });
     expect(mockGet).not.toHaveBeenCalled();
     expect(mockPostForm).not.toHaveBeenCalled();

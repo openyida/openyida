@@ -1,6 +1,6 @@
 ---
 name: yida-page-config
-description: 配置已有页面的公开访问和组织内分享。
+description: 为已有页面设置公开访问、组织内分享，或隐藏该页的平台导航时使用。隐藏导航不会改变访问权限。
 ---
 
 # 页面访问配置
@@ -9,7 +9,7 @@ description: 配置已有页面的公开访问和组织内分享。
 
 用户要求查询或修改已有普通 OpenYida 页面的公开短链 `/o/`、组织内分享短链 `/s/`，或明确要求隐藏页面级导航时使用本技能。
 
-目标页面必须有可证明的 appType 和 formUuid。资源所有权不明、状态 stale、存在冲突或需要 reconciliation 时保持零写入；按标题或 URL 猜测页面身份不构成证明。
+先通过创建结果、查询结果或项目配置确认目标页面的 `appType` 和 `formUuid`。页面归属不清、信息过期或结果冲突时，先查清再修改；不能只凭标题或猜测的链接确定页面。
 
 ## 能力边界
 
@@ -72,7 +72,7 @@ openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]
 openyida update-form-config <appType> <formUuid> false "<页面标题>"
 ```
 
-这条命令只设置页面级 `isRenderNav=false`。自定义页要自绘应用侧边或顶部导航时，先使用 `openyida update-app <appType> --hide-app-nav` 隐藏应用导航；两者不是同一配置。
+这条命令只设置页面级 `isRenderNav=false`。只有整个应用采用自定义导航时，才使用 `openyida update-app <appType> --hide-app-nav` 隐藏应用导航；独立访客端自定义菜单与管理端平台导航共存时，保留 `hideAppNav=n`。页面内是否显示导航、平台菜单是否包含该页、实际访问权限分别配置。详见 [访问态入口契约](../yida-app/references/entry-navigation.md)。
 
 完整应用的独立入口必须在写入后再执行 `openyida get-form-config <appType> <formUuid> --json`。只有回读确认 `isRenderNav=false` 后，才输出不带查询参数的 `/custom/{formUuid}`；失败时保留 `/workbench`，不把 URL 参数当作持久配置成功证据。
 

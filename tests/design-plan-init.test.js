@@ -4,7 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { initialize } = require('../lib/design-plan/init');
-const { materialize } = require('../lib/design-plan/materialize');
+const { materialize, normalizePlan } = require('../lib/design-plan/materialize');
 const { collectIssues } = require('../lib/design-plan/validate');
 
 const fixture = () => JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/design-plan.json'), 'utf8'));
@@ -13,6 +13,8 @@ let briefPath;
 let brief;
 const save = () => fs.writeFileSync(briefPath, JSON.stringify(brief));
 const init = () => initialize(briefPath, { themeId: 'airy-modular-clarity', outputDir: path.join(dir, 'prd') });
+const colorExample = result => JSON.parse(fs.readFileSync(result.context, 'utf8')
+  .split('## 输入格式示例')[1].match(/```json\n([\s\S]*?)\n```/)[1]).colorStrategy;
 
 beforeEach(() => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-plan-init-'));
@@ -36,6 +38,47 @@ beforeEach(() => {
 });
 afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
 
+test.each(['visualDirection', 'navigationStyle'])('rejects string %s before creating draft files', field => {
+  brief.visualSelection[field] = '顶部导航';
+  save();
+  expect(() => init()).toThrow(expect.objectContaining({
+    code: 'DESIGN_PLAN_VISUAL_FIELD_TYPE_INVALID',
+    details: expect.objectContaining({ path: `visualSelection.${field}`, sourcePath: briefPath }),
+  }));
+  expect(fs.existsSync(path.join(dir, 'prd', 'build-plan.json'))).toBe(false);
+});
+
+test.each(['#6F4E37', '#1677FF'])('color examples preserve the project choice %s instead of proposing a preset', primaryColor => {
+  brief.visualSelection.colorStrategy = { primaryColor, primaryColorName: '项目主色', usage: '来自用户提供的品牌规范' };
+  save();
+  const result = init();
+  expect(colorExample(result)).toEqual(brief.visualSelection.colorStrategy);
+  expect(result.authoring.visualDecision).toEqual(require('../lib/design-plan/visual-policy').getVisualDecisionPolicy());
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  expect(plan.visualStyle.forUser.colorStrategy.primaryColor).toBe(primaryColor);
+});
+
+test('missing color uses the existing visual-selection task and leaves the example unfilled', () => {
+  delete brief.visualSelection.colorStrategy;
+  save();
+  const result = init();
+  expect(colorExample(result)).toEqual({ primaryColor: '', primaryColorName: '', usage: '' });
+  expect(result.authoring.pendingFields).toEqual(expect.arrayContaining([
+    expect.objectContaining({ path: 'facts.visualStyle.forUser.colorStrategy.primaryColor' }),
+  ]));
+  expect(result.parallelTasks.map(task => task.id)).toEqual(['business', 'visual-selection']);
+  expect(result.authoring.visualDecision.comparison).toMatchObject({ baseline: 'first_instinct', alternatives: 2, distinctDimensions: 2 });
+});
+
+test.each([undefined, 'ai_default', 'user_selected'])('visual selection preserves its actual source: %s', source => {
+  brief.visualSelection.visualDirection.source = source;
+  save();
+  const result = init();
+  const visual = JSON.parse(fs.readFileSync(result.output, 'utf8')).visualStyle;
+  expect(visual.forUser.visualDirection.source).toBe(source || 'ai_default');
+  expect(visual.internal.selectedTheme.source).toBe(source || 'ai_default');
+});
+
 test('initializes stable references, preserves explicit facts and returns a bounded theme context', () => {
   const original = fs.readFileSync(briefPath, 'utf8');
   const result = init();
@@ -48,10 +91,16 @@ test('initializes stable references, preserves explicit facts and returns a boun
   expect(plan.execution.explicitScope.navigation.variant).toBe('top');
   expect(result.parallelTasks.map(task => [task.id, task.dependsOn])).toEqual([['business', []]]);
   expect(result.preparedInputs.visual).toBe(result.parallelTasks[0].output.replace('business.json', 'visual.json'));
+  expect(result.materialize).toMatchObject({ mode: 'complete_files_once', maxCalls: 1 });
+  expect(result.materialize.command).toContain('--business-file');
+  expect(result.materialize.command).toContain('--visual-file');
+  expect(result.preview).toBeUndefined();
   expect(result.optionalTasks.map(task => [task.id, task.dependsOn])).toEqual([['visual-refinement', ['business']]]);
   const businessPart = JSON.parse(fs.readFileSync(result.parallelTasks[0].output, 'utf8'));
   const visualPart = JSON.parse(fs.readFileSync(result.preparedInputs.visual, 'utf8'));
   expect(businessPart.base).toEqual(require('../lib/design-plan/parallel').planBase(plan));
+  expect(Object.keys(businessPart.facts)).toEqual(['overview', 'dataModels', 'businessFlows', 'pages', 'execution']);
+  expect(businessPart.facts.overview.summary).toBe('跟进采购');
   expect(visualPart.base).toEqual(businessPart.base);
   expect(visualPart.ready).toBe(true);
   expect(visualPart.facts.visualStyle).toEqual(plan.visualStyle);
@@ -64,6 +113,179 @@ test('initializes stable references, preserves explicit facts and returns a boun
   expect(fs.readFileSync(briefPath, 'utf8')).toBe(original);
   expect(() => materialize(result.output)).toThrow();
   expect(fs.existsSync(path.join(dir, 'prd/prd.md'))).toBe(false);
+});
+
+test('normalizes a single business goal string without crashing', () => {
+  brief.businessGoals = '只完成回访记录表单';
+  save();
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  expect(plan.overview.summary).toBe('只完成回访记录表单');
+});
+
+test('prefills resource-only execution with deterministic sample-data skips and root resource context', () => {
+  brief.appName = undefined;
+  brief.projectDisplayName = '采购协作显示名';
+  brief.resourceContext = { appType: 'APP_ROOT_CONTEXT' };
+  brief.explicitScope = { forms: ['采购订单'], allowInferredResources: false };
+  save();
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  const business = JSON.parse(fs.readFileSync(result.preparedInputs.business, 'utf8'));
+  expect(plan.meta.appName).toBe('采购协作显示名');
+  expect(plan.execution.appConfig.appType).toBe('APP_ROOT_CONTEXT');
+  expect(business.facts.execution.sampleDataPlan).toEqual([
+    { form: '采购订单', skipReason: '本轮显式窄范围不包含示例数据' },
+  ]);
+  expect(result.preparedInputs.businessReady).toBe(true);
+  expect(result.parallelTasks).toEqual([]);
+});
+
+test('infers a complete form-only scope and drops an unconfirmed custom page invention', () => {
+  brief.intake.confirmed = false;
+  brief.pageScenes = [{ key: 'visit-form', name: '回访记录表', kind: 'form', purpose: '登记回访' }];
+  brief.explicitScope = {
+    forms: [{ name: '回访记录表', fields: [{ name: '客户名称', type: 'text', required: true }] }],
+    pages: [{ key: 'invented-workbench', name: '臆造工作台', kind: 'custom-page' }],
+    delivery: ['回访记录表单'],
+  };
+  save();
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  expect(plan.execution.explicitScope).toMatchObject({ allowInferredResources: false, pages: [] });
+  expect(plan.pages.customPageDetails).toEqual([]);
+  expect(plan.dataModels).toHaveLength(1);
+  expect(plan.dataModels[0].name).toBe('回访记录表');
+  expect(result.preparedInputs.businessReady).toBe(true);
+  expect(result.parallelTasks).toEqual([]);
+  expect(materialize(result.output, {
+    businessFile: result.preparedInputs.business,
+    visualFile: result.preparedInputs.visual,
+  }).success).toBe(true);
+});
+
+test.each([
+  { type: 'platform-side', source: 'ai_default', reason: '以原生审批和台账为主，采用平台侧栏' },
+  { type: 'custom', variant: 'top', source: 'ai_default', reason: '需要保留品牌菜单与内容状态，采用自定义顶部导航' },
+  { type: 'custom', variant: 'side', source: 'user_selected', reason: '用户明确要求自定义侧栏' },
+])('initializes Plan and preserves resolved navigation facts: %j', navigation => {
+  brief.navigation = navigation;
+  save();
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  expect(plan.execution.appConfig.navigationType).toBe(navigation.type);
+  expect(plan.execution.explicitScope.navigation).toEqual(navigation);
+  expect(plan.meta.status).toBe('draft');
+  expect(JSON.parse(fs.readFileSync(briefPath, 'utf8')).navigation).toEqual(navigation);
+});
+
+test('normalizes equivalent role, sample-record and navigation authoring shapes before validation', () => {
+  const plan = fixture();
+  plan.schemaVersion = '2.0';
+  plan.overview.rolePermissionSummary = [{ role: '采购专员', permissions: '维护采购申请' }];
+  plan.dataModels[0].formType = '宜搭表单';
+  plan.dataModels[0].fields[0].key = 'amount';
+  plan.dataModels[0].fields[0].fieldType = plan.dataModels[0].fields[0].type;
+  delete plan.dataModels[0].fields[0].type;
+  plan.dataModels[0].sampleRecords = [{ purpose: '验收记录', fields: { amount: 100 } }];
+  plan.visualStyle.forUser.navigationStyle.structure = 'platform-side';
+  const normalized = normalizePlan(plan);
+  expect(normalized.overview.rolePermissionSummary).toEqual(['采购专员：维护采购申请']);
+  expect(normalized.dataModels[0].sampleRecords).toEqual([{ 申请金额: 100 }]);
+  expect(normalized.dataModels[0].fields[0]).toMatchObject({ type: expect.any(String) });
+  expect(normalized.dataModels[0].fields[0]).not.toHaveProperty('fieldType');
+  expect(normalized.visualStyle.forUser.navigationStyle.structure).toBe('side');
+  expect(collectIssues(normalized)).toEqual([]);
+});
+
+test('normalizes skipped samples and object data sources without materialize probing', () => {
+  const plan = fixture();
+  plan.schemaVersion = '2.0';
+  plan.dataModels[0].formType = '宜搭表单';
+  plan.dataModels[0].sampleRecords = { skipReason: '本轮不创建示例数据' };
+  plan.pages.customPageDetails[0].dataBinding = '回访记录表单数据';
+  plan.pages.customPageDetails[0].dataSources = [{ source: `${plan.dataModels[0].name}表单`, type: 'form' }];
+
+  const normalized = normalizePlan(plan);
+
+  expect(normalized.dataModels[0]).not.toHaveProperty('sampleRecords');
+  expect(normalized.dataModels[0].skipSampleReason).toBe('本轮不创建示例数据');
+  expect(normalized.pages.customPageDetails[0]).toMatchObject({
+    dataBinding: 'form',
+    dataSources: [plan.dataModels[0].name],
+  });
+  expect(collectIssues(normalized)).toEqual([]);
+});
+
+test('drops actor edges from the table-only business graph', () => {
+  const plan = fixture();
+  plan.schemaVersion = '2.0';
+  plan.overview.businessGraph.relations = [
+    { from: '采购专员', label: '创建', to: plan.dataModels[0].name },
+    { from: plan.dataModels[0].name, label: '自关联', to: plan.dataModels[0].name },
+  ];
+  const normalized = normalizePlan(plan);
+  expect(normalized.overview.businessGraph.relations).toEqual([
+    { from: plan.dataModels[0].name, label: '自关联', to: plan.dataModels[0].name },
+  ]);
+});
+
+test('resource-only execution excludes theme, seed and navigation work', () => {
+  const plan = fixture();
+  plan.schemaVersion = '2.0';
+  plan.execution = { explicitScope: { forms: [plan.dataModels[0].name], allowInferredResources: false } };
+  const input = path.join(dir, 'resource-only-plan.json');
+  fs.writeFileSync(input, JSON.stringify(plan));
+  const result = materialize(input);
+  const prd = fs.readFileSync(result.outputs.prd, 'utf8');
+  expect(prd).not.toContain('- 应用与主题配置');
+  expect(prd).not.toContain('- 初始示例数据');
+  expect(prd).not.toContain('- 发布与导航排序');
+  expect(prd).not.toContain('- 应用主题按 design.md 配置');
+  expect(prd).toContain('本轮显式窄范围不执行导航排序');
+});
+
+test('normalizes omitted sample data to an explicit skip for resource-only plans', () => {
+  const plan = fixture();
+  plan.schemaVersion = '2.0';
+  plan.dataModels[0].formType = '宜搭表单';
+  plan.execution = {};
+  plan.execution.explicitScope = { forms: ['采购申请'], allowInferredResources: false };
+  const normalized = normalizePlan(plan);
+  expect(normalized.execution.sampleDataPlan).toEqual(
+    plan.dataModels.map(model => ({ form: model.name, skipReason: '本轮显式窄范围不包含示例数据' })),
+  );
+});
+
+test.each(['海洋蓝，搭配沙滩暖色', '海洋🌊风格', ''])('keeps a color description as text instead of character properties: %s', description => {
+  brief.visualSelection.colorStrategy = description;
+  save();
+  const original = fs.readFileSync(briefPath, 'utf8');
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  const visual = JSON.parse(fs.readFileSync(result.preparedInputs.visual, 'utf8'));
+  const strategy = visual.facts.visualStyle.forUser.colorStrategy;
+  expect(strategy).toEqual({ primaryColor: '', primaryColorName: '', source: '', usage: description, surfaceTone: 'brand-tinted' });
+  expect(plan.visualStyle.forUser.colorStrategy).toEqual(strategy);
+  expect(visual.ready).toBe(false);
+  expect(result.authoring.pendingFields).toContainEqual(expect.objectContaining({ path: 'facts.visualStyle.forUser.colorStrategy.primaryColor' }));
+  expect(fs.readFileSync(briefPath, 'utf8')).toBe(original);
+});
+
+test.each([undefined, null])('keeps absent color strategies as incomplete objects: %s', value => {
+  brief.visualSelection.colorStrategy = value;
+  save();
+  const result = init();
+  const visual = JSON.parse(fs.readFileSync(result.preparedInputs.visual, 'utf8'));
+  expect(visual.facts.visualStyle.forUser.colorStrategy.usage).toBe('');
+  expect(visual.ready).toBe(false);
+});
+
+test.each([[], ['海洋蓝'], 123, true])('rejects invalid color strategy types before creating files: %j', value => {
+  brief.visualSelection.colorStrategy = value;
+  save();
+  expect(init).toThrow(expect.objectContaining({ code: 'DESIGN_PLAN_INVALID_COLOR_STRATEGY' }));
+  expect(fs.existsSync(path.join(dir, 'prd'))).toBe(false);
 });
 
 test('preserves an explicit neutral reference palette at intake', () => {
@@ -82,6 +304,98 @@ test('keeps incomplete visual choices unready and schedules only the missing sel
   expect(result.parallelTasks.map(task => [task.id, task.dependsOn])).toEqual([['business', []], ['visual-selection', []]]);
   const visual = JSON.parse(fs.readFileSync(result.preparedInputs.visual, 'utf8'));
   expect(visual.ready).toBe(false);
+  expect(result.authoring.pendingFields).toEqual(expect.arrayContaining([
+    expect.objectContaining({ file: result.preparedInputs.visual, path: 'facts.visualStyle.forUser.colorStrategy.primaryColor' }),
+    expect.objectContaining({ file: result.preparedInputs.visual, path: 'ready' }),
+  ]));
+});
+
+test('init reports only missing authoring fields and keeps type examples outside business facts', () => {
+  brief.targetUsers = ['采购员'];
+  brief.pageScenes[0].permissionSummary = '采购员仅查看自己的订单';
+  save();
+  const result = init();
+  const business = JSON.parse(fs.readFileSync(result.preparedInputs.business, 'utf8'));
+  const pending = result.authoring.pendingFields;
+  expect(pending).toEqual(expect.arrayContaining([
+    expect.objectContaining({ file: result.preparedInputs.business, path: 'facts.pages.customPageDetails[0].primaryTask' }),
+    expect.objectContaining({ file: result.preparedInputs.business, path: 'facts.dataModels[0].sampleRecords' }),
+    expect.objectContaining({ file: result.preparedInputs.business, path: 'ready' }),
+  ]));
+  expect(pending.some(item => item.file === result.preparedInputs.visual)).toBe(false);
+  expect(pending.some(item => item.path.endsWith('.permissionSummary') || item.path === 'facts.overview.summary')).toBe(false);
+  expect(business.facts.dataModels[0].fields).toEqual(brief.businessObjects[0].fields);
+  expect(business.facts.execution.interactionStates).toBeUndefined();
+  expect(business.ready).toBe(false);
+  expect(fs.readFileSync(result.context, 'utf8')).toContain('"interactionStates": {');
+  expect(business.facts.pages.customPageDetails[0]).not.toHaveProperty('contentPriority');
+  expect(business.facts.pages.customPageDetails[0]).not.toHaveProperty('contentRichness');
+  expect(pending.some(item => /contentPriority|contentLayers/.test(item.path))).toBe(false);
+  expect(fs.readFileSync(result.context, 'utf8')).toContain('"purpose":');
+});
+
+test('catalog is read-only and its theme IDs initialize through the public CLI without login', () => {
+  const { execFileSync } = require('child_process');
+  const bin = path.join(__dirname, '../bin/yida.js');
+  const options = { cwd: dir, encoding: 'utf8', env: { ...process.env, OPENYIDA_SKIP_UPDATE_CHECK: '1' } };
+  const before = fs.readdirSync(dir);
+  const result = JSON.parse(execFileSync(process.execPath, [bin, 'design-plan', 'catalog', '--json'], options));
+  expect(fs.readdirSync(dir)).toEqual(before);
+  const themeIndex = require('../yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/design-themes/index.json');
+  const patterns = require('../yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/page-patterns/index.json');
+  expect(result.themes.map(theme => theme.themeId)).toEqual(themeIndex.themes.map(theme => theme.themeId));
+  expect(result.pagePatterns).toEqual(patterns.patterns.map(({ id, label, mustKeep }) => ({ id, label, mustKeep })));
+  const initialized = JSON.parse(execFileSync(process.execPath, [bin, 'design-plan', 'init', briefPath,
+    '--theme-id', result.themes[0].themeId, '--output-dir', path.join(dir, 'catalog-plan'), '--json'], options));
+  expect(initialized.success).toBe(true);
+  const { buildCommandManifest } = require('../lib/core/command-manifest');
+  const command = buildCommandManifest().commands.find(item => item.id === 'design-plan.catalog');
+  expect(command).toMatchObject({ requires_login: false, output: 'json', permission: { mode: 'allow' }, side_effect: { kind: 'local_read', mutates_local: false, mutates_yida: false } });
+});
+
+test('collects interaction state format errors alongside other missing facts', () => {
+  const plan = fixture();
+  plan.execution = { interactionStates: ['empty', 'error'], sampleDataPlan: [] };
+  plan.pages.customPageDetails[0].permissionSummary = '';
+  const issues = collectIssues(plan);
+  expect(issues).toEqual(expect.arrayContaining([
+    expect.objectContaining({ path: 'execution.interactionStates' }),
+    expect.objectContaining({ path: 'execution.sampleDataPlan' }),
+    expect.objectContaining({ path: 'pages.customPageDetails[0].permissionSummary' }),
+  ]));
+  expect(issues.some(issue => issue.path.includes('[-1]'))).toBe(false);
+  plan.execution.interactionStates = { empty: '暂无记录', error: '显示错误' };
+  expect(collectIssues(plan).some(issue => issue.path.startsWith('execution.interactionStates'))).toBe(false);
+});
+
+test('returned materialize command handles spaces, quotes and shell expressions in paths', () => {
+  const { spawnSync } = require('child_process');
+  const result = initialize(briefPath, { themeId: 'airy-modular-clarity', outputDir: path.join(dir, "plan ' $(touch unwanted)") });
+  const source = fixture();
+  source.pages.customPageDetails[0].pageId = 'dashboard';
+  source.pages.customPageDetails[0].sceneKey = 'dashboard';
+  delete source.pages.customPageDetails[0].pageSpecHandoff;
+  const business = JSON.parse(fs.readFileSync(result.preparedInputs.business, 'utf8'));
+  business.ready = true;
+  business.facts = { overview: source.overview, dataModels: source.dataModels, businessFlows: source.businessFlows, pages: source.pages };
+  fs.writeFileSync(result.preparedInputs.business, JSON.stringify(business));
+  const windows = process.platform === 'win32';
+  expect(result.materialize.shell).toBe(windows ? 'powershell' : 'posix');
+  const executable = windows ? 'powershell.exe' : '/bin/sh';
+  const args = windows
+    ? ['-NoProfile', '-NonInteractive', '-Command', 'function openyida { & $env:NODE_EXEC $env:YIDA_BIN @args }\n' + result.materialize.command]
+    : ['-c', 'openyida() { "$NODE_EXEC" "$YIDA_BIN" "$@"; }\n' + result.materialize.command];
+  const execution = spawnSync(executable, args, {
+    cwd: dir, encoding: 'utf8', env: { ...process.env, OPENYIDA_SKIP_UPDATE_CHECK: '1', NODE_EXEC: process.execPath, YIDA_BIN: path.resolve(__dirname, '../bin/yida.js') },
+  });
+  // Keep child-process Error objects out of Jest worker IPC (ENOENT can be circular).
+  if (execution.error || execution.status !== 0) {
+    throw new Error(`${executable}: ${execution.error?.message || execution.stderr || execution.stdout} (exit ${execution.status})`);
+  }
+  const output = JSON.parse(execution.stdout);
+  expect(output.success).toBe(true);
+  expect(fs.existsSync(output.outputs.html)).toBe(true);
+  expect(fs.existsSync(path.join(dir, 'unwanted'))).toBe(false);
 });
 
 test('materializes a complete standard Plan from business facts and the prepared visual input without another visual task', () => {
@@ -97,6 +411,7 @@ test('materializes a complete standard Plan from business facts and the prepared
   fs.writeFileSync(businessFile, JSON.stringify(business));
   const output = materialize(result.output, { businessFile, visualFile: result.preparedInputs.visual });
   expect(output.success).toBe(true);
+  expect(output).toMatchObject({ previousRevision: '1', revision: '1' });
   const design = fs.readFileSync(output.outputs.design, 'utf8');
   expect(design).toContain('dashboard');
   expect(design).toContain('#6F4E37');
@@ -111,6 +426,30 @@ test.each([
 ])('rejects unconfirmed or invalid intake without writing files', change => {
   change(brief); save();
   expect(init).toThrow();
+  expect(fs.existsSync(path.join(dir, 'prd'))).toBe(false);
+});
+
+test('diagnoses a projectName misplaced under meta without writing files', () => {
+  brief.meta = { projectName: brief.projectName };
+  delete brief.projectName;
+  save();
+
+  try {
+    init();
+    throw new Error('initialization should fail');
+  } catch (error) {
+    expect(error).toMatchObject({
+      code: 'DESIGN_PLAN_PROJECT_NAME_MISPLACED',
+      details: {
+        expectedPath: 'projectName',
+        actualPath: 'meta.projectName',
+        nextAction: 'move_project_name_to_root',
+        retryable: true,
+        retrySafe: true,
+      },
+    });
+    expect(error.message).toContain('不要更换项目名');
+  }
   expect(fs.existsSync(path.join(dir, 'prd'))).toBe(false);
 });
 
@@ -170,4 +509,19 @@ test('CLI init is permitted locally, documents every argument and runs through t
   }));
   expect(result.success).toBe(true);
   expect(fs.existsSync(result.output)).toBe(true);
+});
+
+
+test('preserves a frontend page menu independently of the application navigation', () => {
+  brief.navigation = { type: 'platform-side', source: 'ai_default', reason: '后台用平台菜单' };
+  brief.pageScenes[0].pageSpecHandoff = {
+    entryMode: 'standalone', navigation: { type: 'custom', variant: 'dock', reason: '个人事项入口' },
+  };
+  save();
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  const business = JSON.parse(fs.readFileSync(result.preparedInputs.business, 'utf8'));
+  expect(plan.execution.appConfig.navigationType).toBe('platform-side');
+  expect(plan.execution.appConfig.hideAppNav).toBeUndefined();
+  expect(business.facts.pages.customPageDetails[0].pageSpecHandoff).toEqual(brief.pageScenes[0].pageSpecHandoff);
 });

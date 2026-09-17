@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  asset: {
+    executionReview: '소재 실행 기록 검토 필요: {0}. 백그라운드 실행 응답, 업무 실행 시간 및 동기 처리 전환 이유를 확인하세요.',
+    localFileUnavailable: "이미지 파일을 찾을 수 없습니다: {0}. 명령의 작업 디렉터리를 확인하거나 절대 경로를 사용하세요.",
+    invalidStrategy: "이미지 요구사항은 페이지별 이미지 위치를 나열한 객체로 입력하세요.",
+  },
   help: {
     subtitle: 'Yida 로우코드 AI 개발 도구',
     usage: '사용법:',
@@ -22,6 +27,7 @@ module.exports = {
     cmd_create_app: 'Yida 앱 생성',
     cmd_design_plan_preview: '모듈별 계획 초안 업데이트',
     design_plan_preview_invalid: '초안 업데이트 실패. 오류 세부 정보를 확인하세요',
+    cmd_design_plan_catalog: '계획에 사용할 수 있는 테마와 페이지 패턴 조회',
     cmd_design_plan_init: '확인된 요구 사항으로 계획 초안 만들기',
     cmd_design_plan_materialize: 'build-plan.json에서 설계 계획 산출물 생성 및 검증',
     cmd_design_plan_patch: '필드 경로로 계획을 수정하고 이전 확인 무효화',
@@ -63,8 +69,8 @@ module.exports = {
     cmd_corp_manager: '플랫폼 권한 관리',
     cmd_agent_center: '프로세스 위임 및 퇴사자 대리 관리',
     group_process: '프로세스',
-    cmd_configure_process: '프로세스 규칙 설정 및 게시',
-    cmd_create_process: '프로세스 양식 생성 (통합형)',
+    cmd_configure_process: '프로세스 규칙 설정 및 게시; JSON nodes[].actions.normalActions/appendActions로 승인자 추가 및 전달 설정',
+    cmd_create_process: '프로세스 양식 생성 (통합형); JSON nodes[].actions.normalActions/appendActions로 승인자 추가 및 전달 설정',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: '프로세스 인스턴스 미리보기 (플로차트)',
     group_share: '페이지 설정 & 공유',
@@ -148,6 +154,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_local_menu_binding: '로컬 메뉴 {0}에는 호스트 페이지와 viewKey가 필요합니다. 진입점 {1}의 sceneKey는 페이지 sceneKey와, resource는 페이지 name과 일치해야 하며 viewKey는 비어 있으면 안 됩니다. 모든 역할에 적용됩니다.',
+    design_plan_visual_object_required: '{0}은 문자열이나 배열이 아닌 객체여야 합니다. init이 생성한 구조를 유지하고 값을 입력하세요. 예: {1}.',
     help: '\n' +
       'openyida - Yida CLI Tool\n' +
       '\n' +
@@ -806,6 +814,14 @@ module.exports = {
     usage_label: 'Usage:',
     usage_create_short: '  create: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  update: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
+    resume_readback_failed: 'Unable to read the target form before resume.',
+    resume_ownership_unverified: 'The target form does not belong to the requested app; resume stopped.',
+    resume_identity_mismatch: 'The target form identity does not match the readback; resume stopped.',
+    resume_schema_invalid: 'The target form schema is unavailable.',
+    resume_container_invalid: 'The target form container is unavailable.',
+    resume_field_conflict: 'Existing fields conflict with the requested definition; resume stopped.',
+    resume_field_resolution_failed: 'Resume field resolution failed.',
+    resume_readback_mismatch: 'Resume readback did not confirm all requested fields.',
     example_label: '\nExamples:',
     fields_file_not_found: '  ❌ Fields definition file not found: ',
     fields_format_invalid: 'Invalid fields definition format',
@@ -893,6 +909,15 @@ module.exports = {
     response_body: '  Response body: {0}',
     response_detail: '  Response detail: {0}',
     response_not_json: 'response is not JSON',
+    code_bundle_download_failed: 'CodeBundle 다운로드 실패: {0} ({1})',
+    code_bundle_forbidden: '권한 확인 또는 OSS 접근이 거부되었습니다',
+    code_bundle_not_found: '파일이 없거나 삭제되었습니다',
+    code_bundle_http_error: 'HTTP {0}',
+    code_bundle_html_response: 'HTML 오류 페이지가 반환되었습니다. 환경 또는 경로가 올바르지 않을 수 있습니다',
+    code_bundle_json_response: '서비스가 JSON 오류 응답을 반환했습니다: {0}',
+    code_bundle_unexpected_content_type: '예상하지 못한 응답 Content-Type: {0}',
+    code_bundle_invalid_utf8: '응답이 유효한 UTF-8 텍스트가 아닙니다',
+    code_bundle_integrity_failed: 'CodeBundle {0} 무결성 검증 실패 ({1})',
     login_expired: '  Login session expired: {0}',
     csrf_expired: '  CSRF token expired: {0}',
     csrf_refreshed: '  csrf_token refreshed',
@@ -1235,6 +1260,14 @@ module.exports = {
     failed: 'Page lint check failed'
   },
   publish: {
+    canvas_path_missing_app_type: '{0}행: 이동 주소에 appType이 없습니다. canvas-navigation과 확인된 ID로 /{appType}/{pageType}/{formUuid}를 구성하세요. /custom/ 단독 경로는 사용하지 마세요.',
+    canvas_theme_fixed_brand: '{0}행: ConfigProvider가 브랜드 색상을 고정했습니다. canvas-theme으로 해석한 테마 색상을 사용하고 CSS var는 DOM 스타일에 직접 사용하세요.',
+    canvas_navigation_local_platform: '{0}행: 로컬 뷰를 플랫폼 메뉴로 필터링하고 있습니다. mode=local 또는 로컬 상태를 사용하고 실제 페이지에는 formUuid/navUuid를 지정하며 권한을 확인하세요.',
+    canvas_navigation_document_flex: '{0}행: document에 기준 크기 0인 flex를 사용했습니다. canvas-nav-content를 갱신하세요. document는 자연 높이의 블록, workspace는 고정 높이 flex를 사용합니다.',
+    canvas_theme_not_assembled: '{0}행의 테마 마커가 처리되지 않았습니다. build-canvas-theme.js를 실행하고 별도 출력 파일을 컴파일하고 게시하세요. Provider가 통합된 페이지에는 이 마커가 필요 없습니다.',
+    canvas_theme_provider_missing: '{0}행 부근에 테마 Provider가 적용되지 않았습니다. YidaComp에서 <CanvasThemeProvider><PageContent /></CanvasThemeProvider>를 반환하세요.',
+    canvas_theme_root_hook: '{0}행 부근에서 Provider 적용 전에 테마를 읽고 있습니다. useCanvasThemeContext를 PageContent로 옮기고 CanvasThemeProvider 안에서 렌더링하세요.',
+    canvas_theme_context_scope: '{0}행 부근의 CanvasThemeContext가 함수 안에 선언되어 있습니다. Context와 Provider를 모듈 최상위에 선언하세요.',
     canvas_inline_css_invalid: '{0}행 부근 CSS에 닫히지 않거나 일치하지 않는 괄호, 문자열 또는 주석이 있습니다. 게시 전에 수정하세요.',
     title: '  yida-publish - Yida 페이지 배포 도구',
     platform: '  플랫폼: {0}',
@@ -1324,6 +1357,7 @@ module.exports = {
     canvas_compiling: '  🎨 사용자 지정 페이지 소스를 로컬에서 컴파일하는 중...',
     canvas_compile_done: '  ✅ 사용자 지정 페이지 컴파일 완료!',
     canvas_compile_failed: '  ❌ 사용자 지정 페이지 컴파일 실패: {0}',
+    canvas_icon_export_unavailable: '{2}행: Yida 런타임 아이콘 라이브러리 {0}에서 {1}을 내보내지 않습니다. 지원되는 아이콘을 선택하고 다시 컴파일하세요. 대안: {3}.',
     canvas_unbound_identifiers: 'Code Canvas 소스에 선언되지 않은 식별자가 있습니다: {0}. 같은 파일에 import, 함수, Ref, 상태 또는 지역 변수 선언을 추가하고 모든 참조에서 같은 이름을 사용하세요. 비표준 런타임이 제공하는 식별자는 window.<name> 또는 parentWindow.<name>을 통해 명시적으로 접근하고 먼저 존재 여부를 확인하세요.',
     canvas_instance_api_unavailable: 'Code Canvas 컴포넌트는 다음 플랫폼 JSX 인스턴스 API를 사용할 수 없습니다: {0}. React hooks, props 또는 window.__OPENYIDA_YIDA_API__ 데이터 브리지를 사용하세요.',
     step_login: '\n🔑 Step 2: 로그인 정보 읽기',
@@ -2000,7 +2034,8 @@ Object.assign(module.exports.create_process || (module.exports.create_process = 
   login_required: '유효한 Yida 로그인 상태가 없습니다. 먼저 openyida login을 실행하세요.',
 });
 module.exports.connector_test = {
-  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--json]',
+  usage: 'Usage: openyida connector test --connector-id <id> --action <actionId> [structured JSON options] [--account-id <id>] [--ignore-defaults] [--json]',
+  ignore_defaults_system_token_warning: '--ignore-defaults 옵션으로 액션에 저장된 기본 매개변수 값을 무시했습니다(비어 있지 않은 systemToken을 포함하며 이번 요청에는 사용되지 않음). 프로덕션 사용 전에 디자이너에서 기본값을 정리하세요.',
   invalid_json: '{0} is not valid JSON: {1}', json_object_required: '{0} must be a JSON object',
   unknown_flat_param: 'Parameter {0} is not in the action schema; use structured JSON options', ambiguous_flat_param: 'Parameter {0} belongs to multiple locations; use structured JSON options',
   auth_account_required: 'This connector requires an owned auth account passed with --account-id', auth_account_not_owned: 'Account {0} does not belong to this connector',
@@ -2029,3 +2064,7 @@ module.exports.connector_action_e2e = connectorSafetyMessages.connector_action_e
 module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.cmd_connector_update_action;
 module.exports.agent = connectorSafetyMessages.agent;
 module.exports.help.cmd_agent = connectorSafetyMessages.help.cmd_agent;
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: '노드 {0}의 승인 작업 설정이 잘못되었습니다: {1}',
+});

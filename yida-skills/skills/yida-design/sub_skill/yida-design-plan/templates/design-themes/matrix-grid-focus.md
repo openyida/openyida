@@ -5,80 +5,69 @@ themeId: matrix-grid-focus
 tokens:
   application-global:
     colors:
-      "--color-white": "#FFFFFF"
-      "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 12%，用于悬停>"
-      "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与白色混合 88%，用于平台品牌浅色>"
-      "--color-brand1-3": "<基于 --color-brand1-6 生成的实际色值：与白色混合 94%，用于浅色导航框架>"
-      "--color-brand1-5": "<基于 --color-brand1-6 生成的实际色值：与黑色混合 18%，用于深色导航框架>"
-      "--color-brand1-6": "{{PRIMARY_COLOR}}"
-      "--color-brand1-9": "<基于 --color-brand1-6 生成的实际色值：与黑色混合 12%，用于按下与激活>"
-      "--color-brand1-10": "<基于 --color-brand1-6 生成的实际色值：与白色混合 62%，用于禁用>"
-      "--color-line1-1": "#EAEAEA"
-      "--color-line1-2": "#D8D8D8"
-      "--color-fill1-1": "#F7F7F7"
-      "--color-fill1-2": "#F2F2F2"
-      "--color-fill1-3": "#E6E6E6"
-      "--color-fill1-10": "rgba(255, 255, 255, 0.97)"
-      "--color-text1-4": "#1A1A1A"
-      "--color-text1-10": "#606060"
-      "--color-text1-3": "#8A8A8A"
+      "--pod-app-root-bg-color": "var(--pod-page-bg-color)" # 应用最底层背景色
+      "--pod-app-root-bg-image": "none" # 应用最底层背景图
+      "--pod-shell-theme-bg-color": "var(--color-brand1-3)" # 顶部导航、侧边导航和应用壳层背景色
+      "--pod-page-bg-color": "var(--color-white, #fff)" # 宜搭全局页面画布背景色
+      "--color-white": "#FFFFFF" # 全应用基础表面色
+      "--pod-card-bg-color": "var(--color-white)" # 一级卡片、表单主容器和详情面板背景色
+      "--color-brand1-1": "<基于 --color-brand1-6 生成的实际色值：与白色混合 12%，用于悬停>" # 悬停色
+      "--color-brand1-2": "<基于 --color-brand1-6 生成的实际色值：与白色混合 88%，用于平台品牌浅色>" # 品牌浅色，保留平台既有消费关系
+      "--color-brand1-3": "<基于 --color-brand1-6 生成的实际色值：与白色混合 94%，用于浅色导航框架>" # 浅色导航框架背景色
+      "--color-brand1-5": "<基于 --color-brand1-6 生成的实际色值：与黑色混合 18%，用于深色导航框架>" # 深色导航框架背景色
+      "--color-brand1-6": "{{PRIMARY_COLOR}}" # 全应用主题主色，是其他 Brand Token 的生成基准
+      "--color-brand1-9": "<基于 --color-brand1-6 生成的实际色值：与黑色混合 12%，用于按下与激活>" # 激活、按下状态色
+      "--color-brand1-10": "<基于 --color-brand1-6 生成的实际色值：与白色混合 62%，用于禁用>" # 禁用状态色
+      "--color-line1-1": "#EAEAEA" # 弱边界、辅助线和表格行分隔线
+      "--color-line1-2": "#D8D8D8" # 控件和容器常规边界
+      "--color-fill1-1": "#F7F7F7" # 菜单悬停和弱状态填充
+      "--color-fill1-2": "#F2F2F2" # 点击或选中填充
+      "--color-fill1-3": "#E6E6E6" # 更重的中性填充
+      "--color-fill1-10": "#2E3033" # Tooltip 固定深色背景
+      "--color-text1-5": "#FFFFFF" # Tooltip 固定反色文字
+      "--color-text1-4": "#1A1A1A" # 默认一级文字色，文字对比最强
+      "--color-text1-10": "#606060" # 表头和 placeholder
+      "--color-text1-3": "#8A8A8A" # 二级文字色，弱于 text1-10
+      "--color-text1-2": "rgba(24, 24, 24, 0.4)" # 仅用于禁用态文字，弱于 text1-3
+      "--color-text1-1": "rgba(24, 24, 24, 0.24)" # 仅用于水印文字，文字对比最弱
     typography:
-      base:
-        "--font-family-base": "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif"
-      subhead:
-        "--font-size-subhead": 24px
-        "--font-weight-subhead": 600
-        "--font-lineheight-subhead": 1.3
-      body-2:
-        "--font-size-body-2": 16px
-        "--font-weight-body-2": 600
-        "--font-lineheight-body-2": 1.4
-      body-1:
-        "--font-size-body-1": 14px
-        "--font-weight-body-1": 400
-        "--font-lineheight-body-1": 1.5
-      table:
-        "--font-size-table": 14px
-        "--font-weight-table": 400
-        "--font-lineheight-table": 1.45
-      caption:
-        "--font-size-caption": 12px
-        "--font-weight-caption": 400
-        "--font-lineheight-caption": 1.4
+      "--font-family-base": "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      "--font-size-subhead": "18px"
+      "--font-weight-subhead": "500"
+      "--font-lineheight-subhead": "1.3"
+      "--font-size-body-2": "16px"
+      "--font-weight-body-2": "500"
+      "--font-lineheight-body-2": "1.45"
+      "--font-size-body-1": "14px"
+      "--font-weight-body-1": "400"
+      "--font-lineheight-body-1": "1.5"
+      "--font-size-table": "13px"
+      "--font-weight-table": "400"
+      "--font-lineheight-table": "1.45"
+      "--font-size-caption": "12px"
+      "--font-weight-caption": "400"
+      "--font-lineheight-caption": "1.4"
     spacing:
-      "--s-1": 4px
-      "--s-2": 8px
-      "--s-3": 12px
-      "--s-4": 16px
-      "--s-5": 20px
-      "--s-7": 28px
+      "--s-1": "4px"
+      "--s-2": "8px"
+      "--s-3": "12px"
+      "--s-4": "16px"
+      "--s-5": "20px"
+      "--s-6": "24px"
+      "--s-7": "28px"
+      "--s-8": "32px"
+      "--s-9": "36px"
+      "--s-10": "40px"
     rounded:
-      "--corner-zero": 0px
-      "--corner-1": 4px
-      "--corner-2": 8px
-      "--corner-3": 10px
-      "--corner-4": 12px
-      "--corner-5": 14px
-      "--corner-circle": 50%
-      "--corner-semicircle": 500px
-  custom-page:
-    colors:
-      "--oyd-page-background": "var(--pod-page-bg-color, var(--color-white, #fff))"
-      "--oyd-matrix-level-1": "color-mix(in srgb, var(--color-brand1-6) 12%, #FFFFFF)"
-      "--oyd-matrix-level-2": "color-mix(in srgb, var(--color-brand1-6) 35%, #FFFFFF)"
-      "--oyd-matrix-level-3": "color-mix(in srgb, var(--color-brand1-6) 68%, #FFFFFF)"
-      "--oyd-matrix-level-4": "var(--color-brand1-6)"
-    typography:
-      metric-primary:
-        "--font-size-metric-primary": 28px
-        "--font-weight-metric-primary": 650
-        "--font-lineheight-metric-primary": 1.2
-      data-eyebrow:
-        "--font-family-data-eyebrow": "'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace"
-        "--font-size-data-eyebrow": 12px
-        "--font-weight-data-eyebrow": 500
-        "--font-lineheight-data-eyebrow": 1.4
-        "--font-letterspacing-data-eyebrow": 0.08em
+      "--corner-zero": "0px"
+      "--corner-1": "4px"
+      "--corner-2": "8px"
+      "--corner-3": "10px"
+      "--corner-4": "12px"
+      "--corner-5": "14px"
+      "--corner-circle": "50%"
+      "--corner-semicircle": "500px"
+  custom-page: {}
 ---
 
 # {{PROJECT_NAME}} design.md
@@ -90,13 +79,13 @@ tokens:
 - 主题来源：{{THEME_SOURCE}}
 - 项目约束：{{PROJECT_CONSTRAINTS}}
 
-本主题以浅中性画布、白色细描边表面和紧凑工具栏建立精确秩序。所有非文字的强数据标记——主按钮、矩阵单元、柱线、点、图例、选中态与范围指针——统一消费 `--color-brand1-6`；无品牌色时默认将纯黑 `#111111` 作为 `{{PRIMARY_COLOR}}`，换色后这些标记同步替换，文字颜色保持独立。视觉记忆点由微柱摘要卡、离散矩阵主图、细柱对照面板、内嵌提示条和连续明细表构成；页面中高密度、面板内距克制、阴影极轻，以边界与层级标题维持稳定性。
+本主题以浅中性画布、白色细描边表面和紧凑工具栏建立精确秩序。所有非文字的强数据标记——主按钮、矩阵单元、柱线、点、图例、选中态与范围指针——统一消费 `--color-brand1-6`；无品牌色时将前置设计比较确定的项目主色写入 `{{PRIMARY_COLOR}}`，换色后这些标记同步替换，文字颜色保持独立。视觉记忆点由微柱摘要卡、离散矩阵主图、细柱对照面板、内嵌提示条和连续明细表构成；页面中高密度、面板内距克制、阴影极轻，以边界与层级标题维持稳定性。
 
 ### 风格定位与应用说明
 
 - 核心气质是“离散数据纹理、单主题强标记、精细边界、紧凑控制”；连续数据、密度分布、对照序列和结构化明细最能发挥记忆点，但这不是页面类型限制。
 - 所有页面共享本主题的全应用 Token 和基础组件语言；逐页视觉应用根据真实页面、页面模式与内容生成，视觉记忆点仅在满足内容契约时使用。
-- 构图迁移时保留数据眉标、微柱、矩阵格、细柱、分段控件、白色 tooltip、连续表格和边界层级，不照搬固定业务内容。
+- 构图迁移时保留数据眉标、微柱、矩阵格、细柱、分段控件、深色 tooltip、连续表格和边界层级，不照搬固定业务内容。
 - 内容不匹配时，将矩阵密度阶梯迁移到已有离散状态或热度槽位；无合法承载则 `recipe_only`，需要新增能力则 `suggest_only`。
 
 ### 视觉 DNA
@@ -125,7 +114,7 @@ tokens:
 
 ### 设计变量范围
 
-`tokens.application-global` 是原生表单、流程页面和自定义页面共同遵守的全应用契约；本主题使用无彩色灰阶、24px 以内标题、4px 基础间距和 4-14px 圆角阶梯。`tokens.custom-page` 只补充页面画布、矩阵主题四阶与全局层缺失的主指标数字、等宽数据眉标。图表网格复用 `--color-line1-1`，tooltip 复用 `--color-fill1-10`，对照柱与空闲矩阵格复用 `--color-fill1-3 / --color-fill1-2`，不重复声明同义 Token。
+颜色、字体、间距和圆角统一使用 `tokens.application-global` 中的基础变量。组件直接消费对应变量；渐变、透明度和纹理在组件配方中组合基础变量。独立分类色保留在对应图表配方中。
 
 ## 色彩
 
@@ -146,12 +135,12 @@ tokens:
 | 主题色交互元素禁用状态 | `--color-brand1-10` | 应用全局 |
 | 弱分隔线、图表网格和表格行线 | `--color-line1-1` | 应用全局 |
 | 输入框、按钮和面板常规边界 | `--color-line1-2` | 应用全局 |
-| 页面底层画布 | `--oyd-page-background` | 自定义页 |
-| 面板、卡片、弹窗和表单容器 | `--color-white` | 应用全局 |
-| 矩阵最低密度主题阶 | `--oyd-matrix-level-1` | 自定义页 |
-| 矩阵中低密度主题阶 | `--oyd-matrix-level-2` | 自定义页 |
-| 矩阵中高密度主题阶 | `--oyd-matrix-level-3` | 自定义页 |
-| 矩阵最高密度主题阶 | `--oyd-matrix-level-4` | 自定义页 |
+| 页面底层画布 | `--pod-page-bg-color` | 自定义页 |
+| 面板、卡片、弹窗和表单容器 | `--pod-card-bg-color` | 应用全局 |
+| 矩阵最低密度主题阶 | `color-mix(in srgb, var(--color-brand1-6) 12%, #FFFFFF)` | 自定义页 |
+| 矩阵中低密度主题阶 | `color-mix(in srgb, var(--color-brand1-6) 35%, #FFFFFF)` | 自定义页 |
+| 矩阵中高密度主题阶 | `color-mix(in srgb, var(--color-brand1-6) 68%, #FFFFFF)` | 自定义页 |
+| 矩阵最高密度主题阶 | `--color-brand1-6` | 自定义页 |
 | 菜单悬停、弱标签和默认浅填充 | `--color-fill1-1` | 应用全局 |
 | 中性选中底与空闲矩阵格 | `--color-fill1-2` | 应用全局 |
 | 更重中性填充、微柱轨道与对照柱 | `--color-fill1-3` | 应用全局 |
@@ -164,19 +153,22 @@ tokens:
 ### 本主题的配色约束
 
 - `--color-line1-1 / --color-line1-2`、`--color-fill1-1 / --color-fill1-2 / --color-fill1-3`、`--color-text1-4 / --color-text1-10 / --color-text1-3` 均为 `neutral-gray`，Hex 满足 `R = G = B`；`--color-fill1-10` 为等通道白色 rgba。
-- `--oyd-matrix-level-1 / --oyd-matrix-level-2 / --oyd-matrix-level-3 / --oyd-matrix-level-4` 是 `theme-gray` / 主题同色阶，由 `--color-brand1-6` 分别以 12%、35%、68%、100% 与白色混合；项目实例化时写入实际色值。
+- `color-mix(in srgb, var(--color-brand1-6) 12%, #FFFFFF) / color-mix(in srgb, var(--color-brand1-6) 35%, #FFFFFF) / color-mix(in srgb, var(--color-brand1-6) 68%, #FFFFFF) / --color-brand1-6` 是 `theme-gray` / 主题同色阶，由 `--color-brand1-6` 分别以 12%、35%、68%、100% 与白色混合；项目实例化时写入实际色值。
 - 除文字外，不得使用 `#000000`、`#111111` 或其他固定纯黑表达主按钮、数据、图例、选中与交互焦点；这些角色必须消费 `--color-brand1-6`。
-- 成功、警告、错误和信息状态直接消费平台语义色，并配合文字、图标或方向符号；`custom-page` 不重复声明同义状态 Token。
+- 成功、警告、错误和信息状态直接消费平台语义色，并配合文字、图标或方向符号；状态样式使用平台组件的状态配置。
 - 同一图表默认只使用主题色阶与中性对照灰，不额外引入独立分类色；多个真实类别必须通过线型、形状、标签或受控分类色共同区分。
 
 ## 字体与排版
 
-- 全局只使用 `tokens.application-global.typography.base` 的字体栈。
-- `page-title` 消费 `tokens.application-global.typography.subhead`；`panel-title` 消费 `body-2`；正文消费 `body-1`；表格消费 `table`；辅助信息消费 `caption`。
-- `subhead` 为 24px / 600 / 1.3；`body-2` 为 16px / 600 / 1.4；`body-1` 为 14px / 400 / 1.5；`table` 为 14px / 400 / 1.45；`caption` 为 12px / 400 / 1.4。
-- `tokens.custom-page.typography.metric-primary` 为 28px / 650 / 1.2，仅用于摘要主值；`data-eyebrow` 使用 12px / 500 / 1.4、0.08em 字距和等宽字体，仅用于大写数据眉标。这两个语义在全局层不存在，不覆盖已有 Token。
-- 数值启用 `font-variant-numeric: tabular-nums`；长标题最多两行，表格主文本单行省略并提供完整值。
-- 图标使用 1.5px 线性描边、圆端点；正文图标 16-18px，工具栏图标 18px。图标与首行文字视觉居中，不用 emoji 替代功能图标。
+字体使用 `--font-family-base`。字号、字重和行高按 YAML 的固定基础变量执行；数字使用 `font-variant-numeric: tabular-nums` 保持列对齐。
+
+| 内容 | 字号 | 字重 | 行高 |
+| --- | --- | --- | --- |
+| 页面标题、强面板标题、重点数字 | `--font-size-subhead` | `--font-weight-subhead` | `--font-lineheight-subhead` |
+| 次级标题、强调正文 | `--font-size-body-2` | `--font-weight-body-2` | `--font-lineheight-body-2` |
+| 普通正文 | `--font-size-body-1` | `--font-weight-body-1` | `--font-lineheight-body-1` |
+| 表格正文 | `--font-size-table` | `--font-weight-table` | `--font-lineheight-table` |
+| 辅助说明、元信息 | `--font-size-caption` | `--font-weight-caption` | `--font-lineheight-caption` |
 
 ## 布局与间距
 
@@ -196,9 +188,9 @@ tokens:
 
 ## 表面与层级
 
-- 常规面板使用 `--color-white`、1px `--color-line1-1`、`0 1px 3px rgba(0,0,0,0.04)`；摘要卡底部脚注区使用 `--color-fill1-1`。
+- 常规面板使用 `--pod-card-bg-color`、1px `--color-line1-1`、`0 1px 3px rgba(0,0,0,0.04)`；摘要卡底部脚注区使用 `--color-fill1-1`。
 - 面板标题带可使用 `--color-fill1-1`，与白色内容区通过 1px 边界区分；不依赖重阴影。
-- tooltip、popover 使用 `--color-fill1-10`、`--color-line1-2` 和 `0 8px 24px rgba(0,0,0,0.10)`；嵌套提示条使用浅填充与细边界，不重复投影。
+- Tooltip 使用 `--color-fill1-10` 背景与 `--color-text1-5` 文字；popover 和弹窗使用 `--pod-card-bg-color`、`--color-text1-4` 与 `--color-line1-2`，以局部阴影区分浮层。
 - 禁止毛玻璃、强辉光和大面积渐变；矩阵主题阶是数据编码，不得用于装饰背景。
 
 ## 圆角与形状
@@ -227,7 +219,7 @@ tokens:
 
 ### 离散矩阵密度场
 
-固定公式：固定高度绘图区 + 8-14px 方格 + 4-6px gap + 主题四阶 + 中性对照格 + 坐标标签。焦点使用 1px 垂直虚线、12-16px 主题色点和白色 tooltip；当前区间标签加粗。单元格颜色按真实密度映射 `--oyd-matrix-level-1 / --oyd-matrix-level-2 / --oyd-matrix-level-3 / --oyd-matrix-level-4`，无数据格使用 `--color-fill1-2`。禁止使用固定黑色、随机深浅或把矩阵替换成连续面积。
+固定公式：固定高度绘图区 + 8-14px 方格 + 4-6px gap + 主题四阶 + 中性对照格 + 坐标标签。焦点使用 1px 垂直虚线、12-16px 主题色点和深色 tooltip；当前区间标签加粗。单元格颜色按真实密度映射 `color-mix(in srgb, var(--color-brand1-6) 12%, #FFFFFF) / color-mix(in srgb, var(--color-brand1-6) 35%, #FFFFFF) / color-mix(in srgb, var(--color-brand1-6) 68%, #FFFFFF) / --color-brand1-6`，无数据格使用 `--color-fill1-2`。禁止使用固定黑色、随机深浅或把矩阵替换成连续面积。
 
 ### 细柱双层对照
 
@@ -282,7 +274,7 @@ tokens:
 
 ### 素材要求
 
-- 已有品牌与真实素材：{{BRAND_ASSETS}}
+- 页面图片需求：{{PAGE_IMAGE_NEEDS}}
 - 素材缺口：{{ASSET_GAPS}}
 - 图片、图表、缩略图和辅助图形必须有真实来源；缺少素材时使用结构化数据或中性占位，不编造人物、对象、指标、状态或图片地址。
 
@@ -292,7 +284,7 @@ tokens:
 
 - 无条件保护浅中性画布、白色细描边表面、紧凑间距、低阴影、等宽数据眉标和单主题强数据标记。
 - 所有非文字纯黑角色必须消费 `--color-brand1-6`；默认主色可为 `#111111`，换色后主按钮、矩阵格、柱线、点、图例、选中与范围指针必须同步替换。
-- 摘要真实包含微序列时，必须保护右侧微柱与底部脚注；密度数据存在时，矩阵必须保护固定方格、主题四阶、焦点指针与白色 tooltip。
+- 摘要真实包含微序列时，必须保护右侧微柱与底部脚注；密度数据存在时，矩阵必须保护固定方格、主题四阶、焦点指针与深色 tooltip。
 - 对照数据存在时，细柱面板必须保护灰基准与主题前景；明细存在时保护连续容器、等宽数字、状态图标+文字与弱尾部操作。
 - 同类面板等高、图表固定高度、长内容内部处理、父级 gap 统一；完整实现状态、响应式、键盘访问与 reduced motion。
 
@@ -318,7 +310,7 @@ tokens:
 
 ### AI 使用提示
 
-先读取 PRD，再解析 `{{PRIMARY_COLOR}}`；无品牌色时写入 `#111111`，并生成七个实际 Brand Token 与四阶矩阵色。所有页面先继承全应用 Token，再按内容契约选择微柱摘要、矩阵密度、细柱对照、分层工具或连续表格。文字黑与主题黑必须分离：文字消费 `text1-*`，所有非文字强标记消费主题色。主题色替换只改变色相，不改变矩阵、细柱、边界、密度、圆角和交互机制。页面级 Token 已完成全局语义复用扫描，禁止重声明网格、tooltip、对照灰或空闲格的同义 Token。
+先读取 PRD，再解析 `{{PRIMARY_COLOR}}`；无品牌色时写入前置设计比较确定的项目主色，并生成七个实际 Brand Token 与四阶矩阵色。所有页面先继承全应用 Token，再按内容契约选择微柱摘要、矩阵密度、细柱对照、分层工具或连续表格。文字黑与主题黑必须分离：文字消费 `text1-*`，所有非文字强标记消费主题色。主题色替换只改变色相，不改变矩阵、细柱、边界、密度、圆角和交互机制。页面级 Token 已完成全局语义复用扫描，禁止重声明网格、tooltip、对照灰或空闲格的同义 Token。
 
 ### 交付自检
 
@@ -332,7 +324,7 @@ tokens:
 - [ ] 四列摘要、2:1 分栏和模块顺序是否未被写成全页面硬规则？
 - [ ] 未触发组件是否没有强行渲染，迁移是否没有新增业务内容？
 - [ ] 主题四阶是否全部从 `--color-brand1-6` 派生，平台状态色是否未在页面层重复声明？
-- [ ] `custom-page` 是否没有与全局层同值同义或角色重叠的 Token？
+- [ ] 组件配方是否直接消费基础变量，并以表达式组合渐变、透明度和纹理？
 - [ ] 文字对比是否保持 `text1-4` 高于 `text1-10`、`text1-10` 高于 `text1-3`？
 - [ ] 主题身份、DNA、组件标题和总结是否没有绑定默认色相或页面类型？
 - [ ] 描述中的中高密度、克制留白、小圆角、低阴影和单主题焦点是否与正文及 Token 一致？

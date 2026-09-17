@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  asset: {
+    executionReview: '素材執行記錄需覆核：{0}。請檢查背景派發回執、業務執行時間及同步退化原因。',
+    localFileUnavailable: "找不到圖片檔案：{0}。請檢查指令工作目錄，或使用絕對路徑。",
+    invalidStrategy: "圖片要求應填寫為物件，按頁面列出圖片位置。",
+  },
   help: {
     subtitle: '宜搭低程式碼 AI 開發工具',
     usage: '用法:',
@@ -22,6 +27,7 @@ module.exports = {
     cmd_create_app: '建立宜搭應用程式',
     cmd_design_plan_preview: '按模組更新方案草稿',
     design_plan_preview_invalid: '方案草稿更新失敗，請檢查錯誤詳情',
+    cmd_design_plan_catalog: '查詢規劃可用的主題與頁面模式',
     cmd_design_plan_init: '從已確認需求初始化計劃草稿',
     cmd_design_plan_materialize: '從 build-plan.json 產生並校驗搭建計畫產物',
     cmd_design_plan_patch: '按欄位路徑調整搭建計畫並使舊確認失效',
@@ -63,8 +69,8 @@ module.exports = {
     cmd_corp_manager: '管理平台管理員與通訊錄權限',
     cmd_agent_center: '管理流程代理和離職代理',
     group_process: '流程',
-    cmd_configure_process: '設定並發布流程規則',
-    cmd_create_process: '建立流程表單（一體化）',
+    cmd_configure_process: '設定並發布流程規則; 支援加簽/轉交，設定位於 JSON nodes[].actions.normalActions/appendActions',
+    cmd_create_process: '建立流程表單（一體化）; 支援加簽/轉交，設定位於 JSON nodes[].actions.normalActions/appendActions',
     cmd_ai_form_setting: '管理流程表單 AI 審批提示',
     cmd_process_preview: '預覽流程實例（視覺化流程圖）',
     group_share: '頁面設定 & 分享',
@@ -149,6 +155,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_local_menu_binding: '本頁選單 {0} 必須關聯承載頁面和 viewKey：入口 {1} 的 sceneKey 對應頁面 sceneKey，resource 等於頁面 name，viewKey 不可空白。此規則適用於所有入口角色。',
+    design_plan_visual_object_required: '{0} 必須為物件，不能寫成字串或陣列。保留 init 產生的結構並填入值。範例：{1}。',
     help: '\n' +
       'openyida - 宜搭命令列工具\n' +
       '\n' +
@@ -765,6 +773,14 @@ module.exports = {
     usage_label: '用法：',
     usage_create_short: '  建立：openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  更新：openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
+    resume_readback_failed: 'Unable to read the target form before resume.',
+    resume_ownership_unverified: 'The target form does not belong to the requested app; resume stopped.',
+    resume_identity_mismatch: 'The target form identity does not match the readback; resume stopped.',
+    resume_schema_invalid: 'The target form schema is unavailable.',
+    resume_container_invalid: 'The target form container is unavailable.',
+    resume_field_conflict: 'Existing fields conflict with the requested definition; resume stopped.',
+    resume_field_resolution_failed: 'Resume field resolution failed.',
+    resume_readback_mismatch: 'Resume readback did not confirm all requested fields.',
     example_label: '\n範例：',
     fields_file_not_found: '  ❌ 欄位定義檔案不存在：',
     fields_format_invalid: '欄位定義格式不正確',
@@ -844,6 +860,15 @@ module.exports = {
     response_body: '  回應內容：{0}',
     response_detail: '  回應詳情：{0}',
     response_not_json: '回應非 JSON',
+    code_bundle_download_failed: 'CodeBundle 下載失敗：{0}（{1}）',
+    code_bundle_forbidden: '權限驗證或 OSS 存取被拒絕',
+    code_bundle_not_found: '檔案不存在或已被清理',
+    code_bundle_http_error: 'HTTP {0}',
+    code_bundle_html_response: '傳回了 HTML 錯誤頁，可能是環境或路由錯誤',
+    code_bundle_json_response: '服務端傳回 JSON 錯誤回應：{0}',
+    code_bundle_unexpected_content_type: '回應 Content-Type 不符合預期：{0}',
+    code_bundle_invalid_utf8: '回應內容不是有效 UTF-8 文字',
+    code_bundle_integrity_failed: 'CodeBundle {0} 完整性驗證失敗（{1}）',
     login_expired: '  偵測到登入過期：{0}',
     csrf_expired: '  偵測到 csrf_token 過期：{0}',
     csrf_refreshed: '  csrf_token 已刷新',
@@ -1173,6 +1198,14 @@ module.exports = {
     failed: '页面规范检查失败'
   },
   publish: {
+    canvas_path_missing_app_type: '第 {0} 行的跳轉地址缺少 appType。請用 canvas-navigation 與真實 ID 建立 /{appType}/{pageType}/{formUuid}，不要直接跳轉 /custom/ 等路徑。',
+    canvas_theme_fixed_brand: '第 {0} 行的 ConfigProvider 固定了品牌互動色。請使用 canvas-theme 解析應用主題；CSS var 用於 DOM 樣式，不直接傳給 antd 色值。',
+    canvas_navigation_local_platform: '第 {0} 行把本頁選單交給平台導航過濾。請使用 mode=local 或直接切換本頁視圖；實際頁面需 formUuid/navUuid，仍須檢查權限。',
+    canvas_navigation_document_flex: '第 {0} 行仍使用工作區 flex 零基準佈局，可能壓縮長頁。請重新提取 canvas-nav-content：document 使用自然高度與區塊佈局，workspace 才使用固定高度 flex。',
+    canvas_theme_not_assembled: '第 {0} 行的主題標記尚未組裝。請執行 build-canvas-theme.js，編譯並發佈獨立輸出檔案。已接好 Provider 的頁面不需要此標記。',
+    canvas_theme_provider_missing: '第 {0} 行的頁面未接入主題容器。請在 YidaComp 中返回 <CanvasThemeProvider><PageContent /></CanvasThemeProvider>，讓業務內容讀取應用主題。',
+    canvas_theme_root_hook: '第 {0} 行在主題容器生效前讀取了主題。請把 useCanvasThemeContext 移到 PageContent 中，並在 YidaComp 中用 CanvasThemeProvider 包住 <PageContent />。',
+    canvas_theme_context_scope: '第 {0} 行的 CanvasThemeContext 定義在函數內。請將主題上下文和 Provider 放在模組頂層，由頁面入口包住業務元件。',
     canvas_inline_css_invalid: '第 {0} 行附近的內嵌 CSS 存在未閉合或不匹配的括號、字串或註解，請修復後再發佈。',
     title: '  yida-publish - 宜搭頁面發布工具',
     platform: '  平台位址：{0}',
@@ -1262,6 +1295,7 @@ module.exports = {
     canvas_compiling: '  🎨 本機編譯自訂頁面源碼...',
     canvas_compile_done: '  ✅ 自訂頁面編譯完成！',
     canvas_compile_failed: '  ❌ 自訂頁面編譯失敗：{0}',
+    canvas_icon_export_unavailable: '第 {2} 行：宜搭執行階段圖示庫 {0} 未匯出 {1}。請選擇支援的圖示並重新編譯；可選替代：{3}。',
     canvas_unbound_identifiers: 'Code Canvas 原始碼存在未宣告識別字：{0}。請在同一檔案補齊 import、函式、Ref、狀態或區域變數宣告，並保持宣告與全部引用同名。若識別字由非標準執行環境提供，請改用 window.<name> 或 parentWindow.<name> 明確存取，並先檢查是否存在。',
     canvas_instance_api_unavailable: 'Code Canvas 元件不能使用平台 JSX 執行個體 API：{0}。請使用 React hooks、props 或 window.__OPENYIDA_YIDA_API__ 資料橋接。',
     step_login: '\n🔑 Step 2：讀取登入態',
@@ -1884,7 +1918,8 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   target_identity_unverified: '無法回讀目標資源 {0} 的名稱和類型，已在寫入前停止。',
 });
 module.exports.connector_test = {
-  usage: '用法: openyida connector test --connector-id <id> --action <actionId> [--params <json>] [--path-json <json>] [--query-json <json>] [--header-json <json>] [--body-json <json>] [--account-id <id>] [--json]',
+  usage: '用法: openyida connector test --connector-id <id> --action <actionId> [--params <json>] [--path-json <json>] [--query-json <json>] [--header-json <json>] [--body-json <json>] [--account-id <id>] [--ignore-defaults] [--json]',
+  ignore_defaults_system_token_warning: '已按 --ignore-defaults 忽略動作儲存的預設參數值（其中包含非空 systemToken，本次請求不會使用）；生產使用前請先在設計器清理預設值。',
   invalid_json: '{0} 不是合法 JSON: {1}',
   json_object_required: '{0} 必須是 JSON 物件',
   unknown_flat_param: '參數 {0} 不在動作 Schema 中；請改用對應的結構化 JSON 參數',
@@ -1980,3 +2015,7 @@ module.exports.connector_e2e = {
 module.exports.connector_auth = require('../../lib/core/locales/zh').connector_auth;
 module.exports.agent = require('../../lib/core/locales/zh').agent;
 module.exports.help.cmd_agent = '連接本地 Agent（Go runtime，開發預覽）';
+
+Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
+  action_config_invalid: '節點 {0} 的審批動作設定無效：{1}',
+});

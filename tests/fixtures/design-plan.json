@@ -202,7 +202,7 @@
       "stateSummary": "默认、悬停、按下、聚焦、禁用、加载、空态、错误、无权限和选中状态保持一致。",
       "responsiveSummary": "响应式断点、重排和触控规则保持统一，并维持页面主任务顺序。",
       "iconSummary": "图标风格、尺寸和语义保持一致。",
-      "designMdReady": "materialize 将从所选完整主题模板生成 design.md。",
+      "designMdReady": "页面配色、布局和组件样式将整理为完整设计说明。",
       "selectedTheme": {
         "themeId": "airy-modular-clarity",
         "source": "user_selected",

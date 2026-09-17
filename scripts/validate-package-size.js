@@ -10,29 +10,51 @@ const path = require('path');
 // Budgets are ratchets that track legitimate content growth (12 locale packs,
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
-const MAX_TARBALL_BYTES = 1792 * 1024;
-// Includes process-form metadata and integration sub-table compiler contracts
-// (6205451 bytes after PRs #507 and #527).
-const MAX_UNPACKED_BYTES = 6070 * 1024;
-// The process-form metadata helper brings the merged package to 490 files.
-const MAX_ENTRY_COUNT = 490;
+// State recovery adds a sample and two skill references (3 published files).
+// Node 26/npm 11 measures 1,944,066 packed / 6,738,306 unpacked bytes in 520 files.
+// Retain ~21 KiB npm 10 compression overhead; round budgets to 16 KiB boundaries.
+const MAX_TARBALL_BYTES = 1920 * 1024;
+const MAX_UNPACKED_BYTES = 6592 * 1024;
+const MAX_ENTRY_COUNT = 520;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
   'bin/yida.js',
   'lib/app/create-form/batch.js',
+  'lib/app/application-entry-urls.js',
   'lib/app/inline-css-guard.js',
+  'lib/app/canvas-icon-guard.js',
+  'lib/app/canvas-navigation-guard.js',
+  'lib/app/canvas-path-guard.js',
+  'lib/samples/openyida-scaffold/canvas-navigation.jsx',
+  'lib/samples/openyida-scaffold/canvas-admin-entry.jsx',
+  'lib/samples/openyida-scaffold/canvas-view-state.jsx',
+  'yida-skills/skills/yida-canvas-custom-page/references/view-state-recovery.md',
+  'yida-skills/skills/yida-canvas-data-binding/references/business-action-permissions.md',
+  'lib/asset/asset-execution.js',
+  'lib/app/canvas-icon-exports.json',
   'lib/design-plan/preview.js',
+  'lib/design-plan/entry-navigation.js',
+  'lib/design-plan/navigation-policy.js',
+  'yida-skills/skills/yida-app/references/entry-navigation.md',
   'yida-skills/skills/yida-app/workflow/incremental-preview.md',
   'yida-skills/skills/yida-create-form-page/references/batch-forms.md',
   'lib/core/utils.js',
+  'lib/asset/asset-plan.js',
+  'lib/asset/attachment-upload.js',
+  'lib/process/services/process-actions.js',
   'project/config.json',
   'scripts/postinstall.js',
   'yida-skills/SKILL.md',
   'yida-skills/skills-index.json',
+  'yida-skills/skills/yida-requirement-analysis/references/experience-groups.md',
+  'yida-skills/skills/yida-requirement-analysis/references/handoff.md',
+  'yida-skills/skills/yida-design/references/navigation-decision.md',
+  'yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/design-themes/basic-tokens.json',
   'lib/samples/openyida-scaffold/canvas-dialog.canvas.jsx',
-  ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
+  ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data', 'content'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
   'yida-skills/skills/yida-canvas-custom-page/references/dialog-guide.md',
+  'yida-skills/skills/yida-process-rule/references/approval-actions.md',
 ];
 
 const FORBIDDEN_PACKAGE_PREFIXES = [
@@ -57,6 +79,24 @@ function formatBytes(bytes) {
     return `${(bytes / 1024).toFixed(1)} KiB`;
   }
   return `${(bytes / 1024 / 1024).toFixed(2)} MiB`;
+}
+
+function sizeLimitMessage(label, actual, limit) {
+  return `${label} is ${formatBytes(actual)} (${actual} bytes), above ${formatBytes(limit)} (${limit} bytes) by ${actual - limit} bytes`;
+}
+
+function getPackageBudgetErrors(pack) {
+  const errors = [];
+  if (pack.size > MAX_TARBALL_BYTES) {
+    errors.push(sizeLimitMessage('tarball', pack.size, MAX_TARBALL_BYTES));
+  }
+  if (pack.unpackedSize > MAX_UNPACKED_BYTES) {
+    errors.push(sizeLimitMessage('unpacked package', pack.unpackedSize, MAX_UNPACKED_BYTES));
+  }
+  if (pack.entryCount > MAX_ENTRY_COUNT) {
+    errors.push(`package has ${pack.entryCount} files, above ${MAX_ENTRY_COUNT}`);
+  }
+  return errors;
 }
 
 function fail(message) {
@@ -114,7 +154,7 @@ function validateLargestFiles(files) {
   const sorted = [...files].sort((a, b) => b.size - a.size);
   const oversized = sorted.find(file => file.size > MAX_SINGLE_FILE_BYTES);
   if (oversized) {
-    fail(`${oversized.path} is ${formatBytes(oversized.size)}, above ${formatBytes(MAX_SINGLE_FILE_BYTES)}`);
+    fail(sizeLimitMessage(oversized.path, oversized.size, MAX_SINGLE_FILE_BYTES));
   }
 
   return sorted.slice(0, 5).map(file => `${file.path} (${formatBytes(file.size)})`);
@@ -170,19 +210,13 @@ function validatePublishedScriptRequires(packagePaths) {
 
 function run() {
   const pack = runNpmPackDryRun();
+  console.log(`Package measurements (Node ${process.version}): ${pack.size} tarball bytes, ${pack.unpackedSize} unpacked bytes, ${pack.entryCount} files`);
   const files = pack.files || [];
   validatePackageContents(files);
   const largestFiles = validateLargestFiles(files);
 
-  if (pack.size > MAX_TARBALL_BYTES) {
-    fail(`tarball is ${formatBytes(pack.size)}, above ${formatBytes(MAX_TARBALL_BYTES)}`);
-  }
-  if (pack.unpackedSize > MAX_UNPACKED_BYTES) {
-    fail(`unpacked package is ${formatBytes(pack.unpackedSize)}, above ${formatBytes(MAX_UNPACKED_BYTES)}`);
-  }
-  if (pack.entryCount > MAX_ENTRY_COUNT) {
-    fail(`package has ${pack.entryCount} files, above ${MAX_ENTRY_COUNT}`);
-  }
+  const budgetErrors = getPackageBudgetErrors(pack);
+  if (budgetErrors.length) {fail(budgetErrors.join('\n  error '));}
 
   console.log(
     `Package size OK: ${formatBytes(pack.size)} tarball, ${formatBytes(pack.unpackedSize)} unpacked, ${pack.entryCount} files`
@@ -190,4 +224,6 @@ function run() {
   console.log('Largest files: ' + largestFiles.join(', '));
 }
 
-run();
+if (require.main === module) {run();}
+
+module.exports = { getPackageBudgetErrors, MAX_TARBALL_BYTES, MAX_UNPACKED_BYTES, MAX_ENTRY_COUNT };

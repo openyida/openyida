@@ -1,6 +1,6 @@
 ---
 name: openyida-cross-platform-release-guard
-description: OpenYida 跨端发布风险守卫。当改动涉及浏览器/URL 拉起（openyida login、bridge 页面唤起、resolveBrowserLauncher、openBrowser、spawn 打开浏览器）、或在 macOS 上开发但需要发布给 Windows/Linux 用户、或准备打 tag 发布新版本时使用。用于在发布前静态扫描并拦截「cmd /c start 截断 URL」「open -n 假装开新窗口」等只在非 macOS 端暴露的历史坑，并输出跨端人工验证清单。
+description: OpenYida 跨端发布风险守卫。当改动涉及浏览器/URL 拉起（openyida login、bridge 页面唤起、resolveBrowserLauncher、openBrowser、spawn 打开浏览器），或用户明确要求检查 Windows/Linux 发布风险时使用。用于静态扫描并拦截「cmd /c start 截断 URL」「open -n 假装开新窗口」等跨端问题；普通版本 tag 发布请使用 openyida-release。
 ---
 
 # OpenYida 跨端发布风险守卫
@@ -14,7 +14,7 @@ Windows/Linux 用户侧直接炸掉——因为每个平台的浏览器拉起命
 - 改动 `lib/auth/oauth-loopback.js`、`lib/bridge/bridge.js`，或任何 `resolveBrowserLauncher` /
   `openBrowser` / `spawn(...浏览器...)` 相关逻辑。
 - 在 macOS 开发、发布对象包含 Windows / Linux 用户。
-- 准备打 tag、bump 版本、发布新的 openyida。
+- 用户明确要求对浏览器拉起或 URL 传递改动做跨端发布检查。
 
 ## 第一步：跑发布风险静态扫描（必做）
 

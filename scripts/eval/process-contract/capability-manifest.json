@@ -96,6 +96,18 @@
         "id": "approval.return-target",
         "values": ["routeRule.rules[].targetNodeId"],
         "evidenceLocator": "compiler:lib/process/services/process-compiler.js#buildRouteRule"
+      },
+      {
+        "id": "approval.append-forward-configuration",
+        "values": ["normalActions", "appendActions", "forward.hidden", "append.hidden", "appendPosition:BEFORE_APPEND|AFTER_APPEND", "appendResult:valid|invalid", "allowTaskAppend", "moldList", "isConsiderAppendedAction", "isNeedEndTaskGroupChain"],
+        "evidenceLocator": "compiler:lib/process/services/process-actions.js#buildNodeActions; tests:tests/process-actions.test.js; reference:yida-skills/skills/yida-process-rule/references/approval-actions.md",
+        "verificationScope": "Compiler and offline regression tests only; not a new assertion about the pinned bundle or successful tenant runtime execution."
+      },
+      {
+        "id": "verification.cli-platform-view-actions",
+        "values": ["normal and appended action visibility", "enabled normal append position", "enabled normal append result"],
+        "evidenceLocator": "implementation:lib/process/services/process-view-verifier.js#verifyPlatformView,verifyActionSettings; tests:tests/process-actions.test.js",
+        "verificationScope": "CLI platform view readback checks; does not extend the separate eval verifyViewContract API or verify runtime execution."
       }
     ],
     "Unknown": [
@@ -108,6 +120,11 @@
         "id": "runtime.platform-execution",
         "values": ["tenant-specific execution", "designer migration behavior"],
         "evidenceLocator": "not-verified:v1-is-static-and-offline"
+      },
+      {
+        "id": "runtime.append-forward-execution",
+        "values": ["normal approver append and forward", "appended approver append and forward", "mobile approval rendering", "existing process version recovery"],
+        "evidenceLocator": "not-verified:no-live-append-forward-acceptance-for-this-cli-fix"
       }
     ]
   }
