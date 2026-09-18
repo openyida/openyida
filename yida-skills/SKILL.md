@@ -18,6 +18,18 @@ description: >
 `runId`、`runtimeId` 或日志文件。排障通常发生在另一个普通本地 Agent 会话中，
 不能只依据 `OPENYIDA_MANAGED_RUN` 判断是否属于云端关联本地 Agent 场景。
 
+## 云端关联本地 Agent 的业务澄清
+
+只有当前工作区 `AGENTS.md` 明确声明这是 OpenYida managed local-agent Run 时，才可使用
+`openyida agent ask-human`。当继续搭建确实缺少会改变业务结构的关键信息时：
+
+1. 在当前工作区写入不含密码、Token、Cookie 或其他秘密的结构化问题 JSON；
+2. 执行 `openyida agent ask-human --request-key <稳定业务键> --questions-file <相对路径> --json`；
+3. 收到 `queued` 后立即结束当前轮次，不再执行写操作；用户在宜搭回答后，系统会在同一会话创建续接轮次。
+
+不要用普通 Markdown 问句、provider 原生业务问答或权限弹框模拟该能力。普通 OpenYida
+本地使用、非 managed Run 和故障诊断会话都不得调用此命令；命令本身也会 fail closed。
+
 ## 步骤模版（进行时展示给用户看的步骤）
 
 完整应用搭建时，直接使用对应模式的步骤名称。
