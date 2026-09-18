@@ -147,3 +147,36 @@ test('update rejection is returned without a verification read', async () => {
   expect(await saveAppSettings(parseArgs(['APP_1', '--hide-app-nav']), auth)).toEqual({ success: false, errorMsg: 'rejected' });
   expect(httpGet).toHaveBeenCalledTimes(1);
 });
+
+
+test('renaming uses the app-scoped endpoint and verifies the persisted name', async () => {
+  httpGet.mockResolvedValue(response({ appName: { zh_CN: 'Renamed app' } }));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await run(['APP_1', '--name', 'Renamed app']);
+    expect(httpPost.mock.calls[0][1]).toMatch(/^\/APP_1\/query\/app\/updateAppName\.json\?/);
+    expect(httpPost).toHaveBeenCalledTimes(1);
+    expect(httpGet.mock.calls[0][1]).toBe('/APP_1/query/app/getAppIncludingAecpInfo.json');
+    const output = JSON.parse(log.mock.calls.map(([line]) => line).filter((line) => typeof line === 'string' && line.startsWith('{')).pop());
+    expect(output).toMatchObject({ success: true, nameVerification: { verified: true, name: 'Renamed app' } });
+  } finally { log.mockRestore(); }
+});
+
+test('rename success response with unchanged persisted name does not report success or repeat the write', async () => {
+  httpGet.mockResolvedValue(response({ appName: { zh_CN: 'Original app' } }));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await expect(run(['APP_1', '--name', 'Renamed app'])).rejects.toMatchObject({ code: 'APP_NAME_NOT_PERSISTED' });
+    expect(httpPost).toHaveBeenCalledTimes(1);
+    expect(log.mock.calls.some(([line]) => typeof line === 'string' && line.startsWith('{') && JSON.parse(line).success === true)).toBe(false);
+  } finally { log.mockRestore(); }
+});
+
+test('failed rename readback cannot be treated as verified success', async () => {
+  httpGet.mockRejectedValue(new Error('readback unavailable'));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await expect(run(['APP_1', '--name', 'Renamed app'])).rejects.toThrow('readback unavailable');
+    expect(httpPost).toHaveBeenCalledTimes(1);
+  } finally { log.mockRestore(); }
+});

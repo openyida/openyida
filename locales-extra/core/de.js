@@ -1021,6 +1021,7 @@ module.exports = {
     err_open_url_empty: 'openUrl-Pfad darf nicht leer sein: {0}'
   },
   update_app: {
+    name_not_persisted: 'Der gespeicherte App-Name stimmt nicht mit dem gewünschten Namen überein. Prüfen Sie den aktuellen Namen vor einem erneuten Versuch; erstellen Sie keine weitere App.',
     theme_preset_conflict: 'Voreingestellte colour kann nicht mit CSS oder themeColor kombiniert werden. Verwenden Sie --colour custom oder lassen Sie --colour weg.',
     custom_theme_color_required: 'colour=custom benötigt eine Theme-Datei oder gültige themeColor. Verwenden Sie --theme-file oder --theme-color.',
     theme_not_persisted: 'Die App-Theme-Einstellungen konnten nach dem Speichern nicht bestätigt werden. Prüfen Sie themeVerification und wiederholen Sie update-app <appType> --theme-file <css>; erstellen Sie die App nicht erneut.',
