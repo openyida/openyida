@@ -1090,6 +1090,7 @@ module.exports = {
     manual_hint: 'Please configure the process manually in Yida admin. Form UUID: {0}',
     configuring_process: 'Configuring and publishing process',
     configure_failed: 'Failed to configure process',
+    preserve_existing_form: "원본 폼이 존재합니다. 반환된 formUuid로 상태와 실패 원인을 읽기 전용으로 확인하고 원본을 유지하세요. 복구를 위해 --formUuid를 제거하거나 폼을 다시 만들거나 같은 이름의 대체 폼을 만들지 마세요. noWriteRetry=true이면 쓰기를 재시도하지 마세요.",
     retry_hint: 'Process configuration failed, but the form was created. Fix the process definition and retry with this command:',
     fields_not_found: 'Fields definition file not found',
     process_def_not_found: 'Process definition file not found',

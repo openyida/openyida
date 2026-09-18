@@ -246,6 +246,38 @@ describe('small process commands', () => {
     });
     expect(configureProcess.run).toHaveBeenCalledTimes(1);
     expect(utils.httpPost).not.toHaveBeenCalled();
+    const payload = JSON.parse(logSpy.mock.calls[0][0]);
+    expect(payload.recovery).toMatchObject({
+      action: 'inspect_existing_form', formUuid: 'FORM_1', appType: 'APP_XXX',
+      processDefinitionFile: processDefPath, doNotCreateNewForm: true, noWriteRetry: false,
+    });
+    expect(payload.recovery.instruction).toContain('禁止移除 --formUuid');
+    expect(thrown.details.recovery).toEqual(payload.recovery);
+    expect(createForm.createFormForLegacyProcess).not.toHaveBeenCalled();
+  });
+
+  test('failure after creation preserves the new form and a shell-safe full path for reuse', async () => {
+    const dir = path.join(tmpDir, "nested dir's $(ignored)");
+    fs.mkdirSync(dir);
+    const processDefPath = path.join(dir, 'process.json');
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }));
+    fs.writeFileSync(fieldsPath, JSON.stringify([{ type: 'TextField', label: '姓名' }]));
+    createForm.createFormForLegacyProcess.mockResolvedValueOnce({ success: true, formUuid: 'FORM_CREATED', fieldCount: 1 });
+    configureProcess.run.mockRejectedValueOnce(new CliError('switch failed', { code: 'CONFIGURE_PROCESS_SWITCH_FAILED' }));
+    await expect(createProcess.run(['APP_XXX', '审批表', fieldsPath, processDefPath])).rejects.toMatchObject({ code: 'CREATE_PROCESS_CONFIGURE_FAILED' });
+    const payload = JSON.parse(logSpy.mock.calls[0][0]);
+    expect(payload.recovery).toMatchObject({ formUuid: 'FORM_CREATED', doNotCreateNewForm: true, noWriteRetry: false });
+    // Parse the returned command with a real shell, replacing only the command
+    // executable with a harmless argv recorder; metacharacters remain literal.
+    const script = payload.retryCommand.replace('openyida create-process', 'set --') + '; printf "%s\\n" "$@"';
+    const result = jest.requireActual('child_process').spawnSync('/bin/sh', ['-c', script], { encoding: 'utf8' });
+    expect(result.status).toBe(0);
+    const args = result.stdout.trim().split('\n');
+    expect(args).toEqual(['APP_XXX', '--formUuid', 'FORM_CREATED', processDefPath]);
+    await createProcess.run(args);
+    expect(createForm.createFormForLegacyProcess).toHaveBeenCalledTimes(1);
+    expect(configureProcess.run).toHaveBeenLastCalledWith(['APP_XXX', 'FORM_CREATED', processDefPath], { suppressOutput: true });
   });
 
   test('create-process preserves configure-process inner failure stage', async () => {
@@ -287,7 +319,7 @@ describe('small process commands', () => {
       stage: 'save_definition',
       completedStages: ['validate_inputs', 'load_auth', 'reuse_form'],
       nextStep: '检查流程节点配置后重试。',
-      retryCommand: 'openyida create-process APP_XXX --formUuid FORM_1 ' + path.basename(processDefPath),
+      retryCommand: 'openyida create-process APP_XXX --formUuid FORM_1 ' + processDefPath,
       configureProcess: {
         code: 'CONFIGURE_PROCESS_SAVE_FAILED',
         stage: 'save_definition',
@@ -308,7 +340,7 @@ describe('small process commands', () => {
           appType: 'APP_XXX',
           formUuid: 'FORM_1',
           processCode: null,
-          retryCommand: 'openyida create-process APP_XXX --formUuid FORM_1 ' + path.basename(processDefPath),
+          retryCommand: 'openyida create-process APP_XXX --formUuid FORM_1 ' + processDefPath,
         },
         configureProcess: {
           code: 'CONFIGURE_PROCESS_SAVE_FAILED',
@@ -354,6 +386,8 @@ describe('small process commands', () => {
     expect(thrown).toMatchObject({ code });
     expect(payload).toMatchObject({ errorCode: code, stage });
     expect(payload).not.toHaveProperty('retryCommand');
+    expect(payload.noWriteRetry).toBe(true);
+    expect(payload.recovery).toMatchObject({ formUuid: 'FORM_1', doNotCreateNewForm: true, noWriteRetry: true });
     expect(payload.nextStep).toMatch(/只读|人工/);
     expect(thrown.details.context).not.toHaveProperty('retryCommand');
     expect(warnings).not.toContain('openyida create-process');

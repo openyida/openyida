@@ -1034,6 +1034,7 @@ module.exports = {
     manual_hint: '请手动在宜搭后台配置流程，表单 UUID: {0}',
     configuring_process: '配置并发布流程',
     configure_failed: '流程配置失败',
+    preserve_existing_form: "原表單已存在。先以唯讀方式核實該 formUuid 的狀態和失敗原因，保留原表；禁止移除 --formUuid、再次建立表單或另建同名表來恢復。noWriteRetry=true 時禁止重試寫入。",
     retry_hint: '流程配置失败，但表单已创建。请修复流程定义后，使用以下命令复用该表单重试：',
     fields_not_found: '字段定义文件不存在',
     process_def_not_found: '流程定义文件不存在',

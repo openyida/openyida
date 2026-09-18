@@ -35,6 +35,13 @@ description: 流程表单一体化创建（创建表单 → 转流程 → 配置
 - 创建或转换任何远程资源前，CLI 必须先完成字段和流程定义的纯本地编译；本地编译失败时远程写入数必须为 0
 - 复用普通表单时由 `configure-process` 统一执行表单模式只读 preflight、必要转换、发布与平台 view 回读，不要在外层先手动转换表单
 
+## 配置失败后的原表恢复
+
+- `create-process` 返回 `success:false` 且包含 `formUuid` 时，该表单已经存在，失败的是后续配置；新建模式与复用模式均适用。保存返回的 `appType/formUuid`，禁止去掉 `--formUuid`、再次 `create-form` 或另建同名表作为恢复手段。
+- 先按错误中的 `stage`、`nextStep` 和 `recovery` 检查原表状态及权限。修正明确原因后只能复用原 `formUuid`，使用返回的完整 `retryCommand`；不得自动补 `--replace` 绕过已绑定流程的保护。
+- `noWriteRetry:true`、`NON_IDEMPOTENT_RESULT_UNKNOWN` 或 `PUBLISHED_UNVERIFIED` 表示远程结果未确认：只读核实原表/流程，不能执行写重试，也不能新建替代资源。
+- 无法安全恢复时保留原表，并向用户报告原表链接、失败阶段和需处理的问题；不要宣称流程已完成。
+
 ## 适用场景
 
 用户需要"创建审批流程"、"新建流程表单"、"搭建审批系统"，且 resource context 没有既有流程/表单目标时使用。
