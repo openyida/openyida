@@ -10,6 +10,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.9.18] - 2026-09-18
+
+### 问题修复
+
+- **流程配置失败后明确保留原表**：`create-process` 在表单已存在但后续配置失败时，返回结构化 `recovery` 和 `noWriteRetry`，保留 `appType/formUuid`，引导检查原表而非重复创建；新建与复用模式均适用。
+- **修复恢复命令的路径与引用**：返回的 `retryCommand` 保留流程定义文件的完整原路径，正确引用 POSIX Shell 和 Windows PowerShell 中含空格、引号及特殊字符的参数；仅在原请求已有 `--replace` 时保留该选项。
+
+### 恢复与安全说明
+
+- 先按 `stage`、`nextStep`、`recovery` 核实原表状态与权限，修正明确原因后才使用返回的完整命令复用原 `formUuid`。`noWriteRetry:true`、`NON_IDEMPOTENT_RESULT_UNKNOWN` 或 `PUBLISHED_UNVERIFIED` 时只读核实，不写重试、不新建替代资源，也不自动添加 `--replace` 绕过保护；无法安全恢复时保留原表并报告原表链接、失败阶段和待处理问题。
+
 ## [2026.9.17] - 2026-09-17
 
 ### 体验优化
