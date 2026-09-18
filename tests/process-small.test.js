@@ -268,16 +268,53 @@ describe('small process commands', () => {
     await expect(createProcess.run(['APP_XXX', '审批表', fieldsPath, processDefPath])).rejects.toMatchObject({ code: 'CREATE_PROCESS_CONFIGURE_FAILED' });
     const payload = JSON.parse(logSpy.mock.calls[0][0]);
     expect(payload.recovery).toMatchObject({ formUuid: 'FORM_CREATED', doNotCreateNewForm: true, noWriteRetry: false });
-    // Parse the returned command with a real shell, replacing only the command
+    // Parse the returned command with the platform shell, replacing the
     // executable with a harmless argv recorder; metacharacters remain literal.
-    const script = payload.retryCommand.replace('openyida create-process', 'set --') + '; printf "%s\\n" "$@"';
-    const result = jest.requireActual('child_process').spawnSync('/bin/sh', ['-c', script], { encoding: 'utf8' });
+    const childProcessActual = jest.requireActual('child_process');
+    let result;
+    let args;
+    if (process.platform === 'win32') {
+      const script = [
+        'function openyida { ConvertTo-Json -Compress -InputObject @($args) }',
+        payload.retryCommand,
+      ].join('; ');
+      result = childProcessActual.spawnSync('powershell.exe', [
+        '-NoProfile', '-NonInteractive', '-Command', script,
+      ], { encoding: 'utf8' });
+      const parsedArgs = result.status === 0 ? JSON.parse(result.stdout.trim()) : [];
+      args = (Array.isArray(parsedArgs) ? parsedArgs : [parsedArgs]).slice(1);
+    } else {
+      const script = payload.retryCommand.replace('openyida create-process', 'set --') + '; printf "%s\\n" "$@"';
+      result = childProcessActual.spawnSync('/bin/sh', ['-c', script], { encoding: 'utf8' });
+      args = result.status === 0 ? result.stdout.trim().split('\n') : [];
+    }
     expect(result.status).toBe(0);
-    const args = result.stdout.trim().split('\n');
     expect(args).toEqual(['APP_XXX', '--formUuid', 'FORM_CREATED', processDefPath]);
     await createProcess.run(args);
     expect(createForm.createFormForLegacyProcess).toHaveBeenCalledTimes(1);
     expect(configureProcess.run).toHaveBeenLastCalledWith(['APP_XXX', 'FORM_CREATED', processDefPath], { suppressOutput: true });
+  });
+
+  test('create-process builds retry commands for POSIX and PowerShell without interpolation', () => {
+    const input = {
+      appType: 'APP_XXX',
+      formUuid: 'FORM_1',
+      processDefinitionFile: "C:\\nested dir's $(ignored)\\process.json",
+      replace: true,
+    };
+    expect(createProcess.buildRetryCommand({ ...input, platform: 'linux' })).toBe(
+      "openyida create-process APP_XXX --formUuid FORM_1 'C:\\nested dir'\"'\"'s $(ignored)\\process.json' --replace"
+    );
+    expect(createProcess.buildRetryCommand({ ...input, platform: 'win32' })).toBe(
+      "openyida create-process APP_XXX --formUuid FORM_1 'C:\\nested dir''s $(ignored)\\process.json' --replace"
+    );
+    expect(createProcess.buildRetryCommand({
+      ...input,
+      processDefinitionFile: 'C:\\Users\\runneradmin\\process.json',
+      platform: 'win32',
+    })).toBe(
+      'openyida create-process APP_XXX --formUuid FORM_1 C:\\Users\\runneradmin\\process.json --replace'
+    );
   });
 
   test('create-process preserves configure-process inner failure stage', async () => {
