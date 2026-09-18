@@ -63,6 +63,37 @@ describe('multi-Connection foreground supervisor', () => {
     expect(signals.listenerCount('SIGTERM')).toBe(0);
   });
 
+  test('all synchronous bundles are prepared before any Runtime starts waiting for stdin', async () => {
+    const actions = [];
+    materializeBundle.mockImplementationOnce((runtime, config) => {
+      actions.push('prepare-a');
+      return { runtime, config };
+    }).mockImplementationOnce((runtime, config) => {
+      actions.push('prepare-b');
+      return { runtime, config };
+    });
+    launchRuntime.mockImplementationOnce(async () => { actions.push('launch-a'); })
+      .mockImplementationOnce(async () => { actions.push('launch-b'); });
+    await run([
+      'run', '--state-dir', root, '--provider', 'qoder',
+      '--provider-path', path.join(providerDir, 'qoder'),
+    ], { env: { PATH: providerDir, HOME: root }, signals, stdout: { write() {} } });
+    expect(actions).toEqual(['prepare-a', 'prepare-b', 'launch-a', 'launch-b']);
+  });
+
+  test('a bundle preparation failure starts no Runtime and leaves no signal listeners', async () => {
+    materializeBundle.mockImplementationOnce((runtime, config) => ({ runtime, config }))
+      .mockImplementationOnce(() => { throw Object.assign(new Error('bundle invalid'), { code: 'AGENT_BUNDLE_INVALID' }); });
+    await expect(run([
+      'run', '--state-dir', root, '--provider', 'qoder',
+      '--provider-path', path.join(providerDir, 'qoder'),
+    ], { env: { PATH: providerDir, HOME: root }, signals, stdout: { write() {} } }))
+      .rejects.toMatchObject({ code: 'AGENT_BUNDLE_INVALID' });
+    expect(launchRuntime).not.toHaveBeenCalled();
+    expect(signals.listenerCount('SIGINT')).toBe(0);
+    expect(signals.listenerCount('SIGTERM')).toBe(0);
+  });
+
   test('one failed organization Connection does not stop another running Connection', async () => {
     let finishHealthy;
     const healthy = new Promise(resolve => {finishHealthy = resolve;});
