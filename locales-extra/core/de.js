@@ -76,6 +76,7 @@ module.exports = {
     group_data: 'Daten & Berechtigungen',
     cmd_data: 'Einheitliche Datenverwaltung (Formular/Prozess/Aufgabe/Unterformular)',
     data_notes: "DateField erwartet numerische Unix-Zeitstempel in Millisekunden, CascadeDateField ein Array davon. In der Geschäftszeitzone umrechnen; Datumszeichenfolgen und Sekundenwerte sind ungültig. --resolve-aliases löst nur Feldnamen auf.",
+    cmd_data_upload_attachment: 'Lokale Dateien in ein Anhangsfeld einer vorhandenen Formularinstanz hochladen',
     cmd_task_center: 'Globales Aufgabenzentrum (Aufgaben/Bearbeitet/CC etc.)',
     cmd_basic_info: 'Organisationsinfos, Kapazitaeten, Quoten und Domain-Einstellungen abfragen',
     cmd_read_dingtalk_doc: 'Markdown-Inhalt eines DingTalk-Dokuments abrufen',
@@ -170,6 +171,13 @@ module.exports = {
     next_page: 'Weitere Apps sind verfügbar. Fortfahren mit: {0}',
   },
 
+  attachment_upload: {
+    invalid: 'Ungültige Argumente für den Anhang-Upload: {0}',
+    login_required: 'Eine gültige OpenYida-OAuth-Sitzung ist erforderlich; führen Sie zuerst openyida login aus',
+    stage_failed: 'Anhang-Upload in Phase {0} fehlgeschlagen: {1}',
+    partial_failed: 'Mindestens eine Datei konnte nicht hochgeladen werden; das Formular wurde nicht aktualisiert und verwaiste OSS-Objekte sind möglich',
+    verification_failed: 'Der Anhang wurde aktualisiert, aber die Überprüfung durch erneutes Lesen ist fehlgeschlagen'
+  },
   cli: {
     design_plan_local_menu_binding: 'Das lokale Menü {0} benötigt eine Trägerseite und viewKey: sceneKey des Einstiegs {1} muss dem sceneKey der Seite entsprechen, resource ihrem name; viewKey darf nicht leer sein. Dies gilt für alle Rollen.',
     design_plan_visual_object_required: '{0} muss ein Objekt sein, keine Zeichenfolge oder Liste. Behalten Sie die von init erzeugte Struktur bei und ergänzen Sie die Werte. Beispiel: {1}.',

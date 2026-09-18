@@ -76,6 +76,7 @@ module.exports = {
     group_data: 'Datos & Permisos',
     cmd_data: 'Gestión unificada de datos (formulario/proceso/tarea/subformulario)',
     data_notes: "DateField usa marcas de tiempo Unix numéricas en milisegundos; CascadeDateField usa un arreglo de ellas. Convierta según la zona horaria del negocio; no se aceptan fechas de texto ni segundos. --resolve-aliases solo resuelve nombres de campos.",
+    cmd_data_upload_attachment: 'Subir archivos locales a un campo de adjuntos de una instancia de formulario existente',
     cmd_task_center: 'Centro de tareas global (pendiente/procesado/CC etc.)',
     cmd_basic_info: 'Consultar informacion de organizacion, capacidad, cuotas y dominio',
     cmd_read_dingtalk_doc: 'Obtener contenido Markdown de un documento de DingTalk',
@@ -170,6 +171,13 @@ module.exports = {
     next_page: 'Hay más aplicaciones. Continúa con: {0}',
   },
 
+  attachment_upload: {
+    invalid: 'Argumentos de carga de adjuntos no válidos: {0}',
+    login_required: 'Se requiere una sesión OAuth de OpenYida válida; ejecute primero openyida login',
+    stage_failed: 'La carga del adjunto falló durante {0}: {1}',
+    partial_failed: 'Uno o más archivos no se cargaron; el formulario no se actualizó y pueden existir objetos OSS huérfanos',
+    verification_failed: 'El adjunto se actualizó, pero falló la verificación mediante nueva lectura'
+  },
   cli: {
     design_plan_local_menu_binding: 'El menú local {0} requiere una página anfitriona y viewKey: sceneKey de la entrada {1} debe coincidir con el de la página, resource con su name y viewKey no puede estar vacío. Se aplica a todos los roles.',
     design_plan_visual_object_required: '{0} debe ser un objeto, no una cadena ni una lista. Conserve la estructura generada por init y complete los valores. Ejemplo: {1}.',
