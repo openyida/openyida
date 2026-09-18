@@ -264,7 +264,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 |------|------|
 | `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
 | `openyida logout` | 退出登录 / 解绑当前项目登录态 |
-| `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch>` | token 登录态与 profile 管理 |
+| `openyida auth <status\|login\|sync-dws\|refresh\|logout\|profiles\|profile switch>` | token 登录态与 profile 管理 |
 | `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | 组织管理（列表 / 优先按已有 profile 切换） |
 | `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | 检测 AI 工具环境和 token 登录态 |
 

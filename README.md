@@ -385,7 +385,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 |---------|-------------|
 | `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | Login with OAuth token mode |
 | `openyida logout` | Logout / unbind current project auth |
-| `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch>` | Token login state and profile management |
+| `openyida auth <status\|login\|sync-dws\|refresh\|logout\|profiles\|profile switch>` | Token login state and profile management |
 | `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | Organization management (list / switch existing profiles first) |
 | `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | Detect AI tool environment & token login state |
 

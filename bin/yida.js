@@ -690,6 +690,8 @@ async function main() {
       const { tokenLogin, tokenLogout, tokenRefresh } = require('../lib/auth/token-auth');
       if (!subCommand || subCommand === '--help' || subCommand === '-h') {
         printAuthHelp();
+      } else if (subCommand === 'sync-dws') {
+        await require('../lib/auth/dws-sync').run(authArgs, buildTokenLoginOptions(authArgs));
       } else if (subCommand === 'status') {
         console.log(JSON.stringify(getAuthStatus(buildTokenLoginOptions(authArgs)), null, 2));
       } else if (subCommand === 'profiles') {

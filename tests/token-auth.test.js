@@ -609,3 +609,40 @@ describe('token-auth', () => {
     }
   });
 });
+
+
+test('DWS-origin refresh pins YiDA auth origin and preserves session deadline and project binding', async () => {
+  const { saveDwsTokenSession } = require('../lib/auth/token-store');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dws-refresh-'));
+  const deadline = Math.floor(Date.now() / 1000) + 7200;
+  const requests = [];
+  const server = http.createServer((req, res) => {
+    requests.push(req.url);
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({ status: 'ok', access_token: 'rotated-yida', refresh_token: 'rotated-refresh',
+      expires_in: 1800, client_id: 'openyida-cli', corp_id: 'corp-a', user_id: 'user-a',
+      credential_source: 'dws', environment: 'pre', session_id: 'session-a', session_expires_at: deadline,
+    }));
+  });
+  try {
+    const port = await listen(server);
+    const origin = `http://127.0.0.1:${port}`;
+    const options = { projectRoot: root, authDir: path.join(root, 'auth'), env: {} };
+    const saved = saveDwsTokenSession({ access_token: 'yida-old', refresh_token: 'refresh-old',
+      base_url: origin, auth_base_url: origin, client_id: 'openyida-cli', corp_id: 'corp-a', user_id: 'user-a',
+      credential_source: 'dws', environment: 'pre', session_id: 'session-a', session_expires_at: deadline,
+    }, options);
+    const switched = saveTokenSession({ access_token: 'other-user', refresh_token: 'other-refresh',
+      base_url: origin, client_id: 'openyida-cli', corp_id: 'corp-b', user_id: 'user-b',
+    }, options);
+    const refreshed = await tokenRefresh({ ...options, authProfile: saved.auth_profile,
+      endpoint: 'https://unused.invalid' });
+    expect(refreshed).toMatchObject({ access_token: 'rotated-yida', session_expires_at: deadline,
+      session_id: 'session-a', credential_source: 'dws', auth_profile: saved.auth_profile });
+    expect(requests).toEqual(['/openapi/cli/v1/auth/refresh']);
+    expect(loadTokenSession(options).auth_profile).toBe(switched.auth_profile);
+  } finally {
+    await closeServer(server);
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
