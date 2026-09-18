@@ -347,6 +347,12 @@ describe('small process commands', () => {
       ['APP_XXX', 'FORM_1', processDefPath],
       { suppressOutput: true }
     );
+    const expectedRetryCommand = createProcess.buildRetryCommand({
+      appType: 'APP_XXX',
+      formUuid: 'FORM_1',
+      processDefinitionFile: processDefPath,
+      replace: false,
+    });
     expect(payload).toMatchObject({
       success: false,
       errorCode: 'CONFIGURE_PROCESS_SAVE_FAILED',
@@ -356,7 +362,7 @@ describe('small process commands', () => {
       stage: 'save_definition',
       completedStages: ['validate_inputs', 'load_auth', 'reuse_form'],
       nextStep: '检查流程节点配置后重试。',
-      retryCommand: 'openyida create-process APP_XXX --formUuid FORM_1 ' + processDefPath,
+      retryCommand: expectedRetryCommand,
       configureProcess: {
         code: 'CONFIGURE_PROCESS_SAVE_FAILED',
         stage: 'save_definition',
@@ -377,7 +383,7 @@ describe('small process commands', () => {
           appType: 'APP_XXX',
           formUuid: 'FORM_1',
           processCode: null,
-          retryCommand: 'openyida create-process APP_XXX --formUuid FORM_1 ' + processDefPath,
+          retryCommand: expectedRetryCommand,
         },
         configureProcess: {
           code: 'CONFIGURE_PROCESS_SAVE_FAILED',
