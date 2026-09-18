@@ -108,7 +108,7 @@ describe('local agent thin launcher', () => {
   test('doctor gives honest unavailable state without spawning', async () => {
     const stdout = { write: jest.fn() };
     const spawn = jest.fn();
-    await run(['doctor', '--json'], { stdout, spawn, env: {}, homedir: root });
+    await run(['doctor', '--json'], { stdout, spawn, env: {}, homedir: root, platform: 'linux' });
     expect(JSON.parse(stdout.write.mock.calls[0][0])).toMatchObject({ type: 'doctor', ready: false, authKnown: false, runtime: { code: 'AGENT_RUNTIME_NOT_CONFIGURED' } });
     expect(spawn).not.toHaveBeenCalled();
   });

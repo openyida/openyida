@@ -35,9 +35,11 @@ describe('cross-platform provider preflight', () => {
   });
   test('macOS detects desktop-only Qoder and Codex bundled CLI independently', () => {
     file('Applications/Qoder.app/Contents/MacOS/Qoder');
+    const qoderCli = file('Applications/QoderWork.app/Contents/Resources/bin/qodercli');
     const cli = file('Applications/Codex.app/Contents/Resources/codex');
     const result = inventory({ HOME: root, PATH: '' }, 'darwin');
     expect(result[0].desktopDetected).toBe(true);
+    expect(result[0].candidates).toContain(qoderCli);
     expect(result[1].candidates).toContain(cli);
   });
   test('Linux desktop launcher is only evidence of desktop installation', () => {
