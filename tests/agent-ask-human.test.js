@@ -19,6 +19,16 @@ test('fails closed outside managed mode without writing a receipt', () => {
   expect(fs.existsSync(path.join(root, 'interactions'))).toBe(false);
 });
 
+test('prints static managed help without writing a receipt', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-ask-'));
+  const env = managed(root);
+  let output = '';
+  expect(run(['--help'], { env, cwd: root, stdout: { write(value) { output += value; } } })).toEqual({ ok: true, help: true });
+  expect(output).toContain('openyida agent ask-human --request-key');
+  expect(output).toContain('single_select');
+  expect(fs.existsSync(env.OPENYIDA_AGENT_INTERACTIONS_DIR)).toBe(false);
+});
+
 test('writes one idempotent secret-free managed receipt', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-ask-'));
   fs.writeFileSync(path.join(root, 'questions.json'), JSON.stringify({ title: '确认方案', questions: [{ id: 'scope', header: '功能范围', question: '请选择功能', type: 'multi_select', options: [{ label: '报名' }, { label: '签到' }] }] }));

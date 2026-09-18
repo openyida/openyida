@@ -54,7 +54,8 @@ describe('managed CLI static help has no execution side effects', () => {
 
   test.each([
     ['create-form', '--help'], ['create-form', 'batch', '--help'],
-    ['create-page', '--help'], ['publish', '--help'], ['nav-group', '--help'], ['--help'],
+    ['create-page', '--help'], ['publish', '--help'], ['nav-group', '--help'],
+    ['agent', 'ask-human', '--help'], ['--help'],
   ])('%j prints help without Receipt, auth, first-run guide or network', (...argv) => {
     const result = invoke(argv);
     expect(result.status).toBe(0);
