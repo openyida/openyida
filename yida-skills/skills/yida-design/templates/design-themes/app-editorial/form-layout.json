@@ -1,0 +1,24 @@
+[
+  {
+    "type": "ColumnContainer",
+    "layout": "3:9",
+    "columnGap": "28px",
+    "rowGap": "28px",
+    "display": "VERTICAL",
+    "mobileRowGap": "28px",
+    "children": [
+      [
+        {
+          "type": "Divider",
+          "title": "填写真实业务标题",
+          "description": "填写这项业务的用途、要求或材料说明",
+          "colorType": "theme",
+          "titleColor": "var(--pod-form-label-color)",
+          "backgroundColor": "var(--color-brand1-6)",
+          "secondaryColor": "var(--color-line1-1)"
+        }
+      ],
+      []
+    ]
+  }
+]

@@ -601,7 +601,7 @@ describe('design-plan materialize', () => {
     const { readDesignTokens } = require('../lib/app/theme-from-design');
     const navigation = new Set(['--pod-shell-theme-bg-color', '--pod-nav-item-text-color', '--pod-nav-item-text-hover-color',
       '--pod-nav-item-text-selected-color', '--pod-nav-menu-bg-hover-color', '--pod-nav-menu-bg-selected-color']);
-    for (const theme of loadThemeIndex().themes) {
+    for (const theme of loadThemeIndex().themes.filter(item => item.mode !== 'creative')) {
       const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
       plan.visualStyle.forUser.selectedTheme = { themeId: theme.themeId, templatePath: theme.templatePath };
       plan.visualStyle.tokens = {};
@@ -904,9 +904,10 @@ describe('design-plan materialize', () => {
       'design-themes',
       'index.json'
     ), 'utf8'));
-    expect(themeIndex.themes).toHaveLength(15);
+    expect(themeIndex.themes.filter(theme => !theme.collection)).toHaveLength(15);
+    expect(themeIndex.themes.filter(theme => theme.collection === 'application-styles' && theme.mode === 'template')).toHaveLength(18);
 
-    for (const theme of themeIndex.themes) {
+    for (const theme of themeIndex.themes.filter(item => item.mode !== 'creative')) {
       delete plan.visualStyle.forUser.themeProfile;
       plan.visualStyle.forUser.selectedTheme.themeId = theme.themeId;
       plan.visualStyle.forUser.selectedTheme.templatePath = theme.templatePath;

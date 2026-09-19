@@ -1,0 +1,58 @@
+/* OPENYIDA APPLICATION STYLE RECIPES START
+ * Opt-in semantic classes for custom pages. Native form structure stays in Schema.
+ * Never target platform field wrappers to impose a fake grid or fixed height.
+ */
+.pod-premium .oyd-style-workspace {
+  container-type: inline-size;
+  max-width: var(--oyd-content-width);
+  margin-inline: auto;
+  padding: var(--oyd-content-padding);
+  color: var(--oyd-ink);
+  font-family: var(--font-family-base);
+  background-color: var(--oyd-page-bg);
+  background-image: var(--oyd-canvas-image);
+}
+.pod-premium .oyd-style-layout {
+  display: grid;
+  grid-template-columns: var(--oyd-layout-columns);
+  gap: var(--oyd-field-gap);
+  align-items: start;
+}
+.pod-premium .oyd-style-layout > * { min-width: 0; }
+.pod-premium .oyd-style-wide { grid-column: 1 / -1; }
+.pod-premium .oyd-style-layout > .oyd-style-intro {
+  padding-inline-end: var(--oyd-field-gap);
+}
+.pod-premium .oyd-style-intro {
+  color: var(--oyd-ink);
+  border-block-end: 1px var(--oyd-rule-style) var(--oyd-border);
+  padding-block-end: var(--oyd-field-gap);
+  margin-block-end: var(--oyd-section-gap);
+}
+.pod-premium .oyd-style-intro h1 {
+  font-family: var(--oyd-heading-font);
+  font-size: var(--oyd-heading-size);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.pod-premium .oyd-style-section {
+  padding: var(--oyd-content-padding);
+  margin-block-end: var(--oyd-section-gap);
+  background: var(--oyd-surface);
+  border: var(--input-border-width) var(--oyd-rule-style) var(--oyd-border);
+  border-radius: var(--oyd-radius);
+  box-shadow: var(--oyd-surface-shadow);
+}
+.pod-premium .oyd-style-section > h2::after {
+  content: "";
+  display: block;
+  width: 3rem;
+  margin-block-start: .5rem;
+  border-block-end: 2px var(--oyd-rule-style) var(--oyd-accent);
+}
+@container (max-width: 640px) {
+  .pod-premium .oyd-style-layout { grid-template-columns: minmax(0, 1fr); }
+  .pod-premium .oyd-style-section { padding: 16px; }
+  .pod-premium .oyd-style-intro h1 { font-size: min(32px, var(--oyd-heading-size)); }
+}
+/* OPENYIDA APPLICATION STYLE RECIPES END */

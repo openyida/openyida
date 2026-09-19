@@ -164,6 +164,9 @@ Divider > Field
 
 ## 表单布局样式
 
+- 表单和详情必须延续前面已确定的应用风格。先读 `design.md`，再按 [原生表单样式与提交页背景](../yida-design/references/native-form-styles.md) 将字体、控件、状态、背景与底栏规则落实到同一份应用主题 CSS；例如杂志风应用的表单也延续其纸面、线条和阅读节奏。禁止在表单/详情加载代码、动作模块或 iframe 中注入主题代码。
+- 支持与主题协调的布局多样性：按任务、字段长度和设备选择单列、多列、主次列宽、标签位置与分组间距，在 `design.md` 记录理由，通过平台支持的 Schema 属性、`ColumnContainer`、`Divider` 实现。不要让所有主题固定采用同一种白卡双列，也不要在同一应用里随机混搭风格。
+- `--theme compact|comfortable` 配置页面密度，不是完整视觉主题，也不能代替应用主题 token。新版主题以运行态实际消费的变量为准；不要为了美化重建已有表单或改变字段。
 - 普通业务分组使用 `Divider`，下面直接接字段或 `ColumnContainer`
 - 局部多列容器保持背景克制，避免给每个列容器单独上色
 - 流程表单更偏单列和清晰分段，颜色只用于章节识别
@@ -363,3 +366,6 @@ openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
 | 字段类型不支持 | 检查字段类型是否在支持的 19 种业务字段或已验证展示布局组件列表中 |
 | 子表字段创建失败 | 确认 `children` 数组格式正确，子表字段不能嵌套子表 |
 | 返回 JSON 中无 formUuid | 不要猜测 formUuid，重新执行命令获取 |
+
+
+应用整体设计可使用[应用风格模板或自由创意](../yida-design/references/application-style-library.md)。导航、自定义页面、表单与详情继承同一设计语言；自由创意从业务推演，不强制选模板。模板中的原生布局 JSON 只提供结构，须填入真实字段并核对间距和响应式，禁止加载代码注入样式。

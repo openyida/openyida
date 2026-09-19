@@ -12,8 +12,11 @@ const ROOT = path.join(__dirname, '..');
 const guidance = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/application-theme-consistency.md'), 'utf8');
 // Exercise the actual authoring example through both supported generation paths.
 const editorialTokens = JSON.parse(guidance.match(/```json\n([\s\S]*?)\n```/)[1]);
+const formGuidance = fs.readFileSync(path.join(ROOT,
+  'yida-skills/skills/yida-design/references/native-form-styles.md'), 'utf8');
+const formTokens = JSON.parse(formGuidance.match(/```json\n([\s\S]*?)\n```/)[1]);
 
-describe('shared editorial application theme', () => {
+describe('shared application theme', () => {
   let directory;
   let input;
   let plan;
@@ -76,5 +79,49 @@ describe('shared editorial application theme', () => {
     expect(css).toContain('--oyd-editorial-accent: #A63820;');
     expect(css).not.toContain('--oyd-editorial-accent: #C1451D;');
     expect(tokens['--color-brand1-6']).toBe('#1B1B1B');
+  });
+
+  test('native form controls and submission backgrounds survive Plan and Fast generation', async () => {
+    plan.visualStyle.tokens = formTokens;
+    fs.writeFileSync(input, JSON.stringify(plan));
+    const result = materialize(input);
+    expect(readDesignTokens(fs.readFileSync(result.outputs.design, 'utf8'))).toMatchObject(formTokens);
+    const fastOutput = path.join(directory, 'fast-form-theme.css');
+    await sample.run(['yida-design', 'app-theme', '--design-file', result.outputs.design, '--output', fastOutput]);
+    for (const file of [result.outputs.theme, fastOutput]) {
+      const css = fs.readFileSync(file, 'utf8');
+      for (const [name, value] of Object.entries(formTokens)) {
+        // Template declarations may put the value on the following line.
+        const declaration = css.match(new RegExp(`${name}:\\s*([^;]+);`));
+        expect(declaration?.[1].trim()).toBe(value);
+        // A later duplicate declaration must not silently reset the form design.
+        expect(css.split(`${name}:`)).toHaveLength(2);
+      }
+      expect(css).toContain('--color-brand1-6: #1B1B1B;');
+    }
+  });
+
+  test('changing form density preserves background, brand, and unrelated custom styles', async () => {
+    plan.visualStyle.tokens = formTokens;
+    fs.writeFileSync(input, JSON.stringify(plan));
+    const result = materialize(input);
+    const fastOutput = path.join(directory, 'fast-form-theme.css');
+    const generate = () => sample.run(['yida-design', 'app-theme', '--design-file', result.outputs.design, '--output', fastOutput]);
+    await generate();
+    const custom = '\n.local-form-note { padding: 7px; }\n';
+    fs.appendFileSync(fastOutput, custom);
+    patchPlan(input, ['visualStyle.tokens.--form-element-medium-height=44px',
+      'visualStyle.tokens.--form-top-label-margin-b=8px'], { materialize: true });
+    await generate();
+    for (const file of [result.outputs.theme, fastOutput]) {
+      const css = fs.readFileSync(file, 'utf8');
+      expect(css).toContain('--form-element-medium-height: 44px;');
+      expect(css).toContain('--form-top-label-margin-b: 8px;');
+      expect(css).not.toContain('--form-element-medium-height: 40px;');
+      expect(css).toContain(`--pod-app-root-bg-image: ${formTokens['--pod-app-root-bg-image']};`);
+      expect(css).toContain('--input-bg-color: #FFFCF6;');
+      expect(css).toContain('--color-brand1-6: #1B1B1B;');
+    }
+    expect(fs.readFileSync(fastOutput, 'utf8')).toContain(custom);
   });
 });

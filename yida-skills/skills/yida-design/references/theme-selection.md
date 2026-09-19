@@ -1,6 +1,6 @@
 # 共享主题选择与项目化规则
 
-Fast、Plan 和单页设计共用 [主题索引](../templates/design-themes/index.json) 与其中列出的完整主题。这是唯一主题库；各流程只保留自己的交互和产物生成方式。
+Fast、Plan 和单页设计共用 [主题索引](../templates/design-themes/index.json) 与其中列出的完整主题。命名模板共用这一主题库；另有独立的自由创意路径，不要求匹配模板。详见[应用风格模板与自由创意](application-style-library.md)。
 
 ## 输入与优先级
 
@@ -21,9 +21,9 @@ Fast、Plan 和单页设计共用 [主题索引](../templates/design-themes/inde
 2. 对照摘要中的表面、轮廓、形状、文字、强调方式及偏离风险，选择最符合当前视觉要求的主题。不按关键词数量打分，不维护另一套权重或风格注册表。
 3. 保留摘要中的适用条件。图表、量表、记录栈等仅按真实内容启用；没有某种内容不代表主题不适用，也不能为体现风格新增业务模块。未写明的实现细节留到主题确定后处理。
 4. 选定后通过该索引记录的 `templatePath`，相对 `yida-design/` 读取一份完整主题。沿用已确认选择，不再重新推荐；用户要求比较时，按所在流程完成选择后再读全文。
-5. 项目要求与主题核心特征冲突时，重新匹配摘要中的其他主题；品牌色、导航明暗等允许的项目输入不构成更换主题的理由。
+5. 项目要求与主题核心特征冲突时，可以选择自由创意，也可重新匹配摘要中的其他主题；品牌色、导航明暗等允许的项目输入不构成更换主题的理由。
 
-主题 ID、模板路径和候选比较保留在内部实施记录；Plan 写 `visualStyle.internal.selectedTheme`，Fast 沿用 brief 的视觉选择。最终 `prd.md`、`design.md` 和用户可见方案只写当前项目的视觉效果、配色和使用理由，不展示主题模板名称、ID、路径或选择过程。
+主题 ID、模板路径和候选比较保留在内部实施记录；Plan 写 `visualStyle.internal.selectedTheme`，Fast 沿用 brief 的视觉选择。最终文档正文和用户可见方案只写当前项目的视觉效果、配色和使用理由，不展示模板路径或内部选择过程；design.md frontmatter 只保留 applicationStyle 配方版本与模式，不携带模板身份。
 
 ## 设计方向比较
 
@@ -43,8 +43,8 @@ Fast、Plan 和单页设计共用 [主题索引](../templates/design-themes/inde
 
 | 流程 | 选择与执行 |
 | --- | --- |
-| Fast | 沿用 brief 中已确认或已委托 AI 确定的方向，按摘要绑定一个主题；读取选中模板，直接维护项目 `design.md`，不增加 Plan 的方案确认步骤 |
-| Plan | 按 [Plan 视觉候选规则](../sub_skill/yida-design-plan/references/visual-theme-selection.md) 维护已选方向、配色、导航和内部主题绑定；需要比较时给出三套方案，由 CLI 派生项目文档 |
+| Fast | 沿用 brief 中已确认或已委托 AI 确定的方向，选择命名模板或自由创意；模板路径读取选中模板，自由创意从业务推演，直接维护项目 `design.md`，不增加 Plan 的方案确认步骤 |
+| Plan | 按 [Plan 视觉候选规则](../sub_skill/yida-design-plan/references/visual-theme-selection.md) 维护已选方向、配色、导航和内部主题绑定；需要比较时提供完整方向，并始终包含自由创意选项，由 CLI 派生项目文档 |
 | 单页设计 | 先读当前应用 `design.md` 和主题证据；沿用已确认主题，只补当前页面。尚无主题契约且需选型时读取同一索引，保持现有业务功能与应用主题 |
 
 ## 将主题写成项目设计

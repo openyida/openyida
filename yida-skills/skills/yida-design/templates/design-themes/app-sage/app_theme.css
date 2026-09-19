@@ -1,0 +1,607 @@
+@charset "UTF-8";
+
+/*
+ * OpenYida 应用主题模板
+ *
+ * 生成后的 CSS 是应用级主题资源：平台组件和自定义页面消费这里的 token 与样式。
+ * 文件名可以是 app-theme.css 或 app_theme.css，以 --theme-file 的实际路径为准。
+ * 修改后需通过 update-app --theme-file 上传并绑定应用设置；本地文件存在不代表已生效。
+ * 布局、导航交互和 iframe 高度仍由页面/容器实现，iframe 不自动继承父文档变量。
+ *
+ * AI 使用说明：
+ * 1. 先在 design.md 确定主题色，再执行 openyida sample yida-design app-theme
+ *    --design-file <design.md> --output <app-theme.css> 生成主题。
+ * 2. 修改 design.md 后重跑同一命令，CLI 增量更新 token 并保留其他定制。
+ *    省略 --design-file 会重置模板，不用于保留已有定制的更新。
+ * 3. 本模板默认品牌种子为 coffee 咖啡色；最终配色和圆角以 design.md 的 tokens 为准。
+ * 4. 应用品牌色阶只使用平台实际生成的 --color-brand1-1、2、3、5、6、9、10；
+ *    CLI 同时生成 --color-brand-1 至 --color-brand-4 和 --color-group，不要补造 4、7、8。
+ * 5. 若 design.md 选择其他主色，必须同步替换品牌色阶、基础色阶、图表色组，以及模板中按钮、
+ *    表单、选中态、导航、日期组件等品牌相关直接色值；成功、警告、错误、通知等语义色保持独立。
+ * 6. 页面、卡片、抽屉和控件通过变量引用继承项目圆角，不强制所有主题使用大圆角。
+ * 7. 保留变量名、顶层 :root 及导航明暗作用域；白色、灰色模式保留背景回退链。
+ *    CLI 在生成前后和上传前检查 CSS 结构闭合，失败时修复源文件后重试。
+ */
+
+:root {
+  /* surfaces */
+  --pod-app-root-bg-color: #dce7df;
+  --pod-app-root-bg-image: none;
+  --pod-page-bg-color: #dce7df;
+  --pod-card-bg-color: #eaf1ea;
+  --pod-table-cell-color: var(--pod-card-bg-color);
+
+  /* colors */
+  --color-white: var(--pod-card-bg-color);
+
+  /* brand */
+  --color-brand1-1: #4C6F5F;
+  --color-brand1-2: #E7EBE9;
+  --color-brand1-3: #F7F8F8;
+  --color-brand1-5: #22312A;
+  --color-brand1-6: #345b49;
+  --color-brand1-9: #284537;
+  --color-brand1-10: #252F2B;
+
+  /* line */
+  --color-line1-1: #bfcebf;
+  --color-line1-2: #bfcebf;
+
+  /* fill */
+  --color-fill1-1: #dce7df;
+  --color-fill1-2: #dce7df;
+  --color-fill1-3: #bfcebf;
+  --color-fill1-5: #eaf1ea;
+  --color-fill1-10: #262626;
+
+  /* text */
+  --color-text1-5: #FFFFFF;
+  --color-text1-4: #345b49;
+  --color-text1-10: #345b49;
+  --color-text1-3: #345b49;
+  --color-text1-2: #858781;
+  --color-text1-1: #bfcebf;
+
+  /* typography */
+  --font-family-base:
+    Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-size-subhead: 18px;
+  --font-weight-subhead: 500;
+  --font-lineheight-subhead: 1.3;
+  --font-size-body-2: 16px;
+  --font-weight-body-2: 500;
+  --font-lineheight-body-2: 1.45;
+  --font-size-body-1: 14px;
+  --font-weight-body-1: 400;
+  --font-lineheight-body-1: 1.5;
+  --font-size-table: 13px;
+  --font-weight-table: 400;
+  --font-lineheight-table: 1.45;
+  --font-size-caption: 12px;
+  --font-weight-caption: 400;
+  --font-lineheight-caption: 1.4;
+
+  /* spacing */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 28px;
+  --s-8: 32px;
+  --s-9: 36px;
+  --s-10: 40px;
+
+  /* rounded */
+  --corner-zero: 0px;
+  --corner-1: 4px;
+  --corner-2: 6px;
+  --corner-3: 8px;
+  --corner-4: 10px;
+  --corner-5: 12px;
+  --corner-circle: 50%;
+  --corner-semicircle: 500px;
+
+  /* shadow */
+  --shadow-1: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+  --shadow-2: 0px 4px 20px -1px rgba(0, 0, 0, 0.16);
+  --shadow-3: 0px 10px 28px -2px rgba(0, 0, 0, 0.24);
+
+  /* 历史变量 */
+  --pod-xs-border-radius: var(--corner-1);
+  --pod-sm-border-radius: var(--corner-2);
+  --pod-md-border-radius: var(--corner-3);
+  --pod-lg-border-radius: var(--corner-4);
+  --pod-xl-border-radius: var(--corner-5);
+  --pod-xs-gap-pad-margin: 4px;
+  --pod-sm-gap-pad-margin: 8px;
+  --pod-md-gap-pad-margin: 12px;
+  --pod-lg-gap-pad-margin: 16px;
+  --pod-mxl-gap-pad-margin: 20px;
+  --pod-xxl-gap-pad-margin: 24px;
+  --pod-full-raduis: var(--corner-semicircle);
+
+  /* scrollbar */
+  --pod-scrollbar-radius: var(--corner-1);
+  --pod-scrollbar-width: 8px;
+
+  /* common */
+  --pod-element-card-gap: var(--pod-md-gap-pad-margin);
+  --pod-container-common-pad-margin: var(--pod-md-gap-pad-margin);
+  --pod-common-container-pad: var(--pod-mxl-gap-pad-margin);
+  --pod-common-container-margin: var(--pod-md-gap-pad-margin);
+  --pod-common-container-padding: var(--pod-mxl-gap-pad-margin);
+  --pod-common-bg-color: #f0f2f5;
+  --pod-common-level1-base-color: var(--color-text1-4, #202020);
+  --pod-common-level3-base-color: var(--color-text1-2, #adadad);
+  --pod-common-level2-base-color: var(--color-text1-3, #737373);
+  --pod-common-level4-base-color: var(--color-text1-1, #d6d6d6);
+  --pod-overlay-color: var(--color-fill1-1, #f1f2f3);
+  --pod-overlay-color-hover: var(--color-fill1-2, #f2f2f2);
+  --pod-overlay-color-active: var(--color-fill1-3, #eaeaea);
+  --pod-danger-color: var(--color-error-3, #f2510c);
+  --pod-scrollbar-thumb-color: rgba(0, 0, 0, 0.2);
+  --pod-background-mask-light-gradient: linear-gradient(
+    142deg,
+    rgba(255, 255, 255, 0.37) 0%,
+    rgba(255, 255, 255, 0.43) 72%
+  );
+  --pod-sticky-footer-box-shadow:
+    inset 0 1px 2px rgba(52,91,73,.10);
+
+  /* 宜搭相关，后面再做抽离，本次发布只影响私有化 */
+  --yida-sm-border-radius: var(--corner-2);
+  --yida-sm-gap-size: 6px;
+  --yida-s-gap-size: 8px;
+  --yida-sm-font-size: 12px;
+  --yida-sm-line-height: 18px;
+  --yida-md-line-height: 24px;
+  --yida-lg-line-height: 36px;
+  --yida-md-font-weight: 500;
+  --yida-data-manage-s-font-size: 13px;
+  --yida-danger-color: var(--color-error-3, #f2510c);
+  --pod-default-border-radius: 20px;
+  --pod-drawer-border-radius: var(--pod-xl-border-radius, 20px);
+  --pod-drawer-shadow: 0 0 32px 0 rgba(0, 0, 0, 0.1);
+
+  /* 新主题下变量 */
+  /* shell 背景 padding 圆角 */
+  --pod-shell-bg-color-light: var(--color-brand1-2, #E7EBE9);
+  --pod-shell-bg-color-white: #fff;
+  --pod-shell-bg-color-gray: var(--pod-common-bg-color, #f0f2f5);
+  --pod-shell-bg-color-dark: var(--color-brand1-5, #22312A);
+  --pod-shell-padding: 4px;
+  --pod-shell-lshape-border-radius: 16px;
+  /* 新版主题shell main 容器相关 暂时不需要这个变量，写死用户不可配置 */
+  --pod-shell-content-container-padding: 0px;
+  --pod-shell-content-container-margin: 0px;
+  --pod-shell-content-container-border: none;
+  --pod-shell-content-container-bg-color: transparent;
+  /* 新版主题shell sub main 容器相关 暂时不需要这个变量，写死用户不可配置 */
+  /* pod-page-surface-padding 还是需要以因为margin是auto的 */
+  --pod-page-surface-padding: 0px;
+  --pod-page-surface-margin: 0px;
+  --pod-page-surface-border: none;
+  --pod-page-surface-bg-color: transparent;
+  --pod-page-surface-border-radius: 12px;
+  --pod-page-surface-shadow: none;
+
+  /* 新版主题页面容器相关 */
+  --pod-page-border: 1px solid var(--color-line1-1, #efefef);
+  --pod-page-border-radius: 16px;
+  --pod-page-padding: 20px;
+  --pod-page-mobile-margin: 12px;
+  --pod-page-mobile-padding: 12px;
+  --pod-page-with-side-nav-margin: 0px;
+  --pod-page-auto-width-margin: 8px;
+  --pod-page-inner-group-spacing: 12px;
+  --pod-page-title-height: 24px;
+  --pod-page-title-font-size: 16px;
+  --pod-page-title-font-weight: 500;
+  --pod-page-data-manage-top-padding: 16px;
+  /* 管理页表单视图 / DATA_MANAGE：控制底栏外层，不由导航显隐决定。 */
+  --pod-formView-stickyFooter: 0 0 var(--pod-page-border-radius, 20px)
+    var(--pod-page-border-radius, 20px);
+  --pod-formView-stickyFooter-border: none;
+  --pod-formView-stickyFooter-border-top: 1px solid #bfcebf;
+  --pod-inDrawer-stickyFooter-border: none;
+  --pod-inDrawer-stickyFooter-border-top: 0.5px solid
+    var(--color-line1-1, #efefef);
+  --pod-formView-stickyFooter-bg-color: #dce7df;
+  --pod-formView-stickyFooter-box-shadow: none;
+  --pod-formView-stickyFooter-height: 56px;
+  --pod-formView-stickyFooter-bottom: 8px;
+  --pod-page-header-bg-color: var(--color-white, #fff);
+
+  /* 原生表单：按项目设计调整控件形状、密度和填充，不通过全局 input 选择器覆盖状态。 */
+  --form-element-medium-corner: 16px;
+  --form-element-medium-height: 46px;
+  --form-element-medium-font-size: 14px;
+  --input-bg-color: #eaf1ea;
+  --input-border-width: 1px;
+  --input-border-color: #bfcebf;
+  --input-hover-border-color: var(--color-brand1-6);
+  --input-focus-border-color: var(--color-brand1-6);
+  --input-focus-bg-color: #eaf1ea;
+  /* DeepContainer 的 inline backgroundColor 通过此变量接入应用页面表面。 */
+  --yida-form-content-bgcolor: #eaf1ea;
+  --pod-form-label-color: #345b49;
+  --form-top-label-margin-b: 8px;
+
+  --pod-data-manager-title-padding: 12px 8px 0;
+  --pod-data-manager-container-padding: 16px 20px 20px;
+  --pod-detail-container-padding: 8px;
+  --pod-detail-container-margin: 0px;
+  --pod-detail-shell-padding: var(--pod-detail-container-padding, 8px);
+  --pod-field-preview-min-height: 32px;
+  --pod-field-preview-padding: 8px 12px;
+  --pod-field-preview-gap: 4px;
+  --pod-field-preview-bg-color: #eaf1ea;
+  --pod-field-preview-border-radius: 16px;
+  --pod-field-preview-indicator-color: var(--color-fill1-3, #eaeaea);
+  --pod-field-preview-shadow: none;
+  --pod-field-preview-text-color: #345b49;
+  --pod-field-preview-line-height: 20px;
+
+  /* 新版主题页面容器内部相关 */
+  --pod-card-padding: 20px;
+  --pod-card-border-radius: var(--pod-xl-border-radius, 20px);
+  --pod-card-border: none;
+  --pod-card-spacing: var(--pod-md-gap-pad-margin);
+  /* 普通提交（含有导航页面）、iframe 抽屉提交及详情：控制内层按钮容器。
+   * 阴影使用 --pod-sticky-footer-box-shadow；与上面的 formView 外层分别设计。 */
+  --pod-page-footer-bg-color: #eaf1ea;
+  --pod-page-footer-border-radius: 16px;
+  --pod-page-content-max-width: 900px;
+  --pod-nav-page-bg-color: var(--color-white, #fff);
+  --pod-nav-page-white-bg-color: rgba(246, 247, 247, 1);
+  --pod-nav-page-padding: var(--pod-lg-gap-pad-margin, 16px);
+  --pod-nav-top-main-border-width: 1px;
+  --pod-nav-top-main-border-color: #00000014;
+  --pod-nav-l-sub-main-bg-color: var(--color-white, #fff);
+  --pod-nav-l-header-gap: 28px;
+  --pod-nav-l-header-padding: 8px 16px;
+  --pod-nav-l-aside-padding: 8px;
+  --pod-nav-slide-aside-gap: 12px;
+  --pod-nav-slide-aside-padding: 8px 8px 8px
+    calc(8px - var(--pod-shell-padding, 4px));
+  --pod-nav-slide-aside-collapsed-padding: 8px 12px 8px
+    calc(12px - var(--pod-shell-padding, 4px));
+  --pod-nav-slide-collapsed-menu-gap: 4px;
+  --pod-nav-slide-branding-height: 40px;
+  --pod-nav-side-collapsed-width: 56px;
+  --pod-nav-side-collapsed-item-size: 32px;
+
+  /* 新版顶导与 L 型导航外框。 */
+  --pod-nav-custom-logo-max-width: 160px;
+  --pod-nav-top-header-padding: 2px 16px;
+  --pod-nav-top-header-gap: 40px;
+  --pod-nav-top-navigation-padding: 0 12px;
+  --pod-nav-top-tab-height: 44px;
+  --pod-nav-top-tab-item-max-width: 120px;
+  --pod-nav-top-tab-item-padding: 0 12px;
+  --pod-nav-top-tab-item-inner-padding: 12px 0;
+  --pod-nav-top-tab-indicator-width: 2px;
+
+  /* 新版导航平台 Header、内容行与操作区。 */
+  --pod-nav-platform-header-height: 48px;
+  --pod-nav-platform-row-height: 32px;
+  --pod-nav-platform-action-gap: 6px;
+  --pod-nav-platform-action-item-size: 28px;
+  --pod-nav-platform-action-icon-size: 18px;
+  --pod-nav-platform-action-radius: var(--corner-semicircle, 500px);
+  --pod-nav-avater-border-radius: 6px;
+  --pod-nav-platform-action-badge-size: 13px;
+  --pod-nav-platform-action-badge-font-size: 9px;
+  --pod-nav-platform-action-badge-radius: 7px;
+  --pod-nav-platform-action-badge-digit-width: 6px;
+  --pod-nav-action-border: 0.5px solid var(--pod-nav-action-border-color);
+  --pod-nav-ai-wenban-border-color: #ffffff3d;
+  --pod-nav-ai-wenban-bg:
+    radial-gradient(64px 24px at 31% 0%, transparent, rgba(0, 0, 0, 0.6)),
+    linear-gradient(
+      161deg,
+      var(--color-brand1-1, #4C6F5F) 5.22%,
+      var(--color-brand1-5, #22312A) 50.54%,
+      var(--color-brand1-9, #284537) 89.61%
+    );
+  --pod-nav-ai-wenban-text-color: var(--color-text1-5, #fff);
+  --pod-nav-logo-gap: 8px;
+  --pod-nav-logo-padding: 4px 8px;
+  --pod-nav-logo-bg: var(--color-brand1-6, #345b49);
+  --pod-nav-logo-border: none;
+  --pod-nav-logo-icon: var(--color-text1-5, #fff);
+  --pod-nav-logo-border-radius: 6px;
+  --pod-nav-logo-size: 32px;
+  --pod-nav-logo-img-size: calc(var(--pod-nav-logo-size, 32px) - 6px);
+
+  /* 新版导航搜索 & 菜单栏 & 导航项气泡 */
+  --pod-nav-search-height: var(--pod-nav-platform-row-height, 32px);
+  --pod-nav-search-border-color: transparent;
+  --pod-nav-search-menu-gap: 8px;
+  --pod-nav-menu-panel-search-padding-top: 8px;
+  --pod-nav-menu-panel-top: 12px;
+  --pod-nav-menu-panel-after-collapse-top: 40px;
+  --pod-nav-menu-item-height: 36px;
+  --pod-nav-menu-item-padding: 8px;
+  --pod-nav-menu-item-radius: var(--pod-sm-border-radius, 8px);
+  --pod-nav-menu-font-size: 14px;
+  --pod-nav-menu-item-selected-font-weight: 400;
+  --pod-nav-menu-line-height: 20px;
+  --pod-nav-menu-icon-size: 16px;
+  --pod-nav-menu-arrow-icon-size: 12px;
+  --pod-nav-menu-gap: 8px;
+  --pod-nav-menu-item-gap: 4px;
+  --pod-nav-popup-width: 220px;
+  --pod-nav-popup-max-height: 400px;
+  --pod-nav-popup-padding: 8px;
+  --pod-nav-popup-border-radius: var(--corner-3);
+  --pod-nav-popup-shadow: 0 8px 24px rgba(31, 35, 41, 0.12);
+
+  /* 侧导菜单滚动区底部渐隐遮罩高度，并预留等高底部空间。 */
+  --pod-nav-menu-fade-height: 32px;
+
+  /* 新版侧导二级菜单缩进与分割线。 */
+  --pod-nav-sub-divider-left: 16px;
+  --pod-nav-sub-indent: 24px;
+  --yida-help-tips-color: #878f95;
+
+  /* 新版主题数据管理变量 */
+  --table-cell-border: var(--color-line1-1, #efefef);
+  --table-border: var(--color-line1-2, #e5e5e5);
+  --table-header-bg: var(--color-fill1-1, #ffffff);
+  --table-cell-bg: var(--card-bg, #fff);
+  --page-bg: var(--pod-page-bg-color, #fff);
+  --card-bg: var(--pod-card-bg-color, #fff);
+  --popup-bg: var(--color-fill1-5, #fff);
+  --pod-shell-theme-bg-color: #eaf1ea;
+  --pod-nav-item-text-color: #345b49;
+  --pod-nav-item-text-hover-color: #345b49;
+  --pod-nav-item-text-selected-color: #345b49;
+  --pod-nav-menu-bg-hover-color: #dce7df;
+  --pod-nav-menu-bg-selected-color: #dce7df;
+  --input-hover-bg-color: #eaf1ea;
+  --oyd-page-bg: var(--pod-page-bg-color);
+  --oyd-surface: var(--pod-card-bg-color);
+  --oyd-canvas-image: var(--pod-app-root-bg-image);
+  --oyd-ink: var(--color-text1-4);
+  --oyd-border: var(--color-line1-2);
+  --oyd-accent: var(--color-brand1-6);
+  --oyd-radius: 16px;
+  --oyd-content-width: 900px;
+  --oyd-content-padding: 40px;
+  --oyd-field-gap: 30px;
+  --oyd-section-gap: 60px;
+  --oyd-heading-font: var(--font-family-base);
+  --oyd-heading-size: 32px;
+  --oyd-rule-style: solid;
+  --oyd-layout-columns: minmax(0, 6fr) minmax(0, 6fr);
+  --oyd-surface-shadow: inset 0 1px 2px rgba(52,91,73,.10);
+  --color-brand-1: #252F2B;
+  --color-brand-2: #4C6F5F;
+  --color-brand-3: #345b49;
+  --color-brand-4: #284537;
+  --color-group: #345b49, #4C6F5F, #22312A, #E7EBE9, #284537, #F7F8F8;
+}
+
+/* 独立提交页（含抽屉 iframe）使用应用外衬；平台默认壳层取导航背景且不消费背景图。 */
+body.pod-premium.page-type-submit .vc-shell-without-nav.pod-premium {
+  background-color: var(--pod-app-root-bg-color, var(--pod-page-bg-color, #fff));
+  background-image: var(--pod-app-root-bg-image, none);
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* 按实际底栏类型适配 PC 固定提交栏，不按有无导航判断。
+ * 排除 DATA_MANAGE 和容器内 sticky 模式；抽屉提交标记按平台规则优先。
+ * 管理页、旧主题、移动端继续由各自布局负责占位。 */
+body.pod-premium.page-type-submit
+  .vc-page-yida-page:not(.yida-legacy-theme):has(
+    > .vc-rootcontent > .deep-form.desktop
+      > .stickyFooter.is-sticky:not(.is-sticky-v2):not(.is-data-manage-footer)
+  ),
+body.pod-premium.page-type-submit
+  .vc-page-yida-page:not(.yida-legacy-theme):has(
+    > .vc-rootcontent > .deep-form.desktop
+      > .stickyFooter.is-sticky.is-in-drawer-submit-footer:not(.is-sticky-v2)
+  ) {
+  margin-bottom: 0;
+  padding-bottom: calc(
+    var(--pod-formView-stickyFooter-height, 50px) +
+      var(--pod-formView-stickyFooter-bottom, var(--pod-page-auto-width-margin, 8px))
+  );
+}
+
+/* 白色导航背景与白色卡片相邻时，用描边保留卡片层级。 */
+.pod-premium.nav-white,
+.pod-premium.nav-theme-white {
+  --pod-card-border: 1px solid var(--color-line1-1, #efefef);
+}
+
+/* 新版主题移动端保留滚动能力，统一隐藏各业务滚动容器的滚动条。 */
+.mobile .pod-premium,
+.mobile .pod-premium *,
+.pod-premium.is-phone,
+.pod-premium.is-phone *,
+.pod-premium .is-phone,
+.pod-premium .is-phone * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.mobile .pod-premium::-webkit-scrollbar,
+.mobile .pod-premium *::-webkit-scrollbar,
+.pod-premium.is-phone::-webkit-scrollbar,
+.pod-premium.is-phone *::-webkit-scrollbar,
+.pod-premium .is-phone::-webkit-scrollbar,
+.pod-premium .is-phone *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.pod-premium .next-balloon.next-balloon-primary,
+.pod-premium .pod-actions_popup {
+  padding: var(--popup-spacing-tb, 4px) var(--popup-spacing-lr, 8px);
+}
+
+:root {
+  /* Light theme defaults. */
+  --pod-nav-logo-text: var(--color-text1-4, #202020);
+  --pod-nav-sub-divider-color: var(--color-line1-1, #efefef);
+  --pod-nav-item-text-color: #345b49;
+  --pod-nav-item-text-hover-color: #345b49;
+  --pod-nav-item-text-disabled-color: rgba(24, 28, 31, 0.24);
+  --pod-nav-item-text-selected-color: #345b49;
+  --pod-nav-menu-bg-hover-color: #dce7df;
+  --pod-nav-menu-bg-selected-color: #dce7df;
+  --pod-nav-l-container-bg: rgba(255, 255, 255, 0.4);
+  --pod-nav-l-group-label-color: rgba(24, 28, 31, 0.4);
+  --pod-nav-l-search-border-color: rgba(0, 0, 0, 0);
+  --pod-nav-popup-bg-color: var(--popup-bg, var(--color-white, #fff));
+  --pod-nav-tab-line-hover-color: var(--color-brand1-6, #345b49);
+  --pod-nav-tab-line-selected-color: var(--color-brand1-6, #345b49);
+  --pod-nav-search-bg-color: var(--ovrelay-fill1-6, rgba(24, 28, 31, 0.06));
+  --pod-nav-search-bg-hover-color: var(--ovrelay-fill1-6, rgba(24, 28, 31, 0.06));
+  --pod-nav-search-bg-active-color: rgba(83, 88, 97, 0.24);
+  --pod-nav-search-placeholder-color: var(--color-text1-1, #d6d6d6);
+  --pod-nav-search-text-color: var(--color-text1-4, #202020);
+  --pod-nav-search-icon-color: var(--color-text1-2, #adadad);
+  --pod-nav-search-border-hover-color: var(--color-brand1-6, #345b49);
+  --pod-nav-search-border-active-color: var(--color-brand1-6, #345b49);
+  --pod-nav-action-icon-color: var(--color-text1-2, #adadad);
+  --pod-nav-action-border-color: rgba(24, 28, 31, 0.12);
+  --pod-nav-action-bg-hover-color: rgba(83, 88, 97, 0.16);
+  --pod-nav-action-bg-active-color: rgba(83, 88, 97, 0.24);
+  --pod-theme-text-color: var(--color-text1-4, #202020);
+  --pod-page-header-text-color: var(--pod-theme-text-color, var(--color-text1-4, #202020));
+}
+
+.pod-premium.nav-light {
+  --pod-shell-theme-bg-color: #eaf1ea;
+  --pod-page-header-bg-color: #eaf1ea;
+}
+
+.pod-premium.nav-dark {
+  --pod-shell-theme-bg-color: var(--pod-shell-bg-color-dark, var(--color-brand1-5, rgba(52, 50, 44, 1)));
+  --pod-page-header-bg-color: var(--pod-shell-theme-bg-color, var(--color-white, #fff));
+}
+
+.pod-premium.nav-white {
+  --pod-shell-theme-bg-color: var(--pod-shell-bg-color-white, #fff);
+  --pod-page-header-bg-color: var(--pod-shell-theme-bg-color, var(--color-white, #fff));
+}
+
+.pod-premium.nav-gray {
+  --pod-shell-theme-bg-color: var(--pod-shell-bg-color-gray, #f0f2f5);
+  --pod-page-header-bg-color: var(--pod-shell-theme-bg-color, var(--color-white, #fff));
+}
+
+.pod-premium.is-light {
+  --pod-theme-text-color: var(--color-text1-4, #202020);
+  --pod-page-header-text-color: var(--pod-theme-text-color, var(--color-text1-4, #202020));
+  --pod-nav-logo-bg: var(--color-brand1-6, #345b49);
+  --pod-nav-logo-border: none;
+  --pod-nav-item-text-selected-color: #345b49;
+  --pod-nav-menu-bg-selected-color: #dce7df;
+  --pod-nav-popup-bg-color: var(--color-white, #fff);
+  --pod-nav-action-icon-color: var(--color-text1-2, #adadad);
+  --pod-nav-item-text-color: #345b49;
+  --pod-nav-item-text-hover-color: #345b49;
+  --pod-nav-menu-bg-hover-color: #dce7df;
+}
+
+.pod-premium.is-dark {
+  --pod-theme-text-color: var(--color-text1-5, #fff);
+  --pod-page-header-text-color: var(--pod-theme-text-color, var(--color-text1-5, #fff));
+  /* Dark theme overrides. */
+  --pod-nav-logo-bg: transparent;
+  --pod-nav-logo-border: 1px solid rgba(255, 246, 246, 0.15);
+  --pod-nav-logo-text: var(--color-text1-5, #fff);
+  --pod-nav-sub-divider-color: rgba(255, 255, 255, 0.24);
+  --pod-nav-item-text-color: var(--color-text1-5, #fff);
+  --pod-nav-item-text-hover-color: var(--color-text1-5, #fff);
+  --pod-nav-item-text-disabled-color: rgba(255, 255, 255, 0.24);
+  --pod-nav-item-text-selected-color: var(--color-text1-5, #fff);
+  --pod-nav-menu-bg-hover-color: rgba(255, 255, 255, 0.12);
+  --pod-nav-menu-bg-selected-color: rgba(255, 255, 255, 0.24);
+  --pod-nav-l-container-bg: rgba(255, 255, 255, 0.08);
+  --pod-nav-l-group-label-color: rgba(255, 255, 255, 0.4);
+  --pod-nav-l-search-border-color: rgba(255, 255, 255, 0.05);
+  --pod-nav-popup-bg-color: var(--pod-shell-bg-color-dark, var(--color-brand1-5, #22312A));
+  --pod-nav-tab-line-hover-color: #fff;
+  --pod-nav-tab-line-selected-color: #fff;
+  --pod-nav-search-bg-color: rgba(255, 255, 255, 0.12);
+  --pod-nav-search-bg-hover-color: rgba(255, 255, 255, 0.16);
+  --pod-nav-search-bg-active-color: rgba(255, 255, 255, 0.16);
+  --pod-nav-search-placeholder-color: rgba(255, 255, 255, 0.24);
+  --pod-nav-search-text-color: var(--color-text1-5, #fff);
+  --pod-nav-search-icon-color: rgba(255, 255, 255, 0.24);
+  --pod-nav-search-border-hover-color: rgba(255, 255, 255, 0);
+  --pod-nav-search-border-active-color: rgba(255, 255, 255, 0);
+  --pod-nav-action-icon-color: rgba(255, 255, 255, 0.6);
+  --pod-nav-action-border-color: rgba(255, 255, 255, 0.2);
+  --pod-nav-action-border: 0.5px solid rgba(255, 255, 255, 0.2);
+  --pod-nav-action-bg-hover-color: rgba(255, 255, 255, 0.12);
+  --pod-nav-action-bg-active-color: rgba(255, 255, 255, 0.16);
+}
+
+/* OPENYIDA APPLICATION STYLE RECIPES START
+ * Opt-in semantic classes for custom pages. Native form structure stays in Schema.
+ * Never target platform field wrappers to impose a fake grid or fixed height.
+ */
+.pod-premium .oyd-style-workspace {
+  container-type: inline-size;
+  max-width: var(--oyd-content-width);
+  margin-inline: auto;
+  padding: var(--oyd-content-padding);
+  color: var(--oyd-ink);
+  font-family: var(--font-family-base);
+  background-color: var(--oyd-page-bg);
+  background-image: var(--oyd-canvas-image);
+}
+.pod-premium .oyd-style-layout {
+  display: grid;
+  grid-template-columns: var(--oyd-layout-columns);
+  gap: var(--oyd-field-gap);
+  align-items: start;
+}
+.pod-premium .oyd-style-layout > * { min-width: 0; }
+.pod-premium .oyd-style-wide { grid-column: 1 / -1; }
+.pod-premium .oyd-style-layout > .oyd-style-intro {
+  padding-inline-end: var(--oyd-field-gap);
+}
+.pod-premium .oyd-style-intro {
+  color: var(--oyd-ink);
+  border-block-end: 1px var(--oyd-rule-style) var(--oyd-border);
+  padding-block-end: var(--oyd-field-gap);
+  margin-block-end: var(--oyd-section-gap);
+}
+.pod-premium .oyd-style-intro h1 {
+  font-family: var(--oyd-heading-font);
+  font-size: var(--oyd-heading-size);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.pod-premium .oyd-style-section {
+  padding: var(--oyd-content-padding);
+  margin-block-end: var(--oyd-section-gap);
+  background: var(--oyd-surface);
+  border: var(--input-border-width) var(--oyd-rule-style) var(--oyd-border);
+  border-radius: var(--oyd-radius);
+  box-shadow: var(--oyd-surface-shadow);
+}
+.pod-premium .oyd-style-section > h2::after {
+  content: "";
+  display: block;
+  width: 3rem;
+  margin-block-start: .5rem;
+  border-block-end: 2px var(--oyd-rule-style) var(--oyd-accent);
+}
+@container (max-width: 640px) {
+  .pod-premium .oyd-style-layout { grid-template-columns: minmax(0, 1fr); }
+  .pod-premium .oyd-style-section { padding: 16px; }
+  .pod-premium .oyd-style-intro h1 { font-size: min(32px, var(--oyd-heading-size)); }
+}
+/* OPENYIDA APPLICATION STYLE RECIPES END */

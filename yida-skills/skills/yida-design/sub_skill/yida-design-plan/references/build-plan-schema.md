@@ -149,7 +149,7 @@
 - 只有宽泛应用名称且缺少模块、场景、任务、流程和可读需求时才问应用范围。
 - 审批、角色权限、字段、首页、看板、页面和常规流程细节不进入 `ask_human`；用户已提供时承接，未提供时基于业务推断并在最终计划统一呈现。
 - 来源不可读时只生成来源补齐问题。
-- 视觉问题生成恰好三套完整方向；选中后原子写入 `visualDirection`、`internal.selectedTheme`、`colorStrategy` 和 `navigationStyle`，未选候选不写入最终 JSON。
+- 需要视觉比较时提供两个具体方向与一个自由创意选项；自由创意从业务独立推演。选中后原子写入 `visualDirection`、`internal.selectedTheme`、`colorStrategy` 和 `navigationStyle`，自由创意还须补 `visualStyle.creativeDirection` 与显式 Token；未选候选不写入最终 JSON。详见[应用风格模板与自由创意](../../../references/application-style-library.md)。
 
 `askhuman` 保留为 `build-plan.json` 的存储字段名；技能动作和用户交互统一称为 `ask_human`。
 

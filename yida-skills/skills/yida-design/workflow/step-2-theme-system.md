@@ -89,7 +89,11 @@
 
 统一按钮、卡片、表格、标签、抽屉、弹窗、图标、空态、加载态和错误态，并写入 `design.md` 与应用主题 CSS。
 
+包含原生表单时，按 [原生表单样式与提交页背景](../references/native-form-styles.md) 从已选应用风格推导提交、编辑和详情的字体、控件、密度、布局、标签节奏、背景及底栏。布局决策写入 `design.md` 并交给原生 Schema 实现；主题变量和经核实的样式规则归同一份应用主题 CSS。不能只设计 Canvas 页面、更换分割线或给表单另选风格，不能通过表单/详情加载代码注入样式。
+
 指标卡与按钮按[配色规则](../references/application-theme-consistency.md#指标卡与按钮配色)成组设计，明确普通信息、重点信息、主操作与次操作的颜色关系，不能仅写“深色强调”或“跟随主题”。
+
+表单主题同时显式确定 `--pod-page-footer-bg-color` 和 `--pod-sticky-footer-box-shadow`，写入设计源的 token 并生成到应用 CSS；背景及阴影随应用材质选择，不一律透明，也不漏配后沿用默认阴影。
 
 ## 产出
 
@@ -108,3 +112,6 @@ design.md 的机器字段与正文分工按 output-design.md：
 ## 下一步
 
 → [页面结构和交互设计](step-4-wireframe-interaction.md)
+
+
+应用整体设计可使用[应用风格模板或自由创意](../references/application-style-library.md)。导航、自定义页面、表单与详情继承同一设计语言；自由创意从业务推演，不强制选模板。模板中的原生布局 JSON 只提供结构，须填入真实字段并核对间距和响应式，禁止加载代码注入样式。

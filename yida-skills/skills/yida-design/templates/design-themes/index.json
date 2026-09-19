@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "description": "主题选型索引；styleSummary 根据模板风格摘要精简至约 150–250 字，保留整体外观、核心差异、偏离风险与内容适用条件。",
+  "description": "共享主题与应用风格目录：摘要用于选型，路径用于读取配对资产；mode=creative 是独立业务推演入口，不是视觉预设。",
   "themes": [
     {
       "themeId": "dark-inset-hairline",
@@ -91,6 +91,215 @@
       "label": "主题色浅灰导航 · 低饱和轻面板",
       "templatePath": "templates/design-themes/warm-rail-muted-panels.md",
       "styleSummary": "主题色浅灰导航衬托近白工作区，导航选中为近白底与主题深色文字。白面板轻圆角、浅边线，底影几乎不可察；工具为小圆角描边矩形，近黑文字和细线对齐建立秩序。品牌强调很少，激活项可用细黑顶线或反白小图标。已有统计用较大数值、低饱和趋势、虚线对照和局部分类分段。避免深色侧栏、饱和整行选中、重阴影、玻璃及所有标题按钮实色化；普通表单列表即可体现风格，无需补趋势或统计模块。"
+    },
+    {
+      "themeId": "app-wire",
+      "label": "精密线框",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-wire/design.md",
+      "cssTemplatePath": "templates/design-themes/app-wire/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-wire/form-layout.json",
+      "previewPrimaryColor": "#242826",
+      "styleSummary": "横向工具带与精确双列工作区；细线框、浅网格、平面无阴影。适合研发、资产与审计。"
+    },
+    {
+      "themeId": "app-paper",
+      "label": "奶油手账",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-paper/design.md",
+      "cssTemplatePath": "templates/design-themes/app-paper/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-paper/form-layout.json",
+      "previewPrimaryColor": "#745338",
+      "styleSummary": "窄幅纵向阅读与按日期组织的清单；暖纸面、虚线章节、柔和纸张阴影。适合服务登记、档案与内容策划。"
+    },
+    {
+      "themeId": "app-sage",
+      "label": "植物浮雕",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-sage/design.md",
+      "cssTemplatePath": "templates/design-themes/app-sage/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-sage/form-layout.json",
+      "previewPrimaryColor": "#345b49",
+      "styleSummary": "宽松双列、纵向状态清单与柔和分区；柔绿表面、轻内凹、圆润控件。适合健康服务、员工关怀与资源协作。"
+    },
+    {
+      "themeId": "app-pop",
+      "label": "波普印刷",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-pop/design.md",
+      "cssTemplatePath": "templates/design-themes/app-pop/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-pop/form-layout.json",
+      "previewPrimaryColor": "#211c21",
+      "styleSummary": "不对称二比一工作区与粗线信息带；方角、粗墨线、硬偏移阴影。适合活动执行、创意制作与品牌运营。"
+    },
+    {
+      "themeId": "app-neon",
+      "label": "午夜霓虹",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-neon/design.md",
+      "cssTemplatePath": "templates/design-themes/app-neon/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-neon/form-layout.json",
+      "previewPrimaryColor": "#b4f5f1",
+      "styleSummary": "横向监控总览与双列任务区；深海蓝层次、局部青色微光。适合明确要求暗色的技术值守。"
+    },
+    {
+      "themeId": "app-line",
+      "label": "极简下划线",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-line/design.md",
+      "cssTemplatePath": "templates/design-themes/app-line/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-line/form-layout.json",
+      "previewPrimaryColor": "#242323",
+      "styleSummary": "窄幅单列、连续正文与留白章节；无浮起卡片、平面纸白、强调下划线。适合申请、访谈与简洁审批。"
+    },
+    {
+      "themeId": "app-glass",
+      "label": "雾面玻璃",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-glass/design.md",
+      "cssTemplatePath": "templates/design-themes/app-glass/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-glass/form-layout.json",
+      "previewPrimaryColor": "#45345f",
+      "styleSummary": "流动双列、层叠摘要与留白工作区；雾紫衬底、柔边和低强度漫射阴影。适合服务门户与体验反馈。"
+    },
+    {
+      "themeId": "app-ticket",
+      "label": "复古票据",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-ticket/design.md",
+      "cssTemplatePath": "templates/design-themes/app-ticket/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-ticket/form-layout.json",
+      "previewPrimaryColor": "#733c26",
+      "styleSummary": "窄单据纵向排布与对齐的键值清单；暖纸、双分割线、印章式操作。适合订单、交付与报销。"
+    },
+    {
+      "themeId": "app-editorial",
+      "label": "杂志编辑",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-editorial/design.md",
+      "cssTemplatePath": "templates/design-themes/app-editorial/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-editorial/form-layout.json",
+      "previewPrimaryColor": "#692e3e",
+      "styleSummary": "非对称编辑栏与跨栏内容摘要；酒红细线、纸白表面、大标题与克制留白。适合知识、内容与文化业务。"
+    },
+    {
+      "themeId": "app-terminal",
+      "label": "终端像素",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-terminal/design.md",
+      "cssTemplatePath": "templates/design-themes/app-terminal/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-terminal/form-layout.json",
+      "previewPrimaryColor": "#9fe5ad",
+      "styleSummary": "紧凑双列与可扫描的日志清单；像素直角、点线边界、等宽排版。适合明确要求终端风格的技术工具。"
+    },
+    {
+      "themeId": "app-platinum",
+      "label": "铂金商务",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-platinum/design.md",
+      "cssTemplatePath": "templates/design-themes/app-platinum/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-platinum/form-layout.json",
+      "previewPrimaryColor": "#35434b",
+      "styleSummary": "稳定双列与合同摘要侧栏；铂灰细线、低圆角、均衡留白。适合合同、采购与商务审批。"
+    },
+    {
+      "themeId": "app-executive",
+      "label": "墨金行政",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-executive/design.md",
+      "cssTemplatePath": "templates/design-themes/app-executive/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-executive/form-layout.json",
+      "previewPrimaryColor": "#d9c49a",
+      "styleSummary": "四分之一介绍栏与四分之三主工作区；墨绿黑表面、金色细节与长横线。适合明确要求暗色的战略与高管事项。"
+    },
+    {
+      "themeId": "app-finance",
+      "label": "金融蓝图",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-finance/design.md",
+      "cssTemplatePath": "templates/design-themes/app-finance/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-finance/form-layout.json",
+      "previewPrimaryColor": "#274e78",
+      "styleSummary": "密集双列、水平标签与对齐金额；淡蓝图纸、清晰细边界、低圆角。适合预算、风险与资金计划。"
+    },
+    {
+      "themeId": "app-nordic",
+      "label": "北欧云白",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-nordic/design.md",
+      "cssTemplatePath": "templates/design-themes/app-nordic/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-nordic/form-layout.json",
+      "previewPrimaryColor": "#526361",
+      "styleSummary": "单列阅读与低密度任务清单；云白表面、柔圆角与大段间距。适合员工服务与预约申请。"
+    },
+    {
+      "themeId": "app-teal",
+      "label": "青岚运营",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-teal/design.md",
+      "cssTemplatePath": "templates/design-themes/app-teal/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-teal/form-layout.json",
+      "previewPrimaryColor": "#24665f",
+      "styleSummary": "二比一主次区、任务流与状态摘要条；青绿弱填充、清晰分组、适度圆角。适合运营排班、供应与项目协同。"
+    },
+    {
+      "themeId": "app-amber",
+      "label": "琥珀工单",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-amber/design.md",
+      "cssTemplatePath": "templates/design-themes/app-amber/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-amber/form-layout.json",
+      "previewPrimaryColor": "#805c26",
+      "styleSummary": "三列短字段、项目名跨列、子表整行；低圆角、琥珀细边、紧凑清单。适合设备工单与现场服务。"
+    },
+    {
+      "themeId": "app-graphite",
+      "label": "石墨数据",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-graphite/design.md",
+      "cssTemplatePath": "templates/design-themes/app-graphite/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-graphite/form-layout.json",
+      "previewPrimaryColor": "#c7d4dc",
+      "styleSummary": "密集双列与连续数据表、横向标签；石墨层次、细行线、低圆角。适合明确要求暗色的数据运营。"
+    },
+    {
+      "themeId": "app-plum",
+      "label": "绛紫咨询",
+      "mode": "template",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/app-plum/design.md",
+      "cssTemplatePath": "templates/design-themes/app-plum/app_theme.css",
+      "formLayoutPath": "templates/design-themes/app-plum/form-layout.json",
+      "previewPrimaryColor": "#685167",
+      "styleSummary": "接近三比二的咨询内容与上下文分栏；绛紫细线、柔白表面与舒展阅读。适合咨询、客户服务与调研。"
+    },
+    {
+      "themeId": "free-creative",
+      "label": "自由创意",
+      "mode": "creative",
+      "collection": "application-styles",
+      "templatePath": "templates/design-themes/free-creative/design.md",
+      "cssTemplatePath": "templates/design-themes/free-creative/app_theme.css",
+      "formLayoutPath": "templates/design-themes/free-creative/form-layout.json",
+      "previewPrimaryColor": "#242424",
+      "styleSummary": "从任务频率和内容拓扑推导工作区；从品牌与使用环境自主决定材质。不从命名模板选择，必须提交独立推演依据。"
     }
   ]
 }

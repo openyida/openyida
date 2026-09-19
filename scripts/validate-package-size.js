@@ -10,12 +10,13 @@ const path = require('path');
 // Budgets are ratchets that track legitimate content growth (12 locale packs,
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
-// State recovery adds a sample and two skill references (3 published files).
-// Node 26/npm 11 measures 1,944,066 packed / 6,738,306 unpacked bytes in 520 files.
+// Application styles add 18 paired presets plus the independent creative scaffold
+// (57 design/CSS/layout assets), their catalog, recipe and runtime consumer.
+// Node 26/npm 11 measures about 1,901 KB packed / 7,149 KB unpacked in 568 files.
 // Retain ~21 KiB npm 10 compression overhead; round budgets to 16 KiB boundaries.
 const MAX_TARBALL_BYTES = 1920 * 1024;
-const MAX_UNPACKED_BYTES = 6592 * 1024;
-const MAX_ENTRY_COUNT = 520;
+const MAX_UNPACKED_BYTES = 7008 * 1024;
+const MAX_ENTRY_COUNT = 568;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -52,6 +53,13 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-design/references/navigation-decision.md',
   'yida-skills/skills/yida-design/templates/design-themes/index.json',
   'yida-skills/skills/yida-design/templates/design-themes/basic-tokens.json',
+  'lib/app/application-style.js',
+  'yida-skills/skills/yida-design/references/application-style-library.md',
+  'yida-skills/skills/yida-design/references/theme/application-style-recipes.css',
+  ...require('../yida-skills/skills/yida-design/templates/design-themes/index.json').themes
+    .filter(theme => theme.collection === 'application-styles')
+    .flatMap(theme => [theme.templatePath, theme.cssTemplatePath, theme.formLayoutPath]
+      .map(file => `yida-skills/skills/yida-design/${file}`)),
   'yida-skills/skills/yida-design/scripts/validate_design_themes.py',
   'lib/samples/openyida-scaffold/canvas-dialog.canvas.jsx',
   ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data', 'content'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
