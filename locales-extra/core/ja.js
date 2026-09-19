@@ -1277,6 +1277,7 @@ module.exports = {
     lint_emoji_forbidden: 'emoji "{0}" が見つかりました。OpenYida の生成物では UI 文言、ソースコメント、ファイルパス、コード定数に emoji を使用できません。通常のテキスト、SVG、またはアイコンコンポーネントを使用してください。',
     lint_searchformdata_http_post: 'searchFormDatas.json を直接呼ぶ場合は GET + クエリパラメータが必須です（formUuid/appType を URL クエリに入れる）。POST で formUuid を body に入れると「参数校验失败formUuid」となり、ダッシュボード/リストがすべて 0 になります',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json のページングパラメータ名は currentPage です（pageNumber ではありません）。pageNumber を使うとページングが機能しません',
+    lint_searchformdata_bridge_unwrap: 'Yida searchFormDatas の行データは payload.data、件数は payload.totalCount にあります。payload.data.data だけを参照せず配列を正規化し、ページ指定には currentPage を使用してください。yida-canvas-data-binding を参照してください。',
     lint_searchformdata_http_unwrap: 'ブラウザの searchFormDatas.json レスポンスはリストが content.data にネストされます（{ content: { data: [...] } }）。json.data だけを読むと 0 件になります。(json.content && json.content.data) でアンラップしてください',
     lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder にレコードメタデータ項目 {0} は使用できません。get-schema が返す実際の業務項目 ID を使用してください。並べ替え可能な業務日付項目がない場合は dynamicOrder を削除し、取得済みのページ内だけを表示用に row.createTime で並べ替えてください',
     lint_setstate_non_timestamp: 'this.setState が timestamp 以外のフィールドを書き込んでいます。カスタムページの業務状態は _customState に置き、forceUpdate()/setCustomState() で更新してください。this.setState は timestamp 契約フィールドのみを保持するべきです',
