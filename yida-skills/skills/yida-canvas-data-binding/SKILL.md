@@ -171,6 +171,23 @@ async function fetchFormRows(binding, signal) {
 }
 ```
 
+### 搜索与分页参数
+
+此处调用的是页面 JS-API 桥。简单字段筛选沿用普通自定义页的字段 ID 字典，不把 CLI 或其他查询接口的条件数组、`conditionType/children` 树混入这里：
+
+```javascript
+var query = {};
+if (keyword.trim()) query[fields.name] = keyword.trim();
+var payload = await bridge.searchFormDatas({
+  formUuid: binding.formUuid,
+  currentPage: 1,
+  pageSize: 50,
+  searchFieldJson: JSON.stringify(query)
+});
+```
+
+清空搜索时传空字典，并把 `currentPage` 重置为 1。需要复杂条件时先核对所调用接口的具体契约；不要凭字段名相似套用其他格式。验收必须输入一条已知记录的筛选值，确认返回行数与内容，再清空确认全量恢复；页面显示数据不代表筛选有效。
+
 ## 表单数据读取要点
 
 实现前先确认 `dataBinding.mode === 'form'`、`appType/formUuid` 和 `fields` 都来自真实表单 Schema。表单查询必须优先走 yida JS-API 桥，桥缺失时才降级同源直连。连接器模式遵守 [Canvas 连接器绑定](references/connector-binding.md)，不得接收任意外部 endpoint。

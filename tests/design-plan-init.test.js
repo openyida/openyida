@@ -616,3 +616,23 @@ test('preserves a frontend page menu independently of the application navigation
   expect(plan.execution.appConfig.hideAppNav).toBeUndefined();
   expect(business.facts.pages.customPageDetails[0].pageSpecHandoff).toEqual(brief.pageScenes[0].pageSpecHandoff);
 });
+
+test('init reports all malformed visual objects in one diagnostic without creating files', () => {
+  brief.visualSelection.visualDirection = '专业简洁';
+  brief.visualSelection.navigationStyle = '顶部';
+  save();
+  try { init(); throw new Error('expected validation failure'); } catch (error) {
+    expect(error.code).toBe('DESIGN_PLAN_VISUAL_FIELD_TYPE_INVALID');
+    expect(error.details.issues.map(issue => issue.path)).toEqual(['visualSelection.visualDirection', 'visualSelection.navigationStyle']);
+  }
+  expect(fs.existsSync(path.join(dir, 'prd', 'build-plan.json'))).toBe(false);
+});
+test('authoring context places execution examples at their actual fragment paths', () => {
+  const result = init();
+  const context = fs.readFileSync(result.context, 'utf8');
+  const examples = JSON.parse(context.match(/## 输入格式示例[\s\S]*?```json\n([\s\S]*?)\n```/)[1]);
+  expect(examples.businessFragment.facts.execution.sampleDataPlan).toHaveLength(1);
+  expect(examples.businessFragment.facts.execution.interactionStates.error).toBeTruthy();
+  expect(examples.businessFragment.facts).not.toHaveProperty('sampleDataPlan');
+  expect(examples.businessFragment.facts.businessFlows[0]).toEqual(expect.objectContaining({ trigger: expect.any(String), nodes: expect.any(Array), rules: expect.any(Array) }));
+});

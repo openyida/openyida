@@ -1265,6 +1265,7 @@ module.exports = {
     lint_emoji_forbidden: '偵測到 emoji「{0}」。OpenYida 生成產物禁止在 UI 文案、源碼註解、檔案路徑或程式碼常量中使用 emoji；請改用普通文字、SVG 或圖示元件。',
     lint_searchformdata_http_post: '直連 searchFormDatas.json 必須用 GET + query 參數（formUuid/appType 放在 URL query 裡）；用 POST 把 formUuid 放進 body，後端會報「參數校驗失敗formUuid」，看板/列表會全 0',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json 的分頁參數名是 currentPage（不是 pageNumber），寫成 pageNumber 會分頁失效',
+    lint_searchformdata_bridge_unwrap: 'Yida searchFormDatas 的行資料位於 payload.data，總數位於 payload.totalCount。不能只讀取 payload.data.data；請先歸一化陣列，分頁使用 currentPage。參考 yida-canvas-data-binding。',
     lint_searchformdata_http_unwrap: 'searchFormDatas.json 瀏覽器直連的列表在 content.data（回傳 { content: { data: [...] } }），只讀 json.data 會得到 0 筆；請用 (json.content && json.content.data) 兜底解包',
     lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder 不能使用記錄元數據欄位 {0}；請改用 get-schema 回傳的真實業務欄位 ID。沒有可排序的業務日期欄位時請刪除 dynamicOrder，只在目前已取回頁內按 row.createTime 做展示排序',
     lint_setstate_non_timestamp: '偵測到 this.setState 寫入非 timestamp 欄位。業務狀態應寫入 _customState 並呼叫 forceUpdate()/setCustomState() 觸發重繪；this.setState 僅用於 timestamp 契約欄位',
