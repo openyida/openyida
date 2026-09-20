@@ -53,7 +53,6 @@ test('Plan CLI returns independent searches for slots on the same page before ap
   const pageId = plan.pages.customPageDetails[0].pageId;
   plan.visualStyle.forUser.assetStrategy = { pages: [
     { pageId, imageNeed: 'required', slots: ['hero', 'room', 'garden'].map(slotId => ({ slotId, usage: slotId, minSize: '1200x800' })) },
-    { pageId: 'settings', imageNeed: 'none' },
   ] };
   const input = path.join(dir, 'plan.json');
   fs.writeFileSync(input, JSON.stringify(plan));

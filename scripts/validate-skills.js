@@ -4,6 +4,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const SKILLS_ROOT = path.join(ROOT, 'yida-skills');
@@ -448,6 +449,30 @@ function validateMarkdownLinks(markdownFile) {
   }
 }
 
+function validateSharedDesignThemes() {
+  const cssTemplate = path.join(SKILLS_DIR, 'yida-design/references/theme/app-custom-theme-template.css');
+  try {
+    require('../lib/app/custom-theme').validateThemeCssContent(fs.readFileSync(cssTemplate, 'utf8'));
+  } catch (error) {
+    errors.push(toRelative(cssTemplate) + ': ' + error.message);
+  }
+  const validator = path.join(SKILLS_DIR, 'yida-design/scripts/validate_design_themes.py');
+  const candidates = [['python3', []], ['python', []], ['py', ['-3']]];
+  for (const [command, prefix] of candidates) {
+    const version = spawnSync(command, [...prefix, '--version'], { encoding: 'utf8' });
+    const match = /Python (\d+)\.(\d+)/.exec((version.stdout || '') + (version.stderr || ''));
+    if (version.error || version.status !== 0 || !match || Number(match[1]) !== 3 || Number(match[2]) < 9) {
+      continue;
+    }
+    const result = spawnSync(command, [...prefix, validator], { encoding: 'utf8' });
+    if (result.error || result.status !== 0) {
+      errors.push(toRelative(validator) + ': ' + (result.error ? result.error.message : (result.stderr || result.stdout).trim()));
+    }
+    return;
+  }
+  errors.push('Shared design theme validation requires Python 3.9+ on PATH (python3, python, or py -3); install Python and rerun npm run check:skills. Validation was not skipped.');
+}
+
 function run() {
   if (!fs.existsSync(SKILLS_DIR)) {
     errors.push(toRelative(SKILLS_DIR) + ': missing skills directory');
@@ -494,6 +519,7 @@ function run() {
     }
   }
   validateSkillLoadingInstructions(instructionFiles);
+  validateSharedDesignThemes();
 
   if (warnings.length > 0) {
     console.warn('Skill validation warnings:');

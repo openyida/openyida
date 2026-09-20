@@ -78,6 +78,7 @@ Provider 上下文的 `controls` 返回同一组 surface/text/selectedBg/selecte
 - 自绘按钮、链接及 Tab 的 normal/hover/active/selected/focus/disabled 都消费应用 CSS 变量；优先提取 `canvas-nav-tabs` 作为受控 Tab 片段。选中逻辑与颜色分开，不能仅初始态跟随主题、点击后切成固定蓝色或 Tailwind 的 `bg-blue-*`。状态色与装饰色仍按业务语义使用。
 - 页面背景使用 `--pod-page-bg-color`，卡片使用 `--pod-card-bg-color`。Provider 已提供根节点背景和最小高度，业务内容负责布局、卡片和装饰。
 - Drawer 的组件级背景单独读取 `--pod-shell-theme-bg-color`，回退 `--color-white`，跟随主题更新；不沿用卡片或通用浮层的底色。
+- Provider 内置表格和 Spin 加载遮罩的防闪边样式：边框固定为零，只对透明度做过渡，避免整页刷新时延迟加载的基础样式触发黑边动画。保留这段样式，不要改回 `transition: all`。旧页面需更新 Provider 并重新发布，修改主题 CSS 不会自动更新页面里的 Provider。
 - antd 自动接收主色、表面、文字、填充和边框色，并应用上述控件状态默认值。成功、警告和错误使用 antd 默认色；尺寸、圆角、字体和图表色组按 design.md 设置。
 - 图表在 PageContent 内调用 `useCanvasThemeContext()` 获取解析后的 token。
 - 弹窗使用 `Modal.useModal`，消息使用上下文 API，holder 放在 Provider 内。

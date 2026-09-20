@@ -1,143 +1,56 @@
-# 视觉规划与 design.md 生成规则
+# Plan 视觉规划与项目设计生成
 
-## 用途与边界
-
-本文件供复杂视觉定制时按需查阅。常规规划使用紧凑契约和 CLI 返回的主题上下文。完整主题模板决定视觉设计内容和文档结构；本文件负责选择结果校验、项目事实融合、页面视觉应用和交付检查。
-
-```text
-PRD 决定做什么
-页面规划决定内容如何组织
-完整主题模板决定既定结构如何呈现
-```
-
-视觉生成保持 PRD 中的页面核心任务、内容优先级、首屏结构、页面模式和信息密度不变。正常生成应用时不读取 [主题模板维护说明](../templates/design-themes/README.md)；该文件只用于维护主题模板库。
+Plan 的源事实保存在 `build-plan.json`，CLI 派生最终 `design.md`。内容构成、frontmatter、五章正文、anchor 与检查只按 [公共输出契约](../../../workflow/output-design.md) 执行；本文件仅规定 Plan 输入如何映射，不重复一份输出格式。
 
 ## 运行时输入
 
-CLI 生成项目 `design.md` 时读取：
+1. 当前版本计划：项目、页面、业务约束、已选视觉方向、主色与导航。
+2. [共享主题索引](../../../templates/design-themes/index.json) 的已选记录与一份完整主题。选前只读摘要，选后再读全文，不预读候选。
+3. 每个实际自定义页的具体视觉决定、局部差异、特色配方绑定及素材需求。
 
-1. 当前版本 `build-plan.json`：项目事实、产品形态、页面规划、视觉证据、项目视觉方向、主题色、导航选择和内部选中主题。
-2. [主题索引](../templates/design-themes/index.json)：校验内部 `selectedTheme`，取得 `defaultProfile` 和模板路径。
-3. 内部选中主题对应的完整模板：作为项目 `design.md` 的设计底稿。
-4. [page-patterns.md](page-patterns.md)：解释各页面已经确定的页面模式。
+PRD 决定页面任务、操作和内容优先级；主题决定这些内容如何呈现。视觉生成不增删业务资源，不改写页面模式、内容优先级与业务信息密度。正常设计不读取主题库维护说明。
 
-CLI 完整读取选中的模板，不假设模板的章节、frontmatter 或内容组织方式。主题模板内部结构由模板自身维护。
+## 逐页输入
 
-## 产物关系
+`visualStyle.forUser.pageApplications` 与 `pages.customPageDetails[]` 按 pageId 一一对应。最终物化前，每页至少填写：
 
-| 产物 | 面向对象 | 内容 |
-| --- | --- | --- |
-| `build-plan.html` | 用户确认 | 项目视觉方向、色彩策略、导航选择和素材缺口摘要 |
-| `prd.md` | 后续 AI 开发 | 业务、数据、流程、页面任务、内容优先级、页面模式和权限 |
-| `design.md` | 后续 AI 开发 | 完整主题模板的项目实例、组件状态和逐页视觉应用 |
+| 字段 | 类型与内容 |
+| --- | --- |
+| `pageId` | 对应真实页面的稳定 ID |
+| `firstScreenFocus` | 非空字符串，进入页面第一眼关注什么及突出方式 |
+| `primaryAction` | 非空字符串，真实主操作、所在位置及触发后的反馈，沿用 PRD 的动作 |
+| `layout` | 非空字符串，真实区块的顺序、主次、宽度/比例、列数、对齐与内容增长安排 |
+| `responsive` | 非空字符串，窄屏重排、折叠、工具栏与表格处理 |
+| `acceptanceChecks` | 非空字符串数组，页面视觉与交互的可检查结果 |
 
-主题 ID、模板路径等实现身份只保存在 `build-plan.json` 内部或物化内存中。最终 `prd.md`、`design.md` 和 `build-plan.html` 不展示主题模板名称、ID、路径或来源。页面实现阶段只读取最终 `prd.md` 和 `design.md`。
+`surface`、`states`、`visualApplication` 可补具体项目差异；公共规则由主题供给，不需要逐页复制。CLI 结合业务页面事实，将这些输入呈现为正文八项要点。没有自定义页时保留空数组，不添加页面。
 
-## 生成顺序
+缺少上述决定的旧计划和新草稿仍可预览；生成最终产物时提示准确缺项，补齐后继续，不用“继承主题”占位替代。仅维护草稿不代表 design.md 已就绪。
 
-1. 校验 `visualStyle.internal.selectedTheme.themeId`，并从索引确定性取得模板路径；兼容旧计划时可读取 `forUser.selectedTheme`。
-2. CLI 完整读取该路径指向的模板；模型使用初始化返回的主题上下文。
-3. 以索引中的 `defaultProfile` 为起点，由 materialize 补齐 `themeProfile`；该摘要只读。模型将用户要求、品牌规范和可访问性约束落实为 `visualStyle.tokens`，主题色写入 `colorStrategy`。
-4. 根据 `meta.experienceTopology`、页面范围和前后台边界生成 `visualStyle.forDesignMd.productTopologyApplication`，说明全应用共享主题基础语言、记忆点按真实页面内容使用；该字段不判断主题是否适用，也不增删页面或业务能力。
-5. 保持 `pages.customPageDetails[]` 中的页面模式、内容优先级、首屏结构和信息密度；模型只生成每页 `visualMemoryApplications`，页面基础视觉应用由 materialize 从主题模板补齐。
-6. 根据 `PRIMARY_COLOR` 推导品牌色及基础表面色；字号、字重、行高、间距和 Tooltip 配色采用 [基础变量契约](../templates/design-themes/basic-tokens.json) 的固定值。组件直接引用基础变量，特殊渐变和纹理在组件中组合。
-7. 由 materialize 在单一位置注入“项目视觉选择”，写明视觉方向、主题色、导航结构、导航明暗、导航背景 Token 和选择依据；不要求所有主题模板预留空字段。
-8. 按模板自身结构写入其他项目事实、页面模式、页面视觉应用和素材状态；模板定义的占位符全部替换。
-9. 保留模板中的视觉 DNA、消费规则、组件规则和交付检查，同时从最终项目文档移除主题 ID、模板名称、路径等内部身份字段。
-10. 将 `build-plan.json`、`prd.md` 和 `design.md` 写入同一个 `meta.revision`，再执行交付检查。
+### 特色配方
 
-Step 4 不重新发起常规视觉 `ask_human`。页面规划新暴露品牌素材冲突或前后台表达边界冲突时，返回 Step 2 更新视觉选择。
+`visualMemoryApplications` 仅在真实内容满足主题配方条件时填写，每项含 name、renderPolicy、target、reason。使用 `adapt_existing_slot` 或 `prd_match_only` 绑定已有内容；会新增业务能力、字段、对象或虚构数据的建议标为 `suggest_only`，不进入默认实现。没有匹配项就保留空数组，页面仍继承完整基础语言。
 
-### 导航背景
+配方来自主题实际核心特征、适用条件、使用方式与无匹配时规则，不要求旧版固定字段或旧章节。`visualMemories` 从绑定名称派生，不重复维护。
 
-按 [页面与导航连续性](../../../references/page-continuity.md) 在 pageApplications.visualApplication/surface/states 写明布局和往返状态；materialize 同步规则到 design.md。导航明暗不决定占位/叠加。
+按 [页面与导航连续性](../../../references/page-continuity.md) 在 pageApplications.layout/responsive/states 写明布局和往返状态；materialize 同步规则到 design.md。导航明暗不决定占位/叠加。
 
-`--pod-shell-theme-bg-color` 保存应用根层的默认背景。CSS 生成时，平台浅色导航绑定 `--color-brand1-3`，深色导航绑定 `--color-brand1-5`，白色和灰色模式保留各自背景。各模式的页面标题栏使用对应导航背景，切换模式时保持一致。
+`forUser.iconSystem` 可记录图标库和业务到组件映射，初始化沿用 brief 中的选择；没有配置时才默认 lucide-react 与空映射。图标尺寸和描边等实现规则保留在正文，不复制进定位索引。
 
-## 页面级视觉应用
+## 配色与导航
 
-每个自定义页面必须在 `visualStyle.forUser.pageApplications` 中有一条紧凑记录：
+项目主色写 `forUser.colorStrategy.primaryColor`，使用 6 位 HEX；平台变量覆盖与项目扩展变量都写入 `visualStyle.tokens`，不受模板现有变量数量或 `--oyd-*` 前缀限制。`themeProfile` 是输出摘要，不以修改摘要代替 token。CLI 组织 application-global 与 custom-page 分组，两组都会写入主题 CSS 的 `:root`；可引用已声明的共享变量，不能循环引用或依赖只在某个页面内定义的变量。
 
-```json
-{
-  "pageId": "procurement-workbench",
-  "visualMemoryApplications": [
-    {
-      "name": "<模板中的视觉记忆组件名称>",
-      "renderPolicy": "adapt_existing_slot | prd_match_only | direct | suggest_only",
-      "target": "<PRD 已有的指标、分类、进度、图表或其他内容槽位>",
-      "reason": "<该页面内容满足此记忆点内容契约的依据>"
-    }
-  ]
-}
-```
+逐项核对已选方向承诺的画布、面板、文字、字体和特色强调是否有对应变量；差异由设计者补齐，不能只写在 description/usage 中。物化后按 [共用主题规则](../../../references/application-theme-consistency.md) 对照生成的 CSS，再交给页面作者。
 
-`pageName`、页面模式引用、基础表面、主操作、状态说明和 `visualMemories` 由 materialize 派生。模型只负责把模板记忆点绑定到真实内容，不改写 `contentPriority`、`firstScreenStructure`、`layoutPattern` 或 `density`。
+颜色推导与 Fast 相同，直接使用所选主题的公式和项目 token，不增加 Plan 专用染色规则。应用根渐变写 `--pod-app-root-bg-image`；单页渐变与装饰在页面设计中说明作用区域，按 [背景规则](../../../workflow/output-design.md#背景颜色渐变与图片) 实现。
 
-### 全应用继承与逐页生成
+整体配色与主题的冲突按公共输出契约处理。导航明暗独立于内容画布，既定入口范围保持不变；前台与后台可改变表达强度，但共享基础变量、字体、状态和组件语言。无法保留已选主题核心特征时回到主题选择，不在页面阶段另建主题。
 
-1. 原生表单、流程页面和自定义页面共同消费模板 `tokens.application-global` 中的基础颜色、字体、间距和圆角；组件直接组合这些变量，`tokens.custom-page` 保留为空对象。
-2. 生成器只遍历 `pages.customPageDetails[]` 中真实存在的自定义页面，不预先枚举工作台、列表、表单、详情等全部可能页面类型。
-3. 每页先绑定主题画布、表面、文字、边界、主操作和状态语言，再读取该页的功能区块与真实组件。
-4. 筛选、输入、表格、列表、图表、指标、状态和操作等组件只在页面规划已经包含对应内容时写入 `visualApplication`、`surface`、`primaryAction` 和 `states`。
-5. 页面基础消费完成后，再按“页面级视觉记忆点应用”匹配主题记忆点；没有匹配记忆点的页面仍完整继承主题基础设计语言。
-6. `{{PAGE_APPLICATIONS}}` 只渲染项目真实页面的应用结果，不输出项目中不存在的页面类型说明。
+## 物化与交接
 
-### 页面级视觉记忆点应用
+CLI 校验主题绑定、解析变量与项目覆盖，生成正文五章，将项目总结、配色和导航合入对应章节；作者编写步骤、模板身份与未解析占位符不进入最终文件。具体规则仅保留一份，frontmatter 的 sceneRecipes/components/states 只保存显式 anchor 定位信息。
 
-1. 读取选中模板“视觉记忆点应用策略”中的 `content_contract`、`render_policy`、适配目标和 fallback。
-2. 用当前页面已有的业务内容逐项判断内容契约；匹配时选择 1–3 个主记忆点，无匹配内容时记录空数组，同一页面不要求使用模板的全部记忆点。
-3. `adapt_existing_slot` 和 `prd_match_only` 只绑定 PRD 已有内容；无匹配内容时不渲染该组件，并保留模板配方供后续真实内容使用。
-4. 会新增业务能力、字段、对象或虚构数据的记忆点标记为 `suggest_only`，不进入默认页面实现。
-5. `visualMemories` 由 `visualMemoryApplications[].name` 派生，用于 `prd.md` 和 `build-plan.html` 展示；结构化应用记录用于生成 `design.md`。
+`build-plan.json`、PRD、设计与 HTML 对应同一 revision。CLI 调用公共 `check-design` 检查格式、变量和引用后，主题 CSS 使用返回的 `outputs.theme`。页面实现只读取最终 PRD 与 design.md；HTML 按 [展示规范](../assets/README.md#需求确认内容范围) 呈现整体风格、主色、导航与需用户补充的素材，详细逐页视觉规则保留在 design.md。
 
-## 冲突处理
-
-整体配色选择不能被模板默认灰阶覆盖。`colorStrategy.surfaceTone=brand-tinted` 时，CLI 在 design.md 开头注入项目配色适配，并同步派生浅色表面 token；与下方模板的固定无彩限制冲突时按项目适配执行。保持中性参考用 `theme`，显式 `visualStyle.tokens` 优先，深色表面保留。页面先读项目适配，再读组件配方；不能只消费品牌按钮而漏掉卡片、文字、填充与边界。
-
-按以下优先级合并视觉规则：
-
-```text
-可访问性与真实素材要求
-> 用户明确视觉约束
-> 品牌与参考素材
-> 已选完整主题模板
-> AI 补齐
-```
-
-- 页面任务与主题冲突：保留页面任务和页面模式，调整主题在该页的应用强度。
-- 品牌色与模板示例色冲突：保留品牌色，复用模板的色彩角色和使用策略。
-- 用户要求与模板必须保留特征冲突：返回主题选择阶段，选择更匹配的完整模板。
-- 前后台表达不同：共享主题 Token、字体、图标和状态体系；前台提高品牌强度，后台使用同主题的克制变体。
-
-## build-plan.html 展示边界
-
-`build-plan.html` 只展示用户能判断和调整的视觉结果：
-
-- 一句话视觉主题和确认来源
-- 品牌色或主题色来源与使用强度
-- 表面、对比、圆角、阴影、图标和动效摘要
-- 页面级视觉应用与跨页面视觉记忆点
-- 状态、响应式、可访问性和素材缺口摘要
-
-模板名称、主题 ID、模板路径、模板全文、候选评分和内部实例化过程保存在内部数据中，不进入任何用户可见派生产物。
-
-## 交付检查
-
-- 内部 `selectedTheme` 的 ID 存在于主题索引，物化后的路径与同一索引记录一致。
-- `visualDirection`、`colorStrategy` 和 `navigationStyle` 完整，导航结构与明暗值合法。
-- `design.md` 包含项目视觉选择章节，导航背景 Token 与明暗选择一致。
-- `design.md` 不包含主题 ID、模板名称或模板路径。
-- 物化后的 `themeProfile` 以同一索引记录的 `defaultProfile` 为基础，；用户与品牌的具体 CSS 差异写入 `visualStyle.tokens`，再由 CLI 应用到 `design.md`。
-- `design.md` 没有未解析的 `{{...}}` 占位符、Token 推导指令或无关示例业务数据。
-- `PRODUCT_TOPOLOGY_APPLICATION` 已由产品形态、页面范围和前后台边界生成，且没有改变页面规划。
-- 每个自定义页面都有页面模式摘要和页面视觉应用。
-- 所有页面共享全应用 Token；`PAGE_APPLICATIONS` 只包含项目真实存在的自定义页面。
-- 每条页面视觉应用只消费页面规划中已有的组件和内容。
-- 每个页面只应用满足内容契约的视觉记忆点；无匹配内容时没有虚构指标、分类、进度或图表。
-- 页面视觉应用与 PRD 的内容优先级、首屏结构、页面模式和信息密度一致。
-- 状态覆盖加载、空态、错误、禁用、无权限、选中和移动端。
-- 官网、品牌页和展示页记录真实素材来源或素材缺口。
-- `build-plan.json`、`prd.md` 和 `design.md` 使用同一版本。
-
-具体 token 差异写入 `visualStyle.tokens`（单行字符串值），不能只修改 `themeProfile.radiusScale` 等摘要而期待 CSS 改变。应用主题使用公共模板与 `sample --design-file` 流程；主题 Markdown 模板用于设计规则，不能替代公共 CSS 模板。
+页面任务变化时同步逐页应用，主题差异变化时更新 tokens；旧输出不能手改后假装与当前计划一致。普通页面设计不重新发起一轮视觉选择提问，只有新证据造成已选方向冲突时才回到选择阶段。

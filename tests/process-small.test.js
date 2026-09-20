@@ -76,6 +76,35 @@ describe('small process commands', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
+  test.each([
+    [[], 'appType', 'missing_value'],
+    [['APP', '--formUuid'], '--formUuid', 'missing_value'],
+    [['APP', '--formUuid', '  ', 'process.json'], '--formUuid', 'missing_value'],
+    [['APP', '--formUuid', '--replace'], '--formUuid', 'missing_value'],
+    [['APP', '--formUuid', 'FORM'], 'processDefinitionFile', 'missing_value'],
+    [['APP', '--form-uuid', 'FORM', 'process.json'], '--form-uuid', 'unknown_option'],
+    [['APP', '--formUuid', 'FORM', 'process.json', '--unknown'], '--unknown', 'unknown_option'],
+    [['APP', '--formUuid', 'FORM', '--formUuid', 'FORM2', 'process.json'], '--formUuid', 'duplicate_option'],
+    [['APP', '表单', 'fields.json', 'process.json', '--replace', '--replace'], '--replace', 'duplicate_option'],
+    [['APP', '表单', 'fields.json', 'process.json', 'extra'], 'extra', 'unexpected_argument'],
+  ])('create-process rejects invalid arguments before file access or authentication: %j', async (args, argument, reason) => {
+    await expect(createProcess.run(args)).rejects.toMatchObject({
+      code: 'CREATE_PROCESS_INVALID_ARGUMENTS', details: { argument, reason },
+    });
+    expect(utils.loadAuthData).not.toHaveBeenCalled();
+    expect(createForm.createFormForLegacyProcess).not.toHaveBeenCalled();
+    expect(configureProcess.run).not.toHaveBeenCalled();
+  });
+
+  test('create-process accepts flags before or after positional arguments', () => {
+    expect(createProcess.parseArgs(['--replace', 'APP', '表单', 'fields.json', 'process.json']))
+      .toMatchObject({ appType: 'APP', formTitle: '表单', replace: true });
+    expect(createProcess.parseArgs(['--formUuid', 'FORM', '--replace', 'APP', 'process.json']))
+      .toMatchObject({ appType: 'APP', existingFormUuid: 'FORM', processDefinitionFile: 'process.json', replace: true });
+    expect(createProcess.parseArgs(['APP', 'process.json', '--formUuid', 'FORM']))
+      .toMatchObject({ appType: 'APP', existingFormUuid: 'FORM', processDefinitionFile: 'process.json', replace: false });
+  });
+
   test('create-process reuses a form and delegates conversion and publishing to configure-process', async () => {
     const processDefPath = path.join(tmpDir, 'process.json');
     fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }), 'utf8');
@@ -85,6 +114,9 @@ describe('small process commands', () => {
       success: true,
       appType: 'APP_XXX',
       formUuid: 'FORM_1',
+      formMode: 'reuse',
+      formTitle: null,
+      fieldCount: null,
       processCode: 'TPROC_1',
     });
     expect(utils.httpPost).not.toHaveBeenCalled();
@@ -201,6 +233,7 @@ describe('small process commands', () => {
     expect(result).toEqual({
       success: true,
       formUuid: 'FORM_CREATED',
+      formMode: 'create',
       formTitle: '流程表单',
       appType: 'APP_XXX',
       fieldCount: 1,
@@ -246,6 +279,75 @@ describe('small process commands', () => {
     });
     expect(configureProcess.run).toHaveBeenCalledTimes(1);
     expect(utils.httpPost).not.toHaveBeenCalled();
+    const payload = JSON.parse(logSpy.mock.calls[0][0]);
+    expect(payload.recovery).toMatchObject({
+      action: 'inspect_existing_form', formUuid: 'FORM_1', appType: 'APP_XXX',
+      processDefinitionFile: processDefPath, doNotCreateNewForm: true, noWriteRetry: false,
+    });
+    expect(payload.recovery.instruction).toContain('禁止移除 --formUuid');
+    expect(thrown.details.recovery).toEqual(payload.recovery);
+    expect(createForm.createFormForLegacyProcess).not.toHaveBeenCalled();
+  });
+
+  test('failure after creation preserves the new form and a shell-safe full path for reuse', async () => {
+    const dir = path.join(tmpDir, "nested dir's $(ignored)");
+    fs.mkdirSync(dir);
+    const processDefPath = path.join(dir, 'process.json');
+    const fieldsPath = path.join(tmpDir, 'fields.json');
+    fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }));
+    fs.writeFileSync(fieldsPath, JSON.stringify([{ type: 'TextField', label: '姓名' }]));
+    createForm.createFormForLegacyProcess.mockResolvedValueOnce({ success: true, formUuid: 'FORM_CREATED', fieldCount: 1 });
+    configureProcess.run.mockRejectedValueOnce(new CliError('switch failed', { code: 'CONFIGURE_PROCESS_SWITCH_FAILED' }));
+    await expect(createProcess.run(['APP_XXX', '审批表', fieldsPath, processDefPath])).rejects.toMatchObject({ code: 'CREATE_PROCESS_CONFIGURE_FAILED' });
+    const payload = JSON.parse(logSpy.mock.calls[0][0]);
+    expect(payload.recovery).toMatchObject({ formUuid: 'FORM_CREATED', doNotCreateNewForm: true, noWriteRetry: false });
+    // Parse the returned command with the platform shell, replacing the
+    // executable with a harmless argv recorder; metacharacters remain literal.
+    const childProcessActual = jest.requireActual('child_process');
+    let result;
+    let args;
+    if (process.platform === 'win32') {
+      const script = [
+        'function openyida { ConvertTo-Json -Compress -InputObject @($args) }',
+        payload.retryCommand,
+      ].join('; ');
+      result = childProcessActual.spawnSync('powershell.exe', [
+        '-NoProfile', '-NonInteractive', '-Command', script,
+      ], { encoding: 'utf8' });
+      const parsedArgs = result.status === 0 ? JSON.parse(result.stdout.trim()) : [];
+      args = (Array.isArray(parsedArgs) ? parsedArgs : [parsedArgs]).slice(1);
+    } else {
+      const script = payload.retryCommand.replace('openyida create-process', 'set --') + '; printf "%s\\n" "$@"';
+      result = childProcessActual.spawnSync('/bin/sh', ['-c', script], { encoding: 'utf8' });
+      args = result.status === 0 ? result.stdout.trim().split('\n') : [];
+    }
+    expect(result.status).toBe(0);
+    expect(args).toEqual(['APP_XXX', '--formUuid', 'FORM_CREATED', processDefPath]);
+    await createProcess.run(args);
+    expect(createForm.createFormForLegacyProcess).toHaveBeenCalledTimes(1);
+    expect(configureProcess.run).toHaveBeenLastCalledWith(['APP_XXX', 'FORM_CREATED', processDefPath], { suppressOutput: true });
+  });
+
+  test('create-process builds retry commands for POSIX and PowerShell without interpolation', () => {
+    const input = {
+      appType: 'APP_XXX',
+      formUuid: 'FORM_1',
+      processDefinitionFile: "C:\\nested dir's $(ignored)\\process.json",
+      replace: true,
+    };
+    expect(createProcess.buildRetryCommand({ ...input, platform: 'linux' })).toBe(
+      "openyida create-process APP_XXX --formUuid FORM_1 'C:\\nested dir'\"'\"'s $(ignored)\\process.json' --replace"
+    );
+    expect(createProcess.buildRetryCommand({ ...input, platform: 'win32' })).toBe(
+      "openyida create-process APP_XXX --formUuid FORM_1 'C:\\nested dir''s $(ignored)\\process.json' --replace"
+    );
+    expect(createProcess.buildRetryCommand({
+      ...input,
+      processDefinitionFile: 'C:\\Users\\runneradmin\\process.json',
+      platform: 'win32',
+    })).toBe(
+      'openyida create-process APP_XXX --formUuid FORM_1 C:\\Users\\runneradmin\\process.json --replace'
+    );
   });
 
   test('create-process preserves configure-process inner failure stage', async () => {
@@ -278,16 +380,25 @@ describe('small process commands', () => {
       ['APP_XXX', 'FORM_1', processDefPath],
       { suppressOutput: true }
     );
+    const expectedRetryCommand = createProcess.buildRetryCommand({
+      appType: 'APP_XXX',
+      formUuid: 'FORM_1',
+      processDefinitionFile: processDefPath,
+      replace: false,
+    });
     expect(payload).toMatchObject({
       success: false,
       errorCode: 'CONFIGURE_PROCESS_SAVE_FAILED',
       formUuid: 'FORM_1',
+      formMode: 'reuse',
+      formTitle: null,
+      fieldCount: null,
       appType: 'APP_XXX',
       error: expect.stringContaining('save denied'),
       stage: 'save_definition',
       completedStages: ['validate_inputs', 'load_auth', 'reuse_form'],
       nextStep: '检查流程节点配置后重试。',
-      retryCommand: 'openyida create-process APP_XXX --formUuid FORM_1 ' + path.basename(processDefPath),
+      retryCommand: expectedRetryCommand,
       configureProcess: {
         code: 'CONFIGURE_PROCESS_SAVE_FAILED',
         stage: 'save_definition',
@@ -308,7 +419,7 @@ describe('small process commands', () => {
           appType: 'APP_XXX',
           formUuid: 'FORM_1',
           processCode: null,
-          retryCommand: 'openyida create-process APP_XXX --formUuid FORM_1 ' + path.basename(processDefPath),
+          retryCommand: expectedRetryCommand,
         },
         configureProcess: {
           code: 'CONFIGURE_PROCESS_SAVE_FAILED',
@@ -354,6 +465,8 @@ describe('small process commands', () => {
     expect(thrown).toMatchObject({ code });
     expect(payload).toMatchObject({ errorCode: code, stage });
     expect(payload).not.toHaveProperty('retryCommand');
+    expect(payload.noWriteRetry).toBe(true);
+    expect(payload.recovery).toMatchObject({ formUuid: 'FORM_1', doNotCreateNewForm: true, noWriteRetry: true });
     expect(payload.nextStep).toMatch(/只读|人工/);
     expect(thrown.details.context).not.toHaveProperty('retryCommand');
     expect(warnings).not.toContain('openyida create-process');

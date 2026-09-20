@@ -126,13 +126,54 @@ test('slots are verified concurrently and results retain their input order', asy
 test('public CLI resolves a direct URL without auth or appType and retains delivery inputs', async () => {
   const input = path.join(dir, 'draft.json');
   const manifest = path.join(dir, 'manifest.json');
-  fs.writeFileSync(input, JSON.stringify({ assets: [asset()] }));
+  const records = {
+    assetId: 'company-team-001', creator: 'Company photographer', sourcePage: 'https://example.com/team',
+    license: 'Website use granted', licenseUrl: 'https://example.com/license', licenseCheckedAt: '2026-09-18',
+    authorizationEvidence: [path.join(dir, 'team-release.pdf'), 'https://example.com/receipt/001'],
+  };
+  fs.writeFileSync(input, JSON.stringify({ assets: [asset(records)] }));
   const result = await run(process.execPath, [path.resolve(__dirname, '../bin/yida.js'), 'asset', 'resolve', '--input', input, '--manifest', manifest, '--json'], {
     cwd: dir, env: { ...process.env, OPENYIDA_SKIP_UPDATE_CHECK: '1' },
   });
   expect(JSON.parse(result.stdout).materialStatus).toBe('final');
+  expect(JSON.parse(result.stdout).assets[0]).toMatchObject(records);
   expect(JSON.parse(fs.readFileSync(manifest, 'utf8')).assets[0]).toMatchObject({ hotlinkAllowed: true, deliveryMode: 'auto', url: `${url}/image` });
+  expect(JSON.parse(fs.readFileSync(manifest, 'utf8')).assets[0]).toMatchObject(records);
   expect(requests).toHaveLength(1);
+});
+
+test('source records survive failed checks and retrying the resulting manifest', async () => {
+  const records = {
+    assetId: 'photo-001', creator: 'Author', sourcePage: 'https://example.com/photos/001',
+    license: 'Project permission', licenseUrl: 'https://example.com/license', licenseCheckedAt: '2024-02-29',
+    authorizationEvidence: [path.join(dir, 'permission.pdf')],
+  };
+  const failed = await resolveAssets([asset(records)], { online: false });
+  expect(failed.assets[0]).toMatchObject({ ...records, materialStatus: 'draft' });
+  const saved = JSON.parse(JSON.stringify(failed));
+  const retried = await resolveAssets(saved.assets);
+  expect(retried.assets[0]).toMatchObject({ ...records, materialStatus: 'final' });
+  expect(requests).toHaveLength(1);
+});
+
+test('missing source records stay empty instead of implying permission was checked', async () => {
+  const result = await resolveAssets([asset()]);
+  expect(result.assets[0]).toMatchObject({
+    assetId: '', creator: '', sourcePage: '', license: '', licenseUrl: '', licenseCheckedAt: '', authorizationEvidence: [],
+  });
+  expect(requests).toHaveLength(1);
+});
+
+test.each([
+  ['assetId', 123], ['licenseUrl', {}], ['licenseUrl', 'javascript:alert(1)'],
+  ['licenseCheckedAt', '2026-02-30'], ['licenseCheckedAt', '2026-09-18T00:00:00Z'],
+  ['authorizationEvidence', 'https://example.com/permission'], ['authorizationEvidence', [null]],
+  ['authorizationEvidence', ['  ']],
+])('invalid source record %s fails before accessing the image', async (field, value) => {
+  await expect(resolveAssets([asset({ [field]: value })])).rejects.toMatchObject({
+    code: 'ASSET_INPUT_INVALID', details: { slotId: 'hero', field },
+  });
+  expect(requests).toEqual([]);
 });
 
 test('public CLI --upload-assets requests hosting and preserves a verified fallback without an app', async () => {

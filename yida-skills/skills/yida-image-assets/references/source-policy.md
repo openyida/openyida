@@ -9,7 +9,7 @@
 | [Unsplash API](https://help.unsplash.com/en/articles/2511245-unsplash-api-guidelines) | 使用 API 返回的 photo.urls 图片直链并保留署名，实际请求 download_location 后记录选用动作 |
 | [Pexels API](https://www.pexels.com/api/documentation/) | 使用 API 返回的图片直链，保留来源页和摄影师署名 |
 
-搜索图片填写 `source=search`、`provider=unsplash|pexels`，记录 sourcePage、creator、license、attribution；Unsplash 另记 downloadLocation、downloadTracked。用户外链使用 source=user。
+搜索图片填写 `source=search`、`provider=unsplash|pexels`，记录 sourcePage、creator、license、attribution；Unsplash 另记 downloadLocation、downloadTracked。用户外链使用 source=user。取得图片 ID、许可链接、核对日期及必要授权凭证后，按[来源与授权留证](manifest-contract.md#来源与授权留证)写入同一张图片的记录，不另建清单，也不把未知信息写成已授权。
 
 失败来源按 [失败后立即切换](../SKILL.md#失败后立即切换) 记录，所有页面共用。换来源、恢复服务仍计入两轮上限。
 

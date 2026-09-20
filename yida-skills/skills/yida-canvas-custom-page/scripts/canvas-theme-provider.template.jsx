@@ -144,6 +144,13 @@ function CanvasThemeProvider({ children, preview = false, getPopupContainer }) {
       background: 'var(--pod-page-bg-color, var(--color-white, #fff))',
       color: 'var(--color-text1-4, #1f2329)',
     }}>
+      {/* Keep late CSS resets from animating the loading mask's border. */}
+      <style>{`
+        [data-canvas-theme-status] .ant-spin-nested-loading .ant-spin-container::after {
+          border: 0 solid transparent;
+          transition: opacity 0.3s;
+        }
+      `}</style>
       <CanvasThemeContext.Provider value={context}>
         <ConfigProvider theme={{ token: theme.token, components: theme.components }} getPopupContainer={getPopupContainer}>{children}</ConfigProvider>
       </CanvasThemeContext.Provider>

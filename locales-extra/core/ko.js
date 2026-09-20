@@ -5,12 +5,27 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  design_document: {
+    update_conflict: "{0}({1})을 업데이트할 수 없습니다. 현재 내용이 이전 생성 결과와 충돌합니다. 해당 부분의 로컬 변경 사항과 계획 데이터를 일치시킨 후 다시 시도하세요. 파일은 저장되지 않았습니다.",
+    theme_css_invalid: '테마 CSS의 {0}행 근처에 닫히지 않았거나 짝이 맞지 않는 괄호, 문자열 또는 주석이 있습니다. 수정 후 다시 시도하세요.',
+    invalid: '디자인 검증 실패: {0} ({1})',
+    yaml: '디자인 문서의 frontmatter가 올바른 YAML이 아닙니다',
+    token_value: '토큰 {0}에는 확정된 한 줄 CSS 값이 필요합니다',
+    token_conflict: '토큰 {0}에 중복되거나 충돌하는 값이 있습니다',
+    tokens_required: 'design.md에 토큰을 포함한 frontmatter가 없습니다',
+    brand_required: 'design.md에 브랜드 토큰이 없습니다: {0}',
+    usage: '사용법: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
+    read_error: '디자인 검증 파일을 읽을 수 없습니다: {0}',
+    checked: '디자인 검증 통과: {0}, 페이지 {1}개, 토큰 {2}개',
+  },
   asset: {
+    sourceRecords: '--input의 assets[]에 assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt(YYYY-MM-DD), authorizationEvidence(증빙 URL 또는 파일 경로 배열)를 기록하세요. 목록에 기록이 보존되며 미입력 값은 비워 둡니다. 상업적 이용 허가를 자동으로 인정하지 않습니다.',
     executionReview: '소재 실행 기록 검토 필요: {0}. 백그라운드 실행 응답, 업무 실행 시간 및 동기 처리 전환 이유를 확인하세요.',
     localFileUnavailable: "이미지 파일을 찾을 수 없습니다: {0}. 명령의 작업 디렉터리를 확인하거나 절대 경로를 사용하세요.",
     invalidStrategy: "이미지 요구사항은 페이지별 이미지 위치를 나열한 객체로 입력하세요.",
   },
   help: {
+    cmd_check_design: '디자인 문서, 테마 변수 및 PRD 인계 검증',
     subtitle: 'Yida 로우코드 AI 개발 도구',
     usage: '사용법:',
     alias: '별칭:',
@@ -29,8 +44,8 @@ module.exports = {
     design_plan_preview_invalid: '초안 업데이트 실패. 오류 세부 정보를 확인하세요',
     cmd_design_plan_catalog: '계획에 사용할 수 있는 테마와 페이지 패턴 조회',
     cmd_design_plan_init: '확인된 요구 사항으로 계획 초안 만들기',
-    cmd_design_plan_materialize: 'build-plan.json에서 설계 계획 산출물 생성 및 검증',
-    cmd_design_plan_patch: '필드 경로로 계획을 수정하고 이전 확인 무효화',
+    cmd_design_plan_materialize: "계획 문서와 테마를 생성하거나 업데이트하고 일관성 검증",
+    cmd_design_plan_patch: "계획 필드를 수정하고 필요에 따라 문서와 테마 동기화",
     cmd_update_app: '앱 정보 업데이트',
     cmd_app_online: 'Yida 앱 활성화',
     cmd_app_offline: 'Yida 앱 비활성화',
@@ -60,6 +75,7 @@ module.exports = {
     cmd_get_form_config: 'Query form configuration',
     group_data: '데이터 & 권한',
     cmd_data: '통합 데이터 관리 (양식/프로세스/작업/하위양식)',
+    data_notes: "DateField는 밀리초 숫자 타임스탬프, CascadeDateField는 해당 타임스탬프 배열을 사용합니다. 업무 시간대로 변환하세요. 날짜 문자열과 초 단위 값은 사용할 수 없습니다. --resolve-aliases는 필드 이름만 변환합니다.",
     cmd_task_center: '글로벌 작업 센터 (할일/처리됨/참조 등)',
     cmd_basic_info: '조직 기본 정보, 용량, 할당량 및 도메인 설정 조회',
     cmd_read_dingtalk_doc: 'DingTalk 문서의 Markdown 내용 가져오기',
@@ -71,6 +87,7 @@ module.exports = {
     group_process: '프로세스',
     cmd_configure_process: '프로세스 규칙 설정 및 게시; JSON nodes[].actions.normalActions/appendActions로 승인자 추가 및 전달 설정',
     cmd_create_process: '프로세스 양식 생성 (통합형); JSON nodes[].actions.normalActions/appendActions로 승인자 추가 및 전달 설정',
+    create_process_notes: "formMode=create|reuse는 신규 생성과 재사용을 구분합니다. 재사용 시 formTitle과 fieldCount는 null(조회 안 함)이며 신규 생성 시 이름과 필드 수를 반환합니다. 구성 실패 출력도 동일합니다. success와 verificationLevel로 결과를 확인하세요. --replace는 명시적으로 승인된 기존 초안 또는 게시된 흐름 전체 교체에만 사용합니다.",
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: '프로세스 인스턴스 미리보기 (플로차트)',
     group_share: '페이지 설정 & 공유',
@@ -200,7 +217,7 @@ module.exports = {
       '  get-permission <appType> <formUuid>                          Query form permission config\n' +
       '  save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  Save form permission config\n' +
       '  configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]  Configure and publish process\n' +
-      '  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>  Create process form (all-in-one)\n' +
+      '  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]  Create process form (all-in-one)\n' +
       '  create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]         Reuse existing form for process\n' +
       '  connector list [options]                                     List HTTP connectors\n' +
       '  connector create "<name>" "<domain>" --operations <file> [options]  Create connector\n' +
@@ -292,7 +309,7 @@ module.exports = {
     integration_enable_example: '예시: openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
     integration_disable_usage: '사용법: openyida integration disable <appType> <formUuid> <processCode>',
     integration_disable_example: '예시: openyida integration disable APP_XXX FORM-XXX LPROC-XXX',
-    compile_usage: '사용법: openyida compile <sourceFile>',
+    compile_usage: '사용법: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--json]',
     compile_example: '예: openyida compile pages/src/home.oyd.jsx',
     check_page_usage: 'Usage: openyida check-page <sourceFile> [--compat] [--json]',
     check_page_example: 'Example: openyida check-page pages/src/home.oyd.jsx --json',
@@ -300,7 +317,7 @@ module.exports = {
     generate_page_example: 'Example: openyida generate-page product-homepage --brand-name OpenKuma --brand-initials OK --theme-scope page --output pages/src/home.canvas.jsx --compile',
     build_page_usage: 'Usage: openyida build-page <sourceFile> [--output pages/build/page.yida.jsx|--write] [--json]',
     build_page_example: 'Example: openyida build-page pages/src/dashboard.oyd.jsx --output pages/build/dashboard.yida.jsx',
-    publish_usage: 'Usage: openyida publish <sourceFile> <appType> <formUuid> [--health-check] [--canvas] [--auto-nav-order]',
+    publish_usage: 'Usage: openyida publish <sourceFile> <appType> <formUuid> [--health-check] [--force] [--canvas] [--compat] [--skip-lint] [--auto-nav-order] [--open|--no-open] [--json]',
     publish_example: 'Example: openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX --health-check --auto-nav-order',
     check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]',
     check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --build-manifest prd/order-management/build-manifest.json --json',
@@ -324,7 +341,7 @@ module.exports = {
     import_example2: '        openyida import ./yida-export.json "Quality System (Production)"',
     configure_process_usage: 'Usage: openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]',
     configure_process_example: 'Example: openyida configure-process "APP_XXX" "FORM-YYY" .cache/openyida/process/process-definition.json',
-    create_process_usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>\n' +
+    create_process_usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]\n' +
       '        openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]',
     create_process_example: 'Example: openyida create-process "APP_XXX" "Order Form" .cache/openyida/process/fields.json .cache/openyida/process/process-definition.json',
     process_usage: 'Usage: openyida process <subcommand>\n' +
@@ -692,7 +709,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Yida 커스텀 페이지 생성 도구',
-    usage: '사용법: openyida create-page <appType> <페이지 이름> [--mode dashboard] [--hide-nav]',
+    usage: '사용법: openyida create-page <appType> <페이지 이름> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: '예: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  앱 ID:    {0}',
     page_name: '  페이지 이름: {0}',
@@ -702,6 +719,7 @@ module.exports = {
     step_dashboard_config: '\n🖥️  Step 3: Configure hidden navigation',
     dashboard_config_ok: '  ✅ Navigation hidden by explicit request, chromeless custom URL enabled',
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
+    navigation_unverified: '페이지가 생성되었지만 설정을 다시 읽어도 탐색 숨김이 확인되지 않았습니다. 반환된 pageId의 설정을 수정하고 확인하세요. 페이지를 다시 만들지 마세요.',
     err_mode_invalid: 'Unsupported page mode: {0}',
     mode_hint: 'Available modes: default, dashboard. Navigation is visible by default; pass --hide-nav or --render-nav false to hide it.',
     page_id_label: '  pageId: {0}',
@@ -749,6 +767,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    divider_type_invalid: '지원하지 않는 구분선 스타일: {0}. 지원 값: {1}',
     batch_invalid: '양식 일괄 설정이 잘못되었습니다. 오류 세부 정보를 확인하세요',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
@@ -1063,6 +1082,7 @@ module.exports = {
     offline_success: '앱이 비활성화되었습니다',
   },
   create_process: {
+    invalid_argument: "인수 {0}이 누락되었거나 잘못되었습니다. 아래 구문에 맞게 수정하세요.",
     title: 'Yida Process Form Creation',
     app_id: 'App ID',
     mode: 'Mode',
@@ -1091,12 +1111,13 @@ module.exports = {
     manual_hint: 'Please configure the process manually in Yida admin. Form UUID: {0}',
     configuring_process: 'Configuring and publishing process',
     configure_failed: 'Failed to configure process',
+    preserve_existing_form: "원본 폼이 존재합니다. 반환된 formUuid로 상태와 실패 원인을 읽기 전용으로 확인하고 원본을 유지하세요. 복구를 위해 --formUuid를 제거하거나 폼을 다시 만들거나 같은 이름의 대체 폼을 만들지 마세요. noWriteRetry=true이면 쓰기를 재시도하지 마세요.",
     retry_hint: 'Process configuration failed, but the form was created. Fix the process definition and retry with this command:',
     fields_not_found: 'Fields definition file not found',
     process_def_not_found: 'Process definition file not found',
     done: 'Process form creation completed',
     url: 'URL',
-    usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>',
+    usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]',
     usage2: '       openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]',
     example: 'Example: openyida create-process "APP_XXX" "Order Form" .cache/openyida/process/fields.json .cache/openyida/process/process-definition.json',
     example2: '         openyida create-process "APP_XXX" --formUuid FORM-YYY .cache/openyida/process/process-definition.json'
@@ -1307,6 +1328,7 @@ module.exports = {
     lint_emoji_forbidden: 'Found emoji "{0}". OpenYida generated artifacts must not use emoji in UI copy, source comments, file paths, or code constants; use plain text, SVG, or icon components instead.',
     lint_searchformdata_http_post: 'searchFormDatas.json을 직접 호출할 때는 GET + 쿼리 파라미터가 필수입니다(formUuid/appType을 URL 쿼리에 넣기). POST로 formUuid를 body에 넣으면 "参数校验失败formUuid" 오류가 발생하고 대시보드/목록이 모두 0으로 표시됩니다',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json의 페이지 파라미터 이름은 currentPage입니다(pageNumber 아님). pageNumber를 쓰면 페이징이 작동하지 않습니다',
+    lint_searchformdata_bridge_unwrap: 'Yida searchFormDatas의 행은 payload.data, 개수는 payload.totalCount에 있습니다. payload.data.data만 읽지 말고 배열을 정규화하며 페이지 지정에는 currentPage를 사용하세요. yida-canvas-data-binding을 참고하세요.',
     lint_searchformdata_http_unwrap: '브라우저 searchFormDatas.json 응답은 목록이 content.data에 중첩됩니다({ content: { data: [...] } }). json.data만 읽으면 0건이 됩니다. (json.content && json.content.data)로 언랩하세요',
     lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder에는 레코드 메타데이터 필드 {0}을 사용할 수 없습니다. get-schema가 반환한 실제 비즈니스 필드 ID를 사용하세요. 정렬 가능한 비즈니스 날짜 필드가 없으면 dynamicOrder를 제거하고 가져온 현재 페이지만 표시용으로 row.createTime 기준 정렬하세요',
     lint_setstate_non_timestamp: 'this.setState가 timestamp가 아닌 필드를 씁니다. 사용자 정의 페이지의 비즈니스 상태는 _customState에 두고 forceUpdate()/setCustomState()로 업데이트해야 합니다. this.setState는 timestamp 계약 필드만 담아야 합니다',
@@ -1384,7 +1406,7 @@ module.exports = {
     error: '\n❌ Publish error: {0}',
     source_not_found: '❌ 소스 파일을 찾을 수 없습니다: {0}',
     source_path_hint: '💡 이 소스 파일 경로를 시도해 보세요: {0}',
-    usage: '사용법: openyida publish <소스 파일> <appType> <formUuid> [--health-check] [--canvas] [--auto-nav-order]',
+    usage: '사용법: openyida publish <소스 파일> <appType> <formUuid> [--health-check] [--force] [--canvas] [--compat] [--skip-lint] [--auto-nav-order] [--open|--no-open] [--json]',
     example: '예시: openyida publish pages/src/xxx.js APP_XXX FORM-XXX --health-check --auto-nav-order'
   },
   qr_login: {
@@ -1970,7 +1992,7 @@ Object.assign(module.exports.save_share_config || (module.exports.save_share_con
 
 Object.assign(module.exports.publish || (module.exports.publish = {}), {
   lint_jsx_text_identifier: 'JSX 복사 {{0}} 로 작성될 수 없으며, 변수로 간주되어 {0} is not defined 오류를 유발합니다. 평문 텍스트 {0} 또는 인용된 문자열 {\'{0}\'} 대신 사용하세요.',
-  lint_form_open_container: '커스텀 페이지에서 Yida 폼 제출/상세 페이지를 열려면 FormOpenContainer 를 사용해야 합니다: 데스크톱에서는 50vw 드래워 iframe, 모바일에서는 전체/새 페이지만 사용합니다. 버튼 핸들러는 openForm({ type: "submission" | "detail", ... }) 을 호출해야 합니다.',
+  lint_form_open_container: '폼 제출/상세에는 전체 드로어 템플릿이 필요합니다. openyida sample openyida-page-template form-open-container 를 실행하고 CanvasDrawer / FormOpenContainer / useYidaFormOpen 을 통합하세요. openForm 을 호출하고 formOpenContainer 를 렌더링하세요. PC는 iframe 드로어, 모바일은 템플릿 처리를 사용하며 일반 링크나 자체 팝업으로 대체하지 마세요.',
   lint_form_detail_link: 'Yida 폼 상세 페이지에는 실제 formInstId 를 사용해야 합니다: row.formInstId 를 먼저 읽으시고, 빈 formInstId 로 폼Detail 링크를 열지 않고 대신 비활성화 또는 경고하세요.',
   lint_searchformdata_http_path: '직접적인 searchFormDatas.json 호출은 /dingtalk/web/<appType>/v1/form/searchFormDatas.json 을 사용해야 합니다; /query/form/searchFormDatas.json 은 유효하지 않은 폼 데이터 엔드포인트입니다.',
   lint_searchformdata_http_query_params: '직접적인 searchFormDatas.json URL 쿼리는 필수 파라미터 {0} 를 누락했습니다. appType, formUuid, currentPage, pageSize, searchFieldJson 을 사용하여 URLSearchParams 로 사용하세요.',

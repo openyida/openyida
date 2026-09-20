@@ -78,7 +78,7 @@ CLI 的 `assetTasks` 是派发输入，后台执行能力来自宿主。仅支�
 
 ## 4. 检查图片并写入清单
 
-按 [清单契约](references/manifest-contract.md) 写每页草稿：
+按 [清单契约](references/manifest-contract.md) 写每页草稿。每张图片同时记录已取得的图片 ID、作者、来源页、许可链接、实际核对日期及必要授权凭证，字段见[来源与授权留证](references/manifest-contract.md#来源与授权留证)：
 
 ```bash
 openyida asset resolve --input asset-manifests/<pageId>.draft.json --manifest asset-manifests/<pageId>.json --design design.md --page-id <pageId> --json

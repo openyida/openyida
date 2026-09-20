@@ -25,7 +25,7 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 - 记录数量默认 1-3 条：单对象轻应用写 1 条；列表/工作台写 2 条；看板/排行/状态分布写 3 条。不要为了展示效果批量灌入大量数据。
 - 示例记录必须是当前业务语义，不写“测试1 / demo / mock”；例如客户、订单、学生、商品、工单、活动等对象要有合理名称、状态、金额、数量、负责人或日期。
 - 先执行 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实 `fieldId`；保存数据使用真实 fieldId 或 `--resolve-aliases` 可解析别名，禁止猜测字段 ID。
-- 日期字段必须转成 13 位毫秒时间戳；单选/多选必须使用表单已配置选项；成员/部门字段只有可安全确认 userId/deptId 时才填，否则留空或跳过该字段。
+- 单个日期传毫秒时间戳数字，日期范围传时间戳数组；单选/多选必须使用表单已配置选项；成员/部门字段只有可安全确认 userId/deptId 时才填，否则留空或跳过该字段。
 - 每条实例单独执行一次 `openyida data create form`；不要把 1-3 条记录作为顶层数组塞进一个 `--data-file`。
 - 写完必须 `openyida data query form` 抽查至少 1 条，并把写入数量和抽查结果交给 `yida-app` 页面阶段使用。
 
@@ -49,7 +49,7 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 - 删除完成只以 `deleted=true && readbackVerified=true` 为准；`alreadyAbsent=true` 表示本次未再次发删除请求，可按幂等成功处理
 - 当前不支持删除流程实例；禁止生成 `openyida data delete process`，禁止在 CLI 报不支持后探索一次性脚本、浏览器私有请求或底层 API 绕过正式能力
 - **录入/更新数据前，必须先执行 `openyida get-schema` 获取真实字段 ID，并将字段 ID 映射记录到 `.cache/<项目名>-schema.json`**
-- **生成测试数据或录入/更新数据时，`DateField` / `CascadeDateField` 必须使用 13 位毫秒时间戳（如 `1719705600000`），不要传 `YYYY-MM-DD`、`YYYY-MM-DD HH:mm:ss` 或 ISO 字符串**
+- **生成测试数据或录入/更新数据时，`DateField` 传毫秒时间戳数字（如 `1719705600000`），`CascadeDateField` 传毫秒时间戳数组；不要传日期字符串。转换方法见 [日期字段格式](references/data-format-guide.md#日期字段datefield--cascadedatefield)**
 - **录入数据后，必须执行 `openyida data query` 抽查至少 1 条记录，确认 `formData` 中字段有实际值（非空），否则说明字段 ID 有误，需重新排查**
 - **读取子表明细超过 50 行时，必须使用 `openyida data query subform` 或 `listTableDataByFormInstIdAndTableId` 分页查询完整子表；不要把 `searchFormDatas.currentPage` 当作子表分页**
 - **本技能不读写 memory**：数据操作通过 CLI 命令写入宜搭平台，不依赖跨会话的 memory 状态
@@ -126,6 +126,8 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 > 表单与流程是两套独立接口，主键、参数、返回结构都不同，不能混用。
 
 ## 命令
+
+`data create/update` 的 `--data-json` 和 `--data-file` 中，`DateField` 传毫秒时间戳数字，`CascadeDateField` 传毫秒时间戳数组；不要传日期字符串或秒级时间戳。按业务时区转换，示例见 [日期字段格式](references/data-format-guide.md#日期字段datefield--cascadedatefield)。`--resolve-aliases` 只转换字段名，不转换日期值。
 
 ### 表单实例
 

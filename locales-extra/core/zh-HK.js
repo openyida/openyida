@@ -5,12 +5,27 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  design_document: {
+    update_conflict: "無法更新 {0}（{1}）：現有內容與上次生成結果衝突。請讀取這部分，將本地修改與計劃來源對齊後重試；本次未儲存任何檔案。",
+    theme_css_invalid: '主題 CSS 第 {0} 行附近存在未閉合或不匹配的括號、字串或註解，請修正後重試。',
+    invalid: '設計文件驗證失敗：{0}（{1}）',
+    yaml: '設計文件 frontmatter 不是有效的 YAML',
+    token_value: 'token {0} 必須是已確定的單行 CSS 值',
+    token_conflict: 'token {0} 存在重複或衝突值',
+    tokens_required: 'design.md 缺少包含 token 的 frontmatter',
+    brand_required: 'design.md 缺少品牌 token：{0}',
+    usage: '用法: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
+    read_error: '無法讀取設計檢查文件：{0}',
+    checked: '設計文件驗證通過：{0}；{1} 個頁面，{2} 個 token',
+  },
   asset: {
+    sourceRecords: '在 --input 的 assets[] 中填寫 assetId、creator、sourcePage、license、licenseUrl、licenseCheckedAt（YYYY-MM-DD）和 authorizationEvidence（憑證連結或檔案路徑陣列）。清單保留這些記錄；未提供的留空，不自動認定已獲商用授權。',
     executionReview: '素材執行記錄需覆核：{0}。請檢查背景派發回執、業務執行時間及同步退化原因。',
     localFileUnavailable: "找不到圖片檔案：{0}。請檢查指令工作目錄，或使用絕對路徑。",
     invalidStrategy: "圖片要求應填寫為物件，按頁面列出圖片位置。",
   },
   help: {
+    cmd_check_design: '檢查設計文件、主題變數與 PRD 交接',
     subtitle: '宜搭低程式碼 AI 開發工具',
     usage: '用法:',
     alias: '別名:',
@@ -29,8 +44,8 @@ module.exports = {
     design_plan_preview_invalid: '方案草稿更新失敗，請檢查錯誤詳情',
     cmd_design_plan_catalog: '查詢規劃可用的主題與頁面模式',
     cmd_design_plan_init: '從已確認需求初始化計劃草稿',
-    cmd_design_plan_materialize: '從 build-plan.json 產生並校驗搭建計畫產物',
-    cmd_design_plan_patch: '按欄位路徑調整搭建計畫並使舊確認失效',
+    cmd_design_plan_materialize: "生成或更新方案文件與主題，並校驗一致性",
+    cmd_design_plan_patch: "按欄位修改方案，按需同步文件與主題",
     cmd_update_app: '更新應用程式資料',
     cmd_app_online: '啟用宜搭應用程式',
     cmd_app_offline: '停用宜搭應用程式',
@@ -60,6 +75,7 @@ module.exports = {
     cmd_get_form_config: '查询表单配置',
     group_data: '資料 & 權限',
     cmd_data: '統一資料管理（表單/流程/任務/子表單）',
+    data_notes: "DateField 傳毫秒時間戳數字；CascadeDateField 傳毫秒時間戳陣列。先按業務時區轉換，不接受日期字串或秒級時間戳。--resolve-aliases 只轉換欄位名稱。",
     cmd_task_center: '全域任務中心（待辦/已處理/抄送等）',
     cmd_basic_info: '查詢組織基本資訊、容量、額度和域名設定',
     cmd_read_dingtalk_doc: '取得釘釘文件的 Markdown 內容',
@@ -71,6 +87,7 @@ module.exports = {
     group_process: '流程',
     cmd_configure_process: '設定並發布流程規則; 支援加簽/轉交，設定位於 JSON nodes[].actions.normalActions/appendActions',
     cmd_create_process: '建立流程表單（一體化）; 支援加簽/轉交，設定位於 JSON nodes[].actions.normalActions/appendActions',
+    create_process_notes: "formMode=create|reuse 區分新建與重用。重用時 formTitle、fieldCount 為 null，表示未查詢；新建時返回名稱和欄位數。成功和配置失敗輸出均遵守此約定，結果看 success 與 verificationLevel。--replace 僅用於已獲明確授權的現有草稿或已發佈流程整圖替換。",
     cmd_ai_form_setting: '管理流程表單 AI 審批提示',
     cmd_process_preview: '預覽流程實例（視覺化流程圖）',
     group_share: '頁面設定 & 分享',
@@ -199,7 +216,7 @@ module.exports = {
       '  get-permission <appType> <formUuid>                          查詢表單權限設定\n' +
       '  save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  儲存表單權限設定\n' +
       '  configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]  設定並發布流程\n' +
-      '  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>  建立流程表單（一體化）\n' +
+      '  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]  建立流程表單（一體化）\n' +
       '  create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]         複用已有表單建立流程\n' +
       '  connector list [選項]                                        列出 HTTP 連接器\n' +
       '  connector create "名稱" "網域" --operations <file> [選項]    建立連接器\n' +
@@ -278,7 +295,7 @@ module.exports = {
     integration_enable_example: '範例：openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
     integration_disable_usage: '用法：openyida integration disable <appType> <formUuid> <processCode>',
     integration_disable_example: '範例：openyida integration disable APP_XXX FORM-XXX LPROC-XXX',
-    compile_usage: '用法：openyida compile <原始檔路徑>',
+    compile_usage: '用法：openyida compile <原始檔路徑> [--canvas] [--compat] [--skip-lint] [--json]',
     compile_example: '範例：openyida compile pages/src/home.oyd.jsx',
     check_page_usage: '用法：openyida check-page <原始檔路徑> [--compat] [--json]',
     check_page_example: '範例：openyida check-page pages/src/home.oyd.jsx --json',
@@ -286,7 +303,7 @@ module.exports = {
     generate_page_example: '範例：openyida generate-page product-homepage --brand-name OpenKuma --brand-initials OK --theme-scope page --output pages/src/home.canvas.jsx --compile',
     build_page_usage: '用法: openyida build-page <源文件路径> [--output pages/build/page.yida.jsx|--write] [--json]',
     build_page_example: '示例: openyida build-page pages/src/dashboard.oyd.jsx --output pages/build/dashboard.yida.jsx',
-    publish_usage: '用法：openyida publish <原始檔路徑> <appType> <formUuid> [--health-check] [--canvas] [--auto-nav-order]',
+    publish_usage: '用法：openyida publish <原始檔路徑> <appType> <formUuid> [--health-check] [--force] [--canvas] [--compat] [--skip-lint] [--auto-nav-order] [--open|--no-open] [--json]',
     publish_example: '範例：openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX --health-check --auto-nav-order',
     check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]',
     check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --build-manifest prd/order-management/build-manifest.json --json',
@@ -310,7 +327,7 @@ module.exports = {
     import_example2: '      openyida import ./yida-export.json "品質追溯系統（正式環境）"',
     configure_process_usage: '用法：openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]',
     configure_process_example: '範例：openyida configure-process "APP_XXX" "FORM-YYY" .cache/openyida/process/process-definition.json',
-    create_process_usage: '用法：openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>\n' +
+    create_process_usage: '用法：openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]\n' +
       '      openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]',
     create_process_example: '範例：openyida create-process "APP_XXX" "訂單處理表" .cache/openyida/process/fields.json .cache/openyida/process/process-definition.json',
     process_usage: '用法：openyida process <子指令>\n\n子指令：\n  preview <appType> <processInstanceId> [--output <path>]  預覽流程實例（產生視覺化流程圖）',
@@ -654,7 +671,7 @@ module.exports = {
   },
   create_page: {
     title: '  openyida create-page - 宜搭自訂頁面建立工具',
-    usage: '用法：openyida create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]',
+    usage: '用法：openyida create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: '範例：openyida create-page "APP_XXX" "駕駛艙" --mode dashboard',
     app_id: '  應用程式 ID：  {0}',
     page_name: '  頁面名稱：{0}',
@@ -664,6 +681,7 @@ module.exports = {
     step_dashboard_config: '\n🖥️  Step 3：設定看板全螢幕模式',
     dashboard_config_ok: '  ✅ 已設定看板模式：隱藏頂部導航，並輸出無左側欄的 custom URL',
     dashboard_config_failed: '  ⚠️  看板模式設定失敗：{0}',
+    navigation_unverified: '頁面已建立，但未能回讀確認導覽已隱藏。請使用傳回的 pageId 修復設定並回讀，不要重複建立頁面。',
     err_mode_invalid: '不支援的頁面模式：{0}',
     mode_hint: '可用模式：default, dashboard',
     page_id_label: '  pageId：   {0}',
@@ -708,6 +726,7 @@ module.exports = {
     no_login: '  ❌ 无法获取有效登录态'
   },
   create_form: {
+    divider_type_invalid: '不支援的分隔線樣式：{0}。可選值：{1}',
     batch_invalid: '表單批量任務設定無效，請檢查錯誤詳情',
     create_title: '  yida-create-form-page - 宜搭表单页面创建工具',
     update_title: '  yida-create-form-page - 宜搭表单页面更新工具',
@@ -1007,6 +1026,7 @@ module.exports = {
     offline_success: '應用已停用',
   },
   create_process: {
+    invalid_argument: "參數 {0} 缺失或無效，請按以下用法修正。",
     title: '宜搭流程表单一体化创建',
     app_id: '应用 ID',
     mode: '模式',
@@ -1035,12 +1055,13 @@ module.exports = {
     manual_hint: '请手动在宜搭后台配置流程，表单 UUID: {0}',
     configuring_process: '配置并发布流程',
     configure_failed: '流程配置失败',
+    preserve_existing_form: "原表單已存在。先以唯讀方式核實該 formUuid 的狀態和失敗原因，保留原表；禁止移除 --formUuid、再次建立表單或另建同名表來恢復。noWriteRetry=true 時禁止重試寫入。",
     retry_hint: '流程配置失败，但表单已创建。请修复流程定义后，使用以下命令复用该表单重试：',
     fields_not_found: '字段定义文件不存在',
     process_def_not_found: '流程定义文件不存在',
     done: '流程表单创建完成',
     url: '访问地址',
-    usage: '用法: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>',
+    usage: '用法: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]',
     usage2: '      openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]',
     example: '示例: openyida create-process "APP_XXX" "订单处理表" .cache/openyida/process/fields.json .cache/openyida/process/process-definition.json',
     example2: '      openyida create-process "APP_XXX" --formUuid FORM-YYY .cache/openyida/process/process-definition.json'
@@ -1245,6 +1266,7 @@ module.exports = {
     lint_emoji_forbidden: '偵測到 emoji「{0}」。OpenYida 生成產物禁止在 UI 文案、源碼註解、檔案路徑或程式碼常量中使用 emoji；請改用普通文字、SVG 或圖示元件。',
     lint_searchformdata_http_post: '直連 searchFormDatas.json 必須用 GET + query 參數（formUuid/appType 放在 URL query 裡）；用 POST 把 formUuid 放進 body，後端會報「參數校驗失敗formUuid」，看板/列表會全 0',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json 的分頁參數名是 currentPage（不是 pageNumber），寫成 pageNumber 會分頁失效',
+    lint_searchformdata_bridge_unwrap: 'Yida searchFormDatas 的行資料位於 payload.data，總數位於 payload.totalCount。不能只讀取 payload.data.data；請先歸一化陣列，分頁使用 currentPage。參考 yida-canvas-data-binding。',
     lint_searchformdata_http_unwrap: 'searchFormDatas.json 瀏覽器直連的列表在 content.data（回傳 { content: { data: [...] } }），只讀 json.data 會得到 0 筆；請用 (json.content && json.content.data) 兜底解包',
     lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder 不能使用記錄元數據欄位 {0}；請改用 get-schema 回傳的真實業務欄位 ID。沒有可排序的業務日期欄位時請刪除 dynamicOrder，只在目前已取回頁內按 row.createTime 做展示排序',
     lint_setstate_non_timestamp: '偵測到 this.setState 寫入非 timestamp 欄位。業務狀態應寫入 _customState 並呼叫 forceUpdate()/setCustomState() 觸發重繪；this.setState 僅用於 timestamp 契約欄位',
@@ -1322,7 +1344,7 @@ module.exports = {
     error: '\n❌ 發布異常：{0}',
     source_not_found: '❌ 原始檔案不存在：{0}',
     source_path_hint: '💡 可嘗試使用原始檔路徑：{0}',
-    usage: '用法：openyida publish <原始檔路徑> <appType> <formUuid> [--health-check] [--canvas] [--auto-nav-order]',
+    usage: '用法：openyida publish <原始檔路徑> <appType> <formUuid> [--health-check] [--force] [--canvas] [--compat] [--skip-lint] [--auto-nav-order] [--open|--no-open] [--json]',
     example: '範例：openyida publish pages/src/xxx.js APP_XXX FORM-XXX --health-check --auto-nav-order'
   },
   qr_login: {
@@ -1845,7 +1867,7 @@ Object.assign(module.exports.save_share_config || (module.exports.save_share_con
 
 Object.assign(module.exports.publish || (module.exports.publish = {}), {
   lint_jsx_text_identifier: 'JSX 中文文案不能寫成 {{0}}，這會被當作變量並導致 {0} is not defined；請改成純文本 {0} 或字符串 {\'{0}\'}。',
-  lint_form_open_container: '自定義頁內打開表單提交/詳情只能使用 FormOpenContainer：PC 端用 50vw 抽屜 iframe，移動端才整頁或新頁打開。按鈕事件請調用 openForm({ type: "submission" | "detail", ... })。',
+  lint_form_open_container: '一般表單提交/詳情必須使用完整抽屜模板。執行 openyida sample openyida-page-template form-open-container，合併 CanvasDrawer、FormOpenContainer、useYidaFormOpen，呼叫 openForm 並渲染 formOpenContainer。PC 使用 iframe 抽屜，流動端由模板處理；不能以普通連結或自製彈層代替。',
   lint_form_detail_link: '表單詳情頁必須使用真實 formInstId：優先讀取 row.formInstId，缺少實例 ID 時禁用詳情入口或提示，不能打開空 formInstId 的 formDetail 鏈接。',
   lint_searchformdata_http_path: '直連 searchFormDatas.json 必須使用 /dingtalk/web/<appType>/v1/form/searchFormDatas.json；/query/form/searchFormDatas.json 不是有效表單數據端點',
   lint_searchformdata_http_query_params: '直連 searchFormDatas.json 的 URL query 缺少必要參數：{0}；請用 URLSearchParams 寫入 appType、formUuid、currentPage、pageSize 和 searchFieldJson',

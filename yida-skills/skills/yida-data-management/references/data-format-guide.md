@@ -6,7 +6,7 @@
 - `formDataJson` 传字符串，不直接传对象
 - `updateFormDataJson` 传字符串，不直接传对象
 - `dynamicOrder` 传字符串，不直接传对象
-- `DateField` / `CascadeDateField` 的保存、更新和测试数据值必须使用**13 位毫秒时间戳**，不要传日期字符串
+- 保存、更新和测试数据中，`DateField` 传毫秒时间戳数字，`CascadeDateField` 传毫秒时间戳数组；不要传日期字符串
 
 ## 查询条件格式
 
@@ -87,13 +87,13 @@
 }
 ```
 
-可用 JavaScript 转换固定日期：
+先按业务时区转换，再将数字填入 `--data-json` 或 `--data-file`。例如业务使用北京时间，`2026-10-18` 当天零点应写为 `1792252800000`：
 
 ```js
-new Date('2024-06-30T00:00:00+08:00').getTime()
+new Date('2026-10-18T00:00:00+08:00').getTime() // 1792252800000
 ```
 
-如果传 `YYYY-MM-DD`、`YYYY-MM-DD HH:mm:ss` 或 ISO 字符串，宜搭可能保存失败、保存为空，或导致报表/筛选异常。
+不要直接解析不带时区的日期，也不要把秒级时间戳当毫秒传入。收到“日期组件值的格式错误，必须为时间戳”时，检查字段值是否仍为 `YYYY-MM-DD`、`YYYY-MM-DD HH:mm:ss` 或 ISO 字符串；`--resolve-aliases` 不会转换日期值。
 
 ## 关联表单字段（AssociationFormField）
 

@@ -36,6 +36,14 @@ HTML 使用预置模板，保留需求总览、数据模型、业务流程、页
 
 1. 在会话中展示“当前方案”，并用 3–7 条业务摘要说明方案内容；有前后台时说明各入口导航归属，平台导航管理页只实现业务内容。导航随整体方案确认，不另设技术选型确认。
 2. 实际调用 `ask_human` 创建结构化提问。调用对象严格采用交互契约中的唯一 payload schema；`attachments` 携带 `name: "build-plan.html"`、`path: "prd/<项目名>/build-plan.html"`，`revision` 使用当前 `meta.revision`，`options` 固定为 `confirm_build` 和 `continue_editing`。一次成功调用同时建立方案展示、版本绑定和最终选择。
+最终确认直接使用如下顶层字段，不要再包装成 `fields` 问卷；`fields` 用于需求澄清或用户选择“继续调整”后的补充问题。
+
+```json
+{"question":"请确认当前搭建方案","options":[{"label":"确认并开始搭建","value":"confirm_build"},{"label":"继续调整","value":"continue_editing"}],"submitLabel":"提交选择","attachments":[{"name":"build-plan.html","path":"<outputs.html>"}],"revision":"<revision>"}
+```
+
+把 `<outputs.html>` 和 `<revision>` 替换为本次 materialize 的实际结果，不另造值。确认前不创建业务资源。
+
 3. 结构化交互成功创建后将 `meta.planState.presentedRevision=meta.revision` 写回源 JSON，仅保存展示事实，不重新物化。询问“确认并开始搭建”或“继续调整”，提交时由宿主原样回传 revision，将确认结果绑定到本次展示版本。用户可见标题、摘要、附件名称与确认问题统一使用“搭建方案”或“当前方案”，不展示修订序号。内部 revision、展示记录和确认失效机制照常维护。
 
 只有以下条件同时成立才交接；它们由本轮 ask_human 请求和回传在运行时判定，确认结果可保留在运行时，但展示版本必须写回源文件：
@@ -48,9 +56,13 @@ HTML 使用预置模板，保留需求总览、数据模型、业务流程、页
 
 ## 4. 处理调整
 
-`continue_editing` 把工作流从 `awaiting_confirmation` 转为 `editing`。下一次交互收集变更内容；收到变更后更新当前计划源，物化新 revision，并重新进入最终确认。
+修改已有方案时，从当前 `build-plan.json` 继续，只读本次涉及的字段和相关章节。已有具体修改要求就直接处理；只有用户选择 `continue_editing` 却没有说明改什么时，才在下一次交互收集修改内容。
 
-按字段更新源事实并重新生成，例如同时调整品牌色和圆角：
+1. 找到要改的源字段。业务内容由 `yida-prd` 维护，视觉内容由 `yida-design` 维护；只补读相关规则，不重走需求分析、主题选择或初始化。
+2. 将本轮变更合在一次 `patch --materialize` 中。只提交变化的字段；页面任务改变时，同步该页的视觉说明和必要引用。
+3. CLI 校验后更新 PRD、design、Plan HTML 和主题 CSS 的变化部分，保留其他内容；`updated` 返回实际改动的文件。同一次执行中，CLI 复用相同输入的主题结果和校验结果；合并了本地文档修改时仍重新检查。成功后直接用 `outputs.html` 展示修改摘要和当前方案，不再全文读取、重复生成或预检。
+
+例如，同时调整品牌色和圆角：
 
 ```bash
 openyida design-plan patch prd/<项目名>/build-plan.json \
@@ -61,6 +73,8 @@ openyida design-plan patch prd/<项目名>/build-plan.json \
 ```
 
 首版从 1 开始，内部补全保持当前版；已展示方案实质变更升一版并清空确认，相同内容及素材进度不升版。可选字段与旧计划兼容规则见 [紧凑计划契约](../../../yida-design/sub_skill/yida-design-plan/references/build-plan-compact-schema.md#可选字段-patch-与完成校验)。
+
+`build-plan.json` 是 Plan 的修改入口。固定标题和排版交给 CLI，不重写整份 `business.json`、`visual.json`、HTML 或 MD。主题文件使用 `outputs.theme` 的实际路径；已有 CSS 中的自定义样式会保留。CLI 自动维护同目录的 `.build-plan-artifacts.json` 作为上次生成记录，不手动修改它。若返回内容冲突，只读取报错文件的对应部分，将本地修改与源事实对齐后重试，不能删除记录或覆盖整份文件绕过冲突。
 
 | 调整内容 | 负责技能与传播范围 |
 | --- | --- |

@@ -41,7 +41,7 @@
 
 Plan 在 `design-plan init` 前必须补齐合法的导航字段（见下节）及 `visualSelection.themeId`。视觉沿用 `visualSelection` 的 `themeId/visualDirection/colorStrategy/navigationStyle`，AI 补齐颜色或主题时标记 `ai_default`。Fast 共用这些字段。主题 ID 尚未确定时，通过 `openyida design-plan catalog --json` 查询合法主题及页面模式，复用本轮查询结果。
 
-补齐主题和颜色前，按[设计方向比较](../../yida-design/references/style-design-selection.md#设计方向比较)完成一次内部比较；保留用户明确的风格，AI 建议记录具体业务依据。
+补齐主题和颜色前，按[设计方向比较](../../yida-design/references/theme-selection.md#设计方向比较)完成一次内部比较；保留用户明确的风格，AI 建议记录具体业务依据。
 
 `visualSelection.colorStrategy` 使用对象：`primaryColor` 填本项目选定的 6 位 HEX 色值，`primaryColorName` 填对应色名，`usage` 写配色依据及背景、主操作和强调色的关系。只有文字配色要求时也可先保存字符串；CLI 将原文放入 `usage`，并提示补齐 `primaryColor`。
 

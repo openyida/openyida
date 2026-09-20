@@ -50,7 +50,9 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-requirement-analysis/references/experience-groups.md',
   'yida-skills/skills/yida-requirement-analysis/references/handoff.md',
   'yida-skills/skills/yida-design/references/navigation-decision.md',
-  'yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/design-themes/basic-tokens.json',
+  'yida-skills/skills/yida-design/templates/design-themes/index.json',
+  'yida-skills/skills/yida-design/templates/design-themes/basic-tokens.json',
+  'yida-skills/skills/yida-design/scripts/validate_design_themes.py',
   'lib/samples/openyida-scaffold/canvas-dialog.canvas.jsx',
   ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data', 'content'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),
   'yida-skills/skills/yida-canvas-custom-page/references/dialog-guide.md',
@@ -63,6 +65,8 @@ const FORBIDDEN_PACKAGE_PREFIXES = [
   'scripts/e2e-real/',
   'scripts/eval/',
   'tests/',
+  'yida-skills/skills/yida-design/references/style-designs/',
+  'yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/design-themes/',
 ];
 
 const ALLOWED_PACKAGE_SCRIPTS = new Set([
@@ -166,6 +170,14 @@ function validatePackageContents(files) {
   for (const requiredPath of REQUIRED_PACKAGE_FILES) {
     if (!packagePaths.has(requiredPath)) {
       fail(`required runtime file is missing: ${requiredPath}`);
+    }
+  }
+
+  const themeRoot = 'yida-skills/skills/yida-design/';
+  const themeIndex = JSON.parse(fs.readFileSync(path.join(__dirname, '..', themeRoot, 'templates/design-themes/index.json'), 'utf8'));
+  for (const theme of themeIndex.themes) {
+    if (!packagePaths.has(themeRoot + theme.templatePath)) {
+      fail(`shared theme template is missing: ${themeRoot + theme.templatePath}`);
     }
   }
 

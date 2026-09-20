@@ -294,6 +294,39 @@ describe('CLI offline smoke', () => {
     });
   });
 
+  test('process and data command metadata matches output and documented input modes', () => {
+    const { commands } = JSON.parse(runOk(['commands', '--json']));
+    const process = commands.find(item => item.id === 'create-process');
+    const data = commands.find(item => item.id === 'data');
+    expect(process.output).toBe('json');
+    expect(data.output).toBe('json');
+    expect(process.notes.join(' ')).toContain('formMode=create|reuse');
+    expect(process.notes.join(' ')).toContain('formTitle、fieldCount 为 null');
+    expect(data.notes.join(' ')).toContain('CascadeDateField 传毫秒时间戳数组');
+    const help = runOk(['create-process', '--help']);
+    expect(help).toContain('<formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]');
+    expect(help).toContain('--formUuid <formUuid> <processDefinitionFile> [--replace]');
+    expect(help).toContain(process.notes[0]);
+    expect(runOk(['data', 'create', '--help'])).toContain(data.notes[0]);
+    const englishHelp = runOkWithEnv(['create-process', '--help'], { OPENYIDA_LANG: 'en' });
+    expect(englishHelp).toContain('formTitle and fieldCount are null');
+    expect(runOkWithEnv(['data', '--help'], { OPENYIDA_LANG: 'en' })).toContain('CascadeDateField uses an array');
+    const { parseArgs } = require('../lib/process/create-process');
+    expect(parseArgs(['APP', '审批表', 'fields.json', 'process.json', '--replace'])).toMatchObject({
+      appType: 'APP', formTitle: '审批表', fieldsJsonFile: 'fields.json', processDefinitionFile: 'process.json', existingFormUuid: null, replace: true,
+    });
+    expect(parseArgs(['APP', '--formUuid', 'FORM', 'process.json', '--replace'])).toMatchObject({
+      appType: 'APP', formTitle: null, fieldsJsonFile: null, processDefinitionFile: 'process.json', existingFormUuid: 'FORM', replace: true,
+    });
+  });
+
+  test('process CLI identifies incorrect arguments before login in JSON output', () => {
+    const result = runAnyWithEnv(['create-process', 'APP', '--formUuid', '--replace', '--json'], {});
+    expect(result.status).not.toBe(0);
+    const output = JSON.parse(result.stderr);
+    expect(output).toMatchObject({ success: false, errorCode: 'CREATE_PROCESS_INVALID_ARGUMENTS', details: { argument: '--formUuid', reason: 'missing_value' } });
+  });
+
   test('CRM Pro command help probes exit successfully without requiring login', () => {
     const probes = [
       { args: ['get-schema', '--help'], text: 'openyida get-schema' },
@@ -437,6 +470,27 @@ describe('CLI offline smoke', () => {
     expect(entries['design-plan.patch'].args.find(arg => arg.name === 'set')).toMatchObject({ required: true, repeatable: true });
     expect(entries.sample.args.find(arg => arg.name === 'var')).toMatchObject({ repeatable: true });
     expect(entries['create-form.batch'].args.find(arg => arg.name === 'concurrency')).toMatchObject({ type: 'integer', default: 3 });
+  });
+
+  test('page commands expose navigation recovery and form drawer validation contracts', () => {
+    const { commands } = JSON.parse(runOk(['commands', '--json']));
+    const page = commands.find(item => item.id === 'create-page');
+    const check = commands.find(item => item.id === 'check-page');
+    const help = runAny(['create-page', '--help']).output;
+    for (const flag of page.usage.match(/--[a-z][a-z-]*/g)) {
+      expect(help).toContain(flag);
+    }
+    expect(page.notes.join(' ')).toContain('CREATE_PAGE_NAVIGATION_NOT_VERIFIED');
+    expect(page.notes.join(' ')).toContain('pageCreated=true');
+    expect(page.notes.join(' ')).toContain('Never repeat create-page');
+    expect(check.requires_login).toBe(false);
+    const { parseArgs } = require('../lib/app/check-page');
+    for (const option of check.args.find(arg => arg.name === 'compat').builder_options) {
+      expect(parseArgs(['example.canvas.jsx', option, '--json'])).toEqual({ sourceFile: 'example.canvas.jsx', compat: true, json: true });
+    }
+    for (const id of ['sample', 'check-page', 'compile', 'publish']) {
+      expect(commands.find(item => item.id === id).notes.join(' ')).toContain('form-open-container');
+    }
   });
 
   test('commands --json renders machine-readable command manifest', () => {
@@ -2329,6 +2383,34 @@ describe('CLI offline smoke', () => {
     }
   });
 
+  test('Canvas compile and publish enforce form drawers even with skip-lint and force', () => {
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-form-drawer-contract-'));
+    try {
+      const source = 'workbench.canvas.jsx';
+      fs.writeFileSync(path.join(workspace, source), `
+        import React from 'react';
+        export default function Page() {
+          return <button onClick={() => window.open('/APP_TEST/submission/FORM_TEST', '_blank')}>新增</button>;
+        }
+      `);
+      for (const args of [
+        ['compile', source, '--skip-lint', '--json'],
+        ['publish', source, 'APP_TEST', 'FORM_TEST', '--skip-lint', '--force', '--no-open', '--json'],
+      ]) {
+        const result = runAnyWithEnv(args, {}, workspace);
+        expect(result.status).toBe(1);
+        expect(JSON.parse(result.jsonOutput)).toMatchObject({
+          success: false,
+          errorCode: 'OPENYIDA_CANVAS_FORM_OPEN_CONTAINER_REQUIRED',
+        });
+        expect(result.output).toContain('form-open-container');
+        expect(result.output).not.toContain('读取登录态');
+      }
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
   test('Canvas publish --json preserves emoji source error code and details before login', () => {
     const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-publish-canvas-'));
     try {
@@ -2441,6 +2523,13 @@ test('command and agent navigation policies align with AI intake decisions', () 
 
   const workflow = manifest.summary.core_workflows.full_app_build;
   for (const route of [workflow, summary.full_app_artifact_route, capabilities.commands.core_workflows.full_app_build]) {
+    expect(route.form_entry_policy).toEqual(workflow.form_entry_policy);
+    expect(route.divider_style_contract).toEqual(workflow.divider_style_contract);
+    expect(route.divider_style_contract.supported_types).toEqual(require('../lib/app/form-field-validator').DIVIDER_TYPES);
+    expect(route.divider_style_contract.supported_types).toHaveLength(23);
+    expect(route.divider_style_contract.supported_types).not.toContain('none');
+    expect(route.divider_style_contract.fallback).toBe('bold-with-thin');
+    expect(route.form_entry_policy.sample_command).toBe('openyida sample openyida-page-template form-open-container --output .cache/samples/form-open-container.jsx');
     expect(route.navigation_policy).toBe(workflow.navigation_policy);
     expect(route.entry_navigation_contract).toEqual(workflow.entry_navigation_contract);
     expect(route.application_entry_policy).toEqual(workflow.application_entry_policy);
@@ -2470,7 +2559,8 @@ test('command and agent navigation policies align with AI intake decisions', () 
     expect(route.design_mode_policy).toBe(workflow.design_mode_policy);
     expect(route.design_mode_policy).not.toContain('Confirm unresolved navigation');
     expect(route.product_design_policy).toBe(workflow.product_design_policy);
-    expect(route.product_design_policy).toContain('Theme templates use only basic-tokens.json variables');
+    expect(route.product_design_policy).toContain('Fast, Plan and single-page design share yida-design/templates/design-themes');
+    expect(route.product_design_policy).toContain('plus scoped custom-page variables');
   }
   expect(workflow.default_nav_order_policy).toContain('preserves platform navigation for the management workspace');
   expect(workflow.entry_navigation_contract).toMatchObject({
@@ -2527,6 +2617,8 @@ test('plain user-facing guidance is available from manifest and both agent capab
   expect(capabilities.commands.core_workflows.full_app_build.visual_decision_policy).toEqual(visual);
   expect(capabilities.recommended.default_full_app_workflow.visual_decision_policy).toEqual(visual);
   expect(fs.existsSync(path.join(ROOT, visual.reference.split('#')[0]))).toBe(true);
+  expect(visual.reference).toBe('yida-skills/skills/yida-design/references/theme-selection.md#设计方向比较');
+  expect(fs.readFileSync(path.join(ROOT, visual.reference.split('#')[0]), 'utf8')).toContain('## 设计方向比较');
 });
 
 test('asset fallback and completion policies are shared by the CLI, manifest and agent summary', () => {
@@ -2576,6 +2668,13 @@ test('Plan CLI preserves workspace navigation while materializing and patching a
       entryMode: 'standalone', navigation: { type: 'custom', variant: 'top', reason: '员工办理个人事项' },
     };
     plan.pages.customPageDetails.push(frontend);
+    plan.visualStyle.forUser.pageApplications.push({
+      ...plan.visualStyle.forUser.pageApplications[0], pageId: frontend.pageId, pageName: frontend.name,
+      firstScreenFocus: '员工自己的待办入口位于顶部，待处理状态紧邻入口名称。',
+      layout: '顶部为单层办理入口，下方个人记录占满内容宽度；各区按内容自然增高。',
+      responsive: '720px以下入口单列排列，个人记录保持在入口下方，表格允许横向滚动。',
+      acceptanceChecks: ['平台导航保持可见，独立入口仅隐藏本页导航；个人待办与记录范围保持一致。'],
+    });
     fs.writeFileSync(input, JSON.stringify(plan));
     runOk(['design-plan', 'materialize', input, '--json']);
     const handoff = () => JSON.parse(fs.readFileSync(path.join(dir, 'prd.md'), 'utf8').match(/```json\n([\s\S]*?)\n```/)[1]);
@@ -2599,9 +2698,11 @@ test('Plan CLI and design-file sample work locally without a login', () => {
     expect(fs.existsSync(path.join(dir, 'design.md'))).toBe(false);
     runOk(['design-plan', 'materialize', input, '--json']);
     const { readDesignTokens } = require('../lib/app/theme-from-design');
-    const contract = require('../yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/design-themes/basic-tokens.json');
+    const contract = require('../yida-skills/skills/yida-design/templates/design-themes/basic-tokens.json');
     const tokens = readDesignTokens(fs.readFileSync(path.join(dir, 'design.md'), 'utf8'));
-    expect(Object.keys(tokens).sort()).toEqual(Object.values(contract.groups).flat().sort());
+    expect(Object.keys(tokens)).toEqual(expect.arrayContaining(Object.values(contract.groups).flat()));
+    expect(Object.keys(tokens).filter(name => !Object.values(contract.groups).flat().includes(name))
+      .every(name => name.startsWith('--oyd-'))).toBe(true);
     for (const [name, value] of Object.entries(contract.fixedValues)) {
       expect(tokens[name]).toBe(value);
     }
@@ -2611,9 +2712,14 @@ test('Plan CLI and design-file sample work locally without a login', () => {
     runOk(['sample', 'yida-design', 'app-theme', '--design-file', path.join(dir, 'design.md'), '--output', cssPath]);
     const css = fs.readFileSync(cssPath, 'utf8');
     expect(css).toContain('--pod-card-border-radius: 16px');
-    for (const [tone, background] of Object.entries({ light: 'var(--color-brand1-3)', dark: 'var(--color-brand1-5)', white: '#fff', gray: '#f0f2f5' })) {
-      const block = css.match(new RegExp(`\\.pod-premium\\.nav-${tone}\\s*\\{([^}]+)\\}`))[1];
+    const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
+    const scope = (source, tone) => source.match(new RegExp(`\\.pod-premium\\.nav-${tone}\\s*\\{([^}]+)\\}`))[1];
+    for (const tone of ['dark', 'white', 'gray']) {
+      const background = tone === 'dark' ? tokens['--pod-shell-theme-bg-color']
+        : scope(template, tone).match(/--pod-shell-theme-bg-color:\s*([^;]+);/)[1];
+      const block = scope(css, tone);
       expect(block).toContain(`--pod-shell-theme-bg-color: ${background};`);
+      if (tone !== 'dark') {expect(block).toBe(scope(template, tone));}
     }
   } finally {fs.rmSync(dir, { recursive: true, force: true });}
 });

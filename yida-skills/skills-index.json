@@ -24,7 +24,7 @@
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
       "description": "创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。由 yida-prd 和 yida-design 同时准备业务与基础视觉，校验后创建或复用资源；表单/流程先于自定义页面。页面 UI 按已确认设计实现，代码示例按需参考；发布后优先按 PRD 导航顺序排序，检查后交付入口。",
-      "done_when": "需求和方案已确认，业务与视觉说明一致；PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md。仅修改单页时，发布成功后返回当前页面 URL；没有 publish 证据只能声明源码已修改，尚未发布。完整应用按实际范围交付一组入口：管理端按默认任务返回 {base_url}/{appType}/workbench 或已验证的 /workbench/{formUuid}（需要时带真实 viewUuid）；独立前台仅在页面配置回读 isRenderNav=false 且访问验证通过后交付 /custom/{formUuid}；完整应用默认提供 create-app 或 app-list 返回的 adminUrl（开发者管理后台），不受宿主或登录方式影响；仅前台时不追加业务后台，交付前台与开发者管理后台；有前后台时交付三个地址，统一工作区交付工作台与开发者管理后台。用户明确排除的入口除外，地址生成不等于已验证访问权限。final 先用 2-3 句业务语言总结创建/复用了哪些表单、页面和流程，再给主入口链接；不默认输出表格、长列表或资源 ID。缺少真实权限或多身份验证时明确说明未完成。",
+      "done_when": "需求和方案已确认，业务与视觉说明一致；PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md。仅修改单页时，发布成功后返回当前页面 URL；没有 publish 证据只能声明源码已修改，尚未发布。完整应用按实际范围交付一组入口：管理端按默认任务返回 {base_url}/{appType}/workbench 或已验证的 /workbench/{formUuid}（需要时带真实 viewUuid）；独立前台仅在页面配置回读 renderNav=false（仅缺少 renderNav 时兼容 isRenderNav）且访问验证通过后交付 /custom/{formUuid}；完整应用默认提供 create-app 或 app-list 返回的 adminUrl（开发者管理后台），不受宿主或登录方式影响；仅前台时不追加业务后台，交付前台与开发者管理后台；有前后台时交付三个地址，统一工作区交付工作台与开发者管理后台。用户明确排除的入口除外，地址生成不等于已验证访问权限。final 先用 2-3 句业务语言总结创建/复用了哪些表单、页面和流程，再给主入口链接；不默认输出表格、长列表或资源 ID。缺少真实权限或多身份验证时明确说明未完成。",
       "category": "yida-skills/app",
       "tags": [
         "宜搭",
@@ -300,6 +300,9 @@
         "window.__OPENYIDA_UTILS__",
         "官网首页",
         "工作台",
+        "办事门户",
+        "操作队列",
+        "任务看板",
         "看板页面",
         ".canvas.jsx"
       ],
@@ -308,10 +311,13 @@
         "renderJsx 平台 Jsx 组件迁移"
       ],
       "command_ids": [
+        "sample",
         "build-page",
+        "check-page",
+        "compile",
         "publish"
       ],
-      "done_when": ".canvas.jsx 源码生成或修改后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 写入 YidaCodeCanvas Schema；没有 publish 证据只能声明源码已修改，尚未发布。"
+      "done_when": ".canvas.jsx 源码生成或修改后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 写入 YidaCodeCanvas Schema；没有 publish 证据只能声明源码已修改，尚未发布。普通表单提交/详情入口必须接入 CLI 的 form-open-container 模板，绑定 openForm 并挂载 formOpenContainer；源码检查通过后，实际验证抽屉 iframe、标题栏操作、调宽及关闭刷新。"
     },
     {
       "name": "yida-canvas-data-binding",
@@ -592,7 +598,7 @@
       "name": "yida-create-page",
       "path": "skills/yida-create-page/SKILL.md",
       "display_name": "创建自定义页面",
-      "description": "创建宜搭自定义展示页面并返回 formUuid，后续用于 JSX 编写和发布。",
+      "description": "创建缺失的宜搭自定义展示页面，返回 pageId（即 formUuid）；已有页面改走开发和发布。",
       "category": "yida-skills/page",
       "tags": [
         "自定义页面",
@@ -602,7 +608,13 @@
       ],
       "aliases": [
         "新建页面"
-      ]
+      ],
+      "command_ids": [
+        "create-page",
+        "update-form-config",
+        "get-form-config"
+      ],
+      "done_when": "取得真实 pageId；要求 --hide-nav 时还须 navigationVerification.verified=true。若 pageCreated=true 但隐藏未确认，按 recovery 修复原页面，不重复创建。"
     },
     {
       "name": "yida-create-process",
@@ -660,7 +672,7 @@
       "name": "yida-dashboard",
       "path": "skills/yida-dashboard/SKILL.md",
       "display_name": "经营看板产品化交付",
-      "description": "经营看板、驾驶舱和数据大屏产品化交付，覆盖真实数据接入、筛选交互、截图、短链和钉钉待办闭环。",
+      "description": "经营分析看板、驾驶舱和数据大屏交付，用于指标判断、趋势分析和投屏监控；普通待办工作台、操作队列和办事门户使用自定义页面技能。",
       "category": "yida-skills/analytics",
       "tags": [
         "看板",
@@ -675,14 +687,18 @@
       "positive_signals": [
         "经营看板",
         "管理驾驶舱",
-        "产品化工作台",
+        "经营指标分析",
         "指标闭环",
-        "行动看板"
+        "分析结果派单"
       ],
       "negative_signals": [
         "单个 ECharts 图",
         "原生报表",
-        "只做页面视觉美化"
+        "只做页面视觉美化",
+        "待办工作台",
+        "操作队列",
+        "办事门户",
+        "任务看板"
       ],
       "command_ids": [
         "create-page",
@@ -1093,7 +1109,7 @@
       "command_ids": [
         "publish"
       ],
-      "done_when": "final 证据只认真实执行成功的 openyida publish <source> <appType> <displayPageFormUuid> 命令结果；本地文件编辑、diff、check-page 或 compile 不能证明远端页面已更新。",
+      "done_when": "final 证据只认真实执行成功的 openyida publish <source> <appType> <displayPageFormUuid> 命令结果；本地文件编辑、diff、check-page 或 compile 不能证明远端页面已更新。Canvas 普通表单入口须通过 form-open-container 源码检查；抽屉实际交互另行验收。",
       "category": "yida-skills/page",
       "tags": [
         "发布",
@@ -1358,6 +1374,10 @@
       "display_name": "自定义页面",
       "description": "自定义展示页创建、自定义页面开发、Canvas 运行桥、平台 JSX 组件页面维护、真实数据绑定、YidaCodeCanvas 迁移、页面发布、防覆盖、页面内导航壳和 PPT 页面。",
       "signals": [
+        "工作台",
+        "办事门户",
+        "操作队列",
+        "任务看板",
         "自定义页面",
         "YidaCodeCanvas",
         "Canvas 运行桥",
@@ -1382,7 +1402,7 @@
         "图表",
         "Recharts",
         "ECharts",
-        "看板",
+        "经营分析看板",
         "驾驶舱",
         "数据大屏"
       ]

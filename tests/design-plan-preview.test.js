@@ -49,6 +49,81 @@ test('visual module produces design and CSS independently and preserves custom C
   expect(fs.readFileSync(result.outputs.theme, 'utf8')).toContain('.my-dialog { border: 3px solid purple; }');
 });
 
+test('draft and final HTML hide implementation detail while keeping source facts and complete delivery artifacts', () => {
+  const page = source.pages.customPageDetails[0];
+  page.pageSpecHandoff = {
+    entryMode: 'standalone', navigation: { type: 'custom', variant: 'top', reason: '采购专员从固定菜单处理当日事项' },
+    primaryAction: '核对当前采购差异', dataBinding: 'static-empty', dataSources: [],
+    emptyReason: '供应商接口将在采购主数据验收后接入',
+  };
+  const sampleModel = source.dataModels.find(model => model.sampleRecords?.length);
+  sampleModel.sampleRecords[0]['订单名称'] = '采购培训专用办公设备演示订单';
+  source.execution = {
+    interactionStates: { error: '采购网关离线时保留待核对记录并提示重试' },
+    acceptanceCriteria: ['采购确认后逐项核验计划金额与订单金额'],
+    resourceCreationOrder: ['先准备采购主数据后创建业务页面', ...source.dataModels.map(model => model.name), page.name],
+    pageImplementationOrder: [page.pageId],
+  };
+  source.visualStyle.forUser.assetStrategy = { materialStatus: 'partial', missingAssets: ['采购企业标志待补充'], notes: '<script>previewUntrusted()</script>' };
+  const before = JSON.stringify(source);
+  fs.writeFileSync(input, before);
+  update({ overview: source.overview, dataModels: source.dataModels, businessFlows: source.businessFlows, pages: source.pages, visualStyle: source.visualStyle });
+  const draftHtml = read('build-plan.html');
+  const draftDesign = read('design.md');
+  expect(fs.readFileSync(input, 'utf8')).toBe(before);
+  expect(JSON.parse(read('.state.json')).facts).toMatchObject({ dataModels: source.dataModels, pages: source.pages, visualStyle: source.visualStyle });
+  const final = materialize(input, { outputDir: path.join(dir, 'final') });
+  const finalHtml = fs.readFileSync(final.outputs.html, 'utf8');
+  const finalPrd = fs.readFileSync(final.outputs.prd, 'utf8');
+  const finalDesign = fs.readFileSync(final.outputs.design, 'utf8');
+  const handoff = JSON.parse(finalPrd.match(/```json\n([\s\S]*?)\n```/)[1]);
+  const application = source.visualStyle.forUser.pageApplications[0];
+  const visualFacts = [application.firstScreenFocus, application.layout, application.responsive, application.surface, application.states, ...application.acceptanceChecks];
+  for (const html of [draftHtml, finalHtml]) {
+    for (const value of [source.execution.interactionStates.error, ...source.execution.acceptanceCriteria, source.execution.resourceCreationOrder[0],
+      sampleModel.sampleRecords[0]['订单名称'], page.pageSpecHandoff.emptyReason, ...visualFacts,
+      '初始示例数据', '交互状态', '页面视觉方案', '搭建顺序', '页面交付顺序', '<h3>验收标准</h3>']) {
+      expect(html).not.toContain(value);
+    }
+    for (const value of [page.name, page.primaryTask, page.permissionSummary, '自定义顶部菜单', '应用工作区保留平台导航',
+      page.pageSpecHandoff.primaryAction, '采购企业标志待补充', '部分已有', '导航顺序', '搭建范围']) {expect(html).toContain(value);}
+    expect(html.match(/class="nav-item"/g)).toHaveLength(4);
+    for (const section of ['overview', 'data-models', 'business-flows', 'pages']) {expect(html).toContain(`id="${section}"`);}
+    expect(html).not.toContain('<script>previewUntrusted()</script>');
+    expect(html).toContain('&lt;script&gt;previewUntrusted()&lt;/script&gt;');
+    expect(html.match(/<div class="card page-detail">([\s\S]*?)<\/div>/)[1]).not.toContain('<table');
+  }
+  expect(handoff.interactionStates).toMatchObject(source.execution.interactionStates);
+  expect(handoff.acceptanceCriteria).toContain(source.execution.acceptanceCriteria[0]);
+  expect(handoff.resourceCreationOrder).toEqual(source.execution.resourceCreationOrder);
+  expect(handoff.pageImplementationOrder).toEqual(source.execution.pageImplementationOrder);
+  expect(handoff.sampleDataPlan.find(item => item.form === sampleModel.name).records).toEqual(sampleModel.sampleRecords);
+  expect(handoff.pages[0].pageSpecHandoff.emptyReason).toBe(page.pageSpecHandoff.emptyReason);
+  for (const value of visualFacts) {
+    expect(draftDesign).toContain(value);
+    expect(finalDesign).toContain(value);
+  }
+  expect(fs.readFileSync(input, 'utf8')).toBe(before);
+});
+
+test('a page without specialty recipes remains visible in draft design with the real preview theme path', () => {
+  update({ pages: source.pages });
+  const visual = JSON.parse(JSON.stringify(source.visualStyle));
+  visual.forUser.pageApplications[0].visualMemoryApplications = [];
+  visual.forUser.pageApplications[0].visualMemories = [];
+  delete visual.forUser.pageApplications[0].layout;
+  const result = update({ visualStyle: visual });
+  const { metadata, body } = require('../lib/design/document').parseDesignDocument(read('design.md'));
+  expect(metadata.sceneRecipes.workbench.pages[0].pageId).toBe(source.pages.customPageDetails[0].pageId);
+  expect(body).toContain(source.pages.customPageDetails[0].name);
+  expect(body).toContain('- 布局：草稿待补充');
+  expect(metadata.themeProfile.themeFile).toBe(result.outputs.theme);
+  expect(result.draft).toBe(true);
+  expect(() => materialize(input, { fromPreview: true })).toThrow();
+  expect(JSON.parse(fs.readFileSync(input, 'utf8'))).toEqual(source);
+  expect(fs.existsSync(path.join(dir, 'design.md'))).toBe(false);
+});
+
 test('incomplete page drafts display standalone menus but cannot be finalized', () => {
   const pages = JSON.parse(JSON.stringify(source.pages));
   const page = pages.customPageDetails[0];

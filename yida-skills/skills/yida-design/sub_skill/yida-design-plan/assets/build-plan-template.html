@@ -91,9 +91,9 @@
     }
     .nav-item.is-active {
       background: rgba(0, 102, 255, 0.09);
+      color: #0066ff;
     }
     .nav-item.is-active .nav-title {
-      color: #0066ff;
       font-weight: 600;
     }
     .nav-item { text-decoration: none; }
@@ -111,12 +111,17 @@
       width: 16px;
       height: 16px;
       display: block;
-      object-fit: contain;
+      background: var(--nav-icon-image) center / contain no-repeat;
+    }
+    .nav-item.is-active .nav-icon-img {
+      background: currentColor;
+      -webkit-mask: var(--nav-icon-image) center / contain no-repeat;
+      mask: var(--nav-icon-image) center / contain no-repeat;
     }
     .nav-icon-fallback {
       width: 16px;
       height: 16px;
-      border: 1.8px solid var(--text-primary);
+      border: 1.8px solid currentColor;
       border-radius: 4px;
     }
     .nav-copy {
@@ -125,7 +130,7 @@
       align-items: center;
     }
     .nav-title {
-      color: var(--text-primary);
+      color: inherit;
       font-size: 14px;
       font-weight: 500;
       line-height: 1.25;

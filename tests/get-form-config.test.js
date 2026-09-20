@@ -93,6 +93,13 @@ describe('get-form-config fetchFormSchemaInfo', () => {
 });
 
 describe('get-form-config run', () => {
+  test('includes the persisted renderNav field in the default summary', async () => {
+    utils.httpPost.mockResolvedValue({ success: true, content: { renderNav: false } });
+    await getFormConfig.run(['APP_X', 'FORM_Y']);
+    const payload = JSON.parse(logSpy.mock.calls[logSpy.mock.calls.length - 1][0]);
+    expect(payload).toMatchObject({ success: true, renderNav: false });
+  });
+
   test('prints a summary with whitelisted fields by default', async () => {
     utils.httpPost.mockResolvedValue({
       success: true,

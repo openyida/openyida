@@ -89,7 +89,7 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 5. **使用 `YidaCodeCanvas` 组件契约**：页面代码写 `YidaComp` React 函数组件；数据、生命周期和渲染都通过 hooks、props、外层 yida JS-API 桥或连接器完成。组件内部不能直接写 `this.$(fieldId)`、`this.utils.yida.*` 或 `this.dataSourceMap`。
 6. **副作用清理**：`useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
 7. **交互控件必须受控且真正驱动数据**：筛选 `Select`、搜索 `Input`/`Input.Search`、周期切换、`Tabs`/`Segmented`、批量/重置 `Button` 等控件都用 `useState` 建立受控状态，绑定 `onChange`/`onClick`，并让 `Table`/列表/卡片的数据源通过 `useMemo` 按状态派生后渲染。切换筛选后若当前选中项失效，回退选中态（如 `selected < filteredRows.length ? selected : 0`）。
-8. **视觉壳层必须消费 design.md**：工作台、门户、看板、首页、展示页和真实交付页写页面源码前，先从 `design.md` 抽取 `backgroundLayer`、`visualScaffold.rootShell`、`surfaceMap`、`componentRecipe`、`roundedRule`、`densityRule` 和 `breathingRule`。页面背景、组件样式和主题 Provider 只作用于 `YidaComp` 的组件子树，不修改平台容器；新页面的颜色映射由生成的 CanvasThemeProvider 负责。若 `design.md` 声明圆润高密和呼吸感规则，源码必须同步到 antd `borderRadius`、CSS `border-radius`、页面 padding/gap、区块间距、列表行高、状态摘要高度、空态高度和内容安全内距，并保证卡片 padding >20px、卡片 gap <20px、卡片圆角 0-32px。
+8. **视觉壳层必须消费 design.md**：写页面源码前，通过 `designRefs` 查询 `design.md` frontmatter 的 anchor 索引，读取当前页八项设计与对应共享组件、状态规则。页面外壳、焦点、布局、表面、动作、反馈和响应式都要落实，但不要求旧 `visualScaffold` 等字段。页面背景、组件样式和主题 Provider 只作用于 `YidaComp` 的组件子树，不修改平台容器；新页面的颜色映射由生成的 CanvasThemeProvider 负责。主题和当前页面明确的圆角、padding/gap、密度与分组节奏优先，通用数值只在未定义时兜底；同步到 CSS、antd 和真实布局，不用固定内距或大圆角覆盖已选主题。
 9. **按数据来源接入**：表单页面填写 `dataBinding.mode="form"`、真实 `appType/formUuid` 和字段 ID，通过 `useYidaData(binding)` / `DataBridge` 调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`。每行业务字段位于 `row.formData[fieldId]`；先按 `row.formData || row.data || row` 和真实字段 ID 转为页面行数据，再把表格 `dataIndex` 绑定到转换后的字段。根级工具使用 `window.__OPENYIDA_UTILS__`。连接器填写 `Http_*` 格式的 `connectorName`、`operationId`、`connectionId`，通过 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)` 调用，Body 传对象。密钥、Cookie 和签名由平台或后端保存。数据桥、同源接口兜底与字段映射见 [数据接入](references/data-bridge-guide.md)。
 10. **表单排序只使用真实业务字段 ID**：`searchFormDatas` 的 `dynamicOrder` key 必须来自当前 `get-schema` 返回的真实业务字段 ID，禁止使用返回记录的元数据名 `gmtCreate`，不得生成 `dynamicOrder: { "gmtCreate": "-" }`。没有可排序的业务日期字段时删除 `dynamicOrder`；如仅需调整当前已取回页的展示顺序，可在响应解包后按 `row.createTime` 排序，但不能声称实现了跨页稳定排序。遇到 `selectListException 无法找到字段:gmtCreate` 时，先移除错误排序参数、重新回读 Schema 并使用真实字段 ID，再重新发布。
 11. **分页查询默认写 50**：表单、流程、任务、成员等分页查询参数一般显式写 `pageSize: 50` 或 `pageSize: '50'`。只有用户明确要求小页或大页时才改成其他值，且不得超过平台上限 100。
@@ -118,7 +118,7 @@ function setNavigationTitle(title) {
 6. **先验证再扩展业务**：原生组件、上传、组织搜索、弹层类能力先做 smoke 页面，确认 PC/移动端都可用后再进入复杂业务页面。
 7. **按设计编写 UI，示例按需参考**：新建 `.canvas.jsx` / `.canvas.tsx` 时，直接按 PRD、`design.md`、真实数据和页面交互实现，允许从空文件编写。需要参考完整表单交互时，可执行 `openyida sample openyida-page-template canvas-form-drawer --output .cache/samples/form-drawer.canvas.jsx --var APP_TYPE=<appType> --var FORM_UUID=<formUuid>`；整页示例按需参考；含表单打开入口时，必须按下方“表单打开入口统一容器”整体合并抽屉片段，不能裁剪交互能力。页面其余布局、材质、留白、圆角和选中态按设计实现。未改写的示例不得直接发布；页面 UI、业务文案、交付说明和 final 中不出现内部示例名、生成过程或实现代号。使用示例时，发布前删除 `@openyida-page-template-base`、`SAMPLE_ROWS`、`{{APP_TYPE}}` / `{{FORM_UUID}}`、示例数据和占位文案。
 8. **用文件编辑工具维护源码**：业务源码使用 Write/Edit/patch 编写，已有 JSX/CSS/JSON 源码只做定点 Edit。主题代码使用 `sample` 提取，或由 `scripts/build-canvas-theme.js` 插入标记处并输出独立文件。修改业务时编辑原始文件，再重新运行主题脚本。
-9. **light 页面使用清爽业务色**：业务列表、协同表、数据管理页、工作台和门户默认使用 light 模式；主操作、选中态、筛选焦点和批量操作使用品牌色，边框用浅色品牌混合。用户明确要求暗色大屏/夜间模式/高对比风格时使用深色主视觉。
+9. **按整页关系配色**：业务列表、协同表、数据管理页、工作台和门户默认使用 light 模式；指标、按钮和选中态按 `design.md` 的颜色角色实现，可用与品牌不同但协调的颜色，不默认黑色或全部使用主色。按[指标卡与按钮配色](../yida-design/references/application-theme-consistency.md#指标卡与按钮配色)检查背景、前景、强调面积和交互状态。用户明确要求暗色大屏/夜间模式/高对比风格时使用深色主视觉。
 10. **门户运行态组件要补必需 props 和局部降级**：`QuickAccessCard` / `RecentlyUsedCard` 传 `theme="row-white"` 等必需 props；所有门户/字段/上传增强组件外层加局部 ErrorBoundary，单个组件不兼容时只降级该块，整页保持可用。
 
 11. **选择页面编写方式**：结构明确时直接编写 `.canvas.jsx`；使用生成器时，从 `prd.md + design.md` 整理 `page-spec.json`，填写 `sourceOfTruth.prdFile/designFile/designRefs/conflictPolicy`，生成后读取 CLI 摘要或 `.openyida-page.json`。业务缺漏补 PRD，视觉缺漏补 design.md，再更新 spec；源码中的布局、字段映射或编译问题直接 Edit/patch。详见 [页面生成](references/page-generation-guide.md)。
@@ -126,7 +126,7 @@ function setNavigationTitle(title) {
 13. **页面产物使用纯文本业务文案**：`.canvas.jsx` 源码、`page-spec.json` 中会渲染到页面的文案、JS 注释、数据常量和产物文件路径都使用无 emoji 文本。页面生成、`compileCanvasLocal` 或 `publish` 报 emoji 错误时，先改 spec/源码/路径，再重新校验发布。若 emoji 原本承担图标含义，必须按 `design.md.iconSystem` 改成 `lucide-react` 或 `@ant-design/icons` 的具体组件，默认 `lucide-react`；不得用 CSS 绘制图形、单字母、首字母、标点符号、Unicode 符号或临时 SVG 冒充图标。
 14. **JSX 文案只能是文本或字符串**：JSX 文案只能写成纯文本 `所有级别` 或带引号字符串 `{'所有级别'}`；筛选项、按钮、状态、空态和表格列名等中文业务文案都按此规则书写。花括号里只能放真实 JS 变量/表达式，不能把中文文案写成 `{所有级别}`、`{处理中}`；Unicode escape 被工具解码后也必须保留字符串引号。
 15. **先区分应用导航与入口菜单**：按 PRD 应用 navigationType 和当前页 pageSpecHandoff.entryMode/navigation 执行。普通页默认保留平台导航，页面内 tab 不触发应用级隐藏；独立前台可有自己的顶部、侧边或底部菜单，执行 `use_skill("yida-nav-shell")` 的页面级分支，只配置当前页。仅整个应用采用自定义导航时才执行 `openyida update-app <appType> --hide-app-nav`；不得因前台 custom 隐藏后台应用菜单。
-16. **表单打开入口统一容器**：全码前台直接实现填写与结果并连接真实 API，不强制替换为 iframe；以下只约束复用原生表单的打开入口。计划选择打开原生表单的新增、提交和详情操作统一使用 `FormOpenContainer`，接入真实表单、实例 ID 和刷新函数。**MUST** 先执行 `openyida sample openyida-page-template form-open-container --output .cache/samples/form-open-container.jsx` 拉取当前模板，再整体合并 `CanvasDrawer` / `FormOpenContainer` / `useYidaFormOpen` 及依赖的辅助函数和 import。禁止自绘 fixed 遮罩 + iframe 抽屉壳；必须保留 `.openyida-form-drawer`、三个 header 图标操作、拖拽调宽、关闭刷新、移动端处理和 iframe 自适应高度。设计调整通过模板主题变量和已有 props 完成，不得重写外壳。调用方式见 [容器接入示例](references/navigation-and-entry-guide.md#接入示例)。应用级报名、申请等导航入口按 [入口用途](../yida-nav-shell/references/nav-shell-patterns.md#入口用途与嵌入页面) 在主内容区嵌入提交页。
+16. **表单提交必须接入提供的抽屉模板**：前台、后台、Fast、Plan 的页面内新增、报名、申请、预约等普通表单提交，以及表单详情入口，统一使用 `FormOpenContainer`；不能因为页面是全码开发就自绘填写表单并直接调用提交 API，也不能由 AI 自行改成普通链接、新窗口或简化弹层。先执行 `openyida sample openyida-page-template form-open-container --output .cache/samples/form-open-container.jsx`，整体合并 `CanvasDrawer` / `FormOpenContainer` / `useYidaFormOpen` 及其 import 和辅助函数。业务按钮调用 `openForm`，页面 JSX 必须渲染 `formOpenContainer`，接入真实表单、实例 ID 和刷新函数。保留三个标题栏图标操作、拖拽调宽、关闭刷新和 iframe 自适应高度；移动端打开方式由模板处理。只能通过主题变量和现有 props 调整外观，不重写外壳。搜索筛选不是表单提交；已明确的表格批量录入沿用专用技能。应用级导航已确定在主内容区嵌入原生提交页时按 [入口用途](../yida-nav-shell/references/nav-shell-patterns.md#入口用途与嵌入页面) 执行；不能以此绕过页面内按钮的抽屉要求。接入步骤见 [标准容器](references/navigation-and-entry-guide.md#接入示例)。
 17. **图标资源固定为可加载库**：页面图标只使用 `lucide-react` 或 `@ant-design/icons`，默认使用 `lucide-react` named import。只有页面已经采用 Ant Design 图标语言、或 antd 组件语境需要 Outlined 图标时，才使用 `@ant-design/icons`。快捷入口、按钮、状态、导航和空态图标在写源码前先建立 `actionIconMap` / `statusIconMap`，按业务语义映射到具体组件，例如 `Plus`、`Upload`、`Download`、`Eye`、`Building2`、`AlertCircle`、`Check`。图标外层可以用 CSS 控制尺寸、颜色、圆角、背景和 hover，但图标本体必须来自上述两类组件，不能用 CSS 形状、字母或 emoji 替代。包名可用不代表任意图标都存在；以宜搭运行时导出为准，不照搬最新版官网名称。`OPENYIDA_CANVAS_ICON_EXPORT_UNAVAILABLE` 必须修正具体 import 后重新编译；动态名称使用显式组件映射并提供可用图标兜底，详见 [运行时图标校验](references/component-library-guide.md#运行时图标校验)。
 
 18. **对话框统一消费主题 token**：新增或改造对话框时，执行 `openyida sample openyida-page-template canvas-dialog --output .cache/samples/canvas-dialog.jsx`，将 `CanvasDialog` 合并到当前页面并接入业务状态，见 [对话框](references/dialog-guide.md)。标题、正文、背景、页脚、关闭按钮和操作按钮均消费应用 token；整体暗色适配与导航明暗分别判断。
@@ -137,9 +137,9 @@ function setNavigationTitle(title) {
 
 ## 主题实现入口
 
-纯 DOM 页面直接消费平台 CSS 变量，不必引入 antd 或 Provider。
+纯 DOM 页面直接消费平台 CSS 变量，不必引入 antd 或 Provider。按 [共用主题规则](../yida-design/references/application-theme-consistency.md) 引用画布、卡片、文字与特色角色；风格缺项回写设计源，不在页面根复制固定色盘。
 
-antd 页面使用 CanvasThemeProvider，图表通过 useCanvasThemeContext 取色。`sample` 输出的表单抽屉、批量表格和趋势图页面已接好主题；其他页面按 [主题接入步骤](references/canvas-theme-provider.md) 操作。
+antd 页面使用 CanvasThemeProvider，图表通过 useCanvasThemeContext 取色。`sample` 输出的表单抽屉、批量表格和趋势图页面已包含主题与加载遮罩防闪边样式，合并代码时保留 Provider 内的 style；其他页面及旧页面升级按 [主题接入步骤](references/canvas-theme-provider.md) 操作。
 
 页面入口按 `YidaComp → CanvasThemeProvider → PageContent` 组织，主题 hook 放在 PageContent 或其子组件内。编译通过后，打开实际页面检查首屏、主题和交互。
 

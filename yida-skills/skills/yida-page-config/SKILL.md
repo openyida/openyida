@@ -74,7 +74,7 @@ openyida update-form-config <appType> <formUuid> false "<页面标题>"
 
 这条命令只设置页面级 `isRenderNav=false`。只有整个应用采用自定义导航时，才使用 `openyida update-app <appType> --hide-app-nav` 隐藏应用导航；独立访客端自定义菜单与管理端平台导航共存时，保留 `hideAppNav=n`。页面内是否显示导航、平台菜单是否包含该页、实际访问权限分别配置。详见 [访问态入口契约](../yida-app/references/entry-navigation.md)。
 
-完整应用的独立入口必须在写入后再执行 `openyida get-form-config <appType> <formUuid> --json`。只有回读确认 `isRenderNav=false` 后，才输出不带查询参数的 `/custom/{formUuid}`；失败时保留 `/workbench`，不把 URL 参数当作持久配置成功证据。
+完整应用的独立入口必须在写入后再执行 `openyida get-form-config <appType> <formUuid> --json`。只有回读确认 `renderNav=false` 后，才输出不带查询参数的 `/custom/{formUuid}`；仅缺少 `renderNav` 时兼容 `isRenderNav`，布尔值和字符串 `"false"` 均可，缺失或无效值不算成功。失败时保留 `/workbench`，不把 URL 参数当作持久配置成功证据。
 
 创建 dashboard 页面时，只有用户明确要求隐藏页面导航才使用：
 

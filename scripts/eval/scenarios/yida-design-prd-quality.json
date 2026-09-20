@@ -70,29 +70,36 @@
     "expectedSkill": "yida-design",
     "requiredPatterns": [
       "design.md",
-      "三栏",
+      "schemaVersion",
+      "application-global",
+      "custom-page",
+      "themeProfile",
+      "sceneRecipes",
+      "components",
+      "states",
+      "assetStrategy",
+      "iconSystem",
+      "<a id=",
+      "页面任务",
+      "首屏焦点",
+      "布局",
+      "表面与组件",
+      "主操作",
+      "状态",
+      "响应式",
+      "验收",
       "主趋势",
       "风险",
-      "事件流",
-      "visualScaffold",
-      "prioritySurface",
-      "contentPrimitive",
-      "contextPrimitive",
-      "statePrimitive",
-      "backgroundLayer",
-      "surfaceMaterial",
-      "surfaceContrast",
-      "colorRoles",
-      "densityRule",
-      "breathingRule",
-      "roundedRule",
-      "themeRelation"
+      "事件流"
     ],
     "forbiddenPatterns": [
       "pageSpecHandoff",
       "资源创建顺序",
       "导航顺序",
-      "四张等宽 KPI"
+      "四张等宽 KPI",
+      "baseDesignSource:",
+      "styleDesignSelection:",
+      "themeId:"
     ]
   }
 ]

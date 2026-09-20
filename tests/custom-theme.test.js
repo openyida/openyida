@@ -20,6 +20,30 @@ function buildBrandScale(overrides = {}) {
 }
 
 describe('custom app theme helpers', () => {
+  test.each([
+    ['unclosed root', css => css.slice(0, -1)],
+    ['extra closing brace', css => css + '}'],
+    ['unclosed function', css => css + '\n.panel { color: var(--color-brand1-6; }'],
+    ['unclosed comment', css => css + '\n/* comment'],
+    ['unclosed string', css => css + '\n.panel { content: "open; }'],
+  ])('rejects %s before theme generation or upload', (_label, mutate) => {
+    const css = mutate(`:root {\n${buildBrandScale()}\n}`);
+    expect(() => validateThemeCssContent(css)).toThrow(expect.objectContaining({
+      code: 'THEME_CSS_STRUCTURE_INVALID',
+      details: expect.objectContaining({ line: expect.any(Number) }),
+    }));
+  });
+
+  test('allows literal braces, escapes and nested media rules', () => {
+    const css = `:root {\n${buildBrandScale()}\n}
+      /* unmatched literal { in a closed comment */
+      .panel::before { content: "}"; }
+      .escaped\\{ { color: var(--color-brand1-6, #123456); }
+      @media (max-width: 768px) { .panel { padding: calc(4px + 1vw); } }
+    `;
+    expect(() => validateThemeCssContent(css)).not.toThrow();
+  });
+
   test('accepts the modern theme template token patterns', () => {
     expect(() => validateThemeCssContent(`
       :root {

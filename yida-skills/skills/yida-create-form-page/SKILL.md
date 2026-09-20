@@ -139,7 +139,7 @@ CLI 在同一次 batch 内对已取得真实 `formUuid` 的空壳表单执行一
 - 局部多列：短字段且天然成对或成组时使用 `ColumnContainer`，例如开始/结束日期、姓名/工号、部门/岗位、金额/币种、联系人/电话。
 - 全局 `--layout double`：只有用户明确要求“整个表单双列”时才使用；一般更推荐在字段 JSON 内用 `ColumnContainer` 做局部多列。
 - 语义分组：按业务含义分段，不按字段数量平均分。常见分组包括“基本信息”“业务信息”“时间计划”“补充材料”“审批信息”。
-- Divider 样式：默认 `bold-with-thin`；显式样式按 `bold-with-thin` → `double-color-trapezoid` → `left-dot-title` → `solid` / `dashed` / `thick` / `dotted` 优先级选择；门户/强分区场景可统一显式使用 `multi-parallelograms-end`。
+- Divider 样式：按页面业务、字段密度和主题，从 [23 个可见样式](references/form-field-properties.md#divider) 中选择并显式填写 `dividerType`；不要套用固定推荐顺序。
 - 字段 JSON 和表单 Schema JS 只承载表单结构与业务动作。
 
 推荐结构：
@@ -155,7 +155,7 @@ Divider > Field
 
 - 字段必须先覆盖 PRD 明确要求，再按真实业务补充少量必要字段，避免堆砌冗余字段。
 - 字段较多时必须用 `Divider` 做语义分组；每个分组开头都要有 `Divider`，包括第一个分组；`Divider` 不放在字段列表末尾。
-- 同一张表单内所有 `Divider` 必须使用同一个 `dividerType`，标题要能概括分组下字段的共同主题。
+- 同页同层级的 `Divider` 尽量使用同一个 `dividerType`；不同业务页面优先选择不同且合适的样式；场景不明确或候选同样合适时，按页面随机轮换，并把选定值写入 `dividerType`，同页不逐组随机。标题概括组内字段，已有页面局部修改沿用原样式。
 - 完整业务应用包含多张表单时，表单之间应有业务关联；涉及数据流转的主表建议有文本型业务编号/名称字段，涉及时间、金额、数量的业务应使用日期/数值字段表达。
 - 复杂业务表单应自然使用多种字段类型，例如文本、数值、日期、选择、成员/部门、附件、子表、关联表单；字段类型多样性服务于业务语义。
 - `TableField` 必须提供 `children` 子字段，`AssociationFormField` 必须提供关联表单信息。
@@ -290,7 +290,7 @@ openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
 
 ```json
 [
-  { "type": "Divider", "title": "基本信息" },
+  { "type": "Divider", "title": "基本信息", "dividerType": "light-left-bar" },
   {
     "type": "ColumnContainer",
     "layout": "6:6",
@@ -299,7 +299,7 @@ openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
       [{ "type": "DepartmentSelectField", "label": "所属部门" }]
     ]
   },
-  { "type": "Divider", "title": "业务信息" },
+  { "type": "Divider", "title": "业务信息", "dividerType": "light-left-bar" },
   { "type": "TextField", "label": "事项名称", "required": true },
   { "type": "SelectField", "label": "优先级", "dataSource": ["P0", "P1", "P2"] },
   { "type": "AttachmentField", "label": "附件" }

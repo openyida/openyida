@@ -615,7 +615,7 @@ describe('compileCanvasLocal', () => {
     }));
   });
 
-  test('allows mobile-only full-page form opens when desktop uses FormOpenContainer state', () => {
+  test('rejects mobile-only form opens when the desktop container is never mounted', () => {
     const source = `
       import React, { useState } from 'react';
       export default function App() {
@@ -635,7 +635,9 @@ describe('compileCanvasLocal', () => {
       }
     `;
 
-    expect(() => compileCanvasLocal(source)).not.toThrow();
+    expect(() => compileCanvasLocal(source)).toThrow(expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_FORM_OPEN_CONTAINER_REQUIRED',
+    }));
   });
 
   test('rejects detail open requests without formInstId', () => {
@@ -707,18 +709,19 @@ describe('compileCanvasLocal', () => {
   });
 
   test('allows detail opens that resolve row.formInstId first and block missing ids', () => {
-    const source = `
-      import React, { useState } from 'react';
+    const template = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/canvas-form-drawer.canvas.jsx'), 'utf8');
+    const fragment = template.split('// @openyida-form-drawer:start')[1].split('// @openyida-form-drawer:end')[0];
+    const source = `${fragment}
       export default function App() {
-        const [formRequest, setFormRequest] = useState(null);
+        const { openForm, formOpenContainer } = useYidaFormOpen('APP_X');
         function openDetail(row) {
           const formInstId = row && (row.formInstId || row.formInstanceId || row.instanceId || row.id);
           if (!formInstId) {
             return;
           }
-          setFormRequest({ type: 'detail', title: '订单详情', formUuid: 'FORM_XXX', formInstId });
+          openForm({ type: 'detail', title: '订单详情', formUuid: 'FORM_XXX', formInstId });
         }
-        return <button onClick={() => openDetail({ formInstId: 'FINST_1' })}>{formRequest ? '打开中' : '详情'}</button>;
+        return <><button onClick={() => openDetail({ formInstId: 'FINST_1' })}>详情</button>{formOpenContainer}</>;
       }
     `;
 

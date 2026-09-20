@@ -399,8 +399,8 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida design-plan catalog [--json]` | List available planning themes and page patterns |
 | `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | Initialize a plan draft from confirmed requirements |
 | `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | Update plan drafts by module |
-| `openyida design-plan materialize <build-plan.json> [--from-preview \| --business-file <json> --visual-file <json>] [--output-dir <dir>] [--check] [--json]` | Generate and validate design-plan artifacts from build-plan.json |
-| `openyida design-plan patch <build-plan.json> --set <path=value> [--set <path=value> ...] [--materialize] [--output-dir <dir>] [--json]` | Patch a design plan; asset progress preserves existing approval |
+| `openyida design-plan materialize <build-plan.json> [--from-preview \| --business-file <json> --visual-file <json>] [--output-dir <dir>] [--check] [--json]` | Generate or update plan documents and theme with consistency checks |
+| `openyida design-plan patch <build-plan.json> --set <path=value> [--set <path=value> ...] [--materialize] [--output-dir <dir>] [--json]` | Patch plan fields and optionally sync documents and theme |
 | `openyida update-app <appType> [--name "..."] [--desc "..."] [--icon <name>] [--icon-color <color>] [--colour <key>] [--theme-color <color>] [--theme-file <css>] [--nav-theme light\|dark\|white\|gray] [--logo-source appIcon\|customImage] [--layout side\|top\|l_shape] [--hide-app-nav\|--show-app-nav]` | Update app info |
 | `openyida app-online <appType> [--to-ding-app-center] [--show-app-center]` | Enable a Yida app |
 | `openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]` | Disable a Yida app |
@@ -430,12 +430,13 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | Manage aggregate tables (virtualView) |
 | `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | Get one form Schema or all form Schemas |
 | `openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]` | Check PRD page/resource count risk |
+| `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | Validate design documents, theme tokens and PRD handoff |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | Export app entity relationship diagram |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page |
 | `openyida build-page <sourceFile> [--output file\|--write]` | Build Yida-compatible page source |
-| `openyida check-page <src> [--compat]` | Check custom page standards |
-| `openyida compile <src> [--canvas] [--json]` | Compile custom page locally |
-| `openyida publish <src> <appType> <formUuid> [--health-check] [--force] [--canvas] [--auto-nav-order] [--open\|--no-open]` | Compile and publish custom page |
+| `openyida check-page <src> [--compat] [--json]` | Check custom page standards |
+| `openyida compile <src> [--canvas] [--compat] [--skip-lint] [--json]` | Compile custom page locally |
+| `openyida publish <src> <appType> <formUuid> [--health-check] [--force] [--canvas] [--compat] [--skip-lint] [--auto-nav-order] [--open\|--no-open] [--json]` | Compile and publish custom page |
 | `openyida update-form-config <appType> <formUuid> <true\|false\|keep> "<title>" [--locale zh_CN\|en_US\|ja_JP]` | Update form configuration |
 | `openyida get-form-config <appType> <formUuid> [--json]` | Query form configuration |
 
@@ -458,7 +459,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | Command | Description |
 |---------|-------------|
 | `openyida configure-process <appType> <formUuid> <definition> [processCode] [--replace]` | Configure and publish process rules; Supports append/forward via JSON nodes[].actions.normalActions/appendActions |
-| `openyida create-process <appType> ... [--replace]` | Create process form (all-in-one); Supports append/forward via JSON nodes[].actions.normalActions/appendActions |
+| `openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace] \| create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]` | Create process form (all-in-one); Supports append/forward via JSON nodes[].actions.normalActions/appendActions |
 | `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | Manage process form AI approval prompts |
 | `openyida process preview <appType> ...` | Preview process instance (visual flowchart) |
 

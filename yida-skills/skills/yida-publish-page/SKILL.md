@@ -44,6 +44,7 @@ description: 自定义页面编译发布技能；发布 YidaCodeCanvas 页面时
 - 推荐源码放在 `project/pages/src/`：使用 `YidaCodeCanvas` 组件实现的页面用 `<页面名>.canvas.jsx` / `<页面名>.canvas.tsx`；平台 `Jsx` 组件维护源码用 `<页面名>.oyd.jsx` / `<页面名>.jsx` / `<页面名>.tsx`
 - 发布前注意 CLI 会检查 `<workspace>/project/pages/src/` 与 `<workspace>/projects/<id>/artifacts/` 中同名源码是否内容不一致；出现警告时必须确认实际要发布哪一份
 - 发布前确认 `openyida env` 检测通过，登录态有效
+- Canvas 页面含普通表单提交/详情入口时，沿用 `openyida compile <源文件> --json` 预检，并核对标准 `form-open-container` 片段已接入、`openForm` 已绑定、`formOpenContainer` 已挂载。不能通过添加同名空组件或忽略检查来绕过；发布后实际点击，验证 iframe、标题栏三个操作、拖拽调宽及关闭刷新。源码检查通过不代替交互验收。
 - corpId 不匹配时，必须询问用户是否切换组织，不得强行发布
 - 重新发布已有自定义页面时，`openyida publish` 会自动读取目标页面现有 Schema 并合并页面级 `dataSource`；不要靠 Agent 口头承诺“保留数据源”，必须使用新版 CLI 的默认保护能力
 - 如果源码包含 `this.dataSourceMap.`，而发布输出包含 `No custom page data sources to preserve`，本次发布不能视为完成；说明源码依赖设计器数据源但目标页没有可保留数据源。必须回到对应页面开发技能修复源码并重新发布，或先通过 `yida-data-source-connectors` 创建并绑定数据源后重新发布
@@ -70,7 +71,7 @@ description: 自定义页面编译发布技能；发布 YidaCodeCanvas 页面时
 ## 命令
 
 ```bash
-openyida publish <源文件路径> <appType> <formUuid> [--compat] [--canvas] [--health-check] [--auto-nav-order] [--force]
+openyida publish <源文件路径> <appType> <formUuid> [--health-check] [--force] [--canvas] [--compat] [--skip-lint] [--auto-nav-order] [--open|--no-open] [--json]
 ```
 
 路径口径：从仓库根执行时，源文件用 `project/pages/src/...`；如果 Bash cwd 已经是 `<workspace>/project`，源文件用 `pages/src/...`，不要传 `project/pages/src/...` 导致查找 `project/project/pages/src/...`。发布失败提示源文件不存在时，先按该规则切换路径，不要自动发布另一份文件。
@@ -88,6 +89,9 @@ openyida publish <源文件路径> <appType> <formUuid> [--compat] [--canvas] [-
 | `--health-check` | 否 | 发布成功后用 token 读回目标页面 Schema，校验 `YidaCodeCanvas.runtimeCode` 或平台 `Jsx + actions.module.compiled` 与本次发布内容匹配；不请求页面 HTML，不依赖 Cookie |
 | `--auto-nav-order` | 否 | 仅在 PRD 缺少明确导航清单时使用；完整应用逐页发布不传此参数，全部页面开发并发布完成后由主流程单独执行 `nav-group auto-order`；PRD 已写明顺序时不要传本参数，发布后只执行一次 `openyida nav-group order <appType> <页面/表单...>`。排序失败不回滚页面，结果保留在结构化 `navOrder` 中 |
 | `--force` | 否 | 显式绕过发布目标类型保护；只有确认目标是自定义页面但导航接口暂时无法识别时才使用 |
+| `--skip-lint` | 否 | 历史平台 JSX 的 lint 开关；不跳过 Canvas 编译和抽屉检查，不能用来满足发布验收 |
+| `--open` / `--no-open` | 否 | 控制成功后是否返回浏览器打开提示，由宿主执行打开 |
+| `--json` | 否 | 机器可读输出；不改变校验和发布流程 |
 
 ## 确认命令
 

@@ -11,4 +11,4 @@
 
 同一目标、同一次搭建以 `intake.designMode` 作为权威模式状态。需求澄清、`ask_human` 恢复和 brief 合并都携带该状态；用户新的明确模式选择触发状态转换，其他回答只更新各自声明的字段。新目标重新初始化模式判断。已有应用的局部增改、单页美化和主题调整直接处理本次任务，遇到会改变范围的问题再澄清。
 
-两种方式共用业务和视觉契约；Plan 额外展示方案并绑定当前版本确认。面向用户的表达与宿主适配见 [用户交互契约](ask-human-interaction-contract.md)。
+两种方式与单页设计共用 [主题索引](../templates/design-themes/index.json) 和 [选型规则](theme-selection.md)，选前只读摘要、选后读取一份完整主题；共用业务和视觉契约；Plan 额外展示方案并绑定当前版本确认。面向用户的表达与宿主适配见 [用户交互契约](ask-human-interaction-contract.md)。

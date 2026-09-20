@@ -60,6 +60,7 @@
 
 ### <页面名>
 
+- pageId：<display-page必填，复用共享需求/设计中的稳定页面ID；原生页面不补造>
 - 页面类型：<display-page / form-page / process-form / report / detail-entry>
 - 页面定位：<主入口页面 / 核心业务页 / 详情页 / 报表页 / 配置页；说明为什么需要这个页面>
 - 入口模式：<`platform-shell` / `standalone`；信息不足时必须写 `platform-shell`>
@@ -219,4 +220,4 @@
 | corpId | <目标组织 corpId；未知时写“待登录态确认”> |
 | baseUrl | <平台地址，如 https://www.aliwork.com 或私有化域名> |
 
-自定义导航逐页设置 isRenderNav=false 并回读；业务说明写平台导航的显示方式及页面切换行为。
+自定义导航逐页设置 isRenderNav=false 并回读 renderNav=false，字段兼容规则见导航壳技能；业务说明写平台导航的显示方式及页面切换行为。

@@ -86,6 +86,20 @@ test('reads component scope and omits invalid colors', () => {
   expect(fixture.probe.remove).toHaveBeenCalled();
 });
 
+test('loading-mask protection renders before theme effects and survives compilation', () => {
+  const fixture = setup();
+  // The guard must be present in the first render, even before theme CSS is ready.
+  fixture.context.window.React.useLayoutEffect = jest.fn();
+  const tree = fixture.context.CanvasThemeProvider({ children: 'business content' });
+  expect(tree.props['data-canvas-theme-status']).toBe('loading');
+  const style = tree.children[0];
+  expect(style.type).toBe('style');
+  expect(style.children[0]).toMatch(/\[data-canvas-theme-status\] \.ant-spin-nested-loading \.ant-spin-container::after\s*\{/);
+  expect(style.children[0]).toMatch(/border:\s*0 solid transparent;/);
+  expect(style.children[0]).toMatch(/transition:\s*opacity 0\.3s;/);
+  expect(style.children[0]).not.toMatch(/transition:\s*all|!important/);
+});
+
 test('refreshes after late theme load and clears removed tokens, then cleans up', () => {
   const fixture = setup();
   fixture.context.CanvasThemeProvider({});

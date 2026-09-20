@@ -35,6 +35,13 @@ description: 流程表单一体化创建（创建表单 → 转流程 → 配置
 - 创建或转换任何远程资源前，CLI 必须先完成字段和流程定义的纯本地编译；本地编译失败时远程写入数必须为 0
 - 复用普通表单时由 `configure-process` 统一执行表单模式只读 preflight、必要转换、发布与平台 view 回读，不要在外层先手动转换表单
 
+## 配置失败后的原表恢复
+
+- `create-process` 返回 `success:false` 且包含 `formUuid` 时，该表单已经存在，失败的是后续配置；新建模式与复用模式均适用。保存返回的 `appType/formUuid`，禁止去掉 `--formUuid`、再次 `create-form` 或另建同名表作为恢复手段。
+- 先按错误中的 `stage`、`nextStep` 和 `recovery` 检查原表状态及权限。修正明确原因后只能复用原 `formUuid`，使用返回的完整 `retryCommand`；不得自动补 `--replace` 绕过已绑定流程的保护。
+- `noWriteRetry:true`、`NON_IDEMPOTENT_RESULT_UNKNOWN` 或 `PUBLISHED_UNVERIFIED` 表示远程结果未确认：只读核实原表/流程，不能执行写重试，也不能新建替代资源。
+- 无法安全恢复时保留原表，并向用户报告原表链接、失败阶段和需处理的问题；不要宣称流程已完成。
+
 ## 适用场景
 
 用户需要"创建审批流程"、"新建流程表单"、"搭建审批系统"，且 resource context 没有既有流程/表单目标时使用。
@@ -56,7 +63,7 @@ description: 流程表单一体化创建（创建表单 → 转流程 → 配置
 ## 用法 1：全新创建
 
 ```bash
-openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>
+openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]
 ```
 
 ## 用法 2：复用已有表单（推荐）
@@ -76,11 +83,15 @@ openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> 
 | `processDefinitionFile` | 是 | 流程定义文件（格式同 `yida-process-rule`） |
 | `--replace` | 条件必填 | 仅当目标已存在 PUBLISHED 流程或 SAVED 草稿，并已获得用户对整图替换的明确确认时传入 |
 
+参数不确定时先看 `openyida create-process --help`。缺参、重复参数或未知选项会在读文件和登录前返回 `CREATE_PROCESS_INVALID_ARGUMENTS`；按 `details.argument` 定位参数、`details.reason` 判断原因，修正后重试。复用参数写作 `--formUuid`。
+
 ## 输出
 
 ```json
-{"success":true,"formUuid":"FORM-YYY","formTitle":"订单处理表","appType":"APP_XXX","fieldCount":6,"processCode":"TPROC--XXX","processId":"83145794990","processVersion":2,"verificationLevel":"PLATFORM_VIEW_VERIFIED","platformViewVerified":true,"url":"{base_url}/APP_XXX/workbench/FORM-YYY"}
+{"success":true,"formUuid":"FORM-YYY","formMode":"create","formTitle":"订单处理表","appType":"APP_XXX","fieldCount":6,"processCode":"TPROC--XXX","processId":"83145794990","processVersion":2,"verificationLevel":"PLATFORM_VIEW_VERIFIED","platformViewVerified":true,"url":"{base_url}/APP_XXX/workbench/FORM-YYY"}
 ```
+
+`formMode` 区分新建（`create`）和复用（`reuse`）。复用模式不读取表单名称和字段数，`formTitle`、`fieldCount` 返回 `null`，表示未查询，不代表字段为空或转换失败；新建模式返回传入名称和创建结果中的字段数。配置失败时返回的表单信息也遵循此约定。流程是否成功以 `success` 和 `verificationLevel` 为准，不能根据字段数判断。
 
 ## 流程定义最小 DSL 合约
 

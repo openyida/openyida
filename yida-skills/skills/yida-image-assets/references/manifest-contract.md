@@ -32,6 +32,36 @@ assetStrategy: {"pages":[{"pageId":"home","imageNeed":"required","slots":[{"slot
 | search | provider=unsplash 或 pexels，填写 sourcePage、creator、license、attribution |
 | Unsplash 搜索结果 | 实际完成下载动作记录后填写 downloadLocation、downloadTracked=true |
 
+### 来源与授权留证
+
+在每张图片的 `assets[]` 记录中填写下列信息，通过 `--input` 传入。CLI 将它们保留在输出清单和 JSON 结果中；图片检查失败、离线执行或用清单重试时也会保留。
+
+| 字段 | 填写内容 |
+| --- | --- |
+| assetId | 来源网站的图片 ID；用户素材使用已有内部编号，无编号留空。与页面位置 slotId 区分。 |
+| creator | 作者或权利人，沿用已有字段 |
+| sourcePage | 对应图片的官方详情页或用户提供的来源页，沿用已有字段 |
+| license | 许可名称或已取得的授权说明，沿用已有字段 |
+| licenseUrl | 实际核对的许可条款 HTTP(S) 链接 |
+| licenseCheckedAt | 实际核对许可的日期，格式 YYYY-MM-DD；CLI 不自动填今天 |
+| authorizationEvidence | 必要授权凭证的链接或文件路径数组，如购买凭证、人物或场地产权授权；本地凭证建议使用项目内可持续保留的绝对路径 |
+
+例如，已取得用户图片授权时，可在该图片记录中补充以下字段（示例值需替换为真实记录）：
+
+```json
+{
+  "assetId": "company-team-001",
+  "creator": "公司摄影团队",
+  "sourcePage": "https://example.com/media/company-team-001",
+  "license": "公司授权用于本项目官网",
+  "licenseUrl": "https://example.com/media/usage-terms",
+  "licenseCheckedAt": "2026-09-18",
+  "authorizationEvidence": ["/project/assets/licenses/company-team-001.pdf"]
+}
+```
+
+未取得的信息留空：文本字段为 `""`，凭证列表为 `[]`；不要编造图片 ID、核对日期或凭证。换图时同步更新这些记录，不能沿用上一张图的授权信息。CLI 检查新增字段的类型、许可链接格式和日期格式，不访问凭证或判断授权是否有效。`final` 仍表示图片满足现有素材就绪检查，不代表已认证可商用。
+
 ## 按页面执行
 
 ```bash
@@ -61,6 +91,7 @@ openyida asset resolve --input asset-manifests/home.draft.json --manifest asset-
 | assetStrategy | 本次设计要求；重跑保留，传 --design 时以设计文件为准 |
 | pages[] | pageId、imageNeed、slotIds、materialStatus、gaps |
 | assets[] | input、url、页面/位置 ID、用途、尺寸、来源、alt、materialStatus、gaps |
+| assets[].assetId / creator / sourcePage / license / licenseUrl / licenseCheckedAt / authorizationEvidence | 图片编号、作者、来源页、许可名称、许可链接、核对日期和授权凭证记录；未提供的值留空 |
 | assets[].delivery | CLI 生成的交付记录；yida-attachment 表示上传，external 表示已验证的直链；reason=OK_DIRECT 表示直接交付，其他 reason 保留上传失败或超限原因 |
 | gaps | 缺口及错误码，按 pageId/slotId 定位 |
 | capabilityEvidence | 宿主能力、uploadTarget、maxUploadBytes、online；cdnConfigured 是旧兼容字段 |

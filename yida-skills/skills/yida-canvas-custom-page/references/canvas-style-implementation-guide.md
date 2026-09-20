@@ -2,7 +2,9 @@
 
 按本指南把 `design.md` 的布局、材质、密度、图表和控件样式写入 Canvas 页面。业务事实来自 `yida-prd` 输出的 `prd.md`，视觉事实来自 `yida-design` 输出的 `design.md`。
 
-应用主题通过 app-theme.css 配置，页面样式限定在 `YidaComp` 内，使用 `--pod-page-*`、`--pod-card-*`、`--color-brand1-*` 和 `--color-group`。平台负责应用壳、原生表单和详情页的主题。
+应用主题通过 app-theme.css 配置，页面样式限定在 `YidaComp` 内。`--pod-page-*`、`--pod-card-*`、`--color-brand1-*` 和 `--color-group` 等是平台基础角色；页面还可消费项目定义的材质、布局、字体、动效和组件状态变量。平台负责应用壳、原生表单和详情页的主题，新变量需要显式消费或映射后才会影响这些组件。
+
+开发前按 [应用与自定义页面共用主题](../../yida-design/references/application-theme-consistency.md) 核对风格与变量。纯 DOM 页面也必须引用应用主题；省略 antd Provider 不等于可以另写固定色盘。已确认风格缺少变量时先补设计源并重新生成主题，不在每页用 `--canvas: #…`、`--ink: #…` 复制一套基础配色。
 
 CLI 将 Canvas 宿主的 `contentBgColor`、`pageStyle.backgroundColor`、`contentBgColorMobile` 设为 `var(--pod-page-bg-color, var(--color-white, #fff))`。自绘导航页的内部画布按下方规则设置局部背景。
 
@@ -40,50 +42,50 @@ body.pod-premium.page-type-workbench .vc-page-yida-pure-container:has(> .vc-root
 
 | 冲突现象 | 处理方式 |
 | --- | --- |
-| 左侧平台导航选中态是应用主题色，页面主按钮 / 标题强调 / 卡片选中态用了另一套主色 | 页面主操作、链接、选中态、重点标签和图表主序列改回应用主题 `--color-brand1-*` |
-| design.md 生成了青绿、紫色、蓝色等辅助色，但当前应用主题是橙色或其他色 | 保留 `design.md` 的布局、卡片、密度、图表语言，把生成色彩降为辅助色、浅底背景、分组色或第二图表序列 |
+| 导航选中态与页面按钮、指标颜色不同 | 对照 `design.md` 的颜色角色；已设计的协调配色可以保留，临时硬编码或误用变量才需要修正，不以同色为验收标准 |
+| design.md 的操作色或指标色与品牌色不同 | 按已定义的用途和表面使用项目变量，同时检查与画布、图片及状态色的关系；未说明搭配时先补设计，不自动降为装饰或改回品牌色 |
 | 用户要求导航和内容一起换色 | 交给 `yida-design` 更新应用主题设计 |
 | 页面是沉浸页、自绘壳、独立官网、活动页或公开落地页 | 仍消费应用主题变量；页面差异通过布局、材质、素材、构图和辅助色表达，不覆盖品牌 token |
 
-实现时先读取 `themeRelation`。默认值是 `跟随应用主题`，不是 `跟随生成色盘色相`。
+实现时读取 `themeProfile` 的主色与交付方式，以及正文中的颜色角色。品牌、操作和信息强调可以用不同颜色，但必须属于同一份项目设计，不能在页面中另配一套色盘。
 
 ## 工作台卡片密度红线
 
 工作台、门户首页、业务首页默认是“进入应用后马上处理事情”的工具页，不是通用 SaaS 展示页。实现工作台页面时：
 
-- 禁止使用“4 个等宽大 KPI 白卡 + 彩色图标盒 + 大数字 0”作为首屏主体；统计摘要只能作为 64-88px 的圆润紧凑条、分段摘要或右侧小面板。
+- 禁止使用“4 个等宽大 KPI 白卡 + 彩色图标盒 + 大数字 0”作为首屏主体；统计摘要按主题采用紧凑条、分段摘要或实际需要的小面板，未定义时可参考 64-88px。
 - 禁止把状态摘要做成横跨整页但内容稀疏的空矩形；如果占满宽度，必须放入趋势、更新时间、筛选、主操作或风险状态。
 - 禁止用 160px 以上的大空态白卡显示“暂无数据”；空态应是薄行、列表内空态或右侧提示条，并带登记/发布/刷新等下一步动作。
 - 快捷入口不要做孤立图标大卡片阵列；高频动作放按钮组、工具条或 40-56px 的紧凑入口，低频动作折叠到更多。
 - 首屏必须至少有一个任务/动态/最近记录/待处理列表承接真实工作流；若当前没有记录，显示可执行空态，而不是把空白面积留给装饰。
 - 页面整体推荐包含 8-10 个有业务目的的区块以上；这些区块应通过密度、主次、分栏和列表节奏形成丰富度，不通过重复大卡片形成面积。区块数量不是实现准出硬门槛，窄场景或用户要求精简时可以更少。计数按区块组算，KPI 子项、快捷入口子项和列表行不能分别计数。
 
-## 默认圆润高密与呼吸感落地
+## 主题形状、密度与呼吸感落地
 
-YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `breathingRule` 落成具体 CSS 与 antd token。若 design.md 未写明数值，先回写 design.md，不要在源码里凭感觉补。
+把 `design.md` 正文中的圆角、密度与分组节奏落实为 CSS 与 antd token。选中主题和页面明确决定优先；下列数值仅在对应项未定义时兜底，不是所有主题的硬门槛。缺少可实现设计时先修设计源事实，不在源码里凭感觉补。
 
-- 卡片 `border-radius` 范围 `0px-32px`，业务面板 / 卡片默认 `20px-24px`，主面板、抽屉和重点容器默认 `22px-32px`。
-- Button、Input、Select、DatePicker 等控件 `borderRadius` 默认 `10px-14px`；状态标签和徽标使用 `999px` 胶囊。
-- 页面 padding 默认 `20px-28px`，卡片和卡片的 gap 默认 `12px-18px` 且必须小于 `20px`，卡片 padding 默认 `22px-28px` 且必须大于 `20px`。
-- 页面布局必须有呼吸感：主区、右侧上下文、工具条和列表之间通过 `12px-18px` 的紧凑 gap 和清晰分组形成节奏；列表行内部 `10px-12px`，文字、按钮和标签不能贴边。
-- 列表行高 `44px-56px`，高频按钮高度 `36px-40px`，状态摘要高度 `64px-88px`。
-- 空态默认高度 `88px-120px`；超过 `120px` 必须有说明、主操作或配置入口，超过 `160px` 的纯空白不通过。
-- 大圆角和呼吸感只负责形状性格与阅读节奏，不负责撑版面；出现大面积空白时，优先压缩容器或补任务、动态、风险、负责人、下一步动作。
+- 业务卡片可参考 `20px-24px` 圆角，控件可参考 `10px-14px`；主题采用微圆、胶囊或不同档位时按其用途分工实现，不统一改为大圆角。
+- 页面 padding 可参考 `20px-28px`、卡片 gap `12px-18px`、卡片 padding `22px-28px`；主题明确的 `16px` 内距或 `24px` 间距同样有效。
+- 页面布局必须有呼吸感：用主题的组内/组间间距、对齐与边界形成层次；文字、按钮和标签保留内容安全内距。
+- 列表行、高频按钮、摘要高度按实际内容与主题确定；未定义时可参考 `44px-56px`、`36px-40px`、`64px-88px`。
+- 空态可参考 `88px-120px`，更多空间需承载解释、主操作或真实图示；不得以大块纯空白撑版面。
+- 出现大面积空内容时优先压缩容器，或放入已有任务、动态、风险、负责人和下一步动作，不虚构业务内容。
 
 ## 视觉落地顺序
 
-页面实现不要从“高级、简洁、好看”等形容词直接写 CSS。先读取 `prd/<项目名>/design.md`，再用 PRD 的 `pageSpecHandoff.designRefs` 定位当前页面要遵守的 `visualScaffold`，按固定顺序落地：
+先读取 PRD 与 design.md，再通过 `pageSpecHandoff.designRefs` 查询 frontmatter 的 anchor 索引，定位当前页八项要点与共享组件规则。索引只负责定位，不以旧 `visualScaffold` 字段是否存在决定能否实现。
 
-1. `layoutRecipe`：先确定页面骨架和分栏比例。
-2. `surfaceMap`：决定每个区块是无框、细线面板、浅底条、列表行、表格、右侧栏还是抽屉。
-3. `sectionRhythm` / `breathingRule`：确定首屏主次、区块间距、阅读顺序、组内/组间节奏和移动端折叠间距。
-4. `densityRule`：控制卡片高度、列表行高、按钮尺寸和信息密度。
-5. `componentRecipe`：统一按钮、入口、标签、图标、列表、图表、空态和弹层。
-6. `acceptanceChecks`：逐项检查 contentBlocks 是否支撑业务目标、无大空白卡、主色跟随应用主题、KPI/快捷入口子项不计数、移动端不挤压；区块数量不作为硬门槛。
+1. 按页面任务、首屏焦点与布局确定真实区块的顺序、主次和分栏。
+2. 按表面与组件规则选择开放区、细线面板、连续列表、表格与必要容器。
+3. 通过主题 token 与明确局部差异落实圆角、间距、层次和阅读节奏。
+4. 实现主操作、状态反馈与恢复入口；按具体响应式决定安排窄屏。
+5. 对照当前页验收检查业务内容、焦点、主题、交互和布局，区块数量不作为硬门槛。
 
 ## 背景与导航的关联
 
 背景职责统一：Shell 的 `--pod-shell-bg-color-light/white/gray/dark` 承载外层氛围；原生页面与自定义页面的基础底色统一消费 `--pod-page-bg-color`；卡片、表格外壳和面板消费 `--pod-card-bg-color`，回退 `--color-white`。渐变、纹理和图片作为页面局部装饰层叠加，不另设应用基础背景变量。
+
+应用根背景已提供 `--pod-app-root-bg-color` 和 `--pod-app-root-bg-image`，后者可表达图片或 CSS 渐变。它们只影响实际消费这些变量的根容器；不透明页面和卡片仍显示各自底色。全应用背景由主题 CSS 配置，单页渐变在本页根容器用 `background-image` 实现；颜色变量不放渐变，页面代码不向父页面 body 注入样式。Fast 与 Plan 共用这套规则，详见 [背景作用范围](../../yida-design/workflow/output-design.md#背景颜色渐变与图片)。
 抽屉整体背景默认使用 `--pod-shell-theme-bg-color`，回退 `--color-white`；标题栏、正文容器透明承接外壳，不铺 `--pod-card-bg-color`。抽屉内独立业务卡片才使用卡片 token。
 
 导航布局和页面底色分别配置。隐藏应用导航不自动把 Canvas 改为透明；深色或明确的应用底色在 `design.md` 的平台 token 中定义，生成 `app-theme.css` 后统一生效。页面局部视觉不能通过修改应用 token 影响其他页面。
@@ -96,7 +98,7 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 **MUST** 区分平台宿主与自绘应用画布：宿主继续使用平台背景 token；内部导航壳可按 `design.md` 使用浅灰、浅彩、低饱和渐变或局部纹理，不强制使用 `--pod-page-bg-color` 作为唯一可见底色。`design.md` 明确 `canvasBackground`、`navigationSurface` 和 `cardSurface`，仅在当前页面根选择器实现，不修改 body、父页面或全局变量。
 
-导航底色按首屏、滚动和展开状态设计，不因浅色画布强制白色浮导。浅彩画布上的白卡可无框，白画布上的白卡用细边框或投影；品牌色用于 Logo、选中态和主操作。渐变低饱和、集中于局部；深色画布独立设计对比。
+导航底色按首屏、滚动和展开状态设计，不因浅色画布强制白色浮导。浅彩画布上的白卡可无框，白画布上的白卡用细边框或投影；Logo、选中态和主操作按项目颜色角色搭配，不要求同色。渐变低饱和、集中于局部；深色画布独立设计对比。
 
 ```css
 /* 明确选择浮导时的局部示例，色值由 design.md 确认。 */
@@ -112,6 +114,10 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 ```
 
 验收覆盖首屏、滚动底部、窄屏和导航切换：画布铺满内容区，无意外白边；导航与卡片边界清楚，品牌色不过度铺满导航；原生 iframe 不被跨框样式修改。工作台同时压缩重复操作条、等权大指标卡和过高空态，不能仅靠渐变声称完成设计优化。
+
+## 分组标题与分割线
+
+执行 [分组标题与分割线选型](../../yida-design/references/application-theme-consistency.md#分组标题与分割线)：按当前页用途、密度和主题选形态，不把所有页面都写成左竖条或一条实线。同页同层级使用同一实现与配色，不同业务页面优先使用不同且合适的形态。平台 Divider 的选型表可作为外观参考；Canvas 使用自己的标题/CSS 实现，不导入未提供的原生表单组件。表格网格和卡片边框不套用章节装饰。
 
 ## 同色表面的卡片边界
 
@@ -145,7 +151,7 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 ## 背景层实现规则
 
-实现 `design.md` 的 `backgroundLayer` 时，先考虑页面根画布，再做内容面板。不要先堆白卡片再临时补装饰。展示型页面、工作台、看板、门户、官网、登录页和空状态页推荐有非纯空白的画布；近白画布可以保留，但要通过淡渐变、细线、星芒、局部装饰、素材或内容密度形成背景感。如果 `design.md` 指定 `topIrregularWash`、`radialGlowWash`、`flowLight` 或 `organicNoise`，必须在源码里落成对应 CSS。
+实现 `design.md` 中的背景设计时，先考虑页面根画布，再做内容面板。不要先堆白卡片再临时补装饰。展示型页面、工作台、看板、门户、官网、登录页和空状态页推荐有非纯空白的画布；近白画布可通过主题的边界、留白与信息组织成立，不强制增加装饰。如果 `design.md` 指定 `topIrregularWash`、`radialGlowWash`、`flowLight` 或 `organicNoise`，必须在源码里落成对应 CSS。
 
 推荐结构：
 
@@ -221,7 +227,7 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 
 ## 源码结构验收
 
-页面源码不能只堆 section 或 Card。写完 `.canvas.jsx` 后，按下面结构自检：
+页面源码不能只堆 section 或 Card。下列 primitive 名称用于理解实现职责，不是设计文档的必填字段；只检查当前业务实际需要的项。写完 `.canvas.jsx` 后自检：
 
 - 文件输入：实现前已读取 `prd.md` 和 `design.md`；视觉规则来自 `design.md`，业务区块和数据来源来自 PRD。
 - `rootShell`：有页面根类、背景带、内容宽度、平台导航可见时的宽度处理。
@@ -229,10 +235,10 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 - `statusPrimitive`：有紧凑状态摘要、数据在线、更新时间、主健康分或状态胶囊。
 - `actionPrimitive`：主按钮、次按钮、高频动作条或批量动作条能触发真实路径。
 - `contentPrimitive`：有表格、列表、任务流、事件流、排行、时间线、图表或详情预览之一作为主要承接。
-- `contextPrimitive`：有右侧洞察、风险、负责人、下一步建议或关联对象，避免页面只有左到右平铺卡片。
+- `contextPrimitive`：业务需要时承接已有洞察、风险、负责人、下一步建议或关联对象，不为补齐结构新增侧栏。
 - `statePrimitive`：loading、empty、error、未接数据都有薄空态、刷新、登记或补录动作。
 - `responsiveRule`：移动端分栏退化为单列，关键状态、动作和主内容保留，不让文字和按钮挤压。
-- `backgroundLayer` / `surfaceMaterial` / `colorRoles` / `depthRule` / `roundedRule` / `densityRule` / `breathingRule`：源码按 `design.md` 落地分层背景、半透明玻璃或细线面板、明确辅助色角色、深度规则、大圆角、紧凑密度和呼吸节奏；近白画布可接受，但应有渐变、装饰、素材焦点或内容密度支撑。
+- 表面与组件：源码还原正文指定的背景、边界、材质、色彩角色、圆角和分组节奏；同色画布可以通过主题的边界与留白成立，玻璃、渐变和装饰按需采用。
 
 缺少 `prioritySurface`、`contentPrimitive` 或 `statePrimitive` 任意一项，不能交付为“已打磨页面”。
 要求玻璃感但源码只有普通白底和纯白不透明卡片，也不能交付为“已打磨页面”；如果选择极简近白背景，需要在截图和源码中体现细节层次。
@@ -245,9 +251,10 @@ YidaCodeCanvas 必须把 `design.md` 的 `roundedRule`、`densityRule` 和 `brea
 | token | design.md 语义 | YidaCodeCanvas 使用方式 |
 | --- | --- | --- |
 | `--color-brand1-6` | 主色 | 主按钮、链接、选中态、信息强调、图表主序列 |
-| `--color-brand1-1` / `--color-brand1-2` / `--color-brand1-3` | 浅底色阶 | 标签浅底、提示块、筛选选中底、弱强调背景 |
-| `--color-brand1-5` / `--color-brand1-9` | 交互色阶 | hover / active / pressed 状态 |
-| `--color-brand1-9` / `--color-brand1-10` | 深色阶 | 深色标题、深底按钮、深色主题强调 |
+| `--color-brand1-1` | 品牌交互悬停色 | 品牌控件 hover，不用作常驻指标背景 |
+| `--color-brand1-2` / `--color-brand1-3` | 品牌派生浅色 | 按主题定义用于选中底、提示块和弱强调背景 |
+| `--color-brand1-5` | 品牌派生深色 | 按主题定义用于深色导航或强调表面 |
+| `--color-brand1-9` / `--color-brand1-10` | 激活 / 禁用色 | 分别用于 pressed / disabled，不用作普通标题、指标或默认按钮背景 |
 | `--color-brand-1` ~ `--color-brand-4` | 移动端品牌色阶 | 当前自定义页面的移动端布局和品牌状态 |
 | `--color-group` | 平台图表色组 | 多系列折线、柱状、排名、环形图配色 |
 | `--oyd-control-selected-bg` | 页面级选中浅底 | 下拉选中项、Tabs 选中底、轻量筛选块 |
@@ -294,11 +301,12 @@ antd 页面统一使用 [CanvasThemeProvider](canvas-theme-provider.md) 读取�
 
 ### 按钮语义与优先级
 
+- 按 `design.md` 的[指标卡与按钮配色](../../yida-design/references/application-theme-consistency.md#指标卡与按钮配色)实现背景、文字、图标和状态。指标区检查外层容器的背景，按钮检查内部图标的 `currentColor`、描边和透明度；换背景时一起调整前景。跨应用复用页面后，删除旧主题变量和深色兜底，使用当前设计声明的颜色角色；不能只换品牌色值。
 - 内容面板切换用 Tabs，类别单选用 Segmented/Radio.Group，主动作才用实心 Button。按 [默认控件状态](canvas-theme-provider.md#默认控件状态) 接入 Provider：中性普通项、轻底选中项、清晰文字与独立禁用态；不把分类筛选做成一排主操作，不以主色文字叠加同色实心底。
-- 主按钮、链接、选中态跟随应用品牌 token；普通按钮使用中性表面、文字和边框。
+- 主按钮、链接、选中态消费项目为相应角色定义的 token，可与品牌色不同；同类操作跨页面保持一致，普通按钮保持次要层级。
 - 删除、失败、成功、警告保留语义色，不能把所有按钮和提示都染成品牌色。
 - 原生 DOM 按钮直接消费 CSS 变量；antd 控件使用 `ConfigProvider` 的解析值，保留库的 disabled/loading/focus 行为。
-- 应用 token 优先于 design.md 兜底。内层 `ConfigProvider` 或按钮行内 `background/color` 会覆盖外层主题；仅在明确的业务语义或用户要求下覆盖，不能复制固定蓝色主按钮。
+- 应用 token 优先于 design.md 兜底。内层 `ConfigProvider` 或按钮行内 `background/color` 会覆盖外层主题；按已设计的组件配色局部适配，引用项目变量并覆盖完整交互状态，不能复制固定蓝色或黑色按钮。
 - 浮层保持 React provider 上下文；CSS 变量还取决于实际挂载 DOM。优先使用声明式 Modal/Drawer 和上下文内的消息 API，避免静态调用绕过主题；根据滚动和裁剪情况选择弹层容器并验收。
 - 页面差异通过布局、密度、圆角、材质和素材实现，默认不创建另一套页面品牌色。
 
@@ -321,13 +329,13 @@ antd 页面统一使用 [CanvasThemeProvider](canvas-theme-provider.md) 读取�
 
 这些映射不改变业务数据和操作。表格表头、卡片外壳、自绘文字等 CSS 同步消费对应 token；外壳卡片使用 `background: var(--pod-card-bg-color, var(--color-white, #fff))` 与主题卡片边框；卡片边界按上文背景搭配选择细边框、投影或无框，不能只映射 antd 而遗漏自绘表面。
 
-颜色解析和刷新由 Provider 处理。当前脚本不自动映射尺寸、圆角、字体、图表色组或完整 CSS 选择器，也不会把平台所有组件样式转换成 antd 样式。布局与圆角仍按 design.md 实现；需要 antd 局部配置时仅覆盖所需的尺寸、圆角等属性，保留外层颜色主题。
+颜色解析和刷新由 Provider 处理。上表是默认映射，不是配色限制；项目明确采用独立操作色时，读取对应项目变量，在 Button 等目标组件范围配置背景、前景和交互状态，不修改全局品牌色或无关组件。扩展变量不会自动被 Provider 消费，必须显式适配。当前脚本也不自动映射尺寸、圆角、字体、图表色组或完整 CSS 选择器，布局与圆角仍按 design.md 实现。
 
 应用主题模式主色缺失时为 missing、解析抛异常时为 error；其他缺失颜色保留 antd 默认值；这不代表主题验收通过。本地快照只在显式 preview 模式下使用。
 
 ## 默认 light 模式避免灰黑主题
 
-业务列表、协同表、数据管理页、工作台和门户默认都是 light 模式。正文使用深色保证可读性；主操作、选中态、筛选焦点、批量操作和信息标签使用平台品牌色或当前页面确认的品牌色；卡片边框、表格分割线和下拉浮层边框使用浅色品牌混合，例如 `#DCE6F2`、`color-mix(in srgb, var(--oy-brand) 16%, #DDE8F4)`。用户明确要求暗色大屏、夜间模式或高对比风格时使用深色主视觉。
+业务列表、协同表、数据管理页、工作台和门户默认都是 light 模式。正文使用深色保证可读性；主操作、选中态、筛选焦点、批量操作和信息标签按项目颜色角色表达主次，卡片与浮层边界按所在表面选择中性或协调的浅彩色，不强制使用品牌混色。用户明确要求暗色大屏、夜间模式或高对比风格时使用深色主视觉。
 
 ## 控件焦点态与下拉浮层 reset
 
@@ -377,12 +385,12 @@ Canvas 节点在页面 DOM 树内，Tailwind 运行时对普通元素直接用 a
 ```jsx
 // 主色文字 / 背景 / 边框，直接引平台变量，跟随 App 主题
 <div className="text-[var(--color-brand1-6)] border border-[var(--color-brand1-3)]">…</div>
-<button className="bg-[var(--color-brand1-6)] hover:bg-[var(--color-brand1-5)] text-white rounded-lg px-4 py-2">
+<button className="bg-[var(--color-brand1-6)] hover:bg-[var(--color-brand1-1)] text-[var(--oyd-on-action-color)] rounded-lg px-4 py-2">
   主操作
 </button>
 ```
 
-色阶对应以 `design.md` 和 yida-design 主题 token 语义为准：主色 `brand1-6`、填充按钮 hover 使用 `brand1-5`、按下使用深色档 `brand1-9`、通用浅色 hover 底使用 `brand1-1`、选中/标签浅底使用 `brand1-2`。
+本例要求当前设计已声明并核对 `--oyd-on-action-color`，项目已有同义前景变量时直接复用。色阶以 `design.md` 为准：主色 `brand1-6`、品牌 hover 使用 `brand1-1`、按下使用 `brand1-9`、禁用使用 `brand1-10`、选中/标签浅底使用 `brand1-2`；默认与悬停背景都要能读清文字。
 
 ## 图表 / recharts：用解析后的品牌色组
 

@@ -1488,7 +1488,7 @@ describe('form presentation components', () => {
     }));
   });
 
-  test('Divider defaults to bold-with-thin so generated enterprise forms use the recommended section style', () => {
+  test('Divider omissions use bold-with-thin as the CLI fallback', () => {
     const schema = createForm._private.buildFormSchema(
       '分割线测试',
       [{ type: 'Divider', title: '默认分割线' }],
@@ -1507,7 +1507,7 @@ describe('form presentation components', () => {
     expect(divider.props.title.zh_CN).toBe('默认分割线');
   });
 
-  test('Divider only preserves supported type values and falls back to the priority default', () => {
+  test('Divider preserves supported styles rather than replacing solid-center with the old default', () => {
     const schema = createForm._private.buildFormSchema(
       '分割线样式白名单测试',
       [
@@ -1527,7 +1527,35 @@ describe('form presentation components', () => {
     const dividers = formContainer.children.filter(child => child.componentName === 'Divider');
     expect(dividers[0].props.type).toBe('left-dot-title');
     expect(dividers[1].props.type).toBe('multi-parallelograms-end');
-    expect(dividers[2].props.type).toBe('bold-with-thin');
+    expect(dividers[2].props.type).toBe('solid-center');
+  });
+
+  test.each([
+    'solid', 'dashed', 'thick', 'dotted', 'bold-with-thin',
+    'solid-center', 'solid-left', 'left-dot-title', 'light-left-bar',
+    'light-bar', 'dark-bar', 'light-left-title', 'light-center-title',
+    'light-house-title', 'light-hexagon-title', 'hexagon-title', 'badge-line',
+    'multi-parallelograms-end', 'center-title-with-bar', 'double-color-trapezoid',
+    'arrow-right-title', 'square-blocks-title', 'inner-ellipse-title',
+  ])('preserves platform Divider style %s in top-level and nested sections', dividerType => {
+    const fields = [
+      { type: 'Divider', title: '基本信息', dividerType },
+      { type: 'ColumnContainer', children: [[{ type: 'Divider', title: '补充信息', dividerType }]] },
+    ];
+    expect(() => createForm._private.validateFormFieldDefinitions(fields)).not.toThrow();
+    const schema = createForm._private.buildFormSchema('登记', fields, 'FORM_TEST', 'CORP_TEST', 'APP_TEST', 'single', 'default', 'top');
+    const root = findFormContainer(schema.pages[0].componentsTree[0]);
+    expect(root.children[0].props.type).toBe(dividerType);
+    expect(root.children[1].children[0].children[0].props.type).toBe(dividerType);
+  });
+
+  test.each(['dividerType', 'dividerStyle', 'styleType', 'typeStyle', 'props.type'])('validates the supported styles supplied through %s', key => {
+    const field = value => ({ type: 'Divider', title: '资料', ...(key === 'props.type' ? { props: { type: value } } : { [key]: value }) });
+    expect(() => createForm._private.validateFormFieldDefinitions([field('light-house-title')])).not.toThrow();
+    const schema = createForm._private.buildFormSchema('资料', [field('light-house-title')], 'FORM_TEST', 'CORP_TEST', 'APP_TEST', 'single', 'default', 'top');
+    expect(findFormContainer(schema.pages[0].componentsTree[0]).children[0].props.type).toBe('light-house-title');
+    expect(() => createForm._private.validateFormFieldDefinitions([field('light-huose-title')])).toThrow(expect.objectContaining({ code: 'CREATE_FORM_INVALID_DIVIDER_TYPE' }));
+    expect(() => createForm._private.validateFormFieldDefinitions([field('none')])).toThrow(expect.objectContaining({ code: 'CREATE_FORM_INVALID_DIVIDER_TYPE' }));
   });
 
   test('forms keep the ordinary lifecycle without theme injection', () => {

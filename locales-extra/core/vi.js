@@ -5,12 +5,27 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  design_document: {
+    update_conflict: "Không thể cập nhật {0} ({1}): nội dung hiện tại xung đột với phiên bản được tạo trước đó. Hãy đối chiếu thay đổi cục bộ trong phần này với dữ liệu kế hoạch rồi thử lại. Chưa lưu tệp nào.",
+    theme_css_invalid: 'CSS giao diện gần dòng {0} có dấu ngoặc, chuỗi hoặc chú thích chưa đóng hoặc không khớp. Hãy sửa rồi thử lại.',
+    invalid: 'Xác thực thiết kế thất bại: {0} ({1})',
+    yaml: 'Frontmatter của tài liệu thiết kế không phải YAML hợp lệ',
+    token_value: 'Token {0} phải là giá trị CSS đã xác định trên một dòng',
+    token_conflict: 'Token {0} có giá trị trùng lặp hoặc xung đột',
+    tokens_required: 'design.md cần có frontmatter chứa token',
+    brand_required: 'design.md thiếu token thương hiệu: {0}',
+    usage: 'Cách dùng: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
+    read_error: 'Không thể đọc tệp xác thực thiết kế: {0}',
+    checked: 'Xác thực thiết kế thành công: {0}; {1} trang, {2} token',
+  },
   asset: {
+    sourceRecords: 'Trong assets[] qua --input, ghi assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) và authorizationEvidence (mảng URL hoặc đường dẫn tệp chứng từ). Danh sách giữ lại các bản ghi; giá trị thiếu để trống, không tự xác nhận quyền sử dụng thương mại.',
     executionReview: 'Cần kiểm tra bằng chứng thực thi tư liệu: {0}. Kiểm tra xác nhận tác vụ nền, thời gian công việc và lý do chuyển sang đồng bộ.',
     localFileUnavailable: "Không tìm thấy tệp ảnh: {0}. Kiểm tra thư mục làm việc của lệnh hoặc dùng đường dẫn tuyệt đối.",
     invalidStrategy: "Yêu cầu về ảnh phải là một đối tượng liệt kê vị trí ảnh theo từng trang.",
   },
   help: {
+    cmd_check_design: 'Xác thực tài liệu thiết kế, biến giao diện và bàn giao PRD',
     subtitle: 'Công cụ phát triển AI low-code cho Yida',
     usage: 'Cách dùng:',
     alias: 'Bí danh:',
@@ -29,8 +44,8 @@ module.exports = {
     design_plan_preview_invalid: 'Cập nhật bản nháp thất bại; kiểm tra chi tiết lỗi',
     cmd_design_plan_catalog: 'Liệt kê chủ đề và mẫu trang có sẵn để lập kế hoạch',
     cmd_design_plan_init: 'Khởi tạo bản nháp kế hoạch từ yêu cầu đã xác nhận',
-    cmd_design_plan_materialize: 'Tạo và xác thực sản phẩm từ build-plan.json',
-    cmd_design_plan_patch: 'Sửa kế hoạch theo đường dẫn và vô hiệu xác nhận trước',
+    cmd_design_plan_materialize: "Tạo hoặc cập nhật tài liệu và giao diện kế hoạch, kiểm tra tính nhất quán",
+    cmd_design_plan_patch: "Sửa các trường kế hoạch và đồng bộ tài liệu, giao diện khi cần",
     cmd_update_app: 'Cập nhật thông tin ứng dụng',
     cmd_app_online: 'Bật ứng dụng Yida',
     cmd_app_offline: 'Tắt ứng dụng Yida',
@@ -60,6 +75,7 @@ module.exports = {
     cmd_get_form_config: 'Query form configuration',
     group_data: 'Dữ liệu & Quyền',
     cmd_data: 'Quản lý dữ liệu thống nhất (biểu mẫu/quy trình/tác vụ/biểu mẫu con)',
+    data_notes: "DateField dùng dấu thời gian Unix dạng số mili giây; CascadeDateField dùng mảng các giá trị đó. Chuyển đổi theo múi giờ nghiệp vụ; không chấp nhận chuỗi ngày hoặc số giây. --resolve-aliases chỉ chuyển đổi tên trường.",
     cmd_task_center: 'Trung tâm tác vụ toàn cầu (cần làm/đã xử lý/CC v.v.)',
     cmd_basic_info: 'Truy van thong tin to chuc, dung luong, han muc va mien',
     cmd_read_dingtalk_doc: 'Lấy nội dung Markdown từ tài liệu DingTalk',
@@ -71,6 +87,7 @@ module.exports = {
     group_process: 'Quy trình',
     cmd_configure_process: 'Cấu hình và xuất bản quy tắc quy trình; Thêm người phê duyệt và chuyển giao qua JSON nodes[].actions.normalActions/appendActions',
     cmd_create_process: 'Tạo biểu mẫu quy trình (tích hợp); Thêm người phê duyệt và chuyển giao qua JSON nodes[].actions.normalActions/appendActions',
+    create_process_notes: "formMode=create|reuse phân biệt tạo mới và tái sử dụng. Khi tái sử dụng, formTitle và fieldCount là null (chưa truy vấn); tạo mới trả về tên và số trường. Quy tắc này cũng áp dụng khi cấu hình thất bại. Kiểm tra success và verificationLevel. Chỉ dùng --replace khi được cho phép rõ ràng để thay toàn bộ quy trình nháp hoặc đã xuất bản.",
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'Xem trước phiên bản quy trình (sơ đồ luồng)',
     group_share: 'Cấu hình & Chia sẻ trang',
@@ -200,7 +217,7 @@ module.exports = {
       '  get-permission <appType> <formUuid>                          Query form permission config\n' +
       '  save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  Save form permission config\n' +
       '  configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]  Configure and publish process\n' +
-      '  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>  Create process form (all-in-one)\n' +
+      '  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]  Create process form (all-in-one)\n' +
       '  create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]         Reuse existing form for process\n' +
       '  connector list [options]                                     List HTTP connectors\n' +
       '  connector create "<name>" "<domain>" --operations <file> [options]  Create connector\n' +
@@ -292,7 +309,7 @@ module.exports = {
     integration_enable_example: 'Vi du: openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
     integration_disable_usage: 'Cach dung: openyida integration disable <appType> <formUuid> <processCode>',
     integration_disable_example: 'Vi du: openyida integration disable APP_XXX FORM-XXX LPROC-XXX',
-    compile_usage: 'Cách dùng: openyida compile <sourceFile>',
+    compile_usage: 'Cách dùng: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--json]',
     compile_example: 'Ví dụ: openyida compile pages/src/home.oyd.jsx',
     check_page_usage: 'Usage: openyida check-page <sourceFile> [--compat] [--json]',
     check_page_example: 'Example: openyida check-page pages/src/home.oyd.jsx --json',
@@ -300,7 +317,7 @@ module.exports = {
     generate_page_example: 'Example: openyida generate-page product-homepage --brand-name OpenKuma --brand-initials OK --theme-scope page --output pages/src/home.canvas.jsx --compile',
     build_page_usage: 'Usage: openyida build-page <sourceFile> [--output pages/build/page.yida.jsx|--write] [--json]',
     build_page_example: 'Example: openyida build-page pages/src/dashboard.oyd.jsx --output pages/build/dashboard.yida.jsx',
-    publish_usage: 'Usage: openyida publish <sourceFile> <appType> <formUuid> [--health-check] [--canvas] [--auto-nav-order]',
+    publish_usage: 'Usage: openyida publish <sourceFile> <appType> <formUuid> [--health-check] [--force] [--canvas] [--compat] [--skip-lint] [--auto-nav-order] [--open|--no-open] [--json]',
     publish_example: 'Example: openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX --health-check --auto-nav-order',
     check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]',
     check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --build-manifest prd/order-management/build-manifest.json --json',
@@ -324,7 +341,7 @@ module.exports = {
     import_example2: '        openyida import ./yida-export.json "Quality System (Production)"',
     configure_process_usage: 'Usage: openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]',
     configure_process_example: 'Example: openyida configure-process "APP_XXX" "FORM-YYY" .cache/openyida/process/process-definition.json',
-    create_process_usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>\n' +
+    create_process_usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]\n' +
       '        openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]',
     create_process_example: 'Example: openyida create-process "APP_XXX" "Order Form" .cache/openyida/process/fields.json .cache/openyida/process/process-definition.json',
     process_usage: 'Usage: openyida process <subcommand>\n' +
@@ -692,7 +709,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Công cụ tạo trang tùy chỉnh Yida',
-    usage: 'Cách dùng: openyida create-page <appType> <tên trang> [--mode dashboard] [--hide-nav]',
+    usage: 'Cách dùng: openyida create-page <appType> <tên trang> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: 'Ví dụ: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  ID ứng dụng:  {0}',
     page_name: '  Tên trang:    {0}',
@@ -702,6 +719,7 @@ module.exports = {
     step_dashboard_config: '\n🖥️  Step 3: Configure hidden navigation',
     dashboard_config_ok: '  ✅ Navigation hidden by explicit request, chromeless custom URL enabled',
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
+    navigation_unverified: 'Trang đã được tạo nhưng việc đọc lại chưa xác nhận thanh điều hướng đã ẩn. Hãy sửa và kiểm tra cấu hình của pageId được trả về; không tạo trang khác.',
     err_mode_invalid: 'Unsupported page mode: {0}',
     mode_hint: 'Available modes: default, dashboard. Navigation is visible by default; pass --hide-nav or --render-nav false to hide it.',
     page_id_label: '  pageId: {0}',
@@ -749,6 +767,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    divider_type_invalid: 'Kiểu đường phân cách không được hỗ trợ: {0}. Giá trị được hỗ trợ: {1}',
     batch_invalid: 'Lô biểu mẫu không hợp lệ; kiểm tra chi tiết lỗi',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
@@ -1062,6 +1081,7 @@ module.exports = {
     offline_success: 'Đã tắt ứng dụng',
   },
   create_process: {
+    invalid_argument: "Thiếu hoặc sai đối số {0}. Hãy sửa theo cú pháp bên dưới.",
     title: 'Yida Process Form Creation',
     app_id: 'App ID',
     mode: 'Mode',
@@ -1090,12 +1110,13 @@ module.exports = {
     manual_hint: 'Please configure the process manually in Yida admin. Form UUID: {0}',
     configuring_process: 'Configuring and publishing process',
     configure_failed: 'Failed to configure process',
+    preserve_existing_form: "Biểu mẫu gốc đã tồn tại. Dùng formUuid để kiểm tra trạng thái và nguyên nhân lỗi ở chế độ chỉ đọc, đồng thời giữ nguyên biểu mẫu. Không bỏ --formUuid, tạo lại biểu mẫu hoặc tạo biểu mẫu thay thế cùng tên để khôi phục. Không thử ghi lại khi noWriteRetry=true.",
     retry_hint: 'Process configuration failed, but the form was created. Fix the process definition and retry with this command:',
     fields_not_found: 'Fields definition file not found',
     process_def_not_found: 'Process definition file not found',
     done: 'Process form creation completed',
     url: 'URL',
-    usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>',
+    usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]',
     usage2: '       openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]',
     example: 'Example: openyida create-process "APP_XXX" "Order Form" .cache/openyida/process/fields.json .cache/openyida/process/process-definition.json',
     example2: '         openyida create-process "APP_XXX" --formUuid FORM-YYY .cache/openyida/process/process-definition.json'
@@ -1306,6 +1327,7 @@ module.exports = {
     lint_emoji_forbidden: 'Found emoji "{0}". OpenYida generated artifacts must not use emoji in UI copy, source comments, file paths, or code constants; use plain text, SVG, or icon components instead.',
     lint_searchformdata_http_post: 'Gọi trực tiếp searchFormDatas.json phải dùng GET + tham số query (đặt formUuid/appType trong query URL). Dùng POST với formUuid trong body sẽ gây lỗi «参数校验失败formUuid» và dashboard/danh sách hiển thị toàn số 0',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json phân trang bằng currentPage (không phải pageNumber); dùng pageNumber sẽ hỏng phân trang',
+    lint_searchformdata_bridge_unwrap: 'Yida searchFormDatas trả về các dòng trong payload.data và tổng số trong payload.totalCount. Không chỉ đọc payload.data.data; hãy chuẩn hóa mảng và dùng currentPage để phân trang. Xem yida-canvas-data-binding.',
     lint_searchformdata_http_unwrap: 'Phản hồi trình duyệt của searchFormDatas.json lồng danh sách trong content.data ({ content: { data: [...] } }); chỉ đọc json.data sẽ ra 0 dòng — hãy giải nén qua (json.content && json.content.data)',
     lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder không được dùng trường siêu dữ liệu bản ghi {0}; hãy dùng ID trường nghiệp vụ thực do get-schema trả về. Nếu không có trường ngày nghiệp vụ có thể sắp xếp, hãy xóa dynamicOrder và chỉ sắp xếp trang đã tải theo row.createTime để hiển thị',
     lint_setstate_non_timestamp: 'this.setState ghi một trường không phải timestamp. Trạng thái nghiệp vụ của trang tùy chỉnh nên nằm trong _customState và được cập nhật qua forceUpdate()/setCustomState(); this.setState chỉ nên chứa trường hợp đồng timestamp',
@@ -1383,7 +1405,7 @@ module.exports = {
     error: '\n❌ Publish error: {0}',
     source_not_found: '❌ Không tìm thấy tệp nguồn: {0}',
     source_path_hint: '💡 Hãy thử đường dẫn tệp nguồn này: {0}',
-    usage: 'Cách dùng: openyida publish <tệpNguồn> <appType> <formUuid> [--health-check] [--canvas] [--auto-nav-order]',
+    usage: 'Cách dùng: openyida publish <tệpNguồn> <appType> <formUuid> [--health-check] [--force] [--canvas] [--compat] [--skip-lint] [--auto-nav-order] [--open|--no-open] [--json]',
     example: 'Ví dụ: openyida publish pages/src/xxx.js APP_XXX FORM-XXX --health-check --auto-nav-order'
   },
   qr_login: {
@@ -1969,7 +1991,7 @@ Object.assign(module.exports.save_share_config || (module.exports.save_share_con
 
 Object.assign(module.exports.publish || (module.exports.publish = {}), {
   lint_jsx_text_identifier: 'JSX copy không thể viết dưới dạng {{0}}; nó được xử lý như biến và gây ra lỗi {0} is not defined. Hãy sử dụng văn bản thường {0} hoặc chuỗi có dấu ngoặc đơn {\'{0}\'} thay vào đó.',
-  lint_form_open_container: 'Khi mở trang Yida form submission/detail từ một trang tùy chỉnh, hãy sử dụng FormOpenContainer: khung trượt iframe trên máy tính để bàn (50vw) và chỉ toàn bộ/trang mới trên di động. Xử lý nút nên gọi openForm({ type: "submission" | "detail", ... }).',
+  lint_form_open_container: 'Biểu mẫu gửi/chi tiết phải dùng mẫu ngăn kéo đầy đủ: openyida sample openyida-page-template form-open-container. Tích hợp CanvasDrawer, FormOpenContainer và useYidaFormOpen, gọi openForm và hiển thị formOpenContainer. Máy tính dùng ngăn kéo iframe, di động do mẫu xử lý; không thay bằng liên kết hoặc hộp thoại tự viết.',
   lint_form_detail_link: 'Trang chi tiết form Yida phải sử dụng một formInstId thực tế: hãy đọc row.formInstId trước, và tắt hoặc cảnh báo khi id instance bị thiếu thay vì mở liên kết formDetail với formInstId rỗng.',
   lint_searchformdata_http_path: 'Một cuộc gọi trực tiếp searchFormDatas.json bắt buộc phải sử dụng /dingtalk/web/<appType>/v1/form/searchFormDatas.json; /query/form/searchFormDatas.json không phải là điểm cuối dữ liệu form hợp lệ',
   lint_searchformdata_http_query_params: 'Cuộc gọi URL tham số truy vấn trực tiếp searchFormDatas.json thiếu các tham số bắt buộc: {0}. Hãy sử dụng URLSearchParams với appType, formUuid, currentPage, pageSize và searchFieldJson',

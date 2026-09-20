@@ -390,6 +390,14 @@ describe('resolveOne (controlled ctx, no network)', () => {
 });
 
 describe('asset command parsing', () => {
+  test.each(['--help', '-h'])('asset %s displays source record fields without resolving images', flag => {
+    const result = spawnSync(process.execPath, [path.join(__dirname, '..', 'bin/yida.js'), 'asset', flag], { encoding: 'utf8' });
+    expect(result.status).toBe(0);
+    for (const field of ['assetId', 'creator', 'sourcePage', 'licenseUrl', 'licenseCheckedAt', 'authorizationEvidence']) {
+      expect(result.stdout).toContain(field);
+    }
+  });
+
   test('resolve accepts a generic slot', () => {
     const parsed = parseAssetArgs([
       'resolve',

@@ -1,6 +1,6 @@
 ---
 name: yida-dashboard
-description: "经营看板/驾驶舱/数据大屏产品化交付。含真实数据、筛选联动、卡片截图、组织内短链和钉钉待办闭环。常规图表使用 yida-rechart；明确 ECharts、复杂 ECharts option 或维护旧图表时使用 yida-chart。普通统计优先 yida-report。"
+description: "经营分析看板/驾驶舱/数据大屏产品化交付；用于指标判断、趋势分析或投屏监控，不用于普通待办工作台和办事门户。含真实数据、筛选联动、卡片截图、组织内短链和钉钉待办闭环。常规图表使用 yida-rechart；明确 ECharts、复杂 ECharts option 或维护旧图表时使用 yida-chart。普通统计优先 yida-report。"
 license: MIT
 metadata:
   audience: developers
@@ -27,9 +27,10 @@ metadata:
 
 ## 何时触发
 
-- 看板 / 驾驶舱 / 大屏 / Dashboard / 数据大屏。
-- 经营看板 / 业务看板 / 管理驾驶舱 / 高层汇报。
-- 指标卡截图、组织内短链、隐藏导航、看板派单闭环。
+- 已确认的经营分析、指标比较、趋势判断或投屏监控需求。
+- 现有经营看板的指标卡截图、分析分享或派单闭环。
+
+按任务判断，不按名称触发：待办、操作队列、业务列表、门户式工作台以及处理任务的看板由 `yida-canvas-custom-page` 实现；少量任务计数、辅助图表、管理者身份或隐藏导航都不足以触发本技能。首页选择遵循 [首页按任务选择](../yida-requirement-analysis/references/experience-groups.md#首页按任务选择)。
 
 单个普通统计报表优先 `yida-report`；只解决单张图的实现问题时按“图表路由边界”选择 `yida-rechart` 或 `yida-chart`。
 

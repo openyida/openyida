@@ -5,12 +5,27 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  design_document: {
+    update_conflict: "Não foi possível atualizar {0} ({1}): o conteúdo está em conflito com a última versão gerada. Concilie a alteração local desta seção com os dados do plano e tente novamente. Nenhum arquivo foi salvo.",
+    theme_css_invalid: 'O CSS do tema contém um delimitador, uma string ou um comentário não fechado ou incompatível perto da linha {0}. Corrija e tente novamente.',
+    invalid: 'Falha na validação do design: {0} ({1})',
+    yaml: 'O frontmatter do documento de design não é YAML válido',
+    token_value: 'O token {0} deve ser um valor CSS resolvido em uma única linha',
+    token_conflict: 'O token {0} tem valores duplicados ou conflitantes',
+    tokens_required: 'design.md requer um frontmatter contendo tokens',
+    brand_required: 'Faltam tokens de marca em design.md: {0}',
+    usage: 'Uso: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
+    read_error: 'Não foi possível ler o arquivo de validação do design: {0}',
+    checked: 'Validação do design aprovada: {0}; {1} páginas, {2} tokens',
+  },
   asset: {
+    sourceRecords: 'Em assets[] via --input, registre assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) e authorizationEvidence (array de URLs ou caminhos de comprovantes). O manifesto preserva os registros; valores ausentes ficam vazios. Isso não certifica autorização comercial.',
     executionReview: 'Revise as evidências de execução dos recursos: {0}. Verifique os retornos das tarefas em segundo plano, os intervalos de trabalho e os motivos do modo síncrono.',
     localFileUnavailable: "Imagem não encontrada: {0}. Verifique o diretório de trabalho do comando ou use um caminho absoluto.",
     invalidStrategy: "Os requisitos de imagens devem ser um objeto com as posições das imagens por página.",
   },
   help: {
+    cmd_check_design: 'Validar documentos de design, variáveis do tema e entrega do PRD',
     subtitle: 'Ferramenta de desenvolvimento IA low-code para Yida',
     usage: 'Uso:',
     alias: 'Alias:',
@@ -29,8 +44,8 @@ module.exports = {
     design_plan_preview_invalid: 'Falha ao atualizar o rascunho; verifique os detalhes',
     cmd_design_plan_catalog: 'Listar temas e padrões de página disponíveis para planejamento',
     cmd_design_plan_init: 'Criar um rascunho do plano com requisitos confirmados',
-    cmd_design_plan_materialize: 'Gerar e validar artefatos a partir de build-plan.json',
-    cmd_design_plan_patch: 'Alterar o plano por caminho e invalidar a confirmação anterior',
+    cmd_design_plan_materialize: "Gerar ou atualizar documentos e tema do plano e verificar a consistência",
+    cmd_design_plan_patch: "Alterar campos do plano e sincronizar documentos e tema quando solicitado",
     cmd_update_app: 'Atualizar informações do aplicativo',
     cmd_app_online: 'Ativar um aplicativo Yida',
     cmd_app_offline: 'Desativar um aplicativo Yida',
@@ -60,6 +75,7 @@ module.exports = {
     cmd_get_form_config: 'Query form configuration',
     group_data: 'Dados & Permissões',
     cmd_data: 'Gerenciamento unificado de dados (formulário/processo/tarefa/subformulário)',
+    data_notes: "DateField usa timestamps Unix numéricos em milissegundos; CascadeDateField usa um array desses valores. Converta conforme o fuso horário do negócio; datas em texto e segundos não são aceitos. --resolve-aliases resolve apenas nomes de campos.",
     cmd_task_center: 'Centro de tarefas global (pendente/processado/CC etc.)',
     cmd_basic_info: 'Consultar info da organizacao, capacidade, cotas e dominio',
     cmd_read_dingtalk_doc: 'Obter conteúdo Markdown de um documento DingTalk',
@@ -71,6 +87,7 @@ module.exports = {
     group_process: 'Processos',
     cmd_configure_process: 'Configurar e publicar regras de processo; Adicionar aprovadores e encaminhar via JSON nodes[].actions.normalActions/appendActions',
     cmd_create_process: 'Criar formulário de processo (tudo-em-um); Adicionar aprovadores e encaminhar via JSON nodes[].actions.normalActions/appendActions',
+    create_process_notes: "formMode=create|reuse distingue criação e reutilização. Ao reutilizar, formTitle e fieldCount são null (não consultados); a criação retorna nome e quantidade de campos. Isso também vale para falhas de configuração. Verifique success e verificationLevel. Use --replace apenas com autorização explícita para substituir todo um processo existente, rascunho ou publicado.",
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'Pré-visualizar instância de processo (fluxograma)',
     group_share: 'Configuração & Compartilhamento de página',
@@ -200,7 +217,7 @@ module.exports = {
       '  get-permission <appType> <formUuid>                          Query form permission config\n' +
       '  save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  Save form permission config\n' +
       '  configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]  Configure and publish process\n' +
-      '  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>  Create process form (all-in-one)\n' +
+      '  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]  Create process form (all-in-one)\n' +
       '  create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]         Reuse existing form for process\n' +
       '  connector list [options]                                     List HTTP connectors\n' +
       '  connector create "<name>" "<domain>" --operations <file> [options]  Create connector\n' +
@@ -292,7 +309,7 @@ module.exports = {
     integration_enable_example: 'Exemplo: openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
     integration_disable_usage: 'Uso: openyida integration disable <appType> <formUuid> <processCode>',
     integration_disable_example: 'Exemplo: openyida integration disable APP_XXX FORM-XXX LPROC-XXX',
-    compile_usage: 'Uso: openyida compile <sourceFile>',
+    compile_usage: 'Uso: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--json]',
     compile_example: 'Exemplo: openyida compile pages/src/home.oyd.jsx',
     check_page_usage: 'Usage: openyida check-page <sourceFile> [--compat] [--json]',
     check_page_example: 'Example: openyida check-page pages/src/home.oyd.jsx --json',
@@ -300,7 +317,7 @@ module.exports = {
     generate_page_example: 'Example: openyida generate-page product-homepage --brand-name OpenKuma --brand-initials OK --theme-scope page --output pages/src/home.canvas.jsx --compile',
     build_page_usage: 'Usage: openyida build-page <sourceFile> [--output pages/build/page.yida.jsx|--write] [--json]',
     build_page_example: 'Example: openyida build-page pages/src/dashboard.oyd.jsx --output pages/build/dashboard.yida.jsx',
-    publish_usage: 'Usage: openyida publish <sourceFile> <appType> <formUuid> [--health-check] [--canvas] [--auto-nav-order]',
+    publish_usage: 'Usage: openyida publish <sourceFile> <appType> <formUuid> [--health-check] [--force] [--canvas] [--compat] [--skip-lint] [--auto-nav-order] [--open|--no-open] [--json]',
     publish_example: 'Example: openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX --health-check --auto-nav-order',
     check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]',
     check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --build-manifest prd/order-management/build-manifest.json --json',
@@ -324,7 +341,7 @@ module.exports = {
     import_example2: '        openyida import ./yida-export.json "Quality System (Production)"',
     configure_process_usage: 'Usage: openyida configure-process <appType> <formUuid> <processDefinitionFile> [processCode] [--replace]',
     configure_process_example: 'Example: openyida configure-process "APP_XXX" "FORM-YYY" .cache/openyida/process/process-definition.json',
-    create_process_usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>\n' +
+    create_process_usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]\n' +
       '        openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]',
     create_process_example: 'Example: openyida create-process "APP_XXX" "Order Form" .cache/openyida/process/fields.json .cache/openyida/process/process-definition.json',
     process_usage: 'Usage: openyida process <subcommand>\n' +
@@ -692,7 +709,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Ferramenta de criação de páginas personalizadas Yida',
-    usage: 'Uso: openyida create-page <appType> <nome da página> [--mode dashboard] [--hide-nav]',
+    usage: 'Uso: openyida create-page <appType> <nome da página> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: 'Exemplo: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  ID do app:    {0}',
     page_name: '  Nome da página: {0}',
@@ -702,6 +719,7 @@ module.exports = {
     step_dashboard_config: '\n🖥️  Step 3: Configure hidden navigation',
     dashboard_config_ok: '  ✅ Navigation hidden by explicit request, chromeless custom URL enabled',
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
+    navigation_unverified: 'A página foi criada, mas a releitura não confirmou que a navegação está oculta. Corrija e verifique a pageId retornada; não crie outra página.',
     err_mode_invalid: 'Unsupported page mode: {0}',
     mode_hint: 'Available modes: default, dashboard. Navigation is visible by default; pass --hide-nav or --render-nav false to hide it.',
     page_id_label: '  pageId: {0}',
@@ -749,6 +767,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    divider_type_invalid: 'Estilo de separador não suportado: {0}. Valores aceitos: {1}',
     batch_invalid: 'Lote de formulários inválido; verifique os detalhes',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
     update_title: '  yida-create-form-page - Yida Form Page Update Tool',
@@ -1064,6 +1083,7 @@ module.exports = {
     offline_success: 'Aplicativo desativado',
   },
   create_process: {
+    invalid_argument: "O argumento {0} está ausente ou é inválido. Corrija conforme a sintaxe abaixo.",
     title: 'Yida Process Form Creation',
     app_id: 'App ID',
     mode: 'Mode',
@@ -1092,12 +1112,13 @@ module.exports = {
     manual_hint: 'Please configure the process manually in Yida admin. Form UUID: {0}',
     configuring_process: 'Configuring and publishing process',
     configure_failed: 'Failed to configure process',
+    preserve_existing_form: "O formulário original existe. Verifique seu estado e a causa da falha em modo somente leitura usando formUuid e preserve-o. Não remova --formUuid, não recrie o formulário nem crie outro com o mesmo nome para recuperar. Não repita gravações quando noWriteRetry=true.",
     retry_hint: 'Process configuration failed, but the form was created. Fix the process definition and retry with this command:',
     fields_not_found: 'Fields definition file not found',
     process_def_not_found: 'Process definition file not found',
     done: 'Process form creation completed',
     url: 'URL',
-    usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>',
+    usage: 'Usage: openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]',
     usage2: '       openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]',
     example: 'Example: openyida create-process "APP_XXX" "Order Form" .cache/openyida/process/fields.json .cache/openyida/process/process-definition.json',
     example2: '         openyida create-process "APP_XXX" --formUuid FORM-YYY .cache/openyida/process/process-definition.json'
@@ -1308,6 +1329,7 @@ module.exports = {
     lint_emoji_forbidden: 'Found emoji "{0}". OpenYida generated artifacts must not use emoji in UI copy, source comments, file paths, or code constants; use plain text, SVG, or icon components instead.',
     lint_searchformdata_http_post: 'Uma chamada direta a searchFormDatas.json deve usar GET + parâmetros de query (coloque formUuid/appType na query da URL). Usar POST com formUuid no body dispara «参数校验失败formUuid» e os painéis/listas mostram zeros',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json pagina com currentPage (não pageNumber); usar pageNumber quebra a paginação',
+    lint_searchformdata_bridge_unwrap: 'Yida searchFormDatas retorna as linhas em payload.data e o total em payload.totalCount. Não leia apenas payload.data.data; normalize a matriz e use currentPage para paginação. Consulte yida-canvas-data-binding.',
     lint_searchformdata_http_unwrap: 'A resposta do navegador de searchFormDatas.json aninha a lista em content.data ({ content: { data: [...] } }); ler apenas json.data retorna 0 linhas — desembrulhe via (json.content && json.content.data)',
     lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder não pode usar o campo de metadados do registro {0}; use um ID de campo de negócio real retornado por get-schema. Se não houver um campo de data ordenável, remova dynamicOrder e ordene apenas a página recuperada por row.createTime para exibição',
     lint_setstate_non_timestamp: 'this.setState grava um campo diferente de timestamp. O estado de negócio da página personalizada deve ficar em _customState e ser atualizado via forceUpdate()/setCustomState(); this.setState deve carregar apenas o campo contratual timestamp',
@@ -1385,7 +1407,7 @@ module.exports = {
     error: '\n❌ Publish error: {0}',
     source_not_found: '❌ Arquivo fonte não encontrado: {0}',
     source_path_hint: '💡 Tente este caminho de arquivo fonte: {0}',
-    usage: 'Uso: openyida publish <arquivoFonte> <appType> <formUuid> [--health-check] [--canvas] [--auto-nav-order]',
+    usage: 'Uso: openyida publish <arquivoFonte> <appType> <formUuid> [--health-check] [--force] [--canvas] [--compat] [--skip-lint] [--auto-nav-order] [--open|--no-open] [--json]',
     example: 'Exemplo: openyida publish pages/src/xxx.js APP_XXX FORM-XXX --health-check --auto-nav-order'
   },
   qr_login: {
@@ -1971,7 +1993,7 @@ Object.assign(module.exports.save_share_config || (module.exports.save_share_con
 
 Object.assign(module.exports.publish || (module.exports.publish = {}), {
   lint_jsx_text_identifier: 'A cópia JSX não pode ser escrita como {{0}}; é tratada como variável e causa {0} is not defined. Use texto plano {0} ou string citada {\'{0}\'} em vez disso.',
-  lint_form_open_container: 'Abrir páginas de envio/de detalhe do formulário Yida a partir de uma página personalizada deve usar FormOpenContainer: um iframe de gaveta de 50vw no desktop, e apenas nova/página completa no mobile. Os manipuladores de botão devem chamar openForm({ type: "submission" | "detail", ... }).',
+  lint_form_open_container: 'Formulários e detalhes exigem o modelo completo: openyida sample openyida-page-template form-open-container. Integre CanvasDrawer, FormOpenContainer e useYidaFormOpen, chame openForm e renderize formOpenContainer. Use a gaveta iframe no desktop e a lógica do modelo no celular; não substitua por links ou diálogos próprios.',
   lint_form_detail_link: 'As páginas de detalhe do formulário Yida devem usar um formInstId real: leia row.formInstId primeiro, e desabilite ou avise quando o ID da instância estiver ausente em vez de abrir uma link de formDetail com um formInstId vazio.',
   lint_searchformdata_http_path: 'Uma chamada direta a searchFormDatas.json deve usar /dingtalk/web/<appType>/v1/form/searchFormDatas.json; /query/form/searchFormDatas.json não é um endpoint válido de dados do formulário',
   lint_searchformdata_http_query_params: 'A consulta URL direta para searchFormDatas.json está faltando parâmetros obrigatórios: {0}. Use URLSearchParams com appType, formUuid, currentPage, pageSize e searchFieldJson',

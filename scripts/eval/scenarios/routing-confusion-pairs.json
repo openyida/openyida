@@ -134,5 +134,55 @@
     "group": "易混淆-Canvas选型",
     "confusionPair": true,
     "note": "已有 .oyd.jsx 迁移 → canvas-upgrade（不是 canvas-custom-page / custom-page）"
+  },
+  {
+    "id": "confusion-workbench-vs-dashboard-operations",
+    "prompt": "给已有采购应用做一个工作台，集中显示待确认订单、待收货队列和新建采购入口，按紧急程度处理。",
+    "expectedSkill": "yida-canvas-custom-page",
+    "forbiddenDefaultSkills": [
+      "yida-dashboard"
+    ],
+    "mustNotTrigger": [
+      "yida-dashboard"
+    ],
+    "group": "易混淆-工作台vs经营分析",
+    "confusionPair": true,
+    "note": "办事工作台由任务驱动，不因工作台名称路由经营分析。"
+  },
+  {
+    "id": "confusion-workbench-vs-dashboard-task-board",
+    "prompt": "做一个维修任务看板，按待派单、处理中、待验收组织工单，能认领和处理；顶部显示待办数量。",
+    "expectedSkill": "yida-canvas-custom-page",
+    "forbiddenDefaultSkills": [
+      "yida-dashboard"
+    ],
+    "mustNotTrigger": [
+      "yida-dashboard"
+    ],
+    "group": "易混淆-工作台vs经营分析",
+    "confusionPair": true,
+    "note": "看板指任务队列，辅助计数不触发经营驾驶舱。"
+  },
+  {
+    "id": "confusion-workbench-vs-dashboard-analysis",
+    "prompt": "给供应链负责人做一个经营驾驶舱，比较采购成本趋势、供应商准时交付率和库存周转，分析异常原因。",
+    "expectedSkill": "yida-dashboard",
+    "group": "易混淆-工作台vs经营分析",
+    "confusionPair": true,
+    "note": "明确的指标判断与分析需求仍走经营看板。"
+  },
+  {
+    "id": "confusion-management-vs-dashboard-dark",
+    "prompt": "搭建暗黑风格的供应链管理系统，用于采购下单、收货、库存维护，首页方便每天处理业务。",
+    "expectedSkill": "yida-app",
+    "forbiddenDefaultSkills": [
+      "yida-dashboard"
+    ],
+    "mustNotTrigger": [
+      "yida-dashboard"
+    ],
+    "group": "易混淆-工作台vs经营分析",
+    "confusionPair": true,
+    "note": "完整应用先分析任务；管理系统和暗色风格不构成经营分析需求。"
   }
 ]

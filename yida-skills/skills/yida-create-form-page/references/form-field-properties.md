@@ -24,7 +24,7 @@
 
 | 组件 | 用法 | 典型场景 |
 | --- | --- | --- |
-| `Divider` | 作为独立字段插入字段数组，用 `title` 表达章节标题，默认生成 `props.type: "bold-with-thin"` | 普通业务分组、章节分隔、字段较多时提升可读性 |
+| `Divider` | 作为独立字段插入字段数组，用 `title` 表达章节标题，按页面用途显式选择 `dividerType` | 普通业务分组、章节分隔、字段较多时提升可读性 |
 | `ColumnContainer` | 用二维 `children` 表达多列，每个子数组是一列；内部字段仍按普通字段 JSON 写 | 开始/结束日期、姓名/工号、部门/岗位、金额/币种、联系人/电话等短字段成组 |
 | `GroupContainer` / `PageSection` | 作为容器包住一整块 `children`，标题写 `title`，映射到 `PageSection` | 需要折叠、边框、整块隐藏、整块权限或平台分组容器语义的少量特殊分组 |
 
@@ -60,20 +60,61 @@ Divider > Field
 
 映射到 `componentName: "Divider"`。
 
-样式推荐顺序以企业表单通用建议为优先，再按当前 CLI 支持的 `Divider.props.type` 白名单生成：
+OpenYida 支持以下 **23 个可见样式**，不接受 `none`（无分割线）。外观来自 `vc-deep-yida` 的 `components/yida-divider/index.tsx`、`style.less` 和样式选择器；场景列是选型建议，不是固定映射或优先级。
 
-1. 默认推荐 `bold-with-thin`，适合企业级业务表单的章节标题。普通场景不要写 `dividerType`，OpenYida 会默认写入 `props.type: "bold-with-thin"`。
-2. `double-color-trapezoid`，适合需要更强品牌识别和区块视觉权重的表单。
-3. `left-dot-title`，适合轻量分组、字段较密但不希望分割线太重的表单。
-4. `solid` / `dashed` / `thick` / `dotted` 等纯线型样式只用于低调分隔、兼容兜底或用户明确指定线型。
-5. `multi-parallelograms-end` 只用于用户明确要求门户、强分区、流程阶段强调，或已有线上表单已使用该样式且需要保持一致的场景。
+| `dividerType` | 实际外观 | 适合的内容 |
+| --- | --- | --- |
+| `solid` | 1px 实线 | 密集录入、正式资料 |
+| `dashed` | 1px 虚线 | 补充资料、轻量清单 |
+| `thick` | 3px 粗实线 | 需要明确章节边界的长文档 |
+| `dotted` | 1px 点线 | 轻量问卷、辅助分段 |
+| `bold-with-thin` | 标题下短粗线接长细线 | 有章节层次的业务申请 |
+| `solid-center` | 标题居中，两侧细线 | 简短、对称的章节标题 |
+| `solid-left` | 左短线、标题、右长线 | 左对齐的阅读或填写分段 |
+| `left-dot-title` | 左圆点加标题 | 高频登记、紧凑字段组 |
+| `light-left-bar` | 浅底标题条，左侧短竖条 | 审核、资料维护的分组 |
+| `light-bar` | 浅底标题条 | 温和的资料采集、说明章节 |
+| `dark-bar` | 主色实底标题条 | 需要强识别的少量章节；不是固定黑底 |
+| `light-left-title` | 浅底横条，左侧主色圆角标签 | 服务办理、品牌资料分段 |
+| `light-center-title` | 浅底横条，中间主色圆角标签 | 活动报名、居中章节 |
+| `light-house-title` | 浅底横条，中间屋顶形标签 | 服务专题、活动章节 |
+| `light-hexagon-title` | 浅底横条，中间六边形标题 | 专题展示、阶段章节 |
+| `hexagon-title` | 六边形标题与两侧错层线 | 主题展示、强章节识别 |
+| `badge-line` | 徽章式标题接细线 | 荣誉、资质或专题资料 |
+| `multi-parallelograms-end` | 梯形标题，尾部多条斜杠 | 赛事、制造或有动势的专题 |
+| `center-title-with-bar` | 中间标题，两侧粗色条 | 短标题、强对称章节 |
+| `double-color-trapezoid` | 主色梯形标题拼浅底横条 | 品牌分区、项目资料 |
+| `arrow-right-title` | 右箭头标题接浅底横条 | 有明确先后顺序的阶段；样式本身不提供流程操作 |
+| `square-blocks-title` | 左侧双方块、标题及底部细线 | 项目、资源或技术资料 |
+| `inner-ellipse-title` | 主色胶囊横条内嵌浅底椭圆标题 | 轻松的活动、服务专题 |
 
-生成 Schema 时默认写入 `props.type: "bold-with-thin"`。只有在用户明确指定样式时才通过 `dividerType` 覆盖 `props.type`。同一张表单中的 `Divider` 必须保持同一个 `props.type`，避免章节样式跳变。如果是修改已有表单，先看线上 Schema 中 Divider 的原始 `props.type`，属于上述支持清单或强分区特殊值时优先复用。
+选型顺序：用户指定的有效样式优先；已有页面局部修改保留原有有效样式；新页面再按下面的业务场景选择。先排除不适合标题长度、内容密度和主题的形态，同页同层级复用一个主样式。
+
+| 页面情况 | 推荐候选 | 选择依据 |
+| --- | --- | --- |
+| 高频登记、密集录入、正式资料，或标题较长、主要在手机使用 | `solid`、`solid-left`、`left-dot-title`、`light-bar` | 装饰轻，便于连续扫描和填写 |
+| 审核、档案维护、多章节申请 | `light-left-bar`、`bold-with-thin`、`light-left-title`、`double-color-trapezoid` | 分组明确，便于定位不同资料段 |
+| 辅助材料、问卷、轻量清单 | `dashed`、`dotted` | 分隔存在感较低，不抢正文 |
+| 活动报名、服务专题，标题简短且适合居中 | `solid-center`、`light-center-title`、`light-house-title`、`inner-ellipse-title` | 用对称或柔和标签组织章节 |
+| 项目阶段、技术资料、赛事或需要明显章节识别的页面 | `arrow-right-title`、`square-blocks-title`、`multi-parallelograms-end`、`light-hexagon-title`、`hexagon-title` | 用方向或几何形态强化分区；箭头不代表已有流程交互 |
+| 资质、荣誉、品牌专题或少量重点章节 | `badge-line`、`dark-bar`、`center-title-with-bar`、`thick` | 视觉权重较强，避免在密集页面大量重复 |
+
+**不知道如何选择时，随机轮换。** 场景不明确，或多个候选同样合适时，将合适的候选随机打乱，按页面依次选用。优先用本轮尚未用过的样式，用完再重新打乱；没有可用的场景判断依据时，从全部 23 种中轮换。每页只选一次，同页各分组复用，不逐条随机。
+
+把选定样式和理由（例如“场景不明确，随机轮换”）写入现有 `design.md` 的页面说明，并显式填入该页每个 `Divider.dividerType`。后续生成、编译、重试和局部修改复用已记录的值，不重新抽签，不需要新增状态文件或 CLI 参数。
+
+`form-fields` 示例仅演示布局，其中的分割线不代表推荐默认值；复用示例时按当前页面重新选择。
+
+把“页面 → 样式 → 选择理由”写在现有 `design.md` 对应页面说明里，Fast 与 Plan 使用同一规则。原生表单通过字段 JSON 配置，Canvas 分组标题参考相同外观原则手写，不向原生表单注入 CSS。
+
+未提供样式时 CLI 以 `bold-with-thin` 兜底，不替 AI 决定业务风格。显式的不支持值会报错，不静默替换。`dividerType` 写入 `props.type`；也接受历史别名 `dividerStyle`、`styleType`、`typeStyle` 和 `props.type`，按此前顺序取值，新生成统一用 `dividerType`。
+
+`none` 不参与推荐、轮换或字段生成；确实不需要分隔的内容区直接省略 Divider 组件。复杂装饰主要用于短标题；长标题和窄屏优先选简单线型、圆点或浅底，发布后检查换行与截断。
 
 | 属性 | 默认值 | 说明 |
 | --- | --- | --- |
 | `behavior` | `"NORMAL"` | 默认状态，支持 `"NORMAL"` / `"HIDDEN"` |
-| `dividerType` | `"bold-with-thin"` | 写入 Schema 的 `props.type`；优先级：`bold-with-thin` → `double-color-trapezoid` → `left-dot-title` → `solid` / `dashed` / `thick` / `dotted`；强分区特殊场景可显式用 `multi-parallelograms-end` |
+| `dividerType` | `"bold-with-thin"`（遗漏时兜底） | 从上表按页面选型，写入 Schema 的 `props.type`，不是 CLI 参数 |
 | `showTitle` | `true` | 是否显示标题 |
 | `title` | `"标题"` | 分割线标题，写入 `props.title` |
 | `description` | `""` | 标题描述，写入 `props.description` |

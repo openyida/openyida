@@ -3,8 +3,10 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { spawnSync } = require('child_process');
 const { materialize, normalizePlan, renderDesign, renderPrd } = require('../lib/design-plan/materialize');
 const { patchPlan } = require('../lib/design-plan/patch');
+const { parseDesignDocument, validateDesignDocument } = require('../lib/design/document');
 
 const ROOT = path.join(__dirname, '..');
 const FIXTURE = path.join(__dirname, 'fixtures', 'design-plan.json');
@@ -58,6 +60,9 @@ function compactV2(source) {
   };
   forUser.pageApplications = (forUser.pageApplications || []).map(application => ({
     pageId: application.pageId,
+    firstScreenFocus: application.firstScreenFocus, layout: application.layout,
+    responsive: application.responsive, acceptanceChecks: application.acceptanceChecks,
+    surface: application.surface, primaryAction: application.primaryAction, states: application.states,
     visualMemoryApplications: application.visualMemoryApplications,
   }));
   const topology = plan.visualStyle.forDesignMd.productTopologyApplication;
@@ -121,7 +126,7 @@ describe('design-plan materialize', () => {
     expect(handoff.acceptanceCriteria.filter(item => item === defaultCheck)).toHaveLength(1);
     expect(handoff.acceptanceCriteria).toContain('应用主题按 design.md 配置，页面消费同一组 token');
     expect(handoff.interactionStates).toMatchObject({ error: '核对失败时保留用户输入', loading: expect.any(String) });
-    expect(html).toContain(customCheck);
+    expect(html).not.toContain(customCheck);
     expect(fs.readFileSync(input, 'utf8')).toBe(before);
     expect(JSON.stringify(plan)).toBe(before);
   });
@@ -178,7 +183,7 @@ describe('design-plan materialize', () => {
     const handoff = JSON.parse(prd.match(/```json\n([\s\S]*?)\n```/)[1]);
     expect(handoff.resourceCreationOrder).toEqual(['应用与主题配置', '采购申请', '采购订单', '初始示例数据', '采购工作台', '发布与导航排序']);
     expect(handoff.resourceBlueprint.map(resource => resource.type)).toEqual(['process-form', 'normal-form', 'display-page']);
-    expect(handoff.pages[0].pageSpecHandoff.designFile).toBe('prd/采购管理应用/design.md');
+    expect(handoff.pages[0].pageSpecHandoff.designFile).toBe(result.outputs.design);
     for (const reference of handoff.pages[0].pageSpecHandoff.designRefs) {
       const frontmatter = require('js-yaml').load(design.match(/^---\n([\s\S]*?)\n---/)[1]);
       expect(reference.split('.').reduce((value, key) => value?.[key], frontmatter)).toBeDefined();
@@ -187,11 +192,12 @@ describe('design-plan materialize', () => {
     expect(design).toContain('buildPlanRevision: "2026-08-31-01"');
     expect(design).toContain('## 项目视觉选择');
     // 物化产物必须携带 Fast 同样消费的规则，而不只留一个实现者可能漏读的引用。
-    const continuity = fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-design/references/page-continuity.md'), 'utf8').trim();
+    const continuity = fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-design/references/page-continuity.md'), 'utf8').trim().replace(/^(#{1,5}) /gm, '#$1 ');
     expect(design).toContain(continuity);
     expect(design).toContain('顶部导航默认贴顶通栏');
     expect(design).toContain('初始透明，滚动后增加遮罩底色，回到顶部恢复透明');
-    expect(design.split('## 页面与导航连续性')).toHaveLength(2);
+    expect(design.match(/^### 页面与导航连续性$/gm)).toHaveLength(1);
+    expect(design.match(/^## /gm)).toHaveLength(5);
     expect(design).not.toMatch(/^themeId:/m);
     expect(design).not.toMatch(/\{\{[^}]+\}\}|<基于 --color-brand1-6/);
     expect(html).toContain('href="#overview"');
@@ -294,7 +300,7 @@ describe('design-plan materialize', () => {
     expect(prd).toContain('## 6. 业务逻辑与交互状态');
   });
 
-  test('HTML preserves the complete user plan and resolved business overrides', () => {
+  test.each([false, true])('HTML keeps the review concise without changing generation facts (skip samples: %s)', skipSamples => {
     const input = path.join(tempDir, 'build-plan.json');
     const plan = compactV2(JSON.parse(fs.readFileSync(FIXTURE, 'utf8')));
     const page = plan.pages.customPageDetails[0];
@@ -302,19 +308,53 @@ describe('design-plan materialize', () => {
     plan.execution = {
       acceptanceCriteria: ['每笔订单金额与采购明细一致'],
       interactionStates: { error: '采购系统离线时显示重试入口' },
+      resourceCreationOrder: ['先初始化采购主题并创建业务资源', ...plan.dataModels.map(model => model.name), page.name, '核验样例后发布采购工作台'],
+      pageImplementationOrder: [page.pageId],
     };
-    plan.visualStyle.forUser.assetStrategy = { missingAssets: ['企业标志待提供'], notes: '<script>untrusted()</script>' };
+    const sampleModel = plan.dataModels.find(model => model.sampleRecords?.length);
+    const sampleText = '行政部秋季办公设备采购演示订单';
+    const skipReason = '用户要求由采购专员首次录入正式订单';
+    if (skipSamples) {
+      delete sampleModel.sampleRecords;
+      sampleModel.skipSampleReason = skipReason;
+    } else {sampleModel.sampleRecords[0]['订单名称'] = sampleText;}
+    plan.visualStyle.forUser.assetStrategy = { materialStatus: 'partial', missingAssets: ['企业标志待提供'], notes: '<script>untrusted()</script>' };
     const source = JSON.stringify(plan);
     fs.writeFileSync(input, source);
     materialize(input);
     const html = fs.readFileSync(path.join(tempDir, 'build-plan.html'), 'utf8');
-    for (const text of ['核对采购差异', '差异核对区', '每笔订单金额与采购明细一致', '采购系统离线时显示重试入口', '企业标志待提供', '初始示例数据', '数据来源', '页面视觉方案', '搭建顺序', '页面交付顺序', '导航顺序']) {
-      expect(html).toContain(text);
+    const prd = fs.readFileSync(path.join(tempDir, 'prd.md'), 'utf8');
+    const design = fs.readFileSync(path.join(tempDir, 'design.md'), 'utf8');
+    const handoff = JSON.parse(prd.match(/```json\n([\s\S]*?)\n```/)[1]);
+    for (const value of ['核对采购差异', '差异核对区', '企业标志待提供', '部分已有', '数据来源', '导航顺序', '搭建范围', page.permissionSummary,
+      plan.visualStyle.forUser.visualDirection.label, plan.visualStyle.forUser.colorStrategy.usage]) {
+      expect(html).toContain(value);
     }
-    const sample = plan.dataModels.find(model => model.sampleRecords?.length).sampleRecords[0];
-    for (const value of Object.values(sample)) {expect(html).toContain(String(value));}
+    for (const value of [sampleText, skipReason, '每笔订单金额与采购明细一致', '采购系统离线时显示重试入口',
+      plan.execution.resourceCreationOrder[0], plan.execution.resourceCreationOrder.at(-1), '初始示例数据', '交互状态', '页面视觉方案', '搭建顺序', '页面交付顺序', '<h3>验收标准</h3>']) {
+      expect(html).not.toContain(value);
+    }
+    expect(handoff.acceptanceCriteria).toContain(plan.execution.acceptanceCriteria[0]);
+    expect(handoff.interactionStates).toMatchObject(plan.execution.interactionStates);
+    expect(handoff.resourceCreationOrder).toEqual(plan.execution.resourceCreationOrder);
+    expect(handoff.pageImplementationOrder).toEqual(plan.execution.pageImplementationOrder);
+    expect(handoff.sampleDataPlan.find(item => item.form === sampleModel.name)).toMatchObject(skipSamples
+      ? { records: [], skipReason } : { records: sampleModel.sampleRecords });
+    expect(prd).toContain(skipSamples ? skipReason : sampleText);
+    const application = plan.visualStyle.forUser.pageApplications[0];
+    for (const value of [application.firstScreenFocus, application.layout, application.responsive, application.surface,
+      application.primaryAction, application.states, ...application.acceptanceChecks, application.visualMemoryApplications[0].target]) {
+      expect(design).toContain(value);
+      expect(html).not.toContain(value);
+    }
+    const pageCard = html.match(/<div class="card page-detail">([\s\S]*?)<\/div>/)[1];
+    expect(pageCard).toContain('<p><strong>权限说明：</strong>');
+    expect(pageCard).toContain('<p><strong>主操作：</strong>核对采购差异</p>');
+    expect(pageCard).not.toContain('<table');
+    const visualSection = html.slice(html.indexOf('<h3>视觉设计</h3>')).split('</section>')[0];
+    expect(visualSection).not.toContain('<table');
     expect(html.match(/class="nav-item"/g)).toHaveLength(4);
-    expect(html).toContain('待审批、待收货、待付款和临期订单摘要');
+    for (const section of ['overview', 'data-models', 'business-flows', 'pages']) {expect(html).toContain(`id="${section}"`);}
     expect(html).not.toContain('<script>untrusted()</script>');
     expect(html).toContain('&lt;script&gt;untrusted()&lt;/script&gt;');
     expect(html).not.toContain('themeId');
@@ -441,6 +481,13 @@ describe('design-plan materialize', () => {
       type: 'custom', variant: 'top', reason: '员工只办理自己的采购事项',
     } };
     plan.pages.customPageDetails.push(front);
+    plan.visualStyle.forUser.pageApplications.push({
+      ...plan.visualStyle.forUser.pageApplications[0], pageId: front.pageId,
+      firstScreenFocus: '员工入口首屏突出新建采购申请，最近提交的申请紧随其后',
+      layout: '顶部放新建操作和个人申请状态，下面采用完整宽度的申请列表',
+      responsive: '窄屏状态区改为单列，个人申请列表隐藏次要备注列',
+      acceptanceChecks: ['只显示当前员工的申请', '新建入口在首屏保持可见'],
+    });
     const input = path.join(tempDir, 'build-plan.json');
     fs.writeFileSync(input, JSON.stringify(plan));
     materialize(input);
@@ -512,7 +559,7 @@ describe('design-plan materialize', () => {
 
   test('rejects a selected theme path that does not match the theme index', () => {
     const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
-    plan.visualStyle.forUser.selectedTheme.templatePath = 'templates/design-themes/dark-focus-layered.md';
+    plan.visualStyle.forUser.selectedTheme.templatePath = 'templates/design-themes/dark-inset-hairline.md';
 
     expect(() => renderDesign(plan)).toThrow(/themeId 与 templatePath/);
   });
@@ -522,6 +569,147 @@ describe('design-plan materialize', () => {
 
     expect(renderPrd(plan)).toBe(renderPrd(plan));
     expect(renderDesign(plan)).toBe(renderDesign(plan));
+  });
+
+  test('custom output passes the public check-design command from another working directory', () => {
+    const result = materialize(FIXTURE, { outputDir: path.join(tempDir, 'exported plan') });
+    const checked = spawnSync(process.execPath, [path.join(ROOT, 'bin/yida.js'), 'check-design',
+      result.outputs.design, '--prd', result.outputs.prd, '--json'], {
+      cwd: os.tmpdir(), encoding: 'utf8', env: { ...process.env, CI: '1' },
+    });
+    expect({ status: checked.status, stderr: checked.stderr }).toEqual({ status: 0, stderr: '' });
+    expect(JSON.parse(checked.stdout)).toMatchObject({ success: true, prdChecked: true });
+  });
+
+  test('root gradients survive design and CSS generation without replacing page or card colors', () => {
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    const gradient = 'linear-gradient(135deg, #F4F8F5, #E8F0EC)';
+    plan.visualStyle.tokens = { '--pod-app-root-bg-image': gradient };
+    const input = path.join(tempDir, 'gradient-plan.json');
+    fs.writeFileSync(input, JSON.stringify(plan));
+    const result = materialize(input, { outputDir: path.join(tempDir, 'gradient') });
+    const design = fs.readFileSync(result.outputs.design, 'utf8');
+    const tokens = require('../lib/app/theme-from-design').readDesignTokens(design);
+    expect(tokens['--pod-app-root-bg-image']).toBe(gradient);
+    expect(tokens['--pod-page-bg-color']).toBe('#FAFAFA');
+    expect(tokens['--pod-card-bg-color']).toBe('#FFFFFF');
+    expect(fs.readFileSync(result.outputs.theme, 'utf8')).toContain(`--pod-app-root-bg-image: ${gradient};`);
+  });
+
+  test('Plan preserves the shared Fast theme tokens except for explicit navigation and project choices', () => {
+    const { loadThemeIndex, themeTemplatePath, resolveThemeColors } = require('../lib/design-plan/themes');
+    const { readDesignTokens } = require('../lib/app/theme-from-design');
+    const navigation = new Set(['--pod-shell-theme-bg-color', '--pod-nav-item-text-color', '--pod-nav-item-text-hover-color',
+      '--pod-nav-item-text-selected-color', '--pod-nav-menu-bg-hover-color', '--pod-nav-menu-bg-selected-color']);
+    for (const theme of loadThemeIndex().themes) {
+      const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+      plan.visualStyle.forUser.selectedTheme = { themeId: theme.themeId, templatePath: theme.templatePath };
+      plan.visualStyle.tokens = {};
+      const expected = readDesignTokens(resolveThemeColors(fs.readFileSync(themeTemplatePath(theme), 'utf8')
+        .replace(/\{\{PRIMARY_COLOR\}\}/g, plan.visualStyle.forUser.colorStrategy.primaryColor)));
+      const actual = readDesignTokens(renderDesign(plan));
+      const contentTokens = tokens => Object.fromEntries(Object.entries(tokens).filter(([name]) => !navigation.has(name)));
+      expect(contentTokens(actual)).toEqual(contentTokens(expected));
+    }
+  });
+
+  test.each(['warm-canvas-contrast-panels', 'graphite-bevel-grid'])('carries shared color pairing guidance into %s without overriding project colors', themeId => {
+    const { readDesignTokens } = require('../lib/app/theme-from-design');
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    plan.visualStyle.forUser.selectedTheme = { themeId, templatePath: `templates/design-themes/${themeId}.md` };
+    plan.visualStyle.tokens = { '--oyd-on-action-color': '#241B18', '--pod-card-bg-color': '#FFF7F2' };
+    const design = renderDesign(plan);
+    const shared = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/application-theme-consistency.md'), 'utf8');
+    const pairing = shared.split('## 指标卡与按钮配色\n')[1].split('\n## ')[0].trim();
+    expect(design).toContain(`### 指标卡与按钮配色\n\n${pairing}`);
+    const dividers = shared.split('## 分组标题与分割线\n')[1].split('\n## ')[0].trim();
+    expect(design).toContain(`### 分组标题与分割线\n\n${dividers}`);
+    expect(design.match(/### 分组标题与分割线/g)).toHaveLength(1);
+    expect(design.match(/### 指标卡与按钮配色/g)).toHaveLength(1);
+    expect(design).not.toContain('## 页面只引用设计值');
+    expect(readDesignTokens(design)).toMatchObject(plan.visualStyle.tokens);
+    expect(validateDesignDocument(design).success).toBe(true);
+  });
+
+  test.each(['light', 'dark'])('generated %s navigation has one final palette in its own section', tone => {
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    plan.visualStyle.forUser.selectedTheme = { themeId: 'soft-outline-rhythm', templatePath: 'templates/design-themes/soft-outline-rhythm.md' };
+    plan.visualStyle.forUser.navigationStyle.tone = tone;
+    const design = renderDesign(plan);
+    const section = design.split('### 2.2 应用导航')[1].split('### 2.3 ')[0];
+    expect(section).toContain(`导航明暗：${tone === 'dark' ? '深色' : '浅色'}`);
+    expect(section).not.toMatch(/模板默认|默认近白|生成项目时|项目生成时/);
+    expect(design.match(/本项目导航配色/g)).toHaveLength(1);
+    expect(validateDesignDocument(design).success).toBe(true);
+  });
+
+  test('delivers one compact design contract with real anchors, safe metadata and the actual theme output path', () => {
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    plan.meta.appName = '研发 "A": 采购系统';
+    plan.pages.customPageDetails[0].pageId = '工作台 / #<采购>';
+    plan.visualStyle.forUser.pageApplications[0].pageId = plan.pages.customPageDetails[0].pageId;
+    plan.visualStyle.forUser.iconSystem = { library: '@ant-design/icons', mappings: { approval: 'CheckCircleOutlined' } };
+    const input = path.join(tempDir, 'build-plan.json');
+    fs.writeFileSync(input, JSON.stringify(plan));
+    const result = materialize(input, { outputDir: path.join(tempDir, 'exported plan') });
+    const markdown = fs.readFileSync(result.outputs.design, 'utf8');
+    const { metadata, body } = parseDesignDocument(markdown);
+    expect(metadata.schemaVersion).toBe('1.0');
+    expect(metadata.name).toBe(plan.meta.appName);
+    expect(metadata.themeProfile.themeFile).toBe(result.outputs.theme);
+    expect(metadata.iconSystem).toEqual(plan.visualStyle.forUser.iconSystem);
+    expect(body.trimStart()).toMatch(/^# 研发 "A": 采购系统 design\.md\n/);
+    expect(body.match(/^## /gm)).toHaveLength(5);
+    const page = metadata.sceneRecipes.workbench.pages[0];
+    expect(Object.keys(page)).toEqual(['pageId', 'anchor']);
+    expect(page.anchor).toMatch(/^#page-[a-f\d]+$/);
+    expect(body).toContain(`<a id="${page.anchor.slice(1)}"></a>`);
+    for (const item of [...Object.values(metadata.components), ...Object.values(metadata.states)]) {
+      expect(Object.keys(item)).toEqual(['anchor']);
+      expect(body).toContain(`<a id="${item.anchor.slice(1)}"></a>`);
+    }
+    expect(JSON.stringify({ ...metadata, tokens: undefined })).not.toContain('rules');
+    expect(JSON.stringify(metadata.states).length).toBeLessThan(300);
+    const pageBody = body.slice(body.indexOf(`<a id="${page.anchor.slice(1)}"></a>`));
+    for (const label of ['页面任务', '首屏焦点', '布局', '表面与组件', '主操作', '状态', '响应式', '验收']) {
+      expect(pageBody).toContain(`- ${label}：`);
+    }
+    const projectChapter = body.slice(body.indexOf('## 5. 项目应用与调整规则'));
+    expect(projectChapter).toContain('独立金色／粉色分类和平台状态色保留各自用途');
+    expect(projectChapter).toContain('### 主题表达验收');
+    expect(projectChapter).not.toMatch(/sRGB|round\(|themeId|生成标记|### 项目页面设计|每页包含以下结果/);
+    expect(validateDesignDocument(markdown, { prdMarkdown: fs.readFileSync(result.outputs.prd, 'utf8') }).success).toBe(true);
+  });
+
+  test.each(['firstScreenFocus', 'layout', 'responsive', 'acceptanceChecks', 'primaryAction'])(
+    'requires the explicit page decision %s before final materialization without changing an older plan', key => {
+      const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+      delete plan.visualStyle.forUser.pageApplications[0][key];
+      const input = path.join(tempDir, 'build-plan.json');
+      const source = JSON.stringify(plan);
+      fs.writeFileSync(input, source);
+      expect(() => materialize(input)).toThrow(new RegExp(`pageApplications\\[0\\].${key}`));
+      expect(fs.readFileSync(input, 'utf8')).toBe(source);
+      expect(fs.readdirSync(tempDir)).toEqual(['build-plan.json']);
+    }
+  );
+
+  test('does not manufacture component or state references when the selected template has no such rules', () => {
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    const read = fs.readFileSync;
+    const spy = jest.spyOn(fs, 'readFileSync').mockImplementation((file, ...args) => {
+      const value = read(file, ...args);
+      return path.basename(String(file)) === 'soft-inset-surfaces.md'
+        ? value.replace(/## 3\. 基础组件表达[\s\S]*?(?=## 4\.)/, '## 3. 基础组件表达\n\n### 文字层次\n\n正文保持清晰。\n\n') : value;
+    });
+    try {
+      plan.pages.customPageDetails[0].pageSpecHandoff = { designRefs: ['components.table'] };
+      expect(() => renderDesign(plan)).toThrow('设计引用不存在');
+      plan.pages.customPageDetails[0].pageSpecHandoff.designRefs = ['themeProfile'];
+      const { metadata } = parseDesignDocument(renderDesign(plan));
+      expect(metadata.components).toEqual({});
+      expect(metadata.states).toEqual({});
+    } finally {spy.mockRestore();}
   });
 
   test('compact v2 derives repeated summaries and standard rules without weakening artifacts', () => {
@@ -546,23 +734,20 @@ describe('design-plan materialize', () => {
       mustKeep: expect.arrayContaining(['高频动作显眼', '首屏至少两层信息']),
     });
     expect(normalized.visualStyle.internal.selectedTheme.templatePath).toBe(
-      'templates/design-themes/airy-modular-clarity.md'
+      'templates/design-themes/soft-inset-surfaces.md'
     );
-    expect(normalized.visualStyle.forUser.themeProfile).toMatchObject({
-      tone: 'airy-modular',
-      surfaceStyle: 'joined-light-panels',
-    });
+    expect(normalized.visualStyle.forUser.themeProfile).toEqual({});
     expect(normalized.visualStyle.forDesignMd).not.toHaveProperty('componentRules');
 
     materialize(FIXTURE, { outputDir: legacyOutput });
     materialize(compactInput, { outputDir: compactOutput });
     const legacyDesign = fs.readFileSync(path.join(legacyOutput, 'design.md'), 'utf8');
     const compactDesign = fs.readFileSync(path.join(compactOutput, 'design.md'), 'utf8');
-    const componentContract = source => source.slice(source.indexOf('## 组件'), source.indexOf('## 项目应用'));
+    const componentContract = source => source.slice(source.indexOf('## 3. 基础组件表达'), source.indexOf('## 5. 项目应用与调整规则'));
     expect(componentContract(compactDesign)).toBe(componentContract(legacyDesign));
-    expect(compactDesign).toContain('### 状态与交互');
-    expect(compactDesign).toContain('### 交付自检');
-    expect(compactDesign).toContain('摘要拼接组');
+    expect(compactDesign).toContain('### 交互与反馈状态');
+    expect(compactDesign).toContain('### 主题表达验收');
+    expect(compactDesign).toContain('柔圆白面板');
 
     const prd = fs.readFileSync(path.join(compactOutput, 'prd.md'), 'utf8');
     const html = fs.readFileSync(path.join(compactOutput, 'build-plan.html'), 'utf8');
@@ -580,17 +765,17 @@ describe('design-plan materialize', () => {
     expect(compactDesign).toContain('- 视觉方向：稳重流程型');
     expect(compactDesign).toContain('- 导航类型：平台侧边导航');
     expect(compactDesign).toContain('- 导航明暗：深色');
-    expect(compactDesign).toContain('- 导航背景：`--color-brand1-5`');
+    expect(compactDesign).toContain('- 导航背景：`--pod-shell-theme-bg-color`');
     expect(compactDesign).not.toMatch(/^themeId:/m);
-    expect(compactDesign).not.toContain('airy-modular-clarity');
+    expect(compactDesign).not.toContain('soft-inset-surfaces');
     expect(html).toContain('<strong>导航结构：</strong>平台侧边导航');
     expect(html).toContain('<strong>导航明暗：</strong>深色');
     expect(html).toContain('高频流程处理需要稳定入口，深色导航加强模块边界。');
   });
 
   test.each([
-    ['custom', undefined, 'var(--color-white, #fff)'],
-    ['platform-top', undefined, 'var(--color-white, #fff)'],
+    ['custom', undefined, '#FAFAFA'],
+    ['platform-top', undefined, '#FAFAFA'],
     ['custom', 'var(--color-brand1-3)', 'var(--color-brand1-3)'],
     ['platform-side', '#FFF8ED', '#FFF8ED'],
   ])('page background is shared for %s navigation while preserving explicit design %s', (navigationType, override, expected) => {
@@ -605,33 +790,32 @@ describe('design-plan materialize', () => {
     expect(css).toContain(`--pod-page-bg-color: ${expected};`);
   });
 
-  test('brand atmosphere reaches CSS surfaces and preserves text semantics when the primary color changes', () => {
+  test('theme color recipes preserve neutral surfaces unless the project explicitly overrides them', () => {
     const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
     delete plan.visualStyle.forUser.themeProfile;
-    plan.visualStyle.forUser.selectedTheme = { themeId: 'mist-layered-signal', templatePath: 'templates/design-themes/mist-layered-signal.md' };
-    plan.visualStyle.forUser.colorStrategy = { primaryColor: '#2F9E63', primaryColorName: '自然绿意', surfaceTone: 'brand-tinted' };
+    plan.visualStyle.forUser.selectedTheme = { themeId: 'soft-inset-surfaces', templatePath: 'templates/design-themes/soft-inset-surfaces.md' };
+    plan.visualStyle.forUser.colorStrategy = { primaryColor: '#2F9E63', primaryColorName: '自然绿意' };
     plan.visualStyle.forUser.navigationStyle.tone = 'light';
     const { readDesignTokens, applyDesignTokens } = require('../lib/app/theme-from-design');
     const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
     const design = renderDesign(plan);
     const green = readDesignTokens(design);
-    expect(green['--pod-shell-theme-bg-color']).toBe('var(--color-brand1-3)');
-    expect(green['--pod-page-bg-color']).toBe('var(--color-white, #fff)');
-    expect(green['--pod-card-bg-color']).toBe('var(--color-white, #fff)');
+    expect(green['--pod-shell-theme-bg-color']).toBe('#F7F7F7');
+    expect(green['--pod-page-bg-color']).toBe('#FAFAFA');
+    expect(green['--pod-card-bg-color']).toBe('#FFFFFF');
     expect(green['--pod-card-border']).toBeUndefined();
-    expect(green['--color-line1-2']).toBe('#CDE8DA');
-    expect(green['--color-text1-4']).toBe('#171717');
-    expect(green['--color-text1-10']).toBe('#5F5F5F');
-    expect(green['--color-text1-3']).toBe('#929292');
-    expect(design.indexOf('## 项目配色适配')).toBeLessThan(design.indexOf('## 设计总览'));
-    expect(applyDesignTokens(template, design)).toContain('--pod-shell-theme-bg-color: var(--color-brand1-3);');
-    expect(applyDesignTokens(template, design)).toContain('--pod-page-bg-color: var(--color-white, #fff);');
+    expect(green['--color-line1-2']).toBe('#E8E8E8');
+    expect(green['--color-text1-4']).toBe('#303030');
+    expect(green['--color-text1-10']).toBe('#606060');
+    expect(green['--color-text1-3']).toBe('#767676');
+    expect(applyDesignTokens(template, design)).toContain('--pod-shell-theme-bg-color: #F7F7F7;');
+    expect(applyDesignTokens(template, design)).toContain('--pod-page-bg-color: #FAFAFA;');
     plan.visualStyle.forUser.colorStrategy.primaryColor = '#6F4E37';
     const brown = readDesignTokens(renderDesign(plan));
-    for (const token of ['--color-brand1-3', '--color-line1-2', '--color-fill1-2']) {
+    for (const token of ['--color-brand1-3', '--color-brand1-6']) {
       expect(brown[token]).not.toBe(green[token]);
     }
-    expect(brown['--color-text1-4']).toBe(green['--color-text1-4']);
+    for (const token of ['--color-line1-2', '--color-fill1-2', '--color-text1-4']) {expect(brown[token]).toBe(green[token]);}
     plan.visualStyle.tokens = { '--pod-page-bg-color': '#FFFFFF', '--pod-card-bg-color': '#FFF8ED' };
     const explicitDesign = renderDesign(plan);
     expect(readDesignTokens(explicitDesign)['--pod-page-bg-color']).toBe('#FFFFFF');
@@ -639,19 +823,19 @@ describe('design-plan materialize', () => {
   });
 
   test.each(['custom', 'platform-top', 'platform-side', 'platform-l-shape'])(
-    'brand-tinted %s navigation keeps shell, native page and canvas surfaces separate', navigationType => {
+    'selected theme %s navigation keeps shell, native page and canvas surfaces separate', navigationType => {
       const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
       plan.execution = { ...plan.execution, appConfig: { navigationType } };
-      plan.visualStyle.forUser.colorStrategy = { primaryColor: '#2F9E63', surfaceTone: 'brand-tinted' };
+      plan.visualStyle.forUser.colorStrategy = { primaryColor: '#2F9E63' };
       plan.visualStyle.forUser.navigationStyle.tone = 'light';
       plan.visualStyle.tokens = {};
       const { readDesignTokens, applyDesignTokens } = require('../lib/app/theme-from-design');
       const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
       const design = renderDesign(plan);
       const tokens = readDesignTokens(design);
-      expect(tokens['--pod-shell-theme-bg-color']).toBe('var(--color-brand1-3)');
-      expect(tokens['--pod-page-bg-color']).toBe('var(--color-white, #fff)');
-      expect(applyDesignTokens(template, design)).toContain('--pod-page-bg-color: var(--color-white, #fff);');
+      expect(tokens['--pod-shell-theme-bg-color']).toBe('#F7F7F7');
+      expect(tokens['--pod-page-bg-color']).toBe('#FAFAFA');
+      expect(applyDesignTokens(template, design)).toContain('--pod-page-bg-color: #FAFAFA;');
       plan.visualStyle.tokens = {
         '--pod-page-bg-color': '#FFF8ED',
         '--pod-shell-theme-bg-color': '#FAF0E6',
@@ -663,84 +847,167 @@ describe('design-plan materialize', () => {
     }
   );
 
-  test.each(['light', 'dark'])('platform navigation modes stay independent of the %s root shell', tone => {
+  test.each(['light', 'dark'])('selected %s navigation keeps theme colors while other modes keep defaults', tone => {
     const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
     plan.visualStyle.forUser.navigationStyle.tone = tone;
     plan.visualStyle.tokens = {};
-    const { applyDesignTokens } = require('../lib/app/theme-from-design');
+    const { applyDesignTokens, readDesignTokens } = require('../lib/app/theme-from-design');
     const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
     const design = renderDesign(plan);
     const css = applyDesignTokens(template, design);
-    const expected = { light: 'var(--color-brand1-3)', dark: 'var(--color-brand1-5)', white: '#fff', gray: '#f0f2f5' };
-    for (const [mode, background] of Object.entries(expected)) {
-      const scoped = css.match(new RegExp(`\\.pod-premium\\.nav-${mode}\\s*\\{([^}]+)\\}`))[1];
+    const tokens = readDesignTokens(design);
+    const scope = (stylesheet, mode) => stylesheet.match(new RegExp(`\\.pod-premium\\.nav-${mode}\\s*\\{([^}]+)\\}`))[1];
+    for (const mode of ['light', 'dark', 'white', 'gray']) {
+      const background = mode === tone ? tokens['--pod-shell-theme-bg-color']
+        : scope(template, mode).match(/--pod-shell-theme-bg-color:\s*([^;]+);/)[1];
+      const scoped = scope(css, mode);
       expect(scoped).toContain(`--pod-shell-theme-bg-color: ${background};`);
-      expect(scoped).toContain(`--pod-page-header-bg-color: ${background};`);
+      const headerBackground = mode === tone ? background
+        : scope(template, mode).match(/--pod-page-header-bg-color:\s*([^;]+);/)[1];
+      expect(scoped).toContain(`--pod-page-header-bg-color: ${headerBackground};`);
     }
-    // Changing only brand values keeps the scoped bindings and existing unrelated CSS.
+    // Changing the primary color updates the selected theme palette and keeps other modes.
     plan.visualStyle.forUser.colorStrategy.primaryColor = '#1677FF';
-    const changed = applyDesignTokens(css + '\n.local-detail { padding: 7px; }\n', renderDesign(plan), design);
+    const nextDesign = renderDesign(plan);
+    const changed = applyDesignTokens(css + '\n.local-detail { padding: 7px; }\n', nextDesign, design);
     expect(changed).toContain('--color-brand1-6: #1677FF;');
-    expect(changed).toContain('--pod-shell-theme-bg-color: var(--color-brand1-5);');
+    expect(scope(changed, tone)).toContain(`--pod-shell-theme-bg-color: ${readDesignTokens(nextDesign)['--pod-shell-theme-bg-color']};`);
+    for (const mode of ['light', 'dark', 'white', 'gray'].filter(mode => mode !== tone)) {
+      expect(scope(changed, mode)).toBe(scope(template, mode));
+    }
     expect(changed).toContain('.local-detail { padding: 7px; }');
     expect(applyDesignTokens(changed, renderDesign(plan), renderDesign(plan))).toBe(changed);
   });
 
-  test('brand atmosphere preserves dark surfaces and rejects unsupported modes', () => {
+  test('dark theme surfaces remain dark without an additional color mode', () => {
     const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
     delete plan.visualStyle.forUser.themeProfile;
-    plan.visualStyle.forUser.selectedTheme = { themeId: 'dark-luminous-modular', templatePath: 'templates/design-themes/dark-luminous-modular.md' };
+    plan.visualStyle.forUser.selectedTheme = { themeId: 'dark-inset-hairline', templatePath: 'templates/design-themes/dark-inset-hairline.md' };
     plan.execution = { ...plan.execution, appConfig: { navigationType: 'custom' } };
-    plan.visualStyle.forUser.colorStrategy.surfaceTone = 'brand-tinted';
     const { readDesignTokens } = require('../lib/app/theme-from-design');
     const tokens = readDesignTokens(renderDesign(plan));
-    expect(tokens['--pod-page-bg-color']).toBe('#101010');
-    expect(tokens['--color-white']).toBe('#181818');
-    plan.visualStyle.forUser.colorStrategy.surfaceTone = 'invalid';
-    expect(() => renderDesign(plan)).toThrow('surfaceTone');
+    expect(tokens['--pod-page-bg-color']).toBe('#000000');
+    expect(tokens['--pod-card-bg-color']).toBe('#0E0E0E');
+    expect(tokens['--color-white']).toBe('var(--pod-card-bg-color)');
   });
 
   test('all registered themes resolve project placeholders and derived color tokens', () => {
     const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    plan.visualStyle.constraints = { accessibility: '所有页面支持用户调整系统字体大小' };
+    plan.visualStyle.forDesignMd.productTopologyApplication = '员工端与管理端共享主题，分别组织任务入口';
     const themeIndex = JSON.parse(fs.readFileSync(path.join(
       ROOT,
       'yida-skills',
       'skills',
       'yida-design',
-      'sub_skill',
-      'yida-design-plan',
       'templates',
       'design-themes',
       'index.json'
     ), 'utf8'));
-    expect(themeIndex.themes).toHaveLength(19);
+    expect(themeIndex.themes).toHaveLength(15);
 
     for (const theme of themeIndex.themes) {
       delete plan.visualStyle.forUser.themeProfile;
       plan.visualStyle.forUser.selectedTheme.themeId = theme.themeId;
       plan.visualStyle.forUser.selectedTheme.templatePath = theme.templatePath;
+      plan.pages.customPageDetails[0].pageSpecHandoff = { designRefs: ['themeProfile'] };
+      const registered = parseDesignDocument(renderDesign(plan)).metadata;
+      const designRefs = Object.keys(registered.components).map(name => `components.${name}`)
+        .concat(Object.keys(registered.states).map(name => `states.${name}`));
+      plan.pages.customPageDetails[0].pageSpecHandoff = {
+        ...plan.pages.customPageDetails[0].pageSpecHandoff, designRefs,
+      };
       const design = renderDesign(plan);
+      expect(design).not.toContain(theme.themeId);
+      expect(design).not.toContain(theme.label);
+      expect(design).toContain('### 项目视觉选择与事实');
+      expect(design).toContain(plan.visualStyle.constraints.accessibility);
+      expect(design).toContain(plan.visualStyle.forDesignMd.productTopologyApplication);
+      const frontmatter = require('js-yaml').load(design.match(/^---\n([\s\S]*?)\n---/)[1]);
+      for (const ref of designRefs) {
+        const reference = ref.split('.').reduce((value, name) => value?.[name], frontmatter);
+        expect(Object.keys(reference)).toEqual(['anchor']);
+        expect(reference.anchor).toMatch(/^#(?:component|state)-/);
+        expect(design.slice(design.indexOf('## 3. 基础组件表达'))).toContain(`<a id="${reference.anchor.slice(1)}"></a>`);
+      }
       expect(design).toContain('"--color-brand1-6": "#6F4E37"');
       expect(design).not.toMatch(/\{\{[^}]+\}\}|<[^>]*(?:实际色值|生成期标记)[^>]*>/);
       expect(design).not.toMatch(/"--[^"]+"\s*:\s*"AI 根据[^"]*生成[^"]*"/);
-      if (theme.themeId === 'airy-media-grid') {
-        expect(design).toContain('"--color-brand1-1": "#836753"');
-      }
+      expect(design).toContain('"--color-brand1-1": "#80634F"');
       const { readDesignTokens, applyDesignTokens } = require('../lib/app/theme-from-design');
-      const contract = require('../yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/design-themes/basic-tokens.json');
+      const contract = require('../yida-skills/skills/yida-design/templates/design-themes/basic-tokens.json');
       const tokens = readDesignTokens(design);
-      expect(Object.keys(tokens).sort()).toEqual(Object.values(contract.groups).flat().sort());
+      expect(Object.keys(tokens)).toEqual(expect.arrayContaining(Object.values(contract.groups).flat()));
       expect(tokens['--font-size-subhead']).toBe('18px');
       expect(tokens['--font-size-table']).toBe('13px');
       expect(tokens['--s-10']).toBe('40px');
-      expect(tokens['--color-fill1-10']).toBe('#2E3033');
+      expect(tokens['--color-fill1-10']).toMatch(/^#[0-9A-F]{6}$/);
       expect(tokens['--color-text1-5']).toBe('#FFFFFF');
-      expect(design).not.toMatch(/--oyd-|--font-(size|weight|lineheight)-metric/);
+      expect(design).toContain('--oyd-');
       const css = applyDesignTokens(fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8'), design);
       expect(css).toContain('--font-size-subhead: 18px;');
-      expect(css).toContain('--pod-app-root-bg-color: var(--pod-page-bg-color);');
-      expect(css).not.toMatch(/--oyd-/);
+      expect(css).toContain('--oyd-');
+      expect(css).toContain(`--pod-page-bg-color: ${tokens['--pod-page-bg-color']};`);
     }
+  });
+
+  test('template identity removal preserves matching words in confirmed project facts', () => {
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    const fact = '柔灰嵌白是用户确认的展示名称，保留该业务文案';
+    plan.visualStyle.constraints = { copy: fact };
+    const design = renderDesign(plan);
+    expect(design).toContain(fact);
+    expect(design).not.toContain('**柔灰嵌白 · soft-inset-surfaces**');
+    expect(design).not.toMatch(/^themeId:/m);
+  });
+
+  test('template color recipes resolve dependencies, alpha values and per-theme surface parameters', () => {
+    const { resolveThemeColors } = require('../lib/design-plan/themes');
+    const template = [
+      '  "--oyd-alpha": "<生成实际色值：取 --oyd-light 的 sRGB 三通道，alpha 设为 0.12，输出 rgba>"',
+      '  "--oyd-light": "<生成实际色值：#FFFFFF 50% + --oyd-base 50%，sRGB 逐通道混合>"',
+      '  "--oyd-base": "<生成实际色值：--color-brand1-6 40% + #000000 60%，sRGB 逐通道混合>"',
+      '  "--color-brand1-6": "#FFFFFF"',
+    ].join('\n');
+    const result = resolveThemeColors(template);
+    expect(result).toContain('"--oyd-base": "#666666"');
+    expect(result).toContain('"--oyd-light": "#B3B3B3"');
+    expect(result).toContain('"--oyd-alpha": "rgba(179, 179, 179, 0.12)"');
+    expect(() => resolveThemeColors(template.replace('--oyd-base 50%', '--oyd-light 50%'))).toThrow('主题色值无法生成');
+    expect(() => resolveThemeColors(template.replace('#000000 60%', '#000000 20%'))).toThrow('主题色值无法生成');
+  });
+
+  test('color derivation reads frontmatter without consuming or rewriting body examples', () => {
+    const { resolveThemeColors } = require('../lib/design-plan/themes');
+    const body = '\n正文示例：\n```yaml\n"--color-brand1-6": "#FF0000"\n```\n';
+    const source = [
+      '---', 'tokens:',
+      '  "--color-brand1-6": "#000000"',
+      '  "--color-brand1-1": "<生成实际色值：--color-brand1-6 50% + #FFFFFF 50%，sRGB 逐通道混合>"',
+      '---', body,
+    ].join('\n');
+    const result = resolveThemeColors(source);
+    expect(result).toContain('"--color-brand1-1": "#808080"');
+    expect(result).toContain(body);
+    expect(result).not.toContain('#FF8080');
+  });
+
+  test.each([
+    ['soft-inset-surfaces', 'dark', '#D6D6D6', '#FFFFFF'],
+    ['dark-inset-hairline', 'light', '#606060', '#171717'],
+  ])('changing %s navigation to %s adapts every navigation role and keeps page surfaces', (themeId, tone, foreground, selectedForeground) => {
+    const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    plan.visualStyle.forUser.selectedTheme = { themeId, templatePath: `templates/design-themes/${themeId}.md` };
+    plan.visualStyle.forUser.navigationStyle.tone = tone;
+    const { readDesignTokens } = require('../lib/app/theme-from-design');
+    const tokens = readDesignTokens(renderDesign(plan));
+    expect(tokens['--pod-nav-item-text-color']).toBe(foreground);
+    expect(tokens['--pod-nav-item-text-selected-color']).toBe(selectedForeground);
+    expect(tokens['--pod-nav-menu-bg-hover-color']).not.toBe(tokens['--pod-shell-theme-bg-color']);
+    expect(tokens['--pod-nav-menu-bg-selected-color']).not.toBe(tokens['--pod-nav-menu-bg-hover-color']);
+    expect(tokens['--pod-page-bg-color']).toBe(themeId === 'soft-inset-surfaces' ? '#FAFAFA' : '#000000');
+    plan.visualStyle.tokens = { '--pod-nav-item-text-color': '#ABCDEF' };
+    expect(readDesignTokens(renderDesign(plan))['--pod-nav-item-text-color']).toBe('#ABCDEF');
   });
 
   test('semantic patch increments revision, invalidates confirmation, and rematerializes a color adjustment', () => {
@@ -837,17 +1104,17 @@ describe('design-plan materialize', () => {
     const input = path.join(tempDir, 'build-plan.json');
     fs.copyFileSync(FIXTURE, input);
     const result = patchPlan(input, [
-      'visualStyle.forUser.assetStrategy={"materialStatus":"draft","missingAssets":[],"pages":[{"pageId":"home","imageNeed":"required","slots":[{"slotId":"hero","usage":"hero"}]}]}',
+      'visualStyle.forUser.assetStrategy={"materialStatus":"draft","missingAssets":[],"pages":[{"pageId":"procurement-workbench","imageNeed":"required","slots":[{"slotId":"hero","usage":"hero"}]}]}',
     ]);
     expect(result.confirmationInvalidated).toBe(true);
   });
 
-  test('light navigation maps to brand1-3 and invalid navigation values are rejected', () => {
+  test('light navigation uses the shared shell token and invalid navigation values are rejected', () => {
     const compact = compactV2(JSON.parse(fs.readFileSync(FIXTURE, 'utf8')));
     compact.visualStyle.forUser.navigationStyle.tone = 'light';
     const design = renderDesign(compact);
 
-    expect(design).toContain('- 导航背景：`--color-brand1-3`');
+    expect(design).toContain('- 导航背景：`--pod-shell-theme-bg-color`');
     expect(design).not.toMatch(/^themeId:/m);
 
     compact.visualStyle.forUser.navigationStyle.structure = 'drawer';
@@ -861,7 +1128,7 @@ describe('design-plan materialize', () => {
     expect(compact.visualStyle.forUser).not.toHaveProperty('candidateThemes');
     expect(compact.visualStyle.forUser).not.toHaveProperty('candidateVisualDirections');
     expect(compact.visualStyle.internal.selectedTheme).toEqual(expect.objectContaining({
-      themeId: 'airy-modular-clarity',
+      themeId: 'soft-inset-surfaces',
     }));
   });
 
@@ -1012,7 +1279,8 @@ describe('Plan contract and file consistency', () => {
     const handoff = JSON.parse(prd.match(/```json\n([\s\S]*?)\n```/)[1]).pages[0].pageSpecHandoff;
     expect(handoff.designRefs).toEqual(['themeProfile', 'sceneRecipes.workbench', 'states.empty', 'components.table']);
     const design = require('js-yaml').load(fs.readFileSync(path.join(dir, 'design.md'), 'utf8').match(/^---\n([\s\S]*?)\n---/)[1]);
-    expect(design.components.table.rules).toContain('--color-fill1-1');
+    expect(design.components.table).toEqual({ anchor: '#component-table' });
+    expect(fs.readFileSync(path.join(dir, 'design.md'), 'utf8')).toContain('<a id="component-table"></a>');
     for (const expression of ['pages.customPageDetails[0].pageStructure=unknown', 'pages.customPageDetails[0].pageSpecHandoff.designRefs=["components.missing"]', 'pages.customPageDetails[0].pageSpecHandoff.designFile=wrong.md']) {
       expect(() => patchPlan(input, [expression], { materialize: true })).toThrow();
     }

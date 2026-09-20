@@ -5,8 +5,15 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const SKILL = path.resolve(__dirname, '../yida-skills/skills/yida-design/sub_skill/yida-design-plan');
+const ROOT = path.resolve(__dirname, '..');
+const SKILL = path.join(ROOT, 'yida-skills/skills/yida-design');
 const THEMES = path.join(SKILL, 'templates/design-themes');
+const VALIDATOR = path.join(SKILL, 'scripts/validate_design_themes.py');
+const PYTHON = [['python3', []], ['python', []], ['py', ['-3']]].find(([command, prefix]) => {
+  const result = spawnSync(command, [...prefix, '--version'], { encoding: 'utf8' });
+  const match = /Python (\d+)\.(\d+)/.exec((result.stdout || '') + (result.stderr || ''));
+  return !result.error && result.status === 0 && match && Number(match[1]) === 3 && Number(match[2]) >= 9;
+});
 
 test('shipped themes inherit project color instead of prescribing a hue when branding is absent', () => {
   const index = JSON.parse(fs.readFileSync(path.join(THEMES, 'index.json'), 'utf8'));
@@ -17,52 +24,153 @@ test('shipped themes inherit project color instead of prescribing a hue when bra
   }
 });
 
-test.each(['utf-8', 'cp1252'])('all shipped themes pass the full template contract with inherited %s encoding', encoding => {
-  const result = spawnSync('python3', [path.join(SKILL, 'scripts/validate_design_themes.py')], {
+function validate(skill = SKILL, encoding = 'utf-8') {
+  if (!PYTHON) {
+    throw new Error('Theme contract tests require Python 3.9+ (python3, python, or py -3).');
+  }
+  return spawnSync(PYTHON[0], [...PYTHON[1], VALIDATOR, '--skill-root', skill], {
     encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: encoding },
   });
+}
+
+function withFixture(run) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-theme-contract-'));
+  try {
+    const skill = path.join(dir, 'yida-design');
+    const themes = path.join(skill, 'templates/design-themes');
+    fs.mkdirSync(themes, { recursive: true });
+    const index = JSON.parse(fs.readFileSync(path.join(THEMES, 'index.json'), 'utf8'));
+    index.themes = index.themes.slice(0, 1);
+    fs.copyFileSync(path.join(THEMES, 'basic-tokens.json'), path.join(themes, 'basic-tokens.json'));
+    for (const relative of ['../yida-app/workflow/plan/step-2-confirm.md', 'sub_skill/yida-design-plan/references/visual-theme-selection.md', 'sub_skill/yida-design-plan/references/build-plan-schema.md']) {
+      const file = path.resolve(skill, relative);
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, '');
+    }
+    const original = fs.readFileSync(path.join(SKILL, index.themes[0].templatePath), 'utf8');
+    const template = path.join(skill, index.themes[0].templatePath);
+    const saveIndex = () => fs.writeFileSync(path.join(themes, 'index.json'), JSON.stringify(index));
+    saveIndex();
+    fs.writeFileSync(template, original);
+    run({ skill, themes, index, template, original, saveIndex });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test.each(['utf-8', 'cp1252'])('all shared themes pass the V2 contract with inherited %s encoding', encoding => {
+  const result = validate(SKILL, encoding);
   expect({ status: result.status, error: result.stderr, failures: result.stdout.includes('校验失败') }).toEqual({
     status: 0, error: '', failures: false,
   });
   expect(result.stdout).toContain('主题索引与完整 design.md 模板校验通过。');
 });
 
-test('theme validator checks base-token references and fixed typography and spacing', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-theme-contract-'));
+test.each([
+  ['unknown reference', source => source + '\n组件消费 var(--oyd-obsolete-panel)。\n', '未声明变量'],
+  ['fixed font size', source => source.replace('"--font-size-subhead": "18px"', '"--font-size-subhead": "24px"'), '--font-size-subhead 应使用固定值'],
+  ['unquoted spacing', source => source.replace('"--s-5": 20px', '"--s-5": 22px'), '--s-5 应使用固定值'],
+  ['numeric font weight', source => source.replace('"--font-weight-subhead": 500', '"--font-weight-subhead": 600'), '--font-weight-subhead 应使用固定值'],
+  ['missing appearance token', source => source.replace(/^.*"--pod-nav-item-text-color":.*\n/m, ''), '全局变量集合'],
+  ['cross-group cycle', source => source.replace('"--pod-page-bg-color": "#000000"', '"--pod-page-bg-color": "var(--oyd-inset-surface)"').replace('"--oyd-inset-surface": "#000000"', '"--oyd-inset-surface": "var(--pod-page-bg-color)"'), '变量循环引用'],
+  ['unsupported brand slot', source => source.replace('  custom-page:\n', '  custom-page:\n    "--color-brand1-4": "#FFFFFF"\n'), '不支持的品牌色阶'],
+  ['duplicate variable across scopes', source => source.replace('  custom-page:\n', '  custom-page:\n    "--color-white": "#FFFFFF"\n'), '页面层重复定义全局变量'],
+  ['duplicate YAML property', source => source.replace('    shadow:\n', '    shadow:\n      "--shadow-1": "none"\n'), '重复定义 --shadow-1'],
+  ['malformed token value', source => source.replace('"--s-5": 20px', '"--s-5": [20px, 22px]'), '仅支持映射和非空 CSS 标量'],
+  ['renamed token', source => source.replace(/"--s-5":/g, '"--S-5":'), '无效 Token 声明'],
+  ['token reference cycle', source => source.replace('"--oyd-inset-surface": "#000000"', '"--oyd-inset-surface": "var(--oyd-workspace-surface)"').replace('"--oyd-workspace-surface": "#141414"', '"--oyd-workspace-surface": "var(--oyd-inset-surface)"'), '变量循环引用'],
+  ['primary seed', source => source.replace('"--color-brand1-6": "{{PRIMARY_COLOR}}"', '"--color-brand1-6": "#123456"'), '必须使用项目主色占位符'],
+  ['brand derivative', source => source.replace(/("--color-brand1-1": )"[^"]+"/, '$1"#123456"'), '必须与 --color-brand1-6 同源'],
+  ['page bridge', source => source.replace('"--oyd-page-bg": "var(--pod-page-bg-color)"', '"--oyd-page-bg": "#000000"'), '必须单向继承'],
+  ['missing section', source => source.replace('## 4. 特色表达配方', '## 4. 其他'), 'V2 五个章节'],
+  ['unknown placeholder', source => source + '\n{{UNKNOWN_VALUE}}\n', '未知'],
+  ['missing placeholder', source => source.replace('{{PAGE_APPLICATIONS}}', ''), '缺少'],
+  ['wildcard', source => source + '\n消费 `--shadow-*`。\n', '未展开的 Token'],
+])('validator rejects %s', (_label, mutate, expected) => {
+  withFixture(({ skill, template, original }) => {
+    expect(validate(skill).status).toBe(0);
+    const changed = mutate(original);
+    expect(changed).not.toBe(original);
+    fs.writeFileSync(template, changed);
+    const result = validate(skill, 'cp1252');
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain(expected);
+  });
+});
+
+test('templates accept extra global and project variables with shared references', () => {
+  withFixture(({ skill, template, original }) => {
+    const changed = original
+      .replace('    shadow:\n', '    shadow:\n      "--project-floating-shadow": "0 6px 24px rgb(0 0 0 / 8%)"\n')
+      .replace('  custom-page:\n', '  custom-page:\n    "--project-cover": "linear-gradient(135deg, #FFFFFF, #EFE7DA)"\n    "--project-motion": "180ms"\n')
+      .replace('"--pod-page-bg-color": "#000000"', '"--pod-page-bg-color": "var(--oyd-inset-surface)"');
+    fs.writeFileSync(template, changed);
+    const result = validate(skill);
+    expect({ status: result.status, errors: result.stderr, output: result.stdout }).toMatchObject({ status: 0, errors: '' });
+  });
+});
+
+test.each([
+  ['missing summary', index => { delete index.themes[0].styleSummary; }, 'styleSummary'],
+  ['duplicate IDs', index => { index.themes.push({ ...index.themes[0] }); }, '重复 themeId'],
+  ['unsafe theme ID', index => { index.themes[0].themeId = '../outside'; }, 'themeId 格式非法'],
+  ['path traversal', index => { index.themes[0].templatePath = '../outside.md'; }, 'templatePath 必须指向公共主题目录'],
+  ['absolute path', index => { index.themes[0].templatePath = path.join(THEMES, 'dark-inset-hairline.md'); }, 'templatePath 必须指向公共主题目录'],
+  ['wrong schema version', index => { index.schemaVersion = '1.0'; }, 'schemaVersion'],
+])('validator rejects catalog %s', (_label, mutate, expected) => {
+  withFixture(({ skill, index, saveIndex }) => {
+    mutate(index);
+    saveIndex();
+    const result = validate(skill);
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain(expected);
+  });
+});
+
+test('validator requires every template to be indexed and every entry to exist', () => {
+  withFixture(({ skill, themes, template, original }) => {
+    fs.writeFileSync(path.join(themes, 'unlisted.md'), original);
+    fs.unlinkSync(template);
+    const result = validate(skill);
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain('主题模板未登记到索引');
+    expect(result.stdout).toContain('索引引用了不存在的主题模板');
+  });
+});
+
+test('check:skills reports missing Python instead of silently skipping the contract', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-no-python-'));
   try {
-    const skill = path.join(dir, 'yida-design/sub_skill/yida-design-plan');
-    const themes = path.join(skill, 'templates/design-themes');
-    fs.mkdirSync(themes, { recursive: true });
-    const index = JSON.parse(fs.readFileSync(path.join(THEMES, 'index.json'), 'utf8'));
-    index.themes = index.themes.slice(0, 1);
-    fs.writeFileSync(path.join(themes, 'index.json'), JSON.stringify(index));
-    fs.copyFileSync(path.join(THEMES, 'basic-tokens.json'), path.join(themes, 'basic-tokens.json'));
-    for (const relative of ['../../../yida-app/workflow/plan/step-2-confirm.md', 'references/visual-theme-selection.md', 'references/build-plan-schema.md']) {
-      const file = path.resolve(skill, relative);
-      fs.mkdirSync(path.dirname(file), { recursive: true });
-      fs.writeFileSync(file, '');
-    }
-    const relative = index.themes[0].templatePath;
-    const original = fs.readFileSync(path.join(SKILL, relative), 'utf8');
-    const validate = content => {
-      fs.writeFileSync(path.join(skill, relative), content);
-      return spawnSync('python3', [path.join(SKILL, 'scripts/validate_design_themes.py'), '--skill-root', skill], {
-        encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: 'cp1252' },
-      });
-    };
-    expect(validate(original).status).toBe(0);
-    const alias = validate(original + '\n组件消费 var(--oyd-obsolete-panel)。\n');
-    expect(alias.status).toBe(1);
-    expect(alias.stdout).toContain('--oyd-obsolete-panel');
-    const font = validate(original.replace('"--font-size-subhead": "18px"', '"--font-size-subhead": "24px"'));
-    expect(font.status).toBe(1);
-    expect(font.stdout).toContain('--font-size-subhead');
-    const spacing = validate(original.replace('"--s-5": "20px"', '"--s-5": "22px"'));
-    expect(spacing.status).toBe(1);
-    expect(spacing.stdout).toContain('--s-5');
-    const recipe = validate(original + '\n重点数字消费 `metric-primary`。\n');
-    expect(recipe.status).toBe(1);
-    expect(recipe.stdout).toContain('已移除的字体语义');
+    const result = spawnSync(process.execPath, [path.join(ROOT, 'scripts/validate-skills.js')], {
+      encoding: 'utf8', env: { ...process.env, PATH: dir },
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('Shared design theme validation requires Python 3.9+');
+    expect(result.stderr).toContain('Validation was not skipped.');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('check:skills rejects a missing public CSS root closure', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-invalid-theme-css-'));
+  try {
+    const preload = path.join(dir, 'broken-css.cjs');
+    const cssFile = path.join(SKILL, 'references/theme/app-custom-theme-template.css');
+    // Inject a damaged read in the subprocess; leave the real skill template untouched.
+    fs.writeFileSync(preload, `
+      const fs = require('fs');
+      const original = fs.readFileSync;
+      fs.readFileSync = function(file, ...args) {
+        const content = original.call(this, file, ...args);
+        return String(file) === ${JSON.stringify(cssFile)} ? content.replace(/^\\}/m, '') : content;
+      };
+    `);
+    const result = spawnSync(process.execPath, ['--require', preload, path.join(ROOT, 'scripts/validate-skills.js')], {
+      encoding: 'utf8',
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('app-custom-theme-template.css');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

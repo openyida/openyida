@@ -75,6 +75,8 @@ import { SearchOutlined, PlusOutlined, EyeOutlined } from '@ant-design/icons';
 
 ## 运行时图标校验
 
+图标与底盒分别使用设计中的前景和背景变量，按 [主题一致性门禁](../../yida-design/references/page-quality-gates.md#4-主题一致性门禁) 验收。Lucide 用 `color` / `currentColor` 控制描边，Ant Design 图标用 `color`；不要统一覆盖全页 SVG 的 `fill`，也不要通过父级 opacity 弱化整组图标。
+
 `openyida compile <源文件.canvas.jsx> --json` 和 Canvas 发布前编译都会离线检查 `lucide-react`、`@ant-design/icons` 的实际运行时导出。支持 named import（含别名）、命名空间的静态成员、解构和不可变别名；报错 `OPENYIDA_CANVAS_ICON_EXPORT_UNAVAILABLE` 包含 `packageName`、`exportName`、源码行列、`runtimeAsset` 和 `suggestions`。
 
 不要根据业务词拼造组件名，也不要把最新版 npm / 官网图标目录当成宜搭运行时清单。例如当前运行时没有 `Museum`，可按语义选 `Landmark`；保留原 JSX 名称时写 `import { Landmark as Museum } from 'lucide-react'`。CLI 不会自动替换业务图标。

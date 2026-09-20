@@ -163,19 +163,26 @@
           "layoutPatternMode": "adapted",
           "layoutPatternId": "compact-workbench",
           "visualApplication": "继承项目设计系统的完整 Token、组件、状态与响应式规则，不改变 采购工作台 的 compact-workbench 页面模式。",
-          "surface": "画布、容器、边框、圆角与阴影按项目设计系统执行，不另写页面级标准。",
-          "primaryAction": "按钮与动作层级按项目设计系统执行；只用于主操作、关键焦点和选中状态。",
-          "states": "默认、悬停、按下、聚焦、禁用、加载、空态、错误、无权限和选中状态按项目设计系统执行。",
+          "surface": "待审批列表使用连续白色面板和细横分隔，右侧上下文用浅灰内嵌区；金额右对齐，主标题与次说明保持两级字重。",
+          "primaryAction": "在待审批采购行点击审批，进入该申请的真实审批页面；行内保留查看详情，成功后刷新待办数量。",
+          "states": "待审批为空时保留筛选和新建申请入口；加载时仅列表区显示骨架；审批失败保留当前行与错误原因，不清空筛选。",
           "visualMemoryApplications": [
             {
-              "name": "摘要拼接组",
+              "name": "侧置圆标的紧凑数值面板",
               "renderPolicy": "prd_match_only",
               "target": "待审批、待收货、待付款和临期订单摘要",
               "reason": "页面已有四个同层级摘要字段，满足内容契约。"
             }
           ],
           "visualMemories": [
-            "摘要拼接组"
+            "侧置圆标的紧凑数值面板"
+          ],
+          "firstScreenFocus": "首屏左侧待审批采购清单作为焦点，用醒目的未处理数量与最近截止时间呈现处理顺序。",
+          "layout": "桌面采用主辅两列，待审批与执行中的订单占左侧三分之二，当前订单上下文与快捷动作占右侧三分之一；区块间距24px。",
+          "responsive": "视口小于768px改为单列，待审批清单优先，上下文紧随选中订单；金额与主操作保持可见，次操作收入菜单。",
+          "acceptanceChecks": [
+            "待审批数量与实际筛选结果一致，空态不展示虚构订单",
+            "窄屏仍可直接读取订单号、金额和主操作，详情按约定顺序重排"
           ]
         }
       ],
@@ -184,17 +191,7 @@
         "missingAssets": [],
         "notes": "内部管理应用不强行添加装饰图片。"
       },
-      "themeProfile": {
-        "tone": "airy-modular",
-        "surfaceStyle": "joined-light-panels",
-        "contrastLevel": "medium",
-        "brandIntensity": "low",
-        "radiusScale": "large",
-        "shadowLevel": "subtle",
-        "iconStyle": "rounded-line",
-        "motionLevel": "subtle",
-        "colorStrategy": "single-brand-focus"
-      },
+      "themeProfile": {},
       "styleSource": "user_selected",
       "styleSummary": "稳重流程型：强调流程状态、任务处理和异常识别，界面稳定而不沉闷。；暖咖啡棕 #6F4E37 按项目色彩策略使用。",
       "hierarchySummary": "页面层次、表面和容器关系遵循统一项目设计系统。",
@@ -204,19 +201,19 @@
       "iconSummary": "图标风格、尺寸和语义保持一致。",
       "designMdReady": "页面配色、布局和组件样式将整理为完整设计说明。",
       "selectedTheme": {
-        "themeId": "airy-modular-clarity",
+        "themeId": "soft-inset-surfaces",
         "source": "user_selected",
         "customText": "",
-        "label": "轻盈拼接",
-        "templatePath": "templates/design-themes/airy-modular-clarity.md",
-        "summary": "近白画布承托连续拼接的浅色模块，以条件式主辅层级、轻网格单焦点和图标化明细形成清楚克制的模块秩序。"
+        "label": "柔灰嵌白",
+        "templatePath": "templates/design-themes/soft-inset-surfaces.md",
+        "summary": "冷浅灰外衬、独立浅灰导航、近白画布与柔圆白面板形成细微层差，边界极淡，静置面板仅有轻微底影。中等信息密度，深灰文字突出标题与数值，线图标克制，彩色集中于小圆标、短标签和数据图形。大容器柔圆，普通按钮与输入为较小圆角矩形，表格保持连续行；导航以中性浅底标识选中。避免所有底面同白、深投影、高饱和导航、全面胶囊化及满屏彩色图标；指标和图表仅按真实内容启用。"
       }
     },
     "forDesignMd": {
       "productTopologyApplication": "内部管理型应用；工作台与原生表单共享全应用设计语言，视觉记忆点只绑定已有内容。",
       "designTemplate": {
-        "themeId": "airy-modular-clarity",
-        "templatePath": "templates/design-themes/airy-modular-clarity.md",
+        "themeId": "soft-inset-surfaces",
+        "templatePath": "templates/design-themes/soft-inset-surfaces.md",
         "instanceRule": "完整读取主题模板，注入项目业务差异与逐页视觉记忆点绑定。"
       },
       "pagePatterns": [

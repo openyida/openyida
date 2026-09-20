@@ -2,7 +2,7 @@
 
 ## 输入与生成
 
-`design-plan init` 从已确认需求建立草稿、主题上下文和业务/视觉片段，返回必要任务与可选视觉精修。标准首版只编写业务事实，视觉片段复用已确认选择，由 CLI 补齐标准页面视觉；视觉选择不完整时返回补齐任务，有特殊视觉要求时执行可选精修。片段写入与合并见 [并行交接](../../../../yida-app/workflow/parallel-work.md#plan-的-cli-交接)。保留生成的项目目录名、页面 ID 与 sceneKey；业务名称使用 `meta.appName`。补齐业务与视觉片段后执行交接命令；标准首版使用 init 返回的 `materialize.command`：
+`design-plan init` 从已确认需求建立草稿、主题上下文和业务/视觉片段，返回必要任务与可选视觉精修。CLI 预填已确认的风格、主色和导航；模型补齐业务内容及每个自定义页的具体设计。未完成的片段由返回任务处理，主题提供公共规则，不代替逐页决定。片段写入与合并见 [并行交接](../../../../yida-app/workflow/parallel-work.md#plan-的-cli-交接)。保留生成的项目目录名、页面 ID 与 sceneKey；业务名称使用 `meta.appName`。补齐业务与视觉片段后执行交接命令；标准首版使用 init 返回的 `materialize.command`：
 
 init 已预填 `business.json` 结构，业务任务先读后写并保留 base。`authoring.pendingFields` 列出初始化时的待补文件、字段路径与说明；格式示例位于返回的 `context` 文件。示例用于说明类型，实际值按当前业务填写。复核内容后将片段设为 `ready=true`，最终生成继续执行完整校验。业务 facts 仅允许 overview、dataModels、businessFlows、pages、execution；visualStyle 只属于 `visual.json`。首次合并前一次补齐每个普通表单的 sampleDataPlan（跳过则写 skipReason）和每个自定义页面的 permissionSummary，避免用多轮 materialize 探测必填字段。
 
@@ -79,7 +79,7 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
 - `entryMode`：`platform-shell/standalone`；应用级 custom 及独立前台使用 standalone，后台平台页面使用 platform-shell。
 - `navigation`：可选的当前入口菜单 `{type:"custom",variant:"top",reason:"员工只办理自己的事项"}`，variant 为 top/side/mixed/dock；无菜单用 `{type:"none",reason:"单步办理"}`。只能用于 standalone，不接受应用设置字段。省略则沿用既有入口规则；CLI 不据此修改应用 navigationType。
 - `contentBlocks/dataSources/dataBinding/emptyReason/primaryAction/themeSummary`：本页交接差异。
-- `designFile/designRefs`：默认由 CLI 生成 `prd/<projectName>/design.md` 和 `themeProfile`、`sceneRecipes.<sceneKey>`。额外引用须存在于最终设计文档的 components、states 或 sceneRecipes 中。
+- `designFile/designRefs`：源计划默认引用 `prd/<projectName>/design.md`；生成时 designFile 指向实际输出文件，designRefs 包含 `themeProfile`、`sceneRecipes.<sceneKey>`。额外引用须存在于最终设计文档的 components、states 或 sceneRecipes 中。
 
 ## 视觉事实
 
@@ -91,23 +91,26 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
 {
   "forUser": {
     "visualDirection": {"label":"清晰柔和","description":"突出待办与业务状态，浅色界面搭配暖棕色重点操作","source":"user_selected"},
-    "colorStrategy": {"primaryColor":"#6F4E37","primaryColorName":"暖棕色","source":"user_selected","surfaceTone":"brand-tinted","usage":"暖棕浅底、白色卡片与品牌焦点协调"},
+    "colorStrategy": {"primaryColor":"#6F4E37","primaryColorName":"暖棕色","source":"user_selected","usage":"暖棕浅底、白色卡片与品牌焦点协调"},
     "navigationStyle": {"structure":"side","tone":"light","source":"user_selected","selectionReason":"沿用已选的左侧导航"},
+    "iconSystem": {"library":"lucide-react","mappings":{"新建采购":"Plus"}},
     "pageApplications": [
-      {"pageId":"page-1","visualMemoryApplications":[{"name":"摘要拼接组","renderPolicy":"prd_match_only","target":"采购待办摘要","reason":"页面已有并列的待办状态"}]}
+      {"pageId":"page-1","primaryAction":"列表标题右侧的新建采购按钮打开原生采购表单，成功后刷新列表","firstScreenFocus":"先看到待处理采购数量与最紧急记录，主操作紧邻列表标题","layout":"顶部单行筛选与主操作，下方连续采购列表；必要提示放列表右侧窄栏，列表随记录自然增长","responsive":"窄屏筛选换行，提示移到列表下方，表格保留关键列并允许横向滚动","acceptanceChecks":["首屏可找到待处理记录与新建采购操作","窄屏主操作和错误恢复入口可用"],"visualMemoryApplications":[{"name":"摘要拼接组","renderPolicy":"prd_match_only","target":"采购待办摘要","reason":"页面已有并列的待办状态"}]}
     ],
     "assetStrategy": {"materialStatus":"none","pages":[{"pageId":"page-1","imageNeed":"none","reason":"纯数据操作页","slots":[]}],"missingAssets":[],"notes":"无图片需求"}
   },
-  "internal": {"selectedTheme":{"themeId":"airy-modular-clarity","source":"user_selected"}},
+  "internal": {"selectedTheme":{"themeId":"soft-outline-rhythm","source":"user_selected"}},
   "forDesignMd": {"productTopologyApplication":"工作台与表单共享主题，视觉重点绑定已有采购任务"}
 }
 ```
 
 - 已选主题取当前上下文；主色为 6 位 HEX。导航 structure 为 top/side，tone 为 light/dark；它与整页暗色风格分开记录。
-- 页面视觉绑定使用相同 pageId，按上下文中的视觉记忆点及适用条件匹配真实区块；没有匹配内容时保留空数组，并在项目应用中说明。
+- 每个实际自定义页使用相同 pageId，最终物化前必须填写 firstScreenFocus、layout、primaryAction、responsive 四项具体说明和 acceptanceChecks 非空字符串数组；内容须具体到当前页，不能只写继承主题。纯原生页无需增加记录。
+- 视觉记忆点按适用条件绑定真实区块，无匹配时保留空数组。草稿缺逐页决定可预览，最终产物拒绝缺项；旧计划沿用同一规则，补齐后再物化。
 - `visualStyle.evidence/constraints` 保留实际视觉依据和约束。
+- `forUser.iconSystem` 可选，包含 `library: "lucide-react" | "@ant-design/icons"` 与 `mappings: {业务语义: 具体组件名}`。有底盒或状态背景时，按 [图标输出契约](../../../workflow/output-design.md#图片素材与图标) 补充 `colorPairs`。初始化保留 brief 的已选图标映射；仅未配置时默认 lucide-react 与空映射。
 - `visualStyle.tokens` 可写具体单行 CSS token 差异，如 `{"--pod-card-border-radius":"16px"}`。品牌色阶由主色派生；themeProfile 为只读摘要。
-- 完整主题的 token、组件、状态、响应式和自检规则由 CLI 注入 design.md。项目独有组件调整时再读模板对应章节；整体暗色主题按需读取暗色浮层规则。
+- 最终 design.md 按 [公共输出契约](../../../workflow/output-design.md) 生成并校验：机器数据和 anchor 索引留在 frontmatter，完整规则只写在五章正文一次。主题的 token、组件、状态与公共响应式由 CLI 注入，页面具体布局和响应式来自上述输入。项目独有组件调整时再读模板对应章节；整体暗色主题按需读取暗色浮层规则。
 
 ## 执行交接
 
@@ -138,19 +141,15 @@ PRD 实施交接中的 `pages[].navigationPolicy` 与 `pageSpecHandoff` 同级�
 
 `duplicatePlatformMenu` 始终为 false；显式 none 优先于应用级 custom。策略描述实现约束，不代表线上导航已配置或已通过视觉验收。实际菜单过滤的 `mode=platform` 仅指自绘菜单的数据来源，不表示平台工作区应再渲染菜单。
 
-源 JSON 保留项目事实；派生后的 PRD 包含完整 11 章业务与实施交接，HTML 展示同一套业务内容。
+源 JSON 保留完整项目事实，派生后的 PRD 包含完整 11 章业务与实施交接；HTML 仅按 [展示规范](../assets/README.md#需求确认内容范围) 呈现需求确认内容，不减少 PRD 或设计文档的交接要求。
 
 ## 调整与确认
 
-调整现有事实使用字段级修改：
-
-```bash
-openyida design-plan patch prd/<项目名>/build-plan.json --set 'visualStyle.forUser.colorStrategy.primaryColor=#8B5E3C' --materialize --json
-```
+调整现有方案按 [局部调整](../../../../yida-app/workflow/plan/step-4-deliver.md#4-处理调整) 执行；本节只说明版本和校验规则。
 
 初始化 revision=1；未展示的首次合并、preview 汇总和内部 patch 保持当前版。已展示或已确认的当前版发生实质修改才升版并清空确认；相同内容不升版。旧文件缺少 planState 时保守升版。片段仍以 base.digest 校验来源，版本相同也不能复用过期片段。仅更新素材 materialStatus/missingAssets 保留版本与确认。
 
-展示成功后必须将 `meta.planState.presentedRevision=meta.revision` 写回源 JSON，仅更新展示事实，不再物化。awaiting_confirmation 仅表示准备确认，不证明已展示；收到明确确认后绑定 confirmedRevision、planConfirmed 与同版产物，按应用流程交接。内部补全不得伪造展示或确认记录。`--materialize` 同步文档和主题；可选字段范围见下节。
+展示成功后必须将 `meta.planState.presentedRevision=meta.revision` 写回源 JSON，仅更新展示事实，不再物化。awaiting_confirmation 仅表示准备确认，不证明已展示；收到明确确认后绑定 confirmedRevision、planConfirmed 与同版产物，按应用流程交接。内部补全不得伪造展示或确认记录。`--materialize` 同步变化的文档内容和主题变量，`updated` 列出实际写入的产物；不带此参数只校验并保存源事实，不渲染 HTML，也不更新文档。可选字段范围见下节。
 
 旧版无 schemaVersion 或 1.x 文件继续使用原结构；维护旧计划时按需查阅旧版结构说明。
 

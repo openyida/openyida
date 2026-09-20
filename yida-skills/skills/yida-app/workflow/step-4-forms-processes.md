@@ -77,7 +77,7 @@
 
 ## 页面导航配置
 
-只有 PRD 的应用工作区导航 `execution.appConfig.navigationType=custom` 时，对本轮创建或复用的每个表单、流程表单及其他业务页面，按 [导航壳必做配置](../../yida-nav-shell/SKILL.md#必做配置) 调用 `update-form-config` 并回读 `isRenderNav=false`。以 PRD 清单及真实 formUuid 逐项记录结果。
+只有 PRD 的应用工作区导航 `execution.appConfig.navigationType=custom` 时，对本轮创建或复用的每个表单、流程表单及其他业务页面，按 [导航壳必做配置](../../yida-nav-shell/SKILL.md#必做配置) 调用 `update-form-config` 并回读 `renderNav=false`。以 PRD 清单及真实 formUuid 逐项记录结果。
 
 仅前台页面自定义菜单时，不修改这些后台表单、流程或报表的导航；共用数据不等于共用页面显示设置。
 
@@ -90,7 +90,7 @@
 
 ## Checklist
 
-- [ ] 字段结构有 Divider 分组；
+- [ ] 字段结构有 Divider 分组；按各表单用途显式选择 `dividerType`，同页同层级尽量一致，不同业务页面优先使用不同且合适的类型，具体外观见 [Divider 选型表](../../yida-create-form-page/references/form-field-properties.md#divider)；
 - [ ] 表单/流程资源在自定义页面之前创建或确认；
 - [ ] 必要 `fieldId` 已写入 `.cache/<项目名>-schema.json`；
 - [ ] 表单 Schema 只包含字段、布局和业务动作。

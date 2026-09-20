@@ -67,10 +67,28 @@ describe('entry planning and platform navigation', () => {
       if (field === 'resource') { owner[field] = '采购订单'; } else { delete owner[field]; }
       expect(() => handoff(plan)).toThrow(expect.objectContaining({
         code: 'DESIGN_PLAN_INVALID_ENTRY_NAVIGATION',
-        details: expect.objectContaining({ entryKey: entry.key, menuKey: 'mine', missingFields: expect.arrayContaining([field === 'sceneKey' ? 'entry.sceneKey' : `menu.${field}`]) }),
+        details: expect.objectContaining({ entryKey: entry.key, menuKey: 'mine', missingFields: [field === 'sceneKey' ? 'entry.sceneKey' : `menu.${field}`] }),
       }));
       owner[field] = old;
     }
+  });
+  test('missing scene and view report only those fields, then accept the unchanged resource', () => {
+    const plan = planFixture();
+    const entry = plan.execution.entryRecommendation.entries[0];
+    entry.role = 'workspace';
+    entry.menu = [entry.menu[0]];
+    plan.execution.entryRecommendation = { mode: 'unified', entries: [entry] };
+    plan.pages.customPageDetails[0].pageSpecHandoff = { entryMode: 'platform-shell' };
+    const resource = entry.menu[0].resource;
+    delete entry.sceneKey;
+    delete entry.menu[0].viewKey;
+    expect(() => handoff(plan)).toThrow(expect.objectContaining({
+      code: 'DESIGN_PLAN_INVALID_ENTRY_NAVIGATION',
+      details: expect.objectContaining({ resource, missingFields: ['entry.sceneKey', 'menu.viewKey'] }),
+    }));
+    entry.sceneKey = 'service';
+    entry.menu[0].viewKey = 'mine';
+    expect(handoff(plan).entryRecommendation.entries[0].menu[0].resource).toBe(resource);
   });
   test.each([0, 1])('requires access for frontend and management leaf menus (%i)', index => {
     const plan = planFixture();
@@ -86,6 +104,25 @@ describe('entry planning and platform navigation', () => {
       } else {plan.execution.explicitScope = { allowInferredResources: false };}
       expect(handoff(plan).navigationOrder).toEqual([]);
     }
+  });
+  test.each(['frontend-only', 'custom'])('%s preserves ordered menu groups and default tasks when platform sorting is skipped', mode => {
+    const plan = planFixture();
+    const entry = plan.execution.entryRecommendation.entries[0];
+    const [mine, submit] = entry.menu;
+    entry.menu = [{ key: 'service-tasks', label: '办理与查询', children: [submit, mine] }];
+    // A default task can differ from the first item when the business order is explicit.
+    entry.defaultMenuKey = 'mine';
+    if (mode === 'frontend-only') {
+      plan.execution.entryRecommendation.mode = mode;
+      plan.execution.entryRecommendation.entries = [entry];
+    } else {
+      plan.execution.appConfig.navigationType = 'custom';
+    }
+    const result = handoff(plan);
+    expect(result.navigationOrder).toEqual([]);
+    expect(result.entryRecommendation.entries).toEqual(plan.execution.entryRecommendation.entries);
+    expect(result.entryRecommendation.entries[0].menu[0].children.map(item => item.key)).toEqual(['submit', 'mine']);
+    expect(result.entryRecommendation.entries[0].defaultMenuKey).toBe('mine');
   });
   test.each([
     ['conflicting platform order', plan => { plan.execution.navigationOrder = ['采购工作台']; }, /navigationOrder/],
@@ -257,7 +294,7 @@ describe('entry contract survives authoring and rendering', () => {
       navigation: { type: 'platform-side', source: 'user_selected' }, businessGoals: ['办理业务'],
       pageScenes: [{ key: 'service', name: '业务服务', kind: 'custom-page' }], entryRecommendation: recommendation };
     const file = path.join(dir, 'brief.json'); fs.writeFileSync(file, JSON.stringify(brief));
-    const result = initialize(file, { themeId: 'airy-modular-clarity', outputDir: path.join(dir, 'plan') });
+    const result = initialize(file, { themeId: 'soft-inset-surfaces', outputDir: path.join(dir, 'plan') });
     const initialized = JSON.parse(fs.readFileSync(result.output));
     expect(initialized.execution.entryRecommendation).toEqual(recommendation);
     expect(JSON.stringify(result)).toContain('execution.entryRecommendation.entries[0].menu');

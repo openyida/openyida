@@ -278,8 +278,8 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida design-plan catalog [--json]` | 查询规划可用的主题与页面模式 |
 | `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | 从已确认需求初始化计划草稿 |
 | `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | 按模块更新方案草稿 |
-| `openyida design-plan materialize <build-plan.json> [--from-preview \| --business-file <json> --visual-file <json>] [--output-dir <dir>] [--check] [--json]` | 从 build-plan.json 生成并校验搭建计划产物 |
-| `openyida design-plan patch <build-plan.json> --set <path=value> [--set <path=value> ...] [--materialize] [--output-dir <dir>] [--json]` | 按字段更新搭建计划，素材进度沿用已有确认 |
+| `openyida design-plan materialize <build-plan.json> [--from-preview \| --business-file <json> --visual-file <json>] [--output-dir <dir>] [--check] [--json]` | 生成或更新方案文档和主题，并校验一致性 |
+| `openyida design-plan patch <build-plan.json> --set <path=value> [--set <path=value> ...] [--materialize] [--output-dir <dir>] [--json]` | 按字段修改方案，按需同步文档和主题 |
 | `openyida update-app <appType> [--name "..."] [--desc "..."] [--icon <name>] [--icon-color <color>] [--colour <key>] [--theme-color <color>] [--theme-file <css>] [--nav-theme light\|dark\|white\|gray] [--logo-source appIcon\|customImage] [--layout side\|top\|l_shape] [--hide-app-nav\|--show-app-nav]` | 更新应用信息 |
 | `openyida app-online <appType> [--to-ding-app-center] [--show-app-center]` | 启用宜搭应用 |
 | `openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]` | 停用宜搭应用 |
@@ -309,12 +309,13 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | 管理聚合表（virtualView） |
 | `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | 获取单个或全部表单 Schema |
 | `openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]` | 检查 PRD 页面/资源数量风险 |
+| `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | 检查设计文档、主题变量与 PRD 交接 |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | 导出应用实体关系图 |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义展示页面 |
 | `openyida build-page <sourceFile> [--output file\|--write]` | 构建宜搭兼容页面源码 |
-| `openyida check-page <src> [--compat]` | 检查自定义页面规范 |
-| `openyida compile <src> [--canvas] [--json]` | 本地编译自定义页面 |
-| `openyida publish <src> <appType> <formUuid> [--health-check] [--force] [--canvas] [--auto-nav-order] [--open\|--no-open]` | 编译并发布自定义页面 |
+| `openyida check-page <src> [--compat] [--json]` | 检查自定义页面规范 |
+| `openyida compile <src> [--canvas] [--compat] [--skip-lint] [--json]` | 本地编译自定义页面 |
+| `openyida publish <src> <appType> <formUuid> [--health-check] [--force] [--canvas] [--compat] [--skip-lint] [--auto-nav-order] [--open\|--no-open] [--json]` | 编译并发布自定义页面 |
 | `openyida update-form-config <appType> <formUuid> <true\|false\|keep> "<title>" [--locale zh_CN\|en_US\|ja_JP]` | 更新表单配置 |
 | `openyida get-form-config <appType> <formUuid> [--json]` | 查询表单配置 |
 
@@ -337,7 +338,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | 命令 | 说明 |
 |------|------|
 | `openyida configure-process <appType> <formUuid> <definition> [processCode] [--replace]` | 配置并发布流程规则; 支持加签/转交，配置位于 JSON nodes[].actions.normalActions/appendActions |
-| `openyida create-process <appType> ... [--replace]` | 创建流程表单（一体化）; 支持加签/转交，配置位于 JSON nodes[].actions.normalActions/appendActions |
+| `openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace] \| create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]` | 创建流程表单（一体化）; 支持加签/转交，配置位于 JSON nodes[].actions.normalActions/appendActions |
 | `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | 管理流程表单 AI 审批提示 |
 | `openyida process preview <appType> ...` | 预览流程实例（可视化流程图） |
 

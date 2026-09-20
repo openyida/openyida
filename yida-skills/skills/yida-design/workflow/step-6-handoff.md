@@ -1,29 +1,22 @@
-# 写入 design.md
+# 写入与校验 design.md
 
-本步骤只写入 `prd/<项目名>/design.md`。完整应用的 `prd.md` 由同时运行的 `yida-prd` 生成；本技能不得等待、读取或覆盖本轮 PRD。
+Fast 直接维护 `prd/<项目名>/design.md`，Plan 更新计划事实后由 CLI 派生；单页改造只补当前页面并保留已有业务契约。完整应用的业务与基础视觉可并行，页面事实齐备后再补逐页应用，不覆盖 `yida-prd` 的业务文档。
 
-## 必填内容
+## 写入
 
-- frontmatter：version、design_id、themeProfile、tokens、visual_dna、scenes、density、layout、tone；
-- 设计风格选择依据、主题色与换肤结果、视觉 DNA；
-- `visualScaffold`、`backgroundLayer`、`surfaceMaterial`、`surfaceContrast`；
-- `colorRoles`、`depthRule`、`roundedRule`、`densityRule`、`breathingRule`；
-- 组件 default/hover/active/focus/disabled/loading/selected/error 状态；
-- 各 `pageScenes` 对应的 `sceneRecipes` 和稳定 `designRefs`；
-- loading、empty、error、mobile、reduced motion、焦点与对比度；
-- CSS 变量和 Yida Application Theme Delivery Contract。
+已有设计文件只修改相关内容。Plan 按 [局部调整](../../yida-app/workflow/plan/step-4-deliver.md#4-处理调整) 更新；Fast 保留未改的章节和 token。下面的结构用于首版编写与完整性核对，不要求每次重写五章。
 
-## 写入前检查
+1. 读取 [唯一输出契约](output-design.md)，按 frontmatter、H1、五章正文组织项目文件。
+2. 保留选中主题的基础语言和完整变量，合入项目配色、导航、组件与逐页设计，清除模板身份和编写说明。
+3. frontmatter 仅维护机器数据与 anchor 索引，完整规则只写在正文一次。每个实际自定义页覆盖输出契约的八项要点，场景和页面标识与共享需求/计划一致。
+4. 检查 [页面质量门禁](../references/page-quality-gates.md)，确认数据、动作、导航、权限与业务事实一致；主题、状态、素材和响应式均可实现。
 
-1. 已读取整理后的用户需求及 [design.md 输出格式](output-design.md)。
-2. 已读取 [页面质量门禁](../references/page-quality-gates.md)。
-3. 视觉规则只覆盖 `explicitScope` 或需求文件中的页面场景，不添加业务资源。
-4. `designRefs` 使用稳定章节 ID，供 `yida-app` 校验和页面实现阶段引用。
+## 校验
 
-## 完成条件
+Fast 完成手写后执行 `openyida check-design prd/<项目名>/design.md --json`；PRD 就绪时添加 `--prd prd/<项目名>/prd.md`。业务仍并行生成时，先完成单文件检查，由 `yida-app` 在合并时补跨文档校验。Plan 由物化流程调用同一校验，失败则修正源事实后重新生成。
 
-- `prd/<项目名>/design.md` 存在且非空。
-- frontmatter 包含 version、design_id、baseDesignSource、styleDesignSelection、themeProfile、themeAdaptationResult、yidaThemeDelivery、tokens、visual_dna、scenes、density、layout、tone。
-- 主题、应用主题文件交付、视觉、布局、材质、圆角、密度、呼吸感、组件、状态和响应式契约完整。
-- 每个目标 display 页面场景都有 `sceneRecipes` 或可定位 `designRefs`。
-- 没有写入 `prd.md`、页面源码或真实资源 ID。
+完成条件：文件非空、公共校验通过、每个真实页面与 PRD 引用均能定位到正文、页面设计具体且无重复规则副本。设计步骤不写页面源码或编造真实资源 ID。
+
+跨文档检查会核对 PRD 的 `designFile` 是否指向当前设计文件。默认从项目工作目录执行；从其他目录检查时用 `--base-dir <项目根目录>` 解析 PRD 中的相对引用，命令输入文件的路径仍相对当前工作目录。导出包按同一规则检查，不能忽略路径不一致错误。
+
+主题 CSS 生成与上传沿用 [输出契约](output-design.md#应用主题-css-的职责)。CLI 会检查括号、字符串及注释闭合，报错时先修复源文件；`check-design` 通过不代表 CSS 已校验或页面视觉已验收。

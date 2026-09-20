@@ -4,7 +4,7 @@
 
 ```json
 [
-  { "type": "Divider", "title": "基本信息" },
+  { "type": "Divider", "title": "基本信息", "dividerType": "left-dot-title" },
   {
     "type": "ColumnContainer",
     "layout": "6:6",
@@ -51,10 +51,10 @@
 普通业务分组优先使用 Divider：
 
 ```json
-{ "type": "Divider", "title": "基本信息" }
+{ "type": "Divider", "title": "基本信息", "dividerType": "left-dot-title" }
 ```
 
-普通企业表单不写 `dividerType`，OpenYida 会默认生成 `bold-with-thin`。显式样式优先级为 `bold-with-thin`、`double-color-trapezoid`、`left-dot-title`、`solid` / `dashed` / `thick` / `dotted`。需要门户/强分区识别时，同一张表单可统一显式写 `dividerType: "multi-parallelograms-end"`。
+按当前页面的业务、密度和主题选择 `dividerType`，同页同层级尽量一致，不同业务页面优先选用不同且合适的样式；无法判断时按页面随机轮换，选定后显式填写，同页复用。完整外观和场景见 [Divider 选型表](form-field-properties.md#divider)。未填写时 CLI 以 `bold-with-thin` 兜底，不替代按场景选型。
 
 ### ColumnContainer
 

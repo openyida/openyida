@@ -28,11 +28,13 @@
 2. Canvas 主页面发布结果为 `publishMode=canvas`，读回 `hasYidaCodeCanvas=true` 且 `runtimeCodeBytes>0`；
 3. 真实数据页面在已登录浏览器中退出 loading、无业务错误，并显示至少一条已 query 确认的记录；看板还必须有至少一个 KPI 数量或列表记录与只读 query 结果一致。已知记录数大于 0 但页面 KPI 全 0、列表为空或显示“暂无数据”时必须失败或标记 `needs_review`；
 4. 获得可访问 URL；
-5. 轻量导航排序已执行，或给出明确 warning；
+5. 各入口的菜单顺序、默认页面和首屏任务已按规划落实；平台导航有排序回读，自定义导航有页面验证。未完成项按入口明确列出，不能仅因平台命令不适用就将排序记为完成；
 6. 新建或作为页面数据源的核心普通表单已写入 1-3 条真实示例记录并 query 抽查，或明确说明跳过原因；
 7. 汇合此前并行执行的主题任务，确认 `themeVerification.verified=true`、`colour=custom`、`themeColor`、`navTheme`、`layoutDirection` 与已确认设置一致，`customThemeStyle.cssUrl` 非空；这里是完成检查，不是首次更新主题的时机。应用主题文件已在应用级统一配置，自定义页面只在 `YidaComp` 内消费对应 token，未向上层注入或同步主题样式。
 8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；该命令检查页面/资源数量及已提供的素材执行记录一致性，不能替代第 3 条运行态数据验收。只有 `verdict=pass` 且运行态数据证据通过时才说“已按 PRD 完成搭建”；`verdict=needs_review` 时可以交付但必须列出 `items` 中 `status=needs_review/not_checked` 的复核项，`verdict=fail` 时列出 `hardFailures` 并说明未完成；
-9. 未继续执行用户未要求的公开访问、截图验收、报表、大屏、数据源深接或精细导航分组。
+9. 未继续执行用户未要求的公开访问、额外截图报告、报表、大屏、数据源深接或精细导航分组。
+
+第 7 条的设置回读不代表视觉通过。按 [跨页面主题验收](../../yida-design/references/application-theme-consistency.md#验证主题是否真正一致) 检查实际存在的原生页、自定义页与抽屉/详情；没有浏览器证据时标记跨页面视觉待验证。不能以 `iframePropagation=false` 推断主题未加载，也不能以页面 fallback 正常或资源检查通过宣称全应用风格一致。
 
 用户明确禁止的动作优先于上述默认条件：禁止 `theme-file` 时，第 7 条改为核验本轮没有生成、复制、修改或上传主题文件，并如实说明沿用现有/平台默认主题，不把它判为主题任务失败；禁止 `publish` 时不得宣称完整应用已发布或把历史 URL 当成本轮发布产物，只交付已完成的未发布范围和后续发布条件；禁止 `page-source` 时不得宣称本轮修改了页面源码，也不得用编译或现有页面状态替代源码变更证据。跳过项必须来自用户明确约束，不能由模型自行缩减范围。
 
@@ -109,7 +111,7 @@
 - 业务总结中的资源数量、seed records 数量和完成状态与逐资源真实返回值/readback 一一对应；证据不完整的资源标记为未核验。
 - 新增、修改或发布单个具体页面时，交付当前页面并保持单页范围。
 - 完整应用的入口组按有效范围交付：统一工作区或前后台双入口包含经验证的“业务管理入口”：根 `{base_url}/{appType}/workbench` 或上述指定任务/视图链接；明确仅前台时不追加业务后台，但仍提供开发者管理后台。
-- 前台页面在 PRD 中为 `entryMode=standalone`，且 Step 8 回读确认 `isRenderNav=false` 时，入口组包含“前台” `{base_url}/{appType}/custom/{formUuid}`；否则不得输出。
+- 前台页面在 PRD 中为 `entryMode=standalone`，且 Step 8 回读确认 `renderNav=false` 时，入口组包含“前台” `{base_url}/{appType}/custom/{formUuid}`；否则不得输出。
 - 完整应用默认交付“开发者管理后台” `{base_url}/{appType}/admin`，使用 `create-app` 或 `app-list` 成功结果中的 `adminUrl`。`application_entry_policy.entries.admin=include` 不受云端/本地宿主或登录态注入方式影响；不要沿用旧版本云端省略 admin 的规则。地址生成不代表已验证收件人的管理权限，实际访问仍由平台鉴权。
 - 完整应用一般为 2–3 个地址：有前后台时为“前台、业务后台、开发者管理后台”；仅前台时为“前台、开发者管理后台”；统一工作区时为“应用工作台、开发者管理后台”。同一业务入口不重复凑数，不为补链接创建额外业务后台。用户明确排除开发者入口时遵从；单页任务保持单页交付范围。
 - 若历史创建结果缺少 `adminUrl`，分页查询 `app-list` 并匹配真实 `appType`（名称仅辅助识别），保留其 `adminUrl`；不要自行猜租户域名或资源 ID。无法取得时明确标记开发者入口待补齐，不得静默省略或声明交付完成。
@@ -139,7 +141,7 @@
 | 应用首页 | `{base_url}/{appType}/workbench` |
 | 表单提交页（默认隐藏导航） | `{base_url}/{appType}/submission/{formUuid}?isRenderNav=false` |
 | 自定义页面 | `{base_url}/{appType}/custom/{formUuid}` |
-| 独立自定义页面 | `{base_url}/{appType}/custom/{formUuid}`；页面 `isRenderNav=false` 回读通过，混合前后台应用保留 `hideAppNav=n` |
+| 独立自定义页面 | `{base_url}/{appType}/custom/{formUuid}`；页面 `renderNav=false` 回读通过，混合前后台应用保留 `hideAppNav=n` |
 | 原生报表（仅单独交付该报表时） | 使用 CLI 返回的 `{base_url}/{appType}/workbench/{reportId}`；禁止拼接 `/{appType}/report/{reportId}` |
 | 表单详情页（抽屉/隐藏导航） | `{base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&navConfig.layout=1180&isRenderNav=false` |
 | 表单详情页（编辑模式） | `{base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&mode=edit&navConfig.layout=1180&isRenderNav=false` |

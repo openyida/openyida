@@ -6,6 +6,19 @@ const path = require('path');
 const { materialize } = require('../lib/design-plan/materialize');
 const { planBase } = require('../lib/design-plan/parallel');
 
+function normalizeDesignPath(content, from, to) {
+  return content.replaceAll(JSON.stringify(from), () => JSON.stringify(to))
+    .replaceAll(from, () => to);
+}
+
+test.each([path.posix, path.win32])('normalizes plain and JSON design paths with separator $sep', paths => {
+  const root = paths.resolve('project');
+  const from = paths.join(root, 'expected', 'design.md');
+  const to = paths.join(root, 'design.md');
+  const artifact = file => `Design: ${file}\n${JSON.stringify({ designFile: file, title: '采购工作台' })}`;
+  expect(normalizeDesignPath(artifact(from), from, to)).toBe(artifact(to));
+});
+
 let dir, input, source, businessFile, visualFile, business, visual;
 const save = () => {
   fs.writeFileSync(input, JSON.stringify(source));
@@ -45,9 +58,23 @@ test('joins independent results, invalidates old confirmation, and writes one ma
   expect(merged.meta).toMatchObject({ status: 'awaiting_confirmation', planState: { planConfirmed: false, confirmedRevision: null, presentedRevision: null } });
   const expectedDir = path.join(dir, 'expected');
   const expected = materialize(input, { outputDir: expectedDir });
-  for (const key of ['prd', 'design', 'html']) {
-    expect(fs.readFileSync(result.outputs[key]).equals(fs.readFileSync(expected.outputs[key]))).toBe(true);
+  for (const key of ['prd', 'html']) {
+    const actual = fs.readFileSync(result.outputs[key], 'utf8');
+    const regenerated = fs.readFileSync(expected.outputs[key], 'utf8');
+    // Each output directory has its own design file; other content must match.
+    if (key === 'prd') {
+      expect(actual).toContain(result.outputs.design);
+      expect(regenerated).toContain(expected.outputs.design);
+    }
+    expect(normalizeDesignPath(regenerated, expected.outputs.design, result.outputs.design)).toBe(actual);
   }
+  const { parseDesignDocument } = require('../lib/design/document');
+  const actualDesign = parseDesignDocument(fs.readFileSync(result.outputs.design, 'utf8'));
+  const expectedDesign = parseDesignDocument(fs.readFileSync(expected.outputs.design, 'utf8'));
+  expect(actualDesign.metadata.themeProfile.themeFile).toBe(result.outputs.theme);
+  expect(expectedDesign.metadata.themeProfile.themeFile).toBe(expected.outputs.theme);
+  expectedDesign.metadata.themeProfile.themeFile = actualDesign.metadata.themeProfile.themeFile;
+  expect(actualDesign).toEqual(expectedDesign);
   expect([businessFile, visualFile].map(file => fs.readFileSync(file, 'utf8'))).toEqual(beforeParts);
   expect(() => merge()).toThrow('旧版本');
 });
@@ -117,6 +144,8 @@ test('check-only does not publish the merged source or artifacts', () => {
 
 test('rolls source and artifacts back together if an artifact write fails', () => {
   materialize(input);
+  visual.facts.visualStyle.forUser.colorStrategy.primaryColor = '#8B5E3C';
+  save();
   const files = [input, path.join(dir, 'prd.md'), path.join(dir, 'design.md'), path.join(dir, 'build-plan.html')];
   const before = files.map(file => fs.readFileSync(file, 'utf8'));
   const rename = fs.renameSync;

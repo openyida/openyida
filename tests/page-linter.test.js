@@ -350,6 +350,50 @@ export function openMobileCreate() {
     expect(formOpenErrors[0].line).toBe(4);
   });
 
+  test.each([
+    'return <a href="/APP_X/submission/FORM_X">新增</a>;',
+    'window.location.assign(\'/APP_X/submission/FORM_X\');',
+    'location.replace(\'/APP_X/formDetail/FORM_X?formInstId=ID\');',
+    'if (!isMobile) window.open(\'/APP_X/submission/FORM_X\');',
+    'return isMobile ? null : window.open(\'/APP_X/submission/FORM_X\');',
+    'return <Drawer><iframe src="/APP_X/submission/FORM_X" /></Drawer>;',
+    'return <div style={{position: \'fixed\'}}><iframe src="/APP_X/submission/FORM_X" /></div>;',
+    'const {openForm, formOpenContainer} = useYidaFormOpen(\'APP_X\'); return <div>{formOpenContainer}</div>;',
+  ])('blocks a form template bypass: %s', body => {
+    const result = lintYidaSource(`function Page() { ${body} }`, '/tmp/form-entry.canvas.jsx');
+    expect(result.errors.some(issue => issue.rule === 'form-open-container')).toBe(true);
+  });
+
+  test.each([
+    'if (isMobile) window.open(\'/APP_X/submission/FORM_X\');',
+    'return isMobile ? window.open(\'/APP_X/submission/FORM_X\') : null;',
+    'isMobile && location.assign(\'/APP_X/submission/FORM_X\');',
+    'return <a href="https://example.com/help">帮助</a>;',
+    'return <iframe src="/APP_X/workbench/FORM_X" />;',
+    'return <iframe src="/APP_X/submission/FORM_X" />;',
+  ])('preserves mobile opens, external links and native navigation content: %s', body => {
+    const result = lintYidaSource(`function Page() { ${body} }`, '/tmp/form-entry.canvas.jsx');
+    expect(result.errors.filter(issue => issue.rule === 'form-open-container')).toEqual([]);
+  });
+
+  test('requires actual template composition and a rendered container, not a marker or copied names', () => {
+    const fs = require('fs');
+    const path = require('path');
+    const template = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/canvas-form-drawer.canvas.jsx'), 'utf8');
+    const fragment = template.split('// @openyida-form-drawer:start')[1].split('// @openyida-form-drawer:end')[0];
+    const page = `function Page() {
+      const {openForm, formOpenContainer} = useYidaFormOpen('APP_X');
+      return <div><button onClick={() => openForm({type:'submission',formUuid:'FORM_X'})}>新增</button>{formOpenContainer}</div>;
+    }`;
+    const errors = source => lintYidaSource(source, '/tmp/form-entry.canvas.jsx').errors.filter(issue => issue.rule === 'form-open-container');
+    expect(errors(fragment + page)).toEqual([]);
+    expect(errors(fragment + page.replace('openForm, formOpenContainer}', 'openForm, formOpenContainer: drawer}').replace('{formOpenContainer}</div>', '{drawer}</div>'))).toEqual([]);
+    expect(errors(fragment + page.replace('{formOpenContainer}</div>', '</div>'))).not.toEqual([]);
+    expect(errors(fragment.replace('<ExternalLink size={18} />', 'null') + page)).not.toEqual([]);
+    expect(errors(fragment.replace('onPointerDown={startResize}', '') + page)).not.toEqual([]);
+    expect(errors('/* FormOpenContainer CanvasDrawer openyida-form-drawer */\n' + page)).not.toEqual([]);
+  });
+
   test('blocks form detail links without a reliable formInstId', () => {
     const source = `
 export function openDetail(row) {

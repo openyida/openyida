@@ -1,6 +1,6 @@
 {
   "name": "openyida",
-  "version": "2026.9.16-2",
+  "version": "2026.9.18-1",
   "description": "OpenYida CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
   "bin": {
     "openyida": "bin/yida.js",
@@ -88,6 +88,7 @@
   "dependencies": {
     "@babel/standalone": "^7.15.1",
     "globals": "^17.11.0",
+    "js-yaml": "^4.3.2",
     "uglify-js": "^3.19.3"
   },
   "devDependencies": {

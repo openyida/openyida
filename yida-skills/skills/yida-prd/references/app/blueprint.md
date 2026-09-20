@@ -17,7 +17,7 @@
 ## 使用规则
 
 - 页面 PRD 章节只引用与当前页有关的应用结构信息，不展开整个应用 PRD。
-- 多页面应用的首页不一定是工作台：外部传播可用 landing，管理决策可用 dashboard，投屏可用 screen。
+- 首页按 [角色的主要任务](../../../yida-requirement-analysis/references/experience-groups.md#首页按任务选择) 确定：集中办事用 workbench，单项维护可直达原生列表，对外传播用 landing；已确认的经营分析用 dashboard，投屏监控用 screen。
 
 导航字段按下表写，不能混用：
 
@@ -39,12 +39,12 @@
 {
   "pages": [
     {
-      "name": "经营工作台",
+      "name": "采购工作台",
       "resourceType": "display-page",
       "scene": "workbench",
       "entryMode": "platform-shell",
       "isMain": true,
-      "purpose": "应用第一入口、今日概览、快捷入口"
+      "purpose": "处理待审批采购、跟进待收货订单、发起采购申请"
     }
   ],
   "forms": [

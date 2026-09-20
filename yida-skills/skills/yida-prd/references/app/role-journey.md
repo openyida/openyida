@@ -6,11 +6,13 @@
 
 ```markdown
 - 角色：经销商
-- 第一入口：经销商数据看板
-- 高频任务：查看 GMV / 补货风险 / 活动转化 / 巡店建议
-- 需要页面：dashboard + list + detail
+- 第一入口：订货工作台
+- 高频任务：处理待确认订单 / 查看待收货记录 / 发起补货
+- 需要页面：workbench + list + detail
 - 不需要页面：内部配置表单直接暴露在首屏
 ```
+
+只有角色确实需要经营分析时，另规划分析页；默认入口按 [首页按任务选择](../../../yida-requirement-analysis/references/experience-groups.md#首页按任务选择) 确定。
 
 ## 页面映射
 
