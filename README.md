@@ -593,6 +593,8 @@ Form field definitions can include `alias` or `componentAlias` to populate Yida 
 
 `openyida agent` is a thin Node launcher for a separately supplied Go runtime. Node does not connect to the agent service or manage provider sessions. Platform runtime packages are **not published** in this preview; no Go executable is discovered on `PATH` and no provider is installed or invoked by Node.
 
+The Local Agent Beta production allowlist contains macOS and Windows only. Linux remains supported by the ordinary OpenYida CLI and by the explicit development-runtime workflow below, but Linux Local Agent packages are not published and production `connect`/`run` are rejected until native acceptance is complete.
+
 ```bash
 openyida agent doctor --json
 openyida agent doctor --development-runtime --runtime-path /absolute/path/openyida-runtime --runtime-manifest /absolute/path/runtime-manifest.json
@@ -610,7 +612,7 @@ For each attempt, Go injects `OPENYIDA_MANAGED_RUN=1`, the cloud user/corp/app/r
 
 Before `connect` or `run`, Node now freezes the verified runtime bytes, CLI, full production dependency closure, and packaged Skills into a private content-addressed bundle. Source changes during copying fail closed. Existing bundles are verified, never silently repaired or garbage-collected by Node, and survive replacement/removal of the original npm directory. Go owns active/session references and version activation; the external Node executable and provider installations are not copied or managed by npm. A separate parent-watch pipe and a 15-second stop grace prevent normal config EOF from being mistaken for parent death; an unconfirmed forced stop remains unknown.
 
-This is not an OS sandbox or an authorization boundary against arbitrary shell code. Production signing/release infrastructure, full Go/provider recovery and upgrade acceptance, non-macOS OS security integration, and real-provider E2E are not claimed by these fake-process tests. Auto-update is disabled for `agent` and managed invocations; ordinary CLI commands neither spawn nor download the runtime.
+This is not an OS sandbox or an authorization boundary against arbitrary shell code. Production signing/release infrastructure, full Go/provider recovery and upgrade acceptance, and OS/architecture-specific provider E2E are not claimed by these fake-process tests. Auto-update is disabled for `agent` and managed invocations; ordinary CLI commands neither spawn nor download the runtime.
 
 ## Agent Skills
 

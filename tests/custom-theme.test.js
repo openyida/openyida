@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const tokenAuth = require('../lib/auth/token-auth');
 const {
   REQUIRED_BRAND_SCALE_TOKENS,
   validateThemeCssContent,
@@ -170,7 +171,7 @@ describe('custom theme authenticated multipart upload', () => {
   });
   test('managed upload uses only the Task Grant and run identity', async () => {
     process.env = managedEnv();
-    const ordinaryToken = jest.spyOn(require('../lib/auth/token-auth'), 'getAccessToken').mockRejectedValue(new Error('must not read ordinary auth'));
+    const ordinaryToken = jest.spyOn(tokenAuth, 'getAccessToken').mockRejectedValue(new Error('must not read ordinary auth'));
     await uploadCustomThemeFile('APP_BOUND', './theme.css', authRef, { fetchImpl });
     expect(ordinaryToken).not.toHaveBeenCalled();
     expect(fetchImpl).toHaveBeenCalledWith(expect.any(URL), expect.objectContaining({
@@ -185,7 +186,7 @@ describe('custom theme authenticated multipart upload', () => {
     expect(fetchImpl.mock.calls[0][0].href).toBe(`${authRef.baseUrl}/query/app/customTheme/upload.json`);
   });
   test('ordinary upload retains normal getAccessToken authentication', async () => {
-    const ordinaryToken = jest.spyOn(require('../lib/auth/token-auth'), 'getAccessToken').mockResolvedValue('synthetic-ordinary-token');
+    const ordinaryToken = jest.spyOn(tokenAuth, 'getAccessToken').mockResolvedValue('synthetic-ordinary-token');
     await uploadCustomThemeFile('APP_ORDINARY', './theme.css', authRef, { fetchImpl });
     expect(ordinaryToken).toHaveBeenCalledWith({ projectRoot: authRef.projectRoot });
     const request = fetchImpl.mock.calls[0][1];
@@ -204,7 +205,7 @@ describe('custom theme authenticated multipart upload', () => {
   });
   test('an expired Task Grant reports auth failure without ordinary auth fallback', async () => {
     process.env = managedEnv();
-    const ordinaryToken = jest.spyOn(require('../lib/auth/token-auth'), 'getAccessToken').mockRejectedValue(new Error('must not read ordinary auth'));
+    const ordinaryToken = jest.spyOn(tokenAuth, 'getAccessToken').mockRejectedValue(new Error('must not read ordinary auth'));
     fetchImpl.mockResolvedValue({ status: 401 });
     await expect(uploadCustomThemeFile('APP_BOUND', './theme.css', authRef, { fetchImpl })).resolves.toEqual({ __needLogin: true, __httpStatus: 401 });
     expect(ordinaryToken).not.toHaveBeenCalled();

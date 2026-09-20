@@ -27,6 +27,10 @@ claim those names are registered or published. Platform metadata must match its
 exact name/version and single-element `os`/`cpu`, and have no lifecycle scripts.
 Main-package-relative Node resolution supports hoisting; platform packages must
 make `package.json` resolvable. Missing optional packages block Local Agent only.
+The current Beta production allowlist is macOS (`darwin`) and Windows (`win32`).
+Linux remains a source/development target but must not appear in the production
+catalog or optional dependencies until native acceptance is complete. Ordinary
+non-Agent OpenYida CLI commands remain available on Linux.
 
 Unsigned v1 requires CLI `--development-runtime` plus explicit absolute
 `--runtime-path` and `--runtime-manifest`. Environment variables cannot enable it.

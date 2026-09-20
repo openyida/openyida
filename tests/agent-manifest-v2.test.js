@@ -9,32 +9,34 @@ const { decodeManifestV2, parseStrictJson } = require('../lib/agent/runtime-mani
 
 describe('production runtime manifest and platform package', () => {
   let root, packageRoot, platformRoot, binary, manifest, catalog, keys;
+  const fixturePlatform = process.platform === 'win32' ? 'win32' : 'darwin';
+  const fixtureArch = process.arch === 'x64' ? 'x64' : 'arm64';
   function writeSigned() {
     const bytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
     fs.writeFileSync(path.join(platformRoot, 'runtime-manifest.json'), bytes);
     fs.writeFileSync(path.join(platformRoot, 'runtime-manifest.sig'), `${crypto.sign(null, bytes, keys.privateKey).toString('base64')}\n`);
     catalog.releases[0].manifestSha256 = digest(bytes);
   }
-  function resolve() {return resolveRuntime({ packageRoot, catalog });}
+  function resolve() {return resolveRuntime({ packageRoot, catalog, platform: fixturePlatform, arch: fixtureArch });}
   beforeEach(() => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-signed-package-'));
     packageRoot = path.join(root, 'node_modules', 'openyida');
-    const name = platformPackageName(process.platform, process.arch);
+    const name = platformPackageName(fixturePlatform, fixtureArch);
     // Hoisted sibling: do not assume the package is nested inside openyida.
     platformRoot = path.join(root, 'node_modules', name);
     fs.mkdirSync(packageRoot, { recursive: true });
     fs.mkdirSync(path.join(platformRoot, 'bin'), { recursive: true });
     fs.writeFileSync(path.join(packageRoot, 'package.json'), JSON.stringify({ name: 'openyida', version: '2026.9.7', optionalDependencies: { [name]: '0.1.0' } }));
-    fs.writeFileSync(path.join(platformRoot, 'package.json'), JSON.stringify({ name, version: '0.1.0', os: [process.platform], cpu: [process.arch] }));
-    binary = path.join(platformRoot, 'bin', `openyida-agent-runtime${process.platform === 'win32' ? '.exe' : ''}`);
+    fs.writeFileSync(path.join(platformRoot, 'package.json'), JSON.stringify({ name, version: '0.1.0', os: [fixturePlatform], cpu: [fixtureArch] }));
+    binary = path.join(platformRoot, 'bin', `openyida-agent-runtime${fixturePlatform === 'win32' ? '.exe' : ''}`);
     const bytes = Buffer.from('fake fixture binary, never execute');
     fs.writeFileSync(binary, bytes, { mode: 0o700 });
     keys = crypto.generateKeyPairSync('ed25519');
     manifest = { schemaVersion: 2, product: 'openyida-local-agent-runtime', runtimeVersion: '0.1.0', sourceRevision: 'a'.repeat(40),
-      platform: process.platform, arch: process.arch, launcherProtocol: { min: 1, max: 1 }, wireProtocol: { min: 1, max: 1 },
+      platform: fixturePlatform, arch: fixtureArch, launcherProtocol: { min: 1, max: 1 }, wireProtocol: { min: 1, max: 1 },
       stateSchema: { write: 1, readMin: 1, readMax: 1 }, binary: { file: `bin/${path.basename(binary)}`, size: bytes.length, sha256: digest(bytes) }, releaseId: 'release-0.1.0', keyId: 'test-key' };
     catalog = { schemaVersion: 1, keys: { 'test-key': { publicKey: keys.publicKey.export({ type: 'spki', format: 'pem' }) } },
-      releases: [{ platform: process.platform, arch: process.arch, packageName: name, packageVersion: '0.1.0', runtimeVersion: '0.1.0', manifestSha256: '' }] };
+      releases: [{ platform: fixturePlatform, arch: fixtureArch, packageName: name, packageVersion: '0.1.0', runtimeVersion: '0.1.0', manifestSha256: '' }] };
     writeSigned();
   });
   afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -43,7 +45,7 @@ describe('production runtime manifest and platform package', () => {
   });
   test.each([
     ['product', 'another-product'], ['runtimeVersion', 'latest'], ['sourceRevision', 'internal-branch'],
-    ['arch', 'amd64'], ['platform', 'windows'], ['schemaVersion', 1], ['unknown', true],
+    ['arch', 'amd64'], ['platform', 'windows'], ['platform', 'linux'], ['schemaVersion', 1], ['unknown', true],
     ['binary', { file: '../escape', size: 1, sha256: 'a'.repeat(64) }],
     ['binary', { file: 'bin/openyida-agent-runtime', size: 1.5, sha256: 'a'.repeat(64) }],
     ['launcherProtocol', { min: 2, max: 1 }], ['wireProtocol', { min: 1, max: 1, future: true }],
@@ -86,7 +88,7 @@ describe('production runtime manifest and platform package', () => {
     expect(resolve).toThrow(expect.objectContaining({ code: 'AGENT_RUNTIME_INTEGRITY_FAILED' }));
   });
   test('refuses scripts, wrong exact npm version and missing optional dependency', () => {
-    fs.writeFileSync(path.join(platformRoot, 'package.json'), JSON.stringify({ name: catalog.releases[0].packageName, version: '0.1.1', os: [process.platform], cpu: [process.arch] }));
+    fs.writeFileSync(path.join(platformRoot, 'package.json'), JSON.stringify({ name: catalog.releases[0].packageName, version: '0.1.1', os: [fixturePlatform], cpu: [fixtureArch] }));
     expect(resolve).toThrow(expect.objectContaining({ code: 'AGENT_RUNTIME_PACKAGE_UNAVAILABLE' }));
     fs.writeFileSync(path.join(packageRoot, 'package.json'), JSON.stringify({ name: 'openyida' }));
     expect(resolve).toThrow(expect.objectContaining({ code: 'AGENT_RUNTIME_PACKAGE_UNAVAILABLE' }));
@@ -95,5 +97,6 @@ describe('production runtime manifest and platform package', () => {
     fs.renameSync(binary, `${binary}.real`); fs.symlinkSync(`${binary}.real`, binary);
     expect(resolve).toThrow(expect.objectContaining({ code: 'AGENT_RUNTIME_INVALID_PATH' }));
     expect(() => platformPackageName('windows', 'amd64')).toThrow();
+    expect(() => platformPackageName('linux', 'x64')).toThrow(expect.objectContaining({ code: 'AGENT_RUNTIME_PLATFORM_UNSUPPORTED' }));
   });
 });

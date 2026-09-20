@@ -109,7 +109,7 @@ describe('local agent thin launcher', () => {
     const stdout = { write: jest.fn() };
     const spawn = jest.fn();
     await run(['doctor', '--json'], { stdout, spawn, env: {}, homedir: root, platform: 'linux' });
-    expect(JSON.parse(stdout.write.mock.calls[0][0])).toMatchObject({ type: 'doctor', ready: false, authKnown: false, runtime: { code: 'AGENT_RUNTIME_NOT_CONFIGURED' } });
+    expect(JSON.parse(stdout.write.mock.calls[0][0])).toMatchObject({ type: 'doctor', ready: false, authKnown: false, runtime: { code: 'AGENT_RUNTIME_PLATFORM_UNSUPPORTED' } });
     expect(spawn).not.toHaveBeenCalled();
   });
 

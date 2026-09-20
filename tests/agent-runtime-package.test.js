@@ -32,6 +32,13 @@ describe('explicit agent runtime package', () => {
   test('checks explicit content without executing or PATH lookup', () => {
     expect(resolve()).toMatchObject({ executable: fs.realpathSync(executable), sha256: manifest.binary.sha256 });
   });
+  test('keeps Linux available only for an explicit development runtime', () => {
+    manifest.platform = 'linux';
+    manifest.arch = 'x64';
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+    expect(resolveRuntime({ developmentRuntime: true, runtimePath: executable, manifestPath, platform: 'linux', arch: 'x64' }))
+      .toMatchObject({ development: true, manifest: { platform: 'linux', arch: 'x64' } });
+  });
   test('missing platform package does not use ambient PATH', () => {
     expect(() => resolveRuntime({ env: { PATH: root } })).toThrow(expect.objectContaining({ code: 'AGENT_RUNTIME_NOT_CONFIGURED' }));
   });

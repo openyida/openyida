@@ -47,10 +47,11 @@ describe('connect owns the pre-enrollment check', () => {
   });
   test('without a type, one usable provider connects and unavailable providers are excluded', async () => {
     const bin = path.join(root, '.local', 'bin'); fs.mkdirSync(bin, { recursive: true });
-    const ext = process.platform === 'win32' ? '.exe' : '';
+    const ext = '.exe';
     for (const name of ['qodercli', 'codex']) { fs.writeFileSync(path.join(bin, name + ext), 'fixture', { mode: 0o700 }); }
     await run(['connect', '--json', '--endpoint', 'https://agent.example.test', '--endpoint-id', 'test', '--state-dir', root], {
-      stdout, stderr, homedir: root, env: { PATH: '', HOME: root },
+      stdout, stderr, platform: 'win32', homedir: root,
+      env: { PATH: '', Path: '', USERPROFILE: root, PATHEXT: '.EXE' },
       probe: async (_exe, flags) => flags[0] === '--list-models' ? { status: 'probe_failed', output: 'Not logged in' } : { status: 'passed' },
     });
     expect(launchRuntime.mock.calls[0][1].providers.map(p => p.provider)).toEqual(['codex']);
