@@ -103,6 +103,12 @@ openyida save-permission <appType> <formUuid> --create --name <名称> [选项]
 }
 ```
 
+### 匿名提交的 FREE_LOGIN 门禁
+
+公开访问自定义页面向普通表单匿名提交时，目标表单 `DEFAULT` 权限组的 `dataPermit.rule` 必须包含 `{"type":"FREE_LOGIN","value":"y"}`。它只是三项前置门禁之一；显示页和目标表单还必须分别满足 `isOpen === 'y'`。完整运行时契约见[公开访问（匿名态）提交](../yida-canvas-custom-page/references/data-bridge-guide.md#公开访问匿名态提交)。
+
+配置时必须先查询并锁定 `DEFAULT` 组的 `packageUuid`，复制其完整 `dataPermit`，只在原有 `rule` 中补入 `FREE_LOGIN`，保留 `ORIGINATOR` 及其他已有规则、`customDepartmentData`、`formulaData` 等非目标内容；不得用固定的 `ORIGINATOR + FREE_LOGIN` 模板覆盖现网规则。保存后按同一 `packageUuid` 回读，确认 `FREE_LOGIN` 存在且其他规则未漂移。
+
 ## 操作权限
 
 `operations` 至少有一个值为 true 的操作。当前 CLI 白名单为：

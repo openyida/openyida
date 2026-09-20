@@ -18,6 +18,8 @@ description: 自定义页面真实数据接入技能。用于在使用 `YidaCode
 - `YidaCodeCanvas` 组件只透传 `code / runtimeCode / importedModules / pageType`。
 - 组件内没有 `this` 上下文，也没有 `dataSourceMap`。
 - `this.utils.yida.*`、`didMount()`、`_customState` 等普通页面契约在 `YidaComp` 内不可直接使用；发布使用 `YidaCodeCanvas` 组件实现的页面时，外层普通页面的 `didMount` 必须自动把 `this.utils.yida.*` 封装到 `window.__OPENYIDA_YIDA_API__`，并把 `this.utils.toast/dialog/router.push/openPage/isMobile` 等根级工具封装到 `window.__OPENYIDA_UTILS__`，组件内部只能消费这些 window 桥。
+- 桥对象存在只代表发布层已注入能力，不代表当前访客具有登录态。公开页 `/o/...` 中桥可能存在，但匿名用户调用其 `saveFormData` 仍会返回 `LOGIN FAILED`；写入前必须先按 `pageConfig.FREELOGIN === 'true'` 或 `loginUser.userId === 'FREEUSER'` 分流。
+- 登录态表单写入继续使用 `window.__OPENYIDA_YIDA_API__.saveFormData`；匿名态只能按[公开访问（匿名态）提交](../yida-canvas-custom-page/references/data-bridge-guide.md#公开访问匿名态提交)走 `window.pageConfig.RECEIPT_SAVE_FORM_DATA`，不得在桥失败后盲目重试。
 - `YidaCodeCanvas` 组件没有官方 `useDataBinding` hook，不得从任何包 `import { useDataBinding }`；真实表单数据绑定用页面内本地 `useYidaData(binding)`、`DataBridge` 和 yida JS-API 桥实现。
 - Cookie 由浏览器同源请求自动携带，前端代码不能硬编码 Cookie、appSecret、accessKey 或外部密钥。
 - `mode=form` 读取宜搭表单数据时，默认调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`，它底层来自官方 `this.utils.yida.searchFormDatas(params)`。发布层同一个桥也同步 `this.utils.yida` 的表单、流程、表单设计与运行态方法，例如 `saveFormData`、`updateFormData`、`startProcessInstance`、`getProcessInstances`、`request`、`searchUserList`。参数至少包含 `formUuid`、`currentPage`、`pageSize` 和 `searchFieldJson`，`pageSize` 一般显式写 `50`，字段 ID 必须来自真实 schema。
@@ -202,6 +204,9 @@ var payload = await bridge.searchFormDatas({
 - 接口异常时页面有明确错误态，不用 demo seed 伪装成成功态。
 - 发布后回读页面，确认 `YidaCodeCanvas` 组件的 `runtimeCode` 非空。
 - 在已登录浏览器中确认页面退出 loading、无数据加载错误，并显示至少一条已 query 确认的记录。
+- 公开页匿名提交前，已回读显示页和目标表单的 `isOpen === 'y'`，并确认目标表单 DEFAULT 权限包含 `FREE_LOGIN`。
+- 匿名字段数组使用 `{ componentName, fieldId, fieldData: { value } }`，CSRF 优先来自 `window.g_config._csrf_token`。
+- 匿名提交不能只检查 HTTP 200、`success`、`formInstId` 或总数增长；必须按返回的实例 ID 回读代表性字段值。
 
 验收命令：
 
@@ -217,5 +222,7 @@ openyida get-schema <appType> <formUuid> > .cache/openyida/dashboard-schema.json
 | 页面显示 0 条，但数据管理里有数据 | 先检查外层页面是否注入 `window.__OPENYIDA_YIDA_API__`，再检查返回体包裹层和字段映射；触发 `totalCount` 保护 |
 | 首屏后每 5 秒闪白 | 轮询改成 silent refresh，保留旧数据直到新数据返回 |
 | 登录态存在但接口 403 | 优先改回 yida JS-API 桥；只有降级直连时才检查同源路径、CSRF 参数和 `global_csrf_token` 头 |
+| 公开页提交返回 `LOGIN FAILED` | 不以桥对象存在判断登录态；先识别 `FREELOGIN` / `FREEUSER`，匿名态改走 `RECEIPT_SAVE_FORM_DATA` |
+| 匿名网关返回成功但字段为空 | 把每项改为 `{ componentName, fieldId, fieldData: { value } }`，再按 `formInstId` 回读字段值 |
 | 接口失败后仍显示漂亮 demo 数据 | 改成错误态 + seed 标识，不能伪装真实成功 |
 | 字段值全为空 | 回读 schema 校验字段 ID，确认字段映射没有使用 label |
