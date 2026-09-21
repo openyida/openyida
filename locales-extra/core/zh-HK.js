@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  design_plan: {
+    repair_page_bindings: '按 business.json 的 customPageDetails 逐一修復 visual.json 的 pageApplications；原生表單不加入綁定。每項 visualMemoryApplications 必須為陣列，無適用項用 []。保留現有草稿，修復所列欄位後重試原命令；不要刪除目錄或重新 init。',
+  },
   design_document: {
     update_conflict: "無法更新 {0}（{1}）：現有內容與上次生成結果衝突。請讀取這部分，將本地修改與計劃來源對齊後重試；本次未儲存任何檔案。",
     theme_css_invalid: '主題 CSS 第 {0} 行附近存在未閉合或不匹配的括號、字串或註解，請修正後重試。',

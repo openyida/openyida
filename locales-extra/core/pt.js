@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  design_plan: {
+    repair_page_bindings: 'Faça pageApplications de visual.json corresponder a customPageDetails de business.json um a um, sem formulários nativos. visualMemoryApplications deve ser um array; use [] quando não houver itens. Preserve o rascunho, corrija os campos indicados e repita o comando original. Não exclua o diretório nem execute init novamente.',
+  },
   design_document: {
     update_conflict: "Não foi possível atualizar {0} ({1}): o conteúdo está em conflito com a última versão gerada. Concilie a alteração local desta seção com os dados do plano e tente novamente. Nenhum arquivo foi salvo.",
     theme_css_invalid: 'O CSS do tema contém um delimitador, uma string ou um comentário não fechado ou incompatível perto da linha {0}. Corrija e tente novamente.',

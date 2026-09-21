@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  design_plan: {
+    repair_page_bindings: 'visual.json の pageApplications を business.json の customPageDetails と一対一に対応させ、ネイティブフォームは除外してください。visualMemoryApplications は配列とし、該当なしは [] にします。既存の下書きを保持し、示されたフィールドを修正して元のコマンドを再実行してください。ディレクトリの削除や init の再実行は不要です。',
+  },
   design_document: {
     update_conflict: "{0}（{1}）を更新できません。現在の内容が前回の生成結果と競合しています。該当箇所のローカル変更と計画データを合わせてから再試行してください。ファイルは保存されていません。",
     theme_css_invalid: 'テーマ CSS の {0} 行付近に、閉じられていないか対応しない括弧、文字列、コメントがあります。修正して再試行してください。',

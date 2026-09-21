@@ -21,10 +21,16 @@ description: Plan 模式的视觉设计分支。基于需求选择视觉方向�
 
 1. 读取 CLI 返回的 `authoring-context.md` 与 [紧凑计划契约](references/build-plan-compact-schema.md)，沿用 pageId 和 sceneKey。
 2. 为每个真实自定义页填写 `firstScreenFocus`、`layout`、`primaryAction`、`responsive` 与 `acceptanceChecks`；前四项为具体非空说明，验收为非空字符串数组。公共主题不能代替这些决定。纯原生表单应用不增加虚构页记录。
-3. 按实际内容补 `visualMemoryApplications`、页面局部差异与素材策略。完整主题由 CLI 注入，复杂组件定制时再读模板对应章节。
+3. 每项必须保留 `visualMemoryApplications` 数组；没有匹配的主题记忆点时填写 `[]`，不要省略或写成字符串。按实际内容补页面局部差异与素材策略。完整主题由 CLI 注入，复杂组件定制时再读模板对应章节。
 4. 全局和局部 token 遵守 [基础变量契约](../../templates/design-themes/basic-tokens.json)，明确项目差异写 `visualStyle.tokens`，主色写 `forUser.colorStrategy.primaryColor`；沿用主题的字号、间距和组件圆角。
 5. CLI 按 [公共输出契约](../../workflow/output-design.md) 生成 frontmatter、anchor 索引和五章正文，并调用同一 `check-design` 校验。缺少逐页决定时只保留可预览草稿，补齐后再生成最终产物；旧计划同样不得以继承主题套话补过门槛。
 
 用户选择整体暗色或黑色主题时，按 [暗色主题浮层适配](../../references/theme/theme-token-presets.md#暗色主题浮层适配) 补齐 `visualStyle.tokens`；导航明暗保持独立。
 
 首版提交前，将基础视觉与 `pageApplications` 一次补齐到已有 `visual.json`。仅超大需求需要中间展示时才按 [按模块更新方案](../../../yida-app/workflow/incremental-preview.md) 提交。主流程负责生成方案、展示和确认，主题 CSS 使用 CLI 返回的 `outputs.theme`。
+
+## 校验失败时定点修复
+
+`DESIGN_PLAN_PAGE_BINDINGS_REQUIRED` 会列出 `expectedPageIds` 和带源文件、字段路径的 `issues`。只用 `business.json` 的 `facts.pages.customPageDetails` 中的 pageId，一页一项地维护 `visual.json` 的 `facts.visualStyle.forUser.pageApplications`；原生表单、数据模型不加入此数组。根据 `missing_page` 补绑定、`unexpected_page` 移除多余绑定、`duplicate_page` 合并重复项，按 `expected_array`/`expected_object`/`expected_nonempty_string` 修复类型或缺字段。若错误源是 business.json，先修正其页面事实，不改动需求范围。
+
+保留 build-plan.json、business.json、visual.json 和已有预览；只修改错误定位的字段，再重试相同 materialize 命令。字段校验失败不是文件损坏，不执行 rm -rf、不重新 init、不重新编写整份 PRD。写入工具失败或跳过时先回读确认修复已落盘，再重试；不能把工具调用本身当作写入成功。

@@ -320,7 +320,7 @@
 | forUser.navigationStyle | structure=top/side、tone=light/dark、source、selectionReason |
 | internal.selectedTheme | themeId、source、customText；label、templatePath 和 summary 由主题索引补齐 |
 | forUser.themeProfile | 由选中主题 token、正文规则和项目视觉选择派生的只读摘要 |
-| forUser.pageApplications | 按 pageId 对应实际页面；最终物化必填 firstScreenFocus/primaryAction/layout/responsive 非空字符串与 acceptanceChecks 非空字符串数组，按需补局部差异和 visualMemoryApplications；记忆点含 name、renderPolicy、target、reason |
+| forUser.pageApplications | 按 pageId 对应实际页面；最终物化必填 firstScreenFocus/primaryAction/layout/responsive 非空字符串与 acceptanceChecks 非空字符串数组，按需补局部差异；visualMemoryApplications 必须为数组，无适用项填 []；记忆点含 name、renderPolicy、target、reason |
 | forUser.iconSystem | 可选，library 为 lucide-react 或 @ant-design/icons，mappings 记录实际语义到具体组件；沿用 brief，未配置才用默认空映射 |
 | forUser.assetStrategy | 页面图片用途、槽位与缺口，沿用[素材交接契约](../../../../yida-image-assets/references/manifest-contract.md)；保留 materialStatus、pages、missingAssets、notes |
 | forUser 的各项 Summary、styleSource、designMdReady | 从主题、项目选择和生成状态派生；已有项目差异保留 |

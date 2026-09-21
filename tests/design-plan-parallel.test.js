@@ -164,3 +164,90 @@ test('requires both input parts and records their options in the public manifest
   const command = require('../lib/core/command-manifest').buildCommandManifest().commands.find(item => item.id === 'design-plan.materialize');
   expect(command.args.map(arg => arg.builder_options[0])).toEqual(expect.arrayContaining(['--business-file', '--visual-file', '--check', '--output-dir', '--json']));
 });
+
+
+test.each([
+  ['missing binding', apps => apps.splice(0), 'missing_page'],
+  ['extra native form', apps => apps.push({ pageId: 'native-form', visualMemoryApplications: [] }), 'unexpected_page'],
+  ['duplicate binding', apps => apps.push({ ...apps[0] }), 'duplicate_page'],
+  ['missing memories array', apps => { delete apps[0].visualMemoryApplications; }, 'expected_array'],
+  ['wrong memories type', apps => { apps[0].visualMemoryApplications = 'none'; }, 'expected_array'],
+  ['null binding', apps => { apps[0] = null; }, 'expected_object'],
+  ['missing pageId', apps => { delete apps[0].pageId; }, 'expected_nonempty_string'],
+])('diagnoses %s and repairs the existing draft without deleting artifacts', (_name, change, issueCode) => {
+  materialize(input);
+  const validApps = JSON.parse(JSON.stringify(visual.facts.visualStyle.forUser.pageApplications));
+  change(visual.facts.visualStyle.forUser.pageApplications);
+  save();
+  const files = [input, businessFile, visualFile, path.join(dir, 'prd.md'), path.join(dir, 'design.md'), path.join(dir, 'build-plan.html')];
+  const before = files.map(file => fs.readFileSync(file, 'utf8'));
+  expect(() => merge()).toThrow(expect.objectContaining({
+    code: 'DESIGN_PLAN_PAGE_BINDINGS_REQUIRED',
+    details: expect.objectContaining({
+      sourcePath: visualFile,
+      expectedPageIds: business.facts.pages.customPageDetails.map(page => page.pageId),
+      issues: expect.arrayContaining([expect.objectContaining({ code: issueCode, path: expect.any(String) })]),
+    }),
+  }));
+  expect(files.map(file => fs.readFileSync(file, 'utf8'))).toEqual(before);
+  visual.facts.visualStyle.forUser.pageApplications = validApps;
+  fs.writeFileSync(visualFile, JSON.stringify(visual));
+  const result = merge();
+  expect(fs.readFileSync(result.outputs.html, 'utf8')).toContain(source.pages.customPageDetails[0].name);
+  expect(fs.readFileSync(result.outputs.prd, 'utf8')).toContain(source.overview.summary);
+  const repaired = JSON.parse(fs.readFileSync(input));
+  expect(repaired.visualStyle.forUser.pageApplications).toEqual(validApps);
+  expect(repaired.meta.status).toBe('awaiting_confirmation');
+  expect(repaired.meta.planState?.planConfirmed).not.toBe(true);
+  // The fixed parts also remain usable for a draft preview; no source reset needed.
+  const { preview } = require('../lib/design-plan/preview');
+  fs.writeFileSync(visualFile, JSON.stringify({ ...visual, base: planBase(repaired) }));
+  const draft = preview(input, { partFile: visualFile });
+  expect(draft.draft).toBe(true);
+  expect(fs.existsSync(draft.outputs.html)).toBe(true);
+});
+
+test('reports all binding errors together in the CLI JSON response', () => {
+  visual.facts.visualStyle.forUser.pageApplications = [{ pageId: 'native-form' }];
+  save();
+  const result = require('child_process').spawnSync(process.execPath, [path.join(__dirname, '../bin/yida.js'),
+    'design-plan', 'materialize', input, '--business-file', businessFile, '--visual-file', visualFile, '--json'],
+  { cwd: dir, encoding: 'utf8', env: { ...process.env, OPENYIDA_SKIP_UPDATE_CHECK: '1', OPENYIDA_LANG: 'en' } });
+  expect(result.status).toBe(1);
+  const payload = JSON.parse(result.stderr);
+  expect(payload.errorCode).toBe('DESIGN_PLAN_PAGE_BINDINGS_REQUIRED');
+  expect(payload.details.issues.map(issue => issue.code)).toEqual(expect.arrayContaining(['missing_page', 'unexpected_page', 'expected_array']));
+  expect(payload.errorMsg).toContain('customPageDetails');
+  expect(payload.details.nextStep).toContain('Do not delete');
+});
+
+
+test.each([undefined, null, {}])('invalid applications container %s has structured diagnostics', value => {
+  visual.facts.visualStyle.forUser.pageApplications = value;
+  save();
+  expect(() => merge()).toThrow(expect.objectContaining({
+    code: 'DESIGN_PLAN_PAGE_BINDINGS_REQUIRED',
+    details: expect.objectContaining({ issues: expect.arrayContaining([
+      expect.objectContaining({ code: 'expected_array', path: 'facts.visualStyle.forUser.pageApplications' }),
+    ]) }),
+  }));
+});
+
+test.each([null, {}, { pageId: '' }])('invalid business page %s points to business.json', value => {
+  business.facts.pages.customPageDetails = [value];
+  save();
+  expect(() => merge()).toThrow(expect.objectContaining({
+    code: 'DESIGN_PLAN_PAGE_BINDINGS_REQUIRED',
+    details: expect.objectContaining({ issues: expect.arrayContaining([
+      expect.objectContaining({ code: 'expected_nonempty_string', sourcePath: businessFile, path: 'facts.pages.customPageDetails[0].pageId' }),
+    ]) }),
+  }));
+});
+
+test('native-form-only planning needs no invented visual page binding', () => {
+  business.facts.pages.customPageDetails = [];
+  visual.facts.visualStyle.forUser.pageApplications = [];
+  save();
+  const merged = require('../lib/design-plan/parallel').mergeParts(source, businessFile, visualFile);
+  expect(merged.visualStyle.forUser.pageApplications).toEqual([]);
+});

@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  design_plan: {
+    repair_page_bindings: 'Sửa pageApplications trong visual.json để khớp từng mục customPageDetails trong business.json, không thêm biểu mẫu gốc. visualMemoryApplications phải là mảng; dùng [] nếu không có mục phù hợp. Giữ bản nháp, sửa các trường được liệt kê rồi chạy lại lệnh ban đầu. Không xóa thư mục hoặc chạy lại init.',
+  },
   design_document: {
     update_conflict: "Không thể cập nhật {0} ({1}): nội dung hiện tại xung đột với phiên bản được tạo trước đó. Hãy đối chiếu thay đổi cục bộ trong phần này với dữ liệu kế hoạch rồi thử lại. Chưa lưu tệp nào.",
     theme_css_invalid: 'CSS giao diện gần dòng {0} có dấu ngoặc, chuỗi hoặc chú thích chưa đóng hoặc không khớp. Hãy sửa rồi thử lại.',

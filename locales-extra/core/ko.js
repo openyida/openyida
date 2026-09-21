@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  design_plan: {
+    repair_page_bindings: 'visual.json의 pageApplications를 business.json의 customPageDetails와 일대일로 맞추고 기본 폼은 제외하세요. visualMemoryApplications는 배열이어야 하며 해당 항목이 없으면 []를 사용하세요. 기존 초안을 유지하고 표시된 필드를 수정한 뒤 원래 명령을 다시 실행하세요. 디렉터리를 삭제하거나 init을 다시 실행하지 마세요.',
+  },
   design_document: {
     update_conflict: "{0}({1})을 업데이트할 수 없습니다. 현재 내용이 이전 생성 결과와 충돌합니다. 해당 부분의 로컬 변경 사항과 계획 데이터를 일치시킨 후 다시 시도하세요. 파일은 저장되지 않았습니다.",
     theme_css_invalid: '테마 CSS의 {0}행 근처에 닫히지 않았거나 짝이 맞지 않는 괄호, 문자열 또는 주석이 있습니다. 수정 후 다시 시도하세요.',
