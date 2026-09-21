@@ -31,6 +31,10 @@ description: Plan 模式的视觉设计分支。基于需求选择视觉方向�
 
 ## 校验失败时定点修复
 
-`DESIGN_PLAN_PAGE_BINDINGS_REQUIRED` 会列出 `expectedPageIds` 和带源文件、字段路径的 `issues`。只用 `business.json` 的 `facts.pages.customPageDetails` 中的 pageId，一页一项地维护 `visual.json` 的 `facts.visualStyle.forUser.pageApplications`；原生表单、数据模型不加入此数组。根据 `missing_page` 补绑定、`unexpected_page` 移除多余绑定、`duplicate_page` 合并重复项，按 `expected_array`/`expected_object`/`expected_nonempty_string` 修复类型或缺字段。若错误源是 business.json，先修正其页面事实，不改动需求范围。
+遇到 `DESIGN_PLAN_PAGE_BINDINGS_REQUIRED` 时，保留现有计划和预览，按以下顺序修复：
 
-保留 build-plan.json、business.json、visual.json 和已有预览；只修改错误定位的字段，再重试相同 materialize 命令。字段校验失败不是文件损坏，不执行 rm -rf、不重新 init、不重新编写整份 PRD。写入工具失败或跳过时先回读确认修复已落盘，再重试；不能把工具调用本身当作写入成功。
+1. **定位**：读取错误 `details.issues` 中每项的 `sourcePath`、`path` 和 `code`，修改对应源文件。若问题来自 `business.json`，先按已确认需求修正页面事实，再核对视觉绑定。
+2. **修改**：以 `business.json` 的 `facts.pages.customPageDetails` 为准，让 `visual.json` 的 `facts.visualStyle.forUser.pageApplications` 与自定义页一一对应；原生表单和数据模型不加入。按 `missing_page` 补项、`unexpected_page` 移除多余绑定、`duplicate_page` 合并重复项；按 `expected_array`、`expected_object`、`expected_nonempty_string` 修正指定字段。每项 `visualMemoryApplications` 必须为数组，无适用内容填 `[]`。
+3. **回读并重试**：确认修改已写入源文件，再重试原 `materialize` 命令。写入失败、跳过或结果未知时，先回读核实，不能仅凭发起过工具调用认定修复完成。
+
+修复仅涉及错误字段，保留 `build-plan.json`、`business.json`、`visual.json` 和已有预览；不因字段校验失败删除目录、重新 `init`、重写整份 PRD 或扩大需求范围。
