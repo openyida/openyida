@@ -125,9 +125,11 @@ describe('local agent thin launcher', () => {
     expect(events.map((event) => event.config.command)).toEqual(['connect', 'run']);
     expect(events[0].config.installationId).toEqual(expect.any(String));
     expect(events[0].config.stateDir).toBe(path.join(root, 'state', 'connections', 'enrollment'));
+    expect(events[0].config.sessionStateDir).toBe(path.join(root, 'state', 'sessions'));
     expect(events[1].config).not.toHaveProperty('enrollmentToken');
     expect(events[1].config.installationId).toBe(events[0].config.installationId);
     expect(events[1].config.stateDir).toBe(events[0].config.stateDir);
+    expect(events[1].config.sessionStateDir).toBe(events[0].config.sessionStateDir);
     expect(events[1].config.providers).toEqual(events[0].config.providers);
   });
 
