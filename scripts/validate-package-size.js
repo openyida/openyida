@@ -13,10 +13,10 @@ const path = require('path');
 // Application styles add 18 paired presets plus the independent creative scaffold
 // (57 design/CSS/layout assets), their catalog, recipe and runtime consumer. Complete
 // content/navigation tone and detail-field tokens are retained in every standalone preset.
-// Node 26/npm 11 measures about 1,867 KiB packed / 7,038 KiB unpacked in 568 files.
-// Retain ~21 KiB npm 10 compression overhead; round budgets to 16 KiB boundaries.
+// Anonymous form submission guidance adds about 14 KiB of required runtime skill content.
+// Retain npm-version overhead and round budgets to 16 KiB boundaries.
 const MAX_TARBALL_BYTES = 1920 * 1024;
-const MAX_UNPACKED_BYTES = 7056 * 1024;
+const MAX_UNPACKED_BYTES = 7072 * 1024;
 const MAX_ENTRY_COUNT = 569;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
