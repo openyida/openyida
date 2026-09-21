@@ -6,11 +6,11 @@ const path = require('path');
 jest.mock('../lib/agent/runtime-package', () => ({ PROTOCOL_VERSION: 1, resolveRuntime: jest.fn(() => ({ executable: '/runtime' })) }));
 jest.mock('../lib/agent/frozen-bundle', () => ({ materializeBundle: jest.fn((runtime, config) => ({ runtime, config })) }));
 jest.mock('../lib/agent/connection-store', () => ({ prepareConnection: jest.fn(root => ({ stateDir: root, installationId: 'fixture' })), listConnections: jest.fn(() => []) }));
-jest.mock('../lib/agent/stdio', () => ({ ...jest.requireActual('../lib/agent/stdio'), launchRuntime: jest.fn(async () => {}) }));
+jest.mock('../lib/agent/stdio', () => ({ ...jest.requireActual('../lib/agent/stdio'), launchRuntime: jest.fn(async () => {}), launchBackgroundRuntime: jest.fn(async () => ({ pid: 4242, logPath: '/fixture/agent-run.log' })) }));
 const { run } = require('../lib/agent/cmd');
 const { prepareConnection } = require('../lib/agent/connection-store');
 const { resolveRuntime } = require('../lib/agent/runtime-package');
-const { launchRuntime } = require('../lib/agent/stdio');
+const { launchRuntime, launchBackgroundRuntime } = require('../lib/agent/stdio');
 
 describe('connect owns the pre-enrollment check', () => {
   let root, stdout, stderr;
@@ -32,11 +32,14 @@ describe('connect owns the pre-enrollment check', () => {
     expect(launchRuntime).not.toHaveBeenCalled();
     expect(JSON.stringify(stdout.write.mock.calls)).not.toContain(ticket);
   });
-  test('success continues with the checked executable through connect and run', async () => {
+  test('success pairs in the foreground then hands the run to a background daemon', async () => {
     await run(args(), { stdout, stderr, probe: async () => ({ status: 'passed' }) });
     expect(prepareConnection).toHaveBeenCalledTimes(1);
-    expect(launchRuntime.mock.calls.map(call => call[1].command)).toEqual(['connect', 'run']);
+    expect(launchRuntime.mock.calls.map(call => call[1].command)).toEqual(['connect']);
     expect(launchRuntime.mock.calls[0][1].providers[0].executable).toBe(path.join(root, 'qodercli.exe'));
+    expect(launchBackgroundRuntime).toHaveBeenCalledTimes(1);
+    expect(launchBackgroundRuntime.mock.calls[0][1].command).toBe('run');
+    expect(launchBackgroundRuntime.mock.calls[0][1]).not.toHaveProperty('enrollmentToken');
   });
   test('doctor uses the same classification without starting or enrolling a Runtime', async () => {
     await run(args('doctor'), { stdout, stderr, probe: async (_exe, flags) => flags[0] === '--list-models'
@@ -55,7 +58,9 @@ describe('connect owns the pre-enrollment check', () => {
       probe: async (_exe, flags) => flags[0] === '--list-models' ? { status: 'probe_failed', output: 'Not logged in' } : { status: 'passed' },
     });
     expect(launchRuntime.mock.calls[0][1].providers.map(p => p.provider)).toEqual(['codex']);
-    expect(launchRuntime).toHaveBeenCalledTimes(2);
+    expect(launchRuntime).toHaveBeenCalledTimes(1);
+    expect(launchBackgroundRuntime).toHaveBeenCalledTimes(1);
+    expect(launchBackgroundRuntime.mock.calls[0][1].providers.map(p => p.provider)).toEqual(['codex']);
   });
   test('provider-only never connects another available type', async () => {
     const bin = path.join(root, '.local', 'bin'); fs.mkdirSync(bin, { recursive: true });

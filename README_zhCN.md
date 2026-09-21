@@ -399,7 +399,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 |------|------|
 | `openyida commands [--json]` | 输出机器可读命令清单 |
 | `openyida agent-capabilities [--json] [--summary-json\|--compact]` | 输出 Agent 一次性能力快照 |
-| `openyida agent <doctor\|diagnose\|status\|connect\|run\|disconnect\|logout> [options]` | 连接本地 Agent（Go runtime，开发预览） |
+| `openyida agent <doctor\|diagnose\|status\|connect\|run\|disconnect\|logout\|logs> [options]` | 连接本地 Agent（Go runtime，开发预览） |
 | `openyida a2a <serve\|agent-card> [options]` | 启动本地只读 A2A Adapter 或输出 Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | 启动 OpenYida 本地网页桥接服务 |
 | `openyida copy [--force]` | 复制 project 工作目录 |
@@ -435,7 +435,7 @@ openyida agent run --development-runtime --runtime-path /absolute/path/openyida-
 
 `connect` 支持两个等价接入入口。路径 A 由 CLI 拉起宜搭网页确认，再通过 state/PKCE 保护的本机回调完成；路径 B 从网页复制一条带 `--enroll` 的五分钟命令，令牌单次使用且没有业务权限。两条路径都不会读取或上传普通 OpenYida 登录 profile。
 
-同一安装可连接多个组织：Node 只在安装根目录保存共享 Installation ID，每次组织授权都有独立的私有 Connection stateDir、设备凭据、journal、控制 socket 和冻结 bundle。`agent connect` 保持新 Connection 前台在线；`agent run`、`status`、`disconnect`、`logout` 会枚举所有有效 Connection。每个 Connection 内同时注册本机发现到的 Qoder、Codex、OpenCode Runtime，网页按电脑、CLI、模型选择。
+同一安装可连接多个组织：Node 只在安装根目录保存共享 Installation ID，每次组织授权都有独立的私有 Connection stateDir、设备凭据、journal、控制 socket 和冻结 bundle。`agent connect` 完成配对后把服务循环转入后台常驻守护进程，终端立即返回，连接持续到执行 `disconnect`；守护进程脱离终端会话（setsid/detached），输出写入该 Connection 的 `logs/agent-run.log`，其生命周期由自身 owner 锁和本机控制 socket 管理，不再绑定拉起它的父进程。后台常驻不等于开机自启，电脑重启后需重新执行 `connect` 或 `run`。`agent run` 用于已接入设备重新上线，为每个有效 Connection 拉起同样的后台常驻守护进程后立即返回，语义与 `connect` 的服务阶段一致。`agent status`、`logs`、`disconnect`、`logout` 会枚举所有有效 Connection：`status` 报告是否在线，`logs` 查看后台日志，`disconnect`/`logout` 通过控制 socket 优雅停止。重复对同一 Connection 启动由 owner 锁（flock）拦截，进程异常退出时由操作系统释放锁自动回收。每个 Connection 内同时注册本机发现到的 Qoder、Codex、OpenCode Runtime，网页按电脑、CLI、模型选择。
 
 每次执行前，Go 注入 `OPENYIDA_MANAGED_RUN=1`、云端用户/组织/应用/run/attempt 上下文，以及一个初始租期为 60 分钟、值保持不变的 Tianshu 任务凭据。CLI 只使用该凭据并附带范围关联请求头，不读取本地登录态；当设备认证连接和服务端 Run 都仍活跃时，yida-agent 可以在服务端续租同一个 bearer，CLI 自身不能续期，也不会拿到任务 RefreshToken。Tianshu 再独立核对目标应用，拒绝创建应用、切换身份/环境、任意批处理和跨应用请求。`formUuid` 只作为每轮可选的页面聚焦上下文，同一个应用会话可以处理应用内的多个页面。未设置 `OPENYIDA_MANAGED_RUN` 时，原有登录、token 刷新和命令行为完全不变。
 

@@ -29,6 +29,19 @@ describe('local agent thin launcher', () => {
   });
   afterEach(() => removeFixture(root));
 
+  async function readBackgroundEvent(logPath, timeoutMs = 5000) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      try {
+        const content = fs.readFileSync(logPath, 'utf8');
+        const line = content.split('\n').find((entry) => entry.trim());
+        if (line) { return JSON.parse(line); }
+      } catch { /* file not written yet */ }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    throw new Error(`background event not written to ${logPath}`);
+  }
+
   test('accepts only audited flags and web enrollment is connect-only', () => {
     expect(parseArgs(['run', '--provider', 'qoder', '--provider-path', '/fixture/qoder'])).toMatchObject({ command: 'run', provider: 'qoder' });
     expect(parseArgs(['connect', '--enroll', 'enrollment.' + 't'.repeat(40)])).toMatchObject({ command: 'connect' });
@@ -113,7 +126,7 @@ describe('local agent thin launcher', () => {
     expect(spawn).not.toHaveBeenCalled();
   });
 
-  test('connect continues into the foreground run with the same pinned provider', async () => {
+  test('connect pairs in the foreground then keeps serving as a background daemon', async () => {
     const stdout = { write: jest.fn() };
     await run([
       'connect', '--endpoint', 'https://agent.example.test', '--endpoint-id', 'test',
@@ -122,16 +135,56 @@ describe('local agent thin launcher', () => {
       '--state-dir', path.join(root, 'state'), '--enroll', `enrollment.${'t'.repeat(40)}`,
     ], { stdout, env: { PATH: process.env.PATH }, probe: async () => ({ status: 'passed' }) });
     const events = stdout.write.mock.calls.map(([value]) => JSON.parse(value));
-    expect(events.map((event) => event.config.command)).toEqual(['connect', 'run']);
-    expect(events[0].config.installationId).toEqual(expect.any(String));
-    expect(events[0].config.stateDir).toBe(path.join(root, 'state', 'connections', 'enrollment'));
-    expect(events[0].config.sessionStateDir).toBe(path.join(root, 'state', 'sessions'));
-    expect(events[1].config).not.toHaveProperty('enrollmentToken');
-    expect(events[1].config.installationId).toBe(events[0].config.installationId);
-    expect(events[1].config.stateDir).toBe(events[0].config.stateDir);
-    expect(events[1].config.sessionStateDir).toBe(events[0].config.sessionStateDir);
-    expect(events[1].config.providers).toEqual(events[0].config.providers);
+    // The terminal returns immediately after pairing; the run goes to the background log.
+    expect(events.map((event) => event.type)).toEqual(['connect', 'connected']);
+    const connectEvent = events[0];
+    const connectedEvent = events[1];
+    const connectionDir = path.join(root, 'state', 'connections', 'enrollment');
+    expect(connectEvent.config.installationId).toEqual(expect.any(String));
+    expect(connectEvent.config.stateDir).toBe(connectionDir);
+    expect(connectEvent.config.sessionStateDir).toBe(path.join(root, 'state', 'sessions'));
+    expect(connectedEvent).toMatchObject({ type: 'connected', background: true, stateDir: connectionDir });
+    expect(connectedEvent.logPath).toBe(path.join(connectionDir, 'logs', 'agent-run.log'));
+
+    const runEvent = await readBackgroundEvent(connectedEvent.logPath);
+    expect(runEvent.config.command).toBe('run');
+    expect(runEvent.config.background).toBe(true);
+    expect(runEvent.config).not.toHaveProperty('enrollmentToken');
+    expect(runEvent.config).not.toHaveProperty('parentWatchFD');
+    expect(runEvent.config).not.toHaveProperty('parentPID');
+    expect(runEvent.config.installationId).toBe(connectEvent.config.installationId);
+    expect(runEvent.config.stateDir).toBe(connectEvent.config.stateDir);
+    expect(runEvent.config.sessionStateDir).toBe(connectEvent.config.sessionStateDir);
+    expect(runEvent.config.providers).toEqual(connectEvent.config.providers);
   });
+
+  test('logs surfaces the per-connection background daemon log without launching the runtime', async () => {
+    const baseStateDir = path.join(root, 'state');
+    const connectionDir = path.join(baseStateDir, 'connections', 'enrollment');
+    const logsDir = path.join(connectionDir, 'logs');
+    fs.mkdirSync(logsDir, { recursive: true, mode: 0o700 });
+    fs.chmodSync(baseStateDir, 0o700);
+    fs.chmodSync(path.join(baseStateDir, 'connections'), 0o700);
+    fs.chmodSync(connectionDir, 0o700);
+    const installationId = crypto.randomUUID();
+    fs.writeFileSync(path.join(baseStateDir, 'installation.json'), `${JSON.stringify({ schemaVersion: 1, installationId })}\n`, { mode: 0o600 });
+    fs.writeFileSync(path.join(connectionDir, 'device.json'), `${JSON.stringify({
+      installationId, endpoint: 'https://agent.example.test', endpointId: 'test',
+      deviceId: 'device-fixture', credentialVersion: 1,
+    })}\n`, { mode: 0o600 });
+    const logPath = path.join(logsDir, 'agent-run.log');
+    fs.writeFileSync(logPath, `${JSON.stringify({ type: 'run', config: { command: 'run', background: true } })}\n`, { mode: 0o600 });
+
+    const stdout = { write: jest.fn() };
+    const spawn = jest.fn();
+    await run(['logs', '--state-dir', baseStateDir], { stdout, spawn, env: { PATH: process.env.PATH } });
+    expect(spawn).not.toHaveBeenCalled();
+    const header = JSON.parse(stdout.write.mock.calls[0][0]);
+    expect(header).toMatchObject({ type: 'logs', connectionId: 'device-fixture', endpointId: 'test', logPath, available: true });
+    const body = stdout.write.mock.calls.map(([value]) => value).join('');
+    expect(body).toContain('"command":"run"');
+  });
+
 
   test('runtime receives fixed argv without ambient credentials', async () => {
     const stdout = { write: jest.fn() };

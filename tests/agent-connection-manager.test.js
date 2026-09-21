@@ -13,6 +13,7 @@ jest.mock('../lib/agent/frozen-bundle', () => ({
 }));
 jest.mock('../lib/agent/stdio', () => ({
   launchRuntime: jest.fn(async () => {}),
+  launchBackgroundRuntime: jest.fn(async (_runtime, config) => ({ pid: 4242, logPath: `${config.stateDir}/logs/agent-run.log` })),
 }));
 jest.mock('../lib/agent/connection-store', () => ({
   prepareConnection: jest.fn(),
@@ -24,10 +25,10 @@ jest.mock('../lib/agent/connection-store', () => ({
 
 const { EventEmitter } = require('events');
 const { run } = require('../lib/agent/cmd');
-const { launchRuntime } = require('../lib/agent/stdio');
+const { launchRuntime, launchBackgroundRuntime } = require('../lib/agent/stdio');
 const { materializeBundle } = require('../lib/agent/frozen-bundle');
 
-describe('multi-Connection foreground supervisor', () => {
+describe('multi-Connection runtime lifecycle', () => {
   let root;
   let providerDir;
   let signals;
@@ -43,27 +44,37 @@ describe('multi-Connection foreground supervisor', () => {
 
   afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 
-  test('agent run restores every organization Connection with one shared installation', async () => {
+  test('agent run persists every organization Connection as its own background daemon', async () => {
+    const stdout = { write: jest.fn() };
     await run([
       'run', '--state-dir', root, '--provider', 'qoder',
       '--provider-path', path.join(providerDir, 'qoder'),
-    ], { env: { PATH: providerDir, HOME: root }, signals, stdout: { write() {} } });
+    ], { env: { PATH: providerDir, HOME: root }, signals, stdout });
     expect(materializeBundle).toHaveBeenCalledTimes(2);
-    expect(launchRuntime).toHaveBeenCalledTimes(2);
-    expect(launchRuntime.mock.calls.map(([, config]) => ({
+    expect(launchRuntime).not.toHaveBeenCalled();
+    expect(launchBackgroundRuntime).toHaveBeenCalledTimes(2);
+    expect(launchBackgroundRuntime.mock.calls.map(([, config]) => ({
+      command: config.command,
       stateDir: config.stateDir,
       installationId: config.installationId,
       endpointId: config.endpointId,
       providers: config.providers.map(item => item.provider),
     }))).toEqual([
-      { stateDir: '/state/org-a', installationId: 'installation-one', endpointId: 'prod', providers: ['qoder'] },
-      { stateDir: '/state/org-b', installationId: 'installation-one', endpointId: 'prod', providers: ['qoder'] },
+      { command: 'run', stateDir: '/state/org-a', installationId: 'installation-one', endpointId: 'prod', providers: ['qoder'] },
+      { command: 'run', stateDir: '/state/org-b', installationId: 'installation-one', endpointId: 'prod', providers: ['qoder'] },
     ]);
+    const events = stdout.write.mock.calls.map(([line]) => JSON.parse(line));
+    expect(events).toEqual([
+      { type: 'connected', background: true, connectionId: 'connection-a', endpointId: 'prod', stateDir: '/state/org-a', logPath: '/state/org-a/logs/agent-run.log' },
+      { type: 'connected', background: true, connectionId: 'connection-b', endpointId: 'prod', stateDir: '/state/org-b', logPath: '/state/org-b/logs/agent-run.log' },
+    ]);
+    // Background daemons detach and return the terminal immediately, so the
+    // foreground signal supervisor is never armed for run.
     expect(signals.listenerCount('SIGINT')).toBe(0);
     expect(signals.listenerCount('SIGTERM')).toBe(0);
   });
 
-  test('all synchronous bundles are prepared before any Runtime starts waiting for stdin', async () => {
+  test('all synchronous bundles are prepared before any background daemon is launched', async () => {
     const actions = [];
     materializeBundle.mockImplementationOnce((runtime, config) => {
       actions.push('prepare-a');
@@ -72,8 +83,8 @@ describe('multi-Connection foreground supervisor', () => {
       actions.push('prepare-b');
       return { runtime, config };
     });
-    launchRuntime.mockImplementationOnce(async () => { actions.push('launch-a'); })
-      .mockImplementationOnce(async () => { actions.push('launch-b'); });
+    launchBackgroundRuntime.mockImplementationOnce(async (_runtime, config) => { actions.push('launch-a'); return { pid: 1, logPath: `${config.stateDir}/logs/agent-run.log` }; })
+      .mockImplementationOnce(async (_runtime, config) => { actions.push('launch-b'); return { pid: 2, logPath: `${config.stateDir}/logs/agent-run.log` }; });
     await run([
       'run', '--state-dir', root, '--provider', 'qoder',
       '--provider-path', path.join(providerDir, 'qoder'),
@@ -81,7 +92,7 @@ describe('multi-Connection foreground supervisor', () => {
     expect(actions).toEqual(['prepare-a', 'prepare-b', 'launch-a', 'launch-b']);
   });
 
-  test('a bundle preparation failure starts no Runtime and leaves no signal listeners', async () => {
+  test('a bundle preparation failure launches no background daemon and leaves no signal listeners', async () => {
     materializeBundle.mockImplementationOnce((runtime, config) => ({ runtime, config }))
       .mockImplementationOnce(() => { throw Object.assign(new Error('bundle invalid'), { code: 'AGENT_BUNDLE_INVALID' }); });
     await expect(run([
@@ -89,31 +100,25 @@ describe('multi-Connection foreground supervisor', () => {
       '--provider-path', path.join(providerDir, 'qoder'),
     ], { env: { PATH: providerDir, HOME: root }, signals, stdout: { write() {} } }))
       .rejects.toMatchObject({ code: 'AGENT_BUNDLE_INVALID' });
-    expect(launchRuntime).not.toHaveBeenCalled();
+    expect(launchBackgroundRuntime).not.toHaveBeenCalled();
     expect(signals.listenerCount('SIGINT')).toBe(0);
     expect(signals.listenerCount('SIGTERM')).toBe(0);
   });
 
-  test('one failed organization Connection does not stop another running Connection', async () => {
-    let finishHealthy;
-    const healthy = new Promise(resolve => {finishHealthy = resolve;});
-    launchRuntime
-      .mockRejectedValueOnce(Object.assign(new Error('refresh conflict'), {code: 'CONTROL_HTTP_FAILED'}))
-      .mockReturnValueOnce(healthy);
-
-    let settled = false;
-    const supervised = run([
+  test('one failed organization Connection does not stop another Connection from persisting', async () => {
+    launchBackgroundRuntime
+      .mockRejectedValueOnce(Object.assign(new Error('lock held'), { code: 'AGENT_ALREADY_RUNNING' }))
+      .mockImplementationOnce(async (_runtime, config) => ({ pid: 7, logPath: `${config.stateDir}/logs/agent-run.log` }));
+    const stdout = { write: jest.fn() };
+    await run([
       'run', '--state-dir', root, '--provider', 'qoder',
       '--provider-path', path.join(providerDir, 'qoder'),
-    ], {
-      env: {PATH: providerDir, HOME: root}, signals, stdout: {write() {}},
-    }).then(() => {settled = true;});
-    await new Promise(resolve => setImmediate(resolve));
-
-    expect(settled).toBe(false);
-    expect(signals.listenerCount('SIGTERM')).toBe(1);
-    finishHealthy();
-    await supervised;
+    ], { env: { PATH: providerDir, HOME: root }, signals, stdout });
+    expect(launchBackgroundRuntime).toHaveBeenCalledTimes(2);
+    const events = stdout.write.mock.calls.map(([line]) => JSON.parse(line));
+    expect(events).toEqual([
+      { type: 'connected', background: true, connectionId: 'connection-b', endpointId: 'prod', stateDir: '/state/org-b', logPath: '/state/org-b/logs/agent-run.log' },
+    ]);
     expect(signals.listenerCount('SIGINT')).toBe(0);
     expect(signals.listenerCount('SIGTERM')).toBe(0);
   });
