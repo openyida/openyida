@@ -21,7 +21,7 @@
 | `constraints` | 组织、设备、权限、交付限制；`prohibitedActions` 同时保留禁止原文和规范化动作 `theme-file/page-source/publish` |
 | `assumptions` / `openQuestions` | 分别记录可调整的建议，以及影响业务范围或实际用法的关键待答问题 |
 | `userTasks` | `{key,user,functionRefs,source,reason}` 数组；functionRefs 引用有效功能的稳定 key，旧字符串项引用原文，不重复复制功能内容 |
-| `entryRecommendation` | `{mode,source,reason,entries}`；mode 为 `unified/service-management/frontend-only/undetermined`，每项 `{key,name,taskRefs}` 引用 userTasks；可补 `role: service/management/workspace`、`sceneKey` 和 `presentationHint`。旧 unified 单前台记录仍可复用 |
+| `entryRecommendation` | `{mode,source,reason,entries}`；mode 为 `unified`（不分前后台）、`service-management`（分前后台）、`frontend-only`（只有访问前台）、`backend-only`（只有访问后台）、`undetermined`（实际用法待明确），每项 `{key,name,taskRefs}` 引用 userTasks；可补 `role: service/management/workspace`、`sceneKey` 和 `presentationHint`。backend-only 的入口 role 使用 management；新建不分前后台的入口通常使用 workspace。旧 unified 记录保留原值和角色，不自动改分类 |
 | `evidence` | 必要时用 `{path,source,reason}` 数组为旧字段保留简短来源；path 使用 JSON Pointer 指向当前有效值，数组变化后同步更新 |
 
 来源统一区分 `user_explicit`（用户直接说明）、`user_selected`（可见选项的回答）、`ai_inferred`（有业务依据的推导）、`ai_default`（技能默认建议）。导航沿用既有兼容规则：AI 决策写 `ai_default` 并在 reason 说明依据，用户明确指定归属才写 `user_selected`。用户委托的具体方案仍是 AI 推导，reason 保留委托依据。
@@ -39,13 +39,13 @@
 
 由 `yida-app` 按 [规划准备](../../yida-app/workflow/step-2-design.md#规划准备) 补齐页面场景、导航和主题，AI 新增内容记录来源并遵守 explicitScope。
 
-Plan 在 `design-plan init` 前必须补齐合法的导航字段（见下节）及 `visualSelection.themeId`。视觉沿用 `visualSelection` 的 `themeId/visualDirection/colorStrategy/navigationStyle`，AI 补齐颜色或主题时标记 `ai_default`。Fast 共用这些字段。主题 ID 尚未确定时，通过 `openyida design-plan catalog --json` 查询合法主题及页面模式，复用本轮查询结果。
+Plan 在 `design-plan init` 前必须补齐合法的导航结构（见下节）及 `visualSelection.themeId`。视觉沿用 `visualSelection` 的 `themeId/visualDirection/colorStrategy/navigationStyle.structure`，AI 补齐颜色或主题时标记 `ai_default`。`navigationStyle.tone` 不在 brief 中推导，由 CLI 从所选主题模板的 `navTheme` 派生；Fast 共用同一规则。主题 ID 尚未确定时，通过 `openyida design-plan catalog --json` 查询合法主题及页面模式，复用本轮查询结果。
 
-补齐主题和颜色前，按[设计方向比较](../../yida-design/references/theme-selection.md#设计方向比较)完成一次内部比较；保留用户明确的风格，AI 建议记录具体业务依据。
+补齐主题和颜色前，按[设计方向比较](../../yida-design/references/theme-selection.md#设计方向比较)生成共用的三套方向；Fast 内部选择，Plan 在没有明确完整风格时通过 `ask_human` 选择。保留用户明确的风格，AI 建议记录具体业务依据。
 
 `visualSelection.colorStrategy` 使用对象：`primaryColor` 填本项目选定的 6 位 HEX 色值，`primaryColorName` 填对应色名，`usage` 写配色依据及背景、主操作和强调色的关系。只有文字配色要求时也可先保存字符串；CLI 将原文放入 `usage`，并提示补齐 `primaryColor`。
 
-PRD 将 userTasks 与入口建议转为页面的访问路径、任务和权限；Plan 的 business.json 使用现有 facts 契约，视觉设计共用入口和导航记录。
+只有访问前台且提交后需要处理时，在 `entryRecommendation.reason` 和业务流程中记录承接方式，未明确的内容保留在 `openQuestions`；无需新增字段。PRD 将 userTasks 与入口建议转为页面的访问路径、任务和权限；Plan 的 business.json 使用现有 facts 契约，视觉设计共用入口和导航记录。
 
 ## 前后台导航交接
 
@@ -57,7 +57,7 @@ PRD 将 userTasks 与入口建议转为页面的访问路径、任务和权限�
 
 管理端采用自定义页面也默认使用 `platform-shell`；其 menu 描述平台任务，不直接渲染为页面导航。只读交接中的 `navigationPolicy` 由 CLI 派生，不写回 brief 或 pageSpecHandoff。导航按[方案讨论与确认](../../yida-design/references/navigation-decision.md#方案讨论与确认)随业务方案说明。
 
-例如：报修前台为 standalone + custom，维修工作区为根级 platform-side。Plan 初始化保留 pageSpecHandoff，PRD、design 和计划分别展示各入口方案。导航执行和验证按 [导航壳配置](../../yida-nav-shell/SKILL.md#必做配置) 完成；页面访问范围和数据权限按用户要求独立配置。
+例如：报修前台为 standalone + custom，维修后台为根级 platform-side。Plan 初始化保留 pageSpecHandoff，PRD、design 和计划分别展示各入口方案。导航执行和验证按 [导航壳配置](../../yida-nav-shell/SKILL.md#必做配置) 完成；页面访问范围和数据权限按用户要求独立配置。
 
 规划阶段按 [访问态入口契约](../../yida-app/references/entry-navigation.md) 补齐 entryRecommendation.entries 的 role、menu、defaultMenuKey 和权限依赖。Plan 初始化保留建议并要求业务片段补齐；Fast PRD 使用同一结构。
 

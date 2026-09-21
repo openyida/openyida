@@ -178,6 +178,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: '利用方式を選択してください：共通の業務画面（unified）、利用者画面と業務処理画面を分離（service-management）、利用者画面のみ（frontend-only）、業務処理画面のみ（backend-only）。',
+    design_plan_backend_only_roles: 'backend-only では、すべての入口の role を management にしてください。',
     design_plan_local_menu_binding: 'ローカルメニュー {0} には表示ページと viewKey が必要です。入口 {1} の sceneKey はページの sceneKey、resource はページの name と一致し、viewKey は空でない必要があります。すべての役割に適用されます。',
     design_plan_visual_object_required: '{0} は文字列や配列ではなくオブジェクトで指定してください。init が生成した構造を維持して値を入力します。例: {1}。',
     help: '\n' +
@@ -1004,6 +1006,7 @@ module.exports = {
     theme_preset_conflict: 'プリセット colour と CSS または themeColor は併用できません。--colour custom を指定するか --colour を省略してください。',
     custom_theme_color_required: 'colour=custom にはテーマファイルまたは有効な themeColor が必要です。--theme-file または --theme-color を指定してください。',
     theme_not_persisted: '保存後のアプリテーマ設定を確認できませんでした。themeVerification を確認し、update-app <appType> --theme-file <css> で再試行してください。アプリを作り直さないでください。',
+    navigation_not_persisted: "ナビゲーション設定の再取得に失敗したか、要求した値と一致しません。navigationVerification の期待値、実際の値、取得エラーを確認し、現在のアプリ設定を確認してください。",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -2021,3 +2024,10 @@ module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.c
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: 'ノード {0} の承認アクション設定が無効です：{1}',
 });
+
+module.exports.cli_argument = { invalid: '引数が無効、または値がありません: {0}。コマンドのヘルプに従ってください。' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: --output は CSS ファイル、--design-file は完成した設計です。設計を省略すると CSS をリセットします。テーマ値は設計に記入します。',
+  'style_help': 'application-style: --style-id は必須で全カタログテーマに対応。--output のディレクトリに3ファイルを出力し、同名ファイルがあればエラーになります。'
+};

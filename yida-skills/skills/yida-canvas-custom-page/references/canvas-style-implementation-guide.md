@@ -86,7 +86,7 @@ body.pod-premium.page-type-workbench .vc-page-yida-pure-container:has(> .vc-root
 背景职责统一：Shell 的 `--pod-shell-bg-color-light/white/gray/dark` 承载外层氛围；原生页面与自定义页面的基础底色统一消费 `--pod-page-bg-color`；卡片、表格外壳和面板消费 `--pod-card-bg-color`，回退 `--color-white`。渐变、纹理和图片作为页面局部装饰层叠加，不另设应用基础背景变量。
 
 应用根背景已提供 `--pod-app-root-bg-color` 和 `--pod-app-root-bg-image`，后者可表达图片或 CSS 渐变。它们只影响实际消费这些变量的根容器；不透明页面和卡片仍显示各自底色。全应用背景由主题 CSS 配置，单页渐变在本页根容器用 `background-image` 实现；颜色变量不放渐变，页面代码不向父页面 body 注入样式。Fast 与 Plan 共用这套规则，详见 [背景作用范围](../../yida-design/workflow/output-design.md#背景颜色渐变与图片)。
-抽屉整体背景默认使用 `--pod-shell-theme-bg-color`，回退 `--color-white`；标题栏、正文容器透明承接外壳，不铺 `--pod-card-bg-color`。抽屉内独立业务卡片才使用卡片 token。
+抽屉外壳背景默认使用 `--pod-shell-theme-bg-color`，回退 `--color-white`；标题栏、正文容器透明承接外壳，不铺 `--pod-card-bg-color`。抽屉内独立业务卡片才使用卡片 token。
 
 导航布局和页面底色分别配置。隐藏应用导航不自动把 Canvas 改为透明；深色或明确的应用底色在 `design.md` 的平台 token 中定义，生成 `app-theme.css` 后统一生效。页面局部视觉不能通过修改应用 token 影响其他页面。
 

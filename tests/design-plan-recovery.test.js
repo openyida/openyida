@@ -65,3 +65,24 @@ test('patch materialization returns current confirmation on both actual and no-o
     expect(result.changed).toBe(attempt === 0);
   }
 });
+
+
+test('CLI accepts rebase-parts and delivers confirmation for the reconciled draft', async () => {
+  const source = read(input);
+  source.overview.summary = 'CLI 主计划修正'; write(input, source);
+  business.facts.overview.businessGoals = ['CLI 保留片段目标']; write(businessFile, business);
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await require('../lib/design-plan/design-plan').run([
+      'materialize', input, '--business-file', businessFile, '--visual-file', visualFile,
+      '--rebase-parts', '--json',
+    ]);
+    const result = JSON.parse(log.mock.calls[0][0]);
+    expect(read(input).overview.summary).toBe(source.overview.summary);
+    expect(read(input).overview.businessGoals).toEqual(business.facts.overview.businessGoals);
+    expect(result.confirmation.revision).toBe(read(input).meta.revision);
+    expect(result.confirmation.attachments[0].path).toBe(result.outputs.html);
+  } finally {
+    log.mockRestore();
+  }
+});

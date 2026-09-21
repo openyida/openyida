@@ -178,6 +178,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: 'उपयोग का तरीका चुनें: साझा कार्य पृष्ठ (unified), उपयोगकर्ता और कार्य प्रबंधन के अलग पृष्ठ (service-management), केवल उपयोगकर्ता पृष्ठ (frontend-only), या केवल कार्य प्रबंधन पृष्ठ (backend-only)।',
+    design_plan_backend_only_roles: 'backend-only में प्रत्येक प्रवेश बिंदु का role management होना चाहिए।',
     design_plan_local_menu_binding: 'स्थानीय मेनू {0} को होस्ट पेज और viewKey चाहिए: प्रवेश {1} का sceneKey पेज के sceneKey से, resource पेज के name से मेल खाए और viewKey खाली न हो। यह सभी भूमिकाओं पर लागू है।',
     design_plan_visual_object_required: '{0} एक ऑब्जेक्ट होना चाहिए, स्ट्रिंग या ऐरे नहीं। init द्वारा बनाई संरचना बनाए रखें और मान भरें। उदाहरण: {1}।',
     help: '\n' +
@@ -1050,6 +1052,7 @@ module.exports = {
     theme_preset_conflict: 'प्रीसेट colour को CSS या themeColor के साथ नहीं भेज सकते। --colour custom उपयोग करें या --colour छोड़ दें।',
     custom_theme_color_required: 'colour=custom के लिए थीम फ़ाइल या मान्य themeColor चाहिए। --theme-file या --theme-color दें।',
     theme_not_persisted: 'सहेजने के बाद ऐप की थीम सेटिंग की पुष्टि नहीं हो सकी। themeVerification जाँचें और update-app <appType> --theme-file <css> से पुनः प्रयास करें; ऐप दोबारा न बनाएँ।',
+    navigation_not_persisted: "नेविगेशन सेटिंग दोबारा पढ़ी नहीं जा सकीं या अनुरोधित मानों से मेल नहीं खातीं। navigationVerification में अपेक्षित मान, वास्तविक मान और पढ़ने की त्रुटियाँ देखें, फिर ऐप की वर्तमान सेटिंग जाँचें।",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -2094,3 +2097,10 @@ module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.c
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: 'नोड {0} के लिए अमान्य अनुमोदन कार्रवाई कॉन्फ़िगरेशन: {1}',
 });
+
+module.exports.cli_argument = { invalid: 'अमान्य तर्क या मान गायब है: {0}। कमांड की सहायता देखें।' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: --output एक CSS फ़ाइल है; --design-file पूर्ण डिज़ाइन पढ़ता है। इसे छोड़ने पर CSS रीसेट होता है। थीम के मान डिज़ाइन में भरें।',
+  'style_help': 'application-style: --style-id आवश्यक है और सभी कैटलॉग थीम स्वीकार करता है; --output तीन फ़ाइलों की डायरेक्टरी है। मौजूदा फ़ाइलों पर त्रुटि आती है।'
+};

@@ -8,7 +8,7 @@ const { parseDesignDocument, serializeDesignDocument, extractDesignTokens, valid
 const { resolveThemeColors } = require('../lib/design-plan/themes');
 
 const ROOT = path.resolve(__dirname, '..');
-const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/templates/design-themes/dark-inset-hairline.md'), 'utf8');
+const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/templates/design-themes/dark-inset-hairline/design.md'), 'utf8');
 const tokenFixture = parseDesignDocument(resolveThemeColors(template.replace(/\{\{PRIMARY_COLOR\}\}/g, '#1677FF'))).metadata.tokens;
 
 function fixture() {

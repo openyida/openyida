@@ -2,6 +2,7 @@
 name: "{{PROJECT_NAME}}"
 description: "独立导航衬托白色工作区，白色圆角面板以细边框分组；由同一主色派生的深色横幅与明亮强调建立焦点，低对比线框纹理、大数字与轻量比较信息保持清晰层级，不限定具体色相。"
 themeId: soft-rail-bold-band
+navTheme: light
 tokens:
   application-global:
     appearance:
@@ -12,12 +13,57 @@ tokens:
         "--pod-card-bg-color": "#FFFFFF" # neutral-gray；内容面板和表单表面
         "--pod-table-cell-color": "var(--pod-card-bg-color)" # 表格正文单元格跟随卡片表面
       navigation:
-        "--pod-shell-theme-bg-color": "#F5F5F5" # neutral-gray；导航浅底，不引入第二色相
-        "--pod-nav-item-text-color": "#181818" # neutral-gray；普通菜单文字与图标
-        "--pod-nav-item-text-hover-color": "var(--color-brand1-6)" # 保留设计稿主题色文字，关联唯一主色
-        "--pod-nav-item-text-selected-color": "var(--color-brand1-6)" # 选中文字与图标沿用设计稿的主题色强调
-        "--pod-nav-menu-bg-hover-color": "#EFEFEF" # neutral-gray；中性悬停表面
-        "--pod-nav-menu-bg-selected-color": "#FFFFFF" # neutral-gray；选中菜单白面
+        "--pod-shell-theme-bg-color": "#F5F5F5"
+        "--pod-nav-item-text-color": "#181818"
+        "--pod-nav-item-text-hover-color": "var(--color-brand1-6)"
+        "--pod-nav-item-text-selected-color": "var(--color-brand1-6)"
+        "--pod-nav-menu-bg-hover-color": "#EFEFEF"
+        "--pod-nav-menu-bg-selected-color": "#FFFFFF"
+        "--pod-nav-menu-item-selected-shadow": "none"
+        "--pod-page-header-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-l-sub-main-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-top-main-border-width": "1px"
+        "--pod-nav-top-main-border-color": "#DEDEDE"
+        "--pod-nav-top-tab-indicator-width": "0px"
+        "--pod-nav-logo-text": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-logo-bg": "var(--pod-nav-menu-bg-selected-color)"
+        "--pod-nav-logo-icon": "var(--pod-nav-item-text-selected-color)"
+        "--pod-nav-logo-border": "1px solid #DEDEDE"
+        "--pod-nav-logo-border-radius": "8px"
+        "--pod-nav-sub-divider-color": "#DEDEDE"
+        "--pod-nav-item-text-disabled-color": "rgba(24,28,31,.30)"
+        "--pod-nav-l-container-bg": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-l-group-label-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-l-search-border-color": "#DEDEDE"
+        "--pod-nav-popup-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-popup-border-radius": "8px"
+        "--pod-nav-popup-shadow": "0 8px 24px rgba(24,28,31,.10)"
+        "--pod-nav-tab-line-hover-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-tab-line-selected-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-bg-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-bg-hover-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-bg-active-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-placeholder-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-search-text-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-icon-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-search-border-color": "#DEDEDE"
+        "--pod-nav-search-border-hover-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-border-active-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-action-icon-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-action-border-color": "#DEDEDE"
+        "--pod-nav-action-border": "1px solid #DEDEDE"
+        "--pod-nav-action-bg-hover-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-action-bg-active-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-menu-item-height": "42px"
+        "--pod-nav-menu-item-radius": "4px"
+        "--pod-nav-menu-item-border": "2px solid transparent"
+        "--pod-nav-menu-item-hover-border": "2px solid #A6A6A6"
+        "--pod-nav-menu-item-selected-border": "2px solid var(--color-brand1-6)"
+        "--pod-nav-menu-font-size": "14px"
+        "--pod-nav-menu-item-selected-font-weight": "500"
+        "--pod-nav-menu-line-height": "20px"
+        "--pod-nav-menu-gap": "8px"
+        "--pod-shell-lshape-border-radius": "8px"
     colors:
       "--color-white": "var(--pod-card-bg-color)" # 全应用基础表面，跟随内容明暗；固定反色文字使用独立前景角色
       "--color-brand1-1": "<生成实际色值：--color-brand1-6 88% + #FFFFFF 12%，sRGB 逐通道混合>" # 品牌交互悬停
@@ -75,7 +121,7 @@ tokens:
       "--corner-3": 10px # 下拉、气泡、弹窗外轮廓
       "--corner-4": 12px # 图形图标盒、局部实体卡片
       "--corner-5": 16px # 一级面板、横幅与抽屉外轮廓
-      "--corner-circle": 50% # 头像、事件图标底圆和图例圆点
+      "--corner-circle": "var(--corner-2)" # 等宽高头像、图例圆点
       "--corner-semicircle": 500px # 开关轨道、进度圆头；不作为普通按钮默认圆角
     shadow:
       "--shadow-1": "0px 2px 4px 0px rgba(0, 0, 0, 0.12)"
@@ -113,13 +159,13 @@ tokens:
 
 独立导航围绕明亮的白色工作区。内容依靠宽松内边距、细灰边框和适度圆角形成清晰分组，普通面板保持平整，数字大而不厚重。存在核心摘要时，用主色的深色派生面集中建立焦点，同一主色的明亮派生色承担关键动作。主题保留深浅对比关系，具体色相沿用项目主色。低对比线框只出现在强调区域，日常表格、表单和说明仍保持朴素。
 
-| 核心特征 | 可见表现 | 主要偏离风险 |
-| --- | --- | --- |
-| 独立导航与白色内容面 | 当前菜单使用专用选中配色；内容画布保持白色 | 把内容区铺成大面积灰底而依赖重阴影分层 |
-| 同源深浅的集中强调 | 同一主色派生深色信息面和明亮操作面，数据用不同明度区分 | 额外固定第二色相，或把所有角色直接填成未经分层的主色 |
-| 圆角面板配方正工具 | 内容面板圆角较大，工具按钮与输入是较小圆角矩形 | 将普通按钮全部改为胶囊，或让每个内部组件继承面板的大圆角 |
-| 大数字与轻辅助信息 | 数字使用常规字重，周期、比较值和说明使用主题灰色分层 | 以超粗数字、渐变文字、装饰字替代清晰的数据层级 |
-| 少量局部材质 | 深色横幅右侧有低对比圆角线框，实体展示可有角部几何纹样 | 把纹理扩散到白色表面，或给全页加渐变、玻璃模糊、立体材质 |
+| 核心特征             | 可见表现                                               | 主要偏离风险                                             |
+| -------------------- | ------------------------------------------------------ | -------------------------------------------------------- |
+| 独立导航与白色内容面 | 当前菜单使用专用选中配色；内容画布保持白色             | 把内容区铺成大面积灰底而依赖重阴影分层                   |
+| 同源深浅的集中强调   | 同一主色派生深色信息面和明亮操作面，数据用不同明度区分 | 额外固定第二色相，或把所有角色直接填成未经分层的主色     |
+| 圆角面板配方正工具   | 内容面板圆角较大，工具按钮与输入是较小圆角矩形         | 将普通按钮全部改为胶囊，或让每个内部组件继承面板的大圆角 |
+| 大数字与轻辅助信息   | 数字使用常规字重，周期、比较值和说明使用主题灰色分层   | 以超粗数字、渐变文字、装饰字替代清晰的数据层级           |
+| 少量局部材质         | 深色横幅右侧有低对比圆角线框，实体展示可有角部几何纹样 | 把纹理扩散到白色表面，或给全页加渐变、玻璃模糊、立体材质 |
 
 浅灰框架、白色面板、圆角分工、由主色轻微染色的辅助文字和克制的强调构成跨页面基础。横幅、双向图表、比较指标和实体卡片仅在存在相应内容时使用；不以主题为理由添加业务模块。
 
@@ -129,30 +175,34 @@ tokens:
 
 白色工作区与白色面板依靠边线和留白区分。导航选中项和少量悬浮控件可有弱阴影，常驻业务面板默认无阴影。下列局部线宽、阴影与纹理尺度属于实施推断；图片导出像素不直接作为 CSS 尺寸。
 
-| 对象 | 背景与必要前景 | 边界、形状与阴影 |
-| --- | --- | --- |
-| 应用根背景 | `--pod-app-root-bg-color`；背景图使用 `--pod-app-root-bg-image` | 浅灰兜底；背景图只作用于根节点，本主题默认无图 |
-| 页面画布与顶部工具区 | `--pod-page-bg-color`，自定义页使用 `--oyd-page-bg`；前景用 `--color-text1-4` | 连续白面，无默认底色条和投影；工具区不被重复套卡片 |
-| 一级面板、表单主容器、详情容器 | `--pod-card-bg-color`；主文字用 `--color-text1-4` | 1px `--color-line1-1`，`--corner-5`，默认无阴影 |
-| 表格正文 | `--pod-table-cell-color` | 白色连续行，横向细分隔，拼接处用 `--corner-zero` |
-| 内部分段与辅助底面 | 普通内容延续白面；中性选中和分段控件底面用 `--color-fill1-2`；较重填充用 `--color-fill1-3` | 通过留白或单条分隔线区分，不连续叠加卡片边框 |
-| 深色重点横幅 | `--oyd-hero-bg` 配 `--oyd-hero-foreground`；操作另按其背景配前景 | `--corner-5`，无投影；纹理限制在局部背景 |
-| 下拉、浮层、气泡、弹窗、弹出日历、导航弹出层 | `--color-fill1-5`；文字用 `--color-text1-4` 与 `--color-text1-10` | `--corner-3`，细边框；小浮层可用 `--shadow-1`，模态弹窗可用 `--shadow-2` |
-| 抽屉 | `--color-fill1-5`；前景按浅色内容配套 | 露出角用 `--corner-5`，贴边处直角；必要时使用 `--shadow-2` |
-| 图表读数浮卡 | `--color-fill1-5`；标签用 `--color-text1-10`，数值用主文字色，图例点对应数据序列 | `--corner-3`，`--shadow-1`；不继承深色横幅表面 |
-| 短提示 Tooltip | `--color-fill1-10` 配 `--color-text1-5` | `--corner-3`，保持固定深底浅字，与白色数据浮卡区分 |
+| 对象                                         | 背景与必要前景                                                                             | 边界、形状与阴影                                                         |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| 应用根背景                                   | `--pod-app-root-bg-color`；背景图使用 `--pod-app-root-bg-image`                            | 浅灰兜底；背景图只作用于根节点，本主题默认无图                           |
+| 页面画布与顶部工具区                         | `--pod-page-bg-color`，自定义页使用 `--oyd-page-bg`；前景用 `--color-text1-4`              | 连续白面，无默认底色条和投影；工具区不被重复套卡片                       |
+| 一级面板、表单主容器、详情容器               | `--pod-card-bg-color`；主文字用 `--color-text1-4`                                          | 1px `--color-line1-1`，`--corner-5`，默认无阴影                          |
+| 表格正文                                     | `--pod-table-cell-color`                                                                   | 白色连续行，横向细分隔，拼接处用 `--corner-zero`                         |
+| 内部分段与辅助底面                           | 普通内容延续白面；中性选中和分段控件底面用 `--color-fill1-2`；较重填充用 `--color-fill1-3` | 通过留白或单条分隔线区分，不连续叠加卡片边框                             |
+| 深色重点横幅                                 | `--oyd-hero-bg` 配 `--oyd-hero-foreground`；操作另按其背景配前景                           | `--corner-5`，无投影；纹理限制在局部背景                                 |
+| 下拉、浮层、气泡、弹窗、弹出日历、导航弹出层 | `--color-fill1-5`；文字用 `--color-text1-4` 与 `--color-text1-10`                          | `--corner-3`，细边框；小浮层可用 `--shadow-1`，模态弹窗可用 `--shadow-2` |
+| 抽屉                                         | `--color-fill1-5`；前景按浅色内容配套                                                      | 露出角用 `--corner-5`，贴边处直角；必要时使用 `--shadow-2`               |
+| 图表读数浮卡                                 | `--color-fill1-5`；标签用 `--color-text1-10`，数值用主文字色，图例点对应数据序列           | `--corner-3`，`--shadow-1`；不继承深色横幅表面                           |
+| 短提示 Tooltip                               | `--color-fill1-10` 配 `--color-text1-5`                                                    | `--corner-3`，保持固定深底浅字，与白色数据浮卡区分                       |
 
 局部轻抬起表面采用弱阴影 `0 2px 4px rgba(0,0,0,0.06)`，仅用于自绘导航选中项、已有身份卡和分段控件的当前项，不扩展至所有面板。`--shadow-3` 保留为完整平台档位，本主题无默认使用对象。深色横幅是内容强调表面，不代表内容区进入深色模式，周围输入与覆盖层继续使用白色。
 
 ### 2.2 应用导航
 
-导航按项目确定的明暗成组配色，独立于内容画布。背景使用 `--pod-shell-theme-bg-color`，普通文字与图标使用 `--pod-nav-item-text-color`；悬停文字与背景使用 `--pod-nav-item-text-hover-color`、`--pod-nav-menu-bg-hover-color`，选中文字与背景使用 `--pod-nav-item-text-selected-color`、`--pod-nav-menu-bg-selected-color`。图标跟随对应文字状态，颜色以项目 tokens 为准。
+浅灰导航托起白色选中菜单，搜索和分组使用细边界，菜单形状与内容按钮、输入保持一致。
 
-项目确定自绘导航时，菜单项使用 `--corner-2`，左侧线性图标与标签对齐；组标题用小号、低强调文字，与菜单之间保留 `--s-2`，组间用 `--s-6` 或 `--s-8` 分开。选中项使用专用选中背景，并可采用前述局部弱阴影，不增加饱和色整行背景。导航内侧留白使用 `--s-3` 或 `--s-4`；尺寸与实际收纳方式只在项目方案中确定。
+菜单轮廓使用 --pod-nav-menu-item-radius、--pod-nav-menu-item-border、--pod-nav-menu-item-hover-border、--pod-nav-menu-item-selected-border。侧栏和顶部菜单共用轮廓，各状态保持相同边框宽度，文字位置稳定；具体数值以本项目 Token 为准。
 
-已有品牌标志以小比例出现在导航顶部，不复制参考材料的商标。已有设置、帮助和身份信息可按产品顺序放在底部，以细线分组；身份块是小白面板，头像为圆形。开关、奖励数或提醒只在对应功能真实存在时出现，不从截图生成新功能。
+导航与应用框架、表单、自定义页面和详情页共用设计语言。先按业务入口安排菜单、分组、搜索、品牌区与常用操作，再一起确定导航与正文的明暗、表面、字体、边界、圆角和密度。平台导航使用真实页面菜单；自绘导航按同一套导航 Token 实现。命名模板沿用自身 navTheme，换主色保持导航明暗与内容画布；需要另一导航明暗时改选主题，自由创意按项目明确设计。
 
-导航状态使用本节六项变量；需要品牌强调时引用当前主色，前景与背景保持可读对比。导航弹出层沿用独立覆盖层配色。
+导航底色使用 --pod-shell-theme-bg-color；普通、悬停和选中文字分别使用 --pod-nav-item-text-color、--pod-nav-item-text-hover-color、--pod-nav-item-text-selected-color；悬停和选中背景使用 --pod-nav-menu-bg-hover-color、--pod-nav-menu-bg-selected-color。图标跟随对应文字状态，当前入口同时用背景或字重表达。
+
+菜单高度、圆角与间距使用 --pod-nav-menu-item-height、--pod-nav-menu-item-radius、--pod-nav-menu-gap；搜索、品牌区、分组、操作和弹出菜单使用 navigation 分组中的对应 Token。弹出菜单的底色、文字与搜索状态成组配套，导航与内容可以分别选择明暗。选中项使用 --pod-nav-menu-item-selected-shadow：none 关闭额外标记，完整 box-shadow 值可表达左、右或底部内阴影，不占据菜单布局空间；该 Token 独立于导航明暗。菜单高度、文字行高、内距和框架留白一起调整，给外阴影、长标题与键盘焦点留出空间。
+
+桌面检查菜单、搜索、选中态与表单的协调；折叠后保留可识别图标和入口名称；窄屏保持菜单可展开、当前页面可定位、键盘焦点可见。提交、编辑、详情与自定义页都沿用这一导航设计。
 
 ### 2.3 页面标题与操作
 
@@ -166,15 +216,15 @@ tokens:
 
 使用 `--font-family-base`。字体选择是中性无衬线实现方案，不声称识别出截图的准确字体。常规字重为主，层级主要靠字号、留白与颜色建立。
 
-| 文字角色 | 字号、字重与行高 | 颜色和安排 |
-| --- | --- | --- |
-| 页面标题 | `--font-size-subhead`、`--font-weight-subhead`、`--font-lineheight-subhead` | `--color-text1-4`，不采用装饰字 |
-| 面板标题和重要标签 | `--font-size-body-2`、`--font-weight-body-2`、`--font-lineheight-body-2` | `--color-text1-4`；深色横幅内使用专属前景 |
-| 正文、输入、按钮和菜单 | `--font-size-body-1`、`--font-weight-body-1`、`--font-lineheight-body-1` | 主文字色；辅助操作按重要程度降级 |
-| 表格文字 | `--font-size-table`、`--font-weight-table`、`--font-lineheight-table` | 表头用 `--color-text1-10`，正文用 `--color-text1-4` |
-| 周期、比较基数、坐标及元信息 | `--font-size-caption`、`--font-weight-caption`、`--font-lineheight-caption` | `--color-text1-3`；关键解释提高到 `--color-text1-10` |
-| 独立面板数值 | `--oyd-font-size-metric`、`--oyd-font-weight-metric`、`--oyd-font-lineheight-metric` | 近黑，旁侧变化量降低为正文规格 |
-| 焦点横幅数值 | `--oyd-font-size-hero-value`、`--oyd-font-weight-hero-value`、`--oyd-font-lineheight-hero-value` | `--oyd-hero-foreground`；不同时放大所有辅助字段 |
+| 文字角色                     | 字号、字重与行高                                                                                 | 颜色和安排                                           |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| 页面标题                     | `--font-size-subhead`、`--font-weight-subhead`、`--font-lineheight-subhead`                      | `--color-text1-4`，不采用装饰字                      |
+| 面板标题和重要标签           | `--font-size-body-2`、`--font-weight-body-2`、`--font-lineheight-body-2`                         | `--color-text1-4`；深色横幅内使用专属前景            |
+| 正文、输入、按钮和菜单       | `--font-size-body-1`、`--font-weight-body-1`、`--font-lineheight-body-1`                         | 主文字色；辅助操作按重要程度降级                     |
+| 表格文字                     | `--font-size-table`、`--font-weight-table`、`--font-lineheight-table`                            | 表头用 `--color-text1-10`，正文用 `--color-text1-4`  |
+| 周期、比较基数、坐标及元信息 | `--font-size-caption`、`--font-weight-caption`、`--font-lineheight-caption`                      | `--color-text1-3`；关键解释提高到 `--color-text1-10` |
+| 独立面板数值                 | `--oyd-font-size-metric`、`--oyd-font-weight-metric`、`--oyd-font-lineheight-metric`             | 近黑，旁侧变化量降低为正文规格                       |
+| 焦点横幅数值                 | `--oyd-font-size-hero-value`、`--oyd-font-weight-hero-value`、`--oyd-font-lineheight-hero-value` | `--oyd-hero-foreground`；不同时放大所有辅助字段      |
 
 指标使用等宽数字特性，金额与单位保持一致格式；货币、小数点、分组符和日期服从项目语言与地区，不照搬示例数据的区域格式。数值与变化量基线对齐，表格可比较数字对齐统一；只有真实变化时显示百分比和方向符号。
 
@@ -238,15 +288,15 @@ tokens:
 
 ### 状态与局部反馈
 
-| 状态 | 视觉规则 |
-| --- | --- |
-| Hover | 中性控件保持 `--color-fill1-1`，加深边框或图标；品牌操作用 `--color-brand1-1`，明亮强调操作用 `--oyd-accent-hover`。普通面板不整体上浮 |
-| Active / pressed | 中性操作用 `--color-fill1-2`，品牌操作用 `--color-brand1-9`，明亮强调操作用 `--oyd-accent-pressed`；不改变布局尺寸 |
-| Selected | 分段控件与数据集合以浅底、白色当前项或清晰标记表达；导航使用专用配色，避免品牌色铺满一切选中项 |
-| Focus | 使用约 2px 品牌色轮廓与可见外间隔（推断）；深色横幅中改用能与底色区分的浅色轮廓 |
-| Disabled | 中性文字使用 `--color-text1-2`，品牌控件使用 `--color-brand1-10`；派生强调动作禁用时退为中性表面与禁用文字，不保留高强调外观 |
-| Error / warning / success / info | 沿用平台既有语义色，配文字和必要图标；输入结构保持稳定，不用数据序列色冒充状态 |
-| Loading / empty | 骨架采用 `--color-fill1-3`；空态以简短说明和已有可用操作呈现，不以假数值或装饰图表填充 |
+| 状态                             | 视觉规则                                                                                                                               |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover                            | 中性控件保持 `--color-fill1-1`，加深边框或图标；品牌操作用 `--color-brand1-1`，明亮强调操作用 `--oyd-accent-hover`。普通面板不整体上浮 |
+| Active / pressed                 | 中性操作用 `--color-fill1-2`，品牌操作用 `--color-brand1-9`，明亮强调操作用 `--oyd-accent-pressed`；不改变布局尺寸                     |
+| Selected                         | 分段控件与数据集合以浅底、白色当前项或清晰标记表达；导航使用专用配色，避免品牌色铺满一切选中项                                         |
+| Focus                            | 使用约 2px 品牌色轮廓与可见外间隔（推断）；深色横幅中改用能与底色区分的浅色轮廓                                                        |
+| Disabled                         | 中性文字使用 `--color-text1-2`，品牌控件使用 `--color-brand1-10`；派生强调动作禁用时退为中性表面与禁用文字，不保留高强调外观           |
+| Error / warning / success / info | 沿用平台既有语义色，配文字和必要图标；输入结构保持稳定，不用数据序列色冒充状态                                                         |
+| Loading / empty                  | 骨架采用 `--color-fill1-3`；空态以简短说明和已有可用操作呈现，不以假数值或装饰图表填充                                                 |
 
 开关开启可使用主色或其可读的派生档，关闭用中性轨道；轨道用 `--corner-semicircle`，滑块保持圆形。状态变化以约 120–180ms 的颜色与透明度过渡为主（推断），不默认弹跳或持续动画。输入错误、键盘焦点、禁用和加载等未展示状态为按本主题推导的实现规则。
 
@@ -316,7 +366,7 @@ YAML 是变量值的唯一事实源，正文负责消费关系；已由变量承
 - 派生只把主色或其上游派生值与黑、白、无彩灰混合。具体种子、基底、比例以 YAML 为准；不得加入第二个固定彩色基底，或为恢复截图颜色另选新主色。标准黑白、无彩灰及平台错误、警告、成功、信息状态不属于新增主题色。
 - sRGB 逐通道计算：`round(A通道 × A占比 + B通道 × B占比)`，通道范围 0–255，占比之和为 100%，输出六位十六进制；不采用线性光转换。先解析唯一主色，再按依赖顺序计算全局派生、页面派生及其交互状态。
 - 深色横幅、明亮操作及其文字沿用设计稿确定的配对；按 YAML 的固定比例从主色派生，保留原有明暗层次。白色叠加纹理继续按 alpha 与深底合成。
-- 导航悬停和选中文字使用各自的专用变量，按项目导航明暗配成一组；需要品牌强调时引用 `var(--color-brand1-6)`。
+- 导航悬停和选中文字使用各自的专用变量，按本模板 navTheme 配成一组；需要品牌强调时引用 `var(--color-brand1-6)`。
 - 主、次数据序列分别直接从主色计算深浅档，不引用动作的 hover、pressed 或 disabled 色。同一主色重算时，两条数据色与操作强调一起重算；序列仍保持独立图例与数据语义。近似色难以区分时用标注、描边或纹理补充，不能擅自引入新主题色。
 - 实例化时替换占位符、计算生成标记，并按消费者需要解析引用。对比度与系列辨识度在实际页面中核对；模板中的不同角色不能被理解为可分别挑选多个品牌色。
 

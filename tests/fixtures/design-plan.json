@@ -205,7 +205,7 @@
         "source": "user_selected",
         "customText": "",
         "label": "柔灰嵌白",
-        "templatePath": "templates/design-themes/soft-inset-surfaces.md",
+        "templatePath": "templates/design-themes/soft-inset-surfaces/design.md",
         "summary": "冷浅灰外衬、独立浅灰导航、近白画布与柔圆白面板形成细微层差，边界极淡，静置面板仅有轻微底影。中等信息密度，深灰文字突出标题与数值，线图标克制，彩色集中于小圆标、短标签和数据图形。大容器柔圆，普通按钮与输入为较小圆角矩形，表格保持连续行；导航以中性浅底标识选中。避免所有底面同白、深投影、高饱和导航、全面胶囊化及满屏彩色图标；指标和图表仅按真实内容启用。"
       }
     },
@@ -213,7 +213,7 @@
       "productTopologyApplication": "内部管理型应用；工作台与原生表单共享全应用设计语言，视觉记忆点只绑定已有内容。",
       "designTemplate": {
         "themeId": "soft-inset-surfaces",
-        "templatePath": "templates/design-themes/soft-inset-surfaces.md",
+        "templatePath": "templates/design-themes/soft-inset-surfaces/design.md",
         "instanceRule": "完整读取主题模板，注入项目业务差异与逐页视觉记忆点绑定。"
       },
       "pagePatterns": [

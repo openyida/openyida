@@ -15,12 +15,16 @@ const PYTHON = [['python3', []], ['python', []], ['py', ['-3']]].find(([command,
   return !result.error && result.status === 0 && match && Number(match[1]) === 3 && Number(match[2]) >= 9;
 });
 
-test('shipped themes inherit project color instead of prescribing a hue when branding is absent', () => {
+test('shipped themes inherit project color and declare the selected-item shadow contract', () => {
   const index = JSON.parse(fs.readFileSync(path.join(THEMES, 'index.json'), 'utf8'));
+  const navigation = require('../yida-skills/skills/yida-design/templates/navigation-styles.json');
   for (const theme of index.themes) {
     const source = fs.readFileSync(path.join(SKILL, theme.templatePath), 'utf8');
     expect(source).not.toMatch(/(?:无品牌色|没有品牌色)[^。\n]*(?:默认[^。\n]*(?:蓝色|冷色|纯黑)|(?:蓝色|冷色|纯黑)[^。\n]*默认)/);
     expect(source).toContain('{{PRIMARY_COLOR}}');
+    const shadow = /"--pod-nav-menu-item-selected-shadow":\s*"([^"]+)"/.exec(source);
+    expect(shadow).not.toBeNull();
+    expect(shadow[1]).toBe(navigation[theme.themeId]?.selectedShadow || 'none');
   }
 });
 
@@ -62,6 +66,10 @@ function withFixture(run) {
     }
     const original = fs.readFileSync(path.join(SKILL, index.themes[0].templatePath), 'utf8');
     const template = path.join(skill, index.themes[0].templatePath);
+    fs.mkdirSync(path.dirname(template), { recursive: true });
+    for (const field of ['cssTemplatePath', 'formLayoutPath']) {
+      fs.copyFileSync(path.join(SKILL, index.themes[0][field]), path.join(skill, index.themes[0][field]));
+    }
     const saveIndex = () => fs.writeFileSync(path.join(themes, 'index.json'), JSON.stringify(index));
     saveIndex();
     fs.writeFileSync(template, original);
@@ -87,6 +95,8 @@ test.each([
   ['unquoted spacing', source => source.replace('"--s-5": 20px', '"--s-5": 22px'), '--s-5 应使用固定值'],
   ['numeric font weight', source => source.replace('"--font-weight-subhead": 500', '"--font-weight-subhead": 600'), '--font-weight-subhead 应使用固定值'],
   ['missing appearance token', source => source.replace(/^.*"--pod-nav-item-text-color":.*\n/m, ''), '全局变量集合'],
+  ['missing nav theme', source => source.replace(/^navTheme:.*\n/m, ''), 'navTheme 必须是 light 或 dark'],
+  ['invalid nav theme', source => source.replace(/^navTheme:.*$/m, 'navTheme: auto'), 'navTheme 必须是 light 或 dark'],
   ['cross-group cycle', source => source.replace('"--pod-page-bg-color": "#000000"', '"--pod-page-bg-color": "var(--oyd-inset-surface)"').replace('"--oyd-inset-surface": "#000000"', '"--oyd-inset-surface": "var(--pod-page-bg-color)"'), '变量循环引用'],
   ['unsupported brand slot', source => source.replace('  custom-page:\n', '  custom-page:\n    "--color-brand1-4": "#FFFFFF"\n'), '不支持的品牌色阶'],
   ['duplicate variable across scopes', source => source.replace('  custom-page:\n', '  custom-page:\n    "--color-white": "#FFFFFF"\n'), '页面层重复定义全局变量'],
@@ -127,6 +137,9 @@ test('templates accept extra global and project variables with shared references
 
 test.each([
   ['missing summary', index => { delete index.themes[0].styleSummary; }, 'styleSummary'],
+  ['missing navigation summary', index => { delete index.themes[0].navigationSummary; }, 'navigationSummary'],
+  ['missing theme modes in summary', index => { index.themes[0].styleSummary = index.themes[0].styleSummary.replace(/^[^。]+。/, ''); }, 'styleSummary 必须用自然语言说明深色或浅色导航，以及深色或浅色内容界面'],
+  ['mismatched nav theme in summary', index => { index.themes[0].styleSummary = index.themes[0].styleSummary.replace('深色导航', '浅色导航'); }, 'styleSummary 的导航明暗与主题模板 navTheme 不一致'],
   ['missing content tone', index => { delete index.themes[0].contentTone; }, 'contentTone'],
   ['invalid navigation tone', index => { index.themes[0].navTheme = 'auto'; }, 'navTheme'],
   ['duplicate IDs', index => { index.themes.push({ ...index.themes[0] }); }, '重复 themeId'],
@@ -152,6 +165,22 @@ test('validator requires every template to be indexed and every entry to exist',
     expect(result.status).toBe(1);
     expect(result.stdout).toContain('主题模板未登记到索引');
     expect(result.stdout).toContain('索引引用了不存在的主题模板');
+  });
+});
+
+test.each(['design.md', 'app_theme.css', 'form-layout.json'])('validator rejects a missing bundle file: %s', filename => {
+  withFixture(({ skill, template }) => {
+    fs.unlinkSync(path.join(path.dirname(template), filename));
+    expect(validate(skill).status).toBe(1);
+  });
+});
+
+test.each(['--color-brand1-1', '--color-brand1-6'])('validator rejects a fixed CSS template brand color: %s', name => {
+  withFixture(({ skill, template }) => {
+    const cssFile = path.join(path.dirname(template), 'app_theme.css');
+    const css = fs.readFileSync(cssFile, 'utf8').replace(new RegExp(`(${name}: )[^;]+;`), '$1#123456;');
+    fs.writeFileSync(cssFile, css);
+    expect(validate(skill).stdout).toContain(`${name} 必须保留项目颜色占位`);
   });
 });
 

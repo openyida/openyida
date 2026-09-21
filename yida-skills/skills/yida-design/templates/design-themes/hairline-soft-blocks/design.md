@@ -2,6 +2,7 @@
 name: "{{PROJECT_NAME}}"
 description: "独立导航与白色画布相邻，以浅灰平面块、细描边白色面板和开放表格区分内容；无衬线大数字保持中等字重，主题色集中于小型标记、细折线及等距刻度，主题派生分类色、独立类别色与状态色按角色使用。"
 themeId: hairline-soft-blocks
+navTheme: light
 tokens:
   application-global:
     appearance:
@@ -12,12 +13,57 @@ tokens:
         "--pod-card-bg-color": "#FFFFFF" # neutral-gray；一级卡片、表单和详情面板
         "--pod-table-cell-color": "var(--pod-card-bg-color)"
       navigation:
-        "--pod-shell-theme-bg-color": "#FFFFFF" # 独立白色导航
-        "--pod-nav-item-text-color": "#484848" # 独立普通菜单前景
+        "--pod-shell-theme-bg-color": "#FFFFFF"
+        "--pod-nav-item-text-color": "#484848"
         "--pod-nav-item-text-hover-color": "#262626"
-        "--pod-nav-item-text-selected-color": "#171717" # 选中文字仍为深色
+        "--pod-nav-item-text-selected-color": "#171717"
         "--pod-nav-menu-bg-hover-color": "#FAFAFA"
         "--pod-nav-menu-bg-selected-color": "#F6F6F6"
+        "--pod-nav-menu-item-selected-shadow": "none"
+        "--pod-page-header-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-l-sub-main-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-top-main-border-width": "1px"
+        "--pod-nav-top-main-border-color": "#DEDEDE"
+        "--pod-nav-top-tab-indicator-width": "0px"
+        "--pod-nav-logo-text": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-logo-bg": "var(--pod-nav-menu-bg-selected-color)"
+        "--pod-nav-logo-icon": "var(--pod-nav-item-text-selected-color)"
+        "--pod-nav-logo-border": "1px solid #DEDEDE"
+        "--pod-nav-logo-border-radius": "8px"
+        "--pod-nav-sub-divider-color": "#DEDEDE"
+        "--pod-nav-item-text-disabled-color": "rgba(24,28,31,.30)"
+        "--pod-nav-l-container-bg": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-l-group-label-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-l-search-border-color": "#DEDEDE"
+        "--pod-nav-popup-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-popup-border-radius": "8px"
+        "--pod-nav-popup-shadow": "0 8px 24px rgba(24,28,31,.10)"
+        "--pod-nav-tab-line-hover-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-tab-line-selected-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-bg-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-bg-hover-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-bg-active-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-placeholder-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-search-text-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-icon-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-search-border-color": "#DEDEDE"
+        "--pod-nav-search-border-hover-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-border-active-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-action-icon-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-action-border-color": "#DEDEDE"
+        "--pod-nav-action-border": "1px solid #DEDEDE"
+        "--pod-nav-action-bg-hover-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-action-bg-active-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-menu-item-height": "42px"
+        "--pod-nav-menu-item-radius": "8px"
+        "--pod-nav-menu-item-border": "1px solid transparent"
+        "--pod-nav-menu-item-hover-border": "1px solid #DEDEDE"
+        "--pod-nav-menu-item-selected-border": "1px solid #A6A6A6"
+        "--pod-nav-menu-font-size": "14px"
+        "--pod-nav-menu-item-selected-font-weight": "500"
+        "--pod-nav-menu-line-height": "20px"
+        "--pod-nav-menu-gap": "8px"
+        "--pod-shell-lshape-border-radius": "8px"
     colors:
       "--color-white": "var(--pod-card-bg-color)" # 全应用基础表面；当前随浅色内容主面，不承担白字语义
       "--color-brand1-1": "<生成实际色值：--color-brand1-6 88% + #FFFFFF 12%，sRGB 逐通道混合>" # 主题色交互悬停
@@ -105,7 +151,7 @@ tokens:
 
 **细线白面 · 浅灰拼块（hairline-soft-blocks）**
 
-导航与白色内容区以一条轻分界线建立区域关系，导航明暗按项目选择。内容由浅灰平面摘要块、细描边白色面板和直接展开在画布上的表格组成；不同内容采用不同边界强度。无衬线字体贯穿页面，核心数字通过字号与留白突出，字重保持克制。主题色只占少量面积，主要落在图标标记、细折线和刻度条上。
+导航与白色内容区以一条轻分界线建立区域关系，导航明暗采用本模板 navTheme。内容由浅灰平面摘要块、细描边白色面板和直接展开在画布上的表格组成；不同内容采用不同边界强度。无衬线字体贯穿页面，核心数字通过字号与留白突出，字重保持克制。主题色只占少量面积，主要落在图标标记、细折线和刻度条上。
 
 | 核心特征 | 可见表现 | 主要偏离风险 |
 | --- | --- | --- |
@@ -144,15 +190,17 @@ tokens:
 
 ### 2.2 应用导航
 
-导航按项目确定的明暗成组配色，独立于内容画布。背景使用 `--pod-shell-theme-bg-color`，普通文字与图标使用 `--pod-nav-item-text-color`；悬停文字与背景使用 `--pod-nav-item-text-hover-color`、`--pod-nav-menu-bg-hover-color`，选中文字与背景使用 `--pod-nav-item-text-selected-color`、`--pod-nav-menu-bg-selected-color`。图标跟随对应文字状态，颜色以项目 tokens 为准。
+白色导航接续白色正文，浅灰菜单底和细边界保持轻盈，搜索与菜单弹层沿用同一白面。
 
-原生导航只配置本节六项颜色，图标默认随文字。结构、宽度、分组、折叠和菜单排列交由项目及平台处理，不为复现某个导航细节新增一套导航。
+菜单轮廓使用 --pod-nav-menu-item-radius、--pod-nav-menu-item-border、--pod-nav-menu-item-hover-border、--pod-nav-menu-item-selected-border。侧栏和顶部菜单共用轮廓，各状态保持相同边框宽度，文字位置稳定；具体数值以本项目 Token 为准。
 
-只有项目确定自绘导航时，才启用以下补充表达：选中图标和最外侧窄标记采用 `--oyd-nav-current-accent`，文字仍消费选中文字变量；窄标记推断约 2 CSS px，不跨越整个分组。菜单项使用 `--corner-2` 与专用选中底色，普通项不加边框或阴影。该局部强调色直接引用当前主题色；换主题色时自动更新该引用，六项中性导航配色及普通文字、底面的角色保持不变。
+导航与应用框架、表单、自定义页面和详情页共用设计语言。先按业务入口安排菜单、分组、搜索、品牌区与常用操作，再一起确定导航与正文的明暗、表面、字体、边界、圆角和密度。平台导航使用真实页面菜单；自绘导航按同一套导航 Token 实现。命名模板沿用自身 navTheme，换主色保持导航明暗与内容画布；需要另一导航明暗时改选主题，自由创意按项目明确设计。
 
-自绘分组标题可用 caption 与二级文字，短英文自然大写；分组间采用 `--s-8` 留白，菜单内图文间距采用 `--s-3`。已有标识切换区、用户区通过轻分割线与列表分开，人物头像可为圆形。具体菜单、位置与宽度写入项目页面方案，不复制示例名称或个人信息。
+导航底色使用 --pod-shell-theme-bg-color；普通、悬停和选中文字分别使用 --pod-nav-item-text-color、--pod-nav-item-text-hover-color、--pod-nav-item-text-selected-color；悬停和选中背景使用 --pod-nav-menu-bg-hover-color、--pod-nav-menu-bg-selected-color。图标跟随对应文字状态，当前入口同时用背景或字重表达。
 
-导航弹出层使用 `--color-fill1-5` 及其配套前景。项目改为深导航时，独立调整六项导航颜色及已启用的自绘强调色；内容、卡片、输入和弹出层保持自身配色。
+菜单高度、圆角与间距使用 --pod-nav-menu-item-height、--pod-nav-menu-item-radius、--pod-nav-menu-gap；搜索、品牌区、分组、操作和弹出菜单使用 navigation 分组中的对应 Token。弹出菜单的底色、文字与搜索状态成组配套，导航与内容可以分别选择明暗。选中项使用 --pod-nav-menu-item-selected-shadow：none 关闭额外标记，完整 box-shadow 值可表达左、右或底部内阴影，不占据菜单布局空间；该 Token 独立于导航明暗。菜单高度、文字行高、内距和框架留白一起调整，给外阴影、长标题与键盘焦点留出空间。
+
+桌面检查菜单、搜索、选中态与表单的协调；折叠后保留可识别图标和入口名称；窄屏保持菜单可展开、当前页面可定位、键盘焦点可见。提交、编辑、详情与自定义页都沿用这一导航设计。
 
 ### 2.3 页面标题与操作
 

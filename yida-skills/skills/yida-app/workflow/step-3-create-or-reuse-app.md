@@ -56,13 +56,13 @@
 
 例如，仅将已有应用切换为平台顶部导航：`openyida update-app <appType> --layout top --show-app-nav`。联合更新主题时，将这两个参数合并到同一次 `update-app --theme-file` 调用。
 
-Agent 必须显式传入场景选择对应的布局，不依赖 CLI 默认值。`navigationType=platform-top` 是计划内部标识，不能作为 `--layout` 的值；也不能用旧 Shell 的 `navType`、`hoz/ver/slide` 或 `top_fold/top_side/side_only` 代替上述参数。`navTheme` 只控制导航配色，不控制布局。自定义导航的 `variant=top/side/mixed/dock` 描述页面内菜单，不用于设置平台布局；自定义导航仍使用 `--hide-app-nav`。
+Agent 必须显式传入场景选择对应的布局，不依赖 CLI 默认值。`navigationType=platform-top` 是计划内部标识，不能作为 `--layout` 的值；也不能用旧 Shell 的 `navType`、`hoz/ver/slide` 或 `top_fold/top_side/side_only` 代替上述参数。`navTheme` 选择导航明暗模式，完整导航 token 决定实际配色、边界、形状、文字和间距；圆角、三种状态边框和选中阴影先写入设计，再按 [命令与参数](../../yida-design/references/application-style-library.md#命令与参数) 重新生成 CSS 并上传；布局仍由 `--layout` 设置。自定义导航的 `variant=top/side/mixed/dock` 描述页面内菜单，不用于设置平台布局；自定义导航仍使用 `--hide-app-nav`。
 
 `navType` 是兼容字段：CLI 查询应用后将已有值原样带回；缺失时不补造，也不根据新布局改写。没有 `--nav-type` 参数。未传 `--layout` 时，CLI 保留原布局：现代 `side/top/l_shape` 优先；旧 `hoz + top_side` 为 L 型，其他 `hoz` 为顶部，`ver` 为侧边；布局缺失时用 `navType=top_fold/top_side` 分别恢复顶部/L 型，其余回退侧边。
 
 Shell 渲染阶段才把顶部、侧边、L 型转换为 `top_fold`、`side_only`、`top_side`。详情/提交页的 `top_fold` 强制顶部、`none` 保持无导航属于页面运行态规则，不能反向写入应用配置。
 
-保存后核对应用详情中的 `layoutDirection` 与 `hideAppNav` 是否等于目标值，可通过应用设置页或 `/<appType>/query/app/getAppIncludingAecpInfo.json` 回读。CLI 输出的 `updatedFields` 是提交值，`themeVerification` 只验证主题资源，两者都不能单独证明导航配置已生效。发布后再刷新应用，检查实际布局；未完成回读时明确标记未验证。
+保存后读取 CLI 的 `navigationVerification`：`verified=true` 且其中本次请求的 `navTheme`、`layoutDirection`、`hideAppNav`、`logoSource` 与目标一致，表示导航设置回读通过。旧布局字段由 CLI 归一化后比较；缺少回读证据时保持未验证。CLI 最多重试三次只读查询，失败返回 `APP_NAVIGATION_NOT_PERSISTED`，按返回的期望值、实际值和查询错误核实应用设置。`updatedFields` 仍是提交值，`themeVerification` 仍只验证主题资源。发布后刷新应用，检查实际导航、内容布局与状态；设置回读通过与页面视觉验收分别记录。
 
 ## 产出
 

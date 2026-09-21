@@ -1,0 +1,13 @@
+[
+  {
+    "type": "ColumnContainer",
+    "layout": "12",
+    "columnGap": "16px",
+    "rowGap": "16px",
+    "display": "VERTICAL",
+    "mobileRowGap": "16px",
+    "children": [
+      []
+    ]
+  }
+]

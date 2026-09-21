@@ -24,7 +24,7 @@
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
       "description": "创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。由 yida-prd 和 yida-design 同时准备业务与基础视觉，校验后创建或复用资源；表单/流程先于自定义页面。页面 UI 按已确认设计实现，代码示例按需参考；发布后优先按 PRD 导航顺序排序，检查后交付入口。",
-      "done_when": "需求和方案已确认，业务与视觉说明一致；PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md。仅修改单页时，发布成功后返回当前页面 URL；没有 publish 证据只能声明源码已修改，尚未发布。完整应用按实际范围交付一组入口：管理端按默认任务返回 {base_url}/{appType}/workbench 或已验证的 /workbench/{formUuid}（需要时带真实 viewUuid）；独立前台仅在页面配置回读 renderNav=false（仅缺少 renderNav 时兼容 isRenderNav）且访问验证通过后交付 /custom/{formUuid}；完整应用默认提供 create-app 或 app-list 返回的 adminUrl（开发者管理后台），不受宿主或登录方式影响；仅前台时不追加业务后台，交付前台与开发者管理后台；有前后台时交付三个地址，统一工作区交付工作台与开发者管理后台。用户明确排除的入口除外，地址生成不等于已验证访问权限。final 先用 2-3 句业务语言总结创建/复用了哪些表单、页面和流程，再给主入口链接；不默认输出表格、长列表或资源 ID。缺少真实权限或多身份验证时明确说明未完成。",
+      "done_when": "需求和方案已确认，业务与视觉说明一致；PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md。仅修改单页时，发布成功后返回当前页面 URL；没有 publish 证据只能声明源码已修改，尚未发布。完整应用按实际范围交付一组入口：管理端按默认任务返回 {base_url}/{appType}/workbench 或已验证的 /workbench/{formUuid}（需要时带真实 viewUuid）；独立前台仅在页面配置回读 renderNav=false（仅缺少 renderNav 时兼容 isRenderNav）且访问验证通过后交付 /custom/{formUuid}；完整应用默认提供 create-app 或 app-list 返回的 adminUrl（开发者管理后台），不受宿主或登录方式影响；仅业务后台时交付业务后台与开发者管理后台，不追加前台；仅前台时不追加业务后台，交付前台与开发者管理后台；有前后台时交付三个地址，不分前后台时交付系统入口与开发者管理后台。用户明确排除的入口除外，地址生成不等于已验证访问权限。final 先用 2-3 句业务语言总结创建/复用了哪些表单、页面和流程，再给主入口链接；不默认输出表格、长列表或资源 ID。缺少真实权限或多身份验证时明确说明未完成。",
       "category": "yida-skills/app",
       "tags": [
         "宜搭",
@@ -996,7 +996,7 @@
       "name": "yida-nav-group",
       "path": "skills/yida-nav-group/SKILL.md",
       "display_name": "应用左侧导航分组",
-      "description": "整理宜搭已有的导航菜单时使用。支持查看菜单、新建或调整分组、移动和排序页面、隐藏或显示菜单项。 PRD 写明导航顺序时用 order；旧版共用工作区缺少明确顺序时用 auto-order 兜底。",
+      "description": "整理宜搭已有的导航菜单时使用。支持查看菜单、新建或调整分组、移动和排序页面、隐藏或显示菜单项。 PRD 写明导航顺序时用 order；旧版不分前后台的应用缺少明确顺序时用 auto-order 兜底。",
       "category": "yida-skills/app",
       "tags": [
         "导航",

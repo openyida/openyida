@@ -5,8 +5,7 @@ function CanvasNav({ items = [], activeKey, onSelect, title, logo, actions, chil
       .oy-nav-side { display: flex; }
       .oy-nav-side .oy-nav-content { flex: 1; }
       .oy-nav-side .oy-nav-brand { min-height: var(--pod-nav-platform-header-height, 48px); }
-      .oy-nav-side .oy-nav-menu { display: flex; flex-direction: column; gap: var(--pod-nav-slide-aside-gap, 12px); }
-      .oy-nav-side .oy-nav-item[aria-current="page"] { box-shadow: inset 3px 0 var(--pod-nav-tab-line-selected-color, var(--color-brand1-6, #1677ff)); }
+      .oy-nav-side .oy-nav-menu { display: flex; flex-direction: column; gap: var(--pod-nav-menu-gap, 8px); }
       @media (max-width: 767px) { .oy-nav-side { display: block; } }
     `}</style>
     <CanvasSidebar title={title} logo={logo} actions={actions} activeKey={activeKey} defaultWidth={sidebarWidth} defaultCollapsed={defaultCollapsed}>

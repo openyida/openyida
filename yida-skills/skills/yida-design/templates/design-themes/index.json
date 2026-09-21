@@ -7,120 +7,195 @@
       "label": "暗面内凹",
       "contentTone": "dark",
       "navTheme": "dark",
-      "templatePath": "templates/design-themes/dark-inset-hairline.md",
-      "styleSummary": "墨黑画布承托炭灰卡片，多数据区块内部再回落为黑色，形成明暗交替的内凹层次；独立摘要和操作卡仍保持炭灰。细线、短间距与克制圆角组织紧凑内容，浅灰文字分级，关键数值靠字号突出。品牌、状态和数据颜色只占局部面积。避免卡片全部同黑、逐层提亮、亮白描边、强投影及霓虹渐变。普通表单与列表可仅使用基础表面和排版；曲线、进度、快捷操作及对话按真实需求启用，不固定页面结构。"
+      "templatePath": "templates/design-themes/dark-inset-hairline/design.md",
+      "styleSummary": "深色导航，深色内容界面。墨黑画布承托炭灰卡片，多数据区块内部再回落为黑色，形成明暗交替的内凹层次；独立摘要和操作卡仍保持炭灰。细线、短间距与克制圆角组织紧凑内容，浅灰文字分级，关键数值靠字号突出。品牌、状态和数据颜色只占局部面积。避免卡片全部同黑、逐层提亮、亮白描边、强投影及霓虹渐变。普通表单与列表可仅使用基础表面和排版；曲线、进度、快捷操作及对话按真实需求启用，不固定页面结构。",
+      "navigationSummary": "炭灰导航接续黑色画布，菜单以更亮的内嵌暗面标出当前页面；细边界、小圆角和紧凑行距延续内容区。",
+      "legacyTemplatePath": "templates/design-themes/dark-inset-hairline.md",
+      "cssTemplatePath": "templates/design-themes/dark-inset-hairline/app_theme.css",
+      "formLayoutPath": "templates/design-themes/dark-inset-hairline/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "dark-rail-fine-lines",
       "label": "深色侧栏 · 白底细线",
       "contentTone": "light",
       "navTheme": "dark",
-      "templatePath": "templates/design-themes/dark-rail-fine-lines.md",
-      "styleSummary": "深炭色导航搭配连续白色内容画布，导航选中为中灰底白字，内容不随导航变暗。标题、细分隔线与留白建立层次，卡片边界很轻，常驻内容几乎无投影。近黑文字搭配少量主题深色信息，容器圆角适中，工具按钮与进度使用胶囊或圆头。信息量较高但间距舒展，强调集中在当前对象。避免大灰底、重阴影、多层套卡、全局品牌染色和统一大圆角；图表、辅助栏等仅按已有内容启用。"
+      "templatePath": "templates/design-themes/dark-rail-fine-lines/design.md",
+      "styleSummary": "深色导航，浅色内容界面。深炭色导航搭配连续白色内容画布，导航选中为中灰底白字，内容不随导航变暗。标题、细分隔线与留白建立层次，卡片边界很轻，常驻内容几乎无投影。近黑文字搭配少量主题深色信息，容器圆角适中，工具按钮与进度使用胶囊或圆头。信息量较高但间距舒展，强调集中在当前对象。避免大灰底、重阴影、多层套卡、全局品牌染色和统一大圆角；图表、辅助栏等仅按已有内容启用。",
+      "navigationSummary": "深炭导航与白色工作区形成清楚分区，白字灰底标识当前菜单；细边界和低圆角与正文一致。",
+      "legacyTemplatePath": "templates/design-themes/dark-rail-fine-lines.md",
+      "cssTemplatePath": "templates/design-themes/dark-rail-fine-lines/app_theme.css",
+      "formLayoutPath": "templates/design-themes/dark-rail-fine-lines/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "dark-rail-signal-panels",
       "label": "暗轨信号面板",
       "contentTone": "dark",
       "navTheme": "dark",
-      "templatePath": "templates/design-themes/dark-rail-signal-panels.md",
-      "styleSummary": "近黑画布上排列略亮的炭灰面板，以窄间距、单层细描边和横分隔组织密集信息。常规图表沿用卡面，独立量表可回到近黑底，汇总数值单元稍亮。标题和关键值明亮，说明退后，品牌色仅强调当前位置、少量操作与主趋势。评分、量表等级和运行状态分别编码。避免玻璃、浮雕边、发光、缩小字体及逐行卡片化；图标轨道仅用于已确定的自绘导航，量表和趋势按真实内容启用。"
+      "templatePath": "templates/design-themes/dark-rail-signal-panels/design.md",
+      "styleSummary": "深色导航，深色内容界面。近黑画布上排列略亮的炭灰面板，以窄间距、单层细描边和横分隔组织密集信息。常规图表沿用卡面，独立量表可回到近黑底，汇总数值单元稍亮。标题和关键值明亮，说明退后，品牌色仅强调当前位置、少量操作与主趋势。评分、量表等级和运行状态分别编码。避免玻璃、浮雕边、发光、缩小字体及逐行卡片化；图标轨道仅用于已确定的自绘导航，量表和趋势按真实内容启用。",
+      "navigationSummary": "近黑导航贴合技术面板，菜单以窄间距排列，品牌文字标出当前页面，分组与搜索沿用信号面板的细线。",
+      "legacyTemplatePath": "templates/design-themes/dark-rail-signal-panels.md",
+      "cssTemplatePath": "templates/design-themes/dark-rail-signal-panels/app_theme.css",
+      "formLayoutPath": "templates/design-themes/dark-rail-signal-panels/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "graphite-bevel-grid",
       "label": "石墨细格",
       "contentTone": "dark",
       "navTheme": "dark",
-      "templatePath": "templates/design-themes/graphite-bevel-grid.md",
-      "styleSummary": "石墨灰画布承载略暗内容面，导航、画布与面板只用小幅明度差区分。表头和指标正面稍亮，细边界与局部上缘微光形成轻实体感，轮廓圆角克制。连续行列网格、窄模块间隙和紧凑对齐支持比较；颜色集中在数据柱、分类方标、状态及少量焦点。避免纯黑亮灰强反差、蓝灰玻璃、厚倒角、多层投影、删除列边界或逐行散卡。表单和列表也适用，彩色图形与复合数值仅按实际内容启用。"
+      "templatePath": "templates/design-themes/graphite-bevel-grid/design.md",
+      "styleSummary": "深色导航，深色内容界面。石墨灰画布承载略暗内容面，导航、画布与面板只用小幅明度差区分。表头和指标正面稍亮，细边界与局部上缘微光形成轻实体感，轮廓圆角克制。连续行列网格、窄模块间隙和紧凑对齐支持比较；颜色集中在数据柱、分类方标、状态及少量焦点。避免纯黑亮灰强反差、蓝灰玻璃、厚倒角、多层投影、删除列边界或逐行散卡。表单和列表也适用，彩色图形与复合数值仅按实际内容启用。",
+      "navigationSummary": "石墨导航以细分隔和低圆角组织菜单，浅字与微亮选中底延续表格网格的密度。",
+      "legacyTemplatePath": "templates/design-themes/graphite-bevel-grid.md",
+      "cssTemplatePath": "templates/design-themes/graphite-bevel-grid/app_theme.css",
+      "formLayoutPath": "templates/design-themes/graphite-bevel-grid/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "hairline-shared-bands",
       "label": "细框共容器",
       "contentTone": "dark",
       "navTheme": "dark",
-      "templatePath": "templates/design-themes/hairline-shared-bands.md",
-      "styleSummary": "近黑画布与略亮暗面板以单层细线、小圆角区分，表面平整，普通面板无强阴影。同组信息尽量共享外框，靠留白、对齐和局部短竖线分隔；短标签、醒目数值、灰色说明形成阅读层次。表格与记录保持同底，颜色仅用于真实分类、变化量和少量品牌焦点。避免大圆角气泡、玻璃、双倒角、逐项套框、彩色行卡及过密网格。共享指标带与等级刻度按内容启用，不固定数量，也不把正负数自动映射为成功或错误。"
+      "templatePath": "templates/design-themes/hairline-shared-bands/design.md",
+      "styleSummary": "深色导航，深色内容界面。近黑画布与略亮暗面板以单层细线、小圆角区分，表面平整，普通面板无强阴影。同组信息尽量共享外框，靠留白、对齐和局部短竖线分隔；短标签、醒目数值、灰色说明形成阅读层次。表格与记录保持同底，颜色仅用于真实分类、变化量和少量品牌焦点。避免大圆角气泡、玻璃、双倒角、逐项套框、彩色行卡及过密网格。共享指标带与等级刻度按内容启用，不固定数量，也不把正负数自动映射为成功或错误。",
+      "navigationSummary": "暗色导航共用一层细边界，菜单使用直角与紧凑行距，选中项靠明亮文字和弱填色建立层级。",
+      "legacyTemplatePath": "templates/design-themes/hairline-shared-bands.md",
+      "cssTemplatePath": "templates/design-themes/hairline-shared-bands/app_theme.css",
+      "formLayoutPath": "templates/design-themes/hairline-shared-bands/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "hairline-soft-blocks",
       "label": "细线白面 · 浅灰拼块",
       "contentTone": "light",
       "navTheme": "light",
-      "templatePath": "templates/design-themes/hairline-soft-blocks.md",
-      "styleSummary": "导航、页头与正文同为白色，以细线和留白分区。浅灰平面摘要块、细描边白面板与开放表格并存，按内容分配边界强度。无衬线文字偏轻，关键数字清晰但不厚重；主题色只落在小图标、细折线和刻度等焦点。表格采用浅灰表头、横线和舒展行距，圆形标识按需使用。避免大面积深底或暖灰、所有模块统一套卡、全页等宽粗字及整块品牌选中底；图表与指标按已有内容启用。"
+      "templatePath": "templates/design-themes/hairline-soft-blocks/design.md",
+      "styleSummary": "浅色导航，浅色内容界面。导航、页头与正文同为白色，以细线和留白分区。浅灰平面摘要块、细描边白面板与开放表格并存，按内容分配边界强度。无衬线文字偏轻，关键数字清晰但不厚重；主题色只落在小图标、细折线和刻度等焦点。表格采用浅灰表头、横线和舒展行距，圆形标识按需使用。避免大面积深底或暖灰、所有模块统一套卡、全页等宽粗字及整块品牌选中底；图表与指标按已有内容启用。",
+      "navigationSummary": "白色导航接续白色正文，浅灰菜单底和细边界保持轻盈，搜索与菜单弹层沿用同一白面。",
+      "legacyTemplatePath": "templates/design-themes/hairline-soft-blocks.md",
+      "cssTemplatePath": "templates/design-themes/hairline-soft-blocks/app_theme.css",
+      "formLayoutPath": "templates/design-themes/hairline-soft-blocks/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "ink-glow-soft-panels",
       "label": "墨底微光 · 柔圆面板",
       "contentTone": "light",
       "navTheme": "light",
-      "templatePath": "templates/design-themes/ink-glow-soft-panels.md",
-      "styleSummary": "微染主题色的浅灰画布托起近白柔圆面板，主体浅色、舒展，以色差、细边界和轻字重分层。少量强调对象使用主题近黑面，品牌微光聚集下缘，内部薄透面板露出底光。大面板、矩形操作、胶囊搜索及方形数据单元各有形状尺度。避免全页深底、均匀大渐变、霓虹描边、正文玻璃化及所有元素胶囊化。普通表单和列表可只采用浅色层次与深色主操作；透光强调区、热力和纹理图形按真实内容启用。"
+      "templatePath": "templates/design-themes/ink-glow-soft-panels/design.md",
+      "styleSummary": "浅色导航，浅色内容界面。微染主题色的浅灰画布托起近白柔圆面板，主体浅色、舒展，以色差、细边界和轻字重分层。少量强调对象使用主题近黑面，品牌微光聚集下缘，内部薄透面板露出底光。大面板、矩形操作、胶囊搜索及方形数据单元各有形状尺度。避免全页深底、均匀大渐变、霓虹描边、正文玻璃化及所有元素胶囊化。普通表单和列表可只采用浅色层次与深色主操作；透光强调区、热力和纹理图形按真实内容启用。",
+      "navigationSummary": "浅色导航以柔圆菜单和轻染色搜索区延续内容面板，当前入口采用深色底与白字形成局部焦点。",
+      "legacyTemplatePath": "templates/design-themes/ink-glow-soft-panels.md",
+      "cssTemplatePath": "templates/design-themes/ink-glow-soft-panels/app_theme.css",
+      "formLayoutPath": "templates/design-themes/ink-glow-soft-panels/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "inset-frame-pixel-rhythm",
       "label": "微染灰嵌框 · 像素节奏",
       "contentTone": "light",
       "navTheme": "light",
-      "templatePath": "templates/design-themes/inset-frame-pixel-rhythm.md",
-      "styleSummary": "白色画布承载紧凑区块，微染灰导航与底框提供边界，白色内面板如薄片嵌入浅灰底托。标题带、附属信息或外缘露出浅灰，以细描边、浅双轮廓和贴边弱阴影建立层次。正文无衬线，数字及少量英文标题、表头呈等宽节奏；导航选中为白面，主操作使用主题色。避免同色大白卡、灰色铺满正文、重投影、全页等宽和大面积彩色选中块。方格柱形、细柱线与点状辅助线仅在有真实图表时启用。"
+      "templatePath": "templates/design-themes/inset-frame-pixel-rhythm/design.md",
+      "styleSummary": "浅色导航，浅色内容界面。白色画布承载紧凑区块，微染灰导航与底框提供边界，白色内面板如薄片嵌入浅灰底托。标题带、附属信息或外缘露出浅灰，以细描边、浅双轮廓和贴边弱阴影建立层次。正文无衬线，数字及少量英文标题、表头呈等宽节奏；导航选中为白面，主操作使用主题色。避免同色大白卡、灰色铺满正文、重投影、全页等宽和大面积彩色选中块。方格柱形、细柱线与点状辅助线仅在有真实图表时启用。",
+      "navigationSummary": "微染灰导航承托白色选中菜单，低圆角、细边界和紧凑间距与嵌框工作区保持相同节奏。",
+      "legacyTemplatePath": "templates/design-themes/inset-frame-pixel-rhythm.md",
+      "cssTemplatePath": "templates/design-themes/inset-frame-pixel-rhythm/app_theme.css",
+      "formLayoutPath": "templates/design-themes/inset-frame-pixel-rhythm/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "outlined-texture-duotone",
       "label": "暗轮廓与纹理强调",
       "contentTone": "dark",
       "navTheme": "dark",
-      "templatePath": "templates/design-themes/outlined-texture-duotone.md",
-      "styleSummary": "同色深炭画布与内容面，通过暗外框和微亮内沿形成双层轮廓，呈沉稳内嵌感。卡片底部略亮的通栏灰带承接已有元信息与动作，圆角适中、文字舒展。少量实色操作和数据焦点同源于品牌色，但使用独立角色；比例段和关注柱可用局部细斜纹。避免亮白描边、发光、强外投影、全屏纹理或给每张卡补空底栏，也不把数据色当交互状态。基础风格适用于表单与列表，特殊图形和说明块按内容启用。"
+      "templatePath": "templates/design-themes/outlined-texture-duotone/design.md",
+      "styleSummary": "深色导航，深色内容界面。同色深炭画布与内容面，通过暗外框和微亮内沿形成双层轮廓，呈沉稳内嵌感。卡片底部略亮的通栏灰带承接已有元信息与动作，圆角适中、文字舒展。少量实色操作和数据焦点同源于品牌色，但使用独立角色；比例段和关注柱可用局部细斜纹。避免亮白描边、发光、强外投影、全屏纹理或给每张卡补空底栏，也不把数据色当交互状态。基础风格适用于表单与列表，特殊图形和说明块按内容启用。",
+      "navigationSummary": "深炭导航延续暗轮廓内容面，以微亮边界、圆角菜单和明亮选中文字建立清楚层次。",
+      "legacyTemplatePath": "templates/design-themes/outlined-texture-duotone.md",
+      "cssTemplatePath": "templates/design-themes/outlined-texture-duotone/app_theme.css",
+      "formLayoutPath": "templates/design-themes/outlined-texture-duotone/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "soft-inset-surfaces",
       "label": "柔灰嵌白",
       "contentTone": "light",
       "navTheme": "light",
-      "templatePath": "templates/design-themes/soft-inset-surfaces.md",
-      "styleSummary": "冷浅灰外衬、独立浅灰导航、近白画布与柔圆白面板形成细微层差，边界极淡，静置面板仅有轻微底影。中等信息密度，深灰文字突出标题与数值，线图标克制，彩色集中于小圆标、短标签和数据图形。大容器柔圆，普通按钮与输入为较小圆角矩形，表格保持连续行；导航以中性浅底标识选中。避免所有底面同白、深投影、高饱和导航、全面胶囊化及满屏彩色图标；指标和图表仅按真实内容启用。"
+      "templatePath": "templates/design-themes/soft-inset-surfaces/design.md",
+      "styleSummary": "浅色导航，浅色内容界面。冷浅灰外衬、独立浅灰导航、近白画布与柔圆白面板形成细微层差，边界极淡，静置面板仅有轻微底影。中等信息密度，深灰文字突出标题与数值，线图标克制，彩色集中于小圆标、短标签和数据图形。大容器柔圆，普通按钮与输入为较小圆角矩形，表格保持连续行；导航以中性浅底标识选中。避免所有底面同白、深投影、高饱和导航、全面胶囊化及满屏彩色图标；指标和图表仅按真实内容启用。",
+      "navigationSummary": "冷浅灰导航与白色内容区保持细微层差，菜单圆角柔和，选中与搜索使用中性浅底。",
+      "legacyTemplatePath": "templates/design-themes/soft-inset-surfaces.md",
+      "cssTemplatePath": "templates/design-themes/soft-inset-surfaces/app_theme.css",
+      "formLayoutPath": "templates/design-themes/soft-inset-surfaces/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "soft-outline-rhythm",
       "label": "柔边节奏",
       "contentTone": "light",
       "navTheme": "light",
-      "templatePath": "templates/design-themes/soft-outline-rhythm.md",
-      "styleSummary": "近白画布与白面板色差很小，以单层细描边和外部留白分区，普通面板默认无阴影。独立组之间留缝，组内按真实内容使用弱分隔或浅底辅助带，形成中等密度的舒展节奏。大容器柔圆，输入与菜单小圆角，按钮为胶囊，小标记保留小圆角。少量操作与数据承担色彩焦点，已有柱体、条形或环形可用同色轻渐变。避免重阴影、浓背景、层层套卡及统一大圆角；无图表的表单和列表同样成立。"
+      "templatePath": "templates/design-themes/soft-outline-rhythm/design.md",
+      "styleSummary": "浅色导航，浅色内容界面。近白画布与白面板色差很小，以单层细描边和外部留白分区，普通面板默认无阴影。独立组之间留缝，组内按真实内容使用弱分隔或浅底辅助带，形成中等密度的舒展节奏。大容器柔圆，输入与菜单小圆角，按钮为胶囊，小标记保留小圆角。少量操作与数据承担色彩焦点，已有柱体、条形或环形可用同色轻渐变。避免重阴影、浓背景、层层套卡及统一大圆角；无图表的表单和列表同样成立。",
+      "navigationSummary": "近白导航延续柔边内容区，菜单使用小圆角与舒展间距，浅灰选中底配清晰深色文字。",
+      "legacyTemplatePath": "templates/design-themes/soft-outline-rhythm.md",
+      "cssTemplatePath": "templates/design-themes/soft-outline-rhythm/app_theme.css",
+      "formLayoutPath": "templates/design-themes/soft-outline-rhythm/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "soft-rail-bold-band",
       "label": "浅灰导航 · 深色焦点横幅",
       "contentTone": "light",
       "navTheme": "light",
-      "templatePath": "templates/design-themes/soft-rail-bold-band.md",
-      "styleSummary": "浅灰导航包围明亮白色工作区，当前菜单为白色小面板。内容以宽松内距、细灰边框和适度圆角分组，普通面板平整；大数字保持轻字重，辅助文字带少量主题色。核心摘要存在时，以同一主色的深色信息面形成焦点，明亮派生色承担关键操作。面板较圆，按钮和输入为较小圆角矩形。避免深导航、大灰底、重阴影、全面胶囊化、超粗数字及全页纹理；焦点横幅、图形和实体卡片仅按真实内容启用。"
+      "templatePath": "templates/design-themes/soft-rail-bold-band/design.md",
+      "styleSummary": "浅色导航，浅色内容界面。浅灰导航包围明亮白色工作区，当前菜单为白色小面板。内容以宽松内距、细灰边框和适度圆角分组，普通面板平整；大数字保持轻字重，辅助文字带少量主题色。核心摘要存在时，以同一主色的深色信息面形成焦点，明亮派生色承担关键操作。面板较圆，按钮和输入为较小圆角矩形。避免深导航、大灰底、重阴影、全面胶囊化、超粗数字及全页纹理；焦点横幅、图形和实体卡片仅按真实内容启用。",
+      "navigationSummary": "浅灰导航托起白色选中菜单，搜索和分组使用细边界，菜单形状与内容按钮、输入保持一致。",
+      "legacyTemplatePath": "templates/design-themes/soft-rail-bold-band.md",
+      "cssTemplatePath": "templates/design-themes/soft-rail-bold-band/app_theme.css",
+      "formLayoutPath": "templates/design-themes/soft-rail-bold-band/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "soft-spectral-panels",
       "label": "柔光深面",
       "contentTone": "dark",
       "navTheme": "dark",
-      "templatePath": "templates/design-themes/soft-spectral-panels.md",
-      "styleSummary": "近黑画布与导航连成壳层，略亮的低饱和主题暗面托起大圆角面板，弱轮廓围合，内部留白稳定。灰白文字建立主次，输入与操作小圆角，品牌实心控件采用亮底深字。真实读数处可用细定位线、浅色节点和小光晕形成局部焦点，酸黄与暗红只作独立数据系列色。避免满屏品牌色、抹平明暗层次、逐行散卡、大范围霓虹及多处持续发光。普通表单与列表也适用，曲线、矩阵和媒体说明按内容启用。"
+      "templatePath": "templates/design-themes/soft-spectral-panels/design.md",
+      "styleSummary": "深色导航，深色内容界面。近黑画布与导航连成壳层，略亮的低饱和主题暗面托起大圆角面板，弱轮廓围合，内部留白稳定。灰白文字建立主次，输入与操作小圆角，品牌实心控件采用亮底深字。真实读数处可用细定位线、浅色节点和小光晕形成局部焦点，酸黄与暗红只作独立数据系列色。避免满屏品牌色、抹平明暗层次、逐行散卡、大范围霓虹及多处持续发光。普通表单与列表也适用，曲线、矩阵和媒体说明按内容启用。",
+      "navigationSummary": "近黑导航与画布连为一体，当前菜单用品牌亮底和深字形成局部光点，弹层保持独立暗面。",
+      "legacyTemplatePath": "templates/design-themes/soft-spectral-panels.md",
+      "cssTemplatePath": "templates/design-themes/soft-spectral-panels/app_theme.css",
+      "formLayoutPath": "templates/design-themes/soft-spectral-panels/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "warm-canvas-contrast-panels",
       "label": "浅色画布 · 明暗对比面板",
       "contentTone": "light",
       "navTheme": "light",
-      "templatePath": "templates/design-themes/warm-canvas-contrast-panels.md",
-      "styleSummary": "主题色微染浅灰画布托起大圆角白面板，以填色和宽松留白分层，几乎无投影。顶部导航与画布融为一体，页首由文字主导；普通指标采用浅色表面与局部强调，需要明确的明暗对比时才选少量深色面板。胶囊主按钮按整页搭配选择操作色，次按钮用轮廓，不要求按钮和指标都用品牌色或近黑色。真实数据以细圆头横条与小图例表达。避免同色底白卡、厚边重影、全部卡片变暗或把所有标题放大；不新增侧栏、指标、待办或固定页面矩阵。"
+      "templatePath": "templates/design-themes/warm-canvas-contrast-panels/design.md",
+      "styleSummary": "浅色导航，浅色内容界面。主题色微染浅灰画布托起大圆角白面板，以填色和宽松留白分层，几乎无投影。顶部导航与画布融为一体，页首由文字主导；普通指标采用浅色表面与局部强调，需要明确的明暗对比时才选少量深色面板。胶囊主按钮按整页搭配选择操作色，次按钮用轮廓，不要求按钮和指标都用品牌色或近黑色。真实数据以细圆头横条与小图例表达。避免同色底白卡、厚边重影、全部卡片变暗或把所有标题放大；不新增侧栏、指标、待办或固定页面矩阵。",
+      "navigationSummary": "微染浅灰导航接续画布，宽松菜单和柔圆轮廓与大面板呼应，当前入口使用深色文字与细指示线。",
+      "legacyTemplatePath": "templates/design-themes/warm-canvas-contrast-panels.md",
+      "cssTemplatePath": "templates/design-themes/warm-canvas-contrast-panels/app_theme.css",
+      "formLayoutPath": "templates/design-themes/warm-canvas-contrast-panels/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "warm-rail-muted-panels",
       "label": "主题色浅灰导航 · 低饱和轻面板",
       "contentTone": "light",
       "navTheme": "light",
-      "templatePath": "templates/design-themes/warm-rail-muted-panels.md",
-      "styleSummary": "主题色浅灰导航衬托近白工作区，导航选中为近白底与主题深色文字。白面板轻圆角、浅边线，底影几乎不可察；工具为小圆角描边矩形，近黑文字和细线对齐建立秩序。品牌强调很少，激活项可用细黑顶线或反白小图标。已有统计用较大数值、低饱和趋势、虚线对照和局部分类分段。避免深色侧栏、饱和整行选中、重阴影、玻璃及所有标题按钮实色化；普通表单列表即可体现风格，无需补趋势或统计模块。"
+      "templatePath": "templates/design-themes/warm-rail-muted-panels/design.md",
+      "styleSummary": "浅色导航，浅色内容界面。主题色浅灰导航衬托近白工作区，导航选中为近白底与主题深色文字。白面板轻圆角、浅边线，底影几乎不可察；工具为小圆角描边矩形，近黑文字和细线对齐建立秩序。品牌强调很少，激活项可用细黑顶线或反白小图标。已有统计用较大数值、低饱和趋势、虚线对照和局部分类分段。避免深色侧栏、饱和整行选中、重阴影、玻璃及所有标题按钮实色化；普通表单列表即可体现风格，无需补趋势或统计模块。",
+      "navigationSummary": "低饱和浅灰导航承托白色选中项，短间距、小圆角和细线延续工作区的轻量秩序。",
+      "legacyTemplatePath": "templates/design-themes/warm-rail-muted-panels.md",
+      "cssTemplatePath": "templates/design-themes/warm-rail-muted-panels/app_theme.css",
+      "formLayoutPath": "templates/design-themes/warm-rail-muted-panels/form-layout.json",
+      "mode": "template"
     },
     {
       "themeId": "app-wire",
@@ -129,11 +204,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "浅灰绿导航延续线框画布；方正菜单、标尺般细线与紧凑间距组织入口，深墨绿底白字标出当前页面。",
       "templatePath": "templates/design-themes/app-wire/design.md",
       "cssTemplatePath": "templates/design-themes/app-wire/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-wire/form-layout.json",
       "previewPrimaryColor": "#242826",
-      "styleSummary": "横向工具带与精确双列工作区；细线框、浅网格、平面无阴影。适合研发、资产与审计。"
+      "styleSummary": "浅色导航，浅色内容界面。横向工具带与精确双列工作区；细线框、浅网格、平面无阴影。适合研发、资产与审计。"
     },
     {
       "themeId": "app-paper",
@@ -142,11 +218,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "奶油色导航如纸页目录，暖棕文字、不对称圆角题签和舒展间距呼应手账表单，当前入口采用较深的暖纸底。",
       "templatePath": "templates/design-themes/app-paper/design.md",
       "cssTemplatePath": "templates/design-themes/app-paper/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-paper/form-layout.json",
       "previewPrimaryColor": "#745338",
-      "styleSummary": "窄幅纵向阅读与按日期组织的清单；暖纸面、虚线章节、柔和纸张阴影。适合服务登记、档案与内容策划。"
+      "styleSummary": "浅色导航，浅色内容界面。窄幅纵向阅读与按日期组织的清单；暖纸面、虚线章节、柔和纸张阴影。适合服务登记、档案与内容策划。"
     },
     {
       "themeId": "app-sage",
@@ -155,11 +232,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "柔绿导航与植物表面连贯，圆润菜单与宽松行距延续表单控件，选中底如低矮浮雕，深绿文字保持清晰。",
       "templatePath": "templates/design-themes/app-sage/design.md",
       "cssTemplatePath": "templates/design-themes/app-sage/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-sage/form-layout.json",
       "previewPrimaryColor": "#345b49",
-      "styleSummary": "宽松双列、纵向状态清单与柔和分区；柔绿表面、轻内凹、圆润控件。适合健康服务、员工关怀与资源协作。"
+      "styleSummary": "浅色导航，浅色内容界面。宽松双列、纵向状态清单与柔和分区；柔绿表面、轻内凹、圆润控件。适合健康服务、员工关怀与资源协作。"
     },
     {
       "themeId": "app-pop",
@@ -168,11 +246,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "明黄导航使用方角粗墨线菜单，选中项黑底黄字并带粉色硬偏移阴影；顶栏为较高的印刷色带，宽菜单留出完整标题，与内容区粗线和硬阴影呼应。",
       "templatePath": "templates/design-themes/app-pop/design.md",
       "cssTemplatePath": "templates/design-themes/app-pop/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-pop/form-layout.json",
       "previewPrimaryColor": "#211c21",
-      "styleSummary": "不对称二比一工作区与粗线信息带；方角、粗墨线、硬偏移阴影。适合活动执行、创意制作与品牌运营。"
+      "styleSummary": "浅色导航，浅色内容界面。不对称二比一工作区与粗线信息带；方角、粗墨线、硬偏移阴影。适合活动执行、创意制作与品牌运营。"
     },
     {
       "themeId": "app-neon",
@@ -181,11 +260,12 @@
       "collection": "application-styles",
       "contentTone": "dark",
       "navTheme": "dark",
+      "navigationSummary": "深海蓝导航配青色文字，当前菜单以浅青底深字形成局部微光；搜索和弹层延续技术工作区的蓝色层次。",
       "templatePath": "templates/design-themes/app-neon/design.md",
       "cssTemplatePath": "templates/design-themes/app-neon/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-neon/form-layout.json",
       "previewPrimaryColor": "#b4f5f1",
-      "styleSummary": "横向监控总览与双列任务区；深海蓝层次、局部青色微光。适合明确要求暗色的技术值守。"
+      "styleSummary": "深色导航，深色内容界面。横向监控总览与双列任务区；深海蓝层次、局部青色微光。适合明确要求暗色的技术值守。"
     },
     {
       "themeId": "app-line",
@@ -194,11 +274,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "暖白导航沿用纯文字和下划线节奏，菜单保持直角与宽行距，浅底选中项和细指示线延续单列阅读。",
       "templatePath": "templates/design-themes/app-line/design.md",
       "cssTemplatePath": "templates/design-themes/app-line/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-line/form-layout.json",
       "previewPrimaryColor": "#242323",
-      "styleSummary": "窄幅单列、连续正文与留白章节；无浮起卡片、平面纸白、强调下划线。适合申请、访谈与简洁审批。"
+      "styleSummary": "浅色导航，浅色内容界面。窄幅单列、连续正文与留白章节；无浮起卡片、平面纸白、强调下划线。适合申请、访谈与简洁审批。"
     },
     {
       "themeId": "app-glass",
@@ -207,11 +288,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "雾紫导航以柔圆菜单和漫射弹层呼应玻璃表面，较深紫灰底标出当前项，搜索区域保持同色层次。",
       "templatePath": "templates/design-themes/app-glass/design.md",
       "cssTemplatePath": "templates/design-themes/app-glass/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-glass/form-layout.json",
       "previewPrimaryColor": "#45345f",
-      "styleSummary": "流动双列、层叠摘要与留白工作区；雾紫衬底、柔边和低强度漫射阴影。适合服务门户与体验反馈。"
+      "styleSummary": "浅色导航，浅色内容界面。流动双列、层叠摘要与留白工作区；雾紫衬底、柔边和低强度漫射阴影。适合服务门户与体验反馈。"
     },
     {
       "themeId": "app-ticket",
@@ -220,11 +302,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "米黄纸色导航使用棕墨文字和方角双线菜单框，选中项浅纸底配棕色硬偏移阴影；菜单边框与单据、详情字段的纸张层次呼应。",
       "templatePath": "templates/design-themes/app-ticket/design.md",
       "cssTemplatePath": "templates/design-themes/app-ticket/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-ticket/form-layout.json",
       "previewPrimaryColor": "#733c26",
-      "styleSummary": "窄单据纵向排布与对齐的键值清单；暖纸、双分割线、印章式操作。适合订单、交付与报销。"
+      "styleSummary": "浅色导航，浅色内容界面。窄单据纵向排布与对齐的键值清单；暖纸、双分割线、印章式操作。适合订单、交付与报销。"
     },
     {
       "themeId": "app-editorial",
@@ -233,11 +316,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "暖纸目录用酒红文字、直角菜单与长细线建立编辑节奏；当前入口采用酒红底纸白字，与正文标题呼应。",
       "templatePath": "templates/design-themes/app-editorial/design.md",
       "cssTemplatePath": "templates/design-themes/app-editorial/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-editorial/form-layout.json",
       "previewPrimaryColor": "#692e3e",
-      "styleSummary": "非对称编辑栏与跨栏内容摘要；酒红细线、纸白表面、大标题与克制留白。适合知识、内容与文化业务。"
+      "styleSummary": "浅色导航，浅色内容界面。非对称编辑栏与跨栏内容摘要；酒红细线、纸白表面、大标题与克制留白。适合知识、内容与文化业务。"
     },
     {
       "themeId": "app-terminal",
@@ -246,11 +330,12 @@
       "collection": "application-styles",
       "contentTone": "dark",
       "navTheme": "dark",
+      "navigationSummary": "深绿导航使用紧凑方角和虚线菜单，选中项保持暗底亮字，左右内阴影形成终端括号；L 形框架分清顶栏与侧栏，等宽日志延续相同节奏。",
       "templatePath": "templates/design-themes/app-terminal/design.md",
       "cssTemplatePath": "templates/design-themes/app-terminal/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-terminal/form-layout.json",
       "previewPrimaryColor": "#9fe5ad",
-      "styleSummary": "紧凑双列与可扫描的日志清单；像素直角、点线边界、等宽排版。适合明确要求终端风格的技术工具。"
+      "styleSummary": "深色导航，深色内容界面。紧凑双列与可扫描的日志清单；像素直角、点线边界、等宽排版。适合明确要求终端风格的技术工具。"
     },
     {
       "themeId": "app-platinum",
@@ -259,11 +344,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "铂灰导航配低圆角菜单与均衡行距，青灰细线连接合同工作区，当前入口以深灰底浅字形成稳重焦点。",
       "templatePath": "templates/design-themes/app-platinum/design.md",
       "cssTemplatePath": "templates/design-themes/app-platinum/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-platinum/form-layout.json",
       "previewPrimaryColor": "#35434b",
-      "styleSummary": "稳定双列与合同摘要侧栏；铂灰细线、低圆角、均衡留白。适合合同、采购与商务审批。"
+      "styleSummary": "浅色导航，浅色内容界面。稳定双列与合同摘要侧栏；铂灰细线、低圆角、均衡留白。适合合同、采购与商务审批。"
     },
     {
       "themeId": "app-executive",
@@ -272,11 +358,12 @@
       "collection": "application-styles",
       "contentTone": "dark",
       "navTheme": "dark",
+      "navigationSummary": "墨绿黑导航以香槟金文字和长分隔线组织入口，低圆角菜单延续行政表单，当前项使用金底深字。",
       "templatePath": "templates/design-themes/app-executive/design.md",
       "cssTemplatePath": "templates/design-themes/app-executive/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-executive/form-layout.json",
       "previewPrimaryColor": "#d9c49a",
-      "styleSummary": "四分之一介绍栏与四分之三主工作区；墨绿黑表面、金色细节与长横线。适合明确要求暗色的战略与高管事项。"
+      "styleSummary": "深色导航，深色内容界面。四分之一介绍栏与四分之三主工作区；墨绿黑表面、金色细节与长横线。适合明确要求暗色的战略与高管事项。"
     },
     {
       "themeId": "app-finance",
@@ -285,11 +372,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "淡蓝导航如图纸索引，紧凑低圆角菜单与细线网格呼应金额表单，当前入口以蓝底白字突出。",
       "templatePath": "templates/design-themes/app-finance/design.md",
       "cssTemplatePath": "templates/design-themes/app-finance/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-finance/form-layout.json",
       "previewPrimaryColor": "#274e78",
-      "styleSummary": "密集双列、水平标签与对齐金额；淡蓝图纸、清晰细边界、低圆角。适合预算、风险与资金计划。"
+      "styleSummary": "浅色导航，浅色内容界面。密集双列、水平标签与对齐金额；淡蓝图纸、清晰细边界、低圆角。适合预算、风险与资金计划。"
     },
     {
       "themeId": "app-nordic",
@@ -298,11 +386,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "柔绿导航使用宽松胶囊菜单，透明边框预留位置，悬停浅绿描边，选中项深绿底白字配轻阴影；圆润品牌区与单列服务表单保持舒展节奏。",
       "templatePath": "templates/design-themes/app-nordic/design.md",
       "cssTemplatePath": "templates/design-themes/app-nordic/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-nordic/form-layout.json",
       "previewPrimaryColor": "#526361",
-      "styleSummary": "单列阅读与低密度任务清单；云白表面、柔圆角与大段间距。适合员工服务与预约申请。"
+      "styleSummary": "浅色导航，浅色内容界面。单列阅读与低密度任务清单；云白表面、柔圆角与大段间距。适合员工服务与预约申请。"
     },
     {
       "themeId": "app-teal",
@@ -311,11 +400,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "浅青绿导航与运营状态带相连，适度圆角、稳定行距和清晰分组组织任务入口，选中项为深青底浅字。",
       "templatePath": "templates/design-themes/app-teal/design.md",
       "cssTemplatePath": "templates/design-themes/app-teal/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-teal/form-layout.json",
       "previewPrimaryColor": "#24665f",
-      "styleSummary": "二比一主次区、任务流与状态摘要条；青绿弱填充、清晰分组、适度圆角。适合运营排班、供应与项目协同。"
+      "styleSummary": "浅色导航，浅色内容界面。二比一主次区、任务流与状态摘要条；青绿弱填充、清晰分组、适度圆角。适合运营排班、供应与项目协同。"
     },
     {
       "themeId": "app-amber",
@@ -324,11 +414,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "淡琥珀导航采用短行距、低圆角和细线分组，深棕选中项呼应工单操作，搜索区延续现场清单的紧凑密度。",
       "templatePath": "templates/design-themes/app-amber/design.md",
       "cssTemplatePath": "templates/design-themes/app-amber/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-amber/form-layout.json",
       "previewPrimaryColor": "#805c26",
-      "styleSummary": "三列短字段、项目名跨列、子表整行；低圆角、琥珀细边、紧凑清单。适合设备工单与现场服务。"
+      "styleSummary": "浅色导航，浅色内容界面。三列短字段、项目名跨列、子表整行；低圆角、琥珀细边、紧凑清单。适合设备工单与现场服务。"
     },
     {
       "themeId": "app-graphite",
@@ -337,11 +428,12 @@
       "collection": "application-styles",
       "contentTone": "dark",
       "navTheme": "dark",
+      "navigationSummary": "蓝石墨导航以低圆角、密集行距和细分隔接续数据表，较亮石墨选中底与浅字保留连续工作区层次。",
       "templatePath": "templates/design-themes/app-graphite/design.md",
       "cssTemplatePath": "templates/design-themes/app-graphite/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-graphite/form-layout.json",
       "previewPrimaryColor": "#c7d4dc",
-      "styleSummary": "密集双列与连续数据表、横向标签；石墨层次、细行线、低圆角。适合明确要求暗色的数据运营。"
+      "styleSummary": "深色导航，深色内容界面。密集双列与连续数据表、横向标签；石墨层次、细行线、低圆角。适合明确要求暗色的数据运营。"
     },
     {
       "themeId": "app-plum",
@@ -350,11 +442,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
+      "navigationSummary": "浅绛紫导航以柔和菜单与舒展分组延续咨询阅读，当前项采用深紫底浅字，搜索和弹层配同色细边界。",
       "templatePath": "templates/design-themes/app-plum/design.md",
       "cssTemplatePath": "templates/design-themes/app-plum/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-plum/form-layout.json",
       "previewPrimaryColor": "#685167",
-      "styleSummary": "接近三比二的咨询内容与上下文分栏；绛紫细线、柔白表面与舒展阅读。适合咨询、客户服务与调研。"
+      "styleSummary": "浅色导航，浅色内容界面。接近三比二的咨询内容与上下文分栏；绛紫细线、柔白表面与舒展阅读。适合咨询、客户服务与调研。"
     },
     {
       "themeId": "free-creative",

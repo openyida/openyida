@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync, spawnSync } = require('child_process');
 const { renderPrd, normalizePlan } = require('../lib/design-plan/materialize');
+const { collectIssues } = require('../lib/design-plan/validate');
 const source = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/canvas-nav/data.jsx'), 'utf8');
 const runtime = fetch => new Function('fetch', `${source}; return {loadCanvasNavigation, filterCanvasNavigation, buildCanvasNavigationUrl, selectCanvasNavigation};`)(fetch);
 const requirement = (formUuid, operation = 'OPERATE_VIEW', viewUuid) => ({ formUuid, operation, ...(viewUuid ? { viewUuid } : {}) });
@@ -41,15 +42,38 @@ describe('entry planning and platform navigation', () => {
     expect(result.entryRecommendation).toEqual(plan.execution.entryRecommendation);
     expect(result.pages).toHaveLength(1);
   });
-  test('management-only native resources need no display page', () => {
+  test.each(['unified', 'backend-only'])('%s native management resources need no display page', mode => {
     const plan = planFixture();
     plan.pages.customPageDetails = [];
-    plan.execution.entryRecommendation.mode = 'unified';
+    plan.execution.entryRecommendation.mode = mode;
     plan.execution.entryRecommendation.entries.shift();
     const result = handoff(plan);
     expect(result.pages).toEqual([]);
     expect(result.pageNavigation).toEqual([]);
     expect(result.navigationOrder).toEqual(['采购订单', '采购申请']);
+    expect(result.entryRecommendation.mode).toBe(mode);
+    expect(collectIssues(plan).filter(issue => issue.path.startsWith('execution.entryRecommendation'))).toEqual([]);
+  });
+  test.each(['service', 'workspace'])('backend-only rejects a %s entry in both validation stages', role => {
+    const plan = planFixture();
+    const entry = plan.execution.entryRecommendation.entries[role === 'service' ? 0 : 1];
+    entry.role = role;
+    plan.execution.entryRecommendation = { mode: 'backend-only', entries: [entry] };
+    expect(collectIssues(plan)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'execution.entryRecommendation.entries' }),
+    ]));
+    expect(() => handoff(plan)).toThrow(expect.objectContaining({ code: 'DESIGN_PLAN_INVALID_ENTRY_NAVIGATION' }));
+  });
+  test('backend-only also rejects mixed frontend and management entries', () => {
+    const plan = planFixture();
+    plan.execution.entryRecommendation.mode = 'backend-only';
+    expect(() => handoff(plan)).toThrow(expect.objectContaining({ code: 'DESIGN_PLAN_INVALID_ENTRY_NAVIGATION' }));
+  });
+  test('legacy unified frontend entries remain unchanged', () => {
+    const plan = planFixture();
+    plan.execution.entryRecommendation.mode = 'unified';
+    plan.execution.entryRecommendation.entries.pop();
+    expect(handoff(plan).entryRecommendation).toEqual(plan.execution.entryRecommendation);
   });
   test.each(['management', 'workspace'])('%s local menus bind sceneKey, resource and viewKey together', role => {
     const plan = planFixture();
@@ -267,8 +291,13 @@ describe('entry contract survives authoring and rendering', () => {
   let dir;
   beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-entry-test-')); });
   afterEach(() => { fs.rmSync(dir, { recursive: true, force: true }); });
-  test('CLI accepts the entry JSON through patch and rejects invalid defaults without writing', () => {
+  test.each(['service-management', 'backend-only'])('CLI accepts %s through patch and rejects invalid defaults without writing', mode => {
     const plan = planFixture();
+    if (mode === 'backend-only') {
+      plan.pages.customPageDetails = [];
+      plan.execution.entryRecommendation.mode = mode;
+      plan.execution.entryRecommendation.entries.shift();
+    }
     const recommendation = plan.execution.entryRecommendation;
     delete plan.execution.entryRecommendation;
     const file = path.join(dir, 'build-plan.json');
@@ -283,10 +312,35 @@ describe('entry contract survives authoring and rendering', () => {
     expect(execution.navigationOrder).toEqual(['采购订单', '采购申请']);
     const before = fs.readFileSync(file, 'utf8');
     const rejected = spawnSync(process.execPath, [bin, 'design-plan', 'patch', file, '--set',
-      'execution.entryRecommendation.entries[1].defaultMenuKey=missing', '--materialize', '--json'], { encoding: 'utf8' });
+      `execution.entryRecommendation.entries[${mode === 'backend-only' ? 0 : 1}].defaultMenuKey=missing`, '--materialize', '--json'], { encoding: 'utf8' });
     expect(rejected.status).not.toBe(0);
     expect(rejected.stdout + rejected.stderr).toContain('DESIGN_PLAN_INVALID_ENTRY_NAVIGATION');
     expect(fs.readFileSync(file, 'utf8')).toBe(before);
+  });
+  test.each([
+    ['unified', '不分前后台'], ['service-management', '分前后台'],
+    ['frontend-only', '只有访问前台'], ['backend-only', '只有访问后台'],
+  ])('%s renders its own usage explanation in PRD and HTML', (mode, label) => {
+    const plan = planFixture();
+    plan.execution.entryRecommendation.mode = mode;
+    if (mode === 'frontend-only') { plan.execution.entryRecommendation.entries.pop(); }
+    if (mode === 'backend-only' || mode === 'unified') {
+      plan.pages.customPageDetails = [];
+      plan.execution.entryRecommendation.entries.shift();
+      if (mode === 'unified') { plan.execution.entryRecommendation.entries[0].role = 'workspace'; }
+    }
+    const file = path.join(dir, 'build-plan.json');
+    fs.writeFileSync(file, JSON.stringify(plan));
+    materialize(file);
+    const prd = fs.readFileSync(path.join(dir, 'prd.md'), 'utf8');
+    const html = fs.readFileSync(path.join(dir, 'build-plan.html'), 'utf8');
+    expect(prd).toContain(`${label}：`);
+    expect(html).toContain(`${label}：`);
+    if (mode !== 'service-management') {
+      expect(prd).not.toContain('两边共享业务数据');
+      expect(html).not.toContain('两边共享业务数据');
+    }
+    expect(JSON.parse(fs.readFileSync(file)).execution.entryModeSummary).toBeUndefined();
   });
   test('initialization preserves entry suggestions and reports unfinished menus', () => {
     const recommendation = { mode: 'service-management', source: 'user_selected', entries: [{ key: 'front', name: '访客端', role: 'service', sceneKey: 'service', taskRefs: ['apply'] }] };

@@ -25,16 +25,17 @@
 ## 执行顺序
 
 1. 直接复用已确认的 `requirement-brief.json`；若尚未完成 Step 2 的规划准备，先按 [交接契约](../../../yida-requirement-analysis/references/handoff.md#规划阶段补齐) 补齐页面承载、导航与主题，AI 建议保留来源，不重新询问业务或导航；本文件已经包含规划入口，不再额外读取 `step-1-understand.md` 或 `step-2-confirm.md`。
-2. 主题映射未确定时，执行一次 `openyida design-plan catalog --json`，从返回的 `themes` 选择 themeId，并复用 `pagePatterns`。已有合法主题 ID 时直接初始化。初始化计划草稿，CLI 返回编写契约与当前主题的精简上下文：
+2. 用户未给出明确完整视觉风格时，先执行 [Plan 视觉分支](../../../yida-design/sub_skill/yida-design-plan/SKILL.md)：按 Fast / Plan 共用规则生成恰好三套候选，并通过 `ask_human` 获得用户选择。不得因用户未主动要求比较而跳过。获得选择或已有明确完整风格后，再继续主题映射和初始化。
+3. 主题映射未确定时，执行一次 `openyida design-plan catalog --json`，从返回的 `themes` 选择 themeId，并复用 `pagePatterns`。已有合法主题 ID 时直接初始化。初始化计划草稿，CLI 返回编写契约与当前主题的精简上下文：
 
    ```bash
    openyida design-plan init .cache/openyida/<项目名>/requirement-brief.json --theme-id <已选主题> --json
    ```
    `requirement-brief.json` 必须复用 `yida-requirement-analysis` 的输出结构，不要自行发明字段层级；`projectName` 位于 JSON 根级，`businessGoals` 等集合字段保持数组，命令第一次就传入 `visualSelection.themeId`。若 CLI 返回字段路径诊断，按 `expectedPath` 集中修正原文件后最多重试一次，不要通过反复更换项目名规避结构错误。
 
-3. 按 init 返回的 `parallelTasks` 和 `dependsOn` 完成待补内容。CLI 预填业务骨架与已选主题；自定义页仍须补齐焦点、布局、主操作、响应式和验收，写入 `visual.json`。业务页面确定后完成视觉任务，可在同一轮中顺序填写两个文件。纯原生资源且两个片段均已就绪时，直接生成方案。
-4. init 已创建并预填 `business.json` 骨架；读取该文件及 `context` 中的类型示例，按 `authoring.pendingFields` 的文件和字段路径补齐内容，保留 `base` 与已有事实。复核需求覆盖后，将已完成片段设为 `ready=true`。`business.json` 的 facts 填写 overview、dataModels、businessFlows、pages 和可选 execution；`visual.json` 的 facts 填写 visualStyle。同一次补齐所有普通表单的 sampleDataPlan（窄范围不造数时写 skipReason）及所有自定义页面的 permissionSummary，然后直接执行 init 返回的 `materialize.command`，只物化一次。标准首版禁止先试 `--from-preview`、`preview`、`--check` 或无参数 materialize；成功 JSON 已返回 HTML 路径和 revision，不再用 Glob、Read 或帮助命令检查产物。只有存在品牌稿、参考图、页面级特殊风格或用户明确要求精修时，才执行 `optionalTasks.visual-refinement` 后再物化。
-5. 读取精确路径 `workflow/plan/step-4-deliver.md`，按其中契约直接展示并确认当前方案。超大需求需要展示中间进展或用户明确要求边生成边查看时，才使用 [按模块更新方案](../incremental-preview.md)；普通首版不逐模块预览和重复渲染。
+4. 按 init 返回的 `parallelTasks` 和 `dependsOn` 完成待补内容。CLI 预填业务骨架与已选主题；自定义页仍须补齐焦点、布局、主操作、响应式和验收，写入 `visual.json`。业务页面确定后完成视觉任务，可在同一轮中顺序填写两个文件。纯原生资源且两个片段均已就绪时，直接生成方案。
+5. init 已创建并预填 `business.json` 骨架；读取该文件及 `context` 中的类型示例，按 `authoring.pendingFields` 的文件和字段路径补齐内容，保留 `base` 与已有事实。复核需求覆盖后，将已完成片段设为 `ready=true`。`business.json` 的 facts 填写 overview、dataModels、businessFlows、pages 和可选 execution；`visual.json` 的 facts 填写 visualStyle。同一次补齐所有普通表单的 sampleDataPlan（窄范围不造数时写 skipReason）及所有自定义页面的 permissionSummary，然后直接执行 init 返回的 `materialize.command`，只物化一次。标准首版禁止先试 `--from-preview`、`preview`、`--check` 或无参数 materialize；成功 JSON 已返回 HTML 路径和 revision，不再用 Glob、Read 或帮助命令检查产物。只有存在品牌稿、参考图、页面级特殊风格或用户明确要求精修时，才执行 `optionalTasks.visual-refinement` 后再物化。
+6. 读取精确路径 `workflow/plan/step-4-deliver.md`，按其中契约直接展示并确认当前方案。超大需求需要展示中间进展或用户明确要求边生成边查看时，才使用 [按模块更新方案](../incremental-preview.md)；普通首版不逐模块预览和重复渲染。
 
 明确范围的方案以 `explicitScope` 作为完整执行清单。确认后的每个写操作都对应清单中的一个资源或交付项；清单资源全部回读且真实链接完成交付时，本轮达到完成态。
 

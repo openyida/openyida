@@ -178,6 +178,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: 'Zugangsmodus wählen: gemeinsame Geschäftsseiten (unified), getrennte Nutzer- und Bearbeitungsseiten (service-management), nur Nutzerseiten (frontend-only) oder nur Geschäftsbearbeitung (backend-only).',
+    design_plan_backend_only_roles: 'Bei backend-only muss jeder Einstieg die Rolle management verwenden.',
     design_plan_local_menu_binding: 'Das lokale Menü {0} benötigt eine Trägerseite und viewKey: sceneKey des Einstiegs {1} muss dem sceneKey der Seite entsprechen, resource ihrem name; viewKey darf nicht leer sein. Dies gilt für alle Rollen.',
     design_plan_visual_object_required: '{0} muss ein Objekt sein, keine Zeichenfolge oder Liste. Behalten Sie die von init erzeugte Struktur bei und ergänzen Sie die Werte. Beispiel: {1}.',
     help: '\n' +
@@ -1050,6 +1052,7 @@ module.exports = {
     theme_preset_conflict: 'Voreingestellte colour kann nicht mit CSS oder themeColor kombiniert werden. Verwenden Sie --colour custom oder lassen Sie --colour weg.',
     custom_theme_color_required: 'colour=custom benötigt eine Theme-Datei oder gültige themeColor. Verwenden Sie --theme-file oder --theme-color.',
     theme_not_persisted: 'Die App-Theme-Einstellungen konnten nach dem Speichern nicht bestätigt werden. Prüfen Sie themeVerification und wiederholen Sie update-app <appType> --theme-file <css>; erstellen Sie die App nicht erneut.',
+    navigation_not_persisted: "Die Navigation konnte nicht zurückgelesen werden oder weicht von den angeforderten Einstellungen ab. Prüfen Sie Sollwerte, Istwerte und Lesefehler in navigationVerification sowie die aktuellen App-Einstellungen.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -2094,3 +2097,10 @@ module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.c
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: 'Ungültige Genehmigungsaktion für Knoten {0}: {1}',
 });
+
+module.exports.cli_argument = { invalid: 'Ungültiges Argument oder fehlender Wert: {0}. Beachten Sie die Befehlshilfe.' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: --output ist eine CSS-Datei; --design-file liest den fertigen Entwurf. Ohne Entwurf wird CSS zurückgesetzt. Theme-Werte gehören in den Entwurf.',
+  'style_help': 'application-style: --style-id ist für alle Katalog-Themes erforderlich; --output ist ein Ordner für drei Dateien. Vorhandene Dateien führen zu einem Fehler.'
+};

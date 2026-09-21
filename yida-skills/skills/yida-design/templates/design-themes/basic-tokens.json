@@ -11,7 +11,8 @@
       "--pod-nav-item-text-hover-color",
       "--pod-nav-item-text-selected-color",
       "--pod-nav-menu-bg-hover-color",
-      "--pod-nav-menu-bg-selected-color"
+      "--pod-nav-menu-bg-selected-color",
+      "--pod-nav-menu-item-selected-shadow"
     ],
     "colors": [
       "--color-white",

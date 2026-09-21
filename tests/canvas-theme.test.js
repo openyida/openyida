@@ -174,23 +174,43 @@ test('theme parse errors clear stale colors and expose an error state', () => {
 });
 
 
-test('Drawer uses the shell surface independently of cards and refreshes with the theme', () => {
+test('Drawer follows shell colors while page and card surfaces remain independent', () => {
   const fixture = setup();
   fixture.values['--color-white'] = 'rgb(255, 255, 255)';
   fixture.values['--pod-card-bg-color'] = 'rgb(230, 230, 230)';
-  fixture.values['--pod-shell-theme-bg-color'] = 'rgb(240, 245, 250)';
+  fixture.values['--pod-shell-theme-bg-color'] = 'rgb(20, 25, 30)';
+  fixture.values['--pod-page-header-text-color'] = 'rgb(240, 245, 250)';
+  fixture.values['--pod-page-bg-color'] = 'rgb(240, 245, 250)';
+  fixture.values['--color-text1-4'] = 'rgb(27, 27, 27)';
   fixture.context.CanvasThemeProvider({});
-  expect(fixture.state().components.Drawer.colorBgElevated).toBe('rgb(240, 245, 250)');
+  expect(fixture.state().components.Drawer).toMatchObject({
+    colorBgElevated: 'rgb(20, 25, 30)',
+    colorText: 'rgb(240, 245, 250)',
+    colorTextHeading: 'rgb(240, 245, 250)',
+  });
+  expect(fixture.state().token.colorBgLayout).toBe('rgb(240, 245, 250)');
+  expect(fixture.state().token.colorText).toBe('rgb(27, 27, 27)');
   expect(fixture.state().token.colorBgElevated).toBe('rgb(230, 230, 230)');
   expect(fixture.state().token.colorBgContainer).toBe('rgb(230, 230, 230)');
-  fixture.values['--pod-shell-theme-bg-color'] = 'rgb(20, 25, 30)';
+  fixture.values['--pod-shell-theme-bg-color'] = 'rgb(255, 255, 255)';
+  fixture.values['--pod-page-header-text-color'] = 'rgb(27, 27, 27)';
   fixture.listeners['openyida:theme-change']();
   fixture.flush();
-  expect(fixture.state().components.Drawer.colorBgElevated).toBe('rgb(20, 25, 30)');
+  expect(fixture.state().components.Drawer.colorBgElevated).toBe('rgb(255, 255, 255)');
+  expect(fixture.state().components.Drawer.colorTextHeading).toBe('rgb(27, 27, 27)');
+  fixture.values['--pod-page-bg-color'] = 'rgb(20, 25, 30)';
+  fixture.values['--color-text1-4'] = 'rgb(240, 245, 250)';
+  fixture.listeners['openyida:theme-change']();
+  fixture.flush();
+  expect(fixture.state().components.Drawer.colorBgElevated).toBe('rgb(255, 255, 255)');
+  expect(fixture.state().components.Drawer.colorText).toBe('rgb(27, 27, 27)');
+  expect(fixture.state().token.colorText).toBe('rgb(240, 245, 250)');
   delete fixture.values['--pod-shell-theme-bg-color'];
+  delete fixture.values['--pod-page-header-text-color'];
   fixture.notify();
   fixture.flush();
   expect(fixture.state().components.Drawer.colorBgElevated).toBe('rgb(255, 255, 255)');
+  expect(fixture.state().components.Drawer.colorText).toBe('rgb(240, 245, 250)');
   fixture.cleanup();
 });
 

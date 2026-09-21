@@ -178,6 +178,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: 'Chọn cách sử dụng: trang nghiệp vụ dùng chung (unified), tách trang người dùng và xử lý nghiệp vụ (service-management), chỉ trang người dùng (frontend-only), hoặc chỉ trang xử lý nghiệp vụ (backend-only).',
+    design_plan_backend_only_roles: 'Với backend-only, mọi điểm truy cập phải có role là management.',
     design_plan_local_menu_binding: 'Menu nội bộ {0} cần trang chứa và viewKey: sceneKey của lối vào {1} phải khớp sceneKey của trang, resource bằng name của trang và viewKey không được trống. Áp dụng cho mọi vai trò.',
     design_plan_visual_object_required: '{0} phải là đối tượng, không phải chuỗi hoặc mảng. Giữ cấu trúc do init tạo và điền giá trị. Ví dụ: {1}.',
     help: '\n' +
@@ -1050,6 +1052,7 @@ module.exports = {
     theme_preset_conflict: 'Không thể kết hợp colour có sẵn với CSS hoặc themeColor. Dùng --colour custom hoặc bỏ --colour.',
     custom_theme_color_required: 'colour=custom cần tệp giao diện hoặc themeColor hợp lệ. Dùng --theme-file hoặc --theme-color.',
     theme_not_persisted: 'Không thể xác nhận cài đặt giao diện sau khi lưu. Kiểm tra themeVerification và thử lại bằng update-app <appType> --theme-file <css>; không tạo lại ứng dụng.',
+    navigation_not_persisted: "Không thể đọc lại cài đặt điều hướng hoặc kết quả khác với yêu cầu. Xem giá trị mong đợi, giá trị thực tế và lỗi trong navigationVerification, rồi kiểm tra cài đặt hiện tại của ứng dụng.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -2094,3 +2097,10 @@ module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.c
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: 'Cấu hình thao tác phê duyệt không hợp lệ cho nút {0}: {1}',
 });
+
+module.exports.cli_argument = { invalid: 'Tham số không hợp lệ hoặc thiếu giá trị: {0}. Xem hướng dẫn lệnh.' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: --output là tệp CSS; --design-file đọc thiết kế hoàn chỉnh. Bỏ qua thiết kế sẽ đặt lại CSS. Khai báo giá trị giao diện trong thiết kế.',
+  'style_help': 'application-style: bắt buộc --style-id, hỗ trợ mọi giao diện trong danh mục; --output là thư mục chứa ba tệp. Tệp đã tồn tại sẽ gây lỗi.'
+};

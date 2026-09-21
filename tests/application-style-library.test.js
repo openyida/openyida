@@ -25,6 +25,10 @@ const DETAIL_FIELD_PREVIEW_TOKENS = [
   '--pod-field-preview-gap', '--pod-field-preview-line-height',
   '--pod-field-preview-min-height', '--pod-field-preview-padding',
 ];
+const NAVIGATION_COLOR_TOKENS = [
+  '--pod-shell-theme-bg-color', '--pod-nav-item-text-color', '--pod-nav-item-text-hover-color',
+  '--pod-nav-item-text-selected-color', '--pod-nav-menu-bg-hover-color', '--pod-nav-menu-bg-selected-color',
+];
 let directory;
 
 beforeEach(() => { directory = fs.mkdtempSync(path.join(os.tmpdir(), 'oyd-app-style-')); });
@@ -70,6 +74,73 @@ test('theme catalog separates content tone from navigation tone', () => {
   });
   const creative = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, applicationStyles.find(theme => theme.mode === 'creative').templatePath), 'utf8');
   expect(creative).toContain('在 themeProfile 中分别填写 contentTone 与 navTheme');
+});
+
+test('every named theme has its own complete platform navigation design and readable guidance', () => {
+  const platformCss = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, 'references/theme/app-custom-theme-template.css'), 'utf8');
+  const supported = new Set([...platformCss.matchAll(/(--[\w-]+)\s*:/g)].map(match => match[1]));
+  const palettes = new Set();
+  const radii = new Set();
+  const heights = new Set();
+  themeIndex.filter(theme => theme.mode !== 'creative').forEach(theme => {
+    const source = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8');
+    const navigation = parseDesignDocument(source).metadata.tokens['application-global'].appearance.navigation;
+    expect(theme.navigationSummary).toEqual(expect.any(String));
+    expect(source).toContain(theme.navigationSummary);
+    expect(source).toContain('导航与应用框架、表单、自定义页面和详情页共用设计语言');
+    expect(source).not.toContain('原生导航仅配置上述开放颜色');
+    Object.keys(navigation).forEach(token => expect(supported.has(token)).toBe(true));
+    expect(Object.keys(navigation).length).toBeGreaterThanOrEqual(40);
+    NAVIGATION_COLOR_TOKENS.forEach(token => expect(navigation[token]).toEqual(expect.any(String)));
+    palettes.add(NAVIGATION_COLOR_TOKENS.map(token => navigation[token]).join('|'));
+    radii.add(navigation['--pod-nav-menu-item-radius']);
+    heights.add(navigation['--pod-nav-menu-item-height']);
+    // Navigation overlays have their own surface, including dark-nav/light-content themes.
+    expect(navigation['--pod-nav-popup-bg-color']).toBe('var(--pod-shell-theme-bg-color)');
+    expect(navigation['--pod-nav-search-text-color']).toBe('var(--pod-nav-item-text-hover-color)');
+    expect(navigation['--pod-nav-logo-icon']).toBe('var(--pod-nav-item-text-selected-color)');
+  });
+  expect(palettes.size).toBe(33);
+  expect(radii.size).toBeGreaterThanOrEqual(8);
+  expect(heights.size).toBeGreaterThanOrEqual(6);
+});
+
+test('application preset navigation text is readable in ordinary, hover and selected states', () => {
+  const luminance = hex => {
+    const rgb = hex.slice(1).match(/../g).map(channel => parseInt(channel, 16) / 255)
+      .map(channel => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+    return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
+  };
+  const states = [
+    ['--pod-nav-item-text-color', '--pod-shell-theme-bg-color'],
+    ['--pod-nav-item-text-hover-color', '--pod-nav-menu-bg-hover-color'],
+    ['--pod-nav-item-text-selected-color', '--pod-nav-menu-bg-selected-color'],
+  ];
+  styles.forEach(theme => {
+    const navigation = parseDesignDocument(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8'))
+      .metadata.tokens['application-global'].appearance.navigation;
+    states.forEach(([foreground, background]) => {
+      const values = [navigation[foreground], navigation[background]];
+      values.forEach(value => expect(value).toMatch(/^#[\da-f]{6}$/i));
+      const [a, b] = values.map(luminance);
+      expect((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)).toBeGreaterThanOrEqual(4.5);
+    });
+  });
+});
+
+test.each(themeIndex.filter(theme => theme.mode !== 'creative'))('$themeId bundles the same navigation values as its design source', theme => {
+  const metadata = parseDesignDocument(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8')).metadata;
+  const expected = metadata.tokens['application-global'].appearance.navigation;
+  const css = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.cssTemplatePath), 'utf8')
+    .replace(/\{\{PRIMARY_COLOR\}\}/g, '#123456');
+  const blocks = [...css.matchAll(/(^:root|^\.pod-premium\.(?:nav|is)-(?:light|dark))\s*\{([^}]*)\}/gm)];
+  const values = {};
+  const read = body => Object.assign(values, Object.fromEntries([...body.matchAll(/^\s*(--[\w-]+)\s*:\s*([^;]+);/gm)]
+    .map(match => [match[1], match[2].trim()])));
+  blocks.filter(([, selector]) => selector === ':root').forEach(([, , body]) => read(body));
+  blocks.filter(([, selector]) => [`.pod-premium.nav-${theme.navTheme}`, `.pod-premium.is-${theme.navTheme}`].includes(selector))
+    .forEach(([, , body]) => read(body));
+  expect(values).toMatchObject(expected);
 });
 
 test('all nineteen form-layout starters use supported types and direct capability language', () => {
@@ -178,10 +249,19 @@ test('form skills describe component capabilities with direct instructions', () 
   expect(nativeFormStyles).toContain('普通业务分组和章节分隔使用 `Divider`');
 });
 
-test.each(styles.map(style => [style.themeId, style]))('%s pairs ship valid CSS and compile the form layout', (_id, style) => {
-  const css = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, style.cssTemplatePath), 'utf8');
+test.each(themeIndex.filter(theme => theme.mode !== 'creative').map(style => [style.themeId, style]))('%s pairs generate valid CSS and compile the form layout', (_id, style) => {
+  const templateCss = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, style.cssTemplatePath), 'utf8');
+  expect(templateCss).toContain('--color-brand1-6: {{PRIMARY_COLOR}};');
+  expect(templateCss).toContain('--color-brand1-1: <生成实际色值：');
+  const template = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, style.templatePath), 'utf8');
+  const design = resolveThemeColors(template.replace(/\{\{PRIMARY_COLOR\}\}/g, '#357942'));
+  const css = applyDesignTokens(templateCss, design);
   expect(() => validateThemeCssContent(css)).not.toThrow();
-  expect(css.match(/OPENYIDA APPLICATION STYLE RECIPES START/g)).toHaveLength(1);
+  expect(css).not.toMatch(/\{\{|<生成实际色值：/);
+  expect(css).toContain('--color-brand1-6: #357942;');
+  if (style.collection === 'application-styles') {
+    expect(css.match(/OPENYIDA APPLICATION STYLE RECIPES START/g)).toHaveLength(1);
+  }
   const layout = JSON.parse(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, style.formLayoutPath), 'utf8'));
   expect(layout[0].children.every(column => column.length === 0)).toBe(true);
   if (['app-editorial', 'app-executive'].includes(style.themeId)) {
@@ -205,8 +285,10 @@ test.each(styles.map(style => style.themeId))('%s survives Plan materialization 
   expect(metadata.applicationStyle).toEqual({ recipe: 'application-style-v1', mode: 'template' });
   expect(metadata.themeProfile).toMatchObject({
     contentTone: themeIndex.find(theme => theme.themeId === themeId).contentTone,
-    navTheme: 'dark',
+    navTheme: themeIndex.find(theme => theme.themeId === themeId).navTheme,
   });
+  const templateTokens = readDesignTokens(resolveThemeColors(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, themeIndex.find(theme => theme.themeId === themeId).templatePath), 'utf8').replace(/\{\{PRIMARY_COLOR\}\}/g, metadata.themeProfile.themeColor)));
+  expect(readDesignTokens(design)['--pod-shell-theme-bg-color']).toBe(templateTokens['--pod-shell-theme-bg-color']);
   const fastOutput = path.join(directory, 'fast.css');
   await sample.run(['yida-design', 'app-theme', '--design-file', result.outputs.design, '--output', fastOutput]);
   expect(fs.readFileSync(fastOutput, 'utf8')).toBe(fs.readFileSync(result.outputs.theme, 'utf8'));
@@ -224,6 +306,48 @@ test('export writes all three assets and refuses to overwrite authored work', as
   expect(() => exportApplicationStyle('../outside', directory)).toThrow();
   await expect(sample.run(['yida-design', 'application-style', '--style-id', 'app-wire', '--design-file', 'ignored.md']))
     .rejects.toMatchObject({ code: 'APPLICATION_STYLE_SAMPLE_INVALID' });
+});
+
+test('every catalog entry exports exactly three files with unresolved project brand colors', () => {
+  themeIndex.forEach(theme => {
+    const output = path.join(directory, theme.themeId);
+    exportApplicationStyle(theme.themeId, output);
+    expect(fs.readdirSync(output).sort()).toEqual(['app_theme.css', 'design.md', 'form-layout.json']);
+    expect(fs.readFileSync(path.join(output, 'app_theme.css'), 'utf8')).toContain('--color-brand1-6: {{PRIMARY_COLOR}};');
+  });
+});
+
+test('exported CSS accepts a completed design through the CLI and follows later brand changes', async () => {
+  exportApplicationStyle('dark-rail-fine-lines', directory);
+  const cssFile = path.join(directory, 'app_theme.css');
+  const designFile = path.join(directory, 'design.md');
+  const template = fs.readFileSync(designFile, 'utf8');
+  fs.appendFileSync(cssFile, '\n.project-note { padding: 7px; }\n');
+  for (const color of ['#357942', '#936A21']) {
+    const design = resolveThemeColors(template.replace(/\{\{PRIMARY_COLOR\}\}/g, color));
+    fs.writeFileSync(designFile, design);
+    await sample.run(['yida-design', 'app-theme', '--design-file', designFile, '--output', cssFile]);
+    const css = fs.readFileSync(cssFile, 'utf8');
+    const tokens = readDesignTokens(design);
+    for (const name of ['--color-brand1-1', '--color-brand1-6']) {
+      expect(css).toContain(`${name}: ${tokens[name]};`);
+    }
+    expect(css).not.toMatch(/\{\{|<生成实际色值：/);
+    expect(css).toContain('.project-note { padding: 7px; }');
+    expect(css).toContain('--pod-nav-menu-item-selected-shadow: inset 3px 0 0 var(--color-brand1-6);');
+  }
+});
+
+test('historical theme paths resolve to the same design and mismatched paths remain invalid', () => {
+  const { normalizePlan, renderDesign } = require('../lib/design-plan/materialize');
+  const plan = planFor('soft-inset-surfaces');
+  const current = renderDesign(plan);
+  plan.visualStyle.forUser.selectedTheme.templatePath = 'templates/design-themes/soft-inset-surfaces.md';
+  expect(renderDesign(plan)).toBe(current);
+  const normalized = normalizePlan({ ...plan, schemaVersion: '2.0' });
+  expect(normalized.visualStyle.internal.selectedTheme.templatePath).toBe('templates/design-themes/soft-inset-surfaces/design.md');
+  plan.visualStyle.forUser.selectedTheme.templatePath = 'templates/design-themes/dark-inset-hairline.md';
+  expect(() => renderDesign(plan)).toThrow();
 });
 
 test.each(['app-editorial', 'app-executive', 'free-creative'])('public CLI exports %s as field columns without a forced introduction', themeId => {
@@ -264,6 +388,11 @@ test('free creative rejects absent business decisions and explicit design tokens
   const starter = readDesignTokens(resolveThemeColors(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, 'templates/design-themes/free-creative/design.md'), 'utf8').replace(/\{\{PRIMARY_COLOR\}\}/g, '#685544')));
   plan.visualStyle.tokens = Object.fromEntries(CREATIVE_TOKENS.map(key => [key, starter[key]]));
   plan.visualStyle.tokens['--pod-page-bg-color'] = '#eee8df';
+  Object.assign(plan.visualStyle.tokens, {
+    '--pod-shell-theme-bg-color': '#302820', '--pod-nav-item-text-color': '#D5C9BA',
+    '--pod-nav-item-text-hover-color': '#FAF0E4', '--pod-nav-item-text-selected-color': '#302820',
+    '--pod-nav-menu-bg-hover-color': '#493C2F', '--pod-nav-menu-bg-selected-color': '#D5C9BA',
+  });
   fs.writeFileSync(input, JSON.stringify(plan));
   const result = materialize(input);
   const design = fs.readFileSync(result.outputs.design, 'utf8');
@@ -272,6 +401,10 @@ test('free creative rejects absent business decisions and explicit design tokens
   expect(design).toContain(plan.visualStyle.creativeDirection.formLayout);
   expect(design).not.toMatch(/窄幅纸页|香槟金标题/);
   expect(fs.readFileSync(result.outputs.theme, 'utf8')).toContain('--pod-page-bg-color: #eee8df;');
+  const { patchPlan } = require('../lib/design-plan/patch');
+  patchPlan(input, ['visualStyle.forUser.navigationStyle.tone=light'], { materialize: true });
+  const patchedDesign = parseDesignDocument(fs.readFileSync(result.outputs.design, 'utf8')).metadata;
+  expect(patchedDesign.themeProfile.navTheme).toBe('light');
 });
 
 test('regeneration replaces only the managed recipe, preserving custom CSS', () => {

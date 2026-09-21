@@ -179,6 +179,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: '請明確入口方式：不分前後台（unified）、分前後台（service-management）、只有訪問前台（frontend-only）或只有訪問後台（backend-only）。',
+    design_plan_backend_only_roles: '只有訪問後台（backend-only）時，每個入口的 role 必須為 management。',
     design_plan_local_menu_binding: '本頁選單 {0} 必須關聯承載頁面和 viewKey：入口 {1} 的 sceneKey 對應頁面 sceneKey，resource 等於頁面 name，viewKey 不可空白。此規則適用於所有入口角色。',
     design_plan_visual_object_required: '{0} 必須為物件，不能寫成字串或陣列。保留 init 產生的結構並填入值。範例：{1}。',
     help: '\n' +
@@ -995,6 +997,7 @@ module.exports = {
     theme_preset_conflict: '平台預置 colour 不能與自訂 CSS 或 themeColor 同傳；請使用 --colour custom 或省略 --colour。',
     custom_theme_color_required: 'colour=custom 需要主題檔案或有效 themeColor；請傳 --theme-file 或 --theme-color。',
     theme_not_persisted: '應用主題儲存後回讀不一致或查詢失敗，CSS 資源尚未確認綁定。請查看 themeVerification，並使用 update-app <appType> --theme-file <css> 重試；不要重複建立應用。',
+    navigation_not_persisted: "應用導航儲存後回讀不一致或查詢失敗，導航設定尚未確認生效。請查看 navigationVerification 中的預期值、實際值和查詢錯誤，核實應用目前設定。",
     usage: '用法: openyida update-app <appType> [--name "新名称"] [--desc "描述"] [--layout slide|ver] [--theme deepBlue]',
     example: '示例: openyida update-app APP_XXX --name "新应用名称" --layout ver --theme deepBlue',
     options: '选项:\n' +
@@ -2046,3 +2049,10 @@ module.exports.connector_auth = require('../../lib/core/locales/zh').connector_a
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: '節點 {0} 的審批動作設定無效：{1}',
 });
+
+module.exports.cli_argument = { invalid: '參數無效或缺少值：{0}。請按命令說明填寫。' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme：--output 指向 CSS 檔案；--design-file 讀取完成的設計。省略設計檔案會重設 CSS，主題值透過設計填寫。',
+  'style_help': 'application-style：--style-id 必填，支援目錄中全部主題；--output 指向目錄，輸出三個檔案，同名檔案存在時報錯。'
+};

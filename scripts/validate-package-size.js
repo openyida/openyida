@@ -13,12 +13,18 @@ const path = require('path');
 // Application styles add 18 paired presets plus the independent creative scaffold
 // (57 design/CSS/layout assets), their catalog, recipe and runtime consumer. Complete
 // content/navigation tone and detail-field tokens are retained in every standalone preset.
-// Node 26/npm 11 measures about 1,867 KiB packed / 7,038 KiB unpacked in 568 files.
-// Retain ~21 KiB npm 10 compression overhead; round budgets to 16 KiB boundaries.
-const MAX_TARBALL_BYTES = 1920 * 1024;
-const MAX_UNPACKED_BYTES = 7056 * 1024;
+// Complete navigation designs add navigation tokens to each template, paired
+// CSS mode overrides, one navigation-styles.json source, and matching guidance.
+// Paired CSS also retains scoped detail-canvas and toolbar contrast corrections.
+// Restored selected-item shadows include the common CSS rule and template guidance.
+// All 34 themes now ship three-file bundles; 15 migrated themes add CSS and layout assets.
+// Navigation borders add three state tokens, top-tab surfaces and shared CSS consumers.
+// Anonymous form submission guidance adds about 14 KiB of required runtime skill content.
+// Retain modest growth headroom and round budgets to 16 KiB boundaries.
+const MAX_TARBALL_BYTES = 2128 * 1024;
+const MAX_UNPACKED_BYTES = 8000 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
-const MAX_ENTRY_COUNT = 571;
+const MAX_ENTRY_COUNT = 602;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -57,11 +63,11 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-design/references/navigation-decision.md',
   'yida-skills/skills/yida-design/templates/design-themes/index.json',
   'yida-skills/skills/yida-design/templates/design-themes/basic-tokens.json',
+  'yida-skills/skills/yida-design/templates/navigation-styles.json',
   'lib/app/application-style.js',
   'yida-skills/skills/yida-design/references/application-style-library.md',
   'yida-skills/skills/yida-design/references/theme/application-style-recipes.css',
   ...require('../yida-skills/skills/yida-design/templates/design-themes/index.json').themes
-    .filter(theme => theme.collection === 'application-styles')
     .flatMap(theme => [theme.templatePath, theme.cssTemplatePath, theme.formLayoutPath]
       .map(file => `yida-skills/skills/yida-design/${file}`)),
   'yida-skills/skills/yida-design/scripts/validate_design_themes.py',

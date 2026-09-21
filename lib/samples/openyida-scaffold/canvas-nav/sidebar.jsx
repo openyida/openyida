@@ -41,7 +41,7 @@ function CanvasSidebar({ children, title, logo, actions, activeKey, defaultWidth
     onClick={event => { if (mobile && event.target.closest('.oy-nav-menu .oy-nav-item')) setMobileOpen(false); }}
     style={{ '--oy-sidebar-width': width === null ? (typeof defaultWidth === 'number' ? `${defaultWidth}px` : defaultWidth) : `${clamp(width)}px`, '--oy-sidebar-max-width': `${maxWidth}px` }}>
     <style>{`
-      .oy-canvas-nav .oy-nav-sidebar { position: relative; box-sizing: border-box; flex: 0 0 auto; min-width: 0; width: clamp(180px, var(--oy-sidebar-width, var(--shell-dark-aside-width, 216px)), var(--oy-sidebar-max-width, 400px)); padding: var(--pod-nav-l-aside-padding, 8px); border-right: 1px solid var(--pod-nav-sub-divider-color, var(--color-line1-1, #ddd)); }
+      .oy-canvas-nav .oy-nav-sidebar { position: relative; box-sizing: border-box; flex: 0 0 auto; min-width: 0; width: clamp(180px, var(--oy-sidebar-width, var(--shell-dark-aside-width, 216px)), var(--oy-sidebar-max-width, 400px)); padding: var(--pod-nav-slide-aside-padding, 8px); border-right: 1px solid var(--pod-nav-sub-divider-color, var(--color-line1-1, #ddd)); }
       .oy-canvas-nav .oy-sidebar-toggle { margin-left: auto; flex-shrink: 0; justify-content: center; padding: 0 8px; }
       .oy-canvas-nav .oy-sidebar-items { min-width: 0; }
       .oy-canvas-nav .oy-nav-sidebar .oy-nav-item > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

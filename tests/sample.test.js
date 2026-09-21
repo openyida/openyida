@@ -32,6 +32,24 @@ describe('sample templates', () => {
     expect(output).toBe('Hello OpenKuma / OpenKuma');
   });
 
+  test.each([
+    ['--output'], ['--output', '--design-file', 'design.md'],
+    ['--var'], ['--var', 'PRIMARY_COLOR'], ['--var', ' =red'],
+    ['--primary-color', '#123456'], ['--border-radius', '12px'],
+  ])('rejects invalid sample parameters before writing files: %j', async (...options) => {
+    const output = path.join(tmpDir, 'theme.css');
+    await expect(run(['yida-design', 'app-theme', '--output', output, ...options]))
+      .rejects.toMatchObject({ code: 'SAMPLE_ARGUMENT_INVALID' });
+    expect(fs.readdirSync(tmpDir)).toEqual([]);
+  });
+
+  test('theme generation rejects generic variable substitution instead of silently ignoring it', async () => {
+    const output = path.join(tmpDir, 'theme.css');
+    await expect(run(['yida-design', 'app-theme', '--output', output, '--var', 'PRIMARY_COLOR=#123456']))
+      .rejects.toMatchObject({ code: 'SAMPLE_ARGUMENT_INVALID' });
+    expect(fs.existsSync(output)).toBe(false);
+  });
+
   test.each(['side', 'top', 'mixed', 'dock', 'tabs'])('navigation %s copies only the selected layout and compiles with existing content', async (layout) => {
     const output = path.join(tmpDir, `nav-${layout}.jsx`);
     await run(['openyida-page-template', `canvas-nav-${layout}`, '--output', output]);
@@ -44,11 +62,34 @@ describe('sample templates', () => {
     for (const other of ['side', 'top', 'mixed', 'dock'].filter(name => name !== layout)) {
       expect(fragment).not.toContain(`oy-nav-${other} `);
     }
-    expect(Buffer.byteLength(fragment)).toBeLessThan(['side', 'mixed'].includes(layout) ? 14000 : layout === 'top' ? 8000 : 7000);
+    const fragmentBudgets = { side: 14000, mixed: 14500, top: 8500, dock: 7000, tabs: 7000 };
+    expect(Buffer.byteLength(fragment)).toBeLessThan(fragmentBudgets[layout]);
     expect(fragment.includes('function CanvasSidebar')).toBe(['side', 'mixed'].includes(layout));
     if (layout !== 'tabs') {
       expect(fragment).toContain('--pod-nav-item-text-disabled-color');
       expect(fragment).toContain('--pod-nav-menu-bg-selected-color');
+      expect(fragment).toContain('border: var(--pod-nav-menu-item-border, none)');
+      expect(fragment).toContain('--pod-nav-menu-item-hover-border');
+      expect(fragment).toContain('--pod-nav-menu-item-selected-border');
+      expect(fragment).toContain('box-shadow: var(--pod-nav-menu-item-selected-shadow, none)');
+      expect(fragment).not.toContain('box-shadow: inset');
+      expect(fragment).toContain('padding: var(--pod-nav-menu-item-padding, 8px 12px)');
+      expect(fragment).toContain('line-height: var(--pod-nav-menu-line-height, 20px)');
+    }
+    if (['top', 'mixed'].includes(layout)) {
+      const menuSelector = layout === 'top' ? '.oy-nav-top .oy-nav-menu' : '.oy-nav-mixed .oy-nav-groups';
+      expect(fragment).toContain(`${menuSelector} .oy-nav-item { min-height: var(--pod-nav-top-tab-height, 40px); padding: var(--pod-nav-top-tab-item-padding, 0 12px); max-width: var(--pod-nav-top-tab-item-max-width, 240px); }`);
+      expect(fragment).toContain('padding: calc(var(--pod-nav-menu-gap, 8px) / 2)');
+      expect(fragment).toContain('min-height: var(--pod-nav-platform-header-height, 48px)');
+    }
+    if (['side', 'top', 'mixed'].includes(layout)) {
+      expect(fragment).toContain('gap: var(--pod-nav-menu-gap, 8px)');
+    }
+    if (['side', 'mixed'].includes(layout)) {
+      expect(fragment).toContain('padding: var(--pod-nav-slide-aside-padding, 8px)');
+      if (layout === 'mixed') {
+        expect(fragment).toContain('.oy-canvas-nav.oy-nav-mixed .oy-nav-sidebar { padding: var(--pod-nav-l-aside-padding, 8px); }');
+      }
     }
   });
 
@@ -449,6 +490,9 @@ describe('sample templates', () => {
     const drawerBackground = 'var(--pod-shell-theme-bg-color, var(--color-white, #fff))';
     expect(contentShell.props.styles.content.background).toBe(drawerBackground);
     expect(frameShell.props.styles.content.background).toBe(drawerBackground);
+    expect(frameShell.props.styles.header.color).toBe('var(--drawer-title-color, var(--pod-page-header-text-color, var(--color-text1-4, #1f2329)))');
+    expect(frameShell.props.styles.content.color).toBe('var(--drawer-content-color, var(--pod-page-header-text-color, var(--color-text1-4, #1f2329)))');
+    expect(pageSource).toContain('--pod-page-header-text-color');
     expect(contentShell.props.styles.body.background).toBe('transparent');
     expect(pageSource.match(/\.openyida-form-drawer \.oy-drawer-card \{([^}]+)\}/)[1]).toContain('background: transparent;');
     expect(renderShell({ open: true, background: '#123456' }).props.styles.content.background).toBe('#123456');
@@ -667,11 +711,33 @@ describe('application theme from design.md', () => {
     let withoutExtra = css.replace(rootPattern, root => root.replace(
       /^[ \t]*(--[\w-]+)\s*:[^;]+;\n/gm, (line, name) => originalNames.has(name) ? line : ''
     ));
-    const lightMode = /(\.pod-premium\.is-light\s*\{)([^}]*)(\})/;
-    const originalLightNames = new Set([...template.match(lightMode)[2].matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
-    withoutExtra = withoutExtra.replace(lightMode, (block, start, body, end) => start + body.replace(
-      /^[ \t]*(--[\w-]+)\s*:[^;]+;\n/gm, (line, name) => originalLightNames.has(name) ? line : ''
-    ) + end);
+    const platformNavigationTokens = new Set([...template.matchAll(/(--pod-(?:nav-|shell-|page-header-)[\w-]+)\s*:/g)]
+      .map(match => match[1]));
+    const declarations = source => Object.fromEntries([...source.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)]
+      .map(([, name, value]) => [name, value.trim()]));
+    const rootDefaults = Object.assign({}, ...[...template.matchAll(/^:root\s*\{([^}]+)\}/gm)]
+      .map(match => declarations(match[1])));
+    const designTokens = readDesignTokens(design);
+    const activeTone = plan.visualStyle.forUser.selectedTheme.navTheme;
+    for (const tone of ['light', 'dark']) {
+      const scopedDefaults = { ...rootDefaults };
+      const modeScopes = ['nav', 'is'].map(kind => new RegExp(`(\\.pod-premium\\.${kind}-${tone}\\s*\\{)([^}]*)(\\})`));
+      modeScopes.forEach(pattern => Object.assign(scopedDefaults, declarations(template.match(pattern)[2])));
+      for (const pattern of modeScopes) {
+        const originalNames = new Set(Object.keys(declarations(template.match(pattern)[2])));
+        withoutExtra = withoutExtra.replace(pattern, (block, start, body, end) => start + body.replace(
+          /^[ \t]*(--[\w-]+)\s*:\s*([^;]+);\n/gm, (line, name, value) => {
+            if (originalNames.has(name)) {return line;}
+            // Added mode declarations must be real platform navigation tokens;
+            // the inactive mode restores its own defaults instead of leaking the project palette.
+            expect(platformNavigationTokens.has(name)).toBe(true);
+            expect(designTokens[name]).toBeDefined();
+            expect(value.trim()).toBe(tone === activeTone ? designTokens[name] : scopedDefaults[name]);
+            return '';
+          }
+        ) + end);
+      }
+    }
     const recipe = plan.visualStyle.forUser.selectedTheme.collection === 'application-styles'
       ? fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-design/references/theme/application-style-recipes.css'), 'utf8') : '';
     expect(structure(withoutExtra).trim()).toBe(structure(recipe ? template.trimEnd() + '\n\n' + recipe : template).trim());

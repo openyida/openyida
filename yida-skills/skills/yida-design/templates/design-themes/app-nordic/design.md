@@ -12,12 +12,60 @@ tokens:
         "--pod-card-bg-color": "#ffffff"
         "--pod-table-cell-color": "var(--pod-card-bg-color)"
       navigation:
-        "--pod-shell-theme-bg-color": "#FFFFFF"
-        "--pod-nav-item-text-color": "#595959"
-        "--pod-nav-item-text-hover-color": "#262626"
-        "--pod-nav-item-text-selected-color": "var(--color-brand1-6)"
-        "--pod-nav-menu-bg-hover-color": "#F5F5F5"
-        "--pod-nav-menu-bg-selected-color": "#F0F0F0"
+        "--pod-shell-theme-bg-color": "#E4EEE6"
+        "--pod-nav-item-text-color": "#526361"
+        "--pod-nav-item-text-hover-color": "#354C47"
+        "--pod-nav-item-text-selected-color": "#FFFFFF"
+        "--pod-nav-menu-bg-hover-color": "#D2E4D8"
+        "--pod-nav-menu-bg-selected-color": "#355D4D"
+        "--pod-nav-menu-item-selected-shadow": "0 5px 12px rgba(42,74,60,.16)"
+        "--pod-page-header-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-l-sub-main-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-top-main-border-width": "1px"
+        "--pod-nav-top-main-border-color": "#CDDCCF"
+        "--pod-nav-top-tab-indicator-width": "0px"
+        "--pod-nav-logo-text": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-logo-bg": "var(--pod-nav-menu-bg-selected-color)"
+        "--pod-nav-logo-icon": "var(--pod-nav-item-text-selected-color)"
+        "--pod-nav-logo-border": "1px solid #CDDCCF"
+        "--pod-nav-logo-border-radius": "999px"
+        "--pod-nav-sub-divider-color": "#CDDCCF"
+        "--pod-nav-item-text-disabled-color": "rgba(24,28,31,.30)"
+        "--pod-nav-l-container-bg": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-l-group-label-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-l-search-border-color": "#CDDCCF"
+        "--pod-nav-popup-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-popup-border-radius": "14px"
+        "--pod-nav-popup-shadow": "0 8px 24px rgba(53,76,71,.08)"
+        "--pod-nav-tab-line-hover-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-tab-line-selected-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-bg-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-bg-hover-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-bg-active-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-placeholder-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-search-text-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-icon-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-search-border-color": "#CDDCCF"
+        "--pod-nav-search-border-hover-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-border-active-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-action-icon-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-action-border-color": "#CDDCCF"
+        "--pod-nav-action-border": "1px solid #CDDCCF"
+        "--pod-nav-action-bg-hover-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-action-bg-active-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-menu-item-height": "52px"
+        "--pod-nav-menu-item-radius": "999px"
+        "--pod-nav-menu-item-border": "2px solid transparent"
+        "--pod-nav-menu-item-hover-border": "2px solid #8AA996"
+        "--pod-nav-menu-item-selected-border": "2px solid #355D4D"
+        "--pod-nav-menu-font-size": "15px"
+        "--pod-nav-menu-item-selected-font-weight": "500"
+        "--pod-nav-menu-line-height": "20px"
+        "--pod-nav-menu-gap": "14px"
+        "--pod-shell-lshape-border-radius": "24px"
+        "--pod-nav-menu-item-padding": "12px 18px"
+        "--pod-nav-slide-aside-gap": "20px"
+        "--pod-nav-slide-aside-padding": "16px 14px"
       native-form:
         "--form-element-medium-corner": "14px"
         "--form-element-medium-height": "46px"
@@ -104,11 +152,11 @@ tokens:
       "--s-10": "40px"
     rounded:
       "--corner-zero": "0px"
-      "--corner-1": "4px"
-      "--corner-2": "6px"
-      "--corner-3": "8px"
-      "--corner-4": "10px"
-      "--corner-5": "12px"
+      "--corner-1": "14px"
+      "--corner-2": "14px"
+      "--corner-3": "14px"
+      "--corner-4": "14px"
+      "--corner-5": "14px"
       "--corner-circle": "50%"
       "--corner-semicircle": "500px"
     shadow:
@@ -147,7 +195,7 @@ themeProfile:
 
 单列阅读与低密度任务清单；云白表面、柔圆角与大段间距。适合员工服务与预约申请。
 
-应用、自定义页面、表单、编辑与详情共用这一套视觉语言。业务内容来自 PRD，不复制示例行业、编号、标题或数据。色彩来源：{{COLOR_SOURCE}}；主色由 {{PRIMARY_COLOR}} 实例化，示范配色只是参考。
+导航、应用框架、自定义页面、表单、编辑与详情共用这一套视觉语言。业务内容来自 PRD，按实际行业、页面标题和数据设计。色彩来源：{{COLOR_SOURCE}}；主色由 {{PRIMARY_COLOR}} 实例化，品牌悬停色按同源占位说明生成；模板不固定项目品牌色。
 
 ## 2. 页面视觉系统
 
@@ -157,7 +205,19 @@ themeProfile:
 
 ### 2.2 应用导航
 
-平台侧导航与内容区域使用同一设计语言；选中项用品牌色和明确文字，不靠图标猜测。 默认保留平台导航，菜单来自真实业务范围。只有需求确定自绘导航时才在 Canvas 实现结构。当前模板使用 contentTone: light、navTheme: light。
+柔绿导航使用宽松胶囊菜单，透明边框预留位置，悬停浅绿描边，选中项深绿底白字配轻阴影；圆润品牌区与单列服务表单保持舒展节奏。
+
+菜单轮廓使用 --pod-nav-menu-item-radius、--pod-nav-menu-item-border、--pod-nav-menu-item-hover-border、--pod-nav-menu-item-selected-border。侧栏和顶部菜单共用轮廓，各状态保持相同边框宽度，文字位置稳定；具体数值以本项目 Token 为准。
+
+导航示例：左侧导航采用柔绿底和 52px 高的宽松胶囊；选中项深绿底白字、2px 深绿边框，悬停浅绿边框，普通项保留透明边界。菜单间距 14px、内距 12px 18px。 实际导航布局沿用业务规划。
+
+导航与应用框架、表单、自定义页面和详情页共用设计语言。先按业务入口安排菜单、分组、搜索、品牌区与常用操作，再一起确定导航与正文的明暗、表面、字体、边界、圆角和密度。平台导航使用真实页面菜单；自绘导航按同一套导航 Token 实现。命名模板沿用自身 navTheme，换主色保持导航明暗与内容画布；需要另一导航明暗时改选主题，自由创意按项目明确设计。
+
+导航底色使用 --pod-shell-theme-bg-color；普通、悬停和选中文字分别使用 --pod-nav-item-text-color、--pod-nav-item-text-hover-color、--pod-nav-item-text-selected-color；悬停和选中背景使用 --pod-nav-menu-bg-hover-color、--pod-nav-menu-bg-selected-color。图标跟随对应文字状态，当前入口同时用背景或字重表达。
+
+菜单高度、圆角与间距使用 --pod-nav-menu-item-height、--pod-nav-menu-item-radius、--pod-nav-menu-gap；搜索、品牌区、分组、操作和弹出菜单使用 navigation 分组中的对应 Token。弹出菜单的底色、文字与搜索状态成组配套，导航与内容可以分别选择明暗。选中项使用 --pod-nav-menu-item-selected-shadow：none 关闭额外标记，完整 box-shadow 值可表达左、右或底部内阴影，不占据菜单布局空间；该 Token 独立于导航明暗。菜单高度、文字行高、内距和框架留白一起调整，给外阴影、长标题与键盘焦点留出空间。
+
+桌面检查菜单、搜索、选中态与表单的协调；折叠后保留可识别图标和入口名称；窄屏保持菜单可展开、当前页面可定位、键盘焦点可见。提交、编辑、详情与自定义页都沿用这一导航设计。 当前模板使用 contentTone: light、navTheme: light。
 
 ### 2.3 页面标题与操作
 
@@ -213,7 +273,7 @@ YAML Token 是唯一数值源。沿用当前主题的构图与材质语言，按
 
 ### 验收
 
-- [ ] 应用壳、Canvas、表单与详情的字体、线条、材质和状态一致。
+- [ ] 导航、应用框架、Canvas、表单与详情的字体、线条、材质和状态一致。
 - [ ] 正文与底栏对齐；四类容器与移动端无横向溢出。
 - [ ] 文字/焦点/禁用/错误在实际背景上可辨，长说明与表格未裁切。
 - [ ] 表单布局与逐页设计一致；组件、字段、主题和响应式规则均已核对。

@@ -28,6 +28,16 @@ function isSampleRoutingGuidanceFile(file) {
 }
 
 describe('OpenYida skill contracts', () => {
+  test('Fast and Plan share three visual directions while Plan requires a style choice', () => {
+    const shared = readSkill('yida-skills/skills/yida-design/references/theme-selection.md');
+    const plan = readSkill('yida-skills/skills/yida-app/workflow/plan/workflow.md');
+    const interaction = readSkill('yida-skills/skills/yida-design/references/ask-human-interaction-contract.md');
+    expect(shared).toContain('Fast 与 Plan 使用下面同一套三方向生成规则和候选字段');
+    expect(shared).toContain('Plan 在用户没有明确完整风格时必须展示同样三套方向并通过 `ask_human` 选择');
+    expect(plan).toContain('获得选择或已有明确完整风格后，再继续主题映射和初始化');
+    expect(interaction).toContain('必须使用“应用设计风格”交互展示共用规则生成的三套候选');
+  });
+
   test('platform workspace pages keep cross-module navigation with the host in Fast and Plan', () => {
     const guide = readSkill('yida-skills/skills/yida-canvas-custom-page/references/navigation-and-entry-guide.md');
     expect(guide).toContain('即便使用 React 状态切换');
@@ -574,7 +584,7 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('use_skill("yida-data-source-connectors")');
     expect(step9).toContain('准备 2-3 句业务交付总结，并给一个名为“应用访问入口”的入口组');
     expect(step9).toContain('新增、修改或发布单个具体页面时，交付当前页面并保持单页范围');
-    expect(step9).toContain('统一工作区或前后台双入口包含经验证的“业务管理入口”');
+    expect(step9).toContain('不分前后台时提供经验证的“系统入口”，分前后台或只有访问后台时提供经验证的“业务后台入口”');
     expect(step9).toContain('一次完整应用 run 交付一组用户可见的“应用访问入口”');
     expect(step9).toContain('用户或调用方明确要求资源清单、资源 UUID/ID、发布状态或测试数据摘要时');
     expect(step9).toContain('终态 artifact 的 `description` 包含简洁的“交付清单”');
@@ -588,7 +598,7 @@ describe('OpenYida skill contracts', () => {
     expect(step9).toContain('前台：`{base_url}/{appType}/custom/{formUuid}`');
     expect(step9).toContain('`application_entry_policy.entries.admin=include`');
     expect(step9).toContain('前台、业务后台、开发者管理后台');
-    expect(step9).toContain('统一工作区时为“应用工作台、开发者管理后台”');
+    expect(step9).toContain('不分前后台时为“系统入口、开发者管理后台”');
     expect(step9).toContain('不得静默省略或声明交付完成');
     expect(step9).not.toContain('值为 `omit` 时不得输出');
     expect(step9).toContain('不把 `g.alicdn.com` 的 `index.css`、`index.js`、`index.html`、`locales/*.json`');
@@ -945,7 +955,7 @@ describe('OpenYida skill contracts', () => {
     expect(output).toContain('## 5. 应用主题与风格摘要');
     expect(output).toContain('| 设计文件 | `prd/<项目名>/design.md` |');
     expect(output).toContain('| 应用主题色 | <平台预置 key 或自定义色盘名称；必须与 design.md 的 Theme Profile 一致> |');
-    expect(output).toContain('| 风格摘要 | <2-3 个业务风格关键词，例如高效协同、稳重可信、经营洞察；完整 UI 设计见 design.md> |');
+    expect(output).toContain('| 风格摘要 | <概括导航、应用框架、表单、记录详情与自定义页面共同采用的视觉特点；完整规则见 design.md> |');
     expect(output).not.toContain('| 导航视觉 |');
     expect(output).toContain('### <页面名>');
     expect(output).toContain('- pageId：<display-page必填，复用共享需求/设计中的稳定页面ID；原生页面不补造>');
@@ -1325,6 +1335,7 @@ describe('OpenYida skill contracts', () => {
     const step2 = readSkill('yida-skills/skills/yida-design/workflow/step-2-theme-system.md');
     const outputDesign = readSkill('yida-skills/skills/yida-design/workflow/output-design.md');
     const styleSelection = readSkill('yida-skills/skills/yida-design/references/theme-selection.md');
+    const navShellPatterns = readSkill('yida-skills/skills/yida-nav-shell/references/nav-shell-patterns.md');
     const canvasStyleGuide = readSkill('yida-skills/skills/yida-canvas-custom-page/references/canvas-style-implementation-guide.md');
     const presets = readSkill('yida-skills/skills/yida-design/references/theme/theme-token-presets.md');
     const customThemeTemplate = readSkill('yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css');
@@ -1422,6 +1433,9 @@ describe('OpenYida skill contracts', () => {
     expect(outputDesign).toContain('只能由上述 OpenYida CLI 契约生成或更新');
     expect(outputDesign).toContain('不得另写 Python、Node、Shell 或 `run_workspace_script` 临时脚本');
     expect(outputDesign).toContain('校验脚本只能读取并报告问题，不能改写主题文件');
+    expect(outputDesign).toContain('`--pod-nav-menu-item-selected-shadow` 作为方向无关的基础外观 Token 独立透传');
+    expect(navShellPatterns).toContain('| 菜单选中标记 | `--pod-nav-menu-item-selected-shadow`');
+    expect(navShellPatterns).toContain('`canvas-nav-side/top/mixed/dock` 共用上述菜单圆角、三种边框和选中阴影');
     expect(step2).toContain('导航选中态与按钮不同色不直接判为冲突');
     expect(styleSelection).toContain('沿用已确认主题，只补当前页面');
     expect(canvasStyleGuide).toContain('按本指南把 `design.md` 的布局、材质、密度、图表和控件样式写入 Canvas 页面');
@@ -1498,18 +1512,19 @@ describe('OpenYida skill contracts', () => {
     expect(pageUiux).toContain('工作台、门户、列表、详情、普通看板和数据大屏默认都是浅底 / light 模式');
     expect(step4).toContain('视觉方向要从“高级 / 简洁 / 商务”继续落细');
     expect(step4).toContain('主色：先按行业、品牌、业务情绪和视觉目标做创意判断，可选择平台预置主题，也可设计自定义品牌色盘');
+    expect(step4).toContain('界面明暗：默认浅色');
+    expect(step4).toContain('导航明暗：`themeProfile.navTheme` 从所选主题模板的 `navTheme` 派生');
     expect(step4).toContain('按[主题明暗双轴]');
     expect(step4).toContain('`contentTone` 默认 `light`');
-    expect(step4).toContain('`navTheme` 按导航方案选择');
     expect(styleLibrary).toContain('## 主题明暗双轴');
     expect(styleLibrary).toContain('深色导航可以搭配浅色内容，浅色导航也可以搭配暗色内容');
-    expect(styleLibrary).toContain('上传主题时只选择项目最终维护的 `app-theme.css`');
+    expect(styleLibrary).toContain('上传主题时使用项目实际生成的 CSS 路径，`app-theme.css` 与 `app_theme.css` 均可');
     expect(styleLibrary).toContain('应用整体明暗以 `contentTone` 为准');
     expect(styleLibrary).not.toMatch(/不能原样当成最终交付|不要把目录中的参考|不等同于暗黑主题/);
     expect(designOutput).toContain('[主题明暗双轴](../references/application-style-library.md#主题明暗双轴)');
     expect(designOutput).toContain('| `contentTone` | `light` 或 `dark` |');
     expect(visualThemeSelection).toContain('[主题明暗双轴](../../../references/application-style-library.md#主题明暗双轴)');
-    expect(visualThemeSelection).toContain('`navigationTone` 最终写入 `navTheme`');
+    expect(visualThemeSelection).toContain('自由创意的导航明暗由项目设计决定');
     const overlayGuide = readSkill('yida-skills/skills/yida-design/references/theme/theme-token-presets.md');
     expect(overlayGuide).toContain('`navTheme=dark` 只表示导航深色，不触发本节');
     expect(overlayGuide).toContain('允许在复制后的 `app-theme.css` 末尾追加精确 classname 规则');

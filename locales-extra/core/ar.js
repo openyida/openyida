@@ -178,6 +178,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: 'اختر طريقة الاستخدام: صفحات عمل مشتركة (unified)، واجهة للمستخدم وأخرى لمعالجة الأعمال (service-management)، واجهة المستخدم فقط (frontend-only)، أو معالجة الأعمال فقط (backend-only).',
+    design_plan_backend_only_roles: 'في وضع backend-only، يجب أن تكون قيمة role لكل مدخل هي management.',
     design_plan_local_menu_binding: 'تحتاج القائمة المحلية {0} إلى صفحة مضيفة وviewKey: يجب أن يطابق sceneKey للمدخل {1} قيمة الصفحة، وأن يساوي resource اسم الصفحة name، وألا يكون viewKey فارغًا. ينطبق ذلك على جميع الأدوار.',
     design_plan_visual_object_required: 'يجب أن يكون {0} كائنًا وليس نصًا أو مصفوفة. احتفظ بالبنية التي أنشأها init وأكمل القيم. مثال: {1}.',
     help: '\n' +
@@ -1050,6 +1052,7 @@ module.exports = {
     theme_preset_conflict: 'لا يمكن الجمع بين colour مسبق الإعداد وCSS أو themeColor. استخدم --colour custom أو احذف --colour.',
     custom_theme_color_required: 'يتطلب colour=custom ملف سمة أو themeColor صالحًا. مرر --theme-file أو --theme-color.',
     theme_not_persisted: 'تعذرت قراءة إعدادات سمة التطبيق بعد الحفظ أو لم تتطابق. لم يتم تأكيد ربط مورد CSS. افحص themeVerification وأعد المحاولة باستخدام update-app <appType> --theme-file <css>؛ لا تنشئ التطبيق مجددًا.',
+    navigation_not_persisted: "تعذرت قراءة إعدادات التنقل أو لم تطابق القيم المطلوبة. راجع القيم المتوقعة والفعلية وأخطاء القراءة في navigationVerification، ثم تحقق من إعدادات التطبيق الحالية.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -2096,3 +2099,10 @@ module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.c
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: 'إعداد إجراء الموافقة غير صالح للعقدة {0}: {1}',
 });
+
+module.exports.cli_argument = { invalid: 'وسيطة غير صالحة أو قيمة مفقودة: {0}. راجع تعليمات الأمر.' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: يحدد --output ملف CSS ويقرأ --design-file تصميماً مكتملاً. يؤدي حذفه إلى إعادة ضبط CSS. ضع قيم السمة في التصميم.',
+  'style_help': 'application-style: المعامل --style-id مطلوب ويدعم جميع سمات الكتالوج؛ يحدد --output مجلداً لثلاثة ملفات. وجود الملفات يسبب خطأ.'
+};

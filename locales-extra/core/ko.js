@@ -178,6 +178,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: '사용 방식을 선택하세요: 공통 업무 화면(unified), 이용자 화면과 업무 처리 화면 분리(service-management), 이용자 화면만(frontend-only), 업무 처리 화면만(backend-only).',
+    design_plan_backend_only_roles: 'backend-only에서는 모든 진입점의 role이 management여야 합니다.',
     design_plan_local_menu_binding: '로컬 메뉴 {0}에는 호스트 페이지와 viewKey가 필요합니다. 진입점 {1}의 sceneKey는 페이지 sceneKey와, resource는 페이지 name과 일치해야 하며 viewKey는 비어 있으면 안 됩니다. 모든 역할에 적용됩니다.',
     design_plan_visual_object_required: '{0}은 문자열이나 배열이 아닌 객체여야 합니다. init이 생성한 구조를 유지하고 값을 입력하세요. 예: {1}.',
     help: '\n' +
@@ -1051,6 +1053,7 @@ module.exports = {
     theme_preset_conflict: '프리셋 colour는 CSS 또는 themeColor와 함께 사용할 수 없습니다. --colour custom을 사용하거나 --colour를 생략하세요.',
     custom_theme_color_required: 'colour=custom에는 테마 파일 또는 유효한 themeColor가 필요합니다. --theme-file 또는 --theme-color를 지정하세요.',
     theme_not_persisted: '저장 후 앱 테마 설정을 확인하지 못했습니다. themeVerification을 확인하고 update-app <appType> --theme-file <css>로 다시 시도하세요. 앱을 다시 만들지 마세요.',
+    navigation_not_persisted: "내비게이션 설정을 다시 읽지 못했거나 요청한 값과 다릅니다. navigationVerification의 예상값, 실제 값, 조회 오류를 확인한 다음 현재 앱 설정을 확인하세요.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -2095,3 +2098,10 @@ module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.c
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: '노드 {0}의 승인 작업 설정이 잘못되었습니다: {1}',
 });
+
+module.exports.cli_argument = { invalid: '인수가 잘못되었거나 값이 없습니다: {0}. 명령 도움말을 확인하세요.' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: --output은 CSS 파일이고 --design-file은 완성된 디자인입니다. 디자인을 생략하면 CSS가 초기화됩니다. 테마 값은 디자인에 입력하세요.',
+  'style_help': 'application-style: --style-id는 필수이며 모든 카탈로그 테마를 지원합니다. --output 디렉터리에 파일 3개를 만들며 동일한 파일이 있으면 오류가 납니다.'
+};

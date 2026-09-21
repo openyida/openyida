@@ -2,22 +2,68 @@
 name: "{{PROJECT_NAME}}"
 description: "近黑画布与平整暗面板以单层细描边、小圆角和稳定对齐构成秩序；并列指标可共享外框，以短竖线分组，色彩集中于变化读数、分类比例和离散等级标记。"
 themeId: hairline-shared-bands
+navTheme: dark
 tokens:
   application-global:
-    appearance: # 应用外观：应用背景、内容表面与导航配色，共 11 个变量
+    appearance: # 应用外观：应用背景、内容表面与完整导航设计
       surfaces: # 应用背景与内容表面
         "--pod-app-root-bg-color": "#070707" # neutral-gray；应用根背景及加载兜底
         "--pod-app-root-bg-image": "none" # 应用根背景图；支持 none、完整 url("...") 或 CSS 渐变，只作用于根节点
         "--pod-page-bg-color": "#070707" # neutral-gray；近黑页面画布
         "--pod-card-bg-color": "#111111" # neutral-gray；平整卡片、表单与详情主面
         "--pod-table-cell-color": "var(--pod-card-bg-color)" # 表格正文单元格背景；跟随卡片背景
-      navigation: # 导航独立配色；六项成组确定，不引用内容区色值；以下为独立深色导航配套值
-        "--pod-shell-theme-bg-color": "#111111" # neutral-gray；独立导航背景，与卡片接近但角色独立
-        "--pod-nav-item-text-color": "#B0B0B0" # neutral-gray；普通菜单及图标
-        "--pod-nav-item-text-hover-color": "#E0E0E0" # neutral-gray；悬停文字
-        "--pod-nav-item-text-selected-color": "#F0F0F0" # neutral-gray；选中文字
-        "--pod-nav-menu-bg-hover-color": "#191919" # neutral-gray；悬停底色
-        "--pod-nav-menu-bg-selected-color": "#191919" # neutral-gray；轻微提亮的中性选中底色
+      navigation:
+        "--pod-shell-theme-bg-color": "#111111"
+        "--pod-nav-item-text-color": "#B0B0B0"
+        "--pod-nav-item-text-hover-color": "#E0E0E0"
+        "--pod-nav-item-text-selected-color": "#F0F0F0"
+        "--pod-nav-menu-bg-hover-color": "#191919"
+        "--pod-nav-menu-bg-selected-color": "#191919"
+        "--pod-nav-menu-item-selected-shadow": "none"
+        "--pod-page-header-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-l-sub-main-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-top-main-border-width": "1px"
+        "--pod-nav-top-main-border-color": "#353535"
+        "--pod-nav-top-tab-indicator-width": "2px"
+        "--pod-nav-logo-text": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-logo-bg": "var(--pod-nav-menu-bg-selected-color)"
+        "--pod-nav-logo-icon": "var(--pod-nav-item-text-selected-color)"
+        "--pod-nav-logo-border": "1px solid #353535"
+        "--pod-nav-logo-border-radius": "4px"
+        "--pod-nav-sub-divider-color": "#353535"
+        "--pod-nav-item-text-disabled-color": "rgba(255,255,255,.30)"
+        "--pod-nav-l-container-bg": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-l-group-label-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-l-search-border-color": "#353535"
+        "--pod-nav-popup-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-popup-border-radius": "4px"
+        "--pod-nav-popup-shadow": "0 8px 24px rgba(0,0,0,.24)"
+        "--pod-nav-tab-line-hover-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-tab-line-selected-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-bg-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-bg-hover-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-bg-active-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-placeholder-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-search-text-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-icon-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-search-border-color": "#353535"
+        "--pod-nav-search-border-hover-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-border-active-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-action-icon-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-action-border-color": "#353535"
+        "--pod-nav-action-border": "1px solid #353535"
+        "--pod-nav-action-bg-hover-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-action-bg-active-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-menu-item-height": "34px"
+        "--pod-nav-menu-item-radius": "0px"
+        "--pod-nav-menu-item-border": "none"
+        "--pod-nav-menu-item-hover-border": "none"
+        "--pod-nav-menu-item-selected-border": "none"
+        "--pod-nav-menu-font-size": "14px"
+        "--pod-nav-menu-item-selected-font-weight": "500"
+        "--pod-nav-menu-line-height": "20px"
+        "--pod-nav-menu-gap": "4px"
+        "--pod-shell-lshape-border-radius": "4px"
     colors: # 品牌色、内容区语义色与固定色；不随导航深浅切换
       "--color-white": "var(--pod-card-bg-color)" # 全应用基础表面，随暗色内容面；不用于按钮白字
       "--color-brand1-1": "<生成实际色值：--color-brand1-6 88% + #FFFFFF 12%，sRGB 逐通道混合>" # 品牌交互元素悬停
@@ -138,13 +184,17 @@ YAML 是变量值事实源，正文规定消费关系。局部线宽和未展示
 
 ### 2.2 应用导航
 
-导航按项目确定的明暗成组配色，独立于内容画布。背景使用 `--pod-shell-theme-bg-color`，普通文字与图标使用 `--pod-nav-item-text-color`；悬停文字与背景使用 `--pod-nav-item-text-hover-color`、`--pod-nav-menu-bg-hover-color`，选中文字与背景使用 `--pod-nav-item-text-selected-color`、`--pod-nav-menu-bg-selected-color`。图标跟随对应文字状态，颜色以项目 tokens 为准。
+暗色导航共用一层细边界，菜单使用直角与紧凑行距，选中项靠明亮文字和弱填色建立层级。
 
-原生导航仅配置上述六项颜色，布局、尺寸、菜单结构和折叠由平台处理。导航明暗与内容明暗独立；中性壳层使用无色相灰，需要主题色的角色引用对应品牌派生档。
+菜单轮廓使用 --pod-nav-menu-item-radius、--pod-nav-menu-item-border、--pod-nav-menu-item-hover-border、--pod-nav-menu-item-selected-border。侧栏和顶部菜单共用轮廓，各状态保持相同边框宽度，文字位置稳定；具体数值以本项目 Token 为准。
 
-自绘导航已被项目确定时，菜单项使用 `--corner-2`，图标与文本间隔 `--s-2`，水平留白 `--s-3`、上下 `--s-2`。分组标题使用 caption 与正常导航文字色，组间留 `--s-6`；必要选中轮廓使用弱细线。搜索、账户信息和分组入口只在实际功能存在时出现，不照搬示例菜单。
+导航与应用框架、表单、自定义页面和详情页共用设计语言。先按业务入口安排菜单、分组、搜索、品牌区与常用操作，再一起确定导航与正文的明暗、表面、字体、边界、圆角和密度。平台导航使用真实页面菜单；自绘导航按同一套导航 Token 实现。命名模板沿用自身 navTheme，换主色保持导航明暗与内容画布；需要另一导航明暗时改选主题，自由创意按项目明确设计。
 
-导航弹出菜单使用 `--color-fill1-5` 与既定内容前景；导航前景和背景按项目明暗成组配对，换主色不切换导航明暗或改写内容区 Text、Fill、pop-up。
+导航底色使用 --pod-shell-theme-bg-color；普通、悬停和选中文字分别使用 --pod-nav-item-text-color、--pod-nav-item-text-hover-color、--pod-nav-item-text-selected-color；悬停和选中背景使用 --pod-nav-menu-bg-hover-color、--pod-nav-menu-bg-selected-color。图标跟随对应文字状态，当前入口同时用背景或字重表达。
+
+菜单高度、圆角与间距使用 --pod-nav-menu-item-height、--pod-nav-menu-item-radius、--pod-nav-menu-gap；搜索、品牌区、分组、操作和弹出菜单使用 navigation 分组中的对应 Token。弹出菜单的底色、文字与搜索状态成组配套，导航与内容可以分别选择明暗。选中项使用 --pod-nav-menu-item-selected-shadow：none 关闭额外标记，完整 box-shadow 值可表达左、右或底部内阴影，不占据菜单布局空间；该 Token 独立于导航明暗。菜单高度、文字行高、内距和框架留白一起调整，给外阴影、长标题与键盘焦点留出空间。
+
+桌面检查菜单、搜索、选中态与表单的协调；折叠后保留可识别图标和入口名称；窄屏保持菜单可展开、当前页面可定位、键盘焦点可见。提交、编辑、详情与自定义页都沿用这一导航设计。
 
 ### 2.3 页面标题与操作
 

@@ -2,22 +2,68 @@
 name: "{{PROJECT_NAME}}"
 description: "近白画布上的细描边柔圆面板，通过组间留缝、组内浅底分段和有分工的形状尺度形成清楚、舒展的内容节奏；有对应数据图形时，以同色轻渐变形成柔和层次。具体组件与页面结构由真实需求决定。"
 themeId: soft-outline-rhythm
+navTheme: light
 tokens:
   application-global:
-    appearance: # 应用外观：应用背景、内容表面与导航配色，共 11 个变量
+    appearance: # 应用外观：应用背景、内容表面与完整导航设计
       surfaces: # 应用背景与内容表面
         "--pod-app-root-bg-color": "#FAFAFA" # neutral-gray；应用根背景，刷新与内容未挂载时兜底
         "--pod-app-root-bg-image": "none" # 应用根背景图；支持 none、完整 url("...") 或 CSS 渐变，只作用于根节点
         "--pod-page-bg-color": "#FFFFFF" # neutral-gray；全局页面画布背景事实源
         "--pod-card-bg-color": "#FFFFFF" # 一级卡片、表单主容器、详情面板表面
         "--pod-table-cell-color": "var(--pod-card-bg-color)" # 表格正文单元格背景；跟随卡片背景
-      navigation: # 导航独立配色；六项成组确定，不引用内容区色值；以下为浅色导航默认值
-        "--pod-shell-theme-bg-color": "#FAFAFA" # 模板默认壳层背景；生成项目 design.md 时单独确定实际色值
-        "--pod-nav-item-text-color": "#737373" # 导航普通菜单文字；图标跟随文字颜色
-        "--pod-nav-item-text-hover-color": "#202020" # 导航悬停菜单文字
-        "--pod-nav-item-text-selected-color": "#202020" # 导航选中菜单文字
-        "--pod-nav-menu-bg-hover-color": "rgba(0, 0, 0, 0.02)" # neutral-gray；悬停菜单背景叠色
-        "--pod-nav-menu-bg-selected-color": "#F3F3F3" # 导航选中菜单背景
+      navigation:
+        "--pod-shell-theme-bg-color": "#FAFAFA"
+        "--pod-nav-item-text-color": "#737373"
+        "--pod-nav-item-text-hover-color": "#202020"
+        "--pod-nav-item-text-selected-color": "#202020"
+        "--pod-nav-menu-bg-hover-color": "rgba(0, 0, 0, 0.02)"
+        "--pod-nav-menu-bg-selected-color": "#F3F3F3"
+        "--pod-nav-menu-item-selected-shadow": "none"
+        "--pod-page-header-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-l-sub-main-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-top-main-border-width": "1px"
+        "--pod-nav-top-main-border-color": "#DEDEDE"
+        "--pod-nav-top-tab-indicator-width": "0px"
+        "--pod-nav-logo-text": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-logo-bg": "var(--pod-nav-menu-bg-selected-color)"
+        "--pod-nav-logo-icon": "var(--pod-nav-item-text-selected-color)"
+        "--pod-nav-logo-border": "1px solid #DEDEDE"
+        "--pod-nav-logo-border-radius": "8px"
+        "--pod-nav-sub-divider-color": "#DEDEDE"
+        "--pod-nav-item-text-disabled-color": "rgba(24,28,31,.30)"
+        "--pod-nav-l-container-bg": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-l-group-label-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-l-search-border-color": "#DEDEDE"
+        "--pod-nav-popup-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-popup-border-radius": "8px"
+        "--pod-nav-popup-shadow": "0 8px 24px rgba(24,28,31,.10)"
+        "--pod-nav-tab-line-hover-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-tab-line-selected-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-bg-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-bg-hover-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-bg-active-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-search-placeholder-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-search-text-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-icon-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-search-border-color": "#DEDEDE"
+        "--pod-nav-search-border-hover-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-search-border-active-color": "var(--pod-nav-item-text-hover-color)"
+        "--pod-nav-action-icon-color": "var(--pod-nav-item-text-color)"
+        "--pod-nav-action-border-color": "#DEDEDE"
+        "--pod-nav-action-border": "1px solid #DEDEDE"
+        "--pod-nav-action-bg-hover-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-action-bg-active-color": "var(--pod-nav-menu-bg-hover-color)"
+        "--pod-nav-menu-item-height": "42px"
+        "--pod-nav-menu-item-radius": "12px"
+        "--pod-nav-menu-item-border": "1px solid #DEDEDE"
+        "--pod-nav-menu-item-hover-border": "1px solid #A6A6A6"
+        "--pod-nav-menu-item-selected-border": "1px solid #737373"
+        "--pod-nav-menu-font-size": "14px"
+        "--pod-nav-menu-item-selected-font-weight": "500"
+        "--pod-nav-menu-line-height": "20px"
+        "--pod-nav-menu-gap": "8px"
+        "--pod-shell-lshape-border-radius": "8px"
     colors: # 品牌色、内容区语义色与固定色；不随导航深浅切换
       "--color-white": "var(--pod-card-bg-color)" # 全应用基础表面，跟随内容明暗；不承接固定白字
       "--color-brand1-1": "<生成实际色值：--color-brand1-6 88% + #FFFFFF 12%，sRGB 逐通道混合>" # 品牌交互元素悬停
@@ -145,29 +191,17 @@ YAML 定义变量值；本部分说明变量用于哪些视觉对象，以及对
 
 ### 2.2 应用导航
 
-导航按项目确定的明暗成组配色，独立于内容画布。背景使用 `--pod-shell-theme-bg-color`，普通文字与图标使用 `--pod-nav-item-text-color`；悬停文字与背景使用 `--pod-nav-item-text-hover-color`、`--pod-nav-menu-bg-hover-color`，选中文字与背景使用 `--pod-nav-item-text-selected-color`、`--pod-nav-menu-bg-selected-color`。图标跟随对应文字状态，颜色以项目 tokens 为准。
+近白导航延续柔边内容区，菜单使用小圆角与舒展间距，浅灰选中底配清晰深色文字。
 
-原生导航的尺寸、菜单排布和折叠由平台处理。
+菜单轮廓使用 --pod-nav-menu-item-radius、--pod-nav-menu-item-border、--pod-nav-menu-item-hover-border、--pod-nav-menu-item-selected-border。侧栏和顶部菜单共用轮廓，各状态保持相同边框宽度，文字位置稳定；具体数值以本项目 Token 为准。
 
-**自绘导航的补充规则**
+导航与应用框架、表单、自定义页面和详情页共用设计语言。先按业务入口安排菜单、分组、搜索、品牌区与常用操作，再一起确定导航与正文的明暗、表面、字体、边界、圆角和密度。平台导航使用真实页面菜单；自绘导航按同一套导航 Token 实现。命名模板沿用自身 navTheme，换主色保持导航明暗与内容画布；需要另一导航明暗时改选主题，自由创意按项目明确设计。
 
-仅在项目已确定自行绘制导航时使用：
+导航底色使用 --pod-shell-theme-bg-color；普通、悬停和选中文字分别使用 --pod-nav-item-text-color、--pod-nav-item-text-hover-color、--pod-nav-item-text-selected-color；悬停和选中背景使用 --pod-nav-menu-bg-hover-color、--pod-nav-menu-bg-selected-color。图标跟随对应文字状态，当前入口同时用背景或字重表达。
 
-- 壳层背景与其中的菜单颜色沿用本节六项变量；导航与正文之间用 `--color-line1-1` 细线分隔。图标尺寸用 `--s-5`，颜色跟随菜单文字，线型沿用 2.5。
-- 导航所属的下拉菜单与抽屉也属于 pop-up，背景、边界、圆角与阴影按 2.1；菜单文字使用 `--color-text1-4`，悬停背景使用 `--color-fill1-1`，选中背景使用 `--color-fill1-2`。弹出层配色由自身表面决定，不跟随导航壳层背景换色。
-- 侧栏宽度建议 248–272px，顶栏最小高建议 64–72px（推断），只为项目已有的导航结构设置尺寸。
-- 菜单项圆角使用 `--corner-2`；普通与选中项共用 `--font-size-body-1`、`--font-lineheight-body-1`。普通字重使用 `--font-weight-body-1`，选中可使用 `--font-weight-body-2`；若字重变化导致位置移动，则共用普通字重，只保留配色区别。
-- 壳层内已有分组的标签沿用说明文字的字号、字重和行高，颜色使用 `--pod-nav-item-text-color`；弹出层内分组文字按 2.1 的表面配色。组内间距用 `--s-1`，组间用 `--s-6`。菜单图标、文字和状态标记保持稳定对齐。
+菜单高度、圆角与间距使用 --pod-nav-menu-item-height、--pod-nav-menu-item-radius、--pod-nav-menu-gap；搜索、品牌区、分组、操作和弹出菜单使用 navigation 分组中的对应 Token。弹出菜单的底色、文字与搜索状态成组配套，导航与内容可以分别选择明暗。选中项使用 --pod-nav-menu-item-selected-shadow：none 关闭额外标记，完整 box-shadow 值可表达左、右或底部内阴影，不占据菜单布局空间；该 Token 独立于导航明暗。菜单高度、文字行高、内距和框架留白一起调整，给外阴影、长标题与键盘焦点留出空间。
 
-**自绘导航的收纳方式**
-
-空间充足时保持完整导航。空间不足时，根据项目已有的导航形式选择以下形态，不新增导航层级；具体切换时机由页面开发规范处理。
-
-| 已有导航形式 | 空间不足时的设计 |
-| --- | --- |
-| 侧边导航 | 图标可独立识别时，可收为带文字提示的 64px 图标轨道（推断）；更窄时改为菜单按钮唤出的抽屉。图标不能独立识别时，直接采用带完整文字的抽屉 |
-| 顶部导航 | 将无法完整展示的菜单项收进展开菜单，保留当前页面标识 |
-| L 型导航 | 顶部与侧边分别采用上述收纳方式，保留项目已有的导航层级 |
+桌面检查菜单、搜索、选中态与表单的协调；折叠后保留可识别图标和入口名称；窄屏保持菜单可展开、当前页面可定位、键盘焦点可见。提交、编辑、详情与自定义页都沿用这一导航设计。
 
 ### 2.3 页面标题与操作
 

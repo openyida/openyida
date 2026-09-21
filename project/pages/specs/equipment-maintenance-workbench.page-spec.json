@@ -1,0 +1,21 @@
+{
+  "pageId": "maintenance-workbench",
+  "name": "设备运维工作台",
+  "sourceOfTruth": {
+    "prdFile": "/Users/miwei/.codex/worktrees/71f0/openyida/prd/equipment-maintenance/prd.md",
+    "designFile": "/Users/miwei/.codex/worktrees/71f0/openyida/prd/equipment-maintenance/design.md",
+    "designRefs": ["themeProfile", "sceneRecipes.maintenance-workbench"],
+    "conflictPolicy": "prd-design-win"
+  },
+  "entryMode": "platform-shell",
+  "navigationPolicy": { "applicationMenuOwner": "platform", "renderApplicationMenu": false, "localTabs": "same-task-only" },
+  "dataBindings": [
+    { "mode": "form", "appType": "APP_MPAR8TRJULQ4RBIQ6C1D", "formUuid": "FORM-A0D45A3104B24F55B1F410AED5060D0DSRAG", "sourceName": "设备维修工单", "pageSize": 50 },
+    { "mode": "form", "appType": "APP_MPAR8TRJULQ4RBIQ6C1D", "formUuid": "FORM-C678463D38C34F52B9324AAC0B545AF27KFM", "sourceName": "设备保养计划", "pageSize": 50 },
+    { "mode": "report", "reportId": "REPORT-C1I66291J4B9XDE5HFQ48C0N5M4R3YMGF49UMG", "sourceName": "设备故障分析" }
+  ],
+  "quickEntries": [
+    { "title": "维修工单处理", "targetType": "detail", "appType": "APP_MPAR8TRJULQ4RBIQ6C1D", "formUuid": "FORM-A0D45A3104B24F55B1F410AED5060D0DSRAG", "openMode": "responsive-drawer" },
+    { "title": "保养计划详情", "targetType": "detail", "appType": "APP_MPAR8TRJULQ4RBIQ6C1D", "formUuid": "FORM-C678463D38C34F52B9324AAC0B545AF27KFM", "openMode": "responsive-drawer" }
+  ]
+}

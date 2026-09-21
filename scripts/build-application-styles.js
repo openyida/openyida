@@ -6,32 +6,139 @@ const fs = require('fs');
 const path = require('path');
 const { parseDesignDocument } = require('../lib/design/document');
 const { resolveThemeColors } = require('../lib/design-plan/themes');
-const { applyDesignTokens } = require('../lib/app/theme-from-design');
+const { applyDesignTokens, readDesignTokens } = require('../lib/app/theme-from-design');
 const root = path.resolve(__dirname, '../yida-skills/skills/yida-design');
 const directory = path.join(root, 'templates/design-themes');
 const profiles = require('../yida-skills/skills/yida-design/templates/application-styles.json');
-const base = parseDesignDocument(fs.readFileSync(path.join(directory, 'dark-inset-hairline.md'), 'utf8'));
+const navigationStyles = require('../yida-skills/skills/yida-design/templates/navigation-styles.json');
+const base = parseDesignDocument(fs.readFileSync(path.join(directory, 'dark-inset-hairline/design.md'), 'utf8'));
 const platformCss = fs.readFileSync(path.join(root, 'references/theme/app-custom-theme-template.css'), 'utf8');
 const index = JSON.parse(fs.readFileSync(path.join(directory, 'index.json'), 'utf8'));
 index.description = '共享主题与应用风格目录；主题明暗双轴定义见 references/application-style-library.md，mode=creative 是独立业务推演入口。';
 index.themes = index.themes.filter(theme => theme.collection !== 'application-styles');
 
-const NAVIGATION_PALETTES = {
-  light: {
-    background: '#FFFFFF', text: '#595959', hoverText: '#262626', selectedText: 'var(--color-brand1-6)',
-    hoverBackground: '#F5F5F5', selectedBackground: '#F0F0F0',
-  },
-  dark: {
-    background: '#171717', text: '#A0A0A0', hoverText: '#E7E7E7', selectedText: '#FFFFFF',
-    hoverBackground: '#272727', selectedBackground: '#323232',
-  },
-};
+function navigationTokens(style, navTheme) {
+  const { palette: p, radius, itemHeight, gap, selectedWeight, popupShadow } = style;
+  const ref = name => `var(--pod-${name})`;
+  return {
+    '--pod-shell-theme-bg-color': p.background,
+    '--pod-nav-item-text-color': p.text,
+    '--pod-nav-item-text-hover-color': p.hoverText,
+    '--pod-nav-item-text-selected-color': p.selectedText,
+    '--pod-nav-menu-bg-hover-color': p.hoverBackground,
+    '--pod-nav-menu-bg-selected-color': p.selectedBackground,
+    '--pod-nav-menu-item-selected-shadow': style.selectedShadow || 'none',
+    '--pod-page-header-bg-color': ref('shell-theme-bg-color'),
+    '--pod-nav-l-sub-main-bg-color': ref('shell-theme-bg-color'),
+    '--pod-nav-top-main-border-width': style.stroke ? `${style.stroke}px` : '1px',
+    '--pod-nav-top-main-border-color': p.border,
+    '--pod-nav-top-tab-indicator-width': `${style.topIndicatorWidth || 0}px`,
+    '--pod-nav-logo-text': ref('nav-item-text-hover-color'),
+    '--pod-nav-logo-bg': ref('nav-menu-bg-selected-color'),
+    '--pod-nav-logo-icon': ref('nav-item-text-selected-color'),
+    '--pod-nav-logo-border': `1px solid ${p.border}`,
+    '--pod-nav-logo-border-radius': `${radius}px`,
+    '--pod-nav-sub-divider-color': p.border,
+    '--pod-nav-item-text-disabled-color': navTheme === 'dark' ? 'rgba(255,255,255,.30)' : 'rgba(24,28,31,.30)',
+    '--pod-nav-l-container-bg': ref('shell-theme-bg-color'),
+    '--pod-nav-l-group-label-color': ref('nav-item-text-color'),
+    '--pod-nav-l-search-border-color': p.border,
+    '--pod-nav-popup-bg-color': ref('shell-theme-bg-color'),
+    '--pod-nav-popup-border-radius': `${radius}px`,
+    '--pod-nav-popup-shadow': popupShadow,
+    '--pod-nav-tab-line-hover-color': ref('nav-item-text-hover-color'),
+    '--pod-nav-tab-line-selected-color': ref('nav-item-text-hover-color'),
+    '--pod-nav-search-bg-color': ref('nav-menu-bg-hover-color'),
+    '--pod-nav-search-bg-hover-color': ref('nav-menu-bg-hover-color'),
+    '--pod-nav-search-bg-active-color': ref('nav-menu-bg-hover-color'),
+    '--pod-nav-search-placeholder-color': ref('nav-item-text-color'),
+    '--pod-nav-search-text-color': ref('nav-item-text-hover-color'),
+    '--pod-nav-search-icon-color': ref('nav-item-text-color'),
+    '--pod-nav-search-border-color': p.border,
+    '--pod-nav-search-border-hover-color': ref('nav-item-text-hover-color'),
+    '--pod-nav-search-border-active-color': ref('nav-item-text-hover-color'),
+    '--pod-nav-action-icon-color': ref('nav-item-text-color'),
+    '--pod-nav-action-border-color': p.border,
+    '--pod-nav-action-border': `1px solid ${p.border}`,
+    '--pod-nav-action-bg-hover-color': ref('nav-menu-bg-hover-color'),
+    '--pod-nav-action-bg-active-color': ref('nav-menu-bg-hover-color'),
+    '--pod-nav-menu-item-height': `${itemHeight}px`,
+    '--pod-nav-menu-item-radius': style.menuRadius || `${radius}px`,
+    '--pod-nav-menu-item-border': style.menuBorder || 'none',
+    '--pod-nav-menu-item-hover-border': style.menuHoverBorder || style.menuBorder || 'none',
+    '--pod-nav-menu-item-selected-border': style.menuSelectedBorder || style.menuBorder || 'none',
+    '--pod-nav-menu-font-size': '14px',
+    '--pod-nav-menu-item-selected-font-weight': String(selectedWeight),
+    '--pod-nav-menu-line-height': '20px',
+    '--pod-nav-menu-gap': `${gap}px`,
+    '--pod-shell-lshape-border-radius': `${radius}px`,
+    ...style.tokens,
+  };
+}
+
+function navigationGuidance(style) {
+  return `${style.summary}
+
+菜单轮廓使用 --pod-nav-menu-item-radius、--pod-nav-menu-item-border、--pod-nav-menu-item-hover-border、--pod-nav-menu-item-selected-border。侧栏和顶部菜单共用轮廓，各状态保持相同边框宽度，文字位置稳定；具体数值以本项目 Token 为准。${style.example ? `\n\n导航示例：${style.example} 实际导航布局沿用业务规划。` : ''}
+
+导航与应用框架、表单、自定义页面和详情页共用设计语言。先按业务入口安排菜单、分组、搜索、品牌区与常用操作，再一起确定导航与正文的明暗、表面、字体、边界、圆角和密度。平台导航使用真实页面菜单；自绘导航按同一套导航 Token 实现。命名模板沿用自身 navTheme，换主色保持导航明暗与内容画布；需要另一导航明暗时改选主题，自由创意按项目明确设计。
+
+导航底色使用 --pod-shell-theme-bg-color；普通、悬停和选中文字分别使用 --pod-nav-item-text-color、--pod-nav-item-text-hover-color、--pod-nav-item-text-selected-color；悬停和选中背景使用 --pod-nav-menu-bg-hover-color、--pod-nav-menu-bg-selected-color。图标跟随对应文字状态，当前入口同时用背景或字重表达。
+
+菜单高度、圆角与间距使用 --pod-nav-menu-item-height、--pod-nav-menu-item-radius、--pod-nav-menu-gap；搜索、品牌区、分组、操作和弹出菜单使用 navigation 分组中的对应 Token。弹出菜单的底色、文字与搜索状态成组配套，导航与内容可以分别选择明暗。选中项使用 --pod-nav-menu-item-selected-shadow：none 关闭额外标记，完整 box-shadow 值可表达左、右或底部内阴影，不占据菜单布局空间；该 Token 独立于导航明暗。菜单高度、文字行高、内距和框架留白一起调整，给外阴影、长标题与键盘焦点留出空间。
+
+桌面检查菜单、搜索、选中态与表单的协调；折叠后保留可识别图标和入口名称；窄屏保持菜单可展开、当前页面可定位、键盘焦点可见。提交、编辑、详情与自定义页都沿用这一导航设计。`;
+}
 
 function yaml(value, depth = 0) {
   return Object.entries(value).map(([key, item]) => {
     const prefix = `${'  '.repeat(depth)}${key.startsWith('--') ? JSON.stringify(key) : key}:`;
     return item && typeof item === 'object' ? `${prefix}\n${yaml(item, depth + 1)}` : `${prefix} ${JSON.stringify(String(item))}`;
   }).join('\n');
+}
+
+function cssTemplate(markdown) {
+  // Resolve only to reuse the platform's scope/recipe writer, then restore every
+  // project-dependent value. The temporary seed never becomes a template default.
+  const metadata = parseDesignDocument(markdown).metadata;
+  if (metadata.applicationStyle?.mode === 'creative') {delete metadata.applicationStyle;}
+  const source = `---\n${yaml(metadata)}\n---\n`;
+  const resolved = resolveThemeColors(source.replace(/\{\{PRIMARY_COLOR\}\}/g, '#2C73A9'));
+  const before = {};
+  const collect = node => Object.entries(node).forEach(([key, value]) => {
+    if (key.startsWith('--')) {before[key] = String(value);}
+    else if (value && typeof value === 'object') {collect(value);}
+  });
+  collect(metadata.tokens);
+  const after = readDesignTokens(resolved);
+  const replacements = Object.entries(before)
+    .filter(([, value]) => /\{\{PRIMARY_COLOR\}\}|<生成实际色值：/.test(value))
+    .map(([name]) => [after[name], `var(${name})`]).sort((a, b) => b[0].length - a[0].length);
+  const values = new Map(replacements);
+  values.set(after['--color-brand1-6'], 'var(--color-brand1-6)');
+  const pattern = new RegExp([...values.keys()].map(value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
+  return applyDesignTokens(platformCss, resolved)
+    .replace(/^(\s*(--[\w-]+)\s*:\s*)([^;\n]+);/gm, (_, prefix, name, value) =>
+      `${prefix}${value.trim() === after[name] && /\{\{|<生成实际色值：/.test(before[name] || '')
+        ? before[name] : value.replace(pattern, color => values.get(color))};`)
+    .replace('本模板默认品牌种子为 coffee 咖啡色；最终配色和圆角以 design.md 的 tokens 为准。',
+      '品牌值保留项目占位和派生说明；先完成 design.md，再生成实际主题 CSS。');
+}
+
+// Shared themes retain their distinct compositions and original palettes. Only
+// their navigation block is materialized, leaving authored prose and comments intact.
+for (const theme of index.themes) {
+  const style = navigationStyles[theme.themeId];
+  if (!style) {throw new Error(`主题 ${theme.themeId} 缺少导航设计`);}
+  const file = path.join(root, theme.templatePath);
+  const navigation = yaml(navigationTokens(style, theme.navTheme), 4);
+  const source = fs.readFileSync(file, 'utf8')
+    .replace(/ {6}navigation:[^\n]*\n[\s\S]*?(?= {4}colors:)/, `      navigation:\n${navigation}\n`)
+    .replace(/appearance: #[^\n]*/, 'appearance: # 应用外观：应用背景、内容表面与完整导航设计')
+    .replace(/### 2\.2 应用导航\n[\s\S]*?(?=### 2\.3 )/, `### 2.2 应用导航\n\n${navigationGuidance(style)}\n\n`);
+  fs.writeFileSync(file, source);
+  fs.writeFileSync(path.join(path.dirname(file), 'app_theme.css'), cssTemplate(source));
+  theme.navigationSummary = style.summary;
 }
 
 for (const profile of profiles) {
@@ -43,9 +150,11 @@ for (const profile of profiles) {
     || (!free && (contentTone === 'project-defined' || navTheme === 'project-defined'))) {
     throw new Error(`应用风格 ${id} 的 contentTone/navTheme 配置无效`);
   }
-  const navigation = NAVIGATION_PALETTES[navTheme] || NAVIGATION_PALETTES.light;
+  const navigationStyle = navigationStyles[id];
+  if (!free && !navigationStyle) {throw new Error(`应用风格 ${id} 缺少导航设计`);}
   const metadata = JSON.parse(JSON.stringify(base.metadata));
   metadata.themeId = id;
+  delete metadata.navTheme;
   metadata.applicationStyle = { recipe: 'application-style-v1', mode: profile.mode || 'template' };
   if (!free) {metadata.themeProfile = { contentTone, navTheme };}
   metadata.description = `${composition}；${material}。${scenario}`;
@@ -53,9 +162,6 @@ for (const profile of profiles) {
   const replace = {
     '--pod-app-root-bg-color': canvas, '--pod-app-root-bg-image': profile.background || 'none',
     '--pod-page-bg-color': canvas, '--pod-card-bg-color': surface,
-    '--pod-shell-theme-bg-color': navigation.background, '--pod-nav-item-text-color': navigation.text,
-    '--pod-nav-item-text-hover-color': navigation.hoverText, '--pod-nav-item-text-selected-color': navigation.selectedText,
-    '--pod-nav-menu-bg-hover-color': navigation.hoverBackground, '--pod-nav-menu-bg-selected-color': navigation.selectedBackground,
     '--color-line1-1': border, '--color-line1-2': border,
     '--color-fill1-1': canvas, '--color-fill1-2': canvas, '--color-fill1-3': border,
     '--color-fill1-5': surface,
@@ -70,6 +176,18 @@ for (const profile of profiles) {
     }
   };
   rewrite(global);
+  global.appearance.navigation = free ? {} : navigationTokens(navigationStyle, navTheme);
+  // Creative values are a writing skeleton. Projects explicitly design these
+  // roles; they do not inherit the base theme's palette or material.
+  if (free) {
+    global.appearance.navigation = navigationTokens({
+      palette: { background: '#FFFFFF', text: '#404040', hoverText: '#171717', selectedText: '#FFFFFF', hoverBackground: '#F0F0F0', selectedBackground: '#303030', border: '#CCCCCC' },
+      radius: 4, itemHeight: 40, gap: 8, selectedWeight: 500, popupShadow: 'none',
+    }, 'light');
+  }
+  for (const key of Object.keys(global.rounded)) {
+    if (/^--corner-[1-5]$/.test(key)) {global.rounded[key] = `${radius}px`;}
+  }
   global.appearance['native-form'] = {
     '--form-element-medium-corner': `${radius}px`, '--form-element-medium-height': `${height}px`,
     '--form-element-medium-font-size': '14px', '--input-bg-color': surface,
@@ -109,7 +227,7 @@ for (const profile of profiles) {
 
 ${free ? '自由创意从使用者、任务频率、内容结构、品牌和环境推导两个有差异的方向，再确定构图、材质、字体和密度。交付前用项目设计值替换全部基础值。' : metadata.description}
 
-应用、自定义页面、表单、编辑与详情共用这一套视觉语言。业务内容来自 PRD，不复制示例行业、编号、标题或数据。色彩来源：{{COLOR_SOURCE}}；主色由 {{PRIMARY_COLOR}} 实例化，示范配色只是参考。
+导航、应用框架、自定义页面、表单、编辑与详情共用这一套视觉语言。业务内容来自 PRD，按实际行业、页面标题和数据设计。色彩来源：{{COLOR_SOURCE}}；主色由 {{PRIMARY_COLOR}} 实例化，品牌悬停色按同源占位说明生成；模板不固定项目品牌色。
 
 ## 2. 页面视觉系统
 
@@ -119,7 +237,7 @@ ${composition}。${material}。画布消费 --oyd-page-bg，内容消费 --oyd-s
 
 ### 2.2 应用导航
 
-${profile.navigation || '平台侧导航与内容区域使用同一设计语言；选中项用品牌色和明确文字，不靠图标猜测。'} 默认保留平台导航，菜单来自真实业务范围。只有需求确定自绘导航时才在 Canvas 实现结构。当前模板使用 contentTone: ${contentTone}、navTheme: ${navTheme}。
+${free ? '' : navigationGuidance(navigationStyle)} 当前模板使用 contentTone: ${contentTone}、navTheme: ${navTheme}。
 
 ### 2.3 页面标题与操作
 
@@ -175,7 +293,7 @@ YAML Token 是唯一数值源。${free ? '记录业务推演依据，并确定�
 
 ### 验收
 
-- [ ] 应用壳、Canvas、表单与详情的字体、线条、材质和状态一致。
+- [ ] 导航、应用框架、Canvas、表单与详情的字体、线条、材质和状态一致。
 - [ ] 正文与底栏对齐；四类容器与移动端无横向溢出。
 - [ ] 文字/焦点/禁用/错误在实际背景上可辨，长说明与表格未裁切。
 - [ ] 表单布局与逐页设计一致；组件、字段、主题和响应式规则均已核对。
@@ -185,7 +303,7 @@ YAML Token 是唯一数值源。${free ? '记录业务推演依据，并确定�
 
 ## 1. 风格摘要
 
-自由创意从业务任务、用户、品牌、内容结构和使用环境独立推演，不选择命名模板。应用框架、自定义页面、表单和详情页共用最终确定的构图、字体、材质、密度与状态语言。
+自由创意从业务任务、用户、品牌、内容结构和使用环境独立推演。导航、应用框架、自定义页面、表单和详情页共用最终确定的构图、字体、材质、密度与状态语言。
 
 ## 2. 页面视觉系统
 
@@ -196,6 +314,8 @@ YAML Token 是唯一数值源。${free ? '记录业务推演依据，并确定�
 ### 2.2 应用导航
 
 按业务入口确定导航结构和明暗，菜单来自真实页面范围。主色 {{PRIMARY_COLOR}}；色彩来源 {{COLOR_SOURCE}}。导航与正文使用同一应用全局样式；在 themeProfile 中分别填写 contentTone 与 navTheme。
+
+先决定品牌区、菜单分组、搜索和常用操作如何服务当前业务，再与应用框架、表单、自定义页和详情一起确定表面、边界、圆角、字体、密度和选中表达。在 navigation 分组填写项目自己的导航底色、普通文字、悬停文字、选中文字、悬停背景、选中背景六项 Token，并配套搜索、弹层、分组、操作、菜单高度与圆角。文件中的基础值是编写骨架，交付时用项目设计值替换。窄屏和折叠后保持菜单可展开、当前页面可定位、键盘焦点可见。
 
 ### 2.3 页面标题与操作
 
@@ -240,12 +360,11 @@ YAML Token 是唯一数值源。${free ? '记录业务推演依据，并确定�
   const folder = path.join(directory, id);
   fs.mkdirSync(folder, { recursive: true });
   fs.writeFileSync(path.join(folder, 'design.md'), markdown);
-  const resolved = resolveThemeColors(markdown.replace(/\{\{PRIMARY_COLOR\}\}/g, accent));
-  fs.writeFileSync(path.join(folder, 'app_theme.css'), free ? '/* Free creative: author design.md before generating the project CSS. */\n' + platformCss : applyDesignTokens(platformCss, resolved));
+  fs.writeFileSync(path.join(folder, 'app_theme.css'), cssTemplate(markdown));
   const layout = { type: 'ColumnContainer', layout: columns, columnGap: `${gap}px`, rowGap: `${gap}px`, display: 'VERTICAL', mobileRowGap: `${gap}px`, children: columns.split(':').map(() => []) };
   fs.writeFileSync(path.join(folder, 'form-layout.json'), JSON.stringify([layout], null, 2) + '\n');
   index.themes.push({ themeId: id, label, mode: profile.mode || 'template', collection: 'application-styles',
-    ...(!free ? { contentTone, navTheme } : {}),
-    templatePath: `templates/design-themes/${id}/design.md`, cssTemplatePath: `templates/design-themes/${id}/app_theme.css`, formLayoutPath: `templates/design-themes/${id}/form-layout.json`, previewPrimaryColor: accent, styleSummary: metadata.description });
+    ...(!free ? { contentTone, navTheme, navigationSummary: navigationStyle.summary } : {}),
+    templatePath: `templates/design-themes/${id}/design.md`, cssTemplatePath: `templates/design-themes/${id}/app_theme.css`, formLayoutPath: `templates/design-themes/${id}/form-layout.json`, previewPrimaryColor: accent, styleSummary: free ? metadata.description : `${navTheme === 'dark' ? '深色' : '浅色'}导航，${contentTone === 'dark' ? '深色' : '浅色'}内容界面。${metadata.description}` });
 }
 fs.writeFileSync(path.join(directory, 'index.json'), JSON.stringify(index, null, 2) + '\n');

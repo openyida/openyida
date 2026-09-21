@@ -105,7 +105,7 @@ function CanvasThemeProvider({ children, preview = false, getPopupContainer }) {
       try {
         const token = resolveCanvasTheme(root);
         const controls = resolveCanvasControls(token);
-        const components = { ...resolveCanvasControlComponents(token, controls), Drawer: resolveCanvasTheme(root, { colorBgElevated: ['--pod-shell-theme-bg-color', '--color-white'] }) };
+        const components = { ...resolveCanvasControlComponents(token, controls), Drawer: resolveCanvasTheme(root, { colorBgElevated: ['--pod-shell-theme-bg-color', '--color-white'], colorText: ['--pod-page-header-text-color', '--color-text1-4'], colorTextHeading: ['--pod-page-header-text-color', '--color-text1-4'] }) };
         next = { token, components, controls, status: token.colorPrimary ? (preview ? 'preview' : 'ready') : 'missing' };
       } catch (_error) {
         next = { token: {}, components: {}, controls: null, status: 'error' };

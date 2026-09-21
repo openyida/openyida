@@ -12,7 +12,7 @@
 
 ## 自定义导航分支
 
-前台、后台及共用工作区的自定义导航均按 [首页与菜单顺序](../references/entry-navigation.md#每个入口都确定首页与菜单顺序) 实施：发布前核对每个入口菜单数组及分组顺序、`defaultMenuKey` 对应的页面/视图，发布后从实际入口验证首屏。`frontend-only` 不调用平台排序命令，但必须完成上述排序和验收。
+无论是否分前后台，自定义导航均按 [首页与菜单顺序](../references/entry-navigation.md#每个入口都确定首页与菜单顺序) 实施：发布前核对每个入口菜单数组及分组顺序、`defaultMenuKey` 对应的页面/视图，发布后从实际入口验证首屏。`frontend-only` 不调用平台排序命令，但必须完成上述排序和验收。
 
 PRD 的应用工作区导航 `execution.appConfig.navigationType=custom` 时，页面导航已在 Step 4 / Step 6 创建或复用页面后按 [导航壳必做配置](../../yida-nav-shell/SKILL.md#必做配置) 隐藏并回读，与源码开发并行。本步骤发布并检查本轮全部自定义页面，再回读核对 `renderNav=false`；缺失或被发布改变时才补写修复，不把首次隐藏推迟到发布后。导航顺序由自定义导航实现；汇总 Step 4 / Step 6 的配置结果与发布后回读结果，覆盖 PRD 全部页面后进入 Step 9。下方平台导航排序仅适用于三种平台导航类型。
 
@@ -49,7 +49,7 @@ openyida nav-group auto-order <appType>
 
 4. 同一搭建 Run 不得同时执行显式排序与自动排序，不生成逐项 `move` 的 Bash/Python 循环。
 5. 逐入口落实任务顺序与默认页：平台菜单消费 entryRecommendation 派生的 navigationOrder；自定义菜单消费该入口的 menu 和 defaultMenuKey。前台首页不自动进入后台，frontend-only 仍需完成前台菜单排序。
-6. 分别从本轮交付的前台、后台与共用工作区入口检查实际菜单顺序、默认页面、具体视图和首屏内容。平台排序 `readbackVerified=true` 不证明首页已正确；根入口仍打开错误任务时，继续处理平台支持的默认页配置，能力未验证时交付明确任务链接并标记根入口待验证。平台导航管理页只保留一套跨模块导航，重复时修正页面源码。
+6. 从本轮交付的每个业务入口检查实际菜单顺序、默认页面、具体视图和首屏内容。平台排序 `readbackVerified=true` 不证明首页已正确；根入口仍打开错误任务时，继续处理平台支持的默认页配置，能力未验证时交付明确任务链接并标记根入口待验证。平台导航管理页只保留一套跨模块导航，重复时修正页面源码。
 7. 本步骤配置宜搭平台导航，不要求页面源码实现侧边栏或顶部应用导航；只有 PRD 已规划该入口自己的菜单时才实现，不因平台排序再回头补导航壳。
 7. 本轮任一页面 `entryMode=standalone` 时，Step 6 已在取得页面 ID 后隐藏页面导航；发布和健康检查通过后执行 `openyida get-form-config <appType> <displayPageFormUuid> --json` 核对。配置缺失或变化时才执行 `openyida update-form-config <appType> <displayPageFormUuid> false "<页面标题>"` 并再次回读。只有回读明确为 `renderNav=false` 时，才把干净的 `{base_url}/{appType}/custom/{displayPageFormUuid}` 交给 Step 9 作为独立业务入口；写入或回读失败时只保留工作台入口，不用 `?isRenderNav=false` 猜测成功。
 8. 主页面 `entryMode=platform-shell` 或缺失时，不修改页面导航配置，也不输出独立业务入口。
@@ -76,7 +76,7 @@ openyida nav-group auto-order <appType>
 - [ ] 发布目标是已解析的 display 页面；
 - [ ] Canvas 发布结果为 `publishMode=canvas`，且 `healthCheck.ok=true`、`healthCheck.readback.hasYidaCodeCanvas=true`、`runtimeCodeBytes>0`；
 - [ ] 已获得可访问 URL；
-- [ ] 本轮每个前台、后台或共用工作区入口都已核对默认页面、菜单及分组顺序和首屏任务；自定义导航没有因跳过平台排序命令而漏验；
+- [ ] 本轮每个业务入口都已核对默认页面、菜单及分组顺序和首屏任务；自定义导航没有因跳过平台排序命令而漏验；
 - [ ] 自定义导航业务工作区切换后的 main 和 iframe 撑满剩余空间；连续展示页的首屏背景覆盖导航背后，滚动进入第二屏及窄屏展开菜单仍可读；检查短/长内容、窗口高度变化和底部操作可达性，无双滚动、背景断带或意外边距变化；
 - [ ] 按 [页面与导航连续性](../../yida-design/references/page-continuity.md) 验证菜单往返、直接链接、刷新、前进后退、重复/快速点击及加载失败；保留约定的筛选、分页、位置和未保存输入，URL、选中态与内容一致；
 - [ ] 使用自定义导航时逐项点击，导航仍可见、可操作，选中项与主内容一致且能返回工作台；刷新、前进后退恢复任务，无双导航和双滚动条，不能仅以目标页打开成功验收；

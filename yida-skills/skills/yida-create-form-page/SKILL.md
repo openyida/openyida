@@ -152,7 +152,7 @@ CLI 在同一次 batch 内对已取得真实 `formUuid` 的空壳表单执行一
 
 ## 表单布局样式
 
-- 表单和详情延续 `design.md` 中已确定的应用风格。按 [表单样式与提交页背景](../yida-design/references/native-form-styles.md) 将字体、控件、状态、背景与底栏规则写入同一份应用主题 CSS。
+- 提交、编辑和记录详情与导航、应用框架、自定义页面共用 `design.md` 的整体风格。按 [表单样式与提交页背景](../yida-design/references/native-form-styles.md) 将字体、控件、状态、背景与底栏规则写入同一份应用主题 CSS。
 - 布局结构按[布局决策规则](#布局决策规则)执行，并在 `design.md` 记录列宽、标签位置、分组间距与响应式安排。
 - `--theme default|compact|comfortable` 配置页面密度；应用主题 token 配置完整视觉风格。美化已有表单时保留现有 `formUuid` 和字段结构，只更新布局与主题。
 - 局部多列容器使用统一、克制的背景。

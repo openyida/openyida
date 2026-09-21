@@ -178,6 +178,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: 'Escolha um modo: páginas de trabalho partilhadas (unified), interfaces de utilizador e gestão separadas (service-management), apenas interface de utilizador (frontend-only) ou apenas gestão (backend-only).',
+    design_plan_backend_only_roles: 'Em backend-only, todas as entradas devem usar o papel management.',
     design_plan_local_menu_binding: 'O menu local {0} exige uma página hospedeira e viewKey: sceneKey da entrada {1} deve corresponder ao da página, resource ao name da página e viewKey não pode estar vazio. Aplica-se a todos os papéis.',
     design_plan_visual_object_required: '{0} deve ser um objeto, não uma string ou lista. Preserve a estrutura gerada por init e preencha os valores. Exemplo: {1}.',
     help: '\n' +
@@ -1052,6 +1054,7 @@ module.exports = {
     theme_preset_conflict: 'Um colour predefinido não pode ser combinado com CSS ou themeColor. Use --colour custom ou omita --colour.',
     custom_theme_color_required: 'colour=custom requer um arquivo de tema ou themeColor válido. Use --theme-file ou --theme-color.',
     theme_not_persisted: 'Não foi possível confirmar as configurações do tema após salvar. Verifique themeVerification e tente novamente com update-app <appType> --theme-file <css>; não recrie o aplicativo.',
+    navigation_not_persisted: "Não foi possível verificar a navegação ou os valores diferem dos solicitados. Consulte os valores esperados, os valores reais e os erros em navigationVerification e confira as configurações atuais do aplicativo.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -2096,3 +2099,10 @@ module.exports.help.cmd_connector_update_action = connectorSafetyMessages.help.c
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: 'Configuração de ação de aprovação inválida para o nó {0}: {1}',
 });
+
+module.exports.cli_argument = { invalid: 'Argumento inválido ou valor ausente: {0}. Consulte a ajuda do comando.' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: --output é um arquivo CSS; --design-file lê um design concluído. Omiti-lo redefine o CSS. Defina os valores no design.',
+  'style_help': 'application-style: --style-id é obrigatório e aceita todos os temas do catálogo; --output é uma pasta para três arquivos. Arquivos existentes causam um erro.'
+};

@@ -20,6 +20,15 @@ description: 为已有页面设置公开访问、组织内分享，或隐藏该�
 
 页面使用哪类数据、是否允许公开、openAuth 对当前页面和组织开放哪些资格，必须来自平台能力、用户确认或实际查询证据。本技能不根据页面类型或数据源猜测资格。
 
+## 匿名（免登）提交前置条件
+
+当用户要求"自定义页面在公开访问下提交数据到表单"或"走免登提交接口"时，作为前置门禁：
+
+1. **显示页和目标表单都需要 `isOpen`**：分别运行 `openyida get-page-config <appType> <显示页formUuid>` 和 `openyida get-page-config <appType> <目标formUuid>`，两者都返回 `isOpen === 'y'` 才承诺匿名提交。缺任一时先启用公开访问或改回登录态方案。
+2. **目标表单权限需包含 `FREE_LOGIN`**：运行 `openyida get-permission <appType> <目标formUuid>`，DEFAULT 权限组的 `dataPermit.rule` 须包含 `{"type":"FREE_LOGIN","value":"y"}`。缺少时按 `yida-form-permission` 锁定 DEFAULT 组 `packageUuid`，在完整现有 `dataPermit` 中只补该规则并保留其他规则，禁止用固定模板覆盖现网权限。
+3. 页面运行时分流是**匿名态**决定的，不是"表单公开"决定的：具体分流写法和 `RECEIPT_SAVE_FORM_DATA` 网关契约见 [`yida-canvas-custom-page/references/data-bridge-guide.md`](../yida-canvas-custom-page/references/data-bridge-guide.md) 的"公开访问（匿名态）提交"章节。
+4. 匿名提交的能力边界（不能发起流程、唯一性校验不生效、成员/部门/关联字段不支持、提交人恒为匿名、附件默认不跨组织）由平台限制决定；需要这些能力时改用登录态页面 + 关闭公开访问。
+
 ## 铁律
 
 1. **目标必须可证明**：appType 和 formUuid 从创建/查询命令或当前项目 config.json 获取；证据冲突时停止。
