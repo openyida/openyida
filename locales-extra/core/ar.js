@@ -6,6 +6,10 @@
  */
 module.exports = {
   design_plan: {
+    rebase_required: 'قبل الإنشاء الأول، صحح business.json/visual.json. إذا تغيرت الخطة الرئيسية، احتفظ بالملفات وأضف --rebase-parts إلى الأمر الأصلي.',
+    baseline_missing: 'استعد ملف .build-plan-base.json المطابق من مساحة العمل الأصلية. عند غياب أساس موثوق، احتفظ بالمسودات وأبلغ عن العائق.',
+    rebase_stage_invalid: 'دمج الأساس متاح للمسودات قبل الإنشاء الأول فقط. للخطط المعروضة أو المنشأة، استخدم patch --materialize.',
+    rebase_conflict: 'تغير الحقل نفسه بطريقتين مختلفتين. راجع conflicts واختر القيمة الحالية أو الأصلية في الجزء. لم يتم حفظ أي ملف.',
     repair_page_bindings: 'أصلح pageApplications في visual.json لتطابق customPageDetails في business.json واحدًا لواحد، دون النماذج الأصلية. يجب أن تكون visualMemoryApplications مصفوفة؛ استخدم [] عند عدم وجود عناصر مناسبة. احتفظ بالمسودة وأصلح الحقول المذكورة ثم أعد الأمر الأصلي. لا تحذف المجلد ولا تشغّل init مجددًا.',
   },
   design_document: {

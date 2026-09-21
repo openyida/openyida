@@ -17,7 +17,8 @@ const path = require('path');
 // Retain ~21 KiB npm 10 compression overhead; round budgets to 16 KiB boundaries.
 const MAX_TARBALL_BYTES = 1920 * 1024;
 const MAX_UNPACKED_BYTES = 7056 * 1024;
-const MAX_ENTRY_COUNT = 569;
+// Plan confirmation payload and explicit part rebase add two runtime modules.
+const MAX_ENTRY_COUNT = 571;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -36,6 +37,8 @@ const REQUIRED_PACKAGE_FILES = [
   'lib/asset/asset-execution.js',
   'lib/app/canvas-icon-exports.json',
   'lib/design-plan/preview.js',
+  'lib/design-plan/confirmation.js',
+  'lib/design-plan/rebase.js',
   'lib/design-plan/entry-navigation.js',
   'lib/design-plan/navigation-policy.js',
   'yida-skills/skills/yida-app/references/entry-navigation.md',

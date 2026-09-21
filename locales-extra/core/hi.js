@@ -6,6 +6,10 @@
  */
 module.exports = {
   design_plan: {
+    rebase_required: 'पहली बार बनाने से पहले business.json/visual.json सुधारें। मुख्य योजना बदली हो तो फ़ाइलें सुरक्षित रखें और मूल कमांड में --rebase-parts जोड़ें।',
+    baseline_missing: 'मूल कार्यक्षेत्र से संबंधित .build-plan-base.json बहाल करें। विश्वसनीय आधार न मिले तो मसौदे सुरक्षित रखें और अवरोध बताएँ।',
+    rebase_stage_invalid: 'आधार मिलान केवल पहली बार बनाने से पहले के मसौदों के लिए है। दिखाई या बनाई जा चुकी योजना के लिए patch --materialize उपयोग करें।',
+    rebase_conflict: 'एक ही फ़ील्ड अलग तरह से बदली गई है। conflicts जाँचें और खंड में वर्तमान या मूल मान चुनें। कोई फ़ाइल सहेजी नहीं गई।',
     repair_page_bindings: 'visual.json के pageApplications को business.json के customPageDetails से एक-एक करके मिलाएँ; मूल फ़ॉर्म शामिल न करें। visualMemoryApplications एक ऐरे होना चाहिए; कोई उपयुक्त आइटम न हो तो [] दें। मौजूदा मसौदा रखें, बताए गए फ़ील्ड सुधारें और मूल कमांड फिर चलाएँ। डायरेक्टरी न हटाएँ और init दोबारा न चलाएँ।',
   },
   design_document: {

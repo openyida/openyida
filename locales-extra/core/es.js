@@ -6,6 +6,10 @@
  */
 module.exports = {
   design_plan: {
+    rebase_required: 'Antes de la primera generación, corrija business.json/visual.json. Si cambió el plan principal, conserve los archivos y añada --rebase-parts al comando original.',
+    baseline_missing: 'Restaure el .build-plan-base.json correspondiente desde el espacio original. Sin una base fiable, conserve los borradores e informe del bloqueo.',
+    rebase_stage_invalid: 'La reconciliación solo admite borradores antes de la primera generación. Para planes ya mostrados o generados, use patch --materialize.',
+    rebase_conflict: 'El mismo campo recibió cambios distintos. Revise conflicts y elija el valor actual o inicial en el fragmento. No se guardó ningún archivo.',
     repair_page_bindings: 'Haga corresponder pageApplications de visual.json con customPageDetails de business.json uno a uno, sin formularios nativos. visualMemoryApplications debe ser un arreglo; use [] si no corresponde ninguno. Conserve el borrador, corrija los campos indicados y repita el comando original. No elimine el directorio ni ejecute init de nuevo.',
   },
   design_document: {

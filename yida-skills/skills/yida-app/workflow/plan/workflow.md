@@ -57,3 +57,9 @@ build-plan.json（业务和视觉的源事实）
 草稿按已确定的模块更新，最终校验后统一保存三份文档和主题 CSS。后续业务或视觉调整按 [局部调整](step-4-deliver.md#4-处理调整) 更新并确认；素材进度同步沿用已有确认。
 
 用户交互按 [可见表达契约](../../../yida-design/references/ask-human-interaction-contract.md) 执行。当前展示版本确认后，先按物化返回的 `assetTasks` 启动素材任务，再将 `prd.md`、`design.md` 和 `outputs.theme` 交给主流程 Step 3；搜索与创建应用同时推进。仅完整应用同步主题设置；`explicitScope.allowInferredResources=false` 时忽略主题和导航交接，只创建范围内资源并交付，不重复物化计划。
+
+## 加载失败与内容修复
+
+技能加载失败、限流或换模型后，先成功读取本工作流和当前步骤，再沿用已确认需求继续；未加载成功不得凭记忆生成 HTML 或确认参数。首次物化前只修 business.json/visual.json 对应 facts（菜单与执行规划在 business.facts.execution），不要直接修初始化主计划。字段错误按具体路径修正后重试。
+
+如果已经改动主计划并出现 DESIGN_PLAN_STALE_PART，在原 materialize 命令增加 --rebase-parts。CLI 使用 init 保存的 .build-plan-base.json 做三方核对，保留已完成 facts；冲突按 details.conflicts 明确选择后重试。基线缺失或无法核实时告知阻塞并恢复可信文件，不手填 digest、不删除重建、不重新 init。已物化后调整走 patch --materialize，不继续复用初始化片段。

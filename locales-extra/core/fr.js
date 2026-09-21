@@ -6,6 +6,10 @@
  */
 module.exports = {
   design_plan: {
+    rebase_required: 'Avant la première génération, corrigez business.json/visual.json. Si le plan principal a changé, conservez les fichiers et ajoutez --rebase-parts à la commande initiale.',
+    baseline_missing: 'Restaurez le fichier .build-plan-base.json correspondant depuis son espace initial. Sans base fiable, conservez les brouillons et signalez le blocage.',
+    rebase_stage_invalid: 'La fusion des bases concerne uniquement les brouillons avant la première génération. Pour un plan déjà présenté ou généré, utilisez patch --materialize.',
+    rebase_conflict: 'Le même champ a reçu des modifications différentes. Consultez conflicts et choisissez la valeur actuelle ou initiale dans le fragment. Aucun fichier enregistré.',
     repair_page_bindings: 'Faites correspondre pageApplications de visual.json à customPageDetails de business.json, un à un, sans les formulaires natifs. visualMemoryApplications doit être un tableau, [] si aucun élément ne convient. Gardez le brouillon, corrigez les champs indiqués et relancez la commande initiale. Ne supprimez pas le dossier et ne relancez pas init.',
   },
   design_document: {

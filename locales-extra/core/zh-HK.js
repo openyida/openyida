@@ -6,6 +6,10 @@
  */
 module.exports = {
   design_plan: {
+    rebase_required: '首次物化前請修正 business.json/visual.json；主計劃已變更時，保留現有檔案並在原命令加入 --rebase-parts。',
+    baseline_missing: '請從原工作區恢復匹配的 .build-plan-base.json；缺少可信基線時保留草稿並報告阻塞。',
+    rebase_stage_invalid: '僅首次物化前的草稿可合併基線。已展示或物化的計劃請使用 patch --materialize。',
+    rebase_conflict: '主計劃與片段修改了同一欄位。請核對 conflicts 並在片段中選擇目前值或基線值；尚未儲存。',
     repair_page_bindings: '按 business.json 的 customPageDetails 逐一修復 visual.json 的 pageApplications；原生表單不加入綁定。每項 visualMemoryApplications 必須為陣列，無適用項用 []。保留現有草稿，修復所列欄位後重試原命令；不要刪除目錄或重新 init。',
   },
   design_document: {

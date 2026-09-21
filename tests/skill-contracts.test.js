@@ -794,7 +794,7 @@ describe('OpenYida skill contracts', () => {
     expect(appStep2).toContain('沿用用户最后一次明确选择');
     expect(designMode).toContain('其他回答只更新各自声明的字段');
     expect(skill).toContain('与当前 revision 匹配的 `confirm_build`');
-    expect(skill).toContain('素材进度同步保留已有确认');
+    expect(skill).toContain('素材进度更新不改变已有的需求确认和模式选择');
     expect(prd).toContain('生成 `prd/<项目名>/prd.md`');
     expect(prd).toContain('基于输入事实');
     expect(design).toContain('输出 `design.md`');

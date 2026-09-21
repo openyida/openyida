@@ -6,6 +6,10 @@
  */
 module.exports = {
   design_plan: {
+    rebase_required: 'Vor der ersten Ausgabe business.json/visual.json korrigieren. Bei geänderter Hauptplanung Dateien behalten und --rebase-parts zum ursprünglichen Befehl ergänzen.',
+    baseline_missing: 'Passende .build-plan-base.json aus dem ursprünglichen Arbeitsbereich wiederherstellen. Ohne verlässliche Basis Entwürfe behalten und die Blockade melden.',
+    rebase_stage_invalid: 'Basisabgleich gilt nur vor der ersten Ausgabe. Für bereits angezeigte oder erzeugte Pläne patch --materialize verwenden.',
+    rebase_conflict: 'Dasselbe Feld wurde unterschiedlich geändert. conflicts prüfen und im Teilplan den aktuellen oder ursprünglichen Wert wählen. Keine Dateien gespeichert.',
     repair_page_bindings: 'Ordnen Sie pageApplications in visual.json den customPageDetails in business.json eins zu eins zu, ohne native Formulare. visualMemoryApplications muss ein Array sein; verwenden Sie bei Bedarf []. Behalten Sie den Entwurf, korrigieren Sie die angegebenen Felder und wiederholen Sie den ursprünglichen Befehl. Löschen Sie das Verzeichnis nicht und führen Sie init nicht erneut aus.',
   },
   design_document: {

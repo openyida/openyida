@@ -42,7 +42,7 @@ HTML 使用预置模板，保留需求总览、数据模型、业务流程、页
 {"question":"请确认当前搭建方案","options":[{"label":"确认并开始搭建","value":"confirm_build"},{"label":"继续调整","value":"continue_editing"}],"submitLabel":"提交选择","attachments":[{"name":"build-plan.html","path":"<outputs.html>"}],"revision":"<revision>"}
 ```
 
-把 `<outputs.html>` 和 `<revision>` 替换为本次 materialize 的实际结果，不另造值。确认前不创建业务资源。
+优先将本次 materialize 或 patch --materialize 返回的 `confirmation` 对象原样传给 ask_human，它已经绑定同调用附件、revision 和固定选项。旧 CLI 没有该字段时，才按上例用实际 `<outputs.html>` 和 `<revision>` 填写，禁止另造值或省略 options/attachments/revision。确认前不创建业务资源。
 
 3. 结构化交互成功创建后将 `meta.planState.presentedRevision=meta.revision` 写回源 JSON，仅保存展示事实，不重新物化。询问“确认并开始搭建”或“继续调整”，提交时由宿主原样回传 revision，将确认结果绑定到本次展示版本。用户可见标题、摘要、附件名称与确认问题统一使用“搭建方案”或“当前方案”，不展示修订序号。内部 revision、展示记录和确认失效机制照常维护。
 

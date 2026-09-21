@@ -6,6 +6,10 @@
  */
 module.exports = {
   design_plan: {
+    rebase_required: '初回生成前は business.json/visual.json を修正してください。元計画が変わった場合はファイルを保持し、元コマンドに --rebase-parts を追加してください。',
+    baseline_missing: '元の作業領域から対応する .build-plan-base.json を復元してください。信頼できる基準がなければ下書きを保持して問題を報告してください。',
+    rebase_stage_invalid: '基準の統合は初回生成前の下書きのみです。表示・生成済みの計画には patch --materialize を使用してください。',
+    rebase_conflict: '同じ項目が異なる内容に変更されています。conflicts を確認し、断片で現在値か基準値を選択してください。ファイルは未保存です。',
     repair_page_bindings: 'visual.json の pageApplications を business.json の customPageDetails と一対一に対応させ、ネイティブフォームは除外してください。visualMemoryApplications は配列とし、該当なしは [] にします。既存の下書きを保持し、示されたフィールドを修正して元のコマンドを再実行してください。ディレクトリの削除や init の再実行は不要です。',
   },
   design_document: {
