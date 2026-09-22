@@ -33,6 +33,28 @@ describe('private DWS access-token sync', () => {
   });
   afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 
+  test('host token resolves organization on the server without a client corpId', async () => {
+    const result = await syncDws({ ...options, input: input({ corpId: undefined }) });
+    expect(requestJson).toHaveBeenCalledWith('POST', `${origin}/openapi/cli/v1/auth/dws/token`,
+      { environment: 'pre' }, { Authorization: `Bearer ${fakeSecret}` }, expect.any(Object));
+    expect(result).toMatchObject({ status: 'ready', corp_id: 'corp-a', user_id: 'user-a' });
+    expect(loadTokenSession(options)).toMatchObject({ corp_id: 'corp-a', user_id: 'user-a' });
+  });
+
+  test.each([undefined, '', ' '])('missing verified organization cannot replace existing profile: %j', async (corpId) => {
+    const original = saveTokenSession({ ...issued(), base_url: origin, access_token: 'old' }, options);
+    requestJson.mockResolvedValue({ ...issued(), corp_id: corpId });
+    await expect(syncDws({ ...options, input: input({ corpId: undefined }) })).rejects.toThrow('INVALID_EXCHANGE_RESPONSE');
+    expect(loadTokenSession(options).auth_profile).toBe(original.auth_profile);
+  });
+
+  test('invalid host token does not replace an existing profile', async () => {
+    const original = saveTokenSession({ ...issued(), base_url: origin, access_token: 'old' }, options);
+    requestJson.mockResolvedValue({ status: 'invalid_dws_token' });
+    await expect(syncDws({ ...options, input: input({ corpId: undefined }) })).rejects.toThrow('invalid_dws_token');
+    expect(loadTokenSession(options).auth_profile).toBe(original.auth_profile);
+  });
+
   test('two task directories keep independent organization bindings in one profile store', async () => {
     const first = await syncDws(options);
     const other = { ...options, projectRoot: path.join(root, 'task-b'), input: input({ corpId: 'corp-b' }) };
@@ -63,7 +85,7 @@ describe('private DWS access-token sync', () => {
     const pipe = new PassThrough();
     try {
       const result = await require('../lib/auth/dws-sync').run(['--capabilities', '--json'], { ...options, input: pipe });
-      expect(result).toEqual({ protocol_version: 1, private_stdin: true, independent_profile: true });
+      expect(result).toEqual({ protocol_version: 1, private_stdin: true, independent_profile: true, server_identity: true });
       expect(requestJson).not.toHaveBeenCalled();
       expect(fs.existsSync(options.authDir)).toBe(false);
     } finally { output.mockRestore(); pipe.destroy(); }

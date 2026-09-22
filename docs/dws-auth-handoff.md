@@ -11,7 +11,7 @@ openyida auth sync-dws --capabilities --json
 返回：
 
 ```json
-{"protocol_version":1,"private_stdin":true,"independent_profile":true}
+{"protocol_version":1,"private_stdin":true,"independent_profile":true,"server_identity":true}
 ```
 
 此探测不读取凭证、不请求服务端、不修改 profile。DWS 在传递凭证前先检查协议能力；认证交接使用私有 stdin，不能把凭证放入模型上下文或工具输出。
@@ -25,3 +25,9 @@ DWS prepare 返回 ready 后，在相同任务目录检查 `openyida agent-capab
 ## Beta 验证边界
 
 本协议能力随 CLI 包发布；宿主的 DWS 版本、技能路由和运行权限由宿主集成负责。千问办公的本地 DWS 替换和技能移位属于本机测试配置，不随 npm 包分发，也不表示千问办公官方发行版已经接入。
+
+## 宿主 token 交接
+
+宿主已提供 token 时，DWS 优先通过子进程私有 stdin 发送 `accessToken` 与 `environment`，不读取本机 OAuth 账号。`corpId` 可省略：服务端验证 token 的来源、有效性及用户组织身份后，返回可信的组织与用户；OpenYida 使用该身份创建独立 profile。若提供 `corpId`，它仅作为组织匹配约束，不能替代服务端验证。
+
+DWS 在发送宿主凭证前必须确认 `server_identity: true`。旧版 CLI 不支持此能力时停止交接；换票失败不得回退到其他账号。没有宿主 token 时仍可使用原有 DWS OAuth 交接。此能力需要同时更新 DWS、OpenYida CLI 和服务端换票接口，已发布的 `2026.9.22-beta.1` 不包含此能力。
