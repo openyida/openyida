@@ -33,6 +33,52 @@ describe('private DWS access-token sync', () => {
   });
   afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 
+  test('two task directories keep independent organization bindings in one profile store', async () => {
+    const first = await syncDws(options);
+    const other = { ...options, projectRoot: path.join(root, 'task-b'), input: input({ corpId: 'corp-b' }) };
+    requestJson.mockResolvedValue({ ...issued(), corp_id: 'corp-b', user_id: 'user-b',
+      session_id: '87654321-4321-4321-4321-cba987654321' });
+    const second = await syncDws(other);
+    expect(first.auth_profile).not.toBe(second.auth_profile);
+    expect(loadTokenSession(options)).toMatchObject({ corp_id: 'corp-a', auth_profile: first.auth_profile });
+    expect(loadTokenSession(other)).toMatchObject({ corp_id: 'corp-b', auth_profile: second.auth_profile });
+    // A deliberate rebind in task A is visible to the task's next status check.
+    await syncDws({ ...options, input: input({ corpId: 'corp-b' }) });
+    expect(loadTokenSession(options).auth_profile).not.toBe(first.auth_profile);
+    expect(loadTokenSession({ ...options, authProfile: first.auth_profile }).corp_id).toBe('corp-a');
+    expect(loadTokenSession(other).corp_id).toBe('corp-b');
+  });
+
+  test('expired DWS sessions are not eligible for automatic use', async () => {
+    await syncDws(options);
+    const now = jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 3 * 3600 * 1000);
+    try {
+      expect(require('../lib/auth/token-auth').tokenStatus(options)).toMatchObject({
+        status: 'expired', can_auto_use: false, failure_reason: 'dws_session_expired' });
+    } finally { now.mockRestore(); }
+  });
+
+  test('capability probe neither reads stdin nor exchanges credentials', async () => {
+    const output = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const pipe = new PassThrough();
+    try {
+      const result = await require('../lib/auth/dws-sync').run(['--capabilities', '--json'], { ...options, input: pipe });
+      expect(result).toEqual({ protocol_version: 1, private_stdin: true, independent_profile: true });
+      expect(requestJson).not.toHaveBeenCalled();
+      expect(fs.existsSync(options.authDir)).toBe(false);
+    } finally { output.mockRestore(); pipe.destroy(); }
+  });
+
+  test('status preserves the exchanged environment across subsequent commands', async () => {
+    await syncDws(options);
+    const { tokenStatus } = require('../lib/auth/token-auth');
+    const status = tokenStatus({ ...options, endpoint: undefined, env: {} });
+    expect(status).toMatchObject({ base_url: origin, credential_source: 'dws', environment: 'pre',
+      corp_id: 'corp-a', user_id: 'user-a', session_expires_at: expect.any(Number) });
+    expect(require('../lib/core/utils').resolveBaseUrl(status)).toBe(origin);
+    expect(JSON.stringify(status)).not.toContain(fakeSecret);
+  });
+
   test('exchanges access through Authorization, persists YiDA only and isolates independent login', async () => {
     const original = saveTokenSession({ ...issued(), credential_source: undefined, session_id: undefined,
       access_token: 'independent', refresh_token: 'independent-refresh', base_url: origin }, options);
@@ -50,7 +96,7 @@ describe('private DWS access-token sync', () => {
   });
 
   test.each([
-    { refresh_token: '' }, { client_id: 'dws-client' }, { environment: 'prod' },
+    { refresh_token: '' }, { client_id: 'dws-client' }, { environment: 'prod' }, { credential_source: 'oauth' },
     { corp_id: 'another-corp' }, { base_url: 'https://www.aliwork.com' },
     { session_expires_at: 1 },
   ])('rejects incomplete or mismatched exchange without switching: %j', async (change) => {

@@ -654,7 +654,7 @@ describe('CLI offline smoke', () => {
       requires_login: false,
     });
     expect(parsed.commands.find(entry => entry.id === 'auth')).toMatchObject({
-      usage: 'openyida auth <status|login|refresh|logout|profiles|profile switch>',
+      usage: 'openyida auth <status|login|sync-dws|refresh|logout|profiles|profile switch>',
       requires_login: false,
     });
     expect(parsed.commands.find(entry => entry.id === 'dingtalk-link')).toMatchObject({
@@ -1828,7 +1828,7 @@ describe('CLI offline smoke', () => {
       mutates_yida: false,
       mutates_local: true,
       read_actions: ['status', 'profiles'],
-      mutating_actions: ['login', 'refresh', 'logout', 'profile switch'],
+      mutating_actions: ['login', 'sync-dws', 'refresh', 'logout', 'profile switch'],
     });
     expect(commandById.org.side_effect).toMatchObject({
       kind: 'mixed',

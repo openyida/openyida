@@ -101,6 +101,10 @@ describe('agent-capabilities summary', () => {
       corp_id: 'corpRuntime',
       corp_name: '运行时组织',
       user_id: 'userRuntime',
+      base_url: 'https://pre.example.test',
+      credential_source: 'dws',
+      environment: 'pre',
+      session_expires_at: 2000000000,
       user_auth_store_writable: null,
       persistence_scope: 'process',
       status: 'ok',
@@ -166,6 +170,8 @@ describe('agent-capabilities summary', () => {
           },
         },
       });
+      expect(summary.login).toMatchObject({ base_url: 'https://pre.example.test',
+        credential_source: 'dws', environment: 'pre', session_expires_at: 2000000000 });
       expect(summary).not.toHaveProperty('precheck');
       expect(JSON.stringify(summary)).not.toContain('host_injected');
       expect(JSON.stringify(summary)).not.toContain('host_token');
