@@ -32,6 +32,11 @@ module.exports = {
     usage: 'Verwendung: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'Datei zur Designprüfung kann nicht gelesen werden: {0}',
     checked: 'Designprüfung erfolgreich: {0}; {1} Seiten, {2} Tokens',
+    anchor_hint: 'Der Anker muss im Textkörper als selbstschließendes HTML-Tag geschrieben werden, z. B. <a id="component-button"></a> (die Tag-ID beginnt nicht mit #; im Frontmatter wird er als #component-button referenziert). Markdown-Überschriften-IDs {#id}, Links wie [Text](#id) oder einfacher Text zählen nicht als Anker.',
+    anchor_chapter_three_hint: 'Das Tag <a id="…"></a> dieses Ankers muss innerhalb des Kapitels "## 3. 基础组件表达" und vor "## 4. 特色表达配方" stehen.',
+    page_anchor_chapter_five_hint: 'Das Tag des Seitenankers <a id="page-…"></a> muss innerhalb des Kapitels "## 5. 项目应用与调整规则" stehen.',
+    page_anchor_prefix_hint: 'Die ID des Seitenanker-Tags muss mit page- beginnen, z. B. <a id="page-workbench"></a> (im Frontmatter als #page-workbench referenziert), und darf sich zwischen Seiten nicht wiederholen.',
+    page_label_hint: 'Nach diesem Seitenanker <a id="page-…"></a> und vor dem nächsten Seitenanker schreiben Sie die acht Punkte Zeile für Zeile: 页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收, im Format - **{0}：** konkreter Inhalt; Werte müssen konkret und umsetzbar sein, keine Platzhalter wie 按主题执行 oder TODO.',
   },
   asset: {
     sourceRecords: 'In assets[] über --input assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) und authorizationEvidence (Array von Beleg-URLs oder Dateipfaden) eintragen. Das Manifest bewahrt diese Angaben; fehlende Werte bleiben leer. Dies bestätigt keine kommerzielle Nutzungserlaubnis.',

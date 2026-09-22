@@ -32,6 +32,11 @@ module.exports = {
     usage: 'الاستخدام: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'تعذرت قراءة ملف التحقق من التصميم: {0}',
     checked: 'نجح التحقق من التصميم: {0}؛ {1} صفحات، {2} رموز',
+    anchor_hint: 'يجب كتابة المرساة في النص كوسم HTML ذاتي الإغلاق، مثل <a id="component-button"></a> (معرّف الوسم لا يبدأ بـ #؛ يُكتب المرجع في الـ frontmatter بالشكل #component-button). معرّفات عناوين Markdown مثل {#id} أو الروابط [نص](#id) أو النص العادي لا تُعتبر مراسٍ.',
+    anchor_chapter_three_hint: 'يجب وضع وسم <a id="…"></a> لهذه المرساة داخل الفصل "## 3. 基础组件表达" وقبل "## 4. 特色表达配方".',
+    page_anchor_chapter_five_hint: 'يجب أن يوضع وسم مرساة الصفحة <a id="page-…"></a> داخل الفصل "## 5. 项目应用与调整规则".',
+    page_anchor_prefix_hint: 'يجب أن يبدأ معرّف وسم مرساة الصفحة بـ page-، مثل <a id="page-workbench"></a> (يُشار إليه في الـ frontmatter بالشكل #page-workbench)، ولا يجوز تكراره بين الصفحات.',
+    page_label_hint: 'بعد مرساة الصفحة <a id="page-…"></a> وقبل مرساة الصفحة التالية، اكتب النقاط الثماني سطرًا بسطر: 页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收، بالصيغة - **{0}：** محتوى محدد؛ يجب أن تكون القيم محددة وقابلة للتنفيذ، ولا يجوز استخدام عبارات مؤقتة مثل 按主题执行 أو TODO.',
   },
   asset: {
     sourceRecords: 'سجّل assetId وcreator وsourcePage وlicense وlicenseUrl وlicenseCheckedAt (YYYY-MM-DD) وauthorizationEvidence (مصفوفة روابط أو مسارات ملفات الإثبات) في assets[] عبر --input. يحتفظ السجل بهذه البيانات وتبقى القيم الناقصة فارغة؛ لا يُعد ذلك إثباتًا تلقائيًا لترخيص الاستخدام التجاري.',

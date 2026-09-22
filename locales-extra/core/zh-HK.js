@@ -32,6 +32,11 @@ module.exports = {
     usage: '用法: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: '無法讀取設計檢查文件：{0}',
     checked: '設計文件驗證通過：{0}；{1} 個頁面，{2} 個 token',
+    anchor_hint: '錨點必須在正文相應位置寫成自閉合 HTML 標籤，例如 <a id="component-button"></a>（標籤 id 不帶 #，frontmatter 引用寫作 #component-button）。Markdown 標題 {#id}、連結 [文字](#id) 或純文字不算錨點。',
+    anchor_chapter_three_hint: '該錨點的 <a id="…"></a> 標籤必須放在「## 3. 基礎組件表達」章節內、「## 4. 特色表達配方」之前。',
+    page_anchor_chapter_five_hint: '頁面錨點的 <a id="page-…"></a> 標籤必須放在「## 5. 項目應用與調整規則」章節內。',
+    page_anchor_prefix_hint: '頁面錨點的標籤 id 必須以 page- 開頭，例如 <a id="page-workbench"></a>（frontmatter 引用寫作 #page-workbench），且不同頁面的錨點不得重複。',
+    page_label_hint: '在本頁錨點 <a id="page-…"></a> 之後、下一個頁面錨點之前，逐行寫出八項要點：頁面任務/首屏焦點/佈局/表面與組件/主操作/狀態/響應式/驗收，格式如 - **{0}：** 具體內容；值必須具體可實現，不能寫「按主題執行」「TODO」等佔位說法。',
   },
   asset: {
     sourceRecords: '在 --input 的 assets[] 中填寫 assetId、creator、sourcePage、license、licenseUrl、licenseCheckedAt（YYYY-MM-DD）和 authorizationEvidence（憑證連結或檔案路徑陣列）。清單保留這些記錄；未提供的留空，不自動認定已獲商用授權。',

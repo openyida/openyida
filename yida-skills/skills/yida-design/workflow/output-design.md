@@ -97,6 +97,31 @@ Fast 保留 PRD 的 Markdown 逐页块与 `pageSpecHandoff` 格式，display-pag
 - `components`、`states` 的 key 与 PRD 引用一致，目标 anchor 位于第 3 章基础组件表达内。只登记实际存在的规则；一个复合组件段落确实覆盖多类组件时可共享 anchor，不能因缺少规则就登记虚假引用。
 - 索引只保存定位信息，不保存 `rules`、页面布局或组件正文副本。一个共享段落可以服务多个页面，但每个页面仍有自己的具体应用段。
 
+锚点与八项要点的最小对照（校验只认这种自闭合 HTML 锚点标签，Markdown 标题 `{#id}`、链接 `[文字](#id)` 都不算锚点）：
+
+```markdown
+## 3. 基础组件表达
+
+<a id="component-button"></a>
+### 按钮
+主要操作使用品牌色。
+
+## 5. 项目应用与调整规则
+
+<a id="page-workbench"></a>
+### 工作台
+- **页面任务：** 处理逾期待办并支持批量完成
+- **首屏焦点：** 逾期队列置顶并高亮最紧急一项
+- **布局：** 主列表居左、上下文分栏居右，720px 以下上下堆叠
+- **表面与组件：** 表格消费共享卡片表面与按钮规则
+- **主操作：** 行尾「完成」提交并刷新计数
+- **状态：** 空记录显示登记入口，加载显示骨架
+- **响应式：** 窄屏工具栏换行、表格横向滚动
+- **验收：** 完成操作后计数与列表同源刷新
+```
+
+frontmatter 对应 `components.button.anchor: "#component-button"`、`sceneRecipes.workbench.pages: [{ "pageId": "workbench", "anchor": "#page-workbench" }]`：标签 id 不带 `#`，frontmatter 引用带 `#`；页面锚点必须落在第 5 章，八项要点紧跟本页锚点、止于下一个页面锚点。
+
 ## 图片素材与图标
 
 `assetStrategy.pages[]` 按 [素材清单契约](../../yida-image-assets/references/manifest-contract.md) 记录图片等级与槽位；槽位含用途、数量、比例、尺寸、焦点、填充方式和生成许可。无图片需求的实际页面记录 `imageNeed: none`。保持 frontmatter 单行 JSON 兼容 `--design design.md`，不能只保留槽位数量；有需求时交给 `yida-image-assets`。

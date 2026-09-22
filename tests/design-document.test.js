@@ -90,6 +90,30 @@ test.each(['页面任务', '首屏焦点', '布局', '表面与组件', '主操�
   }
 );
 
+test.each([
+  ['EXISTING_ANCHOR_REQUIRED', value => {value.body = value.body.replace('<a id="page-workbench"></a>', '[工作台](#page-workbench)');}, '<a id="component-button"></a>'],
+  ['ANCHOR_MUST_BE_IN_CHAPTER_THREE', value => {
+    value.body = value.body.replace('<a id="component-button"></a>\n### 按钮', '### 按钮');
+    value.body = value.body.replace('## 5. 项目应用与调整规则', '## 5. 项目应用与调整规则\n<a id="component-button"></a>');
+  }, '基础组件表达'],
+  ['PAGE_MUST_BE_IN_CHAPTER_FIVE', value => {
+    value.body = value.body.replace('<a id="page-workbench"></a>\n### 工作台', '### 工作台');
+    value.body = value.body.replace('## 4. 特色表达配方', '<a id="page-workbench"></a>\n## 4. 特色表达配方');
+  }, '项目应用与调整规则'],
+  ['UNIQUE_PAGE_ANCHOR_REQUIRED', value => {
+    value.metadata.sceneRecipes.workbench.pages[0].anchor = '#workbench';
+    value.body = value.body.replace('<a id="page-workbench"></a>', '<a id="workbench"></a>');
+  }, 'page-'],
+  ['PAGE_LABEL_REQUIRED', value => {value.body = value.body.replace('- **主操作：** 完成任务\n', '');}, '- **主操作：**'],
+])('anchor validation issues carry an actionable nextStep (%s)', (issue, mutate, marker) => {
+  const value = fixture();
+  mutate(value);
+  try {check(value); throw new Error('Expected validation error');} catch (error) {
+    expect(error.details?.issue).toBe(issue);
+    expect(error.details?.nextStep).toContain(marker);
+  }
+});
+
 test.each(['--pod-app-root-bg-color', '--pod-page-bg-color', '--pod-card-bg-color'])(
   'background colors reject image values in %s', token => {
     const value = fixture();

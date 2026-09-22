@@ -32,6 +32,11 @@ module.exports = {
     usage: 'Uso: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'No se puede leer el archivo de validación del diseño: {0}',
     checked: 'Validación del diseño correcta: {0}; {1} páginas, {2} tokens',
+    anchor_hint: 'El ancla debe escribirse en el cuerpo del documento como una etiqueta HTML de autocierre, p. ej. <a id="component-button"></a> (el id de la etiqueta no lleva #; en el frontmatter se referencia como #component-button). Los ids de encabezados Markdown {#id}, los enlaces [texto](#id) o el texto plano no cuentan como anclas.',
+    anchor_chapter_three_hint: 'La etiqueta <a id="…"></a> de este ancla debe colocarse dentro del capítulo "## 3. 基础组件表达" y antes de "## 4. 特色表达配方".',
+    page_anchor_chapter_five_hint: 'La etiqueta del ancla de página <a id="page-…"></a> debe colocarse dentro del capítulo "## 5. 项目应用与调整规则".',
+    page_anchor_prefix_hint: 'El id de la etiqueta del ancla de página debe empezar por page-, p. ej. <a id="page-workbench"></a> (referenciada como #page-workbench en el frontmatter), y no debe repetirse entre páginas.',
+    page_label_hint: 'Después del ancla de página <a id="page-…"></a> y antes de la siguiente ancla de página, escribe las ocho etiquetas línea por línea: 页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收, con el formato - **{0}：** contenido específico; los valores deben ser concretos y accionables, nunca marcadores como 按主题执行 o TODO.',
   },
   asset: {
     sourceRecords: 'En assets[] mediante --input, registre assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) y authorizationEvidence (arreglo de URL o rutas de justificantes). El manifiesto conserva los datos; los valores ausentes quedan vacíos. Esto no certifica una autorización comercial.',

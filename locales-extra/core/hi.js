@@ -32,6 +32,11 @@ module.exports = {
     usage: 'उपयोग: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'डिज़ाइन सत्यापन फ़ाइल नहीं पढ़ी जा सकती: {0}',
     checked: 'डिज़ाइन सत्यापन सफल: {0}; {1} पृष्ठ, {2} टोकन',
+    anchor_hint: 'एंकर को मुख्य पाठ में सेल्फ-क्लोज़िंग HTML टैग के रूप में लिखें, जैसे <a id="component-button"></a> (टैग के id में # नहीं लगता; frontmatter में संदर्भ #component-button लिखा जाता है)। Markdown शीर्षक {#id}, [पाठ](#id) जैसे लिंक या सादा पाठ एंकर नहीं माने जाते।',
+    anchor_chapter_three_hint: 'इस एंकर का <a id="…"></a> टैग "## 3. 基础组件表达" अध्याय के अंदर और "## 4. 特色表达配方" से पहले रखा जाना चाहिए।',
+    page_anchor_chapter_five_hint: 'पेज एंकर का <a id="page-…"></a> टैग "## 5. 项目应用与调整规则" अध्याय के अंदर होना चाहिए।',
+    page_anchor_prefix_hint: 'पेज एंकर टैग की id page- से शुरू होनी चाहिए, जैसे <a id="page-workbench"></a> (frontmatter में संदर्भ #page-workbench है), और अलग-अलग पेजों के एंकर दोहराए नहीं जा सकते।',
+    page_label_hint: 'इस पेज एंकर <a id="page-…"></a> के बाद और अगले पेज एंकर से पहले, आठ बिंदुओं को पंक्ति दर पंक्ति लिखें: 页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收, प्रारूप - **{0}：** ठोस सामग्री; मान ठोस और कार्यान्वयन योग्य होने चाहिए, 按主题执行 या TODO जैसे प्लेसहोल्डर नहीं।',
   },
   asset: {
     sourceRecords: '--input के assets[] में assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) और authorizationEvidence (प्रमाण के URL या फ़ाइल पथ का ऐरे) दर्ज करें। सूची ये रिकॉर्ड सुरक्षित रखती है; अनुपलब्ध मान खाली रहते हैं। यह व्यावसायिक अनुमति का स्वतः प्रमाण नहीं है।',

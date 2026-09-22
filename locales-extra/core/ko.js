@@ -32,6 +32,11 @@ module.exports = {
     usage: '사용법: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: '디자인 검증 파일을 읽을 수 없습니다: {0}',
     checked: '디자인 검증 통과: {0}, 페이지 {1}개, 토큰 {2}개',
+    anchor_hint: '앵커는 본문의 해당 위치에 자기 닫힘 HTML 태그로 작성해야 합니다. 예: <a id="component-button"></a> (태그 id에는 #를 붙이지 않으며, frontmatter 참조는 #component-button으로 작성합니다). Markdown 제목의 {#id}, [텍스트](#id) 링크, 일반 텍스트는 앵커로 인정되지 않습니다.',
+    anchor_chapter_three_hint: '이 앵커의 <a id="…"></a> 태그는 "## 3. 基础组件表达" 챕터 안, "## 4. 特色表达配方" 앞에 배치해야 합니다.',
+    page_anchor_chapter_five_hint: '페이지 앵커의 <a id="page-…"></a> 태그는 "## 5. 项目应用与调整规则" 챕터 안에 배치해야 합니다.',
+    page_anchor_prefix_hint: '페이지 앵커 태그의 id는 page-로 시작해야 합니다. 예: <a id="page-workbench"></a> (frontmatter 참조는 #page-workbench). 서로 다른 페이지의 앵커는 중복될 수 없습니다.',
+    page_label_hint: '이 페이지 앵커 <a id="page-…"></a> 뒤, 다음 페이지 앵커 앞에 여덟 가지 항목(页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收)을 한 줄씩 작성하세요. 형식은 - **{0}：** 구체적인 내용이며, 값은 구체적이고 구현 가능해야 합니다. "按主题执行"이나 "TODO" 같은 자리표시자 표현은 사용할 수 없습니다.',
   },
   asset: {
     sourceRecords: '--input의 assets[]에 assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt(YYYY-MM-DD), authorizationEvidence(증빙 URL 또는 파일 경로 배열)를 기록하세요. 목록에 기록이 보존되며 미입력 값은 비워 둡니다. 상업적 이용 허가를 자동으로 인정하지 않습니다.',

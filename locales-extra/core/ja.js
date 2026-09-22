@@ -32,6 +32,11 @@ module.exports = {
     usage: '使用方法: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'デザイン検証ファイルを読み取れません：{0}',
     checked: 'デザイン検証に成功しました：{0}、{1} ページ、{2} トークン',
+    anchor_hint: 'アンカーは本文の該当位置に自己閉鎖型 HTML タグとして記述してください。例: <a id="component-button"></a>（タグの id には # を付けず、frontmatter での参照は #component-button と記述します）。Markdown 見出しの {#id}、[文字](#id) のようなリンク、通常のテキストはアンカーとして扱われません。',
+    anchor_chapter_three_hint: 'このアンカーの <a id="…"></a> タグは「## 3. 基础组件表达」の章内、「## 4. 特色表达配方」の前に配置してください。',
+    page_anchor_chapter_five_hint: 'ページアンカーの <a id="page-…"></a> タグは「## 5. 项目应用与调整规则」の章内に配置してください。',
+    page_anchor_prefix_hint: 'ページアンカーのタグ id は page- で始めてください。例: <a id="page-workbench"></a>（frontmatter での参照は #page-workbench）。異なるページ間でアンカーを重複させることはできません。',
+    page_label_hint: 'このページアンカー <a id="page-…"></a> の後、次のページアンカーの前に、8 項目（页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收）を 1 行ずつ記述してください。形式は - **{0}：** 具体的な内容。値は具体的で実装可能である必要があり、「按主题执行」や「TODO」などのプレースホルダーは使用できません。',
   },
   asset: {
     sourceRecords: '--input の assets[] に assetId、creator、sourcePage、license、licenseUrl、licenseCheckedAt（YYYY-MM-DD）、authorizationEvidence（証拠の URL またはファイルパスの配列）を記録します。マニフェストは記録を保持し、未入力の値は空欄のままです。商用許諾を自動判定しません。',

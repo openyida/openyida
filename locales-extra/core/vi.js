@@ -32,6 +32,11 @@ module.exports = {
     usage: 'Cách dùng: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'Không thể đọc tệp xác thực thiết kế: {0}',
     checked: 'Xác thực thiết kế thành công: {0}; {1} trang, {2} token',
+    anchor_hint: 'Neo phải được viết trong phần thân văn bản dưới dạng thẻ HTML tự đóng, ví dụ <a id="component-button"></a> (id của thẻ không có dấu #; tham chiếu trong frontmatter viết là #component-button). Id tiêu đề Markdown {#id}, liên kết [chữ](#id) hoặc văn bản thuần không tính là neo.',
+    anchor_chapter_three_hint: 'Thẻ <a id="…"></a> của neo này phải nằm trong chương "## 3. 基础组件表达" và trước "## 4. 特色表达配方".',
+    page_anchor_chapter_five_hint: 'Thẻ neo trang <a id="page-…"></a> phải nằm trong chương "## 5. 项目应用与调整规则".',
+    page_anchor_prefix_hint: 'Id của thẻ neo trang phải bắt đầu bằng page-, ví dụ <a id="page-workbench"></a> (tham chiếu trong frontmatter là #page-workbench), và không được trùng giữa các trang.',
+    page_label_hint: 'Sau neo trang <a id="page-…"></a> và trước neo trang tiếp theo, viết tám nhãn theo từng dòng: 页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收, theo dạng - **{0}：** nội dung cụ thể; giá trị phải cụ thể và khả thi, không dùng cách viết tạm như 按主题执行 hay TODO.',
   },
   asset: {
     sourceRecords: 'Trong assets[] qua --input, ghi assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) và authorizationEvidence (mảng URL hoặc đường dẫn tệp chứng từ). Danh sách giữ lại các bản ghi; giá trị thiếu để trống, không tự xác nhận quyền sử dụng thương mại.',

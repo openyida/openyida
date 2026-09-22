@@ -32,6 +32,11 @@ module.exports = {
     usage: 'Utilisation: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'Impossible de lire le fichier de validation du design : {0}',
     checked: 'Validation du design réussie : {0} ; {1} pages, {2} jetons',
+    anchor_hint: 'L\'ancre doit être écrite dans le corps du document sous forme de balise HTML auto-fermante, par ex. <a id="component-button"></a> (l\'id de la balise ne comporte pas de # ; la référence dans le frontmatter s\'écrit #component-button). Les identifiants de titres Markdown {#id}, les liens [texte](#id) ou le texte simple ne comptent pas comme ancres.',
+    anchor_chapter_three_hint: 'La balise <a id="…"></a> de cette ancre doit être placée dans le chapitre « ## 3. 基础组件表达 » et avant « ## 4. 特色表达配方 ».',
+    page_anchor_chapter_five_hint: 'La balise d\'ancre de page <a id="page-…"></a> doit être placée dans le chapitre « ## 5. 项目应用与调整规则 ».',
+    page_anchor_prefix_hint: 'L\'id de la balise d\'ancre de page doit commencer par page-, par ex. <a id="page-workbench"></a> (référencée #page-workbench dans le frontmatter), et ne doit pas être répété entre les pages.',
+    page_label_hint: 'Après l\'ancre de page <a id="page-…"></a> et avant l\'ancre de page suivante, écrivez ligne par ligne les huit libellés : 页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收, sous la forme - **{0}：** contenu spécifique ; les valeurs doivent être concrètes et actionnables, jamais des formules génériques comme 按主题执行 ou TODO.',
   },
   asset: {
     sourceRecords: 'Dans assets[] via --input, renseignez assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) et authorizationEvidence (tableau de liens ou chemins de justificatifs). Le manifeste conserve ces données ; les valeurs absentes restent vides. Cela ne certifie pas une autorisation commerciale.',

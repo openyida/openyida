@@ -32,6 +32,11 @@ module.exports = {
     usage: 'Uso: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'Não foi possível ler o arquivo de validação do design: {0}',
     checked: 'Validação do design aprovada: {0}; {1} páginas, {2} tokens',
+    anchor_hint: 'A âncora deve ser escrita no corpo do texto como uma tag HTML de fechamento automático, por ex. <a id="component-button"></a> (o id da tag não leva #; a referência no frontmatter é #component-button). Ids de títulos Markdown {#id}, links como [texto](#id) ou texto simples não contam como âncoras.',
+    anchor_chapter_three_hint: 'A tag <a id="…"></a> desta âncora deve ficar dentro do capítulo "## 3. 基础组件表达" e antes de "## 4. 特色表达配方".',
+    page_anchor_chapter_five_hint: 'A tag da âncora de página <a id="page-…"></a> deve ficar dentro do capítulo "## 5. 项目应用与调整规则".',
+    page_anchor_prefix_hint: 'O id da tag da âncora de página deve começar com page-, por ex. <a id="page-workbench"></a> (referenciada como #page-workbench no frontmatter), e não pode repetir entre páginas.',
+    page_label_hint: 'Após a âncora de página <a id="page-…"></a> e antes da próxima âncora de página, escreva as oito etiquetas linha por linha: 页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收, no formato - **{0}：** conteúdo específico; os valores devem ser concretos e acionáveis, nunca marcadores como 按主题执行 ou TODO.',
   },
   asset: {
     sourceRecords: 'Em assets[] via --input, registre assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) e authorizationEvidence (array de URLs ou caminhos de comprovantes). O manifesto preserva os registros; valores ausentes ficam vazios. Isso não certifica autorização comercial.',
