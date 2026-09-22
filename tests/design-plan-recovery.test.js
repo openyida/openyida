@@ -40,7 +40,15 @@ test('reconciles changed main source with completed part facts without deleting 
   expect(result.confirmation.revision).toBe(final.meta.revision);
   expect(result.confirmation.attachments[0].path).toBe(result.outputs.html);
   expect(result.confirmation.options.map(option => option.value)).toEqual(['confirm_build', 'continue_editing']);
-  // Old initial parts may not be replayed over the now-materialized plan.
+  // Replaying the initial parts over the materialized plan reconciles to the current plan.
+  merge({ rebaseParts: true });
+  expect(read(input).meta.revision).toBe(final.meta.revision);
+  // Confirmed plans still refuse initialization parts; later edits go through patch --materialize.
+  const confirmed = read(input);
+  confirmed.meta.status = 'confirmed';
+  confirmed.meta.planState.planConfirmed = true;
+  confirmed.meta.planState.confirmedRevision = confirmed.meta.revision;
+  write(input, confirmed);
   expect(() => merge({ rebaseParts: true })).toThrow(expect.objectContaining({ code: 'DESIGN_PLAN_REBASE_STAGE_INVALID' }));
 });
 

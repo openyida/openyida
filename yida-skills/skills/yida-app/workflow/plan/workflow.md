@@ -63,4 +63,4 @@ build-plan.json（业务和视觉的源事实）
 
 技能加载失败、限流或换模型后，先成功读取本工作流和当前步骤，再沿用已确认需求继续；未加载成功不得凭记忆生成 HTML 或确认参数。首次物化前只修 business.json/visual.json 对应 facts（菜单与执行规划在 business.facts.execution），不要直接修初始化主计划。字段错误按具体路径修正后重试。
 
-如果已经改动主计划并出现 DESIGN_PLAN_STALE_PART，在原 materialize 命令增加 --rebase-parts。CLI 使用 init 保存的 .build-plan-base.json 做三方核对，保留已完成 facts；冲突按 details.conflicts 明确选择后重试。基线缺失或无法核实时告知阻塞并恢复可信文件，不手填 digest、不删除重建、不重新 init。已物化后调整走 patch --materialize，不继续复用初始化片段。
+如果已经改动主计划并出现 DESIGN_PLAN_STALE_PART，在原 materialize 命令增加 --rebase-parts。CLI 使用 init 保存的 .build-plan-base.json 做三方核对，保留已完成 facts；冲突按 details.conflicts 明确选择后重试。基线缺失或无法核实时告知阻塞并恢复可信文件，不手填 digest、不删除重建、不重新 init。方案确认后调整一律走 patch --materialize；确认前重复物化仍可用 --rebase-parts 与基线核对，但改动内容以当前 build-plan.json 为准。

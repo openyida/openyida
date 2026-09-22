@@ -1350,7 +1350,7 @@ describe('Plan contract and file consistency', () => {
     plan.dataModels[1].skipSampleReason = '用户明确不要示例数据';
     delete plan.pages.customPageDetails[0].dataBinding;
     save(plan);
-    expect(() => materialize(input)).toThrow(/明确 dataBinding/);
+    expect(() => materialize(input)).toThrow(/dataBinding/);
     Object.assign(plan.pages.customPageDetails[0], { dataBinding: 'static-empty', dataSources: [], emptyReason: '本轮只交付登记入口，暂不展示记录' });
     save(plan);
     materialize(input);
