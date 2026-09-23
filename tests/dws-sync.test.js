@@ -33,6 +33,21 @@ describe('private DWS access-token sync', () => {
   });
   afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 
+  test.each(['dws_rate_limited', 'dws_rate_limit_unavailable'])('preserves %s without replacing credentials or retrying', async (status) => {
+    const original = saveTokenSession({ ...issued(), base_url: origin, access_token: 'old' }, options);
+    requestJson.mockRejectedValue({ statusCode: status === 'dws_rate_limited' ? 429 : 503,
+      payload: { content: { status, retry_after: 2, message: fakeSecret } } });
+    await expect(syncDws(options)).rejects.toMatchObject({ code: 'DWS_SYNC_FAILED', details: { reason: status, retry_after: 2 } });
+    expect(requestJson).toHaveBeenCalledTimes(1);
+    expect(loadTokenSession(options).auth_profile).toBe(original.auth_profile);
+  });
+
+  test('preserves wrapped rate limit and sanitizes retry delay', async () => {
+    requestJson.mockResolvedValue({ content: { status: 'dws_rate_limited', retry_after: fakeSecret } });
+    await expect(syncDws(options)).rejects.toMatchObject({ details: { reason: 'dws_rate_limited', retry_after: 1 } });
+    expect(requestJson).toHaveBeenCalledTimes(1);
+  });
+
   test('host token resolves organization on the server without a client corpId', async () => {
     const result = await syncDws({ ...options, input: input({ corpId: undefined }) });
     expect(requestJson).toHaveBeenCalledWith('POST', `${origin}/openapi/cli/v1/auth/dws/token`,

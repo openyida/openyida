@@ -31,3 +31,7 @@ DWS prepare 返回 ready 后，在相同任务目录检查 `openyida agent-capab
 宿主已提供 token 时，DWS 优先通过子进程私有 stdin 发送 `accessToken` 与 `environment`，不读取本机 OAuth 账号。`corpId` 可省略：服务端验证 token 的来源、有效性及用户组织身份后，返回可信的组织与用户；OpenYida 使用该身份创建独立 profile。若提供 `corpId`，它仅作为组织匹配约束，不能替代服务端验证。
 
 DWS 在发送宿主凭证前必须确认 `server_identity: true`。旧版 CLI 不支持此能力时停止交接；换票失败不得回退到其他账号。没有宿主 token 时仍可使用原有 DWS OAuth 交接。此能力需要同时更新 DWS、OpenYida CLI 和服务端换票接口，已发布的 `2026.9.22-beta.1` 不包含此能力。
+
+### 校验限流
+
+服务端 `dws_rate_limited`（429）或 `dws_rate_limit_unavailable`（503）通过 CLI 错误 `details.reason` 和 `details.retry_after`（秒）透传，包括非 2xx 响应。保留已有 profile，不自动重试或重新登录。等待后可以用同一有效 DWS token 重试。

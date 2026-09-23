@@ -69,18 +69,20 @@ describe('projectRoot / skills runtime integration', () => {
     });
     const skills = buildSkillsDiagnostics({
       cwd: tmpDir,
+      homeDir: path.join(tmpDir, 'home'),
       runtime: qwenWebRuntime(workspace),
       projectResolution,
     });
 
-    expect(skills.selected).toMatchObject({
+    expect(skills.install_target).toMatchObject({
       path: path.join(workspace, '.qwenwork', 'market-skills', 'yida-skills'),
       source: 'workspace:.qwenwork/market-skills',
       scope: 'workspace',
-      usable: true,
+      installable: true,
       workspace_only: true,
     });
-    expect(skills.diagnostics.fallback).toBe('workspace_only_current_workspace_effect');
+    expect(skills.selected.scope).toBe('package');
+    expect(skills.install_target.usable).toBe(false);
   });
 
   test('QwenWork web honors configured skills paths before workspace fallback', () => {
@@ -107,11 +109,11 @@ describe('projectRoot / skills runtime integration', () => {
       projectResolution,
     });
 
-    expect(skills.selected).toMatchObject({
+    expect(skills.install_target).toMatchObject({
       path: path.join(homeDir, 'configured-skills', 'yida-skills'),
       source: 'env:QWENWORK_CONFIG_CONTENT.skills.paths',
       scope: 'host-config',
-      usable: true,
+      installable: true,
       workspace_only: false,
     });
   });
@@ -142,11 +144,11 @@ describe('projectRoot / skills runtime integration', () => {
       projectResolution,
     });
 
-    expect(skills.selected).toMatchObject({
+    expect(skills.install_target).toMatchObject({
       path: path.join(homeDir, '.qwenworkcn', 'skills', 'yida-skills'),
       source: 'home:.qwenworkcn/skills',
       scope: 'user',
-      usable: true,
+      installable: true,
     });
   });
 
@@ -183,12 +185,60 @@ describe('projectRoot / skills runtime integration', () => {
       dirName: '.qoder',
       subtype,
     });
-    expect(skills.selected).toMatchObject({
+    expect(skills.install_target).toMatchObject({
       path: path.join(homeDir, '.qoder', 'skills', 'yida-skills'),
       source: 'home:.qoder/skills',
       scope: 'user',
-      usable: true,
+      installable: true,
     });
+  });
+
+  test('read-only existing skills win over writable missing installation paths', () => {
+    const homeDir = path.join(tmpDir, 'home');
+    const root = path.join(homeDir, '.qwenworkcn', 'skills', 'yida-skills');
+    fs.mkdirSync(root, { recursive: true });
+    fs.writeFileSync(path.join(root, 'SKILL.md'), '# root');
+    const originalAccess = fs.accessSync;
+    const access = jest.spyOn(fs, 'accessSync').mockImplementation((target, mode) => {
+      if (mode === fs.constants.W_OK && String(target).startsWith(homeDir)) {
+        throw Object.assign(new Error('read only'), { code: 'EACCES' });
+      }
+      return originalAccess(target, mode);
+    });
+    try {
+      const skills = buildSkillsDiagnostics({
+        cwd: tmpDir, homeDir, projectRoot: tmpDir,
+        runtime: { ...qwenWebRuntime(tmpDir), subtype: 'qwenwork_desktop' },
+      });
+      expect(skills.selected).toMatchObject({ path: root, exists: true, readable: true, usable: true, writable: false });
+      expect(skills.install_target).toMatchObject({ scope: 'workspace', exists: false, usable: false, installable: true });
+    } finally { access.mockRestore(); }
+  });
+
+  test.each(['missing', 'directory', 'unreadable', 'broken-link'])('invalid root entry %s is never selected', (kind) => {
+    const root = path.join(tmpDir, 'yida-skills');
+    fs.mkdirSync(root);
+    const entry = path.join(root, 'SKILL.md');
+    if (kind === 'directory') {fs.mkdirSync(entry);}
+    if (kind === 'broken-link') {fs.symlinkSync(path.join(tmpDir, 'absent'), entry);}
+    if (kind === 'unreadable') {fs.writeFileSync(entry, '# root');}
+    const originalAccess = fs.accessSync;
+    const access = jest.spyOn(fs, 'accessSync').mockImplementation((target, mode) => {
+      if (kind === 'unreadable' && target === entry && mode === fs.constants.R_OK) {throw new Error('denied');}
+      return originalAccess(target, mode);
+    });
+    try {
+      const skills = buildSkillsDiagnostics({ cwd: tmpDir, projectRoot: tmpDir, activeTool: null,
+        bundledSkillsPath: path.join(tmpDir, 'missing-package') });
+      expect(skills.selected).toBeNull();
+      expect(skills.install_target.path).toBe(root);
+    } finally { access.mockRestore(); }
+  });
+
+  test('bundled fallback is readable but is never an install target', () => {
+    const skills = buildSkillsDiagnostics({ cwd: tmpDir, projectRoot: tmpDir, activeTool: null });
+    expect(skills.selected).toMatchObject({ scope: 'package', exists: true, usable: true, installable: false });
+    expect(skills.install_target.scope).toBe('workspace');
   });
 
   test('copy target uses explicit runtime workspace instead of cwd', () => {
