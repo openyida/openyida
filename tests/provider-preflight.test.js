@@ -109,11 +109,26 @@ describe('cross-platform provider preflight', () => {
     expect(await probe(cmd, ['--version'], null)).toMatchObject({ status: 'passed', output: expect.stringContaining('fixture-version') });
   });
 
+  test('Windows npm shim preserves live stdin for ACP', async () => {
+    if (process.platform !== 'win32') { return; }
+    const cmd = file('duplex/qodercli.cmd');
+    fs.writeFileSync(cmd, '@echo off\r\nexit /b 99\r\n');
+    fs.writeFileSync(cmd.replace(/\.cmd$/, '.ps1'), [
+      '$line = [Console]::In.ReadLine()',
+      'if ($null -eq $line) { exit 23 }',
+      'Write-Output \'{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":1}}\'',
+    ].join('\n'));
+    await expect(probe(cmd, ['--acp'], 'qoder', { timeoutMs: 3000 })).resolves.toMatchObject({ status: 'passed' });
+  });
+
   test('Windows npm shims use the same PowerShell sibling as Runtime without shell interpolation', () => {
-    const cmd = file('中文 folder/qodercli.cmd');
-    file('中文 folder/qodercli.ps1');
-    const result = probeCommand(cmd, ['login', 'status'], 'win32', { SystemRoot: 'C:\\Windows' });
-    expect(result.args).toEqual(['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', cmd.replace(/\.cmd$/, '.ps1'), 'login', 'status']);
+    const cmd = file("中文 folder/quote's/qodercli.cmd");
+    file("中文 folder/quote's/qodercli.ps1");
+    const result = probeCommand(cmd, ['login', "literal'value;$x"], 'win32', { SystemRoot: 'C:\\Windows' });
+    expect(result.args).toEqual([
+      '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command',
+      `& '${cmd.replace(/\.cmd$/, '.ps1').replace(/'/g, "''")}' 'login' 'literal''value;$x'`,
+    ]);
     expect(() => probeCommand(file('bare.cmd'), ['--version'], 'win32')).toThrow();
   });
   test('a successful CLI exit without an RPC response is not a protocol handshake', async () => {

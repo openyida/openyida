@@ -4,6 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
+const { spawn } = require('child_process');
 const { EventEmitter } = require('events');
 const { run, parseArgs, parseDiagnosticSession, buildLaunchConfig, discoverProvider, discoverProviders } = require('../lib/agent/cmd');
 const { launchRuntime, runtimeEnvironment } = require('../lib/agent/stdio');
@@ -15,19 +16,31 @@ describe('local agent thin launcher', () => {
   let root;
   let binary;
   let manifestPath;
+  let fixtureChildren;
 
   beforeEach(() => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-agent-command-'));
-    binary = path.join(root, 'fake runtime');
+    binary = path.join(root, 'fake-runtime.js');
     manifestPath = path.join(root, 'manifest.json');
-    const source = `#!${process.execPath}\nlet input=''; process.stdin.on('data',c=>input+=c); process.stdin.on('end',()=>{const config=JSON.parse(input); console.log(JSON.stringify({type:config.command,config,argv:process.argv.slice(2),envKeys:Object.keys(process.env),providerHome:process.env.CODEX_HOME}));});\n`;
+    fixtureChildren = new Set();
+    const source = `#!${process.execPath}\nlet input=''; process.stdin.on('data',c=>input+=c); process.stdin.on('end',()=>{const config=JSON.parse(input); const event=JSON.stringify({type:config.command,config,argv:process.argv.slice(2),envKeys:Object.keys(process.env),providerHome:process.env.CODEX_HOME}); process.stdout.write(event+'\\n',()=>process.exit(0));});\n`;
     fs.writeFileSync(binary, source, { mode: 0o700 });
     fs.writeFileSync(manifestPath, JSON.stringify({
       schemaVersion: 1, version: '0.1.0-test', protocolVersion: 1, platform: process.platform, arch: process.arch,
       binary: { file: path.basename(binary), sha256: crypto.createHash('sha256').update(source).digest('hex') },
     }));
   });
-  afterEach(() => removeFixture(root));
+  afterEach(async () => {
+    await Promise.all([...fixtureChildren].map(child => new Promise(resolve => child.once('close', resolve))));
+    removeFixture(root);
+  });
+
+  function spawnFixture(executable, args, options) {
+    const child = spawn(process.execPath, [executable, ...args], options);
+    fixtureChildren.add(child);
+    child.once('close', () => fixtureChildren.delete(child));
+    return child;
+  }
 
   async function readBackgroundEvent(logPath, timeoutMs = 5000) {
     const deadline = Date.now() + timeoutMs;
@@ -77,16 +90,19 @@ describe('local agent thin launcher', () => {
   test('discovers only known provider executables from PATH', () => {
     const providerDir = path.join(root, 'providers');
     fs.mkdirSync(providerDir);
-    const qoder = path.join(providerDir, 'qoder');
-    const codex = path.join(providerDir, 'codex');
-    const opencode = path.join(providerDir, 'opencode');
-    fs.writeFileSync(qoder, '#!/bin/sh\nexit 0\n', { mode: 0o700 });
-    fs.writeFileSync(codex, '#!/bin/sh\nexit 0\n', { mode: 0o700 });
-    fs.writeFileSync(opencode, '#!/bin/sh\nexit 0\n', { mode: 0o700 });
+    const extension = process.platform === 'win32' ? '.cmd' : '';
+    const contents = process.platform === 'win32' ? '@echo off\r\n' : '#!/bin/sh\nexit 0\n';
+    const qoder = path.join(providerDir, `qoder${extension}`);
+    const codex = path.join(providerDir, `codex${extension}`);
+    const opencode = path.join(providerDir, `opencode${extension}`);
+    fs.writeFileSync(qoder, contents, { mode: 0o700 });
+    fs.writeFileSync(codex, contents, { mode: 0o700 });
+    fs.writeFileSync(opencode, contents, { mode: 0o700 });
+    const env = { PATH: providerDir, PATHEXT: '.EXE;.CMD;.BAT' };
     const resolvedQoder = fs.realpathSync(qoder);
-    expect(discoverProvider({ PATH: providerDir }, 'linux')).toEqual({ profileId: 'openyida.qoder', provider: 'qoder', executable: resolvedQoder });
-    expect(discoverProviders({ PATH: providerDir }, 'linux').map((item) => item.provider)).toEqual(['qoder', 'codex', 'opencode']);
-    expect(buildLaunchConfig({ command: 'run', endpoint: 'https://agent.example.test', endpointId: 'test' }, { homedir: root, env: { PATH: providerDir }, platform: 'linux' }))
+    expect(discoverProvider(env, process.platform)).toEqual({ profileId: 'openyida.qoder', provider: 'qoder', executable: resolvedQoder });
+    expect(discoverProviders(env, process.platform).map((item) => item.provider)).toEqual(['qoder', 'codex', 'opencode']);
+    expect(buildLaunchConfig({ command: 'run', endpoint: 'https://agent.example.test', endpointId: 'test' }, { homedir: root, env, platform: process.platform }))
       .toMatchObject({ providers: [
         { profileId: 'openyida.qoder', provider: 'qoder', executable: resolvedQoder },
         { profileId: 'openyida.codex', provider: 'codex' },
@@ -110,10 +126,12 @@ describe('local agent thin launcher', () => {
     const cliDir = path.join(root, 'qoder-cli');
     fs.mkdirSync(ideDir);
     fs.mkdirSync(cliDir);
-    fs.writeFileSync(path.join(ideDir, 'qoder'), 'IDE fixture', { mode: 0o700 });
-    const cli = path.join(cliDir, 'qodercli');
-    fs.writeFileSync(cli, 'CLI fixture', { mode: 0o700 });
-    expect(discoverProviders({ PATH: `${ideDir}:${cliDir}` }, 'linux')).toEqual([
+    const extension = process.platform === 'win32' ? '.cmd' : '';
+    const contents = process.platform === 'win32' ? '@echo off\r\n' : '#!/bin/sh\nexit 0\n';
+    fs.writeFileSync(path.join(ideDir, `qoder${extension}`), contents, { mode: 0o700 });
+    const cli = path.join(cliDir, `qodercli${extension}`);
+    fs.writeFileSync(cli, contents, { mode: 0o700 });
+    expect(discoverProviders({ PATH: `${ideDir}${path.delimiter}${cliDir}`, PATHEXT: '.EXE;.CMD;.BAT' }, process.platform)).toEqual([
       { profileId: 'openyida.qoder', provider: 'qoder', executable: fs.realpathSync(cli) },
     ]);
   });
@@ -133,7 +151,7 @@ describe('local agent thin launcher', () => {
       '--provider', 'qoder', '--provider-path', '/bin/sh',
       '--development-runtime', '--runtime-path', binary, '--runtime-manifest', manifestPath,
       '--state-dir', path.join(root, 'state'), '--enroll', `enrollment.${'t'.repeat(40)}`,
-    ], { stdout, env: { PATH: process.env.PATH }, probe: async () => ({ status: 'passed' }) });
+    ], { stdout, env: { PATH: process.env.PATH }, probe: async () => ({ status: 'passed' }), spawn: spawnFixture });
     const events = stdout.write.mock.calls.map(([value]) => JSON.parse(value));
     // The terminal returns immediately after pairing; the run goes to the background log.
     expect(events.map((event) => event.type)).toEqual(['connect', 'connected']);
@@ -156,7 +174,7 @@ describe('local agent thin launcher', () => {
     expect(runEvent.config.stateDir).toBe(connectEvent.config.stateDir);
     expect(runEvent.config.sessionStateDir).toBe(connectEvent.config.sessionStateDir);
     expect(runEvent.config.providers).toEqual(connectEvent.config.providers);
-  });
+  }, 60000);
 
   test('logs surfaces the per-connection background daemon log without launching the runtime', async () => {
     const baseStateDir = path.join(root, 'state');
@@ -190,7 +208,8 @@ describe('local agent thin launcher', () => {
     const stdout = { write: jest.fn() };
     const signals = new EventEmitter();
     await run(['status', '--development-runtime', '--runtime-path', binary, '--runtime-manifest', manifestPath, '--state-dir', root], {
-      stdout, signals, env: { PATH: process.env.PATH, OPENYIDA_ACCESS_TOKEN: 'private-access', OPENYIDA_REFRESH_TOKEN: 'private-refresh', OPENAI_API_KEY: 'private-provider' },
+      stdout, signals, spawn: spawnFixture,
+      env: { PATH: process.env.PATH, OPENYIDA_ACCESS_TOKEN: 'private-access', OPENYIDA_REFRESH_TOKEN: 'private-refresh', OPENAI_API_KEY: 'private-provider' },
     });
     const event = JSON.parse(stdout.write.mock.calls[0][0]);
     expect(event.argv).toEqual(['status', '--stdio-config']);
@@ -208,11 +227,11 @@ describe('local agent thin launcher', () => {
   });
 
   test('records a bounded error code when the runtime reports a failure', async () => {
-    const failingRuntime = path.join(root, 'failing-runtime');
+    const failingRuntime = path.join(root, 'failing-runtime.js');
     fs.writeFileSync(failingRuntime, `#!${process.execPath}\nconsole.log(JSON.stringify({type:'error',code:'RUNTIME_ACTION_FAILED',message:'unsafe upstream detail'}));\n`, { mode: 0o700 });
     const diagnostic = jest.fn();
     await expect(launchRuntime({ executable: failingRuntime }, { command: 'status', node: { packageRoot: root } }, {
-      diagnostic, signals: new EventEmitter(), stdout: { write: jest.fn() },
+      diagnostic, signals: new EventEmitter(), stdout: { write: jest.fn() }, spawn: spawnFixture,
     })).rejects.toMatchObject({ code: 'RUNTIME_ACTION_FAILED' });
     expect(diagnostic).toHaveBeenCalledWith('error', 'runtime_action_failed', {
       command: 'status', component: 'node', errorCode: 'RUNTIME_ACTION_FAILED', retryable: false,
@@ -224,13 +243,26 @@ describe('local agent thin launcher', () => {
     const stdout = { write: jest.fn() };
     const providerHome = path.join(root, 'custom codex home');
     await run(['status', '--development-runtime', '--runtime-path', binary, '--runtime-manifest', manifestPath, '--state-dir', root], {
-      stdout, env: { HOME: root, CODEX_HOME: providerHome, OPENAI_API_KEY: 'secret', CODEX_API_KEY: 'secret' },
+      stdout, spawn: spawnFixture,
+      env: { HOME: root, CODEX_HOME: providerHome, OPENAI_API_KEY: 'secret', CODEX_API_KEY: 'secret' },
     });
     const event = JSON.parse(stdout.write.mock.calls[0][0]);
     expect(event.providerHome).toBe(providerHome);
     expect(event.envKeys).not.toContain('OPENAI_API_KEY');
     expect(event.envKeys).not.toContain('CODEX_API_KEY');
     expect(runtimeEnvironment({ CODEX_HOME: providerHome }).CODEX_HOME).toBe(providerHome);
+  });
+
+  test('keeps Qoder config location but strips Qoder SDK credentials', () => {
+    const qoderConfigDir = path.join(root, 'custom qoder home');
+    const env = runtimeEnvironment({
+      QODER_CONFIG_DIR: qoderConfigDir,
+      QODER_AGENT_SDK_ENTRYPOINT: 'sdk-ts',
+      QODER_SDK_AUTH_PAYLOAD_FILE: 'secret',
+    });
+    expect(env.QODER_CONFIG_DIR).toBe(qoderConfigDir);
+    expect(env.QODER_AGENT_SDK_ENTRYPOINT).toBeUndefined();
+    expect(env.QODER_SDK_AUTH_PAYLOAD_FILE).toBeUndefined();
   });
 
   test('managed and agent commands never auto-update', async () => {
