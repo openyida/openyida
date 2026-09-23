@@ -35,3 +35,7 @@ DWS 在发送宿主凭证前必须确认 `server_identity: true`。旧版 CLI �
 ### 校验限流
 
 服务端 `dws_rate_limited`（429）或 `dws_rate_limit_unavailable`（503）通过 CLI 错误 `details.reason` 和 `details.retry_after`（秒）透传，包括非 2xx 响应。保留已有 profile，不自动重试或重新登录。等待后可以用同一有效 DWS token 重试。
+
+### 会话恢复
+
+每次交接需服务端重新校验当前 DWS token，成功后创建独立宜搭会话。宜搭退出仅撤销当前会话，不撤销 DWS 凭证；同一有效 DWS token 可以再次换票。会话过期或后续任务在退出后继续时，由 DWS 路由重新执行 prepare；不通过 Agent 读取或传递 token。用户要求退出时不立即重新交接，限流或网络失败不触发登录循环。此语义依赖服务端更新；旧服务端可能仍受首次来源 token 截止时间限制。

@@ -11,7 +11,8 @@ description: 宜搭登录态管理。以 OpenYida auth snapshot 为准；默认 
 - 不要根据 agent 名称、宿主产品、workspace 路径或猜测的环境变量推断认证模式。
 - 先读 `openyida agent-capabilities --summary-json`；只有需要更多信息时，才降级执行 `openyida login --check-only --json`。
 - snapshot 返回 `login.auth_source=env` 或 `failure_reason=env_token_missing` 时，进入运行环境注入 token 模式。凭证只来自运行环境注入的 `OPENYIDA_ACCESS_TOKEN`、`OPENYIDA_REFRESH_TOKEN` 等环境变量。
-- 其他 `auth_mode=token` 场景使用默认 OAuth token session。
+- snapshot 明确返回 `credential_source=dws`，或当前任务已由 DWS prepare 交接时，优先使用下文 DWS 恢复流程；不自动改走 OAuth。
+- 除上述 DWS 和 env 注入场景外，其他 `auth_mode=token` 场景使用默认 OAuth token session。
 - 不要从 `.cache/cookies*.json` 推断登录态。
 - 浏览器归属以 `builder_path.interactive_login.mode` 为准：`not_required` 不触发 OAuth；`cli_auto_open` 执行 `openyida login` 并等待；`caller_open_url` 执行 `openyida login --no-browser`，由 Agent 优先调用沙箱浏览器 / 内置 Browser 打开 CLI 输出的授权 URL 一次；`unsupported` 停止并说明没有可用浏览器能力，不要默认安装 Playwright。
 - `caller_open_url` 模式下，Agent 不要只把 URL 贴给用户然后等待。只有当前宿主没有浏览器工具，或浏览器工具调用失败时，才退回让用户手动打开 URL。
@@ -42,9 +43,15 @@ openyida login --check-only --json
 | `auth_mode=token`，未登录，且 `interactive_login.mode=caller_open_url` | 只执行一次 `openyida login --no-browser`，由 Agent 优先调用沙箱浏览器 / 内置 Browser 打开输出 URL 一次，并等待原命令结束；无浏览器工具或调用失败时才让用户手动打开 |
 | `auth_mode=token`，未登录，且 `interactive_login.mode=unsupported` | 停止并向用户说明当前运行环境没有桌面浏览器或 Agent 浏览器能力 |
 
+## DWS 登录态恢复
+
+仅当 snapshot 明确 credential_source=dws 或任务已有可信的 DWS 交接上下文时适用，不根据宿主名字或目录猜测。宜搭会话过期/已退出不等于 DWS 已退出。用户授权继续任务时，交回 DWS 路由，通过原任务目录的 dws yida prepare 重新交接；环境与 workdir 沿用已确认值，完成后重新核对用户、组织及 execution。Agent 不读取 token、不自行调用 auth sync-dws 拼接凭据，也不先触发 openyida login。
+
+用户明确退出时只完成退出，不立即恢复登录。限流、网络或服务故障、业务权限不足不触发登录恢复循环。DWS 不可用时明确告知需要宿主恢复交接；只有确认 DWS 凭证本身失效，才引导恢复 DWS 登录。写入结果未知时先查询，不能因重新认证重复写入。
+
 ## Token 模式命令
 
-只有 auth snapshot 未返回 env 注入模式时，才使用 OAuth 登录。
+只有 auth snapshot 未返回 env 注入模式，且当前任务不属于上述 DWS 交接路径时，才使用 OAuth 登录。
 
 ```bash
 openyida login
