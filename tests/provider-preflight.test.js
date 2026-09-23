@@ -62,6 +62,38 @@ describe('cross-platform provider preflight', () => {
     expect(result.providers[0].status).toBe(status);
     expect(result.ready).toBe(false);
   });
+  test('Windows cold CLI completes version, protocol and auth without a false timeout', async () => {
+    let now = 0;
+    const clock = jest.spyOn(Date, 'now').mockImplementation(() => now);
+    const durations = [14000, 17000, 21000];
+    try {
+      const result = await preflight({ provider: 'qoder', providerPath: '/fixture' }, {
+        platform: 'win32', probe: async (_exe, _args, _rpc, options) => {
+          const duration = durations.shift();
+          now += Math.min(duration, options.timeoutMs);
+          return { status: duration <= options.timeoutMs ? 'passed' : 'probe_timeout' };
+        },
+      });
+      expect(result.providers[0]).toMatchObject({ status: 'ready', usable: true });
+      expect(durations).toHaveLength(0);
+    } finally { clock.mockRestore(); }
+  });
+  test('explicit deadlines still bound slow Windows probes', async () => {
+    let now = 0;
+    const clock = jest.spyOn(Date, 'now').mockImplementation(() => now);
+    const execute = jest.fn(async (_exe, _args, _rpc, options) => {
+      now += options.timeoutMs;
+      return { status: 'passed' };
+    });
+    try {
+      const result = await preflight({ provider: 'qoder', providerPath: '/fixture' }, {
+        platform: 'win32', budgetMs: 20, timeoutMs: 15, probe: execute,
+      });
+      expect(execute.mock.calls.map(call => call[3].timeoutMs)).toEqual([15, 5]);
+      expect(result.providers[0]).toMatchObject({ status: 'probe_timeout', usable: false });
+    } finally { clock.mockRestore(); }
+  });
+
   test('protocol failure is independent of login and does not start auth checks', async () => {
     const probeFn = jest.fn(async (_exe, args) => ({ status: args[0] === '--version' ? 'passed' : 'protocol_unsupported' }));
     const result = await preflight({ provider: 'codex', providerPath: '/fixture' }, { probe: probeFn });
@@ -118,8 +150,8 @@ describe('cross-platform provider preflight', () => {
       'if ($null -eq $line) { exit 23 }',
       'Write-Output \'{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":1}}\'',
     ].join('\n'));
-    await expect(probe(cmd, ['--acp'], 'qoder', { timeoutMs: 3000 })).resolves.toMatchObject({ status: 'passed' });
-  });
+    await expect(probe(cmd, ['--acp'], 'qoder', { timeoutMs: 45000 })).resolves.toMatchObject({ status: 'passed' });
+  }, 60000);
 
   test('Windows npm shims use the same PowerShell sibling as Runtime without shell interpolation', () => {
     const cmd = file("中文 folder/quote's/qodercli.cmd");
