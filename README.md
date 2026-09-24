@@ -511,6 +511,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
 | `openyida integration disable <appType> <formUuid> <processCode>` | Disable integration automation flow |
 | `openyida integration check <appType...>` | Check abnormal integration automation run logs |
+| `openyida integration detail-log <appType> <procInstId> [--json] [--include-params]` | View integration automation run log details |
 | `openyida integration diagnose (--text <text>\|--file <path>\|--rules) [--json]` | Diagnose integration automation tickets and common pitfalls |
 | `openyida dws <command> [args]` | DingTalk CLI (contacts/calendar/todo/approval etc.) |
 | `openyida dws contact user search --keyword <text>` | DingTalk CLI (contacts/calendar/todo/approval etc.) |
@@ -589,6 +590,8 @@ Form field definitions can include `alias` or `componentAlias` to populate Yida 
 #### Workflow, Reports, and Integrations
 
 `openyida integration create` supports form events (`insert`, `update`, `delete`, `comment`) and approval events (`processFinish`, `activityTask`; aliases: `approval`, `approvalNode`). Approval events require `--approval-actions agree,disagree,terminated`; `activityTask` also requires `--approval-node-ids <nodeId,...>`. Passing `--process-code` selects a full graph replacement and now requires explicit `--replace`; it is not a safe update. `integration update` currently performs capability detection only: because full platform `processJson` + `viewJson` readback is unproven, it writes a redacted local probe artifact and returns `PLATFORM_PROBE_REQUIRED` before authentication, spec reading, or remote writes. It does not edit a flow.
+
+`openyida integration detail-log <appType> <procInstId>` reads one integration automation run's log details. `procInstId` comes from a run log entry; the command calls `GET /alibaba/web/{appType}/query/formLogicflowBinding/listDetailLog.json` with `procInstId`, `pageIndex`, and `pageSize`, using the current token session. It follows `content.totalCount` to fetch all nodes because this endpoint's `hasMore` may be false even when later pages exist. Text and `--json` output include node metadata and input/output key names only. Add both `--json --include-params` to print full parameter values, which may contain business data or tokens. This read-only endpoint is undocumented by the platform and may change; an empty result does not prove the run ID is invalid.
 
 ## Agent Skills
 

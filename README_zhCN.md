@@ -251,6 +251,8 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 `integration create --process-code` 是整图替换，必须显式传 `--replace`，不能当作安全更新。`integration update` 当前只做 capability 检测：由于平台完整 `processJson` + `viewJson` readback 契约尚未证明，它只写入脱敏的本地 probe artifact，并在认证、读取 spec 或远端写入之前返回 `PLATFORM_PROBE_REQUIRED`。当前不会编辑逻辑流，禁止猜测接口或降级成整图替换。
 
+`openyida integration detail-log <appType> <procInstId>` 查询一次集成自动化的运行日志详情。`procInstId` 来自运行日志记录；命令使用当前 token session，请求 `GET /alibaba/web/{appType}/query/formLogicflowBinding/listDetailLog.json`，传入 `procInstId`、`pageIndex`、`pageSize`，再依据 `content.totalCount` 取完节点（该接口的 `hasMore` 在实测中即使还有下一页也可能为 `false`）。默认文本及普通 `--json` 仅输出节点信息和输入输出键名；同时传入 `--json --include-params` 才输出完整参数值，其中可能包含业务数据或令牌。此只读接口尚未公开，平台契约可能变化；零节点不等于运行 ID 一定无效。
+
 ## CLI 命令参考
 
 运行 `openyida --help` 或 `openyida <command> --help` 查看详细用法。
@@ -390,6 +392,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida integration enable <appType> <formUuid> <processCode>` | 启用集成自动化逻辑流 |
 | `openyida integration disable <appType> <formUuid> <processCode>` | 停用集成自动化逻辑流 |
 | `openyida integration check <appType...>` | 检查集成自动化异常运行日志 |
+| `openyida integration detail-log <appType> <procInstId> [--json] [--include-params]` | 查看集成自动化运行日志详情 |
 | `openyida integration diagnose (--text <text>\|--file <path>\|--rules) [--json]` | 诊断集成自动化故障文本和常见配置坑 |
 | `openyida dws <command> [args]` | 钉钉 CLI（通讯录/日历/待办/审批等） |
 | `openyida dws contact user search --keyword <text>` | 钉钉 CLI（通讯录/日历/待办/审批等） |
