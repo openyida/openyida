@@ -37,6 +37,7 @@ tokens:
         "--input-focus-bg-color": "var(--input-bg-color)"
         "--pod-form-label-color": "var(--color-text1-4)"
         "--form-top-label-margin-b": "var(--s-2)"
+        "--yida-divider-secondary-color": "var(--color-brand1-2)"
         "--yida-form-content-bgcolor": "var(--pod-page-bg-color)"
         "--pod-page-footer-bg-color": "var(--pod-card-bg-color)"
         "--pod-page-footer-border-radius": "var(--corner-5)"
@@ -65,6 +66,7 @@ tokens:
       "--color-fill1-2": "#EEEEEE" # neutral-gray；中性按下或选中
       "--color-fill1-3": "#DEDEDE" # neutral-gray；较重中性填充、进度轨道
       "--color-fill1-5": "#FFFFFF" # neutral-gray；独立覆盖层
+      "--color-fill1-6": "var(--color-text1-3)" # 弱图标与辅助操作 glyph 前景色
       "--color-fill1-10": "#262626" # neutral-gray；固定短 Tooltip 背景
       "--color-text1-5": "#FFFFFF" # neutral-gray；固定短 Tooltip 前景
       "--color-text1-4": "#161616" # neutral-gray；标题、主要正文与数值

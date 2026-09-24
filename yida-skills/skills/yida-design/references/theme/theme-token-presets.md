@@ -83,7 +83,7 @@ CodeCanvas 对话框通过 [CanvasDialog 模板](../../../yida-canvas-custom-pag
 | token | 语义 | 典型用途 |
 | --- | --- | --- |
 | `--color-brand1-1` | 明亮品牌浅色或浅 hover 色 | 列表 hover、菜单 hover、轻量背景，不直接当深色文字 |
-| `--color-brand1-2` | 品牌浅底 | 标签浅底、提示块、选中底、弱强调背景 |
+| `--color-brand1-2` | 品牌弱背景，随内容明暗变化 | 标签、提示块、选中底、Divider 辅助背景；深色内容不能沿用近白色 |
 | `--color-brand1-3` | 品牌透明/浅边界 | 选中边框、禁用/弱化品牌态、浅描边 |
 | `--color-brand1-5` | 主色 hover 档 | 主按钮 hover、链接 hover、可点击强调 hover |
 | `--color-brand1-6` | 主品牌色 | 主按钮、链接、选中态、重点标签、图表主序列 |
@@ -94,6 +94,8 @@ CodeCanvas 对话框通过 [CanvasDialog 模板](../../../yida-canvas-custom-pag
 | `--color-brand-3` | 移动端主品牌档 3 | 移动端主操作、选中态、原生表单移动主色 |
 | `--color-brand-4` | 移动端深品牌档 4 | 移动端 active、深色强调、移动壳层深色态 |
 | `--color-group` | 图表和分类色组 | 多系列图表、排行、状态分组；第一色通常跟随主色 |
+
+下面的 profile 是候选色盘，不是暗色适配结果。`contentTone: dark` 时，品牌弱背景须与深色内容画布协调，并与 `--color-text1-4` 成对检查；仅深色导航不改变浅色内容配色。原生分割线的内联引用与验收见 [分割线弱背景](../native-form-styles.md#分割线弱背景)。
 
 ## blue
 

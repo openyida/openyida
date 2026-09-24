@@ -93,6 +93,17 @@ describe('get-form-config fetchFormSchemaInfo', () => {
 });
 
 describe('get-form-config run', () => {
+  test.each([false, true])('returns the standalone URL after hidden-navigation readback (JSON: %s)', json => {
+    utils.httpPost.mockResolvedValue({ success: true, content: { formType: 'display', renderNav: false } });
+    return getFormConfig.run(['APP_X', 'FORM_Y', ...(json ? ['--json'] : [])]).then(() => {
+      const payload = JSON.parse(logSpy.mock.calls[logSpy.mock.calls.length - 1][0]);
+      expect(payload).toMatchObject({
+        url: 'https://www.aliwork.com/APP_X/custom/FORM_Y',
+        standaloneUrl: 'https://www.aliwork.com/APP_X/custom/FORM_Y',
+        navigationVerification: { renderNav: false, verified: true },
+      });
+    });
+  });
   test('includes the persisted renderNav field in the default summary', async () => {
     utils.httpPost.mockResolvedValue({ success: true, content: { renderNav: false } });
     await getFormConfig.run(['APP_X', 'FORM_Y']);

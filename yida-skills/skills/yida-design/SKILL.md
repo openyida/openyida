@@ -45,7 +45,9 @@ Fast、Plan 和单页设计使用相同的 UI 设计规则、主题变量和质�
 
 ---
 
-用户选择暗色、黑色或夜间主题时，按 [暗色主题浮层适配](references/theme/theme-token-presets.md#暗色主题浮层适配) 检查浮层；仅导航深色不触发整体暗黑适配。
+用户选择暗色、黑色或夜间主题时，按 [暗色主题浮层适配](references/theme/theme-token-presets.md#暗色主题浮层适配) 检查浮层，并按 [分割线弱背景](references/native-form-styles.md#分割线弱背景) 设计 `--color-brand1-2` 与标题文字：它是随内容明暗变化的品牌弱背景，不是固定近白色。不能只声明根级 `--yida-divider-secondary-color` 就认为组件内联引用已被覆盖。仅导航深色不触发整体暗黑适配。
+
+主色实底分割线不沿用弱背景的文字配法：根据[主色实底标题与字段标签](references/native-form-styles.md#主色实底标题与字段标签)，优先考虑白色/近白色标题与适合的局部品牌底，并与字段 label 的字体、字重、对齐和间距成组设计。不要机械地全页白字，也不要为突出章节把 label 弱化到难读。
 
 ## Fast 视觉流程
 

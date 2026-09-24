@@ -1786,6 +1786,8 @@ describe('CLI offline smoke', () => {
       custom: {
         include: 'when_entry_mode_standalone_and_is_render_nav_false_readback',
         url: '{base_url}/{appType}/custom/{formUuid}',
+        default_policy: expect.stringContaining('Persist page navigation hiding and read it back'),
+        url_source: expect.stringContaining('navigationVerification.renderNav=false and verified=true'),
       },
       admin: {
         include: 'default_for_complete_application',

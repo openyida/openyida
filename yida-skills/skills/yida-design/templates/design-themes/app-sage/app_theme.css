@@ -71,6 +71,7 @@
   --color-fill1-2: #dce7df;
   --color-fill1-3: #bfcebf;
   --color-fill1-5: #eaf1ea;
+  --color-fill1-6: var(--color-text1-3);
   --color-fill1-10: #262626;
 
   /* text */
@@ -367,6 +368,7 @@
   --pod-nav-sub-divider-left: 16px;
   --pod-nav-sub-indent: 24px;
   --yida-help-tips-color: #878f95;
+  --yida-divider-secondary-color: var(--color-brand1-2);
 
   /* 新版主题数据管理变量 */
   --table-cell-border: var(--color-line1-1, #efefef);

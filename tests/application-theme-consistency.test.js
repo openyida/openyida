@@ -14,7 +14,8 @@ const guidance = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design
 const editorialTokens = JSON.parse(guidance.match(/```json\n([\s\S]*?)\n```/)[1]);
 const formGuidance = fs.readFileSync(path.join(ROOT,
   'yida-skills/skills/yida-design/references/native-form-styles.md'), 'utf8');
-const formTokens = JSON.parse(formGuidance.match(/```json\n([\s\S]*?)\n```/)[1]);
+const formTokenExample = formGuidance.split('## 写入现有主题源\n')[1];
+const formTokens = JSON.parse(formTokenExample.match(/```json\n([\s\S]*?)\n```/)[1]);
 const DETAIL_FIELD_PREVIEW_TOKENS = [
   '--pod-field-preview-bg-color', '--pod-field-preview-border-radius',
   '--pod-field-preview-indicator-color', '--pod-field-preview-shadow',

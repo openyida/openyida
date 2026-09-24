@@ -49,7 +49,7 @@
 
   /* brand */
   --color-brand1-1: <生成实际色值：--color-brand1-6 88% + #FFFFFF 12%，sRGB 逐通道混合>;
-  --color-brand1-2: <生成实际色值：--color-brand1-6 18% + #A4A4A4 82%，sRGB 逐通道混合>;
+  --color-brand1-2: <生成实际色值：--color-brand1-6 12% + --pod-page-bg-color 88%，sRGB 逐通道混合>;
   --color-brand1-3: <生成实际色值：--color-brand1-6 4% + #FFFFFF 96%，sRGB 逐通道混合>;
   --color-brand1-5: <生成实际色值：--color-brand1-6 12% + #000000 88%，sRGB 逐通道混合>;
   --color-brand1-6: {{PRIMARY_COLOR}};
@@ -71,6 +71,7 @@
   --color-fill1-2: <生成实际色值：--color-brand1-6 8% + #0D0D0D 92%，sRGB 逐通道混合>;
   --color-fill1-3: <生成实际色值：--color-brand1-6 10% + #0E0E0E 90%，sRGB 逐通道混合>;
   --color-fill1-5: <生成实际色值：--color-brand1-6 12% + #131313 88%，sRGB 逐通道混合>;
+  --color-fill1-6: var(--color-text1-3);
   --color-fill1-10: #262626;
 
   /* text */
@@ -370,6 +371,7 @@
   --pod-nav-sub-divider-left: 16px;
   --pod-nav-sub-indent: 24px;
   --yida-help-tips-color: #878f95;
+  --yida-divider-secondary-color: var(--color-brand1-2);
 
   /* 新版主题数据管理变量 */
   --table-cell-border: var(--color-line1-1, #efefef);
@@ -382,7 +384,7 @@
 
   --pod-nav-logo-text: var(--pod-nav-item-text-color, var(--color-text1-4, #202020));
   --pod-nav-sub-divider-color: #353535;
-  --pod-nav-item-text-color: var(--color-brand1-2);
+  --pod-nav-item-text-color: <生成实际色值：--color-brand1-6 18% + #A4A4A4 82%，sRGB 逐通道混合>;
   --pod-nav-item-text-hover-color: var(--color-brand1-3);
   --pod-nav-item-text-disabled-color: rgba(24, 28, 31, 0.24);
 

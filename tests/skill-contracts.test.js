@@ -725,6 +725,9 @@ describe('OpenYida skill contracts', () => {
     expect(step8).toContain('openyida get-form-config <appType> <displayPageFormUuid> --json');
     expect(step8).toContain('只有回读明确为 `renderNav=false`');
     expect(pageConfig).toContain('PRD 已把主页面明确标记为 `entryMode=standalone`');
+    expect(step8).toContain('不能因 PRD 漏写字段而跳过');
+    expect(step9).toContain('不得静默省略，不能只返回工作台或开发后台');
+    expect(pageConfig).toContain('不要求用户额外传开关');
     expect(feature).toContain('| 仅前台 | 已验证的独立业务入口 |');
     expect(feature).toContain('| 前后台双入口 | 独立业务入口和业务管理入口 |');
     expect(root).toContain('交付卡片的 `description` 写 2-3 句业务交付总结');
@@ -1723,7 +1726,7 @@ describe('OpenYida skill contracts', () => {
     expect(batchForms).toContain('background pending 表示原 batch 仍在执行');
     expect(batchForms).toContain('CLI 从 state 读取已知 ID 并复用成功表单');
     expect(batchForms).not.toContain('修正输入或为已知资源补入 `formUuid` 后');
-    expect(finishStep).toContain('CLI 成功结果返回的 `appUrl`、`workbenchUrl`、`adminUrl` 或 `url`');
+    expect(finishStep).toContain('CLI 成功结果返回的 `appUrl`、`workbenchUrl`、`adminUrl`、`standaloneUrl` 或 `url`');
     expect(finishStep).toContain('不得由模型根据 `appType` 自行拼接');
   });
 

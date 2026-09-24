@@ -36,6 +36,7 @@ tokens:
         "--input-focus-bg-color": "#fffefa"
         "--pod-form-label-color": "var(--color-text1-4)"
         "--form-top-label-margin-b": "8px"
+        "--yida-divider-secondary-color": "var(--color-brand1-2)"
         "--yida-form-content-bgcolor": "#fffefa"
         "--pod-page-content-max-width": "1140px"
         "--pod-page-border-radius": "3px"
@@ -72,6 +73,7 @@ tokens:
       "--color-fill1-2": "#f3f0e9"
       "--color-fill1-3": "#d6cbb8"
       "--color-fill1-5": "#fffefa"
+      "--color-fill1-6": "var(--color-text1-3)" # 弱图标与辅助操作 glyph 前景色
       "--color-fill1-10": "#262626"
       "--color-text1-5": "#FFFFFF"
       "--color-text1-4": "#493E2E"
