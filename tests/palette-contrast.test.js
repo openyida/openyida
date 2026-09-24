@@ -39,6 +39,26 @@ test('composites transparent hover fills on the navigation surface', () => {
   expect(auditPalette(tokens).checks.find(pair => pair.role === 'nav.hover').ratio).toBe(1);
 });
 
+test('catches the inline Divider brand surface even when the root secondary alias is dark', () => {
+  const tokens = { ...defaults, '--color-text1-4': '#DEE5EA',
+    '--color-brand1-2': '#E7F5F3', '--yida-divider-secondary-color': '#485863' };
+  const audit = auditPalette(tokens);
+  expect(audit.issues.map(pair => pair.role)).toContain('divider.brand-surface');
+  expect(audit.issues.map(pair => pair.role)).not.toContain('divider.secondary');
+  expect(() => validatePalette(tokens)).toThrow(expect.objectContaining({ code: 'DESIGN_THEME_CONTRAST_LOW' }));
+  tokens['--color-brand1-2'] = '#1B2E31';
+  tokens['--yida-divider-secondary-color'] = 'var(--color-brand1-2)';
+  expect(auditPalette(tokens).issues.filter(pair => pair.role.startsWith('divider.'))).toEqual([]);
+});
+
+test('checks divider alias overrides and reports unresolved brand surfaces', () => {
+  expect(auditPalette({ ...defaults, '--yida-divider-secondary-color': '#202020' }).issues
+    .map(pair => pair.role)).toContain('divider.secondary');
+  const audit = auditPalette({ ...defaults, '--color-brand1-2': 'var(--missing)' });
+  expect(audit.unresolved.map(pair => pair.role)).toContain('divider.brand-surface');
+  expect(audit.checks.map(pair => pair.role)).not.toContain('divider.brand-surface');
+});
+
 test('unknown colors, missing backgrounds and cycles are unresolved rather than passing', () => {
   for (const value of ['oklch(0.7 0.2 40)', 'var(--missing)', 'var(--pod-card-bg-color)']) {
     const audit = auditPalette({ ...defaults, '--pod-card-bg-color': value });
