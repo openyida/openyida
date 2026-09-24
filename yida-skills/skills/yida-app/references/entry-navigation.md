@@ -123,6 +123,8 @@ Fast（直接搭建）与 Plan（先确认方案）使用同一份入口规划�
 
 ## 规划字段速查（Fast / Plan）
 
+前台用途已经确定时，自定义承载页面默认采用独立入口。`role=service` 与页面 `sceneKey` 对应后，Plan 自动推导遗漏的 `entryMode=standalone`，Fast 执行同样规则；不靠页面名称猜测，不新增 CLI 参数。显式的导航要求优先，冲突需核对。取得页面 ID 后持久化隐藏页面导航并回读，发布后交付 `publish` 或 `get-form-config` 返回的 `standaloneUrl`，不追加导航 URL 参数。前台入口属于交付范围时不能因字段漏写或只拿到工作台地址而静默省略；未确认成功须明确列为未完成。
+
 需求文件中的 `entryRecommendation` 在 Plan 初始化后保存在 `execution.entryRecommendation`；Fast 在 PRD 中使用同一结构。旧计划没有此字段时仍可使用；首次完整生成时应明确入口规划。保留已有 `source/reason/taskRefs` 等需求依据。
 
 | 字段 | 含义和要求 |

@@ -68,6 +68,13 @@ description: 将已编写的宜搭自定义页面源码发布或更新到指定�
 ---
 
 
+## 前台单页面入口
+
+- 本轮业务用途已确定为前台自定义页面时，默认持久化隐藏该页的平台导航；缺少 `entryMode` 时按用途补齐独立入口，不要求用户提供新参数。发布前查询 `get-form-config`，未隐藏时执行 `update-form-config <appType> <formUuid> false "<页面标题>"` 并回读。用户明确保留导航或仅修改后台内容页时保留原配置；不要全局隐藏应用导航。
+- `publish` 默认读取页面导航配置。确认 `renderNav=false` 后，`url` 和 `standaloneUrl` 返回干净的 `/custom/<formUuid>`，另保留 `workbenchUrl`；无须新 CLI 开关，不追加 `isRenderNav=false` 等导航 URL 参数。
+- 缺失、无效或失败的回读不等于隐藏成功：`standaloneUrl=null` 时检查 `navigationVerification` / `navigationWarning`，修复配置后用 `get-form-config --json` 取得最新地址，不为补链接重复发布源码。确认页面类型为 display 才返回自定义页地址。
+- 最终回复必须包含前台单页面链接；若无法确认，明确说明前台入口未完成，不能仅给工作台或开发后台。现有已验证的公开/分享地址保留原样，不因隐藏导航而开启公开访问。
+
 ## Canvas 主题处理
 
 - `compile` 和 `publish` 默认保留固定品牌色覆盖，在结果 `warnings` 中返回源码位置、字段、色值与影响；即使使用 `--json` 也保留告警。告警不表示品牌色已跟随应用主题。
@@ -150,7 +157,7 @@ openyida list-forms <appType> --keyword <页面名>
 ## 输出
 
 ```json
-{"success":true,"formUuid":"FORM-XXX","version":0,"publishMode":"canvas","publishReadbackVerified":true,"warnings":[],"runtimeSmokeVerified":false,"runtimeSmokeStatus":"not_checked","healthCheck":{"ok":true,"mode":"publish_readback","expectedPublishMode":"canvas","displayComponentPresent":true,"publishedContentMatched":true,"readback":{"hasYidaCodeCanvas":true,"runtimeCodeBytes":1024}}}
+{"success":true,"formUuid":"FORM-XXX","version":0,"url":"{base_url}/APP_XXX/custom/FORM-XXX","standaloneUrl":"{base_url}/APP_XXX/custom/FORM-XXX","workbenchUrl":"{base_url}/APP_XXX/workbench/FORM-XXX","navigationVerification":{"renderNav":false,"verified":true},"navigationWarning":null,"publishMode":"canvas","publishReadbackVerified":true,"warnings":[],"runtimeSmokeVerified":false,"runtimeSmokeStatus":"not_checked","healthCheck":{"ok":true,"mode":"publish_readback","expectedPublishMode":"canvas","displayComponentPresent":true,"publishedContentMatched":true,"readback":{"hasYidaCodeCanvas":true,"runtimeCodeBytes":1024}}}
 ```
 
 ## 自动注入的 CSS

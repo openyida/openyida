@@ -1,7 +1,39 @@
 'use strict';
 
-const { buildApplicationEntryUrls } = require('../lib/app/application-entry-urls');
+const { buildApplicationEntryUrls, buildDisplayPageEntryUrls } = require('../lib/app/application-entry-urls');
 const base = { appType: 'APP_TEST', baseUrl: 'https://tenant.aliwork.com/' };
+
+describe('display page entries from persisted navigation', () => {
+  test.each([{ renderNav: false }, { renderNav: 'false' }, { isRenderNav: false }, { isRenderNav: 'false' }])('returns a clean standalone URL for %j', config => {
+    expect(buildDisplayPageEntryUrls({ ...base, formUuid: 'FORM_PAGE', config: { formType: 'display', ...config } })).toEqual({
+      url: 'https://tenant.aliwork.com/APP_TEST/custom/FORM_PAGE',
+      standaloneUrl: 'https://tenant.aliwork.com/APP_TEST/custom/FORM_PAGE',
+      workbenchUrl: 'https://tenant.aliwork.com/APP_TEST/workbench/FORM_PAGE',
+      navigationVerification: { renderNav: false, verified: true },
+    });
+  });
+  test.each([
+    [{ renderNav: true, isRenderNav: false }, true],
+    [{ renderNav: 'true' }, true],
+    [{ renderNav: null, isRenderNav: false }, null],
+    [{ renderNav: 'invalid', isRenderNav: false }, null],
+    [{}, null],
+  ])('does not claim a hidden-navigation entry for %j', (config, renderNav) => {
+    expect(buildDisplayPageEntryUrls({ ...base, formUuid: 'FORM_PAGE', config: { formType: 'display', ...config } })).toMatchObject({
+      url: 'https://tenant.aliwork.com/APP_TEST/workbench/FORM_PAGE',
+      standaloneUrl: null,
+      navigationVerification: { renderNav, verified: renderNav !== null },
+    });
+  });
+  test.each([
+    { formType: 'receipt', renderNav: false },
+    { renderNav: false },
+    { formType: 'display', appType: 'APP_OTHER', renderNav: false },
+    { formType: 'display', formUuid: 'FORM_OTHER', renderNav: false },
+  ])('does not invent display routes for an unknown or mismatched target %j', config => {
+    expect(buildDisplayPageEntryUrls({ ...base, formUuid: 'FORM_PAGE', config })).toEqual({});
+  });
+});
 
 test('returns separate workbench and developer admin routes with the actual app ID', () => {
   expect(buildApplicationEntryUrls(base)).toEqual({
