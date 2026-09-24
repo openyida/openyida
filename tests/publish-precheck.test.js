@@ -579,7 +579,13 @@ export default function Page() {
     }
   });
 
-  test('publish main treats health check and auto nav order errors as non-fatal after save succeeds', async () => {
+  test.each([
+    [{ renderNav: false }, 'custom', false],
+    [{ isRenderNav: 'false' }, 'custom', false],
+    [{ renderNav: true, isRenderNav: false }, 'workbench', true],
+    [{ renderNav: null, isRenderNav: false }, 'workbench', null],
+    [null, 'workbench', null],
+  ])('publish returns the persisted navigation entry for %j without new flags and keeps post-save failures non-fatal', async (pageConfig, route, renderNav) => {
     const sourcePath = path.join(workspace, 'home.canvas.jsx');
     fs.writeFileSync(sourcePath, 'export default function Page() { return null; }\n', 'utf8');
 
@@ -623,10 +629,9 @@ export default function Page() {
         success: true,
         content: { pages: [], gmtModified: 100 },
       })),
-      httpPost: jest.fn(() => Promise.resolve({
-        success: true,
-        content: { formUuid: 'FORM-PAGE', version: 7 },
-      })),
+      httpPost: jest.fn(() => pageConfig === null
+        ? Promise.reject(new Error('config read unavailable'))
+        : Promise.resolve({ success: true, content: pageConfig })),
       httpPostMultipart: jest.fn(() => Promise.resolve({
         success: true,
         content: {
@@ -713,7 +718,8 @@ export default function Page() {
       expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('display_component_missing'));
       expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('NAV_ORDER_RESULT_UNKNOWN'));
       expect(autoOrderNavigationMock).toHaveBeenCalledWith('APP_XXX', expect.any(Object));
-      expect(mockUtils.httpPost).not.toHaveBeenCalled();
+      expect(mockUtils.httpPost).toHaveBeenCalledTimes(1);
+      expect(mockUtils.httpPost.mock.calls[0][1]).toContain('/getFormSchemaInfo.json');
       expect(mockUtils.httpPostMultipart).toHaveBeenCalledTimes(1);
       expect(mockUtils.httpPostMultipart.mock.calls[0][1]).toContain('/query/codeBundle/save.json');
       expect(mockUtils.httpPostMultipart.mock.calls[0][2]).toMatchObject({
@@ -732,6 +738,11 @@ export default function Page() {
         appType: 'APP_XXX',
         formUuid: 'FORM-PAGE',
         publishMode: 'canvas',
+        url: `https://example.test/APP_XXX/${route}/FORM-PAGE`,
+        workbenchUrl: 'https://example.test/APP_XXX/workbench/FORM-PAGE',
+        standaloneUrl: route === 'custom' ? 'https://example.test/APP_XXX/custom/FORM-PAGE' : null,
+        navigationVerification: { renderNav, verified: renderNav !== null },
+        navigationWarning: pageConfig === null ? 'config read unavailable' : null,
         storageMode: 'CODE_BUNDLE',
         bundleId: 'a'.repeat(64),
         publishReadbackVerified: false,

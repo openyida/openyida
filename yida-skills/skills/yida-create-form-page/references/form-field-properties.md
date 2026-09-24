@@ -52,6 +52,7 @@ Divider > Field
 
 - 默认 `Divider` 使用主题模式：不写 `colorType` 或写 `"theme"`。
 - 不要为了“更好看”给每个 Divider 随机写 `backgroundColor` / `secondaryColor`。
+- 主色实底和主色标签上的标题不一定适合正文色。按[标题与 label 搭配](../../yida-design/references/native-form-styles.md#主色实底标题与字段标签)考虑白色/近白色标题与局部深底，自定义配色时显式写 `titleColor`；同页 label 保持清楚的中性文字，用字重、对齐和间距组织层级。
 - 用户指定颜色，或默认主题绑定不适合当前分割线的层次、视觉权重和可读性时，可使用 `colorType: "custom"`，按当前应用主题成组设计 `backgroundColor`、`secondaryColor`、`titleColor`。不要求用户逐项指定色值；同页同层级复用同一配色，并在现有 `design.md` 记录理由，不能逐字段随机配色。
 - 主题模式下，浅底、胶囊、梯形尾部等辅助色消费 `--yida-divider-secondary-color`；组件可能在元素上内联将它指向 `--color-brand1-2`。深色内容先将 `--color-brand1-2` 设计为深色品牌弱背景，再让应用辅助色引用同一变量，不能只修改根级辅助色。生成与实测要求见 [分割线弱背景](../../yida-design/references/native-form-styles.md#分割线弱背景)。
 

@@ -56,6 +56,22 @@
 
 按当前页面的业务、密度和主题选择 `dividerType`，同页同层级尽量一致，不同业务页面优先选用不同且合适的样式；无法判断时按页面随机轮换，选定后显式填写，同页复用。完整外观和场景见 [Divider 选型表](form-field-properties.md#divider)。未填写时 CLI 以 `bold-with-thin` 兜底，不替代按场景选型。
 
+默认 `colorType: "theme"` 继承主题。默认绑定不适合当前深色内容或复合分割线时，可按[配色引导](../../yida-design/references/native-form-styles.md#分割线弱背景)成组自定义，无需用户逐项指定颜色。例如下面的颜色只用于蓝色深色内容示例，不作为所有应用的固定配方：
+
+```json
+{
+  "type": "Divider",
+  "title": "基本信息",
+  "dividerType": "light-left-bar",
+  "colorType": "custom",
+  "backgroundColor": "#2AA5FF",
+  "secondaryColor": "#1A2D3D",
+  "titleColor": "#DEE5EA"
+}
+```
+
+`colorType`、`backgroundColor`、`secondaryColor`、`titleColor` 都是字段 JSON 属性，不是 CLI 参数。create/batch 写在字段对象里；update 写在目标字段的 `changes` 中；patch 写在 `field-props` 操作的 `props` 中，最终保存在 `Divider.props` 的同名属性。同页同层级复用配色；换肤时重新考虑这三个颜色。本引导不新增自动校验或保存/上传阻断。
+
 ### ColumnContainer
 
 局部多列使用 ColumnContainer，适合短字段成组：

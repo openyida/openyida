@@ -137,6 +137,8 @@ CLI 在同一次 batch 内对已取得真实 `formUuid` 的空壳表单执行一
 - 组件选用：业务字段负责数据采集，Tab/切换负责导航，按钮组/操作入口执行业务动作，图片或图形建立视觉焦点，状态区提供反馈，标题与 `Divider` 组织层级和节奏，`ColumnContainer` 组织横向字段。编辑已有表单时保留现有组件。
 - 分组规则：普通业务分组和章节分隔使用 `Divider`；横向字段组合使用 `ColumnContainer`。
 - Divider 样式：按页面业务、字段密度和主题，从 [23 个可见样式](references/form-field-properties.md#divider) 中选择并显式填写 `dividerType`。同页同层级使用一致样式；编辑已有页面时沿用原样式，不同业务页面按各自设计选择。
+- 深色表单配色：先区分深色内容与仅深色导航，再按[分割线配色引导](../yida-design/references/native-form-styles.md#分割线弱背景)选择背景和标题色。默认继承主题；默认绑定不适合时可用 `colorType: "custom"` 成组设计主色、辅助色、标题色，无需用户逐项指定。内嵌椭圆等复合样式分别考虑外条、内底和文字，不能直接沿用浅底配浅字；已有页面局部修复不随意改动全局品牌色。
+- 主色实底标题与 label：`dark-bar`、`light-left-title` 等样式的文字位于主色块时，优先考虑白色/近白色，并按实际亮度成组调整局部底色；自定义时显式填写 `titleColor`。章节与字段 label 同时考虑字体、字重、对齐和间距，不靠压暗 label 突出章节。具体见[主色实底标题与字段标签](../yida-design/references/native-form-styles.md#主色实底标题与字段标签)。
 
 ## 企业级表单质量规则
 
@@ -157,8 +159,7 @@ CLI 在同一次 batch 内对已取得真实 `formUuid` 的空壳表单执行一
 - `--theme default|compact|comfortable` 配置页面密度；应用主题 token 配置完整视觉风格。美化已有表单时保留现有 `formUuid` 和字段结构，只更新布局与主题。
 - 局部多列容器使用统一、克制的背景。
 - 流程表单优先采用单列和清晰分段，颜色用于章节识别。
-- Divider 默认使用主题模式，辅助底色由应用主题 `--yida-divider-secondary-color` 控制；深色内容界面不要写亮色 `secondaryColor` 兜底。
-- 用户明确指定颜色时，才写入 `colorType: "custom"` 和具体色值。
+- 用户指定颜色，或默认绑定不适合当前主题下的分割线时，可写入 `colorType: "custom"`，成组设计主色、辅助色和标题色；无需等待用户逐项指定色值。
 
 ## create 模式
 

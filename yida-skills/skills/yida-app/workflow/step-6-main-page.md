@@ -16,7 +16,7 @@
 3. 创建页面前核对 PRD/resource context 与 auth snapshot 的 `corpId`。
 4. `corpId` 不一致 → 先确认重新登录到目标组织，或确认在当前组织继续。
 5. 创建 display 页面后记录真实主页面 `formUuid`。
-6. PRD 的应用工作区采用自定义导航，或该页已确定 `entryMode=standalone` / 页面隐藏导航时，取得真实 `formUuid` 后立即执行 `openyida update-form-config <appType> <formUuid> false "<页面标题>"` 并 `get-form-config --json` 回读 `renderNav=false`；已有页面按同样规则处理，`create-page --hide-nav` 已配置成功时直接回读即可。该任务与 Step 7 的源码开发并行，不等待代码或发布完成。
+6. 已确定面向前台用户的自定义页面（如 `entryRecommendation.entries[].role=service`），默认作为独立页面交付，即使遗漏 `entryMode` 也按业务用途补齐为 `standalone`，不要求用户再选择开关。PRD 的应用工作区采用自定义导航，或该页已确定 `entryMode=standalone` / 页面隐藏导航时，取得真实 `formUuid` 后立即执行 `openyida update-form-config <appType> <formUuid> false "<页面标题>"` 并 `get-form-config --json` 回读 `renderNav=false`；已有页面按同样规则处理，配置已正确则不重复写入。该任务与 Step 7 的源码开发并行，不等待代码或发布完成。使用持久化配置，不在自定义页 URL 中追加 `isRenderNav=false`。用户明确要求保留平台导航、普通后台内容页和无关页面局部修改沿用其已有边界。
 7. 将页面导航配置结果交给 Step 8 做发布后核对。其余自定义页面同样在各自创建/复用成功后配置，不只处理主页面。
 
 同一 sceneKey 的前台业务视图共用一个自定义页面；将全部视图交给 Step 7 实现。

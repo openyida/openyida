@@ -44,7 +44,7 @@ Frontmatter 包含 `name`、`description`、`themeId`、`navTheme` 和 `tokens`�
 - 颜色与圆角保留主题差异。Tooltip 固定使用 `#262626` 与 `#FFFFFF`。
 - `--color-white` 和 `--pod-table-cell-color` 通过 `var(--pod-card-bg-color)` 继承内容表面；页面桥接 `--oyd-page-bg` 若存在，使用 `var(--pod-page-bg-color)`。
 - `--color-fill1-6` 是平台弱图标与辅助操作色，原生成员选择、树形展开等图标会消费它；默认跟随 `--color-text1-3`，深色内容界面不得依赖固定 `#878f95` fallback。
-- `appearance.native-form` 可补充原生表单组件语义变量。`--yida-divider-secondary-color` 控制 Divider 的浅底和辅助几何色；浅色内容界面通常用 `var(--color-brand1-2)`，深色内容界面应接当前主题弱边界或弱填充，避免品牌浅色在暗底上变成亮条。
+- `appearance.native-form` 可补充原生表单组件语义变量。`--yida-divider-secondary-color` 控制 Divider 的浅底和辅助几何色，默认引用 `var(--color-brand1-2)`。品牌弱背景应随内容明暗设计；深色内容不能保留近白底，也不能仅改根级辅助色而忽略组件的内联绑定。复合分割线可按当前主题成组自定义配色，详见[分割线弱背景与标题搭配](../../references/native-form-styles.md#分割线弱背景)。
 - `design.md` 与 `app_theme.css` 中，`--color-brand1-6` 保留 `{{PRIMARY_COLOR}}`，`--color-brand1-1` 保留品牌悬停色的同源生成占位，其他品牌档位也由主色种子推导。`<生成实际色值：…>` 属于推导指令，项目化时替换为实际 CSS 值。先完成项目 `design.md`，再运行 `sample yida-design app-theme --design-file <design.md> --output <app_theme.css>`；该命令会替换导出 CSS 的占位。
 - 变量名在两层及各分组中均唯一；平台基础与项目扩展均在主题中声明，可无环引用，并按实际设计补充变量。声明与正文中的引用必须存在，不得循环引用，不使用后缀缩写或 `*` 通配写法。
 - 原生导航选中项阴影统一由 `--pod-nav-menu-item-selected-shadow` 控制；不需要额外标记的主题显式写 `none`，需要标记的主题写完整 `box-shadow` 值。该值不绑定方向：左、右、下强调线分别使用正水平偏移、负水平偏移、负垂直偏移的 `inset` 阴影。公共 CSS 模板负责消费该变量，主题模板不保存平台 DOM 选择器。

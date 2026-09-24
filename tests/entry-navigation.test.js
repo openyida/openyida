@@ -33,6 +33,35 @@ function planFixture() {
 const handoff = plan => JSON.parse(renderPrd(plan).match(/```json\n([\s\S]*?)\n```/)[1]);
 
 describe('entry planning and platform navigation', () => {
+  test.each(['service-management', 'frontend-only'])('%s infers a standalone service page without entryMode or menu styling', mode => {
+    const plan = planFixture();
+    delete plan.pages.customPageDetails[0].pageSpecHandoff;
+    plan.execution.entryRecommendation.mode = mode;
+    if (mode === 'frontend-only') {plan.execution.entryRecommendation.entries.pop();}
+    const result = handoff(plan);
+    expect(result.pages[0].pageSpecHandoff.entryMode).toBe('standalone');
+    expect(result.pageNavigation).toEqual([{ name: '采购工作台', type: 'display-page', isRenderNav: false }]);
+    expect(result.appConfig.hideAppNav).toBe('n');
+    expect(renderPrd(plan)).toContain('独立页面入口');
+    expect(plan.pages.customPageDetails[0].pageSpecHandoff).toBeUndefined();
+  });
+
+  test('does not infer a standalone page from a management role or page name', () => {
+    const plan = planFixture();
+    delete plan.pages.customPageDetails[0].pageSpecHandoff;
+    plan.execution.entryRecommendation = { mode: 'unified', entries: [
+      { ...plan.execution.entryRecommendation.entries[0], role: 'workspace' },
+    ] };
+    expect(handoff(plan).pages[0].pageSpecHandoff.entryMode).toBe('platform-shell');
+    expect(handoff(plan).pageNavigation).toEqual([]);
+  });
+
+  test('does not override an explicit conflicting platform-shell service page', () => {
+    const plan = planFixture();
+    plan.pages.customPageDetails[0].pageSpecHandoff = { entryMode: 'platform-shell' };
+    expect(() => handoff(plan)).toThrow(/访客入口.*必须关联独立页面/);
+  });
+
   test('derives management order without a management homepage and preserves frontend menu order', () => {
     const plan = planFixture();
     const result = handoff(plan);
