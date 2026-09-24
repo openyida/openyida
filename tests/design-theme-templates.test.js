@@ -27,6 +27,31 @@ test('shipped themes inherit project color and declare the selected-item shadow 
   }
 });
 
+test('native form divider secondary color follows content tone', () => {
+  const index = JSON.parse(fs.readFileSync(path.join(THEMES, 'index.json'), 'utf8'));
+  const sharedTemplate = fs.readFileSync(path.join(SKILL, 'references/theme/app-custom-theme-template.css'), 'utf8');
+  expect(sharedTemplate).toContain('--yida-divider-secondary-color: var(--color-brand1-2);');
+  for (const theme of index.themes) {
+    const expected = theme.contentTone === 'dark' ? 'var(--color-line1-1)' : 'var(--color-brand1-2)';
+    const design = fs.readFileSync(path.join(SKILL, theme.templatePath), 'utf8');
+    const css = fs.readFileSync(path.join(SKILL, theme.cssTemplatePath), 'utf8');
+    expect(design).toContain(`"--yida-divider-secondary-color": "${expected}"`);
+    expect(css).toContain(`--yida-divider-secondary-color: ${expected};`);
+  }
+});
+
+test('shared themes declare the platform weak icon color', () => {
+  const index = JSON.parse(fs.readFileSync(path.join(THEMES, 'index.json'), 'utf8'));
+  const sharedTemplate = fs.readFileSync(path.join(SKILL, 'references/theme/app-custom-theme-template.css'), 'utf8');
+  expect(sharedTemplate).toContain('--color-fill1-6: var(--color-text1-3, #878f95);');
+  for (const theme of index.themes) {
+    const design = fs.readFileSync(path.join(SKILL, theme.templatePath), 'utf8');
+    const css = fs.readFileSync(path.join(SKILL, theme.cssTemplatePath), 'utf8');
+    expect(design).toContain('"--color-fill1-6": "var(--color-text1-3)"');
+    expect(css).toContain('--color-fill1-6: var(--color-text1-3);');
+  }
+});
+
 function validate(skill = SKILL, encoding = 'utf-8', windowsPaths = false) {
   if (!PYTHON) {
     throw new Error('Theme contract tests require Python 3.9+ (python3, python, or py -3).');

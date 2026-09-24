@@ -53,6 +53,7 @@ Divider > Field
 - 默认 `Divider` 使用主题模式：不写 `colorType` 或写 `"theme"`。
 - 不要为了“更好看”给每个 Divider 随机写 `backgroundColor` / `secondaryColor`。
 - 只有用户明确指定颜色时，才使用 `colorType: "custom"` 并写 `backgroundColor`、`secondaryColor`、`titleColor`。
+- 主题模式下，浅底、胶囊、梯形尾部等辅助色由应用主题变量 `--yida-divider-secondary-color` 控制。浅色内容通常接 `var(--color-brand1-2)`，深色内容应接当前主题的弱边界或弱填充色，避免在暗底上出现亮色横条。
 
 ### Divider
 
@@ -120,7 +121,7 @@ OpenYida 支持以下 **23 个可见样式**，不接受 `none`（无分割线�
 | `colorType` | `"theme"` | 配色类型，支持 `"theme"` / `"custom"` |
 | `backgroundColor` | `"#0089ff"` | 自定义主题色 |
 | `titleColor` | `"#171a1d"` | 自定义标题色 |
-| `secondaryColor` | `"#cce5ff"` | 自定义背景/辅助色 |
+| `secondaryColor` | `"#cce5ff"` | 自定义背景/辅助色；仅在 `colorType: "custom"` 时使用，主题模式改 `--yida-divider-secondary-color` |
 
 ### ColumnContainer
 

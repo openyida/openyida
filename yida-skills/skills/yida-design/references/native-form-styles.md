@@ -41,8 +41,10 @@
 | `--input-border-color` | 输入边框颜色 | `rgba(24, 28, 31, .12)` |
 | `--pod-form-label-color` | 字段标签 `color` | `var(--color-text1-10, rgba(24, 28, 31, .8))` |
 | `--form-top-label-margin-b` | 顶部标签 `margin-bottom` | `0` |
+| `--yida-divider-secondary-color` | Divider 浅底、胶囊和辅助几何色 | `var(--color-brand1-2)` |
 
 表中的回退不是必须写死的设计值。模板将圆角连接到 `--corner-2`，填充连接到 `--pod-card-bg-color`，边框连接到 `--color-line1-2`，标签连接到 `--color-text1-10`；项目可以按语义单独调整。高度和使用同一变量的行高一起变化，不再增加一个平行行高变量。
+暗色内容界面的 Divider 辅助色不能沿用明亮的品牌浅色，应接到当前主题的弱边界或弱填充色，例如 `var(--color-line1-1)`；浅色内容界面可继续使用 `var(--color-brand1-2)` 保持品牌淡底。
 
 以下是不同方向的起点，按主题和真实业务选择，不随机逐字段切换，也不作为 CLI preset：
 
@@ -138,6 +140,7 @@ Fast 将以下变量合并到 `design.md` 的 `tokens.application-global`；Plan
   "--input-border-width": "1px",
   "--input-border-color": "#D8CDBD",
   "--pod-form-label-color": "#554B40",
+  "--yida-divider-secondary-color": "var(--color-brand1-2)",
   "--form-top-label-margin-b": "6px",
   "--pod-field-preview-bg-color": "#F7F1E7",
   "--pod-field-preview-border-radius": "6px",

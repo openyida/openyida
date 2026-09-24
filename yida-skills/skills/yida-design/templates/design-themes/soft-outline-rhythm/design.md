@@ -37,6 +37,7 @@ tokens:
         "--input-focus-bg-color": "var(--input-bg-color)"
         "--pod-form-label-color": "var(--color-text1-4)"
         "--form-top-label-margin-b": "var(--s-2)"
+        "--yida-divider-secondary-color": "var(--color-brand1-2)"
         "--yida-form-content-bgcolor": "var(--pod-page-bg-color)"
         "--pod-page-footer-bg-color": "var(--pod-card-bg-color)"
         "--pod-page-footer-border-radius": "var(--corner-5)"
@@ -65,6 +66,7 @@ tokens:
       "--color-fill1-2": "#F3F3F3" # neutral-gray；点击或中性选中填充
       "--color-fill1-3": "#D6D6D6" # neutral-gray；更重中性填充、进度轨道
       "--color-fill1-5": "#FFFFFF" # neutral-gray；pop-up 背景：下拉、浮层、气泡、抽屉、弹窗
+      "--color-fill1-6": "var(--color-text1-3)" # 弱图标与辅助操作 glyph 前景色
       "--color-fill1-10": "#262626" # neutral-gray；固定深色 Tooltip 背景，不随品牌或明暗主题变化
       "--color-text1-5": "#FFFFFF" # neutral-gray；固定 Tooltip 反色文字，与 --color-fill1-10 配套
       "--color-text1-4": "#202020" # neutral-gray；一级文字、标题、核心数字，文字对比最强

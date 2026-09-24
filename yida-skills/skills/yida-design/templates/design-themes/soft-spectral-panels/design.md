@@ -37,6 +37,7 @@ tokens:
         "--input-focus-bg-color": "var(--input-bg-color)"
         "--pod-form-label-color": "var(--color-text1-4)"
         "--form-top-label-margin-b": "var(--s-2)"
+        "--yida-divider-secondary-color": "var(--color-line1-1)"
         "--yida-form-content-bgcolor": "var(--pod-page-bg-color)"
         "--pod-page-footer-bg-color": "var(--pod-card-bg-color)"
         "--pod-page-footer-border-radius": "var(--corner-5)"
@@ -65,6 +66,7 @@ tokens:
       "--color-fill1-2": "<生成实际色值：--color-brand1-6 8% + #0D0D0D 92%，sRGB 逐通道混合>" # 主题派生灰；中性按下及选中
       "--color-fill1-3": "<生成实际色值：--color-brand1-6 10% + #0E0E0E 90%，sRGB 逐通道混合>" # 主题派生灰；较重填充、快捷键底盒与进度轨道
       "--color-fill1-5": "<生成实际色值：--color-brand1-6 12% + #131313 88%，sRGB 逐通道混合>" # 主题派生灰；比卡片略亮的下拉、弹窗、抽屉和数据读数浮层
+      "--color-fill1-6": "var(--color-text1-3)" # 弱图标与辅助操作 glyph 前景色
       "--color-fill1-10": "#262626" # neutral-gray；固定深色 Tooltip 背景，不随品牌或明暗主题变化
       "--color-text1-5": "#FFFFFF" # neutral-gray；固定 Tooltip 反色文字，与 --color-fill1-10 配套
       "--color-text1-4": "<生成实际色值：--color-brand1-6 6% + #F7F7F7 94%，sRGB 逐通道混合>" # 主题派生近白；标题、核心数字与正文

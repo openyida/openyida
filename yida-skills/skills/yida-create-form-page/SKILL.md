@@ -157,7 +157,8 @@ CLI 在同一次 batch 内对已取得真实 `formUuid` 的空壳表单执行一
 - `--theme default|compact|comfortable` 配置页面密度；应用主题 token 配置完整视觉风格。美化已有表单时保留现有 `formUuid` 和字段结构，只更新布局与主题。
 - 局部多列容器使用统一、克制的背景。
 - 流程表单优先采用单列和清晰分段，颜色用于章节识别。
-- 用户明确指定颜色时，写入 `colorType: "custom"` 和具体色值。
+- Divider 默认使用主题模式，辅助底色由应用主题 `--yida-divider-secondary-color` 控制；深色内容界面不要写亮色 `secondaryColor` 兜底。
+- 用户明确指定颜色时，才写入 `colorType: "custom"` 和具体色值。
 
 ## create 模式
 
