@@ -100,6 +100,7 @@ module.exports = {
     group_data: 'Données & Permissions',
     cmd_data: 'Gestion unifiée des données (formulaire/processus/tâche/sous-formulaire)',
     data_notes: "DateField attend un horodatage Unix numérique en millisecondes ; CascadeDateField attend un tableau de ces valeurs. Convertissez selon le fuseau métier ; les dates textuelles et les secondes sont refusées. --resolve-aliases résout uniquement les noms de champs.",
+    cmd_data_upload_attachment: 'Téléverser des fichiers locaux dans un champ de pièce jointe d’une instance existante',
     cmd_task_center: 'Centre de tâches global (à faire/traité/CC etc.)',
     cmd_basic_info: "Consulter les infos d'organisation, capacités, quotas et domaine",
     cmd_read_dingtalk_doc: "Récupérer le contenu Markdown d'un document DingTalk",
@@ -194,6 +195,13 @@ module.exports = {
     next_page: 'D’autres applications sont disponibles. Continuez avec : {0}',
   },
 
+  attachment_upload: {
+    invalid: 'Arguments de téléversement invalides : {0}',
+    login_required: 'Une session OAuth OpenYida valide est requise ; exécutez d’abord openyida login',
+    stage_failed: 'Échec du téléversement à l’étape {0} : {1}',
+    partial_failed: 'Un ou plusieurs fichiers ont échoué ; le formulaire n’a pas été mis à jour et des objets OSS orphelins peuvent exister',
+    verification_failed: 'La pièce jointe a été mise à jour, mais la vérification par relecture a échoué'
+  },
   cli: {
     design_plan_entry_mode_required: 'Choisissez un mode : pages métier partagées (unified), interfaces usager et gestion séparées (service-management), interface usager seule (frontend-only) ou gestion métier seule (backend-only).',
     design_plan_backend_only_roles: 'En mode backend-only, chaque entrée doit utiliser le rôle management.',

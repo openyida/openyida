@@ -100,6 +100,7 @@ module.exports = {
     group_data: '데이터 & 권한',
     cmd_data: '통합 데이터 관리 (양식/프로세스/작업/하위양식)',
     data_notes: "DateField는 밀리초 숫자 타임스탬프, CascadeDateField는 해당 타임스탬프 배열을 사용합니다. 업무 시간대로 변환하세요. 날짜 문자열과 초 단위 값은 사용할 수 없습니다. --resolve-aliases는 필드 이름만 변환합니다.",
+    cmd_data_upload_attachment: '로컬 파일을 기존 양식 인스턴스의 첨부 필드에 업로드',
     cmd_task_center: '글로벌 작업 센터 (할일/처리됨/참조 등)',
     cmd_basic_info: '조직 기본 정보, 용량, 할당량 및 도메인 설정 조회',
     cmd_read_dingtalk_doc: 'DingTalk 문서의 Markdown 내용 가져오기',
@@ -194,6 +195,13 @@ module.exports = {
     next_page: '앱이 더 있습니다. 다음을 실행하세요: {0}',
   },
 
+  attachment_upload: {
+    invalid: '첨부 파일 업로드 인수가 잘못되었습니다: {0}',
+    login_required: '유효한 OpenYida OAuth 세션이 필요합니다. 먼저 openyida login을 실행하세요',
+    stage_failed: '첨부 파일 업로드가 {0} 단계에서 실패했습니다: {1}',
+    partial_failed: '하나 이상의 파일 업로드에 실패했습니다. 양식은 업데이트되지 않았으며 OSS 고아 객체가 남을 수 있습니다',
+    verification_failed: '첨부 파일은 업데이트되었지만 양식 재조회 검증에 실패했습니다'
+  },
   cli: {
     design_plan_entry_mode_required: '사용 방식을 선택하세요: 공통 업무 화면(unified), 이용자 화면과 업무 처리 화면 분리(service-management), 이용자 화면만(frontend-only), 업무 처리 화면만(backend-only).',
     design_plan_backend_only_roles: 'backend-only에서는 모든 진입점의 role이 management여야 합니다.',

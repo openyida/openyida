@@ -100,6 +100,7 @@ module.exports = {
     group_data: 'Daten & Berechtigungen',
     cmd_data: 'Einheitliche Datenverwaltung (Formular/Prozess/Aufgabe/Unterformular)',
     data_notes: "DateField erwartet numerische Unix-Zeitstempel in Millisekunden, CascadeDateField ein Array davon. In der Geschäftszeitzone umrechnen; Datumszeichenfolgen und Sekundenwerte sind ungültig. --resolve-aliases löst nur Feldnamen auf.",
+    cmd_data_upload_attachment: 'Lokale Dateien in ein Anhangsfeld einer vorhandenen Formularinstanz hochladen',
     cmd_task_center: 'Globales Aufgabenzentrum (Aufgaben/Bearbeitet/CC etc.)',
     cmd_basic_info: 'Organisationsinfos, Kapazitaeten, Quoten und Domain-Einstellungen abfragen',
     cmd_read_dingtalk_doc: 'Markdown-Inhalt eines DingTalk-Dokuments abrufen',
@@ -194,6 +195,13 @@ module.exports = {
     next_page: 'Weitere Apps sind verfügbar. Fortfahren mit: {0}',
   },
 
+  attachment_upload: {
+    invalid: 'Ungültige Argumente für den Anhang-Upload: {0}',
+    login_required: 'Eine gültige OpenYida-OAuth-Sitzung ist erforderlich; führen Sie zuerst openyida login aus',
+    stage_failed: 'Anhang-Upload in Phase {0} fehlgeschlagen: {1}',
+    partial_failed: 'Mindestens eine Datei konnte nicht hochgeladen werden; das Formular wurde nicht aktualisiert und verwaiste OSS-Objekte sind möglich',
+    verification_failed: 'Der Anhang wurde aktualisiert, aber die Überprüfung durch erneutes Lesen ist fehlgeschlagen'
+  },
   cli: {
     design_plan_entry_mode_required: 'Zugangsmodus wählen: gemeinsame Geschäftsseiten (unified), getrennte Nutzer- und Bearbeitungsseiten (service-management), nur Nutzerseiten (frontend-only) oder nur Geschäftsbearbeitung (backend-only).',
     design_plan_backend_only_roles: 'Bei backend-only muss jeder Einstieg die Rolle management verwenden.',

@@ -100,6 +100,7 @@ module.exports = {
     group_data: 'البيانات & الأذونات',
     cmd_data: 'إدارة البيانات الموحدة (نموذج/عملية/مهمة/نموذج فرعي)',
     data_notes: "يستخدم DateField طابع Unix زمنيًا رقميًا بالمللي ثانية، ويستخدم CascadeDateField مصفوفة منها. حوّل حسب المنطقة الزمنية للعمل؛ لا تُقبل سلاسل التاريخ أو قيم الثواني. يحوّل --resolve-aliases أسماء الحقول فقط.",
+    cmd_data_upload_attachment: 'رفع ملفات محلية إلى حقل مرفقات في نسخة نموذج موجودة',
     cmd_task_center: 'مركز المهام العالمي (معلق/معالج/نسخة إلخ)',
     cmd_basic_info: 'عرض معلومات المؤسسة والسعة والحصص والنطاق',
     cmd_read_dingtalk_doc: 'جلب محتوى Markdown من مستند DingTalk',
@@ -194,6 +195,13 @@ module.exports = {
     next_page: 'تتوفر تطبيقات أخرى. تابع باستخدام: {0}',
   },
 
+  attachment_upload: {
+    invalid: 'وسيطات رفع المرفقات غير صالحة: {0}',
+    login_required: 'يلزم وجود جلسة OAuth صالحة لـ OpenYida؛ شغّل openyida login أولاً',
+    stage_failed: 'فشل رفع المرفق أثناء مرحلة {0}: {1}',
+    partial_failed: 'فشل رفع ملف واحد أو أكثر؛ لم يتم تحديث النموذج وقد توجد كائنات OSS يتيمة',
+    verification_failed: 'تم تحديث المرفق، لكن فشل التحقق بإعادة قراءة النموذج'
+  },
   cli: {
     design_plan_entry_mode_required: 'اختر طريقة الاستخدام: صفحات عمل مشتركة (unified)، واجهة للمستخدم وأخرى لمعالجة الأعمال (service-management)، واجهة المستخدم فقط (frontend-only)، أو معالجة الأعمال فقط (backend-only).',
     design_plan_backend_only_roles: 'في وضع backend-only، يجب أن تكون قيمة role لكل مدخل هي management.',
