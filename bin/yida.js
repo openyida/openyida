@@ -193,6 +193,7 @@ function printLoginResult(result) {
 
   if (!result) {
     console.log(JSON.stringify({
+      type: 'login_result',
       ok: false,
       status: 'login_failed',
       can_auto_use: false,
@@ -205,6 +206,7 @@ function printLoginResult(result) {
     ? !!result.ok
     : (result.can_auto_use !== false && !!result.access_token);
   const summary = {
+    type: 'login_result',
     ok: tokenUsable,
     status: result.status || (tokenUsable ? 'ok' : 'token_not_issued'),
     auth_mode: 'token',
@@ -279,6 +281,7 @@ function getFirstPositionalArg(cliArgs, startIndex = 0) {
     '--login-url',
     '--profile',
     '--user-id',
+    '--env-hint',
   ]);
   for (let index = startIndex; index < cliArgs.length; index++) {
     const arg = cliArgs[index];
@@ -386,6 +389,7 @@ function applyLoginEnvironmentFlags(cliArgs, options = {}) {
     '--client-id',
     '--profile',
     '--user-id',
+    '--env-hint',
   ]);
   const targetUrlFlags = new Set([
     '--endpoint',
@@ -537,13 +541,23 @@ function printLoginHelp() {
 }
 
 function buildTokenLoginOptions(loginArgs) {
+  const device = loginArgs.includes('--device');
   return {
     clientId: getArgValue(loginArgs, '--client-id'),
     corpId: getArgValue(loginArgs, '--corp-id'),
     userId: getArgValue(loginArgs, '--user-id'),
     authProfile: getArgValue(loginArgs, '--profile'),
     quiet: process.env.YIDA_QUIET === '1' || loginArgs.includes('--quiet'),
-    noBrowser: loginArgs.includes('--no-browser'),
+    noBrowser: device || loginArgs.includes('--no-browser'),
+    device,
+    envHint: getArgValue(loginArgs, '--env-hint'),
+    // Machine-readable progress events for agent runtimes (sandbox browsers,
+    // CI dashboards). Emits one JSON line per state transition.
+    onDeviceState: (state) => {
+      if (device) {
+        process.stdout.write(JSON.stringify({ type: 'device_login_state', ...state }) + '\n');
+      }
+    },
   };
 }
 

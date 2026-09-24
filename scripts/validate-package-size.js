@@ -22,15 +22,17 @@ const path = require('path');
 // Anonymous form submission guidance adds about 14 KiB of required runtime skill content.
 // app-entry/fix-theme commands and WAF-safe authoring guidance push the gzipped tarball
 // past the previous 2128 KiB ratchet (CI Node 20 gzip runs ~2 KiB heavier than newer Node).
+// Device code login adds one packaged runtime module and its CLI/i18n documentation.
 // Retain modest growth headroom and round budgets to 16 KiB boundaries.
-const MAX_TARBALL_BYTES = 2144 * 1024;
-const MAX_UNPACKED_BYTES = 8000 * 1024;
+const MAX_TARBALL_BYTES = 2160 * 1024;
+const MAX_UNPACKED_BYTES = 8064 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
 // Theme scope, brand-scale and palette validation add three runtime modules;
 // removing the application-styles/navigation-styles catalogs offsets two files.
-const MAX_ENTRY_COUNT = 608;
+// Device code login adds one packaged runtime module.
+const MAX_ENTRY_COUNT = 609;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

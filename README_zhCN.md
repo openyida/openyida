@@ -77,6 +77,13 @@ openyida login
 
 OpenYida 默认使用 OAuth token 模式：打开钉钉 OAuth 授权页，通过本地 loopback 回调接收授权码，再由宜搭服务换取并缓存 `access_token` / `refresh_token`。Agent 不需要提取浏览器 Cookie，也不需要手写 `.cache/cookies.json`。
 
+在沙箱、无浏览器终端或 CI 面板中无法完成 loopback 回调时，使用设备授权登录。在任意设备打开命令输出的验证地址并输入用户码；`--env-hint` 可在授权时限定目标环境 profile：
+
+```bash
+openyida login --device
+openyida login --device --env-hint pre
+```
+
 AI 工具中建议登录后用下面任一命令确认 token session 可用：
 
 ```bash
@@ -96,7 +103,7 @@ openyida auth profile switch <auth_profile>
 如果用户给出明确的宜搭入口 URL，需要把 URL 传给登录命令：
 
 ```bash
-openyida login https://yida-group.alibaba-inc.com/
+openyida login https://<your-yida-entry-url>/
 openyida login --alibaba
 ```
 
@@ -262,7 +269,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 | 命令 | 说明 |
 |------|------|
-| `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
+| `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser] [--device] [--env-hint <name>]` | 登录（OAuth token 模式） |
 | `openyida logout` | 退出登录 / 解绑当前项目登录态 |
 | `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch>` | token 登录态与 profile 管理 |
 | `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | 组织管理（列表 / 优先按已有 profile 切换） |

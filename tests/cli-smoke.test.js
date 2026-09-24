@@ -381,6 +381,8 @@ describe('CLI offline smoke', () => {
     expect(result.status).toBe(0);
     expect(result.output).toContain('openyida login');
     expect(result.output).toContain('OAuth loopback');
+    expect(result.output).toContain('--device');
+    expect(result.output).toContain('--env-hint');
     expect(result.output).not.toContain('login.dingtalk.com/oauth2/auth');
     expect(result.output).not.toContain('not_logged_in');
   });

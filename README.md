@@ -74,10 +74,17 @@ openyida login
 
 OpenYida login defaults to OAuth token mode. It opens the DingTalk OAuth authorization page, receives the local loopback callback, exchanges `code` / `authCode` with the Yida server, and stores `access_token` / `refresh_token` in the user auth store when available. If the user auth store is not writable, OpenYida explicitly falls back to the current project cache and reports that narrower persistence scope.
 
+In a sandbox, headless shell, or CI dashboard where the loopback callback cannot complete, use the device authorization flow. Open the displayed verification URL on any device and enter the user code. `--env-hint` optionally pins the intended environment profile at authorization time:
+
+```bash
+openyida login --device
+openyida login --device --env-hint pre
+```
+
 When the user names a target Yida entry URL, pass it to the login command so OpenYida can select the matching environment and auth profile. For example:
 
 ```bash
-openyida login https://yida-group.alibaba-inc.com/
+openyida login https://<your-yida-entry-url>/
 openyida login --alibaba
 ```
 
@@ -383,7 +390,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | Login with OAuth token mode |
+| `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser] [--device] [--env-hint <name>]` | Login with OAuth token mode |
 | `openyida logout` | Logout / unbind current project auth |
 | `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch>` | Token login state and profile management |
 | `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | Organization management (list / switch existing profiles first) |
