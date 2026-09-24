@@ -52,8 +52,8 @@ Divider > Field
 
 - 默认 `Divider` 使用主题模式：不写 `colorType` 或写 `"theme"`。
 - 不要为了“更好看”给每个 Divider 随机写 `backgroundColor` / `secondaryColor`。
-- 只有用户明确指定颜色时，才使用 `colorType: "custom"` 并写 `backgroundColor`、`secondaryColor`、`titleColor`。
-- 主题模式下，浅底、胶囊、梯形尾部等辅助色由应用主题变量 `--yida-divider-secondary-color` 控制。浅色内容通常接 `var(--color-brand1-2)`，深色内容应接当前主题的弱边界或弱填充色，避免在暗底上出现亮色横条。
+- 用户指定颜色，或默认主题绑定不适合当前分割线的层次、视觉权重和可读性时，可使用 `colorType: "custom"`，按当前应用主题成组设计 `backgroundColor`、`secondaryColor`、`titleColor`。不要求用户逐项指定色值；同页同层级复用同一配色，并在现有 `design.md` 记录理由，不能逐字段随机配色。
+- 主题模式下，浅底、胶囊、梯形尾部等辅助色消费 `--yida-divider-secondary-color`；组件可能在元素上内联将它指向 `--color-brand1-2`。深色内容先将 `--color-brand1-2` 设计为深色品牌弱背景，再让应用辅助色引用同一变量，不能只修改根级辅助色。生成与实测要求见 [分割线弱背景](../../yida-design/references/native-form-styles.md#分割线弱背景)。
 
 ### Divider
 
@@ -85,9 +85,9 @@ OpenYida 支持以下 **23 个可见样式**，不接受 `none`（无分割线�
 | `double-color-trapezoid` | 主色梯形标题拼浅底横条 | 品牌分区、项目资料 |
 | `arrow-right-title` | 右箭头标题接浅底横条 | 有明确先后顺序的阶段；样式本身不提供流程操作 |
 | `square-blocks-title` | 左侧双方块、标题及底部细线 | 项目、资源或技术资料 |
-| `inner-ellipse-title` | 主色胶囊横条内嵌浅底椭圆标题 | 轻松的活动、服务专题 |
+| `inner-ellipse-title` | 主色胶囊横条内嵌弱背景椭圆标题，弱背景随内容明暗变化 | 需要强调的少量短标题；按三层配色检查 |
 
-选型顺序：用户指定的有效样式优先；已有页面局部修改保留原有有效样式；新页面再按下面的业务场景选择。先排除不适合标题长度、内容密度和主题的形态，同页同层级复用一个主样式。
+选型顺序：用户指定的有效样式优先；已有页面局部修改保留原有有效样式；新页面再按下面的业务场景选择。先排除不适合标题长度、内容密度和主题的形态，同页同层级复用一个主样式。内嵌胶囊及其他多色标题按 [内嵌标题与复合分割线](../../yida-design/references/native-form-styles.md#内嵌标题与复合分割线) 分别检查文字承载面、装饰面积和窄屏；可读性通过不等于适合高频多章节表单。
 
 | 页面情况 | 推荐候选 | 选择依据 |
 | --- | --- | --- |
@@ -98,7 +98,7 @@ OpenYida 支持以下 **23 个可见样式**，不接受 `none`（无分割线�
 | 项目阶段、技术资料、赛事或需要明显章节识别的页面 | `arrow-right-title`、`square-blocks-title`、`multi-parallelograms-end`、`light-hexagon-title`、`hexagon-title` | 用方向或几何形态强化分区；箭头不代表已有流程交互 |
 | 资质、荣誉、品牌专题或少量重点章节 | `badge-line`、`dark-bar`、`center-title-with-bar`、`thick` | 视觉权重较强，避免在密集页面大量重复 |
 
-**不知道如何选择时，随机轮换。** 场景不明确，或多个候选同样合适时，将合适的候选随机打乱，按页面依次选用。优先用本轮尚未用过的样式，用完再重新打乱；没有可用的场景判断依据时，从全部 23 种中轮换。每页只选一次，同页各分组复用，不逐条随机。
+**不知道如何选择时，随机轮换。** 场景不明确，或多个候选同样合适时，将合适的候选随机打乱，按页面依次选用。优先用本轮尚未用过的样式，用完再重新打乱；没有可用的场景判断依据时，从全部 23 种中先按标题长度、密度、主题可读性与视觉权重筛选，再轮换。每页只选一次，同页各分组复用，不逐条随机。
 
 把选定样式和理由（例如“场景不明确，随机轮换”）写入现有 `design.md` 的页面说明，并显式填入该页每个 `Divider.dividerType`。后续生成、编译、重试和局部修改复用已记录的值，不重新抽签，不需要新增状态文件或 CLI 参数。
 
@@ -121,7 +121,7 @@ OpenYida 支持以下 **23 个可见样式**，不接受 `none`（无分割线�
 | `colorType` | `"theme"` | 配色类型，支持 `"theme"` / `"custom"` |
 | `backgroundColor` | `"#0089ff"` | 自定义主题色 |
 | `titleColor` | `"#171a1d"` | 自定义标题色 |
-| `secondaryColor` | `"#cce5ff"` | 自定义背景/辅助色；仅在 `colorType: "custom"` 时使用，主题模式改 `--yida-divider-secondary-color` |
+| `secondaryColor` | `"#cce5ff"` | 自定义背景/辅助色；仅在 `colorType: "custom"` 时使用，主题模式按上述规则成组设计 `--color-brand1-2` 与 `--yida-divider-secondary-color` |
 
 ### ColumnContainer
 

@@ -37,7 +37,7 @@ tokens:
         "--input-focus-bg-color": "var(--input-bg-color)"
         "--pod-form-label-color": "var(--color-text1-4)"
         "--form-top-label-margin-b": "var(--s-2)"
-        "--yida-divider-secondary-color": "var(--color-line1-1)"
+        "--yida-divider-secondary-color": "var(--color-brand1-2)"
         "--yida-form-content-bgcolor": "var(--pod-page-bg-color)"
         "--pod-page-footer-bg-color": "var(--pod-card-bg-color)"
         "--pod-page-footer-border-radius": "var(--corner-5)"
@@ -54,7 +54,7 @@ tokens:
     colors:
       "--color-white": "var(--pod-card-bg-color)" # 全应用基础表面，随暗色内容面；不是固定白字或亮色按钮背景
       "--color-brand1-1": "<生成实际色值：--color-brand1-6 88% + #FFFFFF 12%，sRGB 逐通道混合>" # 品牌悬停
-      "--color-brand1-2": "<生成实际色值：--color-brand1-6 12% + #FFFFFF 88%，sRGB 逐通道混合>" # 平台预留品牌浅色
+      "--color-brand1-2": "<生成实际色值：--color-brand1-6 12% + --pod-page-bg-color 88%，sRGB 逐通道混合>"
       "--color-brand1-3": "<生成实际色值：--color-brand1-6 4% + #FFFFFF 96%，sRGB 逐通道混合>" # 品牌派生浅色；需要主题浅色的角色可引用
       "--color-brand1-5": "<生成实际色值：--color-brand1-6 38% + #171717 62%，sRGB 逐通道混合>" # 品牌派生深色；需要主题深色的角色可引用
       "--color-brand1-6": "{{PRIMARY_COLOR}}" # 唯一主题主色种子；按项目输入实例化，不保留固定色相兜底
