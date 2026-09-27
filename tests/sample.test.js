@@ -672,6 +672,7 @@ describe('application theme from design.md', () => {
   };
   const fastDesign = `---\ntokens:\n${Object.entries(tokens).map(([k, v]) => `  ${k}: ${v}`).join('\n')}\n---\n`;
   const structure = css => css.replace(/(--[\w-]+)\s*:[^;]+;/g, '$1: TOKEN;');
+  const navigationShape = /\/\* openyida-navigation-shape:start \*\/[\s\S]*?\/\* openyida-navigation-shape:end \*\//;
 
   test('Fast changes token values while preserving selectors and semantic colors', () => {
     const css = applyDesignTokens(template, fastDesign);
@@ -686,7 +687,7 @@ describe('application theme from design.md', () => {
       expect(root).toContain(`${name}:`);
     }
     const withoutAliases = css.replace(/^[ \t]*--color-group\s*:[^;]+;\n/gm, '');
-    expect(structure(withoutAliases)).toBe(structure(template));
+    expect(structure(withoutAliases)).toBe(structure(template.replace(navigationShape, '')));
     expect(css.match(/--color-error[^;]+;/g)).toEqual(template.match(/--color-error[^;]+;/g));
   });
 
@@ -717,11 +718,11 @@ describe('application theme from design.md', () => {
     expect(css).not.toMatch(/\.pod-premium\.(?:is|nav)-(?:light|dark|white|gray)\s*\{/);
     const recipe = plan.visualStyle.forUser.selectedTheme.collection === 'application-styles'
       ? fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-design/references/theme/application-style-recipes.css'), 'utf8') : '';
-    const shape = /\/\* openyida-navigation-shape:start \*\/[\s\S]*?\/\* openyida-navigation-shape:end \*\//;
     const hasExtraShape = Object.keys(designTokens).some(name => /^--pod-nav-menu-item-(?:border|hover-border|selected-border|selected-shadow)$/.test(name));
-    expect(shape.test(withoutExtra)).toBe(hasExtraShape);
-    withoutExtra = withoutExtra.replace(shape, '');
-    expect(structure(withoutExtra).trim()).toBe(structure(recipe ? template.trimEnd() + '\n\n' + recipe : template).trim());
+    expect(navigationShape.test(withoutExtra)).toBe(hasExtraShape);
+    withoutExtra = withoutExtra.replace(navigationShape, '');
+    const baseTemplate = template.replace(navigationShape, '');
+    expect(structure(withoutExtra).trim()).toBe(structure(recipe ? baseTemplate.trimEnd() + '\n\n' + recipe : baseTemplate).trim());
   });
 
   test('CLI applies only changed tokens and skips identical writes', async () => {

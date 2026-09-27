@@ -110,7 +110,7 @@ test('every named theme has its own complete platform navigation design and read
     // Navigation overlays have their own surface, including dark-nav/light-content themes.
     expect(navigation['--pod-nav-popup-bg-color']).toBe('var(--pod-shell-theme-bg-color)');
   });
-  expect(palettes.size).toBe(33);
+  expect(palettes.size).toBe(32);
 });
 
 test('application preset navigation text is readable in ordinary, hover and selected states', () => {
@@ -215,8 +215,8 @@ test('all nineteen application styles define detail read-only field tokens and g
   });
 });
 
-test('all fifteen shared themes include native form layout and style guidance', () => {
-  expect(sharedThemes).toHaveLength(15);
+test('all fourteen shared themes include native form layout and style guidance', () => {
+  expect(sharedThemes).toHaveLength(14);
   sharedThemes.forEach(theme => {
     const design = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8');
     expect(design).toContain('### 表单组件与版式结构');

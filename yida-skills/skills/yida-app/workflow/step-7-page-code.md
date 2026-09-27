@@ -28,7 +28,7 @@
 当前页需要图片时，先查看已有素材任务状态，同时编写布局、文字、真实数据绑定和交互。尚未启动时，按 [后台启动与接收](../../yida-image-assets/SKILL.md#后台启动与接收) 派发 `yida-image-assets`，随后继续页面开发。接图时读取所属页结果，独立工作完成后才等待该页图片。使用 `--design design.md --page-id <pageId>` 核对当前页槽位并发检查图片，允许外链就直接使用；上传时追加 `--app-type <真实appType>`。结果写入独立的 `asset-manifests/<pageId>.json`，上传失败时保留已验证且允许外链的原地址。读取 manifest 中当前页 `pages[].materialStatus`；该页为 `final` 时只使用 `assets[].materialStatus=final` 的图片。必需槽位缺口只阻塞当前页接图与验收，总状态 `draft` 不阻塞其他已就绪页面。
 
 1. 自定义页面开发执行 `use_skill("yida-canvas-custom-page", "生成当前页面源码")`。根据 PRD 和 `design.md` 直接编写 `.canvas.jsx` / `.canvas.tsx`；允许从空文件实现完整 UI。内置整页示例按需用于理解数据接入和导航；表单抽屉片段必须按第 9 条整体合并，不要求复制整页，也不能用示例默认外观替代已确认的设计。已有符合设计的页面可继续迭代。
-2. 按 PRD 的主任务和 scene 选用专项技能：经营分析或投屏监控页执行 `use_skill("yida-dashboard", "实现已规划的指标分析与监控")`；工作台、门户、操作队列继续使用 `yida-canvas-custom-page`，按 [首页按任务选择](../../yida-requirement-analysis/references/experience-groups.md#首页按任务选择) 落实办理路径。少量任务统计或辅助图表不触发整页看板流程。
+2. 按 PRD 的主任务和 scene 选用专项技能：经营分析或投屏监控页执行 `use_skill("yida-dashboard", "实现已规划的指标分析与监控")`；工作台、门户、操作队列继续使用 `yida-canvas-custom-page`，按 [首页按任务选择](../../yida-requirement-analysis/references/experience-groups.md#首页按任务选择) 落实办理路径。工作台按 PRD 落实管理、分析、洞察与快捷操作；区块内常规图表使用 `yida-rechart`，不因包含图表而触发整页看板流程。
 3. 页面读取任一表单数据时，必须执行 `use_skill("yida-canvas-data-binding", "为页面接入真实表单数据")`；不得以“页面已经能发布”为由跳过。
 4. 页面结构已明确且适合生成器时，从 PRD + `design.md` 派生当前业务自己的 `page-spec.json`。
 5. `page-spec.json` 写 `sourceOfTruth`、`prdFile`、`designFile`、`designRefs` 和 `conflictPolicy: "prd-design-win"`。

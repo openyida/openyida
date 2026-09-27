@@ -63,7 +63,7 @@ tokens:
       "--color-brand1-10": "<生成实际色值：--color-brand1-6 26% + #FFFFFF 74%，sRGB 逐通道混合>" # 品牌交互禁用
       "--color-line1-1": "#EBEBEB" # neutral-gray；弱边框、分隔线与图表网格
       "--color-line1-2": "#E3E3E3" # neutral-gray；控件常规边界
-      "--color-fill1-1": "#FFFFFF" # neutral-gray；输入默认表面与中性悬停角色，主题保持白面
+      "--color-fill1-1": "#FCFCFC" # neutral-gray；输入默认表面与中性悬停角色，比 fill1-2 更浅的近白灰
       "--color-fill1-2": "#FAFAFA" # neutral-gray；中性按下、选中与表头浅填充
       "--color-fill1-3": "#F5F5F5" # neutral-gray；较重中性填充与进度轨道
       "--color-fill1-5": "#FFFFFF" # neutral-gray；下拉、浮层、气泡、抽屉、弹窗和数据读数
@@ -242,7 +242,7 @@ tokens:
 
 ### 输入与筛选
 
-输入默认表面使用 `--color-fill1-1`，不能因当前同为白色而引用卡片或 pop-up 背景。高度使用 `--s-8`、`--s-9`、`--s-10`，边框使用 `--color-line1-2`，圆角使用 `--corner-2`；标签和输入沿同一左边界对齐。placeholder 用 `--color-text1-10`，禁用说明才使用 `--color-text1-2`。
+输入默认表面使用 `--color-fill1-1`，使用比 `--color-fill1-2` 更浅的近白灰，不引用卡片或 pop-up 的纯白背景。高度使用 `--s-8`、`--s-9`、`--s-10`，边框使用 `--color-line1-2`，圆角使用 `--corner-2`；标签和输入沿同一左边界对齐。placeholder 用 `--color-text1-10`，禁用说明才使用 `--color-text1-2`。
 
 可收起筛选使用带线性筛选图标的描边胶囊，展开后的字段仍保持标准输入形状。已选条件以轻描边或浅品牌底加文字表达，不给每个条件配置饱和色块。弹出选项列表使用覆盖层表面，与触发输入的背景职责分开。
 

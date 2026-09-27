@@ -20,7 +20,7 @@ description: Plan 模式的视觉设计分支。基于需求选择视觉方向�
 规划准备补齐视觉方向后，CLI 将基础主题、主题色和导航样式预填为标准 Plan 输入；模型仍须在业务页面确定后完成每个真实自定义页的具体视觉决定。按 CLI 返回的任务补齐，可以在同一轮业务规划中完成；两个片段分别保存。
 
 1. 读取 CLI 返回的 `authoring-context.md` 与 [紧凑计划契约](references/build-plan-compact-schema.md)，沿用 pageId 和 sceneKey。
-2. 为每个真实自定义页填写 `firstScreenFocus`、`layout`、`primaryAction`、`responsive` 与 `acceptanceChecks`；前四项为具体非空说明，验收为非空字符串数组。公共主题不能代替这些决定。纯原生表单应用不增加虚构页记录。
+2. 工作台沿用 PRD 的业务内容和表现建议。为每个真实自定义页填写 `firstScreenFocus`、`layout`、`primaryAction`、`responsive` 与 `acceptanceChecks`；前四项为具体非空说明，验收为非空字符串数组。公共主题不能代替这些决定。纯原生表单应用不增加虚构页记录。
 3. 按 [整体主题规则](../../references/application-theme-consistency.md#导航与应用框架) 核对导航、应用框架、原生表单、记录详情与自定义页面的配色、形状、文字、间距和状态。每项必须保留 `visualMemoryApplications` 数组；没有匹配的主题记忆点时填写 `[]`，不要省略或写成字符串。按实际内容补页面局部差异与素材策略。完整主题由 CLI 注入，复杂组件定制时再读模板对应章节。
 4. 全局和局部 token 遵守 [基础变量契约](../../templates/design-themes/basic-tokens.json)，明确项目差异写 `visualStyle.tokens`，主色写 `forUser.colorStrategy.primaryColor`；沿用主题的字号、间距和组件圆角。
 5. CLI 按 [公共输出契约](../../workflow/output-design.md) 生成 frontmatter、anchor 索引和五章正文，并调用同一 `check-design` 校验。缺少逐页决定时只保留可预览草稿，补齐后再生成最终产物；旧计划同样不得以继承主题套话补过门槛。

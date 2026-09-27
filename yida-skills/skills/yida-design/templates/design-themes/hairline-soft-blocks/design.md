@@ -62,7 +62,7 @@ tokens:
       "--color-brand1-10": "<生成实际色值：--color-brand1-6 26% + #FFFFFF 74%，sRGB 逐通道混合>" # 主题色交互禁用
       "--color-line1-1": "#EFEFEF" # neutral-gray；行分隔、轻网格及弱面板边界
       "--color-line1-2": "#E5E5E5" # neutral-gray；控件和面板细描边
-      "--color-fill1-1": "#FFFFFF" # neutral-gray；输入基础表面，中性悬停保持白面
+      "--color-fill1-1": "#FAFAFA" # neutral-gray；输入基础表面，中性悬停使用比 fill1-2 更浅的近白灰
       "--color-fill1-2": "#F2F2F2" # neutral-gray；中性按下与选中填充
       "--color-fill1-3": "#EAEAEA" # neutral-gray；较重填充和进度轨道
       "--color-fill1-5": "#FFFFFF" # neutral-gray；独立 pop-up 表面
@@ -253,11 +253,11 @@ tokens:
 
 按钮使用 `--s-7` 至 `--s-10` 四档高度，同一工具组统一档位；常规详情操作可用 `--s-8`，搜索旁操作可用 `--s-9` 或 `--s-10`。图标按钮与相邻控件匹配尺寸，行内更多操作可直接显示小型竖向省略号，无需为每行增加厚重按钮盒。
 
-中性悬停保持 `--color-fill1-1` 白面，并增强现有图文或边界；按下使用 `--color-fill1-2`。不要为了让白底 hover 明显而借用浅灰摘要面，造成结构角色与交互状态联动。
+中性悬停保持 `--color-fill1-1` 近白灰面，并增强现有图文或边界；按下使用 `--color-fill1-2`。不要为了让浅底 hover 明显而借用浅灰摘要面，造成结构角色与交互状态联动。
 
 ### 3.3 输入、搜索与筛选
 
-输入使用 `--color-fill1-1`、`--color-line1-2` 和 `--corner-2`，保留白色内面。前置图标与 placeholder 使用说明或表头前景，值使用一级前景。高度仅用 `--s-8` 至 `--s-10` 三档，不按大幅导出图片增加规格。
+输入使用 `--color-fill1-1`、`--color-line1-2` 和 `--corner-2`，保留比 `--color-fill1-2` 更浅的近白灰内面。前置图标与 placeholder 使用说明或表头前景，值使用一级前景。高度仅用 `--s-8` 至 `--s-10` 三档，不按大幅导出图片增加规格。
 
 搜索中的快捷键键帽只在存在真实快捷键时呈现，使用小圆角、细框与弱文字。选择器的展开箭头靠近当前值，保持紧凑；日历与选项菜单打开后使用独立白色 pop-up。
 

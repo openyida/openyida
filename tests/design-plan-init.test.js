@@ -169,6 +169,10 @@ test('initializes stable references, preserves explicit facts and returns a boun
   const context = fs.readFileSync(result.context, 'utf8');
   expect(context).toContain('## 1. 风格摘要');
   expect(context).toContain('compact-workbench');
+  expect(context).toContain('全局概况、业务管理、分析判断、异常处理和常用快捷入口');
+  expect(context).toContain('8-10 个有独立价值的区块');
+  expect(context).toContain('不套固定列表组合');
+  expect(context).not.toContain('工作台按需求组织待办、操作队列、业务列表和常用入口');
   expect(context).not.toContain('"--color-brand1-1"');
   expect(fs.readFileSync(briefPath, 'utf8')).toBe(original);
   expect(() => materialize(result.output)).toThrow();

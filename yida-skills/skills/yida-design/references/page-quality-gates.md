@@ -4,10 +4,12 @@
 
 ## 1. 区块丰富度建议
 
-- 工作台、首页、门户、看板、展示页和业务入口页推荐有 8-10 个有业务目的的 `contentBlocks` 以上，但不作为准出硬门槛。
+- 综合工作台参考 8-10 个有独立业务价值的 `contentBlocks`，按 PRD 核对内容覆盖，不作为准出硬门槛。
 - 计数按区块组算：KPI 组、快捷入口组、列表组、图表组各只算 1 个区块。
-- 每个区块必须写清目的、数据来源、主操作和状态。
+- 每个区块写清业务问题、信息关系、数据依据、表现形式、操作联动和状态；沿用已有文档字段。
 - 重复指标、重复入口、列表行、图表点、装饰块、空白容器不计数；窄场景可以少于参考数量，并说明业务取舍。
+
+工作台按 PRD 核对内容价值、表现适配和真实操作，不能以区块数量或换色代替业务验收。
 
 ## 2. 可实现页面门禁
 
@@ -31,7 +33,7 @@
 
 - KPI 改成 64-88px 紧凑摘要条、分段摘要或侧栏小面板；如果横向占满宽度，必须补充趋势、更新时间、筛选、主操作或风险状态，不能只有稀疏数字。
 - 高频动作改成按钮组、工具条或紧凑入口，低频动作折叠。
-- 空态放在列表、表格或上下文面板内，并提供登记、刷新、补录或查看配置动作。
+- 空态保留当前业务视图的必要上下文，并提供登记、刷新、补录或查看配置动作；不要求改成列表。
 - 业务已有风险、提醒、负责人、最近动态、洞察或下一步建议时可以用于右侧；没有这些内容则收窄或移除空栏。
 
 圆角、间距与呼吸感门禁：
@@ -100,7 +102,7 @@
 - pageSpecHandoff：
   - pageStructure：<workbench / dashboard-overview / business-list / detail-profile / split-pane-detail / portal-shell-home / official-homepage / data-screen>
   - scene：<workbench / dashboard / list / detail / landing / screen>
-  - contentBlocks：<推荐 8-10 个区块以上；KPI/快捷入口/列表/图表子项不分别计数>
+  - contentBlocks：<业务推导的区块与用途；综合工作台参考 8-10 个独立业务区块，子项不分别计数>
   - themeSummary：<应用主题色 / 风格关键词 / 主题交付方式摘要；必须与 design.md 一致>
   - designFile：<prd/<项目名>/design.md>
   - designRefs：<themeProfile / sceneRecipes.<scene> / components.<name> / states.<name>>

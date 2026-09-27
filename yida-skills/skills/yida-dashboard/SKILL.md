@@ -30,7 +30,7 @@ metadata:
 - 已确认的经营分析、指标比较、趋势判断或投屏监控需求。
 - 现有经营看板的指标卡截图、分析分享或派单闭环。
 
-按任务判断，不按名称触发：待办、操作队列、业务列表、门户式工作台以及处理任务的看板由 `yida-canvas-custom-page` 实现；少量任务计数、辅助图表、管理者身份或隐藏导航都不足以触发本技能。首页选择遵循 [首页按任务选择](../yida-requirement-analysis/references/experience-groups.md#首页按任务选择)。
+按页面主任务判断，不按名称触发：综合工作台由 `yida-canvas-custom-page` 实现，可包含业务分析、洞察与快捷操作；这些区块按 PRD 组织，常规图表使用 `yida-rechart`。含图表、管理者身份或隐藏导航不足以触发整页 Dashboard 流程；经营分析本身为页面主任务时使用本技能。首页选择遵循 [首页按任务选择](../yida-requirement-analysis/references/experience-groups.md#首页按任务选择)。
 
 单个普通统计报表优先 `yida-report`；只解决单张图的实现问题时按“图表路由边界”选择 `yida-rechart` 或 `yida-chart`。
 
