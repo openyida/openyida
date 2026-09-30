@@ -1204,6 +1204,9 @@ async function main() {
       } else if (subCommand === 'check') {
         const { run: runIntegrationCheck } = require('../lib/integration/integration-check');
         await runIntegrationCheck(subArgs);
+      } else if (subCommand === 'detail-log') {
+        const { run: runIntegrationDetailLog } = require('../lib/integration/integration-detail-log');
+        await runIntegrationDetailLog(subArgs);
       } else if (subCommand === 'diagnose' || subCommand === 'doctor') {
         const { run: runIntegrationDiagnose } = require('../lib/integration/integration-diagnose');
         await runIntegrationDiagnose(subArgs);

@@ -146,6 +146,7 @@ module.exports = {
     cmd_integration_enable: '啟用整合自動化邏輯流',
     cmd_integration_disable: '停用整合自動化邏輯流',
     cmd_integration_check: '檢查整合自動化異常執行日誌',
+    cmd_integration_detail_log: 'View integration automation run log details',
     cmd_integration_diagnose: '诊断集成自动化故障文本和常见配置坑',
     cmd_dws: '釘釘 CLI（通訊錄/日曆/待辦/審批等）',
     cmd_dingtalk_link: '生成釘釘 AppLink / 相容 dingtalk:// 跳轉連結',
@@ -312,7 +313,7 @@ module.exports = {
     forbidden_alias_get_schema_form_uuid_option: '`{0}` 使用第二個位置參數傳入 formUuid，不使用 `{1}`。',
     nearest_command_suggestion: '未知 OpenYida 指令根「{0}」。你是不是想用「{1}」？',
     run_help: '執行 openyida --help 查看說明',
-    integration_help: 'Usage: openyida integration <create|update|list|enable|disable|check|diagnose> ...',
+    integration_help: 'Usage: openyida integration <create|update|list|enable|disable|check|detail-log|diagnose> ...',
     integration_unknown: '未知的 integration 子指令：{0}',
     integration_help_hint: '執行 openyida integration --help 查看可用子指令',
     integration_list_usage: '用法：openyida integration list <appType> [--form-uuid <uuid>] [--status y|n] [--key <kw>] [--size <n>] [--json]',
@@ -423,6 +424,17 @@ module.exports = {
     current: '，目前：{0}',
     excel_exported: 'Excel 已匯出：{0}'
   },
+  integration_detail_log: {
+    usage: "Usage: openyida integration detail-log <appType> <procInstId> [--json] [--include-params] (both options required for full parameters, which may contain sensitive data)",
+    missing_args: "Run log details require appType and procInstId",
+    unknown_option: "Unsupported run log detail option: {0}",
+    params_require_json: "--include-params requires --json; full parameters may contain sensitive data",
+    api_failed: "Failed to query run log details: {0}",
+    invalid_response: "Run log detail response has no valid node list or total count",
+    pagination_failed: "Run log detail pages are inconsistent; incomplete data was not printed",
+    summary: "Run log details: {0} nodes (parameter keys only by default)",
+  },
+
   integration: {
     spec_mixed_structural_flag: '{0} cannot be mixed with --spec. Put the complete node in the spec to prevent silently dropped parameters.',
     spec_message_node_required: 'Notification flags mixed with --spec require an explicit sendMessage node in the spec.',

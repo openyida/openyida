@@ -30,7 +30,8 @@ const MAX_UNPACKED_BYTES = 8000 * 1024;
 // Shared source-repair diagnostics and their skill contract add two packaged files.
 // Theme scope, brand-scale and palette validation add three runtime modules;
 // removing the application-styles/navigation-styles catalogs offsets two files.
-const MAX_ENTRY_COUNT = 608;
+// integration detail-log adds one read-only packaged command module.
+const MAX_ENTRY_COUNT = 609;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
