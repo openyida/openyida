@@ -79,7 +79,7 @@ tokens:
       "--color-text1-4": "#242424"
       "--color-text1-10": "#242424"
       "--color-text1-3": "#242424"
-      "--color-text1-2": "#858781"
+      "--color-text1-2": "<生成实际色值：--color-brand1-6 4% + #868686 96%，sRGB 逐通道混合>"
       "--color-text1-1": "#cccccc"
     typography:
       "--font-family-base": "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"

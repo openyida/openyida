@@ -62,7 +62,7 @@ tokens:
       "--color-brand1-10": "<生成实际色值：--color-brand1-6 26% + #FFFFFF 74%，sRGB 逐通道混合>" # 品牌交互禁用
       "--color-line1-1": "<生成实际色值：--color-brand1-6 3% + #EFEFEF 97%，sRGB 逐通道混合>" # theme-gray；主题色微染弱边界
       "--color-line1-2": "<生成实际色值：--color-brand1-6 4% + #E3E3E3 96%，sRGB 逐通道混合>" # theme-gray；主题色微染控件边界
-      "--color-fill1-1": "#FFFFFF" # neutral-gray；输入默认表面、中性悬停角色
+      "--color-fill1-1": "<生成实际色值：--color-brand1-6 1% + #FCFCFC 99%，sRGB 逐通道混合>" # theme-gray；输入默认表面、中性悬停角色，比 fill1-2 更浅的品牌微染填充
       "--color-fill1-2": "<生成实际色值：--color-brand1-6 2% + #F7F7F7 98%，sRGB 逐通道混合>" # theme-gray；中性按下与选中的主题微染填充
       "--color-fill1-3": "<生成实际色值：--color-brand1-6 4% + #F0F0F0 96%，sRGB 逐通道混合>" # theme-gray；较重填充、轨道与骨架
       "--color-fill1-5": "#FFFFFF" # neutral-gray；下拉、浮层、气泡、抽屉、弹窗与图表读数
@@ -243,7 +243,7 @@ tokens:
 
 品牌实底只用于确需强调的主要动作，背景用 `--color-brand1-6`，沿用浅色前景 `--oyd-on-dark-color`；不能让同一工具组的每个动作都成为主按钮。下拉箭头与主体之间可加一条弱竖分隔，但只有真正的分裂按钮才将两侧表现为独立操作。
 
-输入默认表面使用 `--color-fill1-1`，不借用同为白色的卡片或 pop-up 背景。高度采用 `--s-8` 至 `--s-10`，圆角用 `--corner-2`，边框用 `--color-line1-2`，placeholder 用 `--color-text1-10`。日期图标、范围文本与展开箭头沿同一水平中线排布；选项列表使用白色覆盖层与对应前景。
+输入默认表面使用 `--color-fill1-1`，它是比 `--color-fill1-2` 更浅一档的品牌微染近白面，不借用卡片或 pop-up 的纯白背景。高度采用 `--s-8` 至 `--s-10`，圆角用 `--corner-2`，边框用 `--color-line1-2`，placeholder 用 `--color-text1-10`。日期图标、范围文本与展开箭头沿同一水平中线排布；选项列表使用白色覆盖层与对应前景。
 
 ### 指标、选择状态与图标盒
 

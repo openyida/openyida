@@ -76,9 +76,9 @@
   - 报表 / 数据源：<报表或数据来源；用于指标、图表或大屏>
   - 详情页：<原生 formDetail / 自定义详情页 / 抽屉详情>
 - 需要设计的区块：
-  - <区块名称>：<区块目的；数据来源；主操作；状态>
-  - 工作台、首页、门户、看板、展示页和业务入口页推荐逐条列出 8-10 个 `contentBlocks` 以上，但这不是硬门槛。KPI 组、快捷入口组、列表组各只算 1 个区块，不能用子项或列表行凑数；窄场景可以更少，并说明取舍理由。
-  - 自定义页面需要逐个写清首屏、筛选、列表/卡片、图表、表单入口、详情抽屉、空态等区块。
+  - <区块名称>：<业务问题；信息关系与数据口径；表现建议；主操作、联动及状态>
+  - 工作台按页面规划推导内容，参考 8-10 个有独立业务价值的区块，不作为硬门槛；其他页面按实际任务规划，不为数量增加模块。
+  - 自定义页面逐个说明实际需要的内容与操作，不将筛选、列表、图表或详情抽屉视为固定模块清单。
 - 布局骨架：<顶部概览 / 筛选区 / 表格 / 卡片列表 / 图表区 / 右侧详情等>
 - 核心组件：<KPI / 快捷入口 / 表格 / 图表 / 表单入口 / 状态标签等>
 - 主操作：<新增 / 提交 / 查看 / 审批 / 编辑 / 跳转>
@@ -87,7 +87,7 @@
   - pageStructure：<workbench / dashboard-overview / business-list / detail-profile / split-pane-detail / portal-shell-home / official-homepage / data-screen>
   - scene：<workbench / dashboard / list / detail / landing / screen>
   - entryMode：<platform-shell / standalone>
-  - contentBlocks：<推荐列出 8-10 个业务区块以上；KPI/快捷入口/列表/图表子项不分别计数>
+  - contentBlocks：<由业务推导的区块及用途；综合工作台参考 8-10 个独立业务区块，不拆分子项凑数>
   - themeSummary：<应用主题色 / 风格关键词 / 主题交付方式摘要；必须与 design.md 一致，不写 token 和视觉规则>
   - designFile：<prd/<项目名>/design.md>
   - designRefs：<themeProfile / sceneRecipes.<scene> / components.<name> / states.<name>>
@@ -133,7 +133,7 @@
 
 | 资源 | 类型 | 用途 | 关键字段 / 功能 | 创建策略 |
 | --- | --- | --- | --- | --- |
-| <按需自定义页面> | display-page | <入口和概览> | <contentBlocks：推荐 8-10 个区块以上，如标题上下文、筛选、摘要、主操作、待办、最近记录、动态、提醒、右侧上下文、空态行动等；不作为硬门槛> | <复用 / 创建> |
+| <按需自定义页面> | display-page | <入口和概览> | <contentBlocks：按业务问题、对象关系、数据依据和操作推导；综合工作台参考 8-10 个独立业务区块，表现形式随信息关系确定> | <复用 / 创建> |
 | <业务表单> | normal-form | <数据录入和列表管理> | <核心字段> | <复用 / 创建 / 更新> |
 | <审批表单> | process-form | <流程闭环> | <节点和条件> | <复用 / 创建 / 更新> |
 | <报表> | report | <汇总分析> | <指标口径> | <复用 / 创建 / 更新> |

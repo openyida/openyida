@@ -50,7 +50,8 @@ function cssTemplate(markdown) {
       `${prefix}${value.trim() === after[name] && /\{\{|<生成实际色值：/.test(before[name] || '')
         ? before[name] : (!(name in before) && bridges[name]) || value};`)
     .replace('本模板默认品牌种子为 coffee 咖啡色；最终配色和圆角以 design.md 的 tokens 为准。',
-      '品牌值保留项目占位和派生说明；先完成 design.md，再生成实际主题 CSS。');
+      '品牌值保留项目占位和派生说明；先完成 design.md，再生成实际主题 CSS。')
+    .replace(/\s+$/, '\n');
 }
 
 /** Compile every template first so an invalid design cannot cause partial writes. */

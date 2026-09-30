@@ -956,7 +956,7 @@ describe('design-plan materialize', () => {
       'design-themes',
       'index.json'
     ), 'utf8'));
-    expect(themeIndex.themes.filter(theme => !theme.collection)).toHaveLength(15);
+    expect(themeIndex.themes.filter(theme => !theme.collection)).toHaveLength(14);
     expect(themeIndex.themes.filter(theme => theme.collection === 'application-styles' && theme.mode === 'template')).toHaveLength(18);
 
     for (const theme of themeIndex.themes.filter(item => item.mode !== 'creative')) {

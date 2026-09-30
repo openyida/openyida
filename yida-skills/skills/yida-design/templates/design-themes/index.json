@@ -159,19 +159,6 @@
       "mode": "template"
     },
     {
-      "themeId": "soft-spectral-panels",
-      "label": "柔光深面",
-      "contentTone": "dark",
-      "navTheme": "dark",
-      "templatePath": "templates/design-themes/soft-spectral-panels/design.md",
-      "styleSummary": "深色导航，深色内容界面。近黑画布与导航连成壳层，略亮的低饱和主题暗面托起大圆角面板，弱轮廓围合，内部留白稳定。灰白文字建立主次，输入与操作小圆角，品牌实心控件采用亮底深字。真实读数处可用细定位线、浅色节点和小光晕形成局部焦点，酸黄与暗红只作独立数据系列色。避免满屏品牌色、抹平明暗层次、逐行散卡、大范围霓虹及多处持续发光。普通表单与列表也适用，曲线、矩阵和媒体说明按内容启用。",
-      "navigationSummary": "近黑导航与画布连为一体，当前菜单用品牌亮底和深字形成局部光点，弹层保持独立暗面。",
-      "legacyTemplatePath": "templates/design-themes/soft-spectral-panels.md",
-      "cssTemplatePath": "templates/design-themes/soft-spectral-panels/app_theme.css",
-      "formLayoutPath": "templates/design-themes/soft-spectral-panels/form-layout.json",
-      "mode": "template"
-    },
-    {
       "themeId": "warm-canvas-contrast-panels",
       "label": "浅色画布 · 明暗对比面板",
       "contentTone": "light",

@@ -4,7 +4,7 @@
 
 ## 找到和导出
 
-`openyida design-plan catalog --json` 返回模板 `themes` 与独立的 `creativeOption`。全部 34 个主题入口统一采用三文件目录，均可用 `application-style` 导出；其中 18 套应用风格与自由创意仍保留 `collection: application-styles` 分类。目录元数据提供完整设计、CSS 和原生布局的相对路径，可直接定位对应文件。
+`openyida design-plan catalog --json` 返回模板 `themes` 与独立的 `creativeOption`。全部 33 个主题入口统一采用三文件目录，均可用 `application-style` 导出；其中 18 套应用风格与自由创意仍保留 `collection: application-styles` 分类。目录元数据提供完整设计、CSS 和原生布局的相对路径，可直接定位对应文件。
 
 ```bash
 openyida sample yida-design application-style --style-id app-executive --output prd/my-app/style-start

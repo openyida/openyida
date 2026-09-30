@@ -22,7 +22,7 @@
 | `legacyTemplatePath` | 已迁移主题的原 Markdown 路径，供历史方案读取；新方案使用 `templatePath` |
 | `styleSummary` | 以“深色/浅色导航，深色/浅色内容界面。”开头，再从模板“风格摘要”精简约 150–250 字；使用自然语言，避免把 `dark` 误解为纯黑色，同时保留外观、核心差异、偏离风险与真实内容适用条件 |
 
-34 个主题入口均采用三文件结构，可通过 `sample yida-design application-style --style-id <themeId>` 导出。一条索引记录对应一个主题目录，所有模板均须登记。修改风格摘要后同步修改索引摘要，不增加原文没有的特征或另一组关键词。`openyida design-plan catalog --json` 返回同一份索引；三种设计入口不得维护平行主题清单。主题不按业务领域或产品形态限制候选资格，具体布局与特色表达由真实内容决定。
+33 个主题入口均采用三文件结构，可通过 `sample yida-design application-style --style-id <themeId>` 导出。一条索引记录对应一个主题目录，所有模板均须登记。修改风格摘要后同步修改索引摘要，不增加原文没有的特征或另一组关键词。`openyida design-plan catalog --json` 返回同一份索引；三种设计入口不得维护平行主题清单。主题不按业务领域或产品形态限制候选资格，具体布局与特色表达由真实内容决定。
 
 ## V2 模板结构
 
@@ -42,6 +42,7 @@ Frontmatter 包含 `name`、`description`、`themeId`、`navTheme` 和 `tokens`�
 
 - 字体与间距使用契约固定值；页面标题使用 subhead，表格正文使用 table。
 - 颜色与圆角保留主题差异。Tooltip 固定使用 `#262626` 与 `#FFFFFF`。
+- `--color-fill1-1` 不使用纯白；修正填充色阶时沿用主题的灰阶或品牌微染色系，使它比 `--color-fill1-2` 更浅。`fill`、`line`、`text` 中带色相的颜色使用 `<生成实际色值：--color-brand1-6 …% + #灰阶色 …%，sRGB 逐通道混合>` 占位规则，混合基底必须为 R=G=B 的无色相灰阶；纯中性灰阶可保留固定值，已有 `var()` 继承关系继续保留。修改 `design.md` 后重新编译配对 CSS，并用不同品牌色验证明暗层次和文字对比度。
 - `--color-white` 和 `--pod-table-cell-color` 通过 `var(--pod-card-bg-color)` 继承内容表面；页面桥接 `--oyd-page-bg` 若存在，使用 `var(--pod-page-bg-color)`。
 - `--color-fill1-6` 是平台弱图标与辅助操作色，原生成员选择、树形展开等图标会消费它；默认跟随 `--color-text1-3`，深色内容界面不得依赖固定 `#878f95` fallback。
 - `appearance.native-form` 可补充原生表单组件语义变量。`--yida-divider-secondary-color` 控制 Divider 的浅底和辅助几何色，默认引用 `var(--color-brand1-2)`。品牌弱背景应随内容明暗设计；深色内容不能保留近白底，也不能仅改根级辅助色而忽略组件的内联绑定。复合分割线可按当前主题成组自定义配色，详见[分割线弱背景与标题搭配](../../references/native-form-styles.md#分割线弱背景)。

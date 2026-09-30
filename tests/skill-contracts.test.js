@@ -877,7 +877,7 @@ describe('OpenYida skill contracts', () => {
     expect(output).not.toContain('推荐模板');
     expect(output).not.toContain('区别于 sample 默认风格');
     expect(step3).toContain('每个页面写清 scene、目标用户、主任务和需要设计的区块');
-    expect(step3).toContain('页面区块 / contentBlocks：<工作台、首页、门户、看板、展示页和业务入口页推荐逐条列出 8-10 个区块以上');
+    expect(step3).toContain('页面区块 / contentBlocks：<按业务任务列出区块目的、信息关系、数据依据、表现建议及操作联动');
     expect(step3).not.toContain('推荐模板');
     expect(design).toContain('完整应用输出一份应用级 `design.md`');
     expect(design).toContain('[唯一输出契约](workflow/output-design.md)');
@@ -975,8 +975,8 @@ describe('OpenYida skill contracts', () => {
     expect(output).toContain('  - 报表 / 数据源：<报表或数据来源；用于指标、图表或大屏>');
     expect(output).toContain('  - 详情页：<原生 formDetail / 自定义详情页 / 抽屉详情>');
     expect(output).toContain('- 需要设计的区块：');
-    expect(output).toContain('  - <区块名称>：<区块目的；数据来源；主操作；状态>');
-    expect(output).toContain('  - 自定义页面需要逐个写清首屏、筛选、列表/卡片、图表、表单入口、详情抽屉、空态等区块。');
+    expect(output).toContain('  - <区块名称>：<业务问题；信息关系与数据口径；表现建议；主操作、联动及状态>');
+    expect(output).toContain('  - 自定义页面逐个说明实际需要的内容与操作，不将筛选、列表、图表或详情抽屉视为固定模块清单。');
     expect(output).toContain('## 8. 资源创建顺序');
     expect(output).toContain('## 9. 页面实现交付顺序');
     expect(output).toContain('## 10. 导航顺序');
@@ -1001,7 +1001,7 @@ describe('OpenYida skill contracts', () => {
     expect(scaffoldRecipes).toContain('左侧 260-320px 指标轨，中间 1fr 主图表区，右侧 280-360px 风险与事件流');
     expect(scaffoldRecipes).toContain('三栏比例存在，不退化为四张等宽 KPI 卡');
     expect(scaffoldRecipes).toContain('## 配方 B：任务工作台双栏');
-    expect(scaffoldRecipes).toContain('KPI 组只算 1 个区块，快捷入口组只算 1 个区块');
+    expect(scaffoldRecipes).toContain('仅在角色主要连续处理独立事项、且确有处理上下文时参考本配方');
     expect(fs.existsSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/style-designs'))).toBe(false);
     expect(fs.existsSync(path.join(ROOT, 'yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/design-themes'))).toBe(false);
     expect(fs.existsSync(path.join(ROOT, 'yida-skills', 'skills', 'yida-design', 'sub_skill', 'workhome-ui-skill', 'SKILL.md'))).toBe(false);
@@ -1598,42 +1598,33 @@ describe('OpenYida skill contracts', () => {
   test('workbench pages avoid low-density giant card templates', () => {
     const pageUiux = readSkill('yida-skills/skills/yida-design/SKILL.md');
     const step4 = readSkill('yida-skills/skills/yida-design/workflow/step-4-wireframe-interaction.md');
-    const step5 = readSkill('yida-skills/skills/yida-design/workflow/step-5-visual-states.md');
     const step3 = readSkill('yida-skills/skills/yida-prd/workflow/step-2-information-architecture.md');
     const outputPrd = readSkill('yida-skills/skills/yida-prd/workflow/output-prd.md');
     const pageGeneration = readSkill('yida-skills/skills/yida-canvas-custom-page/references/page-generation-guide.md');
     const canvasStyleGuide = readSkill('yida-skills/skills/yida-canvas-custom-page/references/canvas-style-implementation-guide.md');
     const qualityGates = readSkill('yida-skills/skills/yida-design/references/page-quality-gates.md');
 
+    expect(step3).toContain('## 工作台内容规则');
+    for (const rule of ['工作台定位', '内容推导', '表现形式', '业务可用']) {
+      expect(step3).toContain(`**${rule}**`);
+    }
+    for (const guide of [pageUiux, step3, step4, outputPrd, pageGeneration, canvasStyleGuide, qualityGates]) {
+      expect(guide).toContain('8-10');
+      expect(guide).not.toContain('首屏必须至少有一个任务/动态/最近记录/待处理列表');
+      expect(guide).not.toContain('默认改成紧凑状态摘要条');
+    }
+
     expect(pageUiux).toContain('工作台禁低密大卡片套路');
     expect(pageUiux).toContain('标题 + 4 个等宽大 KPI 白卡 + 图标快捷卡 + 大空态白卡');
     expect(pageUiux).toContain('页面丰富度建议');
-    expect(pageUiux).toContain('推荐规划 8-10 个有业务目的的区块以上');
-    expect(pageUiux).toContain('KPI 卡片: 学生总数, 课程总数, 出勤率, 平均分');
-    expect(pageUiux).toContain('只能算 1 个状态摘要区块');
-    expect(pageUiux).toContain('只能算 1 个动作区块');
     expect(qualityGates).toContain('## 1. 区块丰富度建议');
     expect(qualityGates).toContain('## 2. 可实现页面门禁');
     expect(qualityGates).toContain('## 3. 低密大卡片门禁');
-    expect(step3).toContain('推荐显式列出 8-10 个 `contentBlocks` 以上');
-    expect(step3).toContain('KPI 组和快捷入口组各只算 1 个区块');
     expect(step4).toContain('读取 [页面质量门禁](../references/page-quality-gates.md)');
     expect(step4).toContain('pageSpecHandoff 草稿');
-    expect(step4).toContain('禁止用 4 个等宽大 KPI 卡和大空态白卡撑首屏');
-    expect(step4).toContain('推荐拆成 8-10 个有业务目的的区块以上');
-    expect(step4).toContain('内容区块：<推荐 8-10 个区块以上 + 目的');
-    expect(step4).toContain('KPI 组只能算 1 个，快捷入口组只能算 1 个，列表组只能算 1 个');
-    expect(step4).toContain('视觉上只有几个聚合区块');
     expect(qualityGates).toContain('标题下面直接铺 4 个等宽大 KPI 白卡');
-    expect(qualityGates).toContain('8-10 个有业务目的的 `contentBlocks`');
     expect(qualityGates).toContain('计数按区块组算');
-    expect(outputPrd).toContain('推荐逐条列出 8-10 个 `contentBlocks` 以上');
-    expect(outputPrd).toContain('KPI 组、快捷入口组、列表组各只算 1 个区块');
-    expect(pageGeneration).toContain('工作台通常包含状态摘要、高频动作、待办、动态和上下文信息');
-    expect(pageGeneration).toContain('工作台状态摘要按主题保持紧凑');
     expect(pageGeneration).toContain('`contentBlocks`');
-    expect(pageGeneration).toContain('推荐 8-10 个有业务目的的区块');
-    expect(pageGeneration).toContain('KPI 子项、快捷入口子项和列表行计入各自所属区块');
     expect(pageGeneration).toContain('实现前建议补充 `contentBlocks`');
     expect(canvasStyleGuide).toContain('## 工作台卡片密度红线');
     expect(canvasStyleGuide).toContain('禁止使用“4 个等宽大 KPI 白卡 + 彩色图标盒 + 大数字 0”');
@@ -1649,8 +1640,6 @@ describe('OpenYida skill contracts', () => {
     expect(canvasEntry).toContain('通用数值只在未定义时兜底');
     expect(canvasEntry).not.toContain('卡片 padding >20px');
     expect(canvasEntry).not.toContain('卡片 gap <20px');
-    expect(canvasStyleGuide).toContain('页面整体推荐包含 8-10 个有业务目的的区块以上');
-    expect(canvasStyleGuide).toContain('KPI 子项、快捷入口子项和列表行不能分别计数');
   });
 
   test('single page design checks current app theme before page-level decisions', () => {
