@@ -100,6 +100,7 @@ module.exports = {
     group_data: 'डेटा & अनुमतियां',
     cmd_data: 'एकीकृत डेटा प्रबंधन (फॉर्म/प्रक्रिया/कार्य/उप-फॉर्म)',
     data_notes: "DateField में मिलीसेकंड का संख्यात्मक Unix टाइमस्टैम्प और CascadeDateField में उनका ऐरे दें। व्यावसायिक समय क्षेत्र के अनुसार बदलें; तारीख की स्ट्रिंग और सेकंड मान स्वीकार नहीं हैं। --resolve-aliases केवल फ़ील्ड नाम बदलता है।",
+    cmd_data_upload_attachment: 'स्थानीय फ़ाइलों को मौजूदा फ़ॉर्म इंस्टेंस के अटैचमेंट फ़ील्ड में अपलोड करें',
     cmd_task_center: 'वैश्विक कार्य केंद्र (लंबित/संसाधित/CC आदि)',
     cmd_basic_info: 'संगठन की मूल जानकारी, क्षमता, कोटा और डोमेन देखें',
     cmd_read_dingtalk_doc: 'DingTalk दस्तावेज़ की Markdown सामग्री प्राप्त करें',
@@ -194,6 +195,13 @@ module.exports = {
     next_page: 'और ऐप उपलब्ध हैं। यह चलाएँ: {0}',
   },
 
+  attachment_upload: {
+    invalid: 'अटैचमेंट अपलोड के अमान्य तर्क: {0}',
+    login_required: 'मान्य OpenYida OAuth सत्र आवश्यक है; पहले openyida login चलाएँ',
+    stage_failed: '{0} चरण में अटैचमेंट अपलोड विफल हुआ: {1}',
+    partial_failed: 'एक या अधिक फ़ाइलें अपलोड नहीं हुईं; फ़ॉर्म अपडेट नहीं हुआ और OSS में अनाथ ऑब्जेक्ट हो सकते हैं',
+    verification_failed: 'अटैचमेंट अपडेट हुआ, लेकिन दोबारा पढ़कर सत्यापन विफल हुआ'
+  },
   cli: {
     design_plan_entry_mode_required: 'उपयोग का तरीका चुनें: साझा कार्य पृष्ठ (unified), उपयोगकर्ता और कार्य प्रबंधन के अलग पृष्ठ (service-management), केवल उपयोगकर्ता पृष्ठ (frontend-only), या केवल कार्य प्रबंधन पृष्ठ (backend-only)।',
     design_plan_backend_only_roles: 'backend-only में प्रत्येक प्रवेश बिंदु का role management होना चाहिए।',

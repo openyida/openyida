@@ -100,6 +100,7 @@ module.exports = {
     group_data: 'データ & 権限',
     cmd_data: '統合データ管理（フォーム/プロセス/タスク/サブフォーム）',
     data_notes: "DateField はミリ秒単位の数値タイムスタンプ、CascadeDateField はその配列を指定します。業務のタイムゾーンで変換してください。日付文字列と秒単位の値は使えません。--resolve-aliases はフィールド名のみ変換します。",
+    cmd_data_upload_attachment: 'ローカルファイルを既存フォームインスタンスの添付フィールドへアップロード',
     cmd_task_center: 'グローバルタスクセンター（未処理/処理済/CC等）',
     cmd_basic_info: '組織の基本情報、容量、クォータ、ドメイン設定を照会',
     cmd_read_dingtalk_doc: 'DingTalk ドキュメントの Markdown 内容を取得',
@@ -194,6 +195,13 @@ module.exports = {
     next_page: 'さらにアプリがあります。次を実行してください：{0}',
   },
 
+  attachment_upload: {
+    invalid: '添付ファイルのアップロード引数が無効です：{0}',
+    login_required: '有効な OpenYida OAuth セッションが必要です。先に openyida login を実行してください',
+    stage_failed: '添付ファイルのアップロードが {0} 段階で失敗しました：{1}',
+    partial_failed: '1つ以上のファイルのアップロードに失敗しました。フォームは更新されず、OSS に孤立オブジェクトが残る可能性があります',
+    verification_failed: '添付ファイルは更新されましたが、フォームの再取得による検証に失敗しました'
+  },
   cli: {
     design_plan_entry_mode_required: '利用方式を選択してください：共通の業務画面（unified）、利用者画面と業務処理画面を分離（service-management）、利用者画面のみ（frontend-only）、業務処理画面のみ（backend-only）。',
     design_plan_backend_only_roles: 'backend-only では、すべての入口の role を management にしてください。',

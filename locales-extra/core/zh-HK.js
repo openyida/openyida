@@ -100,6 +100,7 @@ module.exports = {
     group_data: '資料 & 權限',
     cmd_data: '統一資料管理（表單/流程/任務/子表單）',
     data_notes: "DateField 傳毫秒時間戳數字；CascadeDateField 傳毫秒時間戳陣列。先按業務時區轉換，不接受日期字串或秒級時間戳。--resolve-aliases 只轉換欄位名稱。",
+    cmd_data_upload_attachment: '上傳本機檔案至現有表單實例的附件元件',
     cmd_task_center: '全域任務中心（待辦/已處理/抄送等）',
     cmd_basic_info: '查詢組織基本資訊、容量、額度和域名設定',
     cmd_read_dingtalk_doc: '取得釘釘文件的 Markdown 內容',
@@ -195,6 +196,13 @@ module.exports = {
     next_page: '還有更多應用程式，請繼續執行：{0}',
   },
 
+  attachment_upload: {
+    invalid: '附件上傳參數無效：{0}',
+    login_required: '需要有效的 OpenYida OAuth 登入狀態；請先執行 openyida login',
+    stage_failed: '附件上傳在 {0} 階段失敗：{1}',
+    partial_failed: '一個或多個檔案上傳失敗；表單實例未更新，可能存在 OSS 孤兒物件',
+    verification_failed: '附件已寫入，但實例回讀驗收失敗'
+  },
   cli: {
     design_plan_entry_mode_required: '請明確入口方式：不分前後台（unified）、分前後台（service-management）、只有訪問前台（frontend-only）或只有訪問後台（backend-only）。',
     design_plan_backend_only_roles: '只有訪問後台（backend-only）時，每個入口的 role 必須為 management。',
