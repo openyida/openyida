@@ -1423,7 +1423,8 @@ describe('OpenYida skill contracts', () => {
     expect(createApp).toContain('主题颜色不受平台预置 key 限制');
     expect(createApp).not.toContain('| `deepBlue` | 深蓝 |');
     expect(pageUiux).not.toContain('| `deepBlue` | 深蓝 |');
-    expect(pageUiux).toContain('先根据行业、品牌、业务情绪和视觉目标做创意色彩判断');
+    expect(pageUiux).toContain('先按主要任务、使用频率和信息密度判断适配性，再结合品牌证据和视觉目标做色彩判断');
+    expect(pageUiux).toContain('行业名词不能直接决定配色或材质');
     expect(theme).toContain('应用主题统一');
     expect(theme).toContain('`YidaCodeCanvas` 页面只在 `YidaComp` 内消费');
     expect(theme).toContain('严禁页面代码修改或向上层注入主题变量');

@@ -21,7 +21,7 @@
 | 3 | `business-inferred` | 无明确主题证据，需要根据行业、品牌气质、业务情绪和视觉目标推导 | 设计任意合法的自定义品牌色盘，写应用主题 token 和文件交付方案 |
 
 
-1. 先判断业务气质：行业、目标用户、品牌关键词、业务情绪、视觉目标，以及是否需要亲和/专业/活力/稳重/科技/自然感。
+1. 先判断主要任务、使用频率、信息密度与终端，再结合品牌证据和视觉目标判断业务气质。高频管理按[场景适配判断](../references/theme-selection.md#高频管理场景的适配判断)设计；行业名词不能直接决定配色、材质或布局。
 2. 在 `design.md` 中记录主题色、`navTheme`、`logoSource` 和业务已确定的 `layoutDirection`。命名模板继承导航差异 token（未声明项沿用平台绑定） 和模板派生的 `navTheme`；自由创意明确设计两者。按 [导航与应用框架](../references/application-theme-consistency.md#导航与应用框架) 将导航外观与各类页面一起写入主题。
 3. 主题文件按 [生成与更新规则](output-design.md#cli-token-契约fast--plan-共用) 准备；Plan 复用已生成的主题 CSS。
 4. 主题 CSS 生成后读取并核对目标 token；需要修改变量时回到设计源文件，再通过 CLI 生成并重新上传。只有 CLI 未覆盖且已核实选择器的样式覆盖，才在现有 CSS 末尾小范围追加。按 [共用主题规则](../references/application-theme-consistency.md) 处理，不另写脚本生成或重写主题文件。

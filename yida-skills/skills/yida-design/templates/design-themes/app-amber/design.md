@@ -1,58 +1,64 @@
 ---
 name: "{{PROJECT_NAME}}"
-description: "三列短字段、项目名跨列、子表整行；低圆角、琥珀细边、紧凑清单。适合设备工单与现场服务。"
+description: "三列短字段、项目名跨列、子表整行；暖雾白画布、纯白内容面、暖灰细边与局部琥珀强调的紧凑清单。适合设备工单与现场服务。"
 themeId: "app-amber"
 tokens:
   application-global:
     appearance:
       surfaces:
-        "--pod-app-root-bg-color": "#f3f0e9"
+        "--pod-app-root-bg-color": "#F6F5F2"
         "--pod-app-root-bg-image": "none"
-        "--pod-page-bg-color": "#f3f0e9"
-        "--pod-card-bg-color": "#fffefa"
+        "--pod-page-bg-color": "#F6F5F2"
+        "--pod-card-bg-color": "#FFFFFF"
         "--pod-table-cell-color": "var(--pod-card-bg-color)"
       navigation:
-        "--pod-nav-sub-divider-color": "#D1B477"
-        "--pod-shell-theme-bg-color": "#FFF0CD"
-        "--pod-nav-item-text-color": "#754B13"
-        "--pod-nav-item-text-hover-color": "#593607"
-        "--pod-nav-item-text-selected-color": "#FFF8E6"
-        "--pod-nav-menu-bg-hover-color": "#F4DFAA"
-        "--pod-nav-menu-bg-selected-color": "#754B13"
-        "--pod-nav-menu-item-radius": "3px"
+        "--pod-nav-sub-divider-color": "#E7E3DB"
+        "--pod-shell-theme-bg-color": "#FCFBF8"
+        "--pod-nav-item-text-color": "#454139"
+        "--pod-nav-item-text-hover-color": "#292823"
+        "--pod-nav-item-text-selected-color": "var(--color-brand1-5)"
+        "--pod-nav-menu-bg-hover-color": "#F3F1EC"
+        "--pod-nav-menu-bg-selected-color": "var(--color-brand1-2)"
+        "--pod-nav-menu-item-radius": "6px"
         "--pod-nav-menu-item-selected-font-weight": "600"
         "--pod-nav-menu-gap": "4px"
         "--pod-nav-popup-bg-color": "var(--pod-shell-theme-bg-color)"
+        "--pod-nav-search-bg-color": "#FFFFFF"
+        "--pod-nav-search-bg-hover-color": "#FFFFFF"
+        "--pod-nav-search-bg-active-color": "#FFFFFF"
+        "--pod-nav-search-border-color": "#E7E3DB"
+        "--pod-nav-search-placeholder-color": "#6F6B63"
+        "--pod-page-header-bg-color": "#FFFFFF"
       native-form:
         "--form-element-medium-corner": "3px"
         "--form-element-medium-height": "34px"
         "--form-element-medium-font-size": "14px"
-        "--input-bg-color": "#fffefa"
+        "--input-bg-color": "#FFFFFF"
         "--input-border-width": "1px"
-        "--input-border-color": "#d6cbb8"
+        "--input-border-color": "#E7E3DB"
         "--input-hover-border-color": "var(--color-brand1-6)"
         "--input-focus-border-color": "var(--color-brand1-6)"
-        "--input-hover-bg-color": "#fffefa"
-        "--input-focus-bg-color": "#fffefa"
+        "--input-hover-bg-color": "#FFFFFF"
+        "--input-focus-bg-color": "#FFFFFF"
         "--pod-form-label-color": "var(--color-text1-4)"
         "--form-top-label-margin-b": "8px"
         "--yida-divider-secondary-color": "var(--color-brand1-2)"
-        "--yida-form-content-bgcolor": "#fffefa"
+        "--yida-form-content-bgcolor": "#FFFFFF"
         "--pod-page-content-max-width": "1140px"
         "--pod-page-border-radius": "3px"
-        "--pod-page-footer-bg-color": "#fffefa"
+        "--pod-page-footer-bg-color": "#FFFFFF"
         "--pod-page-footer-border-radius": "3px"
         "--pod-sticky-footer-box-shadow": "none"
-        "--pod-formView-stickyFooter-bg-color": "#f3f0e9"
+        "--pod-formView-stickyFooter-bg-color": "#F6F5F2"
         "--pod-formView-stickyFooter-box-shadow": "none"
         "--pod-formView-stickyFooter-border": "none"
-        "--pod-formView-stickyFooter-border-top": "1px solid #d6cbb8"
+        "--pod-formView-stickyFooter-border-top": "1px solid #E7E3DB"
         "--pod-formView-stickyFooter-height": "56px"
         "--pod-formView-stickyFooter-bottom": "8px"
         "--pod-field-preview-min-height": "32px"
         "--pod-field-preview-padding": "8px 12px"
         "--pod-field-preview-gap": "4px"
-        "--pod-field-preview-bg-color": "#fffefa"
+        "--pod-field-preview-bg-color": "#FFFFFF"
         "--pod-field-preview-border-radius": "3px"
         "--pod-field-preview-indicator-color": "var(--color-fill1-3)"
         "--pod-field-preview-shadow": "none"
@@ -67,18 +73,18 @@ tokens:
       "--color-brand1-6": "{{PRIMARY_COLOR}}"
       "--color-brand1-9": "<生成实际色值：--color-brand1-6 76% + #000000 24%，sRGB 逐通道混合>"
       "--color-brand1-10": "<生成实际色值：--color-brand1-6 26% + #202020 74%，sRGB 逐通道混合>"
-      "--color-line1-1": "<生成实际色值：--color-brand1-6 8% + #CCCCCC 92%，sRGB 逐通道混合>"
-      "--color-line1-2": "<生成实际色值：--color-brand1-6 8% + #CCCCCC 92%，sRGB 逐通道混合>"
-      "--color-fill1-1": "<生成实际色值：--color-brand1-6 4% + #F8F8F8 96%，sRGB 逐通道混合>"
-      "--color-fill1-2": "<生成实际色值：--color-brand1-6 4% + #F0F0F0 96%，sRGB 逐通道混合>"
+      "--color-line1-1": "#EEEBE5"
+      "--color-line1-2": "#E7E3DB"
+      "--color-fill1-1": "#F7F6F3"
+      "--color-fill1-2": "#F0EDE7"
       "--color-fill1-3": "<生成实际色值：--color-brand1-6 8% + #CCCCCC 92%，sRGB 逐通道混合>"
       "--color-fill1-5": "<生成实际色值：--color-brand1-6 2% + #FEFEFE 98%，sRGB 逐通道混合>"
       "--color-fill1-6": "var(--color-text1-3)" # 弱图标与辅助操作 glyph 前景色
       "--color-fill1-10": "#262626"
       "--color-text1-5": "#FFFFFF"
-      "--color-text1-4": "<生成实际色值：--color-brand1-6 4% + #3F3F3F 96%，sRGB 逐通道混合>"
+      "--color-text1-4": "#292823"
       "--color-text1-10": "var(--color-text1-3)"
-      "--color-text1-3": "<生成实际色值：--color-brand1-6 4% + #636363 96%，sRGB 逐通道混合>"
+      "--color-text1-3": "#6F6B63"
       "--color-text1-2": "<生成实际色值：--color-brand1-6 4% + #868686 96%，sRGB 逐通道混合>"
       "--color-text1-1": "<生成实际色值：--color-brand1-6 4% + #CCCCCC 96%，sRGB 逐通道混合>"
     typography:
@@ -152,7 +158,7 @@ themeProfile:
 
 **琥珀工单**
 
-三列短字段、项目名跨列、子表整行；低圆角、琥珀细边、紧凑清单。适合设备工单与现场服务。
+三列短字段、项目名跨列、子表整行；暖雾白画布、纯白内容面、暖灰细边与局部琥珀强调的紧凑清单。适合设备工单与现场服务。
 
 导航、应用框架、自定义页面、表单、编辑与详情共用这一套视觉语言。业务内容来自 PRD，按实际行业、页面标题和数据设计。色彩来源：{{COLOR_SOURCE}}；主色由 {{PRIMARY_COLOR}} 实例化，品牌悬停色按同源占位说明生成；模板不固定项目品牌色。
 
@@ -160,13 +166,15 @@ themeProfile:
 
 ### 2.1 表面、区块与层次
 
+画布为低饱和暖雾白，导航为更亮的象牙白，表格、表单与页头为纯白；边框和表头使用同温度暖灰，不以冷蓝灰衬托琥珀。普通菜单与正文不染棕，搜索框不复用菜单悬停底。
+
 正文、字段标签和详情值使用内容文字色，说明与占位文字使用辅助文字色；品牌色用于局部操作和数据强调，不把整页文字染成主色。
 
-三列短字段、项目名跨列、子表整行。低圆角、琥珀细边、紧凑清单。画布消费 --oyd-page-bg，内容消费 --oyd-surface，文字消费 --oyd-ink，边界消费 --oyd-border。内容最大宽度 --oyd-content-width，内距 --oyd-content-padding；宽屏不放大成空白 KPI 卡。
+三列短字段、项目名跨列、子表整行。暖雾白画布、纯白内容面、暖灰细边与局部琥珀强调的紧凑清单。画布消费 --oyd-page-bg，内容消费 --oyd-surface，文字消费 --oyd-ink，边界消费 --oyd-border。内容最大宽度 --oyd-content-width，内距 --oyd-content-padding；宽屏不放大成空白 KPI 卡。
 
 ### 2.2 应用导航
 
-淡琥珀导航采用短行距、低圆角和细线分组，深棕选中项呼应工单操作，搜索区延续现场清单的紧凑密度。
+象牙白导航采用炭灰文字、轻圆角与暖灰分隔，白底搜索框与菜单分层；选中项使用项目品牌浅底与深色文字，琥珀只强调当前入口和主操作。
 
 常驻导航优先沿用平台原始样式，通过主题文字、背景与字重区分状态。菜单 border、box-shadow 是可选覆盖，没有明确用途就不声明；不为了统一风格给每项加框或投影。普通入口融入同一侧栏，按连续目录组织；分组靠留白与文字层级，不把导航复制成输入框、独立按钮或卡片堆叠。内容卡片、主按钮和表单可以使用更强的形状与材质，同一主题不意味着所有组件装饰强度相同。业务确有触控或特殊展示需求时，在本 design.md 调整并验收，不在运行时限制项目自定义值。
 
@@ -190,7 +198,7 @@ themeProfile:
 
 ### 2.5 自定义页面设计
 
-自定义页面以 三列短字段、项目名跨列、子表整行 组织真实业务内容，以 工单编号与薄型摘要带 建立标题与首屏焦点，并用 低圆角、琥珀细边、紧凑清单 统一页面表面。页面根据 PRD 安排标题与操作区、状态摘要、筛选、主要内容、上下文信息和反馈区；列表、表格、图表、详情抽屉和表单入口只在业务需要时出现。宽度、列数、高度和滚动方式按内容增长确定，移动端按阅读与操作顺序重排。
+自定义页面以 三列短字段、项目名跨列、子表整行 组织真实业务内容，以 工单编号与薄型摘要带 建立标题与首屏焦点，并用 暖雾白画布、纯白内容面、暖灰细边与局部琥珀强调的紧凑清单 统一页面表面。页面根据 PRD 安排标题与操作区、状态摘要、筛选、主要内容、上下文信息和反馈区；列表、表格、图表、详情抽屉和表单入口只在业务需要时出现。宽度、列数、高度和滚动方式按内容增长确定，移动端按阅读与操作顺序重排。
 
 每个自定义页面逐页写清页面任务、首屏焦点、布局、表面与组件、主操作、状态、响应式和验收。状态覆盖加载、空、错误和无权限反馈及恢复动作；页面使用全局主题 token 落实当前风格，并为键盘焦点、纯图标按钮、非颜色状态表达和 reduced motion 提供可执行规则。
 
@@ -222,7 +230,7 @@ themeProfile:
 
 ### 材质与信息密度
 
-低圆角、琥珀细边、紧凑清单。三列短字段、项目名跨列、子表整行。图表、图片、时间线只为真实内容出现；没有媒体时以排版与章节构图成立，不为“丰富”捏造指标或入口。
+暖雾白画布、纯白内容面、暖灰细边与局部琥珀强调的紧凑清单。三列短字段、项目名跨列、子表整行。图表、图片、时间线只为真实内容出现；没有媒体时以排版与章节构图成立，不为“丰富”捏造指标或入口。
 
 ## 5. 项目应用与调整规则
 

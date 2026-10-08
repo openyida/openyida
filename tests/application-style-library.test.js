@@ -11,6 +11,7 @@ const { readDesignTokens, applyDesignTokens } = require('../lib/app/theme-from-d
 const { exportApplicationStyle, CREATIVE_TOKENS } = require('../lib/app/application-style');
 const { validateThemeCssContent } = require('../lib/app/custom-theme');
 const { parseDesignDocument } = require('../lib/design/document');
+const { color, contrast } = require('../lib/design/icon-contrast');
 const { BUSINESS_FIELD_TYPES, PRESENTATION_FIELD_TYPES } = require('../lib/app/form-field-validator');
 const sample = require('../lib/core/sample');
 const form = require('../lib/app/create-form')._private;
@@ -88,7 +89,6 @@ test('every named theme has its own complete platform navigation design and read
     Object.keys(navigation).forEach(token => expect(supported.has(token)).toBe(true));
     expect(navigation).not.toHaveProperty('--pod-nav-search-text-color');
     expect(navigation).not.toHaveProperty('--pod-nav-search-border-active-color');
-    expect(navigation).not.toHaveProperty('--pod-page-header-bg-color');
     // Expanded hierarchy lines are an intentional per-theme design choice.
     expect(navigation['--pod-nav-sub-divider-color']).toEqual(expect.any(String));
     const css = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.cssTemplatePath), 'utf8');
@@ -114,24 +114,18 @@ test('every named theme has its own complete platform navigation design and read
 });
 
 test('application preset navigation text is readable in ordinary, hover and selected states', () => {
-  const luminance = hex => {
-    const rgb = hex.slice(1).match(/../g).map(channel => parseInt(channel, 16) / 255)
-      .map(channel => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
-    return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
-  };
   const states = [
     ['--pod-nav-item-text-color', '--pod-shell-theme-bg-color'],
     ['--pod-nav-item-text-hover-color', '--pod-nav-menu-bg-hover-color'],
     ['--pod-nav-item-text-selected-color', '--pod-nav-menu-bg-selected-color'],
   ];
   styles.forEach(theme => {
-    const navigation = parseDesignDocument(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8'))
-      .metadata.tokens['application-global'].appearance.navigation;
+    const source = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8');
+    const tokens = readDesignTokens(resolveThemeColors(source.replaceAll('{{PRIMARY_COLOR}}', '#2C73A9')));
     states.forEach(([foreground, background]) => {
-      const values = [navigation[foreground], navigation[background]];
-      values.forEach(value => expect(value).toMatch(/^#[\da-f]{6}$/i));
-      const [a, b] = values.map(luminance);
-      expect((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)).toBeGreaterThanOrEqual(4.5);
+      const values = [foreground, background].map(token => color(tokens[token], tokens));
+      values.forEach(value => expect(value).not.toBeNull());
+      expect(contrast(...values)).toBeGreaterThanOrEqual(4.5);
     });
   });
 });

@@ -124,6 +124,8 @@ frontmatter 对应 `components.button.anchor: "#component-button"`、`sceneRecip
 
 ## 图片素材与图标
 
+动态记录图片写入真实数据绑定和设计正文，不为每条记录分配静态素材槽位。仅有动态图片时素材策略使用 `imageNeed: none` 与空 slots，含义是无静态采集任务；页面仍按记录渲染图片。固定素材才进入下方清单，详见[任务驱动的视觉设计](../references/task-driven-visual-design.md)。
+
 `assetStrategy.pages[]` 按 [素材清单契约](../../yida-image-assets/references/manifest-contract.md) 记录图片等级与槽位；槽位含用途、数量、比例、尺寸、焦点、填充方式和生成许可。无图片需求的实际页面记录 `imageNeed: none`。保持 frontmatter 单行 JSON 兼容 `--design design.md`，不能只保留槽位数量；有需求时交给 `yida-image-assets`。
 
 `iconSystem.mappings` 只登记实际业务动作、状态、导航和空态使用的具体组件名称。图标尺寸、描边和容器规则放在正文；Canvas 按选中库 import，旧平台 JSX 则按已验证的运行时加载方式使用。不能用 emoji、CSS 图形、字母占位、Unicode、临时 SVG 或 iconfont 绕过图标规范；无法稳定加载时去掉非必要图标或使用已验证资源。

@@ -210,7 +210,7 @@
       "cssTemplatePath": "templates/design-themes/app-paper/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-paper/form-layout.json",
       "previewPrimaryColor": "#745338",
-      "styleSummary": "浅色导航，浅色内容界面。窄幅纵向阅读与按日期组织的清单；暖纸面、虚线章节、柔和纸张阴影。适合服务登记、档案与内容策划。"
+      "styleSummary": "浅色导航，浅色内容界面。窄幅纵向阅读与按日期组织的清单；暖纸面、虚线章节、柔和纸张阴影。适合服务登记、档案与内容策划。 适用于阅读和叙事为主的页面；高频比较、批量处理不默认采用，行业名称不是选用依据。"
     },
     {
       "themeId": "app-sage",
@@ -401,12 +401,12 @@
       "collection": "application-styles",
       "contentTone": "light",
       "navTheme": "light",
-      "navigationSummary": "淡琥珀导航采用短行距、低圆角和细线分组，深棕选中项呼应工单操作，搜索区延续现场清单的紧凑密度。",
+      "navigationSummary": "象牙白导航采用炭灰文字、轻圆角与暖灰分隔，白底搜索框与菜单分层；选中项使用项目品牌浅底与深色文字，琥珀只强调当前入口和主操作。",
       "templatePath": "templates/design-themes/app-amber/design.md",
       "cssTemplatePath": "templates/design-themes/app-amber/app_theme.css",
       "formLayoutPath": "templates/design-themes/app-amber/form-layout.json",
-      "previewPrimaryColor": "#805c26",
-      "styleSummary": "浅色导航，浅色内容界面。三列短字段、项目名跨列、子表整行；低圆角、琥珀细边、紧凑清单。适合设备工单与现场服务。"
+      "previewPrimaryColor": "#8A5A20",
+      "styleSummary": "浅色导航，浅色内容界面。三列短字段、项目名跨列、子表整行；暖雾白画布、纯白内容面、暖灰细边与局部琥珀强调的紧凑清单。适合设备工单与现场服务。"
     },
     {
       "themeId": "app-graphite",
