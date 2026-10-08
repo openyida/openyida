@@ -10,6 +10,7 @@ const { readDesignTokens, applyDesignTokens } = require('../lib/app/theme-from-d
 const { catalog } = require('../lib/design-plan/init');
 const { exportApplicationStyle } = require('../lib/app/application-style');
 const { validateThemeCssContent } = require('../lib/app/custom-theme');
+const { parseDesignDocument, serializeDesignDocument } = require('../lib/design/document');
 const fixture = require('./fixtures/design-plan.json');
 const template = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, 'templates/design-themes/app-amber/design.md'), 'utf8');
 const platformCss = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, 'references/theme/app-custom-theme-template.css'), 'utf8');
@@ -68,11 +69,23 @@ test('editing one complete template updates all consumers without rewriting desi
   const layoutFile = path.join(root, theme.formLayoutPath);
   fs.mkdirSync(path.dirname(designFile), { recursive: true });
   // Deliberately use complementary colors: coherence is authored, not a hue test.
-  const edited = template.replaceAll('#FFF0CD', '#EDF4F2').replaceAll('#754B13', '#245B57')
-    .replaceAll('#fffefa', '#FCFAF5').replaceAll('#805c26', '#343C3A')
-    .replace('"--pod-nav-menu-item-radius": "3px"', '"--pod-nav-menu-item-radius": "12px"')
-    .replace('      navigation:\n', '      navigation:\n        "--pod-nav-menu-item-selected-shadow": "inset 3px 0 0 #C2410C"\n')
-    + '\n项目说明：橙红操作与低饱和青绿导航，页面与详情使用暖白表面。\n';
+  const document = parseDesignDocument(template);
+  const global = document.metadata.tokens['application-global'];
+  Object.assign(global.appearance.navigation, {
+    '--pod-shell-theme-bg-color': '#EDF4F2',
+    '--pod-nav-menu-bg-selected-color': '#245B57',
+    '--pod-nav-item-text-selected-color': '#FFFFFF',
+    '--pod-nav-menu-item-radius': '12px',
+    '--pod-nav-menu-item-selected-shadow': 'inset 3px 0 0 #C2410C',
+  });
+  Object.assign(global.appearance['native-form'], {
+    '--input-bg-color': '#FCFAF5',
+    '--pod-field-preview-bg-color': '#FCFAF5',
+  });
+  global.appearance.surfaces['--pod-card-bg-color'] = '#FCFAF5';
+  global.colors['--color-text1-4'] = '#343C3A';
+  document.body += '\n项目说明：橙红操作与低饱和青绿导航，页面与详情使用暖白表面。\n';
+  const edited = serializeDesignDocument(document);
   fs.writeFileSync(designFile, edited);
   fs.writeFileSync(layoutFile, '[{"type":"Divider","title":"项目专属布局"}]\n');
   const layout = fs.readFileSync(layoutFile, 'utf8');
@@ -97,8 +110,13 @@ test('editing one complete template updates all consumers without rewriting desi
 });
 
 test('the temporary compiler brand seed cannot capture independently authored colors', () => {
-  const edited = template.replaceAll('#754B13', '#2C73A9')
-    .replace('      navigation:\n', '      navigation:\n        "--pod-nav-menu-item-hover-border": "1px solid #2C73A9"\n');
+  const document = parseDesignDocument(template);
+  Object.assign(document.metadata.tokens['application-global'].appearance.navigation, {
+    '--pod-nav-menu-bg-selected-color': '#2C73A9',
+    '--pod-nav-item-text-selected-color': '#FFFFFF',
+    '--pod-nav-menu-item-hover-border': '1px solid #2C73A9',
+  });
+  const edited = serializeDesignDocument(document);
   const css = cssTemplate(edited);
   expect(css).toContain('--pod-nav-menu-bg-selected-color: #2C73A9;');
   expect(css).toContain('--pod-nav-menu-item-hover-border: 1px solid #2C73A9;');
