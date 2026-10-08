@@ -1,6 +1,6 @@
 {
   "name": "openyida",
-  "version": "2026.9.18-1",
+  "version": "2026.10.8-beta.1",
   "description": "OpenYida CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
   "bin": {
     "openyida": "bin/yida.js",
@@ -85,6 +85,9 @@
     "url": "https://github.com/openyida/openyida/issues"
   },
   "homepage": "https://github.com/openyida/openyida#readme",
+  "openyidaAgent": {
+    "endpoint": "https://www.aliwork.com/openyida/agent-api"
+  },
   "dependencies": {
     "@babel/standalone": "^7.15.1",
     "globals": "^17.11.0",
@@ -107,5 +110,11 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "optionalDependencies": {
+    "@openyida/local-agent-runtime-darwin-arm64": "0.1.0-beta.2",
+    "@openyida/local-agent-runtime-darwin-x64": "0.1.0-beta.2",
+    "@openyida/local-agent-runtime-win32-x64": "0.1.0-beta.2",
+    "@openyida/local-agent-runtime-win32-arm64": "0.1.0-beta.2"
   }
 }

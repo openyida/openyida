@@ -163,3 +163,20 @@ Windows parent lifetime uses parentPID and an OS process handle, not parentWatch
 All current automated tests use generated signing keys and fake processes.
 No real provider, user account, Yida write, public upload or npm publication is
 part of this implementation checkpoint.
+
+### Background startup receipt
+
+A background `run` can carry a fresh `startupId` (safe identifier, generated per
+spawn). The runtime atomically writes `startup-<startupId>.json` in `stateDir`
+with mode 0600 after the control endpoint is bound, the cloud welcome is
+validated, and recovery finishes. Its only fields are `protocolVersion: 1`,
+`startupId`, and boolean `ready`. The launcher requires `ready: true`, then removes
+the receipt and detaches. Provider logs are never a startup acknowledgement.
+A startup failure/exit or the 60-second deadline rejects the launch; the launcher
+terminates only its own new child, preserving credentials and journals.
+
+This is an additive launch-config extension. Older launchers omit it. Older
+runtimes reject unknown fields, so release the updated runtime and update the
+CLI's exact runtime dependencies and signed catalog together before publishing
+this launcher. Do not pair the updated launcher with a previously published
+runtime and assume compatibility.

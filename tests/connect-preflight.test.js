@@ -44,11 +44,11 @@ describe('connect owns the pre-enrollment check', () => {
   test('doctor uses the same classification without starting or enrolling a Runtime', async () => {
     await run(args('doctor'), { stdout, stderr, probe: async (_exe, flags) => flags[0] === '--list-models'
       ? { status: 'probe_failed', output: 'Not logged in' } : { status: 'passed' } });
-    expect(JSON.parse(stdout.write.mock.calls[0][0])).toMatchObject({ type: 'doctor', providerReady: false,
-      providers: [{ status: 'login_required', remediation: { requiresUserInteraction: true } }] });
+    expect(JSON.parse(stdout.write.mock.calls[0][0])).toMatchObject({ type: 'doctor', providerReady: false, readyForEnrollment: true,
+      providers: [{ status: 'login_required', remediation: { requiresExplicitUserRequest: true, automaticActionAllowed: false } }] });
     expect(launchRuntime).not.toHaveBeenCalled(); expect(prepareConnection).not.toHaveBeenCalled();
   });
-  test('without a type, one usable provider connects and unavailable providers are excluded', async () => {
+  test('connect and its background daemon retain a signed-out CLI alongside a usable CLI', async () => {
     const bin = path.join(root, '.local', 'bin'); fs.mkdirSync(bin, { recursive: true });
     const ext = '.exe';
     for (const name of ['qodercli', 'codex']) { fs.writeFileSync(path.join(bin, name + ext), 'fixture', { mode: 0o700 }); }
@@ -57,20 +57,46 @@ describe('connect owns the pre-enrollment check', () => {
       env: { PATH: '', Path: '', USERPROFILE: root, PATHEXT: '.EXE' },
       probe: async (_exe, flags) => flags[0] === '--list-models' ? { status: 'probe_failed', output: 'Not logged in' } : { status: 'passed' },
     });
-    expect(launchRuntime.mock.calls[0][1].providers.map(p => p.provider)).toEqual(['codex']);
+    expect(launchRuntime.mock.calls[0][1].providers.map(p => p.provider)).toEqual(['qoder', 'codex']);
     expect(launchRuntime).toHaveBeenCalledTimes(1);
     expect(launchBackgroundRuntime).toHaveBeenCalledTimes(1);
-    expect(launchBackgroundRuntime.mock.calls[0][1].providers.map(p => p.provider)).toEqual(['codex']);
+    expect(launchBackgroundRuntime.mock.calls[0][1].providers.map(p => p.provider)).toEqual(['qoder', 'codex']);
   });
   test('provider-only never connects another available type', async () => {
     const bin = path.join(root, '.local', 'bin'); fs.mkdirSync(bin, { recursive: true });
     const ext = process.platform === 'win32' ? '.exe' : '';
     for (const name of ['qodercli', 'codex']) { fs.writeFileSync(path.join(bin, name + ext), 'fixture', { mode: 0o700 }); }
-    await expect(run(['connect', '--json', '--provider', 'qoder', '--state-dir', root], {
+    await run(['connect', '--json', '--provider', 'qoder', '--state-dir', root,
+      '--endpoint', 'https://agent.example.test', '--endpoint-id', 'test'], {
       stdout, stderr, homedir: root, env: { PATH: '', HOME: root },
       probe: async (_exe, flags) => flags[0] === '--list-models' ? { status: 'probe_failed', output: 'Not logged in' } : { status: 'passed' },
-    })).rejects.toMatchObject({ code: 'AGENT_PREFLIGHT_BLOCKED' });
-    expect(launchRuntime).not.toHaveBeenCalled();
+    });
+    expect(launchRuntime.mock.calls[0][1].providers.map(p => p.provider)).toEqual(['qoder']);
+    expect(launchBackgroundRuntime.mock.calls[0][1].providers.map(p => p.provider)).toEqual(['qoder']);
+  });
+  test.each(['qoder', 'codex'])('a computer with only signed-out %s can enroll without executing login', async provider => {
+    const execute = jest.fn(async (_exe, flags) => flags[0] === '--list-models' || flags[0] === 'login'
+      ? { status: 'probe_failed', output: 'Not logged in' } : { status: 'passed' });
+    const command = args(); command[command.indexOf('--provider') + 1] = provider;
+    await run(command, { stdout, stderr, probe: execute });
+    expect(prepareConnection).toHaveBeenCalledTimes(1);
+    expect(launchBackgroundRuntime.mock.calls[0][1].providers.map(p => p.provider)).toEqual([provider]);
+    expect(JSON.parse(stdout.write.mock.calls[0][0])).toMatchObject({ ready: false, readyForEnrollment: true,
+      providers: [{ status: 'login_required', usable: false, registrable: true }] });
+    expect(execute.mock.calls.map(call => call[1])).toEqual(provider === 'qoder'
+      ? [['--version'], ['--acp'], ['--list-models']]
+      : [['--version'], ['app-server', '--listen', 'stdio://'], ['login', 'status']]);
+  });
+  test('run keeps a signed-out CLI in inventory when bringing a computer back online', async () => {
+    const bin = path.join(root, '.local', 'bin'); fs.mkdirSync(bin, { recursive: true });
+    fs.writeFileSync(path.join(bin, 'codex'), 'fixture', { mode: 0o700 });
+    await run(['run', '--json', '--provider', 'codex', '--state-dir', root,
+      '--endpoint', 'https://agent.example.test', '--endpoint-id', 'test'], {
+      stdout, stderr, disableConnectionManager: true, platform: 'linux', homedir: root, env: { PATH: '' },
+      probe: async (_exe, flags) => flags[0] === 'login' ? { status: 'probe_failed', output: 'Not logged in' } : { status: 'passed' },
+    });
+    expect(launchRuntime.mock.calls[0][1].providers.map(p => p.provider)).toEqual(['codex']);
+    expect(prepareConnection).not.toHaveBeenCalled();
   });
   test('malformed explicit selection is rejected before invoking a CLI', async () => {
     const execute = jest.fn();

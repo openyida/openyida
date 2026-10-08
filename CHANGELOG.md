@@ -10,6 +10,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.10.8-beta.1] - 2026-10-08
+
+### Local Agent 修复
+
+- 修复较长状态目录导致本机控制 socket 无法启动的问题。
+- 后台连接等待 runtime 就绪，启动失败或超时返回错误。
+- 修复下一轮澄清被误报为未处理问题的终态。
+- 支持登记已发现但未登录的 CLI，展示登录状态；任务执行仍由服务端检查就绪状态。
+- 配套升级签名平台 runtime 至 `0.1.0-beta.2`。
+
+## [2026.9.23-beta.2] - 2026-09-23
+
+### Local Agent 公共测试
+
+- 新增本地 Agent 连接、诊断和设备连接管理能力，本次开放 Qoder 与 Codex。
+- 本地运行时采用平台二进制包，并在启动前校验签名、版本及完整性；连接使用冻结的 CLI 与运行时依赖。
+- 支持发现 macOS ChatGPT.app 附带的 Codex CLI，调整 Windows CLI 冷启动检查的等待时间。
+- 预检只报告 CLI 状态与处理建议，不要求安装其他 CLI；正式控制面地址为 `https://www.aliwork.com/openyida/agent-api`。
+- 本版本为公共 beta；实际连接能力取决于对应服务的部署和配置。
+
 ## [2026.9.19] - 2026-09-19
 
 ### 方案与设计校验

@@ -23,7 +23,7 @@ describe('local agent thin launcher', () => {
     binary = path.join(root, 'fake-runtime.js');
     manifestPath = path.join(root, 'manifest.json');
     fixtureChildren = new Set();
-    const source = `#!${process.execPath}\nlet input=''; process.stdin.on('data',c=>input+=c); process.stdin.on('end',()=>{const config=JSON.parse(input); const event=JSON.stringify({type:config.command,config,argv:process.argv.slice(2),envKeys:Object.keys(process.env),providerHome:process.env.CODEX_HOME}); process.stdout.write(event+'\\n',()=>process.exit(0));});\n`;
+    const source = `#!${process.execPath}\nlet input=''; process.stdin.on('data',c=>input+=c); process.stdin.on('end',()=>{const config=JSON.parse(input); const event=JSON.stringify({type:config.command,config,argv:process.argv.slice(2),envKeys:Object.keys(process.env),providerHome:process.env.CODEX_HOME}); process.stdout.write(event+'\\n',()=>{if(config.startupId){require('fs').writeFileSync(require('path').join(config.stateDir,'startup-'+config.startupId+'.json'),JSON.stringify({protocolVersion:1,startupId:config.startupId,ready:true}),{mode:0o600});setTimeout(()=>process.exit(0),300);}else{process.exit(0);}});});\n`;
     fs.writeFileSync(binary, source, { mode: 0o700 });
     fs.writeFileSync(manifestPath, JSON.stringify({
       schemaVersion: 1, version: '0.1.0-test', protocolVersion: 1, platform: process.platform, arch: process.arch,
@@ -87,6 +87,11 @@ describe('local agent thin launcher', () => {
     expect(() => buildLaunchConfig({ command: 'doctor', provider: 'codex', providerPath: 'codex' })).toThrow(expect.objectContaining({ code: 'AGENT_PROVIDER_OPTIONS_INVALID' }));
   });
 
+  test('deferred provider cannot be explicitly launched', () => {
+    expect(() => buildLaunchConfig({ command: 'run', endpoint: 'https://agent.example.test', endpointId: 'test', provider: 'opencode', providerPath: '/fixture/opencode' }, { homedir: root }))
+      .toThrow(expect.objectContaining({ code: 'AGENT_PROVIDER_OPTIONS_INVALID' }));
+  });
+
   test('discovers only known provider executables from PATH', () => {
     const providerDir = path.join(root, 'providers');
     fs.mkdirSync(providerDir);
@@ -101,12 +106,11 @@ describe('local agent thin launcher', () => {
     const env = { PATH: providerDir, PATHEXT: '.EXE;.CMD;.BAT' };
     const resolvedQoder = fs.realpathSync(qoder);
     expect(discoverProvider(env, process.platform)).toEqual({ profileId: 'openyida.qoder', provider: 'qoder', executable: resolvedQoder });
-    expect(discoverProviders(env, process.platform).map((item) => item.provider)).toEqual(['qoder', 'codex', 'opencode']);
+    expect(discoverProviders(env, process.platform).map((item) => item.provider)).toEqual(['qoder', 'codex']);
     expect(buildLaunchConfig({ command: 'run', endpoint: 'https://agent.example.test', endpointId: 'test' }, { homedir: root, env, platform: process.platform }))
       .toMatchObject({ providers: [
         { profileId: 'openyida.qoder', provider: 'qoder', executable: resolvedQoder },
         { profileId: 'openyida.codex', provider: 'codex' },
-        { profileId: 'openyida.opencode', provider: 'opencode' },
       ] });
   });
 
@@ -131,7 +135,8 @@ describe('local agent thin launcher', () => {
     fs.writeFileSync(path.join(ideDir, `qoder${extension}`), contents, { mode: 0o700 });
     const cli = path.join(cliDir, `qodercli${extension}`);
     fs.writeFileSync(cli, contents, { mode: 0o700 });
-    expect(discoverProviders({ PATH: `${ideDir}${path.delimiter}${cliDir}`, PATHEXT: '.EXE;.CMD;.BAT' }, process.platform)).toEqual([
+    expect(discoverProviders({ PATH: `${ideDir}${path.delimiter}${cliDir}`, PATHEXT: '.EXE;.CMD;.BAT' }, process.platform)
+      .filter(item => item.provider === 'qoder')).toEqual([
       { profileId: 'openyida.qoder', provider: 'qoder', executable: fs.realpathSync(cli) },
     ]);
   });
@@ -153,7 +158,7 @@ describe('local agent thin launcher', () => {
       '--state-dir', path.join(root, 'state'), '--enroll', `enrollment.${'t'.repeat(40)}`,
     ], { stdout, env: { PATH: process.env.PATH }, probe: async () => ({ status: 'passed' }), spawn: spawnFixture });
     const events = stdout.write.mock.calls.map(([value]) => JSON.parse(value));
-    // The terminal returns immediately after pairing; the run goes to the background log.
+    // The terminal returns after daemon readiness; runtime output stays in its log.
     expect(events.map((event) => event.type)).toEqual(['connect', 'connected']);
     const connectEvent = events[0];
     const connectedEvent = events[1];

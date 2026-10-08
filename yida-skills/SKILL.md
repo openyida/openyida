@@ -240,3 +240,5 @@ description: >
 | [报表字段配置](references/report-field-config-guide.md) | 报表字段配置规范 | 配置报表时 |
 | [版本功能差异](references/edition-features-guide.md) | 各版本能力差异 | 版本能力查询时 |
 | [模型 API](references/model-api.md) | 宜搭模型接口 | 调用宜搭模型能力时 |
+
+执行 `openyida agent connect` 时，CLI 检测输出仅供参考。除非用户明确要求，不得下载安装、升级、登录或修改其他 CLI 配置；发现支持的 CLI 即可连接并上报；未登录的 CLI 也要保留并展示“未登录”，不能据此自动登录。没有可上报 CLI 或用户取消时报告结果并停止。

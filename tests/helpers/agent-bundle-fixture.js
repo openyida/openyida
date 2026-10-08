@@ -23,7 +23,7 @@ function createBundleFixture(root) {
   write('package/node_modules/never-copy-dev/index.js', 'SECRET_DEV_FIXTURE');
   write('package/project/user-login.json', 'SECRET_USER_FIXTURE');
   write('package/.git/config', 'SECRET_CHECKOUT_FIXTURE');
-  const source = `#!${process.execPath}\nlet input='';process.stdin.on('data',c=>input+=c);process.stdin.on('end',()=>{let c=JSON.parse(input);console.log(JSON.stringify({type:c.command,config:c}));});\n`;
+  const source = `#!${process.execPath}\nlet input='';process.stdin.on('data',c=>input+=c);process.stdin.on('end',()=>{let c=JSON.parse(input);console.log(JSON.stringify({type:c.command,config:c}));if(c.startupId){require('fs').writeFileSync(require('path').join(c.stateDir,'startup-'+c.startupId+'.json'),JSON.stringify({protocolVersion:1,startupId:c.startupId,ready:true}),{mode:0o600});setTimeout(()=>{},300);}});\n`;
   write('fake-runtime', source, 0o700);
   write('runtime-manifest.json', JSON.stringify({ schemaVersion: 1, version: '0.1.0-dev', protocolVersion: 1, platform: process.platform, arch: process.arch,
     binary: { file: 'fake-runtime', sha256: digest(Buffer.from(source)) } }));
