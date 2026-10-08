@@ -51,18 +51,18 @@
   --color-brand-4: var(--color-brand1-9);
 
   /* 边界、填充与文字颜色 */
-  --color-line1-1: <生成实际色值：--color-brand1-6 8% + #CCCCCC 92%，sRGB 逐通道混合>;
-  --color-line1-2: <生成实际色值：--color-brand1-6 8% + #CCCCCC 92%，sRGB 逐通道混合>;
-  --color-fill1-1: <生成实际色值：--color-brand1-6 4% + #F8F8F8 96%，sRGB 逐通道混合>;
-  --color-fill1-2: <生成实际色值：--color-brand1-6 4% + #F0F0F0 96%，sRGB 逐通道混合>;
+  --color-line1-1: #EEEBE5;
+  --color-line1-2: #E7E3DB;
+  --color-fill1-1: #F7F6F3;
+  --color-fill1-2: #F0EDE7;
   --color-fill1-3: <生成实际色值：--color-brand1-6 8% + #CCCCCC 92%，sRGB 逐通道混合>;
   --color-fill1-5: <生成实际色值：--color-brand1-6 2% + #FEFEFE 98%，sRGB 逐通道混合>;
   --color-fill1-6: var(--color-text1-3);
   --color-fill1-10: #262626;
   --color-text1-5: #FFFFFF;
-  --color-text1-4: <生成实际色值：--color-brand1-6 4% + #3F3F3F 96%，sRGB 逐通道混合>;
+  --color-text1-4: #292823;
   --color-text1-10: var(--color-text1-3);
-  --color-text1-3: <生成实际色值：--color-brand1-6 4% + #636363 96%，sRGB 逐通道混合>;
+  --color-text1-3: #6F6B63;
   --color-text1-2: <生成实际色值：--color-brand1-6 4% + #868686 96%，sRGB 逐通道混合>;
   --color-text1-1: <生成实际色值：--color-brand1-6 4% + #CCCCCC 96%，sRGB 逐通道混合>;
 
@@ -113,10 +113,10 @@
   --shadow-3: 0px 10px 28px -2px rgba(0, 0, 0, 0.24);
 
   /* 应用基础表面 */
-  --pod-app-root-bg-color: #f3f0e9;
+  --pod-app-root-bg-color: #F6F5F2;
   --pod-app-root-bg-image: none;
-  --pod-page-bg-color: #f3f0e9;
-  --pod-card-bg-color: #fffefa;
+  --pod-page-bg-color: #F6F5F2;
+  --pod-card-bg-color: #FFFFFF;
   --pod-table-cell-color: var(--pod-card-bg-color);
   --color-white: var(--pod-card-bg-color);
 
@@ -131,7 +131,7 @@
   --pod-shell-content-container-margin: 0px;
   --pod-shell-content-container-border: none;
   --pod-shell-content-container-bg-color: transparent;
-  --pod-shell-theme-bg-color: #FFF0CD;
+  --pod-shell-theme-bg-color: #FCFBF8;
 
   /* 页面容器 */
   --pod-page-surface-padding: 0px;
@@ -226,14 +226,14 @@
 
   /* 导航：菜单、搜索与浮层 */
   --pod-nav-search-height: var(--pod-nav-platform-row-height, 32px);
-  --pod-nav-search-border-color: transparent;
+  --pod-nav-search-border-color: #E7E3DB;
   --pod-nav-search-menu-gap: 8px;
   --pod-nav-menu-panel-search-padding-top: 8px;
   --pod-nav-menu-panel-top: 12px;
   --pod-nav-menu-panel-after-collapse-top: 40px;
   --pod-nav-menu-item-height: 36px;
   --pod-nav-menu-item-padding: 8px;
-  --pod-nav-menu-item-radius: 3px;
+  --pod-nav-menu-item-radius: 6px;
   --pod-nav-menu-item-border: none;
   --pod-nav-menu-item-hover-border: var(--pod-nav-menu-item-border);
   --pod-nav-menu-item-selected-border: var(--pod-nav-menu-item-border);
@@ -253,19 +253,19 @@
   --pod-nav-menu-fade-height: 32px;
   --pod-nav-sub-divider-left: 16px;
   --pod-nav-sub-indent: 24px;
-  --pod-nav-sub-divider-color: #D1B477;
-  --pod-nav-menu-bg-hover-color: #F4DFAA;
+  --pod-nav-sub-divider-color: #E7E3DB;
+  --pod-nav-menu-bg-hover-color: #F3F1EC;
   --pod-nav-tab-line-hover-color: var(--color-brand1-6, rgba(155, 136, 121, 1));
   --pod-nav-tab-line-selected-color: var(--color-brand1-6, rgba(155, 136, 121, 1));
-  --pod-nav-search-bg-color: var(--pod-nav-menu-bg-hover-color, rgba(24, 28, 31, 0.06));
-  --pod-nav-search-bg-hover-color: var(--pod-nav-menu-bg-hover-color, rgba(24, 28, 31, 0.06));
-  --pod-nav-search-bg-active-color: var(--pod-nav-menu-bg-hover-color, rgba(24, 28, 31, 0.06));
-  --pod-nav-search-placeholder-color: var(--pod-nav-item-text-hover-color, var(--color-text1-4, #202020));
+  --pod-nav-search-bg-color: #FFFFFF;
+  --pod-nav-search-bg-hover-color: #FFFFFF;
+  --pod-nav-search-bg-active-color: #FFFFFF;
+  --pod-nav-search-placeholder-color: #6F6B63;
   --pod-nav-search-text-color: var(--pod-nav-item-text-hover-color, var(--color-text1-4, #202020));
   --pod-nav-search-icon-color: var(--pod-nav-item-text-color, var(--color-text1-4, #202020));
   --pod-nav-search-border-hover-color: var(--color-brand1-6, rgba(155, 136, 121, 1));
   --pod-nav-search-border-active-color: var(--color-brand1-6, rgba(155, 136, 121, 1));
-  --pod-nav-menu-bg-selected-color: #754B13;
+  --pod-nav-menu-bg-selected-color: var(--color-brand1-2);
   --pod-nav-popup-bg-color: var(--pod-shell-theme-bg-color);
 
   /* 导航：主题表面、文字与状态 */
@@ -273,25 +273,25 @@
   --pod-nav-page-white-bg-color: rgba(246, 247, 247, 1);
   --pod-nav-page-padding: var(--pod-lg-gap-pad-margin, 16px);
   --pod-nav-avater-border-radius: 6px;
-  --pod-nav-item-text-color: #754B13;
-  --pod-nav-item-text-hover-color: #593607;
+  --pod-nav-item-text-color: #454139;
+  --pod-nav-item-text-hover-color: #292823;
   --pod-nav-item-text-disabled-color: rgba(24, 28, 31, 0.24);
-  --pod-page-header-bg-color: var(--pod-shell-theme-bg-color, var(--color-white, #fff));
+  --pod-page-header-bg-color: #FFFFFF;
   --pod-theme-text-color: var(--pod-nav-item-text-color, var(--color-text1-4, #202020));
   --pod-page-header-text-color: var(--pod-theme-text-color, var(--color-text1-4, #202020));
-  --pod-nav-item-text-selected-color: #FFF8E6;
+  --pod-nav-item-text-selected-color: var(--color-brand1-5);
 
   /* 原生表单：编辑态字段 */
   --form-element-medium-corner: 3px;
   --form-element-medium-height: 34px;
   --form-element-medium-font-size: 14px;
-  --input-bg-color: #fffefa;
+  --input-bg-color: #FFFFFF;
   --input-border-width: 1px;
-  --input-border-color: #d6cbb8;
+  --input-border-color: #E7E3DB;
   --input-hover-border-color: var(--color-brand1-6);
   --input-focus-border-color: var(--color-brand1-6);
-  --input-focus-bg-color: #fffefa;
-  --yida-form-content-bgcolor: #fffefa;
+  --input-focus-bg-color: #FFFFFF;
+  --yida-form-content-bgcolor: #FFFFFF;
   --pod-form-label-color: var(--color-text1-4);
   --form-top-label-margin-b: 8px;
   --yida-help-tips-color: #878f95;
@@ -304,7 +304,7 @@
   --pod-field-preview-min-height: 32px;
   --pod-field-preview-padding: 8px 12px;
   --pod-field-preview-gap: 4px;
-  --pod-field-preview-bg-color: #fffefa;
+  --pod-field-preview-bg-color: #FFFFFF;
   --pod-field-preview-border-radius: 3px;
   --pod-field-preview-indicator-color: var(--color-fill1-3);
   --pod-field-preview-shadow: none;
@@ -317,15 +317,15 @@
   --pod-formView-stickyFooter: 0 0 var(--pod-page-border-radius, 20px)
     var(--pod-page-border-radius, 20px);
   --pod-formView-stickyFooter-border: none;
-  --pod-formView-stickyFooter-border-top: 1px solid #d6cbb8;
+  --pod-formView-stickyFooter-border-top: 1px solid #E7E3DB;
   --pod-inDrawer-stickyFooter-border: none;
   --pod-inDrawer-stickyFooter-border-top: 0.5px solid
     var(--color-line1-1, #efefef);
-  --pod-formView-stickyFooter-bg-color: #f3f0e9;
+  --pod-formView-stickyFooter-bg-color: #F6F5F2;
   --pod-formView-stickyFooter-box-shadow: none;
   --pod-formView-stickyFooter-height: 56px;
   --pod-formView-stickyFooter-bottom: 8px;
-  --pod-page-footer-bg-color: #fffefa;
+  --pod-page-footer-bg-color: #FFFFFF;
   --pod-page-footer-border-radius: 3px;
 
   /* 数据管理与表格 */
@@ -397,7 +397,7 @@
   --pod-mxl-gap-pad-margin: 20px;
   --pod-xxl-gap-pad-margin: 24px;
   --pod-full-raduis: var(--corner-semicircle);
-  --input-hover-bg-color: #fffefa;
+  --input-hover-bg-color: #FFFFFF;
   --oyd-page-bg: var(--pod-page-bg-color);
   --oyd-surface: var(--pod-card-bg-color);
   --oyd-canvas-image: var(--pod-app-root-bg-image);

@@ -24,6 +24,7 @@
 
 - 按主题统一按钮、输入、卡片、表格、标签、浮层与抽屉；组件规则在第 3 章配显式 anchor，frontmatter 仅登记位置。
 - 相关组件覆盖 default/hover/active/focus/disabled/loading/selected/error；页面补充空态、无权限、无数据及恢复动作。表单验证和成功/失败提示沿用平台语义与原生能力。
+- 图片按[任务驱动的视觉设计](../references/task-driven-visual-design.md)主动判断识别、解释或氛围价值，再确定视觉面积和构图；真实记录图片与固定素材分别走数据绑定和素材清单。
 - 图片需求按实际页面标为 required/beneficial/none，需要时交给 `yida-image-assets`；记录用途、槽位、比例、尺寸、焦点、填充方式与生成许可。官网、品牌页和强视觉展示页需要真实或已授权生成的图片，素材暂缺时记录 draft 和缺口。
 - 图标使用 `iconSystem.library` 与 `iconSystem.mappings`，具体尺寸与描边规则放正文；不以 emoji、CSS 图形、字母或临时 SVG 代替图标组件。
 - 动效写 reduced motion 降级；状态表达不只依赖颜色，图标操作提供标签，交互保持键盘可达。

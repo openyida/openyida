@@ -25,6 +25,12 @@ description: 自定义页面真实数据接入技能。用于在使用 `YidaCode
 - `mode=form` 读取宜搭表单数据时，默认调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`，它底层来自官方 `this.utils.yida.searchFormDatas(params)`。发布层同一个桥也同步 `this.utils.yida` 的表单、流程、表单设计与运行态方法，例如 `saveFormData`、`updateFormData`、`startProcessInstance`、`getProcessInstances`、`request`、`searchUserList`。参数至少包含 `formUuid`、`currentPage`、`pageSize` 和 `searchFieldJson`，`pageSize` 一般显式写 `50`，字段 ID 必须来自真实 schema。
 - 只有 yida JS-API 桥不存在时，才允许降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`。直连请求必须带 `credentials: 'include'`，并从 `window.g_config`、`window.pageConfig`、`window.__YIDA__`、meta 或同源 cookie 读取 CSRF，同时写入 `_csrf_token` query 和 `global_csrf_token` 请求头。`/query/form/searchFormDatas.json` 不是可用表单数据端点。
 
+## 业务记录图片
+
+页面需要展示真实对象图片时，按[任务驱动的视觉设计](../yida-design/references/task-driven-visual-design.md)绑定真实图片/附件字段。先读 Schema 与实际返回样本，确认值是地址、对象还是附件数组后再映射，不猜字段 ID 或返回结构；列表与详情使用相同记录 ID 关联图片。图片来自关联对象表时优先使用已有联查或批量查询能力，避免每行单独请求；当前接口不支持时只读取当前页所需对象并限制并发，不拉全库。
+
+图片地址沿用平台或数据源支持的访问方式，保留访问权限，不把鉴权信息拼入公开 URL。缺失或加载失败时局部降级，不让图片失败清空已取得的业务数据、不自动换成网络同类对象图。图片字段随筛选、分页和刷新一起更新；固定页面素材继续走素材清单，二者不混用。
+
 ## dataBinding 契约
 
 `page-spec.json` 或生成命令中优先携带 `dataBinding`。没有真实数据时只能标记为 `seed`，不能声称已经接入线上数据。

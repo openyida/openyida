@@ -30,7 +30,7 @@
 
 ## 候选结构与约束
 
-生成三项选择：两个具体视觉方向，加一项“自由创意：根据业务重新推演”。用户已明确风格时直接沿用，无需重选。具体方向包含：
+生成三项选择：两个具体视觉方向，加一项“自由创意：根据业务重新推演”。用户已明确风格时直接沿用，无需重选。具体方向包含。下列尖括号是待填写字段，必须按当前项目替换；示例不提供默认颜色：
 
 ```json
 {
@@ -38,8 +38,8 @@
   "directionLabel": "关系洞察型",
   "description": "以客户上下文和跟进节奏为视觉主线，层级柔和但关键动作清晰。",
   "themeId": "<有效索引记录，仅内部>",
-  "primaryColor": "#6F4E37",
-  "primaryColorName": "暖咖啡棕",
+  "primaryColor": "<项目实际主色色值>",
+  "primaryColorName": "<项目实际主色名称>",
   "contentTone": "light",
   "recommendationReason": "适合需要持续查看关系历史和推进状态的日常工作。"
 }
@@ -116,8 +116,8 @@
     },
     "colorStrategy": {
       "source": "user_selected",
-      "primaryColor": "#6F4E37",
-      "primaryColorName": "暖咖啡棕",
+      "primaryColor": "<项目实际主色色值>",
+      "primaryColorName": "<项目实际主色名称>",
       "usage": "用于主操作、关键焦点和选中状态",
       "confidence": "high"
     },
