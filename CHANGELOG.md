@@ -10,6 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.10.9-beta.2] - 2026-10-09
+
+### Local Agent 修复
+
+- 支持自动发现 Codex/ChatGPT 桌面版嵌套的原生 CLI 和启动器，普通终端无需手动设置 PATH 或指定 CLI 路径。
+- 配套升级签名平台 runtime 至 `0.1.0-beta.4`，同步补齐页面“重新检测”的桌面 CLI 发现路径，继续兼容旧安装布局。
+
 ## [2026.10.9-beta.1] - 2026-10-09
 
 ### Local Agent 修复

@@ -53,6 +53,31 @@ describe('cross-platform provider preflight', () => {
       probe: async exe => ({ status: exe === cli ? 'passed' : 'launch_failed' }) });
     expect(checked.providers[0]).toMatchObject({ executable: cli, status: 'ready', usable: true });
   });
+  test.each(['Codex.app', 'ChatGPT.app'])('macOS probes %s nested native CLI without PATH or an explicit override', async app => {
+    const cli = file(`Applications/${app}/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex`);
+    const wrapper = file(`Applications/${app}/Contents/Resources/codex-cli/bin/codex`);
+    const gui = file(`Applications/${app}/Contents/MacOS/${app === 'ChatGPT.app' ? 'ChatGPT' : 'Codex'}`);
+    const entry = inventory({ HOME: root, PATH: '' }, 'darwin')[1];
+    expect(entry.candidates).toContain(cli);
+    expect(entry.candidates).not.toContain(gui);
+    expect(entry.candidates.indexOf(cli)).toBeLessThan(entry.candidates.indexOf(wrapper));
+    const execute = jest.fn(async exe => ({ status: exe === cli ? 'passed' : 'launch_failed' }));
+    const result = await preflight({ provider: 'codex' }, {
+      env: { HOME: root, PATH: '' }, platform: 'darwin', probe: execute,
+    });
+    expect(result.providers[0]).toMatchObject({ executable: cli, status: 'ready', registrable: true });
+    expect(execute.mock.calls.filter(call => call[0] === cli).map(call => call[1])).toEqual([
+      ['--version'], ['app-server', '--listen', 'stdio://'], ['login', 'status'],
+    ]);
+  });
+  test.each(['Codex.app', 'ChatGPT.app'])('macOS can fall back to %s bundled launcher', async app => {
+    const cli = file(`Applications/${app}/Contents/Resources/codex-cli/bin/codex`);
+    const result = await preflight({ provider: 'codex' }, {
+      env: { HOME: root, PATH: '' }, platform: 'darwin',
+      probe: async exe => ({ status: exe === cli ? 'passed' : 'launch_failed' }),
+    });
+    expect(result.providers[0]).toMatchObject({ executable: cli, status: 'ready', registrable: true });
+  });
   test('Linux desktop launcher is only evidence of desktop installation', () => {
     file('.local/share/applications/qoder.desktop');
     expect(inventory({ HOME: root, PATH: '' }, 'linux')[0].desktopDetected).toBe(true);
