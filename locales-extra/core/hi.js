@@ -2126,3 +2126,6 @@ module.exports.sample_options = {
   'theme_help': 'app-theme: --output एक CSS फ़ाइल है; --design-file पूर्ण डिज़ाइन पढ़ता है। इसे छोड़ने पर CSS रीसेट होता है। थीम के मान डिज़ाइन में भरें।',
   'style_help': 'application-style: --style-id आवश्यक है और सभी कैटलॉग थीम स्वीकार करता है; --output तीन फ़ाइलों की डायरेक्टरी है। मौजूदा फ़ाइलों पर त्रुटि आती है।'
 };
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

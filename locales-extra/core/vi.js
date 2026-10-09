@@ -2126,3 +2126,6 @@ module.exports.sample_options = {
   'theme_help': 'app-theme: --output là tệp CSS; --design-file đọc thiết kế hoàn chỉnh. Bỏ qua thiết kế sẽ đặt lại CSS. Khai báo giá trị giao diện trong thiết kế.',
   'style_help': 'application-style: bắt buộc --style-id, hỗ trợ mọi giao diện trong danh mục; --output là thư mục chứa ba tệp. Tệp đã tồn tại sẽ gây lỗi.'
 };
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

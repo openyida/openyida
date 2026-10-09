@@ -30,10 +30,15 @@ const MAX_UNPACKED_BYTES = 8000 * 1024;
 // Shared source-repair diagnostics and their skill contract add two packaged files.
 // Theme scope, brand-scale and palette validation add three runtime modules;
 // removing the application-styles/navigation-styles catalogs offsets two files.
-const MAX_ENTRY_COUNT = 608;
+// App theme upgrades add two CLI modules and an independent skill with its migration guide.
+const MAX_ENTRY_COUNT = 610;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'lib/app/upgrade-app-theme.js',
+  'lib/app/prepare-app-theme-upgrade.js',
+  'yida-skills/skills/yida-upgrade-app-theme/SKILL.md',
+  'yida-skills/skills/yida-upgrade-app-theme/references/page-migration.md',
   'bin/yida.js',
   'lib/app/create-form/batch.js',
   'lib/app/application-entry-urls.js',

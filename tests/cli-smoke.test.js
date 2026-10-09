@@ -258,12 +258,19 @@ describe('CLI offline smoke', () => {
     expect(output).not.toContain('读取登录态');
   });
 
+  test.each([[], ['--explicit-request'], ['--confirm']].map(flags => ({ flags })))('theme upgrade rejects incomplete approval before login: $flags', ({ flags }) => {
+    const result = runAny(['upgrade-app-theme', 'APP_TEST', ...flags, '--json']);
+    expect(result.status).toBe(1);
+    expect(JSON.parse(result.jsonOutput)).toMatchObject({ success: false, errorCode: 'APP_THEME_CONFIRMATION_REQUIRED' });
+  });
+
   test('resource command --help probes exit successfully without requiring login', () => {
     const cases = [
       { args: ['create-form', '--help'], text: 'create-form create' },
       { args: ['create-page', '--help'], text: 'create-page' },
       { args: ['app-online', '--help'], text: 'openyida app-online' },
       { args: ['app-offline', '--help'], text: 'openyida app-offline' },
+      { args: ['upgrade-app-theme', '--help'], text: 'openyida upgrade-app-theme' },
       { args: ['sample', '--help'], text: 'Code Templates' },
       { args: ['publish', '--help'], text: 'openyida publish' },
       { args: ['copy', '--help'], text: 'openyida copy' },
@@ -608,6 +615,7 @@ describe('CLI offline smoke', () => {
       'formula.evaluate',
     ]));
     expect(parsed.summary.ask_command_ids).toEqual([
+      'upgrade-app-theme',
       'app-offline',
       'connector.delete',
       'connector.delete-action',
@@ -1713,6 +1721,7 @@ describe('CLI offline smoke', () => {
     ]));
     expect(parsed.commands.allow_command_ids).toContain('create-app');
     expect(parsed.commands.ask_command_ids).toEqual([
+      'upgrade-app-theme',
       'app-offline',
       'connector.delete',
       'connector.delete-action',

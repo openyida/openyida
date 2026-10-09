@@ -23,6 +23,9 @@ describe('eval guardrail', () => {
     expect(isMutatingCommand({ args: ['data', 'query', 'form'] })).toBe(false);
     expect(isMutatingCommand({ args: ['get-schema'] })).toBe(false);
     expect(isMutatingCommand({ args: [] })).toBe(false);
+    expect(isMutatingCommand({ args: ['upgrade-app-theme', 'APP', '--prepare'] })).toBe(false);
+    expect(isMutatingCommand({ args: ['upgrade-app-theme', 'APP', '--confirm'] })).toBe(true);
+    expect(isMutatingCommand({ args: ['upgrade-app-theme', 'APP', '--prepare', '--confirm'] })).toBe(true);
   });
 
   test('pass：登录校验在前，变更在后', () => {

@@ -4,6 +4,34 @@
   "entry": "openyida",
   "skills": [
     {
+      "name": "yida-upgrade-app-theme",
+      "path": "skills/yida-upgrade-app-theme/SKILL.md",
+      "display_name": "老应用升级新版主题",
+      "description": "将老应用升级为新版主题，同步更新页面和表单样式。仅在用户明确要求升级时使用，执行前须通过 ask_human 确认；普通换色、美化不触发。",
+      "category": "yida-skills/app",
+      "tags": [
+        "升级新版主题"
+      ],
+      "positive_signals": [
+        "将老应用升级成新版主题",
+        "把应用切换到新版主题"
+      ],
+      "negative_signals": [
+        "美化页面",
+        "换颜色",
+        "创建应用",
+        "升级 CLI"
+      ],
+      "command_ids": [
+        "upgrade-app-theme",
+        "update-app",
+        "get-schema",
+        "publish",
+        "create-form.patch"
+      ],
+      "requires_login": true
+    },
+    {
       "name": "yida-agent-center",
       "path": "skills/yida-agent-center/SKILL.md",
       "display_name": "流程代理中心",
@@ -1304,8 +1332,10 @@
     {
       "name": "yida-skills/app",
       "display_name": "应用架构与设置",
-      "description": "从零搭建应用、应用级导航树、多语言等应用整体架构和配置。",
+      "description": "从零搭建应用、应用级导航树、多语言和已有 AI 应用主题版本升级等应用管理与配置。",
       "signals": [
+        "升级新版主题",
+        "把应用切换到新版主题",
         "创建应用",
         "完整应用",
         "管理系统",

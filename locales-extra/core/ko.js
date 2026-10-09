@@ -2127,3 +2127,6 @@ module.exports.sample_options = {
   'theme_help': 'app-theme: --output은 CSS 파일이고 --design-file은 완성된 디자인입니다. 디자인을 생략하면 CSS가 초기화됩니다. 테마 값은 디자인에 입력하세요.',
   'style_help': 'application-style: --style-id는 필수이며 모든 카탈로그 테마를 지원합니다. --output 디렉터리에 파일 3개를 만들며 동일한 파일이 있으면 오류가 납니다.'
 };
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

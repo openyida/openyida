@@ -310,7 +310,7 @@ openyida copy
 | 大类目录 | 第一层意图信号 | 子技能 |
 | --- | --- | --- |
 | \`yida-skills/context\` | 登录、退出、组织信息、Schema、fieldId、只读预检 | \`yida-login\`, \`yida-logout\`, \`yida-basic-info\`, \`yida-get-schema\`, \`yida-corp-efficiency\` |
-| \`yida-skills/app\` | 从零搭应用、导航、多语言 | \`yida-app\`, \`yida-create-app\`, \`yida-nav-group\`, \`yida-i18n\` |
+| \`yida-skills/app\` | 从零搭应用、导航、多语言、AI 老应用主题升级 | \`yida-app\`, \`yida-create-app\`, \`yida-nav-group\`, \`yida-i18n\`, \`yida-upgrade-app-theme\`（仅明确要求升级，必须 ask_human 确认） |
 | \`yida-skills/design\` | 完整应用需求分析、产品 PRD、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、图片素材 | \`yida-requirement-analysis\`, \`yida-prd\`, \`yida-design\`, \`yida-image-assets\` |
 | \`yida-skills/form\` | 表单字段、公式、校验、业务规则、批量录入、数据记录 | \`yida-create-form-page\`, \`yida-formula\`, \`yida-formula-evaluate\`, \`yida-business-rule\`, \`yida-canvas-table-form\`, \`yida-table-form\`, \`yida-data-management\` |
 | \`yida-skills/process\` | 审批、流程表单、流程规则、代理人 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\` |
