@@ -31,12 +31,14 @@ test.each(loadThemeIndex().themes)('$themeId rejects primary-only replacement an
   expect(resolved).not.toMatch(/\{\{|<生成实际色值：/);
 });
 
-test('the CLI catalog covers every complete theme directory without separate navigation presets', () => {
+test('the CLI catalog covers indexed themes while unlisted bundles remain on disk', () => {
   const { themes, creativeOption } = catalog();
   const all = [...themes, creativeOption];
   const directories = fs.readdirSync(path.join(DESIGN_SKILL_ROOT, 'templates/design-themes'), { withFileTypes: true })
     .filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
-  expect(all.map(theme => theme.themeId).sort()).toEqual(directories);
+  expect(all.map(theme => theme.themeId).sort()).toEqual(loadThemeIndex().themes.map(theme => theme.themeId).sort());
+  expect(directories).toEqual(expect.arrayContaining(all.map(theme => theme.themeId)));
+  expect(directories.filter(id => id.startsWith('app-'))).toHaveLength(18);
   expect(all.every(theme => !theme.themeId.startsWith('nav-'))).toBe(true);
   for (const name of ['navigation-styles.json', 'application-styles.json']) {
     expect(fs.existsSync(path.join(DESIGN_SKILL_ROOT, 'templates', name))).toBe(false);
@@ -63,7 +65,7 @@ test.each(loadThemeIndex().themes)('$themeId exports the complete authored desig
 
 test('editing one complete template updates all consumers without rewriting design or layout', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'oyd-style-source-'));
-  const theme = loadThemeIndex().themes.find(item => item.themeId === 'app-amber');
+  const theme = { themeId: 'app-amber', templatePath: 'templates/design-themes/app-amber/design.md', cssTemplatePath: 'templates/design-themes/app-amber/app_theme.css', formLayoutPath: 'templates/design-themes/app-amber/form-layout.json' };
   const designFile = path.join(root, theme.templatePath);
   const cssFile = path.join(root, theme.cssTemplatePath);
   const layoutFile = path.join(root, theme.formLayoutPath);
@@ -126,7 +128,7 @@ test('the temporary compiler brand seed cannot capture independently authored co
 
 test('changing the primary updates explicit references but preserves independent identical colors', () => {
   const input = JSON.parse(JSON.stringify(fixture));
-  input.visualStyle.forUser.selectedTheme = { themeId: 'app-amber', templatePath: 'templates/design-themes/app-amber/design.md' };
+  input.visualStyle.forUser.selectedTheme = { themeId: 'soft-inset-surfaces', templatePath: 'templates/design-themes/soft-inset-surfaces/design.md' };
   input.visualStyle.forUser.colorStrategy.primaryColor = '#C2410C';
   input.visualStyle.tokens = {
     '--pod-nav-menu-bg-selected-color': '#C2410C',

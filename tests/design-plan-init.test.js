@@ -39,6 +39,41 @@ beforeEach(() => {
 });
 afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
 
+test.each(fs.readdirSync(path.join(__dirname, '../yida-skills/skills/yida-design/templates/design-themes'))
+  .filter(id => id.startsWith('app-')))('unlisted %s cannot initialize or export even though its files remain', themeId => {
+  const { exportApplicationStyle } = require('../lib/app/application-style');
+  const before = fs.readdirSync(dir);
+  brief.visualSelection.themeId = themeId;
+  save();
+  expect(() => initialize(briefPath, { outputDir: path.join(dir, 'prd') }))
+    .toThrow(expect.objectContaining({ code: 'DESIGN_PLAN_THEME_UNKNOWN' }));
+  expect(() => initialize(briefPath, { themeId, outputDir: path.join(dir, 'prd') }))
+    .toThrow(expect.objectContaining({ code: 'DESIGN_PLAN_THEME_UNKNOWN' }));
+  expect(() => exportApplicationStyle(themeId, path.join(dir, 'style')))
+    .toThrow(expect.objectContaining({ code: 'APPLICATION_STYLE_UNKNOWN' }));
+  expect(fs.readdirSync(dir)).toEqual(before);
+});
+
+test('restoring a retained bundle to the index restores catalog, initialization and export', () => {
+  const { DESIGN_SKILL_ROOT, loadThemeIndex } = require('../lib/design-plan/themes');
+  const { catalog } = require('../lib/design-plan/init');
+  const { exportApplicationStyle } = require('../lib/app/application-style');
+  const indexFile = path.join(DESIGN_SKILL_ROOT, 'templates/design-themes/index.json');
+  const index = loadThemeIndex();
+  index.themes.push({ themeId: 'app-amber', label: '琥珀工单', mode: 'template', contentTone: 'light', navTheme: 'light',
+    templatePath: 'templates/design-themes/app-amber/design.md', cssTemplatePath: 'templates/design-themes/app-amber/app_theme.css',
+    formLayoutPath: 'templates/design-themes/app-amber/form-layout.json', styleSummary: '浅色导航，浅色内容界面。紧凑工单。' });
+  const originalRead = fs.readFileSync;
+  const spy = jest.spyOn(fs, 'readFileSync').mockImplementation((file, ...args) =>
+    file === indexFile ? JSON.stringify(index) : originalRead(file, ...args));
+  try {
+    expect(catalog().themes.some(theme => theme.themeId === 'app-amber')).toBe(true);
+    expect(initialize(briefPath, { themeId: 'app-amber', outputDir: path.join(dir, 'prd') }).success).toBe(true);
+    const exported = exportApplicationStyle('app-amber', path.join(dir, 'style'));
+    expect(exported.outputs.every(file => fs.existsSync(file))).toBe(true);
+  } finally {spy.mockRestore();}
+});
+
 test.each([
   ['workbench', '采购工作台', '处理待确认订单与待收货队列', 'workbench'],
   ['dashboard', '采购成本分析', '比较已确认的采购成本趋势与交付率', 'dashboard-overview'],

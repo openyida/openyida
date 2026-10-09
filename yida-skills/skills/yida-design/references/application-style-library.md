@@ -4,10 +4,10 @@
 
 ## 找到和导出
 
-`openyida design-plan catalog --json` 返回模板 `themes` 与独立的 `creativeOption`。全部 33 个主题入口统一采用三文件目录，均可用 `application-style` 导出；其中 18 套应用风格与自由创意仍保留 `collection: application-styles` 分类。目录元数据提供完整设计、CSS 和原生布局的相对路径，可直接定位对应文件。
+`openyida design-plan catalog --json` 返回模板 `themes` 与独立的 `creativeOption`。当前索引包含 14 套模板与独立的自由创意入口，均采用三文件目录并可用 `application-style` 导出。18 套 `app-*` 模板暂时移出索引，文件保留，待优化后恢复索引记录；候选只从当前索引取得。目录元数据提供完整设计、CSS 和原生布局的相对路径，可直接定位对应文件。
 
 ```bash
-openyida sample yida-design application-style --style-id app-executive --output prd/my-app/style-start
+openyida sample yida-design application-style --style-id soft-inset-surfaces --output prd/my-app/style-start
 openyida sample yida-design application-style --style-id free-creative --output prd/my-app/creative-start
 ```
 
@@ -29,31 +29,6 @@ openyida sample yida-design application-style --style-id free-creative --output 
 ## 主题明暗双轴
 
 `contentTone` 表示页面画布、卡片、表单、详情、自定义页面和浮层采用浅色或暗色界面；`navTheme` 表示平台导航框架采用浅色或深色。两者是独立维度；命名模板从模板元数据派生导航明暗，自由创意由项目明确设计并配套导航 Token。两者独立选择：深色导航可以搭配浅色内容，浅色导航也可以搭配暗色内容。模板名中的“深色侧栏”描述 `navTheme`，应用整体明暗以 `contentTone` 为准。
-
-## 18 个应用方向
-
-| ID | 风格 | 构图与表单差异 |
-| --- | --- | --- |
-| app-wire | 精密线框 | 工具带、细边界、稳定双列 |
-| app-paper | 奶油手账 | 窄幅纸页、题签、单列长阅读 |
-| app-sage | 植物浮雕 | 柔绿分区、轻内凹、宽松双列 |
-| app-pop | 波普印刷 | 大标题、粗边与硬阴影、二比一布局 |
-| app-neon | 午夜霓虹 | 暗色技术工作区、局部微光、双列 |
-| app-line | 极简下划线 | 窄单列、纯文字标题、强调线 |
-| app-glass | 雾面玻璃 | 雾紫衬底、轻透层次、舒展双列 |
-| app-ticket | 复古票据 | 票据抬头、双线、窄幅键值阅读 |
-| app-editorial | 杂志编辑 | 左侧衬线大标题与导语、右侧正文 |
-| app-terminal | 终端像素 | 等宽标题、点线、紧凑记录集合 |
-| app-platinum | 铂金商务 | 铂灰细线、合同摘要、均衡双列 |
-| app-executive | 墨金行政 | 香槟金标题、左介绍栏、右单列章节 |
-| app-finance | 金融蓝图 | 编号章节、水平标签、紧凑双列 |
-| app-nordic | 北欧云白 | 大段间距、柔白、单列服务流程 |
-| app-teal | 青岚运营 | 状态带、主次二比一、任务流 |
-| app-amber | 琥珀工单 | 三列短字段、长字段跨栏、紧凑工单 |
-| app-graphite | 石墨数据 | 暗色连续表格、细行线、双列 |
-| app-plum | 绛紫咨询 | 衬线导语、双线章节、七比五分栏 |
-
-按业务任务、品牌和使用环境选择风格。暗色方向仅在用户或使用环境明确需要时选择。单行控件的半径、高度、边界、状态与布局一起设计。装饰使用平台已验证的组件和样式能力。
 
 ## Fast 与 Plan 如何消费
 
@@ -90,4 +65,4 @@ Plan 的 `visualStyle.tokens` 必须显式提供：画布 `--pod-page-bg-color`�
 
 看应用整体，覆盖导航、自定义页、提交、编辑、详情、数据管理内嵌、抽屉和移动端，核对正文/底栏对齐、背景连续、hover/focus、禁用/错误和窄屏布局。应用主题与表单组件树共同作为验收基线。
 
-每个主题目录的 `design.md` 是完整视觉设计的唯一维护源：导航、应用框架、自定义页面、表单和详情的颜色、边框、hover、圆角、阴影、字体与密度在同一文件中定义。`form-layout.json` 维护表单结构，`app_theme.css` 是配对生成物；不另建导航配色库或应用风格配置覆盖它们。修改设计后运行 `node scripts/build-application-styles.js`，脚本只编译 CSS，不改写设计正文、Token、表单结构或索引。`npm run check:themes`（即 `node scripts/build-application-styles.js --check`）检查所有配对 CSS 是否同步，已接入 `check:quick` 和 CI。新增模板时添加三文件目录和索引项。随后运行模板、Plan/Fast、原生布局测试及 `check:skills`。该脚本仅用于仓库维护，应用搭建使用上述 CLI。
+每个主题目录的 `design.md` 是完整视觉设计的唯一维护源：导航、应用框架、自定义页面、表单和详情的颜色、边框、hover、圆角、阴影、字体与密度在同一文件中定义。`form-layout.json` 维护表单结构，`app_theme.css` 是配对生成物；不另建导航配色库或应用风格配置覆盖它们。修改设计后运行 `node scripts/build-application-styles.js`，脚本只编译 CSS，不改写设计正文、Token、表单结构或索引。`npm run check:themes`（即 `node scripts/build-application-styles.js --check`）检查索引内的配对 CSS 是否同步，已接入 `check:quick` 和 CI。新增或恢复模板时添加三文件目录和索引项；未登记模板可保留在目录中，但不参与选型、导出、Plan 生成和默认 CSS 同步检查。已有 Plan 若引用已移出索引的主题，需要恢复该索引记录后才能继续物化；已生成的项目设计和 CSS 可继续使用。随后运行模板、Plan/Fast、原生布局测试及 `check:skills`。该脚本仅用于仓库维护，应用搭建使用上述 CLI。

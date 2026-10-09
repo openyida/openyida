@@ -267,8 +267,7 @@ def validate(skill_root: Path) -> list[str]:
 
     # Catalog paths use forward slashes on every OS, including nested theme bundles.
     actual_files = {f"templates/design-themes/{p.relative_to(template_dir).as_posix()}" for p in template_dir.rglob("*.md") if p.name != "README.md"}
-    for name in sorted(actual_files - seen["templatePath"]):
-        errors.append(f"主题模板未登记到索引：{name}")
+    # The index is the available catalog; unlisted bundles may be kept for later refinement.
     for name in sorted(seen["templatePath"] - actual_files):
         errors.append(f"索引引用了不存在的主题模板：{name}")
     for relative_path in CANDIDATE_RULE_FILES:

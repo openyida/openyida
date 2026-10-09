@@ -183,13 +183,14 @@ test.each([
   });
 });
 
-test('validator requires every template to be indexed and every entry to exist', () => {
+test('validator permits unlisted templates but requires every indexed entry to exist', () => {
   withFixture(({ skill, themes, template, original }) => {
     fs.writeFileSync(path.join(themes, 'unlisted.md'), original);
+    expect(validate(skill).status).toBe(0);
     fs.unlinkSync(template);
     const result = validate(skill);
     expect(result.status).toBe(1);
-    expect(result.stdout).toContain('主题模板未登记到索引');
+    expect(result.stdout).not.toContain('主题模板未登记到索引');
     expect(result.stdout).toContain('索引引用了不存在的主题模板');
   });
 });
