@@ -162,6 +162,7 @@
 | 启用集成自动化 | `openyida integration enable <appType> <formUuid> <processCode>` |
 | 停用集成自动化 | `openyida integration disable <appType> <formUuid> <processCode>` |
 | 检查集成异常日志 | `openyida integration check <appType...>` |
+| 查看集成自动化运行日志详情 | `openyida integration detail-log <appType> <procInstId> [--json] [--include-params]` |
 | 诊断集成配置问题 | `openyida integration diagnose (--text <text>\|--file <path>\|--rules)` |
 | 调用钉钉 CLI | `openyida dws <command> [args]` |
 | 搜索钉钉联系人 | `openyida dws contact user search --keyword <text>` |
