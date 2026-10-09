@@ -1,6 +1,6 @@
 {
   "name": "openyida",
-  "version": "2026.10.8-beta.1",
+  "version": "2026.10.9-beta.1",
   "description": "OpenYida CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
   "bin": {
     "openyida": "bin/yida.js",
@@ -112,9 +112,9 @@
     "node": ">=18"
   },
   "optionalDependencies": {
-    "@openyida/local-agent-runtime-darwin-arm64": "0.1.0-beta.2",
-    "@openyida/local-agent-runtime-darwin-x64": "0.1.0-beta.2",
-    "@openyida/local-agent-runtime-win32-x64": "0.1.0-beta.2",
-    "@openyida/local-agent-runtime-win32-arm64": "0.1.0-beta.2"
+    "@openyida/local-agent-runtime-darwin-arm64": "0.1.0-beta.3",
+    "@openyida/local-agent-runtime-darwin-x64": "0.1.0-beta.3",
+    "@openyida/local-agent-runtime-win32-x64": "0.1.0-beta.3",
+    "@openyida/local-agent-runtime-win32-arm64": "0.1.0-beta.3"
   }
 }

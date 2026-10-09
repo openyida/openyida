@@ -11,15 +11,17 @@ const path = require('path');
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
 // State recovery adds a sample and two skill references (3 published files).
-// Node 26/npm 11 measures 1,944,066 packed / 6,738,306 unpacked bytes in 520 files.
+// Local Agent runtime/launcher and managed-policy additions bring the audited
+// public package to 529 files; byte and per-file caps remain unchanged.
 // Retain ~21 KiB npm 10 compression overhead; round budgets to 16 KiB boundaries.
 const MAX_TARBALL_BYTES = 1920 * 1024;
 const MAX_UNPACKED_BYTES = 6592 * 1024;
-const MAX_ENTRY_COUNT = 520;
+const MAX_ENTRY_COUNT = 529;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
   'bin/yida.js',
+  'lib/core/managed-policy.js',
   'lib/app/create-form/batch.js',
   'lib/app/application-entry-urls.js',
   'lib/app/inline-css-guard.js',

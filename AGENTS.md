@@ -187,6 +187,7 @@ openyida/
 ### 命令实现规范
 - 每个 CLI 命令对应 `lib/` 下一个独立的 `.js` 文件
 - 所有命令通过 `bin/yida.js` 统一路由，新增命令需在命令清单和路由中注册
+- 每个命令在 `lib/core/command-manifest.js` 的同一声明中提供 `managedRun` 执行范围；守卫与资源刷新通知均消费此元数据，不新增独立命令白名单。混合命令逐项声明子操作，未知子操作保持拒绝。运行 `npm run check:commands` 和相关 local agent 测试；详见 [受管命令策略](docs/guides/managed-command-policy.md)。
 - 命令函数导出为 `module.exports = async function commandName(args) {}` 或 `{ run }`
 - 错误处理：新增/改造的业务模块应抛出 `CliError` 或普通 `Error`，由 `bin/yida.js` 统一处理退出码；不要在可复用业务模块里新增 `process.exit(...)`
 

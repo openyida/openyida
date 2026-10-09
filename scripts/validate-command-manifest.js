@@ -11,6 +11,8 @@ const {
   listCommandSideEffectIds,
 } = require('../lib/core/command-manifest');
 
+const { validateManagedPolicy } = require('../lib/core/managed-policy');
+
 const ROOT = path.resolve(__dirname, '..');
 const ROUTER_FILE = path.join(ROOT, 'bin/yida.js');
 const README_FILES = [
@@ -387,6 +389,15 @@ function run() {
   validateReadmeCoverage(commands);
   validateSideEffects(commands);
   validatePermissions(commands);
+  for (const entry of commands) {
+    try {validateManagedPolicy(entry.managedRun, entry.id);} catch (error) {errors.push(error.message);}
+    if (entry.managedRun?.scope === 'app' && entry.sideEffect.kind === 'remote_write' && !entry.managedRun.mutation) {
+      errors.push(`Command manifest id "${entry.id}" requires mutation receipt metadata for remote writes`);
+    }
+    if (entry.managedRun?.scope === 'local' && entry.sideEffect.mutates_yida) {
+      errors.push(`Command manifest id "${entry.id}" cannot declare remote effects as local managed scope`);
+    }
+  }
   validateForbiddenAliases();
 
   if (errors.length > 0) {
