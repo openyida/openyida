@@ -2128,3 +2128,6 @@ module.exports.sample_options = {
   'theme_help': 'app-theme: يحدد --output ملف CSS ويقرأ --design-file تصميماً مكتملاً. يؤدي حذفه إلى إعادة ضبط CSS. ضع قيم السمة في التصميم.',
   'style_help': 'application-style: المعامل --style-id مطلوب ويدعم جميع سمات الكتالوج؛ يحدد --output مجلداً لثلاثة ملفات. وجود الملفات يسبب خطأ.'
 };
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

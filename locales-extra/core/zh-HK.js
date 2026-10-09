@@ -2078,3 +2078,6 @@ module.exports.sample_options = {
   'theme_help': 'app-theme：--output 指向 CSS 檔案；--design-file 讀取完成的設計。省略設計檔案會重設 CSS，主題值透過設計填寫。',
   'style_help': 'application-style：--style-id 必填，支援目錄中全部主題；--output 指向目錄，輸出三個檔案，同名檔案存在時報錯。'
 };
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

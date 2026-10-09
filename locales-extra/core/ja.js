@@ -2053,3 +2053,6 @@ module.exports.sample_options = {
   'theme_help': 'app-theme: --output は CSS ファイル、--design-file は完成した設計です。設計を省略すると CSS をリセットします。テーマ値は設計に記入します。',
   'style_help': 'application-style: --style-id は必須で全カタログテーマに対応。--output のディレクトリに3ファイルを出力し、同名ファイルがあればエラーになります。'
 };
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

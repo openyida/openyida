@@ -914,6 +914,11 @@ async function main() {
       break;
     }
 
+    case 'upgrade-app-theme': {
+      await require('../lib/app/upgrade-app-theme').run(args);
+      break;
+    }
+
     case 'app-online':
     case 'app-offline': {
       const { run: runAppLifecycle } = require('../lib/app/app-lifecycle');

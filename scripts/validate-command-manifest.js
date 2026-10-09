@@ -190,8 +190,8 @@ function validatePermissions(commands) {
     if (!allowedEffects.has(permission.effect)) {
       errors.push(`Command manifest id "${entry.id}" has invalid permission.effect "${permission.effect}"`);
     }
-    if (permission.mode === 'ask' && permission.effect !== 'destructive') {
-      errors.push(`Command manifest id "${entry.id}" permission.mode ask must use permission.effect destructive`);
+    if (permission.mode === 'ask' && !['destructive', 'write'].includes(permission.effect)) {
+      errors.push(`Command manifest id "${entry.id}" permission.mode ask must use permission.effect destructive or write`);
     }
     if (permission.effect === 'destructive' && permission.mode !== 'ask') {
       errors.push(`Command manifest id "${entry.id}" permission.effect destructive must use permission.mode ask`);

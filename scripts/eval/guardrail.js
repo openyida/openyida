@@ -22,6 +22,7 @@ const MUTATING_VERB_PREFIXES = [
 ];
 
 const MUTATING_VERBS = new Set([
+  'upgrade-app-theme',
   'add-validation',
   'app-offline',
   'app-online',
@@ -52,6 +53,7 @@ function isMutatingCommand(command) {
   const args = Array.isArray(command && command.args) ? command.args : [];
   const verb = args[0];
   if (!verb) {return false;}
+  if (verb === 'upgrade-app-theme' && args.includes('--prepare') && !args.includes('--confirm')) {return false;}
   if (MUTATING_VERBS.has(verb)) {return true;}
   if (MUTATING_VERB_PREFIXES.some((prefix) => verb.startsWith(prefix))) {return true;}
   if (verb === 'data' && MUTATING_DATA_SUBCOMMANDS.has(args[1])) {return true;}

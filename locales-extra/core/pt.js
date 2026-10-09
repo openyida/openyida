@@ -2128,3 +2128,6 @@ module.exports.sample_options = {
   'theme_help': 'app-theme: --output é um arquivo CSS; --design-file lê um design concluído. Omiti-lo redefine o CSS. Defina os valores no design.',
   'style_help': 'application-style: --style-id é obrigatório e aceita todos os temas do catálogo; --output é uma pasta para três arquivos. Arquivos existentes causam um erro.'
 };
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

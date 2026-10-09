@@ -1,5 +1,37 @@
 [
   {
+    "id": "confusion-theme-upgrade-1",
+    "prompt": "明确要求将现有应用 APP_OLD 升级成新版主题。",
+    "expectedSkill": "yida-upgrade-app-theme",
+    "group": "易混淆-主题升级与美化",
+    "confusionPair": true,
+    "note": "必须 ask_human 确认后执行"
+  },
+  {
+    "id": "confusion-theme-upgrade-2",
+    "prompt": "把老应用 APP_OLD 切换成新版主题，直接做不要再问。",
+    "expectedSkill": "yida-upgrade-app-theme",
+    "group": "易混淆-主题升级与美化",
+    "confusionPair": true,
+    "note": "仍须 ask_human，不得跳过确认"
+  },
+  {
+    "id": "confusion-theme-upgrade-3",
+    "prompt": "把应用 APP_OLD 的主题色换成绿色。",
+    "expectedSkill": "yida-design",
+    "group": "易混淆-主题升级与美化",
+    "confusionPair": true,
+    "note": "换色不授权主题版本升级"
+  },
+  {
+    "id": "confusion-theme-upgrade-4",
+    "prompt": "美化老应用 APP_OLD，让它看起来更现代。",
+    "expectedSkill": "yida-design",
+    "group": "易混淆-主题升级与美化",
+    "confusionPair": true,
+    "note": "现代风格不授权主题版本升级"
+  },
+  {
     "id": "confusion-field-structure-vs-schema-1",
     "prompt": "帮我给员工表加一个手机号字段",
     "expectedSkill": "yida-create-form-page",
