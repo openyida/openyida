@@ -24,7 +24,7 @@ module.exports = {
     repair_page_bindings: '按 business.json 的 customPageDetails 逐一修復 visual.json 的 pageApplications；原生表單不加入綁定。每項 visualMemoryApplications 必須為陣列，無適用項用 []。保留現有草稿，修復所列欄位後重試原命令；不要刪除目錄或重新 init。',
   },
   design_document: {
-    update_conflict: "無法更新 {0}（{1}）：現有內容與上次生成結果衝突。請讀取這部分，將本地修改與計劃來源對齊後重試；本次未儲存任何檔案。",
+    update_conflict: '無法更新 {0}（{1}）：現有內容與上次生成結果衝突。請讀取這部分，將本地修改與計劃來源對齊後重試；本次未儲存任何檔案。',
     theme_css_invalid: '主題 CSS 第 {0} 行附近存在未閉合或不匹配的括號、字串或註解，請修正後重試。',
     theme_css_unresolved: '主題 CSS 的 {0} 仍含模板佔位或色值生成說明。請先完成 design.md，執行 openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css>，再上傳生成檔案；不能只替換 PRIMARY_COLOR。',
     invalid: '設計文件驗證失敗：{0}（{1}）',
@@ -45,8 +45,8 @@ module.exports = {
   asset: {
     sourceRecords: '在 --input 的 assets[] 中填寫 assetId、creator、sourcePage、license、licenseUrl、licenseCheckedAt（YYYY-MM-DD）和 authorizationEvidence（憑證連結或檔案路徑陣列）。清單保留這些記錄；未提供的留空，不自動認定已獲商用授權。',
     executionReview: '素材執行記錄需覆核：{0}。請檢查背景派發回執、業務執行時間及同步退化原因。',
-    localFileUnavailable: "找不到圖片檔案：{0}。請檢查指令工作目錄，或使用絕對路徑。",
-    invalidStrategy: "圖片要求應填寫為物件，按頁面列出圖片位置。",
+    localFileUnavailable: '找不到圖片檔案：{0}。請檢查指令工作目錄，或使用絕對路徑。',
+    invalidStrategy: '圖片要求應填寫為物件，按頁面列出圖片位置。',
   },
   help: {
     cmd_check_design: '檢查設計文件、主題變數與 PRD 交接',
@@ -68,8 +68,8 @@ module.exports = {
     design_plan_preview_invalid: '方案草稿更新失敗，請檢查錯誤詳情',
     cmd_design_plan_catalog: '查詢規劃可用的主題與頁面模式',
     cmd_design_plan_init: '從已確認需求初始化計劃草稿',
-    cmd_design_plan_materialize: "生成或更新方案文件與主題，並校驗一致性",
-    cmd_design_plan_patch: "按欄位修改方案，按需同步文件與主題",
+    cmd_design_plan_materialize: '生成或更新方案文件與主題，並校驗一致性',
+    cmd_design_plan_patch: '按欄位修改方案，按需同步文件與主題',
     cmd_update_app: '更新應用程式資料',
     cmd_app_online: '啟用宜搭應用程式',
     cmd_app_offline: '停用宜搭應用程式',
@@ -99,7 +99,7 @@ module.exports = {
     cmd_get_form_config: '查询表单配置',
     group_data: '資料 & 權限',
     cmd_data: '統一資料管理（表單/流程/任務/子表單）',
-    data_notes: "DateField 傳毫秒時間戳數字；CascadeDateField 傳毫秒時間戳陣列。先按業務時區轉換，不接受日期字串或秒級時間戳。--resolve-aliases 只轉換欄位名稱。",
+    data_notes: 'DateField 傳毫秒時間戳數字；CascadeDateField 傳毫秒時間戳陣列。先按業務時區轉換，不接受日期字串或秒級時間戳。--resolve-aliases 只轉換欄位名稱。',
     cmd_task_center: '全域任務中心（待辦/已處理/抄送等）',
     cmd_basic_info: '查詢組織基本資訊、容量、額度和域名設定',
     cmd_read_dingtalk_doc: '取得釘釘文件的 Markdown 內容',
@@ -111,7 +111,7 @@ module.exports = {
     group_process: '流程',
     cmd_configure_process: '設定並發布流程規則; 支援加簽/轉交，設定位於 JSON nodes[].actions.normalActions/appendActions',
     cmd_create_process: '建立流程表單（一體化）; 支援加簽/轉交，設定位於 JSON nodes[].actions.normalActions/appendActions',
-    create_process_notes: "formMode=create|reuse 區分新建與重用。重用時 formTitle、fieldCount 為 null，表示未查詢；新建時返回名稱和欄位數。成功和配置失敗輸出均遵守此約定，結果看 success 與 verificationLevel。--replace 僅用於已獲明確授權的現有草稿或已發佈流程整圖替換。",
+    create_process_notes: 'formMode=create|reuse 區分新建與重用。重用時 formTitle、fieldCount 為 null，表示未查詢；新建時返回名稱和欄位數。成功和配置失敗輸出均遵守此約定，結果看 success 與 verificationLevel。--replace 僅用於已獲明確授權的現有草稿或已發佈流程整圖替換。',
     cmd_ai_form_setting: '管理流程表單 AI 審批提示',
     cmd_process_preview: '預覽流程實例（視覺化流程圖）',
     group_share: '頁面設定 & 分享',
@@ -278,7 +278,7 @@ module.exports = {
       '  openyida create-app "考勤管理" "員工考勤系統" "daka" "#00B853" "deepBlue" "dark" "slide"\n' +
       '  openyida create-page APP_XXX "遊戲主頁"\n' +
       '  openyida create-form create APP_XXX "員工資料" .cache/openyida/forms/employee-fields.json\n' +
-      `  openyida create-form update APP_XXX FORM-XXX '[{"action":"add","field":{"type":"TextField","label":"備註"}}]'\n` +
+      '  openyida create-form update APP_XXX FORM-XXX \'[{"action":"add","field":{"type":"TextField","label":"備註"}}]\'\n' +
       '  openyida get-schema APP_XXX FORM-XXX\n' +
       '  openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX\n' +
       '  openyida verify-short-url APP_XXX FORM-XXX /o/myapp\n' +
@@ -334,7 +334,7 @@ module.exports = {
     check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]',
     check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --build-manifest prd/order-management/build-manifest.json --json',
     formula_usage: '用法: openyida formula evaluate <公式或文件> [--schema schema.json] [--json] [--strict]',
-    formula_example: `示例: openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "高", "低")' --schema .cache/schema.json`,
+    formula_example: '示例: openyida formula evaluate \'IF(GT(#{numberField_total}, 100), "高", "低")\' --schema .cache/schema.json',
     verify_usage: '用法：openyida verify-short-url <appType> <formUuid> <url>',
     verify_example: '範例：openyida verify-short-url APP_XXX FORM-XXX /o/myapp',
     share_usage: '用法：openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]',
@@ -362,7 +362,7 @@ module.exports = {
     get_permission_usage: '用法：openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>]',
     get_permission_example: '範例：openyida get-permission APP_XXX FORM-XXX',
     save_permission_usage: '用法：openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>]',
-    save_permission_example: `範例：openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
+    save_permission_example: '範例：openyida save-permission APP_XXX FORM-XXX --data-permission \'{"role":"DEFAULT","dataRange":"SELF"}\'',
     exec_failed: '\n❌ 執行失敗：{0}',
     login_usage: '用法：openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
     login_example: '範例：\n  openyida login                         # 透過 OAuth loopback 自動開啟瀏覽器登入\n  openyida login --no-browser            # 不自動開啟瀏覽器，由調用方接管授權連結\n  openyida login --check-only --json     # 只檢查 token 登入態\n  openyida login --intl                  # 使用國際站環境登入\n  OPENYIDA_NO_BROWSER=1 openyida login   # 透過環境變數由調用方接管授權連結\n  openyida auth login                    # 登入入口別名',
@@ -814,7 +814,7 @@ module.exports = {
     usage_create: '用法：openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     example_create: '範例：openyida create-form create "APP_XXX" "員工資料登記" .cache/openyida/forms/employee-fields.json',
     usage_update: '用法：openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
-    example_update: `範例：openyida create-form update "APP_XXX" "FORM-YYY" '[{"action":"add","field":{"type":"TextField","label":"備註"}}]'`,
+    example_update: '範例：openyida create-form update "APP_XXX" "FORM-YYY" \'[{"action":"add","field":{"type":"TextField","label":"備註"}}]\'',
     usage_label: '用法：',
     usage_create_short: '  建立：openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  更新：openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
@@ -1011,10 +1011,12 @@ module.exports = {
     err_open_url_chars: 'openUrl 路徑部分只支援 a-z A-Z 0-9 _ -，可用 / 分隔多級路徑，目前值：{0}'
   },
   update_app: {
+    legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
+    remove_theme_conflict: '--remove-custom-theme cannot be combined with a theme file or new customThemeStyle.',
     theme_preset_conflict: '平台預置 colour 不能與自訂 CSS 或 themeColor 同傳；請使用 --colour custom 或省略 --colour。',
     custom_theme_color_required: 'colour=custom 需要主題檔案或有效 themeColor；請傳 --theme-file 或 --theme-color。',
     theme_not_persisted: '應用主題儲存後回讀不一致或查詢失敗，CSS 資源尚未確認綁定。請查看 themeVerification，並使用 update-app <appType> --theme-file <css> 重試；不要重複建立應用。',
-    navigation_not_persisted: "應用導航儲存後回讀不一致或查詢失敗，導航設定尚未確認生效。請查看 navigationVerification 中的預期值、實際值和查詢錯誤，核實應用目前設定。",
+    navigation_not_persisted: '應用導航儲存後回讀不一致或查詢失敗，導航設定尚未確認生效。請查看 navigationVerification 中的預期值、實際值和查詢錯誤，核實應用目前設定。',
     usage: '用法: openyida update-app <appType> [--name "新名称"] [--desc "描述"] [--layout slide|ver] [--theme deepBlue]',
     example: '示例: openyida update-app APP_XXX --name "新应用名称" --layout ver --theme deepBlue',
     options: '选项:\n' +
@@ -1052,7 +1054,7 @@ module.exports = {
     offline_success: '應用已停用',
   },
   create_process: {
-    invalid_argument: "參數 {0} 缺失或無效，請按以下用法修正。",
+    invalid_argument: '參數 {0} 缺失或無效，請按以下用法修正。',
     title: '宜搭流程表单一体化创建',
     app_id: '应用 ID',
     mode: '模式',
@@ -1081,7 +1083,7 @@ module.exports = {
     manual_hint: '请手动在宜搭后台配置流程，表单 UUID: {0}',
     configuring_process: '配置并发布流程',
     configure_failed: '流程配置失败',
-    preserve_existing_form: "原表單已存在。先以唯讀方式核實該 formUuid 的狀態和失敗原因，保留原表；禁止移除 --formUuid、再次建立表單或另建同名表來恢復。noWriteRetry=true 時禁止重試寫入。",
+    preserve_existing_form: '原表單已存在。先以唯讀方式核實該 formUuid 的狀態和失敗原因，保留原表；禁止移除 --formUuid、再次建立表單或另建同名表來恢復。noWriteRetry=true 時禁止重試寫入。',
     retry_hint: '流程配置失败，但表单已创建。请修复流程定义后，使用以下命令复用该表单重试：',
     fields_not_found: '字段定义文件不存在',
     process_def_not_found: '流程定义文件不存在',
@@ -1816,7 +1818,7 @@ module.exports = {
   report_runtime: require('../../lib/report/i18n-messages')['zh-HK'],
   safe_json: {
     hint_unquoted_key: '疑似鍵名未加雙引號（JSON 要求所有鍵用雙引號包裹，如 {"name":1}）',
-    hint_single_quote: `疑似使用了單引號（JSON 只允許雙引號 "，不允許單引號 '）`,
+    hint_single_quote: '疑似使用了單引號（JSON 只允許雙引號 "，不允許單引號 \'）',
     hint_trailing_comma: '疑似多了一個尾逗號（JSON 不允許 } 或 ] 前有多餘逗號）',
     hint_smart_quote: '疑似含有智能引號 / 中文引號（“ ” ‘ ’），請替換為標準 ASCII 雙引號 "',
     hint_generic: 'JSON 格式不合法，請對照標準 JSON 語法檢查',

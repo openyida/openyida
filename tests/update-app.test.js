@@ -38,7 +38,8 @@ describe('update-app helpers', () => {
     };
     for (const arg of options) {
       const boolean = arg.type === 'boolean';
-      const expected = boolean ? { hideAppNav: arg.name === 'hideAppNav' ? 'y' : 'n' } : { [arg.name]: values[arg.name] };
+      const expected = boolean ? (['hideAppNav', 'showAppNav'].includes(arg.name)
+        ? { hideAppNav: arg.name === 'hideAppNav' ? 'y' : 'n' } : { [arg.name]: true }) : { [arg.name]: values[arg.name] };
       if (!boolean) { expect(values).toHaveProperty(arg.name); }
       for (const option of arg.builder_options) {
         expect(parseArgs(['APP_1', option, ...(boolean ? [] : [values[arg.name]])])).toMatchObject({ appType: 'APP_1', ...expected });
@@ -510,4 +511,18 @@ describe('legacy app navigation persistence', () => {
     expect(buildUpdateAppPostData(parseArgs(['APP_1', '--layout', 'l_shape']),
       { appThemeEnable: 'n', appThemeMode: 'modern' }, {}).layoutDirection).toBe('ver');
   });
+});
+
+
+test('application CSS removal preserves legacy navigation and color and rejects new CSS', () => {
+  const current = { appThemeMode: 'legacy', appThemeEnable: 'n', colour: 'custom', themeColor: '#C89B5A',
+    layoutDirection: 'side', navTheme: 'gray', customThemeStyle: '{"enabled":true,"cssUrl":"https://example.com/theme.css"}' };
+  const params = parseArgs(['APP_1', '--remove-custom-theme']);
+  expect(hasShellUpdate(params)).toBe(true);
+  expect(buildUpdateAppPostData(params, current, {})).toMatchObject({
+    colour: 'custom', themeColor: '#C89B5A', layoutDirection: 'side', navTheme: 'gray', customThemeStyle: '',
+  });
+  expect(() => parseArgs(['APP_1', '--remove-custom-theme', '--theme-file', './app.css'])).toThrow();
+  expect(() => buildUpdateAppPostData({ appType: 'APP_1', removeCustomTheme: true, customThemeStyle: '{}' }, current, {})).toThrow();
+  expect(hasShellUpdate(parseArgs(['APP_1', '--confirm-legacy-app-style']))).toBe(false);
 });

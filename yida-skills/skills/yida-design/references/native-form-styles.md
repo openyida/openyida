@@ -264,3 +264,6 @@ Fast 更新使用 `openyida sample yida-design app-theme --design-file <design.m
 - `yida-shell/src/YidaShell/yida-app-theme.scss`：正文宽度、margin、padding 与无导航容器；`src/Basic/pc.scss`：旧 Shell 标签间距的局部变量。
 - `vc-deep-yida/src/vc-form-container/view.less`：两类底栏；`src/vc-page-yida/form/view.less`：提交页底部占位；`src/vc-page-yida/detail/view.less`：详情按钮栏。
 - `vc-deep-yida/src/components/deep-container/index.tsx`、`src/vc-page-yida/component/container/{appTheme,legacy}/page.jsx`：内容背景与变量来源；`src/components/deep-editor-field/main.scss`：富文本状态及硬编码边界。
+
+
+应用级主题上传仅在确认新版主题能力时自动执行。旧主题或能力未知时，先按 [旧主题注入与移除规则](application-style-library.md#旧主题应用的样式作用域与确认) 设计页面局部样式；应用层注入必须取得目标应用的明确用户确认，不得自动追加确认参数。用户要求去掉应用中的 appCustomTheme 时使用 `update-app --remove-custom-theme`，保留品牌色并回读核验。

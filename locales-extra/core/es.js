@@ -24,7 +24,7 @@ module.exports = {
     repair_page_bindings: 'Haga corresponder pageApplications de visual.json con customPageDetails de business.json uno a uno, sin formularios nativos. visualMemoryApplications debe ser un arreglo; use [] si no corresponde ninguno. Conserve el borrador, corrija los campos indicados y repita el comando original. No elimine el directorio ni ejecute init de nuevo.',
   },
   design_document: {
-    update_conflict: "No se puede actualizar {0} ({1}): el contenido entra en conflicto con la última versión generada. Revise esta sección, concilie el cambio local con los datos del plan y vuelva a intentarlo. No se guardó ningún archivo.",
+    update_conflict: 'No se puede actualizar {0} ({1}): el contenido entra en conflicto con la última versión generada. Revise esta sección, concilie el cambio local con los datos del plan y vuelva a intentarlo. No se guardó ningún archivo.',
     theme_css_invalid: 'El CSS del tema contiene un delimitador, una cadena o un comentario sin cerrar o mal emparejado cerca de la línea {0}. Corrígelo e inténtalo de nuevo.',
     theme_css_unresolved: 'El token CSS del tema {0} aún contiene un marcador de plantilla o una instrucción para generar colores. Complete design.md, ejecute openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> y suba el archivo generado. No basta con reemplazar PRIMARY_COLOR.',
     invalid: 'Error de validación del diseño: {0} ({1})',
@@ -45,8 +45,8 @@ module.exports = {
   asset: {
     sourceRecords: 'En assets[] mediante --input, registre assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) y authorizationEvidence (arreglo de URL o rutas de justificantes). El manifiesto conserva los datos; los valores ausentes quedan vacíos. Esto no certifica una autorización comercial.',
     executionReview: 'Revise las pruebas de ejecución de recursos: {0}. Compruebe las respuestas de tareas en segundo plano, los intervalos de trabajo y los motivos del modo síncrono.',
-    localFileUnavailable: "No se encontró la imagen: {0}. Comprueba el directorio de trabajo del comando o usa una ruta absoluta.",
-    invalidStrategy: "Los requisitos de imágenes deben ser un objeto con las posiciones de imágenes por página.",
+    localFileUnavailable: 'No se encontró la imagen: {0}. Comprueba el directorio de trabajo del comando o usa una ruta absoluta.',
+    invalidStrategy: 'Los requisitos de imágenes deben ser un objeto con las posiciones de imágenes por página.',
   },
   help: {
     cmd_check_design: 'Validar documentos de diseño, variables del tema y entrega del PRD',
@@ -68,8 +68,8 @@ module.exports = {
     design_plan_preview_invalid: 'Error al actualizar el borrador; revise los detalles',
     cmd_design_plan_catalog: 'Mostrar temas y patrones de página disponibles para la planificación',
     cmd_design_plan_init: 'Crear un borrador del plan a partir de requisitos confirmados',
-    cmd_design_plan_materialize: "Generar o actualizar documentos y tema del plan, comprobando su coherencia",
-    cmd_design_plan_patch: "Modificar campos del plan y sincronizar documentos y tema si se solicita",
+    cmd_design_plan_materialize: 'Generar o actualizar documentos y tema del plan, comprobando su coherencia',
+    cmd_design_plan_patch: 'Modificar campos del plan y sincronizar documentos y tema si se solicita',
     cmd_update_app: 'Actualizar información de la aplicación',
     cmd_app_online: 'Activar una aplicación Yida',
     cmd_app_offline: 'Desactivar una aplicación Yida',
@@ -99,7 +99,7 @@ module.exports = {
     cmd_get_form_config: 'Query form configuration',
     group_data: 'Datos & Permisos',
     cmd_data: 'Gestión unificada de datos (formulario/proceso/tarea/subformulario)',
-    data_notes: "DateField usa marcas de tiempo Unix numéricas en milisegundos; CascadeDateField usa un arreglo de ellas. Convierta según la zona horaria del negocio; no se aceptan fechas de texto ni segundos. --resolve-aliases solo resuelve nombres de campos.",
+    data_notes: 'DateField usa marcas de tiempo Unix numéricas en milisegundos; CascadeDateField usa un arreglo de ellas. Convierta según la zona horaria del negocio; no se aceptan fechas de texto ni segundos. --resolve-aliases solo resuelve nombres de campos.',
     cmd_task_center: 'Centro de tareas global (pendiente/procesado/CC etc.)',
     cmd_basic_info: 'Consultar informacion de organizacion, capacidad, cuotas y dominio',
     cmd_read_dingtalk_doc: 'Obtener contenido Markdown de un documento de DingTalk',
@@ -111,7 +111,7 @@ module.exports = {
     group_process: 'Procesos',
     cmd_configure_process: 'Configurar y publicar reglas de proceso; Añadir aprobadores y transferir mediante JSON nodes[].actions.normalActions/appendActions',
     cmd_create_process: 'Crear formulario de proceso (todo en uno); Añadir aprobadores y transferir mediante JSON nodes[].actions.normalActions/appendActions',
-    create_process_notes: "formMode=create|reuse distingue creación y reutilización. Al reutilizar, formTitle y fieldCount son null (sin consultar); al crear se devuelven nombre y número de campos. También se aplica a errores de configuración. Compruebe success y verificationLevel. Use --replace solo con autorización explícita para reemplazar todo un proceso existente, borrador o publicado.",
+    create_process_notes: 'formMode=create|reuse distingue creación y reutilización. Al reutilizar, formTitle y fieldCount son null (sin consultar); al crear se devuelven nombre y número de campos. También se aplica a errores de configuración. Compruebe success y verificationLevel. Use --replace solo con autorización explícita para reemplazar todo un proceso existente, borrador o publicado.',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'Vista previa de instancia de proceso (diagrama de flujo)',
     group_share: 'Configuración & Compartir página',
@@ -280,12 +280,12 @@ module.exports = {
       '  openyida create-app "Attendance" "Employee Attendance" "daka" "#00B853" "deepBlue" "dark" "slide"\n' +
       '  openyida create-page APP_XXX "Game Home"\n' +
       '  openyida create-form create APP_XXX "Employee Info" .cache/openyida/forms/employee-fields.json\n' +
-      `  openyida create-form update APP_XXX FORM-XXX '[{"action":"add","field":{"type":"TextField","label":"Notes"}}]'\n` +
+      '  openyida create-form update APP_XXX FORM-XXX \'[{"action":"add","field":{"type":"TextField","label":"Notes"}}]\'\n' +
       '  openyida list-forms APP_XXX\n' +
       '  openyida list-forms APP_XXX --keyword customer\n' +
       '  openyida get-schema APP_XXX FORM-XXX\n' +
       '  openyida get-schema APP_XXX --all --output-dir .cache/schemas\n' +
-      `  openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "high", "low")' --schema .cache/schema.json\n` +
+      '  openyida formula evaluate \'IF(GT(#{numberField_total}, 100), "high", "low")\' --schema .cache/schema.json\n' +
       '  openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX\n' +
       '  openyida verify-short-url APP_XXX FORM-XXX /o/myapp\n' +
       '  openyida save-share-config APP_XXX FORM-XXX /o/myapp y n\n' +
@@ -348,7 +348,7 @@ module.exports = {
     check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]',
     check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --build-manifest prd/order-management/build-manifest.json --json',
     formula_usage: 'Usage: openyida formula evaluate <formula|file> [--schema schema.json] [--json] [--strict]',
-    formula_example: `Example: openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "high", "low")' --schema .cache/schema.json`,
+    formula_example: 'Example: openyida formula evaluate \'IF(GT(#{numberField_total}, 100), "high", "low")\' --schema .cache/schema.json',
     verify_usage: 'Usage: openyida verify-short-url <appType> <formUuid> <url>',
     verify_example: 'Example: openyida verify-short-url APP_XXX FORM-XXX /o/myapp',
     share_usage: 'Usage: openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]',
@@ -379,7 +379,7 @@ module.exports = {
     get_permission_usage: 'Usage: openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>]',
     get_permission_example: 'Example: openyida get-permission APP_XXX FORM-XXX',
     save_permission_usage: 'Usage: openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>]',
-    save_permission_example: `Example: openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
+    save_permission_example: 'Example: openyida save-permission APP_XXX FORM-XXX --data-permission \'{"role":"DEFAULT","dataRange":"SELF"}\'',
     exec_failed: '\n❌ Execution failed: {0}',
     login_usage: 'Usage: openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
     login_example: 'Examples:\n  openyida login                         # Automatically open the browser via OAuth loopback login\n  openyida login --no-browser            # Let the caller handle the authorization URL\n  openyida login --check-only --json     # Check token auth status only\n  openyida login --intl                  # Login against the international environment\n  OPENYIDA_NO_BROWSER=1 openyida login   # Let the caller handle the authorization URL via env variable\n  openyida auth login                    # Login alias',
@@ -855,7 +855,7 @@ module.exports = {
     usage_create: 'Usage: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     example_create: 'Example: openyida create-form create "APP_XXX" "Employee Info" .cache/openyida/forms/employee-fields.json',
     usage_update: 'Usage: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
-    example_update: `Example: openyida create-form update "APP_XXX" "FORM-YYY" '[{"action":"add","field":{"type":"TextField","label":"Note"}}]'`,
+    example_update: 'Example: openyida create-form update "APP_XXX" "FORM-YYY" \'[{"action":"add","field":{"type":"TextField","label":"Note"}}]\'',
     usage_label: 'Usage:',
     usage_create_short: '  create: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  update: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
@@ -1068,10 +1068,12 @@ module.exports = {
     err_open_url_empty: 'La ruta openUrl no puede estar vacía: {0}'
   },
   update_app: {
+    legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
+    remove_theme_conflict: '--remove-custom-theme cannot be combined with a theme file or new customThemeStyle.',
     theme_preset_conflict: 'Un colour predefinido no se puede combinar con CSS o themeColor. Usa --colour custom u omite --colour.',
     custom_theme_color_required: 'colour=custom requiere un archivo de tema o themeColor válido. Usa --theme-file o --theme-color.',
     theme_not_persisted: 'No se pudieron confirmar los ajustes del tema tras guardarlos. Revisa themeVerification y reintenta con update-app <appType> --theme-file <css>; no vuelvas a crear la aplicación.',
-    navigation_not_persisted: "No se pudo verificar la navegación o los valores difieren de los solicitados. Consulta los valores esperados, los valores reales y los errores en navigationVerification y comprueba la configuración actual de la aplicación.",
+    navigation_not_persisted: 'No se pudo verificar la navegación o los valores difieren de los solicitados. Consulta los valores esperados, los valores reales y los errores en navigationVerification y comprueba la configuración actual de la aplicación.',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1109,7 +1111,7 @@ module.exports = {
     offline_success: 'Aplicación desactivada',
   },
   create_process: {
-    invalid_argument: "Falta el argumento {0} o no es válido. Corríjalo con la sintaxis siguiente.",
+    invalid_argument: 'Falta el argumento {0} o no es válido. Corríjalo con la sintaxis siguiente.',
     title: 'Yida Process Form Creation',
     app_id: 'App ID',
     mode: 'Mode',
@@ -1138,7 +1140,7 @@ module.exports = {
     manual_hint: 'Please configure the process manually in Yida admin. Form UUID: {0}',
     configuring_process: 'Configuring and publishing process',
     configure_failed: 'Failed to configure process',
-    preserve_existing_form: "El formulario original existe. Consulte su estado y la causa del fallo en modo de solo lectura usando formUuid y consérvelo. No quite --formUuid, no vuelva a crear el formulario ni cree otro con el mismo nombre para recuperarse. No reintente escrituras cuando noWriteRetry=true.",
+    preserve_existing_form: 'El formulario original existe. Consulte su estado y la causa del fallo en modo de solo lectura usando formUuid y consérvelo. No quite --formUuid, no vuelva a crear el formulario ni cree otro con el mismo nombre para recuperarse. No reintente escrituras cuando noWriteRetry=true.',
     retry_hint: 'Process configuration failed, but the form was created. Fix the process definition and retry with this command:',
     fields_not_found: 'Fields definition file not found',
     process_def_not_found: 'Process definition file not found',
@@ -1879,7 +1881,7 @@ module.exports = {
   report_runtime: require('../../lib/report/i18n-messages').es,
   safe_json: {
     hint_unquoted_key: 'Parece que una clave no está entre comillas (JSON requiere que todas las claves estén entre comillas dobles, p. ej. {"name":1})',
-    hint_single_quote: `Probablemente se usaron comillas simples (JSON solo permite comillas dobles ", no comillas simples ')`,
+    hint_single_quote: 'Probablemente se usaron comillas simples (JSON solo permite comillas dobles ", no comillas simples \')',
     hint_trailing_comma: 'Probablemente hay una coma sobrante al final (JSON no permite una coma justo antes de } o ])',
     hint_smart_quote: 'Probablemente se usaron comillas tipográficas / curvas (“ ” ‘ ’); reemplácelas por comillas dobles ASCII estándar "',
     hint_generic: 'JSON no válido; compruébelo con la sintaxis JSON estándar',

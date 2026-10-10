@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - 保留旧应用已有导航配置，新版主题应用继续使用新版布局和配色。
 - 将旧应用升级为新版主题时同步转换导航布局和配色，回读核验并保留导航结构。
 - 旧版侧导保存为 `ver`，升级时恢复 `side`；仅明确的 L 型导航结构恢复 `l_shape`。
+- 旧主题或能力无法确认的应用，上传应用级 CSS 前需用户明确确认；默认使用页面局部样式。新增 `update-app --remove-custom-theme`，移除应用级 CSS 并核验，保留主色和导航。
 
 ## [2026.10.9] - 2026-10-09
 

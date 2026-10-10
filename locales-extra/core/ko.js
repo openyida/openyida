@@ -24,7 +24,7 @@ module.exports = {
     repair_page_bindings: 'visual.json의 pageApplications를 business.json의 customPageDetails와 일대일로 맞추고 기본 폼은 제외하세요. visualMemoryApplications는 배열이어야 하며 해당 항목이 없으면 []를 사용하세요. 기존 초안을 유지하고 표시된 필드를 수정한 뒤 원래 명령을 다시 실행하세요. 디렉터리를 삭제하거나 init을 다시 실행하지 마세요.',
   },
   design_document: {
-    update_conflict: "{0}({1})을 업데이트할 수 없습니다. 현재 내용이 이전 생성 결과와 충돌합니다. 해당 부분의 로컬 변경 사항과 계획 데이터를 일치시킨 후 다시 시도하세요. 파일은 저장되지 않았습니다.",
+    update_conflict: '{0}({1})을 업데이트할 수 없습니다. 현재 내용이 이전 생성 결과와 충돌합니다. 해당 부분의 로컬 변경 사항과 계획 데이터를 일치시킨 후 다시 시도하세요. 파일은 저장되지 않았습니다.',
     theme_css_invalid: '테마 CSS의 {0}행 근처에 닫히지 않았거나 짝이 맞지 않는 괄호, 문자열 또는 주석이 있습니다. 수정 후 다시 시도하세요.',
     theme_css_unresolved: '테마 CSS의 {0}에 템플릿 자리 표시자 또는 색상 생성 지침이 남아 있습니다. design.md를 완성하고 openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> 명령을 실행한 뒤 생성된 파일을 업로드하세요. PRIMARY_COLOR만 바꾸면 안 됩니다.',
     invalid: '디자인 검증 실패: {0} ({1})',
@@ -45,8 +45,8 @@ module.exports = {
   asset: {
     sourceRecords: '--input의 assets[]에 assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt(YYYY-MM-DD), authorizationEvidence(증빙 URL 또는 파일 경로 배열)를 기록하세요. 목록에 기록이 보존되며 미입력 값은 비워 둡니다. 상업적 이용 허가를 자동으로 인정하지 않습니다.',
     executionReview: '소재 실행 기록 검토 필요: {0}. 백그라운드 실행 응답, 업무 실행 시간 및 동기 처리 전환 이유를 확인하세요.',
-    localFileUnavailable: "이미지 파일을 찾을 수 없습니다: {0}. 명령의 작업 디렉터리를 확인하거나 절대 경로를 사용하세요.",
-    invalidStrategy: "이미지 요구사항은 페이지별 이미지 위치를 나열한 객체로 입력하세요.",
+    localFileUnavailable: '이미지 파일을 찾을 수 없습니다: {0}. 명령의 작업 디렉터리를 확인하거나 절대 경로를 사용하세요.',
+    invalidStrategy: '이미지 요구사항은 페이지별 이미지 위치를 나열한 객체로 입력하세요.',
   },
   help: {
     cmd_check_design: '디자인 문서, 테마 변수 및 PRD 인계 검증',
@@ -68,8 +68,8 @@ module.exports = {
     design_plan_preview_invalid: '초안 업데이트 실패. 오류 세부 정보를 확인하세요',
     cmd_design_plan_catalog: '계획에 사용할 수 있는 테마와 페이지 패턴 조회',
     cmd_design_plan_init: '확인된 요구 사항으로 계획 초안 만들기',
-    cmd_design_plan_materialize: "계획 문서와 테마를 생성하거나 업데이트하고 일관성 검증",
-    cmd_design_plan_patch: "계획 필드를 수정하고 필요에 따라 문서와 테마 동기화",
+    cmd_design_plan_materialize: '계획 문서와 테마를 생성하거나 업데이트하고 일관성 검증',
+    cmd_design_plan_patch: '계획 필드를 수정하고 필요에 따라 문서와 테마 동기화',
     cmd_update_app: '앱 정보 업데이트',
     cmd_app_online: 'Yida 앱 활성화',
     cmd_app_offline: 'Yida 앱 비활성화',
@@ -99,7 +99,7 @@ module.exports = {
     cmd_get_form_config: 'Query form configuration',
     group_data: '데이터 & 권한',
     cmd_data: '통합 데이터 관리 (양식/프로세스/작업/하위양식)',
-    data_notes: "DateField는 밀리초 숫자 타임스탬프, CascadeDateField는 해당 타임스탬프 배열을 사용합니다. 업무 시간대로 변환하세요. 날짜 문자열과 초 단위 값은 사용할 수 없습니다. --resolve-aliases는 필드 이름만 변환합니다.",
+    data_notes: 'DateField는 밀리초 숫자 타임스탬프, CascadeDateField는 해당 타임스탬프 배열을 사용합니다. 업무 시간대로 변환하세요. 날짜 문자열과 초 단위 값은 사용할 수 없습니다. --resolve-aliases는 필드 이름만 변환합니다.',
     cmd_task_center: '글로벌 작업 센터 (할일/처리됨/참조 등)',
     cmd_basic_info: '조직 기본 정보, 용량, 할당량 및 도메인 설정 조회',
     cmd_read_dingtalk_doc: 'DingTalk 문서의 Markdown 내용 가져오기',
@@ -111,7 +111,7 @@ module.exports = {
     group_process: '프로세스',
     cmd_configure_process: '프로세스 규칙 설정 및 게시; JSON nodes[].actions.normalActions/appendActions로 승인자 추가 및 전달 설정',
     cmd_create_process: '프로세스 양식 생성 (통합형); JSON nodes[].actions.normalActions/appendActions로 승인자 추가 및 전달 설정',
-    create_process_notes: "formMode=create|reuse는 신규 생성과 재사용을 구분합니다. 재사용 시 formTitle과 fieldCount는 null(조회 안 함)이며 신규 생성 시 이름과 필드 수를 반환합니다. 구성 실패 출력도 동일합니다. success와 verificationLevel로 결과를 확인하세요. --replace는 명시적으로 승인된 기존 초안 또는 게시된 흐름 전체 교체에만 사용합니다.",
+    create_process_notes: 'formMode=create|reuse는 신규 생성과 재사용을 구분합니다. 재사용 시 formTitle과 fieldCount는 null(조회 안 함)이며 신규 생성 시 이름과 필드 수를 반환합니다. 구성 실패 출력도 동일합니다. success와 verificationLevel로 결과를 확인하세요. --replace는 명시적으로 승인된 기존 초안 또는 게시된 흐름 전체 교체에만 사용합니다.',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: '프로세스 인스턴스 미리보기 (플로차트)',
     group_share: '페이지 설정 & 공유',
@@ -280,12 +280,12 @@ module.exports = {
       '  openyida create-app "Attendance" "Employee Attendance" "daka" "#00B853" "deepBlue" "dark" "slide"\n' +
       '  openyida create-page APP_XXX "Game Home"\n' +
       '  openyida create-form create APP_XXX "Employee Info" .cache/openyida/forms/employee-fields.json\n' +
-      `  openyida create-form update APP_XXX FORM-XXX '[{"action":"add","field":{"type":"TextField","label":"Notes"}}]'\n` +
+      '  openyida create-form update APP_XXX FORM-XXX \'[{"action":"add","field":{"type":"TextField","label":"Notes"}}]\'\n' +
       '  openyida list-forms APP_XXX\n' +
       '  openyida list-forms APP_XXX --keyword customer\n' +
       '  openyida get-schema APP_XXX FORM-XXX\n' +
       '  openyida get-schema APP_XXX --all --output-dir .cache/schemas\n' +
-      `  openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "high", "low")' --schema .cache/schema.json\n` +
+      '  openyida formula evaluate \'IF(GT(#{numberField_total}, 100), "high", "low")\' --schema .cache/schema.json\n' +
       '  openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX\n' +
       '  openyida verify-short-url APP_XXX FORM-XXX /o/myapp\n' +
       '  openyida save-share-config APP_XXX FORM-XXX /o/myapp y n\n' +
@@ -348,7 +348,7 @@ module.exports = {
     check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]',
     check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --build-manifest prd/order-management/build-manifest.json --json',
     formula_usage: 'Usage: openyida formula evaluate <formula|file> [--schema schema.json] [--json] [--strict]',
-    formula_example: `Example: openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "high", "low")' --schema .cache/schema.json`,
+    formula_example: 'Example: openyida formula evaluate \'IF(GT(#{numberField_total}, 100), "high", "low")\' --schema .cache/schema.json',
     verify_usage: 'Usage: openyida verify-short-url <appType> <formUuid> <url>',
     verify_example: 'Example: openyida verify-short-url APP_XXX FORM-XXX /o/myapp',
     share_usage: 'Usage: openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]',
@@ -379,7 +379,7 @@ module.exports = {
     get_permission_usage: 'Usage: openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>]',
     get_permission_example: 'Example: openyida get-permission APP_XXX FORM-XXX',
     save_permission_usage: 'Usage: openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>]',
-    save_permission_example: `Example: openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
+    save_permission_example: 'Example: openyida save-permission APP_XXX FORM-XXX --data-permission \'{"role":"DEFAULT","dataRange":"SELF"}\'',
     exec_failed: '\n❌ Execution failed: {0}',
     login_usage: 'Usage: openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
     login_example: 'Examples:\n  openyida login                         # Automatically open the browser via OAuth loopback login\n  openyida login --no-browser            # Let the caller handle the authorization URL\n  openyida login --check-only --json     # Check token auth status only\n  openyida login --intl                  # Login against the international environment\n  OPENYIDA_NO_BROWSER=1 openyida login   # Let the caller handle the authorization URL via env variable\n  openyida auth login                    # Login alias',
@@ -855,7 +855,7 @@ module.exports = {
     usage_create: 'Usage: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     example_create: 'Example: openyida create-form create "APP_XXX" "Employee Info" .cache/openyida/forms/employee-fields.json',
     usage_update: 'Usage: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
-    example_update: `Example: openyida create-form update "APP_XXX" "FORM-YYY" '[{"action":"add","field":{"type":"TextField","label":"Note"}}]'`,
+    example_update: 'Example: openyida create-form update "APP_XXX" "FORM-YYY" \'[{"action":"add","field":{"type":"TextField","label":"Note"}}]\'',
     usage_label: 'Usage:',
     usage_create_short: '  create: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  update: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
@@ -1067,10 +1067,12 @@ module.exports = {
     err_open_url_empty: 'openUrl 경로가 비어 있습니다: {0}'
   },
   update_app: {
+    legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
+    remove_theme_conflict: '--remove-custom-theme cannot be combined with a theme file or new customThemeStyle.',
     theme_preset_conflict: '프리셋 colour는 CSS 또는 themeColor와 함께 사용할 수 없습니다. --colour custom을 사용하거나 --colour를 생략하세요.',
     custom_theme_color_required: 'colour=custom에는 테마 파일 또는 유효한 themeColor가 필요합니다. --theme-file 또는 --theme-color를 지정하세요.',
     theme_not_persisted: '저장 후 앱 테마 설정을 확인하지 못했습니다. themeVerification을 확인하고 update-app <appType> --theme-file <css>로 다시 시도하세요. 앱을 다시 만들지 마세요.',
-    navigation_not_persisted: "내비게이션 설정을 다시 읽지 못했거나 요청한 값과 다릅니다. navigationVerification의 예상값, 실제 값, 조회 오류를 확인한 다음 현재 앱 설정을 확인하세요.",
+    navigation_not_persisted: '내비게이션 설정을 다시 읽지 못했거나 요청한 값과 다릅니다. navigationVerification의 예상값, 실제 값, 조회 오류를 확인한 다음 현재 앱 설정을 확인하세요.',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1108,7 +1110,7 @@ module.exports = {
     offline_success: '앱이 비활성화되었습니다',
   },
   create_process: {
-    invalid_argument: "인수 {0}이 누락되었거나 잘못되었습니다. 아래 구문에 맞게 수정하세요.",
+    invalid_argument: '인수 {0}이 누락되었거나 잘못되었습니다. 아래 구문에 맞게 수정하세요.',
     title: 'Yida Process Form Creation',
     app_id: 'App ID',
     mode: 'Mode',
@@ -1137,7 +1139,7 @@ module.exports = {
     manual_hint: 'Please configure the process manually in Yida admin. Form UUID: {0}',
     configuring_process: 'Configuring and publishing process',
     configure_failed: 'Failed to configure process',
-    preserve_existing_form: "원본 폼이 존재합니다. 반환된 formUuid로 상태와 실패 원인을 읽기 전용으로 확인하고 원본을 유지하세요. 복구를 위해 --formUuid를 제거하거나 폼을 다시 만들거나 같은 이름의 대체 폼을 만들지 마세요. noWriteRetry=true이면 쓰기를 재시도하지 마세요.",
+    preserve_existing_form: '원본 폼이 존재합니다. 반환된 formUuid로 상태와 실패 원인을 읽기 전용으로 확인하고 원본을 유지하세요. 복구를 위해 --formUuid를 제거하거나 폼을 다시 만들거나 같은 이름의 대체 폼을 만들지 마세요. noWriteRetry=true이면 쓰기를 재시도하지 마세요.',
     retry_hint: 'Process configuration failed, but the form was created. Fix the process definition and retry with this command:',
     fields_not_found: 'Fields definition file not found',
     process_def_not_found: 'Process definition file not found',
@@ -1878,7 +1880,7 @@ module.exports = {
   report_runtime: require('../../lib/report/i18n-messages').ko,
   safe_json: {
     hint_unquoted_key: '키에 큰따옴표가 없는 것으로 보입니다(JSON은 모든 키를 큰따옴표로 감싸야 합니다. 예: {"name":1})',
-    hint_single_quote: `작은따옴표를 사용한 것으로 보입니다(JSON은 큰따옴표 "만 허용하며 작은따옴표 '는 허용하지 않습니다)`,
+    hint_single_quote: '작은따옴표를 사용한 것으로 보입니다(JSON은 큰따옴표 "만 허용하며 작은따옴표 \'는 허용하지 않습니다)',
     hint_trailing_comma: '끝에 불필요한 쉼표가 있는 것으로 보입니다(JSON은 } 또는 ] 바로 앞의 쉼표를 허용하지 않습니다)',
     hint_smart_quote: '스마트/둥근 따옴표(“ ” ‘ ’)가 포함된 것으로 보입니다. 표준 ASCII 큰따옴표 "로 바꿔 주세요',
     hint_generic: '유효하지 않은 JSON입니다. 표준 JSON 문법과 대조하여 확인하세요',

@@ -24,7 +24,7 @@ module.exports = {
     repair_page_bindings: 'visual.json の pageApplications を business.json の customPageDetails と一対一に対応させ、ネイティブフォームは除外してください。visualMemoryApplications は配列とし、該当なしは [] にします。既存の下書きを保持し、示されたフィールドを修正して元のコマンドを再実行してください。ディレクトリの削除や init の再実行は不要です。',
   },
   design_document: {
-    update_conflict: "{0}（{1}）を更新できません。現在の内容が前回の生成結果と競合しています。該当箇所のローカル変更と計画データを合わせてから再試行してください。ファイルは保存されていません。",
+    update_conflict: '{0}（{1}）を更新できません。現在の内容が前回の生成結果と競合しています。該当箇所のローカル変更と計画データを合わせてから再試行してください。ファイルは保存されていません。',
     theme_css_invalid: 'テーマ CSS の {0} 行付近に、閉じられていないか対応しない括弧、文字列、コメントがあります。修正して再試行してください。',
     theme_css_unresolved: 'テーマ CSS の {0} にテンプレートのプレースホルダーまたは色の生成指示が残っています。design.md を完成させ、openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> を実行してから生成ファイルをアップロードしてください。PRIMARY_COLOR の置換だけでは不十分です。',
     invalid: 'デザイン検証に失敗しました：{0}（{1}）',
@@ -45,8 +45,8 @@ module.exports = {
   asset: {
     sourceRecords: '--input の assets[] に assetId、creator、sourcePage、license、licenseUrl、licenseCheckedAt（YYYY-MM-DD）、authorizationEvidence（証拠の URL またはファイルパスの配列）を記録します。マニフェストは記録を保持し、未入力の値は空欄のままです。商用許諾を自動判定しません。',
     executionReview: '素材の実行記録を確認してください：{0}。バックグラウンド実行の応答、業務の実行時間、同期処理への切り替え理由を確認してください。',
-    localFileUnavailable: "画像ファイルが見つかりません：{0}。コマンドの作業ディレクトリを確認するか、絶対パスを指定してください。",
-    invalidStrategy: "画像の要件は、ページごとの画像の配置を記述したオブジェクトで指定してください。",
+    localFileUnavailable: '画像ファイルが見つかりません：{0}。コマンドの作業ディレクトリを確認するか、絶対パスを指定してください。',
+    invalidStrategy: '画像の要件は、ページごとの画像の配置を記述したオブジェクトで指定してください。',
   },
   help: {
     cmd_check_design: 'デザイン文書、テーマ変数、PRD の引き継ぎを検証',
@@ -68,8 +68,8 @@ module.exports = {
     design_plan_preview_invalid: '草稿の更新に失敗しました。詳細を確認してください',
     cmd_design_plan_catalog: '計画に利用できるテーマとページパターンを一覧表示',
     cmd_design_plan_init: '確認済みの要件から計画の下書きを作成',
-    cmd_design_plan_materialize: "計画文書とテーマを生成・更新し、整合性を検証",
-    cmd_design_plan_patch: "計画のフィールドを変更し、必要に応じて文書とテーマを同期",
+    cmd_design_plan_materialize: '計画文書とテーマを生成・更新し、整合性を検証',
+    cmd_design_plan_patch: '計画のフィールドを変更し、必要に応じて文書とテーマを同期',
     cmd_update_app: 'アプリ情報を更新',
     cmd_app_online: 'Yida アプリを有効化',
     cmd_app_offline: 'Yida アプリを無効化',
@@ -99,7 +99,7 @@ module.exports = {
     cmd_get_form_config: 'Query form configuration',
     group_data: 'データ & 権限',
     cmd_data: '統合データ管理（フォーム/プロセス/タスク/サブフォーム）',
-    data_notes: "DateField はミリ秒単位の数値タイムスタンプ、CascadeDateField はその配列を指定します。業務のタイムゾーンで変換してください。日付文字列と秒単位の値は使えません。--resolve-aliases はフィールド名のみ変換します。",
+    data_notes: 'DateField はミリ秒単位の数値タイムスタンプ、CascadeDateField はその配列を指定します。業務のタイムゾーンで変換してください。日付文字列と秒単位の値は使えません。--resolve-aliases はフィールド名のみ変換します。',
     cmd_task_center: 'グローバルタスクセンター（未処理/処理済/CC等）',
     cmd_basic_info: '組織の基本情報、容量、クォータ、ドメイン設定を照会',
     cmd_read_dingtalk_doc: 'DingTalk ドキュメントの Markdown 内容を取得',
@@ -111,7 +111,7 @@ module.exports = {
     group_process: 'プロセス',
     cmd_configure_process: 'プロセスルールを設定＆公開; 承認者の追加・転送は JSON nodes[].actions.normalActions/appendActions で設定',
     cmd_create_process: 'プロセスフォームを作成（一体型）; 承認者の追加・転送は JSON nodes[].actions.normalActions/appendActions で設定',
-    create_process_notes: "formMode=create|reuse は新規作成と再利用を区別します。再利用時の formTitle と fieldCount は null（未照会）で、新規作成時は名前と件数を返します。設定失敗時も同じです。結果は success と verificationLevel で確認します。--replace は明示的に許可された既存の下書き・公開済みフロー全体の置換にのみ使います。",
+    create_process_notes: 'formMode=create|reuse は新規作成と再利用を区別します。再利用時の formTitle と fieldCount は null（未照会）で、新規作成時は名前と件数を返します。設定失敗時も同じです。結果は success と verificationLevel で確認します。--replace は明示的に許可された既存の下書き・公開済みフロー全体の置換にのみ使います。',
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'プロセスインスタンスをプレビュー（フローチャート）',
     group_share: 'ページ設定 & 共有',
@@ -277,7 +277,7 @@ module.exports = {
       '  openyida create-app "勤怠管理" "従業員勤怠システム" "daka" "#00B853" "deepBlue" "dark" "slide"\n' +
       '  openyida create-page APP_XXX "ゲームホーム"\n' +
       '  openyida create-form create APP_XXX "従業員情報" .cache/openyida/forms/employee-fields.json\n' +
-      `  openyida create-form update APP_XXX FORM-XXX '[{"action":"add","field":{"type":"TextField","label":"備考"}}]'\n` +
+      '  openyida create-form update APP_XXX FORM-XXX \'[{"action":"add","field":{"type":"TextField","label":"備考"}}]\'\n' +
       '  openyida get-schema APP_XXX FORM-XXX\n' +
       '  openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX\n' +
       '  openyida verify-short-url APP_XXX FORM-XXX /o/myapp\n' +
@@ -334,7 +334,7 @@ module.exports = {
     check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]',
     check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --build-manifest prd/order-management/build-manifest.json --json',
     formula_usage: 'Usage: openyida formula evaluate <formula|file> [--schema schema.json] [--json] [--strict]',
-    formula_example: `Example: openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "high", "low")' --schema .cache/schema.json`,
+    formula_example: 'Example: openyida formula evaluate \'IF(GT(#{numberField_total}, 100), "high", "low")\' --schema .cache/schema.json',
     verify_usage: '使用方法: openyida verify-short-url <appType> <formUuid> <url>',
     verify_example: '例: openyida verify-short-url APP_XXX FORM-XXX /o/myapp',
     share_usage: '使用方法: openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]',
@@ -365,7 +365,7 @@ module.exports = {
     get_permission_usage: 'Usage: openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>]',
     get_permission_example: 'Example: openyida get-permission APP_XXX FORM-XXX',
     save_permission_usage: 'Usage: openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>]',
-    save_permission_example: `Example: openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
+    save_permission_example: 'Example: openyida save-permission APP_XXX FORM-XXX --data-permission \'{"role":"DEFAULT","dataRange":"SELF"}\'',
     exec_failed: '\n❌ 実行に失敗しました: {0}',
     login_usage: 'Usage: openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
     login_example: 'Examples:\n  openyida login                         # Automatically open the browser via OAuth loopback login\n  openyida login --no-browser            # Let the caller handle the authorization URL\n  openyida login --check-only --json     # Check token auth status only\n  openyida login --intl                  # Login against the international environment\n  OPENYIDA_NO_BROWSER=1 openyida login   # Let the caller handle the authorization URL via env variable\n  openyida auth login                    # Login alias',
@@ -821,7 +821,7 @@ module.exports = {
     usage_create: '使用方法: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     example_create: '例: openyida create-form create "APP_XXX" "従業員情報" .cache/openyida/forms/employee-fields.json',
     usage_update: '使用方法: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
-    example_update: `例: openyida create-form update "APP_XXX" "FORM-YYY" '[{"action":"add","field":{"type":"TextField","label":"備考"}}]'`,
+    example_update: '例: openyida create-form update "APP_XXX" "FORM-YYY" \'[{"action":"add","field":{"type":"TextField","label":"備考"}}]\'',
     usage_label: '使用方法:',
     usage_create_short: '  作成: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  更新: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
@@ -1020,10 +1020,12 @@ module.exports = {
     err_open_url_chars: 'openUrl のパス部分は a-z A-Z 0-9 _ - と区切り文字 / のみ使用できます。現在の値: {0}'
   },
   update_app: {
+    legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
+    remove_theme_conflict: '--remove-custom-theme cannot be combined with a theme file or new customThemeStyle.',
     theme_preset_conflict: 'プリセット colour と CSS または themeColor は併用できません。--colour custom を指定するか --colour を省略してください。',
     custom_theme_color_required: 'colour=custom にはテーマファイルまたは有効な themeColor が必要です。--theme-file または --theme-color を指定してください。',
     theme_not_persisted: '保存後のアプリテーマ設定を確認できませんでした。themeVerification を確認し、update-app <appType> --theme-file <css> で再試行してください。アプリを作り直さないでください。',
-    navigation_not_persisted: "ナビゲーション設定の再取得に失敗したか、要求した値と一致しません。navigationVerification の期待値、実際の値、取得エラーを確認し、現在のアプリ設定を確認してください。",
+    navigation_not_persisted: 'ナビゲーション設定の再取得に失敗したか、要求した値と一致しません。navigationVerification の期待値、実際の値、取得エラーを確認し、現在のアプリ設定を確認してください。',
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1061,7 +1063,7 @@ module.exports = {
     offline_success: 'アプリを無効化しました',
   },
   create_process: {
-    invalid_argument: "引数 {0} が不足しているか無効です。以下の構文で修正してください。",
+    invalid_argument: '引数 {0} が不足しているか無効です。以下の構文で修正してください。',
     title: 'Yida Process Form Creation',
     app_id: 'App ID',
     mode: 'Mode',
@@ -1090,7 +1092,7 @@ module.exports = {
     manual_hint: 'Please configure the process manually in Yida admin. Form UUID: {0}',
     configuring_process: 'Configuring and publishing process',
     configure_failed: 'Failed to configure process',
-    preserve_existing_form: "元のフォームは存在します。返された formUuid で状態と失敗原因を読み取り専用で確認し、元のフォームを保持してください。復旧のために --formUuid を削除したり、フォームを再作成したり、同名の代替フォームを作成したりしないでください。noWriteRetry=true の場合は書き込みを再試行しないでください。",
+    preserve_existing_form: '元のフォームは存在します。返された formUuid で状態と失敗原因を読み取り専用で確認し、元のフォームを保持してください。復旧のために --formUuid を削除したり、フォームを再作成したり、同名の代替フォームを作成したりしないでください。noWriteRetry=true の場合は書き込みを再試行しないでください。',
     retry_hint: 'Process configuration failed, but the form was created. Fix the process definition and retry with this command:',
     fields_not_found: 'Fields definition file not found',
     process_def_not_found: 'Process definition file not found',
@@ -1828,7 +1830,7 @@ module.exports = {
   report_runtime: require('../../lib/report/i18n-messages').ja,
   safe_json: {
     hint_unquoted_key: 'キー名がダブルクォートで囲まれていない可能性があります（JSON ではすべてのキーをダブルクォートで囲む必要があります。例: {"name":1}）',
-    hint_single_quote: `シングルクォートが使用されている可能性があります（JSON はダブルクォート " のみ許可し、シングルクォート ' は許可しません）`,
+    hint_single_quote: 'シングルクォートが使用されている可能性があります（JSON はダブルクォート " のみ許可し、シングルクォート \' は許可しません）',
     hint_trailing_comma: '末尾に余分なカンマがある可能性があります（JSON では } または ] の直前のカンマは許可されません）',
     hint_smart_quote: 'スマートクォート / 弯曲した引用符（“ ” ‘ ’）が使用されている可能性があります。標準の ASCII ダブルクォート " に置き換えてください',
     hint_generic: '無効な JSON です。標準の JSON 構文と照らして確認してください',
