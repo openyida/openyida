@@ -20,6 +20,7 @@
 6. 普通表单每条记录单独执行 `openyida data create form <appType> <formUuid> --expect-form-name <真实名称> --expect-form-type receipt --data-file ...` 或 `--data-json ...`；最后执行 `openyida data query form` 抽查至少 1 条。
 7. 流程表单只有在已确认真实 `processCode` 后，才执行 `openyida data create process <appType> <formUuid> --process-code <真实 processCode> --expect-form-name <真实名称> --expect-form-type process --data-file ...` 或 `--data-json ...`；最后执行 `openyida data query process` 抽查至少 1 条。
 8. 名称、UUID、类型或 `processCode` 不一致时停止，不得在 `form` 与 `process` 命令之间盲目重试。
+9. query 抽查核对目标实例 ID 和本次写入的可见字段值。CLI 查询不返回隐藏字段属于正常行为，全部字段隐藏时字段数据可能为空；按 [数据管理技能的隐藏字段规则](../../yida-data-management/SKILL.md#cli-查询隐藏字段) 验收，没有可见字段时说明隐藏字段无法通过 CLI 回读，不因字段数据为空而重复造数。
 
 以下情况可以跳过，并在 final 说明原因：
 
@@ -40,7 +41,7 @@
 - [ ] 普通表单使用 `data create form`，流程表单使用 `data create process`；
 - [ ] 流程实例创建前已确认真实 `processCode`；
 - [ ] 每条记录单独创建；
-- [ ] query 抽查已确认 `formData` 非空；
+- [ ] query 抽查已确认目标实例 ID 和可见字段值；没有可见字段时已说明隐藏字段无法通过 CLI 回读；
 - [ ] 跳过时已写明原因和页面空态方案。
 
 ## 下一步

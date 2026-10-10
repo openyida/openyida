@@ -5,6 +5,12 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 
 # 数据管理
 
+## CLI 查询隐藏字段
+
+- 启用 CLI 隐藏字段过滤时，查询结果不返回表单配置或当前账号字段权限中隐藏的字段，字段 key 可能直接缺失；这属于正常行为，不代表原数据为空或写入失败。
+- 如果全部字段都隐藏，实例的字段数据可能为空；隐藏子表的查询也可能返回空数据。写后验收必须确认返回了目标实例 ID，并核对本次写入的可见字段；没有可见字段时，记录“实例已确认，隐藏字段无法通过 CLI 回读”。查询未命中目标实例或接口报错仍需排查，不能当作隐藏字段过滤后验收通过。
+- 后续更新只提交本次明确修改的字段；不要把查询中缺失的隐藏字段自动补成 `null` 或空字符串。
+
 ## 创建/录入数据强制闭环
 
 涉及新增记录、生成测试数据、批量导入或发起流程时，必须连续完成下面 5 步；任一步断开都不算完成。
@@ -13,7 +19,7 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 2. **类型分流**：普通表单写操作固定传 `--expect-form-name <真实名称> --expect-form-type receipt`；流程写操作固定传 `--expect-form-name <真实名称> --expect-form-type process`。名称、UUID 或类型不一致时必须停止，不能改写成当前上下文里的其他资源。
 3. **写入即提交**：小 JSON 可直接用 `--data-json '<json>'`；长 JSON 或批量造数先用结构化文件写入工具创建到 `.cache/openyida/<项目名或任务名>/data-import/<name>.json`，创建后必须立刻调用对应 `openyida data create ... --data-file <path>`。
 4. **批量逐条创建**：`openyida data create form/process` 每次只创建一条实例；多条记录按单次不超过 30 条循环/分批逐条调用。不要把多条实例数组塞进一个 `--data-file`，除非该数组是某个子表字段的字段值。
-5. **写后验收**：create/update 返回无报错后，必须执行 `openyida data query form|process <appType> <formUuid> ...` 抽查至少 1 条新记录，确认 `formData` 非空且包含本次写入字段值；流程记录可再用返回的 `processInstanceId` 执行 `get process` 复核。
+5. **写后验收**：create/update 返回无报错后，必须执行 `openyida data query form|process <appType> <formUuid> ...` 抽查至少 1 条目标记录，核对实例 ID 和本次写入的可见字段值；隐藏字段缺失或全部字段隐藏导致字段数据为空时，按上方“CLI 查询隐藏字段”规则验收。流程记录可再用返回的 `processInstanceId` 执行 `get process` 复核。
 
 ## 完整应用默认 seed records
 
@@ -50,7 +56,7 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 - 当前不支持删除流程实例；禁止生成 `openyida data delete process`，禁止在 CLI 报不支持后探索一次性脚本、浏览器私有请求或底层 API 绕过正式能力
 - **录入/更新数据前，必须先执行 `openyida get-schema` 获取真实字段 ID，并将字段 ID 映射记录到 `.cache/<项目名>-schema.json`**
 - **生成测试数据或录入/更新数据时，`DateField` 传毫秒时间戳数字（如 `1719705600000`），`CascadeDateField` 传毫秒时间戳数组；不要传日期字符串。转换方法见 [日期字段格式](references/data-format-guide.md#日期字段datefield--cascadedatefield)**
-- **录入数据后，必须执行 `openyida data query` 抽查至少 1 条记录，确认 `formData` 中字段有实际值（非空），否则说明字段 ID 有误，需重新排查**
+- **录入数据后，必须执行 `openyida data query` 抽查至少 1 条目标记录，核对实例 ID 和本次写入的可见字段值；隐藏字段缺失或字段数据为空按“CLI 查询隐藏字段”规则处理，可见字段值不符合预期时再核对字段 ID 和写入参数**
 - **读取子表明细超过 50 行时，必须使用 `openyida data query subform` 或 `listTableDataByFormInstIdAndTableId` 分页查询完整子表；不要把 `searchFormDatas.currentPage` 当作子表分页**
 - **本技能不读写 memory**：数据操作通过 CLI 命令写入宜搭平台，不依赖跨会话的 memory 状态
 - 一次性造数、旧数据修正、字段迁移脚本可以使用 Python 或 JS，优先选择更快更清晰的实现；脚本、导入数据、查询条件文件必须由结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/` 下，并复用真实查询到的 appType/formUuid/fieldId/formInstId
@@ -63,7 +69,7 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 - 只跑了 `openyida auth status`、`openyida login --check-only`、`openyida agent-capabilities` 或 `openyida get-schema`
 - 只把导入命令交给用户自行运行，自己没有执行并拿到结果
 - `openyida data create ...` 报错、无返回，或未对每条实例执行 create
-- 未执行 `openyida data query ...` 抽查，或抽查结果的 `formData` 为空
+- 未执行 `openyida data query ...` 抽查、未命中目标实例，或本次写入的可见字段值不符合预期；隐藏字段缺失或全部字段隐藏导致字段数据为空不单独作为失败依据
 
 ## 完成检查清单
 
@@ -71,7 +77,7 @@ description: 宜搭数据管理。表单实例/子表/流程实例/任务中心�
 - [ ] 已通过 schema/field map 使用真实 `fieldId`
 - [ ] 如使用 `--data-file`，文件位于 `.cache/openyida/<项目名或任务名>/data-import/`，且创建后已立即调用 `openyida data create ... --data-file ...`
 - [ ] 每条实例都实际执行了 `openyida data create form/process`，且命令返回无报错
-- [ ] 已用 `openyida data query form|process ...` 抽查至少 1 条，确认 `formData` 非空且字段值正确
+- [ ] 已用 `openyida data query form|process ...` 抽查至少 1 条目标记录，核对实例 ID 和可见字段值；没有可见字段时已说明隐藏字段无法通过 CLI 回读
 - [ ] 已向用户报告创建/更新数量、验收命令与结果摘要；未完成项必须如实说明
 
 ## 适用场景
@@ -300,7 +306,8 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 |---------|----------|
 | 查询返回空结果 | 确认 formUuid 正确，检查查询条件是否过于严格 |
 | 子表只返回 50 行 | 不要翻 `searchFormDatas.currentPage`；使用 `query subform` / `listTableDataByFormInstIdAndTableId` 按 `formInstId + tableFieldId` 分页查询 |
-| 新增数据后字段值为空 | 字段 ID 有误，先执行 `openyida get-schema` 获取真实 fieldId |
+| 查询中隐藏字段缺失或全部字段隐藏导致字段数据为空 | 属于正常行为；确认目标实例 ID，核对可见字段，不把缺失字段自动补成 `null` 或空字符串 |
+| 新增数据后可见字段值不符合预期 | 先执行 `openyida get-schema` 核对真实 fieldId，再检查写入参数 |
 | 更新失败（formInstId 不存在） | 先用 query 命令确认记录存在，不要猜测 formInstId |
 | 接口返回 401/未登录 | 执行 `openyida login` 重新登录 |
 | QPS 超限（429） | 降低请求频率，批量操作单次不超过 30 条 |
