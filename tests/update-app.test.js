@@ -480,3 +480,34 @@ describe('update-app helpers', () => {
     });
   });
 });
+
+
+describe('legacy app navigation persistence', () => {
+  const legacy = { appThemeEnable: 'n', appThemeMode: 'legacy', navType: 'top_side_fold' };
+  test.each([['side', 'slide'], ['l_shape', 'ver'], ['top', 'hoz']])(
+    '%s saves as %s on a disabled legacy app', (layout, expected) => {
+      const payload = buildUpdateAppPostData(parseArgs(['APP_1', '--layout', layout]), legacy, {});
+      expect(payload).toMatchObject({ layoutDirection: expected, navType: 'top_side_fold' });
+      const modern = buildUpdateAppPostData(parseArgs(['APP_1', '--layout', layout]),
+        { ...legacy, appThemeEnable: 'y', appThemeMode: 'modern' }, {});
+      expect(modern.layoutDirection).toBe(layout);
+    });
+  test.each(['slide', 'ver', 'hoz'])('unrelated updates preserve legacy %s', (layoutDirection) => {
+    const payload = buildUpdateAppPostData(parseArgs(['APP_1', '--nav-theme', 'dark']),
+      { ...legacy, layoutDirection }, {});
+    expect(payload.layoutDirection).toBe(layoutDirection);
+  });
+  test.each([['white', 'light'], ['gray', 'light'], ['light', 'light'], ['dark', 'dark']])(
+    'maps legacy navigation color %s to %s', (input, expected) => {
+      const payload = buildUpdateAppPostData(parseArgs(['APP_1', '--nav-theme', input]), legacy, {});
+      expect(payload.navTheme).toBe(expected);
+      expect(buildUpdateAppPostData(parseArgs(['APP_1', '--nav-theme', input]),
+        { appThemeEnable: 'y', appThemeMode: 'modern' }, {}).navTheme).toBe(input);
+    });
+  test('config fallback and disabled modern candidate use the legacy protocol', () => {
+    expect(buildUpdateAppPostData(parseArgs(['APP_1', '--layout', 'side', '--nav-theme', 'white']),
+      { config: { APP_THEME_MODE: 'legacy' } }, {})).toMatchObject({ layoutDirection: 'slide', navTheme: 'light' });
+    expect(buildUpdateAppPostData(parseArgs(['APP_1', '--layout', 'l_shape']),
+      { appThemeEnable: 'n', appThemeMode: 'modern' }, {}).layoutDirection).toBe('ver');
+  });
+});

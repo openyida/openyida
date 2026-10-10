@@ -219,3 +219,26 @@ test('CLI navigation verification failure is nonzero and keeps query failure evi
     expect(httpGet).toHaveBeenCalledTimes(4);
   } finally {log.mockRestore();}
 });
+
+
+test.each([['side', 'slide'], ['l_shape', 'ver'], ['top', 'hoz']])(
+  'legacy save and readback use the exact persisted %s -> %s protocol', async (layout, expected) => {
+    httpGet.mockResolvedValueOnce(response({ appThemeEnable: 'n', appThemeMode: 'legacy' }))
+      .mockResolvedValueOnce(response({ config: { LAY_OUT_DIRECTION: expected, NAV_THEME: 'light' } }));
+    const result = await saveAppSettings(parseArgs(['APP_1', '--layout', layout, '--nav-theme', 'white']), auth);
+    expect(querystring.parse(httpPost.mock.calls[0][2])).toMatchObject({ layoutDirection: expected, navTheme: 'light' });
+    expect(result).toMatchObject({ success: true, navigationVerification: {
+      verified: true, layoutDirection: expected, navTheme: 'light',
+    } });
+  });
+
+test('legacy readback rejects an unconverted modern value instead of claiming persistence', async () => {
+  httpGet.mockResolvedValueOnce(response({ appThemeEnable: 'n', appThemeMode: 'legacy' }))
+    .mockResolvedValue(response({ layoutDirection: 'side' }));
+  expect(await saveAppSettings(parseArgs(['APP_1', '--layout', 'side']), auth)).toMatchObject({
+    success: false, errorCode: 'APP_NAVIGATION_NOT_PERSISTED', navigationVerification: {
+      verified: false, expected: { layoutDirection: 'slide' }, actual: { layoutDirection: 'side' },
+    },
+  });
+  expect(httpPost).toHaveBeenCalledTimes(1);
+});
