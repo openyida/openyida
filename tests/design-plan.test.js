@@ -652,7 +652,7 @@ describe('design-plan materialize', () => {
     const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
     const { loadThemeIndex } = require('../lib/design-plan/themes');
     const { readDesignTokens } = require('../lib/app/theme-from-design');
-    const theme = loadThemeIndex().themes.find(item => item.themeId === 'app-paper');
+    const theme = loadThemeIndex().themes.find(item => item.themeId === 'soft-inset-surfaces');
     plan.visualStyle.forUser.selectedTheme = theme;
     plan.visualStyle.forUser.navigationStyle = {
       structure: 'side', tone: 'dark',
@@ -957,7 +957,7 @@ describe('design-plan materialize', () => {
       'index.json'
     ), 'utf8'));
     expect(themeIndex.themes.filter(theme => !theme.collection)).toHaveLength(14);
-    expect(themeIndex.themes.filter(theme => theme.collection === 'application-styles' && theme.mode === 'template')).toHaveLength(18);
+    expect(themeIndex.themes.some(theme => theme.themeId.startsWith('app-'))).toBe(false);
 
     for (const theme of themeIndex.themes.filter(item => item.mode !== 'creative')) {
       delete plan.visualStyle.forUser.themeProfile;

@@ -16,7 +16,14 @@ const { BUSINESS_FIELD_TYPES, PRESENTATION_FIELD_TYPES } = require('../lib/app/f
 const sample = require('../lib/core/sample');
 const form = require('../lib/app/create-form')._private;
 const themeIndex = loadThemeIndex().themes;
-const applicationStyles = themeIndex.filter(theme => theme.collection === 'application-styles');
+// Keep source checks for the unlisted styles so they remain maintainable before reindexing.
+const applicationStyles = fs.readdirSync(path.join(DESIGN_SKILL_ROOT, 'templates/design-themes'))
+  .filter(id => id.startsWith('app-') || id === 'free-creative').map(themeId => {
+    const templatePath = `templates/design-themes/${themeId}/design.md`;
+    const metadata = parseDesignDocument(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, templatePath), 'utf8')).metadata;
+    return { themeId, templatePath, mode: metadata.applicationStyle.mode, ...metadata.themeProfile,
+      cssTemplatePath: `templates/design-themes/${themeId}/app_theme.css`, formLayoutPath: `templates/design-themes/${themeId}/form-layout.json` };
+  });
 const sharedThemes = themeIndex.filter(theme => !theme.collection);
 const styles = applicationStyles.filter(theme => theme.mode !== 'creative');
 const DETAIL_FIELD_PREVIEW_TOKENS = [
@@ -42,8 +49,10 @@ function planFor(themeId) {
   return plan;
 }
 
-test('catalog separates the creative option from eighteen application presets', () => {
+test('catalog exposes fourteen presets and creative while eighteen style bundles remain preserved', () => {
   expect(styles).toHaveLength(18);
+  expect(catalog().themes).toHaveLength(14);
+  expect(catalog().themes.some(theme => theme.themeId.startsWith('app-'))).toBe(false);
   expect(catalog().creativeOption).toMatchObject({ themeId: 'free-creative', mode: 'creative' });
   expect(catalog().themes.some(theme => theme.mode === 'creative')).toBe(false);
   const layouts = new Set(styles.map(theme => JSON.parse(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.formLayoutPath), 'utf8'))[0].layout));
@@ -110,7 +119,7 @@ test('every named theme has its own complete platform navigation design and read
     // Navigation overlays have their own surface, including dark-nav/light-content themes.
     expect(navigation['--pod-nav-popup-bg-color']).toBe('var(--pod-shell-theme-bg-color)');
   });
-  expect(palettes.size).toBe(32);
+  expect(palettes.size).toBe(14);
 });
 
 test('application preset navigation text is readable in ordinary, hover and selected states', () => {
@@ -278,13 +287,12 @@ test.each(themeIndex.filter(theme => theme.mode !== 'creative').map(style => [st
   expect(node.children[node.children.length - 1].children[0].componentName).toBe('TextField');
 });
 
-test.each(styles.map(style => style.themeId))('%s survives Plan materialization and Fast regeneration', async themeId => {
+test.each(themeIndex.filter(theme => theme.mode !== 'creative').map(theme => theme.themeId))('%s survives Plan materialization and Fast regeneration', async themeId => {
   const input = path.join(directory, 'build-plan.json');
   fs.writeFileSync(input, JSON.stringify(planFor(themeId)));
   const result = materialize(input);
   const design = fs.readFileSync(result.outputs.design, 'utf8');
   const metadata = parseDesignDocument(design).metadata;
-  expect(metadata.applicationStyle).toEqual({ recipe: 'application-style-v1', mode: 'template' });
   expect(metadata.themeProfile).toMatchObject({
     contentTone: themeIndex.find(theme => theme.themeId === themeId).contentTone,
     navTheme: themeIndex.find(theme => theme.themeId === themeId).navTheme,
@@ -295,15 +303,15 @@ test.each(styles.map(style => style.themeId))('%s survives Plan materialization 
   await sample.run(['yida-design', 'app-theme', '--design-file', result.outputs.design, '--output', fastOutput]);
   expect(fs.readFileSync(fastOutput, 'utf8')).toBe(fs.readFileSync(result.outputs.theme, 'utf8'));
   expect(design).toContain('表单组件与版式结构');
-  expect(design).toContain('普通业务分组和章节分隔使用 Divider');
-  expect(design).toContain('横向字段组合使用 ColumnContainer');
+  expect(design).toMatch(/普通业务分组和章节分隔使用 `?Divider`?/);
+  expect(design).toMatch(/横向字段组合使用 `?ColumnContainer`?/);
 });
 
 test('export writes all three assets and refuses to overwrite authored work', async () => {
-  const result = await sample.run(['yida-design', 'application-style', '--style-id', 'app-executive', '--output', directory]);
+  const result = await sample.run(['yida-design', 'application-style', '--style-id', 'soft-inset-surfaces', '--output', directory]);
   expect(result.outputs.map(file => path.basename(file))).toEqual(['design.md', 'app_theme.css', 'form-layout.json']);
   fs.writeFileSync(result.outputs[0], 'authored work');
-  expect(() => exportApplicationStyle('app-paper', directory)).toThrow();
+  expect(() => exportApplicationStyle('dark-rail-fine-lines', directory)).toThrow(expect.objectContaining({ code: 'APPLICATION_STYLE_OUTPUT_CONFLICT' }));
   expect(fs.readFileSync(result.outputs[0], 'utf8')).toBe('authored work');
   expect(() => exportApplicationStyle('../outside', directory)).toThrow();
   await expect(sample.run(['yida-design', 'application-style', '--style-id', 'app-wire', '--design-file', 'ignored.md']))
@@ -352,7 +360,7 @@ test('historical theme paths resolve to the same design and mismatched paths rem
   expect(() => renderDesign(plan)).toThrow();
 });
 
-test.each(['app-editorial', 'app-executive', 'free-creative'])('public CLI exports %s as field columns without a forced introduction', themeId => {
+test.each(['soft-inset-surfaces', 'dark-rail-fine-lines', 'free-creative'])('public CLI exports %s as field columns without a forced introduction', themeId => {
   const result = JSON.parse(execFileSync(process.execPath, [path.join(__dirname, '../bin/yida.js'),
     'sample', 'yida-design', 'application-style', '--style-id', themeId, '--output', directory], {
     cwd: directory, encoding: 'utf8', env: { ...process.env, OPENYIDA_SKIP_UPDATE_CHECK: '1' },
@@ -409,13 +417,12 @@ test('free creative rejects absent business decisions and explicit design tokens
   expect(patchedDesign.themeProfile.navTheme).toBe('light');
 });
 
-test('regeneration replaces only the managed recipe, preserving custom CSS', () => {
-  const plan = planFor('app-editorial');
-  const input = path.join(directory, 'build-plan.json');
-  fs.writeFileSync(input, JSON.stringify(plan));
-  const result = materialize(input);
-  const design = fs.readFileSync(result.outputs.design, 'utf8');
-  const css = fs.readFileSync(result.outputs.theme, 'utf8') + '\n.project-note { padding: 7px; }\n';
+test('retained style regeneration replaces only the managed recipe, preserving custom CSS', () => {
+  const style = styles.find(theme => theme.themeId === 'app-editorial');
+  const design = resolveThemeColors(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, style.templatePath), 'utf8')
+    .replaceAll('{{PRIMARY_COLOR}}', '#6F4E37'));
+  const css = applyDesignTokens(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, style.cssTemplatePath), 'utf8'), design)
+    + '\n.project-note { padding: 7px; }\n';
   const regenerated = applyDesignTokens(css, design, design);
   expect(regenerated).toContain('.project-note { padding: 7px; }');
   expect(regenerated.match(/OPENYIDA APPLICATION STYLE RECIPES START/g)).toHaveLength(1);

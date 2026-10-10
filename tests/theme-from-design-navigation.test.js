@@ -5,6 +5,7 @@ const path = require('path');
 const { applyDesignTokens, readDesignTokens } = require('../lib/app/theme-from-design');
 const { parseDesignDocument } = require('../lib/design/document');
 const { renderDesign } = require('../lib/design-plan/materialize');
+const { resolveThemeColors } = require('../lib/design-plan/themes');
 const { validateThemeCssContent } = require('../lib/app/custom-theme');
 const { topLevelRules, THEME_SELECTORS } = require('../lib/app/theme-scope');
 const fixture = require('./fixtures/design-plan.json');
@@ -268,8 +269,9 @@ test.each([
   ['app-nordic', 'light', '8px', '8px'],
   ['app-ticket', 'light', '0px', '8px'],
   ['app-terminal', 'dark', '0px', '4px'],
-])('%s retains the restrained menu shape in Plan, bundled CSS and Fast generation', (id, tone, radius, gap) => {
-  const markdown = design(id);
+])('%s retained source keeps the restrained menu shape in bundled CSS and Fast generation', (id, tone, radius, gap) => {
+  const markdown = resolveThemeColors(fs.readFileSync(path.join(__dirname,
+    `../yida-skills/skills/yida-design/templates/design-themes/${id}/design.md`), 'utf8').replaceAll('{{PRIMARY_COLOR}}', '#6F4E37'));
   const expected = {
     '--pod-nav-sub-divider-color': readDesignTokens(markdown)['--pod-nav-sub-divider-color'],
     '--pod-nav-menu-item-radius': radius,
@@ -287,7 +289,7 @@ test.each([
 
 test('project overrides replace case measurements in the navigation prose and generated CSS', () => {
   const plan = JSON.parse(JSON.stringify(fixture));
-  plan.visualStyle.forUser.selectedTheme = { themeId: 'app-nordic', templatePath: 'templates/design-themes/app-nordic/design.md' };
+  plan.visualStyle.forUser.selectedTheme = { themeId: 'soft-inset-surfaces', templatePath: 'templates/design-themes/soft-inset-surfaces/design.md' };
   plan.visualStyle.tokens = {
     '--pod-nav-menu-item-radius': '12px', '--pod-nav-menu-item-selected-border': '2px solid #123456',
     '--pod-nav-menu-item-height': '48px', '--pod-nav-menu-item-padding': '10px 16px',
@@ -304,7 +306,7 @@ test('project overrides replace case measurements in the navigation prose and ge
 
 
 test('one declaration block covers root, light/dark and legacy shell mode nodes', () => {
-  const css = applyDesignTokens(template, design('app-neon'));
+  const css = applyDesignTokens(template, design('dark-inset-hairline'));
   const rules = topLevelRules(css).filter(rule => rule.selector.split(',').map(x => x.trim()).includes(':root'));
   expect(rules).toHaveLength(1);
   expect(rules[0].selector.split(',').map(x => x.trim())).toEqual(THEME_SELECTORS);
@@ -312,13 +314,13 @@ test('one declaration block covers root, light/dark and legacy shell mode nodes'
   expect(new Set(names).size).toBe(names.length);
   for (const nav of ['light', 'dark', 'white', 'gray']) {
     for (const tone of ['light', 'dark']) {
-      expect(cascade(css, nav, tone)).toMatchObject(readDesignTokens(design('app-neon')));
+      expect(cascade(css, nav, tone)).toMatchObject(readDesignTokens(design('dark-inset-hairline')));
     }
   }
 });
 
 test('upgrades legacy mode blocks without a token delta and preserves local and conditional rules', () => {
-  const previous = design('app-neon');
+  const previous = design('dark-inset-hairline');
   const rootBody = applyDesignTokens(template, previous).match(/^:root\s*\{([\s\S]*?)^\}/m)[1];
   const custom = '\n.project-only { color: #123456; }\n@media (min-width: 900px) { :root { --project-wide: 1; } }';
   const old = `:root {${rootBody}\n}
