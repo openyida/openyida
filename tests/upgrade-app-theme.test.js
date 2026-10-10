@@ -20,7 +20,7 @@ const writes = () => httpPost.mock.calls.filter(call => call[1].includes('update
   .map(call => Object.fromEntries(new URLSearchParams(call[2])));
 const serve = async (_base, url, body) => {
   const { key, value } = Object.fromEntries(new URLSearchParams(body));
-  if (url.includes('getSingleConfig')) { return ok(state[key]); }
+  if (url.includes('getSingleConfig')) { return ok(state[key] === undefined ? null : state[key]); }
   state[key] = value;
   return ok(true);
 };
@@ -184,4 +184,60 @@ test('accepts empty-object content for unset configuration', async () => {
   });
   await expect(upgradeAppTheme(params)).resolves.toMatchObject({ success: true });
   expect(writes()).toHaveLength(2);
+});
+
+
+test.each([
+  ['slide', 'side', 'default', 'light'],
+  ['ver', 'l_shape', 'light', 'white'],
+  ['hoz', 'top', 'dark', 'dark'],
+])('upgrade migrates legacy layout %s and color %s before enabling the theme', async (layout, modernLayout, navTheme, modernTheme) => {
+  state.LAY_OUT_DIRECTION = layout;
+  state.NAV_THEME = navTheme;
+  state.NAVTYPE = 'top_side_fold';
+  const result = await upgradeAppTheme(params);
+  expect(state).toMatchObject({ LAY_OUT_DIRECTION: modernLayout, NAV_THEME: modernTheme,
+    NAVTYPE: 'top_side_fold', APP_THEME_MODE: 'modern', CREATED_WITH_MODERN_THEME: 'y' });
+  expect(result.navigation).toEqual({ layoutDirection: modernLayout, navTheme: modernTheme });
+  expect(writes()[0].key).toBe('LAY_OUT_DIRECTION');
+  expect(writes().at(-1).key).toBe('APP_THEME_MODE');
+  expect(writes().some(write => write.key === 'NAVTYPE')).toBe(false);
+  httpPost.mockClear();
+  expect(await upgradeAppTheme(params)).toMatchObject({ changed: false });
+  expect(writes()).toHaveLength(0);
+});
+
+test.each(['white', 'gray', 'light', 'dark'])('already modern %s stays unchanged', async navTheme => {
+  state = { CREATED_WITH_MODERN_THEME: 'y', APP_THEME_MODE: 'modern', LAY_OUT_DIRECTION: 'l_shape', NAV_THEME: navTheme };
+  expect(await upgradeAppTheme(params)).toMatchObject({ changed: false, navigation: { navTheme } });
+  expect(writes()).toHaveLength(0);
+});
+
+test.each([['ver', 'side_only', 'side'], ['hoz', 'top_side', 'l_shape']])(
+  'upgrade honors historical shell structure %s/%s', async (layout, navType, expected) => {
+    state.LAY_OUT_DIRECTION = layout; state.NAVTYPE = navType;
+    await upgradeAppTheme(params);
+    expect(state.LAY_OUT_DIRECTION).toBe(expected);
+  });
+
+test('navigation migration failure does not enable the new theme', async () => {
+  state.LAY_OUT_DIRECTION = 'slide';
+  httpPost.mockImplementation(async (base, url, body) => {
+    if (url.includes('updateSingleConfig')) {return ok(false);}
+    return serve(base, url, body);
+  });
+  await expect(upgradeAppTheme(params)).rejects.toMatchObject({ details: {
+    attemptedKey: 'LAY_OUT_DIRECTION', verifiedWrites: [], writeOutcomeMayBePartial: true,
+  } });
+  expect(state.APP_THEME_MODE).toBe('legacy');
+  expect(writes().map(write => write.key)).toEqual(['LAY_OUT_DIRECTION']);
+});
+
+test('navigation pre-read failure refuses all writes', async () => {
+  httpPost.mockImplementation(async (base, url, body) => {
+    if (new URLSearchParams(body).get('key') === 'NAV_THEME') {return { success: false };}
+    return serve(base, url, body);
+  });
+  await expect(upgradeAppTheme(params)).rejects.toMatchObject({ code: 'APP_THEME_READ_FAILED' });
+  expect(writes()).toHaveLength(0);
 });
