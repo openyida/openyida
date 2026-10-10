@@ -39,6 +39,14 @@ test.each([{}, { explicitRequest: true }, { confirm: true }, { explicitRequest: 
     expect(httpGet).toHaveBeenCalledTimes(1);
     expect(httpPost).not.toHaveBeenCalled();
   });
+
+test.each([[], ['--explicit-request'], ['--confirm']])(
+  'CLI checks eligible app identity before incomplete approval: %j', async (...flags) => {
+    await expect(run(['APP_1', ...flags])).rejects.toMatchObject({ code: 'APP_THEME_CONFIRMATION_REQUIRED' });
+    expect(createAuthRef).toHaveBeenCalledTimes(1);
+    expect(httpGet).toHaveBeenCalledTimes(1);
+    expect(httpPost).not.toHaveBeenCalled();
+  });
 test.each([[], ['APP_1', '--yes'], ['APP_1', '--force'], ['../APP_1', '--explicit-request', '--confirm']]
   .map(args => ({ args })))('rejects invalid input $args', async ({ args }) => {
   await expect(run(args)).rejects.toBeDefined();

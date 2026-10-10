@@ -144,6 +144,8 @@ Fast 与 Plan 使用同一主题的颜色推导、组件规则和页面设计标
 
 ## 应用主题 CSS 的职责
 
+以下应用级上传流程先核对服务端 `appThemeEnable=y` 且 `appThemeMode=modern`。旧主题或能力未知时，按 [旧主题注入与停用规则](../references/application-style-library.md#旧主题应用的样式作用域与确认) 保留平台主题并使用页面局部样式；应用层注入须取得目标应用和 CSS 范围的明确用户确认，不能因计划或视觉方案已确认而自动追加 `--confirm-legacy-app-style`。
+
 按 [应用与自定义页面共用主题](../references/application-theme-consistency.md) 将风格承诺落实到变量，再交接页面开发。文字中的“暖色”“纸感”不是 CLI 的色值输入；模板之外的全局风格必须写入 token，不能只在自定义页实现。
 
 平台基础变量是最低契约，不是允许使用的全部变量。项目可按需扩展颜色、材质、布局、字体、动效和组件状态等语义，命名不限定为 `--oyd-*`。基础变量和扩展变量统一生成到主题 CSS；分组不决定运行时作用域，新增变量需有明确的使用组件、CSS 属性或平台映射，详见 [扩展规则](../references/application-theme-consistency.md#平台基础变量是应用主题基础框架)。

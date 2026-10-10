@@ -30,7 +30,7 @@
 4. 获得可访问 URL；
 5. 各入口的菜单顺序、默认页面和首屏任务已按规划落实；平台导航有排序回读，自定义导航有页面验证。未完成项按入口明确列出，不能仅因平台命令不适用就将排序记为完成；
 6. 新建或作为页面数据源的核心普通表单已写入 1-3 条真实示例记录并 query 抽查，或明确说明跳过原因；
-7. 汇合此前并行执行的主题任务，确认 `themeVerification.verified=true`、`colour=custom`、`themeColor`、`navTheme`、`layoutDirection` 与已确认设置一致，`customThemeStyle.cssUrl` 非空；这里是完成检查，不是首次更新主题的时机。应用主题文件已在应用级统一配置，自定义页面只在 `YidaComp` 内消费对应 token，未向上层注入或同步主题样式。
+7. 汇合此前并行执行的主题任务；旧主题或能力未知且未取得应用层注入确认时，按 [旧主题注入与停用规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认) 核验保留平台主题及页面局部样式范围，不将其判为主题上传失败。符合应用层注入条件时，确认 `themeVerification.verified=true`、`colour=custom`、`themeColor`、`navTheme`、`layoutDirection` 与实际保存协议对应的已确认设置一致，`customThemeStyle.cssUrl` 非空；这里是完成检查，不是首次更新主题的时机。应用主题文件已在应用级统一配置，自定义页面只在 `YidaComp` 内消费对应 token，未向上层注入或同步主题样式。
 8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；该命令检查页面/资源数量及已提供的素材执行记录一致性，不能替代第 3 条运行态数据验收。只有 `verdict=pass` 且运行态数据证据通过时才说“已按 PRD 完成搭建”；`verdict=needs_review` 时可以交付但必须列出 `items` 中 `status=needs_review/not_checked` 的复核项，`verdict=fail` 时列出 `hardFailures` 并说明未完成；
 9. 未继续执行用户未要求的公开访问、额外截图报告、报表、大屏、数据源深接或精细导航分组。
 

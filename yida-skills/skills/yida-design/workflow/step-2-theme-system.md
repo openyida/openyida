@@ -73,7 +73,7 @@
 - 明暗双轴：按[主题明暗双轴](../references/application-style-library.md#主题明暗双轴)分别填写 `themeProfile.contentTone` 与 `themeProfile.navTheme`。`contentTone` 默认 `light`；自由创意的导航明暗由项目设计明确填写，并配套导航 Token。
 - `design.md` 的 `themeProfile.colorMode` 是宜搭配色模式，例如 `gradient`，不表示暗黑模式。
 
-主题 CSS 就绪后，将主题文件路径、`navTheme`、`logoSource` 和 `layoutDirection` 写入 `design.md`。获取真实 `appType` 后，必须执行 `openyida update-app <appType> --theme-file <CSS路径>` 更新应用基础设置，并以 `themeVerification.verified=true` 确认资源已绑定；后续修改 CSS 也须重新上传保存。平台负责整套应用的主题一致性；只有 `YidaCodeCanvas` 页面源码需要在组件内部使用主题 token。
+主题 CSS 就绪后，将主题文件路径、`navTheme`、`logoSource` 和 `layoutDirection` 写入 `design.md`。获取真实 `appType` 后，先按 [旧主题注入与停用规则](../references/application-style-library.md#旧主题应用的样式作用域与确认) 核验服务端主题能力；只有新版主题或取得目标旧应用的明确注入确认后，才执行 `openyida update-app <appType> --theme-file <CSS路径>` 更新应用基础设置，并以 `themeVerification.verified=true` 确认资源已绑定。旧主题未获注入确认时保留平台主题、采用页面局部样式；后续修改已绑定 CSS 也须重新上传保存。平台负责整套应用的主题一致性；只有 `YidaCodeCanvas` 页面源码需要在组件内部使用主题 token。
 
 ## 写字体层级
 
