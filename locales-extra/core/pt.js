@@ -1069,7 +1069,9 @@ module.exports = {
   },
   update_app: {
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
-    remove_theme_conflict: '--remove-custom-theme cannot be combined with a theme file or new customThemeStyle.',
+    disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
+    custom_theme_config_invalid: 'customThemeStyle is missing, malformed, or lacks a nonempty cssUrl. No disable request was submitted; inspect the latest app configuration.',
+    custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'Um colour predefinido não pode ser combinado com CSS ou themeColor. Use --colour custom ou omita --colour.',
     custom_theme_color_required: 'colour=custom requer um arquivo de tema ou themeColor válido. Use --theme-file ou --theme-color.',
     theme_not_persisted: 'Não foi possível confirmar as configurações do tema após salvar. Verifique themeVerification e tente novamente com update-app <appType> --theme-file <css>; não recrie o aplicativo.',

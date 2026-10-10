@@ -266,4 +266,4 @@ Fast 更新使用 `openyida sample yida-design app-theme --design-file <design.m
 - `vc-deep-yida/src/components/deep-container/index.tsx`、`src/vc-page-yida/component/container/{appTheme,legacy}/page.jsx`：内容背景与变量来源；`src/components/deep-editor-field/main.scss`：富文本状态及硬编码边界。
 
 
-应用级主题上传仅在确认新版主题能力时自动执行。旧主题或能力未知时，先按 [旧主题注入与移除规则](application-style-library.md#旧主题应用的样式作用域与确认) 设计页面局部样式；应用层注入必须取得目标应用的明确用户确认，不得自动追加确认参数。用户要求去掉应用中的 appCustomTheme 时使用 `update-app --remove-custom-theme`，保留品牌色并回读核验。
+应用级主题上传仅在确认新版主题能力时自动执行。旧主题或能力未知时，先按 [旧主题注入与停用规则](application-style-library.md#旧主题应用的样式作用域与确认) 设计页面局部样式；应用层注入必须取得目标应用的明确用户确认，不得自动追加确认参数。用户要求去掉应用中的 appCustomTheme 时使用 `update-app --disable-custom-theme`，保留资源配置和品牌色并回读核验布尔值 false。

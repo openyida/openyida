@@ -196,4 +196,4 @@ antd 控件按 Canvas 技能接入 `CanvasThemeProvider`，由适配层读取当
 移动端 `--color-brand-1`、`--color-brand-2`、`--color-brand-3`、`--color-brand-4` 由 CLI 按应用色阶生成桥接；最终 CSS 也必须在顶层 `:root` 完整提供这四项。生成后和上传前同时校验 PC 七档与移动端四档的缺失、无效颜色及引用循环，不要求在 design.md 重复声明自动桥接。
 
 
-应用级主题上传仅在确认新版主题能力时自动执行。旧主题或能力未知时，先按 [旧主题注入与移除规则](application-style-library.md#旧主题应用的样式作用域与确认) 设计页面局部样式；应用层注入必须取得目标应用的明确用户确认，不得自动追加确认参数。用户要求去掉应用中的 appCustomTheme 时使用 `update-app --remove-custom-theme`，保留品牌色并回读核验。
+应用级主题上传仅在确认新版主题能力时自动执行。旧主题或能力未知时，先按 [旧主题注入与停用规则](application-style-library.md#旧主题应用的样式作用域与确认) 设计页面局部样式；应用层注入必须取得目标应用的明确用户确认，不得自动追加确认参数。用户要求去掉应用中的 appCustomTheme 时使用 `update-app --disable-custom-theme`，保留资源配置和品牌色并回读核验布尔值 false。

@@ -21,7 +21,9 @@ openyida sample yida-design application-style --style-id free-creative --output 
 
 不要把完整应用主题 CSS 包裹在页面根节点后就宣称已兼容；页面局部样式只使用该页面已验证的 DOM/变量，不改 `html`、`body`、顶层 `:root` 或平台导航/表单全局选择器。若用户拒绝应用层注入，交付页面局部方案并说明覆盖范围。
 
-用户要求“去掉应用中的 appCustomTheme / customThemeStyle / 应用级自定义 CSS”时，执行 `openyida update-app <appType> --remove-custom-theme`，仅清空应用级样式绑定，保留品牌色、导航和页面源码，不删除 CDN 文件。该参数不能与 `--theme-file` 同传。核对 `themeVerification.verified=true` 且 `customThemeStyle=null`，再刷新实际访问入口检查效果；配置清空不代表缓存中的已打开页面已恢复，页面自身样式也不会被移除。
+用户要求“去掉应用中的 appCustomTheme / customThemeStyle / 应用级自定义 CSS”时，按宜搭界面关闭“启用主题换肤”的方式执行 `openyida update-app <appType> --disable-custom-theme`。先读取最新基础设置，解析原 customThemeStyle，保留 cssUrl、cssFileName 和其他资源字段，将 enabled 与 iframePropagation 改为布尔值 false，再 JSON.stringify 后以字符串提交到该应用的 query/app/updateApp.json；沿用登录态与 CSRF，其他基础设置取最新回读并保持原值。不能清空 URL，不能传空字符串、null、空对象/数组或只传 {"enabled":false}；原配置缺失或无法解析时停止写入并说明原因。该参数不与其他更新字段同传，不删除 CDN 文件，也不修改页面源码。
+
+保存后核对 themeVerification.verified=true，确认 enabled/iframePropagation 为布尔值 false，URL 与文件名仍为原值。随后刷新真实访问页，确认没有 link#yida-app-custom-theme，且网络请求不再加载原主题 CSS；仅 success=true 或配置回读通过不代表访问态已验证。页面检查失败时报告已提交的非认证字段和实际回读结果，隐藏 Token、Cookie、CSRF 等认证信息。结果描述为“自定义主题 CSS 已停用，资源配置仍保留”；没有浏览器证据时补充“访问态效果待验证”。
 
 ## 命令与参数
 

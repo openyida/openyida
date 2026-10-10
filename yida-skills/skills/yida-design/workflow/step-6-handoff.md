@@ -24,4 +24,4 @@ Fast 完成手写后执行 `openyida check-design prd/<项目名>/design.md --js
 主题 CSS 交付前必须完成实例化：模板中的 `{{PRIMARY_COLOR}}` 和 `<生成实际色值：…>` 不可上传，不能只替换主色。完成 design.md 后执行 `openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css>`；遇到 `THEME_CSS_UNRESOLVED_TOKEN` 按返回的 token 修复设计源并重新生成。
 
 
-应用级主题上传仅在确认新版主题能力时自动执行。旧主题或能力未知时，先按 [旧主题注入与移除规则](../references/application-style-library.md#旧主题应用的样式作用域与确认) 设计页面局部样式；应用层注入必须取得目标应用的明确用户确认，不得自动追加确认参数。用户要求去掉应用中的 appCustomTheme 时使用 `update-app --remove-custom-theme`，保留品牌色并回读核验。
+应用级主题上传仅在确认新版主题能力时自动执行。旧主题或能力未知时，先按 [旧主题注入与停用规则](../references/application-style-library.md#旧主题应用的样式作用域与确认) 设计页面局部样式；应用层注入必须取得目标应用的明确用户确认，不得自动追加确认参数。用户要求去掉应用中的 appCustomTheme 时使用 `update-app --disable-custom-theme`，保留资源配置和品牌色并回读核验布尔值 false。
