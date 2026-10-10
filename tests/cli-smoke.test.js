@@ -258,12 +258,19 @@ describe('CLI offline smoke', () => {
     expect(output).not.toContain('读取登录态');
   });
 
+  test.each([[], ['--explicit-request'], ['--confirm']].map(flags => ({ flags })))('theme upgrade rejects incomplete approval before login: $flags', ({ flags }) => {
+    const result = runAny(['upgrade-app-theme', 'APP_TEST', ...flags, '--json']);
+    expect(result.status).toBe(1);
+    expect(JSON.parse(result.jsonOutput)).toMatchObject({ success: false, errorCode: 'APP_THEME_CONFIRMATION_REQUIRED' });
+  });
+
   test('resource command --help probes exit successfully without requiring login', () => {
     const cases = [
       { args: ['create-form', '--help'], text: 'create-form create' },
       { args: ['create-page', '--help'], text: 'create-page' },
       { args: ['app-online', '--help'], text: 'openyida app-online' },
       { args: ['app-offline', '--help'], text: 'openyida app-offline' },
+      { args: ['upgrade-app-theme', '--help'], text: 'openyida upgrade-app-theme' },
       { args: ['sample', '--help'], text: 'Code Templates' },
       { args: ['publish', '--help'], text: 'openyida publish' },
       { args: ['copy', '--help'], text: 'openyida copy' },
@@ -608,6 +615,7 @@ describe('CLI offline smoke', () => {
       'formula.evaluate',
     ]));
     expect(parsed.summary.ask_command_ids).toEqual([
+      'upgrade-app-theme',
       'app-offline',
       'connector.delete',
       'connector.delete-action',
@@ -790,6 +798,27 @@ describe('CLI offline smoke', () => {
         expect.objectContaining({ name: 'formTitle', source: 'positional', required: true }),
         expect.objectContaining({ name: 'fieldsJsonFile', source: 'positional', required: true }),
         expect.objectContaining({
+          name: 'layout',
+          source: 'option',
+          builder_options: ['--layout'],
+          default: 'single',
+          values: ['single', 'double', 'card', 'section'],
+        }),
+        expect.objectContaining({
+          name: 'theme',
+          source: 'option',
+          builder_options: ['--theme'],
+          default: 'default',
+          values: ['default', 'compact', 'comfortable'],
+        }),
+        expect.objectContaining({
+          name: 'labelAlign',
+          source: 'option',
+          builder_options: ['--label-align'],
+          default: 'top',
+          values: ['top', 'left', 'right'],
+        }),
+        expect.objectContaining({
           name: 'icon',
           source: 'option',
           required: false,
@@ -797,6 +826,14 @@ describe('CLI offline smoke', () => {
           default: 'auto',
           value_catalog_command_id: 'create-form.icons',
         }),
+        expect.objectContaining({
+          name: 'contentLocale',
+          source: 'option',
+          builder_options: ['--locale', '--content-locale', '--lang'],
+          values: ['zh_CN', 'en_US', 'ja_JP'],
+        }),
+        expect.objectContaining({ name: 'open', source: 'option', builder_options: ['--open'] }),
+        expect.objectContaining({ name: 'noOpen', source: 'option', builder_options: ['--no-open'] }),
       ],
       canonical: {
         command_id: 'create-form.create',
@@ -845,9 +882,6 @@ describe('CLI offline smoke', () => {
       mutates_yida: false,
       mutates_local: false,
     });
-    expect(commandById['form-detail-style.check']).toBeUndefined();
-    expect(commandById['form-detail-style.apply']).toBeUndefined();
-    expect(commandById['form-detail-style.remove']).toBeUndefined();
     expect(commandById['create-form.validate']).toBeUndefined();
     expect(commandById['create-form.validate-fields'].requires_login).toBe(false);
     expect(commandById['create-form.validate-fields'].side_effect).toMatchObject({
@@ -1163,7 +1197,7 @@ describe('CLI offline smoke', () => {
     ]);
   });
 
-  test('commands validate recognizes the manifest-declared create-form icon option', () => {
+  test('commands validate recognizes every manifest-declared create-form option', () => {
     const output = runOk([
       'commands',
       'validate',
@@ -1174,8 +1208,17 @@ describe('CLI offline smoke', () => {
       'APP_xxx',
       '访客登记',
       '.cache/openyida/visitor/fields.json',
+      '--layout',
+      'section',
+      '--theme',
+      'comfortable',
+      '--label-align',
+      'right',
       '--icon',
       'name-card',
+      '--locale',
+      'en_US',
+      '--no-open',
     ]);
     const parsed = JSON.parse(output);
 
@@ -1186,9 +1229,14 @@ describe('CLI offline smoke', () => {
         appType: 'APP_xxx',
         formTitle: '访客登记',
         fieldsJsonFile: '.cache/openyida/visitor/fields.json',
+        layout: 'section',
+        theme: 'comfortable',
+        labelAlign: 'right',
         icon: 'name-card',
+        contentLocale: 'en_US',
+        noOpen: true,
       },
-      display: 'openyida create-form create APP_xxx "访客登记" .cache/openyida/visitor/fields.json --icon name-card',
+      display: 'openyida create-form create APP_xxx "访客登记" .cache/openyida/visitor/fields.json --layout section --theme comfortable --label-align right --icon name-card --locale en_US --no-open',
     });
   });
 
@@ -1220,7 +1268,7 @@ describe('CLI offline smoke', () => {
     expect(parsed.argv.slice(0, manifestEntry.path.length)).toEqual(manifestEntry.path);
   });
 
-  test('commands build recognizes the manifest-declared create-form icon option', () => {
+  test('commands build renders every manifest-declared create-form option', () => {
     const output = runOk([
       'commands',
       'build',
@@ -1231,8 +1279,17 @@ describe('CLI offline smoke', () => {
       '访客登记',
       '--fields-json-file',
       '.cache/openyida/visitor/fields.json',
+      '--layout',
+      'card',
+      '--theme',
+      'compact',
+      '--label-align',
+      'left',
       '--icon',
       'name-card',
+      '--locale',
+      'ja_JP',
+      '--open',
       '--json',
     ]);
     const parsed = JSON.parse(output);
@@ -1246,11 +1303,25 @@ describe('CLI offline smoke', () => {
         'APP_xxx',
         '访客登记',
         '.cache/openyida/visitor/fields.json',
+        '--layout',
+        'card',
+        '--theme',
+        'compact',
+        '--label-align',
+        'left',
         '--icon',
         'name-card',
+        '--locale',
+        'ja_JP',
+        '--open',
       ],
       params: {
+        layout: 'card',
+        theme: 'compact',
+        labelAlign: 'left',
         icon: 'name-card',
+        contentLocale: 'ja_JP',
+        open: true,
       },
     });
   });
@@ -1650,6 +1721,7 @@ describe('CLI offline smoke', () => {
     ]));
     expect(parsed.commands.allow_command_ids).toContain('create-app');
     expect(parsed.commands.ask_command_ids).toEqual([
+      'upgrade-app-theme',
       'app-offline',
       'connector.delete',
       'connector.delete-action',
@@ -1709,6 +1781,10 @@ describe('CLI offline smoke', () => {
     expect(parsed.recommended.default_full_app_workflow.completion_contract).toContain('one named application entry group');
     expect(parsed.recommended.default_full_app_workflow.application_entry_policy).toEqual({
       delivery_unit: 'single_application_entry_group',
+      persistence: {
+        command_ids: ['app-entry.get', 'app-entry.set'],
+        policy: expect.stringContaining('Conflicts require reread and review'),
+      },
       workbench: {
         include: 'when_workspace_in_scope',
         url: '{base_url}/{appType}/workbench',
@@ -1719,6 +1795,8 @@ describe('CLI offline smoke', () => {
       custom: {
         include: 'when_entry_mode_standalone_and_is_render_nav_false_readback',
         url: '{base_url}/{appType}/custom/{formUuid}',
+        default_policy: expect.stringContaining('Persist page navigation hiding and read it back'),
+        url_source: expect.stringContaining('navigationVerification.renderNav=false and verified=true'),
       },
       admin: {
         include: 'default_for_complete_application',
@@ -2503,6 +2581,11 @@ test('Plan and navigation commands are discoverable with their existing permissi
   expect(commands.get('update-app').usage).toContain('[--layout side|top|l_shape]');
   expect(commands.get('update-app').usage).toContain('[--hide-app-nav|--show-app-nav]');
   expect(commands.get('update-app').usage).not.toContain('--nav-type');
+  expect(commands.get('design-plan.init').notes.join(' ')).toContain('There is no navigation-tone argument');
+  expect(commands.get('design-plan.materialize').notes.join(' ')).toContain('does not synthesize a light/dark replacement palette');
+  expect(commands.get('design-plan.patch').notes.join(' ')).toContain('derived and cannot be patched');
+  const navThemeArg = commands.get('update-app').args.find(arg => arg.name === 'navTheme');
+  expect(navThemeArg.description).toContain('no implicit light default');
   expect(summary.full_app_artifact_route.plan_command_ids).toEqual(['design-plan.catalog', ...local.slice(0, 4)]);
   expect(commands.get('design-plan.catalog')).toMatchObject({ requires_login: false, permission: { mode: 'allow' }, side_effect: { kind: 'local_read', mutates_yida: false, mutates_local: false } });
   expect(summary.builder_path.command_contract.canonical_builder_command_ids).toContain('design-plan.catalog');
@@ -2552,20 +2635,27 @@ test('command and agent navigation policies align with AI intake decisions', () 
     expect(route.entry_navigation_contract.runtime.applies_to).toContain('Confirmed page-owned application menus only');
 
     expect(route.navigation_policy).toContain('Persistent filters/state alone do not justify custom application navigation');
+    expect(route.navigation_policy).toContain('Navigation tone is derived from the final selected theme template');
+    expect(route.navigation_policy).toContain('never guessed from the business brief or implicitly defaulted to light');
     expect(route.navigation_policy).toContain('Custom top navigation defaults to edge-to-edge, not floating');
     expect(route.navigation_policy).toContain('start transparent, add a surface on scroll, restore transparency at the top');
     expect(route.navigation_policy).toContain('floating requires an explicit design');
     expect(route.navigation_policy).not.toContain('offer exactly two');
     expect(route.design_mode_policy).toBe(workflow.design_mode_policy);
+    expect(route.design_mode_policy).toContain('Fast and Plan share one three-direction visual generation rule');
+    expect(route.design_mode_policy).toContain('generate exactly three directions and use ask_human');
     expect(route.design_mode_policy).not.toContain('Confirm unresolved navigation');
     expect(route.product_design_policy).toBe(workflow.product_design_policy);
     expect(route.product_design_policy).toContain('Fast, Plan and single-page design share yida-design/templates/design-themes');
     expect(route.product_design_policy).toContain('plus scoped custom-page variables');
+    expect(route.product_design_policy).toContain('Each selected template is the authority for navTheme, its six navigation color tokens, and its selected-item shadow token');
+    expect(route.product_design_policy).toContain('preserves mode-independent navigation appearance tokens');
+    expect(route.product_design_policy).toContain('Light, dark, white and gray mode classes consume the same project tokens');
   }
   expect(workflow.default_nav_order_policy).toContain('preserves platform navigation for the management workspace');
   expect(workflow.entry_navigation_contract).toMatchObject({
     plan_path: 'execution.entryRecommendation',
-    modes: ['unified', 'service-management', 'frontend-only'],
+    modes: ['unified', 'service-management', 'frontend-only', 'backend-only'],
     local_menu_binding: expect.stringContaining('management/workspace'),
     leaf_access_required: expect.stringContaining('Every leaf menu'),
     runtime: {
@@ -2616,9 +2706,24 @@ test('plain user-facing guidance is available from manifest and both agent capab
   expect(summary.full_app_artifact_route.visual_decision_policy).toEqual(visual);
   expect(capabilities.commands.core_workflows.full_app_build.visual_decision_policy).toEqual(visual);
   expect(capabilities.recommended.default_full_app_workflow.visual_decision_policy).toEqual(visual);
+  expect(visual.applicationStyle.navigationShape).toMatchObject({
+    inputs: ['radius', 'normal_hover_selected_borders', 'selected_shadow', 'item_height', 'padding', 'gap', 'shell_spacing'],
+    authoring: { fast: 'design.md tokens.application-global.appearance.navigation', plan: 'visualStyle.tokens' },
+    verification: expect.arrayContaining(['native_data_management', 'custom_page', 'submission', 'record_detail']),
+  });
+  const [navigationReference, navigationAnchor] = visual.applicationStyle.navigationShape.reference.split('#');
+  expect(fs.readFileSync(path.join(ROOT, navigationReference), 'utf8')).toContain(`### ${navigationAnchor}`);
   expect(fs.existsSync(path.join(ROOT, visual.reference.split('#')[0]))).toBe(true);
   expect(visual.reference).toBe('yida-skills/skills/yida-design/references/theme-selection.md#设计方向比较');
   expect(fs.readFileSync(path.join(ROOT, visual.reference.split('#')[0]), 'utf8')).toContain('## 设计方向比较');
+  expect(visual.nativeFormLayout).toMatchObject({
+    model: 'component_based_native_form_layout',
+    regions: ['top', 'left', 'main', 'right', 'between_fields'],
+    components: ['tabs', 'button_groups', 'images', 'graphics', 'status_blocks', 'dividers', 'columns', 'fields'],
+  });
+  expect(visual.nativeFormLayout.rules).toContain('preserve_existing_component_tree');
+  expect(visual.nativeFormLayout.rules).toContain('use_divider_for_business_groups');
+  expect(visual.nativeFormLayout.forbidden).toEqual(['generic_filler_copy', 'random_layout_rotation']);
 });
 
 test('asset fallback and completion policies are shared by the CLI, manifest and agent summary', () => {
@@ -2698,29 +2803,45 @@ test('Plan CLI and design-file sample work locally without a login', () => {
     expect(fs.existsSync(path.join(dir, 'design.md'))).toBe(false);
     runOk(['design-plan', 'materialize', input, '--json']);
     const { readDesignTokens } = require('../lib/app/theme-from-design');
+    const { topLevelRules } = require('../lib/app/theme-scope');
     const contract = require('../yida-skills/skills/yida-design/templates/design-themes/basic-tokens.json');
-    const tokens = readDesignTokens(fs.readFileSync(path.join(dir, 'design.md'), 'utf8'));
+    const design = fs.readFileSync(path.join(dir, 'design.md'), 'utf8');
+    const tokens = readDesignTokens(design);
+    const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
+    const platformTokens = new Set([...template.matchAll(/(--[\w-]+)\s*:/g)]
+      .map(match => match[1]));
+    // Native form templates also author this platform token; the shared CSS
+    // leaves its default to the platform until a design explicitly overrides it.
+    platformTokens.add('--input-hover-bg-color');
     expect(Object.keys(tokens)).toEqual(expect.arrayContaining(Object.values(contract.groups).flat()));
     expect(Object.keys(tokens).filter(name => !Object.values(contract.groups).flat().includes(name))
-      .every(name => name.startsWith('--oyd-'))).toBe(true);
+      .every(name => name.startsWith('--oyd-') || platformTokens.has(name))).toBe(true);
+    expect(platformTokens.has('--pod-nav-unknown-token')).toBe(false);
     for (const [name, value] of Object.entries(contract.fixedValues)) {
       expect(tokens[name]).toBe(value);
     }
-    const result = JSON.parse(runOk(['design-plan', 'patch', input, '--set', 'execution.appConfig.navigationType=custom', '--set', 'visualStyle.tokens.--pod-card-border-radius=16px', '--materialize', '--output-dir', dir, '--json']));
+    const selectedShadow = 'inset 0 -3px 0 var(--color-brand1-6)';
+    const result = JSON.parse(runOk(['design-plan', 'patch', input,
+      '--set', 'execution.appConfig.navigationType=custom',
+      '--set', 'visualStyle.tokens.--pod-card-border-radius=16px',
+      '--set', `visualStyle.tokens.--pod-nav-menu-item-selected-shadow=${selectedShadow}`,
+      '--materialize', '--output-dir', dir, '--json']));
     expect(result.changed).toBe(true);
     const cssPath = path.join(dir, 'app-theme.css');
     runOk(['sample', 'yida-design', 'app-theme', '--design-file', path.join(dir, 'design.md'), '--output', cssPath]);
     const css = fs.readFileSync(cssPath, 'utf8');
     expect(css).toContain('--pod-card-border-radius: 16px');
-    const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
-    const scope = (source, tone) => source.match(new RegExp(`\\.pod-premium\\.nav-${tone}\\s*\\{([^}]+)\\}`))[1];
-    for (const tone of ['dark', 'white', 'gray']) {
-      const background = tone === 'dark' ? tokens['--pod-shell-theme-bg-color']
-        : scope(template, tone).match(/--pod-shell-theme-bg-color:\s*([^;]+);/)[1];
-      const block = scope(css, tone);
-      expect(block).toContain(`--pod-shell-theme-bg-color: ${background};`);
-      if (tone !== 'dark') {expect(block).toBe(scope(template, tone));}
+    const patchedDesign = fs.readFileSync(path.join(dir, 'design.md'), 'utf8');
+    expect(readDesignTokens(patchedDesign)['--pod-nav-menu-item-selected-shadow']).toBe(selectedShadow);
+    expect(patchedDesign).toContain(`| 选中项阴影 | --pod-nav-menu-item-selected-shadow | ${selectedShadow} |`);
+    expect(css).toContain(`--pod-nav-menu-item-selected-shadow: ${selectedShadow};`);
+    const globalRules = topLevelRules(css).filter(rule => rule.selector.split(',').map(x => x.trim()).includes(':root'));
+    expect(globalRules).toHaveLength(1);
+    for (const tone of ['light', 'dark', 'white', 'gray']) {
+      expect(globalRules[0].selector).toContain(`.pod-premium.nav-${tone}`);
+      expect(globalRules[0].body).toContain(`--pod-shell-theme-bg-color: ${tokens['--pod-shell-theme-bg-color']};`);
     }
+    expect(css).not.toMatch(/\.pod-premium\.(?:is|nav)-(?:light|dark|white|gray)\s*\{/);
   } finally {fs.rmSync(dir, { recursive: true, force: true });}
 });
 

@@ -25,16 +25,24 @@
 ## 执行顺序
 
 1. 直接复用已确认的 `requirement-brief.json`；若尚未完成 Step 2 的规划准备，先按 [交接契约](../../../yida-requirement-analysis/references/handoff.md#规划阶段补齐) 补齐页面承载、导航与主题，AI 建议保留来源，不重新询问业务或导航；本文件已经包含规划入口，不再额外读取 `step-1-understand.md` 或 `step-2-confirm.md`。
-2. 主题映射未确定时，执行一次 `openyida design-plan catalog --json`，从返回的 `themes` 选择 themeId，并复用 `pagePatterns`。已有合法主题 ID 时直接初始化。初始化计划草稿，CLI 返回编写契约与当前主题的精简上下文：
+2. 用户未给出明确完整视觉风格时，先执行 [Plan 视觉分支](../../../yida-design/sub_skill/yida-design-plan/SKILL.md)：按 Fast / Plan 共用规则生成恰好三套候选，并通过 `ask_human` 获得用户选择。不得因用户未主动要求比较而跳过。获得选择或已有明确完整风格后，再继续主题映射和初始化。
+3. 主题映射未确定时，执行一次 `openyida design-plan catalog --json`，从返回的 `themes` 选择 themeId，并复用 `pagePatterns`。已有合法主题 ID 时直接初始化。初始化计划草稿，CLI 返回编写契约与当前主题的精简上下文：
 
    ```bash
    openyida design-plan init .cache/openyida/<项目名>/requirement-brief.json --theme-id <已选主题> --json
    ```
-   `requirement-brief.json` 必须复用 `yida-requirement-analysis` 的输出结构，不要自行发明字段层级；`projectName` 位于 JSON 根级，`businessGoals` 等集合字段保持数组，命令第一次就传入 `visualSelection.themeId`。若 CLI 返回字段路径诊断，按 `expectedPath` 集中修正原文件后最多重试一次，不要通过反复更换项目名规避结构错误。
+   `requirement-brief.json` 必须复用 `yida-requirement-analysis` 的输出结构：`projectName` 位于 JSON 根级，`businessGoals` 等集合字段保持数组。命令第一次就传入 `visualSelection.themeId` 对应的 `--theme-id` 值。
 
-3. 按 init 返回的 `parallelTasks` 和 `dependsOn` 完成待补内容。CLI 预填业务骨架与已选主题；自定义页仍须补齐焦点、布局、主操作、响应式和验收，写入 `visual.json`。业务页面确定后完成视觉任务，可在同一轮中顺序填写两个文件。纯原生资源且两个片段均已就绪时，直接生成方案。
-4. init 已创建并预填 `business.json` 骨架；读取该文件及 `context` 中的类型示例，按 `authoring.pendingFields` 的文件和字段路径补齐内容，保留 `base` 与已有事实。复核需求覆盖后，将已完成片段设为 `ready=true`。`business.json` 的 facts 填写 overview、dataModels、businessFlows、pages 和可选 execution；`visual.json` 的 facts 填写 visualStyle。同一次补齐所有普通表单的 sampleDataPlan（窄范围不造数时写 skipReason）及所有自定义页面的 permissionSummary，然后直接执行 init 返回的 `materialize.command`，只物化一次。标准首版禁止先试 `--from-preview`、`preview`、`--check` 或无参数 materialize；成功 JSON 已返回 HTML 路径和 revision，不再用 Glob、Read 或帮助命令检查产物。只有存在品牌稿、参考图、页面级特殊风格或用户明确要求精修时，才执行 `optionalTasks.visual-refinement` 后再物化。
-5. 读取精确路径 `workflow/plan/step-4-deliver.md`，按其中契约直接展示并确认当前方案。超大需求需要展示中间进展或用户明确要求边生成边查看时，才使用 [按模块更新方案](../incremental-preview.md)；普通首版不逐模块预览和重复渲染。
+   初始化失败时，按 `expectedPath` 修正 `requirement-brief.json`，再按[本地校验修复](../../../../references/source-repair.md)重试。初始化和后续物化使用同一停止规则；不要更换项目名规避错误。初始化成功后进入下一步，不重复 init。
+
+4. **确定待补字段。** 按 init 返回的 `parallelTasks`、`dependsOn` 和 `authoring.pendingFields` 安排工作。保留两个片段中的 `base` 与已有事实；业务页面确定后再补视觉内容，可在同一轮中顺序填写两个文件。
+5. **补齐业务事实。** init 已预填 `business.json`；读取该文件及 `context` 中的类型示例，在 facts 中补齐 overview、dataModels、businessFlows、pages 和可选 execution。一次补齐所有普通表单的 sampleDataPlan（窄范围不造数时写 skipReason）及所有自定义页面的 permissionSummary。
+6. **补齐视觉事实。** 在 `visual.json` 的 facts.visualStyle 中补齐自定义页的焦点、布局、主操作、响应式和验收。仅在存在品牌稿、参考图、页面级特殊风格或用户明确要求精修时，执行 `optionalTasks.visual-refinement`。纯原生资源没有这些待补项时沿用 init 的视觉内容。
+7. **标记片段就绪。** 复核两个片段覆盖已确认需求且必填内容齐全，将已完成片段设为 `ready=true`。两个片段均已就绪后进入生成步骤。
+8. **生成首版产物。** 直接执行 init 返回的 `materialize.command`。成功后进入展示步骤；`maxSuccessfulCalls: 1` 表示首版成功后不重复物化。失败按 `repairPolicy` 修复，不能重复提交未修改的输入，具体停止条件见[本地校验修复](../../../../references/source-repair.md)。标准首版不先试 `--from-preview`、`preview`、`--check` 或无参数 materialize。
+9. **展示并确认。** 成功 JSON 已返回 HTML 路径和 revision，直接按 `workflow/plan/step-4-deliver.md` 展示并确认当前方案；不再用 Glob、Read 或帮助命令检查产物。
+
+超大需求需要展示中间进展或用户明确要求边生成边查看时，使用[按模块更新方案](../incremental-preview.md)。普通首版按上述步骤完成，不逐模块预览和重复渲染。
 
 明确范围的方案以 `explicitScope` 作为完整执行清单。确认后的每个写操作都对应清单中的一个资源或交付项；清单资源全部回读且真实链接完成交付时，本轮达到完成态。
 
@@ -57,3 +65,11 @@ build-plan.json（业务和视觉的源事实）
 草稿按已确定的模块更新，最终校验后统一保存三份文档和主题 CSS。后续业务或视觉调整按 [局部调整](step-4-deliver.md#4-处理调整) 更新并确认；素材进度同步沿用已有确认。
 
 用户交互按 [可见表达契约](../../../yida-design/references/ask-human-interaction-contract.md) 执行。当前展示版本确认后，先按物化返回的 `assetTasks` 启动素材任务，再将 `prd.md`、`design.md` 和 `outputs.theme` 交给主流程 Step 3；搜索与创建应用同时推进。仅完整应用同步主题设置；`explicitScope.allowInferredResources=false` 时忽略主题和导航交接，只创建范围内资源并交付，不重复物化计划。
+
+## 加载失败与内容修复
+
+技能加载失败、限流或换模型后，先成功读取本工作流和当前步骤，再沿用已确认需求继续；未加载成功不得凭记忆生成 HTML 或确认参数。首次物化前只修 business.json/visual.json 对应 facts（菜单与执行规划在 business.facts.execution），不要直接修初始化主计划。字段错误按具体路径修正后重试。
+
+如果已经改动主计划并出现 DESIGN_PLAN_STALE_PART，在原 materialize 命令增加 --rebase-parts。CLI 使用 init 保存的 .build-plan-base.json 做三方核对，保留已完成 facts；冲突按 details.conflicts 明确选择后重试。基线缺失或无法核实时告知阻塞并恢复可信文件，不手填 digest、不删除重建、不重新 init。方案确认后调整一律走 patch --materialize；确认前重复物化仍可用 --rebase-parts 与基线核对，但改动内容以当前 build-plan.json 为准。
+
+本地校验失败统一按[本地校验修复](../../../../references/source-repair.md)处理：先修正并回读源文件，未变化不重跑，连续两次修复无进展时保留产物并报告阻塞。

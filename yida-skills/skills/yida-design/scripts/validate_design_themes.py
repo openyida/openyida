@@ -23,8 +23,8 @@ CANDIDATE_RULE_FILES = (
     "sub_skill/yida-design-plan/references/visual-theme-selection.md",
     "sub_skill/yida-design-plan/references/build-plan-schema.md",
 )
-TOKEN_NAME = re.compile(r"--[a-z][a-z0-9-]*\Z")
-TOKEN_REFERENCE = re.compile(r"--[a-z][a-z0-9-]*")
+TOKEN_NAME = re.compile(r"--[a-z][a-zA-Z0-9-]*\Z")
+TOKEN_REFERENCE = re.compile(r"--[a-z][a-zA-Z0-9-]*")
 TOKEN_SUFFIX_SHORTHAND = re.compile(r"--[a-z0-9-]+/(?!\s*--)")
 TOKEN_WILDCARD = re.compile(r"--[a-z0-9-]*\*")
 
@@ -132,7 +132,7 @@ def validate_tokens(frontmatter: dict, text: str, label: str, contract: dict, er
     unsupported = set(declared) & {"--color-brand1-4", "--color-brand1-7", "--color-brand1-8"}
     if unsupported:
         errors.append(f"{label} 不支持的品牌色阶：{', '.join(sorted(unsupported))}")
-    unknown = set(TOKEN_REFERENCE.findall(text)) - set(declared)
+    unknown = set(TOKEN_REFERENCE.findall(text)) - set(declared) - contract["platformTokens"]
     if unknown:
         errors.append(f"{label} 引用了未声明变量：{', '.join(sorted(unknown))}")
     dependencies = {name: set(TOKEN_REFERENCE.findall(value)) for name, value in declared.items()}
@@ -169,6 +169,8 @@ def validate(skill_root: Path) -> list[str]:
         if not isinstance(themes, list) or not themes:
             return ["主题索引缺少非空 themes 数组"]
         contract = json.loads((template_dir / "basic-tokens.json").read_text(encoding="utf-8"))
+        platform_css = (skill_root / "references/theme/app-custom-theme-template.css").read_text(encoding="utf-8")
+        contract["platformTokens"] = set(re.findall(r"^\s*(--[\w-]+)\s*:", platform_css, re.M))
         names = [name for group in contract["groups"].values() for name in group]
         if len(set(names)) != len(names) or not all(isinstance(name, str) and TOKEN_NAME.fullmatch(name) for name in names):
             return ["基础变量契约含重复或非法变量名"]
@@ -193,16 +195,45 @@ def validate(skill_root: Path) -> list[str]:
                 seen[field].add(value)
         theme_id = theme.get("themeId")
         template_path = theme.get("templatePath")
+        mode = theme.get("mode")
+        if mode == "creative":
+            if "contentTone" in theme or "navTheme" in theme:
+                errors.append(f"{label} 自由创意不能预设 contentTone 或 navTheme")
+        else:
+            if theme.get("contentTone") not in {"light", "dark"}:
+                errors.append(f"{label} contentTone 必须是 light 或 dark")
+            if theme.get("navTheme") not in {"light", "dark"}:
+                errors.append(f"{label} navTheme 必须是 light 或 dark")
+            if not isinstance(theme.get("navigationSummary"), str) or not theme["navigationSummary"].strip():
+                errors.append(f"{label} navigationSummary 必须说明导航与应用整体风格的关系")
         if not isinstance(theme_id, str) or not re.fullmatch(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*", theme_id):
             errors.append(f"{label} themeId 格式非法")
             continue
-        if template_path != f"templates/design-themes/{theme_id}.md":
+        if template_path != f"templates/design-themes/{theme_id}/design.md":
             errors.append(f"{label} templatePath 必须指向公共主题目录中的同名模板")
             continue
         full_path = (skill_root / template_path).resolve()
-        if full_path.parent != template_dir.resolve():
+        if full_path.parent != (template_dir / theme_id).resolve():
             errors.append(f"{label} templatePath 不得越出公共主题目录")
             continue
+        if theme.get("mode") not in ("template", "creative"):
+            errors.append(f"{label} mode 必须是 template 或 creative")
+        for field, filename in (("cssTemplatePath", "app_theme.css"), ("formLayoutPath", "form-layout.json")):
+            expected = f"templates/design-themes/{theme_id}/{filename}"
+            if theme.get(field) != expected or not (skill_root / expected).is_file():
+                errors.append(f"{label} 缺少配对资产 {field}: {expected}")
+        if full_path.parent.is_dir() and {p.name for p in full_path.parent.iterdir()} != {"design.md", "app_theme.css", "form-layout.json"}:
+            errors.append(f"{label} 主题目录必须只包含 design.md、app_theme.css、form-layout.json 三个文件")
+        try:
+            css = (full_path.parent / "app_theme.css").read_text(encoding="utf-8")
+            for name, pattern in (("--color-brand1-6", r"\{\{PRIMARY_COLOR\}\}"), ("--color-brand1-1", r"<生成实际色值：--color-brand1-6 [^;\n]+>")):
+                if not re.search(r"^\s*" + re.escape(name) + r":\s*" + pattern + r";", css, re.M):
+                    errors.append(f"{label} app_theme.css {name} 必须保留项目颜色占位")
+            layout = json.loads((full_path.parent / "form-layout.json").read_text(encoding="utf-8"))
+            if not isinstance(layout, list) or not layout:
+                errors.append(f"{label} form-layout.json 必须是非空组件数组")
+        except (OSError, ValueError) as exc:
+            errors.append(f"{label} 主题配对资产不可读：{exc}")
         try:
             text = full_path.read_text(encoding="utf-8")
             frontmatter = parse_frontmatter(text)
@@ -211,6 +242,19 @@ def validate(skill_root: Path) -> list[str]:
             continue
         if frontmatter.get("themeId") != theme_id:
             errors.append(f"{template_path} 的 themeId 与索引不一致")
+        if theme.get("mode") != "creative":
+            nav_theme = frontmatter.get("themeProfile", {}).get("navTheme", frontmatter.get("navTheme"))
+            if nav_theme not in {"light", "dark"}:
+                errors.append(f"{template_path} 的 navTheme 必须是 light 或 dark")
+            style_summary = theme.get("styleSummary", "")
+            nav_match = re.search(r"(深色|浅色)导航", style_summary)
+            content_match = re.search(r"(深色|浅色)内容界面", style_summary)
+            if not nav_match or not content_match:
+                errors.append(f"{label} styleSummary 必须用自然语言说明深色或浅色导航，以及深色或浅色内容界面")
+            elif nav_theme in {"light", "dark"} and nav_match.group(1) != {"light": "浅色", "dark": "深色"}[nav_theme]:
+                errors.append(f"{label} styleSummary 的导航明暗与主题模板 navTheme 不一致")
+            if theme.get("navTheme") != nav_theme:
+                errors.append(f"{label} navTheme 与主题模板不一致")
         validate_tokens(frontmatter, text, template_path, contract, errors)
         headings = re.findall(r"^## (.+)$", text, re.M)
         if headings != list(REQUIRED_HEADINGS):
@@ -221,9 +265,9 @@ def validate(skill_root: Path) -> list[str]:
         if TOKEN_SUFFIX_SHORTHAND.search(text) or TOKEN_WILDCARD.search(text):
             errors.append(f"{template_path} 含未展开的 Token 后缀缩写或通配写法")
 
-    actual_files = {f"templates/design-themes/{p.name}" for p in template_dir.glob("*.md") if p.name != "README.md"}
-    for name in sorted(actual_files - seen["templatePath"]):
-        errors.append(f"主题模板未登记到索引：{name}")
+    # Catalog paths use forward slashes on every OS, including nested theme bundles.
+    actual_files = {f"templates/design-themes/{p.relative_to(template_dir).as_posix()}" for p in template_dir.rglob("*.md") if p.name != "README.md"}
+    # The index is the available catalog; unlisted bundles may be kept for later refinement.
     for name in sorted(seen["templatePath"] - actual_files):
         errors.append(f"索引引用了不存在的主题模板：{name}")
     for relative_path in CANDIDATE_RULE_FILES:
@@ -233,7 +277,7 @@ def validate(skill_root: Path) -> list[str]:
             errors.append(f"无法读取候选规则 {relative_path}: {exc}")
             continue
         for field in ("themeId", "label"):
-            for value in seen[field]:
+            for value in seen[field] - {item.get(field) for item in themes if item.get("mode") == "creative"}:
                 if value in rule_text:
                     errors.append(f"{relative_path} 硬编码了主题 {field}：{value}")
     return errors

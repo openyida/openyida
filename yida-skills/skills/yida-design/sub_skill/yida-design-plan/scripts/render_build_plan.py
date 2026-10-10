@@ -941,6 +941,8 @@ def render_execution(data: dict[str, Any]) -> str:
     hidden_pages = execution.get("pageNavigation") or []
     if hidden_pages:
         parts += ["<h3>页面导航</h3>", table(["页面", "平台页面导航"], [[item.get("name"), "隐藏" if item.get("isRenderNav") is False else "显示"] for item in hidden_pages])]
+    if execution.get("entryModeSummary"):
+        parts += ["<h3>系统怎么使用</h3>", f'<p>{esc(execution["entryModeSummary"])}</p>']
     for entry in (execution.get("entryRecommendation") or {}).get("entries", []):
         rows = []
 

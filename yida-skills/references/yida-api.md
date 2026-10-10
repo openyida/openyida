@@ -192,6 +192,10 @@ this.utils.yida.saveFormData({
 });
 ```
 
+> ⚠️ **匿名态限制**：该 API 与 `window.__OPENYIDA_YIDA_API__.saveFormData` 依赖登录态。页面运行在公开链接 `/o/...`（`FREELOGIN` / `loginUser.userId === 'FREEUSER'`）时，即使桥对象存在，调用 `saveFormData` 仍会返回 `LOGIN FAILED`；必须优先改走 `window.pageConfig.RECEIPT_SAVE_FORM_DATA` 网关，并同时满足显示页 `isOpen === 'y'`、目标表单 `isOpen === 'y'`、目标表单 DEFAULT 权限包含 `FREE_LOGIN` 三项门禁。
+>
+> 匿名网关使用 `POST application/x-www-form-urlencoded` 和 `X-Requested-With: XMLHttpRequest`，CSRF 优先读取 `window.g_config._csrf_token` 并作为 `_csrf_token` 参数传递。`value` 必须是字段数组，每项使用 `{ componentName, fieldId, fieldData: { value } }`；`componentName` 从目标表单 Schema 获取，标准名称见[字段定义 JSON 指南](../skills/yida-create-form-page/references/field-definition-guide.md#支持的字段类型)，`fieldData.value` 的值结构见[数据格式指南](../skills/yida-data-management/references/data-format-guide.md#常见字段值格式)。这些通用字段文档不代表对应组件均支持匿名提交；匿名能力边界以公开页面实际限制和实例回读为准。不得把字段 ID 放进 `fieldData`；网关返回 `success: true` 和 `formInstId` 仍可能创建空记录，验收必须按该实例 ID 回读代表性字段值。完整分流和请求契约见 [`yida-canvas-custom-page/references/data-bridge-guide.md`](../skills/yida-canvas-custom-page/references/data-bridge-guide.md) 的"公开访问（匿名态）提交"章节。
+
 ---
 
 ### updateFormData

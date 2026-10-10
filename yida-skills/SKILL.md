@@ -122,7 +122,7 @@ description: >
 | 大类目录 | 第一层意图信号 | 子技能 |
 | --- | --- | --- |
 | `yida-skills/context` | 登录、退出、切换组织、组织版本/容量、Schema、fieldId、执行前检查 | `yida-login`、`yida-logout`、`yida-basic-info`、`yida-get-schema`、`yida-corp-efficiency` |
-| `yida-skills/app` | 从零搭应用、完整系统、应用启停、应用导航、多语言 | `yida-app`、`yida-create-app`、`yida-app-lifecycle`、`yida-nav-group`、`yida-i18n` |
+| `yida-skills/app` | 从零搭应用、完整系统、应用启停、应用导航、多语言、AI 老应用主题升级 | `yida-app`、`yida-create-app`、`yida-app-lifecycle`、`yida-nav-group`、`yida-i18n`、`yida-upgrade-app-theme`（仅明确升级要求并 ask_human 确认） |
 | `yida-skills/design` | 完整应用需求分析、PRD、视觉设计、单页 UI 改造、应用主题色、全局换肤、图片素材 | `yida-requirement-analysis`、`yida-prd`、`yida-design`、`yida-image-assets` |
 | `yida-skills/form` | 表单字段、公式、校验、业务关联规则、批量录入、数据记录 | `yida-create-form-page`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-agent-center` |
@@ -146,6 +146,7 @@ description: >
 | 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成 PRD |
 | 已有会议纪要/闪记内容转 PRD | `yida-flash-note-to-prd`，只处理已有内容，不负责按 taskUuid 拉取听记 |
 | 只创建应用壳并拿 appType | `yida-create-app`；若随后继续完整搭建，已经确认的 `requirement-brief.json`、`prd.md` 与 `design.md` 保持不变，真实 `appType` 只写入 schema 或当前任务资源上下文 |
+| 明确强制要求 AI 老应用升级成新版主题 | `yida-upgrade-app-theme`；必须先取得针对目标应用的 ask_human 肯定回复，普通美化/换色/建应用不得触发 |
 | 启用/上线或停用/下线已有应用 | `yida-app-lifecycle`；只有用户明确要求时执行，`app-offline` 执行前需再次确认目标应用 |
 | 创建自定义展示页资源 | `yida-create-page`，之后交给 `yida-canvas-custom-page` 编写页面源码，再交给 `yida-publish-page` 发布 |
 | 开发表单字段结构 / 增删改字段 | 使用 `yida-create-form-page` 落地字段结构 |
@@ -215,9 +216,9 @@ description: >
 - 不把 OpenYida 业务中间文件写到仓库根目录或系统临时目录。
 
 20. **报表和可视化先分流**：标准统计与原生报表用 `yida-report`；定制图表页面默认用 `yida-rechart`；只有明确 ECharts、维护旧 ECharts 页面或复杂 option 超出 Recharts 能力时用 `yida-chart`。
-21. **应用主题只有一份**：涉及应用蓝图、页面视觉、应用主题色、品牌色、全局换肤或 `--color-brand1-*` 时先读 `yida-design`。`app-theme.css` 只在应用级统一配置，由平台作用于应用壳、原生表单、详情页和自定义页面外层。严禁在页面级重复写入、同步或向上层注入主题样式；`YidaCodeCanvas` 源码只在 `YidaComp` 内消费现有主题 token。
+21. **应用主题只有一份**：涉及应用蓝图、页面视觉、应用主题色、品牌色、全局换肤或 `--color-brand1-*` 时先读 `yida-design`。导航、应用框架、提交/编辑表单、记录详情和自定义页面按[整体主题规则](skills/yida-design/references/application-theme-consistency.md#导航与应用框架)一起设计。`app-theme.css` 只在应用级统一配置，各类页面消费同一份主题 token。严禁在页面级重复写入、同步或向上层注入主题样式；`YidaCodeCanvas` 源码只在 `YidaComp` 内消费现有主题 token。
 22. **默认完成即停止**：完整应用默认以资源发布成功、轻量导航排序完成、示例数据就绪并输出一组有明确名称的应用入口与业务交付总结为 doneWhen；截图、精细导航整理和额外深读属于 optionalAfterDone，除非用户明确要求。
-23. **说清楚做什么**：对话、任务列表、步骤标题、进度和提问面向非技术用户。用日常用语和短句，一句话说一件事，先说结果或动作，再补必要原因。功能写谁能做什么；进度写当前动作和下一步；失败写问题、影响和处理办法；待核实的结果如实说明。文件名、路径、技能名和调用方式留在内部执行。PRD 业务说明、HTML 和消息使用功能与体验描述；接口参数、配置键值及内部 ID 留在 Agent 实施交接，遵循[用户可见表达契约](skills/yida-design/references/ask-human-interaction-contract.md)。交付卡片的 `description` 写 2-3 句业务交付总结、核验结果与剩余事项，卡片包含一组“应用访问入口”；宿主没有交付工具时，在最终回复中给出相同内容。不得把需求信息文件、PRD、视觉设计、build manifest、资源清单、Schema 或每个表单/流程/报表分别登记成用户可见交付物；含统一工作区或业务管理范围时给工作台入口，前台页面经 PRD 标记为 `standalone` 且导航配置回读通过时给独立业务入口；完整应用默认再提供开发者管理后台 `adminUrl`，不因云端登录方式省略；明确仅前台时不追加业务后台，仍交付前台与开发者管理后台两个地址。有前后台时交付前台、业务后台、开发者管理后台三个地址；统一工作区交付工作台与开发者管理后台。用户明确排除的入口和单页任务范围优先。
+23. **说清楚做什么**：对话、任务列表、步骤标题、进度和提问面向非技术用户。用日常用语和短句，一句话说一件事，先说结果或动作，再补必要原因。功能写谁能做什么；进度写当前动作和下一步；失败写问题、影响和处理办法；待核实的结果如实说明。文件名、路径、技能名和调用方式留在内部执行。PRD 业务说明、HTML 和消息使用功能与体验描述；接口参数、配置键值及内部 ID 留在 Agent 实施交接，遵循[用户可见表达契约](skills/yida-design/references/ask-human-interaction-contract.md)。交付卡片的 `description` 写 2-3 句业务交付总结、核验结果与剩余事项，卡片包含一组“应用访问入口”；宿主没有交付工具时，在最终回复中给出相同内容。不得把需求信息文件、PRD、视觉设计、build manifest、资源清单、Schema 或每个表单/流程/报表分别登记成用户可见交付物；不分前后台或包含业务后台时，给出经验证的业务页面入口，前台页面经 PRD 标记为 `standalone` 且导航配置回读通过时给独立业务入口；完整应用默认再提供开发者管理后台 `adminUrl`，不因云端登录方式省略；明确仅业务后台时交付业务后台与开发者管理后台，不追加前台；明确仅前台时不追加业务后台，仍交付前台与开发者管理后台两个地址。有前后台时交付前台、业务后台、开发者管理后台三个地址；不分前后台时交付系统入口与开发者管理后台。用户明确排除的入口和单页任务范围优先。
 24. **任务复盘沉淀**：用户多次纠正、平台接口假成功、页面骨架共性质量问题、线上回读验收方法、一次性脚本可产品化等情况，完成前判断是否需要沉淀到 CLI、测试或 skill。
 
 常见问题见 [常见问题解决方案](references/execution-rules.md)。
@@ -240,5 +241,7 @@ description: >
 | [报表字段配置](references/report-field-config-guide.md) | 报表字段配置规范 | 配置报表时 |
 | [版本功能差异](references/edition-features-guide.md) | 各版本能力差异 | 版本能力查询时 |
 | [模型 API](references/model-api.md) | 宜搭模型接口 | 调用宜搭模型能力时 |
+
+本地设计与 Canvas 编译校验失败时读取[本地校验修复](references/source-repair.md)，按字段修复并限制无进展重试。
 
 执行 `openyida agent connect` 时，CLI 检测输出仅供参考。除非用户明确要求，不得下载安装、升级、登录或修改其他 CLI 配置；发现支持的 CLI 即可连接并上报；未登录的 CLI 也要保留并展示“未登录”，不能据此自动登录。没有可上报 CLI 或用户取消时报告结果并停止。

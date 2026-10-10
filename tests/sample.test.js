@@ -32,6 +32,24 @@ describe('sample templates', () => {
     expect(output).toBe('Hello OpenKuma / OpenKuma');
   });
 
+  test.each([
+    ['--output'], ['--output', '--design-file', 'design.md'],
+    ['--var'], ['--var', 'PRIMARY_COLOR'], ['--var', ' =red'],
+    ['--primary-color', '#123456'], ['--border-radius', '12px'],
+  ])('rejects invalid sample parameters before writing files: %j', async (...options) => {
+    const output = path.join(tmpDir, 'theme.css');
+    await expect(run(['yida-design', 'app-theme', '--output', output, ...options]))
+      .rejects.toMatchObject({ code: 'SAMPLE_ARGUMENT_INVALID' });
+    expect(fs.readdirSync(tmpDir)).toEqual([]);
+  });
+
+  test('theme generation rejects generic variable substitution instead of silently ignoring it', async () => {
+    const output = path.join(tmpDir, 'theme.css');
+    await expect(run(['yida-design', 'app-theme', '--output', output, '--var', 'PRIMARY_COLOR=#123456']))
+      .rejects.toMatchObject({ code: 'SAMPLE_ARGUMENT_INVALID' });
+    expect(fs.existsSync(output)).toBe(false);
+  });
+
   test.each(['side', 'top', 'mixed', 'dock', 'tabs'])('navigation %s copies only the selected layout and compiles with existing content', async (layout) => {
     const output = path.join(tmpDir, `nav-${layout}.jsx`);
     await run(['openyida-page-template', `canvas-nav-${layout}`, '--output', output]);
@@ -44,11 +62,34 @@ describe('sample templates', () => {
     for (const other of ['side', 'top', 'mixed', 'dock'].filter(name => name !== layout)) {
       expect(fragment).not.toContain(`oy-nav-${other} `);
     }
-    expect(Buffer.byteLength(fragment)).toBeLessThan(['side', 'mixed'].includes(layout) ? 14000 : layout === 'top' ? 8000 : 7000);
+    const fragmentBudgets = { side: 14000, mixed: 14500, top: 8500, dock: 7000, tabs: 7000 };
+    expect(Buffer.byteLength(fragment)).toBeLessThan(fragmentBudgets[layout]);
     expect(fragment.includes('function CanvasSidebar')).toBe(['side', 'mixed'].includes(layout));
     if (layout !== 'tabs') {
       expect(fragment).toContain('--pod-nav-item-text-disabled-color');
       expect(fragment).toContain('--pod-nav-menu-bg-selected-color');
+      expect(fragment).toContain('border: var(--pod-nav-menu-item-border, none)');
+      expect(fragment).toContain('--pod-nav-menu-item-hover-border');
+      expect(fragment).toContain('--pod-nav-menu-item-selected-border');
+      expect(fragment).toContain('box-shadow: var(--pod-nav-menu-item-selected-shadow, none)');
+      expect(fragment).not.toContain('box-shadow: inset');
+      expect(fragment).toContain('padding: var(--pod-nav-menu-item-padding, 8px 12px)');
+      expect(fragment).toContain('line-height: var(--pod-nav-menu-line-height, 20px)');
+    }
+    if (['top', 'mixed'].includes(layout)) {
+      const menuSelector = layout === 'top' ? '.oy-nav-top .oy-nav-menu' : '.oy-nav-mixed .oy-nav-groups';
+      expect(fragment).toContain(`${menuSelector} .oy-nav-item { min-height: var(--pod-nav-top-tab-height, 40px); padding: var(--pod-nav-top-tab-item-padding, 0 12px); max-width: var(--pod-nav-top-tab-item-max-width, 240px); }`);
+      expect(fragment).toContain('padding: calc(var(--pod-nav-menu-gap, 8px) / 2)');
+      expect(fragment).toContain('min-height: var(--pod-nav-platform-header-height, 48px)');
+    }
+    if (['side', 'top', 'mixed'].includes(layout)) {
+      expect(fragment).toContain('gap: var(--pod-nav-menu-gap, 8px)');
+    }
+    if (['side', 'mixed'].includes(layout)) {
+      expect(fragment).toContain('padding: var(--pod-nav-slide-aside-padding, 8px)');
+      if (layout === 'mixed') {
+        expect(fragment).toContain('.oy-canvas-nav.oy-nav-mixed .oy-nav-sidebar { padding: var(--pod-nav-l-aside-padding, 8px); }');
+      }
     }
   });
 
@@ -449,6 +490,9 @@ describe('sample templates', () => {
     const drawerBackground = 'var(--pod-shell-theme-bg-color, var(--color-white, #fff))';
     expect(contentShell.props.styles.content.background).toBe(drawerBackground);
     expect(frameShell.props.styles.content.background).toBe(drawerBackground);
+    expect(frameShell.props.styles.header.color).toBe('var(--drawer-title-color, var(--pod-page-header-text-color, var(--color-text1-4, #1f2329)))');
+    expect(frameShell.props.styles.content.color).toBe('var(--drawer-content-color, var(--pod-page-header-text-color, var(--color-text1-4, #1f2329)))');
+    expect(pageSource).toContain('--pod-page-header-text-color');
     expect(contentShell.props.styles.body.background).toBe('transparent');
     expect(pageSource.match(/\.openyida-form-drawer \.oy-drawer-card \{([^}]+)\}/)[1]).toContain('background: transparent;');
     expect(renderShell({ open: true, background: '#123456' }).props.styles.content.background).toBe('#123456');
@@ -491,10 +535,6 @@ describe('sample templates', () => {
     expect(pageSource).not.toContain('linear-gradient(180deg, #F5FAF9');
     expect(pageSource).toContain("'navConfig.layout': 1180");
     expect(pageSource).toContain('row.formInstId || row.formInstanceId || row.instanceId || row.id');
-    expect(pageSource).not.toContain('yida-global-theme');
-    expect(pageSource).not.toContain('onLoad={syncThemeToIframe}');
-    expect(pageSource).not.toContain('data-yida-theme-root');
-    expect(pageSource).not.toContain('data-theme-scope');
     expect(pageSource).not.toContain('FORM_INST_SAMPLE');
     expect(pageSource).not.toContain('{{APP_TYPE}}');
     expect(pageSource).not.toContain('{{FORM_UUID}}');
@@ -632,23 +672,26 @@ describe('application theme from design.md', () => {
   };
   const fastDesign = `---\ntokens:\n${Object.entries(tokens).map(([k, v]) => `  ${k}: ${v}`).join('\n')}\n---\n`;
   const structure = css => css.replace(/(--[\w-]+)\s*:[^;]+;/g, '$1: TOKEN;');
+  const navigationShape = /\/\* openyida-navigation-shape:start \*\/[\s\S]*?\/\* openyida-navigation-shape:end \*\//;
 
   test('Fast changes token values while preserving selectors and semantic colors', () => {
     const css = applyDesignTokens(template, fastDesign);
     expect(css).toContain('--color-brand1-6: #315BCC;');
     expect(css).toContain('--pod-card-border-radius: 16px;');
-    expect(css).not.toContain('rgba(155, 136, 121, 1)');
-    // The current base template omits derived brand aliases; generation adds them globally.
+    // Explicit brand references follow the new value; historical fallback colors
+    // remain fallback-only and must not be globally replaced by equal color value.
+    expect(css).toContain('--pod-nav-logo-bg: var(--color-brand1-6, rgba(155, 136, 121, 1));');
+    // Mobile aliases are present in the base template; generation also adds the chart palette.
     const root = css.match(/^:root\s*\{([^{}]*)\}/m)[1];
     for (const name of ['--color-brand-1', '--color-brand-2', '--color-brand-3', '--color-brand-4', '--color-group']) {
       expect(root).toContain(`${name}:`);
     }
-    const withoutAliases = css.replace(/^[ \t]*--(?:color-brand-[1-4]|color-group)\s*:[^;]+;\n/gm, '');
-    expect(structure(withoutAliases)).toBe(structure(template));
+    const withoutAliases = css.replace(/^[ \t]*--color-group\s*:[^;]+;\n/gm, '');
+    expect(structure(withoutAliases)).toBe(structure(template.replace(navigationShape, '')));
     expect(css.match(/--color-error[^;]+;/g)).toEqual(template.match(/--color-error[^;]+;/g));
   });
 
-  test.each(themeIndex.themes.map(theme => [theme.id || theme.themeId]))('Plan theme %s uses the public CSS pipeline', themeId => {
+  test.each(themeIndex.themes.filter(theme => theme.mode !== 'creative').map(theme => [theme.id || theme.themeId]))('Plan theme %s uses the public CSS pipeline', themeId => {
     const plan = JSON.parse(JSON.stringify(fixture));
     delete plan.visualStyle.forUser.themeProfile;
     plan.visualStyle.forUser.selectedTheme = themeIndex.themes.find(theme => theme.themeId === themeId);
@@ -671,12 +714,15 @@ describe('application theme from design.md', () => {
     let withoutExtra = css.replace(rootPattern, root => root.replace(
       /^[ \t]*(--[\w-]+)\s*:[^;]+;\n/gm, (line, name) => originalNames.has(name) ? line : ''
     ));
-    const lightMode = /(\.pod-premium\.is-light\s*\{)([^}]*)(\})/;
-    const originalLightNames = new Set([...template.match(lightMode)[2].matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
-    withoutExtra = withoutExtra.replace(lightMode, (block, start, body, end) => start + body.replace(
-      /^[ \t]*(--[\w-]+)\s*:[^;]+;\n/gm, (line, name) => originalLightNames.has(name) ? line : ''
-    ) + end);
-    expect(structure(withoutExtra)).toBe(structure(template));
+    const designTokens = readDesignTokens(design);
+    expect(css).not.toMatch(/\.pod-premium\.(?:is|nav)-(?:light|dark|white|gray)\s*\{/);
+    const recipe = plan.visualStyle.forUser.selectedTheme.collection === 'application-styles'
+      ? fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-design/references/theme/application-style-recipes.css'), 'utf8') : '';
+    const hasExtraShape = Object.keys(designTokens).some(name => /^--pod-nav-menu-item-(?:border|hover-border|selected-border|selected-shadow)$/.test(name));
+    expect(navigationShape.test(withoutExtra)).toBe(hasExtraShape);
+    withoutExtra = withoutExtra.replace(navigationShape, '');
+    const baseTemplate = template.replace(navigationShape, '');
+    expect(structure(withoutExtra).trim()).toBe(structure(recipe ? baseTemplate.trimEnd() + '\n\n' + recipe : baseTemplate).trim());
   });
 
   test('CLI applies only changed tokens and skips identical writes', async () => {

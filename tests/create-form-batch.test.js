@@ -110,6 +110,9 @@ describe('dependency-aware form batches', () => {
   });
 
   test.each([
+    [{ ...form('customer'), layout: 'grid' }, 'CREATE_FORM_INVALID_ARGUMENTS'],
+    [{ ...form('customer'), theme: 'dark' }, 'CREATE_FORM_INVALID_ARGUMENTS'],
+    [{ ...form('customer'), labelAlign: 'center' }, 'CREATE_FORM_INVALID_ARGUMENTS'],
     [{ ...form('customer'), icon: 'xian-qiye' }, 'CREATE_FORM_NAV_ICON_INVALID'],
     [{ ...form('customer'), locale: 'klingon' }, 'CREATE_FORM_INVALID_ARGUMENTS'],
     [{ ...form('customer'), title: '客户📇' }, 'OPENYIDA_ARTIFACT_EMOJI_FORBIDDEN'],
@@ -214,6 +217,40 @@ describe('dependency-aware form batches', () => {
     expect(output.checked).toBe(true);
     expect(execute.mock.calls.every(([args]) => args[1] === 'validate-fields')).toBe(true);
     expect(fs.existsSync(file + '.state.json')).toBe(false);
+  });
+
+  test('forwards per-form layout, theme and label options to create', async () => {
+    write([{
+      ...form('styled'),
+      layout: 'section',
+      theme: 'comfortable',
+      labelAlign: 'right',
+      icon: 'name-card',
+      locale: 'ja_JP',
+    }]);
+    const execute = executor();
+
+    await run(['APP_X', file], { execute });
+
+    const argv = execute.mock.calls.map(([args]) => args).find(args => args[1] === 'create');
+    expect(argv).toEqual([
+      'create-form',
+      'create',
+      'APP_X',
+      'styled',
+      JSON.stringify(form('styled').fields),
+      '--no-open',
+      '--layout',
+      'section',
+      '--theme',
+      'comfortable',
+      '--label-align',
+      'right',
+      '--icon',
+      'name-card',
+      '--locale',
+      'ja_JP',
+    ]);
   });
 
   test('real IDs and fields bind after readback; repeated run reuses completed forms', async () => {

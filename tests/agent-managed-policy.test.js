@@ -127,3 +127,21 @@ test('real CLI executes managed Plan catalog, initialization and artifact genera
     expect(invoke(['materialize', input, '--check']).checked).toBe(true);
   } finally {fs.rmSync(dir, { recursive: true, force: true });}
 });
+
+
+test.each([
+  ['app-entry', ['get', 'APP_BOUND']],
+  ['app-entry', ['set', 'APP_BOUND', 'FORM-entry']],
+  ['upgrade-app-theme', ['APP_BOUND', '--explicit-request', '--prepare', '--output-dir', 'theme-preview']],
+])('new app commands accept only the bound application: %s %j', (command, args) => {
+  expect(run(command, args)).toMatchObject({ appType: 'APP_BOUND' });
+  const crossAppArgs = args.map(arg => arg === 'APP_BOUND' ? 'APP_OTHER' : arg);
+  expect(() => run(command, crossAppArgs)).toThrow(expect.objectContaining({ code: 'MANAGED_APP_MISMATCH' }));
+});
+
+test('theme preparation produces no cloud mutation receipt; app entry writes do', () => {
+  expect(classifyManagedMutation('upgrade-app-theme', ['APP_BOUND', '--explicit-request', '--prepare'])).toBeNull();
+  expect(classifyManagedMutation('app-entry', ['get', 'APP_BOUND'])).toBeNull();
+  expect(classifyManagedMutation('app-entry', ['set', 'APP_BOUND', 'FORM-entry']))
+    .toEqual({ operation: 'update_app_entry' });
+});

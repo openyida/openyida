@@ -1109,8 +1109,6 @@ describe('compileCanvasLocal', () => {
     expect(src).not.toContain('linear-gradient(180deg, #F5FAF9');
     expect(src).not.toContain('脚手架预览');
     expect(src).not.toContain('当前仍是脚手架占位资源');
-    expect(runtimeCode).not.toContain('installYidaGlobalThemeIntoFrame');
-    expect(runtimeCode).not.toContain('yida-global-theme');
     expectCanvasEntry(runtimeCode);
   });
 

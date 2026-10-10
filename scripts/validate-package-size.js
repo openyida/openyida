@@ -10,20 +10,42 @@ const path = require('path');
 // Budgets are ratchets that track legitimate content growth (12 locale packs,
 // samples, skills). Raise them intentionally when new content is justified; the
 // per-file cap stays fixed to catch accidental large-blob embeds.
-// State recovery adds a sample and two skill references (3 published files).
-// Local Agent runtime/launcher and managed-policy additions bring the audited
-// public package to 529 files; byte and per-file caps remain unchanged.
-// Retain ~21 KiB npm 10 compression overhead; round budgets to 16 KiB boundaries.
-const MAX_TARBALL_BYTES = 1920 * 1024;
-const MAX_UNPACKED_BYTES = 6592 * 1024;
-const MAX_ENTRY_COUNT = 529;
+// Application styles add 18 paired presets plus the independent creative scaffold
+// (57 design/CSS/layout assets), their catalog, recipe and runtime consumer. Complete
+// content/navigation tone and detail-field tokens are retained in every standalone preset.
+// Complete navigation designs add navigation tokens to each template, paired
+// CSS mode overrides and matching guidance in each complete design.md source.
+// Paired CSS also retains scoped detail-canvas and toolbar contrast corrections.
+// Restored selected-item shadows include the common CSS rule and template guidance.
+// All 34 themes now ship three-file bundles; 15 migrated themes add CSS and layout assets.
+// Navigation borders add three state tokens, top-tab surfaces and shared CSS consumers.
+// Anonymous form submission guidance adds about 14 KiB of required runtime skill content.
+// app-entry/fix-theme commands and WAF-safe authoring guidance push the gzipped tarball
+// past the previous 2128 KiB ratchet (CI Node 20 gzip runs ~2 KiB heavier than newer Node).
+// Retain modest growth headroom and round budgets to 16 KiB boundaries.
+const MAX_TARBALL_BYTES = 2144 * 1024;
+// Latest merged runtime/skills plus managed-command declarations total about 8094 KiB.
+const MAX_UNPACKED_BYTES = 8128 * 1024;
+// Plan confirmation payload and explicit part rebase add two runtime modules.
+// app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
+// Shared source-repair diagnostics and their skill contract add two packaged files.
+// Theme scope, brand-scale and palette validation add three runtime modules;
+// removing the application-styles/navigation-styles catalogs offsets two files.
+// App theme upgrades add two CLI modules and an independent skill with its migration guide.
+// Latest merged main ships 630 files; provider discovery and managed policy add two.
+const MAX_ENTRY_COUNT = 634;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'lib/app/upgrade-app-theme.js',
+  'lib/app/prepare-app-theme-upgrade.js',
+  'yida-skills/skills/yida-upgrade-app-theme/SKILL.md',
+  'yida-skills/skills/yida-upgrade-app-theme/references/page-migration.md',
   'bin/yida.js',
   'lib/core/managed-policy.js',
   'lib/app/create-form/batch.js',
   'lib/app/application-entry-urls.js',
+  'lib/app/app-entry.js',
   'lib/app/inline-css-guard.js',
   'lib/app/canvas-icon-guard.js',
   'lib/app/canvas-navigation-guard.js',
@@ -36,12 +58,19 @@ const REQUIRED_PACKAGE_FILES = [
   'lib/asset/asset-execution.js',
   'lib/app/canvas-icon-exports.json',
   'lib/design-plan/preview.js',
+  'lib/design-plan/confirmation.js',
+  'lib/design-plan/rebase.js',
   'lib/design-plan/entry-navigation.js',
   'lib/design-plan/navigation-policy.js',
   'yida-skills/skills/yida-app/references/entry-navigation.md',
   'yida-skills/skills/yida-app/workflow/incremental-preview.md',
   'yida-skills/skills/yida-create-form-page/references/batch-forms.md',
   'lib/core/utils.js',
+  'lib/core/source-repair.js',
+  'lib/app/theme-scope.js',
+  'lib/core/theme-brand-scale.js',
+  'lib/design/palette-contrast.js',
+  'yida-skills/references/source-repair.md',
   'lib/asset/asset-plan.js',
   'lib/asset/attachment-upload.js',
   'lib/process/services/process-actions.js',
@@ -54,6 +83,12 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-design/references/navigation-decision.md',
   'yida-skills/skills/yida-design/templates/design-themes/index.json',
   'yida-skills/skills/yida-design/templates/design-themes/basic-tokens.json',
+  'lib/app/application-style.js',
+  'yida-skills/skills/yida-design/references/application-style-library.md',
+  'yida-skills/skills/yida-design/references/theme/application-style-recipes.css',
+  ...require('../yida-skills/skills/yida-design/templates/design-themes/index.json').themes
+    .flatMap(theme => [theme.templatePath, theme.cssTemplatePath, theme.formLayoutPath]
+      .map(file => `yida-skills/skills/yida-design/${file}`)),
   'yida-skills/skills/yida-design/scripts/validate_design_themes.py',
   'lib/samples/openyida-scaffold/canvas-dialog.canvas.jsx',
   ...['shared', 'sidebar', 'side', 'top', 'mixed', 'dock', 'tabs', 'data', 'content'].map(name => `lib/samples/openyida-scaffold/canvas-nav/${name}.jsx`),

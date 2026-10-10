@@ -7,7 +7,7 @@ Fast 直接维护 `prd/<项目名>/design.md`，Plan 更新计划事实后由 CL
 已有设计文件只修改相关内容。Plan 按 [局部调整](../../yida-app/workflow/plan/step-4-deliver.md#4-处理调整) 更新；Fast 保留未改的章节和 token。下面的结构用于首版编写与完整性核对，不要求每次重写五章。
 
 1. 读取 [唯一输出契约](output-design.md)，按 frontmatter、H1、五章正文组织项目文件。
-2. 保留选中主题的基础语言和完整变量，合入项目配色、导航、组件与逐页设计，清除模板身份和编写说明。
+2. 保留选中主题的基础语言和完整变量，按 [整体主题规则](../references/application-theme-consistency.md#导航与应用框架) 合入导航、应用框架、表单、记录详情和自定义页面设计，清除模板身份和编写说明。
 3. frontmatter 仅维护机器数据与 anchor 索引，完整规则只写在正文一次。每个实际自定义页覆盖输出契约的八项要点，场景和页面标识与共享需求/计划一致。
 4. 检查 [页面质量门禁](../references/page-quality-gates.md)，确认数据、动作、导航、权限与业务事实一致；主题、状态、素材和响应式均可实现。
 
@@ -20,3 +20,5 @@ Fast 完成手写后执行 `openyida check-design prd/<项目名>/design.md --js
 跨文档检查会核对 PRD 的 `designFile` 是否指向当前设计文件。默认从项目工作目录执行；从其他目录检查时用 `--base-dir <项目根目录>` 解析 PRD 中的相对引用，命令输入文件的路径仍相对当前工作目录。导出包按同一规则检查，不能忽略路径不一致错误。
 
 主题 CSS 生成与上传沿用 [输出契约](output-design.md#应用主题-css-的职责)。CLI 会检查括号、字符串及注释闭合，报错时先修复源文件；`check-design` 通过不代表 CSS 已校验或页面视觉已验收。
+
+主题 CSS 交付前必须完成实例化：模板中的 `{{PRIMARY_COLOR}}` 和 `<生成实际色值：…>` 不可上传，不能只替换主色。完成 design.md 后执行 `openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css>`；遇到 `THEME_CSS_UNRESOLVED_TOKEN` 按返回的 token 修复设计源并重新生成。

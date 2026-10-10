@@ -66,7 +66,7 @@ entryMode: platform-shell | standalone
 - 页面能够独立完成员工自助或轻量业务任务；
 - 页面不依赖宜搭工作台导航即可完成主要业务闭环。
 
-以下情况必须使用 `platform-shell`：
+对于未规划为独立前台的内容页，以下情况使用 `platform-shell`：
 
 - 页面只有 tab、筛选、分段或卡片切换；
 - 页面仍依赖平台导航进入核心表单、流程或管理页面；
@@ -75,9 +75,15 @@ entryMode: platform-shell | standalone
 
 `entryMode` 属于产品和信息架构事实，由 `yida-prd` 负责，不由视觉设计 owner 或实现阶段猜测。
 
+前台用途已经确定的自定义页面默认使用独立入口，无须用户再声明隐藏导航或传入新开关。Plan 根据 `execution.entryRecommendation.entries` 的 `role=service` 与 `sceneKey` 绑定自动补齐缺失的 `entryMode=standalone`；Fast 按相同业务用途执行。单步前台即使不绘制菜单也适用。后台内容页维持平台导航；用户显式的保留导航要求优先，不用页面名称猜测用途。
+
 ## 5. 页面导航持久化
 
 页面为 `standalone` 时，创建页面后配置 `isRenderNav=false` 并回读，随后开发、发布和验证页面。交付前汇合发布与导航配置证据，确认入口可用后输出真实 `/custom/{formUuid}` 链接。配置未完成时说明当前缺项，按已验证的有效范围交付。
+
+`publish` 默认读取持久化页面配置，不新增参数。`renderNav=false` 时返回 `standaloneUrl` 并将 `url` 指向同一条干净的 `/custom/{formUuid}`，同时保留 `workbenchUrl`。`get-form-config` 确认页面类型为 display 后也返回这些字段，可在配置修复后读取最新地址，无须重新发布源码。`renderNav` 优先于兼容字段 `isRenderNav`；缺失、无效值或回读失败时不返回独立入口，不能通过 URL 查询参数伪装隐藏导航成功。
+
+前台在交付范围内时，最终结果必须给出已验证的单页面链接。尚未配置成功或验证完成时明确写“前台入口未完成”，不能静默省略，或用工作台、开发后台替代。已有公开或分享地址按实际访问证据保留；隐藏导航不改变公开访问与权限。仅取得 URL 不代表源码发布、真实用户权限或浏览器运行态已通过。
 
 完整规则见 [页面导航配置](../../yida-skills/skills/yida-app/references/entry-navigation.md)。
 

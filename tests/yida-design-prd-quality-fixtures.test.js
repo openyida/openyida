@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { parseDesignDocument } = require('../lib/design/document');
 
 const ROOT = path.join(__dirname, '..');
 
@@ -82,7 +83,7 @@ describe('parallel PRD and visual artifact quality fixtures', () => {
     expect(index.themes.length).toBeGreaterThan(0);
     for (const theme of index.themes) {
       const template = read(`${root}/${theme.templatePath}`);
-      expect(template).toContain(`themeId: ${theme.themeId}`);
+      expect(parseDesignDocument(template).metadata.themeId).toBe(theme.themeId);
       expect(template).toContain('application-global:');
       expect(template).toContain('{{PRIMARY_COLOR}}');
     }

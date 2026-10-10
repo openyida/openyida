@@ -972,35 +972,63 @@ describe('component alias schema support', () => {
   });
 });
 
+describe('schema patch CSS/HTML guard', () => {
+  function buildPatchSchema() {
+    return createForm._private.buildFormSchema(
+      '补丁保护测试',
+      [{ type: 'TextField', label: '姓名', fieldId: 'textField_name' }],
+      'FORM_TEST',
+      'CORP_TEST',
+      'APP_TEST',
+      'single',
+      'default',
+      'top'
+    );
+  }
+
+  test.each([
+    ['页面 CSS 路径', [{ action: 'add', path: '/pages/0/componentsTree/0/css', value: 'body{}' }]],
+    ['HTML 组件', [{ action: 'add', path: '/pages/0/componentsTree/0/children/-', value: { componentName: 'Html', props: {} } }]],
+    ['表单 HTML 属性', [{ action: 'form-props', props: { dangerouslySetInnerHTML: { __html: '<p>test</p>' } } }]],
+    ['页面动作 CSS', [{ action: 'actions-module', source: "export function didMount() { document.body.style.color = 'red'; }" }]],
+    ['字段动作 HTML', [{ action: 'field-action', field: '姓名', name: 'changeName', source: "export function changeName() { document.body.innerHTML = '<p>test</p>'; }" }]],
+  ])('rejects %s injection', (name, operations) => {
+    expect(() => createForm._private.applySchemaPatchOperations(buildPatchSchema(), operations))
+      .toThrow(/CSS\/HTML 注入/);
+  });
+
+  test('keeps business action modules available', () => {
+    const schema = buildPatchSchema();
+    expect(() => createForm._private.applySchemaPatchOperations(schema, [{
+      action: 'actions-module',
+      source: "export function calculateTotal() { return this.$('textField_name').getValue(); }",
+      compiled: 'function calculateTotal() { return true; }',
+    }])).not.toThrow();
+  });
+});
+
 describe('form presentation components', () => {
-  test('buildFormSchema supports Divider, ColumnContainer and PageSection using platform component names', () => {
+  test('buildFormSchema compiles nested columns and dividers', () => {
     const fields = [
       {
-        type: 'PageSection',
-        label: '基本信息',
-        showHeadDivider: true,
+        type: 'ColumnContainer',
+        layout: '6:6',
+        columnGap: '16px',
+        rowGap: '16px',
+        display: 'VERTICAL',
         children: [
-          {
-            type: 'ColumnContainer',
-            layout: '6:6',
-            columnGap: '16px',
-            rowGap: '16px',
-            display: 'VERTICAL',
-            children: [
-              [{ type: 'TextField', label: '姓名' }],
-              [{ type: 'NumberField', label: '年龄' }],
-            ],
-          },
-          {
-            type: 'Divider',
-            title: '联系方式',
-            dividerType: 'double-color-trapezoid',
-            showTitle: true,
-            colorType: 'custom',
-            backgroundColor: '#0089ff',
-            secondaryColor: '#cce5ff',
-          },
+          [{ type: 'TextField', label: '姓名' }],
+          [{ type: 'NumberField', label: '年龄' }],
         ],
+      },
+      {
+        type: 'Divider',
+        title: '联系方式',
+        dividerType: 'double-color-trapezoid',
+        showTitle: true,
+        colorType: 'custom',
+        backgroundColor: '#0089ff',
+        secondaryColor: '#cce5ff',
       },
     ];
 
@@ -1018,32 +1046,17 @@ describe('form presentation components', () => {
 
     const componentsMapNames = schema.pages[0].componentsMap.map((item) => item.componentName);
     expect(componentsMapNames).toEqual(expect.arrayContaining([
-      'PageSection',
       'ColumnsLayout',
       'Column',
       'Divider',
       'TextField',
       'NumberField',
     ]));
-    expect(componentsMapNames).not.toContain('Html');
     schema.pages[0].componentsMap.forEach((entry) => {
       expect(entry).not.toHaveProperty('version');
     });
-    const pageSection = findDirectChildByComponentName(formContainer, 'PageSection');
-    expect(formContainer.children.map((child) => child.componentName)).not.toContain('Html');
-    expect(pageSection).toMatchObject({
-      componentName: 'PageSection',
-      props: {
-        behavior: 'NORMAL',
-        showHeader: true,
-        showHeadDivider: true,
-        sectionHeaderStyle: 'origin',
-      },
-    });
-    expect(pageSection.props.label).toBeUndefined();
-    expect(pageSection.props.title.zh_CN).toBe('基本信息');
 
-    const columnsLayout = pageSection.children[0];
+    const columnsLayout = findDirectChildByComponentName(formContainer, 'ColumnsLayout');
     expect(columnsLayout).toMatchObject({
       componentName: 'ColumnsLayout',
       props: {
@@ -1057,7 +1070,7 @@ describe('form presentation components', () => {
     expect(columnsLayout.children[0].children[0].componentName).toBe('TextField');
     expect(columnsLayout.children[1].children[0].componentName).toBe('NumberField');
 
-    const divider = pageSection.children[1];
+    const divider = findDirectChildByComponentName(formContainer, 'Divider');
     expect(divider).toMatchObject({
       componentName: 'Divider',
       props: {
@@ -1071,27 +1084,6 @@ describe('form presentation components', () => {
     });
     expect(divider.props.label).toBeUndefined();
     expect(divider.props.title.zh_CN).toBe('联系方式');
-  });
-
-  test('buildFormSchema does not inject form theme or formDetail CSS', () => {
-    const schema = createForm._private.buildFormSchema(
-      '默认详情样式',
-      [{ type: 'TextField', label: '姓名' }],
-      'FORM_TEST',
-      'CORP_TEST',
-      'APP_TEST',
-      'single',
-      'default',
-      'top'
-    );
-    const root = schema.pages[0].componentsTree[0];
-    const formContainer = findFormContainer(root);
-
-    expect(formContainer.children.map((child) => child.componentName)).not.toContain('Html');
-    expect(root.lifeCycles.componentDidMount).toMatchObject({ name: 'didMount', type: 'actionRef' });
-    expect(schema.actions.module.source).not.toContain('openyida:theme:start');
-    expect(schema.actions.module.source).not.toContain('yida-global-theme');
-    expect(schema.pages[0].componentsMap.map((item) => item.componentName)).not.toContain('Html');
   });
 
   test('field definition type can come from componentName or componentType without charAt crashes', () => {
@@ -1370,10 +1362,10 @@ describe('form presentation components', () => {
     expect(createForm._private.collectFormFieldValidationDiagnostics([
       { type: 'TextField', label: { zh_CN: '姓名', en_US: 'Name' } },
       {
-        type: 'PageSection',
-        label: { zh_CN: '基础信息', en_US: 'Basic Info' },
+        type: 'ColumnContainer',
+        layout: '12',
         children: [
-          { type: 'TextField', label: { zh_CN: '手机号' } },
+          [{ type: 'TextField', label: { zh_CN: '手机号' } }],
         ],
       },
     ])).toEqual([]);
@@ -1427,17 +1419,11 @@ describe('form presentation components', () => {
     expect(createForm._private.countDataFieldDefinitions([
       { type: 'Divider', title: '分割线' },
       {
-        type: 'GroupContainer',
-        label: '分组',
+        type: 'ColumnContainer',
+        layout: '6:6',
         children: [
-          {
-            type: 'ColumnContainer',
-            layout: '6:6',
-            children: [
-              [{ type: 'TextField', label: '姓名' }],
-              [{ type: 'SelectField', label: '状态' }],
-            ],
-          },
+          [{ type: 'TextField', label: '姓名' }],
+          [{ type: 'SelectField', label: '状态' }],
         ],
       },
     ])).toBe(2);
@@ -1558,44 +1544,6 @@ describe('form presentation components', () => {
     expect(() => createForm._private.validateFormFieldDefinitions([field('none')])).toThrow(expect.objectContaining({ code: 'CREATE_FORM_INVALID_DIVIDER_TYPE' }));
   });
 
-  test('forms keep the ordinary lifecycle without theme injection', () => {
-    const schema = createForm._private.buildFormSchema(
-      '全局主题测试',
-      [{ type: 'TextField', label: '姓名' }],
-      'FORM_TEST',
-      'CORP_TEST',
-      'APP_TEST',
-      'single',
-      'default',
-      'top'
-    );
-    const root = schema.pages[0].componentsTree[0];
-
-    expect(root.lifeCycles.componentDidMount).toMatchObject({ name: 'didMount', type: 'actionRef' });
-    expect(schema.actions.list).not.toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: 'openyidaThemeDidMount' }),
-    ]));
-    expect(schema.actions.module.source).not.toContain('openyida:theme:start');
-    expect(schema.actions.module.source).not.toContain('yida-global-theme');
-  });
-
-  test('forms without Divider also avoid theme actions', () => {
-    const schema = createForm._private.buildFormSchema(
-      '普通字段测试',
-      [{ type: 'TextField', label: '姓名' }],
-      'FORM_TEST',
-      'CORP_TEST',
-      'APP_TEST',
-      'single',
-      'default',
-      'top'
-    );
-
-    expect(schema.pages[0].componentsTree[0].lifeCycles.componentDidMount.name).toBe('didMount');
-    expect(schema.actions.module.source).not.toContain('openyida:theme:start');
-    expect(schema.actions.module.source).not.toContain('yida-global-theme');
-  });
-
   test('update add can insert presentation components inside nested containers', () => {
     const schema = createForm._private.buildFormSchema(
       '布局测试',
@@ -1656,25 +1604,6 @@ describe('form presentation components', () => {
     expect(compilerSourceCode).not.toMatch(/package:\s*'@ali\/vc-deep-yida',\s*version:/);
   });
 
-  test('update schemas do not add theme actions after adding Divider', () => {
-    const schema = createForm._private.buildFormSchema(
-      '后续新增分割线',
-      [{ type: 'TextField', label: '姓名' }],
-      'FORM_TEST',
-      'CORP_TEST',
-      'APP_TEST',
-      'single',
-      'default',
-      'top'
-    );
-    createForm._private.applyChangesToSchema(schema, [
-      { action: 'add', field: { type: 'Divider', title: '联系方式' }, after: '姓名' },
-    ]);
-
-    expect(schema.pages[0].componentsTree[0].lifeCycles.componentDidMount.name).toBe('didMount');
-    expect(schema.actions.module.source).not.toContain('openyida:theme:start');
-    expect(schema.actions.module.source).not.toContain('yida-global-theme');
-  });
 });
 
 // ── JS 语法检查 ──
@@ -1774,6 +1703,55 @@ describe('create-form module API', () => {
       mode: 'icons',
       json: true,
     });
+  });
+
+  test('parseArgs supports every documented create layout option', () => {
+    const previousLocale = process.env.OPENYIDA_CONTENT_LOCALE;
+    try {
+      expect(createForm.parseArgs([
+        'create',
+        'APP_XXX',
+        '客户登记',
+        '.cache/openyida/forms/fields.json',
+        '--layout',
+        'section',
+        '--theme',
+        'comfortable',
+        '--label-align',
+        'right',
+        '--locale',
+        'en_US',
+        '--no-open',
+      ])).toMatchObject({
+        mode: 'create',
+        layout: 'section',
+        theme: 'comfortable',
+        labelAlign: 'right',
+        contentLocale: 'en_US',
+        browserOpenMode: false,
+      });
+    } finally {
+      if (previousLocale === undefined) {
+        delete process.env.OPENYIDA_CONTENT_LOCALE;
+      } else {
+        process.env.OPENYIDA_CONTENT_LOCALE = previousLocale;
+      }
+    }
+  });
+
+  test.each([
+    ['--layout', 'grid'],
+    ['--theme', 'dark'],
+    ['--label-align', 'center'],
+  ])('parseArgs rejects unsupported create option %s=%s', (option, value) => {
+    expect(() => createForm.parseArgs([
+      'create',
+      'APP_XXX',
+      '客户登记',
+      '.cache/openyida/forms/fields.json',
+      option,
+      value,
+    ])).toThrow(expect.objectContaining({ code: 'CREATE_FORM_INVALID_ARGUMENTS' }));
   });
 
   test('parseArgs accepts update --data-file as the same changesJsonOrFile input', () => {
@@ -3228,19 +3206,6 @@ describe('create-form definition readers', () => {
 });
 
 describe('form compiler field bindings', () => {
-  test('compileFormDefinition does not inject theme actions for process form schemas', () => {
-    const compiled = formCompiler.compileFormDefinition({
-      formTitle: '流程表单主题测试',
-      appType: 'APP_XXX',
-      formUuid: 'FORM_XXX',
-      fields: [{ key: 'name', type: 'TextField', label: '姓名' }],
-    });
-
-    expect(compiled.schema.pages[0].componentsTree[0].lifeCycles.componentDidMount.name).toBe('didMount');
-    expect(compiled.schema.actions.module.source).not.toContain('openyida:theme:start');
-    expect(compiled.schema.actions.module.source).not.toContain('yida-global-theme');
-  });
-
   test('compileFormDefinition reuses existing field bindings by semantic path', () => {
     const compiled = formCompiler.compileFormDefinition({
       formTitle: '访客登记',

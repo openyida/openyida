@@ -21,6 +21,7 @@ npm run check:structure
 echo ""
 echo "=== Step 3: Validate skills ==="
 npm run check:skills
+npm run check:themes
 
 echo ""
 echo "=== Step 4: Validate command manifest ==="

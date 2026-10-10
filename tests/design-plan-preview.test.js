@@ -35,6 +35,16 @@ test('business module updates draft PRD and existing HTML section before visual 
   expect(result.draft).toBe(true);
 });
 
+test('unsupported and empty facts modules name the offending key next to the allowed list', () => {
+  const allowed = 'allowed: overview, dataModels, businessFlows, pages, visualStyle';
+  expect(() => update({ execution: {} })).toThrow(expect.objectContaining({
+    code: 'DESIGN_PLAN_PREVIEW_INVALID', details: { reason: `facts modules: execution; ${allowed}` },
+  }));
+  expect(() => update({})).toThrow(expect.objectContaining({
+    code: 'DESIGN_PLAN_PREVIEW_INVALID', details: { reason: `facts modules: none; ${allowed}` },
+  }));
+});
+
 test('visual module produces design and CSS independently and preserves custom CSS during updates', () => {
   update({ visualStyle: source.visualStyle });
   const cssPath = path.join(dir, 'preview/app-theme.css');

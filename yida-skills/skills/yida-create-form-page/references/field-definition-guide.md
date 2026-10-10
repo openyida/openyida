@@ -39,12 +39,12 @@
 | `dataSource` | Array | 条件必填 | 选项类字段必填 |
 | `multiple` | Boolean | 否 | 是否多选 |
 | `remoteDataSource` | Object | 否 | 选项类字段远程搜索数据源配置 |
-| `children` | Object[] | 条件必填 | `TableField` / 展示布局组件必填 |
+| `children` | Object[] | 条件必填 | `TableField` / `ColumnContainer` 必填 |
 | `associationForm` | Object | 条件必填 | `AssociationFormField` 必填 |
 
 选项类字段包括 `SelectField`、`MultiSelectField`、`RadioField`、`CheckboxField`。固定选项必须在字段 JSON 中提供非空 `dataSource`；不要省略选项源，也不要只写旧式 `options`。
 
-## 展示/布局组件
+## Divider 与 ColumnContainer
 
 ### Divider
 
@@ -55,6 +55,22 @@
 ```
 
 按当前页面的业务、密度和主题选择 `dividerType`，同页同层级尽量一致，不同业务页面优先选用不同且合适的样式；无法判断时按页面随机轮换，选定后显式填写，同页复用。完整外观和场景见 [Divider 选型表](form-field-properties.md#divider)。未填写时 CLI 以 `bold-with-thin` 兜底，不替代按场景选型。
+
+默认 `colorType: "theme"` 继承主题。默认绑定不适合当前深色内容或复合分割线时，可按[配色引导](../../yida-design/references/native-form-styles.md#分割线弱背景)成组自定义，无需用户逐项指定颜色。例如下面的颜色只用于蓝色深色内容示例，不作为所有应用的固定配方：
+
+```json
+{
+  "type": "Divider",
+  "title": "基本信息",
+  "dividerType": "light-left-bar",
+  "colorType": "custom",
+  "backgroundColor": "#2AA5FF",
+  "secondaryColor": "#1A2D3D",
+  "titleColor": "#DEE5EA"
+}
+```
+
+`colorType`、`backgroundColor`、`secondaryColor`、`titleColor` 都是字段 JSON 属性，不是 CLI 参数。create/batch 写在字段对象里；update 写在目标字段的 `changes` 中；patch 写在 `field-props` 操作的 `props` 中，最终保存在 `Divider.props` 的同名属性。同页同层级复用配色；换肤时重新考虑这三个颜色。本引导不新增自动校验或保存/上传阻断。
 
 ### ColumnContainer
 
@@ -73,20 +89,9 @@
 }
 ```
 
-### GroupContainer / PageSection
+### 分组组件
 
-只在特殊场景使用，不要承载普通业务分组：
-
-```json
-{
-  "type": "PageSection",
-  "title": "高级配置",
-  "showHeadDivider": true,
-  "children": [
-    { "type": "TextField", "label": "配置说明" }
-  ]
-}
-```
+普通业务分组和章节分隔使用 `Divider`，需要局部多列时组合 `Divider` 与 `ColumnContainer`。
 
 ## update changes
 
@@ -129,4 +134,3 @@
 | `SerialNumberField` | 流水号 | 自动生成 |
 | `Divider` | 分割线 | `title`、`dividerType`、`showTitle` |
 | `ColumnContainer` | 分栏布局，映射 `ColumnsLayout` | `layout`、`columnGap`、`rowGap`、二维 `children` |
-| `GroupContainer` / `PageSection` | 特殊分组容器，映射 `PageSection` | `label`/`title`、`showHeadDivider`、`children` |

@@ -86,6 +86,45 @@ describe('publish prechecks', () => {
     fs.rmSync(workspace, { recursive: true, force: true });
   });
 
+  test('fix-theme requires a mounted theme provider and never rewrites an unthemed page', async () => {
+    const sourcePath = path.join(workspace, 'theme.canvas.jsx');
+    const source = "import {ConfigProvider} from 'antd'; function YidaComp(){return <ConfigProvider theme={{token:{colorPrimary:'#1677ff'}}}><div/></ConfigProvider>}";
+    fs.writeFileSync(sourcePath, source);
+    await expect(publishPage([sourcePath, 'APP_XXX', 'FORM-PAGE', '--fix-theme', '--json']))
+      .rejects.toMatchObject({ code: 'OPENYIDA_CANVAS_THEME_PROVIDER_INVALID', details: { issueType: 'provider_missing' } });
+    expect(fs.readFileSync(sourcePath, 'utf8')).toBe(source);
+  });
+
+  test('a later compile error leaves the original source intact after preparing a theme migration', async () => {
+    const { buildApplicationProvider } = require('../yida-skills/skills/yida-canvas-custom-page/scripts/build-canvas-theme');
+    const sourcePath = path.join(workspace, 'theme.canvas.jsx');
+    const source = buildApplicationProvider() + `
+      function YidaComp(){return <CanvasThemeProvider><ConfigProvider theme={{token:{colorPrimary:'#1677ff' /* brand */,borderRadius:12}}}><UnknownComponent/></ConfigProvider></CanvasThemeProvider>}
+    `;
+    fs.writeFileSync(sourcePath, source);
+    await expect(publishPage([sourcePath, 'APP_XXX', 'FORM-PAGE', '--fix-theme', '--json'])).rejects.toThrow();
+    expect(fs.readFileSync(sourcePath, 'utf8')).toBe(source);
+  });
+
+  test('strict publish under a PTY rejects locally without opening a prompt, even with JSON', async () => {
+    const sourcePath = path.join(workspace, 'theme.canvas.jsx');
+    fs.writeFileSync(sourcePath, "import {ConfigProvider} from 'antd'; function YidaComp(){return <ConfigProvider theme={{token:{colorPrimary:'#1677ff'}}}><div/></ConfigProvider>}");
+    const descriptors = [process.stdin, process.stderr].map(stream => Object.getOwnPropertyDescriptor(stream, 'isTTY'));
+    const prompt = jest.spyOn(require('readline'), 'createInterface');
+    try {
+      for (const stream of [process.stdin, process.stderr]) { Object.defineProperty(stream, 'isTTY', { configurable: true, value: true }); }
+      await expect(publishPage([sourcePath, 'APP_XXX', 'FORM-PAGE', '--strict-theme', '--json']))
+        .rejects.toMatchObject({ code: 'OPENYIDA_CANVAS_THEME_FIXED_BRAND' });
+      expect(prompt).not.toHaveBeenCalled();
+    } finally {
+      [process.stdin, process.stderr].forEach((stream, index) => {
+        if (descriptors[index]) { Object.defineProperty(stream, 'isTTY', descriptors[index]); }
+        else { delete stream.isTTY; }
+      });
+      prompt.mockRestore();
+    }
+  });
+
   test('detects project and artifacts copies with the same name but different content', () => {
     const projectRoot = path.join(workspace, 'project');
     const projectSourceDir = path.join(projectRoot, 'pages', 'src');
@@ -164,14 +203,14 @@ export default function Page() {
   });
 
   test.each([
-    ["function YidaComp(){return <button onClick={()=>window.open('/custom/FORM-room')}>预订</button>}", 'OPENYIDA_CANVAS_PATH_MISSING_APP_TYPE'],
-    ["import {ConfigProvider} from 'antd'; function YidaComp(){return <ConfigProvider theme={{token:{colorPrimary:'#1677ff'}}}><div/></ConfigProvider>}", 'OPENYIDA_CANVAS_THEME_FIXED_BRAND'],
-  ])('rejects invalid navigation and theme before remote writes: %s', async (source, code) => {
+    ["function YidaComp(){return <button onClick={()=>window.open('/custom/FORM-room')}>预订</button>}", 'OPENYIDA_CANVAS_PATH_MISSING_APP_TYPE', []],
+    ["import {ConfigProvider} from 'antd'; function YidaComp(){return <ConfigProvider theme={{token:{colorPrimary:'#1677ff'}}}><div/></ConfigProvider>}", 'OPENYIDA_CANVAS_THEME_FIXED_BRAND', ['--strict-theme']],
+  ])('rejects invalid navigation and theme before remote writes: %s', async (source, code, extraArgs) => {
     const sourcePath = path.join(workspace, 'entry.canvas.jsx');
     fs.writeFileSync(sourcePath, source);
     const requestSpy = jest.spyOn(https, 'request').mockImplementation(() => { throw new Error('Unexpected HTTP request'); });
     try {
-      await expect(publishPage([sourcePath, 'APP_XXX', 'FORM-PAGE', '--canvas', '--force', '--skip-lint', '--no-open']))
+      await expect(publishPage([sourcePath, 'APP_XXX', 'FORM-PAGE', '--canvas', '--force', '--skip-lint', '--no-open', ...extraArgs]))
         .rejects.toMatchObject({ code });
       expect(requestSpy).not.toHaveBeenCalled();
     } finally { requestSpy.mockRestore(); }
@@ -540,7 +579,13 @@ export default function Page() {
     }
   });
 
-  test('publish main treats health check and auto nav order errors as non-fatal after save succeeds', async () => {
+  test.each([
+    [{ renderNav: false }, 'custom', false],
+    [{ isRenderNav: 'false' }, 'custom', false],
+    [{ renderNav: true, isRenderNav: false }, 'workbench', true],
+    [{ renderNav: null, isRenderNav: false }, 'workbench', null],
+    [null, 'workbench', null],
+  ])('publish returns the persisted navigation entry for %j without new flags and keeps post-save failures non-fatal', async (pageConfig, route, renderNav) => {
     const sourcePath = path.join(workspace, 'home.canvas.jsx');
     fs.writeFileSync(sourcePath, 'export default function Page() { return null; }\n', 'utf8');
 
@@ -584,10 +629,9 @@ export default function Page() {
         success: true,
         content: { pages: [], gmtModified: 100 },
       })),
-      httpPost: jest.fn(() => Promise.resolve({
-        success: true,
-        content: { formUuid: 'FORM-PAGE', version: 7 },
-      })),
+      httpPost: jest.fn(() => pageConfig === null
+        ? Promise.reject(new Error('config read unavailable'))
+        : Promise.resolve({ success: true, content: pageConfig })),
       httpPostMultipart: jest.fn(() => Promise.resolve({
         success: true,
         content: {
@@ -674,7 +718,8 @@ export default function Page() {
       expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('display_component_missing'));
       expect(warnMock).toHaveBeenCalledWith(expect.stringContaining('NAV_ORDER_RESULT_UNKNOWN'));
       expect(autoOrderNavigationMock).toHaveBeenCalledWith('APP_XXX', expect.any(Object));
-      expect(mockUtils.httpPost).not.toHaveBeenCalled();
+      expect(mockUtils.httpPost).toHaveBeenCalledTimes(1);
+      expect(mockUtils.httpPost.mock.calls[0][1]).toContain('/getFormSchemaInfo.json');
       expect(mockUtils.httpPostMultipart).toHaveBeenCalledTimes(1);
       expect(mockUtils.httpPostMultipart.mock.calls[0][1]).toContain('/query/codeBundle/save.json');
       expect(mockUtils.httpPostMultipart.mock.calls[0][2]).toMatchObject({
@@ -693,6 +738,11 @@ export default function Page() {
         appType: 'APP_XXX',
         formUuid: 'FORM-PAGE',
         publishMode: 'canvas',
+        url: `https://example.test/APP_XXX/${route}/FORM-PAGE`,
+        workbenchUrl: 'https://example.test/APP_XXX/workbench/FORM-PAGE',
+        standaloneUrl: route === 'custom' ? 'https://example.test/APP_XXX/custom/FORM-PAGE' : null,
+        navigationVerification: { renderNav, verified: renderNav !== null },
+        navigationWarning: pageConfig === null ? 'config read unavailable' : null,
         storageMode: 'CODE_BUNDLE',
         bundleId: 'a'.repeat(64),
         publishReadbackVerified: false,

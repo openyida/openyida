@@ -5,9 +5,28 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  app_entry: {
+    desc_get: 'Read frontend and management runtime entries',
+    desc_set: 'Register application entries with partial update and readback',
+    usage: 'Usage: openyida app-entry get <appType> [--json]\n       openyida app-entry set <appType> [--frontend <url>] [--management <url>] [--clear-frontend] [--clear-management] [--json]\nRegister only published, verified runtime URLs for this application. Omitted entries remain unchanged.',
+    invalid_url: 'वर्तमान ऐप के पेज, सार्वजनिक पेज या छोटे लिंक का पूरा http:// या https:// URL दें। सापेक्ष पथ, डिज़ाइनर URL और अस्थायी प्रमाणीकरण पैरामीटर समर्थित नहीं हैं।',
+    invalid_response: 'Incomplete entry response. Read the current entries before retrying and check that the server supports the entry configuration API.',
+    readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
+    frontend_display_required: 'फ्रंटएंड पेज {0} का प्रकार display होना चाहिए। फॉर्म के लिए सत्यापित पूर्ण URL दें।',
+    page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
+    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+  },
+  design_plan: {
+    rebase_required: 'पहली बार बनाने से पहले business.json/visual.json सुधारें। मुख्य योजना बदली हो तो फ़ाइलें सुरक्षित रखें और मूल कमांड में --rebase-parts जोड़ें।',
+    baseline_missing: 'मूल कार्यक्षेत्र से संबंधित .build-plan-base.json बहाल करें। विश्वसनीय आधार न मिले तो मसौदे सुरक्षित रखें और अवरोध बताएँ।',
+    rebase_stage_invalid: 'आधार मिलान केवल पहली बार बनाने से पहले के मसौदों के लिए है। दिखाई या बनाई जा चुकी योजना के लिए patch --materialize उपयोग करें।',
+    rebase_conflict: 'एक ही फ़ील्ड अलग तरह से बदली गई है। conflicts जाँचें और खंड में वर्तमान या मूल मान चुनें। कोई फ़ाइल सहेजी नहीं गई।',
+    repair_page_bindings: 'visual.json के pageApplications को business.json के customPageDetails से एक-एक करके मिलाएँ; मूल फ़ॉर्म शामिल न करें। visualMemoryApplications एक ऐरे होना चाहिए; कोई उपयुक्त आइटम न हो तो [] दें। मौजूदा मसौदा रखें, बताए गए फ़ील्ड सुधारें और मूल कमांड फिर चलाएँ। डायरेक्टरी न हटाएँ और init दोबारा न चलाएँ।',
+  },
   design_document: {
     update_conflict: "{0} ({1}) अपडेट नहीं हो सका: मौजूदा सामग्री पिछले जनरेट किए गए संस्करण से टकराती है। इस भाग के स्थानीय बदलावों को योजना के डेटा से मिलाएँ और फिर कोशिश करें। कोई फ़ाइल सेव नहीं हुई।",
     theme_css_invalid: 'थीम CSS में पंक्ति {0} के पास कोई बंद न किया गया या बेमेल कोष्ठक, स्ट्रिंग या टिप्पणी है। सुधार कर फिर प्रयास करें।',
+    theme_css_unresolved: 'थीम CSS के {0} में अभी भी टेम्पलेट प्लेसहोल्डर या रंग बनाने का निर्देश है। design.md पूरा करें, openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> चलाएँ, फिर बनी हुई फ़ाइल अपलोड करें। केवल PRIMARY_COLOR बदलना पर्याप्त नहीं है।',
     invalid: 'डिज़ाइन सत्यापन विफल: {0} ({1})',
     yaml: 'डिज़ाइन दस्तावेज़ का frontmatter मान्य YAML नहीं है',
     token_value: 'टोकन {0} का मान निर्धारित एकल-पंक्ति CSS मान होना चाहिए',
@@ -17,6 +36,11 @@ module.exports = {
     usage: 'उपयोग: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'डिज़ाइन सत्यापन फ़ाइल नहीं पढ़ी जा सकती: {0}',
     checked: 'डिज़ाइन सत्यापन सफल: {0}; {1} पृष्ठ, {2} टोकन',
+    anchor_hint: 'एंकर को मुख्य पाठ में सेल्फ-क्लोज़िंग HTML टैग के रूप में लिखें, जैसे <a id="component-button"></a> (टैग के id में # नहीं लगता; frontmatter में संदर्भ #component-button लिखा जाता है)। Markdown शीर्षक {#id}, [पाठ](#id) जैसे लिंक या सादा पाठ एंकर नहीं माने जाते।',
+    anchor_chapter_three_hint: 'इस एंकर का <a id="…"></a> टैग "## 3. 基础组件表达" अध्याय के अंदर और "## 4. 特色表达配方" से पहले रखा जाना चाहिए।',
+    page_anchor_chapter_five_hint: 'पेज एंकर का <a id="page-…"></a> टैग "## 5. 项目应用与调整规则" अध्याय के अंदर होना चाहिए।',
+    page_anchor_prefix_hint: 'पेज एंकर टैग की id page- से शुरू होनी चाहिए, जैसे <a id="page-workbench"></a> (frontmatter में संदर्भ #page-workbench है), और अलग-अलग पेजों के एंकर दोहराए नहीं जा सकते।',
+    page_label_hint: 'इस पेज एंकर <a id="page-…"></a> के बाद और अगले पेज एंकर से पहले, आठ बिंदुओं को पंक्ति दर पंक्ति लिखें: 页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收, प्रारूप - **{0}：** ठोस सामग्री; मान ठोस और कार्यान्वयन योग्य होने चाहिए, 按主题执行 या TODO जैसे प्लेसहोल्डर नहीं।',
   },
   asset: {
     sourceRecords: '--input के assets[] में assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) और authorizationEvidence (प्रमाण के URL या फ़ाइल पथ का ऐरे) दर्ज करें। सूची ये रिकॉर्ड सुरक्षित रखती है; अनुपलब्ध मान खाली रहते हैं। यह व्यावसायिक अनुमति का स्वतः प्रमाण नहीं है।',
@@ -171,6 +195,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: 'उपयोग का तरीका चुनें: साझा कार्य पृष्ठ (unified), उपयोगकर्ता और कार्य प्रबंधन के अलग पृष्ठ (service-management), केवल उपयोगकर्ता पृष्ठ (frontend-only), या केवल कार्य प्रबंधन पृष्ठ (backend-only)।',
+    design_plan_backend_only_roles: 'backend-only में प्रत्येक प्रवेश बिंदु का role management होना चाहिए।',
     design_plan_local_menu_binding: 'स्थानीय मेनू {0} को होस्ट पेज और viewKey चाहिए: प्रवेश {1} का sceneKey पेज के sceneKey से, resource पेज के name से मेल खाए और viewKey खाली न हो। यह सभी भूमिकाओं पर लागू है।',
     design_plan_visual_object_required: '{0} एक ऑब्जेक्ट होना चाहिए, स्ट्रिंग या ऐरे नहीं। init द्वारा बनाई संरचना बनाए रखें और मान भरें। उदाहरण: {1}।',
     help: '\n' +
@@ -309,7 +335,7 @@ module.exports = {
     integration_enable_example: 'उदाहरण: openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
     integration_disable_usage: 'उपयोग: openyida integration disable <appType> <formUuid> <processCode>',
     integration_disable_example: 'उदाहरण: openyida integration disable APP_XXX FORM-XXX LPROC-XXX',
-    compile_usage: 'उपयोग: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--json]',
+    compile_usage: 'उपयोग: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--strict-theme|--allow-fixed-brand] [--json]',
     compile_example: 'उदाहरण: openyida compile pages/src/home.oyd.jsx',
     check_page_usage: 'Usage: openyida check-page <sourceFile> [--compat] [--json]',
     check_page_example: 'Example: openyida check-page pages/src/home.oyd.jsx --json',
@@ -1044,6 +1070,7 @@ module.exports = {
     theme_preset_conflict: 'प्रीसेट colour को CSS या themeColor के साथ नहीं भेज सकते। --colour custom उपयोग करें या --colour छोड़ दें।',
     custom_theme_color_required: 'colour=custom के लिए थीम फ़ाइल या मान्य themeColor चाहिए। --theme-file या --theme-color दें।',
     theme_not_persisted: 'सहेजने के बाद ऐप की थीम सेटिंग की पुष्टि नहीं हो सकी। themeVerification जाँचें और update-app <appType> --theme-file <css> से पुनः प्रयास करें; ऐप दोबारा न बनाएँ।',
+    navigation_not_persisted: "नेविगेशन सेटिंग दोबारा पढ़ी नहीं जा सकीं या अनुरोधित मानों से मेल नहीं खातीं। navigationVerification में अपेक्षित मान, वास्तविक मान और पढ़ने की त्रुटियाँ देखें, फिर ऐप की वर्तमान सेटिंग जाँचें।",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1282,6 +1309,11 @@ module.exports = {
   },
   publish: {
     canvas_path_missing_app_type: 'पंक्ति {0}: नेविगेशन में appType नहीं है। canvas-navigation और सत्यापित ID से /{appType}/{pageType}/{formUuid} बनाएँ; केवल /custom/ पथ न दें।',
+    canvas_theme_fixed_brand_allowed: 'पंक्ति {0} ({1}) का स्थिर ब्रांड रंग रखा गया है; यह ऐप थीम के अनुसार नहीं बदलेगा।',
+    canvas_theme_fixed_brand_relaxed: 'पंक्ति {0}: ConfigProvider एक ब्रांड इंटरैक्शन रंग ({1}) को हार्डकोड करता है। प्रकाशन अब डिफ़ॉल्ट रूप से अवरुद्ध नहीं होता और यथावत जारी रहता है, लेकिन यह रंग एप्लिकेशन थीम का अनुसरण नहीं करेगा। स्वतः माइग्रेट करने के लिए --fix-theme जोड़ें, या canvas-theme में मैन्युअल रूप से माइग्रेट करें; CI में हार्ड-फेल करने के लिए --strict-theme का उपयोग करें।',
+    theme_canvas_only: 'थीम विकल्प केवल Canvas पेज के लिए हैं; .canvas.jsx/.canvas.tsx या --canvas का उपयोग करें।',
+    fix_theme_source_changed: 'थीम माइग्रेशन सहेजने से पहले स्रोत बदल गया। फ़ाइल नहीं लिखी गई; वर्तमान स्रोत दोबारा जाँचें।',
+    fix_theme_applied: 'थीम माइग्रेशन लागू किया गया और स्रोत में वापस लिखा गया: {0}',
     canvas_theme_fixed_brand: 'पंक्ति {0}: ConfigProvider में ब्रांड रंग स्थिर है। canvas-theme से प्राप्त थीम रंग उपयोग करें; CSS var सीधे केवल DOM स्टाइल में दें।',
     canvas_navigation_local_platform: 'पंक्ति {0}: स्थानीय व्यू प्लेटफ़ॉर्म मेनू से फ़िल्टर हो रहे हैं। mode=local या स्थानीय स्टेट उपयोग करें; वास्तविक पेजों को formUuid/navUuid से जोड़ें और घोषित अनुमतियाँ जाँचें।',
     canvas_navigation_document_flex: 'पंक्ति {0}: document में शून्य आधार वाला flex है। canvas-nav-content अपडेट करें: document के लिए प्राकृतिक ऊँचाई और ब्लॉक, workspace के लिए निश्चित ऊँचाई वाला flex।',
@@ -2090,3 +2122,13 @@ module.exports.help.cmd_agent = connectorSafetyMessages.help.cmd_agent;
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: 'नोड {0} के लिए अमान्य अनुमोदन कार्रवाई कॉन्फ़िगरेशन: {1}',
 });
+
+module.exports.cli_argument = { invalid: 'अमान्य तर्क या मान गायब है: {0}। कमांड की सहायता देखें।' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: --output एक CSS फ़ाइल है; --design-file पूर्ण डिज़ाइन पढ़ता है। इसे छोड़ने पर CSS रीसेट होता है। थीम के मान डिज़ाइन में भरें।',
+  'style_help': 'application-style: --style-id आवश्यक है और सभी कैटलॉग थीम स्वीकार करता है; --output तीन फ़ाइलों की डायरेक्टरी है। मौजूदा फ़ाइलों पर त्रुटि आती है।'
+};
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

@@ -17,6 +17,8 @@ assetStrategy: {"pages":[{"pageId":"home","imageNeed":"required","slots":[{"slot
 - `generationAllowed=false` 只接受真实素材。
 - `imageNeed=none` 省略 slots 时 CLI 补空数组；required/beneficial 页面显式填写 slots。Plan 生成方案时即校验位置、用途和尺寸；required 页面空 slots 时保持 draft。
 
+动态记录图片由真实字段绑定，不进入静态槽位清单；只含动态图片的页面使用 `imageNeed=none`、`slots=[]`，并在设计正文与数据绑定中记录图片来源和无图降级。`none` 仅表示没有固定素材采集任务，不能据此删除业务图片。详见[任务驱动的视觉设计](../../yida-design/references/task-driven-visual-design.md)。
+
 ## 输入草稿
 
 ```json

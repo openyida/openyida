@@ -38,12 +38,15 @@
 
 ### themeProfile
 
+`contentTone` 与 `navTheme` 的语义和组合规则统一见[主题明暗双轴](../references/application-style-library.md#主题明暗双轴)。
+
 | 字段 | 规则 |
 | --- | --- |
 | `name` | 项目自己的视觉方向名称，不写主题模板名称 |
 | `themeColor` | 当前主色，使用 6 位 HEX，与 `--color-brand1-6` 的最终值一致 |
 | `themeColorSource` | 实际来源，如 `user-specified`、`application-theme` 或 `business-inferred`；不伪造模板默认品牌色 |
-| `navTheme` | 当前导航明暗 `light` 或 `dark`；与页面画布明暗分开 |
+| `contentTone` | `light` 或 `dark` |
+| `navTheme` | 从所选主题模板派生的导航明暗 `light` 或 `dark`；与页面画布明暗分开，不由 AI 默认填写；自由创意使用项目明确设计的导航明暗 |
 | `themeDelivery` | `app-custom-theme-file` 或 `current-app-theme` |
 | `themeFile` | 当前主题 CSS 的实际交付路径；继承当前应用且没有本地主题文件时为空字符串 |
 | 既有导航配置 | 保留 navigationType、layoutDirection、hideAppNav、logoSource 等已确认配置，不重新推断入口范围 |
@@ -55,12 +58,12 @@
 使用共享主题现有的五章组织，不新增第二套固定模板。标题保持带编号的 H2，例如 `## 1. 风格摘要`，依次到 `## 5. 项目应用与调整规则`；不要省略编号或改成其他标题层级。内容按当前项目实例化：
 
 1. **风格摘要**：当前项目的视觉方向、用户任务、明确约束与需要保留的核心特征；简要说明已选配色和导航，不写候选比较。
-2. **页面视觉系统**：画布、导航、表面、边界、排版、间距、形状和色彩角色。项目配色与导航的覆盖合并到对应规则中，不另起一组相互冲突的“默认”和“适配”说明。
+2. **页面视觉系统**：导航、应用框架、画布、表面、边界、排版、间距、形状和色彩角色，覆盖表单提交、编辑、记录详情与自定义页面。项目配色与导航的覆盖合并到对应规则中，不另起一组相互冲突的“默认”和“适配”说明。
 3. **基础组件表达**：当前项目组件的结构、变量消费与状态。每套规则正文只写一次，索引定位到该段。
 4. **特色表达配方**：保留真实内容可用的配方、启用条件和不适用时处理；不为套用配方新增业务模块。未启用配方可省略细节，不影响基础视觉语言。
 5. **项目应用与调整规则**：每个实际自定义页的具体设计与验收、必要项目差异和素材缺口；不保留“请填入下方”“生成时替换”等编写任务。
 
-主题中的模板维护要求、frontmatter 模板身份要求、占位符替换步骤、色值计算指令及模型编写提示不进入最终正文。导航的最终六项配色写在第 2.2 节，与导航规则放在一起，不在章末追加另一套默认说明。保留的是实例化结果与实现者仍需遵守的消费规则，不是模板作者的操作步骤。
+主题中的模板维护要求、frontmatter 模板身份要求、占位符替换步骤、色值计算指令及模型编写提示不进入最终正文。第 2.2 节统一说明导航与框架的最终表面、状态、边界、形状、文字、间距和消费规则；导航差异 token（未声明项沿用平台绑定） 保存在 frontmatter。写法见 [导航与应用框架](../references/application-theme-consistency.md#导航与应用框架)。保留的是实例化结果与实现者仍需遵守的消费规则。选中项阴影与导航状态在同一节说明。
 
 按 [页面与导航连续性](../references/page-continuity.md) 逐页交接背景、滚动、切换/返回和异常状态；沉浸页导航叠加首屏，工作区导航占位，页内切换不创建应用导航。
 
@@ -94,7 +97,34 @@ Fast 保留 PRD 的 Markdown 逐页块与 `pageSpecHandoff` 格式，display-pag
 - `components`、`states` 的 key 与 PRD 引用一致，目标 anchor 位于第 3 章基础组件表达内。只登记实际存在的规则；一个复合组件段落确实覆盖多类组件时可共享 anchor，不能因缺少规则就登记虚假引用。
 - 索引只保存定位信息，不保存 `rules`、页面布局或组件正文副本。一个共享段落可以服务多个页面，但每个页面仍有自己的具体应用段。
 
+锚点与八项要点的最小对照（校验只认这种空内容 HTML 锚点标签，Markdown 标题 `{#id}`、链接 `[文字](#id)` 都不算锚点）：
+
+```markdown
+## 3. 基础组件表达
+
+<a id="component-button"></a>
+### 按钮
+主要操作使用品牌色。
+
+## 5. 项目应用与调整规则
+
+<a id="page-workbench"></a>
+### 工作台
+- **页面任务：** 处理逾期待办并支持批量完成
+- **首屏焦点：** 逾期队列置顶并高亮最紧急一项
+- **布局：** 主列表居左、上下文分栏居右，720px 以下上下堆叠
+- **表面与组件：** 表格消费共享卡片表面与按钮规则
+- **主操作：** 行尾「完成」提交并刷新计数
+- **状态：** 空记录显示登记入口，加载显示骨架
+- **响应式：** 窄屏工具栏换行、表格横向滚动
+- **验收：** 完成操作后计数与列表同源刷新
+```
+
+frontmatter 对应 `components.button.anchor: "#component-button"`、`sceneRecipes.workbench.pages: [{ "pageId": "workbench", "anchor": "#page-workbench" }]`：标签 id 不带 `#`，frontmatter 引用带 `#`；页面锚点必须落在第 5 章，八项要点紧跟本页锚点、止于下一个页面锚点。
+
 ## 图片素材与图标
+
+动态记录图片写入真实数据绑定和设计正文，不为每条记录分配静态素材槽位。仅有动态图片时素材策略使用 `imageNeed: none` 与空 slots，含义是无静态采集任务；页面仍按记录渲染图片。固定素材才进入下方清单，详见[任务驱动的视觉设计](../references/task-driven-visual-design.md)。
 
 `assetStrategy.pages[]` 按 [素材清单契约](../../yida-image-assets/references/manifest-contract.md) 记录图片等级与槽位；槽位含用途、数量、比例、尺寸、焦点、填充方式和生成许可。无图片需求的实际页面记录 `imageNeed: none`。保持 frontmatter 单行 JSON 兼容 `--design design.md`，不能只保留槽位数量；有需求时交给 `yida-image-assets`。
 
@@ -108,7 +138,7 @@ Fast 写入 `design.md`；Plan 写入 `visualStyle.forUser.iconSystem.colorPairs
 
 用户确认的整体氛围高于模板默认灰阶。根据品牌和已确认方向协调页面、卡片、导航、填充、边界和交互，同时保留文字可读性和独立状态语义；不能只改按钮，也不能统一抹掉主题原有层次与材质。
 
-Fast 与 Plan 使用同一主题的颜色推导、组件规则和页面设计标准。主色按主题公式推导，其余变量沿用主题；项目差异直接写入 token。Plan 输入使用 `visualStyle.tokens`，Fast 写入 `design.md.tokens`，最终设计相同。导航六色成组处理，导航明暗不带动内容画布变暗或变白。用户明确保留中性参考或只改强调色时尊重该范围。
+Fast 与 Plan 使用同一主题的颜色推导、组件规则和页面设计标准。主色按主题公式推导，其余变量沿用主题；项目差异直接写入 token。Plan 输入使用 `visualStyle.tokens`，Fast 写入 `design.md.tokens`，最终设计相同。导航差异 token（未声明项沿用平台绑定） 沿用主题模板，并合入明确的项目差异；`navigationStyle.tone` 表示导航明暗，具体外观由这组 token 表达。导航明暗与内容画布分别设计。用户明确保留中性参考或只改强调色时尊重该范围。`--pod-nav-menu-item-selected-shadow` 作为方向无关的基础外观 Token 独立透传，`none` 表示关闭；CLI 不根据导航明暗生成替代配色。
 
 圆角、padding、gap、密度、背景与卡片关系按选中主题和真实任务执行，通用参考值仅补未定义项。同色画布与面板可通过边界、共容器和留白建立层次；渐变、玻璃、阴影、纹理不互相强制绑定。需要动效时提供 reduced motion 降级，装饰不覆盖内容与操作。
 
@@ -116,19 +146,19 @@ Fast 与 Plan 使用同一主题的颜色推导、组件规则和页面设计标
 
 按 [应用与自定义页面共用主题](../references/application-theme-consistency.md) 将风格承诺落实到变量，再交接页面开发。文字中的“暖色”“纸感”不是 CLI 的色值输入；模板之外的全局风格必须写入 token，不能只在自定义页实现。
 
-平台基础变量是最低契约，不是允许使用的全部变量。项目可按需扩展颜色、材质、布局、字体、动效和组件状态等语义，命名不限定为 `--oyd-*`。基础变量和扩展变量统一生成到主题 CSS；分组不决定运行时作用域，新增变量需有明确的使用组件、CSS 属性或平台映射，详见 [扩展规则](../references/application-theme-consistency.md#平台变量是基础项目主题按需扩展)。
+平台基础变量是最低契约，不是允许使用的全部变量。项目可按需扩展颜色、材质、布局、字体、动效和组件状态等语义，命名不限定为 `--oyd-*`。基础变量和扩展变量统一生成到主题 CSS；分组不决定运行时作用域，新增变量需有明确的使用组件、CSS 属性或平台映射，详见 [扩展规则](../references/application-theme-consistency.md#平台基础变量是应用主题基础框架)。
 
 `app-theme.css` 是当前应用的主题资源产物，承载品牌色阶、语义色、字体、间距、圆角、阴影，以及 Shell、导航、页面、表单、表格和浮层的主题 token 与必要样式覆盖。`app_theme.css` 等其他 `.css` 文件名同样可用；CLI 根据 `--theme-file` 路径读取内容，不靠固定文件名识别用途。Plan 使用 `outputs.theme`，其他流程使用已记录的产物路径，避免生成多份后上传错文件。
 
 - `design.md` 定义视觉意图、布局和交互；主题 CSS 把对应的平台样式契约落成可加载的资源。导航是否悬浮、侧栏如何折叠和拖拽、业务内容如何排布，仍由页面代码实现。
-- 平台组件与自定义页面通过对应 token 消费主题。保留原有变量名和明暗导航作用域；页面组件用 `var(--token, fallback)`，不在每页重新注入全局主题。只有实际引用该 token 或命中 CSS 选择器的内容才会改变外观。
+- 平台组件与自定义页面通过对应 token 消费主题。保留原有变量名；固定主题的全局及平台模式选择器共用一份变量声明，不按 is-light/is-dark 生成两套颜色；页面组件用 `var(--token, fallback)`，不在每页重新注入全局主题。只有实际引用该 token 或命中 CSS 选择器的内容才会改变外观。
 - 文件生成后，通过 `update-app --theme-file <实际路径>` 上传，再更新应用基础设置中的 `colour=custom`、`themeColor` 和 `customThemeStyle`；导航、Logo 来源与布局在同一次更新中同步。创建应用或仅修改本地 CSS 均不等于绑定了主题。
 - iframe 是独立文档，不能假定它继承父页面的 CSS 变量。原生表单页依靠该应用的平台主题加载链路；自绘抽屉外壳由所在页面消费 token，高度兜底由容器代码保证。
 - `themeVerification.verified=true` 证明应用设置已绑定资源，不证明所有页面视觉正确。发布后仍需检查实际页面及表单 iframe 的资源加载、计算样式与布局；CLI 无法仅凭 CSS 文件判断最终视觉效果。
 
 主题准备与表单、页面开发按 [并行依赖](../../yida-app/workflow/parallel-work.md#主题与业务资源的依赖) 调度：计划或主题确认后即生成 CSS，不依赖表单或页面实现；appType 与 CSS 就绪便立即同步应用基础设置。页面先按已确认 token 开发，视觉验收再核对主题加载结果。
 
-页面背景统一使用 `--pod-page-bg-color`，卡片和面板使用 `--pod-card-bg-color`，默认回退 `--color-white`；抽屉整体使用 `--pod-shell-theme-bg-color`，标题栏与正文容器透明承接，不用卡片底色铺满抽屉。导航归属不改变页面底色，隐藏导航不自动透明；深色或明确的应用背景通过同一平台 token 配置。Plan 和 Fast 将设计值写入 design.md 并生成 app-theme.css，Canvas 宿主、页面根和 antd 统一消费；渐变、纹理和素材作为页面局部装饰层。
+页面背景统一使用 `--pod-page-bg-color`，卡片和面板使用 `--pod-card-bg-color`，默认回退 `--color-white`；抽屉外壳使用 `--pod-shell-theme-bg-color`，内部 iframe 继续加载表单或详情页主题，标题栏与正文容器透明承接，不用卡片底色铺满抽屉。导航归属不改变页面底色，隐藏导航不自动透明；深色或明确的应用背景通过同一平台 token 配置。Plan 和 Fast 将设计值写入 design.md 并生成 app-theme.css，Canvas 宿主、页面根和 antd 统一消费；渐变、纹理和素材作为页面局部装饰层。
 
 ### 背景颜色、渐变与图片
 
@@ -145,7 +175,11 @@ Fast 与 Plan 按同一规则记录背景，先确定作用范围：
 
 Fast 或单独更新主题时，执行 `openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css --design-file prd/<项目名>/design.md`。首次从公共模板生成；已有 CSS 只更新设计中变化的 token，保留其他 token 和自定义样式。CLI 自动保存更新记录，内容相同时跳过写入，写入失败回滚。省略 `--design-file` 会用公共模板重置目标 CSS。
 
-主题生成前校验输入 CSS 的括号、字符串和注释闭合，生成后与上传前复用同一检查；纯模板导出也须通过。出现 `THEME_CSS_STRUCTURE_INVALID` 时按错误行修复源模板或已有 CSS，再重试；生成失败保留原 CSS 和 token 更新记录，不能靠重置模板覆盖已有定制。新增全局及页面语义 token 写入顶层 `:root`；白色、灰色导航保留公共模板中的背景变量及回退链，不要求改成固定色值。
+主题生成前校验输入 CSS 的括号、字符串和注释闭合，生成后与上传前复用同一检查；纯模板导出也须通过。出现 `THEME_CSS_STRUCTURE_INVALID` 时按错误行修复源模板或已有 CSS，再重试；生成失败保留原 CSS 和 token 更新记录，不能靠重置模板覆盖已有定制。新增全局及页面语义 token 写入包含顶层 `:root` 的统一声明块；light、dark、white、gray 选择器消费同一套项目颜色。
+
+品牌色阶 `--color-brand1-1/2/3/5/6/9/10` 必须完整且在顶层 `:root` 可用。`THEME_BRAND_SCALE_INCOMPLETE` 表示缺档或作用域不满足，`THEME_BRAND_SCALE_INVALID` 表示最终颜色值或引用不可用，`THEME_CSS_UNRESOLVED_TOKEN` 表示残留模板占位或生成说明；按 details 修复 design.md 后重新生成，不能只替换主色或追加另一套默认色盘。
+
+导航边框、box-shadow 与上述必需色阶不同，是按需覆盖：省略时不生成额外的平台菜单形状规则，显式 `none` 才表示有意关闭。删除声明后 CLI 移除对应生成规则，保留规则块外的项目样式；单独声明阴影不改变边框、内部高度或顶部间距。普通入口按连续目录组织，主题一致不要求复制表单输入框或卡片造型。
 
 主题文件只能由上述 OpenYida CLI 契约生成或更新。不得另写 Python、Node、Shell 或 `run_workspace_script` 临时脚本来生成、复制、整文件重写、正则替换或 retheme 主题 CSS；校验脚本只能读取并报告问题，不能改写主题文件。需要调整 CLI 未覆盖的精确 classname 覆盖时，只允许在现有文件末尾做小范围编辑，并重新通过 `update-app --theme-file` 上传完整文件。
 
@@ -176,3 +210,7 @@ Plan 物化内部使用同一校验，不另维护宽松标准。校验覆盖格
 页面实现交给 `yida-canvas-custom-page`。
 
 交接须满足：五章正文完整且项目化，frontmatter 可解析，所有引用可定位，真实页面八项要点齐备，主题变量和素材/图标记录一致，没有模板身份、未解析指令或重复维护的规则副本。页面实现按 `designRefs` 读取当前页及其共享规则；`page-spec.json` 仅派生业务输入、主题摘要和引用，保留 `sourceOfTruth.prdFile/designFile`，不复制完整设计。
+
+本地校验失败统一按[本地校验修复](../../../references/source-repair.md)处理：先修正并回读源文件，未变化不重跑，连续两次修复无进展时保留产物并报告阻塞。
+
+移动端 `--color-brand-1`、`--color-brand-2`、`--color-brand-3`、`--color-brand-4` 由 CLI 按应用色阶生成桥接；最终 CSS 也必须在顶层 `:root` 完整提供这四项。生成后和上传前同时校验 PC 七档与移动端四档的缺失、无效颜色及引用循环，不要求在 design.md 重复声明自动桥接。

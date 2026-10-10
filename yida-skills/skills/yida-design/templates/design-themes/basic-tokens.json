@@ -5,13 +5,7 @@
       "--pod-app-root-bg-image",
       "--pod-page-bg-color",
       "--pod-card-bg-color",
-      "--pod-table-cell-color",
-      "--pod-shell-theme-bg-color",
-      "--pod-nav-item-text-color",
-      "--pod-nav-item-text-hover-color",
-      "--pod-nav-item-text-selected-color",
-      "--pod-nav-menu-bg-hover-color",
-      "--pod-nav-menu-bg-selected-color"
+      "--pod-table-cell-color"
     ],
     "colors": [
       "--color-white",
@@ -28,6 +22,7 @@
       "--color-fill1-2",
       "--color-fill1-3",
       "--color-fill1-5",
+      "--color-fill1-6",
       "--color-fill1-10",
       "--color-text1-5",
       "--color-text1-4",

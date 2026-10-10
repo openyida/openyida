@@ -5,9 +5,28 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  app_entry: {
+    desc_get: 'Read frontend and management runtime entries',
+    desc_set: 'Register application entries with partial update and readback',
+    usage: 'Usage: openyida app-entry get <appType> [--json]\n       openyida app-entry set <appType> [--frontend <url>] [--management <url>] [--clear-frontend] [--clear-management] [--json]\nRegister only published, verified runtime URLs for this application. Omitted entries remain unchanged.',
+    invalid_url: '現在のアプリのページ、公開ページ、短縮リンクの完全な http:// または https:// URL を入力してください。相対パス、デザイナー URL、一時認証パラメーターは使用できません。',
+    invalid_response: 'Incomplete entry response. Read the current entries before retrying and check that the server supports the entry configuration API.',
+    readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
+    frontend_display_required: 'フロントページ {0} は display ページが必要です。フォームには検証済みの完全な URL を指定してください。',
+    page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
+    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+  },
+  design_plan: {
+    rebase_required: '初回生成前は business.json/visual.json を修正してください。元計画が変わった場合はファイルを保持し、元コマンドに --rebase-parts を追加してください。',
+    baseline_missing: '元の作業領域から対応する .build-plan-base.json を復元してください。信頼できる基準がなければ下書きを保持して問題を報告してください。',
+    rebase_stage_invalid: '基準の統合は初回生成前の下書きのみです。表示・生成済みの計画には patch --materialize を使用してください。',
+    rebase_conflict: '同じ項目が異なる内容に変更されています。conflicts を確認し、断片で現在値か基準値を選択してください。ファイルは未保存です。',
+    repair_page_bindings: 'visual.json の pageApplications を business.json の customPageDetails と一対一に対応させ、ネイティブフォームは除外してください。visualMemoryApplications は配列とし、該当なしは [] にします。既存の下書きを保持し、示されたフィールドを修正して元のコマンドを再実行してください。ディレクトリの削除や init の再実行は不要です。',
+  },
   design_document: {
     update_conflict: "{0}（{1}）を更新できません。現在の内容が前回の生成結果と競合しています。該当箇所のローカル変更と計画データを合わせてから再試行してください。ファイルは保存されていません。",
     theme_css_invalid: 'テーマ CSS の {0} 行付近に、閉じられていないか対応しない括弧、文字列、コメントがあります。修正して再試行してください。',
+    theme_css_unresolved: 'テーマ CSS の {0} にテンプレートのプレースホルダーまたは色の生成指示が残っています。design.md を完成させ、openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> を実行してから生成ファイルをアップロードしてください。PRIMARY_COLOR の置換だけでは不十分です。',
     invalid: 'デザイン検証に失敗しました：{0}（{1}）',
     yaml: 'デザイン文書の frontmatter は有効な YAML ではありません',
     token_value: 'トークン {0} には確定した1行の CSS 値が必要です',
@@ -17,6 +36,11 @@ module.exports = {
     usage: '使用方法: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'デザイン検証ファイルを読み取れません：{0}',
     checked: 'デザイン検証に成功しました：{0}、{1} ページ、{2} トークン',
+    anchor_hint: 'アンカーは本文の該当位置に自己閉鎖型 HTML タグとして記述してください。例: <a id="component-button"></a>（タグの id には # を付けず、frontmatter での参照は #component-button と記述します）。Markdown 見出しの {#id}、[文字](#id) のようなリンク、通常のテキストはアンカーとして扱われません。',
+    anchor_chapter_three_hint: 'このアンカーの <a id="…"></a> タグは「## 3. 基础组件表达」の章内、「## 4. 特色表达配方」の前に配置してください。',
+    page_anchor_chapter_five_hint: 'ページアンカーの <a id="page-…"></a> タグは「## 5. 项目应用与调整规则」の章内に配置してください。',
+    page_anchor_prefix_hint: 'ページアンカーのタグ id は page- で始めてください。例: <a id="page-workbench"></a>（frontmatter での参照は #page-workbench）。異なるページ間でアンカーを重複させることはできません。',
+    page_label_hint: 'このページアンカー <a id="page-…"></a> の後、次のページアンカーの前に、8 項目（页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收）を 1 行ずつ記述してください。形式は - **{0}：** 具体的な内容。値は具体的で実装可能である必要があり、「按主题执行」や「TODO」などのプレースホルダーは使用できません。',
   },
   asset: {
     sourceRecords: '--input の assets[] に assetId、creator、sourcePage、license、licenseUrl、licenseCheckedAt（YYYY-MM-DD）、authorizationEvidence（証拠の URL またはファイルパスの配列）を記録します。マニフェストは記録を保持し、未入力の値は空欄のままです。商用許諾を自動判定しません。',
@@ -171,6 +195,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: '利用方式を選択してください：共通の業務画面（unified）、利用者画面と業務処理画面を分離（service-management）、利用者画面のみ（frontend-only）、業務処理画面のみ（backend-only）。',
+    design_plan_backend_only_roles: 'backend-only では、すべての入口の role を management にしてください。',
     design_plan_local_menu_binding: 'ローカルメニュー {0} には表示ページと viewKey が必要です。入口 {1} の sceneKey はページの sceneKey、resource はページの name と一致し、viewKey は空でない必要があります。すべての役割に適用されます。',
     design_plan_visual_object_required: '{0} は文字列や配列ではなくオブジェクトで指定してください。init が生成した構造を維持して値を入力します。例: {1}。',
     help: '\n' +
@@ -295,7 +321,7 @@ module.exports = {
     integration_enable_example: '例: openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
     integration_disable_usage: '使用方法: openyida integration disable <appType> <formUuid> <processCode>',
     integration_disable_example: '例: openyida integration disable APP_XXX FORM-XXX LPROC-XXX',
-    compile_usage: '使用方法: openyida compile <ソースファイル> [--canvas] [--compat] [--skip-lint] [--json]',
+    compile_usage: '使用方法: openyida compile <ソースファイル> [--canvas] [--compat] [--skip-lint] [--strict-theme|--allow-fixed-brand] [--json]',
     compile_example: '例: openyida compile pages/src/home.oyd.jsx',
     check_page_usage: 'Usage: openyida check-page <sourceFile> [--compat] [--json]',
     check_page_example: 'Example: openyida check-page pages/src/home.oyd.jsx --json',
@@ -998,6 +1024,7 @@ module.exports = {
     theme_preset_conflict: 'プリセット colour と CSS または themeColor は併用できません。--colour custom を指定するか --colour を省略してください。',
     custom_theme_color_required: 'colour=custom にはテーマファイルまたは有効な themeColor が必要です。--theme-file または --theme-color を指定してください。',
     theme_not_persisted: '保存後のアプリテーマ設定を確認できませんでした。themeVerification を確認し、update-app <appType> --theme-file <css> で再試行してください。アプリを作り直さないでください。',
+    navigation_not_persisted: "ナビゲーション設定の再取得に失敗したか、要求した値と一致しません。navigationVerification の期待値、実際の値、取得エラーを確認し、現在のアプリ設定を確認してください。",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1233,6 +1260,11 @@ module.exports = {
   },
   publish: {
     canvas_path_missing_app_type: '行 {0}: 遷移先に appType がありません。canvas-navigation と確認済み ID で /{appType}/{pageType}/{formUuid} を構築し、/custom/ 単独のパスを避けてください。',
+    canvas_theme_fixed_brand_allowed: '行 {0}（{1}）の固定ブランド色を保持しました。この値はアプリのテーマに追従しません。',
+    canvas_theme_fixed_brand_relaxed: '{0} 行目の ConfigProvider がブランド操作色（{1}）をハードコードしています。既定では公開をブロックしなくなり、そのまま続行します。ただしこの色はアプリテーマに追従しません。--fix-theme で自動移行するか、canvas-theme へ手動移行してください。CI で強制的に失敗させるには --strict-theme を使用します。',
+    theme_canvas_only: 'テーマオプションは Canvas ページ専用です。.canvas.jsx/.canvas.tsx または --canvas を使用してください。',
+    fix_theme_source_changed: 'テーマ移行の保存前にソースが変更されました。ファイルは未変更です。現在のソースを再確認してください。',
+    fix_theme_applied: 'テーマ移行を適用し、ソースに書き戻しました：{0}',
     canvas_theme_fixed_brand: '行 {0}: ConfigProvider がブランド色を固定しています。canvas-theme で解決したテーマ色を使い、CSS var は DOM スタイルにのみ直接使用してください。',
     canvas_navigation_local_platform: '行 {0}: ローカルビューをプラットフォームナビゲーションで絞り込んでいます。mode=local またはローカル状態を使い、実際のページには formUuid/navUuid を指定して権限を検証してください。',
     canvas_navigation_document_flex: '行 {0}: document にゼロ基準の flex が使用されています。canvas-nav-content を更新し、document は自然な高さのブロック、workspace は固定高さの flex を使用してください。',
@@ -2017,3 +2049,13 @@ module.exports.help.cmd_agent = connectorSafetyMessages.help.cmd_agent;
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: 'ノード {0} の承認アクション設定が無効です：{1}',
 });
+
+module.exports.cli_argument = { invalid: '引数が無効、または値がありません: {0}。コマンドのヘルプに従ってください。' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: --output は CSS ファイル、--design-file は完成した設計です。設計を省略すると CSS をリセットします。テーマ値は設計に記入します。',
+  'style_help': 'application-style: --style-id は必須で全カタログテーマに対応。--output のディレクトリに3ファイルを出力し、同名ファイルがあればエラーになります。'
+};
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

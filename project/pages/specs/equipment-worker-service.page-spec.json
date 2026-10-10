@@ -1,0 +1,19 @@
+{
+  "pageId": "worker-service",
+  "name": "扫码报修与进度",
+  "sourceOfTruth": {
+    "prdFile": "/Users/miwei/.codex/worktrees/71f0/openyida/prd/equipment-maintenance/prd.md",
+    "designFile": "/Users/miwei/.codex/worktrees/71f0/openyida/prd/equipment-maintenance/design.md",
+    "designRefs": ["themeProfile", "sceneRecipes.worker-service"],
+    "conflictPolicy": "prd-design-win"
+  },
+  "entryMode": "standalone",
+  "navigation": { "type": "custom", "variant": "dock", "defaultMenuKey": "report", "items": ["report", "mine"] },
+  "dataBindings": [
+    { "mode": "form", "appType": "APP_MPAR8TRJULQ4RBIQ6C1D", "formUuid": "FORM-65A4D6F6B98E49679D8B8F6D29E54354ONI5", "sourceName": "设备台账", "pageSize": 50 },
+    { "mode": "form", "appType": "APP_MPAR8TRJULQ4RBIQ6C1D", "formUuid": "FORM-A0D45A3104B24F55B1F410AED5060D0DSRAG", "sourceName": "设备维修工单", "pageSize": 50 }
+  ],
+  "quickEntries": [
+    { "title": "立即报修", "targetType": "submission", "appType": "APP_MPAR8TRJULQ4RBIQ6C1D", "formUuid": "FORM-A0D45A3104B24F55B1F410AED5060D0DSRAG", "openMode": "responsive-drawer", "hideNav": true }
+  ]
+}

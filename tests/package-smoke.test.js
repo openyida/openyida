@@ -83,6 +83,11 @@ describe('npm package smoke', () => {
       expect(files).toContain('bin/yida.js');
       expect(files).toContain('lib/app/inline-css-guard.js');
       expect(files).toContain('lib/core/utils.js');
+      expect(files).toContain('lib/app/theme-scope.js');
+      expect(files).toContain('lib/core/theme-brand-scale.js');
+      expect(files).toContain('lib/design/palette-contrast.js');
+      expect(files).not.toContain('yida-skills/skills/yida-design/templates/application-styles.json');
+      expect(files).not.toContain('yida-skills/skills/yida-design/templates/navigation-styles.json');
       expect(files).toContain('lib/core/locales/zh.js');
       expect(files).toContain('lib/core/locales/en.js');
       expect(files).toContain('project/config.json');
