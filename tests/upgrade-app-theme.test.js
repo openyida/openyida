@@ -33,13 +33,13 @@ beforeEach(() => {
 });
 
 test.each([{}, { explicitRequest: true }, { confirm: true }, { explicitRequest: 'true', confirm: true }])(
-  'requires both authorization attestations before login/network: %j', async flags => {
+  'eligible apps still require both authorization attestations before writes: %j', async flags => {
     await expect(upgradeAppTheme({ appType: 'APP_1', ...flags })).rejects.toMatchObject({ code: 'APP_THEME_CONFIRMATION_REQUIRED' });
-    expect(createAuthRef).not.toHaveBeenCalled();
-    expect(httpGet).not.toHaveBeenCalled();
+    expect(createAuthRef).toHaveBeenCalledTimes(1);
+    expect(httpGet).toHaveBeenCalledTimes(1);
     expect(httpPost).not.toHaveBeenCalled();
   });
-test.each([[], ['APP_1', '--confirm'], ['APP_1', '--yes'], ['APP_1', '--force'], ['../APP_1', '--explicit-request', '--confirm']]
+test.each([[], ['APP_1', '--yes'], ['APP_1', '--force'], ['../APP_1', '--explicit-request', '--confirm']]
   .map(args => ({ args })))('rejects invalid input $args', async ({ args }) => {
   await expect(run(args)).rejects.toBeDefined();
   expect(httpGet).not.toHaveBeenCalled();
@@ -247,4 +247,33 @@ test('legacy ver without explicit L-shaped structure upgrades to side', async ()
   state.LAY_OUT_DIRECTION = 'ver';
   await upgradeAppTheme(params);
   expect(state.LAY_OUT_DIRECTION).toBe('side');
+});
+
+
+test.each([
+  ['APP_1'],
+  ['APP_1', '--confirm'],
+  ['APP_1', '--explicit-request'],
+  ['APP_1', '--explicit-request', '--confirm'],
+  ['APP_1', '--prepare'],
+  ['APP_1', '--explicit-request', '--prepare', '--output-dir', '/tmp/non-ai-backup'],
+])('CLI rejects non-Builder-AI app before confirmation or preparation: %j', async (...argv) => {
+  // A claimed source or FROM_AI is insufficient: Tianshu derives none when FROM_BUILDER_AI is not y.
+  httpGet.mockResolvedValue(context({ agentAppType: 'none', builderAiSource: 'local', aiApp: 'y' }));
+  const { prepareAppThemeUpgrade } = require('../lib/app/prepare-app-theme-upgrade');
+  await expect(run(argv)).rejects.toMatchObject({ code: 'APP_THEME_AI_APP_REQUIRED' });
+  expect(httpPost).not.toHaveBeenCalled();
+  expect(prepareAppThemeUpgrade).not.toHaveBeenCalled();
+});
+
+test('CLI does not expose upgrade confirmation or source fields for non-AI apps', async () => {
+  httpGet.mockResolvedValue(context({ agentAppType: 'none' }));
+  try {
+    await run(['APP_1', '--explicit-request']);
+    throw new Error('Expected eligibility rejection');
+  } catch (error) {
+    expect(error.code).toBe('APP_THEME_AI_APP_REQUIRED');
+    expect(error.message).not.toMatch(/confirm|确认|BUILDER_AI|agentAppType|Skill/i);
+    expect(error.details).toBeUndefined();
+  }
 });
