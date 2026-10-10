@@ -484,7 +484,7 @@ describe('update-app helpers', () => {
 
 describe('legacy app navigation persistence', () => {
   const legacy = { appThemeEnable: 'n', appThemeMode: 'legacy', navType: 'top_side_fold' };
-  test.each([['side', 'slide'], ['l_shape', 'ver'], ['top', 'hoz']])(
+  test.each([['side', 'ver'], ['l_shape', 'ver'], ['top', 'hoz']])(
     '%s saves as %s on a disabled legacy app', (layout, expected) => {
       const payload = buildUpdateAppPostData(parseArgs(['APP_1', '--layout', layout]), legacy, {});
       expect(payload).toMatchObject({ layoutDirection: expected, navType: 'top_side_fold' });
@@ -506,7 +506,7 @@ describe('legacy app navigation persistence', () => {
     });
   test('config fallback and disabled modern candidate use the legacy protocol', () => {
     expect(buildUpdateAppPostData(parseArgs(['APP_1', '--layout', 'side', '--nav-theme', 'white']),
-      { config: { APP_THEME_MODE: 'legacy' } }, {})).toMatchObject({ layoutDirection: 'slide', navTheme: 'light' });
+      { config: { APP_THEME_MODE: 'legacy' } }, {})).toMatchObject({ layoutDirection: 'ver', navTheme: 'light' });
     expect(buildUpdateAppPostData(parseArgs(['APP_1', '--layout', 'l_shape']),
       { appThemeEnable: 'n', appThemeMode: 'modern' }, {}).layoutDirection).toBe('ver');
   });

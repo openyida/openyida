@@ -189,7 +189,7 @@ test('accepts empty-object content for unset configuration', async () => {
 
 test.each([
   ['slide', 'side', 'default', 'light'],
-  ['ver', 'l_shape', 'light', 'white'],
+  ['ver', 'side', 'light', 'white'],
   ['hoz', 'top', 'dark', 'dark'],
 ])('upgrade migrates legacy layout %s and color %s before enabling the theme', async (layout, modernLayout, navTheme, modernTheme) => {
   state.LAY_OUT_DIRECTION = layout;
@@ -213,7 +213,7 @@ test.each(['white', 'gray', 'light', 'dark'])('already modern %s stays unchanged
   expect(writes()).toHaveLength(0);
 });
 
-test.each([['ver', 'side_only', 'side'], ['hoz', 'top_side', 'l_shape']])(
+test.each([['ver', 'side_only', 'side'], ['ver', 'top_side', 'l_shape'], ['hoz', 'top_side', 'l_shape']])(
   'upgrade honors historical shell structure %s/%s', async (layout, navType, expected) => {
     state.LAY_OUT_DIRECTION = layout; state.NAVTYPE = navType;
     await upgradeAppTheme(params);
@@ -240,4 +240,11 @@ test('navigation pre-read failure refuses all writes', async () => {
   });
   await expect(upgradeAppTheme(params)).rejects.toMatchObject({ code: 'APP_THEME_READ_FAILED' });
   expect(writes()).toHaveLength(0);
+});
+
+
+test('legacy ver without explicit L-shaped structure upgrades to side', async () => {
+  state.LAY_OUT_DIRECTION = 'ver';
+  await upgradeAppTheme(params);
+  expect(state.LAY_OUT_DIRECTION).toBe('side');
 });
