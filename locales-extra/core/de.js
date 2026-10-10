@@ -5,9 +5,28 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  app_entry: {
+    desc_get: 'Read frontend and management runtime entries',
+    desc_set: 'Register application entries with partial update and readback',
+    usage: 'Usage: openyida app-entry get <appType> [--json]\n       openyida app-entry set <appType> [--frontend <url>] [--management <url>] [--clear-frontend] [--clear-management] [--json]\nRegister only published, verified runtime URLs for this application. Omitted entries remain unchanged.',
+    invalid_url: 'Geben Sie eine vollständige http://- oder https://-URL einer Seite, öffentlichen Seite oder eines Kurzlinks der aktuellen Anwendung an. Relative Pfade, Designer-URLs und temporäre Authentifizierungsparameter werden nicht unterstützt.',
+    invalid_response: 'Incomplete entry response. Read the current entries before retrying and check that the server supports the entry configuration API.',
+    readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
+    frontend_display_required: 'Die Frontend-Seite {0} muss vom Typ display sein. Für Formulare eine geprüfte vollständige URL verwenden.',
+    page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
+    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+  },
+  design_plan: {
+    rebase_required: 'Vor der ersten Ausgabe business.json/visual.json korrigieren. Bei geänderter Hauptplanung Dateien behalten und --rebase-parts zum ursprünglichen Befehl ergänzen.',
+    baseline_missing: 'Passende .build-plan-base.json aus dem ursprünglichen Arbeitsbereich wiederherstellen. Ohne verlässliche Basis Entwürfe behalten und die Blockade melden.',
+    rebase_stage_invalid: 'Basisabgleich gilt nur vor der ersten Ausgabe. Für bereits angezeigte oder erzeugte Pläne patch --materialize verwenden.',
+    rebase_conflict: 'Dasselbe Feld wurde unterschiedlich geändert. conflicts prüfen und im Teilplan den aktuellen oder ursprünglichen Wert wählen. Keine Dateien gespeichert.',
+    repair_page_bindings: 'Ordnen Sie pageApplications in visual.json den customPageDetails in business.json eins zu eins zu, ohne native Formulare. visualMemoryApplications muss ein Array sein; verwenden Sie bei Bedarf []. Behalten Sie den Entwurf, korrigieren Sie die angegebenen Felder und wiederholen Sie den ursprünglichen Befehl. Löschen Sie das Verzeichnis nicht und führen Sie init nicht erneut aus.',
+  },
   design_document: {
     update_conflict: "{0} ({1}) kann nicht aktualisiert werden: Der Inhalt weicht von der letzten generierten Version ab. Gleichen Sie die lokale Änderung in diesem Abschnitt mit den Plandaten ab und versuchen Sie es erneut. Es wurden keine Dateien gespeichert.",
     theme_css_invalid: 'Das Theme-CSS enthält nahe Zeile {0} eine nicht geschlossene oder falsch gepaarte Klammer, Zeichenfolge oder einen Kommentar. Bitte korrigieren und erneut versuchen.',
+    theme_css_unresolved: 'Das Theme-CSS-Token {0} enthält noch einen Platzhalter oder eine Anweisung zur Farberzeugung. Vervollständigen Sie design.md, führen Sie openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> aus und laden Sie die erzeugte Datei hoch. Nur PRIMARY_COLOR zu ersetzen reicht nicht aus.',
     invalid: 'Designprüfung fehlgeschlagen: {0} ({1})',
     yaml: 'Das Frontmatter des Designdokuments ist kein gültiges YAML',
     token_value: 'Token {0} muss ein aufgelöster einzeiliger CSS-Wert sein',
@@ -17,6 +36,11 @@ module.exports = {
     usage: 'Verwendung: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'Datei zur Designprüfung kann nicht gelesen werden: {0}',
     checked: 'Designprüfung erfolgreich: {0}; {1} Seiten, {2} Tokens',
+    anchor_hint: 'Der Anker muss im Textkörper als selbstschließendes HTML-Tag geschrieben werden, z. B. <a id="component-button"></a> (die Tag-ID beginnt nicht mit #; im Frontmatter wird er als #component-button referenziert). Markdown-Überschriften-IDs {#id}, Links wie [Text](#id) oder einfacher Text zählen nicht als Anker.',
+    anchor_chapter_three_hint: 'Das Tag <a id="…"></a> dieses Ankers muss innerhalb des Kapitels "## 3. 基础组件表达" und vor "## 4. 特色表达配方" stehen.',
+    page_anchor_chapter_five_hint: 'Das Tag des Seitenankers <a id="page-…"></a> muss innerhalb des Kapitels "## 5. 项目应用与调整规则" stehen.',
+    page_anchor_prefix_hint: 'Die ID des Seitenanker-Tags muss mit page- beginnen, z. B. <a id="page-workbench"></a> (im Frontmatter als #page-workbench referenziert), und darf sich zwischen Seiten nicht wiederholen.',
+    page_label_hint: 'Nach diesem Seitenanker <a id="page-…"></a> und vor dem nächsten Seitenanker schreiben Sie die acht Punkte Zeile für Zeile: 页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收, im Format - **{0}：** konkreter Inhalt; Werte müssen konkret und umsetzbar sein, keine Platzhalter wie 按主题执行 oder TODO.',
   },
   asset: {
     sourceRecords: 'In assets[] über --input assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) und authorizationEvidence (Array von Beleg-URLs oder Dateipfaden) eintragen. Das Manifest bewahrt diese Angaben; fehlende Werte bleiben leer. Dies bestätigt keine kommerzielle Nutzungserlaubnis.',
@@ -171,6 +195,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: 'Zugangsmodus wählen: gemeinsame Geschäftsseiten (unified), getrennte Nutzer- und Bearbeitungsseiten (service-management), nur Nutzerseiten (frontend-only) oder nur Geschäftsbearbeitung (backend-only).',
+    design_plan_backend_only_roles: 'Bei backend-only muss jeder Einstieg die Rolle management verwenden.',
     design_plan_local_menu_binding: 'Das lokale Menü {0} benötigt eine Trägerseite und viewKey: sceneKey des Einstiegs {1} muss dem sceneKey der Seite entsprechen, resource ihrem name; viewKey darf nicht leer sein. Dies gilt für alle Rollen.',
     design_plan_visual_object_required: '{0} muss ein Objekt sein, keine Zeichenfolge oder Liste. Behalten Sie die von init erzeugte Struktur bei und ergänzen Sie die Werte. Beispiel: {1}.',
     help: '\n' +
@@ -309,7 +335,7 @@ module.exports = {
     integration_enable_example: 'Beispiel: openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
     integration_disable_usage: 'Verwendung: openyida integration disable <appType> <formUuid> <processCode>',
     integration_disable_example: 'Beispiel: openyida integration disable APP_XXX FORM-XXX LPROC-XXX',
-    compile_usage: 'Verwendung: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--json]',
+    compile_usage: 'Verwendung: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--strict-theme|--allow-fixed-brand] [--json]',
     compile_example: 'Beispiel: openyida compile pages/src/home.oyd.jsx',
     check_page_usage: 'Verwendung: openyida check-page <sourceFile> [--compat] [--json]',
     check_page_example: 'Beispiel: openyida check-page pages/src/home.oyd.jsx --json',
@@ -1044,6 +1070,7 @@ module.exports = {
     theme_preset_conflict: 'Voreingestellte colour kann nicht mit CSS oder themeColor kombiniert werden. Verwenden Sie --colour custom oder lassen Sie --colour weg.',
     custom_theme_color_required: 'colour=custom benötigt eine Theme-Datei oder gültige themeColor. Verwenden Sie --theme-file oder --theme-color.',
     theme_not_persisted: 'Die App-Theme-Einstellungen konnten nach dem Speichern nicht bestätigt werden. Prüfen Sie themeVerification und wiederholen Sie update-app <appType> --theme-file <css>; erstellen Sie die App nicht erneut.',
+    navigation_not_persisted: "Die Navigation konnte nicht zurückgelesen werden oder weicht von den angeforderten Einstellungen ab. Prüfen Sie Sollwerte, Istwerte und Lesefehler in navigationVerification sowie die aktuellen App-Einstellungen.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1282,6 +1309,11 @@ module.exports = {
   },
   publish: {
     canvas_path_missing_app_type: 'Zeile {0}: Im Navigationsziel fehlt appType. Nutzen Sie canvas-navigation und echte IDs für /{appType}/{pageType}/{formUuid} statt /custom/.',
+    canvas_theme_fixed_brand_allowed: 'Die feste Markenfarbe in Zeile {0} ({1}) bleibt erhalten und folgt nicht dem Anwendungsthema.',
+    canvas_theme_fixed_brand_relaxed: 'Zeile {0}: ConfigProvider codiert eine Marken-Interaktionsfarbe ({1}) fest. Die Veröffentlichung wird standardmäßig nicht mehr blockiert und wird unverändert fortgesetzt, aber diese Farbe folgt nicht dem Anwendungsthema. Fügen Sie --fix-theme für die automatische Migration hinzu oder migrieren Sie manuell zu canvas-theme; verwenden Sie --strict-theme, um in CI hart zu scheitern.',
+    theme_canvas_only: 'Themenoptionen gelten nur für Canvas-Seiten: .canvas.jsx/.canvas.tsx oder --canvas verwenden.',
+    fix_theme_source_changed: 'Der Quelltext wurde vor dem Speichern der Migration geändert. Keine Datei geschrieben; aktuellen Quelltext erneut prüfen.',
+    fix_theme_applied: 'Themenmigration angewendet und in die Quelle zurückgeschrieben: {0}',
     canvas_theme_fixed_brand: 'Zeile {0}: ConfigProvider setzt eine feste Markenfarbe. Nutzen Sie canvas-theme mit aufgelösten Anwendungsfarben; CSS var gehört in DOM-Stile, nicht in antd-Farbwerte.',
     canvas_navigation_local_platform: 'Zeile {0}: Lokale Ansichten werden durch Plattformmenüs gefiltert. Nutzen Sie mode=local oder lokalen Zustand; echte Seiten benötigen formUuid/navUuid und Berechtigungsprüfungen.',
     canvas_navigation_document_flex: 'Zeile {0}: document verwendet Flex mit Basis null. Aktualisieren Sie canvas-nav-content: natürliche Blockhöhe für document, feste Flex-Höhe für workspace.',
@@ -2090,3 +2122,13 @@ module.exports.help.cmd_agent = connectorSafetyMessages.help.cmd_agent;
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: 'Ungültige Genehmigungsaktion für Knoten {0}: {1}',
 });
+
+module.exports.cli_argument = { invalid: 'Ungültiges Argument oder fehlender Wert: {0}. Beachten Sie die Befehlshilfe.' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: --output ist eine CSS-Datei; --design-file liest den fertigen Entwurf. Ohne Entwurf wird CSS zurückgesetzt. Theme-Werte gehören in den Entwurf.',
+  'style_help': 'application-style: --style-id ist für alle Katalog-Themes erforderlich; --output ist ein Ordner für drei Dateien. Vorhandene Dateien führen zu einem Fehler.'
+};
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

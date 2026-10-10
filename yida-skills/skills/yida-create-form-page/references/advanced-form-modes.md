@@ -1,8 +1,8 @@
 # 高级表单模式：patch / rule / bind-datasource
 
-## patch 模式（设计器 Schema 补丁）
+## patch 模式（表单配置补丁）
 
-当宜搭后台已有配置项，但 OpenYida 还没有高阶 DSL 时，使用 patch 模式对表单 V5 Schema 做受控修改：
+当宜搭后台已有配置项，但 OpenYida 还没有高阶 DSL 时，使用 patch 模式受控修改表单配置：
 
 ```bash
 openyida create-form patch <appType> <formUuid> <patchJsonOrFile>
@@ -15,9 +15,9 @@ openyida create-form patch <appType> <formUuid> <patchJsonOrFile>
 |------|------|
 | `field-props` | 按 `fieldId` / `field` / `label` 合并字段 `props`，适合补字段状态、提交策略、设计器属性 |
 | `form-props` | 合并 `FormContainer.props` |
-| `add` / `replace` / `remove` | JSON Pointer 形式的底层 Schema Patch |
+| `add` / `replace` / `remove` | 按 JSON Pointer 路径添加、替换或删除表单配置 |
 | `merge` | 对指定 JSON Pointer 路径做对象深合并 |
-| `actions-module` | 写入页面动作模块 `source` / `compiled`，`source` 会自动编译 |
+| `actions-module` | 写入表单业务动作模块 `source` / `compiled`，`source` 会自动编译 |
 | `bind-field-action` | 给字段事件（如 `onChange`）绑定动作引用 |
 | `field-action` | 原子写入动作函数、注册动作并绑定字段事件；字段自定义事件默认使用此操作 |
 | `bind-datasource` | 给选项类字段绑定远程搜索数据源（高阶入口优先用 bind-datasource 模式） |
@@ -103,7 +103,7 @@ openyida create-form patch <appType> <formUuid> <patchJsonOrFile>
 
 ## rule 模式（字段联动与自动赋值）
 
-常见字段联动不要直接写底层 Schema Patch，优先使用 rule 模式：
+常见字段联动不要直接修改表单底层配置，优先使用 rule 模式：
 
 ```bash
 openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>

@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const tokenAuth = require('../lib/auth/token-auth');
 const {
-  REQUIRED_BRAND_SCALE_TOKENS,
+  REQUIRED_APPLICATION_BRAND_TOKENS,
   validateThemeCssContent,
   normalizeThemeColor,
   normalizeCssColorToHex,
@@ -15,12 +15,87 @@ const {
 } = require('../lib/app/custom-theme');
 
 function buildBrandScale(overrides = {}) {
-  return REQUIRED_BRAND_SCALE_TOKENS
+  return REQUIRED_APPLICATION_BRAND_TOKENS
     .map((token, index) => `    ${token}: ${overrides[token] || `rgb(${index + 1}, ${index + 2}, ${index + 3})`};`)
     .join('\n');
 }
 
 describe('custom app theme helpers', () => {
+  test.each(REQUIRED_APPLICATION_BRAND_TOKENS)('requires %s in an unconditional application root', token => {
+    const partial = buildBrandScale().replace(new RegExp(`\\s*${token}: [^;]+;`), '');
+    for (const local of [`.page { ${token}: #123456; }`, `@media (min-width: 1px) { :root { ${token}: #123456; } }`]) {
+      expect(() => validateThemeCssContent(`:root {${partial}} ${local}`))
+        .toThrow(expect.objectContaining({ code: 'THEME_BRAND_SCALE_INCOMPLETE', details: { missingTokens: [token], scope: ':root' } }));
+    }
+  });
+
+  test.each(['', 'initial', 'unset', 'inherit', '16px', '#xyz', 'rgb(300, 0, 0)', 'var(--missing)'])('rejects an unusable root brand value: %s', value => {
+    const css = `:root {${buildBrandScale()}} :root { --color-brand1-1: ${value}; }`;
+    expect(() => validateThemeCssContent(css)).toThrow(expect.objectContaining({ code: 'THEME_BRAND_SCALE_INVALID' }));
+  });
+
+  test.each([1, 2, 3, 4])('validates mobile brand-%s aliases and rejects unresolved or cyclic values', slot => {
+    const token = `--color-brand-${slot}`;
+    expect(() => validateThemeCssContent(`:root {${buildBrandScale({ [token]: 'var(--color-brand1-6)' })}}`)).not.toThrow();
+    for (const value of ['16px', 'var(--missing)', `var(${token})`]) {
+      expect(() => validateThemeCssContent(`:root {${buildBrandScale({ [token]: value })}}`))
+        .toThrow(expect.objectContaining({
+          code: 'THEME_BRAND_SCALE_INVALID',
+          details: expect.objectContaining({ issues: expect.arrayContaining([expect.objectContaining({ token })]) }),
+        }));
+    }
+  });
+
+  test('checks variable cycles including unused fallbacks, and follows valid root aliases', () => {
+    for (const value of ['var(--color-brand1-1)', 'var(--alias)', 'var(--color-brand1-6, var(--color-brand1-1))']) {
+      const css = `:root {${buildBrandScale({ '--color-brand1-1': value })} --alias: var(--color-brand1-1);}`;
+      expect(() => validateThemeCssContent(css)).toThrow(expect.objectContaining({
+        code: 'THEME_BRAND_SCALE_INVALID', details: expect.objectContaining({
+          issues: expect.arrayContaining([expect.objectContaining({ token: '--color-brand1-1', reason: 'TOKEN_REFERENCE_CYCLE' })]),
+        }),
+      }));
+    }
+    expect(() => validateThemeCssContent(`:root {${buildBrandScale({ '--color-brand1-1': 'var(--alias)' })}}
+      :root { --alias: var(--missing, #123456); }
+    `)).not.toThrow();
+  });
+
+  test('uses the effective root primary for persistence, respecting order and importance', () => {
+    const css = `:root {${buildBrandScale({ '--color-brand1-6': '#123456 !important' })}}
+      .page { --color-brand1-6: #999999; }
+      :root { --color-brand1-6: #654321; }
+    `;
+    expect(() => validateThemeCssContent(css)).not.toThrow();
+    expect(extractThemeColor(css)).toBe('#123456');
+    expect(extractThemeColor(css.replace(' !important', ''))).toBe('#654321');
+    expect(() => validateThemeCssContent(css + ':root { --color-brand1-6: 12px !important; }'))
+      .toThrow(expect.objectContaining({ code: 'THEME_BRAND_SCALE_INVALID' }));
+  });
+
+  test('does not treat CSS strings, local rules, or differently cased names as global brand declarations', () => {
+    const partial = buildBrandScale().replace(/\s*--color-brand1-1: [^;]+;/, '');
+    expect(() => validateThemeCssContent(`:root {${partial} --COLOR-brand1-1: #123456;}
+      .page::before { content: ':root { --color-brand1-1: #123456; }'; }
+    `)).toThrow(expect.objectContaining({ code: 'THEME_BRAND_SCALE_INCOMPLETE' }));
+  });
+
+  test.each([
+    '{{PRIMARY_COLOR}}',
+    '<生成实际色值：--color-brand1-6 88% + #FFFFFF 12%，sRGB 逐通道混合>',
+  ])('rejects unresolved color %s even when all brand tokens exist', value => {
+    expect(() => validateThemeCssContent(`:root {${buildBrandScale({ '--color-brand1-1': value })}}`))
+      .toThrow(expect.objectContaining({
+        code: 'THEME_CSS_UNRESOLVED_TOKEN',
+        details: { token: '--color-brand1-1', value },
+      }));
+  });
+
+  test('allows resolved CSS colors and authoring guidance in comments', () => {
+    expect(() => validateThemeCssContent(`/* {{PRIMARY_COLOR}} <生成实际色值：...> */
+      :root {${buildBrandScale({ '--color-brand1-1': 'color-mix(in srgb, var(--color-brand1-6) 88%, white)' })}}
+    `)).not.toThrow();
+  });
+
   test.each([
     ['unclosed root', css => css.slice(0, -1)],
     ['extra closing brace', css => css + '}'],

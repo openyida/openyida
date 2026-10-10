@@ -105,7 +105,14 @@ function CanvasThemeProvider({ children, preview = false, getPopupContainer }) {
       try {
         const token = resolveCanvasTheme(root);
         const controls = resolveCanvasControls(token);
-        const components = { ...resolveCanvasControlComponents(token, controls), Drawer: resolveCanvasTheme(root, { colorBgElevated: ['--pod-shell-theme-bg-color', '--color-white'] }) };
+        // Brand fills and inline text are different roles. A dark brand may
+        // remain a button fill while links need readable ink on a dark surface.
+        if (controls) {
+          token.colorLink = controls.emphasis;
+          token.colorLinkHover = canvasContrast(token.colorPrimaryHover, controls.surface) >= 4.5 ? token.colorPrimaryHover : controls.emphasis;
+          token.colorLinkActive = canvasContrast(token.colorPrimaryActive, controls.surface) >= 4.5 ? token.colorPrimaryActive : controls.emphasis;
+        }
+        const components = { ...resolveCanvasControlComponents(token, controls), Drawer: resolveCanvasTheme(root, { colorBgElevated: ['--pod-shell-theme-bg-color', '--color-white'], colorText: ['--pod-page-header-text-color', '--color-text1-4'], colorTextHeading: ['--pod-page-header-text-color', '--color-text1-4'] }) };
         next = { token, components, controls, status: token.colorPrimary ? (preview ? 'preview' : 'ready') : 'missing' };
       } catch (_error) {
         next = { token: {}, components: {}, controls: null, status: 'error' };

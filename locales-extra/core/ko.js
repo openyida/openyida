@@ -5,9 +5,28 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  app_entry: {
+    desc_get: 'Read frontend and management runtime entries',
+    desc_set: 'Register application entries with partial update and readback',
+    usage: 'Usage: openyida app-entry get <appType> [--json]\n       openyida app-entry set <appType> [--frontend <url>] [--management <url>] [--clear-frontend] [--clear-management] [--json]\nRegister only published, verified runtime URLs for this application. Omitted entries remain unchanged.',
+    invalid_url: '현재 앱의 페이지, 공개 페이지 또는 단축 링크에 대한 완전한 http:// 또는 https:// URL을 입력하세요. 상대 경로, 디자이너 URL 및 임시 인증 매개변수는 지원하지 않습니다.',
+    invalid_response: 'Incomplete entry response. Read the current entries before retrying and check that the server supports the entry configuration API.',
+    readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
+    frontend_display_required: '프런트 페이지 {0}은 display 페이지여야 합니다. 양식에는 검증된 전체 URL을 사용하세요.',
+    page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
+    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+  },
+  design_plan: {
+    rebase_required: '최초 생성 전에는 business.json/visual.json을 수정하세요. 원본 계획이 변경되었다면 파일을 유지하고 기존 명령에 --rebase-parts를 추가하세요.',
+    baseline_missing: '원래 작업 공간에서 일치하는 .build-plan-base.json을 복원하세요. 신뢰할 기준이 없으면 초안을 유지하고 차단 사유를 보고하세요.',
+    rebase_stage_invalid: '기준 병합은 최초 생성 전 초안에만 적용됩니다. 이미 표시하거나 생성한 계획에는 patch --materialize를 사용하세요.',
+    rebase_conflict: '동일한 필드가 서로 다르게 변경되었습니다. conflicts를 확인하고 조각에서 현재 값 또는 기준 값을 선택하세요. 파일은 저장되지 않았습니다.',
+    repair_page_bindings: 'visual.json의 pageApplications를 business.json의 customPageDetails와 일대일로 맞추고 기본 폼은 제외하세요. visualMemoryApplications는 배열이어야 하며 해당 항목이 없으면 []를 사용하세요. 기존 초안을 유지하고 표시된 필드를 수정한 뒤 원래 명령을 다시 실행하세요. 디렉터리를 삭제하거나 init을 다시 실행하지 마세요.',
+  },
   design_document: {
     update_conflict: "{0}({1})을 업데이트할 수 없습니다. 현재 내용이 이전 생성 결과와 충돌합니다. 해당 부분의 로컬 변경 사항과 계획 데이터를 일치시킨 후 다시 시도하세요. 파일은 저장되지 않았습니다.",
     theme_css_invalid: '테마 CSS의 {0}행 근처에 닫히지 않았거나 짝이 맞지 않는 괄호, 문자열 또는 주석이 있습니다. 수정 후 다시 시도하세요.',
+    theme_css_unresolved: '테마 CSS의 {0}에 템플릿 자리 표시자 또는 색상 생성 지침이 남아 있습니다. design.md를 완성하고 openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> 명령을 실행한 뒤 생성된 파일을 업로드하세요. PRIMARY_COLOR만 바꾸면 안 됩니다.',
     invalid: '디자인 검증 실패: {0} ({1})',
     yaml: '디자인 문서의 frontmatter가 올바른 YAML이 아닙니다',
     token_value: '토큰 {0}에는 확정된 한 줄 CSS 값이 필요합니다',
@@ -17,6 +36,11 @@ module.exports = {
     usage: '사용법: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: '디자인 검증 파일을 읽을 수 없습니다: {0}',
     checked: '디자인 검증 통과: {0}, 페이지 {1}개, 토큰 {2}개',
+    anchor_hint: '앵커는 본문의 해당 위치에 자기 닫힘 HTML 태그로 작성해야 합니다. 예: <a id="component-button"></a> (태그 id에는 #를 붙이지 않으며, frontmatter 참조는 #component-button으로 작성합니다). Markdown 제목의 {#id}, [텍스트](#id) 링크, 일반 텍스트는 앵커로 인정되지 않습니다.',
+    anchor_chapter_three_hint: '이 앵커의 <a id="…"></a> 태그는 "## 3. 基础组件表达" 챕터 안, "## 4. 特色表达配方" 앞에 배치해야 합니다.',
+    page_anchor_chapter_five_hint: '페이지 앵커의 <a id="page-…"></a> 태그는 "## 5. 项目应用与调整规则" 챕터 안에 배치해야 합니다.',
+    page_anchor_prefix_hint: '페이지 앵커 태그의 id는 page-로 시작해야 합니다. 예: <a id="page-workbench"></a> (frontmatter 참조는 #page-workbench). 서로 다른 페이지의 앵커는 중복될 수 없습니다.',
+    page_label_hint: '이 페이지 앵커 <a id="page-…"></a> 뒤, 다음 페이지 앵커 앞에 여덟 가지 항목(页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收)을 한 줄씩 작성하세요. 형식은 - **{0}：** 구체적인 내용이며, 값은 구체적이고 구현 가능해야 합니다. "按主题执行"이나 "TODO" 같은 자리표시자 표현은 사용할 수 없습니다.',
   },
   asset: {
     sourceRecords: '--input의 assets[]에 assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt(YYYY-MM-DD), authorizationEvidence(증빙 URL 또는 파일 경로 배열)를 기록하세요. 목록에 기록이 보존되며 미입력 값은 비워 둡니다. 상업적 이용 허가를 자동으로 인정하지 않습니다.',
@@ -171,6 +195,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: '사용 방식을 선택하세요: 공통 업무 화면(unified), 이용자 화면과 업무 처리 화면 분리(service-management), 이용자 화면만(frontend-only), 업무 처리 화면만(backend-only).',
+    design_plan_backend_only_roles: 'backend-only에서는 모든 진입점의 role이 management여야 합니다.',
     design_plan_local_menu_binding: '로컬 메뉴 {0}에는 호스트 페이지와 viewKey가 필요합니다. 진입점 {1}의 sceneKey는 페이지 sceneKey와, resource는 페이지 name과 일치해야 하며 viewKey는 비어 있으면 안 됩니다. 모든 역할에 적용됩니다.',
     design_plan_visual_object_required: '{0}은 문자열이나 배열이 아닌 객체여야 합니다. init이 생성한 구조를 유지하고 값을 입력하세요. 예: {1}.',
     help: '\n' +
@@ -309,7 +335,7 @@ module.exports = {
     integration_enable_example: '예시: openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
     integration_disable_usage: '사용법: openyida integration disable <appType> <formUuid> <processCode>',
     integration_disable_example: '예시: openyida integration disable APP_XXX FORM-XXX LPROC-XXX',
-    compile_usage: '사용법: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--json]',
+    compile_usage: '사용법: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--strict-theme|--allow-fixed-brand] [--json]',
     compile_example: '예: openyida compile pages/src/home.oyd.jsx',
     check_page_usage: 'Usage: openyida check-page <sourceFile> [--compat] [--json]',
     check_page_example: 'Example: openyida check-page pages/src/home.oyd.jsx --json',
@@ -1045,6 +1071,7 @@ module.exports = {
     theme_preset_conflict: '프리셋 colour는 CSS 또는 themeColor와 함께 사용할 수 없습니다. --colour custom을 사용하거나 --colour를 생략하세요.',
     custom_theme_color_required: 'colour=custom에는 테마 파일 또는 유효한 themeColor가 필요합니다. --theme-file 또는 --theme-color를 지정하세요.',
     theme_not_persisted: '저장 후 앱 테마 설정을 확인하지 못했습니다. themeVerification을 확인하고 update-app <appType> --theme-file <css>로 다시 시도하세요. 앱을 다시 만들지 마세요.',
+    navigation_not_persisted: "내비게이션 설정을 다시 읽지 못했거나 요청한 값과 다릅니다. navigationVerification의 예상값, 실제 값, 조회 오류를 확인한 다음 현재 앱 설정을 확인하세요.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1283,6 +1310,11 @@ module.exports = {
   },
   publish: {
     canvas_path_missing_app_type: '{0}행: 이동 주소에 appType이 없습니다. canvas-navigation과 확인된 ID로 /{appType}/{pageType}/{formUuid}를 구성하세요. /custom/ 단독 경로는 사용하지 마세요.',
+    canvas_theme_fixed_brand_allowed: '{0}행의 고정 브랜드 색상({1})을 유지했습니다. 이 값은 앱 테마를 따르지 않습니다.',
+    canvas_theme_fixed_brand_relaxed: '{0}행의 ConfigProvider가 브랜드 상호작용 색상({1})을 하드코딩했습니다. 기본적으로 더 이상 게시를 차단하지 않고 그대로 계속합니다. 다만 이 색상은 애플리케이션 테마를 따르지 않습니다. --fix-theme로 자동 마이그레이션하거나 canvas-theme로 수동 마이그레이션하세요. CI에서 강제 실패하려면 --strict-theme를 사용하세요.',
+    theme_canvas_only: '테마 옵션은 Canvas 페이지 전용입니다. .canvas.jsx/.canvas.tsx 또는 --canvas를 사용하세요.',
+    fix_theme_source_changed: '테마 마이그레이션 저장 전에 소스가 변경되었습니다. 파일을 쓰지 않았습니다. 현재 소스를 다시 확인하세요.',
+    fix_theme_applied: '테마 마이그레이션을 적용하고 소스에 다시 기록했습니다: {0}',
     canvas_theme_fixed_brand: '{0}행: ConfigProvider가 브랜드 색상을 고정했습니다. canvas-theme으로 해석한 테마 색상을 사용하고 CSS var는 DOM 스타일에 직접 사용하세요.',
     canvas_navigation_local_platform: '{0}행: 로컬 뷰를 플랫폼 메뉴로 필터링하고 있습니다. mode=local 또는 로컬 상태를 사용하고 실제 페이지에는 formUuid/navUuid를 지정하며 권한을 확인하세요.',
     canvas_navigation_document_flex: '{0}행: document에 기준 크기 0인 flex를 사용했습니다. canvas-nav-content를 갱신하세요. document는 자연 높이의 블록, workspace는 고정 높이 flex를 사용합니다.',
@@ -2091,3 +2123,13 @@ module.exports.help.cmd_agent = connectorSafetyMessages.help.cmd_agent;
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: '노드 {0}의 승인 작업 설정이 잘못되었습니다: {1}',
 });
+
+module.exports.cli_argument = { invalid: '인수가 잘못되었거나 값이 없습니다: {0}. 명령 도움말을 확인하세요.' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: --output은 CSS 파일이고 --design-file은 완성된 디자인입니다. 디자인을 생략하면 CSS가 초기화됩니다. 테마 값은 디자인에 입력하세요.',
+  'style_help': 'application-style: --style-id는 필수이며 모든 카탈로그 테마를 지원합니다. --output 디렉터리에 파일 3개를 만들며 동일한 파일이 있으면 오류가 납니다.'
+};
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

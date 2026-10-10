@@ -761,6 +761,12 @@ async function main() {
       break;
     }
 
+    case 'app-entry': {
+      const { run } = require('../lib/app/app-entry');
+      await run(args);
+      break;
+    }
+
     case 'app-list': {
       const { run } = require('../lib/app/app-list');
       await run(args);
@@ -933,6 +939,11 @@ async function main() {
       }
       const { run: runUpdateApp } = require('../lib/app/update-app');
       await runUpdateApp(args);
+      break;
+    }
+
+    case 'upgrade-app-theme': {
+      await require('../lib/app/upgrade-app-theme').run(args);
       break;
     }
 
@@ -1316,5 +1327,7 @@ main()
     } else {
       warn(t('cli.exec_failed', err.message));
     }
-    process.exit(err && err.exitCode ? err.exitCode : 1);
+    // Let pending stdout/stderr writes drain, especially large JSON diagnostics
+    // sent through pipes on macOS/Linux. process.exit() can truncate them.
+    process.exitCode = err && err.exitCode ? err.exitCode : 1;
   });

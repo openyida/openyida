@@ -61,7 +61,7 @@ function buildYidaFormUrl(request, currentAppType) {
   return '';
 }
 
-/** 抽屉外壳默认跟随应用主题，background 可为当前抽屉指定颜色、渐变或 CSS token。 */
+/** 抽屉默认使用内容画布与正文文字，background 可为当前抽屉指定颜色、渐变或 CSS token。 */
 function CanvasDrawer({
   open, title, onClose, onOpenInNewWindow, extra, children,
   contentMode = 'content',
@@ -138,7 +138,7 @@ function CanvasDrawer({
           border: 0;
           border-radius: 8px;
           background: transparent;
-          color: var(--drawer-close-color, var(--pod-page-header-text-color, var(--color-text1-3, #666)));
+          color: var(--drawer-close-color, var(--pod-page-header-text-color, var(--color-text1-4, #1f2329)));
           cursor: pointer;
         }
         .openyida-form-drawer .oy-drawer-action:hover {
@@ -215,7 +215,7 @@ function CanvasDrawer({
           },
           content: {
             background,
-            color: 'var(--drawer-content-color, var(--color-text1-4, #1f2329))',
+            color: 'var(--drawer-content-color, var(--pod-page-header-text-color, var(--color-text1-4, #1f2329)))',
             borderLeft: 'var(--drawer-border-width, 0px) var(--drawer-border-style, solid) var(--drawer-border-color, transparent)',
             borderRadius: fullScreen ? 0 : 'var(--pod-drawer-border-radius, var(--pod-drawer-radius, var(--drawer-corner, 20px))) 0 0 var(--pod-drawer-border-radius, var(--pod-drawer-radius, var(--drawer-corner, 20px)))',
             overflow: 'hidden',

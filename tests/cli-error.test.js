@@ -7,6 +7,40 @@ const {
   toErrorPayload,
 } = require('../lib/core/cli-error');
 
+test('CLI drains large JSON diagnostics to a pipe before exiting with the error code', () => {
+  const path = require('path');
+  const { spawnSync } = require('child_process');
+  const root = path.join(__dirname, '..');
+  // Use a command stub to exercise the real CLI error handler with output larger
+  // than pipe buffers on every supported platform, including multibyte text.
+  const script = `
+    const { CliError } = require('./lib/core/cli-error');
+    require('./lib/core/env-cmd').run = async () => {
+      throw new CliError('Large diagnostic', {
+        code: 'LARGE_DIAGNOSTIC', exitCode: 7,
+        details: { diagnostic: '诊断 detail '.repeat(16384), tail: 'complete' },
+      });
+    };
+    process.argv = [process.execPath, './bin/yida.js', 'env', 'list', '--json'];
+    require('./bin/yida.js');
+  `;
+  const result = spawnSync(process.execPath, ['-e', script], {
+    cwd: root,
+    encoding: 'utf8',
+    timeout: 10000,
+    env: { ...process.env, OPENYIDA_SKIP_UPDATE_CHECK: '1', OPENYIDA_LANG: 'en' },
+  });
+  expect(result.error).toBeUndefined();
+  expect(result.status).toBe(7);
+  expect(result.stdout).toBe('');
+  expect(JSON.parse(result.stderr)).toEqual({
+    success: false,
+    errorCode: 'LARGE_DIAGNOSTIC',
+    errorMsg: 'Large diagnostic',
+    details: { diagnostic: '诊断 detail '.repeat(16384), tail: 'complete' },
+  });
+});
+
 describe('CliError', () => {
   test('keeps exit code and code metadata', () => {
     const error = new CliError('Bad input', {

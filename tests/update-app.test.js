@@ -45,6 +45,18 @@ describe('update-app helpers', () => {
       }
     }
   });
+  test('all manifest value options reject missing values and visibility flags are exclusive', () => {
+    const command = buildCommandManifest().commands.find(entry => entry.id === 'update-app');
+    for (const arg of command.args.filter(arg => arg.source === 'option' && arg.type !== 'boolean')) {
+      for (const option of arg.builder_options) {
+        expect(() => parseArgs(['APP_1', option])).toThrow();
+        expect(() => parseArgs(['APP_1', option, '--show-app-nav'])).toThrow();
+      }
+    }
+    expect(() => parseArgs(['APP_1', '--border-radius', '12px'])).toThrow();
+    expect(() => parseArgs(['APP_1', '--hide-app-nav', '--show-app-nav'])).toThrow();
+    expect(() => parseArgs(['APP_1', '--show-app-nav', '--hide-app-nav'])).toThrow();
+  });
   test('colour accepts only platform keys or custom, never CSS colors or invented keys', () => {
     ['podBlue', 'podGreen', 'podOrange', 'black', 'custom'].forEach((key) => expect(() => assertAppThemeKey(key)).not.toThrow());
     ['#C89B5A', 'rgb(200,155,90)', 'desertWarm', 'podBXXXX'].forEach((key) => expect(() => assertAppThemeKey(key)).toThrow());
@@ -267,6 +279,20 @@ describe('update-app helpers', () => {
     expect(JSON.parse(payload.appName)).toMatchObject({
       zh_CN: 'OpenYida官方Samples展示0716',
     });
+  });
+
+  test('buildUpdateAppPostData does not invent a light navigation theme', () => {
+    const payload = buildUpdateAppPostData(
+      parseArgs(['APP_1', '--theme', 'podBlue']),
+      {
+        appName: { zh_CN: '应用' },
+        description: { zh_CN: '描述' },
+        mode: 'normal',
+        type: 'single',
+      },
+      { csrfToken: 'csrf' }
+    );
+    expect(payload).not.toHaveProperty('navTheme');
   });
 
   test('buildUpdateAppPostData preserves security settings without inventing defaults', () => {

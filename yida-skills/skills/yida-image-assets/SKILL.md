@@ -34,13 +34,15 @@ CLI 的 `assetTasks` 是派发输入，后台执行能力来自宿主。仅支�
 
 ## 1. 确定哪些页面需要图片
 
+先按[任务驱动的视觉设计](../yida-design/references/task-driven-visual-design.md)区分动态业务图片和固定素材。真实对象图片走字段绑定，不逐行建 slot、不搜相似图片替代、不下载全库图片；仅有动态图片时静态素材策略可为 none。下面的采集流程只处理固定素材。
+
 按 `assetStrategy.pages[].pageId` 找页面，按 `slotId` 找图片位置。
 
 | imageNeed | 怎么做 |
 | --- | --- |
 | `required` | 准备设计要求的图片；缺必需图片时该页保持草稿 |
 | `beneficial` | 有图片位置就准备，没有则跳过 |
-| `none` | 直接使用图标、图表和排版 |
+| `none` | 无固定图片采集任务；按设计使用排版、图标、图表，已有业务图片继续由数据绑定渲染 |
 
 设计缺失时交回 `yida-design` 补齐。每个位置一个 `slotId`、一张图，`count` 省略或填 `1`。
 

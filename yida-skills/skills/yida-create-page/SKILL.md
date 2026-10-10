@@ -58,7 +58,7 @@ openyida create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav] [--l
 | `appType` | 是 | 应用 ID，如 `APP_XXX` |
 | `pageName` | 是 | 页面名称 |
 | `--mode dashboard` | 否 | 看板/驾驶舱页面推荐使用；只表达页面模式，不会自动隐藏导航 |
-| `--hide-nav` | 否 | 仅当用户显式要求页面隐藏导航 / 无导航 / 全屏无框时使用；命令自动配置并回读，未生效时在同一页面补写一次。确认隐藏后才输出 `hideNav=true` 和带 `isRenderNav=false` 的 URL；这不等同于应用导航隐藏，自绘应用侧导航需另执行 `openyida update-app <appType> --hide-app-nav` |
+| `--hide-nav` | 否 | 兼容已有的显式隐藏导航调用；命令自动配置并回读，未生效时在同一页面补写一次。确认隐藏后才输出 `hideNav=true` 和不带导航参数的 `/custom/<pageId>`。完整应用的前台用途由编排判断，创建后通过持久化页面配置完成，不要求用户传此开关；这不等同于应用导航隐藏 |
 | `--locale` | 否 | 页面内容语言：`zh_CN`、`en_US`、`ja_JP`；省略时按当前环境选择 |
 | `--open` / `--no-open` | 否 | 控制成功后是否返回浏览器打开提示，由宿主执行打开，不影响页面配置 |
 

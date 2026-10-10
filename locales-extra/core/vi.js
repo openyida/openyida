@@ -5,9 +5,28 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  app_entry: {
+    desc_get: 'Read frontend and management runtime entries',
+    desc_set: 'Register application entries with partial update and readback',
+    usage: 'Usage: openyida app-entry get <appType> [--json]\n       openyida app-entry set <appType> [--frontend <url>] [--management <url>] [--clear-frontend] [--clear-management] [--json]\nRegister only published, verified runtime URLs for this application. Omitted entries remain unchanged.',
+    invalid_url: 'Cung cấp URL http:// hoặc https:// đầy đủ của trang, trang công khai hoặc liên kết rút gọn trong ứng dụng hiện tại. Không hỗ trợ đường dẫn tương đối, URL trình thiết kế và tham số xác thực tạm thời.',
+    invalid_response: 'Incomplete entry response. Read the current entries before retrying and check that the server supports the entry configuration API.',
+    readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
+    frontend_display_required: 'Trang giao diện {0} phải có loại display. Với biểu mẫu, dùng URL đầy đủ đã xác minh.',
+    page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
+    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+  },
+  design_plan: {
+    rebase_required: 'Trước lần tạo đầu tiên, sửa business.json/visual.json. Nếu kế hoạch chính đã thay đổi, giữ các tệp và thêm --rebase-parts vào lệnh ban đầu.',
+    baseline_missing: 'Khôi phục .build-plan-base.json tương ứng từ không gian làm việc gốc. Nếu thiếu bản gốc đáng tin cậy, giữ bản nháp và báo nguyên nhân bị chặn.',
+    rebase_stage_invalid: 'Chỉ hợp nhất bản nháp trước lần tạo đầu tiên. Với kế hoạch đã hiển thị hoặc tạo, dùng patch --materialize.',
+    rebase_conflict: 'Cùng một trường có các thay đổi khác nhau. Kiểm tra conflicts và chọn giá trị hiện tại hoặc gốc trong phần kế hoạch. Chưa lưu tệp nào.',
+    repair_page_bindings: 'Sửa pageApplications trong visual.json để khớp từng mục customPageDetails trong business.json, không thêm biểu mẫu gốc. visualMemoryApplications phải là mảng; dùng [] nếu không có mục phù hợp. Giữ bản nháp, sửa các trường được liệt kê rồi chạy lại lệnh ban đầu. Không xóa thư mục hoặc chạy lại init.',
+  },
   design_document: {
     update_conflict: "Không thể cập nhật {0} ({1}): nội dung hiện tại xung đột với phiên bản được tạo trước đó. Hãy đối chiếu thay đổi cục bộ trong phần này với dữ liệu kế hoạch rồi thử lại. Chưa lưu tệp nào.",
     theme_css_invalid: 'CSS giao diện gần dòng {0} có dấu ngoặc, chuỗi hoặc chú thích chưa đóng hoặc không khớp. Hãy sửa rồi thử lại.',
+    theme_css_unresolved: 'Token CSS chủ đề {0} vẫn chứa chỗ giữ chỗ hoặc hướng dẫn tạo màu. Hoàn thiện design.md, chạy openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css>, rồi tải tệp đã tạo lên. Chỉ thay PRIMARY_COLOR là chưa đủ.',
     invalid: 'Xác thực thiết kế thất bại: {0} ({1})',
     yaml: 'Frontmatter của tài liệu thiết kế không phải YAML hợp lệ',
     token_value: 'Token {0} phải là giá trị CSS đã xác định trên một dòng',
@@ -17,6 +36,11 @@ module.exports = {
     usage: 'Cách dùng: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'Không thể đọc tệp xác thực thiết kế: {0}',
     checked: 'Xác thực thiết kế thành công: {0}; {1} trang, {2} token',
+    anchor_hint: 'Neo phải được viết trong phần thân văn bản dưới dạng thẻ HTML tự đóng, ví dụ <a id="component-button"></a> (id của thẻ không có dấu #; tham chiếu trong frontmatter viết là #component-button). Id tiêu đề Markdown {#id}, liên kết [chữ](#id) hoặc văn bản thuần không tính là neo.',
+    anchor_chapter_three_hint: 'Thẻ <a id="…"></a> của neo này phải nằm trong chương "## 3. 基础组件表达" và trước "## 4. 特色表达配方".',
+    page_anchor_chapter_five_hint: 'Thẻ neo trang <a id="page-…"></a> phải nằm trong chương "## 5. 项目应用与调整规则".',
+    page_anchor_prefix_hint: 'Id của thẻ neo trang phải bắt đầu bằng page-, ví dụ <a id="page-workbench"></a> (tham chiếu trong frontmatter là #page-workbench), và không được trùng giữa các trang.',
+    page_label_hint: 'Sau neo trang <a id="page-…"></a> và trước neo trang tiếp theo, viết tám nhãn theo từng dòng: 页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收, theo dạng - **{0}：** nội dung cụ thể; giá trị phải cụ thể và khả thi, không dùng cách viết tạm như 按主题执行 hay TODO.',
   },
   asset: {
     sourceRecords: 'Trong assets[] qua --input, ghi assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) và authorizationEvidence (mảng URL hoặc đường dẫn tệp chứng từ). Danh sách giữ lại các bản ghi; giá trị thiếu để trống, không tự xác nhận quyền sử dụng thương mại.',
@@ -171,6 +195,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: 'Chọn cách sử dụng: trang nghiệp vụ dùng chung (unified), tách trang người dùng và xử lý nghiệp vụ (service-management), chỉ trang người dùng (frontend-only), hoặc chỉ trang xử lý nghiệp vụ (backend-only).',
+    design_plan_backend_only_roles: 'Với backend-only, mọi điểm truy cập phải có role là management.',
     design_plan_local_menu_binding: 'Menu nội bộ {0} cần trang chứa và viewKey: sceneKey của lối vào {1} phải khớp sceneKey của trang, resource bằng name của trang và viewKey không được trống. Áp dụng cho mọi vai trò.',
     design_plan_visual_object_required: '{0} phải là đối tượng, không phải chuỗi hoặc mảng. Giữ cấu trúc do init tạo và điền giá trị. Ví dụ: {1}.',
     help: '\n' +
@@ -309,7 +335,7 @@ module.exports = {
     integration_enable_example: 'Vi du: openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
     integration_disable_usage: 'Cach dung: openyida integration disable <appType> <formUuid> <processCode>',
     integration_disable_example: 'Vi du: openyida integration disable APP_XXX FORM-XXX LPROC-XXX',
-    compile_usage: 'Cách dùng: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--json]',
+    compile_usage: 'Cách dùng: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--strict-theme|--allow-fixed-brand] [--json]',
     compile_example: 'Ví dụ: openyida compile pages/src/home.oyd.jsx',
     check_page_usage: 'Usage: openyida check-page <sourceFile> [--compat] [--json]',
     check_page_example: 'Example: openyida check-page pages/src/home.oyd.jsx --json',
@@ -1044,6 +1070,7 @@ module.exports = {
     theme_preset_conflict: 'Không thể kết hợp colour có sẵn với CSS hoặc themeColor. Dùng --colour custom hoặc bỏ --colour.',
     custom_theme_color_required: 'colour=custom cần tệp giao diện hoặc themeColor hợp lệ. Dùng --theme-file hoặc --theme-color.',
     theme_not_persisted: 'Không thể xác nhận cài đặt giao diện sau khi lưu. Kiểm tra themeVerification và thử lại bằng update-app <appType> --theme-file <css>; không tạo lại ứng dụng.',
+    navigation_not_persisted: "Không thể đọc lại cài đặt điều hướng hoặc kết quả khác với yêu cầu. Xem giá trị mong đợi, giá trị thực tế và lỗi trong navigationVerification, rồi kiểm tra cài đặt hiện tại của ứng dụng.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1282,6 +1309,11 @@ module.exports = {
   },
   publish: {
     canvas_path_missing_app_type: 'Dòng {0}: đích điều hướng thiếu appType. Dùng canvas-navigation và ID đã xác minh để tạo /{appType}/{pageType}/{formUuid}, không dùng riêng /custom/.',
+    canvas_theme_fixed_brand_allowed: 'Giữ màu thương hiệu cố định ở dòng {0} ({1}); giá trị này không theo chủ đề ứng dụng.',
+    canvas_theme_fixed_brand_relaxed: 'Dòng {0}: ConfigProvider mã hóa cứng màu tương tác thương hiệu ({1}). Việc xuất bản không còn bị chặn theo mặc định và tiếp tục như hiện trạng, nhưng màu này sẽ không theo chủ đề ứng dụng. Thêm --fix-theme để tự động di chuyển, hoặc di chuyển thủ công sang canvas-theme; dùng --strict-theme để thất bại cứng trong CI.',
+    theme_canvas_only: 'Tùy chọn chủ đề chỉ dành cho Canvas; dùng .canvas.jsx/.canvas.tsx hoặc --canvas.',
+    fix_theme_source_changed: 'Mã nguồn đã đổi trước khi lưu di chuyển giao diện. Chưa ghi tệp; hãy kiểm tra lại mã nguồn hiện tại.',
+    fix_theme_applied: 'Đã áp dụng di chuyển chủ đề và ghi lại vào nguồn: {0}',
     canvas_theme_fixed_brand: 'Dòng {0}: ConfigProvider cố định màu thương hiệu. Dùng canvas-theme với màu đã phân giải từ chủ đề; chỉ dùng CSS var trực tiếp trong kiểu DOM.',
     canvas_navigation_local_platform: 'Dòng {0}: các chế độ xem nội bộ bị lọc qua menu nền tảng. Dùng mode=local hoặc trạng thái nội bộ; gắn trang thật với formUuid/navUuid và kiểm tra quyền đã khai báo.',
     canvas_navigation_document_flex: 'Dòng {0}: document dùng flex với cơ sở bằng 0. Cập nhật canvas-nav-content: chiều cao tự nhiên và khối cho document, flex có chiều cao cố định cho workspace.',
@@ -2090,3 +2122,13 @@ module.exports.help.cmd_agent = connectorSafetyMessages.help.cmd_agent;
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: 'Cấu hình thao tác phê duyệt không hợp lệ cho nút {0}: {1}',
 });
+
+module.exports.cli_argument = { invalid: 'Tham số không hợp lệ hoặc thiếu giá trị: {0}. Xem hướng dẫn lệnh.' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: --output là tệp CSS; --design-file đọc thiết kế hoàn chỉnh. Bỏ qua thiết kế sẽ đặt lại CSS. Khai báo giá trị giao diện trong thiết kế.',
+  'style_help': 'application-style: bắt buộc --style-id, hỗ trợ mọi giao diện trong danh mục; --output là thư mục chứa ba tệp. Tệp đã tồn tại sẽ gây lỗi.'
+};
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

@@ -5,9 +5,28 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  app_entry: {
+    desc_get: 'Read frontend and management runtime entries',
+    desc_set: 'Register application entries with partial update and readback',
+    usage: 'Usage: openyida app-entry get <appType> [--json]\n       openyida app-entry set <appType> [--frontend <url>] [--management <url>] [--clear-frontend] [--clear-management] [--json]\nRegister only published, verified runtime URLs for this application. Omitted entries remain unchanged.',
+    invalid_url: '請提供目前組織、應用的完整訪問 URL（http:// 或 https://）；支援頁面地址、公開地址和短連結，不支援相對路徑、開發後台及臨時驗證參數。',
+    invalid_response: 'Incomplete entry response. Read the current entries before retrying and check that the server supports the entry configuration API.',
+    readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
+    frontend_display_required: '前台頁面 {0} 必須是 display 自訂頁面；表單入口請傳入已驗證的完整 URL。',
+    page_not_in_app: '頁面 {0} 不屬於目前應用，無法登記為訪問入口；請用 list-forms 確認頁面歸屬。',
+    page_offline: '前台 custom 頁 {0} 尚未上線到獨立訪問地址，請先發布/上線後再登記。',
+  },
+  design_plan: {
+    rebase_required: '首次物化前請修正 business.json/visual.json；主計劃已變更時，保留現有檔案並在原命令加入 --rebase-parts。',
+    baseline_missing: '請從原工作區恢復匹配的 .build-plan-base.json；缺少可信基線時保留草稿並報告阻塞。',
+    rebase_stage_invalid: '僅首次物化前的草稿可合併基線。已展示或物化的計劃請使用 patch --materialize。',
+    rebase_conflict: '主計劃與片段修改了同一欄位。請核對 conflicts 並在片段中選擇目前值或基線值；尚未儲存。',
+    repair_page_bindings: '按 business.json 的 customPageDetails 逐一修復 visual.json 的 pageApplications；原生表單不加入綁定。每項 visualMemoryApplications 必須為陣列，無適用項用 []。保留現有草稿，修復所列欄位後重試原命令；不要刪除目錄或重新 init。',
+  },
   design_document: {
     update_conflict: "無法更新 {0}（{1}）：現有內容與上次生成結果衝突。請讀取這部分，將本地修改與計劃來源對齊後重試；本次未儲存任何檔案。",
     theme_css_invalid: '主題 CSS 第 {0} 行附近存在未閉合或不匹配的括號、字串或註解，請修正後重試。',
+    theme_css_unresolved: '主題 CSS 的 {0} 仍含模板佔位或色值生成說明。請先完成 design.md，執行 openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css>，再上傳生成檔案；不能只替換 PRIMARY_COLOR。',
     invalid: '設計文件驗證失敗：{0}（{1}）',
     yaml: '設計文件 frontmatter 不是有效的 YAML',
     token_value: 'token {0} 必須是已確定的單行 CSS 值',
@@ -17,6 +36,11 @@ module.exports = {
     usage: '用法: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: '無法讀取設計檢查文件：{0}',
     checked: '設計文件驗證通過：{0}；{1} 個頁面，{2} 個 token',
+    anchor_hint: '錨點必須在正文相應位置寫成空內容 HTML 錨點標籤，例如 <a id="component-button"></a>（標籤 id 不帶 #，frontmatter 引用寫作 #component-button）。Markdown 標題 {#id}、連結 [文字](#id) 或純文字不算錨點。',
+    anchor_chapter_three_hint: '該錨點的 <a id="…"></a> 標籤必須放在「## 3. 基礎組件表達」章節內、「## 4. 特色表達配方」之前。',
+    page_anchor_chapter_five_hint: '頁面錨點的 <a id="page-…"></a> 標籤必須放在「## 5. 項目應用與調整規則」章節內。',
+    page_anchor_prefix_hint: '頁面錨點的標籤 id 必須以 page- 開頭，例如 <a id="page-workbench"></a>（frontmatter 引用寫作 #page-workbench），且不同頁面的錨點不得重複。',
+    page_label_hint: '在本頁錨點 <a id="page-…"></a> 之後、下一個頁面錨點之前，逐行寫出八項要點：頁面任務/首屏焦點/佈局/表面與組件/主操作/狀態/響應式/驗收，格式如 - **{0}：** 具體內容；值必須具體可實現，不能寫「按主題執行」「TODO」等佔位說法。',
   },
   asset: {
     sourceRecords: '在 --input 的 assets[] 中填寫 assetId、creator、sourcePage、license、licenseUrl、licenseCheckedAt（YYYY-MM-DD）和 authorizationEvidence（憑證連結或檔案路徑陣列）。清單保留這些記錄；未提供的留空，不自動認定已獲商用授權。',
@@ -172,6 +196,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: '請明確入口方式：不分前後台（unified）、分前後台（service-management）、只有訪問前台（frontend-only）或只有訪問後台（backend-only）。',
+    design_plan_backend_only_roles: '只有訪問後台（backend-only）時，每個入口的 role 必須為 management。',
     design_plan_local_menu_binding: '本頁選單 {0} 必須關聯承載頁面和 viewKey：入口 {1} 的 sceneKey 對應頁面 sceneKey，resource 等於頁面 name，viewKey 不可空白。此規則適用於所有入口角色。',
     design_plan_visual_object_required: '{0} 必須為物件，不能寫成字串或陣列。保留 init 產生的結構並填入值。範例：{1}。',
     help: '\n' +
@@ -295,7 +321,7 @@ module.exports = {
     integration_enable_example: '範例：openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
     integration_disable_usage: '用法：openyida integration disable <appType> <formUuid> <processCode>',
     integration_disable_example: '範例：openyida integration disable APP_XXX FORM-XXX LPROC-XXX',
-    compile_usage: '用法：openyida compile <原始檔路徑> [--canvas] [--compat] [--skip-lint] [--json]',
+    compile_usage: '用法：openyida compile <原始檔路徑> [--canvas] [--compat] [--skip-lint] [--strict-theme|--allow-fixed-brand] [--json]',
     compile_example: '範例：openyida compile pages/src/home.oyd.jsx',
     check_page_usage: '用法：openyida check-page <原始檔路徑> [--compat] [--json]',
     check_page_example: '範例：openyida check-page pages/src/home.oyd.jsx --json',
@@ -989,6 +1015,7 @@ module.exports = {
     theme_preset_conflict: '平台預置 colour 不能與自訂 CSS 或 themeColor 同傳；請使用 --colour custom 或省略 --colour。',
     custom_theme_color_required: 'colour=custom 需要主題檔案或有效 themeColor；請傳 --theme-file 或 --theme-color。',
     theme_not_persisted: '應用主題儲存後回讀不一致或查詢失敗，CSS 資源尚未確認綁定。請查看 themeVerification，並使用 update-app <appType> --theme-file <css> 重試；不要重複建立應用。',
+    navigation_not_persisted: "應用導航儲存後回讀不一致或查詢失敗，導航設定尚未確認生效。請查看 navigationVerification 中的預期值、實際值和查詢錯誤，核實應用目前設定。",
     usage: '用法: openyida update-app <appType> [--name "新名称"] [--desc "描述"] [--layout slide|ver] [--theme deepBlue]',
     example: '示例: openyida update-app APP_XXX --name "新应用名称" --layout ver --theme deepBlue',
     options: '选项:\n' +
@@ -1221,6 +1248,11 @@ module.exports = {
   },
   publish: {
     canvas_path_missing_app_type: '第 {0} 行的跳轉地址缺少 appType。請用 canvas-navigation 與真實 ID 建立 /{appType}/{pageType}/{formUuid}，不要直接跳轉 /custom/ 等路徑。',
+    canvas_theme_fixed_brand_allowed: '已保留第 {0} 行 {1} 的固定品牌色覆寫；該色值不會跟隨應用主題。',
+    canvas_theme_fixed_brand_relaxed: '第 {0} 行的 ConfigProvider 寫死了品牌互動色（{1}）。預設不再阻斷發佈，已按原樣繼續；但該色值不會跟隨應用主題。建議加 --fix-theme 自動遷移，或手動遷移到 canvas-theme；如需在 CI 強制攔截可加 --strict-theme。',
+    theme_canvas_only: '主題參數僅適用於 Canvas 頁面；請使用 .canvas.jsx/.canvas.tsx 或 --canvas。',
+    fix_theme_source_changed: '主題遷移前原始碼已被修改；未寫回檔案，請重新讀取原始碼後檢查。',
+    fix_theme_applied: '已完成主題遷移並寫回原始碼：{0}',
     canvas_theme_fixed_brand: '第 {0} 行的 ConfigProvider 固定了品牌互動色。請使用 canvas-theme 解析應用主題；CSS var 用於 DOM 樣式，不直接傳給 antd 色值。',
     canvas_navigation_local_platform: '第 {0} 行把本頁選單交給平台導航過濾。請使用 mode=local 或直接切換本頁視圖；實際頁面需 formUuid/navUuid，仍須檢查權限。',
     canvas_navigation_document_flex: '第 {0} 行仍使用工作區 flex 零基準佈局，可能壓縮長頁。請重新提取 canvas-nav-content：document 使用自然高度與區塊佈局，workspace 才使用固定高度 flex。',
@@ -2042,3 +2074,13 @@ module.exports.help.cmd_agent = '連接本地 Agent（Go runtime，開發預覽�
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: '節點 {0} 的審批動作設定無效：{1}',
 });
+
+module.exports.cli_argument = { invalid: '參數無效或缺少值：{0}。請按命令說明填寫。' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme：--output 指向 CSS 檔案；--design-file 讀取完成的設計。省略設計檔案會重設 CSS，主題值透過設計填寫。',
+  'style_help': 'application-style：--style-id 必填，支援目錄中全部主題；--output 指向目錄，輸出三個檔案，同名檔案存在時報錯。'
+};
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

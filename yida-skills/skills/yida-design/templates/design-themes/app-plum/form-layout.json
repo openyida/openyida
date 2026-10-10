@@ -1,0 +1,14 @@
+[
+  {
+    "type": "ColumnContainer",
+    "layout": "7:5",
+    "columnGap": "32px",
+    "rowGap": "32px",
+    "display": "VERTICAL",
+    "mobileRowGap": "32px",
+    "children": [
+      [],
+      []
+    ]
+  }
+]

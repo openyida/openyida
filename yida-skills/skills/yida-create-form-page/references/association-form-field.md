@@ -116,7 +116,7 @@
   1. `source` 和 `target` 的 fieldId 是否正确（可通过 get-schema 技能查看）
   2. `sourceType` 和 `targetType` 是否与字段类型一致
   3. `dataFillingRules` 是否被正确设置到 `props.dataFillingRules`（而非只写在 `associationForm` 对象内）
-  4. 关联表单字段的 Schema 节点**顶层**是否有 `fieldId` 属性（宜搭回填引擎依赖顶层 `fieldId` 识别字段，仅在 `props` 内有 `fieldId` 不生效）
+  4. 关联表单字段节点的**顶层**是否有 `fieldId` 属性（宜搭回填引擎依赖顶层 `fieldId` 识别字段，仅在 `props` 内有 `fieldId` 不生效）
 
 **子表填充子表（tableRules）格式**：
 
@@ -164,7 +164,7 @@
 
 **注意事项**：
 - `tableRules` 用于实现"选择关联表单记录后，将其子表数据自动填充到当前表单的子表中"
-- **`tableId` 必须填写被关联表单（源表）的子表 fieldId**，宜搭通过它在源表 Schema 中定位子表数据；填写当前表单的子表 fieldId 会导致 `getInstMultiSubTableDatas` 接口报 500 错误
+- **`tableId` 必须填写被关联表单（源表）的子表 fieldId**，宜搭通过它在源表中定位子表数据；填写当前表单的子表 fieldId 会导致 `getInstMultiSubTableDatas` 接口报 500 错误
 - 每个 `tableRule` 对应源表的一个子表，可以配置多个子表的回填规则
 - 子表内的 `target` 同样支持 `@label:字段标签` 语法，脚本会自动解析为 fieldId
 - 确保 `rules[].source` 是源表子表内的字段 fieldId，`rules[].target` 是当前表单子表内的字段 fieldId
@@ -372,7 +372,7 @@
 ```
 
 **关键点说明**：
-1. `tableRules` 中的 `tableId` 填写的是**被关联表单（商品表）的子表 fieldId**（即「规格明细」子表的 fieldId），而非当前表单（订单表）的子表 fieldId。宜搭通过此 fieldId 在源表 Schema 中定位子表数据，填错会导致 `getInstMultiSubTableDatas` 接口报 500 错误
+1. `tableRules` 中的 `tableId` 填写的是**被关联表单（商品表）的子表 fieldId**（即「规格明细」子表的 fieldId），而非当前表单（订单表）的子表 fieldId。宜搭通过此 fieldId 在源表中定位子表数据，填错会导致 `getInstMultiSubTableDatas` 接口报 500 错误
 2. `tableRules` 中的每个 `rule.target` 支持 `@label:字段标签` 语法，用于定位当前表单子表内的字段
 3. 选择商品后，商品表的「规格明细」子表数据会自动填充到订单表的「订单明细」子表中
 4. 可以配置多个 `tableRule` 来实现多子表的数据回填
@@ -385,7 +385,7 @@
 - 检查 `sourceType` 和 `targetType` 是否与字段类型一致
 - 确认 `props.supportDataFilling` 是否为 `true`
 - 确认每条规则同时包含 `sourceFieldId/targetFieldId/source/sourceType/target/targetType` 6 个字段（缺少任意一个不生效）
-- 确认关联表单字段的 Schema 节点**顶层**有 `fieldId` 属性（宜搭回填引擎依赖顶层 `fieldId`，仅在 `props` 内有 `fieldId` 不生效）
+- 确认关联表单字段节点的**顶层**有 `fieldId` 属性（宜搭回填引擎依赖顶层 `fieldId`，仅在 `props` 内有 `fieldId` 不生效）
 
 **问题 2：子表填充子表不生效**
 - 检查 `tableRules` 是否为数组且非空

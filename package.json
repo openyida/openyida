@@ -1,6 +1,6 @@
 {
   "name": "openyida",
-  "version": "2026.9.18-1",
+  "version": "2026.10.9",
   "description": "OpenYida CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
   "bin": {
     "openyida": "bin/yida.js",
@@ -47,10 +47,11 @@
     "lint:fix": "eslint bin/ lib/ scripts/ tests/ --ext .js --fix",
     "solution:runner": "node scripts/solution-center-runner.js",
     "docs:commands": "node scripts/generate-command-docs.js",
-    "check:quick": "npm run check:structure && npm run check:commands && npm run check:docs && npm run check:i18n && npm run check:syntax && npm run lint",
+    "check:quick": "npm run check:structure && npm run check:commands && npm run check:docs && npm run check:i18n && npm run check:themes && npm run check:syntax && npm run lint",
     "check:structure": "node scripts/validate-structure.js",
     "check:commands": "node scripts/validate-command-manifest.js",
     "check:docs": "node scripts/generate-command-docs.js --check",
+    "check:themes": "node scripts/build-application-styles.js --check",
     "check:skills": "node scripts/validate-skills.js",
     "check:i18n": "node scripts/validate-i18n.js --check",
     "check:i18n:audit": "node scripts/validate-i18n.js",

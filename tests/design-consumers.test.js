@@ -39,7 +39,10 @@ test('equivalent YAML and JSON navigation metadata produce identical CSS', () =>
     'themeProfile:\n  navTheme: dark\n',
   ].map(metadata => applyDesignTokens(template, design(metadata)));
   expect(new Set(variants).size).toBe(1);
-  expect(variants[0].match(/\.pod-premium\.nav-dark\s*\{([^}]*)\}/)[1]).toContain('--pod-shell-theme-bg-color: #FAFAFA;');
+  const shared = require('../lib/app/theme-scope').topLevelRules(variants[0])
+    .find(rule => rule.selector.split(',').map(selector => selector.trim()).includes('.pod-premium.nav-dark'));
+  expect(shared.selector).toContain(':root');
+  expect(shared.body).toContain('--pod-shell-theme-bg-color: #FAFAFA;');
   expect(() => applyDesignTokens(template, design('themeProfile: {navTheme: invalid}\n'))).toThrow();
 });
 

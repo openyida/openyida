@@ -11,6 +11,7 @@ afterEach(() => { fs.rmSync(directory, { recursive: true, force: true }); });
 
 test('extracts only root defaults and preserves variable expressions', () => {
   expect(readThemeSnapshot(css)).toEqual({ '--color-brand1-6': '#246834', '--color-white': '#fff', '--pod-page-bg-color': 'var(--color-white)' });
+  expect(readThemeSnapshot(css.replace(':root', '.pod-premium.is-light,\n.pod-premium.is-dark,\n:root'))).toEqual(readThemeSnapshot(css));
   expect(readThemeSnapshot(css + '\n@media (min-width: 1px) { .x {} :root { --color-white: red; } }')['--color-white']).toBe('#fff');
   expect(() => readThemeSnapshot('.page { --color-brand1-6: red; }')).toThrow('top-level :root');
   expect(() => buildProvider(css, 'http://example.com/theme.css')).toThrow('HTTPS');

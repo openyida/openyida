@@ -1,6 +1,6 @@
 ---
 name: yida-create-form-page
-description: 表单页面创建与更新；支持 19 种业务字段和 Divider、ColumnContainer 等表单展示布局组件，PageSection/GroupContainer 仅少量特殊场景使用；支持联动规则和数据源绑定。
+description: 表单页面创建与更新；可创建 19 种业务字段、Divider 与 ColumnContainer，更新组件树时保留已有的 Tab、按钮组、图片和状态区；支持联动规则和数据源绑定。
 ---
 
 # 表单页面创建与更新
@@ -20,23 +20,20 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 ## 严格禁止 (NEVER DO)
 
 - 不要编造 formUuid，必须从命令返回的 JSON 中提取
-- 不要猜测 fieldId。字段级命令优先用字段 `label`、必要时用已知 `fieldId` 或 `tableLabel + label`；CLI 内部读 schema/定位并返回 compact evidence。只有字段解析失败/歧义、patch 底层路径或页面/公式/流程等确实需要多字段映射时，才用 `yida-get-schema` 一次性取证。
+- 不要猜测 fieldId。字段级命令优先用字段 `label`，必要时用已知 `fieldId` 或 `tableLabel + label`；CLI 会读取当前表单、定位字段并返回 compact evidence。只有字段解析失败或歧义、patch 底层路径或页面/公式/流程确实需要多字段映射时，才用 `yida-get-schema` 一次性取证。
 - 不要用此命令操作数据记录（增删改查），应使用 `yida-data-management`
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成字段、变更、补丁、规则、数据源 JSON 文件
 - OpenYida CLI 不要加 `2>/dev/null`；失败时保留 stdout/stderr 诊断，遇到 DENIED 或重复失败必须换策略
 - 多表单 batch 契约已在本技能给出时，不要再调用 `create-form batch --help`、`create-form batch --check`，也不要搜索 CLI 安装目录或源码来探测格式；这些调用同样占用本轮唯一一次 batch 调用名额
-- 已有目标表单且用户是改字段/联动/属性时，不要创建新表单；必须走 update/patch/rule/bind-datasource。
-- 不要用 `GroupContainer` / `PageSection` 承载普通业务分组；普通分组必须优先用 `Divider`
-- 严禁为原生表单或 `formDetail` 生成、注入 CSS、JS、HTML 或主题代码；详情页由平台渲染。
 
 ## 严格要求 (MUST DO)
 
 - 拿到或确认真实 `formUuid` 后，用于后续字段更新、数据绑定和页面入口配置。
 - create 成功后，将 formUuid 记录到 `.cache/<项目名>-schema.json`
-- 完整应用生成场景中，create 成功并记录 formUuid 后，把核心普通表单交给 `yida-data-management` 默认写入 1-3 条业务化示例记录；不要在本技能里直接操作数据记录。
-- update / add-option / bind-datasource / validation / rule 等字段级操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会内部读取 schema、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败/歧义时按 `diagnostics[].candidates` 补 `tableLabel`、修正 label 或再执行一次 compact `get-schema`。
+- 完整应用生成场景中，create 成功并记录 formUuid 后，把核心普通表单交给 `yida-data-management` 默认写入 1-3 条业务化示例记录。
+- update / add-option / bind-datasource / validation / rule 等字段级操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会读取当前表单、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败或歧义时，按 `diagnostics[].candidates` 补 `tableLabel`、修正 label，或再执行一次 compact `get-schema`。
 - 字段定义或变更定义需要落盘时，必须使用 agent 的结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`，例如 `<projectRoot>/.cache/openyida/pm/pm-fields-team.json`
-- 普通表单分组必须优先使用 `Divider`，多列排版必须通过字段 JSON 中的 `ColumnContainer` 局部表达
+- 创建或更新表单结构时，按[布局决策规则](#布局决策规则)规划组件树；编辑已有表单时保留原组件树
 - **重复结构化记录默认使用 `TableField`**：用户未指定具体字段类型时，凡一个业务字段承载多条同构记录，且每条记录由一组固定子字段组成，必须用 `TableField + children` 建模，不以字段名称或业务领域作为判断依据；用户明确指定具体字段类型时按用户要求执行，不将模型推断、跨会话记忆或历史兼容性说法视为用户指定。未在当前应用、当前提交链路验证的限制不能作为字段改型依据。
 - **本技能不读写 memory**：formUuid 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
@@ -60,9 +57,9 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 
 ## 多表单创建
 
-同一轮需要新建两个及以上普通表单时，必须按 [并行创建表单](references/batch-forms.md) 把全部表单写入同一个 `forms.json`，并且只调用一次 `openyida create-form batch <appType> <任务文件> --json`。独立表单和关联表单放在同一任务文件中，依赖通过 `dependsOn` / `$form` 表达，由 CLI 在一次 batch 内部完成分组、真实 `formUuid/fieldId` 回读和依赖调度；不要手工拆成多次 batch，也不要逐个调用 `create-form create`。调用前先确认 CLI 的实际项目根目录，并让 Write 创建的绝对路径与 Bash 使用的任务文件指向同一个物理文件：常见 `<workspace>/project` 布局中应写入 `<workspace>/project/.cache/openyida/<项目名>/forms.json`，再从该项目根传 `.cache/openyida/<项目名>/forms.json`。先用 Read 确认任务文件存在，不要通过试跑 batch 探测路径。batch 返回 background pending 时等待运行时投递完成结果，不得再次调用 batch。只有修改已有表单、恢复已有 `formUuid`，或当前 batch 契约无法表达依赖时，才走明确的非 batch 路径并说明原因。
+同一轮需要新建两个及以上普通表单时，必须按 [并行创建表单](references/batch-forms.md) 把全部表单写入同一个 `forms.json`，并且只调用一次 `openyida create-form batch <appType> <任务文件> --json`。独立表单和关联表单放在同一任务文件中，依赖通过 `dependsOn` / `$form` 表达，由 CLI 在一次 batch 内部完成分组、真实 `formUuid/fieldId` 回读和依赖调度；不要手工拆成多次 batch，也不要逐个调用 `create-form create`。调用前先确认 CLI 的实际项目根目录，并让 Write 创建的绝对路径与 Bash 使用的任务文件指向同一个物理文件：常见 `<workspace>/project` 布局中应写入 `<workspace>/project/.cache/openyida/<项目名>/forms.json`，再从该项目根传 `.cache/openyida/<项目名>/forms.json`。先用 Read 确认任务文件存在。batch 返回 background pending 时等待运行时投递完成结果，不得再次调用 batch。只有修改已有表单、恢复已有 `formUuid`，或当前 batch 契约无法表达依赖时，才走明确的非 batch 路径并说明原因。
 
-主技能内的最小任务文件契约如下，执行普通批量创建无需再查 help、sample 或 CLI 源码：
+主技能内的最小任务文件契约如下：
 
 ```json
 {
@@ -90,7 +87,7 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 }
 ```
 
-`fieldsFile` 也可替代内联 `fields`，其路径相对 `forms.json` 所在目录；已有完整表单可提供 `formUuid` 回读复用。普通搭建的 batch 项必须省略 `icon`，由 CLI 按标题和字段语义自动选择；只有用户明确给出 `openyida create-form icons --json` 目录中的表单图标名时才设置，应用图标 `xian-*` 绝不是表单图标。`locale` 同样只在用户明确指定时设置。普通多表单创建的执行顺序固定为：确认 `projectRoot` → Write 一个任务文件 → Read 确认文件 → 唯一一次真实 batch → 使用 batch 结果和必要的 compact `get-schema` 回读。
+`fieldsFile` 也可替代内联 `fields`，其路径相对 `forms.json` 所在目录；已有完整表单可提供 `formUuid` 回读复用。batch 项的 `icon` 与 `locale` 遵循 [create 模式](#create-模式)的同名参数规则。普通多表单创建的执行顺序固定为：确认 `projectRoot` → Write 一个任务文件 → Read 确认文件 → 唯一一次真实 batch → 使用 batch 结果和必要的 compact `get-schema` 回读。
 
 最小 `forms.json` 结构如下；`fieldsFile` 相对 `forms.json` 所在目录解析：
 
@@ -108,7 +105,7 @@ description: 表单页面创建与更新；支持 19 种业务字段和 Divider�
 }
 ```
 
-关联字段必须把引用放在 `associationForm` 内。推荐使用紧凑写法 `"associationForm": { "$form": "customer", "field": "客户名称" }`；batch 会将其规范化为 `associationForm.formUuid` 和 `associationForm.mainFieldId`。完整写法则分别在 `formUuid` 使用 `{ "$form": "customer" }`、在 `mainFieldId` 使用 `{ "$form": "customer", "field": "客户名称" }`。不要把 `$form` 放在 `AssociationFormField` 顶层，也不要用 `batch --help`、空参数或临时计划探索格式；技能中的结构就是正式契约。
+关联字段的引用放在 `associationForm` 内。推荐使用紧凑写法 `"associationForm": { "$form": "customer", "field": "客户名称" }`；batch 会将其规范化为 `associationForm.formUuid` 和 `associationForm.mainFieldId`。完整写法则分别在 `formUuid` 使用 `{ "$form": "customer" }`、在 `mainFieldId` 使用 `{ "$form": "customer", "field": "客户名称" }`。
 
 Batch 以任务文件指纹和 `<forms.json>.state.json` 共同标识一次批量操作，恢复动作由结果中的 `recoveryAction` 唯一决定：
 
@@ -133,48 +130,41 @@ CLI 在同一次 batch 内对已取得真实 `formUuid` 的空壳表单执行一
 
 ## 布局决策规则
 
-默认表单是单列，使用 `Divider` / `ColumnContainer` / 标准字段表达业务结构。严禁为了“更高级”默认把整表改成双列；严禁用 `GroupContainer` / `PageSection` 做普通分组。
+原生表单支持组件化布局。按任务规划顶部、左侧、主体、右侧和字段间区域，再将组件与字段放入对应区域。
 
-- 默认单列：字段较少、流程表单、移动端优先、长文本、说明、附件、地址、子表、审批意见、需要逐项认真填写的字段。
-- 局部多列：短字段且天然成对或成组时使用 `ColumnContainer`，例如开始/结束日期、姓名/工号、部门/岗位、金额/币种、联系人/电话。
-- 全局 `--layout double`：只有用户明确要求“整个表单双列”时才使用；一般更推荐在字段 JSON 内用 `ColumnContainer` 做局部多列。
-- 语义分组：按业务含义分段，不按字段数量平均分。常见分组包括“基本信息”“业务信息”“时间计划”“补充材料”“审批信息”。
-- Divider 样式：按页面业务、字段密度和主题，从 [23 个可见样式](references/form-field-properties.md#divider) 中选择并显式填写 `dividerType`；不要套用固定推荐顺序。
-- 字段 JSON 和表单 Schema JS 只承载表单结构与业务动作。
-
-推荐结构：
-
-```text
-Divider > ColumnContainer > Field
-Divider > Field
-```
+- 区域设计：先写清每个区域的组件、作用和响应式规则，再安排字段。
+- 字段排布：长文本、附件、地址和子表通常整行；短字段可按业务关系放入 `ColumnContainer`。可采用单列、局部多列、主次分栏或多区域布局。
+- 组件选用：业务字段负责数据采集，Tab/切换负责导航，按钮组/操作入口执行业务动作，图片或图形建立视觉焦点，状态区提供反馈，标题与 `Divider` 组织层级和节奏，`ColumnContainer` 组织横向字段。编辑已有表单时保留现有组件。
+- 分组规则：普通业务分组和章节分隔使用 `Divider`；横向字段组合使用 `ColumnContainer`。
+- Divider 样式：按页面业务、字段密度和主题，从 [23 个可见样式](references/form-field-properties.md#divider) 中选择并显式填写 `dividerType`。同页同层级使用一致样式；编辑已有页面时沿用原样式，不同业务页面按各自设计选择。
+- 深色表单配色：先区分深色内容与仅深色导航，再按[分割线配色引导](../yida-design/references/native-form-styles.md#分割线弱背景)选择背景和标题色。默认继承主题；默认绑定不适合时可用 `colorType: "custom"` 成组设计主色、辅助色、标题色，无需用户逐项指定。内嵌椭圆等复合样式分别考虑外条、内底和文字，不能直接沿用浅底配浅字；已有页面局部修复不随意改动全局品牌色。
+- 主色实底标题与 label：`dark-bar`、`light-left-title` 等样式的文字位于主色块时，优先考虑白色/近白色，并按实际亮度成组调整局部底色；自定义时显式填写 `titleColor`。章节与字段 label 同时考虑字体、字重、对齐和间距，不靠压暗 label 突出章节。具体见[主色实底标题与字段标签](../yida-design/references/native-form-styles.md#主色实底标题与字段标签)。
 
 ## 企业级表单质量规则
 
 生成企业级表单时按以下规则执行：
 
 - 字段必须先覆盖 PRD 明确要求，再按真实业务补充少量必要字段，避免堆砌冗余字段。
-- 字段较多时必须用 `Divider` 做语义分组；每个分组开头都要有 `Divider`，包括第一个分组；`Divider` 不放在字段列表末尾。
-- 同页同层级的 `Divider` 尽量使用同一个 `dividerType`；不同业务页面优先选择不同且合适的样式；场景不明确或候选同样合适时，按页面随机轮换，并把选定值写入 `dividerType`，同页不逐组随机。标题概括组内字段，已有页面局部修改沿用原样式。
+- 内容较多时，按[布局决策规则](#布局决策规则)为各区域选择组件。
 - 完整业务应用包含多张表单时，表单之间应有业务关联；涉及数据流转的主表建议有文本型业务编号/名称字段，涉及时间、金额、数量的业务应使用日期/数值字段表达。
 - 复杂业务表单应自然使用多种字段类型，例如文本、数值、日期、选择、成员/部门、附件、子表、关联表单；字段类型多样性服务于业务语义。
 - `TableField` 必须提供 `children` 子字段，`AssociationFormField` 必须提供关联表单信息。
 - 审批人、审批状态、审批节点等流程运行字段由流程能力承载；表单只收集业务数据。
-- 表单标题、字段 label/title、选项、提示语、校验文案、动作源码、字段 JSON 常量和字段 JSON 文件路径都禁止 emoji；`create-form` / schema compiler 报 emoji 错误时必须改字段 JSON 或路径，不能重复 create 或用同义命令绕过。
+- 表单标题、字段 label/title、选项、提示语、校验文案、动作源码、字段 JSON 常量和字段 JSON 文件路径都禁止 emoji；`create-form` 报 emoji 错误时必须修改字段 JSON 或路径，不能重复 create 或用同义命令绕过。
 
 ## 表单布局样式
 
-- 普通业务分组使用 `Divider`，下面直接接字段或 `ColumnContainer`
-- 局部多列容器保持背景克制，避免给每个列容器单独上色
-- 流程表单更偏单列和清晰分段，颜色只用于章节识别
-- 用户明确指定颜色时才写 `colorType: "custom"` 和具体色值
+- 提交、编辑和记录详情与导航、应用框架、自定义页面共用 `design.md` 的整体风格。按 [表单样式与提交页背景](../yida-design/references/native-form-styles.md) 将字体、控件、状态、背景与底栏规则写入同一份应用主题 CSS。
+- 布局结构按[布局决策规则](#布局决策规则)执行，并在 `design.md` 记录列宽、标签位置、分组间距与响应式安排。
+- `--theme default|compact|comfortable` 配置页面密度；应用主题 token 配置完整视觉风格。美化已有表单时保留现有 `formUuid` 和字段结构，只更新布局与主题。
+- 局部多列容器使用统一、克制的背景。
+- 流程表单优先采用单列和清晰分段，颜色用于章节识别。
+- 用户指定颜色，或默认绑定不适合当前主题下的分割线时，可写入 `colorType: "custom"`，成组设计主色、辅助色和标题色；无需等待用户逐项指定色值。
 
 ## create 模式
 
-仅当目标表单缺失且用户意图允许新增数据收集入口时使用。已有 `formUuid` / 表单 URL / bound form 时禁止使用 create 模式。
-
 ```bash
-openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout double|card] [--theme compact|comfortable] [--label-align top|left]
+openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout single|double|card|section] [--theme default|compact|comfortable] [--label-align top|left|right] [--icon auto|<iconName>] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]
 # 文件路径示例：.cache/openyida/<项目名或任务名>/<表单名>-fields.json
 ```
 
@@ -210,7 +200,7 @@ create 命令失败后，不要立刻重复同一条 create：
 
 ## update 模式
 
-已有 `formUuid` / 表单 URL / bound form 时优先使用本模式。简单字段属性更新直接写 compact changes，不需要模型先 `get-schema --field-map-json`；CLI 会内部读取当前 schema，按 `label`、`fieldId` 或 `tableLabel + label` 定位字段，成功 JSON 会返回 `changes[].resolved` 和 `changes[].updatedProps`。
+已有 `formUuid` / 表单 URL / bound form 时优先使用本模式。简单字段属性更新直接写 compact changes，不需要模型先 `get-schema --field-map-json`；CLI 会读取当前表单，按 `label`、`fieldId` 或 `tableLabel + label` 定位字段，成功 JSON 会返回 `changes[].resolved` 和 `changes[].updatedProps`。
 
 ```bash
 openyida create-form update <appType> <formUuid> <changesJsonOrFile>
@@ -250,7 +240,7 @@ openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>
 
 ## 半成功 create 恢复
 
-create 已返回真实 `formUuid`、但后续 schema 保存或回读失败时，使用保守恢复命令：
+create 已返回真实 `formUuid`、但后续保存或回读失败时，使用保守恢复命令：
 
 ```bash
 openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
@@ -276,7 +266,7 @@ openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
 
 | 模式 | 命令 | 何时使用 |
 |------|------|------|
-| `patch` | `openyida create-form patch <appType> <formUuid> <patchJsonOrFile>` | 受控修改底层 Schema；字段事件动作必须用 `field-action` 并确认 `designerBindingFound: true`、`readbackVerified: true` |
+| `patch` | `openyida create-form patch <appType> <formUuid> <patchJsonOrFile>` | 受控修改表单底层配置；字段事件动作必须用 `field-action` 并确认 `designerBindingFound: true`、`readbackVerified: true` |
 | `rule` | `openyida create-form rule <appType> <formUuid> <rulesJsonOrFile>` | 字段显示隐藏、只读、自动赋值、onChange 带出 |
 | `validation` | `openyida create-form validation <appType> <formUuid> <validationsJsonOrFile>` | 字段校验规则，优先用内置校验，复杂场景再用 customValidate |
 | `bind-datasource` | `openyida create-form bind-datasource <appType> <formUuid> <fieldLabelOrId> <dataSourceJsonOrFile>` | 选项字段绑定远程搜索数据源；成功输出 `resolved` |
@@ -284,7 +274,7 @@ openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
 
 ## 字段定义 JSON 高频范式
 
-字段 JSON 详细属性、布局组件、update changes 和完整字段类型表见 [field-definition-guide.md](references/field-definition-guide.md)。
+字段 JSON 详细属性、`Divider` / `ColumnContainer` 结构、update changes 和完整字段类型表见 [field-definition-guide.md](references/field-definition-guide.md)。
 
 常用结构：
 
@@ -337,7 +327,7 @@ openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
 
 | 文档 | 何时读取 |
 |------|------|
-| [field-definition-guide.md](references/field-definition-guide.md) | 需要完整字段属性、布局组件、update changes 或字段类型表时 |
+| [field-definition-guide.md](references/field-definition-guide.md) | 需要完整字段属性、`Divider` / `ColumnContainer` 结构、update changes 或字段类型表时 |
 | [advanced-form-modes.md](references/advanced-form-modes.md) | 使用 patch / rule / validation / bind-datasource 高级模式前必须读取 |
 | [form-field-properties.md](references/form-field-properties.md) | 需要字段属性细节或平台属性映射时 |
 | [employee-field.md](references/employee-field.md) | 成员字段配置 |
@@ -348,7 +338,7 @@ openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
 
 - `appType` 必须来自已创建应用或用户提供
 - 字段类型必须使用标准组件名，如 `TextField`、`SelectField`
-- 电话字段固定使用 `TextField` 加正则自定义校验；读取已有 Schema 时可以识别历史 `PhoneField`，但不得把它作为新建或 patch 能力。
+- 电话字段固定使用 `TextField` 加正则自定义校验；读取已有表单时可以识别历史 `PhoneField`，但不得把它作为新建或 patch 能力。
 - `SelectField`、`MultiSelectField`、`RadioField`、`CheckboxField` 固定选项必须提供 `dataSource`；远程选项字段必须提供 `remoteDataSource` 或通过 `bind-datasource` 配置，不要生成无选项源的字段 JSON。
 - `TableField` 必须提供 `children`，且子表不能嵌套子表
 - `AssociationFormField` 必须提供 `associationForm`
@@ -360,6 +350,9 @@ openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
 |---------|----------|
 | create 返回失败 | 检查 appType 是否正确，确认登录态有效 |
 | 字段级命令找不到字段 | 先看命令 JSON 的 `diagnostics[].candidates` 修正 label、补 `tableLabel` 或改用已知 `fieldId`；仍不明确时再用 `openyida get-schema --compact --resolve-fields` |
-| 字段类型不支持 | 检查字段类型是否在支持的 19 种业务字段或已验证展示布局组件列表中 |
+| 字段类型不支持 | 使用 `create-form` 支持的 19 种业务字段、`Divider` 或 `ColumnContainer` |
 | 子表字段创建失败 | 确认 `children` 数组格式正确，子表字段不能嵌套子表 |
 | 返回 JSON 中无 formUuid | 不要猜测 formUuid，重新执行命令获取 |
+
+
+应用整体设计可使用[应用风格模板或自由创意](../yida-design/references/application-style-library.md)。导航、自定义页面、表单与详情继承同一设计语言；自由创意从业务推演。模板中的原生布局 JSON 用于建立结构，使用时填入真实字段并核对间距和响应式。表单组件树按[布局决策规则](#布局决策规则)创建。

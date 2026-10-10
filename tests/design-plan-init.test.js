@@ -39,6 +39,41 @@ beforeEach(() => {
 });
 afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
 
+test.each(fs.readdirSync(path.join(__dirname, '../yida-skills/skills/yida-design/templates/design-themes'))
+  .filter(id => id.startsWith('app-')))('unlisted %s cannot initialize or export even though its files remain', themeId => {
+  const { exportApplicationStyle } = require('../lib/app/application-style');
+  const before = fs.readdirSync(dir);
+  brief.visualSelection.themeId = themeId;
+  save();
+  expect(() => initialize(briefPath, { outputDir: path.join(dir, 'prd') }))
+    .toThrow(expect.objectContaining({ code: 'DESIGN_PLAN_THEME_UNKNOWN' }));
+  expect(() => initialize(briefPath, { themeId, outputDir: path.join(dir, 'prd') }))
+    .toThrow(expect.objectContaining({ code: 'DESIGN_PLAN_THEME_UNKNOWN' }));
+  expect(() => exportApplicationStyle(themeId, path.join(dir, 'style')))
+    .toThrow(expect.objectContaining({ code: 'APPLICATION_STYLE_UNKNOWN' }));
+  expect(fs.readdirSync(dir)).toEqual(before);
+});
+
+test('restoring a retained bundle to the index restores catalog, initialization and export', () => {
+  const { DESIGN_SKILL_ROOT, loadThemeIndex } = require('../lib/design-plan/themes');
+  const { catalog } = require('../lib/design-plan/init');
+  const { exportApplicationStyle } = require('../lib/app/application-style');
+  const indexFile = path.join(DESIGN_SKILL_ROOT, 'templates/design-themes/index.json');
+  const index = loadThemeIndex();
+  index.themes.push({ themeId: 'app-amber', label: '琥珀工单', mode: 'template', contentTone: 'light', navTheme: 'light',
+    templatePath: 'templates/design-themes/app-amber/design.md', cssTemplatePath: 'templates/design-themes/app-amber/app_theme.css',
+    formLayoutPath: 'templates/design-themes/app-amber/form-layout.json', styleSummary: '浅色导航，浅色内容界面。紧凑工单。' });
+  const originalRead = fs.readFileSync;
+  const spy = jest.spyOn(fs, 'readFileSync').mockImplementation((file, ...args) =>
+    file === indexFile ? JSON.stringify(index) : originalRead(file, ...args));
+  try {
+    expect(catalog().themes.some(theme => theme.themeId === 'app-amber')).toBe(true);
+    expect(initialize(briefPath, { themeId: 'app-amber', outputDir: path.join(dir, 'prd') }).success).toBe(true);
+    const exported = exportApplicationStyle('app-amber', path.join(dir, 'style'));
+    expect(exported.outputs.every(file => fs.existsSync(file))).toBe(true);
+  } finally {spy.mockRestore();}
+});
+
 test.each([
   ['workbench', '采购工作台', '处理待确认订单与待收货队列', 'workbench'],
   ['dashboard', '采购成本分析', '比较已确认的采购成本趋势与交付率', 'dashboard-overview'],
@@ -109,7 +144,24 @@ test('missing color uses the existing visual-design task and leaves the example 
     expect.objectContaining({ path: 'facts.visualStyle.forUser.colorStrategy.primaryColor' }),
   ]));
   expect(result.parallelTasks.map(task => task.id)).toEqual(['business', 'visual-design']);
-  expect(result.authoring.visualDecision.comparison).toMatchObject({ baseline: 'first_instinct', alternatives: 2, distinctDimensions: 2 });
+  expect(result.authoring.visualDecision).toMatchObject({
+    comparison: { candidateCount: 3, baseline: 'first_instinct', alternatives: 2, distinctDimensions: 2 },
+    execution: 'one_shared_three_direction_generation_pass_for_fast_and_plan',
+    presentation: 'fast_selects_internally; plan_asks_user_when_no_explicit_visual_direction',
+  });
+});
+
+test('initialization derives navigation tone from the selected theme and replaces stale input', () => {
+  brief.visualSelection.navigationStyle.tone = 'dark';
+  save();
+  const result = init();
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  expect(plan.visualStyle.forUser.navigationStyle).toMatchObject({
+    structure: 'top',
+    tone: 'light',
+    toneSource: 'theme_derived',
+  });
+  expect(fs.readFileSync(result.context, 'utf8')).toContain('tone=light 由已选主题模板派生，不要修改');
 });
 
 test.each([undefined, 'ai_default', 'user_selected'])('visual selection preserves its actual source: %s', source => {
@@ -133,7 +185,8 @@ test('initializes stable references, preserves explicit facts and returns a boun
   expect(plan.execution.explicitScope.navigation.variant).toBe('top');
   expect(result.parallelTasks.map(task => [task.id, task.dependsOn])).toEqual([['business', []]]);
   expect(result.preparedInputs.visual).toBe(result.parallelTasks[0].output.replace('business.json', 'visual.json'));
-  expect(result.materialize).toMatchObject({ mode: 'complete_files_once', maxCalls: 1 });
+  expect(result.materialize).toMatchObject({ mode: 'complete_files_once', maxSuccessfulCalls: 1,
+    repairPolicy: { unchangedRetryAllowed: false, maxAttemptsWithoutProgress: 2 } });
   expect(result.materialize.command).toContain('--business-file');
   expect(result.materialize.command).toContain('--visual-file');
   expect(result.preview).toBeUndefined();
@@ -151,6 +204,10 @@ test('initializes stable references, preserves explicit facts and returns a boun
   const context = fs.readFileSync(result.context, 'utf8');
   expect(context).toContain('## 1. 风格摘要');
   expect(context).toContain('compact-workbench');
+  expect(context).toContain('全局概况、业务管理、分析判断、异常处理和常用快捷入口');
+  expect(context).toContain('8-10 个有独立价值的区块');
+  expect(context).toContain('不套固定列表组合');
+  expect(context).not.toContain('工作台按需求组织待办、操作队列、业务列表和常用入口');
   expect(context).not.toContain('"--color-brand1-1"');
   expect(fs.readFileSync(briefPath, 'utf8')).toBe(original);
   expect(() => materialize(result.output)).toThrow();
@@ -425,7 +482,13 @@ test('catalog is read-only and its theme IDs initialize through the public CLI w
   expect(fs.readdirSync(dir)).toEqual(before);
   const themeIndex = require('../yida-skills/skills/yida-design/templates/design-themes/index.json');
   const patterns = require('../yida-skills/skills/yida-design/sub_skill/yida-design-plan/templates/page-patterns/index.json');
-  expect(result.themes.map(theme => theme.themeId)).toEqual(themeIndex.themes.map(theme => theme.themeId));
+  expect(result.themes.map(theme => theme.themeId)).toEqual(themeIndex.themes.filter(theme => theme.mode !== 'creative').map(theme => theme.themeId));
+  expect(result.creativeOption).toMatchObject({ themeId: 'free-creative', mode: 'creative' });
+  for (const theme of result.themes) {
+    expect(theme.styleSummary).toMatch(/(?:深色|浅色)导航/);
+    expect(theme.styleSummary).toMatch(/(?:深色|浅色)内容界面/);
+    expect(theme.styleSummary).not.toMatch(/navTheme\s*=|contentTheme\s*=/);
+  }
   expect(result.pagePatterns).toEqual(patterns.patterns.map(({ id, label, mustKeep }) => ({ id, label, mustKeep })));
   const initialized = JSON.parse(execFileSync(process.execPath, [bin, 'design-plan', 'init', briefPath,
     '--theme-id', result.themes[0].themeId, '--output-dir', path.join(dir, 'catalog-plan'), '--json'], options));
@@ -483,6 +546,20 @@ test('returned materialize command handles spaces, quotes and shell expressions 
 test.each(require('../yida-skills/skills/yida-design/templates/design-themes/index.json').themes)(
   'initializes and materializes shared theme $themeId with its current summary and token contract', theme => {
     delete brief.visualSelection.visualDirection;
+    if (theme.mode === 'creative') {
+      const { CREATIVE_TOKENS } = require('../lib/app/application-style');
+      const { resolveThemeColors, themeTemplatePath } = require('../lib/design-plan/themes');
+      const tokens = require('../lib/app/theme-from-design').readDesignTokens(resolveThemeColors(
+        fs.readFileSync(themeTemplatePath(theme), 'utf8').replace(/\{\{PRIMARY_COLOR\}\}/g, '#6F4E37')));
+      brief.visualSelection.tokens = Object.fromEntries(CREATIVE_TOKENS.map(key => [key, tokens[key]]));
+      brief.visualSelection.creativeDirection = {
+        businessRationale: '采购人员需要连续核对记录，以对齐和清楚分组提高效率。',
+        composition: '顶部待办摘要、左侧记录清单、右侧采购上下文。',
+        typography: '正文使用平台字体，金额采用等宽数字，标题分级。',
+        material: '暖灰工作面与白色记录面，以铜色细线强调当前任务。',
+        formLayout: '短字段双列，附件整行，字段间距24px，窄屏单列。',
+      };
+    }
     save();
     const result = initialize(briefPath, { themeId: theme.themeId, outputDir: path.join(dir, 'prd') });
     const initialized = JSON.parse(fs.readFileSync(result.output, 'utf8'));
@@ -508,6 +585,14 @@ test.each(require('../yida-skills/skills/yida-design/templates/design-themes/ind
     expect(require('../lib/app/theme-from-design').readDesignTokens(design)['--color-brand1-6']).toBe('#6F4E37');
     expect(fs.readFileSync(output.outputs.prd, 'utf8')).toContain('采购');
   });
+
+test('free creative initialization remains pending until independent decisions are authored', () => {
+  save();
+  const result = initialize(briefPath, { themeId: 'free-creative', outputDir: path.join(dir, 'creative') });
+  expect(result.preparedInputs.visualReady).toBe(false);
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  expect(collectIssues(plan).some(issue => issue.path.startsWith('visualStyle.creativeDirection.'))).toBe(true);
+});
 
 test.each([
   b => {b.intake.confirmed = false;},
@@ -593,6 +678,8 @@ test('CLI init is permitted locally, documents every argument and runs through t
   expect(command.side_effect).toMatchObject({ kind: 'local_write', mutates_yida: false });
   expect(command.permission.mode).toBe('allow');
   expect(command.args.map(arg => arg.builder_options[0])).toEqual(['--requirement-brief', '--theme-id', '--output-dir', '--json']);
+  expect(command.notes.join(' ')).toContain('There is no navigation-tone argument');
+  expect(command.notes.join(' ')).toContain('toneSource=theme_derived');
   const { execFileSync } = require('child_process');
   const result = JSON.parse(execFileSync(process.execPath, [path.join(__dirname, '../bin/yida.js'), 'design-plan', 'init', briefPath,
     '--theme-id', 'soft-inset-surfaces', '--output-dir', path.join(dir, 'cli-prd'), '--json'], {
@@ -600,6 +687,12 @@ test('CLI init is permitted locally, documents every argument and runs through t
   }));
   expect(result.success).toBe(true);
   expect(fs.existsSync(result.output)).toBe(true);
+});
+
+test('CLI init rejects undeclared navigation tone overrides', async () => {
+  const { run } = require('../lib/design-plan/design-plan');
+  await expect(run(['init', briefPath, '--theme-id', 'soft-inset-surfaces', '--nav-theme', 'dark', '--json']))
+    .rejects.toMatchObject({ code: 'DESIGN_PLAN_INVALID_ARGUMENT' });
 });
 
 
@@ -635,4 +728,15 @@ test('authoring context places execution examples at their actual fragment paths
   expect(examples.businessFragment.facts.execution.interactionStates.error).toBeTruthy();
   expect(examples.businessFragment.facts).not.toHaveProperty('sampleDataPlan');
   expect(examples.businessFragment.facts.businessFlows[0]).toEqual(expect.objectContaining({ trigger: expect.any(String), nodes: expect.any(Array), rules: expect.any(Array) }));
+});
+
+
+test.each(['dark', undefined])('free creative preserves authored tone without inventing a template default: %s', tone => {
+  brief.visualSelection.navigationStyle.tone = tone;
+  save();
+  const result = initialize(briefPath, { themeId: 'free-creative', outputDir: path.join(dir, 'creative') });
+  const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
+  expect(plan.visualStyle.forUser.navigationStyle).toMatchObject({ tone: tone || '', toneSource: 'project_defined' });
+  expect(result.authoring.pendingFields.some(field => field.path === 'facts.visualStyle.forUser.navigationStyle.tone')).toBe(!tone);
+  expect(fs.readFileSync(result.context, 'utf8')).toContain('自由创意需明确填写');
 });

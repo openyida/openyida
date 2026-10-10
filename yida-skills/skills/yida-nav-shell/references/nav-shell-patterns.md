@@ -265,12 +265,18 @@ hash 的 `view` 保存任务入口 key，刷新及前进后退恢复选中内容
 | 导航表面与标题 | `--pod-shell-theme-bg-color`、`--pod-nav-logo-text` |
 | 普通 / 悬停 / 选中 / 禁用文字 | `--pod-nav-item-text-*` |
 | 悬停 / 选中背景 | `--pod-nav-menu-bg-hover-color`、`--pod-nav-menu-bg-selected-color` |
+| 普通 / 悬停 / 选中边框 | 可选：`--pod-nav-menu-item-border`、`--pod-nav-menu-item-hover-border`、`--pod-nav-menu-item-selected-border`；有明确用途时才填写完整值，并避免状态切换引起位置跳动 |
+| 菜单选中标记 | `--pod-nav-menu-item-selected-shadow` 是可选覆盖；省略沿用原样，显式 `none` 才表示关闭；额外指示线需有明确定位用途 |
 | 分隔线、选中指示、焦点 | `--pod-nav-sub-divider-color`、`--pod-nav-tab-line-selected-color` |
 | 菜单高度、圆角、文字、间距 | `--pod-nav-menu-*`、`--pod-nav-top-tab-*` |
 | 悬浮阴影 | `--pod-nav-popup-shadow` |
 | 页内标签 | `--tab-pure-text-color-*`、`--tab-pure-ink-bar-color` |
 | 自定义页整页画布 | `--pod-page-bg-color`（与原生页面统一）、`--pod-nav-page-padding` |
 | 业务卡片 | `--pod-card-bg-color`、`--pod-card-border` |
+
+`canvas-nav-side/top/mixed/dock` 支持上述可选菜单样式，普通项默认透明无框，不要求声明三种边框和选中阴影。已有自绘导航按需合入片段并发布后生效；`canvas-nav-tabs` 继续使用页内标签样式。自绘组件的默认样式只作用于自身 `.oy-canvas-nav`，不能套到平台原生菜单上。
+
+侧栏和 Dock 菜单项使用 `--pod-nav-menu-item-height` 与 `--pod-nav-menu-item-padding`；顶部菜单和混合导航的顶部分组使用 `--pod-nav-top-tab-height`、`--pod-nav-top-tab-item-padding` 与 `--pod-nav-top-tab-item-max-width`。侧栏、顶部和混合导航的菜单间距读取 `--pod-nav-menu-gap`；Dock 使用 `--pod-nav-slide-collapsed-menu-gap`。侧栏外部留白读取 `--pod-nav-slide-aside-padding`，混合导航侧栏读取 `--pod-nav-l-aside-padding`。顶部横向滚动区预留半个菜单间距供阴影展示；外阴影较大时增加间距，并检查长名称截断、折叠态和窄屏菜单。案例取值见 [导航形状与密度](../../yida-design/references/application-theme-consistency.md#导航形状与密度的案例经验)。
 
 主题由 `yida-design` 在应用级生成和配置；导航组件消费已有变量，必要的默认值放在 `var(...)` 回退中。颜色修改在主题文件完成，固定的布局结构留在组件中。导航深浅由导航主题决定，业务内容明暗由页面主题决定，分别验证。
 

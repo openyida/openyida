@@ -12,6 +12,10 @@ description: 将基于 JSX 组件 的自定义页面升级/迁移为使用 `Yida
 - 迁移前页面：OpenYida 平台 JSX 组件页面，通常是 `project/pages/src/*.oyd.jsx`、`export function renderJsx()`、`_customState`、`this.utils.yida.*`，`openyida publish` 发布为 `Jsx` 组件；用户称 `.oyb.jsx` 时先按平台 JSX 组件页面需求识别，再确认实际源码后缀。
 - 目标实现：页面 Schema 中承载 `YidaCodeCanvas` 组件，组件属性包含 `code`、`runtimeCode`、`importedModules`，运行时执行 `YidaComp`。
 
+## 从老应用主题升级进入
+
+从 `yida-upgrade-app-theme` 进入时，复用已备份的 Schema、源码和已确认的目标页面清单，逐页进行等价迁移。保持原业务逻辑、主要区块结构、字段 ID、请求参数、权限和跳转行为，不借迁移重做页面或更换业务模板。平台数据能力按当前 Canvas 数据桥规范适配，无法证明等价时停止发布，在应用升级清单记录未完成项。源码注入历史表单详情主题时，按已确认范围清理样式及专属监听，保留业务事件。
+
 ## 迁移前必须确认
 
 | 检查项 | 命令 / 做法 |

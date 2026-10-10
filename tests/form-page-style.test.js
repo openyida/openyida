@@ -3,19 +3,21 @@
 const { _private: createForm } = require('../lib/app/create-form');
 const formCompiler = require('../lib/app/services/form-compiler');
 
-describe('新建表单 Body 背景', () => {
+describe('新建表单页面样式', () => {
   const args = ['主题表单', [], 'FORM-TEST', 'CORP-TEST', 'APP-TEST'];
 
   test.each([
     ['CLI 创建', () => createForm.buildFormSchema(...args)],
+    ['CLI 空表单', () => createForm.buildEmptyFormSchema()],
     ['离线编译', () => formCompiler.buildFormSchema(...args)],
-    ['空表单', () => formCompiler.buildEmptyFormSchema()],
-  ])('%s 统一生成透明背景', (name, build) => {
+    ['离线空表单', () => formCompiler.buildEmptyFormSchema()],
+  ])('%s 使用结构化背景且不写入页面 CSS/HTML', (name, build) => {
     const schema = JSON.parse(JSON.stringify(build()));
     const page = schema.pages[0].componentsTree[0];
 
     expect(page.props.pageStyle).toEqual({ backgroundColor: 'transparent' });
-    expect(page.css).toBe('body{background-color:transparent}');
+    expect(page).not.toHaveProperty('css');
+    expect(page).not.toHaveProperty('html');
     expect(page.props.contentBgColor).toBe('white');
     expect(page.props.contentBgColorMobile).toBe('white');
   });

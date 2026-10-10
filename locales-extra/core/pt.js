@@ -5,9 +5,28 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  app_entry: {
+    desc_get: 'Read frontend and management runtime entries',
+    desc_set: 'Register application entries with partial update and readback',
+    usage: 'Usage: openyida app-entry get <appType> [--json]\n       openyida app-entry set <appType> [--frontend <url>] [--management <url>] [--clear-frontend] [--clear-management] [--json]\nRegister only published, verified runtime URLs for this application. Omitted entries remain unchanged.',
+    invalid_url: 'Informe uma URL completa http:// ou https:// de uma página, página pública ou link curto do aplicativo atual. Caminhos relativos, URLs do designer e parâmetros temporários de autenticação não são aceitos.',
+    invalid_response: 'Incomplete entry response. Read the current entries before retrying and check that the server supports the entry configuration API.',
+    readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
+    frontend_display_required: 'A página pública {0} deve ser do tipo display. Para formulários, use uma URL completa verificada.',
+    page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
+    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+  },
+  design_plan: {
+    rebase_required: 'Antes da primeira geração, corrija business.json/visual.json. Se o plano principal mudou, preserve os arquivos e adicione --rebase-parts ao comando original.',
+    baseline_missing: 'Restaure o .build-plan-base.json correspondente do espaço original. Sem uma base confiável, preserve os rascunhos e informe o bloqueio.',
+    rebase_stage_invalid: 'A reconciliação vale apenas para rascunhos antes da primeira geração. Para planos já exibidos ou gerados, use patch --materialize.',
+    rebase_conflict: 'O mesmo campo recebeu alterações diferentes. Revise conflicts e escolha o valor atual ou original no fragmento. Nenhum arquivo foi salvo.',
+    repair_page_bindings: 'Faça pageApplications de visual.json corresponder a customPageDetails de business.json um a um, sem formulários nativos. visualMemoryApplications deve ser um array; use [] quando não houver itens. Preserve o rascunho, corrija os campos indicados e repita o comando original. Não exclua o diretório nem execute init novamente.',
+  },
   design_document: {
     update_conflict: "Não foi possível atualizar {0} ({1}): o conteúdo está em conflito com a última versão gerada. Concilie a alteração local desta seção com os dados do plano e tente novamente. Nenhum arquivo foi salvo.",
     theme_css_invalid: 'O CSS do tema contém um delimitador, uma string ou um comentário não fechado ou incompatível perto da linha {0}. Corrija e tente novamente.',
+    theme_css_unresolved: 'O token CSS do tema {0} ainda contém um marcador de modelo ou uma instrução de geração de cor. Complete design.md, execute openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> e envie o arquivo gerado. Substituir apenas PRIMARY_COLOR não basta.',
     invalid: 'Falha na validação do design: {0} ({1})',
     yaml: 'O frontmatter do documento de design não é YAML válido',
     token_value: 'O token {0} deve ser um valor CSS resolvido em uma única linha',
@@ -17,6 +36,11 @@ module.exports = {
     usage: 'Uso: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'Não foi possível ler o arquivo de validação do design: {0}',
     checked: 'Validação do design aprovada: {0}; {1} páginas, {2} tokens',
+    anchor_hint: 'A âncora deve ser escrita no corpo do texto como uma tag HTML de fechamento automático, por ex. <a id="component-button"></a> (o id da tag não leva #; a referência no frontmatter é #component-button). Ids de títulos Markdown {#id}, links como [texto](#id) ou texto simples não contam como âncoras.',
+    anchor_chapter_three_hint: 'A tag <a id="…"></a> desta âncora deve ficar dentro do capítulo "## 3. 基础组件表达" e antes de "## 4. 特色表达配方".',
+    page_anchor_chapter_five_hint: 'A tag da âncora de página <a id="page-…"></a> deve ficar dentro do capítulo "## 5. 项目应用与调整规则".',
+    page_anchor_prefix_hint: 'O id da tag da âncora de página deve começar com page-, por ex. <a id="page-workbench"></a> (referenciada como #page-workbench no frontmatter), e não pode repetir entre páginas.',
+    page_label_hint: 'Após a âncora de página <a id="page-…"></a> e antes da próxima âncora de página, escreva as oito etiquetas linha por linha: 页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收, no formato - **{0}：** conteúdo específico; os valores devem ser concretos e acionáveis, nunca marcadores como 按主题执行 ou TODO.',
   },
   asset: {
     sourceRecords: 'Em assets[] via --input, registre assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) e authorizationEvidence (array de URLs ou caminhos de comprovantes). O manifesto preserva os registros; valores ausentes ficam vazios. Isso não certifica autorização comercial.',
@@ -171,6 +195,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: 'Escolha um modo: páginas de trabalho partilhadas (unified), interfaces de utilizador e gestão separadas (service-management), apenas interface de utilizador (frontend-only) ou apenas gestão (backend-only).',
+    design_plan_backend_only_roles: 'Em backend-only, todas as entradas devem usar o papel management.',
     design_plan_local_menu_binding: 'O menu local {0} exige uma página hospedeira e viewKey: sceneKey da entrada {1} deve corresponder ao da página, resource ao name da página e viewKey não pode estar vazio. Aplica-se a todos os papéis.',
     design_plan_visual_object_required: '{0} deve ser um objeto, não uma string ou lista. Preserve a estrutura gerada por init e preencha os valores. Exemplo: {1}.',
     help: '\n' +
@@ -309,7 +335,7 @@ module.exports = {
     integration_enable_example: 'Exemplo: openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
     integration_disable_usage: 'Uso: openyida integration disable <appType> <formUuid> <processCode>',
     integration_disable_example: 'Exemplo: openyida integration disable APP_XXX FORM-XXX LPROC-XXX',
-    compile_usage: 'Uso: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--json]',
+    compile_usage: 'Uso: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--strict-theme|--allow-fixed-brand] [--json]',
     compile_example: 'Exemplo: openyida compile pages/src/home.oyd.jsx',
     check_page_usage: 'Usage: openyida check-page <sourceFile> [--compat] [--json]',
     check_page_example: 'Example: openyida check-page pages/src/home.oyd.jsx --json',
@@ -1046,6 +1072,7 @@ module.exports = {
     theme_preset_conflict: 'Um colour predefinido não pode ser combinado com CSS ou themeColor. Use --colour custom ou omita --colour.',
     custom_theme_color_required: 'colour=custom requer um arquivo de tema ou themeColor válido. Use --theme-file ou --theme-color.',
     theme_not_persisted: 'Não foi possível confirmar as configurações do tema após salvar. Verifique themeVerification e tente novamente com update-app <appType> --theme-file <css>; não recrie o aplicativo.',
+    navigation_not_persisted: "Não foi possível verificar a navegação ou os valores diferem dos solicitados. Consulte os valores esperados, os valores reais e os erros em navigationVerification e confira as configurações atuais do aplicativo.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1284,6 +1311,11 @@ module.exports = {
   },
   publish: {
     canvas_path_missing_app_type: 'Linha {0}: falta appType no destino. Use canvas-navigation e IDs verificados para /{appType}/{pageType}/{formUuid}, não uma rota /custom/ isolada.',
+    canvas_theme_fixed_brand_allowed: 'A cor de marca fixa na linha {0} ({1}) foi mantida; ela não acompanha o tema do aplicativo.',
+    canvas_theme_fixed_brand_relaxed: 'Linha {0}: ConfigProvider codifica uma cor de interação de marca ({1}). A publicação não é mais bloqueada por padrão e continua como está, mas essa cor não seguirá o tema da aplicação. Adicione --fix-theme para migrar automaticamente ou migre manualmente para canvas-theme; use --strict-theme para falhar no CI.',
+    theme_canvas_only: 'As opções de tema se aplicam apenas ao Canvas: use .canvas.jsx/.canvas.tsx ou --canvas.',
+    fix_theme_source_changed: 'O código mudou antes de salvar a migração. Nenhum arquivo foi gravado; confira o código atual.',
+    fix_theme_applied: 'Migração de tema aplicada e gravada de volta na origem: {0}',
     canvas_theme_fixed_brand: 'Linha {0}: ConfigProvider fixa uma cor da marca. Use canvas-theme com cores resolvidas do tema; reserve CSS var para estilos DOM.',
     canvas_navigation_local_platform: 'Linha {0}: vistas locais estão sendo filtradas pela navegação da plataforma. Use mode=local ou estado local; associe páginas reais a formUuid/navUuid e verifique as permissões declaradas.',
     canvas_navigation_document_flex: 'Linha {0}: document usa flex com base zero. Atualize canvas-nav-content: altura natural e blocos para document, flex de altura fixa para workspace.',
@@ -2092,3 +2124,13 @@ module.exports.help.cmd_agent = connectorSafetyMessages.help.cmd_agent;
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: 'Configuração de ação de aprovação inválida para o nó {0}: {1}',
 });
+
+module.exports.cli_argument = { invalid: 'Argumento inválido ou valor ausente: {0}. Consulte a ajuda do comando.' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: --output é um arquivo CSS; --design-file lê um design concluído. Omiti-lo redefine o CSS. Defina os valores no design.',
+  'style_help': 'application-style: --style-id é obrigatório e aceita todos os temas do catálogo; --output é uma pasta para três arquivos. Arquivos existentes causam um erro.'
+};
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

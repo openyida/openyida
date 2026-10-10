@@ -85,8 +85,8 @@ test.each([
   "{token:{colorLink:'var(--color-brand1-6)'}}",
   "{components:{Tabs:{itemSelectedColor:'#1677ff',inkBarColor:'#1677ff'}}}",
   "{components:{Button:{colorPrimary:'blue'}}}",
-])('rejects fixed brand overrides including nested component overrides: %s', theme => {
-  expect(() => compileCanvasLocal(`import {ConfigProvider as Theme} from 'antd'; const config=${theme}; function YidaComp(){return <Theme theme={config}><div/></Theme>}`))
+])('rejects fixed brand overrides including nested component overrides under --strict-theme: %s', theme => {
+  expect(() => compileCanvasLocal(`import {ConfigProvider as Theme} from 'antd'; const config=${theme}; function YidaComp(){return <Theme theme={config}><div/></Theme>}`, { strictBrand: true }))
     .toThrow(expect.objectContaining({ code: 'OPENYIDA_CANVAS_THEME_FIXED_BRAND' }));
 });
 
@@ -98,7 +98,59 @@ test.each([
   expect(() => compileCanvasLocal(`import {ConfigProvider} from 'antd'; function YidaComp(){return <ConfigProvider theme={${theme}}><div/></ConfigProvider>}`)).not.toThrow();
 });
 
-test('namespace ConfigProvider fixed tokens are checked', () => {
-  expect(() => assertCanvasThemeStructure("import * as UI from 'antd'; const color='orange'; function YidaComp(){return <UI.ConfigProvider theme={{token:{colorPrimary:color}}}><div/></UI.ConfigProvider>}"))
+test('namespace ConfigProvider fixed tokens are checked under --strict-theme', () => {
+  expect(() => assertCanvasThemeStructure("import * as UI from 'antd'; const color='orange'; function YidaComp(){return <UI.ConfigProvider theme={{token:{colorPrimary:color}}}><div/></UI.ConfigProvider>}", { strictBrand: true }))
     .toThrow(expect.objectContaining({ code: 'OPENYIDA_CANVAS_THEME_FIXED_BRAND' }));
+});
+
+const fixedBrand = "import {ConfigProvider} from 'antd'; function YidaComp(){return <ConfigProvider theme={{token:{colorPrimary:'#1677ff'}}}><div/></ConfigProvider>}";
+
+test('fixed brand error under --strict-theme carries local-only, non-network recovery metadata', () => {
+  let caught;
+  try { compileCanvasLocal(fixedBrand, { sourcePath: 'page.canvas.jsx', strictBrand: true }); } catch (error) { caught = error; }
+  expect(caught).toMatchObject({
+    code: 'OPENYIDA_CANVAS_THEME_FIXED_BRAND',
+    details: { stage: 'canvas_compile', retryable: false, retrySafe: true, sideEffectState: 'none',
+      nextAction: { type: 'edit_source_then_recheck' }, field: 'colorPrimary', value: '#1677ff' },
+  });
+});
+
+test('relaxes fixed brand to a non-blocking warning by default so users are not stuck', () => {
+  const warnings = [];
+  const result = compileCanvasLocal(fixedBrand, { onThemeWarning: message => warnings.push(message) });
+  expect(result.runtimeCode).toContain('#1677ff');
+  expect(result.warnings).toEqual([expect.objectContaining({
+    code: 'OPENYIDA_CANVAS_THEME_FIXED_BRAND', field: 'colorPrimary', value: '#1677ff', themeConsistency: 'fixed_override',
+  })]);
+  expect(warnings).toHaveLength(1);
+});
+
+test('honors OPENYIDA_CANVAS_STRICT_THEME env to restore the hard block', () => {
+  const previous = process.env.OPENYIDA_CANVAS_STRICT_THEME;
+  process.env.OPENYIDA_CANVAS_STRICT_THEME = '1';
+  try {
+    expect(() => assertCanvasThemeStructure(fixedBrand)).toThrow(expect.objectContaining({ code: 'OPENYIDA_CANVAS_THEME_FIXED_BRAND' }));
+  } finally {
+    if (previous === undefined) { delete process.env.OPENYIDA_CANVAS_STRICT_THEME; }
+    else { process.env.OPENYIDA_CANVAS_STRICT_THEME = previous; }
+  }
+});
+
+test('downgrades fixed brand to a warning when explicitly allowed via option', () => {
+  const warnings = [];
+  expect(compileCanvasLocal(fixedBrand, { allowFixedBrand: true, onThemeWarning: message => warnings.push(message) }).runtimeCode).toBeTruthy();
+  expect(warnings).toHaveLength(1);
+});
+
+test('honors OPENYIDA_CANVAS_ALLOW_FIXED_BRAND env as the bypass switch', () => {
+  const previous = process.env.OPENYIDA_CANVAS_ALLOW_FIXED_BRAND;
+  process.env.OPENYIDA_CANVAS_ALLOW_FIXED_BRAND = '1';
+  try {
+    const warnings = [];
+    expect(assertCanvasThemeStructure(fixedBrand, { onThemeWarning: message => warnings.push(message) })).toBeUndefined();
+    expect(warnings).toHaveLength(1);
+  } finally {
+    if (previous === undefined) { delete process.env.OPENYIDA_CANVAS_ALLOW_FIXED_BRAND; }
+    else { process.env.OPENYIDA_CANVAS_ALLOW_FIXED_BRAND = previous; }
+  }
 });

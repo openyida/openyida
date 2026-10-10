@@ -20,6 +20,15 @@ description: 为已有页面设置公开访问、组织内分享，或隐藏该�
 
 页面使用哪类数据、是否允许公开、openAuth 对当前页面和组织开放哪些资格，必须来自平台能力、用户确认或实际查询证据。本技能不根据页面类型或数据源猜测资格。
 
+## 匿名（免登）提交前置条件
+
+当用户要求"自定义页面在公开访问下提交数据到表单"或"走免登提交接口"时，作为前置门禁：
+
+1. **显示页和目标表单都需要 `isOpen`**：分别运行 `openyida get-page-config <appType> <显示页formUuid>` 和 `openyida get-page-config <appType> <目标formUuid>`，两者都返回 `isOpen === 'y'` 才承诺匿名提交。缺任一时先启用公开访问或改回登录态方案。
+2. **目标表单权限需包含 `FREE_LOGIN`**：运行 `openyida get-permission <appType> <目标formUuid>`，DEFAULT 权限组的 `dataPermit.rule` 须包含 `{"type":"FREE_LOGIN","value":"y"}`。缺少时按 `yida-form-permission` 锁定 DEFAULT 组 `packageUuid`，在完整现有 `dataPermit` 中只补该规则并保留其他规则，禁止用固定模板覆盖现网权限。
+3. 页面运行时分流是**匿名态**决定的，不是"表单公开"决定的：具体分流写法和 `RECEIPT_SAVE_FORM_DATA` 网关契约见 [`yida-canvas-custom-page/references/data-bridge-guide.md`](../yida-canvas-custom-page/references/data-bridge-guide.md) 的"公开访问（匿名态）提交"章节。
+4. 匿名提交的能力边界（不能发起流程、唯一性校验不生效、成员/部门/关联字段不支持、提交人恒为匿名、附件默认不跨组织）由平台限制决定；需要这些能力时改用登录态页面 + 关闭公开访问。
+
 ## 铁律
 
 1. **目标必须可证明**：appType 和 formUuid 从创建/查询命令或当前项目 config.json 获取；证据冲突时停止。
@@ -66,7 +75,7 @@ openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]
 
 ## 页面级导航
 
-用户明确要求页面隐藏导航、无导航或全屏无框，或者 `yida-app` 的 PRD 已把主页面明确标记为 `entryMode=standalone` 时执行：
+用户明确要求页面隐藏导航、无导航或全屏无框，或者 `yida-app` 的 PRD 已把主页面明确标记为 `entryMode=standalone` 时执行。已确定为前台入口的自定义页面默认需要同样的持久化配置；遗漏 entryMode 时按业务用途补齐，不要求用户额外传开关：
 
 ```bash
 openyida update-form-config <appType> <formUuid> false "<页面标题>"
@@ -74,7 +83,7 @@ openyida update-form-config <appType> <formUuid> false "<页面标题>"
 
 这条命令只设置页面级 `isRenderNav=false`。只有整个应用采用自定义导航时，才使用 `openyida update-app <appType> --hide-app-nav` 隐藏应用导航；独立访客端自定义菜单与管理端平台导航共存时，保留 `hideAppNav=n`。页面内是否显示导航、平台菜单是否包含该页、实际访问权限分别配置。详见 [访问态入口契约](../yida-app/references/entry-navigation.md)。
 
-完整应用的独立入口必须在写入后再执行 `openyida get-form-config <appType> <formUuid> --json`。只有回读确认 `renderNav=false` 后，才输出不带查询参数的 `/custom/{formUuid}`；仅缺少 `renderNav` 时兼容 `isRenderNav`，布尔值和字符串 `"false"` 均可，缺失或无效值不算成功。失败时保留 `/workbench`，不把 URL 参数当作持久配置成功证据。
+完整应用的独立入口必须在写入后再执行 `openyida get-form-config <appType> <formUuid> --json`。只有回读确认 `renderNav=false` 后，才输出 CLI 返回的 `standaloneUrl`，即不带导航查询参数的 `/custom/{formUuid}`；仅缺少 `renderNav` 时兼容 `isRenderNav`，布尔值和字符串 `"false"` 均可，缺失或无效值不算成功。失败时可以保留工作台作为排查地址，但必须标记前台入口未完成，不用 `/workbench` 替代独立前台交付，不把 URL 参数当作持久配置成功证据。
 
 创建 dashboard 页面时，只有用户明确要求隐藏页面导航才使用：
 

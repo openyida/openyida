@@ -23,7 +23,8 @@ function readThemeSnapshot(css) {
     if (char === '"' || char === "'") { quote = char; continue; }
     if (char === '{') {
       if (depth === 0) {
-        rootBlock = source.slice(boundary, index).trim() === ':root';
+        // Fixed themes share one token block with platform mode selectors.
+        rootBlock = source.slice(boundary, index).split(',').some(selector => selector.trim() === ':root');
         bodyStart = index + 1;
       }
       depth++;

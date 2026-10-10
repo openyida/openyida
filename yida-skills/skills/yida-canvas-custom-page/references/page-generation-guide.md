@@ -23,7 +23,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 - `sourceOfTruth` 填写 `prdFile`、`designFile`、`designRefs` 和 `conflictPolicy = "prd-design-win"`。
 - spec 与 PRD/design.md 冲突时，按这两份文件重新生成 spec。
 
-按页面任务组织内容：工作台通常包含状态摘要、高频动作、待办、动态和上下文信息；列表页通常包含搜索筛选、列表或表格、详情预览，以及空态和错误时的下一步操作。工作台、首页、门户、看板和展示页推荐 8-10 个有业务目的的区块，窄场景或精简需求按实际任务减少。KPI 子项、快捷入口子项和列表行计入各自所属区块。
+按页面任务组织内容：工作台按 PRD 与 design.md 落实内容、表现形式与操作联动。综合工作台参考 8-10 个独立业务区块，不用固定列表组合或区块数替代业务规划。列表页按实际需要安排筛选、记录、详情及状态反馈。
 
 如果当前页面正文没有具体布局、表面与组件、状态、响应式或验收安排，先补设计事实再实现。圆角、padding、gap 和密度采用选中主题与当前页决定，不能用固定大圆角或统一间距覆盖主题。状态、列表、动作与空态按真实内容组织，不用空白容器撑满首屏。
 
@@ -71,7 +71,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 | 官网首页、品牌官网、律所官网、茶叶官网、落地页、门户官网 | `official-homepage` | `landing` | 首屏叙事、可信视觉面板、服务矩阵、信任背书 |
 | 数据大屏、实时监控、预警系统、指挥舱、态势屏 | `data-screen` | `screen` | 中心态势图、左右信息塔、趋势、排行、预警 |
 | 数据看板、经营看板、管理驾驶舱 | `dashboard-overview`，复杂经营大屏切 `data-screen` | `dashboard` | KPI、图表、明细、排行、洞察 |
-| 工作台、运营台、任务中心、业务首页 | `data-management` 或按 `design.md` 自定义结构 | `workbench` | 入口、待办、状态、流程闭环，必须由 `contentBlocks` 驱动 |
+| 工作台、运营台、任务中心、业务首页 | 按 PRD 与 `design.md` 的业务关系自定义结构 | `workbench` | 综合内容与快捷操作由 `contentBlocks` 驱动，队列处理仅在适用时选择 `data-management` |
 | 列表、管理页、订单管理、客户列表、工单池 | `business-list` | `list` | 搜索筛选、表格、状态标签、详情抽屉 |
 | 详情页、客户档案、订单详情、项目详情 | `detail-profile` | `detail` | 单对象摘要、章节、侧栏元信息、时间线 |
 | 主从分栏、工单处理台、左列表右详情 | `split-pane-detail` | `list` | 左侧队列、右侧详情、时间线、动作区 |
@@ -136,11 +136,11 @@ antd 页面按 [CanvasThemeProvider 指南](canvas-theme-provider.md) 统一接�
 | `archetype` | 页面类型，如 `overview/analysis/monitor/profile` | 按 scene 推断 |
 | `interactionProfile` | 主操作、详情方式、批量动作、空/载/错状态 | 按 scene 推断 |
 | `functionContract` | 页面美感提升时保留的数据源、字段映射、按钮动作、筛选逻辑、提交 URL、权限、状态 | 现有页面契约 |
-| `insights` | 看板/报告/工作台的数据洞察 | 无则空数组或场景默认洞察 |
+| `insights` | 看板/报告/工作台的数据洞察 | 没有数据和规则依据时使用空数组，不生成场景默认结论 |
 | `designFile` | 当前项目设计契约路径 | 来自 `yida-design` Step 5 |
 | `designRefs` | 当前页面引用的 design.md 章节 ID | 来自 PRD 的 pageSpecHandoff |
 | `themeSummary` | 应用主题色、风格关键词、主题交付方式摘要 | 来自 PRD 摘要，必须与 design.md 一致 |
-| `contentBlocks` | 页面区块清单，工作台/首页/门户/看板/展示页/业务入口页推荐 8-10 个有业务目的的区块以上，但不作为硬门槛；KPI 组、快捷入口组、列表组各只算 1 个区块 | 来自 `yida-design` Step 4 |
+| `contentBlocks` | 页面区块清单，由业务任务与信息关系推导；综合工作台参考 8-10 个独立业务区块，不作为硬门槛，不用子项凑数 | 来自 `yida-design` Step 4 |
 | `domainFidelity` | 实现后由 CLI 回填，标记业务化程度 | 无需手写 |
 
 示例：
@@ -201,9 +201,9 @@ antd 页面按 [CanvasThemeProvider 指南](canvas-theme-provider.md) 统一接�
 | `official-homepage` | Real-scene hero、Product/service visual、Process/space story、Visit/service section、CTA |
 | `data-screen` | Command map、Metric grid、Rank panel、Screen insight header |
 
-工作台状态摘要按主题保持紧凑，未定义时可参考 64-88px；不使用横跨整页但内容稀疏的空矩形；快捷入口必须有分组和主次，不能平铺成图标卡阵列；待办、动态、最近记录、洞察、提醒和右侧上下文推荐组合成 8-10 个业务目的区块以上，但不作为硬门槛。空数据也用薄空态行 + 主操作入口，不渲染大块空白卡片。
+工作台状态摘要按主题和真实内容确定尺寸，不使用横跨整页但内容稀疏的空矩形；快捷入口按角色、高频程度和业务关联组织。不同区块依据信息关系实现各自的表达，不套固定摘要、列表和侧栏组合。空数据保留适用视图与下一步动作，不渲染大块空白卡片。
 
-展示型自定义页面验收时检查 `contentBlocks` 或源码结构：工作台、首页、门户、看板、展示页和业务入口页应有足够多有业务目的的区块；每个区块承担不同任务，例如判断状态、发起动作、筛选、处理待办、查看动态、看洞察、看异常、进入详情、处理空态或补充上下文。区块数量不作为阻塞实现的硬门槛。若 PRD 只写“`KPI 卡片: 学生总数, 课程总数, 本月出勤率, 平均分`、`快捷入口: 录入学生/登记成绩/记录考勤/管理课程`、`最近成绩列表`、`最近考勤记录`”，实现前建议补充 `contentBlocks`；若业务确实是窄场景，可以继续实现并说明取舍。
+展示型自定义页面验收时检查 `contentBlocks` 和实际页面：区块是否有独立业务价值、表现是否适合信息关系、操作是否承接到真实对象。工作台按 PRD 验收覆盖和联动，区块数量不作为阻塞实现的硬门槛。业务问题、数据口径或操作承接不清楚时，实现前建议补充 `contentBlocks`，回写 PRD 后再实现，不用增加通用列表补齐数量。
 
 所有展示型页面都按当前项目 `design.md` 的页面八项要点与共享规则实现。若只有业务区块和视觉形容词，没有实际布局、表面、组件和响应式决定，先补设计源事实：
 

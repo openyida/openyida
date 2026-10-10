@@ -211,7 +211,7 @@ describe('create-page hidden navigation readback', () => {
     expect(result()).toMatchObject({
       success: true, pageCreated: true, hideNavRequested: true, hideNav: true, chromeless: true,
       navigationVerification: { verified: true, renderNav: false, attempts: 1 },
-      url: 'https://example.test/APP_TEST/custom/FORM_PAGE?isRenderNav=false',
+      url: 'https://example.test/APP_TEST/custom/FORM_PAGE',
     });
   });
 

@@ -77,7 +77,7 @@ Provider 上下文的 `controls` 返回同一组 surface/text/selectedBg/selecte
 - antd 主按钮使用 `type="primary"`，链接使用 `type="link"` 或 Typography.Link；Tabs 保留默认主题交互色。调整内层 ConfigProvider 时只覆盖所需尺寸、圆角，颜色读取上下文解析值。`token.colorPrimary/colorLink`、Tabs 的 inkBarColor/itemSelectedColor 等不要填固定品牌色，也不要直接填未解析的 `var(...)`。
 - 自绘按钮、链接及 Tab 的 normal/hover/active/selected/focus/disabled 都消费应用 CSS 变量；优先提取 `canvas-nav-tabs` 作为受控 Tab 片段。选中逻辑与颜色分开，不能仅初始态跟随主题、点击后切成固定蓝色或 Tailwind 的 `bg-blue-*`。状态色与装饰色仍按业务语义使用。
 - 页面背景使用 `--pod-page-bg-color`，卡片使用 `--pod-card-bg-color`。Provider 已提供根节点背景和最小高度，业务内容负责布局、卡片和装饰。
-- Drawer 的组件级背景单独读取 `--pod-shell-theme-bg-color`，回退 `--color-white`，跟随主题更新；不沿用卡片或通用浮层的底色。
+- Drawer 的组件级背景单独读取 `--pod-shell-theme-bg-color`，回退 `--color-white`；外壳文字读取 `--pod-page-header-text-color`，回退 `--color-text1-4`。外壳跟随应用框架更新，内部 iframe 继续使用平台页面主题；卡片和通用浮层保留各自底色。
 - Provider 内置表格和 Spin 加载遮罩的防闪边样式：边框固定为零，只对透明度做过渡，避免整页刷新时延迟加载的基础样式触发黑边动画。保留这段样式，不要改回 `transition: all`。旧页面需更新 Provider 并重新发布，修改主题 CSS 不会自动更新页面里的 Provider。
 - antd 自动接收主色、表面、文字、填充和边框色，并应用上述控件状态默认值。成功、警告和错误使用 antd 默认色；尺寸、圆角、字体和图表色组按 design.md 设置。
 - 图表在 PageContent 内调用 `useCanvasThemeContext()` 获取解析后的 token。
@@ -90,7 +90,7 @@ Provider 上下文的 `controls` 返回同一组 surface/text/selectedBg/selecte
 
 编译会检查主题容器是否挂载、入口是否提前读取主题、主题上下文是否放在模块顶层。报错包含位置和调整方法，按提示修正后再次编译。发布后实际打开页面，检查首屏和主题交互；`--health-check` 用于核对保存内容，页面能否正常运行以浏览器结果为准。
 
-编译还会拦截 ConfigProvider 中可确定的固定品牌色覆盖，报 `OPENYIDA_CANVAS_THEME_FIXED_BRAND`。按提示改为标准 Provider 或上下文解析值；仅把色值提到常量中不算修复。动态表达式、自绘 CSS、组件是否实际被 Provider 包住及宿主主题加载仍需验证，静态检查通过不能证明全部控件跟随主题。
+编译和发布默认保留 ConfigProvider 中可确定的固定品牌色覆盖，并在结果 `warnings` 返回 `OPENYIDA_CANVAS_THEME_FIXED_BRAND`；加 `--strict-theme` 才会阻断。新页面使用标准 Provider 或上下文解析值；仅把色值提到常量中不算修复。迁移现有覆盖按[发布技能的主题处理](../../yida-publish-page/SKILL.md#canvas-主题处理)执行。动态表达式、自绘 CSS、组件是否实际被 Provider 包住及宿主主题加载仍需验证，静态检查通过不能证明全部控件跟随主题。
 
 验收至少切换两种不同应用主色，再逐一操作主按钮、链接、每个 Tab、禁用控件与弹层，检查选中/悬停/按下/焦点状态；再检查切页返回、异步内容出现后的颜色。只测默认蓝色无法发现写死蓝色的问题。记录实测项，无法使用真实页面时明确保留待验收项。
 
@@ -109,3 +109,5 @@ Context 返回 `token/status/source/revision`：
 其他缺失颜色使用 antd 默认值。`source` 是生成时提供的 URL，`revision` 是本地 CSS 的 SHA256；直接提取的应用主题片段中这两项为空。
 
 Provider 会监听祖先属性、head 样式、主题 link 加载和窗口尺寸变化。用 CSSOM 修改样式的代码需主动派发 `openyida:theme-change`；该事件由修改方负责。
+
+链接与实心按钮分开适配：Provider 保留品牌填充色，链接普通、hover、active 前景需在内容面上达到 4.5:1；原品牌档不足时沿用可读内容文字，不直接把深色按钮填充当成暗色页面链接。主题快照支持 `:root` 与平台模式选择器共用一个声明块。

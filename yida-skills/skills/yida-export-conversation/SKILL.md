@@ -99,7 +99,6 @@ openyida export-conversation --list
 
 1. 目前 MVP 版本主要支持 Claude Code 的对话记录自动检测
 2. 其他 AI 工具环境请使用 `--input` 手动指定对话文件
-3. 后续版本将支持发布到宜搭社区和钉钉群
 
 ## 异常处理
 

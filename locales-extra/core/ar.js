@@ -5,9 +5,28 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  app_entry: {
+    desc_get: 'Read frontend and management runtime entries',
+    desc_set: 'Register application entries with partial update and readback',
+    usage: 'Usage: openyida app-entry get <appType> [--json]\n       openyida app-entry set <appType> [--frontend <url>] [--management <url>] [--clear-frontend] [--clear-management] [--json]\nRegister only published, verified runtime URLs for this application. Omitted entries remain unchanged.',
+    invalid_url: 'أدخل عنوان URL كاملاً يبدأ بـ http:// أو https:// لصفحة أو صفحة عامة أو رابط مختصر في التطبيق الحالي. المسارات النسبية وعناوين المصمم ومعلمات المصادقة المؤقتة غير مدعومة.',
+    invalid_response: 'Incomplete entry response. Read the current entries before retrying and check that the server supports the entry configuration API.',
+    readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
+    frontend_display_required: 'يجب أن تكون الصفحة الأمامية {0} من نوع display. استخدم رابطًا كاملاً تم التحقق منه للنماذج.',
+    page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
+    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+  },
+  design_plan: {
+    rebase_required: 'قبل الإنشاء الأول، صحح business.json/visual.json. إذا تغيرت الخطة الرئيسية، احتفظ بالملفات وأضف --rebase-parts إلى الأمر الأصلي.',
+    baseline_missing: 'استعد ملف .build-plan-base.json المطابق من مساحة العمل الأصلية. عند غياب أساس موثوق، احتفظ بالمسودات وأبلغ عن العائق.',
+    rebase_stage_invalid: 'دمج الأساس متاح للمسودات قبل الإنشاء الأول فقط. للخطط المعروضة أو المنشأة، استخدم patch --materialize.',
+    rebase_conflict: 'تغير الحقل نفسه بطريقتين مختلفتين. راجع conflicts واختر القيمة الحالية أو الأصلية في الجزء. لم يتم حفظ أي ملف.',
+    repair_page_bindings: 'أصلح pageApplications في visual.json لتطابق customPageDetails في business.json واحدًا لواحد، دون النماذج الأصلية. يجب أن تكون visualMemoryApplications مصفوفة؛ استخدم [] عند عدم وجود عناصر مناسبة. احتفظ بالمسودة وأصلح الحقول المذكورة ثم أعد الأمر الأصلي. لا تحذف المجلد ولا تشغّل init مجددًا.',
+  },
   design_document: {
     update_conflict: "تعذر تحديث {0} ({1}): يتعارض المحتوى الحالي مع آخر نسخة مولدة. راجع هذا القسم ووفق التعديل المحلي مع بيانات الخطة ثم أعد المحاولة. لم يتم حفظ أي ملفات.",
     theme_css_invalid: 'يحتوي CSS للسمة قرب السطر {0} على قوس أو سلسلة نصية أو تعليق غير مغلق أو غير متطابق. أصلحه ثم أعد المحاولة.',
+    theme_css_unresolved: 'لا يزال رمز CSS للسمة {0} يحتوي على عنصر نائب أو تعليمات لإنشاء اللون. أكمل design.md، ثم نفّذ openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> وارفع الملف الناتج. استبدال PRIMARY_COLOR وحده لا يكفي.',
     invalid: 'فشل التحقق من التصميم: {0} ({1})',
     yaml: 'بيانات frontmatter في مستند التصميم ليست YAML صالحًا',
     token_value: 'يجب أن يكون الرمز {0} قيمة CSS محددة في سطر واحد',
@@ -17,6 +36,11 @@ module.exports = {
     usage: 'الاستخدام: openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]',
     read_error: 'تعذرت قراءة ملف التحقق من التصميم: {0}',
     checked: 'نجح التحقق من التصميم: {0}؛ {1} صفحات، {2} رموز',
+    anchor_hint: 'يجب كتابة المرساة في النص كوسم HTML ذاتي الإغلاق، مثل <a id="component-button"></a> (معرّف الوسم لا يبدأ بـ #؛ يُكتب المرجع في الـ frontmatter بالشكل #component-button). معرّفات عناوين Markdown مثل {#id} أو الروابط [نص](#id) أو النص العادي لا تُعتبر مراسٍ.',
+    anchor_chapter_three_hint: 'يجب وضع وسم <a id="…"></a> لهذه المرساة داخل الفصل "## 3. 基础组件表达" وقبل "## 4. 特色表达配方".',
+    page_anchor_chapter_five_hint: 'يجب أن يوضع وسم مرساة الصفحة <a id="page-…"></a> داخل الفصل "## 5. 项目应用与调整规则".',
+    page_anchor_prefix_hint: 'يجب أن يبدأ معرّف وسم مرساة الصفحة بـ page-، مثل <a id="page-workbench"></a> (يُشار إليه في الـ frontmatter بالشكل #page-workbench)، ولا يجوز تكراره بين الصفحات.',
+    page_label_hint: 'بعد مرساة الصفحة <a id="page-…"></a> وقبل مرساة الصفحة التالية، اكتب النقاط الثماني سطرًا بسطر: 页面任务/首屏焦点/布局/表面与组件/主操作/状态/响应式/验收، بالصيغة - **{0}：** محتوى محدد؛ يجب أن تكون القيم محددة وقابلة للتنفيذ، ولا يجوز استخدام عبارات مؤقتة مثل 按主题执行 أو TODO.',
   },
   asset: {
     sourceRecords: 'سجّل assetId وcreator وsourcePage وlicense وlicenseUrl وlicenseCheckedAt (YYYY-MM-DD) وauthorizationEvidence (مصفوفة روابط أو مسارات ملفات الإثبات) في assets[] عبر --input. يحتفظ السجل بهذه البيانات وتبقى القيم الناقصة فارغة؛ لا يُعد ذلك إثباتًا تلقائيًا لترخيص الاستخدام التجاري.',
@@ -171,6 +195,8 @@ module.exports = {
   },
 
   cli: {
+    design_plan_entry_mode_required: 'اختر طريقة الاستخدام: صفحات عمل مشتركة (unified)، واجهة للمستخدم وأخرى لمعالجة الأعمال (service-management)، واجهة المستخدم فقط (frontend-only)، أو معالجة الأعمال فقط (backend-only).',
+    design_plan_backend_only_roles: 'في وضع backend-only، يجب أن تكون قيمة role لكل مدخل هي management.',
     design_plan_local_menu_binding: 'تحتاج القائمة المحلية {0} إلى صفحة مضيفة وviewKey: يجب أن يطابق sceneKey للمدخل {1} قيمة الصفحة، وأن يساوي resource اسم الصفحة name، وألا يكون viewKey فارغًا. ينطبق ذلك على جميع الأدوار.',
     design_plan_visual_object_required: 'يجب أن يكون {0} كائنًا وليس نصًا أو مصفوفة. احتفظ بالبنية التي أنشأها init وأكمل القيم. مثال: {1}.',
     help: '\n' +
@@ -309,7 +335,7 @@ module.exports = {
     integration_enable_example: 'مثال: openyida integration enable APP_XXX FORM-XXX LPROC-XXX',
     integration_disable_usage: 'الاستخدام: openyida integration disable <appType> <formUuid> <processCode>',
     integration_disable_example: 'مثال: openyida integration disable APP_XXX FORM-XXX LPROC-XXX',
-    compile_usage: 'الاستخدام: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--json]',
+    compile_usage: 'الاستخدام: openyida compile <sourceFile> [--canvas] [--compat] [--skip-lint] [--strict-theme|--allow-fixed-brand] [--json]',
     compile_example: 'مثال: openyida compile pages/src/home.oyd.jsx',
     check_page_usage: 'Usage: openyida check-page <sourceFile> [--compat] [--json]',
     check_page_example: 'Example: openyida check-page pages/src/home.oyd.jsx --json',
@@ -1044,6 +1070,7 @@ module.exports = {
     theme_preset_conflict: 'لا يمكن الجمع بين colour مسبق الإعداد وCSS أو themeColor. استخدم --colour custom أو احذف --colour.',
     custom_theme_color_required: 'يتطلب colour=custom ملف سمة أو themeColor صالحًا. مرر --theme-file أو --theme-color.',
     theme_not_persisted: 'تعذرت قراءة إعدادات سمة التطبيق بعد الحفظ أو لم تتطابق. لم يتم تأكيد ربط مورد CSS. افحص themeVerification وأعد المحاولة باستخدام update-app <appType> --theme-file <css>؛ لا تنشئ التطبيق مجددًا.',
+    navigation_not_persisted: "تعذرت قراءة إعدادات التنقل أو لم تطابق القيم المطلوبة. راجع القيم المتوقعة والفعلية وأخطاء القراءة في navigationVerification، ثم تحقق من إعدادات التطبيق الحالية.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1282,6 +1309,11 @@ module.exports = {
   },
   publish: {
     canvas_path_missing_app_type: 'السطر {0}: عنوان التنقل يفتقد appType. استخدم canvas-navigation ومعرّفات موثّقة لبناء /{appType}/{pageType}/{formUuid} بدلاً من /custom/ وحده.',
+    canvas_theme_fixed_brand_allowed: 'تم الاحتفاظ بلون العلامة الثابت في السطر {0} ({1})؛ لا يتبع هذا اللون سمة التطبيق.',
+    canvas_theme_fixed_brand_relaxed: 'السطر {0}: يضمّن ConfigProvider لون تفاعل علامة تجارية ({1}). لم يعد النشر محظورًا افتراضيًا ويستمر كما هو، لكن هذا اللون لن يتبع سمة التطبيق. أضف --fix-theme للترحيل تلقائيًا، أو رحّل يدويًا إلى canvas-theme؛ استخدم --strict-theme للفشل الصارم في CI.',
+    theme_canvas_only: 'خيارات السمة لصفحات Canvas فقط؛ استخدم .canvas.jsx/.canvas.tsx أو --canvas.',
+    fix_theme_source_changed: 'تغير المصدر قبل حفظ ترحيل السمة. لم تتم كتابة الملف؛ راجع المصدر الحالي.',
+    fix_theme_applied: 'تم تطبيق ترحيل السمة وإعادة كتابته في المصدر: {0}',
     canvas_theme_fixed_brand: 'السطر {0}: يثبت ConfigProvider لون العلامة التجارية. استخدم canvas-theme وألوان السمة المحللة؛ استخدم CSS var مباشرة في أنماط DOM فقط.',
     canvas_navigation_local_platform: 'السطر {0}: تتم تصفية العروض المحلية عبر تنقل المنصة. استخدم mode=local أو حالة محلية، واربط الصفحات الفعلية بـ formUuid/navUuid وتحقق من الصلاحيات المعلنة.',
     canvas_navigation_document_flex: 'السطر {0}: يستخدم document تخطيط flex بأساس صفر. حدّث canvas-nav-content: ارتفاع طبيعي وكتل لـ document، وارتفاع ثابت مع flex لـ workspace.',
@@ -2092,3 +2124,13 @@ module.exports.help.cmd_agent = connectorSafetyMessages.help.cmd_agent;
 Object.assign(module.exports.process_errors || (module.exports.process_errors = {}), {
   action_config_invalid: 'إعداد إجراء الموافقة غير صالح للعقدة {0}: {1}',
 });
+
+module.exports.cli_argument = { invalid: 'وسيطة غير صالحة أو قيمة مفقودة: {0}. راجع تعليمات الأمر.' };
+
+module.exports.sample_options = {
+  'theme_help': 'app-theme: يحدد --output ملف CSS ويقرأ --design-file تصميماً مكتملاً. يؤدي حذفه إلى إعادة ضبط CSS. ضع قيم السمة في التصميم.',
+  'style_help': 'application-style: المعامل --style-id مطلوب ويدعم جميع سمات الكتالوج؛ يحدد --output مجلداً لثلاثة ملفات. وجود الملفات يسبب خطأ.'
+};
+
+module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
+module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;

@@ -139,6 +139,28 @@ export default function YidaComp() {
     });
   });
 
+  test('JSON compile preserves theme warnings and supports explicit strict checks', () => {
+    const sourcePath = path.join(tmpDir, 'pages', 'src', 'brand.canvas.jsx');
+    const source = "import {ConfigProvider} from 'antd'; function YidaComp(){return <ConfigProvider theme={{token:{colorPrimary:'#1677ff'}}}><div/></ConfigProvider>}";
+    fs.writeFileSync(sourcePath, source);
+    const run = extra => spawnSync(process.execPath, [BIN, 'compile', path.relative(tmpDir, sourcePath), '--json', ...extra], {
+      cwd: tmpDir, env: { ...cliEnv(), YIDA_QUIET: '1', OPENYIDA_CANVAS_STRICT_THEME: '', OPENYIDA_CANVAS_ALLOW_FIXED_BRAND: '' },
+      encoding: 'utf8', timeout: 10000,
+    });
+    const normal = run([]);
+    expect(normal.status).toBe(0);
+    expect(JSON.parse(normal.stdout).warnings).toEqual([expect.objectContaining({
+      code: 'OPENYIDA_CANVAS_THEME_FIXED_BRAND', field: 'colorPrimary', value: '#1677ff',
+    })]);
+    const strict = run(['--strict-theme']);
+    expect(strict.status).toBe(1);
+    const failure = JSON.parse(strict.stderr.trim());
+    expect(failure.errorCode).toBe('OPENYIDA_CANVAS_THEME_FIXED_BRAND');
+    expect(failure.repair).toMatchObject({ unchangedRetryAllowed: false, maxAttemptsWithoutProgress: 2 });
+    expect(run(['--allow-fixed-brand']).status).toBe(0);
+    expect(fs.readFileSync(sourcePath, 'utf8')).toBe(source);
+  });
+
   test.each(['compile', 'publish'])('%s rejects unavailable runtime icons before login or saving', command => {
     fs.writeFileSync(path.join(tmpDir, 'pages', 'src', 'icon.canvas.jsx'), "import { Museum } from 'lucide-react'; export default () => <Museum/>;");
     const args = [BIN, command, 'pages/src/icon.canvas.jsx'];
