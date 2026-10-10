@@ -118,7 +118,6 @@ The agent can then call OpenYida commands to create the application, generate so
 | [Codex](https://openai.com/codex/) | Full support |
 | [Claude Code](https://claude.ai/code) | Full support |
 | [MuleRun](https://mulerun.com) | Full support |
-| [OpenCode](https://opencode.ai) | Full support |
 | [Cursor](https://cursor.com/) | Full support |
 | [Visual Studio Code](https://code.visualstudio.com/) | Full support |
 | QwenWork（千问办公） | Full support |
@@ -609,7 +608,7 @@ Development manifest v1 specifies runtime version, protocol `1`, Node-style OS/a
 
 `connect` supports two equivalent enrollment entries. CLI-first opens the Yida browser approval page and returns through a state/PKCE-protected loopback callback. Web-first copies one five-minute command containing `--enroll`; the token is single-use and carries no business authority. Neither path reads or uploads an ordinary OpenYida login profile.
 
-One installation may connect to multiple organizations. Node keeps only a shared Installation ID at the installation root; each organization authorization gets an isolated private Connection state directory, device credentials, journals, control socket, and frozen bundle. `agent connect` keeps the new Connection online in the foreground, while `agent run`, `status`, `disconnect`, and `logout` enumerate every valid Connection. Each Connection registers all locally discovered Qoder, Codex, and OpenCode Runtimes, and the web UI selects computer, CLI, and model.
+One installation may connect to multiple organizations. Node keeps only a shared Installation ID at the installation root; each organization authorization gets an isolated private Connection state directory, device credentials, journals, control socket, and frozen bundle. `agent connect` keeps the new Connection online in the foreground, while `agent run`, `status`, `disconnect`, and `logout` enumerate every valid Connection. Each Connection registers all locally discovered Qoder and Codex Runtimes, and the web UI selects computer, CLI, and model.
 
 For each attempt, Go injects `OPENYIDA_MANAGED_RUN=1`, the cloud user/corp/app/run/attempt context, and a fixed-value Tianshu task grant with an initial 60-minute lease. The CLI uses that grant instead of local auth and sends scope-correlation headers. While the authenticated device connection and server-side Run remain active, yida-agent can renew the same bearer server-to-server; the CLI cannot renew it and never receives a task refresh token. Tianshu independently checks the grant against the requested app and rejects application creation, identity/environment changes, arbitrary batches, and cross-application requests. `formUuid` remains optional per-turn page-focus context, so one app-bound session can work across pages in that application. Without `OPENYIDA_MANAGED_RUN`, existing login, token refresh, and command behavior are unchanged.
 

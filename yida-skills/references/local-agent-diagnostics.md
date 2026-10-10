@@ -4,7 +4,7 @@
 
 两种使用方式不能混为一谈：
 
-1. 用户直接在当前 Codex、Qoder 或 OpenCode 中调用 OpenYida 创建/修改应用：这是
+1. 用户直接在当前 Codex 或 Qoder 中调用 OpenYida 创建/修改应用：这是
    普通本地模式，没有 yida-agent 控制面和 Go Runtime。执行
    `openyida agent-capabilities --summary-json`，按登录态、组织、工作目录和具体 CLI
    错误排查。
@@ -47,7 +47,7 @@ openyida agent diagnose --session "<URL>" --output <用户明确指定的目录>
 | code | 含义 | 建议 |
 | --- | --- | --- |
 | `RUNTIME_NOT_AVAILABLE` | OpenYida 包缺少当前平台 Runtime 或完整性失败 | 安装/更新同一渠道的 OpenYida，再复验 |
-| `PROVIDER_NOT_FOUND` | PATH 中未发现 Qoder、Codex、OpenCode | 安装 CLI，或确保启动 OpenYida 的用户环境能找到它 |
+| `PROVIDER_NOT_FOUND` | PATH 中未发现 Qoder、Codex | 仅报告缺失；用户明确要求后才协助安装或配置路径 |
 | `PROVIDER_PROBE_FAILED` | Provider 存在但版本/登录探测失败 | 在当前终端验证该 CLI 登录与版本，再用 `--deep` 复验 |
 | `DEVICE_NOT_PAIRED` | 当前组织还没有这台电脑的有效 Connection | 从宜搭网页生成接入命令，或运行浏览器接入流程 |
 | `DEVICE_ACCESS_TOKEN_EXPIRED` | 短期设备 AccessToken 已过期，但 RefreshToken 仍有效 | 启动或恢复该组织的 Runtime，让它按正常链路自动刷新 |
@@ -150,3 +150,5 @@ openyida agent diagnose --session "<会话链接>" --output "<用户指定目录
 5. 若证据被截断、旧版本去掉了确认参数、或没有完整的配置URL，明确说明链接不完整，提供现有异常文件和诊断编号，不补造参数、不自动重跑任务。
 
 示例回复：“该响应是WAF拦截页，尚不能据此认定具体拦截原因。已从 window._config_.url 提取安全确认链接，请提交平台安全团队核查；对应的本地异常文件为……。”
+
+CLI 检测结果仅供参考。未经用户明确要求，不得下载安装、升级、登录或改写 CLI 配置；发现支持的 CLI 即可继续连接并上报；未登录时展示“未登录”，不能发起任务，不需要补齐其他 CLI。

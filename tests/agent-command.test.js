@@ -87,6 +87,11 @@ describe('local agent thin launcher', () => {
     expect(() => buildLaunchConfig({ command: 'doctor', provider: 'codex', providerPath: 'codex' })).toThrow(expect.objectContaining({ code: 'AGENT_PROVIDER_OPTIONS_INVALID' }));
   });
 
+  test('deferred provider cannot be explicitly launched', () => {
+    expect(() => buildLaunchConfig({ command: 'run', endpoint: 'https://agent.example.test', endpointId: 'test', provider: 'opencode', providerPath: '/fixture/opencode' }, { homedir: root }))
+      .toThrow(expect.objectContaining({ code: 'AGENT_PROVIDER_OPTIONS_INVALID' }));
+  });
+
   test('discovers only known provider executables from PATH', () => {
     const providerDir = path.join(root, 'providers');
     fs.mkdirSync(providerDir);
@@ -101,12 +106,11 @@ describe('local agent thin launcher', () => {
     const env = { PATH: providerDir, PATHEXT: '.EXE;.CMD;.BAT' };
     const resolvedQoder = fs.realpathSync(qoder);
     expect(discoverProvider(env, process.platform)).toEqual({ profileId: 'openyida.qoder', provider: 'qoder', executable: resolvedQoder });
-    expect(discoverProviders(env, process.platform).map((item) => item.provider)).toEqual(['qoder', 'codex', 'opencode']);
+    expect(discoverProviders(env, process.platform).map((item) => item.provider)).toEqual(['qoder', 'codex']);
     expect(buildLaunchConfig({ command: 'run', endpoint: 'https://agent.example.test', endpointId: 'test' }, { homedir: root, env, platform: process.platform }))
       .toMatchObject({ providers: [
         { profileId: 'openyida.qoder', provider: 'qoder', executable: resolvedQoder },
         { profileId: 'openyida.codex', provider: 'codex' },
-        { profileId: 'openyida.opencode', provider: 'opencode' },
       ] });
   });
 
@@ -131,7 +135,8 @@ describe('local agent thin launcher', () => {
     fs.writeFileSync(path.join(ideDir, `qoder${extension}`), contents, { mode: 0o700 });
     const cli = path.join(cliDir, `qodercli${extension}`);
     fs.writeFileSync(cli, contents, { mode: 0o700 });
-    expect(discoverProviders({ PATH: `${ideDir}${path.delimiter}${cliDir}`, PATHEXT: '.EXE;.CMD;.BAT' }, process.platform)).toEqual([
+    expect(discoverProviders({ PATH: `${ideDir}${path.delimiter}${cliDir}`, PATHEXT: '.EXE;.CMD;.BAT' }, process.platform)
+      .filter(item => item.provider === 'qoder')).toEqual([
       { profileId: 'openyida.qoder', provider: 'qoder', executable: fs.realpathSync(cli) },
     ]);
   });

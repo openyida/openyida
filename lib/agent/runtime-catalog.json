@@ -1,5 +1,42 @@
 {
   "schemaVersion": 1,
-  "keys": {},
-  "releases": []
+  "keys": {
+    "openyida-runtime-public-beta-20260923-1": {
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEApl2Q+64rX997KxEQUY2yU8Xnc7sM3NRQ8Nf0bAi9Hck=\n-----END PUBLIC KEY-----\n"
+    }
+  },
+  "releases": [
+    {
+      "platform": "darwin",
+      "arch": "arm64",
+      "packageName": "@openyida/local-agent-runtime-darwin-arm64",
+      "packageVersion": "0.1.0-beta.1",
+      "runtimeVersion": "0.1.0-beta.1",
+      "manifestSha256": "9979d2dcfba9a595bc9be35efe58a0da213e87270146416edc72c90bf4652113"
+    },
+    {
+      "platform": "darwin",
+      "arch": "x64",
+      "packageName": "@openyida/local-agent-runtime-darwin-x64",
+      "packageVersion": "0.1.0-beta.1",
+      "runtimeVersion": "0.1.0-beta.1",
+      "manifestSha256": "f72d625583bf94355656c6ebd06377060268b8fb03a7dd78f3d5df2c485ceb28"
+    },
+    {
+      "platform": "win32",
+      "arch": "x64",
+      "packageName": "@openyida/local-agent-runtime-win32-x64",
+      "packageVersion": "0.1.0-beta.1",
+      "runtimeVersion": "0.1.0-beta.1",
+      "manifestSha256": "73d98badae0e9c462becbaede78c8072d11508ef498182140a620c1d464df2b0"
+    },
+    {
+      "platform": "win32",
+      "arch": "arm64",
+      "packageName": "@openyida/local-agent-runtime-win32-arm64",
+      "packageVersion": "0.1.0-beta.1",
+      "runtimeVersion": "0.1.0-beta.1",
+      "manifestSha256": "d0fbb7a9fa9c40bf4184ad632c9b0098b4c64bc7ede46a35174e5d7607a4bf7f"
+    }
+  ]
 }
