@@ -262,8 +262,8 @@ test.each([
   expect(httpPost).not.toHaveBeenCalled();
 });
 
-test('unknown runtime requires human confirmation and never executes response scripts', async () => {
-  httpGet.mockResolvedValue('<script>window.pageConfig = execute();</script>');
+test('unknown theme capability requires human confirmation', async () => {
+  httpGet.mockResolvedValue(`<script>window.pageConfig = ${JSON.stringify({ appType: 'APP_1', corpId: auth.corpId })};</script>`);
   await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth))
     .rejects.toMatchObject({ code: 'LEGACY_APP_CUSTOM_THEME_CONFIRMATION_REQUIRED' });
   expect(uploadCustomThemeFile).not.toHaveBeenCalled();
@@ -343,4 +343,13 @@ test('CLI remove-custom-theme succeeds only after removal readback', async () =>
       themeVerification: { verified: true, themeColor: saved.themeColor, customThemeStyle: null } });
     expect(uploadCustomThemeFile).not.toHaveBeenCalled();
   } finally {log.mockRestore();}
+});
+
+
+test('unverified runtime identity blocks upload even with human approval and never executes scripts', async () => {
+  httpGet.mockResolvedValue('<script>window.pageConfig = execute();</script>');
+  await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css', confirmLegacyAppStyle: true }, auth))
+    .rejects.toMatchObject({ code: 'APP_THEME_CONTEXT_UNVERIFIED' });
+  expect(uploadCustomThemeFile).not.toHaveBeenCalled();
+  expect(httpPost).not.toHaveBeenCalled();
 });
