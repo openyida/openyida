@@ -76,3 +76,15 @@ test.each([undefined, null, 'unknown'])('keep rejects ambiguous navigation state
     .rejects.toMatchObject({ code: 'CONFIG_READ_FAILED' });
   expect(httpPost).toHaveBeenCalledTimes(1);
 });
+
+// FormDesignVoAdapter reads NEEDREPORTLINE as y/n; the write API stores it verbatim.
+test.each([[true, 'y'], [false, 'n'], ['y', 'y'], ['n', 'n']])(
+  'round-trips the reporting-line flag (%j -> %s)', (currentValue, expected) => {
+    const { command } = fixture({ success: true });
+    const payload = querystring.parse(command.buildPostData('csrf', 'FORM_X', 'true', 'Test', {
+      customTitle: 'n', needReportLine: currentValue,
+    }));
+    expect(payload.needReportLine).toBe(expected);
+    expect(payload.customTitle).toBe('n');
+  }
+);
