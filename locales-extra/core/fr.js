@@ -1068,6 +1068,10 @@ module.exports = {
     err_open_url_empty: 'Le chemin openUrl ne peut pas être vide : {0}'
   },
   update_app: {
+    legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
+    disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
+    custom_theme_config_invalid: 'customThemeStyle is missing, malformed, or lacks a nonempty cssUrl. No disable request was submitted; inspect the latest app configuration.',
+    custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'Un colour prédéfini ne peut pas être combiné avec CSS ou themeColor. Utilisez --colour custom ou omettez --colour.',
     custom_theme_color_required: 'colour=custom nécessite un fichier de thème ou un themeColor valide. Utilisez --theme-file ou --theme-color.',
     theme_not_persisted: 'Les paramètres du thème n’ont pas pu être confirmés après enregistrement. Consultez themeVerification et réessayez avec update-app <appType> --theme-file <css> ; ne recréez pas l’application.',

@@ -1066,6 +1066,10 @@ module.exports = {
     err_open_url_empty: 'openUrl पथ खाली नहीं हो सकता: {0}'
   },
   update_app: {
+    legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
+    disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
+    custom_theme_config_invalid: 'customThemeStyle is missing, malformed, or lacks a nonempty cssUrl. No disable request was submitted; inspect the latest app configuration.',
+    custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'प्रीसेट colour को CSS या themeColor के साथ नहीं भेज सकते। --colour custom उपयोग करें या --colour छोड़ दें।',
     custom_theme_color_required: 'colour=custom के लिए थीम फ़ाइल या मान्य themeColor चाहिए। --theme-file या --theme-color दें।',
     theme_not_persisted: 'सहेजने के बाद ऐप की थीम सेटिंग की पुष्टि नहीं हो सकी। themeVerification जाँचें और update-app <appType> --theme-file <css> से पुनः प्रयास करें; ऐप दोबारा न बनाएँ।',

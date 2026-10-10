@@ -1066,6 +1066,10 @@ module.exports = {
     err_open_url_empty: 'لا يمكن أن يكون مسار openUrl فارغاً: {0}'
   },
   update_app: {
+    legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
+    disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
+    custom_theme_config_invalid: 'customThemeStyle is missing, malformed, or lacks a nonempty cssUrl. No disable request was submitted; inspect the latest app configuration.',
+    custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'لا يمكن الجمع بين colour مسبق الإعداد وCSS أو themeColor. استخدم --colour custom أو احذف --colour.',
     custom_theme_color_required: 'يتطلب colour=custom ملف سمة أو themeColor صالحًا. مرر --theme-file أو --theme-color.',
     theme_not_persisted: 'تعذرت قراءة إعدادات سمة التطبيق بعد الحفظ أو لم تتطابق. لم يتم تأكيد ربط مورد CSS. افحص themeVerification وأعد المحاولة باستخدام update-app <appType> --theme-file <css>؛ لا تنشئ التطبيق مجددًا.',

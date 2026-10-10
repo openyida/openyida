@@ -26,7 +26,7 @@
 
    CLI 首次复制公共模板，后续更新 token 并保留自定义样式。整体暗色方案还需按 [浮层适配](../../yida-design/references/theme/theme-token-presets.md#暗色主题浮层适配) 在该文件末尾补充必要的 class 覆盖；仅深色导航不触发此操作。
    若禁止 `theme-file`，不执行 sample，不复制、生成、修改或上传主题文件；已有应用沿用当前主题，新应用保留平台默认主题。
-5. 主题文件就绪、未禁止 `theme-file` 且已有真实 `appType` 后，立即通过独立任务更新应用基础设置，与表单和页面开发并行：
+5. 主题文件就绪、未禁止 `theme-file` 且已有真实 `appType` 后，先按 [旧主题注入与停用规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认) 核对服务端主题能力。新版主题可立即更新；旧主题或能力未知时保留平台主题、使用页面局部样式，仅在取得目标应用与 CSS 范围的明确注入确认后才传 `--confirm-legacy-app-style`，计划或主题确认不能代替此确认。符合条件后通过独立任务更新应用基础设置，与表单和页面开发并行：
 
    ```bash
    openyida update-app <appType> --theme-file <app-theme.css> --colour custom --nav-theme <light|dark> --logo-source appIcon --layout <l_shape|top|side>
@@ -34,8 +34,8 @@
 
    主题文件的职责与生效边界见 [应用主题 CSS 的职责](../../yida-design/workflow/output-design.md#应用主题-css-的职责)，使用当前流程记录的实际 CSS 路径。
 
-   `create-app` 只负责获取应用，创建阶段不提交 `colour`、`navTheme`、`layoutDirection` 等应用设置，统一等待主题 CSS 生成后同步更新。`update-app --theme-file` 上传 CSS 到主题资源接口，再调用 `updateApp` 保存 `colour=custom`、从 `--color-brand1-6` 提取的 `themeColor`、含资源 URL 的 `customThemeStyle` 和导航配置；不要额外传 `--theme-color`。只有用户明确只创建空壳或暂不配置主题时才跳过这一步。
-   必须收到 `themeVerification.verified=true` 且 `customThemeStyle.enabled=true`、`cssUrl` 非空，才能确认应用设置已绑定主题资源。失败时使用同一个 `appType` 修复并重试 `update-app --theme-file`，不得重复创建应用。CSS 后续有修改时也必须重新执行该更新命令，仅修改本地文件不会更新应用设置。
+   `create-app` 只负责获取应用，创建阶段不提交 `colour`、`navTheme`、`layoutDirection` 等应用设置，统一等待主题 CSS 生成后同步更新。`update-app --theme-file` 上传 CSS 到主题资源接口，再调用 `updateApp` 保存 `colour=custom`、从 `--color-brand1-6` 提取的 `themeColor`、含资源 URL 的 `customThemeStyle` 和导航配置；不要额外传 `--theme-color`。用户明确只创建空壳、暂不配置主题，或旧主题未取得应用层注入确认时跳过这一步；保留平台主题并记录实际覆盖范围。
+   必须收到 `themeVerification.verified=true` 且 `customThemeStyle.enabled=true`、`cssUrl` 非空，才能确认应用设置已绑定主题资源。失败时先核对错误原因；注入确认缺失时停止上传并向用户说明范围，不能自动追加确认参数。其他错误使用同一个 `appType` 修复并重试 `update-app --theme-file`，不得重复创建应用。CSS 后续有修改时也必须重新执行该更新命令，仅修改本地文件不会更新应用设置。
 6. 已有 app 不自动改名。外部工具预创建 app 时，OpenYida 侧只复用 `appType`，但用户明确要求应用级换肤时可以执行上一步主题更新。
 
 ## 应用导航配置
@@ -46,7 +46,7 @@
 
 ### 平台导航参数
 
-`updateApp.json` 接收的布局字段名是 **`layoutDirection`**。CLI 使用 `--layout` 传入，按下表逐项对应：
+`updateApp.json` 接收的布局字段名是 **`layoutDirection`**。CLI 使用 `--layout` 传入。下表为新版主题的保存值；`appThemeEnable=n` 或 `appThemeMode=legacy` 时，`top/side/l_shape` 分别保存为 `hoz/ver/ver`，`white/gray` 导航颜色降级为旧版 `light`，不会自动升级主题。按下表逐项对应：
 
 | PRD 导航方案 | CLI 参数 | 请求中的 `layoutDirection` | 请求中的 `hideAppNav` |
 | --- | --- | --- | --- |
@@ -58,11 +58,11 @@
 
 Agent 必须显式传入场景选择对应的布局，不依赖 CLI 默认值。`navigationType=platform-top` 是计划内部标识，不能作为 `--layout` 的值；也不能用旧 Shell 的 `navType`、`hoz/ver/slide` 或 `top_fold/top_side/side_only` 代替上述参数。`navTheme` 选择导航明暗模式，导航差异 token 与平台默认绑定 决定实际配色、边界、形状、文字和间距；圆角、三种状态边框和选中阴影先写入设计，再按 [命令与参数](../../yida-design/references/application-style-library.md#命令与参数) 重新生成 CSS 并上传；布局仍由 `--layout` 设置。自定义导航的 `variant=top/side/mixed/dock` 描述页面内菜单，不用于设置平台布局；自定义导航仍使用 `--hide-app-nav`。
 
-`navType` 是兼容字段：CLI 查询应用后将已有值原样带回；缺失时不补造，也不根据新布局改写。没有 `--nav-type` 参数。未传 `--layout` 时，CLI 保留原布局：现代 `side/top/l_shape` 优先；旧 `hoz + top_side` 为 L 型，其他 `hoz` 为顶部，`ver` 为侧边；布局缺失时用 `navType=top_fold/top_side` 分别恢复顶部/L 型，其余回退侧边。
+`navType` 是兼容字段：CLI 查询应用后将已有值原样带回；缺失时不补造，也不根据新布局改写。没有 `--nav-type` 参数。旧主题未传 `--layout` 时保留已有 `slide/ver/hoz`，现代值按旧协议转换；新版或能力未知应用继续使用原有归一化规则：现代 `side/top/l_shape` 优先；旧 `hoz + top_side` 为 L 型，其他 `hoz` 为顶部，`ver` 为侧边；布局缺失时用 `navType=top_fold/top_side` 分别恢复顶部/L 型，其余回退侧边。
 
 Shell 渲染阶段才把顶部、侧边、L 型转换为 `top_fold`、`side_only`、`top_side`。详情/提交页的 `top_fold` 强制顶部、`none` 保持无导航属于页面运行态规则，不能反向写入应用配置。
 
-保存后读取 CLI 的 `navigationVerification`：`verified=true` 且其中本次请求的 `navTheme`、`layoutDirection`、`hideAppNav`、`logoSource` 与目标一致，表示导航设置回读通过。旧布局字段由 CLI 归一化后比较；缺少回读证据时保持未验证。CLI 最多重试三次只读查询，失败返回 `APP_NAVIGATION_NOT_PERSISTED`，按返回的期望值、实际值和查询错误核实应用设置。`updatedFields` 仍是提交值，`themeVerification` 仍只验证主题资源。发布后刷新应用，检查实际导航、内容布局与状态；设置回读通过与页面视觉验收分别记录。
+保存后读取 CLI 的 `navigationVerification`：`verified=true` 且其中本次请求的 `navTheme`、`layoutDirection`、`hideAppNav`、`logoSource` 与目标一致，表示导航设置回读通过。旧主题按实际保存的 `ver/hoz/slide` 比较，新版主题沿用布局归一化；缺少回读证据时保持未验证。CLI 最多重试三次只读查询，失败返回 `APP_NAVIGATION_NOT_PERSISTED`，按返回的期望值、实际值和查询错误核实应用设置。`updatedFields` 仍是提交值，`themeVerification` 仍只验证主题资源。发布后刷新应用，检查实际导航、内容布局与状态；设置回读通过与页面视觉验收分别记录。
 
 ## 产出
 
@@ -75,7 +75,7 @@ Shell 渲染阶段才把顶部、侧边、L 型转换为 `top_fold`、`side_only
 - [ ] 已确认不会重复创建同类 app；
 - [ ] 已拿到真实 `appType`；
 - [ ] 已有 app 未被自动改名；
-- [ ] 未禁止 `theme-file` 时主题分支已调度并完成回读；禁止时已跳过所有主题文件写入并记录沿用平台主题，未把“跳过”写成“已换肤”。
+- [ ] 符合应用层注入条件时主题分支已完成回读；禁止 `theme-file` 或旧主题未获注入确认时已保留平台主题并记录覆盖范围，未把“跳过”写成“已换肤”。
 
 ## 下一步
 

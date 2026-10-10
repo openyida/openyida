@@ -76,7 +76,7 @@ Fast 设计就绪后按 [素材调度](parallel-work.md#素材与页面同时推
 
 ## 主题文件实现指令
 
-在设计中同时确定导航、应用框架、表单、详情与自定义页面的整体风格。命名模板提供完整导航 token 与派生的导航明暗，自由创意明确填写；布局沿用业务规划。未禁止 `theme-file` 时，Plan 使用 CLI 返回的 `outputs.theme`，Fast 按 [主题文件生成与更新](../../yida-design/workflow/output-design.md#cli-token-契约fast--plan-共用) 准备主题 CSS；用户确认计划或主题后即可启动 CSS 生成，不等待表单或页面开发。Plan 已生成当前版本的 CSS 时直接复用。拿到真实 appType 后，在应用级配置同一份主题文件，与表单创建和页面开发并行；页面组件按已确认契约消费主题 token。若 `theme-file` 被禁止，跳过生成、复制、修改和上传，沿用现有平台主题并在交付中说明未更改主题。详见 [主题与业务资源的依赖](parallel-work.md#主题与业务资源的依赖)。
+在设计中同时确定导航、应用框架、表单、详情与自定义页面的整体风格。命名模板提供完整导航 token 与派生的导航明暗，自由创意明确填写；布局沿用业务规划。未禁止 `theme-file` 时，Plan 使用 CLI 返回的 `outputs.theme`，Fast 按 [主题文件生成与更新](../../yida-design/workflow/output-design.md#cli-token-契约fast--plan-共用) 准备主题 CSS；用户确认计划或主题后即可启动 CSS 生成，不等待表单或页面开发。Plan 已生成当前版本的 CSS 时直接复用。拿到真实 appType 后，先按 [旧主题注入与停用规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认) 核验能力与注入授权，符合条件后在应用级配置同一份主题文件，与表单创建和页面开发并行；页面组件按已确认契约消费主题 token。若 `theme-file` 被禁止，跳过生成、复制、修改和上传，沿用现有平台主题并在交付中说明未更改主题。详见 [主题与业务资源的依赖](parallel-work.md#主题与业务资源的依赖)。
 
 ## 产出
 

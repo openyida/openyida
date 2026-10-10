@@ -258,10 +258,13 @@ describe('CLI offline smoke', () => {
     expect(output).not.toContain('读取登录态');
   });
 
-  test.each([[], ['--explicit-request'], ['--confirm']].map(flags => ({ flags })))('theme upgrade rejects incomplete approval before login: $flags', ({ flags }) => {
+  // Eligibility comes before approval/preparation, so offline calls require authentication first.
+  test.each([[], ['--explicit-request'], ['--confirm'], ['--explicit-request', '--confirm'],
+    ['--prepare'], ['--explicit-request', '--prepare', '--output-dir', 'unused-theme-backup']]
+    .map(flags => ({ flags })))('theme upgrade requires login before checking eligibility: $flags', ({ flags }) => {
     const result = runAny(['upgrade-app-theme', 'APP_TEST', ...flags, '--json']);
     expect(result.status).toBe(1);
-    expect(JSON.parse(result.jsonOutput)).toMatchObject({ success: false, errorCode: 'APP_THEME_CONFIRMATION_REQUIRED' });
+    expect(JSON.parse(result.jsonOutput)).toMatchObject({ success: false, errorCode: 'TOKEN_AUTH_REQUIRED' });
   });
 
   test('resource command --help probes exit successfully without requiring login', () => {

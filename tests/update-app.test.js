@@ -38,7 +38,8 @@ describe('update-app helpers', () => {
     };
     for (const arg of options) {
       const boolean = arg.type === 'boolean';
-      const expected = boolean ? { hideAppNav: arg.name === 'hideAppNav' ? 'y' : 'n' } : { [arg.name]: values[arg.name] };
+      const expected = boolean ? (['hideAppNav', 'showAppNav'].includes(arg.name)
+        ? { hideAppNav: arg.name === 'hideAppNav' ? 'y' : 'n' } : { [arg.name]: true }) : { [arg.name]: values[arg.name] };
       if (!boolean) { expect(values).toHaveProperty(arg.name); }
       for (const option of arg.builder_options) {
         expect(parseArgs(['APP_1', option, ...(boolean ? [] : [values[arg.name]])])).toMatchObject({ appType: 'APP_1', ...expected });
@@ -480,3 +481,70 @@ describe('update-app helpers', () => {
     });
   });
 });
+
+
+describe('legacy app navigation persistence', () => {
+  const legacy = { appThemeEnable: 'n', appThemeMode: 'legacy', navType: 'top_side_fold' };
+  test.each([['side', 'ver'], ['l_shape', 'ver'], ['top', 'hoz']])(
+    '%s saves as %s on a disabled legacy app', (layout, expected) => {
+      const payload = buildUpdateAppPostData(parseArgs(['APP_1', '--layout', layout]), legacy, {});
+      expect(payload).toMatchObject({ layoutDirection: expected, navType: 'top_side_fold' });
+      const modern = buildUpdateAppPostData(parseArgs(['APP_1', '--layout', layout]),
+        { ...legacy, appThemeEnable: 'y', appThemeMode: 'modern' }, {});
+      expect(modern.layoutDirection).toBe(layout);
+    });
+  test.each(['slide', 'ver', 'hoz'])('unrelated updates preserve legacy %s', (layoutDirection) => {
+    const payload = buildUpdateAppPostData(parseArgs(['APP_1', '--nav-theme', 'dark']),
+      { ...legacy, layoutDirection }, {});
+    expect(payload.layoutDirection).toBe(layoutDirection);
+  });
+  test.each([['white', 'light'], ['gray', 'light'], ['light', 'light'], ['dark', 'dark']])(
+    'maps legacy navigation color %s to %s', (input, expected) => {
+      const payload = buildUpdateAppPostData(parseArgs(['APP_1', '--nav-theme', input]), legacy, {});
+      expect(payload.navTheme).toBe(expected);
+      expect(buildUpdateAppPostData(parseArgs(['APP_1', '--nav-theme', input]),
+        { appThemeEnable: 'y', appThemeMode: 'modern' }, {}).navTheme).toBe(input);
+    });
+  test('config fallback and disabled modern candidate use the legacy protocol', () => {
+    expect(buildUpdateAppPostData(parseArgs(['APP_1', '--layout', 'side', '--nav-theme', 'white']),
+      { config: { APP_THEME_MODE: 'legacy' } }, {})).toMatchObject({ layoutDirection: 'ver', navTheme: 'light' });
+    expect(buildUpdateAppPostData(parseArgs(['APP_1', '--layout', 'l_shape']),
+      { appThemeEnable: 'n', appThemeMode: 'modern' }, {}).layoutDirection).toBe('ver');
+  });
+});
+
+
+test('application CSS disabling preserves resource, navigation and color and rejects other updates', () => {
+  const current = { appThemeMode: 'legacy', appThemeEnable: 'n', colour: 'custom', themeColor: '#C89B5A',
+    layoutDirection: 'side', navTheme: 'gray', customThemeStyle: '{"enabled":true,"cssUrl":"https://example.com/theme.css"}' };
+  const params = parseArgs(['APP_1', '--disable-custom-theme']);
+  expect(hasShellUpdate(params)).toBe(true);
+  expect(buildUpdateAppPostData(params, current, {})).toMatchObject({
+    colour: 'custom', themeColor: '#C89B5A', layoutDirection: 'side', navTheme: 'gray', customThemeStyle: JSON.stringify({ enabled: false, cssUrl: 'https://example.com/theme.css', iframePropagation: false }),
+  });
+  expect(() => parseArgs(['APP_1', '--disable-custom-theme', '--theme-file', './app.css'])).toThrow();
+  expect(() => buildUpdateAppPostData({ appType: 'APP_1', disableCustomTheme: true, customThemeStyle: '{}' }, current, {})).toThrow();
+  expect(hasShellUpdate(parseArgs(['APP_1', '--confirm-legacy-app-style']))).toBe(false);
+});
+
+
+test('disable preserves empty basic settings instead of inserting defaults', () => {
+  const current = { config: { COLOUR: 'podBlue', THEME_COLOR: '', LOGO_SOURCE: '', HOMEPAGELOGO: '',
+    LAY_OUT_DIRECTION: 'slide', NAV_THEME: 'light', SHOWICON: '', SHOWNAV: '',
+    CUSTOM_THEME_STYLE: { cssUrl: 'https://example.com/app.css', cssFileName: 'app.css', enabled: true, iframePropagation: true, extension: 1 } } };
+  const payload = buildUpdateAppPostData(parseArgs(['APP_1', '--disable-custom-theme']), current, {});
+  expect(payload).toMatchObject({ colour: 'podBlue', themeColor: '', logoSource: '', homepageLogo: '',
+    layoutDirection: 'slide', navTheme: 'light', showIcon: '', showNav: '' });
+  expect(JSON.parse(payload.customThemeStyle)).toEqual({ ...current.config.CUSTOM_THEME_STYLE, enabled: false, iframePropagation: false });
+});
+
+test.each([null, '', '{}', '[]', 'null', '{broken', { enabled: true }, { cssUrl: '' }])(
+  'invalid existing style %j is never replaced by an empty disable configuration', customThemeStyle => {
+    expect(() => buildUpdateAppPostData(parseArgs(['APP_1', '--disable-custom-theme']), { customThemeStyle }, {}))
+      .toThrow();
+  });
+
+test.each([['--colour', 'podBlue'], ['--theme-color', '#123456'], ['--name', 'test'], ['--layout', 'side'], ['--show-app-nav']])(
+  'disable cannot be combined with %j', args => {
+    expect(() => parseArgs(['APP_1', '--disable-custom-theme', ...args])).toThrow();
+  });

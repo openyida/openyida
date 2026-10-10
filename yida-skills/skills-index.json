@@ -7,7 +7,7 @@
       "name": "yida-upgrade-app-theme",
       "path": "skills/yida-upgrade-app-theme/SKILL.md",
       "display_name": "老应用升级新版主题",
-      "description": "将老应用升级为新版主题，同步更新页面和表单样式。仅在用户明确要求升级时使用，执行前须通过 ask_human 确认；普通换色、美化不触发。",
+      "description": "将 AI 创建的老应用升级为新版主题，同步更新页面和表单样式。仅在用户明确要求升级时使用，先核验应用资格，执行前须通过 ask_human 确认；普通换色、美化不触发。",
       "category": "yida-skills/app",
       "tags": [
         "升级新版主题"

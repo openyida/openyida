@@ -17,8 +17,10 @@ const { httpGet, httpPost } = require('../lib/core/utils');
 const { createAuthRef } = require('../lib/core/yida-client');
 const { uploadCustomThemeFile } = require('../lib/app/custom-theme');
 const { parseArgs, saveAppSettings, applyCustomThemeUpdate, run } = require('../lib/app/update-app');
-const auth = { baseUrl: 'https://example.com', csrfToken: 'csrf' };
+const auth = { baseUrl: 'https://example.com', csrfToken: 'csrf', corpId: 'dingTEST' };
+const runtime = (overrides = {}) => `<script>window.pageConfig = ${JSON.stringify({ appType: 'APP_1', corpId: auth.corpId, appThemeEnable: 'y', appThemeMode: 'modern', ...overrides })};</script>`;
 const style = { enabled: true, iframePropagation: false, cssUrl: 'https://example.com/desert.css', cssFileName: 'desert.css' };
+const disabledStyle = { ...style, enabled: false, iframePropagation: false };
 const saved = { colour: 'custom', themeColor: '#C89B5A', customThemeStyle: JSON.stringify(style), hideAppNav: 'y' };
 const response = (content) => ({ success: true, content });
 let errorSpy;
@@ -62,11 +64,13 @@ test.each([
   } finally {log.mockRestore();}
 });
 
-test('theme upload is followed by reading fresh settings, saving updateApp and checking the persisted resource', async () => {
-  httpGet.mockResolvedValueOnce(response({ colour: 'podBlue', hideAppNav: 'y', navTheme: 'dark', layoutDirection: 'top', logoSource: 'customImage' }))
+test('theme upload checks runtime first, then reads fresh settings, saving updateApp and checking the persisted resource', async () => {
+  httpGet.mockResolvedValueOnce(runtime()).mockResolvedValueOnce(runtime())
+    .mockResolvedValueOnce(response({ colour: 'podBlue', hideAppNav: 'y', navTheme: 'dark', layoutDirection: 'top', logoSource: 'customImage' }))
     .mockResolvedValueOnce(response(saved));
   const result = await applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth);
-  expect(uploadCustomThemeFile.mock.invocationCallOrder[0]).toBeLessThan(httpGet.mock.invocationCallOrder[0]);
+  expect(httpGet.mock.invocationCallOrder[0]).toBeLessThan(uploadCustomThemeFile.mock.invocationCallOrder[0]);
+  expect(uploadCustomThemeFile.mock.invocationCallOrder[0]).toBeLessThan(httpGet.mock.invocationCallOrder[2]);
   expect(httpPost.mock.calls[0][1]).toContain('/APP_1/query/app/updateApp.json');
   expect(querystring.parse(httpPost.mock.calls[0][2])).toMatchObject({
     colour: 'custom', themeColor: '#C89B5A', customThemeStyle: JSON.stringify(style), hideAppNav: 'y',
@@ -76,7 +80,8 @@ test('theme upload is followed by reading fresh settings, saving updateApp and c
 });
 
 test('CLI update-app --theme-file exposes the verified resource in its success output', async () => {
-  httpGet.mockResolvedValueOnce(response({ colour: 'podBlue' })).mockResolvedValueOnce(response(saved));
+  httpGet.mockResolvedValueOnce(runtime()).mockResolvedValueOnce(runtime())
+    .mockResolvedValueOnce(response({ colour: 'podBlue' })).mockResolvedValueOnce(response(saved));
   const log = jest.spyOn(console, 'log').mockImplementation(() => {});
   try {
     await run(['APP_1', '--theme-file', './desert.css']);
@@ -86,12 +91,13 @@ test('CLI update-app --theme-file exposes the verified resource in its success o
 });
 
 test('HTTP success with an unchanged platform theme is a failure; retries only read', async () => {
-  httpGet.mockResolvedValue(response({ colour: 'podBlue', themeColor: '', customThemeStyle: '' }));
+  httpGet.mockResolvedValueOnce(runtime()).mockResolvedValueOnce(runtime())
+    .mockResolvedValue(response({ colour: 'podBlue', themeColor: '', customThemeStyle: '' }));
   const result = await applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth);
   expect(result).toMatchObject({ success: false, errorCode: 'APP_THEME_NOT_PERSISTED', themeVerification: { verified: false } });
   expect(httpPost).toHaveBeenCalledTimes(1);
   expect(uploadCustomThemeFile).toHaveBeenCalledTimes(1);
-  expect(httpGet).toHaveBeenCalledTimes(4);
+  expect(httpGet).toHaveBeenCalledTimes(6);
 });
 
 test('nav updates preserve theme fields from config and detect later theme loss', async () => {
@@ -104,7 +110,8 @@ test('nav updates preserve theme fields from config and detect later theme loss'
 });
 
 test('CLI fails when the color was saved but the CSS resource is missing', async () => {
-  httpGet.mockResolvedValue(response({ colour: 'custom', themeColor: '#C89B5A', customThemeStyle: '' }));
+  httpGet.mockResolvedValueOnce(runtime()).mockResolvedValueOnce(runtime())
+    .mockResolvedValue(response({ colour: 'custom', themeColor: '#C89B5A', customThemeStyle: '' }));
   const log = jest.spyOn(console, 'log').mockImplementation(() => {});
   try {
     await expect(run(['APP_1', '--theme-file', './desert.css'])).rejects.toMatchObject({ code: 'APP_THEME_NOT_PERSISTED' });
@@ -218,4 +225,169 @@ test('CLI navigation verification failure is nonzero and keeps query failure evi
     expect(httpPost).toHaveBeenCalledTimes(1);
     expect(httpGet).toHaveBeenCalledTimes(4);
   } finally {log.mockRestore();}
+});
+
+
+test.each([['side', 'ver'], ['l_shape', 'ver'], ['top', 'hoz']])(
+  'legacy save and readback use the exact persisted %s -> %s protocol', async (layout, expected) => {
+    httpGet.mockResolvedValueOnce(response({ appThemeEnable: 'n', appThemeMode: 'legacy' }))
+      .mockResolvedValueOnce(response({ config: { LAY_OUT_DIRECTION: expected, NAV_THEME: 'light' } }));
+    const result = await saveAppSettings(parseArgs(['APP_1', '--layout', layout, '--nav-theme', 'white']), auth);
+    expect(querystring.parse(httpPost.mock.calls[0][2])).toMatchObject({ layoutDirection: expected, navTheme: 'light' });
+    expect(result).toMatchObject({ success: true, navigationVerification: {
+      verified: true, layoutDirection: expected, navTheme: 'light',
+    } });
+  });
+
+test('legacy readback rejects an unconverted modern value instead of claiming persistence', async () => {
+  httpGet.mockResolvedValueOnce(response({ appThemeEnable: 'n', appThemeMode: 'legacy' }))
+    .mockResolvedValue(response({ layoutDirection: 'side' }));
+  expect(await saveAppSettings(parseArgs(['APP_1', '--layout', 'side']), auth)).toMatchObject({
+    success: false, errorCode: 'APP_NAVIGATION_NOT_PERSISTED', navigationVerification: {
+      verified: false, expected: { layoutDirection: 'ver' }, actual: { layoutDirection: 'side' },
+    },
+  });
+  expect(httpPost).toHaveBeenCalledTimes(1);
+});
+
+
+test.each([
+  { appThemeEnable: 'n', appThemeMode: 'legacy' },
+  { appThemeEnable: 'n', appThemeMode: 'modern' },
+  { appThemeEnable: 'y', appThemeMode: 'legacy' },
+])('legacy runtime %j blocks CSS before upload and save', async flags => {
+  httpGet.mockResolvedValue(runtime(flags));
+  await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth))
+    .rejects.toMatchObject({ code: 'LEGACY_APP_CUSTOM_THEME_CONFIRMATION_REQUIRED' });
+  expect(uploadCustomThemeFile).not.toHaveBeenCalled();
+  expect(httpPost).not.toHaveBeenCalled();
+});
+
+test('unknown theme capability requires human confirmation', async () => {
+  httpGet.mockResolvedValue(`<script>window.pageConfig = ${JSON.stringify({ appType: 'APP_1', corpId: auth.corpId })};</script>`);
+  await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth))
+    .rejects.toMatchObject({ code: 'LEGACY_APP_CUSTOM_THEME_CONFIRMATION_REQUIRED' });
+  expect(uploadCustomThemeFile).not.toHaveBeenCalled();
+});
+
+test.each([{ appType: 'APP_OTHER' }, { corpId: 'dingOTHER' }])('mismatched runtime identity %j blocks CSS', async flags => {
+  httpGet.mockResolvedValue(runtime(flags));
+  await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth))
+    .rejects.toMatchObject({ code: 'APP_THEME_CONTEXT_UNVERIFIED' });
+  expect(uploadCustomThemeFile).not.toHaveBeenCalled();
+  expect(httpPost).not.toHaveBeenCalled();
+});
+
+test('direct stylesheet binding also requires runtime confirmation', async () => {
+  httpGet.mockResolvedValue(runtime({ appThemeEnable: 'n', appThemeMode: 'legacy' }));
+  await expect(saveAppSettings({ appType: 'APP_1', customThemeStyle: JSON.stringify(style) }, auth))
+    .rejects.toMatchObject({ code: 'LEGACY_APP_CUSTOM_THEME_CONFIRMATION_REQUIRED' });
+  expect(httpPost).not.toHaveBeenCalled();
+});
+
+test('fresh legacy runtime after upload blocks binding without repeating upload', async () => {
+  httpGet.mockResolvedValueOnce(runtime()).mockResolvedValueOnce(runtime({ appThemeEnable: 'n', appThemeMode: 'legacy' }));
+  await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth))
+    .rejects.toMatchObject({ code: 'LEGACY_APP_CUSTOM_THEME_CONFIRMATION_REQUIRED' });
+  expect(uploadCustomThemeFile).toHaveBeenCalledTimes(1);
+  expect(httpPost).not.toHaveBeenCalled();
+});
+
+test('explicit approval permits legacy application CSS without upgrading its theme', async () => {
+  const legacy = { ...saved, appThemeEnable: 'n', appThemeMode: 'legacy', layoutDirection: 'ver', navTheme: 'light' };
+  httpGet.mockResolvedValueOnce(runtime({ appThemeEnable: 'n', appThemeMode: 'legacy' }))
+    .mockResolvedValueOnce(runtime({ appThemeEnable: 'n', appThemeMode: 'legacy' }))
+    .mockResolvedValue(response(legacy));
+  const result = await applyCustomThemeUpdate('APP_1', { themeFile: './desert.css', confirmLegacyAppStyle: true }, auth);
+  expect(result.success).toBe(true);
+  expect(uploadCustomThemeFile).toHaveBeenCalledTimes(1);
+  const payload = querystring.parse(httpPost.mock.calls[0][2]);
+  expect(payload).toMatchObject({ layoutDirection: 'ver', navTheme: 'light' });
+  expect(payload).not.toHaveProperty('appThemeMode');
+});
+
+test('disable retains CSS resource and verifies boolean flags without upload', async () => {
+  httpGet.mockResolvedValueOnce(response({ ...saved, appThemeMode: 'legacy', layoutDirection: 'ver', navTheme: 'light' }))
+    .mockResolvedValue(response({ ...saved, layoutDirection: 'ver', navTheme: 'light', customThemeStyle: JSON.stringify(disabledStyle) }));
+  const result = await saveAppSettings(parseArgs(['APP_1', '--disable-custom-theme']), auth);
+  expect(querystring.parse(httpPost.mock.calls[0][2])).toMatchObject({
+    customThemeStyle: JSON.stringify(disabledStyle), colour: 'custom', themeColor: saved.themeColor, layoutDirection: 'ver', navTheme: 'light', hideAppNav: 'y',
+  });
+  expect(result).toMatchObject({ success: true, themeVerification: { verified: true, customThemeStyle: disabledStyle } });
+  expect(uploadCustomThemeFile).not.toHaveBeenCalled();
+});
+
+test('disable detects still enabled CSS even when no brand color was set', async () => {
+  httpGet.mockResolvedValue(response({ colour: 'podBlue', customThemeStyle: JSON.stringify(style) }));
+  const result = await saveAppSettings(parseArgs(['APP_1', '--disable-custom-theme']), auth);
+  expect(result).toMatchObject({ success: false, errorCode: 'APP_THEME_NOT_PERSISTED' });
+  expect(httpPost).toHaveBeenCalledTimes(1);
+  expect(uploadCustomThemeFile).not.toHaveBeenCalled();
+});
+
+
+test('human approval never bypasses a mismatched runtime application', async () => {
+  httpGet.mockResolvedValue(runtime({ appType: 'APP_OTHER' }));
+  await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css', confirmLegacyAppStyle: true }, auth))
+    .rejects.toMatchObject({ code: 'APP_THEME_CONTEXT_UNVERIFIED' });
+  expect(uploadCustomThemeFile).not.toHaveBeenCalled();
+  expect(httpPost).not.toHaveBeenCalled();
+});
+
+test('CLI disable-custom-theme reports retained resource and pending runtime verification', async () => {
+  httpGet.mockResolvedValueOnce(response(saved)).mockResolvedValue(response({ ...saved, customThemeStyle: JSON.stringify(disabledStyle) }));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await run(['APP_1', '--disable-custom-theme']);
+    const output = JSON.parse(log.mock.calls.map(([line]) => line).filter(line => typeof line === 'string' && line.startsWith('{')).pop());
+    expect(output).toMatchObject({ success: true, runtimeVerification: { verified: false }, updatedFields: { customThemeStyle: disabledStyle },
+      themeVerification: { verified: true, themeColor: saved.themeColor, customThemeStyle: disabledStyle } });
+    expect(uploadCustomThemeFile).not.toHaveBeenCalled();
+  } finally {log.mockRestore();}
+});
+
+
+test('unverified runtime identity blocks upload even with human approval and never executes scripts', async () => {
+  httpGet.mockResolvedValue('<script>window.pageConfig = execute();</script>');
+  await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css', confirmLegacyAppStyle: true }, auth))
+    .rejects.toMatchObject({ code: 'APP_THEME_CONTEXT_UNVERIFIED' });
+  expect(uploadCustomThemeFile).not.toHaveBeenCalled();
+  expect(httpPost).not.toHaveBeenCalled();
+});
+
+
+test.each([
+  { ...disabledStyle, enabled: 'false' },
+  { ...disabledStyle, iframePropagation: 'false' },
+  { cssUrl: style.cssUrl, cssFileName: style.cssFileName },
+  { enabled: false, iframePropagation: false },
+  { ...disabledStyle, cssUrl: 'https://example.com/other.css' },
+  { ...disabledStyle, cssFileName: 'changed.css' },
+  '',
+])('disable rejects incomplete or nonboolean readback %j', async actual => {
+  httpGet.mockResolvedValueOnce(response(saved))
+    .mockResolvedValue(response({ ...saved, customThemeStyle: actual }));
+  const result = await saveAppSettings(parseArgs(['APP_1', '--disable-custom-theme']), auth);
+  expect(result).toMatchObject({ success: false, errorCode: 'APP_THEME_NOT_PERSISTED', themeVerification: { verified: false } });
+  expect(httpPost).toHaveBeenCalledTimes(1);
+  expect(uploadCustomThemeFile).not.toHaveBeenCalled();
+});
+
+test('disable fails before POST if latest existing CSS config cannot be parsed', async () => {
+  httpGet.mockResolvedValue(response({ ...saved, customThemeStyle: '[]' }));
+  await expect(saveAppSettings(parseArgs(['APP_1', '--disable-custom-theme']), auth))
+    .rejects.toMatchObject({ code: 'APP_CUSTOM_THEME_CONFIG_INVALID' });
+  expect(httpPost).not.toHaveBeenCalled();
+});
+
+
+test('disable detects unexpected navigation or logo changes after save', async () => {
+  const current = { ...saved, layoutDirection: 'slide', logoSource: 'customImage', homepageLogo: 'https://example.com/logo.png' };
+  httpGet.mockResolvedValueOnce(response(current)).mockResolvedValue(response({ ...current,
+    customThemeStyle: disabledStyle, layoutDirection: 'ver', homepageLogo: '' }));
+  const result = await saveAppSettings(parseArgs(['APP_1', '--disable-custom-theme']), auth);
+  expect(result).toMatchObject({ success: false, errorCode: 'APP_NAVIGATION_NOT_PERSISTED',
+    themeVerification: { verified: true }, navigationVerification: { verified: false,
+      expected: { layoutDirection: 'slide', homepageLogo: current.homepageLogo },
+      actual: { layoutDirection: 'ver', homepageLogo: '' } } });
 });

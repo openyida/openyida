@@ -13,6 +13,18 @@ openyida sample yida-design application-style --style-id free-creative --output 
 
 每套导出 `design.md`、`app_theme.css`、`form-layout.json`；目标目录中任一同名文件已存在时，CLI 报错并保留原文件。每份 `design.md` 同时包含自定义页面的逐页设计引导，以及表单的组件位置、布局、样式、状态和响应式引导。设计与 CSS 中的品牌颜色保留占位：`--color-brand1-6` 使用 `{{PRIMARY_COLOR}}`，`--color-brand1-1` 按主色生成悬停色，其余品牌档位保持同源。项目占位符与空字段布局是项目化起点；使用时替换真实项目内容、完成最终设计并生成项目主题与表单布局。上传主题时使用项目实际生成的 CSS 路径，`app-theme.css` 与 `app_theme.css` 均可。
 
+## 旧主题应用的样式作用域与确认
+
+绑定前读取目标应用服务端解析的 `appThemeEnable` 与 `appThemeMode`；只有 `y` / `modern` 才沿用新版应用主题上传流程，不能只凭存储的 APP_THEME_MODE、模板或版本号判断。`n`、`legacy` 或无法确认能力时，默认保留平台主题，优先使用自定义页根容器内的局部样式，不向应用写入 `customThemeStyle`，不自动升级主题。页面美化、换颜色或完整应用设计的请求不等于同意旧应用全局 CSS 注入。
+
+旧应用的 `customThemeStyle`（用户也可能称为 `appCustomTheme`）由访问态按当前应用加载，可能覆盖工作台、导航、表单及记录详情；`iframePropagation:false` 不是页面作用域隔离。新版主题文件中的全局变量和选择器不能直接视作旧 Shell/表单的兼容样式。确实需要应用层覆盖时，先核查实际访问页 DOM 与主题消费能力，审阅并缩小 CSS 选择器范围，说明涉及的应用、CSS 文件和影响页面，向用户明确询问：“是否同意将这份 CSS 注入该旧应用的应用层，影响访问页面、导航和表单？”取得该应用的肯定回复后才允许传 `--confirm-legacy-app-style`；不能代替用户确认，也不能遇到阻断后自动追加此参数。没有可用的用户确认通道时停在上传前。
+
+不要把完整应用主题 CSS 包裹在页面根节点后就宣称已兼容；页面局部样式只使用该页面已验证的 DOM/变量，不改 `html`、`body`、顶层 `:root` 或平台导航/表单全局选择器。若用户拒绝应用层注入，交付页面局部方案并说明覆盖范围。
+
+用户要求“去掉应用中的 appCustomTheme / customThemeStyle / 应用级自定义 CSS”时，按宜搭界面关闭“启用主题换肤”的方式执行 `openyida update-app <appType> --disable-custom-theme`。先读取最新基础设置，解析原 customThemeStyle，保留 cssUrl、cssFileName 和其他资源字段，将 enabled 与 iframePropagation 改为布尔值 false，再 JSON.stringify 后以字符串提交到该应用的 query/app/updateApp.json；沿用登录态与 CSRF，其他基础设置取最新回读并保持原值。不能清空 URL，不能传空字符串、null、空对象/数组或只传 {"enabled":false}；原配置缺失或无法解析时停止写入并说明原因。该参数不与其他更新字段同传，不删除 CDN 文件，也不修改页面源码。
+
+保存后核对 themeVerification.verified=true，确认 enabled/iframePropagation 为布尔值 false，URL 与文件名仍为原值。随后刷新真实访问页，确认没有 link#yida-app-custom-theme，且网络请求不再加载原主题 CSS；仅 success=true 或配置回读通过不代表访问态已验证。页面检查失败时报告已提交的非认证字段和实际回读结果，隐藏 Token、Cookie、CSRF 等认证信息。结果描述为“自定义主题 CSS 已停用，资源配置仍保留”；没有浏览器证据时补充“访问态效果待验证”。
+
 ## 命令与参数
 
 | 步骤 | 命令与参数 | 输入与结果 |
@@ -20,7 +32,7 @@ openyida sample yida-design application-style --style-id free-creative --output 
 | 查询主题 | `openyida design-plan catalog --json` | 从 `themes[].themeId` 或 `creativeOption.themeId` 取值 |
 | 导出三文件 | `openyida sample yida-design application-style --style-id <themeId> --output <目录>` | `--style-id` 必填，支持目录中的全部主题；`--output` 缺省为当前目录下 `.cache/samples/application-style` |
 | 生成或更新 CSS | `openyida sample yida-design app-theme --design-file <design.md> --output <CSS路径>` | 设计中的品牌色和派生颜色先填成实际值；同路径更新保留自定义 CSS，并维护旁边的 `<CSS路径>.tokens.md` 更新记录 |
-| 绑定应用 | `openyida update-app <appType> --theme-file <CSS路径> --nav-theme <light或dark> --layout <side或top或l_shape> --show-app-nav` | 上传后分别核对主题和导航回读，再检查页面实际效果；应用级自绘导航改用 `--hide-app-nav` |
+| 绑定新版主题应用（旧主题须先完成上述确认） | `openyida update-app <appType> --theme-file <CSS路径> --nav-theme <light或dark> --layout <side或top或l_shape> --show-app-nav` | 上传后分别核对主题和导航回读，再检查页面实际效果；应用级自绘导航改用 `--hide-app-nav` |
 
 `--style-id` 只用于三文件导出，`--design-file` 只用于主题生成。`--var KEY=VALUE` 用于其他代码示例的占位替换；应用主题的品牌色和导航值写入 `design.md`。`app-theme` 的 `--output` 缺省为 `.cache/samples/app-theme.css`；省略 `--design-file` 会用公共模板重置目标 CSS。三文件导出中的占位 CSS 先经过主题生成，再上传。
 
