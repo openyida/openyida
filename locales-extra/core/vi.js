@@ -24,7 +24,7 @@ module.exports = {
     repair_page_bindings: 'Sửa pageApplications trong visual.json để khớp từng mục customPageDetails trong business.json, không thêm biểu mẫu gốc. visualMemoryApplications phải là mảng; dùng [] nếu không có mục phù hợp. Giữ bản nháp, sửa các trường được liệt kê rồi chạy lại lệnh ban đầu. Không xóa thư mục hoặc chạy lại init.',
   },
   design_document: {
-    update_conflict: 'Không thể cập nhật {0} ({1}): nội dung hiện tại xung đột với phiên bản được tạo trước đó. Hãy đối chiếu thay đổi cục bộ trong phần này với dữ liệu kế hoạch rồi thử lại. Chưa lưu tệp nào.',
+    update_conflict: "Không thể cập nhật {0} ({1}): nội dung hiện tại xung đột với phiên bản được tạo trước đó. Hãy đối chiếu thay đổi cục bộ trong phần này với dữ liệu kế hoạch rồi thử lại. Chưa lưu tệp nào.",
     theme_css_invalid: 'CSS giao diện gần dòng {0} có dấu ngoặc, chuỗi hoặc chú thích chưa đóng hoặc không khớp. Hãy sửa rồi thử lại.',
     theme_css_unresolved: 'Token CSS chủ đề {0} vẫn chứa chỗ giữ chỗ hoặc hướng dẫn tạo màu. Hoàn thiện design.md, chạy openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css>, rồi tải tệp đã tạo lên. Chỉ thay PRIMARY_COLOR là chưa đủ.',
     invalid: 'Xác thực thiết kế thất bại: {0} ({1})',
@@ -45,8 +45,8 @@ module.exports = {
   asset: {
     sourceRecords: 'Trong assets[] qua --input, ghi assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) và authorizationEvidence (mảng URL hoặc đường dẫn tệp chứng từ). Danh sách giữ lại các bản ghi; giá trị thiếu để trống, không tự xác nhận quyền sử dụng thương mại.',
     executionReview: 'Cần kiểm tra bằng chứng thực thi tư liệu: {0}. Kiểm tra xác nhận tác vụ nền, thời gian công việc và lý do chuyển sang đồng bộ.',
-    localFileUnavailable: 'Không tìm thấy tệp ảnh: {0}. Kiểm tra thư mục làm việc của lệnh hoặc dùng đường dẫn tuyệt đối.',
-    invalidStrategy: 'Yêu cầu về ảnh phải là một đối tượng liệt kê vị trí ảnh theo từng trang.',
+    localFileUnavailable: "Không tìm thấy tệp ảnh: {0}. Kiểm tra thư mục làm việc của lệnh hoặc dùng đường dẫn tuyệt đối.",
+    invalidStrategy: "Yêu cầu về ảnh phải là một đối tượng liệt kê vị trí ảnh theo từng trang.",
   },
   help: {
     cmd_check_design: 'Xác thực tài liệu thiết kế, biến giao diện và bàn giao PRD',
@@ -68,8 +68,8 @@ module.exports = {
     design_plan_preview_invalid: 'Cập nhật bản nháp thất bại; kiểm tra chi tiết lỗi',
     cmd_design_plan_catalog: 'Liệt kê chủ đề và mẫu trang có sẵn để lập kế hoạch',
     cmd_design_plan_init: 'Khởi tạo bản nháp kế hoạch từ yêu cầu đã xác nhận',
-    cmd_design_plan_materialize: 'Tạo hoặc cập nhật tài liệu và giao diện kế hoạch, kiểm tra tính nhất quán',
-    cmd_design_plan_patch: 'Sửa các trường kế hoạch và đồng bộ tài liệu, giao diện khi cần',
+    cmd_design_plan_materialize: "Tạo hoặc cập nhật tài liệu và giao diện kế hoạch, kiểm tra tính nhất quán",
+    cmd_design_plan_patch: "Sửa các trường kế hoạch và đồng bộ tài liệu, giao diện khi cần",
     cmd_update_app: 'Cập nhật thông tin ứng dụng',
     cmd_app_online: 'Bật ứng dụng Yida',
     cmd_app_offline: 'Tắt ứng dụng Yida',
@@ -99,7 +99,7 @@ module.exports = {
     cmd_get_form_config: 'Query form configuration',
     group_data: 'Dữ liệu & Quyền',
     cmd_data: 'Quản lý dữ liệu thống nhất (biểu mẫu/quy trình/tác vụ/biểu mẫu con)',
-    data_notes: 'DateField dùng dấu thời gian Unix dạng số mili giây; CascadeDateField dùng mảng các giá trị đó. Chuyển đổi theo múi giờ nghiệp vụ; không chấp nhận chuỗi ngày hoặc số giây. --resolve-aliases chỉ chuyển đổi tên trường.',
+    data_notes: "DateField dùng dấu thời gian Unix dạng số mili giây; CascadeDateField dùng mảng các giá trị đó. Chuyển đổi theo múi giờ nghiệp vụ; không chấp nhận chuỗi ngày hoặc số giây. --resolve-aliases chỉ chuyển đổi tên trường.",
     cmd_task_center: 'Trung tâm tác vụ toàn cầu (cần làm/đã xử lý/CC v.v.)',
     cmd_basic_info: 'Truy van thong tin to chuc, dung luong, han muc va mien',
     cmd_read_dingtalk_doc: 'Lấy nội dung Markdown từ tài liệu DingTalk',
@@ -111,7 +111,7 @@ module.exports = {
     group_process: 'Quy trình',
     cmd_configure_process: 'Cấu hình và xuất bản quy tắc quy trình; Thêm người phê duyệt và chuyển giao qua JSON nodes[].actions.normalActions/appendActions',
     cmd_create_process: 'Tạo biểu mẫu quy trình (tích hợp); Thêm người phê duyệt và chuyển giao qua JSON nodes[].actions.normalActions/appendActions',
-    create_process_notes: 'formMode=create|reuse phân biệt tạo mới và tái sử dụng. Khi tái sử dụng, formTitle và fieldCount là null (chưa truy vấn); tạo mới trả về tên và số trường. Quy tắc này cũng áp dụng khi cấu hình thất bại. Kiểm tra success và verificationLevel. Chỉ dùng --replace khi được cho phép rõ ràng để thay toàn bộ quy trình nháp hoặc đã xuất bản.',
+    create_process_notes: "formMode=create|reuse phân biệt tạo mới và tái sử dụng. Khi tái sử dụng, formTitle và fieldCount là null (chưa truy vấn); tạo mới trả về tên và số trường. Quy tắc này cũng áp dụng khi cấu hình thất bại. Kiểm tra success và verificationLevel. Chỉ dùng --replace khi được cho phép rõ ràng để thay toàn bộ quy trình nháp hoặc đã xuất bản.",
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'Xem trước phiên bản quy trình (sơ đồ luồng)',
     group_share: 'Cấu hình & Chia sẻ trang',
@@ -280,12 +280,12 @@ module.exports = {
       '  openyida create-app "Attendance" "Employee Attendance" "daka" "#00B853" "deepBlue" "dark" "slide"\n' +
       '  openyida create-page APP_XXX "Game Home"\n' +
       '  openyida create-form create APP_XXX "Employee Info" .cache/openyida/forms/employee-fields.json\n' +
-      '  openyida create-form update APP_XXX FORM-XXX \'[{"action":"add","field":{"type":"TextField","label":"Notes"}}]\'\n' +
+      `  openyida create-form update APP_XXX FORM-XXX '[{"action":"add","field":{"type":"TextField","label":"Notes"}}]'\n` +
       '  openyida list-forms APP_XXX\n' +
       '  openyida list-forms APP_XXX --keyword customer\n' +
       '  openyida get-schema APP_XXX FORM-XXX\n' +
       '  openyida get-schema APP_XXX --all --output-dir .cache/schemas\n' +
-      '  openyida formula evaluate \'IF(GT(#{numberField_total}, 100), "high", "low")\' --schema .cache/schema.json\n' +
+      `  openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "high", "low")' --schema .cache/schema.json\n` +
       '  openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX\n' +
       '  openyida verify-short-url APP_XXX FORM-XXX /o/myapp\n' +
       '  openyida save-share-config APP_XXX FORM-XXX /o/myapp y n\n' +
@@ -348,7 +348,7 @@ module.exports = {
     check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]',
     check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --build-manifest prd/order-management/build-manifest.json --json',
     formula_usage: 'Usage: openyida formula evaluate <formula|file> [--schema schema.json] [--json] [--strict]',
-    formula_example: 'Example: openyida formula evaluate \'IF(GT(#{numberField_total}, 100), "high", "low")\' --schema .cache/schema.json',
+    formula_example: `Example: openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "high", "low")' --schema .cache/schema.json`,
     verify_usage: 'Usage: openyida verify-short-url <appType> <formUuid> <url>',
     verify_example: 'Example: openyida verify-short-url APP_XXX FORM-XXX /o/myapp',
     share_usage: 'Usage: openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]',
@@ -379,7 +379,7 @@ module.exports = {
     get_permission_usage: 'Usage: openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>]',
     get_permission_example: 'Example: openyida get-permission APP_XXX FORM-XXX',
     save_permission_usage: 'Usage: openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>]',
-    save_permission_example: 'Example: openyida save-permission APP_XXX FORM-XXX --data-permission \'{"role":"DEFAULT","dataRange":"SELF"}\'',
+    save_permission_example: `Example: openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ Execution failed: {0}',
     login_usage: 'Usage: openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
     login_example: 'Examples:\n  openyida login                         # Automatically open the browser via OAuth loopback login\n  openyida login --no-browser            # Let the caller handle the authorization URL\n  openyida login --check-only --json     # Check token auth status only\n  openyida login --intl                  # Login against the international environment\n  OPENYIDA_NO_BROWSER=1 openyida login   # Let the caller handle the authorization URL via env variable\n  openyida auth login                    # Login alias',
@@ -855,7 +855,7 @@ module.exports = {
     usage_create: 'Usage: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     example_create: 'Example: openyida create-form create "APP_XXX" "Employee Info" .cache/openyida/forms/employee-fields.json',
     usage_update: 'Usage: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
-    example_update: 'Example: openyida create-form update "APP_XXX" "FORM-YYY" \'[{"action":"add","field":{"type":"TextField","label":"Note"}}]\'',
+    example_update: `Example: openyida create-form update "APP_XXX" "FORM-YYY" '[{"action":"add","field":{"type":"TextField","label":"Note"}}]'`,
     usage_label: 'Usage:',
     usage_create_short: '  create: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  update: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
@@ -1071,7 +1071,7 @@ module.exports = {
     theme_preset_conflict: 'Không thể kết hợp colour có sẵn với CSS hoặc themeColor. Dùng --colour custom hoặc bỏ --colour.',
     custom_theme_color_required: 'colour=custom cần tệp giao diện hoặc themeColor hợp lệ. Dùng --theme-file hoặc --theme-color.',
     theme_not_persisted: 'Không thể xác nhận cài đặt giao diện sau khi lưu. Kiểm tra themeVerification và thử lại bằng update-app <appType> --theme-file <css>; không tạo lại ứng dụng.',
-    navigation_not_persisted: 'Không thể đọc lại cài đặt điều hướng hoặc kết quả khác với yêu cầu. Xem giá trị mong đợi, giá trị thực tế và lỗi trong navigationVerification, rồi kiểm tra cài đặt hiện tại của ứng dụng.',
+    navigation_not_persisted: "Không thể đọc lại cài đặt điều hướng hoặc kết quả khác với yêu cầu. Xem giá trị mong đợi, giá trị thực tế và lỗi trong navigationVerification, rồi kiểm tra cài đặt hiện tại của ứng dụng.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1109,7 +1109,7 @@ module.exports = {
     offline_success: 'Đã tắt ứng dụng',
   },
   create_process: {
-    invalid_argument: 'Thiếu hoặc sai đối số {0}. Hãy sửa theo cú pháp bên dưới.',
+    invalid_argument: "Thiếu hoặc sai đối số {0}. Hãy sửa theo cú pháp bên dưới.",
     title: 'Yida Process Form Creation',
     app_id: 'App ID',
     mode: 'Mode',
@@ -1138,7 +1138,7 @@ module.exports = {
     manual_hint: 'Please configure the process manually in Yida admin. Form UUID: {0}',
     configuring_process: 'Configuring and publishing process',
     configure_failed: 'Failed to configure process',
-    preserve_existing_form: 'Biểu mẫu gốc đã tồn tại. Dùng formUuid để kiểm tra trạng thái và nguyên nhân lỗi ở chế độ chỉ đọc, đồng thời giữ nguyên biểu mẫu. Không bỏ --formUuid, tạo lại biểu mẫu hoặc tạo biểu mẫu thay thế cùng tên để khôi phục. Không thử ghi lại khi noWriteRetry=true.',
+    preserve_existing_form: "Biểu mẫu gốc đã tồn tại. Dùng formUuid để kiểm tra trạng thái và nguyên nhân lỗi ở chế độ chỉ đọc, đồng thời giữ nguyên biểu mẫu. Không bỏ --formUuid, tạo lại biểu mẫu hoặc tạo biểu mẫu thay thế cùng tên để khôi phục. Không thử ghi lại khi noWriteRetry=true.",
     retry_hint: 'Process configuration failed, but the form was created. Fix the process definition and retry with this command:',
     fields_not_found: 'Fields definition file not found',
     process_def_not_found: 'Process definition file not found',
@@ -1879,7 +1879,7 @@ module.exports = {
   report_runtime: require('../../lib/report/i18n-messages').vi,
   safe_json: {
     hint_unquoted_key: 'A key looks unquoted (JSON requires all keys wrapped in double quotes, e.g. {"name":1})',
-    hint_single_quote: 'Single quotes were likely used (JSON only allows double quotes ", not single quotes \')',
+    hint_single_quote: `Single quotes were likely used (JSON only allows double quotes ", not single quotes ')`,
     hint_trailing_comma: 'There is likely a trailing comma (JSON does not allow a comma right before } or ])',
     hint_smart_quote: 'Smart / curly quotes were likely used (“ ” ‘ ’); replace them with standard ASCII double quotes "',
     hint_generic: 'Invalid JSON; please check it against the standard JSON syntax',

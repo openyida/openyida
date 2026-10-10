@@ -24,7 +24,7 @@ module.exports = {
     repair_page_bindings: 'visual.json के pageApplications को business.json के customPageDetails से एक-एक करके मिलाएँ; मूल फ़ॉर्म शामिल न करें। visualMemoryApplications एक ऐरे होना चाहिए; कोई उपयुक्त आइटम न हो तो [] दें। मौजूदा मसौदा रखें, बताए गए फ़ील्ड सुधारें और मूल कमांड फिर चलाएँ। डायरेक्टरी न हटाएँ और init दोबारा न चलाएँ।',
   },
   design_document: {
-    update_conflict: '{0} ({1}) अपडेट नहीं हो सका: मौजूदा सामग्री पिछले जनरेट किए गए संस्करण से टकराती है। इस भाग के स्थानीय बदलावों को योजना के डेटा से मिलाएँ और फिर कोशिश करें। कोई फ़ाइल सेव नहीं हुई।',
+    update_conflict: "{0} ({1}) अपडेट नहीं हो सका: मौजूदा सामग्री पिछले जनरेट किए गए संस्करण से टकराती है। इस भाग के स्थानीय बदलावों को योजना के डेटा से मिलाएँ और फिर कोशिश करें। कोई फ़ाइल सेव नहीं हुई।",
     theme_css_invalid: 'थीम CSS में पंक्ति {0} के पास कोई बंद न किया गया या बेमेल कोष्ठक, स्ट्रिंग या टिप्पणी है। सुधार कर फिर प्रयास करें।',
     theme_css_unresolved: 'थीम CSS के {0} में अभी भी टेम्पलेट प्लेसहोल्डर या रंग बनाने का निर्देश है। design.md पूरा करें, openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> चलाएँ, फिर बनी हुई फ़ाइल अपलोड करें। केवल PRIMARY_COLOR बदलना पर्याप्त नहीं है।',
     invalid: 'डिज़ाइन सत्यापन विफल: {0} ({1})',
@@ -45,8 +45,8 @@ module.exports = {
   asset: {
     sourceRecords: '--input के assets[] में assetId, creator, sourcePage, license, licenseUrl, licenseCheckedAt (YYYY-MM-DD) और authorizationEvidence (प्रमाण के URL या फ़ाइल पथ का ऐरे) दर्ज करें। सूची ये रिकॉर्ड सुरक्षित रखती है; अनुपलब्ध मान खाली रहते हैं। यह व्यावसायिक अनुमति का स्वतः प्रमाण नहीं है।',
     executionReview: 'सामग्री निष्पादन के प्रमाण की समीक्षा करें: {0}। पृष्ठभूमि कार्य की पुष्टि, व्यावसायिक कार्य अवधि और समकालिक विकल्प के कारण जाँचें।',
-    localFileUnavailable: 'चित्र फ़ाइल नहीं मिली: {0}। कमांड की कार्य निर्देशिका जाँचें या पूर्ण पथ दें।',
-    invalidStrategy: 'चित्र आवश्यकताएँ एक ऑब्जेक्ट में दें, जिसमें हर पृष्ठ के चित्र स्थान हों।',
+    localFileUnavailable: "चित्र फ़ाइल नहीं मिली: {0}। कमांड की कार्य निर्देशिका जाँचें या पूर्ण पथ दें।",
+    invalidStrategy: "चित्र आवश्यकताएँ एक ऑब्जेक्ट में दें, जिसमें हर पृष्ठ के चित्र स्थान हों।",
   },
   help: {
     cmd_check_design: 'डिज़ाइन दस्तावेज़, थीम चर और PRD हस्तांतरण सत्यापित करें',
@@ -68,8 +68,8 @@ module.exports = {
     design_plan_preview_invalid: 'मसौदा अपडेट विफल; त्रुटि विवरण देखें',
     cmd_design_plan_catalog: 'योजना के लिए उपलब्ध थीम और पेज पैटर्न दिखाएँ',
     cmd_design_plan_init: 'पुष्टि की गई आवश्यकताओं से योजना का मसौदा बनाएँ',
-    cmd_design_plan_materialize: 'योजना दस्तावेज़ और थीम बनाएँ या अपडेट करें और संगति जाँचें',
-    cmd_design_plan_patch: 'योजना के फ़ील्ड बदलें और ज़रूरत पर दस्तावेज़ व थीम सिंक करें',
+    cmd_design_plan_materialize: "योजना दस्तावेज़ और थीम बनाएँ या अपडेट करें और संगति जाँचें",
+    cmd_design_plan_patch: "योजना के फ़ील्ड बदलें और ज़रूरत पर दस्तावेज़ व थीम सिंक करें",
     cmd_update_app: 'ऐप जानकारी अपडेट करें',
     cmd_app_online: 'Yida ऐप सक्षम करें',
     cmd_app_offline: 'Yida ऐप अक्षम करें',
@@ -99,7 +99,7 @@ module.exports = {
     cmd_get_form_config: 'Query form configuration',
     group_data: 'डेटा & अनुमतियां',
     cmd_data: 'एकीकृत डेटा प्रबंधन (फॉर्म/प्रक्रिया/कार्य/उप-फॉर्म)',
-    data_notes: 'DateField में मिलीसेकंड का संख्यात्मक Unix टाइमस्टैम्प और CascadeDateField में उनका ऐरे दें। व्यावसायिक समय क्षेत्र के अनुसार बदलें; तारीख की स्ट्रिंग और सेकंड मान स्वीकार नहीं हैं। --resolve-aliases केवल फ़ील्ड नाम बदलता है।',
+    data_notes: "DateField में मिलीसेकंड का संख्यात्मक Unix टाइमस्टैम्प और CascadeDateField में उनका ऐरे दें। व्यावसायिक समय क्षेत्र के अनुसार बदलें; तारीख की स्ट्रिंग और सेकंड मान स्वीकार नहीं हैं। --resolve-aliases केवल फ़ील्ड नाम बदलता है।",
     cmd_task_center: 'वैश्विक कार्य केंद्र (लंबित/संसाधित/CC आदि)',
     cmd_basic_info: 'संगठन की मूल जानकारी, क्षमता, कोटा और डोमेन देखें',
     cmd_read_dingtalk_doc: 'DingTalk दस्तावेज़ की Markdown सामग्री प्राप्त करें',
@@ -111,7 +111,7 @@ module.exports = {
     group_process: 'प्रक्रिया',
     cmd_configure_process: 'प्रक्रिया नियम कॉन्फ़िगर और प्रकाशित करें; JSON nodes[].actions.normalActions/appendActions से अनुमोदक जोड़ें और अग्रेषित करें',
     cmd_create_process: 'प्रक्रिया फॉर्म बनाएं (एकीकृत); JSON nodes[].actions.normalActions/appendActions से अनुमोदक जोड़ें और अग्रेषित करें',
-    create_process_notes: 'formMode=create|reuse नए और पुनः उपयोग किए गए फ़ॉर्म में अंतर बताता है। पुनः उपयोग पर formTitle और fieldCount null (पूछे नहीं गए) होते हैं; नए फ़ॉर्म पर नाम और फ़ील्ड संख्या लौटती है। कॉन्फ़िगरेशन विफल होने पर भी यही नियम है। परिणाम के लिए success और verificationLevel देखें। --replace केवल स्पष्ट अनुमति से मौजूदा ड्राफ़्ट या प्रकाशित प्रक्रिया को पूरा बदलने के लिए है।',
+    create_process_notes: "formMode=create|reuse नए और पुनः उपयोग किए गए फ़ॉर्म में अंतर बताता है। पुनः उपयोग पर formTitle और fieldCount null (पूछे नहीं गए) होते हैं; नए फ़ॉर्म पर नाम और फ़ील्ड संख्या लौटती है। कॉन्फ़िगरेशन विफल होने पर भी यही नियम है। परिणाम के लिए success और verificationLevel देखें। --replace केवल स्पष्ट अनुमति से मौजूदा ड्राफ़्ट या प्रकाशित प्रक्रिया को पूरा बदलने के लिए है।",
     cmd_ai_form_setting: 'Manage process form AI approval prompts',
     cmd_process_preview: 'प्रक्रिया इंस्टेंस पूर्वावलोकन (फ्लोचार्ट)',
     group_share: 'पेज कॉन्फ़िगरेशन & शेयरिंग',
@@ -280,12 +280,12 @@ module.exports = {
       '  openyida create-app "Attendance" "Employee Attendance" "daka" "#00B853" "deepBlue" "dark" "slide"\n' +
       '  openyida create-page APP_XXX "Game Home"\n' +
       '  openyida create-form create APP_XXX "Employee Info" .cache/openyida/forms/employee-fields.json\n' +
-      '  openyida create-form update APP_XXX FORM-XXX \'[{"action":"add","field":{"type":"TextField","label":"Notes"}}]\'\n' +
+      `  openyida create-form update APP_XXX FORM-XXX '[{"action":"add","field":{"type":"TextField","label":"Notes"}}]'\n` +
       '  openyida list-forms APP_XXX\n' +
       '  openyida list-forms APP_XXX --keyword customer\n' +
       '  openyida get-schema APP_XXX FORM-XXX\n' +
       '  openyida get-schema APP_XXX --all --output-dir .cache/schemas\n' +
-      '  openyida formula evaluate \'IF(GT(#{numberField_total}, 100), "high", "low")\' --schema .cache/schema.json\n' +
+      `  openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "high", "low")' --schema .cache/schema.json\n` +
       '  openyida publish pages/src/home.canvas.jsx APP_XXX FORM-XXX\n' +
       '  openyida verify-short-url APP_XXX FORM-XXX /o/myapp\n' +
       '  openyida save-share-config APP_XXX FORM-XXX /o/myapp y n\n' +
@@ -348,7 +348,7 @@ module.exports = {
     check_prd_completeness_usage: 'Usage: openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]',
     check_prd_completeness_example: 'Example: openyida check-prd-completeness prd/order-management/prd.md --app-type APP_XXX --build-manifest prd/order-management/build-manifest.json --json',
     formula_usage: 'Usage: openyida formula evaluate <formula|file> [--schema schema.json] [--json] [--strict]',
-    formula_example: 'Example: openyida formula evaluate \'IF(GT(#{numberField_total}, 100), "high", "low")\' --schema .cache/schema.json',
+    formula_example: `Example: openyida formula evaluate 'IF(GT(#{numberField_total}, 100), "high", "low")' --schema .cache/schema.json`,
     verify_usage: 'Usage: openyida verify-short-url <appType> <formUuid> <url>',
     verify_example: 'Example: openyida verify-short-url APP_XXX FORM-XXX /o/myapp',
     share_usage: 'Usage: openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]',
@@ -379,7 +379,7 @@ module.exports = {
     get_permission_usage: 'Usage: openyida get-permission <appType> <formUuid> [--package-uuid <packageUuid>]',
     get_permission_example: 'Example: openyida get-permission APP_XXX FORM-XXX',
     save_permission_usage: 'Usage: openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>]',
-    save_permission_example: 'Example: openyida save-permission APP_XXX FORM-XXX --data-permission \'{"role":"DEFAULT","dataRange":"SELF"}\'',
+    save_permission_example: `Example: openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ Execution failed: {0}',
     login_usage: 'Usage: openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
     login_example: 'Examples:\n  openyida login                         # Automatically open the browser via OAuth loopback login\n  openyida login --no-browser            # Let the caller handle the authorization URL\n  openyida login --check-only --json     # Check token auth status only\n  openyida login --intl                  # Login against the international environment\n  OPENYIDA_NO_BROWSER=1 openyida login   # Let the caller handle the authorization URL via env variable\n  openyida auth login                    # Login alias',
@@ -855,7 +855,7 @@ module.exports = {
     usage_create: 'Usage: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     example_create: 'Example: openyida create-form create "APP_XXX" "Employee Info" .cache/openyida/forms/employee-fields.json',
     usage_update: 'Usage: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
-    example_update: 'Example: openyida create-form update "APP_XXX" "FORM-YYY" \'[{"action":"add","field":{"type":"TextField","label":"Note"}}]\'',
+    example_update: `Example: openyida create-form update "APP_XXX" "FORM-YYY" '[{"action":"add","field":{"type":"TextField","label":"Note"}}]'`,
     usage_label: 'Usage:',
     usage_create_short: '  create: openyida create-form create <appType> <formTitle> <fieldsJsonFile>',
     usage_update_short: '  update: openyida create-form update <appType> <formUuid> <changesJsonOrFile>',
@@ -1071,7 +1071,7 @@ module.exports = {
     theme_preset_conflict: 'प्रीसेट colour को CSS या themeColor के साथ नहीं भेज सकते। --colour custom उपयोग करें या --colour छोड़ दें।',
     custom_theme_color_required: 'colour=custom के लिए थीम फ़ाइल या मान्य themeColor चाहिए। --theme-file या --theme-color दें।',
     theme_not_persisted: 'सहेजने के बाद ऐप की थीम सेटिंग की पुष्टि नहीं हो सकी। themeVerification जाँचें और update-app <appType> --theme-file <css> से पुनः प्रयास करें; ऐप दोबारा न बनाएँ।',
-    navigation_not_persisted: 'नेविगेशन सेटिंग दोबारा पढ़ी नहीं जा सकीं या अनुरोधित मानों से मेल नहीं खातीं। navigationVerification में अपेक्षित मान, वास्तविक मान और पढ़ने की त्रुटियाँ देखें, फिर ऐप की वर्तमान सेटिंग जाँचें।',
+    navigation_not_persisted: "नेविगेशन सेटिंग दोबारा पढ़ी नहीं जा सकीं या अनुरोधित मानों से मेल नहीं खातीं। navigationVerification में अपेक्षित मान, वास्तविक मान और पढ़ने की त्रुटियाँ देखें, फिर ऐप की वर्तमान सेटिंग जाँचें।",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
     example: 'Example: openyida update-app APP_XXX --name "New App Name" --layout ver --theme deepBlue',
     options: 'Options:\n' +
@@ -1109,7 +1109,7 @@ module.exports = {
     offline_success: 'ऐप अक्षम किया गया',
   },
   create_process: {
-    invalid_argument: 'तर्क {0} अनुपस्थित या अमान्य है। नीचे दिए सिंटैक्स के अनुसार सुधारें।',
+    invalid_argument: "तर्क {0} अनुपस्थित या अमान्य है। नीचे दिए सिंटैक्स के अनुसार सुधारें।",
     title: 'Yida Process Form Creation',
     app_id: 'App ID',
     mode: 'Mode',
@@ -1138,7 +1138,7 @@ module.exports = {
     manual_hint: 'Please configure the process manually in Yida admin. Form UUID: {0}',
     configuring_process: 'Configuring and publishing process',
     configure_failed: 'Failed to configure process',
-    preserve_existing_form: 'मूल फ़ॉर्म मौजूद है। formUuid से उसकी स्थिति और विफलता का कारण केवल पढ़कर जाँचें और उसे बनाए रखें। पुनर्प्राप्ति के लिए --formUuid न हटाएँ, फ़ॉर्म दोबारा न बनाएँ और उसी नाम का नया फ़ॉर्म न बनाएँ। noWriteRetry=true होने पर लिखने का पुनः प्रयास न करें।',
+    preserve_existing_form: "मूल फ़ॉर्म मौजूद है। formUuid से उसकी स्थिति और विफलता का कारण केवल पढ़कर जाँचें और उसे बनाए रखें। पुनर्प्राप्ति के लिए --formUuid न हटाएँ, फ़ॉर्म दोबारा न बनाएँ और उसी नाम का नया फ़ॉर्म न बनाएँ। noWriteRetry=true होने पर लिखने का पुनः प्रयास न करें।",
     retry_hint: 'Process configuration failed, but the form was created. Fix the process definition and retry with this command:',
     fields_not_found: 'Fields definition file not found',
     process_def_not_found: 'Process definition file not found',
@@ -1879,7 +1879,7 @@ module.exports = {
   report_runtime: require('../../lib/report/i18n-messages').hi,
   safe_json: {
     hint_unquoted_key: 'A key looks unquoted (JSON requires all keys wrapped in double quotes, e.g. {"name":1})',
-    hint_single_quote: 'Single quotes were likely used (JSON only allows double quotes ", not single quotes \')',
+    hint_single_quote: `Single quotes were likely used (JSON only allows double quotes ", not single quotes ')`,
     hint_trailing_comma: 'There is likely a trailing comma (JSON does not allow a comma right before } or ])',
     hint_smart_quote: 'Smart / curly quotes were likely used (“ ” ‘ ’); replace them with standard ASCII double quotes "',
     hint_generic: 'Invalid JSON; please check it against the standard JSON syntax',
