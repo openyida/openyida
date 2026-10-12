@@ -550,6 +550,8 @@ function buildTokenLoginOptions(loginArgs) {
     quiet: process.env.YIDA_QUIET === '1' || loginArgs.includes('--quiet'),
     noBrowser: device || loginArgs.includes('--no-browser'),
     device,
+    deviceRequestOnly: loginArgs.includes('--request-only'),
+    devicePoll: loginArgs.includes('--poll'),
     envHint: getArgValue(loginArgs, '--env-hint'),
     // Machine-readable progress events for agent runtimes (sandbox browsers,
     // CI dashboards). Emits one JSON line per state transition.
