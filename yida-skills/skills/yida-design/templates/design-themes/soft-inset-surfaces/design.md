@@ -24,7 +24,7 @@ tokens:
         "--pod-nav-item-text-hover-color": "rgba(255, 255, 255, 0.8)"
         "--pod-nav-item-text-selected-color": "#FFFFFF"
         "--pod-nav-menu-bg-hover-color": "rgba(255, 255, 255, 0.12)"
-        "--pod-nav-menu-bg-selected-color": "var(--color-brand1-6)"
+        "--pod-nav-menu-bg-selected-color": "var(--color-brand1-5)"
         "--pod-nav-menu-item-height": "36px"
         "--pod-nav-menu-item-radius": "8px"
         "--pod-nav-menu-item-selected-font-weight": "500"

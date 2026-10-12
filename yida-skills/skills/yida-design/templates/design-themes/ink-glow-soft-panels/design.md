@@ -16,7 +16,7 @@ tokens:
       navigation:
         "--pod-nav-sub-divider-color": "#DEDEDE"
         "--pod-shell-theme-bg-color": "var(--color-brand1-2)"
-        "--pod-nav-item-text-color": "#666666"
+        "--pod-nav-item-text-color": "#626262"
         "--pod-nav-item-text-hover-color": "#181818"
         "--pod-nav-item-text-selected-color": "#FFFFFF"
         "--pod-nav-menu-bg-hover-color": "var(--color-brand1-3)"

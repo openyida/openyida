@@ -18,7 +18,7 @@ tokens:
         "--pod-shell-theme-bg-color": "#F4F6F8" # 固定冷灰框架；独立于品牌派生灰
         "--pod-nav-item-text-color": "var(--color-text1-3)"
         "--pod-nav-item-text-hover-color": "var(--color-text1-4)"
-        "--pod-nav-item-text-selected-color": "var(--color-brand1-6)"
+        "--pod-nav-item-text-selected-color": "var(--color-brand1-5)"
         "--pod-nav-menu-bg-hover-color": "#EFEFEF"
         "--pod-nav-menu-bg-selected-color": "#FFFFFF"
         "--pod-nav-menu-item-height": "36px"

@@ -158,10 +158,10 @@ test('initialization derives navigation tone from the selected theme and replace
   const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
   expect(plan.visualStyle.forUser.navigationStyle).toMatchObject({
     structure: 'top',
-    tone: 'light',
+    tone: 'dark',
     toneSource: 'theme_derived',
   });
-  expect(fs.readFileSync(result.context, 'utf8')).toContain('tone=light 由已选主题模板派生，不要修改');
+  expect(fs.readFileSync(result.context, 'utf8')).toContain('tone=dark 由已选主题模板派生，不要修改');
 });
 
 test.each([undefined, 'ai_default', 'user_selected'])('visual selection preserves its actual source: %s', source => {

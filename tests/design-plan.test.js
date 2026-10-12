@@ -659,19 +659,19 @@ describe('design-plan materialize', () => {
       selectionReason: '高频流程处理需要稳定入口，深色导航加强模块边界。',
     };
     plan.visualStyle.tokens = {
-      '--pod-shell-theme-bg-color': '#EDF4FF', '--pod-nav-item-text-color': '#183A6B',
-      '--pod-nav-menu-bg-selected-color': '#BAD7FF',
+      '--pod-shell-theme-bg-color': '#183A6B', '--pod-nav-item-text-color': '#FFFFFF',
+      '--pod-nav-item-text-selected-color': '#183A6B', '--pod-nav-menu-bg-selected-color': '#BAD7FF',
     };
     const design = renderDesign(plan);
     const section = design.split('### 2.2 应用导航')[1].split('### 2.3 ')[0];
     expect(section).toContain('布局依据：高频流程处理需要稳定入口');
-    expect(section).toContain('明暗依据：沿用已选应用风格的导航明暗，当前为浅色');
-    expect(section).toContain('| 导航背景 | --pod-shell-theme-bg-color | #EDF4FF |');
+    expect(section).toContain('明暗依据：沿用已选应用风格的导航明暗，当前为深色');
+    expect(section).toContain('| 导航背景 | --pod-shell-theme-bg-color | #183A6B |');
     expect(section).not.toContain(theme.navigationSummary);
     expect(section).not.toContain('深色导航');
     expect(section).not.toContain('当前模板使用');
-    expect(section).toContain('图标跟随对应文字状态');
-    expect(section).toContain('键盘焦点可见');
+    expect(section).toContain('文字、placeholder 与图标各有独立角色');
+    expect(section).toContain('保留入口名称、当前项和键盘焦点');
     expect(readDesignTokens(design)).toMatchObject(plan.visualStyle.tokens);
     expect(validateDesignDocument(design).success).toBe(true);
   });
@@ -719,7 +719,7 @@ describe('design-plan materialize', () => {
       expect(pageBody).toContain(`- ${label}：`);
     }
     const projectChapter = body.slice(body.indexOf('## 5. 项目应用与调整规则'));
-    expect(projectChapter).toContain('独立金色／粉色分类和平台状态色保留各自用途');
+    expect(projectChapter).toContain('绿／金／粉分类、阶段色和图标底盒保持固定');
     expect(projectChapter).toContain('### 主题表达验收');
     expect(projectChapter).not.toMatch(/sRGB|round\(|themeId|生成标记|### 项目页面设计|每页包含以下结果/);
     expect(validateDesignDocument(markdown, { prdMarkdown: fs.readFileSync(result.outputs.prd, 'utf8') }).success).toBe(true);
@@ -808,12 +808,12 @@ describe('design-plan materialize', () => {
     expect(prd).not.toContain('主题模板：');
     expect(compactDesign).toContain('- 视觉方向：稳重流程型');
     expect(compactDesign).toContain('- 导航类型：平台侧边导航');
-    expect(compactDesign).toContain('- 导航明暗：浅色');
+    expect(compactDesign).toContain('- 导航明暗：深色');
     expect(compactDesign).toContain('- 导航背景：`--pod-shell-theme-bg-color`');
     expect(compactDesign).not.toMatch(/^themeId:/m);
     expect(compactDesign).not.toContain('soft-inset-surfaces');
     expect(html).toContain('<strong>导航结构：</strong>平台侧边导航');
-    expect(html).toContain('<strong>导航明暗：</strong>浅色');
+    expect(html).toContain('<strong>导航明暗：</strong>深色');
     expect(html).toContain('高频流程处理需要稳定入口，深色导航加强模块边界。');
   });
 
@@ -844,7 +844,7 @@ describe('design-plan materialize', () => {
     const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
     const design = renderDesign(plan);
     const green = readDesignTokens(design);
-    expect(green['--pod-shell-theme-bg-color']).toBe('#F7F7F7');
+    expect(green['--pod-shell-theme-bg-color']).toBe('#181c1f');
     expect(green['--pod-page-bg-color']).toBe('#FAFAFA');
     expect(green['--pod-card-bg-color']).toBe('#FFFFFF');
     expect(green['--pod-card-border']).toBeUndefined();
@@ -852,7 +852,7 @@ describe('design-plan materialize', () => {
     expect(green['--color-text1-4']).toBe('#303030');
     expect(green['--color-text1-10']).toBe('#606060');
     expect(green['--color-text1-3']).toBe('#666666');
-    expect(applyDesignTokens(template, design)).toContain('--pod-shell-theme-bg-color: #F7F7F7;');
+    expect(applyDesignTokens(template, design)).toContain('--pod-shell-theme-bg-color: #181c1f;');
     expect(applyDesignTokens(template, design)).toContain('--pod-page-bg-color: #FAFAFA;');
     plan.visualStyle.forUser.colorStrategy.primaryColor = '#6F4E37';
     const brown = readDesignTokens(renderDesign(plan));
@@ -877,7 +877,7 @@ describe('design-plan materialize', () => {
       const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
       const design = renderDesign(plan);
       const tokens = readDesignTokens(design);
-      expect(tokens['--pod-shell-theme-bg-color']).toBe('#F7F7F7');
+      expect(tokens['--pod-shell-theme-bg-color']).toBe('#181c1f');
       expect(tokens['--pod-page-bg-color']).toBe('#FAFAFA');
       expect(applyDesignTokens(template, design)).toContain('--pod-page-bg-color: #FAFAFA;');
       plan.visualStyle.tokens = {
@@ -892,7 +892,7 @@ describe('design-plan materialize', () => {
   );
 
   test.each([
-    ['soft-inset-surfaces', 'light', 'dark'],
+    ['soft-inset-surfaces', 'dark', 'light'],
     ['dark-rail-signal-panels', 'dark', 'light'],
   ])('selected %s theme derives %s navigation and shares its palette across platform modes', (themeId, tone, staleTone) => {
     const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
@@ -1046,7 +1046,7 @@ describe('design-plan materialize', () => {
   });
 
   test.each([
-    ['soft-inset-surfaces', 'dark', 'light'],
+    ['soft-inset-surfaces', 'light', 'dark'],
     ['dark-rail-signal-panels', 'light', 'dark'],
   ])('%s ignores stale %s input and keeps its derived %s navigation palette', (themeId, staleTone, tone) => {
     const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
@@ -1298,7 +1298,7 @@ describe('design-plan materialize', () => {
 
   test('business navigation cannot silently override visual choices', () => {
     const plan = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
-    plan.execution = { appConfig: { navTheme: 'dark' } };
+    plan.execution = { appConfig: { navTheme: 'light' } };
     expect(() => renderPrd(plan)).toThrow(/视觉事实冲突/);
   });
 

@@ -274,7 +274,7 @@
   --pod-nav-page-white-bg-color: rgba(246, 247, 247, 1);
   --pod-nav-page-padding: var(--pod-lg-gap-pad-margin, 16px);
   --pod-nav-avater-border-radius: 6px;
-  --pod-nav-item-text-color: #666666;
+  --pod-nav-item-text-color: #626262;
   --pod-nav-item-text-hover-color: #181818;
   --pod-nav-item-text-disabled-color: rgba(24, 28, 31, 0.24);
   --pod-page-header-bg-color: var(--pod-shell-theme-bg-color, var(--color-white, #fff));

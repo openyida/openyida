@@ -276,7 +276,7 @@
   --pod-nav-item-text-color: var(--color-text1-3);
   --pod-nav-item-text-hover-color: var(--color-text1-4);
   --pod-nav-item-text-disabled-color: rgba(24, 28, 31, 0.24);
-  --pod-nav-item-text-selected-color: var(--color-brand1-6);
+  --pod-nav-item-text-selected-color: var(--color-brand1-5);
   --pod-page-header-bg-color: var(--pod-shell-theme-bg-color, var(--color-white, #fff));
   --pod-theme-text-color: var(--pod-nav-item-text-color, var(--color-text1-4, #202020));
   --pod-page-header-text-color: var(--pod-theme-text-color, var(--color-text1-4, #202020));

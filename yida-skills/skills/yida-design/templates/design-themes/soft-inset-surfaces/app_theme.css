@@ -253,7 +253,7 @@
   --pod-nav-sub-indent: 24px;
   --pod-nav-sub-divider-color: rgba(255, 255, 255, 0.08);
   --pod-nav-menu-bg-hover-color: rgba(255, 255, 255, 0.12);
-  --pod-nav-menu-bg-selected-color: var(--color-brand1-6);
+  --pod-nav-menu-bg-selected-color: var(--color-brand1-5);
   --pod-nav-tab-line-hover-color: var(--color-brand1-6, rgba(155, 136, 121, 1));
   --pod-nav-tab-line-selected-color: var(--color-brand1-6, rgba(155, 136, 121, 1));
   --pod-nav-search-bg-color: rgba(255, 255, 255, 0.12);
