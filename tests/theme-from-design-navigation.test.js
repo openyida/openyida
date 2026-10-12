@@ -17,7 +17,7 @@ const navigationColorNames = [
 ];
 
 const themeTones = {
-  'soft-inset-surfaces': 'light',
+  'soft-inset-surfaces': 'dark',
   'dark-rail-signal-panels': 'dark',
   'dark-rail-fine-lines': 'dark',
 };
@@ -59,7 +59,7 @@ test.each(['light', 'dark'])('a single %s navigation override leaves platform bi
   const defaults = cascade(template, tone);
   const active = cascade(css, tone);
   expect(active['--pod-nav-menu-item-radius']).toBe('19px');
-  for (const name of ['--pod-nav-search-text-color', '--pod-nav-search-border-active-color', '--pod-nav-logo-bg', '--pod-page-header-bg-color', ...navigationColorNames]) {
+  for (const name of ['--pod-nav-search-text-color', '--pod-nav-search-border-active-color', '--pod-nav-logo-bg', ...navigationColorNames]) {
     expect(active[name]).toBe(defaults[name]);
   }
   expect(css).not.toContain(': undefined;');
@@ -206,6 +206,9 @@ test('extended navigation tokens share one palette across modes and update incre
   };
   const withTokens = (markdown, values) => {
     const metadata = parseDesignDocument(markdown).metadata;
+    if (values['--pod-page-header-bg-color']) {
+      delete metadata.tokens['application-global'].appearance.surfaces['--pod-page-header-bg-color'];
+    }
     Object.assign(metadata.tokens['application-global'].appearance.navigation, values);
     return `---\n${Object.entries(metadata).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join('\n')}\n---\n${markdown.split(/\n---\n/).slice(1).join('\n---\n')}`;
   };

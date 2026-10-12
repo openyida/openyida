@@ -132,7 +132,7 @@
   --pod-shell-content-container-margin: 0px;
   --pod-shell-content-container-border: none;
   --pod-shell-content-container-bg-color: transparent;
-  --pod-shell-theme-bg-color: #F4f6f8;
+  --pod-shell-theme-bg-color: #F4F6F8;
 
   /* 页面容器 */
   --pod-page-surface-padding: 0px;
@@ -260,7 +260,7 @@
   --pod-nav-search-bg-color: #FFFFFF;
   --pod-nav-search-bg-hover-color: #FFFFFF;
   --pod-nav-search-bg-active-color: #FFFFFF;
-  --pod-nav-search-placeholder-color: var(--color-text1-2);
+  --pod-nav-search-placeholder-color: var(--color-text1-10);
   --pod-nav-search-text-color: var(--pod-nav-item-text-hover-color, var(--color-text1-4, #202020));
   --pod-nav-search-icon-color:  var(--color-text1-2);
   --pod-nav-search-border-hover-color: var(--color-brand1-6, rgba(155, 136, 121, 1));

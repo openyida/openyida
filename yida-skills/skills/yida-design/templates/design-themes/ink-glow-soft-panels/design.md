@@ -20,7 +20,7 @@ tokens:
         "--pod-nav-item-text-hover-color": "#181818"
         "--pod-nav-item-text-selected-color": "#FFFFFF"
         "--pod-nav-menu-bg-hover-color": "var(--color-brand1-3)"
-        "--pod-nav-menu-bg-selected-color": "radial-gradient(ellipse at 50% 125%, var(--oyd-emphasis-glow, #106058) 0%, var(--oyd-emphasis-bg, #090F0E) 72%)"
+        "--pod-nav-menu-bg-selected-color": "var(--oyd-emphasis-bg)"
         "--pod-nav-menu-item-height": "40px"
         "--pod-nav-menu-item-radius": "30px"
         "--pod-nav-menu-item-selected-font-weight": "500"

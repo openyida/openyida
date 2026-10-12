@@ -2,7 +2,7 @@
 name: "{{PROJECT_NAME}}"
 description: "以主题色轻染的浅灰外衬、近白画布和柔圆白面板构成低对比分层；深色图片侧栏以品牌实底标记选中，细线图标、浅色圆形标记与局部主题色强调组织阅读，浮层以独立白面和克制投影浮起。"
 themeId: soft-inset-surfaces
-navTheme: light
+navTheme: dark
 tokens:
   application-global:
     appearance:
@@ -19,10 +19,10 @@ tokens:
         "--pod-overlay-color-hover": "rgba(255, 255, 255, 0.12)"
       navigation:
         "--pod-nav-sub-divider-color": "rgba(255, 255, 255, 0.08)"
-        "--pod-shell-theme-bg-color": "#F7F7F7"
+        "--pod-shell-theme-bg-color": "#181c1f"
         "--pod-nav-item-text-color": "rgba(255, 255, 255, 0.6)"
         "--pod-nav-item-text-hover-color": "rgba(255, 255, 255, 0.8)"
-        "--pod-nav-item-text-selected-color": "rgba(255, 255, 255, 0.8)"
+        "--pod-nav-item-text-selected-color": "#FFFFFF"
         "--pod-nav-menu-bg-hover-color": "rgba(255, 255, 255, 0.12)"
         "--pod-nav-menu-bg-selected-color": "var(--color-brand1-6)"
         "--pod-nav-menu-item-height": "36px"
@@ -33,8 +33,8 @@ tokens:
         "--pod-nav-search-bg-color": "rgba(255, 255, 255, 0.12)"
         "--pod-nav-search-bg-hover-color": "rgba(255, 255, 255, 0.12)"
         "--pod-nav-search-bg-active-color": "rgba(255, 255, 255, 0.12)"
-        "--pod-nav-search-placeholder-color": "rgba(255, 255, 255, 0.08)"
-        "--pod-nav-search-text-color": "rgba(255, 255, 255, 0.4)"
+        "--pod-nav-search-placeholder-color": "rgba(255, 255, 255, 0.8)"
+        "--pod-nav-search-text-color": "rgba(255, 255, 255, 0.8)"
         "--pod-nav-search-icon-color": "rgba(255, 255, 255, 0.2)"
         "--pod-nav-item-text-disabled-color": "rgba(255, 255, 255, 0.8)"
         "--pod-nav-slide-aside-padding": "12px 12px 12px calc(22px - var(--pod-shell-padding, 4px))"

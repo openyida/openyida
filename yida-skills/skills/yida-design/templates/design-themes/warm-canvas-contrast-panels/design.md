@@ -29,7 +29,7 @@ tokens:
         "--pod-nav-top-tab-height": "40px"
         "--pod-nav-search-height": "36px"
         "--pod-nav-menu-item-selected-shadow": "inset 3px 0 0 0 var(--color-brand1-6)"
-        "--pod-nav-search-text-color": "var(--color-text1-1)"
+        "--pod-nav-search-text-color": "var(--color-text1-10)"
         "--pod-nav-menu-item-border": "none"
         "--pod-nav-menu-item-hover-border": "var(--pod-nav-menu-item-border)"
         "--pod-nav-menu-item-selected-border": "var(--pod-nav-menu-item-border)"

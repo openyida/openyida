@@ -262,7 +262,7 @@
   --pod-nav-search-bg-hover-color: var(--pod-nav-menu-bg-hover-color, rgba(24, 28, 31, 0.06));
   --pod-nav-search-bg-active-color: var(--pod-nav-menu-bg-hover-color, rgba(24, 28, 31, 0.06));
   --pod-nav-search-placeholder-color: var(--pod-nav-item-text-hover-color, var(--color-text1-4, #202020));
-  --pod-nav-search-text-color: var(--color-text1-1);
+  --pod-nav-search-text-color: var(--color-text1-10);
   --pod-nav-search-icon-color: var(--pod-nav-item-text-color, var(--color-text1-4, #202020));
   --pod-nav-search-border-hover-color: var(--color-brand1-6, rgba(155, 136, 121, 1));
   --pod-nav-search-border-active-color: var(--color-brand1-6, rgba(155, 136, 121, 1));

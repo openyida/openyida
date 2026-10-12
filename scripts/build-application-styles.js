@@ -63,7 +63,15 @@ function build({ root = DESIGN_SKILL_ROOT, themes = loadThemeIndex().themes, che
     if (source !== path.join(directory, 'design.md') || output !== path.join(directory, 'app_theme.css')) {
       throw new Error(`Invalid theme paths: ${theme.themeId}`);
     }
-    return [output, cssTemplate(fs.readFileSync(source, 'utf8'))];
+    const compiled = cssTemplate(fs.readFileSync(source, 'utf8'));
+    // Some complete themes intentionally own selector-level recipes in their
+    // paired CSS that cannot be reconstructed from design tokens alone. Still
+    // compile their design to validate tokens and contrast, but preserve the
+    // explicitly authored stylesheet instead of erasing those recipes.
+    if (theme.cssSource === 'authored' && fs.existsSync(output)) {
+      return [output, fs.readFileSync(output, 'utf8')];
+    }
+    return [output, compiled];
   });
   const changed = outputs.filter(([file, css]) => !fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== css);
   if (check && changed.length) {throw new Error(`Theme CSS out of date: ${changed.map(([file]) => path.relative(root, file)).join(', ')}`);}

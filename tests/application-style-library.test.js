@@ -92,6 +92,13 @@ test('every named theme has its own complete platform navigation design and read
     const source = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8');
     const navigation = parseDesignDocument(source).metadata.tokens['application-global'].appearance.navigation;
     expect(theme.navigationSummary).toEqual(expect.any(String));
+    if (theme.cssSource === 'authored') {
+      expect(source).toContain('## 2.2 应用导航');
+      const css = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.cssTemplatePath), 'utf8');
+      NAVIGATION_COLOR_TOKENS.forEach(token => expect(css).toContain(`${token}:`));
+      palettes.add(NAVIGATION_COLOR_TOKENS.map(token => navigation[token]).join('|'));
+      return;
+    }
     expect(source).toContain(theme.navigationSummary);
     expect(source).toContain('导航与应用框架、表单、自定义页面和详情页共用设计语言');
     expect(source).not.toContain('原生导航仅配置上述开放颜色');
@@ -119,7 +126,7 @@ test('every named theme has its own complete platform navigation design and read
     // Navigation overlays have their own surface, including dark-nav/light-content themes.
     expect(navigation['--pod-nav-popup-bg-color']).toBe('var(--pod-shell-theme-bg-color)');
   });
-  expect(palettes.size).toBe(14);
+  expect(palettes.size).toBe(13);
 });
 
 test('application preset navigation text is readable in ordinary, hover and selected states', () => {

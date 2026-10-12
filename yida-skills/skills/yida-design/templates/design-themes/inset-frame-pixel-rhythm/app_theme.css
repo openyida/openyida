@@ -239,7 +239,7 @@
   --pod-nav-menu-item-selected-border: 1px solid var(--oy-line);
   --pod-nav-menu-font-size: 14px;
   --pod-nav-menu-item-selected-font-weight: 600;
-  --pod-nav-menu-item-selected-shadow: var(shadow-1);
+  --pod-nav-menu-item-selected-shadow: var(--shadow-1);
   --pod-nav-menu-line-height: 20px;
   --pod-nav-menu-icon-size: 16px;
   --pod-nav-menu-arrow-icon-size: 12px;

@@ -266,7 +266,7 @@
   --pod-nav-search-icon-color: var(--pod-nav-item-text-color, var(--color-text1-4, #202020));
   --pod-nav-search-border-hover-color: var(--color-brand1-6, rgba(155, 136, 121, 1));
   --pod-nav-search-border-active-color: var(--color-brand1-6, rgba(155, 136, 121, 1));
-  --pod-nav-menu-bg-selected-color: radial-gradient(ellipse at 50% 125%, var(--oyd-emphasis-glow, #106058) 0%, var(--oyd-emphasis-bg, #090F0E) 72%);
+  --pod-nav-menu-bg-selected-color: var(--oyd-emphasis-bg);
   --pod-nav-popup-bg-color: var(--pod-shell-theme-bg-color);
 
   /* 导航：主题表面、文字与状态 */

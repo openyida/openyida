@@ -85,7 +85,7 @@ tokens:
       "--color-text1-5": "#FFFFFF" # neutral-gray；固定 Tooltip 反色文字，与 --color-fill1-10 配套
       "--color-text1-4": "#dbdbdb" # neutral-gray；一级文字、标题与核心数字
       "--color-text1-10": "#BEBEBE" # neutral-gray；表头与 placeholder
-      "--color-text1-3": "#7c7c7c" # neutral-gray；说明、元信息与坐标
+      "--color-text1-3": "#808080" # neutral-gray；说明、元信息与坐标
       "--color-text1-2": "#6B6B6B" # neutral-gray；仅禁用文字
       "--color-text1-1": "#414141" # neutral-gray；仅水印文字
     typography:

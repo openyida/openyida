@@ -34,7 +34,7 @@ tokens:
         "--pod-nav-search-bg-color": "#FFFFFF"
         "--pod-nav-search-bg-hover-color": "#FFFFFF"
         "--pod-nav-search-bg-active-color": "#FFFFFF"
-        "--pod-nav-search-placeholder-color": "var(--color-text1-2)"
+        "--pod-nav-search-placeholder-color": "var(--color-text1-10)"
         "--pod-nav-search-icon-color": "var(--color-text1-2)"
         "--pod-nav-menu-item-border": "none"
         "--pod-nav-menu-item-hover-border": "var(--pod-nav-menu-item-border)"

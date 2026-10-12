@@ -15,7 +15,7 @@ tokens:
         "--pod-shell-padding": "0px"
       navigation:
         "--pod-nav-sub-divider-color": "#353535"
-        "--pod-shell-theme-bg-color": "#FFFFFF"
+        "--pod-shell-theme-bg-color": "#1B1B1B"
         "--pod-nav-item-text-color": "#A0A0A0"
         "--pod-nav-item-text-hover-color": "#E7E7E7"
         "--pod-nav-item-text-selected-color": "#FFFFFF"

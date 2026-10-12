@@ -54,7 +54,9 @@ test.each(loadThemeIndex().themes)('$themeId exports the complete authored desig
       expect(fs.readFileSync(path.join(root, name), 'utf8')).toBe(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, source), 'utf8'));
     }
     const design = fs.readFileSync(path.join(root, 'design.md'), 'utf8');
-    expect(design).toContain('导航外观属于这份完整应用主题');
+    expect(design).toContain(theme.cssSource === 'authored'
+      ? '主题交接时分别核对 YAML Token 与 CSS 选择器规则'
+      : '导航外观属于这份完整应用主题');
     const tokens = readDesignTokens(resolveThemeColors(design.replaceAll('{{PRIMARY_COLOR}}', '#C2410C')));
     for (const name of ['--pod-shell-theme-bg-color', '--pod-nav-menu-item-radius', '--pod-page-bg-color', '--input-bg-color', '--pod-field-preview-bg-color']) {
       expect(tokens[name]).toEqual(expect.any(String));

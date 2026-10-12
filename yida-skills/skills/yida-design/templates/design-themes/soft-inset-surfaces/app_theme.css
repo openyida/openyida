@@ -131,7 +131,7 @@
   --pod-shell-content-container-margin: 0px;
   --pod-shell-content-container-border: none;
   --pod-shell-content-container-bg-color: transparent;
-  --pod-shell-theme-bg-color: #F7F7F7;
+  --pod-shell-theme-bg-color: #181c1f;
 
   /* 页面容器 */
   --pod-page-surface-padding: 0px;
@@ -167,9 +167,8 @@
   --pod-nav-l-header-padding: 8px 16px;
   --pod-nav-l-aside-padding: 8px;
   --pod-nav-slide-aside-gap: 12px;
-  --pod-nav-slide-aside-padding: 12px 12px 12px
-    calc(22px - var(--pod-shell-padding, 4px));
-  --pod-nav-slide-aside-collapsed-padding: 12px 12px 12px 12px     ;
+  --pod-nav-slide-aside-padding: 12px 12px 12px calc(22px - var(--pod-shell-padding, 4px));
+  --pod-nav-slide-aside-collapsed-padding: 12px 12px 12px 12px;
   --pod-nav-slide-collapsed-menu-gap: 4px;
   --pod-nav-slide-branding-height: 40px;
   --pod-nav-side-collapsed-width: 56px;
@@ -260,8 +259,8 @@
   --pod-nav-search-bg-color: rgba(255, 255, 255, 0.12);
   --pod-nav-search-bg-hover-color: rgba(255, 255, 255, 0.12);
   --pod-nav-search-bg-active-color: rgba(255, 255, 255, 0.12);
-  --pod-nav-search-placeholder-color: rgba(255, 255, 255, 0.08);
-  --pod-nav-search-text-color: rgba(255, 255, 255, 0.4);
+  --pod-nav-search-placeholder-color: rgba(255, 255, 255, 0.8);
+  --pod-nav-search-text-color: rgba(255, 255, 255, 0.8);
   --pod-nav-search-icon-color: rgba(255, 255, 255, 0.2);
   --pod-nav-search-border-hover-color: var(--color-brand1-6, rgba(155, 136, 121, 1));
   --pod-nav-search-border-active-color: var(--color-brand1-6, rgba(155, 136, 121, 1));
@@ -274,7 +273,7 @@
   --pod-nav-avater-border-radius: 6px;
   --pod-nav-item-text-color: rgba(255, 255, 255, 0.6);
   --pod-nav-item-text-hover-color: rgba(255, 255, 255, 0.8);
-  --pod-nav-item-text-selected-color:rgba(255, 255, 255, 0.8);
+  --pod-nav-item-text-selected-color:#FFFFFF;
   --pod-nav-item-text-disabled-color: rgba(255, 255, 255, 0.8);
   --pod-page-header-bg-color: #181c1f;
   --pod-theme-text-color: var(--pod-nav-item-text-color, var(--color-text1-4, #202020));
