@@ -160,6 +160,7 @@ description: >
 | 修改已有流程节点/分支/字段权限，配置加签/转交操作权限 | `yida-process-rule`；加签/转交先读其 `references/approval-actions.md` |
 | 查字段 ID / 保存 Schema 证据 | `yida-get-schema`；凡涉及 fieldId 的数据、流程、公式、页面代码先取证 |
 | 改表单数据记录 | `yida-data-management`，不是 `yida-create-form-page` |
+| 查询流程当前任务、管理员转交已有流程任务 | `yida-data-management`；先查询 process-tasks，再 transfer task 并回读实际处理人 |
 | 配字段默认值、计算、校验 | `yida-formula`；静态检查用 `yida-formula-evaluate` |
 | 提交后跨表写入/更新/删除 | 默认 `yida-integration`；用户明确要业务关联规则/高级函数时用 `yida-business-rule` |
 | 集成自动化从上游节点子表取数或新增一行 | `yida-integration` 的 `--spec` 新建路径；不要用 `integration update` 或现网 `--replace` |

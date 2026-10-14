@@ -2145,3 +2145,14 @@ module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en')
 module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
+
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: 'Ungültige Argumente: query benötigt appType und --process-inst-id; transfer zusätzlich --form-uuid, --to-user-id, --expect-form-name und --expect-form-type process. taskId muss eine positive Ganzzahl sein; unbekannte Optionen sind nicht zulässig.',
+  query_failed: 'Die Aufgabenabfrage ist fehlgeschlagen; keine Übertragung ausgeführt.',
+  response_invalid: 'Antwortstruktur, Aufgaben-ID oder Prozesszugehörigkeit konnte nicht geprüft werden.',
+  not_running: 'Die angegebene Aufgabe läuft nicht im Zielprozess, oder es gibt keine laufende Aufgabe; keine Übertragung ausgeführt.',
+  ambiguous: 'Mehrere Aufgaben laufen. Liste abfragen und --task-id angeben; keine Übertragung ausgeführt.',
+  rejected: 'Die Plattform hat die Übertragung durch den Administrator abgelehnt. Berechtigungen und Aufgabenstatus prüfen.',
+  result_unknown: 'Übertragungsergebnis unbekannt. Aufgaben über nextStep lesen; Übertragung nicht automatisch wiederholen.',
+  unverified: 'Übertragung angenommen, Empfänger beim erneuten Lesen aber nicht bestätigt. nextStep verwenden; nicht automatisch wiederholen.',
+});

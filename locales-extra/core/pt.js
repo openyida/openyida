@@ -2147,3 +2147,14 @@ module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en')
 module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
+
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: 'Argumentos inválidos: query exige appType e --process-inst-id; transfer também exige --form-uuid, --to-user-id, --expect-form-name e --expect-form-type process. taskId deve ser um inteiro positivo; opções desconhecidas não são aceitas.',
+  query_failed: 'A consulta de tarefas falhou; nenhuma transferência foi realizada.',
+  response_invalid: 'Não foi possível verificar a estrutura, o ID ou o vínculo da tarefa com o processo.',
+  not_running: 'A tarefa indicada não está em execução no processo de destino, ou não há tarefas ativas; nenhuma transferência realizada.',
+  ambiguous: 'Há várias tarefas ativas. Consulte a lista e informe --task-id; nenhuma transferência realizada.',
+  rejected: 'A plataforma rejeitou a transferência do administrador. Verifique permissões e estado.',
+  result_unknown: 'Resultado da transferência desconhecido. Consulte as tarefas via nextStep; não tente transferir novamente automaticamente.',
+  unverified: 'Transferência aceita, mas o destinatário não foi confirmado na leitura. Use nextStep; não repita automaticamente.',
+});

@@ -2097,3 +2097,14 @@ module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en')
 module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
+
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: '參數無效：查詢需要 appType 和 --process-inst-id；轉交還需要 --form-uuid、--to-user-id、--expect-form-name 和 --expect-form-type process。taskId 必須為正整數，不支援未知參數。',
+  query_failed: '流程任務查詢失敗，未執行轉交。',
+  response_invalid: '流程任務回應結構、任務 ID 或實例歸屬無法驗證。',
+  not_running: '指定任務不屬於目標流程的執行中任務，或沒有執行中任務，未執行轉交。',
+  ambiguous: '流程有多個執行中任務，請查詢清單並指定 --task-id，未執行轉交。',
+  rejected: '平台拒絕管理員轉交請求，請核對權限與任務狀態。',
+  result_unknown: '管理員轉交結果未知，請依 nextStep 唯讀查詢，禁止自動重試轉交。',
+  unverified: '轉交請求已接受，但回讀未能確認接收人，請依 nextStep 唯讀查詢，禁止自動重試轉交。',
+});

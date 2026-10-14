@@ -29,7 +29,9 @@ const path = require('path');
 // 8,602,259 unpacked bytes and 647 files. Retain modest cross-Node gzip headroom.
 const MAX_TARBALL_BYTES = 2240 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 8416 * 1024;
+// Administrator task transfer adds its runtime module, skill guide and locale
+// messages. Keep the 16 KiB ratchet increment for this required content.
+const MAX_UNPACKED_BYTES = 8432 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -37,7 +39,8 @@ const MAX_UNPACKED_BYTES = 8416 * 1024;
 // removing the application-styles/navigation-styles catalogs offsets two files.
 // App theme upgrades add two CLI modules and an independent skill with its migration guide.
 // Retain two entries of headroom; per-file limits remain unchanged.
-const MAX_ENTRY_COUNT = 649;
+// Process task transfer adds one runtime module and its independent skill guide.
+const MAX_ENTRY_COUNT = 651;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -86,6 +89,8 @@ const REQUIRED_PACKAGE_FILES = [
   'lib/asset/asset-plan.js',
   'lib/asset/attachment-upload.js',
   'lib/process/services/process-actions.js',
+  'lib/process/process-tasks.js',
+  'yida-skills/skills/yida-data-management/references/process-task-transfer.md',
   'project/config.json',
   'scripts/postinstall.js',
   'yida-skills/SKILL.md',

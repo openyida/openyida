@@ -2147,3 +2147,14 @@ module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en')
 module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
+
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: 'Arguments invalides : query exige appType et --process-inst-id ; transfer exige aussi --form-uuid, --to-user-id, --expect-form-name et --expect-form-type process. taskId doit être un entier positif ; les options inconnues sont interdites.',
+  query_failed: 'La requête des tâches a échoué ; aucun transfert effectué.',
+  response_invalid: 'La structure, l’identifiant ou l’appartenance de la tâche au processus ne peut pas être vérifié.',
+  not_running: 'Aucune tâche spécifiée en cours dans le processus cible ; aucun transfert effectué.',
+  ambiguous: 'Plusieurs tâches sont en cours. Consultez la liste et précisez --task-id ; aucun transfert effectué.',
+  rejected: 'La plateforme a refusé le transfert administrateur. Vérifiez les droits et l’état de la tâche.',
+  result_unknown: 'Résultat du transfert inconnu. Consultez les tâches via nextStep ; ne relancez pas automatiquement le transfert.',
+  unverified: 'Transfert accepté, mais le destinataire n’a pas pu être confirmé. Consultez nextStep ; ne relancez pas automatiquement le transfert.',
+});

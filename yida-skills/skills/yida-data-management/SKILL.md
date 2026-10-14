@@ -1,6 +1,6 @@
 ---
 name: yida-data-management
-description: 查询、新增、更新宜搭表单和流程数据，精确删除普通表单单条记录。支持日期为空、日期区间端点、多选数量、子表条件及服务端分页；表单使用 /v1/form/，流程使用 /v1/process/。
+description: 查询、新增、更新宜搭表单和流程数据，精确删除普通表单单条记录，查询指定流程当前任务并执行管理员转交。支持日期为空、日期区间端点、多选数量、子表条件及服务端分页。
 ---
 
 # 数据管理
@@ -48,7 +48,7 @@ description: 查询、新增、更新宜搭表单和流程数据，精确删除�
 ## 严格要求 (MUST DO)
 
 - 操作前先用 query 命令确认目标数据存在
-- 所有 create/update/delete/execute 写操作必须携带只读预检确认的资源名称和类型；CLI 校验不一致时停止，不得换目标重试
+- 所有 create/update/delete/execute/transfer 写操作必须携带只读预检确认的资源名称和类型；CLI 校验不一致时停止，不得换目标重试
 - 新增记录、生成测试数据、批量导入或发起流程必须遵守上方“创建/录入数据强制闭环”
 - 批量操作单次不超过 30 条记录；多条实例必须逐条/分批执行 `openyida data create ...`
 - 删除普通表单记录前，必须先执行 `openyida data get form <appType> --inst-id <formInstId> --form-uuid <formUuid> --json`，核对返回实例 ID 与目标表单，并向用户展示记录数量、标题/关键字段和实例 ID。宿主支持并会在执行删除命令前触发 runtime permission/approval 时，直接发起一次带 `--confirm` 的受保护删除命令，由该唯一权限卡完成用户确认；无需且不得预先调用 `ask_human` 或其他业务确认工具。宿主不支持 runtime permission/approval 时，必须先通过 `ask_human` 或等价交互工具获得用户明确确认；只有用户确认后才能执行删除，用户拒绝或未确认时不得执行
@@ -96,6 +96,7 @@ description: 查询、新增、更新宜搭表单和流程数据，精确删除�
 - "查询数据"、"新增记录"、"更新数据"
 - "查看表单实例"、"发起流程"
 - "录入数据"、"批量导入"、"查询待办任务"
+- "查询流程当前任务"、"管理员转交"、"把这条流程转交给某人"
 
 > ⚠️ 表单接口（`/v1/form/`）和流程接口（`/v1/process/`）不能混用。
 
@@ -186,6 +187,23 @@ openyida data execute task <appType> --task-id <taskId> --process-inst-id <proce
 openyida data query tasks <appType> --type todo|done|submitted|cc [--page 1 --size 20]
 ```
 
+### 流程当前任务与管理员转交
+
+```bash
+openyida data query process-tasks <appType> --process-inst-id <processInstanceId> --json
+openyida data transfer task <appType> --process-inst-id <processInstanceId> --form-uuid <formUuid> --to-user-id <userId> --expect-form-name <真实表单名称> --expect-form-type process [--remark '用户说明的理由'] [--task-id <taskId>] --json
+```
+
+- 这是管理员对已有流程任务的转交；审批同意/拒绝仍使用 `execute task`，配置转交操作权限使用 `yida-process-rule`，流程代理使用 `yida-agent-center`。
+- 先查询流程确认实例及表单，再查询 `process-tasks` 展示任务、节点和实际处理人；明确接收人的真实 userId，名称有歧义时不能猜选。不要用“我的待办”代替指定流程的管理员任务查询。
+- 用户未说明转交理由时，省略 `--remark`，CLI 固定写“转交”；用户说明了理由时，使用其原话传入 `--remark`。不要自行添加“按用户要求”等理由，也不要为缺少理由追问用户。
+- `taskId` 来自任务接口 `content[].id`，CLI 同时输出字符串 `taskId`；禁止使用 `currentActivityInstances[].id`、`taskSequenceId`、`taskGroupId` 或从 URL 猜测任务 ID。
+- CLI 会在写前重新查询任务：只有一个运行任务时可省略 `--task-id`，多个任务必须明确指定；任务已结束或不属于目标实例时停止。
+- 完成以 `transferred=true && readbackVerified=true` 为准；`ALREADY_ASSIGNED` 表示任务已由接收人处理，本次没有转交写入。接口 `success=true/content=null` 仅代表受理，CLI 还必须回读确认实际处理人。
+- 收到 `RESULT_UNKNOWN` / `UNVERIFIED`、提交超时或鉴权异常时，仅按错误 `details.nextStep` 只读回查，禁止自动重放转交。此规则优先于下方通用网络重试策略。
+
+接口、回读规则与错误恢复见 [流程任务查询与管理员转交](references/process-task-transfer.md)。
+
 ## 接口总览
 
 ### 表单实例
@@ -214,6 +232,8 @@ openyida data query tasks <appType> --type todo|done|submitted|cc [--page 1 --si
 | `updateInstance` | POST | 更新 |
 | `getOperationRecords` | GET | 审批记录 |
 | `executeTask` | POST | 执行任务 |
+| `getInstTaskDatas` | GET | 管理员查询指定流程任务，使用 query/formProcInstData 路径 |
+| `redirectTask` | POST | 管理员转交任务，使用 query/instance 路径，单次提交并回读 |
 
 ### 任务中心
 
@@ -366,11 +386,12 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 | 错误类型 | 默认处理策略 |
 |---------|-------------|
 | 命令执行失败 | 停止执行，向用户展示错误信息，询问是否重试或调整参数 |
+| 管理员转交失败或结果未验证 | 禁止自动重放转交；按 details.nextStep 只读核查并报告 mutationAccepted/readbackVerified，后续写入须重新核对当前任务和用户意图 |
 | 参数缺失（appType/formUuid/fieldId 等） | 主动询问用户补充，或引导用户使用 `yida-get-schema` 获取 |
 | 权限不足 / 登录态失效 | 停止执行，提示用户执行 `openyida login` 重新登录 |
 | 字段 ID 无效 | 停止执行，引导用户执行 `openyida get-schema` 获取真实字段 ID |
 | 删除操作前 | 必须先展示操作摘要（数量 + 关键字段）；宿主支持 runtime permission/approval 时直接发起一次受保护命令，不得预先调用 `ask_human`；宿主不支持时，必须先通过 `ask_human` 或等价交互工具获得用户明确确认 |
 | QPS 超限 | 降低请求频率，单次批量操作不超过 30 条，间隔 1 秒重试 |
 | 表单/流程接口混用 | 停止执行，提示用户检查接口类型（表单用 `/v1/form/`，流程用 `/v1/process/`） |
-| 网络超时 | 重试 1 次，仍失败则停止并提示用户检查网络 |
+| 网络超时 | 查询可重试 1 次；管理员转交禁止自动重试提交，仅按 nextStep 只读回查，仍无法验证则报告结果未知 |
 | 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |

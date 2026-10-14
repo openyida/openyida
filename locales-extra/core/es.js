@@ -2147,3 +2147,14 @@ module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en')
 module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
+
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: 'Argumentos no válidos: query requiere appType y --process-inst-id; transfer también requiere --form-uuid, --to-user-id, --expect-form-name y --expect-form-type process. taskId debe ser un entero positivo; no se admiten opciones desconocidas.',
+  query_failed: 'Falló la consulta de tareas; no se realizó la transferencia.',
+  response_invalid: 'No se pudo verificar la estructura, el ID o la pertenencia de la tarea al proceso.',
+  not_running: 'La tarea indicada no está en ejecución en el proceso destino, o no hay tareas activas; no se realizó la transferencia.',
+  ambiguous: 'Hay varias tareas activas. Consulte la lista e indique --task-id; no se realizó la transferencia.',
+  rejected: 'La plataforma rechazó la transferencia del administrador. Verifique permisos y estado.',
+  result_unknown: 'Resultado de transferencia desconocido. Consulte las tareas mediante nextStep; no reintente automáticamente.',
+  unverified: 'Transferencia aceptada, pero no se pudo confirmar el destinatario al consultar. Use nextStep; no reintente automáticamente.',
+});

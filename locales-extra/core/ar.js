@@ -2147,3 +2147,14 @@ module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en')
 module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
+
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: 'وسائط غير صالحة: يتطلب query كلاً من appType و --process-inst-id؛ ويتطلب transfer أيضاً --form-uuid و --to-user-id و --expect-form-name و --expect-form-type process. يجب أن يكون taskId عدداً صحيحاً موجباً؛ الخيارات غير المعروفة غير مدعومة.',
+  query_failed: 'فشل استعلام مهام العملية؛ لم يتم النقل.',
+  response_invalid: 'تعذر التحقق من بنية الاستجابة أو معرف المهمة أو انتمائها إلى العملية.',
+  not_running: 'المهمة المحددة ليست قيد التشغيل في العملية المستهدفة، أو لا توجد مهمة قيد التشغيل؛ لم يتم النقل.',
+  ambiguous: 'هناك عدة مهام قيد التشغيل. استعلم عن القائمة وحدد --task-id؛ لم يتم النقل.',
+  rejected: 'رفضت المنصة نقل المسؤول. تحقق من الصلاحيات وحالة المهمة.',
+  result_unknown: 'نتيجة النقل غير معروفة. اقرأ المهام عبر nextStep؛ لا تعاود النقل تلقائياً.',
+  unverified: 'تم قبول النقل، لكن تعذّر تأكيد المستلم عند القراءة اللاحقة. استخدم nextStep؛ لا تعاود النقل تلقائياً.',
+});

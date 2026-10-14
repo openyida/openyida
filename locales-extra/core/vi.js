@@ -2145,3 +2145,14 @@ module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en')
 module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
+
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: 'Tham số không hợp lệ: query cần appType và --process-inst-id; transfer còn cần --form-uuid, --to-user-id, --expect-form-name và --expect-form-type process. taskId phải là số nguyên dương; không hỗ trợ tùy chọn không xác định.',
+  query_failed: 'Truy vấn tác vụ thất bại; chưa thực hiện chuyển giao.',
+  response_invalid: 'Không thể xác minh cấu trúc phản hồi, ID tác vụ hoặc tác vụ thuộc quy trình.',
+  not_running: 'Tác vụ được chỉ định không đang chạy trong quy trình đích, hoặc không có tác vụ đang chạy; chưa chuyển giao.',
+  ambiguous: 'Có nhiều tác vụ đang chạy. Truy vấn danh sách và chỉ định --task-id; chưa chuyển giao.',
+  rejected: 'Nền tảng từ chối chuyển giao của quản trị viên. Kiểm tra quyền và trạng thái.',
+  result_unknown: 'Chưa rõ kết quả chuyển giao. Đọc tác vụ bằng nextStep; không tự động thử chuyển giao lại.',
+  unverified: 'Yêu cầu chuyển giao đã được chấp nhận nhưng chưa xác minh được người nhận khi đọc lại. Dùng nextStep; không tự động thử lại.',
+});

@@ -2072,3 +2072,14 @@ module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en')
 module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
+
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: '引数が無効です。query には appType と --process-inst-id、transfer にはさらに --form-uuid、--to-user-id、--expect-form-name、--expect-form-type process が必要です。taskId は正の整数で、未対応の引数は使用できません。',
+  query_failed: 'プロセスタスクの取得に失敗しました。転送は実行されていません。',
+  response_invalid: 'タスク応答の構造、ID、プロセスへの所属を確認できません。',
+  not_running: '対象プロセスに実行中の指定タスクがありません。転送は実行されていません。',
+  ambiguous: '実行中のタスクが複数あります。一覧を取得して --task-id を指定してください。転送は実行されていません。',
+  rejected: '管理者による転送が拒否されました。権限とタスクの状態を確認してください。',
+  result_unknown: '転送結果は不明です。nextStep で読み取り確認してください。転送を自動再試行しないでください。',
+  unverified: '転送は受理されましたが、受信者を再取得で確認できません。nextStep で確認し、転送を自動再試行しないでください。',
+});
