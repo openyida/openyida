@@ -54,12 +54,20 @@ test('a public direct URL needs one bounded GET and no download, upload or app',
 });
 
 test.each([
-  ['/challenge', 'INVALID_IMAGE_CONTENT'], ['/denied', 'HTTP_403'], ['/slow', 'TIMEOUT'], ['/loop', 'TOO_MANY_REDIRECTS'],
+  ['/challenge', 'INVALID_IMAGE_CONTENT'], ['/denied', 'HTTP_403'], ['/loop', 'TOO_MANY_REDIRECTS'],
 ])('unusable direct URL %s remains a gap', async (suffix, reason) => {
-  const result = await resolveAssets([asset({ input: url + suffix })], { timeout: 150 });
+  // These cases check the response, not scheduling within a 150 ms deadline.
+  const result = await resolveAssets([asset({ input: url + suffix })]);
   expect(result.assets[0]).toMatchObject({ url: '', materialStatus: 'draft' });
   expect(result.gaps[0].code).toBe(reason);
   expect(requests).toHaveLength(suffix === '/loop' ? 5 : 1);
+});
+
+test('a continuously streaming response remains a timeout gap', async () => {
+  const result = await resolveAssets([asset({ input: `${url}/slow` })], { timeout: 150 });
+  expect(result.assets[0]).toMatchObject({ url: '', materialStatus: 'draft' });
+  expect(result.gaps[0].code).toBe('TIMEOUT');
+  expect(requests).toHaveLength(1);
 });
 
 test('redirect destinations are checked before following them', async () => {
