@@ -116,6 +116,12 @@ function runAnyWithEnv(args, extraEnv, cwd = ROOT, options = {}) {
   };
 }
 
+test('integration help includes detail-log in an extra locale', () => {
+  const result = runAnyWithEnv(['integration', '--help'], { OPENYIDA_LANG: 'ja' });
+  expect(result.status).toBe(0);
+  expect(result.output).toContain('integration <create|update|list|enable|disable|check|detail-log|diagnose>');
+});
+
 function createCodexWorkspace() {
   const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-codex-login-'));
   const projectDir = path.join(workspace, 'project');

@@ -8,6 +8,24 @@ const {
 } = require('../lib/core/redact');
 
 describe('redact utilities', () => {
+  test('fullMask removes long and short secrets recursively without mutating input', () => {
+    const input = {
+      systemToken: 'a-long-system-token-value',
+      nested: [{ Authorization: 'Bearer a-long-access-token', cookie: 'short', password: 'p', count: 7 }],
+      credentials: { api_key: { value: 'hidden' } },
+      name: 'safe',
+    };
+    const original = JSON.parse(JSON.stringify(input));
+    expect(redactSensitive(input, { fullMask: true })).toEqual({
+      systemToken: '***',
+      nested: [{ Authorization: '***', cookie: '***', password: '***', count: 7 }],
+      credentials: { api_key: '***' },
+      name: 'safe',
+    });
+    expect(input).toEqual(original);
+    expect(redactSensitive(input).systemToken).toBe('a-lo***alue');
+  });
+
   test('masks sensitive keys recursively', () => {
     const input = {
       Authorization: 'Bearer abcdefghijklmnopqrstuvwxyz',

@@ -440,6 +440,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 | `openyida integration enable <appType> <formUuid> <processCode>` | 启用集成自动化逻辑流 |
 | `openyida integration disable <appType> <formUuid> <processCode>` | 停用集成自动化逻辑流 |
 | `openyida integration check <appType...>` | 检查集成自动化异常运行日志 |
+| `openyida integration detail-log <appType> <procInstId> [--json] [--include-params]` | 查看集成自动化运行日志详情 |
 | `openyida integration diagnose (--text <text>\|--file <path>\|--rules) [--json]` | 诊断集成自动化故障文本和常见配置坑 |
 | `openyida dws <command> [args]` | 钉钉 CLI（通讯录/日历/待办/审批等） |
 | `openyida dws contact user search --keyword <text>` | 钉钉 CLI（通讯录/日历/待办/审批等） |

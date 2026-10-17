@@ -60,7 +60,9 @@ const MAX_TARBALL_BYTES = 2320 * 1024;
 // contracts across the shared references; retain the next 16 KiB boundary.
 // Main's front/backend handoff and runtime 0.1.4 metadata plus the restored
 // process/integration contracts measure 8,867,368 unpacked bytes / 681 files.
-const MAX_UNPACKED_BYTES = 8672 * 1024;
+// Integration detail logs and locale help measure 8,881,939 unpacked bytes on Node 20;
+// retain the next 16 KiB boundary without raising compressed or per-file limits.
+const MAX_UNPACKED_BYTES = 8688 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -72,7 +74,8 @@ const MAX_UNPACKED_BYTES = 8672 * 1024;
 // automation command/spec details move out of entry skills (+11 files).
 // Content shrinks overall (8,794,095 unpacked bytes); byte budgets stay fixed.
 // Remove the two obsolete process reference redirects after updating consumers.
-const MAX_ENTRY_COUNT = 681;
+// Integration detail logs add one packaged runtime module.
+const MAX_ENTRY_COUNT = 682;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
