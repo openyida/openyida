@@ -124,3 +124,16 @@ test('configure requires the original config hash, creates a backup and verifies
 test('sanitizes nested secret-like keys and opaque config values', () => {
   expect(sanitize({ accessToken: 'x', nested: { password: 'y' }, config: '{}' })).toEqual({ accessToken: '[REDACTED]', nested: { password: '[REDACTED]' }, hasConfig: false });
 });
+
+test('skill anchors the official development guide and connector contracts', () => {
+  const skill = fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-plugin-lifecycle/SKILL.md'), 'utf8');
+  const guide = fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-plugin-lifecycle/references/development-guide.md'), 'utf8');
+  expect(skill).toContain('./references/development-guide.md');
+  expect(guide).toContain('https://docs.aliwork.com/docs/yida_support/_13/isxkg8bbkick91q7');
+  for (const contract of ['willFetch', 'didFetch', 'serviceUuid', 'content.outputs', '$CORP_ID', '$DING_UID', 'query', 'body', 'header', 'path']) {
+    expect(guide).toContain(contract);
+  }
+  expect(guide).toContain('密钥参数必须标记为加密');
+  expect(guide).toContain('发布到组织测试');
+  expect(guide).toContain('插件中心上架');
+});
