@@ -5,6 +5,7 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
   print_template: {
     "description": "Manage native YiDA print templates, generate document layouts, back up, restore and request PDFs",
     "error": "Print template operation failed: {0}",
