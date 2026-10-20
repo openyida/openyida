@@ -1,5 +1,9 @@
 # 自定义页面实现 AttachmentField 上传
 
+> 新生成的自定义页面优先使用 [OpenAPI 文件上传](../../yida-canvas-custom-page/references/file-upload.md)。Canvas 直接调用发布层文件桥；旧 JSX 提取 `openyida sample openyida-page-template file-upload-client`，合并函数后以 `createYidaFileClient(window)` 调用同一协议。必须完成 confirm 和保存后 bind，登录态由当前页面提供；此接口不支持匿名上传。
+>
+> 下文 `/ossSign` 是旧页面兼容实现，仅维护已有链路时参考；不要把它的 objectName 生成或 policy Content-Disposition 规则混入新 OpenAPI 协议。
+
 > 本文档说明如何在宜搭自定义页面中实现附件上传，并将结果写入 `AttachmentField`。
 
 ## 适用场景

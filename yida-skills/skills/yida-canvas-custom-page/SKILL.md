@@ -1,6 +1,6 @@
 ---
 name: yida-canvas-custom-page
-description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件实现现代 React18 自定义页面。用于官网、看板、工作台、列表、详情、门户壳、可视化、hooks 交互、表单入口，以及需要门户组件、数据管理视图、成员、部门或上传组件的场景；发布层自动注入 yida/utils window 桥。
+description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件实现现代 React18 自定义页面。用于官网、看板、工作台、列表、详情、门户壳、可视化、hooks 交互、表单入口，以及需要门户组件、数据管理视图、成员、部门或附件/图片上传的场景；发布层自动注入 yida/utils 和 OpenAPI 文件上传桥。
 ---
 
 # 自定义页面开发
@@ -10,6 +10,8 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 ## 编码前必读（MUST）
 
 待办中心或审批任务区块只有在用户明确要求自定义实现，或经 ask_human 明确同意后才交接 `yida-task-center`；已有 Canvas、普通工作台需求或 Fast 模式不构成选择。未选择时保留原生能力，不直接手写任务中心。
+
+有附件或图片上传需求时，必读 [文件上传](references/file-upload.md)，提取 `canvas-file-upload` 示例，使用 `window.__OPENYIDA_FILE_API__` 完成凭证、OSS 直传、确认、取地址和保存后绑定。上传中阻止提交，绑定失败仅重试绑定；此接口要求登录态，不支持匿名上传，不用链接录入或模拟上传代替真实上传。
 
 布局实现读取 [共享响应式规则](../yida-design/references/responsive-layout.md)：按实际容器宽度重排筛选栏和主辅面板，统一同组控件尺寸，宽屏按需等高、窄屏自然增长，宽表格局部滚动。断点变化保留原组件状态与业务行为，发布前按该文档验收。
 
@@ -44,6 +46,7 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 - 入口推荐写 `function YidaComp(props) { ... }`，也支持 `const App = ...; export default App;`。
 - `YidaCodeCanvas` 组件使用 React 函数组件上下文；表单数据通过 yida JS-API 桥读写，平台连接器通过连接器桥调用，自定义同源接口才使用 `fetch`。
 - OpenYida 发布层会在外层普通自定义页面 `didMount` 自动注入 `window.__OPENYIDA_YIDA_API__`、`window.__OPENYIDA_UTILS__` 和 `window.__OPENYIDA_CONNECTOR_API__`。前两者暴露表单、流程及根级工具；连接器桥只接受 `Http_*` 内部 `connectorName`、`operationId`、`connectionId` 和结构化业务输入，数字连接器 ID 只用于 CLI 管理。
+- 同一生命周期注入 `window.__OPENYIDA_FILE_API__`，提供 `upload`、`getDownloadUrl`、`bindFiles`；附件和图片均可直接使用 OpenAPI 文件接口，不依赖原生字段组件。
 - 第三方前端资源只从可用资源清单中选择；React、antd、Ant Design Icons、ahooks、d3、recharts、Radix、framer-motion、lucide-react 等必须按规则 import，由编译器写入 `importedModules`。源码严禁出现 `const { Drawer } = antd`、`const { Search } = lucideReact`、`window.antd`、`window.icons` 等手写依赖全局。
 - 宜搭运行态组件按“先探测、可用增强、fallback 保底、值统一归一化”接入；以 `window.Deep` / `window.DeepYida` 探测为主，`window.YidaNativeComponents` 作为补充来源。嵌入门户数据管理视图时使用 `DataManageViews`，并显式传入目标表单 `form.value/formUuid`。
 
@@ -56,7 +59,8 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 | 官网、看板、工作台、列表、详情、门户壳 | 读取 `yida-prd` 的 prd.md 与 `yida-design` 的 design.md；生成器路径再读取派生 `page-spec.json`，按页面场景实现 `.canvas.jsx` |
 | 需要开放 API / 连接器读写数据 | 同时加载 `yida-canvas-data-binding`；开放 API 先配置平台连接器，页面只保存资源 ID 并调用连接器桥 |
 | 需要门户 topBanner / quickEntry / 数据卡片 | 使用本技能，按“门户组件桥”接入，必要时 fallback 自绘 |
-| 需要成员、部门、附件上传、图片上传 | 使用本技能，按“宜搭组件桥”接入并归一化值 |
+| 需要成员、部门 | 使用本技能，按“宜搭组件桥”接入并归一化值 |
+| 需要附件上传、图片上传 | 按 [文件上传](references/file-upload.md) 使用文件桥与真实上传控件；保存后绑定实例 |
 | 需要字段结构、公式、联动、权限、报表、流程 | 使用对应配置型技能完成配置，自定义页面展示结果并分发页面事件 |
 | 新建页面需要字段、表单入口、成员/部门/上传或数据源 | 使用本技能，用数据桥、连接器或运行态组件桥实现 |
 
@@ -80,7 +84,7 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 
 ### 2. 成员、部门、上传组件
 
-需要数据管理视图、成员、部门、附件上传、图片上传时，使用原生组件桥从页面 `window.Deep` / `window.DeepYida` 探测已挂载组件，并把探测结果写回当前页面实现计划。
+需要数据管理视图、成员、部门时，使用原生组件桥从页面 `window.Deep` / `window.DeepYida` 探测已挂载组件，并把探测结果写回当前页面实现计划。附件和图片默认按 [文件上传](references/file-upload.md) 接入 OpenAPI 文件桥；已验证的原生字段组件可作为可选增强。
 
 组件选择建议：
 
@@ -88,7 +92,7 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 - `DepartmentSelectField`：验证部门搜索、弹层、权限提示、单选/多选后启用。
 - `AttachmentField` / `ImageField`：验证 OSS 签名、上传权限、预览、删除、失败提示后启用。
 
-做法：原生组件处理交互输入；页面业务状态保存归一化后的成员、部门、文件结构；提交通过 yida JS-API 桥、连接器桥或自定义同源接口完成。组件验证通过时使用原生组件；组件条件不足时使用页面自绘输入、搜索或链接录入。
+做法：原生组件处理成员/部门输入，缺失时使用页面自绘输入和搜索。文件上传使用真实选择器和文件桥，业务状态保留已确认文件的 objectName 与地址；提交通过 yida JS-API 桥保存，再按真实实例 ID 绑定文件。
 
 > 详细桥接规则、值结构和验收清单见 [native-components-bridge.md](references/native-components-bridge.md)。
 
@@ -209,6 +213,7 @@ openyida get-schema <appType> <formUuid> --field-map-json
 | [page-generation-guide.md](references/page-generation-guide.md) | PRD 到自定义页面实现入口、官网素材、应用主题、Page Spec、primitives | 写页面前必读 |
 | [navigation-and-entry-guide.md](references/navigation-and-entry-guide.md) | 应用内页面、表单、外链和跨应用快捷入口的导航职责与跳转方式；含 `FormOpenContainer` 标准容器 | 工作台/门户含快捷入口、表单新增或详情查看时必读 |
 | [native-components-bridge.md](references/native-components-bridge.md) | 门户、成员、部门、上传组件桥接和值归一化 | 需要宜搭运行态组件时必读 |
+| [file-upload.md](references/file-upload.md) | OpenAPI 附件/图片上传、确认、私有地址与实例绑定，含 sample 与失败恢复 | 有附件或图片上传需求时必读 |
 | [dependencies-and-cdn.md](references/dependencies-and-cdn.md) | 可用前端资源、import 写法、运行时加载方式 | 选择或验证前端资源时必读 |
 | [employeefield-verification.md](references/employeefield-verification.md) | 运行时事实、原生组件验证、EmployeeField 验收 | 验证成员/字段组件时阅读 |
 | [data-bridge-guide.md](references/data-bridge-guide.md) | 表单、平台连接器与自定义同源接口的数据桥 | 接入真实数据时阅读 |

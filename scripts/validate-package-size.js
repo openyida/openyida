@@ -144,7 +144,9 @@ const MAX_TARBALL_BYTES = 2528 * 1024;
 // Combined buttons, live-test fixes and report controls (Node 22):
 // 2,573,647 compressed bytes / 9,556,794 unpacked bytes / 743 files.
 // Keep less than 16 KiB compressed headroom and the next 16 KiB unpacked boundary.
-const MAX_UNPACKED_BYTES = 9344 * 1024;
+// File upload client, control and guide measure 9,581,545 unpacked bytes on Node 23.
+// Keep the next 16 KiB boundary; compressed and single-file caps remain unchanged.
+const MAX_UNPACKED_BYTES = 9360 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -173,7 +175,8 @@ const MAX_UNPACKED_BYTES = 9344 * 1024;
 // The combined workflow, data-card and cool-card package contains 738 files.
 // Custom buttons and native report zero-value controls add five packaged files.
 // The shared AI application eligibility helper adds one required runtime module.
-const MAX_ENTRY_COUNT = 744;
+// File upload requires three additional packaged runtime/reference files.
+const MAX_ENTRY_COUNT = 747;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -252,6 +255,9 @@ const REQUIRED_PACKAGE_FILES = [
   'lib/samples/openyida-scaffold/canvas-navigation.jsx',
   'lib/samples/openyida-scaffold/canvas-admin-entry.jsx',
   'lib/samples/openyida-scaffold/canvas-view-state.jsx',
+  'lib/samples/openyida-scaffold/file-upload-client.jsx',
+  'lib/samples/openyida-scaffold/canvas-file-upload.jsx',
+  'yida-skills/skills/yida-canvas-custom-page/references/file-upload.md',
   'yida-skills/skills/yida-canvas-custom-page/references/view-state-recovery.md',
   'yida-skills/skills/yida-canvas-data-binding/references/business-action-permissions.md',
   'lib/asset/asset-execution.js',

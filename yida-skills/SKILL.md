@@ -186,7 +186,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 集成自动化定时、字段变化触发、并行循环、批量取数及生命周期管理 | `yida-integration` 的 `--spec` 路径，读取 `references/batch-data.md`；已有自动化按其更新能力处理 |
 | 自定义页面开发 | `yida-canvas-custom-page`，新建和默认页面源码开发入口，源码使用 `.canvas.jsx`；Canvas 发布层会自动注入 `window.__OPENYIDA_YIDA_API__` 和 `window.__OPENYIDA_UTILS__` |
 | JSX 自定义页面开发 | `yida-custom-page`，仅用于已检测到的 `.oyd.jsx` / `.oyb.jsx` / `renderJsx` / 平台 `Jsx` 组件页面维护 |
-| `.canvas.jsx` 页面使用成员/部门/上传等宜搭运行态组件 | `yida-canvas-custom-page`，读取 `native-components-bridge.md` |
+| `.canvas.jsx` 页面使用成员/部门/门户等宜搭运行态组件 | `yida-canvas-custom-page`，读取 `native-components-bridge.md` |
+| 自定义页面需要上传附件或图片 | `yida-canvas-custom-page`，必读 `references/file-upload.md`，提取 `canvas-file-upload` 示例；使用 OpenAPI 文件桥完成真实上传、确认和保存后绑定，仅支持登录用户 |
 | `.canvas.jsx` 页面接真实数据、表单 API、流程 API、根级工具，轮询刷新列表或 KPI，排查页面 0 条但数据管理有数据 | `yida-canvas-data-binding`，默认消费发布层注入的 yida/utils window 桥 |
 | 已有 `.oyd.jsx` / `renderJsx` 迁到 `YidaCodeCanvas` 组件实现 | `yida-canvas-upgrade` |
 | 高级图表、可视化、看板图表 | 默认 `yida-rechart` |
