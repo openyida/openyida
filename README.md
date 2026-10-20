@@ -249,7 +249,9 @@ openyida publish pages/src/home.canvas.jsx APP_XXX FORM_XXX
 
 Custom page source is authored directly from PRD and design guidance. Custom page development uses `yida-canvas-custom-page` and `.canvas.jsx`.
 
-For member, department, attachment, and image upload components, `.canvas.jsx` pages should follow `yida-canvas-custom-page/references/native-components-bridge.md` for feature detection, fallback, and value normalization.
+For member and department components, `.canvas.jsx` pages should follow `yida-canvas-custom-page/references/native-components-bridge.md` for feature detection, fallback, and value normalization. Attachment and image uploads use the automatically installed `window.__OPENYIDA_FILE_API__` bridge (`upload`, `getDownloadUrl`, `bindFiles`): obtain credentials, upload to OSS, confirm, get private URLs, then bind to the saved instance. This requires a signed-in browser session and does not support anonymous uploads. See `yida-canvas-custom-page/references/file-upload.md`.
+
+Extract the upload control with `openyida sample openyida-page-template canvas-file-upload`. Legacy JSX pages can extract the shared client with `openyida sample openyida-page-template file-upload-client` and call `createYidaFileClient(window)`.
 
 For the current custom page native-component support matrix, see [Yida native components supported by custom pages](https://demo.aliwork.com/o/openyida/sample/canvas-native-components).
 

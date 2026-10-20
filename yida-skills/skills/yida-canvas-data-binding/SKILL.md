@@ -215,6 +215,8 @@ var payload = await bridge.searchFormDatas({
 
 ## 生成与验收
 
+有附件/图片字段时，按 [OpenAPI 文件上传](../yida-canvas-custom-page/references/file-upload.md) 使用文件桥；真实上传并 confirm 后保存字段，再以真实返回实例 ID 调用 bindFiles。保存成功但绑定失败保留实例 ID 仅重试绑定，不重复保存。匿名提交不支持该文件上传接口。
+
 生成真实数据页前必须确认：
 
 - 已拿到目标 `appType` 和 `formUuid`。

@@ -5,6 +5,8 @@ description: JSX 自定义页面开发规范（React 16 平台 Jsx 组件、expo
 
 # JSX 自定义页面开发
 
+新增附件/图片上传时，按 [OpenAPI 文件上传](../yida-canvas-custom-page/references/file-upload.md) 提取 `file-upload-client`，合并共享函数后使用 `createYidaFileClient(window)`；选择文件后上传并确认，保存后用真实实例 ID 绑定。接口仅支持登录用户；旧 `/ossSign` 指引仅用于维护已有旧链路。
+
 布局实现读取 [共享响应式规则](../yida-design/references/responsive-layout.md)：按实际容器宽度重排筛选栏和主辅面板，统一同组控件尺寸，宽屏按需等高、窄屏自然增长，宽表格局部滚动。使用原 JSX 运行时支持的样式能力，断点变化保留原组件状态与业务行为，发布前按该文档验收。
 
 已有页面美化先进入 [ui-improve](../yida-design/sub_skill/ui-improve/SKILL.md)：视觉方案经 `ask_human` 确认、备份可恢复后才修改。沿用获批范围和功能契约，保留原 JSX 运行时、业务表达式、数据源、事件及入口行为；下文的新开发默认规则不用于顺手重构已有业务。不满意时由该流程恢复本轮前状态。
