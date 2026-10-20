@@ -142,7 +142,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 大类目录 | 第一层意图信号 | 子技能 |
 | --- | --- | --- |
 | `yida-skills/context` | 登录、退出、切换组织、组织版本/容量、Schema、fieldId、执行前检查 | `yida-login`、`yida-logout`、`yida-basic-info`、`yida-get-schema`、`yida-corp-efficiency` |
-| `yida-skills/app` | 从零搭应用、完整系统、应用启停、应用导航、多语言、AI 老应用主题升级 | `yida-app`、`yida-create-app`、`yida-app-lifecycle`、`yida-nav-group`、`yida-i18n`、`yida-upgrade-app-theme`（仅明确升级要求并 ask_human 确认） |
+| `yida-skills/app` | 从零搭应用、完整系统、方案中心模板、应用启停、应用导航、多语言、AI 老应用主题升级 | `yida-app`、`yida-solution-template`（仅明确方案中心/模板意图）、`yida-create-app`、`yida-app-lifecycle`、`yida-nav-group`、`yida-i18n`、`yida-upgrade-app-theme`（仅明确升级要求并 ask_human 确认） |
 | `yida-skills/design` | 完整应用需求分析、PRD、视觉设计、单页 UI 改造、应用主题色、全局换肤、图片素材 | `yida-requirement-analysis`、`yida-prd`、`yida-design`、`yida-data-manage-ui`、`yida-image-assets` |
 | `yida-skills/form` | 表单字段、公式、校验、业务关联规则、原生自定义按钮、打印模板、批量录入、数据记录 | `yida-create-form-page`、`yida-custom-button`、`yida-print-template`、`yida-form-view`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-flow-node-config`、`yida-agent-center` |
@@ -158,6 +158,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 用户意图 | 选哪个 |
 | --- | --- |
 | 从零搭一个完整应用/系统 | `yida-app`；先分析需求并完成首次搭建确认，再规划与搭建 |
+| 明确从宜搭方案中心查询、AI 搭或启用方案模板 | `yida-solution-template`；先查模板与详情，定制需求交给原生 AI 搭，原样使用才直接启用；泛称搭应用仍走 `yida-app` |
 | 已有 app 但没有任何页面，需要补成完整系统 | `yida-app`；属于首次搭建，同样先询问搭建方式，复用已有 `appType` 补齐资源 |
 | OpenYida 反复报错、不会提 Issue/PR、没有账号或源码 | `yida-feedback`；先脱敏本地报告，个人 Fork 仅贡献公开 OpenYida 修复 |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
