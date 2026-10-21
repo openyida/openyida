@@ -2396,3 +2396,15 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.design_template = {
+  'match_description': 'अर्थ के आधार पर एक प्रकाशित डिज़ाइन टेम्पलेट ID खोजें',
+  'get_description': 'डिज़ाइन टेम्पलेट के एक संस्करण की उपयोग फ़ाइलें डाउनलोड करें',
+  'identity_error': 'वर्तमान उपयोगकर्ता का टोकन नहीं मिल सका। फिर से साइन इन करें।',
+  'invalid': 'यह डिज़ाइन टेम्पलेट कार्रवाई समर्थित नहीं है',
+  'service_error': 'डिज़ाइन टेम्पलेट सेवा विफल हुई (HTTP {0})। बाद में फिर कोशिश करें।',
+  'invalid_manifest': 'टेम्पलेट फ़ाइल सूची अमान्य है',
+  'output_exists': 'आउटपुट डायरेक्टरी पहले से मौजूद है। नई डायरेक्टरी चुनें।',
+  'file_error': 'टेम्पलेट डाउनलोड या अखंडता जाँच विफल हुई',
+  'usage': 'design-template match "<query>" [--json] | design-template get <id> --output-dir <new-directory> [--json]'
+};

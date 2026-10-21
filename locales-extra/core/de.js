@@ -2396,3 +2396,15 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.design_template = {
+  'match_description': 'Eine veröffentlichte Designvorlagen-ID semantisch finden',
+  'get_description': 'Nutzungsdateien einer bestimmten Designvorlagenversion herunterladen',
+  'identity_error': 'Token für den aktuellen Benutzer nicht verfügbar. Bitte erneut anmelden.',
+  'invalid': 'Nicht unterstützte Designvorlagenaktion',
+  'service_error': 'Designvorlagendienst fehlgeschlagen (HTTP {0}). Später erneut versuchen.',
+  'invalid_manifest': 'Ungültiges Dateiverzeichnis der Vorlage',
+  'output_exists': 'Zielverzeichnis existiert bereits. Ein neues Verzeichnis wählen.',
+  'file_error': 'Download oder Integritätsprüfung der Vorlage fehlgeschlagen',
+  'usage': 'design-template match "<query>" [--json] | design-template get <id> --output-dir <new-directory> [--json]'
+};

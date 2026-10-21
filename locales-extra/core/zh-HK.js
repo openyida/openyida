@@ -2349,3 +2349,15 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.design_template = {
+  'match_description': '語義匹配單個已發佈的設計模板 ID',
+  'get_description': '下載指定設計模板版本的使用檔案',
+  'identity_error': '無法取得目前身分的模板權杖，請重新登入。',
+  'invalid': '不支援的設計模板操作',
+  'service_error': '設計模板服務失敗（HTTP {0}），請稍後重試。',
+  'invalid_manifest': '模板檔案清單無效',
+  'output_exists': '輸出目錄已存在，請選擇新目錄。',
+  'file_error': '模板下載或完整性驗證失敗',
+  'usage': 'design-template match "<query>" [--json] | design-template get <id> --output-dir <new-directory> [--json]'
+};

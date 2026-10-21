@@ -2323,3 +2323,15 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.design_template = {
+  'match_description': '公開済みデザインテンプレートの ID を意味検索で1件取得',
+  'get_description': '指定したデザインテンプレートのバージョンの利用ファイルをダウンロード',
+  'identity_error': '現在のユーザーのトークンを取得できません。再ログインしてください。',
+  'invalid': '未対応のデザインテンプレート操作です',
+  'service_error': 'デザインテンプレートサービスのエラー（HTTP {0}）。後でもう一度お試しください。',
+  'invalid_manifest': 'テンプレートのファイル一覧が無効です',
+  'output_exists': '出力ディレクトリは既に存在します。新しいディレクトリを指定してください。',
+  'file_error': 'テンプレートのダウンロードまたは整合性検証に失敗しました',
+  'usage': 'design-template match "<query>" [--json] | design-template get <id> --output-dir <new-directory> [--json]'
+};

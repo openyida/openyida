@@ -2398,3 +2398,15 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.design_template = {
+  'match_description': 'Encontrar semanticamente um único ID de modelo de design publicado',
+  'get_description': 'Baixar os arquivos de uso de uma versão do modelo',
+  'identity_error': 'Não foi possível obter o token do usuário atual. Entre novamente.',
+  'invalid': 'Operação de modelo de design não suportada',
+  'service_error': 'Falha no serviço de modelos (HTTP {0}). Tente novamente mais tarde.',
+  'invalid_manifest': 'Manifesto de arquivos do modelo inválido',
+  'output_exists': 'O diretório de saída já existe. Escolha um novo.',
+  'file_error': 'Falha no download ou na verificação de integridade do modelo',
+  'usage': 'design-template match "<query>" [--json] | design-template get <id> --output-dir <new-directory> [--json]'
+};

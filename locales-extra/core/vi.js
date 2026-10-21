@@ -2396,3 +2396,15 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.design_template = {
+  'match_description': 'Tìm một ID mẫu thiết kế đã xuất bản bằng ngữ nghĩa',
+  'get_description': 'Tải các tệp sử dụng của một phiên bản mẫu thiết kế',
+  'identity_error': 'Không thể lấy mã xác thực cho người dùng hiện tại. Vui lòng đăng nhập lại.',
+  'invalid': 'Thao tác mẫu thiết kế không được hỗ trợ',
+  'service_error': 'Dịch vụ mẫu thiết kế gặp lỗi (HTTP {0}). Vui lòng thử lại sau.',
+  'invalid_manifest': 'Danh sách tệp mẫu không hợp lệ',
+  'output_exists': 'Thư mục đầu ra đã tồn tại. Hãy chọn thư mục mới.',
+  'file_error': 'Tải mẫu hoặc kiểm tra tính toàn vẹn thất bại',
+  'usage': 'design-template match "<query>" [--json] | design-template get <id> --output-dir <new-directory> [--json]'
+};

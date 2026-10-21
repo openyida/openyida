@@ -2398,3 +2398,15 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.design_template = {
+  'match_description': 'العثور دلاليًا على معرّف قالب تصميم منشور واحد',
+  'get_description': 'تنزيل ملفات الاستخدام لإصدار محدد من قالب التصميم',
+  'identity_error': 'تعذر الحصول على رمز المستخدم الحالي. سجّل الدخول مجددًا.',
+  'invalid': 'عملية قالب تصميم غير مدعومة',
+  'service_error': 'فشلت خدمة قوالب التصميم (HTTP {0}). حاول لاحقًا.',
+  'invalid_manifest': 'قائمة ملفات القالب غير صالحة',
+  'output_exists': 'مجلد الإخراج موجود بالفعل. اختر مجلدًا جديدًا.',
+  'file_error': 'فشل تنزيل القالب أو التحقق من سلامته',
+  'usage': 'design-template match "<query>" [--json] | design-template get <id> --output-dir <new-directory> [--json]'
+};

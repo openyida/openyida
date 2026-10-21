@@ -802,6 +802,11 @@ async function main() {
       break;
     }
 
+    case 'design-template': {
+      await require('../lib/design-template/design-template').run(args);
+      break;
+    }
+
     case 'design-plan': {
       const { run } = require('../lib/design-plan/design-plan');
       await run(args);

@@ -2398,3 +2398,15 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.design_template = {
+  'match_description': 'Rechercher un seul ID de modèle de conception publié par correspondance sémantique',
+  'get_description': 'Télécharger les fichiers à utiliser pour une version de modèle',
+  'identity_error': 'Impossible de récupérer le jeton pour cet utilisateur. Reconnectez-vous.',
+  'invalid': 'Opération de modèle de conception non prise en charge',
+  'service_error': 'Échec du service de modèles (HTTP {0}). Réessayez plus tard.',
+  'invalid_manifest': 'Manifeste des fichiers du modèle invalide',
+  'output_exists': 'Le dossier de destination existe déjà. Choisissez un nouveau dossier.',
+  'file_error': 'Échec du téléchargement ou de la vérification d’intégrité du modèle',
+  'usage': 'design-template match "<query>" [--json] | design-template get <id> --output-dir <new-directory> [--json]'
+};

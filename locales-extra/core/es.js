@@ -2398,3 +2398,15 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.design_template = {
+  'match_description': 'Buscar semánticamente un único ID de plantilla de diseño publicada',
+  'get_description': 'Descargar los archivos de uso de una versión de plantilla',
+  'identity_error': 'No se puede obtener el token del usuario actual. Vuelve a iniciar sesión.',
+  'invalid': 'Operación de plantilla de diseño no compatible',
+  'service_error': 'Error del servicio de plantillas (HTTP {0}). Inténtalo más tarde.',
+  'invalid_manifest': 'Manifiesto de archivos de plantilla no válido',
+  'output_exists': 'El directorio de salida ya existe. Elige uno nuevo.',
+  'file_error': 'Error al descargar o verificar la integridad de la plantilla',
+  'usage': 'design-template match "<query>" [--json] | design-template get <id> --output-dir <new-directory> [--json]'
+};

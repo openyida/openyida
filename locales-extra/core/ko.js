@@ -2397,3 +2397,15 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.design_template = {
+  'match_description': '의미 검색으로 게시된 디자인 템플릿 ID 하나 찾기',
+  'get_description': '지정한 디자인 템플릿 버전의 사용 파일 다운로드',
+  'identity_error': '현재 사용자의 토큰을 가져올 수 없습니다. 다시 로그인하세요.',
+  'invalid': '지원하지 않는 디자인 템플릿 작업입니다',
+  'service_error': '디자인 템플릿 서비스 오류(HTTP {0}). 나중에 다시 시도하세요.',
+  'invalid_manifest': '템플릿 파일 목록이 올바르지 않습니다',
+  'output_exists': '출력 디렉터리가 이미 있습니다. 새 디렉터리를 선택하세요.',
+  'file_error': '템플릿 다운로드 또는 무결성 검증에 실패했습니다',
+  'usage': 'design-template match "<query>" [--json] | design-template get <id> --output-dir <new-directory> [--json]'
+};
