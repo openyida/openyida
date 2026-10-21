@@ -12,40 +12,34 @@ const bytes = Buffer.from('body { color: green; }');
 const hash = crypto.createHash('sha256').update(bytes).digest('hex');
 const manifest = () => ({ id: ID, files: [{ name: 'style.css', size: bytes.length, sha256: hash, url: 'https://assets.example/style.css?signature=private' }] });
 const authRef = () => ({ baseUrl: 'https://org.aliwork.com', corpId: 'corp', userId: 'user' });
-const config = () => ({ success: true, content: { corpId: 'corp', userId: 'user', agentToken: 'private-token', agentTokenExpiresAt: Math.floor(Date.now() / 1000) + 900, apiBase: '/openyida/agent-api' } });
-
 describe('design template client', () => {
-  test('reuses login exchange and sends Agent Token only to the same-domain endpoint', async () => {
-    const get = jest.fn().mockResolvedValue(config());
-    const fetchImpl = jest.fn().mockImplementation(async () => new Response(JSON.stringify({ id: ID })));
-    const client = new DesignTemplateClient({ authRef: authRef(), yidaClient: { get }, fetchImpl });
-    await client.request('match', { query: 'green' });
+  test('uses the existing authenticated Tianshu client for both public operations', async () => {
+    const postJson = jest.fn().mockResolvedValue({ success: true, content: { id: ID } });
+    const get = jest.fn();
+    const client = new DesignTemplateClient({ authRef: authRef(), yidaClient: { postJson, get } });
+    expect(await client.request('match', { query: 'green' })).toEqual({ id: ID });
     await client.request('files', { id: ID });
-    expect(get).toHaveBeenCalledTimes(1);
-    expect(String(fetchImpl.mock.calls[0][0])).toBe('https://org.aliwork.com/openyida/agent-api/api/v1/design-templates/match');
-    expect(fetchImpl.mock.calls[0][1].headers.Authorization).toBe('Bearer private-token');
-    expect(fetchImpl.mock.calls[0][1].redirect).toBe('error');
+    expect(postJson.mock.calls).toEqual([
+      ['/query/designTemplates/match.json', { query: 'green' }],
+      ['/query/designTemplates/files.json', { id: ID }],
+    ]);
+    expect(get).not.toHaveBeenCalled();
   });
-  test('refreshes once after expiry; a second 401 remains an error', async () => {
-    const get = jest.fn().mockImplementation(async () => config());
-    const fetchImpl = jest.fn().mockImplementation(async () => new Response('', { status: 401 }));
-    const client = new DesignTemplateClient({ authRef: authRef(), yidaClient: { get }, fetchImpl });
-    await expect(client.request('match', { query: 'green' })).rejects.toMatchObject({ code: 'DESIGN_TEMPLATE_SERVICE_ERROR' });
-    expect(get).toHaveBeenCalledTimes(2);
-    expect(fetchImpl).toHaveBeenCalledTimes(2);
-  });
-  test('rejects a mismatched organization before sending any business request', async () => {
-    const bad = config(); bad.content.corpId = 'other';
-    const fetchImpl = jest.fn();
-    const client = new DesignTemplateClient({ authRef: authRef(), yidaClient: { get: async () => bad }, fetchImpl });
-    await expect(client.request('match', { query: 'green' })).rejects.toThrow();
-    expect(fetchImpl).not.toHaveBeenCalled();
-  });
-  test('does not mask service failure as no match or retry 403', async () => {
-    const fetchImpl = jest.fn().mockResolvedValue(new Response('', { status: 403 }));
-    const client = new DesignTemplateClient({ authRef: authRef(), yidaClient: { get: async () => config() }, fetchImpl });
-    await expect(client.request('match', { query: 'green' })).rejects.toThrow();
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  test.each([{ success: false, errorMsg: 'forbidden' }, { __needLogin: true }, { __csrfExpired: true }])(
+    'rejects business/login failures instead of returning no match: %p', async raw => {
+      const postJson = jest.fn().mockResolvedValue(raw);
+      const client = new DesignTemplateClient({ authRef: authRef(), yidaClient: { postJson } });
+      await expect(client.request('match', { query: 'green' })).rejects.toThrow();
+      expect(postJson).toHaveBeenCalledTimes(1);
+    });
+  test('propagates transport failures and preserves explicit no-match', async () => {
+    const postJson = jest.fn().mockRejectedValueOnce(new Error('HTTP 503'))
+      .mockResolvedValueOnce({ id: null });
+    const client = new DesignTemplateClient({ authRef: authRef(), yidaClient: { postJson } });
+    await expect(client.request('match', { query: 'green' })).rejects.toThrow('HTTP 503');
+    expect(await client.request('match', { query: 'green' })).toEqual({ id: null });
+    await expect(client.request('admin/versions', {})).rejects.toThrow();
+    expect(postJson).toHaveBeenCalledTimes(2);
   });
 });
 
