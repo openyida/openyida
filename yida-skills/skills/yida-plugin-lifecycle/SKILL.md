@@ -1,13 +1,13 @@
 ---
 name: yida-plugin-lifecycle
-description: 管理宜搭平台“插件管理”中的开发插件、版本、安装状态与运行时注册。仅在用户明确指向宜搭平台插件时使用；npm 包、Codex/AI 工具插件、连接器本身或普通页面组件不触发。
+description: 管理宜搭平台“插件管理”中的开发插件、版本配置、安装状态与运行时注册查询；前端构建、托管与加载排查交给 yida-plugin-frontend-deploy。仅在用户明确指向宜搭平台插件时使用；npm 包、Codex/AI 工具插件、连接器本身或普通页面组件不触发。
 ---
 
 # 宜搭平台插件开发、管理与使用
 
 本技能处理宜搭平台管理后台的“插件管理”，不是 npm、浏览器扩展或 AI 工具插件。开始前核对登录组织；插件操作是组织级影响，不能借应用级授权推定组织级写权限。
 
-前端资源部署，或连接类组件的服务、输入输出映射、参数、鉴权设计，必须先读 [宜搭插件开发规范](./references/development-guide.md)。其中前端资源按已核实的集团/非集团开发环境选择发布方式；连接类组件以官方《宜搭插件开发指南》为权威来源。CLI 生命周期接口不能替代官方编辑器中的组件设计和组织内真实测试。
+连接类组件的服务、输入输出映射、参数与鉴权设计，先读[宜搭插件开发规范](./references/development-guide.md)。前端构建、托管或加载排查转到 [yida-plugin-frontend-deploy](../yida-plugin-frontend-deploy/SKILL.md)；本技能只接收其真实资源地址并负责平台配置保存。CLI 生命周期接口不能替代官方编辑器中的组件设计和组织内真实测试。
 
 ## 没有开发插件权限时
 
@@ -40,9 +40,7 @@ openyida plugin runtime-list --extensions yida.app.custom-page.component --json
 openyida plugin probe PLUGIN-XXX 1.2.3 --check-resource --json
 ```
 
-`extensions` 返回真实扩展点目录。配置版本前先查询目录，不猜扩展点 ID。`probe --check-resource` 对完整 HTTPS 或允许的本机 HTTP 入口发送只读 HEAD 请求；成功只证明该地址在 CLI 所在网络可达。`javascriptContentType=false` 表示响应类型不是 JavaScript（例如登录页），不能据 HTTP 200 宣称资源有效；即使类型正确也没有执行脚本或验证 chunks。
-
-`probe` 保留原始 `plan.entry`，并返回 URL 解析依据、是否仅用于本机调试及未验证的 SDK 容器名提示。相对路径中的已知官方命名空间只生成 `official-default-candidate`，其他命名空间标为 `unresolved-relative-path`、不发起请求；这不是不支持该命名空间，应核对实际运行时地址。未指定版本且基础信息没有开发配置时返回 `PROBE_EXPLICIT_VERSION`，再查询明确版本。完整字段解释见开发规范。
+`extensions` 返回真实扩展点目录，配置版本前先查询，不猜 ID。`probe --check-resource` 只检查资源 HEAD，不执行脚本；解析候选地址、响应类型或未验证容器名时，读取[前端部署技能的探测契约](../yida-plugin-frontend-deploy/references/frontend-contract.md#cli-探测结果怎么读)。未获测试授权时不要执行探测。
 
 `runtime-list` 会隐藏安装配置值，只说明是否存在配置，并原样保留启停状态；不要把加密参数、令牌或连接凭据写进对话、日志或仓库。
 
@@ -59,9 +57,7 @@ openyida plugin create-version PLUGIN-XXX --version 1.1.0 --description '新增�
 
 保存字段使用 `frontEndDevInfo.cdnEntry`；CLI 兼容 `cdnUrl` 输入并转换成 `cdnEntry`，两字段值冲突则拒绝。完整 HTTPS 地址不改域名、不补官方前缀。保存前再次读取、写入不覆盖备份，保存后核对目标插件/版本及三段配置；服务端改写资源地址或配置会报 `PLUGIN_READBACK_MISMATCH`。此时写入可能已经发生，先回读排查，不自动重试或恢复备份；不会顺带发布。
 
-前端资源先按[部署分流与验收](./references/development-guide.md#前端资源部署分流与验收)确定渠道，再读[前端资源创建与部署引导](./references/frontend-hosting.md)带用户完成下一步：优先复用已授权的企业静态资源服务器/发布流程（集团优先现有内网流程）；没有现成渠道时，国内默认推荐“码云 + 阿里云 OSS”，GitHub Actions + Pages 作为备选。不要只罗列产品名或要求用户自己研究；先核对已有资源，再提供对应创建入口和步骤，遇到账号、权限、费用或协议由用户确认。以保存回读和当前宿主的实际加载契约核对完整 URL 或 CDN 相对路径，不仅凭输入框前缀断言第三方必须使用 `g.alicdn.com`。
-
-CLI 当前为 `http://localhost`、`http://127.0.0.1`、`http://0.0.0.0` 和 `http://[::1]` 放行 HTTP，普通 HTTP 域名仍拒绝。这只是 CLI 校验行为，不证明浏览器或插件宿主能够加载；本机调试地址不能作为组织发布后的稳定资源地址。
+尚无稳定前端资源地址时，转到[前端部署技能](../yida-plugin-frontend-deploy/SKILL.md)完成渠道选择与创建指导；拿到真实入口后再继续以下保存步骤。构建、资源部署和平台发布是独立操作，不因保存配置而自动执行。
 
 ```bash
 openyida plugin save-dev PLUGIN-XXX 1.1.0 \
@@ -77,13 +73,7 @@ openyida plugin save-dev PLUGIN-XXX 1.1.0 \
 
 ### 连接类组件开发契约
 
-- `willFetch(vars)` 从真实 `vars.data.<fieldId>` 取值，并把插件服务入参序列化到 `vars.data.input`；HTTP/HTTPS 服务按目标接口构造 `query`、`body`、`header`、`path`。
-- `didFetch(content)` 从 `content.outputs` 读取真实服务结果，写回目标字段并返回 `content`；动态选项返回 `{ text, value }` 数组。
-- 动态数据源调用必须使用真实 `pluginId` 与 `serviceUuid`。处理函数对安装者可见，不得包含 Token、AppSecret 或 API Key。
-- 自定义参数以 `$参数名` 用于服务输入，系统常量为 `$CORP_ID`、`$USER_ID`、`$ORG_ID`、`$DING_UID`。密钥参数必须加密，不共享开发者凭据时清空默认值。
-- Basic、API Key、阿里云 API 网关和钉钉开放平台鉴权均由插件服务与参数配置表达，不在前端处理函数里自行保存凭据。
-
-`save-dev` 只保存平台已接受的配置对象，不会猜测或重写编辑器生成的服务/组件结构。对上述开发契约的验收必须结合版本回读、官方编辑器和独立测试组织中的真实表单消费。
+按[开发规范](./references/development-guide.md)核对真实字段、服务输入输出、动态数据源、参数加密和鉴权。`save-dev` 只保存平台已接受的配置对象，不会猜测或重写编辑器生成的服务/组件结构；验收需结合版本回读、官方编辑器和独立测试组织中的真实表单消费。
 
 ## 已安装插件
 
@@ -101,12 +91,6 @@ openyida plugin uninstall PLUGIN-XXX --confirm --json
 平台实际语义是：停用后新场景不能再选择插件，已有使用场景可能仍不受影响。因此 `disable` 的回读只能证明安装状态变为停用，不能宣称已从所有运行时卸载。升级影响组织内所有应用，卸载会让组织应用无法再使用，应在明确授权和影响评估后执行。
 
 当前 CLI 不提供从插件中心安装，因为市场目标、版本和授权契约尚未形成可安全回读的通用参数；使用官方插件中心安装并在随后用 `installed-get` 核对。
-
-## 宿主懒加载
-
-`lib/plugin/runtime-registry.js` 提供无全局状态的 `createPluginRuntimeRegistry`：按插件 ID、版本、HTTPS 入口及扩展点集合去重；同一加载中的请求共享 Promise，失败会清除缓存以允许人工修复后重试，版本变化会形成新实例，`invalidate` 只清指定插件/版本。每个页面或宿主创建自己的 registry，卸载或版本切换时只清自己的实例，避免污染其他页面。
-
-拿到 `runtime-list` 注册项后，再由实际宿主的 Module Federation/脚本加载器作为 `loadEntry` 注入。该 helper 不决定脚本执行方式、不写 `window`、不绕过 CSP，也不把“registry 已返回模块”当成业务组件已渲染。最终必须在真实消费者中验收。
 
 ## 完成标准
 

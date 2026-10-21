@@ -99,6 +99,8 @@ test('probe preserves external URLs and reports SDK container hints separately f
   });
   expect(result.evidence.resourceReachable).toBeNull();
   expect(result.evidence.consumerExecutionVerified).toBe(false);
+  expect(result.hostingGuide).toBe(path.resolve(__dirname, '../yida-skills/skills/yida-plugin-frontend-deploy/SKILL.md'));
+  expect(fs.existsSync(result.hostingGuide)).toBe(true);
   expect(entryPlan('https://cdn.example.test/yida-components/remoteEntry.js', 'PLUGIN-TEST').runtimeContract)
     .toMatchObject({ classification: 'official-substring-match', containerName: null });
 });
@@ -249,12 +251,34 @@ test('skill anchors the official development guide and connector contracts', () 
 
 test('skill separates hosting guidance, manual consent and unverified runtime hints', () => {
   const skill = fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-plugin-lifecycle/SKILL.md'), 'utf8');
-  const guide = fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-plugin-lifecycle/references/development-guide.md'), 'utf8');
+  const deploy = fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-plugin-frontend-deploy/SKILL.md'), 'utf8');
+  const hosting = fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-plugin-frontend-deploy/references/frontend-hosting.md'), 'utf8');
+  const contract = fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-plugin-frontend-deploy/references/frontend-contract.md'), 'utf8');
   expect(skill).toContain('https://ding.aliwork.com/o/Plug-in');
   expect(skill).toContain('不代勾选、代同意');
   expect(skill).toContain('PLUGIN_READBACK_MISMATCH');
-  for (const contract of ['集团开发环境', '非集团开发环境', 'verifiedInCurrentHost=false', 'unresolved-relative-path', 'publicPath', '用户明确禁止或暂缓某渠道']) {
-    expect(guide).toContain(contract);
+  expect(skill).toContain('../yida-plugin-frontend-deploy/SKILL.md');
+  expect(skill).not.toContain('./references/frontend-hosting.md');
+  expect(deploy).toContain('../yida-plugin-lifecycle/SKILL.md');
+  expect(deploy).toContain('用户明确禁止或暂缓某渠道');
+  for (const term of ['集团开发环境', '非集团开发环境', '码云 + 阿里云 OSS', '企业静态资源服务器', 'GitHub Actions + Pages']) {
+    expect(hosting).toContain(term);
   }
-  expect(guide).toContain('没有执行 GitHub Actions/Pages 部署');
+  for (const term of ['verifiedInCurrentHost=false', 'unresolved-relative-path', 'publicPath', 'createPluginRuntimeRegistry']) {
+    expect(contract).toContain(term);
+  }
+  expect(contract).toContain('没有执行 GitHub Actions/Pages 部署');
+});
+
+test('frontend deploy skill has its own routing and coverage entry', () => {
+  const index = require('../yida-skills/skills-index.json');
+  const { SKILL_COVERAGE } = require('../scripts/e2e-real/skill-coverage');
+  const name = 'yida-plugin-frontend-deploy';
+  const route = index.skills.find(item => item.name === name);
+  expect(route).toMatchObject({ path: `skills/${name}/SKILL.md`, requires_login: false, command_ids: ['plugin'] });
+  expect(route.negative_signals).toContain('普通网站部署');
+  expect(fs.existsSync(path.join(__dirname, '../yida-skills', route.path))).toBe(true);
+  expect(SKILL_COVERAGE[name]).toMatchObject({ level: 'offline-unit', tests: expect.arrayContaining(['tests/plugin-lifecycle.test.js']) });
+  const entry = fs.readFileSync(path.join(__dirname, '../yida-skills/SKILL.md'), 'utf8');
+  expect(entry).toContain('`yida-plugin-frontend-deploy`');
 });
