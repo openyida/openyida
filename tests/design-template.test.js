@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const { DesignTemplateClient } = require('../lib/design-template/client');
 const { validateManifest, downloadTemplate } = require('../lib/design-template/download');
 const { parseArgs } = require('../lib/design-template/design-template');
-const ID = `dtv_${'a'.repeat(32)}`;
+const ID = `dt_${'a'.repeat(32)}`;
 const bytes = Buffer.from('body { color: green; }');
 const hash = crypto.createHash('sha256').update(bytes).digest('hex');
 const manifest = () => ({ id: ID, files: [{ name: 'style.css', size: bytes.length, sha256: hash, url: 'https://assets.example/style.css?signature=private' }] });
@@ -82,10 +82,10 @@ describe('template download', () => {
   });
 });
 
-test('consumer CLI exposes only match and fixed-version get', () => {
+test('consumer CLI exposes only match and stable-template get', () => {
   expect(parseArgs(['match', 'green'])).toMatchObject({ action: 'match' });
   expect(parseArgs(['get', ID, '--output-dir', 'new-dir'])).toMatchObject({ action: 'get', output: 'new-dir' });
-  for (const args of [['list'], ['match', 'green', '--topK', '100'], ['get', 'invalid', '--output-dir', 'out']]) {
+  for (const args of [['list'], ['match', 'green', '--topK', '100'], ['get', 'invalid', '--output-dir', 'out'], ['get', `dtv_${'a'.repeat(32)}`, '--output-dir', 'out']]) {
     expect(() => parseArgs(args)).toThrow();
   }
 });
