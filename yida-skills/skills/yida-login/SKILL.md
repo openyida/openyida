@@ -123,6 +123,18 @@ openyida auth refresh
 
 如果运行环境没有注入 token，auth snapshot 会返回 `failure_reason=env_token_missing`；停止任务，让 Codex、yida-agent 等宿主补齐 token 注入，不要触发 OAuth。
 
+## 千问云端身份诊断
+
+仅在用户明确要求接入或诊断千问云端身份时，运行：
+
+```bash
+openyida auth qwenwork user-info --json
+```
+
+命令读取 `QWENWORK_AGENT_TOKEN`（兼容 `MULE_AGENT_TOKEN` / `AGENT_TOKEN`），向 `QWENWORK_GATEWAY_URL`（兼容 `MULE_GATEWAY_URL`）兑换用户凭证，再查询同一地址的 `/user/info`。不打印或持久化凭证；返回用户身份与凭证来源等元信息，并校验已注入的预期用户 ID。
+
+这不是宜搭登录成功结果，不会创建或覆盖 OpenYida auth profile，也不能作为资源写操作的登录凭据。千问 `biz_org_id` 不直接等于宜搭 `corpId`。宿主身份与宜搭身份的映射及宜搭登录态兑换由后续服务端接口负责。默认 OAuth 和 env token 登录流程保持不变。
+
 ## 禁止
 
 - 不要硬编码或打印 `access_token`、`refresh_token`、Cookie 或 CSRF。

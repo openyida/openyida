@@ -98,6 +98,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 登录态可用 | 进入 Step 2 |
 | 登录态缺失 | 按快照提示补登录态；未恢复前停止资源写操作 |
 
+千问云端身份接入开发或宿主身份诊断，可显式运行 `openyida auth qwenwork user-info --json`；它只验证千问身份，不建立宜搭登录态，不能据此跳过上述宜搭 auth snapshot 检查。详细边界见 `yida-login`。
+
 ### Step 2：解析资源上下文
 
 任何写操作前先解析目标 app/page/form/process。按本轮显式资源、外部绑定资源、workspace cache/config、会话历史的顺序选择目标；同级冲突或目标不明才询问用户。

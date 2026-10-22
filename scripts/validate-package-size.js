@@ -173,7 +173,9 @@ const MAX_TARBALL_BYTES = 2592 * 1024;
 // Task transfer adds its runtime, guide and 12-locale messages; next 16 KiB boundary.
 // Combined responsive/feedback and main package: 9,733,108 bytes / 769 files
 // on Node 20. Keep the next 16 KiB boundary and the existing single-file cap.
-const MAX_UNPACKED_BYTES = 9520 * 1024;
+// QwenWork identity modules and 12-locale guidance measure 9,758,833 unpacked
+// bytes / 772 files on Node 24; retain the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 9536 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -207,7 +209,8 @@ const MAX_UNPACKED_BYTES = 9520 * 1024;
 // Unpacked and per-file limits remain unchanged.
 // Administrator task transfer adds exactly one runtime module and one skill guide.
 // GitHub setup keeps installation/detection separate from account actions.
-const MAX_ENTRY_COUNT = 770;
+// QwenWork cloud identity adds its reusable client and explicit CLI command.
+const MAX_ENTRY_COUNT = 772;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -296,6 +299,8 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-upgrade-app-theme/references/page-migration.md',
   'bin/yida.js',
   'lib/core/managed-policy.js',
+  'lib/auth/qwenwork-client.js',
+  'lib/auth/qwenwork.js',
   'lib/app/create-form/batch.js',
   'lib/app/application-entry-urls.js',
   'lib/app/app-entry.js',

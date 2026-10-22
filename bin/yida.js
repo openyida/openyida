@@ -714,6 +714,10 @@ async function main() {
 
     case 'auth': {
       const subCommand = args[0];
+      if (subCommand === 'qwenwork') {
+        await require('../lib/auth/qwenwork').run(args.slice(1));
+        break;
+      }
       const authArgs = applyLoginEnvironmentFlags(args.slice(1), { inferTargetUrl: true });
       const { getAuthStatus } = require('../lib/core/utils');
       const { tokenLogin, tokenLogout, tokenRefresh } = require('../lib/auth/token-auth');

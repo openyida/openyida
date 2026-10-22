@@ -137,6 +137,8 @@ openyida login --check-only --json
 openyida auth status
 ```
 
+在千问办公云端诊断宿主身份时，可执行 `openyida auth qwenwork user-info --json`。命令读取沙箱注入的 Agent 凭证，兑换用户凭证后查询同一网关的 `/user/info`，仅输出身份与 scope 等元信息，不打印或保存凭证，也不生成宜搭登录态。千问组织 ID 需要通过绑定关系映射，不能直接当作宜搭 `corpId`。原有 OAuth 和 profile 流程保持不变。
+
 如果当前项目要复用已有共享登录 profile，先切换已有 profile，不要直接发起新的 OAuth 登录：
 
 ```bash
@@ -337,7 +339,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 |------|------|
 | `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
 | `openyida logout` | 退出登录 / 解绑当前项目登录态 |
-| `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch>` | token 登录态与 profile 管理 |
+| `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch\|qwenwork user-info> [--json]` | token 登录态与 profile 管理 |
 | `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | 组织管理（列表 / 优先按已有 profile 切换） |
 | `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | 检测 AI 工具环境和 token 登录态 |
 

@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.10.22-snapshot.0] - 2026-10-22
+
+- 新增 `auth qwenwork user-info --json`，在千问办公云端读取注入的 Agent 凭证，兑换用户凭证并查询用户信息。
+- 提供可复用的千问凭证兑换与身份查询接口，校验用户和组织上下文；命令不打印或持久化 Token，不创建或覆盖宜搭登录态。
+- snapshot 测试版通过 npm `snapshot` 渠道发布；开发改动保留在开发分支，不合入 `main`。
+
 ## [2026.10.22] - 2026-10-22
 
 优化自定义页面在平台侧栏、抽屉、iframe 和移动端中的自适应布局，区分浏览器视口语义与实际内容容器宽度。
