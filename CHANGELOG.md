@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.10.22-beta.0] - 2026-10-22
+
+- 千问办公云端身份测试版：提供 `auth qwenwork user-info --json` 及可复用的 Agent Token 兑换、用户信息查询接口。
+- 校验用户和组织上下文，不打印或保存凭证，不创建宜搭登录态；宜搭登录态兑换仍需后续服务端接口接入。
+- 仅发布到 npm `beta` 测试渠道，不更新 `latest`；开发改动不合入 `main`。
+
 ## [2026.10.22-snapshot.0] - 2026-10-22
 
 - 新增 `auth qwenwork user-info --json`，在千问办公云端读取注入的 Agent 凭证，兑换用户凭证并查询用户信息。
