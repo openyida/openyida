@@ -10,7 +10,7 @@ const { parseArgs } = require('../lib/design-template/design-template');
 const ID = `dt_${'a'.repeat(32)}`;
 const bytes = Buffer.from('body { color: green; }');
 const hash = crypto.createHash('sha256').update(bytes).digest('hex');
-const manifest = () => ({ id: ID, files: [{ name: 'style.css', size: bytes.length, sha256: hash, url: 'https://assets.example/style.css?signature=private' }] });
+const manifest = () => ({ id: ID, files: ['design.md', 'app_theme.css'].map(name => ({ name, size: bytes.length, sha256: hash, url: `https://assets.example/${name}?signature=private` })) });
 const authRef = () => ({ baseUrl: 'https://org.aliwork.com', corpId: 'corp', userId: 'user' });
 describe('design template client', () => {
   test('uses the existing authenticated Tianshu client for both public operations', async () => {
@@ -48,17 +48,17 @@ describe('template download', () => {
   beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'design-template-test-')); });
   afterEach(() => { fs.rmSync(root, { recursive: true, force: true }); });
   test('verifies hash, writes a new directory and never passes credentials to assets', async () => {
-    const fetchImpl = jest.fn().mockResolvedValue(new Response(bytes));
+    const fetchImpl = jest.fn().mockImplementation(async () => new Response(bytes));
     const out = path.join(root, 'files');
     const result = await downloadTemplate(manifest(), ID, out, fetchImpl);
-    expect(fs.readFileSync(path.join(out, 'style.css'))).toEqual(bytes);
+    for (const name of ['design.md', 'app_theme.css']) { expect(fs.readFileSync(path.join(out, name))).toEqual(bytes); }
     expect(fetchImpl.mock.calls[0][1].headers).toBeUndefined();
     expect(JSON.stringify(result)).not.toContain('signature');
     expect(result.id).toBe(ID);
   });
   test('hash failure leaves no partial download', async () => {
     const out = path.join(root, 'files');
-    const m = manifest(); m.files.push({ ...m.files[0], name: 'second.css' });
+    const m = manifest();
     const fetchImpl = jest.fn().mockResolvedValueOnce(new Response(bytes)).mockResolvedValueOnce(new Response('broken'));
     await expect(downloadTemplate(m, ID, out, fetchImpl)).rejects.toThrow();
     expect(fs.existsSync(out)).toBe(false);
@@ -88,4 +88,21 @@ test('consumer CLI exposes only match and stable-template get', () => {
   for (const args of [['list'], ['match', 'green', '--topK', '100'], ['get', 'invalid', '--output-dir', 'out'], ['get', `dtv_${'a'.repeat(32)}`, '--output-dir', 'out']]) {
     expect(() => parseArgs(args)).toThrow();
   }
+});
+
+test.each([
+  [], ['design.md'], ['app_theme.css'], ['design.md', 'design.md'],
+  ['design.md', 'style.css'], ['DESIGN.md', 'app_theme.css'],
+  ['design.md', 'app_theme.css', 'cover.png'],
+].map(names => [names]))('rejects invalid delivery set %p before network or disk changes', async (names) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'template-invalid-'));
+  try {
+    const m = manifest();
+    m.files = names.map(name => ({ ...m.files[0], name }));
+    const fetchImpl = jest.fn();
+    const output = path.join(root, 'new', 'files');
+    await expect(downloadTemplate(m, ID, output, fetchImpl)).rejects.toThrow();
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(fs.readdirSync(root)).toEqual([]);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
