@@ -89,6 +89,37 @@ describe('configure-process replacement and verification safety', () => {
     jest.dontMock('../lib/core/chalk');
   });
 
+  test('rejects the Issue 651 guessed enum before any API call', async () => {
+    const h = loadSubject({ definition: { nodes: [{ type: 'operator', executor: {
+      approvalType: 'ext_target_approval_field', approvals: [['employeeField_owner']],
+    } }] } });
+    try {
+      await expect(h.subject.run(['APP_TEST', 'FORM_TEST', h.definitionFile], { suppressOutput: true }))
+        .rejects.toMatchObject({ code: 'PROCESS_DYNAMIC_ACTOR_INVALID', details: { remoteWrites: 0, approvalType: 'ext_target_approval_field' } });
+      expect(h.mockGet).not.toHaveBeenCalled();
+      expect(h.mockGetOnce).not.toHaveBeenCalled();
+      expect(h.mockPostForm).not.toHaveBeenCalled();
+      expect(h.mockPostFormOnce).not.toHaveBeenCalled();
+    } finally { fs.rmSync(h.tempDir, { recursive: true, force: true }); }
+  });
+
+  test('validates actor fields even without any field-permission config', async () => {
+    const h = loadSubject({ definition: { nodes: [{ type: 'operator', executor: {
+      kind: 'formField', fieldId: 'textField_owner',
+    } }] } });
+    h.mockGet.mockResolvedValueOnce({ success: true, content: { appType: 'APP_TEST', formUuid: 'FORM_TEST', procCode: '' } })
+      .mockResolvedValueOnce({ success: true, content: { pages: [{ layout: {
+        componentName: 'TextField', props: { fieldId: 'textField_owner' },
+      } }] } });
+    try {
+      await expect(h.subject.run(['APP_TEST', 'FORM_TEST', h.definitionFile], { suppressOutput: true }))
+        .rejects.toMatchObject({ code: 'PROCESS_DYNAMIC_ACTOR_INVALID', details: { remoteWrites: 0, fieldId: 'textField_owner' } });
+      expect(h.mockGet).toHaveBeenCalledTimes(2);
+      expect(h.mockPostForm).not.toHaveBeenCalled();
+      expect(h.mockPostFormOnce).not.toHaveBeenCalled();
+    } finally { fs.rmSync(h.tempDir, { recursive: true, force: true }); }
+  });
+
   test('parses explicit --replace without treating it as processCode', () => {
     const harness = loadSubject();
     expect(harness.subject.parseArgs([

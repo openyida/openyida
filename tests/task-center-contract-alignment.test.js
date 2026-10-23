@@ -51,7 +51,7 @@ beforeEach(() => {
     const row = { appType: 'APP_TEST', taskId: 'task-a', processInstanceId: 'instance-a', formUuid: 'FORM_TEST', carbonActivityId: 'node-a', dataType: 'pinst', title: 'Request' };
     return { success: true, content: { data: [row], values: [row], totalCount: 37 } };
   });
-  utils.httpPost.mockResolvedValue({ success: true, content: [{ appType: 'APP_TEST', processCode: 'process-a', formUuid: 'FORM_TEST', formType: 'process', title: 'Request' }] });
+  utils.httpPost.mockResolvedValue({ success: true, content: [{ appType: 'APP_TEST', processCode: 'process-a', formUuid: 'FORM_TEST', formType: 'process', title: '报销采购' }] });
   log = jest.spyOn(console, 'log').mockImplementation(() => {});
 });
 afterEach(() => { log.mockRestore(); fs.rmSync(directory, { recursive: true, force: true }); });

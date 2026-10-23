@@ -39,6 +39,124 @@ const mockAuthData = {
   user_id: 'user-1',
 };
 
+describe('administrator process tasks and transfer', () => {
+  const transferArgs = ['transfer', 'task', 'APP_XXX', '--process-inst-id', 'PROC-1',
+    '--form-uuid', 'FORM-XXX', '--to-user-id', '00042', '--remark', 'Transfer', ...PROCESS_EXPECTATIONS];
+  const makeTask = (overrides = {}) => ({ id: 101, processInstanceId: 'PROC-1',
+    actualActionerId: '00001', status: 'RUNNING', activityCode: 'node-A', taskGroupId: 201, ...overrides });
+  let log;
+
+  beforeEach(() => {
+    utils.httpGet.mockReset();
+    utils.httpPost.mockReset();
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    formNavigation.fetchFormPageList.mockResolvedValue([{
+      formUuid: 'FORM-XXX', formName: '目标流程', formType: 'process',
+    }]);
+    log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
+  afterEach(() => { log.mockRestore(); });
+
+  function setupTransfer(after = [makeTask({ actualActionerId: '00042' })]) {
+    utils.httpGet.mockResolvedValueOnce({ success: true,
+      content: { processInstanceId: 'PROC-1', formUuid: 'FORM-XXX' } })
+      .mockResolvedValueOnce({ success: true, content: [makeTask()] })
+      .mockResolvedValueOnce({ success: true, content: after });
+    utils.httpPost.mockResolvedValue({ success: true, content: null });
+  }
+
+  test('new task query uses the exact administrator endpoint and returns taskId', async () => {
+    utils.httpGet.mockResolvedValue({ success: true, content: [makeTask()] });
+    await run(['query', 'process-tasks', 'APP_XXX', '--process-inst-id', 'PROC-1', '--json']);
+    expect(utils.httpGet).toHaveBeenCalledWith('https://www.aliwork.com',
+      '/dingtalk/web/APP_XXX/query/formProcInstData/getInstTaskDatas.json',
+      expect.objectContaining({ _api: 'DataManage.getInstTasks', procInstId: 'PROC-1' }));
+    expect(getLoggedJson(log).content[0].taskId).toBe('101');
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('existing process list endpoint remains unchanged', async () => {
+    utils.httpGet.mockResolvedValue({ success: true, content: { data: [] } });
+    await run(['query', 'process', 'APP_XXX', 'FORM-XXX']);
+    expect(utils.httpGet.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/v1/process/getInstances.json');
+  });
+
+  test.each([
+    ['query', 'process-tasks', 'APP_XXX'],
+    ['query', 'process-tasks', 'APP_XXX', '--process-inst-id'],
+    ['query', 'process-tasks', 'APP_XXX', '--process-inst-id', 'PROC;other'],
+    [...transferArgs, '--task-id', '201-invalid'],
+    [...transferArgs, '--by-manager', 'false'],
+    [...transferArgs, '--task-id', '101', '--task-id', '102'],
+    [...transferArgs, '--to-user-id', 'OTHER'],
+    transferArgs.filter(value => value !== '00042'),
+    [...transferArgs.filter(value => value !== 'Transfer'), '--json'],
+    transferArgs.map(value => value === 'Transfer' ? '' : value),
+  ].map(args => [args]))('new command invalid arguments fail before authentication %j', async args => {
+    await expect(run(args)).rejects.toMatchObject({ code: 'DATA_INVALID_ARGUMENTS' });
+    expect(utils.loadAuthData).not.toHaveBeenCalled();
+    expect(utils.httpGet).not.toHaveBeenCalled();
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('transfer validates resource and instance then posts once and verifies readback', async () => {
+    setupTransfer();
+    await run(transferArgs);
+    expect(formNavigation.fetchFormPageList).toHaveBeenCalled();
+    expect(utils.httpGet.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/v1/process/getInstanceById.json');
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost.mock.calls[0][1]).toContain('/query/instance/redirectTask.json?_api=DataManage.redirectTask');
+    const body = new URLSearchParams(utils.httpPost.mock.calls[0][2]);
+    expect(body.get('taskId')).toBe('101');
+    expect(body.get('nowActionerId')).toBe('00042');
+    expect(body.get('byManager')).toBe('true');
+    // Only the instance query and the two task reads use auto-login, never the write.
+    expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(3);
+    expect(getLoggedJson(log)).toMatchObject({ transferred: true, readbackVerified: true });
+  });
+
+  test('transfer without --remark posts the default note and still verifies readback', async () => {
+    setupTransfer();
+    await run(transferArgs.filter(value => value !== '--remark' && value !== 'Transfer'));
+    expect(new URLSearchParams(utils.httpPost.mock.calls[0][2]).get('remark')).toBe('转交');
+    expect(getLoggedJson(log)).toMatchObject({ transferred: true, readbackVerified: true });
+  });
+
+  test('resource name mismatch prevents task lookup and submission', async () => {
+    formNavigation.fetchFormPageList.mockResolvedValue([{
+      formUuid: 'FORM-XXX', formName: 'Other', formType: 'process',
+    }]);
+    await expect(run(transferArgs)).rejects.toMatchObject({ code: 'DATA_TARGET_IDENTITY_MISMATCH' });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+    expect(utils.httpGet).not.toHaveBeenCalled();
+  });
+
+  test('foreign instance prevents task lookup and submission', async () => {
+    utils.httpGet.mockResolvedValue({ success: true,
+      content: { processInstanceId: 'PROC-1', formUuid: 'FORM-OTHER' } });
+    await expect(run(transferArgs)).rejects.toMatchObject({ code: 'DATA_INSTANCE_TARGET_MISMATCH' });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+  });
+
+  test('ended process is rejected even if a stale task query might report RUNNING', async () => {
+    utils.httpGet.mockResolvedValue({ success: true, content: {
+      processInstanceId: 'PROC-1', formUuid: 'FORM-XXX', instanceStatus: 'COMPLETED',
+    } });
+    await expect(run(transferArgs)).rejects.toMatchObject({ code: 'DATA_PROCESS_TASK_NOT_RUNNING' });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+  });
+
+  test('unverified readback throws without printing success', async () => {
+    setupTransfer([]);
+    await expect(run(transferArgs)).rejects.toMatchObject({ code: 'DATA_PROCESS_TRANSFER_UNVERIFIED' });
+    expect(log).not.toHaveBeenCalled();
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  });
+});
+
 async function expectCliError(promise, message, exitCode = 1) {
   let error;
   try {

@@ -6,7 +6,7 @@ function CanvasNav({ items = [], activeKey, onSelect, title, logo, actions, chil
       .oy-nav-side .oy-nav-content { flex: 1; }
       .oy-nav-side .oy-nav-brand { min-height: var(--pod-nav-platform-header-height, 48px); }
       .oy-nav-side .oy-nav-menu { display: flex; flex-direction: column; gap: var(--pod-nav-menu-gap, 8px); }
-      @media (max-width: 767px) { .oy-nav-side { display: block; } }
+      @container (max-width: 767px) { .oy-nav-side { display: block; } }
     `}</style>
     <CanvasSidebar title={title} logo={logo} actions={actions} activeKey={activeKey} defaultWidth={sidebarWidth} defaultCollapsed={defaultCollapsed}>
       <nav aria-label="应用导航" className="oy-nav-menu">

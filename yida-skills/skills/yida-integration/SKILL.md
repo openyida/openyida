@@ -22,6 +22,7 @@ description: 配置宜搭自动化的执行时机和处理步骤，修改已有�
 
 ## 严格要求 (MUST DO)
 
+- 定时任务按实际结束条件选择 `count`（触发次数）或 `time`（指定时间），spec 分别填写 `schedule.maxCount` 或 `schedule.expireDate`。需要“一直执行”或长期持续运行时，建议选择指定时间，将截止日期设得较远，并在配置摘要中展示实际日期；详见 [触发设置](references/triggers.md#结束条件)。
 - **创建/发布前必须确认**：执行集成自动化创建或发布操作前，必须向用户展示逻辑流配置摘要（触发条件、节点列表、通知对象），获得用户明确同意后再执行。
 - 创建前先确认触发表单的 `formUuid` 和相关字段 ID。
 - 创建成功后记录逻辑流 ID 到 `<projectRoot>/.cache/<项目名>-schema.json`。

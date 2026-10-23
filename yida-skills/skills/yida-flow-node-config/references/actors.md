@@ -91,6 +91,10 @@
 
 直属主管使用 `type: directLeader`，来源和层级仍用 `source/level`；替补参数使用 `needDeptLeaderReplace`，不要把部门主管的两个替补参数直接套入。
 
+## 表单成员与发起人自选
+
+字段选人、发起时自选及逐级指定下一级经办人，读取 [动态人员来源](dynamic-actors.md)。审批／办理支持两种来源，抄送与旧版多人审批支持成员字段；自选的节点范围、权益与兼容性边界见该文档。
+
 ## 按条件选人
 
 审批、办理、抄送分别使用 `approver/executor/receiver`，共用 `kind: conditional`。先查询真实字段、人员和角色。

@@ -1,0 +1,56 @@
+name: Welcome issue contributors
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+concurrency:
+  group: issue-welcome-${{ github.repository }}-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  welcome:
+    if: github.repository == 'openyida/openyida' && github.event.issue.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # No checkout, dependencies, shell, or execution of issue content.
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          retries: 0
+          script: |
+            const issue = context.payload.issue;
+            if (context.eventName !== 'issues' || context.payload.action !== 'opened' ||
+                !issue || issue.pull_request || issue.user?.type === 'Bot' ||
+                context.repo.owner !== 'openyida' || context.repo.repo !== 'openyida') return;
+            const target = { ...context.repo, issue_number: issue.number };
+            const { data: current } = await github.rest.issues.get(target);
+            if (current.state !== 'open' || current.locked) return;
+            const marker = '<!-- openyida-contribution-welcome-v1 -->';
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...target, per_page: 100,
+            });
+            if (comments.some(comment =>
+              comment.user?.type === 'Bot' && comment.user?.login === 'github-actions[bot]' &&
+              (comment.body || '').includes(marker))) return;
+            await github.rest.issues.createComment({
+              ...target,
+              body: [
+                marker,
+                '谢谢你提交反馈！问题已记录，只反馈问题也完全可以。',
+                '',
+                '如果你愿意，我们也欢迎你和 AI 一起尝试改进，再提交 PR（修改建议）。不需要先学 Git 或会写代码；AI 可以协助分析、准备修改和测试，你确认内容后才公开提交。能否修复需要实际验证，是否合并由维护者审阅决定。',
+                '',
+                '可以把这句话发给正在使用的 AI，并附上本 Issue 的链接：',
+                '> 我想尝试改进这个 OpenYida 问题，但不熟悉代码。请先解释预计改动，再从公开源码中准备最小修复和真实测试结果。给我看 diff、正文和截图，经我确认后才通过我的个人 Fork 提 PR，并关联这个 Issue；找不到可验证修复时就完善问题记录。',
+                '',
+                '👉 [新手贡献指南](https://github.com/openyida/openyida/blob/main/CONTRIBUTING.md#ai-help)',
+                '',
+                '如果愿意补充信息，请填写问题发生时的 OpenYida 版本、AI 工具及版本、安装方式、系统和 Node.js；不知道的写“不清楚”。无需粘贴完整日志、env 输出或内部源码，文字和截图请先脱敏。',
+                '',
+                'Thanks for reporting! Contributing a PR is optional. AI can help prepare a focused change and real test results; review all public content before submission. See the contribution guide above.',
+              ].join('\n'),
+            });

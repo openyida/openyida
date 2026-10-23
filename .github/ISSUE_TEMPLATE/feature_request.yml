@@ -1,0 +1,38 @@
+name: 希望体验更好 · Suggest an improvement
+description: 说说你想完成的事和理想体验；不用设计命令或参数，也可以用 English 填写。
+title: '[Feature] '
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        一个小建议也欢迎！描述使用场景就好，技术细节可以一起完善。
+        已有具体改进时，欢迎直接提 PR（修改建议），无需先建 Issue：[新手贡献指南](https://github.com/openyida/openyida/blob/main/CONTRIBUTING.md#ai-help)。
+        这里的文字和附件会公开，请先去掉客户数据、凭证、私有地址和内部源码。
+  - type: textarea
+    id: goal
+    attributes:
+      label: 你想完成什么，现在有什么不方便？ / Your goal and difficulty
+      placeholder: 例如：我想知道 AI 正在做哪一步，现在等了很久却不知道进度。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 怎样会更好用？ / A better experience
+      description: 描述理想结果即可。不确定具体做法，也可以说说最希望改善哪一点。
+      placeholder: 例如：显示当前步骤，遇到问题时告诉我可以怎么继续。
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 相关环境或例子（选填） / Optional context
+      description: 如与使用环境有关，补充 OpenYida 版本、AI 工具及版本、安装方式、系统、Node.js；页面问题可补浏览器/移动端。不清楚可以留空。
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: 公开前检查 / Privacy check
+      options:
+        - label: 我已检查文字和附件，确认可以公开，不含凭证、客户数据或内部源码。
+          required: true

@@ -97,7 +97,7 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
     "navigationStyle": {"structure":"side","tone":"light","toneSource":"theme_derived","source":"user_selected","selectionReason":"沿用已选的左侧导航；浅色导航由主题模板派生"},
     "iconSystem": {"library":"lucide-react","mappings":{"新建采购":"Plus"}},
     "pageApplications": [
-      {"pageId":"page-1","primaryAction":"列表标题右侧的新建采购按钮打开原生采购表单，成功后刷新列表","firstScreenFocus":"先看到待处理采购数量与最紧急记录，主操作紧邻列表标题","layout":"顶部单行筛选与主操作，下方连续采购列表；必要提示放列表右侧窄栏，列表随记录自然增长","responsive":"窄屏筛选换行，提示移到列表下方，表格保留关键列并允许横向滚动","acceptanceChecks":["首屏可找到待处理记录与新建采购操作","窄屏主操作和错误恢复入口可用"],"visualMemoryApplications":[{"name":"摘要拼接组","renderPolicy":"prd_match_only","target":"采购待办摘要","reason":"页面已有并列的待办状态"}]}
+      {"pageId":"page-1","primaryAction":"列表标题右侧的新建采购按钮打开原生采购表单，成功后刷新列表","firstScreenFocus":"先看到待处理采购数量与最紧急记录，主操作紧邻列表标题","layout":"按供应商比较金额与交付日期，相关列对齐；主表利用可用宽度，提示区按内容限宽，空间不足时下移","responsive":"比较任务在窄容器仍保留全部表格列，标识列保持可辨，表格局部横滑并提示剩余内容；筛选换行，提示移到表格下方；手机的详情入口无需悬停，返回后保留筛选与选中记录","acceptanceChecks":["宽屏和窄容器均可定位最紧急记录及新建采购入口","在360px容器查看完整金额与交付日期，页面不整体横滑","打开详情再返回、缩窄再放宽后筛选值和选中记录不变"],"visualMemoryApplications":[{"name":"摘要拼接组","renderPolicy":"prd_match_only","target":"采购待办摘要","reason":"页面已有并列的待办状态"}]}
     ],
     "assetStrategy": {"materialStatus":"none","pages":[{"pageId":"page-1","imageNeed":"none","reason":"纯数据操作页","slots":[]}],"missingAssets":[],"notes":"无图片需求"}
   },

@@ -28,6 +28,7 @@ module.exports = {
     "limit": "Un formulaire accepte au plus 10 boutons personnalisés.",
     "readback_mismatch": "La relecture diffère de la sauvegarde. Conservez la copie et vérifiez l’état distant."
   },
+  form_message: {"usage":"Usage: openyida form-message <list|inspect|options|create|update|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]","invalid_config":"Invalid form message configuration or argument: {0}","invalid_response":"Incomplete platform form-message response: {0}","api_error":"Form message API failed: {0}. Check login, permissions and edition availability.","not_found":"The message notification does not exist in the target form: {0}","conflict":"The notification changed. Inspect again before saving.","unsupported_trigger":"Writes are not verified for this trigger: {0}.","unsupported_form":"Writes are not verified for this form type: {0}.","readback_mismatch":"Saved notification does not match readback. Keep the backup and inspect remote state."},
   dws_external: {"note": "dws is an independent external tool. OpenYida only shows installation instructions; it does not download or install it.", "install_guide": "Show official DingTalk CLI installation instructions"},
   cool_card: {"unsupported_environment": "L’édition Alibaba Group ne permet pas de créer des cartes Cool Card.", "description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
   data_card: {"description":"Create, read, save drafts and publish native YiDA data cards","usage":"Usage: openyida data-card <list|create|get|save|publish|probe|release-get|release-save|release-check|release-test|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]","failed":"Native data card operation stopped: {0}","conflict":"The draft changed. Read it again before saving or publishing.","mismatch":"Readback does not match the expected schema or published state. Keep the backup and inspect the card before retrying."},
@@ -48,7 +49,10 @@ module.exports = {
   integration_update_v2: {"usage": "integration update <appType> <formUuid> <processCode> --patch patch.json [--dry-run] [--expect fingerprint] [--publish]"},
 
   conditional_actors: { unavailable: 'Conditional actors are unavailable or could not be verified.', invalid: 'Invalid conditional actors: {0}' },
-  integration_triggers: { invalid: 'Invalid automation trigger: {0}' },
+  integration_triggers: {
+    invalid: 'Invalid automation trigger: {0}',
+    end_required: 'Choisissez la fin du minuteur : schedule.maxCount (1–100) pour le nombre d’exécutions ou schedule.expireDate (échéance en millisecondes) pour une date précise. Pour une longue durée, choisissez une échéance éloignée et affichez la date dans le résumé.',
+  },
   permission_conditions: { invalid: 'Invalid permission conditions: {0}' },
   theme_source: { conflict: 'The theme source differs from the existing CSS or cannot be verified. Generate to a new output path, review and migrate project customizations before replacing the original file.' },
   app_entry: {
@@ -99,6 +103,7 @@ module.exports = {
   },
   help: {
     cmd_custom_button: "Boutons personnalisés : formulaires, automatisations et liens",
+    cmd_form_message: "Native form notifications: triggers, recipients and templates",
     cmd_check_design: 'Valider les documents de design, les variables du thème et la transmission du PRD',
     subtitle: 'Outil de développement IA low-code pour Yida',
     usage: 'Utilisation :',
@@ -1440,6 +1445,10 @@ module.exports = {
     lint_setstate_non_timestamp: "this.setState écrit un champ autre que timestamp. L'état métier des pages personnalisées doit être stocké dans _customState et mis à jour via forceUpdate()/setCustomState(); this.setState doit uniquement porter le champ contractuel timestamp",
     lint_self_binding_missing: 'renderJsx utilise this sans déclarer var self = this;. Ajoutez var self = this; au début de renderJsx et utilisez self dans les closures/callbacks pour éviter de perdre this',
     lint_echarts_dom_ready: "echarts.init n'est pas enveloppé dans setTimeout ; le conteneur peut ne pas encore être monté et le graphique peut ne pas s'afficher. Utilisez setTimeout(function(){ /* echarts.init */ }, 300)",
+    lint_resize_observer_cleanup: "ResizeObserver n'a pas de nettoyage disconnect()/unobserve(). Libérez-le au démontage.",
+    lint_responsive_viewport_only: "La mise en page dépend uniquement de la fenêtre ; une barre latérale, un tiroir ou une iframe étroite peut ne pas se replier. Utilisez @container ou un ResizeObserver nettoyé. Ajoutez openyida-responsive-viewport-ok si c'est volontaire.",
+    lint_responsive_fixed_width: "La largeur fixe %spx peut déborder d'un conteneur étroit. Préférez max-width, minmax(0, 1fr) ou le défilement local. Pour un canevas fixe, ajoutez openyida-responsive-fixed-width-ok.",
+    lint_responsive_page_scale: "Un scale/zoom global a été détecté. Redistribuez le contenu en conservant texte et cibles lisibles. Pour une visualisation locale, ajoutez openyida-responsive-scale-ok.",
     lint_yida_api_catch: "L'appel API this.utils.yida n'a pas de .catch() détecté ; ajoutez une gestion d'erreur et affichez un toast à l'utilisateur",
     lint_echarts_legacy_map_china: 'ECharts 5 ne prend plus en charge echarts/map/js/china.js. Chargez le GeoJSON DataV et appelez echarts.registerMap("china", geoJson) à la place',
     lint_echarts_rich_label_formatter: 'Les templates rich text renvoyés par ECharts label.formatter sont instables dans les pages personnalisées Yida ; préférez des chaînes formatter simples ou du texte de libellé précalculé',
@@ -2234,6 +2243,16 @@ module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
 
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: 'Arguments invalides : query exige appType et --process-inst-id ; transfer exige aussi --form-uuid, --to-user-id, --expect-form-name et --expect-form-type process. taskId doit être un entier positif ; les options inconnues sont interdites.',
+  query_failed: 'La requête des tâches a échoué ; aucun transfert effectué.',
+  response_invalid: 'La structure, l’identifiant ou l’appartenance de la tâche au processus ne peut pas être vérifié.',
+  not_running: 'Aucune tâche spécifiée en cours dans le processus cible ; aucun transfert effectué.',
+  ambiguous: 'Plusieurs tâches sont en cours. Consultez la liste et précisez --task-id ; aucun transfert effectué.',
+  rejected: 'La plateforme a refusé le transfert administrateur. Vérifiez les droits et l’état de la tâche.',
+  result_unknown: 'Résultat du transfert inconnu. Consultez les tâches via nextStep ; ne relancez pas automatiquement le transfert.',
+  unverified: 'Transfert accepté, mais le destinataire n’a pas pu être confirmé. Consultez nextStep ; ne relancez pas automatiquement le transfert.',
+});
 module.exports.data_manage_style = {
   'usage': 'openyida data-manage-style guide [--json]\nopenyida data-manage-style list [--json]\nopenyida data-manage-style generate --app APP_ID --form FORM-ID --style <id> --base-css <snapshot/theme.css> --output <new.css> [--focus balanced|actions] [--field-id <actualId>]... [--emphasize-field <actualId>]... [--tag-field <selectFieldId>]... [--follow-shell] [--json]',
   'data_style_invalid': 'Paramètres de style invalides. Utilisez des identifiants réels et un style du catalogue.',
@@ -2326,6 +2345,26 @@ Object.assign(module.exports.formula_v2, {"parallel_formula": "Utilisez conditio
 Object.assign(module.exports.formula_v2, {"conversion_empty":"La conversion vers le champ cible donne une valeur vide. Pour une date, utilisez TIMESTAMP(formule de date) et vérifiez la valeur brute et le type.","result_missing":"La requête est terminée, mais la valeur du champ cible manque. Une date nécessite généralement TIMESTAMP(formule de date).","conversion_partial":"La valeur est partiellement numérique ou non finie. Renvoyez un nombre complet ou un horodatage en millisecondes.","target_branches":"Certains types de résultat {0} ne correspondent pas à {1}. Testez chaque branche.","date_timestamp":"Un objet date diffère de la valeur stockée. Utilisez généralement TIMESTAMP(formule de date) pour les millisecondes.","numeric_result_text":"Le résultat peut être du texte. Testez chaque branche avec --field pour détecter une conversion vide ou partielle."});
 
 module.exports.feedback_report = {
+  body: {
+    summary: 'Votre objectif',
+    actual: 'Ce qui s’est passé',
+    expected: 'Résultat attendu',
+    incident: 'Environnement au moment du problème',
+    command: 'Opération concernée',
+    steps: 'Comment reproduire',
+    impact: 'Impact',
+    evidence: 'Preuves observées',
+    attempts: 'Essais et résultats',
+    cause: 'Cause et degré de certitude',
+    cause_evidence: 'Éléments de diagnostic',
+    next: 'Prochaine vérification',
+    screenshots: 'Captures d’écran',
+    review_image: 'Vérifier l’image avant partage',
+    limitations: 'Limites des tests',
+    generator: 'Environnement de génération du rapport (pas celui de l’incident)',
+    unknown: 'Inconnu / non vérifié',
+    draft: 'Brouillon local, non soumis. Vérifiez les textes et images avant partage : données clients, identifiants et informations privées.',
+  },
   comparison: 'Test pass/fail requires a command, actual result and evidence.',
   screenshots: 'Choose at most five PNG/JPEG/WebP screenshots of at most 10 MiB each.',
   text: 'Feedback text fields must be strings of at most 12000 characters.',
@@ -2413,7 +2452,18 @@ module.exports.task_center = {
 };
 
 module.exports.feedback_github = {
-  usage: 'Usage: openyida feedback github <status|star|fork> [--confirm] [--json]',
+  setup_inspect_installation: 'Installation non vérifiée. Vérifiez gh --version, le gestionnaire de paquets ou rouvrez le terminal avant de décider de réessayer ; conservez le brouillon.',
+  setup_check_execution: 'Impossible de lancer gh. Vérifiez les droits d’exécution et l’environnement local ; ne réinstallez pas et ne changez pas de compte automatiquement.',
+  setup_confirm_install: 'GitHub CLI peut être installé. Expliquez le plan et obtenez le consentement avant openyida feedback github setup --install --confirm --json ; le Web reste disponible.',
+  setup_manual_install: 'Installation automatique indisponible. Utilisez les instructions officielles, un connecteur existant ou le Web ; conservez le brouillon.',
+  setup_ready: 'GitHub CLI et le compte actuel sont vérifiés. Reprenez le brouillon ; confirmez le contenu public et les permissions avant l’envoi.',
+  setup_browser_login: 'GitHub CLI est disponible ; une connexion est requise. Avec consentement, guidez l’autorisation dans le navigateur, puis vérifiez avec setup --json.',
+  setup_check_account: 'GitHub CLI est disponible, mais le compte reste non vérifié. Vérifiez réseau, autorisation et limites ; ne concluez pas à l’absence de compte et ne réinstallez pas.',
+  setup_consent: 'Utilisez --install --confirm seulement après consentement à installer GitHub CLI et ses dépendances à l’emplacement par défaut du gestionnaire. Windows accepte les accords WinGet de source et de logiciel et peut nécessiter une autorisation système de l’utilisateur. Aucun gestionnaire, élévation de droits ou connexion automatiques.',
+  setup_privacy: 'Installer ne signifie pas consentir à publier. L’utilisateur autorise dans le navigateur ; ne demandez ni mot de passe, code ni Token. Si gh ne peut pas stocker les identifiants en sécurité, utilisez le Web ou un connecteur sûr. Excluez les diagnostics de compte et d’outil du rapport.',
+  usage: 'Usage: openyida feedback github setup [--install --confirm] [--json]; openyida feedback github <status|star|fork> [--confirm] [--json]',
   confirmation: 'Star or Fork requires the user to explicitly choose that action before --confirm. Neither is required to submit an Issue.',
   failed: 'The GitHub action could not be verified. Inspect its status before retrying; this does not block Issue submission.',
 };
+
+module.exports.process_dynamic_actors = { invalid: "Configuration des acteurs invalide. Vérifiez details.reason, la sélection et les champs membres réels." };

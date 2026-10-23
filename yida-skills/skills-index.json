@@ -50,6 +50,19 @@
       "requires_login": true
     },
     {
+      "name": "yida-form-message",
+      "path": "skills/yida-form-message/SKILL.md",
+      "display_name": "表单消息通知",
+      "description": "配置普通表单新增、编辑、删除或评论后的消息通知，选择接收人和七种消息样式；保存后核对配置，按用户要求执行真实发送测试。",
+      "category": "yida-skills/form",
+      "tags": ["消息通知", "表单通知", "工作通知", "消息卡片", "群置顶卡片"],
+      "aliases": ["表单消息", "页面消息通知", "form-message"],
+      "positive_signals": ["配置表单提交后消息通知", "修改页面设置里的消息通知", "表单编辑后通知发起人", "查询消息通知接收对象", "配置表单原生消息卡片"],
+      "negative_signals": ["自定义页面发送消息", "机器人群消息", "应用级通知", "集成自动化发消息", "原生酷卡片资源"],
+      "command_ids": ["form-message"],
+      "requires_login": true
+    },
+    {
       "name": "yida-cool-card",
       "path": "skills/yida-cool-card/SKILL.md",
       "display_name": "宜搭原生酷卡片",
@@ -1105,14 +1118,16 @@
       "name": "yida-data-management",
       "path": "skills/yida-data-management/SKILL.md",
       "display_name": "宜搭数据管理",
-      "description": "查询、新增、更新宜搭表单、子表、流程和任务数据，按当前审批人查询流程实例或统计条数，精确删除普通表单单条记录。查询包含日期为空、区间端点、业务计数、子表条件和服务端分页。",
+      "description": "查询、新增、更新宜搭表单、子表、流程和任务数据，按当前审批人查询流程实例或统计条数，精确删除普通表单单条记录，查询流程当前任务并执行管理员转交。查询包含日期为空、区间端点、业务计数、子表条件和服务端分页。",
       "category": "yida-skills/form",
       "tags": [
         "数据查询",
         "数据新增",
         "表单实例",
         "流程实例",
-        "数据删除"
+        "数据删除",
+        "流程任务查询",
+        "管理员转交"
       ],
       "aliases": [
         "数据管理",
@@ -1131,6 +1146,10 @@
         "日期区间筛选",
         "表单空值查询",
         "子表条件查询",
+        "查询流程当前任务",
+        "管理员转交",
+        "流程审批转交",
+        "把流程转交给",
         "按当前审批人查询流程",
         "指定审批人的待审批数据条数",
         "查询关联流程详情和审批历史",
@@ -1148,7 +1167,7 @@
         "get-schema",
         "sample"
       ],
-      "done_when": "目标数据查询或写入完成，并用 query/get 抽查真实记录；删除仅在 deleted=true 且 readbackVerified=true 时完成。"
+      "done_when": "目标数据查询或写入完成，并用 query/get 抽查真实记录；删除仅在 deleted=true 且 readbackVerified=true 时完成；转交以 transferred=true 且 readbackVerified=true 为准，ALREADY_ASSIGNED 为已分配且未再次写入。"
     },
     {
       "name": "yida-data-source-connectors",
@@ -1896,7 +1915,10 @@
         "造数",
         "日期为空",
         "日期区间筛选",
-        "表单空值查询"
+        "表单空值查询",
+        "流程任务查询",
+        "管理员转交",
+        "流程审批转交"
       ]
     },
     {

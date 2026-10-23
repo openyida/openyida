@@ -5,7 +5,7 @@
 ```json
 {
   "title": "发布失败后错误提示缺少处理建议",
-  "summary": "当前会话两次出现相同错误，无法继续发布。",
+  "summary": "想把页面发布给同事使用，目前卡在发布步骤。",
   "command": "openyida publish（省略业务参数）",
   "steps": ["使用最小示例执行发布", "观察错误提示"],
   "expected": "说明失败原因并给出可执行的下一步",
@@ -39,9 +39,17 @@
 
 - category：`cli|skill|environment|platform|unknown`；status：`confirmed|hypothesis|unknown`。confirmed 必须有 summary 和 evidence，CLI 只检查结构，不替 Agent 证明根因。
 - occurrenceCount：已观察的正整数；未知省略。fingerprint 按脱敏后的 title/command/actual 生成，不等于跨用户统计或已完成查重。
-- 单字段最多 12000 字符；数组最多 40 个字符串；输入最多 1 MiB。未列出的字段被丢弃；字段不能嵌套对象（cause、screenshots、comparison 除外）。CLI 只补包版本、Node、系统类型和架构，不补环境变量、账号、组织、应用或项目路径。
+- 单字段最多 12000 字符；数组最多 40 个字符串；输入最多 1 MiB。未列出的字段被丢弃；字段不能嵌套对象（cause、screenshots、comparison、incidentEnvironment 除外）。CLI 只补报告生成时的包版本、Node、系统类型和架构，不补环境变量、账号、组织、应用或项目路径。
 - 自动过滤常见凭证、绝对路径、URL、应用/表单标识、邮箱、手机号与身份证号，并转义 Markdown。正则不是保密保证；人工复核业务数据、间接身份信息、内部名称和未匹配的凭证。
 - 用文件工具写入 JSON，避免把报错拼成 shell 命令。命令只读这一个显式输入；输出目录父目录须存在，目标目录须不存在，避免覆盖已有材料。
+
+## 问题发生环境与报告生成环境
+
+复用顶层 `tool`（工具名及已知版本）、`model`。新增可选 `incidentEnvironment` 对象只接收字符串白名单：`openyida`、`node`、`platform`、`arch`、`installation`、`browser`、`deployment`、`organizationContext`。前四项为问题发生时的版本、系统和架构；安装方式可写 npm/插件/源码/未知；浏览器与部署形态仅在相关时填写；组织上下文只描述单组织/多组织切换，不含组织 ID 或名称。
+
+例如用户明确说升级前出错，可填 `{"incidentEnvironment":{"openyida":"用户确认的旧版本","installation":"npm"}}`；未知字段省略，不根据报告命令运行环境推断。Agent 将来源和升级差异放进现有 `evidence`，避免新增重复的诊断字段。
+
+输出 `environment` 保持原有结构，始终表示报告生成器的包版本和运行环境；Markdown 单独标为“报告生成环境（不代表问题发生时）”。缺少 `incidentEnvironment` 的旧输入继续可用，出错环境显示未知；不能用生成报告的新版 OpenYida 冒充出错时版本。所有新输入值同样脱敏、转义并参与公开稿的 `reviewDigest`。
 
 ## 截图与测试对比
 

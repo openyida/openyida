@@ -12,7 +12,7 @@ function CanvasNav({ items = [], activeKey, onSelect, title, logo, actions, chil
       .oy-canvas-nav.oy-nav-mixed .oy-nav-sidebar { padding: var(--pod-nav-l-aside-padding, 8px); }
       .oy-nav-mixed .oy-nav-content { flex: 1; }
       .oy-nav-mixed .oy-nav-menu { display: flex; flex-direction: column; gap: var(--pod-nav-menu-gap, 8px); }
-      @media (max-width: 767px) {
+      @container (max-width: 767px) {
         .oy-nav-mixed .oy-nav-groups { flex-basis: 100%; }
         .oy-nav-mixed .oy-nav-body { display: block; }
         .oy-nav-mixed .oy-nav-menu { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--pod-nav-sub-divider-color, var(--color-line1-1, #ddd)); }

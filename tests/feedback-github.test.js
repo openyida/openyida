@@ -77,6 +77,37 @@ test('unsigned-in accounts and rate limits remain unknown and do not cause write
   expect(() => run(['star', '--confirm'])).toThrow(expect.objectContaining({ code: 'FEEDBACK_GITHUB_FAILED' }));
   expect(writes()).toHaveLength(0);
 });
+test.each([
+  ['missing tool', { status: null, error: { code: 'ENOENT' } }, 'gh_unavailable'],
+  ['execution denied', { status: null, error: { code: 'EACCES' } }, 'account_unverified'],
+  ['network timeout', { status: null, error: { code: 'ETIMEDOUT' } }, 'account_unverified'],
+  ['unauthorized', response(401, { message: 'private diagnostic' }), 'account_unverified'],
+  ['permission denied', response(403), 'account_unverified'],
+  ['rate limited', response(429), 'account_unverified'],
+  ['unavailable service', response(503), 'account_unverified'],
+  ['invalid identity', response(200, { login: 'contributor', type: 'Organization' }), 'account_unverified'],
+])('%s preserves unknown account/Fork state without setup or mutation', (_label, result, reason) => {
+  spawn.mockReturnValue({ ...result, stderr: 'credential-not-for-report' });
+  const status = run();
+  expect(status).toMatchObject({ reason, authenticated: false, login: null,
+    starred: null, fork: { state: 'unknown', url: null }, suggestedActions: [], mutationPerformed: false });
+  expect(JSON.stringify(status)).not.toMatch(/private diagnostic|credential-not-for-report/);
+  expect(spawn).toHaveBeenCalledTimes(1);
+  expect(spawn.mock.calls[0][0]).toBe('gh');
+  expect(spawn.mock.calls[0][1]).toEqual(expect.arrayContaining(['api', '--method', 'GET', 'user']));
+  expect(writes()).toHaveLength(0);
+});
+test('rechecking after user login reuses the current identity without installing, logging in or publishing', () => {
+  const authenticated = spawn.getMockImplementation();
+  spawn.mockReturnValue(response(401));
+  expect(run().reason).toBe('account_unverified');
+  spawn.mockImplementation(authenticated);
+  state.fork = ownFork('existing-contribution');
+  expect(run()).toMatchObject({ authenticated: true, login: 'contributor',
+    fork: { state: 'ready', url: 'https://github.com/contributor/existing-contribution' } });
+  expect(writes()).toHaveLength(0);
+  expect(spawn.mock.calls.every(([binary, argv]) => binary === 'gh' && argv[0] === 'api')).toBe(true);
+});
 test('permission errors are not confused with absent Star/Fork states', () => {
   state.starResponse = response(403); state.graphql = response(200, { errors: [{ message: 'denied' }] });
   expect(run()).toMatchObject({ starred: null, fork: { state: 'unknown' }, suggestedActions: [] });

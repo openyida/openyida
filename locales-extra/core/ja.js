@@ -28,6 +28,7 @@ module.exports = {
     "limit": "フォームごとに最大10個のボタンを設定できます。",
     "readback_mismatch": "保存内容と再取得内容が一致しません。バックアップを保持し、リモート状態を確認してください。"
   },
+  form_message: {"usage":"Usage: openyida form-message <list|inspect|options|create|update|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]","invalid_config":"Invalid form message configuration or argument: {0}","invalid_response":"Incomplete platform form-message response: {0}","api_error":"Form message API failed: {0}. Check login, permissions and edition availability.","not_found":"The message notification does not exist in the target form: {0}","conflict":"The notification changed. Inspect again before saving.","unsupported_trigger":"Writes are not verified for this trigger: {0}.","unsupported_form":"Writes are not verified for this form type: {0}.","readback_mismatch":"Saved notification does not match readback. Keep the backup and inspect remote state."},
   dws_external: {"note": "dws is an independent external tool. OpenYida only shows installation instructions; it does not download or install it.", "install_guide": "Show official DingTalk CLI installation instructions"},
   cool_card: {"unsupported_environment": "Alibaba Group 版ではクールカードの作成はサポートされていません。", "description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
   data_card: {"description":"Create, read, save drafts and publish native YiDA data cards","usage":"Usage: openyida data-card <list|create|get|save|publish|probe|release-get|release-save|release-check|release-test|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]","failed":"Native data card operation stopped: {0}","conflict":"The draft changed. Read it again before saving or publishing.","mismatch":"Readback does not match the expected schema or published state. Keep the backup and inspect the card before retrying."},
@@ -48,7 +49,10 @@ module.exports = {
   integration_update_v2: {"usage": "integration update <appType> <formUuid> <processCode> --patch patch.json [--dry-run] [--expect fingerprint] [--publish]"},
 
   conditional_actors: { unavailable: 'Conditional actors are unavailable or could not be verified.', invalid: 'Invalid conditional actors: {0}' },
-  integration_triggers: { invalid: 'Invalid automation trigger: {0}' },
+  integration_triggers: {
+    invalid: 'Invalid automation trigger: {0}',
+    end_required: 'タイマーの終了条件を選んでください。実行回数は schedule.maxCount（1–100）、指定時刻は schedule.expireDate（終了時刻のミリ秒）を設定します。長期実行では遠い終了日を選び、設定概要に実際の日付を表示してください。',
+  },
   permission_conditions: { invalid: 'Invalid permission conditions: {0}' },
   theme_source: { conflict: 'The theme source differs from the existing CSS or cannot be verified. Generate to a new output path, review and migrate project customizations before replacing the original file.' },
   app_entry: {
@@ -99,6 +103,7 @@ module.exports = {
   },
   help: {
     cmd_custom_button: "カスタムボタン：フォーム編集、自動化フロー、ページリンクの設定",
+    cmd_form_message: "Native form notifications: triggers, recipients and templates",
     cmd_check_design: 'デザイン文書、テーマ変数、PRD の引き継ぎを検証',
     subtitle: '宜搭ローコード AI 開発ツール',
     usage: '使用方法:',
@@ -1389,6 +1394,10 @@ module.exports = {
     lint_setstate_non_timestamp: 'this.setState が timestamp 以外のフィールドを書き込んでいます。カスタムページの業務状態は _customState に置き、forceUpdate()/setCustomState() で更新してください。this.setState は timestamp 契約フィールドのみを保持するべきです',
     lint_self_binding_missing: 'renderJsx で var self = this; を宣言せずに this を使用しています。renderJsx の先頭に var self = this; を追加し、クロージャ/コールバック内では self を使用して this の喪失を避けてください',
     lint_echarts_dom_ready: 'echarts.init が setTimeout でラップされていません。コンテナがまだマウントされておらず、チャートが描画されない可能性があります。setTimeout(function(){ /* echarts.init */ }, 300) を使用してください',
+    lint_resize_observer_cleanup: 'ResizeObserver に disconnect()/unobserve() のクリーンアップがありません。アンマウント時に解放してください。',
+    lint_responsive_viewport_only: 'レイアウトがビューポート幅だけで変化するため、狭いサイドバー、ドロワー、iframe で縮退できない可能性があります。@container またはクリーンアップ付き ResizeObserver を使用してください。意図的な場合は openyida-responsive-viewport-ok を追加します。',
+    lint_responsive_fixed_width: '%spx の固定幅は狭いコンテナではみ出す可能性があります。max-width、minmax(0, 1fr)、局所スクロールを使用してください。固定キャンバスなら openyida-responsive-fixed-width-ok を追加します。',
+    lint_responsive_page_scale: 'ページ全体の scale/zoom を検出しました。文字と操作領域を保って再配置してください。局所的な可視化なら openyida-responsive-scale-ok を追加します。',
     lint_yida_api_catch: 'this.utils.yida API 呼び出しに .catch() が検出されません。エラー処理を追加し、ユーザーに toast を表示してください',
     lint_echarts_legacy_map_china: 'ECharts 5 は echarts/map/js/china.js をサポートしなくなりました。代わりに DataV GeoJSON を読み込み、echarts.registerMap("china", geoJson) を呼び出してください',
     lint_echarts_rich_label_formatter: 'ECharts label.formatter が返す rich text テンプレートは Yida カスタムページ環境では不安定です。通常の formatter 文字列または事前計算したラベルテキストを推奨します',
@@ -2159,6 +2168,16 @@ module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
 
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: '引数が無効です。query には appType と --process-inst-id、transfer にはさらに --form-uuid、--to-user-id、--expect-form-name、--expect-form-type process が必要です。taskId は正の整数で、未対応の引数は使用できません。',
+  query_failed: 'プロセスタスクの取得に失敗しました。転送は実行されていません。',
+  response_invalid: 'タスク応答の構造、ID、プロセスへの所属を確認できません。',
+  not_running: '対象プロセスに実行中の指定タスクがありません。転送は実行されていません。',
+  ambiguous: '実行中のタスクが複数あります。一覧を取得して --task-id を指定してください。転送は実行されていません。',
+  rejected: '管理者による転送が拒否されました。権限とタスクの状態を確認してください。',
+  result_unknown: '転送結果は不明です。nextStep で読み取り確認してください。転送を自動再試行しないでください。',
+  unverified: '転送は受理されましたが、受信者を再取得で確認できません。nextStep で確認し、転送を自動再試行しないでください。',
+});
 module.exports.data_manage_style = {
   'usage': 'openyida data-manage-style guide [--json]\nopenyida data-manage-style list [--json]\nopenyida data-manage-style generate --app APP_ID --form FORM-ID --style <id> --base-css <snapshot/theme.css> --output <new.css> [--focus balanced|actions] [--field-id <actualId>]... [--emphasize-field <actualId>]... [--tag-field <selectFieldId>]... [--follow-shell] [--json]',
   'data_style_invalid': 'スタイル引数が無効です。実際の ID と一覧のスタイルを使用してください。',
@@ -2251,6 +2270,26 @@ Object.assign(module.exports.formula_v2, {"parallel_formula": "並列分岐に�
 Object.assign(module.exports.formula_v2, {"conversion_empty":"式の結果が対象フィールドへの変換で空になりました。日付は TIMESTAMP(日付式) を使い、元の値と型を確認してください。","result_missing":"リクエストは完了しましたが、対象フィールドの値がありません。日付には通常 TIMESTAMP(日付式) が必要です。","conversion_partial":"数値の一部だけが解析されたか、有限数ではありません。完全な数値またはミリ秒タイムスタンプを返してください。","target_branches":"結果の型 {0} の一部は {1} に適合しません。各分岐を試算してください。","date_timestamp":"日付オブジェクトと保存値は異なります。通常は TIMESTAMP(日付式) でミリ秒を返します。","numeric_result_text":"結果が文字列になる場合があります。--field で各分岐を試算し、空値や部分的な数値変換を確認してください。"});
 
 module.exports.feedback_report = {
+  body: {
+    summary: '実現したいこと',
+    actual: '実際に起きたこと',
+    expected: '期待する結果',
+    incident: '問題発生時の環境',
+    command: '関連する操作',
+    steps: '再現手順',
+    impact: '影響',
+    evidence: '観測した証拠',
+    attempts: '試した方法と結果',
+    cause: '原因と確信度',
+    cause_evidence: '判断の根拠',
+    next: '次の確認',
+    screenshots: 'スクリーンショット',
+    review_image: '共有前に画像を確認してください',
+    limitations: '未検証の範囲',
+    generator: 'レポート生成環境（問題発生時の環境ではありません）',
+    unknown: '不明 / 未確認',
+    draft: 'ローカルの下書きです。未送信です。公開前に文章と画像から顧客データ、認証情報、内部情報を除いてください。',
+  },
   comparison: 'Test pass/fail requires a command, actual result and evidence.',
   screenshots: 'Choose at most five PNG/JPEG/WebP screenshots of at most 10 MiB each.',
   text: 'Feedback text fields must be strings of at most 12000 characters.',
@@ -2338,7 +2377,18 @@ module.exports.task_center = {
 };
 
 module.exports.feedback_github = {
-  usage: 'Usage: openyida feedback github <status|star|fork> [--confirm] [--json]',
+  setup_inspect_installation: 'インストール結果は未確認です。gh --version、パッケージ管理状態、または端末の再起動後に確認してから再試行を判断し、下書きを保持します。',
+  setup_check_execution: 'gh を実行できません。実行権限やローカル環境を確認し、自動で再インストールやアカウント切替をしないでください。',
+  setup_confirm_install: 'GitHub CLI をインストールできます。計画を説明し同意を得てから openyida feedback github setup --install --confirm --json を実行します。Web も利用できます。',
+  setup_manual_install: '自動インストールは利用できません。公式手順、既存のコネクター、または Web を使い、下書きを保持します。',
+  setup_ready: 'GitHub CLI と現在のアカウントを確認しました。下書きを再開し、送信前に公開内容と必要な権限を確認します。',
+  setup_browser_login: 'GitHub CLI は利用可能ですがログインが必要です。同意後にブラウザー認証を案内し、setup --json で再確認します。',
+  setup_check_account: 'GitHub CLI は利用可能ですがアカウントは未確認です。ネットワーク、認証、レート制限を調べ、アカウント不在と決めつけたり再インストールしないでください。',
+  setup_consent: 'GitHub CLI と必要な依存関係をパッケージ管理の既定の場所にインストールする同意後のみ --install --confirm を使います。Windows では WinGet のソースとソフトウェアの規約に同意し、ユーザーによるシステム権限承認が必要な場合があります。管理ツール導入、権限昇格、ログインは自動で行いません。',
+  setup_privacy: 'インストール同意は公開同意ではありません。認証はユーザーがブラウザーで行い、パスワード、コード、Token を求めません。gh が資格情報を安全に保存できない場合は Web や安全なコネクターを使い、アカウントやツールの診断を報告に含めません。',
+  usage: 'Usage: openyida feedback github setup [--install --confirm] [--json]; openyida feedback github <status|star|fork> [--confirm] [--json]',
   confirmation: 'Star or Fork requires the user to explicitly choose that action before --confirm. Neither is required to submit an Issue.',
   failed: 'The GitHub action could not be verified. Inspect its status before retrying; this does not block Issue submission.',
 };
+
+module.exports.process_dynamic_actors = { invalid: "処理担当者の設定が無効です。details.reason、選択範囲と実際のメンバーフィールドを確認してください。" };

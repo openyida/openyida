@@ -146,11 +146,32 @@ describe('complete configuration examples in skills', () => {
 describe('native trigger protocol', () => {
   test.each(['ONCE', 'DAILY', 'WORKDAY', 'WEEKLY', 'BI_WEEKLY', 'MONTHLY', 'LAST_DAY_PER_MONTH'])(
     'compiles %s into both native definitions', repeat => {
-      const result = scheduleNodes({ startDate: '2026-10-20 09:30:00', repeat }, 'start', 'end');
+      const end = repeat === 'ONCE' ? {} : { maxCount: 3 };
+      const result = scheduleNodes({ startDate: '2026-10-20 09:30:00', repeat, ...end }, 'start', 'end');
       expect(result.processNode.props).toEqual({ triggerType: 'TimerEvent',
-        inputs: { startDate: Date.parse('2026-10-20T09:30:00+08:00'), repeat: { type: repeat } } });
-      expect(result.viewNode.props.start).toMatchObject({ type: 'trigger', repeatRuleType: repeat });
+        inputs: { startDate: Date.parse('2026-10-20T09:30:00+08:00'), repeat: { type: repeat },
+          ...(repeat === 'ONCE' ? {} : { end }) } });
+      expect(result.viewNode.props.start).toMatchObject({ type: 'trigger', repeatRuleType: repeat,
+        overTimeType: 'count', overCount: repeat === 'ONCE' ? 1 : 3 });
     });
+  test.each(['DAILY', 'WORKDAY', 'WEEKLY', 'BI_WEEKLY', 'MONTHLY', 'LAST_DAY_PER_MONTH'])(
+    'requires an explicit end condition for %s', repeat => {
+      expect(() => scheduleNodes({ startDate: '2026-10-20 09:30:00', repeat }, 'start', 'end'))
+        .toThrow(/maxCount.*expireDate/);
+    });
+  test.each([1, 100])('keeps count termination consistent for %i runs', maxCount => {
+    const result = scheduleNodes({ startDate: '2026-10-20 09:30:00', repeat: 'DAILY', maxCount }, 'start', 'end');
+    expect(result.processNode.props.inputs.end).toEqual({ maxCount });
+    expect(result.viewNode.props.start).toMatchObject({ overTimeType: 'count', overCount: maxCount });
+    expect(result.viewNode.props.start).not.toHaveProperty('overTime');
+  });
+  test('keeps a user-selected distant expiry consistent across both definitions', () => {
+    const expireDate = Date.parse('2036-10-20T09:30:00+08:00');
+    const result = scheduleNodes({ startDate: '2026-10-20 09:30:00', repeat: 'DAILY', expireDate }, 'start', 'end');
+    expect(result.processNode.props.inputs.end).toEqual({ expireDate });
+    expect(result.viewNode.props.start).toMatchObject({ overTimeType: 'time', overTime: expireDate });
+    expect(result.viewNode.props.start).not.toHaveProperty('overCount');
+  });
   test('schedule creates a timer graph without form-event state', () => {
     const spec = { schedule: { startDate: '2026-10-20 09:30:00', repeat: 'DAILY', maxCount: 3 },
       nodes: [{ id: 'read', type: 'dataRetrieve', formUuid: 'FORM', filterType: 'all' }] };
@@ -161,6 +182,10 @@ describe('native trigger protocol', () => {
   });
   test.each([
     { schedule: { startDate: 'bad' } },
+    { schedule: { startDate: '2026-10-20 09:30:00', repeat: 'DAILY', maxCount: 101 } },
+    { schedule: { startDate: '2026-10-20 09:30:00', repeat: 'DAILY', maxCount: 0 } },
+    { schedule: { startDate: '2026-10-20 09:30:00', repeat: 'DAILY', maxCount: 1.5 } },
+    { schedule: { startDate: '2026-10-20 09:30:00', repeat: 'DAILY', maxCount: 3, expireDate: Date.parse('2036-10-20T09:30:00+08:00') } },
     { schedule: { startDate: '2026-10-20 09:30:00', repeat: 'ONCE', maxCount: 1 } },
     { schedule: { startDate: '2026-10-20 09:30:00' }, events: ['insert'] },
     { events: ['targetField'] }, { events: ['update'], changedFields: [] },

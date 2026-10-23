@@ -15,6 +15,8 @@ openyida task-center options APP_REPLACE --type forms --keyword 采购 --json
 
 `originators` 提供可读取的人员候选；`processes` 提供流程候选；`forms` 用于我创建的普通表单与流程，其中普通表单的值是表单 UUID，流程的值是流程标识。候选项可读取不代表一定存在匹配任务。
 
+流程与表单候选沿用宜搭原生 `taskCenter.html` 的高级筛选链路：选择应用后查询“流程名称”；“我创建的”场景将同一候选用于“表单名称”。原生请求中的 `formTypes=process` 用于回填流程标识，不代表服务端已按行过滤；OpenYida 会按 `formType`、标题关键词和 `--size` 对返回结果再次归一化，避免端点忽略搜索或分页参数时静默返回全量数据。
+
 高级筛选显式使用 `--transport app-query`。默认的 `app-v1` 保留原查询行为，不要混用两种传输的条件；字段和取值以能力查询返回的 `transports["app-query"].filters` 为准。
 
 | 条件 | 待我处理 `todo` | 我创建的 `created` | 我已处理 `done` | 抄送我的 `cc` |

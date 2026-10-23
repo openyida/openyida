@@ -19,7 +19,7 @@ function CanvasNav({ items = [], activeKey, onSelect, title, logo, actions, chil
       .oy-nav-top .oy-nav-menu .oy-nav-item { min-height: var(--pod-nav-top-tab-height, 40px); padding: var(--pod-nav-top-tab-item-padding, 0 12px); max-width: var(--pod-nav-top-tab-item-max-width, 240px); }
       .oy-nav-top .oy-nav-menu .oy-nav-item > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .oy-nav-top .oy-nav-toggle { display: none; margin-left: auto; }
-      @media (max-width: 767px) {
+      @container (max-width: 767px) {
         .oy-nav-top .oy-nav-header { gap: var(--pod-nav-logo-gap, 8px); }
         .oy-nav-top .oy-nav-toggle { display: flex; }
         .oy-nav-top .oy-nav-menu { order: 1; flex-basis: 100%; flex-direction: column; }

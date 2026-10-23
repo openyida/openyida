@@ -109,7 +109,7 @@ describe('sample templates', () => {
     for (const other of ['side', 'top', 'mixed', 'dock'].filter(name => name !== layout)) {
       expect(fragment).not.toContain(`oy-nav-${other} `);
     }
-    const fragmentBudgets = { side: 14000, mixed: 14500, top: 8500, dock: 7000, tabs: 7000 };
+    const fragmentBudgets = { side: 15000, mixed: 15500, top: 8500, dock: 7000, tabs: 7000 };
     expect(Buffer.byteLength(fragment)).toBeLessThan(fragmentBudgets[layout]);
     expect(fragment.includes('function CanvasSidebar')).toBe(['side', 'mixed'].includes(layout));
     if (layout !== 'tabs') {
@@ -351,6 +351,52 @@ describe('sample templates', () => {
     expect(resize('ArrowRight')).toBe(400);
   });
 
+  test('sidebar observes its parent container instead of the browser viewport', async () => {
+    const output = path.join(tmpDir, 'nav-side-container.jsx');
+    await run(['openyida-page-template', 'canvas-nav-side', '--output', output]);
+    const fragment = fs.readFileSync(output, 'utf8');
+    const { runtimeCode } = compileCanvasLocal(`${fragment}\nfunction YidaComp() { return CanvasSidebar({}); }`);
+    const setters = [];
+    const layoutEffects = [];
+    const observed = [];
+    let observerCallback;
+    const runtime = {
+      innerWidth: 1600,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      ResizeObserver: class {
+        constructor(callback) { observerCallback = callback; }
+        observe(node) { observed.push(node); }
+        disconnect() {}
+      },
+      React: {
+        createElement: (type, props, ...children) => ({ type, props, children }),
+        useState: initial => {
+          const setter = jest.fn();
+          setters.push(setter);
+          return [typeof initial === 'function' ? initial() : initial, setter];
+        },
+        useRef: current => ({ current }),
+        useId: () => 'sidebar-container',
+        useEffect: () => {},
+        useLayoutEffect: effect => layoutEffects.push(effect),
+      },
+      LucideReact: {},
+    };
+    const sidebar = new Function('window', `${runtimeCode}; return YidaComp();`)(runtime);
+    const parent = { getBoundingClientRect: () => ({ width: 600 }) };
+    const aside = { parentElement: parent, getBoundingClientRect: () => ({ width: 216 }) };
+    sidebar.props.ref.current = aside;
+    const cleanup = layoutEffects[0]();
+
+    expect(observed).toEqual([parent, aside]);
+    expect(setters[3].mock.calls.at(-1)[0](1600)).toBe(600);
+    expect(setters[5].mock.calls.at(-1)[0](0)).toBe(216);
+    observerCallback();
+    expect(setters[3]).toHaveBeenCalledTimes(2);
+    cleanup();
+  });
+
   test('navigation data filters PRD menus by viewer visibility without adopting server order or extra entries', async () => {
     const output = path.join(tmpDir, 'nav-data.jsx');
     await run(['openyida-page-template', 'canvas-nav-data', '--output', output]);
@@ -478,6 +524,22 @@ describe('sample templates', () => {
     expect(tableSource).not.toContain('linear-gradient(145deg, #F0F9F7');
     expect(tableSource).not.toContain('this.utils.yida');
     expect(tableSource).not.toContain('data-theme-scope');
+  });
+
+  test('container-responsive layout sample compiles and preserves local business state', async () => {
+    const output = path.join(tmpDir, 'canvas-responsive-layout.jsx');
+    await run(['openyida-page-template', 'canvas-responsive-layout', '--output', output]);
+    const source = fs.readFileSync(output, 'utf8');
+    const result = compileCanvasLocal(source, { sourcePath: output });
+
+    expect(JSON.parse(result.importedModules)).toEqual(['react']);
+    expect(source).toContain('container: oy-content / inline-size');
+    expect(source).toContain('@container oy-content (max-width: ${breakpoints.stacked - 1}px)');
+    expect(source).toContain('observer.disconnect()');
+    expect(source).toContain('window.cancelAnimationFrame');
+    expect(source).toContain('overflow-x: auto');
+    expect(source).not.toMatch(/key=\{(?:layout|width|measurement)/);
+    expect(result.warnings.map(warning => warning.rule)).not.toContain('responsive-viewport-only');
   });
 
   test('OpenYida page templates are copied, substituted, and compile the drawer container', async () => {

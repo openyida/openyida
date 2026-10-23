@@ -2002,6 +2002,17 @@ describe('OpenYida skill contracts', () => {
     expect(fieldUrlReference).toContain('{base_url}/{appType}/formDetail/{formUuid}?formInstId={formInstId}&navConfig.layout=1180&isRenderNav=false');
   });
 
+  test('Canvas responsive guidance separates viewport and container responsibilities', () => {
+    const canvas = readSkill('yida-skills/skills/yida-canvas-custom-page/SKILL.md');
+    const density = readSkill('yida-skills/skills/yida-density/SKILL.md');
+    const responsive = readSkill('yida-skills/skills/yida-design/references/responsive-layout.md');
+
+    expect(canvas).toContain('canvas-responsive-layout');
+    expect(density).toContain('iframe、侧栏或抽屉');
+    expect(responsive).toContain('ResizeObserver` 未清理');
+    expect(responsive).toContain('360、600、768、1024、1280、1600px');
+  });
+
   test('custom-page-dependent skills avoid duplicated dual-route prose', () => {
     const dashboard = readSkill('yida-skills/skills/yida-dashboard/SKILL.md');
     const ppt = readSkill('yida-skills/skills/yida-ppt-slider/SKILL.md');

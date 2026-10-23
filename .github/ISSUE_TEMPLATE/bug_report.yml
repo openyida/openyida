@@ -1,0 +1,55 @@
+name: 遇到问题了 · Report a problem
+description: 描述你想做什么、哪里卡住了；不需要懂代码，也可以用 English 填写。
+title: '[Bug] '
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        谢谢你告诉我们！用自己的话描述就好，不确定的信息可以留空或写“不清楚”。
+        Issue 是公开的问题记录；请只贴脱敏的关键报错和截图，保留姓名、客户数据、Token、Cookie、私有地址和内部源码在本地。
+        也可以让 AI 帮忙整理：[新手贡献指南](https://github.com/openyida/openyida/blob/main/CONTRIBUTING.md#ai-help)。只反馈问题就很有帮助，愿意一起修复也欢迎。
+  - type: textarea
+    id: goal
+    attributes:
+      label: 你原本想完成什么？ / Goal
+      placeholder: 例如：我想让 AI 帮我搭建一个订单管理页面。
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际发生了什么？ / What happened?
+      description: 写下卡住的步骤。可以贴关键报错或拖入脱敏截图；没有截图也能提交。
+      placeholder: 例如：页面生成后，点保存一直没有反应。重新打开后也一样。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 你希望看到什么结果？ / Expected result
+      placeholder: 例如：保存成功后，告诉我在哪里查看页面。
+  - type: textarea
+    id: environment
+    attributes:
+      label: 问题发生时的环境 / Environment when it happened
+      description: 填知道的即可，也可请 AI 只读检查版本。已升级时请区分出错时和现在的版本；无需粘贴整份 env 或 doctor 输出。
+      placeholder: |
+        OpenYida 版本：不清楚（AI 可检查 openyida --version）
+        AI 工具及版本：例如 Codex / Claude Code / Qoder，不清楚也可以
+        安装方式：npm / 插件 / 源码 / 不清楚
+        系统及架构：例如 Windows 11、macOS arm64 / 不清楚
+        Node.js 版本：不清楚（AI 可检查 node -v）
+        仅相关时补充：浏览器及版本、移动端/桌面端、公有云/私有化、多组织切换（不填组织 ID）
+  - type: textarea
+    id: attempts
+    attributes:
+      label: 还有什么能帮助我们了解问题？ / Optional details
+      description: 可以补充复现步骤、出现频率、最近升级或已尝试的方法及结果。不需要先分析根因。
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: 公开前检查 / Privacy check
+      options:
+        - label: 我已检查文字和附件，确认可以公开，不含凭证、客户数据或内部源码。
+          required: true

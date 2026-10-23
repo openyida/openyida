@@ -68,7 +68,11 @@ const DENSITY_CONFIG = {
 
 ## React Hooks 实现
 
-在 Canvas 中用 `matchMedia` + hooks 管设备变化。不要在首次渲染时读一次宽度后永不更新。
+在 Canvas 中分别处理密度选择和布局宽度：
+
+- `matchMedia` + hooks 监听浏览器视口或输入方式的变化。下方示例用视口宽度切换密度；触控能力按对应媒体条件判断。
+- 页面分栏、筛选栏和主辅面板按实际内容容器宽度重排，iframe、侧栏或抽屉均读取自身可用空间。
+- 按 [共享响应式规则](../yida-design/references/responsive-layout.md#复用模板与-cli-诊断) 优先用 CSS 重排。需要参考时执行 `openyida sample openyida-page-template canvas-responsive-layout`，按需复用布局片段；组件需要读取实际宽度时，再复用带清理的测量 Hook，持续响应容器变化。
 
 ```jsx
 import React, { useEffect, useMemo, useState } from 'react';
@@ -155,3 +159,4 @@ export function didMount() {
 - 移动端固定 `spacious` 且隐藏切换 UI。
 - 所有密度相关值来自统一 token。
 - `matchMedia` 监听或其他响应式副作用有 cleanup。
+- 桌面宽视口中的窄 iframe、侧栏和抽屉按自身宽度重排；分别验证设备对应的密度和容器对应的布局。

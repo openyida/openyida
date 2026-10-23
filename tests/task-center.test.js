@@ -69,13 +69,17 @@ describe('task-center run', () => {
   });
 
   test('流程候选通过应用范围只读POST查询', async () => {
-    utils.httpPost.mockResolvedValue({ success: true, content: [{ appType: 'APP_TEST', processCode: 'process-a', formUuid: 'FORM_A', formType: 'process', title: { zh_CN: '采购申请' } }] });
+    utils.httpPost.mockResolvedValue({ success: true, content: [
+      { appType: 'APP_TEST', processCode: 'process-a', formUuid: 'FORM_A', formType: 'process', title: { zh_CN: '采购申请' } },
+      { appType: 'APP_TEST', processCode: 'process-b', formUuid: 'FORM_B', formType: 'process', title: { zh_CN: '采购审批' } },
+      { appType: 'APP_TEST', processCode: 'process-c', formUuid: 'FORM_C', formType: 'process', title: { zh_CN: '销售审批' } },
+    ] });
     utils.requestWithAutoLogin.mockImplementation((request, auth) => request(auth));
     const log = jest.spyOn(console, 'log').mockImplementation(() => {});
-    const result = await run(['options', 'APP_TEST', '--type', 'processes', '--keyword', '采购', '--json']);
+    const result = await run(['options', 'APP_TEST', '--type', 'processes', '--keyword', '采购', '--size', '1', '--json']);
     expect(utils.httpPost.mock.calls[0][1]).toBe('/dingtalk/web/APP_TEST/query/formdesign/listFormDesignsByFormType.json');
     expect(new URLSearchParams(utils.httpPost.mock.calls[0][2]).get('key')).toBe('采购');
-    expect(result.items[0]).toMatchObject({ value: 'process-a', label: '采购申请' });
+    expect(result).toMatchObject({ total: 2, items: [{ value: 'process-a', label: '采购申请' }] });
     log.mockRestore();
   });
 

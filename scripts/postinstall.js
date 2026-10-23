@@ -307,6 +307,7 @@ openyida copy
 
 ## 子技能目录
 
+已有流程的当前任务查询、流程审批转交或管理员转交，直接加载 \`yida-data-management\`，使用 \`data query process-tasks\` 和 \`data transfer task\`，并回读实际处理人。修改流程中的转交操作权限才使用 \`yida-process-rule\`。
 原生酷卡片仅在用户明确指定宜搭原生酷卡片（交互/置顶卡片）或继续已明确上下文时加载 \`yida-cool-card\`。它用 cardPageCode/cardTemplateId；CARD 资源和 dataCardDesigner 属于 \`yida-data-card\`，Canvas 展示卡片归页面。酷卡片 CLI 负责创建、读取与模板查询，返回官方入口由用户配置保存，再由 CLI 回读；不代替编辑器保存、发布或发送，不修改权益或官方卡片开关。
 原生数据卡片仅在用户显式指定宜搭原生数据卡片，或继续已明确的原生卡片操作时加载 \`yida-data-card\`。泛称卡片、指标卡、看板、投放或数据播报不触发；完整应用搭建也不自动添加该资源。自定义页面内的卡片随页面发布；页面虽有 CARD 引用，只改外层仍属页面任务，明确修改源卡片才进入原生卡片技能。
 

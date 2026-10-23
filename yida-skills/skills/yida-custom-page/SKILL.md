@@ -5,7 +5,11 @@ description: JSX 自定义页面开发规范（React 16 平台 Jsx 组件、expo
 
 # JSX 自定义页面开发
 
-布局实现读取 [共享响应式规则](../yida-design/references/responsive-layout.md)：按实际容器宽度重排筛选栏和主辅面板，统一同组控件尺寸，宽屏按需等高、窄屏自然增长，宽表格局部滚动。使用原 JSX 运行时支持的样式能力，断点变化保留原组件状态与业务行为，发布前按该文档验收。
+布局实现分三步，详细规则见 [共享响应式规则](../yida-design/references/responsive-layout.md)：
+
+1. **读取设计**：从 `design.md` 读取当前页的首屏焦点、布局、主操作、响应式和验收要求。
+2. **实现布局**：使用原 JSX 运行时支持的样式能力，按需复用与当前业务对应的布局片段，实现宽窄排列、控件对齐和局部滚动。
+3. **验证状态**：切换宽度前后保留原组件状态与业务行为，发布前按共享规则检查实际页面。
 
 已有页面美化先进入 [ui-improve](../yida-design/sub_skill/ui-improve/SKILL.md)：视觉方案经 `ask_human` 确认、备份可恢复后才修改。沿用获批范围和功能契约，保留原 JSX 运行时、业务表达式、数据源、事件及入口行为；下文的新开发默认规则不用于顺手重构已有业务。不满意时由该流程恢复本轮前状态。
 
@@ -57,7 +61,7 @@ UI 组件及 JSX 展示结构允许替换，业务函数及业务状态实现不
 4. **默认 Tailwind 风格层 + native 控件 reset**：面向用户的自定义页面默认使用 Tailwind utility className 组织视觉层，并默认导入 Tailwind preflight；同时必须保留 `openyida-native-control-reset` 或等效页面级样式，覆盖 input/textarea/select/自定义下拉的 focus、appearance、font-weight 和 shadow，避免浏览器黑色粗边。reset 使用 `.oyd-page` 通用作用域时可以复用全局 id，但不能因为同名 style 已存在就跳过更新；如果页面使用 `.oyd-grade-page`、`.oyd-data-page` 等自定义作用域，style id 必须页面专属，避免多 native 页面切换时下拉选项和 SVG 勾选样式丢失。运行时脚本只允许使用已验证的 `g.alicdn.com` 或企业自托管地址，未配置有效地址时走内联兜底样式
 5. **DateField 时间戳格式**：日期字段值必须是时间戳（毫秒），不能是字符串
 6. **forceUpdate 后延迟操作 DOM**：`forceUpdate()` 后 DOM 不会立即更新，ECharts/Canvas/第三方组件初始化必须放入 `setTimeout` 或 `requestAnimationFrame`
-7. **多端适配**：使用 `this.utils.isMobile()` 判断设备类型，适配 PC 和移动端
+7. **多端适配**：按实际内容容器宽度决定布局；`this.utils.isMobile()` 用于选择平台移动入口等设备相关行为。触控与键盘操作按当前设计及共享响应式规则实现。
 8. **输入法组合输入处理**：使用 `_isComposing` 标记配合 `compositionstart`/`compositionend` 事件，避免输入过程中触发提交
 9. **表单打开入口统一容器**：数据列表用 `workbench/{formUuid}?iframe=true`，禁止用 `formDetail` 冒充列表；新增/提交/查看详情入口统一封装为 `FormOpenContainer`。PC 端默认用半屏 `50vw` 抽屉 iframe 承载页面级隐藏导航的 `submission/{formUuid}?isRenderNav=false` 或 `formDetail/{formUuid}?formInstId=...&navConfig.layout=1180&isRenderNav=false`，提交页和详情页使用同一宽度规则；详情实例 ID 必须优先取 `row.formInstId`，缺失时禁用或提示，不打开空 `formInstId`；移动端才整页或新页打开原生表单页；不要在按钮里直接 `window.open`
 10. **Tabs 显隐控制**：下拉值变更后自动回退到第一个可见 Tab，内容区用 `display: none` 保留 DOM

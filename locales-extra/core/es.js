@@ -28,6 +28,7 @@ module.exports = {
     "limit": "Un formulario admite hasta 10 botones personalizados.",
     "readback_mismatch": "La lectura no coincide con lo guardado. Conserve la copia y revise el estado remoto."
   },
+  form_message: {"usage":"Usage: openyida form-message <list|inspect|options|create|update|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]","invalid_config":"Invalid form message configuration or argument: {0}","invalid_response":"Incomplete platform form-message response: {0}","api_error":"Form message API failed: {0}. Check login, permissions and edition availability.","not_found":"The message notification does not exist in the target form: {0}","conflict":"The notification changed. Inspect again before saving.","unsupported_trigger":"Writes are not verified for this trigger: {0}.","unsupported_form":"Writes are not verified for this form type: {0}.","readback_mismatch":"Saved notification does not match readback. Keep the backup and inspect remote state."},
   dws_external: {"note": "dws is an independent external tool. OpenYida only shows installation instructions; it does not download or install it.", "install_guide": "Show official DingTalk CLI installation instructions"},
   cool_card: {"unsupported_environment": "La edición de Alibaba Group no admite la creación de tarjetas Cool Card.", "description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
   data_card: {"description":"Create, read, save drafts and publish native YiDA data cards","usage":"Usage: openyida data-card <list|create|get|save|publish|probe|release-get|release-save|release-check|release-test|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]","failed":"Native data card operation stopped: {0}","conflict":"The draft changed. Read it again before saving or publishing.","mismatch":"Readback does not match the expected schema or published state. Keep the backup and inspect the card before retrying."},
@@ -48,7 +49,10 @@ module.exports = {
   integration_update_v2: {"usage": "integration update <appType> <formUuid> <processCode> --patch patch.json [--dry-run] [--expect fingerprint] [--publish]"},
 
   conditional_actors: { unavailable: 'Conditional actors are unavailable or could not be verified.', invalid: 'Invalid conditional actors: {0}' },
-  integration_triggers: { invalid: 'Invalid automation trigger: {0}' },
+  integration_triggers: {
+    invalid: 'Invalid automation trigger: {0}',
+    end_required: 'Elija el fin del temporizador: schedule.maxCount (1–100) para el número de ejecuciones o schedule.expireDate (vencimiento en milisegundos) para una fecha concreta. Para tareas de larga duración, elija una fecha lejana y muéstrela en el resumen.',
+  },
   permission_conditions: { invalid: 'Invalid permission conditions: {0}' },
   theme_source: { conflict: 'The theme source differs from the existing CSS or cannot be verified. Generate to a new output path, review and migrate project customizations before replacing the original file.' },
   app_entry: {
@@ -99,6 +103,7 @@ module.exports = {
   },
   help: {
     cmd_custom_button: "Botones personalizados: formularios, automatizaciones y enlaces",
+    cmd_form_message: "Native form notifications: triggers, recipients and templates",
     cmd_check_design: 'Validar documentos de diseño, variables del tema y entrega del PRD',
     subtitle: 'Herramienta de desarrollo IA low-code para Yida',
     usage: 'Uso:',
@@ -1440,6 +1445,10 @@ module.exports = {
     lint_setstate_non_timestamp: 'this.setState escribe un campo distinto de timestamp. El estado de negocio de una página personalizada debe vivir en _customState y actualizarse con forceUpdate()/setCustomState(); this.setState solo debe llevar el campo contractual timestamp',
     lint_self_binding_missing: 'renderJsx usa this sin declarar var self = this;. Agregue var self = this; al inicio de renderJsx y use self dentro de closures/callbacks para evitar perder this',
     lint_echarts_dom_ready: 'echarts.init no está envuelto en setTimeout; puede que el contenedor aún no esté montado y el gráfico no se renderice. Use setTimeout(function(){ /* echarts.init */ }, 300)',
+    lint_resize_observer_cleanup: 'ResizeObserver no tiene limpieza disconnect()/unobserve(). Libérelo al desmontar.',
+    lint_responsive_viewport_only: 'El diseño cambia solo con la ventana; una barra lateral, panel o iframe estrecho puede no adaptarse. Use @container o un ResizeObserver con limpieza. Añada openyida-responsive-viewport-ok si es intencionado.',
+    lint_responsive_fixed_width: 'El ancho fijo %spx puede desbordar un contenedor estrecho. Use max-width, minmax(0, 1fr) o desplazamiento local. Para un lienzo fijo, añada openyida-responsive-fixed-width-ok.',
+    lint_responsive_page_scale: 'Se detectó scale/zoom de página completa. Redistribuya el contenido conservando texto y objetivos legibles. Para una visualización local, añada openyida-responsive-scale-ok.',
     lint_yida_api_catch: 'La llamada API this.utils.yida no tiene un .catch() detectado; agregue manejo de errores y muestre un toast al usuario',
     lint_echarts_legacy_map_china: 'ECharts 5 ya no admite echarts/map/js/china.js. Cargue el GeoJSON de DataV y llame a echarts.registerMap("china", geoJson) en su lugar',
     lint_echarts_rich_label_formatter: 'Las plantillas rich text devueltas por ECharts label.formatter son inestables en páginas personalizadas de Yida; prefiera cadenas formatter simples o texto de etiqueta precalculado',
@@ -2234,6 +2243,16 @@ module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
 
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: 'Argumentos no válidos: query requiere appType y --process-inst-id; transfer también requiere --form-uuid, --to-user-id, --expect-form-name y --expect-form-type process. taskId debe ser un entero positivo; no se admiten opciones desconocidas.',
+  query_failed: 'Falló la consulta de tareas; no se realizó la transferencia.',
+  response_invalid: 'No se pudo verificar la estructura, el ID o la pertenencia de la tarea al proceso.',
+  not_running: 'La tarea indicada no está en ejecución en el proceso destino, o no hay tareas activas; no se realizó la transferencia.',
+  ambiguous: 'Hay varias tareas activas. Consulte la lista e indique --task-id; no se realizó la transferencia.',
+  rejected: 'La plataforma rechazó la transferencia del administrador. Verifique permisos y estado.',
+  result_unknown: 'Resultado de transferencia desconocido. Consulte las tareas mediante nextStep; no reintente automáticamente.',
+  unverified: 'Transferencia aceptada, pero no se pudo confirmar el destinatario al consultar. Use nextStep; no reintente automáticamente.',
+});
 module.exports.data_manage_style = {
   'usage': 'openyida data-manage-style guide [--json]\nopenyida data-manage-style list [--json]\nopenyida data-manage-style generate --app APP_ID --form FORM-ID --style <id> --base-css <snapshot/theme.css> --output <new.css> [--focus balanced|actions] [--field-id <actualId>]... [--emphasize-field <actualId>]... [--tag-field <selectFieldId>]... [--follow-shell] [--json]',
   'data_style_invalid': 'Parámetros de estilo no válidos. Use identificadores reales y un estilo del catálogo.',
@@ -2326,6 +2345,26 @@ Object.assign(module.exports.formula_v2, {"parallel_formula": "Use conditions/ru
 Object.assign(module.exports.formula_v2, {"conversion_empty":"La conversión al campo destino produjo un valor vacío. Para fechas, use TIMESTAMP(fórmula de fecha) y revise el valor original y el tipo.","result_missing":"La solicitud terminó sin un valor para el campo destino. Las fechas suelen necesitar TIMESTAMP(fórmula de fecha).","conversion_partial":"El valor se convirtió parcialmente o no es finito. Devuelva un número completo o milisegundos.","target_branches":"Algunos tipos de resultado {0} no coinciden con {1}. Pruebe cada rama.","date_timestamp":"Un objeto de fecha difiere del valor guardado. Use normalmente TIMESTAMP(fórmula de fecha) para obtener milisegundos.","numeric_result_text":"El resultado puede ser texto. Pruebe cada rama con --field para detectar valores vacíos o conversiones parciales."});
 
 module.exports.feedback_report = {
+  body: {
+    summary: 'Tu objetivo',
+    actual: 'Qué ocurrió',
+    expected: 'Resultado esperado',
+    incident: 'Entorno cuando ocurrió el problema',
+    command: 'Operación relacionada',
+    steps: 'Cómo reproducirlo',
+    impact: 'Impacto',
+    evidence: 'Evidencias observadas',
+    attempts: 'Intentos y resultados',
+    cause: 'Causa y grado de certeza',
+    cause_evidence: 'Evidencias del diagnóstico',
+    next: 'Próxima comprobación',
+    screenshots: 'Capturas de pantalla',
+    review_image: 'Revisar la imagen antes de compartir',
+    limitations: 'Limitaciones de las pruebas',
+    generator: 'Entorno de generación del informe (no el del incidente)',
+    unknown: 'Desconocido / sin verificar',
+    draft: 'Borrador local, aún no enviado. Revisa el texto y las imágenes para eliminar datos de clientes, credenciales e información privada antes de compartir.',
+  },
   comparison: 'Test pass/fail requires a command, actual result and evidence.',
   screenshots: 'Choose at most five PNG/JPEG/WebP screenshots of at most 10 MiB each.',
   text: 'Feedback text fields must be strings of at most 12000 characters.',
@@ -2413,7 +2452,18 @@ module.exports.task_center = {
 };
 
 module.exports.feedback_github = {
-  usage: 'Usage: openyida feedback github <status|star|fork> [--confirm] [--json]',
+  setup_inspect_installation: 'Instalación sin verificar. Comprueba gh --version, el gestor de paquetes o reabre el terminal antes de decidir si reintentar; conserva el borrador.',
+  setup_check_execution: 'No se pudo ejecutar gh. Comprueba permisos y entorno local; no reinstales ni cambies de cuenta automáticamente.',
+  setup_confirm_install: 'Se puede instalar GitHub CLI. Explica el plan y obtén consentimiento antes de openyida feedback github setup --install --confirm --json; también puedes usar la web.',
+  setup_manual_install: 'Instalación automática no disponible. Usa las instrucciones oficiales, un conector existente o la web; conserva el borrador.',
+  setup_ready: 'GitHub CLI y la cuenta actual están verificados. Retoma el borrador; confirma contenido público y permisos antes de enviar.',
+  setup_browser_login: 'GitHub CLI está disponible y requiere iniciar sesión. Con consentimiento, guía la autorización en el navegador y verifica con setup --json.',
+  setup_check_account: 'GitHub CLI está disponible, pero la cuenta no está verificada. Comprueba red, autorización o límites; no deduzcas que falta una cuenta ni reinstales.',
+  setup_consent: 'Usa --install --confirm solo tras consentir instalar GitHub CLI y dependencias necesarias en la ubicación predeterminada del gestor. Windows acepta los acuerdos de fuente y software de WinGet y puede requerir permisos del sistema aprobados por el usuario. No instala gestores, eleva privilegios ni inicia sesión automáticamente.',
+  setup_privacy: 'Instalar no autoriza publicar. El usuario autoriza en el navegador; no solicites contraseñas, códigos ni Token. Si gh no puede guardar credenciales de forma segura, usa la web o un conector seguro. Excluye diagnósticos de cuenta y herramientas del informe.',
+  usage: 'Usage: openyida feedback github setup [--install --confirm] [--json]; openyida feedback github <status|star|fork> [--confirm] [--json]',
   confirmation: 'Star or Fork requires the user to explicitly choose that action before --confirm. Neither is required to submit an Issue.',
   failed: 'The GitHub action could not be verified. Inspect its status before retrying; this does not block Issue submission.',
 };
+
+module.exports.process_dynamic_actors = { invalid: "Configuración de actores no válida. Revise details.reason, el rango y los campos de miembros reales." };

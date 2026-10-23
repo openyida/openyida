@@ -11,7 +11,11 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 
 待办中心或审批任务区块只有在用户明确要求自定义实现，或经 ask_human 明确同意后才交接 `yida-task-center`；已有 Canvas、普通工作台需求或 Fast 模式不构成选择。未选择时保留原生能力，不直接手写任务中心。
 
-布局实现读取 [共享响应式规则](../yida-design/references/responsive-layout.md)：按实际容器宽度重排筛选栏和主辅面板，统一同组控件尺寸，宽屏按需等高、窄屏自然增长，宽表格局部滚动。断点变化保留原组件状态与业务行为，发布前按该文档验收。
+布局实现分三步，详细规则见 [共享响应式规则](../yida-design/references/responsive-layout.md)：
+
+1. **读取设计**：从 `design.md` 读取当前页的首屏焦点、布局、主操作、响应式和验收要求。
+2. **实现布局**：优先用 CSS 按内容容器宽度重排。需要参考时执行 `openyida sample openyida-page-template canvas-responsive-layout`，按需复用与当前业务对应的布局片段；图表等组件需要读取实际宽度时，再复用测量 Hook。视口媒体查询用于浏览器视口或输入方式判断。
+3. **验证状态**：切换宽度前后保留原组件状态与业务行为，发布前按共享规则检查实际页面。
 
 已有页面的美化或 UI 优化，先进入 [ui-improve](../yida-design/sub_skill/ui-improve/SKILL.md)。只有当前视觉方案已通过 `ask_human` 确认且原状态备份可恢复，才修改源码；交接需包含获批 revision、范围、备份和功能契约。本轮仅按视觉差异修改，保留现有业务表达式、事件、数据绑定、URL、状态管理和打开方式，不套用下文的新页面默认规则改变业务。
 
