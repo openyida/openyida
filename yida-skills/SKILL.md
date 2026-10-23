@@ -148,7 +148,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-flow-node-config`、`yida-agent-center` |
 | `yida-skills/page` | 工作台、办事门户、任务看板、自定义展示页、页面源码开发、平台 JSX 组件页面维护、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-task-center`（仅显式选择自定义待办）、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
 | `yida-skills/analytics` | 用户显式指定宜搭原生数据卡片（含其投放播报）；聚合表、虚拟视图、报表、统计、图表、Recharts、ECharts、经营分析看板、驾驶舱、大屏 | `yida-data-card`、`yida-aggregate-table`、`yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard` |
-| `yida-skills/integration` | 用户明确指定宜搭原生酷卡片；连接器、钉钉开放平台、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-cool-card`、`yida-integration`、`yida-flow-node-config`、`yida-dingtalk-openapi`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
+| `yida-skills/integration` | 用户明确指定宜搭平台插件或原生酷卡片；连接器、钉钉开放平台、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-plugin-lifecycle`、`yida-plugin-frontend-deploy`、`yida-cool-card`、`yida-integration`、`yida-flow-node-config`、`yida-dingtalk-openapi`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
 | `yida-skills/access` | 平台/应用/表单/页面权限、公开访问、分享 | `yida-corp-manager`、`yida-app-permission`、`yida-form-permission`、`yida-page-config` |
 | `yida-skills/ops` | Sequence、主键冲突、VOC、OpenYida 本地故障、Issue/Fork PR | `yida-db-seq-fix`、`yida-voc`、`yida-feedback` |
 | `yida-skills/agent` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | `yida-export-conversation`、`yida-document-markdown`、`yida-tingji`、`yida-flash-note-to-prd` |
@@ -211,6 +211,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 平台左侧导航树分组/排序 | `yida-nav-group` |
 | 自定义应用导航或独立前台菜单 | `yida-nav-shell` |
 | 用户明确指定宜搭原生酷卡片（交互卡片或置顶卡片） | `yida-cool-card`；创建、读取与模板查询，返回官方入口由用户配置保存，再由 CLI 回读；要求完全不同的样式或自由 HTML/CSS/React 时仍由本技能判断原生限制和替代方案，不自动切换成网页；不代替编辑器保存、发布或发送，不调整权益 |
+| 用户明确指定宜搭平台“插件管理”、开发插件、插件版本或组织已安装插件 | `yida-plugin-lifecycle`；区分开发配置、资源可达、运行时注册与消费者真实执行，不路由到 npm/Codex 插件管理 |
+| 已明确宜搭平台插件，询问 remoteEntry.js 构建、第三方资产命名空间、资源托管或加载失败 | `yida-plugin-frontend-deploy`；部署资源与平台配置分开，保存版本、权限申请和组织发布交回 `yida-plugin-lifecycle`；普通网站部署、Canvas 页面发布不触发 |
 | 用户显式指定宜搭原生数据卡片，或在已明确的原生卡片上下文中继续操作 | `yida-data-card`；仅泛称卡片、指标卡、看板、投放或播报不触发；原生卡片保存、发布与播报分离，启用或测试发送另需明确授权 |
 | 自定义页面中的数据卡片、指标卡、统计卡 | 页面内组件随页面发布：新增/开发走页面技能，接数据走 `yida-canvas-data-binding`，仅外观走 `yida-design`；不自动创建原生 CARD 资源 |
 | 页面引用了原生 `CARD-xxx` | 按实际修改对象分流：页面外层或引用配置仍归页面；用户明确要求修改源卡片配置才用 `yida-data-card`，不能只凭 CARD/FORM 字样判断 |

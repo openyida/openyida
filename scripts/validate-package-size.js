@@ -199,7 +199,9 @@ const MAX_TARBALL_BYTES = 2608 * 1024;
 // Retain the next 16 KiB boundary without changing the single-file limit.
 // Templates/message features plus main's GitHub setup (Node 20.18.1):
 // 9,821,065 unpacked bytes / 775 files; next 16 KiB boundary, gzip cap unchanged.
-const MAX_UNPACKED_BYTES = 9600 * 1024;
+// Retain the plugin branch's 9664 KiB budget for the combined content;
+// the merged package has not been measured with npm pack.
+const MAX_UNPACKED_BYTES = 9664 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -235,7 +237,8 @@ const MAX_UNPACKED_BYTES = 9600 * 1024;
 // Administrator task transfer adds exactly one runtime module and one skill guide.
 // Solution Center templates add their runtime and skill to the stacked release.
 // GitHub setup keeps installation/detection separate from account actions.
-const MAX_ENTRY_COUNT = 775;
+// Add seven plugin runtime/skill files to the template branch's entry budget.
+const MAX_ENTRY_COUNT = 782;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
