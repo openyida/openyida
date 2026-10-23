@@ -790,6 +790,12 @@ async function main() {
       break;
     }
 
+    case 'solution-template': {
+      const { run } = require('../lib/solution-template/solution-template');
+      await run(args);
+      break;
+    }
+
     case 'corp-efficiency': {
       const { run } = require('../lib/corp-efficiency/corp-efficiency');
       await run(args);

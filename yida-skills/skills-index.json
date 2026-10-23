@@ -293,6 +293,19 @@
       ]
     },
     {
+      "name": "yida-solution-template",
+      "path": "skills/yida-solution-template/SKILL.md",
+      "display_name": "宜搭方案模板",
+      "description": "查询和启用宜搭方案中心模板，提供 AI 搭建入口、启用摘要和状态恢复。适用于明确的方案中心、方案模板、模板启用、模板 AI 搭请求，以及已有模板任务。",
+      "category": "yida-skills/app",
+      "tags": ["方案中心", "方案模板", "模板启用", "模板AI搭"],
+      "aliases": ["solution-template", "应用模板"],
+      "positive_signals": ["查询宜搭方案中心模板", "用方案模板AI搭建", "直接启用宜搭方案模板", "继续已确认的方案模板任务"],
+      "negative_signals": ["搭建应用但未提方案中心或模板", "创建空应用", "普通页面模板"],
+      "command_ids": ["solution-template"],
+      "requires_login": true
+    },
+    {
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
