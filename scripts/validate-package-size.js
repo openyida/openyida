@@ -65,15 +65,19 @@ const path = require('path');
 // and a skill with three guides. With main's AI app helper, Node 26 measures
 // 2,576,926 compressed bytes;
 // keep a small allowance for Node 20's different npm compression output.
+// Combined main and Solution Center templates measure 2,622,928 compressed
+// bytes on Node 22; retain the next 16 KiB boundary across packaging runtimes.
 // Beginner account/tool guidance: Node 20.18.1 measures 2,627,647 compressed
 // bytes (Node 26 is smaller). Keep the next 16 KiB compression boundary.
 // Main's task-transfer and scheduled-end-condition changes combined with feedback
 // guidance measure 2,634,130 compressed bytes on Node 20; this cap still fits.
 // Node 20 CI measures 2,643,136 compressed bytes for the merged 10.23 package.
 // Retain the next 16 KiB boundary; unpacked, entry and single-file caps stay fixed.
+// Stacked 10.25 templates plus 10.23 message/responsive features (Node 20.18.1):
+// 2,654,371 compressed bytes; next 16 KiB boundary retains CI npm headroom.
 // Consent-based GitHub setup adds one runtime module and user guidance:
 // Node 20.18.1 measures 2,637,999 compressed bytes; next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2592 * 1024;
+const MAX_TARBALL_BYTES = 2608 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -160,6 +164,18 @@ const MAX_TARBALL_BYTES = 2592 * 1024;
 // Keep the next 16 KiB boundary and the existing 512 KiB per-file cap.
 // Issue contribution account checks add one runtime module: 9,653,376 unpacked bytes
 // on Node 26 before generated command docs; retain the next 16 KiB boundary.
+// Solution Center templates add one runtime module and one focused skill:
+// Node 26 measures 9,680,243 unpacked bytes / 764 files; retain the next 16 KiB boundary.
+// Template preparation and bounded failure recovery: Node 26 measures 9,692,651
+// unpacked bytes. Round up one 16 KiB block; file and tarball caps stay unchanged.
+// Form-member/self-select runtime and guide: 9,672,548 unpacked bytes / 764 files
+// on Node 22. Retain the next 16 KiB boundary; compressed and per-file caps stay fixed.
+// Combined templates, dynamic actors and refreshed release notes (Node 26):
+// 9,711,827 unpacked bytes / 766 files. Retain the next 16 KiB boundary.
+// PR #619 merged with main: 9,695,540 unpacked bytes on Node 23.
+// Task transfer adds its runtime, guide and 12-locale messages; next 16 KiB boundary.
+// Templates plus task transfer, timer fixes and refreshed release notes (Node 22):
+// 9,734,817 unpacked bytes / 768 files; next 16 KiB boundary, gzip cap unchanged.
 // Container-aware responsive diagnostics and the reusable Canvas scaffold add
 // two published files. Keep a small byte margin for npm metadata variance.
 // Task-driven responsive guidance measures 9,676,524 unpacked bytes at 12b8b0d0;
@@ -178,10 +194,13 @@ const MAX_TARBALL_BYTES = 2592 * 1024;
 // Combined with native form-message management and settings-link delivery:
 // Node 26 measures 9,768,800 unpacked bytes / 772 files. Next 16 KiB boundary.
 // GitHub setup merged into 10.23: 9,781,786 unpacked bytes / 773 files on Node 26.
-// Retain the next 16 KiB boundary; compressed and per-file caps stay fixed.
-// Merging Solution Center and plugin lifecycle/deployment adds nine packaged
-// source files and 92,473 bytes versus main. Extend main's byte budget by that
-// static source delta, rounded to 16 KiB; npm-pack measurements remain pending.
+// The stacked 10.25 budget below includes Solution Center templates as well.
+// Combined stacked 10.25 package measures 9,808,079 unpacked bytes on Node 20.
+// Retain the next 16 KiB boundary without changing the single-file limit.
+// Templates/message features plus main's GitHub setup (Node 20.18.1):
+// 9,821,065 unpacked bytes / 775 files; next 16 KiB boundary, gzip cap unchanged.
+// Retain the plugin branch's 9664 KiB budget for the combined content;
+// the merged package has not been measured with npm pack.
 const MAX_UNPACKED_BYTES = 9664 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
@@ -216,8 +235,9 @@ const MAX_UNPACKED_BYTES = 9664 * 1024;
 // Account/tool onboarding adds one progressively loaded feedback reference.
 // Unpacked and per-file limits remain unchanged.
 // Administrator task transfer adds exactly one runtime module and one skill guide.
+// Solution Center templates add their runtime and skill to the stacked release.
 // GitHub setup keeps installation/detection separate from account actions.
-// Add the nine Solution Center/plugin files to main's existing entry budget.
+// Add seven plugin runtime/skill files to the template branch's entry budget.
 const MAX_ENTRY_COUNT = 782;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 

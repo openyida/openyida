@@ -322,7 +322,7 @@
       "name": "yida-solution-template",
       "path": "skills/yida-solution-template/SKILL.md",
       "display_name": "宜搭方案模板",
-      "description": "仅在用户明确提到宜搭方案中心、方案模板、模板启用、模板 AI 搭，或继续该上下文时使用。查询模板与详情；定制需求交给平台原生 AI 搭建入口；原样使用模板时可在明确应用名称后直接启用，并以本地请求收据和应用列表回读防止超时重建。泛称搭应用或系统仍走 yida-app。",
+      "description": "查询和启用宜搭方案中心模板，提供 AI 搭建入口、启用摘要和状态恢复。适用于明确的方案中心、方案模板、模板启用、模板 AI 搭请求，以及已有模板任务。",
       "category": "yida-skills/app",
       "tags": ["方案中心", "方案模板", "模板启用", "模板AI搭"],
       "aliases": ["solution-template", "应用模板"],
