@@ -588,6 +588,10 @@ async function main() {
     }
     return;
   }
+  // Template-only preflight; managed runs retain their existing guard contract.
+  if (command === 'solution-template' && !hasHelpFlag(rawArgs) && !readManagedContext()) {
+    require('../lib/solution-template/solution-template').assertIndependentLocalAgent();
+  }
   commandReceipt = beginCommandReceipt({ command, args: rawArgs });
   process.once('exit', code => {
     try {commandReceipt.finish(code);} catch {process.exitCode = 1;}

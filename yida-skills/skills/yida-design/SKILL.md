@@ -59,7 +59,7 @@ Fast、Plan 和单页设计使用相同的 UI 设计规则、主题变量和质�
 | 数据管理页换风格、操作优先、列表/表头/工具栏视觉问题 | 数据管理 UI 专项（优先匹配） | 调用 `use_skill("yida-data-manage-ui")`，按原生/自定义承载处理，不循环回本表 |
 | 已有页面/应用美化、优化 UI、太乱、不好看、局部间距、风格统一、换肤，或美化后不满意/恢复 | 已有资源 UI-only 美化（优先匹配） | 读 [ui-improve](sub_skill/ui-improve/SKILL.md)，先展示并确认方案、备份，再交接实施；不满意则恢复 |
 | 完整应用、多个角色、多页面、导航分组、首页/入口页、官网 + 看板 + 后台 | 完整应用视觉设计 | Fast 执行下方视觉流程；Plan 执行 [视觉分支](sub_skill/yida-design-plan/SKILL.md) |
-| 单个自定义页要求好看、高级、品牌化、去 AI 味、页面太丑、不够惊艳 | 单页设计 | 读 [page-design](sub_skill/page-design/SKILL.md)，确认当前页面和应用主题后输出设计补充 |
+| 已有应用单独新增自定义页，或单页要求好看、高级、品牌化、去 AI 味、页面太丑、不够惊艳 | 单页设计 | 读 [page-design](sub_skill/page-design/SKILL.md)，确认当前页面和应用主题后输出设计补充 |
 | 应用主题色、品牌色、全局换肤、`--color-brand1-*`、自定义主题 CSS、`themeColor`、`navTheme` | 主题色和 token 设计 | 读 `workflow/step-2-theme-system.md` 和 `workflow/step-6-handoff.md`，输出 themeProfile、应用主题文件和 token 契约 |
 | 页面 / 主页面 / 首页 / 工作台 UI 设计 | 页面视觉设计 | 读取当前页面上下文，输出或更新 `design.md` |
 

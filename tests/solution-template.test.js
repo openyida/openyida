@@ -10,6 +10,7 @@ const TEMPLATE_ID = 'TPL_NH4BHYQIV87DC5KRDY6D';
 let root;
 let apps;
 let client;
+let originalEnv;
 
 function execute(parsed, options) {
   return executeCommand(parsed, { sleep: jest.fn(async () => {}), now: () => 0, ...options });
@@ -34,6 +35,13 @@ function appListResponse() {
 }
 
 beforeEach(() => {
+  originalEnv = process.env;
+  process.env = { ...originalEnv, CLAUDE_CODE: '1' };
+  delete process.env.OPENYIDA_MANAGED_RUN;
+  delete process.env.OPENYIDA_APP_CONTEXT_JSON;
+  for (const key of Object.keys(process.env)) {
+    if (/^(QWENWORK|MULE)/.test(key) || key === 'AGENT_PLATFORM') { delete process.env[key]; }
+  }
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'solution-template-'));
   apps = [{ appType: 'APP_OLD', appName: { zh_CN: '已有应用' }, systemLink: '' }];
   client = {
@@ -57,7 +65,10 @@ beforeEach(() => {
   };
 });
 
-afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
+afterEach(() => {
+  process.env = originalEnv;
+  fs.rmSync(root, { recursive: true, force: true });
+});
 
 test('parses discovery, AI handoff, direct enable and status without accepting ambiguous flags', () => {
   expect(parseArgs(['search', '--query', '合同', '--page', '2', '--size', '10'])).toMatchObject({ action: 'search' });
@@ -75,6 +86,8 @@ test('discovers templates and exposes only readback-backed catalog fields', asyn
   expect(result).toMatchObject({ success: true, action: 'search', totalCount: 1, readbackVerified: true });
   expect(result.data[0]).toMatchObject({ templateId: TEMPLATE_ID, title: '合同管理', author: '宜搭官方' });
   expect(result.data[0].detailUrl).toContain(encodeURIComponent(TEMPLATE_ID));
+  const [, parameters] = client.get.mock.calls.find(([endpoint]) => endpoint.includes('listFormDataByType'));
+  expect(JSON.parse(parameters(client.getAuthRef()).searchFieldJson)).toMatchObject({ isSaaS: 'n' });
   expect(client.postFormOnce).not.toHaveBeenCalled();
 });
 

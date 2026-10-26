@@ -1109,7 +1109,9 @@ export function didMount() {
 
 ### openPage
 
-**描述**：打开新页面。在钉钉环境下会使用钉钉 API 打开，体验更友好。
+**描述**：打开新页面。原生 `this.utils.openPage(url)` 的参数为 URL 字符串。
+
+Canvas 页面使用 OpenYida 发布桥 `window.__OPENYIDA_UTILS__.openPage(url)`，默认跟随当前浏览器或钉钉环境；浏览器正常打开页面，钉钉内添加 `ddtab=true` 并调用端内接口。只有明确要求严格端内打开时才传 `{mode:'dingtalk'}`。`mode` 是发布桥的能力；调用原生同名函数时按其原生签名传参。待办数量与入口使用发布桥的 `taskCenterCount / taskCenterLink / openTaskCenter`，参见[个人任务能力](../skills/yida-canvas-data-binding/references/workflow-capabilities.md)。
 
 ### router.push
 

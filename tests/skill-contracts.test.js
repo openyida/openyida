@@ -1888,7 +1888,15 @@ describe('OpenYida skill contracts', () => {
     expect(blueprint).toContain('`resourceBlueprint` 对齐 `yida-app` 的页面与表单设计');
     expect(pageDesign).toContain('## Step 1：读取应用主题');
     expect(pageDesign).toContain('单页设计和页面重构先确认当前应用主题');
-    expect(pageDesign).toContain('页面重构、局部美化、列表/看板/详情优化沿用当前应用');
+    expect(pageDesign).toContain('页面重构/局部美化：以当前应用主题为基准');
+    expect(pageDesign).toContain('`ask_human`');
+    expect(pageDesign).toContain('新版主题应用的自定义页必须遵循应用层风格和主题');
+    expect(pageDesign).toContain('不提供脱离应用主题的选项');
+    expect(pageDesign).toContain('`themeDecision=follow-app`');
+    expect(pageDesign).toContain('`themeDecision=page-enhance`');
+    expect(pageDesign).toContain('保留现有导航和其他页面');
+    expect(pageDesign).toContain('不将局部变量提升到应用层');
+    expect(pageDesign).toContain('页面独立风格的选择不包含隐藏导航、主题升级或全应用换肤');
     expect(pageDesign).toContain('`project/config.json`、`.cache/<项目名>-schema.json`、`.openyida-page.json`');
     expect(pageDesign).toContain('`themeProfile`、应用主题消费方式');
     expect(pageDesign).toContain('| 1 | 本文件：读取应用主题与功能契约 | 获取 `currentAppTheme`、`currentPageTheme`、`themeEvidence`、`functionContract` |');

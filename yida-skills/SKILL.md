@@ -137,6 +137,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 `yida-cool-card` 只在用户明确指定宜搭原生酷卡片（交互卡片、置顶卡片），或继续已明确的酷卡片任务时使用。它使用 `cardPageCode`/`cardTemplateId`，独立于 `yida-data-card` 的 `CARD-xxx` 和页面中的展示卡片。`dataCardDesigner.html?cardCode=CARD-...` 属于原生数据卡片；酷卡片管理入口为 `coolCardManage`。创建前核对认证环境；集团版（`alibaba`）直接告知“集团版不支持酷卡片搭建”并停止搭建流程。名称与链接冲突时说明实际资源并核对目标，不能互换接口。泛称卡片、图表或群通知不自动选择这两类原生资源。
 
+`yida-solution-template` 和 `solution-template` CLI 仅供独立本地 Agent 处理用户明确要求的模板操作，或继续其已授权任务；云端、受管本地任务及未知环境不使用。云端已注入 `templateReference` 或 `.resources/template-reference.md` 时，保留原生模板 PRD 链路，在当前绑定应用内搭建。普通应用创建继续走 `yida-app`，不默认搜索、推荐或启用方案模板，也不以模板兜底失败。查询不代表同意启用；启用、拒绝后的重试及另建一份分别需要用户明确授权。具体触发与执行边界见 `yida-solution-template`。
+
 ### 大类目录
 
 | 大类目录 | 第一层意图信号 | 子技能 |
@@ -158,7 +160,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 用户意图 | 选哪个 |
 | --- | --- |
 | 从零搭一个完整应用/系统 | `yida-app`；先分析需求并完成首次搭建确认，再规划与搭建 |
-| 明确从宜搭方案中心查询、AI 搭或启用方案模板 | `yida-solution-template`；先查询并选定模板，定制走原生 AI 入口，原样使用走启用摘要与直接启用 |
+| 独立本地 Agent 中明确要求查询、AI 搭或启用方案模板 | `yida-solution-template`；先查询并选定模板，定制提供云端 AI 入口，原样使用走启用摘要与直接启用 |
+| 云端平台已注入模板参考 PRD | 保留原生模板任务，在当前绑定应用中继续搭建；不加载 `yida-solution-template` 或调用其 CLI |
 | 已有 app 但没有任何页面，需要补成完整系统 | `yida-app`；属于首次搭建，同样先询问搭建方式，复用已有 `appType` 补齐资源 |
 | OpenYida 使用问题、体验建议、希望贡献改进或不会提 Issue/PR | `yida-feedback`；先整理脱敏材料，成功提交 Issue 后可选邀请 PR，贡献代码使用个人 Fork |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |

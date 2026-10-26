@@ -194,14 +194,18 @@ const MAX_TARBALL_BYTES = 2608 * 1024;
 // Combined with native form-message management and settings-link delivery:
 // Node 26 measures 9,768,800 unpacked bytes / 772 files. Next 16 KiB boundary.
 // GitHub setup merged into 10.23: 9,781,786 unpacked bytes / 773 files on Node 26.
+// Scope-aware native task links and the portable DingTalk opener add two runtime
+// modules and aligned guidance: 9,798,841 unpacked bytes on Node 26.
 // The stacked 10.25 budget below includes Solution Center templates as well.
 // Combined stacked 10.25 package measures 9,808,079 unpacked bytes on Node 20.
 // Retain the next 16 KiB boundary without changing the single-file limit.
 // Templates/message features plus main's GitHub setup (Node 20.18.1):
 // 9,821,065 unpacked bytes / 775 files; next 16 KiB boundary, gzip cap unchanged.
-// Retain the plugin branch's 9664 KiB budget for the combined content;
+// Combined templates, scoped task navigation and page-theme guidance (Node 20):
+// 9,840,407 unpacked bytes / 777 files; next 16 KiB boundary, gzip cap unchanged.
+// Include the plugin runtime and deployment guides on top of main's content;
 // the merged package has not been measured with npm pack.
-const MAX_UNPACKED_BYTES = 9664 * 1024;
+const MAX_UNPACKED_BYTES = 9696 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -237,11 +241,14 @@ const MAX_UNPACKED_BYTES = 9664 * 1024;
 // Administrator task transfer adds exactly one runtime module and one skill guide.
 // Solution Center templates add their runtime and skill to the stacked release.
 // GitHub setup keeps installation/detection separate from account actions.
-// Add seven plugin runtime/skill files to the template branch's entry budget.
-const MAX_ENTRY_COUNT = 782;
+// Shared page navigation and task-center navigation add exactly two packaged files.
+// Add seven plugin runtime/skill files to main's entry budget.
+const MAX_ENTRY_COUNT = 784;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'lib/navigation/page-navigation.js',
+  'lib/task-center/navigation.js',
   'lib/solution-template/solution-template.js',
   'yida-skills/skills/yida-solution-template/SKILL.md',
   'lib/feedback/github.js',
