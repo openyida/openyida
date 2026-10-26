@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
-## [2026.10.26-beta.1] - 2026-10-26
+## [2026.10.26-beta.3] - 2026-10-26
 
 千问办公权限引导测试版：在当前组织缺少宜搭使用授权或应用创建权限时，说明所缺权限并提供对应申请入口。
 
