@@ -203,7 +203,9 @@ const MAX_TARBALL_BYTES = 2608 * 1024;
 // 9,821,065 unpacked bytes / 775 files; next 16 KiB boundary, gzip cap unchanged.
 // Combined templates, scoped task navigation and page-theme guidance (Node 20):
 // 9,840,407 unpacked bytes / 777 files; next 16 KiB boundary, gzip cap unchanged.
-const MAX_UNPACKED_BYTES = 9616 * 1024;
+// QwenWork permission guidance adds one runtime module and localized recovery steps.
+// HEAD baseline (Node 26): 9,846,715 unpacked bytes / 777 files; use the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 9632 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -240,7 +242,8 @@ const MAX_UNPACKED_BYTES = 9616 * 1024;
 // Solution Center templates add their runtime and skill to the stacked release.
 // GitHub setup keeps installation/detection separate from account actions.
 // Shared page navigation and task-center navigation add exactly two packaged files.
-const MAX_ENTRY_COUNT = 777;
+// QwenWork permission guidance adds exactly one packaged runtime module.
+const MAX_ENTRY_COUNT = 778;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

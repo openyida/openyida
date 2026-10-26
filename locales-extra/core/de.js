@@ -2472,3 +2472,12 @@ module.exports.feedback_github = {
 };
 
 module.exports.process_dynamic_actors = { invalid: "Ungültige Akteurkonfiguration. Prüfen Sie details.reason, Auswahlbereich und tatsächliche Mitgliederfelder." };
+
+module.exports.permission_guidance = {
+  platform_access_link: 'YiDA-Zugriff beantragen',
+  create_app_link: 'Erstellung von YiDA-Anwendungen beantragen',
+  platform_access: 'Das aktuelle Konto darf YiDA in dieser Organisation nicht verwenden.',
+  create_app: 'Das aktuelle Konto darf in dieser Organisation keine Anwendungen erstellen.',
+  unknown: 'Zugriff verweigert; die Berechtigungsart ist unklar. Wenden Sie sich an einen Administrator und pausieren Sie den Vorgang.',
+  next_step: 'Öffnen Sie die Seite zur Berechtigungsanfrage: [{0}]({1}). Prüfen Sie anschließend Organisation und Berechtigungen, bevor Sie fortfahren.',
+};

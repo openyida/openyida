@@ -2474,3 +2474,12 @@ module.exports.feedback_github = {
 };
 
 module.exports.process_dynamic_actors = { invalid: "Configuración de actores no válida. Revise details.reason, el rango y los campos de miembros reales." };
+
+module.exports.permission_guidance = {
+  platform_access_link: 'Solicitar acceso a YiDA',
+  create_app_link: 'Solicitar permiso para crear aplicaciones YiDA',
+  platform_access: 'La cuenta actual no tiene autorización para usar YiDA en esta organización.',
+  create_app: 'La cuenta actual no puede crear aplicaciones en esta organización.',
+  unknown: 'Permiso denegado; el tipo de permiso no está confirmado. Contacte con un administrador y pause esta operación.',
+  next_step: 'Abra la página de solicitud de permisos: [{0}]({1}). Después, compruebe la organización y los permisos antes de continuar.',
+};
