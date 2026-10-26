@@ -7,6 +7,10 @@
  */
 module.exports = {
   qwenwork: {
+    login_check_failed: 'Unable to verify the login session. Please retry.',
+    desktop_login_failed: '千問辦公桌面免登入失敗，請確認桌面登入身分和免登入通道後重試。',
+    desktop_login_usage: '用法： openyida login --qwenwork [--json] [--check-only]',
+    desktop_login_standalone: '請直接執行推薦的登入命令：{0}。無需額外處理 PATH 和輸出；成功後靜默繼續業務，失敗時按提示修正呼叫。',
     credential_missing: 'No cloud Agent credential is available. Run this command inside the QwenWork cloud execution environment.',
     gateway_missing: 'QWENWORK_GATEWAY_URL or MULE_GATEWAY_URL is required.',
     invalid_url: 'The QwenWork gateway must use HTTPS (HTTP is allowed only for loopback) and contain no credentials, query or fragment.',
@@ -112,6 +116,7 @@ module.exports = {
     alias: '別名:',
     group_auth: '環境 & 認證',
     cmd_login: 'Login with OAuth token mode',
+    cmd_login_qwenwork: '使用千問辦公的一次性兌換票登入宜搭',
     cmd_logout: '登出 / 切換帳戶',
     cmd_auth: '登入態管理',
     cmd_org: '組織管理（列出 / 切換）',
@@ -423,7 +428,7 @@ module.exports = {
     save_permission_usage: '用法：openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>] [--package-type <FORM_PACKAGE_VIEW|FORM_PACKAGE_START>]',
     save_permission_example: `範例：openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ 執行失敗：{0}',
-    login_usage: '用法：openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
+    login_usage: '用法：openyida login [--qwenwork] [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
     login_example: '範例：\n  openyida login                         # 透過 OAuth loopback 自動開啟瀏覽器登入\n  openyida login --no-browser            # 不自動開啟瀏覽器，由調用方接管授權連結\n  openyida login --check-only --json     # 只檢查 token 登入態\n  openyida login --intl                  # 使用國際站環境登入\n  OPENYIDA_NO_BROWSER=1 openyida login   # 透過環境變數由調用方接管授權連結\n  openyida auth login                    # 登入入口別名',
     login_unsupported_option: '已刪除的舊登入參數不再支援：{0}。請使用 token/OAuth 登入；host 注入模式下只檢查宿主注入的 token。',
     first_run_title: '  🤖 OpenYida - AI 問答模式已開啟！                         ',

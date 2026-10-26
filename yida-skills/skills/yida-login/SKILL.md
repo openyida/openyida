@@ -16,6 +16,12 @@ description: 宜搭登录态管理。以 OpenYida auth snapshot 为准；默认 
 - 浏览器归属以 `builder_path.interactive_login.mode` 为准：`not_required` 不触发 OAuth；`cli_auto_open` 执行 `openyida login` 并等待；`caller_open_url` 执行 `openyida login --no-browser`，由 Agent 优先调用沙箱浏览器 / 内置 Browser 打开 CLI 输出的授权 URL 一次；`unsupported` 停止并说明没有可用浏览器能力，不要默认安装 Playwright。
 - `caller_open_url` 模式下，Agent 不要只把 URL 贴给用户然后等待。只有当前宿主没有浏览器工具，或浏览器工具调用失败时，才退回让用户手动打开 URL。
 
+## 千问办公桌面端的后台登录
+
+先以当前快照的 `runtime.tool=qwenwork`、`runtime.subtype=qwenwork_desktop` 和 `builder_path.interactive_login.mode=desktop_ticket` 确认桌面换票能力。满足条件后，按[后台准备规则](../../references/qwenwork-desktop-login.md)静默补齐登录态，随后继续业务操作。
+
+普通 `login` 不触发桌面换票；其他宿主继续遵循下方认证规则。票据协议和研发验证见仓库的 `docs/guides/qwenwork-desktop-login.md`。
+
 ## 前置检查
 
 先执行：

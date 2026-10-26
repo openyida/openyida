@@ -6,6 +6,10 @@
  */
 module.exports = {
   qwenwork: {
+    login_check_failed: 'Unable to verify the login session. Please retry.',
+    desktop_login_failed: 'QwenWork 데스크톱 로그인에 실패했습니다. 데스크톱 계정과 로그인 채널을 확인한 후 다시 시도하세요.',
+    desktop_login_usage: '사용법： openyida login --qwenwork [--json] [--check-only]',
+    desktop_login_standalone: 'Run the recommended login command directly: {0}. No extra PATH or output setup is needed. After success continue the business operation silently; on failure follow the returned guidance.',
     credential_missing: 'No cloud Agent credential is available. Run this command inside the QwenWork cloud execution environment.',
     gateway_missing: 'QWENWORK_GATEWAY_URL or MULE_GATEWAY_URL is required.',
     invalid_url: 'The QwenWork gateway must use HTTPS (HTTP is allowed only for loopback) and contain no credentials, query or fragment.',
@@ -111,6 +115,7 @@ module.exports = {
     alias: '별칭:',
     group_auth: '환경 & 인증',
     cmd_login: 'Login with OAuth token mode',
+    cmd_login_qwenwork: 'Log in to YiDA with a one-time QwenWork exchange ticket',
     cmd_logout: '로그아웃 / 계정 전환',
     cmd_auth: '로그인 상태 관리',
     cmd_org: '조직 관리 (목록 / 전환)',
@@ -439,7 +444,7 @@ module.exports = {
     save_permission_usage: 'Usage: openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>] [--package-type <FORM_PACKAGE_VIEW|FORM_PACKAGE_START>]',
     save_permission_example: `Example: openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ Execution failed: {0}',
-    login_usage: 'Usage: openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
+    login_usage: 'Usage: openyida login [--qwenwork] [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
     login_example: 'Examples:\n  openyida login                         # Automatically open the browser via OAuth loopback login\n  openyida login --no-browser            # Let the caller handle the authorization URL\n  openyida login --check-only --json     # Check token auth status only\n  openyida login --intl                  # Login against the international environment\n  OPENYIDA_NO_BROWSER=1 openyida login   # Let the caller handle the authorization URL via env variable\n  openyida auth login                    # Login alias',
     login_unsupported_option: 'Removed legacy login option is no longer supported: {0}. Use token/OAuth login; host-injected mode only checks the injected token.',
     first_run_title: '  🤖 OpenYida - AI Conversation Mode Activated!               ',

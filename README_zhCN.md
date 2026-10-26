@@ -337,7 +337,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 | 命令 | 说明 |
 |------|------|
-| `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
+| `openyida login [--qwenwork] [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
 | `openyida logout` | 退出登录 / 解绑当前项目登录态 |
 | `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch\|qwenwork user-info> [--json]` | token 登录态与 profile 管理 |
 | `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | 组织管理（列表 / 优先按已有 profile 切换） |

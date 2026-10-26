@@ -594,7 +594,21 @@ async function main() {
   });
   assertManagedInvocation(command, rawArgs);
   applyQuietFlag();
+  // 一次性票据只在当前进程消费，不能先自更新并重启命令。
+  switch (command) {
+    case 'login-qwenwork':
+      await require('../lib/auth/qwenwork-desktop').run(args);
+      return;
+  }
   applyGlobalEnvironmentFlags();
+  // 桌面准备完成后继续执行公开命令，由真实登录态决定结果。
+  if (command === 'login' && args.includes('--qwenwork')) {
+    const loginArgs = applyLoginEnvironmentFlags(args, { inferTargetUrl: true });
+    if (hasHelpFlag(loginArgs)) { printLoginHelp(); return; }
+    assertNoUnsupportedLegacyLoginFlags(rawArgs, loginArgs);
+    await require('../lib/auth/qwenwork-login').run(loginArgs, buildTokenLoginOptions(loginArgs));
+    return;
+  }
 
   const { maybeAutoUpdate } = require('../lib/core/update');
   const updateResult = await maybeAutoUpdate({
