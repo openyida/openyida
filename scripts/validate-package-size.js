@@ -175,7 +175,9 @@ const MAX_TARBALL_BYTES = 2592 * 1024;
 // on Node 20. Keep the next 16 KiB boundary and the existing single-file cap.
 // QwenWork identity modules and 12-locale guidance measure 9,758,833 unpacked
 // bytes / 772 files on Node 24; retain the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 9536 * 1024;
+// 千问免登运行时与 PRE beta 入口、可选技能安装器合计 780 个文件；解包约 9.35 MiB。
+// 沿用上一版 beta 的文件范围，仅为已确认的认证能力保留不足 16 KiB 余量。
+const MAX_UNPACKED_BYTES = 9584 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -210,7 +212,7 @@ const MAX_UNPACKED_BYTES = 9536 * 1024;
 // Administrator task transfer adds exactly one runtime module and one skill guide.
 // GitHub setup keeps installation/detection separate from account actions.
 // QwenWork cloud identity adds its reusable client and explicit CLI command.
-const MAX_ENTRY_COUNT = 772;
+const MAX_ENTRY_COUNT = 780;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
