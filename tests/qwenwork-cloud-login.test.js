@@ -109,12 +109,18 @@ describe('千问办公网页态云端免登', () => {
   });
   test.each([
     { credential_source: 'qwenwork_desktop' }, { expires_in: 0 }, { expires_in: 1801 },
-    { user_id: '' }, { corp_id: 'qwen-org' }, { access_token: AGENT }, { refresh_token: 'unexpected' },
+    { user_id: '' }, { corp_id: 'qwen-org' }, { access_token: AGENT }, { exchange_ticket: 'unexpected' },
 
   ])('拒绝非法或跨环境签发结果：%j', async fields => {
     Object.assign(state.response, fields);
     await expect(ensureQwenWorkLogin(options)).rejects.toMatchObject({ code: 'QWENWORK_CLOUD_RESPONSE_INVALID' });
     expect(loadTokenSession(options)).toBeNull();
+  });
+  test.each(['refresh_token', 'refreshToken'])('服务端返回 %s 不影响云端免登', async name => {
+    state.response[name] = 'fixture-yida-refresh';
+    await expect(ensureQwenWorkLogin(options)).resolves.toEqual({ ok: true, status: 'ok', can_auto_use: true });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(loadTokenSession(options)).toMatchObject({ access_token: YIDA, credential_source: 'qwenwork_cloud' });
   });
   test.each(['https://pre-yida.mulerun.cn', 'https://group.example.test'])('信任宜搭签发的业务域名并在该域名校验与保存会话：%s', async base => {
     Object.assign(state.response, { base_url: base, corp_id: 'dingd8e1123006514592' });
