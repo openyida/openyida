@@ -601,9 +601,11 @@ async function main() {
       return;
   }
   applyGlobalEnvironmentFlags();
-  // 桌面准备完成后继续执行公开命令，由真实登录态决定结果。
-  if (command === 'login' && args.includes('--qwenwork')) {
-    const loginArgs = applyLoginEnvironmentFlags(args, { inferTargetUrl: true });
+  // 网页态由 CLI 消费宿主凭据；桌面态继续消费宿主准备的登录态。
+  const webLogin = (command === 'login' || (command === 'auth' && args[0] === 'login')) &&
+    require('../lib/core/qwenwork-login-guidance').isQwenWorkWebRuntime(require('../lib/core/utils').detectRuntimeCapabilities());
+  if ((command === 'login' && args.includes('--qwenwork')) || webLogin) {
+    const loginArgs = applyLoginEnvironmentFlags(command === 'auth' ? args.slice(1) : args, { inferTargetUrl: true });
     if (hasHelpFlag(loginArgs)) { printLoginHelp(); return; }
     assertNoUnsupportedLegacyLoginFlags(rawArgs, loginArgs);
     await require('../lib/auth/qwenwork-login').run(loginArgs, buildTokenLoginOptions(loginArgs));

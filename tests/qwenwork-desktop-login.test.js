@@ -102,6 +102,38 @@ describe('千问办公专用命令消费一次性票据', () => {
       expect(fs.readFileSync(path.join(directory, 'auth/profiles', file), 'utf8')).not.toContain(TICKET);
     }
   });
+  test('真实桌面 CLI 在原 origin 消费票据，后续校验、新进程和刷新使用返回业务域名', async () => {
+    const targetCalls = [];
+    const target = https.createServer({ key: fs.readFileSync(path.join(FIXTURE, 'key.pem')), cert: fs.readFileSync(path.join(FIXTURE, 'cert.pem')) }, (req, res) => {
+      targetCalls.push({ path: req.url, authorization: req.headers.authorization });
+      res.setHeader('Content-Type', 'application/json');
+      if (req.url === '/openapi/cli/v1/auth/refresh') {
+        let body='';req.on('data',chunk=>{body+=chunk;});req.on('end',()=>{
+          if (JSON.parse(body).refreshToken !== REFRESH) { res.writeHead(401).end('{}'); return; }
+          res.end(JSON.stringify({ ...credential, access_token: ROTATED_TOKEN, refresh_token: ROTATED_REFRESH, expires_in: 1800 }));
+        });return;
+      }
+      if (req.url === '/openapi/cli/v1/auth/status' && (req.headers.authorization === `Bearer ${ROTATED_TOKEN}` || (!expireAccess && req.headers.authorization === `Bearer ${TOKEN}`))) {
+        res.end(JSON.stringify({ status: 'ok', auth_mode: 'token', can_auto_use: true, corp_id: 'test-corp', user_id: 'test-user' }));return;
+      }
+      res.writeHead(401).end('{}');
+    });
+    const targetBase = `https://127.0.0.1:${await listen(target)}`; credential.base_url = targetBase;
+    try {
+      const login = await run(cli(['login-qwenwork', '--json']), directory, env); expect(login.code).toBe(0);
+      expect(requests.map(value=>value.path)).toEqual(['/openapi/cli/v1/auth/qwenwork/desktop/consume']);
+      expect(loadTokenSession(options())).toMatchObject({ base_url: targetBase });
+      expireAccess = true; const nextEnv={ ...env };delete nextEnv[TICKET_ENV];delete nextEnv[TICKET_CONTEXT_ENV];
+      const checked=await run(cli(['login', '--qwenwork', '--json']),directory,nextEnv);expect(checked.code).toBe(0);
+      expect(targetCalls.map(value=>value.path)).toEqual(['/openapi/cli/v1/auth/status','/openapi/cli/v1/auth/status','/openapi/cli/v1/auth/refresh','/openapi/cli/v1/auth/status']);
+      expect(loadTokenSession({ ...options(),env:nextEnv })).toMatchObject({ base_url: targetBase,access_token:ROTATED_TOKEN });
+      for(const secret of [TOKEN,REFRESH,ROTATED_TOKEN,ROTATED_REFRESH,TICKET]) { expect(login.stdout+login.stderr+checked.stdout+checked.stderr).not.toContain(secret); }
+    } finally { await close(target); }
+  });
+  test.each(['http://host.test','https://name:secret@host.test','https://host.test/path','https://host.test?secret=x','',null])('消费响应中的非法业务域名不发校验请求、不落盘：%s', async base => {
+    const fetch=fakeFetch({ base_url:base });await expect(loginQwenWork(options(fetch))).rejects.toThrow();
+    expect(fetch).toHaveBeenCalledTimes(1);expect(loadTokenSession(options())).toBeNull();
+  });
   test('新进程遇到失效 access_token 自动刷新并轮换双 Token，无需再次桌面换票', async () => {
     expect((await run(cli(['login-qwenwork', '--json']), directory, env)).code).toBe(0);
     expireAccess = true;

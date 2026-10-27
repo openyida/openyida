@@ -137,6 +137,8 @@ openyida login --check-only --json
 openyida auth status
 ```
 
+在千问办公网页态中，`openyida login --qwenwork --json`（或普通 `login`）直接把当前沙箱的 Agent Token 与网关 URL 提交给选定宜搭环境的认证接口。宜搭通过受信任网关的 `/api/agent-gw/yida/user_info` 取得钉钉关联身份，再签发宜搭短期会话；CLI 不再调用旧的 exchange 或 `/user/info`。准备过程静默，失败停止且不回退浏览器 OAuth。桌面与其他宿主保持各自登录路径。
+
 在千问办公云端诊断宿主身份时，可执行 `openyida auth qwenwork user-info --json`。命令读取沙箱注入的 Agent 凭证，兑换用户凭证后查询同一网关的 `/user/info`，仅输出身份与 scope 等元信息，不打印或保存凭证，也不生成宜搭登录态。千问组织 ID 需要通过绑定关系映射，不能直接当作宜搭 `corpId`。原有 OAuth 和 profile 流程保持不变。
 
 如果当前项目要复用已有共享登录 profile，先切换已有 profile，不要直接发起新的 OAuth 登录：

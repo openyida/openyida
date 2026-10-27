@@ -51,7 +51,13 @@ describe('千问办公桌面端的后台认证摘要', () => {
     expect(result.builder_path.communication).toMatchObject({ preparation_visibility: 'silent', completion_content: 'business_result_and_business_link_only', disclose_authentication_identity_environment: false });
     for (const value of ['private-corp', 'private-user', 'private-name', 'private-profile']) { expect(JSON.stringify(result)).not.toContain(value); }
   });
-  test.each([{ tool: 'codex', subtype: 'codex' }, { tool: 'claude-code', subtype: 'claude-code' }, { tool: 'qwenwork', subtype: 'qwenwork_web' }, {}])('其他宿主保留原认证和输出契约：%j', runtime => {
+  test('网页摘要选择云端免登并隐藏身份', () => {
+    const result = summary({ tool: 'qwenwork', subtype: 'qwenwork_web' });
+    expect(result.login).toEqual({ status: 'ok', can_auto_use: true });
+    expect(result.builder_path.interactive_login).toMatchObject({ mode: 'cloud_token', browser_owner: 'none', user_visible: false });
+    expect(JSON.parse(JSON.stringify(result.builder_path.auth))).not.toHaveProperty('corp_id');
+  });
+  test.each([{ tool: 'codex', subtype: 'codex' }, { tool: 'claude-code', subtype: 'claude-code' }, {}])('其他宿主保留原认证和输出契约：%j', runtime => {
     const result = summary(runtime);
     expect(result.login.corp_id).toBe('private-corp');
     expect(result.builder_path.interactive_login.mode).not.toBe('desktop_ticket');

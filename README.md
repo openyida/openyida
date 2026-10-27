@@ -143,6 +143,8 @@ openyida login --check-only --json
 openyida auth status
 ```
 
+In QwenWork web, `openyida login --qwenwork --json` (or ordinary `login`) sends the sandbox Agent Token and gateway origin directly to the selected YiDA authentication endpoint. YiDA validates the identity through the trusted gateway’s fixed `/api/agent-gw/yida/user_info` endpoint, then issues its own short-lived session. This login flow no longer calls the legacy exchange or `/user/info` endpoints. Login preparation stays silent; failures stop without browser OAuth. Desktop and other hosts retain their existing authentication paths.
+
 For QwenWork cloud identity diagnostics, run inside the actual cloud execution environment:
 
 ```bash

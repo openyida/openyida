@@ -11,10 +11,14 @@ description: 宜搭登录态管理。以 OpenYida auth snapshot 为准；默认 
 - 不要根据 agent 名称、宿主产品、workspace 路径或猜测的环境变量推断认证模式。
 - 先读 `openyida agent-capabilities --summary-json`；只有需要更多信息时，才降级执行 `openyida login --check-only --json`。
 - snapshot 返回 `login.auth_source=env` 或 `failure_reason=env_token_missing` 时，进入运行环境注入 token 模式。凭证只来自运行环境注入的 `OPENYIDA_ACCESS_TOKEN`、`OPENYIDA_REFRESH_TOKEN` 等环境变量。
-- 其他 `auth_mode=token` 场景使用默认 OAuth token session。
+- 除上述千问办公网页态云端免登外，其他 `auth_mode=token` 场景使用默认 OAuth token session。
 - 不要从 `.cache/cookies*.json` 推断登录态。
 - 浏览器归属以 `builder_path.interactive_login.mode` 为准：`not_required` 不触发 OAuth；`cli_auto_open` 执行 `openyida login` 并等待；`caller_open_url` 执行 `openyida login --no-browser`，由 Agent 优先调用沙箱浏览器 / 内置 Browser 打开 CLI 输出的授权 URL 一次；`unsupported` 停止并说明没有可用浏览器能力，不要默认安装 Playwright。
 - `caller_open_url` 模式下，Agent 不要只把 URL 贴给用户然后等待。只有当前宿主没有浏览器工具，或浏览器工具调用失败时，才退回让用户手动打开 URL。
+
+## 千问办公网页态的后台登录
+
+当前快照为 `runtime.tool=qwenwork`、`runtime.subtype=qwenwork_web` 且 `interactive_login.mode=cloud_token` 时，按[云端后台免登规则](../../references/qwenwork-cloud-login.md)执行快照推荐命令。CLI 自动消费沙箱凭据；成功后继续业务，失败不回退浏览器 OAuth，不读取或展示凭据。桌面态继续使用桌面换票。
 
 ## 千问办公桌面端的后台登录
 
@@ -42,6 +46,7 @@ openyida login --check-only --json
 | 状态 | 动作 |
 |---|---|
 | `auth_mode=token` 且 `status=ok` 或 `can_auto_use=true` | 继续执行业务命令 |
+| `interactive_login.mode=cloud_token` 且未登录 | 静默执行快照推荐的 `openyida login --qwenwork --json`；CLI 自动消费云端凭据，成功后继续业务；失败停止，不打开浏览器或回退 OAuth |
 | `status=profile_required` 且返回 `candidates` / `next_step` | 不猜组织；先执行 `openyida auth profiles`，再用 `openyida auth profile switch <auth_profile>` 切到用户确认或目标匹配的已有 profile |
 | `auth_source=env` / `failure_reason=env_token_missing` | 进入运行环境注入 token 模式；缺 token 时停止，让 Codex、yida-agent 等宿主注入 `OPENYIDA_ACCESS_TOKEN` 或 `OPENYIDA_REFRESH_TOKEN`；不要执行 OAuth |
 | `auth_mode=token`，未登录，且 `interactive_login.mode=cli_auto_open` | 只执行一次 `openyida login`，等待该命令结束，并使用其最终 JSON 判断结果 |
