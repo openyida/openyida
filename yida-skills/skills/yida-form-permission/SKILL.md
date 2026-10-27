@@ -11,7 +11,7 @@ description: 查询、新增和修改宜搭表单权限组，配置成员范围�
 
 查询按每页 20 条安全翻页；达到安全上限、分页重复或响应结构不完整时必须停止，不把不完整列表当作全量权限组。
 
-查询返回 `roleDataComplete: false` 时，成员信息仅供查看，尚不能确认完整排除规则；不得据此更新已有权限组。遇到 `SAVE_PERMISSION_BEFORE_UNKNOWN` 时保持零写入。
+CLI 优先读取原始 `roleData`；平台只返回 `roleMembers` 时，将可完整还原的成员规则转换为 `roleData`，保留包含、排除及矩阵配置。查询返回 `roleDataComplete: false` 表示成员结构缺失、无效或含无法安全转换的值，不得据此更新已有权限组。遇到 `SAVE_PERMISSION_BEFORE_UNKNOWN` 时保持零写入。
 
 | 类型 | 管什么 | 参数 |
 |------|--------|------|
