@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## [2026.10.29] - 2026-10-29
+## [2026.10.28-1] - 2026-10-28
 
 支持通过 OpenYida 管理宜搭平台插件的开发版本、安装配置与启停，并提供前端资源部署和加载排查指引。
 
