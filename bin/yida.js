@@ -775,6 +775,11 @@ async function main() {
       await run(args);
       break;
     }
+    case 'plugin': {
+      const { run } = require('../lib/plugin/plugin-lifecycle');
+      await run(args);
+      break;
+    }
 
     case 'app-settings': {
       const { run } = require('../lib/app/app-settings');
