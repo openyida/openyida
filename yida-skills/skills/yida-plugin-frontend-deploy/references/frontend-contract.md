@@ -20,11 +20,11 @@
 }
 ```
 
-同时配置设计态和运行态扩展。运行态的 `config.componentNameList` 必须匹配 `addComponent` 注册名：日历为 `OpenYidaCalendarView`，时间线为 `OpenYidaStickyTimeline`。发布后核对运行时 config 和真实页面，不把勾选扩展点当成配置完成。
+同时配置设计态、运行态扩展；`config.componentNameList` 匹配 `addComponent` 注册名（日历 `OpenYidaCalendarView`，时间线 `OpenYidaStickyTimeline`）。发布后核对运行时 config 和真实页面。
 
-显式设置同名 `displayName`，如 `StickyTimeline.displayName = "OpenYidaStickyTimeline"`；不依赖压缩前函数名。检查设计器日志及面板是否出现组件。
+显式设置同名 `displayName`，如 `StickyTimeline.displayName = "OpenYidaStickyTimeline"`；检查压缩后设计器日志和组件面板。
 
-此前核对的本地 `yida-plugin-sdk`（提交 `b2277ef`）提供以下实现证据，不代表已确认线上宿主正在使用此版本：
+本地 `yida-plugin-sdk`（`b2277ef`）的实现证据，线上版本须另核：
 
 - `src/utils/plugin.helper.ts` 的 `isOfficialPlugin` 按 URL 是否包含 `yida-components` 或 `teambition-fe` 分类；这是字符串判定，不是身份或域名白名单，不应模仿官方目录。
 - `src/plugin/runtime/plugin.ts` 的 `_generateRemoteConfigFromPlugin`：官方入口按宿主 CDN/group/id/version 拼接；第三方保留完整 `plugin.cdnUrl`，容器名为 `plugin.uuid.split("-")[1]`，与资产目录分开配置。
@@ -59,7 +59,11 @@ HEAD 不带宜搭凭据、不执行脚本；限制重定向并拒绝 HTTPS 降�
 
 ## 真实宿主验收（获准后）
 
-核对 `cdnEntry`、运行时 `cdnUrl`、实际入口/chunks 和交互，检查 HTTPS、类型、网络、CORS/CSP。组织部署使用稳定 HTTPS；保存、HEAD、注册均不能替代消费者执行。吸顶组件另验中间祖先的 `overflow:hidden`，优先在组件内兼容，不全局修改宿主布局。
+核对 `cdnEntry`、运行时 `cdnUrl`、入口/chunks、HTTPS、响应类型、网络及 CORS/CSP；保存、HEAD、注册不能替代消费者执行。
+
+- 分别验收设计器拖入、属性配置、保存重载，以及预览和正式页面；记录版本、入口和结果，未测宿主单独标明。
+- 吸顶组件定位实际滚动容器，检查中间祖先的 `overflow:hidden`，在组件内兼容。滚动前后测量日期、目录及条目位置，核对容器顶部加偏移、导航定位和高亮；截图辅助留证。
+- 部署完整产物并保留旧版本路径；卸载时移除监听、取消 `requestAnimationFrame`、断开 `ResizeObserver`。验证多实例、重新挂载和嵌套滚动，避免残留回调或跨实例影响。
 
 ## 宿主懒加载
 
