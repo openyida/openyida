@@ -80,7 +80,10 @@ const path = require('path');
 // QwenWork permission guidance adds one runtime module and 12-locale recovery steps.
 // Node 20.18.1: main 2,669,494 compressed bytes; feature 2,672,505 (+3,011).
 // Round the justified content growth to the next 16 KiB boundary; other caps stay fixed.
-const MAX_TARBALL_BYTES = 2624 * 1024;
+// Plugin lifecycle and frontend deployment add two runtime modules and five
+// skill/reference files. Node 20.20.2 CI measures 2,693,548 compressed bytes;
+// retain the next 16 KiB boundary without changing the other package limits.
+const MAX_TARBALL_BYTES = 2640 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
