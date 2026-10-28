@@ -77,7 +77,10 @@ const path = require('path');
 // 2,654,371 compressed bytes; next 16 KiB boundary retains CI npm headroom.
 // Consent-based GitHub setup adds one runtime module and user guidance:
 // Node 20.18.1 measures 2,637,999 compressed bytes; next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2608 * 1024;
+// QwenWork permission guidance adds one runtime module and 12-locale recovery steps.
+// Node 20.18.1: main 2,669,494 compressed bytes; feature 2,672,505 (+3,011).
+// Round the justified content growth to the next 16 KiB boundary; other caps stay fixed.
+const MAX_TARBALL_BYTES = 2624 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
