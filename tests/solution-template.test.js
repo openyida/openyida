@@ -172,6 +172,35 @@ test('definite platform rejection is recorded and never left as an in-flight sub
   expect(client.postFormOnce).toHaveBeenCalledTimes(1);
 });
 
+test('QwenWork permission guidance preserves the link and records a definite template rejection', async () => {
+  const { createPermissionError } = require('../lib/core/permission-guidance');
+  const denied = createPermissionError({}, {
+    tool: 'qwenwork', baseUrl: 'https://tenant.aliwork.com', httpStatus: 302,
+    location: '/defaultPage.html?type=unauth',
+  });
+  client.postFormOnce.mockRejectedValueOnce(denied);
+  const parsed = parseArgs(['enable', TEMPLATE_ID, '--name', '合同管理测试']);
+  await expect(execute(parsed, { client, root })).rejects.toBe(denied);
+  const requestId = defaultRequestId(client.getAuthRef(), {
+    templateId: TEMPLATE_ID, appName: '合同管理测试', withData: 'y',
+  });
+  const status = await execute(parseArgs(['status', requestId]), { client, root });
+  expect(status).toMatchObject({ success: false, state: 'failed-before-submit', explicitRetryRequired: true });
+  expect(client.postFormOnce).toHaveBeenCalledTimes(1);
+});
+
+test('unclassified QwenWork denial blocks template resubmission when the outcome is unconfirmed', async () => {
+  const { createPermissionError } = require('../lib/core/permission-guidance');
+  client.postFormOnce.mockRejectedValueOnce(createPermissionError({}, {
+    tool: 'qwenwork', baseUrl: 'https://tenant.aliwork.com', httpStatus: 403,
+  }));
+  const parsed = parseArgs(['enable', TEMPLATE_ID, '--name', '合同管理测试', '--wait', '0']);
+  await expect(execute(parsed, { client, root })).rejects.toMatchObject({ code: 'YIDA_PERMISSION_REQUIRED' });
+  const result = await execute(parsed, { client, root });
+  expect(result).toMatchObject({ state: 'uncertain', resubmissionBlocked: true });
+  expect(client.postFormOnce).toHaveBeenCalledTimes(1);
+});
+
 test('status rejects missing receipts and detects multiple same-name candidates as ambiguous', async () => {
   await expect(execute(parseArgs(['status', 'st-missing1']), { client, root }))
     .rejects.toMatchObject({ code: 'SOLUTION_TEMPLATE_REQUEST_NOT_FOUND' });

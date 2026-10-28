@@ -77,7 +77,10 @@ const path = require('path');
 // 2,654,371 compressed bytes; next 16 KiB boundary retains CI npm headroom.
 // Consent-based GitHub setup adds one runtime module and user guidance:
 // Node 20.18.1 measures 2,637,999 compressed bytes; next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2608 * 1024;
+// QwenWork permission guidance adds one runtime module and 12-locale recovery steps.
+// Node 20.18.1: main 2,669,494 compressed bytes; feature 2,672,505 (+3,011).
+// Round the justified content growth to the next 16 KiB boundary; other caps stay fixed.
+const MAX_TARBALL_BYTES = 2624 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -206,6 +209,8 @@ const MAX_TARBALL_BYTES = 2608 * 1024;
 // QwenWork create-app/create-page guidance and beta metadata add 3,449 bytes:
 // Node 20.18.1 measures 9,850,164 unpacked bytes / 777 files. Use the next
 // 16 KiB boundary; compressed, entry-count and single-file limits stay fixed.
+// QwenWork permission guidance adds one runtime module and localized recovery steps.
+// HEAD baseline (Node 26): 9,846,715 unpacked bytes / 777 files; use the next 16 KiB boundary.
 // Include the plugin runtime and deployment guides on top of main's content;
 // retain the existing plugin budget. The merged package has not been measured.
 const MAX_UNPACKED_BYTES = 9696 * 1024;
@@ -245,8 +250,9 @@ const MAX_UNPACKED_BYTES = 9696 * 1024;
 // Solution Center templates add their runtime and skill to the stacked release.
 // GitHub setup keeps installation/detection separate from account actions.
 // Shared page navigation and task-center navigation add exactly two packaged files.
+// QwenWork permission guidance adds exactly one packaged runtime module.
 // Add seven plugin runtime/skill files to main's entry budget.
-const MAX_ENTRY_COUNT = 784;
+const MAX_ENTRY_COUNT = 785;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

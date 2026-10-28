@@ -2473,3 +2473,12 @@ module.exports.feedback_github = {
 };
 
 module.exports.process_dynamic_actors = { invalid: "Cấu hình người xử lý không hợp lệ. Kiểm tra details.reason, phạm vi chọn và trường thành viên thực tế." };
+
+module.exports.permission_guidance = {
+  platform_access_link: 'Yêu cầu quyền sử dụng YiDA',
+  create_app_link: 'Yêu cầu quyền tạo ứng dụng YiDA',
+  platform_access: 'Tài khoản hiện tại chưa được cấp quyền sử dụng YiDA trong tổ chức này.',
+  create_app: 'Tài khoản hiện tại không có quyền tạo ứng dụng trong tổ chức này.',
+  unknown: 'Không có quyền; chưa xác định được loại quyền. Hãy liên hệ quản trị viên và tạm dừng thao tác này.',
+  next_step: 'Mở trang yêu cầu cấp quyền: [{0}]({1}). Sau khi xử lý, xác nhận tổ chức và quyền hiện tại rồi mới tiếp tục.',
+};
