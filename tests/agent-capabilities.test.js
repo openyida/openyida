@@ -109,6 +109,7 @@ describe('agent-capabilities summary', () => {
     expect(policy.entries.admin).toBe('include');
     expect(policy.cards).toEqual(manifestPolicy.cards);
     expect(policy.cards).toEqual({
+      qwenwork: { format: 'mini', tasks: ['create', 'modify'], url_tool: 'qwenwork_link_present_urls_or_host_url_artifact', markdown_fallback: false },
       max_count: 3,
       one_card_per_entry: true,
       deduplicate_by: 'verified_url',
