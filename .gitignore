@@ -90,3 +90,6 @@ project/tmp/
 
 # Local verification report
 /docs/verification/form-empty-query-20261013.md
+
+# Local plugin development plan
+/docs/plans/2026-10-26-plugin-lifecycle.md
