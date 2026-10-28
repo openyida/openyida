@@ -204,6 +204,74 @@ describe('agent-capabilities summary', () => {
     }
   });
 
+  test.each([
+    ['千问桌面', 'qwenwork', 'desktop_shell', 'token_session', 'ok', {}, true],
+    ['千问网页', 'qwenwork', 'web_sandbox', 'token_session', 'not_logged_in', {}, true],
+    ['云端沙箱', 'mulerun', 'web_sandbox', 'token_session', 'profile_required', {}, true],
+    ['注入凭据', 'codex', 'desktop_shell', 'env', 'ok', {}, true],
+    ['缺失注入', 'codex', 'desktop_shell', 'env', 'not_logged_in', {}, true],
+    ['托管云端', 'unknown', 'unknown', 'token_session', 'not_logged_in', { OPENYIDA_MANAGED_RUNTIME: 'cloud' }, true],
+    ['普通本地', 'codex', 'desktop_shell', 'token_session', 'ok', {}, false],
+    ['本地未就绪', 'codex', 'desktop_shell', 'token_session', 'not_logged_in', {}, false],
+  ])('%s 的展示策略保留真实认证决策', (_name, tool, runtime, source, status, env, quiet) => {
+    delete process.env.OPENYIDA_MANAGED_RUNTIME;
+    Object.assign(process.env, env);
+    const projectRoot = os.tmpdir();
+    const login = {
+      auth_mode: 'token', auth_source: source, status, can_auto_use: status === 'ok',
+      next_step: 'Follow the existing authentication decision.',
+      next_step_commands: ['openyida auth profiles'],
+      ...(source === 'env' && status !== 'ok' ? { failure_reason: 'env_token_missing' } : {}),
+    };
+    const getAuthStatus = jest.fn(() => ({ ...login }));
+    jest.doMock('../lib/core/env', () => ({
+      buildEnvironmentSnapshot: () => ({ active: { projectRoot, projectRootExists: true } }),
+    }));
+    jest.doMock('../lib/core/utils', () => ({
+      getAuthStatus,
+      findProjectRoot: () => projectRoot,
+      detectRuntimeCapabilities: () => ({ tool, runtime, capabilities: { desktop_shell: runtime === 'desktop_shell', agent_browser: runtime === 'web_sandbox' } }),
+    }));
+    const capabilities = require('../lib/core/agent-capabilities');
+    const summary = capabilities.buildAgentCapabilitiesSummary();
+    const full = capabilities.buildAgentCapabilities();
+    expect(getAuthStatus).toHaveBeenCalledTimes(2);
+    expect(getAuthStatus).toHaveBeenCalledWith({ projectRoot, includeSecrets: false });
+    const publicLogin = { ...login };
+    delete publicLogin.failure_reason;
+    expect(summary.login).toMatchObject(publicLogin);
+    expect(full.login).toEqual(login);
+    expect(summary.builder_path.auth).toMatchObject({
+      source, can_auto_use: login.can_auto_use,
+      interactive_login_allowed: source !== 'env',
+      next_step: login.next_step, next_step_commands: login.next_step_commands,
+    });
+    expect(summary.builder_path.auth).toEqual(expect.objectContaining({
+      missing_token_action: source === 'env' ? 'STOP_AND_REQUEST_ENV_TOKEN' : 'RUN_OPENYIDA_LOGIN_IF_USER_APPROVES',
+    }));
+    expect(summary.builder_path.interactive_login).toEqual(full.builder_path.interactive_login);
+    expect(summary.builder_path.interactive_login.mode).toBe(
+      source === 'env' ? 'not_required'
+        : runtime === 'web_sandbox' ? 'caller_open_url'
+          : runtime === 'desktop_shell' ? 'cli_auto_open' : 'unsupported'
+    );
+    const policy = summary.builder_path.user_communication;
+    expect(policy).toEqual(full.builder_path.user_communication);
+    if (quiet) {
+      expect(policy).toMatchObject({
+        routine_preparation: 'internal_only',
+        on_ready: 'continue_business_task_without_auth_announcement',
+        notify_only_when: ['user_action_required', 'blocking_failure', 'user_requested_auth_diagnostics'],
+        diagnostics: 'retain_tool_results_and_exit_codes_never_expose_credentials',
+        authorization: 'preserve_explicit_user_confirmation_and_organization_selection',
+      });
+      expect(policy.applies_to).toContain('visible_reasoning');
+      expect(policy.do_not_narrate).toEqual(expect.arrayContaining(['login_check', 'silent_login', 'login_success']));
+    } else {
+      expect(summary.builder_path).not.toHaveProperty('user_communication');
+    }
+  });
+
   test('reports immutable CI build identity in summary and full diagnostics', () => {
     process.env.OPENYIDA_BUILD_ID = 'openyida-phase6-build';
     process.env.OPENYIDA_COMMIT_SHA = 'abc123def456';

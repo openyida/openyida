@@ -216,7 +216,9 @@ const MAX_TARBALL_BYTES = 2640 * 1024;
 // HEAD baseline (Node 26): 9,846,715 unpacked bytes / 777 files; use the next 16 KiB boundary.
 // Include the plugin runtime and deployment guides on top of main's content;
 // retain the existing plugin budget. The merged package has not been measured.
-const MAX_UNPACKED_BYTES = 9696 * 1024;
+// Quiet authentication guidance and capability policy: Node 20 measures
+// 9,933,391 unpacked bytes; round to the next 16 KiB step without changing file caps.
+const MAX_UNPACKED_BYTES = 9712 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
