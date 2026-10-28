@@ -46,14 +46,19 @@ openyida plugin probe PLUGIN-XXX 1.2.3 --check-resource --json
 
 ## 开发与版本配置
 
-当前平台通用创建入口为 `ConnectorPlugin`。创建只生成开发资源和默认版本，不发布、不安装：
+按目标领域选择类型：连接类组件使用默认 `--type connector`；自定义页面等前端扩展使用 `--type other`（官方“其它”）。`other` 不提交连接类类型字段，创建后回读类型；不把自定义页面插件建成 `ConnectorPlugin`。创建只生成开发资源和默认版本，不发布、不安装：
+
+创建后先 `version-list` 核对默认草稿；平台只允许同时存在一个开发中版本。有草稿时继续编辑该版本，不另建版本或反复重试；需要新版本时先通过官方流程完成当前版本，再查询状态。
 
 ```bash
 openyida plugin create --name '订单连接器插件' --description '提供订单能力' --logo 'https://...' --confirm --json
+openyida plugin create --type other --name '吸顶时间线' --description '自定义页面组件扩展' --logo 'https://...' --confirm --json
 openyida plugin create-version PLUGIN-XXX --version 1.1.0 --description '新增查询能力' --confirm --json
 ```
 
 修改版本前先 `version-get`，使用其 `snapshotHash` 做乐观并发校验。配置文件仅接受 `frontEndDevInfo`、`backEndDevInfo`、`paramConfig`；未知字段和未知扩展点拒绝。此命令保存完整三段配置，不是局部 PATCH；以回读对象为基础保留无关字段，省略的段会提交为空对象。
+
+CLI 将扩展点汇总为平台发布所需的 `extensionInfo: { extensionIds: [...] }`，保留原对象的其他字段并回读核对。该字段是内部派生结果，不在配置文件中填写；不能提交扩展点对象数组，否则保存虽可能成功，官方发布会因类型错误失败。
 
 保存字段使用 `frontEndDevInfo.cdnEntry`；CLI 兼容 `cdnUrl` 输入并转换成 `cdnEntry`，两字段值冲突则拒绝。完整 HTTPS 地址不改域名、不补官方前缀。保存前再次读取、写入不覆盖备份，保存后核对目标插件/版本及三段配置；服务端改写资源地址或配置会报 `PLUGIN_READBACK_MISMATCH`。此时写入可能已经发生，先回读排查，不自动重试或恢复备份；不会顺带发布。
 

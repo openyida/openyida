@@ -16,7 +16,7 @@ beforeEach(() => {
   directory = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-plugin-'));
   version = {
     pluginId: 'PLUGIN-TEST', version: '1.0.0',
-    frontEndDevInfo: JSON.stringify({ cdnEntry: '/example/remoteEntry.js', extensions: [{ extensionId: 'yida.app.custom-page.component' }] }),
+    frontEndDevInfo: JSON.stringify({ cdnEntry: '/example/remoteEntry.js', extensions: [{ extensionId: 'yida.app.custom-page.component', config: { componentNameList: ['OpenYidaTimeline'] } }] }),
     backEndDevInfo: '{}', paramConfig: '{}', status: 'develop',
   };
   installed = { pluginId: 'PLUGIN-TEST', isEnabled: 'y', version: '1.0.0', config: '{"secret":"hidden"}' };
@@ -37,7 +37,7 @@ beforeEach(() => {
       if (endpoint.includes('newPluginWithDefaultVersion')) { return { success: true, content: 'PLUGIN-CREATED' }; }
       if (endpoint.includes('newPluginVersion')) { version = { ...version, version: params.version }; return { success: true, content: true }; }
       if (endpoint.includes('savePluginDevInfo')) {
-        version = { ...version, frontEndDevInfo: params.frontEndDevInfo, backEndDevInfo: params.backEndDevInfo, paramConfig: params.paramConfig };
+        version = { ...version, frontEndDevInfo: params.frontEndDevInfo, backEndDevInfo: params.backEndDevInfo, paramConfig: params.paramConfig, extensionInfo: params.extensionInfo };
         return { success: true, content: true };
       }
       if (endpoint.includes('modifyPluginState')) { installed = { ...installed, isEnabled: params.isEnabled }; return { success: true, content: true }; }
@@ -62,6 +62,29 @@ test('reads native developer resources without mutating the platform', async () 
   expect(result.snapshotHash).toHaveLength(64);
   expect(result.item.pluginId).toBe('PLUGIN-TEST');
   expect(client.postFormOnce).not.toHaveBeenCalled();
+});
+
+test('create keeps connector default but omits connector fields for other extensions', async () => {
+  const args = ['create', '--name', 'Timeline', '--description', 'Custom page', '--logo', 'https://example.test/logo.png', '--confirm'];
+  await execute(parseArgs(args), client);
+  expect(client.postFormOnce.mock.calls[0][1]).toMatchObject({ pluginType: 'ConnectorPlugin', type: 'ConnectorPlugin' });
+  client.postFormOnce.mockClear();
+  const result = await execute(parseArgs([...args, '--type', 'other']), client);
+  const params = client.postFormOnce.mock.calls[0][1];
+  expect(params).not.toHaveProperty('type');
+  expect(params).not.toHaveProperty('pluginType');
+  expect(result).toMatchObject({ pluginId: 'PLUGIN-CREATED', readbackVerified: true, published: false });
+  expect(() => parseArgs([...args, '--type', 'custom-page'])).toThrow();
+  expect(() => parseArgs(['get', 'PLUGIN-TEST', '--type', 'other'])).toThrow();
+});
+
+test('create reports the created resource without replay when other type is rewritten', async () => {
+  const original = client.get.getMockImplementation();
+  client.get.mockImplementation(async (endpoint, params) => endpoint.includes('getPluginBasicInfo')
+    ? { success: true, content: { pluginId: params.pluginId, type: 'ConnectorPlugin' } } : original(endpoint, params));
+  await expect(execute(parseArgs(['create', '--name', 'Timeline', '--description', 'Custom page', '--logo', 'https://example.test/logo.png', '--type', 'other', '--confirm']), client))
+    .rejects.toMatchObject({ code: 'PLUGIN_READBACK_MISMATCH', details: { pluginId: 'PLUGIN-CREATED', resourceCreated: true } });
+  expect(client.postFormOnce).toHaveBeenCalledTimes(1);
 });
 
 test('runtime list redacts config and does not claim consumer execution', async () => {
@@ -164,6 +187,11 @@ test('normalizes only the runtime alias and rejects conflicting entries', () => 
     .toThrow('cdnEntry/cdnUrl');
 });
 
+test.each([undefined, [], [''], ['One', 'One'], [12]])('rejects missing or invalid custom-page component names before saving: %j', names => {
+  expect(() => validateDevConfig({ frontEndDevInfo: { extensions: [{ extensionId: 'yida.app.custom-page.component', config: { componentNameList: names } }] } }, new Set(['yida.app.custom-page.component'])))
+    .toThrow('componentNameList');
+});
+
 test('saves external runtime aliases as cdnEntry without rewriting the URL or namespace', async () => {
   const configPath = path.join(directory, 'external.json');
   const url = 'https://static.example.test/my-assets/calendar/1.0.0/remoteEntry.js';
@@ -174,12 +202,12 @@ test('saves external runtime aliases as cdnEntry without rewriting the URL or na
   expect(result.readbackVerified).toBe(true);
 });
 
-test.each(['frontEndDevInfo', 'backEndDevInfo', 'paramConfig'])('detects server rewriting %s despite successful save', async field => {
+test.each(['frontEndDevInfo', 'backEndDevInfo', 'paramConfig', 'extensionInfo'])('detects server rewriting %s despite successful save', async field => {
   const configPath = path.join(directory, 'rewritten.json');
   const backupPath = path.join(directory, 'rewrite.before.json');
-  fs.writeFileSync(configPath, JSON.stringify({ frontEndDevInfo: { cdnEntry: 'https://cdn.example.test/remoteEntry.js', extensions: [{ extensionId: 'yida.app.custom-page.component' }] }, backEndDevInfo: {}, paramConfig: {} }));
+  fs.writeFileSync(configPath, JSON.stringify({ frontEndDevInfo: { cdnEntry: 'https://cdn.example.test/remoteEntry.js', extensions: [{ extensionId: 'yida.app.custom-page.component', config: { componentNameList: ['OpenYidaTimeline'] } }] }, backEndDevInfo: {}, paramConfig: {} }));
   client.postFormOnce.mockImplementationOnce(async (_endpoint, params) => {
-    version = { ...version, frontEndDevInfo: params.frontEndDevInfo, backEndDevInfo: params.backEndDevInfo, paramConfig: params.paramConfig };
+    version = { ...version, frontEndDevInfo: params.frontEndDevInfo, backEndDevInfo: params.backEndDevInfo, paramConfig: params.paramConfig, extensionInfo: params.extensionInfo };
     version[field] = JSON.stringify({ ...JSON.parse(params[field]), changedByServer: true });
     return { success: true, content: true };
   });
@@ -192,7 +220,7 @@ test.each(['frontEndDevInfo', 'backEndDevInfo', 'paramConfig'])('detects server 
 test('save-dev checks the original hash, writes a backup, validates extensions and never publishes', async () => {
   const configPath = path.join(directory, 'dev.json');
   const backupPath = path.join(directory, 'before.json');
-  fs.writeFileSync(configPath, JSON.stringify({ frontEndDevInfo: { cdnEntry: '/next/remoteEntry.js', extensions: [{ extensionId: 'yida.app.custom-page.component' }] }, backEndDevInfo: {}, paramConfig: {} }));
+  fs.writeFileSync(configPath, JSON.stringify({ frontEndDevInfo: { cdnEntry: '/next/remoteEntry.js', extensions: [{ extensionId: 'yida.app.custom-page.component', config: { componentNameList: ['OpenYidaTimeline'] } }] }, backEndDevInfo: {}, paramConfig: {} }));
   const args = parseArgs(['save-dev', 'PLUGIN-TEST', '1.0.0', '--config', configPath, '--expected-hash', snapshotHash(version), '--backup', backupPath, '--confirm']);
   const result = await execute(args, client);
   expect(result.readbackVerified).toBe(true);
@@ -200,6 +228,20 @@ test('save-dev checks the original hash, writes a backup, validates extensions a
   expect(fs.existsSync(backupPath)).toBe(true);
   expect(client.postFormOnce).toHaveBeenCalledTimes(1);
   expect(client.postFormOnce.mock.calls[0][0]).toContain('savePluginDevInfo');
+});
+
+test.each([
+  { extensionIds: ['old'], metadata: { keep: true } },
+  [{ extensionId: 'old' }],
+])('saves a publishable extensionInfo object and preserves object metadata', async original => {
+  version.extensionInfo = JSON.stringify(original);
+  const configPath = path.join(directory, 'extensions.json');
+  fs.writeFileSync(configPath, JSON.stringify({ frontEndDevInfo: { extensions: [{ extensionId: 'yida.app.custom-page.component', config: { componentNameList: ['OpenYidaTimeline'] } }] } }));
+  const result = await execute(parseArgs(['save-dev', 'PLUGIN-TEST', '1.0.0', '--config', configPath, '--expected-hash', snapshotHash(version), '--backup', path.join(directory, 'extension.before.json'), '--confirm']), client);
+  const actual = JSON.parse(result.item.extensionInfo);
+  expect(actual).toEqual({ ...(Array.isArray(original) ? {} : original), extensionIds: ['yida.app.custom-page.component'] });
+  expect(Array.isArray(actual)).toBe(false);
+  expect(JSON.parse(fs.readFileSync(path.join(directory, 'extension.before.json'), 'utf8')).item.extensionInfo).toBe(JSON.stringify(original));
 });
 
 test('save-dev stops before writing on conflict or unknown extension', async () => {
@@ -267,7 +309,7 @@ test('skill separates hosting guidance, manual consent and unverified runtime hi
   for (const term of ['verifiedInCurrentHost=false', 'unresolved-relative-path', 'publicPath', 'createPluginRuntimeRegistry']) {
     expect(contract).toContain(term);
   }
-  expect(contract).toContain('没有执行 GitHub Actions/Pages 部署');
+  expect(contract).toContain('消费者交互仍须独立验收');
 });
 
 test('frontend deploy skill has its own routing and coverage entry', () => {
