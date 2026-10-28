@@ -4,6 +4,7 @@ const os = require('os');
 const path = require('path');
 const { spawn, execFile } = require('child_process');
 const { launchBackgroundRuntime } = require('../lib/agent/stdio');
+const { writeStartupReceipt } = require('./helpers/agent-startup-receipt');
 
 describe('background runtime readiness', () => {
   jest.setTimeout(process.platform === 'win32' ? 20000 : 5000);
@@ -26,7 +27,7 @@ describe('background runtime readiness', () => {
       } };
     return { runtime: { executable }, config, options };
   }
-  const ready = 'fs.writeFileSync(path.join(c.stateDir,\'startup-\'+c.startupId+\'.json\'),JSON.stringify({protocolVersion:1,startupId:c.startupId,ready:true}),{mode:0o600});';
+  const ready = `(${writeStartupReceipt})(c);`;
   test('waits for readiness and leaves the child running with log descriptors', async () => {
     const f = fixture(`setTimeout(()=>{${ready}},150);setInterval(()=>{},1000);`);
     let settled = false;
@@ -36,6 +37,28 @@ describe('background runtime readiness', () => {
     const result = await started;
     expect(process.kill(result.pid, 0)).toBe(true);
     expect(fs.readdirSync(root).filter(name => name.startsWith('startup-'))).toEqual([]);
+  });
+  test('ignores an incomplete staged receipt until it is atomically published', async () => {
+    const f = fixture(`const pending=path.join(c.stateDir,'.startup-'+c.startupId+'.json.tmp');fs.writeFileSync(pending,'{',{mode:0o600});fs.writeFileSync(path.join(c.stateDir,'staged-ready'),'ready');const gate=setInterval(()=>{if(fs.existsSync(path.join(c.stateDir,'publish-ready'))){clearInterval(gate);${ready}}},25);setInterval(()=>{},1000);`);
+    let settled = false;
+    const started = launchBackgroundRuntime(f.runtime, f.config, f.options);
+    // Attach both handlers immediately, including when a regression rejects early.
+    started.then(() => { settled = true; }, () => { settled = true; });
+    const deadline = Date.now() + f.options.startupTimeoutMs;
+    let pending;
+    while (!pending && !settled && Date.now() < deadline) {
+      if (fs.existsSync(path.join(root, 'staged-ready'))) {pending = fs.readdirSync(root).find(name => name.endsWith('.json.tmp'));}
+      if (!pending) {await new Promise(resolve => setTimeout(resolve, 25));}
+    }
+    expect(pending).toBeDefined();
+    expect(fs.readFileSync(path.join(root, pending), 'utf8')).toBe('{');
+    // Leave the partial write visible for several launcher polling intervals.
+    await new Promise(resolve => setTimeout(resolve, 150));
+    expect(settled).toBe(false);
+    fs.writeFileSync(path.join(root, 'publish-ready'), 'go');
+    const result = await started;
+    expect(process.kill(result.pid, 0)).toBe(true);
+    expect(fs.readdirSync(root).filter(name => name.includes('startup-'))).toEqual([]);
   });
   test('the daemon survives a launcher that exits after readiness', async () => {
     const f = fixture(`fs.writeFileSync(path.join(c.stateDir,'daemon.pid'),String(process.pid));${ready}setInterval(()=>{if(fs.existsSync(path.join(c.stateDir,'stop-fixture'))){process.chdir(require('os').tmpdir());process.exit(0);}},25);`);
@@ -91,7 +114,7 @@ describe('background runtime readiness', () => {
     expect(children.size).toBe(0);
   });
   test.each(['false', '"yes"'])('non-ready receipt (%s) rejects and stops the child', async (value) => {
-    const f = fixture(`${ready.replace('ready:true', 'ready:' + value)}setInterval(()=>{},1000);`);
+    const f = fixture(`(${writeStartupReceipt})(c,${value});setInterval(()=>{},1000);`);
     await expect(launchBackgroundRuntime(f.runtime, f.config, f.options)).rejects.toMatchObject({ code: 'AGENT_RUNTIME_START_FAILED' });
     expect(children.size).toBe(0);
   });

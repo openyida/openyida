@@ -72,7 +72,10 @@ async function replay(command) {
     args[args.indexOf('--spec') + 1] = specFile;
     args[args.indexOf('--output') + 1] = path.join(directory, 'progress.canvas.jsx');
   }
-  expect(() => assertManagedInvocation(name, args, { env })).not.toThrow();
+  // Explicit tenant overrides and corp-wide reads remain forbidden in app-bound runs.
+  if (args.includes('--base-url') || (args[0] === 'count' && args[args.indexOf('--scope') + 1] === 'corp')) {
+    expect(() => assertManagedInvocation(name, args, { env })).toThrow();
+  } else { expect(() => assertManagedInvocation(name, args, { env })).not.toThrow(); }
   await (name === 'data' ? dataCli : taskCli).run(args);
   return JSON.parse(log.mock.calls.at(-1)[0]);
 }
@@ -89,8 +92,11 @@ test.each(documented)('Skill command in %s executes with documented parameters: 
     expect(result).toMatchObject({ appType: 'APP_TEST', processInstanceId: 'instance-a', history: { state: args.includes('--history') ? 'ready' : 'not-requested' } });
     expect(utils.httpGet).toHaveBeenCalledTimes(args.includes('--history') ? 2 : 1);
   } else if (args[2] === 'count') {
-    expect(result).toMatchObject({ total: 37, available: true, filters: { keyword: '采购' } });
+    expect(result).toMatchObject({ total: 37, available: true, filters: args.includes('--keyword') ? { keyword: '采购' } : {} });
     expect(utils.httpGet).toHaveBeenCalledTimes(1);
+  } else if (args[2] === 'link') {
+    expect(result).toMatchObject({ opened: false, scope: args[args.indexOf('--scope') + 1] });
+    expect(utils.httpGet).not.toHaveBeenCalled();
   } else if (args[2] === 'scaffold') {
     expect(result).toMatchObject({ component: 'ProcessProgressSection', requiredProps: ['processInstanceId'], runtimeVerified: false });
     expect(fs.existsSync(result.output)).toBe(true);
@@ -185,4 +191,32 @@ test('task-related Skills register their command IDs, references and executable 
   }
   const taskTests = fs.readdirSync(path.join(root, 'tests')).filter(name => /^task-center.*\.test\.js$/.test(name)).map(name => 'tests/' + name);
   expect(SKILL_COVERAGE['yida-task-center'].tests).toEqual(expect.arrayContaining(taskTests));
+});
+
+test('link CLI requires scope, builds native routes offline and never opens the browser', async () => {
+  const taskRun = require('../lib/core/task-center').run;
+  const result = await taskRun(['link', 'APP_TEST', '--scope', 'app', '--type', 'cc', '--base-url', 'https://tenant.aliwork.com', '--json']);
+  expect(result).toMatchObject({ scope: 'app', kind: 'cc', opened: false, mode: 'auto',
+    pageUrl: 'https://tenant.aliwork.com/APP_TEST/workbench/NAV-SYSTEM-NOTIFY-ME-UUID?showTodoTab=true' });
+  const handoff = new URL(new URL(result.dingtalkUrl).searchParams.get('url'));
+  expect(handoff.pathname).toBe(new URL(result.pageUrl).pathname);
+  expect(handoff.searchParams.get('ddtab')).toBe('true');
+  const strict = await taskRun(['link', 'APP_TEST', '--scope', 'app', '--type', 'cc', '--base-url', 'https://tenant.aliwork.com', '--mode', 'dingtalk', '--json']);
+  expect(strict.mode).toBe('dingtalk');
+  expect(new URL(strict.pageUrl).searchParams.get('ddtab')).toBe('true');
+  await expect(taskRun(['link', '--type', 'todo', '--base-url', 'https://tenant.aliwork.com'])).rejects.toThrow('scope');
+  await expect(taskRun(['link', 'APP_TEST', '--scope', 'corp', '--type', 'todo', '--base-url', 'https://tenant.aliwork.com'])).rejects.toThrow('appType');
+});
+
+test('count CLI has explicit corporation scope and preserves per-app filtering', async () => {
+  const taskRun = require('../lib/core/task-center').run;
+  const corp = await taskRun(['count', '--scope', 'corp', '--type', 'todo', '--json']);
+  expect(corp).toMatchObject({ appType: null, scope: 'current-visitor-in-corp', total: 37 });
+  expect(JSON.parse(utils.httpGet.mock.calls.at(-1)[2].query)).toMatchObject({ appKeys: [], page: 1, limit: 1 });
+  expect(utils.httpGet.mock.calls.at(-1)[2].taskQueryType).toBe(1);
+  const app = await taskRun(['count', 'APP_TEST', '--scope', 'app', '--type', 'todo', '--json']);
+  expect(app).toMatchObject({ appType: 'APP_TEST', scope: 'current-visitor-in-app', total: 37 });
+  expect(JSON.parse(utils.httpGet.mock.calls.at(-1)[2].query).appKeys).toEqual(['APP_TEST']);
+  await expect(taskRun(['count', 'APP_TEST', '--scope', 'corp', '--type', 'todo'])).rejects.toThrow('appType');
+  await expect(taskRun(['count', '--scope', 'corp', '--type', 'todo', '--transport', 'app-v1'])).rejects.toThrow('transport');
 });

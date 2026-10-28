@@ -50,6 +50,19 @@
       "requires_login": true
     },
     {
+      "name": "yida-form-message",
+      "path": "skills/yida-form-message/SKILL.md",
+      "display_name": "表单消息通知",
+      "description": "配置普通表单新增、编辑、删除或评论后的消息通知，选择接收人和七种消息样式；保存后核对配置，按用户要求执行真实发送测试。",
+      "category": "yida-skills/form",
+      "tags": ["消息通知", "表单通知", "工作通知", "消息卡片", "群置顶卡片"],
+      "aliases": ["表单消息", "页面消息通知", "form-message"],
+      "positive_signals": ["配置表单提交后消息通知", "修改页面设置里的消息通知", "表单编辑后通知发起人", "查询消息通知接收对象", "配置表单原生消息卡片"],
+      "negative_signals": ["自定义页面发送消息", "机器人群消息", "应用级通知", "集成自动化发消息", "原生酷卡片资源"],
+      "command_ids": ["form-message"],
+      "requires_login": true
+    },
+    {
       "name": "yida-cool-card",
       "path": "skills/yida-cool-card/SKILL.md",
       "display_name": "宜搭原生酷卡片",
@@ -278,6 +291,19 @@
       "aliases": [
         "代理中心"
       ]
+    },
+    {
+      "name": "yida-solution-template",
+      "path": "skills/yida-solution-template/SKILL.md",
+      "display_name": "宜搭方案模板",
+      "description": "仅供独立本地 Agent 在用户明确要求查询、AI 定制或启用宜搭方案中心模板时使用。提供模板详情、云端 AI 搭建入口、启用摘要和状态恢复；云端原生模板 AI 搭与普通应用创建继续走原流程，受管本地任务不使用本技能。",
+      "category": "yida-skills/app",
+      "tags": ["方案中心", "方案模板", "模板启用", "模板AI搭"],
+      "aliases": ["solution-template", "宜搭方案模板"],
+      "positive_signals": ["查询宜搭方案中心模板", "用方案模板AI搭建", "直接启用宜搭方案模板", "继续已确认的方案模板任务"],
+      "negative_signals": ["云端原生模板AI搭", "已注入templateReference或template-reference.md", "网页关联的受管本地任务", "未知执行环境", "普通应用创建", "未明确方案中心的用个模板或你决定", "只引用模板或提供链接而未要求操作", "明确不使用方案中心模板", "创建空应用", "普通页面模板"],
+      "command_ids": ["solution-template"],
+      "requires_login": true
     },
     {
       "name": "yida-app",

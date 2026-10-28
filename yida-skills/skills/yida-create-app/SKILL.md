@@ -52,6 +52,24 @@ openyida update-app <appType> --theme-file <app-theme.css> --nav-theme light --l
 
 `openyida create-app` 不支持 `--json` 参数；不要添加 `--json`。创建成功时命令本身会输出一行 JSON，从该输出中提取 `appType`。
 
+### 千问办公调用约定
+
+仅在当前宿主为千问办公（QwenWork）时执行以下约定；可复用已确认的宿主信息，需核实时单独执行 `openyida env --json`，以 `active.toolId=qwenwork` 为准。其他云端、Codex 等环境沿用各自的命令与浏览器交接方式。
+
+- 使用 Bash 工具单独执行一条 `openyida create-app` 命令，添加 `--quiet --no-open`，保留本次已确定的名称、描述等业务参数；已有 `--open` 时替换为 `--no-open`。
+- 命令直接以 `openyida create-app` 开头；工作目录通过工具参数指定。不要包装成脚本、命令替换或变量赋值，也不要拼接 `cd`、管道 `|`、重定向（如 `>`、`2>&1`）、分号、`&&`、`||` 或其他命令；不要追加 `echo`、`wc`、查询或验证命令。
+- 保留 Bash 返回的原始 stdout、stderr 和退出码，直接交给宿主 Hook；不要截断、过滤、重定向或用自行整理的文本替换工具输出。宿主 Hook 从成功结果的顶层 `url` 接管侧边栏开页，AI 不再主动调用浏览器重复打开。
+- `--no-open` 只关闭 `browser_handoff` 提示，成功结果仍包含 `url`、`appType` 等字段。侧边栏是否打开不作为创建成功依据；按返回结果记录真实 `appType`，不要因未开页而重跑创建。
+- 原始工具输出保留后，继续本次已授权的搭建步骤。Schema 文件使用文件写入工具保存，后续主题更新或必要查询通过新的工具调用执行。
+
+千问办公示例（整行单独执行）：
+
+```bash
+openyida create-app "客户管理" --quiet --no-open
+```
+
+### 参数
+
 | 参数 | 必填 | 默认值 | 说明 |
 |------|------|--------|------|
 | `appName` | 是 | — | 应用名称 |

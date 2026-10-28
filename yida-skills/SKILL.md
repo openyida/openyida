@@ -148,14 +148,16 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 `yida-cool-card` 只在用户明确指定宜搭原生酷卡片（交互卡片、置顶卡片），或继续已明确的酷卡片任务时使用。它使用 `cardPageCode`/`cardTemplateId`，独立于 `yida-data-card` 的 `CARD-xxx` 和页面中的展示卡片。`dataCardDesigner.html?cardCode=CARD-...` 属于原生数据卡片；酷卡片管理入口为 `coolCardManage`。创建前核对认证环境；集团版（`alibaba`）直接告知“集团版不支持酷卡片搭建”并停止搭建流程。名称与链接冲突时说明实际资源并核对目标，不能互换接口。泛称卡片、图表或群通知不自动选择这两类原生资源。
 
+`yida-solution-template` 和 `solution-template` CLI 仅供独立本地 Agent 处理用户明确要求的模板操作，或继续其已授权任务；云端、受管本地任务及未知环境不使用。云端已注入 `templateReference` 或 `.resources/template-reference.md` 时，保留原生模板 PRD 链路，在当前绑定应用内搭建。普通应用创建继续走 `yida-app`，不默认搜索、推荐或启用方案模板，也不以模板兜底失败。查询不代表同意启用；启用、拒绝后的重试及另建一份分别需要用户明确授权。具体触发与执行边界见 `yida-solution-template`。
+
 ### 大类目录
 
 | 大类目录 | 第一层意图信号 | 子技能 |
 | --- | --- | --- |
 | `yida-skills/context` | 登录、退出、切换组织、组织版本/容量、Schema、fieldId、执行前检查 | `yida-login`、`yida-logout`、`yida-basic-info`、`yida-get-schema`、`yida-corp-efficiency` |
-| `yida-skills/app` | 从零搭应用、完整系统、应用启停、应用导航、多语言、AI 老应用主题升级 | `yida-app`、`yida-create-app`、`yida-app-lifecycle`、`yida-nav-group`、`yida-i18n`、`yida-upgrade-app-theme`（仅明确升级要求并 ask_human 确认） |
+| `yida-skills/app` | 从零搭应用、完整系统、方案中心模板、应用启停、应用导航、多语言、AI 老应用主题升级 | `yida-app`、`yida-solution-template`（方案中心模板查询、AI 搭与启用）、`yida-create-app`、`yida-app-lifecycle`、`yida-nav-group`、`yida-i18n`、`yida-upgrade-app-theme`（仅明确升级要求并 ask_human 确认） |
 | `yida-skills/design` | 完整应用需求分析、PRD、视觉设计、单页 UI 改造、应用主题色、全局换肤、图片素材 | `yida-requirement-analysis`、`yida-prd`、`yida-design`、`yida-data-manage-ui`、`yida-image-assets` |
-| `yida-skills/form` | 表单字段、公式、校验、业务关联规则、原生自定义按钮、打印模板、批量录入、数据记录 | `yida-create-form-page`、`yida-custom-button`、`yida-print-template`、`yida-form-view`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
+| `yida-skills/form` | 表单字段、公式、校验、业务关联规则、原生自定义按钮、消息通知、打印模板、批量录入、数据记录 | `yida-create-form-page`、`yida-custom-button`、`yida-form-message`、`yida-print-template`、`yida-form-view`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-flow-node-config`、`yida-agent-center` |
 | `yida-skills/page` | 工作台、办事门户、任务看板、自定义展示页、页面源码开发、平台 JSX 组件页面维护、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-task-center`（仅显式选择自定义待办）、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
 | `yida-skills/analytics` | 用户显式指定宜搭原生数据卡片（含其投放播报）；聚合表、虚拟视图、报表、统计、图表、Recharts、ECharts、经营分析看板、驾驶舱、大屏 | `yida-data-card`、`yida-aggregate-table`、`yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard` |
@@ -169,6 +171,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 用户意图 | 选哪个 |
 | --- | --- |
 | 从零搭一个完整应用/系统 | `yida-app`；先分析需求并完成首次搭建确认，再规划与搭建 |
+| 独立本地 Agent 中明确要求查询、AI 搭或启用方案模板 | `yida-solution-template`；先查询并选定模板，定制提供云端 AI 入口，原样使用走启用摘要与直接启用 |
+| 云端平台已注入模板参考 PRD | 保留原生模板任务，在当前绑定应用中继续搭建；不加载 `yida-solution-template` 或调用其 CLI |
 | 已有 app 但没有任何页面，需要补成完整系统 | `yida-app`；属于首次搭建，同样先询问搭建方式，复用已有 `appType` 补齐资源 |
 | OpenYida 使用问题、体验建议、希望贡献改进或不会提 Issue/PR | `yida-feedback`；先整理脱敏材料，成功提交 Issue 后可选邀请 PR，贡献代码使用个人 Fork |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
@@ -211,6 +215,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 业务操作队列、业务工作台或办事门户页面 | `yida-canvas-custom-page`；接业务数据时加载 `yida-canvas-data-binding`，不因页面名称或辅助统计转为经营看板；不顺带新增自定义审批待办中心 |
 | 批量录入、表格填写、多行编辑 | 默认 `yida-canvas-table-form`；已检测到平台 JSX 组件页面、native 页面或存量源码使用 `this.utils.yida.saveFormData` 时用 `yida-table-form` |
 | 页面设置中的自定义按钮、客户跟进/分配、审批后发起订单、按钮触发自动化或打开页面 | `yida-custom-button`；配置原生按钮定义和显示位置，自定义页面内 React 按钮不走此入口 |
+| 页面设置中的消息通知、表单提交/编辑/删除/评论后通知、原生工作通知与详情/置顶卡片 | `yida-form-message`；选择发送时机、接收人和七种消息样式，保存后核对配置；按用户要求执行真实发送测试，沿用已明确的接收对象与测试授权 |
 | 打印这条数据/数据详情链接、原生打印模板、打印设置、订单/报价/出入库/审批单、单据版式与字段明细、字段二维码/条形码、备份恢复和PDF生成 | `yida-print-template`；复用已有表单和模板，以真实打印字典生成动态内容；Word组件、叮当打印和浏览器页面打印不走此入口 |
 | 原生数据管理页视图列表、显示列配置、字段显隐与顺序、列宽、冻结列、默认筛选、多视图 | `yida-form-view`；使用原生配置读写，保存前备份并回读，不通过 CSS 隐藏字段或重建自定义列表 |
 | 当前数据管理页换风格、只留横线、突出新增/筛选/行操作、列级强调、状态列标签、数据管理 UI 异常、自定义简单数据管理 | `yida-data-manage-ui`（优先于通用美化）；保留承载类型和业务，从目标推导维度、定位 token/CSS 并按页改写；备份发布并实测，不要求选择配方 |

@@ -65,13 +65,20 @@ const path = require('path');
 // and a skill with three guides. With main's AI app helper, Node 26 measures
 // 2,576,926 compressed bytes;
 // keep a small allowance for Node 20's different npm compression output.
+// Combined main and Solution Center templates measure 2,622,928 compressed
+// bytes on Node 22; retain the next 16 KiB boundary across packaging runtimes.
 // Beginner account/tool guidance: Node 20.18.1 measures 2,627,647 compressed
 // bytes (Node 26 is smaller). Keep the next 16 KiB compression boundary.
 // Main's task-transfer and scheduled-end-condition changes combined with feedback
 // guidance measure 2,634,130 compressed bytes on Node 20; this cap still fits.
+// Node 20 CI measures 2,643,136 compressed bytes for the merged 10.23 package.
+// Retain the next 16 KiB boundary; unpacked, entry and single-file caps stay fixed.
+// Stacked 10.25 templates plus 10.23 message/responsive features (Node 20.18.1):
+// 2,654,371 compressed bytes; next 16 KiB boundary retains CI npm headroom.
 // Consent-based GitHub setup adds one runtime module and user guidance:
 // Node 20.18.1 measures 2,637,999 compressed bytes; next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2592 * 1024;
+// 主干与千问免登合并后实测 gzip 为 2,681,853 字节，保留下一档 16 KiB 边界。
+const MAX_TARBALL_BYTES = 2624 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -158,6 +165,18 @@ const MAX_TARBALL_BYTES = 2592 * 1024;
 // Keep the next 16 KiB boundary and the existing 512 KiB per-file cap.
 // Issue contribution account checks add one runtime module: 9,653,376 unpacked bytes
 // on Node 26 before generated command docs; retain the next 16 KiB boundary.
+// Solution Center templates add one runtime module and one focused skill:
+// Node 26 measures 9,680,243 unpacked bytes / 764 files; retain the next 16 KiB boundary.
+// Template preparation and bounded failure recovery: Node 26 measures 9,692,651
+// unpacked bytes. Round up one 16 KiB block; file and tarball caps stay unchanged.
+// Form-member/self-select runtime and guide: 9,672,548 unpacked bytes / 764 files
+// on Node 22. Retain the next 16 KiB boundary; compressed and per-file caps stay fixed.
+// Combined templates, dynamic actors and refreshed release notes (Node 26):
+// 9,711,827 unpacked bytes / 766 files. Retain the next 16 KiB boundary.
+// PR #619 merged with main: 9,695,540 unpacked bytes on Node 23.
+// Task transfer adds its runtime, guide and 12-locale messages; next 16 KiB boundary.
+// Templates plus task transfer, timer fixes and refreshed release notes (Node 22):
+// 9,734,817 unpacked bytes / 768 files; next 16 KiB boundary, gzip cap unchanged.
 // Container-aware responsive diagnostics and the reusable Canvas scaffold add
 // two published files. Keep a small byte margin for npm metadata variance.
 // Task-driven responsive guidance measures 9,676,524 unpacked bytes at 12b8b0d0;
@@ -173,11 +192,23 @@ const MAX_TARBALL_BYTES = 2592 * 1024;
 // Task transfer adds its runtime, guide and 12-locale messages; next 16 KiB boundary.
 // Combined responsive/feedback and main package: 9,733,108 bytes / 769 files
 // on Node 20. Keep the next 16 KiB boundary and the existing single-file cap.
-// QwenWork identity modules and 12-locale guidance measure 9,758,833 unpacked
-// bytes / 772 files on Node 24; retain the next 16 KiB boundary.
-// 千问免登运行时与 PRE beta 入口、可选技能安装器合计 780 个文件；解包约 9.35 MiB。
-// 沿用上一版 beta 的文件范围，仅为已确认的认证能力保留不足 16 KiB 余量。
-const MAX_UNPACKED_BYTES = 9584 * 1024;
+// Combined with native form-message management and settings-link delivery:
+// Node 26 measures 9,768,800 unpacked bytes / 772 files. Next 16 KiB boundary.
+// GitHub setup merged into 10.23: 9,781,786 unpacked bytes / 773 files on Node 26.
+// Scope-aware native task links and the portable DingTalk opener add two runtime
+// modules and aligned guidance: 9,798,841 unpacked bytes on Node 26.
+// The stacked 10.25 budget below includes Solution Center templates as well.
+// Combined stacked 10.25 package measures 9,808,079 unpacked bytes on Node 20.
+// Retain the next 16 KiB boundary without changing the single-file limit.
+// Templates/message features plus main's GitHub setup (Node 20.18.1):
+// 9,821,065 unpacked bytes / 775 files; next 16 KiB boundary, gzip cap unchanged.
+// Combined templates, scoped task navigation and page-theme guidance (Node 20):
+// 9,840,407 unpacked bytes / 777 files; next 16 KiB boundary, gzip cap unchanged.
+// QwenWork create-app/create-page guidance and beta metadata add 3,449 bytes:
+// Node 20.18.1 measures 9,850,164 unpacked bytes / 777 files. Use the next
+// 16 KiB boundary; compressed, entry-count and single-file limits stay fixed.
+// 合并后实测解包为 9,899,398 字节，连同 beta 入口与安装器保留下一档 16 KiB 边界。
+const MAX_UNPACKED_BYTES = 9680 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -206,16 +237,23 @@ const MAX_UNPACKED_BYTES = 9584 * 1024;
 // The combined workflow, data-card and cool-card package contains 738 files.
 // Custom buttons and native report zero-value controls add five packaged files.
 // Include the shared AI application eligibility helper merged from main.
+// Native form-message management adds exactly three packaged files; retain two entries of headroom.
 // Dynamic personnel sources add one runtime module and one skill reference.
 // Account/tool onboarding adds one progressively loaded feedback reference.
 // Unpacked and per-file limits remain unchanged.
 // Administrator task transfer adds exactly one runtime module and one skill guide.
+// Solution Center templates add their runtime and skill to the stacked release.
 // GitHub setup keeps installation/detection separate from account actions.
-// QwenWork cloud identity adds its reusable client and explicit CLI command.
-const MAX_ENTRY_COUNT = 780;
+// Shared page navigation and task-center navigation add exactly two packaged files.
+// 合并后源码包 785 个文件，beta 入口和可选安装器另占 2 个文件。
+const MAX_ENTRY_COUNT = 787;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'lib/navigation/page-navigation.js',
+  'lib/task-center/navigation.js',
+  'lib/solution-template/solution-template.js',
+  'yida-skills/skills/yida-solution-template/SKILL.md',
   'lib/feedback/github.js',
   'lib/feedback/github-setup.js',
   'lib/print-template/builder.js',
@@ -237,6 +275,9 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-print-template/references/scenarios.md',
   'lib/app/custom-button.js',
   'yida-skills/skills/yida-custom-button/SKILL.md',
+  'lib/app/form-message.js',
+  'yida-skills/skills/yida-form-message/SKILL.md',
+  'yida-skills/skills/yida-form-message/references/guide.md',
   'lib/task-center/workflow.js',
   'lib/task-center/workflow-loader.js',
   'lib/samples/yida-task-center/progress.canvas.jsx',

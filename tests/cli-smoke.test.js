@@ -235,7 +235,7 @@ describe('CLI offline smoke', () => {
     const output = runOk(['--help']);
     expect(output).toContain('OpenYida');
     expect(output).toContain('env [--json|setup|list|show|switch|add|remove] [options]');
-    expect(output).toContain('login [target-url] [--env <name>|--intl|--overseas|--global|--yidaapps|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]');
+    expect(output).toContain('login [--qwenwork] [target-url] [--env <name>|--intl|--overseas|--global|--yidaapps|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]');
     expect(output).toContain('org <list|switch> [--json] [--corp-id <corpId>]');
     expect(output).toContain('corp-efficiency');
     expect(output).toContain('create-form');
@@ -1554,15 +1554,9 @@ describe('CLI offline smoke', () => {
         },
       });
       expect(summary.builder_path.interactive_login).toMatchObject({
-        mode: 'caller_open_url',
-        browser_default: 'caller_open_url',
-        browser_owner: 'agent_browser',
-        recommended_command: 'openyida login --no-browser',
-        agent_action: 'open_cli_printed_url_once_with_agent_browser',
-        url_source: 'login_command_stderr',
-        manual_user_open_fallback: 'only_when_agent_browser_tool_unavailable_or_failed',
-        must_not_only_print_url_when_agent_browser_available: true,
-        reason: 'web_sandbox_agent_browser_available',
+        mode: 'cloud_token',
+        browser_owner: 'none',
+        recommended_command: 'openyida login --qwenwork --json',
         playwright_required: false,
       });
     } finally {

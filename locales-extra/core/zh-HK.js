@@ -21,6 +21,21 @@ module.exports = {
     expired_token: 'QwenWork returned an expired user credential.',
     usage: 'Usage: openyida auth qwenwork user-info [--json]',
   },
+  solution_template: {
+    description: '獨立本地 Agent 的方案範本查詢、雲端 AI 搭建入口與直接啟用',
+    local_agent_only: '請在已識別的獨立本地 Agent 中使用範本命令；雲端繼續平台原生範本 AI 搭建。',
+    usage: "Usage: openyida solution-template search [--query <text>] [--scene <scene>] [--industry <industry>] [--page <n>] [--size <n>] [--json]\n       openyida solution-template detail <TPL_...> [--json]\n       openyida solution-template prepare <TPL_...> --name <appName> [--with-data y|n] [--request-id <id>] [--json]\n       openyida solution-template ai-build <TPL_...> [--json]\n       openyida solution-template enable <TPL_...> --name <appName> [--with-data y|n] [--request-id <id>] [--retry] [--wait <0-60>] [--json]\n       openyida solution-template status <requestId> [--wait <0-60>] [--json]",
+    failed: 'Solution Center template operation stopped: {0}',
+    ai_build_handoff: 'The template supports native AI build. Add customization requirements and submit them in the native builder. This receipt does not mean an app exists.',
+    no_progress_api: 'The platform currently exposes no pollable percentage progress. The request receipt and app-list readback are preserved, but resubmission is still unsafe.',
+    platform_decides: "Permissions and entitlements are decided by the platform when enabling. Template source availability does not confirm authorization.",
+    rejected: "The platform rejected this attempt. The platform reason is preserved. A new submission requires an explicit retry; OpenYida does not change permissions or entitlements.",
+    pending: "The application is not visible yet. The request is preserved; check its status to continue without submitting again.",
+    accepted: "The platform accepted the request. Checking for the application entry.",
+    waiting: "Waiting for the application to appear. Only checking status; no new copy request is sent.",
+    no_longer_visible: "This application was verified previously but is not visible in the current query. Creation history is preserved; current access is not confirmed.",
+    readback_failed: "The application query failed. The request and platform reason are preserved; check status again without resubmitting.",
+  },
   print_template: {
     "description": "Manage native YiDA print templates, generate document layouts, back up, restore and request PDFs",
     "error": "Print template operation failed: {0}",
@@ -36,6 +51,7 @@ module.exports = {
     "limit": "每個表單最多支援 10 個自訂按鈕。",
     "readback_mismatch": "儲存配置與回讀不一致，請保留備份並檢查遠端狀態。"
   },
+  form_message: {"usage":"用法：openyida form-message <list|inspect|options|create|update|delete> <appType> <formUuid> [messageId] [--config <文件>] [--expected-hash <哈希>] [--backup <文件>] [--yes] [--json]","invalid_config":"消息通知配置或參數無效：{0}","invalid_response":"平台返回的消息通知配置不完整：{0}","api_error":"表單消息通知接口失敗：{0}。請檢查登入、權限和版本。","not_found":"目標表單中不存在消息通知：{0}","conflict":"消息通知已變更，請重新查詢。","unsupported_trigger":"尚未驗證此觸發規則的寫入：{0}。","unsupported_form":"尚未驗證此表單類型的寫入：{0}。","readback_mismatch":"保存結果與回讀不一致，請保留備份並檢查遠端狀態。"},
   dws_external: {"note": "dws is an independent external tool. OpenYida only shows installation instructions; it does not download or install it.", "install_guide": "Show official DingTalk CLI installation instructions"},
   cool_card: {"unsupported_environment": "集團版不支援酷卡片搭建。", "description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
   data_card: {"description":"创建、读取、保存草稿和发布宜搭原生数据卡片","usage":"用法： openyida data-card <list|create|get|save|publish|probe|release-get|release-save|release-check|release-test|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]","failed":"原生数据卡片操作已停止：{0}","conflict":"卡片草稿已发生变化，请重新读取后再保存或发布。","mismatch":"回读配置或发布状态与预期不一致，请保留备份并检查卡片后再重试。"},
@@ -110,6 +126,7 @@ module.exports = {
   },
   help: {
     cmd_custom_button: "原生自訂按鈕：查詢與配置表單、流程和頁面跳轉",
+    cmd_form_message: "原生表單消息通知：觸發、接收對象與模板",
     cmd_check_design: '檢查設計文件、主題變數與 PRD 交接',
     subtitle: '宜搭低程式碼 AI 開發工具',
     usage: '用法:',

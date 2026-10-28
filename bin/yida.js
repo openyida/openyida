@@ -588,6 +588,10 @@ async function main() {
     }
     return;
   }
+  // Template-only preflight; managed runs retain their existing guard contract.
+  if (command === 'solution-template' && !hasHelpFlag(rawArgs) && !readManagedContext()) {
+    require('../lib/solution-template/solution-template').assertIndependentLocalAgent();
+  }
   commandReceipt = beginCommandReceipt({ command, args: rawArgs });
   process.once('exit', code => {
     try {commandReceipt.finish(code);} catch {process.exitCode = 1;}
@@ -810,6 +814,12 @@ async function main() {
       break;
     }
 
+    case 'solution-template': {
+      const { run } = require('../lib/solution-template/solution-template');
+      await run(args);
+      break;
+    }
+
     case 'corp-efficiency': {
       const { run } = require('../lib/corp-efficiency/corp-efficiency');
       await run(args);
@@ -854,6 +864,11 @@ async function main() {
 
     case 'custom-button': {
       const { run } = require('../lib/app/custom-button');
+      await run(args);
+      break;
+    }
+    case 'form-message': {
+      const { run } = require('../lib/app/form-message');
       await run(args);
       break;
     }

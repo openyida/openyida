@@ -46,8 +46,12 @@ function navigateCanvasPage(entry, context = {}) {
   }
   const href = buildCanvasPageUrl(entry, context);
   const utils = context.utils || window.__OPENYIDA_UTILS__;
-  if (entry.openMode === 'new-tab' || entry.targetType === 'url') {
-    if (typeof utils?.openPage === 'function') return utils.openPage({ url: href });
+  if (entry.openMode === 'dingtalk' || entry.openMode === 'new-tab' || entry.targetType === 'url') {
+    if (typeof utils?.openPage === 'function') return entry.openMode === 'dingtalk'
+      ? utils.openPage(href, { mode: 'dingtalk' }) : utils.openPage(href);
+    if (entry.openMode === 'dingtalk' || /dingtalk/i.test(window.navigator?.userAgent || '')) {
+      throw new Error('DINGTALK_API_UNAVAILABLE');
+    }
     window.open(href, '_blank', 'noopener,noreferrer');
     return;
   }

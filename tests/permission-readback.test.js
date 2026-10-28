@@ -71,6 +71,76 @@ describe('save-permission exact readback', () => {
     stderrSpy.mockRestore();
   });
 
+  test.each(['FORM_PACKAGE_VIEW', 'FORM_PACKAGE_START'])('saves the original field permission from a roleMembers-only %s DTO', async packageType => {
+    const pkg = packageFixture({ packageType: '', roleData: undefined,
+      roleMembers: [{ roleType: 'DEFAULT', roleValue: [{ key: 'ALL', label: '全员' }] }] });
+    utils.httpGet.mockResolvedValue(listResult([pkg]));
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+    const output = await run(['APP-1', 'FORM-1', '--package-type', packageType,
+      '--package-uuid', 'pkg-1', '--field-permission', '{"fieldRange":"FORM"}']);
+    const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
+    expect(JSON.parse(body.roleData)).toEqual({ include: [{ roleType: 'DEFAULT', roleValue: 'ALL' }] });
+    for (const key of ['dataPermit', 'operatePermit', 'fieldPermit', 'viewData', 'customButtonPermit']) {
+      expect(JSON.parse(body[key])).toEqual(JSON.parse(pkg[key]));
+    }
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(output.verification.status).toBe('verified');
+  });
+
+  test('preserves excluded members and matrix extensions when saving another dimension', async () => {
+    const roleMembers = { include: [{ roleType: 'MATRIX', roleValue: [{ key: 'matrix-1', matrixId: 'matrix-1', columnId: 'col-1', ext: '{"custom":true}' }] }],
+      exclude: [{ roleType: 'PERSONS', roleValue: [{ key: 'excluded-user' }] }], mode: 'union' };
+    const pkg = packageFixture({ roleData: undefined, roleMembers, dataPermit: '{"rule":[{"type":"MATRIX","value":"y"}]}' });
+    utils.httpGet.mockImplementation((_baseUrl, path) => Promise.resolve(
+      path.endsWith('/query/feature/get.json') ? { success: true, content: true } : listResult([pkg])));
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+    const output = await run(['APP-1', 'FORM-1', '--package-uuid', 'pkg-1', '--field-permission', '{"fieldRange":"FORM"}']);
+    const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
+    expect(JSON.parse(body.roleData)).toEqual({ ...roleMembers,
+      exclude: [{ roleType: 'PERSONS', roleValue: 'excluded-user' }] });
+    expect(output.verification.status).toBe('verified');
+  });
+
+  test.each([undefined, '{bad-json', '{}'])('retains zero-write protection for unreadable native rules: %s', roleData => {
+    const pkg = packageFixture({ roleData, roleMembers: undefined });
+    utils.httpGet.mockResolvedValueOnce(listResult([pkg]));
+    return expect(run(['APP-1', 'FORM-1', '--package-uuid', 'pkg-1', '--field-permission', '{"fieldRange":"FORM"}']))
+      .rejects.toMatchObject({ code: 'SAVE_PERMISSION_BEFORE_UNKNOWN', details: { remoteWrites: 0 } })
+      .then(() => expect(utils.httpPost).not.toHaveBeenCalled());
+  });
+
+  test('reports unknown instead of success when readback loses member rules', async () => {
+    utils.httpGet.mockResolvedValueOnce(listResult([packageFixture()]))
+      .mockResolvedValueOnce(listResult([packageFixture({ roleData: undefined, roleMembers: [], roleDataComplete: false })]));
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+    await expect(run(['APP-1', 'FORM-1', '--package-uuid', 'pkg-1', '--field-permission', '{"fieldRange":"FORM"}']))
+      .rejects.toMatchObject({ code: 'SAVE_PERMISSION_VERIFY_UNKNOWN', details: { reason: 'member_rules_not_readable' } });
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  });
+
+  test('preserves empty auxiliary permission strings when updating fields', async () => {
+    const pkg = packageFixture({ customButtonPermit: '', viewData: '' });
+    utils.httpGet.mockResolvedValue(listResult([pkg]));
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+    const output = await run(['APP-1', 'FORM-1', '--package-uuid', 'pkg-1', '--field-permission', '{"fieldRange":"FORM"}']);
+    const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
+    expect(body.customButtonPermit).toBe('');
+    expect(body.viewData).toBe('');
+    expect(output.verification.preservedDimensions).toEqual(expect.arrayContaining(['customButtonPermit', 'viewData']));
+  });
+
+  test.each(['customButtonPermit', 'viewData'])('detects preserved %s drift after a field update', async field => {
+    const pkg = packageFixture({ [field]: '' });
+    utils.httpGet.mockResolvedValueOnce(listResult([pkg]))
+      .mockResolvedValueOnce(listResult([packageFixture({ [field]: '[]' })]));
+    utils.httpPost.mockResolvedValueOnce({ success: true });
+    await expect(run(['APP-1', 'FORM-1', '--package-uuid', 'pkg-1', '--field-permission', '{"fieldRange":"FORM"}']))
+      .rejects.toMatchObject({ code: 'SAVE_PERMISSION_VERIFY_FAILED', details: {
+        mismatches: expect.arrayContaining([expect.objectContaining({ dimension: field, kind: 'preserved' })]),
+      } });
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  });
+
   test('selects and verifies an update by exact --package-uuid', async () => {
     const pkgA = packageFixture({ packageUuid: 'pkg-a', packageName: { zh_CN: '默认组 A' } });
     const pkgB = packageFixture({ packageUuid: 'pkg-b', packageName: { zh_CN: '默认组 B' } });

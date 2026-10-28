@@ -26,6 +26,7 @@ description: 创建自定义展示页面（display 类型）并返回 pageId（�
 - **创建前必须确认**：单点创建页面时，执行创建命令前必须向用户确认页面名称和目标应用。由 `yida-app` 完整应用统一编排且用户已说“默认方案 / 不要追问 / 直接创建”时，合理命名并直接创建，不再二次追问。
 - 创建成功后，将 formUuid 记录到 `.cache/<项目名>-schema.json`
 - 由 `yida-app` 完整应用统一编排的首页/工作台/智能助手/门户门面页，可以先于业务表单创建；先占位记录 `formUuid`，待表单 ID 明确后再写源码并发布。
+- 单独新增页面在编写源码前进入 [单页设计](../yida-design/sub_skill/page-design/SKILL.md)，核对主题、确认页面风格范围并形成设计说明。
 - 创建成功后，将真实 `formUuid` 交给 `yida-canvas-custom-page` 编写页面源码，再交给 `yida-publish-page` 发布；本技能不使用 `yida-custom-page` 处理新建页面。
 - **本技能不读写 memory**：formUuid 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
@@ -52,6 +53,24 @@ description: 创建自定义展示页面（display 类型）并返回 pageId（�
 ```bash
 openyida create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]
 ```
+
+### 千问办公调用约定
+
+仅在当前宿主为千问办公（QwenWork）时执行以下约定；可复用已确认的宿主信息，需核实时单独执行 `openyida env --json`，以 `active.toolId=qwenwork` 为准。其他云端、Codex 等环境沿用各自的命令与浏览器交接方式。
+
+- 使用 Bash 工具单独执行一条 `openyida create-page` 命令，添加 `--quiet --no-open`，保留已确认的 `appType`、页面名称及模式、导航、语言等业务参数；已有 `--open` 时替换为 `--no-open`。
+- 命令直接以 `openyida create-page` 开头；工作目录通过工具参数指定。不要包装成脚本、命令替换或变量赋值，也不要拼接 `cd`、管道 `|`、重定向（如 `>`、`2>&1`）、分号、`&&`、`||` 或其他命令；不要追加 `echo`、`wc`、查询或验证命令。
+- 保留 Bash 返回的原始 stdout、stderr 和退出码，直接交给宿主 Hook；不要截断、过滤、重定向或用自行整理的文本替换工具输出。宿主 Hook 从成功结果的顶层 `url` 接管侧边栏开页，AI 不再主动调用浏览器重复打开。
+- `--no-open` 只关闭 `browser_handoff` 提示，成功结果仍包含 `url`、`pageId` 等字段。按真实 `pageId` 记录 `formUuid`；侧边栏开页不代表页面源码已发布或渲染已验收，也不要因未开页而重跑创建。
+- 原始工具输出保留后，继续编写和发布页面。Schema 文件使用文件写入工具保存，后续必要查询、导航修复或发布通过新的工具调用执行；`pageCreated:true` 的失败按下方恢复规则处理，复用原页面。
+
+千问办公示例（`APP_XXX` 替换为已确认的应用 ID，整行单独执行）：
+
+```bash
+openyida create-page APP_XXX "客户工作台" --quiet --no-open
+```
+
+### 参数
 
 | 参数 | 必填 | 说明 |
 |------|------|------|

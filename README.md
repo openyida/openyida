@@ -494,6 +494,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida app-entry get <appType> [--json]` | Read frontend and management runtime entries |
 | `openyida app-entry set <appType> [--frontend <url>\|--frontend-page <formUuid>] [--management <url>\|--management-page <formUuid>] [--clear-frontend] [--clear-management] [--json]` | Register application entries with partial update and readback |
 | `openyida app-list [--type managed\|created] [--page N] [--size N]` | Page through apps I manage or created |
+| `openyida solution-template <search\|detail\|prepare\|ai-build\|enable\|status> [templateId\|requestId] [options] [--json]` | Solution templates for independent local agents: discovery, cloud AI handoff and direct enable |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency overview and detail reports |
 | `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a Yida app |
 | `openyida design-plan catalog [--json]` | List available planning themes and page patterns |
@@ -537,6 +538,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida print-template <list\|inspect\|fields\|build\|create\|copy\|save\|restore\|settings\|status\|order\|render\|files> <appType> <formUuid> [templateId] [--config <file>] [--scene <order\|quotation\|delivery\|receipt\|approval\|codes>] [--bindings <file>] [--name <title>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--status START\|STOP] [--instance <id>] [--page <n>] [--size <n>] [--allow-permission-change] [--json] \| print-template <list\|render> --detail-url <url> [--template-id <id>] [--json]` | Manage native YiDA print templates, generate document layouts, back up, restore and request PDFs |
 | `openyida form-view <list\|inspect\|save\|create\|order> <appType> <formUuid> [viewUuid] [--config <file>] [--name <title>] [--with-config] [--expected-hash <hash>] [--backup <file>] [--replace] [--json]` | Native form views: list, inspect and configure columns, widths, frozen columns and filters |
 | `openyida custom-button <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | Native custom buttons: inspect and configure form edits, automation flows and page links |
+| `openyida form-message <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | Native form notifications: inspect triggers, recipients and templates, then safely maintain bindings |
 | `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | Get one form Schema or all form Schemas |
 | `openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]` | Check resources, frontend menu hiding and application theme delivery |
 | `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | Validate design documents, theme tokens and PRD handoff |
@@ -554,7 +556,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | Command | Description |
 |---------|-------------|
 | `openyida data <query\|get\|create\|update\|transfer> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | Unified data management (form/process/task/subform) |
-| `openyida task-center <todo\|created\|done\|cc\|proxy\|capabilities\|scaffold\|options\|inspect\|count> [--spec <file.json> --output <file.canvas.jsx>] [options]` | Global task center (todo/processed/cc etc.) |
+| `openyida task-center <todo\|created\|done\|cc\|proxy\|capabilities\|link\|scaffold\|options\|inspect\|count> [--spec <file.json> --output <file.canvas.jsx>] [options]` | Global task center (todo/processed/cc etc.) |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, and domain settings |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | Fetch Markdown content from a DingTalk document |
 | `openyida read-dingtalk-tingji <taskUuid> [--json]` | Fetch DingTalk Tingji details by task UUID |
