@@ -257,9 +257,9 @@ test('skill separates hosting guidance, manual consent and unverified runtime hi
   expect(skill).toContain('https://ding.aliwork.com/o/Plug-in');
   expect(skill).toContain('不代勾选、代同意');
   expect(skill).toContain('PLUGIN_READBACK_MISMATCH');
-  expect(skill).toContain('../yida-plugin-frontend-deploy/SKILL.md');
+  expect(skill).toContain('use_skill("yida-plugin-frontend-deploy",');
   expect(skill).not.toContain('./references/frontend-hosting.md');
-  expect(deploy).toContain('../yida-plugin-lifecycle/SKILL.md');
+  expect(deploy).toContain('use_skill("yida-plugin-lifecycle",');
   expect(deploy).toContain('用户明确禁止或暂缓某渠道');
   for (const term of ['集团开发环境', '非集团开发环境', '码云 + 阿里云 OSS', '企业静态资源服务器', 'GitHub Actions + Pages']) {
     expect(hosting).toContain(term);

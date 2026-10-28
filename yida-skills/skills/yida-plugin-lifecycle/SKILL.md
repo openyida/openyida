@@ -7,7 +7,7 @@ description: 管理宜搭平台“插件管理”中的开发插件、版本配�
 
 本技能处理宜搭平台管理后台的“插件管理”，不是 npm、浏览器扩展或 AI 工具插件。开始前核对登录组织；插件操作是组织级影响，不能借应用级授权推定组织级写权限。
 
-连接类组件的服务、输入输出映射、参数与鉴权设计，先读[宜搭插件开发规范](./references/development-guide.md)。前端构建、托管或加载排查转到 [yida-plugin-frontend-deploy](../yida-plugin-frontend-deploy/SKILL.md)；本技能只接收其真实资源地址并负责平台配置保存。CLI 生命周期接口不能替代官方编辑器中的组件设计和组织内真实测试。
+连接类组件的服务、输入输出映射、参数与鉴权设计，先读[宜搭插件开发规范](./references/development-guide.md)。前端构建、托管或加载排查时，通过 `use_skill("yida-plugin-frontend-deploy", "构建、托管或排查插件前端资源")` 加载部署技能；本技能接收其真实资源地址并负责平台配置保存。CLI 生命周期接口不能替代官方编辑器中的组件设计和组织内真实测试。
 
 ## 没有开发插件权限时
 
@@ -57,7 +57,7 @@ openyida plugin create-version PLUGIN-XXX --version 1.1.0 --description '新增�
 
 保存字段使用 `frontEndDevInfo.cdnEntry`；CLI 兼容 `cdnUrl` 输入并转换成 `cdnEntry`，两字段值冲突则拒绝。完整 HTTPS 地址不改域名、不补官方前缀。保存前再次读取、写入不覆盖备份，保存后核对目标插件/版本及三段配置；服务端改写资源地址或配置会报 `PLUGIN_READBACK_MISMATCH`。此时写入可能已经发生，先回读排查，不自动重试或恢复备份；不会顺带发布。
 
-尚无稳定前端资源地址时，转到[前端部署技能](../yida-plugin-frontend-deploy/SKILL.md)完成渠道选择与创建指导；拿到真实入口后再继续以下保存步骤。构建、资源部署和平台发布是独立操作，不因保存配置而自动执行。
+尚无稳定前端资源地址时，通过 `use_skill("yida-plugin-frontend-deploy", "选择托管渠道并准备稳定资源入口")` 完成渠道选择与创建指导；拿到真实入口后再继续以下保存步骤。构建、资源部署和平台发布是独立操作，不因保存配置而自动执行。
 
 ```bash
 openyida plugin save-dev PLUGIN-XXX 1.1.0 \
