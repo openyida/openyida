@@ -2473,3 +2473,12 @@ module.exports.feedback_github = {
 };
 
 module.exports.process_dynamic_actors = { invalid: "프로세스 담당자 설정이 잘못되었습니다. details.reason, 선택 범위 및 실제 구성원 필드를 확인하세요." };
+
+module.exports.permission_guidance = {
+  platform_access_link: 'YiDA 사용 권한 요청',
+  create_app_link: 'YiDA 앱 생성 권한 요청',
+  platform_access: '현재 계정에는 이 조직에서 YiDA를 사용할 권한이 없습니다.',
+  create_app: '현재 계정에는 이 조직에서 앱을 만들 권한이 없습니다.',
+  unknown: '권한이 거부되었으며 권한 유형은 확인되지 않았습니다. 관리자에게 문의하고 작업을 일시 중지하세요.',
+  next_step: '권한 요청 페이지를 여세요: [{0}]({1}). 처리 후 현재 조직과 권한을 확인한 다음 계속하세요.',
+};

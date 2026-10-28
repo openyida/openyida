@@ -2474,3 +2474,12 @@ module.exports.feedback_github = {
 };
 
 module.exports.process_dynamic_actors = { invalid: "Configuração de responsáveis inválida. Verifique details.reason, o intervalo e os campos de membros reais." };
+
+module.exports.permission_guidance = {
+  platform_access_link: 'Pedir acesso ao YiDA',
+  create_app_link: 'Pedir permissão para criar aplicações YiDA',
+  platform_access: 'A conta atual não tem autorização para usar o YiDA nesta organização.',
+  create_app: 'A conta atual não pode criar aplicações nesta organização.',
+  unknown: 'Permissão negada; o tipo de permissão não foi confirmado. Contacte um administrador e suspenda esta operação.',
+  next_step: 'Abra a página de pedido de permissão: [{0}]({1}). Depois, verifique a organização e as permissões antes de continuar.',
+};
