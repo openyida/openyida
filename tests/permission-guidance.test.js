@@ -26,11 +26,11 @@ afterEach(() => { process.env = { ...originalEnv }; setLanguage(originalLanguage
 test('returns a clean same-origin permission link', () => {
   const error = createPermissionError({}, {
     ...OPTIONS, httpStatus: 302,
-    location: '/defaultPage.html?type=noCreateApp&corpid=ding-test&access_token=private&returnUrl=https://other.test#secret',
+    location: '/defaultPage.html?type=noAppCreationAuth&corpid=ding-test&access_token=private&returnUrl=https://other.test#secret',
   });
   expect(toErrorPayload(error)).toMatchObject({
     success: false, errorCode: 'YIDA_APP_CREATE_PERMISSION_REQUIRED', retryable: false,
-    nextAction: { type: 'open_url', url: 'https://tenant.example.test/defaultPage.html?type=noCreateApp&corpid=ding-test' },
+    nextAction: { type: 'open_url', url: 'https://tenant.example.test/defaultPage.html?type=noAppCreationAuth&corpid=ding-test' },
     details: { permissionType: 'create_app' },
   });
   expect(shouldUseStructuredErrorOutput(error, [])).toBe(true);
@@ -42,8 +42,8 @@ test.each([
   ['//evil.test/defaultPage.html?type=unauth'],
   ['/defaultPage.html?type=unauthSaaS'],
   ['/defaultPage.html?type=invite'],
-  ['/defaultPage.html?type=unauth&type=noCreateApp'],
-  ['/another-page?type=noCreateApp'],
+  ['/defaultPage.html?type=unauth&type=noAppCreationAuth'],
+  ['/another-page?type=noAppCreationAuth'],
   ['javascript:alert(1)'],
 ])('does not invent a permission link for redirect %s', location => {
   expect(createPermissionError({}, { ...OPTIONS, httpStatus: 302, location })).toBeNull();
@@ -58,7 +58,7 @@ test('recognizes the verified organization authorization error', () => {
 
 test.each([
   ['unauth', '申请宜搭使用授权', '当前没有此组织的宜搭使用权限，可申请宜搭使用授权。'],
-  ['noCreateApp', '申请宜搭应用创建权限', '当前没有此组织的宜搭应用创建权限，可申请应用创建权限。'],
+  ['noAppCreationAuth', '申请宜搭应用创建权限', '当前没有此组织的宜搭应用创建权限，可申请应用创建权限。'],
 ])('Chinese guidance for %s names the missing permission and returns its semantic link', (type, label, message) => {
   setLanguage('zh');
   const error = createPermissionError({ success: false, errorMsg: '原始平台错误' }, {

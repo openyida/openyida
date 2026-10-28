@@ -95,9 +95,9 @@ describe('permission owner/role/field shorthand and matrix availability', () => 
     expect(JSON.parse(packages[0].dataPermit).formulaData.rules[0].value).toBe('${loginUser}');
   });
 
-  test('does not rewrite a platform DTO when member exclusions cannot be read', async () => {
+  test('does not rewrite a platform DTO when member extensions cannot be converted without loss', async () => {
     const legacy = { ...existing, packageType: '', roleMembers: [
-      { roleType: 'ROLE', roleValue: [{ key: 'ROLE-SALES', label: '角色' }] },
+      { roleType: 'ROLE', roleValue: [{ key: 'ROLE-SALES', label: '角色', ext: '{"unknownRule":true}' }] },
     ] };
     delete legacy.roleData;
     packages = [legacy];

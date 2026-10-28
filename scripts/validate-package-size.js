@@ -203,6 +203,9 @@ const MAX_TARBALL_BYTES = 2608 * 1024;
 // 9,821,065 unpacked bytes / 775 files; next 16 KiB boundary, gzip cap unchanged.
 // Combined templates, scoped task navigation and page-theme guidance (Node 20):
 // 9,840,407 unpacked bytes / 777 files; next 16 KiB boundary, gzip cap unchanged.
+// QwenWork create-app/create-page guidance and beta metadata add 3,449 bytes:
+// Node 20.18.1 measures 9,850,164 unpacked bytes / 777 files. Use the next
+// 16 KiB boundary; compressed, entry-count and single-file limits stay fixed.
 // QwenWork permission guidance adds one runtime module and localized recovery steps.
 // HEAD baseline (Node 26): 9,846,715 unpacked bytes / 777 files; use the next 16 KiB boundary.
 const MAX_UNPACKED_BYTES = 9632 * 1024;

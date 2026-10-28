@@ -11,6 +11,7 @@ const { launchRuntime, runtimeEnvironment } = require('../lib/agent/stdio');
 const { resolveRuntime } = require('../lib/agent/runtime-package');
 const { maybeAutoUpdate, shouldSkipAutoUpdateCommand } = require('../lib/core/update');
 const { removeFixture } = require('./helpers/agent-bundle-fixture');
+const { writeStartupReceipt } = require('./helpers/agent-startup-receipt');
 
 describe('local agent thin launcher', () => {
   let root;
@@ -23,7 +24,7 @@ describe('local agent thin launcher', () => {
     binary = path.join(root, 'fake-runtime.js');
     manifestPath = path.join(root, 'manifest.json');
     fixtureChildren = new Set();
-    const source = `#!${process.execPath}\nlet input=''; process.stdin.on('data',c=>input+=c); process.stdin.on('end',()=>{const config=JSON.parse(input); const event=JSON.stringify({type:config.command,config,argv:process.argv.slice(2),envKeys:Object.keys(process.env),providerHome:process.env.CODEX_HOME}); process.stdout.write(event+'\\n',()=>{if(config.startupId){require('fs').writeFileSync(require('path').join(config.stateDir,'startup-'+config.startupId+'.json'),JSON.stringify({protocolVersion:1,startupId:config.startupId,ready:true}),{mode:0o600});setTimeout(()=>process.exit(0),300);}else{process.exit(0);}});});\n`;
+    const source = `#!${process.execPath}\nlet input=''; process.stdin.on('data',c=>input+=c); process.stdin.on('end',()=>{const config=JSON.parse(input); const event=JSON.stringify({type:config.command,config,argv:process.argv.slice(2),envKeys:Object.keys(process.env),providerHome:process.env.CODEX_HOME}); process.stdout.write(event+'\\n',()=>{if(config.startupId){(${writeStartupReceipt})(config);setTimeout(()=>process.exit(0),300);}else{process.exit(0);}});});\n`;
     fs.writeFileSync(binary, source, { mode: 0o700 });
     fs.writeFileSync(manifestPath, JSON.stringify({
       schemaVersion: 1, version: '0.1.0-test', protocolVersion: 1, platform: process.platform, arch: process.arch,
