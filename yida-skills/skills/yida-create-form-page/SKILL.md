@@ -204,7 +204,7 @@ create 命令失败后，不要立刻重复同一条 create：
 3. 只有确认远端没有同名目标表单，并且已经修改输入文件、参数、登录态或组织后，才重试 create。
 4. 同一 create 命令最多重试 2 次；仍失败时停止并带上完整 stdout/stderr、字段文件路径、appType、表单名和已发现的 formUuid 给用户。
 
-create、update 和 resume 按[交付契约](../yida-design/references/ask-human-interaction-contract.md#统一写法)提供真实入口与本轮结果；千问办公负责展示，修改只总结本轮变化。
+create、update 和 resume 按[交付契约](../yida-design/references/ask-human-interaction-contract.md#统一写法)提供真实入口与本轮结果；修改只总结本轮变化。
 
 ## update 模式
 

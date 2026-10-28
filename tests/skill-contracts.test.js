@@ -770,7 +770,6 @@ describe('OpenYida skill contracts', () => {
     expect(step9).toContain('用户或调用方明确要求资源清单、资源 UUID/ID、发布状态或测试数据摘要时');
     expect(step9).toContain('在本轮业务结果中附简洁交付清单');
     expect(step9).toContain('通过宿主现有交付机制传递业务总结和真实入口');
-    expect(step9).toContain('千问办公统一负责链接、文件与交付结果的展示');
     expect(step9).toContain('每个被 final 声称“已写入”“已验证”或给出记录数的表单/流程');
     expect(step9).toContain('不得把一张表单的 3 条记录复制成其他表单也有 3 条');
     expect(step9).toContain('每个资源数量和数据完成声明都有对应资源自己的成功返回值/readback');
@@ -873,7 +872,7 @@ describe('OpenYida skill contracts', () => {
     expect(guide).not.toContain('按 `gmtCreate` / 提交日期倒序');
   });
 
-  test('full app delivery provides verified entries and delegates presentation to the host', () => {
+  test('full app delivery provides verified entries within the requested scope', () => {
     const root = readSkill('yida-skills/SKILL.md');
     const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
     const step2 = readSkill('yida-skills/skills/yida-app/workflow/step-2-design.md');
@@ -892,7 +891,6 @@ describe('OpenYida skill contracts', () => {
     expect(formPage).toContain('表单级使用 `formUrl`、`form`、`formUuid`');
     expect(formPage).toContain('`url` 继续兼容表单入口');
     expect(step2).toContain('需求文件与实施文档供内部执行，Plan 的 HTML 用于用户查看和确认方案');
-    expect(step9).toContain('同一应用的后续交付复用已有资源和已验证 URL');
     expect(step9).toContain('同一应用的后续交付复用已有资源和已验证 URL');
     expect(step9).toContain('资源变更只按用户本轮明确要求执行');
     expect(feature).toContain('builder_path.auth.auth_runtime=env_token_bootstrap');
