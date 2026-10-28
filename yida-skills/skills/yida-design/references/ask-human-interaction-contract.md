@@ -152,7 +152,9 @@ Fast / Plan 是面向用户的模式名称，仅在首轮澄清后的模式路�
 - `attachments`：待查看文件列表；workspace 文件使用 `{ "name": "搭建方案", "path": "prd/<项目名>/build-plan-<content-sha256>.html" }`。路径必须位于当前项目工作区，不能传运行时内部路径或外部绝对路径。
 - `revision`：本次问题绑定的事实版本。宿主提交回答时必须原样回传；版本已变化时拒绝旧回答并重新展示最新版本。
 
-附件、问题与 `revision` 是一个原子交互。不得先发普通文本附件、再单独调用 `ask_human`，也不得只在问题文案中写文件路径；否则实时界面和历史回放无法可靠证明用户确认的是哪一版方案。
+千问环境按 [Plan 交付](../../yida-app/workflow/plan/step-4-deliver.md#3-展示并确认当前版本) 使用 `qwenworkPresentation`，关联不可变快照与结构化问题。工具不支持紧凑模式时沿用下述契约，不传未声明字段。
+
+除上述千问适配外，附件、问题与 `revision` 是一个原子交互。不得先发普通文本附件、再单独调用 `ask_human`，也不得只在问题文案中写文件路径；否则实时界面和历史回放无法可靠证明用户确认的是哪一版方案。
 
 已有资源美化使用 [ui-improve](../sub_skill/ui-improve/SKILL.md) 的视觉方案和验收流程，不使用下文首次搭建的固定两选项 payload。宿主缺少附件或 revision 能力时，仅按该流程的降级契约在同次问题提供不可变方案链接，并保存真实交互与版本关联；不得伪造附件、回答或版本字段，未取得明确同意不得写入。首次搭建的原子附件契约保持不变。
 
@@ -177,7 +179,7 @@ Plan Design 完成当前版本后必须实际发起结构化确认；明确风�
 
 managed Local Agent 通过 `openyida agent ask-human` 提问时，必须将下方云端 payload 封装为本地 CLI 问题文件：`title/revision/attachments` 保留在顶层，`question/options` 放入 `questions` 数组中的一个 `single_select` 问题，并提供 `id: "plan_decision"`、`header`。问题文件不携带 `submitLabel`；完整示例见 [Plan 交付](../../yida-app/workflow/plan/step-4-deliver.md) 或 `openyida agent ask-human --help`。
 
-最终确认是一个 `single_select` 语义问题。它只有下面这一份可调用 schema；顶层字段集合固定为 `question`、`title`、`options`、`attachments`、`revision`、`submitLabel`。将路径和 `{revision}` 替换为本次 materialize 返回的真实值：
+最终确认是一个 `single_select` 语义问题。除上述千问适配外，使用下面这一份可调用 schema；顶层字段集合固定为 `question`、`title`、`options`、`attachments`、`revision`、`submitLabel`。将路径和 `{revision}` 替换为本次 materialize 返回的真实值：
 
 #### 最终确认 `ask_human` payload
 
