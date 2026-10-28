@@ -96,7 +96,7 @@ describe('agent-capabilities summary', () => {
     ['qwenwork_desktop', 'token_oauth_session'],
     ['codex', 'token_oauth_session'],
     ['mulerun', 'env_token_bootstrap'],
-  ])('reports separate runtime and developer entry cards for %s', (tool, authRuntime) => {
+  ])('reports verified runtime and developer entries with host-managed presentation for %s', (tool, authRuntime) => {
     const { buildApplicationEntryPolicy } = require('../lib/core/agent-capabilities');
     const { buildCommandManifest } = require('../lib/core/command-manifest');
     const policy = buildApplicationEntryPolicy({
@@ -105,13 +105,11 @@ describe('agent-capabilities summary', () => {
     });
     const manifestPolicy = buildCommandManifest().summary.core_workflows.full_app_build.application_entry_policy;
 
-    expect(policy.delivery_unit).toBe('application_entry_cards');
+    expect(policy.delivery_unit).toBe('application_entries');
     expect(policy.entries.admin).toBe('include');
-    expect(policy.cards).toEqual(manifestPolicy.cards);
-    expect(policy.cards).toEqual({
-      qwenwork: { format: 'mini', tasks: ['create', 'modify'], url_tool: 'qwenwork_link_present_urls_or_host_url_artifact', markdown_fallback: false },
+    expect(policy.entry_delivery).toEqual(manifestPolicy.entry_delivery);
+    expect(policy.entry_delivery).toEqual({
       max_count: 3,
-      one_card_per_entry: true,
       deduplicate_by: 'verified_url',
       order: ['frontend', 'management', 'admin'],
       by_scope: {
@@ -125,8 +123,8 @@ describe('agent-capabilities summary', () => {
       missing_entry: 'report_incomplete_without_guessing',
     });
     // 消费方调整本次结果时，不能污染后续能力查询或其他宿主。
-    policy.cards.by_scope['service-management'].pop();
-    expect(buildApplicationEntryPolicy({}).cards.by_scope['service-management'])
+    policy.entry_delivery.by_scope['service-management'].pop();
+    expect(buildApplicationEntryPolicy({}).entry_delivery.by_scope['service-management'])
       .toEqual(['frontend', 'management', 'admin']);
   });
 
@@ -227,8 +225,9 @@ describe('agent-capabilities summary', () => {
       expect(summary.application_entry_policy).toEqual({
         schema_version: 1,
         environment: 'managed_cloud_agent',
-        delivery_unit: 'application_entry_cards',
-        cards: expect.objectContaining({ max_count: 3, one_card_per_entry: true }),
+        delivery_unit: 'application_entries',
+        presentation: 'host_managed',
+        entry_delivery: expect.objectContaining({ max_count: 3 }),
         resource_delivery: 'summary_only',
         internal_artifact_delivery: 'never',
         frontend_delivery: expect.stringContaining('verified publish/get-form-config standaloneUrl'),

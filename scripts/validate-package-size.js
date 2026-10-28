@@ -216,10 +216,7 @@ const MAX_TARBALL_BYTES = 2640 * 1024;
 // HEAD baseline (Node 26): 9,846,715 unpacked bytes / 777 files; use the next 16 KiB boundary.
 // Include the plugin runtime and deployment guides on top of main's content;
 // retain the existing plugin budget. The merged package has not been measured.
-// QwenWork entry/compact-plan contracts combined with plugin main measure
-// 9,931,596 unpacked bytes / 785 entries on Node 26. Round to the next
-// 16 KiB boundary; keep tarball, entry-count and individual-file limits unchanged.
-const MAX_UNPACKED_BYTES = 9712 * 1024;
+const MAX_UNPACKED_BYTES = 9696 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.

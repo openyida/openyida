@@ -28,13 +28,11 @@ test.each([
   { QWENWORK: '1' },
   { QWENWORKCN_INTEGRATION_MODE: 'desktop' },
   { QODER_WORK_INTEGRATION_PRODUCT: 'qwenworkcn', QODERCLI_INTEGRATION_MODE: 'qoder_work' },
-])('QwenWork proposes compact delivery of the immutable snapshot only: %j', env => {
-  const result = confirmationHandoff(outputs, '2', { env });
-  expect(result.qwenworkPresentation).toMatchObject({
-    tool: 'qwenwork_file_present_files', revision: '2',
-    input: { files: [{ file_path: require('path').resolve(snapshot), presentation: 'compact' }] },
+])('QwenWork receives the same snapshot confirmation contract as other hosts: %j', env => {
+  expect(confirmationHandoff(outputs, '2', { env })).toEqual({
+    confirmation: confirmationPayload(outputs, '2'),
+    confirmationPolicy: require('../lib/design-plan/confirmation').confirmationPolicy,
   });
-  expect(result.confirmation).toEqual(confirmationPayload(outputs, '2'));
 });
 
 test.each([{}, { CODEX_THREAD_ID: 'thread' }, { CLAUDE_CODE: '1' },

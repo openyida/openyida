@@ -32,9 +32,9 @@ openyida design-plan materialize prd/<项目名>/build-plan.json --from-preview 
 
 按 [用户交互契约](../../../yida-design/references/ask-human-interaction-contract.md#搭建计划展示) 展示“当前方案”和 3–7 条业务摘要，随后实际发起结构化确认并等待回答。使用本次 CLI 返回的不可变快照与 revision；同级 `confirmationPolicy` 是规则，不放入工具 payload。
 
-CLI 仅在千问环境返回 `qwenworkPresentation`。当前工具 schema 支持 `files[].presentation=compact` 时执行其 `tool/input`，使用紧凑文件卡，点击阅读完整 HTML。成功后在同轮结构化问题中提供实际返回的快照链接，按 schema 传参；将真实交互 ID、快照、revision 与回答关联。选项沿用 `confirmation.options`，保留原始回答。卡片不代表批准；不支持时使用原 `confirmation`。
+千问办公负责方案附件的展示。原样传递当前快照、revision 和结构化问题，不指定文件卡片样式或另行调用展示工具；展示不代表批准。
 
-其他宿主原样使用 `confirmation` 实际调用 `ask_human` 创建结构化提问，遵守唯一 payload schema。调用成功只表示问题已创建；managed Local 使用下述 CLI。不可用或失败时保留 `awaiting_confirmation` 并说明阻塞，不能开始搭建或切换 Fast。生成 JSON、打开 HTML、普通文字和泛指“继续”均不替代结构化批准。
+原样使用 `confirmation` 实际调用 `ask_human` 创建结构化提问，遵守唯一 payload schema。调用成功只表示问题已创建；managed Local 使用下述 CLI。不可用或失败时保留 `awaiting_confirmation` 并说明阻塞，不能开始搭建或切换 Fast。生成 JSON、打开 HTML、普通文字和泛指“继续”均不替代结构化批准。
 
 交互创建后记录 `presentedRevision=meta.revision`，不重复物化。仅当前快照与 revision 对应的明确 `confirm_build` 可写入真实回答、交互 ID 和时间，并设置 confirmed 状态；queued/pending 仅表示等待；无回答、超时、取消、旧版本或自行写入的标记均无效。快照或方案变化后重新确认，恢复与素材进度中，同版已有效确认则复用。
 

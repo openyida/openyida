@@ -90,21 +90,19 @@ test('materialization delivers the approval policy without treating generated fi
 });
 
 
-test('QwenWork materialize and patch deliver compact snapshots without approving the plan', () => {
+test('QwenWork materialize and patch retain snapshot confirmation without approving the plan', () => {
   const environment = jest.replaceProperty(process, 'env', { ...process.env, QWENWORK: '1' });
   try {
     const first = merge();
     const second = patchPlan(input, ['overview.summary=调整后的搭建方案'], { materialize: true });
     for (const result of [first, second]) {
-      expect(result.qwenworkPresentation.input.files).toEqual([
-        { file_path: result.outputs.confirmationHtml, presentation: 'compact' },
-      ]);
-      expect(result.qwenworkPresentation.revision).toBe(result.revision);
+      expect(result.confirmation.attachments).toEqual([{ name: '搭建方案.html', path: result.outputs.confirmationHtml }]);
+      expect(result.confirmation.revision).toBe(result.revision);
       expect(fs.existsSync(result.outputs.confirmationHtml)).toBe(true);
     }
     expect(second.outputs.confirmationHtml).not.toBe(first.outputs.confirmationHtml);
     expect(read(input).meta.planState?.planConfirmed).not.toBe(true);
-    expect(materialize(input, { check: true })).not.toHaveProperty('qwenworkPresentation');
+    expect(materialize(input, { check: true })).not.toHaveProperty('confirmation');
   } finally {
     environment.restore();
   }
