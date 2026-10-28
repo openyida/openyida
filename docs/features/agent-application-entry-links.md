@@ -5,9 +5,9 @@
 完整应用搭建结束时同时解决两个问题：
 
 1. 不再把内部设计文件、资源清单和每个表单/流程/报表分别显示成用户交付物；
-2. 在唯一一组“应用访问入口”中，按运行环境和页面能力输出用途明确的入口。
+2. 按入口用途输出独立的对话产物卡片，完整应用默认同时包含访问态与开发者管理态。
 
-这里的“唯一一组”是交付单元，不表示只能有一个 URL。入口组最多包含工作台、独立业务入口和开发后台三个有明确名称的 URL。
+每张卡片只绑定一个真实入口 URL，最多三张，依次为“访问态前台”“业务后台”“开发者后台”。只有一类业务访问入口时默认交付两张；前后台都有时交付三张。用户显式排除、单页任务和相同 URL 去重按实际范围处理。
 
 ## 2. 用户可见交付边界
 
@@ -29,25 +29,27 @@
 
 ### 2.3 应用入口
 
-一次 run 最多交付一组名为“应用访问入口”的用户可见交付。宿主提供 artifact 或交付工具时，在当前 run 只调用一次并承载整组入口。同一应用在后续 run 中被用户再次请求时，应复用已有资源和已验证 URL，并在当前 run 重新交付一组入口；不得为了重新展示入口而重建、更新或重新发布资源。
+完整应用每次按真实用途交付独立 URL 产物卡片，不把所有链接放入同一张卡。批量交付工具用一次调用提交全部 artifacts，每个 artifact 绑定一个入口；逐项登记工具先登记完全部入口再结束本轮。只有当前宿主实际提供相应工具时才调用；没有 URL 产物工具时，在最终回复中给出分开命名的 Markdown 链接。仅支持本地文件的 `present_files` 不接收远程应用 URL。
+
+同一应用在后续 run 中被用户再次请求时，应复用已有资源和已验证 URL，重新交付适用入口卡片；不得为了重新展示入口而重建、更新或重新发布资源。部分卡片交付失败时保留已成功项并说明缺项，不能把首张成功当作全部完成。
 
 ## 3. 入口选择
 
-先按本轮业务范围选择入口，再应用鉴权策略：
+先按本轮业务范围选择入口，完整应用默认包含开发者后台，登录方式不改变该默认值：
 
 | 有效范围 | 交付入口 |
 | --- | --- |
-| 仅前台 | 已验证的独立业务入口 |
-| 统一工作区或仅业务管理 | 已验证的业务管理入口 |
-| 前后台双入口 | 独立业务入口和业务管理入口 |
-| 包含应用开发管理 | 仅在 `application_entry_policy.entries.admin=include` 时增加开发后台 |
+| 仅前台 | 已验证的独立业务入口、开发者后台两张卡 |
+| 统一工作区或仅业务管理 | 已验证的业务管理入口、开发者后台两张卡；统一工作区可命名为“系统入口” |
+| 前后台双入口 | 独立业务入口和业务管理入口、开发者后台三张卡 |
+| 单页创建、修改或发布 | 只交付当前页面，不扩展为完整应用入口矩阵 |
 
 业务管理入口可以是 `/workbench`，也可以是已规划、已验证的 `/workbench/{formUuid}?viewUuid=...` 任务视图。默认落点应让用户直接办理目标业务，原生管理视图满足任务时直接复用。
 
 以 `openyida agent-capabilities --summary-json` 返回的 `application_entry_policy` 为准：
 
-- `builder_path.auth.auth_runtime=env_token_bootstrap` 且 `can_auto_use=true`：`entries.admin=omit`；
-- 其他情况：`entries.admin=include`，结合本轮开发管理范围决定是否交付；
+- `entries.admin=include`：完整应用默认交付开发者后台，无论 `builder_path.auth.auth_runtime=env_token_bootstrap` 且 `can_auto_use=true`，还是其他认证方式；用户明确排除时遵从；
+- `delivery_unit=application_entry_cards`、`cards.max_count=3`、`cards.one_card_per_entry=true`：最多三张独立卡片；`cards.by_scope` 给出各业务范围的默认用途；
 - `entries.workbench=when_workspace_in_scope`：仅交付范围内的管理工作区。
 
 URL 取自 CLI 成功结果或必要的只读回查。`appUrl` 是应用工作台，`formUrl` 和兼容字段 `url` 是表单入口。
@@ -89,15 +91,16 @@ entryMode: platform-shell | standalone
 
 ## 6. 最终输出示例
 
-业务总结、核验结果和剩余事项放入交付卡片的 `description`，入口放入同一组卡片。宿主没有交付工具时，在最终回复中给出相同内容。
+首张卡片的 `description` 包含业务总结、核验结果和剩余事项；每张卡片说明其用途与核验状态。以下三项分别登记为独立 URL 产物，不能合成一个包含三条链接的 artifact。宿主没有交付工具时，在最终回复中给出相同内容。
 
 ```markdown
 已完成客户档案、联系人和跟进记录等核心业务能力，并发布经营看板。应用已支持客户维护、跟进记录和经营概览。
 
-应用访问入口：
+独立入口卡片：
 
-- 应用工作台：https://example.aliwork.com/APP_XXX/workbench
-- 独立业务入口：https://example.aliwork.com/APP_XXX/custom/FORM_XXX
+- 访问态前台：https://example.aliwork.com/APP_XXX/custom/FORM_XXX
+- 业务后台：https://example.aliwork.com/APP_XXX/workbench
+- 开发者后台：https://example.aliwork.com/APP_XXX/admin
 ```
 
 上例适用于已验证前后台双入口的应用。其他场景按第 3 节的实际交付范围选择入口。
@@ -106,13 +109,14 @@ entryMode: platform-shell | standalone
 
 1. 包含五个以上业务资源的完整应用，最终不出现逐资源交付卡片。
 2. requirement brief、PRD、design、build manifest 和资源清单不出现在用户交付物中。
-3. 最终只有一组“应用访问入口”。
-4. 管理工作区在有效范围内时交付其真实入口；仅前台时交付前台入口。
+3. 每个适用入口一张独立卡片，最多三张，顺序为访问态前台、业务后台、开发者后台。
+4. 完整应用默认同时交付适用的访问态入口与开发者后台；按范围输出两张或三张，用户显式排除优先。
 5. `/custom` 只在 `entryMode=standalone` 且 `isRenderNav=false` 回读通过后存在。
-6. `/admin` 只在 `application_entry_policy.entries.admin=include` 且本轮包含应用开发管理时存在。
+6. 完整应用的开发者卡使用 `create-app` 或 `app-list` 的真实 `adminUrl`，与认证方式无关；缺少权威 URL 时回查并说明未完成，不猜测。
 7. 云端和非云端、`platform-shell` 和 `standalone` 的四种组合均有契约测试。
 8. 单页创建/修改/发布仍只交付当前页面，不被完整应用入口矩阵扩张。
-9. 同一验证 URL 在一次交付调用内去重；用户在后续 run 再次要求入口时可重新交付，且平台 mutation 为 0。
+9. 同一验证 URL 在本轮交付中去重；共用 URL 的用途在同一张卡中说明。用户在后续 run 再次要求入口时可重新交付，且平台 mutation 为 0。
+10. 终态批量工具包含全部 artifacts；逐项登记在全部入口处理完成后才结束，部分失败如实说明。
 
 ## 8. 非目标
 

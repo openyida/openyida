@@ -763,20 +763,20 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('页面数据桥或 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`');
     expect(skill).toContain('发布输出出现 `No custom page data sources to preserve`');
     expect(skill).toContain('use_skill("yida-data-source-connectors")');
-    expect(step9).toContain('准备 2-3 句业务交付总结，并给一个名为“应用访问入口”的入口组');
+    expect(step9).toContain('准备 2-3 句业务交付总结，每个真实入口单独生成一张 URL 产物卡');
     expect(step9).toContain('新增、修改或发布单个具体页面时，交付当前页面并保持单页范围');
     expect(step9).toContain('不分前后台时提供经验证的“系统入口”，分前后台或只有访问后台时提供经验证的“业务后台入口”');
-    expect(step9).toContain('一次完整应用 run 交付一组用户可见的“应用访问入口”');
+    expect(step9).toContain('一次完整应用 run 按实际范围交付 2–3 张独立入口卡片');
     expect(step9).toContain('用户或调用方明确要求资源清单、资源 UUID/ID、发布状态或测试数据摘要时');
-    expect(step9).toContain('终态 artifact 的 `description` 包含简洁的“交付清单”');
-    expect(step9).toContain('`notify_human` 是终态交付动作');
-    expect(step9).toContain('终态 artifact 的可见 `description` 是本轮业务总结');
+    expect(step9).toContain('首张入口 artifact 的 `description` 包含简洁的“交付清单”');
+    expect(step9).toContain('先检查当前宿主实际提供的 URL 产物交付工具及参数');
+    expect(step9).toContain('首张卡片同时承载本轮业务总结');
     expect(step9).toContain('每个被 final 声称“已写入”“已验证”或给出记录数的表单/流程');
     expect(step9).toContain('不得把一张表单的 3 条记录复制成其他表单也有 3 条');
     expect(step9).toContain('每个资源数量和数据完成声明都有对应资源自己的成功返回值/readback');
     expect(step9).toContain('已完成订单、客户和商品等核心业务表单');
     expect(step9).toContain('业务后台：`{base_url}/{appType}/workbench`');
-    expect(step9).toContain('前台：`{base_url}/{appType}/custom/{formUuid}`');
+    expect(step9).toContain('访问态前台：`{base_url}/{appType}/custom/{formUuid}`');
     expect(step9).toContain('`application_entry_policy.entries.admin=include`');
     expect(step9).toContain('前台、业务后台、开发者管理后台');
     expect(step9).toContain('不分前后台时为“系统入口、开发者管理后台”');
@@ -844,10 +844,10 @@ describe('OpenYida skill contracts', () => {
     expect(manifest).toContain('yida-requirement-analysis owns shared facts and first-time intake');
     expect(manifest).toContain("mode: 'parallel'");
     expect(manifest).toContain('final_link_policy');
-    expect(manifest).toContain('Return exactly one user-visible application entry group');
+    expect(manifest).toContain('Return up to three separate user-visible application entry cards');
     expect(manifest).toContain('include one concise verified delivery manifest in that description');
     expect(manifest).toContain('every resource count, seed-record count, and completed/verified claim');
-    expect(manifest).toContain('never one artifact or link card per form, process, report');
+    expect(manifest).toContain('Never emit one artifact or link card per form, process, report');
     expect(manifest).toContain('infer standalone when entryMode is missing');
     expect(manifest).toContain('preserve an explicit platform-shell choice and its verified workbenchUrl');
     expect(manifest).toContain('only for standalone pages when get-form-config readback confirms renderNav=false');
@@ -873,7 +873,7 @@ describe('OpenYida skill contracts', () => {
     expect(guide).not.toContain('按 `gmtCreate` / 提交日期倒序');
   });
 
-  test('full app delivery collapses resources and emits the verified application entry matrix', () => {
+  test('full app delivery separates entry cards and summarizes internal resources', () => {
     const root = readSkill('yida-skills/SKILL.md');
     const app = readSkill('yida-skills/skills/yida-app/SKILL.md');
     const step2 = readSkill('yida-skills/skills/yida-app/workflow/step-2-design.md');
@@ -885,15 +885,15 @@ describe('OpenYida skill contracts', () => {
     const feature = readSkill('docs/features/agent-application-entry-links.md');
 
     expect(root).toContain('不得把需求信息文件、PRD、视觉设计、build manifest、资源清单');
-    expect(app).toContain('宿主支持交付工具时，final 只交付一次“应用访问入口”组');
+    expect(app).toContain('宿主支持 URL 产物交付时，每个真实入口单独生成一张卡片，最多三张');
     expect(app).toContain('`url` 是兼容字段，与 `formUrl` 表示同一表单入口');
     const formPage = readSkill('yida-skills/skills/yida-create-form-page/SKILL.md');
     expect(formPage).toContain('应用级使用 `appUrl`、`app_home`、`appType`');
     expect(formPage).toContain('表单级使用 `formUrl`、`form`、`formUuid`');
     expect(formPage).toContain('`url` 继续兼容表单入口');
     expect(step2).toContain('需求文件与实施文档供内部执行，Plan 的 HTML 用于用户查看和确认方案');
-    expect(step9).toContain('一次完整应用 run 交付一组用户可见的“应用访问入口”');
-    expect(step9).toContain('同一应用的后续交付从已有资源和已验证 URL 生成当前 run 的入口组');
+    expect(step9).toContain('一次完整应用 run 按实际范围交付 2–3 张独立入口卡片');
+    expect(step9).toContain('同一应用的后续交付从已有资源和已验证 URL 生成当前 run 的独立入口卡片');
     expect(step9).toContain('资源变更由用户本轮明确要求的变更范围驱动');
     expect(feature).toContain('builder_path.auth.auth_runtime=env_token_bootstrap');
     expect(feature).toContain('can_auto_use=true');
@@ -909,10 +909,10 @@ describe('OpenYida skill contracts', () => {
     expect(step8).toContain('不能因 PRD 漏写字段而跳过');
     expect(step9).toContain('不得静默省略，不能只返回工作台或开发后台');
     expect(pageConfig).toContain('不要求用户额外传开关');
-    expect(feature).toContain('| 仅前台 | 已验证的独立业务入口 |');
-    expect(feature).toContain('| 前后台双入口 | 独立业务入口和业务管理入口 |');
+    expect(feature).toContain('| 仅前台 | 已验证的独立业务入口、开发者后台两张卡 |');
+    expect(feature).toContain('| 前后台双入口 | 独立业务入口和业务管理入口、开发者后台三张卡 |');
     expect(root).toContain('交付卡片的 `description` 写 2-3 句业务交付总结');
-    expect(step9).toContain('宿主没有交付工具时');
+    expect(step9).toContain('宿主没有 URL 产物交付工具时');
   });
 
   test('yida-app validates independently generated PRD and visual design without losing current design contracts', () => {
