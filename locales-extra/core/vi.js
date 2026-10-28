@@ -5,6 +5,7 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
   solution_template: {
     description: 'Mẫu cho Agent cục bộ độc lập: tìm kiếm, liên kết xây dựng AI đám mây và kích hoạt',
     local_agent_only: 'Lệnh mẫu chỉ dành cho Agent cục bộ độc lập đã nhận diện. Trên đám mây, tiếp tục quy trình AI mẫu gốc.',

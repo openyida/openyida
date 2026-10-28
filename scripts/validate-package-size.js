@@ -80,7 +80,10 @@ const path = require('path');
 // QwenWork permission guidance adds one runtime module and 12-locale recovery steps.
 // Node 20.18.1: main 2,669,494 compressed bytes; feature 2,672,505 (+3,011).
 // Round the justified content growth to the next 16 KiB boundary; other caps stay fixed.
-const MAX_TARBALL_BYTES = 2624 * 1024;
+// Plugin lifecycle and frontend deployment add two runtime modules and five
+// skill/reference files. Node 20.20.2 CI measures 2,693,548 compressed bytes;
+// retain the next 16 KiB boundary without changing the other package limits.
+const MAX_TARBALL_BYTES = 2640 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -211,7 +214,9 @@ const MAX_TARBALL_BYTES = 2624 * 1024;
 // 16 KiB boundary; compressed, entry-count and single-file limits stay fixed.
 // QwenWork permission guidance adds one runtime module and localized recovery steps.
 // HEAD baseline (Node 26): 9,846,715 unpacked bytes / 777 files; use the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 9632 * 1024;
+// Include the plugin runtime and deployment guides on top of main's content;
+// retain the existing plugin budget. The merged package has not been measured.
+const MAX_UNPACKED_BYTES = 9696 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -249,7 +254,8 @@ const MAX_UNPACKED_BYTES = 9632 * 1024;
 // GitHub setup keeps installation/detection separate from account actions.
 // Shared page navigation and task-center navigation add exactly two packaged files.
 // QwenWork permission guidance adds exactly one packaged runtime module.
-const MAX_ENTRY_COUNT = 778;
+// Add seven plugin runtime/skill files to main's entry budget.
+const MAX_ENTRY_COUNT = 785;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

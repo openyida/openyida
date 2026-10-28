@@ -5,6 +5,7 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
   solution_template: {
     description: 'स्वतंत्र स्थानीय Agent के लिए टेम्पलेट खोज, क्लाउड AI निर्माण लिंक और सक्रियण',
     local_agent_only: 'टेम्पलेट कमांड पहचाने गए स्वतंत्र स्थानीय Agent के लिए हैं। क्लाउड में मूल टेम्पलेट AI प्रक्रिया जारी रखें।',

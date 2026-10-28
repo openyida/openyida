@@ -67,15 +67,15 @@ jobs:
     - name: Install dependencies
       run: npm ci --ignore-scripts
 
-    # Native-process probes run serially so concurrent Jest workers cannot starve
-    # short-lived child processes while they publish their readiness receipts.
+    # Native-process and PowerShell ACL probes run serially so concurrent Jest
+    # workers cannot starve readiness receipts or bulk private-directory creation.
     - name: Run Windows process probes
       if: runner.os == 'Windows'
-      run: npm run test:unit -- --runInBand --runTestsByPath tests/provider-preflight.test.js tests/agent-background-startup.test.js
+      run: npm run test:unit -- --runInBand --runTestsByPath tests/provider-preflight.test.js tests/agent-background-startup.test.js tests/agent-private-directory-windows.test.js
 
     - name: Run remaining Windows tests
       if: (success() || failure()) && runner.os == 'Windows'
-      run: npm run test:unit -- --testPathIgnorePatterns tests/provider-preflight.test.js tests/agent-background-startup.test.js
+      run: npm run test:unit -- --testPathIgnorePatterns tests/provider-preflight.test.js tests/agent-background-startup.test.js tests/agent-private-directory-windows.test.js
 
     - name: Run tests
       if: runner.os != 'Windows'

@@ -348,6 +348,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida app-settings <appType> [--section theme\|basic\|data-card\|cool-card] [--json]` | 获取主题、业务前后台、原生数据卡片和酷卡片管理入口 |
 | `openyida cool-card <list\|templates\|create\|get> <appType> [cardPageCode] [--type im\|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]` | 创建和读取宜搭原生酷卡片（交互卡片与置顶卡片） |
 | `openyida data-card <list\|create\|get\|save\|publish\|probe\|release-get\|release-save\|release-check\|release-test\|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>\|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published\|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]` | 创建、配置、发布原生数据卡片并管理投放播报 |
+| `openyida plugin <dev-list\|get\|version-list\|version-get\|extensions\|installed-list\|installed-get\|runtime-list\|probe\|create\|create-version\|save-dev\|configure\|enable\|disable\|upgrade\|uninstall> [pluginId] [version] [options]` | 管理宜搭平台插件开发版本、安装状态与运行时注册 |
 | `openyida app-entry get <appType> [--json]` | 读取应用前台和业务工作台入口 |
 | `openyida app-entry set <appType> [--frontend <url>\|--frontend-page <formUuid>] [--management <url>\|--management-page <formUuid>] [--clear-frontend] [--clear-management] [--json]` | 登记应用访问入口（局部更新并回读） |
 | `openyida app-list [--type managed\|created] [--page N] [--size N]` | 分页查询我管理的或我创建的应用 |
