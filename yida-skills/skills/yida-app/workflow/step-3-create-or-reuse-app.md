@@ -37,8 +37,8 @@ Fast / Plan 已选主题是全应用决定，本步骤必须保存同一份应�
 
    主题文件的职责与生效边界见 [应用主题 CSS 的职责](../../yida-design/workflow/output-design.md#应用主题-css-的职责)，使用当前流程记录的实际 CSS 路径。
 
-   `create-app` 只负责获取应用，创建阶段不提交 `colour`、`navTheme`、`layoutDirection` 等应用设置，统一等待主题 CSS 生成后同步更新。`update-app --theme-file` 上传 CSS 到主题资源接口，再调用 `updateApp` 保存 `colour=custom`、从 `--color-brand1-6` 提取的 `themeColor`、含资源 URL 的 `customThemeStyle` 和导航配置；不要额外传 `--theme-color`。用户明确只创建空壳、暂不配置主题，或旧主题未取得应用层注入确认时跳过这一步；保留平台主题并记录实际覆盖范围。
-   必须收到 `themeVerification.verified=true` 且 `customThemeStyle.enabled=true`、`cssUrl` 非空，才能确认应用设置已绑定主题资源。失败时先核对错误原因；注入确认缺失时停止上传并向用户说明范围，不能自动追加确认参数。其他错误使用同一个 `appType` 修复并重试 `update-app --theme-file`，不得重复创建应用。CSS 后续有修改时也必须重新执行该更新命令，仅修改本地文件不会更新应用设置。
+   `create-app` 只取得应用，不配置主题。CSS 生成后由 `update-app --theme-file` 上传并保存 `colour=custom`、CSS 主色、资源 URL 与导航；不另传 `--theme-color`。空壳请求、暂不换肤或旧主题未获注入确认时，保留平台主题并说明范围。
+   按[主题上传与绑定](../../../references/execution-rules.md#主题上传与绑定)核对并保存 `themeUpload` 和 `themeVerification` 原始回执。仅 `verified=true` 不证明本轮上传。失败先只读核实，保留同一 appType 及已有资源，不自动追加注入确认参数、盲目重传或重建应用；CSS 修改后旧回执失效。
 6. 已有 app 不自动改名。外部工具预创建 app 时，OpenYida 侧只复用 `appType`，但用户明确要求应用级换肤时可以执行上一步主题更新。
 
 ## 应用导航配置

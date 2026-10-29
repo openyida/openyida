@@ -1255,9 +1255,10 @@ describe('compileCanvasLocal', () => {
   test('Yida API bridge forwards form, process, design, and runtime-discovered methods', async () => {
     const hadWindow = Object.prototype.hasOwnProperty.call(global, 'window');
     const previousWindow = global.window;
-    const parentWindow = {};
-    const topWindow = {};
-    const rootWindow = { parent: parentWindow, top: topWindow };
+    const location = { origin: 'https://tenant.example' };
+    const parentWindow = { location };
+    const topWindow = { location };
+    const rootWindow = { location, parent: parentWindow, top: topWindow };
     const yida = {
       searchFormDatas: jest.fn((params) => ({ api: 'searchFormDatas', params })),
       saveFormData: jest.fn((params) => ({ api: 'saveFormData', params })),
@@ -1380,8 +1381,9 @@ describe('compileCanvasLocal', () => {
       }),
     }));
     const rootWindow = {
-      parent: {},
-      top: {},
+      location: { origin: 'https://tenant.example' },
+      parent: { location: { origin: 'https://tenant.example' } },
+      top: { location: { origin: 'https://tenant.example' } },
       fetch,
       g_config: { _csrf_token: 'csrf-test' },
     };

@@ -86,6 +86,8 @@ Plan 的 `visualStyle.tokens` 必须显式提供：画布 `--pod-page-bg-color`�
 
 ## 验收与维护
 
+上传、配置回读和页面效果按[证据规则](../../../references/execution-rules.md#发布与验收证据)分别判定；缺少浏览器时标记视觉待验证。
+
 看应用整体，覆盖导航、自定义页、提交、编辑、详情、数据管理内嵌、抽屉和移动端，核对正文/底栏对齐、背景连续、hover/focus、禁用/错误和窄屏布局。应用主题与表单组件树共同作为验收基线。命名主题同时对照原模板与获批方案，检查浏览器实际生效的图片、圆角、阴影、分割线及导航展开/折叠；不能仅凭 token、CSS 文件存在或上传成功判定通过。
 
 每个主题目录的 `design.md` 与 `app_theme.css` 配对维护：设计文档记录 token 与视觉约束，配对 CSS 保留实际选择器规则。导航、应用框架、自定义页面、表单和详情的颜色、边框、hover、圆角、阴影、字体与密度在同一文件中定义。`form-layout.json` 维护表单结构，`app_theme.css` 的既有专属选择器是维护来源；也可在同目录 `theme-rules.css` 独立维护新增规则，构建时合入独立样式块；不另建导航配色库或应用风格配置覆盖它们。修改设计后运行 `node scripts/build-application-styles.js`，脚本保留现有配对 CSS 原文，不因设计 token 与 CSS 不同就覆盖声明；仅缺少配对 CSS 的新模板使用公共骨架。脚本不改写设计正文、Token、表单结构或索引。`npm run check:themes`（即 `node scripts/build-application-styles.js --check`）检查索引内配对 CSS 的同步及静态配色问题，已接入 `check:quick` 和 CI。仓库维护基线记录已确认模板的源码摘要和已知审计结果；原样模板的已知风险继续报告，新增风险、对比度恶化或风险模板源码变化仍阻断，不能自动更新基线消除失败。`node scripts/build-application-styles.js --check --strict-palette` 不使用基线，完整报告并阻断所有配色风险及未解析底面。基线仅用于仓库维护，不放宽项目设计或生成时的配色校验，也不代表浏览器验收通过。新增或恢复模板时添加三文件目录和索引项；未登记模板可保留在目录中，但不参与选型、导出、Plan 生成和默认 CSS 同步检查。已有 Plan 若引用已移出索引的主题，需要恢复该索引记录后才能继续物化；已生成的项目设计和 CSS 可继续使用。随后运行模板、Plan/Fast、原生布局测试及 `check:skills`。该脚本仅用于仓库维护，应用搭建使用上述 CLI。

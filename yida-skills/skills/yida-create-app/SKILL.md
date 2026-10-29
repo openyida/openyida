@@ -117,11 +117,11 @@ openyida create-app --name "<应用名>" --desc "<描述>"
 openyida update-app <appType> --theme-file <app-theme.css> --nav-theme light --logo-source appIcon --layout top --show-app-nav
 ```
 
-CLI 会先校验主题文件完整声明平台实际生成的 `--color-brand1-1/2/3/5/6/9/10`，并允许不存在 `--color-brand1-4/7/8`。`update-app --theme-file` 上传 CSS，再调用应用基础设置的 `updateApp` 接口联合保存从 `--color-brand1-6` 提取的 `themeColor`、`customThemeStyle`、`navTheme`、`logoSource` 和 `layoutDirection`。更新主题时，系统应用图标会同步保存为 `iconName%%主题色HEX`；外链或上传图片图标保持原值。
+CLI 校验主题文件完整声明平台实际生成的 `--color-brand1-1/2/3/5/6/9/10`，允许缺少 4/7/8。`update-app --theme-file` 联合保存 CSS 资源、主色及导航设置；系统应用图标会同步保存为 `iconName%%主题色HEX`，图片图标保持原值。
 
 `colour` 只保存平台 key，实际色值保存在 `themeColor`。导入主题文件时自动使用 `colour=custom`，无需手动填写；显式 `--colour custom` 需要主题文件或有效主题色，已有有效主题色可沿用。平台预置 key 不能与自定义 CSS 或 `--theme-color` 同传；切换预置主题会清空旧自定义 CSS。
 
-更新结果必须包含 `themeVerification.verified=true` 和非空的 `customThemeStyle.cssUrl`，证明主题资源已绑定到应用设置；仅有本地 CSS 或创建成功不代表主题已应用。回读失败时保留已有 appType，修复后重试 `update-app --theme-file`，不要重复创建应用。修改 CSS 后也必须重新上传保存。
+按[主题上传与绑定](../../references/execution-rules.md#主题上传与绑定)核对本轮 `themeUpload` 与绑定回读。仅 `verified=true` 不证明上传；失败先只读核实，保留 appType 和已上传资源，不盲目重传或重建。CSS 修改后旧回执失效；页面效果仅由本地 Agent 按验收规则核验。
 
 完整应用主题 key、颜色倾向和 token 变量统一维护在 `yida-design/references/theme/theme-token-presets.md`，本技能不重复维护完整清单。
 

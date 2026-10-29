@@ -130,7 +130,7 @@ openyida list-forms <appType> --keyword <页面名>
 以下命令和字段供 Agent 判断真实完成状态，保留在内部执行记录。最终回复、交付卡片和后续建议统一遵循[完成总结](../../references/user-facing-summary.md)，无需展示校验字段或执行过程。
 
 - Canvas 发布完成的内部判定：成功执行 `openyida publish <source> <appType> <displayPageFormUuid> --canvas --health-check`，且结果包含 `publishMode=canvas`、`publishReadbackVerified=true`、`healthCheck.ok=true`、`healthCheck.readback.hasYidaCodeCanvas=true` 和 `runtimeCodeBytes>0`。对用户按本轮业务改动表述，例如“已将工作台的‘待清洁房间’改为‘待清洁’，并更新页面”。
-- `--health-check` 是发布内容读回校验，不是浏览器运行态 smoke。输出中的 `runtimeSmokeVerified=false`、`runtimeSmokeStatus=not_checked` 表示本命令没有验证页面渲染与交互；需要宣称“页面可运行”时，必须另有专项运行态证据。
+- `--health-check` 是发布内容读回校验，不是浏览器运行态 smoke。输出中的 `runtimeSmokeVerified=false`、`runtimeSmokeStatus=not_checked` 表示本命令没有验证页面渲染与交互；需要宣称“页面可运行”时，必须另有专项运行态证据。按[仅本地浏览器验收](../../references/execution-rules.md#本地浏览器验收)核验，云端/远程或能力不足时保留发布结果并标记页面待验证。
 - `<source>` 必须是本轮实际 Write/Edit/Create 过的页面源码；`<displayPageFormUuid>` 必须是已解析的 display 自定义页面。发布了其他文件或其他目标页面，不满足本轮源码修改的 doneWhen。
 - 若 publish 没执行、执行失败、目标不明、登录态/组织不一致或用户要求先暂停，保持未发布状态。已完成修改时可说“已完成修改，待发布”；确实需要用户操作时，用一句话说明影响和必要下一步。CLI 指令仅在用户明确询问命令或用法时提供。
 - 平台 JSX 组件页面的 `check-page` / `compile`、Canvas 页面统一入口 `openyida compile <源文件> --json` 都是发布前 guard，不是远端完成证据。
