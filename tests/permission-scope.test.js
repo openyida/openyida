@@ -30,8 +30,8 @@ const existing = {
   dataPermit: JSON.stringify({ rule: [{ type: 'ALL', value: 'y' }] }),
   operatePermit: JSON.stringify({ OPERATE_VIEW: 'y', OPERATE_EDIT: 'y' }),
   fieldPermit: JSON.stringify({ fieldRange: 'CUSTOM', marker: 'keep', fieldStatus: [
-    { fieldName: 'numberField_cost', label: '成本', componentName: 'NumberField', value: 'FORM_FIELD_HIDDEN' },
-    { fieldName: 'textField_name', label: '客户名称', componentName: 'TextField', value: 'FORM_FILED_EDIT' },
+    { label: 'numberField_cost', fieldName: '成本', componentName: 'NumberField', value: 'FORM_FIELD_HIDDEN' },
+    { label: 'textField_name', fieldName: '客户名称', componentName: 'TextField', value: 'FORM_FILED_EDIT' },
   ] }),
 };
 
@@ -79,8 +79,8 @@ describe('permission owner/role/field shorthand and matrix availability', () => 
       fieldId: 'employeeField_owner', componentType: 'EmployeeField', op: 'contain',
       value: '${loginUser}', ruleValue: '${loginUser}', extValue: 'field', valueType: 'value',
     });
-    expect(result.after.fieldPermit.fieldStatus.find(f => f.fieldName === 'numberField_cost').value).toBe('FORM_FIELD_HIDDEN');
-    expect(result.after.fieldPermit.fieldStatus.find(f => f.fieldName === 'textField_name').value).toBe('FORM_FIELD_VIEW');
+    expect(result.after.fieldPermit.fieldStatus.find(f => f.label === 'numberField_cost').value).toBe('FORM_FIELD_HIDDEN');
+    expect(result.after.fieldPermit.fieldStatus.find(f => f.label === 'textField_name').value).toBe('FORM_FIELD_VIEW');
     expect(result.otherPackagesToReview).toHaveLength(1);
     expect(utils.httpGet.mock.calls.some(call => call[1].includes('/query/feature/'))).toBe(false);
   });
@@ -114,15 +114,85 @@ describe('permission owner/role/field shorthand and matrix availability', () => 
     const result = await run(['APP-X', 'FORM-X', '--package-uuid', 'pkg-sales',
       '--field-access', 'numberField_cost:view']);
     expect(result.verification.targetDimensions).toEqual(['fieldPermit']);
+    expect(result.effectiveAccessVerified).toBe(false);
     const updated = packages[0];
     expect(updated.roleData).toBe(existing.roleData);
     expect(updated.dataPermit).toBe(existing.dataPermit);
     expect(updated.operatePermit).toBe(existing.operatePermit);
     expect(JSON.parse(updated.fieldPermit)).toMatchObject({ marker: 'keep', fieldStatus: [
-      { fieldName: 'numberField_cost', value: 'FORM_FIELD_VIEW' },
-      { fieldName: 'textField_name', value: 'FORM_FILED_EDIT' },
+      { label: 'numberField_cost', value: 'FORM_FIELD_VIEW' },
+      { label: 'textField_name', value: 'FORM_FILED_EDIT' },
     ] });
   });
+
+  test('creates native field IDs in label and saves only the requested editable field', async () => {
+    const result = await run(['APP-X', 'FORM-X', '--create', '--name', '仅日期可编辑',
+      '--field-default', 'view', '--field-access', 'textField_name:edit']);
+    expect(result.effectiveAccessVerified).toBe(false);
+    const status = JSON.parse(packages[0].fieldPermit).fieldStatus;
+    expect(status).toHaveLength(5);
+    expect(status.find(item => item.label === 'textField_name')).toEqual({
+      label: 'textField_name', fieldName: '客户名称', componentName: 'TextField', value: 'FORM_FILED_EDIT',
+    });
+    // Model the native lookup by label, rather than just echoing the submitted object.
+    const nativePermissions = new Map(status.map(item => [item.label, item.value]));
+    expect(nativePermissions.get('numberField_cost')).toBe('FORM_FIELD_VIEW');
+    expect(nativePermissions.get('textField_name')).toBe('FORM_FILED_EDIT');
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  });
+
+  test('adds a missing field by its ID while preserving unrelated native entries', async () => {
+    const permit = JSON.parse(existing.fieldPermit);
+    permit.fieldStatus.push({ label: 'block_1', fieldName: '布局', componentName: 'Block',
+      value: 'FORM_FIELD_HIDDEN', extension: { keep: true } });
+    packages = [{ ...existing, fieldPermit: JSON.stringify(permit) }];
+    await run(['APP-X', 'FORM-X', '--package-uuid', 'pkg-sales', '--field-access', 'employeeField_owner:view']);
+    const after = JSON.parse(packages[0].fieldPermit);
+    expect(after.fieldStatus.slice(0, 3)).toEqual(permit.fieldStatus);
+    expect(after.fieldStatus[3]).toEqual({ label: 'employeeField_owner', fieldName: '客户负责人',
+      componentName: 'EmployeeField', value: 'FORM_FIELD_VIEW' });
+  });
+
+  test.each(['numberField_cost:view', 'employeeField_owner:view'])(
+    'stops before writes for reversed legacy mappings instead of migrating unrelated permissions: %s', async change => {
+      const permit = JSON.parse(existing.fieldPermit);
+      permit.fieldStatus = permit.fieldStatus.map(item => ({ ...item, label: item.fieldName, fieldName: item.label }));
+      packages = [{ ...existing, fieldPermit: JSON.stringify(permit) }];
+      await expect(run(['APP-X', 'FORM-X', '--package-uuid', 'pkg-sales', '--field-access', change]))
+        .rejects.toMatchObject({ code: 'PERMISSION_SCOPE_INVALID', details: { remoteWrites: 0 } });
+      expect(utils.httpPost).not.toHaveBeenCalled();
+    });
+
+  test('checks subtable parents by native field ID and accepts both requested edits', async () => {
+    await run(['APP-X', 'FORM-X', '--create', '--name', '明细', '--field-default', 'view',
+      '--field-access', 'employeeField_nested:edit', '--field-access', 'tableField_lines:edit']);
+    const status = JSON.parse(packages[0].fieldPermit).fieldStatus;
+    expect(status.filter(item => item.value === 'FORM_FILED_EDIT').map(item => item.label))
+      .toEqual(['tableField_lines', 'employeeField_nested']);
+  });
+
+  test('matches identical display names by field ID without merging their permissions', async () => {
+    const permit = JSON.parse(existing.fieldPermit);
+    permit.fieldStatus.forEach(item => { item.fieldName = '同名字段'; });
+    packages = [{ ...existing, fieldPermit: JSON.stringify(permit) }];
+    await run(['APP-X', 'FORM-X', '--package-uuid', 'pkg-sales', '--field-access', 'numberField_cost:view']);
+    expect(JSON.parse(packages[0].fieldPermit).fieldStatus).toEqual([
+      { ...permit.fieldStatus[0], value: 'FORM_FIELD_VIEW' }, permit.fieldStatus[1],
+    ]);
+  });
+
+  test.each(['reversed', 'duplicate ID', 'wrong component'])(
+    'rejects invalid full field-permission JSON with zero writes: %s', async invalidCase => {
+      const permit = JSON.parse(existing.fieldPermit);
+      if (invalidCase === 'reversed') {
+        permit.fieldStatus[0] = { ...permit.fieldStatus[0], label: '成本', fieldName: 'numberField_cost' };
+      } else if (invalidCase === 'duplicate ID') {
+        permit.fieldStatus.push({ ...permit.fieldStatus[0], value: 'FORM_FILED_EDIT' });
+      } else { permit.fieldStatus[0].componentName = 'TextField'; }
+      await expect(run(['APP-X', 'FORM-X', '--create', '--name', '错误映射',
+        '--field-permission', JSON.stringify(permit)])).rejects.toThrow();
+      expect(utils.httpPost).not.toHaveBeenCalled();
+    });
 
   test('previews role replacements, preserves exclusions and requires confirmation to save', async () => {
     packages = [existing];

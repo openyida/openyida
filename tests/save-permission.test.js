@@ -40,12 +40,16 @@ const mockAuthData = {
 const customFieldPermit = {
   fieldRange: 'CUSTOM',
   fieldStatus: [{
-    label: '客户名称',
-    fieldName: 'textField_a',
+    label: 'textField_a',
+    fieldName: '客户名称',
     componentName: 'TextField',
     value: 'FORM_FIELD_VIEW',
   }],
 };
+
+const schemaResult = { success: true, content: { pages: [{ componentsTree: [
+  { componentName: 'TextField', props: { fieldId: 'textField_a', label: '客户名称' } },
+] }] } };
 
 function listResult(packages) {
   return { success: true, content: { formPermit: packages } };
@@ -66,7 +70,8 @@ function packageFromLastWrite(packageUuid) {
 function mockCreateReadback(packageUuid) {
   utils.httpGet
     .mockResolvedValueOnce(listResult([]))
-    .mockImplementation(async () => listResult([packageFromLastWrite(packageUuid)]));
+    .mockImplementation(async (_base, url) => url.includes('getFormSchema')
+      ? schemaResult : listResult([packageFromLastWrite(packageUuid)]));
 }
 
 describe('save-permission command', () => {
@@ -78,7 +83,8 @@ describe('save-permission command', () => {
     jest.clearAllMocks();
     utils.httpGet.mockReset();
     utils.httpPost.mockReset();
-    utils.httpGet.mockImplementation(async () => {
+    utils.httpGet.mockImplementation(async (_base, url) => {
+      if (url.includes('getFormSchema')) { return schemaResult; }
       const permitPackage = packageFromLastWrite();
       return listResult(permitPackage ? [permitPackage] : []);
     });
@@ -122,7 +128,7 @@ describe('save-permission command', () => {
       JSON.stringify({ role: 'DEFAULT', ...customFieldPermit }),
     ]);
 
-    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+    expect(utils.httpGet).toHaveBeenCalledTimes(3);
     expect(utils.httpPost).toHaveBeenCalledTimes(1);
     const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
     expect(body).toMatchObject({

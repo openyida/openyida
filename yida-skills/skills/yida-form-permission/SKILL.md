@@ -190,8 +190,8 @@ ID、名称及条件按实际查询结果替换；示例的成员字段条件只
   "fieldRange": "CUSTOM",
   "fieldStatus": [
     {
-      "label": "客户名称",
-      "fieldName": "textField_xxx",
+      "label": "textField_xxx",
+      "fieldName": "客户名称",
       "componentName": "TextField",
       "value": "FORM_FIELD_VIEW"
     }
@@ -199,7 +199,9 @@ ID、名称及条件按实际查询结果替换；示例的成员字段条件只
 }
 ```
 
-`value` 支持 `FORM_FIELD_VIEW`、`FORM_FILED_EDIT`（平台原始拼写）、`FORM_FIELD_HIDDEN`、`FORM_FIELD_ENCRYPT`。修改前从查询结果复制真实 label、fieldName 和 componentName，只改变目标项的 value。
+`label` 填真实字段 ID，`fieldName` 填字段名称。`value` 支持 `FORM_FIELD_VIEW`、`FORM_FILED_EDIT`（平台原始拼写）、`FORM_FIELD_HIDDEN`、`FORM_FIELD_ENCRYPT`。修改前从查询结果复制真实字段配置，只改变目标项的 value。
+
+保存回读确认配置一致后，再用目标账号验证可编辑范围。`effectiveAccessVerified: false` 表示尚未验证实际生效权限；遇到字段映射错误时，先核对原生配置，再明确指定需要修正的字段权限。
 
 ## 失败处理
 
