@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.10.29-1] - 2026-10-29
+
+- 优化agent工具总结功能。
+
 ## [2026.10.29-beta.3] - 2026-10-29
 
 - 支持千问办公个人及非钉组织的 ODS 登录，修复组织编码校验、已有 profile 重登和网页沙箱组织切换。

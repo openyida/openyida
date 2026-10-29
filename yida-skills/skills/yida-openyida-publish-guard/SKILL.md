@@ -5,6 +5,8 @@ description: Prevent stale local OpenYida custom page source from overwriting li
 
 # OpenYida Publish Guard
 
+For progress, completion, delivery cards, and follow-up suggestions, follow [user-facing summaries](../../references/user-facing-summary.md). Describe only the requested business change and verified outcome; keep source paths, commands, readback fields, and diagnostics in internal records.
+
 ## Purpose
 
 Use this skill whenever an existing OpenYida custom page is about to be edited or published from local source.

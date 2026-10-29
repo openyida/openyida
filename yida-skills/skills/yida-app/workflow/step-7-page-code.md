@@ -25,7 +25,7 @@
 
 **编码前置条件（MUST）**：新建 Canvas 页面或调整视觉时，执行页面开发的模型必须先完整读取 [canvas-style-implementation-guide.md](../../yida-canvas-custom-page/references/canvas-style-implementation-guide.md)，按 [编码前必读](../../yida-canvas-custom-page/SKILL.md#编码前必读must) 记录适用规则与落点，再写源码。派发页面任务时必须带上这个文件路径和读取要求；不能只传递设计摘要或认为主流程读过就等于页面实现者读过。
 
-先读取 `constraints.prohibitedActions`。命中 `page-source` 时，本步骤只能做 Read、编译/静态检查等只读诊断，不得 Write/Edit/Create 页面源码，也不得用脚本、格式化器或生成器间接改写；输出应明确“源码未修改”并跳过依赖源码变更的发布。未命中时才执行下列源码实现动作。
+先读取 `constraints.prohibitedActions`。命中 `page-source` 时，本步骤只能做 Read、编译/静态检查等只读诊断，不得 Write/Edit/Create 页面源码，也不得用脚本、格式化器或生成器间接改写；内部记录源码未修改，对用户说明“本轮按要求保留原页面”，并跳过依赖源码变更的发布。未命中时才执行下列源码实现动作。
 
 当前页需要图片时，先查看已有素材任务状态，同时编写布局、文字、真实数据绑定和交互。尚未启动时，按 [后台启动与接收](../../yida-image-assets/SKILL.md#后台启动与接收) 派发 `yida-image-assets`，随后继续页面开发。接图时读取所属页结果，独立工作完成后才等待该页图片。使用 `--design design.md --page-id <pageId>` 核对当前页槽位并发检查图片，允许外链就直接使用；上传时追加 `--app-type <真实appType>`。结果写入独立的 `asset-manifests/<pageId>.json`，上传失败时保留已验证且允许外链的原地址。读取 manifest 中当前页 `pages[].materialStatus`；该页为 `final` 时只使用 `assets[].materialStatus=final` 的图片。必需槽位缺口只阻塞当前页接图与验收，总状态 `draft` 不阻塞其他已就绪页面。
 

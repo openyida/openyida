@@ -29,7 +29,7 @@ openyida login --check-only --json
 - snapshot 返回 `login.auth_source=env` 或 `failure_reason=env_token_missing` 时，进入运行环境注入 token 模式。凭证只来自运行环境注入的 `OPENYIDA_ACCESS_TOKEN`、`OPENYIDA_REFRESH_TOKEN` 等环境变量。
 - 除上述千问办公网页态云端免登外，其他 `login.auth_mode=token` 场景使用默认 OAuth token session。
 - 不要从 `.cache/cookies*.json` 推断登录态。
-- OAuth 浏览器归属以 `builder_path.interactive_login.mode` 为准：`not_required` 不触发 OAuth；`cli_auto_open` 执行 `openyida login`；`caller_open_url` 执行 `openyida login --no-browser`，由 Agent 优先调用沙箱浏览器 / 内置 Browser 打开输出 URL 一次；`unsupported` 停止说明环境没有可用浏览器能力，不要默认安装 Playwright。
+- OAuth 浏览器归属以 `builder_path.interactive_login.mode` 为准：`not_required` 不触发 OAuth；`cli_auto_open` 执行 `openyida login`；`caller_open_url` 执行 `openyida login --no-browser`，由 Agent 优先调用沙箱浏览器 / 内置 Browser 打开输出 URL 一次；`unsupported` 停止并对用户说明“当前无法打开登录页面，暂时无法继续操作宜搭”，不要默认安装 Playwright。
 
 ## 判断表
 
@@ -43,7 +43,7 @@ openyida login --check-only --json
 | snapshot 返回 `auth_source=env` / `failure_reason=env_token_missing` | 进入运行环境注入 token 模式；缺 token 时停止，让 Codex、yida-agent 等宿主注入 `OPENYIDA_ACCESS_TOKEN` 或 `OPENYIDA_REFRESH_TOKEN`；不要执行 OAuth |
 | `auth_mode=token`，未登录，且 `interactive_login.mode=cli_auto_open` | 只执行一次 `openyida login`，等待该命令结束，并使用其最终 JSON 判断结果 |
 | `auth_mode=token`，未登录，且 `interactive_login.mode=caller_open_url` | 只执行一次 `openyida login --no-browser`，由 Agent 优先调用沙箱浏览器 / 内置 Browser 打开输出 URL 一次，并等待原命令结束；无浏览器工具或调用失败时才让用户手动打开 |
-| `auth_mode=token`，未登录，且 `interactive_login.mode=unsupported` | 停止并说明当前运行环境没有桌面浏览器或 Agent 浏览器能力 |
+| `auth_mode=token`，未登录，且 `interactive_login.mode=unsupported` | 停止并对用户说明“当前无法打开登录页面，暂时无法继续操作宜搭” |
 | `auth_mode=token`，access token 过期 | 执行 `openyida auth refresh`；仍失败且 snapshot 未返回 env 注入时，再执行 `openyida login` |
 
 ## Token 模式命令

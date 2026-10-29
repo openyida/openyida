@@ -13,7 +13,7 @@ description: 将已编写的宜搭自定义页面源码发布或更新到指定�
 
 自定义页替换 UI 组件是允许的；发布前须有组件替换记录和等价绑定核验，业务实现不变，事件参数、触发次数、请求/提交、权限及状态行为保持原样。编译和发布读回不会自动证明业务未改，缺少此检查时不得宣称业务保持不变。
 
-本技能负责三件事：确认发布目标、执行 `openyida publish`（包含必要编译和 Schema 写入）、给出 final 证据。新建或默认自定义页面源码先由 `yida-canvas-custom-page` 产出。缺少自定义页面容器时，先交给 `yida-create-page` 创建后再回来发布。
+本技能负责三件事：确认发布目标、执行 `openyida publish`（包含必要编译和 Schema 写入）、核实结果并用业务语言交付。新建或默认自定义页面源码先由 `yida-canvas-custom-page` 产出。缺少自定义页面容器时，先交给 `yida-create-page` 创建后再回来发布。
 
 ## 发布目标确认
 
@@ -125,12 +125,14 @@ openyida list-forms <appType> --keyword <页面名>
 
 只选择 `formType=display` 的 `formUuid` 作为发布目标。源码里用于 `this.utils.yida` 读写数据的普通表单常量（如 `FORM_SKILL`、`FORM_DATA`、`FORM_TABLE`）通常是数据底表，不能作为 `openyida publish` 的第三个参数。
 
-## Final 证据契约
+## 内部发布证据
 
-- final 中“Canvas 页面已更新 / 已重新发布”的依据是成功的 `openyida publish <source> <appType> <displayPageFormUuid> --canvas --health-check`，且结果包含 `publishMode=canvas`、`publishReadbackVerified=true`、`healthCheck.ok=true`、`healthCheck.readback.hasYidaCodeCanvas=true` 和 `runtimeCodeBytes>0`。
+以下命令和字段供 Agent 判断真实完成状态，保留在内部执行记录。最终回复、交付卡片和后续建议统一遵循[完成总结](../../references/user-facing-summary.md)，无需展示校验字段或执行过程。
+
+- Canvas 发布完成的内部判定：成功执行 `openyida publish <source> <appType> <displayPageFormUuid> --canvas --health-check`，且结果包含 `publishMode=canvas`、`publishReadbackVerified=true`、`healthCheck.ok=true`、`healthCheck.readback.hasYidaCodeCanvas=true` 和 `runtimeCodeBytes>0`。对用户按本轮业务改动表述，例如“已将工作台的‘待清洁房间’改为‘待清洁’，并更新页面”。
 - `--health-check` 是发布内容读回校验，不是浏览器运行态 smoke。输出中的 `runtimeSmokeVerified=false`、`runtimeSmokeStatus=not_checked` 表示本命令没有验证页面渲染与交互；需要宣称“页面可运行”时，必须另有专项运行态证据。
 - `<source>` 必须是本轮实际 Write/Edit/Create 过的页面源码；`<displayPageFormUuid>` 必须是已解析的 display 自定义页面。发布了其他文件或其他目标页面，不满足本轮源码修改的 doneWhen。
-- 若 publish 没执行、执行失败、目标不明、登录态/组织不一致或用户要求先暂停，final 只能说“源码已修改，尚未发布”，并给出下一步需要执行的 publish 命令或阻塞原因。
+- 若 publish 没执行、执行失败、目标不明、登录态/组织不一致或用户要求先暂停，保持未发布状态。已完成修改时可说“已完成修改，待发布”；确实需要用户操作时，用一句话说明影响和必要下一步。CLI 指令仅在用户明确询问命令或用法时提供。
 - 平台 JSX 组件页面的 `check-page` / `compile`、Canvas 页面统一入口 `openyida compile <源文件> --json` 都是发布前 guard，不是远端完成证据。
 
 ## 数据源保留
@@ -158,7 +160,7 @@ openyida list-forms <appType> --keyword <页面名>
 
 这部分不是技能路由说明；它只是发布命令对不同源码扩展名的真实编译行为。
 
-## 输出
+## CLI 输出（内部核验）
 
 ```json
 {"success":true,"formUuid":"FORM-XXX","version":0,"url":"{base_url}/APP_XXX/custom/FORM-XXX","standaloneUrl":"{base_url}/APP_XXX/custom/FORM-XXX","workbenchUrl":"{base_url}/APP_XXX/workbench/FORM-XXX","navigationVerification":{"renderNav":false,"verified":true},"navigationWarning":null,"publishMode":"canvas","publishReadbackVerified":true,"warnings":[],"runtimeSmokeVerified":false,"runtimeSmokeStatus":"not_checked","healthCheck":{"ok":true,"mode":"publish_readback","expectedPublishMode":"canvas","displayComponentPresent":true,"publishedContentMatched":true,"readback":{"hasYidaCodeCanvas":true,"runtimeCodeBytes":1024}}}

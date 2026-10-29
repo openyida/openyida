@@ -207,8 +207,8 @@ const MAX_TARBALL_BYTES = 2656 * 1024;
 // QwenWork create-app/create-page guidance and beta metadata add 3,449 bytes:
 // Node 20.18.1 measures 9,850,164 unpacked bytes / 777 files. Use the next
 // 16 KiB boundary; compressed, entry-count and single-file limits stay fixed.
-// 同一合并包实测解包为 9,978,115 字节；取下一档 16 KiB 边界，单文件上限保持不变。
-const MAX_UNPACKED_BYTES = 9760 * 1024;
+// 合并 main 的业务交付规范后实测解包为 9,997,954 字节；取下一档 16 KiB 边界，单文件上限保持不变。
+const MAX_UNPACKED_BYTES = 9776 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -245,11 +245,12 @@ const MAX_UNPACKED_BYTES = 9760 * 1024;
 // Solution Center templates add their runtime and skill to the stacked release.
 // GitHub setup keeps installation/detection separate from account actions.
 // Shared page navigation and task-center navigation add exactly two packaged files.
-// 合并后的源码包实测 794 个文件；beta 可选安装器额外占 1 个文件。
-const MAX_ENTRY_COUNT = 795;
+// 合并 main 的业务总结参考文档后，包含 beta 可选安装器的包实测为 796 个文件。
+const MAX_ENTRY_COUNT = 796;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'yida-skills/references/user-facing-summary.md',
   'lib/navigation/page-navigation.js',
   'lib/task-center/navigation.js',
   'lib/solution-template/solution-template.js',

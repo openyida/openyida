@@ -1555,7 +1555,12 @@ describe('CLI offline smoke', () => {
       });
       expect(summary.builder_path.interactive_login).toMatchObject({
         mode: 'cloud_token',
-        browser_owner: 'none',
+        browser_owner: 'cli_if_auth_required',
+        oauth_fallback: {
+          mode: 'caller_open_url',
+          browser_owner: 'agent_browser',
+          url_source: 'login_command_stderr',
+        },
         recommended_command: 'openyida login --qwenwork --json',
         playwright_required: false,
       });
