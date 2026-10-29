@@ -336,7 +336,7 @@
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
       "description": "创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。由 yida-prd 和 yida-design 同时准备业务与基础视觉，校验后创建或复用资源；表单/流程先于自定义页面。页面 UI 按已确认设计实现，代码示例按需参考；发布后优先按 PRD 导航顺序排序，检查后交付入口。",
-      "done_when": "需求和方案已确认，业务与视觉说明一致；PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md。仅修改单页时，发布成功后返回当前页面 URL；没有 publish 证据只能声明修改已准备好，尚未发布到页面。完整应用按实际范围交付一组入口：管理端按默认任务返回 {base_url}/{appType}/workbench 或已验证的 /workbench/{formUuid}（需要时带真实 viewUuid）；独立前台仅在页面配置回读 renderNav=false（仅缺少 renderNav 时兼容 isRenderNav）且访问验证通过后交付 /custom/{formUuid}；完整应用默认提供 create-app 或 app-list 返回的 adminUrl（开发者管理后台），不受宿主或登录方式影响；仅业务后台时交付业务后台与开发者管理后台，不追加前台；仅前台时不追加业务后台，交付前台与开发者管理后台；有前后台时交付三个地址，不分前后台时交付系统入口与开发者管理后台。用户明确排除的入口除外，地址生成不等于已验证访问权限。final 仅总结本轮业务变化和真实结果，简单修改一句即可，再给主入口链接；不默认输出表格、长列表或资源 ID。缺少真实权限或多身份验证时明确说明未完成。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。",
+      "done_when": "需求和方案已确认，业务与视觉说明一致；PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md。仅修改单页时，发布成功后返回当前页面 URL；没有 publish 证据只能声明已完成修改，待发布。完整应用按实际范围交付一组入口：管理端按默认任务返回 {base_url}/{appType}/workbench 或已验证的 /workbench/{formUuid}（需要时带真实 viewUuid）；独立前台仅在页面配置回读 renderNav=false（仅缺少 renderNav 时兼容 isRenderNav）且访问验证通过后交付 /custom/{formUuid}；完整应用默认提供 create-app 或 app-list 返回的 adminUrl（开发者管理后台），不受宿主或登录方式影响；仅业务后台时交付业务后台与开发者管理后台，不追加前台；仅前台时不追加业务后台，交付前台与开发者管理后台；有前后台时交付三个地址，不分前后台时交付系统入口与开发者管理后台。用户明确排除的入口除外，地址生成不等于已验证访问权限。final 仅总结本轮业务变化和真实结果，简单修改一句即可，再给主入口链接；不默认输出表格、长列表或资源 ID。缺少真实权限或多身份验证时明确说明未完成。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。",
       "category": "yida-skills/app",
       "tags": [
         "宜搭",
@@ -697,7 +697,7 @@
         "compile",
         "publish"
       ],
-      "done_when": ".canvas.jsx 源码生成或修改后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 写入 YidaCodeCanvas Schema；没有 publish 证据只能声明修改已准备好，尚未发布到页面。普通表单提交/详情入口必须接入 CLI 的 form-open-container 模板，绑定 openForm 并挂载 formOpenContainer；源码检查通过后，实际验证抽屉 iframe、标题栏操作、调宽及关闭刷新。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。"
+      "done_when": ".canvas.jsx 源码生成或修改后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 写入 YidaCodeCanvas Schema；没有 publish 证据只能声明已完成修改，待发布。普通表单提交/详情入口必须接入 CLI 的 form-open-container 模板，绑定 openForm 并挂载 formOpenContainer；源码检查通过后，实际验证抽屉 iframe、标题栏操作、调宽及关闭刷新。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。"
     },
     {
       "name": "yida-canvas-data-binding",
@@ -1073,7 +1073,7 @@
         "compile",
         "publish"
       ],
-      "done_when": "平台 JSX 组件页面源码通过 check-page / compile 后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 发布到目标 display 页面；没有 publish 证据只能声明修改已准备好，尚未发布到页面。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。"
+      "done_when": "平台 JSX 组件页面源码通过 check-page / compile 后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 发布到目标 display 页面；没有 publish 证据只能声明已完成修改，待发布。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。"
     },
     {
       "name": "yida-dashboard",

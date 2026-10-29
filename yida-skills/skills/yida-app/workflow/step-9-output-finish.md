@@ -50,7 +50,7 @@ PRD 结构化交接保留 `applicationTheme`，其中 themeColor 来自最终设
 
 第 6 条按资源独立核验：每个被 final 声称“已写入”“已验证”或给出记录数的表单/流程，都必须有该资源自己的成功 create 返回值和只读 query/readback 证据。不得把一张表单的 3 条记录复制成其他表单也有 3 条；没有证据的资源只能写“未写入”“未抽查”或“跳过”，不能用应用发布成功替代数据核验。
 
-若本轮修改过页面源码但没有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，只能交付“修改已准备好，尚未发布到页面”的说明。
+若本轮修改过页面源码但没有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`，只能交付“已完成修改，待发布”的说明。
 
 需求含 `userTasks` 和 `entryRecommendation` 时，按最终 PRD 核对服务与管理任务的实际访问路径，沿用用户已确认的调整；入口建议不作为完成证据。只有相关页面及访问配置回读通过后才交付对应入口，不为双入口补造后台功能，不用 `/admin` 开发后台代替业务管理工作区。
 
