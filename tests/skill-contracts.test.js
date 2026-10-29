@@ -763,7 +763,7 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('页面数据桥或 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`');
     expect(skill).toContain('发布输出出现 `No custom page data sources to preserve`');
     expect(skill).toContain('use_skill("yida-data-source-connectors")');
-    expect(step9).toContain('准备 2-3 句业务交付总结，按“访问态前台、业务后台、开发者后台”提供最多三类已核验入口');
+    expect(step9).toContain('准备简短业务交付总结，简单修改一句即可；按“访问态前台、业务后台、开发者后台”提供最多三类已核验入口');
     expect(step9).toContain('新增、修改或发布单个具体页面时，交付当前页面并保持单页范围');
     expect(step9).toContain('不分前后台时提供经验证的“系统入口”，分前后台或只有访问后台时提供经验证的“业务后台入口”');
     expect(step9).toContain('同一应用的后续交付复用已有资源和已验证 URL');
@@ -1391,7 +1391,7 @@ describe('OpenYida skill contracts', () => {
     expect(root).toContain('页面源码修改必须发布闭环');
     expect(root).toContain('project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}');
     expect(root).toContain('openyida publish <source> <appType> <displayPageFormUuid>');
-    expect(root).toContain('源码已修改，尚未发布');
+    expect(root).toContain('修改已准备好，尚未发布到页面');
     expect(root).toContain('禁止说“页面已更新 / 已重新发布 / 已上线”');
 
     expect(app).toContain('[Step 7：编写或更新页面]');
@@ -1400,7 +1400,7 @@ describe('OpenYida skill contracts', () => {
     expect(appStep8).toContain('`publishMode=canvas`');
     expect(appStep8).toContain('`healthCheck.readback.hasYidaCodeCanvas=true`');
     expect(appStep9).toContain('没有成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`');
-    expect(appStep9).toContain('只能交付“源码已修改，尚未发布”的说明');
+    expect(appStep9).toContain('只能交付“修改已准备好，尚未发布到页面”的说明');
     expect(appStep9).toContain('显示至少一条已 query 确认的记录');
 
     expect(canvas).toContain('final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`');
@@ -1412,12 +1412,12 @@ describe('OpenYida skill contracts', () => {
     expect(canvas).toContain('维护 `.oyd.jsx` / `.oyb.jsx` / `renderJsx` / 平台 `Jsx` 页面时使用 `yida-custom-page`');
     expect(canvas).toContain('交给 `yida-canvas-upgrade`');
     expect(canvas).toContain('有 publish 成功证据时表述为“页面已发布”');
-    expect(canvas).toContain('只有本地校验证据时表述为“源码已修改，尚未发布”');
+    expect(canvas).toContain('只有本地校验证据时表述为“修改已准备好，尚未发布到页面”');
 
     expect(native).toContain('`check-page` / `compile` 只证明源码可发布，不等于远端页面已更新');
     expect(native).toContain('## 平台 JSX 组件编译与检查');
     expect(native).toContain('`.oyd.jsx` / `.openyida.jsx` 或显式 `--compat`');
-    expect(native).toContain('final 只能说明“源码已修改，尚未发布”');
+    expect(native).toContain('final 只能说明“修改已准备好，尚未发布到页面”');
 
     expect(publish).toContain('final 证据只认真实执行成功的 `openyida publish <source> <appType> <displayPageFormUuid>`');
     expect(publish).toContain('新建或默认自定义页面源码先由 `yida-canvas-custom-page` 产出');
@@ -1431,10 +1431,10 @@ describe('OpenYida skill contracts', () => {
     expect(publish).not.toContain('## OpenYida 兼容编译');
     expect(publish).not.toContain('兼容构建会自动补齐 `renderJsx`');
 
-    expect(byName.get('yida-app').done_when).toContain('没有 publish 证据只能声明源码已修改，尚未发布');
+    expect(byName.get('yida-app').done_when).toContain('没有 publish 证据只能声明修改已准备好，尚未发布到页面');
     expect(byName.get('yida-app').done_when).toContain('返回当前页面 URL');
     expect(byName.get('yida-app').done_when).toContain('返回 {base_url}/{appType}/workbench');
-    expect(byName.get('yida-app').done_when).toContain('final 先用 2-3 句业务语言总结创建/复用了哪些表单、页面和流程');
+    expect(byName.get('yida-app').done_when).toContain('final 仅总结本轮业务变化和真实结果，简单修改一句即可');
     expect(byName.get('yida-app').done_when).toContain('再给主入口链接');
     expect(byName.get('yida-app').done_when).toContain('不默认输出表格、长列表或资源 ID');
     expect(byName.get('yida-canvas-custom-page').done_when).toContain('openyida publish <source> <appType> <displayPageFormUuid>');

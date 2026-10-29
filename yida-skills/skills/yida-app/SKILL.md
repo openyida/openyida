@@ -90,7 +90,7 @@ Plan 规划阶段的工作流入口只读取 `workflow/step-1-resource-context.m
 | 6 | [创建或复用主页面](workflow/step-6-main-page.md) | 已有 display 页面直接复用；PRD 明确需要且缺失时执行 `use_skill("yida-create-page")` | 真实主页面 `formUuid` |
 | 7 | [编写或更新页面](workflow/step-7-page-code.md) | 按 `design.md.assetStrategy` 加载素材、页面、看板和数据绑定技能 | 素材状态明确；页面源码和 dataBinding 通过校验 |
 | 8 | [发布页面并排序导航](workflow/step-8-publish-navigation.md) | 执行 `use_skill("yida-publish-page")`，发布本轮源码到主页面并执行轻量导航排序 | 已发布主页面 URL |
-| 9 | [输出与收尾](workflow/step-9-output-finish.md) | 核对完成条件，按业务语言输出结果 | 2-3 句业务总结 + 最多三类真实入口 |
+| 9 | [输出与收尾](workflow/step-9-output-finish.md) | 核对完成条件，按业务语言输出结果 | 简短业务总结 + 按范围提供真实入口 |
 
 独立工作按 [并行执行](workflow/parallel-work.md) 调度，任务分别产出，由主流程汇合。完整应用在计划或主题确认后生成主题 CSS，appType 和 CSS 就绪就同步应用设置；`explicitScope.allowInferredResources=false` 的资源级交付不生成或上传主题、不修改应用设置、不排序导航。
 

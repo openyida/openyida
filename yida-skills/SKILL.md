@@ -8,6 +8,8 @@ description: >
 
 # 宜搭应用开发指南
 
+所有任务的完成总结默认用 1–3 句业务语言说明本轮改动、实际结果和必要剩余事项，简单修改一句即可。千问办公、Codex、云端和其他宿主统一遵循[完成总结](references/user-facing-summary.md)：内部校验字段、文件行号、CLI 命令和环境排障过程留在执行记录；CLI 指令仅在用户明确询问命令或用法时提供。此规则同时适用于单点任务、交付卡片和后续建议。
+
 在执行宜搭应用/页面/审批流等任务前先确认环境与登录态，再根据用户需求和已解析的 app/page/form/process 等上下文资源，分析任务属于完整搭建、已有资源补齐还是单点任务，并加载对应子技能执行。
 
 完整系统不能只读本入口、查看 CLI 帮助后直接拼装命令：必须加载 `yida-app`，进入实施与收尾时继续读取对应 workflow。前后台场景默认是两个业务入口：前台页面自绘导航并持久化隐藏平台导航，后台使用原生导航，前台专用页面从后台 PC/移动端菜单隐藏；页面隐藏、菜单隐藏、权限和公开访问分别处理。两个入口均须实际打开验收，发布回读不代表交付完成。
@@ -236,7 +238,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 2. **技能加载唯一入口**：执行子技能前必须加载对应技能；单点任务按意图选 1 个主技能，完整应用由 `yida-app` workflow 分阶段加载当前步骤对应的子技能。
 3. **真实资源先确认**：写操作前解析本轮显式资源、已绑定资源上下文、workspace 配置/缓存和历史上下文；已有目标资源时默认修改、补齐或发布，只有目标缺失且意图允许创建时才加载 create 类技能。
 4. **corpId 一致性检查**：创建或发布页面前对比 PRD/resource context 与当前 auth snapshot 的 `corpId`；不一致时先让用户选择重新登录或确认继续。
-5. **页面源码修改必须发布闭环**：只要本轮 Write/Edit/Create 了页面源码 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}`，final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`；没有证据只能说“源码已修改，尚未发布”，禁止说“页面已更新 / 已重新发布 / 已上线”。
+5. **页面源码修改必须发布闭环**：只要本轮 Write/Edit/Create 了页面源码 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}`，final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`；没有证据只能说“修改已准备好，尚未发布到页面”，禁止说“页面已更新 / 已重新发布 / 已上线”。
 6. **发布前本地校验**：平台 JSX 组件页面的 `check-page` / `compile` 归 `yida-custom-page` 执行；使用 `YidaCodeCanvas` 组件实现的自定义页面按本地快检或发布阶段校验；JSON 配置写盘后先解析校验，再调用平台命令。
 7. **生成产物严禁 emoji**：页面源码、`.canvas.jsx` 源码、表单 Schema、发布 Schema、产物文件名和路径中严禁使用 emoji；图标语义使用平台组件、图标库或已验证资源表达。
 8. **输入文件用结构化写入**：JSON/YAML/CSV/config/script 文件使用当前 agent 的文件写入能力创建，再把路径传给命令；严禁用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成业务文件。
@@ -275,6 +277,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 | 文档 | 覆盖范围 | 何时阅读 |
 | --- | --- | --- |
+| [用户可见总结](references/user-facing-summary.md) | 创建、单页修复、发布、升级等任务的业务总结和技术细节边界 | 所有任务收尾时 |
 | [资源上下文与补齐判定](references/resource-context.md) | 资源优先级、绑定上下文、create-or-update、已有 app 无页面 | Step 2 必读 |
 | [路由补充说明](references/routing-supplement.md) | 索引精排方法、无独立子技能 CLI | Step 3 排障或索引匹配不准时 |
 | [常见问题解决方案](references/execution-rules.md) | 常见问题处理路径 | 遇到发布、字段、表单更新或 corpId 问题时 |
