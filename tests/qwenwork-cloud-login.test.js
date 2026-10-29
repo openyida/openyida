@@ -16,6 +16,7 @@ const YIDA = 'fixture-yida-secret';
 const USER = 'fixture-qwen-user';
 const CORP = 'ding0123456789abcdef0123456789abcdef';
 const ODS = 'yida0123456789abcdef0123456789abcdef';
+const PERSONAL = 'ps0123456789abcdef0123456789abcdef';
 const REFRESH = 'fixture-yida-private-refresh';
 const QWEN = [ { alg: 'HS256' }, { sub: USER, user_id: USER, biz_org_id: 'qwen-org', exp: Math.floor(Date.now() / 1000) + 3600 } ].map(v => Buffer.from(JSON.stringify(v)).toString('base64url')).join('.') + '.signature';
 function session() { return { status: 'ok', auth_mode: 'token', can_auto_use: true, token_type: 'Bearer', credential_source: 'qwenwork_cloud', access_token: YIDA, expires_in: 300, corp_id: CORP, user_id: 'yida-user' }; }
@@ -65,6 +66,10 @@ describe('千问办公网页态云端免登', () => {
     const stored = read(root).join('');
     expect(stored).not.toContain(AGENT); expect(stored).not.toContain(QWEN);
   });
+  test('DingTalk corp constraint is still sent in the exchange request', async () => {
+    await ensureQwenWorkLogin({ ...options, corpId: CORP });
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ gateway_url: 'https://gateway.example.test', corp_id: CORP });
+  });
   test.each(['organization-user', 'personal-user'])('ODS identity %s is preserved with both tokens and no ding_uid', async userId => {
     Object.assign(state.response, { identity_type: 'ORGANIZATION', organization_type: 'QWENWORK', corp_id: ODS, user_id: userId, refresh_token: REFRESH, refresh_token_expires_in: 2592000,
       client_id: 'suite9xvlxxerybljwheo', user_name: 'ODS user' });
@@ -73,20 +78,20 @@ describe('千问办公网页态云端免登', () => {
     expect(loadTokenSession(options)).toMatchObject({ corp_id: ODS, user_id: userId, refresh_token: REFRESH, user_name: 'ODS user' });
     expect(loadTokenSession(options)).not.toHaveProperty('ding_uid');
   });
-  test('reusing an ODS profile never sends the local tenant as an upstream DingTalk selector', async () => {
-    Object.assign(state.response, { corp_id: ODS, refresh_token: REFRESH }); state.identity = { corp_id: ODS };
+  test.each([ODS, PERSONAL])('reusing local profile %s sends the same target constraint', async corpId => {
+    Object.assign(state.response, { corp_id: corpId, refresh_token: REFRESH }); state.identity = { corp_id: corpId };
     await ensureQwenWorkLogin(options);
     const saved = loadTokenSession(options);
     await expect(ensureQwenWorkLogin({ ...options, authProfile: saved.auth_profile })).resolves.toMatchObject({ ok: true });
-    expect(JSON.parse(fetch.mock.calls[2][1].body)).toEqual({ gateway_url: 'https://gateway.example.test' });
-    expect(loadTokenSession(options)).toMatchObject({ corp_id: ODS, user_id: saved.user_id });
+    expect(JSON.parse(fetch.mock.calls[2][1].body)).toEqual({ gateway_url: 'https://gateway.example.test', corp_id: corpId });
+    expect(loadTokenSession(options)).toMatchObject({ corp_id: corpId, user_id: saved.user_id });
     state.response.corp_id = 'yidaffffffffffffffffffffffffffffffff';
-    await expect(ensureQwenWorkLogin({ ...options, corpId: ODS })).rejects.toMatchObject({
+    await expect(ensureQwenWorkLogin({ ...options, corpId })).rejects.toMatchObject({
       code: 'QWENWORK_CLOUD_RESPONSE_INVALID', details: { reason: 'corp_id_mismatch' },
     });
-    expect(loadTokenSession(options).corp_id).toBe(ODS);
+    expect(loadTokenSession(options).corp_id).toBe(corpId);
   });
-  test.each(['yida', 'yida123', 'yida' + 'g'.repeat(32), 'yida' + '0'.repeat(33), ODS + ' '])('malformed ODS tenant is still rejected: %s', async corpId => {
+  test.each(['yida', 'yida123', 'yida' + 'g'.repeat(32), 'yida' + '0'.repeat(33), ODS + ' ', 'ps', 'ps123', 'ps' + 'g'.repeat(32), 'ps' + '0'.repeat(31), 'ps' + '0'.repeat(33), PERSONAL + ' '])('malformed ODS tenant is still rejected: %s', async corpId => {
     state.response.corp_id = corpId;
     await expect(ensureQwenWorkLogin(options)).rejects.toMatchObject({ details: { reason: 'corp_id', status_code: 200 } });
     expect(loadTokenSession(options)).toBeNull();
@@ -361,15 +366,16 @@ describe('真实 CLI 子进程消费网页沙箱凭据', () => {
     } finally { await new Promise(resolve => { target.close(resolve); target.closeAllConnections(); }); }
   });
   test.each([
-    { identity_type: 'PERSONAL' },
-    { identity_type: 'ORGANIZATION', organization_type: 'QWENWORK' },
-  ])('ODS login, profile reuse, refresh and create-app run across CLI processes: %j', async classification => {
-    issuedSession = { ...session(), ...classification, corp_id: ODS, refresh_token: REFRESH, client_id: 'suite9xvlxxerybljwheo' };
+    { identity_type: 'PERSONAL', corp_id: PERSONAL },
+    { identity_type: 'PERSONAL', corp_id: ODS },
+    { identity_type: 'ORGANIZATION', organization_type: 'QWENWORK', corp_id: ODS },
+  ])('ODS login, profile reuse, refresh and create-app run across CLI processes: %j', async ({ corp_id: corpId, ...classification }) => {
+    issuedSession = { ...session(), ...classification, corp_id: corpId, refresh_token: REFRESH, client_id: 'suite9xvlxxerybljwheo' };
     const options = { projectRoot: root, env };
     const login = await run(['login', '--json'], root, env); expect(login.code).toBe(0);
     expect(JSON.parse(login.stdout)).toMatchObject(classification);
     const initial = loadTokenSession(options);
-    expect(initial).toMatchObject({ ...classification, corp_id: ODS, refresh_token: REFRESH });
+    expect(initial).toMatchObject({ ...classification, corp_id: corpId, refresh_token: REFRESH });
     const reuse = await run(['login', '--profile', initial.auth_profile, '--json'], root, env);
     expect(reuse.code).toBe(0); expect(JSON.parse(reuse.stdout)).toMatchObject(classification);
     const authStatus = await run(['auth', 'status', '--json'], root, env);
@@ -377,9 +383,9 @@ describe('真实 CLI 子进程消费网页沙箱凭据', () => {
     expireAccess = true;
     const created = await run(['create-app', '--name', 'ODS regression app', '--open', 'false'], root, env);
     expect(created.code).toBe(0);
-    expect(created.stdout).toContain('APP_ODS_TEST'); expect(created.stdout).toContain(ODS);
+    expect(created.stdout).toContain('APP_ODS_TEST'); expect(created.stdout).toContain(corpId);
     expect(calls).toContain('/openapi/cli/v1/auth/refresh'); expect(calls).toContain('/query/app/registerApp.json');
-    expect(loadTokenSession(options)).toMatchObject({ ...classification, corp_id: ODS, access_token: 'fixture-rotated-access', refresh_token: 'fixture-rotated-refresh' });
+    expect(loadTokenSession(options)).toMatchObject({ ...classification, corp_id: corpId, access_token: 'fixture-rotated-access', refresh_token: 'fixture-rotated-refresh' });
     for (const secret of [AGENT, REFRESH, YIDA, 'fixture-rotated-access', 'fixture-rotated-refresh']) {
       expect(login.stdout + login.stderr + reuse.stdout + reuse.stderr + created.stdout + created.stderr).not.toContain(secret);
     }

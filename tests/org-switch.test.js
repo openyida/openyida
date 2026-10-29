@@ -68,18 +68,20 @@ describe('org switch auth profile behavior', () => {
     fs.rmSync(rootDir, { recursive: true, force: true });
   });
 
-  test('web sandbox switches to the verified ODS tenant without browser OAuth', async () => {
-    const target = 'yida0123456789abcdef0123456789abcdef';
+  test.each([
+    ['yida0123456789abcdef0123456789abcdef', { identity_type: 'ORGANIZATION', organization_type: 'QWENWORK' }],
+    ['ps0123456789abcdef0123456789abcdef', { identity_type: 'PERSONAL' }],
+  ])('web sandbox switches to verified local tenant %s without browser OAuth', async (target, classification) => {
     const env = { QWENWORK_SANDBOX_ID: 'fixture-sandbox', QWENWORK_AGENT_TOKEN: 'fixture-agent', QWENWORK_GATEWAY_URL: 'https://gateway.example.test' };
     const fetch = jest.fn(async url => Response.json(String(url).endsWith('/token') ? {
       status: 'ok', auth_mode: 'token', can_auto_use: true, token_type: 'Bearer', credential_source: 'qwenwork_cloud',
       access_token: 'fixture-ods-access', refresh_token: 'fixture-ods-refresh', expires_in: 1800,
-      corp_id: target, user_id: 'ods-user', identity_type: 'ORGANIZATION', organization_type: 'QWENWORK',
+      corp_id: target, user_id: 'ods-user', ...classification,
     } : { status: 'ok', auth_mode: 'token', can_auto_use: true, corp_id: target, user_id: 'ods-user' }));
     const result = await switchOrganization(target, { projectRoot, authDir, env, fetch, endpoint: 'https://yida.example.test' });
     expect(result).toMatchObject({ status: 'switched', corp_id: target, switch_source: 'qwenwork_cloud' });
-    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ gateway_url: 'https://gateway.example.test' });
-    expect(loadTokenSession({ projectRoot, authDir, env })).toMatchObject({ corp_id: target, identity_type: 'ORGANIZATION', organization_type: 'QWENWORK', refresh_token: 'fixture-ods-refresh' });
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ gateway_url: 'https://gateway.example.test', corp_id: target });
+    expect(loadTokenSession({ projectRoot, authDir, env })).toMatchObject({ corp_id: target, ...classification, refresh_token: 'fixture-ods-refresh' });
   });
   test('switches to an existing user profile without deleting the previous shared profile', async () => {
     const previous = saveTokenSession(makeSession('corp-a', 'user-a', 'access-a'), {

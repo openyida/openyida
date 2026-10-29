@@ -83,7 +83,8 @@ describe('千问办公专用命令消费一次性票据', () => {
     { identity_type: 'ORGANIZATION', organization_type: 'QWENWORK' },
     { identity_type: 'ORGANIZATION', organization_type: 'DINGTALK' },
   ])('desktop consumes and saves server classification without ding_uid: %j', async classification => {
-    const corpId = classification.organization_type === 'DINGTALK' ? 'ding0123456789abcdef0123456789abcdef' : 'yida0123456789abcdef0123456789abcdef';
+    const corpId = classification.identity_type === 'PERSONAL' ? 'ps0123456789abcdef0123456789abcdef'
+      : classification.organization_type === 'DINGTALK' ? 'ding0123456789abcdef0123456789abcdef' : 'yida0123456789abcdef0123456789abcdef';
     context.corp_id = corpId; env[TICKET_CONTEXT_ENV] = JSON.stringify(context);
     Object.assign(credential, classification, { corp_id: corpId });
     const fetch = jest.fn(async url => Response.json(String(url).endsWith('/consume') ? credential : {
