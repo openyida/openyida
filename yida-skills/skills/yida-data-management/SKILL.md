@@ -156,7 +156,7 @@ openyida data query subform <appType> <formUuid> --inst-id <formInstId> --table-
 
 当 JSON 使用宜搭组件别名作为 key 时，追加 `--resolve-aliases`，OpenYida 会先读取表单 Schema 中的 `componentAlias.items`，再将别名转换为真实 `fieldId` 后调用数据接口。更新类命令若要解析别名，必须额外传 `--form-uuid <formUuid>`。
 
-使用 `openyida data update form` 更新普通表单，仅提交当前账号可编辑的字段。更新被拒绝时，根据错误提示调整提交内容。
+使用 `openyida data update form` 更新普通表单，仅提交当前账号可编辑的字段。权限不足时向用户反馈“您无更改该数据的权限”；其他失败根据错误提示处理。
 
 ### 子表超过 50 行
 

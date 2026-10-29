@@ -2488,5 +2488,5 @@ module.exports.permission_guidance = {
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   edit_context_unverified: 'تعذر التحقق من الحقول القابلة للتحرير لهذا الحساب والسجل. لم يتم إرسال تحديث. تحقق من الأذونات في المحرر الأصلي.',
   fields_not_editable: 'يتضمن التحديث حقولًا غير قابلة للتحرير أو يتعذر التحقق منها: {0}. لم يتم إرسال تحديث. استخدم المحرر الأصلي للسلوك الديناميكي أو النماذج الفرعية المقيدة.',
-  form_update_forbidden: 'لا يملك هذا الحساب إذن تحرير هذا السجل. لم يتم إرسال تحديث.',
+  form_update_forbidden: 'ليس لديك إذن لتعديل هذه البيانات.',
 });

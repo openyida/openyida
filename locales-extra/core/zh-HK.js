@@ -2439,5 +2439,5 @@ module.exports.permission_guidance = {
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   edit_context_unverified: '無法確認目前帳號對此記錄的可編輯欄位，已停止且未傳送更新。請在原生編輯頁確認權限。',
   fields_not_editable: '更新包含不可編輯或無法確認可編輯的欄位：{0}。未傳送更新；請在原生編輯頁處理動態行為或受限子表。',
-  form_update_forbidden: '目前帳號沒有此記錄的編輯權限，未傳送更新。',
+  form_update_forbidden: '您無更改此資料的權限',
 });

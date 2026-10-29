@@ -2487,5 +2487,5 @@ module.exports.permission_guidance = {
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   edit_context_unverified: '이 계정과 레코드의 편집 가능한 필드를 확인할 수 없습니다. 업데이트를 보내지 않았습니다. 기본 편집기에서 권한을 확인하세요.',
   fields_not_editable: '편집할 수 없거나 편집 가능 여부를 확인할 수 없는 필드가 있습니다: {0}. 업데이트를 보내지 않았습니다. 동적 동작이나 제한된 하위 폼은 기본 편집기를 사용하세요.',
-  form_update_forbidden: '이 계정은 이 레코드를 편집할 수 없습니다. 업데이트를 보내지 않았습니다.',
+  form_update_forbidden: '이 데이터를 변경할 권한이 없습니다.',
 });

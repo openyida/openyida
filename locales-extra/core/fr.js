@@ -2488,5 +2488,5 @@ module.exports.permission_guidance = {
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   edit_context_unverified: 'Impossible de vérifier les champs modifiables pour ce compte et cet enregistrement. Aucune mise à jour envoyée. Vérifiez les droits dans l’éditeur natif.',
   fields_not_editable: 'La mise à jour contient des champs non modifiables ou non vérifiables : {0}. Aucune mise à jour envoyée. Utilisez l’éditeur natif pour les comportements dynamiques ou les sous-formulaires restreints.',
-  form_update_forbidden: 'Ce compte ne peut pas modifier cet enregistrement. Aucune mise à jour envoyée.',
+  form_update_forbidden: 'Vous n’avez pas l’autorisation de modifier ces données.',
 });

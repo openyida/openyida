@@ -2488,5 +2488,5 @@ module.exports.permission_guidance = {
 Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   edit_context_unverified: 'No se pueden verificar los campos editables de esta cuenta y registro. No se envió ninguna actualización. Compruebe los permisos en el editor nativo.',
   fields_not_editable: 'La actualización incluye campos no editables o no verificables: {0}. No se envió ninguna actualización. Use el editor nativo para comportamientos dinámicos o subformularios restringidos.',
-  form_update_forbidden: 'Esta cuenta no puede editar este registro. No se envió ninguna actualización.',
+  form_update_forbidden: 'No tiene permiso para modificar estos datos.',
 });
