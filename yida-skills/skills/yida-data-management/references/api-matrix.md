@@ -13,7 +13,7 @@
 | `updateFormData` | POST | `/dingtalk/web/{appType}/v1/form/updateFormData.json` | `appType`, `formInstId`, `updateFormDataJson` | `useLatestVersion` |
 | `listTableDataByFormInstIdAndTableId` | GET | `/dingtalk/web/{appType}/v1/form/listTableDataByFormInstIdAndTableId.json` | `appType`, `formUuid`, `formInstanceId`, `tableFieldId`, `currentPage`, `pageSize` | - |
 
-`data update form` 在字段别名转换和关联表单值校验后，读取上述两个原生只读接口再决定是否发送 `updateFormData`。编辑 Schema 的 `instanceData.flowData.behaviors` 必须能对应目标表单及字段；仅明确可编辑的字段允许写入。权限或结构无法确认时停止，不回退到无字段校验的更新。该校验是 CLI 的写前约束，不替代服务端授权。
+普通表单更新会核对当前账号的记录编辑权限和字段状态；无法确认可编辑范围时停止更新。
 
 ## 流程实例
 
