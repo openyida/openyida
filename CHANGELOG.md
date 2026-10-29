@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.10.29-1] - 2026-10-29
+
+- 优化agent工具总结功能。
+
 ## [2026.10.29] - 2026-10-29
 
 - **千问交付职责**：OpenYida 提供简短业务总结、真实访问入口及方案确认附件，展示方式统一交由千问办公处理。
