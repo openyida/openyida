@@ -187,6 +187,8 @@ body { background-color: #f2f3f5; }
 
 ## 异常处理
 
+`onClick={fn}` 是正常 JSX 事件绑定。发布失败先按[诊断规则](../yida-canvas-custom-page/references/waf-safe-authoring.md)核对本次回执；无明确证据不归因 WAF，不改属性展开或混淆源码，不向用户讲述推测的拦截原因。
+
 | 异常场景 | 处理方式 |
 |---------|----------|
 | 源码构建或发布前校验失败 | 回到对应页面开发技能修复源码格式、语法或运行时兼容问题，再重新执行 `openyida publish` |
@@ -196,7 +198,7 @@ body { background-color: #f2f3f5; }
 | 发布后页面空白 | `YidaCodeCanvas` 页面检查 `YidaComp` 是否正确导出和依赖是否可加载；平台 JSX 组件页面检查 `renderJsx` 是否正确导出；同时查看浏览器控制台报错 |
 | 发布接口成功但页面坏了 | 先用 `get-schema` 只读核对远端 Schema 与本轮发布回执，不为检查结果重复写入；首屏渲染、控制台报错和体验问题仍结合浏览器验证 |
 | 发布后功能异常 | `YidaCodeCanvas` 页面优先查依赖白名单、`YidaComp` 导出、hooks 副作用清理；平台 JSX 组件页面检查 `forceUpdate is not a function` 等常见错误，参考 `yida-custom-page` 平台 JSX 组件页面规范 |
-| 用户反馈发布反复失败、疑似安全（WAF）拦截 | 仅当发布返回 HTTP 200 但响应体非 JSON 且 body 含 `waf_block` 时判定为拦截；按 `yida-canvas-custom-page` 的 [waf-safe-authoring.md](../yida-canvas-custom-page/references/waf-safe-authoring.md) 用二分法定位命中片段并替换写法后重发。非常规场景不启用 |
+| 发布返回异常或疑似网关拦截 | 按[诊断规则](../yida-canvas-custom-page/references/waf-safe-authoring.md)保留本次回执并先只读核实。非 JSON/超时/403 不确定原因；明确拦截提示也不证明 onClick 命中。不得默认二分重发或混淆事件代码 |
 
 ## 错误恢复
 
