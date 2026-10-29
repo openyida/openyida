@@ -216,7 +216,10 @@ const MAX_TARBALL_BYTES = 2640 * 1024;
 // HEAD baseline (Node 26): 9,846,715 unpacked bytes / 777 files; use the next 16 KiB boundary.
 // Include the plugin runtime and deployment guides on top of main's content;
 // retain the existing plugin budget. The merged package has not been measured.
-const MAX_UNPACKED_BYTES = 9696 * 1024;
+// Shared business-summary guidance adds one reference and its direct skill links.
+// CI Node 20.20.2 measures 9,936,796 unpacked bytes / 786 files.
+// Retain the next 16 KiB boundary; tarball and per-file caps stay unchanged.
+const MAX_UNPACKED_BYTES = 9712 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -255,10 +258,12 @@ const MAX_UNPACKED_BYTES = 9696 * 1024;
 // Shared page navigation and task-center navigation add exactly two packaged files.
 // QwenWork permission guidance adds exactly one packaged runtime module.
 // Add seven plugin runtime/skill files to main's entry budget.
-const MAX_ENTRY_COUNT = 785;
+// The shared user-facing summary reference adds exactly one packaged file.
+const MAX_ENTRY_COUNT = 786;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'yida-skills/references/user-facing-summary.md',
   'lib/navigation/page-navigation.js',
   'lib/task-center/navigation.js',
   'lib/solution-template/solution-template.js',

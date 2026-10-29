@@ -48,7 +48,7 @@ export default YidaComp;
 
 ## 升级报告模板
 
-迁移完成或受阻时，输出简短报告：
+迁移完成或受阻时，按以下模板保存内部记录。用户总结遵循[用户可见总结](../../../references/user-facing-summary.md)，只说明本轮实际变化和结果；此模板仅在用户明确要求技术报告时展示。
 
 ```markdown
 ## Canvas Upgrade Report

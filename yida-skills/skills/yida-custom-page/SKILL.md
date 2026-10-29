@@ -5,6 +5,8 @@ description: JSX 自定义页面开发规范（React 16 平台 Jsx 组件、expo
 
 # JSX 自定义页面开发
 
+完成总结遵循[用户可见总结](../../references/user-facing-summary.md)：仅概述本轮业务变化和真实结果，简单修改一句即可；内部记录保留源码、命令和校验细节。
+
 布局实现分三步，详细规则见 [共享响应式规则](../yida-design/references/responsive-layout.md)：
 
 1. **读取设计**：从 `design.md` 读取当前页的首屏焦点、布局、主操作、响应式和验收要求。
@@ -70,7 +72,7 @@ UI 组件及 JSX 展示结构允许替换，业务函数及业务状态实现不
 13. **严禁 emoji**：平台 JSX 组件页面发布后落到平台 `Jsx` 组件，源码禁止 `import/require`。页面渲染出来的任何位置（标题、按钮、标签、状态、空态文案、图表标题等）**一律禁止出现 emoji**（😀🚀✅⚠️📦📊 等一切彩色符号字符）。需要图标时仍遵守 `skills/yida-design` 的 `iconSystem`：图标来源只允许 `lucide-react` 或 `@ant-design/icons`，默认 `lucide-react`；平台 JSX 组件只能通过已验证运行时脚本/global 方式加载这两类图标库，不能写 import。若当前平台 JSX 组件运行环境无法稳定加载图标库，必须去掉非必要图标或使用已验证资源。不得把 emoji 改成 CSS 图形、字母占位、Unicode 符号、iconfont、装饰性临时 SVG 或其他图标库。emoji 是最明显的 AI 味来源之一，且跨端显示不一致。JS 注释、文件路径、数据常量和示例数组里也不要留装饰性符号；`check-page` / `compile` / `publish` 报 emoji 错误时必须改成规定的图标库实现，不能用 `--skip-lint` 绕过。
 14. **light 页面使用清爽业务配色**：普通业务列表、协同表、录入表、工作台和门户默认使用浅底、清晰分割和应用品牌色；主操作、选中态、筛选焦点和批量操作使用平台品牌色或当前页面确认的品牌色，边框用浅色品牌混合。用户明确要求暗色/高对比时使用深色主视觉。
 15. **发布前必须跑检查链路**：先执行 `openyida check-page <file>` 和 `openyida compile <file>`；若出现 warning/error，按规则修复后再发布
-16. **源码修改发布闭环**：只要本轮 Write/Edit/Create 了 `project/pages/src/*.{oyd.jsx,jsx,tsx}` 普通自定义页面源码，`check-page` / `compile` 只证明源码可发布，不等于远端页面已更新；final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`。没有 publish 成功证据时，只能说“源码已修改，尚未发布”，不能说“页面已更新 / 已重新发布”。
+16. **源码修改发布闭环**：只要本轮 Write/Edit/Create 了 `project/pages/src/*.{oyd.jsx,jsx,tsx}` 普通自定义页面源码，`check-page` / `compile` 只证明源码可发布，不等于远端页面已更新；final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`。没有 publish 成功证据时，只能说“已完成修改，待发布”，不能说“页面已更新 / 已重新发布”。
 
 > 每条规则的代码示例、反模式和常见错误见 [编码指南](references/coding-guide.md)；完整应用统一编排默认先遵守 `yida-prd` 的 `prd.md`、`yida-design` 的 `design.md` 和本技能正文，不预读长 reference，只有 check-page 报错、复杂交互或正文覆盖不了的问题时才读取。
 > 运行时易错点、`check-page` 规则和兼容层自动修复边界见 [运行时护栏](references/runtime-guardrails.md)，按需读取。
@@ -153,7 +155,7 @@ openyida publish project/pages/src/employee-query.oyd.jsx APP_XXX FORM-QUERY001
 - **Step 1** 的 get-schema 输出包含所有字段的 fieldId，在代码中必须使用 `FIELDS` 常量映射这些 ID
 - **Step 2** 默认复用已有页面 context 并跳过 `openyida create-page`；但本轮用户明确指定另一个页面时先切换目标，不能唯一识别时询问；只有页面缺失且允许新增时才执行创建命令
 - **Step 3** 的页面代码必须遵循本技能正文；[编码指南](references/coding-guide.md) 和 [运行时护栏](references/runtime-guardrails.md) 在 check-page 报错、复杂交互或正文覆盖不了时读取
-- **Step 4** 是本地质量门槛，**Step 5** 才是远端页面更新证据；如果本轮只完成文件 Write/Edit 或 `check-page` / `compile`，final 只能说明“源码已修改，尚未发布”
+- **Step 4** 是本地质量门槛，**Step 5** 才是远端页面更新证据；如果本轮只完成文件 Write/Edit 或 `check-page` / `compile`，final 只能说明“已完成修改，待发布”
 - 页面生成 spec、接口调试 JSON、一次性验证脚本等临时工件必须用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/` 下；不要在仓库根目录、系统临时目录或 `.cache/` 顶层生成 `page.json`、`data.json` 或脚本文件
 - `check-page` 支持行级禁用：`// openyida-lint-disable-line <rule>` 或 `// openyida-lint-disable-next-line <rule>`。只在确认该行不会触发宜搭运行时问题时使用。
 
