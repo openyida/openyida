@@ -10,8 +10,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
-## [Unreleased]
-
 ## [2026.10.30] - 2026-10-30
 
 - **主题上传结果**：区分本次文件上传、应用设置保存与页面效果验证，避免把已有主题保留或配置回读成功误报为已上传；失败或结果未知时保留上传凭证，先核实再重试。
