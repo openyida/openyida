@@ -38,7 +38,7 @@ Fast / Plan 已选主题是全应用决定，本步骤必须保存同一份应�
    主题文件的职责与生效边界见 [应用主题 CSS 的职责](../../yida-design/workflow/output-design.md#应用主题-css-的职责)，使用当前流程记录的实际 CSS 路径。
 
    `create-app` 只取得应用，不配置主题。CSS 生成后由 `update-app --theme-file` 上传并保存 `colour=custom`、CSS 主色、资源 URL 与导航；不另传 `--theme-color`。空壳请求、暂不换肤或旧主题未获注入确认时，保留平台主题并说明范围。
-   按[主题上传与绑定](../../../references/execution-rules.md#主题上传与绑定)核对并保存 `themeUpload` 和 `themeVerification` 原始回执。仅 `verified=true` 不证明本轮上传。失败先只读核实，保留同一 appType 及已有资源，不自动追加注入确认参数、盲目重传或重建应用；CSS 修改后旧回执失效。
+   按[主题上传与绑定](../../../references/execution-rules.md#主题上传与绑定)保存 `themeUpload` 与 `themeVerification` 回执。失败保留 appType 和已有资源，先只读核实；CSS 修改后重新上传，旧主题注入仍须用户确认。
 6. 已有 app 不自动改名。外部工具预创建 app 时，OpenYida 侧只复用 `appType`，但用户明确要求应用级换肤时可以执行上一步主题更新。
 
 ## 应用导航配置

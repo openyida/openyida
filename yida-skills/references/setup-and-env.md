@@ -105,4 +105,4 @@ openyida auth refresh
 - 不要要求用户导出浏览器 Cookie。
 - 不要打印 Cookie、CSRF、`access_token` 或 `refresh_token`。
 
-验收先读取 `builder_path.browser_verification` 并核实执行位置：仅本地 Agent 可浏览器验收，云端/沙箱/远程电脑即使有浏览器也不打开；OAuth 浏览器归属不授予验收许可。详见[证据规则](execution-rules.md#本地浏览器验收)。
+环境检测后按[本地浏览器验收](execution-rules.md#本地浏览器验收)核对 `builder_path.browser_verification`；验收位置与 OAuth 登录浏览器分别判定。

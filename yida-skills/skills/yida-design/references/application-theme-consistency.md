@@ -205,9 +205,9 @@ antd 控件按 Canvas 技能接入 `CanvasThemeProvider`，由适配层读取当
 PRD 的 `applicationTheme: {themeColor, navTheme, designFile}` 来自最终设计，不写回 build-plan。Plan 自动生成，Fast 记录同一字段。`check-prd-completeness` 核对当前 colour=custom、主色、自定义 CSS 启用及 URL、导航明暗；不符为 fail，未知为 needs_review。`runtimeVerified=false` 保留；历史 PRD 缺字段不代表通过。
 
 1. **设计与文件**：逐项对照已确认的导航、框架、主色、页面底、面板、文字、字体及特色强调，确认它们出现在生成的主题 token 中，页面用的是同一角色。导航明暗与模板或自由创意决策一致，导航状态、形状与密度保留本项目设计。文件名叫 `app_theme.css` 或 `app-theme.css` 不影响契约，以本次输出路径为准。
-2. **上传与绑定**：按[证据规则](../../../references/execution-rules.md#主题上传与绑定)核对本轮上传哈希、目标应用、资源地址和绑定回读；单独 `verified=true` 或 `operation=preserve` 不证明上传。`iframePropagation=false` 不代表当前页面未加载主题，不能据此改成固定色盘。
+2. **上传与绑定**：按[证据规则](../../../references/execution-rules.md#主题上传与绑定)核对本轮上传哈希、目标应用、资源地址和绑定回读；复用已有主题时记录复用。
 3. **运行态**：仅本地按[浏览器规则](../../../references/execution-rules.md#本地浏览器验收)逐类核对已有导航三态、框架、原生列表/表单/详情、自定义页和抽屉的资源、计算变量与外观；iframe 独立检查。变量缺失查加载和作用域，变量正确查硬编码及覆盖。远端或本地能力不足时标记待验证。
-4. **交付**：原生页共享其组件支持的配色、字体、圆角等主题能力；杂志封面、分栏与特色版式只在有相应布局实现的页面出现。没有运行态证据时明确标记“主题已绑定，跨页面视觉待验证”，不能用编译成功、资源齐全或 fallback 看起来正确代替验收。
+4. **交付**：原生页共享其组件支持的配色、字体和圆角；特色版式由具体页面实现。按[完成总结](../../../references/user-facing-summary.md)概述已验证的效果，页面未验状态按执行位置记录。
 
 移动端 `--color-brand-1`、`--color-brand-2`、`--color-brand-3`、`--color-brand-4` 由 CLI 按应用色阶生成桥接；最终 CSS 也必须在顶层 `:root` 完整提供这四项。生成后和上传前同时校验 PC 七档与移动端四档的缺失、无效颜色及引用循环，不要求在 design.md 重复声明自动桥接。
 

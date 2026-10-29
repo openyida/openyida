@@ -130,7 +130,7 @@ openyida list-forms <appType> --keyword <页面名>
 以下命令和字段供 Agent 判断真实完成状态，保留在内部执行记录。最终回复、交付卡片和后续建议统一遵循[完成总结](../../references/user-facing-summary.md)，无需展示校验字段或执行过程。
 
 - Canvas 发布完成的内部判定：成功执行 `openyida publish <source> <appType> <displayPageFormUuid> --canvas --health-check`，且结果包含 `publishMode=canvas`、`publishReadbackVerified=true`、`healthCheck.ok=true`、`healthCheck.readback.hasYidaCodeCanvas=true` 和 `runtimeCodeBytes>0`。对用户按本轮业务改动表述，例如“已将工作台的‘待清洁房间’改为‘待清洁’，并更新页面”。
-- `--health-check` 是发布内容读回校验，不是浏览器运行态 smoke。输出中的 `runtimeSmokeVerified=false`、`runtimeSmokeStatus=not_checked` 表示本命令没有验证页面渲染与交互；需要宣称“页面可运行”时，必须另有专项运行态证据。按[仅本地浏览器验收](../../references/execution-rules.md#本地浏览器验收)核验，云端/远程或能力不足时保留发布结果并标记页面待验证。
+- `--health-check` 是发布内容读回校验，不是浏览器运行态 smoke。输出中的 `runtimeSmokeVerified=false`、`runtimeSmokeStatus=not_checked` 表示本命令没有验证页面渲染与交互；需要宣称“页面可运行”时，必须另有专项运行态证据。页面检查按[本地浏览器验收](../../references/execution-rules.md#本地浏览器验收)执行。
 - `<source>` 必须是本轮实际 Write/Edit/Create 过的页面源码；`<displayPageFormUuid>` 必须是已解析的 display 自定义页面。发布了其他文件或其他目标页面，不满足本轮源码修改的 doneWhen。
 - 若 publish 没执行、执行失败、目标不明、登录态/组织不一致或用户要求先暂停，保持未发布状态。已完成修改时可说“已完成修改，待发布”；确实需要用户操作时，用一句话说明影响和必要下一步。CLI 指令仅在用户明确询问命令或用法时提供。
 - 平台 JSX 组件页面的 `check-page` / `compile`、Canvas 页面统一入口 `openyida compile <源文件> --json` 都是发布前 guard，不是远端完成证据。
@@ -187,7 +187,7 @@ body { background-color: #f2f3f5; }
 
 ## 异常处理
 
-`onClick={fn}` 是正常 JSX 事件绑定。发布失败先按[诊断规则](../yida-canvas-custom-page/references/waf-safe-authoring.md)核对本次回执；无明确证据不归因 WAF，不改属性展开或混淆源码，不向用户讲述推测的拦截原因。
+保留正常 JSX 事件绑定（如 `onClick={fn}`）；发布失败按[诊断规则](../yida-canvas-custom-page/references/waf-safe-authoring.md)核对回执，修复已定位的问题。
 
 | 异常场景 | 处理方式 |
 |---------|----------|
@@ -198,7 +198,7 @@ body { background-color: #f2f3f5; }
 | 发布后页面空白 | `YidaCodeCanvas` 页面检查 `YidaComp` 是否正确导出和依赖是否可加载；平台 JSX 组件页面检查 `renderJsx` 是否正确导出；同时查看浏览器控制台报错 |
 | 发布接口成功但页面坏了 | 先用 `get-schema` 只读核对远端 Schema 与本轮发布回执，不为检查结果重复写入；首屏渲染、控制台报错和体验问题仍结合浏览器验证 |
 | 发布后功能异常 | `YidaCodeCanvas` 页面优先查依赖白名单、`YidaComp` 导出、hooks 副作用清理；平台 JSX 组件页面检查 `forceUpdate is not a function` 等常见错误，参考 `yida-custom-page` 平台 JSX 组件页面规范 |
-| 发布返回异常或疑似网关拦截 | 按[诊断规则](../yida-canvas-custom-page/references/waf-safe-authoring.md)保留本次回执并先只读核实。非 JSON/超时/403 不确定原因；明确拦截提示也不证明 onClick 命中。不得默认二分重发或混淆事件代码 |
+| 发布超时、非 JSON 或网关提示 | 保留回执并先只读核实保存结果，按上方诊断规则定位原因；证据不足时记录原因未确认 |
 
 ## 错误恢复
 

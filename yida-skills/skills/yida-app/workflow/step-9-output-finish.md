@@ -2,7 +2,7 @@
 
 最终输出让用户先理解业务能力，再看到按用途命名的真实应用入口。内部 ID、构建产物、中间文件和逐项业务资源不作为用户可见交付物。
 
-本文件的页面检查与交付按[证据规则](../../../references/execution-rules.md#发布与验收证据)执行：仅本地 Agent 可浏览器验收；云端/远程继续回读和入口登记，页面未验仅记内部，不当成交付失败或默认用户待办；用户明确要求的页面验收仍记未完成。
+按[证据规则](../../../references/execution-rules.md#发布与验收证据)分别记录上传、配置回读与页面验收；浏览器检查仅限用户本机 Agent。
 
 交付话术遵循 [用户可见表达契约](../../yida-design/references/ask-human-interaction-contract.md)。本文件中的接口字段用于内部核验；对用户描述已验证的业务效果。例如，自定义导航完成配置和跨页跳转验证后写“已启用自定义导航，可在各业务页面间切换”。尚未验证的部分如实说明待验证的页面或操作。
 
@@ -32,21 +32,21 @@
 
 1. 主页面发布成功；
 2. Canvas 主页面发布结果为 `publishMode=canvas`，读回 `hasYidaCodeCanvas=true` 且 `runtimeCodeBytes>0`；
-3. 真实数据页面在已登录浏览器中退出 loading、无业务错误，并显示至少一条已 query 确认的记录；看板还必须有至少一个 KPI 数量或列表记录与只读 query 结果一致。已知记录数大于 0 但页面 KPI 全 0、列表为空或显示“暂无数据”时必须失败或标记 `needs_review`；
+3. 本机 Agent 验收真实数据页面时，核对页面退出 loading、无业务错误，并显示至少一条已 query 确认的记录；看板还必须有至少一个 KPI 数量或列表记录与只读 query 结果一致。已知记录数大于 0 但页面 KPI 全 0、列表为空或显示“暂无数据”时必须失败或标记 `needs_review`；
 4. 获得可访问 URL；
 5. 各入口的菜单顺序、默认页面和首屏任务已按规划落实；平台导航有排序回读，自定义导航有页面验证。未完成项按入口明确列出，不能仅因平台命令不适用就将排序记为完成；
 6. 新建或作为页面数据源的核心普通表单已写入 1-3 条真实示例记录并 query 抽查，或明确说明跳过原因；
-7. 汇合主题任务，按[主题证据](../../../references/execution-rules.md#主题上传与绑定)核对本轮上传、绑定回读、主色和导航，原始回执保留在 `build-manifest.themeEvidence`；单独 `verified=true` 或 Agent 摘要不证明上传。复用已有主题时记录复用。旧主题或能力未知且未获注入确认时，按[旧主题规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认)保留平台主题和页面局部样式，不误报上传失败。这里仅汇合检查，不延迟首次主题更新；主题只在应用级配置，自定义页面只在 `YidaComp` 内消费对应 token，不重复注入。
+7. 汇合主题任务，按[主题证据](../../../references/execution-rules.md#主题上传与绑定)保存上传、绑定、主色与导航回执到 `build-manifest.themeEvidence`。已有主题记录复用；旧主题或能力未知时按[旧主题规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认)保留平台主题及页面局部样式。主题更新在前序完成，收尾只汇合；自定义页面只在 `YidaComp` 内消费对应 token。
 8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；该命令检查页面/资源数量及已提供的素材执行记录一致性，不能替代第 3 条运行态数据验收。只有 `verdict=pass` 且运行态数据证据通过时才说“已按 PRD 完成搭建”；`verdict=needs_review` 时可以交付但必须列出 `items` 中 `status=needs_review/not_checked` 的复核项，`verdict=fail` 时列出 `hardFailures` 并说明未完成；
 9. 未继续执行用户未要求的公开访问、额外截图报告、报表、大屏、数据源深接或精细导航分组。
 
-设置回读不代表视觉通过；本地按[跨页验收](../../yida-design/references/application-theme-consistency.md#验证主题是否真正一致)核对原生页、自定义页与抽屉。无浏览器证据则视觉待验证，不能凭 iframePropagation=false、fallback 或资源齐全判定加载或风格一致。
+适用的页面检查按[跨页验收](../../yida-design/references/application-theme-consistency.md#验证主题是否真正一致)核对原生页、自定义页与抽屉；视觉结果单独记录。
 
-PRD 保留 `applicationTheme`：themeColor 取最终 `--color-brand1-6`，navTheme 取选定主题；Plan 自动生成，Fast 同样记录，不删字段绕过检查。`check-prd-completeness` 读取当前设置，不信任旧回执；品牌、CSS 启用或资源不符为 fail，无法读取为 needs_review。只证明配置，页面固定色盘不证明主题加载；浏览器核验仅由本地 Agent 执行。局部修改不追加全应用换肤。
+PRD 保留 `applicationTheme`：themeColor 取最终 `--color-brand1-6`，navTheme 取选定主题；Plan 自动生成，Fast 同样记录。`check-prd-completeness` 读取当前配置；品牌、CSS 启用或资源不符为 fail，无法读取为 needs_review。局部修改保持原换肤范围。
 
 本地验收前后台入口：前台仅页面内导航，后台保留原生导航、管理任务及正确默认页；前台专用页在后台 PC/移动菜单隐藏。`build-manifest` 写入真实资源 ID 后，完整性检查核验 PRD `navigationVisibility`：仍可见为 fail，配置或 ID 未知为 needs_review。历史 PRD 缺字段不算通过，须补清单或回读。
 
-仅本地 Agent 按[阅读无障碍门禁](../../yida-design/references/page-quality-gates.md#阅读无障碍门禁)检查本轮适用的前后台、原生表单、列表、详情、抽屉及窄屏和放大态。`check-design` 只检查 token，不能替代局部 CSS 和页面。云端、沙箱、远程电脑一律不打开浏览器；本地能力不足或用户禁止时也保留回读结果、标记待验，不安装工具或从终端补验。
+页面验收覆盖[阅读无障碍门禁](../../yida-design/references/page-quality-gates.md#阅读无障碍门禁)中的适用页面、抽屉、窄屏及放大态。`check-design` 检查 token 配色，运行画面另验；未执行的检查按证据规则记录待验。
 
 用户明确禁止的动作优先于上述默认条件：禁止 `theme-file` 时，第 7 条改为核验本轮没有生成、复制、修改或上传主题文件，并如实说明沿用现有/平台默认主题，不把它判为主题任务失败；禁止 `publish` 时不得宣称完整应用已发布或把历史 URL 当成本轮发布产物，只交付已完成的未发布范围和后续发布条件；禁止 `page-source` 时不得宣称本轮修改了页面源码，也不得用编译或现有页面状态替代源码变更证据。写操作的跳过必须来自用户明确约束；浏览器检查按上述实际能力记录待验证，不能记为通过或借此省略接口回读。
 
