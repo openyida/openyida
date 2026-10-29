@@ -25,6 +25,26 @@ test('confirmation payload uses the immutable snapshot and keeps policy outside 
 });
 
 test.each([
+  { QWENWORK: '1' },
+  { QWENWORKCN_INTEGRATION_MODE: 'desktop' },
+  { QODER_WORK_INTEGRATION_PRODUCT: 'qwenworkcn', QODERCLI_INTEGRATION_MODE: 'qoder_work' },
+])('QwenWork receives the same snapshot confirmation contract as other hosts: %j', env => {
+  expect(confirmationHandoff(outputs, '2', { env })).toEqual({
+    confirmation: confirmationPayload(outputs, '2'),
+    confirmationPolicy: require('../lib/design-plan/confirmation').confirmationPolicy,
+  });
+});
+
+test.each([{}, { CODEX_THREAD_ID: 'thread' }, { CLAUDE_CODE: '1' },
+  { QODERCLI_INTEGRATION_MODE: 'qoder_work' }, { __CFBundleIdentifier: 'com.qoder.ide' },
+])('other hosts keep their confirmation contract unchanged: %j', env => {
+  expect(confirmationHandoff(outputs, '2', { env })).toEqual({
+    confirmation: confirmationPayload(outputs, '2'),
+    confirmationPolicy: require('../lib/design-plan/confirmation').confirmationPolicy,
+  });
+});
+
+test.each([
   [undefined, '2'],
   [{ html: outputs.html }, '2'],
   [{ ...outputs, confirmationHtml: '' }, '2'],

@@ -20,6 +20,7 @@ module.exports = {
     expired_token: 'QwenWork returned an expired user credential.',
     usage: 'Usage: openyida auth qwenwork user-info [--json]',
   },
+  plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
   solution_template: {
     description: '独立したローカル Agent 向けのテンプレート検索、クラウド AI 構築リンク、直接有効化',
     local_agent_only: 'テンプレートコマンドは認識済みの独立ローカル Agent 専用です。クラウドでは標準のテンプレート AI 構築を続けてください。',
@@ -2415,3 +2416,12 @@ module.exports.feedback_github = {
 };
 
 module.exports.process_dynamic_actors = { invalid: "処理担当者の設定が無効です。details.reason、選択範囲と実際のメンバーフィールドを確認してください。" };
+
+module.exports.permission_guidance = {
+  platform_access_link: 'YiDA の利用権限を申請',
+  create_app_link: 'YiDA のアプリ作成権限を申請',
+  platform_access: '現在のアカウントには、この組織で YiDA を使用する権限がありません。',
+  create_app: '現在のアカウントには、この組織でアプリを作成する権限がありません。',
+  unknown: '権限がありません。権限の種類は未確認です。管理者に確認し、この操作を一時停止してください。',
+  next_step: '権限申請ページを開いてください：[{0}]({1})。手続き後、現在の組織と権限を確認してから続行してください。',
+};

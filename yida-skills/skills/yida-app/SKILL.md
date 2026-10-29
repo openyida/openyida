@@ -90,7 +90,7 @@ Plan 规划阶段的工作流入口只读取 `workflow/step-1-resource-context.m
 | 6 | [创建或复用主页面](workflow/step-6-main-page.md) | 已有 display 页面直接复用；PRD 明确需要且缺失时执行 `use_skill("yida-create-page")` | 真实主页面 `formUuid` |
 | 7 | [编写或更新页面](workflow/step-7-page-code.md) | 按 `design.md.assetStrategy` 加载素材、页面、看板和数据绑定技能 | 素材状态明确；页面源码和 dataBinding 通过校验 |
 | 8 | [发布页面并排序导航](workflow/step-8-publish-navigation.md) | 执行 `use_skill("yida-publish-page")`，发布本轮源码到主页面并执行轻量导航排序 | 已发布主页面 URL |
-| 9 | [输出与收尾](workflow/step-9-output-finish.md) | 核对完成条件，按业务语言输出结果 | 2-3 句业务总结 + 一组应用访问入口 |
+| 9 | [输出与收尾](workflow/step-9-output-finish.md) | 核对完成条件，按业务语言输出结果 | 2-3 句业务总结 + 最多三类真实入口 |
 
 独立工作按 [并行执行](workflow/parallel-work.md) 调度，任务分别产出，由主流程汇合。完整应用在计划或主题确认后生成主题 CSS，appType 和 CSS 就绪就同步应用设置；`explicitScope.allowInferredResources=false` 的资源级交付不生成或上传主题、不修改应用设置、不排序导航。
 
@@ -106,7 +106,7 @@ Plan 规划阶段的工作流入口只读取 `workflow/step-1-resource-context.m
 6. **自定义页面开发技能固定**：完整应用页面源码按 Step 7 执行；管理端仅需原生视图时不创建 display 首页。前后台按 [访问态入口契约](references/entry-navigation.md) 分别规划菜单及分组顺序、默认页面、首屏任务和权限；平台导航与自定义导航都要落实排序并验收。
 7. **删除必须确认**：用户要求删除应用时，先展示应用名称、应用 ID 和影响范围，等待明确“确认删除”后才能执行。
 8. **页面实现选择**：前台默认一个 coding 页承载已选任务的多个视图；后台按操作效率选择原生或 coding。平台数据管理满足任务时可复用，需要不同交互时由 AI 为已选功能规划自定义视图。
-9. **交付物收口**：Step 2 的三个文件和 Step 9 的 build manifest 都是内部文件，不是用户交付物。表单、流程、报表和页面只在业务总结中概述，不逐项生成用户可见附件；宿主支持交付工具时，final 只交付一次“应用访问入口”组。
+9. **交付物收口**：Step 2 的三个文件和 Step 9 的 build manifest 都是内部文件，不是用户交付物。表单、流程、报表和页面只在业务总结中概述，不逐项生成用户可见附件；按用途提供最多三类真实入口：访问态前台、业务后台、开发者后台。
 10. **范围完成点**：以 `explicitScope` 的资源集合为任务队列；集合清空且真实链接已交付时，本轮完成。完整应用默认完成条件只在 `allowInferredResources=true` 时生效。
 
 ## 关键决策树

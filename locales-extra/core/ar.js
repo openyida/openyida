@@ -20,6 +20,7 @@ module.exports = {
     expired_token: 'QwenWork returned an expired user credential.',
     usage: 'Usage: openyida auth qwenwork user-info [--json]',
   },
+  plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
   solution_template: {
     description: 'قوالب للوكلاء المحليين المستقلين: بحث ورابط بناء بالذكاء الاصطناعي السحابي وتفعيل مباشر',
     local_agent_only: 'أوامر القوالب مخصصة لوكيل محلي مستقل معروف. في السحابة، تابع مسار بناء القوالب الأصلي بالذكاء الاصطناعي.',
@@ -2490,3 +2491,12 @@ module.exports.feedback_github = {
 };
 
 module.exports.process_dynamic_actors = { invalid: "إعداد المشاركين غير صالح. تحقق من details.reason ونطاق الاختيار وحقول الأعضاء الفعلية." };
+
+module.exports.permission_guidance = {
+  platform_access_link: 'طلب صلاحية استخدام YiDA',
+  create_app_link: 'طلب صلاحية إنشاء تطبيقات YiDA',
+  platform_access: 'الحساب الحالي غير مخول باستخدام YiDA في هذه المؤسسة.',
+  create_app: 'لا يملك الحساب الحالي صلاحية إنشاء تطبيقات في هذه المؤسسة.',
+  unknown: 'تم رفض الإذن ونوعه غير مؤكد. تواصل مع المسؤول وأوقف هذه العملية مؤقتًا.',
+  next_step: 'افتح صفحة طلب الإذن: [{0}]({1}). بعد إكمال الطلب، تحقق من المؤسسة والصلاحيات الحالية قبل المتابعة.',
+};

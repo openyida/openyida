@@ -21,6 +21,7 @@ module.exports = {
     expired_token: 'QwenWork returned an expired user credential.',
     usage: 'Usage: openyida auth qwenwork user-info [--json]',
   },
+  plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
   solution_template: {
     description: '獨立本地 Agent 的方案範本查詢、雲端 AI 搭建入口與直接啟用',
     local_agent_only: '請在已識別的獨立本地 Agent 中使用範本命令；雲端繼續平台原生範本 AI 搭建。',
@@ -2441,3 +2442,12 @@ module.exports.feedback_github = {
 };
 
 module.exports.process_dynamic_actors = { invalid: "流程人員來源配置無效，請按 details.reason 檢查來源、範圍及真實成員欄位。" };
+
+module.exports.permission_guidance = {
+  platform_access_link: '申請宜搭使用授權',
+  create_app_link: '申請宜搭應用建立權限',
+  platform_access: '目前帳戶未獲此組織的宜搭使用授權。',
+  create_app: '目前帳戶沒有此組織的應用建立權限。',
+  unknown: '權限不足，具體權限類型尚未確認。請聯絡管理員核實，暫不重試目前操作。',
+  next_step: '請開啟申請頁面：[{0}]({1})。處理完成後確認目前組織和權限，再繼續搭建。',
+};

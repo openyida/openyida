@@ -161,7 +161,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-flow-node-config`、`yida-agent-center` |
 | `yida-skills/page` | 工作台、办事门户、任务看板、自定义展示页、页面源码开发、平台 JSX 组件页面维护、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-task-center`（仅显式选择自定义待办）、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
 | `yida-skills/analytics` | 用户显式指定宜搭原生数据卡片（含其投放播报）；聚合表、虚拟视图、报表、统计、图表、Recharts、ECharts、经营分析看板、驾驶舱、大屏 | `yida-data-card`、`yida-aggregate-table`、`yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard` |
-| `yida-skills/integration` | 用户明确指定宜搭原生酷卡片；连接器、钉钉开放平台、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-cool-card`、`yida-integration`、`yida-flow-node-config`、`yida-dingtalk-openapi`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
+| `yida-skills/integration` | 用户明确指定宜搭平台插件或原生酷卡片；连接器、钉钉开放平台、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-plugin-lifecycle`、`yida-plugin-frontend-deploy`、`yida-cool-card`、`yida-integration`、`yida-flow-node-config`、`yida-dingtalk-openapi`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
 | `yida-skills/access` | 平台/应用/表单/页面权限、公开访问、分享 | `yida-corp-manager`、`yida-app-permission`、`yida-form-permission`、`yida-page-config` |
 | `yida-skills/ops` | Sequence、主键冲突、VOC、OpenYida 本地故障、Issue/Fork PR | `yida-db-seq-fix`、`yida-voc`、`yida-feedback` |
 | `yida-skills/agent` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | `yida-export-conversation`、`yida-document-markdown`、`yida-tingji`、`yida-flash-note-to-prd` |
@@ -225,6 +225,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 平台左侧导航树分组/排序 | `yida-nav-group` |
 | 自定义应用导航或独立前台菜单 | `yida-nav-shell` |
 | 用户明确指定宜搭原生酷卡片（交互卡片或置顶卡片） | `yida-cool-card`；创建、读取与模板查询，返回官方入口由用户配置保存，再由 CLI 回读；要求完全不同的样式或自由 HTML/CSS/React 时仍由本技能判断原生限制和替代方案，不自动切换成网页；不代替编辑器保存、发布或发送，不调整权益 |
+| 用户明确指定宜搭平台“插件管理”、开发插件、插件版本或组织已安装插件 | `yida-plugin-lifecycle`；区分开发配置、资源可达、运行时注册与消费者真实执行，不路由到 npm/Codex 插件管理 |
+| 已明确宜搭平台插件，询问 remoteEntry.js 构建、第三方资产命名空间、资源托管或加载失败 | `yida-plugin-frontend-deploy`；部署资源与平台配置分开，保存版本、权限申请和组织发布交回 `yida-plugin-lifecycle`；普通网站部署、Canvas 页面发布不触发 |
 | 用户显式指定宜搭原生数据卡片，或在已明确的原生卡片上下文中继续操作 | `yida-data-card`；仅泛称卡片、指标卡、看板、投放或播报不触发；原生卡片保存、发布与播报分离，启用或测试发送另需明确授权 |
 | 自定义页面中的数据卡片、指标卡、统计卡 | 页面内组件随页面发布：新增/开发走页面技能，接数据走 `yida-canvas-data-binding`，仅外观走 `yida-design`；不自动创建原生 CARD 资源 |
 | 页面引用了原生 `CARD-xxx` | 按实际修改对象分流：页面外层或引用配置仍归页面；用户明确要求修改源卡片配置才用 `yida-data-card`，不能只凭 CARD/FORM 字样判断 |
@@ -274,8 +276,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 20. **报表和可视化先分流**：标准统计与原生报表用 `yida-report`；定制图表页面默认用 `yida-rechart`；只有明确 ECharts、维护旧 ECharts 页面或复杂 option 超出 Recharts 能力时用 `yida-chart`。
 21. **应用主题只有一份**：涉及应用蓝图、页面视觉、应用主题色、品牌色、全局换肤或 `--color-brand1-*` 时先读 `yida-design`。导航、应用框架、提交/编辑表单、记录详情和自定义页面按[整体主题规则](skills/yida-design/references/application-theme-consistency.md#导航与应用框架)一起设计。`app-theme.css` 只在应用级统一配置，各类页面消费同一份主题 token。严禁在页面级重复写入、同步或向上层注入主题样式；`YidaCodeCanvas` 源码只在 `YidaComp` 内消费现有主题 token。
-22. **默认完成即停止**：完整应用默认以资源发布成功、轻量导航排序完成、示例数据就绪并输出一组有明确名称的应用入口与业务交付总结为 doneWhen；截图、精细导航整理和额外深读属于 optionalAfterDone，除非用户明确要求。
-23. **说清楚做什么**：对话、任务列表、步骤标题、进度和提问面向非技术用户。用日常用语和短句，一句话说一件事，先说结果或动作，再补必要原因。功能写谁能做什么；进度写当前动作和下一步；失败写问题、影响和处理办法；待核实的结果如实说明。文件名、路径、技能名和调用方式留在内部执行。PRD 业务说明、HTML 和消息使用功能与体验描述；接口参数、配置键值及内部 ID 留在 Agent 实施交接，遵循[用户可见表达契约](skills/yida-design/references/ask-human-interaction-contract.md)。交付卡片的 `description` 写 2-3 句业务交付总结、核验结果与剩余事项，卡片包含一组“应用访问入口”；宿主没有交付工具时，在最终回复中给出相同内容。不得把需求信息文件、PRD、视觉设计、build manifest、资源清单、Schema 或每个表单/流程/报表分别登记成用户可见交付物；不分前后台或包含业务后台时，给出经验证的业务页面入口，前台页面经 PRD 标记为 `standalone` 且导航配置回读通过时给独立业务入口；完整应用默认再提供开发者管理后台 `adminUrl`，不因云端登录方式省略；明确仅业务后台时交付业务后台与开发者管理后台，不追加前台；明确仅前台时不追加业务后台，仍交付前台与开发者管理后台两个地址。有前后台时交付前台、业务后台、开发者管理后台三个地址；不分前后台时交付系统入口与开发者管理后台。用户明确排除的入口和单页任务范围优先。
+22. **默认完成即停止**：完整应用默认以资源发布成功、轻量导航排序完成、示例数据就绪并提供按用途命名的真实入口与业务交付总结为 doneWhen；截图、精细导航整理和额外深读属于 optionalAfterDone，除非用户明确要求。
+23. **说清楚做什么**：用业务语言说明功能、进度、问题影响和处理办法。技术字段、命令、文件与排障过程留在内部。所有任务收尾只总结本轮结果，修改不重述完整应用或字段清单；详见[用户可见表达契约](skills/yida-design/references/ask-human-interaction-contract.md)。交付内容包含简短业务总结、核验结果、剩余事项与真实入口，按用途区分访问态前台、业务后台和开发者后台，最多三类。不得把需求信息文件、PRD、视觉设计、build manifest、资源清单、Schema 或每个表单/流程/报表分别登记成用户可见交付物；入口核验、开发者后台和范围组合按 Step 9 执行；用户明确排除的入口和单页任务范围优先。
 24. **任务复盘沉淀**：用户多次纠正、平台接口假成功、页面骨架共性质量问题、线上回读验收方法、一次性脚本可产品化等情况，完成前判断是否需要沉淀到 CLI、测试或 skill。
 
 常见问题见 [常见问题解决方案](references/execution-rules.md)。

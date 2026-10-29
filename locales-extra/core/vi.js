@@ -20,6 +20,7 @@ module.exports = {
     expired_token: 'QwenWork returned an expired user credential.',
     usage: 'Usage: openyida auth qwenwork user-info [--json]',
   },
+  plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
   solution_template: {
     description: 'Mẫu cho Agent cục bộ độc lập: tìm kiếm, liên kết xây dựng AI đám mây và kích hoạt',
     local_agent_only: 'Lệnh mẫu chỉ dành cho Agent cục bộ độc lập đã nhận diện. Trên đám mây, tiếp tục quy trình AI mẫu gốc.',
@@ -2488,3 +2489,12 @@ module.exports.feedback_github = {
 };
 
 module.exports.process_dynamic_actors = { invalid: "Cấu hình người xử lý không hợp lệ. Kiểm tra details.reason, phạm vi chọn và trường thành viên thực tế." };
+
+module.exports.permission_guidance = {
+  platform_access_link: 'Yêu cầu quyền sử dụng YiDA',
+  create_app_link: 'Yêu cầu quyền tạo ứng dụng YiDA',
+  platform_access: 'Tài khoản hiện tại chưa được cấp quyền sử dụng YiDA trong tổ chức này.',
+  create_app: 'Tài khoản hiện tại không có quyền tạo ứng dụng trong tổ chức này.',
+  unknown: 'Không có quyền; chưa xác định được loại quyền. Hãy liên hệ quản trị viên và tạm dừng thao tác này.',
+  next_step: 'Mở trang yêu cầu cấp quyền: [{0}]({1}). Sau khi xử lý, xác nhận tổ chức và quyền hiện tại rồi mới tiếp tục.',
+};

@@ -20,6 +20,7 @@ module.exports = {
     expired_token: 'QwenWork returned an expired user credential.',
     usage: 'Usage: openyida auth qwenwork user-info [--json]',
   },
+  plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
   solution_template: {
     description: 'स्वतंत्र स्थानीय Agent के लिए टेम्पलेट खोज, क्लाउड AI निर्माण लिंक और सक्रियण',
     local_agent_only: 'टेम्पलेट कमांड पहचाने गए स्वतंत्र स्थानीय Agent के लिए हैं। क्लाउड में मूल टेम्पलेट AI प्रक्रिया जारी रखें।',
@@ -2488,3 +2489,12 @@ module.exports.feedback_github = {
 };
 
 module.exports.process_dynamic_actors = { invalid: "प्रक्रिया सदस्य कॉन्फ़िगरेशन अमान्य है। details.reason, चयन सीमा और वास्तविक सदस्य फ़ील्ड जाँचें।" };
+
+module.exports.permission_guidance = {
+  platform_access_link: 'YiDA के उपयोग की अनुमति माँगें',
+  create_app_link: 'YiDA ऐप बनाने की अनुमति माँगें',
+  platform_access: 'वर्तमान खाते को इस संगठन में YiDA का उपयोग करने की अनुमति नहीं है।',
+  create_app: 'वर्तमान खाते को इस संगठन में ऐप बनाने की अनुमति नहीं है।',
+  unknown: 'अनुमति अस्वीकृत; अनुमति का प्रकार अभी स्पष्ट नहीं है। व्यवस्थापक से संपर्क करें और यह कार्रवाई रोकें।',
+  next_step: 'अनुमति अनुरोध पृष्ठ खोलें: [{0}]({1})। प्रक्रिया पूरी होने के बाद संगठन और अनुमतियाँ जाँचकर आगे बढ़ें।',
+};

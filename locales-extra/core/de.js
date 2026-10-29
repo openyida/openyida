@@ -20,6 +20,7 @@ module.exports = {
     expired_token: 'QwenWork returned an expired user credential.',
     usage: 'Usage: openyida auth qwenwork user-info [--json]',
   },
+  plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
   solution_template: {
     description: 'Vorlagen für unabhängige lokale Agents: Suche, Cloud-KI-Link und Aktivierung',
     local_agent_only: 'Vorlagenbefehle erfordern einen erkannten unabhängigen lokalen Agent. In der Cloud bleibt der native Vorlagen-KI-Ablauf erhalten.',
@@ -2488,3 +2489,12 @@ module.exports.feedback_github = {
 };
 
 module.exports.process_dynamic_actors = { invalid: "Ungültige Akteurkonfiguration. Prüfen Sie details.reason, Auswahlbereich und tatsächliche Mitgliederfelder." };
+
+module.exports.permission_guidance = {
+  platform_access_link: 'YiDA-Zugriff beantragen',
+  create_app_link: 'Erstellung von YiDA-Anwendungen beantragen',
+  platform_access: 'Das aktuelle Konto darf YiDA in dieser Organisation nicht verwenden.',
+  create_app: 'Das aktuelle Konto darf in dieser Organisation keine Anwendungen erstellen.',
+  unknown: 'Zugriff verweigert; die Berechtigungsart ist unklar. Wenden Sie sich an einen Administrator und pausieren Sie den Vorgang.',
+  next_step: 'Öffnen Sie die Seite zur Berechtigungsanfrage: [{0}]({1}). Prüfen Sie anschließend Organisation und Berechtigungen, bevor Sie fortfahren.',
+};
