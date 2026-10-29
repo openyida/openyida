@@ -95,7 +95,7 @@ describe('千问办公公开登录复用前台 OAuth 生命周期', () => {
     expect(await callbackRequest(callback)).toBe(200);
     const result = await invocation.done;
     expect(result.code).toBe(0);
-    expect(JSON.parse(result.stdout.trim())).toEqual({ ok: true, status: 'ok', can_auto_use: true });
+    expect(JSON.parse(result.stdout.trim())).toEqual({ ok: true, status: 'ok', can_auto_use: true, identity_type: 'ORGANIZATION', organization_type: 'DINGTALK' });
     expect(result.stdout + result.stderr).not.toMatch(new RegExp(`${ACCESS}|${REFRESH}|fixture-corp|fixture-user`));
     expect(loadTokenSession({ projectRoot: directory, env })).toMatchObject({ access_token: ACCESS, refresh_token: REFRESH });
   });
