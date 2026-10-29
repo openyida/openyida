@@ -78,10 +78,25 @@ describe('千问办公专用命令消费一次性票据', () => {
   function fakeFetch(extra = {}) {
     return jest.fn(async url => Response.json(String(url).endsWith('/consume') ? { ...credential, ...extra } : { status: 'ok', auth_mode: 'token', can_auto_use: true, corp_id: 'test-corp', user_id: 'test-user' }));
   }
+  test.each([
+    { identity_type: 'PERSONAL' },
+    { identity_type: 'ORGANIZATION', organization_type: 'QWENWORK' },
+    { identity_type: 'ORGANIZATION', organization_type: 'DINGTALK' },
+  ])('desktop consumes and saves server classification without ding_uid: %j', async classification => {
+    const corpId = classification.organization_type === 'DINGTALK' ? 'ding0123456789abcdef0123456789abcdef' : 'yida0123456789abcdef0123456789abcdef';
+    context.corp_id = corpId; env[TICKET_CONTEXT_ENV] = JSON.stringify(context);
+    Object.assign(credential, classification, { corp_id: corpId });
+    const fetch = jest.fn(async url => Response.json(String(url).endsWith('/consume') ? credential : {
+      status: 'ok', auth_mode: 'token', can_auto_use: true, corp_id: corpId, user_id: 'test-user', ...classification,
+    }));
+    await expect(loginQwenWork(options(fetch))).resolves.toMatchObject({ ok: true, ...classification });
+    expect(loadTokenSession(options())).toMatchObject({ ...classification, corp_id: corpId, refresh_token: REFRESH });
+    expect(loadTokenSession(options())).not.toHaveProperty('ding_uid');
+  });
   test('真实专用 CLI 在沙箱侧 HTTPS 消费并持久化，新进程不注入仍访问原 origin', async () => {
     const login = await run(cli(['login-qwenwork', '--json']), directory, env);
     expect(login.code).toBe(0);
-    expect(JSON.parse(login.stdout.trim())).toEqual({ ok: true, status: 'ok', can_auto_use: true, next_action: 'continue_business_operation_silently', user_visible: false });
+    expect(JSON.parse(login.stdout.trim())).toEqual({ ok: true, status: 'ok', can_auto_use: true, identity_type: 'ORGANIZATION', organization_type: 'DINGTALK', next_action: 'continue_business_operation_silently', user_visible: false });
     for (const detail of [baseUrl, 'test-corp', 'test-user', 'expires_at', 'auth_profile']) { expect(login.stdout + login.stderr).not.toContain(detail); }
     expect(login.stdout + login.stderr).not.toContain(TOKEN); expect(login.stdout + login.stderr).not.toContain(TICKET);
     const nextEnv = { ...env }; delete nextEnv[TICKET_ENV]; delete nextEnv[TICKET_CONTEXT_ENV];
@@ -211,7 +226,7 @@ describe('千问办公专用命令消费一次性票据', () => {
     for (const expired of [false, true]) {
       expireAccess = expired;
       const checked = await run(cli(['login', '--qwenwork', '--json']), directory, clean);
-      expect(checked.code).toBe(0); expect(JSON.parse(checked.stdout)).toEqual({ ok: true, status: 'ok', can_auto_use: true });
+      expect(checked.code).toBe(0); expect(JSON.parse(checked.stdout)).toEqual({ ok: true, status: 'ok', can_auto_use: true, identity_type: 'ORGANIZATION', organization_type: 'DINGTALK' });
       for (const secret of [TOKEN, REFRESH, TICKET, ROTATED_TOKEN, ROTATED_REFRESH, 'test-corp', 'test-user']) {
         expect(checked.stdout + checked.stderr).not.toContain(secret);
       }

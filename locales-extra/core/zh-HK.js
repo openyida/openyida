@@ -7,6 +7,7 @@
  */
 module.exports = {
   qwenwork: {
+    organization_switch_success: '已透過千問辦公登入切換組織。',
     login_check_failed: 'Unable to verify the login session. Please retry.',
     desktop_login_failed: '千問辦公桌面免登入失敗，請確認桌面登入身分和免登入通道後重試。',
     desktop_login_usage: '用法： openyida login --qwenwork [--json] [--check-only]',

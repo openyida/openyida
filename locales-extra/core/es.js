@@ -6,6 +6,7 @@
  */
 module.exports = {
   qwenwork: {
+    organization_switch_success: 'Se ha cambiado de organización mediante el inicio de sesión en QwenWork.',
     login_check_failed: 'Unable to verify the login session. Please retry.',
     desktop_login_failed: 'No se pudo iniciar sesión con QwenWork de escritorio. Compruebe la identidad y el canal de inicio de sesión antes de reintentar.',
     desktop_login_usage: 'Uso： openyida login --qwenwork [--json] [--check-only]',

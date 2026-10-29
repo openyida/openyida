@@ -10,6 +10,8 @@ const AGENT = 'fixture-cloud-agent-secret';
 const YIDA = 'fixture-yida-secret';
 const USER = 'fixture-qwen-user';
 const CORP = 'ding0123456789abcdef0123456789abcdef';
+const ODS = 'yida0123456789abcdef0123456789abcdef';
+const REFRESH = 'fixture-yida-private-refresh';
 const QWEN = [ { alg: 'HS256' }, { sub: USER, user_id: USER, biz_org_id: 'qwen-org', exp: Math.floor(Date.now() / 1000) + 3600 } ].map(v => Buffer.from(JSON.stringify(v)).toString('base64url')).join('.') + '.signature';
 function session() { return { status: 'ok', auth_mode: 'token', can_auto_use: true, token_type: 'Bearer', credential_source: 'qwenwork_cloud', access_token: YIDA, expires_in: 300, corp_id: CORP, user_id: 'yida-user' }; }
 function status() { return { status: 'ok', auth_mode: 'token', can_auto_use: true, corp_id: CORP, user_id: 'yida-user' }; }
@@ -45,7 +47,7 @@ describe('千问办公网页态云端免登', () => {
   afterEach(() => { globalThis.fetch = original; fs.rmSync(root, { recursive: true, force: true }); });
   test('兑换当前千问身份并校验宜搭身份后只保存宜搭会话', async () => {
     const oauth = jest.fn();
-    expect(await ensureQwenWorkLogin(options, { login: oauth })).toEqual({ ok: true, status: 'ok', can_auto_use: true });
+    expect(await ensureQwenWorkLogin(options, { login: oauth })).toEqual({ ok: true, status: 'ok', can_auto_use: true, identity_type: 'ORGANIZATION', organization_type: 'DINGTALK' });
     expect(oauth).not.toHaveBeenCalled();
     expect(fetch.mock.calls.map(([url]) => url)).toEqual([
       'https://yida.example.test/openapi/cli/v1/auth/qwenwork/token', 'https://yida.example.test/openapi/cli/v1/auth/status',
@@ -56,6 +58,56 @@ describe('千问办公网页态云端免登', () => {
     const read = directory => fs.readdirSync(directory, { withFileTypes: true }).flatMap(e => e.isDirectory() ? read(path.join(directory, e.name)) : [fs.readFileSync(path.join(directory, e.name), 'utf8')]);
     const stored = read(root).join('');
     expect(stored).not.toContain(AGENT); expect(stored).not.toContain(QWEN);
+  });
+  test.each(['organization-user', 'personal-user'])('ODS identity %s is preserved with both tokens and no ding_uid', async userId => {
+    Object.assign(state.response, { identity_type: 'ORGANIZATION', organization_type: 'QWENWORK', corp_id: ODS, user_id: userId, refresh_token: REFRESH, refresh_token_expires_in: 2592000,
+      client_id: 'suite9xvlxxerybljwheo', user_name: 'ODS user' });
+    state.identity = { corp_id: ODS, user_id: userId };
+    await expect(ensureQwenWorkLogin(options)).resolves.toMatchObject({ ok: true });
+    expect(loadTokenSession(options)).toMatchObject({ corp_id: ODS, user_id: userId, refresh_token: REFRESH, user_name: 'ODS user' });
+    expect(loadTokenSession(options)).not.toHaveProperty('ding_uid');
+  });
+  test('reusing an ODS profile never sends the local tenant as an upstream DingTalk selector', async () => {
+    Object.assign(state.response, { corp_id: ODS, refresh_token: REFRESH }); state.identity = { corp_id: ODS };
+    await ensureQwenWorkLogin(options);
+    const saved = loadTokenSession(options);
+    await expect(ensureQwenWorkLogin({ ...options, authProfile: saved.auth_profile })).resolves.toMatchObject({ ok: true });
+    expect(JSON.parse(fetch.mock.calls[2][1].body)).toEqual({ gateway_url: 'https://gateway.example.test' });
+    expect(loadTokenSession(options)).toMatchObject({ corp_id: ODS, user_id: saved.user_id });
+    state.response.corp_id = 'yidaffffffffffffffffffffffffffffffff';
+    await expect(ensureQwenWorkLogin({ ...options, corpId: ODS })).rejects.toMatchObject({
+      code: 'QWENWORK_CLOUD_RESPONSE_INVALID', details: { reason: 'corp_id_mismatch' },
+    });
+    expect(loadTokenSession(options).corp_id).toBe(ODS);
+  });
+  test.each(['yida', 'yida123', 'yida' + 'g'.repeat(32), 'yida' + '0'.repeat(33), ODS + ' '])('malformed ODS tenant is still rejected: %s', async corpId => {
+    state.response.corp_id = corpId;
+    await expect(ensureQwenWorkLogin(options)).rejects.toMatchObject({ details: { reason: 'corp_id', status_code: 200 } });
+    expect(loadTokenSession(options)).toBeNull();
+  });
+  test.each(['', 'bad token', AGENT, 123])('invalid refresh token cannot be persisted: %s', async token => {
+    state.response.refresh_token = token;
+    await expect(ensureQwenWorkLogin(options)).rejects.toMatchObject({ details: { reason: 'refresh_token' } });
+    expect(loadTokenSession(options)).toBeNull();
+  });
+  test('diagnostic fields cannot echo an opaque token or the host credential', async () => {
+    const opaque = 'a'.repeat(64);
+    options.env.QWENWORK_AGENT_TOKEN = 'b61957b6-d679-4d93-aa71-33c1ea82797c';
+    state.response = { status: opaque, stage: opaque, exchange_id: options.env.QWENWORK_AGENT_TOKEN };
+    let error; try { await ensureQwenWorkLogin(options); } catch (e) { error = e; }
+    expect(error).toMatchObject({ details: { stage: 'yida_exchange', status_code: 200 } });
+    expect(JSON.stringify(error)).not.toContain(opaque);
+    expect(JSON.stringify(error)).not.toContain(options.env.QWENWORK_AGENT_TOKEN);
+  });
+  test.each([200, 403])('exchange failure keeps safe diagnostics for HTTP %s', async http => {
+    state.yidaStatus = http;
+    const exchangeId = 'b61957b6-d679-4d93-aa71-33c1ea82797c';
+    state.response = { status: 'qwen_identity_unmapped', stage: 'qwen_verify', exchange_id: exchangeId,
+      access_token: AGENT, refresh_token: REFRESH, message: QWEN, unexpected: YIDA };
+    let error; try { await ensureQwenWorkLogin(options); } catch (e) { error = e; }
+    expect(error).toMatchObject({ details: { status: 'qwen_identity_unmapped', stage: 'qwen_verify', exchange_id: exchangeId, status_code: http } });
+    for (const secret of [AGENT, REFRESH, QWEN, YIDA]) { expect(JSON.stringify(error)).not.toContain(secret); }
+    expect(loadTokenSession(options)).toBeNull();
   });
   test.each([{ tool: 'codex', subtype: 'qwenwork_web' }, { tool: 'qwenwork', subtype: 'qwenwork_desktop' }, { tool: 'qwenwork' }, {}])('非网页运行态保留原 OAuth 路径：%j', async runtime => {
     const oauth = jest.fn(async () => ({ access_token: YIDA, base_url: options.endpoint, corp_id: CORP, user_id: 'yida-user' }));
@@ -118,9 +170,9 @@ describe('千问办公网页态云端免登', () => {
   });
   test.each(['refresh_token', 'refreshToken'])('服务端返回 %s 不影响云端免登', async name => {
     state.response[name] = 'fixture-yida-refresh';
-    await expect(ensureQwenWorkLogin(options)).resolves.toEqual({ ok: true, status: 'ok', can_auto_use: true });
+    await expect(ensureQwenWorkLogin(options)).resolves.toEqual({ ok: true, status: 'ok', can_auto_use: true, identity_type: 'ORGANIZATION', organization_type: 'DINGTALK' });
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(loadTokenSession(options)).toMatchObject({ access_token: YIDA, credential_source: 'qwenwork_cloud' });
+    expect(loadTokenSession(options)).toMatchObject({ access_token: YIDA, refresh_token: 'fixture-yida-refresh', credential_source: 'qwenwork_cloud' });
   });
   test.each(['https://pre-yida.mulerun.cn', 'https://group.example.test'])('信任宜搭签发的业务域名并在该域名校验与保存会话：%s', async base => {
     Object.assign(state.response, { base_url: base, corp_id: 'dingd8e1123006514592' });
@@ -188,9 +240,9 @@ describe('千问办公网页态云端免登', () => {
 });
 
 describe('真实 CLI 子进程消费网页沙箱凭据', () => {
-  let root; let server; let base; let env; let calls; let issuedSession;
+  let root; let server; let base; let env; let calls; let issuedSession; let expireAccess;
   beforeEach(async () => {
-    root = fs.mkdtempSync(path.join(os.tmpdir(), 'qwenwork-cloud-cli-')); calls = []; issuedSession = session();
+    root = fs.mkdtempSync(path.join(os.tmpdir(), 'qwenwork-cloud-cli-')); calls = []; issuedSession = session(); expireAccess = false;
     const fixture = path.join(__dirname, 'fixtures/qwenwork-desktop-tls');
     server = https.createServer({ key: fs.readFileSync(path.join(fixture, 'key.pem')), cert: fs.readFileSync(path.join(fixture, 'cert.pem')) }, (req, res) => {
       calls.push(req.url); res.setHeader('Content-Type', 'application/json');
@@ -200,7 +252,25 @@ describe('真实 CLI 子进程消费网页沙箱凭据', () => {
           else { res.end(JSON.stringify(issuedSession)); }
         });
       }
-      else if (req.url === '/openapi/cli/v1/auth/status') { res.end(JSON.stringify(status())); }
+      else if (req.url === '/openapi/cli/v1/auth/refresh') {
+        let body = ''; req.on('data', chunk => { body += chunk; }); req.on('end', () => {
+          const request = JSON.parse(body);
+          if (request.refreshToken !== REFRESH || request.clientId !== 'suite9xvlxxerybljwheo') { res.writeHead(401).end('{}'); return; }
+          issuedSession = { ...issuedSession, access_token: 'fixture-rotated-access', refresh_token: 'fixture-rotated-refresh' };
+          res.end(JSON.stringify(issuedSession));
+        });
+      }
+      else if (expireAccess && req.headers.authorization !== `Bearer ${issuedSession.access_token === YIDA ? 'fixture-rotated-access' : issuedSession.access_token}`) {
+        res.writeHead(401).end(JSON.stringify({ status: 'invalid_access_token' }));
+      }
+      else if (req.url === '/openapi/cli/v1/auth/status') { res.end(JSON.stringify({ ...status(), corp_id: issuedSession.corp_id, user_id: issuedSession.user_id, identity_type: issuedSession.identity_type, organization_type: issuedSession.organization_type })); }
+      else if (req.url.startsWith('/query/exclusive/queryCorpAppConfig.json')) { res.end(JSON.stringify({ success: true, content: {} })); }
+      else if (req.url === '/query/app/registerApp.json') {
+        let body = ''; req.on('data', chunk => { body += chunk; }); req.on('end', () => {
+          if (req.headers.authorization !== `Bearer ${issuedSession.access_token}` || !body) { res.writeHead(400).end('{}'); return; }
+          res.end(JSON.stringify({ success: true, content: 'APP_ODS_TEST' }));
+        });
+      }
       else { res.writeHead(404).end('{}'); }
     });
     const port = await new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(server.address().port)));
@@ -212,7 +282,7 @@ describe('真实 CLI 子进程消费网页沙箱凭据', () => {
   test.each([['login'], ['login', '--qwenwork'], ['auth', 'login']].map(args => [args]))('%j 都走云端免登，并供新进程复用', async args => {
     const result = await run([...args, '--json'], root, env);
     expect(result).toMatchObject({ code: 0 });
-    expect(JSON.parse(result.stdout)).toEqual({ ok: true, status: 'ok', can_auto_use: true });
+    expect(JSON.parse(result.stdout)).toEqual({ ok: true, status: 'ok', can_auto_use: true, identity_type: 'ORGANIZATION', organization_type: 'DINGTALK' });
     for (const secret of [AGENT, QWEN, YIDA]) { expect(result.stdout + result.stderr).not.toContain(secret); }
     expect(calls).toEqual(['/openapi/cli/v1/auth/qwenwork/token', '/openapi/cli/v1/auth/status']);
     const next = await run(['auth', 'status', '--json'], root, env);
@@ -239,6 +309,38 @@ describe('真实 CLI 子进程消费网页沙箱凭据', () => {
       expect(loadTokenSession({ projectRoot: root, env })).toMatchObject({ base_url: targetBase, corp_id: group });
       for (const secret of [AGENT, QWEN, YIDA]) { expect(login.stdout + login.stderr + next.stdout + next.stderr).not.toContain(secret); }
     } finally { await new Promise(resolve => { target.close(resolve); target.closeAllConnections(); }); }
+  });
+  test.each([
+    { identity_type: 'PERSONAL' },
+    { identity_type: 'ORGANIZATION', organization_type: 'QWENWORK' },
+  ])('ODS login, profile reuse, refresh and create-app run across CLI processes: %j', async classification => {
+    issuedSession = { ...session(), ...classification, corp_id: ODS, refresh_token: REFRESH, client_id: 'suite9xvlxxerybljwheo' };
+    const options = { projectRoot: root, env };
+    const login = await run(['login', '--json'], root, env); expect(login.code).toBe(0);
+    expect(JSON.parse(login.stdout)).toMatchObject(classification);
+    const initial = loadTokenSession(options);
+    expect(initial).toMatchObject({ ...classification, corp_id: ODS, refresh_token: REFRESH });
+    const reuse = await run(['login', '--profile', initial.auth_profile, '--json'], root, env);
+    expect(reuse.code).toBe(0); expect(JSON.parse(reuse.stdout)).toMatchObject(classification);
+    const authStatus = await run(['auth', 'status', '--json'], root, env);
+    expect(authStatus.code).toBe(0); expect(JSON.parse(authStatus.stdout)).toMatchObject(classification);
+    expireAccess = true;
+    const created = await run(['create-app', '--name', 'ODS regression app', '--open', 'false'], root, env);
+    expect(created.code).toBe(0);
+    expect(created.stdout).toContain('APP_ODS_TEST'); expect(created.stdout).toContain(ODS);
+    expect(calls).toContain('/openapi/cli/v1/auth/refresh'); expect(calls).toContain('/query/app/registerApp.json');
+    expect(loadTokenSession(options)).toMatchObject({ ...classification, corp_id: ODS, access_token: 'fixture-rotated-access', refresh_token: 'fixture-rotated-refresh' });
+    for (const secret of [AGENT, REFRESH, YIDA, 'fixture-rotated-access', 'fixture-rotated-refresh']) {
+      expect(login.stdout + login.stderr + reuse.stdout + reuse.stderr + created.stdout + created.stderr).not.toContain(secret);
+    }
+  });
+  test('ODS login --json preserves noncredential exchange diagnostics', async () => {
+    issuedSession = { status: 'qwen_identity_unmapped', stage: 'qwen_verify', exchange_id: 'b61957b6-d679-4d93-aa71-33c1ea82797c', message: AGENT + REFRESH };
+    const result = await run(['login', '--json'], root, env);
+    expect(result.code).not.toBe(0);
+    const text = (result.stdout + result.stderr).trim();
+    expect(text).toContain('qwen_verify'); expect(text).toContain('b61957b6-d679-4d93-aa71-33c1ea82797c');
+    expect(text).toContain('status_code'); expect(text).not.toContain(AGENT); expect(text).not.toContain(REFRESH);
   });
   test('能力快照选择云端免登且无浏览器要求', async () => {
     const result = await run(['agent-capabilities', '--summary-json'], root, env);

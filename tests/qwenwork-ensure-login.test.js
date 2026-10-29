@@ -14,7 +14,7 @@ describe('公开千问办公登录入口', () => {
   afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
   test('没有登录态时等待普通 OAuth 完成并验证身份后才成功', async () => {
     const login = jest.fn(async () => session);
-    expect(await ensureQwenWorkLogin(options, { login })).toEqual({ ok: true, status: 'ok', can_auto_use: true });
+    expect(await ensureQwenWorkLogin(options, { login })).toEqual({ ok: true, status: 'ok', can_auto_use: true, identity_type: 'ORGANIZATION', organization_type: 'DINGTALK' });
     expect(login).toHaveBeenCalledTimes(1);
     expect(options.fetch).toHaveBeenCalledTimes(1);
   });
@@ -45,7 +45,7 @@ describe('公开千问办公登录入口', () => {
     options.fetch.mockResolvedValueOnce(new Response('{}', { status: 401 }));
     const refresh = jest.fn(async () => ({ ok: false, status: 'invalid_refresh_token' }));
     const login = jest.fn(async () => session);
-    expect(await ensureQwenWorkLogin(options, { refresh, login })).toEqual({ ok: true, status: 'ok', can_auto_use: true });
+    expect(await ensureQwenWorkLogin(options, { refresh, login })).toEqual({ ok: true, status: 'ok', can_auto_use: true, identity_type: 'ORGANIZATION', organization_type: 'DINGTALK' });
     expect(refresh).toHaveBeenCalledTimes(1); expect(login).toHaveBeenCalledTimes(1);
   });
   test('服务端身份不一致不能静默接受或回退另一个账号', async () => {

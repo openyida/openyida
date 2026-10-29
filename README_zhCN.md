@@ -137,9 +137,11 @@ openyida login --check-only --json
 openyida auth status
 ```
 
-在千问办公网页态中，`openyida login --qwenwork --json`（或普通 `login`）直接把当前沙箱的 Agent Token 与网关 URL 提交给选定宜搭环境的认证接口。宜搭通过受信任网关的 `/api/agent-gw/yida/user_info` 取得钉钉关联身份，再签发宜搭短期会话；CLI 不再调用旧的 exchange 或 `/user/info`。准备过程静默，失败停止且不回退浏览器 OAuth。桌面与其他宿主保持各自登录路径。
+在千问办公网页态中，`openyida login --qwenwork --json`（或普通 `login`）直接把当前沙箱的 Agent Token 与网关 URL 提交给选定宜搭环境的认证接口。宜搭通过受信任网关的 `/api/agent-gw/yida/user_info` 取得经过验证的千问身份，再签发宜搭会话；CLI 不再调用旧的 exchange 或 `/user/info`。准备过程静默，失败停止且不回退浏览器 OAuth。桌面与其他宿主保持各自登录路径。
 
-在千问办公云端诊断宿主身份时，可执行 `openyida auth qwenwork user-info --json`。命令读取沙箱注入的 Agent 凭证，兑换用户凭证后查询同一网关的 `/user/info`，仅输出身份与 scope 等元信息，不打印或保存凭证，也不生成宜搭登录态。千问组织 ID 需要通过绑定关系映射，不能直接当作宜搭 `corpId`。原有 OAuth 和 profile 流程保持不变。
+千问办公免登支持钉钉组织、千问办公组织和个人 ODS 身份；本地 ODS 组织编码保持 `yida` 前缀。服务端返回 refresh token 时，CLI 会保存并使用标准刷新流程。服务端可选返回 `identity_type`（`PERSONAL` / `ORGANIZATION`），组织身份另返回 `organization_type`（`DINGTALK` / `QWENWORK` / `OTHER`）；CLI 在会话及 `auth status` 中保留这些分类，历史会话两个字段均缺失、为 null 或空字符串时默认 `ORGANIZATION` / `DINGTALK`。失败时 JSON 诊断保留有界的 `status`、`stage`、`exchange_id`、HTTP `status_code` 和本地校验 `reason`，不透出凭据或完整响应正文。
+
+在千问办公云端诊断宿主身份时，可执行 `openyida auth qwenwork user-info --json`。命令读取沙箱注入的 Agent 凭证，兑换用户凭证后查询同一网关的 `/user/info`，仅输出身份与 scope 等元信息，不打印或保存凭证，也不生成宜搭登录态。千问组织 ID 需要通过绑定关系映射，不能直接当作宜搭 `corpId`。该诊断命令沿用旧用户 Token 协议，不能用于判断当前网页 Agent Token 换票是否成功；请使用 `openyida login --check-only --json` 检查宜搭会话。原有 OAuth 和 profile 流程保持不变。
 
 如果当前项目要复用已有共享登录 profile，先切换已有 profile，不要直接发起新的 OAuth 登录：
 

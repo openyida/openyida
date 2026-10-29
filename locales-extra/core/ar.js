@@ -6,6 +6,7 @@
  */
 module.exports = {
   qwenwork: {
+    organization_switch_success: 'تم تبديل المؤسسة عبر تسجيل الدخول إلى QwenWork.',
     login_check_failed: 'Unable to verify the login session. Please retry.',
     desktop_login_failed: 'فشل تسجيل الدخول عبر QwenWork لسطح المكتب. تحقق من هوية الحساب وقناة تسجيل الدخول قبل المحاولة مجددًا.',
     desktop_login_usage: 'الاستخدام： openyida login --qwenwork [--json] [--check-only]',
