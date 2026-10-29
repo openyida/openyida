@@ -600,7 +600,7 @@ test.each(require('../yida-skills/skills/yida-design/templates/design-themes/ind
     business.ready = true;
     business.facts = { overview: source.overview, dataModels: source.dataModels, businessFlows: source.businessFlows, pages: source.pages };
     fs.writeFileSync(businessFile, JSON.stringify(business));
-    if (['dark-rail-fine-lines', 'outlined-texture-duotone', 'soft-inset-surfaces', 'soft-rail-bold-band', 'warm-canvas-contrast-panels'].includes(theme.themeId)) {
+    if (['outlined-texture-duotone', 'soft-inset-surfaces', 'soft-rail-bold-band', 'warm-canvas-contrast-panels'].includes(theme.themeId)) {
       expect(() => materialize(result.output, { businessFile, visualFile: result.preparedInputs.visual }))
         .toThrow(expect.objectContaining({ code: 'DESIGN_THEME_CONTRAST_LOW' }));
       expect(fs.existsSync(path.join(path.dirname(result.output), 'app-theme.css'))).toBe(false);
