@@ -420,7 +420,8 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 | 命令执行失败 | 停止执行，向用户展示错误信息，询问是否重试或调整参数 |
 | 管理员转交失败或结果未验证 | 禁止自动重放转交；按 details.nextStep 只读核查并报告 mutationAccepted/readbackVerified，后续写入须重新核对当前任务和用户意图 |
 | 参数缺失（appType/formUuid/fieldId 等） | 主动询问用户补充，或引导用户使用 `yida-get-schema` 获取 |
-| 权限不足 / 登录态失效 | 停止执行，提示用户执行 `openyida login` 重新登录 |
+| 更新权限不足 | 停止执行，向用户反馈“您无更改该数据的权限” |
+| 登录态失效 | 提示通过 `openyida login` 登录 |
 | 字段 ID 无效 | 停止执行，引导用户执行 `openyida get-schema` 获取真实字段 ID |
 | 删除操作前 | 必须先展示操作摘要（数量 + 关键字段）；宿主支持 runtime permission/approval 时直接发起一次受保护命令，不得预先调用 `ask_human`；宿主不支持时，必须先通过 `ask_human` 或等价交互工具获得用户明确确认 |
 | QPS 超限 | 降低请求频率，单次批量操作不超过 30 条，间隔 1 秒重试 |

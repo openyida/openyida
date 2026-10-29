@@ -176,32 +176,11 @@ ID、名称及条件按实际查询结果替换；示例的成员字段条件只
 
 ## 字段权限
 
-全部字段沿用表单状态：
+优先使用 `--field-access`；默认权限、预览及子表规则见[字段权限](references/row-field-access.md#字段权限)。沿用表单字段权限传 `--field-permission '{"fieldRange":"FORM"}'`。
 
-```json
-{ "fieldRange": "FORM" }
-```
+使用完整 `--field-permission` 时，结构和值从回读或快捷参数的预览取得：`label` 为字段 ID，`fieldName` 为字段名称，只修改目标项并保留其他配置。
 
-自定义字段权限使用真实 `fieldStatus` 结构：
-
-```json
-{
-  "role": "DEFAULT",
-  "fieldRange": "CUSTOM",
-  "fieldStatus": [
-    {
-      "label": "textField_xxx",
-      "fieldName": "客户名称",
-      "componentName": "TextField",
-      "value": "FORM_FIELD_VIEW"
-    }
-  ]
-}
-```
-
-`label` 填真实字段 ID，`fieldName` 填字段名称。`value` 支持 `FORM_FIELD_VIEW`、`FORM_FILED_EDIT`（平台原始拼写）、`FORM_FIELD_HIDDEN`、`FORM_FIELD_ENCRYPT`。修改前从查询结果复制真实字段配置，只改变目标项的 value。
-
-保存回读确认配置一致后，再用目标账号验证可编辑范围。`effectiveAccessVerified: false` 表示尚未验证实际生效权限；遇到字段映射错误时，先核对原生配置，再明确指定需要修正的字段权限。
+保存回读只确认配置一致。再用目标账号验证实际可编辑范围；`effectiveAccessVerified: false` 表示尚未完成该验证。
 
 ## 失败处理
 
