@@ -218,8 +218,10 @@ const MAX_TARBALL_BYTES = 2640 * 1024;
 // retain the existing plugin budget. The merged package has not been measured.
 // Shared business-summary guidance adds one reference and its direct skill links.
 // CI Node 20.20.2 measures 9,936,796 unpacked bytes / 786 files.
-// Retain the next 16 KiB boundary; tarball and per-file caps stay unchanged.
-const MAX_UNPACKED_BYTES = 9712 * 1024;
+// Instance-scoped edit permission preflight adds one runtime module, localized
+// diagnostics and its command/skill contract; retain the next 16 KiB boundary.
+// Tarball and per-file caps stay unchanged.
+const MAX_UNPACKED_BYTES = 9728 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -259,7 +261,8 @@ const MAX_UNPACKED_BYTES = 9712 * 1024;
 // QwenWork permission guidance adds exactly one packaged runtime module.
 // Add seven plugin runtime/skill files to main's entry budget.
 // The shared user-facing summary reference adds exactly one packaged file.
-const MAX_ENTRY_COUNT = 786;
+// Native edit-permission preflight adds exactly one packaged runtime module.
+const MAX_ENTRY_COUNT = 787;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

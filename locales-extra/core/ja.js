@@ -2409,3 +2409,9 @@ module.exports.permission_guidance = {
   unknown: '権限がありません。権限の種類は未確認です。管理者に確認し、この操作を一時停止してください。',
   next_step: '権限申請ページを開いてください：[{0}]({1})。手続き後、現在の組織と権限を確認してから続行してください。',
 };
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  edit_context_unverified: 'このアカウントとレコードの編集可能なフィールドを確認できません。更新は送信されていません。標準編集画面で権限を確認してください。',
+  fields_not_editable: '編集不可、または編集可能と確認できないフィールドが含まれています：{0}。更新は送信されていません。動的な動作や制限付き明細は標準編集画面で操作してください。',
+  form_update_forbidden: 'このアカウントにはこのレコードの編集権限がありません。更新は送信されていません。',
+});

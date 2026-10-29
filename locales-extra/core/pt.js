@@ -2484,3 +2484,9 @@ module.exports.permission_guidance = {
   unknown: 'Permissão negada; o tipo de permissão não foi confirmado. Contacte um administrador e suspenda esta operação.',
   next_step: 'Abra a página de pedido de permissão: [{0}]({1}). Depois, verifique a organização e as permissões antes de continuar.',
 };
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  edit_context_unverified: 'Não foi possível verificar os campos editáveis desta conta e registro. Nenhuma atualização foi enviada. Verifique as permissões no editor nativo.',
+  fields_not_editable: 'A atualização inclui campos não editáveis ou não verificáveis: {0}. Nenhuma atualização foi enviada. Use o editor nativo para comportamentos dinâmicos ou subformulários restritos.',
+  form_update_forbidden: 'Esta conta não pode editar este registro. Nenhuma atualização foi enviada.',
+});

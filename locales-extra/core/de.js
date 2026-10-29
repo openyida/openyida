@@ -2482,3 +2482,9 @@ module.exports.permission_guidance = {
   unknown: 'Zugriff verweigert; die Berechtigungsart ist unklar. Wenden Sie sich an einen Administrator und pausieren Sie den Vorgang.',
   next_step: 'Öffnen Sie die Seite zur Berechtigungsanfrage: [{0}]({1}). Prüfen Sie anschließend Organisation und Berechtigungen, bevor Sie fortfahren.',
 };
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  edit_context_unverified: 'Die bearbeitbaren Felder für dieses Konto und diesen Datensatz konnten nicht bestätigt werden. Kein Update gesendet. Prüfen Sie die Berechtigungen im nativen Editor.',
+  fields_not_editable: 'Das Update enthält nicht bearbeitbare oder nicht überprüfbare Felder: {0}. Kein Update gesendet. Verwenden Sie bei dynamischem Verhalten oder eingeschränkten Unterformularen den nativen Editor.',
+  form_update_forbidden: 'Dieses Konto darf diesen Datensatz nicht bearbeiten. Kein Update gesendet.',
+});

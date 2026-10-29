@@ -2482,3 +2482,9 @@ module.exports.permission_guidance = {
   unknown: 'Không có quyền; chưa xác định được loại quyền. Hãy liên hệ quản trị viên và tạm dừng thao tác này.',
   next_step: 'Mở trang yêu cầu cấp quyền: [{0}]({1}). Sau khi xử lý, xác nhận tổ chức và quyền hiện tại rồi mới tiếp tục.',
 };
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  edit_context_unverified: 'Không thể xác minh các trường có thể chỉnh sửa cho tài khoản và bản ghi này. Chưa gửi cập nhật. Hãy kiểm tra quyền trong trình chỉnh sửa gốc.',
+  fields_not_editable: 'Bản cập nhật chứa trường không thể chỉnh sửa hoặc không thể xác minh: {0}. Chưa gửi cập nhật. Hãy dùng trình chỉnh sửa gốc cho hành vi động hoặc biểu mẫu con bị hạn chế.',
+  form_update_forbidden: 'Tài khoản này không có quyền chỉnh sửa bản ghi này. Chưa gửi cập nhật.',
+});
