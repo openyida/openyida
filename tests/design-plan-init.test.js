@@ -125,7 +125,7 @@ test.each(['visualDirection', 'navigationStyle'])('rejects string %s before crea
   expect(fs.existsSync(path.join(dir, 'prd', 'build-plan.json'))).toBe(false);
 });
 
-test.each(['#6F4E37', '#1677FF'])('color examples preserve the project choice %s instead of proposing a preset', primaryColor => {
+test.each(['#6F4E37', '#1677FF', '#7C3AED', '#C2410C'])('color examples preserve the project choice %s instead of proposing a preset', primaryColor => {
   brief.visualSelection.colorStrategy = { primaryColor, primaryColorName: '项目主色', usage: '来自用户提供的品牌规范' };
   save();
   const result = init();
