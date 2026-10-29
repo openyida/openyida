@@ -81,7 +81,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 ## 千问办公网页态的后台登录
 
-当前快照为 `runtime.tool=qwenwork`、`runtime.subtype=qwenwork_web` 且 `interactive_login.mode=cloud_token` 时，按[云端后台免登规则](references/qwenwork-cloud-login.md)执行快照推荐命令。CLI 自动消费沙箱凭据；成功后继续业务，失败不回退浏览器 OAuth，不读取或展示凭据。桌面态继续使用桌面换票。
+当前快照为 `runtime.tool=qwenwork`、`runtime.subtype=qwenwork_web` 且 `interactive_login.mode=cloud_token` 时，按[云端免登与普通登录回退规则](references/qwenwork-cloud-login.md)执行快照推荐命令。CLI 优先消费沙箱凭据，免登认证失败后由同一进程回退普通 OAuth；需要授权时按 `interactive_login.oauth_fallback` 处理 CLI 输出的 URL，不读取或展示凭据。桌面态继续使用桌面换票。
 
 ## 千问办公桌面端的后台准备
 
@@ -104,7 +104,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | `openyida` 不可用 | 先安装或更新 `openyida`，不创建资源 |
 | 工作目录不存在 | 先执行 `openyida copy` 初始化工作目录 |
 | 登录态可用 | 进入 Step 2 |
-| `interactive_login.mode=cloud_token` 且未登录 | 静默执行快照推荐的 `openyida login --qwenwork --json`；CLI 自动消费云端凭据，成功后继续业务；失败停止，不打开浏览器或回退 OAuth |
+| `interactive_login.mode=cloud_token` 且未登录 | 执行快照推荐的 `openyida login --qwenwork --json` 并等待；免登认证失败后 CLI 回退普通 OAuth，按 `oauth_fallback` 打开输出的授权 URL；成功后继续业务 |
 | 登录态缺失 | 按快照提示补登录态；未恢复前停止资源写操作 |
 
 千问云端身份接入开发或宿主身份诊断，可显式运行 `openyida auth qwenwork user-info --json`；它只验证千问身份，不建立宜搭登录态，不能据此跳过上述宜搭 auth snapshot 检查。详细边界见 `yida-login`。

@@ -4,6 +4,11 @@ const os = require('os');
 const path = require('path');
 const https = require('https');
 const { spawn } = require('child_process');
+jest.mock('../lib/auth/token-auth', () => ({
+  ...jest.requireActual('../lib/auth/token-auth'),
+  tokenLogin: jest.fn(),
+}));
+const { tokenLogin } = require('../lib/auth/token-auth');
 const { ensureQwenWorkLogin } = require('../lib/auth/qwenwork-login');
 const { loadTokenSession } = require('../lib/auth/token-store');
 const AGENT = 'fixture-cloud-agent-secret';
@@ -28,6 +33,7 @@ function run(args, cwd, env) {
 describe('千问办公网页态云端免登', () => {
   let root; let options; let state; let fetch; let original;
   beforeEach(() => {
+    tokenLogin.mockReset().mockRejectedValue(new Error('fixture OAuth unavailable'));
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'qwenwork-cloud-login-'));
     options = { projectRoot: root, env: environment(root, 'https://gateway.example.test'), endpoint: 'https://yida.example.test' };
     state = { response: session(), yidaStatus: 200, status: 200 };
@@ -116,10 +122,10 @@ describe('千问办公网页态云端免登', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(new URL(fetch.mock.calls[0][0]).pathname).toBe('/openapi/cli/v1/auth/status');
   });
-  test('缺少宿主凭据时停止，不触发 OAuth', async () => {
+  test('缺少宿主凭据时尝试 OAuth，失败仍保留脱敏云端诊断', async () => {
     delete options.env.QWENWORK_AGENT_TOKEN; const oauth = jest.fn();
     await expect(ensureQwenWorkLogin(options, { login: oauth })).rejects.toMatchObject({ code: 'QWENWORK_CREDENTIAL_MISSING' });
-    expect(fetch).not.toHaveBeenCalled(); expect(oauth).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled(); expect(oauth).toHaveBeenCalledTimes(1);
   });
   test('预检只检查登录态，不兑换凭据、不打开浏览器', async () => {
     expect(await ensureQwenWorkLogin({ ...options, checkOnly: true })).toMatchObject({ ok: false, status: 'not_logged_in' });
@@ -130,10 +136,10 @@ describe('千问办公网页态云端免登', () => {
     expect(await ensureQwenWorkLogin(options)).toMatchObject({ ok: true });
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ gateway_url: 'https://gateway.example.test' });
   });
-  test('上游拒绝个人身份时不保存会话、不尝试其他身份接口', async () => {
+  test('上游拒绝个人身份后尝试 OAuth，失败时不保存会话', async () => {
     state.yidaStatus = 403; const oauth = jest.fn();
     await expect(ensureQwenWorkLogin(options, { login: oauth })).rejects.toMatchObject({ code: 'QWENWORK_CLOUD_HTTP_ERROR' });
-    expect(loadTokenSession(options)).toBeNull(); expect(fetch).toHaveBeenCalledTimes(1); expect(oauth).not.toHaveBeenCalled();
+    expect(loadTokenSession(options)).toBeNull(); expect(fetch).toHaveBeenCalledTimes(1); expect(oauth).toHaveBeenCalledTimes(1);
   });
   test.each(['http://gateway.example.test', 'https://name:secret@gateway.example.test', 'https://gateway.example.test/path', 'https://gateway.example.test?token=secret', 'https://gateway.example.test#fragment'])('不接受非纯 HTTPS 网关 origin：%s', async gateway => {
     options.env.QWENWORK_GATEWAY_URL = gateway;
@@ -151,13 +157,14 @@ describe('千问办公网页态云端免登', () => {
     expect(await ensureQwenWorkLogin(options)).toMatchObject({ ok: true });
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ gateway_url: 'https://legacy.example.test' });
   });
-  test.each([302, 400, 401, 403, 429, 503])('HTTP %s 保留固定错误和状态码，不泄露上游正文、不回退 OAuth', async http => {
+  test.each([302, 400, 401, 403, 429, 503])('HTTP %s 尝试 OAuth，失败时保留固定错误且不泄露上游正文', async http => {
     state.yidaStatus = http; state.response = { error: AGENT + QWEN + YIDA }; const oauth = jest.fn();
     let error; try { await ensureQwenWorkLogin(options, { login: oauth }); } catch (e) { error = e; }
     expect(error).toMatchObject({ code: 'QWENWORK_CLOUD_HTTP_ERROR', details: { status_code: http } });
     expect(String(error) + JSON.stringify(error)).not.toContain(AGENT);
     expect(String(error) + JSON.stringify(error)).not.toContain(QWEN);
-    expect(loadTokenSession(options)).toBeNull(); expect(oauth).not.toHaveBeenCalled();
+    expect(loadTokenSession(options)).toBeNull(); expect(oauth).toHaveBeenCalledTimes(1);
+    expect(error.details.oauth_fallback_failed).toBe(true);
   });
   test.each([
     { credential_source: 'qwenwork_desktop' }, { expires_in: 0 }, { expires_in: 1801 },
@@ -237,6 +244,49 @@ describe('千问办公网页态云端免登', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(new URL(fetch.mock.calls[0][0]).pathname).toBe('/openapi/cli/v1/auth/status');
   });
+
+  test.each(['missing-token', 'missing-gateway', 'invalid-token', 'decrypt-rejected', 'business-rejected', 'network', 'timeout'])('%s 后复用普通 OAuth，校验成功才保存并供后续命令复用', async reason => {
+    if (reason === 'missing-token') { delete options.env.QWENWORK_AGENT_TOKEN; }
+    if (reason === 'missing-gateway') { delete options.env.QWENWORK_GATEWAY_URL; }
+    if (reason === 'invalid-token') { options.env.QWENWORK_AGENT_TOKEN = 'invalid token'; }
+    if (reason === 'decrypt-rejected') { state.yidaStatus = 401; }
+    if (reason === 'business-rejected') { state.response = { status: 'invalid_qwen_token', stage: 'qwen_verify' }; }
+    if (reason === 'network') { state.throwRequest = true; }
+    if (reason === 'timeout') { state.hang = true; options.timeoutMs = 10; }
+    const normal = { ...session(), base_url: options.endpoint, refresh_token: REFRESH, credential_source: 'dingtalk_oauth' };
+    const oauth = jest.fn(async () => normal);
+    await expect(ensureQwenWorkLogin(options, { login: oauth })).resolves.toMatchObject({ ok: true });
+    expect(oauth).toHaveBeenCalledTimes(1);
+    expect(oauth.mock.calls[0][0]).toMatchObject({ endpoint: options.endpoint, noBrowser: true, persist: false });
+    expect(oauth.mock.calls[0][0].env).not.toHaveProperty('QWENWORK_AGENT_TOKEN');
+    expect(loadTokenSession(options)).toMatchObject({ access_token: YIDA, refresh_token: REFRESH, credential_source: 'dingtalk_oauth' });
+    const check = await ensureQwenWorkLogin({ ...options, checkOnly: true }, { login: oauth });
+    expect(check.ok).toBe(true); expect(oauth).toHaveBeenCalledTimes(1);
+  });
+
+  test.each(['corp', 'user'])('OAuth 回退不放宽显式 %s 约束，错误身份不落盘', async selection => {
+    state.yidaStatus = 401;
+    const normal = { ...session(), base_url: options.endpoint };
+    options.env.OPENYIDA_AUTH_CORP_ID = CORP;
+    options.env.OPENYIDA_AUTH_USER_ID = 'yida-user';
+    if (selection === 'corp') { normal.corp_id = 'dingffffffffffffffffffffffffffffffff'; }
+    else { normal.user_id = 'another-user'; }
+    const oauth = jest.fn(async () => normal);
+    await expect(ensureQwenWorkLogin(options, { login: oauth })).rejects.toMatchObject({ code: 'QWENWORK_LOGIN_IDENTITY_MISMATCH' });
+    expect(oauth.mock.calls[0][0]).toMatchObject({ corpId: CORP, userId: 'yida-user', endpoint: options.endpoint });
+    expect(loadTokenSession(options)).toBeNull();
+  });
+
+  test('OAuth 回退校验失败不保存登录态，也不回显 OAuth 异常凭据', async () => {
+    state.yidaStatus = 401; state.status = 401;
+    const oauth = jest.fn(async () => ({ ...session(), base_url: options.endpoint }));
+    await expect(ensureQwenWorkLogin(options, { login: oauth })).rejects.toMatchObject({ details: { oauth_fallback_failed: true } });
+    expect(loadTokenSession(options)).toBeNull();
+    oauth.mockRejectedValue(new Error(AGENT + YIDA));
+    let error; try { await ensureQwenWorkLogin(options, { login: oauth }); } catch (e) { error = e; }
+    expect(String(error) + JSON.stringify(error)).not.toContain(AGENT);
+    expect(String(error) + JSON.stringify(error)).not.toContain(YIDA);
+  });
 });
 
 describe('真实 CLI 子进程消费网页沙箱凭据', () => {
@@ -276,7 +326,7 @@ describe('真实 CLI 子进程消费网页沙箱凭据', () => {
     const port = await new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(server.address().port)));
     base = `https://127.0.0.1:${port}`;
     env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('OPENYIDA_') && !k.startsWith('QWENWORK_') && !k.startsWith('MULE_') && k !== 'AGENT_TOKEN'));
-    Object.assign(env, environment(root, base), { CI: '1', OPENYIDA_SKIP_UPDATE_CHECK: '1', NODE_EXTRA_CA_CERTS: path.join(fixture, 'cert.pem') });
+    Object.assign(env, environment(root, base), { CI: '1', OPENYIDA_SKIP_UPDATE_CHECK: '1', OPENYIDA_NO_BROWSER: '1', OPENYIDA_OAUTH_TIMEOUT_MS: '50', NODE_EXTRA_CA_CERTS: path.join(fixture, 'cert.pem') });
   });
   afterEach(async () => { await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }); fs.rmSync(root, { recursive: true, force: true }); });
   test.each([['login'], ['login', '--qwenwork'], ['auth', 'login']].map(args => [args]))('%j 都走云端免登，并供新进程复用', async args => {
@@ -342,11 +392,11 @@ describe('真实 CLI 子进程消费网页沙箱凭据', () => {
     expect(text).toContain('qwen_verify'); expect(text).toContain('b61957b6-d679-4d93-aa71-33c1ea82797c');
     expect(text).toContain('status_code'); expect(text).not.toContain(AGENT); expect(text).not.toContain(REFRESH);
   });
-  test('能力快照选择云端免登且无浏览器要求', async () => {
+  test('能力快照选择云端免登并声明普通 OAuth 回退', async () => {
     const result = await run(['agent-capabilities', '--summary-json'], root, env);
     const snapshot = JSON.parse(result.stdout);
     expect(snapshot.builder_path.auth.auth_runtime).toBe('qwenwork_cloud_exchange');
-    expect(snapshot.builder_path.interactive_login).toMatchObject({ mode: 'cloud_token', browser_owner: 'none', invocation: { required_runtime: { tool: 'qwenwork', subtype: 'qwenwork_web' } } });
+    expect(snapshot.builder_path.interactive_login).toMatchObject({ mode: 'cloud_token', browser_owner: 'cli_if_auth_required', oauth_fallback: { completion_signal: 'process_exit_and_final_json' }, invocation: { required_runtime: { tool: 'qwenwork', subtype: 'qwenwork_web' } } });
     expect(calls).toEqual([]);
   });
 });

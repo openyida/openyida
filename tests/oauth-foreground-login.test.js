@@ -5,7 +5,7 @@ const os = require('node:os');
 const http = require('node:http');
 const https = require('node:https');
 const { spawn } = require('node:child_process');
-const { loadTokenSession } = require('../lib/auth/token-store');
+const { loadTokenSession, listUserAuthProfiles } = require('../lib/auth/token-store');
 const FIXTURE = path.join(__dirname, 'fixtures/qwenwork-desktop-tls');
 const CLI = path.join(__dirname, '../bin/yida.js');
 const ACCESS = 'fixture-private-access';
@@ -42,12 +42,12 @@ function startCli(args, options) {
 }
 
 describe('千问办公公开登录复用前台 OAuth 生命周期', () => {
-  let directory; let env; let server; let baseUrl; let authUrl;
+  let directory; let env; let server; let baseUrl; let authUrl; let calls;
   beforeEach(async () => {
     directory = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-oauth-link-'));
-    authUrl = null;
+    authUrl = null; calls = [];
     server = https.createServer({ key: fs.readFileSync(path.join(FIXTURE, 'key.pem')), cert: fs.readFileSync(path.join(FIXTURE, 'cert.pem')) }, (req, res) => {
-      res.setHeader('Content-Type', 'application/json');
+      calls.push(req.url); res.setHeader('Content-Type', 'application/json');
       if (req.url === '/openapi/cli/v1/auth/dingtalk/token') {
         let body = ''; req.on('data', data => { body += data; });
         req.on('end', () => {
@@ -109,6 +109,43 @@ describe('千问办公公开登录复用前台 OAuth 生命周期', () => {
     callback.searchParams.set('state', new URL(authUrl).searchParams.get('state'));
     callback.searchParams.set('code', 'fixture-code');
     await expect(callbackRequest(callback)).rejects.toHaveProperty('code');
+    expect(loadTokenSession({ projectRoot: directory, env })).toBeNull();
+  });
+  test.each([['login'], ['auth', 'login']].map(args => [args]))('云端 %j 免登被拒绝后等待普通 OAuth 回调，下一进程可复用登录态', async args => {
+    Object.assign(env, { QWENWORK_SANDBOX_ID: 'fixture-sandbox', QWENWORK_AGENT_TOKEN: 'fixture-cloud-secret', QWENWORK_GATEWAY_URL: baseUrl });
+    const invocation = startCli([...args, '--json', '--no-browser'], { cwd: directory, env });
+    authUrl = await invocation.ready;
+    expect(invocation.child.exitCode).toBeNull();
+    expect(loadTokenSession({ projectRoot: directory, env })).toBeNull();
+    const authorization = new URL(authUrl);
+    const callback = new URL(authorization.searchParams.get('redirect_uri'));
+    callback.searchParams.set('state', authorization.searchParams.get('state'));
+    callback.searchParams.set('code', 'fixture-code');
+    expect(await callbackRequest(callback)).toBe(200);
+    const result = await invocation.done;
+    expect(result.code).toBe(0);
+    expect(JSON.parse(result.stdout.trim())).toMatchObject({ ok: true, can_auto_use: true });
+    expect(calls).toEqual(['/openapi/cli/v1/auth/qwenwork/token', '/openapi/cli/v1/auth/dingtalk/token', '/openapi/cli/v1/auth/status']);
+    expect(loadTokenSession({ projectRoot: directory, env })).toMatchObject({ access_token: ACCESS, refresh_token: REFRESH });
+    const next = startCli(['login', '--check-only', '--json'], { cwd: directory, env });
+    expect((await next.done).code).toBe(0);
+    expect(calls.filter(value => value === '/openapi/cli/v1/auth/qwenwork/token')).toHaveLength(1);
+    expect(result.stdout + result.stderr).not.toContain('fixture-cloud-secret');
+  });
+  test('云端回退 OAuth 返回其他组织时，真实 tokenLogin 不提前保存或绑定 profile', async () => {
+    Object.assign(env, { QWENWORK_SANDBOX_ID: 'fixture-sandbox', QWENWORK_AGENT_TOKEN: 'fixture-cloud-secret',
+      QWENWORK_GATEWAY_URL: baseUrl, OPENYIDA_AUTH_CORP_ID: 'different-corp' });
+    const invocation = startCli(['login', '--json', '--no-browser'], { cwd: directory, env });
+    authUrl = await invocation.ready;
+    const authorization = new URL(authUrl);
+    const callback = new URL(authorization.searchParams.get('redirect_uri'));
+    callback.searchParams.set('state', authorization.searchParams.get('state'));
+    callback.searchParams.set('code', 'fixture-code');
+    expect(await callbackRequest(callback)).toBe(200);
+    const result = await invocation.done;
+    expect(result.code).not.toBe(0);
+    expect(result.stdout + result.stderr).toContain('QWENWORK_LOGIN_IDENTITY_MISMATCH');
+    expect(listUserAuthProfiles({ projectRoot: directory, env })).toEqual([]);
     expect(loadTokenSession({ projectRoot: directory, env })).toBeNull();
   });
 });

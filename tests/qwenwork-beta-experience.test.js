@@ -54,8 +54,15 @@ describe('千问办公桌面端的后台认证摘要', () => {
   test('网页摘要选择云端免登并隐藏身份', () => {
     const result = summary({ tool: 'qwenwork', subtype: 'qwenwork_web' });
     expect(result.login).toEqual({ status: 'ok', can_auto_use: true });
-    expect(result.builder_path.interactive_login).toMatchObject({ mode: 'cloud_token', browser_owner: 'none', user_visible: false });
+    expect(result.builder_path.interactive_login).toMatchObject({ mode: 'cloud_token', browser_owner: 'cli_if_auth_required', user_visible: false });
     expect(JSON.parse(JSON.stringify(result.builder_path.auth))).not.toHaveProperty('corp_id');
+  });
+  test('云端免登的 OAuth 回退复用原有 Agent Browser 引导', () => {
+    const result = summary({ tool: 'qwenwork', subtype: 'qwenwork_web', capabilities: { agent_browser: true } });
+    expect(result.builder_path.interactive_login.oauth_fallback).toMatchObject({
+      mode: 'caller_open_url', browser_owner: 'agent_browser', url_source: 'login_command_stderr',
+      agent_action: 'open_cli_printed_url_once_with_agent_browser',
+    });
   });
   test.each([{ tool: 'codex', subtype: 'codex' }, { tool: 'claude-code', subtype: 'claude-code' }, {}])('其他宿主保留原认证和输出契约：%j', runtime => {
     const result = summary(runtime);
