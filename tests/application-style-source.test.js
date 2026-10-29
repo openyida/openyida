@@ -11,9 +11,33 @@ const { catalog } = require('../lib/design-plan/init');
 const { exportApplicationStyle } = require('../lib/app/application-style');
 const { validateThemeCssContent } = require('../lib/app/custom-theme');
 const { parseDesignDocument, serializeDesignDocument } = require('../lib/design/document');
+const { rootDeclarations } = require('../lib/core/theme-brand-scale');
+const { auditPalette } = require('../lib/design/palette-contrast');
+const { color, contrast } = require('../lib/design/icon-contrast');
+const { topLevelRules } = require('../lib/app/theme-scope');
 const fixture = require('./fixtures/design-plan.json');
 const template = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, 'templates/design-themes/app-amber/design.md'), 'utf8');
 const platformCss = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, 'references/theme/app-custom-theme-template.css'), 'utf8');
+
+test.each(['#2C73A9', '#29E6FF', '#2F6B57'])('dark rail keeps dark navigation and white content with brand %s', primary => {
+  const theme = loadThemeIndex().themes.find(item => item.themeId === 'dark-rail-fine-lines');
+  const source = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8');
+  const design = resolveThemeColors(source.replaceAll('{{PRIMARY_COLOR}}', primary));
+  const css = applyDesignTokens(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.cssTemplatePath), 'utf8'), design);
+  const tokens = rootDeclarations(css.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const rgb = name => color(tokens[name], tokens);
+  expect(rgb('--color-brand1-6')).toEqual(color(primary));
+  expect(contrast(rgb('--pod-shell-theme-bg-color'), color('white'))).toBeGreaterThan(12);
+  for (const name of ['--pod-page-bg-color', '--pod-card-bg-color', '--pod-page-header-bg-color', '--pod-shell-content-container-bg-color']) {
+    expect(rgb(name)).toEqual(color('white'));
+  }
+  expect(auditPalette(tokens, { css })).toMatchObject({ issues: [], unresolved: [] });
+  // Platform drawers also consume the shell token; their local scope must keep
+  // the content surface white without changing the parent navigation palette.
+  const content = topLevelRules(css).find(rule => rule.selector.includes('.yida-data-manage-drawer'));
+  const local = { ...tokens, ...rootDeclarations(':root {' + content.body + '}') };
+  expect(color(local['--pod-shell-theme-bg-color'], local)).toEqual(color('white'));
+});
 
 test('strict audit reports and blocks main palette findings without recoloring', () => {
   expect(() => build({ check: true })).toThrow(expect.objectContaining({ code: 'THEME_PALETTE_REVIEW_REQUIRED' }));
@@ -163,7 +187,7 @@ test('changing the primary updates explicit references but preserves independent
 
 
 test('restored templates pass strict palette checks without rewriting their authored files', () => {
-  const themes = loadThemeIndex().themes.filter(theme => ['app-pop', 'app-platinum', 'app-sage', 'app-teal', 'app-terminal'].includes(theme.themeId));
+  const themes = loadThemeIndex().themes.filter(theme => ['dark-rail-fine-lines', 'app-pop', 'app-platinum', 'app-sage', 'app-teal', 'app-terminal'].includes(theme.themeId));
   const files = themes.flatMap(theme => [theme.templatePath, theme.cssTemplatePath, theme.formLayoutPath]);
   const before = files.map(file => fs.readFileSync(path.join(DESIGN_SKILL_ROOT, file), 'utf8'));
   expect(build({ check: true, themes })).toEqual([]);

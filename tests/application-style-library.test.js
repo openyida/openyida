@@ -270,7 +270,7 @@ test.each(themeIndex.filter(theme => theme.mode !== 'creative').map(style => [st
 test.each(themeIndex.filter(theme => theme.mode !== 'creative').map(theme => theme.themeId))('%s survives Plan materialization and Fast regeneration', async themeId => {
   const input = path.join(directory, 'build-plan.json');
   fs.writeFileSync(input, JSON.stringify(planFor(themeId)));
-  const blocked = ['dark-rail-fine-lines', 'outlined-texture-duotone', 'soft-inset-surfaces', 'soft-rail-bold-band', 'warm-canvas-contrast-panels'];
+  const blocked = ['outlined-texture-duotone', 'soft-inset-surfaces', 'soft-rail-bold-band', 'warm-canvas-contrast-panels'];
   if (blocked.includes(themeId)) {
     expect(() => materialize(input)).toThrow(expect.objectContaining({ code: 'DESIGN_THEME_CONTRAST_LOW' }));
     expect(fs.existsSync(path.join(directory, 'app-theme.css'))).toBe(false);
