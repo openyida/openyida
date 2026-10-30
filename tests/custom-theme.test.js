@@ -238,7 +238,8 @@ describe('custom theme authenticated multipart upload', () => {
     const content = Buffer.from(`:root { ${buildBrandScale()} }`);
     jest.spyOn(fs, 'statSync').mockReturnValue({ isFile: () => true, size: content.length });
     jest.spyOn(fs, 'readFileSync').mockReturnValue(content);
-    fetchImpl = jest.fn().mockResolvedValue({ status: 200, ok: true, json: async () => ({ success: true }) });
+    fetchImpl = jest.fn().mockResolvedValue({ status: 200, ok: true,
+      json: async () => ({ success: true, content: { url: 'https://cdn.example/theme.css', name: 'theme.css' } }) });
   });
   afterEach(() => {
     process.env = originalEnv;
@@ -268,6 +269,27 @@ describe('custom theme authenticated multipart upload', () => {
     expect(request.headers.Authorization).toBe('Bearer synthetic-ordinary-token');
     expect(request.headers['X-OpenYida-Local-Run-Id']).toBeUndefined();
     expect(request.redirect).toBe('error');
+  });
+  test('upload evidence hashes the actual multipart bytes and cannot be supplied by the server', async () => {
+    jest.spyOn(tokenAuth, 'getAccessToken').mockResolvedValue('synthetic-token');
+    fetchImpl.mockResolvedValue({ status: 200, ok: true, json: async () => ({ success: true,
+      content: { url: 'https://cdn.example/theme.css', name: 'stored.css' },
+      themeUpload: { appType: 'APP_OTHER', sourceSha256: 'forged', resourceContentVerified: true },
+    }) });
+    const result = await uploadCustomThemeFile('APP_ORDINARY', './theme.css', authRef, { fetchImpl });
+    const bytes = Buffer.from(await fetchImpl.mock.calls[0][1].body.get('uploadInput').arrayBuffer());
+    expect(result.themeUpload).toMatchObject({ requested: true, status: 'uploaded', uploadedThisRun: true,
+      appType: 'APP_ORDINARY', sourceFileName: 'theme.css', sourceBytes: bytes.length,
+      sourceSha256: require('crypto').createHash('sha256').update(bytes).digest('hex'),
+      cssUrl: 'https://cdn.example/theme.css', cssFileName: 'stored.css', resourceContentVerified: false });
+  });
+  test('a business rejection cannot supply successful upload evidence', async () => {
+    jest.spyOn(tokenAuth, 'getAccessToken').mockResolvedValue('synthetic-token');
+    fetchImpl.mockResolvedValue({ status: 200, ok: true,
+      json: async () => ({ success: false, errorMsg: 'scan rejected' }) });
+    await expect(uploadCustomThemeFile('APP_ORDINARY', './theme.css', authRef, { fetchImpl }))
+      .resolves.toEqual({ success: false, errorMsg: 'scan rejected',
+        themeUpload: { requested: true, status: 'rejected', uploadedThisRun: false, appType: 'APP_ORDINARY' } });
   });
   test.each([
     ['APP_OTHER', authRef, 'MANAGED_APP_MISMATCH'],

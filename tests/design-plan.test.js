@@ -724,7 +724,12 @@ describe('design-plan materialize', () => {
     };
     const design = renderDesign(plan);
     expect(design).toContain('| 选中项阴影 | --pod-nav-menu-item-selected-shadow | inset 3px 0 0 var(--color-brand1-6) |');
-    expect(() => validateDesignDocument(design)).toThrow(expect.objectContaining({ code: 'DESIGN_THEME_CONTRAST_LOW' }));
+    expect(validateDesignDocument(design).success).toBe(true);
+    // Reintroducing the former white navigation surface must still block the
+    // project rather than becoming an accepted template exception again.
+    plan.visualStyle.tokens = { ...plan.visualStyle.tokens, '--pod-shell-theme-bg-color': '#FFFFFF' };
+    expect(() => validateDesignDocument(renderDesign(plan)))
+      .toThrow(expect.objectContaining({ code: 'DESIGN_THEME_CONTRAST_LOW' }));
   });
 
   test('delivers one compact design contract with real anchors, safe metadata and the actual theme output path', () => {

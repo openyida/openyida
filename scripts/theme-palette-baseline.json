@@ -6,55 +6,6 @@
   "reviewNote": "Approved main template baseline; only the confirmed shadow reference spelling differs. Known static findings remain reported, not runtime acceptance. Changed risk sources require review.",
   "templates": [
     {
-      "themeId": "dark-rail-fine-lines",
-      "sourceHash": "d7dd7773e19bf4f98306325abd831ecd99c3f55e9abbabf4dd296a7721c7c771",
-      "issues": [
-        {
-          "role": "nav.item",
-          "foreground": "--pod-nav-item-text-color",
-          "background": "--pod-shell-theme-bg-color",
-          "minimum": 4.5,
-          "ratio": 2.61
-        },
-        {
-          "role": "nav.popup",
-          "foreground": "--pod-nav-item-text-color",
-          "background": "--pod-nav-popup-bg-color",
-          "minimum": 4.5,
-          "ratio": 2.61
-        },
-        {
-          "role": "nav.group",
-          "foreground": "--pod-nav-l-group-label-color",
-          "background": "--pod-shell-theme-bg-color",
-          "minimum": 4.5,
-          "ratio": 2.61
-        },
-        {
-          "role": "nav.l-item",
-          "foreground": "--pod-nav-item-text-color",
-          "background": "--pod-nav-l-container-bg",
-          "minimum": 4.5,
-          "ratio": 2.61
-        },
-        {
-          "role": "nav.l-group",
-          "foreground": "--pod-nav-l-group-label-color",
-          "background": "--pod-nav-l-container-bg",
-          "minimum": 4.5,
-          "ratio": 2.61
-        },
-        {
-          "role": "header.title",
-          "foreground": "--pod-page-header-text-color",
-          "background": "--pod-page-header-bg-color",
-          "minimum": 4.5,
-          "ratio": 2.61
-        }
-      ],
-      "unresolved": []
-    },
-    {
       "themeId": "ink-glow-soft-panels",
       "sourceHash": "ea36b633ab225983b6a5cf4f7474c64f2111b9fe85935e7b0c87078f0e7ffa70",
       "issues": [],

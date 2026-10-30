@@ -17,7 +17,7 @@ test('reviewed main findings remain visible, while strict audit still rejects th
   expect(onReview).toHaveBeenCalledTimes(1);
   const result = onReview.mock.calls[0][0];
   expect(result.map(item => item.themeId)).toEqual(baseline.templates.map(item => item.themeId));
-  expect(result.flatMap(item => item.issues)).toHaveLength(16);
+  expect(result.flatMap(item => item.issues)).toHaveLength(10);
   expect(result.flatMap(item => item.unresolved)).toHaveLength(15);
   expect(() => build({ check: true })).toThrow(expect.objectContaining({ code: 'THEME_PALETTE_REVIEW_REQUIRED' }));
 });
