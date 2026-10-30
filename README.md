@@ -143,9 +143,9 @@ openyida login --check-only --json
 openyida auth status
 ```
 
-In QwenWork web, `openyida login --qwenwork --json` (or ordinary `login`) sends the sandbox Agent Token and gateway origin directly to the selected YiDA authentication endpoint. YiDA validates the identity through the trusted gateway’s fixed `/api/agent-gw/yida/user_info` endpoint, then issues its own short-lived session. This login flow no longer calls the legacy exchange or `/user/info` endpoints. Login preparation stays silent; failures stop without browser OAuth. Desktop and other hosts retain their existing authentication paths.
+In QwenWork web, `openyida login --qwenwork --json` (or ordinary `login`) reuses the sandbox identity. If cloud authentication fails, the same command falls back to OAuth; follow its authorization URL and wait for completion. Desktop and other hosts keep their existing login paths.
 
-QwenWork login supports DingTalk organizations, QwenWork organizations and personal ODS identities. Local ODS tenant IDs retain their `yida` prefix. When the server supplies a refresh token, the CLI stores it for the standard refresh flow. Optional server fields `identity_type` (`PERSONAL` / `ORGANIZATION`) and `organization_type` (`DINGTALK` / `QWENWORK` / `OTHER`, organizations only) are preserved in the session and `auth status`; historical sessions with both fields absent, null or empty default to `ORGANIZATION` / `DINGTALK`. Authentication failures expose bounded `status`, `stage`, `exchange_id`, HTTP `status_code` and local validation `reason` in JSON diagnostics, without response bodies or credentials.
+Login supports DingTalk and QwenWork organizations, ODS and personal spaces. Sessions preserve server-provided identity classification, business domain and refresh credentials. Historical sessions default to DingTalk organizations. JSON errors include bounded diagnostics without credentials or response bodies.
 
 For QwenWork cloud identity diagnostics, run inside the actual cloud execution environment:
 
@@ -153,20 +153,7 @@ For QwenWork cloud identity diagnostics, run inside the actual cloud execution e
 openyida auth qwenwork user-info --json
 ```
 
-This diagnostic command uses the legacy user-token protocol; it does not validate the current web Agent Token login flow. Use `openyida login --check-only --json` to check the YiDA session.
-
-This command exchanges the injected `QWENWORK_AGENT_TOKEN` (legacy: `MULE_AGENT_TOKEN` / `AGENT_TOKEN`) at `QWENWORK_GATEWAY_URL` (legacy: `MULE_GATEWAY_URL`), then queries `/user/info` on the same origin. It reports identity and scope metadata without printing or persisting either credential. It does not create an OpenYida login session, and QwenWork organization IDs are not YiDA `corpId` values. Existing OAuth/profile behavior is unchanged.
-
-Programmatic callers can use `exchangeQwenWorkAgentToken`, `getQwenWorkUserInfo` and `getQwenWorkIdentity` from `lib/auth/qwenwork-client.js`. The exchange function returns an in-memory `access_token` credential for the identity query or a future server-side login exchange; callers must not log or persist it.
-
-```js
-const { exchangeQwenWorkAgentToken, getQwenWorkUserInfo } = require('openyida/lib/auth/qwenwork-client');
-async function readCloudUser() {
-  const credential = await exchangeQwenWorkAgentToken();
-  // The result contains QwenWork identifiers, not YiDA IDs.
-  return getQwenWorkUserInfo(credential);
-}
-```
+This legacy diagnostic reads the injected host credentials and reports identity and scope without printing or saving tokens. It does not create or validate a YiDA session; QwenWork organization IDs are not YiDA `corpId` values. Check the YiDA session with `openyida login --check-only --json`. See [QwenWork login guidance](yida-skills/references/qwenwork-cloud-login.md) for authentication behavior.
 
 To reuse an existing shared login profile for the current project, switch first instead of starting a new OAuth login:
 

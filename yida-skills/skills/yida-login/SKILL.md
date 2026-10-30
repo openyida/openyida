@@ -18,7 +18,7 @@ description: 宜搭登录态管理。以 OpenYida auth snapshot 为准；默认 
 
 ## 千问办公网页态的后台登录
 
-当前快照为 `runtime.tool=qwenwork`、`runtime.subtype=qwenwork_web` 且 `interactive_login.mode=cloud_token` 时，按[云端后台免登规则](../../references/qwenwork-cloud-login.md)执行快照推荐命令。CLI 自动消费沙箱凭据；成功后继续业务，失败不回退浏览器 OAuth，不读取或展示凭据。桌面态继续使用桌面换票。
+当前快照为 `runtime.tool=qwenwork`、`runtime.subtype=qwenwork_web` 且 `interactive_login.mode=cloud_token` 时，按[云端免登与 OAuth 回退规则](../../references/qwenwork-cloud-login.md)执行快照推荐命令并等待；需要授权时按 `oauth_fallback` 打开 CLI 输出的 URL。成功后继续业务，不读取或展示凭据。桌面态继续使用桌面换票。
 
 ## 千问办公桌面端的后台登录
 
@@ -46,7 +46,7 @@ openyida login --check-only --json
 | 状态 | 动作 |
 |---|---|
 | `auth_mode=token` 且 `status=ok` 或 `can_auto_use=true` | 继续执行业务命令 |
-| `interactive_login.mode=cloud_token` 且未登录 | 静默执行快照推荐的 `openyida login --qwenwork --json`；CLI 自动消费云端凭据，成功后继续业务；失败停止，不打开浏览器或回退 OAuth |
+| `interactive_login.mode=cloud_token` 且未登录 | 执行推荐的 `openyida login --qwenwork --json` 并等待；免登认证失败由同一进程回退 OAuth，按 `oauth_fallback` 打开授权 URL；成功后继续业务 |
 | `status=profile_required` 且返回 `candidates` / `next_step` | 不猜组织；先执行 `openyida auth profiles`，再用 `openyida auth profile switch <auth_profile>` 切到用户确认或目标匹配的已有 profile |
 | `auth_source=env` / `failure_reason=env_token_missing` | 进入运行环境注入 token 模式；缺 token 时停止，让 Codex、yida-agent 等宿主注入 `OPENYIDA_ACCESS_TOKEN` 或 `OPENYIDA_REFRESH_TOKEN`；不要执行 OAuth |
 | `auth_mode=token`，未登录，且 `interactive_login.mode=cli_auto_open` | 只执行一次 `openyida login`，等待该命令结束，并使用其最终 JSON 判断结果 |
