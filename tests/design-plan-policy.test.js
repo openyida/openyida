@@ -97,6 +97,8 @@ test.each([undefined, { themeId: 'app-sage', source: 'user_explicit' }])(
     const { policy } = getVisualDecisionPolicy(selection).themeSelection.intent;
     expect(policy).toContain('Honor the latest explicit style and color instructions and preserve the selected theme');
     expect(policy).toContain('Apply requested colors through project tokens while preserving theme structure');
+    expect(policy).toContain('Avoid black, dark gray or gray-black as the default primary color for ordinary apps');
+    expect(policy).toContain('Use black only for explicit dark-mode, high-contrast, luxury-brand or minimal-black intent');
     expect(policy).toContain('Template examples, frequency and order never make green or blue a default');
     expect(policy).toContain('CRM or inventory labels do not determine color');
     expect(policy).toContain('actual tasks, brand evidence, reading conditions and status semantics');
@@ -106,6 +108,8 @@ test('creation guidance derives navigation from the chosen theme and honors user
   const create = fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-create-app/SKILL.md'), 'utf8');
   expect(create).toContain('`--nav-theme` 显式取 design.md 的 `themeProfile.navTheme`');
   expect(create).toContain('主色遵从用户最新指定的颜色、风格及已选主题');
+  expect(create).toContain('默认不要把黑色、深灰或灰黑中性色作为普通应用主题色');
+  expect(create).toContain('`black` 仅在用户明确要求暗色模式、高对比、奢侈品牌或极简黑色视觉时使用');
   expect(create).not.toContain('--nav-theme light --logo-source appIcon');
   expect(create).not.toContain('`greyBlue` 也只在工业制造');
 });
