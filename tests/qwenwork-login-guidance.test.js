@@ -18,11 +18,18 @@ describe('桌面登录的机器可读调用契约', () => {
     });
   });
   test('当前入口为包内脚本时定位同一个安装前缀的 openyida', () => {
-    const root = path.join(directory, 'prefix/lib/node_modules/openyida');
+    const root = path.join(directory, 'prefix~1/lib/node_modules/openyida');
     fs.mkdirSync(path.join(root, 'bin'), { recursive: true });
     const entry = path.join(root, 'bin/yida-pre-beta.js'); fs.writeFileSync(entry, '');
-    const bin = path.join(directory, 'prefix/bin/openyida'); fs.mkdirSync(path.dirname(bin)); fs.symlinkSync(entry, bin);
-    expect(buildQwenWorkLoginInvocation({ executablePath: entry, packageRoot: root }).command).toBe(`${bin} login --qwenwork --json`);
+    const bin = path.join(directory, 'prefix~1/bin/openyida'); fs.mkdirSync(path.dirname(bin)); fs.symlinkSync(entry, bin);
+    expect(buildQwenWorkLoginInvocation({ executablePath: entry, packageRoot: root }).command).toBe(`${bin.replace(/\\/g, '/')} login --qwenwork --json`);
+  });
+  test.each([
+    'C:\\Users\\RUNNER~1\\prefix\\bin\\openyida.cmd',
+    'C:/Users/RUNNER~1/prefix/bin/openyida.exe',
+  ])('复用 Windows 短路径并统一目录分隔符：%s', executablePath => {
+    expect(buildQwenWorkLoginInvocation({ executablePath, packageRoot: directory }).command)
+      .toBe(`${executablePath.replace(/\\/g, '/')} login --qwenwork --json`);
   });
   test('不选择同一个前缀里指向其他包的旧命令', () => {
     const root = path.join(directory, 'prefix/lib/node_modules/openyida'); fs.mkdirSync(root, { recursive: true });
@@ -30,7 +37,7 @@ describe('桌面登录的机器可读调用契约', () => {
     const bin = path.join(directory, 'prefix/bin/openyida'); fs.mkdirSync(path.dirname(bin)); fs.symlinkSync(foreign, bin);
     expect(buildQwenWorkLoginInvocation({ executablePath: '/unknown/yida.js', packageRoot: root }).command).toBe('openyida login --qwenwork --json');
   });
-  test.each(['/path with spaces/openyida', 'openyida;echo', '$(command -v openyida)', '/unknown/yida.js'])('无法直接执行的入口不生成复合 Shell 命令：%s', executablePath => {
+  test.each(['/path with spaces/openyida', 'C:/Users/RUNNER~1/a&b/openyida.cmd', 'openyida;echo', '$(command -v openyida)', '/unknown/yida.js'])('无法直接执行的入口不生成复合 Shell 命令：%s', executablePath => {
     expect(buildQwenWorkLoginInvocation({ executablePath, packageRoot: directory }).command).toBe('openyida login --qwenwork --json');
   });
 });
