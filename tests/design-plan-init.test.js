@@ -436,6 +436,44 @@ test('preserves an explicit neutral reference palette at intake', () => {
   expect(plan.visualStyle.tokens).toEqual(brief.visualSelection.tokens);
 });
 
+test.each(['#6F4E37', '#7C3AED', '#C2410C'])('selected theme and explicit brand %s survive intake and CSS materialization', primaryColor => {
+  brief.visualSelection.themeId = 'app-sage';
+  brief.visualSelection.source = 'user_explicit';
+  brief.visualSelection.colorStrategy.primaryColor = primaryColor;
+  brief.visualSelection.tokens = { '--color-brand1-6': primaryColor, '--pod-card-border-radius': '19px' };
+  save();
+  const initialized = initialize(briefPath, { outputDir: path.join(dir, 'prd') });
+  const draft = JSON.parse(fs.readFileSync(initialized.output, 'utf8'));
+  const plan = fixture();
+  plan.schemaVersion = draft.schemaVersion;
+  // Supply the completed business/page facts; keep the selected theme, color and
+  // explicit token delta produced by intake rather than reconstructing them.
+  Object.assign(plan.visualStyle.forUser, {
+    colorStrategy: draft.visualStyle.forUser.colorStrategy,
+    navigationStyle: draft.visualStyle.forUser.navigationStyle,
+  });
+  delete plan.visualStyle.forUser.selectedTheme;
+  plan.visualStyle.internal = draft.visualStyle.internal;
+  plan.visualStyle.tokens = draft.visualStyle.tokens;
+  fs.writeFileSync(initialized.output, JSON.stringify(plan));
+  const built = materialize(initialized.output);
+  const design = fs.readFileSync(built.outputs.design, 'utf8');
+  const css = fs.readFileSync(built.outputs.theme, 'utf8');
+  const tokens = require('../lib/app/theme-from-design').readDesignTokens(design);
+  const profile = require('js-yaml').load(design.match(/^---\n([\s\S]*?)\n---/)[1]).themeProfile;
+  expect(profile.sourceThemeId).toBe('app-sage');
+  expect(tokens).toMatchObject(brief.visualSelection.tokens);
+  const rules = require('../lib/app/theme-scope').topLevelRules(css);
+  const shared = rules.find(rule => rule.selector.split(',').some(selector => selector.trim() === ':root'));
+  expect(shared.body).toContain(`--color-brand1-6: ${primaryColor};`);
+  expect(shared.body).toContain('--pod-card-border-radius: 19px;');
+  for (const mode of ['.pod-premium.is-light', '.pod-premium.is-dark',
+    '.pod-premium.nav-light', '.pod-premium.nav-dark', '.pod-premium.nav-white', '.pod-premium.nav-gray']) {
+    expect(shared.selector).toContain(mode);
+  }
+  expect(rules.filter(rule => /--color-brand1-6\s*:/.test(rule.body))).toHaveLength(1);
+});
+
 test('keeps incomplete visual choices unready and schedules only the missing selection work', () => {
   delete brief.visualSelection.colorStrategy;
   save();

@@ -47,7 +47,7 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 ```bash
 openyida create-app --name <appName> [--desc <description>]
 # 提取返回的 appType 后，单独更新应用基础设置
-openyida update-app <appType> --theme-file <app-theme.css> --nav-theme light --logo-source appIcon --layout <side|top|l_shape>
+openyida update-app <appType> --theme-file <app-theme.css> --nav-theme <light|dark> --logo-source appIcon --layout <side|top|l_shape>
 ```
 
 `openyida create-app` 不支持 `--json` 参数；不要添加 `--json`。创建成功时命令本身会输出一行 JSON，从该输出中提取 `appType`。
@@ -97,11 +97,11 @@ openyida create-app "客户管理" --quiet --no-open
 
 创建命令只提交名称、描述、图标和必要的创建标记，不推断或提交应用主题与导航配置。创建完整应用、使用 PRD/design.md 或用户要求配置主题时，主题更新命令默认传入主题文件；只有用户明确只创建空壳或暂不配置主题时才跳过主题更新。搭建流程必须采用先 `create-app`、再 `update-app --theme-file` 的两个步骤。`create-app` 不接受 `--theme-file` 和 `--logo-source`，也不接受 `--colour`、`--theme`、`--nav-theme`、`--layout` 或旧位置参数里的主题与布局，不隐式执行应用设置更新。
 
-CLI 始终按“显式 `--icon` → 行业推断 → 随机系统图标”的顺序选择图标，只有未显式指定且未命中行业时才随机，与后续是否更新主题文件无关。主题文件生成后按 PRD 在 `update-app --layout` 中显式设置布局；用户未指定布局时按业务场景选择，不固定使用 `l_shape`。参数映射与保存后核对遵守 [平台导航参数](../yida-app/workflow/step-3-create-or-reuse-app.md#平台导航参数)。在 `update-app --theme-file` 步骤中校验 CSS 并将图标颜色统一为 `--color-brand1-6` 转换后的 HEX；导航配置沿用 PRD，普通浅色方案显式传 `--nav-theme light --logo-source appIcon`。
+CLI 始终按“显式 `--icon` → 行业推断 → 随机系统图标”的顺序选择图标，只有未显式指定且未命中行业时才随机，与后续是否更新主题文件无关。主题文件生成后按 PRD 在 `update-app --layout` 中显式设置布局；用户未指定布局时按业务场景选择，不固定使用 `l_shape`。参数映射与保存后核对遵守 [平台导航参数](../yida-app/workflow/step-3-create-or-reuse-app.md#平台导航参数)。在 `update-app --theme-file` 步骤中校验 CSS 并将图标颜色统一为 `--color-brand1-6` 转换后的 HEX；`--nav-theme` 显式取 design.md 的 `themeProfile.navTheme`，不按页面明暗推断导航；Logo 配置沿用 PRD。
 
 **应用主题（colour）口径**：
 
-默认不要把黑色、深灰或灰黑中性色作为普通应用主题色。创建业务系统、工作台、门户、数据管理类应用时，先根据行业、品牌、业务情绪和视觉目标做创意色彩判断；`podBlue`、`podGreen`、`podOrange` 只是常用浅底候选，不是固定默认，也不是行业刻板答案。`black` 仅在用户明确要求暗色模式、高对比、奢侈品牌或极简黑色视觉时使用，`greyBlue` 也只在工业制造、技术工程等稳重场景下作为 fallback。
+主色遵从用户最新指定的颜色、风格及已选主题；品牌化差异通过项目 token 成组落实。未指定部分按实际任务、品牌证据、阅读条件和状态语义分析；CRM、库存等业务名称不绑定颜色。预置 key 和模板示例均不构成默认色，也不按行业限制蓝、绿或中性色。
 
 主题颜色不受平台预置 key 限制。先执行以下命令复制内置主题模板，再定点修改品牌相关 token：
 
@@ -114,7 +114,7 @@ openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-t
 ```bash
 openyida create-app --name "<应用名>" --desc "<描述>"
 # 从创建结果提取 appType 后执行；以下为 PRD 选择平台顶部导航的示例
-openyida update-app <appType> --theme-file <app-theme.css> --nav-theme light --logo-source appIcon --layout top --show-app-nav
+openyida update-app <appType> --theme-file <app-theme.css> --nav-theme <light|dark> --logo-source appIcon --layout top --show-app-nav
 ```
 
 CLI 校验主题文件完整声明平台实际生成的 `--color-brand1-1/2/3/5/6/9/10`，允许缺少 4/7/8。`update-app --theme-file` 联合保存 CSS 资源、主色及导航设置；系统应用图标会同步保存为 `iconName%%主题色HEX`，图片图标保持原值。

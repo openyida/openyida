@@ -18,6 +18,21 @@ const { createAuthRef } = require('../lib/core/yida-client');
 const { uploadCustomThemeFile } = require('../lib/app/custom-theme');
 const { parseArgs, saveAppSettings, applyCustomThemeUpdate, run } = require('../lib/app/update-app');
 const { shouldUseStructuredErrorOutput, toErrorPayload } = require('../lib/core/cli-error');
+const updateCommand = require('../lib/core/command-manifest').flattenCommandManifest()
+  .find(command => command.id === 'update-app');
+const argumentCases = {
+  name: ['客户管理', 'name', '客户管理'], desc: ['管理客户', 'desc', '管理客户'],
+  icon: ['crm', 'icon', 'crm'], iconColor: ['#C89B5A', 'iconColor', '#C89B5A'],
+  colour: ['podBlue', 'colour', 'podBlue'], themeColor: ['#C89B5A', 'themeColor', '#C89B5A'],
+  themeFile: ['./主题 文件.css', 'themeFile', './主题 文件.css'],
+  confirmLegacyAppStyle: [null, 'confirmLegacyAppStyle', true],
+  disableCustomTheme: [null, 'disableCustomTheme', true],
+  navTheme: ['dark', 'navTheme', 'dark'], logoSource: ['appIcon', 'logoSource', 'appIcon'],
+  layoutDirection: ['l_shape', 'layoutDirection', 'l_shape'],
+  hideAppNav: [null, 'hideAppNav', 'y'], showAppNav: [null, 'hideAppNav', 'n'],
+};
+const optionCases = updateCommand.args.filter(arg => arg.source === 'option')
+  .flatMap(arg => arg.builder_options.map(option => [option, arg]));
 const auth = { baseUrl: 'https://example.com', csrfToken: 'csrf', corpId: 'dingTEST' };
 const runtime = (overrides = {}) => `<script>window.pageConfig = ${JSON.stringify({ appType: 'APP_1', corpId: auth.corpId, appThemeEnable: 'y', appThemeMode: 'modern', ...overrides })};</script>`;
 const style = { enabled: true, iframePropagation: false, cssUrl: 'https://example.com/desert.css', cssFileName: 'desert.css' };
@@ -43,6 +58,31 @@ beforeEach(() => {
 afterEach(() => {
   errorSpy.mockRestore();
   stderrSpy.mockRestore();
+});
+
+test.each(optionCases)('manifest option %s reaches its normalized update-app field', (option, arg) => {
+  expect(argumentCases).toHaveProperty(arg.name);
+  const [value, field, expected] = argumentCases[arg.name];
+  expect(arg.type === 'boolean').toBe(value === null);
+  const input = ['APP_1', option, ...(value === null ? [] : [value])];
+  expect(parseArgs(input)).toMatchObject({ appType: 'APP_1', [field]: expected });
+  if (value !== null) {
+    expect(() => parseArgs(['APP_1', option])).toThrow(expect.objectContaining({ code: 'CLI_INVALID_ARGUMENTS' }));
+    expect(() => parseArgs(['APP_1', option, '--hide-app-nav']))
+      .toThrow(expect.objectContaining({ code: 'CLI_INVALID_ARGUMENTS' }));
+  }
+});
+
+test.each([
+  ['--hide-app-nav', '--show-app-nav'],
+  ['--disable-custom-theme', '--theme-file', './theme.css'],
+  ['--nav-type', 'side'],
+])('invalid update-app combination %j fails before any platform request', async (...args) => {
+  await expect(run(['APP_1', ...args])).rejects.toMatchObject({ code: 'CLI_INVALID_ARGUMENTS' });
+  expect(createAuthRef).not.toHaveBeenCalled();
+  expect(httpGet).not.toHaveBeenCalled();
+  expect(httpPost).not.toHaveBeenCalled();
+  expect(uploadCustomThemeFile).not.toHaveBeenCalled();
 });
 
 test.each([

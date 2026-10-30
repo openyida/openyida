@@ -4,7 +4,7 @@
 
 按[证据规则](../../../references/execution-rules.md#发布与验收证据)分别记录上传、配置回读与页面验收；浏览器检查仅限用户本机 Agent。
 
-交付话术遵循 [用户可见表达契约](../../yida-design/references/ask-human-interaction-contract.md)。本文件中的接口字段用于内部核验；对用户描述已验证的业务效果。例如，自定义导航完成配置和跨页跳转验证后写“已启用自定义导航，可在各业务页面间切换”。尚未验证的部分如实说明待验证的页面或操作。
+交付话术遵循 [用户可见表达契约](../../yida-design/references/ask-human-interaction-contract.md)。本文件中的接口字段用于内部核验；对用户描述已验证的业务效果。例如，自定义导航完成配置和跨页跳转验证后写“已启用自定义导航，可在各业务页面间切换”。真实业务缺口及用户明确要求但未执行的验收须说明；云端未验状态留在内部。
 
 完成总结按[完成总结规则](../../../references/user-facing-summary.md)执行：默认 1–3 句，简单修改一句即可。最终回复、卡片描述和后续建议只表达业务变化、实际结果与必要下一步；内部校验记录、发布命令和环境排障过程保留在执行记录。CLI 指令仅在用户明确询问命令或用法时提供。
 
@@ -37,7 +37,7 @@
 5. 各入口的菜单顺序、默认页面和首屏任务已按规划落实；平台导航有排序回读，自定义导航有页面验证。未完成项按入口明确列出，不能仅因平台命令不适用就将排序记为完成；
 6. 新建或作为页面数据源的核心普通表单已写入 1-3 条真实示例记录并 query 抽查，或明确说明跳过原因；
 7. 汇合主题任务，按[主题证据](../../../references/execution-rules.md#主题上传与绑定)保存上传、绑定、主色与导航回执到 `build-manifest.themeEvidence`。已有主题记录复用；旧主题或能力未知时按[旧主题规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认)保留平台主题及页面局部样式。主题更新在前序完成，收尾只汇合；自定义页面只在 `YidaComp` 内消费对应 token。
-8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；该命令检查页面/资源数量及已提供的素材执行记录一致性，不能替代第 3 条运行态数据验收。只有 `verdict=pass` 且运行态数据证据通过时才说“已按 PRD 完成搭建”；`verdict=needs_review` 时可以交付但必须列出 `items` 中 `status=needs_review/not_checked` 的复核项，`verdict=fail` 时列出 `hardFailures` 并说明未完成；
+8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；该命令检查页面/资源数量及已提供的素材执行记录一致性，不能替代运行态验收。`verdict=pass` 后按证据规则描述已完成范围；只有运行态证据通过才宣称页面验收通过。`needs_review` 时说明真实业务复核项，`fail` 时说明 `hardFailures` 对应未完成项；云端页面未验不转为用户补验任务；
 9. 未继续执行用户未要求的公开访问、额外截图报告、报表、大屏、数据源深接或精细导航分组。
 
 适用的页面检查按[跨页验收](../../yida-design/references/application-theme-consistency.md#验证主题是否真正一致)核对原生页、自定义页与抽屉；视觉结果单独记录。
@@ -48,7 +48,7 @@ PRD 保留 `applicationTheme`：themeColor 取最终 `--color-brand1-6`，navThe
 
 页面验收覆盖[阅读无障碍门禁](../../yida-design/references/page-quality-gates.md#阅读无障碍门禁)中的适用页面、抽屉、窄屏及放大态。`check-design` 检查 token 配色，运行画面另验；未执行的检查按证据规则记录待验。
 
-用户明确禁止的动作优先于上述默认条件：禁止 `theme-file` 时，第 7 条改为核验本轮没有生成、复制、修改或上传主题文件，并如实说明沿用现有/平台默认主题，不把它判为主题任务失败；禁止 `publish` 时不得宣称完整应用已发布或把历史 URL 当成本轮发布产物，只交付已完成的未发布范围和后续发布条件；禁止 `page-source` 时不得宣称本轮修改了页面源码，也不得用编译或现有页面状态替代源码变更证据。写操作的跳过必须来自用户明确约束；浏览器检查按上述实际能力记录待验证，不能记为通过或借此省略接口回读。
+用户明确禁止的动作优先于上述默认条件：禁止 `theme-file` 时，第 7 条改为核验本轮没有生成、复制、修改或上传主题文件，并如实说明沿用现有/平台默认主题，不把它判为主题任务失败；禁止 `publish` 时不得宣称完整应用已发布或把历史 URL 当成本轮发布产物，只交付已完成的未发布范围和后续发布条件；禁止 `page-source` 时不得宣称本轮修改了页面源码，也不得用编译或现有页面状态替代源码变更证据。写操作的跳过必须来自用户明确约束；浏览器检查先按执行位置判定，仅用户本机 Agent 可执行；未验不能记为通过或省略接口回读。
 
 第 6 条按资源独立核验：每个被 final 声称“已写入”“已验证”或给出记录数的表单/流程，都必须有该资源自己的成功 create 返回值和只读 query/readback 证据。不得把一张表单的 3 条记录复制成其他表单也有 3 条；没有证据的资源只能写“未写入”“未抽查”或“跳过”，不能用应用发布成功替代数据核验。
 
@@ -71,7 +71,7 @@ PRD 保留 `applicationTheme`：themeColor 取最终 `--color-brand1-6`，navThe
 | 范围内入口尚未验证、登记失败或回读不一致 | 标记该端未完成，修复后再交付；不输出猜测或错位链接，不传空字符串、`null`、占位 URL |
 
 - 按入口规划的 `sceneKey`、`defaultMenuKey`、真实页面 ID 和视图建立前后台映射，不按页面创建/发布顺序或页面标题猜测。业务后台优先使用已验证的具体任务 `/workbench/{formUuid}?viewUuid=...`；只有确认根 `/workbench` 落到正确默认任务时才使用根入口。
-- 已有配置与本轮已验证目标一致时直接复用回读，不重复保存；不同且在本轮完整搭建范围内时局部更新。登记后以 `urls` 为最终入口事实源，保持完整域名、页面 ID、有效 query/hash 和公开地址。`verification.configurationReadback=true` 只证明配置保存，`runtimeVerified=false` 仍需实际打开验证，不能当访问成功。
+- 已有配置与本轮已验证目标一致时直接复用回读，不重复保存；不同且在本轮完整搭建范围内时局部更新。登记后以 `urls` 为最终入口事实源，保持完整域名、页面 ID、有效 query/hash 和公开地址。`verification.configurationReadback=true` 只证明配置保存，`runtimeVerified=false` 不能当访问成功。页面验收遵循本机 Agent 边界。
 - 用户明确保留平台导航的前台，使用已验证的 `workbenchUrl` 通过 `--frontend` 登记；`--frontend-page` 专用于独立前台，不适用这种例外。
 - 前台地址必须来自已发布页面的成功返回及回读；独立前台核验持久化 `renderNav=false`，仅字段缺失时兼容 `isRenderNav`，不通过 URL 参数配置。
 - **登记 URL 必须是发布返回并回读确认的那条完整访问地址，原样传入 `app-entry set`**：直接复用 `publish` 成功返回的完整运行时 URL，并结合 `get-form-config` 核对页面配置和实际访问结果，保留其域名、路径段（如 `/workbench/{formUuid}` 或 `/custom/{formUuid}`）和有效参数。不得手工改写、截断或凭 `appType`/`formUuid` 拼接一条未经发布回读的路径来登记；保存后回读核对同一条完整 URL。完整 URL 参数不会截断工作台页面 ID。
@@ -196,7 +196,7 @@ PRD 保留 `applicationTheme`：themeColor 取最终 `--color-brand1-6`，navThe
 | 数据桥深度接入 | `use_skill("yida-canvas-data-binding", "接入页面数据")` 或 `use_skill("yida-data-source-connectors", "绑定设计器数据源")` | 页面真实数据读写稳定，空态/错误态可恢复 |
 | 报表/图表 | `use_skill("yida-report", "创建原生报表")`、`use_skill("yida-rechart", "创建 Recharts 页面")` 或 `use_skill("yida-chart", "创建 ECharts 页面")` | 报表或图表页面已创建/发布 |
 | 公开访问 | `use_skill("yida-page-config", "配置页面公开访问")` | 分享配置保存成功 |
-| 截图/人工验收 | 按当前工具能力 | 截图或用户确认通过 |
+| 截图/人工验收 | 本机 Agent 或用户明确要求的人工验收 | 有实际截图或用户确认 |
 
 ## 错误处理
 
