@@ -390,6 +390,7 @@ describe('requestWithAutoLogin', () => {
         access_token: 'new-access-token',
         refresh_token: 'refresh-token',
         base_url: 'https://customer.example.com',
+        identity_type: 'ORGANIZATION', organization_type: 'DINGTALK',
         corp_id: 'ding-corp',
         corp_name: '钉钉组织',
         user_id: 'user-1',
@@ -422,6 +423,7 @@ describe('requestWithAutoLogin', () => {
       expect(authRef.authData).toMatchObject({
         auth_mode: 'token',
         base_url: 'https://customer.example.com',
+        identity_type: 'ORGANIZATION', organization_type: 'DINGTALK',
         corp_id: 'ding-corp',
         corp_name: '钉钉组织',
         user_id: 'user-1',
@@ -634,6 +636,16 @@ describe('loadAuthData', () => {
     restore('OPENYIDA_TOKEN_USER_ID', originalUserId);
     restore('OPENYIDA_AUTH_DIR', originalAuthDir);
     fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test.each([
+    { identity_type: 'PERSONAL' },
+    { identity_type: 'ORGANIZATION', organization_type: 'QWENWORK' },
+  ])('ODS classification reaches the business auth context: %j', classification => {
+    const { saveTokenSession } = require('../lib/auth/token-store');
+    saveTokenSession({ ...classification, access_token: 'fixture-access', base_url: 'https://tenant.example.test',
+      corp_id: 'yida0123456789abcdef0123456789abcdef', user_id: 'ods-member' }, { projectRoot: tmpDir });
+    expect(loadAuthData(tmpDir)).toMatchObject({ ...classification, corp_id: 'yida0123456789abcdef0123456789abcdef', user_id: 'ods-member' });
   });
 
   test('读取 token session 并返回 authRef 可用结构', () => {

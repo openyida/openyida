@@ -81,6 +81,14 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 每项待办对应一个阶段，直接使用上方短标题。创建应用、表单、数据、图片、页面和发布分别展示。执行中保持标题与列表顺序稳定，完成后标记完成并保留记录。图片准备与表单、页面搭建可同时进行，列表顺序仅用于展示。业务细节写在进度消息中，任务编号、命令、路径、授权依据和耗时写入内部执行记录；用户要求的耗时统计集中放入报告。素材采集与应用创建同时进行时，进度描述统一为“素材采集&应用创建”；单独进行时使用对应阶段名称。图片数量、用途及任务详情归入内部执行记录。
 
+## 千问办公网页态的后台登录
+
+当前快照为 `runtime.tool=qwenwork`、`runtime.subtype=qwenwork_web` 且 `interactive_login.mode=cloud_token` 时，按[云端免登与普通登录回退规则](references/qwenwork-cloud-login.md)执行快照推荐命令。CLI 优先消费沙箱凭据，免登认证失败后由同一进程回退普通 OAuth；需要授权时按 `interactive_login.oauth_fallback` 处理 CLI 输出的 URL，不读取或展示凭据。桌面态继续使用桌面换票。
+
+## 千问办公桌面端的后台准备
+
+当前快照确认运行于千问办公桌面端时，安装、环境检查和自动登录按[后台准备规则](references/qwenwork-desktop-login.md)静默执行。用户只需要看到业务进度和业务结果。
+
 ## 执行步骤
 
 ### Step 1：环境与登录态确认
@@ -98,7 +106,10 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | `openyida` 不可用 | 先安装或更新 `openyida`，不创建资源 |
 | 工作目录不存在 | 先执行 `openyida copy` 初始化工作目录 |
 | 登录态可用 | 进入 Step 2 |
+| `interactive_login.mode=cloud_token` 且未登录 | 执行快照推荐的 `openyida login --qwenwork --json` 并等待；免登认证失败后 CLI 回退普通 OAuth，按 `oauth_fallback` 打开输出的授权 URL；成功后继续业务 |
 | 登录态缺失 | 按快照提示补登录态；未恢复前停止资源写操作 |
+
+千问云端身份接入开发或宿主身份诊断，可显式运行 `openyida auth qwenwork user-info --json`；它只验证千问身份，不建立宜搭登录态，不能据此跳过上述宜搭 auth snapshot 检查。详细边界见 `yida-login`。
 
 ### Step 2：解析资源上下文
 

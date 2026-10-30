@@ -137,6 +137,12 @@ openyida login --check-only --json
 openyida auth status
 ```
 
+在千问办公网页态中，`openyida login --qwenwork --json`（或普通 `login`）复用沙箱身份登录宜搭。免登认证失败后，同一命令回退普通 OAuth；按输出的授权链接完成授权并等待命令结束。桌面与其他宿主保持各自登录路径。
+
+免登支持钉钉组织、千问办公组织、ODS 和个人空间，会话保留服务端身份分类、业务域名及刷新凭据；历史会话默认按钉钉组织处理。JSON 错误提供有界诊断，不输出凭据或完整响应正文。
+
+云端宿主身份诊断使用 `openyida auth qwenwork user-info --json`。该命令沿用旧协议，仅输出身份与 scope，不打印或保存凭据，不生成或验证宜搭登录态；千问组织 ID 不能直接作为宜搭 `corpId`。请用 `openyida login --check-only --json` 检查宜搭会话，认证行为见[千问登录指引](yida-skills/references/qwenwork-cloud-login.md)。
+
 如果当前项目要复用已有共享登录 profile，先切换已有 profile，不要直接发起新的 OAuth 登录：
 
 ```bash
@@ -335,9 +341,9 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 | 命令 | 说明 |
 |------|------|
-| `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
+| `openyida login [--qwenwork] [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
 | `openyida logout` | 退出登录 / 解绑当前项目登录态 |
-| `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch>` | token 登录态与 profile 管理 |
+| `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch\|qwenwork user-info> [--json]` | token 登录态与 profile 管理 |
 | `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | 组织管理（列表 / 优先按已有 profile 切换） |
 | `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | 检测 AI 工具环境和 token 登录态 |
 

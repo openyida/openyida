@@ -235,7 +235,7 @@ describe('CLI offline smoke', () => {
     const output = runOk(['--help']);
     expect(output).toContain('OpenYida');
     expect(output).toContain('env [--json|setup|list|show|switch|add|remove] [options]');
-    expect(output).toContain('login [target-url] [--env <name>|--intl|--overseas|--global|--yidaapps|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]');
+    expect(output).toContain('login [--qwenwork] [target-url] [--env <name>|--intl|--overseas|--global|--yidaapps|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]');
     expect(output).toContain('org <list|switch> [--json] [--corp-id <corpId>]');
     expect(output).toContain('corp-efficiency');
     expect(output).toContain('create-form');
@@ -737,7 +737,7 @@ describe('CLI offline smoke', () => {
       requires_login: false,
     });
     expect(parsed.commands.find(entry => entry.id === 'auth')).toMatchObject({
-      usage: 'openyida auth <status|login|refresh|logout|profiles|profile switch>',
+      usage: 'openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
       requires_login: false,
     });
     expect(parsed.commands.find(entry => entry.id === 'dingtalk-link')).toMatchObject({
@@ -1554,15 +1554,14 @@ describe('CLI offline smoke', () => {
         },
       });
       expect(summary.builder_path.interactive_login).toMatchObject({
-        mode: 'caller_open_url',
-        browser_default: 'caller_open_url',
-        browser_owner: 'agent_browser',
-        recommended_command: 'openyida login --no-browser',
-        agent_action: 'open_cli_printed_url_once_with_agent_browser',
-        url_source: 'login_command_stderr',
-        manual_user_open_fallback: 'only_when_agent_browser_tool_unavailable_or_failed',
-        must_not_only_print_url_when_agent_browser_available: true,
-        reason: 'web_sandbox_agent_browser_available',
+        mode: 'cloud_token',
+        browser_owner: 'cli_if_auth_required',
+        oauth_fallback: {
+          mode: 'caller_open_url',
+          browser_owner: 'agent_browser',
+          url_source: 'login_command_stderr',
+        },
+        recommended_command: 'openyida login --qwenwork --json',
         playwright_required: false,
       });
       expect(summary.builder_path.browser_verification).toMatchObject({
@@ -2000,7 +1999,7 @@ describe('CLI offline smoke', () => {
       mutates_yida: false,
       mutates_local: true,
       read_actions: ['status', 'profiles', 'profile list'],
-      mutating_actions: ['login', 'refresh', 'logout', 'profile switch'],
+      mutating_actions: ['login', 'refresh', 'logout', 'profile switch', 'qwenwork user-info'],
     });
     expect(commandById.org.side_effect).toMatchObject({
       kind: 'mixed',
