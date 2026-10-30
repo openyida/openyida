@@ -17,11 +17,30 @@ const { httpGet, httpPost } = require('../lib/core/utils');
 const { createAuthRef } = require('../lib/core/yida-client');
 const { uploadCustomThemeFile } = require('../lib/app/custom-theme');
 const { parseArgs, saveAppSettings, applyCustomThemeUpdate, run } = require('../lib/app/update-app');
+const { shouldUseStructuredErrorOutput, toErrorPayload } = require('../lib/core/cli-error');
+const updateCommand = require('../lib/core/command-manifest').flattenCommandManifest()
+  .find(command => command.id === 'update-app');
+const argumentCases = {
+  name: ['客户管理', 'name', '客户管理'], desc: ['管理客户', 'desc', '管理客户'],
+  icon: ['crm', 'icon', 'crm'], iconColor: ['#C89B5A', 'iconColor', '#C89B5A'],
+  colour: ['podBlue', 'colour', 'podBlue'], themeColor: ['#C89B5A', 'themeColor', '#C89B5A'],
+  themeFile: ['./主题 文件.css', 'themeFile', './主题 文件.css'],
+  confirmLegacyAppStyle: [null, 'confirmLegacyAppStyle', true],
+  disableCustomTheme: [null, 'disableCustomTheme', true],
+  navTheme: ['dark', 'navTheme', 'dark'], logoSource: ['appIcon', 'logoSource', 'appIcon'],
+  layoutDirection: ['l_shape', 'layoutDirection', 'l_shape'],
+  hideAppNav: [null, 'hideAppNav', 'y'], showAppNav: [null, 'hideAppNav', 'n'],
+};
+const optionCases = updateCommand.args.filter(arg => arg.source === 'option')
+  .flatMap(arg => arg.builder_options.map(option => [option, arg]));
 const auth = { baseUrl: 'https://example.com', csrfToken: 'csrf', corpId: 'dingTEST' };
 const runtime = (overrides = {}) => `<script>window.pageConfig = ${JSON.stringify({ appType: 'APP_1', corpId: auth.corpId, appThemeEnable: 'y', appThemeMode: 'modern', ...overrides })};</script>`;
 const style = { enabled: true, iframePropagation: false, cssUrl: 'https://example.com/desert.css', cssFileName: 'desert.css' };
 const disabledStyle = { ...style, enabled: false, iframePropagation: false };
 const saved = { colour: 'custom', themeColor: '#C89B5A', customThemeStyle: JSON.stringify(style), hideAppNav: 'y' };
+const uploadEvidence = { requested: true, status: 'uploaded', uploadedThisRun: true, appType: 'APP_1',
+  sourceFileName: 'desert.css', sourceBytes: 123, sourceSha256: 'a'.repeat(64),
+  themeColor: '#C89B5A', cssUrl: style.cssUrl, cssFileName: style.cssFileName, resourceContentVerified: false };
 const response = (content) => ({ success: true, content });
 let errorSpy;
 let stderrSpy;
@@ -33,12 +52,37 @@ beforeEach(() => {
   stderrSpy = jest.spyOn(process.stderr, 'write').mockReturnValue(true);
   createAuthRef.mockReturnValue(auth);
   httpPost.mockResolvedValue(response(true));
-  uploadCustomThemeFile.mockResolvedValue(response({ url: style.cssUrl, name: style.cssFileName }));
+  uploadCustomThemeFile.mockReset().mockResolvedValue({ ...response({ url: style.cssUrl, name: style.cssFileName }), themeUpload: uploadEvidence });
 });
 
 afterEach(() => {
   errorSpy.mockRestore();
   stderrSpy.mockRestore();
+});
+
+test.each(optionCases)('manifest option %s reaches its normalized update-app field', (option, arg) => {
+  expect(argumentCases).toHaveProperty(arg.name);
+  const [value, field, expected] = argumentCases[arg.name];
+  expect(arg.type === 'boolean').toBe(value === null);
+  const input = ['APP_1', option, ...(value === null ? [] : [value])];
+  expect(parseArgs(input)).toMatchObject({ appType: 'APP_1', [field]: expected });
+  if (value !== null) {
+    expect(() => parseArgs(['APP_1', option])).toThrow(expect.objectContaining({ code: 'CLI_INVALID_ARGUMENTS' }));
+    expect(() => parseArgs(['APP_1', option, '--hide-app-nav']))
+      .toThrow(expect.objectContaining({ code: 'CLI_INVALID_ARGUMENTS' }));
+  }
+});
+
+test.each([
+  ['--hide-app-nav', '--show-app-nav'],
+  ['--disable-custom-theme', '--theme-file', './theme.css'],
+  ['--nav-type', 'side'],
+])('invalid update-app combination %j fails before any platform request', async (...args) => {
+  await expect(run(['APP_1', ...args])).rejects.toMatchObject({ code: 'CLI_INVALID_ARGUMENTS' });
+  expect(createAuthRef).not.toHaveBeenCalled();
+  expect(httpGet).not.toHaveBeenCalled();
+  expect(httpPost).not.toHaveBeenCalled();
+  expect(uploadCustomThemeFile).not.toHaveBeenCalled();
 });
 
 test.each([
@@ -76,7 +120,9 @@ test('theme upload checks runtime first, then reads fresh settings, saving updat
     colour: 'custom', themeColor: '#C89B5A', customThemeStyle: JSON.stringify(style), hideAppNav: 'y',
     navTheme: 'dark', layoutDirection: 'top', logoSource: 'customImage',
   });
-  expect(result.themeVerification).toEqual({ verified: true, colour: 'custom', themeColor: '#C89B5A', customThemeStyle: style });
+  expect(result.themeVerification).toEqual({ verified: true, colour: 'custom', themeColor: '#C89B5A', customThemeStyle: style,
+    scope: 'configuration_readback', operation: 'bind_resource', runtimeVerified: false });
+  expect(result.themeUpload).toEqual(uploadEvidence);
 });
 
 test('CLI update-app --theme-file exposes the verified resource in its success output', async () => {
@@ -86,7 +132,9 @@ test('CLI update-app --theme-file exposes the verified resource in its success o
   try {
     await run(['APP_1', '--theme-file', './desert.css']);
     const output = JSON.parse(log.mock.calls.map(([line]) => line).filter((line) => typeof line === 'string' && line.startsWith('{')).pop());
-    expect(output).toMatchObject({ success: true, themeVerification: { verified: true, customThemeStyle: style } });
+    expect(output).toMatchObject({ success: true, themeUpload: uploadEvidence,
+      themeVerification: { verified: true, customThemeStyle: style, scope: 'configuration_readback', operation: 'bind_resource' },
+      runtimeVerification: { verified: false, status: 'not_checked' } });
   } finally { log.mockRestore(); }
 });
 
@@ -95,6 +143,7 @@ test('HTTP success with an unchanged platform theme is a failure; retries only r
     .mockResolvedValue(response({ colour: 'podBlue', themeColor: '', customThemeStyle: '' }));
   const result = await applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth);
   expect(result).toMatchObject({ success: false, errorCode: 'APP_THEME_NOT_PERSISTED', themeVerification: { verified: false } });
+  expect(result.themeUpload).toEqual(uploadEvidence);
   expect(httpPost).toHaveBeenCalledTimes(1);
   expect(uploadCustomThemeFile).toHaveBeenCalledTimes(1);
   expect(httpGet).toHaveBeenCalledTimes(6);
@@ -155,6 +204,76 @@ test('update rejection is returned without a verification read', async () => {
   httpPost.mockResolvedValue({ success: false, errorMsg: 'rejected' });
   expect(await saveAppSettings(parseArgs(['APP_1', '--hide-app-nav']), auth)).toEqual({ success: false, errorMsg: 'rejected' });
   expect(httpGet).toHaveBeenCalledTimes(1);
+});
+
+test.each([
+  { colour: 'podBlue', themeColor: '#0089FF' },
+  saved,
+])('CLI navigation-only updates cannot claim a new CSS upload, including when a previous resource exists', async current => {
+  httpPost.mockResolvedValue({ success: true, themeUpload: uploadEvidence });
+  httpGet.mockResolvedValueOnce(response(current)).mockResolvedValueOnce(response({ ...current, navTheme: 'light' }));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await run(['APP_1', '--nav-theme', 'light']);
+    const output = JSON.parse(log.mock.calls.map(([line]) => line).filter(line => typeof line === 'string' && line.startsWith('{')).pop());
+    expect(output).toMatchObject({ success: true,
+      themeUpload: { requested: false, status: 'not_requested', uploadedThisRun: false, appType: 'APP_1' },
+      themeVerification: { verified: true, scope: 'configuration_readback', operation: 'preserve', runtimeVerified: false },
+      runtimeVerification: { verified: false, status: 'not_checked' } });
+    expect(uploadCustomThemeFile).not.toHaveBeenCalled();
+  } finally { log.mockRestore(); }
+});
+
+test('upload evidence survives a thrown binding failure without a second upload', async () => {
+  httpGet.mockResolvedValueOnce(runtime()).mockResolvedValueOnce(runtime());
+  httpGet.mockRejectedValue(new Error('configuration read failed'));
+  const error = await applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth).catch(e => e);
+  expect(shouldUseStructuredErrorOutput(error, [])).toBe(true);
+  expect(toErrorPayload(error)).toMatchObject({ success: false, errorCode: 'APP_THEME_UPDATE_FAILED',
+    retrySafe: false, sideEffectState: 'unknown', readbackAllowed: true,
+    details: { themeUpload: uploadEvidence, applicationSettingsVerified: false, uploadedResource: JSON.stringify(style) } });
+  expect(uploadCustomThemeFile).toHaveBeenCalledTimes(1);
+  expect(httpPost).not.toHaveBeenCalled();
+});
+
+test('a lost upload response is unknown, never reported as no upload or verified success', async () => {
+  httpGet.mockResolvedValue(runtime());
+  uploadCustomThemeFile.mockRejectedValue(new Error('connection lost'));
+  const error = await applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth).catch(e => e);
+  expect(shouldUseStructuredErrorOutput(error, [])).toBe(true);
+  expect(toErrorPayload(error)).toMatchObject({ success: false, retrySafe: false,
+    details: { themeUpload: { requested: true, status: 'unknown', uploadedThisRun: null, appType: 'APP_1' },
+      applicationSettingsVerified: false },
+  });
+  expect(uploadCustomThemeFile).toHaveBeenCalledTimes(1);
+  expect(httpPost).not.toHaveBeenCalled();
+});
+
+test('an upload rejection stops before binding and reports no accepted upload', async () => {
+  httpGet.mockResolvedValue(runtime());
+  uploadCustomThemeFile.mockResolvedValue({ success: false, errorMsg: 'scan rejected', themeUpload: {
+    requested: true, status: 'rejected', uploadedThisRun: false, appType: 'APP_1',
+  } });
+  await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth)).rejects.toMatchObject({
+    details: { themeUpload: { status: 'rejected', uploadedThisRun: false }, applicationSettingsVerified: false },
+  });
+  expect(httpPost).not.toHaveBeenCalled();
+});
+
+test('CLI uses the color of the uploaded bytes when the file changed after preflight', async () => {
+  const actualColor = '#2F6B57';
+  uploadCustomThemeFile.mockResolvedValue({ ...response({ url: style.cssUrl, name: style.cssFileName }),
+    themeUpload: { ...uploadEvidence, themeColor: actualColor } });
+  httpGet.mockResolvedValueOnce(runtime()).mockResolvedValueOnce(runtime())
+    .mockResolvedValueOnce(response({ colour: 'podBlue' })).mockResolvedValueOnce(response({ ...saved, themeColor: actualColor }));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await run(['APP_1', '--theme-file', './desert.css']);
+    const output = JSON.parse(log.mock.calls.map(([line]) => line).filter(line => typeof line === 'string' && line.startsWith('{')).pop());
+    expect(querystring.parse(httpPost.mock.calls[0][2]).themeColor).toBe(actualColor);
+    expect(output.updatedFields.themeColor).toBe(actualColor);
+    expect(output.themeVerification.themeColor).toBe(actualColor);
+  } finally { log.mockRestore(); }
 });
 
 

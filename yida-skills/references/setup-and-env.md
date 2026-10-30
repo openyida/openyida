@@ -113,3 +113,5 @@ openyida auth refresh
 - 不要读取 `.cache/cookies*.json` 作为登录态。
 - 不要要求用户导出浏览器 Cookie。
 - 不要打印 Cookie、CSRF、`access_token` 或 `refresh_token`。
+
+环境检测后按[本地浏览器验收](execution-rules.md#本地浏览器验收)核对 `builder_path.browser_verification`；验收位置与 OAuth 登录浏览器分别判定。

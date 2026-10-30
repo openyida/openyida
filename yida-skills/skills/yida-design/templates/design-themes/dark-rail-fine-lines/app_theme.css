@@ -4,7 +4,6 @@
  * OpenYida 应用主题模板
  *
  * 生成后的 CSS 是应用级主题资源：平台组件和自定义页面消费这里的 token 与样式。
- * 文件名可以是 app-theme.css 或 app_theme.css，以 --theme-file 的实际路径为准。
  * 修改后需通过 update-app --theme-file 上传并绑定应用设置；本地文件存在不代表已生效。
  * 布局、导航交互和 iframe 高度仍由页面/容器实现，iframe 不自动继承父文档变量。
  *
@@ -19,10 +18,8 @@
  *    PC 七档与移动端四档必须完整存在于顶层 :root；生成与上传均校验最终值、引用和循环，局部声明不能充数。
  * 5. 按 design.md 的 Token 名更新颜色、边框、状态、圆角与阴影；显式 var() 引用才建立联动。
  *    导航、表单、详情和自定义页面共同设计；辅助色、材质色与状态色不因换主色自动重染。
- * 6. 页面、卡片、抽屉和控件通过变量引用继承项目圆角，不强制所有主题使用大圆角。
- * 7. 固定主题只声明一套变量；:root 与平台各导航模式选择器共用此声明块。
- *    is-light/is-dark 和 nav-* 只作为覆盖入口，不生成另一套配色。
- *    CLI 在生成前后和上传前检查 CSS 结构闭合，失败时修复源文件后重试。
+ * 6. 圆角按角色继承，不统一改大。
+ * 7. 各导航模式共用一套配色；生成及上传前检查 CSS 闭合，失败先修源码。
  */
 
 /* openyida-theme-tokens:start */
@@ -132,8 +129,8 @@
   --pod-shell-content-container-padding: 0px;
   --pod-shell-content-container-margin: 0px;
   --pod-shell-content-container-border: none;
-  --pod-shell-content-container-bg-color: transparent;
-  --pod-shell-theme-bg-color: #FFFFFF;
+  --pod-shell-content-container-bg-color: var(--pod-page-bg-color);
+  --pod-shell-theme-bg-color: #171717;
 
   /* 页面容器 */
   --pod-page-surface-padding: 0px;
@@ -277,9 +274,9 @@
   --pod-nav-item-text-color: #A0A0A0;
   --pod-nav-item-text-hover-color: #E7E7E7;
   --pod-nav-item-text-disabled-color: rgba(24, 28, 31, 0.24);
-  --pod-page-header-bg-color: var(--pod-shell-theme-bg-color, var(--color-white, #fff));
+  --pod-page-header-bg-color: var(--pod-page-bg-color);
   --pod-theme-text-color: var(--pod-nav-item-text-color, var(--color-text1-4, #202020));
-  --pod-page-header-text-color: var(--pod-theme-text-color, var(--color-text1-4, #202020));
+  --pod-page-header-text-color: var(--color-text1-4);
   --pod-nav-item-text-selected-color: #FFFFFF;
 
   /* 原生表单：编辑态字段 */
@@ -765,3 +762,7 @@ body.pod-premium .flow-steps .next-step-dot
 }
 
 /* openyida-navigation-shape:end */
+
+.pod-premium :is(.next-shell-content, .yida-data-manage-drawer, .drawer-container) {
+  --pod-shell-theme-bg-color: var(--pod-page-bg-color);
+}

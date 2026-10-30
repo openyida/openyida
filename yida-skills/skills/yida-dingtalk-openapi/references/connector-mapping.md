@@ -14,10 +14,14 @@ Canvas 的 `dataBinding.mode=connector` 使用稳定资源身份：
 }
 ```
 
+复用[同源桥 helper](../../yida-canvas-custom-page/references/data-bridge-guide.md#同源窗口与身份)；unavailable 显示未就绪状态。
+
 ```javascript
-var bridge = window.__OPENYIDA_CONNECTOR_API__
-  || (window.parent && window.parent.__OPENYIDA_CONNECTOR_API__);
-var result = await bridge.invoke(DATA_BINDING, DATA_BINDING.inputs);
+async function callConnector(inputs) {
+  var bridge = getCanvasBridge('__OPENYIDA_CONNECTOR_API__', 'invoke');
+  if (!bridge) return { status: 'unavailable' };
+  return { status: 'ready', data: await bridge.invoke(DATA_BINDING, inputs) };
+}
 ```
 
 数字 `connectorId`（例如 `917319`）只用于 `openyida connector detail/list-actions/test` 等管理命令。页面调用网关时必须使用 `connector create/detail --json` 回读的内部 `connectorName`，其值以 `Http_` 开头；发布层会把它映射为 `serviceInfo.connectorInfo.connectorId`。不得把数字 ID 写入页面 binding。

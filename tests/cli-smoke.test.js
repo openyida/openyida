@@ -1564,6 +1564,9 @@ describe('CLI offline smoke', () => {
         recommended_command: 'openyida login --qwenwork --json',
         playwright_required: false,
       });
+      expect(summary.builder_path.browser_verification).toMatchObject({
+        execution_location: 'remote', allowed: false, action: 'do_not_open_browser',
+      });
     } finally {
       fs.rmSync(workspace, { recursive: true, force: true });
     }
@@ -2723,6 +2726,7 @@ test('plain user-facing guidance is available from manifest and both agent capab
     wording: expect.stringContaining('everyday language'),
     failures: expect.stringContaining('pending verification'),
     diagnostics: expect.stringContaining('exact technical fields and error codes'),
+    browser_acceptance: expect.stringContaining('not applicable, not failed delivery work'),
     todo: {
       templates: 'yida-skills/skills/yida-design/references/ask-human-interaction-contract.md#步骤列表与进度',
       titles: expect.stringContaining('separate items'),
