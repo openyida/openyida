@@ -34,7 +34,7 @@ openyida sample yida-design application-style --style-id free-creative --output 
 
 用户要求“去掉应用中的 appCustomTheme / customThemeStyle / 应用级自定义 CSS”时，按宜搭界面关闭“启用主题换肤”的方式执行 `openyida update-app <appType> --disable-custom-theme`。先读取最新基础设置，解析原 customThemeStyle，保留 cssUrl、cssFileName 和其他资源字段，将 enabled 与 iframePropagation 改为布尔值 false，再 JSON.stringify 后以字符串提交到该应用的 query/app/updateApp.json；沿用登录态与 CSRF，其他基础设置取最新回读并保持原值。不能清空 URL，不能传空字符串、null、空对象/数组或只传 {"enabled":false}；原配置缺失或无法解析时停止写入并说明原因。该参数不与其他更新字段同传，不删除 CDN 文件，也不修改页面源码。
 
-保存后核对 themeVerification.verified=true，确认 enabled/iframePropagation 为布尔值 false，URL 与文件名仍为原值。随后刷新真实访问页，确认没有 link#yida-app-custom-theme，且网络请求不再加载原主题 CSS；仅 success=true 或配置回读通过不代表访问态已验证。页面检查失败时报告已提交的非认证字段和实际回读结果，隐藏 Token、Cookie、CSRF 等认证信息。结果描述为“自定义主题 CSS 已停用，资源配置仍保留”；没有浏览器证据时补充“访问态效果待验证”。
+保存后核对 themeVerification.verified=true，确认 enabled/iframePropagation 为布尔值 false，URL 与文件名仍为原值。页面检查按[本地浏览器验收](../../../references/execution-rules.md#本地浏览器验收)核验没有 link#yida-app-custom-theme，且网络请求不再加载原主题 CSS；仅 success=true 或配置回读通过不代表访问态已验证。页面检查失败时报告已提交的非认证字段和实际回读结果，隐藏 Token、Cookie、CSRF 等认证信息。结果描述为“自定义主题 CSS 已停用，资源配置仍保留”；页面未验留在内部，用户明确要求的验收未完成时说明。
 
 ## 命令与参数
 
@@ -85,6 +85,8 @@ Plan 的 `visualStyle.tokens` 必须显式提供：画布 `--pod-page-bg-color`�
 自由创意显式选择 `navTheme`，按业务布局设计框架与菜单，仅填写[必要的导航覆盖项](application-theme-consistency.md#导航与应用框架)，其余沿用平台绑定。Fast 与 Plan 使用同一完整主题文件。
 
 ## 验收与维护
+
+按[证据规则](../../../references/execution-rules.md#发布与验收证据)分别记录上传、配置与适用的页面验收结果。
 
 看应用整体，覆盖导航、自定义页、提交、编辑、详情、数据管理内嵌、抽屉和移动端，核对正文/底栏对齐、背景连续、hover/focus、禁用/错误和窄屏布局。应用主题与表单组件树共同作为验收基线。命名主题同时对照原模板与获批方案，检查浏览器实际生效的图片、圆角、阴影、分割线及导航展开/折叠；不能仅凭 token、CSS 文件存在或上传成功判定通过。
 

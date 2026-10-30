@@ -222,6 +222,6 @@ openyida get-schema <appType> <formUuid> --field-map-json
 | [data-bridge-guide.md](references/data-bridge-guide.md) | 表单、平台连接器与自定义同源接口的数据桥 | 接入真实数据时阅读 |
 | [canvas-theme-provider.md](references/canvas-theme-provider.md) | 统一主题接入、示例装配、预览与发布 | 编写或调整 antd 页面时必读 |
 | [canvas-style-implementation-guide.md](references/canvas-style-implementation-guide.md) | 将 `design.md` 的 App 主题色、antd token、背景层、卡片边界、圆角密度、控件焦点/下拉 reset、图表配色落到 `YidaCodeCanvas` 组件 | MUST：新建页面或调整视觉前完整读取，见顶部编码前必读 |
-| [waf-safe-authoring.md](references/waf-safe-authoring.md) | 接口加白前规避平台安全（WAF）误拦的临时写法：不写正则字面量、危险 HTML/脚本串、注入特征串，及二分法定位 | 仅当用户反馈发布反复失败、疑似 WAF 拦截时阅读；常规生成不套用 |
+| [waf-safe-authoring.md](references/waf-safe-authoring.md) | 按原始回执诊断发布异常，保留正常 JSX 事件写法 | 发布失败或需要解释原因时阅读，不预设 WAF |
 | [component-library-guide.md](references/component-library-guide.md) | 组件库推荐组合和页面选型建议 | 选择 UI/图表依赖时阅读 |
 | [canvas-authoring-examples.md](references/canvas-authoring-examples.md) | 最小组件、hooks、副作用、图表示例 | 手写 `.canvas.jsx` 代码时阅读 |

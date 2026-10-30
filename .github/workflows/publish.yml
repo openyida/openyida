@@ -77,7 +77,9 @@ jobs:
       id: npm-tag
       run: |
         VERSION="${{ github.ref_name }}"
-        if [[ "$VERSION" == *"-beta"* ]] || [[ "$VERSION" == *"-alpha"* ]] || [[ "$VERSION" == *"-rc"* ]]; then
+        if [[ "$VERSION" == *"-snapshot"* ]]; then
+          echo "tag=snapshot" >> $GITHUB_OUTPUT
+        elif [[ "$VERSION" == *"-beta"* ]] || [[ "$VERSION" == *"-alpha"* ]] || [[ "$VERSION" == *"-rc"* ]]; then
           echo "tag=beta" >> $GITHUB_OUTPUT
         else
           echo "tag=latest" >> $GITHUB_OUTPUT
@@ -111,6 +113,6 @@ jobs:
       with:
         tag_name: ${{ github.ref_name }}
         name: ${{ github.ref_name }}
-        prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') || contains(github.ref_name, '-rc') }}
+        prerelease: ${{ contains(github.ref_name, '-snapshot') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') || contains(github.ref_name, '-rc') }}
         body_path: ${{ runner.temp }}/openyida-release-notes.md
         generate_release_notes: false

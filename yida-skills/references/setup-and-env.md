@@ -1,3 +1,11 @@
+## 千问办公网页态的后台登录
+
+当前快照为 `runtime.tool=qwenwork`、`runtime.subtype=qwenwork_web` 且 `interactive_login.mode=cloud_token` 时，按[云端免登与 OAuth 回退规则](qwenwork-cloud-login.md)执行快照推荐命令并等待；需要授权时按 `oauth_fallback` 打开 CLI 输出的 URL。成功后继续业务，不读取或展示凭据。桌面态继续使用桌面换票。
+
+## 千问办公桌面端
+
+当前快照确认运行于千问办公桌面端时，遵循[后台准备规则](qwenwork-desktop-login.md)，静默完成下述准备，不向用户逐项播报。
+
 # 环境准备与登录检测
 
 ## 先执行
@@ -19,7 +27,7 @@ openyida login --check-only --json
 - 不要根据 agent 名称、宿主产品、workspace 路径或猜测的环境变量推断认证模式。
 - 先执行 `openyida agent-capabilities --summary-json`；只有简版快照不可用或信息不足时，才降级执行 `openyida login --check-only --json`。
 - snapshot 返回 `login.auth_source=env` 或 `failure_reason=env_token_missing` 时，进入运行环境注入 token 模式。凭证只来自运行环境注入的 `OPENYIDA_ACCESS_TOKEN`、`OPENYIDA_REFRESH_TOKEN` 等环境变量。
-- 其他 `login.auth_mode=token` 场景使用默认 OAuth token session。
+- 除上述千问办公网页态云端免登外，其他 `login.auth_mode=token` 场景使用默认 OAuth token session。
 - 不要从 `.cache/cookies*.json` 推断登录态。
 - OAuth 浏览器归属以 `builder_path.interactive_login.mode` 为准：`not_required` 不触发 OAuth；`cli_auto_open` 执行 `openyida login`；`caller_open_url` 执行 `openyida login --no-browser`，由 Agent 优先调用沙箱浏览器 / 内置 Browser 打开输出 URL 一次；`unsupported` 停止并对用户说明“当前无法打开登录页面，暂时无法继续操作宜搭”，不要默认安装 Playwright。
 
@@ -30,6 +38,7 @@ openyida login --check-only --json
 | command not found | 安装或更新 `openyida`；不要创建资源 |
 | `workdir_exists=false` 或 `active.projectRootExists=false` | 先执行 `openyida copy`；工作目录存在前不要创建资源 |
 | `auth_mode=token` 且 `status=ok` 或 `can_auto_use=true` | 继续执行 |
+| `interactive_login.mode=cloud_token` 且未登录 | 执行推荐的 `openyida login --qwenwork --json` 并等待；免登认证失败由同一进程回退 OAuth，按 `oauth_fallback` 打开授权 URL；成功后继续业务 |
 | `auth_mode=token` 且 `status=profile_required` | 不猜组织；执行 `openyida auth profiles`，再用 `openyida auth profile switch <auth_profile>` 切换已有 profile |
 | snapshot 返回 `auth_source=env` / `failure_reason=env_token_missing` | 进入运行环境注入 token 模式；缺 token 时停止，让 Codex、yida-agent 等宿主注入 `OPENYIDA_ACCESS_TOKEN` 或 `OPENYIDA_REFRESH_TOKEN`；不要执行 OAuth |
 | `auth_mode=token`，未登录，且 `interactive_login.mode=cli_auto_open` | 只执行一次 `openyida login`，等待该命令结束，并使用其最终 JSON 判断结果 |
@@ -104,3 +113,5 @@ openyida auth refresh
 - 不要读取 `.cache/cookies*.json` 作为登录态。
 - 不要要求用户导出浏览器 Cookie。
 - 不要打印 Cookie、CSRF、`access_token` 或 `refresh_token`。
+
+环境检测后按[本地浏览器验收](execution-rules.md#本地浏览器验收)核对 `builder_path.browser_verification`；验收位置与 OAuth 登录浏览器分别判定。

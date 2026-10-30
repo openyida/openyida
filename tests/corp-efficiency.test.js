@@ -8,6 +8,7 @@ jest.mock('../lib/core/utils', () => ({
   httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn(),
   detectActiveTool: jest.fn(() => ({ tool: 'codex' })),
+  detectRuntimeCapabilities: jest.fn(() => ({ tool: 'codex', runtime: 'desktop_shell' })),
 }));
 
 jest.mock('../lib/core/chalk', () => ({
@@ -27,6 +28,7 @@ const {
   selectDetailTarget,
 } = require('../lib/corp-efficiency/corp-efficiency');
 const utils = require('../lib/core/utils');
+const originalEnv = process.env;
 
 const mockAuthData = {
   base_url: 'https://www.aliwork.com',
@@ -87,6 +89,7 @@ const mockCommodityInfo = {
 };
 
 beforeEach(() => {
+  process.env = {};
   jest.clearAllMocks();
   utils.loadAuthData.mockReturnValue(mockAuthData);
   utils.resolveBaseUrl.mockReturnValue('https://www.aliwork.com');
@@ -101,6 +104,7 @@ function mockConsole() {
 }
 
 afterEach(() => {
+  process.env = originalEnv;
   jest.restoreAllMocks();
 });
 

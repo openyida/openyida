@@ -6,6 +6,22 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  qwenwork: {
+    organization_switch_success: '已透過千問辦公登入切換組織。',
+    login_check_failed: 'Unable to verify the login session. Please retry.',
+    desktop_login_failed: '千問辦公桌面免登入失敗，請確認桌面登入身分和免登入通道後重試。',
+    desktop_login_usage: '用法： openyida login --qwenwork [--json] [--check-only]',
+    desktop_login_standalone: '請直接執行推薦的登入命令：{0}。無需額外處理 PATH 和輸出；成功後靜默繼續業務，失敗時按提示修正呼叫。',
+    credential_missing: 'No cloud Agent credential is available. Run this command inside the QwenWork cloud execution environment.',
+    gateway_missing: 'QWENWORK_GATEWAY_URL or MULE_GATEWAY_URL is required.',
+    invalid_url: 'The QwenWork gateway must use HTTPS (HTTP is allowed only for loopback) and contain no credentials, query or fragment.',
+    request_failed: 'The QwenWork request failed. Check the stage and HTTP status in the diagnostic details.',
+    request_timeout: 'The QwenWork request timed out.',
+    invalid_response: 'QwenWork returned an invalid authentication or identity response.',
+    identity_mismatch: 'The returned QwenWork identity does not match the cloud execution context or exchanged credential.',
+    expired_token: 'QwenWork returned an expired user credential.',
+    usage: 'Usage: openyida auth qwenwork user-info [--json]',
+  },
   plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
   solution_template: {
     description: '獨立本地 Agent 的方案範本查詢、雲端 AI 搭建入口與直接啟用',
@@ -119,6 +135,7 @@ module.exports = {
     alias: '別名:',
     group_auth: '環境 & 認證',
     cmd_login: 'Login with OAuth token mode',
+    cmd_login_qwenwork: '使用千問辦公的一次性兌換票登入宜搭',
     cmd_logout: '登出 / 切換帳戶',
     cmd_auth: '登入態管理',
     cmd_org: '組織管理（列出 / 切換）',
@@ -430,7 +447,7 @@ module.exports = {
     save_permission_usage: '用法：openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>] [--package-type <FORM_PACKAGE_VIEW|FORM_PACKAGE_START>]',
     save_permission_example: `範例：openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ 執行失敗：{0}',
-    login_usage: '用法：openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
+    login_usage: '用法：openyida login [--qwenwork] [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
     login_example: '範例：\n  openyida login                         # 透過 OAuth loopback 自動開啟瀏覽器登入\n  openyida login --no-browser            # 不自動開啟瀏覽器，由調用方接管授權連結\n  openyida login --check-only --json     # 只檢查 token 登入態\n  openyida login --intl                  # 使用國際站環境登入\n  OPENYIDA_NO_BROWSER=1 openyida login   # 透過環境變數由調用方接管授權連結\n  openyida auth login                    # 登入入口別名',
     login_unsupported_option: '已刪除的舊登入參數不再支援：{0}。請使用 token/OAuth 登入；host 注入模式下只檢查宿主注入的 token。',
     first_run_title: '  🤖 OpenYida - AI 問答模式已開啟！                         ',
@@ -1040,7 +1057,7 @@ module.exports = {
   },
   import_example2: '      openyida import ./yida-export.json "品質追溯系統（正式環境）"',
   exec_failed: '\n❌ 執行失敗：{0}',
-  auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch>',
+  auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
   auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
   org_usage: '用法：openyida org <list|switch>',
   org_example: '範例：\n  openyida org list                    # 列出可訪問的組織\n  openyida org switch --corp-id dingXXX  # 切換到指定組織',

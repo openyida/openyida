@@ -176,7 +176,7 @@ describe('OpenYida skill contracts', () => {
       'yida-skills/skills/yida-app/workflow/plan/workflow.md',
       'yida-skills/skills/yida-requirement-analysis/references/handoff.md',
     ]) { expect(readSkill(relative)).toContain('theme-selection.md#已选风格只确认一次'); }
-    expect(shared).toContain('配色、Token 或页面布局未完成时，由 AI 补齐');
+    expect(shared).toContain('未明确部分由 AI 补齐，不重新选型');
     expect(shared).toContain('PRD 生成、修改或确认之后');
     expect(shared).toContain('只有用户主动明确要求换风格');
     expect(readSkill('yida-skills/skills/yida-prd/SKILL.md')).toContain('theme-selection.md#已选风格只确认一次');
@@ -1726,7 +1726,7 @@ describe('OpenYida skill contracts', () => {
     expect(step4).toContain('PRD 只写应用主题色和风格摘要；`design.md` 写完整 `themeProfile`');
     expect(pageUiux).toContain('工作台、门户、列表、详情、普通看板和数据大屏默认都是浅底 / light 模式');
     expect(step4).toContain('视觉方向要从“高级 / 简洁 / 商务”继续落细');
-    expect(step4).toContain('主色：先按行业、品牌、业务情绪和视觉目标做创意判断，可选择平台预置主题，也可设计自定义品牌色盘');
+    expect(step4).toContain('主色：沿用用户选定主题及最新风格、颜色要求');
     expect(step4).toContain('界面明暗：默认浅色');
     expect(step4).toContain('导航明暗：`themeProfile.navTheme` 从所选主题模板的 `navTheme` 派生');
     expect(step4).toContain('按[主题明暗双轴]');
@@ -1763,7 +1763,7 @@ describe('OpenYida skill contracts', () => {
     expect(selection).toContain('不得仅改名称、微调色值或调换候选顺序后重新引入原方案');
     expect(selection).toContain('用户明确的风格意向、品牌约束、参考材料或已有满意主题优先保留');
     expect(visualThemeSelection).toContain('../../../references/theme-selection.md');
-    expect(selection).toContain('不能三套都是同一蓝色底稿只换名称');
+    expect(selection).toContain('候选至少覆盖两种色相或中性主导关系');
     expect(selection).not.toContain('不强制淘汰首选');
     expect(selection).not.toContain('第一直觉有依据可以胜出');
     expect(dashboardTheme).not.toContain('深色紫蓝科技风（DEFAULT）');

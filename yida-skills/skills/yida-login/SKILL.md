@@ -11,10 +11,20 @@ description: 宜搭登录态管理。以 OpenYida auth snapshot 为准；默认 
 - 不要根据 agent 名称、宿主产品、workspace 路径或猜测的环境变量推断认证模式。
 - 先读 `openyida agent-capabilities --summary-json`；只有需要更多信息时，才降级执行 `openyida login --check-only --json`。
 - snapshot 返回 `login.auth_source=env` 或 `failure_reason=env_token_missing` 时，进入运行环境注入 token 模式。凭证只来自运行环境注入的 `OPENYIDA_ACCESS_TOKEN`、`OPENYIDA_REFRESH_TOKEN` 等环境变量。
-- 其他 `auth_mode=token` 场景使用默认 OAuth token session。
+- 除上述千问办公网页态云端免登外，其他 `auth_mode=token` 场景使用默认 OAuth token session。
 - 不要从 `.cache/cookies*.json` 推断登录态。
 - 浏览器归属以 `builder_path.interactive_login.mode` 为准：`not_required` 不触发 OAuth；`cli_auto_open` 执行 `openyida login` 并等待；`caller_open_url` 执行 `openyida login --no-browser`，由 Agent 优先调用沙箱浏览器 / 内置 Browser 打开 CLI 输出的授权 URL 一次；`unsupported` 停止并说明没有可用浏览器能力，不要默认安装 Playwright。
 - `caller_open_url` 模式下，Agent 不要只把 URL 贴给用户然后等待。只有当前宿主没有浏览器工具，或浏览器工具调用失败时，才退回让用户手动打开 URL。
+
+## 千问办公网页态的后台登录
+
+当前快照为 `runtime.tool=qwenwork`、`runtime.subtype=qwenwork_web` 且 `interactive_login.mode=cloud_token` 时，按[云端免登与 OAuth 回退规则](../../references/qwenwork-cloud-login.md)执行快照推荐命令并等待；需要授权时按 `oauth_fallback` 打开 CLI 输出的 URL。成功后继续业务，不读取或展示凭据。桌面态继续使用桌面换票。
+
+## 千问办公桌面端的后台登录
+
+先以当前快照的 `runtime.tool=qwenwork`、`runtime.subtype=qwenwork_desktop` 和 `builder_path.interactive_login.mode=desktop_ticket` 确认桌面换票能力。满足条件后，按[后台准备规则](../../references/qwenwork-desktop-login.md)静默补齐登录态，随后继续业务操作。
+
+普通 `login` 不触发桌面换票；其他宿主继续遵循下方认证规则。票据协议和研发验证见仓库的 `docs/guides/qwenwork-desktop-login.md`。
 
 ## 前置检查
 
@@ -36,6 +46,7 @@ openyida login --check-only --json
 | 状态 | 动作 |
 |---|---|
 | `auth_mode=token` 且 `status=ok` 或 `can_auto_use=true` | 继续执行业务命令 |
+| `interactive_login.mode=cloud_token` 且未登录 | 执行推荐的 `openyida login --qwenwork --json` 并等待；免登认证失败由同一进程回退 OAuth，按 `oauth_fallback` 打开授权 URL；成功后继续业务 |
 | `status=profile_required` 且返回 `candidates` / `next_step` | 不猜组织；先执行 `openyida auth profiles`，再用 `openyida auth profile switch <auth_profile>` 切到用户确认或目标匹配的已有 profile |
 | `auth_source=env` / `failure_reason=env_token_missing` | 进入运行环境注入 token 模式；缺 token 时停止，让 Codex、yida-agent 等宿主注入 `OPENYIDA_ACCESS_TOKEN` 或 `OPENYIDA_REFRESH_TOKEN`；不要执行 OAuth |
 | `auth_mode=token`，未登录，且 `interactive_login.mode=cli_auto_open` | 只执行一次 `openyida login`，等待该命令结束，并使用其最终 JSON 判断结果 |
@@ -122,6 +133,18 @@ openyida auth refresh
 ```
 
 如果运行环境没有注入 token，auth snapshot 会返回 `failure_reason=env_token_missing`；停止任务，让 Codex、yida-agent 等宿主补齐 token 注入，不要触发 OAuth。
+
+## 千问云端身份诊断
+
+仅在用户明确要求接入或诊断千问云端身份时，运行：
+
+```bash
+openyida auth qwenwork user-info --json
+```
+
+命令读取 `QWENWORK_AGENT_TOKEN`（兼容 `MULE_AGENT_TOKEN` / `AGENT_TOKEN`），向 `QWENWORK_GATEWAY_URL`（兼容 `MULE_GATEWAY_URL`）兑换用户凭证，再查询同一地址的 `/user/info`。不打印或持久化凭证；返回用户身份与凭证来源等元信息，并校验已注入的预期用户 ID。
+
+这不是宜搭登录成功结果，不会创建或覆盖 OpenYida auth profile，也不能作为资源写操作的登录凭据。千问 `biz_org_id` 不直接等于宜搭 `corpId`。宿主身份与宜搭身份的映射及宜搭登录态兑换由后续服务端接口负责。默认 OAuth 和 env token 登录流程保持不变。
 
 ## 禁止
 

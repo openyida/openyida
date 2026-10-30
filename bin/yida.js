@@ -598,7 +598,23 @@ async function main() {
   });
   assertManagedInvocation(command, rawArgs);
   applyQuietFlag();
+  // 一次性票据只在当前进程消费，不能先自更新并重启命令。
+  switch (command) {
+    case 'login-qwenwork':
+      await require('../lib/auth/qwenwork-desktop').run(args);
+      return;
+  }
   applyGlobalEnvironmentFlags();
+  // 网页态由 CLI 消费宿主凭据；桌面态继续消费宿主准备的登录态。
+  const webLogin = (command === 'login' || (command === 'auth' && args[0] === 'login')) &&
+    require('../lib/core/qwenwork-login-guidance').isQwenWorkWebRuntime(require('../lib/core/utils').detectRuntimeCapabilities());
+  if ((command === 'login' && args.includes('--qwenwork')) || webLogin) {
+    const loginArgs = applyLoginEnvironmentFlags(command === 'auth' ? args.slice(1) : args, { inferTargetUrl: true });
+    if (hasHelpFlag(loginArgs)) { printLoginHelp(); return; }
+    assertNoUnsupportedLegacyLoginFlags(rawArgs, loginArgs);
+    await require('../lib/auth/qwenwork-login').run(loginArgs, buildTokenLoginOptions(loginArgs));
+    return;
+  }
 
   const { maybeAutoUpdate } = require('../lib/core/update');
   const updateResult = await maybeAutoUpdate({
@@ -718,6 +734,10 @@ async function main() {
 
     case 'auth': {
       const subCommand = args[0];
+      if (subCommand === 'qwenwork') {
+        await require('../lib/auth/qwenwork').run(args.slice(1));
+        break;
+      }
       const authArgs = applyLoginEnvironmentFlags(args.slice(1), { inferTargetUrl: true });
       const { getAuthStatus } = require('../lib/core/utils');
       const { tokenLogin, tokenLogout, tokenRefresh } = require('../lib/auth/token-auth');

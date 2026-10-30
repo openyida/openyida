@@ -143,6 +143,18 @@ openyida login --check-only --json
 openyida auth status
 ```
 
+In QwenWork web, `openyida login --qwenwork --json` (or ordinary `login`) reuses the sandbox identity. If cloud authentication fails, the same command falls back to OAuth; follow its authorization URL and wait for completion. Desktop and other hosts keep their existing login paths.
+
+Login supports DingTalk and QwenWork organizations, ODS and personal spaces. Sessions preserve server-provided identity classification, business domain and refresh credentials. Historical sessions default to DingTalk organizations. JSON errors include bounded diagnostics without credentials or response bodies.
+
+For QwenWork cloud identity diagnostics, run inside the actual cloud execution environment:
+
+```bash
+openyida auth qwenwork user-info --json
+```
+
+This legacy diagnostic reads the injected host credentials and reports identity and scope without printing or saving tokens. It does not create or validate a YiDA session; QwenWork organization IDs are not YiDA `corpId` values. Check the YiDA session with `openyida login --check-only --json`. See [QwenWork login guidance](yida-skills/references/qwenwork-cloud-login.md) for authentication behavior.
+
 To reuse an existing shared login profile for the current project, switch first instead of starting a new OAuth login:
 
 ```bash
@@ -457,9 +469,9 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 
 | Command | Description |
 |---------|-------------|
-| `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | Login with OAuth token mode |
+| `openyida login [--qwenwork] [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | Login with OAuth token mode |
 | `openyida logout` | Logout / unbind current project auth |
-| `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch>` | Token login state and profile management |
+| `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch\|qwenwork user-info> [--json]` | Token login state and profile management |
 | `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | Organization management (list / switch existing profiles first) |
 | `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | Detect AI tool environment & token login state |
 

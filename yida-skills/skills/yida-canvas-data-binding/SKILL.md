@@ -146,25 +146,11 @@ function unwrapTotal(payload, rows) {
 
 ## yida JS-API 桥
 
-发布使用 `YidaCodeCanvas` 组件实现的页面时，必须在外层页面 `actions.module.source` 中注入桥接脚本，并把根节点 `componentDidMount` 指向 `didMount`。桥接脚本把普通页面运行态可用的 `this.utils.yida.*` 封装到 `window.__OPENYIDA_YIDA_API__` 和 `window.openyidaYidaApi`，并把根级 `this.utils.*` 方法封装到 `window.__OPENYIDA_UTILS__` 和 `window.openyidaUtils`，供组件内部通过 `window.parent` / `parentWindow` 查找。
+Canvas 发布层在外层 `actions.module.source` 注册桥，根节点 `componentDidMount` 指向 `didMount`：`this.utils.yida` 对应 `window.__OPENYIDA_YIDA_API__`，根级 utils 对应 `window.__OPENYIDA_UTILS__`。只查同源窗口；身份只取当前页面。
 
-页面内固定使用下面的读取顺序：
+先复制[同源桥 helper](../yida-canvas-custom-page/references/data-bridge-guide.md#同源窗口与身份)中的 `getCanvasBridge/getYidaApiBridge`，再读取数据：
 
 ```javascript
-function getYidaApiBridge() {
-  var candidates = [];
-  try { candidates.push(window.__OPENYIDA_YIDA_API__); } catch (err) {}
-  try { candidates.push(window.parent && window.parent.__OPENYIDA_YIDA_API__); } catch (err) {}
-  try {
-    if (typeof parentWindow !== 'undefined') {
-      candidates.push(parentWindow.__OPENYIDA_YIDA_API__);
-    }
-  } catch (err) {}
-  return candidates.find(function (item) {
-    return item && typeof item.searchFormDatas === 'function';
-  }) || null;
-}
-
 async function fetchFormRows(binding, signal) {
   var bridge = getYidaApiBridge();
   var payload;
@@ -183,7 +169,7 @@ async function fetchFormRows(binding, signal) {
   var rows = unwrapRows(payload);
   var totalCount = unwrapTotal(payload, rows);
   if (totalCount > 0 && rows.length === 0) {
-    throw new Error('表单返回 totalCount > 0，但页面没有解析到行数据，请检查返回体包裹层和字段映射。');
+    throw new Error('表单有记录但未解析到行，请检查响应结构和字段映射。');
   }
   return { rows: rows, totalCount: totalCount, raw: payload };
 }

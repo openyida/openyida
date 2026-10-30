@@ -77,13 +77,9 @@ const path = require('path');
 // 2,654,371 compressed bytes; next 16 KiB boundary retains CI npm headroom.
 // Consent-based GitHub setup adds one runtime module and user guidance:
 // Node 20.18.1 measures 2,637,999 compressed bytes; next 16 KiB boundary.
-// QwenWork permission guidance adds one runtime module and 12-locale recovery steps.
-// Node 20.18.1: main 2,669,494 compressed bytes; feature 2,672,505 (+3,011).
-// Round the justified content growth to the next 16 KiB boundary; other caps stay fixed.
-// Plugin lifecycle and frontend deployment add two runtime modules and five
-// skill/reference files. Node 20.20.2 CI measures 2,693,548 compressed bytes;
-// retain the next 16 KiB boundary without changing the other package limits.
-const MAX_TARBALL_BYTES = 2640 * 1024;
+// 合并主干插件与权限指引、千问免登后，Node 24 实测 gzip 为 2,711,034 字节；取下一档 16 KiB 边界。
+// 合并字段权限校验与最新主干后，Node 20 实测 2,722,740 压缩字节；取下一档 16 KiB 边界。
+const MAX_TARBALL_BYTES = 2672 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -212,16 +208,9 @@ const MAX_TARBALL_BYTES = 2640 * 1024;
 // QwenWork create-app/create-page guidance and beta metadata add 3,449 bytes:
 // Node 20.18.1 measures 9,850,164 unpacked bytes / 777 files. Use the next
 // 16 KiB boundary; compressed, entry-count and single-file limits stay fixed.
-// QwenWork permission guidance adds one runtime module and localized recovery steps.
-// HEAD baseline (Node 26): 9,846,715 unpacked bytes / 777 files; use the next 16 KiB boundary.
-// Include the plugin runtime and deployment guides on top of main's content;
-// retain the existing plugin budget. The merged package has not been measured.
-// Shared business-summary guidance adds one reference and its direct skill links.
-// CI Node 20.20.2 measures 9,936,796 unpacked bytes / 786 files.
-// Instance-scoped edit permission preflight adds one runtime module, localized
-// diagnostics and its command/skill contract; retain the next 16 KiB boundary.
-// Tarball and per-file caps stay unchanged.
-const MAX_UNPACKED_BYTES = 9728 * 1024;
+// 合并 main 的业务交付规范后实测解包为 9,997,954 字节；取下一档 16 KiB 边界，单文件上限保持不变。
+// 合并后的解包体积为 10,015,765 字节；取下一档 16 KiB 边界，单文件上限保持不变。
+const MAX_UNPACKED_BYTES = 9792 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -258,11 +247,9 @@ const MAX_UNPACKED_BYTES = 9728 * 1024;
 // Solution Center templates add their runtime and skill to the stacked release.
 // GitHub setup keeps installation/detection separate from account actions.
 // Shared page navigation and task-center navigation add exactly two packaged files.
-// QwenWork permission guidance adds exactly one packaged runtime module.
-// Add seven plugin runtime/skill files to main's entry budget.
-// The shared user-facing summary reference adds exactly one packaged file.
-// Native edit-permission preflight adds exactly one packaged runtime module.
-const MAX_ENTRY_COUNT = 787;
+// 合并 main 的业务总结参考文档后，包含 beta 可选安装器的包实测为 796 个文件。
+// 当前分支的字段权限校验模块新增一个文件，合计 797 个文件。
+const MAX_ENTRY_COUNT = 797;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -359,6 +346,8 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-upgrade-app-theme/references/page-migration.md',
   'bin/yida.js',
   'lib/core/managed-policy.js',
+  'lib/auth/qwenwork-client.js',
+  'lib/auth/qwenwork.js',
   'lib/app/create-form/batch.js',
   'lib/app/application-entry-urls.js',
   'lib/app/app-entry.js',

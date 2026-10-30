@@ -14,7 +14,7 @@ description: >
 
 已有资源的 UI 调整和美化后恢复，先进入 [ui-improve](sub_skill/ui-improve/SKILL.md)，再按其确认、备份和业务保留约束使用下方设计规则。
 
-先读已有需求、设计和应用主题，确定哪些地方需要调整。优先使用平台已有的主题变量，只在表达不了所需效果时新增变量，并写清哪些组件使用它；见 [主题扩展规则](references/application-theme-consistency.md#平台基础变量是应用主题基础框架)。
+先按[用户意图与已选主题](references/theme-selection.md#已选风格只确认一次)落实主题、风格和颜色；模板示例的绿、蓝配色不作为默认推荐。只为未明确部分结合真实任务补设计。优先使用已有主题变量，表达不了时再扩展并注明消费位置，见 [主题扩展规则](references/application-theme-consistency.md#平台基础变量是应用主题基础框架)。
 
 导航默认沿用平台样式，像连续目录一样排列。只调整需要改变的颜色、尺寸和状态；边框、阴影可不设置，不要把每个菜单项做成输入框、按钮或卡片。改完后打开实际的数据管理页和业务页面检查，见 [导航形状与密度的案例经验](references/application-theme-consistency.md#导航形状与密度的案例经验)。
 

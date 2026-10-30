@@ -390,6 +390,7 @@ describe('requestWithAutoLogin', () => {
         access_token: 'new-access-token',
         refresh_token: 'refresh-token',
         base_url: 'https://customer.example.com',
+        identity_type: 'ORGANIZATION', organization_type: 'DINGTALK',
         corp_id: 'ding-corp',
         corp_name: '钉钉组织',
         user_id: 'user-1',
@@ -422,6 +423,7 @@ describe('requestWithAutoLogin', () => {
       expect(authRef.authData).toMatchObject({
         auth_mode: 'token',
         base_url: 'https://customer.example.com',
+        identity_type: 'ORGANIZATION', organization_type: 'DINGTALK',
         corp_id: 'ding-corp',
         corp_name: '钉钉组织',
         user_id: 'user-1',
@@ -634,6 +636,16 @@ describe('loadAuthData', () => {
     restore('OPENYIDA_TOKEN_USER_ID', originalUserId);
     restore('OPENYIDA_AUTH_DIR', originalAuthDir);
     fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test.each([
+    { identity_type: 'PERSONAL' },
+    { identity_type: 'ORGANIZATION', organization_type: 'QWENWORK' },
+  ])('ODS classification reaches the business auth context: %j', classification => {
+    const { saveTokenSession } = require('../lib/auth/token-store');
+    saveTokenSession({ ...classification, access_token: 'fixture-access', base_url: 'https://tenant.example.test',
+      corp_id: 'yida0123456789abcdef0123456789abcdef', user_id: 'ods-member' }, { projectRoot: tmpDir });
+    expect(loadAuthData(tmpDir)).toMatchObject({ ...classification, corp_id: 'yida0123456789abcdef0123456789abcdef', user_id: 'ods-member' });
   });
 
   test('读取 token session 并返回 authRef 可用结构', () => {
@@ -991,27 +1003,26 @@ describe('detectActiveTool', () => {
     }
   });
 
-  test('QwenWork、QoderWork 和新 Qoder 环境默认附加浏览器 handoff', () => {
+  test.each([
+    { location: 'local', status: 'open_url', allowed: true },
+    { location: 'cloud', status: 'present_url', allowed: false },
+  ])('QwenWork、QoderWork 和新 Qoder 在 $location 环境按执行位置返回 handoff', ({ location, status, allowed }) => {
+    process.env = { OPENYIDA_MANAGED_RUNTIME: location, OPENYIDA_ASSUME_DESKTOP: '1' };
+    const expected = {
+      status, handoff_type: 'browser', can_auto_use: allowed,
+      browser_verification: { execution_location: location === 'cloud' ? 'remote' : 'local', allowed },
+    };
     process.env.QWENWORKCN_INTEGRATION_MODE = 'qwen_work';
-    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject({
-      status: 'open_url',
-      handoff_type: 'browser',
-    });
+    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject(expected);
 
     delete process.env.QWENWORKCN_INTEGRATION_MODE;
     process.env.QODERCLI_INTEGRATION_MODE = 'qoder_work';
-    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject({
-      status: 'open_url',
-      handoff_type: 'browser',
-    });
+    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject(expected);
 
     delete process.env.QODERCLI_INTEGRATION_MODE;
     process.env.QODER_PRODUCT_ID = 'qoder';
     process.env.QODER_SESSION_TYPE = 'app';
-    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject({
-      status: 'open_url',
-      handoff_type: 'browser',
-    });
+    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject(expected);
   });
 
   test('CODEX_SHELL 环境变量时检测为 Codex', () => {
