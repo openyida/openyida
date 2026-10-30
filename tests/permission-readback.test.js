@@ -313,11 +313,14 @@ describe('save-permission exact readback', () => {
     const target = packageFixture({ packageUuid: 'pkg-21', packageName: { zh_CN: '目标组' } });
     const afterTarget = packageFixture({
       ...target,
-      fieldPermit: '{"fieldRange":"CUSTOM","fieldStatus":[{"componentName":"TextField","fieldName":"text_a","label":"名称","value":"FORM_FIELD_VIEW"}]}',
+      fieldPermit: '{"fieldRange":"CUSTOM","fieldStatus":[{"componentName":"TextField","fieldName":"名称","label":"text_a","value":"FORM_FIELD_VIEW"}]}',
     });
     utils.httpGet
       .mockResolvedValueOnce(listResult(pageOne))
       .mockResolvedValueOnce(listResult([target]))
+      .mockResolvedValueOnce({ success: true, content: { pages: [{ componentsTree: [
+        { componentName: 'TextField', props: { fieldId: 'text_a', label: '名称' } },
+      ] }] } })
       .mockResolvedValueOnce(listResult(pageOne))
       .mockResolvedValueOnce(listResult([afterTarget]));
     utils.httpPost.mockResolvedValueOnce({ success: true });
@@ -328,11 +331,11 @@ describe('save-permission exact readback', () => {
       '--package-uuid',
       'pkg-21',
       '--field-permission',
-      '{"fieldRange":"CUSTOM","fieldStatus":[{"label":"名称","fieldName":"text_a","componentName":"TextField","value":"FORM_FIELD_VIEW"}]}',
+      '{"fieldRange":"CUSTOM","fieldStatus":[{"label":"text_a","fieldName":"名称","componentName":"TextField","value":"FORM_FIELD_VIEW"}]}',
     ]);
 
     expect(output).toMatchObject({ success: true, packageUuid: 'pkg-21' });
-    expect(utils.httpGet).toHaveBeenCalledTimes(4);
+    expect(utils.httpGet).toHaveBeenCalledTimes(5);
     expect(utils.httpPost).toHaveBeenCalledTimes(1);
     expect(utils.httpGet.mock.calls[1][2]).toMatchObject({ pageIndex: '2' });
   });

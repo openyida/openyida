@@ -2501,3 +2501,9 @@ module.exports.permission_guidance = {
   unknown: 'Accès refusé ; le type d’autorisation reste à confirmer. Contactez un administrateur et suspendez cette opération.',
   next_step: 'Ouvrez la page de demande d’autorisation : [{0}]({1}). Vérifiez ensuite l’organisation et les autorisations avant de continuer.',
 };
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  edit_context_unverified: 'Impossible de vérifier les champs modifiables pour ce compte et cet enregistrement. Aucune mise à jour envoyée. Vérifiez les droits dans l’éditeur natif.',
+  fields_not_editable: 'La mise à jour contient des champs non modifiables ou non vérifiables : {0}. Aucune mise à jour envoyée. Utilisez l’éditeur natif pour les comportements dynamiques ou les sous-formulaires restreints.',
+  form_update_forbidden: 'Vous n’avez pas l’autorisation de modifier ces données.',
+});

@@ -2500,3 +2500,9 @@ module.exports.permission_guidance = {
   unknown: '권한이 거부되었으며 권한 유형은 확인되지 않았습니다. 관리자에게 문의하고 작업을 일시 중지하세요.',
   next_step: '권한 요청 페이지를 여세요: [{0}]({1}). 처리 후 현재 조직과 권한을 확인한 다음 계속하세요.',
 };
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  edit_context_unverified: '이 계정과 레코드의 편집 가능한 필드를 확인할 수 없습니다. 업데이트를 보내지 않았습니다. 기본 편집기에서 권한을 확인하세요.',
+  fields_not_editable: '편집할 수 없거나 편집 가능 여부를 확인할 수 없는 필드가 있습니다: {0}. 업데이트를 보내지 않았습니다. 동적 동작이나 제한된 하위 폼은 기본 편집기를 사용하세요.',
+  form_update_forbidden: '이 데이터를 변경할 권한이 없습니다.',
+});

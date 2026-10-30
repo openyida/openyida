@@ -7,9 +7,13 @@
 | `searchFormDatas` | GET | `/dingtalk/web/{appType}/v1/form/searchFormDatas.json` | `appType`, `formUuid` | `searchFieldJson`, `currentPage`, `pageSize`, `originatorId`, `createFrom`, `createTo`, `modifiedFrom`, `modifiedTo`, `dynamicOrder` |
 | `searchFormDataIds` | GET | `/dingtalk/web/{appType}/v1/form/searchFormDataIds.json` | `appType`, `formUuid` | `searchFieldJson`, `currentPage`, `pageSize`, `originatorId`, `createFrom`, `createTo`, `modifiedFrom`, `modifiedTo`, `dynamicOrder` |
 | `getFormDataById` | GET | `/dingtalk/web/{appType}/v1/form/getFormDataById.json` | `appType`, `formInstId` | - |
+| `queryOperatePermission` | GET | `/dingtalk/web/{appType}/query/formdata/queryOperatePermission.json` | `formUuid`, `formInstId` | 普通表单更新前校验当前记录编辑权 |
+| `getFormEditSchema` | GET | `/dingtalk/web/{appType}/query/formdata/getFormEditSchema.json` | `formUuid`, `formInstId` | 普通表单更新前读取实时字段行为 |
 | `saveFormData` | POST | `/dingtalk/web/{appType}/v1/form/saveFormData.json` | `appType`, `formUuid`, `formDataJson` | `deptId` |
 | `updateFormData` | POST | `/dingtalk/web/{appType}/v1/form/updateFormData.json` | `appType`, `formInstId`, `updateFormDataJson` | `useLatestVersion` |
 | `listTableDataByFormInstIdAndTableId` | GET | `/dingtalk/web/{appType}/v1/form/listTableDataByFormInstIdAndTableId.json` | `appType`, `formUuid`, `formInstanceId`, `tableFieldId`, `currentPage`, `pageSize` | - |
+
+普通表单更新会核对当前账号的记录编辑权限和字段状态；无法确认可编辑范围时停止更新。
 
 ## 流程实例
 

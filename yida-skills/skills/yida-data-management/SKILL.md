@@ -156,6 +156,8 @@ openyida data query subform <appType> <formUuid> --inst-id <formInstId> --table-
 
 当 JSON 使用宜搭组件别名作为 key 时，追加 `--resolve-aliases`，OpenYida 会先读取表单 Schema 中的 `componentAlias.items`，再将别名转换为真实 `fieldId` 后调用数据接口。更新类命令若要解析别名，必须额外传 `--form-uuid <formUuid>`。
 
+使用 `openyida data update form` 更新普通表单，仅提交当前账号可编辑的字段。权限不足时向用户反馈“您无更改该数据的权限”；其他失败根据错误提示处理。
+
 ### 子表超过 50 行
 
 当 `searchFormDatas` 或 `getFormDataById` 返回的 `formData.tableField_xxx` 刚好是 50 行时，优先判断为详情接口对子表内嵌数据做了截断，不要直接下结论为"没有更多数据"。
@@ -418,7 +420,8 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 | 命令执行失败 | 停止执行，向用户展示错误信息，询问是否重试或调整参数 |
 | 管理员转交失败或结果未验证 | 禁止自动重放转交；按 details.nextStep 只读核查并报告 mutationAccepted/readbackVerified，后续写入须重新核对当前任务和用户意图 |
 | 参数缺失（appType/formUuid/fieldId 等） | 主动询问用户补充，或引导用户使用 `yida-get-schema` 获取 |
-| 权限不足 / 登录态失效 | 停止执行，提示用户执行 `openyida login` 重新登录 |
+| 更新权限不足 | 停止执行，向用户反馈“您无更改该数据的权限” |
+| 登录态失效 | 提示通过 `openyida login` 登录 |
 | 字段 ID 无效 | 停止执行，引导用户执行 `openyida get-schema` 获取真实字段 ID |
 | 删除操作前 | 必须先展示操作摘要（数量 + 关键字段）；宿主支持 runtime permission/approval 时直接发起一次受保护命令，不得预先调用 `ask_human`；宿主不支持时，必须先通过 `ask_human` 或等价交互工具获得用户明确确认 |
 | QPS 超限 | 降低请求频率，单次批量操作不超过 30 条，间隔 1 秒重试 |
