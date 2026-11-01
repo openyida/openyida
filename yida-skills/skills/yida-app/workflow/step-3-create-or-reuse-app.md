@@ -29,7 +29,7 @@ Fast / Plan 已选主题是全应用决定，本步骤必须保存同一份应�
 
    CLI 首次按 `sourceThemeId` 使用命名主题的配对 CSS；自由创意或历史无来源设计才使用公共骨架。后续只更新项目 token 差异并保留原规则，详见 [模板来源约束](../../yida-design/references/application-style-library.md#模板来源与重复生成)。整体暗色方案还需按 [浮层适配](../../yida-design/references/theme/theme-token-presets.md#暗色主题浮层适配) 在该文件末尾补充必要的 class 覆盖；仅深色导航不触发此操作。
    若禁止 `theme-file`，不执行 sample，不复制、生成、修改或上传主题文件；已有应用沿用当前主题，新应用保留平台默认主题。
-5. 主题文件就绪、未禁止 `theme-file` 且已有真实 `appType` 后，先按 [旧主题注入与停用规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认) 核对服务端主题能力。新版主题可立即更新；旧主题或能力未知时保留平台主题、使用页面局部样式，仅在取得目标应用与 CSS 范围的明确注入确认后才传 `--confirm-legacy-app-style`，计划或主题确认不能代替此确认。符合条件后通过独立任务更新应用基础设置，与表单和页面开发并行：
+5. 主题文件就绪、未禁止 `theme-file` 且已有真实 `appType` 后，先按 [旧主题注入与停用规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认) 核对服务端主题能力。现有应用详情接口不提供最终运行态主题能力，按能力未知处理：保留平台主题、使用页面局部样式，仅在取得目标应用与 CSS 范围的明确注入确认后才传 `--confirm-legacy-app-style`，计划或主题确认不能代替此确认。符合条件后通过独立任务更新应用基础设置，与表单和页面开发并行：
 
    ```bash
    openyida update-app <appType> --theme-file <app-theme.css> --colour custom --nav-theme <light|dark> --logo-source appIcon --layout <l_shape|top|side>
