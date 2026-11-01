@@ -27,6 +27,8 @@ openyida login-qwenwork --exchange-ticket <ONE_TIME_TICKET> --ticket-context <JS
 5. `--check-only` 仅验证已有状态，不刷新、不发起浏览器登录；`--json` 返回可用状态和无标识的身份类型。显式指定组织或用户约束时，成功额外返回 `target_match=matched`；身份不匹配不能回退到其他身份。
 6. 失败 JSON 保留真实错误码，并返回 `retryable=false`、所属阶段和 `nextAction`；需要宿主或用户改变状态后才重新尝试。不通过截断输出或忽略进程退出码判定成功。
 
+客户端已绑定身份的桌面运行中，若新会话没有 profile 指针且历史凭据不唯一，未指定目标身份的 `login --qwenwork --check-only --json` 返回 `ok=false`、`status=not_logged_in`、`can_auto_use=false` 和退出码 1。客户端据此使用当前登录身份签票，CLI 消费票据并校验服务端身份后建立本会话指针；检查阶段不挑选历史组织、不刷新凭据、不启动 OAuth。普通 CLI、非受管环境及显式 profile／组织／用户约束仍保留原保护。
+
 成功后 Agent 静默继续业务，只汇报业务结果；不展示用户、组织、认证目录、环境域名或 Token。内部票据与真实凭据不能出现在模型可见的输入、输出或普通诊断日志中。
 
 OAuth 授权完成、凭据持久化和身份校验通过前，不返回登录成功，也不继续创建应用。不启动脱离命令生命周期的后台回调子进程，避免 Windows QXC 在命令结束时清理 Job Object 导致回调失效。

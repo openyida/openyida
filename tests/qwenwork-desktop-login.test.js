@@ -6,7 +6,7 @@ const os = require('os');
 const https = require('https');
 const { spawn } = require('child_process');
 const { loginQwenWork, TICKET_ENV, TICKET_CONTEXT_ENV } = require('../lib/auth/qwenwork-desktop');
-const { loadTokenSession } = require('../lib/auth/token-store');
+const { loadTokenSession, saveTokenSession } = require('../lib/auth/token-store');
 
 const TOKEN = 'test-yida-private-credential';
 const REFRESH = 'test-yida-private-refresh';
@@ -78,6 +78,30 @@ describe('千问办公专用命令消费一次性票据', () => {
   function fakeFetch(extra = {}) {
     return jest.fn(async url => Response.json(String(url).endsWith('/consume') ? { ...credential, ...extra } : { status: 'ok', auth_mode: 'token', can_auto_use: true, corp_id: 'test-corp', user_id: 'test-user' }));
   }
+  test('新会话多历史凭据：桌面检查交接票据，消费后只使用服务端当前身份', async () => {
+    for (const id of ['old-a', 'old-b']) {
+      saveTokenSession({ ...credential, base_url: baseUrl, corp_id: id, user_id: id,
+        access_token: `private-${id}`, refresh_token: `refresh-${id}`, expires_at: Date.now() + 60000 },
+      { ...options(), projectRoot: path.join(directory, id) });
+    }
+    const checkEnv = { ...env, QWENWORK_INTEGRATION_MODE: 'desktop', QWENWORK_CLIENT_OPENYIDA_IDENTITY: 'a'.repeat(64), YIDA_QUIET: '' };
+    delete checkEnv[TICKET_ENV]; delete checkEnv[TICKET_CONTEXT_ENV];
+    const before = await run(cli(['login', '--qwenwork', '--check-only', '--json']), directory, checkEnv);
+    expect(before.code).toBe(1);
+    expect(JSON.parse(before.stdout.trim())).toEqual({ ok: false, status: 'not_logged_in', can_auto_use: false });
+    expect(requests).toEqual([]);
+    const login = await run(cli(['login-qwenwork', '--json']), directory, { ...checkEnv,
+      [TICKET_ENV]: TICKET, [TICKET_CONTEXT_ENV]: JSON.stringify(context) });
+    expect(login.code).toBe(0);
+    const after = await run(cli(['login', '--qwenwork', '--check-only', '--json']), directory, checkEnv);
+    expect(after.code).toBe(0);
+    expect(JSON.parse(after.stdout.trim())).toMatchObject({ ok: true, can_auto_use: true });
+    expect(loadTokenSession(options())).toMatchObject({ corp_id: context.corp_id, user_id: context.user_id, credential_source: 'qwenwork_desktop' });
+    expect(requests.map(request => request.path)).toEqual([
+      '/openapi/cli/v1/auth/qwenwork/desktop/consume', '/openapi/cli/v1/auth/status', '/openapi/cli/v1/auth/status',
+    ]);
+    expect(requests.every(request => !request.authorization?.includes('private-old-'))).toBe(true);
+  });
   test.each([
     { identity_type: 'PERSONAL' },
     { identity_type: 'ORGANIZATION', organization_type: 'QWENWORK' },
