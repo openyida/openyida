@@ -29,6 +29,8 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 
 ## 严格要求 (MUST DO)
 
+- 真正执行创建前，按[创建应用时的提示](../../references/user-facing-summary.md#创建应用时的提示)只说“当前在{组织名称}组织下为您创建{应用名称}应用”。名称必须已确认，不把环境标签当组织名；编排已告知时不重复。
+
 - 创建成功后，将 appType 记录到 `.cache/<项目名>-schema.json`
 - 若完整搭建已确认 PRD 和视觉设计，创建成功后不得回写 `.cache/openyida/<项目名>/requirement-brief.json`，也不得仅因拿到真实 `appType` 重新生成或校验 PRD 和视觉设计；真实 `appType` 只写入 schema 或当前任务资源上下文。
 - 创建前确认当前登录的组织（corpId）与目标组织一致

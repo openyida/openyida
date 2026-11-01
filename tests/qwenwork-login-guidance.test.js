@@ -14,7 +14,10 @@ describe('桌面登录的机器可读调用契约', () => {
       required_runtime: { tool: 'qwenwork', subtype: 'qwenwork_desktop' },
       execution: 'command', preserve_command_verbatim: true,
       output_visibility: 'internal', success_next_step: 'continue_business_operation_silently',
-      failure_next_step: 'follow_returned_invocation_guidance',
+      failure_next_step: 'stop_dependent_operations_and_request_minimal_user_action',
+      max_attempts: 1,
+      result_policy: 'preserve_final_json_and_process_exit_code_without_head_tail_or_success_masking',
+      organization_policy: 'use_current_host_organization_unless_user_explicitly_selects_another',
     });
   });
   test('当前入口为包内脚本时定位同一个安装前缀的 openyida', () => {

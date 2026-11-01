@@ -17,7 +17,7 @@ Fast / Plan 已选主题是全应用决定，本步骤必须保存同一份应�
 ## 操作
 
 1. 已有 `appType`、应用 URL 或已绑定 app → 直接复用该 app。
-2. 缺少 app 且 Step 1 判定 `allowCreate=true` → 执行 `use_skill("yida-create-app", "按 PRD 创建应用并获取 appType")`，再按 PRD 创建应用。
+2. 缺少 app 且 Step 1 判定 `allowCreate=true` → 执行 `use_skill("yida-create-app", "按 PRD 创建应用并获取 appType")`，再按 PRD 创建应用。执行创建前按[创建应用时的提示](../../../references/user-facing-summary.md#创建应用时的提示)告知一次“当前在{组织名称}组织下为您创建{应用名称}应用”；名称取已确认的当前组织与应用，不附带登录或准备说明。
    千问办公返回 `status=permission_required` 时，按 [权限处理](../../yida-create-app/SKILL.md#千问办公权限处理) 展示 CLI 指引并暂停后续步骤，等待用户处理并要求继续。
 3. 创建或复用后提取真实 `appType`，写入 `.cache/<项目名>-schema.json` 或当前任务资源上下文。
    - Step 2 已确认的 `requirement-brief.json`、PRD 与 design 保持不变；不得仅因拿到真实 `appType` 回写需求文件或重新生成 PRD 和视觉设计。
@@ -29,7 +29,7 @@ Fast / Plan 已选主题是全应用决定，本步骤必须保存同一份应�
 
    CLI 首次按 `sourceThemeId` 使用命名主题的配对 CSS；自由创意或历史无来源设计才使用公共骨架。后续只更新项目 token 差异并保留原规则，详见 [模板来源约束](../../yida-design/references/application-style-library.md#模板来源与重复生成)。整体暗色方案还需按 [浮层适配](../../yida-design/references/theme/theme-token-presets.md#暗色主题浮层适配) 在该文件末尾补充必要的 class 覆盖；仅深色导航不触发此操作。
    若禁止 `theme-file`，不执行 sample，不复制、生成、修改或上传主题文件；已有应用沿用当前主题，新应用保留平台默认主题。
-5. 主题文件就绪、未禁止 `theme-file` 且已有真实 `appType` 后，先按 [旧主题注入与停用规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认) 核对服务端主题能力。新版主题可立即更新；旧主题或能力未知时保留平台主题、使用页面局部样式，仅在取得目标应用与 CSS 范围的明确注入确认后才传 `--confirm-legacy-app-style`，计划或主题确认不能代替此确认。符合条件后通过独立任务更新应用基础设置，与表单和页面开发并行：
+5. 主题文件就绪、未禁止 `theme-file` 且已有真实 `appType` 后，先按 [旧主题注入与停用规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认) 核对服务端主题能力。现有应用详情接口不提供最终运行态主题能力，按能力未知处理：保留平台主题、使用页面局部样式，仅在取得目标应用与 CSS 范围的明确注入确认后才传 `--confirm-legacy-app-style`，计划或主题确认不能代替此确认。符合条件后通过独立任务更新应用基础设置，与表单和页面开发并行：
 
    ```bash
    openyida update-app <appType> --theme-file <app-theme.css> --colour custom --nav-theme <light|dark> --logo-source appIcon --layout <l_shape|top|side>

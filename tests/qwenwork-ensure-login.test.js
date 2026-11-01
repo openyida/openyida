@@ -23,6 +23,45 @@ describe('公开千问办公登录入口', () => {
     expect(await ensureQwenWorkLogin({ ...options, checkOnly: true }, { login })).toEqual({ ok: false, status: 'not_logged_in', can_auto_use: false });
     expect(login).not.toHaveBeenCalled();
   });
+  describe('受管桌面历史凭据歧义', () => {
+    const runtime = { tool: 'qwenwork', subtype: 'qwenwork_desktop' };
+    beforeEach(() => {
+      saveTokenSession(session, { ...options, projectRoot: path.join(root, 'old-a') });
+      saveTokenSession({ ...session, corp_id: 'other-corp', user_id: 'other-user' },
+        { ...options, projectRoot: path.join(root, 'old-b') });
+      options = { ...options, runtime, checkOnly: true,
+        env: { ...options.env, QWENWORK_CLIENT_OPENYIDA_IDENTITY: 'a'.repeat(64) } };
+    });
+    test('未指定目标的检查返回未就绪，让宿主按当前身份签票，不访问历史凭据', async () => {
+      const login = jest.fn(); const refresh = jest.fn();
+      await expect(ensureQwenWorkLogin(options, { login, refresh }))
+        .resolves.toEqual({ ok: false, status: 'not_logged_in', can_auto_use: false });
+      expect(options.fetch).not.toHaveBeenCalled();
+      expect(login).not.toHaveBeenCalled(); expect(refresh).not.toHaveBeenCalled();
+    });
+    test.each([
+      { runtime: { tool: 'codex' } },
+      { env: {} },
+      { env: { QWENWORK_CLIENT_OPENYIDA_IDENTITY: 'unavailable' } },
+      { checkOnly: false },
+    ])('非受管检查保留多凭据保护：%j', async override => {
+      const configured = { ...options, ...override,
+        env: override.env ? { ...override.env, OPENYIDA_AUTH_DIR: options.env.OPENYIDA_AUTH_DIR } : options.env };
+      await expect(ensureQwenWorkLogin(configured)).rejects.toMatchObject({ code: 'AUTH_PROFILE_REQUIRED' });
+      expect(options.fetch).not.toHaveBeenCalled();
+    });
+    test('显式 profile 缺失仍然拒绝，不转为默认身份换票', async () => {
+      await expect(ensureQwenWorkLogin({ ...options, authProfile: 'missing', corpId: 'requested-corp' }))
+        .rejects.toMatchObject({ code: 'QWENWORK_LOGIN_IDENTITY_MISMATCH' });
+    });
+    test('显式组织仍有多个候选时保留歧义错误', async () => {
+      saveTokenSession({ ...session, user_id: 'third-user' },
+        { ...options, projectRoot: path.join(root, 'old-c') });
+      await expect(ensureQwenWorkLogin({ ...options, corpId: session.corp_id }))
+        .rejects.toMatchObject({ code: 'AUTH_PROFILE_REQUIRED' });
+      expect(options.fetch).not.toHaveBeenCalled();
+    });
+  });
   test('云端环境注入模式缺少凭据时不转成本地 OAuth', async () => {
     const login = jest.fn();
     await expect(ensureQwenWorkLogin({ ...options, env: { ...options.env, OPENYIDA_AUTH_MODE: 'token' } }, { login })).rejects.toMatchObject({ code: 'QWENWORK_LOGIN_FAILED' });
@@ -33,6 +72,43 @@ describe('公开千问办公登录入口', () => {
     const login = jest.fn(); const refresh = jest.fn();
     expect((await ensureQwenWorkLogin(options, { login, refresh })).ok).toBe(true);
     expect(login).not.toHaveBeenCalled(); expect(refresh).not.toHaveBeenCalled();
+  });
+  test('显式组织与用户约束通过后返回匹配终态，不返回凭据或标识', async () => {
+    saveTokenSession(session, options);
+    const result = await ensureQwenWorkLogin({ ...options, corpId: session.corp_id, userId: session.user_id });
+    expect(result).toMatchObject({ ok: true, target_match: 'matched' });
+    for (const value of [session.corp_id, session.user_id, session.access_token, session.refresh_token]) {
+      expect(JSON.stringify(result)).not.toContain(value);
+    }
+  });
+  test('相同组织中的其他用户不能满足显式用户约束，也不回退 OAuth', async () => {
+    saveTokenSession(session, options);
+    const login = jest.fn();
+    await expect(ensureQwenWorkLogin({ ...options, runtime: { tool: 'qwenwork', subtype: 'qwenwork_desktop' }, userId: 'target-user' }, { login })).rejects.toMatchObject({
+      code: 'QWENWORK_LOGIN_IDENTITY_MISMATCH',
+      details: { retryable: false, nextAction: 'select_target_organization_in_host_then_retry', output_visibility: 'internal' },
+    });
+    expect(login).not.toHaveBeenCalled();
+  });
+  test('检查失败不消耗刷新凭据、不发起 OAuth', async () => {
+    saveTokenSession(session, options);
+    options.fetch.mockResolvedValue(new Response('{}', { status: 401 }));
+    const refresh = jest.fn(); const login = jest.fn();
+    expect(await ensureQwenWorkLogin({ ...options, checkOnly: true }, { refresh, login }))
+      .toEqual({ ok: false, status: 'not_logged_in', can_auto_use: false });
+    expect(refresh).not.toHaveBeenCalled(); expect(login).not.toHaveBeenCalled();
+  });
+  test('意外失败返回不可自动重试的安全终态，不回显原始异常', async () => {
+    const login = jest.fn(async () => { throw new Error(session.access_token); });
+    try {
+      await ensureQwenWorkLogin(options, { login });
+      throw new Error('expected failure');
+    } catch (error) {
+      const payload = require('../lib/core/cli-error').toErrorPayload(error);
+      expect(payload).toMatchObject({ errorCode: 'QWENWORK_LOGIN_FAILED', retryable: false });
+      expect(JSON.stringify(payload)).not.toContain(session.access_token);
+    }
+    expect(login).toHaveBeenCalledTimes(1);
   });
   test('网络异常直接报错，不弹浏览器', async () => {
     saveTokenSession(session, options); options.fetch.mockRejectedValue(new Error('test-private-access'));

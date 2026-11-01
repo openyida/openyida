@@ -1,5 +1,7 @@
 # 千问办公网页态免登与普通登录回退
 
+先执行[任务准备](setup-and-env.md#千问办公任务准备)的当前组织和停止规则。后台实现不进入用户对话；需要用户操作时仅说明动作和业务影响。
+
 1. 以当前能力快照的 `runtime.tool=qwenwork`、`runtime.subtype=qwenwork_web`、`builder_path.interactive_login.mode=cloud_token` 确认环境。
 2. 已登录直接继续业务；未登录时静默执行快照推荐的命令，通常为 `openyida login --qwenwork --json`，并等待结束。普通 `openyida login` 在该网页态也会自动走同一路径。
 3. CLI 自行消费沙箱提供的 Agent Token 与网关地址，直接交给当前宜搭环境验证并换取登录态。不要让模型读取、复制、打印环境变量或认证文件。

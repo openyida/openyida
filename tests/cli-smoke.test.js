@@ -1577,6 +1577,8 @@ describe('CLI offline smoke', () => {
     const projectDir = path.join(workspace, 'project');
     try {
       const summary = JSON.parse(runOkWithEnv(['agent-capabilities', '--summary-json'], {
+        QWENWORK_CLIENT: 'acp',
+        QWENWORK_INTEGRATION_MODE: 'desktop',
         QODER_IDE: '1',
         QODER_AGENT: '1',
         QODERCLI_INTEGRATION_MODE: 'qoder_work',
@@ -1604,12 +1606,12 @@ describe('CLI offline smoke', () => {
         },
       });
       expect(summary.builder_path.interactive_login).toMatchObject({
-        mode: 'cli_auto_open',
-        browser_default: 'cli_auto_open',
-        browser_owner: 'cli',
-        recommended_command: 'openyida login',
-        agent_action: 'wait_for_login_command',
-        reason: 'desktop_shell_available',
+        mode: 'desktop_ticket',
+        browser_default: 'not_required',
+        browser_owner: 'cli_if_auth_required',
+        recommended_command: 'openyida login --qwenwork --json',
+        agent_action: 'run_login_qwenwork_and_wait',
+        reason: 'qwenwork_desktop_host',
         playwright_required: false,
       });
     } finally {
