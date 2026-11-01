@@ -1119,6 +1119,7 @@ module.exports = {
     custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: '平台預置 colour 不能與自訂 CSS 或 themeColor 同傳；請使用 --colour custom 或省略 --colour。',
     custom_theme_color_required: 'colour=custom 需要主題檔案或有效 themeColor；請傳 --theme-file 或 --theme-color。',
+    theme_configuration_incomplete: '應用主題配置未完成，請按 themeCompletion 核對主題模式和配置缺項。',
     theme_not_persisted: '應用主題儲存後回讀不一致或查詢失敗，CSS 資源尚未確認綁定。請查看 themeVerification，並使用 update-app <appType> --theme-file <css> 重試；不要重複建立應用。',
     navigation_not_persisted: "應用導航儲存後回讀不一致或查詢失敗，導航設定尚未確認生效。請查看 navigationVerification 中的預期值、實際值和查詢錯誤，核實應用目前設定。",
     usage: '用法: openyida update-app <appType> [--name "新名称"] [--desc "描述"] [--layout slide|ver] [--theme deepBlue]',

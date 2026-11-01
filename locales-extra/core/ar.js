@@ -1173,6 +1173,7 @@ module.exports = {
     custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'لا يمكن الجمع بين colour مسبق الإعداد وCSS أو themeColor. استخدم --colour custom أو احذف --colour.',
     custom_theme_color_required: 'يتطلب colour=custom ملف سمة أو themeColor صالحًا. مرر --theme-file أو --theme-color.',
+    theme_configuration_incomplete: 'إعداد السمة غير مكتمل. تحقق من الوضع والإعدادات الناقصة في themeCompletion.',
     theme_not_persisted: 'تعذرت قراءة إعدادات سمة التطبيق بعد الحفظ أو لم تتطابق. لم يتم تأكيد ربط مورد CSS. افحص themeVerification وأعد المحاولة باستخدام update-app <appType> --theme-file <css>؛ لا تنشئ التطبيق مجددًا.',
     navigation_not_persisted: "تعذرت قراءة إعدادات التنقل أو لم تطابق القيم المطلوبة. راجع القيم المتوقعة والفعلية وأخطاء القراءة في navigationVerification، ثم تحقق من إعدادات التطبيق الحالية.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',

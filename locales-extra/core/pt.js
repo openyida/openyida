@@ -1175,6 +1175,7 @@ module.exports = {
     custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'Um colour predefinido não pode ser combinado com CSS ou themeColor. Use --colour custom ou omita --colour.',
     custom_theme_color_required: 'colour=custom requer um arquivo de tema ou themeColor válido. Use --theme-file ou --theme-color.',
+    theme_configuration_incomplete: 'A configuração do tema está incompleta. Verifique o modo e as configurações ausentes em themeCompletion.',
     theme_not_persisted: 'Não foi possível confirmar as configurações do tema após salvar. Verifique themeVerification e tente novamente com update-app <appType> --theme-file <css>; não recrie o aplicativo.',
     navigation_not_persisted: "Não foi possível verificar a navegação ou os valores diferem dos solicitados. Consulte os valores esperados, os valores reais e os erros em navigationVerification e confira as configurações atuais do aplicativo.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',

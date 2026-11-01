@@ -129,7 +129,7 @@ CLI 校验主题文件完整声明平台实际生成的 `--color-brand1-1/2/3/5/
 
 `colour` 只保存平台 key，实际色值保存在 `themeColor`。导入主题文件时自动使用 `colour=custom`，无需手动填写；显式 `--colour custom` 需要主题文件或有效主题色，已有有效主题色可沿用。平台预置 key 不能与自定义 CSS 或 `--theme-color` 同传；切换预置主题会清空旧自定义 CSS。
 
-按[主题上传与绑定](../../references/execution-rules.md#主题上传与绑定)保存本轮上传与绑定证据；失败沿用当前 appType 和资源，先只读核实。CSS 变更后重新上传。
+按[主题上传与绑定](../../references/execution-rules.md#主题上传与绑定)保存本轮上传与绑定证据，并按[新旧主题完成条件](../../references/execution-rules.md#应用主题配置完成条件)核对 `themeCompletion.complete=true` 后才报告完整主题配置完成；失败沿用当前 appType 和资源，先只读核实。CSS 变更后重新上传。
 
 完整应用主题 key、颜色倾向和 token 变量统一维护在 `yida-design/references/theme/theme-token-presets.md`，本技能不重复维护完整清单。
 

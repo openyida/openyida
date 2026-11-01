@@ -1174,6 +1174,7 @@ module.exports = {
     custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: '프리셋 colour는 CSS 또는 themeColor와 함께 사용할 수 없습니다. --colour custom을 사용하거나 --colour를 생략하세요.',
     custom_theme_color_required: 'colour=custom에는 테마 파일 또는 유효한 themeColor가 필요합니다. --theme-file 또는 --theme-color를 지정하세요.',
+    theme_configuration_incomplete: '테마 설정이 미완료입니다. themeCompletion에서 모드와 누락된 설정을 확인하세요.',
     theme_not_persisted: '저장 후 앱 테마 설정을 확인하지 못했습니다. themeVerification을 확인하고 update-app <appType> --theme-file <css>로 다시 시도하세요. 앱을 다시 만들지 마세요.',
     navigation_not_persisted: "내비게이션 설정을 다시 읽지 못했거나 요청한 값과 다릅니다. navigationVerification의 예상값, 실제 값, 조회 오류를 확인한 다음 현재 앱 설정을 확인하세요.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
