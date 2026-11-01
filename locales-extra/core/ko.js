@@ -1261,6 +1261,8 @@ module.exports = {
   },
 
   update_form_config: {
+    unchanged: '제목과 탐색 설정이 변경되지 않아 저장 요청을 보내지 않았습니다.',
+    preservation_unsupported: '설정 필드 {0}의 값을 그대로 보존할 수 없어 저장을 거부했습니다. 플랫폼에서 탐색 설정을 변경하세요.',
     usage: '사용법: openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: 'Example: openyida update-form-config "APP_XXX" "FORM_XXX" "keep" "My Page"',
     params_label: 'Parameters:',
@@ -1275,7 +1277,7 @@ module.exports = {
     read_ok: '  ✅ Current config loaded; settings other than title/nav will be preserved',
     read_failed_fallback: '  ⚠️  Failed to read current config; falling back to defaults (may reset some untouched settings)',
     step_update: '\n💾 Step 2: 폼 설정 업데이트',
-    sending_request: '  updateFormSchemaInfo 요청 전송 중...',
+    sending_request: '  {0} 요청 전송 중...',
     update_ok: '  ✅ 설정 업데이트 성공!',
     nav_shown: '상단 내비게이션 표시됨',
     nav_hidden: '상단 내비게이션 숨겨짐',

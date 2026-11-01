@@ -1260,6 +1260,8 @@ module.exports = {
   },
 
   update_form_config: {
+    unchanged: 'शीर्षक और नेविगेशन अपरिवर्तित हैं; कोई सहेजने का अनुरोध नहीं भेजा गया।',
+    preservation_unsupported: 'कॉन्फ़िगरेशन फ़ील्ड {0} का मान यथावत रखना संभव नहीं है। सहेजना अस्वीकृत; प्लेटफ़ॉर्म पर नेविगेशन बदलें।',
     usage: 'उपयोग: openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: 'Example: openyida update-form-config "APP_XXX" "FORM_XXX" "keep" "My Page"',
     params_label: 'Parameters:',
@@ -1274,7 +1276,7 @@ module.exports = {
     read_ok: '  ✅ Current config loaded; settings other than title/nav will be preserved',
     read_failed_fallback: '  ⚠️  Failed to read current config; falling back to defaults (may reset some untouched settings)',
     step_update: '\n💾 Step 2: फॉर्म कॉन्फ़िगरेशन अपडेट करें',
-    sending_request: '  updateFormSchemaInfo अनुरोध भेजा जा रहा है...',
+    sending_request: '  {0} अनुरोध भेजा जा रहा है...',
     update_ok: '  ✅ कॉन्फ़िगरेशन सफलतापूर्वक अपडेट हुआ!',
     nav_shown: 'शीर्ष नेविगेशन दिखाया गया',
     nav_hidden: 'शीर्ष नेविगेशन छिपाया गया',

@@ -1214,6 +1214,8 @@ module.exports = {
   },
 
   update_form_config: {
+    unchanged: 'タイトルとナビゲーションに変更がないため、保存リクエストは送信していません。',
+    preservation_unsupported: '設定項目 {0} の値を保持できないため、保存を拒否しました。ナビゲーションはプラットフォームで変更してください。',
     usage: '使用方法: openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: '例: openyida update-form-config "APP_XXX" "FORM_XXX" "false" "マイページ"',
     params_label: 'パラメータ説明:',
@@ -1228,7 +1230,7 @@ module.exports = {
     read_ok: '  ✅ Current config loaded; settings other than title/nav will be preserved',
     read_failed_fallback: '  ⚠️  Failed to read current config; falling back to defaults (may reset some untouched settings)',
     step_update: '\n💾 Step 2: フォーム設定を更新（トップナビを非表示）',
-    sending_request: '  updateFormSchemaInfo リクエストを送信中...',
+    sending_request: '  {0} リクエストを送信中...',
     update_ok: '  ✅ 設定の更新に成功しました！',
     nav_shown: 'トップナビを表示しました',
     nav_hidden: 'トップナビを非表示にしました',

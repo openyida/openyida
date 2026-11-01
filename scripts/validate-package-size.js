@@ -212,7 +212,9 @@ const MAX_TARBALL_BYTES = 2672 * 1024;
 // 合并后的解包体积为 10,015,765 字节；取下一档 16 KiB 边界，单文件上限保持不变。
 // 当前组织免登与搭建提示规则：Node 26 实测 10,033,033 解包字节 / 797 文件。
 // 按既有 16 KiB 分档容纳新增运行时与技能内容；压缩包、文件数及单文件上限不变。
-const MAX_UNPACKED_BYTES = 9808 * 1024;
+// Locale-preserving form updates, guarded writes and usage guidance measure
+// 10,046,556 unpacked bytes; retain the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 9824 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.

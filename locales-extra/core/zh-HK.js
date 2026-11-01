@@ -1206,6 +1206,8 @@ module.exports = {
   },
 
   update_form_config: {
+    unchanged: '標題和導航未變更，未傳送儲存請求。',
+    preservation_unsupported: '無法保證設定欄位 {0} 的值原樣保留，已拒絕儲存；請在平台中調整導航。',
     usage: '用法：openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: '範例：openyida update-form-config "APP_XXX" "FORM_XXX" "false" "我的頁面"',
     params_label: '參數說明：',
@@ -1220,7 +1222,7 @@ module.exports = {
     read_ok: '  ✅ 已读取当前配置，将保留除标题/导航外的其它设置',
     read_failed_fallback: '  ⚠️  读取当前配置失败，将使用默认配置回退（可能重置部分未传入的设置）',
     step_update: '\n💾 Step 2：更新表單設定（隱藏頂部導航列）',
-    sending_request: '  傳送 updateFormSchemaInfo 請求...',
+    sending_request: '  傳送 {0} 請求...',
     update_ok: '  ✅ 設定更新成功！',
     nav_shown: '已顯示頂部導航列',
     nav_hidden: '已隱藏頂部導航列',

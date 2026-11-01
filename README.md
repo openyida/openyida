@@ -659,6 +659,8 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 
 <!-- OPENYIDA_COMMANDS_END -->
 
+`update-form-config` changes only the resolved content locale (`--locale` overrides the usual environment/domain selection), preserving other translations and title metadata. Use `keep` to retain navigation. Unchanged title and navigation skip saving; title-only changes use the dedicated title endpoint. Navigation changes require a complete supported configuration snapshot: null/missing fields or empty defaulted fields cause `CONFIG_PRESERVATION_UNSUPPORTED` before saving. In that case, change navigation in the platform. An unreadable localized title causes `CONFIG_READ_FAILED` without saving.
+
 ### Personal tasks and process progress
 
 Query application tasks with `openyida data query tasks <appType> --type todo --normalized`; `created`, `done`, and `cc` select the other personal task lists. Use `openyida task-center capabilities --json` for supported filters and the page configuration example.

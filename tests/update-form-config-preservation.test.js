@@ -23,8 +23,9 @@ function fixture(readResponse, writeResponse = { success: true }) {
 
 afterEach(() => jest.restoreAllMocks());
 
-test('a navigation write preserves default title mode and sparse settings without inserting defaults', async () => {
+test('a navigation write rejects sparse settings rather than omitting null values', async () => {
   const { command, httpPost } = fixture({ success: true, content: {
+    title: { zh_CN: 'Original' },
     customTitle: 'n', isRenderNav: true, displayTitle: '${legao_creator}',
     detailTheme: 'theme', showNav: 'n', showDelete: 'y',
     serialSwitch: null, pushTask: null, defaultOrder: null, showPrint: null,
@@ -32,19 +33,14 @@ test('a navigation write preserves default title mode and sparse settings withou
     manageCustomActionInfo: [],
   } });
   jest.spyOn(console, 'log').mockImplementation(() => undefined);
-  await command.run(['APP_X', 'FORM_X', 'false', 'Test']);
-  const payload = querystring.parse(httpPost.mock.calls[1][2]);
-  expect(payload).toMatchObject({ customTitle: 'n', isRenderNav: 'false',
-    displayTitle: '${legao_creator}', detailTheme: 'theme', showNav: 'n',
-    showDelete: 'y', consultPerson: '', defaultManager: 'n',
-    submissionRule: 'RESUBMIT', manageCustomActionInfo: '[]' });
-  for (const absent of ['serialSwitch', 'pushTask', 'defaultOrder', 'showPrint', 'previewConfig']) {
-    expect(payload).not.toHaveProperty(absent);
-  }
+  await expect(command.run(['APP_X', 'FORM_X', 'false', 'Test']))
+    .rejects.toMatchObject({ code: 'CONFIG_PRESERVATION_UNSUPPORTED' });
+  expect(httpPost).toHaveBeenCalledTimes(1);
 });
 
 test('preserves custom title, serial number settings and navigation in keep mode', async () => {
   const { command, httpPost } = fixture({ success: true, content: {
+    title: { zh_CN: 'Original' },
     customTitle: 'y', displayTitle: 'Custom', isRenderNav: false,
     serialSwitch: 'y', serialExpression: 'expression', serialPrefix: 'prefix',
     serialDateFormat: 'yyyyMMdd', serialInfo: { serialPreSplit: '-' },
@@ -52,12 +48,14 @@ test('preserves custom title, serial number settings and navigation in keep mode
   } });
   jest.spyOn(console, 'log').mockImplementation(() => undefined);
   await command.run(['APP_X', 'FORM_X', 'keep', 'Test']);
-  expect(querystring.parse(httpPost.mock.calls[1][2])).toMatchObject({
-    customTitle: 'y', displayTitle: 'Custom', isRenderNav: 'false',
-    serialSwitch: 'y', serialExpression: 'expression', serialPrefix: 'prefix',
-    serialDateFormat: 'yyyyMMdd', serialInfo: '{"serialPreSplit":"-"}',
-    relateUuid: 'FORM_RELATED', manageCustomConfigInfo: '{"enabled":false}',
-  });
+  expect(httpPost).toHaveBeenCalledTimes(2);
+  expect(httpPost.mock.calls[1][1]).toContain('/updateFormTitle.json');
+  const payload = querystring.parse(httpPost.mock.calls[1][2]);
+  expect(JSON.parse(payload.title)).toEqual({ zh_CN: 'Test' });
+  expect(payload).not.toHaveProperty('isRenderNav');
+  expect(payload).not.toHaveProperty('customTitle');
+  expect(payload).not.toHaveProperty('serialSwitch');
+  expect(payload).not.toHaveProperty('manageCustomConfigInfo');
 });
 
 test.each([null, { success: false }, { __needLogin: true }, { __csrfExpired: true },
@@ -83,13 +81,14 @@ test.each([
   [{ renderNav: false, isRenderNav: true }, 'false'],
   [{ renderNav: true, isRenderNav: false }, 'true'],
   [{ isRenderNav: 'false' }, 'false'],
-])('keep uses persisted navigation and retains the write API field (%j)', async (config, expected) => {
-  const { command, httpPost } = fixture({ success: true, content: config });
-  jest.spyOn(console, 'log').mockImplementation(() => undefined);
+])('keep uses persisted navigation and omits navigation from a title-only write (%j)', async (config, expected) => {
+  const { command, httpPost } = fixture({ success: true, content: { ...config, title: { zh_CN: 'Original' } } });
+  const log = jest.spyOn(console, 'log').mockImplementation(() => undefined);
   await command.run(['APP_X', 'FORM_X', 'keep', 'Test']);
   const payload = querystring.parse(httpPost.mock.calls[1][2]);
-  expect(payload.isRenderNav).toBe(expected);
+  expect(payload).not.toHaveProperty('isRenderNav');
   expect(payload).not.toHaveProperty('renderNav');
+  expect(JSON.parse(log.mock.calls.at(-1)[0]).isRenderNav).toBe(expected === 'true');
   expect(httpPost).toHaveBeenCalledTimes(2);
 });
 
@@ -99,15 +98,3 @@ test.each([null, 'unknown', undefined])('keep does not fall back from a present 
     .rejects.toMatchObject({ code: 'CONFIG_READ_FAILED' });
   expect(httpPost).toHaveBeenCalledTimes(1);
 });
-
-// FormDesignVoAdapter reads NEEDREPORTLINE as y/n; the write API stores it verbatim.
-test.each([[true, 'y'], [false, 'n'], ['y', 'y'], ['n', 'n']])(
-  'round-trips the reporting-line flag (%j -> %s)', (currentValue, expected) => {
-    const { command } = fixture({ success: true });
-    const payload = querystring.parse(command.buildPostData('csrf', 'FORM_X', 'true', 'Test', {
-      customTitle: 'n', needReportLine: currentValue,
-    }));
-    expect(payload.needReportLine).toBe(expected);
-    expect(payload.customTitle).toBe('n');
-  }
-);
