@@ -18,6 +18,17 @@
 - `not_requested` / `operation=preserve` 按已有主题复用记录。上传 `unknown` 或绑定失败时保留 appType、资源和错误，先只读核实，再决定是否重试。
 - `sourceSha256` 对应实际上传字节；`resourceContentVerified=false` 表示远端文件内容尚未比对。`runtimeVerified=false` / `runtimeVerification.verified=false` 表示页面未验，`iframePropagation` 是配置；均不能单独诊断主题加载失败。`app-settings --section theme` 仅提供入口。
 
+### 应用主题配置完成条件
+
+完整主题须 `themeCompletion.complete=true` 且覆盖本轮要求；上传或字段回读成功不能替代配置完成。
+
+- **modern CSS**：保存前后均有 modern 依据；`colour=custom`、CSS 主色、启用的 URL 与上传结果一致，本轮导航配置回读一致。
+- **legacy CSS**：已确认应用及 CSS 范围，保留 legacy；资源、主色及导航一致。旧协议 `side/top/l_shape` → `ver/hoz/ver`，`white/gray` → `light`，不升级主题。
+- **预置主题**：保存预置 key、清除旧 CSS 和自定义主色，核验导航；无需上传。
+- **仅主色或导航**：`status=partial`，不能报告整套主题完成。
+
+新建应用必须 modern；unknown 或模式变化保持未完成。历史 302 不能跳过当前上传或静默改为主色；失败保留资源，先只读核实。`sample` 仅是生成方式，有效 CSS 可直接上传。配置完成不证明浏览器生效。
+
 ### 本地浏览器验收
 
 - 先读取 `builder_path.browser_verification` 并核实执行位置。浏览器验收仅限用户本机 Agent，使用已有工具、登录态和正确目标；云端、沙箱、远程或未知位置一律跳过，即使有浏览器、登录态或公开 URL，也不得打开。能力不足时记录待验，不安装工具或注入凭据补验。

@@ -320,9 +320,13 @@ describe('真实 CLI 子进程消费网页沙箱凭据', () => {
       }
       else if (req.url === '/openapi/cli/v1/auth/status') { res.end(JSON.stringify({ ...status(), corp_id: issuedSession.corp_id, user_id: issuedSession.user_id, identity_type: issuedSession.identity_type, organization_type: issuedSession.organization_type })); }
       else if (req.url.startsWith('/query/exclusive/queryCorpAppConfig.json')) { res.end(JSON.stringify({ success: true, content: {} })); }
+      else if (req.url.startsWith('/APP_ODS_TEST/query/app/getAppIncludingAecpInfo.json')) {
+        res.end(JSON.stringify({ success: true, content: { appType: 'APP_ODS_TEST', corpId: issuedSession.corp_id,
+          agentAppType: 'qwenwork', config: { CREATED_WITH_MODERN_THEME: 'y' } } }));
+      }
       else if (req.url === '/query/app/registerApp.json') {
         let body = ''; req.on('data', chunk => { body += chunk; }); req.on('end', () => {
-          if (req.headers.authorization !== `Bearer ${issuedSession.access_token}` || !body) { res.writeHead(400).end('{}'); return; }
+          if (req.headers.authorization !== `Bearer ${issuedSession.access_token}` || new URLSearchParams(body).get('createWithModernTheme') !== 'y') { res.writeHead(400).end('{}'); return; }
           res.end(JSON.stringify({ success: true, content: 'APP_ODS_TEST' }));
         });
       }
@@ -384,6 +388,7 @@ describe('真实 CLI 子进程消费网页沙箱凭据', () => {
     const created = await run(['create-app', '--name', 'ODS regression app', '--open', 'false'], root, env);
     expect(created.code).toBe(0);
     expect(created.stdout).toContain('APP_ODS_TEST'); expect(created.stdout).toContain(corpId);
+    expect(created.stdout).toContain('"appThemeMode":"modern"');
     expect(calls).toContain('/openapi/cli/v1/auth/refresh'); expect(calls).toContain('/query/app/registerApp.json');
     expect(loadTokenSession(options)).toMatchObject({ ...classification, corp_id: corpId, access_token: 'fixture-rotated-access', refresh_token: 'fixture-rotated-refresh' });
     for (const secret of [AGENT, REFRESH, YIDA, 'fixture-rotated-access', 'fixture-rotated-refresh']) {

@@ -250,8 +250,8 @@ const MAX_UNPACKED_BYTES = 9808 * 1024;
 // GitHub setup keeps installation/detection separate from account actions.
 // Shared page navigation and task-center navigation add exactly two packaged files.
 // 合并 main 的业务总结参考文档后，包含 beta 可选安装器的包实测为 796 个文件。
-// 当前分支的字段权限校验模块新增一个文件，合计 797 个文件。
-const MAX_ENTRY_COUNT = 797;
+// 新增应用主题状态共享模块；Node 20 实测 798 文件，字节预算保持不变。
+const MAX_ENTRY_COUNT = 798;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

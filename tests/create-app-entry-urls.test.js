@@ -1,6 +1,6 @@
 'use strict';
 
-jest.mock('../lib/core/utils', () => ({ httpPost: jest.fn(), requestWithAutoLogin: jest.fn() }));
+jest.mock('../lib/core/utils', () => ({ httpGet: jest.fn(), httpPost: jest.fn(), requestWithAutoLogin: jest.fn() }));
 jest.mock('../lib/core/yida-client', () => ({ createAuthRef: jest.fn() }));
 jest.mock('../lib/core/browser-handoff', () => ({
   parseOpenOption: args => ({ args, mode: 'never' }),
@@ -17,8 +17,11 @@ afterEach(() => jest.restoreAllMocks());
 test('create-app success emits adminUrl alongside compatible workbench fields', async () => {
   const auth = { baseUrl: 'https://tenant.aliwork.com', corpId: 'corp-test' };
   createAuthRef.mockReturnValue(auth);
-  utils.httpPost.mockResolvedValue({ success: true, content: {} });
-  utils.requestWithAutoLogin.mockResolvedValue({ success: true, content: 'APP_NEW' });
+  utils.httpPost.mockResolvedValue({ success: true, content: 'APP_NEW' });
+  utils.httpGet.mockResolvedValue({ success: true, content: {
+    appType: 'APP_NEW', corpId: auth.corpId, appThemeEnable: 'y', appThemeMode: 'modern',
+  } });
+  utils.requestWithAutoLogin.mockImplementation((fn, current) => fn(current));
   // Keep the success path from updating a real PRD in an ancestor directory.
   jest.spyOn(fs, 'existsSync').mockReturnValue(false);
   jest.spyOn(process.stderr, 'write').mockReturnValue(true);

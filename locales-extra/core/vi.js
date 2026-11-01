@@ -796,6 +796,7 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    modern_theme_unverified: "Ứng dụng đã được tạo nhưng chưa xác minh được cấu hình giao diện mới. Hãy kiểm tra ID ứng dụng được trả về; không tạo lại ứng dụng hoặc chuyển về giao diện cũ.",
     update_only_option: '{0} chỉ dùng để cập nhật. Hãy tạo ứng dụng trước rồi dùng openyida update-app <appType>.',
     title: '  create-app - Công cụ tạo ứng dụng Yida',
     usage: 'Cách dùng: openyida create-app "<tên ứng dụng>" hoặc openyida create-app --name "<tên ứng dụng>" [--desc "..."]',
@@ -1172,6 +1173,7 @@ module.exports = {
     custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'Không thể kết hợp colour có sẵn với CSS hoặc themeColor. Dùng --colour custom hoặc bỏ --colour.',
     custom_theme_color_required: 'colour=custom cần tệp giao diện hoặc themeColor hợp lệ. Dùng --theme-file hoặc --theme-color.',
+    theme_configuration_incomplete: 'Cấu hình giao diện chưa hoàn tất. Kiểm tra chế độ và các thiết lập còn thiếu trong themeCompletion.',
     theme_not_persisted: 'Không thể xác nhận cài đặt giao diện sau khi lưu. Kiểm tra themeVerification và thử lại bằng update-app <appType> --theme-file <css>; không tạo lại ứng dụng.',
     navigation_not_persisted: "Không thể đọc lại cài đặt điều hướng hoặc kết quả khác với yêu cầu. Xem giá trị mong đợi, giá trị thực tế và lỗi trong navigationVerification, rồi kiểm tra cài đặt hiện tại của ứng dụng.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',

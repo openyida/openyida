@@ -796,6 +796,7 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    modern_theme_unverified: "ऐप बन गया है, लेकिन आधुनिक थीम की सेटिंग सत्यापित नहीं हो सकी। लौटाई गई ऐप आईडी जाँचें; ऐप दोबारा न बनाएँ और पुरानी थीम पर न जाएँ।",
     update_only_option: '{0} केवल अपडेट के लिए है। पहले ऐप बनाएँ, फिर openyida update-app <appType> का उपयोग करें।',
     title: '  create-app - Yida ऐप निर्माण टूल',
     usage: 'उपयोग: openyida create-app "<ऐप नाम>" या openyida create-app --name "<ऐप नाम>" [--desc "..."]',
@@ -1172,6 +1173,7 @@ module.exports = {
     custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'प्रीसेट colour को CSS या themeColor के साथ नहीं भेज सकते। --colour custom उपयोग करें या --colour छोड़ दें।',
     custom_theme_color_required: 'colour=custom के लिए थीम फ़ाइल या मान्य themeColor चाहिए। --theme-file या --theme-color दें।',
+    theme_configuration_incomplete: 'थीम का कॉन्फ़िगरेशन अधूरा है। themeCompletion में मोड और अनुपस्थित सेटिंग जाँचें।',
     theme_not_persisted: 'सहेजने के बाद ऐप की थीम सेटिंग की पुष्टि नहीं हो सकी। themeVerification जाँचें और update-app <appType> --theme-file <css> से पुनः प्रयास करें; ऐप दोबारा न बनाएँ।',
     navigation_not_persisted: "नेविगेशन सेटिंग दोबारा पढ़ी नहीं जा सकीं या अनुरोधित मानों से मेल नहीं खातीं। navigationVerification में अपेक्षित मान, वास्तविक मान और पढ़ने की त्रुटियाँ देखें, फिर ऐप की वर्तमान सेटिंग जाँचें।",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',

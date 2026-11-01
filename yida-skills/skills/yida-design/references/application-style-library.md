@@ -24,7 +24,9 @@ openyida sample yida-design application-style --style-id free-creative --output 
 
 ## 旧主题应用的样式作用域与确认
 
-上传和绑定前，CLI 通过 `getAppIncludingAecpInfo.json` 核对应用及组织身份，不读取管理页 HTML。该接口返回保存的主题配置，不提供平台版本、组织灰度和迁移状态综合计算的运行态能力；即使保存值为 `APP_THEME_MODE=modern`，也按能力未知处理，不据此自动上传或绑定。默认保留平台主题，优先使用自定义页根容器内的局部样式，不向应用写入 `customThemeStyle`，不自动升级主题。页面美化、换颜色或完整应用设计的请求不等于同意旧应用全局 CSS 注入。
+上传和绑定前，CLI 通过 `getAppIncludingAecpInfo.json` 核对应用及组织身份，不读取管理页 HTML。服务端返回 `appThemeEnable=y` 且 `appThemeMode=modern`，或保存了 `CREATED_WITH_MODERN_THEME=y` 且模式为 modern（模式未设置时须有服务端 AI 应用来源，包含 qwenwork），按新版配置执行上传和绑定，无需旧主题注入确认。显式禁用或 legacy 优先；只有主色、modern 名称或宿主名称不能作为依据。配置回读不等于页面已加载 CSS，仍按浏览器验收规则核验效果。
+
+新建应用必须通过 CLI 的 modern 配置回读核验；`APP_CREATED_THEME_UNVERIFIED` 表示应用已经创建但主题未确认，保留返回的 `appType` 排查，不重复创建、不静默降级或仅设置主色。已有应用确认为旧主题或缺少判定依据时，默认保留平台主题并使用页面局部样式，不自动升级；应用级 CSS 注入仍需取得该应用和 CSS 范围的明确确认。
 
 旧主题新增页按 [单页风格范围](../sub_skill/page-design/SKILL.md#旧主题应用新增页面的风格范围) 确认；页面独立设计不包含应用级注入。
 

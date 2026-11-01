@@ -768,6 +768,7 @@ module.exports = {
     unknown: '不明'
   },
   create_app: {
+    modern_theme_unverified: "アプリは作成されましたが、新テーマの設定を確認できませんでした。返されたアプリ ID を調査してください。再作成や旧テーマへの切り替えはしないでください。",
     update_only_option: '{0} は更新用のオプションです。アプリ作成後に openyida update-app <appType> を使用してください。',
     title: '  openyida create-app - Yida アプリ作成ツール',
     usage: 'Usage: openyida create-app "<appName>" [description] [icon] [iconColor] または openyida create-app --name "<appName>" [--desc "..."]',
@@ -1126,6 +1127,7 @@ module.exports = {
     custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'プリセット colour と CSS または themeColor は併用できません。--colour custom を指定するか --colour を省略してください。',
     custom_theme_color_required: 'colour=custom にはテーマファイルまたは有効な themeColor が必要です。--theme-file または --theme-color を指定してください。',
+    theme_configuration_incomplete: 'テーマ設定が未完了です。themeCompletion でモードと不足項目を確認してください。',
     theme_not_persisted: '保存後のアプリテーマ設定を確認できませんでした。themeVerification を確認し、update-app <appType> --theme-file <css> で再試行してください。アプリを作り直さないでください。',
     navigation_not_persisted: "ナビゲーション設定の再取得に失敗したか、要求した値と一致しません。navigationVerification の期待値、実際の値、取得エラーを確認し、現在のアプリ設定を確認してください。",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',

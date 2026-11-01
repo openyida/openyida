@@ -796,6 +796,7 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    modern_theme_unverified: "L’application a été créée, mais sa configuration de thème moderne n’a pas pu être vérifiée. Examinez l’ID renvoyé ; ne recréez pas l’application et ne passez pas à un ancien thème.",
     update_only_option: '{0} sert uniquement à la mise à jour. Créez l’application puis utilisez openyida update-app <appType>.',
     title: "  create-app - Outil de création d'application Yida",
     usage: 'Utilisation : openyida create-app "<nom app>" ou openyida create-app --name "<nom app>" [--desc "..."]',
@@ -1174,6 +1175,7 @@ module.exports = {
     custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'Un colour prédéfini ne peut pas être combiné avec CSS ou themeColor. Utilisez --colour custom ou omettez --colour.',
     custom_theme_color_required: 'colour=custom nécessite un fichier de thème ou un themeColor valide. Utilisez --theme-file ou --theme-color.',
+    theme_configuration_incomplete: 'La configuration du thème est incomplète. Vérifiez le mode et les paramètres manquants dans themeCompletion.',
     theme_not_persisted: 'Les paramètres du thème n’ont pas pu être confirmés après enregistrement. Consultez themeVerification et réessayez avec update-app <appType> --theme-file <css> ; ne recréez pas l’application.',
     navigation_not_persisted: "La relecture de la navigation a échoué ou diffère des paramètres demandés. Consultez les valeurs attendues, les valeurs réelles et les erreurs dans navigationVerification, puis vérifiez les paramètres actuels de l’application.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',

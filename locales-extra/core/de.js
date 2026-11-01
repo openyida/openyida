@@ -796,6 +796,7 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    modern_theme_unverified: "Die App wurde erstellt, aber die moderne Designkonfiguration konnte nicht bestätigt werden. Prüfen Sie die zurückgegebene App-ID. Erstellen Sie die App nicht erneut und wechseln Sie nicht zum alten Design.",
     update_only_option: '{0} ist nur für Updates verfügbar. Erstellen Sie zuerst die App und verwenden Sie dann openyida update-app <appType>.',
     title: '  create-app - Yida-App-Erstellungstool',
     usage: 'Verwendung: openyida create-app "<App-Name>" oder openyida create-app --name "<App-Name>" [--desc "..."]',
@@ -1172,6 +1173,7 @@ module.exports = {
     custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'Voreingestellte colour kann nicht mit CSS oder themeColor kombiniert werden. Verwenden Sie --colour custom oder lassen Sie --colour weg.',
     custom_theme_color_required: 'colour=custom benötigt eine Theme-Datei oder gültige themeColor. Verwenden Sie --theme-file oder --theme-color.',
+    theme_configuration_incomplete: 'Die Themakonfiguration ist unvollständig. Prüfen Sie Modus und fehlende Einstellungen in themeCompletion.',
     theme_not_persisted: 'Die App-Theme-Einstellungen konnten nach dem Speichern nicht bestätigt werden. Prüfen Sie themeVerification und wiederholen Sie update-app <appType> --theme-file <css>; erstellen Sie die App nicht erneut.',
     navigation_not_persisted: "Die Navigation konnte nicht zurückgelesen werden oder weicht von den angeforderten Einstellungen ab. Prüfen Sie Sollwerte, Istwerte und Lesefehler in navigationVerification sowie die aktuellen App-Einstellungen.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
