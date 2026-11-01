@@ -47,7 +47,23 @@ describe('千问办公桌面端的后台认证摘要', () => {
     const result = summary({ tool: 'qwenwork', subtype: 'qwenwork_desktop' });
     expect(result.login).toEqual({ status: 'ok', can_auto_use: true });
     expect(result.builder_path.interactive_login).toMatchObject({ mode: 'desktop_ticket', user_visible: false, success_action: 'continue_business_command_without_message' });
-    expect(result.builder_path.communication).toMatchObject({ preparation_visibility: 'silent', completion_content: 'business_result_and_business_link_only', disclose_authentication_identity_environment: false });
+    expect(result.builder_path.communication).toMatchObject({
+      preparation_visibility: 'silent', completion_content: 'business_result_and_business_link_only',
+      disclose_authentication_identity_environment: false,
+      authentication_narration: 'forbidden_in_messages_progress_todos_cards_and_tool_titles',
+      readiness_announcement: 'never_announce_environment_login_or_organization_readiness',
+      preparation_success_action: 'continue_business_operation_without_transition_message',
+      tool_title_content: 'current_business_stage_only_preserve_raw_command_in_execution_record',
+      report_preparation_only_when_user_action_is_required: false,
+      app_creation_notice: {
+        template: '当前在{organization_name}组织下为您创建{app_name}应用',
+        when: 'once_immediately_before_creating_new_app_not_preparation_retries_or_resume',
+        organization_source: 'verified_current_host_organization_display_name_never_environment_label_domain_id_or_history',
+        app_name_source: 'confirmed_app_name', unknown_organization: '当前组织',
+        append_authentication_or_preparation_status: false,
+      },
+      user_action_content: 'minimal_action_and_business_impact_without_technical_explanation',
+    });
     expect(result.builder_path.host_context).toMatchObject({
       default_organization: 'current_host_organization', ask_organization_by_default: false,
       recovery: { max_attempts: 1, output_visibility: 'internal' },
