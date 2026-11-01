@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [2026.10.31] - 2026-10-31
 
 - 千问办公登录体验&描述优化
+- 优化主题体验
 
 ## [2026.10.30-1] - 2026-10-30
 

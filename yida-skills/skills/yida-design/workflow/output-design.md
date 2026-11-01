@@ -147,7 +147,7 @@ Fast 与 Plan 使用同一主题的颜色推导、组件规则和页面设计标
 
 ## 应用主题 CSS 的职责
 
-以下应用级上传流程先核对服务端 `appThemeEnable=y` 且 `appThemeMode=modern`。旧主题或能力未知时，按 [旧主题注入与停用规则](../references/application-style-library.md#旧主题应用的样式作用域与确认) 保留平台主题并使用页面局部样式；应用层注入须取得目标应用和 CSS 范围的明确用户确认，不能因计划或视觉方案已确认而自动追加 `--confirm-legacy-app-style`。
+以下应用级上传流程使用 CLI 核验的 modern 配置，判定依据见 [主题配置与确认](../references/application-style-library.md#旧主题应用的样式作用域与确认)。新建应用必须完成 modern 配置回读，不能静默降级；配置核验不代替页面效果验收。旧主题或能力未知时，按 [旧主题注入与停用规则](../references/application-style-library.md#旧主题应用的样式作用域与确认) 保留平台主题并使用页面局部样式；应用层注入须取得目标应用和 CSS 范围的明确用户确认，不能因计划或视觉方案已确认而自动追加 `--confirm-legacy-app-style`。
 
 按 [应用与自定义页面共用主题](../references/application-theme-consistency.md) 将风格承诺落实到变量，再交接页面开发。文字中的“暖色”“纸感”不是 CLI 的色值输入；模板之外的全局风格必须写入 token，不能只在自定义页实现。
 

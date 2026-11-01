@@ -768,6 +768,7 @@ module.exports = {
     unknown: '不明'
   },
   create_app: {
+    modern_theme_unverified: "アプリは作成されましたが、新テーマの設定を確認できませんでした。返されたアプリ ID を調査してください。再作成や旧テーマへの切り替えはしないでください。",
     update_only_option: '{0} は更新用のオプションです。アプリ作成後に openyida update-app <appType> を使用してください。',
     title: '  openyida create-app - Yida アプリ作成ツール',
     usage: 'Usage: openyida create-app "<appName>" [description] [icon] [iconColor] または openyida create-app --name "<appName>" [--desc "..."]',

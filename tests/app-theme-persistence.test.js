@@ -409,7 +409,6 @@ test.each([
   { appThemeEnable: 'n', appThemeMode: 'legacy' },
   { appThemeEnable: 'n', appThemeMode: 'modern' },
   { appThemeEnable: 'y', appThemeMode: 'legacy' },
-  { appThemeEnable: 'y', appThemeMode: 'modern' },
 ])('legacy runtime %j blocks CSS before upload and save', async flags => {
   httpGet.mockResolvedValue(appInfo(flags));
   await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth))
@@ -580,9 +579,32 @@ test('server permission denial remains a permission error and never uploads', as
 });
 
 test.each([false, undefined, 'true', 1])('non-boolean approval %j does not authorize CSS', async approval => {
-  httpGet.mockResolvedValue(appInfo());
+  httpGet.mockResolvedValue(appInfo({ config: {} }));
   await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css', confirmLegacyAppStyle: approval }, auth))
     .rejects.toMatchObject({ code: 'LEGACY_APP_CUSTOM_THEME_CONFIRMATION_REQUIRED',
       details: { themeCapability: 'unknown', storedThemeMode: 'modern' } });
   expect(uploadCustomThemeFile).not.toHaveBeenCalled();
+});
+
+
+test.each([
+  { appThemeEnable: 'y', appThemeMode: 'modern', agentAppType: 'qwenwork' },
+  { appThemeMode: undefined, agentAppType: 'qwenwork', config: { CREATED_WITH_MODERN_THEME: 'y' } },
+  { appThemeMode: 'modern', config: { CREATED_WITH_MODERN_THEME: 'y' } },
+])('modern configuration %j uploads without legacy confirmation and reads back the bound CSS', async fields => {
+  const current = appInfo(fields);
+  httpGet.mockImplementation(() => Promise.resolve({ ...current, content: { ...current.content,
+    ...(httpPost.mock.calls.length ? saved : {}) } }));
+  const result = await applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth);
+  expect(uploadCustomThemeFile).toHaveBeenCalledTimes(1);
+  expect(result.themeVerification).toMatchObject({ verified: true, customThemeStyle: style, runtimeVerified: false });
+  expect(httpGet.mock.calls.every(call => call[1].endsWith('/getAppIncludingAecpInfo.json'))).toBe(true);
+});
+
+test('switching to legacy after upload stops binding and does not upload twice', async () => {
+  httpGet.mockResolvedValueOnce(appInfo()).mockResolvedValueOnce(appInfo({ appThemeMode: 'legacy' }));
+  await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth))
+    .rejects.toMatchObject({ code: 'LEGACY_APP_CUSTOM_THEME_CONFIRMATION_REQUIRED' });
+  expect(uploadCustomThemeFile).toHaveBeenCalledTimes(1);
+  expect(httpPost).not.toHaveBeenCalled();
 });

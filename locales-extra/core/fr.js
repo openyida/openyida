@@ -796,6 +796,7 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    modern_theme_unverified: "L’application a été créée, mais sa configuration de thème moderne n’a pas pu être vérifiée. Examinez l’ID renvoyé ; ne recréez pas l’application et ne passez pas à un ancien thème.",
     update_only_option: '{0} sert uniquement à la mise à jour. Créez l’application puis utilisez openyida update-app <appType>.',
     title: "  create-app - Outil de création d'application Yida",
     usage: 'Utilisation : openyida create-app "<nom app>" ou openyida create-app --name "<nom app>" [--desc "..."]',

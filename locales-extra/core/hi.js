@@ -796,6 +796,7 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    modern_theme_unverified: "ऐप बन गया है, लेकिन आधुनिक थीम की सेटिंग सत्यापित नहीं हो सकी। लौटाई गई ऐप आईडी जाँचें; ऐप दोबारा न बनाएँ और पुरानी थीम पर न जाएँ।",
     update_only_option: '{0} केवल अपडेट के लिए है। पहले ऐप बनाएँ, फिर openyida update-app <appType> का उपयोग करें।',
     title: '  create-app - Yida ऐप निर्माण टूल',
     usage: 'उपयोग: openyida create-app "<ऐप नाम>" या openyida create-app --name "<ऐप नाम>" [--desc "..."]',

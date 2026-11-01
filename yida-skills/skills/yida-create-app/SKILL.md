@@ -54,6 +54,10 @@ openyida update-app <appType> --theme-file <app-theme.css> --nav-theme <light|da
 
 `openyida create-app` 不支持 `--json` 参数；不要添加 `--json`。创建成功时命令本身会输出一行 JSON，从该输出中提取 `appType`。
 
+### 新建应用的主题结果
+
+CLI 默认申请新版主题，并在创建后回读应用、组织和 modern 配置；成功结果的 `themeVerification.appThemeMode` 为 `modern`。这是配置核验，CSS 是否加载仍按实际页面验收。遇到 `APP_CREATED_THEME_UNVERIFIED`，使用 `details.appType` 排查已创建应用，不重跑创建、不静默降级，也不把主题失败解释为登录或 302 问题。正常搭建继续主题上传，无需旧主题注入确认；主题校验过程不向用户播报。
+
 ### 千问办公调用约定
 
 仅在当前宿主为千问办公（QwenWork）时执行以下约定；可复用已确认的宿主信息，需核实时单独执行 `openyida env --json`，以 `active.toolId=qwenwork` 为准。其他云端、Codex 等环境沿用各自的命令与浏览器交接方式。

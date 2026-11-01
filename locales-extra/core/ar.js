@@ -796,6 +796,7 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    modern_theme_unverified: "تم إنشاء التطبيق، لكن تعذر التحقق من إعدادات السمة الحديثة. افحص معرّف التطبيق الذي تم إرجاعه، ولا تعِد إنشاء التطبيق أو ترجع إلى السمة القديمة.",
     update_only_option: 'الخيار {0} مخصص لتحديث التطبيق. أنشئ التطبيق أولاً ثم استخدم openyida update-app <appType>.',
     title: '  create-app - أداة إنشاء تطبيق Yida',
     usage: 'الاستخدام: openyida create-app "<اسم التطبيق>" أو openyida create-app --name "<اسم التطبيق>" [--desc "..."]',

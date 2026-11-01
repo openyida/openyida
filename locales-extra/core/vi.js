@@ -796,6 +796,7 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    modern_theme_unverified: "Ứng dụng đã được tạo nhưng chưa xác minh được cấu hình giao diện mới. Hãy kiểm tra ID ứng dụng được trả về; không tạo lại ứng dụng hoặc chuyển về giao diện cũ.",
     update_only_option: '{0} chỉ dùng để cập nhật. Hãy tạo ứng dụng trước rồi dùng openyida update-app <appType>.',
     title: '  create-app - Công cụ tạo ứng dụng Yida',
     usage: 'Cách dùng: openyida create-app "<tên ứng dụng>" hoặc openyida create-app --name "<tên ứng dụng>" [--desc "..."]',
