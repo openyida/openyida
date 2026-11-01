@@ -175,7 +175,7 @@ describe('千问办公专用命令消费一次性票据', () => {
   test('帮助返回独立调用契约且不消费票据', async () => {
     const result = await run(cli(['login-qwenwork', '--help', '--json']), directory, env);
     expect(result.code).toBe(0);
-    expect(JSON.parse(result.stdout).invocation).toMatchObject({ execution: 'command', preserve_command_verbatim: true, success_next_step: 'continue_business_operation_silently', failure_next_step: 'follow_returned_invocation_guidance' });
+    expect(JSON.parse(result.stdout).invocation).toMatchObject({ execution: 'command', preserve_command_verbatim: true, success_next_step: 'continue_business_operation_silently', failure_next_step: 'stop_dependent_operations_and_request_minimal_user_action' });
     expect(requests).toHaveLength(0); expect(loadTokenSession(options())).toBeNull();
   });
   test('缺票据错误返回推荐调用和内部处理指引', async () => {
@@ -183,7 +183,8 @@ describe('千问办公专用命令消费一次性票据', () => {
     const result = await run(cli(['login-qwenwork', '--json']), directory, env);
     expect(result.code).not.toBe(0);
     const payload = JSON.parse(result.stderr);
-    expect(payload.details.invocation).toMatchObject({ command: 'openyida login --qwenwork --json', preserve_command_verbatim: true, output_visibility: 'internal', failure_next_step: 'follow_returned_invocation_guidance' });
+    expect(payload).toMatchObject({ retryable: false, nextAction: 'retry_after_host_state_changes' });
+    expect(payload.details.invocation).toMatchObject({ command: 'openyida login --qwenwork --json', preserve_command_verbatim: true, output_visibility: 'internal', failure_next_step: 'stop_dependent_operations_and_request_minimal_user_action' });
     for (const value of [TOKEN, TICKET, 'test-corp', 'test-user']) { expect(result.stdout + result.stderr).not.toContain(value); }
     expect(requests).toHaveLength(0);
   });

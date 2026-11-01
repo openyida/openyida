@@ -809,6 +809,37 @@ describe('detectActiveTool', () => {
     expect(result.tool).toBe('mulerun');
   });
 
+  test.each(['darwin', 'win32', 'linux'])('ACP 与桌面声明并存时选择桌面路径：%s', platform => {
+    const result = require('../lib/core/utils').detectRuntimeCapabilities({ platform, env: {
+      QWENWORK_CLIENT: 'acp', QWENWORK_INTEGRATION_MODE: 'desktop',
+      QWENWORK: '1', AGENT_PLATFORM: 'qwenwork_base',
+    } });
+    expect(result).toMatchObject({ tool: 'qwenwork', subtype: 'qwenwork_desktop' });
+  });
+
+  test.each(['QWENWORK_SANDBOX_ID', 'QWENWORK_PREVIEW_URL', 'QWENWORK_VNC_URL'])('沙箱信号 %s 优先于继承的桌面产品变量', name => {
+    const result = require('../lib/core/utils').detectRuntimeCapabilities({ env: {
+      QWENWORK_CLIENT: 'acp', QWENWORK_INTEGRATION_MODE: 'desktop', [name]: 'sandbox-fixture',
+    } });
+    expect(result).toMatchObject({ tool: 'qwenwork', subtype: 'qwenwork_web', capabilities: { desktop_shell: false } });
+  });
+
+  test.each(['1', 'true', 'yes', 'on'])('兼容历史布尔桌面标记：%s', value => {
+    const result = require('../lib/core/utils').detectRuntimeCapabilities({ env: {
+      QWENWORK_CLIENT: 'acp', QWENWORK_INTEGRATION_MODE: value,
+    } });
+    expect(result).toMatchObject({ tool: 'qwenwork', subtype: 'qwenwork_desktop' });
+  });
+
+  test.each([
+    { QWENWORK_CLIENT: 'acp' },
+    { QWENWORK_WORKSPACE_DIR: '/tmp/workspace' },
+    { QWENWORK_INTEGRATION_MODE: 'unknown' },
+  ])('传输、路径或未知模式不能单独声明千问执行环境：%j', env => {
+    const result = require('../lib/core/utils').detectRuntimeCapabilities({ env });
+    expect(result?.tool).not.toBe('qwenwork');
+  });
+
   test('QwenWork web 强信号优先于 MuleRun 兼容变量', () => {
     const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'qwenwork-web-'));
     fs.mkdirSync(path.join(workspace, 'project'), { recursive: true });

@@ -34,6 +34,43 @@ describe('公开千问办公登录入口', () => {
     expect((await ensureQwenWorkLogin(options, { login, refresh })).ok).toBe(true);
     expect(login).not.toHaveBeenCalled(); expect(refresh).not.toHaveBeenCalled();
   });
+  test('显式组织与用户约束通过后返回匹配终态，不返回凭据或标识', async () => {
+    saveTokenSession(session, options);
+    const result = await ensureQwenWorkLogin({ ...options, corpId: session.corp_id, userId: session.user_id });
+    expect(result).toMatchObject({ ok: true, target_match: 'matched' });
+    for (const value of [session.corp_id, session.user_id, session.access_token, session.refresh_token]) {
+      expect(JSON.stringify(result)).not.toContain(value);
+    }
+  });
+  test('相同组织中的其他用户不能满足显式用户约束，也不回退 OAuth', async () => {
+    saveTokenSession(session, options);
+    const login = jest.fn();
+    await expect(ensureQwenWorkLogin({ ...options, runtime: { tool: 'qwenwork', subtype: 'qwenwork_desktop' }, userId: 'target-user' }, { login })).rejects.toMatchObject({
+      code: 'QWENWORK_LOGIN_IDENTITY_MISMATCH',
+      details: { retryable: false, nextAction: 'select_target_organization_in_host_then_retry', output_visibility: 'internal' },
+    });
+    expect(login).not.toHaveBeenCalled();
+  });
+  test('检查失败不消耗刷新凭据、不发起 OAuth', async () => {
+    saveTokenSession(session, options);
+    options.fetch.mockResolvedValue(new Response('{}', { status: 401 }));
+    const refresh = jest.fn(); const login = jest.fn();
+    expect(await ensureQwenWorkLogin({ ...options, checkOnly: true }, { refresh, login }))
+      .toEqual({ ok: false, status: 'not_logged_in', can_auto_use: false });
+    expect(refresh).not.toHaveBeenCalled(); expect(login).not.toHaveBeenCalled();
+  });
+  test('意外失败返回不可自动重试的安全终态，不回显原始异常', async () => {
+    const login = jest.fn(async () => { throw new Error(session.access_token); });
+    try {
+      await ensureQwenWorkLogin(options, { login });
+      throw new Error('expected failure');
+    } catch (error) {
+      const payload = require('../lib/core/cli-error').toErrorPayload(error);
+      expect(payload).toMatchObject({ errorCode: 'QWENWORK_LOGIN_FAILED', retryable: false });
+      expect(JSON.stringify(payload)).not.toContain(session.access_token);
+    }
+    expect(login).toHaveBeenCalledTimes(1);
+  });
   test('网络异常直接报错，不弹浏览器', async () => {
     saveTokenSession(session, options); options.fetch.mockRejectedValue(new Error('test-private-access'));
     const login = jest.fn();
