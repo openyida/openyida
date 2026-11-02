@@ -91,8 +91,23 @@ test.each([
   expect(error.details).not.toHaveProperty('permissionUrl');
 });
 
-test.each(['codex', 'qoder', 'qoderwork', undefined])('keeps existing behavior in %s', tool => {
-  expect(createPermissionError({ success: false, errorCode: '000006', errorMsg: USE_DENIED }, { ...OPTIONS, tool })).toBeNull();
+test.each(['codex', 'qoder', 'qoderwork', undefined])('returns identified permission links in %s', tool => {
+  expect(createPermissionError({ success: false, errorCode: '000006', errorMsg: USE_DENIED }, { ...OPTIONS, tool }))
+    .toMatchObject({ code: 'YIDA_PLATFORM_ACCESS_REQUIRED' });
+  expect(createPermissionError({ success: false, errorCode: '000006', errorMsg: 'Other permission denied' }, { ...OPTIONS, tool })).toBeNull();
+});
+
+test.each(['000006', 'TIANSHU_000006', '403', undefined])('short creation denial with code %s gives the creation permission link', errorCode => {
+  const response = { success: false, errorCode, errorMsg: '没有权限' };
+  const error = createPermissionError(response, { ...OPTIONS, tool: 'codex', requestPath: '/query/app/registerApp.json' });
+  expect(error.details).toMatchObject({ permissionType: 'create_app', retryable: false,
+    nextAction: { type: 'open_url', url: `${OPTIONS.baseUrl}/defaultPage.html?type=noAppCreationAuth` } });
+  expect(createPermissionError(response, { ...OPTIONS, tool: 'codex', requestPath: '/query/form/update.json' })).toBeNull();
+});
+
+test.each(['SERVER_ERROR', 'invalid_access_token'])('does not turn unrelated error %s into a creation permission failure', errorCode => {
+  expect(createPermissionError({ success: false, errorCode, errorMsg: '没有权限' },
+    { ...OPTIONS, requestPath: '/query/app/registerApp.json' })).toBeNull();
 });
 
 test.each([
@@ -135,17 +150,13 @@ test.each(Object.keys(transports))('%s stops at a permission redirect without re
   expect(calls).toBe(1);
 });
 
-test.each([false, true])('real HTTP preserves non-Qwen behavior; qwen=%s', async qwen => {
+test.each([false, true])('real HTTP identifies creation permissions across hosts; qwen=%s', async qwen => {
   if (qwen) { process.env.QWENWORK = '1'; }
   await withServer((_req, res) => {
     res.writeHead(403, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ success: false, errorCode: '000006', errorMsg: CREATE_DENIED }));
   }, async base => {
-    if (qwen) {
-      await expect(transports.form(base)).rejects.toMatchObject({ code: 'YIDA_APP_CREATE_PERMISSION_REQUIRED' });
-    } else {
-      await expect(transports.form(base)).resolves.toMatchObject({ __needLogin: true, __httpStatus: 403 });
-    }
+    await expect(transports.form(base)).rejects.toMatchObject({ code: 'YIDA_APP_CREATE_PERMISSION_REQUIRED' });
   });
 });
 

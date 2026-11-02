@@ -472,7 +472,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida login [--qwenwork] [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | Login with OAuth token mode |
 | `openyida logout` | Logout / unbind current project auth |
 | `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch\|qwenwork user-info> [--json]` | Token login state and profile management |
-| `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | Organization management (list / switch existing profiles first) |
+| `openyida org <list\|switch> [--json] [--corp-id <corpId>] [--no-browser]` | Organization management (list / switch existing profiles first) |
 | `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | Detect AI tool environment & token login state |
 
 ### App Management

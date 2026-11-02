@@ -510,3 +510,26 @@ describe('detectDefaultBrowser (injected deps, per-platform identifiers differ)'
     expect(detectDefaultBrowser('linux', { run: () => '' })).toBeNull();
   });
 });
+
+
+test('organization switch publishes the OAuth URL before authorization even when quiet and browser launch fails', async () => {
+  const write = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  let publishUrl;
+  const urlReady = new Promise(resolve => { publishUrl = resolve; });
+  const promise = runDingtalkLoopback({ clientId: 'test-client', state: 'switch-state',
+    quiet: true, showAuthUrl: true, timeoutMs: 2000,
+    openBrowser: url => { publishUrl(url); return false; },
+  });
+  try {
+    // Wait for the local listener to become ready; authorization has not completed.
+    const authUrl = await urlReady;
+    const output = write.mock.calls.map(([value]) => value).join('');
+    expect(output).toContain(authUrl);
+    expect(output).not.toContain('Waiting for browser');
+    const callback = new URL(new URL(authUrl).searchParams.get('redirect_uri'));
+    callback.searchParams.set('state', 'switch-state');
+    callback.searchParams.set('code', 'test-code');
+    await requestText(callback);
+    await expect(promise).resolves.toMatchObject({ code: 'test-code' });
+  } finally { write.mockRestore(); }
+});
