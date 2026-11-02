@@ -29,7 +29,7 @@
 ## 保留式更新
 
 - 按首轮分析得到的有效范围更新变化字段，保留其余已确认内容，同步移除失效角色、关系、入口及来源引用。
-- `intake.designMode` 保留用户最后一次明确选择；用户改选时更新，尚未确定时为 null。具体路由按 [模式规则](../../yida-design/references/design-mode.md) 执行。
+- `intake.designMode` 保留用户最后一次明确选择，仅限同任务有原始回答依据的选择；委托保留依据，不标为用户选择。跨会话记忆、历史偏好不写入模式；无依据时为 null，来源用 `evidence` 保留。具体路由按 [模式规则](../../yida-design/references/design-mode.md) 执行。
 - 短需求保存简短事实及关系；已有字段、流程与页面细项完整保留。
 - 用户禁止事项作为执行约束；与要求的结果直接冲突时说明并澄清。
 - 明确只完成一个表单并交付链接时，`explicitScope.pages=[]`，仅保留对应 forms/delivery，Plan 按此资源范围执行。
