@@ -32,6 +32,7 @@ PRD 编写、修改与确认均保留 brief 的 `visualSelection`、已选 theme
 - 用户存在 `explicitScope` 时，以该范围规划页面、表单、流程、报表和本轮交付。
 - 真实 `appType`、`formUuid`、`fieldId`、`processCode` 以资源证据为准；实现阶段产生的 ID 写入 `.cache/<项目名>-schema.json`。
 - 每个 display 页面提供 `pageSpecHandoff`，包含场景、区块、数据来源、主操作，以及指向对应 `design.md` 的 `designFile` / `designRefs`。视觉细则由 `yida-design` 维护。
+- 在已有页面任务、区块说明和验收中写清使用环境、操作频率、行动前必需的信息，以及返回页面时需要保留的状态。证据不足时标明假设，仅对会改变业务范围的缺口澄清。PRD 按比较、逐条处理或录入等任务确定信息需求；宽窄布局由设计阶段决定，复用已有字段记录。
 - 导航结构、菜单顺序和默认入口由业务任务确定；导航外观与应用框架、表单、记录详情和自定义页面交给 `yida-design` 统一设计。PRD 保留整体风格摘要与设计引用，完整 token 和消费规则只在 `design.md` 维护。
 
 任务涉及对象识别、证据或外观比较时，核对真实图片/附件字段与对象的关联，将其纳入已有数据来源与字段映射；没有字段时记录缺口，不凭美化新增字段。图文呈现与无图降级交给[任务驱动的视觉设计](../yida-design/references/task-driven-visual-design.md)，不把网络示意图当作真实对象资料。

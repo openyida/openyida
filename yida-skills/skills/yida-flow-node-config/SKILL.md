@@ -24,7 +24,7 @@ description: 配置流程和自动化里的处理步骤，包括审批、办理�
 
 | 配置项 | 何时读取 |
 | --- | --- |
-| [人员选择](references/actors.md) | 指定成员、角色、主管，或按金额等条件选人；审批/办理/抄送分别使用对应参数 |
+| [人员选择](references/actors.md) | 指定成员、角色、主管、表单成员字段、发起人自选，或按金额等条件选人；审批/办理/抄送分别使用对应参数 |
 | [字段权限](references/fields.md) | 可编辑、只读、隐藏及子表；发起用顶层 `startFormConfig`，人工节点用 `formConfig` |
 | [操作按钮](references/actions.md) | 审批、办理、旧版多人审批的加签/转交；抄送和自动化不适用 |
 | [条件与变量](references/conditions-variables.md) | 字段与固定值、字段与字段比较；触发条件、分支和取数各用对应格式 |

@@ -11,39 +11,22 @@
  * "登录只读校验通过前禁止创建真实资源" 的约定。
  */
 
-// 通过 CLI 动词（args[0]）判定是否为"会变更真实资源"的命令。
-// 比基于 step name 更可靠，因为 step name 是 runner 自定义的别名。
-const MUTATING_VERB_PREFIXES = [
-  'create-',
-  'update-',
-  'append-',
-  'configure-',
-  'import-',
-];
+const { flattenCommandManifest } = require('../../lib/core/command-manifest');
 
-const MUTATING_VERBS = new Set([
-  'upgrade-app-theme',
-  'add-validation',
-  'app-offline',
-  'app-online',
-  'publish',
-  'save-permission',
-  'save-share-config',
-]);
+// Use canonical metadata, including aliases and longest subcommand paths.
+// Unknown commands/actions remain conservative rather than silently skipping.
+const commandPaths = flattenCommandManifest().flatMap(entry =>
+  [entry.path, ...(entry.aliases || []).map(alias => alias.split(/\s+/))]
+    .map(path => ({ path, effect: entry.sideEffect }))
+).sort((a, b) => b.path.length - a.path.length);
 
-// `data <sub>` 形式：仅 create/update/delete 子命令算变更。
-const MUTATING_DATA_SUBCOMMANDS = new Set(['create', 'update', 'delete']);
-
-const MUTATING_SUBCOMMANDS = new Map([
-  ['agent-center', new Set(['create', 'update', 'cancel'])],
-  ['aggregate-table', new Set(['create-empty', 'save', 'publish'])],
-  ['ai-form-setting', new Set(['enable', 'disable', 'save'])],
-  ['app-permission', new Set(['set', 'add', 'remove'])],
-  ['connector', new Set(['create', 'add-action', 'update-action', 'delete-action', 'create-connection'])],
-  ['i18n', new Set(['config', 'upsert', 'delete', 'translate', 'translate-all', 'upgrade'])],
-  ['integration', new Set(['create', 'update', 'enable', 'disable'])],
-  ['nav-group', new Set(['create', 'rename', 'delete', 'move', 'order', 'auto-order', 'hide', 'show'])],
-]);
+function matchesAction(pattern, args) {
+  const tokens = pattern.split(/\s+/);
+  if (tokens[0].startsWith('--')) {
+    return tokens.every(token => args.includes(token));
+  }
+  return tokens.every((token, index) => token === args[index]);
+}
 
 /**
  * 判断单条命令是否为资源变更命令。
@@ -51,14 +34,22 @@ const MUTATING_SUBCOMMANDS = new Map([
  */
 function isMutatingCommand(command) {
   const args = Array.isArray(command && command.args) ? command.args : [];
-  const verb = args[0];
-  if (!verb) {return false;}
-  if (verb === 'upgrade-app-theme' && args.includes('--prepare') && !args.includes('--confirm')) {return false;}
-  if (MUTATING_VERBS.has(verb)) {return true;}
-  if (MUTATING_VERB_PREFIXES.some((prefix) => verb.startsWith(prefix))) {return true;}
-  if (verb === 'data' && MUTATING_DATA_SUBCOMMANDS.has(args[1])) {return true;}
-  if (MUTATING_SUBCOMMANDS.has(verb) && MUTATING_SUBCOMMANDS.get(verb).has(args[1])) {return true;}
-  return false;
+  if (!args.length) {return false;}
+  const match = commandPaths.find(({ path }) => path.every((token, index) => args[index] === token));
+  if (!match || !match.effect) {return true;}
+  const effect = match.effect;
+  if (!effect.mutates_yida) {return false;}
+  if (effect.kind !== 'mixed') {return true;}
+  const rest = args.slice(match.path.length);
+  const writes = effect.mutating_actions || [];
+  const reads = effect.read_actions || [];
+  // Explicit write flags win over read flags (e.g. --prepare --confirm).
+  if (writes.some(action => action.startsWith('--') && matchesAction(action, rest))) {return true;}
+  if (reads.some(action => action.startsWith('--') && matchesAction(action, rest))) {return false;}
+  if (writes.some(action => matchesAction(action, rest))) {return true;}
+  if (reads.some(action => action !== 'default' && matchesAction(action, rest))) {return false;}
+  if (reads.includes('default') && (!rest.length || rest[0].startsWith('--') || rest[0].startsWith('APP_'))) {return false;}
+  return true;
 }
 
 /**
@@ -138,9 +129,6 @@ function hasGuardrailFailure(results = []) {
 }
 
 module.exports = {
-  MUTATING_VERB_PREFIXES,
-  MUTATING_VERBS,
-  MUTATING_SUBCOMMANDS,
   isMutatingCommand,
   isLoginCheck,
   assertLoginBeforeMutation,

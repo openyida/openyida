@@ -5,6 +5,43 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  qwenwork: {
+    organization_switch_success: 'تم تبديل المؤسسة عبر تسجيل الدخول إلى QwenWork.',
+    login_check_failed: 'Unable to verify the login session. Please retry.',
+    desktop_login_failed: 'فشل تسجيل الدخول عبر QwenWork لسطح المكتب. تحقق من هوية الحساب وقناة تسجيل الدخول قبل المحاولة مجددًا.',
+    desktop_login_usage: 'الاستخدام： openyida login --qwenwork [--json] [--check-only]',
+    desktop_login_standalone: 'Run the recommended login command directly: {0}. No extra PATH or output setup is needed. After success continue the business operation silently; on failure follow the returned guidance.',
+    credential_missing: 'No cloud Agent credential is available. Run this command inside the QwenWork cloud execution environment.',
+    gateway_missing: 'QWENWORK_GATEWAY_URL or MULE_GATEWAY_URL is required.',
+    invalid_url: 'The QwenWork gateway must use HTTPS (HTTP is allowed only for loopback) and contain no credentials, query or fragment.',
+    request_failed: 'The QwenWork request failed. Check the stage and HTTP status in the diagnostic details.',
+    request_timeout: 'The QwenWork request timed out.',
+    invalid_response: 'QwenWork returned an invalid authentication or identity response.',
+    identity_mismatch: 'The returned QwenWork identity does not match the cloud execution context or exchanged credential.',
+    expired_token: 'QwenWork returned an expired user credential.',
+    usage: 'Usage: openyida auth qwenwork user-info [--json]',
+  },
+  plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
+  solution_template: {
+    description: 'قوالب للوكلاء المحليين المستقلين: بحث ورابط بناء بالذكاء الاصطناعي السحابي وتفعيل مباشر',
+    local_agent_only: 'أوامر القوالب مخصصة لوكيل محلي مستقل معروف. في السحابة، تابع مسار بناء القوالب الأصلي بالذكاء الاصطناعي.',
+    usage: "Usage: openyida solution-template search [--query <text>] [--scene <scene>] [--industry <industry>] [--page <n>] [--size <n>] [--json]\n       openyida solution-template detail <TPL_...> [--json]\n       openyida solution-template prepare <TPL_...> --name <appName> [--with-data y|n] [--request-id <id>] [--json]\n       openyida solution-template ai-build <TPL_...> [--json]\n       openyida solution-template enable <TPL_...> --name <appName> [--with-data y|n] [--request-id <id>] [--retry] [--wait <0-60>] [--json]\n       openyida solution-template status <requestId> [--wait <0-60>] [--json]",
+    failed: 'Solution Center template operation stopped: {0}',
+    ai_build_handoff: 'The template supports native AI build. Add customization requirements and submit them in the native builder. This receipt does not mean an app exists.',
+    no_progress_api: 'The platform currently exposes no pollable percentage progress. The request receipt and app-list readback are preserved, but resubmission is still unsafe.',
+    platform_decides: "Permissions and entitlements are decided by the platform when enabling. Template source availability does not confirm authorization.",
+    rejected: "The platform rejected this attempt. The platform reason is preserved. A new submission requires an explicit retry; OpenYida does not change permissions or entitlements.",
+    pending: "The application is not visible yet. The request is preserved; check its status to continue without submitting again.",
+    accepted: "The platform accepted the request. Checking for the application entry.",
+    waiting: "Waiting for the application to appear. Only checking status; no new copy request is sent.",
+    no_longer_visible: "This application was verified previously but is not visible in the current query. Creation history is preserved; current access is not confirmed.",
+    readback_failed: "The application query failed. The request and platform reason are preserved; check status again without resubmitting.",
+  },
+  print_template: {
+    "description": "Manage native YiDA print templates, generate document layouts, back up, restore and request PDFs",
+    "error": "Print template operation failed: {0}",
+    "usage": "Usage: openyida print-template <list|inspect|fields|build|create|copy|save|restore|settings|status|order|render|files> <appType> <formUuid> [templateId]. See the print-template skill for action-specific flags and examples."
+},
   custom_button: {
     "usage": "Usage: openyida custom-button <list|inspect|options|create|update|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]",
     "invalid_config": "إعداد أو وسيطة غير صالحة: {0}",
@@ -15,8 +52,9 @@ module.exports = {
     "limit": "يدعم النموذج 10 أزرار مخصصة كحد أقصى.",
     "readback_mismatch": "الإعداد المحفوظ لا يطابق القراءة. احتفظ بالنسخة الاحتياطية وافحص الحالة البعيدة."
   },
+  form_message: {"usage":"Usage: openyida form-message <list|inspect|options|create|update|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]","invalid_config":"Invalid form message configuration or argument: {0}","invalid_response":"Incomplete platform form-message response: {0}","api_error":"Form message API failed: {0}. Check login, permissions and edition availability.","not_found":"The message notification does not exist in the target form: {0}","conflict":"The notification changed. Inspect again before saving.","unsupported_trigger":"Writes are not verified for this trigger: {0}.","unsupported_form":"Writes are not verified for this form type: {0}.","readback_mismatch":"Saved notification does not match readback. Keep the backup and inspect remote state."},
   dws_external: {"note": "dws is an independent external tool. OpenYida only shows installation instructions; it does not download or install it.", "install_guide": "Show official DingTalk CLI installation instructions"},
-  cool_card: {"description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
+  cool_card: {"unsupported_environment": "إصدار مجموعة علي بابا لا يدعم إنشاء البطاقات التفاعلية.", "description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
   data_card: {"description":"Create, read, save drafts and publish native YiDA data cards","usage":"Usage: openyida data-card <list|create|get|save|publish|probe|release-get|release-save|release-check|release-test|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]","failed":"Native data card operation stopped: {0}","conflict":"The draft changed. Read it again before saving or publishing.","mismatch":"Readback does not match the expected schema or published state. Keep the backup and inspect the card before retrying."},
   app_settings: {"description":"Read theme, frontend/backend, native data card and cool card management links","usage":"Usage: openyida app-settings <appType> [--section theme|basic|data-card|cool-card] [--json]","failed":"Application settings could not be read: {0}"},
   form_view: {
@@ -35,7 +73,10 @@ module.exports = {
   integration_update_v2: {"usage": "integration update <appType> <formUuid> <processCode> --patch patch.json [--dry-run] [--expect fingerprint] [--publish]"},
 
   conditional_actors: { unavailable: 'Conditional actors are unavailable or could not be verified.', invalid: 'Invalid conditional actors: {0}' },
-  integration_triggers: { invalid: 'Invalid automation trigger: {0}' },
+  integration_triggers: {
+    invalid: 'Invalid automation trigger: {0}',
+    end_required: 'اختر شرط انتهاء المؤقت: schedule.maxCount من 1 إلى 100 لعدد مرات التنفيذ أو schedule.expireDate لوقت الانتهاء بالمللي ثانية. للتشغيل طويل المدى اختر تاريخ انتهاء بعيدًا واعرض التاريخ الفعلي في ملخص الإعداد.',
+  },
   permission_conditions: { invalid: 'Invalid permission conditions: {0}' },
   theme_source: { conflict: 'The theme source differs from the existing CSS or cannot be verified. Generate to a new output path, review and migrate project customizations before replacing the original file.' },
   app_entry: {
@@ -86,12 +127,14 @@ module.exports = {
   },
   help: {
     cmd_custom_button: "أزرار مخصصة: تعديل النماذج والأتمتة وروابط الصفحات",
+    cmd_form_message: "Native form notifications: triggers, recipients and templates",
     cmd_check_design: 'التحقق من مستندات التصميم ومتغيرات السمة وتسليم PRD',
     subtitle: 'أداة تطوير الذكاء الاصطناعي منخفضة الكود لـ Yida',
     usage: 'الاستخدام:',
     alias: 'الاسم المستعار:',
     group_auth: 'البيئة & المصادقة',
     cmd_login: 'Login with OAuth token mode',
+    cmd_login_qwenwork: 'Log in to YiDA with a one-time QwenWork exchange ticket',
     cmd_logout: 'تسجيل الخروج / تبديل الحساب',
     cmd_auth: 'إدارة حالة تسجيل الدخول',
     cmd_org: 'إدارة المنظمات (عرض / تبديل)',
@@ -420,7 +463,7 @@ module.exports = {
     save_permission_usage: 'Usage: openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>] [--package-type <FORM_PACKAGE_VIEW|FORM_PACKAGE_START>]',
     save_permission_example: `Example: openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ Execution failed: {0}',
-    login_usage: 'Usage: openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
+    login_usage: 'Usage: openyida login [--qwenwork] [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
     login_example: 'Examples:\n  openyida login                         # Automatically open the browser via OAuth loopback login\n  openyida login --no-browser            # Let the caller handle the authorization URL\n  openyida login --check-only --json     # Check token auth status only\n  openyida login --intl                  # Login against the international environment\n  OPENYIDA_NO_BROWSER=1 openyida login   # Let the caller handle the authorization URL via env variable\n  openyida auth login                    # Login alias',
     login_unsupported_option: 'Removed legacy login option is no longer supported: {0}. Use token/OAuth login; host-injected mode only checks the injected token.',
     first_run_title: '  🤖 OpenYida - AI Conversation Mode Activated!               ',
@@ -441,7 +484,7 @@ module.exports = {
     first_run_footer1: '  Supported AI tools: Codex / Claude Code / Cursor / OpenCode',
     first_run_footer2: '  📚 Docs: https://github.com/openyida/openyida',
     first_run_footer3: '  (This guide only shows on first run. Use openyida --help to see all commands)',
-    auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch>',
+    auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
     auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
     org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>]',
     org_example: 'Examples:\n' +
@@ -753,6 +796,7 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    modern_theme_unverified: "تم إنشاء التطبيق، لكن تعذر التحقق من إعدادات السمة الحديثة. افحص معرّف التطبيق الذي تم إرجاعه، ولا تعِد إنشاء التطبيق أو ترجع إلى السمة القديمة.",
     update_only_option: 'الخيار {0} مخصص لتحديث التطبيق. أنشئ التطبيق أولاً ثم استخدم openyida update-app <appType>.',
     title: '  create-app - أداة إنشاء تطبيق Yida',
     usage: 'الاستخدام: openyida create-app "<اسم التطبيق>" أو openyida create-app --name "<اسم التطبيق>" [--desc "..."]',
@@ -1061,7 +1105,7 @@ module.exports = {
   },
   import_example2: '      openyida import ./yida-export.json "Quality Traceability System (Production)"',
   exec_failed: '\n❌ Execution failed: {0}',
-  auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch>',
+  auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
   auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
   org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>]',
   org_example: 'Examples:\n' +
@@ -1129,6 +1173,7 @@ module.exports = {
     custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'لا يمكن الجمع بين colour مسبق الإعداد وCSS أو themeColor. استخدم --colour custom أو احذف --colour.',
     custom_theme_color_required: 'يتطلب colour=custom ملف سمة أو themeColor صالحًا. مرر --theme-file أو --theme-color.',
+    theme_configuration_incomplete: 'إعداد السمة غير مكتمل. تحقق من الوضع والإعدادات الناقصة في themeCompletion.',
     theme_not_persisted: 'تعذرت قراءة إعدادات سمة التطبيق بعد الحفظ أو لم تتطابق. لم يتم تأكيد ربط مورد CSS. افحص themeVerification وأعد المحاولة باستخدام update-app <appType> --theme-file <css>؛ لا تنشئ التطبيق مجددًا.',
     navigation_not_persisted: "تعذرت قراءة إعدادات التنقل أو لم تطابق القيم المطلوبة. راجع القيم المتوقعة والفعلية وأخطاء القراءة في navigationVerification، ثم تحقق من إعدادات التطبيق الحالية.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
@@ -1425,6 +1470,10 @@ module.exports = {
     lint_setstate_non_timestamp: 'this.setState يكتب حقلا غير timestamp. يجب أن تبقى حالة الأعمال في الصفحة المخصصة داخل _customState ويتم تحديثها عبر forceUpdate()/setCustomState(); يجب أن يحمل this.setState حقل العقد timestamp فقط',
     lint_self_binding_missing: 'renderJsx يستخدم this دون تعريف var self = this;. أضف var self = this; في بداية renderJsx واستخدم self داخل closures/callbacks لتجنب فقدان this',
     lint_echarts_dom_ready: 'echarts.init غير ملفوف داخل setTimeout؛ قد لا يكون الحاوي مركبا بعد، لذلك قد لا يتم عرض المخطط. استخدم setTimeout(function(){ /* echarts.init */ }, 300)',
+    lint_resize_observer_cleanup: 'لا يحتوي ResizeObserver على تنظيف disconnect()/unobserve(). حرره عند إزالة المكون.',
+    lint_responsive_viewport_only: 'يتغير التخطيط حسب عرض النافذة فقط، لذلك قد لا يتكيف الشريط الجانبي أو الدرج أو iframe الضيق. استخدم @container أو ResizeObserver مع تنظيف. أضف openyida-responsive-viewport-ok إذا كان ذلك مقصودا.',
+    lint_responsive_fixed_width: 'قد يؤدي العرض الثابت %spx إلى تجاوز الحاوي الضيق. استخدم max-width أو minmax(0, 1fr) أو تمريرا محليا. للوحة الثابتة أضف openyida-responsive-fixed-width-ok.',
+    lint_responsive_page_scale: 'تم اكتشاف scale/zoom للصفحة كاملة. أعد توزيع المحتوى مع الحفاظ على النص والأهداف المقروءة. للتصور المحلي أضف openyida-responsive-scale-ok.',
     lint_yida_api_catch: 'لم يتم اكتشاف .catch() لاستدعاء API this.utils.yida؛ أضف معالجة أخطاء واعرض toast للمستخدم',
     lint_echarts_legacy_map_china: 'لم يعد ECharts 5 يدعم echarts/map/js/china.js. حمّل DataV GeoJSON واستدع echarts.registerMap("china", geoJson) بدلا من ذلك',
     lint_echarts_rich_label_formatter: 'قوالب rich text التي يعيدها ECharts label.formatter غير مستقرة في صفحات Yida المخصصة؛ يفضل استخدام formatter strings بسيطة أو نصوص تسميات محسوبة مسبقا',
@@ -2221,6 +2270,16 @@ module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
 
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: 'وسائط غير صالحة: يتطلب query كلاً من appType و --process-inst-id؛ ويتطلب transfer أيضاً --form-uuid و --to-user-id و --expect-form-name و --expect-form-type process. يجب أن يكون taskId عدداً صحيحاً موجباً؛ الخيارات غير المعروفة غير مدعومة.',
+  query_failed: 'فشل استعلام مهام العملية؛ لم يتم النقل.',
+  response_invalid: 'تعذر التحقق من بنية الاستجابة أو معرف المهمة أو انتمائها إلى العملية.',
+  not_running: 'المهمة المحددة ليست قيد التشغيل في العملية المستهدفة، أو لا توجد مهمة قيد التشغيل؛ لم يتم النقل.',
+  ambiguous: 'هناك عدة مهام قيد التشغيل. استعلم عن القائمة وحدد --task-id؛ لم يتم النقل.',
+  rejected: 'رفضت المنصة نقل المسؤول. تحقق من الصلاحيات وحالة المهمة.',
+  result_unknown: 'نتيجة النقل غير معروفة. اقرأ المهام عبر nextStep؛ لا تعاود النقل تلقائياً.',
+  unverified: 'تم قبول النقل، لكن تعذّر تأكيد المستلم عند القراءة اللاحقة. استخدم nextStep؛ لا تعاود النقل تلقائياً.',
+});
 module.exports.data_manage_style = {
   'usage': 'openyida data-manage-style guide [--json]\nopenyida data-manage-style list [--json]\nopenyida data-manage-style generate --app APP_ID --form FORM-ID --style <id> --base-css <snapshot/theme.css> --output <new.css> [--focus balanced|actions] [--field-id <actualId>]... [--emphasize-field <actualId>]... [--tag-field <selectFieldId>]... [--follow-shell] [--json]',
   'data_style_invalid': 'معاملات النمط غير صالحة. استخدم معرّفات حقيقية ونمطًا من القائمة.',
@@ -2313,6 +2372,26 @@ Object.assign(module.exports.formula_v2, {"parallel_formula": "استخدم cond
 Object.assign(module.exports.formula_v2, {"conversion_empty":"أصبح الناتج فارغًا بعد تحويله إلى الحقل الهدف. للتواريخ استخدم TIMESTAMP(صيغة التاريخ) وتحقق من القيمة الأصلية والنوع.","result_missing":"اكتمل الطلب دون قيمة للحقل الهدف. تحتاج التواريخ عادة إلى TIMESTAMP(صيغة التاريخ).","conversion_partial":"تم تحويل جزء من القيمة فقط أو أنها ليست عددًا محدودًا. أرجع عددًا كاملًا أو طابعًا زمنيًا بالمللي ثانية.","target_branches":"بعض أنواع النتائج {0} لا تتوافق مع {1}. اختبر كل فرع.","date_timestamp":"كائن التاريخ يختلف عن القيمة المخزنة. استخدم عادة TIMESTAMP(صيغة التاريخ) للمللي ثانية.","numeric_result_text":"قد تكون النتيجة نصًا. اختبر كل فرع باستخدام --field للكشف عن التحويل الفارغ أو الجزئي."});
 
 module.exports.feedback_report = {
+  body: {
+    summary: 'هدفك',
+    actual: 'ما الذي حدث',
+    expected: 'النتيجة المتوقعة',
+    incident: 'البيئة وقت حدوث المشكلة',
+    command: 'العملية ذات الصلة',
+    steps: 'خطوات إعادة الإنتاج',
+    impact: 'التأثير',
+    evidence: 'الأدلة المرصودة',
+    attempts: 'المحاولات والنتائج',
+    cause: 'السبب ودرجة اليقين',
+    cause_evidence: 'أدلة التقييم',
+    next: 'التحقق التالي',
+    screenshots: 'لقطات الشاشة',
+    review_image: 'راجع الصورة قبل مشاركتها',
+    limitations: 'نطاق الاختبارات غير المنفذة',
+    generator: 'بيئة إنشاء التقرير (وليست بيئة حدوث المشكلة)',
+    unknown: 'غير معروف / غير مؤكد',
+    draft: 'مسودة محلية لم تُرسل بعد. راجع النصوص والصور للتأكد من خلوها من بيانات العملاء وبيانات الاعتماد والمعلومات الخاصة قبل النشر.',
+  },
   comparison: 'Test pass/fail requires a command, actual result and evidence.',
   screenshots: 'Choose at most five PNG/JPEG/WebP screenshots of at most 10 MiB each.',
   text: 'Feedback text fields must be strings of at most 12000 characters.',
@@ -2398,3 +2477,35 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.feedback_github = {
+  setup_inspect_installation: 'لم يتم التحقق من التثبيت. افحص gh --version وحالة مدير الحزم أو أعد فتح الطرفية قبل تقرير إعادة المحاولة؛ احتفظ بالمسودة.',
+  setup_check_execution: 'تعذر تشغيل gh. افحص أذونات التنفيذ والبيئة المحلية؛ لا تعد التثبيت أو تبدل الحساب تلقائياً.',
+  setup_confirm_install: 'يمكن تثبيت GitHub CLI. اشرح الخطة واحصل على الموافقة قبل openyida feedback github setup --install --confirm --json؛ يظل خيار الويب متاحاً.',
+  setup_manual_install: 'التثبيت التلقائي غير متاح. استخدم التعليمات الرسمية أو موصلاً موجوداً أو الويب؛ احتفظ بالمسودة.',
+  setup_ready: 'تم التحقق من GitHub CLI والحساب الحالي. تابع المسودة؛ أكد المحتوى العام والأذونات المطلوبة قبل الإرسال.',
+  setup_browser_login: 'GitHub CLI متاح ويحتاج إلى تسجيل الدخول. بعد الموافقة، وجّه التفويض في المتصفح ثم تحقق باستخدام setup --json.',
+  setup_check_account: 'GitHub CLI متاح لكن الحساب لم يتم التحقق منه. افحص الشبكة والتفويض وحدود الطلبات؛ لا تفترض غياب الحساب ولا تعد التثبيت.',
+  setup_consent: 'استخدم --install --confirm فقط بعد الموافقة على تثبيت GitHub CLI وتبعياته المطلوبة في الموقع الافتراضي لمدير الحزم. يقبل Windows اتفاقيات مصدر WinGet والبرنامج وقد يحتاج إلى موافقة المستخدم على أذونات النظام. لا تثبيت تلقائي لمدير الحزم أو رفع للصلاحيات أو تسجيل دخول.',
+  setup_privacy: 'الموافقة على التثبيت ليست موافقة على النشر. يفوض المستخدم عبر المتصفح؛ لا تطلب كلمات مرور أو رموزاً أو Token. إذا تعذر التخزين الآمن لبيانات الاعتماد في gh، استخدم الويب أو موصلاً آمناً. لا تضع تشخيص الحساب والأداة في تقرير الملاحظات.',
+  usage: 'Usage: openyida feedback github setup [--install --confirm] [--json]; openyida feedback github <status|star|fork> [--confirm] [--json]',
+  confirmation: 'Star or Fork requires the user to explicitly choose that action before --confirm. Neither is required to submit an Issue.',
+  failed: 'The GitHub action could not be verified. Inspect its status before retrying; this does not block Issue submission.',
+};
+
+module.exports.process_dynamic_actors = { invalid: "إعداد المشاركين غير صالح. تحقق من details.reason ونطاق الاختيار وحقول الأعضاء الفعلية." };
+
+module.exports.permission_guidance = {
+  platform_access_link: 'طلب صلاحية استخدام YiDA',
+  create_app_link: 'طلب صلاحية إنشاء تطبيقات YiDA',
+  platform_access: 'الحساب الحالي غير مخول باستخدام YiDA في هذه المؤسسة.',
+  create_app: 'لا يملك الحساب الحالي صلاحية إنشاء تطبيقات في هذه المؤسسة.',
+  unknown: 'تم رفض الإذن ونوعه غير مؤكد. تواصل مع المسؤول وأوقف هذه العملية مؤقتًا.',
+  next_step: 'افتح صفحة طلب الإذن: [{0}]({1}). بعد إكمال الطلب، تحقق من المؤسسة والصلاحيات الحالية قبل المتابعة.',
+};
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  edit_context_unverified: 'تعذر التحقق من الحقول القابلة للتحرير لهذا الحساب والسجل. لم يتم إرسال تحديث. تحقق من الأذونات في المحرر الأصلي.',
+  fields_not_editable: 'يتضمن التحديث حقولًا غير قابلة للتحرير أو يتعذر التحقق منها: {0}. لم يتم إرسال تحديث. استخدم المحرر الأصلي للسلوك الديناميكي أو النماذج الفرعية المقيدة.',
+  form_update_forbidden: 'ليس لديك إذن لتعديل هذه البيانات.',
+});

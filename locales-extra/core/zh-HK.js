@@ -6,6 +6,43 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  qwenwork: {
+    organization_switch_success: '已透過千問辦公登入切換組織。',
+    login_check_failed: 'Unable to verify the login session. Please retry.',
+    desktop_login_failed: '千問辦公桌面免登入失敗，請確認桌面登入身分和免登入通道後重試。',
+    desktop_login_usage: '用法： openyida login --qwenwork [--json] [--check-only]',
+    desktop_login_standalone: '請直接執行推薦的登入命令：{0}。無需額外處理 PATH 和輸出；成功後靜默繼續業務，失敗時按提示修正呼叫。',
+    credential_missing: 'No cloud Agent credential is available. Run this command inside the QwenWork cloud execution environment.',
+    gateway_missing: 'QWENWORK_GATEWAY_URL or MULE_GATEWAY_URL is required.',
+    invalid_url: 'The QwenWork gateway must use HTTPS (HTTP is allowed only for loopback) and contain no credentials, query or fragment.',
+    request_failed: 'The QwenWork request failed. Check the stage and HTTP status in the diagnostic details.',
+    request_timeout: 'The QwenWork request timed out.',
+    invalid_response: 'QwenWork returned an invalid authentication or identity response.',
+    identity_mismatch: 'The returned QwenWork identity does not match the cloud execution context or exchanged credential.',
+    expired_token: 'QwenWork returned an expired user credential.',
+    usage: 'Usage: openyida auth qwenwork user-info [--json]',
+  },
+  plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
+  solution_template: {
+    description: '獨立本地 Agent 的方案範本查詢、雲端 AI 搭建入口與直接啟用',
+    local_agent_only: '請在已識別的獨立本地 Agent 中使用範本命令；雲端繼續平台原生範本 AI 搭建。',
+    usage: "Usage: openyida solution-template search [--query <text>] [--scene <scene>] [--industry <industry>] [--page <n>] [--size <n>] [--json]\n       openyida solution-template detail <TPL_...> [--json]\n       openyida solution-template prepare <TPL_...> --name <appName> [--with-data y|n] [--request-id <id>] [--json]\n       openyida solution-template ai-build <TPL_...> [--json]\n       openyida solution-template enable <TPL_...> --name <appName> [--with-data y|n] [--request-id <id>] [--retry] [--wait <0-60>] [--json]\n       openyida solution-template status <requestId> [--wait <0-60>] [--json]",
+    failed: 'Solution Center template operation stopped: {0}',
+    ai_build_handoff: 'The template supports native AI build. Add customization requirements and submit them in the native builder. This receipt does not mean an app exists.',
+    no_progress_api: 'The platform currently exposes no pollable percentage progress. The request receipt and app-list readback are preserved, but resubmission is still unsafe.',
+    platform_decides: "Permissions and entitlements are decided by the platform when enabling. Template source availability does not confirm authorization.",
+    rejected: "The platform rejected this attempt. The platform reason is preserved. A new submission requires an explicit retry; OpenYida does not change permissions or entitlements.",
+    pending: "The application is not visible yet. The request is preserved; check its status to continue without submitting again.",
+    accepted: "The platform accepted the request. Checking for the application entry.",
+    waiting: "Waiting for the application to appear. Only checking status; no new copy request is sent.",
+    no_longer_visible: "This application was verified previously but is not visible in the current query. Creation history is preserved; current access is not confirmed.",
+    readback_failed: "The application query failed. The request and platform reason are preserved; check status again without resubmitting.",
+  },
+  print_template: {
+    "description": "Manage native YiDA print templates, generate document layouts, back up, restore and request PDFs",
+    "error": "Print template operation failed: {0}",
+    "usage": "Usage: openyida print-template <list|inspect|fields|build|create|copy|save|restore|settings|status|order|render|files> <appType> <formUuid> [templateId]. See the print-template skill for action-specific flags and examples."
+},
   custom_button: {
     "usage": "Usage: openyida custom-button <list|inspect|options|create|update|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]",
     "invalid_config": "配置或參數無效：{0}",
@@ -16,8 +53,9 @@ module.exports = {
     "limit": "每個表單最多支援 10 個自訂按鈕。",
     "readback_mismatch": "儲存配置與回讀不一致，請保留備份並檢查遠端狀態。"
   },
+  form_message: {"usage":"用法：openyida form-message <list|inspect|options|create|update|delete> <appType> <formUuid> [messageId] [--config <文件>] [--expected-hash <哈希>] [--backup <文件>] [--yes] [--json]","invalid_config":"消息通知配置或參數無效：{0}","invalid_response":"平台返回的消息通知配置不完整：{0}","api_error":"表單消息通知接口失敗：{0}。請檢查登入、權限和版本。","not_found":"目標表單中不存在消息通知：{0}","conflict":"消息通知已變更，請重新查詢。","unsupported_trigger":"尚未驗證此觸發規則的寫入：{0}。","unsupported_form":"尚未驗證此表單類型的寫入：{0}。","readback_mismatch":"保存結果與回讀不一致，請保留備份並檢查遠端狀態。"},
   dws_external: {"note": "dws is an independent external tool. OpenYida only shows installation instructions; it does not download or install it.", "install_guide": "Show official DingTalk CLI installation instructions"},
-  cool_card: {"description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
+  cool_card: {"unsupported_environment": "集團版不支援酷卡片搭建。", "description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
   data_card: {"description":"创建、读取、保存草稿和发布宜搭原生数据卡片","usage":"用法： openyida data-card <list|create|get|save|publish|probe|release-get|release-save|release-check|release-test|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]","failed":"原生数据卡片操作已停止：{0}","conflict":"卡片草稿已发生变化，请重新读取后再保存或发布。","mismatch":"回读配置或发布状态与预期不一致，请保留备份并检查卡片后再重试。"},
   app_settings: {"description":"获取主题、业务前后台、原生数据卡片和酷卡片管理入口","usage":"用法： openyida app-settings <appType> [--section theme|basic|data-card|cool-card] [--json]","failed":"无法读取应用设置：{0}"},
   form_view: {
@@ -36,7 +74,10 @@ module.exports = {
   integration_update_v2: {"usage": "integration update <appType> <formUuid> <processCode> --patch patch.json [--dry-run] [--expect fingerprint] [--publish]"},
 
   conditional_actors: { unavailable: 'Conditional actors are unavailable or could not be verified.', invalid: 'Invalid conditional actors: {0}' },
-  integration_triggers: { invalid: 'Invalid automation trigger: {0}' },
+  integration_triggers: {
+    invalid: 'Invalid automation trigger: {0}',
+    end_required: '請選擇定時任務的結束條件：觸發次數填寫 schedule.maxCount（1–100），指定時間填寫 schedule.expireDate（截止時間的毫秒時間戳）。長期執行可選擇較遠的截止日期，並在設定摘要中展示實際日期。',
+  },
   permission_conditions: { invalid: 'Invalid permission conditions: {0}' },
   theme_source: { conflict: 'The theme source differs from the existing CSS or cannot be verified. Generate to a new output path, review and migrate project customizations before replacing the original file.' },
   app_entry: {
@@ -87,12 +128,14 @@ module.exports = {
   },
   help: {
     cmd_custom_button: "原生自訂按鈕：查詢與配置表單、流程和頁面跳轉",
+    cmd_form_message: "原生表單消息通知：觸發、接收對象與模板",
     cmd_check_design: '檢查設計文件、主題變數與 PRD 交接',
     subtitle: '宜搭低程式碼 AI 開發工具',
     usage: '用法:',
     alias: '別名:',
     group_auth: '環境 & 認證',
     cmd_login: 'Login with OAuth token mode',
+    cmd_login_qwenwork: '使用千問辦公的一次性兌換票登入宜搭',
     cmd_logout: '登出 / 切換帳戶',
     cmd_auth: '登入態管理',
     cmd_org: '組織管理（列出 / 切換）',
@@ -404,7 +447,7 @@ module.exports = {
     save_permission_usage: '用法：openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>] [--package-type <FORM_PACKAGE_VIEW|FORM_PACKAGE_START>]',
     save_permission_example: `範例：openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ 執行失敗：{0}',
-    login_usage: '用法：openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
+    login_usage: '用法：openyida login [--qwenwork] [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
     login_example: '範例：\n  openyida login                         # 透過 OAuth loopback 自動開啟瀏覽器登入\n  openyida login --no-browser            # 不自動開啟瀏覽器，由調用方接管授權連結\n  openyida login --check-only --json     # 只檢查 token 登入態\n  openyida login --intl                  # 使用國際站環境登入\n  OPENYIDA_NO_BROWSER=1 openyida login   # 透過環境變數由調用方接管授權連結\n  openyida auth login                    # 登入入口別名',
     login_unsupported_option: '已刪除的舊登入參數不再支援：{0}。請使用 token/OAuth 登入；host 注入模式下只檢查宿主注入的 token。',
     first_run_title: '  🤖 OpenYida - AI 問答模式已開啟！                         ',
@@ -719,6 +762,7 @@ module.exports = {
     unknown: '未知'
   },
   create_app: {
+    modern_theme_unverified: "應用已建立，但未能確認新版主題設定。請使用傳回的應用 ID 排查，不要重複建立或降級為舊主題。",
     update_only_option: '{0} 僅用於更新應用設定，請先建立應用，再使用 openyida update-app <appType>。',
     title: '  openyida create-app - 宜搭應用程式建立工具',
     usage: '用法：openyida create-app "<appName>" [description] [icon] [iconColor] 或 openyida create-app --name "<appName>" [--desc "..."]',
@@ -1014,7 +1058,7 @@ module.exports = {
   },
   import_example2: '      openyida import ./yida-export.json "品質追溯系統（正式環境）"',
   exec_failed: '\n❌ 執行失敗：{0}',
-  auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch>',
+  auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
   auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
   org_usage: '用法：openyida org <list|switch>',
   org_example: '範例：\n  openyida org list                    # 列出可訪問的組織\n  openyida org switch --corp-id dingXXX  # 切換到指定組織',
@@ -1075,6 +1119,7 @@ module.exports = {
     custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: '平台預置 colour 不能與自訂 CSS 或 themeColor 同傳；請使用 --colour custom 或省略 --colour。',
     custom_theme_color_required: 'colour=custom 需要主題檔案或有效 themeColor；請傳 --theme-file 或 --theme-color。',
+    theme_configuration_incomplete: '應用主題配置未完成，請按 themeCompletion 核對主題模式和配置缺項。',
     theme_not_persisted: '應用主題儲存後回讀不一致或查詢失敗，CSS 資源尚未確認綁定。請查看 themeVerification，並使用 update-app <appType> --theme-file <css> 重試；不要重複建立應用。',
     navigation_not_persisted: "應用導航儲存後回讀不一致或查詢失敗，導航設定尚未確認生效。請查看 navigationVerification 中的預期值、實際值和查詢錯誤，核實應用目前設定。",
     usage: '用法: openyida update-app <appType> [--name "新名称"] [--desc "描述"] [--layout slide|ver] [--theme deepBlue]',
@@ -1365,6 +1410,10 @@ module.exports = {
     lint_setstate_non_timestamp: '偵測到 this.setState 寫入非 timestamp 欄位。業務狀態應寫入 _customState 並呼叫 forceUpdate()/setCustomState() 觸發重繪；this.setState 僅用於 timestamp 契約欄位',
     lint_self_binding_missing: 'renderJsx 內使用了 this 但未宣告 var self = this;。請在 renderJsx 開頭加入 var self = this;，閉包/回呼內改用 self，避免 this 指向遺失',
     lint_echarts_dom_ready: 'echarts.init 未包裹在 setTimeout 中，容器可能尚未掛載導致圖表不渲染。建議 setTimeout(function(){ /* echarts.init */ }, 300)',
+    lint_resize_observer_cleanup: 'ResizeObserver 缺少 disconnect()/unobserve() 清理，頁面卸載後可能繼續量度。請在清理函式中釋放 observer。',
+    lint_responsive_viewport_only: '版面只依據視口寬度變化，窄側欄、抽屜或 iframe 可能無法降級。請以 @container 或有清理的 ResizeObserver 量度內容容器；視口行為可加 openyida-responsive-viewport-ok。',
+    lint_responsive_fixed_width: '固定寬度 %spx 可能在窄容器中溢出。請用 max-width、minmax(0, 1fr) 或局部捲動；固定畫布可加 openyida-responsive-fixed-width-ok。',
+    lint_responsive_page_scale: '偵測到整頁 scale/zoom。應重排內容並保留可讀字體與操作區；局部視覺化可加 openyida-responsive-scale-ok。',
     lint_yida_api_catch: 'this.utils.yida API 調用未偵測到 .catch()，請補充錯誤處理並 toast 給用戶',
     lint_echarts_legacy_map_china: 'ECharts 5 已廢棄 echarts/map/js/china.js，請載入 DataV GeoJSON 後調用 echarts.registerMap("china", geoJson)',
     lint_echarts_rich_label_formatter: 'ECharts label.formatter 返回 rich text 模板在宜搭自定義頁面環境不穩定，建議使用普通 formatter 字串或預先拼好的標籤文字',
@@ -2172,6 +2221,16 @@ module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
 
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: '參數無效：查詢需要 appType 和 --process-inst-id；轉交還需要 --form-uuid、--to-user-id、--expect-form-name 和 --expect-form-type process。taskId 必須為正整數，不支援未知參數。',
+  query_failed: '流程任務查詢失敗，未執行轉交。',
+  response_invalid: '流程任務回應結構、任務 ID 或實例歸屬無法驗證。',
+  not_running: '指定任務不屬於目標流程的執行中任務，或沒有執行中任務，未執行轉交。',
+  ambiguous: '流程有多個執行中任務，請查詢清單並指定 --task-id，未執行轉交。',
+  rejected: '平台拒絕管理員轉交請求，請核對權限與任務狀態。',
+  result_unknown: '管理員轉交結果未知，請依 nextStep 唯讀查詢，禁止自動重試轉交。',
+  unverified: '轉交請求已接受，但回讀未能確認接收人，請依 nextStep 唯讀查詢，禁止自動重試轉交。',
+});
 module.exports.data_manage_style = {
   'usage': 'openyida data-manage-style guide [--json]\nopenyida data-manage-style list [--json]\nopenyida data-manage-style generate --app APP_ID --form FORM-ID --style <id> --base-css <snapshot/theme.css> --output <new.css> [--focus balanced|actions] [--field-id <actualId>]... [--emphasize-field <actualId>]... [--tag-field <selectFieldId>]... [--follow-shell] [--json]',
   'data_style_invalid': '資料管理樣式參數無效，請使用真實 ID 和目錄中的樣式。',
@@ -2264,6 +2323,26 @@ Object.assign(module.exports.formula_v2, {"parallel_formula": "並行分支使�
 Object.assign(module.exports.formula_v2, {"conversion_empty":"公式結果轉成目標欄位後為空。日期請用 TIMESTAMP(日期公式)，並核對原值與欄位類型。","result_missing":"平台完成請求，但沒有返回目標欄位值。日期通常需要 TIMESTAMP(日期公式)。","conversion_partial":"結果只轉出部分數字或不是有限數值。請返回完整數字或毫秒時間戳。","target_branches":"公式可能返回 {0}，部分結果與 {1} 不相容；請逐一試算各分支。","date_timestamp":"日期物件與欄位保存值不同。通常用 TIMESTAMP(日期公式) 返回毫秒時間戳。","numeric_result_text":"公式可能返回文字；請用 --field 試算，核對是否轉成空值或部分數字。"});
 
 module.exports.feedback_report = {
+  body: {
+    summary: '想完成甚麼',
+    actual: '實際發生了甚麼',
+    expected: '希望看到甚麼結果',
+    incident: '問題發生時的環境',
+    command: '相關操作',
+    steps: '怎樣重現',
+    impact: '影響',
+    evidence: '已觀察的證據',
+    attempts: '嘗試過的方法與結果',
+    cause: '可能原因及確認程度',
+    cause_evidence: '判斷依據',
+    next: '下一步驗證',
+    screenshots: '問題截圖',
+    review_image: '公開前請檢查圖片',
+    limitations: '尚未驗證的範圍',
+    generator: '報告產生環境（不代表問題發生時）',
+    unknown: '未知 / 尚未確認',
+    draft: '本機草稿，尚未提交。請檢查文字和截圖，確認沒有客戶資料、憑證或內部資訊後再公開。',
+  },
   comparison: 'Test pass/fail requires a command, actual result and evidence.',
   screenshots: 'Choose at most five PNG/JPEG/WebP screenshots of at most 10 MiB each.',
   text: 'Feedback text fields must be strings of at most 12000 characters.',
@@ -2349,3 +2428,35 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.feedback_github = {
+  setup_inspect_installation: '安裝結果尚未核實。先檢查 gh --version、套件管理器狀態或重新開啟終端，再決定是否重試；保留草稿。',
+  setup_check_execution: 'gh 暫時無法執行。請檢查執行權限或本機環境；不要重複安裝或更換帳戶。',
+  setup_confirm_install: '可以安裝 GitHub CLI。先說明計劃並取得同意，再執行 openyida feedback github setup --install --confirm --json；也可使用網頁。',
+  setup_manual_install: '目前沒有可用的自動安裝方式。可查看官方安裝說明、使用已有連接器或網頁，並保留草稿。',
+  setup_ready: 'GitHub CLI 與目前帳戶已核實。繼續原草稿，提交前仍需確認公開內容與所需權限。',
+  setup_browser_login: 'GitHub CLI 已可用，需要登入。取得同意後引導瀏覽器授權，完成後再次執行 setup --json 核實。',
+  setup_check_account: 'GitHub CLI 已可用，但帳戶尚未核實。先檢查網絡、授權或限流；不要判斷為沒有帳戶或要求重新安裝。',
+  setup_consent: '只有使用者同意在套件管理器預設位置安裝 GitHub CLI 及必要依賴後，才使用 --install --confirm。Windows 會接受 WinGet 來源與軟件協議，可能需要使用者批准系統權限。不自動安裝管理器、提升權限或登入。',
+  setup_privacy: '安裝不代表同意公開提交。瀏覽器授權由使用者完成；不索取密碼、驗證碼或 Token。若 gh 無法安全儲存憑證，改用網頁或安全連接器；帳戶與工具診斷不寫入回饋報告。',
+  usage: 'Usage: openyida feedback github setup [--install --confirm] [--json]; openyida feedback github <status|star|fork> [--confirm] [--json]',
+  confirmation: 'Star or Fork requires the user to explicitly choose that action before --confirm. Neither is required to submit an Issue.',
+  failed: 'The GitHub action could not be verified. Inspect its status before retrying; this does not block Issue submission.',
+};
+
+module.exports.process_dynamic_actors = { invalid: "流程人員來源配置無效，請按 details.reason 檢查來源、範圍及真實成員欄位。" };
+
+module.exports.permission_guidance = {
+  platform_access_link: '申請宜搭使用授權',
+  create_app_link: '申請宜搭應用建立權限',
+  platform_access: '目前帳戶未獲此組織的宜搭使用授權。',
+  create_app: '目前帳戶沒有此組織的應用建立權限。',
+  unknown: '權限不足，具體權限類型尚未確認。請聯絡管理員核實，暫不重試目前操作。',
+  next_step: '請開啟申請頁面：[{0}]({1})。處理完成後確認目前組織和權限，再繼續搭建。',
+};
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  edit_context_unverified: '無法確認目前帳號對此記錄的可編輯欄位，已停止且未傳送更新。請在原生編輯頁確認權限。',
+  fields_not_editable: '更新包含不可編輯或無法確認可編輯的欄位：{0}。未傳送更新；請在原生編輯頁處理動態行為或受限子表。',
+  form_update_forbidden: '您無更改此資料的權限',
+});

@@ -1,0 +1,14 @@
+{
+  "document": {
+    "title": "销售订单",
+    "style": "document",
+    "font": "宋体",
+    "blocks": [
+      { "type": "fields", "columns": 2, "fields": ["订单编号", "客户名称", "订单日期", "经办人"] },
+      { "type": "heading", "text": "商品明细" },
+      { "type": "table", "field": "订单明细", "columns": ["商品名称", "数量", "单价", "金额"] },
+      { "type": "fields", "fields": ["合计金额", "备注"] },
+      { "type": "text", "text": "客户签字：________________　经办人签字：________________" }
+    ]
+  }
+}

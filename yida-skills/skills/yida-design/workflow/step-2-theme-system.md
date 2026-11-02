@@ -4,7 +4,9 @@
 
 视觉方向要从“高级 / 简洁 / 商务”继续落细。PRD 只写应用主题色和风格摘要；`design.md` 写完整 `themeProfile`、主题 token、主色、辅助色、中性色、字体层级和组件基调。
 
-已有应用里的单页重构/美化读取并沿用当前应用主题。用户要求更换主色时，更新应用级主题文件，不在页面代码中创建或向上层写入另一套主题。
+本节用于应用级主题。旧主题新增页先按 [单页风格范围](../sub_skill/page-design/SKILL.md#旧主题应用新增页面的风格范围) 确认；仅本页独立设计时使用局部样式，不进入主题生成和上传。
+
+已有应用里的单页重构/美化默认读取并沿用当前应用主题。用户要求更换主色时，更新应用级主题文件，不在页面代码中创建或向上层写入另一套主题。
 
 先按[意向识别](../references/theme-selection.md#已选风格只确认一次)确定是否需要比较。用户已有风格描述时直接推演构图、层级、材质和色彩关系；参考网站或设计图先按[视觉 DNA 提取](../references/reference-visual-dna.md)读取再设计；仅无意向、参考或可复用选择时进入[设计方向比较](../references/theme-selection.md#设计方向比较)。
 
@@ -16,9 +18,9 @@
 
 | 优先级 | themeColorSource | 触发条件 | 输出规则 |
 | --- | --- | --- | --- |
-| 1 | `user-specified` | 用户明确给出色值、品牌色、主题 key 或换肤要求 | 原样记录用户意图；命中平台 key 才允许传 `--theme`，任意色值写 token |
+| 1 | `user-specified` | 用户已选主题，或明确风格、颜色及换肤要求 | 保留所选主题并落实最新颜色要求；平台 key 才传 `--theme`，任意色值写 token |
 | 2 | `application-theme` | 已有应用或工作区中能读到当前 `theme`、`colour`、`themeColor` 或 `navTheme` | 沿用应用整体配色和已定义的组件颜色角色；缺少角色时结合当前背景补齐，不要求所有强调都用主色 |
-| 3 | `business-inferred` | 无明确主题证据，需要根据行业、品牌气质、业务情绪和视觉目标推导 | 设计任意合法的自定义品牌色盘，写应用主题 token 和文件交付方案 |
+| 3 | `business-inferred` | 无明确视觉约束或可复用主题，按真实任务、阅读环境和状态区分推导 | 写清颜色用途与业务依据，形成项目色盘；不因 CRM、库存等名称默认选绿或蓝 |
 
 
 1. 先判断主要任务、使用频率、信息密度与终端，再结合品牌证据和视觉目标判断业务气质。高频管理按[场景适配判断](../references/theme-selection.md#高频管理场景的适配判断)设计；行业名词不能直接决定配色、材质或布局。
@@ -63,7 +65,7 @@
 
 ## 写颜色角色
 
-- 主色：先按行业、品牌、业务情绪和视觉目标做创意判断，可选择平台预置主题，也可设计自定义品牌色盘；不得固定为 `podBlue` / #1677ff，不得套用行业刻板配色。
+- 主色：沿用用户选定主题及最新风格、颜色要求；无约束时结合品牌证据、真实任务、阅读环境和状态色设计，记录用途；模板中的绿、蓝示例不作为默认答案。
 - 辅助色：按整体搭配用于内容分组、图表系列、指标或操作强调；明确用途和面积，状态提示仍沿用语义色。
 - 中性色：背景、文字、边框、分割线，默认保持浅底业务风。
 - 语义色：成功、警告、错误、信息保持稳定，不随意改成品牌色。
@@ -73,7 +75,7 @@
 - 明暗双轴：按[主题明暗双轴](../references/application-style-library.md#主题明暗双轴)分别填写 `themeProfile.contentTone` 与 `themeProfile.navTheme`。`contentTone` 默认 `light`；自由创意的导航明暗由项目设计明确填写，并配套导航 Token。
 - `design.md` 的 `themeProfile.colorMode` 是宜搭配色模式，例如 `gradient`，不表示暗黑模式。
 
-主题 CSS 就绪后，将主题文件路径、`navTheme`、`logoSource` 和 `layoutDirection` 写入 `design.md`。获取真实 `appType` 后，先按 [旧主题注入与停用规则](../references/application-style-library.md#旧主题应用的样式作用域与确认) 核验服务端主题能力；只有新版主题或取得目标旧应用的明确注入确认后，才执行 `openyida update-app <appType> --theme-file <CSS路径>` 更新应用基础设置，并以 `themeVerification.verified=true` 确认资源已绑定。旧主题未获注入确认时保留平台主题、采用页面局部样式；后续修改已绑定 CSS 也须重新上传保存。平台负责整套应用的主题一致性；只有 `YidaCodeCanvas` 页面源码需要在组件内部使用主题 token。
+主题 CSS 就绪后，将主题文件路径、`navTheme`、`logoSource` 和 `layoutDirection` 写入 `design.md`。获取真实 `appType` 后，先按 [旧主题注入与停用规则](../references/application-style-library.md#旧主题应用的样式作用域与确认) 核验服务端主题能力；CLI 已核验为 modern 配置的应用直接执行；仅旧主题或缺少判定依据时，须取得目标应用与 CSS 作用范围的明确注入确认并携带 `--confirm-legacy-app-style`。执行 `openyida update-app <appType> --theme-file <CSS路径>` 更新应用基础设置，按[主题完成条件](../../../references/execution-rules.md#应用主题配置完成条件)核对 `themeCompletion.complete=true`。旧主题未获注入确认时保留平台主题、采用页面局部样式；后续修改已绑定 CSS 也须重新上传保存。平台负责整套应用的主题一致性；只有 `YidaCodeCanvas` 页面源码需要在组件内部使用主题 token。
 
 ## 写字体层级
 

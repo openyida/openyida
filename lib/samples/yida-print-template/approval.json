@@ -1,0 +1,14 @@
+{
+  "document": {
+    "title": "申请审批单",
+    "style": "formal",
+    "blocks": [
+      { "type": "fields", "columns": 2, "fields": ["申请编号", "申请人", "申请日期", "申请金额"] },
+      { "type": "heading", "text": "申请事由" },
+      { "type": "field", "field": "申请说明" },
+      { "type": "heading", "text": "审批记录" },
+      { "type": "table", "field": "审批历史" },
+      { "type": "text", "text": "归档经办人：________________" }
+    ]
+  }
+}

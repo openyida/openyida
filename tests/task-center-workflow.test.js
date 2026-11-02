@@ -154,3 +154,15 @@ test('a forced refresh cannot be overwritten in cache by an older in-flight requ
   expect((await load(target)).title).toBe('new');
   expect(request).toHaveBeenCalledTimes(2);
 });
+
+test('corporation count preserves unknown totals and fails on business, login or malformed responses', async () => {
+  for (const payload of [{ success: true, content: { values: [] } }, { success: true, content: { values: [], totalCount: 0 } }]) {
+    const load = createTaskCenterLoader(tasks, null, async () => payload);
+    const result = await load.count('todo', { scope: 'corp', transport: 'app-query' });
+    expect(result.available).toBe(payload.content.totalCount === 0);
+    expect(result.total).toBe(payload.content.totalCount === 0 ? 0 : null);
+  }
+  for (const payload of [{ __needLogin: true }, { success: false, errorMsg: 'denied' }, { content: { totalCount: 2 } }, { content: { values: [], totalCount: -1 } }]) {
+    await expect(createTaskCenterLoader(tasks, null, async () => payload).count('todo', { scope: 'corp', transport: 'app-query' })).rejects.toThrow();
+  }
+});

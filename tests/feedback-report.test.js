@@ -6,13 +6,108 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const { buildReport, parseReportArgs, renderMarkdown, writeReport } = require('../lib/feedback/report');
 const { parseArgs } = require('../lib/feedback/feedback');
+const { setLanguage, getLanguage, t } = require('../lib/core/i18n');
 
 const summary = { title: 'Repeated publish error', actual: 'No recovery advice', command: 'publish' };
 
 describe('offline feedback reports', () => {
   let directory;
-  beforeEach(() => {directory = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-report-'));});
-  afterEach(() => {fs.rmSync(directory, { recursive: true, force: true });});
+  let originalLanguage;
+  beforeEach(() => {
+    originalLanguage = getLanguage();
+    setLanguage('en');
+    directory = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-report-'));
+  });
+  afterEach(() => {
+    setLanguage(originalLanguage);
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+
+  test('keeps incident facts distinct from the generator after an upgrade', () => {
+    const report = buildReport({
+      ...summary, summary: 'Create an order page', expected: 'Helpful recovery advice',
+      tool: 'Example AI 1.2', incidentEnvironment: {
+        openyida: '2026.1.1', node: 'v18.20.0', platform: 'Windows 11', arch: 'x64',
+        installation: 'npm', browser: 'Firefox 130', deployment: 'public cloud',
+        organizationContext: 'multiple organizations; switched before failure',
+        token: 'do-not-copy', rawLog: 'do-not-copy',
+      },
+    });
+    expect(report.environment.openyida).toBe(require('../package.json').version);
+    expect(report.incidentEnvironment.openyida).toBe('2026.1.1');
+    expect(JSON.stringify(report)).not.toContain('do-not-copy');
+    const body = renderMarkdown(report);
+    expect(body.indexOf('## Your goal')).toBeLessThan(body.indexOf('## Environment when'));
+    expect(body.indexOf('## What happened')).toBeLessThan(body.indexOf('## Environment when'));
+    const incident = body.split('## Environment when the problem occurred')[1].split('## Related operation')[0];
+    expect(incident).toContain('2026.1.1');
+    expect(incident).not.toContain(report.environment.openyida);
+    expect(body).toContain('Report generator environment (not the incident environment)');
+    expect(body).not.toContain('## Cause and confidence');
+    expect(body).not.toContain('## Screenshots');
+  });
+
+  test('old summaries leave incident versions unknown and new fields are redacted and escaped', () => {
+    const legacy = buildReport(summary);
+    expect(legacy.incidentEnvironment.openyida).toBe('');
+    expect(renderMarkdown(legacy)).toContain('openyida: Unknown / not verified');
+    const report = buildReport({ ...summary, incidentEnvironment: {
+      installation: 'npm token=secretValue',
+      browser: '<img src="private">',
+      deployment: 'https://private.example /Users/customer/private',
+    } });
+    const body = renderMarkdown(report);
+    expect(body).not.toContain('secretValue');
+    expect(body).not.toContain('private.example');
+    expect(body).not.toContain('/Users/customer');
+    expect(body).toContain('\\<img');
+  });
+
+  test.each([null, [], 'node18', { node: 18 }, { browser: 'x'.repeat(12001) }])('rejects invalid incident fields %#', incidentEnvironment => {
+    expect(() => buildReport({ ...summary, incidentEnvironment })).toThrow();
+  });
+
+  test.each(['zh', 'en', 'zh-HK', 'ja', 'ko', 'fr', 'de', 'es', 'pt', 'ar', 'hi', 'vi'])('renders translated report headings in %s', lang => {
+    setLanguage(lang);
+    const locale = require(lang === 'en' || lang === 'zh'
+      ? `../lib/core/locales/${lang}` : `../locales-extra/core/${lang}`);
+    const messages = locale.feedback_report.body;
+    expect(Object.keys(messages)).toHaveLength(18);
+    const body = renderMarkdown(buildReport(summary));
+    expect(body).toContain(messages.actual);
+    expect(body).toContain(messages.generator);
+    expect(body).toContain(t('feedback_report.body.draft'));
+    expect(body).not.toContain('feedback_report.body.');
+  });
+
+  test('approval digest changes when incident facts change, while dedup fingerprint stays stable', () => {
+    const input = path.join(directory, 'input.json');
+    fs.writeFileSync(input, JSON.stringify(summary));
+    const original = writeReport({ input, outputDir: path.join(directory, 'one') });
+    fs.writeFileSync(input, JSON.stringify({ ...summary, incidentEnvironment: { openyida: '2026.1.1' } }));
+    const updated = writeReport({ input, outputDir: path.join(directory, 'two') });
+    expect(updated.fingerprint).toBe(original.fingerprint);
+    expect(updated.reviewDigest).not.toBe(original.reviewDigest);
+  });
+
+  test('tool setup metadata does not change the original draft or imply public approval', () => {
+    const input = path.join(directory, 'input.json');
+    const originalInput = { ...summary, incidentEnvironment: { openyida: '2026.1.1' } };
+    fs.writeFileSync(input, JSON.stringify(originalInput));
+    const original = writeReport({ input, outputDir: path.join(directory, 'before-setup') });
+    fs.writeFileSync(input, JSON.stringify({ ...originalInput,
+      githubAccount: 'private-account', setupConsent: true, publishConsent: true,
+      githubSetup: { tool: 'gh', authenticated: true, token: 'private-credential', diagnostics: 'private-login-log' },
+    }));
+    const resumed = writeReport({ input, outputDir: path.join(directory, 'after-setup') });
+    expect(resumed.submissionPerformed).toBe(false);
+    expect(resumed.fingerprint).toBe(original.fingerprint);
+    expect(resumed.reviewDigest).toBe(original.reviewDigest);
+    expect(fs.readFileSync(resumed.bodyFile, 'utf8')).toBe(fs.readFileSync(original.bodyFile, 'utf8'));
+    const report = JSON.parse(fs.readFileSync(resumed.reportFile, 'utf8'));
+    expect(report.incidentEnvironment.openyida).toBe('2026.1.1');
+    expect(JSON.stringify(report)).not.toMatch(/private-account|private-credential|private-login-log|setupConsent|publishConsent/);
+  });
 
   test('accepts only explicit summary data and distinguishes hypotheses from observations', () => {
     const report = buildReport({

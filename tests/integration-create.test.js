@@ -146,6 +146,41 @@ describe('integration create command', () => {
     expect(integrationApi.saveProcess).not.toHaveBeenCalled();
   });
 
+  test('asks for a repeating timer end condition before authentication or remote operations', async () => {
+    const specPath = writeTempSpec({
+      schedule: { startDate: '2026-10-20 09:30:00', repeat: 'DAILY' },
+      nodes: [{ type: 'sendMessage', content: 'test', receivers: ['user-1'] }],
+    });
+    await expect(run(['APP_TEST', 'FORM-A', 'timer notice', '--spec', specPath]))
+      .rejects.toMatchObject({ code: 'INTEGRATION_SPEC_INVALID', message: expect.stringMatching(/maxCount.*expireDate/) });
+    expect(require('../lib/core/utils').loadAuthData).not.toHaveBeenCalled();
+    expect(require('../lib/core/utils').triggerLogin).not.toHaveBeenCalled();
+    expect(fetchFormPageList).not.toHaveBeenCalled();
+    expect(integrationApi.getFormSchema).not.toHaveBeenCalled();
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    [{ maxCount: 100 }, { maxCount: 100 }, { overTimeType: 'count', overCount: 100 }],
+    [{ expireDate: Date.parse('2036-10-20T09:30:00+08:00') },
+      { expireDate: Date.parse('2036-10-20T09:30:00+08:00') },
+      { overTimeType: 'time', overTime: Date.parse('2036-10-20T09:30:00+08:00') }],
+  ])('creates a scheduled binding and saves the selected end condition: %j', async (end, runtime, designer) => {
+    const specPath = writeTempSpec({
+      schedule: { startDate: '2026-10-20 09:30:00', repeat: 'DAILY', ...end },
+      nodes: [{ type: 'sendMessage', content: 'test', receivers: ['user-1'] }],
+    });
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+    await run(['APP_TEST', 'FORM-A', 'timer notice', '--spec', specPath]);
+    expect(integrationApi.createLogicflow).toHaveBeenCalledWith(expect.any(Object),
+      expect.objectContaining({ type: '3' }));
+    const saved = integrationApi.saveProcess.mock.calls[0][1];
+    expect(saved.processJson.nodes[0].props).toMatchObject({ triggerType: 'TimerEvent', inputs: { end: runtime } });
+    expect(saved.viewJson.schema.children[0].props.start).toMatchObject(designer);
+  });
+
   test('publishes role-only notifications with exact role readback requested', async () => {
     const roles = [{ roleCode: 'ROLE-FINANCE', roleName: '财务' }];
     const specPath = writeTempSpec({ nodes: [{ type: 'sendMessage', content: 'test', toRoles: roles }] });

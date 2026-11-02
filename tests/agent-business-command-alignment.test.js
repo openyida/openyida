@@ -26,6 +26,7 @@ const writes = [
   ['data', ['create', 'process', 'APP_BOUND', 'FORM_target', '--process-code', 'PROC_target'], 'create_form_data'],
   ['data', ['update', 'process', 'APP_BOUND', '--form-uuid', 'FORM_target', '--process-inst-id', 'PINST_target'], 'update_form_data'],
   ['data', ['execute', 'task', 'APP_BOUND', '--form-uuid', 'FORM_target', '--task-id', 'TASK_target'], 'execute_task'],
+  ['data', ['transfer', 'task', 'APP_BOUND', '--form-uuid', 'FORM_target', '--process-inst-id', 'PINST_target', '--to-user-id', 'USER_target'], 'execute_task'],
   ['append-chart', ['APP_BOUND', 'REPORT_target', 'charts.json', '--json'], 'update_report'],
 ];
 
@@ -34,6 +35,7 @@ test.each([
   ['get', 'process', 'APP_BOUND', '--process-inst-id', 'PINST_target'],
   ['query', 'operation-records', 'APP_BOUND', '--process-inst-id', 'PINST_target'],
   ['query', 'tasks', 'APP_BOUND', '--type', 'todo'],
+  ['query', 'process-tasks', 'APP_BOUND', '--process-inst-id', 'PINST_target'],
 ])('skill workflow read %j is admitted, app-bound, and creates no mutation', (...args) => {
   expect(invoke('data', args)).toMatchObject({ appType: 'APP_BOUND' });
   expect(classifyManagedMutation('data', args)).toBeNull();
@@ -81,7 +83,7 @@ test('named form target metadata is strict and never guesses missing or duplicat
 });
 
 test('undeclared workflow actions stay blocked and ordinary CLI remains unrestricted', () => {
-  for (const args of [['delete', 'process', 'APP_BOUND'], ['query', 'future', 'APP_BOUND'], ['execute', 'future', 'APP_BOUND']]) {
+  for (const args of [['delete', 'process', 'APP_BOUND'], ['query', 'future', 'APP_BOUND'], ['execute', 'future', 'APP_BOUND'], ['transfer', 'future', 'APP_BOUND']]) {
     expect(() => invoke('data', args)).toThrow(expect.objectContaining({ code: 'MANAGED_COMMAND_UNSUPPORTED' }));
     expect(assertManagedInvocation('data', args, { env: {} })).toBeNull();
   }

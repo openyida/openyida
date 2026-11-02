@@ -235,7 +235,7 @@ describe('CLI offline smoke', () => {
     const output = runOk(['--help']);
     expect(output).toContain('OpenYida');
     expect(output).toContain('env [--json|setup|list|show|switch|add|remove] [options]');
-    expect(output).toContain('login [target-url] [--env <name>|--intl|--overseas|--global|--yidaapps|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]');
+    expect(output).toContain('login [--qwenwork] [target-url] [--env <name>|--intl|--overseas|--global|--yidaapps|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]');
     expect(output).toContain('org <list|switch> [--json] [--corp-id <corpId>]');
     expect(output).toContain('corp-efficiency');
     expect(output).toContain('create-form');
@@ -737,7 +737,7 @@ describe('CLI offline smoke', () => {
       requires_login: false,
     });
     expect(parsed.commands.find(entry => entry.id === 'auth')).toMatchObject({
-      usage: 'openyida auth <status|login|refresh|logout|profiles|profile switch>',
+      usage: 'openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
       requires_login: false,
     });
     expect(parsed.commands.find(entry => entry.id === 'dingtalk-link')).toMatchObject({
@@ -1554,16 +1554,18 @@ describe('CLI offline smoke', () => {
         },
       });
       expect(summary.builder_path.interactive_login).toMatchObject({
-        mode: 'caller_open_url',
-        browser_default: 'caller_open_url',
-        browser_owner: 'agent_browser',
-        recommended_command: 'openyida login --no-browser',
-        agent_action: 'open_cli_printed_url_once_with_agent_browser',
-        url_source: 'login_command_stderr',
-        manual_user_open_fallback: 'only_when_agent_browser_tool_unavailable_or_failed',
-        must_not_only_print_url_when_agent_browser_available: true,
-        reason: 'web_sandbox_agent_browser_available',
+        mode: 'cloud_token',
+        browser_owner: 'cli_if_auth_required',
+        oauth_fallback: {
+          mode: 'caller_open_url',
+          browser_owner: 'agent_browser',
+          url_source: 'login_command_stderr',
+        },
+        recommended_command: 'openyida login --qwenwork --json',
         playwright_required: false,
+      });
+      expect(summary.builder_path.browser_verification).toMatchObject({
+        execution_location: 'remote', allowed: false, action: 'do_not_open_browser',
       });
     } finally {
       fs.rmSync(workspace, { recursive: true, force: true });
@@ -1575,6 +1577,8 @@ describe('CLI offline smoke', () => {
     const projectDir = path.join(workspace, 'project');
     try {
       const summary = JSON.parse(runOkWithEnv(['agent-capabilities', '--summary-json'], {
+        QWENWORK_CLIENT: 'acp',
+        QWENWORK_INTEGRATION_MODE: 'desktop',
         QODER_IDE: '1',
         QODER_AGENT: '1',
         QODERCLI_INTEGRATION_MODE: 'qoder_work',
@@ -1602,12 +1606,12 @@ describe('CLI offline smoke', () => {
         },
       });
       expect(summary.builder_path.interactive_login).toMatchObject({
-        mode: 'cli_auto_open',
-        browser_default: 'cli_auto_open',
-        browser_owner: 'cli',
-        recommended_command: 'openyida login',
-        agent_action: 'wait_for_login_command',
-        reason: 'desktop_shell_available',
+        mode: 'desktop_ticket',
+        browser_default: 'not_required',
+        browser_owner: 'cli_if_auth_required',
+        recommended_command: 'openyida login --qwenwork --json',
+        agent_action: 'run_login_qwenwork_and_wait',
+        reason: 'qwenwork_desktop_host',
         playwright_required: false,
       });
     } finally {
@@ -1798,9 +1802,11 @@ describe('CLI offline smoke', () => {
       mode: 'unified_build',
       completion_contract: expect.stringContaining('create or reuse app'),
     });
-    expect(parsed.recommended.default_full_app_workflow.completion_contract).toContain('one named application entry group');
+    expect(parsed.recommended.default_full_app_workflow.completion_contract).toContain('up to three verified application entry URLs');
     expect(parsed.recommended.default_full_app_workflow.application_entry_policy).toEqual({
-      delivery_unit: 'single_application_entry_group',
+      delivery_unit: 'application_entries',
+      presentation: 'host_managed',
+      entry_delivery: expect.objectContaining({ max_count: 3 }),
       persistence: {
         command_ids: ['app-entry.get', 'app-entry.set'],
         policy: expect.stringContaining('Conflicts require reread and review'),
@@ -1935,7 +1941,7 @@ describe('CLI offline smoke', () => {
     expect(parsed.sideEffects.read_only_preflight).toContain('openyida agent-capabilities --summary-json');
     expect(parsed.sideEffects.read_only_preflight).not.toContain('openyida agent-capabilities --json');
     expect(parsed.sideEffects.completion_contracts.full_app).toContain('creating or reusing the app');
-    expect(parsed.sideEffects.completion_contracts.full_app).toContain('one named application entry group');
+    expect(parsed.sideEffects.completion_contracts.full_app).toContain('up to three verified application entry URLs');
     expect(parsed.sideEffects.completion_contracts.full_app).toContain('do not deliver one artifact or link card per resource');
     expect(parsed.sideEffects.full_app_data_contract).toContain('this.dataSourceMap');
     const commandIds = parsed.command_manifest.commands.map(entry => entry.id);
@@ -1995,7 +2001,7 @@ describe('CLI offline smoke', () => {
       mutates_yida: false,
       mutates_local: true,
       read_actions: ['status', 'profiles', 'profile list'],
-      mutating_actions: ['login', 'refresh', 'logout', 'profile switch'],
+      mutating_actions: ['login', 'refresh', 'logout', 'profile switch', 'qwenwork user-info'],
     });
     expect(commandById.org.side_effect).toMatchObject({
       kind: 'mixed',
@@ -2722,6 +2728,7 @@ test('plain user-facing guidance is available from manifest and both agent capab
     wording: expect.stringContaining('everyday language'),
     failures: expect.stringContaining('pending verification'),
     diagnostics: expect.stringContaining('exact technical fields and error codes'),
+    browser_acceptance: expect.stringContaining('not applicable, not failed delivery work'),
     todo: {
       templates: 'yida-skills/skills/yida-design/references/ask-human-interaction-contract.md#步骤列表与进度',
       titles: expect.stringContaining('separate items'),

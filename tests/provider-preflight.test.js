@@ -225,6 +225,30 @@ describe('cross-platform provider preflight', () => {
     await expect(probe(cmd, ['--acp'], 'qoder', { timeoutMs: 45000 })).resolves.toMatchObject({ status: 'passed' });
   }, 60000);
 
+  test.each([['--version'], ['--list-models'], ['login', 'status']])('Windows finite probe %j runs without an input pipe', async (...args) => {
+    const { EventEmitter } = require('events');
+    const { PassThrough } = require('stream');
+    const cmd = file('中文 folder/finite-cli.cmd');
+    file('中文 folder/finite-cli.ps1');
+    const probeSpawn = (_exe, _args, options) => {
+      const child = new EventEmitter();
+      child.stdin = options.stdio[0] === 'pipe' ? new PassThrough() : null;
+      child.stdout = new PassThrough();
+      child.stderr = new PassThrough();
+      // A finite launcher must not depend on a redirected stdin handle closing.
+      // Keep that case stalled so this also covers the reported timeout result.
+      if (!child.stdin) {
+        queueMicrotask(() => {
+          child.stdout.write('fixture-version\n');
+          child.emit('close', 0);
+        });
+      }
+      return child;
+    };
+    await expect(probe(cmd, args, null, { platform: 'win32', probeSpawn, timeoutMs: 100 }))
+      .resolves.toMatchObject({ status: 'passed', output: expect.stringContaining('fixture-version') });
+  });
+
   test('Windows npm shims use the same PowerShell sibling as Runtime without shell interpolation', () => {
     const cmd = file("中文 folder/quote's/qodercli.cmd");
     file("中文 folder/quote's/qodercli.ps1");

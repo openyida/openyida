@@ -14,9 +14,12 @@ tokens:
         "--pod-card-border": "1px solid var(--color-line1-1)"
         "--pod-table-cell-color": "var(--pod-card-bg-color)" # 表格正文跟随卡片表面
         "--pod-shell-padding": "0px"
+        "--pod-shell-content-container-bg-color": "var(--pod-page-bg-color)"
       navigation:
         "--pod-nav-sub-divider-color": "#353535"
-        "--pod-shell-theme-bg-color": "#FFFFFF"
+        "--pod-shell-theme-bg-color": "#171717"
+        "--pod-page-header-bg-color": "var(--pod-page-bg-color)"
+        "--pod-page-header-text-color": "var(--color-text1-4)"
         "--pod-nav-item-text-color": "#A0A0A0"
         "--pod-nav-item-text-hover-color": "#E7E7E7"
         "--pod-nav-item-text-selected-color": "#FFFFFF"
@@ -178,7 +181,7 @@ tokens:
 
 ### 2.2 应用导航
 
-白色 Shell 与白色内容画布承接平台深色侧栏。侧栏容器沿用平台原生布局与外形，不叠加背景图片、外描边、16px 大圆角或 overflow 裁剪。菜单保留深灰 hover 与 selected 底、浅色文字，navTheme 继续为 dark。白色 Shell 不代表侧栏改成浅色导航。
+navTheme 为 dark，侧栏壳使用深炭底与浅字，搜索和菜单三态沿用深灰层次；内容、页头及详情抽屉独立保持白面与深字。侧栏沿用原生布局与外形。
 
 Shell 外留白消费 `--pod-shell-padding`，展开侧栏四边内距消费 `--pod-nav-slide-aside-padding`。这两项保留工作区间距，不为侧栏构造额外的浮岛背景或外轮廓；导航无需图片素材。
 
@@ -337,7 +340,7 @@ Shell 外留白消费 `--pod-shell-padding`，展开侧栏四边内距消费 `--
 
 YAML 是变量值的唯一事实源；正文只规定消费关系，独立局部参数在出现处标为推断。全局变量供平台原生页面与自定义页面消费；页面层补充主题色深色对象信息、图表色、认证标志、自绘品牌区和独立指标排版。递归提取以 `--` 开头的标量叶子，分组名称不拼接到 CSS 变量名；平台基础与项目扩展均在主题中声明，可无环引用，并按实际设计补充变量。
 
-导航配色与平台侧栏布局成组确定，白色 Shell 不改变正文与深色菜单的职责。原生导航额外通过 `--pod-nav-menu-item-selected-shadow` 使用不占位的选中标记；自绘导航才消费页面层品牌区色。若平台组件不开放细节样式，保留其原生交互与布局能力，在开放范围内落实表面、边界和文字层级。
+导航深色底与浅字成组配置，内容区独立保持白底深字。原生导航额外通过 `--pod-nav-menu-item-selected-shadow` 使用不占位的选中标记；自绘导航才消费页面层品牌区色。若平台组件不开放细节样式，保留其原生交互与布局能力，在开放范围内落实表面、边界和文字层级。
 
 需求决定内容，平台约束限定可实现能力，主题规定视觉机制。特色配方不能覆盖真实数据语义、自然内容增长或明确平台限制。未提供具体名称的平台状态变量按语义对接，不杜撰变量接口。
 

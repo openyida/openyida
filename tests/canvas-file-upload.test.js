@@ -32,7 +32,8 @@ beforeEach(() => {
       .mockResolvedValueOnce({ ok: true })
       .mockResolvedValueOnce(json({ success: true, fileUploadId: 42 }))
       .mockResolvedValueOnce(json({ downloadUrl: '/ossFileHandle?sign=x', previewUrl: '/inst/preview?sign=y' })),
-    parent: {}, top: {},
+    parent: { location: { origin: 'https://private.example.com' } },
+    top: { location: { origin: 'https://private.example.com' } },
   };
   const context = vm.createContext({ host });
   api = vm.runInContext(clientSource + '\ncreateYidaFileClient(host);', context);
@@ -179,6 +180,28 @@ test('publishing installs the shared client in root, parent and top window', () 
   expect(schema.actions.module.compiled).toContain(clientSource);
 });
 
+test('file bridge respects the main branch same-origin frame boundary', () => {
+  host.top.location.origin = 'https://other.example.com';
+  const context = vm.createContext({ window: host });
+  vm.runInContext(CANVAS_YIDA_API_BRIDGE_SOURCE + '\nopenyidaInstallYidaApiBridge.call({utils:{}});', context);
+  expect(host.__OPENYIDA_FILE_API__.ready).toBe(true);
+  expect(host.parent.__OPENYIDA_FILE_API__).toBe(host.__OPENYIDA_FILE_API__);
+  expect(host.top.__OPENYIDA_FILE_API__).toBeUndefined();
+});
+
+test('CodeBundle skeleton retains file and existing navigation bridges', () => {
+  const { buildCanvasSavePayload } = require('../lib/app/publish');
+  const schema = buildCanvasPageSchemaObject('source', 'runtime', '[]', 'FORM_test');
+  const payload = buildCanvasSavePayload(JSON.stringify(schema), 'source', 'runtime');
+  const skeleton = JSON.parse(payload.content);
+  expect(skeleton.actions.module).toEqual(schema.actions.module);
+  const context = vm.createContext({ window: host, exports: {} });
+  vm.runInContext(skeleton.actions.module.compiled + '\nexports.didMount.call({utils:{}});', context);
+  expect(host.__OPENYIDA_FILE_API__.ready).toBe(true);
+  expect(typeof context.createPageNavigation).toBe('function');
+  expect(typeof context.createTaskCenterLoader).toBe('function');
+});
+
 test('CLI extracts both samples and they compile in Canvas business content', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'file-upload-'));
   const log = jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -197,7 +220,7 @@ test('CLI extracts both samples and they compile in Canvas business content', as
 });
 
 function createUploadControl(fileApi) {
-  const Babel = require('@babel/standalone');
+  const Babel = require('../lib/core/babel');
   const slots = [];
   let cursor = 0;
   const React = {
@@ -215,7 +238,7 @@ function createUploadControl(fileApi) {
     createElement(type, props, ...children) { return { type, props: props || {}, children }; },
   };
   const context = vm.createContext({ React, window: { __OPENYIDA_FILE_API__: fileApi } });
-  const code = Babel.transform(sampleSource.replace("import React from 'react';", ''), { presets: ['react'] }).code;
+  const code = Babel.transform(sampleSource.replace("import React from 'react';", ''), { presets: [Babel.presets.react] }).code;
   vm.runInContext(code, context);
   const props = { binding, value: [], onUploadingChange: jest.fn() };
   props.onChange = jest.fn(value => { props.value = value; });

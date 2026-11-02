@@ -2,7 +2,8 @@
 
 /* global jest */
 
-const Babel = require('@babel/standalone');
+const Babel = require('../../lib/core/babel');
+const transformModulesCommonjs = require('@babel/plugin-transform-modules-commonjs');
 
 // A small hook host exercises the shipped component's requests and view state.
 function mount(source, bridge, fetch, options = {}) {
@@ -44,7 +45,7 @@ function mount(source, bridge, fetch, options = {}) {
   const antd = { Input: Object.assign(function Input() {}, { Search: 'Search' }), Typography: { Title: 'Title', Text: 'Text' }, Empty: 'Empty' };
   for (const name of ['ConfigProvider', 'Drawer', 'Alert', 'Button', 'Pagination', 'Space', 'Spin', 'Table', 'Tabs', 'Timeline', 'Select']) { antd[name] = name; }
   const window = { __OPENYIDA_YIDA_API__: bridge, fetch, loginUser: { userId: 'visitor' }, document: { hidden: false, addEventListener: jest.fn(), removeEventListener: jest.fn() }, addEventListener: jest.fn(), removeEventListener: jest.fn(), setTimeout };
-  const compiled = Babel.transform(source + '\nexport { ' + component + ' };', { presets: ['react'], plugins: ['transform-modules-commonjs'] }).code;
+  const compiled = Babel.transform(source + '\nexport { ' + component + ' };', { presets: [Babel.presets.react], plugins: [transformModulesCommonjs] }).code;
   const module = { exports: {} };
   const requireModule = name => name === 'react' ? React : name === 'antd' ? antd : {};
   new Function('require', 'module', 'exports', 'window', compiled)(requireModule, module, module.exports, window);

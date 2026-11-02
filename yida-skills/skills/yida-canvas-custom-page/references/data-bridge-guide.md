@@ -50,23 +50,35 @@
 
 `dataBinding.mode=form` 默认调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`。同一个桥还会暴露 `saveFormData`、`updateFormData`、`deleteFormData`、`startProcessInstance`、`updateProcessInstance`、`getProcessInstances`、`getProcessInstanceIds`、`getProcessInstanceById`、`request`、`searchUserList` 等 `this.utils.yida` 方法，并运行时枚举已有的额外函数；流程列表、流程详情或发起审批时优先使用这些桥接方法。根级 `toast`、`dialog`、`router.push`、`openPage`、`isMobile` 等工具通过 `window.__OPENYIDA_UTILS__` 访问，`window.__OPENYIDA_UTILS__.yida` 等于同一个 yida API 桥。表单查询参数至少包含 `formUuid`、`currentPage`、`pageSize` 和 `searchFieldJson`，`pageSize` 一般显式写 `50`；`appType` 可保留在 `dataBinding` 中用于校验和构造详情/提交链接。只有桥不存在时才同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`；直连 query 至少包含 `formUuid`、`appType`、`currentPage`、`pageSize`、`searchFieldJson` 和 `_csrf_token`，并设置 `credentials: 'include'` 与 `global_csrf_token` 头。`/query/form/searchFormDatas.json` 不是可用表单数据端点。
 
+## 同源窗口与身份
+
+桥先取当前窗口，再沿同源父链查找；每次单独读取并捕获异常，命中即返回。跨域、不可访问或不透明源返回未就绪。同源要求协议、主机和端口相同；`parentWindow` 参数不保证指向原生父窗口。
+
+身份仅取当前页面 `window.loginUser` 或本页 utils 的 `getLoginUserId()`，缺失显示未就绪；父窗口及 CLI 身份不作兜底。
+
 ## 可复用读数据 Hook
 
 ```jsx
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+function getCanvasBridge(key, method) {
+  var target = window;
+  while (target) {
+    try {
+      if (target !== window && (!window.location.origin || window.location.origin === 'null'
+        || target.location.origin !== window.location.origin)) return null;
+      var bridge = target[key];
+      if (bridge && typeof bridge[method] === 'function') return bridge;
+      var parent = target.parent;
+      if (!parent || parent === target) return null;
+      target = parent;
+    } catch (err) { return null; }
+  }
+  return null;
+}
+
 function getYidaApiBridge() {
-  var candidates = [];
-  try { candidates.push(window.__OPENYIDA_YIDA_API__); } catch (err) {}
-  try { candidates.push(window.parent && window.parent.__OPENYIDA_YIDA_API__); } catch (err) {}
-  try {
-    if (typeof parentWindow !== 'undefined') {
-      candidates.push(parentWindow.__OPENYIDA_YIDA_API__);
-    }
-  } catch (err) {}
-  return candidates.find(function (item) {
-    return item && typeof item.searchFormDatas === 'function';
-  }) || null;
+  return getCanvasBridge('__OPENYIDA_YIDA_API__', 'searchFormDatas');
 }
 
 function getCsrfToken() {
@@ -235,18 +247,9 @@ function normalizeFormRow(row) {
 ## 在组件里调用平台连接器
 
 ```jsx
+// 复用上方同源桥 helper。
 function getConnectorBridge() {
-  var candidates = [];
-  try { candidates.push(window.__OPENYIDA_CONNECTOR_API__); } catch (err) {}
-  try { candidates.push(window.parent && window.parent.__OPENYIDA_CONNECTOR_API__); } catch (err) {}
-  try {
-    if (typeof parentWindow !== 'undefined') {
-      candidates.push(parentWindow.__OPENYIDA_CONNECTOR_API__);
-    }
-  } catch (err) {}
-  return candidates.find(function (item) {
-    return item && typeof item.invoke === 'function';
-  }) || null;
+  return getCanvasBridge('__OPENYIDA_CONNECTOR_API__', 'invoke');
 }
 
 var CONNECTOR_BINDING = {

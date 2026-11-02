@@ -11,7 +11,7 @@ description: 查询、新增和修改宜搭表单权限组，配置成员范围�
 
 查询按每页 20 条安全翻页；达到安全上限、分页重复或响应结构不完整时必须停止，不把不完整列表当作全量权限组。
 
-查询返回 `roleDataComplete: false` 时，成员信息仅供查看，尚不能确认完整排除规则；不得据此更新已有权限组。遇到 `SAVE_PERMISSION_BEFORE_UNKNOWN` 时保持零写入。
+CLI 优先读取原始 `roleData`；平台只返回 `roleMembers` 时，将可完整还原的成员规则转换为 `roleData`，保留包含、排除及矩阵配置。查询返回 `roleDataComplete: false` 表示成员结构缺失、无效或含无法安全转换的值，不得据此更新已有权限组。遇到 `SAVE_PERMISSION_BEFORE_UNKNOWN` 时保持零写入。
 
 | 类型 | 管什么 | 参数 |
 |------|--------|------|
@@ -176,30 +176,11 @@ ID、名称及条件按实际查询结果替换；示例的成员字段条件只
 
 ## 字段权限
 
-全部字段沿用表单状态：
+优先使用 `--field-access`；默认权限、预览及子表规则见[字段权限](references/row-field-access.md#字段权限)。沿用表单字段权限传 `--field-permission '{"fieldRange":"FORM"}'`。
 
-```json
-{ "fieldRange": "FORM" }
-```
+使用完整 `--field-permission` 时，结构和值从回读或快捷参数的预览取得：`label` 为字段 ID，`fieldName` 为字段名称，只修改目标项并保留其他配置。
 
-自定义字段权限使用真实 `fieldStatus` 结构：
-
-```json
-{
-  "role": "DEFAULT",
-  "fieldRange": "CUSTOM",
-  "fieldStatus": [
-    {
-      "label": "客户名称",
-      "fieldName": "textField_xxx",
-      "componentName": "TextField",
-      "value": "FORM_FIELD_VIEW"
-    }
-  ]
-}
-```
-
-`value` 支持 `FORM_FIELD_VIEW`、`FORM_FILED_EDIT`（平台原始拼写）、`FORM_FIELD_HIDDEN`、`FORM_FIELD_ENCRYPT`。修改前从查询结果复制真实 label、fieldName 和 componentName，只改变目标项的 value。
+保存回读只确认配置一致。再用目标账号验证实际可编辑范围；`effectiveAccessVerified: false` 表示尚未完成该验证。
 
 ## 失败处理
 

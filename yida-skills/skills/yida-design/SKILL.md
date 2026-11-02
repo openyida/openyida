@@ -14,13 +14,13 @@ description: >
 
 已有资源的 UI 调整和美化后恢复，先进入 [ui-improve](sub_skill/ui-improve/SKILL.md)，再按其确认、备份和业务保留约束使用下方设计规则。
 
-先读已有需求、设计和应用主题，确定哪些地方需要调整。优先使用平台已有的主题变量，只在表达不了所需效果时新增变量，并写清哪些组件使用它；见 [主题扩展规则](references/application-theme-consistency.md#平台基础变量是应用主题基础框架)。
+先按[用户意图与已选主题](references/theme-selection.md#已选风格只确认一次)落实主题、风格和颜色；模板示例的绿、蓝配色不作为默认推荐。只为未明确部分结合真实任务补设计。优先使用已有主题变量，表达不了时再扩展并注明消费位置，见 [主题扩展规则](references/application-theme-consistency.md#平台基础变量是应用主题基础框架)。
 
 导航默认沿用平台样式，像连续目录一样排列。只调整需要改变的颜色、尺寸和状态；边框、阴影可不设置，不要把每个菜单项做成输入框、按钮或卡片。改完后打开实际的数据管理页和业务页面检查，见 [导航形状与密度的案例经验](references/application-theme-consistency.md#导航形状与密度的案例经验)。
 
 所有页面按[任务驱动的视觉设计](references/task-driven-visual-design.md)从主要任务和信息关系推导表达、构图与视觉重点，主动判断图片的识别、解释和氛围价值，再确定密度与降级。
 
-自定义页面按 [响应式布局](references/responsive-layout.md) 明确容器宽度变化后的换行、堆叠、控件对齐和局部滚动；等高只用于宽屏下需要成组展示的面板，窄屏恢复自然高度。
+自定义页面按 [响应式布局](references/responsive-layout.md) 先明确任务和需要同时看见的信息，再安排宽屏、窄容器和触屏下的内容与操作。结果写入已有首屏焦点、布局、主操作、响应式和验收字段。宽屏中需要成组展示的面板可等高，窄屏随内容自然增长。
 
 **阅读无障碍是页面设计的基本要求。** 导航、正文、表单、详情、报表及抽屉等浮层都要让用户看得清、读得懂，放大或使用读屏时仍能获取完整信息。不能为风格、密度或装饰牺牲阅读；按 [阅读无障碍门禁](references/page-quality-gates.md#阅读无障碍门禁) 将具体要求写入页面设计与验收。
 
@@ -59,7 +59,7 @@ Fast、Plan 和单页设计使用相同的 UI 设计规则、主题变量和质�
 | 数据管理页换风格、操作优先、列表/表头/工具栏视觉问题 | 数据管理 UI 专项（优先匹配） | 调用 `use_skill("yida-data-manage-ui")`，按原生/自定义承载处理，不循环回本表 |
 | 已有页面/应用美化、优化 UI、太乱、不好看、局部间距、风格统一、换肤，或美化后不满意/恢复 | 已有资源 UI-only 美化（优先匹配） | 读 [ui-improve](sub_skill/ui-improve/SKILL.md)，先展示并确认方案、备份，再交接实施；不满意则恢复 |
 | 完整应用、多个角色、多页面、导航分组、首页/入口页、官网 + 看板 + 后台 | 完整应用视觉设计 | Fast 执行下方视觉流程；Plan 执行 [视觉分支](sub_skill/yida-design-plan/SKILL.md) |
-| 单个自定义页要求好看、高级、品牌化、去 AI 味、页面太丑、不够惊艳 | 单页设计 | 读 [page-design](sub_skill/page-design/SKILL.md)，确认当前页面和应用主题后输出设计补充 |
+| 已有应用单独新增自定义页，或单页要求好看、高级、品牌化、去 AI 味、页面太丑、不够惊艳 | 单页设计 | 读 [page-design](sub_skill/page-design/SKILL.md)，确认当前页面和应用主题后输出设计补充 |
 | 应用主题色、品牌色、全局换肤、`--color-brand1-*`、自定义主题 CSS、`themeColor`、`navTheme` | 主题色和 token 设计 | 读 `workflow/step-2-theme-system.md` 和 `workflow/step-6-handoff.md`，输出 themeProfile、应用主题文件和 token 契约 |
 | 页面 / 主页面 / 首页 / 工作台 UI 设计 | 页面视觉设计 | 读取当前页面上下文，输出或更新 `design.md` |
 

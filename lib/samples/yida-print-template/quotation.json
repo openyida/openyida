@@ -1,0 +1,13 @@
+{
+  "document": {
+    "title": "销售报价单",
+    "style": "formal",
+    "blocks": [
+      { "type": "fields", "columns": 2, "fields": ["报价编号", "客户名称", "报价日期", "经办人"] },
+      { "type": "heading", "text": "报价明细" },
+      { "type": "table", "field": "报价明细", "columns": ["商品名称", "数量", "单价", "金额"] },
+      { "type": "fields", "fields": ["报价总额", "报价说明"] },
+      { "type": "text", "text": "报价确认签字：________________　日期：________________" }
+    ]
+  }
+}

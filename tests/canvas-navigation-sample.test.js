@@ -57,7 +57,7 @@ test('local tabs and native forms preserve their own handlers', () => {
 test('explicit new-tab intent uses the bridge', () => {
   const openPage = jest.fn();
   context.navigateCanvasPage({ targetType: 'custom', formUuid: 'FORM-a', openMode: 'new-tab' }, { ...app, utils: { openPage } });
-  expect(openPage).toHaveBeenCalledWith({ url: 'https://tenant.aliwork.com/APP_test/custom/FORM-a' });
+  expect(openPage).toHaveBeenCalledWith('https://tenant.aliwork.com/APP_test/custom/FORM-a');
 });
 test('CLI extracts the complete helper and the helper compiles with business content', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'canvas-navigation-'));

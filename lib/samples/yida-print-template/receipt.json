@@ -1,0 +1,13 @@
+{
+  "document": {
+    "title": "收款凭证",
+    "style": "compact",
+    "width": 320,
+    "fontSize": 12,
+    "blocks": [
+      { "type": "fields", "fields": ["收据编号", "付款单位", "收款金额", "收款日期"] },
+      { "type": "divider" },
+      { "type": "html", "html": "<p>收款人：{{发起人}}</p><p>签字：________________</p>" }
+    ]
+  }
+}

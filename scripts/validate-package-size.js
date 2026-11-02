@@ -61,7 +61,27 @@ const path = require('path');
 // 2,517,672 compressed bytes; retain the next 16 KiB boundary.
 // Combined personal workflows, native data cards and cool-card tooling measure
 // 2,552,878 compressed bytes on Node 20; retain less than 32 KiB runtime headroom.
-const MAX_TARBALL_BYTES = 2528 * 1024;
+// Native print templates add seven runtime modules, six reusable scenario samples,
+// and a skill with three guides. With main's AI app helper, Node 26 measures
+// 2,576,926 compressed bytes;
+// keep a small allowance for Node 20's different npm compression output.
+// Combined main and Solution Center templates measure 2,622,928 compressed
+// bytes on Node 22; retain the next 16 KiB boundary across packaging runtimes.
+// Beginner account/tool guidance: Node 20.18.1 measures 2,627,647 compressed
+// bytes (Node 26 is smaller). Keep the next 16 KiB compression boundary.
+// Main's task-transfer and scheduled-end-condition changes combined with feedback
+// guidance measure 2,634,130 compressed bytes on Node 20; this cap still fits.
+// Node 20 CI measures 2,643,136 compressed bytes for the merged 10.23 package.
+// Retain the next 16 KiB boundary; unpacked, entry and single-file caps stay fixed.
+// Stacked 10.25 templates plus 10.23 message/responsive features (Node 20.18.1):
+// 2,654,371 compressed bytes; next 16 KiB boundary retains CI npm headroom.
+// Consent-based GitHub setup adds one runtime module and user guidance:
+// Node 20.18.1 measures 2,637,999 compressed bytes; next 16 KiB boundary.
+// 合并主干插件与权限指引、千问免登后，Node 24 实测 gzip 为 2,711,034 字节；取下一档 16 KiB 边界。
+// 合并字段权限校验与最新主干后，Node 20 实测 2,722,740 压缩字节；取下一档 16 KiB 边界。
+// Upload client, control and guide: 2,741,137 compressed bytes on Node 23.
+// Retain the next 16 KiB boundary for supported npm compression runtimes.
+const MAX_TARBALL_BYTES = 2688 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -144,9 +164,60 @@ const MAX_TARBALL_BYTES = 2528 * 1024;
 // Combined buttons, live-test fixes and report controls (Node 22):
 // 2,573,647 compressed bytes / 9,556,794 unpacked bytes / 743 files.
 // Keep less than 16 KiB compressed headroom and the next 16 KiB unpacked boundary.
-// File upload client, control and guide measure 9,581,545 unpacked bytes on Node 23.
-// Keep the next 16 KiB boundary; compressed and single-file caps remain unchanged.
-const MAX_UNPACKED_BYTES = 9360 * 1024;
+// Print templates plus main's AI app helper measure 9,640,515 bytes / 761 files on Node 26.
+// Keep the next 16 KiB boundary and the existing 512 KiB per-file cap.
+// Issue contribution account checks add one runtime module: 9,653,376 unpacked bytes
+// on Node 26 before generated command docs; retain the next 16 KiB boundary.
+// Solution Center templates add one runtime module and one focused skill:
+// Node 26 measures 9,680,243 unpacked bytes / 764 files; retain the next 16 KiB boundary.
+// Template preparation and bounded failure recovery: Node 26 measures 9,692,651
+// unpacked bytes. Round up one 16 KiB block; file and tarball caps stay unchanged.
+// Form-member/self-select runtime and guide: 9,672,548 unpacked bytes / 764 files
+// on Node 22. Retain the next 16 KiB boundary; compressed and per-file caps stay fixed.
+// Combined templates, dynamic actors and refreshed release notes (Node 26):
+// 9,711,827 unpacked bytes / 766 files. Retain the next 16 KiB boundary.
+// PR #619 merged with main: 9,695,540 unpacked bytes on Node 23.
+// Task transfer adds its runtime, guide and 12-locale messages; next 16 KiB boundary.
+// Templates plus task transfer, timer fixes and refreshed release notes (Node 22):
+// 9,734,817 unpacked bytes / 768 files; next 16 KiB boundary, gzip cap unchanged.
+// Container-aware responsive diagnostics and the reusable Canvas scaffold add
+// two published files. Keep a small byte margin for npm metadata variance.
+// Task-driven responsive guidance measures 9,676,524 unpacked bytes at 12b8b0d0;
+// the wording cleanup measures 9,676,590 bytes / 764 files on Node 26.
+// Retain the next 16 KiB boundary; compressed, entry and per-file caps stay fixed.
+// Form-member/self-select runtime and guide: 9,672,548 unpacked bytes / 764 files
+// on Node 22. Retain the next 16 KiB boundary; compressed and per-file caps stay fixed.
+// Responsive guidance combined with main's dynamic personnel sources measures
+// 9,694,016 unpacked bytes / 766 files on Node 26; next 16 KiB boundary.
+// Beginner feedback guidance and localized incident context: 9,701,569 bytes,
+// still 766 files. Keep the next 16 KiB boundary; other budgets stay unchanged.
+// PR #619 merged with main: 9,695,540 unpacked bytes on Node 23.
+// Task transfer adds its runtime, guide and 12-locale messages; next 16 KiB boundary.
+// Combined responsive/feedback and main package: 9,733,108 bytes / 769 files
+// on Node 20. Keep the next 16 KiB boundary and the existing single-file cap.
+// Combined with native form-message management and settings-link delivery:
+// Node 26 measures 9,768,800 unpacked bytes / 772 files. Next 16 KiB boundary.
+// GitHub setup merged into 10.23: 9,781,786 unpacked bytes / 773 files on Node 26.
+// Scope-aware native task links and the portable DingTalk opener add two runtime
+// modules and aligned guidance: 9,798,841 unpacked bytes on Node 26.
+// The stacked 10.25 budget below includes Solution Center templates as well.
+// Combined stacked 10.25 package measures 9,808,079 unpacked bytes on Node 20.
+// Retain the next 16 KiB boundary without changing the single-file limit.
+// Templates/message features plus main's GitHub setup (Node 20.18.1):
+// 9,821,065 unpacked bytes / 775 files; next 16 KiB boundary, gzip cap unchanged.
+// Combined templates, scoped task navigation and page-theme guidance (Node 20):
+// 9,840,407 unpacked bytes / 777 files; next 16 KiB boundary, gzip cap unchanged.
+// QwenWork create-app/create-page guidance and beta metadata add 3,449 bytes:
+// Node 20.18.1 measures 9,850,164 unpacked bytes / 777 files. Use the next
+// 16 KiB boundary; compressed, entry-count and single-file limits stay fixed.
+// 合并 main 的业务交付规范后实测解包为 9,997,954 字节；取下一档 16 KiB 边界，单文件上限保持不变。
+// 合并后的解包体积为 10,015,765 字节；取下一档 16 KiB 边界，单文件上限保持不变。
+// 当前组织免登与搭建提示规则：Node 26 实测 10,033,033 解包字节 / 797 文件。
+// 按既有 16 KiB 分档容纳新增运行时与技能内容；压缩包、文件数及单文件上限不变。
+// Node Babel entry, explicit presets and shared dependency copying: 10,045,128 bytes.
+// The dependency reduction is measured separately from this main-package budget.
+// OpenAPI uploads measure 10,069,505 unpacked bytes / 802 files on Node 23.
+const MAX_UNPACKED_BYTES = 9840 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -174,14 +245,53 @@ const MAX_UNPACKED_BYTES = 9360 * 1024;
 // The merged workflow and native data-card package contains 733 files.
 // The combined workflow, data-card and cool-card package contains 738 files.
 // Custom buttons and native report zero-value controls add five packaged files.
-// The shared AI application eligibility helper adds one required runtime module.
-// File upload requires three additional packaged runtime/reference files.
-const MAX_ENTRY_COUNT = 747;
+// Include the shared AI application eligibility helper merged from main.
+// Native form-message management adds exactly three packaged files; retain two entries of headroom.
+// Dynamic personnel sources add one runtime module and one skill reference.
+// Account/tool onboarding adds one progressively loaded feedback reference.
+// Unpacked and per-file limits remain unchanged.
+// Administrator task transfer adds exactly one runtime module and one skill guide.
+// Solution Center templates add their runtime and skill to the stacked release.
+// GitHub setup keeps installation/detection separate from account actions.
+// Shared page navigation and task-center navigation add exactly two packaged files.
+// 合并 main 的业务总结参考文档后，包含 beta 可选安装器的包实测为 796 个文件。
+// 新增应用主题状态共享模块；Node 20 实测 798 文件，字节预算保持不变。
+// One shared Node Babel entry replaces all standalone imports.
+// File uploads add one client, one control and one protocol guide.
+const MAX_ENTRY_COUNT = 802;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'lib/core/babel.js',
+  'yida-skills/references/user-facing-summary.md',
+  'lib/navigation/page-navigation.js',
+  'lib/task-center/navigation.js',
+  'lib/solution-template/solution-template.js',
+  'yida-skills/skills/yida-solution-template/SKILL.md',
+  'lib/feedback/github.js',
+  'lib/feedback/github-setup.js',
+  'lib/print-template/builder.js',
+  'lib/print-template/codes.js',
+  'lib/print-template/contract.js',
+  'lib/print-template/detail.js',
+  'lib/print-template/model.js',
+  'lib/print-template/print-template.js',
+  'lib/print-template/scenes.js',
+  'lib/samples/yida-print-template/approval.json',
+  'lib/samples/yida-print-template/codes.json',
+  'lib/samples/yida-print-template/delivery.json',
+  'lib/samples/yida-print-template/order.json',
+  'lib/samples/yida-print-template/quotation.json',
+  'lib/samples/yida-print-template/receipt.json',
+  'yida-skills/skills/yida-print-template/SKILL.md',
+  'yida-skills/skills/yida-print-template/references/detail.md',
+  'yida-skills/skills/yida-print-template/references/guide.md',
+  'yida-skills/skills/yida-print-template/references/scenarios.md',
   'lib/app/custom-button.js',
   'yida-skills/skills/yida-custom-button/SKILL.md',
+  'lib/app/form-message.js',
+  'yida-skills/skills/yida-form-message/SKILL.md',
+  'yida-skills/skills/yida-form-message/references/guide.md',
   'lib/task-center/workflow.js',
   'lib/task-center/workflow-loader.js',
   'lib/samples/yida-task-center/progress.canvas.jsx',
@@ -211,6 +321,7 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-feedback/SKILL.md',
   'yida-skills/skills/yida-feedback/references/report-input.md',
   'yida-skills/skills/yida-feedback/references/github-contribution.md',
+  'yida-skills/skills/yida-feedback/references/github-setup.md',
   'lib/permission/permission-scope.js',
   'lib/permission/matrix-availability.js',
   'yida-skills/skills/yida-form-permission/references/row-field-access.md',
@@ -245,6 +356,8 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-upgrade-app-theme/references/page-migration.md',
   'bin/yida.js',
   'lib/core/managed-policy.js',
+  'lib/auth/qwenwork-client.js',
+  'lib/auth/qwenwork.js',
   'lib/app/create-form/batch.js',
   'lib/app/application-entry-urls.js',
   'lib/app/app-entry.js',
@@ -280,6 +393,8 @@ const REQUIRED_PACKAGE_FILES = [
   'lib/asset/asset-plan.js',
   'lib/asset/attachment-upload.js',
   'lib/process/services/process-actions.js',
+  'lib/process/process-tasks.js',
+  'yida-skills/skills/yida-data-management/references/process-task-transfer.md',
   'lib/process/services/process-field-permissions.js',
   'lib/process/services/process-form-fields.js',
   'lib/process/process-fields.js',

@@ -33,6 +33,38 @@ describe('npm package smoke', () => {
     expect(getPackageBudgetErrors({ size: 2504841, unpackedSize: 9309589, entryCount: 726 })).toEqual([]);
   });
 
+  test('package budget covers task-driven responsive guidance on Node 26', () => {
+    expect(getPackageBudgetErrors({ size: 2588870, unpackedSize: 9676590, entryCount: 764 })).toEqual([]);
+  });
+
+  test('package budget covers responsive guidance merged with dynamic personnel sources', () => {
+    expect(getPackageBudgetErrors({ size: 2594266, unpackedSize: 9694016, entryCount: 766 })).toEqual([]);
+  });
+
+  test('package budget covers account/tool guidance measured on CI Node 20', () => {
+    expect(getPackageBudgetErrors({ size: 2627647, unpackedSize: 9710118, entryCount: 767 })).toEqual([]);
+  });
+
+  test('package budget covers responsive feedback merged with main task transfer on Node 20', () => {
+    expect(getPackageBudgetErrors({ size: 2634130, unpackedSize: 9733108, entryCount: 769 })).toEqual([]);
+  });
+
+  test('package budget covers stacked templates, messages and responsive features on Node 20', () => {
+    expect(getPackageBudgetErrors({ size: 2654371, unpackedSize: 9808079, entryCount: 774 })).toEqual([]);
+  });
+
+  test('package budget covers consent-based GitHub setup on Node 20', () => {
+    expect(getPackageBudgetErrors({ size: 2637999, unpackedSize: 9746094, entryCount: 770 })).toEqual([]);
+  });
+
+  test('package budget covers templates and messages merged with GitHub setup on Node 20', () => {
+    expect(getPackageBudgetErrors({ size: 2659151, unpackedSize: 9821065, entryCount: 775 })).toEqual([]);
+  });
+
+  test('package budget covers templates merged with scoped task navigation on Node 20', () => {
+    expect(getPackageBudgetErrors({ size: 2665928, unpackedSize: 9840407, entryCount: 777 })).toEqual([]);
+  });
+
   test.each([
     ['original PR 638', { size: 2444722, unpackedSize: 9113751, entryCount: 707 }],
     ['PR 638 merged with main', { size: 2496932, unpackedSize: 9278325, entryCount: 721 }],
@@ -47,6 +79,7 @@ describe('npm package smoke', () => {
   });
 
   test('runtime dependencies stay lightweight for agent installs', () => {
+    expect(packageJson.dependencies).not.toHaveProperty('@babel/standalone');
     expect(packageJson.dependencies).not.toHaveProperty('playwright');
     expect(packageJson.dependencies).not.toHaveProperty('playwright-core');
     expect(packageJson.dependencies).not.toHaveProperty('qrcode');

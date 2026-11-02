@@ -24,15 +24,19 @@ openyida sample yida-design application-style --style-id free-creative --output 
 
 ## 旧主题应用的样式作用域与确认
 
-绑定前读取目标应用服务端解析的 `appThemeEnable` 与 `appThemeMode`；只有 `y` / `modern` 才沿用新版应用主题上传流程，不能只凭存储的 APP_THEME_MODE、模板或版本号判断。`n`、`legacy` 或无法确认能力时，默认保留平台主题，优先使用自定义页根容器内的局部样式，不向应用写入 `customThemeStyle`，不自动升级主题。页面美化、换颜色或完整应用设计的请求不等于同意旧应用全局 CSS 注入。
+上传和绑定前，CLI 通过 `getAppIncludingAecpInfo.json` 核对应用及组织身份，不读取管理页 HTML。服务端返回 `appThemeEnable=y` 且 `appThemeMode=modern`，或保存了 `CREATED_WITH_MODERN_THEME=y` 且模式为 modern（模式未设置时须有服务端 AI 应用来源，包含 qwenwork），按新版配置执行上传和绑定，无需旧主题注入确认。显式禁用或 legacy 优先；只有主色、modern 名称或宿主名称不能作为依据。配置回读不等于页面已加载 CSS，仍按浏览器验收规则核验效果。
 
-旧应用的 `customThemeStyle`（用户也可能称为 `appCustomTheme`）由访问态按当前应用加载，可能覆盖工作台、导航、表单及记录详情；`iframePropagation:false` 不是页面作用域隔离。新版主题文件中的全局变量和选择器不能直接视作旧 Shell/表单的兼容样式。确实需要应用层覆盖时，先核查实际访问页 DOM 与主题消费能力，审阅并缩小 CSS 选择器范围，说明涉及的应用、CSS 文件和影响页面，向用户明确询问：“是否同意将这份 CSS 注入该旧应用的应用层，影响访问页面、导航和表单？”取得该应用的肯定回复后才允许传 `--confirm-legacy-app-style`；不能代替用户确认，也不能遇到阻断后自动追加此参数。没有可用的用户确认通道时停在上传前。
+新建应用必须通过 CLI 的 modern 配置回读核验；`APP_CREATED_THEME_UNVERIFIED` 表示应用已经创建但主题未确认，保留返回的 `appType` 排查，不重复创建、不静默降级或仅设置主色。已有应用确认为旧主题或缺少判定依据时，默认保留平台主题并使用页面局部样式，不自动升级；应用级 CSS 注入仍需取得该应用和 CSS 范围的明确确认。
+
+旧主题新增页按 [单页风格范围](../sub_skill/page-design/SKILL.md#旧主题应用新增页面的风格范围) 确认；页面独立设计不包含应用级注入。
+
+旧应用的 `customThemeStyle`（用户也可能称为 `appCustomTheme`）由访问态按当前应用加载，可能覆盖工作台、导航、表单及记录详情；`iframePropagation:false` 不是页面作用域隔离。新版主题文件中的全局变量和选择器不能直接视作旧 Shell/表单的兼容样式。确实需要应用层覆盖时，先核查实际访问页 DOM 与主题消费能力，审阅并缩小 CSS 选择器范围，说明涉及的应用、CSS 文件和影响页面，向用户明确询问：“是否同意将这份 CSS 应用于该应用的访问页面、导航和表单？”取得该应用的肯定回复后才允许传 `--confirm-legacy-app-style`；不能代替用户确认，也不能遇到阻断后自动追加此参数。没有可用的用户确认通道时停在上传前。
 
 不要把完整应用主题 CSS 包裹在页面根节点后就宣称已兼容；页面局部样式只使用该页面已验证的 DOM/变量，不改 `html`、`body`、顶层 `:root` 或平台导航/表单全局选择器。若用户拒绝应用层注入，交付页面局部方案并说明覆盖范围。
 
 用户要求“去掉应用中的 appCustomTheme / customThemeStyle / 应用级自定义 CSS”时，按宜搭界面关闭“启用主题换肤”的方式执行 `openyida update-app <appType> --disable-custom-theme`。先读取最新基础设置，解析原 customThemeStyle，保留 cssUrl、cssFileName 和其他资源字段，将 enabled 与 iframePropagation 改为布尔值 false，再 JSON.stringify 后以字符串提交到该应用的 query/app/updateApp.json；沿用登录态与 CSRF，其他基础设置取最新回读并保持原值。不能清空 URL，不能传空字符串、null、空对象/数组或只传 {"enabled":false}；原配置缺失或无法解析时停止写入并说明原因。该参数不与其他更新字段同传，不删除 CDN 文件，也不修改页面源码。
 
-保存后核对 themeVerification.verified=true，确认 enabled/iframePropagation 为布尔值 false，URL 与文件名仍为原值。随后刷新真实访问页，确认没有 link#yida-app-custom-theme，且网络请求不再加载原主题 CSS；仅 success=true 或配置回读通过不代表访问态已验证。页面检查失败时报告已提交的非认证字段和实际回读结果，隐藏 Token、Cookie、CSRF 等认证信息。结果描述为“自定义主题 CSS 已停用，资源配置仍保留”；没有浏览器证据时补充“访问态效果待验证”。
+保存后核对 themeVerification.verified=true，确认 enabled/iframePropagation 为布尔值 false，URL 与文件名仍为原值。页面检查按[本地浏览器验收](../../../references/execution-rules.md#本地浏览器验收)核验没有 link#yida-app-custom-theme，且网络请求不再加载原主题 CSS；仅 success=true 或配置回读通过不代表访问态已验证。页面检查失败时报告已提交的非认证字段和实际回读结果，隐藏 Token、Cookie、CSRF 等认证信息。结果描述为“自定义主题 CSS 已停用，资源配置仍保留”；页面未验留在内部，用户明确要求的验收未完成时说明。
 
 ## 命令与参数
 
@@ -83,6 +87,8 @@ Plan 的 `visualStyle.tokens` 必须显式提供：画布 `--pod-page-bg-color`�
 自由创意显式选择 `navTheme`，按业务布局设计框架与菜单，仅填写[必要的导航覆盖项](application-theme-consistency.md#导航与应用框架)，其余沿用平台绑定。Fast 与 Plan 使用同一完整主题文件。
 
 ## 验收与维护
+
+按[证据规则](../../../references/execution-rules.md#发布与验收证据)分别记录上传、配置与适用的页面验收结果。
 
 看应用整体，覆盖导航、自定义页、提交、编辑、详情、数据管理内嵌、抽屉和移动端，核对正文/底栏对齐、背景连续、hover/focus、禁用/错误和窄屏布局。应用主题与表单组件树共同作为验收基线。命名主题同时对照原模板与获批方案，检查浏览器实际生效的图片、圆角、阴影、分割线及导航展开/折叠；不能仅凭 token、CSS 文件存在或上传成功判定通过。
 

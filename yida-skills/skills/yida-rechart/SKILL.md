@@ -128,4 +128,4 @@ openyida publish project/pages/src/trend-combo.canvas.jsx <appType> <displayPage
 
 - 本地样例或源码：`compileCanvasLocal` 成功且依赖清单正确。
 - 真实交付：聚合数据源已验证，页面发布成功并返回目标页面 URL。
-- 若本轮没有远程写入，只能报告“技能/源码/样例已完成本地验证，尚未发布”。
+- 本轮修改完成并通过本地校验时，远程发布前说明“已完成修改，待发布”。

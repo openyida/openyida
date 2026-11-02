@@ -1,0 +1,14 @@
+{
+  "document": {
+    "title": "发货交接单",
+    "style": "document",
+    "blocks": [
+      { "type": "fields", "columns": 2, "fields": ["发货编号", "收货单位", "发货日期", "经办人"] },
+      { "type": "heading", "text": "交接明细" },
+      { "type": "table", "field": "发货明细", "columns": ["商品名称", "发货数量"] },
+      { "type": "fields", "fields": ["交接备注"] },
+      { "type": "text", "text": "发货人：________________　收货人：________________" },
+      { "type": "text", "text": "验收结果：________________　签收日期：________________" }
+    ]
+  }
+}

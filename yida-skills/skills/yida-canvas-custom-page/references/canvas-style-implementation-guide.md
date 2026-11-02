@@ -4,6 +4,8 @@
 
 应用主题通过 app-theme.css 配置，页面样式限定在 `YidaComp` 内。`--pod-page-*`、`--pod-card-*`、`--color-brand1-*` 和 `--color-group` 等是平台基础角色；页面还可消费项目定义的材质、布局、字体、动效和组件状态变量。平台负责应用壳、原生表单和详情页的主题，新变量需要显式消费或映射后才会影响这些组件。
 
+旧主题新增页已确认独立视觉时，按 [单页风格范围](../../yida-design/sub_skill/page-design/SKILL.md#旧主题应用新增页面的风格范围) 实现局部变量、控件与浮层；以下应用主题规则仍为其他场景的默认。
+
 开发前按 [应用与自定义页面共用主题](../../yida-design/references/application-theme-consistency.md) 核对风格与变量。纯 DOM 页面也必须引用应用主题；省略 antd Provider 不等于可以另写固定色盘。已确认风格缺少变量时先补设计源并重新生成主题，不在每页用 `--canvas: #…`、`--ink: #…` 复制一套基础配色。
 
 CLI 将 Canvas 宿主的 `contentBgColor`、`pageStyle.backgroundColor`、`contentBgColorMobile` 设为 `var(--pod-page-bg-color, var(--color-white, #fff))`。自绘导航页的内部画布按下方规则设置局部背景。

@@ -5,6 +5,43 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  qwenwork: {
+    organization_switch_success: 'QwenWork 로그인으로 조직을 전환했습니다.',
+    login_check_failed: 'Unable to verify the login session. Please retry.',
+    desktop_login_failed: 'QwenWork 데스크톱 로그인에 실패했습니다. 데스크톱 계정과 로그인 채널을 확인한 후 다시 시도하세요.',
+    desktop_login_usage: '사용법： openyida login --qwenwork [--json] [--check-only]',
+    desktop_login_standalone: 'Run the recommended login command directly: {0}. No extra PATH or output setup is needed. After success continue the business operation silently; on failure follow the returned guidance.',
+    credential_missing: 'No cloud Agent credential is available. Run this command inside the QwenWork cloud execution environment.',
+    gateway_missing: 'QWENWORK_GATEWAY_URL or MULE_GATEWAY_URL is required.',
+    invalid_url: 'The QwenWork gateway must use HTTPS (HTTP is allowed only for loopback) and contain no credentials, query or fragment.',
+    request_failed: 'The QwenWork request failed. Check the stage and HTTP status in the diagnostic details.',
+    request_timeout: 'The QwenWork request timed out.',
+    invalid_response: 'QwenWork returned an invalid authentication or identity response.',
+    identity_mismatch: 'The returned QwenWork identity does not match the cloud execution context or exchanged credential.',
+    expired_token: 'QwenWork returned an expired user credential.',
+    usage: 'Usage: openyida auth qwenwork user-info [--json]',
+  },
+  plugin_lifecycle: { description: 'Manage YiDA platform plugin versions, installation state, and runtime registrations', failed: 'Plugin operation stopped: {0}', usage: 'Usage: openyida plugin <dev-list|get|version-list|version-get|extensions|installed-list|installed-get|runtime-list|probe|create|create-version|save-dev|configure|enable|disable|upgrade|uninstall> [pluginId] [version] [options]' },
+  solution_template: {
+    description: '독립 로컬 Agent용 템플릿 검색, 클라우드 AI 구축 링크 및 직접 활성화',
+    local_agent_only: '템플릿 명령은 확인된 독립 로컬 Agent 전용입니다. 클라우드에서는 기존 템플릿 AI 구축을 계속하세요.',
+    usage: "Usage: openyida solution-template search [--query <text>] [--scene <scene>] [--industry <industry>] [--page <n>] [--size <n>] [--json]\n       openyida solution-template detail <TPL_...> [--json]\n       openyida solution-template prepare <TPL_...> --name <appName> [--with-data y|n] [--request-id <id>] [--json]\n       openyida solution-template ai-build <TPL_...> [--json]\n       openyida solution-template enable <TPL_...> --name <appName> [--with-data y|n] [--request-id <id>] [--retry] [--wait <0-60>] [--json]\n       openyida solution-template status <requestId> [--wait <0-60>] [--json]",
+    failed: 'Solution Center template operation stopped: {0}',
+    ai_build_handoff: 'The template supports native AI build. Add customization requirements and submit them in the native builder. This receipt does not mean an app exists.',
+    no_progress_api: 'The platform currently exposes no pollable percentage progress. The request receipt and app-list readback are preserved, but resubmission is still unsafe.',
+    platform_decides: "Permissions and entitlements are decided by the platform when enabling. Template source availability does not confirm authorization.",
+    rejected: "The platform rejected this attempt. The platform reason is preserved. A new submission requires an explicit retry; OpenYida does not change permissions or entitlements.",
+    pending: "The application is not visible yet. The request is preserved; check its status to continue without submitting again.",
+    accepted: "The platform accepted the request. Checking for the application entry.",
+    waiting: "Waiting for the application to appear. Only checking status; no new copy request is sent.",
+    no_longer_visible: "This application was verified previously but is not visible in the current query. Creation history is preserved; current access is not confirmed.",
+    readback_failed: "The application query failed. The request and platform reason are preserved; check status again without resubmitting.",
+  },
+  print_template: {
+    "description": "Manage native YiDA print templates, generate document layouts, back up, restore and request PDFs",
+    "error": "Print template operation failed: {0}",
+    "usage": "Usage: openyida print-template <list|inspect|fields|build|create|copy|save|restore|settings|status|order|render|files> <appType> <formUuid> [templateId]. See the print-template skill for action-specific flags and examples."
+},
   custom_button: {
     "usage": "Usage: openyida custom-button <list|inspect|options|create|update|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]",
     "invalid_config": "잘못된 설정 또는 인수: {0}",
@@ -15,8 +52,9 @@ module.exports = {
     "limit": "양식당 최대 10개의 버튼을 지원합니다.",
     "readback_mismatch": "저장 내용과 재조회 결과가 다릅니다. 백업을 보관하고 원격 상태를 확인하세요."
   },
+  form_message: {"usage":"Usage: openyida form-message <list|inspect|options|create|update|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]","invalid_config":"Invalid form message configuration or argument: {0}","invalid_response":"Incomplete platform form-message response: {0}","api_error":"Form message API failed: {0}. Check login, permissions and edition availability.","not_found":"The message notification does not exist in the target form: {0}","conflict":"The notification changed. Inspect again before saving.","unsupported_trigger":"Writes are not verified for this trigger: {0}.","unsupported_form":"Writes are not verified for this form type: {0}.","readback_mismatch":"Saved notification does not match readback. Keep the backup and inspect remote state."},
   dws_external: {"note": "dws is an independent external tool. OpenYida only shows installation instructions; it does not download or install it.", "install_guide": "Show official DingTalk CLI installation instructions"},
-  cool_card: {"description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
+  cool_card: {"unsupported_environment": "Alibaba Group 버전은 쿨 카드 생성을 지원하지 않습니다.", "description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
   data_card: {"description":"Create, read, save drafts and publish native YiDA data cards","usage":"Usage: openyida data-card <list|create|get|save|publish|probe|release-get|release-save|release-check|release-test|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]","failed":"Native data card operation stopped: {0}","conflict":"The draft changed. Read it again before saving or publishing.","mismatch":"Readback does not match the expected schema or published state. Keep the backup and inspect the card before retrying."},
   app_settings: {"description":"Read theme, frontend/backend, native data card and cool card management links","usage":"Usage: openyida app-settings <appType> [--section theme|basic|data-card|cool-card] [--json]","failed":"Application settings could not be read: {0}"},
   form_view: {
@@ -35,7 +73,10 @@ module.exports = {
   integration_update_v2: {"usage": "integration update <appType> <formUuid> <processCode> --patch patch.json [--dry-run] [--expect fingerprint] [--publish]"},
 
   conditional_actors: { unavailable: 'Conditional actors are unavailable or could not be verified.', invalid: 'Invalid conditional actors: {0}' },
-  integration_triggers: { invalid: 'Invalid automation trigger: {0}' },
+  integration_triggers: {
+    invalid: 'Invalid automation trigger: {0}',
+    end_required: '타이머 종료 조건을 선택하세요. 실행 횟수는 schedule.maxCount(1–100), 지정 시간은 schedule.expireDate(종료 시각의 밀리초)를 설정합니다. 장기 실행은 먼 미래의 종료일을 선택하고 설정 요약에 실제 날짜를 표시하세요.',
+  },
   permission_conditions: { invalid: 'Invalid permission conditions: {0}' },
   theme_source: { conflict: 'The theme source differs from the existing CSS or cannot be verified. Generate to a new output path, review and migrate project customizations before replacing the original file.' },
   app_entry: {
@@ -86,12 +127,14 @@ module.exports = {
   },
   help: {
     cmd_custom_button: "사용자 지정 버튼: 양식 편집, 자동화 흐름 및 페이지 링크 설정",
+    cmd_form_message: "Native form notifications: triggers, recipients and templates",
     cmd_check_design: '디자인 문서, 테마 변수 및 PRD 인계 검증',
     subtitle: 'Yida 로우코드 AI 개발 도구',
     usage: '사용법:',
     alias: '별칭:',
     group_auth: '환경 & 인증',
     cmd_login: 'Login with OAuth token mode',
+    cmd_login_qwenwork: 'Log in to YiDA with a one-time QwenWork exchange ticket',
     cmd_logout: '로그아웃 / 계정 전환',
     cmd_auth: '로그인 상태 관리',
     cmd_org: '조직 관리 (목록 / 전환)',
@@ -420,7 +463,7 @@ module.exports = {
     save_permission_usage: 'Usage: openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>] [--package-type <FORM_PACKAGE_VIEW|FORM_PACKAGE_START>]',
     save_permission_example: `Example: openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ Execution failed: {0}',
-    login_usage: 'Usage: openyida login [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
+    login_usage: 'Usage: openyida login [--qwenwork] [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
     login_example: 'Examples:\n  openyida login                         # Automatically open the browser via OAuth loopback login\n  openyida login --no-browser            # Let the caller handle the authorization URL\n  openyida login --check-only --json     # Check token auth status only\n  openyida login --intl                  # Login against the international environment\n  OPENYIDA_NO_BROWSER=1 openyida login   # Let the caller handle the authorization URL via env variable\n  openyida auth login                    # Login alias',
     login_unsupported_option: 'Removed legacy login option is no longer supported: {0}. Use token/OAuth login; host-injected mode only checks the injected token.',
     first_run_title: '  🤖 OpenYida - AI Conversation Mode Activated!               ',
@@ -441,7 +484,7 @@ module.exports = {
     first_run_footer1: '  Supported AI tools: Codex / Claude Code / Cursor / OpenCode',
     first_run_footer2: '  📚 Docs: https://github.com/openyida/openyida',
     first_run_footer3: '  (This guide only shows on first run. Use openyida --help to see all commands)',
-    auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch>',
+    auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
     auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
     org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>]',
     org_example: 'Examples:\n' +
@@ -753,6 +796,7 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    modern_theme_unverified: "앱이 생성되었지만 새 테마 설정을 확인하지 못했습니다. 반환된 앱 ID를 확인하세요. 앱을 다시 만들거나 이전 테마로 전환하지 마세요.",
     update_only_option: '{0}은 업데이트 전용 옵션입니다. 앱을 만든 후 openyida update-app <appType>을 사용하세요.',
     title: '  create-app - Yida 앱 생성 도구',
     usage: '사용법: openyida create-app "<앱 이름>" 또는 openyida create-app --name "<앱 이름>" [--desc "..."]',
@@ -1062,7 +1106,7 @@ module.exports = {
   },
   import_example2: '      openyida import ./yida-export.json "Quality Traceability System (Production)"',
   exec_failed: '\n❌ Execution failed: {0}',
-  auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch>',
+  auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
   auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
   org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>]',
   org_example: 'Examples:\n' +
@@ -1130,6 +1174,7 @@ module.exports = {
     custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: '프리셋 colour는 CSS 또는 themeColor와 함께 사용할 수 없습니다. --colour custom을 사용하거나 --colour를 생략하세요.',
     custom_theme_color_required: 'colour=custom에는 테마 파일 또는 유효한 themeColor가 필요합니다. --theme-file 또는 --theme-color를 지정하세요.',
+    theme_configuration_incomplete: '테마 설정이 미완료입니다. themeCompletion에서 모드와 누락된 설정을 확인하세요.',
     theme_not_persisted: '저장 후 앱 테마 설정을 확인하지 못했습니다. themeVerification을 확인하고 update-app <appType> --theme-file <css>로 다시 시도하세요. 앱을 다시 만들지 마세요.',
     navigation_not_persisted: "내비게이션 설정을 다시 읽지 못했거나 요청한 값과 다릅니다. navigationVerification의 예상값, 실제 값, 조회 오류를 확인한 다음 현재 앱 설정을 확인하세요.",
     usage: 'Usage: openyida update-app <appType> [--name "New Name"] [--desc "Description"] [--layout slide|ver] [--theme deepBlue]',
@@ -1426,6 +1471,10 @@ module.exports = {
     lint_setstate_non_timestamp: 'this.setState가 timestamp가 아닌 필드를 씁니다. 사용자 정의 페이지의 비즈니스 상태는 _customState에 두고 forceUpdate()/setCustomState()로 업데이트해야 합니다. this.setState는 timestamp 계약 필드만 담아야 합니다',
     lint_self_binding_missing: 'renderJsx가 var self = this; 선언 없이 this를 사용합니다. renderJsx 상단에 var self = this;를 추가하고 closures/callbacks 안에서는 self를 사용해 this 손실을 피하세요',
     lint_echarts_dom_ready: 'echarts.init이 setTimeout으로 감싸져 있지 않습니다. 컨테이너가 아직 마운트되지 않아 차트가 렌더링되지 않을 수 있습니다. setTimeout(function(){ /* echarts.init */ }, 300)을 사용하세요',
+    lint_resize_observer_cleanup: 'ResizeObserver에 disconnect()/unobserve() 정리가 없습니다. 언마운트 정리에서 observer를 해제하세요.',
+    lint_responsive_viewport_only: '레이아웃이 뷰포트 너비만 따르므로 좁은 사이드바, 드로어 또는 iframe에서 축소되지 않을 수 있습니다. @container 또는 정리되는 ResizeObserver를 사용하세요. 의도된 경우 openyida-responsive-viewport-ok를 추가하세요.',
+    lint_responsive_fixed_width: '%spx 고정 너비는 좁은 컨테이너에서 넘칠 수 있습니다. max-width, minmax(0, 1fr) 또는 로컬 스크롤을 사용하세요. 고정 캔버스라면 openyida-responsive-fixed-width-ok를 추가하세요.',
+    lint_responsive_page_scale: '페이지 전체 scale/zoom이 감지되었습니다. 글자와 클릭 영역을 유지하며 재배치하세요. 로컬 시각화라면 openyida-responsive-scale-ok를 추가하세요.',
     lint_yida_api_catch: 'this.utils.yida API 호출에 .catch()가 감지되지 않았습니다. 오류 처리를 추가하고 사용자에게 toast를 표시하세요',
     lint_echarts_legacy_map_china: 'ECharts 5는 더 이상 echarts/map/js/china.js를 지원하지 않습니다. 대신 DataV GeoJSON을 로드하고 echarts.registerMap("china", geoJson)을 호출하세요',
     lint_echarts_rich_label_formatter: 'ECharts label.formatter가 반환하는 rich text 템플릿은 Yida 사용자 정의 페이지에서 불안정합니다. 일반 formatter 문자열이나 미리 계산한 라벨 텍스트를 권장합니다',
@@ -2220,6 +2269,16 @@ module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
 module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
 module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;
 
+Object.assign(module.exports.process_tasks || (module.exports.process_tasks = {}), {
+  arguments_invalid: '잘못된 인수입니다. query에는 appType과 --process-inst-id가, transfer에는 --form-uuid, --to-user-id, --expect-form-name, --expect-form-type process가 추가로 필요합니다. taskId는 양의 정수여야 하며 알 수 없는 옵션은 지원하지 않습니다.',
+  query_failed: '프로세스 작업 조회에 실패했습니다. 이전은 실행되지 않았습니다.',
+  response_invalid: '작업 응답 구조, 작업 ID 또는 프로세스 소속을 확인할 수 없습니다.',
+  not_running: '대상 프로세스에 지정된 실행 중 작업이 없습니다. 이전은 실행되지 않았습니다.',
+  ambiguous: '실행 중인 작업이 여러 개입니다. 목록을 조회하고 --task-id를 지정하세요. 이전은 실행되지 않았습니다.',
+  rejected: '플랫폼이 관리자 이전을 거부했습니다. 권한과 작업 상태를 확인하세요.',
+  result_unknown: '이전 결과를 알 수 없습니다. nextStep으로 읽기 조회하세요. 이전을 자동 재시도하지 마세요.',
+  unverified: '이전 요청은 수락되었지만 수신자를 재조회로 확인하지 못했습니다. nextStep으로 확인하고 자동 재시도하지 마세요.',
+});
 module.exports.data_manage_style = {
   'usage': 'openyida data-manage-style guide [--json]\nopenyida data-manage-style list [--json]\nopenyida data-manage-style generate --app APP_ID --form FORM-ID --style <id> --base-css <snapshot/theme.css> --output <new.css> [--focus balanced|actions] [--field-id <actualId>]... [--emphasize-field <actualId>]... [--tag-field <selectFieldId>]... [--follow-shell] [--json]',
   'data_style_invalid': '잘못된 스타일 인수입니다. 실제 ID와 목록의 스타일을 사용하세요.',
@@ -2312,6 +2371,26 @@ Object.assign(module.exports.formula_v2, {"parallel_formula": "병렬 분기에�
 Object.assign(module.exports.formula_v2, {"conversion_empty":"수식 결과가 대상 필드 변환 후 빈 값이 되었습니다. 날짜에는 TIMESTAMP(날짜 수식)를 사용하고 원래 값과 유형을 확인하세요.","result_missing":"요청은 완료되었지만 대상 필드 값이 없습니다. 날짜에는 일반적으로 TIMESTAMP(날짜 수식)가 필요합니다.","conversion_partial":"숫자가 일부만 변환되었거나 유한수가 아닙니다. 완전한 숫자나 밀리초 타임스탬프를 반환하세요.","target_branches":"반환 유형 {0} 중 일부는 {1}과 맞지 않습니다. 각 분기를 시험하세요.","date_timestamp":"날짜 객체와 저장 값은 다릅니다. 일반적으로 TIMESTAMP(날짜 수식)로 밀리초를 반환하세요.","numeric_result_text":"결과가 텍스트일 수 있습니다. --field로 각 분기의 빈 값과 부분 숫자 변환을 확인하세요."});
 
 module.exports.feedback_report = {
+  body: {
+    summary: '하려던 작업',
+    actual: '실제로 발생한 일',
+    expected: '기대하는 결과',
+    incident: '문제 발생 당시 환경',
+    command: '관련 작업',
+    steps: '재현 방법',
+    impact: '영향',
+    evidence: '관찰한 증거',
+    attempts: '시도한 방법과 결과',
+    cause: '원인과 확신 수준',
+    cause_evidence: '판단 근거',
+    next: '다음 확인',
+    screenshots: '스크린샷',
+    review_image: '공유 전에 이미지를 확인하세요',
+    limitations: '미검증 범위',
+    generator: '보고서 생성 환경(문제 발생 당시 환경이 아님)',
+    unknown: '알 수 없음 / 미확인',
+    draft: '로컬 초안이며 아직 제출되지 않았습니다. 공개 전에 글과 이미지에서 고객 데이터, 인증 정보 및 내부 정보를 확인하세요.',
+  },
   comparison: 'Test pass/fail requires a command, actual result and evidence.',
   screenshots: 'Choose at most five PNG/JPEG/WebP screenshots of at most 10 MiB each.',
   text: 'Feedback text fields must be strings of at most 12000 characters.',
@@ -2397,3 +2476,35 @@ module.exports.task_center = {
   'filter_carbonCreateFrom': 'Copied from',
   'filter_carbonCreateTo': 'Copied to'
 };
+
+module.exports.feedback_github = {
+  setup_inspect_installation: '설치 결과를 확인하지 못했습니다. gh --version, 패키지 관리자 상태 또는 터미널 재시작 후 확인한 다음 재시도를 결정하세요. 초안은 유지합니다.',
+  setup_check_execution: 'gh 를 실행할 수 없습니다. 실행 권한이나 로컬 환경을 확인하고 자동 재설치나 계정 변경은 하지 마세요.',
+  setup_confirm_install: 'GitHub CLI 를 설치할 수 있습니다. 계획을 설명하고 동의받은 뒤 openyida feedback github setup --install --confirm --json 을 실행하세요. 웹도 사용할 수 있습니다.',
+  setup_manual_install: '자동 설치를 사용할 수 없습니다. 공식 안내, 기존 커넥터 또는 웹을 사용하고 초안을 유지하세요.',
+  setup_ready: 'GitHub CLI 와 현재 계정을 확인했습니다. 원래 초안을 이어가고 제출 전에 공개 내용과 필요한 권한을 확인하세요.',
+  setup_browser_login: 'GitHub CLI 를 사용할 수 있으며 로그인이 필요합니다. 동의를 받은 뒤 브라우저 인증을 안내하고 setup --json 으로 다시 확인하세요.',
+  setup_check_account: 'GitHub CLI 는 사용 가능하지만 계정은 미확인 상태입니다. 네트워크, 인증 또는 호출 제한을 확인하고 계정이 없다고 판단하거나 재설치하지 마세요.',
+  setup_consent: '패키지 관리자의 기본 위치에 GitHub CLI 와 필요한 의존성을 설치하는 데 동의한 경우에만 --install --confirm 을 사용하세요. Windows 에서는 WinGet 소스 및 소프트웨어 약관에 동의하며 사용자의 시스템 권한 승인이 필요할 수 있습니다. 관리자 도구 설치, 권한 상승, 로그인은 자동으로 하지 않습니다.',
+  setup_privacy: '설치 동의는 공개 동의가 아닙니다. 사용자가 브라우저에서 인증하며 비밀번호, 코드, Token 을 요구하지 않습니다. gh 가 자격 증명을 안전하게 저장하지 못하면 웹이나 안전한 커넥터를 사용하고 계정 및 도구 진단은 보고서에 넣지 않습니다.',
+  usage: 'Usage: openyida feedback github setup [--install --confirm] [--json]; openyida feedback github <status|star|fork> [--confirm] [--json]',
+  confirmation: 'Star or Fork requires the user to explicitly choose that action before --confirm. Neither is required to submit an Issue.',
+  failed: 'The GitHub action could not be verified. Inspect its status before retrying; this does not block Issue submission.',
+};
+
+module.exports.process_dynamic_actors = { invalid: "프로세스 담당자 설정이 잘못되었습니다. details.reason, 선택 범위 및 실제 구성원 필드를 확인하세요." };
+
+module.exports.permission_guidance = {
+  platform_access_link: 'YiDA 사용 권한 요청',
+  create_app_link: 'YiDA 앱 생성 권한 요청',
+  platform_access: '현재 계정에는 이 조직에서 YiDA를 사용할 권한이 없습니다.',
+  create_app: '현재 계정에는 이 조직에서 앱을 만들 권한이 없습니다.',
+  unknown: '권한이 거부되었으며 권한 유형은 확인되지 않았습니다. 관리자에게 문의하고 작업을 일시 중지하세요.',
+  next_step: '권한 요청 페이지를 여세요: [{0}]({1}). 처리 후 현재 조직과 권한을 확인한 다음 계속하세요.',
+};
+
+Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
+  edit_context_unverified: '이 계정과 레코드의 편집 가능한 필드를 확인할 수 없습니다. 업데이트를 보내지 않았습니다. 기본 편집기에서 권한을 확인하세요.',
+  fields_not_editable: '편집할 수 없거나 편집 가능 여부를 확인할 수 없는 필드가 있습니다: {0}. 업데이트를 보내지 않았습니다. 동적 동작이나 제한된 하위 폼은 기본 편집기를 사용하세요.',
+  form_update_forbidden: '이 데이터를 변경할 권한이 없습니다.',
+});

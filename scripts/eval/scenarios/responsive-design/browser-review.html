@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>响应式生成对照验收</title>
+<style>
+  body { margin: 20px; font: 14px/1.5 system-ui; color: #253248; background: #f4f6f9; }
+  header { max-width: 1200px; margin-bottom: 16px; }
+  button, select, input { font: inherit; padding: 8px; margin: 4px; }
+  iframe { display: block; width: 1280px; height: 900px; border: 1px solid #aab6c6; background: white; }
+  pre { white-space: pre-wrap; max-width: 1500px; overflow-wrap: anywhere; }
+</style>
+<header>
+  <h1>响应式生成对照验收</h1>
+  <p>这是本地生成原型。宽度检查不代表真机触控、软键盘或宜搭运行态通过；设计与业务操作需逐项评审。</p>
+  <label>生成页面 <select id="case"></select></label>
+  <label>视口宽度 <input id="width" type="number" value="1280" min="320" max="1600"></label>
+  <label>内容宽度 <input id="content" type="number" value="0" min="0" max="1600"></label>
+  <button id="resize">调整宽度（0表示自然宽度）</button>
+  <button id="run">检查所有页面宽度与输入保留</button>
+  <button id="download">下载检查记录</button>
+  <p id="progress" role="status">正在读取生成记录</p>
+  <pre id="criteria"></pre>
+</header>
+<iframe id="preview" title="生成原型" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+<details><summary>浏览器测量结果</summary><pre id="results"></pre></details>
+<script>
+  const frame = document.querySelector('#preview');
+  const picker = document.querySelector('#case');
+  const progress = document.querySelector('#progress');
+  const output = document.querySelector('#results');
+  const baseWidths = [360, 599, 600, 601, 767, 768, 769, 1023, 1024, 1025, 1280, 1600];
+  let rows = [], measurements = [], scenarios = [];
+  const settle = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  async function load(id) {
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('页面加载超时：' + id)), 30000);
+      frame.onload = () => { clearTimeout(timer); resolve(); };
+      frame.src = id + '.html';
+    });
+    await settle();
+  }
+  async function resize(viewport, content) {
+    frame.style.width = viewport + 'px';
+    const app = frame.contentDocument.querySelector('#app');
+    if (!app) throw new Error('缺少 #app 内容容器');
+    app.style.width = content ? content + 'px' : '';
+    app.style.maxWidth = content ? 'none' : '';
+    await settle();
+  }
+  function measure(id, mode, requested, expectedValue) {
+    const doc = frame.contentDocument;
+    const app = doc.querySelector('#app');
+    const primary = doc.querySelector('[data-eval-primary]');
+    const input = doc.querySelector('[data-eval-state]');
+    const root = doc.documentElement;
+    const rect = app.getBoundingClientRect();
+    const action = primary && primary.getBoundingClientRect();
+    return { id, mode, requested, viewport: root.clientWidth, container: Math.round(rect.width),
+      containerFitsRequested: mode !== 'embedded' || rect.width <= requested + 1,
+      pageOverflow: root.scrollWidth > root.clientWidth + 1,
+      containerOverflow: app.scrollWidth > app.clientWidth + 1,
+      inputPreserved: !!input && input.value === expectedValue,
+      primaryVisible: !!action && action.width > 0 && action.height > 0
+        && frame.contentWindow.getComputedStyle(primary).visibility !== 'hidden',
+      primaryWithinViewportX: !!action && action.left >= -1 && action.right <= root.clientWidth + 1,
+      primaryInFirstScreen: !!action && action.top >= 0 && action.bottom <= frame.clientHeight };
+  }
+  async function show() {
+    await load(picker.value);
+    await resize(Number(document.querySelector('#width').value), Number(document.querySelector('#content').value));
+    document.querySelector('#criteria').textContent = rows.find(row => row.id === picker.value).review.join('\n');
+  }
+  picker.onchange = () => show().catch(error => { progress.textContent = error.message; });
+  document.querySelector('#resize').onclick = () => resize(Number(document.querySelector('#width').value),
+    Number(document.querySelector('#content').value)).catch(error => { progress.textContent = error.message; });
+  document.querySelector('#run').onclick = async () => {
+    measurements = [];
+    document.querySelector('#run').disabled = true;
+    try {
+      for (const row of rows) {
+        progress.textContent = '检查 ' + row.id;
+        await load(row.id);
+        const input = frame.contentDocument.querySelector('[data-eval-state]');
+        if (!input) throw new Error(row.id + ' 缺少原有输入标记');
+        const value = scenarios.find(scenario => scenario.id === row.scenario)?.stateValue;
+        if (!value) throw new Error(row.id + ' 缺少有效状态测试值');
+        input.value = value;
+        input.dispatchEvent(new frame.contentWindow.Event('input', {bubbles:true}));
+        input.dispatchEvent(new frame.contentWindow.Event('change', {bubbles:true}));
+        const styles = [...frame.contentDocument.querySelectorAll('style')].map(el => el.textContent).join('\n');
+        const thresholds = [...styles.matchAll(/@(?:container|media)[^{]*\{/g)].flatMap(rule =>
+          [...rule[0].matchAll(/(?:min|max)-width\s*:\s*([\d.]+)px/g)].flatMap(match => {
+            const point = Number(match[1]); return [point - 1, point, point + 1];
+          }));
+        const widths = [...new Set([...baseWidths, ...thresholds.filter(x => x >= 320 && x <= 1600)])].sort((a,b) => a-b);
+        for (const width of widths) {
+          await resize(width, 0);
+          measurements.push(measure(row.id, 'viewport', width, value));
+        }
+        for (const width of [360, 600, 768, 1024]) {
+          await resize(1600, width);
+          measurements.push(measure(row.id, 'embedded', width, value));
+        }
+        await resize(1280, 0);
+        measurements.push(measure(row.id, 'restored', 1280, value));
+      }
+      const failures = measurements.filter(x => x.pageOverflow || x.containerOverflow || !x.containerFitsRequested || !x.inputPreserved || !x.primaryVisible || !x.primaryWithinViewportX);
+      progress.textContent = `完成 ${measurements.length} 次测量，${failures.length} 项需检查；交互与设计另行评审`;
+    } catch (error) { progress.textContent = '检查未完成：' + error.message; }
+    finally {
+      output.textContent = JSON.stringify(measurements, null, 2);
+      document.querySelector('#run').disabled = false;
+      await show();
+    }
+  };
+  document.querySelector('#download').onclick = () => {
+    const blob = new Blob([output.textContent], {type:'application/json'});
+    const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'browser-measurements.json';
+    link.click(); URL.revokeObjectURL(link.href);
+  };
+  Promise.all([fetch('generation-report.json').then(r => r.json()), fetch('cases.json').then(r => r.json())]).then(async ([report, cases]) => {
+    scenarios = cases;
+    rows = report.results.filter(row => row.status === 'generated');
+    rows.forEach(row => { const option = document.createElement('option'); option.value = row.id; option.textContent = row.id; picker.append(option); });
+    if (!rows.length) throw new Error('没有成功生成的页面');
+    await show(); progress.textContent = '已载入 ' + rows.length + ' 个原型；可选择页面或运行宽度检查';
+  }).catch(error => { progress.textContent = error.message; });
+</script>
+</html>

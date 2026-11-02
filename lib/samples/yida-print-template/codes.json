@@ -1,0 +1,12 @@
+{
+  "document": {
+    "title": "订单扫码核验单",
+    "blocks": [
+      { "type": "fields", "fields": ["订单编号"] },
+      { "type": "heading", "text": "订单二维码" },
+      { "type": "qrcode", "field": "订单编号", "width": 128, "height": 128 },
+      { "type": "heading", "text": "订单条形码" },
+      { "type": "barcode", "field": "订单编号", "width": 320, "height": 100 }
+    ]
+  }
+}

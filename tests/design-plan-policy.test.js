@@ -2,6 +2,8 @@
 
 const { confirmationPayload, confirmationHandoff } = require('../lib/design-plan/confirmation');
 const { getVisualDecisionPolicy } = require('../lib/design-plan/visual-policy');
+const fs = require('fs');
+const path = require('path');
 
 const snapshot = 'prd/example/build-plan-content-hash.html';
 const outputs = { html: 'prd/example/build-plan.html', confirmationHtml: snapshot };
@@ -22,6 +24,26 @@ test('confirmation payload uses the immutable snapshot and keeps policy outside 
   expect(result.confirmationPolicy.unavailable).toMatch(/awaiting_confirmation.*Do not.*prose approval.*switch to Fast/);
   expect(result.confirmationPolicy.reuse).toMatch(/same-plan approval.*recovery or asset progress/);
   expect(result.confirmationPolicy.reuse).toContain('Fast adds no Plan approval');
+});
+
+test.each([
+  { QWENWORK: '1' },
+  { QWENWORKCN_INTEGRATION_MODE: 'desktop' },
+  { QODER_WORK_INTEGRATION_PRODUCT: 'qwenworkcn', QODERCLI_INTEGRATION_MODE: 'qoder_work' },
+])('QwenWork receives the same snapshot confirmation contract as other hosts: %j', env => {
+  expect(confirmationHandoff(outputs, '2', { env })).toEqual({
+    confirmation: confirmationPayload(outputs, '2'),
+    confirmationPolicy: require('../lib/design-plan/confirmation').confirmationPolicy,
+  });
+});
+
+test.each([{}, { CODEX_THREAD_ID: 'thread' }, { CLAUDE_CODE: '1' },
+  { QODERCLI_INTEGRATION_MODE: 'qoder_work' }, { __CFBundleIdentifier: 'com.qoder.ide' },
+])('other hosts keep their confirmation contract unchanged: %j', env => {
+  expect(confirmationHandoff(outputs, '2', { env })).toEqual({
+    confirmation: confirmationPayload(outputs, '2'),
+    confirmationPolicy: require('../lib/design-plan/confirmation').confirmationPolicy,
+  });
 });
 
 test.each([
@@ -68,6 +90,28 @@ test('unmapped style intent and image/site references are resolved before condit
   expect(policy.themeSelection.intent.referenceVisual.policy).toContain('not its filename or OCR alone');
   expect(policy.themeSelection.intent.referenceVisual.policy).toContain('distinguish observations from inferred values');
   expect(policy.themeSelection.intent.referenceVisual.policy).toContain('Data links and bug screenshots alone are not style preferences');
+});
+
+test.each([undefined, { themeId: 'app-sage', source: 'user_explicit' }])(
+  'explicit style and color instructions take priority over template color frequency: %j', selection => {
+    const { policy } = getVisualDecisionPolicy(selection).themeSelection.intent;
+    expect(policy).toContain('Honor the latest explicit style and color instructions and preserve the selected theme');
+    expect(policy).toContain('Apply requested colors through project tokens while preserving theme structure');
+    expect(policy).toContain('Avoid black, dark gray or gray-black as the default primary color for ordinary apps');
+    expect(policy).toContain('Use black only for explicit dark-mode, high-contrast, luxury-brand or minimal-black intent');
+    expect(policy).toContain('Template examples, frequency and order never make green or blue a default');
+    expect(policy).toContain('CRM or inventory labels do not determine color');
+    expect(policy).toContain('actual tasks, brand evidence, reading conditions and status semantics');
+  });
+
+test('creation guidance derives navigation from the chosen theme and honors user colors', () => {
+  const create = fs.readFileSync(path.join(__dirname, '../yida-skills/skills/yida-create-app/SKILL.md'), 'utf8');
+  expect(create).toContain('`--nav-theme` 显式取 design.md 的 `themeProfile.navTheme`');
+  expect(create).toContain('主色遵从用户最新指定的颜色、风格及已选主题');
+  expect(create).toContain('默认不要把黑色、深灰或灰黑中性色作为普通应用主题色');
+  expect(create).toContain('`black` 仅在用户明确要求暗色模式、高对比、奢侈品牌或极简黑色视觉时使用');
+  expect(create).not.toContain('--nav-theme light --logo-source appIcon');
+  expect(create).not.toContain('`greyBlue` 也只在工业制造');
 });
 
 

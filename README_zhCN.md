@@ -137,6 +137,12 @@ openyida login --check-only --json
 openyida auth status
 ```
 
+在千问办公网页态中，`openyida login --qwenwork --json`（或普通 `login`）复用沙箱身份登录宜搭。免登认证失败后，同一命令回退普通 OAuth；按输出的授权链接完成授权并等待命令结束。桌面与其他宿主保持各自登录路径。
+
+免登支持钉钉组织、千问办公组织、ODS 和个人空间，会话保留服务端身份分类、业务域名及刷新凭据；历史会话默认按钉钉组织处理。JSON 错误提供有界诊断，不输出凭据或完整响应正文。
+
+云端宿主身份诊断使用 `openyida auth qwenwork user-info --json`。该命令沿用旧协议，仅输出身份与 scope，不打印或保存凭据，不生成或验证宜搭登录态；千问组织 ID 不能直接作为宜搭 `corpId`。请用 `openyida login --check-only --json` 检查宜搭会话，认证行为见[千问登录指引](yida-skills/references/qwenwork-cloud-login.md)。
+
 如果当前项目要复用已有共享登录 profile，先切换已有 profile，不要直接发起新的 OAuth 登录：
 
 ```bash
@@ -324,6 +330,10 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 报告摘要由 AI 根据当前证据整理，也可加入用户明确选择的复现截图；PR 附修复前后测试对比。提交前会展示最终正文和图片，确认有无敏感信息或不想公开的内容，允许删改后再提交。输入格式见 [反馈报告说明](yida-skills/skills/yida-feedback/references/report-input.md)。分享前请检查业务信息。有 GitHub 账号时，可授权 AI 帮助提交 Issue；修复公开 OpenYida 代码或技能时，通过你自己的 Fork 提交 PR。无账号时先引导创建 GitHub 账号；实在不行，反馈到AI开发者群。
 
+需要配置提交工具时，AI 可先执行 `openyida feedback github setup --json`，检测 gh 和当前账号；用户同意安装计划后再执行 `openyida feedback github setup --install --confirm --json`。macOS/Linux 复用已有 Homebrew，Windows 复用已有 WinGet；没有支持的包管理器时提供官方说明或网页方式。安装后单独引导用户在浏览器授权，不自动登录、不获取密码或 Token，安装同意也不代替公开内容确认。工具就绪后继续原草稿，详见[账号与工具准备](yida-skills/skills/yida-feedback/references/github-setup.md)。
+
+准备 PR 需核实个人 Fork，或用户主动询问支持项目时，反馈 Skill 可通过 `openyida feedback github status --json` 检查当前账号的 Star 和个人 Fork 状态。Star/Fork 均为可选项，明确选择后才执行 `feedback github star --confirm` 或 `feedback github fork --confirm`，已有操作直接复用。检查不在安装或自动更新中触发，两项操作都不是提交 Issue 的前提。
+
 <!-- OPENYIDA_COMMANDS_START -->
 <!-- 本节由 `npm run docs:commands` 自动生成，请勿手动编辑命令行。 -->
 
@@ -331,9 +341,9 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 | 命令 | 说明 |
 |------|------|
-| `openyida login [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
+| `openyida login [--qwenwork] [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
 | `openyida logout` | 退出登录 / 解绑当前项目登录态 |
-| `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch>` | token 登录态与 profile 管理 |
+| `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch\|qwenwork user-info> [--json]` | token 登录态与 profile 管理 |
 | `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | 组织管理（列表 / 优先按已有 profile 切换） |
 | `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | 检测 AI 工具环境和 token 登录态 |
 
@@ -344,9 +354,11 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida app-settings <appType> [--section theme\|basic\|data-card\|cool-card] [--json]` | 获取主题、业务前后台、原生数据卡片和酷卡片管理入口 |
 | `openyida cool-card <list\|templates\|create\|get> <appType> [cardPageCode] [--type im\|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]` | 创建和读取宜搭原生酷卡片（交互卡片与置顶卡片） |
 | `openyida data-card <list\|create\|get\|save\|publish\|probe\|release-get\|release-save\|release-check\|release-test\|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>\|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published\|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]` | 创建、配置、发布原生数据卡片并管理投放播报 |
+| `openyida plugin <dev-list\|get\|version-list\|version-get\|extensions\|installed-list\|installed-get\|runtime-list\|probe\|create\|create-version\|save-dev\|configure\|enable\|disable\|upgrade\|uninstall> [pluginId] [version] [options]` | 管理宜搭平台插件开发版本、安装状态与运行时注册 |
 | `openyida app-entry get <appType> [--json]` | 读取应用前台和业务工作台入口 |
 | `openyida app-entry set <appType> [--frontend <url>\|--frontend-page <formUuid>] [--management <url>\|--management-page <formUuid>] [--clear-frontend] [--clear-management] [--json]` | 登记应用访问入口（局部更新并回读） |
 | `openyida app-list [--type managed\|created] [--page N] [--size N]` | 分页查询我管理的或我创建的应用 |
+| `openyida solution-template <search\|detail\|prepare\|ai-build\|enable\|status> [templateId\|requestId] [options] [--json]` | 独立本地 Agent 的方案模板查询、云端 AI 搭建入口与直接启用 |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | 查询企业效能概览和明细报表 |
 | `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建宜搭应用 |
 | `openyida design-plan catalog [--json]` | 查询规划可用的主题与页面模式 |
@@ -387,8 +399,10 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | 更新表单页面 |
 | `openyida list-forms <appType> [--keyword <text>]` | 列出应用下的表单/页面 |
 | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | 管理聚合表（virtualView） |
+| `openyida print-template <list\|inspect\|fields\|build\|create\|copy\|save\|restore\|settings\|status\|order\|render\|files> <appType> <formUuid> [templateId] [--config <file>] [--scene <order\|quotation\|delivery\|receipt\|approval\|codes>] [--bindings <file>] [--name <title>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--status START\|STOP] [--instance <id>] [--page <n>] [--size <n>] [--allow-permission-change] [--json] \| print-template <list\|render> --detail-url <url> [--template-id <id>] [--json]` | 管理宜搭原生打印模板、按字段生成多种单据、备份恢复与生成PDF |
 | `openyida form-view <list\|inspect\|save\|create\|order> <appType> <formUuid> [viewUuid] [--config <file>] [--name <title>] [--with-config] [--expected-hash <hash>] [--backup <file>] [--replace] [--json]` | 原生表单视图：查询、检查并配置显示列、列宽、冻结列和筛选 |
 | `openyida custom-button <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | 原生自定义按钮：查询、配置填写表单、自动化流及页面跳转 |
+| `openyida form-message <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | 原生表单消息通知：查询触发、接收对象与模板并安全维护配置 |
 | `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | 获取单个或全部表单 Schema |
 | `openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]` | 检查资源数量、前台菜单隐藏及应用主题同步 |
 | `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | 检查设计文档、主题变量与 PRD 交接 |
@@ -405,8 +419,8 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 | 命令 | 说明 |
 |------|------|
-| `openyida data <query\|get\|create\|update> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | 统一数据管理（表单/流程/任务/子表单） |
-| `openyida task-center <todo\|created\|done\|cc\|proxy\|capabilities\|scaffold\|options\|inspect\|count> [--spec <file.json> --output <file.canvas.jsx>] [options]` | 全局任务中心（待办/已处理/抄送等） |
+| `openyida data <query\|get\|create\|update\|transfer> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | 统一数据管理（表单/流程/任务/子表单） |
+| `openyida task-center <todo\|created\|done\|cc\|proxy\|capabilities\|link\|scaffold\|options\|inspect\|count> [--spec <file.json> --output <file.canvas.jsx>] [options]` | 全局任务中心（待办/已处理/抄送等） |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | 查询组织基本信息、容量、额度和域名设置 |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | 获取钉钉文档的 Markdown 内容 |
 | `openyida read-dingtalk-tingji <taskUuid> [--json]` | 按任务 UUID 获取钉钉听记详情 |
@@ -506,7 +520,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida formula test <appType> <formUuid> [formula\|file] [--data-file file \| --cases file] [--field fieldId] [--timezone-offset minutes] [--context form\|validation] [--binding platform\|numeric-literals] [--expect JSON] [--json]` | 带入数据在宜搭试算公式并核对结果 |
 | `openyida update` | 检查并更新到最新版本 |
 | `openyida export-conversation [options]` | 导出 AI 对话记录 |
-| `openyida feedback <report\|setup\|url\|dismiss\|status> [options]` | 整理本地问题报告、配置反馈表单与提醒 |
+| `openyida feedback <report\|github\|setup\|url\|dismiss\|status> [options]` | 整理本地问题报告、配置反馈表单与提醒 |
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | 批量执行 OpenYida 命令 |
 | `openyida flash-to-prd --file <path> --name "<project>"` | 闪记 / 会议纪要转 PRD prompt |
 | `openyida ai <text\|image> [options]` | 调用 AI 文生文和识图能力 |

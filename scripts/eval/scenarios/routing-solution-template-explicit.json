@@ -1,0 +1,85 @@
+[
+  {
+    "id": "solution-template-explicit-search",
+    "prompt": "当前在独立本地Agent中，请在宜搭方案中心查一下合同管理模板，只看介绍，不创建应用。",
+    "expectedSkill": "yida-solution-template"
+  },
+  {
+    "id": "solution-template-explicit-ai",
+    "prompt": "当前在独立本地Agent中，我想基于宜搭方案中心选好的合同模板进行AI定制，请给我云端AI搭建入口，不直接启用。",
+    "expectedSkill": "yida-solution-template"
+  },
+  {
+    "id": "solution-template-explicit-enable",
+    "prompt": "当前在独立本地Agent中，请原样启用宜搭方案中心模板TPL_TEST，创建合同管理应用，不保留示例数据。",
+    "expectedSkill": "yida-solution-template"
+  },
+  {
+    "id": "solution-template-explicit-status",
+    "prompt": "当前在独立本地Agent中，继续刚才已明确的宜搭方案模板启用任务，只查询原请求st-12345678的状态，不重复提交。",
+    "expectedSkill": "yida-solution-template"
+  },
+  {
+    "id": "solution-template-vs-ordinary-app",
+    "prompt": "帮我从零搭建一个宜搭合同管理系统。",
+    "expectedSkill": "yida-app",
+    "mustNotTrigger": ["yida-solution-template"],
+    "forbiddenDefaultSkills": ["yida-solution-template"]
+  },
+  {
+    "id": "solution-template-vs-delegated-fast-app",
+    "prompt": "直接用Fast模式搭一个宜搭客户管理应用，具体设计你决定。",
+    "expectedSkill": "yida-app",
+    "mustNotTrigger": ["yida-solution-template"],
+    "forbiddenDefaultSkills": ["yida-solution-template"]
+  },
+  {
+    "id": "solution-template-vs-generic-template",
+    "prompt": "从零搭一个宜搭项目管理系统，页面用个简洁模板即可，没有指定方案中心。",
+    "expectedSkill": "yida-app",
+    "mustNotTrigger": ["yida-solution-template"],
+    "forbiddenDefaultSkills": ["yida-solution-template"]
+  },
+  {
+    "id": "solution-template-vs-reference-link",
+    "prompt": "从零搭一个宜搭合同系统，只参考https://tenant.aliwork.com/solutionCenter/detail?id=TPL_TEST&type=template里的业务介绍，不查询或复制这个模板。",
+    "expectedSkill": "yida-app",
+    "mustNotTrigger": ["yida-solution-template"],
+    "forbiddenDefaultSkills": ["yida-solution-template"]
+  },
+  {
+    "id": "solution-template-vs-explicit-refusal",
+    "prompt": "帮我搭一个宜搭采购系统，不使用宜搭方案中心模板。",
+    "expectedSkill": "yida-app",
+    "mustNotTrigger": ["yida-solution-template"],
+    "forbiddenDefaultSkills": ["yida-solution-template"]
+  },
+  {
+    "id": "solution-template-vs-build-failure",
+    "prompt": "继续之前从零搭建的宜搭订单系统，刚才创建表单失败了，请查原因后继续原方案，不改用方案模板。",
+    "expectedSkill": "yida-app",
+    "mustNotTrigger": ["yida-solution-template"],
+    "forbiddenDefaultSkills": ["yida-solution-template"]
+  },
+  {
+    "id": "solution-template-cloud-native-prd",
+    "prompt": "当前是宜搭云端Agent，平台已注入templateReference和.resources/template-reference.md，并绑定空应用APP_BOUND；用户已在平台选择模板，请读取参考PRD并在当前应用内继续搭建。",
+    "expectedSkill": "yida-app",
+    "mustNotTrigger": ["yida-solution-template"],
+    "forbiddenDefaultSkills": ["yida-solution-template"]
+  },
+  {
+    "id": "solution-template-cloud-native-customization",
+    "prompt": "当前云端模板AI搭会话已绑定APP_BOUND并注入参考模板PRD，按用户要求增加合同到期提醒，保留当前应用继续搭建，不要重新打开搭建首页。",
+    "expectedSkill": "yida-app",
+    "mustNotTrigger": ["yida-solution-template"],
+    "forbiddenDefaultSkills": ["yida-solution-template"]
+  },
+  {
+    "id": "solution-template-managed-local-bound-app",
+    "prompt": "当前是网页关联的受管本地Agent任务，已绑定APP_BOUND。继续当前应用的合同管理搭建，不查询方案中心或复制模板应用。",
+    "expectedSkill": "yida-app",
+    "mustNotTrigger": ["yida-solution-template"],
+    "forbiddenDefaultSkills": ["yida-solution-template"]
+  }
+]

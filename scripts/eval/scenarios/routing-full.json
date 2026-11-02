@@ -804,5 +804,35 @@
     "yida-feedback"
   ],
   "type": "negative"
+},
+{
+  "id": "feedback-experience-suggestion",
+  "prompt": "OpenYida 报错时我看不懂，希望提示能更好理解。我不会写代码，可以帮我整理成建议吗？",
+  "expectedSkill": "yida-feedback",
+  "type": "positive"
+},
+{
+  "id": "feedback-issue-to-pr",
+  "prompt": "OpenYida 的 Issue 已提交，我想让 AI 试着改进这个问题，但不懂 Git，请先让我看需要改什么。",
+  "expectedSkill": "yida-feedback",
+  "type": "positive"
+},
+{
+  "id": "feedback-account-tool-setup",
+  "prompt": "我有 GitHub 账号，想让 AI 帮我修复 OpenYida 并提 PR，但是没装 gh，也不懂 MCP。先帮我看看已有工具能不能用，安装前问我。",
+  "expectedSkill": "yida-feedback",
+  "type": "positive"
+},
+{
+  "id": "feedback-browser-without-install",
+  "prompt": "我只想给 OpenYida 提一次 Issue，不想安装工具，问题和环境已经整理好了，能用网页继续吗？",
+  "expectedSkill": "yida-feedback",
+  "type": "positive"
+},
+{
+  "id": "feedback-resume-after-login",
+  "prompt": "为了反馈 OpenYida 我已经登录 GitHub 了，请继续刚才的草稿，不用再问环境，公开提交前让我看一下。",
+  "expectedSkill": "yida-feedback",
+  "type": "positive"
 }
 ]

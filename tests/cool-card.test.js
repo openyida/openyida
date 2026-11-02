@@ -68,6 +68,30 @@ test.each(['im', 'onebox'])('creates a %s resource with only name and type, once
   expect(result.nextAction).toMatchObject({ actor: 'user', action: 'configure-and-save', target: 'official-editor',
     url: result.urls.editorUrl });
 });
+test.each(['https://yida-group.alibaba-inc.com', 'https://YIDA-GROUP.alibaba-inc.com/'])(
+  'rejects creation on the authenticated group endpoint %s before any card API or file write', async baseUrl => {
+    client.getAuthRef = () => ({ baseUrl });
+    for (const type of ['im', 'onebox']) {
+      const out = path.join(dir, `${type}.json`);
+      await expect(execute(args('create', ['--name', '验证', '--type', type, '--out', out]), client))
+        .rejects.toMatchObject({ code: 'COOL_CARD_UNSUPPORTED_ENVIRONMENT', details: { environment: 'alibaba' } });
+      expect(fs.existsSync(out)).toBe(false);
+    }
+    expect(client.get).not.toHaveBeenCalled();
+    expect(client.postFormOnce).not.toHaveBeenCalled();
+  }
+);
+test('uses the authenticated endpoint rather than a different global environment setting', async () => {
+  const previous = process.env.OPENYIDA_ENV;
+  process.env.OPENYIDA_ENV = 'alibaba';
+  try {
+    await execute(args('create', ['--name', '验证', '--type', 'im']), client);
+    expect(client.postFormOnce).toHaveBeenCalledTimes(1);
+  } finally {
+    if (previous === undefined) { delete process.env.OPENYIDA_ENV; }
+    else { process.env.OPENYIDA_ENV = previous; }
+  }
+});
 test('a blank card is a resource rather than a completed design', async () => {
   card.cardSchema = '';
   const result = await execute(args('create', ['--name', '空卡片', '--type', 'im']), client);

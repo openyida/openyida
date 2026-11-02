@@ -5,6 +5,8 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 
 # 自定义页面开发
 
+完成总结遵循[用户可见总结](../../references/user-facing-summary.md)：仅概述本轮业务变化和真实结果，简单修改一句即可；内部记录保留源码、命令和校验细节。
+
 本页的“数据卡片、指标卡、统计卡”通常是页面内展示组件，配置归页面源码并随页面发布，不自动创建宜搭原生 `CARD-xxx` 资源。已有页面引用原生 CARD 时，外层布局或引用配置仍归页面任务；只有用户明确要求修改源卡片自身配置，才转 `yida-data-card`。原生卡片内的 FORM 数据源引用也不表示它是自定义页面；先核对配置归属。仅改外观继续遵守下方 UI 改造流程。
 
 ## 编码前必读（MUST）
@@ -13,7 +15,11 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 
 有附件或图片上传需求时，必读 [文件上传](references/file-upload.md)，提取 `canvas-file-upload` 示例，使用 `window.__OPENYIDA_FILE_API__` 完成凭证、OSS 直传、确认、取地址和保存后绑定。上传中阻止提交，绑定失败仅重试绑定；此接口要求登录态，不支持匿名上传，不用链接录入或模拟上传代替真实上传。
 
-布局实现读取 [共享响应式规则](../yida-design/references/responsive-layout.md)：按实际容器宽度重排筛选栏和主辅面板，统一同组控件尺寸，宽屏按需等高、窄屏自然增长，宽表格局部滚动。断点变化保留原组件状态与业务行为，发布前按该文档验收。
+布局实现分三步，详细规则见 [共享响应式规则](../yida-design/references/responsive-layout.md)：
+
+1. **读取设计**：从 `design.md` 读取当前页的首屏焦点、布局、主操作、响应式和验收要求。
+2. **实现布局**：优先用 CSS 按内容容器宽度重排。需要参考时执行 `openyida sample openyida-page-template canvas-responsive-layout`，按需复用与当前业务对应的布局片段；图表等组件需要读取实际宽度时，再复用测量 Hook。视口媒体查询用于浏览器视口或输入方式判断。
+3. **验证状态**：切换宽度前后保留原组件状态与业务行为，发布前按共享规则检查实际页面。
 
 已有页面的美化或 UI 优化，先进入 [ui-improve](../yida-design/sub_skill/ui-improve/SKILL.md)。只有当前视觉方案已通过 `ask_human` 确认且原状态备份可恢复，才修改源码；交接需包含获批 revision、范围、备份和功能契约。本轮仅按视觉差异修改，保留现有业务表达式、事件、数据绑定、URL、状态管理和打开方式，不套用下文的新页面默认规则改变业务。
 
@@ -22,6 +28,8 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 先确认导航归属：使用平台导航的管理端自定义页面默认只实现业务内容，同任务可用页内 Tab，跨模块由平台菜单切换。编码前按[管理页面边界](references/navigation-and-entry-guide.md#平台导航下的管理页面)核对，不把后台任务清单或前台菜单复制为第二套导航。
 
 先确定控件与动作的接入方式，再写业务 JSX：使用 antd 时先读取并合并 [标准主题桥](references/canvas-theme-provider.md)，所有 Button、Tabs、Segmented、链接与弹层放在同一主题子树；普通 DOM 控件直接消费应用 CSS 变量。需要跨页按钮或链接时，先按 [入口契约](references/navigation-and-entry-guide.md#先建立动作与目标清单) 提取 `canvas-navigation`，填写真实资源 ID 和目标类型。本页 Tab 用状态或 hash；按钮点击和链接 href 共用同一个 URL 构造函数。缺少目标资源时保留布局并禁用该入口，不猜地址。
+
+单独新增页面先执行 [单页设计](../yida-design/sub_skill/page-design/SKILL.md)，确认旧主题页面的风格范围并形成设计；按该选择实现，分别验收功能与视觉。
 
 新建页面或调整视觉前，完整读取 [canvas-style-implementation-guide.md](references/canvas-style-implementation-guide.md)，结合当前 PRD 和 `design.md` 实现。读取结果被截断时分段读完；同一任务已读完且文件未变时可复用。仅修改数据逻辑时可跳过，并记录原因。
 
@@ -102,7 +110,7 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 
 1. **YidaComp 入口明确**：源码必须导出或返回 `YidaComp`，并把主组件作为默认导出或 `YidaComp` 暴露。
 2. **发布方式正确**：使用 `YidaCodeCanvas` 组件实现的源码写成 `.canvas.jsx` / `.canvas.tsx`，或发布时显式加 `--canvas`。
-3. **源码修改发布闭环**：用户要求发布时，本轮 Write/Edit/Create 了 `project/pages/src/*.canvas.jsx` 或 `project/pages/src/*.canvas.tsx` 后，final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`。有 publish 成功证据时表述为“页面已发布”；只有本地校验证据时表述为“源码已修改，尚未发布”。
+3. **源码修改发布闭环**：用户要求发布时，本轮 Write/Edit/Create 了 `project/pages/src/*.canvas.jsx` 或 `project/pages/src/*.canvas.tsx` 后，final 前需要成功执行 `openyida publish <source> <appType> <displayPageFormUuid>`。有 publish 成功证据时表述为“页面已发布”；只有本地校验证据时表述为“已完成修改，待发布”。
 4. **依赖可加载**：普通 import 只使用 `YidaCodeCanvas` 可用资源清单内的前端资源；React、antd、Ant Design Icons、Recharts、ahooks、lucide-react 等包依赖必须写 `import ... from '包名'`。严禁写未声明裸变量依赖或手写 window 依赖，例如 `const { Drawer } = antd`、`const { Search } = lucideReact`、`const { ConfigProvider } = window.antd`、`const React = window.React`、`window.icons`。宜搭运行态组件才通过 `window.Deep`、`window.DeepYida`、`window.YidaNativeComponents` 探测。
 5. **使用 `YidaCodeCanvas` 组件契约**：页面代码写 `YidaComp` React 函数组件；数据、生命周期和渲染都通过 hooks、props、外层 yida JS-API 桥或连接器完成。组件内部不能直接写 `this.$(fieldId)`、`this.utils.yida.*` 或 `this.dataSourceMap`。
 6. **副作用清理**：`useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
@@ -155,9 +163,9 @@ function setNavigationTitle(title) {
 
 ## 主题实现入口
 
-主题由应用统一提供：已选红色等品牌主色应先写入项目 design.md，由应用主题 CSS 同步到原生导航与表单；自定义页消费同一份变量。不能只写 `const BRAND = '#...'`、复制整套基础色盘或依靠 fallback 形成另一套页面主题。缺少应用主题时回到完整应用的主题同步任务，不自行选一个页面默认色掩盖；纯 DOM 使用 CSS 变量，antd 同时接入下述 Provider。
+默认由应用统一提供主题；旧主题新增页已确认独立视觉时执行上述页面范围。应用级主题中，已选红色等品牌主色应先写入项目 design.md，由应用主题 CSS 同步到原生导航与表单；自定义页消费同一份变量。不能只写 `const BRAND = '#...'`、复制整套基础色盘或依靠 fallback 形成另一套页面主题。缺少应用主题时先核对能力与设计范围，不用页面默认色掩盖；纯 DOM 使用 CSS 变量，antd 同时接入下述 Provider。
 
-纯 DOM 页面直接消费平台 CSS 变量，不必引入 antd 或 Provider。按 [共用主题规则](../yida-design/references/application-theme-consistency.md) 引用画布、卡片、文字与特色角色；风格缺项回写设计源，不在页面根复制固定色盘。
+默认沿用应用主题的纯 DOM 页面直接消费平台 CSS 变量，不必引入 antd 或 Provider。按 [共用主题规则](../yida-design/references/application-theme-consistency.md) 引用画布、卡片、文字与特色角色；风格缺项回写设计源，不在页面根复制固定色盘。
 
 antd 页面使用 CanvasThemeProvider，图表通过 useCanvasThemeContext 取色。`sample` 输出的表单抽屉、批量表格和趋势图页面已包含主题与加载遮罩防闪边样式，合并代码时保留 Provider 内的 style；其他页面及旧页面升级按 [主题接入步骤](references/canvas-theme-provider.md) 操作。
 
@@ -219,6 +227,6 @@ openyida get-schema <appType> <formUuid> --field-map-json
 | [data-bridge-guide.md](references/data-bridge-guide.md) | 表单、平台连接器与自定义同源接口的数据桥 | 接入真实数据时阅读 |
 | [canvas-theme-provider.md](references/canvas-theme-provider.md) | 统一主题接入、示例装配、预览与发布 | 编写或调整 antd 页面时必读 |
 | [canvas-style-implementation-guide.md](references/canvas-style-implementation-guide.md) | 将 `design.md` 的 App 主题色、antd token、背景层、卡片边界、圆角密度、控件焦点/下拉 reset、图表配色落到 `YidaCodeCanvas` 组件 | MUST：新建页面或调整视觉前完整读取，见顶部编码前必读 |
-| [waf-safe-authoring.md](references/waf-safe-authoring.md) | 接口加白前规避平台安全（WAF）误拦的临时写法：不写正则字面量、危险 HTML/脚本串、注入特征串，及二分法定位 | 仅当用户反馈发布反复失败、疑似 WAF 拦截时阅读；常规生成不套用 |
+| [waf-safe-authoring.md](references/waf-safe-authoring.md) | 按原始回执诊断发布异常，保留正常 JSX 事件写法 | 发布失败或需要解释原因时阅读，不预设 WAF |
 | [component-library-guide.md](references/component-library-guide.md) | 组件库推荐组合和页面选型建议 | 选择 UI/图表依赖时阅读 |
 | [canvas-authoring-examples.md](references/canvas-authoring-examples.md) | 最小组件、hooks、副作用、图表示例 | 手写 `.canvas.jsx` 代码时阅读 |

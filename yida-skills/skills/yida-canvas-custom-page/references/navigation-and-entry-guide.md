@@ -9,6 +9,8 @@
 - `isRenderNav=false` 表示导航展示配置，不证明当前页面位于 iframe。不要仅凭该参数修改 `window.top.location`；嵌入方式、跨域和宿主能力需分别验证。
 - 宜搭应用壳根据 `navUuid/formUuid` 和 `workbench` 路径维护选中态；同应用页面应进入 `/{appType}/workbench/{formUuid}` 或对应壳层路由。
 - 发布层会把根级工具注册到 `window.__OPENYIDA_UTILS__`；可用时优先通过 `window.__OPENYIDA_UTILS__.router.push` 做应用内跳转，通过 `window.__OPENYIDA_UTILS__.openPage` 打开外部链接或新窗口场景。
+- `openPage(url, { mode: 'auto' })` 接收 URL 字符串；发布桥兼容旧 `{url}` 参数，但新代码统一传字符串。`auto` 在钉钉内添加 `ddtab=true` 并调用原生接口，失败报错；浏览器环境沿用浏览器打开。`mode:'dingtalk'` 要求钉钉环境并禁止失败后回退系统浏览器，`mode:'browser'` 才显式打开浏览器。调用返回 Promise，点击事件必须捕获并展示错误。
+- 待办卡片使用 `utils.taskCenterCount / taskCenterLink / openTaskCenter`，范围与 CLI 对齐，详见[数量卡片与原生入口](../../yida-canvas-data-binding/references/workflow-capabilities.md)。范围不明先 `ask_human`；不要自行拼跨应用入口或扫描 DOM。
 - `openPage` / `window.open` 更适合外部链接、新标签、钉钉链接、文件预览等场景；同应用页面默认在当前应用壳内切换。
 - 页面隐藏应用导航后，页面内自绘导航壳接管跨视图切换；导航可见时使用平台导航承载同级页面切换。
 - 自绘应用导航按 PRD 安排数量、顺序、分组和任务入口，通常工作台在首位；当前用户的 `getAccessableNavs.json` 结果只用于过滤不可见入口。数据片段和接入规则见 [导航数据来源](../../yida-nav-shell/references/nav-shell-patterns.md#导航数据来源)。

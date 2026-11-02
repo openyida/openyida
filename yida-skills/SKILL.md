@@ -8,15 +8,23 @@ description: >
 
 # 宜搭应用开发指南
 
+千问办公、Codex、云端和其他宿主统一遵循[用户可见表达](references/user-facing-summary.md)：页面文案、提示、方案、提问、任务标题、进度、卡片、总结和后续建议均使用业务名称、动作和结果。技术信息保留在内部执行记录，按用户明确的技术需求提供。完成总结默认 1–3 句，简单修改一句即可；CLI 指令按明确的命令或用法请求提供。
+
+**强制规则：OpenYida 的安装、环境准备、登录检查、换票、刷新及其就绪状态，禁止出现在用户可见回复、进度、待办、卡片和工具调用标题/说明中，失败与重试也不例外。** 不得播报“环境就绪”“登录态就绪”“宜搭登录（桌面换票）”“登录态已就绪（当前组织：宜搭 QwenWork 环境）”或同义改写，也不得先说将静默准备。检查通过后直接执行下一项业务操作，不能把准备结果包装为业务进度。千问办公任务先读[任务准备](references/setup-and-env.md#千问办公任务准备)：默认使用当前办公组织，完整消费一次能力摘要，受支持流程失败后停止依赖操作。
+
+搭建任务的可控标题和开始提示按[搭建任务的标题与提示](references/user-facing-summary.md#搭建任务的标题与提示)使用“在{组织名称}组织下搭建宜搭应用”，组织名称来自当前宿主已确认的显示名；尚不可确认时使用“在当前组织下搭建宜搭应用”。
+
+开始创建新应用时，按[创建应用时的提示](references/user-facing-summary.md#创建应用时的提示)只告知一次“当前在{组织名称}组织下为您创建{应用名称}应用”，名称使用已确认的业务名称，不附带准备或登录状态。
+
 在执行宜搭应用/页面/审批流等任务前先确认环境与登录态，再根据用户需求和已解析的 app/page/form/process 等上下文资源，分析任务属于完整搭建、已有资源补齐还是单点任务，并加载对应子技能执行。
 
-完整系统不能只读本入口、查看 CLI 帮助后直接拼装命令：必须加载 `yida-app`，进入实施与收尾时继续读取对应 workflow。前后台场景默认是两个业务入口：前台页面自绘导航并持久化隐藏平台导航，后台使用原生导航，前台专用页面从后台 PC/移动端菜单隐藏；页面隐藏、菜单隐藏、权限和公开访问分别处理。两个入口均须实际打开验收，发布回读不代表交付完成。
+完整系统不能只读本入口、查看 CLI 帮助后直接拼装命令：必须加载 `yida-app`，进入实施与收尾时继续读取对应 workflow。前后台场景默认是两个业务入口：前台页面自绘导航并持久化隐藏平台导航，后台使用原生导航，前台专用页面从后台 PC/移动端菜单隐藏；页面隐藏、菜单隐藏、权限和公开访问分别处理。各入口核验配置与数据；浏览器验收仅限用户本机 Agent，按[证据规则](references/execution-rules.md#本地浏览器验收)执行。
 
-Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、自定义页共用项目 design.md 与同一份应用主题 CSS。不能只把自定义页写成品牌色、让应用继续默认蓝色；发布不会自动保存应用主题。完整搭建交付前按 yida-app 回读应用主题设置并实测各类页面，未同步或未验证不得宣称主题统一。
+Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、自定义页共用项目 design.md 与同一份应用主题 CSS。不能只把自定义页写成品牌色、让应用继续默认蓝色；发布不会自动保存应用主题。交付前按 yida-app 回读主题设置；本机 Agent 按证据规则实测页面，配置回读不代表视觉已验证。
 
 ## 本地使用问题与贡献反馈
 
-用户遇到反复报错、不会提 Issue/PR、没有 GitHub 账号或没有 OpenYida 源码，先加载 `yida-feedback`。
+用户反馈 OpenYida 使用问题或体验建议、想贡献改进、不会提 Issue/PR，先加载 `yida-feedback`；没有 GitHub 账号或源码也可先整理材料。
 它负责基于当前证据分析根因、生成脱敏本地材料，并按用户授权提交 Issue 或个人 Fork PR。无账号先引导注册，实在不行提示“反馈到AI开发者群”。
 自动发现重复失败只建议并整理本地草稿，不自动公开提交。网页关联本地 Agent 异常先按下节诊断，需要反馈时再进入此技能。普通宜搭产品 VOC 清单仍用 `yida-voc`。
 
@@ -79,6 +87,14 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 每项待办对应一个阶段，直接使用上方短标题。创建应用、表单、数据、图片、页面和发布分别展示。执行中保持标题与列表顺序稳定，完成后标记完成并保留记录。图片准备与表单、页面搭建可同时进行，列表顺序仅用于展示。业务细节写在进度消息中，任务编号、命令、路径、授权依据和耗时写入内部执行记录；用户要求的耗时统计集中放入报告。素材采集与应用创建同时进行时，进度描述统一为“素材采集&应用创建”；单独进行时使用对应阶段名称。图片数量、用途及任务详情归入内部执行记录。
 
+## 千问办公网页态的后台登录
+
+当前快照为 `runtime.tool=qwenwork`、`runtime.subtype=qwenwork_web` 且 `interactive_login.mode=cloud_token` 时，按[云端免登与普通登录回退规则](references/qwenwork-cloud-login.md)执行快照推荐命令。CLI 优先消费沙箱凭据，免登认证失败后由同一进程回退普通 OAuth；需要授权时按 `interactive_login.oauth_fallback` 处理 CLI 输出的 URL，不读取或展示凭据。桌面态继续使用桌面换票。
+
+## 千问办公桌面端的后台准备
+
+当前快照确认运行于千问办公桌面端时，安装、环境检查和自动登录按[后台准备规则](references/qwenwork-desktop-login.md)静默执行。用户只需要看到业务进度和业务结果。
+
 ## 执行步骤
 
 ### Step 1：环境与登录态确认
@@ -96,7 +112,10 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | `openyida` 不可用 | 先安装或更新 `openyida`，不创建资源 |
 | 工作目录不存在 | 先执行 `openyida copy` 初始化工作目录 |
 | 登录态可用 | 进入 Step 2 |
+| `interactive_login.mode=cloud_token` 且未登录 | 执行快照推荐的 `openyida login --qwenwork --json` 并等待；免登认证失败后 CLI 回退普通 OAuth，按 `oauth_fallback` 打开输出的授权 URL；成功后继续业务 |
 | 登录态缺失 | 按快照提示补登录态；未恢复前停止资源写操作 |
+
+千问云端身份接入开发或宿主身份诊断，可显式运行 `openyida auth qwenwork user-info --json`；它只验证千问身份，不建立宜搭登录态，不能据此跳过上述宜搭 auth snapshot 检查。详细边界见 `yida-login`。
 
 ### Step 2：解析资源上下文
 
@@ -135,20 +154,22 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 `yida-data-card` 只在用户显式指定宜搭原生数据卡片，或继续已明确的原生卡片上下文时触发。泛称数据卡片、指标卡、看板、投放、数据播报或发送到群不满足条件；不能在完整应用搭建中自行添加原生数据卡片。用户主动提供原生卡片链接并要求操作该资源属于明确指定；否定原生时按实际页面、图表或自动化意图路由。按本次实际修改对象判断，提及或引用原生卡片不等于请求修改该资源。
 
-`yida-cool-card` 只在用户明确指定宜搭原生酷卡片（交互卡片、置顶卡片），或继续已明确的酷卡片任务时使用。它使用 `cardPageCode`/`cardTemplateId`，独立于 `yida-data-card` 的 `CARD-xxx` 和页面中的展示卡片。`dataCardDesigner.html?cardCode=CARD-...` 属于原生数据卡片；酷卡片管理入口为 `coolCardManage`。名称与链接冲突时说明实际资源并核对目标，不能互换接口。泛称卡片、图表或群通知不自动选择这两类原生资源。
+`yida-cool-card` 只在用户明确指定宜搭原生酷卡片（交互卡片、置顶卡片），或继续已明确的酷卡片任务时使用。它使用 `cardPageCode`/`cardTemplateId`，独立于 `yida-data-card` 的 `CARD-xxx` 和页面中的展示卡片。`dataCardDesigner.html?cardCode=CARD-...` 属于原生数据卡片；酷卡片管理入口为 `coolCardManage`。创建前核对认证环境；集团版（`alibaba`）直接告知“集团版不支持酷卡片搭建”并停止搭建流程。名称与链接冲突时说明实际资源并核对目标，不能互换接口。泛称卡片、图表或群通知不自动选择这两类原生资源。
+
+`yida-solution-template` 和 `solution-template` CLI 仅供独立本地 Agent 处理用户明确要求的模板操作，或继续其已授权任务；云端、受管本地任务及未知环境不使用。云端已注入 `templateReference` 或 `.resources/template-reference.md` 时，保留原生模板 PRD 链路，在当前绑定应用内搭建。普通应用创建继续走 `yida-app`，不默认搜索、推荐或启用方案模板，也不以模板兜底失败。查询不代表同意启用；启用、拒绝后的重试及另建一份分别需要用户明确授权。具体触发与执行边界见 `yida-solution-template`。
 
 ### 大类目录
 
 | 大类目录 | 第一层意图信号 | 子技能 |
 | --- | --- | --- |
 | `yida-skills/context` | 登录、退出、切换组织、组织版本/容量、Schema、fieldId、执行前检查 | `yida-login`、`yida-logout`、`yida-basic-info`、`yida-get-schema`、`yida-corp-efficiency` |
-| `yida-skills/app` | 从零搭应用、完整系统、应用启停、应用导航、多语言、AI 老应用主题升级 | `yida-app`、`yida-create-app`、`yida-app-lifecycle`、`yida-nav-group`、`yida-i18n`、`yida-upgrade-app-theme`（仅明确升级要求并 ask_human 确认） |
+| `yida-skills/app` | 从零搭应用、完整系统、方案中心模板、应用启停、应用导航、多语言、AI 老应用主题升级 | `yida-app`、`yida-solution-template`（方案中心模板查询、AI 搭与启用）、`yida-create-app`、`yida-app-lifecycle`、`yida-nav-group`、`yida-i18n`、`yida-upgrade-app-theme`（仅明确升级要求并 ask_human 确认） |
 | `yida-skills/design` | 完整应用需求分析、PRD、视觉设计、单页 UI 改造、应用主题色、全局换肤、图片素材 | `yida-requirement-analysis`、`yida-prd`、`yida-design`、`yida-data-manage-ui`、`yida-image-assets` |
-| `yida-skills/form` | 表单字段、公式、校验、业务关联规则、原生自定义按钮、批量录入、数据记录 | `yida-create-form-page`、`yida-custom-button`、`yida-form-view`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
+| `yida-skills/form` | 表单字段、公式、校验、业务关联规则、原生自定义按钮、消息通知、打印模板、批量录入、数据记录 | `yida-create-form-page`、`yida-custom-button`、`yida-form-message`、`yida-print-template`、`yida-form-view`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-flow-node-config`、`yida-agent-center` |
 | `yida-skills/page` | 工作台、办事门户、任务看板、自定义展示页、页面源码开发、平台 JSX 组件页面维护、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-task-center`（仅显式选择自定义待办）、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
 | `yida-skills/analytics` | 用户显式指定宜搭原生数据卡片（含其投放播报）；聚合表、虚拟视图、报表、统计、图表、Recharts、ECharts、经营分析看板、驾驶舱、大屏 | `yida-data-card`、`yida-aggregate-table`、`yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard` |
-| `yida-skills/integration` | 用户明确指定宜搭原生酷卡片；连接器、钉钉开放平台、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-cool-card`、`yida-integration`、`yida-flow-node-config`、`yida-dingtalk-openapi`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
+| `yida-skills/integration` | 用户明确指定宜搭平台插件或原生酷卡片；连接器、钉钉开放平台、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-plugin-lifecycle`、`yida-plugin-frontend-deploy`、`yida-cool-card`、`yida-integration`、`yida-flow-node-config`、`yida-dingtalk-openapi`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
 | `yida-skills/access` | 平台/应用/表单/页面权限、公开访问、分享 | `yida-corp-manager`、`yida-app-permission`、`yida-form-permission`、`yida-page-config` |
 | `yida-skills/ops` | Sequence、主键冲突、VOC、OpenYida 本地故障、Issue/Fork PR | `yida-db-seq-fix`、`yida-voc`、`yida-feedback` |
 | `yida-skills/agent` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | `yida-export-conversation`、`yida-document-markdown`、`yida-tingji`、`yida-flash-note-to-prd` |
@@ -158,8 +179,10 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 用户意图 | 选哪个 |
 | --- | --- |
 | 从零搭一个完整应用/系统 | `yida-app`；先分析需求并完成首次搭建确认，再规划与搭建 |
+| 独立本地 Agent 中明确要求查询、AI 搭或启用方案模板 | `yida-solution-template`；先查询并选定模板，定制提供云端 AI 入口，原样使用走启用摘要与直接启用 |
+| 云端平台已注入模板参考 PRD | 保留原生模板任务，在当前绑定应用中继续搭建；不加载 `yida-solution-template` 或调用其 CLI |
 | 已有 app 但没有任何页面，需要补成完整系统 | `yida-app`；属于首次搭建，同样先询问搭建方式，复用已有 `appType` 补齐资源 |
-| OpenYida 反复报错、不会提 Issue/PR、没有账号或源码 | `yida-feedback`；先脱敏本地报告，个人 Fork 仅贡献公开 OpenYida 修复 |
+| OpenYida 使用问题、体验建议、希望贡献改进或不会提 Issue/PR | `yida-feedback`；先整理脱敏材料，成功提交 Issue 后可选邀请 PR，贡献代码使用个人 Fork |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
 | 将钉钉开放平台官方 API 接入宜搭或 Canvas | `yida-dingtalk-openapi`；密钥不进聊天，账号由用户在宜搭或本机 TTY 配置 |
@@ -180,6 +203,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 流程设计器字段列表空白 | `yida-process-rule`，先用 `process fields` 检查字段来源 |
 | 查字段 ID / 保存 Schema 证据 | `yida-get-schema`；凡涉及 fieldId 的数据、流程、公式、页面代码先取证 |
 | 改表单数据记录 | `yida-data-management`，不是 `yida-create-form-page` |
+| 查询流程当前任务、管理员转交已有流程任务 | `yida-data-management`；先查询 process-tasks，再 transfer task 并回读实际处理人 |
 | 查询指定应用/流程表单中当前审批人为某人的实例或条数 | `yida-data-management`；`data query process --current-approver <userId> [--count]`，仅统计当前登录人经服务端授权可见的实例 |
 | 配置或修改公式、字段计算、提交校验、节点筛选、报表计算 | 共用 `yida-formula`，按实际保存内容读取说明；查看字段公式、查参数和检查用 `yida-formula-evaluate` |
 | 提交后跨表写入/更新/删除 | 默认 `yida-integration`；用户明确要业务关联规则/高级函数时用 `yida-business-rule` |
@@ -200,6 +224,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 业务操作队列、业务工作台或办事门户页面 | `yida-canvas-custom-page`；接业务数据时加载 `yida-canvas-data-binding`，不因页面名称或辅助统计转为经营看板；不顺带新增自定义审批待办中心 |
 | 批量录入、表格填写、多行编辑 | 默认 `yida-canvas-table-form`；已检测到平台 JSX 组件页面、native 页面或存量源码使用 `this.utils.yida.saveFormData` 时用 `yida-table-form` |
 | 页面设置中的自定义按钮、客户跟进/分配、审批后发起订单、按钮触发自动化或打开页面 | `yida-custom-button`；配置原生按钮定义和显示位置，自定义页面内 React 按钮不走此入口 |
+| 页面设置中的消息通知、表单提交/编辑/删除/评论后通知、原生工作通知与详情/置顶卡片 | `yida-form-message`；选择发送时机、接收人和七种消息样式，保存后核对配置；按用户要求执行真实发送测试，沿用已明确的接收对象与测试授权 |
+| 打印这条数据/数据详情链接、原生打印模板、打印设置、订单/报价/出入库/审批单、单据版式与字段明细、字段二维码/条形码、备份恢复和PDF生成 | `yida-print-template`；复用已有表单和模板，以真实打印字典生成动态内容；Word组件、叮当打印和浏览器页面打印不走此入口 |
 | 原生数据管理页视图列表、显示列配置、字段显隐与顺序、列宽、冻结列、默认筛选、多视图 | `yida-form-view`；使用原生配置读写，保存前备份并回读，不通过 CSS 隐藏字段或重建自定义列表 |
 | 当前数据管理页换风格、只留横线、突出新增/筛选/行操作、列级强调、状态列标签、数据管理 UI 异常、自定义简单数据管理 | `yida-data-manage-ui`（优先于通用美化）；保留承载类型和业务，从目标推导维度、定位 token/CSS 并按页改写；备份发布并实测，不要求选择配方 |
 | 页面视觉方向、页面美化、去 AI 味、优化应用 UI、不好看、太乱、美化后不满意或恢复 | `yida-design`；已有资源优先走 `sub_skill/ui-improve/SKILL.md`，先展示视觉方案，经 `ask_human` 确认并备份后才交接实施，只改 UI；不满意恢复本轮前状态。新页面设计沿用原设计流程 |
@@ -208,6 +234,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 平台左侧导航树分组/排序 | `yida-nav-group` |
 | 自定义应用导航或独立前台菜单 | `yida-nav-shell` |
 | 用户明确指定宜搭原生酷卡片（交互卡片或置顶卡片） | `yida-cool-card`；创建、读取与模板查询，返回官方入口由用户配置保存，再由 CLI 回读；要求完全不同的样式或自由 HTML/CSS/React 时仍由本技能判断原生限制和替代方案，不自动切换成网页；不代替编辑器保存、发布或发送，不调整权益 |
+| 用户明确指定宜搭平台“插件管理”、开发插件、插件版本或组织已安装插件 | `yida-plugin-lifecycle`；区分开发配置、资源可达、运行时注册与消费者真实执行，不路由到 npm/Codex 插件管理 |
+| 已明确宜搭平台插件，询问 remoteEntry.js 构建、第三方资产命名空间、资源托管或加载失败 | `yida-plugin-frontend-deploy`；部署资源与平台配置分开，保存版本、权限申请和组织发布交回 `yida-plugin-lifecycle`；普通网站部署、Canvas 页面发布不触发 |
 | 用户显式指定宜搭原生数据卡片，或在已明确的原生卡片上下文中继续操作 | `yida-data-card`；仅泛称卡片、指标卡、看板、投放或播报不触发；原生卡片保存、发布与播报分离，启用或测试发送另需明确授权 |
 | 自定义页面中的数据卡片、指标卡、统计卡 | 页面内组件随页面发布：新增/开发走页面技能，接数据走 `yida-canvas-data-binding`，仅外观走 `yida-design`；不自动创建原生 CARD 资源 |
 | 页面引用了原生 `CARD-xxx` | 按实际修改对象分流：页面外层或引用配置仍归页面；用户明确要求修改源卡片配置才用 `yida-data-card`，不能只凭 CARD/FORM 字样判断 |
@@ -228,7 +256,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 2. **技能加载唯一入口**：执行子技能前必须加载对应技能；单点任务按意图选 1 个主技能，完整应用由 `yida-app` workflow 分阶段加载当前步骤对应的子技能。
 3. **真实资源先确认**：写操作前解析本轮显式资源、已绑定资源上下文、workspace 配置/缓存和历史上下文；已有目标资源时默认修改、补齐或发布，只有目标缺失且意图允许创建时才加载 create 类技能。
 4. **corpId 一致性检查**：创建或发布页面前对比 PRD/resource context 与当前 auth snapshot 的 `corpId`；不一致时先让用户选择重新登录或确认继续。
-5. **页面源码修改必须发布闭环**：只要本轮 Write/Edit/Create 了页面源码 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}`，final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`；没有证据只能说“源码已修改，尚未发布”，禁止说“页面已更新 / 已重新发布 / 已上线”。
+5. **页面源码修改必须发布闭环**：只要本轮 Write/Edit/Create 了页面源码 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}`，final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`；没有证据只能说“已完成修改，待发布”，禁止说“页面已更新 / 已重新发布 / 已上线”。
 6. **发布前本地校验**：平台 JSX 组件页面的 `check-page` / `compile` 归 `yida-custom-page` 执行；使用 `YidaCodeCanvas` 组件实现的自定义页面按本地快检或发布阶段校验；JSON 配置写盘后先解析校验，再调用平台命令。
 7. **生成产物严禁 emoji**：页面源码、`.canvas.jsx` 源码、表单 Schema、发布 Schema、产物文件名和路径中严禁使用 emoji；图标语义使用平台组件、图标库或已验证资源表达。
 8. **输入文件用结构化写入**：JSON/YAML/CSV/config/script 文件使用当前 agent 的文件写入能力创建，再把路径传给命令；严禁用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成业务文件。
@@ -257,8 +285,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 20. **报表和可视化先分流**：标准统计与原生报表用 `yida-report`；定制图表页面默认用 `yida-rechart`；只有明确 ECharts、维护旧 ECharts 页面或复杂 option 超出 Recharts 能力时用 `yida-chart`。
 21. **应用主题只有一份**：涉及应用蓝图、页面视觉、应用主题色、品牌色、全局换肤或 `--color-brand1-*` 时先读 `yida-design`。导航、应用框架、提交/编辑表单、记录详情和自定义页面按[整体主题规则](skills/yida-design/references/application-theme-consistency.md#导航与应用框架)一起设计。`app-theme.css` 只在应用级统一配置，各类页面消费同一份主题 token。严禁在页面级重复写入、同步或向上层注入主题样式；`YidaCodeCanvas` 源码只在 `YidaComp` 内消费现有主题 token。
-22. **默认完成即停止**：完整应用默认以资源发布成功、轻量导航排序完成、示例数据就绪并输出一组有明确名称的应用入口与业务交付总结为 doneWhen；截图、精细导航整理和额外深读属于 optionalAfterDone，除非用户明确要求。
-23. **说清楚做什么**：对话、任务列表、步骤标题、进度和提问面向非技术用户。用日常用语和短句，一句话说一件事，先说结果或动作，再补必要原因。功能写谁能做什么；进度写当前动作和下一步；失败写问题、影响和处理办法；待核实的结果如实说明。文件名、路径、技能名和调用方式留在内部执行。PRD 业务说明、HTML 和消息使用功能与体验描述；接口参数、配置键值及内部 ID 留在 Agent 实施交接，遵循[用户可见表达契约](skills/yida-design/references/ask-human-interaction-contract.md)。交付卡片的 `description` 写 2-3 句业务交付总结、核验结果与剩余事项，卡片包含一组“应用访问入口”；宿主没有交付工具时，在最终回复中给出相同内容。不得把需求信息文件、PRD、视觉设计、build manifest、资源清单、Schema 或每个表单/流程/报表分别登记成用户可见交付物；不分前后台或包含业务后台时，给出经验证的业务页面入口，前台页面经 PRD 标记为 `standalone` 且导航配置回读通过时给独立业务入口；完整应用默认再提供开发者管理后台 `adminUrl`，不因云端登录方式省略；明确仅业务后台时交付业务后台与开发者管理后台，不追加前台；明确仅前台时不追加业务后台，仍交付前台与开发者管理后台两个地址。有前后台时交付前台、业务后台、开发者管理后台三个地址；不分前后台时交付系统入口与开发者管理后台。用户明确排除的入口和单页任务范围优先。
+22. **默认完成即停止**：完整应用默认以资源发布成功、轻量导航排序完成、示例数据就绪并提供按用途命名的真实入口与业务交付总结为 doneWhen；验收按[证据规则](references/execution-rules.md#发布与验收证据)执行；截图、精细导航整理和额外深读属于 optionalAfterDone，除非用户明确要求。
+23. **说清楚做什么**：用业务语言说明功能、进度、问题影响和处理办法。技术字段、命令、文件与排障过程留在内部。所有任务收尾只总结本轮结果，修改不重述完整应用或字段清单；详见[用户可见表达契约](skills/yida-design/references/ask-human-interaction-contract.md)。交付内容包含简短业务总结、核验结果、剩余事项与真实入口，按用途区分访问态前台、业务后台和开发者后台，最多三类。不得把需求信息文件、PRD、视觉设计、build manifest、资源清单、Schema 或每个表单/流程/报表分别登记成用户可见交付物；入口核验、开发者后台和范围组合按 Step 9 执行；用户明确排除的入口和单页任务范围优先。
 24. **任务复盘沉淀**：用户多次纠正、平台接口假成功、页面骨架共性质量问题、线上回读验收方法、一次性脚本可产品化等情况，完成前判断是否需要沉淀到 CLI、测试或 skill。
 
 常见问题见 [常见问题解决方案](references/execution-rules.md)。
@@ -267,6 +295,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 | 文档 | 覆盖范围 | 何时阅读 |
 | --- | --- | --- |
+| [用户可见总结](references/user-facing-summary.md) | 创建、单页修复、发布、升级等任务的业务总结和技术细节边界 | 所有任务收尾时 |
 | [资源上下文与补齐判定](references/resource-context.md) | 资源优先级、绑定上下文、create-or-update、已有 app 无页面 | Step 2 必读 |
 | [路由补充说明](references/routing-supplement.md) | 索引精排方法、无独立子技能 CLI | Step 3 排障或索引匹配不准时 |
 | [常见问题解决方案](references/execution-rules.md) | 常见问题处理路径 | 遇到发布、字段、表单更新或 corpId 问题时 |

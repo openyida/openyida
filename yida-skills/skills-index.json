@@ -4,6 +4,19 @@
   "entry": "openyida",
   "skills": [
     {
+      "name": "yida-print-template",
+      "path": "skills/yida-print-template/SKILL.md",
+      "display_name": "原生打印模板",
+      "description": "管理原生富文本打印模板，按真实字段生成订单、报价、交接、凭证、审批、扫码场景；新建、修改、复制、备份恢复与请求PDF。",
+      "category": "yida-skills/form",
+      "tags": ["打印模板", "打印模版", "打印设置", "订单打印", "报价单", "审批单", "打印二维码", "打印条形码", "数据详情打印"],
+      "aliases": ["单据打印", "自定义打印", "print-template"],
+      "positive_signals": ["配置打印模板", "做订单打印单据", "报价单打印", "打印模板编辑器", "复制恢复打印模板", "打印模板配置二维码和条形码", "新建不同场景的打印模板", "修改已有打印模板", "打印这条数据", "打印这个数据详情页", "按详情页链接生成PDF"],
+      "negative_signals": ["Word模板组件", "叮当打印", "浏览器window.print", "物理打印机"],
+      "command_ids": ["print-template", "sample"],
+      "requires_login": true
+    },
+    {
       "name": "yida-custom-button",
       "path": "skills/yida-custom-button/SKILL.md",
       "display_name": "表单自定义按钮",
@@ -37,10 +50,23 @@
       "requires_login": true
     },
     {
+      "name": "yida-form-message",
+      "path": "skills/yida-form-message/SKILL.md",
+      "display_name": "表单消息通知",
+      "description": "配置普通表单新增、编辑、删除或评论后的消息通知，选择接收人和七种消息样式；保存后核对配置，按用户要求执行真实发送测试。",
+      "category": "yida-skills/form",
+      "tags": ["消息通知", "表单通知", "工作通知", "消息卡片", "群置顶卡片"],
+      "aliases": ["表单消息", "页面消息通知", "form-message"],
+      "positive_signals": ["配置表单提交后消息通知", "修改页面设置里的消息通知", "表单编辑后通知发起人", "查询消息通知接收对象", "配置表单原生消息卡片"],
+      "negative_signals": ["自定义页面发送消息", "机器人群消息", "应用级通知", "集成自动化发消息", "原生酷卡片资源"],
+      "command_ids": ["form-message"],
+      "requires_login": true
+    },
+    {
       "name": "yida-cool-card",
       "path": "skills/yida-cool-card/SKILL.md",
       "display_name": "宜搭原生酷卡片",
-      "description": "仅在用户明确要求宜搭原生酷卡片（交互卡片、置顶卡片），或继续该上下文时使用。支持创建、读取、查询模板、导出配置和样式设计。样式限于钉钉原生组件，不能运行任意 HTML/CSS/React；超出能力时说明限制并提供替代方案。返回官方编辑器链接，由用户配置保存；CLI 不保存、发布或发送。原生数据卡片、Canvas 展示卡片及泛称卡片不触发。",
+      "description": "仅在用户明确要求宜搭原生酷卡片（交互卡片、置顶卡片），或继续该上下文时使用。集团版不支持酷卡片搭建，先核对认证环境。提供创建、读取、查询模板、导出配置和样式设计。样式限于钉钉原生组件，不能运行任意 HTML/CSS/React；超出能力时说明限制并提供替代方案。返回官方编辑器链接，由用户配置保存；CLI 不保存、发布或发送。原生数据卡片、Canvas 展示卡片及泛称卡片不触发。",
       "category": "yida-skills/integration",
       "tags": [
         "宜搭原生酷卡片",
@@ -70,6 +96,32 @@
         "dws"
       ],
       "requires_login": true
+    },
+    {
+      "name": "yida-plugin-lifecycle",
+      "path": "skills/yida-plugin-lifecycle/SKILL.md",
+      "display_name": "宜搭平台插件开发与管理",
+      "description": "管理宜搭平台插件的开发资源、版本配置、安装状态与运行时注册查询；前端构建、托管和加载排查交给 yida-plugin-frontend-deploy。",
+      "category": "yida-skills/integration",
+      "tags": ["宜搭插件", "开发插件", "插件版本", "已安装插件", "扩展点", "运行时注册查询"],
+      "aliases": ["平台插件管理", "OpenYida插件开发管理与使用"],
+      "positive_signals": ["创建宜搭平台插件", "修改开发插件版本", "启用或停用已安装插件", "查询插件扩展点", "验证插件运行时注册"],
+      "negative_signals": ["npm 包", "Codex 插件", "浏览器扩展", "普通 Canvas 组件", "仅插件前端资源构建托管或加载排查"],
+      "command_ids": ["plugin"],
+      "requires_login": true
+    },
+    {
+      "name": "yida-plugin-frontend-deploy",
+      "path": "skills/yida-plugin-frontend-deploy/SKILL.md",
+      "display_name": "宜搭插件前端资源部署",
+      "description": "宜搭平台插件的 remoteEntry.js 构建、第三方资源托管与宿主加载排查；优先企业静态资源服务器，无现成渠道时国内推荐码云加阿里云 OSS，GitHub 为备选；平台版本配置交回生命周期技能。",
+      "category": "yida-skills/integration",
+      "tags": ["宜搭插件", "remoteEntry.js", "Module Federation", "插件资源托管", "插件资产命名空间", "码云", "OSS", "宿主加载"],
+      "aliases": ["宜搭插件前端部署", "宜搭插件资源接入"],
+      "positive_signals": ["宜搭插件 remoteEntry.js 构建", "宜搭第三方插件资产命名空间", "宜搭插件资源部署到企业服务器", "宜搭插件码云加 OSS 托管", "宜搭插件 GitHub 部署备选", "排查宜搭插件前端资源加载失败"],
+      "negative_signals": ["仅创建或启停宜搭插件", "普通网站部署", "Canvas 页面发布", "npm 包", "Codex 插件", "没有宜搭插件上下文的 OSS 咨询"],
+      "command_ids": ["plugin"],
+      "requires_login": false
     },
     {
       "name": "yida-data-card",
@@ -267,11 +319,24 @@
       ]
     },
     {
+      "name": "yida-solution-template",
+      "path": "skills/yida-solution-template/SKILL.md",
+      "display_name": "宜搭方案模板",
+      "description": "仅供独立本地 Agent 在用户明确要求查询、AI 定制或启用宜搭方案中心模板时使用。提供模板详情、云端 AI 搭建入口、启用摘要和状态恢复；云端原生模板 AI 搭与普通应用创建继续走原流程，受管本地任务不使用本技能。",
+      "category": "yida-skills/app",
+      "tags": ["方案中心", "方案模板", "模板启用", "模板AI搭"],
+      "aliases": ["solution-template", "宜搭方案模板"],
+      "positive_signals": ["查询宜搭方案中心模板", "用方案模板AI搭建", "直接启用宜搭方案模板", "继续已确认的方案模板任务"],
+      "negative_signals": ["云端原生模板AI搭", "已注入templateReference或template-reference.md", "网页关联的受管本地任务", "未知执行环境", "普通应用创建", "未明确方案中心的用个模板或你决定", "只引用模板或提供链接而未要求操作", "明确不使用方案中心模板", "创建空应用", "普通页面模板"],
+      "command_ids": ["solution-template"],
+      "requires_login": true
+    },
+    {
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
       "description": "创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。由 yida-prd 和 yida-design 同时准备业务与基础视觉，校验后创建或复用资源；表单/流程先于自定义页面。页面 UI 按已确认设计实现，代码示例按需参考；发布后优先按 PRD 导航顺序排序，检查后交付入口。",
-      "done_when": "需求和方案已确认，业务与视觉说明一致；PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md。仅修改单页时，发布成功后返回当前页面 URL；没有 publish 证据只能声明源码已修改，尚未发布。完整应用按实际范围交付一组入口：管理端按默认任务返回 {base_url}/{appType}/workbench 或已验证的 /workbench/{formUuid}（需要时带真实 viewUuid）；独立前台仅在页面配置回读 renderNav=false（仅缺少 renderNav 时兼容 isRenderNav）且访问验证通过后交付 /custom/{formUuid}；完整应用默认提供 create-app 或 app-list 返回的 adminUrl（开发者管理后台），不受宿主或登录方式影响；仅业务后台时交付业务后台与开发者管理后台，不追加前台；仅前台时不追加业务后台，交付前台与开发者管理后台；有前后台时交付三个地址，不分前后台时交付系统入口与开发者管理后台。用户明确排除的入口除外，地址生成不等于已验证访问权限。final 先用 2-3 句业务语言总结创建/复用了哪些表单、页面和流程，再给主入口链接；不默认输出表格、长列表或资源 ID。缺少真实权限或多身份验证时明确说明未完成。",
+      "done_when": "需求和方案已确认，业务与视觉说明一致；PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md。仅修改单页时，发布成功后返回当前页面 URL；没有 publish 证据只能声明已完成修改，待发布。完整应用按实际范围交付一组入口：管理端按默认任务返回 {base_url}/{appType}/workbench 或已验证的 /workbench/{formUuid}（需要时带真实 viewUuid）；独立前台仅在页面配置回读 renderNav=false（仅缺少 renderNav 时兼容 isRenderNav）且访问验证通过后交付 /custom/{formUuid}；完整应用默认提供 create-app 或 app-list 返回的 adminUrl（开发者管理后台），不受宿主或登录方式影响；仅业务后台时交付业务后台与开发者管理后台，不追加前台；仅前台时不追加业务后台，交付前台与开发者管理后台；有前后台时交付三个地址，不分前后台时交付系统入口与开发者管理后台。用户明确排除的入口除外，地址生成不等于已验证访问权限。final 仅总结本轮业务变化和真实结果，简单修改一句即可，再给主入口链接；不默认输出表格、长列表或资源 ID。缺少真实权限或多身份验证时明确说明未完成。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。",
       "category": "yida-skills/app",
       "tags": [
         "宜搭",
@@ -632,7 +697,7 @@
         "compile",
         "publish"
       ],
-      "done_when": ".canvas.jsx 源码生成或修改后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 写入 YidaCodeCanvas Schema；没有 publish 证据只能声明源码已修改，尚未发布。普通表单提交/详情入口必须接入 CLI 的 form-open-container 模板，绑定 openForm 并挂载 formOpenContainer；源码检查通过后，实际验证抽屉 iframe、标题栏操作、调宽及关闭刷新。"
+      "done_when": ".canvas.jsx 源码生成或修改后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 写入 YidaCodeCanvas Schema；没有 publish 证据只能声明已完成修改，待发布。普通表单提交/详情入口必须接入 CLI 的 form-open-container 模板，绑定 openForm 并挂载 formOpenContainer；源码检查通过后，实际验证抽屉 iframe、标题栏操作、调宽及关闭刷新。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。"
     },
     {
       "name": "yida-canvas-data-binding",
@@ -1008,7 +1073,7 @@
         "compile",
         "publish"
       ],
-      "done_when": "平台 JSX 组件页面源码通过 check-page / compile 后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 发布到目标 display 页面；没有 publish 证据只能声明源码已修改，尚未发布。"
+      "done_when": "平台 JSX 组件页面源码通过 check-page / compile 后，必须真实执行成功 openyida publish <source> <appType> <displayPageFormUuid> 发布到目标 display 页面；没有 publish 证据只能声明已完成修改，待发布。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。"
     },
     {
       "name": "yida-dashboard",
@@ -1053,14 +1118,16 @@
       "name": "yida-data-management",
       "path": "skills/yida-data-management/SKILL.md",
       "display_name": "宜搭数据管理",
-      "description": "查询、新增、更新宜搭表单、子表、流程和任务数据，按当前审批人查询流程实例或统计条数，精确删除普通表单单条记录。查询包含日期为空、区间端点、业务计数、子表条件和服务端分页。",
+      "description": "查询、新增、更新宜搭表单、子表、流程和任务数据，按当前审批人查询流程实例或统计条数，精确删除普通表单单条记录，查询流程当前任务并执行管理员转交。查询包含日期为空、区间端点、业务计数、子表条件和服务端分页。",
       "category": "yida-skills/form",
       "tags": [
         "数据查询",
         "数据新增",
         "表单实例",
         "流程实例",
-        "数据删除"
+        "数据删除",
+        "流程任务查询",
+        "管理员转交"
       ],
       "aliases": [
         "数据管理",
@@ -1079,6 +1146,10 @@
         "日期区间筛选",
         "表单空值查询",
         "子表条件查询",
+        "查询流程当前任务",
+        "管理员转交",
+        "流程审批转交",
+        "把流程转交给",
         "按当前审批人查询流程",
         "指定审批人的待审批数据条数",
         "查询关联流程详情和审批历史",
@@ -1096,7 +1167,7 @@
         "get-schema",
         "sample"
       ],
-      "done_when": "目标数据查询或写入完成，并用 query/get 抽查真实记录；删除仅在 deleted=true 且 readbackVerified=true 时完成。"
+      "done_when": "目标数据查询或写入完成，并用 query/get 抽查真实记录；删除仅在 deleted=true 且 readbackVerified=true 时完成；转交以 transferred=true 且 readbackVerified=true 为准，ALREADY_ASSIGNED 为已分配且未再次写入。"
     },
     {
       "name": "yida-data-source-connectors",
@@ -1556,7 +1627,7 @@
       "command_ids": [
         "publish"
       ],
-      "done_when": "final 证据只认真实执行成功的 openyida publish <source> <appType> <displayPageFormUuid> 命令结果；本地文件编辑、diff、check-page 或 compile 不能证明远端页面已更新。Canvas 普通表单入口须通过 form-open-container 源码检查；抽屉实际交互另行验收。",
+      "done_when": "final 证据只认真实执行成功的 openyida publish <source> <appType> <displayPageFormUuid> 命令结果；本地文件编辑、diff、check-page 或 compile 不能证明远端页面已更新。Canvas 普通表单入口须通过 form-open-container 源码检查；抽屉实际交互另行验收。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。",
       "category": "yida-skills/page",
       "tags": [
         "发布",
@@ -1844,7 +1915,10 @@
         "造数",
         "日期为空",
         "日期区间筛选",
-        "表单空值查询"
+        "表单空值查询",
+        "流程任务查询",
+        "管理员转交",
+        "流程审批转交"
       ]
     },
     {
@@ -1908,8 +1982,12 @@
     {
       "name": "yida-skills/integration",
       "display_name": "连接器与集成",
-      "description": "HTTP 连接器、连接器动作、页面设计器数据源、提交后集成自动化和外部 API 接入。",
+      "description": "宜搭平台插件、HTTP 连接器、连接器动作、页面设计器数据源、提交后集成自动化和外部 API 接入。",
       "signals": [
+        "宜搭平台插件",
+        "开发插件",
+        "插件管理",
+        "插件扩展点",
         "宜搭原生酷卡片",
         "酷卡片管理",
         "cardPageCode",

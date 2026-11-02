@@ -92,6 +92,42 @@ describe('agent-capabilities summary', () => {
     });
   });
 
+  test.each([
+    ['qwenwork_desktop', 'token_oauth_session'],
+    ['codex', 'token_oauth_session'],
+    ['mulerun', 'env_token_bootstrap'],
+  ])('reports verified runtime and developer entries with host-managed presentation for %s', (tool, authRuntime) => {
+    const { buildApplicationEntryPolicy } = require('../lib/core/agent-capabilities');
+    const { buildCommandManifest } = require('../lib/core/command-manifest');
+    const policy = buildApplicationEntryPolicy({
+      auth: { auth_runtime: authRuntime, can_auto_use: true },
+      runtime: { tool },
+    });
+    const manifestPolicy = buildCommandManifest().summary.core_workflows.full_app_build.application_entry_policy;
+
+    expect(policy.delivery_unit).toBe('application_entries');
+    expect(policy.entries.admin).toBe('include');
+    expect(policy.entry_delivery).toEqual(manifestPolicy.entry_delivery);
+    expect(policy.entry_delivery).toEqual({
+      max_count: 3,
+      deduplicate_by: 'verified_url',
+      order: ['frontend', 'management', 'admin'],
+      by_scope: {
+        'service-management': ['frontend', 'management', 'admin'],
+        'frontend-only': ['frontend', 'admin'],
+        'backend-only': ['management', 'admin'],
+        unified: ['management', 'admin'],
+      },
+      explicit_user_exclusions: 'take_precedence',
+      resource_only: 'current_resource_only',
+      missing_entry: 'report_incomplete_without_guessing',
+    });
+    // 消费方调整本次结果时，不能污染后续能力查询或其他宿主。
+    policy.entry_delivery.by_scope['service-management'].pop();
+    expect(buildApplicationEntryPolicy({}).entry_delivery.by_scope['service-management'])
+      .toEqual(['frontend', 'management', 'admin']);
+  });
+
   test('YIDA_AUTH_ENABLED does not skip environment snapshot or auth status checks', () => {
     const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-agent-cap-fast-'));
     const buildEnvironmentSnapshot = jest.fn(() => ({
@@ -189,7 +225,9 @@ describe('agent-capabilities summary', () => {
       expect(summary.application_entry_policy).toEqual({
         schema_version: 1,
         environment: 'managed_cloud_agent',
-        delivery_unit: 'single_application_entry_group',
+        delivery_unit: 'application_entries',
+        presentation: 'host_managed',
+        entry_delivery: expect.objectContaining({ max_count: 3 }),
         resource_delivery: 'summary_only',
         internal_artifact_delivery: 'never',
         frontend_delivery: expect.stringContaining('verified publish/get-form-config standaloneUrl'),

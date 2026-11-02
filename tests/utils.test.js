@@ -390,6 +390,7 @@ describe('requestWithAutoLogin', () => {
         access_token: 'new-access-token',
         refresh_token: 'refresh-token',
         base_url: 'https://customer.example.com',
+        identity_type: 'ORGANIZATION', organization_type: 'DINGTALK',
         corp_id: 'ding-corp',
         corp_name: '钉钉组织',
         user_id: 'user-1',
@@ -422,6 +423,7 @@ describe('requestWithAutoLogin', () => {
       expect(authRef.authData).toMatchObject({
         auth_mode: 'token',
         base_url: 'https://customer.example.com',
+        identity_type: 'ORGANIZATION', organization_type: 'DINGTALK',
         corp_id: 'ding-corp',
         corp_name: '钉钉组织',
         user_id: 'user-1',
@@ -636,6 +638,16 @@ describe('loadAuthData', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
+  test.each([
+    { identity_type: 'PERSONAL' },
+    { identity_type: 'ORGANIZATION', organization_type: 'QWENWORK' },
+  ])('ODS classification reaches the business auth context: %j', classification => {
+    const { saveTokenSession } = require('../lib/auth/token-store');
+    saveTokenSession({ ...classification, access_token: 'fixture-access', base_url: 'https://tenant.example.test',
+      corp_id: 'yida0123456789abcdef0123456789abcdef', user_id: 'ods-member' }, { projectRoot: tmpDir });
+    expect(loadAuthData(tmpDir)).toMatchObject({ ...classification, corp_id: 'yida0123456789abcdef0123456789abcdef', user_id: 'ods-member' });
+  });
+
   test('读取 token session 并返回 authRef 可用结构', () => {
     const { saveTokenSession } = require('../lib/auth/token-store');
     saveTokenSession({
@@ -795,6 +807,37 @@ describe('detectActiveTool', () => {
     process.env.CLAUDE_CODE = '1';
     const result = detectActiveTool();
     expect(result.tool).toBe('mulerun');
+  });
+
+  test.each(['darwin', 'win32', 'linux'])('ACP 与桌面声明并存时选择桌面路径：%s', platform => {
+    const result = require('../lib/core/utils').detectRuntimeCapabilities({ platform, env: {
+      QWENWORK_CLIENT: 'acp', QWENWORK_INTEGRATION_MODE: 'desktop',
+      QWENWORK: '1', AGENT_PLATFORM: 'qwenwork_base',
+    } });
+    expect(result).toMatchObject({ tool: 'qwenwork', subtype: 'qwenwork_desktop' });
+  });
+
+  test.each(['QWENWORK_SANDBOX_ID', 'QWENWORK_PREVIEW_URL', 'QWENWORK_VNC_URL'])('沙箱信号 %s 优先于继承的桌面产品变量', name => {
+    const result = require('../lib/core/utils').detectRuntimeCapabilities({ env: {
+      QWENWORK_CLIENT: 'acp', QWENWORK_INTEGRATION_MODE: 'desktop', [name]: 'sandbox-fixture',
+    } });
+    expect(result).toMatchObject({ tool: 'qwenwork', subtype: 'qwenwork_web', capabilities: { desktop_shell: false } });
+  });
+
+  test.each(['1', 'true', 'yes', 'on'])('兼容历史布尔桌面标记：%s', value => {
+    const result = require('../lib/core/utils').detectRuntimeCapabilities({ env: {
+      QWENWORK_CLIENT: 'acp', QWENWORK_INTEGRATION_MODE: value,
+    } });
+    expect(result).toMatchObject({ tool: 'qwenwork', subtype: 'qwenwork_desktop' });
+  });
+
+  test.each([
+    { QWENWORK_CLIENT: 'acp' },
+    { QWENWORK_WORKSPACE_DIR: '/tmp/workspace' },
+    { QWENWORK_INTEGRATION_MODE: 'unknown' },
+  ])('传输、路径或未知模式不能单独声明千问执行环境：%j', env => {
+    const result = require('../lib/core/utils').detectRuntimeCapabilities({ env });
+    expect(result?.tool).not.toBe('qwenwork');
   });
 
   test('QwenWork web 强信号优先于 MuleRun 兼容变量', () => {
@@ -991,27 +1034,26 @@ describe('detectActiveTool', () => {
     }
   });
 
-  test('QwenWork、QoderWork 和新 Qoder 环境默认附加浏览器 handoff', () => {
+  test.each([
+    { location: 'local', status: 'open_url', allowed: true },
+    { location: 'cloud', status: 'present_url', allowed: false },
+  ])('QwenWork、QoderWork 和新 Qoder 在 $location 环境按执行位置返回 handoff', ({ location, status, allowed }) => {
+    process.env = { OPENYIDA_MANAGED_RUNTIME: location, OPENYIDA_ASSUME_DESKTOP: '1' };
+    const expected = {
+      status, handoff_type: 'browser', can_auto_use: allowed,
+      browser_verification: { execution_location: location === 'cloud' ? 'remote' : 'local', allowed },
+    };
     process.env.QWENWORKCN_INTEGRATION_MODE = 'qwen_work';
-    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject({
-      status: 'open_url',
-      handoff_type: 'browser',
-    });
+    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject(expected);
 
     delete process.env.QWENWORKCN_INTEGRATION_MODE;
     process.env.QODERCLI_INTEGRATION_MODE = 'qoder_work';
-    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject({
-      status: 'open_url',
-      handoff_type: 'browser',
-    });
+    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject(expected);
 
     delete process.env.QODERCLI_INTEGRATION_MODE;
     process.env.QODER_PRODUCT_ID = 'qoder';
     process.env.QODER_SESSION_TYPE = 'app';
-    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject({
-      status: 'open_url',
-      handoff_type: 'browser',
-    });
+    expect(buildBrowserHandoff('https://example.com/yida')).toMatchObject(expected);
   });
 
   test('CODEX_SHELL 环境变量时检测为 Codex', () => {

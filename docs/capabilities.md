@@ -65,6 +65,10 @@
 | 导出 ER 关系图 | `openyida er <appType> [--format mermaid\|json] [--output file]` |
 | 管理聚合表 virtualView | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` |
 
+## 打印模板与单据
+
+`openyida print-template` 管理宜搭原生富文本打印模板，支持查询、按真实字段编排多种单据、创建、复制、保存、备份恢复、模板设置、启停、排序、字段二维码/条形码和请求单条记录 PDF。通过 `openyida sample yida-print-template order|quotation|delivery|receipt|approval|codes --output <file.json>` 输出六种可编辑示例；也可 build --scene 配合 --bindings 映射实际字段。create --config 完成新建和正文保存，已有模板通过 inspect 指纹与 save 修改，copy 创建版式变体。数据详情链接可通过 list --detail-url 查询当前记录可用模板，再 render --detail-url --template-id 打印该条记录；与管理端列表分开校验权限。保存后直接生效，PDF 请求受理与文件生成成功分开验证。详见 [打印模板技能](../yida-skills/skills/yida-print-template/SKILL.md)。Word、叮当和物理打印机操作不在此命令范围内。
+
 ## 自定义页面与发布
 
 | 功能 | 执行操作 |

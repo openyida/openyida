@@ -87,7 +87,7 @@ describe('authentication across project initialization', () => {
     fs.mkdirSync(path.join(child, 'pages', 'src'), { recursive: true });
     fs.writeFileSync(path.join(child, 'config.json'), '{}');
     for (const cwd of [workspace, child]) {
-      const checked = run(['login', '--check-only', '--json'], cwd);
+      const checked = run(['auth', 'status', '--json'], cwd);
       expect(checked.status).toBe(0);
       expect(JSON.parse(checked.stdout)).toMatchObject({ status: 'ok', auth_profile: first.auth_profile });
     }
