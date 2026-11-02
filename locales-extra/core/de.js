@@ -2509,3 +2509,10 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   fields_not_editable: 'Das Update enthält nicht bearbeitbare oder nicht überprüfbare Felder: {0}. Kein Update gesendet. Verwenden Sie bei dynamischem Verhalten oder eingeschränkten Unterformularen den nativen Editor.',
   form_update_forbidden: 'Sie haben keine Berechtigung, diese Daten zu ändern.',
 });
+
+module.exports.data_verify = {
+  "invalid_usage": "--verify-write ist ein Schalter nur für create/update gewöhnlicher Formulare.",
+  "preflight_failed": "Datenprüfung vor dem Schreiben fehlgeschlagen ({0} Probleme).",
+  "readback_failed": "Schreiben akzeptiert, Rücklesen jedoch nicht verifiziert. Prüfen Sie den vorhandenen Datensatz; wiederholen Sie das Schreiben nicht.",
+  "mismatch": "Schreiben akzeptiert, aber die zurückgelesenen Felder unterscheiden sich von den gesendeten Daten."
+};

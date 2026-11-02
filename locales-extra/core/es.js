@@ -2511,3 +2511,10 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   fields_not_editable: 'La actualización incluye campos no editables o no verificables: {0}. No se envió ninguna actualización. Use el editor nativo para comportamientos dinámicos o subformularios restringidos.',
   form_update_forbidden: 'No tiene permiso para modificar estos datos.',
 });
+
+module.exports.data_verify = {
+  "invalid_usage": "--verify-write es una opción exclusiva de create/update de formularios ordinarios.",
+  "preflight_failed": "Falló la validación previa de los datos ({0} problemas).",
+  "readback_failed": "Escritura aceptada, pero no se verificó la lectura. Revise el registro existente; no repita la escritura.",
+  "mismatch": "Escritura aceptada, pero los campos leídos difieren de los datos enviados."
+};

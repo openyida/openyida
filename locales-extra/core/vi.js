@@ -2509,3 +2509,10 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   fields_not_editable: 'Bản cập nhật chứa trường không thể chỉnh sửa hoặc không thể xác minh: {0}. Chưa gửi cập nhật. Hãy dùng trình chỉnh sửa gốc cho hành vi động hoặc biểu mẫu con bị hạn chế.',
   form_update_forbidden: 'Bạn không có quyền thay đổi dữ liệu này.',
 });
+
+module.exports.data_verify = {
+  "invalid_usage": "--verify-write chỉ là cờ dành cho create/update biểu mẫu thông thường.",
+  "preflight_failed": "Kiểm tra dữ liệu trước khi ghi thất bại ({0} vấn đề).",
+  "readback_failed": "Đã chấp nhận ghi nhưng chưa xác minh được dữ liệu đọc lại. Kiểm tra bản ghi hiện có; không ghi lại.",
+  "mismatch": "Đã chấp nhận ghi nhưng các trường đọc lại khác với dữ liệu đã gửi."
+};

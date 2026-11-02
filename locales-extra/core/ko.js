@@ -2510,3 +2510,10 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   fields_not_editable: '편집할 수 없거나 편집 가능 여부를 확인할 수 없는 필드가 있습니다: {0}. 업데이트를 보내지 않았습니다. 동적 동작이나 제한된 하위 폼은 기본 편집기를 사용하세요.',
   form_update_forbidden: '이 데이터를 변경할 권한이 없습니다.',
 });
+
+module.exports.data_verify = {
+  "invalid_usage": "--verify-write는 일반 폼 create/update 전용 플래그입니다.",
+  "preflight_failed": "데이터 쓰기 사전 검증 실패 ({0}개 문제).",
+  "readback_failed": "쓰기가 수락되었지만 다시 읽은 결과를 검증할 수 없습니다. 기존 레코드를 확인하고 쓰기를 반복하지 마세요.",
+  "mismatch": "쓰기가 수락되었지만 다시 읽은 필드가 제출한 데이터와 다릅니다."
+};
