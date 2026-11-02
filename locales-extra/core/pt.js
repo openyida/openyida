@@ -2511,3 +2511,8 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   fields_not_editable: 'A atualização inclui campos não editáveis ou não verificáveis: {0}. Nenhuma atualização foi enviada. Use o editor nativo para comportamentos dinâmicos ou subformulários restritos.',
   form_update_forbidden: 'Você não tem permissão para modificar estes dados.',
 });
+
+module.exports.batch = {
+  "invalid_concurrency": "--concurrency deve ser um número inteiro de 1 a 4.",
+  "executing": "Executando tarefas independentes (limite de concorrência {0})"
+};

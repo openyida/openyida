@@ -21,9 +21,47 @@ jest.mock('../lib/core/utils', () => {
   };
 });
 
-const { parseArgs, parseCommandLine, loadCommandsFromFile } = require('../lib/core/batch');
+jest.mock('child_process', () => ({ ...jest.requireActual('child_process'), execFile: jest.fn() }));
+
+const { parseArgs, parseCommandLine, loadCommandsFromFile, executeCommand } = require('../lib/core/batch');
+
+describe('child execution results', () => {
+  test('help describes concurrency without reading auth or launching children', async () => {
+    const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const auth = require('../lib/core/utils').loadAuthData;
+    auth.mockClear(); require('child_process').execFile.mockClear();
+    try {
+      await require('../lib/core/batch').run(['--help']);
+      expect(log.mock.calls.flat().join('\n')).toContain('--concurrency 1..4');
+      expect(auth).not.toHaveBeenCalled();
+      expect(require('child_process').execFile).not.toHaveBeenCalled();
+    } finally { log.mockRestore(); }
+  });
+
+  test('zero exit code with business failure still fails the batch item', async () => {
+    require('child_process').execFile.mockImplementationOnce((_bin, _args, _opts, done) =>
+      done(null, 'progress\n{\n  "success": false,\n  "message": "business failure"\n}\n', ''));
+    expect(await executeCommand(['app-list'], true)).toMatchObject({ success: false, exitCode: 1, error: 'business failure' });
+  });
+
+  test('structured stderr diagnostics survive incidental stdout', async () => {
+    const payload = { success: false, nextAction: { type: 'open_url', url: 'https://example.test/permission' } };
+    require('child_process').execFile.mockImplementationOnce((_bin, _args, _opts, done) =>
+      done(Object.assign(new Error('failed'), { code: 1 }), 'progress', JSON.stringify(payload)));
+    expect(await executeCommand(['app-list'], true)).toMatchObject({ success: false, output: payload });
+  });
+});
 
 describe('batch parseArgs', () => {
+  test.each(['0', '5', '-1', '2.5', 'NaN', undefined])('拒绝无效并发上限 %s', value => {
+    expect(() => parseArgs(['--concurrency', value])).toThrow();
+  });
+
+  test('并发默认串行，显式开启有效上限', () => {
+    expect(parseArgs([]).concurrency).toBe(1);
+    expect(parseArgs(['tasks.txt', '--concurrency', '3']).concurrency).toBe(3);
+  });
+
   test('解析内联 --commands 分号分隔', () => {
     const parsed = parseArgs(['--commands', 'app-list;get-schema APP_X FORM-1', '--json']);
     expect(parsed.inlineCommands).toEqual(['app-list', 'get-schema APP_X FORM-1']);

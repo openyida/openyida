@@ -2509,3 +2509,8 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   fields_not_editable: 'Das Update enthält nicht bearbeitbare oder nicht überprüfbare Felder: {0}. Kein Update gesendet. Verwenden Sie bei dynamischem Verhalten oder eingeschränkten Unterformularen den nativen Editor.',
   form_update_forbidden: 'Sie haben keine Berechtigung, diese Daten zu ändern.',
 });
+
+module.exports.batch = {
+  "invalid_concurrency": "--concurrency muss eine ganze Zahl von 1 bis 4 sein.",
+  "executing": "Unabhängige Aufgaben werden ausgeführt (Parallelitätsgrenze {0})"
+};

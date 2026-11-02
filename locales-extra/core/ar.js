@@ -2511,3 +2511,8 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   fields_not_editable: 'يتضمن التحديث حقولًا غير قابلة للتحرير أو يتعذر التحقق منها: {0}. لم يتم إرسال تحديث. استخدم المحرر الأصلي للسلوك الديناميكي أو النماذج الفرعية المقيدة.',
   form_update_forbidden: 'ليس لديك إذن لتعديل هذه البيانات.',
 });
+
+module.exports.batch = {
+  "invalid_concurrency": "يجب أن تكون قيمة --concurrency عددًا صحيحًا من 1 إلى 4.",
+  "executing": "تنفيذ مهام مستقلة (حد التزامن {0})"
+};

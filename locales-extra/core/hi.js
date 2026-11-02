@@ -2509,3 +2509,8 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   fields_not_editable: 'अपडेट में ऐसे फ़ील्ड हैं जिन्हें संपादित नहीं किया जा सकता या सत्यापित नहीं किया जा सका: {0}। कोई अपडेट नहीं भेजा गया। गतिशील व्यवहार या प्रतिबंधित उप-फ़ॉर्म के लिए मूल संपादक का उपयोग करें।',
   form_update_forbidden: 'आपको यह डेटा बदलने की अनुमति नहीं है।',
 });
+
+module.exports.batch = {
+  "invalid_concurrency": "--concurrency का मान 1 से 4 तक का पूर्णांक होना चाहिए।",
+  "executing": "स्वतंत्र कार्य चल रहे हैं (समवर्ती सीमा {0})"
+};

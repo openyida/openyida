@@ -18,6 +18,17 @@ describe('agent-capabilities summary', () => {
     jest.dontMock('../lib/core/utils');
   });
 
+  test('task policy changes affect the manifest digest and capability output', () => {
+    const capabilities = require('../lib/core/agent-capabilities');
+    const manifest = require('../lib/core/command-manifest').buildCommandManifest({ version: 'test', t: key => key });
+    const before = capabilities.buildCommandManifestDigest(manifest);
+    manifest.commands.find(entry => entry.id === 'publish').task_concurrency.sourcePosition = 7;
+    expect(capabilities.buildCommandManifestDigest(manifest)).not.toBe(before);
+    expect(capabilities.buildAgentCapabilitiesSummary().task_execution).toMatchObject({
+      delegation: { optional: true, status: 'host_tool_inventory_required' }, cli_batch: { default_concurrency: 1 },
+    });
+  });
+
   test('exposes non-cloud search and QwenWork generation runtime defaults', () => {
     const { buildAssetCapabilities } = require('../lib/core/agent-capabilities');
     const local = buildAssetCapabilities({ tool: 'codex', runtime: 'desktop_shell', subtype: 'codex' }, {});

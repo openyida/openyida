@@ -185,6 +185,9 @@ test('initializes stable references, preserves explicit facts and returns a boun
   expect(plan.execution.appConfig.appType).toBe('APP_EXISTING');
   expect(plan.execution.explicitScope.navigation.variant).toBe('top');
   expect(result.parallelTasks.map(task => [task.id, task.dependsOn])).toEqual([['business', []]]);
+  expect(result.taskExecution).toMatchObject({ capabilitySource: 'agent-capabilities.task_execution',
+    dependencyField: 'parallelTasks[].dependsOn', exclusiveOutputs: expect.any(Array) });
+  expect(result.taskExecution.orchestration).toContain('host subagents');
   expect(result.preparedInputs.visual).toBe(result.parallelTasks[0].output.replace('business.json', 'visual.json'));
   expect(result.materialize).toMatchObject({ mode: 'complete_files_once', maxSuccessfulCalls: 1,
     repairPolicy: { unchangedRetryAllowed: false, maxAttemptsWithoutProgress: 2 } });

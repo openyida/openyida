@@ -649,7 +649,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida update` | Check and update to latest version |
 | `openyida export-conversation [options]` | Export AI conversation records |
 | `openyida feedback <report\|github\|setup\|url\|dismiss\|status> [options]` | Prepare local issue reports, configure feedback forms and reminders |
-| `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run OpenYida commands in batch |
+| `openyida batch <file>\|--commands "cmd1 ; cmd2" [--concurrency 1..4] [--stop-on-error] [--json]` | Run OpenYida commands in batch |
 | `openyida flash-to-prd --file <path> --name "<project>"` | Convert flash notes or meeting notes to a PRD prompt |
 | `openyida ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
 | `openyida asset <status\|resolve\|sources> [options]` | Detect asset capability / resolve materials |
