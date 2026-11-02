@@ -61,11 +61,11 @@ describe('resolveBaseUrl', () => {
   });
 
   test('authData 为 null 时返回默认值', () => {
-    expect(resolveBaseUrl(null)).toBe('https://www.aliwork.com');
+    expect(resolveBaseUrl(null)).toBe('https://davidtest.aliwork.com');
   });
 
   test('authData 无 base_url 时返回默认值', () => {
-    expect(resolveBaseUrl({})).toBe('https://www.aliwork.com');
+    expect(resolveBaseUrl({})).toBe('https://davidtest.aliwork.com');
   });
 
   test('支持自定义默认值', () => {

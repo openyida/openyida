@@ -27,9 +27,9 @@ describe('beta 入口沿用主干环境与域名选择', () => {
     require('../bin/yida-beta');
     return require('../lib/auth/token-auth').resolveTokenBaseUrl;
   }
-  test('零配置使用公有云，不注入测试环境或独立认证目录', () => {
+  test('零配置使用定制默认域名，不注入环境变量或独立认证目录', () => {
     const resolve = start();
-    expect(resolve({ projectRoot: root })).toBe('https://www.aliwork.com');
+    expect(resolve({ projectRoot: root })).toBe('https://davidtest.aliwork.com');
     for (const name of names.slice(0, 3)) { expect(process.env[name]).toBeUndefined(); }
     expect(process.env.OPENYIDA_SKIP_UPDATE_CHECK).toBe('1');
   });

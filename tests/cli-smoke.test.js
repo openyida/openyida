@@ -2151,7 +2151,7 @@ describe('CLI offline smoke', () => {
   test('env list routes to multi-environment management command', () => {
     const output = runOk(['env', 'list']);
     expect(output).toContain('public');
-    expect(output).toContain('https://www.aliwork.com');
+    expect(output).toContain('https://davidtest.aliwork.com');
     expect(output).toContain('https://www.yidaapps.com');
     expect(output).toContain('alibaba');
     expect(output).toContain('https://yida-group.alibaba-inc.com');

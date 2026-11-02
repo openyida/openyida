@@ -120,7 +120,7 @@
     "node": ">=18"
   },
   "openyidaAgent": {
-    "endpoint": "https://www.aliwork.com/openyida/agent-api"
+    "endpoint": "https://davidtest.aliwork.com/openyida/agent-api"
   },
   "optionalDependencies": {
     "@openyida/local-agent-runtime-darwin-arm64": "0.1.4",
