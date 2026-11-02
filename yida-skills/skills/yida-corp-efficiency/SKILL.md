@@ -1,8 +1,8 @@
 ---
 name: yida-corp-efficiency
 description: >
-  企业效能数据查询（效能概览、节省预算/时间、低代码学习与认证成果、明细报表、通知群）。
-  触发词：「企业效能」「corpEfficiency」「效能数据」「低代码学习成果」「效能分析明细」。
+  企业效能数据查询（效能概览、节省预算/时间、宜搭学习与认证成果、明细报表、通知群）。
+  触发词：「企业效能」「corpEfficiency」「效能数据」「宜搭学习成果」「效能分析明细」。
 ---
 
 # 宜搭企业效能
@@ -34,7 +34,7 @@ openyida corp-efficiency overview --locale en_US --raw
 |------|------|
 | `corpId` / `corpName` | 当前组织 |
 | `overview` | 企业效能概览、是否达参考标准、节省预算和开发天数 |
-| `learning` | 低代码学习完成人数、开发者认证人数 |
+| `learning` | 宜搭学习完成人数、开发者认证人数 |
 | `performance.metrics` | 效能指标列表，含当前值、行业参考值、百分比、是否高于参考值 |
 | `performance.metrics[].detailReportFullUrl` | 对应明细报表完整链接 |
 | `details` | 页面所有“查看明细”入口，含学习认证明细和效能指标明细 |

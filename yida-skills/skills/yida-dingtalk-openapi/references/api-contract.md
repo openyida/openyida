@@ -12,7 +12,7 @@ Agent 先按业务域进入官方目录，再打开目标接口页。目录页�
 | 公告 | [企业内部通知与公告发布](https://open.dingtalk.com/document/development/blackboard-announcement-overview) |
 | 签到 | [外勤定位签到与轨迹记录](https://open.dingtalk.com/document/development/sign-check-overview) |
 | 日志 | [员工工作汇报与总结提交](https://open.dingtalk.com/document/development/report-log-overview) |
-| 宜搭 | [低代码应用搭建与管理平台](https://open.dingtalk.com/document/development/overview-yida) |
+| 宜搭 | [宜搭应用搭建与管理](https://open.dingtalk.com/document/development/overview-yida) |
 | Agoal | [企业目标设定与进度追踪](https://open.dingtalk.com/document/development/agoal-overview) |
 | 音视频 | [在线会议与音视频通话服务](https://open.dingtalk.com/document/development/create-and-close-video-meetings) |
 | AI 表格 | [智能数据分析与表格处理](https://open.dingtalk.com/document/development/data-structure) |

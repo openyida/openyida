@@ -162,7 +162,7 @@ function createCodexPluginManifest() {
   return {
     name: CODEX_PLUGIN_NAME,
     version: PACKAGE_JSON.version,
-    description: 'OpenYida CLI plugin for building and managing Yida low-code apps from Codex.',
+    description: 'OpenYida CLI plugin for building and managing AI Yida apps from Codex.',
     author: {
       name: 'OpenYida Contributors',
       email: 'yize.shc@gmail.com',
@@ -171,12 +171,12 @@ function createCodexPluginManifest() {
     homepage: 'https://github.com/openyida/openyida',
     repository: 'https://github.com/openyida/openyida',
     license: PACKAGE_JSON.license || 'MIT',
-    keywords: ['openyida', 'yida', 'low-code', 'aliyun', 'codex'],
+    keywords: ['openyida', 'yida', 'vibe-coding', 'aliyun', 'codex'],
     skills: './skills/',
     interface: {
       displayName: '宜搭',
       shortDescription: '通过 OpenYida CLI 创建和管理宜搭应用、表单、页面与数据',
-      longDescription: 'Use OpenYida from Codex to log in to Yida, create low-code apps, manage forms, publish custom pages, configure permissions, build reports, and query data through the openyida command line.',
+      longDescription: 'Use OpenYida from Codex to log in to AI Yida, create apps, manage forms, publish custom pages, configure permissions, build reports, and query data through the openyida command line.',
       developerName: 'OpenYida Contributors',
       category: 'Productivity',
       capabilities: ['Interactive', 'Write'],
@@ -221,7 +221,7 @@ function createCodexPluginSkill() {
   return `---
 name: openyida
 description: >
-  OpenYida / 宜搭总入口技能。用户提到宜搭、OpenYida、Yida、低代码应用、创建应用、创建表单、自定义页面、
+  OpenYida / 宜搭总入口技能。用户提到宜搭、OpenYida、Yida、AI 宜搭应用、创建应用、创建表单、自定义页面、
   页面发布、权限、报表、连接器、流程、数据查询或登录态管理时使用。通过 openyida CLI 在 Codex 中操作宜搭平台。
 ---
 
@@ -229,7 +229,7 @@ description: >
 
 ## 目标
 
-使用 \`openyida\` CLI 帮用户在 Codex 中完成宜搭低代码平台操作，包括登录态检查、应用创建、表单管理、自定义页面开发、页面发布、权限配置、报表、连接器、流程和数据查询。
+使用 \`openyida\` CLI 帮用户在 Codex 中完成 AI 宜搭操作，包括登录态检查、应用创建、表单管理、自定义页面开发、页面发布、权限配置、报表、连接器、流程和数据查询。
 
 ## 首要步骤
 

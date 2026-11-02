@@ -74,8 +74,8 @@ var SLIDES = [
     accent: '#0089ff',
     eyebrow: '2026 产品发布',
     title: 'OpenYida 2.0',
-    subtitle: 'AI 驱动的低代码开发平台',
-    tags: ['AI 原生', '低代码', '企业级'],
+    subtitle: '基于 AI 宜搭的 Vibe Coding 应用开发平台',
+    tags: ['AI 原生', 'Vibe Coding', '企业级'],
   },
   {
     type: 'toc',
@@ -103,7 +103,7 @@ var SLIDES = [
     accent: '#ffffff',
     title: '立即体验',
     subtitle: 'npm install -g openyida',
-    quote: '让 AI 成为你的低代码开发伙伴',
+    quote: '让 AI 成为你的应用开发伙伴',
   },
 ];
 

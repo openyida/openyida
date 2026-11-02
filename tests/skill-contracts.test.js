@@ -1191,7 +1191,7 @@ describe('OpenYida skill contracts', () => {
     expect(appStep2).toContain('| Visual Design | `yida-design`');
     expect(appStep2).not.toContain('应用体验蓝图');
     expect(appStep2).not.toContain('需求范围');
-    expect(appStep2).not.toContain('## 完整低代码 PRD 模板');
+    expect(appStep2).not.toMatch(/^## 完整.*PRD 模板/m);
     expect(byName.get('yida-app').description).toContain('由 yida-prd 和 yida-design 同时准备业务与基础视觉');
     expect(byName.get('yida-app').description).toContain('表单/流程先于自定义页面');
     expect(byName.get('yida-app').description).toContain('页面 UI 按已确认设计实现，代码示例按需参考');

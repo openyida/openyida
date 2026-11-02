@@ -915,11 +915,11 @@
       "name": "yida-corp-efficiency",
       "path": "skills/yida-corp-efficiency/SKILL.md",
       "display_name": "企业效能数据查询",
-      "description": "企业效能数据查询，覆盖效能概览、节省预算时间、低代码学习与认证成果、明细报表和通知群。",
+      "description": "企业效能数据查询，覆盖效能概览、节省预算时间、宜搭学习与认证成果、明细报表和通知群。",
       "category": "yida-skills/context",
       "tags": [
         "企业效能",
-        "低代码学习",
+        "宜搭学习",
         "认证",
         "corpEfficiency"
       ],
