@@ -115,7 +115,12 @@ describe('agent-capabilities summary', () => {
     // A host marker must not claim the actual tool is installed or a card rendered.
     if (mode === 'host_show_link') {
       expect(summary.link_presentation_policy).toMatchObject({
-        applies_to: 'all_user_visible_links_in_every_phase',
+        applies_to: 'developer_admin_link_at_end_of_each_turn',
+        timing: 'before_final_reply',
+        max_calls_per_turn: 1,
+        target: 'current_application_confirmed_adminUrl',
+        target_path: '/admin',
+        other_links: 'preserve_existing_delivery_and_workflow',
         preferred_tool: preferredTool,
         tool_availability: 'unknown_until_declared_by_host',
         requires_host_tool_inventory_check: true,
