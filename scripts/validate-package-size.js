@@ -79,7 +79,9 @@ const path = require('path');
 // Node 20.18.1 measures 2,637,999 compressed bytes; next 16 KiB boundary.
 // 合并主干插件与权限指引、千问免登后，Node 24 实测 gzip 为 2,711,034 字节；取下一档 16 KiB 边界。
 // 合并字段权限校验与最新主干后，Node 20 实测 2,722,740 压缩字节；取下一档 16 KiB 边界。
-const MAX_TARBALL_BYTES = 2672 * 1024;
+// Davidtest beta based on 11.2-2 measures 2,736,148 compressed bytes on CI Node 20;
+// retain the next 16 KiB boundary for compression headroom.
+const MAX_TARBALL_BYTES = 2688 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.

@@ -65,6 +65,10 @@ describe('npm package smoke', () => {
     expect(getPackageBudgetErrors({ size: 2665928, unpackedSize: 9840407, entryCount: 777 })).toEqual([]);
   });
 
+  test('package budget covers the 11.2-2 davidtest beta measured on CI Node 20', () => {
+    expect(getPackageBudgetErrors({ ...budgetLimit, size: 2736148 })).toEqual([]);
+  });
+
   test.each([
     ['original PR 638', { size: 2444722, unpackedSize: 9113751, entryCount: 707 }],
     ['PR 638 merged with main', { size: 2496932, unpackedSize: 9278325, entryCount: 721 }],
