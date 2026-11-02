@@ -115,11 +115,20 @@ describe('agent-capabilities summary', () => {
     // A host marker must not claim the actual tool is installed or a card rendered.
     if (mode === 'host_show_link') {
       expect(summary.link_presentation_policy).toMatchObject({
-        applies_to: 'developer_admin_link_at_end_of_each_turn',
+        applies_to: 'current_yida_entry_at_end_of_each_turn',
         timing: 'before_final_reply',
         max_calls_per_turn: 1,
-        target: 'current_application_confirmed_adminUrl',
-        target_path: '/admin',
+        target: 'single_updated_page_workbench_entry_otherwise_adminUrl',
+        target_selection: {
+          single_page_update: {
+            count_by: 'distinct_appType_and_formUuid_in_this_turn',
+            repeated_updates: 'count_same_page_once',
+            read_only_operations: 'do_not_count',
+            target: 'modified_page_confirmed_workbench_entry',
+            target_path: '/workbench/{formUuid}',
+          },
+          otherwise: { target: 'current_application_confirmed_adminUrl', target_path: '/admin' },
+        },
         other_links: 'preserve_existing_delivery_and_workflow',
         preferred_tool: preferredTool,
         tool_availability: 'unknown_until_declared_by_host',
