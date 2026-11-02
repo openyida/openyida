@@ -1260,6 +1260,8 @@ module.exports = {
   },
 
   update_form_config: {
+    unchanged: 'Titel und Navigation sind unverändert; keine Speicheranfrage gesendet.',
+    preservation_unsupported: 'Das Konfigurationsfeld {0} kann nicht exakt erhalten werden. Speichern abgelehnt; ändern Sie die Navigation auf der Plattform.',
     usage: 'Verwendung: openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: 'Example: openyida update-form-config "APP_XXX" "FORM_XXX" "keep" "My Page"',
     params_label: 'Parameters:',
@@ -1274,7 +1276,7 @@ module.exports = {
     read_ok: '  ✅ Current config loaded; settings other than title/nav will be preserved',
     read_failed_fallback: '  ⚠️  Failed to read current config; falling back to defaults (may reset some untouched settings)',
     step_update: '\n💾 Step 2: Formularkonfiguration aktualisieren',
-    sending_request: '  updateFormSchemaInfo-Anfrage wird gesendet...',
+    sending_request: '  {0}-Anfrage wird gesendet...',
     update_ok: '  ✅ Konfiguration erfolgreich aktualisiert!',
     nav_shown: 'Obere Navigation angezeigt',
     nav_hidden: 'Obere Navigation ausgeblendet',

@@ -212,6 +212,8 @@ const MAX_TARBALL_BYTES = 2672 * 1024;
 // 合并后的解包体积为 10,015,765 字节；取下一档 16 KiB 边界，单文件上限保持不变。
 // 当前组织免登与搭建提示规则：Node 26 实测 10,033,033 解包字节 / 797 文件。
 // 按既有 16 KiB 分档容纳新增运行时与技能内容；压缩包、文件数及单文件上限不变。
+// Locale-preserving form updates, guarded writes and usage guidance measure
+// 10,046,556 unpacked bytes; retain the next 16 KiB boundary.
 // Node Babel entry, explicit presets and shared dependency copying: 10,045,128 bytes.
 // The dependency reduction is measured separately from this main-package budget.
 const MAX_UNPACKED_BYTES = 9824 * 1024;

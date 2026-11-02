@@ -1260,6 +1260,8 @@ module.exports = {
   },
 
   update_form_config: {
+    unchanged: 'لم يتغير العنوان أو التنقل؛ لم يُرسل طلب حفظ.',
+    preservation_unsupported: 'لا يمكن الحفاظ على قيمة حقل الإعداد {0} كما هي. رُفض الحفظ؛ غيّر التنقل في المنصة.',
     usage: 'الاستخدام: openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: 'Example: openyida update-form-config "APP_XXX" "FORM_XXX" "keep" "My Page"',
     params_label: 'Parameters:',
@@ -1274,7 +1276,7 @@ module.exports = {
     read_ok: '  ✅ Current config loaded; settings other than title/nav will be preserved',
     read_failed_fallback: '  ⚠️  Failed to read current config; falling back to defaults (may reset some untouched settings)',
     step_update: '\n💾 Step 2: تحديث إعدادات النموذج',
-    sending_request: '  جارٍ إرسال طلب updateFormSchemaInfo...',
+    sending_request: '  جارٍ إرسال طلب {0}...',
     update_ok: '  ✅ تم تحديث الإعدادات بنجاح!',
     nav_shown: 'تم إظهار شريط التنقل العلوي',
     nav_hidden: 'تم إخفاء شريط التنقل العلوي',

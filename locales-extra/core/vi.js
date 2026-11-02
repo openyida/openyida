@@ -1260,6 +1260,8 @@ module.exports = {
   },
 
   update_form_config: {
+    unchanged: 'Tiêu đề và điều hướng không thay đổi; không gửi yêu cầu lưu.',
+    preservation_unsupported: 'Không thể giữ nguyên giá trị trường cấu hình {0}. Đã từ chối lưu; hãy đổi điều hướng trên nền tảng.',
     usage: 'Cách dùng: openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: 'Example: openyida update-form-config "APP_XXX" "FORM_XXX" "keep" "My Page"',
     params_label: 'Parameters:',
@@ -1274,7 +1276,7 @@ module.exports = {
     read_ok: '  ✅ Current config loaded; settings other than title/nav will be preserved',
     read_failed_fallback: '  ⚠️  Failed to read current config; falling back to defaults (may reset some untouched settings)',
     step_update: '\n💾 Step 2: Cập nhật cấu hình biểu mẫu',
-    sending_request: '  Đang gửi yêu cầu updateFormSchemaInfo...',
+    sending_request: '  Đang gửi yêu cầu {0}...',
     update_ok: '  ✅ Cập nhật cấu hình thành công!',
     nav_shown: 'Đã hiển thị thanh điều hướng trên cùng',
     nav_hidden: 'Đã ẩn thanh điều hướng trên cùng',

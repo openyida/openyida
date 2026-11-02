@@ -51,7 +51,7 @@ describe('retired updateFormConfig endpoint', () => {
   test('the awaitable command rejects an API-level write failure', async () => {
     jest.resetModules();
     const httpPost = jest.fn()
-      .mockResolvedValueOnce({ success: true, content: { isRenderNav: 'true' } })
+      .mockResolvedValueOnce({ success: true, content: { isRenderNav: 'true', title: { zh_CN: 'Original' } } })
       .mockResolvedValueOnce({ success: false, errorMsg: 'rejected', errorCode: 'WRITE_REJECTED' });
     jest.doMock('../lib/core/utils', () => ({
       loadAuthData: () => ({ auth_mode: 'token', auth_source: 'test', corp_id: 'corp', user_id: 'user' }),
