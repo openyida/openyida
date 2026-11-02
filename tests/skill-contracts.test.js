@@ -1296,7 +1296,8 @@ describe('OpenYida skill contracts', () => {
       expect(doc).toContain('pageSize: 50');
       expect(doc).toContain("pageSize: '50'");
     });
-    expect(dataBinding).toContain('pageSize: binding.pageSize || 50');
+    expect(dataBinding).toContain('canvas-data-source');
+    expect(dataBinding).toContain('pageSize: 50');
     expect(bridge).toContain('"pageSize": 50');
     expect(bridge).toContain('pageSize: 50');
     expect(bridge).toContain("pageSize: '50'");

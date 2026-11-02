@@ -83,6 +83,8 @@ const path = require('path');
 // 2,739,274 compressed bytes; retain the next 16 KiB boundary.
 // Optional form-write preflight/readback adds one runtime module and 12 localized
 // diagnostics. Node 22: 2,740,836 compressed / 10,076,126 unpacked bytes, 801 files.
+// Reusable form data-source sample replaces repeated inline Skill boilerplate.
+// Node 22: 2,738,625 compressed / 10,066,044 unpacked bytes, 801 files.
 const MAX_TARBALL_BYTES = 2688 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.

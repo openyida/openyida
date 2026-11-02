@@ -81,99 +81,38 @@ description: 为 YidaCodeCanvas 自定义内容接入真实表单、个人流程
 1. `DataBridge` 必须有 `loading`、`error`、`rows`、`totalCount`、`lastUpdatedAt` 状态。
 2. 首屏可以显示 loading；后续轮询或手动刷新必须 silent，不清空旧列表，不重置整页。
 3. 返回体解析必须兼容多层包裹：`data`、`result.data`、`content.data`、`content.result.data`、`list`、`records`、`values`。
-4. `totalCount > 0 && rows.length === 0` 必须视为数据桥故障，页面显式报错，不能静默显示“暂无数据”。
+4. 已知正总数的有效页缺少行时必须报错；分页已越界时允许空列表并提供返回入口。未知结构不能静默显示“暂无数据”。
 5. seed 数据只能作为接口失败时的低保真兜底，并在状态区标记“示例数据”或“接口异常”。
 6. `useEffect` 内请求要用 `AbortController` 或等价 cleanup，避免页面切换后继续 setState。
 7. 轮询间隔需要可控，常规业务页不低于 5 秒；实时大屏可更短，但必须避免重复并发请求。
 
-实现骨架：
+## 普通表单读取骨架
 
-```javascript
-function getCsrfToken() {
-  var yida = window.__YIDA__ || {};
-  var sources = [
-    window.g_config,
-    window.pageConfig,
-    window.YIDA_CONFIG,
-    yida,
-    yida.config,
-    yida.pageConfig,
-    yida.runtimeConfig
-  ];
-  var keys = ['_csrf_token', 'csrfToken', 'csrf_token', 'global_csrf_token', '_tb_token_', 'csrf'];
-  for (var i = 0; i < sources.length; i += 1) {
-    var source = sources[i] || {};
-    for (var j = 0; j < keys.length; j += 1) {
-      if (source[keys[j]]) return source[keys[j]];
-    }
-  }
-  var cookie = typeof document !== 'undefined' && document.cookie ? document.cookie : '';
-  var match = cookie.match(/(?:^|;\s*)(tianshu_csrf_token|aliwork_csrf_token|XSRF-TOKEN|_csrf_token|csrfToken|_tb_token_)=([^;]+)/);
-  return match ? decodeURIComponent(match[2]) : '';
-}
+先提取维护的公共片段，合并 import 与函数到同一个 Canvas 文件，再实现业务 UI：
 
-function unwrapRows(payload) {
-  var candidates = [
-    payload && payload.data,
-    payload && payload.result && payload.result.data,
-    payload && payload.content && payload.content.data,
-    payload && payload.content && payload.content.result && payload.content.result.data,
-    payload && payload.list,
-    payload && payload.records,
-    payload && payload.values
-  ];
-  for (var i = 0; i < candidates.length; i += 1) {
-    if (Array.isArray(candidates[i])) return candidates[i];
-  }
-  return [];
-}
-
-function unwrapTotal(payload, rows) {
-  var candidates = [
-    payload && payload.totalCount,
-    payload && payload.total,
-    payload && payload.data && payload.data.totalCount,
-    payload && payload.result && payload.result.totalCount,
-    payload && payload.content && payload.content.totalCount
-  ];
-  for (var i = 0; i < candidates.length; i += 1) {
-    var value = Number(candidates[i]);
-    if (!Number.isNaN(value)) return value;
-  }
-  return rows.length;
-}
+```bash
+openyida sample openyida-page-template canvas-data-source --output .cache/samples/canvas-data-source.jsx
 ```
+
+在组件内调用：
+
+```jsx
+const data = useCanvasFormData(DATA_BINDING, { currentPage, pageSize: 50, query });
+// DATA_BINDING 为已核实的 appType/formUuid；query 为真实字段条件数组或字典。
+// data.rows 保留原始行及字段值；按真实 fields 映射读取 row.formData。
+// data.error 时展示业务错误态和重试按钮；onClick={data.refetch}。
+```
+
+- `binding`、`request` 使用 JSON 数据。相同配置重渲染不重复查询，修改筛选时将 `currentPage` 归一为 1。`pageSize` 为整数 1–100，每次只取一页；不全量扫描做前端统计。
+- `loading` 表示首屏等待，`refreshing` 表示保留当前行的刷新。刷新按钮在请求中禁用，成功后更新 `lastUpdatedAt`；切换数据源或分页条件会清除前一来源的数据。按业务设计显示空态、旧数据提示和重试。
+- 片段兼容明确支持的 `data/result/content/list/records/values` 包裹，未知结构、冲突总数和业务失败会报错。合法空数组可以成功；总数缺失保留 `null`，不得把页长度当全表总数。正总数的有效页没有行会报错；越界页允许空列表并由页面提供返回入口。
+- Hook 默认 15 秒超时，可通过 `request.timeoutMs` 指定 1–60000 毫秒。超时、卸载和条件变化后忽略晚到结果，恢复 loading；平台桥没有取消契约，不能声称请求已取消。只有显式 `refetch()` 才重试，业务写入保持独立授权与去重。
+- 不填充 seed，不自动映射 label 或改写字段值；数字零使用 `??` 等保留语义的取值方式。核对返回记录的实际 `formData` 与字段 ID，隐藏字段缺失不伪装空字符串。片段不是字段、权限或业务验收。
+- `DATA_BRIDGE_UNAVAILABLE` 表示当前同源页面桥尚未可用；保留错误态，确认发布桥与运行上下文后重试。只在明确需要降级时按[数据桥指南](../yida-canvas-custom-page/references/data-bridge-guide.md)接入同源端点；片段不自动降级、不读取父窗口身份、不保存凭据。
 
 ## yida JS-API 桥
 
-Canvas 发布层在外层 `actions.module.source` 注册桥，根节点 `componentDidMount` 指向 `didMount`：`this.utils.yida` 对应 `window.__OPENYIDA_YIDA_API__`，根级 utils 对应 `window.__OPENYIDA_UTILS__`。只查同源窗口；身份只取当前页面。
-
-先复制[同源桥 helper](../yida-canvas-custom-page/references/data-bridge-guide.md#同源窗口与身份)中的 `getCanvasBridge/getYidaApiBridge`，再读取数据：
-
-```javascript
-async function fetchFormRows(binding, signal) {
-  var bridge = getYidaApiBridge();
-  var payload;
-  if (bridge) {
-    payload = await bridge.searchFormDatas({
-      appType: binding.appType,
-      formUuid: binding.formUuid,
-      currentPage: binding.currentPage || 1,
-      pageSize: binding.pageSize || 50,
-      searchFieldJson: JSON.stringify(binding.query || {}),
-      dynamicOrder: binding.dynamicOrder || ''
-    });
-  } else {
-    payload = await fetchFormRowsBySameOriginFallback(binding, signal);
-  }
-  var rows = unwrapRows(payload);
-  var totalCount = unwrapTotal(payload, rows);
-  if (totalCount > 0 && rows.length === 0) {
-    throw new Error('表单有记录但未解析到行，请检查响应结构和字段映射。');
-  }
-  return { rows: rows, totalCount: totalCount, raw: payload };
-}
-```
+Canvas 发布层在外层 `actions.module.source` 注册桥，根节点 `componentDidMount` 指向 `didMount`：`this.utils.yida` 对应 `window.__OPENYIDA_YIDA_API__`，根级 utils 对应 `window.__OPENYIDA_UTILS__`。上述片段沿同源父链查找当前页面桥。连接器和同源自定义接口按各自契约读取，不复用普通表单响应的假设。
 
 ### 搜索与分页参数
 

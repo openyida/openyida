@@ -4,9 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const { CANVAS_YIDA_API_BRIDGE_SOURCE } = require('../lib/app/services/canvas-page-schema-builder');
-const guide = fs.readFileSync(path.join(__dirname,
-  '../yida-skills/skills/yida-canvas-custom-page/references/data-bridge-guide.md'), 'utf8');
-const helper = guide.slice(guide.indexOf('function getCanvasBridge('), guide.indexOf('\n\nfunction getCsrfToken('));
+const sample = fs.readFileSync(path.join(__dirname,
+  '../lib/samples/openyida-scaffold/canvas-data-source.jsx'), 'utf8');
+const helper = sample.slice(sample.indexOf('function getCanvasBridge('), sample.indexOf('\nfunction canvasDataError('));
 const origin = 'https://tenant.example';
 function frame(parent, frameOrigin = origin) {
   const value = { location: { origin: frameOrigin } };

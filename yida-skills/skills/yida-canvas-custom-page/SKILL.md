@@ -35,6 +35,8 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 
 有筛选、分页、详情往返或编辑区时，先按[状态恢复规则](references/view-state-recovery.md)明确刷新与返回策略；无现有路由且无未保存编辑拦截需求时，可提取 `canvas-view-state`。有确认、取消、签到等写操作时，同时加载 `yida-canvas-data-binding`，按其业务动作权限清单核对服务端约束，再接入按钮；隐藏按钮不等于授权完成。
 
+读取普通表单列表时，执行 `use_skill("yida-canvas-data-binding", "复用普通表单读取骨架")` 提取 `canvas-data-source`，复用同源桥、响应解析和加载状态，保留当前业务 UI；先核实 app/form 与字段映射。未知响应保持错误态，总数缺失保持未知，条件变化或超时后的晚到响应不能覆盖当前结果。
+
 ## 核心定位
 
 用 React18 函数组件编写 `.canvas.jsx` / `.canvas.tsx` 页面。适用于官网、工作台、列表、详情、门户、看板，以及含图表、表单入口和复杂交互的页面。
