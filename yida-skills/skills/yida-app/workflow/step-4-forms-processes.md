@@ -93,7 +93,7 @@
 
 ## Checklist
 
-- [ ] 字段结构有 Divider 分组；按各表单用途显式选择 `dividerType`，同页同层级尽量一致，不同业务页面优先使用不同且合适的类型，具体外观见 [Divider 选型表](../../yida-create-form-page/references/form-field-properties.md#divider)；
+- [ ] 字段结构有 Divider 分组；按应用业务场景选定一种 `dividerType` 并记录到 `design.md`，所有普通表单和流程表单默认显式复用，核对用户指定例外，具体外观见 [Divider 选型表](../../yida-create-form-page/references/form-field-properties.md#divider)；
 - [ ] 表单/流程资源在自定义页面之前创建或确认；
 - [ ] 必要 `fieldId` 已写入 `.cache/<项目名>-schema.json`；
 - [ ] 表单 Schema 只包含字段、布局和业务动作。
