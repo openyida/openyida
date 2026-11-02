@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - 优化千问办公侧搭建速度&体验优化
 
+## [2026.11.2-3] - 2026-11-02
+
+- skill 描述优化
+
 ## [2026.11.2-2] - 2026-11-02
 
 - 优化权限申请和切换组织引导

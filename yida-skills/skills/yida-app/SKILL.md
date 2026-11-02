@@ -25,6 +25,8 @@ Fast / Plan 确定主题后，Step 3 的应用主题同步和 Step 7 的页面�
 
 已有任务先按 [续做与恢复](#续做与恢复) 定位当前阶段。
 
+千问办公按 [模式路由](../yida-design/references/design-mode.md) 判断 Fast / Plan 及是否 `ask_human`，不依据跨会话记忆或历史偏好代选。
+
 需求确认不能替代当前 Plan revision 的批准或工具权限确认。`intake.designMode` 沿用用户最后一次明确选择，其他问题的回答只更新对应字段。Plan 必须实际调用 `ask_human` 或宿主允许的等价结构化工具，收到该次交互与当前 revision 匹配的 `confirm_build` 后进入资源实施；普通文字询问、展示文件或手写 confirmed 状态不能替代确认。无可用工具时停在待确认，不切换 Fast；同版有效确认复用，选择 `continue_editing` 时修改当前计划，生成新 revision 后再确认。素材进度更新不改变已有的需求确认和模式选择。
 
 Plan 规划阶段的工作流入口只读取 `workflow/step-1-resource-context.md`、`workflow/step-2-design.md` 和精确路径 `workflow/plan/workflow.md`；后者已经包含完整 Plan 入口。禁止用 Glob 查找 Plan 文件，也不要额外读取 `workflow/plan/step-1-understand.md` 或 `workflow/plan/step-2-confirm.md`。此读取范围不限制确认后的实施、验收和交付，各阶段按需读取对应 workflow。Plan 确认恢复后，若 `explicitScope.allowInferredResources=false`，直接读取 `workflow/step-4-forms-processes.md` 实施范围内资源，不再重读 Step 1、调用 list-forms 或做应用设置预检。
