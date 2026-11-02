@@ -93,11 +93,12 @@ describe('agent-capabilities summary', () => {
   });
 
   test.each([
-    ['qwenwork', 'qwenwork_desktop', 'host_show_link'],
-    ['qwenwork', 'qwenwork_web', 'host_show_link'],
-    ['codex', 'codex', 'host_default'],
-    [null, null, 'host_default'],
-  ])('summary and full diagnostics route link presentation for %s/%s', (tool, subtype, mode) => {
+    ['qwenwork', 'qwenwork_desktop', 'host_show_link', 'artifact_show_link'],
+    ['qwenwork', 'qwenwork_web', 'host_show_link', 'show_link'],
+    ['qwenwork', null, 'host_show_link', null],
+    ['codex', 'codex', 'host_default', null],
+    [null, null, 'host_default', null],
+  ])('summary and full diagnostics route link presentation for %s/%s', (tool, subtype, mode, preferredTool) => {
     jest.doMock('../lib/core/env', () => ({
       buildEnvironmentSnapshot: () => ({ active: { projectRoot: os.tmpdir(), projectRootExists: true } }),
     }));
@@ -115,6 +116,7 @@ describe('agent-capabilities summary', () => {
     if (mode === 'host_show_link') {
       expect(summary.link_presentation_policy).toMatchObject({
         applies_to: 'all_user_visible_links_in_every_phase',
+        preferred_tool: preferredTool,
         tool_availability: 'unknown_until_declared_by_host',
         requires_host_tool_inventory_check: true,
         success_means: 'presentation_request_accepted_only_not_registration_or_rendering',
