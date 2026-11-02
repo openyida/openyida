@@ -79,6 +79,7 @@ describe('npm package smoke', () => {
   });
 
   test('runtime dependencies stay lightweight for agent installs', () => {
+    expect(packageJson.dependencies).not.toHaveProperty('@babel/standalone');
     expect(packageJson.dependencies).not.toHaveProperty('playwright');
     expect(packageJson.dependencies).not.toHaveProperty('playwright-core');
     expect(packageJson.dependencies).not.toHaveProperty('qrcode');

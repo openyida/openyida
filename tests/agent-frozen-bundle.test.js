@@ -28,6 +28,44 @@ describe('content-addressed complete local tool bundle', () => {
     expect(fs.readdirSync(path.join(fixture.config.stateDir, 'bundles'))).toEqual([result.config.bundle.id]);
     expect(fs.existsSync(path.join(fixture.config.stateDir, 'bundle-references'))).toBe(false); // Go owns references.
   });
+  test('shared and cyclic dependencies reuse their visible source package', () => {
+    const file = path.join(root, 'package/package.json');
+    const metadata = JSON.parse(fs.readFileSync(file, 'utf8'));
+    metadata.dependencies['fixture-b'] = '1.0.0';
+    fs.writeFileSync(file, JSON.stringify(metadata));
+    const frozen = freeze();
+    const manifest = verifyBundle(frozen.config.bundle.root, frozen.config.bundle.id);
+    const copies = manifest.files.filter(file => file.path.endsWith('/fixture-b/index.js'));
+    expect(copies.map(file => file.path)).toEqual(['openyida/node_modules/fixture-b/index.js']);
+    expect(manifest.files.filter(file => file.path.endsWith('/fixture-a/index.js'))).toHaveLength(1);
+    expect(JSON.parse(execFileSync(process.execPath, [frozen.config.node.cliEntry], { encoding: 'utf8' })).dependency).toBe('a/b-v1');
+  });
+  test('nested versions shadow ancestors without changing a shared package resolution', () => {
+    const sourceRoot = path.join(root, 'package');
+    const metadata = JSON.parse(fs.readFileSync(path.join(sourceRoot, 'package.json'), 'utf8'));
+    metadata.dependencies['fixture-b'] = '1.0.0';
+    fs.writeFileSync(path.join(sourceRoot, 'package.json'), JSON.stringify(metadata));
+    const writePackage = (relative, metadata, code) => {
+      const directory = path.join(sourceRoot, 'node_modules', relative);
+      fs.mkdirSync(directory, { recursive: true });
+      fs.writeFileSync(path.join(directory, 'package.json'), JSON.stringify(metadata));
+      fs.writeFileSync(path.join(directory, 'index.js'), code);
+    };
+    writePackage('fixture-a/node_modules/fixture-b', {
+      name: 'fixture-b', version: '2.0.0', dependencies: { 'fixture-c': '1.0.0' },
+    }, "module.exports='b-v2/'+require('fixture-c');");
+    writePackage('fixture-c', {
+      name: 'fixture-c', version: '1.0.0', dependencies: { 'fixture-b': '1.0.0' },
+    }, "module.exports=require('fixture-b');");
+    const frozen = freeze();
+    const manifest = verifyBundle(frozen.config.bundle.root, frozen.config.bundle.id);
+    const nested = 'openyida/node_modules/fixture-a/node_modules/fixture-b';
+    expect(manifest.files.map(file => file.path)).toEqual(expect.arrayContaining([
+      'openyida/node_modules/fixture-b/index.js', `${nested}/index.js`,
+      `${nested}/node_modules/fixture-c/node_modules/fixture-b/index.js`,
+    ]));
+    expect(JSON.parse(execFileSync(process.execPath, [frozen.config.node.cliEntry], { encoding: 'utf8' })).dependency).toBe('a/b-v2/b-v1');
+  });
   test('explicit development bundles skip optional runtime packages without the production platform gate', () => {
     const packageFile = path.join(root, 'package/package.json');
     const metadata = JSON.parse(fs.readFileSync(packageFile, 'utf8'));

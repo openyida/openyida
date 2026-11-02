@@ -212,7 +212,9 @@ const MAX_TARBALL_BYTES = 2672 * 1024;
 // 合并后的解包体积为 10,015,765 字节；取下一档 16 KiB 边界，单文件上限保持不变。
 // 当前组织免登与搭建提示规则：Node 26 实测 10,033,033 解包字节 / 797 文件。
 // 按既有 16 KiB 分档容纳新增运行时与技能内容；压缩包、文件数及单文件上限不变。
-const MAX_UNPACKED_BYTES = 9808 * 1024;
+// Node Babel entry, explicit presets and shared dependency copying: 10,045,128 bytes.
+// The dependency reduction is measured separately from this main-package budget.
+const MAX_UNPACKED_BYTES = 9824 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -251,10 +253,12 @@ const MAX_UNPACKED_BYTES = 9808 * 1024;
 // Shared page navigation and task-center navigation add exactly two packaged files.
 // 合并 main 的业务总结参考文档后，包含 beta 可选安装器的包实测为 796 个文件。
 // 新增应用主题状态共享模块；Node 20 实测 798 文件，字节预算保持不变。
-const MAX_ENTRY_COUNT = 798;
+// One shared Node Babel entry replaces all standalone imports.
+const MAX_ENTRY_COUNT = 799;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'lib/core/babel.js',
   'yida-skills/references/user-facing-summary.md',
   'lib/navigation/page-navigation.js',
   'lib/task-center/navigation.js',

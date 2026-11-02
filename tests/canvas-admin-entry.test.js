@@ -4,11 +4,11 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const vm = require('vm');
-const Babel = require('@babel/standalone');
+const Babel = require('../lib/core/babel');
 const { run } = require('../lib/core/sample');
 const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 const source = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/canvas-admin-entry.jsx'), 'utf8');
-const transformed = Babel.transform(source.replace(/^import .*;\n/gm, ''), { presets: ['react'] }).code;
+const transformed = Babel.transform(source.replace(/^import .*;\n/gm, ''), { presets: [Babel.presets.react] }).code;
 let context, cleanup, refresh, access, navigate;
 beforeEach(() => {
   access = 'allowed'; navigate = jest.fn();

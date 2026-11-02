@@ -1,6 +1,6 @@
 'use strict';
 
-const Babel = require('@babel/standalone');
+const Babel = require('../lib/core/babel');
 const { transformFixedBrandTheme } = require('../lib/app/fix-theme');
 const { assertCanvasThemeStructure } = require('../lib/app/canvas-theme-guard');
 
