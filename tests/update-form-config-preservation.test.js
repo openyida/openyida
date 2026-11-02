@@ -47,7 +47,7 @@ test('preserves custom title, serial number settings and navigation in keep mode
     relateFormUuid: 'FORM_RELATED', manageCustomConfigInfo: { enabled: false },
   } });
   jest.spyOn(console, 'log').mockImplementation(() => undefined);
-  await command.run(['APP_X', 'FORM_X', 'keep', 'Test']);
+  await command.run(['APP_X', 'FORM_X', 'keep', 'Test', '--locale', 'zh_CN']);
   expect(httpPost).toHaveBeenCalledTimes(2);
   expect(httpPost.mock.calls[1][1]).toContain('/updateFormTitle.json');
   const payload = querystring.parse(httpPost.mock.calls[1][2]);
