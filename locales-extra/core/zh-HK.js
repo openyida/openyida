@@ -6,6 +6,10 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  corp_efficiency: {
+    learning_completed: '宜搭學習完成人數',
+    certified_developers: '宜搭開發者認證人數',
+  },
   qwenwork: {
     organization_switch_success: '已透過千問辦公登入切換組織。',
     login_check_failed: 'Unable to verify the login session. Please retry.',
@@ -130,7 +134,7 @@ module.exports = {
     cmd_custom_button: "原生自訂按鈕：查詢與配置表單、流程和頁面跳轉",
     cmd_form_message: "原生表單消息通知：觸發、接收對象與模板",
     cmd_check_design: '檢查設計文件、主題變數與 PRD 交接',
-    subtitle: '宜搭低程式碼 AI 開發工具',
+    subtitle: 'AI 宜搭應用開發工具',
     usage: '用法:',
     alias: '別名:',
     group_auth: '環境 & 認證',

@@ -74,8 +74,8 @@ const mockWorkbenchContent = JSON.stringify({
     industryText: '行业参考值',
     aboveValue: '高于参考值',
     belowValue: '低于参考值',
-    lowcodeStandard: '低代码学习完成人数',
-    lowcodeCertification: '低代码开发者认证人数',
+    lowcodeStandard: '服务端课程标题',
+    lowcodeCertification: '服务端认证标题',
     efficiencyCardTips: ['指标说明'],
   },
 });
@@ -123,6 +123,8 @@ describe('corp-efficiency overview', () => {
     expect(output.corpName).toBe('测试组织');
     expect(output.overview.saveAppDevMoney).toBe(50000);
     expect(output.learning.completeAuthNumber).toBe(12);
+    expect(output.learning.lowcodeStandard).toBe('宜搭学习完成人数');
+    expect(output.learning.lowcodeCertification).toBe('宜搭开发者认证人数');
     expect(output.performance.metrics[0]).toMatchObject({
       key: 'performance.1',
       type: 'performance',
@@ -137,12 +139,30 @@ describe('corp-efficiency overview', () => {
     });
     expect(output.details.learning[0]).toMatchObject({
       key: 'lowcodeCertification',
-      title: '低代码开发者认证人数',
+      title: '宜搭开发者认证人数',
       data: 12,
     });
     expect(output.details.learning[0].detailReportFullUrl).toContain('REPORT-QQ866JB164A81S0X764WJ97ATDKI33SCLP5EL3');
     expect(JSON.stringify(output)).not.toContain('secret-token');
 
+    mock.log.mockRestore();
+    mock.error.mockRestore();
+  });
+
+  test('overview --locale en_US --raw 输出英文展示名并保留服务端文案', async () => {
+    utils.httpGet
+      .mockResolvedValueOnce({ success: true, content: mockEfficacyData })
+      .mockResolvedValueOnce({ success: true, content: mockWorkbenchContent })
+      .mockResolvedValueOnce({ success: true, content: mockCommodityInfo });
+    const mock = mockConsole();
+
+    await run(['overview', '--locale', 'en_US', '--raw']);
+
+    const output = JSON.parse(mock.log.mock.calls[0][0]);
+    expect(output.learning.lowcodeStandard).toBe('Yida course completions');
+    expect(output.details.learning[0].title).toBe('Certified Yida developers');
+    expect(output.raw.workbenchData.lowcodeCertification).toBe('服务端认证标题');
+    expect(output.raw.commodityInfo).not.toHaveProperty('corpToken');
     mock.log.mockRestore();
     mock.error.mockRestore();
   });
@@ -297,6 +317,39 @@ describe('corp-efficiency notify', () => {
 });
 
 describe('corp-efficiency helpers', () => {
+  test.each([
+    ['zh_CN', '宜搭学习完成人数', '宜搭开发者认证人数'],
+    ['en_US', 'Yida course completions', 'Certified Yida developers'],
+    ['zh-HK', '宜搭學習完成人數', '宜搭開發者認證人數'],
+    ['unknown', 'Yida course completions', 'Certified Yida developers'],
+  ])('学习指标按 %s 展示统一名称，并保留原始响应与选择 key', (locale, learningTitle, certificationTitle) => {
+    const workbenchData = parseWorkbenchContent(mockWorkbenchContent);
+    const output = formatOverview({
+      efficacyData: mockEfficacyData,
+      workbenchData,
+      authRef: { baseUrl: 'https://www.aliwork.com' },
+      raw: true,
+      locale,
+    });
+    expect(output.learning).toMatchObject({
+      lowcodeStandard: learningTitle,
+      lowcodeCertification: certificationTitle,
+      completeLessonNumber: 8,
+      completeAuthNumber: 12,
+    });
+    expect(output.raw.workbenchData).toBe(workbenchData);
+    expect(output.raw.workbenchData.lowcodeCertification).toBe('服务端认证标题');
+    const target = selectDetailTarget(flattenDetailTargets(output.details), { key: 'lowcodeCertification' });
+    expect(target.title).toBe(certificationTitle);
+    expect(target.detailReportFullUrl).toContain('REPORT-QQ866JB164A81S0X764WJ97ATDKI33SCLP5EL3');
+  });
+
+  test('服务端缺失学习标题时仍输出统一名称', () => {
+    const output = formatOverview({ authRef: { baseUrl: 'https://www.aliwork.com' } });
+    expect(output.learning.lowcodeStandard).toBe('宜搭学习完成人数');
+    expect(output.details.learning[0].title).toBe('宜搭开发者认证人数');
+  });
+
   test('parseWorkbenchContent 按 locale 选择文案', () => {
     const content = JSON.stringify({
       zh_CN: { title: '中文' },
