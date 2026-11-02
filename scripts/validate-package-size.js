@@ -254,7 +254,8 @@ const MAX_UNPACKED_BYTES = 9824 * 1024;
 // 合并 main 的业务总结参考文档后，包含 beta 可选安装器的包实测为 796 个文件。
 // 新增应用主题状态共享模块；Node 20 实测 798 文件，字节预算保持不变。
 // One shared Node Babel entry replaces all standalone imports.
-const MAX_ENTRY_COUNT = 799;
+// QwenWork's shared link-presentation guide adds one packaged reference.
+const MAX_ENTRY_COUNT = 800;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

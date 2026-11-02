@@ -93,6 +93,40 @@ describe('agent-capabilities summary', () => {
   });
 
   test.each([
+    ['qwenwork', 'qwenwork_desktop', 'host_show_link'],
+    ['qwenwork', 'qwenwork_web', 'host_show_link'],
+    ['codex', 'codex', 'host_default'],
+    [null, null, 'host_default'],
+  ])('summary and full diagnostics route link presentation for %s/%s', (tool, subtype, mode) => {
+    jest.doMock('../lib/core/env', () => ({
+      buildEnvironmentSnapshot: () => ({ active: { projectRoot: os.tmpdir(), projectRootExists: true } }),
+    }));
+    jest.doMock('../lib/core/utils', () => ({
+      findProjectRoot: () => os.tmpdir(),
+      getAuthStatus: () => ({ status: 'ok', can_auto_use: true }),
+      detectRuntimeCapabilities: () => ({ tool, subtype, runtime: subtype === 'qwenwork_web' ? 'web_sandbox' : 'desktop_shell' }),
+    }));
+    const { buildAgentCapabilities, buildAgentCapabilitiesSummary } = require('../lib/core/agent-capabilities');
+    const summary = buildAgentCapabilitiesSummary();
+    const full = buildAgentCapabilities();
+    expect(summary.link_presentation_policy).toEqual(full.link_presentation_policy);
+    expect(summary.link_presentation_policy.mode).toBe(mode);
+    // A host marker must not claim the actual tool is installed or a card rendered.
+    if (mode === 'host_show_link') {
+      expect(summary.link_presentation_policy).toMatchObject({
+        applies_to: 'all_user_visible_links_in_every_phase',
+        tool_availability: 'unknown_until_declared_by_host',
+        requires_host_tool_inventory_check: true,
+        success_means: 'presentation_request_accepted_only_not_registration_or_rendering',
+      });
+      expect(summary.application_entry_policy.entries.admin).toBe('include');
+      expect(summary.application_entry_policy.entry_delivery.max_count).toBe(3);
+    } else {
+      expect(summary.link_presentation_policy).toEqual({ mode: 'host_default' });
+    }
+  });
+
+  test.each([
     ['qwenwork_desktop', 'token_oauth_session'],
     ['codex', 'token_oauth_session'],
     ['mulerun', 'env_token_bootstrap'],

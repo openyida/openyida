@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.11.2] - 2026-11-02
+
+- 千问办公侧输出内容结构化
+
 ## [2026.11.1] - 2026-11-01
 
 - **安装体积优化**：精简 Babel 运行依赖，Mac ARM64 的干净生产安装体积由 59.77 MB 降至 38.01 MB，减少约 36.4%。（[#666](https://github.com/openyida/openyida/pull/666)）
