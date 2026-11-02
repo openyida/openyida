@@ -5,6 +5,10 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  corp_efficiency: {
+    learning_completed: 'Yida पाठ्यक्रम पूरा करने वालों की संख्या',
+    certified_developers: 'प्रमाणित Yida डेवलपर की संख्या',
+  },
   qwenwork: {
     organization_switch_success: 'QwenWork लॉगिन के माध्यम से संगठन बदला गया।',
     login_check_failed: 'Unable to verify the login session. Please retry.',
@@ -129,7 +133,7 @@ module.exports = {
     cmd_custom_button: "कस्टम बटन: फ़ॉर्म संपादन, स्वचालन और पेज लिंक",
     cmd_form_message: "Native form notifications: triggers, recipients and templates",
     cmd_check_design: 'डिज़ाइन दस्तावेज़, थीम चर और PRD हस्तांतरण सत्यापित करें',
-    subtitle: 'Yida के लिए AI-संचालित लो-कोड विकास उपकरण',
+    subtitle: 'AI Yida के लिए एप्लिकेशन विकास उपकरण',
     usage: 'उपयोग:',
     alias: 'उपनाम:',
     group_auth: 'वातावरण & प्रमाणीकरण',

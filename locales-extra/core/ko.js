@@ -5,6 +5,10 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  corp_efficiency: {
+    learning_completed: 'Yida 학습 완료 인원',
+    certified_developers: 'Yida 인증 개발자 수',
+  },
   qwenwork: {
     organization_switch_success: 'QwenWork 로그인으로 조직을 전환했습니다.',
     login_check_failed: 'Unable to verify the login session. Please retry.',
@@ -129,7 +133,7 @@ module.exports = {
     cmd_custom_button: "사용자 지정 버튼: 양식 편집, 자동화 흐름 및 페이지 링크 설정",
     cmd_form_message: "Native form notifications: triggers, recipients and templates",
     cmd_check_design: '디자인 문서, 테마 변수 및 PRD 인계 검증',
-    subtitle: 'Yida 로우코드 AI 개발 도구',
+    subtitle: 'AI Yida 앱 개발 도구',
     usage: '사용법:',
     alias: '별칭:',
     group_auth: '환경 & 인증',

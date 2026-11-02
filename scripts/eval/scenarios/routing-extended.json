@@ -218,7 +218,7 @@
   },
   {
     "id": "corp-efficiency-query",
-    "prompt": "看一下企业效能数据，低代码学习成果怎么样",
+    "prompt": "看一下企业效能数据，宜搭学习成果怎么样",
     "expectedSkill": "yida-corp-efficiency",
     "group": "应用配置与平台",
     "note": "企业效能数据 → corp-efficiency"

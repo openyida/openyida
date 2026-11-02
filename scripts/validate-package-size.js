@@ -85,6 +85,10 @@ const path = require('path');
 // diagnostics. Node 22: 2,740,836 compressed / 10,076,126 unpacked bytes, 801 files.
 // Reusable form data-source sample replaces repeated inline Skill boilerplate.
 // Node 22: 2,738,625 compressed / 10,066,044 unpacked bytes, 801 files.
+// AI Yida terminology and localized metric labels: CI Node 20.20.2 measures
+// 2,736,203 compressed bytes / 800 files; retain the next 16 KiB boundary.
+// Combined scheduling, data verification, page data-source and main terminology:
+// Node 20.18.1 measures 2,748,801 compressed / 10,094,680 unpacked bytes, 803 files.
 const MAX_TARBALL_BYTES = 2688 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
@@ -224,7 +228,7 @@ const MAX_TARBALL_BYTES = 2688 * 1024;
 // The dependency reduction is measured separately from this main-package budget.
 // Task execution policy, localized diagnostics and guidance measure
 // 10,068,127 unpacked bytes; retain the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 9840 * 1024;
+const MAX_UNPACKED_BYTES = 9872 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -266,7 +270,7 @@ const MAX_UNPACKED_BYTES = 9840 * 1024;
 // One shared Node Babel entry replaces all standalone imports.
 // QwenWork's shared link-presentation guide adds one packaged reference.
 // The task-concurrency runtime adds exactly one packaged module.
-const MAX_ENTRY_COUNT = 801;
+const MAX_ENTRY_COUNT = 803;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

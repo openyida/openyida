@@ -2,9 +2,9 @@
 
 # OpenYida
 
-**面向 AI 编程工具的宜搭低代码 CLI。**
+**面向 AI 编程工具的 AI 宜搭 CLI。**
 
-OpenYida 把 Codex、Claude Code、Cursor、QwenWork（千问办公）、Qoder 等 AI 编程助手连接到宜搭低代码平台，让开发者可以通过自然语言和命令行完成应用创建、表单建模、流程审批、自定义页面、报表、连接器和发布配置。
+OpenYida 把 Codex、Claude Code、Cursor、QwenWork（千问办公）、Qoder 等 AI 编程助手连接到 AI 宜搭，让开发者可以通过自然语言和命令行完成应用创建、表单建模、流程审批、自定义页面、报表、连接器和发布配置。
 
 [快速开始](#快速开始) · [帮助网站&文档](https://demo.aliwork.com/o/openyida/helpCenter) · [核心能力](#核心能力) · [完整功能列表](https://demo.aliwork.com/o/openyida/helpCenter?openyidaPath=capabilities) · [案例展示](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=showcase) · [自定义页面开发](#自定义页面开发) · [常用命令](https://demo.aliwork.com/o/openyida/helpCenter?openyidaPath=features/skills) · [开发与校验](#开发与校验) · [搭建效果](#搭建效果) · [贡献](./CONTRIBUTING.md)
 
