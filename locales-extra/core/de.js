@@ -2514,3 +2514,10 @@ module.exports.batch = {
   "invalid_concurrency": "--concurrency muss eine ganze Zahl von 1 bis 4 sein.",
   "executing": "Unabhängige Aufgaben werden ausgeführt (Parallelitätsgrenze {0})"
 };
+
+module.exports.data_verify = {
+  "invalid_usage": "--verify-write ist ein Schalter nur für create/update gewöhnlicher Formulare.",
+  "preflight_failed": "Datenprüfung vor dem Schreiben fehlgeschlagen ({0} Probleme).",
+  "readback_failed": "Schreiben akzeptiert, Rücklesen jedoch nicht verifiziert. Prüfen Sie den vorhandenen Datensatz; wiederholen Sie das Schreiben nicht.",
+  "mismatch": "Schreiben akzeptiert, aber die zurückgelesenen Felder unterscheiden sich von den gesendeten Daten."
+};

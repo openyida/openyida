@@ -2515,3 +2515,10 @@ module.exports.batch = {
   "invalid_concurrency": "--concurrency는 1부터 4까지의 정수여야 합니다.",
   "executing": "독립 작업 실행 중 (동시 실행 제한 {0})"
 };
+
+module.exports.data_verify = {
+  "invalid_usage": "--verify-write는 일반 폼 create/update 전용 플래그입니다.",
+  "preflight_failed": "데이터 쓰기 사전 검증 실패 ({0}개 문제).",
+  "readback_failed": "쓰기가 수락되었지만 다시 읽은 결과를 검증할 수 없습니다. 기존 레코드를 확인하고 쓰기를 반복하지 마세요.",
+  "mismatch": "쓰기가 수락되었지만 다시 읽은 필드가 제출한 데이터와 다릅니다."
+};

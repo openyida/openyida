@@ -2467,3 +2467,10 @@ module.exports.batch = {
   "invalid_concurrency": "--concurrency 必須是 1 到 4 的整數。",
   "executing": "執行獨立任務（並行上限 {0}）"
 };
+
+module.exports.data_verify = {
+  "invalid_usage": "--verify-write 僅支援普通表單 create/update，且不接受參數值。",
+  "preflight_failed": "資料寫入預檢未通過（{0} 項問題）。",
+  "readback_failed": "寫入已獲接受，但無法驗證回讀結果。請核實現有實例，勿重複寫入。",
+  "mismatch": "寫入已獲接受，但回讀欄位與提交內容不一致。"
+};

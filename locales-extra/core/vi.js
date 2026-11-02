@@ -2514,3 +2514,10 @@ module.exports.batch = {
   "invalid_concurrency": "--concurrency phải là số nguyên từ 1 đến 4.",
   "executing": "Đang thực hiện các tác vụ độc lập (giới hạn đồng thời {0})"
 };
+
+module.exports.data_verify = {
+  "invalid_usage": "--verify-write chỉ là cờ dành cho create/update biểu mẫu thông thường.",
+  "preflight_failed": "Kiểm tra dữ liệu trước khi ghi thất bại ({0} vấn đề).",
+  "readback_failed": "Đã chấp nhận ghi nhưng chưa xác minh được dữ liệu đọc lại. Kiểm tra bản ghi hiện có; không ghi lại.",
+  "mismatch": "Đã chấp nhận ghi nhưng các trường đọc lại khác với dữ liệu đã gửi."
+};

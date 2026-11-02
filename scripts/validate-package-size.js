@@ -81,6 +81,8 @@ const path = require('path');
 // 合并字段权限校验与最新主干后，Node 20 实测 2,722,740 压缩字节；取下一档 16 KiB 边界。
 // Bounded task scheduling and host delegation guidance: Node 22 measures
 // 2,739,274 compressed bytes; retain the next 16 KiB boundary.
+// Optional form-write preflight/readback adds one runtime module and 12 localized
+// diagnostics. Node 22: 2,740,836 compressed / 10,076,126 unpacked bytes, 801 files.
 const MAX_TARBALL_BYTES = 2688 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.

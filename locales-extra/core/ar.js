@@ -2516,3 +2516,10 @@ module.exports.batch = {
   "invalid_concurrency": "يجب أن تكون قيمة --concurrency عددًا صحيحًا من 1 إلى 4.",
   "executing": "تنفيذ مهام مستقلة (حد التزامن {0})"
 };
+
+module.exports.data_verify = {
+  "invalid_usage": "الخيار --verify-write مخصص فقط لعمليتي create/update للنماذج العادية.",
+  "preflight_failed": "فشل فحص البيانات قبل الكتابة ({0} مشكلات).",
+  "readback_failed": "تم قبول الكتابة لكن تعذر التحقق من القراءة. افحص السجل الموجود ولا تكرر الكتابة.",
+  "mismatch": "تم قبول الكتابة لكن الحقول المقروءة تختلف عن البيانات المرسلة."
+};

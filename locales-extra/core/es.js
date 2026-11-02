@@ -2516,3 +2516,10 @@ module.exports.batch = {
   "invalid_concurrency": "--concurrency debe ser un número entero de 1 a 4.",
   "executing": "Ejecutando tareas independientes (límite de concurrencia {0})"
 };
+
+module.exports.data_verify = {
+  "invalid_usage": "--verify-write es una opción exclusiva de create/update de formularios ordinarios.",
+  "preflight_failed": "Falló la validación previa de los datos ({0} problemas).",
+  "readback_failed": "Escritura aceptada, pero no se verificó la lectura. Revise el registro existente; no repita la escritura.",
+  "mismatch": "Escritura aceptada, pero los campos leídos difieren de los datos enviados."
+};
