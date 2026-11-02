@@ -17,6 +17,8 @@
 
 ## 推荐：先写 dataBinding，再实现数据桥
 
+普通表单列表先执行 `openyida sample openyida-page-template canvas-data-source --output .cache/samples/canvas-data-source.jsx`，按[公共读取骨架](../../yida-canvas-data-binding/SKILL.md#普通表单读取骨架)接入。片段已包含同源 `getCanvasBridge`、严格响应解析及 Hook，不重复合并下方同名 helper。以下参考用于其他读取路径及明确需要的降级实现；普通表单查询优先复用提取的维护代码。
+
 使用 `YidaCodeCanvas` 组件实现的页面先把数据契约写成结构化 `dataBinding`，再在页面实现里注入为 `OPENYIDA_DATA_BINDING_JSON` 或 `DATA_BINDING` 常量，并生成统一的数据桥状态、错误态和总数保护。
 
 ```json

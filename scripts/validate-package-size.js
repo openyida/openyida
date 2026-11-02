@@ -79,7 +79,9 @@ const path = require('path');
 // Node 20.18.1 measures 2,637,999 compressed bytes; next 16 KiB boundary.
 // 合并主干插件与权限指引、千问免登后，Node 24 实测 gzip 为 2,711,034 字节；取下一档 16 KiB 边界。
 // 合并字段权限校验与最新主干后，Node 20 实测 2,722,740 压缩字节；取下一档 16 KiB 边界。
-const MAX_TARBALL_BYTES = 2672 * 1024;
+// Reusable form data-source sample replaces repeated inline Skill boilerplate.
+// Node 22: 2,738,625 compressed / 10,066,044 unpacked bytes, 801 files.
+const MAX_TARBALL_BYTES = 2688 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -216,7 +218,7 @@ const MAX_TARBALL_BYTES = 2672 * 1024;
 // 10,046,556 unpacked bytes; retain the next 16 KiB boundary.
 // Node Babel entry, explicit presets and shared dependency copying: 10,045,128 bytes.
 // The dependency reduction is measured separately from this main-package budget.
-const MAX_UNPACKED_BYTES = 9824 * 1024;
+const MAX_UNPACKED_BYTES = 9840 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -257,7 +259,7 @@ const MAX_UNPACKED_BYTES = 9824 * 1024;
 // 新增应用主题状态共享模块；Node 20 实测 798 文件，字节预算保持不变。
 // One shared Node Babel entry replaces all standalone imports.
 // QwenWork's shared link-presentation guide adds one packaged reference.
-const MAX_ENTRY_COUNT = 800;
+const MAX_ENTRY_COUNT = 801;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
