@@ -769,7 +769,7 @@ describe('OpenYida skill contracts', () => {
     expect(step9).toContain('同一应用的后续交付复用已有资源和已验证 URL');
     expect(step9).toContain('用户或调用方明确要求资源清单、资源 UUID/ID、发布状态或测试数据摘要时');
     expect(step9).toContain('在本轮业务结果中附简洁交付清单');
-    expect(step9).toContain('通过宿主现有交付机制传递业务总结和真实入口');
+    expect(step9).toContain('通过当前可用的展示方式提供简短业务总结和真实入口');
     expect(step9).toContain('每个被 final 声称“已写入”“已验证”或给出记录数的表单/流程');
     expect(step9).toContain('不得把一张表单的 3 条记录复制成其他表单也有 3 条');
     expect(step9).toContain('每个资源数量和数据完成声明都有对应资源自己的成功返回值/readback');
@@ -910,7 +910,7 @@ describe('OpenYida skill contracts', () => {
     expect(feature).toContain('| 仅前台 | 已验证的独立业务入口、开发者后台两类入口 |');
     expect(feature).toContain('| 前后台双入口 | 独立业务入口和业务管理入口、开发者后台三类入口 |');
     expect(root).toContain('交付内容包含简短业务总结');
-    expect(step9).toContain('通过宿主现有交付机制传递业务总结和真实入口');
+    expect(step9).toContain('通过当前可用的展示方式提供简短业务总结和真实入口');
   });
 
   test('yida-app validates independently generated PRD and visual design without losing current design contracts', () => {
