@@ -239,7 +239,9 @@ const MAX_TARBALL_BYTES = 2720 * 1024;
 // Shared asset deadlines and preview guidance measure 10,110,619 unpacked bytes.
 // Fast design generation adds a renderer adapter, input example and two guides.
 // Node 20 measures 10,131,579 unpacked bytes; retain the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 9936 * 1024;
+// Fast/concurrency plus main file-upload support: Node 20 measures 10,198,629 bytes;
+// retain the next 16 KiB boundary. Compressed and single-file caps stay unchanged.
+const MAX_UNPACKED_BYTES = 9968 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -282,7 +284,8 @@ const MAX_UNPACKED_BYTES = 9936 * 1024;
 // QwenWork's shared link-presentation guide adds one packaged reference.
 // The task-concurrency runtime adds exactly one packaged module.
 // Independent Fast theme generation adds one runtime module; byte budgets are unchanged.
-const MAX_ENTRY_COUNT = 811;
+// Main file-upload support adds three packaged files.
+const MAX_ENTRY_COUNT = 814;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -392,6 +395,9 @@ const REQUIRED_PACKAGE_FILES = [
   'lib/samples/openyida-scaffold/canvas-navigation.jsx',
   'lib/samples/openyida-scaffold/canvas-admin-entry.jsx',
   'lib/samples/openyida-scaffold/canvas-view-state.jsx',
+  'lib/samples/openyida-scaffold/file-upload-client.jsx',
+  'lib/samples/openyida-scaffold/canvas-file-upload.jsx',
+  'yida-skills/skills/yida-canvas-custom-page/references/file-upload.md',
   'yida-skills/skills/yida-canvas-custom-page/references/view-state-recovery.md',
   'yida-skills/skills/yida-canvas-data-binding/references/business-action-permissions.md',
   'lib/asset/asset-execution.js',

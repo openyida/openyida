@@ -803,7 +803,7 @@ module.exports = {
     modern_theme_unverified: "앱이 생성되었지만 새 테마 설정을 확인하지 못했습니다. 반환된 앱 ID를 확인하세요. 앱을 다시 만들거나 이전 테마로 전환하지 마세요.",
     update_only_option: '{0}은 업데이트 전용 옵션입니다. 앱을 만든 후 openyida update-app <appType>을 사용하세요.',
     title: '  create-app - Yida 앱 생성 도구',
-    usage: '사용법: openyida create-app "<앱 이름>" 또는 openyida create-app --name "<앱 이름>" [--desc "..."]',
+    usage: '사용법: openyida create-app "<앱 이름>" [--json] 또는 openyida create-app --name "<앱 이름>" [--desc "..."] [--json]',
     example: '예시: openyida create-app --name "내 앱" --desc "앱 설명"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +

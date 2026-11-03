@@ -48,12 +48,12 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 ## 命令
 
 ```bash
-openyida create-app --name <appName> [--desc <description>]
+openyida create-app --name <appName> [--desc <description>] [--json]
 # 提取返回的 appType 后，单独更新应用基础设置
 openyida update-app <appType> --theme-file <app-theme.css> --nav-theme <light|dark> --logo-source appIcon --layout <side|top|l_shape>
 ```
 
-`openyida create-app` 不支持 `--json` 参数；不要添加 `--json`。创建成功时命令本身会输出一行 JSON，从该输出中提取 `appType`。
+创建成功后，从返回的 JSON 中提取 `appType`。
 
 ### 新建应用的主题结果
 

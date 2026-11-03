@@ -769,7 +769,7 @@ module.exports = {
     modern_theme_unverified: "應用已建立，但未能確認新版主題設定。請使用傳回的應用 ID 排查，不要重複建立或降級為舊主題。",
     update_only_option: '{0} 僅用於更新應用設定，請先建立應用，再使用 openyida update-app <appType>。',
     title: '  openyida create-app - 宜搭應用程式建立工具',
-    usage: '用法：openyida create-app "<appName>" [description] [icon] [iconColor] 或 openyida create-app --name "<appName>" [--desc "..."]',
+    usage: '用法：openyida create-app "<appName>" [description] [icon] [iconColor] [--json] 或 openyida create-app --name "<appName>" [--desc "..."] [--json]',
     example: '範例：openyida create-app --name "考勤管理" --desc "員工考勤打卡系統"',
     available_icons: '\n可用圖示：',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +

@@ -803,7 +803,7 @@ module.exports = {
     modern_theme_unverified: "Die App wurde erstellt, aber die moderne Designkonfiguration konnte nicht bestätigt werden. Prüfen Sie die zurückgegebene App-ID. Erstellen Sie die App nicht erneut und wechseln Sie nicht zum alten Design.",
     update_only_option: '{0} ist nur für Updates verfügbar. Erstellen Sie zuerst die App und verwenden Sie dann openyida update-app <appType>.',
     title: '  create-app - Yida-App-Erstellungstool',
-    usage: 'Verwendung: openyida create-app "<App-Name>" oder openyida create-app --name "<App-Name>" [--desc "..."]',
+    usage: 'Verwendung: openyida create-app "<App-Name>" [--json] oder openyida create-app --name "<App-Name>" [--desc "..."] [--json]',
     example: 'Beispiel: openyida create-app --name "Meine App" --desc "App-Beschreibung"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +

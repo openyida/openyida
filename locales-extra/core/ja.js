@@ -775,7 +775,7 @@ module.exports = {
     modern_theme_unverified: "アプリは作成されましたが、新テーマの設定を確認できませんでした。返されたアプリ ID を調査してください。再作成や旧テーマへの切り替えはしないでください。",
     update_only_option: '{0} は更新用のオプションです。アプリ作成後に openyida update-app <appType> を使用してください。',
     title: '  openyida create-app - Yida アプリ作成ツール',
-    usage: 'Usage: openyida create-app "<appName>" [description] [icon] [iconColor] または openyida create-app --name "<appName>" [--desc "..."]',
+    usage: 'Usage: openyida create-app "<appName>" [description] [icon] [iconColor] [--json] または openyida create-app --name "<appName>" [--desc "..."] [--json]',
     example: '例: openyida create-app --name "勤怠管理" --desc "従業員勤怠システム"',
     available_icons: '\n利用可能なアイコン:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +

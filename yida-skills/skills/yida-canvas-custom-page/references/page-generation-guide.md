@@ -77,7 +77,7 @@ PRD 写有 `pageSpecHandoff` 时，可以把 `pageSpecHandoff` 转成 `page-spec
 | 主从分栏、工单处理台、左列表右详情 | `split-pane-detail` | `list` | 左侧队列、右侧详情、时间线、动作区 |
 | 页面内门户壳、多入口门户、隐藏应用导航门户 | `portal-shell-home` | `workbench` | 仅显式要求页面内门户壳、自绘顶部/侧边导航或隐藏应用导航时使用；默认门户/工作台不自建导航 |
 
-如果用户要求“门户组件 / 成员 / 部门 / 上传组件”，继续使用本技能，并按 [native-components-bridge.md](native-components-bridge.md) 的桥接规则用 `YidaCodeCanvas` 组件实现。
+如果用户要求“门户组件 / 成员 / 部门”，继续使用本技能，并按 [native-components-bridge.md](native-components-bridge.md) 的桥接规则用 `YidaCodeCanvas` 组件实现。需要附件/图片上传时必读 [file-upload.md](file-upload.md)，使用 `canvas-file-upload` 示例和 OpenAPI 文件桥完成真实上传与保存后绑定，不依赖原生上传组件存在。
 
 ### 导航生成规则
 
