@@ -5,6 +5,10 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  corp_efficiency: {
+    learning_completed: 'Yida 学習完了者数',
+    certified_developers: 'Yida 認定開発者数',
+  },
   qwenwork: {
     organization_switch_success: 'QwenWork ログインで組織を切り替えました。',
     login_check_failed: 'Unable to verify the login session. Please retry.',
@@ -129,7 +133,7 @@ module.exports = {
     cmd_custom_button: "カスタムボタン：フォーム編集、自動化フロー、ページリンクの設定",
     cmd_form_message: "Native form notifications: triggers, recipients and templates",
     cmd_check_design: 'デザイン文書、テーマ変数、PRD の引き継ぎを検証',
-    subtitle: '宜搭ローコード AI 開発ツール',
+    subtitle: 'AI Yida アプリ開発ツール',
     usage: '使用方法:',
     alias: 'エイリアス:',
     group_auth: '環境 & 認証',
@@ -771,7 +775,7 @@ module.exports = {
     modern_theme_unverified: "アプリは作成されましたが、新テーマの設定を確認できませんでした。返されたアプリ ID を調査してください。再作成や旧テーマへの切り替えはしないでください。",
     update_only_option: '{0} は更新用のオプションです。アプリ作成後に openyida update-app <appType> を使用してください。',
     title: '  openyida create-app - Yida アプリ作成ツール',
-    usage: 'Usage: openyida create-app "<appName>" [description] [icon] [iconColor] または openyida create-app --name "<appName>" [--desc "..."]',
+    usage: 'Usage: openyida create-app "<appName>" [description] [icon] [iconColor] [--json] または openyida create-app --name "<appName>" [--desc "..."] [--json]',
     example: '例: openyida create-app --name "勤怠管理" --desc "従業員勤怠システム"',
     available_icons: '\n利用可能なアイコン:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
@@ -1066,7 +1070,7 @@ module.exports = {
   exec_failed: '\n❌ Execution failed: {0}',
   auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
   auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
-  org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>]',
+  org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>] [--no-browser]',
   org_example: 'Examples:\n' +
     '  openyida org list --json                    # List accessible organizations\n' +
     '  openyida org switch --corp-id dingXXX       # Switch by OAuth re-login to the specified organization',
@@ -1214,6 +1218,8 @@ module.exports = {
   },
 
   update_form_config: {
+    unchanged: 'タイトルとナビゲーションに変更がないため、保存リクエストは送信していません。',
+    preservation_unsupported: '設定項目 {0} の値を保持できないため、保存を拒否しました。ナビゲーションはプラットフォームで変更してください。',
     usage: '使用方法: openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: '例: openyida update-form-config "APP_XXX" "FORM_XXX" "false" "マイページ"',
     params_label: 'パラメータ説明:',
@@ -1228,7 +1234,7 @@ module.exports = {
     read_ok: '  ✅ Current config loaded; settings other than title/nav will be preserved',
     read_failed_fallback: '  ⚠️  Failed to read current config; falling back to defaults (may reset some untouched settings)',
     step_update: '\n💾 Step 2: フォーム設定を更新（トップナビを非表示）',
-    sending_request: '  updateFormSchemaInfo リクエストを送信中...',
+    sending_request: '  {0} リクエストを送信中...',
     update_ok: '  ✅ 設定の更新に成功しました！',
     nav_shown: 'トップナビを表示しました',
     nav_hidden: 'トップナビを非表示にしました',

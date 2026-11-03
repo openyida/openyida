@@ -79,8 +79,9 @@ const path = require('path');
 // Node 20.18.1 measures 2,637,999 compressed bytes; next 16 KiB boundary.
 // 合并主干插件与权限指引、千问免登后，Node 24 实测 gzip 为 2,711,034 字节；取下一档 16 KiB 边界。
 // 合并字段权限校验与最新主干后，Node 20 实测 2,722,740 压缩字节；取下一档 16 KiB 边界。
-// Upload client, control and guide: 2,741,137 compressed bytes on Node 23.
-// Retain the next 16 KiB boundary for supported npm compression runtimes.
+// AI Yida terminology and localized metric labels: CI Node 20.20.2 measures
+// 2,736,203 compressed bytes / 800 files; retain the next 16 KiB boundary.
+// File uploads add the shared client, control and protocol guide.
 const MAX_TARBALL_BYTES = 2688 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
@@ -214,10 +215,13 @@ const MAX_TARBALL_BYTES = 2688 * 1024;
 // 合并后的解包体积为 10,015,765 字节；取下一档 16 KiB 边界，单文件上限保持不变。
 // 当前组织免登与搭建提示规则：Node 26 实测 10,033,033 解包字节 / 797 文件。
 // 按既有 16 KiB 分档容纳新增运行时与技能内容；压缩包、文件数及单文件上限不变。
+// Locale-preserving form updates, guarded writes and usage guidance measure
+// 10,046,556 unpacked bytes; retain the next 16 KiB boundary.
 // Node Babel entry, explicit presets and shared dependency copying: 10,045,128 bytes.
 // The dependency reduction is measured separately from this main-package budget.
-// OpenAPI uploads measure 10,069,505 unpacked bytes / 802 files on Node 23.
-const MAX_UNPACKED_BYTES = 9840 * 1024;
+// Uploads merged with current main measure 10,082,683 unpacked bytes / 803 files
+// on Node 23. Retain the next 16 KiB boundary; gzip and single-file caps stay fixed.
+const MAX_UNPACKED_BYTES = 9856 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -257,8 +261,9 @@ const MAX_UNPACKED_BYTES = 9840 * 1024;
 // 合并 main 的业务总结参考文档后，包含 beta 可选安装器的包实测为 796 个文件。
 // 新增应用主题状态共享模块；Node 20 实测 798 文件，字节预算保持不变。
 // One shared Node Babel entry replaces all standalone imports.
+// QwenWork's shared link-presentation guide adds one packaged reference.
 // File uploads add one client, one control and one protocol guide.
-const MAX_ENTRY_COUNT = 802;
+const MAX_ENTRY_COUNT = 803;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

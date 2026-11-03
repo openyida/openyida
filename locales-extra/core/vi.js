@@ -5,6 +5,10 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  corp_efficiency: {
+    learning_completed: 'Số người hoàn thành khóa học Yida',
+    certified_developers: 'Số nhà phát triển Yida được chứng nhận',
+  },
   qwenwork: {
     organization_switch_success: 'Đã chuyển tổ chức thông qua đăng nhập QwenWork.',
     login_check_failed: 'Unable to verify the login session. Please retry.',
@@ -129,7 +133,7 @@ module.exports = {
     cmd_custom_button: "Nút tùy chỉnh: biểu mẫu, luồng tự động và liên kết trang",
     cmd_form_message: "Native form notifications: triggers, recipients and templates",
     cmd_check_design: 'Xác thực tài liệu thiết kế, biến giao diện và bàn giao PRD',
-    subtitle: 'Công cụ phát triển AI low-code cho Yida',
+    subtitle: 'Công cụ phát triển ứng dụng cho AI Yida',
     usage: 'Cách dùng:',
     alias: 'Bí danh:',
     group_auth: 'Môi trường & Xác thực',
@@ -486,7 +490,7 @@ module.exports = {
     first_run_footer3: '  (This guide only shows on first run. Use openyida --help to see all commands)',
     auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
     auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
-    org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>]',
+    org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>] [--no-browser]',
     org_example: 'Examples:\n' +
       '  openyida org list --json                    # List accessible organizations\n' +
       '  openyida org switch --corp-id dingXXX       # Switch by OAuth re-login'
@@ -799,7 +803,7 @@ module.exports = {
     modern_theme_unverified: "Ứng dụng đã được tạo nhưng chưa xác minh được cấu hình giao diện mới. Hãy kiểm tra ID ứng dụng được trả về; không tạo lại ứng dụng hoặc chuyển về giao diện cũ.",
     update_only_option: '{0} chỉ dùng để cập nhật. Hãy tạo ứng dụng trước rồi dùng openyida update-app <appType>.',
     title: '  create-app - Công cụ tạo ứng dụng Yida',
-    usage: 'Cách dùng: openyida create-app "<tên ứng dụng>" hoặc openyida create-app --name "<tên ứng dụng>" [--desc "..."]',
+    usage: 'Cách dùng: openyida create-app "<tên ứng dụng>" [--json] hoặc openyida create-app --name "<tên ứng dụng>" [--desc "..."] [--json]',
     example: 'Ví dụ: openyida create-app --name "Ứng dụng của tôi" --desc "Mô tả ứng dụng"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
@@ -1107,7 +1111,7 @@ module.exports = {
   exec_failed: '\n❌ Execution failed: {0}',
   auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
   auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
-  org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>]',
+  org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>] [--no-browser]',
   org_example: 'Examples:\n' +
     '  openyida org list --json                    # List accessible organizations\n' +
     '  openyida org switch --corp-id dingXXX       # Switch by OAuth re-login to the specified organization',
@@ -1260,6 +1264,8 @@ module.exports = {
   },
 
   update_form_config: {
+    unchanged: 'Tiêu đề và điều hướng không thay đổi; không gửi yêu cầu lưu.',
+    preservation_unsupported: 'Không thể giữ nguyên giá trị trường cấu hình {0}. Đã từ chối lưu; hãy đổi điều hướng trên nền tảng.',
     usage: 'Cách dùng: openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: 'Example: openyida update-form-config "APP_XXX" "FORM_XXX" "keep" "My Page"',
     params_label: 'Parameters:',
@@ -1274,7 +1280,7 @@ module.exports = {
     read_ok: '  ✅ Current config loaded; settings other than title/nav will be preserved',
     read_failed_fallback: '  ⚠️  Failed to read current config; falling back to defaults (may reset some untouched settings)',
     step_update: '\n💾 Step 2: Cập nhật cấu hình biểu mẫu',
-    sending_request: '  Đang gửi yêu cầu updateFormSchemaInfo...',
+    sending_request: '  Đang gửi yêu cầu {0}...',
     update_ok: '  ✅ Cập nhật cấu hình thành công!',
     nav_shown: 'Đã hiển thị thanh điều hướng trên cùng',
     nav_hidden: 'Đã ẩn thanh điều hướng trên cùng',

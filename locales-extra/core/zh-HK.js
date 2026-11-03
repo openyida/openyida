@@ -6,6 +6,10 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  corp_efficiency: {
+    learning_completed: '宜搭學習完成人數',
+    certified_developers: '宜搭開發者認證人數',
+  },
   qwenwork: {
     organization_switch_success: '已透過千問辦公登入切換組織。',
     login_check_failed: 'Unable to verify the login session. Please retry.',
@@ -130,7 +134,7 @@ module.exports = {
     cmd_custom_button: "原生自訂按鈕：查詢與配置表單、流程和頁面跳轉",
     cmd_form_message: "原生表單消息通知：觸發、接收對象與模板",
     cmd_check_design: '檢查設計文件、主題變數與 PRD 交接',
-    subtitle: '宜搭低程式碼 AI 開發工具',
+    subtitle: 'AI 宜搭應用開發工具',
     usage: '用法:',
     alias: '別名:',
     group_auth: '環境 & 認證',
@@ -765,7 +769,7 @@ module.exports = {
     modern_theme_unverified: "應用已建立，但未能確認新版主題設定。請使用傳回的應用 ID 排查，不要重複建立或降級為舊主題。",
     update_only_option: '{0} 僅用於更新應用設定，請先建立應用，再使用 openyida update-app <appType>。',
     title: '  openyida create-app - 宜搭應用程式建立工具',
-    usage: '用法：openyida create-app "<appName>" [description] [icon] [iconColor] 或 openyida create-app --name "<appName>" [--desc "..."]',
+    usage: '用法：openyida create-app "<appName>" [description] [icon] [iconColor] [--json] 或 openyida create-app --name "<appName>" [--desc "..."] [--json]',
     example: '範例：openyida create-app --name "考勤管理" --desc "員工考勤打卡系統"',
     available_icons: '\n可用圖示：',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
@@ -1060,7 +1064,7 @@ module.exports = {
   exec_failed: '\n❌ 執行失敗：{0}',
   auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
   auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
-  org_usage: '用法：openyida org <list|switch>',
+  org_usage: '用法：openyida org <list|switch> [--json] [--corp-id <corpId>] [--no-browser]',
   org_example: '範例：\n  openyida org list                    # 列出可訪問的組織\n  openyida org switch --corp-id dingXXX  # 切換到指定組織',
   title: '  openyida import - 宜搭應用程式匯入工具',
   save_permission: {
@@ -1206,6 +1210,8 @@ module.exports = {
   },
 
   update_form_config: {
+    unchanged: '標題和導航未變更，未傳送儲存請求。',
+    preservation_unsupported: '無法保證設定欄位 {0} 的值原樣保留，已拒絕儲存；請在平台中調整導航。',
     usage: '用法：openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: '範例：openyida update-form-config "APP_XXX" "FORM_XXX" "false" "我的頁面"',
     params_label: '參數說明：',
@@ -1220,7 +1226,7 @@ module.exports = {
     read_ok: '  ✅ 已读取当前配置，将保留除标题/导航外的其它设置',
     read_failed_fallback: '  ⚠️  读取当前配置失败，将使用默认配置回退（可能重置部分未传入的设置）',
     step_update: '\n💾 Step 2：更新表單設定（隱藏頂部導航列）',
-    sending_request: '  傳送 updateFormSchemaInfo 請求...',
+    sending_request: '  傳送 {0} 請求...',
     update_ok: '  ✅ 設定更新成功！',
     nav_shown: '已顯示頂部導航列',
     nav_hidden: '已隱藏頂部導航列',

@@ -24,7 +24,7 @@ async function runCli(baseUrl, workspace, mode = 'web', command = 'create-app') 
   if (mode === 'web') {
     env.QWENWORK = '1';
     env.QWENWORK_WORKSPACE_DIR = workspace;
-  } else {
+  } else if (mode === 'desktop') {
     env.QWENWORK_INTEGRATION_MODE = '1';
     env.QODER_WORKER_CWD = workspace;
   }
@@ -48,6 +48,8 @@ test.each([
   ['web', 'redirect', 'YIDA_PLATFORM_ACCESS_REQUIRED', 'unauth', 'create-app'],
   ['web', 'create-redirect', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app'],
   ['desktop', 'legacy', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app'],
+  ['codex', 'short', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app'],
+  ['desktop', 'short', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app'],
   ['web', 'unknown', 'YIDA_PERMISSION_REQUIRED', null, 'create-app'],
   ['desktop', 'config', 'YIDA_PLATFORM_ACCESS_REQUIRED', 'unauth', 'create-app'],
   ['web', 'legacy', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'import'],
@@ -65,7 +67,7 @@ test.each([
       res.writeHead(302, { Location: `/defaultPage.html?type=${permissionType}` }); res.end();
     } else {
       res.end(JSON.stringify({ success: false, errorCode: 'TIANSHU_000006',
-        errorMsg: scenario === 'legacy' ? '管理员暂未为您分配权限，请联系管理员授权' : 'Other permission denied' }));
+        errorMsg: scenario === 'short' ? '没有权限' : scenario === 'legacy' ? '管理员暂未为您分配权限，请联系管理员授权' : 'Other permission denied' }));
     }
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));

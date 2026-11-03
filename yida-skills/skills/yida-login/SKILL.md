@@ -168,3 +168,9 @@ openyida auth qwenwork user-info --json
 
 - Login/auth snapshot 返回可用登录态；或
 - 运行环境注入 token 模式返回明确停止原因，交由宿主修复。
+
+## 用户明确要求切换组织
+
+用户选定目标后，千问办公与 env Token 由宿主切换；受管拒绝时停止。
+
+本地 OAuth 使用 `openyida org switch --corp-id <corpId> --json`；`--quiet` 仍向 stderr 输出 URL。加 `--no-browser` 由调用方按上方规则打开；工具不可用时给出链接并保持原进程运行。最终 `ok=true`、`can_auto_use=true` 且 `corp_id` 匹配才续做。

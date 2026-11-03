@@ -258,6 +258,7 @@ describe('org switch auth profile behavior', () => {
     });
 
     expect(tokenLogin).toHaveBeenCalledTimes(1);
+    expect(tokenLogin.mock.calls[0][0].showAuthUrl).toBe(true);
     expect(loadTokenSession({ projectRoot, authDir })).toMatchObject({
       auth_profile: previous.auth_profile,
       corp_id: 'corp-a',
@@ -286,6 +287,7 @@ describe('org switch auth profile behavior', () => {
     });
 
     expect(tokenLogin).toHaveBeenCalledTimes(1);
+    expect(tokenLogin.mock.calls[0][0].showAuthUrl).toBe(true);
     expect(tokenLogin.mock.calls[0][0].projectRoot).not.toBe(projectRoot);
     expect(tokenLogin.mock.calls[0][0].authDir).not.toBe(authDir);
     expect(fs.existsSync(getTokenFilePath({ projectRoot, authDir }))).toBe(true);

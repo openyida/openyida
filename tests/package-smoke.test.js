@@ -17,6 +17,10 @@ describe('npm package smoke', () => {
     expect(getPackageBudgetErrors(budgetLimit)).toEqual([]);
   });
 
+  test('package budget covers AI Yida terminology and localized metric labels on CI Node 20', () => {
+    expect(getPackageBudgetErrors({ size: 2736203, unpackedSize: 10058604, entryCount: 800 })).toEqual([]);
+  });
+
   test('package budget covers the Windows Node 20 measurement from PR 614', () => {
     expect(getPackageBudgetErrors({ ...budgetLimit, unpackedSize: 8358003 })).toEqual([]);
   });

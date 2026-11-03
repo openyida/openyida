@@ -2,9 +2,9 @@
 
 # OpenYida
 
-**面向 AI 编程工具的宜搭低代码 CLI。**
+**面向 AI 编程工具的 AI 宜搭 CLI。**
 
-OpenYida 把 Codex、Claude Code、Cursor、QwenWork（千问办公）、Qoder 等 AI 编程助手连接到宜搭低代码平台，让开发者可以通过自然语言和命令行完成应用创建、表单建模、流程审批、自定义页面、报表、连接器和发布配置。
+OpenYida 把 Codex、Claude Code、Cursor、QwenWork（千问办公）、Qoder 等 AI 编程助手连接到 AI 宜搭，让开发者可以通过自然语言和命令行完成应用创建、表单建模、流程审批、自定义页面、报表、连接器和发布配置。
 
 [快速开始](#快速开始) · [帮助网站&文档](https://demo.aliwork.com/o/openyida/helpCenter) · [核心能力](#核心能力) · [完整功能列表](https://demo.aliwork.com/o/openyida/helpCenter?openyidaPath=capabilities) · [案例展示](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=showcase) · [自定义页面开发](#自定义页面开发) · [常用命令](https://demo.aliwork.com/o/openyida/helpCenter?openyidaPath=features/skills) · [开发与校验](#开发与校验) · [搭建效果](#搭建效果) · [贡献](./CONTRIBUTING.md)
 
@@ -344,7 +344,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida login [--qwenwork] [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
 | `openyida logout` | 退出登录 / 解绑当前项目登录态 |
 | `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch\|qwenwork user-info> [--json]` | token 登录态与 profile 管理 |
-| `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | 组织管理（列表 / 优先按已有 profile 切换） |
+| `openyida org <list\|switch> [--json] [--corp-id <corpId>] [--no-browser]` | 组织管理（列表 / 优先按已有 profile 切换） |
 | `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | 检测 AI 工具环境和 token 登录态 |
 
 ### 应用管理
@@ -360,7 +360,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida app-list [--type managed\|created] [--page N] [--size N]` | 分页查询我管理的或我创建的应用 |
 | `openyida solution-template <search\|detail\|prepare\|ai-build\|enable\|status> [templateId\|requestId] [options] [--json]` | 独立本地 Agent 的方案模板查询、云端 AI 搭建入口与直接启用 |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | 查询企业效能概览和明细报表 |
-| `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建宜搭应用 |
+| `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open] [--json]` | 创建宜搭应用 |
 | `openyida design-plan catalog [--json]` | 查询规划可用的主题与页面模式 |
 | `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | 从已确认需求初始化计划草稿 |
 | `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | 按模块更新方案草稿 |

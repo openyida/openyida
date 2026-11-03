@@ -47,12 +47,12 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 ## 命令
 
 ```bash
-openyida create-app --name <appName> [--desc <description>]
+openyida create-app --name <appName> [--desc <description>] [--json]
 # 提取返回的 appType 后，单独更新应用基础设置
 openyida update-app <appType> --theme-file <app-theme.css> --nav-theme <light|dark> --logo-source appIcon --layout <side|top|l_shape>
 ```
 
-`openyida create-app` 不支持 `--json` 参数；不要添加 `--json`。创建成功时命令本身会输出一行 JSON，从该输出中提取 `appType`。
+创建成功后，从返回的 JSON 中提取 `appType`。
 
 ### 新建应用的主题结果
 
@@ -164,11 +164,13 @@ CLI 校验主题文件完整声明平台实际生成的 `--color-brand1-1/2/3/5/
 - 自定义页面源码默认使用 `.canvas.jsx`，完成编写后发布。
 - 造测试数据或修旧数据时，可以用 Python 或 JS 编写 `.cache/` 下的一次性脚本；优先选择更快更清晰的方式，但字段 ID 和记录 ID 必须来自真实查询。
 
-## 千问办公权限处理
+## 创建权限不足时的处理
 
 执行 `openyida create-app`，以 CLI 返回的权限结果和申请指引为准。
 
-返回 `status=permission_required` 时，暂停后续搭建，展示 CLI 的错误说明和 `nextStep` 中的具名申请链接；未返回链接时保留原因。仅提供指引，等待用户处理并要求继续后再执行，不因权限不足重新登录或重复创建。
+`status=permission_required` 时暂停，展示 `nextAction` / `details.permissionUrl` 或 `nextStep` 的具名申请链接；缺少链接不自行拼接。应用管理员不等于组织级创建者。
+
+保留已有文件，用户处理后要求继续时核对组织与权限。不重新登录、重复创建或枚举组织；用户选了其他组织才按 `yida-login` 切换，组织列表不证明创建权限。
 
 ## 异常处理
 

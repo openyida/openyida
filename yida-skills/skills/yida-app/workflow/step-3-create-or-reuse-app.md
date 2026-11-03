@@ -18,7 +18,7 @@ Fast / Plan 已选主题是全应用决定，本步骤必须保存同一份应�
 
 1. 已有 `appType`、应用 URL 或已绑定 app → 直接复用该 app。
 2. 缺少 app 且 Step 1 判定 `allowCreate=true` → 执行 `use_skill("yida-create-app", "按 PRD 创建应用并获取 appType")`，再按 PRD 创建应用。执行创建前按[创建应用时的提示](../../../references/user-facing-summary.md#创建应用时的提示)告知一次“当前在{组织名称}组织下为您创建{应用名称}应用”；名称取已确认的当前组织与应用，不附带登录或准备说明。
-   千问办公返回 `status=permission_required` 时，按 [权限处理](../../yida-create-app/SKILL.md#千问办公权限处理) 展示 CLI 指引并暂停后续步骤，等待用户处理并要求继续。
+   `status=permission_required` 时按 [权限处理](../../yida-create-app/SKILL.md#创建权限不足时的处理) 展示申请链接、保留已有结果并暂停，不自动换组织。
 3. 创建或复用后提取真实 `appType`，写入 `.cache/<项目名>-schema.json` 或当前任务资源上下文。
    - Step 2 已确认的 `requirement-brief.json`、PRD 与 design 保持不变；不得仅因拿到真实 `appType` 回写需求文件或重新生成 PRD 和视觉设计。
 4. 用户确认计划或主题且 `constraints.prohibitedActions` 不含 `theme-file` 时立即准备 CSS，不等表单或页面完成。创建完整应用时，Plan 复用 `materialize` 返回的 `outputs.theme`。其他场景用以下命令生成或更新主题：

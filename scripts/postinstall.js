@@ -162,7 +162,7 @@ function createCodexPluginManifest() {
   return {
     name: CODEX_PLUGIN_NAME,
     version: PACKAGE_JSON.version,
-    description: 'OpenYida CLI plugin for building and managing Yida low-code apps from Codex.',
+    description: 'OpenYida CLI plugin for building and managing AI Yida apps from Codex.',
     author: {
       name: 'OpenYida Contributors',
       email: 'yize.shc@gmail.com',
@@ -171,12 +171,12 @@ function createCodexPluginManifest() {
     homepage: 'https://github.com/openyida/openyida',
     repository: 'https://github.com/openyida/openyida',
     license: PACKAGE_JSON.license || 'MIT',
-    keywords: ['openyida', 'yida', 'low-code', 'aliyun', 'codex'],
+    keywords: ['openyida', 'yida', 'vibe-coding', 'aliyun', 'codex'],
     skills: './skills/',
     interface: {
       displayName: '宜搭',
       shortDescription: '通过 OpenYida CLI 创建和管理宜搭应用、表单、页面与数据',
-      longDescription: 'Use OpenYida from Codex to log in to Yida, create low-code apps, manage forms, publish custom pages, configure permissions, build reports, and query data through the openyida command line.',
+      longDescription: 'Use OpenYida from Codex to log in to AI Yida, create apps, manage forms, publish custom pages, configure permissions, build reports, and query data through the openyida command line.',
       developerName: 'OpenYida Contributors',
       category: 'Productivity',
       capabilities: ['Interactive', 'Write'],
@@ -221,7 +221,7 @@ function createCodexPluginSkill() {
   return `---
 name: openyida
 description: >
-  OpenYida / 宜搭总入口技能。用户提到宜搭、OpenYida、Yida、低代码应用、创建应用、创建表单、自定义页面、
+  OpenYida / 宜搭总入口技能。用户提到宜搭、OpenYida、Yida、AI 宜搭应用、创建应用、创建表单、自定义页面、
   页面发布、权限、报表、连接器、流程、数据查询或登录态管理时使用。通过 openyida CLI 在 Codex 中操作宜搭平台。
 ---
 
@@ -229,7 +229,7 @@ description: >
 
 ## 目标
 
-使用 \`openyida\` CLI 帮用户在 Codex 中完成宜搭低代码平台操作，包括登录态检查、应用创建、表单管理、自定义页面开发、页面发布、权限配置、报表、连接器、流程和数据查询。
+使用 \`openyida\` CLI 帮用户在 Codex 中完成 AI 宜搭操作，包括登录态检查、应用创建、表单管理、自定义页面开发、页面发布、权限配置、报表、连接器、流程和数据查询。
 
 ## 首要步骤
 
@@ -285,7 +285,7 @@ openyida copy
 
 用户说“按默认方案 / 不要追问 / 直接创建 / 尽快搭建”时，加载 \`yida-app\` 走完整应用统一编排。
 
-完整应用先由 yida-requirement-analysis 按 prepare-brief.md 读取必需材料，尽早确认核心功能和实际用法。澄清后由 yida-app 核验所需资源，按 yida-design/references/design-mode.md 复用或确定执行方式，保留用户已有选择。AI 先按使用任务判断统一入口、前后台双入口或仅前台，再按 yida-design/references/navigation-decision.md 为各入口确定导航；用户已指定时优先沿用。前台自己的菜单只配置当前页面，后台按自己的导航方案执行。两种模式都完成业务规划与视觉设计；Plan 展示 build-plan.html，确认当前版本后执行对应方案。其余设计文件供内部实施使用。
+完整应用先由 yida-requirement-analysis 按 prepare-brief.md 读取必需材料，尽早确认核心功能和实际用法。澄清后由 yida-app 核验所需资源，按 yida-design/references/design-mode.md 复用或确定执行方式，保留同任务有依据的选择或委托。千问办公不凭跨会话记忆或历史偏好代选 Fast/Plan，由该模式规则决定是否 ask_human。AI 先按使用任务判断统一入口、前后台双入口或仅前台，再按 yida-design/references/navigation-decision.md 为各入口确定导航；用户已指定时优先沿用。前台自己的菜单只配置当前页面，后台按自己的导航方案执行。两种模式都完成业务规划与视觉设计；Plan 展示 build-plan.html，确认当前版本后执行对应方案。其余设计文件供内部实施使用。
 
 统一编排只做：解析资源上下文并整理用户需求 → 同时调用 \`yida-prd\` 输出 \`prd.md\`、\`yida-design\` 输出 \`design.md\` → 由 \`yida-app\` 校验两份结果 → 创建/复用应用 → 核心表单/流程 → 主页面 → 编写主页面源码 → 发布 + 轻量导航排序 → 返回 2-3 句业务交付总结和一个主入口链接。资源创建顺序按 PRD 执行：应用先落位，表单/流程先于自定义页面。发布主页面成功后，PRD 写明导航顺序时执行 \`openyida nav-group order <appType> <页面/表单...>\`；PRD 只写宽泛分组或缺少导航顺序时，执行 \`openyida publish ... --auto-nav-order\` 或 \`openyida nav-group auto-order <appType>\` 兜底，兜底顺序为门户/首页/工作台入口、业务办理、数据管理、经营分析、系统配置。
 

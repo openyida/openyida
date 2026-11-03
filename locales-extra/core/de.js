@@ -5,6 +5,10 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  corp_efficiency: {
+    learning_completed: 'Anzahl der Yida-Kursabschlüsse',
+    certified_developers: 'Anzahl zertifizierter Yida-Entwickler',
+  },
   qwenwork: {
     organization_switch_success: 'Organisation über die QwenWork-Anmeldung gewechselt.',
     login_check_failed: 'Unable to verify the login session. Please retry.',
@@ -129,7 +133,7 @@ module.exports = {
     cmd_custom_button: "Benutzerdefinierte Schaltflächen: Formulare, Automatisierung und Links",
     cmd_form_message: "Native form notifications: triggers, recipients and templates",
     cmd_check_design: 'Designdokumente, Theme-Variablen und PRD-Übergabe prüfen',
-    subtitle: 'KI-gestütztes Low-Code-Entwicklungstool für Yida',
+    subtitle: 'Anwendungsentwicklungstool für AI Yida',
     usage: 'Verwendung:',
     alias: 'Alias:',
     group_auth: 'Umgebung & Authentifizierung',
@@ -486,7 +490,7 @@ module.exports = {
     first_run_footer3: '  (This guide only shows on first run. Use openyida --help to see all commands)',
     auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
     auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
-    org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>]',
+    org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>] [--no-browser]',
     org_example: 'Examples:\n' +
       '  openyida org list --json                    # List accessible organizations\n' +
       '  openyida org switch --corp-id dingXXX       # Switch by OAuth re-login'
@@ -799,7 +803,7 @@ module.exports = {
     modern_theme_unverified: "Die App wurde erstellt, aber die moderne Designkonfiguration konnte nicht bestätigt werden. Prüfen Sie die zurückgegebene App-ID. Erstellen Sie die App nicht erneut und wechseln Sie nicht zum alten Design.",
     update_only_option: '{0} ist nur für Updates verfügbar. Erstellen Sie zuerst die App und verwenden Sie dann openyida update-app <appType>.',
     title: '  create-app - Yida-App-Erstellungstool',
-    usage: 'Verwendung: openyida create-app "<App-Name>" oder openyida create-app --name "<App-Name>" [--desc "..."]',
+    usage: 'Verwendung: openyida create-app "<App-Name>" [--json] oder openyida create-app --name "<App-Name>" [--desc "..."] [--json]',
     example: 'Beispiel: openyida create-app --name "Meine App" --desc "App-Beschreibung"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
@@ -1107,7 +1111,7 @@ module.exports = {
   exec_failed: '\n❌ Execution failed: {0}',
   auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
   auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
-  org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>]',
+  org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>] [--no-browser]',
   org_example: 'Examples:\n' +
     '  openyida org list --json                    # List accessible organizations\n' +
     '  openyida org switch --corp-id dingXXX       # Switch by OAuth re-login to the specified organization',
@@ -1260,6 +1264,8 @@ module.exports = {
   },
 
   update_form_config: {
+    unchanged: 'Titel und Navigation sind unverändert; keine Speicheranfrage gesendet.',
+    preservation_unsupported: 'Das Konfigurationsfeld {0} kann nicht exakt erhalten werden. Speichern abgelehnt; ändern Sie die Navigation auf der Plattform.',
     usage: 'Verwendung: openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: 'Example: openyida update-form-config "APP_XXX" "FORM_XXX" "keep" "My Page"',
     params_label: 'Parameters:',
@@ -1274,7 +1280,7 @@ module.exports = {
     read_ok: '  ✅ Current config loaded; settings other than title/nav will be preserved',
     read_failed_fallback: '  ⚠️  Failed to read current config; falling back to defaults (may reset some untouched settings)',
     step_update: '\n💾 Step 2: Formularkonfiguration aktualisieren',
-    sending_request: '  updateFormSchemaInfo-Anfrage wird gesendet...',
+    sending_request: '  {0}-Anfrage wird gesendet...',
     update_ok: '  ✅ Konfiguration erfolgreich aktualisiert!',
     nav_shown: 'Obere Navigation angezeigt',
     nav_hidden: 'Obere Navigation ausgeblendet',

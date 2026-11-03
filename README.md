@@ -4,9 +4,9 @@
 
 # OpenYida
 
-**AI-native CLI for building DingTalk Yida low-code applications.**
+**AI-native CLI for building applications with AI Yida.**
 
-OpenYida connects AI coding agents with Yida's low-code platform, so developers can create apps, forms, workflows, custom pages, reports, integrations, and deployment configuration from a normal chat-driven development workflow.
+OpenYida connects AI coding agents with AI Yida, so developers can create apps, forms, workflows, custom pages, reports, integrations, and deployment configuration from a normal chat-driven development workflow.
 
 [Quick Start](#quick-start) · [帮助网站&文档](https://demo.aliwork.com/o/openyida/helpCenter) · [Capabilities](#capabilities) · [Full Capability List](https://demo.aliwork.com/o/openyida/helpCenter?openyidaPath=capabilities) · [CLI Reference](https://demo.aliwork.com/o/openyida/helpCenter?openyidaPath=features/skills) · [Examples](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=showcase) · [Contributing](./CONTRIBUTING.md) · [Changelog](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=changelog) · [Application Previews](#application-previews)
 
@@ -474,7 +474,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida login [--qwenwork] [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | Login with OAuth token mode |
 | `openyida logout` | Logout / unbind current project auth |
 | `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch\|qwenwork user-info> [--json]` | Token login state and profile management |
-| `openyida org <list\|switch> [--json] [--corp-id <corpId>]` | Organization management (list / switch existing profiles first) |
+| `openyida org <list\|switch> [--json] [--corp-id <corpId>] [--no-browser]` | Organization management (list / switch existing profiles first) |
 | `openyida env [--json\|setup\|list\|show\|switch\|add\|remove] [options]` | Detect AI tool environment & token login state |
 
 ### App Management
@@ -490,7 +490,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida app-list [--type managed\|created] [--page N] [--size N]` | Page through apps I manage or created |
 | `openyida solution-template <search\|detail\|prepare\|ai-build\|enable\|status> [templateId\|requestId] [options] [--json]` | Solution templates for independent local agents: discovery, cloud AI handoff and direct enable |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency overview and detail reports |
-| `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a Yida app |
+| `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open] [--json]` | Create a Yida app |
 | `openyida design-plan catalog [--json]` | List available planning themes and page patterns |
 | `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | Initialize a plan draft from confirmed requirements |
 | `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | Update plan drafts by module |
@@ -660,6 +660,8 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida cdn-refresh [options]` | Refresh CDN cache |
 
 <!-- OPENYIDA_COMMANDS_END -->
+
+`update-form-config` changes only the resolved content locale (`--locale` overrides the usual environment/domain selection), preserving other translations and title metadata. Use `keep` to retain navigation. Unchanged title and navigation skip saving; title-only changes use the dedicated title endpoint. Navigation changes require a complete supported configuration snapshot: null/missing fields or empty defaulted fields cause `CONFIG_PRESERVATION_UNSUPPORTED` before saving. In that case, change navigation in the platform. An unreadable localized title causes `CONFIG_READ_FAILED` without saving.
 
 ### Personal tasks and process progress
 

@@ -24,7 +24,7 @@
 
 | 结构组件 | 用法 | 典型场景 |
 | --- | --- | --- |
-| `Divider` | 作为独立字段插入字段数组，用 `title` 表达章节标题，按页面用途显式选择 `dividerType` | 普通业务分组、章节分隔、字段较多时提升可读性 |
+| `Divider` | 作为独立字段插入字段数组，用 `title` 表达章节标题，显式填写应用统一的 `dividerType` | 普通业务分组、章节分隔、字段较多时提升可读性 |
 | `ColumnContainer` | 用二维 `children` 表达多列，每个子数组是一列；内部字段仍按普通字段 JSON 写 | 开始/结束日期、姓名/工号、部门/岗位、金额/币种、联系人/电话等短字段成组 |
 
 ### 布局决策规则
@@ -88,33 +88,29 @@ OpenYida 支持以下 **23 个可见样式**，不接受 `none`（无分割线�
 | `square-blocks-title` | 左侧双方块、标题及底部细线 | 项目、资源或技术资料 |
 | `inner-ellipse-title` | 主色胶囊横条内嵌弱背景椭圆标题，弱背景随内容明暗变化 | 需要强调的少量短标题；按三层配色检查 |
 
-选型顺序：用户指定的有效样式优先；已有页面局部修改保留原有有效样式；新页面再按下面的业务场景选择。先排除不适合标题长度、内容密度和主题的形态，同页同层级复用一个主样式。内嵌胶囊及其他多色标题按 [内嵌标题与复合分割线](../../yida-design/references/native-form-styles.md#内嵌标题与复合分割线) 分别检查文字承载面、装饰面积和窄屏；可读性通过不等于适合高频多章节表单。
+选型顺序：用户指定的有效样式优先；新建或补齐表单先复用 `design.md` 的应用默认类型。同一应用的普通表单和流程表单默认使用同一 `dividerType`，不因页面用途不同而另选。尚未确定默认类型时，结合应用主要业务、密度、标题长度和主题从下表选一种，记录业务理由；依据不足时选适合主要填写任务与窄屏的简洁类型，不随机轮换。已有表单局部修改保留未涉及的样式；用户明确指定的个别例外记录适用范围。
 
-| 页面情况 | 推荐候选 | 选择依据 |
+| 应用主要场景 | 推荐候选 | 选择依据 |
 | --- | --- | --- |
-| 高频登记、密集录入、正式资料，或标题较长、主要在手机使用 | `solid`、`solid-left`、`left-dot-title`、`light-bar` | 装饰轻，便于连续扫描和填写 |
-| 审核、档案维护、多章节申请 | `light-left-bar`、`bold-with-thin`、`light-left-title`、`double-color-trapezoid` | 分组明确，便于定位不同资料段 |
-| 辅助材料、问卷、轻量清单 | `dashed`、`dotted` | 分隔存在感较低，不抢正文 |
-| 活动报名、服务专题，标题简短且适合居中 | `solid-center`、`light-center-title`、`light-house-title`、`inner-ellipse-title` | 用对称或柔和标签组织章节 |
-| 项目阶段、技术资料、赛事或需要明显章节识别的页面 | `arrow-right-title`、`square-blocks-title`、`multi-parallelograms-end`、`light-hexagon-title`、`hexagon-title` | 用方向或几何形态强化分区；箭头不代表已有流程交互 |
-| 资质、荣誉、品牌专题或少量重点章节 | `badge-line`、`dark-bar`、`center-title-with-bar`、`thick` | 视觉权重较强，避免在密集页面大量重复 |
+| 高频登记、密集录入、正式资料，或长标题、手机填写为主 | `solid`、`solid-left`、`left-dot-title`、`light-bar` | 装饰轻，便于扫描与填写 |
+| 审核、档案维护、多章节申请 | `light-left-bar`、`bold-with-thin`、`light-left-title`、`double-color-trapezoid` | 分组明确，便于定位资料 |
+| 辅助材料、问卷、轻量清单 | `dashed`、`dotted` | 分隔存在感低 |
+| 活动报名、服务专题，标题简短且适合居中 | `solid-center`、`light-center-title`、`light-house-title`、`inner-ellipse-title` | 对称或柔和标签 |
+| 项目阶段、技术资料、赛事 | `arrow-right-title`、`square-blocks-title`、`multi-parallelograms-end`、`light-hexagon-title`、`hexagon-title` | 方向或几何形态强化分组；箭头不提供流程操作 |
+| 资质、荣誉、品牌专题或少量重点章节 | `badge-line`、`dark-bar`、`center-title-with-bar`、`thick` | 视觉权重强，避免密集重复 |
 
-**不知道如何选择时，随机轮换。** 场景不明确，或多个候选同样合适时，将合适的候选随机打乱，按页面依次选用。优先用本轮尚未用过的样式，用完再重新打乱；没有可用的场景判断依据时，从全部 23 种中先按标题长度、密度、主题可读性与视觉权重筛选，再轮换。每页只选一次，同页各分组复用，不逐条随机。
+在现有 `design.md` 的组件规则中记录“应用默认类型、业务理由、明确例外”，各表单每个 `Divider.dividerType` 显式填写同一默认值。Fast 与 Plan、并行生成、重试及后续新增表单都复用；无需新增状态文件或 CLI 参数。复合标题的配色与窄屏检查见 [内嵌标题与复合分割线](../../yida-design/references/native-form-styles.md#内嵌标题与复合分割线)。
 
-把选定样式和理由（例如“场景不明确，随机轮换”）写入现有 `design.md` 的页面说明，并显式填入该页每个 `Divider.dividerType`。后续生成、编译、重试和局部修改复用已记录的值，不重新抽签，不需要新增状态文件或 CLI 参数。
-
-`form-fields` 示例仅演示布局，其中的分割线不代表推荐默认值；复用示例时按当前页面重新选择。
-
-把“页面 → 样式 → 选择理由”写在现有 `design.md` 对应页面说明里，Fast 与 Plan 使用同一规则。表单结构通过组件树配置，Canvas 分组标题按相同外观原则实现。
+`form-fields` 示例仅演示布局，分割线不是推荐默认值；复用时替换为应用已选类型。Canvas 分组标题按业务层级协调设计。
 
 未提供样式时 CLI 以 `bold-with-thin` 兜底，不替 AI 决定业务风格。显式的不支持值会报错，不静默替换。`dividerType` 写入 `props.type`；也接受历史别名 `dividerStyle`、`styleType`、`typeStyle` 和 `props.type`，按此前顺序取值，新生成统一用 `dividerType`。
 
-`none` 不参与推荐、轮换或字段生成；确实不需要分隔的内容区直接省略 Divider 组件。复杂装饰主要用于短标题；长标题和窄屏优先选简单线型、圆点或浅底，发布后检查换行与截断。
+`none` 不参与选型或字段生成；确实不需要分隔的内容区直接省略 Divider 组件。复杂装饰主要用于短标题；长标题和窄屏优先选简单线型、圆点或浅底，发布后检查换行与截断。
 
 | 属性 | 默认值 | 说明 |
 | --- | --- | --- |
 | `behavior` | `"NORMAL"` | 默认状态，支持 `"NORMAL"` / `"HIDDEN"` |
-| `dividerType` | `"bold-with-thin"`（遗漏时兜底） | 从上表按页面选型，写入 `Divider.props.type`，不是 CLI 参数 |
+| `dividerType` | `"bold-with-thin"`（遗漏时兜底） | 从上表按应用场景选型，写入 `Divider.props.type`，不是 CLI 参数 |
 | `showTitle` | `true` | 是否显示标题 |
 | `title` | `"标题"` | 分割线标题，写入 `props.title` |
 | `description` | `""` | 标题描述，写入 `props.description` |

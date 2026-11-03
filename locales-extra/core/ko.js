@@ -5,6 +5,10 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  corp_efficiency: {
+    learning_completed: 'Yida 학습 완료 인원',
+    certified_developers: 'Yida 인증 개발자 수',
+  },
   qwenwork: {
     organization_switch_success: 'QwenWork 로그인으로 조직을 전환했습니다.',
     login_check_failed: 'Unable to verify the login session. Please retry.',
@@ -129,7 +133,7 @@ module.exports = {
     cmd_custom_button: "사용자 지정 버튼: 양식 편집, 자동화 흐름 및 페이지 링크 설정",
     cmd_form_message: "Native form notifications: triggers, recipients and templates",
     cmd_check_design: '디자인 문서, 테마 변수 및 PRD 인계 검증',
-    subtitle: 'Yida 로우코드 AI 개발 도구',
+    subtitle: 'AI Yida 앱 개발 도구',
     usage: '사용법:',
     alias: '별칭:',
     group_auth: '환경 & 인증',
@@ -486,7 +490,7 @@ module.exports = {
     first_run_footer3: '  (This guide only shows on first run. Use openyida --help to see all commands)',
     auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
     auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
-    org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>]',
+    org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>] [--no-browser]',
     org_example: 'Examples:\n' +
       '  openyida org list --json                    # List accessible organizations\n' +
       '  openyida org switch --corp-id dingXXX       # Switch by OAuth re-login'
@@ -799,7 +803,7 @@ module.exports = {
     modern_theme_unverified: "앱이 생성되었지만 새 테마 설정을 확인하지 못했습니다. 반환된 앱 ID를 확인하세요. 앱을 다시 만들거나 이전 테마로 전환하지 마세요.",
     update_only_option: '{0}은 업데이트 전용 옵션입니다. 앱을 만든 후 openyida update-app <appType>을 사용하세요.',
     title: '  create-app - Yida 앱 생성 도구',
-    usage: '사용법: openyida create-app "<앱 이름>" 또는 openyida create-app --name "<앱 이름>" [--desc "..."]',
+    usage: '사용법: openyida create-app "<앱 이름>" [--json] 또는 openyida create-app --name "<앱 이름>" [--desc "..."] [--json]',
     example: '예시: openyida create-app --name "내 앱" --desc "앱 설명"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
@@ -1108,7 +1112,7 @@ module.exports = {
   exec_failed: '\n❌ Execution failed: {0}',
   auth_usage: 'Usage: openyida auth <status|login|refresh|logout|profiles|profile switch|qwenwork user-info> [--json]',
   auth_example: 'Examples:\n  openyida auth status                         # View login status\n  openyida auth profiles                       # List existing login profiles\n  openyida auth profile switch <auth_profile>  # Switch current project to an existing profile\n  openyida auth login                          # Add a profile when the target does not exist\n  openyida auth refresh                        # Refresh login session\n  openyida auth logout                         # Unbind current project auth\n  openyida auth logout --profile <auth_profile> # Delete a shared profile explicitly',
-  org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>]',
+  org_usage: 'Usage: openyida org <list|switch> [--json] [--corp-id <corpId>] [--no-browser]',
   org_example: 'Examples:\n' +
     '  openyida org list --json                    # List accessible organizations\n' +
     '  openyida org switch --corp-id dingXXX       # Switch by OAuth re-login to the specified organization',
@@ -1261,6 +1265,8 @@ module.exports = {
   },
 
   update_form_config: {
+    unchanged: '제목과 탐색 설정이 변경되지 않아 저장 요청을 보내지 않았습니다.',
+    preservation_unsupported: '설정 필드 {0}의 값을 그대로 보존할 수 없어 저장을 거부했습니다. 플랫폼에서 탐색 설정을 변경하세요.',
     usage: '사용법: openyida update-form-config <appType> <formUuid> <isRenderNav> <title>',
     example: 'Example: openyida update-form-config "APP_XXX" "FORM_XXX" "keep" "My Page"',
     params_label: 'Parameters:',
@@ -1275,7 +1281,7 @@ module.exports = {
     read_ok: '  ✅ Current config loaded; settings other than title/nav will be preserved',
     read_failed_fallback: '  ⚠️  Failed to read current config; falling back to defaults (may reset some untouched settings)',
     step_update: '\n💾 Step 2: 폼 설정 업데이트',
-    sending_request: '  updateFormSchemaInfo 요청 전송 중...',
+    sending_request: '  {0} 요청 전송 중...',
     update_ok: '  ✅ 설정 업데이트 성공!',
     nav_shown: '상단 내비게이션 표시됨',
     nav_hidden: '상단 내비게이션 숨겨짐',

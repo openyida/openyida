@@ -93,6 +93,56 @@ describe('agent-capabilities summary', () => {
   });
 
   test.each([
+    ['qwenwork', 'qwenwork_desktop', 'host_show_link', 'artifact_show_link'],
+    ['qwenwork', 'qwenwork_web', 'host_show_link', 'show_link'],
+    ['qwenwork', null, 'host_show_link', null],
+    ['codex', 'codex', 'host_default', null],
+    [null, null, 'host_default', null],
+  ])('summary and full diagnostics route link presentation for %s/%s', (tool, subtype, mode, preferredTool) => {
+    jest.doMock('../lib/core/env', () => ({
+      buildEnvironmentSnapshot: () => ({ active: { projectRoot: os.tmpdir(), projectRootExists: true } }),
+    }));
+    jest.doMock('../lib/core/utils', () => ({
+      findProjectRoot: () => os.tmpdir(),
+      getAuthStatus: () => ({ status: 'ok', can_auto_use: true }),
+      detectRuntimeCapabilities: () => ({ tool, subtype, runtime: subtype === 'qwenwork_web' ? 'web_sandbox' : 'desktop_shell' }),
+    }));
+    const { buildAgentCapabilities, buildAgentCapabilitiesSummary } = require('../lib/core/agent-capabilities');
+    const summary = buildAgentCapabilitiesSummary();
+    const full = buildAgentCapabilities();
+    expect(summary.link_presentation_policy).toEqual(full.link_presentation_policy);
+    expect(summary.link_presentation_policy.mode).toBe(mode);
+    // A host marker must not claim the actual tool is installed or a card rendered.
+    if (mode === 'host_show_link') {
+      expect(summary.link_presentation_policy).toMatchObject({
+        applies_to: 'current_yida_entry_at_end_of_each_turn',
+        timing: 'before_final_reply',
+        max_calls_per_turn: 1,
+        target: 'single_updated_page_workbench_entry_otherwise_adminUrl',
+        target_selection: {
+          single_page_update: {
+            count_by: 'distinct_appType_and_formUuid_in_this_turn',
+            repeated_updates: 'count_same_page_once',
+            read_only_operations: 'do_not_count',
+            target: 'modified_page_confirmed_workbench_entry',
+            target_path: '/workbench/{formUuid}',
+          },
+          otherwise: { target: 'current_application_confirmed_adminUrl', target_path: '/admin' },
+        },
+        other_links: 'preserve_existing_delivery_and_workflow',
+        preferred_tool: preferredTool,
+        tool_availability: 'unknown_until_declared_by_host',
+        requires_host_tool_inventory_check: true,
+        success_means: 'presentation_request_accepted_only_not_registration_or_rendering',
+      });
+      expect(summary.application_entry_policy.entries.admin).toBe('include');
+      expect(summary.application_entry_policy.entry_delivery.max_count).toBe(3);
+    } else {
+      expect(summary.link_presentation_policy).toEqual({ mode: 'host_default' });
+    }
+  });
+
+  test.each([
     ['qwenwork_desktop', 'token_oauth_session'],
     ['codex', 'token_oauth_session'],
     ['mulerun', 'env_token_bootstrap'],

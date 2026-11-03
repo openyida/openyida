@@ -54,7 +54,7 @@
 { "type": "Divider", "title": "基本信息", "dividerType": "left-dot-title" }
 ```
 
-按当前页面的业务、密度和主题选择 `dividerType`，同页同层级尽量一致，不同业务页面优先选用不同且合适的样式；无法判断时按页面随机轮换，选定后显式填写，同页复用。完整外观和场景见 [Divider 选型表](form-field-properties.md#divider)。未填写时 CLI 以 `bold-with-thin` 兜底，不替代按场景选型。
+按应用业务场景、密度和主题选定一种 `dividerType`，记录到 `design.md`；同一应用的所有普通表单、流程表单及后续新增表单默认显式复用，不按页面随机轮换。用户明确指定的例外优先，局部编辑保留未涉及样式。完整外观和场景见 [Divider 选型表](form-field-properties.md#divider)。未填写时 CLI 以 `bold-with-thin` 兜底，不替代按场景选型。
 
 默认 `colorType: "theme"` 继承主题。默认绑定不适合当前深色内容或复合分割线时，可按[配色引导](../../yida-design/references/native-form-styles.md#分割线弱背景)成组自定义，无需用户逐项指定颜色。例如下面的颜色只用于蓝色深色内容示例，不作为所有应用的固定配方：
 
