@@ -1,6 +1,11 @@
 # Step 3：创建或复用应用
 
+Fast 先按 [执行上下文映射](../references/fast-context.md) 读取 `build-context.json` 与 `app_theme.css`；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
+
+
 按 Step 1 的资源上下文和 Step 2 的 PRD 确认目标应用。已有 app 直接复用；缺少 app 且允许创建时才创建。
+
+Fast 已生成主题时直接复用 `outputs.theme`，传真实 appType 更新应用并回读，不再次执行下方从 design.md 生成 CSS 的命令。主题能力、旧主题作用域确认与导航规则仍生效。
 
 ## 输入
 

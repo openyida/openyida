@@ -6,7 +6,10 @@ description: >
 
 # 准备页面图片
 
-按 `design.md.assetStrategy` 准备图片，每页输出 `prd/<项目名>/asset-manifests/<pageId>.json`。
+**Fast 完整应用输入**：由 yida-app 交接 `build-context.json` 和 `app_theme.css` 时，按 [Fast 上下文映射](../yida-app/references/fast-context.md) 直接读取业务、页面、主题与素材。下方要求 PRD/design.md 的文档生成、关联检查与 page-spec 派生步骤仅适用于 Plan/已有文档任务；Fast 不补写长文件。共用业务、数据、权限、样式和发布验收规则照常执行。
+
+
+按 Fast `build-context.json.assetStrategy` 或 Plan/已有文档 `design.md.assetStrategy` 准备图片，每页输出 `prd/<项目名>/asset-manifests/<pageId>.json`。
 
 搜索、生图、看图使用当前宿主工具；链接检查、必要的上传和写清单使用 `asset resolve`。Plan 确认后按 `materialize.assetTasks` 启动；Fast 设计就绪即启动。启动前读取已有页面清单，复用符合当前用途与尺寸要求的 final 图片，其余位置接着原轮次处理。
 
@@ -85,6 +88,7 @@ CLI 的 `assetTasks` 是派发输入，后台执行能力来自宿主。仅支�
 按 [清单契约](references/manifest-contract.md) 写每页草稿。每张图片同时记录已取得的图片 ID、作者、来源页、许可链接、实际核对日期及必要授权凭证，字段见[来源与授权留证](references/manifest-contract.md#来源与授权留证)：
 
 ```bash
+# Fast 将 --design design.md 替换为 --build-spec <build-context.json>，两者互斥
 openyida asset resolve --input asset-manifests/<pageId>.draft.json --manifest asset-manifests/<pageId>.json --design design.md --page-id <pageId> --json
 ```
 

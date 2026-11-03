@@ -1,9 +1,12 @@
 ---
 name: yida-requirement-analysis
-description: OpenYida 应用生成前的需求分析。从简短需求推导核心功能候选，尽早确认关键范围和实际用法，再推导入口建议，整合 requirement-brief.json 供 PRD、视觉设计与搭建规划使用。
+description: OpenYida 应用生成前的需求分析。从简短需求推导核心功能候选，尽早确认关键范围和实际用法，再推导入口建议，Fast 将需求事实交接给短执行清单；Plan 整合 requirement-brief.json 供业务与视觉规划使用。
 ---
 
 # 首轮需求分析与简报交接
+
+Fast 已确认需求直接嵌入 yida-app 的短清单 `intake/explicitScope/constraints`，不另写 requirement-brief、PRD 或 design.md；需求澄清与真实回答要求不变。Plan 保留原需求文件流程。
+
 
 本技能负责来源识别、内容读取、需求理解与澄清，由 `yida-app` 调度。
 

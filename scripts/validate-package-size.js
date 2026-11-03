@@ -93,7 +93,9 @@ const path = require('path');
 // measures 2,738,622 compressed bytes; retain the next 16 KiB boundary.
 // Shared asset deadlines and progressive preview: Node 20 measures 2,754,122 bytes;
 // retain the next 16 KiB boundary, without changing file or entry caps.
-const MAX_TARBALL_BYTES = 2704 * 1024;
+// Fast JSON execution context, mandatory CSS generator and shared input guidance add three runtime files.
+// Node 20 measures about 2,706 KiB compressed and 9,920 KiB unpacked; keep bounded headroom.
+const MAX_TARBALL_BYTES = 2720 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -237,7 +239,7 @@ const MAX_TARBALL_BYTES = 2704 * 1024;
 // Shared asset deadlines and preview guidance measure 10,110,619 unpacked bytes.
 // Fast design generation adds a renderer adapter, input example and two guides.
 // Node 20 measures 10,131,579 unpacked bytes; retain the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 9904 * 1024;
+const MAX_UNPACKED_BYTES = 9936 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -279,7 +281,7 @@ const MAX_UNPACKED_BYTES = 9904 * 1024;
 // One shared Node Babel entry replaces all standalone imports.
 // QwenWork's shared link-presentation guide adds one packaged reference.
 // The task-concurrency runtime adds exactly one packaged module.
-const MAX_ENTRY_COUNT = 807;
+const MAX_ENTRY_COUNT = 810;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

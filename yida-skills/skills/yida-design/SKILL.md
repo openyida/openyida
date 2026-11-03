@@ -6,6 +6,9 @@ description: >
 
 # yida-design
 
+**Fast 完整应用输入**：由 yida-app 交接 `build-context.json` 和 `app_theme.css` 时，按 [Fast 上下文映射](../yida-app/references/fast-context.md) 直接读取业务、页面、主题与素材。下方要求 PRD/design.md 的文档生成、关联检查与 page-spec 派生步骤仅适用于 Plan/已有文档任务；Fast 不补写长文件。共用业务、数据、权限、样式和发布验收规则照常执行。
+
+
 宜搭应用和页面视觉设计技能，输出 `design.md`。后续主题生成和页面开发都按这份设计实现。
 
 面向用户只介绍主题名称、风格特点和选择方式；说明文档、选择提示及交付总结均不展示主题总套数。
@@ -46,7 +49,7 @@ description: >
 
 Fast、Plan 和单页设计使用相同的 UI 设计规则、主题变量和质量检查；流程只在编写方式与确认时机上有区别。共用 [主题索引](templates/design-themes/index.json)，按 [共享主题选择规则](references/theme-selection.md) 先读摘要、选中后读一份完整主题。
 
-完整应用沿用需求分析阶段确认的模式与风格，按 [设计模式路由](references/design-mode.md) 推进。Fast 使用下方视觉流程；Plan 使用 [视觉分支](sub_skill/yida-design-plan/SKILL.md) 维护视觉事实，由 `yida-app` 生成方案并请用户确认；业务规划始终归 `yida-prd`。新页面设计直接继续；已有页面或应用外观调整先进入 ui-improve。
+完整应用沿用需求分析阶段确认的模式与风格，按 [设计模式路由](references/design-mode.md) 推进。Fast 完整应用按 yida-app 短清单和生成 CSS 直接搭建；下方视觉文档流程用于 Plan/已有文档任务；Plan 使用 [视觉分支](sub_skill/yida-design-plan/SKILL.md) 维护视觉事实，由 `yida-app` 生成方案并请用户确认；业务规划始终归 `yida-prd`。新页面设计直接继续；已有页面或应用外观调整先进入 ui-improve。
 
 ---
 

@@ -5,6 +5,9 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 
 # 自定义页面开发
 
+**Fast 完整应用输入**：由 yida-app 交接 `build-context.json` 和 `app_theme.css` 时，按 [Fast 上下文映射](../yida-app/references/fast-context.md) 直接读取业务、页面、主题与素材。下方要求 PRD/design.md 的文档生成、关联检查与 page-spec 派生步骤仅适用于 Plan/已有文档任务；Fast 不补写长文件。共用业务、数据、权限、样式和发布验收规则照常执行。
+
+
 完成总结遵循[用户可见总结](../../references/user-facing-summary.md)：仅概述本轮业务变化和真实结果，简单修改一句即可；内部记录保留源码、命令和校验细节。
 
 本页的“数据卡片、指标卡、统计卡”通常是页面内展示组件，配置归页面源码并随页面发布，不自动创建宜搭原生 `CARD-xxx` 资源。已有页面引用原生 CARD 时，外层布局或引用配置仍归页面任务；只有用户明确要求修改源卡片自身配置，才转 `yida-data-card`。原生卡片内的 FORM 数据源引用也不表示它是自定义页面；先核对配置归属。仅改外观继续遵守下方 UI 改造流程。
