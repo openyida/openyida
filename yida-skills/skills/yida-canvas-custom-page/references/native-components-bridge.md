@@ -184,7 +184,7 @@ Smoke 页验证方式：编写最小 YidaCodeCanvas 探测页，只包含组件�
 使用要求：
 
 - 原生上传作为增强能力；组件缺失时使用 Canvas 文件选择器和 OpenAPI 文件桥，上传失败展示错误并按失败阶段重试，不改成链接录入或伪装上传成功。
-- Cookie、CSRF 由当前登录会话管理；临时 OSS 签名和服务端 objectName 由文件客户端处理，不写入源码或持久化状态；OSS 请求不携带平台凭据。
+- Cookie、CSRF 由当前登录会话管理；临时 OSS 签名和 uploadToken 由文件客户端处理，不写入源码或持久化状态。保留服务端返回的 objectName，用于实例绑定和刷新文件地址；OSS 请求不携带平台凭据。
 - 提交数据只使用归一化后的文件数组，`raw` 仅用于检查。
 - OpenAPI 返回保留 objectName/fileUuid、fileUploadId、downloadUrl/previewUrl；confirm 完成后按真实 Schema 保存字段，保存成功再 bindFiles，绑定失败只重试绑定。
 

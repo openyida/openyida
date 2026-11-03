@@ -2440,3 +2440,15 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   fields_not_editable: '編集不可、または編集可能と確認できないフィールドが含まれています：{0}。更新は送信されていません。動的な動作や制限付き明細は標準編集画面で操作してください。',
   form_update_forbidden: 'このデータを変更する権限がありません。',
 });
+
+module.exports.batch = {
+  "invalid_concurrency": "--concurrency は 1 から 4 の整数にしてください。",
+  "executing": "独立したタスクを実行中（同時実行数の上限 {0}）"
+};
+
+module.exports.data_verify = {
+  "invalid_usage": "--verify-write は通常フォームの create/update 専用フラグです。",
+  "preflight_failed": "データ書き込みの事前検証に失敗しました（{0} 件）。",
+  "readback_failed": "書き込みは受理されましたが、読み戻しを検証できません。既存レコードを確認し、書き込みを繰り返さないでください。",
+  "mismatch": "書き込みは受理されましたが、読み戻したフィールドが送信データと一致しません。"
+};

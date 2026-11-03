@@ -15,13 +15,15 @@ describe('skill resource boundary copy', () => {
   test('all user-facing todo templates share short, separate stage titles', () => {
     const planTitles = ['需求识别与分析', '设计功能和页面', '确认搭建方案', '创建应用', '搭建表单与审批流',
       '准备示例数据', '准备页面图片', '搭建业务页面', '发布页面与配置导航', '检查功能并交付'];
+    const fastTitles = ['需求识别与分析', '创建应用', '设计功能和页面', '搭建表单与审批流',
+      '准备示例数据', '准备页面图片', '搭建业务页面', '发布页面与配置导航', '检查功能并交付'];
     for (const file of ['yida-skills/SKILL.md', 'yida-skills/skills/yida-app/SKILL.md',
       'yida-skills/skills/yida-design/references/ask-human-interaction-contract.md']) {
       const text = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
       for (const mode of ['Plan', 'Fast']) {
         const list = text.split(`**${mode} 模式**`)[1].trimStart().split('\n\n')[0];
         const titles = list.split('\n').map(line => line.replace(/^\d+\. /, ''));
-        expect(titles).toEqual(mode === 'Plan' ? planTitles : planTitles.filter(title => title !== '确认搭建方案'));
+        expect(titles).toEqual(mode === 'Plan' ? planTitles : fastTitles);
       }
       expect(text).toContain('完成后标记完成并保留记录');
       expect(text).toContain('无需示例数据或图片时省略对应步骤');
@@ -63,7 +65,8 @@ describe('skill resource boundary copy', () => {
     expect(root).not.toMatch(/resolve forms\/processes → seed records → reserve main page/);
     expect(root).not.toMatch(/字段级命令内置解析/);
     expect(app).toContain('以下 9 步仅用于内部执行，不复制为宿主待办');
-    expect(app).toContain('每一步开始前读取对应 workflow 文件');
+    expect(app).toContain('Plan 与其他文档模式每一步开始前读取对应 workflow 文件');
+    expect(app).toContain('九阶段文件不作为 Fast 默认必读清单');
     expect(app).toContain('按真实依赖满足下游输入后继续');
     expect(app).toContain('每页只等待自身资源，独立校验并发布');
     expect(root).not.toMatch(RETIRED_ARCHITECTURE_PATTERN);

@@ -1,6 +1,11 @@
 # Step 3：创建或复用应用
 
+Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确认需求、真实回执和 app_theme.css，无创建前 JSON/方案门槛；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
+
+
 按 Step 1 的资源上下文和 Step 2 的 PRD 确认目标应用。已有 app 直接复用；缺少 app 且允许创建时才创建。
+
+Fast 名称、范围与创建授权明确就创建/复用应用，不等待任何规划文件。创建命令单独执行 `openyida create-app --name "应用名称" --desc "业务范围" --json`，完整保留回执，不拼管道或计时。独立执行 `sample yida-app fast-theme --style-id <themeId> --primary-color <color> --output <绝对路径>/app_theme.css --json`；appType/CSS各自就绪才按本节上传主题并回读。下方 design.md 主题生成命令只用于已有文档任务。
 
 ## 输入
 
@@ -20,6 +25,7 @@ Fast / Plan 已选主题是全应用决定，本步骤必须保存同一份应�
 2. 缺少 app 且 Step 1 判定 `allowCreate=true` → 执行 `use_skill("yida-create-app", "按 PRD 创建应用并获取 appType")`，再按 PRD 创建应用。执行创建前按[创建应用时的提示](../../../references/user-facing-summary.md#创建应用时的提示)告知一次“当前在{组织名称}组织下为您创建{应用名称}应用”；名称取已确认的当前组织与应用，不附带登录或准备说明。
    `status=permission_required` 时按 [权限处理](../../yida-create-app/SKILL.md#创建权限不足时的处理) 展示申请链接、保留已有结果并暂停，不自动换组织。
 3. 创建或复用后提取真实 `appType`，写入 `.cache/<项目名>-schema.json` 或当前任务资源上下文。
+   - 千问办公保留 `adminUrl` 和 `linkPresentation` 待办交给 Step 9。若本轮在此结束或中断交付，先按[收尾检查](../../../references/qwenwork-link-presentation.md#收尾必做检查)调用展示工具、核对回执再总结。
    - Step 2 已确认的 `requirement-brief.json`、PRD 与 design 保持不变；不得仅因拿到真实 `appType` 回写需求文件或重新生成 PRD 和视觉设计。
 4. 用户确认计划或主题且 `constraints.prohibitedActions` 不含 `theme-file` 时立即准备 CSS，不等表单或页面完成。创建完整应用时，Plan 复用 `materialize` 返回的 `outputs.theme`。其他场景用以下命令生成或更新主题：
 
@@ -75,7 +81,6 @@ Shell 渲染阶段才把顶部、侧边、L 型转换为 `top_fold`、`side_only
 
 ## Checklist
 
-- [ ] 已确认不会重复创建同类 app；
 - [ ] 已拿到真实 `appType`；
 - [ ] 已有 app 未被自动改名；
 - [ ] 符合应用层注入条件时主题分支已完成回读；禁止 `theme-file` 或旧主题未获注入确认时已保留平台主题并记录覆盖范围，未把“跳过”写成“已换肤”。

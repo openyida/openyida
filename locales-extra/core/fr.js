@@ -2515,3 +2515,15 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   fields_not_editable: 'La mise à jour contient des champs non modifiables ou non vérifiables : {0}. Aucune mise à jour envoyée. Utilisez l’éditeur natif pour les comportements dynamiques ou les sous-formulaires restreints.',
   form_update_forbidden: 'Vous n’avez pas l’autorisation de modifier ces données.',
 });
+
+module.exports.batch = {
+  "invalid_concurrency": "--concurrency doit être un entier de 1 à 4.",
+  "executing": "Exécution des tâches indépendantes (limite de concurrence : {0})"
+};
+
+module.exports.data_verify = {
+  "invalid_usage": "--verify-write est un indicateur réservé à create/update des formulaires ordinaires.",
+  "preflight_failed": "Échec du contrôle préalable des données ({0} problèmes).",
+  "readback_failed": "Écriture acceptée, mais relecture non vérifiée. Contrôlez le dossier existant sans répéter l’écriture.",
+  "mismatch": "Écriture acceptée, mais les champs relus diffèrent des données envoyées."
+};

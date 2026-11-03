@@ -100,7 +100,9 @@ describe('parallel PRD and visual artifact quality fixtures', () => {
     const fast = read(`${root}/workflow/step-6-handoff.md`);
     const plan = read(`${root}/sub_skill/yida-design-plan/SKILL.md`);
     const planInput = read(`${root}/sub_skill/yida-design-plan/references/build-plan-compact-schema.md`);
-    expect(contract).toContain('Fast 手写项目 `design.md`，Plan 由 CLI 物化生成');
+    expect(contract).toContain('fast-design-spec.md');
+    expect(contract).toContain('各流程交付相同格式并使用同一校验');
+    expect(contract).toContain('Plan 由 CLI 物化生成');
     expect(contract).toContain('索引只保存定位信息');
     expect(contract).toContain('每条完整规则只写一次');
     expect(fast).toContain('公共校验通过');

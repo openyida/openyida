@@ -1,5 +1,8 @@
 # requirement-brief 交接契约
 
+Fast 完整应用直接沿用已确认事实和范围，按 yida-app 的 [Fast 直接搭建](../../yida-app/workflow/fast-build.md) 立即创建/复用应用并独立生成 app_theme.css，不等待完整 JSON、requirement-brief、PRD 或 design.md；下方文件输出约定用于 Plan/已有文档任务。需求确认、禁止项、实际并行能力与验收要求不变。
+
+
 保存或更新 brief 时读取。写入 `.cache/openyida/<项目名>/requirement-brief.json`，供 PRD 与视觉设计共用。
 
 ## 兼容现有字段

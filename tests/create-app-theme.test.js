@@ -132,3 +132,12 @@ test('partial creation stays machine-readable without --json so the app ID is re
   expect(toErrorPayload(failure)).toMatchObject({ success: false, partial: true,
     retrySafe: false, residual: { appType: 'APP_TEST' }, details: { appCreated: true, retryCreate: false } });
 });
+
+
+test('immediate Fast creation accepts --json and reaches the platform without a local plan/context', async () => {
+  await run(['--name', 'Travel website', '--desc', 'Three display pages', '--json']);
+  expect(httpPost.mock.calls.filter(call => call[1] === '/query/app/registerApp.json')).toHaveLength(1);
+  const outputs = console.log.mock.calls.filter(([value]) => typeof value === 'string' && value.startsWith('{'));
+  expect(outputs).toHaveLength(1);
+  expect(JSON.parse(outputs[0][0])).toMatchObject({ success: true, appType: 'APP_TEST' });
+});

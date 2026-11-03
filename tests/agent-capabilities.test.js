@@ -18,6 +18,36 @@ describe('agent-capabilities summary', () => {
     jest.dontMock('../lib/core/utils');
   });
 
+  test('task policy changes affect the manifest digest and capability output', () => {
+    const capabilities = require('../lib/core/agent-capabilities');
+    const manifest = require('../lib/core/command-manifest').buildCommandManifest({ version: 'test', t: key => key });
+    const before = capabilities.buildCommandManifestDigest(manifest);
+    manifest.commands.find(entry => entry.id === 'publish').task_concurrency.sourcePosition = 7;
+    expect(capabilities.buildCommandManifestDigest(manifest)).not.toBe(before);
+    expect(capabilities.buildAgentCapabilitiesSummary().task_execution).toMatchObject({
+      delegation: { optional: true, status: 'host_tool_inventory_required' }, cli_batch: { default_concurrency: 1 },
+    });
+  });
+
+  test('summary exposes Fast-only reading and dependency policies alongside unchanged Plan contracts', () => {
+    const { buildAgentCapabilitiesSummary } = require('../lib/core/agent-capabilities');
+    const manifest = require('../lib/core/command-manifest').buildCommandManifest({ version: 'test', t: key => key });
+    const workflow = manifest.summary.core_workflows.full_app_build;
+    const route = buildAgentCapabilitiesSummary().full_app_artifact_route;
+    expect(route.fast_build).toEqual(workflow.fast_build);
+    expect(route.fast_build).toMatchObject({
+      scope: 'Fast_only',
+      workflow_file: 'yida-skills/skills/yida-app/workflow/fast-build.md',
+      outputs: ['app_theme.css'],
+    });
+    expect(route.fast_build.reading_policy).toContain('Do not traverse the nine stage workflows');
+    expect(route.fast_build.parallel_policy).toContain('actual host tools and task_concurrency');
+    expect(route.fast_build.parallel_policy).toContain('serialize shared writes and unaudited commands');
+    expect(route.plan_confirmation_policy).toEqual(workflow.plan_confirmation_policy);
+    expect(route.plan_command_ids).toEqual(workflow.plan_command_ids);
+    expect(route.plan_command_ids).toContain('design-plan.materialize');
+  });
+
   test('exposes non-cloud search and QwenWork generation runtime defaults', () => {
     const { buildAssetCapabilities } = require('../lib/core/agent-capabilities');
     const local = buildAssetCapabilities({ tool: 'codex', runtime: 'desktop_shell', subtype: 'codex' }, {});
@@ -134,7 +164,16 @@ describe('agent-capabilities summary', () => {
         tool_availability: 'unknown_until_declared_by_host',
         requires_host_tool_inventory_check: true,
         success_means: 'presentation_request_accepted_only_not_registration_or_rendering',
+        completion_gate: {
+          host: 'qwenwork',
+          required_when: 'verified_target_and_available_host_link_tool_unless_user_excludes_target',
+          evidence: 'actual_host_tool_result_for_selected_url_in_current_turn',
+          enforcement_owner: 'host_agent',
+        },
       });
+      const { buildCommandManifest } = require('../lib/core/command-manifest');
+      expect(buildCommandManifest().summary.core_workflows.full_app_build.link_presentation_gate)
+        .toEqual(summary.link_presentation_policy.completion_gate);
       expect(summary.application_entry_policy.entries.admin).toBe('include');
       expect(summary.application_entry_policy.entry_delivery.max_count).toBe(3);
     } else {

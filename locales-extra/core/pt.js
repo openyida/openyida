@@ -2515,3 +2515,15 @@ Object.assign(module.exports.query_data || (module.exports.query_data = {}), {
   fields_not_editable: 'A atualização inclui campos não editáveis ou não verificáveis: {0}. Nenhuma atualização foi enviada. Use o editor nativo para comportamentos dinâmicos ou subformulários restritos.',
   form_update_forbidden: 'Você não tem permissão para modificar estes dados.',
 });
+
+module.exports.batch = {
+  "invalid_concurrency": "--concurrency deve ser um número inteiro de 1 a 4.",
+  "executing": "Executando tarefas independentes (limite de concorrência {0})"
+};
+
+module.exports.data_verify = {
+  "invalid_usage": "--verify-write é uma opção exclusiva de create/update de formulários comuns.",
+  "preflight_failed": "Falha na validação prévia dos dados ({0} problemas).",
+  "readback_failed": "Gravação aceita, mas a leitura não foi verificada. Confira o registro existente; não repita a gravação.",
+  "mismatch": "Gravação aceita, mas os campos lidos diferem dos dados enviados."
+};

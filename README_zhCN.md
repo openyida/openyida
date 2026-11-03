@@ -361,7 +361,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida solution-template <search\|detail\|prepare\|ai-build\|enable\|status> [templateId\|requestId] [options] [--json]` | 独立本地 Agent 的方案模板查询、云端 AI 搭建入口与直接启用 |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | 查询企业效能概览和明细报表 |
 | `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open] [--json]` | 创建宜搭应用 |
-| `openyida design-plan catalog [--json]` | 查询规划可用的主题与页面模式 |
+| `openyida design-plan catalog [--compact] [--json]` | 查询规划可用的主题与页面模式 |
 | `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | 从已确认需求初始化计划草稿 |
 | `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | 按模块更新方案草稿 |
 | `openyida design-plan materialize <build-plan.json> [--from-preview \| --business-file <json> --visual-file <json>] [--output-dir <dir>] [--rebase-parts] [--check] [--json]` | 生成或更新方案文档和主题，并校验一致性 |
@@ -404,7 +404,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida custom-button <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | 原生自定义按钮：查询、配置填写表单、自动化流及页面跳转 |
 | `openyida form-message <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | 原生表单消息通知：查询触发、接收对象与模板并安全维护配置 |
 | `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | 获取单个或全部表单 Schema |
-| `openyida check-prd-completeness <prd.md> --app-type <appType> [--build-manifest <file>] [--json]` | 检查资源数量、前台菜单隐藏及应用主题同步 |
+| `openyida check-prd-completeness [<prd.md> \| --build-spec <build-context.json> \| --manifest-only] --app-type <appType> [--build-manifest <file>] [--json]` | 检查资源数量、前台菜单隐藏及应用主题同步 |
 | `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | 检查设计文档、主题变量与 PRD 交接 |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | 导出应用实体关系图 |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义展示页面 |
@@ -508,7 +508,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida a2a <serve\|agent-card> [options]` | 启动本地只读 A2A Adapter 或输出 Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | 启动 OpenYida 本地网页桥接服务 |
 | `openyida copy [--force]` | 复制 project 工作目录 |
-| `openyida sample [--list] [<skill> <name>] [--output <file-or-directory>] [--var KEY=VALUE ...] [--design-file <design.md>] [--style-id <themeId\|free-creative>] [--theme-ids <id,...>] [--pop-art-context <explicit-request\|showcase>]` | 输出代码模板 |
+| `openyida sample [--list] [<skill> <name>] [--output <file-or-directory>] [--var KEY=VALUE ...] [--design-file <design.md>] [--spec-file <spec.json>] [--primary-color <color>] [--tokens-file <theme.json>] [--nav-theme light\|dark] [--check] [--style-id <themeId\|free-creative>] [--theme-ids <id,...>] [--pop-art-context <explicit-request\|showcase>]` | 输出代码模板 |
 | `openyida doctor [--fix]` | 环境诊断与自动修复 |
 | `openyida db-seq-fix [--fix]` | PostgreSQL Sequence 漂移检测与修复 |
 | `openyida formula evaluate <formula\|file> [--schema file] [--contract field-value\|validation-rule\|business-action\|node-expression] [--context form\|validation\|automation\|business] [--target-type NumberField] [--metadata file] [--strict] [--json]` | 静态检查宜搭公式语法和字段引用 |
@@ -521,7 +521,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida update` | 检查并更新到最新版本 |
 | `openyida export-conversation [options]` | 导出 AI 对话记录 |
 | `openyida feedback <report\|github\|setup\|url\|dismiss\|status> [options]` | 整理本地问题报告、配置反馈表单与提醒 |
-| `openyida batch <file>\|--commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | 批量执行 OpenYida 命令 |
+| `openyida batch <file>\|--commands "cmd1 ; cmd2" [--concurrency 1..4] [--stop-on-error] [--json]` | 批量执行 OpenYida 命令 |
 | `openyida flash-to-prd --file <path> --name "<project>"` | 闪记 / 会议纪要转 PRD prompt |
 | `openyida ai <text\|image> [options]` | 调用 AI 文生文和识图能力 |
 | `openyida asset <status\|resolve\|sources> [options]` | 检测素材能力 / 解析回填素材 |

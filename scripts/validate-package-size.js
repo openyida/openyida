@@ -79,10 +79,23 @@ const path = require('path');
 // Node 20.18.1 measures 2,637,999 compressed bytes; next 16 KiB boundary.
 // 合并主干插件与权限指引、千问免登后，Node 24 实测 gzip 为 2,711,034 字节；取下一档 16 KiB 边界。
 // 合并字段权限校验与最新主干后，Node 20 实测 2,722,740 压缩字节；取下一档 16 KiB 边界。
+// Bounded task scheduling and host delegation guidance: Node 22 measures
+// 2,739,274 compressed bytes; retain the next 16 KiB boundary.
+// Optional form-write preflight/readback adds one runtime module and 12 localized
+// diagnostics. Node 22: 2,740,836 compressed / 10,076,126 unpacked bytes, 801 files.
+// Reusable form data-source sample replaces repeated inline Skill boilerplate.
+// Node 22: 2,738,625 compressed / 10,066,044 unpacked bytes, 801 files.
 // AI Yida terminology and localized metric labels: CI Node 20.20.2 measures
 // 2,736,203 compressed bytes / 800 files; retain the next 16 KiB boundary.
-// File uploads add the shared client, control and protocol guide.
-const MAX_TARBALL_BYTES = 2688 * 1024;
+// Combined scheduling, data verification, page data-source and main terminology:
+// Node 20.18.1 measures 2,748,801 compressed / 10,094,680 unpacked bytes, 803 files.
+// Plan skeleton defaults, project examples and structured preflight: Node 22
+// measures 2,738,622 compressed bytes; retain the next 16 KiB boundary.
+// Shared asset deadlines and progressive preview: Node 20 measures 2,754,122 bytes;
+// retain the next 16 KiB boundary, without changing file or entry caps.
+// Fast JSON execution context, mandatory CSS generator and shared input guidance add three runtime files.
+// Node 20 measures about 2,706 KiB compressed and 9,920 KiB unpacked; keep bounded headroom.
+const MAX_TARBALL_BYTES = 2720 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -219,9 +232,16 @@ const MAX_TARBALL_BYTES = 2688 * 1024;
 // 10,046,556 unpacked bytes; retain the next 16 KiB boundary.
 // Node Babel entry, explicit presets and shared dependency copying: 10,045,128 bytes.
 // The dependency reduction is measured separately from this main-package budget.
-// Uploads merged with current main measure 10,082,683 unpacked bytes / 803 files
-// on Node 23. Retain the next 16 KiB boundary; gzip and single-file caps stay fixed.
-const MAX_UNPACKED_BYTES = 9856 * 1024;
+// Task execution policy, localized diagnostics and guidance measure
+// 10,068,127 unpacked bytes; retain the next 16 KiB boundary.
+// Plan skeleton and preflight guidance measure 10,067,952 unpacked bytes;
+// retain the next 16 KiB boundary. Entry and single-file caps stay unchanged.
+// Shared asset deadlines and preview guidance measure 10,110,619 unpacked bytes.
+// Fast design generation adds a renderer adapter, input example and two guides.
+// Node 20 measures 10,131,579 unpacked bytes; retain the next 16 KiB boundary.
+// Fast/concurrency plus main file-upload support: Node 20 measures 10,198,629 bytes;
+// retain the next 16 KiB boundary. Compressed and single-file caps stay unchanged.
+const MAX_UNPACKED_BYTES = 9968 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -262,8 +282,10 @@ const MAX_UNPACKED_BYTES = 9856 * 1024;
 // 新增应用主题状态共享模块；Node 20 实测 798 文件，字节预算保持不变。
 // One shared Node Babel entry replaces all standalone imports.
 // QwenWork's shared link-presentation guide adds one packaged reference.
-// File uploads add one client, one control and one protocol guide.
-const MAX_ENTRY_COUNT = 803;
+// The task-concurrency runtime adds exactly one packaged module.
+// Independent Fast theme generation adds one runtime module; byte budgets are unchanged.
+// Main file-upload support adds three packaged files.
+const MAX_ENTRY_COUNT = 814;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
