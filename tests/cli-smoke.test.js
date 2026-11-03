@@ -262,8 +262,20 @@ describe('CLI offline smoke', () => {
     expect(result.status).toBe(0);
     expect(output).toContain('create-app');
     expect(output).toContain('--name');
+    expect(output).toContain('--json');
     expect(output).not.toContain('--theme');
     expect(output).not.toContain('读取登录态');
+  });
+
+  test.each([
+    ['--json'],
+    ['CRM', '--unknown', '--json'],
+  ])('create-app JSON argument errors use the unified handler: %j', (...args) => {
+    const result = runAny(['create-app', ...args]);
+    expect(result.status).toBe(1);
+    expect(result.stdout).toBe('');
+    expect(JSON.parse(result.stderr)).toMatchObject({ success: false, errorCode: 'INVALID_ARGUMENTS' });
+    expect(result.stderr).not.toContain('读取登录态');
   });
 
   // Eligibility comes before approval/preparation, so offline calls require authentication first.
@@ -576,11 +588,6 @@ describe('CLI offline smoke', () => {
         message_key: 'cli.forbidden_alias_get_app',
       }),
       expect.objectContaining({
-        pattern: 'create-app --json',
-        matcher: { type: 'command_has_option', command: 'create-app', option: '--json' },
-        suggested_command_id: 'create-app',
-      }),
-      expect.objectContaining({
         pattern: 'create-page --app-type',
         suggested_usage: expect.stringContaining('create-page <appType>'),
       }),
@@ -599,6 +606,10 @@ describe('CLI offline smoke', () => {
         suggested_usage: expect.stringContaining('get-schema <appType>'),
       }),
     ]));
+    const createApp = parsed.commands.find(entry => entry.id === 'create-app');
+    expect(createApp).toMatchObject({ output: 'json' });
+    expect(createApp.usage).toContain('[--json]');
+    expect(parsed.forbidden_aliases.some(entry => entry.pattern === 'create-app --json')).toBe(false);
     expect(parsed.summary).toMatchObject({
       command_count: parsed.commands.length,
       group_count: parsed.groups.length,
@@ -606,7 +617,6 @@ describe('CLI offline smoke', () => {
       forbidden_alias_patterns: expect.arrayContaining([
         'list-apps',
         'get-app',
-        'create-app --json',
         'create-form <appType> --name <formTitle> --fields <fieldsJson>',
       ]),
     });
