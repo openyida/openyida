@@ -32,6 +32,38 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
+test.each([
+  ['Test app'],
+  ['Test app', 'Description', 'xian-yingyong', '#0089FF', '--json'],
+  ['--name', 'Test app', '--desc', 'Description', '--json'],
+])('creation emits one JSON result and performs one creation: %j', async (...args) => {
+  const stdout = jest.spyOn(process.stdout, 'write').mockReturnValue(true);
+  await run(args);
+  expect(console.log).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(console.log.mock.calls[0][0])).toMatchObject({ success: true, appType: 'APP_TEST' });
+  expect(stdout).not.toHaveBeenCalled();
+  const requests = httpPost.mock.calls.filter(call => call[1] === '/query/app/registerApp.json');
+  expect(requests).toHaveLength(1);
+  expect(new URLSearchParams(requests[0][2]).has('json')).toBe(false);
+});
+
+test.each([['--json'], ['Test app', '--unknown', '--json']])('invalid JSON invocation fails before auth or HTTP: %j', async (...args) => {
+  await expect(run(args)).rejects.toMatchObject({ code: 'INVALID_ARGUMENTS' });
+  expect(createAuthRef).not.toHaveBeenCalled();
+  expect(httpPost).not.toHaveBeenCalled();
+});
+
+test('JSON server failure leaves one structured error to the CLI handler', async () => {
+  httpPost.mockResolvedValue({ success: false, errorMsg: 'Creation rejected' });
+  let failure;
+  try { await run(['Test app', '--json']); } catch (error) { failure = error; }
+  const { shouldUseStructuredErrorOutput, toErrorPayload } = require('../lib/core/cli-error');
+  expect(shouldUseStructuredErrorOutput(failure, ['create-app', 'Test app', '--json'])).toBe(true);
+  expect(toErrorPayload(failure)).toMatchObject({ success: false, errorMsg: 'Creation rejected' });
+  expect(console.log).not.toHaveBeenCalled();
+  expect(httpPost.mock.calls.filter(call => call[1] === '/query/app/registerApp.json')).toHaveLength(1);
+});
+
 test.each(['qwenwork', 'local', 'cloud', 'web_local'])('creation verifies modern server configuration for %s', async agentAppType => {
   httpGet.mockResolvedValue({ success: true, content: { ...app, agentAppType } });
   await run(['Test app']);

@@ -93,6 +93,15 @@ describe('create-app argument parsing', () => {
     });
   });
 
+  test.each([
+    ['CRM', 'Customer management', 'xian-yingyong', '#0089FF'],
+    ['--name', 'CRM', '--desc', 'Customer management', '--icon', 'xian-yingyong', '--icon-color', '#0089FF'],
+  ])('optional --json preserves business parameters for %j', (...args) => {
+    const original = parseCreateAppArgs(args, () => 0.5);
+    expect(parseCreateAppArgs([...args, '--json'], () => 0.5)).toEqual(original);
+    expect(parseCreateAppArgs(['--json', ...args], () => 0.5)).toEqual(original);
+  });
+
   test('infers legal-service app shell defaults from app name', () => {
     const parsed = parseCreateAppArgs([
       '--name', '恒信律师事务所',

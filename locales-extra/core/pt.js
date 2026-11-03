@@ -803,7 +803,7 @@ module.exports = {
     modern_theme_unverified: "O aplicativo foi criado, mas não foi possível verificar seu tema moderno. Verifique o ID retornado; não recrie o aplicativo nem mude para o tema antigo.",
     update_only_option: '{0} só está disponível para atualizar. Crie o aplicativo primeiro e use openyida update-app <appType>.',
     title: '  create-app - Ferramenta de criação de aplicativos Yida',
-    usage: 'Uso: openyida create-app "<nome do app>" ou openyida create-app --name "<nome do app>" [--desc "..."]',
+    usage: 'Uso: openyida create-app "<nome do app>" [--json] ou openyida create-app --name "<nome do app>" [--desc "..."] [--json]',
     example: 'Exemplo: openyida create-app --name "Meu App" --desc "Descricao do app"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
