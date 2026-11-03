@@ -29,6 +29,25 @@ describe('agent-capabilities summary', () => {
     });
   });
 
+  test('summary exposes Fast-only reading and dependency policies alongside unchanged Plan contracts', () => {
+    const { buildAgentCapabilitiesSummary } = require('../lib/core/agent-capabilities');
+    const manifest = require('../lib/core/command-manifest').buildCommandManifest({ version: 'test', t: key => key });
+    const workflow = manifest.summary.core_workflows.full_app_build;
+    const route = buildAgentCapabilitiesSummary().full_app_artifact_route;
+    expect(route.fast_build).toEqual(workflow.fast_build);
+    expect(route.fast_build).toMatchObject({
+      scope: 'Fast_only',
+      workflow_file: 'yida-skills/skills/yida-app/workflow/fast-build.md',
+      outputs: ['app_theme.css'],
+    });
+    expect(route.fast_build.reading_policy).toContain('Do not traverse the nine stage workflows');
+    expect(route.fast_build.parallel_policy).toContain('actual host tools and task_concurrency');
+    expect(route.fast_build.parallel_policy).toContain('serialize shared writes and unaudited commands');
+    expect(route.plan_confirmation_policy).toEqual(workflow.plan_confirmation_policy);
+    expect(route.plan_command_ids).toEqual(workflow.plan_command_ids);
+    expect(route.plan_command_ids).toContain('design-plan.materialize');
+  });
+
   test('exposes non-cloud search and QwenWork generation runtime defaults', () => {
     const { buildAssetCapabilities } = require('../lib/core/agent-capabilities');
     const local = buildAssetCapabilities({ tool: 'codex', runtime: 'desktop_shell', subtype: 'codex' }, {});

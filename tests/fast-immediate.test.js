@@ -136,6 +136,13 @@ test('default Fast routes creation before independent theme work and keeps per-o
   expect(guide).toContain('必要业务校验');
   expect(guide).toContain('默认不创建案例表、留言表');
   expect(guide).toContain('--manifest-only');
+  expect(guide).toContain('Fast 唯一默认 workflow 入口');
+  expect(guide).toContain('子技能明确要求的安全、实现和验收材料仍需读取');
+  expect(guide).toContain('同批启动独立工作');
+  expect(guide).toContain('只在消费该任务结果时等待');
+  expect(guide).toContain('不得用宿主并发绕过串行边界');
+  expect(guide).toContain('独占输出和完成标准');
+  expect(guide).toContain('未知写入先回读');
   for (const relative of ['SKILL.md', 'skills/yida-app/SKILL.md', 'skills/yida-design/references/ask-human-interaction-contract.md']) {
     const fast = fs.readFileSync(path.join(__dirname, '../yida-skills', relative), 'utf8').split('**Fast 模式**')[1];
     expect(fast).toContain('2. 创建应用\n3. 设计功能和页面');
