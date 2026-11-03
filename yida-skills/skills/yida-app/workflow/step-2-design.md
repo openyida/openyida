@@ -1,5 +1,8 @@
 # Step 2：需求分析与设计
 
+**已明确 Fast 且需求足以实施时**：直接按 [立即搭建](fast-build.md) 进入 Step 3 创建/复用应用，独立准备主题和页面；不执行本页 Plan 规划字段、brief 文件、JSON、PRD 或设计文档门槛。仅需求确有阻塞缺项时使用下方需求澄清，已确认事实直接复用。
+
+
 本阶段对应的用户待办：
 
 - 需求识别与分析
@@ -10,7 +13,7 @@
 
 调用 `yida-requirement-analysis`，按 [首轮需求分析](../../yida-requirement-analysis/workflow/prepare-brief.md) 读取必需来源，尽早确认核心功能和关键用法。该技能统一负责提问、答案合并和需求记录；完成后进入规划准备。
 
-取得 `intake.confirmed=true` 的需求记录（Fast 可直接嵌入短清单）后进入规划准备；已有确认记录且需求未变化时直接复用。
+取得 `intake.confirmed=true` 的需求记录（Fast 可沿用原始需求与实际回答，无文件要求）后进入规划准备；已有确认记录且需求未变化时直接复用。
 
 ### 规划准备
 
@@ -38,7 +41,7 @@ Fast / Plan 先按[已选风格只确认一次](../../yida-design/references/the
 
 按 [模式路由](../../yida-design/references/design-mode.md) 读取本次选择：
 
-- Fast：按 [Fast 直接搭建](fast-build.md) 将已确认业务和视觉决策写入一份短 JSON，生成 `build-context.json` 与 `app_theme.css`，校验通过直接进入 Step 3。不执行下方 2.2–2.3 的长文档生成与关联检查；保留已要求的数据和权限。
+- Fast：按 [Fast 直接搭建](fast-build.md) 名称、范围和授权明确后立即进入 Step 3 创建/复用应用，主题和页面独立推进；无需完整 JSON、build-context 或方案校验。不执行下方 2.2–2.3 的长文档生成与关联检查；保留已要求的数据和权限。
 - Plan：执行 [Plan 编排](plan/workflow.md)，用户确认当前方案后，按返回的 `assetTasks` 启动素材任务，同时进入 Step 3 创建应用。
 
 Plan 分支从已加载 `yida-app` 的 Available Files 读取精确路径 `workflow/plan/workflow.md`；不要把当前文件名当目录拼成 `workflow/step-2-design/plan/workflow.md`，也不要用 Glob 猜路径。

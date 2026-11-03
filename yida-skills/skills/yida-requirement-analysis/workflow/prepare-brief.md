@@ -1,6 +1,6 @@
 # 首轮需求分析
 
-Fast 完整应用将已确认事实直接嵌入短清单，按 yida-app 的 [Fast 直接搭建](../../yida-app/workflow/fast-build.md) 生成执行上下文和 app_theme.css，不另写 requirement-brief、PRD 或 design.md；下方文件输出约定用于 Plan/已有文档任务。需求确认、禁止项、实际并行能力与验收要求不变。
+Fast 完整应用直接沿用已确认事实和范围，按 yida-app 的 [Fast 直接搭建](../../yida-app/workflow/fast-build.md) 立即创建/复用应用并独立生成 app_theme.css，不等待完整 JSON、requirement-brief、PRD 或 design.md；下方文件输出约定用于 Plan/已有文档任务。需求确认、禁止项、实际并行能力与验收要求不变。
 
 
 流程：理解需求 → 核心功能候选 → 用户选择或补充 → 判断是否分前后台 → 整合输出。已有充分信息时跳过相应提问。

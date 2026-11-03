@@ -488,7 +488,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida app-list [--type managed\|created] [--page N] [--size N]` | Page through apps I manage or created |
 | `openyida solution-template <search\|detail\|prepare\|ai-build\|enable\|status> [templateId\|requestId] [options] [--json]` | Solution templates for independent local agents: discovery, cloud AI handoff and direct enable |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency overview and detail reports |
-| `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a Yida app |
+| `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open] [--json]` | Create a Yida app |
 | `openyida design-plan catalog [--compact] [--json]` | List available planning themes and page patterns |
 | `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | Initialize a plan draft from confirmed requirements |
 | `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | Update plan drafts by module |
@@ -532,7 +532,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida custom-button <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | Native custom buttons: inspect and configure form edits, automation flows and page links |
 | `openyida form-message <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | Native form notifications: inspect triggers, recipients and templates, then safely maintain bindings |
 | `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | Get one form Schema or all form Schemas |
-| `openyida check-prd-completeness [<prd.md> \| --build-spec <build-context.json>] --app-type <appType> [--build-manifest <file>] [--json]` | Check resources, frontend menu hiding and application theme delivery |
+| `openyida check-prd-completeness [<prd.md> \| --build-spec <build-context.json> \| --manifest-only] --app-type <appType> [--build-manifest <file>] [--json]` | Check resources, frontend menu hiding and application theme delivery |
 | `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | Validate design documents, theme tokens and PRD handoff |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | Export app entity relationship diagram |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page |
@@ -636,7 +636,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start OpenYida local web bridge service |
 | `openyida copy [--force]` | Copy project working directory |
-| `openyida sample [--list] [<skill> <name>] [--output <file-or-directory>] [--var KEY=VALUE ...] [--design-file <design.md>] [--spec-file <spec.json>] [--check] [--style-id <themeId\|free-creative>] [--theme-ids <id,...>] [--pop-art-context <explicit-request\|showcase>]` | Output code samples/templates |
+| `openyida sample [--list] [<skill> <name>] [--output <file-or-directory>] [--var KEY=VALUE ...] [--design-file <design.md>] [--spec-file <spec.json>] [--primary-color <color>] [--tokens-file <theme.json>] [--nav-theme light\|dark] [--check] [--style-id <themeId\|free-creative>] [--theme-ids <id,...>] [--pop-art-context <explicit-request\|showcase>]` | Output code samples/templates |
 | `openyida doctor [--fix]` | Environment diagnostics & auto-fix |
 | `openyida db-seq-fix [--fix]` | Detect and repair PostgreSQL sequence drift |
 | `openyida formula evaluate <formula\|file> [--schema file] [--contract field-value\|validation-rule\|business-action\|node-expression] [--context form\|validation\|automation\|business] [--target-type NumberField] [--metadata file] [--strict] [--json]` | Static-check Yida formula syntax and field refs |

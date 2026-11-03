@@ -1,6 +1,6 @@
 # Step 6：创建或复用主页面
 
-Fast 先按 [执行上下文映射](../references/fast-context.md) 读取 `build-context.json` 与 `app_theme.css`；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
+Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确认需求、真实回执和 app_theme.css，无创建前 JSON/方案门槛；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
 
 
 按 [访问态入口契约](../references/entry-navigation.md) 创建或复用 PRD 明确需要的 display 页面。管理端可以直接使用原生管理列表，无首页需求时跳过本步骤和无源码任务的 Step 7，不为凑齐流程创建首页。

@@ -5,7 +5,7 @@ description: 将已编写的宜搭自定义页面源码发布或更新到指定�
 
 # 发布自定义页面
 
-**Fast 完整应用输入**：由 yida-app 交接 `build-context.json` 和 `app_theme.css` 时，按 [Fast 上下文映射](../yida-app/references/fast-context.md) 直接读取业务、页面、主题与素材。下方要求 PRD/design.md 的文档生成、关联检查与 page-spec 派生步骤仅适用于 Plan/已有文档任务；Fast 不补写长文件。共用业务、数据、权限、样式和发布验收规则照常执行。
+**Fast 完整应用输入**：由 yida-app 从已确认需求和真实执行回执直接交接，按 [Fast 阶段映射](../yida-app/references/fast-context.md) 使用业务、页面、app_theme.css 与按页素材；不要求 build-context 或完整业务 JSON，不阻塞应用创建。下方要求 PRD/design.md 的文档生成、关联检查与 page-spec 派生步骤仅适用于 Plan/已有文档任务；Fast 不补写长文件。共用业务、数据、权限、样式和发布验收规则照常执行。
 
 
 > 资源边界：本技能只处理普通 OpenYida 页面发布；目标不明时先只读确认或询问用户。

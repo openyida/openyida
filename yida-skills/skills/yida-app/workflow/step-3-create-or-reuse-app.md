@@ -1,11 +1,11 @@
 # Step 3：创建或复用应用
 
-Fast 先按 [执行上下文映射](../references/fast-context.md) 读取 `build-context.json` 与 `app_theme.css`；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
+Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确认需求、真实回执和 app_theme.css，无创建前 JSON/方案门槛；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
 
 
 按 Step 1 的资源上下文和 Step 2 的 PRD 确认目标应用。已有 app 直接复用；缺少 app 且允许创建时才创建。
 
-Fast 已生成主题时直接复用 `outputs.theme`，传真实 appType 更新应用并回读，不再次执行下方从 design.md 生成 CSS 的命令。主题能力、旧主题作用域确认与导航规则仍生效。
+Fast 名称、范围与创建授权明确就创建/复用应用，不等待任何规划文件。创建命令单独执行 `openyida create-app --name "应用名称" --desc "业务范围" --json`，完整保留回执，不拼管道或计时。独立执行 `sample yida-app fast-theme --style-id <themeId> --primary-color <color> --output <绝对路径>/app_theme.css --json`；appType/CSS各自就绪才按本节上传主题并回读。下方 design.md 主题生成命令只用于已有文档任务。
 
 ## 输入
 

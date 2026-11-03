@@ -1,6 +1,6 @@
 # Step 5：写入初始表单数据
 
-Fast 先按 [执行上下文映射](../references/fast-context.md) 读取 `build-context.json` 与 `app_theme.css`；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
+Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确认需求、真实回执和 app_theme.css，无创建前 JSON/方案门槛；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
 
 
 完整应用默认给本轮新建或页面数据源依赖的核心普通表单写入 1-3 条业务化 seed records。流程表单仅在已确认真实 `processCode` 后按独立命令写入。

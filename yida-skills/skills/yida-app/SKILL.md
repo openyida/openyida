@@ -1,6 +1,6 @@
 ---
 name: yida-app
-description: 创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。Fast 用短清单生成执行上下文与 app_theme.css，Plan 物化并确认业务与视觉方案；随后创建或复用资源；表单/流程先于自定义页面。页面 UI 按已确认设计实现，代码示例按需参考；前后台都规划菜单顺序与默认页面，发布后分别验收实际入口。
+description: 创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。Fast 明确范围后立即创建或复用应用，独立生成 app_theme.css，Plan 物化并确认业务与视觉方案；随后创建或复用资源；表单/流程先于自定义页面。页面 UI 按已确认设计实现，代码示例按需参考；前后台都规划菜单顺序与默认页面，发布后分别验收实际入口。
 ---
 
 # yida-app
@@ -8,7 +8,7 @@ description: 创建完整宜搭应用，或补齐已有应用时使用。先确�
 完整应用编排技能。它负责把一次“创建/搭建/补齐应用”的需求拆成资源解析、产品设计、资源落地、页面发布和结果输出。全局 CLI、ID、存储、发布和输出规则以主入口 `SKILL.md` 为准；按步骤执行该步骤所需 `use_skill(...)`。
 
 
-**Fast 输入分支**：按 [Fast 直接搭建](workflow/fast-build.md) 生成 `build-context.json` 和 `app_theme.css`，直接进入 Step 3–9；不生成独立 PRD、design.md、Plan HTML 或 page-spec。数据、角色、审批和真实回读要求保持。所有下游文档输入按 [Fast 上下文映射](references/fast-context.md) 读取，不能为满足旧文档措辞补写长文件。Plan 保留原流程。
+**Fast 输入分支**：按 [立即搭建](workflow/fast-build.md)，名称、范围和授权明确后直接进入 Step 3 创建/复用应用，主题与页面独立准备；不以 Plan、完整 JSON、build-context、PRD 或设计文档校验作为前置。必须保留 app_theme.css 生成与应用，业务、数据和权限按操作校验。下游输入按 [Fast 阶段映射](references/fast-context.md)，Plan 保留原流程。
 
 图片采集不作为创建应用、页面实现或首版预览的前置依赖。布局和交互就绪即按已有发布授权提供可用预览，缺图使用设计允许的明确状态；素材到位仅更新图片绑定。整次采集默认共用60秒截止时间，失败来源立即切换，不 sleep 退避重试；必需图片未齐仍保留最终验收缺口。执行细则见 [素材调度](workflow/parallel-work.md#素材与页面同时推进)。
 
@@ -24,7 +24,7 @@ description: 创建完整宜搭应用，或补齐已有应用时使用。先确�
 
 前后台默认交付两个业务地址：前台在自定义页内实现导航组件，页面配置持久化隐藏平台导航；后台保留原生平台导航及已选样式，前台专用 display 页通过 `nav-group hide` 从后台 PC/移动端菜单隐藏并回读。共享表单和明确用于后台的页面保留；单步前台可不绘菜单，用户明确保留平台导航时沿用其决定。完整系统不能省略 Step 8/9，再以发布成功代替两端访问、主题与阅读验收。
 
-Fast / Plan 确定主题后，Step 3 的应用主题同步和 Step 7 的页面消费缺一不可。前台、后台原生导航、表单和自定义页共用同一主色与设计角色；不用页面固定色盘模拟主题已生效。Plan 自动派生 `applicationTheme` 交接，Fast 由短清单生成 `app_theme.css` 并在 `build-context.json.applicationTheme` 记录 `themeColor/navTheme`；交付检查读取真实应用配置，主题未同步不能以页面发布成功收尾。中性色、辅助色与状态色按设计搭配，无须把所有背景或所有信息都染成主色。
+Fast / Plan 确定主题后，Step 3 的应用主题同步和 Step 7 的页面消费缺一不可。前台、后台原生导航、表单和自定义页共用同一主色与设计角色；不用页面固定色盘模拟主题已生效。Plan 自动派生 `applicationTheme` 交接，Fast 独立生成 `app_theme.css` 并随真实执行在 build-manifest.applicationTheme 记录 `themeColor/navTheme`；交付检查读取真实应用配置，主题未同步不能以页面发布成功收尾。中性色、辅助色与状态色按设计搭配，无须把所有背景或所有信息都染成主色。
 
 ## 模式入口（先按这里路由）
 
@@ -66,8 +66,8 @@ Plan 规划阶段的工作流入口只读取 `workflow/step-1-resource-context.m
 **Fast 模式**
 
 1. 需求识别与分析
-2. 设计功能和页面
-3. 创建应用
+2. 创建应用
+3. 设计功能和页面
 4. 搭建表单与审批流
 5. 准备示例数据
 6. 准备页面图片
@@ -91,14 +91,14 @@ Plan 规划阶段的工作流入口只读取 `workflow/step-1-resource-context.m
 
 ## 工作流
 
-完整应用先分析需求；首次搭建按 yida-requirement-analysis/workflow/prepare-brief.md 确认未决事项，再进入已选 Fast / Plan。两种模式共享需求事实和业务验收。Fast 用短执行上下文直接搭建；Plan 确认当前版本后交接 PRD/设计派生文件，直接进入 Step 3。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。
+完整应用先分析需求；首次搭建按 yida-requirement-analysis/workflow/prepare-brief.md 确认未决事项，再进入已选 Fast / Plan。两种模式共享需求事实和业务验收。Fast 按明确需求直接创建/复用应用，独立准备主题和页面；Plan 确认当前版本后交接 PRD/设计派生文件，直接进入 Step 3。只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用。
 
 以下 9 步仅用于内部执行，不复制为宿主待办；用户可见的步骤名称直接使用上方“步骤模版”。需求首问前只读本阶段必需材料；后续每一步开始前读取对应 workflow 文件；按真实依赖满足下游输入后继续。Step 3 拿到 appType 即可启动表单创建，主题生成与设置同步作为独立分支继续，不将主题完成作为所有后续步骤的串行前置条件。无直接依赖的页面同时开发，每页只等待自身资源，独立校验并发布；全部页面完成后再统一导航排序。
 
 | 步骤 | 名称 | 目标 | 产出 |
 | --- | --- | --- | --- |
 | 1 | [解析资源上下文](workflow/step-1-resource-context.md) | 合并本轮显式资源、绑定上下文、workspace 配置/缓存和会话历史，确认复用还是允许创建 | 目标 app/page/form/process 上下文 |
-| 2 | [业务与视觉设计](workflow/step-2-design.md) | 整理需求后 Fast 生成短执行上下文与主题，Plan 生成并确认方案 | Fast：`build-context.json` + `app_theme.css`；Plan：需求、PRD 与设计文件 |
+| 2 | [业务与视觉设计](workflow/step-2-design.md) | 整理需求后 Fast 直接交接明确需求并独立准备主题，不阻塞 Step 3，Plan 生成并确认方案 | Fast：已确认需求 + `app_theme.css` + 真实执行回执；Plan：需求、PRD 与设计文件 |
 | 3 | [创建或复用应用](workflow/step-3-create-or-reuse-app.md) | 已有 `appType` 直接复用；缺少 app 且允许创建时执行 `use_skill("yida-create-app")` | 真实目标 `appType` |
 | 4 | [创建或更新业务资源](workflow/step-4-forms-processes.md) | 执行 `use_skill("yida-create-form-page")`；按 PRD 执行 `use_skill("yida-create-process")`、`use_skill("yida-get-schema")`、`use_skill("yida-report")` 和 `use_skill("yida-integration")` | 真实 `formUuid`、`processCode`、必要 `fieldId/reportId` |
 | 5 | [写入初始表单数据](workflow/step-5-seed-records.md) | 执行 `use_skill("yida-data-management")`，为核心普通表单写入 1-3 条业务化 seed records 并 query 抽查 | 真实表单记录或明确跳过原因 |
@@ -115,7 +115,7 @@ Plan 规划阶段的工作流入口只读取 `workflow/step-1-resource-context.m
 
 1. **资源判断以 Step 1 为准**：已有 app/page/form/process 默认复用；只有用户明确从零创建，或目标缺失且本轮允许创建时，才创建缺失资源。
 2. **显式目标优先**：本轮用户给出的 `appType`、`formUuid`、URL、页面名或流程标识，优先级高于绑定上下文和历史缓存；同级冲突或无法唯一识别时才问用户。
-3. **业务与视觉输入**：先整理已确认需求；Fast 按短清单记录业务资源、角色、规则、页面、导航、主题和验收，校验后生成 `build-context.json` 与 `app_theme.css` 再创建资源。Plan/已有文档流程由 `yida-prd` 与 `yida-design` 维护 PRD 和视觉契约并校验。
+3. **业务与视觉输入**：Fast 从已确认名称、范围与授权直接创建/复用应用，按真实依赖独立生成 app_theme.css、业务资源及页面；不编写或校验创建前完整 JSON/方案。Plan/已有文档流程保留 PRD、设计物化与确认。两种模式均保留必要业务、权限、数据和发布检查。
 4. **阶段技能按需加载**：进入应用壳、表单、流程、页面、发布、数据写入等阶段时，才执行对应 `use_skill(...)`。
 5. **真实 ID 和真实数据**：不编造 `appType`、`formUuid`、`fieldId`、`processCode`、`reportId`。无显式窄范围的完整应用默认给核心普通表单写入 1-3 条业务化 seed records 并 query 抽查；`explicitScope.allowInferredResources=false` 时不得增加未点名的 seed records 或页面。
 6. **自定义页面开发技能固定**：完整应用页面源码按 Step 7 执行；管理端仅需原生视图时不创建 display 首页。前后台按 [访问态入口契约](references/entry-navigation.md) 分别规划菜单及分组顺序、默认页面、首屏任务和权限；平台导航与自定义导航都要落实排序并验收。

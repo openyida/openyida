@@ -223,7 +223,7 @@ openyida/
 
 ### yida-skills 技能路由规则（Agent 必读）
 
-Fast 完整应用按 yida-app/workflow/fast-build.md 用短清单生成 build-context.json 和 app_theme.css，直接搭建，不生成独立 PRD/design.md/Plan HTML/page-spec；旧文档输入按 yida-app/references/fast-context.md 映射。Plan 保留方案物化、确认与派生文档流程。
+Fast 完整应用按 yida-app/workflow/fast-build.md 在范围明确后立即创建/复用应用，独立生成 app_theme.css 与页面，不等待完整 JSON/方案校验，不生成独立 PRD/design.md/Plan HTML/page-spec；旧文档输入按 yida-app/references/fast-context.md 映射。Plan 保留方案物化、确认与派生文档流程。
 
 完整应用先分析需求，首次搭建按 `yida-requirement-analysis/workflow/prepare-brief.md` 确认未决事项，再按已选 Fast / Plan 推进。Fast 沿用需求分析并直接生成短执行上下文；Plan 只在用户确认当前版本后交接派生文件，不再运行 Fast。
 
@@ -232,7 +232,7 @@ Fast 完整应用按 yida-app/workflow/fast-build.md 用短清单生成 build-co
 | 禁止（NEVER DO） | 正确做法（MUST DO） |
 |------|------|
 | 首次搭建应用时直接调用 `openyida create-app` 然后手动拼接 create-form / create-page / publish | 首次搭建时加载 `yida-app` 子技能，由它按标准编排流程执行 |
-| 跳过 PRD 设计阶段，凭感觉定义字段和页面结构 | Fast 先将业务、数据、角色、规则与验收写入短执行上下文；Plan 由业务源事实物化 PRD。按各自已校验输入创建资源 |
+| 跳过 PRD 设计阶段，凭感觉定义字段和页面结构 | Fast 直接沿用已确认业务、数据、角色、规则与验收，按操作核对真实回执，不以完整 JSON 为创建前置；Plan 由业务源事实物化 PRD。按各自已校验输入创建资源 |
 | 把 `yida-create-app` 当作“搭建应用”的入口 | `yida-create-app` 只是 `yida-app` 编排流程中的一个阶段步骤 |
 
 触发条件：用户消息包含“搭建应用”“创建系统”“做一个管理系统”“从零创建应用”“build an app”等完整应用构建意图，必须路由到 `yida-app`。完整路由规则详见 `yida-skills/SKILL.md` 的"第二步：意图路由"章节。

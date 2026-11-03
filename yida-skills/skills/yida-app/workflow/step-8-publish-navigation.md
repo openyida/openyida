@@ -1,6 +1,6 @@
 # Step 8：发布页面并排序导航
 
-Fast 先按 [执行上下文映射](../references/fast-context.md) 读取 `build-context.json` 与 `app_theme.css`；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
+Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确认需求、真实回执和 app_theme.css，无创建前 JSON/方案门槛；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
 
 
 完成总结遵循[用户可见总结](../../../references/user-facing-summary.md)：仅概述本轮业务变化和真实结果，简单修改一句即可；内部记录保留源码、命令和校验细节。

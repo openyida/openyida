@@ -576,11 +576,6 @@ describe('CLI offline smoke', () => {
         message_key: 'cli.forbidden_alias_get_app',
       }),
       expect.objectContaining({
-        pattern: 'create-app --json',
-        matcher: { type: 'command_has_option', command: 'create-app', option: '--json' },
-        suggested_command_id: 'create-app',
-      }),
-      expect.objectContaining({
         pattern: 'create-page --app-type',
         suggested_usage: expect.stringContaining('create-page <appType>'),
       }),
@@ -606,10 +601,11 @@ describe('CLI offline smoke', () => {
       forbidden_alias_patterns: expect.arrayContaining([
         'list-apps',
         'get-app',
-        'create-app --json',
         'create-form <appType> --name <formTitle> --fields <fieldsJson>',
       ]),
     });
+    expect(parsed.forbidden_aliases.some(alias => alias.pattern === 'create-app --json')).toBe(false);
+    expect(parsed.commands.find(command => command.id === 'create-app').usage).toContain('--json');
     expect(parsed.summary.side_effect_counts.remote_write).toBeGreaterThan(0);
     expect(parsed.summary.permission_mode_counts.allow).toBeGreaterThan(0);
     expect(parsed.summary.permission_mode_counts.ask).toBeGreaterThan(0);

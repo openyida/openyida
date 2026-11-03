@@ -1,6 +1,6 @@
 # Step 4：创建或更新表单/流程
 
-Fast 先按 [执行上下文映射](../references/fast-context.md) 读取 `build-context.json` 与 `app_theme.css`；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
+Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确认需求、真实回执和 app_theme.css，无创建前 JSON/方案门槛；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
 
 
 按 PRD 的依赖创建或复用表单和流程。同一轮需要新建两个及以上普通表单时，把独立表单和关联表单写入同一个 `forms.json`，通过 `dependsOn` / `$form` 表达依赖，并且只调用一次 `openyida create-form batch`；由 CLI 内部完成分组、真实 ID 回读和依赖调度，不逐个 create，也不由模型拆成多次 batch。调用前确认实际项目根，让 Write 的绝对路径与 Bash 从项目根使用的 `.cache/openyida/<项目名>/forms.json` 指向同一个物理文件，并用 Read 确认任务文件存在；不要用 batch 探测路径，收到 background pending 后也不要重试 batch。某页所需表单、流程就绪后即可接入该页；不要因其他页面的资源未完成而阻塞无依赖页面开发。

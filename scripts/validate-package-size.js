@@ -281,7 +281,8 @@ const MAX_UNPACKED_BYTES = 9936 * 1024;
 // One shared Node Babel entry replaces all standalone imports.
 // QwenWork's shared link-presentation guide adds one packaged reference.
 // The task-concurrency runtime adds exactly one packaged module.
-const MAX_ENTRY_COUNT = 810;
+// Independent Fast theme generation adds one runtime module; byte budgets are unchanged.
+const MAX_ENTRY_COUNT = 811;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

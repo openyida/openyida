@@ -1,38 +1,47 @@
-# Fast 直接搭建
+# Fast 立即搭建
 
-Fast 从已确认需求直接准备短执行清单，生成 `build-context.json` 和 **`app_theme.css`**。不生成独立 PRD、design.md、Plan HTML、revision 或 page-spec；不调用完整 PRD/长设计文档生成链。Plan 仍按原流程物化、确认并实施。五分钟是少量简单页面的优化目标，以实际墙钟记录验证，不跳过业务、权限或验收。
+Fast 在应用名称、业务范围及创建授权明确后，立即创建或复用应用。没有创建前的 Plan、完整业务 JSON、build-context、PRD、design.md、page-spec 或统一物化门槛。主题、页面和业务资源按自己的依赖推进。已有明确需求直接复用，只有实际阻塞业务的缺项才澄清。
 
-## 一次准备
+## 1. 创建或复用应用
 
-先复用已读的能力快照、主题目录和用户选择；只追问影响实际功能的缺失事实。已有明确需求不重复提问。需求分析结果可直接放入短清单的 `intake`、`explicitScope`、`constraints`，不为 Fast 另外写需求文档。
-
-```bash
-openyida sample yida-app fast-spec --output .cache/openyida/fast-app.json
-# 按真实需求修改 JSON 后执行；示例的主题、页面和文案不是默认选择
-openyida sample yida-app fast-build --spec-file .cache/openyida/fast-app.json --output .cache/openyida/build
-```
-
-输入复用短视觉字段 `name/themeId/primaryColor/direction/navigation/pages/assetStrategy`，加 `mode: fast`、`resources`、`roles`、`businessRules`、`acceptanceChecks`。视觉字段见 [短输入字段](../../yida-design/references/fast-design-spec.md)，只读字段说明，不执行其中 design.md 生成步骤。每页写真实任务、区块、交互状态、响应式和验收；同一连续官网可用一个页面多个视图，用户要求独立页面/地址时保留独立资源。
-
-`resources` 只列需要保存数据、流程、报表或自动化的资源：`key/name/type`，新普通/流程表单提供 create-form 支持的 `fields`，复用资源写真实 `formUuid`，依赖写 `dependsOn` 的资源 key。展示页面放 `pages`，页面的 `dataSources` 引用资源 key。`roles` 用 `{name, scope, operations: [...]}` 明确服务端数据范围与业务操作；`businessRules` 和 `acceptanceChecks` 是具体字符串数组。不适用时数组写 `[]`，总体验收必须非空。资源、角色与规则声明不是平台落地证据。
-
-仅展示内容不自动增加后台、表单、测试数据或角色。用户要求数据库、提交保存、后台、角色隔离和审批时全部保留，并按既有数据与权限技能实施。明确禁止项保持原义：`theme-file` 禁止时不生成或上传 CSS；`page-source`、`publish` 禁止时不写源码或发布。
-
-CLI 内部复用严格主题、颜色对比和素材结构校验，一次返回 `details.issues`；不让模型拼接长 token 文档。`--check` 只校验不写文件；相同输入可重复执行，已存在的不同输出拒绝覆盖。修改需求或主题时生成新版本目录，核验后切换当前上下文，不覆盖已发布版本的事实记录。
-
-## 直接实施
-
-1. 以生成的上下文作为业务与视觉源，CSS 必须保留并应用。真实 appType 就绪后按 Step 3 及既有主题能力/作用域规则上传 `outputs.theme`，使用返回的 `theme.themeColor/navTheme`，回读核验。CSS 不是发布页面时自动安装的。
-2. 无依赖资源、主题配置、各页源码按真实工具能力并行；每页只有一个写入者。资源 ID、字段映射、发布回执、任务编号写独立 build-manifest。权限配置与数据回读不能靠前端隐藏或声明代替。
-3. 直接按上下文和应用主题编写 `.canvas.jsx/.canvas.tsx`，执行既有检查、编译和发布。默认不派生 page-spec，不为编译补造 PRD/design.md。需要原生表单抽屉时整体合并 form-open-container 的 import、辅助函数和操作。页面只等待自己需要的真实 ID、字段与素材。
-4. 生成结果含 `assetTasks`，按实际宿主能力后台派发后继续业务工作；同步工具先做独立业务再执行有限素材批次。使用任务返回的 `resolve.argv`（含 `--build-spec`）并传真实工具来源。素材整次共用60秒截止、单请求15秒，不 sleep 等重试；缺图只阻塞该页最终图片验收，先交付已有授权的可用首版，补图只改绑定。
-5. 页面就绪各自发布，统一处理必要导航与入口。校验失败一次处理结构化问题，只重跑受影响项；未知写入先回读，复用已创建资源及源码，不重新整包生成。
-6. 保存真实 build-manifest，收尾运行下列命令。资源、导航与主题回读复用原检查；角色、业务规则、真实数据与交互仍按 Step 9 验收，未验证的如实保留。
+先按本轮真实资源上下文判断复用还是新建，不重复执行能力和登录探测。用户已经明确新建完整应用且目标不存在时，加载 `yida-create-app` 并单独调用：
 
 ```bash
-openyida check-prd-completeness --build-spec .cache/openyida/build/build-context.json --app-type <appType> --build-manifest <build-manifest.json> --json
+openyida create-app --name "应用名称" --desc "本轮业务范围" --json
 ```
 
-## 耗时记录
+完整保留原始回执和退出状态，不在创建命令前后拼接 date、管道、head/tail 或 JSON 筛选；计时另起只读命令，复用真实工具时间。记录真实 appType 与返回入口。复用已有应用时不调用创建。授权、当前组织和既有资源边界仍由原技能与 CLI 保护。未知写入先回读，不重复创建。
 
-分别记录准备/契约、资源/主题、页面源码、编译发布、业务验收与素材的真实开始和结束时间；总耗时按墙钟计算，不累加重叠区间。简单展示页参考预算：准备60秒、资源主题45秒、实现发布150秒、验收45秒。完整数据库、角色与审批按实际复杂度记录，不能据此宣称已实现五分钟。超时继续完成授权任务，分别标记推理、权限等待、生成工具和平台请求耗时。
+## 2. 同时准备主题与独立页面
+
+**必须生成并应用 `app_theme.css`**，明确禁止 theme-file 的范围除外。使用本轮已选主题和主色；主题未知时一次读取 `design-plan catalog --compact` 作为主题列表，复用已有结果，不运行 init/materialize/preview。目录命令不代表采用 Plan。
+
+```bash
+openyida sample yida-app fast-theme --style-id app-platinum --primary-color '#2E6E8E' --output <绝对路径>/app_theme.css --json
+```
+
+示例风格和色值按本轮需求替换。命名主题自动读取配对模板及导航明暗，补齐品牌变量并校验 CSS/文字对比度，不验证业务资源、页面、章节或锚点。返回 `outputs.theme`、`theme.themeColor/navTheme`、`applicationTheme`，不生成任何方案文件。`--check` 只检查本次主题，不写文件；相同产物复用，不同内容保护已有文件，实质改版使用新输出路径。
+
+有明确自由创意需求时用 free-creative，`--tokens-file` 只写主题 tokens/creativeDirection，并传 `--nav-theme light|dark`；仍不需要业务或页面 JSON。app-pop 沿用明确风格/展示任务依据，不因 Fast 自动选择。主题 token 与 CSS 消费、旧主题全局作用域确认等规则仍适用。主题失败只暂缓主题应用，主流程继续已授权且独立的资源/页面工作。
+
+appType 和 CSS 各自就绪后，按 Step 3 支持的 update-app 参数一次上传主题并设置布局/导航，回读核对。将生成结果中的 applicationTheme 存入逐步积累的 build-manifest。页面默认直接编写 Canvas 源码并消费共享变量；不为编译补造完整设计文件或 page-spec。
+
+## 3. 按操作执行必要业务校验
+
+- 只有首页、案例展示/详情和联系我们的展示需求：直接实现页面、导航、联系方式与明确标注的示例内容，默认不创建案例表、留言表、后台或种子数据。用户明确要求提交保存、持续维护、数据库时才创建对应真实数据资源。
+- 有数据库、角色隔离、审批或自动化要求：保留全部范围；创建/更新表单前核对当前表的字段契约，配置权限时核对真实成员和服务端数据范围，审批按真实流程执行。失败只阻塞依赖该资源的工作，独立页面继续。前端隐藏和角色文字不算权限落地。
+- 应用创建与主题准备、无依赖的业务资源和各页源码按实际宿主工具并发；宿主支持时可委派独立子 Agent，每个文件/资源保持唯一写入者。只有同步工具时先做业务与页面，不派发整包后立即等待。平台写入沿用已有 batch、资源锁和失败回读保护。
+- 缺图使用设计允许的明确状态，先发布已有授权的可用首版；素材独立运行，整次共享60秒、单请求15秒，不 sleep 重试。只有某页需要素材时写该页 asset draft（assets 和 assetStrategy），`asset resolve --input <绝对草稿路径> --manifest <绝对清单路径> --page-id <pageId>` 即可；无需 business context 或 design.md。来源与最终缺口按素材技能处理。
+- 使用固定工作根及绝对文件路径，不在 cd 后重复拼接相对路径。校验错误先读完整 issues，按实际值和允许类型一次修正；本地无写入错误不触发安装目录或 CLI 源码搜索。相同输入不重复调用。fast-build --help 可查询旧上下文的字段契约，但 fast-build/fast-spec 仅为已有文件兼容工具，默认 Fast 不运行它们。
+
+## 4. 逐页发布与收尾
+
+每页就绪即检查、编译和发布，真实数据绑定、权限和主题未验证时保留缺口。统一核对导航与实际入口。build-manifest 只随真实执行增补资源 ID、字段映射、主题回执、素材任务和验收证据，不写预设完整方案，不作为创建门槛。
+
+```bash
+openyida check-prd-completeness --manifest-only --build-manifest <绝对路径>/build-manifest.json --app-type <真实appType> --json
+```
+
+此检查复用资源、导航和主题回读；业务规则、角色与浏览器交互仍按 Step 9 验收。禁止通过省略应交付资源或删除验收项制造通过。
+
+分别记录需求路由、应用创建、主题、页面源码、编译发布、业务验收和素材的真实开始/结束时间，总耗时按墙钟计算，不累加并发区间。少量简单页面以五分钟为优化目标，实际以端到端记录为准；复杂数据、角色或审批按真实范围记录，不以本地 CLI 耗时宣称整次达标。

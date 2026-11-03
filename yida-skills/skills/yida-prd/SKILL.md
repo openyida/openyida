@@ -5,7 +5,7 @@ description: 基于整理好的需求事实编写或修改业务 PRD，负责业
 
 # yida-prd
 
-**Fast 完整应用输入**：由 yida-app 交接 `build-context.json` 和 `app_theme.css` 时，按 [Fast 上下文映射](../yida-app/references/fast-context.md) 直接读取业务、页面、主题与素材。下方要求 PRD/design.md 的文档生成、关联检查与 page-spec 派生步骤仅适用于 Plan/已有文档任务；Fast 不补写长文件。共用业务、数据、权限、样式和发布验收规则照常执行。
+**Fast 完整应用输入**：由 yida-app 从已确认需求和真实执行回执直接交接，按 [Fast 阶段映射](../yida-app/references/fast-context.md) 使用业务、页面、app_theme.css 与按页素材；不要求 build-context 或完整业务 JSON，不阻塞应用创建。下方要求 PRD/design.md 的文档生成、关联检查与 page-spec 派生步骤仅适用于 Plan/已有文档任务；Fast 不补写长文件。共用业务、数据、权限、样式和发布验收规则照常执行。
 
 
 本技能负责业务规划，基于 `yida-requirement-analysis` 的需求事实生成 `prd/<项目名>/prd.md`。适用于完整应用的初次规划与业务方案调整。
@@ -22,7 +22,7 @@ PRD 编写、修改与确认均保留 brief 的 `visualSelection`、已选 theme
 
 | 模式 | 执行与完成条件 |
 | --- | --- |
-| Fast | 不生成独立 PRD；将业务事实、资源、角色、规则与验收写入 yida-app 短清单 |
+| Fast | 不生成独立 PRD 或完整 JSON；直接按已确认需求与真实回执实施，业务规则在操作处检查 |
 | Plan | 按 [计划业务规划](workflow/plan-business.md) 补齐 `build-plan.json` 的 `overview`、`dataModels`、`businessFlows`、`pages` 和业务 `execution`，交给 `yida-app` 调用 CLI 派生同一契约的 PRD |
 
 修改已有 PRD 时，只读并修改相关业务内容及其引用。Plan 按 [局部调整](../yida-app/workflow/plan/step-4-deliver.md#4-处理调整) 更新源字段，由 CLI 同步文档；Fast 直接修改 PRD 对应章节，保持其他章节原样。

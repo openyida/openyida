@@ -259,7 +259,7 @@ describe('OpenYida skill contracts', () => {
 
     expect(root).toContain('`yida-image-assets`');
     expect(app).toContain('本模式 assetStrategy');
-    expect(app).toContain('build-context.json');
+    expect(app).toContain('不以 Plan、完整 JSON、build-context');
     expect(step2).toMatch(/商品目录[^\n]+`required`/);
     expect(step2).toMatch(/库存流水[^\n]+`none`/);
     expect(step7).toContain('../../yida-image-assets/SKILL.md#后台启动与接收');
