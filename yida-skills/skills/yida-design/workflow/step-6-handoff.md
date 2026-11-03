@@ -13,7 +13,7 @@ Fast 直接维护 `prd/<项目名>/design.md`，Plan 更新计划事实后由 CL
 
 ## 校验
 
-Fast 完成手写后执行 `openyida check-design prd/<项目名>/design.md --json`；PRD 就绪时添加 `--prd prd/<项目名>/prd.md`。业务仍并行生成时，先完成单文件检查，由 `yida-app` 在合并时补跨文档校验。Plan 由物化流程调用同一校验，失败则修正源事实后重新生成。
+Fast 按 [短输入生成](../references/fast-design-spec.md) 时 CLI 已完成单文件检查，不再重复执行；必要时手写的文档完成后执行 `openyida check-design prd/<项目名>/design.md --json`。PRD 就绪时由 `yida-app` 添加 `--prd prd/<项目名>/prd.md` 完成一次关联检查；业务仍并行生成时继续独立工作。Plan 由物化流程调用同一校验，失败则修正源事实后重新生成。
 
 完成条件：文件非空、公共校验通过、每个真实页面与 PRD 引用均能定位到正文、页面设计具体且无重复规则副本。设计步骤不写页面源码或编造真实资源 ID。
 

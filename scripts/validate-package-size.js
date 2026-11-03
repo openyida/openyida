@@ -235,7 +235,9 @@ const MAX_TARBALL_BYTES = 2704 * 1024;
 // Plan skeleton and preflight guidance measure 10,067,952 unpacked bytes;
 // retain the next 16 KiB boundary. Entry and single-file caps stay unchanged.
 // Shared asset deadlines and preview guidance measure 10,110,619 unpacked bytes.
-const MAX_UNPACKED_BYTES = 9888 * 1024;
+// Fast design generation adds a renderer adapter, input example and two guides.
+// Node 20 measures 10,131,579 unpacked bytes; retain the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 9904 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -277,7 +279,7 @@ const MAX_UNPACKED_BYTES = 9888 * 1024;
 // One shared Node Babel entry replaces all standalone imports.
 // QwenWork's shared link-presentation guide adds one packaged reference.
 // The task-concurrency runtime adds exactly one packaged module.
-const MAX_ENTRY_COUNT = 803;
+const MAX_ENTRY_COUNT = 807;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

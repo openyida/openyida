@@ -38,7 +38,7 @@ Fast / Plan 先按[已选风格只确认一次](../../yida-design/references/the
 
 按 [模式路由](../../yida-design/references/design-mode.md) 读取本次选择：
 
-- Fast：继续 2.2–2.3；已有详细需求直接作为规划基础。
+- Fast：继续 2.2–2.3；已有详细需求直接作为规划基础。少量展示页按 [Fast 搭建](fast-build.md) 复用准备结果并安排真实依赖，保留已要求的数据与权限范围。
 - Plan：执行 [Plan 编排](plan/workflow.md)，用户确认当前方案后，按返回的 `assetTasks` 启动素材任务，同时进入 Step 3 创建应用。
 
 Plan 分支从已加载 `yida-app` 的 Available Files 读取精确路径 `workflow/plan/workflow.md`；不要把当前文件名当目录拼成 `workflow/step-2-design/plan/workflow.md`，也不要用 Glob 猜路径。
