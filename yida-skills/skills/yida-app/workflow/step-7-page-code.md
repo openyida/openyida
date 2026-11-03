@@ -27,7 +27,7 @@
 
 先读取 `constraints.prohibitedActions`。命中 `page-source` 时，本步骤只能做 Read、编译/静态检查等只读诊断，不得 Write/Edit/Create 页面源码，也不得用脚本、格式化器或生成器间接改写；内部记录源码未修改，对用户说明“本轮按要求保留原页面”，并跳过依赖源码变更的发布。未命中时才执行下列源码实现动作。
 
-当前页需要图片时，先查看已有素材任务状态，同时编写布局、文字、真实数据绑定和交互。尚未启动时，按 [后台启动与接收](../../yida-image-assets/SKILL.md#后台启动与接收) 派发 `yida-image-assets`，随后继续页面开发。接图时读取所属页结果，独立工作完成后才等待该页图片。使用 `--design design.md --page-id <pageId>` 核对当前页槽位并发检查图片，允许外链就直接使用；上传时追加 `--app-type <真实appType>`。结果写入独立的 `asset-manifests/<pageId>.json`，上传失败时保留已验证且允许外链的原地址。读取 manifest 中当前页 `pages[].materialStatus`；该页为 `final` 时只使用 `assets[].materialStatus=final` 的图片。必需槽位缺口只阻塞当前页接图与验收，总状态 `draft` 不阻塞其他已就绪页面。
+当前页需要图片时，先查看已有素材任务状态，同时编写布局、文字、真实数据绑定和交互。尚未启动时，按 [后台启动与接收](../../yida-image-assets/SKILL.md#后台启动与接收) 派发 `yida-image-assets`，随后继续页面开发。布局、文字和交互就绪即按已有发布授权提供首版预览，缺图使用设计允许的明确状态；预览后再汇合素材，已验证图片仅更新绑定，不重新生成页面。使用 `--design design.md --page-id <pageId>` 核对当前页槽位并发检查图片，允许外链就直接使用；上传时追加 `--app-type <真实appType>`。结果写入独立的 `asset-manifests/<pageId>.json`，上传失败时保留已验证且允许外链的原地址。读取 manifest 中当前页 `pages[].materialStatus`；该页为 `final` 时只使用 `assets[].materialStatus=final` 的图片。必需槽位缺口只阻塞最终图片验收，不阻塞页面实现或首版预览；遵守 `publish` 等禁止项，总状态 `draft` 不阻塞其他已就绪页面。
 
 1. 自定义页面开发执行 `use_skill("yida-canvas-custom-page", "生成当前页面源码")`。根据 PRD 和 `design.md` 直接编写 `.canvas.jsx` / `.canvas.tsx`；允许从空文件实现完整 UI。内置整页示例按需用于理解数据接入和导航；表单抽屉片段必须按第 9 条整体合并，不要求复制整页，也不能用示例默认外观替代已确认的设计。已有符合设计的页面可继续迭代。
 2. 按 PRD 的主任务和 scene 选用专项技能：经营分析或投屏监控页执行 `use_skill("yida-dashboard", "实现已规划的指标分析与监控")`；工作台、门户、操作队列继续使用 `yida-canvas-custom-page`，按 [首页按任务选择](../../yida-requirement-analysis/references/experience-groups.md#首页按任务选择) 落实办理路径。工作台按 PRD 落实管理、分析、洞察与快捷操作；区块内常规图表使用 `yida-rechart`，不因包含图表而触发整页看板流程。

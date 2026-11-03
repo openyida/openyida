@@ -91,7 +91,9 @@ const path = require('path');
 // Node 20.18.1 measures 2,748,801 compressed / 10,094,680 unpacked bytes, 803 files.
 // Plan skeleton defaults, project examples and structured preflight: Node 22
 // measures 2,738,622 compressed bytes; retain the next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2688 * 1024;
+// Shared asset deadlines and progressive preview: Node 20 measures 2,754,122 bytes;
+// retain the next 16 KiB boundary, without changing file or entry caps.
+const MAX_TARBALL_BYTES = 2704 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -232,7 +234,8 @@ const MAX_TARBALL_BYTES = 2688 * 1024;
 // 10,068,127 unpacked bytes; retain the next 16 KiB boundary.
 // Plan skeleton and preflight guidance measure 10,067,952 unpacked bytes;
 // retain the next 16 KiB boundary. Entry and single-file caps stay unchanged.
-const MAX_UNPACKED_BYTES = 9872 * 1024;
+// Shared asset deadlines and preview guidance measure 10,110,619 unpacked bytes.
+const MAX_UNPACKED_BYTES = 9888 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
