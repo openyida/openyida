@@ -4,7 +4,7 @@ Fast、Plan 和单页设计共用 [主题索引](../templates/design-themes/inde
 
 ## 已选风格只确认一次
 
-每次进入设计或准备风格问题前，先检查用户原始需求与最新补充、参考网站或设计图/图片、`brief.visualSelection`、已有方案的 `visualStyle.internal.selectedTheme` 和当前应用 `design.md` 的 `themeProfile.sourceThemeId`。以同一任务中用户最新的明确意图为准；主题 ID 尚未生成不等于用户没有风格意向。
+每次进入设计或准备风格问题前，先检查用户原始需求与最新补充、参考网站或设计图/图片、`brief.visualSelection`、已有方案的 `visualStyle.internal.selectedTheme` 和当前应用 `design.md` 的 `themeProfile.sourceThemeId`。这些选择须属于当前目标与同一次搭建，或由用户本次明确指定沿用。新应用不把长期偏好、近期活动或另一应用的颜色和主题认作已选；行业相同也不继承旧方案。以同一任务中用户最新的明确意图为准；主题 ID 尚未生成不等于用户没有风格意向。
 
 **先识别意向，再决定是否提问。用户已描述风格或提供视觉参考时，直接推演，不再询问主题风格。** 不要求用户给出完整设计系统、主题名称、色值、字体、圆角或导航明暗，也不要求再说一次“就按这个做”。
 
