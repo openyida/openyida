@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [Unreleased]
+
+- **自定义页面附件与图片**：支持获取上传凭证、上传文件、确认和获取私有地址，表单保存后绑定真实实例；上传与绑定失败时保留可恢复状态。
+
 ## [2026.11.2-3] - 2026-11-02
 
 - skill 描述优化

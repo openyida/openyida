@@ -81,6 +81,7 @@ const path = require('path');
 // 合并字段权限校验与最新主干后，Node 20 实测 2,722,740 压缩字节；取下一档 16 KiB 边界。
 // AI Yida terminology and localized metric labels: CI Node 20.20.2 measures
 // 2,736,203 compressed bytes / 800 files; retain the next 16 KiB boundary.
+// File uploads add the shared client, control and protocol guide.
 const MAX_TARBALL_BYTES = 2688 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
@@ -218,7 +219,9 @@ const MAX_TARBALL_BYTES = 2688 * 1024;
 // 10,046,556 unpacked bytes; retain the next 16 KiB boundary.
 // Node Babel entry, explicit presets and shared dependency copying: 10,045,128 bytes.
 // The dependency reduction is measured separately from this main-package budget.
-const MAX_UNPACKED_BYTES = 9824 * 1024;
+// Uploads merged with current main measure 10,082,683 unpacked bytes / 803 files
+// on Node 23. Retain the next 16 KiB boundary; gzip and single-file caps stay fixed.
+const MAX_UNPACKED_BYTES = 9856 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -259,7 +262,8 @@ const MAX_UNPACKED_BYTES = 9824 * 1024;
 // 新增应用主题状态共享模块；Node 20 实测 798 文件，字节预算保持不变。
 // One shared Node Babel entry replaces all standalone imports.
 // QwenWork's shared link-presentation guide adds one packaged reference.
-const MAX_ENTRY_COUNT = 800;
+// File uploads add one client, one control and one protocol guide.
+const MAX_ENTRY_COUNT = 803;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -369,6 +373,9 @@ const REQUIRED_PACKAGE_FILES = [
   'lib/samples/openyida-scaffold/canvas-navigation.jsx',
   'lib/samples/openyida-scaffold/canvas-admin-entry.jsx',
   'lib/samples/openyida-scaffold/canvas-view-state.jsx',
+  'lib/samples/openyida-scaffold/file-upload-client.jsx',
+  'lib/samples/openyida-scaffold/canvas-file-upload.jsx',
+  'yida-skills/skills/yida-canvas-custom-page/references/file-upload.md',
   'yida-skills/skills/yida-canvas-custom-page/references/view-state-recovery.md',
   'yida-skills/skills/yida-canvas-data-binding/references/business-action-permissions.md',
   'lib/asset/asset-execution.js',
