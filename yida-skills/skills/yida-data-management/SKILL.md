@@ -57,6 +57,8 @@ description: 查询、新增、更新宜搭表单和流程数据，按当前审�
 - 删除完成只以 `deleted=true && readbackVerified=true` 为准；`alreadyAbsent=true` 表示本次未再次发删除请求，可按幂等成功处理
 - 当前不支持删除流程实例；禁止生成 `openyida data delete process`，禁止在 CLI 报不支持后探索一次性脚本、浏览器私有请求或底层 API 绕过正式能力
 - **录入/更新数据前，必须先执行 `openyida get-schema` 获取真实字段 ID，并将字段 ID 映射记录到 `.cache/<项目名>-schema.json`**
+- 普通表单首条示例数据使用 `data create form ... --verify-write --json`，需要核验本次修改时使用 `data update form ... --verify-write --json`。CLI 按当前 Schema 聚合字段/类型错误，写入一次后核对同一实例的已提交字段。只有 `readbackVerified=true` 才把这次字段核验记为完成；这不能替代页面与全部业务验收。显示名称不自动当作字段 ID，按错误候选映射修正；未知格式在写前停止，不去掉选项绕过核验。
+- 核验失败且 `mutationAccepted=true` 时，保留 `partial.formInstId`、候选 ID 与目标表单，先查询并核实已有记录，不重复 create/update。回读没有字段、身份不匹配或结果不一致均不算已验证。支持的值格式及限制见[字段级写入核验](references/data-format-guide.md#字段级写入核验)。
 - **生成测试数据或录入/更新数据时，`DateField` 传毫秒时间戳数字（如 `1719705600000`），`CascadeDateField` 传开始、结束毫秒时间戳数组；半填区间的空端点传 `""`。转换方法见 [日期字段格式](references/data-format-guide.md#日期字段datefield--cascadedatefield)**
 - **录入数据后，必须执行 `openyida data query` 抽查至少 1 条目标记录，核对实例 ID 和本次写入的可见字段值；隐藏字段缺失或字段数据为空按“CLI 查询隐藏字段”规则处理，可见字段值不符合预期时再核对字段 ID 和写入参数**
 - **读取子表明细超过 50 行时，必须使用 `openyida data query subform` 或 `listTableDataByFormInstIdAndTableId` 分页查询完整子表；不要把 `searchFormDatas.currentPage` 当作子表分页**

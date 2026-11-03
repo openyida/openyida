@@ -18,9 +18,9 @@ description: >
 
 在执行宜搭应用/页面/审批流等任务前先确认环境与登录态，再根据用户需求和已解析的 app/page/form/process 等上下文资源，分析任务属于完整搭建、已有资源补齐还是单点任务，并加载对应子技能执行。
 
-完整系统不能只读本入口、查看 CLI 帮助后直接拼装命令：必须加载 `yida-app`，进入实施与收尾时继续读取对应 workflow。前后台场景默认是两个业务入口：前台页面自绘导航并持久化隐藏平台导航，后台使用原生导航，前台专用页面从后台 PC/移动端菜单隐藏；页面隐藏、菜单隐藏、权限和公开访问分别处理。各入口核验配置与数据；浏览器验收仅限用户本机 Agent，按[证据规则](references/execution-rules.md#本地浏览器验收)执行。
+完整系统必须加载 `yida-app`：Fast 只读其 [短执行流程](skills/yida-app/workflow/fast-build.md)，按操作加载技能和必要参考；Plan 与其他模式仍分阶段读取 workflow。前后台场景默认是两个业务入口：前台页面自绘导航并持久化隐藏平台导航，后台使用原生导航，前台专用页面从后台 PC/移动端菜单隐藏；页面隐藏、菜单隐藏、权限和公开访问分别处理。各入口核验配置与数据；浏览器验收仅限用户本机 Agent，按[证据规则](references/execution-rules.md#本地浏览器验收)执行。
 
-Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、自定义页共用项目 design.md 与同一份应用主题 CSS。不能只把自定义页写成品牌色、让应用继续默认蓝色；发布不会自动保存应用主题。交付前按 yida-app 回读主题设置；本机 Agent 按证据规则实测页面，配置回读不代表视觉已验证。
+Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、自定义页共用本模式设计输入（Fast 为已确认需求、主题 CSS 和真实回执，Plan 为 design.md）与同一份应用主题 CSS。不能只把自定义页写成品牌色、让应用继续默认蓝色；发布不会自动保存应用主题。交付前按 yida-app 回读主题设置；本机 Agent 按证据规则实测页面，配置回读不代表视觉已验证。
 
 ## 本地使用问题与贡献反馈
 
@@ -74,8 +74,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 **Fast 模式**
 
 1. 需求识别与分析
-2. 设计功能和页面
-3. 创建应用
+2. 创建应用
+3. 设计功能和页面
 4. 搭建表单与审批流
 5. 准备示例数据
 6. 准备页面图片
@@ -89,7 +89,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 ## 千问办公链接展示
 
-千问办公中的宜搭操作和链接交付沿用原有规则。每轮回复结束前，按[收尾链接展示规则](references/qwenwork-link-presentation.md)使用一次展示链接工具：本轮只修改一个已有页面时，展示该页面已确认的 `/workbench/{formUuid}`；其他情况展示当前应用已确认的 `/admin` 开发者管理后台。工具不可用或失败时保留选中入口的可点击链接。
+按[收尾必做检查](references/qwenwork-link-presentation.md#收尾必做检查)实际调用本轮展示工具、核对回执后再总结。单个已有页面修改选已确认的工作台入口，其他情况选当前应用 `adminUrl`。应用壳和部分完成交付也适用；仅工具明确不可用或实际调用失败时降级为链接。
 
 ## 千问办公网页态的后台登录
 
@@ -268,7 +268,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 10. **读取与复核用合适工具**：读取或定位 workspace 文件优先用当前工具的 Read / Glob / Grep 或 `rg`；OpenYida CLI 已返回成功 JSON、URL、`appType`、`formUuid` 或 `fieldId` 时，以 CLI 结果作为证据。
 11. **资源 ID 必须精确**：`appType`、`formUuid`、`fieldId` 等应用、表单、字段 ID 必须来自 CLI/API/cache 证据并一字不差传入命令和源码；不得凭名称、截图、相似前缀或记忆补写、改写、截断。
 12. **字段和 Schema 以证据为准**：字段级表单操作优先交给 `create-form update/add-option/bind-datasource/validation/rule` 的 schema-aware 解析；页面代码、数据、流程、公式等需要字段映射时，每表单一次性执行 `openyida get-schema --field-map-json` 并缓存字段摘要。
-13. **产品与视觉分工固定**：千问办公按 [模式路由](skills/yida-design/references/design-mode.md) 决定是否 ask_human 选择 Fast/Plan，不凭跨会话记忆代选。完整应用先分析需求；首次搭建按 yida-requirement-analysis/workflow/prepare-brief.md 确认未决事项，再进入已选 Fast / Plan。两种模式共享需求分析与 PRD 契约，以下并行生成规则用于 Fast；Plan 确认当前版本后交接派生文件，直接进入 Step 3。首次搭建只有 Plan 的 build-plan.html 用于方案展示，其余设计文件保持内部使用；已有资源 UI 美化使用 ui-improve 的 visual-plan.html 展示并确认视觉方案。完整应用先由 `yida-requirement-analysis` 整理用户需求，再由 `yida-prd` 与 `yida-design` 同时输出 `prd/<项目名>/prd.md` 与 `prd/<项目名>/design.md`，最后由 `yida-app` 做一致性校验；页面目标、区块、数据和交互以 PRD 为准，布局、主题、材质和状态视觉以 design.md 为准。
+13. **产品与视觉输入按模式交接**：千问办公按 [模式路由](skills/yida-design/references/design-mode.md) 决定 Fast/Plan，不凭跨会话记忆代选。两种模式先确认需求，保持业务、数据、权限与视觉验收要求。Fast 按 [直接搭建](skills/yida-app/workflow/fast-build.md) 立即创建/复用应用，独立生成 `app_theme.css` 和页面，不等待完整 JSON/方案校验，不生成独立 PRD、design.md、Plan HTML 或 page-spec；下游输入按 [Fast 映射](skills/yida-app/references/fast-context.md) 读取。Plan 保留 PRD/视觉事实、方案物化、当前版本确认与派生文档流程；页面业务以 PRD、视觉以 design.md 为准。已有资源美化继续用 ui-improve 确认视觉方案。
 14. **配置优先于页面代码**：字段、公式、联动、报表、审批和集成交给对应技能；自定义页面负责展示数据、放置业务入口，并串联表单、流程、报表和导航入口。
 15. **Canvas 运行桥统一口径**：`.canvas.jsx` / `.canvas.tsx` 发布为 `YidaCodeCanvas` 时，外层页面 `didMount` 默认注入 `window.__OPENYIDA_YIDA_API__` 和 `window.__OPENYIDA_UTILS__`。Canvas 组件内部不得直接写 `this.utils.yida.*`；表单/流程/表单设计 API 走 `window.__OPENYIDA_YIDA_API__`，`toast/dialog/openPage/router.push/isMobile` 等根级工具走 `window.__OPENYIDA_UTILS__`，且 `window.__OPENYIDA_UTILS__.yida` 指向同一个 yida API 桥。
 16. **分页查询默认 pageSize 50**：生成表单、流程、任务、成员等分页查询代码时，一般显式写 `pageSize: 50` 或 `pageSize: '50'`。除非用户明确要求小页或大页，不写 `20`、`100` 等其他值；平台上限仍是 100。

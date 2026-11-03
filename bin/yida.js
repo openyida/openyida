@@ -1370,7 +1370,8 @@ async function main() {
 
     case 'batch': {
       const { run: runBatch } = require('../lib/core/batch');
-      await runBatch(args);
+      const summary = await runBatch(args);
+      if (summary?.success === false) { process.exitCode = 1; }
       break;
     }
 

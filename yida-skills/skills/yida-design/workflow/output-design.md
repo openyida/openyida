@@ -1,6 +1,6 @@
 # 输出：design.md
 
-本文件是 Fast、Plan 和单页设计共同使用的唯一项目设计输出契约。Fast 手写项目 `design.md`，Plan 由 CLI 物化生成；两条流程保留各自编写方式，交付相同格式并使用同一校验。
+本文件是 Fast、Plan 和单页设计共同使用的唯一项目设计输出契约。Fast 优先按 [短设计输入](../references/fast-design-spec.md) 由 CLI 生成，特殊设计可手写；Plan 由 CLI 物化生成。各流程交付相同格式并使用同一校验。
 
 业务对象、数据、流程、页面范围与操作由需求和 PRD 决定；主题选择按 [共享规则](../references/theme-selection.md) 执行。项目文件自包含，实现阶段读取 PRD 与 `design.md`，不再回到主题库推断规则。
 

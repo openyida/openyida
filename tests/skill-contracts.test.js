@@ -258,7 +258,8 @@ describe('OpenYida skill contracts', () => {
     const entry = index.skills.find(item => item.name === 'yida-image-assets');
 
     expect(root).toContain('`yida-image-assets`');
-    expect(app).toContain('design.md.assetStrategy');
+    expect(app).toContain('本模式 assetStrategy');
+    expect(app).toContain('不以 Plan、完整 JSON、build-context');
     expect(step2).toMatch(/商品目录[^\n]+`required`/);
     expect(step2).toMatch(/库存流水[^\n]+`none`/);
     expect(step7).toContain('../../yida-image-assets/SKILL.md#后台启动与接收');
@@ -998,7 +999,9 @@ describe('OpenYida skill contracts', () => {
     expect(output).toContain('## PRD 输出格式');
     expect(output).not.toContain('## design.md 输出格式');
     // Fast and Plan share a document contract while keeping different authoring paths.
-    expect(outputDesign).toContain('Fast 手写项目 `design.md`，Plan 由 CLI 物化生成');
+    expect(outputDesign).toContain('fast-design-spec.md');
+    expect(outputDesign).toContain('各流程交付相同格式并使用同一校验');
+    expect(outputDesign).toContain('Plan 由 CLI 物化生成');
     expect(outputDesign).toContain('## frontmatter 规范');
     expect(outputDesign).toContain('## 稳定引用规则');
     expect(outputDesign).toContain('Fast 保留 PRD 的 Markdown 逐页块与 `pageSpecHandoff` 格式');
@@ -1296,7 +1299,8 @@ describe('OpenYida skill contracts', () => {
       expect(doc).toContain('pageSize: 50');
       expect(doc).toContain("pageSize: '50'");
     });
-    expect(dataBinding).toContain('pageSize: binding.pageSize || 50');
+    expect(dataBinding).toContain('canvas-data-source');
+    expect(dataBinding).toContain('pageSize: 50');
     expect(bridge).toContain('"pageSize": 50');
     expect(bridge).toContain('pageSize: 50');
     expect(bridge).toContain("pageSize: '50'");

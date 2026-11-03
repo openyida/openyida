@@ -6,7 +6,10 @@ description: >
 
 # 准备页面图片
 
-按 `design.md.assetStrategy` 准备图片，每页输出 `prd/<项目名>/asset-manifests/<pageId>.json`。
+**Fast 完整应用输入**：由 yida-app 从已确认需求和真实执行回执直接交接，按 [Fast 阶段映射](../yida-app/references/fast-context.md) 使用业务、页面、app_theme.css 与按页素材；不要求 build-context 或完整业务 JSON，不阻塞应用创建。下方要求 PRD/design.md 的文档生成、关联检查与 page-spec 派生步骤仅适用于 Plan/已有文档任务；Fast 不补写长文件。共用业务、数据、权限、样式和发布验收规则照常执行。
+
+
+按 Fast 当前页素材草稿中的 assetStrategy 或 Plan/已有文档 `design.md.assetStrategy` 准备图片，每页输出 `prd/<项目名>/asset-manifests/<pageId>.json`。
 
 搜索、生图、看图使用当前宿主工具；链接检查、必要的上传和写清单使用 `asset resolve`。Plan 确认后按 `materialize.assetTasks` 启动；Fast 设计就绪即启动。启动前读取已有页面清单，复用符合当前用途与尺寸要求的 final 图片，其余位置接着原轮次处理。
 
@@ -28,7 +31,7 @@ Bash 不能直接执行仅 Agent 可用的搜图/生图/看图工具。后台 sh
 1. **启动**：应用编排按上述能力决策选择后台工具或业务优先的同步批次，传入当前页设计、`searches`、`draft`、`manifest` 和时间预算。收到真实任务编号后，立即继续创建应用、表单和页面；有图页面先做布局、文字、真实数据绑定和交互。
 2. **记录**：编排负责维护 `taskState`，记录 `taskKey`、`pageId`、`hostTaskId`、`executionMode`、`toolName`、`backgroundOption`、`dispatchReturnedAt`、`status`、`startedAt`、`endedAt`、`firstSearchAt`、`deadlineAt`、各位置已用轮次及输出路径。状态使用 `pending/running/completed/partial/failed`；真实启动后才记为 `running`。executionMode 使用 background_agent/background_shell/synchronous；同步时记录 fallbackReason，复用 final 图片记录 reused 和 reuseEvidence。主流程另外记录 businessWork 的真实 startedAt/endedAt（含时区），收尾汇总至 build-manifest.assetExecution。采集任务独占该页草稿和清单，每轮开始及结束时向编排报告轮次和进度，编排统一保存任务记录。Fast 使用同样规则，任务记录位于页面清单旁的 `<pageId>.task.json`，`taskKey` 使用清单绝对路径。
 3. **复用**：按 `taskKey` 找已有任务，结合宿主状态核对是否仍在运行；运行中接收原任务，已完成则读取清单。恢复中断任务时沿用已用轮次和原截止时间，并核对图片用途、尺寸和当前设计。设计变化时先终止旧任务，确认退出后再交接文件写入权。
-4. **接收**：主流程在当前页接图前读取一次结果；仍在运行时先完成其他独立工作，确需结果时使用宿主等待工具。按该页清单验收真实图片，再发布页面。`completed` 表示清单检查通过，`partial` 表示仍有必需图片缺口；宿主任务结束后由编排回读清单再更新状态。
+4. **接收**：布局、文字和交互就绪即可按已有发布授权提供首版预览，缺图采用设计允许的明确状态，不等素材结束。首版之后读取所属页结果，仍有独立工作就继续；已验证图片就绪时只更新绑定，不重写页面。`completed` 表示清单检查通过，`partial` 表示仍有必需图片缺口，不能冒充最终验收完成；编排回读清单后更新状态。
 
 CLI 的 `assetTasks` 是派发输入，后台执行能力来自宿主。仅支持同步工具时先推进独立业务，再批量调用搜索和检查，完成一批后继续独立业务工作，并记录实际等待；禁止把整包素材放在应用创建之前。用户待办沿用简短阶段名称，图片任务显示为“准备页面图片”，“创建应用”保持独立待办。仅在素材与业务执行区间实际重叠时，进度描述才使用“素材采集&应用创建”；单独采集时写“素材采集”。图片数量、子任务、槽位、编号、轮次和耗时写入内部执行记录。
 
@@ -40,7 +43,7 @@ CLI 的 `assetTasks` 是派发输入，后台执行能力来自宿主。仅支�
 
 | imageNeed | 怎么做 |
 | --- | --- |
-| `required` | 准备设计要求的图片；缺必需图片时该页保持草稿 |
+| `required` | 准备设计要求的图片；缺图不阻塞实现和首版预览，最终图片验收仍保持缺口 |
 | `beneficial` | 有图片位置就准备，没有则跳过 |
 | `none` | 无固定图片采集任务；按设计使用排版、图标、图表，已有业务图片继续由数据绑定渲染 |
 
@@ -70,11 +73,13 @@ CLI 的 `assetTasks` 是派发输入，后台执行能力来自宿主。仅支�
 
 调度先处理必需位置，同级优先 `usage=hero`，其余保持设计顺序；首屏其他图片按实际用途由编排优先派发。四个搜索名额由编排统一分配给各页，后台任务按分配额度执行。
 
-默认单次搜索或来源信息查询最多 30 秒，每页从首次实际发起搜索起共用 3 分钟采集预算，排队时间另记。宿主负责传入超时、设置截止时间并在到期时停止采集；恢复任务沿用原截止时间。工具无法中断时记录限制，并让主流程继续独立工作。两轮或时间预算任一耗尽即收口：已取得候选完成检查，可选位置采用设计允许的无图布局，必需位置记录缺口；已验证结果保留。用户明确指定时限时沿用用户要求。
+默认单次搜索或来源查询最多15秒；所有页面从整次首次搜索起共用60秒采集预算，不按页面数累加。编排记录同一 `collectionDeadlineAt`，各页 `deadlineAt` 不晚于它，恢复任务沿用原截止时间。每次 `asset resolve` 追加 `--deadline-at <同一ISO时间>`；CLI 限制图片请求并在过期后停止新上传，保留已发出的上传回执，过期重试不覆盖原清单。宿主搜索、生图由宿主传入超时和取消参数；无法中断则记录限制，首版预览继续。两轮或预算任一耗尽即收口，保留已验证图片；可选位置降级，必需位置明确缺口。用户明确指定时限时沿用用户要求。
 
 ### 失败后立即切换
 
 搜索入口出现 401、403、429、反爬挑战或超时，立即切换可用来源；其他页面和后续轮次复用这份记录。已取得的独立图片直链按自身检查结果处理。图片直链失效、返回验证网页、尺寸不足或来源信息缺失时，在剩余轮次内换图。
+
+同一候选只尝试一次。受限来源在本次采集内停用，不通过 `sleep`、延长等待或更换 User-Agent 重试；可用来源和时间预算耗尽就收口，不新建同用途素材任务绕过截止时间。
 
 查看实际图片的内容、比例、清晰度和主体位置。商品、房源、人员、案例使用真实图片。来源记录和使用条件见 [来源规则](references/source-policy.md)。
 
@@ -83,6 +88,7 @@ CLI 的 `assetTasks` 是派发输入，后台执行能力来自宿主。仅支�
 按 [清单契约](references/manifest-contract.md) 写每页草稿。每张图片同时记录已取得的图片 ID、作者、来源页、许可链接、实际核对日期及必要授权凭证，字段见[来源与授权留证](references/manifest-contract.md#来源与授权留证)：
 
 ```bash
+# Fast 将 assetStrategy 放入本页 input 草稿，省略 --design；已有 context 才按需使用 --build-spec
 openyida asset resolve --input asset-manifests/<pageId>.draft.json --manifest asset-manifests/<pageId>.json --design design.md --page-id <pageId> --json
 ```
 
@@ -106,7 +112,7 @@ openyida asset resolve --input asset-manifests/<pageId>.draft.json --manifest as
 - `draft`：该页缺必需图片；剩余轮次内补图，用尽则保留缺口，其他页面继续。
 - `none`：该页直接继续。
 
-可选图片失败时采用设计允许的无图布局。根状态只表示当前清单的整体结果。
+`pages[].assetGate` 只描述素材依赖：implementation/preview 不阻塞，finalAssetAcceptance 在必需图缺失时阻塞。预览采用明确缺图状态，不能编造真实案例、客户或商品图片；示例案例须标明示例。可选图片失败时采用设计允许的无图布局。根状态只表示当前清单的整体结果。
 
 页面任务只写自己的清单。需要更新 PRD/design 时，由应用编排汇总后统一处理：
 

@@ -1,5 +1,8 @@
 # Step 5：写入初始表单数据
 
+Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确认需求、真实回执和 app_theme.css，无创建前 JSON/方案门槛；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
+
+
 完整应用默认给本轮新建或页面数据源依赖的核心普通表单写入 1-3 条业务化 seed records。流程表单仅在已确认真实 `processCode` 后按独立命令写入。
 
 ## 输入
@@ -17,7 +20,7 @@
 3. 生成当前业务语义的字段值，不写“测试1 / demo / mock”。
 4. 每个核心表单 1-3 条即可；列表/工作台通常 2 条，看板/排行/状态分布通常 3 条。
 5. `DateField` / `CascadeDateField` 使用 13 位毫秒时间戳。
-6. 普通表单每条记录单独执行 `openyida data create form <appType> <formUuid> --expect-form-name <真实名称> --expect-form-type receipt --data-file ...` 或 `--data-json ...`；最后执行 `openyida data query form` 抽查至少 1 条。
+6. 普通表单每条记录单独执行 `openyida data create form <appType> <formUuid> --expect-form-name <真实名称> --expect-form-type receipt --data-file ...` 或 `--data-json ...`；首条记录加 `--verify-write --json`，字段核验通过后再写后续记录，最后执行 `openyida data query form` 抽查至少 1 条。预检错误按真实字段修正；写入已接受但回读不一致时，保留返回实例 ID 核实已有记录，不重复创建。未知格式不计完成，不移除核验选项绕过。
 7. 流程表单只有在已确认真实 `processCode` 后，才执行 `openyida data create process <appType> <formUuid> --process-code <真实 processCode> --expect-form-name <真实名称> --expect-form-type process --data-file ...` 或 `--data-json ...`；最后执行 `openyida data query process` 抽查至少 1 条。
 8. 名称、UUID、类型或 `processCode` 不一致时停止，不得在 `form` 与 `process` 命令之间盲目重试。
 9. query 抽查核对目标实例 ID 和本次写入的可见字段值。CLI 查询不返回隐藏字段属于正常行为，全部字段隐藏时字段数据可能为空；按 [数据管理技能的隐藏字段规则](../../yida-data-management/SKILL.md#cli-查询隐藏字段) 验收，没有可见字段时说明隐藏字段无法通过 CLI 回读，不因字段数据为空而重复造数。

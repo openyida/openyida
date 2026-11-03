@@ -1,5 +1,8 @@
 # Step 2：需求分析与设计
 
+**已明确 Fast 且需求足以实施时**：直接按 [立即搭建](fast-build.md) 进入 Step 3 创建/复用应用，独立准备主题和页面；不执行本页 Plan 规划字段、brief 文件、JSON、PRD 或设计文档门槛。仅需求确有阻塞缺项时使用下方需求澄清，已确认事实直接复用。
+
+
 本阶段对应的用户待办：
 
 - 需求识别与分析
@@ -10,7 +13,7 @@
 
 调用 `yida-requirement-analysis`，按 [首轮需求分析](../../yida-requirement-analysis/workflow/prepare-brief.md) 读取必需来源，尽早确认核心功能和关键用法。该技能统一负责提问、答案合并和需求记录；完成后进入规划准备。
 
-取得 `intake.confirmed=true` 的 brief 后进入规划准备；已有确认记录且需求未变化时直接复用。
+取得 `intake.confirmed=true` 的需求记录（Fast 可沿用原始需求与实际回答，无文件要求）后进入规划准备；已有确认记录且需求未变化时直接复用。
 
 ### 规划准备
 
@@ -38,7 +41,7 @@ Fast / Plan 先按[已选风格只确认一次](../../yida-design/references/the
 
 按 [模式路由](../../yida-design/references/design-mode.md) 读取本次选择：
 
-- Fast：继续 2.2–2.3；已有详细需求直接作为规划基础。
+- Fast：按 [Fast 直接搭建](fast-build.md) 名称、范围和授权明确后立即进入 Step 3 创建/复用应用，主题和页面独立推进；无需完整 JSON、build-context 或方案校验。不执行下方 2.2–2.3 的长文档生成与关联检查；保留已要求的数据和权限。
 - Plan：执行 [Plan 编排](plan/workflow.md)，用户确认当前方案后，按返回的 `assetTasks` 启动素材任务，同时进入 Step 3 创建应用。
 
 Plan 分支从已加载 `yida-app` 的 Available Files 读取精确路径 `workflow/plan/workflow.md`；不要把当前文件名当目录拼成 `workflow/step-2-design/plan/workflow.md`，也不要用 Glob 猜路径。
@@ -47,7 +50,9 @@ Plan 分支从已加载 `yida-app` 的 Available Files 读取精确路径 `workf
 
 共享需求只整理一次。创建出的资源 ID 写入执行上下文；用户需求或范围实质变化时再更新需求与相关规划。需求文件与实施文档供内部执行，Plan 的 HTML 用于用户查看和确认方案。
 
-## 2.2 同时生成 PRD 和视觉设计
+## 2.2 文档流程：同时生成 PRD 和视觉设计
+
+本节至文档产出清单仅用于 Plan 的派生文档与已有文档任务；Fast 输入、主题和素材按 [Fast 直接搭建](fast-build.md)，不补造 Markdown。
 
 需求确认完成后，按 [并行执行](parallel-work.md) 同时启动：
 
@@ -60,7 +65,7 @@ Plan 分支从已加载 `yida-app` 的 Available Files 读取精确路径 `workf
 
 ## 2.3 校验两份结果
 
-`yida-app` 必须等待两个文件都生成完成，再执行 `openyida check-design prd/<项目名>/design.md --prd prd/<项目名>/prd.md --json`。Fast 的设计步骤先完成单文件检查，合并时补上述关联检查；Plan 物化内部调用同一校验。检查：
+`yida-app` 必须等待两个文件都生成完成，再执行 `openyida check-design prd/<项目名>/design.md --prd prd/<项目名>/prd.md --json`。Plan 物化内部调用同一校验。检查：
 
 - 两个文件路径存在且非空；
 - PRD 每个 display 页面的 `designFile` 指向当前 `design.md`；
@@ -78,11 +83,13 @@ Plan 分支从已加载 `yida-app` 的 Available Files 读取精确路径 `workf
 - 门户、工作台、档案、知识库和引导页有图片槽位时为 `beneficial`；
 - 表单、审批、台账、设置和库存流水默认 `none`。
 
-Fast 设计就绪后按 [素材调度](parallel-work.md#素材与页面同时推进) 派发 `yida-image-assets` 后台任务，记录任务编号后主流程继续创建应用、表单和页面，有图页面先做布局、数据绑定和交互。Plan 在方案确认后启动同一流程。各页及同页各图片位置并发搜索，每个位置一张、最多两轮。每页草稿就绪即执行 `asset resolve --design design.md --page-id <pageId>`；允许外链的图片直接交付，上传时追加 `--app-type <真实appType>`，写入独立清单；页面按自身状态接图并验收。
+文档设计就绪后按 [素材调度](parallel-work.md#素材与页面同时推进) 派发 `yida-image-assets` 后台任务，记录任务编号后主流程继续创建应用、表单和页面，有图页面先做布局、数据绑定和交互。Plan 在方案确认后启动同一流程。各页及同页各图片位置并发搜索，每个位置一张、最多两轮。每页草稿就绪即执行 `asset resolve --design design.md --page-id <pageId>`；允许外链的图片直接交付，上传时追加 `--app-type <真实appType>`，写入独立清单；页面按自身状态接图并验收。
+
+装修官网等展示型需求先完成首页、案例筛选/详情、联系页和移动端布局，不让图片成为实现或首版预览的前置依赖。整次素材采集默认共用60秒，沿用同一个截止时间；搜索失败立即切换来源，素材到位只更新图片绑定。用户未提供真实案例时，示例内容必须明确标注，不伪装成客户真实项目。
 
 ## 主题文件实现指令
 
-在设计中同时确定导航、应用框架、表单、详情与自定义页面的整体风格。命名模板提供完整导航 token 与派生的导航明暗，自由创意明确填写；布局沿用业务规划。未禁止 `theme-file` 时，Plan 使用 CLI 返回的 `outputs.theme`，Fast 按 [主题文件生成与更新](../../yida-design/workflow/output-design.md#cli-token-契约fast--plan-共用) 准备主题 CSS；用户确认计划或主题后即可启动 CSS 生成，不等待表单或页面开发。Plan 已生成当前版本的 CSS 时直接复用。拿到真实 appType 后，先按 [旧主题注入与停用规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认) 核验能力与注入授权，符合条件后在应用级配置同一份主题文件，与表单创建和页面开发并行；页面组件按已确认契约消费主题 token。若 `theme-file` 被禁止，跳过生成、复制、修改和上传，沿用现有平台主题并在交付中说明未更改主题。详见 [主题与业务资源的依赖](parallel-work.md#主题与业务资源的依赖)。
+在设计中同时确定导航、应用框架、表单、详情与自定义页面的整体风格。命名模板提供完整导航 token 与派生的导航明暗，自由创意明确填写；布局沿用业务规划。未禁止 `theme-file` 时，Plan 使用 CLI 返回的 `outputs.theme`，已有文档任务按 [主题文件生成与更新](../../yida-design/workflow/output-design.md#cli-token-契约fast--plan-共用) 准备主题 CSS；用户确认计划或主题后即可启动 CSS 生成，不等待表单或页面开发。Plan 已生成当前版本的 CSS 时直接复用。拿到真实 appType 后，先按 [旧主题注入与停用规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认) 核验能力与注入授权，符合条件后在应用级配置同一份主题文件，与表单创建和页面开发并行；页面组件按已确认契约消费主题 token。若 `theme-file` 被禁止，跳过生成、复制、修改和上传，沿用现有平台主题并在交付中说明未更改主题。详见 [主题与业务资源的依赖](parallel-work.md#主题与业务资源的依赖)。
 
 ## 产出
 

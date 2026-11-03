@@ -1,5 +1,8 @@
 # Step 9：输出与收尾
 
+Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确认需求、真实回执和 app_theme.css，无创建前 JSON/方案门槛；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
+
+
 最终输出让用户先理解业务能力，再看到按用途命名的真实应用入口。内部 ID、构建产物、中间文件和逐项业务资源不作为用户可见交付物。
 
 按[证据规则](../../../references/execution-rules.md#发布与验收证据)分别记录上传、配置回读与页面验收；浏览器检查仅限用户本机 Agent。
@@ -37,7 +40,7 @@
 5. 各入口的菜单顺序、默认页面和首屏任务已按规划落实；平台导航有排序回读，自定义导航有页面验证。未完成项按入口明确列出，不能仅因平台命令不适用就将排序记为完成；
 6. 新建或作为页面数据源的核心普通表单已写入 1-3 条真实示例记录并 query 抽查，或明确说明跳过原因；
 7. 汇合主题任务，按[主题证据](../../../references/execution-rules.md#主题上传与绑定)按[新旧主题完成条件](../../../references/execution-rules.md#应用主题配置完成条件)核对 `themeCompletion.complete=true`，保存上传、绑定、主色与导航回执到 `build-manifest.themeEvidence`。已有主题记录复用；旧主题或能力未知时按[旧主题规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认)保留平台主题及页面局部样式。主题更新在前序完成，收尾只汇合；自定义页面只在 `YidaComp` 内消费对应 token。
-8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；该命令检查页面/资源数量及已提供的素材执行记录一致性，不能替代运行态验收。`verdict=pass` 后按证据规则描述已完成范围；只有运行态证据通过才宣称页面验收通过。`needs_review` 时说明真实业务复核项，`fail` 时说明 `hardFailures` 对应未完成项；云端页面未验不转为用户补验任务；
+8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，Fast 运行 `openyida check-prd-completeness --manifest-only --app-type <appType> --build-manifest <build-manifest.json> --json`；Plan/已有文档再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；该命令检查页面/资源数量及已提供的素材执行记录一致性，不能替代运行态验收。`verdict=pass` 后按证据规则描述已完成范围；只有运行态证据通过才宣称页面验收通过。`needs_review` 时说明真实业务复核项，`fail` 时说明 `hardFailures` 对应未完成项；云端页面未验不转为用户补验任务；
 9. 未继续执行用户未要求的公开访问、额外截图报告、报表、大屏、数据源深接或精细导航分组。
 
 适用的页面检查按[跨页验收](../../yida-design/references/application-theme-consistency.md#验证主题是否真正一致)核对原生页、自定义页与抽屉；视觉结果单独记录。
@@ -141,8 +144,10 @@ PRD 保留 `applicationTheme`：themeColor 取最终 `--color-brand1-6`，navThe
 
 ## 结果输出格式
 
+千问办公按[收尾必做检查](../../../references/qwenwork-link-presentation.md#收尾必做检查)先实际调用展示工具、核对本轮回执，再输出总结、完成交付待办。应用壳和创建后的部分完成交付同样适用。
+
 - 准备简短业务交付总结，简单修改一句即可；按“访问态前台、业务后台、开发者后台”提供最多三类已核验入口。完整应用默认同时提供适用的业务访问入口与开发者后台，每个入口使用用途清楚的名称。
-- 通过当前可用的展示方式提供简短业务总结和真实入口。前台、业务后台、开发者管理后台以及其他所需链接沿用原有交付方式。千问办公在本轮回复结束前，按[收尾链接展示规则](../../../references/qwenwork-link-presentation.md)使用一次展示链接工具：本轮只修改一个已有页面时，展示该页面已确认的工作台链接（`/workbench/{formUuid}`）；其他情况展示当前应用已确认的 `adminUrl`（`/admin` 开发者管理后台）。工具不可用或失败时保留该入口的可点击链接，不重复创建内容。全部需要的入口已提供才算完成；缺少入口时说明影响。
+- 通过当前可用的展示方式提供简短业务总结和真实入口。千问办公单个已有页面修改选工作台，其余选已确认的 `adminUrl`；仅工具明确不可用或实际调用失败时保留可点击链接。缺少入口时说明影响，不重复创建资源。
 - 同一应用的后续交付复用已有资源和已验证 URL；资源变更只按用户本轮明确要求执行，多个用途共用同一 URL 时去重并说明用途。
 - 业务资源在总结中按能力或数量概述；修改、修复、美化只写本轮变化与结果，不重述完整应用或字段表。核验细节留在内部，影响使用的未完成项用一句话说明。
 - 用户或调用方明确要求资源清单、资源 UUID/ID、发布状态或测试数据摘要时，在本轮业务结果中附简洁交付清单，只含真实返回值/readback；未知项标记未核验。面向用户的清单使用业务名称、状态和数量，内部编号按明确的编号或技术需求提供。

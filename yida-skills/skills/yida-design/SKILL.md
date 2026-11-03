@@ -6,6 +6,9 @@ description: >
 
 # yida-design
 
+**Fast 完整应用输入**：由 yida-app 从已确认需求和真实执行回执直接交接，按 [Fast 阶段映射](../yida-app/references/fast-context.md) 使用业务、页面、app_theme.css 与按页素材；不要求 build-context 或完整业务 JSON，不阻塞应用创建。下方要求 PRD/design.md 的文档生成、关联检查与 page-spec 派生步骤仅适用于 Plan/已有文档任务；Fast 不补写长文件。共用业务、数据、权限、样式和发布验收规则照常执行。
+
+
 宜搭应用和页面视觉设计技能，输出 `design.md`。后续主题生成和页面开发都按这份设计实现。
 
 面向用户只介绍主题名称、风格特点和选择方式；说明文档、选择提示及交付总结均不展示主题总套数。
@@ -46,7 +49,7 @@ description: >
 
 Fast、Plan 和单页设计使用相同的 UI 设计规则、主题变量和质量检查；流程只在编写方式与确认时机上有区别。共用 [主题索引](templates/design-themes/index.json)，按 [共享主题选择规则](references/theme-selection.md) 先读摘要、选中后读一份完整主题。
 
-完整应用沿用需求分析阶段确认的模式与风格，按 [设计模式路由](references/design-mode.md) 推进。Fast 使用下方视觉流程；Plan 使用 [视觉分支](sub_skill/yida-design-plan/SKILL.md) 维护视觉事实，由 `yida-app` 生成方案并请用户确认；业务规划始终归 `yida-prd`。新页面设计直接继续；已有页面或应用外观调整先进入 ui-improve。
+完整应用沿用需求分析阶段确认的模式与风格，按 [设计模式路由](references/design-mode.md) 推进。Fast 完整应用按 yida-app 立即创建并独立生成 CSS/页面；下方视觉文档流程用于 Plan/已有文档任务；Plan 使用 [视觉分支](sub_skill/yida-design-plan/SKILL.md) 维护视觉事实，由 `yida-app` 生成方案并请用户确认；业务规划始终归 `yida-prd`。新页面设计直接继续；已有页面或应用外观调整先进入 ui-improve。
 
 ---
 
@@ -73,6 +76,8 @@ Fast、Plan 和单页设计使用相同的 UI 设计规则、主题变量和质�
 
 输入为校验通过的共享 `requirement-brief.json`。沿用已确认的风格；业务规划与配色、组件样式同时准备，页面内容确定后补齐各页设计，由 `yida-app` 核对页面范围和设计引用。
 
+采用命名主题且需求已明确时，优先按 [Fast 设计文档生成](references/fast-design-spec.md) 写短 JSON，由 CLI 生成并校验完整 design.md；复用同份页面身份和所选主题，不逐行重写 token、YAML、anchor 和五章结构。已有设计继续局部修改；自由创意或模板不能表达的视觉要求按下方流程完成具体设计。
+
 | 步骤 | 名称 | 功能描述 | 产出物 |
 | --- | --- | --- | --- |
 | 1 | [读取整理后的用户需求](workflow/step-1-read-brief.md) | 读取业务对象、页面场景、明确范围、品牌和色彩偏好 | 视觉输入摘要 |
@@ -81,7 +86,7 @@ Fast、Plan 和单页设计使用相同的 UI 设计规则、主题变量和质�
 | 4 | [UI 视觉和状态设计](workflow/step-5-visual-states.md) | 从业务任务、信息拓扑和视觉特征选择设计风格 | `design.md` 内容草稿 |
 | 5 | [写入 design.md](workflow/step-6-handoff.md) | 写入项目视觉契约和稳定 `designRefs` | `prd/<项目名>/design.md` |
 
-完整应用输出一份应用级 `design.md`，包含主题、布局、组件、状态和响应式规则，三种流程共用 [唯一输出契约](workflow/output-design.md)：frontmatter 保存机器数据与 anchor 索引，完整规则只写在五章正文。Fast 手写并执行 `check-design`，Plan 使用紧凑契约由 CLI 生成并执行同一校验。页面实现同时读取业务 PRD 和视觉契约。
+完整应用输出一份应用级 `design.md`，包含主题、布局、组件、状态和响应式规则，三种流程共用 [唯一输出契约](workflow/output-design.md)：frontmatter 保存机器数据与 anchor 索引，完整规则只写在五章正文。Fast 优先从短设计输入生成，必要时手写；与 Plan 均执行同一 `check-design`。页面实现同时读取业务 PRD 和视觉契约。
 
 ---
 

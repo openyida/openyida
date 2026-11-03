@@ -1,0 +1,38 @@
+{
+  "name": "企业官网",
+  "themeId": "app-platinum",
+  "primaryColor": "#356B86",
+  "colorSource": "business-inferred",
+  "direction": {
+    "label": "清晰的品牌与服务展示",
+    "description": "用服务介绍、可筛选案例和联系信息帮助访客了解公司并找到联系入口。"
+  },
+  "navigation": { "structure": "top" },
+  "pages": [
+    {
+      "pageId": "website",
+      "name": "企业官网",
+      "sceneKey": "landing",
+      "entryMode": "standalone",
+      "primaryTask": "了解服务、筛选案例并查看联系方式",
+      "blocks": ["首页服务介绍", "案例分类与详情", "联系我们"],
+      "firstScreenFocus": "公司服务主张与案例入口",
+      "layout": "首页、案例、联系三个业务视图共用顶部导航，内容区等宽对齐，详情可返回原筛选结果",
+      "surface": "案例卡片消费共享表面与文字变量，图片区域缺图时保留明确状态",
+      "primaryAction": "切换业务视图、筛选案例、打开详情和返回列表",
+      "states": "无匹配结果显示重置筛选，缺图显示待补充；示例案例明确标注示例",
+      "responsive": "按内容容器宽度重排，窄屏导航折叠、案例单列，切换布局保留筛选与详情状态",
+      "acceptanceChecks": ["三个视图均可访问", "案例筛选与详情返回保持一致", "手机上完整阅读并操作导航"]
+    }
+  ],
+  "assetStrategy": {
+    "pages": [
+      {
+        "pageId": "website",
+        "imageNeed": "beneficial",
+        "reason": "首屏配图用于辅助品牌展示，缺图仍可访问全部业务视图",
+        "slots": [{ "slotId": "website.hero", "usage": "hero", "minSize": "1600x700", "required": false }]
+      }
+    ]
+  }
+}
