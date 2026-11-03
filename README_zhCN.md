@@ -101,7 +101,7 @@ npm install -g dingtalk-workspace-cli
 dws version
 ```
 
-也可运行 `openyida dws install` 查看当前平台的官方安装指引；该命令只显示说明。安装后可使用 `openyida dws <command> [args]` 调用系统中的 dws。
+安装完成后，直接运行 `dws <command> [args]`。各项能力以 `dws --help` 和具体子命令帮助为准。
 
 OpenYida 不内置或自动安装 dws，其版本、升级和登录由 dws 独立管理。需要访问钉钉业务时使用 `dws auth login`，并核对目标组织与账号。宜搭原生酷卡片的创建、读取和编辑器链接无需安装 dws；dws 当前的聊天卡片更新能力不等同于宜搭模板保存。其他平台安装方式见上述官方说明，具体卡片命令以已安装版本的 `--help` 为准。
 
@@ -494,8 +494,6 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida integration check <appType...>` | 检查集成自动化异常运行日志 |
 | `openyida integration detail-log <appType> <procInstId> [--json] [--include-params]` | 查看集成自动化运行日志详情 |
 | `openyida integration diagnose (--text <text>\|--file <path>\|--rules) [--json]` | 诊断集成自动化故障文本和常见配置坑 |
-| `openyida dws <command> [args]` | 钉钉 CLI（通讯录/日历/待办/审批等） |
-| `openyida dws contact user search --keyword <text>` | 钉钉 CLI（通讯录/日历/待办/审批等） |
 | `openyida dingtalk-link <url> [--target fullScreen] [--legacy-scheme] [--json]` | 生成钉钉 AppLink / 兼容 dingtalk:// 跳转链接 |
 
 ### 工具
@@ -505,12 +503,9 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida commands [--json]` | 输出机器可读命令清单 |
 | `openyida agent-capabilities [--json] [--summary-json\|--compact]` | 输出 Agent 一次性能力快照 |
 | `openyida agent <doctor\|diagnose\|status\|connect\|run\|disconnect\|logout\|logs> [options]` | 连接本地 Agent（Go runtime，开发预览） |
-| `openyida a2a <serve\|agent-card> [options]` | 启动本地只读 A2A Adapter 或输出 Agent Card |
-| `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | 启动 OpenYida 本地网页桥接服务 |
 | `openyida copy [--force]` | 复制 project 工作目录 |
 | `openyida sample [--list] [<skill> <name>] [--output <file-or-directory>] [--var KEY=VALUE ...] [--design-file <design.md>] [--style-id <themeId\|free-creative>] [--theme-ids <id,...>] [--pop-art-context <explicit-request\|showcase>]` | 输出代码模板 |
 | `openyida doctor [--fix]` | 环境诊断与自动修复 |
-| `openyida db-seq-fix [--fix]` | PostgreSQL Sequence 漂移检测与修复 |
 | `openyida formula evaluate <formula\|file> [--schema file] [--contract field-value\|validation-rule\|business-action\|node-expression] [--context form\|validation\|automation\|business] [--target-type NumberField] [--metadata file] [--strict] [--json]` | 静态检查宜搭公式语法和字段引用 |
 | `openyida formula check <formula\|file> [--schema file] [--contract field-value\|validation-rule\|business-action\|node-expression] [--context form\|validation\|automation\|business] [--target-type NumberField] [--metadata file] [--strict] [--json]` | 检查公式的写法、字段、参数和类型 |
 | `openyida formula contracts [--json]` | 查看公式保存方式和检查范围 |

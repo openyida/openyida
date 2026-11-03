@@ -238,13 +238,6 @@
     "note": "反馈材料整理 → voc"
   },
   {
-    "id": "db-seq-fix-conflict",
-    "prompt": "数据库主键序列冲突了，帮我检测并修复",
-    "expectedSkill": "yida-db-seq-fix",
-    "group": "辅助工具",
-    "note": "Sequence 修复 → db-seq-fix"
-  },
-  {
     "id": "ai-text-generate",
     "prompt": "调用宜搭 AI 帮我生成一段产品介绍文案",
     "expectedSkill": "openyida ai",

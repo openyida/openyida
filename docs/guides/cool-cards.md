@@ -54,7 +54,7 @@ dws version
 
 访问钉钉业务时使用 `dws auth login` 并核对目标组织与账号，命令能力以已安装版本的 `--help` 为准。仅使用当前 OpenYida 酷卡片命令及编辑器链接，无需安装 dws。
 
-`openyida dws install` 仅展示当前平台的官方安装指引，不运行安装脚本；普通命令找不到 dws 时也只提示安装。已有安装可通过 `openyida dws <command> [args]` 转发调用，升级与登录由外部 dws 管理。
+外部工具直接使用 `dws <command> [args]` 调用，升级与登录由 dws 独立管理。
 
 宜搭资源通过当前 `cardTemplateId` 关联钉钉模板；dws 现有 A2UI 消息更新使用的是已发送卡片的 `bizId`，不能代替该模板的保存。当前仍由用户通过官方编辑器保存，OpenYida 回读验收；安装 dws 不会自动开启宜搭模板保存能力。
 

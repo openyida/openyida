@@ -105,7 +105,7 @@ npm install -g dingtalk-workspace-cli
 dws version
 ```
 
-Alternatively, `openyida dws install` displays official instructions for your platform without running an installer. Once installed, `openyida dws <command> [args]` forwards arguments to your system's dws.
+Run the installed `dws <command> [args]` directly. Check `dws --help` and the relevant subcommand's help for supported options.
 
 OpenYida does not bundle or automatically install dws. Dws manages its own version, updates and login. Use `dws auth login` for DingTalk business access and verify the target organization and account. Native YiDA cool-card creation, reads and editor links work without dws; updating a chat card through dws does not save a YiDA template. See the official instructions for other installation methods and check the installed command's `--help` before use.
 
@@ -624,8 +624,6 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida integration check <appType...>` | Check abnormal integration automation run logs |
 | `openyida integration detail-log <appType> <procInstId> [--json] [--include-params]` | View integration automation run log details |
 | `openyida integration diagnose (--text <text>\|--file <path>\|--rules) [--json]` | Diagnose integration automation tickets and common pitfalls |
-| `openyida dws <command> [args]` | DingTalk CLI (contacts/calendar/todo/approval etc.) |
-| `openyida dws contact user search --keyword <text>` | DingTalk CLI (contacts/calendar/todo/approval etc.) |
 | `openyida dingtalk-link <url> [--target fullScreen] [--legacy-scheme] [--json]` | Generate DingTalk AppLink / legacy dingtalk:// page links |
 
 ### Utility
@@ -635,12 +633,9 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida commands [--json]` | Output machine-readable command manifest |
 | `openyida agent-capabilities [--json] [--summary-json\|--compact]` | Output one-shot agent capability snapshot |
 | `openyida agent <doctor\|diagnose\|status\|connect\|run\|disconnect\|logout\|logs> [options]` | Connect a local Agent (Go runtime, development preview) |
-| `openyida a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
-| `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start OpenYida local web bridge service |
 | `openyida copy [--force]` | Copy project working directory |
 | `openyida sample [--list] [<skill> <name>] [--output <file-or-directory>] [--var KEY=VALUE ...] [--design-file <design.md>] [--style-id <themeId\|free-creative>] [--theme-ids <id,...>] [--pop-art-context <explicit-request\|showcase>]` | Output code samples/templates |
 | `openyida doctor [--fix]` | Environment diagnostics & auto-fix |
-| `openyida db-seq-fix [--fix]` | Detect and repair PostgreSQL sequence drift |
 | `openyida formula evaluate <formula\|file> [--schema file] [--contract field-value\|validation-rule\|business-action\|node-expression] [--context form\|validation\|automation\|business] [--target-type NumberField] [--metadata file] [--strict] [--json]` | Static-check Yida formula syntax and field refs |
 | `openyida formula check <formula\|file> [--schema file] [--contract field-value\|validation-rule\|business-action\|node-expression] [--context form\|validation\|automation\|business] [--target-type NumberField] [--metadata file] [--strict] [--json]` | Check formula syntax, fields, arguments and types |
 | `openyida formula contracts [--json]` | Show formula formats and checker coverage |

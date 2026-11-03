@@ -5,7 +5,7 @@
  *
  * 覆盖 bin/yida.js 中无需真实宜搭 API 即可验证的命令：
  * --help / --version / commands / env / copy / sample / check-page /
- * compile / formula / doctor / batch / export-conversation / db-seq-fix
+ * compile / formula / doctor / batch / export-conversation
  */
 
 const fs = require('fs');
@@ -304,15 +304,6 @@ describe('CLI: batch', () => {
     const result = runAny(['batch', tasksFile]);
     // 应正常处理空任务列表
     expect(result.status === 0 || result.output.length > 0).toBe(true);
-  });
-});
-
-// ─── 14. db-seq-fix ──────────────────────────────────────────────────
-describe('CLI: db-seq-fix', () => {
-  test('dry-run 模式不执行修复只检测', () => {
-    const result = runAny(['db-seq-fix', '--dry-run']);
-    // 无数据库时应有合理输出或错误
-    expect(result.output.length).toBeGreaterThan(0);
   });
 });
 

@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 - **自定义页面附件与图片**：支持获取上传凭证、上传文件、确认和获取私有地址，表单保存后绑定真实实例；上传与绑定失败时保留可恢复状态。
+- 移除 `openyida a2a`、`mcp`、`bridge`、`db-seq-fix` 和 `dws` 包装入口，旧命令不再可用；需要钉钉能力时直接使用独立的 `dws` CLI。
+- 清理对应的帮助文案、技能索引、文档和测试；Codex 插件升级时清理安装器生成的旧 MCP 注册及已移除技能，保留用户自有技能和其他 MCP 配置。
 
 ## [2026.11.2-3] - 2026-11-02
 

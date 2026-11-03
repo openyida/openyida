@@ -1,6 +1,6 @@
 ---
 name: openyida-cross-platform-release-guard
-description: OpenYida 跨端发布风险守卫。当改动涉及浏览器/URL 拉起（openyida login、bridge 页面唤起、resolveBrowserLauncher、openBrowser、spawn 打开浏览器），或用户明确要求检查 Windows/Linux 发布风险时使用。用于静态扫描并拦截「cmd /c start 截断 URL」「open -n 假装开新窗口」等跨端问题；普通版本 tag 发布请使用 openyida-release。
+description: OpenYida 跨端发布风险守卫。当改动涉及浏览器/URL 拉起（openyida login、resolveBrowserLauncher、openBrowser、spawn 打开浏览器），或用户明确要求检查 Windows/Linux 发布风险时使用。用于静态扫描并拦截「cmd /c start 截断 URL」「open -n 假装开新窗口」等跨端问题；普通版本 tag 发布请使用 openyida-release。
 ---
 
 # OpenYida 跨端发布风险守卫
@@ -11,7 +11,7 @@ Windows/Linux 用户侧直接炸掉——因为每个平台的浏览器拉起命
 
 ## 触发条件
 
-- 改动 `lib/auth/oauth-loopback.js`、`lib/bridge/bridge.js`，或任何 `resolveBrowserLauncher` /
+- 改动 `lib/auth/oauth-loopback.js`，或任何 `resolveBrowserLauncher` /
   `openBrowser` / `spawn(...浏览器...)` 相关逻辑。
 - 在 macOS 开发、发布对象包含 Windows / Linux 用户。
 - 用户明确要求对浏览器拉起或 URL 传递改动做跨端发布检查。
@@ -24,7 +24,7 @@ npm run check:release-risks
 
 - **HARD 反模式 → exit 1，阻断发布**（已纳入 `check:ci` 第 10 步）：
   - `cmd-c-start-url` / `cmd-c-start-argv`：`cmd /c start <url>` 会把 URL 里的 `&` 当命令
-    分隔符截断，丢失 `client_id`/`state`（登录）或 `oy_bridge_url`/`oy_bridge_token`（bridge）。
+    分隔符截断，丢失登录 URL 的 `client_id`/`state`。
     → 改用 `rundll32 url.dll,FileProtocolHandler`，并复用 `resolveBrowserLauncher`。
   - `open-n-url-new-tab`：`open -n <url>` 在 macOS 不会开新窗口，只在默认浏览器开新标签页
     （假装开窗口）。→ 要真开新窗口须指定浏览器 App 并传其 `--new-window`/`-new-window`；
@@ -41,8 +41,8 @@ CI 通过只代表纯逻辑没问题，浏览器真实拉起必须在目标 OS �
 
 | 平台 | 拉起方式 | 默认浏览器标识 | 必测 |
 |------|---------|---------------|------|
-| macOS | `open`（新标签页）/ `open -b <bundle> -n --args --new-window`（新窗口） | LaunchServices bundle id（`com.google.chrome`） | `openyida login` 弹出浏览器且回调页自动关闭；bridge 页面能唤起 |
-| Windows | `rundll32 url.dll,FileProtocolHandler`（默认）/ 浏览器 exe `--new-window` | 注册表 ProgId（`ChromeHTML`/`MSEdgeHTM`/`FirefoxURL`） | 登录 URL 的 `client_id`/`state` **不被 `&` 截断**；bridge 参数不丢 |
+| macOS | `open`（新标签页）/ `open -b <bundle> -n --args --new-window`（新窗口） | LaunchServices bundle id（`com.google.chrome`） | `openyida login` 弹出浏览器且回调页自动关闭 |
+| Windows | `rundll32 url.dll,FileProtocolHandler`（默认）/ 浏览器 exe `--new-window` | 注册表 ProgId（`ChromeHTML`/`MSEdgeHTM`/`FirefoxURL`） | 登录 URL 的 `client_id`/`state` **不被 `&` 截断** |
 | Linux | `xdg-open`（默认）/ 浏览器 exe `--new-window` | `.desktop` 文件名（`google-chrome.desktop`） | `openyida login` 能拉起浏览器 |
 
 要点：
@@ -56,7 +56,7 @@ CI 通过只代表纯逻辑没问题，浏览器真实拉起必须在目标 OS �
 1. 确认 `package.json` version 与 CHANGELOG 顶部版本一致（日期格式 `vYYYY.MM.DD`，同日多次
    发布用 `-1`/`-2` 后缀）。
 2. `npm run check:ci` 全绿（含发布风险扫描）。
-3. CHANGELOG 记录本次改动，浏览器/登录/bridge 类改动务必写明**受影响平台**。
+3. CHANGELOG 记录本次改动，浏览器/登录类改动务必写明**受影响平台**。
 
 ## 反哺
 

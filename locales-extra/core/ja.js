@@ -57,7 +57,6 @@ module.exports = {
     "readback_mismatch": "保存内容と再取得内容が一致しません。バックアップを保持し、リモート状態を確認してください。"
   },
   form_message: {"usage":"Usage: openyida form-message <list|inspect|options|create|update|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]","invalid_config":"Invalid form message configuration or argument: {0}","invalid_response":"Incomplete platform form-message response: {0}","api_error":"Form message API failed: {0}. Check login, permissions and edition availability.","not_found":"The message notification does not exist in the target form: {0}","conflict":"The notification changed. Inspect again before saving.","unsupported_trigger":"Writes are not verified for this trigger: {0}.","unsupported_form":"Writes are not verified for this form type: {0}.","readback_mismatch":"Saved notification does not match readback. Keep the backup and inspect remote state."},
-  dws_external: {"note": "dws is an independent external tool. OpenYida only shows installation instructions; it does not download or install it.", "install_guide": "Show official DingTalk CLI installation instructions"},
   cool_card: {"unsupported_environment": "Alibaba Group 版ではクールカードの作成はサポートされていません。", "description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
   data_card: {"description":"Create, read, save drafts and publish native YiDA data cards","usage":"Usage: openyida data-card <list|create|get|save|publish|probe|release-get|release-save|release-check|release-test|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]","failed":"Native data card operation stopped: {0}","conflict":"The draft changed. Read it again before saving or publishing.","mismatch":"Readback does not match the expected schema or published state. Keep the backup and inspect the card before retrying."},
   app_settings: {"description":"Read theme, frontend/backend, native data card and cool card management links","usage":"Usage: openyida app-settings <appType> [--section theme|basic|data-card|cool-card] [--json]","failed":"Application settings could not be read: {0}"},
@@ -232,18 +231,14 @@ module.exports = {
     cmd_integration_check: 'Check abnormal integration automation run logs',
     cmd_integration_detail_log: 'View integration automation run log details',
     cmd_integration_diagnose: 'Diagnose integration automation tickets and common pitfalls',
-    cmd_dws: 'DingTalk CLI（連絡先/カレンダー/ToDo/承認等）',
     cmd_dingtalk_link: 'DingTalk AppLink / 旧 dingtalk:// ページリンクを生成',
     group_utility: 'ユーティリティ',
     cmd_commands: '機械可読コマンド manifest を出力',
     cmd_agent_capabilities: 'Agent 向けの一括 capability snapshot を出力',
-    cmd_a2a: 'ローカル読み取り専用 A2A Adapter を起動、または Agent Card を出力',
-    cmd_bridge: 'OpenYida ローカル Web ブリッジサービスを起動',
     cmd_copy: 'project 作業ディレクトリをコピー',
     cmd_sample: 'コードサンプル/テンプレートを出力',
     cmd_doctor: '環境診断と自動修復',
     cmd_eval: 'スキル多次元評価（ドキュメント品質、ルーティング精度、安全性等）',
-    cmd_db_seq_fix: 'PostgreSQL Sequence ドリフトを検出・修復',
     cmd_formula_evaluate: 'Static-check Yida formula syntax and field refs',
     cmd_update: '最新バージョンに更新',
     cmd_export_conversation: 'AI 会話記録をエクスポート',
@@ -346,7 +341,6 @@ module.exports = {
       '  integration update <appType> <formUuid> <processCode> --spec <file>  Probe blocked update capability\n' +
       '  create-report <appType> "<レポート名>" <チャートJSON|ファイル>  Yida レポートを作成\n' +
       '  append-chart <appType> <reportId> <チャートJSON|ファイル>    既存レポートにチャートを追加\n' +
-      '  dws <command> [args]                                         DingTalk CLI（連絡先/カレンダー/タスク/承認等）\n' +
       '  export-conversation [オプション]                             AI 会話記録をエクスポート\n' +
       '    --output, -o <path>                                        出力ファイルパスを指定\n' +
       '    --input, -i <file>                                         入力会話ファイルを指定\n' +
@@ -371,7 +365,6 @@ module.exports = {
       '  openyida get-page-config APP_XXX FORM-XXX\n' +
       '  openyida update-form-config APP_XXX FORM-XXX false "ページタイトル"\n' +
       '  openyida data query form APP_XXX FORM-XXX --page 1 --size 20\n' +
-      '  openyida dws contact user search --keyword "wukong"\n' +
       '  openyida create-report APP_XXX "売上レポート" .cache/openyida/reports/charts.json\n' +
       '  openyida append-chart APP_XXX REPORT-XXX .cache/openyida/reports/charts.json\n' +
       '  openyida configure-process APP_XXX FORM-YYY .cache/openyida/process/process-def.json\n' +
@@ -1815,37 +1808,6 @@ module.exports = {
     field_used_in_filter: 'This field is commonly used in filter queries',
     forms_overview: 'Form Index Overview',
     feature_coming_soon: 'This feature is coming soon'
-  },
-  db_seq_fix: {
-    usage: 'Usage: openyida db-seq-fix [options]',
-    commands: 'Commands:',
-    cmd_check: 'Check all Sequence status (default)',
-    cmd_fix: 'Automatically fix problematic Sequences',
-    cmd_dry_run: 'Preview fix SQL without executing',
-    examples: 'Examples:',
-    example_check: 'Check all Sequence status',
-    example_fix: 'Automatically fix problematic Sequences',
-    example_dry_run: 'Preview fix SQL',
-    checking_login: 'Checking login status... ({0})',
-    querying_db_config: 'Querying exclusive database configuration...',
-    no_db_config: 'No exclusive database configuration found',
-    checking_sequences: 'Checking all Sequence status...',
-    fixing_sequences: 'Fixing {0} Sequences...',
-    fixing: 'Fixing',
-    fix_done: 'Fix completed',
-    error: 'Execution failed: {0}',
-    report_title: 'Sequence Status Report',
-    need_fix: 'Need Fix ({0})',
-    ok: 'OK ({0})',
-    errors: 'Errors ({0})',
-    sequence: 'Sequence',
-    max_id: 'Max ID',
-    current_seq: 'Current Sequence Value',
-    suggested: 'Suggested Start Value',
-    fix_sql: 'Fix SQL',
-    summary_need_fix: 'Found {0} Sequences that need fixing',
-    run_fix_hint: 'Run openyida db-seq-fix --fix to fix them',
-    summary_ok: 'All Sequences are OK'
   },
   aggregate_table: {
     usage: 'Usage: openyida aggregate-table <list|create-empty|inspect|preview|save|publish|status> <appType> ...',

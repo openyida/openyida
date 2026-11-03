@@ -8,7 +8,7 @@
  * 测试里查不出、却会在 Windows/Linux 用户侧炸掉的历史坑：
  *
  *   - `cmd /c start <url>`：cmd.exe 把 URL 里的 `&` 当命令分隔符，截断
- *     OAuth/bridge URL，丢失 client_id/state 或 bridge 配对参数（见 ce7efdd）。
+ *     OAuth URL，丢失 client_id/state（见 ce7efdd）。
  *   - `open -n <url>`：macOS 下不会真正开新窗口，只是在默认浏览器里开新
  *     标签页，属于「假装开新窗口」的反模式。
  *
@@ -30,7 +30,7 @@ const HARD_RULES = [
     id: 'cmd-c-start-url',
     pattern: /cmd\s*\/c\s*start/i,
     message:
-      'cmd /c start 会把 URL 中的 & 当作命令分隔符截断参数（丢失 client_id/state 或 bridge 配对参数）。请改用 rundll32 url.dll,FileProtocolHandler，并复用 resolveBrowserLauncher。',
+      'cmd /c start 会把 URL 中的 & 当作命令分隔符截断参数（丢失 client_id/state）。请改用 rundll32 url.dll,FileProtocolHandler，并复用 resolveBrowserLauncher。',
   },
   {
     id: 'cmd-c-start-argv',
@@ -152,7 +152,7 @@ function analyzeContent(relPath, content) {
       severity: 'warning',
       ruleId: 'cross-platform-launch-touched',
       message:
-        '涉及浏览器/URL 拉起代码。CI 只跑纯函数单测，不覆盖真实系统拉起——发布前请在 Windows / macOS / Linux 各自实测 login 与 bridge 页面唤起。',
+        '涉及浏览器/URL 拉起代码。CI 只跑纯函数单测，不覆盖真实系统拉起——发布前请在 Windows / macOS / Linux 各自实测 login 浏览器拉起。',
     });
   }
 
@@ -219,7 +219,7 @@ function formatFindings({ findings, errorCount, warnCount }) {
       lines.push(`  ⚠ ${file}`);
     }
     lines.push(
-      '      涉及浏览器/URL 拉起：请在 Windows / macOS / Linux 各自实测 openyida login 与 bridge 页面唤起。'
+      '      涉及浏览器/URL 拉起：请在 Windows / macOS / Linux 各自实测 openyida login 浏览器拉起。'
     );
   }
 

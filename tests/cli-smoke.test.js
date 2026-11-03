@@ -247,9 +247,10 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('integration update <appType>');
     expect(output).toContain('corp-manager');
     expect(output).toContain('agent-center');
-    expect(output).toContain('dws');
+    expect(output).not.toContain('dws');
     expect(output).toContain('dingtalk-link');
-    expect(output).toContain('a2a <serve|agent-card> [options]');
+    expect(output).not.toContain('a2a');
+    expect(output).not.toContain('mcp');
     expect(output).toContain('sample [--list]');
     expect(output).toContain('build-page <sourceFile>');
     expect(output).toContain('check-page <src>');
@@ -723,19 +724,18 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('dingtalk-link');
     expect(commands).toContain('export');
     expect(commands).toContain('externalize-form');
-    expect(commands).toContain('db-seq-fix');
+    expect(commands).not.toContain('db-seq-fix');
+    expect(commands).not.toContain('bridge');
     expect(commands).toContain('commands');
     expect(commands).toContain('agent-capabilities');
-    expect(commands).toContain('a2a');
+    expect(commands).not.toContain('a2a');
+    expect(commands).not.toContain('mcp');
+    expect(commands).not.toContain('dws');
+    expect(commands).not.toContain('dws.contact-user-search');
     expect(commands).toContain('ai');
     expect(commands).toContain('batch');
     expect(commands).not.toContain('batch.file');
     expect(commands).not.toContain('batch.inline');
-    expect(parsed.commands.find(entry => entry.id === 'a2a')).toMatchObject({
-      usage: 'openyida a2a <serve|agent-card> [options]',
-      output: 'text|json',
-      requires_login: false,
-    });
     expect(parsed.commands.find(entry => entry.id === 'commands')).toMatchObject({
       usage: 'openyida commands [--json]',
       output: 'json',
@@ -905,11 +905,6 @@ describe('CLI offline smoke', () => {
       },
     });
     expect(commandById['generate-page']).toBeUndefined();
-    expect(commandById['dws.contact-user-search'].side_effect).toMatchObject({
-      kind: 'remote_read',
-      mutates_yida: false,
-      mutates_local: false,
-    });
     expect(commandById['create-form.validate']).toBeUndefined();
     expect(commandById['create-form.validate-fields'].requires_login).toBe(false);
     expect(commandById['create-form.validate-fields'].side_effect).toMatchObject({
@@ -936,14 +931,6 @@ describe('CLI offline smoke', () => {
       mutates_local: false,
       action_dependent: true,
       note: expect.stringContaining('Action-dependent command'),
-    });
-    expect(commandById['db-seq-fix'].side_effect).toMatchObject({
-      kind: 'mixed',
-      mutates_yida: true,
-      mutates_local: false,
-      action_dependent: true,
-      read_actions: ['default', '--dry-run'],
-      mutating_actions: ['--fix'],
     });
     expect(commandById.batch.side_effect).toMatchObject({
       kind: 'mixed',
@@ -1075,10 +1062,6 @@ describe('CLI offline smoke', () => {
     expect(classifyManifestInvocation(parsed.commands, ['env', 'remove'])).toMatchObject({
       entry: { id: 'env' },
       decision: 'ask',
-    });
-    expect(classifyManifestInvocation(parsed.commands, ['db-seq-fix', '--fix'])).toMatchObject({
-      entry: { id: 'db-seq-fix' },
-      decision: 'allow',
     });
     expect(classifyManifestInvocation(parsed.commands, ['doctor', '--fix'])).toMatchObject({
       entry: { id: 'doctor' },
@@ -1989,11 +1972,6 @@ describe('CLI offline smoke', () => {
       mutates_local: false,
     });
     expect(commandById['generate-page']).toBeUndefined();
-    expect(commandById['dws.contact-user-search'].side_effect).toMatchObject({
-      kind: 'remote_read',
-      mutates_yida: false,
-      mutates_local: false,
-    });
     expect(commandById.ai.side_effect).toMatchObject({
       kind: 'mixed',
       mutates_yida: true,
@@ -2050,19 +2028,33 @@ describe('CLI offline smoke', () => {
     });
   });
 
-  test('a2a agent-card renders a valid Agent Card without requiring login', () => {
-    const output = runOk(['a2a', 'agent-card']);
-    const parsed = JSON.parse(output);
+  test.each([
+    ['a2a'],
+    ['a2a', 'agent-card'],
+    ['a2a', 'serve'],
+    ['a2a', '--help'],
+    ['mcp'],
+    ['mcp', '--help'],
+    ['bridge'],
+    ['bridge', 'start'],
+    ['bridge', '--help'],
+    ['db-seq-fix'],
+    ['db-seq-fix', '--fix'],
+    ['db-seq-fix', '--dry-run'],
+    ['db-seq-fix', '--help'],
+    ['dws'],
+    ['dws', '--help'],
+    ['dws', 'install'],
+    ['dws', 'contact', 'user', 'search', '--keyword', '张三'],
+  ])('removed command is rejected: %p', (...args) => {
+    const result = runAny([...args, '--json']);
 
-    expect(parsed).toMatchObject({
-      protocolVersion: '1.0',
-      name: 'OpenYida Local Adapter',
-      capabilities: {
-        streaming: false,
-        pushNotifications: false,
-      },
+    expect(result.status).toBe(1);
+    expect(JSON.parse(result.jsonOutput)).toMatchObject({
+      success: false,
+      errorCode: 'INVALID_ARGUMENTS',
+      errorMsg: expect.stringContaining(`未知命令: ${args[0]}`),
     });
-    expect(parsed.skills.map(skill => skill.id)).toContain('openyida.command_manifest');
   });
 
   test('sample --list renders available templates without network access', () => {

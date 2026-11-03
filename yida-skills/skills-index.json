@@ -92,8 +92,7 @@
       "command_ids": [
         "cool-card",
         "app-settings",
-        "sample",
-        "dws"
+        "sample"
       ],
       "requires_login": true
     },
@@ -1194,22 +1193,6 @@
         "YidaCodeCanvas",
         ".canvas.jsx",
         "轮询刷新列表或 KPI"
-      ]
-    },
-    {
-      "name": "yida-db-seq-fix",
-      "path": "skills/yida-db-seq-fix/SKILL.md",
-      "display_name": "PostgreSQL Sequence 修复",
-      "description": "PostgreSQL Sequence 自动修复工具。检测并修复 Sequence 起始值问题，避免主键冲突。",
-      "category": "yida-skills/ops",
-      "tags": [
-        "PostgreSQL",
-        "Sequence",
-        "主键冲突",
-        "自增ID"
-      ],
-      "aliases": [
-        "序列修复"
       ]
     },
     {

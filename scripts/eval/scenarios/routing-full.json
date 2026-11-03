@@ -406,20 +406,6 @@
     "note": "页面数据源绑定连接器"
   },
 
-  {
-    "id": "db-seq-fix-pos-1",
-    "prompt": "数据库 sequence 不对了，表单提交报主键冲突，帮我修复一下",
-    "expectedSkill": "yida-db-seq-fix",
-    "type": "positive",
-    "note": "PostgreSQL Sequence 修复"
-  },
-  {
-    "id": "db-seq-fix-pos-2",
-    "prompt": "PostgreSQL 的自增序列值落后了导致插入失败，帮我重置 sequence",
-    "expectedSkill": "yida-db-seq-fix",
-    "type": "positive",
-    "note": "PG sequence 重置"
-  },
 
   {
     "id": "density-pos-1",
