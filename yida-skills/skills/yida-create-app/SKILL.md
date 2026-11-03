@@ -32,6 +32,7 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 - 真正执行创建前，按[创建应用时的提示](../../references/user-facing-summary.md#创建应用时的提示)只说“当前在{组织名称}组织下为您创建{应用名称}应用”。名称必须已确认，不把环境标签当组织名；编排已告知时不重复。
 
 - 创建成功后，将 appType 记录到 `.cache/<项目名>-schema.json`
+- 千问办公保留 `adminUrl` 和 `linkPresentation` 待办，按[收尾检查](../../references/qwenwork-link-presentation.md#收尾必做检查)实际调用展示工具、核对回执后再总结；应用壳也适用。
 - 若完整搭建已确认 PRD 和视觉设计，创建成功后不得回写 `.cache/openyida/<项目名>/requirement-brief.json`，也不得仅因拿到真实 `appType` 重新生成或校验 PRD 和视觉设计；真实 `appType` 只写入 schema 或当前任务资源上下文。
 - 创建前确认当前登录的组织（corpId）与目标组织一致
 - **本技能不读写 memory**：appType 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
@@ -39,7 +40,7 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 ## 适用场景
 
 用户说"只创建应用壳"、"新建应用并返回 appType"，且 resource context 没有目标 app 时使用此技能。
-创建应用后，若任务只是创建应用壳则返回真实 `appType` 即可；若继续完整搭建，把真实 `appType` 写入 `.cache/<项目名>-schema.json` 或当前任务资源上下文，然后直接按已经确认的 PRD 与视觉设计执行：创建/更新表单（`yida-create-form-page`）→ 创建或复用页面（`yida-create-page` / existing page）→ 发布页面（`yida-publish-page`）。
+创建应用后，若任务只是创建应用壳，交付真实 `appType` 与入口；千问办公先完成上述链接展示检查，再结束回复。若继续完整搭建，把真实 `appType` 写入 `.cache/<项目名>-schema.json` 或当前任务资源上下文，保留待展示入口，然后直接按已经确认的 PRD 与视觉设计执行：创建/更新表单（`yida-create-form-page`）→ 创建或复用页面（`yida-create-page` / existing page）→ 发布页面（`yida-publish-page`）。
 后续如果需要自定义页面，源码写到 `project/pages/src/<页面名>.canvas.jsx` 并发布。
 
 ---
@@ -66,6 +67,7 @@ CLI 默认申请新版主题，并在创建后回读应用、组织和 modern �
 - 命令直接以 `openyida create-app` 开头；工作目录通过工具参数指定。不要包装成脚本、命令替换或变量赋值，也不要拼接 `cd`、管道 `|`、重定向（如 `>`、`2>&1`）、分号、`&&`、`||` 或其他命令；不要追加 `echo`、`wc`、查询或验证命令。
 - 保留 Bash 返回的原始 stdout、stderr 和退出码，直接交给宿主 Hook；不要截断、过滤、重定向或用自行整理的文本替换工具输出。宿主 Hook 从成功结果的顶层 `url` 接管侧边栏开页，AI 不再主动调用浏览器重复打开。
 - `--no-open` 只关闭 `browser_handoff` 提示，成功结果仍包含 `url`、`appType` 等字段。侧边栏是否打开不作为创建成功依据；按返回结果记录真实 `appType`，不要因未开页而重跑创建。
+- `--quiet --no-open` 不取消 `linkPresentation` 待办；创建后错误的 `details` 也保留该动作。`pending` 不代表展示成功，按[收尾检查](../../references/qwenwork-link-presentation.md#收尾必做检查)执行。
 - 原始工具输出保留后，继续本次已授权的搭建步骤。Schema 文件使用文件写入工具保存，后续主题更新或必要查询通过新的工具调用执行。
 
 千问办公示例（整行单独执行）：

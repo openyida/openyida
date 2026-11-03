@@ -134,7 +134,16 @@ describe('agent-capabilities summary', () => {
         tool_availability: 'unknown_until_declared_by_host',
         requires_host_tool_inventory_check: true,
         success_means: 'presentation_request_accepted_only_not_registration_or_rendering',
+        completion_gate: {
+          host: 'qwenwork',
+          required_when: 'verified_target_and_available_host_link_tool_unless_user_excludes_target',
+          evidence: 'actual_host_tool_result_for_selected_url_in_current_turn',
+          enforcement_owner: 'host_agent',
+        },
       });
+      const { buildCommandManifest } = require('../lib/core/command-manifest');
+      expect(buildCommandManifest().summary.core_workflows.full_app_build.link_presentation_gate)
+        .toEqual(summary.link_presentation_policy.completion_gate);
       expect(summary.application_entry_policy.entries.admin).toBe('include');
       expect(summary.application_entry_policy.entry_delivery.max_count).toBe(3);
     } else {
