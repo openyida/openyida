@@ -181,7 +181,8 @@ test('initializes stable references, preserves explicit facts and returns a boun
   expect(plan.meta).toMatchObject({ projectName: 'procurement', appName: '采购协作', status: 'draft' });
   expect(plan.pages.customPageDetails).toHaveLength(1);
   expect(plan.pages.customPageDetails[0]).toMatchObject({ pageId: 'dashboard', sceneKey: 'dashboard', name: '采购工作台' });
-  expect(plan.dataModels[0].fields).toEqual(brief.businessObjects[0].fields);
+  expect(plan.dataModels[0].fields).toMatchObject(brief.businessObjects[0].fields);
+  expect(plan.dataModels[0].fields[0]).toMatchObject({ defaultOrOptions: '', relation: '', group: '', description: '' });
   expect(plan.execution.appConfig.appType).toBe('APP_EXISTING');
   expect(plan.execution.explicitScope.navigation.variant).toBe('top');
   expect(result.parallelTasks.map(task => [task.id, task.dependsOn])).toEqual([['business', []]]);
@@ -203,7 +204,7 @@ test('initializes stable references, preserves explicit facts and returns a boun
   expect(visualPart.base).toEqual(businessPart.base);
   expect(visualPart.ready).toBe(true);
   expect(visualPart.facts.visualStyle).toEqual(plan.visualStyle);
-  expect(visualPart.facts.visualStyle.tokens).toEqual(brief.visualSelection.tokens);
+  expect(visualPart.facts.visualStyle.tokens).toEqual({ '--color-brand1-6': '#6F4E37', ...brief.visualSelection.tokens });
   expect(visualPart.facts.visualStyle.forUser.colorStrategy).toEqual({ source: '', usage: '', ...brief.visualSelection.colorStrategy });
   const context = fs.readFileSync(result.context, 'utf8');
   expect(context).toContain('## 1. 风格摘要');
@@ -436,7 +437,7 @@ test('preserves an explicit neutral reference palette at intake', () => {
   save();
   const result = init();
   const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
-  expect(plan.visualStyle.tokens).toEqual(brief.visualSelection.tokens);
+  expect(plan.visualStyle.tokens).toEqual({ '--color-brand1-6': '#6F4E37', ...brief.visualSelection.tokens });
 });
 
 test.each(['#6F4E37', '#7C3AED', '#C2410C'])('selected theme and explicit brand %s survive intake and CSS materialization', primaryColor => {
@@ -505,12 +506,12 @@ test('init reports only missing authoring fields and keeps type examples outside
   ]));
   expect(pending.some(item => item.file === result.preparedInputs.visual)).toBe(false);
   expect(pending.some(item => item.path.endsWith('.permissionSummary') || item.path === 'facts.overview.summary')).toBe(false);
-  expect(business.facts.dataModels[0].fields).toEqual(brief.businessObjects[0].fields);
+  expect(business.facts.dataModels[0].fields).toMatchObject(brief.businessObjects[0].fields);
   expect(business.facts.execution.interactionStates).toBeUndefined();
   expect(business.ready).toBe(false);
   expect(fs.readFileSync(result.context, 'utf8')).toContain('"interactionStates": {');
   expect(business.facts.pages.customPageDetails[0]).not.toHaveProperty('contentPriority');
-  expect(business.facts.pages.customPageDetails[0]).not.toHaveProperty('contentRichness');
+  expect(business.facts.pages.customPageDetails[0].contentRichness).toEqual({ requirement: 'rich-but-relevant' });
   expect(pending.some(item => /contentPriority|contentLayers/.test(item.path))).toBe(false);
   expect(fs.readFileSync(result.context, 'utf8')).toContain('"purpose":');
 });

@@ -37,10 +37,14 @@
 
    初始化失败时，按 `expectedPath` 修正 `requirement-brief.json`，再按[本地校验修复](../../../../references/source-repair.md)重试。初始化和后续物化使用同一停止规则；不要更换项目名规避错误。初始化成功后进入下一步，不重复 init。
 
-4. **确定待补字段。** 按 init 返回的 `parallelTasks`、`dependsOn` 和 `authoring.pendingFields` 安排工作。保留两个片段中的 `base` 与已有事实；业务页面确定后再补视觉内容，可在同一轮中顺序填写两个文件。
+4. **确定待补字段。** 按 init 返回的 `parallelTasks`、`dependsOn` 和 `authoring.pendingFields` 安排工作。待填项带文件、路径、错误码，以及适用的类型、枚举或示例；一次处理同批可独立修复的问题。保留两个片段中的 `base` 与已有事实；业务页面确定后再补视觉内容，可在同一轮中顺序填写两个文件。
 5. **补齐业务事实。** init 已预填 `business.json`；读取该文件及 `context` 中的类型示例，在 facts 中补齐 overview、dataModels、businessFlows、pages 和可选 execution。一次补齐所有普通表单的 sampleDataPlan（窄范围不造数时写 skipReason）及所有自定义页面的 permissionSummary。
 6. **补齐视觉事实。** 在 `visual.json` 的 facts.visualStyle 中落实用户风格意向或已提取的参考视觉 DNA，填写具体 Token；自由创意补齐 creativeDirection 和导航明暗。补齐自定义页的焦点、布局、主操作、响应式和验收。仅在存在品牌稿、参考图、页面级特殊风格或用户明确要求精修时，执行 `optionalTasks.visual-refinement`。纯原生资源没有这些待补项时沿用 init 的视觉内容。
 7. **标记片段就绪。** 复核两个片段覆盖已确认需求且必填内容齐全，将已完成片段设为 `ready=true`。两个片段均已就绪后进入生成步骤。
+
+初始化已补齐字段的缺省结构、可确定的菜单名称和页面内 viewKey，并将已选主色归一为六位 HEX。显式值保留；权限范围、入口用途和多任务入口的默认选择仍按实际业务填写。缺省 contentLayers 由完整 blocks 派生，无需重复抄写；assetStrategy.pages 始终使用数组，图片需求按已确认页面补齐。context 中的项目字段与入口示例只说明格式，不复制为业务事实。
+
+需要集中预检时，执行 init 返回的 `materialize.checkCommand`。已有 `--check` 会聚合字段、菜单、素材结构和字面主色不一致等独立问题，返回 `details.issues`，不写方案产物，也不返回确认附件。按每项路径修正源文件后正式生成；变量引用、复杂资源关系和后续渲染仍执行原有完整校验。预检不计入首版正式生成次数。
 8. **生成首版产物。** 直接执行 init 返回的 `materialize.command`。成功后进入展示步骤；`maxSuccessfulCalls: 1` 表示首版成功后不重复物化。失败按 `repairPolicy` 修复，不能重复提交未修改的输入，具体停止条件见[本地校验修复](../../../../references/source-repair.md)。标准首版不先试 `--from-preview`、`preview`、`--check` 或无参数 materialize。
 9. **实际提问并等待。** 按返回的 `confirmationPolicy` 和 [Plan 交付](step-4-deliver.md) 实际调用 `ask_human`，传入 `confirmation`；managed Local 用 `agent ask-human` 封装。生成成功不代表用户同意。只有当前交互与 revision 匹配的 `confirm_build` 才能实施；queued/pending 时等待，无工具或失败时保留待确认，不能用普通对话、文件链接或状态标记代替。已有同版有效确认直接复用。
 
