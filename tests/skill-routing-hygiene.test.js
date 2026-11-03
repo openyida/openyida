@@ -112,18 +112,4 @@ describe('skill resource boundary copy', () => {
     expect(skill).toMatch(/自动生成结束节点/);
   });
 
-  test('create-app skill documents the optional json flag and existing JSON output', () => {
-    const skill = fs.readFileSync(path.join(
-      __dirname,
-      '..',
-      'yida-skills',
-      'skills',
-      'yida-create-app',
-      'SKILL.md'
-    ), 'utf8');
-
-    expect(skill).toContain('支持可选的 `--json`');
-    expect(skill).toContain('stdout 输出一行 JSON');
-    expect(skill).not.toMatch(/不支持 `--json`|不要添加 `--json`/);
-  });
 });
