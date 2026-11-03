@@ -132,6 +132,8 @@ openyida/
 │   │   ├── chart-builder.js       # 图表 Schema 构建
 │   │   ├── http.js                # 报表 HTTP 请求封装
 │   │   └── constants.js           # 常量与 ID 生成工具
+│   ├── db/                  # 数据库工具
+│   │   └── db-seq-fix.js          # PostgreSQL Sequence 自动修复（解决主键序列漂移）
 ├── project/
 │   ├── config.json          # 应用配置（appType、pageId 等）
 │   └── pages/               # 自定义页面源码目录

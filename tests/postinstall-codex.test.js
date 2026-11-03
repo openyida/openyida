@@ -63,7 +63,8 @@ function expectSkillsPlugin() {
   });
   expect(readJson(path.join(root, '.codex-plugin', 'plugin.json'))).not.toHaveProperty('mcpServers');
   expect(fs.existsSync(path.join(root, '.mcp.json'))).toBe(false);
-  expect(fs.existsSync(path.join(root, 'skills', 'yida-db-seq-fix'))).toBe(false);
+  expect(fs.readFileSync(path.join(root, 'skills', 'yida-db-seq-fix', 'SKILL.md'), 'utf8'))
+    .toBe(fs.readFileSync(path.join(ROOT, 'yida-skills', 'skills', 'yida-db-seq-fix', 'SKILL.md'), 'utf8'));
   expect(fs.existsSync(path.join(root, 'skills', 'openyida', 'SKILL.md'))).toBe(true);
   expect(fs.existsSync(path.join(root, 'assets', 'logo.svg'))).toBe(true);
   expect(fs.readFileSync(path.join(tempHome, '.codex', 'config.toml'), 'utf8'))
@@ -132,7 +133,8 @@ test('upgrade removes legacy MCP registrations from owned plugin caches and pres
   expect(readJson(path.join(missingConfigCache, '.codex-plugin', 'plugin.json'))).toEqual(skillsManifest);
   expect(readJson(path.join(unrelatedCache, '.mcp.json'))).toEqual(customConfig);
   for (const skillsRoot of oldSkillRoots) {
-    expect(fs.existsSync(path.join(skillsRoot, 'yida-db-seq-fix'))).toBe(false);
+    expect(fs.readFileSync(path.join(skillsRoot, 'yida-db-seq-fix', 'SKILL.md'), 'utf8'))
+      .toBe(fs.readFileSync(path.join(ROOT, 'yida-skills', 'skills', 'yida-db-seq-fix', 'SKILL.md'), 'utf8'));
     expect(fs.existsSync(path.join(skillsRoot, 'yida-app', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsRoot, 'yida-cool-card', 'SKILL.md'))).toBe(true);
   }

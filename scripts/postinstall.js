@@ -307,7 +307,7 @@ openyida copy
 | \`yida-skills/analytics\` | 用户显式指定宜搭原生数据卡片；报表、统计、图表、Recharts、ECharts、看板、驾驶舱 | \`yida-data-card\`, \`yida-report\`, \`yida-rechart\`, \`yida-chart\`, \`yida-dashboard\` |
 | \`yida-skills/integration\` | 明确指定宜搭原生酷卡片；连接器、钉钉开放平台、外部 API、数据源、集成自动化 | \`yida-cool-card\`, \`yida-integration\`, \`yida-dingtalk-openapi\`, \`yida-connector\`, \`yida-connector-safe-actions\`, \`yida-data-source-connectors\` |
 | \`yida-skills/access\` | 平台/应用/表单/页面权限、公开访问、分享 | \`yida-corp-manager\`, \`yida-app-permission\`, \`yida-form-permission\`, \`yida-page-config\` |
-| \`yida-skills/ops\` | VOC、OpenYida 故障、Issue/Fork PR | \`yida-voc\`, \`yida-feedback\` |
+| \`yida-skills/ops\` | Sequence、VOC、OpenYida 故障、Issue/Fork PR | \`yida-db-seq-fix\`, \`yida-voc\`, \`yida-feedback\` |
 | \`yida-skills/agent\` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | \`yida-export-conversation\`, \`yida-document-markdown\`, \`yida-tingji\`, \`yida-flash-note-to-prd\` |
 
 ## 本地使用问题反馈

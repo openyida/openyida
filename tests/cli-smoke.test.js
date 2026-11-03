@@ -728,7 +728,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('dingtalk-link');
     expect(commands).toContain('export');
     expect(commands).toContain('externalize-form');
-    expect(commands).not.toContain('db-seq-fix');
+    expect(commands).toContain('db-seq-fix');
     expect(commands).not.toContain('bridge');
     expect(commands).toContain('commands');
     expect(commands).toContain('agent-capabilities');
@@ -936,6 +936,14 @@ describe('CLI offline smoke', () => {
       action_dependent: true,
       note: expect.stringContaining('Action-dependent command'),
     });
+    expect(commandById['db-seq-fix'].side_effect).toMatchObject({
+      kind: 'mixed',
+      mutates_yida: true,
+      mutates_local: false,
+      action_dependent: true,
+      read_actions: ['default', '--dry-run'],
+      mutating_actions: ['--fix'],
+    });
     expect(commandById.batch.side_effect).toMatchObject({
       kind: 'mixed',
       mutates_yida: true,
@@ -1066,6 +1074,10 @@ describe('CLI offline smoke', () => {
     expect(classifyManifestInvocation(parsed.commands, ['env', 'remove'])).toMatchObject({
       entry: { id: 'env' },
       decision: 'ask',
+    });
+    expect(classifyManifestInvocation(parsed.commands, ['db-seq-fix', '--fix'])).toMatchObject({
+      entry: { id: 'db-seq-fix' },
+      decision: 'allow',
     });
     expect(classifyManifestInvocation(parsed.commands, ['doctor', '--fix'])).toMatchObject({
       entry: { id: 'doctor' },
@@ -2042,10 +2054,6 @@ describe('CLI offline smoke', () => {
     ['bridge'],
     ['bridge', 'start'],
     ['bridge', '--help'],
-    ['db-seq-fix'],
-    ['db-seq-fix', '--fix'],
-    ['db-seq-fix', '--dry-run'],
-    ['db-seq-fix', '--help'],
     ['dws'],
     ['dws', '--help'],
     ['dws', 'install'],
@@ -2059,6 +2067,13 @@ describe('CLI offline smoke', () => {
       errorCode: 'INVALID_ARGUMENTS',
       errorMsg: expect.stringContaining(`未知命令: ${args[0]}`),
     });
+  });
+
+  test('db-seq-fix help remains available without database access', () => {
+    const output = runOk(['db-seq-fix', '--help']);
+    expect(output).toContain('openyida db-seq-fix');
+    expect(output).toContain('--dry-run');
+    expect(output).toContain('--fix');
   });
 
   test('sample --list renders available templates without network access', () => {

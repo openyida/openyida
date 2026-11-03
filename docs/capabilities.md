@@ -225,6 +225,7 @@
 | 配置 CDN/OSS 上传 | `openyida cdn-config [options]` |
 | 上传图片到 CDN | `openyida cdn-upload <image-path>` |
 | 刷新 CDN 缓存 | `openyida cdn-refresh [options]` |
+| 检测/修复 PostgreSQL Sequence 漂移 | `openyida db-seq-fix [--fix]` |
 | 输出机器可读命令清单 | `openyida commands --json` |
 | 静默 CLI 装饰输出 | `openyida --quiet ...` 或 `YIDA_QUIET=1` |
 | 禁用更新检查提示 | `OPENYIDA_SKIP_UPDATE_CHECK=1` / `NO_UPDATE_NOTIFIER=1` / `CI=1` |

@@ -1375,6 +1375,12 @@ async function main() {
       break;
     }
 
+    case 'db-seq-fix': {
+      const { run: runDbSeqFix } = require('../lib/db/db-seq-fix');
+      await runDbSeqFix(args);
+      break;
+    }
+
     case 'update': {
       const { runUpdate } = require('../lib/core/update');
       await runUpdate(currentVersion);

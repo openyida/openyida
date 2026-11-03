@@ -1196,6 +1196,22 @@
       ]
     },
     {
+      "name": "yida-db-seq-fix",
+      "path": "skills/yida-db-seq-fix/SKILL.md",
+      "display_name": "PostgreSQL Sequence 修复",
+      "description": "PostgreSQL Sequence 自动修复工具。检测并修复 Sequence 起始值问题，避免主键冲突。",
+      "category": "yida-skills/ops",
+      "tags": [
+        "PostgreSQL",
+        "Sequence",
+        "主键冲突",
+        "自增ID"
+      ],
+      "aliases": [
+        "序列修复"
+      ]
+    },
+    {
       "name": "yida-density",
       "path": "skills/yida-density/SKILL.md",
       "display_name": "页面信息密度设计",
