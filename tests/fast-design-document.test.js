@@ -40,7 +40,7 @@ test('short project decisions generate a complete design and matching CSS withou
   const result = renderFastDocument(input, { outputDir: 'prd/品牌' });
   const parsed = parseDesignDocument(result.markdown);
   expect(parsed.metadata).not.toHaveProperty('buildPlanRevision');
-  expect(parsed.metadata.themeProfile).toMatchObject({ themeColor: '#445566', contentTone: 'light', navTheme: 'light', themeFile: 'prd/品牌/app-theme.css' });
+  expect(parsed.metadata.themeProfile).toMatchObject({ themeColor: '#445566', contentTone: 'light', navTheme: 'light', themeFile: path.join('prd/品牌', 'app-theme.css') });
   expect(result.validation).toMatchObject({ success: true, pages: ['website'] });
   expect(result.markdown).toContain(input.pages[0].primaryTask);
   expect(result.markdown).not.toMatch(/草稿待补充|\{\{/);
