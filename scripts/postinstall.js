@@ -192,25 +192,6 @@ function createCodexPluginManifest() {
       composerIcon: './assets/logo.svg',
       logo: './assets/logo.svg',
     },
-    mcpServers: './.mcp.json',
-  };
-}
-
-/**
- * 构建 Codex 插件 MCP 配置。
- */
-function createCodexMcpConfig() {
-  return {
-    mcpServers: {
-      openyida: {
-        command: process.execPath,
-        args: [
-          path.join(PACKAGE_ROOT, 'bin', 'yida.js'),
-          'mcp',
-        ],
-        cwd: '.',
-      },
-    },
   };
 }
 
@@ -403,8 +384,37 @@ function ensureCodexConfig(codexDir, marketplaceRoot) {
 }
 
 /**
- * 已打开的 Codex 会话可能仍引用旧版本缓存路径。同步其中的技能正文，
- * 但保留每个缓存目录自己的 manifest/version，避免当前会话继续执行旧规则。
+ * 移除安装器生成的旧 MCP 注册，保留用户添加的其他服务。
+ */
+function removeLegacyCodexMcpConfig(pluginRoot) {
+  const configPath = path.join(pluginRoot, '.mcp.json');
+  if (fs.existsSync(configPath)) {
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    const args = config.mcpServers?.openyida?.args;
+    if (Array.isArray(args) && args.length === 2 && typeof args[0] === 'string'
+        && path.basename(args[0]) === 'yida.js' && args[1] === 'mcp') {
+      delete config.mcpServers.openyida;
+      if (Object.keys(config.mcpServers).length === 0) {
+        fs.unlinkSync(configPath);
+      } else {
+        writeJsonFile(configPath, config);
+      }
+    }
+  }
+
+  const manifestPath = path.join(pluginRoot, '.codex-plugin', 'plugin.json');
+  if (!fs.existsSync(configPath) && fs.existsSync(manifestPath)) {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    if (manifest.mcpServers === './.mcp.json') {
+      delete manifest.mcpServers;
+      writeJsonFile(manifestPath, manifest);
+    }
+  }
+}
+
+/**
+ * 已打开的 Codex 会话可能仍引用旧版本缓存路径。同步技能正文并清理旧 MCP 注册，
+ * 保留每个缓存目录自己的版本及其他配置，避免当前会话继续执行旧规则。
  */
 function syncExistingCodexPluginSkillCaches(codexDir, pluginRoot) {
   const cacheRoot = path.join(
@@ -425,6 +435,7 @@ function syncExistingCodexPluginSkillCaches(codexDir, pluginRoot) {
         cleanupLegacy(cachedFolder);
         copyDirRecursive(path.join(pluginRoot, folderName), cachedFolder);
       });
+      safeExec(() => removeLegacyCodexMcpConfig(cachedPluginRoot));
     });
 }
 
@@ -444,10 +455,6 @@ function installCodexPlugin() {
   writeJsonFile(
     path.join(pluginRoot, '.codex-plugin', 'plugin.json'),
     createCodexPluginManifest(),
-  );
-  writeJsonFile(
-    path.join(pluginRoot, '.mcp.json'),
-    createCodexMcpConfig(),
   );
 
   fs.mkdirSync(path.join(pluginRoot, 'assets'), { recursive: true });

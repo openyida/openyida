@@ -92,8 +92,7 @@
       "command_ids": [
         "cool-card",
         "app-settings",
-        "sample",
-        "dws"
+        "sample"
       ],
       "requires_login": true
     },

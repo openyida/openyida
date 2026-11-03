@@ -57,7 +57,6 @@ module.exports = {
     "readback_mismatch": "الإعداد المحفوظ لا يطابق القراءة. احتفظ بالنسخة الاحتياطية وافحص الحالة البعيدة."
   },
   form_message: {"usage":"Usage: openyida form-message <list|inspect|options|create|update|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]","invalid_config":"Invalid form message configuration or argument: {0}","invalid_response":"Incomplete platform form-message response: {0}","api_error":"Form message API failed: {0}. Check login, permissions and edition availability.","not_found":"The message notification does not exist in the target form: {0}","conflict":"The notification changed. Inspect again before saving.","unsupported_trigger":"Writes are not verified for this trigger: {0}.","unsupported_form":"Writes are not verified for this form type: {0}.","readback_mismatch":"Saved notification does not match readback. Keep the backup and inspect remote state."},
-  dws_external: {"note": "dws is an independent external tool. OpenYida only shows installation instructions; it does not download or install it.", "install_guide": "Show official DingTalk CLI installation instructions"},
   cool_card: {"unsupported_environment": "إصدار مجموعة علي بابا لا يدعم إنشاء البطاقات التفاعلية.", "description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
   data_card: {"description":"Create, read, save drafts and publish native YiDA data cards","usage":"Usage: openyida data-card <list|create|get|save|publish|probe|release-get|release-save|release-check|release-test|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]","failed":"Native data card operation stopped: {0}","conflict":"The draft changed. Read it again before saving or publishing.","mismatch":"Readback does not match the expected schema or published state. Keep the backup and inspect the card before retrying."},
   app_settings: {"description":"Read theme, frontend/backend, native data card and cool card management links","usage":"Usage: openyida app-settings <appType> [--section theme|basic|data-card|cool-card] [--json]","failed":"Application settings could not be read: {0}"},
@@ -232,13 +231,10 @@ module.exports = {
     cmd_integration_check: 'Check abnormal integration automation run logs',
     cmd_integration_detail_log: 'View integration automation run log details',
     cmd_integration_diagnose: 'Diagnose integration automation tickets and common pitfalls',
-    cmd_dws: 'DingTalk CLI (جهات الاتصال/التقويم/المهام/الموافقة إلخ)',
     cmd_dingtalk_link: 'إنشاء روابط DingTalk AppLink / dingtalk:// القديمة',
     group_utility: 'الأدوات',
     cmd_commands: 'Output machine-readable command manifest',
     cmd_agent_capabilities: 'Output one-shot agent capability snapshot',
-    cmd_a2a: 'Start local read-only A2A adapter or print Agent Card',
-    cmd_bridge: 'Start OpenYida local web bridge service',
     cmd_copy: 'نسخ دليل عمل project',
     cmd_sample: 'إخراج أمثلة/قوالب الكود',
     cmd_doctor: 'تشخيص البيئة والإصلاح التلقائي',
@@ -349,7 +345,6 @@ module.exports = {
       '  integration check <appType...> [--json] [--output xlsx]     Check abnormal integration automation run logs\n' +
       '  create-report <appType> "<name>" <chartsJSON|file>           Create Yida report\n' +
       '  append-chart <appType> <reportId> <chartsJSON|file>          Append chart to existing report\n' +
-      '  dws <command> [args]                                         DingTalk CLI (contacts/calendar/todo/approval etc.)\n' +
       '  export-conversation [options]                                Export AI conversation records\n' +
       '    --output, -o <path>                                        Specify output file path\n' +
       '    --input, -i <file>                                         Specify input conversation file\n' +
@@ -378,9 +373,6 @@ module.exports = {
       '  openyida get-page-config APP_XXX FORM-XXX\n' +
       '  openyida update-form-config APP_XXX FORM-XXX false "Page Title"\n' +
       '  openyida data query form APP_XXX FORM-XXX --page 1 --size 20\n' +
-      '  openyida dws contact user search --keyword "wukong"\n' +
-      '  openyida dws calendar event list\n' +
-      '  openyida dws todo task create --title "Task"\n' +
       '  openyida create-report APP_XXX "Sales Report" .cache/openyida/reports/charts.json\n' +
       '  openyida append-chart APP_XXX REPORT-XXX .cache/openyida/reports/charts.json\n' +
       '  openyida configure-process APP_XXX FORM-YYY .cache/openyida/process/process-def.json\n' +

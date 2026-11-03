@@ -185,8 +185,6 @@
 | 停用集成自动化 | `openyida integration disable <appType> <formUuid> <processCode>` |
 | 检查集成异常日志 | `openyida integration check <appType...>` |
 | 诊断集成配置问题 | `openyida integration diagnose (--text <text>\|--file <path>\|--rules)` |
-| 调用钉钉 CLI | `openyida dws <command> [args]` |
-| 搜索钉钉联系人 | `openyida dws contact user search --keyword <text>` |
 | 生成钉钉 AppLink | `openyida dingtalk-link <url> [--target fullScreen]` |
 
 ## AI、公式与知识整理
@@ -228,9 +226,6 @@
 | 上传图片到 CDN | `openyida cdn-upload <image-path>` |
 | 刷新 CDN 缓存 | `openyida cdn-refresh [options]` |
 | 检测/修复 PostgreSQL Sequence 漂移 | `openyida db-seq-fix [--fix]` |
-| 启动 MCP 服务 | `openyida mcp` |
-| 启动 A2A adapter 或输出 Agent Card | `openyida a2a <serve\|agent-card> [options]` |
-| 启动本地 Web bridge | `openyida bridge start [--token <pair-token>] [--port 6736]` |
 | 输出机器可读命令清单 | `openyida commands --json` |
 | 静默 CLI 装饰输出 | `openyida --quiet ...` 或 `YIDA_QUIET=1` |
 | 禁用更新检查提示 | `OPENYIDA_SKIP_UPDATE_CHECK=1` / `NO_UPDATE_NOTIFIER=1` / `CI=1` |

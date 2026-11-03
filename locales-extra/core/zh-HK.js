@@ -58,7 +58,6 @@ module.exports = {
     "readback_mismatch": "儲存配置與回讀不一致，請保留備份並檢查遠端狀態。"
   },
   form_message: {"usage":"用法：openyida form-message <list|inspect|options|create|update|delete> <appType> <formUuid> [messageId] [--config <文件>] [--expected-hash <哈希>] [--backup <文件>] [--yes] [--json]","invalid_config":"消息通知配置或參數無效：{0}","invalid_response":"平台返回的消息通知配置不完整：{0}","api_error":"表單消息通知接口失敗：{0}。請檢查登入、權限和版本。","not_found":"目標表單中不存在消息通知：{0}","conflict":"消息通知已變更，請重新查詢。","unsupported_trigger":"尚未驗證此觸發規則的寫入：{0}。","unsupported_form":"尚未驗證此表單類型的寫入：{0}。","readback_mismatch":"保存結果與回讀不一致，請保留備份並檢查遠端狀態。"},
-  dws_external: {"note": "dws is an independent external tool. OpenYida only shows installation instructions; it does not download or install it.", "install_guide": "Show official DingTalk CLI installation instructions"},
   cool_card: {"unsupported_environment": "集團版不支援酷卡片搭建。", "description": "Create and read native YiDA cool cards (interactive and pinned)", "usage": "Usage: openyida cool-card <list|templates|create|get> <appType> [cardPageCode] [--type im|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]", "failed": "Native cool card operation stopped: {0}"},
   data_card: {"description":"创建、读取、保存草稿和发布宜搭原生数据卡片","usage":"用法： openyida data-card <list|create|get|save|publish|probe|release-get|release-save|release-check|release-test|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]","failed":"原生数据卡片操作已停止：{0}","conflict":"卡片草稿已发生变化，请重新读取后再保存或发布。","mismatch":"回读配置或发布状态与预期不一致，请保留备份并检查卡片后再重试。"},
   app_settings: {"description":"获取主题、业务前后台、原生数据卡片和酷卡片管理入口","usage":"用法： openyida app-settings <appType> [--section theme|basic|data-card|cool-card] [--json]","failed":"无法读取应用设置：{0}"},
@@ -234,13 +233,10 @@ module.exports = {
     cmd_integration_check: '檢查整合自動化異常執行日誌',
     cmd_integration_detail_log: 'View integration automation run log details',
     cmd_integration_diagnose: '诊断集成自动化故障文本和常见配置坑',
-    cmd_dws: '釘釘 CLI（通訊錄/日曆/待辦/審批等）',
     cmd_dingtalk_link: '生成釘釘 AppLink / 相容 dingtalk:// 跳轉連結',
     group_utility: '工具',
     cmd_commands: '輸出機器可讀命令清單',
     cmd_agent_capabilities: '輸出 Agent 一次性能力快照',
-    cmd_a2a: '啟動本機唯讀 A2A Adapter 或輸出 Agent Card',
-    cmd_bridge: '啟動 OpenYida 本機網頁橋接服務',
     cmd_copy: '複製 project 工作目錄',
     cmd_sample: '輸出程式碼範例/模板',
     cmd_doctor: '環境診斷與自動修復',
@@ -348,7 +344,6 @@ module.exports = {
       '  integration update <appType> <formUuid> <processCode> --spec <file>  Probe blocked update capability\n' +
       '  create-report <appType> "<報表名稱>" <圖表JSON|檔案路徑>     建立宜搭報表\n' +
       '  append-chart <appType> <reportId> <圖表JSON|檔案路徑>        向已有報表追加圖表\n' +
-      '  dws <command> [args]                                         釘釘 CLI（通訊錄/日曆/待辦/審批等）\n' +
       '  export-conversation [選項]                                   匯出 AI 對話記錄\n' +
       '    --output, -o <path>                                        指定輸出檔案路徑\n' +
       '    --input, -i <file>                                         指定輸入對話檔案\n' +
@@ -373,7 +368,6 @@ module.exports = {
       '  openyida get-page-config APP_XXX FORM-XXX\n' +
       '  openyida update-form-config APP_XXX FORM-XXX false "頁面標題"\n' +
       '  openyida data query form APP_XXX FORM-XXX --page 1 --size 20\n' +
-      '  openyida dws contact user search --keyword "悟空"\n' +
       '  openyida create-report APP_XXX "銷售報表" .cache/openyida/reports/charts.json\n' +
       '  openyida append-chart APP_XXX REPORT-XXX .cache/openyida/reports/charts.json\n' +
       '  openyida configure-process APP_XXX FORM-YYY .cache/openyida/process/process-def.json\n' +

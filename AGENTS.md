@@ -39,8 +39,6 @@ openyida/
 │   │   └── org.js           # 组织管理（列出/切换组织）
 │   ├── basic-info/          # 企业基础信息查询（版本 / 授权 / 域名）
 │   │   └── basic-info.js    # 企业版本、授权信息与域名管理
-│   ├── bridge/              # 浏览器桥接服务（本地 HTTP 代理连接宜搭页面）
-│   │   └── bridge.js        # Bridge HTTP 服务器（本地代理 + 页面唤起）
 │   ├── samples/             # 代码示例/模板（通过 openyida sample 命令输出到工作目录）
 │   │   ├── yida-chart/            # ECharts 图表示例（7个）
 │   │   ├── yida-custom-page/      # 自定义页面模板（2个）
@@ -48,9 +46,6 @@ openyida/
 │   │   ├── yida-data-management/  # 表单字段模板（1个）
 │   │   ├── yida-density/          # 密度切换示例（1个）
 │   │   └── yida-table-form/       # 表格表单示例（1个）
-│   ├── a2a/                 # A2A 协议服务器（Agent-to-Agent HTTP 通信）
-│   │   ├── cmd.js           # a2a 命令入口（参数解析与启动）
-│   │   └── server.js        # A2A HTTP 服务实现（JSON-RPC 路由）
 │   ├── agent-center/        # 智能代理任务中心（代理人任务管理）
 │   │   ├── agent-center.js  # 代理人任务命令（创建/更新/取消/查询）
 │   │   └── api.js           # 代理人 API 请求封装
@@ -96,8 +91,6 @@ openyida/
 │   │   └── evaluate.js      # 宜搭公式解析与求值（支持 60+ 内置函数）
 │   ├── dingtalk/            # 钉钉链接生成（AppLink / 页面链接构建）
 │   │   └── dingtalk-link.js # 钉钉 AppLink URL 与页面链接生成
-│   ├── dws/                 # 钉钉 CLI 集成
-│   │   └── dws-wrapper.js   # 钉钉 CLI 包装器（通讯录/日历/待办/审批等）
 │   ├── i18n-management/     # 应用多语言管理（语言包配置）
 │   │   └── i18n-management.js # 应用级多语言资源管理（12 种语言）
 │   ├── integration/         # 集成 & 自动化
@@ -132,8 +125,6 @@ openyida/
 │   │   ├── cdn-config-cmd.js      # CDN 配置命令
 │   │   ├── cdn-upload.js          # 上传图片到 OSS/CDN
 │   │   └── cdn-refresh.js         # 刷新 CDN 缓存
-│   ├── mcp/                 # MCP 协议服务器（Model Context Protocol）
-│   │   └── server.js        # MCP JSON-RPC 服务实现（工具注册与调用）
 │   ├── report/              # 宜搭报表管理
 │   │   ├── create-report.js       # 创建报表（入口）
 │   │   ├── index.js               # 创建报表主流程

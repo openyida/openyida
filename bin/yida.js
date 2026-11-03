@@ -86,7 +86,6 @@ function printHelp() {
   console.log(`    ${DIM}${RESET} openyida login`);
   console.log(`    ${DIM}${RESET} openyida create-app "${t('help.quickstart_app_name')}"`);
   console.log(`    ${DIM}${RESET} openyida create-form create APP_XXX "${t('help.quickstart_form_name')}" .cache/openyida/forms/fields.json`);
-  console.log(`    ${DIM}${RESET} openyida dws contact user search --keyword "张三"`);
   console.log('');
   console.log(`  ${DIM}${t('help.docs')} https://demo.aliwork.com/o/openyida/helpCenter  ·  https://github.com/openyida/openyida${RESET}`);
   console.log('');
@@ -663,24 +662,6 @@ async function main() {
 
     case 'agent': {
       const { run } = require('../lib/agent/cmd');
-      await run(args);
-      break;
-    }
-
-    case 'mcp': {
-      const { runStdioServer } = require('../lib/mcp/server');
-      runStdioServer();
-      break;
-    }
-
-    case 'a2a': {
-      const { run } = require('../lib/a2a/cmd');
-      await run(args);
-      break;
-    }
-
-    case 'bridge': {
-      const { run } = require('../lib/bridge/bridge');
       await run(args);
       break;
     }
@@ -1343,12 +1324,6 @@ async function main() {
       } else {
         throwCliUsage(t('cli.integration_unknown', subCommand), t('cli.integration_help_hint'));
       }
-      break;
-    }
-
-    case 'dws': {
-      const { run: runDws } = require('../lib/dws/dws-wrapper');
-      await runDws(args);
       break;
     }
 

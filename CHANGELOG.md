@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [Unreleased]
+
+- 移除 `openyida a2a`、`mcp`、`bridge` 和 `dws` 包装入口，旧命令不再可用；需要钉钉能力时直接使用独立的 `dws` CLI。保留宜搭专属存储的 `db-seq-fix` 检查与修复能力。
+- 清理对应的帮助文案、技能索引、文档和测试；Codex 插件升级时清理安装器生成的旧 MCP 注册，保留 DB 修复技能、用户自有技能和其他 MCP 配置。
+
 ## [2026.11.3] - 2026-11-03
 
 - **千问办公搭建体验**：优化应用搭建速度和交付体验，减少重复准备、等待与失败后的重复操作。
