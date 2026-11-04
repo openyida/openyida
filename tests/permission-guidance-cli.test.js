@@ -29,6 +29,8 @@ async function runCli(baseUrl, workspace, mode = 'web', command = 'create-app') 
     env.QODER_WORKER_CWD = workspace;
   }
   let args = [BIN, 'create-app', '--name', 'Permission test'];
+  if (command === 'create-app-json') { args.push('--json'); }
+  if (command === 'create-app-quiet') { args.push('--quiet', '--no-open'); }
   if (command === 'import') {
     const filename = path.join(workspace, 'import.json');
     fs.writeFileSync(filename, JSON.stringify({ sourceAppType: 'APP_SOURCE', forms: [{ name: 'Form', formUuid: 'FORM_SOURCE' }] }));
@@ -50,6 +52,8 @@ test.each([
   ['desktop', 'legacy', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app'],
   ['codex', 'short', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app'],
   ['desktop', 'short', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app'],
+  ['desktop', 'opaque-code', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app-json'],
+  ['desktop', 'short-error-field', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app-quiet'],
   ['web', 'unknown', 'YIDA_PERMISSION_REQUIRED', null, 'create-app'],
   ['desktop', 'config', 'YIDA_PLATFORM_ACCESS_REQUIRED', 'unauth', 'create-app'],
   ['web', 'legacy', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'import'],
@@ -65,6 +69,10 @@ test.each([
     } else if (scenario === 'redirect' || scenario === 'config' || scenario === 'create-redirect') {
       const permissionType = scenario === 'create-redirect' ? 'noAppCreationAuth' : 'unauth';
       res.writeHead(302, { Location: `/defaultPage.html?type=${permissionType}` }); res.end();
+    } else if (scenario === 'opaque-code') {
+      res.end(JSON.stringify({ success: false, errorCode: 'UNMAPPED_BUSINESS_CODE', errorMsg: '没有权限' }));
+    } else if (scenario === 'short-error-field') {
+      res.end(JSON.stringify({ error: '没有权限' }));
     } else {
       res.end(JSON.stringify({ success: false, errorCode: 'TIANSHU_000006',
         errorMsg: scenario === 'short' ? '没有权限' : scenario === 'legacy' ? '管理员暂未为您分配权限，请联系管理员授权' : 'Other permission denied' }));

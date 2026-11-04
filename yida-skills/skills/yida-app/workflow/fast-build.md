@@ -16,6 +16,8 @@ openyida create-app --name "应用名称" --desc "本轮业务范围" --json
 
 完整保留原始回执和退出状态，不在创建命令前后拼接 date、管道、head/tail 或 JSON 筛选；计时另起只读命令，复用真实工具时间。记录真实 appType 与返回入口。复用已有应用时不调用创建。授权、当前组织和既有资源边界仍由原技能与 CLI 保护。未知写入先回读，不重复创建。
 
+创建权限不足时按 [创建权限处理](../../yida-create-app/SKILL.md#创建权限不足时的处理) 给出当前组织的申请表并暂停。
+
 ## 2. 同时准备主题与独立页面
 
 **必须生成并应用 `app_theme.css`**，明确禁止 theme-file 的范围除外。使用本轮已选主题和主色；主题未知时一次读取 `design-plan catalog --compact` 作为主题列表，复用已有结果，不运行 init/materialize/preview。目录命令不代表采用 Plan。

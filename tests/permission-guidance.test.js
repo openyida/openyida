@@ -105,9 +105,15 @@ test.each(['000006', 'TIANSHU_000006', '403', undefined])('short creation denial
   expect(createPermissionError(response, { ...OPTIONS, tool: 'codex', requestPath: '/query/form/update.json' })).toBeNull();
 });
 
-test.each(['SERVER_ERROR', 'invalid_access_token'])('does not turn unrelated error %s into a creation permission failure', errorCode => {
-  expect(createPermissionError({ success: false, errorCode, errorMsg: '没有权限' },
-    { ...OPTIONS, requestPath: '/query/app/registerApp.json' })).toBeNull();
+test.each([
+  [{ errorCode: 'SERVER_ERROR', errorMsg: '服务暂不可用' }, 200],
+  [{ errorCode: 'SERVER_ERROR', errorMsg: '没有权限' }, 500],
+  [{ errorCode: 'invalid_access_token', errorMsg: '没有权限' }, 200],
+  [{ errorCode: '401', errorMsg: '没有权限' }, 200],
+  [{ errorCode: 'TIANSHU_000030', errorMsg: '没有权限' }, 200],
+])('keeps service, authentication and CSRF errors out of the creation permission flow: %j', (response, httpStatus) => {
+  expect(createPermissionError({ success: false, ...response },
+    { ...OPTIONS, httpStatus, requestPath: '/query/app/registerApp.json' })).toBeNull();
 });
 
 test.each([
