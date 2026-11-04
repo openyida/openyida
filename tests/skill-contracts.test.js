@@ -686,8 +686,7 @@ describe('OpenYida skill contracts', () => {
     expect(prd.done_when).toContain('资源创建顺序');
 
     const designSkill = readSkill('yida-skills/skills/yida-design/SKILL.md');
-    expect(designSkill).toContain('输出 `design.md`');
-    expect(designSkill).toContain('视觉设计技能，输出 `design.md`');
+    expect(designSkill).toContain('文档任务输出 `design.md`');
     expect(designSkill).toContain('业务规划与配色、组件样式同时准备，页面内容确定后补齐各页设计');
 
   });
@@ -853,7 +852,7 @@ describe('OpenYida skill contracts', () => {
     expect(manifest).toContain('only for standalone pages when get-form-config readback confirms renderNav=false');
     expect(manifest).toContain('application_entry_policy.entries.admin=include');
     expect(manifest).toContain('{base_url}/{appType}/workbench');
-    expect(byName.get('yida-app').description).toContain('表单/流程先于自定义页面');
+    expect(byName.get('yida-app').description).toContain('前后台都规划菜单顺序与默认页面');
     expect(byName.get('yida-nav-group').description).toContain('PRD 写明导航顺序时用 order');
   });
 
@@ -1005,9 +1004,9 @@ describe('OpenYida skill contracts', () => {
     expect(outputDesign).toContain('Plan 由 CLI 物化生成');
     expect(outputDesign).toContain('## frontmatter 规范');
     expect(outputDesign).toContain('## 稳定引用规则');
-    expect(outputDesign).toContain('Fast 保留 PRD 的 Markdown 逐页块与 `pageSpecHandoff` 格式');
+    expect(outputDesign).toContain('已有 Markdown PRD 保留逐页块与 `pageSpecHandoff` 格式');
     expect(outputDesign).toContain('按 `pageId`、`designFile` 和 `designRefs` 核对页面与引用');
-    expect(outputDesign).toContain('Plan 使用已有 JSON 交接记录；不要求 Fast 转换成 Plan PRD');
+    expect(outputDesign).toContain('Plan 使用已有 JSON 交接记录；已有 Markdown PRD 可直接关联校验');
     expect(outputDesign).toContain('## 正文构成');
     expect(outputDesign).toContain('## 校验与交接');
     for (const field of ['schemaVersion', 'name', 'description', 'tokens.application-global', 'tokens.custom-page', 'themeProfile', 'sceneRecipes', 'components', 'states', 'assetStrategy', 'iconSystem']) {
@@ -1062,7 +1061,7 @@ describe('OpenYida skill contracts', () => {
     expect(step3).toContain('每个页面写清 scene、目标用户、主任务和需要设计的区块');
     expect(step3).toContain('页面区块 / contentBlocks：<按业务任务列出区块目的、信息关系、数据依据、表现建议及操作联动');
     expect(step3).not.toContain('推荐模板');
-    expect(design).toContain('完整应用输出一份应用级 `design.md`');
+    expect(design).toContain('Fast 新建应用的页面交接以已确认需求、主题 CSS 和资源回执为准');
     expect(design).toContain('[唯一输出契约](workflow/output-design.md)');
     expect(design).toContain('实现交接明确');
     expect(prd).toContain('每个 display 页面提供 `pageSpecHandoff`');
@@ -1073,7 +1072,7 @@ describe('OpenYida skill contracts', () => {
     const gates = readSkill('yida-skills/skills/yida-design/references/page-quality-gates.md');
     expect(gates).toContain('## 6. 双文件输出门禁');
     expect(gates).toContain('## 5. 视觉层次门禁');
-    expect(gates).toContain('缺少 `pageSpecHandoff`、设计文件、有效设计引用');
+    expect(gates).toContain('文档交接需要有效的 `pageSpecHandoff`、设计引用和逐页设计');
     expect(gates).toContain('八项要点');
     expect(gates).toContain('不要求对应同名英文字段');
     expect(gates).toContain('圆角、间距与呼吸感门禁');
@@ -1196,12 +1195,12 @@ describe('OpenYida skill contracts', () => {
     expect(appStep2).not.toContain('应用体验蓝图');
     expect(appStep2).not.toContain('需求范围');
     expect(appStep2).not.toMatch(/^## 完整.*PRD 模板/m);
-    expect(byName.get('yida-app').description).toContain('由 yida-prd 和 yida-design 同时准备业务与基础视觉');
-    expect(byName.get('yida-app').description).toContain('表单/流程先于自定义页面');
+    expect(byName.get('yida-app').description).toContain('Fast 明确范围后立即创建或复用应用，独立生成 app_theme.css');
+    expect(byName.get('yida-app').description).toContain('按实际依赖推进资源和页面');
     expect(byName.get('yida-app').description).toContain('页面 UI 按已确认设计实现，代码示例按需参考');
-    expect(byName.get('yida-app').description).toContain('发布后优先按 PRD 导航顺序排序');
+    expect(byName.get('yida-app').description).toContain('发布后分别验收实际入口');
     expect(byName.get('yida-create-app').description).toContain('不回写已经确认的 requirement-brief.json');
-    expect(byName.get('yida-app').done_when).toContain('PRD 已写入 prd/<项目名>/prd.md');
+    expect(byName.get('yida-app').done_when).toContain('Plan 已确认方案，PRD 已写入 prd/<项目名>/prd.md');
     expect(byName.get('yida-app').done_when).toContain('design.md 已写入 prd/<项目名>/design.md');
   });
 
@@ -2064,7 +2063,7 @@ describe('OpenYida skill contracts', () => {
     expect(navShell).toContain('不能仅因存在新示例而替换现有外观');
     expect(navShell).not.toContain('新建导航壳默认交 **YidaCodeCanvas**');
 
-    expect(pageUiux).toContain('视觉设计技能，输出 `design.md`');
+    expect(pageUiux).toContain('文档任务输出 `design.md`');
     expect(pageUiux).toContain('常规业务图表使用 `yida-rechart`');
     expect(pageUiux).toContain('ECharts 例外');
     expect(pageUiux).toContain('workflow/output-design.md#cli-token-契约fast--plan-共用');

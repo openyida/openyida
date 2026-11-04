@@ -1,10 +1,10 @@
 # 写入与校验 design.md
 
-Fast 直接维护 `prd/<项目名>/design.md`，Plan 更新计划事实后由 CLI 派生；单页改造只补当前页面并保留已有业务契约。完整应用的业务与基础视觉可并行，页面事实齐备后再补逐页应用，不覆盖 `yida-prd` 的业务文档。
+显式要求或已有设计文档的任务维护 `prd/<项目名>/design.md`，Plan 更新计划事实后由 CLI 派生；单页改造只补当前页面并保留已有业务契约。完整应用的业务与基础视觉可并行，页面事实齐备后再补逐页应用，不覆盖 `yida-prd` 的业务文档。
 
 ## 写入
 
-已有设计文件只修改相关内容。Plan 按 [局部调整](../../yida-app/workflow/plan/step-4-deliver.md#4-处理调整) 更新；Fast 保留未改的章节和 token。下面的结构用于首版编写与完整性核对，不要求每次重写五章。
+已有设计文件只修改相关内容。Plan 按 [局部调整](../../yida-app/workflow/plan/step-4-deliver.md#4-处理调整) 更新；局部修改保留未改的章节和 token。下面的结构用于首版编写与完整性核对，不要求每次重写五章。
 
 1. 读取 [唯一输出契约](output-design.md)，按 frontmatter、H1、五章正文组织项目文件。
 2. 保留选中主题的基础语言和完整变量，按 [整体主题规则](../references/application-theme-consistency.md#导航与应用框架) 合入导航、应用框架、表单、记录详情和自定义页面设计，清除模板身份和编写说明。
@@ -13,7 +13,7 @@ Fast 直接维护 `prd/<项目名>/design.md`，Plan 更新计划事实后由 CL
 
 ## 校验
 
-Fast 按 [短输入生成](../references/fast-design-spec.md) 时 CLI 已完成单文件检查，不再重复执行；必要时手写的文档完成后执行 `openyida check-design prd/<项目名>/design.md --json`。PRD 就绪时由 `yida-app` 添加 `--prd prd/<项目名>/prd.md` 完成一次关联检查；业务仍并行生成时继续独立工作。Plan 由物化流程调用同一校验，失败则修正源事实后重新生成。
+设计文档按 [短输入生成](../references/fast-design-spec.md) 时 CLI 已完成单文件检查，不再重复执行；必要时手写的文档完成后执行 `openyida check-design prd/<项目名>/design.md --json`。PRD 就绪时由 `yida-app` 添加 `--prd prd/<项目名>/prd.md` 完成一次关联检查；业务仍并行生成时继续独立工作。Plan 由物化流程调用同一校验，失败则修正源事实后重新生成。
 
 完成条件：文件非空、公共校验通过、每个真实页面与 PRD 引用均能定位到正文、页面设计具体且无重复规则副本。设计步骤不写页面源码或编造真实资源 ID。
 

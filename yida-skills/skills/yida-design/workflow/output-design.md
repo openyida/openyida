@@ -52,7 +52,7 @@
 | `themeFile` | 当前主题 CSS 的实际交付路径；继承当前应用且没有本地主题文件时为空字符串 |
 | 既有导航配置 | 保留 navigationType、layoutDirection、hideAppNav、logoSource 等已确认配置，不重新推断入口范围 |
 
-应用导航按 [四类导航契约](../../yida-prd/workflow/output-prd.md#导航类型与执行配置) 与 PRD 保持一致。全应用自绘导航才交接应用级隐藏；独立前台自绘菜单只影响该入口，后台保留平台导航。页面全屏不自动改变应用导航。`colorMode` 如有保留，表示宜搭配色模式，不代表页面明暗。
+应用导航按 [四类导航契约](../../yida-prd/workflow/output-prd.md#agent-导航实施映射) 与 PRD 保持一致。全应用自绘导航才交接应用级隐藏；独立前台自绘菜单只影响该入口，后台保留平台导航。页面全屏不自动改变应用导航。`colorMode` 如有保留，表示宜搭配色模式，不代表页面明暗。
 
 ## 正文构成
 
@@ -87,13 +87,13 @@
 
 按 [阅读无障碍门禁](../references/page-quality-gates.md#阅读无障碍门禁) 将排版与可访问名称写入共享组件规则，将放大重排、完整信息获取和阅读顺序写入逐页响应式与验收项。使用已有正文与 Plan 字段，不新增一份无障碍配置；验收标准与已执行结果分开，设计阶段不得写成已通过实际页面验证。
 
-Fast 在 design.md 逐页写清背景范围、导航首屏/滚动态、对齐宽度、实际滚动容器、入口行为、返回状态及未保存策略；Plan 写入已有 pageApplications 的 visualApplication、surface、states 后物化，不另问实现字段。
+手写或维护设计文档时逐页写清背景范围、导航首屏/滚动态、对齐宽度、实际滚动容器、入口行为、返回状态及未保存策略；Plan 写入已有 pageApplications 的 visualApplication、surface、states 后物化，不另问实现字段。
 
 ## 稳定引用规则
 
 PRD 继续使用 `themeProfile`、`sceneRecipes.<sceneKey>`、`components.<componentName>` 和 `states.<stateName>` 这些 `designRefs`。引用先定位 frontmatter 索引，再进入对应正文；`themeProfile` 直接读取元数据。
 
-Fast 保留 PRD 的 Markdown 逐页块与 `pageSpecHandoff` 格式，display-page 显式填写共享的稳定 `pageId`；`check-design --prd` 按 `pageId`、`designFile` 和 `designRefs` 核对页面与引用。Plan 使用已有 JSON 交接记录；不要求 Fast 转换成 Plan PRD。
+已有 Markdown PRD 保留逐页块与 `pageSpecHandoff` 格式，display-page 显式填写共享的稳定 `pageId`；`check-design --prd` 按 `pageId`、`designFile` 和 `designRefs` 核对页面与引用。Plan 使用已有 JSON 交接记录；已有 Markdown PRD 可直接关联校验。
 
 - `sceneKey` 复用共享需求/计划的稳定场景 key，不翻译或重新命名。`sceneRecipes.<sceneKey>.pages[]` 每项仅保存 `pageId` 和 `anchor`，同一场景允许多个真实页面。
 - 页面使用 `#page-…`，组件使用 `#component-…`，状态使用 `#state-…`。正文相应位置显式写 `<a id="page-…"></a>` 等 HTML anchor；同一 anchor 唯一，索引值必须能够精确找到。
@@ -135,13 +135,13 @@ frontmatter 对应 `components.button.anchor: "#component-button"`、`sceneRecip
 
 图标配色按 [主题一致性门禁](../references/page-quality-gates.md#4-主题一致性门禁) 检查。有底盒、按钮背景或选中底色时，在 `iconSystem.colorPairs` 登记配色，例如 `{"name":"统计图标·默认","foreground":"var(--oyd-stat-icon-fg)","background":"var(--oyd-stat-icon-bg)"}`。优先引用已有变量，需要新角色时再加入 `tokens`；共享配色只记录一次，颜色不同的状态分别记录。
 
-Fast 写入 `design.md`；Plan 写入 `visualStyle.forUser.iconSystem.colorPairs`，变量写入 `visualStyle.tokens`。CLI 支持 HEX、rgb/rgba、black/white/transparent 及这些颜色的变量引用；半透明底色需补充实际不透明的 `surface`。低于 3:1、颜色无法解析或缺少底色信息时校验失败。
+维护设计文档时写入 `design.md`。Plan 写入 `visualStyle.forUser.iconSystem.colorPairs`，变量写入 `visualStyle.tokens`。CLI 支持 HEX、rgb/rgba、black/white/transparent 及这些颜色的变量引用；半透明底色需补充实际不透明的 `surface`。低于 3:1、颜色无法解析或缺少底色信息时校验失败。
 
 ## 用户配色与模板的优先级
 
 用户最新明确的风格、颜色要求优先；没有新要求时保留已选主题的配色与材质，模板示例色不替代用户选择。指定颜色写入项目 token，并协调页面、卡片、导航和交互；保留主题结构、文字可读性与独立状态语义，不只改按钮或统一染色。
 
-Fast 与 Plan 使用同一主题的颜色推导、组件规则和页面设计标准。只计算模板中已有的主色公式，固定值与变量引用按原设计保留；项目差异直接写入 token，不强制其他色阶跟随主色。Plan 输入使用 `visualStyle.tokens`，Fast 写入 `design.md.tokens`，最终设计相同。导航差异 token（未声明项沿用平台绑定） 沿用主题模板，并合入明确的项目差异；`navigationStyle.tone` 表示导航明暗，具体外观由这组 token 表达。导航明暗与内容画布分别设计。用户明确保留中性参考或只改强调色时尊重该范围。`--pod-nav-menu-item-selected-shadow` 作为方向无关的基础外观 Token 独立透传，`none` 表示关闭；CLI 不根据导航明暗生成替代配色。
+Fast 与 Plan 使用同一主题的颜色推导、组件规则和页面设计标准。只计算模板中已有的主色公式，固定值与变量引用按原设计保留；项目差异直接写入 token，不强制其他色阶跟随主色。Plan 输入使用 `visualStyle.tokens`，已有设计文档使用 `design.md.tokens`。Fast 新建应用的主题覆盖使用 `fast-theme --tokens-file` 的 `tokens` 对象。导航差异 token（未声明项沿用平台绑定） 沿用主题模板，并合入明确的项目差异；`navigationStyle.tone` 表示导航明暗，具体外观由这组 token 表达。导航明暗与内容画布分别设计。用户明确保留中性参考或只改强调色时尊重该范围。`--pod-nav-menu-item-selected-shadow` 作为方向无关的基础外观 Token 独立透传，`none` 表示关闭；CLI 不根据导航明暗生成替代配色。
 
 圆角、padding、gap、密度、背景与卡片关系按选中主题和真实任务执行，通用参考值仅补未定义项。同色画布与面板可通过边界、共容器和留白建立层次；渐变、玻璃、阴影、纹理不互相强制绑定。需要动效时提供 reduced motion 降级，装饰不覆盖内容与操作。
 
@@ -167,7 +167,7 @@ Fast 与 Plan 使用同一主题的颜色推导、组件规则和页面设计标
 
 ### 背景颜色、渐变与图片
 
-Fast 与 Plan 按同一规则记录背景，先确定作用范围：
+应用级与页面级背景按以下作用范围记录：
 
 - 应用根背景：底色写 `--pod-app-root-bg-color`，渐变或图片写 `--pod-app-root-bg-image`，例如 `linear-gradient(135deg, #F4F8F5, #E8F0EC)`。主题 CSS 提供变量，由实际使用它们的应用根容器显示；不把根背景复制到卡片、输入框或表格。
 - 页面与卡片：`--pod-page-bg-color`、`--pod-card-bg-color` 保持颜色值。它们还会被 `background-color` 和组件颜色配置使用，不能填入渐变或图片。实心页面、卡片会遮住后面的根背景，不能认为根背景一改，所有内容面就会一起改变。
@@ -188,13 +188,13 @@ Fast 新建应用使用 [fast-theme](../../yida-app/workflow/fast-build.md) 直�
 
 主题文件只能由上述 OpenYida CLI 契约生成或更新。不得另写 Python、Node、Shell 或 `run_workspace_script` 临时脚本来生成、复制、整文件重写、正则替换或 retheme 主题 CSS；校验脚本只能读取并报告问题，不能改写主题文件。需要调整 CLI 未覆盖的精确 classname 覆盖时，只允许在现有文件末尾做小范围编辑，并重新通过 `update-app --theme-file` 上传完整文件。
 
-Plan 修改现有方案按 [局部调整](../../yida-app/workflow/plan/step-4-deliver.md#4-处理调整) 更新视觉字段与配色，使用返回的 `outputs.theme`。Fast 由 `yida-design` 直接维护 `design.md`。应用阶段由 `yida-app` 使用 `--theme-file` 应用同一份产物。
+Plan 修改现有方案按 [局部调整](../../yida-app/workflow/plan/step-4-deliver.md#4-处理调整) 更新视觉字段与配色，使用返回的 `outputs.theme`。单独修改已有 `design.md` 时由 `yida-design` 维护源文件。应用阶段由 `yida-app` 使用 `--theme-file` 应用同一份产物。
 
 整体暗色方案按 [浮层适配](../references/theme/theme-token-presets.md#暗色主题浮层适配) 补齐组件 token。实现阶段可在生成的应用主题 CSS 末尾追加精确 classname 覆盖，再上传完整主题文件。
 
 ## 校验与交接
 
-Fast 写完和更新 `design.md` 后执行：
+手写或更新 `design.md` 后执行：
 
 ```bash
 openyida check-design prd/<项目名>/design.md --json

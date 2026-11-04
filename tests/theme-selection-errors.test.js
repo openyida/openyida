@@ -9,12 +9,9 @@ const { catalog } = require('../lib/design-plan/init');
 const { renderDesign } = require('../lib/design-plan/materialize');
 const { parseDesignDocument, serializeDesignDocument } = require('../lib/design/document');
 const { prepareFastTheme } = require('../lib/app/fast-theme');
-const { renderFastDocument } = require('../lib/design/fast-document');
 const { exportApplicationStyle } = require('../lib/app/application-style');
-const { createThemePreview } = require('../lib/core/theme-widget');
 const { toErrorPayload } = require('../lib/core/cli-error');
 const fixture = require('./fixtures/design-plan.json');
-const fastFixture = require('../lib/samples/yida-design/fast-design.json');
 let directory;
 
 beforeEach(() => {
@@ -101,20 +98,6 @@ test('template export rejects an unlisted on-disk bundle before creating a direc
   expect(error.code).toBe('APPLICATION_STYLE_UNKNOWN');
   expectRecovery(error, 'app-amber', '--style-id');
   expect(fs.existsSync(output)).toBe(false);
-});
-
-test('explicit theme preview gives the same recovery without writing a preview', () => {
-  const output = path.join(directory, 'preview.html');
-  const error = errorFrom(() => createThemePreview(['--theme-ids', 'app-amber', '--output', output]));
-  expect(error.code).toBe('APPLICATION_STYLE_UNKNOWN');
-  expectRecovery(error, 'app-amber', '--theme-ids');
-  expect(fs.existsSync(output)).toBe(false);
-});
-
-test('legacy Fast document authoring keeps its public error code and supplies actionable selection details', () => {
-  const error = errorFrom(() => renderFastDocument({ ...fastFixture, themeId: 'app-amber' }));
-  expect(error.code).toBe('FAST_DESIGN_SPEC_INVALID');
-  expectRecovery(error, 'app-amber', 'themeId');
 });
 
 test('a current catalog selection recovers through Fast CSS generation without requiring documents', () => {

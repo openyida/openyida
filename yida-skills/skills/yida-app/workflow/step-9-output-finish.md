@@ -45,7 +45,7 @@ Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确�
 
 适用的页面检查按[跨页验收](../../yida-design/references/application-theme-consistency.md#验证主题是否真正一致)核对原生页、自定义页与抽屉；视觉结果单独记录。
 
-PRD 保留 `applicationTheme`：themeColor 取最终 `--color-brand1-6`，navTheme 取选定主题；Plan 自动生成，Fast 同样记录。`check-prd-completeness` 读取当前配置；品牌、CSS 启用或资源不符为 fail，无法读取为 needs_review。局部修改保持原换肤范围。
+Fast 将主题命令回执的 `applicationTheme` 写入 `build-manifest.json`。Plan 的 `applicationTheme` 由 CLI 写入 PRD。`check-prd-completeness` 读取当前配置；品牌、CSS 启用或资源不符为 fail，无法读取为 needs_review。局部修改保持原换肤范围。
 
 本地验收前后台入口：前台仅页面内导航，后台保留原生导航、管理任务及正确默认页；前台专用页在后台 PC/移动菜单隐藏。`build-manifest` 写入真实资源 ID 后，完整性检查核验 PRD `navigationVisibility`：仍可见为 fail，配置或 ID 未知为 needs_review。历史 PRD 缺字段不算通过，须补清单或回读。
 
@@ -93,7 +93,7 @@ PRD 保留 `applicationTheme`：themeColor 取最终 `--color-brand1-6`，navThe
 
 平台导航管理页需另外从实际 workbench 入口核对没有重复跨模块菜单；将页面配置回读与视觉检查分开记录，未打开页面时标记视觉待验证，不把 build-manifest 资源齐全或编译成功当作导航验收。
 
-资源检查消费 `display-page`、`normal-form`、`process-form` 资源项；另外核验 PRD 已声明的 `navigationVisibility` 和 `applicationTheme` 应用设置期望。不检查字段、必填、选项、seed records、导航顺序、默认页、页面 renderNav、表单 Schema、页面发布内容、截图或视觉体验。
+资源检查消费 `display-page`、`normal-form`、`process-form` 资源项；另外核验当前输入已声明的 `navigationVisibility` 和 `applicationTheme`，Fast 从 manifest 读取，文档路径从 PRD 读取。不检查字段、必填、选项、seed records、导航顺序、默认页、页面 renderNav、表单 Schema、页面发布内容、截图或视觉体验。
 
 最小示例：
 

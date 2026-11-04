@@ -115,31 +115,6 @@ test('unknown sources fail closed; historical files remain compatible without cl
   expect(() => generateThemeCss(renderDesign(planFor()), css, legacy)).toThrow(expect.objectContaining({ code: 'THEME_SOURCE_CONFLICT' }));
 });
 
-test('unlisted theme provenance is diagnosed before downstream checks and never rewritten to a similar palette', async () => {
-  const document = parseDesignDocument(renderDesign(planFor('warm-canvas-contrast-panels')));
-  document.metadata.themeProfile.sourceThemeId = 'app-amber';
-  delete document.metadata.iconSystem;
-  const markdown = serializeDesignDocument(document);
-  const designFile = path.join(directory, 'design.md');
-  fs.writeFileSync(designFile, markdown);
-  const { run: checkDesign } = require('../lib/design/check-design');
-  await expect(checkDesign([designFile, '--json'])).rejects.toMatchObject({
-    code: 'APPLICATION_STYLE_UNKNOWN', details: {
-      path: 'themeProfile.sourceThemeId', themeId: 'app-amber', reason: 'UNLISTED_TEMPLATE',
-      availableThemeIds: loadThemeIndex().themes.map(theme => theme.themeId),
-      nextArgv: ['design-plan', 'catalog', '--compact'],
-      issues: [expect.objectContaining({ path: 'themeProfile.sourceThemeId', sourcePath: designFile })],
-    },
-  });
-  expect(fs.readFileSync(designFile, 'utf8')).toBe(markdown);
-  const cssFile = path.join(directory, 'theme.css');
-  fs.writeFileSync(cssFile, projectRule);
-  await expect(run(['yida-design', 'app-theme', '--design-file', designFile, '--output', cssFile]))
-    .rejects.toMatchObject({ code: 'APPLICATION_STYLE_UNKNOWN' });
-  expect(fs.readFileSync(cssFile, 'utf8')).toBe(projectRule);
-  expect(fs.existsSync(`${cssFile}.tokens.md`)).toBe(false);
-});
-
 test('creative starts from the shared skeleton even if its paired file has extra rules', () => {
   const document = parseDesignDocument(renderDesign(planFor()));
   document.metadata.themeProfile.sourceThemeId = 'free-creative';

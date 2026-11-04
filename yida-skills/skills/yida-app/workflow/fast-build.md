@@ -2,7 +2,7 @@
 
 Fast 在应用名称、业务范围及创建授权明确后，立即创建或复用应用。没有创建前的 Plan、完整业务 JSON、build-context、PRD、design.md、page-spec 或统一物化门槛。主题、页面和业务资源按自己的依赖推进。已有明确需求直接复用，只有实际阻塞业务的缺项才澄清。
 
-进入本流程须有本次 Fast 选择或明确的代决策委托，同任务续做可复用原始依据。历史“默认 Fast / 不 ask_human”不构成本次授权；仅指定应用名称时先确认核心范围。主题和颜色按本项目输入选择，历史应用的样式不作为已选主题；无风格意向时按[共享选型规则](../../yida-design/references/theme-selection.md#设计方向比较)内部选择并标为 AI 建议，不增加方案展示步骤。
+按 [模式路由](../../yida-design/references/design-mode.md) 确认本次进入 Fast，按 [主题选择](../../yida-design/references/theme-selection.md) 确定本项目的风格和主色。
 
 本文件是 Fast 唯一默认 workflow 入口；其他模式沿用原流程。加载根技能和 `yida-app` 后，按操作加载子技能，不默认展开九阶段文件、`parallel-work.md` 或 `fast-context.md`。子技能明确要求的安全、实现和验收材料仍需读取；复用已读内容和回执，只补读缺项、冲突或变化。旧文档续做确需映射时再读 `fast-context.md`。
 
@@ -26,7 +26,7 @@ openyida sample yida-app fast-theme --style-id app-platinum --primary-color '#2E
 
 示例风格和色值按本轮需求替换。命名主题自动读取配对模板及导航明暗，补齐品牌变量并校验 CSS/文字对比度，不验证业务资源、页面、章节或锚点。返回 `outputs.theme`、`theme.themeColor/navTheme`、`applicationTheme`，不生成任何方案文件。`--check` 只检查本次主题，不写文件；相同产物复用，不同内容保护已有文件，实质改版使用新输出路径。
 
-有明确自由创意需求时用 free-creative，`--tokens-file` 只写主题 tokens/creativeDirection，并传 `--nav-theme light|dark`；仍不需要业务或页面 JSON。app-pop 沿用明确风格/展示任务依据，不因 Fast 自动选择。主题 token 与 CSS 消费、旧主题全局作用域确认等规则仍适用。主题失败只暂缓主题应用，主流程继续已授权且独立的资源/页面工作。
+命名主题如需覆盖主题变量，可用 `--tokens-file` 传入含 `tokens` 对象的主题 JSON。有明确自由创意需求时使用 `free-creative`，在同一输入中提供 `creativeDirection`，并传 `--nav-theme light|dark`。app-pop 沿用明确风格/展示任务依据，不因 Fast 自动选择。主题 token 与 CSS 消费、旧主题全局作用域确认等规则仍适用。主题失败只暂缓主题应用，主流程继续已授权且独立的资源/页面工作。
 
 appType 和 CSS 各自就绪后，按 `yida-create-app` 的 update-app 参数上传主题并设置布局/导航，回读核对。将 applicationTheme 存入逐步积累的 build-manifest。页面直接编写 Canvas 源码并消费共享变量，不补造设计文件或 page-spec。
 

@@ -75,7 +75,7 @@ Fast、Plan 和单页设计共用 [主题索引](../templates/design-themes/inde
 4. 选定后通过该索引记录的 `templatePath`，相对 `yida-design/` 读取一份完整主题。沿用已确认选择，不再重新推荐；用户要求比较时，按所在流程完成选择后再读全文。
 5. 首次选型时，排除不符合项目要求的主题；没有合适模板时使用自由创意。品牌色等允许的项目输入不构成更换主题的理由。用户明确的导航明暗与候选主题 `navTheme` 冲突时，改选符合要求的主题，不覆盖模板的导航明暗。
 
-主题 ID、模板路径和候选比较保留在内部实施记录；Plan 写 `visualStyle.internal.selectedTheme`，Fast 沿用 brief 的视觉选择。最终文档正文和用户可见方案只写当前项目的视觉效果、配色和使用理由，不展示模板路径或内部选择过程；design.md frontmatter 的 `themeProfile.sourceThemeId` 保留所选主题 ID，供 CLI 定位同目录配对 CSS；不把该内部字段展示为用户方案内容。实例化与验收按[模板来源约束](application-style-library.md#模板来源与重复生成)执行。
+主题 ID、模板路径和候选比较保留在内部实施记录；Plan 写 `visualStyle.internal.selectedTheme`，Fast 沿用当前任务已核实的视觉选择。最终文档正文和用户可见方案只写当前项目的视觉效果、配色和使用理由，不展示模板路径或内部选择过程；已有设计文档的 frontmatter 用 `themeProfile.sourceThemeId` 保留所选主题 ID，供 CLI 定位同目录配对 CSS；不把该内部字段展示为用户方案内容。实例化与验收按[模板来源约束](application-style-library.md#模板来源与重复生成)执行。
 
 ## 设计方向比较
 
@@ -151,7 +151,7 @@ openyida sample yida-design theme-preview --theme-ids <本轮实际候选ID，�
 
 | 流程 | 选择与执行 |
 | --- | --- |
-| Fast | 显式要求预览选型时卡片与问题同轮展示并等待选择；否则已有选择复用，已有风格意向或参考直接推演；均无时内部比较三套方向并写入 brief；命名模板读取选中模板，自由创意独立编写设计与 Token，直接维护项目 `design.md`，不增加方案确认步骤 |
+| Fast | 显式要求预览选型时卡片与问题同轮展示并等待选择；否则已有选择复用，已有风格意向或参考直接推演；均无时内部比较三套方向并在当前任务内交接选择；使用 [Fast 独立主题](../../yida-app/workflow/fast-build.md#2-同时准备主题与独立页面) 生成 CSS |
 | Plan | 已有选择复用，已有风格意向或参考直接推演；均无且未委托 AI 时按 [Plan 视觉候选规则](../sub_skill/yida-design-plan/references/visual-theme-selection.md) 询问三套方向；由 CLI 派生项目文档并保留整体方案确认 |
 | 单页设计 | 先读当前应用 `design.md` 和主题证据；沿用已确认主题，只补当前页面。尚无主题契约且需选型时读取同一索引，保持现有业务功能与应用主题 |
 | 已有应用/页面美化 | 由 [ui-improve](../sub_skill/ui-improve/SKILL.md) 编排；局部修改或已有满意主题直接复用。确实需要重新选型时才使用本文件的比较规则，随后确认具体美化方案；不因选型增加重复确认或重新搭建 |

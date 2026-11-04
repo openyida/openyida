@@ -3,7 +3,7 @@
 Fast 完整应用改用 [直接创建与独立主题](../../yida-app/workflow/fast-build.md)，不生成独立 design.md。本文的短视觉字段仍共用；下方 document 命令仅用于单独要求设计文档或已有文档任务。
 
 
-Fast 采用已有主题时，模型只写项目设计决策，CLI 生成完整 token、五章正文、组件与状态索引、页面 anchor 和八项要点，并执行同一 `check-design` 校验。产物直接用于 Fast，不创建搭建计划或确认环节。已有有效 design.md 继续局部修改，不重新生成覆盖。
+单独生成设计文档并采用已有主题时，提供项目设计决策，CLI 生成完整 token、五章正文、组件与状态索引、页面 anchor 和八项要点，并执行 `check-design` 校验。已有有效 `design.md` 时继续局部修改。
 
 1. 已有明确主题 ID 时直接复用；需要选型时读取一次 `openyida design-plan catalog --compact`。JSON 的主题数组为 `themes`，唯一标识为 `themeId`；不使用 `head`/`tail` 截断后反复查询。用户要查看完整风格说明时才读取完整 catalog；预览仍需用户明确要求。
 2. `openyida sample yida-design fast-spec --output .cache/fast-design.json` 提取输入示例。用本次业务替换示例内容；页面、字段、权限和素材范围沿用已确认需求与 PRD。

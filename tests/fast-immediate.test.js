@@ -34,16 +34,6 @@ test('fast-theme rejects a retained but unlisted theme before writing outputs', 
   expect(fs.existsSync(output)).toBe(false);
 });
 
-test('template export rejects an unlisted bundle before creating the destination', () => {
-  const output = path.join(dir, 'theme-output');
-  expect(() => require('../lib/app/application-style').exportApplicationStyle('app-amber', output))
-    .toThrow(expect.objectContaining({ code: 'APPLICATION_STYLE_UNKNOWN', details: expect.objectContaining({
-      path: '--style-id', themeId: 'app-amber', availableThemeIds: loadThemeIndex().themes.map(theme => theme.themeId),
-      nextArgv: ['design-plan', 'catalog', '--compact'],
-    }) }));
-  expect(fs.existsSync(output)).toBe(false);
-});
-
 test('actual CLI generates only CSS despite invalid business/Plan files and has no document prerequisite', () => {
   for (const name of ['build-plan.json', 'fast-app.json', 'build-context.json']) {fs.writeFileSync(path.join(dir, name), '{"resources":[{"type":"form"}],"pages":null}');}
   const css = path.join(dir, 'app_theme.css');

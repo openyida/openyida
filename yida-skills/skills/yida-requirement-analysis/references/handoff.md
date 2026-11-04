@@ -29,7 +29,7 @@ Fast 完整应用直接沿用已确认事实和范围，按 yida-app 的 [Fast �
 
 来源统一区分 `user_explicit`（用户直接说明）、`user_selected`（可见选项的回答）、`ai_inferred`（有业务依据的推导）、`ai_default`（技能默认建议）。导航沿用既有兼容规则：AI 决策写 `ai_default` 并在 reason 说明依据，用户明确指定归属才写 `user_selected`。用户委托的具体方案仍是 AI 推导，reason 保留委托依据。
 
-模式、确认状态与视觉选择的来源须属于当前搭建任务。使用现有 `evidence[].reason` 保留对应原话或回答，用户引用旧方案时写明引用与复用范围；不以“用户偏好”“历史已确认”或 `confirmed=true` 自证。新应用中，旧功能、角色、主题及颜色不自动写入 brief；只重用本次指定部分。仅有历史依据的值保持未定或移为可调整的建议。Fast 在当前对话交接相同来源，不为此补写 brief 或新 JSON。
+按 [需求确认与续做](../workflow/prepare-brief.md#适用阶段与续做) 核对来源。使用现有 `evidence[].reason` 记录原话、回答或引用范围。Fast 在当前任务中直接传递这些依据。
 
 ## 保留式更新
 
@@ -68,7 +68,7 @@ Plan 在 `design-plan init` 前必须补齐合法的导航结构（见下节）�
 
 例如：报修前台为 standalone + custom，维修后台为根级 platform-side。Plan 初始化保留 pageSpecHandoff，PRD、design 和计划分别展示各入口方案。导航执行和验证按 [导航壳配置](../../yida-nav-shell/SKILL.md#必做配置) 完成；页面访问范围和数据权限按用户要求独立配置。
 
-规划阶段按 [访问态入口契约](../../yida-app/references/entry-navigation.md) 补齐 entryRecommendation.entries 的 role、menu、defaultMenuKey 和权限依赖。Plan 初始化保留建议并要求业务片段补齐；Fast PRD 使用同一结构。
+规划阶段按 [访问态入口契约](../../yida-app/references/entry-navigation.md) 补齐 entryRecommendation.entries 的 role、menu、defaultMenuKey 和权限依赖。Plan 初始化保留建议并要求业务片段补齐；Fast 在当前任务中按同一结构交接。
 
 ## 保存校验
 

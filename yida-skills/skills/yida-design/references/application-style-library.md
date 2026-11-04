@@ -62,7 +62,7 @@ openyida sample yida-design application-style --style-id free-creative --output 
 - **单独设计或维护已有文档**：按设计输出契约生成或更新 `design.md`，用 `themeProfile.sourceThemeId` 记录真实模板来源。通过 `check-design` 后，使用 `sample yida-design app-theme --design-file <design.md> --output <app_theme.css>` 生成主题 CSS。同一主题重新生成时保留项目定制。来源校验失败时按[主题选择](theme-selection.md)核对。
 - **Plan**：`design-plan init` 使用目录中的 `themeId`（`--theme-id`），项目差异放 `visualStyle.tokens`，各页布局写入已有逐页设计。CLI 物化时生成正式 `design.md` 与返回路径中的 `app-theme.css`；文件名沿用 Plan 契约，不另生成第二份应用主题。
 - **实现**：应用级上传一次项目 CSS。导航读取完整的 `tokens.application-global.appearance.navigation`，平台导航保留原变量消费关系，自定义导航由组件明确引用。Canvas 读取设计里的 Token，并可使用 `.oyd-style-workspace`、`.oyd-style-intro`、`.oyd-style-section`；框架、表单和详情应用同一主题。自定义页面落实具体构图。
-- **表单**：先在 `design.md` 写清各区域使用的组件、列比例、间距、长字段整行和移动端重排。`form-layout.json` 提供字段与分栏的初始结构；在各列填入 PRD 字段，并按设计调整布局。`--theme compact` 等参数只设置密度，应用 CSS 负责视觉样式。
+- **表单**：按已确认的字段和布局决定明确组件、列比例、间距、长字段整行和移动端重排。Fast 在当前任务中交接这些决定，文档任务记录在 `design.md`。`form-layout.json` 提供字段与分栏的初始结构。`--theme compact` 等参数只设置密度，应用 CSS 负责视觉样式。
 
 表单支持在顶部、左侧、主体、右侧和字段之间放置 Tab、按钮组、图片或图形、标题与 `Divider`、分栏、状态区、辅助内容和字段。各组件分别负责导航切换、操作入口、视觉焦点、状态反馈、内容组织或数据采集。普通业务分组和章节分隔使用 `Divider`，横向字段组合使用 `ColumnContainer`。
 

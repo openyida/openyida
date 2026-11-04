@@ -1,6 +1,6 @@
 ---
 name: yida-app
-description: 创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。Fast 明确范围后立即创建或复用应用，独立生成 app_theme.css，Plan 物化并确认业务与视觉方案；随后创建或复用资源；表单/流程先于自定义页面。页面 UI 按已确认设计实现，代码示例按需参考；前后台都规划菜单顺序与默认页面，发布后分别验收实际入口。
+description: 创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。Fast 明确范围后立即创建或复用应用，独立生成 app_theme.css，按实际依赖推进资源和页面。Plan 物化并确认业务与视觉方案后实施。页面 UI 按已确认设计实现，代码示例按需参考；前后台都规划菜单顺序与默认页面，发布后分别验收实际入口。
 ---
 
 # yida-app
@@ -11,10 +11,8 @@ description: 创建完整宜搭应用，或补齐已有应用时使用。先确�
 
 先判断是新应用还是同任务续做，再进入 Fast / Plan。新建独立应用从本次原始输入建立需求；已有应用但未确认业务范围时同样先澄清。同任务续做沿用当前目标的有效回答、明确委托和真实回执，不因恢复或切换技能重新提问。
 
-- 功能、角色、流程、主题、颜色和执行模式各自核对本次来源。USER/MEMORY、近期活动、其他应用的 brief 和成功方案不自动纳入；用户本次明确要求沿用某方案时，只复用指定部分。
-- 只有“搭建一个 CRM”等名称时，先按需求分析提出核心功能候选，收到回答或本次明确委托后再推进。熟悉该业务或曾搭建同类应用不等于需求清晰。
-- Fast 只省略完整方案展示与确认，不免除必要需求澄清，也不代表采用旧功能或旧配色。已有本次明确委托时由 AI 补齐，决定标为 AI 建议；本次无模式依据时先读[模式路由](../yida-design/references/design-mode.md)，不能直接进入 Fast。
-- `confirmed=true`、已选模式和视觉选择须能对应到当前任务的用户原话、实际回答或明确委托。只有摘要、旧文件或 AI 自写状态时按未确认处理，只补齐影响下一步的缺项；不新增 Fast 的前置 JSON 文件或校验步骤。
+- 功能、角色、流程、视觉选择按 [需求分析](../yida-requirement-analysis/workflow/prepare-brief.md#适用阶段与续做) 核对本次依据，资源按 [上下文识别](workflow/step-1-resource-context.md) 解析。
+- 范围足以实施后按 [模式路由](../yida-design/references/design-mode.md) 选择 Fast 或 Plan。
 
 **Fast 输入分支**：以 [短执行流程](workflow/fast-build.md) 为唯一 workflow 入口，范围和授权明确即创建/复用应用，按依赖并行；不以 Plan、完整 JSON、build-context、PRD 或设计文档校验作为前置。保留 app_theme.css 和业务校验。按操作加载技能，不逐步读取九阶段或并行长文；旧文档缺项才读 [阶段映射](references/fast-context.md)。Plan 保留原流程。
 
@@ -48,7 +46,7 @@ Plan 规划阶段的工作流入口只读取 `workflow/step-1-resource-context.m
 
 ## 续做与恢复
 
-先判断本轮是否已有有效需求确认：同任务的原始回答、明确委托已覆盖当前范围且未被撤回时，复用答案、PRD、设计和资源回执，从未完成阶段继续。`intake.confirmed=true` 是结果记录，须有上述依据；另一应用或仅有记忆摘要不作为续做依据。刷新、恢复、压缩或用户说“继续”不触发重新首问；仅应用已存在也不代表需求已确认。状态不明时先只读核对当前任务材料；范围变更、材料缺失或冲突按 [需求分析的适用阶段与续做](../yida-requirement-analysis/workflow/prepare-brief.md#适用阶段与续做) 处理。
+按 [需求分析的适用阶段与续做](../yida-requirement-analysis/workflow/prepare-brief.md#适用阶段与续做) 核对当前任务的确认依据，复用有效回答、设计和资源回执，从未完成阶段继续。刷新、恢复、压缩或“继续”只补齐影响下一步的缺项。
 
 已发布但尚未完成本轮导航、验收或交付时，按缺项进入 [Step 8](workflow/step-8-publish-navigation.md) 或 [Step 9](workflow/step-9-output-finish.md)，不返回需求首问。发布成功回执不能替代实际验收。
 

@@ -34,9 +34,9 @@
   - [getProcessInstanceIds](#getprocessinstanceids) - 搜索流程实例 ID 列表
   - [getProcessInstanceById](#getprocessinstancebyid) - 获取流程实例详情
 - [表单设计类 API](#表单设计类-api)
-  - [saveFormSchemaInfo](#saveformschemainfo) - 创建空白表单
-  - [getFormSchema](#getformschema) - 获取表单 Schema
-  - [saveFormSchema](#saveformschema) - 保存表单 Schema
+  - [saveFormSchemaInfo](#saveformschemainfo创建空白表单create-模式) - 创建空白表单
+  - [getFormSchema](#getformschema获取表单-schemaupdate-模式) - 获取表单 Schema
+  - [saveFormSchema](#saveformschema保存表单-schema两种模式共用) - 保存表单 Schema
 - [工具类 API](#工具类-api)
   - [dialog](#dialog) - 对话框
   - [formatter](#formatter) - 格式化工具
@@ -50,7 +50,7 @@
   - [loadScript](#loadscript) - 动态加载脚本
   - [loadStyleSheet](#loadstylesheet) - 动态加载样式表
   - [openPage](#openpage) - 打开新页面
-  - [router.push](#router.push) - 页面路由跳转工具
+  - [router.push](#routerpush) - 页面路由跳转工具
   - [previewImage](#previewimage) - 图片预览
   - [toast](#toast) - 信息提醒
 
