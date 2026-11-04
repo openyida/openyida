@@ -23,6 +23,12 @@
 
 `runtime.subtype` 决定宿主执行路径；`acp` 只是传输方式，Agent 不自行推断 Web/桌面。显式 env Token 模式仍由宿主负责注入，不触发 OAuth 或本地 profile 切换。`auth profiles` 的普通本地账号选择规则不适用于千问办公业务搭建。
 
+## 宜搭平台使用权限不足
+
+CLI 明确返回 `YIDA_PLATFORM_ACCESS_REQUIRED` 时，先说明当前组织缺少宜搭使用权限，展示 `nextAction`、`details.permissionUrl` 或 `nextStep` 中的“申请宜搭使用授权”链接，再暂停业务操作。旧版只返回“未在宜搭授权范围内”或“没有宜搭使用权限”等明确的平台授权提示时，用本次已确认的宜搭服务地址展示同源官方页面 `/defaultPage.html?type=unauth`。地址不明或权限类型不明确时，不猜申请入口。
+
+用户处理授权后可继续原任务。也可由用户明确选择在其他组织测试，再走宿主支持的切换流程。权限拒绝时不重复登录或重试写入。若缺少的是应用创建权限，使用 [应用创建权限申请](../skills/yida-create-app/SKILL.md#创建权限不足时的处理)。
+
 ## 先执行
 
 ```bash

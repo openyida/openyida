@@ -56,6 +56,12 @@ test('recognizes the verified organization authorization error', () => {
     } });
 });
 
+test('a bare resource denial does not imply missing YiDA platform access', () => {
+  expect(createPermissionError({ success: false, errorMsg: '没有权限' }, {
+    ...OPTIONS, requestPath: '/query/form/update.json',
+  })).toBeNull();
+});
+
 test.each([
   ['unauth', '申请宜搭使用授权', '当前没有此组织的宜搭使用权限，可申请宜搭使用授权。'],
   ['noAppCreationAuth', '申请宜搭应用创建权限', '当前没有此组织的宜搭应用创建权限，可申请应用创建权限。'],
