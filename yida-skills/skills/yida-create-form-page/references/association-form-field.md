@@ -16,6 +16,7 @@
   "isShowSearchBar": true,
   "associationForm": {
     "formUuid": "FORM-XXX",
+    "formType": "receipt",
     "appType": "APP_xxx",
     "appName": "应用名称",
     "formTitle": "表单名称",
@@ -29,6 +30,8 @@
   }
 }
 ```
+
+`associationForm.formType` 默认 `receipt`；关联已有流程表单时显式使用 `process`，并以目标 Schema、允许关联的流程实例及权限为准。数据写入、清空、子表、跨应用和查询投影格式见[关联格式场景矩阵](../../yida-data-management/references/data-format-guide.md#场景与边界)，不要把只读投影复制回写入值。
 
 **2. 数据过滤规则（dataFilterRules）**
 

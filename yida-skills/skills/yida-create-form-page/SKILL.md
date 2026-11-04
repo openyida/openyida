@@ -192,7 +192,7 @@ openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout s
 
 1. 将 `formUuid`、字段摘要和字段 JSON 路径写入 `.cache/<项目名>-schema.json`。
 2. 对需要作为页面列表、看板或详情数据源的核心普通表单，加载 `yida-data-management`。
-3. 用 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实 `fieldId`，再逐条写入 1-3 条业务化 seed records。
+3. 用 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实 `fieldId`，按数据技能每表一次 `data seed form --json` 写入 1-3 条业务化记录，保留回执供关联与恢复使用。
 4. 写入失败时不要在表单技能里重建表单；保留表单，报告数据写入失败原因，页面阶段展示空态和登记入口。
 
 ### create 失败恢复决策树
@@ -256,8 +256,9 @@ create 已返回真实 `formUuid`、但后续保存或回读失败时，使用�
 openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
 ```
 
-该命令先回读目标表单并核对字段，只添加可唯一判定的缺失字段，保存后再次回读；同名异类型、重复
-目标字段、归属不匹配或回读不确定时均停止且不写入。它不会新建替代表单，也不会覆盖已有字段。
+该命令先回读目标表单并核对字段，只添加可唯一判定的缺失字段，保存后再次回读。字段按完整子表路径与字段名定位，再核对组件类型；主表和不同子表允许使用相同字段名，布局容器不改变作用域。新建后的字段验收与 `resume` 共用此规则，无需为避开重名而改业务字段名。
+
+同一作用域内同名异类型、重复目标字段、归属不匹配或回读不确定时均停止且不写入，诊断中的 `tablePath` 标明子表范围。已有子表缺失子字段时，不会将它补到主表；它不会新建替代表单，也不会覆盖已有字段。
 
 `resume` 的保存端 HTTP 5xx 恢复流程固定为：精确回读目标表单；目标字段已存在时收口为成功，目标字段缺失且无冲突时绑定最新服务端 revision 执行一次保存，再做最终回读。成功 JSON 提供真实 `formUuid`、表单入口 `url`/`formUrl` 和应用工作台入口 `appUrl`，据此完成终态交付；用户要求资源 ID 时，将已验证的 `formUuid` 写入终态 artifact 的可见 `description`。
 

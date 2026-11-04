@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  data_seed: {
+    optional_notes: 'تستخدم المكونات القياسية القابلة للكتابة seed. العناوين: وضع ADDRESS المحلي الافتراضي فقط. الحقول الاختيارية غير المدعومة في skippedFields؛ لا تُنشأ سجلات إذا حُذفت جميع الحقول.',
+    failed: 'توقفت عملية بيانات المثال: {0}. راجع التفاصيل ولا تكرر محاولات الكتابة السابقة.',
+    notes: 'يتطلب data seed form الخيارين --expect-form-name و--records-file ‏(1–30 سجلاً). يجري --check التحقق فقط. التواريخ بالمللي ثانية أو ISO، والإزاحة الافتراضية +08:00. تُكتب السجلات وتُقرأ للتحقق، ويُحفظ إيصال بجوار الإدخال لإعادة استخدام النتائج المؤكدة. تتوقف العملية عند كتابة غير مؤكدة.',
+  },
   corp_efficiency: {
     learning_completed: 'عدد من أكملوا دورات Yida',
     certified_developers: 'عدد مطوري Yida المعتمدين',
@@ -1462,6 +1467,7 @@ module.exports = {
     lint_emoji_forbidden: 'Found emoji "{0}". OpenYida generated artifacts must not use emoji in UI copy, source comments, file paths, or code constants; use plain text, SVG, or icon components instead.',
     lint_searchformdata_http_post: 'استدعاء searchFormDatas.json مباشرة يجب أن يستخدم GET + معاملات query (ضع formUuid/appType في query الخاص بعنوان URL). استخدام POST مع formUuid في الـ body يسبب «参数校验失败formUuid» وتظهر اللوحات/القوائم أصفارًا',
     lint_searchformdata_http_pagenumber: 'يستخدم searchFormDatas.json ترقيم الصفحات عبر currentPage (وليس pageNumber)؛ استخدام pageNumber يعطّل الترقيم',
+    lint_association_data_contract: 'لا تعرض قيم الارتباط الخام ولا تحول أخطاء التحليل إلى مصفوفات فارغة. استخدم readCanvasAssociation وميّز حالات ready وempty وerror.',
     lint_searchformdata_bridge_unwrap: 'يعيد Yida searchFormDatas الصفوف في payload.data والإجمالي في payload.totalCount. لا تقرأ payload.data.data فقط؛ طبّع المصفوفة واستخدم currentPage لترقيم الصفحات. راجع yida-canvas-data-binding.',
     lint_searchformdata_http_unwrap: 'استجابة المتصفح من searchFormDatas.json تضع القائمة داخل content.data ({ content: { data: [...] } })؛ قراءة json.data فقط تُرجع 0 صفوف — فك التغليف عبر (json.content && json.content.data)',
     lint_searchformdata_dynamic_order_metadata: 'لا يمكن لـ searchFormDatas.dynamicOrder استخدام حقل بيانات تعريف السجل {0}؛ استخدم معرّف حقل أعمال حقيقيًا يعيده get-schema. إذا لم يوجد حقل تاريخ أعمال قابل للفرز، فاحذف dynamicOrder ورتّب الصفحة المسترجعة فقط حسب row.createTime للعرض',
@@ -1528,6 +1534,8 @@ module.exports = {
     csrf_retry: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',
     relogin_retry: '  🔄 Resending saveFormSchema request after re-login...',
     publish_failed: '\n❌ فشل النشر: {0}',
+    save_security_blocked: 'حظر فحص الأمان طلب النشر. اقرأ الصفحة المحفوظة ثم استخدم TraceId للتحقق من القاعدة.',
+    save_non_json: 'أعادت واجهة النشر استجابة ليست JSON؛ لم تتأكد نتيجة الحفظ. اقرأ الصفحة قبل النشر مجددًا.',
     schema_published: '  ✅ تم نشر المخطط بنجاح!',
     schema_success: '  ✅ Schema published successfully!',
     form_uuid_label: '  formUuid: {0}',

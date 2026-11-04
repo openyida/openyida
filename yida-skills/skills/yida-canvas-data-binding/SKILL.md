@@ -138,6 +138,35 @@ var payload = await bridge.searchFormDatas({
 
 实现前先确认 `dataBinding.mode === 'form'`、`appType/formUuid` 和 `fields` 都来自真实表单 Schema。表单查询必须优先走 yida JS-API 桥，桥缺失时才降级同源直连。连接器模式遵守 [Canvas 连接器绑定](references/connector-binding.md)，不得接收任意外部 endpoint。
 
+### 关联记录显示
+
+`AssociationFormField` 写入对象数组；查询原字段或 `<fieldId>_id` 投影可能经过单层/双层 JSON 编码，`instValue` 也可能包含原数组。整体复用上述 `canvas-data-source` 片段，用 `readCanvasAssociation(row, fieldId, titleById?)` 完成读取、解码、名称解析和状态判断，仅传 Schema 已确认的关联字段 ID。不另写解析包装；普通文本与原始查询记录保持原样。
+
+```jsx
+const customer = readCanvasAssociation(row, fields.customer, customerNamesById);
+const customerText = customer.status === 'ready' ? customer.titles.join('、')
+  : customer.status === 'empty' ? '未关联' : '关联数据异常';
+// JSX 中展示 customerText；业务引用使用 customer.instanceIds。
+```
+
+`titleById` 是页面已加载目标记录生成的名称字典，适配器不发请求；字典含该 ID 时以当前名称为准，名称不可用时报 error，不回退旧标题。原字段存在时优先读取，明确的 `null`、空字符串或空数组表示清空；仅字段缺失才依次读 `_id`、`instValue`。返回 `ready / empty / error` 及 `items / instanceIds / titles / error`；缺失隐藏字段、坏格式和缺标题均为 error，不显示实例 ID 或原始 JSON。多关联保留全部标题与原顺序。底层 `parseCanvasAssociationValue` 仅供适配器使用，不能捕获其错误后返回空数组。
+
+子表关联先使用同片段的 `readCanvasSubformRows(parentRow, tableFieldId)`，检查其 `status` 再遍历 `rows`，每行传给 `readCanvasAssociation(childRow, childFieldId, titleById?)`。业务值保持子表投影的字段结构，用 `childRow[fieldId]` 读取，不假定存在额外的 `childRow.formData` 包装。平台可能从子表 formData 中省略空关联，但在父记录 instValue 的子表行内保留明确 `value: []`；子表读取器校验行数、可用行 ID 与文本锚点后将该行原始证据交给关联读取器。不要只做 `row.formData[tableId] || []` 后读取子字段，也不要因字段缺失而推断空值；没有原始证据仍为 error。返回行是副本，不修改原始响应，不增加查询。
+
+```jsx
+const deliveries = readCanvasSubformRows(contractRow, fields.deliveries);
+if (deliveries.status === 'error') return <span>交付明细读取异常</span>;
+return deliveries.rows.map((childRow, index) => {
+  const opportunity = readCanvasAssociation(childRow, fields.deliveryOpportunity, opportunityNamesById);
+  return <span key={index}>{opportunity.status === 'ready' ? opportunity.titles.join('、')
+    : opportunity.status === 'empty' ? '未关联' : '关联数据异常'}</span>;
+});
+```
+
+跨应用及流程关联保留目标元数据，重复实例或已提供但格式错误的目标元数据为 error。最多解码两层 JSON；编码后的 null/空字符串同样表示明确清空，超出层数或未知对象不猜测转换。支持范围见[关联格式场景矩阵](../yida-data-management/references/data-format-guide.md#场景与边界)；业务权限、过滤及回填结果仍按实际业务核验。
+
+compile/publish 在既有本地编译中拦截能确定的关联吞错和原值直接文本展示；不增加平台请求，不证明任意自定义渲染器正确。边界用例在CLI研发回归验证；搭建沿用已有写入回读、业务抽查，不为这项检查新增查询或模型自检轮次。
+
 ## 生成与验收
 
 有附件/图片字段时，按 [OpenAPI 文件上传](../yida-canvas-custom-page/references/file-upload.md) 使用文件桥；真实上传并 confirm 后保存字段，再以真实返回实例 ID 调用 bindFiles。保存成功但绑定失败保留实例 ID 仅重试绑定，不重复保存。匿名提交不支持该文件上传接口。

@@ -178,6 +178,14 @@ openyida login --intl
 
 Agent 会读取 `yida-skills/` 中的技能说明，调用 OpenYida CLI 创建应用、表单、页面、流程和报表，并返回最终访问链接。
 
+## 示例数据与关联记录
+
+普通表单使用 `openyida data seed form <appType> <formUuid> --expect-form-name <名称> --records-file <绝对路径>/records.json --json`，一次写入 1–30 条记录并逐条回读。日期字符串由 CLI 转换，模型只准备业务数据数组。
+
+当前 `create-form` 默认创建的 18 种可写业务组件均支持 seed，包含关联、子表、国家、国内地址、附件和图片；流水号由平台生成。地址限默认国内 `ADDRESS`，定位、国际模式及未知组件按 CLI 返回处理：明确可选且无校验的字段省略并列入 `skippedFields`，`requestedFieldsVerified=false`；全部省略返回 `skipped=true`，不创建空记录。省略后仍可能有平台默认值。必填或无法确认可选的未适配字段在写前失败；受支持类型的坏值仍拒绝。pending/未知写入按回执恢复，不切换命令重复创建。详见[支持范围与异常处理](yida-skills/skills/yida-data-management/SKILL.md#组件支持与未适配配置)。
+
+完整保留 JSON 回执；成功且 `readbackVerified=true` 后，按 `items[].recordIndex`（输入数组从 0 开始的索引）取得 verified 条目的 `formInstId`，直接用于后续关联字段。先写被关联表，再写依赖表；不要用 tail/head/grep 截断回执，不为提取已返回 ID 重查列表。仍需使用 `data query form <appType> <formUuid> --inst-id <已核验ID> --json` 做业务抽查。输出截断或失败恢复见[回执规则](yida-skills/skills/yida-data-management/SKILL.md#直接消费回执与关联-id)；check、pending 和候选 ID 不作为成功依据。
+
 ## 语言包
 
 CLI 默认内置 `zh` 和 `en` 两个核心语言包，以中文为主、英文兜底。其他语言包按需启用：将 `ja.js`、`fr.js` 等文件放到一个外部目录，设置 `OPENYIDA_LOCALE_DIR` 指向该目录，再设置 `OPENYIDA_LANG=ja`。如果目标语言包不可用，OpenYida 会按 `en -> zh` 回退，不影响命令执行。
@@ -419,7 +427,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 | 命令 | 说明 |
 |------|------|
-| `openyida data <query\|get\|create\|update\|transfer> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | 统一数据管理（表单/流程/任务/子表单） |
+| `openyida data <query\|get\|create\|update\|transfer\|seed> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | 统一数据管理（表单/流程/任务/子表单） |
 | `openyida task-center <todo\|created\|done\|cc\|proxy\|capabilities\|link\|scaffold\|options\|inspect\|count> [--spec <file.json> --output <file.canvas.jsx>] [options]` | 全局任务中心（待办/已处理/抄送等） |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | 查询组织基本信息、容量、额度和域名设置 |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | 获取钉钉文档的 Markdown 内容 |

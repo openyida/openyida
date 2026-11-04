@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  data_seed: {
+    optional_notes: 'मानक लिखने योग्य घटक seed का उपयोग करते हैं। पता: केवल डिफ़ॉल्ट घरेलू ADDRESS। असमर्थित वैकल्पिक फ़ील्ड skippedFields में हैं; सभी छूटने पर रिकॉर्ड नहीं बनते।',
+    failed: 'नमूना डेटा कार्रवाई रुकी: {0}। विवरण देखें और किए गए लेखन प्रयासों को न दोहराएँ।',
+    notes: 'data seed form के लिए --expect-form-name और --records-file (1–30 ऑब्जेक्ट) आवश्यक हैं। --check केवल जाँचता है। तारीख मिलीसेकंड या ISO में; डिफ़ॉल्ट समय अंतर +08:00। प्रत्येक रिकॉर्ड लिखकर पढ़ा जाता है। इनपुट के पास रसीद सहेजकर सत्यापित परिणाम दोबारा उपयोग होते हैं; अनिश्चित लेखन पर प्रक्रिया रुकती है।',
+  },
   corp_efficiency: {
     learning_completed: 'Yida पाठ्यक्रम पूरा करने वालों की संख्या',
     certified_developers: 'प्रमाणित Yida डेवलपर की संख्या',
@@ -1462,6 +1467,7 @@ module.exports = {
     lint_emoji_forbidden: 'Found emoji "{0}". OpenYida generated artifacts must not use emoji in UI copy, source comments, file paths, or code constants; use plain text, SVG, or icon components instead.',
     lint_searchformdata_http_post: 'searchFormDatas.json को सीधे call करते समय GET + query params ज़रूरी है (formUuid/appType को URL query में रखें)। POST में formUuid को body में डालने पर «参数校验失败formUuid» error आता है और dashboard/list सब 0 दिखते हैं',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json का pagination param currentPage है (pageNumber नहीं); pageNumber से pagination टूट जाता है',
+    lint_association_data_contract: 'संबंध के कच्चे मान न दिखाएँ और पार्सिंग त्रुटियों को खाली ऐरे में न बदलें। readCanvasAssociation का उपयोग करें और ready, empty तथा error अवस्थाओं में अंतर करें।',
     lint_searchformdata_bridge_unwrap: 'Yida searchFormDatas में पंक्तियाँ payload.data और कुल संख्या payload.totalCount में होती हैं। केवल payload.data.data न पढ़ें; ऐरे को सामान्यीकृत करें और पृष्ठांकन के लिए currentPage का उपयोग करें। yida-canvas-data-binding देखें।',
     lint_searchformdata_http_unwrap: 'Browser की searchFormDatas.json response में list content.data में nested होती है ({ content: { data: [...] } }); सिर्फ json.data पढ़ने पर 0 rows मिलते हैं — (json.content && json.content.data) से unwrap करें',
     lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder रिकॉर्ड metadata field {0} का उपयोग नहीं कर सकता; get-schema से मिला वास्तविक business field ID इस्तेमाल करें। यदि sortable business date field नहीं है, तो dynamicOrder हटाएँ और केवल प्राप्त page को display के लिए row.createTime से sort करें',
@@ -1528,6 +1534,8 @@ module.exports = {
     csrf_retry: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',
     relogin_retry: '  🔄 Resending saveFormSchema request after re-login...',
     publish_failed: '\n❌ प्रकाशन विफल: {0}',
+    save_security_blocked: 'सुरक्षा जाँच ने प्रकाशन अनुरोध रोक दिया। पहले सहेजा गया पृष्ठ पढ़ें, फिर TraceId से नियम की जाँच करें।',
+    save_non_json: 'प्रकाशन सेवा ने गैर-JSON प्रतिक्रिया दी; सहेजने का परिणाम अपुष्ट है। दोबारा प्रकाशित करने से पहले पृष्ठ पढ़ें।',
     schema_published: '  ✅ स्कीमा सफलतापूर्वक प्रकाशित!',
     schema_success: '  ✅ Schema published successfully!',
     form_uuid_label: '  formUuid: {0}',

@@ -42,6 +42,27 @@ test('first ordinary record is written once and verified by submitted field valu
   expect(utils.httpGet.mock.calls.filter(call => call[1].includes('getFormDataById'))).toHaveLength(1);
 });
 
+test.each(['create', 'update'])('%s normalizes scoped child associations and verifies their projected values', async operation => {
+  const ref = { appType: 'APP_REMOTE', formUuid: 'FORM-REMOTE', formType: 'receipt', instanceId: 'FINST-REMOTE', title: '客户' };
+  schema.content.pages[0].componentsTree.push({ componentName: 'TableField', props: { fieldId: 'lines' }, children: [
+    { componentName: 'AssociationFormField', props: { fieldId: 'customer', multiple: false, associationForm: ref } },
+  ] });
+  record.formData = { lines: JSON.stringify([{ customer_id: JSON.stringify(JSON.stringify([ref])) }, {}]) };
+  record.instValue = JSON.stringify([{ componentName: 'TableField', fieldId: 'lines', fieldData: { value: [
+    [{ componentName: 'AssociationFormField', fieldId: 'customer', rowId: 'ROW-1', fieldData: { value: [ref] } }],
+    [{ componentName: 'AssociationFormField', fieldId: 'customer', rowId: 'ROW-2', fieldData: { value: [] } }],
+  ] } }]);
+  await (operation === 'create' ? create : update)({ lines: [{ customer: [ref] }, { customer: [] }] });
+  const params = new URLSearchParams(utils.httpPost.mock.calls[0][2]);
+  expect(JSON.parse(params.get(operation === 'create' ? 'formDataJson' : 'updateFormDataJson'))).toEqual({
+    lines: [{ customer: [{ ...ref, subTitle: '' }] }, { customer: [] }],
+  });
+  expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  expect(utils.httpGet.mock.calls.filter(call => call[1].includes('getFormSchema'))).toHaveLength(1);
+  // Updates retain the existing pre-write target read plus the post-write verification.
+  expect(utils.httpGet.mock.calls.filter(call => call[1].includes('getFormDataById'))).toHaveLength(operation === 'create' ? 1 : 2);
+});
+
 test('unknown business labels fail before mutation and return real field candidates', async () => {
   await expect(create({ 客户名称: 'A', numberField_total: '0' })).rejects.toMatchObject({
     code: 'DATA_WRITE_PREFLIGHT_FAILED', details: { sideEffectState: 'none', issues: [

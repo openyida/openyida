@@ -12,7 +12,7 @@
 | 已有 app 却又准备创建新 app | Step 1 的 app context 和 `allowCreate` | 复用已有 `appType`；只有目标缺失且允许创建时进入 [Step 3](../workflow/step-3-create-or-reuse-app.md) |
 | 创建或发布页面前 `corpId` 不一致 | PRD/resource context 与 auth snapshot | 回到 [Step 6](../workflow/step-6-main-page.md)；确认重新登录到目标组织，或确认在当前组织继续 |
 | 不知道字段 ID | `.cache/<项目名>-schema.json`、create/update 输出、`get-schema` | 回到 [Step 4](../workflow/step-4-forms-processes.md)；对目标表单执行一次完整 `--field-map-json` |
-| seed records 写入失败 | 字段类型、必填字段、日期格式、单条记录结构 | 回到 [Step 5](../workflow/step-5-seed-records.md)；修正字段值后单条重试，再 query 抽查 |
+| seed records 写入失败 | 错误码、receiptFile、pending/已核验实例 ID、Schema 与字段值 | 按[数据技能](../../yida-data-management/SKILL.md#组件支持与未适配配置)及回执恢复；未知写入先对账，不改单条 create 或换输入重建 |
 | 页面没有真实数据 | `page-spec.json.dataBinding`、真实 `appType/formUuid/fieldId`、seed records 查询结果 | 回到 [Step 7](../workflow/step-7-page-code.md)；页面接真实表单或展示空态和登记入口 |
 | 页面依赖 `this.dataSourceMap.*` 但发布提示无数据源 | 页面源码、页面 Schema、数据源绑定结果 | 执行 `use_skill("yida-data-source-connectors", "绑定设计器数据源")`，或改为真实表单 API/dataBinding |
 | 页面业务内容像模板 | `prd.md` 的页面目标、指标口径、主操作、数据来源 | 回写 `prd.md`，重新派生 `page-spec.json`，再回到 Step 7 |
@@ -23,7 +23,7 @@
 | Canvas 编译报 `OPENYIDA_CANVAS_UNBOUND_IDENTIFIER`，名称由非标准运行时提供 | `details.issues` 中的名称和运行时能力路径 | 回到 [Step 7](../workflow/step-7-page-code.md)；通过 `window.<name>` / `parentWindow.<name>` 获取能力，检查目标方法后重新执行 Canvas 本地校验 |
 | emoji 导致 create/publish 失败 | 字段 JSON、`page-spec.json`、页面源码、发布 Schema、路径 | 删除 emoji；页面图标改成 `lucide-react` 或 `@ant-design/icons` 标准 import |
 | 本地源码改了但远端没更新 | 是否有成功的 `openyida publish <source> <appType> <displayPageFormUuid>` | 回到 [Step 8](../workflow/step-8-publish-navigation.md) 发布本轮源码 |
-| 发布失败后想重试 | 上一次 stdout/stderr、登录态、组织、参数、输入文件、字段 ID | 修改至少一项输入或上下文后重试；保留错误输出 |
+| 发布失败后想重试 | 上次结构化错误的 stage、sideEffectState、nextStep 和响应追踪信息 | 先按 nextStep 回读目标；确认保存状态后再修正或重试，保留错误输出，不通过改写源码猜测安全拦截 |
 | 导航顺序不对 | PRD 的导航顺序、`nav-group order` / `nav-group auto-order` 输出 | 回到 Step 8；有明确顺序用 `nav-group order`，无明确顺序用自动排序兜底 |
 | final 输出太技术化或交付内容过多 | 是否把内部文件、每个业务资源、资源 ID 或 CDN 产物逐项交付 | 回到 [Step 9](../workflow/step-9-output-finish.md)；提供 2-3 句业务总结与适用的真实入口 |
 | 用户要求删除应用 | 应用名称、应用 ID、影响范围、用户确认文本 | 展示影响范围，等待用户明确回复“确认删除”后执行 |
@@ -33,7 +33,7 @@
 1. 先确认当前问题属于资源、设计、资源落地、页面、发布还是输出。
 2. 读取对应 workflow 步骤，不跨步骤猜命令。
 3. 使用真实 CLI 输出、`.cache/<项目名>-schema.json`、PRD 和 `design.md` 判断事实。
-4. 修改目标事实源或输入文件后再重试命令。
+4. 按命令的恢复提示推进；结果未知的写入先回读，确认没有已接受写入后再修正输入，不通过换文件绕过回执。
 5. 仍无法继续时，向用户说明阻塞点、已确认事实和下一步需要的确认。
 
 ## 常用修正入口

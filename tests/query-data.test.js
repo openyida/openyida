@@ -733,6 +733,31 @@ describe('run() get form', () => {
 // ── create form 场景 ──────────────────────────────────────────────────
 
 describe('run() create form', () => {
+  test('subform association values use the same normalization without adding schema requests', async () => {
+    utils.httpPost.mockResolvedValue({ success: true, content: 'FINST-NEW' });
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const ref = { appType: 'APP_SOURCE', formUuid: 'FORM-SOURCE', formType: 'receipt', instanceId: 'FINST-SOURCE', title: '客户' };
+    try {
+      await run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-json', JSON.stringify({
+        tableField_lines: [{ associationFormField_customer: [ref], textField_note: '[ordinary text]' }],
+      }), ...FORM_EXPECTATIONS]);
+      expect(JSON.parse(new URLSearchParams(utils.httpPost.mock.calls[0][2]).get('formDataJson'))).toEqual({
+        tableField_lines: [{ associationFormField_customer: [{ ...ref, subTitle: '' }], textField_note: '[ordinary text]' }],
+      });
+      expect(utils.httpGet.mock.calls.filter(call => call[1].includes('getFormSchema'))).toHaveLength(0);
+    } finally {mockLog.mockRestore();}
+  });
+
+  test.each([
+    { associationFormField_customer: [{ appType: 'APP_SOURCE', formUuid: 'FORM-SOURCE', formType: 'receipt', instanceId: 'FINST-SOURCE', title: '客户', subTitle: {} }] },
+    { associationFormField_customer_id: '[]' },
+  ])('invalid child association values fail before POST: %j', async row => {
+    await expectCliError(run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-json', JSON.stringify({
+      tableField_lines: [row],
+    }), ...FORM_EXPECTATIONS]));
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
   test('关联表单完整五字段按真实写入契约提交并补全空 subTitle', async () => {
     utils.httpPost.mockResolvedValue({ success: true, content: 'FINST-NEW' });
     const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
