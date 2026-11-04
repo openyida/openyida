@@ -97,10 +97,14 @@ test.each([
       const url = `${base}/defaultPage.html?type=${type}`;
       expect(payload.nextAction).toEqual({ type: 'open_url', label, url });
       expect(payload.nextStep).toContain(`[${label}](${url})`);
-      expect(payload.details.permissionLabel).toBe(label);
+      expect(payload.details).toMatchObject({
+        permissionLabel: label,
+        permissionLinkMarkdown: `[${label}](${url})`,
+      });
     } else {
       expect(payload.details.platformErrorCode).toBe('TIANSHU_000006');
       expect(payload).not.toHaveProperty('nextAction');
+      expect(payload.details).not.toHaveProperty('permissionLinkMarkdown');
     }
     expect(calls.filter(p => p === '/query/app/registerApp.json')).toHaveLength(scenario.startsWith('config') ? 0 : 1);
     expect(calls).not.toContain('/openapi/cli/v1/auth/refresh');

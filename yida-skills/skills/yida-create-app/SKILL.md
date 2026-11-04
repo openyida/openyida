@@ -170,7 +170,7 @@ CLI 校验主题文件完整声明平台实际生成的 `--color-brand1-1/2/3/5/
 
 如果拒绝原因是当前组织未授予宜搭使用权限，按[平台权限处理](../../references/setup-and-env.md#宜搭平台使用权限不足)给出平台申请表。
 
-`status=permission_required` 时暂停搭建。先说明缺少的权限，再用 `nextAction`、`details.permissionUrl` 或 `nextStep` 展示具名申请链接。只有旧版 `create-app` 明确返回“没有权限”“无权限”或“暂无权限”且未给链接时，才以本次命令已确认的宜搭服务地址为来源，展示同源官方页面 `/defaultPage.html?type=noAppCreationAuth`，名称用“申请宜搭应用创建权限”。地址未确认时保留权限结论，不猜链接。
+`status=permission_required` 时暂停搭建。先说明缺少的权限，再将 `details.permissionLinkMarkdown` 原样放到回复正文，使“申请宜搭应用创建权限”本身可点击。旧回执没有此字段时，用 `nextAction.label` 和 `nextAction.url`（或 `details.permissionLabel` 和 `details.permissionUrl`）组成 Markdown 链接，也可原样使用已包含具名链接的 `nextStep`。不要把网址单独贴出、把链接放进代码块，或把名称和可点击地址分开。只有旧版 `create-app` 明确返回“没有权限”“无权限”或“暂无权限”且未给链接时，才以本次命令已确认的宜搭服务地址为来源，展示同源官方页面 `/defaultPage.html?type=noAppCreationAuth`，名称用“申请宜搭应用创建权限”。地址未确认时保留权限结论，不猜链接。
 
 申请当前组织的权限是默认下一步。用户也可选择在其他组织测试；仅在用户明确选择后，按 `yida-login` 走宿主的切换流程。不从历史选择组织，不用终端命令代替申请表。保留本次进度，等待用户处理后再继续，不自动重试创建。
 

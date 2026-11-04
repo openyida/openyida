@@ -75,7 +75,10 @@ test.each([
   expect(payload.errorMsg).toBe(message);
   expect(payload.nextAction).toEqual({ type: 'open_url', label, url });
   expect(payload.nextStep).toContain(`[${label}](${url})`);
-  expect(payload.details).toMatchObject({ permissionLabel: label, permissionUrl: url, platformErrorMessage: '原始平台错误' });
+  expect(payload.details).toMatchObject({
+    permissionLabel: label, permissionUrl: url,
+    permissionLinkMarkdown: `[${label}](${url})`, platformErrorMessage: '原始平台错误',
+  });
 });
 
 test('only classifies the legacy creation error at the verified register endpoint', () => {
