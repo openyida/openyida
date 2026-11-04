@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  data_seed: {
+    optional_notes: 'Bỏ qua trường chưa hỗ trợ được xác nhận là tùy chọn; xem skippedFields. Nếu bỏ tất cả, trả skipped mà không tạo bản ghi rỗng. Làm theo hướng dẫn cho trường bắt buộc; không tạo lại dữ liệu đã thử ghi.',
+    failed: 'Đã dừng thao tác dữ liệu mẫu: {0}. Xem chi tiết và không lặp lại thao tác ghi đã thử.',
+    notes: 'data seed form yêu cầu --expect-form-name và --records-file (1–30 đối tượng). --check chỉ kiểm tra. Ngày dùng mili giây hoặc ISO, độ lệch mặc định +08:00. Ghi và đọc lại từng bản ghi; lưu biên nhận cạnh tệp đầu vào và tái sử dụng kết quả đã xác minh. Dừng khi kết quả ghi chưa rõ.',
+  },
   corp_efficiency: {
     learning_completed: 'Số người hoàn thành khóa học Yida',
     certified_developers: 'Số nhà phát triển Yida được chứng nhận',
@@ -1462,6 +1467,7 @@ module.exports = {
     lint_emoji_forbidden: 'Found emoji "{0}". OpenYida generated artifacts must not use emoji in UI copy, source comments, file paths, or code constants; use plain text, SVG, or icon components instead.',
     lint_searchformdata_http_post: 'Gọi trực tiếp searchFormDatas.json phải dùng GET + tham số query (đặt formUuid/appType trong query URL). Dùng POST với formUuid trong body sẽ gây lỗi «参数校验失败formUuid» và dashboard/danh sách hiển thị toàn số 0',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json phân trang bằng currentPage (không phải pageNumber); dùng pageNumber sẽ hỏng phân trang',
+    lint_association_data_contract: 'Không hiển thị giá trị liên kết thô hoặc đổi lỗi phân tích thành mảng rỗng. Dùng readCanvasAssociation và phân biệt ready, empty, error.',
     lint_searchformdata_bridge_unwrap: 'Yida searchFormDatas trả về các dòng trong payload.data và tổng số trong payload.totalCount. Không chỉ đọc payload.data.data; hãy chuẩn hóa mảng và dùng currentPage để phân trang. Xem yida-canvas-data-binding.',
     lint_searchformdata_http_unwrap: 'Phản hồi trình duyệt của searchFormDatas.json lồng danh sách trong content.data ({ content: { data: [...] } }); chỉ đọc json.data sẽ ra 0 dòng — hãy giải nén qua (json.content && json.content.data)',
     lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder không được dùng trường siêu dữ liệu bản ghi {0}; hãy dùng ID trường nghiệp vụ thực do get-schema trả về. Nếu không có trường ngày nghiệp vụ có thể sắp xếp, hãy xóa dynamicOrder và chỉ sắp xếp trang đã tải theo row.createTime để hiển thị',
@@ -1528,6 +1534,8 @@ module.exports = {
     csrf_retry: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',
     relogin_retry: '  🔄 Resending saveFormSchema request after re-login...',
     publish_failed: '\n❌ Xuất bản thất bại: {0}',
+    save_security_blocked: 'Yêu cầu xuất bản bị kiểm tra bảo mật chặn. Đọc lại trang đã lưu, rồi dùng TraceId để kiểm tra quy tắc.',
+    save_non_json: 'Dịch vụ xuất bản trả về phản hồi không phải JSON; chưa xác nhận kết quả lưu. Đọc lại trang trước khi xuất bản lần nữa.',
     schema_published: '  ✅ Xuất bản schema thành công!',
     schema_success: '  ✅ Schema published successfully!',
     form_uuid_label: '  formUuid: {0}',

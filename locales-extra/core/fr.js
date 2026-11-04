@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  data_seed: {
+    optional_notes: 'Les champs non pris en charge et confirmés facultatifs sont omis : consultez skippedFields. Si tous sont omis, skipped est renvoyé sans créer de ligne vide. Suivez les indications pour les champs obligatoires ; ne recréez pas les écritures déjà tentées.',
+    failed: 'Opération de données exemple arrêtée : {0}. Consultez les détails et ne répétez pas les écritures tentées.',
+    notes: 'data seed form exige --expect-form-name et --records-file (1 à 30 objets). --check valide sans écrire. Dates en millisecondes ou ISO, décalage par défaut +08:00. Chaque écriture est relue ; le reçu près du fichier permet de réutiliser les résultats vérifiés. Une écriture incertaine arrête le traitement.',
+  },
   corp_efficiency: {
     learning_completed: 'Nombre de personnes ayant terminé les cours Yida',
     certified_developers: 'Nombre de développeurs Yida certifiés',
@@ -1464,6 +1469,7 @@ module.exports = {
     lint_emoji_forbidden: 'Found emoji "{0}". OpenYida generated artifacts must not use emoji in UI copy, source comments, file paths, or code constants; use plain text, SVG, or icon components instead.',
     lint_searchformdata_http_post: "Un appel direct à searchFormDatas.json doit utiliser GET + paramètres de requête (placez formUuid/appType dans la query de l'URL). Utiliser POST avec formUuid dans le body déclenche « 参数校验失败formUuid » et les tableaux de bord/listes affichent des zéros",
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json pagine avec currentPage (et non pageNumber) ; utiliser pageNumber casse la pagination',
+    lint_association_data_contract: 'Ne pas afficher les valeurs brutes des associations ni convertir les erreurs en tableaux vides. Utilisez readCanvasAssociation et distinguez ready, empty et error.',
     lint_searchformdata_bridge_unwrap: 'Yida searchFormDatas renvoie les lignes dans payload.data et le total dans payload.totalCount. Ne lisez pas seulement payload.data.data ; normalisez le tableau et utilisez currentPage pour la pagination. Voir yida-canvas-data-binding.',
     lint_searchformdata_http_unwrap: 'La réponse navigateur de searchFormDatas.json imbrique la liste sous content.data ({ content: { data: [...] } }) ; lire seulement json.data renvoie 0 ligne — décomposez via (json.content && json.content.data)',
     lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder ne peut pas utiliser le champ de métadonnées d’enregistrement {0} ; utilisez un véritable ID de champ métier renvoyé par get-schema. S’il n’existe aucun champ de date triable, supprimez dynamicOrder et triez uniquement la page récupérée par row.createTime pour l’affichage',
@@ -1530,6 +1536,8 @@ module.exports = {
     csrf_retry: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',
     relogin_retry: '  🔄 Resending saveFormSchema request after re-login...',
     publish_failed: '\n❌ Échec de la publication : {0}',
+    save_security_blocked: 'La requête de publication a été bloquée par un contrôle de sécurité. Relisez la page, puis utilisez le TraceId pour examiner la règle.',
+    save_non_json: 'Le service de publication a renvoyé une réponse non JSON ; le résultat de sauvegarde reste inconnu. Relisez la page avant de republier.',
     schema_published: '  ✅ Schéma publié avec succès !',
     schema_success: '  ✅ Schema published successfully!',
     form_uuid_label: '  formUuid: {0}',

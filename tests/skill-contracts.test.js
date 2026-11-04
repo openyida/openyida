@@ -28,6 +28,52 @@ function isSampleRoutingGuidanceFile(file) {
 }
 
 describe('OpenYida skill contracts', () => {
+  test('seed optional-field guidance keeps omitted values, no-data skips and safe fallback distinct', () => {
+    const data = readSkill('yida-skills/skills/yida-data-management/SKILL.md');
+    const section = data.split('### 不支持的可选字段与分流\n')[1].split('### 直接消费回执')[0];
+    for (const signal of ['skippedFields', 'requestedFieldsVerified=false', 'skipped=true', 'readbackVerified=false',
+      'fallback.allowed=true', 'sideEffectState=none', '整条记录', '原 records-file', '不把一条记录拆成多次 create',
+      '已有回执或未知写入', '按返回实例 ID', '自动流水号']) {expect(section).toContain(signal);}
+    for (const file of ['yida-skills/skills/yida-app/workflow/fast-build.md', 'yida-skills/skills/yida-app/workflow/step-5-seed-records.md']) {
+      const text = readSkill(file);
+      expect(text).toContain('../../yida-data-management/SKILL.md#一次写入普通表单示例记录');
+      expect(text).not.toMatch(/skippedFields|fallback\.allowed|requestedFieldsVerified/);
+    }
+    const format = readSkill('yida-skills/skills/yida-data-management/references/data-format-guide.md');
+    expect(format).not.toContain('`SerialNumberField` 等未实现核验');
+    expect(format).toContain('## 国家与地址的固定 mock 示例');
+  });
+  test('seed receipt guidance removes ID discovery queries while preserving verification and failure recovery', () => {
+    const data = readSkill('yida-skills/skills/yida-data-management/SKILL.md');
+    const step = readSkill('yida-skills/skills/yida-app/workflow/step-5-seed-records.md');
+    const fast = readSkill('yida-skills/skills/yida-app/workflow/fast-build.md');
+    const format = readSkill('yida-skills/skills/yida-data-management/references/data-format-guide.md');
+    const section = data.split('### 直接消费回执与关联 ID\n')[1].split('## 严格禁止')[0];
+    for (const signal of ['success=true', 'readbackVerified=true', 'status=verified', 'recordIndex',
+      '0-based', 'receiptFile', 'pending', 'candidateIds', '--check', '未知写入不重放',
+      '--inst-id', '可见字段', '串行执行']) {expect(section).toContain(signal);}
+    expect(section).toContain('不接 `tail` / `head` / `grep`');
+    expect(section).toContain('不为取得本次已返回的 ID 再执行 `data query form`');
+    expect(section).toContain('不要按 ID 排序或按客户名称猜测对应关系');
+    expect(section).toContain('先 seed 客户等被关联表');
+    const example = JSON.parse(section.match(/```json\n([\s\S]*?)\n```/)[1]);
+    expect(example.items.map(item => item.recordIndex)).toEqual([0, 1]);
+    expect(example.formInstIds).toEqual(example.items.map(item => item.formInstId));
+    expect(example.formInstIds).not.toEqual([...example.formInstIds].sort());
+    for (const text of [step, fast]) {
+      expect(text).toContain('recordIndex');
+      expect(text).toContain('被关联表');
+      expect(text).toContain('抽查');
+    }
+    expect(step).toContain('不为寻找已返回 ID 再 query');
+    expect(step).toContain('--inst-id <已核验ID> --json');
+    expect(data).not.toContain('必须从查询结果中提取');
+    expect(data).not.toContain('多条实例必须逐条/分批执行 `openyida data create ...`');
+    expect(data).toContain('`data seed form` 的日期字符串由 CLI 按业务时区转换');
+    expect(format).toContain('data seed form');
+    expect(format).toContain('直接消费回执与关联-id');
+  });
+
   test('empty-value guides provide complete is and is_not examples with fixed empty values', () => {
     for (const file of [
       'yida-skills/references/query-condition-guide.md',
@@ -967,8 +1013,8 @@ describe('OpenYida skill contracts', () => {
     expect(skill).toContain('[写入初始表单数据](workflow/step-5-seed-records.md)');
     expect(appStep5).toContain('use_skill("yida-data-management", "为核心业务表单写入 1-3 条示例记录")');
     expect(appStep5).toContain('完整应用默认给本轮新建或页面数据源依赖的核心普通表单写入 1-3 条业务化 seed records');
-    expect(appStep5).toContain('openyida data create form');
-    expect(appStep5).toContain('--expect-form-type receipt');
+    expect(appStep5).toContain('openyida data seed form');
+    expect(appStep5).toContain('--records-file <绝对路径>/records.json');
     expect(appStep5).toContain('openyida data create process');
     expect(appStep5).toContain('--process-code <真实 processCode>');
     expect(appStep5).toContain('--expect-form-type process');
@@ -1131,7 +1177,8 @@ describe('OpenYida skill contracts', () => {
     expect(output).toContain('| 4 | 初始示例数据 | 页面需要读取真实表单记录，完整应用默认写入 1-3 条核心业务记录 | 写入数量、抽查结果 |');
     expect(dataManagement).toContain('## 完整应用默认 seed records');
     expect(dataManagement).toContain('`yida-app` 从零生成完整应用时，表单创建完成后默认加载本技能');
-    expect(dataManagement).toContain('每条实例单独执行一次 `openyida data create form`');
+    expect(dataManagement).toContain('普通表单示例数据优先用 `data seed form`');
+    expect(appStep5).toContain('不再为日期转换、循环写入或提取 ID 生成临时脚本');
     expect(dataManagement).toContain('写完必须 `openyida data query form` 抽查至少 1 条');
     expect(formPage).toContain('完整应用生成场景中，create 成功并记录 formUuid 后，把核心普通表单交给 `yida-data-management` 默认写入 1-3 条业务化示例记录');
     expect(appStep4).toContain('## 字段配置文件示例');

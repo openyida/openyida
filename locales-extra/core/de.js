@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  data_seed: {
+    optional_notes: 'Nicht unterstützte, nachweislich optionale Felder werden ausgelassen; siehe skippedFields. Sind alle ausgelassen, wird skipped ohne leere Datensätze zurückgegeben. Hinweise für Pflichtfelder beachten; versuchte Schreibvorgänge nicht erneut anlegen.',
+    failed: 'Beispieldaten-Vorgang gestoppt: {0}. Details prüfen und versuchte Schreibvorgänge nicht wiederholen.',
+    notes: 'data seed form benötigt --expect-form-name und --records-file (1–30 Objekte). --check prüft ohne Schreiben. Datum als Millisekunden oder ISO, Standardoffset +08:00. Jeder Datensatz wird geschrieben und zurückgelesen. Der Beleg neben der Eingabe erlaubt die Wiederverwendung geprüfter Ergebnisse; ungewisse Schreibvorgänge stoppen den Ablauf.',
+  },
   corp_efficiency: {
     learning_completed: 'Anzahl der Yida-Kursabschlüsse',
     certified_developers: 'Anzahl zertifizierter Yida-Entwickler',
@@ -1462,6 +1467,7 @@ module.exports = {
     lint_emoji_forbidden: 'Found emoji "{0}". OpenYida generated artifacts must not use emoji in UI copy, source comments, file paths, or code constants; use plain text, SVG, or icon components instead.',
     lint_searchformdata_http_post: 'Ein direkter searchFormDatas.json-Aufruf muss GET + Query-Parameter verwenden (formUuid/appType in die URL-Query). POST mit formUuid im Body löst „参数校验失败formUuid" aus und Dashboards/Listen zeigen nur Nullen',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json paginiert mit currentPage (nicht pageNumber); pageNumber bricht die Paginierung',
+    lint_association_data_contract: 'Keine rohen Verknüpfungswerte anzeigen oder Analysefehler in leere Arrays umwandeln. Verwenden Sie readCanvasAssociation und unterscheiden Sie ready, empty und error.',
     lint_searchformdata_bridge_unwrap: 'Yida searchFormDatas liefert Zeilen in payload.data und die Anzahl in payload.totalCount. Lesen Sie nicht nur payload.data.data; normalisieren Sie das Array und verwenden Sie currentPage zur Seitenauswahl. Siehe yida-canvas-data-binding.',
     lint_searchformdata_http_unwrap: 'Die Browser-Antwort von searchFormDatas.json verschachtelt die Liste unter content.data ({ content: { data: [...] } }); nur json.data zu lesen ergibt 0 Zeilen — mit (json.content && json.content.data) entpacken',
     lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder darf das Datensatz-Metadatenfeld {0} nicht verwenden; verwenden Sie eine echte, von get-schema zurückgegebene Geschäftsfeld-ID. Wenn kein sortierbares Datumsfeld vorhanden ist, entfernen Sie dynamicOrder und sortieren Sie nur die abgerufene Seite für die Anzeige nach row.createTime',
@@ -1528,6 +1534,8 @@ module.exports = {
     csrf_retry: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',
     relogin_retry: '  🔄 Resending saveFormSchema request after re-login...',
     publish_failed: '\n❌ Veröffentlichung fehlgeschlagen: {0}',
+    save_security_blocked: 'Die Veröffentlichungsanfrage wurde von einer Sicherheitsprüfung blockiert. Lesen Sie die Seite erneut und prüfen Sie die Regel anhand der TraceId.',
+    save_non_json: 'Der Veröffentlichungsdienst hat keine JSON-Antwort geliefert; das Speicherergebnis ist unbestätigt. Lesen Sie die Seite vor einer erneuten Veröffentlichung.',
     schema_published: '  ✅ Schema erfolgreich veröffentlicht!',
     schema_success: '  ✅ Schema published successfully!',
     form_uuid_label: '  formUuid: {0}',

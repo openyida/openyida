@@ -8,13 +8,16 @@
 - `dynamicOrder` 传字符串，不直接传对象
 - 保存、更新和测试数据中，`DateField` 传毫秒时间戳数字，`CascadeDateField` 传开始、结束毫秒时间戳数组，空端点传 `""`
 
+`data seed form` 的 records-file 支持 ISO 日期字符串，由 CLI 转换后再保存；直接 `data create/update` 和 API 写入仍使用上述毫秒格式。seed 的 ID 回执消费、关联顺序与恢复规则见[技能正文](../SKILL.md#直接消费回执与关联-id)。
+
 ## 字段级写入核验
 
 普通表单 create/update 可加 `--verify-write --json`。CLI 获取当前 Schema，写前聚合错误；仅发出一次写请求，随后按实例 ID 回读本次提交字段。使用真实 fieldId；`--resolve-aliases` 只解析已配置别名，不把显示名称当作字段 ID。同名、跨子表和重复引用不静默选择。
 
 - 文本、单选使用字符串；数字、评分、日期使用有限数字，日期为毫秒。数字零不视为空。多选、人员、部门使用数组；日期区间为两个数字或空端点；子表使用行对象数组，子字段必须属于该子表。
+- 成员、部门写入真实 ID 数组，回读时原字段可能是名称数组，CLI 优先核对同字段 `_id` 身份投影，包含子表内字段；名称不能代替 ID。复选、多选、成员、部门、图片、附件提交明确 `[]`，投影缺失时，可使用同响应保留的唯一同类型原始单元格：`fieldData={}` 是当前服务端存储空集合的序列化表示；子表还需通过行数、rowId和文本锚点核对。整个单元格或快照缺失、隐藏、损坏、重复、错行、类型不符或矛盾非空投影仍失败；不把任意缺字段当空值。
 - 关联字段按已有五字段规则写入，回读时读取原字段或 `_id` 投影，以关联实例 ID 核对。图片/附件使用带字符串文件 ID 或完整 URL 的对象数组，以资源身份核对，不宣称核验全部文件元数据。回读中的数组 JSON 字符串会按字段类型解码，普通文本不做 JSON 解码。
-- 当前只核验已明确处理的格式。`CountrySelectField`、`AddressField`、`SerialNumberField` 等未实现核验的类型，出现在本次写入载荷时会在写前报 `UNSUPPORTED_COMPONENT`；未提交的自动字段不受影响。此选项不验证所有动态业务规则或补全整张表的必填数据，平台权限和业务校验仍生效。
+- 关联 ID 回读一致只证明引用身份，不证明页面展示。`_id` 投影可能有两层 JSON 编码；页面须按[关联记录显示](../../yida-canvas-data-binding/SKILL.md#关联记录显示)解码并核对实际客户名称，不能直接输出 JSON，也不能因此把正确关联重写为文本。
 - `readbackVerified=true` 表示本次提交字段核对通过；缺失回读字段不当作空值成功。失败仍保留已接受写入的实例身份，返回 `mutationAccepted=true`、`retrySafe=false` 和核实已有实例的提示。不要因核验失败重新创建记录。
 
 ## 查询条件格式
@@ -55,6 +58,21 @@
 | `CitySelectField` | `STRING` | `[省ID,市ID,区ID]` | `[省ID,市ID,区ID]` |
 | `TableField` | `TEXT` | `"关键词"`（contains）；子字段条件带 `parentId` | `[{"textField_xxx":"值"}]` |
 | `AssociationFormField` | — | 先查询关联目标表，再按业务关系定位记录 | `[{"appType":"xxx","formUuid":"xxx","formType":"receipt","instanceId":"xxx","title":"关联记录标题"}]` |
+
+## 国家与地址的固定 mock 示例
+
+```json
+{
+  "countrySelectField_xxx": [{"value":"CN","text":{"zh_CN":"中国"}}],
+  "addressField_xxx": {
+    "regionIds":[110000,110100,110105,110105009],
+    "regionText":[{"zh_CN":"北京"},{"zh_CN":"北京市"},{"zh_CN":"朝阳区"},{"zh_CN":"亚运村街道"}],
+    "address":"亚运村（测试样例）"
+  }
+}
+```
+
+使用真实 fieldId。国家多选需 `multiple=true`。地址仅默认国内 `ADDRESS`，核验 regionIds 与 address。
 
 ## 保存 / 更新格式
 
@@ -121,7 +139,7 @@ openyida data query form APP_xxx FORM-xxx --search-json '[{"key":"dateField_xxx"
 
 ## 日期字段（DateField / CascadeDateField）
 
-生成测试数据、录入或更新数据时，日期字段必须写入毫秒级时间戳：
+直接使用 `data create/update` 或 API 录入、更新数据时，日期字段必须写入毫秒级时间戳；`data seed form` 的字符串转换由 CLI 完成：
 
 ```json
 {
@@ -165,7 +183,7 @@ new Date('2026-10-18T00:00:00+08:00').getTime() // 1792252800000
 | --- | --- |
 | `appType` | 被关联表单所属应用的 appType |
 | `formUuid` | 被关联表单的 formUuid |
-| `formType` | 被关联表单类型，普通表单使用 `receipt` |
+| `formType` | 被关联表单类型，普通表单 `receipt`，流程表单 `process`；以目标真实类型为准 |
 | `instanceId` | 被关联数据的 formInstId（注意：字段名是 instanceId，不是 formInstId） |
 | `title` | 被关联记录在关联组件中展示的标题，应取真实记录标题字段值 |
 | `subTitle` | 可选的展示副标题；无值时传空字符串或省略 |
@@ -203,6 +221,21 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 - **五字段必填**：`appType`、`formUuid`、`formType`、`instanceId`、`title` 缺一不可；CLI 会在请求前拒绝不完整值
 - **跨应用关联**：如果关联的是其他应用的表单，需要使用对应应用的 appType
 - **API 限制**：部分宜搭环境可能限制通过 API 写入关联表单数据，建议在表单界面手动测试确认
+
+### 场景与边界
+
+| 场景 | 格式与处理 |
+| --- | --- |
+| 单选 / 多选 | 均为对象数组；Schema 明确 `multiple: false` 时最多一项；多选不允许重复 `instanceId` |
+| 创建 / 更新 / seed / 流程数据写入 | 共用完整五字段检查，`subTitle` 省略补 `""`；不接受 JSON 字符串、裸 ID、单对象代替数组 |
+| 清空 / 不修改 | 清空提交 `[]`；更新时省略字段表示不修改；写入 `null`、`""` 拒绝，不猜测清空意图 |
+| 跨应用 / 流程目标 | 使用目标 appType、formUuid、formType；seed 或 `--verify-write` 按已读取 Schema 检查目标和单选约束，不为校验新增查询 |
+| 子表中的关联 | 在子表行对象内使用真实子字段 ID 和同一数组格式；递归检查并补 subTitle；只读 `_id` 不可写；平台省略空关联投影时只使用同响应 instValue 中对应行的明确字段值核验 |
+| 回读 | 关联数组可为原生数组、单层或双层 JSON 编码；`_id` 投影只读；只含 instanceId 的投影可用于身份核验 |
+| 回读一致性 | 校验全部实例 ID，忽略多选顺序和标题改名；返回了 appType/formUuid/formType 时必须与写入及 Schema 一致，不能只凭相同 ID 认定成功 |
+| 页面展示 | 主表复用 `readCanvasAssociation`；子表先 `readCanvasSubformRows` 再逐行读取关联；显式空值为 empty，缺失/隐藏、损坏、重复关联为 error；缺标题先用页面已加载名称字典，无法解析则报错 |
+
+Schema 约束只能在 Schema 已读取时检查；未开启 `--verify-write` 或别名解析的旧单条写入仍进行数组格式检查，不额外请求 Schema。返回只含 ID 时不能证明服务端省略的目标元数据，也不能证明权限、过滤规则、自动回填或流程状态正确。流程关联只接受真实允许关联的已有实例，seed 不负责发起流程。未知格式应显式报错并检查实际回执，不把任意对象/文本转成展示名称，也不因失败重复写入。
 
 ## 实现建议
 

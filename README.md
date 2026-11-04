@@ -277,10 +277,19 @@ openyida data query form APP_XXX FORM_XXX --page 1 --size 20
 openyida data query form APP_XXX FORM_XXX --dynamic-order '{"dateField_xxx":"-"}'
 openyida data query process APP_XXX FORM_XXX --current-approver USER_ID --count
 openyida data create form APP_XXX FORM_XXX --expect-form-name 客户 --expect-form-type receipt --data-file .cache/openyida/data-import/record.json
+openyida data seed form APP_XXX FORM_XXX --expect-form-name 客户 --records-file .cache/openyida/data-import/customers.json --timezone +08:00 --json
 openyida get-permission APP_XXX FORM_XXX
 ```
 
 `--current-approver` takes an exact userId, not a display name. It scans running instances and their current TODO records, counts each matching instance once, and respects the current login's server-authorized data scope. Omit `--count` to include matching instance data. An incomplete scan or permission failure is reported as an error; the result does not claim application-wide visibility.
+
+`data seed form` accepts one JSON array of 1–30 business records using real field IDs (or configured aliases with `--resolve-aliases`). It checks the whole batch against the live schema, then creates and reads back each record, returning `formInstIds`. Use `--check` to preview converted records without writing. `DateField` and date-range endpoints accept millisecond numbers, `YYYY-MM-DD`, or ISO date-times; date-times without an offset use `--timezone` (a fixed UTC offset, default `+08:00`). Subform dates are converted recursively. Invalid dates, reversed ranges and unknown fields/options fail before any write. Business values and real member/department/file/association IDs come from the caller; this command does not invent them or start workflows.
+
+Unsupported fields proven optional with no field validation are omitted before writing, including subform fields; `skippedFields` lists their original paths and `requestedFieldsVerified=false` distinguishes them from submitted fields. Defaults and automatic serial numbers still run on the server. If all records contain only omitted fields, `skipped=true` returns without creating empty records. Required or uncertain unsupported fields fail before writes and provide structured fallback guidance; never switch commands to recreate pending/unknown writes. Invalid supported values remain errors.
+
+The input file gets a sibling `.seed-receipt.json`. Rerunning the unchanged command reuses verified records and reads back known pending IDs before continuing. An uncertain write without a trusted ID stops for inspection. Keep the receipt: changing the input, target, identity, schema or omission policy rejects reuse instead of silently creating duplicates. A `.lock` prevents concurrent use of the same receipt; after a process crash, confirm it has stopped and inspect its pending writes before removing the stale lock. Field verification covers submitted values; server-side permissions and business rules still apply.
+
+Keep the complete JSON result. After `success=true` and `readbackVerified=true`, match each verified `items[].formInstId` to the input by its zero-based `recordIndex`; `formInstIds` also preserves input order. Create referenced records first, then use those IDs in dependent association values. Avoid `tail/head/grep` on the JSON or list queries whose only purpose is rediscovering returned IDs. Keep the required business spot-check, using `data query form APP_XXX FORM_XXX --inst-id <verified-id> --json`. If output is truncated, read the current command's `receiptFile`; uncertain or cross-session recovery uses the unchanged seed command. Check-only output, pending entries and candidate IDs are not verified association targets. See the [receipt workflow](yida-skills/skills/yida-data-management/SKILL.md#直接消费回执与关联-id).
 
 Append and forward permissions are configured in the process definition through `nodes[].actions.normalActions/appendActions`. Both `create-process` and `configure-process` compile these settings into matching designer and runtime properties. See [approval action configuration](yida-skills/skills/yida-flow-node-config/references/actions.md) for the JSON example, defaults, and verification limits.
 
@@ -549,7 +558,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 
 | Command | Description |
 |---------|-------------|
-| `openyida data <query\|get\|create\|update\|transfer> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | Unified data management (form/process/task/subform) |
+| `openyida data <query\|get\|create\|update\|transfer\|seed> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | Unified data management (form/process/task/subform) |
 | `openyida task-center <todo\|created\|done\|cc\|proxy\|capabilities\|link\|scaffold\|options\|inspect\|count> [--spec <file.json> --output <file.canvas.jsx>] [options]` | Global task center (todo/processed/cc etc.) |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, and domain settings |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | Fetch Markdown content from a DingTalk document |

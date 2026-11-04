@@ -43,6 +43,8 @@ describe('managed mutation receipt', () => {
     ['report', ['configure', 'APP_X', 'REPORT_X', 'cid_1', '--hide-zero-values', 'true'], 'update_report'],
     ['report', ['configure', 'APP_X', 'REPORT_X', 'cid_1', '--hide-zero-values', 'true', '--dry-run'], null],
     ['create-form', ['validate-fields', 'fields.json'], null],
+    ['data', ['seed', 'form', 'APP_X', 'FORM_X', '--records-file', 'records.json'], 'create_form_data'],
+    ['data', ['seed', 'form', 'APP_X', 'FORM_X', '--records-file', 'records.json', '--check'], null],
   ])('%s %j maps only known writes', (command, args, operation) => {
     expect(classifyManagedMutation(command, args)?.operation || null).toBe(operation);
     if (operation) {

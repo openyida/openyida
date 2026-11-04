@@ -26,6 +26,126 @@ function canvasDataError(code) {
   return error;
 }
 
+// Only call for a Schema-confirmed AssociationFormField, never ordinary text.
+// Platform `_id` projections can wrap the array in two JSON string envelopes.
+function parseCanvasAssociationValue(value) {
+  if (value === undefined || value === null || value === '') return [];
+  for (let depth = 0; depth < 2 && typeof value === 'string' && value !== ''; depth++) {
+    try { value = JSON.parse(value); } catch { throw canvasDataError('DATA_ASSOCIATION_INVALID'); }
+  }
+  if (value === null || value === '') return [];
+  if (!Array.isArray(value) || !value.every(item => item && typeof item === 'object'
+    && !Array.isArray(item) && typeof item.instanceId === 'string' && item.instanceId.trim()
+    && ['appType', 'formUuid', 'formType'].every(key => !Object.prototype.hasOwnProperty.call(item, key)
+      || typeof item[key] === 'string' && item[key].trim()))
+    || new Set(value.map(item => item.instanceId)).size !== value.length) {
+    throw canvasDataError('DATA_ASSOCIATION_INVALID');
+  }
+  return value;
+}
+
+// Use only for a Schema-confirmed association field. titleById is an optional
+// dictionary built from records the page already loaded; this reader never queries.
+function readCanvasAssociation(row, fieldId, titleById) {
+  const own = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
+  const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+  let items = [], instanceIds = [];
+  try {
+    if (!object(row) || typeof fieldId !== 'string' || !fieldId.trim()
+      || titleById !== undefined && titleById !== null && !object(titleById)) {
+      throw canvasDataError('DATA_ASSOCIATION_INVALID');
+    }
+    const data = own(row, 'formData') ? row.formData : row;
+    if (!object(data)) throw canvasDataError('DATA_ASSOCIATION_INVALID');
+    let value;
+    if (own(data, fieldId)) value = data[fieldId];
+    else if (own(data, fieldId + '_id')) value = data[fieldId + '_id'];
+    else if (row.instValue !== undefined && row.instValue !== null && row.instValue !== '') {
+      let entries = row.instValue;
+      if (typeof entries === 'string') {
+        try { entries = JSON.parse(entries); } catch { throw canvasDataError('DATA_ASSOCIATION_INVALID'); }
+      }
+      if (!Array.isArray(entries)) throw canvasDataError('DATA_ASSOCIATION_INVALID');
+      const matches = entries.filter(entry => object(entry) && entry.fieldId === fieldId);
+      if (matches.length > 1) throw canvasDataError('DATA_ASSOCIATION_INVALID');
+      if (matches.length && matches[0].componentName !== undefined
+        && matches[0].componentName !== 'AssociationFormField') throw canvasDataError('DATA_ASSOCIATION_INVALID');
+      if (matches.length && object(matches[0].fieldData)) value = matches[0].fieldData.value;
+    }
+    // Missing/hidden fields are not evidence that the association is empty.
+    // Explicit null, empty string and [] are authoritative clears, even if an
+    // older projection or instValue still contains a record.
+    if (value === undefined) throw canvasDataError('DATA_ASSOCIATION_UNAVAILABLE');
+    items = parseCanvasAssociationValue(value);
+    instanceIds = items.map(item => item.instanceId);
+    const titles = items.map(item => {
+      const title = titleById && own(titleById, item.instanceId) ? titleById[item.instanceId] : item.title;
+      if (typeof title !== 'string' || !title.trim()) throw canvasDataError('DATA_ASSOCIATION_TITLE_UNAVAILABLE');
+      return title;
+    });
+    return { status: items.length ? 'ready' : 'empty', items, instanceIds, titles, error: null };
+  } catch (error) {
+    return { status: 'error', items, instanceIds, titles: [],
+      error: { code: ['DATA_ASSOCIATION_UNAVAILABLE', 'DATA_ASSOCIATION_TITLE_UNAVAILABLE'].includes(error && error.code)
+        ? error.code : 'DATA_ASSOCIATION_INVALID', fieldId } };
+  }
+}
+
+// Schema-confirmed TableField only. Preserve same-response raw cells so an
+// omitted empty association can be distinguished from a missing/hidden field.
+function readCanvasSubformRows(row, fieldId) {
+  const own = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
+  const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+  const failure = code => ({ status: 'error', rows: [], error: { code, fieldId } });
+  if (!object(row) || typeof fieldId !== 'string' || !fieldId.trim()) return failure('DATA_SUBFORM_INVALID');
+  const data = own(row, 'formData') ? row.formData : row;
+  if (!object(data)) return failure('DATA_SUBFORM_INVALID');
+  if (!own(data, fieldId)) return failure('DATA_SUBFORM_UNAVAILABLE');
+  let rows = data[fieldId];
+  for (let depth = 0; depth < 2 && typeof rows === 'string' && rows !== ''; depth++) {
+    try { rows = JSON.parse(rows); } catch { return failure('DATA_SUBFORM_INVALID'); }
+  }
+  if (rows === null || rows === '') rows = [];
+  if (!Array.isArray(rows) || !rows.every(object)) return failure('DATA_SUBFORM_INVALID');
+  if (!rows.length) return { status: 'empty', rows: [], error: null };
+  let entries = row.instValue;
+  if (entries !== undefined && entries !== null && entries !== '') {
+    if (typeof entries === 'string') {
+      try { entries = JSON.parse(entries); } catch { return failure('DATA_SUBFORM_INVALID'); }
+    }
+    if (!Array.isArray(entries)) return failure('DATA_SUBFORM_INVALID');
+    const matches = entries.filter(entry => object(entry) && entry.fieldId === fieldId);
+    if (matches.length > 1) return failure('DATA_SUBFORM_INVALID');
+    if (matches.length) {
+      const table = matches[0];
+      if (table.componentName !== 'TableField' || !object(table.fieldData)
+        || !Array.isArray(table.fieldData.value) || table.fieldData.value.length !== rows.length) {
+        return failure('DATA_SUBFORM_INVALID');
+      }
+      const rawRows = table.fieldData.value;
+      const rowIds = new Set();
+      for (let index = 0; index < rows.length; index++) {
+        const cells = rawRows[index];
+        if (!Array.isArray(cells) || !cells.every(object)) return failure('DATA_SUBFORM_INVALID');
+        const ids = [...new Set(cells.map(cell => cell.rowId).filter(id => typeof id === 'string' && id))];
+        if (ids.length > 1 || own(rows[index], 'rowId') && (ids.length !== 1 || rows[index].rowId !== ids[0])) {
+          return failure('DATA_SUBFORM_INVALID');
+        }
+        if (ids.length && rowIds.has(ids[0])) return failure('DATA_SUBFORM_INVALID');
+        if (ids.length) rowIds.add(ids[0]);
+        for (const cell of cells) {
+          if (['TextField', 'TextareaField'].includes(cell.componentName) && own(rows[index], cell.fieldId)
+            && typeof rows[index][cell.fieldId] === 'string' && typeof cell.fieldData?.value === 'string'
+            && rows[index][cell.fieldId] !== cell.fieldData.value) return failure('DATA_SUBFORM_INVALID');
+        }
+      }
+      rows = rows.map((item, index) => ({ ...item,
+        instValue: own(item, 'instValue') ? item.instValue : rawRows[index] }));
+    }
+  }
+  return { status: 'ready', rows, error: null };
+}
+
 function normalizeCanvasFormPage(payload, currentPage = 1, pageSize = 50) {
   const queue = [payload], seen = new Set(), arrays = new Set(), counts = new Set();
   while (queue.length) {

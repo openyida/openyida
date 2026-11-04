@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  data_seed: {
+    optional_notes: '任意と確認できる未対応フィールドは省略し、skippedFields に示します。全て省略した場合は skipped を返し空レコードを作りません。必須項目は分岐案内に従い、書き込み済みレコードを再作成しないでください。',
+    failed: 'サンプルデータ操作を停止しました：{0}。詳細を確認し、書き込み済みの可能性があるレコードを再作成しないでください。',
+    notes: 'data seed form は --expect-form-name と --records-file（1～30 件）が必須です。--check は事前検証のみ。日付はミリ秒または ISO 文字列、既定の時差は +08:00。各レコードを書き込み、読み戻して検証します。入力横の受領ファイルで完了済みを再利用し、不明な書き込みで停止します。',
+  },
   corp_efficiency: {
     learning_completed: 'Yida 学習完了者数',
     certified_developers: 'Yida 認定開発者数',
@@ -1415,6 +1420,7 @@ module.exports = {
     lint_emoji_forbidden: 'emoji "{0}" が見つかりました。OpenYida の生成物では UI 文言、ソースコメント、ファイルパス、コード定数に emoji を使用できません。通常のテキスト、SVG、またはアイコンコンポーネントを使用してください。',
     lint_searchformdata_http_post: 'searchFormDatas.json を直接呼ぶ場合は GET + クエリパラメータが必須です（formUuid/appType を URL クエリに入れる）。POST で formUuid を body に入れると「参数校验失败formUuid」となり、ダッシュボード/リストがすべて 0 になります',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json のページングパラメータ名は currentPage です（pageNumber ではありません）。pageNumber を使うとページングが機能しません',
+    lint_association_data_contract: '関連フィールドの生の値を表示したり、解析エラーを空配列に変換したりしないでください。readCanvasAssociation を使用し、ready、empty、error を区別してください。',
     lint_searchformdata_bridge_unwrap: 'Yida searchFormDatas の行データは payload.data、件数は payload.totalCount にあります。payload.data.data だけを参照せず配列を正規化し、ページ指定には currentPage を使用してください。yida-canvas-data-binding を参照してください。',
     lint_searchformdata_http_unwrap: 'ブラウザの searchFormDatas.json レスポンスはリストが content.data にネストされます（{ content: { data: [...] } }）。json.data だけを読むと 0 件になります。(json.content && json.content.data) でアンラップしてください',
     lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder にレコードメタデータ項目 {0} は使用できません。get-schema が返す実際の業務項目 ID を使用してください。並べ替え可能な業務日付項目がない場合は dynamicOrder を削除し、取得済みのページ内だけを表示用に row.createTime で並べ替えてください',
@@ -1481,6 +1487,8 @@ module.exports = {
     csrf_retry: '  🔄 saveFormSchema リクエストを再送信中（csrf_token を更新済み）...',
     relogin_retry: '  🔄 再ログイン後に saveFormSchema リクエストを再送信中...',
     publish_failed: '\n❌ 公開に失敗しました: {0}',
+    save_security_blocked: '公開リクエストがセキュリティチェックでブロックされました。ページを読み戻し、TraceId でルールを調査してください。',
+    save_non_json: '公開APIがJSON以外の応答を返したため、保存結果を確認できません。再公開する前にページを読み戻してください。',
     schema_published: '  ✅ Schema の公開に成功しました！',
     schema_success: '  ✅ Schema の公開に成功しました！',
     form_uuid_label: '  formUuid: {0}',

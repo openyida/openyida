@@ -19,8 +19,8 @@ Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确�
 2. 先执行 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实字段 ID。
 3. 生成当前业务语义的字段值，不写“测试1 / demo / mock”。
 4. 每个核心表单 1-3 条即可；列表/工作台通常 2 条，看板/排行/状态分布通常 3 条。
-5. `DateField` / `CascadeDateField` 使用 13 位毫秒时间戳。
-6. 普通表单每条记录单独执行 `openyida data create form <appType> <formUuid> --expect-form-name <真实名称> --expect-form-type receipt --data-file ...` 或 `--data-json ...`；首条记录加 `--verify-write --json`，字段核验通过后再写后续记录，最后执行 `openyida data query form` 抽查至少 1 条。预检错误按真实字段修正；写入已接受但回读不一致时，保留返回实例 ID 核实已有记录，不重复创建。未知格式不计完成，不移除核验选项绕过。
+5. 普通表单将 1-3 条业务记录一次写入 `.cache/openyida/<任务名>/data-import/records.json` 顶层数组，使用真实字段 ID；不再为日期转换、循环写入或提取 ID 生成临时脚本。`DateField` / `CascadeDateField` 可用毫秒或 ISO 日期，由下一条命令按时区转换。
+6. 每表执行一次 `openyida data seed form <appType> <formUuid> --expect-form-name <真实名称> --records-file <绝对路径>/records.json --timezone +08:00 --json`，使用业务时区。先写被关联表，再写依赖表；完整保留回执，按 recordIndex 使用 verified 条目的 ID，不为寻找已返回 ID 再 query。字段省略、失败与恢复统一按[数据技能](../../yida-data-management/SKILL.md#一次写入普通表单示例记录)及[回执规则](../../yida-data-management/SKILL.md#直接消费回执与关联-id)处理。最后用 `openyida data query form <appType> <formUuid> --inst-id <已核验ID> --json` 抽查至少一条。
 7. 流程表单只有在已确认真实 `processCode` 后，才执行 `openyida data create process <appType> <formUuid> --process-code <真实 processCode> --expect-form-name <真实名称> --expect-form-type process --data-file ...` 或 `--data-json ...`；最后执行 `openyida data query process` 抽查至少 1 条。
 8. 名称、UUID、类型或 `processCode` 不一致时停止，不得在 `form` 与 `process` 命令之间盲目重试。
 9. query 抽查核对目标实例 ID 和本次写入的可见字段值。CLI 查询不返回隐藏字段属于正常行为，全部字段隐藏时字段数据可能为空；按 [数据管理技能的隐藏字段规则](../../yida-data-management/SKILL.md#cli-查询隐藏字段) 验收，没有可见字段时说明隐藏字段无法通过 CLI 回读，不因字段数据为空而重复造数。
@@ -41,9 +41,9 @@ Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确�
 ## Checklist
 
 - [ ] seed records 使用真实 `fieldId`；
-- [ ] 普通表单使用 `data create form`，流程表单使用 `data create process`；
+- [ ] 普通表单优先使用 `data seed form`，流程表单使用 `data create process`；
 - [ ] 流程实例创建前已确认真实 `processCode`；
-- [ ] 每条记录单独创建；
+- [ ] 已按完整回执的 recordIndex 复用关联 ID，没有仅为取 ID 重复查询；
 - [ ] query 抽查已确认目标实例 ID 和可见字段值；没有可见字段时已说明隐藏字段无法通过 CLI 回读；
 - [ ] 跳过时已写明原因和页面空态方案。
 

@@ -5,6 +5,11 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  data_seed: {
+    optional_notes: '선택 사항으로 확인된 미지원 필드는 생략하며 skippedFields에 표시합니다. 모두 생략하면 빈 레코드 없이 skipped를 반환합니다. 필수 필드는 안내에 따르고 이미 시도한 쓰기를 다시 생성하지 마세요.',
+    failed: '예제 데이터 작업이 중지되었습니다: {0}. 상세 정보를 확인하고 쓰기를 시도한 레코드를 다시 생성하지 마세요.',
+    notes: 'data seed form에는 --expect-form-name과 --records-file(1~30개 레코드)이 필요합니다. --check는 사전 검사만 수행합니다. 날짜는 밀리초 또는 ISO 문자열이며 기본 시차는 +08:00입니다. 각 레코드를 쓰고 다시 읽어 검증합니다. 입력 파일 옆에 결과를 저장하며 재실행 시 완료된 항목을 재사용하고 쓰기 결과가 불확실하면 중지합니다.',
+  },
   corp_efficiency: {
     learning_completed: 'Yida 학습 완료 인원',
     certified_developers: 'Yida 인증 개발자 수',
@@ -1463,6 +1468,7 @@ module.exports = {
     lint_emoji_forbidden: 'Found emoji "{0}". OpenYida generated artifacts must not use emoji in UI copy, source comments, file paths, or code constants; use plain text, SVG, or icon components instead.',
     lint_searchformdata_http_post: 'searchFormDatas.json을 직접 호출할 때는 GET + 쿼리 파라미터가 필수입니다(formUuid/appType을 URL 쿼리에 넣기). POST로 formUuid를 body에 넣으면 "参数校验失败formUuid" 오류가 발생하고 대시보드/목록이 모두 0으로 표시됩니다',
     lint_searchformdata_http_pagenumber: 'searchFormDatas.json의 페이지 파라미터 이름은 currentPage입니다(pageNumber 아님). pageNumber를 쓰면 페이징이 작동하지 않습니다',
+    lint_association_data_contract: '연결 필드의 원시 값을 표시하거나 파싱 오류를 빈 배열로 바꾸지 마세요. readCanvasAssociation을 사용하고 ready, empty, error 상태를 구분하세요.',
     lint_searchformdata_bridge_unwrap: 'Yida searchFormDatas의 행은 payload.data, 개수는 payload.totalCount에 있습니다. payload.data.data만 읽지 말고 배열을 정규화하며 페이지 지정에는 currentPage를 사용하세요. yida-canvas-data-binding을 참고하세요.',
     lint_searchformdata_http_unwrap: '브라우저 searchFormDatas.json 응답은 목록이 content.data에 중첩됩니다({ content: { data: [...] } }). json.data만 읽으면 0건이 됩니다. (json.content && json.content.data)로 언랩하세요',
     lint_searchformdata_dynamic_order_metadata: 'searchFormDatas.dynamicOrder에는 레코드 메타데이터 필드 {0}을 사용할 수 없습니다. get-schema가 반환한 실제 비즈니스 필드 ID를 사용하세요. 정렬 가능한 비즈니스 날짜 필드가 없으면 dynamicOrder를 제거하고 가져온 현재 페이지만 표시용으로 row.createTime 기준 정렬하세요',
@@ -1529,6 +1535,8 @@ module.exports = {
     csrf_retry: '  🔄 Resending saveFormSchema request (csrf_token refreshed)...',
     relogin_retry: '  🔄 Resending saveFormSchema request after re-login...',
     publish_failed: '\n❌ 배포 실패: {0}',
+    save_security_blocked: '보안 검사에서 게시 요청을 차단했습니다. 페이지를 다시 읽고 TraceId로 규칙을 확인하세요.',
+    save_non_json: '게시 API가 JSON이 아닌 응답을 반환하여 저장 결과를 확인할 수 없습니다. 다시 게시하기 전에 페이지를 읽어 확인하세요.',
     schema_published: '  ✅ 스키마 배포 성공!',
     schema_success: '  ✅ Schema published successfully!',
     form_uuid_label: '  formUuid: {0}',

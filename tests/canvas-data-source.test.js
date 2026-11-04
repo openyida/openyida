@@ -42,6 +42,114 @@ function render(config = binding, request = {}) {
   return context.useCanvasFormData(config, request);
 }
 
+test.each([0, 1, 2])('decodes association arrays with %i JSON envelopes without changing the source', depth => {
+  const records = [
+    { instanceId: 'FINST-B', title: '恒川精密制造股份有限公司' },
+    { instanceId: 'FINST-A', title: '青禾商贸有限公司' },
+  ];
+  let value = records;
+  for (let i = 0; i < depth; i++) {value = JSON.stringify(value);}
+  const before = JSON.stringify(value);
+  expect(context.parseCanvasAssociationValue(value)).toEqual(records);
+  expect(JSON.stringify(value)).toBe(before);
+});
+
+test.each([undefined, null, '', [], '[]', '"[]"', 'null', '"null"', '""', '"\\"\\""'])('accepts empty association values: %j', value => {
+  expect(context.parseCanvasAssociationValue(value)).toEqual([]);
+});
+
+test.each([
+  '客户名不能当关联对象', '[broken', '{}', '["FINST-A"]', '[null]',
+  [{ title: '缺少实例 ID' }], [{ instanceId: '' }],
+  JSON.stringify(JSON.stringify(JSON.stringify([{ instanceId: 'FINST-A', title: '客户' }]))),
+])('reports malformed associations rather than displaying JSON or declaring no association: %j', value => {
+  expect(() => context.parseCanvasAssociationValue(value)).toThrow('DATA_ASSOCIATION_INVALID');
+});
+
+test('form page normalization preserves ordinary JSON-looking text and raw association values', () => {
+  const formData = { textField_note: '"[{\\"title\\":\\"普通文本\\"}]"',
+    associationFormField_customer_id: JSON.stringify(JSON.stringify([{ instanceId: 'FINST-A', title: '客户' }])) };
+  const result = context.normalizeCanvasFormPage({ data: [{ formData }] });
+  expect(result.rows[0].formData).toBe(formData);
+  expect(result.rows[0].formData.textField_note).toBe(formData.textField_note);
+  expect(typeof result.rows[0].formData.associationFormField_customer_id).toBe('string');
+});
+
+describe('complete association reader', () => {
+  const field = 'associationFormField_customer';
+  const items = [{ appType: 'APP_TEST', formUuid: 'FORM-CUSTOMER', formType: 'receipt',
+    instanceId: 'FINST-A', title: '客户甲' }, { instanceId: 'FINST-B', title: '客户乙' }];
+  test('reads subform rows directly, preserving cross-app and process metadata', () => {
+    const refs = [{ ...items[0], appType: 'APP_REMOTE', formType: 'process', title: '已完成审批', value: 'FINST-A' }];
+    expect(context.readCanvasAssociation({ [field + '_id']: JSON.stringify(refs) }, field))
+      .toMatchObject({ status: 'ready', titles: ['已完成审批'], items: refs });
+    expect(bridge.searchFormDatas).not.toHaveBeenCalled();
+  });
+  test.each([
+    [items[0], { ...items[0], title: '重复旧标题' }],
+    [{ ...items[0], appType: null }], [{ ...items[0], formUuid: {} }], [{ ...items[0], formType: '' }],
+  ].map(value => [value]))('rejects duplicate selections or malformed target metadata: %j', value => {
+    expect(context.readCanvasAssociation({ [field]: value }, field))
+      .toMatchObject({ status: 'error', titles: [], error: { code: 'DATA_ASSOCIATION_INVALID' } });
+  });
+  test.each([0, 1, 2])('reads %i envelopes from the platform projection without changing the row', depth => {
+    let value = items;
+    for (let i = 0; i < depth; i++) {value = JSON.stringify(value);}
+    const input = { formData: { [`${field}_id`]: value, textField_note: '[ordinary text]' } };
+    const before = JSON.stringify(input);
+    expect(context.readCanvasAssociation(input, field)).toMatchObject({ status: 'ready',
+      items, titles: ['客户甲', '客户乙'], instanceIds: ['FINST-A', 'FINST-B'], error: null });
+    expect(JSON.stringify(input)).toBe(before);
+    expect(bridge.searchFormDatas).not.toHaveBeenCalled();
+  });
+  test.each([null, '', [], '[]', '"[]"'])('explicit clear %j overrides a stale projection and instValue', value => {
+    expect(context.readCanvasAssociation({ formData: { [field]: value, [`${field}_id`]: items },
+      instValue: JSON.stringify([{ fieldId: field, fieldData: { value: items } }]) }, field))
+      .toMatchObject({ status: 'empty', titles: [], instanceIds: [], error: null });
+  });
+  test.each([value => value, JSON.stringify])('uses instValue only when both formData fields are absent', wrap => {
+    const result = context.readCanvasAssociation({ formData: {}, instValue: wrap([
+      { fieldId: 'other', fieldData: { value: 'ignored' } }, { fieldId: field, fieldData: { value: items } },
+    ]) }, field);
+    expect(result).toMatchObject({ status: 'ready', titles: ['客户甲', '客户乙'] });
+  });
+  test.each([
+    { formData: {} }, { formData: {}, instValue: [] },
+    { formData: {}, instValue: [{ fieldId: field, fieldData: {} }] },
+  ])('missing/hidden values are unavailable, not a verified empty association', input => {
+    expect(context.readCanvasAssociation(input, field)).toMatchObject({ status: 'error',
+      error: { code: 'DATA_ASSOCIATION_UNAVAILABLE', fieldId: field } });
+  });
+  test.each([
+    { formData: { [field]: '[broken', [`${field}_id`]: items } },
+    { formData: { [`${field}_id`]: '[broken' }, instValue: [{ fieldId: field, fieldData: { value: items } }] },
+    { formData: {}, instValue: '[broken' }, { formData: {}, instValue: '{}' },
+    { formData: {}, instValue: [{ fieldId: field, fieldData: { value: items } }, { fieldId: field, fieldData: { value: [] } }] },
+    { formData: { [field]: [{}] } }, { formData: 'not an object' },
+  ])('preserves an invalid source as an error rather than replacing it with a successful fallback', input => {
+    expect(context.readCanvasAssociation(input, field)).toMatchObject({ status: 'error',
+      titles: [], error: { code: 'DATA_ASSOCIATION_INVALID' } });
+  });
+  test('resolves names from already loaded records and never displays IDs or objects as titles', () => {
+    const input = { formData: { [field]: [{ instanceId: 'FINST-A' }, { instanceId: 'FINST-B', title: { zh_CN: '对象' } }] } };
+    expect(context.readCanvasAssociation(input, field)).toMatchObject({ status: 'error',
+      instanceIds: ['FINST-A', 'FINST-B'], error: { code: 'DATA_ASSOCIATION_TITLE_UNAVAILABLE' } });
+    expect(context.readCanvasAssociation(input, field, { 'FINST-A': '真实客户甲', 'FINST-B': '真实客户乙' }))
+      .toMatchObject({ status: 'ready', titles: ['真实客户甲', '真实客户乙'], error: null });
+    expect(bridge.searchFormDatas).not.toHaveBeenCalled();
+  });
+  test('uses only own dictionary entries, and keeps zero-like names and association order', () => {
+    const names = Object.create({ 'FINST-A': '继承的名称' });
+    names['FINST-B'] = '0';
+    expect(context.readCanvasAssociation({ formData: { [field]: items } }, field, names))
+      .toMatchObject({ status: 'ready', titles: ['客户甲', '0'], instanceIds: ['FINST-A', 'FINST-B'] });
+  });
+  test.each([null, '', 0, { zh_CN: '未解析的名称' }])('does not conceal an explicitly unavailable current name behind an old title: %j', name => {
+    expect(context.readCanvasAssociation({ formData: { [field]: items } }, field, { 'FINST-A': name }))
+      .toMatchObject({ status: 'error', titles: [], error: { code: 'DATA_ASSOCIATION_TITLE_UNAVAILABLE' } });
+  });
+});
+
 test.each([
   rows => rows, rows => ({ data: rows }), rows => ({ content: { result: { data: rows } } }),
   rows => ({ result: { records: rows } }), rows => ({ content: { values: rows } }),

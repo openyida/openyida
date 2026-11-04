@@ -31,6 +31,75 @@ const { createDefinitionReaders } = require('../lib/app/create-form/definition-r
 const formCompiler = require('../lib/app/services/form-compiler');
 const { verifyFieldBindings } = require('../lib/app/services/field-bindings');
 
+describe('inline validation respects main and table field scopes', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
+  });
+
+  test('keeps same-scope label ambiguity on the no-save error path', async () => {
+    const mocks = createSuccessfulFormHttpMocks('FORM_INLINE_AMBIGUOUS');
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand(mocks);
+    try {
+      await expect(isolatedCreateForm.run(['create', 'APP_TEST', '歧义校验', JSON.stringify([
+        { type: 'TextField', label: '名称', required: true },
+        { type: 'NumberField', label: '名称' },
+      ]), '--no-open'])).rejects.toMatchObject({ code: 'CREATE_FORM_FIELD_RESOLUTION_FAILED' });
+      expect(mockUtils.httpPost.mock.calls.filter(call => call[1].includes('/saveFormSchema.json'))).toHaveLength(0);
+    } finally { consoleSpy.mockRestore(); }
+  });
+
+  test.each(['create', 'resume'])('binds required and regex to each actual field in %s', async mode => {
+    const fields = [
+      { type: 'ColumnContainer', children: [[{ type: 'TextField', label: '名称', required: true,
+        validation: [{ type: 'regex', pattern: '^MAIN', message: '主表格式' }] }]] },
+      { type: 'TableField', label: '交付', children: [{ type: 'TextField', label: '名称', required: true,
+        validation: [{ type: 'regex', pattern: '^CHILD', message: '子表格式' }] }] },
+      { type: 'TableField', label: '收款', children: [{ type: 'TextField', label: '名称',
+        validation: [{ type: 'regex', pattern: '^OTHER', message: '另一个子表格式' }] }] },
+    ];
+    const formUuid = 'FORM_INLINE_SCOPED';
+    const mocks = createSuccessfulFormHttpMocks(formUuid);
+    const originalGet = mocks.httpGet;
+    mocks.httpGet = jest.fn(async (...args) => {
+      const result = await originalGet(...args);
+      if (mode === 'resume' && args[1].includes('getFormSchema') && !result.content?.pages) {
+        return { success: true, appType: 'APP_TEST', formUuid, gmtModified: 100,
+          content: { pages: [{ componentsTree: [] }] } };
+      }
+      return result;
+    });
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand(mocks);
+    try {
+      await isolatedCreateForm.run(mode === 'create'
+        ? ['create', 'APP_TEST', '内联校验', JSON.stringify(fields), '--no-open']
+        : ['resume', 'APP_TEST', formUuid, JSON.stringify(fields), '--json']);
+      const saves = mockUtils.httpPost.mock.calls.filter(call => call[1].includes('/saveFormSchema.json'));
+      expect(saves).toHaveLength(1);
+      const schema = JSON.parse(querystring.parse(saves[0][2]).content);
+      const values = [];
+      const scan = (node, parent = null) => {
+        if (!node || typeof node !== 'object') { return; }
+        if (node.componentName === 'TextField') { values.push({ parent, props: node.props }); }
+        (node.children || []).forEach(child => scan(child, node.componentName === 'TableField' ? node.props.label.zh_CN : parent));
+      };
+      schema.pages[0].componentsTree.forEach(node => scan(node));
+      expect(values).toHaveLength(3);
+      for (const [parent, pattern, required] of [[null, '^MAIN', true], ['交付', '^CHILD', true], ['收款', '^OTHER', false]]) {
+        const props = values.find(item => item.parent === parent).props;
+        expect(props.validation.some(rule => rule.type === 'required')).toBe(required);
+        const serialized = JSON.stringify(props.validation);
+        expect(serialized).toContain(pattern);
+        for (const other of ['^MAIN', '^CHILD', '^OTHER'].filter(value => value !== pattern)) {
+          expect(serialized).not.toContain(other);
+        }
+      }
+    } finally { consoleSpy.mockRestore(); }
+  });
+});
+
 function stripNodeRuntimeWarnings(output) {
   return String(output || '')
     .replace(/^\(node:\d+\) ExperimentalWarning:.*\n?/gm, '')
@@ -2396,6 +2465,156 @@ describe('create-form create recovery guardrails', () => {
     consoleSpy.mockRestore();
   });
 
+  const scopedAssociationFields = () => {
+    const association = key => ({ key, type: 'AssociationFormField', label: '关联商机',
+      associationForm: { appType: 'APP_TARGET', formUuid: 'FORM-TARGET' } });
+    return [
+      association('opportunity'),
+      { key: 'amount', type: 'NumberField', label: '金额' },
+      { key: 'delivery', type: 'TableField', label: '交付明细', children: [
+        association('opportunity'), { key: 'amount', type: 'NumberField', label: '金额' },
+      ] },
+      { key: 'payment', type: 'TableField', label: '回款明细', children: [
+        association('opportunity'), { key: 'amount', type: 'TextField', label: '金额' },
+      ] },
+    ];
+  };
+
+  test('create accepts the same field labels in the main form and two different tables without recovery writes', async () => {
+    const mocks = createSuccessfulFormHttpMocks('FORM_SCOPED');
+    const { isolatedCreateForm, consoleSpy } = loadIsolatedCreateFormCommand(mocks);
+    try {
+      await isolatedCreateForm.run(['create', 'APP_TEST', '主子表同名', JSON.stringify(scopedAssociationFields()), '--json']);
+      expect(mocks.httpPost.mock.calls.filter(call => call[1].includes('saveFormSchemaInfo'))).toHaveLength(1);
+      expect(mocks.httpPost.mock.calls.filter(call => call[1].includes('/saveFormSchema.json'))).toHaveLength(1);
+    } finally {consoleSpy.mockRestore();}
+  });
+
+  test('resume treats main/table scope as identity and does not write a fully saved form', async () => {
+    const fields = scopedAssociationFields();
+    const currentSchema = formCompiler.compileFormDefinition({ formTitle: '同名字段', fields }, {
+      appType: 'APP_TEST', formUuid: 'FORM_SCOPED',
+    }).schema;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpGet: jest.fn(async () => ({ success: true, appType: 'APP_TEST', formUuid: 'FORM_SCOPED', content: currentSchema })),
+    });
+    try {
+      const result = await isolatedCreateForm.run(['resume', 'APP_TEST', 'FORM_SCOPED', JSON.stringify(fields), '--json']);
+      expect(result).toMatchObject({ success: true, existingFieldCount: 4, addedFieldCount: 0, finalFieldCount: 8 });
+      expect(mockUtils.httpGet).toHaveBeenCalledTimes(2);
+      expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    } finally {consoleSpy.mockRestore();}
+  });
+
+  test.each(['missing', 'wrong-type', 'duplicate'])('a %s child cannot be verified by a same-named main/other-table field', async fault => {
+    const fields = scopedAssociationFields(), observed = scopedAssociationFields();
+    if (fault === 'missing') {observed[2].children.shift();}
+    if (fault === 'wrong-type') {observed[2].children[0] = { key: 'opportunity', type: 'TextField', label: '关联商机' };}
+    if (fault === 'duplicate') {observed[2].children.push({ ...observed[2].children[0], key: 'otherOpportunity' });}
+    const currentSchema = formCompiler.compileFormDefinition({ formTitle: '故障子表', fields: observed }, {
+      appType: 'APP_TEST', formUuid: 'FORM_SCOPED',
+    }).schema;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpGet: jest.fn(async () => ({ success: true, appType: 'APP_TEST', formUuid: 'FORM_SCOPED', content: currentSchema })),
+    });
+    try {
+      await expect(isolatedCreateForm.run(['resume', 'APP_TEST', 'FORM_SCOPED', JSON.stringify(fields), '--json']))
+        .rejects.toMatchObject({ code: 'CREATE_FORM_RESUME_READBACK_MISMATCH', details: fault === 'missing'
+          ? { missingFieldCount: 1 } : { diagnostics: expect.arrayContaining([
+            expect.objectContaining({ label: '关联商机', tablePath: ['交付明细'] }),
+          ]) } });
+      expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    } finally {consoleSpy.mockRestore();}
+  });
+
+  test('duplicate desired labels within the same table remain a conflict', async () => {
+    const fields = scopedAssociationFields();
+    const currentSchema = formCompiler.compileFormDefinition({ formTitle: '重复子字段', fields }, {
+      appType: 'APP_TEST', formUuid: 'FORM_SCOPED',
+    }).schema;
+    fields[2].children.push({ ...fields[2].children[0], key: 'otherOpportunity' });
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpGet: jest.fn(async () => ({ success: true, appType: 'APP_TEST', formUuid: 'FORM_SCOPED', content: currentSchema })),
+    });
+    try {
+      await expect(isolatedCreateForm.run(['resume', 'APP_TEST', 'FORM_SCOPED', JSON.stringify(fields), '--json']))
+        .rejects.toMatchObject({ code: 'CREATE_FORM_RESUME_READBACK_MISMATCH', details: {
+          diagnostics: expect.arrayContaining([expect.objectContaining({
+            code: 'CREATE_FORM_RESUME_DUPLICATE_DESIRED_FIELD', label: '关联商机', tablePath: ['交付明细'],
+          })]),
+        } });
+      expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    } finally {consoleSpy.mockRestore();}
+  });
+
+  test('layout containers stay transparent and punctuation in labels cannot collide with a table path', async () => {
+    const fields = [
+      { key: 'one', type: 'TableField', label: '交付.明细', children: [{ key: 'item', type: 'TextField', label: '金额' }] },
+      { key: 'two', type: 'TableField', label: '交付', children: [{ key: 'item', type: 'TextField', label: '明细.金额' }] },
+    ];
+    const observed = [{ type: 'ColumnContainer', children: [[fields[0]], [fields[1]]] }];
+    const currentSchema = createForm._private.buildFormSchema('布局范围', observed, 'FORM_SCOPED', 'corp', 'APP_TEST');
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpGet: jest.fn(async () => ({ success: true, appType: 'APP_TEST', formUuid: 'FORM_SCOPED', content: currentSchema })),
+    });
+    try {
+      const result = await isolatedCreateForm.run(['resume', 'APP_TEST', 'FORM_SCOPED', JSON.stringify(fields), '--json']);
+      expect(result).toMatchObject({ success: true, addedFieldCount: 0, finalFieldCount: 4 });
+      expect(mockUtils.httpPost).not.toHaveBeenCalled();
+    } finally {consoleSpy.mockRestore();}
+  });
+
+  test('resume adds a missing whole table with its original scoped children', async () => {
+    const fields = scopedAssociationFields();
+    let currentSchema = formCompiler.compileFormDefinition({ formTitle: '缺少子表', fields: fields.slice(0, 3) }, {
+      appType: 'APP_TEST', formUuid: 'FORM_SCOPED',
+    }).schema;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpGet: jest.fn(async () => ({ success: true, appType: 'APP_TEST', formUuid: 'FORM_SCOPED', gmtModified: 100, content: currentSchema })),
+      httpPost: jest.fn(async (_base, url, body) => {
+        if (url.includes('/saveFormSchema.json')) {currentSchema = JSON.parse(querystring.parse(body).content);}
+        return { success: true };
+      }),
+    });
+    try {
+      const result = await isolatedCreateForm.run(['resume', 'APP_TEST', 'FORM_SCOPED', JSON.stringify(fields), '--json']);
+      expect(result).toMatchObject({ success: true, existingFieldCount: 3, addedFieldCount: 1, finalFieldCount: 8 });
+      expect(mockUtils.httpPost.mock.calls.filter(call => call[1].includes('/saveFormSchema.json'))).toHaveLength(1);
+      expect(mockUtils.httpPost.mock.calls.some(call => call[1].includes('saveFormSchemaInfo'))).toBe(false);
+      expect(JSON.stringify(currentSchema)).not.toContain('"tablePath":');
+    } finally {consoleSpy.mockRestore();}
+  });
+
+  test.each(['saved', 'missing-child'])('server failure readback respects scoped children: %s', async scenario => {
+    const fields = scopedAssociationFields();
+    let currentSchema = formCompiler.compileFormDefinition({ formTitle: '故障回读', fields: fields.slice(0, 1) }, {
+      appType: 'APP_TEST', formUuid: 'FORM_SCOPED',
+    }).schema;
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand({
+      httpGet: jest.fn(async () => ({ success: true, appType: 'APP_TEST', formUuid: 'FORM_SCOPED', gmtModified: 100, content: currentSchema })),
+      httpPost: jest.fn(async (_base, url, body) => {
+        if (!url.includes('/saveFormSchema.json')) {return { success: true };}
+        currentSchema = JSON.parse(querystring.parse(body).content);
+        if (scenario === 'missing-child') {
+          const remove = nodes => nodes.forEach(node => {
+            if (node.componentName === 'TableField' && node.props.label.zh_CN === '交付明细') {node.children.shift();}
+            else if (node.children) {remove(node.children);}
+          });
+          remove(currentSchema.pages[0].componentsTree);
+        }
+        return { success: false, errorMsg: 'server unavailable', __httpStatus: 503 };
+      }),
+    });
+    try {
+      const operation = isolatedCreateForm.run(['resume', 'APP_TEST', 'FORM_SCOPED', JSON.stringify(fields), '--json']);
+      if (scenario === 'saved') {
+        expect(await operation).toMatchObject({ success: true,
+          completedStages: expect.arrayContaining(['save_schema_recovered_by_readback']) });
+      } else {await expect(operation).rejects.toMatchObject({ code: 'CREATE_FORM_SAVE_SCHEMA_FAILED' });}
+      expect(mockUtils.httpPost.mock.calls.filter(call => call[1].includes('/saveFormSchema.json'))).toHaveLength(1);
+    } finally {consoleSpy.mockRestore();}
+  });
+
   test('create-form resume rebuilds a verified blank shell without creating a replacement form', async () => {
     let currentSchema = {
       schemaType: 'superform',
@@ -3403,6 +3622,24 @@ describe('form compiler field bindings', () => {
 
     expect(JSON.stringify(compiled.schema)).toContain('FORM_CUSTOMER');
     expect(compiled.fieldBindingComponents.customer).toBe('AssociationFormField');
+  });
+
+  test.each(['receipt', 'process'])('association builders preserve the configured target form type: %s', formType => {
+    const definition = { key: 'customer', type: 'AssociationFormField', label: '关联记录', multiple: true,
+      associationForm: { appType: 'APP_REMOTE', formUuid: 'FORM-REMOTE', formType } };
+    const direct = createForm._private.buildFormNodeComponent(definition);
+    expect(direct.props).toMatchObject({ multiple: true, associationForm: { formType, appType: 'APP_REMOTE', formUuid: 'FORM-REMOTE' } });
+    const compiled = formCompiler.compileFormDefinition({ formTitle: '关联格式', fields: [definition] });
+    const relations = [];
+    const visit = value => {
+      if (!value || typeof value !== 'object') {return;}
+      if (value.componentName === 'AssociationFormField' && value.props?.fieldId) {relations.push(value.props.associationForm);}
+      Object.values(value).forEach(child => { if (typeof child === 'object') {visit(child);} });
+    };
+    visit(compiled.schema);
+    expect(relations).toEqual([expect.objectContaining({ formType, appType: 'APP_REMOTE', formUuid: 'FORM-REMOTE' })]);
+    expect(createForm._private.buildFormNodeComponent({ ...definition, associationForm: { formUuid: 'FORM-REMOTE' } })
+      .props.associationForm.formType).toBe('receipt');
   });
 
   test('compileFormDefinition rejects dots inside semantic keys', () => {

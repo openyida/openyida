@@ -178,6 +178,14 @@ openyida login --intl
 
 Agent 会读取 `yida-skills/` 中的技能说明，调用 OpenYida CLI 创建应用、表单、页面、流程和报表，并返回最终访问链接。
 
+## 示例数据与关联记录
+
+普通表单使用 `openyida data seed form <appType> <formUuid> --expect-form-name <名称> --records-file <绝对路径>/records.json --json`，一次写入 1–30 条记录并逐条回读。日期字符串由 CLI 转换，模型只准备业务数据数组。
+
+不支持且明确非必填、无字段校验的组件，seed 会在写前省略（包含子表），通过 `skippedFields` 列出路径，`requestedFieldsVerified=false` 表示省略项未核验。省略不承诺值为空，平台默认值和自动流水号仍生效。全部记录只剩省略字段时返回 `skipped=true`，不创建空记录；必填或未知类型返回明确分流指引。受支持类型的坏值仍拒绝，pending/未知写入仍只恢复，不切换命令重复创建。
+
+完整保留 JSON 回执；成功且 `readbackVerified=true` 后，按 `items[].recordIndex`（输入数组从 0 开始的索引）取得 verified 条目的 `formInstId`，直接用于后续关联字段。先写被关联表，再写依赖表；不要用 tail/head/grep 截断回执，不为提取已返回 ID 重查列表。仍需使用 `data query form <appType> <formUuid> --inst-id <已核验ID> --json` 做业务抽查。输出截断或失败恢复见[回执规则](yida-skills/skills/yida-data-management/SKILL.md#直接消费回执与关联-id)；check、pending 和候选 ID 不作为成功依据。
+
 ## 语言包
 
 CLI 默认内置 `zh` 和 `en` 两个核心语言包，以中文为主、英文兜底。其他语言包按需启用：将 `ja.js`、`fr.js` 等文件放到一个外部目录，设置 `OPENYIDA_LOCALE_DIR` 指向该目录，再设置 `OPENYIDA_LANG=ja`。如果目标语言包不可用，OpenYida 会按 `en -> zh` 回退，不影响命令执行。
@@ -419,7 +427,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 | 命令 | 说明 |
 |------|------|
-| `openyida data <query\|get\|create\|update\|transfer> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | 统一数据管理（表单/流程/任务/子表单） |
+| `openyida data <query\|get\|create\|update\|transfer\|seed> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | 统一数据管理（表单/流程/任务/子表单） |
 | `openyida task-center <todo\|created\|done\|cc\|proxy\|capabilities\|link\|scaffold\|options\|inspect\|count> [--spec <file.json> --output <file.canvas.jsx>] [options]` | 全局任务中心（待办/已处理/抄送等） |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | 查询组织基本信息、容量、额度和域名设置 |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | 获取钉钉文档的 Markdown 内容 |

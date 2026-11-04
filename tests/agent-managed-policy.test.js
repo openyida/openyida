@@ -84,6 +84,19 @@ test('scope and mutation receipts consume the same app policy', () => {
   expect(run('create-form', ['list-icons'])).not.toBeNull();
 });
 
+test('seed is app-bound, check emits no mutation, and unknown resources remain denied', () => {
+  const args = ['seed', 'form', 'APP_BOUND', 'FORM-x', '--records-file', 'records.json'];
+  expect(run('data', args)).toMatchObject({ appType: 'APP_BOUND' });
+  expect(classifyManagedMutation('data', args)).toEqual({ operation: 'create_form_data', formUuid: 'FORM-x' });
+  expect(classifyManagedMutation('data', [...args, '--check'])).toBeNull();
+  expect(() => run('data', ['seed', 'form', 'APP_OTHER', 'FORM-x']))
+    .toThrow(expect.objectContaining({ code: 'MANAGED_APP_MISMATCH' }));
+  expect(() => run('data', ['seed', 'process', 'APP_BOUND', 'FORM-x']))
+    .toThrow(expect.objectContaining({ code: 'MANAGED_COMMAND_UNSUPPORTED' }));
+  expect(() => run('data', [...args, '--corp-id', 'other']))
+    .toThrow(expect.objectContaining({ code: 'MANAGED_OVERRIDE_FORBIDDEN' }));
+});
+
 test('native report configuration is app-bound with no dry-run mutation receipt', () => {
   const args = ['configure', 'APP_BOUND', 'REPORT_1', 'cid_1', '--hide-zero-values', 'true', '--json'];
   expect(run('report', args)).toMatchObject({ appType: 'APP_BOUND' });
