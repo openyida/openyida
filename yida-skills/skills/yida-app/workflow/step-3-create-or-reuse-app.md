@@ -23,7 +23,7 @@ Fast / Plan 已选主题是全应用决定，本步骤必须保存同一份应�
 
 1. 已有 `appType`、应用 URL 或已绑定 app → 直接复用该 app。
 2. 缺少 app 且 Step 1 判定 `allowCreate=true` → 执行 `use_skill("yida-create-app", "按 PRD 创建应用并获取 appType")`，再按 PRD 创建应用。执行创建前按[创建应用时的提示](../../../references/user-facing-summary.md#创建应用时的提示)告知一次“当前在{组织名称}组织下为您创建{应用名称}应用”；名称取已确认的当前组织与应用，不附带登录或准备说明。
-   `status=permission_required` 时按 [权限处理](../../yida-create-app/SKILL.md#创建权限不足时的处理) 展示申请链接、保留已有结果并暂停，不自动换组织。
+   创建权限不足时按 [权限处理](../../yida-create-app/SKILL.md#创建权限不足时的处理) 展示当前组织的申请表、保留已有结果并暂停。
 3. 创建或复用后提取真实 `appType`，写入 `.cache/<项目名>-schema.json` 或当前任务资源上下文。
    - 千问办公保留 `adminUrl` 和 `linkPresentation` 待办交给 Step 9。若本轮在此结束或中断交付，先按[收尾检查](../../../references/qwenwork-link-presentation.md#收尾必做检查)调用展示工具、核对回执再总结。
    - Step 2 已确认的 `requirement-brief.json`、PRD 与 design 保持不变；不得仅因拿到真实 `appType` 回写需求文件或重新生成 PRD 和视觉设计。

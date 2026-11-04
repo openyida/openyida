@@ -26,7 +26,7 @@ CLI 校验后保存源计划、PRD、design、HTML 和主题 CSS。
 
 执行 init 的 `materialize.command` 与 `materialize.shell`（Windows 用 PowerShell，其他用 POSIX）。`outputs.html` 是编辑稿；确认必须同时取得 `outputs.confirmationHtml` 和 revision，缺失时先重新生成，不回退编辑稿或伪造版本。revision 不向用户展示。直接维护 JSON 时先设 status=awaiting_confirmation 再 materialize；`--check` 仅诊断，不产生确认。片段职责见 [完整文件合并](../parallel-work.md#plan-的-cli-交接)。
 
-HTML 四章与视觉展示遵守 [HTML 内容契约](../../../yida-design/sub_skill/yida-design-plan/assets/README.md#需求总览中的视觉信息)，业务与 PRD 一致。
+HTML 四章与视觉展示遵守 [HTML 内容契约](../../../yida-design/sub_skill/yida-design-plan/assets/README.md#需求总览摘要)，业务与 PRD 一致。
 
 校验失败时按返回的 `details.issues` 集中修正对应字段后重试。写入失败由 CLI 恢复旧文件；若恢复失败，保留报错给出的备份路径并处理恢复后再继续。
 

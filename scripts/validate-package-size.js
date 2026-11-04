@@ -95,7 +95,9 @@ const path = require('path');
 // retain the next 16 KiB boundary, without changing file or entry caps.
 // Fast JSON execution context, mandatory CSS generator and shared input guidance add three runtime files.
 // Node 20 measures about 2,706 KiB compressed and 9,920 KiB unpacked; keep bounded headroom.
-const MAX_TARBALL_BYTES = 2720 * 1024;
+// Form data seeding, schema guards, and the Canvas sample merged with main
+// measure 2,789,968 compressed bytes on Node 20.18.1. Use the next 16 KiB boundary.
+const MAX_TARBALL_BYTES = 2736 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.

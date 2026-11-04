@@ -56,6 +56,12 @@ test('recognizes the verified organization authorization error', () => {
     } });
 });
 
+test('a bare resource denial does not imply missing YiDA platform access', () => {
+  expect(createPermissionError({ success: false, errorMsg: '没有权限' }, {
+    ...OPTIONS, requestPath: '/query/form/update.json',
+  })).toBeNull();
+});
+
 test.each([
   ['unauth', '申请宜搭使用授权', '当前没有此组织的宜搭使用权限，可申请宜搭使用授权。'],
   ['noAppCreationAuth', '申请宜搭应用创建权限', '当前没有此组织的宜搭应用创建权限，可申请应用创建权限。'],
@@ -69,7 +75,10 @@ test.each([
   expect(payload.errorMsg).toBe(message);
   expect(payload.nextAction).toEqual({ type: 'open_url', label, url });
   expect(payload.nextStep).toContain(`[${label}](${url})`);
-  expect(payload.details).toMatchObject({ permissionLabel: label, permissionUrl: url, platformErrorMessage: '原始平台错误' });
+  expect(payload.details).toMatchObject({
+    permissionLabel: label, permissionUrl: url,
+    permissionLinkMarkdown: `[${label}](${url})`, platformErrorMessage: '原始平台错误',
+  });
 });
 
 test('only classifies the legacy creation error at the verified register endpoint', () => {
@@ -105,9 +114,15 @@ test.each(['000006', 'TIANSHU_000006', '403', undefined])('short creation denial
   expect(createPermissionError(response, { ...OPTIONS, tool: 'codex', requestPath: '/query/form/update.json' })).toBeNull();
 });
 
-test.each(['SERVER_ERROR', 'invalid_access_token'])('does not turn unrelated error %s into a creation permission failure', errorCode => {
-  expect(createPermissionError({ success: false, errorCode, errorMsg: '没有权限' },
-    { ...OPTIONS, requestPath: '/query/app/registerApp.json' })).toBeNull();
+test.each([
+  [{ errorCode: 'SERVER_ERROR', errorMsg: '服务暂不可用' }, 200],
+  [{ errorCode: 'SERVER_ERROR', errorMsg: '没有权限' }, 500],
+  [{ errorCode: 'invalid_access_token', errorMsg: '没有权限' }, 200],
+  [{ errorCode: '401', errorMsg: '没有权限' }, 200],
+  [{ errorCode: 'TIANSHU_000030', errorMsg: '没有权限' }, 200],
+])('keeps service, authentication and CSRF errors out of the creation permission flow: %j', (response, httpStatus) => {
+  expect(createPermissionError({ success: false, ...response },
+    { ...OPTIONS, httpStatus, requestPath: '/query/app/registerApp.json' })).toBeNull();
 });
 
 test.each([

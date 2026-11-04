@@ -28,7 +28,7 @@ CRM PRO 是一个覆盖“营销获客 → 线索分配与跟进 → 客户/联�
 | --- | --- | --- |
 | `openyida get-schema --all --output-dir ...` | 全量资源和 Schema | 56/56 成功，完整文件保存于本地忽略目录 `project/.cache/openyida/crm-pro-e2e/schemas/` |
 | `openyida nav-group list --flat --json` | 导航父子关系、显示/隐藏和顺序 | 成功 |
-| `openyida permission get` | 16 普通表单 + 1 流程表单权限 | 全部成功 |
+| 表单权限查询（现用 `openyida get-permission <appType> <formUuid>`） | 16 普通表单 + 1 流程表单权限 | 全部成功 |
 | `openyida app-permission get` | 应用管理员与访问控制 | 成功 |
 | `openyida integration list --json` | 表单事件自动化 | 11 条成功 |
 | `openyida report inspect` | 19 个报表的组件与数据源 | 全部成功 |

@@ -66,6 +66,12 @@ function expectSkillsPlugin() {
   expect(fs.readFileSync(path.join(root, 'skills', 'yida-db-seq-fix', 'SKILL.md'), 'utf8'))
     .toBe(fs.readFileSync(path.join(ROOT, 'yida-skills', 'skills', 'yida-db-seq-fix', 'SKILL.md'), 'utf8'));
   expect(fs.existsSync(path.join(root, 'skills', 'openyida', 'SKILL.md'))).toBe(true);
+  const entry = fs.readFileSync(path.join(root, 'skills', 'openyida', 'SKILL.md'), 'utf8');
+  expect(entry).toContain('按 `yida-app` 的「本次搭建依据」');
+  for (const name of ['yida-app', 'yida-design', 'yida-requirement-analysis']) {
+    expect(fs.readFileSync(path.join(root, 'skills', name, 'SKILL.md'), 'utf8'))
+      .toBe(fs.readFileSync(path.join(ROOT, 'yida-skills', 'skills', name, 'SKILL.md'), 'utf8'));
+  }
   expect(fs.existsSync(path.join(root, 'assets', 'logo.svg'))).toBe(true);
   expect(fs.readFileSync(path.join(tempHome, '.codex', 'config.toml'), 'utf8'))
     .toContain('[plugins."openyida@openyida"]');

@@ -1,10 +1,10 @@
 # 应用各页面共用主题
 
-Fast、Plan 和单页开发使用同一条链路：配对主题与项目 `design.md` → 保留原规则并实例化项目 token 的 `app-theme.css` → 导航、应用框架、门户、自定义页面、原生表单、表单详情、数据管理、报表、抽屉及其他浮层。页面代码负责布局、业务交互和局部装饰，基础配色与组件风格统一读取应用主题；各区域是否实际消费主题必须核实，不能仅凭 CSS 上传成功断言全应用一致。
+Fast 新建应用直接生成主题 CSS。Plan 通过物化生成，已有设计文档按配对模板生成。导航、应用框架、门户、自定义页面、原生表单、表单详情、数据管理、报表和浮层共同消费该主题 CSS。页面代码负责布局、业务交互和局部装饰，基础配色与组件风格统一读取应用主题；各区域是否实际消费主题必须核实，不能仅凭 CSS 上传成功断言全应用一致。
 
 选定“红色主题”意味着整个应用使用这一品牌主色与配套角色，不能右侧自定义页固定红色、左侧应用仍保留默认蓝色。前台可以采用品牌展示布局，后台采用原生操作布局；这种结构差异不另起一套基础色盘。中性色、辅助色、语义色按设计保留，不要求所有区域同色。`publish` 不会把页面里的品牌常量自动写成应用主题，单独调用 `create-app` 也不代表主题已配置。
 
-Plan 的已选主色与最终 `--color-brand1-6` 必须相符，冲突返回 `DESIGN_PLAN_THEME_COLOR_MISMATCH`，先修正同一份设计源再生成；Fast 的 design.md 同样校验 themeProfile.themeColor 与品牌 token。命名模板需要换品牌时明确修改项目的颜色角色及配套前景，不保留模板原色同时声称已采用另一主色。
+Plan 的已选主色与最终 `--color-brand1-6` 必须相符，冲突返回 `DESIGN_PLAN_THEME_COLOR_MISMATCH`，先修正同一份设计源再生成；已有设计文档同样校验 `themeProfile.themeColor` 与品牌 token。命名模板需要换品牌时明确修改项目的颜色角色及配套前景，不保留模板原色同时声称已采用另一主色。
 
 已有应用要求“统一和谐”时，按 [全应用覆盖与一致性](../sub_skill/ui-improve/references/application-coverage.md) 建立全部页面和浮层的清单，将范围、效果及平台限制纳入视觉方案，确认后实施。抽屉外壳与内部页面分别检查；报表保留指标和状态语义，门户保留模块及入口。未适配或未验证的区域必须说明，代表性页面截图不能代替全应用验收。
 
@@ -50,7 +50,7 @@ Plan 的已选主色与最终 `--color-brand1-6` 必须相符，冲突返回 `DE
 
 菜单形状使用 `--pod-nav-menu-item-radius`；普通、悬停、选中边框分别使用 `--pod-nav-menu-item-border`、`--pod-nav-menu-item-hover-border`、`--pod-nav-menu-item-selected-border`。三项边框由 OpenYida 主题 CSS 的导航选择器消费，覆盖侧栏、L 型侧栏和顶部菜单。边框填写完整 CSS 值，例如 `none`、`1px solid #AAB7AE`、`3px double #A7744D`；各状态保持同一宽度，避免文字位置跳动。选中阴影继续使用 `--pod-nav-menu-item-selected-shadow`，可与边框组合。验收时查看菜单的实际圆角、线宽、线型和选中标记，分别核对侧栏与顶栏。
 
-Fast 在 `design.md` 的第 2.2 节说明最终导航与框架规则，token 写入 frontmatter；Plan 在 `visualStyle.tokens` 保存项目差异，由 CLI 生成同一设计与主题文件。导航 token 随应用主题一次生成、上传和校验，各页继续消费同一份主题。
+Fast 在当前任务记录导航规则，主题覆盖传给 `fast-theme --tokens-file`。已有设计文档将规则写入正文、token 写入 frontmatter。Plan 在 `visualStyle.tokens` 保存项目差异，由 CLI 生成设计与主题文件。导航 token 随应用主题一次生成、上传和校验，各页继续消费同一份主题。
 
 ### 导航形状与密度的案例经验
 
@@ -71,7 +71,7 @@ Fast 在 `design.md` 的第 2.2 节说明最终导航与框架规则，token 写
 
 自由创意与历史公共骨架路径仅为显式声明的边框或选中阴影生成额外规则；省略时不覆盖平台 border、box-shadow、内部高度或顶部菜单间距，删除声明后同步移除生成规则。显式 `none` 表示有意关闭，省略表示沿用原样，两者不同。单独声明阴影不会启用边框适配。
 
-项目调整时，把取值写回现有设计源。Fast 修改 design.md，Plan 修改 visualStyle.tokens 后重新生成；模板维护保留 `design.md`、JSON 与 CSS 原文；检查脚本不根据设计默认值重写已有配对 CSS。模板变更另行确认范围，项目实例化不反写模板。边框、hover、圆角、阴影的能力仍保留，按组件角色决定是否使用。
+项目调整时，把取值写回现有设计源。Fast 更新主题输入，已有设计文档维护 `design.md`，Plan 修改 `visualStyle.tokens`，然后按各自流程重新生成；模板维护保留 `design.md`、JSON 与 CSS 原文；检查脚本不根据设计默认值重写已有配对 CSS。模板变更另行确认范围，项目实例化不反写模板。边框、hover、圆角、阴影的能力仍保留，按组件角色决定是否使用。
 
 验收先看访问态的数据管理页，再看自定义页、提交页和详情页：当前位置清晰，hover 不覆盖选中状态，键盘焦点可见，三态边框宽度一致且文字不跳动。检查长标题、折叠、分组展开线和窄容器；导航不能抢过主操作和正文。应用 `/admin` 是开发配置后台，业务导航应在访问态验收。
 
@@ -124,7 +124,7 @@ JSON `paletteContrast.checks` 表示可计算的组合；`unresolved` 列出不�
 | 平台没有对应角色的色彩、字体、材质、尺寸、动效和组件状态 | 项目扩展 token，由主题 CSS 提供，使用者显式引用 |
 | 分栏、大标题位置、封面构图、单页纹理 | 页面设计与页面代码；需共享或随主题变化的参数引用扩展 token |
 
-例如主色为墨黑 `#1B1B1B`，并已确认奶油画布、暖白面板、橙红装饰标签时，Plan 在 `visualStyle.tokens` 写入以下项目差异；Fast 将同样的变量写入 `design.md.tokens` 对应分组。这个例子只展示当前项目的内容配色，导航仍按完整应用设计配套。选中项阴影由 `--pod-nav-menu-item-selected-shadow` 独立控制。
+例如主色为墨黑 `#1B1B1B`，并已确认奶油画布、暖白面板、橙红装饰标签时，Plan 在 `visualStyle.tokens` 写入以下项目差异；Fast 将同样的变量放入主题输入 JSON 的 `tokens` 对象。这个例子只展示当前项目的内容配色，导航仍按完整应用设计配套。选中项阴影由 `--pod-nav-menu-item-selected-shadow` 独立控制。
 
 ```json
 {
@@ -198,11 +198,11 @@ fallback 只用于变量暂不可用的兜底，不能作为线上主题已加�
 
 antd 控件按 Canvas 技能接入 `CanvasThemeProvider`，由适配层读取当前根容器的计算样式；Provider 不会替换页面中写死的 CSS，也不代表每种字体、圆角和组件参数都已自动适配。实际控件仍需核对消费关系。
 
-发现已确认的全局风格没有对应变量时，先补设计源：Plan 修改 `visualStyle.tokens` 后重新 `materialize`；Fast 更新 `design.md` 后运行带 `--design-file` 的 `sample`。读取生成的 token，上传返回的同一份主题文件，再检查页面。不要只改生成后的 CSS，也不要靠复制色盘到各页补救。
+发现已确认的全局风格没有对应变量时，先补设计源：Plan 修改 `visualStyle.tokens` 后重新 `materialize`；Fast 按 [独立主题流程](../../yida-app/workflow/fast-build.md#2-同时准备主题与独立页面)更新主题输入并重新生成。已有设计文档更新后运行带 `--design-file` 的 `sample`。读取生成的 token，上传返回的同一份主题文件，再检查页面。不要只改生成后的 CSS，也不要靠复制色盘到各页补救。
 
 ## 验证主题是否真正一致
 
-PRD 的 `applicationTheme: {themeColor, navTheme, designFile}` 来自最终设计，不写回 build-plan。Plan 自动生成，Fast 记录同一字段。`check-prd-completeness` 核对当前 colour=custom、主色、自定义 CSS 启用及 URL、导航明暗；不符为 fail，未知为 needs_review。`runtimeVerified=false` 保留；历史 PRD 缺字段不代表通过。
+Plan 从最终设计生成 PRD 的 `applicationTheme`。Fast 将 `fast-theme` 回执中的 `applicationTheme` 记录到 `build-manifest.json`。`check-prd-completeness` 核对当前 colour=custom、主色、自定义 CSS 启用及 URL、导航明暗；不符为 fail，未知为 needs_review。`runtimeVerified=false` 保留；历史 PRD 缺字段不代表通过。
 
 1. **设计与文件**：逐项对照已确认的导航、框架、主色、页面底、面板、文字、字体及特色强调，确认它们出现在生成的主题 token 中，页面用的是同一角色。导航明暗与模板或自由创意决策一致，导航状态、形状与密度保留本项目设计。文件名叫 `app_theme.css` 或 `app-theme.css` 不影响契约，以本次输出路径为准。
 2. **上传与绑定**：按[证据规则](../../../references/execution-rules.md#主题上传与绑定)核对本轮上传哈希、目标应用、资源地址和绑定回读；复用已有主题时记录复用。

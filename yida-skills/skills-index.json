@@ -334,8 +334,8 @@
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
       "display_name": "宜搭完整应用开发",
-      "description": "创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。由 yida-prd 和 yida-design 同时准备业务与基础视觉，校验后创建或复用资源；表单/流程先于自定义页面。页面 UI 按已确认设计实现，代码示例按需参考；发布后优先按 PRD 导航顺序排序，检查后交付入口。",
-      "done_when": "需求和方案已确认，业务与视觉说明一致；PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md。仅修改单页时，发布成功后返回当前页面 URL；没有 publish 证据只能声明已完成修改，待发布。完整应用按实际范围交付一组入口：管理端按默认任务返回 {base_url}/{appType}/workbench 或已验证的 /workbench/{formUuid}（需要时带真实 viewUuid）；独立前台仅在页面配置回读 renderNav=false（仅缺少 renderNav 时兼容 isRenderNav）且访问验证通过后交付 /custom/{formUuid}；完整应用默认提供 create-app 或 app-list 返回的 adminUrl（开发者管理后台），不受宿主或登录方式影响；仅业务后台时交付业务后台与开发者管理后台，不追加前台；仅前台时不追加业务后台，交付前台与开发者管理后台；有前后台时交付三个地址，不分前后台时交付系统入口与开发者管理后台。用户明确排除的入口除外，地址生成不等于已验证访问权限。final 仅总结本轮业务变化和真实结果，简单修改一句即可，再给主入口链接；不默认输出表格、长列表或资源 ID。缺少真实权限或多身份验证时明确说明未完成。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。",
+      "description": "创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。Fast 明确范围后立即创建或复用应用，独立生成 app_theme.css，按实际依赖推进资源和页面。Plan 物化并确认业务与视觉方案后实施。页面 UI 按已确认设计实现，代码示例按需参考；前后台都规划菜单顺序与默认页面，发布后分别验收实际入口。",
+      "done_when": "需求范围及执行方式有本次依据。Fast 根据已确认需求、主题 CSS 和真实回执完成业务与视觉交付。Plan 已确认方案，PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md。仅修改单页时，发布成功后返回当前页面 URL；没有 publish 证据只能声明已完成修改，待发布。完整应用按实际范围交付一组入口：管理端按默认任务返回 {base_url}/{appType}/workbench 或已验证的 /workbench/{formUuid}（需要时带真实 viewUuid）；独立前台仅在页面配置回读 renderNav=false（仅缺少 renderNav 时兼容 isRenderNav）且访问验证通过后交付 /custom/{formUuid}；完整应用默认提供 create-app 或 app-list 返回的 adminUrl（开发者管理后台），不受宿主或登录方式影响；仅业务后台时交付业务后台与开发者管理后台，不追加前台；仅前台时不追加业务后台，交付前台与开发者管理后台；有前后台时交付三个地址，不分前后台时交付系统入口与开发者管理后台。用户明确排除的入口除外，地址生成不等于已验证访问权限。final 仅总结本轮业务变化和真实结果，简单修改一句即可，再给主入口链接；不默认输出表格、长列表或资源 ID。缺少真实权限或多身份验证时明确说明未完成。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。",
       "category": "yida-skills/app",
       "tags": [
         "宜搭",
@@ -354,7 +354,7 @@
       "name": "yida-requirement-analysis",
       "path": "skills/yida-requirement-analysis/SKILL.md",
       "display_name": "宜搭需求分析",
-      "description": "从应用需求推导核心功能候选，尽早确认范围和实际用法，再推导入口建议，整合 .cache/openyida/<项目名>/requirement-brief.json；平台导航或自定义导航交下游 AI 判断，不生成 PRD、视觉设计或页面源码。",
+      "description": "OpenYida 应用生成前的需求分析。从简短需求推导核心功能候选，尽早确认关键范围和实际用法，再推导入口建议，Fast 直接交接已确认需求；Plan 整合 requirement-brief.json 供业务与视觉规划使用。",
       "category": "yida-skills/design",
       "tags": [
         "需求分析",
@@ -375,7 +375,7 @@
         "页面实现"
       ],
       "command_ids": [],
-      "done_when": ".cache/openyida/<项目名>/requirement-brief.json 已写入、可解析，且没有会改变资源范围的未决问题。"
+      "done_when": "已确认影响资源范围的需求和实际用法。Fast 直接交接已确认需求。Plan 写入可解析的 .cache/openyida/<项目名>/requirement-brief.json。"
     },
     {
       "name": "yida-prd",
@@ -411,7 +411,7 @@
       "name": "yida-design",
       "path": "skills/yida-design/SKILL.md",
       "display_name": "宜搭应用设计",
-      "description": "基于整理后的用户需求，设计宜搭应用和页面的主题、布局与视觉效果，输出 design.md。美化已有资源时，先确认方案并备份，只改 UI，不满意时恢复；不修改业务逻辑，不编写 PRD 或页面源码。",
+      "description": "基于整理后的用户需求，设计宜搭应用和页面的主题、布局与视觉效果，按任务交接主题 CSS、页面设计或 design.md。美化已有资源时，先确认方案并备份，只改 UI，不满意时恢复；不修改业务逻辑，不编写 PRD 或页面源码。",
       "category": "yida-skills/design",
       "tags": [
         "应用设计",
@@ -460,7 +460,7 @@
         "app-theme.snapshot",
         "app-theme.restore"
       ],
-      "done_when": "新设计输出 prd/<项目名>/design.md，不写 prd.md。已有资源 UI 美化以用户验收保留或本轮修改已恢复并核验为完成；等待方案确认或效果验收时保持对应等待状态。"
+      "done_when": "Fast 新建应用交接主题 CSS 与页面设计。设计文档任务输出 prd/<项目名>/design.md，不写 prd.md。已有资源 UI 美化以用户验收保留或本轮修改已恢复并核验为完成；等待方案确认或效果验收时保持对应等待状态。"
     },
     {
       "name": "yida-image-assets",

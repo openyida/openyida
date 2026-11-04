@@ -101,7 +101,7 @@ describe('parallel PRD and visual artifact quality fixtures', () => {
     const plan = read(`${root}/sub_skill/yida-design-plan/SKILL.md`);
     const planInput = read(`${root}/sub_skill/yida-design-plan/references/build-plan-compact-schema.md`);
     expect(contract).toContain('fast-design-spec.md');
-    expect(contract).toContain('各流程交付相同格式并使用同一校验');
+    expect(contract).toContain('与 Plan 物化的文档使用同一格式和校验');
     expect(contract).toContain('Plan 由 CLI 物化生成');
     expect(contract).toContain('索引只保存定位信息');
     expect(contract).toContain('每条完整规则只写一次');
@@ -124,15 +124,15 @@ describe('parallel PRD and visual artifact quality fixtures', () => {
     const pageGeneration = read('yida-skills/skills/yida-canvas-custom-page/references/page-generation-guide.md');
 
     expect(fs.existsSync(scenesDir)).toBe(false);
-    expect(skill).toContain('视觉设计技能，输出 `design.md`');
+    expect(skill).toContain('文档任务输出 `design.md`');
     expect(skill).toContain('业务规划始终归 `yida-prd`');
-    expect(skill).toContain('输入为校验通过的共享 `requirement-brief.json`');
+    expect(skill).toContain('Plan 使用校验通过的共享 `requirement-brief.json`');
     expect(skill).toContain('业务规划与配色、组件样式同时准备');
     expect(skill).toContain('页面内容确定后补齐各页设计');
     expect(skill).toContain('由 `yida-app` 核对页面范围和设计引用');
     expect(step3).toContain('页面 `scene` 只作为分类标签和实现提示，不作为固定页面样式');
     expect(step5).toContain('最终内容与格式统一遵守 [输出契约](output-design.md)');
-    expect(step5).toContain('Fast 手写后执行公共 check-design');
+    expect(step5).toContain('手写或更新设计文档后执行公共 `check-design`');
     expect(pageGeneration).toContain('按 `design.md.assetStrategy` 调用 `yida-image-assets`');
     expect(pageGeneration).toContain('`pages[].materialStatus`');
     expect(pageGeneration).toContain('`assets[].materialStatus=final`');
