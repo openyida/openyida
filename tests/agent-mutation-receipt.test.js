@@ -13,6 +13,27 @@ const managedEnvironment = () => ({
 
 describe('managed mutation receipt', () => {
   test.each([
+    { success: true, skipped: true, completed: 0, mutationPerformed: false },
+    { success: true, completed: 2, readbackVerified: true, mutationPerformed: false },
+  ])('seed without a new write does not announce a resource mutation: %j', output => {
+    const fakeConsole = { log() {} };
+    const capture = beginManagedMutationCapture({ command: 'data',
+      args: ['seed', 'form', 'APP_X', 'FORM_X', '--records-file', 'records.json'],
+      env: managedEnvironment(), consoleObject: fakeConsole, eventId: 'seed-no-write' });
+    fakeConsole.log(JSON.stringify(output));
+    expect(capture.commit()).toBeNull();
+  });
+
+  test('seed with a new write retains the target form mutation receipt', () => {
+    const fakeConsole = { log() {} };
+    const capture = beginManagedMutationCapture({ command: 'data',
+      args: ['seed', 'form', 'APP_X', 'FORM_X', '--records-file', 'records.json'],
+      env: managedEnvironment(), consoleObject: fakeConsole, eventId: 'seed-write' });
+    fakeConsole.log(JSON.stringify({ success: true, readbackVerified: true, mutationPerformed: true, completed: 1 }));
+    expect(capture.commit()).toMatchObject({ operation: 'create_form_data', formUuid: 'FORM_X', status: 'succeeded' });
+  });
+
+  test.each([
     ['create-form', ['create', 'APP_X', '客户'], 'create_form'],
     ['create-form', ['rule', 'APP_X', 'FORM_RULE', 'rules.json'], 'update_form'],
     ['create-form', ['validation', 'APP_X', 'FORM_VALIDATION', 'rules.json'], 'update_form'],

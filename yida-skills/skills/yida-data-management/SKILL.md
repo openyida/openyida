@@ -50,14 +50,16 @@ openyida data seed form <appType> <formUuid> --expect-form-name <真实名称> -
 - 输入旁的 `.seed-receipt.json` 记录每条结果；相同输入、目标、身份和 Schema 重跑复用已核验条目，有 ID 的 pending 只回读后继续。未知写入不重试，保留 failedIndex 和 items 中的 ID/候选 ID；先核实已有实例，不删除回执或另换文件绕过。结果未验证不能宣称完成。
 - `.lock` 防止同一输入并发执行。进程崩溃后先确认没有在运行的命令，并核实 pending 记录，再清理遗留锁。未提交字段和动态业务规则不由本命令推断，权限与服务端校验照常生效。
 
-### 不支持的可选字段与分流
+### 组件支持与未适配配置
 
-seed 是普通表单示例数据的优先路径。遇到不支持的复杂组件时，不反复重试相同输入：
+`create-form` 当前默认创建的 18 种可写业务组件均可使用 seed，包括关联表单、子表、人员、部门、国家、国内地址、附件和图片；平台生成字段沿用平台规则。复杂组件按[字段格式](references/data-format-guide.md)提供值，不因组件复杂而跳过 seed。
+
+地址支持默认国内 `ADDRESS`（`countryMode=default`）。定位、国际地址模式及已有表单中的未知组件，按 CLI 实际返回的 `skippedFields` 或 `UNSUPPORTED_COMPONENT` 处理：
 
 - CLI 依据当前 Schema，自动省略**明确非必填、且无字段校验规则**的不支持字段，包含子表字段；通过 `skippedFields` 返回原 `recordIndex`、路径、真实 fieldId、组件类型和原因，回执也保留该清单。其他字段继续正常写入、核验。不修改原 records-file，不删除受支持类型中的坏值。
 - `readbackVerified=true` 只证明实际提交字段；存在省略时 `requestedFieldsVerified=false`。省略表示“不提交”，不是确认平台值为空：默认值、公式和自动流水号仍由平台执行。页面对省略字段使用空态或已回读的实际值，不编造显示值。
 - 所有记录只有被省略字段时，返回 `success=true, skipped=true, readbackVerified=false, completed=0`，不创建空记录或回执。说明跳过原因，继续其他搭建步骤；不能把它计为已写入数据，也不要重复调用 seed。混合批次中有无可写字段的记录，或省略后成为空行的子表，先调整业务示例或跳过该表造数，不创建空记录/空明细来凑数量。
-- 不支持字段是必填、条件必填或校验信息不明确时，写前返回 `DATA_SEED_PREFLIGHT_FAILED`。只有 `sideEffectState=none`、`details.fallback.allowed=true` 且没有已有写入回执时，才可为**整条记录**按已确认的真实复杂格式使用原 `data create form --expect-form-name ... --expect-form-type receipt --data-file <单条对象.json> --json`，然后按返回实例 ID 专项回读核对。此路径不使用仍不支持该类型的 `--verify-write`，不冒充 seed 字段核验成功；不把一条记录拆成多次 create。无法构造有效必填值时，明确跳过该表示例数据并继续其他资源，保持页面空态。
+- 不支持字段是必填、条件必填或校验信息不明确时，写前返回 `DATA_SEED_PREFLIGHT_FAILED`。正常写入模式只有 `sideEffectState=none`、`details.fallback.allowed=true` 且没有已有写入回执时，才可为**整条记录**按已确认格式使用 `data create form --expect-form-name ... --expect-form-type receipt --data-file <单条对象.json> --json`，然后按返回实例 ID 专项回读核对；不使用仍不支持该类型的 `--verify-write`，不冒充 seed 核验成功，不把一条记录拆成多次 create。`--check` 仅预检，失败也不切换写入命令。无法构造有效必填值时，跳过该表示例数据，继续其他资源并保持页面空态。
 - 只要出现 `mutationAccepted=true`、pending/候选 ID、已有回执或未知写入，禁止切换命令重建、另换输入文件或修改回执绕过；按既有回执恢复，仅核验已写入记录。错误中的 `retrySameInput=false` 表示相同输入重试无效，按 `nextStep` 分流。
 
 ### 直接消费回执与关联 ID
@@ -352,106 +354,21 @@ openyida data transfer task <appType> --process-inst-id <processInstanceId> --fo
 
 当 JSON 较长或用于批量导入时，使用结构化文件写入工具写入 `<projectRoot>/.cache/openyida/<项目名或任务名>/data-import/<name>.json`。普通表单示例数组使用 `data seed form --records-file`；单条新增、修改或查询使用 `--data-file` 或 `--search-file`。不要为了拼接命令在仓库根目录、系统临时目录或 `.cache/` 顶层生成临时脚本。`openyida data create form/process` 单次只提交一个实例 JSON；不要把实例数组作为一个 `--data-file` 提交。
 
-### 常见字段格式
+### 字段格式与空值查询
 
-先用 `get-schema --field-map-json` 获取真实字段 ID 填入 `key`，再按表填写 `componentName`、`type`、`value` 和括号中的 `operator`。`type` 是查询类型；保存 / 更新只传字段值。多条件按 AND 组合，完整操作符见[查询条件指南](../../references/query-condition-guide.md)。
-
-| 组件类型（`componentName`） | 查询 `type` | 查询 `value`（操作符） | 保存 / 更新值 |
-| --- | --- | --- | --- |
-| `TextField` / `TextareaField` | `TEXT` | `"文本"`（eq / like） | `"文本"` |
-| `NumberField` | `DOUBLE` | `1`（eq / gt / ge / lt / le）或 `[1,10]`（between） | `1` |
-| `RateField` | `DOUBLE` | `3`（eq / gt / ge / lt / le）或 `[2,4]`（between） | `3` |
-| `RadioField` / `SelectField` | `ARRAY` | `"选项值"`（eq）或 `["选项值"]`（contains） | `"选项值"` |
-| `CheckboxField` / `MultiSelectField` | `ARRAY` | `["选项值"]`（contains） | `["选项值一","选项值二"]` |
-| `DateField` | `DOUBLE` | 毫秒时间戳数字（eq / gt / ge / lt / le）或 `[开始毫秒时间戳,结束毫秒时间戳]`（between） | 毫秒时间戳数字，如 `1719705600000` |
-| `CascadeDateField` | `DOUBLE` | `[[开始下限,开始上限],[结束下限,结束上限]]`，省略 operator | `[开始毫秒时间戳,结束毫秒时间戳]`；空端点用 `""` |
-| `EmployeeField` | `STRING` | `"userId"`（eq）或 `["userId"]`（contains） | `["userId"]` |
-| `DepartmentSelectField` | `ARRAY` | `1123456` 或 `["1123456"]` | `["1123456"]` |
-| `CitySelectField` | `STRING` | `[省ID,市ID,区ID]` | `[省ID,市ID,区ID]` |
-| `TableField` | `TEXT` | `"关键词"`（contains）；子字段条件带 `parentId` | `[{"textField_xxx":"值"}]` |
-| `AssociationFormField` | — | 先查询关联目标表，再按业务关系定位记录 | `[{"appType":"xxx","formUuid":"xxx","formType":"receipt","instanceId":"xxx","title":"关联记录标题"}]` |
-
-### 为空与不为空（is / is_not）
-
-判断字段有无值时，`is` 与 `is_not` 的 `value` 都固定传 `""`；`type` 仍使用字段的查询类型。例如 `DateField` 使用 `DOUBLE`。这里的空字符串是查询参数，保存格式仍按上表填写。
-
-日期为空：
-
-```bash
-openyida data query form APP_xxx FORM-xxx --search-json '[{"key":"dateField_xxx","componentName":"DateField","type":"DOUBLE","operator":"is","value":""}]'
-```
-
-日期不为空：
-
-```bash
-openyida data query form APP_xxx FORM-xxx --search-json '[{"key":"dateField_xxx","componentName":"DateField","type":"DOUBLE","operator":"is_not","value":""}]'
-```
-
-日期零时间戳和数字 `0` 属于有值，`is_not` 会保留这些记录。页面调用将条件数组传给 `JSON.stringify()`，再赋给 `searchFieldJson`。
-
-日期区间两端均未填，用两个端点条件按 AND 组合：
-
-```json
-[
-  {"key":"cascadeDateField_xxx.start","componentName":"DateField","type":"DOUBLE","operator":"is","value":""},
-  {"key":"cascadeDateField_xxx.end","componentName":"DateField","type":"DOUBLE","operator":"is","value":""}
-]
-```
-
-日期区间两端均已填：
-
-```json
-[
-  {"key":"cascadeDateField_xxx.start","componentName":"DateField","type":"DOUBLE","operator":"is_not","value":""},
-  {"key":"cascadeDateField_xxx.end","componentName":"DateField","type":"DOUBLE","operator":"is_not","value":""}
-]
-```
-
-“任一端已填”使用已填端点数 `gt 0`；多选未选择、子表无行分别按选项数、行数查询。计数与原值同步维护，具体见查询指南。
-
-### 日期字段写入约定
-
-- `DateField` 保存/更新值使用毫秒时间戳数字，例如 `1719705600000`；`0` 是有效时间戳。
-- `CascadeDateField` 保存/更新值使用 `[开始毫秒时间戳,结束毫秒时间戳]`，半填区间的空端点使用 `""`。
-- 先用 `new Date('2024-06-30T00:00:00+08:00').getTime()` 按业务时区转换，再提交数字。
-- 给历史记录填写新增字段时，使用 `--use-latest-version y`；保存后回读字段值和查询结果，确认新结构与数据都已生效。
-
-```bash
-openyida data create form APP_xxx FORM-xxx --expect-form-name 合同信息 --expect-form-type receipt --data-json '{
-  "textField_xxx": "测试记录",
-  "dateField_xxx": 1719705600000,
-  "cascadeDateField_xxx": [1719705600000,1722384000000]
-}'
-```
-
-### 关联表单字段
-
-关联表单字段保存时必须使用数组对象格式，每项包含五个必填字段；`subTitle` 可选，省略时 CLI 会补为空字符串：
-
-```bash
-# 示例：创建带关联客户的商机
-openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --expect-form-type receipt --data-json '{
-  "textField_xxx": "商机名称",
-  "associationFormField_xxx": [{"appType":"APP_xxx","formUuid":"FORM-客户表","formType":"receipt","instanceId":"FINST-xxx","title":"客户名称","subTitle":""}]
-}'
-```
-
-> 注意：字段名是 `instanceId`（不是 `formInstId`）。`appType`、`formUuid`、`formType`、`instanceId`、`title` 五个字段缺一不可。
->
-> 查询结果中的 `associationFormField_xxx_id` 是只读派生字段，只用于读取关联 ID；保存和更新必须写原始的 `associationFormField_xxx` 字段。
-
+查询类型、保存格式、日期/空值条件及关联示例统一见[字段格式指南](references/data-format-guide.md)。seed 接收日期字符串并按业务时区转换；直接 create/update 仍按指南提交毫秒数字。关联记录 ID 优先消费已核验 seed 回执，已有记录没有回执时再查询。
 
 ## 实现前准备
 
-按字段设计结果创建结构化表单配置，再执行表单创建、更新或数据写入命令。字段 ID 和关联记录 ID 都来自真实 Schema 或查询结果。
+按字段设计结果创建结构化表单配置，再执行表单创建、更新或数据写入命令。字段 ID 来自真实 Schema；关联记录 ID 来自已核验 seed 回执或真实查询结果。
 
 ## 注意事项
 
-- `pageSize` 一般写 50，最大 100，QPS 限制约 40 次/秒
+- `pageSize` 一般写 50，最大 100；seed 写入串行执行，请求频率按当前环境的实际限流回执调整
 - `searchFieldJson` 和 `dynamicOrder` 必须传字符串
 - 需要稳定顺序的分页、比对或配对必须显式传 `--dynamic-order '{"fieldId":"+"}'`（升序）或 `--dynamic-order '{"fieldId":"-"}'`（降序）；未传时不得依赖默认返回顺序
 - 字段 ID 通过 `openyida get-schema` 获取，不要手写猜测
-- 批量脚本可以用 Python `subprocess` 调用 `openyida data ...`，也可以用 JS 复用 Node 工具；脚本必须由结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/scripts/`，导入数据放在 `<projectRoot>/.cache/openyida/<项目名或任务名>/data-import/`
+- seed 以外的导入/修正任务可用 Python `subprocess` 调用 `openyida data ...`，也可以用 JS 复用 Node 工具；脚本必须由结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/scripts/`，导入数据放在 `<projectRoot>/.cache/openyida/<项目名或任务名>/data-import/`
 
 ## 异常处理
 
@@ -473,14 +390,14 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 
 | 错误类型 | 默认处理策略 |
 |---------|-------------|
-| 命令执行失败 | 停止执行，向用户展示错误信息，询问是否重试或调整参数 |
+| 命令执行失败 | 优先按结构化错误的 nextStep 与上述回执规则恢复；参数错误先修正，缺少必要信息时再询问用户 |
 | 管理员转交失败或结果未验证 | 禁止自动重放转交；按 details.nextStep 只读核查并报告 mutationAccepted/readbackVerified，后续写入须重新核对当前任务和用户意图 |
 | 参数缺失（appType/formUuid/fieldId 等） | 主动询问用户补充，或引导用户使用 `yida-get-schema` 获取 |
 | 更新权限不足 | 停止执行，向用户反馈“您无更改该数据的权限” |
 | 登录态失效 | 提示通过 `openyida login` 登录 |
 | 字段 ID 无效 | 停止执行，引导用户执行 `openyida get-schema` 获取真实字段 ID |
 | 删除操作前 | 必须先展示操作摘要（数量 + 关键字段）；宿主支持 runtime permission/approval 时直接发起一次受保护命令，不得预先调用 `ask_human`；宿主不支持时，必须先通过 `ask_human` 或等价交互工具获得用户明确确认 |
-| QPS 超限 | 降低请求频率，单次批量操作不超过 30 条，间隔 1 秒重试 |
+| QPS 超限 | 按服务端回执降低请求频率，单次批量不超过 30 条；查询可受控重试，写入先核实结果，seed 按回执恢复，不固定等 1 秒重发 |
 | 表单/流程接口混用 | 停止执行，提示用户检查接口类型（表单用 `/v1/form/`，流程用 `/v1/process/`） |
-| 网络超时 | 查询可重试 1 次；管理员转交禁止自动重试提交，仅按 nextStep 只读回查，仍无法验证则报告结果未知 |
+| 网络超时 | 查询可重试 1 次；seed、create/update、转交等写入按 nextStep 只读核查，结果未知不重发；seed 已有回执按原输入恢复 |
 | 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |

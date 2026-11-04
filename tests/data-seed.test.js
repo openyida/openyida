@@ -23,22 +23,22 @@ const contract = buildWriteContract(schema);
 
 describe('seed schema preparation', () => {
   const optionalSchema = (props = { validation: [] }) => buildWriteContract({ content: { pages: [{
-    componentAlias: { items: [{ fieldId: 'country', alias: 'region' }] }, componentsTree: [
+    componentAlias: { items: [{ fieldId: 'legacyField', alias: 'legacyAlias' }] }, componentsTree: [
       field('TextField', 'name', { label: '名称' }), field('NumberField', 'amount'),
-      field('UnsupportedField', 'country', { label: '未支持字段', ...props }),
+      field('UnsupportedField', 'legacyField', { label: '未支持字段', ...props }),
       field('SerialNumberField', 'serial', { validation: [] }),
       field('TableField', 'lines', {}, [field('TextField', 'childName'),
-        field('UnsupportedField', 'address', { validation: [] })]),
+        field('UnsupportedField', 'legacyChild', { validation: [] })]),
     ],
   }] } });
   test('omits only unsupported optional fields in main/table scopes and reports exact original paths', () => {
-    const input = [{ name: '业务记录', country: ['secret-country'], serial: 'manual', lines: [{ childName: '明细', address: { secret: true } }] }];
+    const input = [{ name: '业务记录', legacyField: ['secret-value'], serial: 'manual', lines: [{ childName: '明细', legacyChild: { secret: true } }] }];
     const before = JSON.stringify(input), skipped = [];
     expect(prepareRecords(input, optionalSchema(), {}, skipped)).toEqual([{ name: '业务记录', lines: [{ childName: '明细' }] }]);
     expect(skipped).toMatchObject([
-      { recordIndex: 0, fieldId: 'country', path: '$[0]["country"]', reason: 'unsupported_optional_component' },
+      { recordIndex: 0, fieldId: 'legacyField', path: '$[0]["legacyField"]', reason: 'unsupported_optional_component' },
       { fieldId: 'serial', reason: 'server_generated' },
-      { fieldId: 'address', parentFieldId: 'lines', path: '$[0]["lines"][0]["address"]' },
+      { fieldId: 'legacyChild', parentFieldId: 'lines', path: '$[0]["lines"][0]["legacyChild"]' },
     ]);
     expect(JSON.stringify(skipped)).not.toContain('secret');
     expect(JSON.stringify(input)).toBe(before);
@@ -47,16 +47,16 @@ describe('seed schema preparation', () => {
     { required: { type: 'JSExpression', value: 'true' }, validation: [] },
     { validation: [{ type: 'required', when: 'conditional' }] }, { validation: [{ type: 'custom' }] },
   ])('retains strict unsupported failure when optionality is not proven: %j', props => {
-    expect(() => prepareRecords([{ name: 'A', country: ['CN'] }], optionalSchema(props), {}))
+    expect(() => prepareRecords([{ name: 'A', legacyField: ['CN'] }], optionalSchema(props), {}))
       .toThrow(expect.objectContaining({ details: expect.objectContaining({ issues: [expect.objectContaining({ code: 'UNSUPPORTED_COMPONENT' })] }) }));
   });
   test('still rejects unknown fields, duplicate aliases and invalid supported values', () => {
-    for (const record of [{ name: 'A', unknown: [] }, { name: 'A', country: [], region: [] }, { name: 'A', country: [], amount: 'bad' }]) {
+    for (const record of [{ name: 'A', unknown: [] }, { name: 'A', legacyField: [], legacyAlias: [] }, { name: 'A', legacyField: [], amount: 'bad' }]) {
       expect(() => prepareRecords([record], optionalSchema(), { resolve_aliases: true })).toThrow();
     }
   });
   test('does not create an empty subform row after omission', () => {
-    expect(() => prepareRecords([{ name: 'A', lines: [{ address: {} }] }], optionalSchema(), {}))
+    expect(() => prepareRecords([{ name: 'A', lines: [{ legacyChild: {} }] }], optionalSchema(), {}))
       .toThrow(expect.objectContaining({ details: expect.objectContaining({ issues: [expect.objectContaining({ code: 'NO_WRITABLE_SUBFORM_FIELDS' })] }) }));
   });
   test('uses live fields, configured aliases, scoped subforms and preserves ordinary text', () => {
@@ -128,23 +128,23 @@ describe('seed writes and recovery', () => {
   const receipt = () => JSON.parse(fs.readFileSync(`${source}.seed-receipt.json`, 'utf8'));
 
   const unsupportedContract = props => buildWriteContract({ content: { pages: [{ componentsTree: [
-    field('TextField', 'textField_customer'), field('UnsupportedField', 'country', { validation: [], ...props }),
+    field('TextField', 'textField_customer'), field('UnsupportedField', 'legacyField', { validation: [], ...props }),
   ] }] } });
   test('writes the remaining fields and persists omission coverage without business values', async () => {
     prepare.mockResolvedValue(unsupportedContract());
-    fs.writeFileSync(source, JSON.stringify([{ textField_customer: 'A', country: ['secret-value'] }]));
+    fs.writeFileSync(source, JSON.stringify([{ textField_customer: 'A', legacyField: ['secret-value'] }]));
     expect(await invoke()).toMatchObject({ success: true, readbackVerified: true, requestedFieldsVerified: false,
-      completed: 1, skippedFields: [{ fieldId: 'country' }] });
+      completed: 1, skippedFields: [{ fieldId: 'legacyField' }] });
     expect(write).toHaveBeenCalledWith({ textField_customer: 'A' });
     expect(verify.mock.calls[0][1]).toEqual({ textField_customer: 'A' });
     expect(JSON.stringify(receipt())).not.toContain('secret-value');
-    expect(receipt()).toMatchObject({ skippedFields: [{ fieldId: 'country' }], requestedFieldsVerified: false });
+    expect(receipt()).toMatchObject({ skippedFields: [{ fieldId: 'legacyField' }], requestedFieldsVerified: false });
     expect(await invoke()).toMatchObject({ mutationPerformed: false, completed: 1 });
     expect(write).toHaveBeenCalledTimes(1);
   });
   test('all unsupported optional fields return an explicit no-write skip, not an empty record', async () => {
     prepare.mockResolvedValue(unsupportedContract());
-    fs.writeFileSync(source, JSON.stringify([{ country: [] }]));
+    fs.writeFileSync(source, JSON.stringify([{ legacyField: [] }]));
     expect(await invoke()).toMatchObject({ success: true, skipped: true, readbackVerified: false,
       completed: 0, formInstIds: [], mutationPerformed: false, nextStep: 'continue_without_seed_records' });
     expect(write).not.toHaveBeenCalled(); expect(verify).not.toHaveBeenCalled();
@@ -152,7 +152,7 @@ describe('seed writes and recovery', () => {
   });
   test('a required unsupported field offers fallback only before any receipt or lock exists', async () => {
     prepare.mockResolvedValue(unsupportedContract({ required: true }));
-    fs.writeFileSync(source, JSON.stringify([{ textField_customer: 'A', country: [] }]));
+    fs.writeFileSync(source, JSON.stringify([{ textField_customer: 'A', legacyField: [] }]));
     await expect(invoke()).rejects.toMatchObject({ code: 'DATA_SEED_PREFLIGHT_FAILED', details: {
       sideEffectState: 'none', retrySameInput: false, fallback: { allowed: true, readbackRequired: true },
     } });
@@ -160,17 +160,41 @@ describe('seed writes and recovery', () => {
     await expect(invoke()).rejects.toMatchObject({ details: { fallback: { allowed: false }, nextStep: 'inspect_existing_receipt_do_not_create' } });
     expect(write).not.toHaveBeenCalled();
   });
+  test('check-only failure never recommends falling back to a write command', async () => {
+    prepare.mockResolvedValue(unsupportedContract({ required: true }));
+    options.check = true;
+    fs.writeFileSync(source, JSON.stringify([{ textField_customer: 'A', legacyField: [] }]));
+    await expect(invoke()).rejects.toMatchObject({ code: 'DATA_SEED_PREFLIGHT_FAILED', details: {
+      fallback: { allowed: false }, nextStep: 'repair_supported_fields_or_skip_seed',
+    } });
+    expect(write).not.toHaveBeenCalled();
+    expect(fs.existsSync(`${source}.seed-receipt.json`)).toBe(false);
+  });
+
+  test('duplicate instance IDs cannot count as two created records or resume as verified', async () => {
+    fs.writeFileSync(source, JSON.stringify([{ textField_customer: '同名客户' }, { textField_customer: '同名客户' }]));
+    write.mockReset().mockResolvedValue({ idVerified: true, formInstId: 'SAME-ID' });
+    await expect(invoke()).rejects.toMatchObject({ code: 'DATA_SEED_INCOMPLETE', details: {
+      causeCode: 'DATA_SEED_DUPLICATE_INSTANCE', failedIndex: 1, completed: 1,
+      retrySafe: false, readbackVerified: false,
+    } });
+    expect(write).toHaveBeenCalledTimes(2);
+    expect(verify).toHaveBeenCalledTimes(1);
+    await expect(invoke()).rejects.toMatchObject({ code: 'DATA_SEED_RECEIPT_MISMATCH' });
+    expect(write).toHaveBeenCalledTimes(2);
+    expect(verify).toHaveBeenCalledTimes(1);
+  });
   test('omission policy cannot reinterpret an older pending receipt', async () => {
     prepare.mockResolvedValue(unsupportedContract());
-    fs.writeFileSync(source, JSON.stringify([{ textField_customer: 'A', country: [] }]));
+    fs.writeFileSync(source, JSON.stringify([{ textField_customer: 'A', legacyField: [] }]));
     fs.writeFileSync(`${source}.seed-receipt.json`, JSON.stringify({ version: 1, inputHash: 'old-policy', items: [{ status: 'pending', formInstId: 'OLD' }] }));
     await expect(invoke()).rejects.toMatchObject({ code: 'DATA_SEED_RECEIPT_MISMATCH' });
     expect(write).not.toHaveBeenCalled(); expect(verify).not.toHaveBeenCalled();
   });
   test('check mode previews omissions without creating a receipt or claiming a readback', async () => {
     prepare.mockResolvedValue(unsupportedContract()); options.check = true;
-    fs.writeFileSync(source, JSON.stringify([{ textField_customer: 'A', country: [] }]));
-    expect(await invoke()).toMatchObject({ checked: true, records: [{ textField_customer: 'A' }], skippedFields: [{ fieldId: 'country' }] });
+    fs.writeFileSync(source, JSON.stringify([{ textField_customer: 'A', legacyField: [] }]));
+    expect(await invoke()).toMatchObject({ checked: true, records: [{ textField_customer: 'A' }], skippedFields: [{ fieldId: 'legacyField' }] });
     expect(write).not.toHaveBeenCalled(); expect(fs.existsSync(`${source}.seed-receipt.json`)).toBe(false);
   });
 

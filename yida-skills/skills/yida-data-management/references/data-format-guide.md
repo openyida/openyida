@@ -56,6 +56,8 @@
 | `EmployeeField` | `STRING` | `"userId"`（eq）或 `["userId"]`（contains） | `["userId"]` |
 | `DepartmentSelectField` | `ARRAY` | `1123456` 或 `["1123456"]` | `["1123456"]` |
 | `CitySelectField` | `STRING` | `[省ID,市ID,区ID]` | `[省ID,市ID,区ID]` |
+| `CountrySelectField` / `AddressField` | — | 按实际查询能力确认 | 见下方国家与地址示例 |
+| `ImageField` / `AttachmentField` | `TEXT` | 按实际字段条件查询 | 文件对象数组，见下方文件示例 |
 | `TableField` | `TEXT` | `"关键词"`（contains）；子字段条件带 `parentId` | `[{"textField_xxx":"值"}]` |
 | `AssociationFormField` | — | 先查询关联目标表，再按业务关系定位记录 | `[{"appType":"xxx","formUuid":"xxx","formType":"receipt","instanceId":"xxx","title":"关联记录标题"}]` |
 
@@ -73,6 +75,10 @@
 ```
 
 使用真实 fieldId。国家多选需 `multiple=true`。地址仅默认国内 `ADDRESS`，核验 regionIds 与 address。
+
+## 图片与附件
+
+seed 使用调用方已有的真实文件引用，例如 `[{"name":"说明.webp","downloadUrl":"https://example.test/files/guide.webp"}]`；示意地址必须替换为真实可访问地址。对象支持 `fileId`、`id`、`downloadUrl` 或 `url` 作为资源身份，核验优先文件 ID。seed 不上传文件、不生成文件地址；需要真实上传与文件绑定时按[文件上传](../../yida-canvas-custom-page/references/file-upload.md)执行。身份回读一致不代表文件内容、权限或所有文件类型均已验收。
 
 ## 保存 / 更新格式
 
@@ -191,12 +197,12 @@ new Date('2026-10-18T00:00:00+08:00').getTime() // 1792252800000
 ### 示例
 
 ```bash
-# 1. 先查询被关联表单获取 formInstId
+# 已有目标记录且没有可用的已核验 seed 回执时，查询真实 formInstId
 openyida data query form APP_xxx FORM-客户表 --size 1
 # 返回: formInstId: "FINST-ABC123"
 
-# 2. 创建带关联的数据
-openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --expect-form-type receipt --data-json '{
+# 使用已核验 seed 回执或上述查询中的 ID；seed 回执按 recordIndex 消费，不额外查 ID
+openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --expect-form-type receipt --verify-write --json --data-json '{
   "textField_xxx": "商机名称",
   "associationFormField_xxx": [{"appType":"APP_xxx","formUuid":"FORM-客户表","formType":"receipt","instanceId":"FINST-ABC123","title":"杭州客户"}]
 }'
@@ -220,7 +226,7 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 - **数组格式**：即使只关联一条数据，也必须使用数组格式 `[{...}]`
 - **五字段必填**：`appType`、`formUuid`、`formType`、`instanceId`、`title` 缺一不可；CLI 会在请求前拒绝不完整值
 - **跨应用关联**：如果关联的是其他应用的表单，需要使用对应应用的 appType
-- **API 限制**：部分宜搭环境可能限制通过 API 写入关联表单数据，建议在表单界面手动测试确认
+- **服务端约束**：权限、过滤和回填结果按实际回读验收；失败保留已接受实例 ID，按回执核查
 
 ### 场景与边界
 

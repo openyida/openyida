@@ -7,13 +7,13 @@ const path = require('path');
 const { execFile } = require('child_process');
 const BIN = process.env.OPENYIDA_TEST_BIN || path.resolve(__dirname, '../bin/yida.js');
 
-test.each(['optional', 'required', 'only-optional', 'filtered-empty'])(
+test.each(['optional', 'required', 'required-check', 'only-optional', 'filtered-empty'])(
   'CLI skips optional unsupported fields and verifies retained empty cells: %s', async scenario => {
     const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-seed-optional-'));
     const source = path.join(workspace, 'records.json');
-    const records = scenario === 'only-optional' ? [{ address: { detail: 'omitted' } }]
-      : [{ name: '客户甲', address: { detail: 'omitted' }, lines: [{ title: '交付', tags: [] }] },
-        { name: '客户乙', address: {}, lines: [{ title: '运维', tags: [] }] }];
+    const records = scenario === 'only-optional' ? [{ legacyField: { detail: 'omitted' } }]
+      : [{ name: '客户甲', legacyField: { detail: 'omitted' }, lines: [{ title: '交付', tags: [] }] },
+        { name: '客户乙', legacyField: {}, lines: [{ title: '运维', tags: [] }] }];
     fs.writeFileSync(source, JSON.stringify(records));
     const saved = new Map(), requests = [];
     const server = http.createServer(async (req, res) => {
@@ -24,7 +24,7 @@ test.each(['optional', 'required', 'only-optional', 'filtered-empty'])(
       else if (endpoint === 'getBindingByFormUuid.json') {response.content = { formUuid: 'FORM-TEST', procCode: '' };}
       else if (endpoint === 'getFormSchema.json') {response.content = { pages: [{ componentsTree: [
         { componentName: 'TextField', props: { fieldId: 'name' } },
-        { componentName: 'UnsupportedField', props: { fieldId: 'address', validation: scenario === 'required' ? [{ type: 'required' }] : [] } },
+        { componentName: 'UnsupportedField', props: { fieldId: 'legacyField', validation: scenario.startsWith('required') ? [{ type: 'required' }] : [] } },
         { componentName: 'TableField', props: { fieldId: 'lines' }, children: [
           { componentName: 'TextField', props: { fieldId: 'title' } },
           { componentName: 'CheckboxField', props: { fieldId: 'tags' } },
@@ -46,11 +46,11 @@ test.each(['optional', 'required', 'only-optional', 'filtered-empty'])(
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     const baseUrl = `http://127.0.0.1:${server.address().port}`;
     try {
-      const result = await invoke(baseUrl, workspace, source);
+      const result = await invoke(baseUrl, workspace, source, scenario === 'required-check' ? ['--check'] : []);
       const output = JSON.parse(result.code === 0 ? result.stdout : result.stderr.slice(result.stderr.indexOf('{\n  "success"')));
       const writeCount = () => requests.filter(name => name === 'saveFormData.json').length;
-      if (scenario === 'required') {
-        expect(result.code).toBe(1); expect(output.details.fallback).toMatchObject({ allowed: true, readbackRequired: true });
+      if (scenario.startsWith('required')) {
+        expect(result.code).toBe(1); expect(output.details.fallback).toMatchObject({ allowed: scenario !== 'required-check', readbackRequired: true });
         expect(writeCount()).toBe(0);
       } else if (scenario === 'only-optional') {
         expect(result.code).toBe(0); expect(output).toMatchObject({ skipped: true, completed: 0, readbackVerified: false, mutationPerformed: false });
@@ -62,7 +62,7 @@ test.each(['optional', 'required', 'only-optional', 'filtered-empty'])(
       } else {
         expect(result.code).toBe(0); expect(output).toMatchObject({ completed: 2, readbackVerified: true, requestedFieldsVerified: false });
         expect(output.skippedFields.map(field => field.recordIndex)).toEqual([0, 1]);
-        expect([...saved.values()]).toEqual(records.map(({ address: _address, ...record }) => record));
+        expect([...saved.values()]).toEqual(records.map(({ legacyField: _legacyField, ...record }) => record));
         expect(writeCount()).toBe(2);
         expect(requests.filter(name => name === 'getFormDataById.json')).toHaveLength(2);
         const rerun = await invoke(baseUrl, workspace, source);
@@ -182,7 +182,7 @@ test.each(['valid', 'omitted-empty-child', 'invalid-child', 'duplicate', 'wrong-
     }
   }, 30000);
 
-test.each(['verified', 'preflight', 'check', 'readback', 'timeout'])('real CLI seed route and recovery: %s', async scenario => {
+test.each(['verified', 'preflight', 'check', 'readback', 'timeout', 'duplicate-id'])('real CLI seed route and recovery: %s', async scenario => {
   const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-seed-cli-'));
   const source = path.join(workspace, 'records.json');
   fs.writeFileSync(source, JSON.stringify([
@@ -206,7 +206,7 @@ test.each(['verified', 'preflight', 'check', 'readback', 'timeout'])('real CLI s
       ] }] };
     } else if (route.endsWith('saveFormData.json')) {
       writes++;
-      const id = `ID-${writes}`;
+      const id = `ID-${scenario === 'duplicate-id' ? 1 : writes}`;
       persisted.set(id, JSON.parse(new URLSearchParams(body).get('formDataJson')));
       if (scenario === 'timeout') {req.socket.destroy(); return;}
       result.content = id;
@@ -235,7 +235,9 @@ test.each(['verified', 'preflight', 'check', 'readback', 'timeout'])('real CLI s
       expect(payload.errorCode).toBe(scenario === 'preflight' ? 'DATA_SEED_PREFLIGHT_FAILED' : 'DATA_SEED_INCOMPLETE');
       expect(JSON.stringify(payload)).not.toContain('private-example');
       expect(JSON.stringify(payload)).not.toContain('test-only-access');
-      expect(payload.details).toMatchObject(scenario === 'preflight' ? { sideEffectState: 'none' } : { retrySafe: false, failedIndex: 0 });
+      expect(payload.details).toMatchObject(scenario === 'preflight' ? { sideEffectState: 'none' }
+        : { retrySafe: false, failedIndex: scenario === 'duplicate-id' ? 1 : 0 });
+      if (scenario === 'duplicate-id') {expect(payload.details.causeCode).toBe('DATA_SEED_DUPLICATE_INSTANCE');}
     }
     if (scenario === 'verified') {
       expect(persisted.get('ID-1').dateField_due).toBe(Date.parse('2026-11-03T00:00:00+08:00'));
@@ -251,6 +253,10 @@ test.each(['verified', 'preflight', 'check', 'readback', 'timeout'])('real CLI s
     } else if (scenario === 'timeout') {
       expect((await invoke(baseUrl, workspace, source)).code).toBe(1);
       expect(writes).toBe(1);
+    } else if (scenario === 'duplicate-id') {
+      expect((await invoke(baseUrl, workspace, source)).code).toBe(1);
+      expect(writes).toBe(2);
+      expect(readbacks).toBe(1);
     } else {
       expect(writes).toBe(0);
       expect(fs.existsSync(`${source}.seed-receipt.json`)).toBe(false);

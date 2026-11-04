@@ -30,7 +30,7 @@ function isSampleRoutingGuidanceFile(file) {
 describe('OpenYida skill contracts', () => {
   test('seed optional-field guidance keeps omitted values, no-data skips and safe fallback distinct', () => {
     const data = readSkill('yida-skills/skills/yida-data-management/SKILL.md');
-    const section = data.split('### 不支持的可选字段与分流\n')[1].split('### 直接消费回执')[0];
+    const section = data.split('### 组件支持与未适配配置\n')[1].split('### 直接消费回执')[0];
     for (const signal of ['skippedFields', 'requestedFieldsVerified=false', 'skipped=true', 'readbackVerified=false',
       'fallback.allowed=true', 'sideEffectState=none', '整条记录', '原 records-file', '不把一条记录拆成多次 create',
       '已有回执或未知写入', '按返回实例 ID', '自动流水号']) {expect(section).toContain(signal);}
@@ -77,7 +77,6 @@ describe('OpenYida skill contracts', () => {
   test('empty-value guides provide complete is and is_not examples with fixed empty values', () => {
     for (const file of [
       'yida-skills/references/query-condition-guide.md',
-      'yida-skills/skills/yida-data-management/SKILL.md',
       'yida-skills/skills/yida-data-management/references/data-format-guide.md',
     ]) {
       const text = readSkill(file);
@@ -105,8 +104,9 @@ describe('OpenYida skill contracts', () => {
   });
 
   test('data format tables use component names and distinguish query values from saved dates', () => {
+    expect(readSkill('yida-skills/skills/yida-data-management/SKILL.md'))
+      .toContain('[字段格式指南](references/data-format-guide.md)');
     const tables = [
-      'yida-skills/skills/yida-data-management/SKILL.md',
       'yida-skills/skills/yida-data-management/references/data-format-guide.md',
     ].map(file => {
       const text = readSkill(file);
@@ -114,7 +114,7 @@ describe('OpenYida skill contracts', () => {
       const rows = block.split('\n').slice(2).map(line => line.split('|').slice(1, -1).map(cell => cell.trim()));
       expect(rows.every(row => row.length === 4)).toBe(true);
       expect(rows.every(row => /^`[A-Za-z]+Field`(?: \/ `[A-Za-z]+Field`)*$/.test(row[0]))).toBe(true);
-      const expectedTypes = { TextField: 'TEXT', TextareaField: 'TEXT', NumberField: 'DOUBLE', RateField: 'DOUBLE', DateField: 'DOUBLE', CascadeDateField: 'DOUBLE', RadioField: 'ARRAY', SelectField: 'ARRAY', CheckboxField: 'ARRAY', MultiSelectField: 'ARRAY', EmployeeField: 'STRING', DepartmentSelectField: 'ARRAY', CitySelectField: 'STRING', TableField: 'TEXT' };
+      const expectedTypes = { TextField: 'TEXT', TextareaField: 'TEXT', NumberField: 'DOUBLE', RateField: 'DOUBLE', DateField: 'DOUBLE', CascadeDateField: 'DOUBLE', RadioField: 'ARRAY', SelectField: 'ARRAY', CheckboxField: 'ARRAY', MultiSelectField: 'ARRAY', EmployeeField: 'STRING', DepartmentSelectField: 'ARRAY', CitySelectField: 'STRING', TableField: 'TEXT', ImageField: 'TEXT', AttachmentField: 'TEXT' };
       for (const row of rows) {
         for (const match of row[0].matchAll(/`([A-Za-z]+Field)`/g)) {
           expect(row[1]).toBe(expectedTypes[match[1]] ? '`' + expectedTypes[match[1]] + '`' : '—');
@@ -139,7 +139,7 @@ describe('OpenYida skill contracts', () => {
       expect(table[2]).toContain('parentId');
       return rows;
     });
-    expect(tables[0]).toEqual(tables[1]);
+    expect(tables[0].length).toBeGreaterThan(0);
   });
 
   test('query guidance retains normal queries before empty-value special cases', () => {

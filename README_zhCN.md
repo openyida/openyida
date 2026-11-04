@@ -182,7 +182,7 @@ Agent 会读取 `yida-skills/` 中的技能说明，调用 OpenYida CLI 创建�
 
 普通表单使用 `openyida data seed form <appType> <formUuid> --expect-form-name <名称> --records-file <绝对路径>/records.json --json`，一次写入 1–30 条记录并逐条回读。日期字符串由 CLI 转换，模型只准备业务数据数组。
 
-不支持且明确非必填、无字段校验的组件，seed 会在写前省略（包含子表），通过 `skippedFields` 列出路径，`requestedFieldsVerified=false` 表示省略项未核验。省略不承诺值为空，平台默认值和自动流水号仍生效。全部记录只剩省略字段时返回 `skipped=true`，不创建空记录；必填或未知类型返回明确分流指引。受支持类型的坏值仍拒绝，pending/未知写入仍只恢复，不切换命令重复创建。
+当前 `create-form` 默认创建的 18 种可写业务组件均支持 seed，包含关联、子表、国家、国内地址、附件和图片；流水号由平台生成。地址限默认国内 `ADDRESS`，定位、国际模式及未知组件按 CLI 返回处理：明确可选且无校验的字段省略并列入 `skippedFields`，`requestedFieldsVerified=false`；全部省略返回 `skipped=true`，不创建空记录。省略后仍可能有平台默认值。必填或无法确认可选的未适配字段在写前失败；受支持类型的坏值仍拒绝。pending/未知写入按回执恢复，不切换命令重复创建。详见[支持范围与异常处理](yida-skills/skills/yida-data-management/SKILL.md#组件支持与未适配配置)。
 
 完整保留 JSON 回执；成功且 `readbackVerified=true` 后，按 `items[].recordIndex`（输入数组从 0 开始的索引）取得 verified 条目的 `formInstId`，直接用于后续关联字段。先写被关联表，再写依赖表；不要用 tail/head/grep 截断回执，不为提取已返回 ID 重查列表。仍需使用 `data query form <appType> <formUuid> --inst-id <已核验ID> --json` 做业务抽查。输出截断或失败恢复见[回执规则](yida-skills/skills/yida-data-management/SKILL.md#直接消费回执与关联-id)；check、pending 和候选 ID 不作为成功依据。
 

@@ -6,7 +6,7 @@
  */
 module.exports = {
   data_seed: {
-    optional_notes: 'Nicht unterstützte, nachweislich optionale Felder werden ausgelassen; siehe skippedFields. Sind alle ausgelassen, wird skipped ohne leere Datensätze zurückgegeben. Hinweise für Pflichtfelder beachten; versuchte Schreibvorgänge nicht erneut anlegen.',
+    optional_notes: 'Standard-Schreibkomponenten verwenden seed. Adressen: nur der Standard-Inlandsmodus ADDRESS. Nicht unterstützte optionale Felder stehen in skippedFields; bei vollständiger Auslassung entstehen keine Datensätze.',
     failed: 'Beispieldaten-Vorgang gestoppt: {0}. Details prüfen und versuchte Schreibvorgänge nicht wiederholen.',
     notes: 'data seed form benötigt --expect-form-name und --records-file (1–30 Objekte). --check prüft ohne Schreiben. Datum als Millisekunden oder ISO, Standardoffset +08:00. Jeder Datensatz wird geschrieben und zurückgelesen. Der Beleg neben der Eingabe erlaubt die Wiederverwendung geprüfter Ergebnisse; ungewisse Schreibvorgänge stoppen den Ablauf.',
   },

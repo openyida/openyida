@@ -192,7 +192,7 @@ openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout s
 
 1. 将 `formUuid`、字段摘要和字段 JSON 路径写入 `.cache/<项目名>-schema.json`。
 2. 对需要作为页面列表、看板或详情数据源的核心普通表单，加载 `yida-data-management`。
-3. 用 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实 `fieldId`，再逐条写入 1-3 条业务化 seed records。
+3. 用 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实 `fieldId`，按数据技能每表一次 `data seed form --json` 写入 1-3 条业务化记录，保留回执供关联与恢复使用。
 4. 写入失败时不要在表单技能里重建表单；保留表单，报告数据写入失败原因，页面阶段展示空态和登记入口。
 
 ### create 失败恢复决策树

@@ -7,7 +7,7 @@
  */
 module.exports = {
   data_seed: {
-    optional_notes: 'seed 會省略明確可選的未支援欄位，請查看 skippedFields；全部省略時回傳 skipped，不建立空記錄。必填欄位依分流提示處理，已有寫入不得重建。',
+    optional_notes: '標準可寫元件均使用 seed；地址限預設國內 ADDRESS。未適配的可選欄位見 skippedFields，全部省略時不建立記錄。',
     failed: '範例資料操作已停止：{0}。請查看詳情，不要重複建立已嘗試寫入的記錄。',
     notes: 'data seed form 使用 --expect-form-name 與 --records-file，支援 1–30 條記錄；--check 僅預檢。日期支援毫秒或 ISO 字串，時區預設 +08:00。逐條寫入及回讀，回執保存於輸入檔旁；重跑復用成功記錄，未知寫入停止。',
   },

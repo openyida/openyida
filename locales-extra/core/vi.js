@@ -6,7 +6,7 @@
  */
 module.exports = {
   data_seed: {
-    optional_notes: 'Bỏ qua trường chưa hỗ trợ được xác nhận là tùy chọn; xem skippedFields. Nếu bỏ tất cả, trả skipped mà không tạo bản ghi rỗng. Làm theo hướng dẫn cho trường bắt buộc; không tạo lại dữ liệu đã thử ghi.',
+    optional_notes: 'Các thành phần chuẩn có thể ghi dùng seed. Địa chỉ: chỉ chế độ ADDRESS nội địa mặc định. Trường tùy chọn chưa hỗ trợ nằm trong skippedFields; bỏ tất cả thì không tạo bản ghi.',
     failed: 'Đã dừng thao tác dữ liệu mẫu: {0}. Xem chi tiết và không lặp lại thao tác ghi đã thử.',
     notes: 'data seed form yêu cầu --expect-form-name và --records-file (1–30 đối tượng). --check chỉ kiểm tra. Ngày dùng mili giây hoặc ISO, độ lệch mặc định +08:00. Ghi và đọc lại từng bản ghi; lưu biên nhận cạnh tệp đầu vào và tái sử dụng kết quả đã xác minh. Dừng khi kết quả ghi chưa rõ.',
   },

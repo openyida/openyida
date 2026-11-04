@@ -6,7 +6,7 @@
  */
 module.exports = {
   data_seed: {
-    optional_notes: 'Campos não suportados confirmados como opcionais são omitidos; consulte skippedFields. Se todos forem omitidos, retorna skipped sem criar registros vazios. Siga as orientações para campos obrigatórios; não repita gravações já tentadas.',
+    optional_notes: 'Componentes padrão graváveis usam seed. Endereços: apenas ADDRESS nacional padrão. Campos opcionais não adaptados aparecem em skippedFields; se todos forem omitidos, nenhum registro será criado.',
     failed: 'Operação de dados de exemplo interrompida: {0}. Consulte os detalhes e não repita as gravações tentadas.',
     notes: 'data seed form exige --expect-form-name e --records-file (1–30 objetos). --check apenas valida. Datas em milissegundos ou ISO, deslocamento padrão +08:00. Grava e relê cada registro; salva um recibo junto ao arquivo e reutiliza resultados verificados. Uma gravação incerta interrompe o processo.',
   },

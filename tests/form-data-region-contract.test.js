@@ -23,6 +23,34 @@ test('native fixed region examples pass seed and verified-write without omission
   expect(prepareRecords([input], contract, {}, skipped)).toEqual([input]);expect(skipped).toEqual([]);
   expect(compareWriteData(input, observed(), contract)).toEqual([]);expect(JSON.stringify(input)).toBe(before);
 });
+
+test('actual create-form schema accepts every writable standard component in main and child scopes', () => {
+  const { buildFormSchema } = require('../lib/app/create-form')._private;
+  const ref = { appType: 'APP_TARGET', formUuid: 'FORM-TARGET', formType: 'receipt', instanceId: 'FINST-1', title: '客户甲' };
+  const values = {
+    TextField: '客户甲', TextareaField: '交付说明', RadioField: '选项一', SelectField: '选项一',
+    CheckboxField: ['选项一'], MultiSelectField: ['选项一'], NumberField: 0, RateField: 4,
+    DateField: '2026-11-04', CascadeDateField: ['2026-11-04', '2026-11-05'],
+    EmployeeField: ['user-1'], DepartmentSelectField: ['123'], CountrySelectField: [country], AddressField: address,
+    ImageField: [{ downloadUrl: 'https://example.test/image.webp' }],
+    AttachmentField: [{ fileId: 'FILE-1', name: '说明.pdf' }], AssociationFormField: [ref],
+  };
+  const definitions = Object.keys(values).map(type => ({ type, label: type, options: ['选项一'], associationForm: ref }));
+  const schema = buildFormSchema('标准组件', [...definitions,
+    { type: 'SerialNumberField', label: '编号' },
+    { type: 'TableField', label: '明细', children: definitions.map(def => ({ ...def, label: `子表${def.label}` })) },
+  ], 'FORM-ALL', 'corp-test', 'APP_TEST', 'single', 'default', 'top');
+  const contract = buildWriteContract({ content: schema });
+  const makeRecord = parent => Object.fromEntries(contract.fields.filter(field => field.parentFieldId === parent
+    && Object.hasOwn(values, field.componentType)).map(field => [field.fieldId, values[field.componentType]]));
+  const table = contract.fields.find(field => field.componentType === 'TableField');
+  const record = { ...makeRecord(null), [table.fieldId]: [makeRecord(table.fieldId)] };
+  const skipped = [], prepared = prepareRecords([record], contract, {}, skipped)[0];
+  expect(Object.keys(prepared)).toHaveLength(18);
+  expect(Object.keys(prepared[table.fieldId][0])).toHaveLength(17);
+  expect(skipped).toEqual([]);
+  expect(compareWriteData(prepared, JSON.parse(JSON.stringify(prepared)), contract)).toEqual([]);
+});
 test.each([['CN'], [country, country], [{ value: 'cn', text: country.text }], [{ value: 'CN' }], [{ value: 'CN', text: {} }], [country, second]])(
   'invalid country values are rejected before write: %j', value => {
     expect(() => prepareRecords([{ country: value }], contract, {})).toThrow(expect.objectContaining({ code: 'DATA_SEED_PREFLIGHT_FAILED' }));
