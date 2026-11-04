@@ -10,10 +10,12 @@ jest.mock('../lib/core/browser-handoff', () => ({
 }));
 
 const fs = require('fs');
+const { stripVTControlCharacters } = require('util');
 const { httpGet, httpPost, requestWithAutoLogin } = require('../lib/core/utils');
 const { createAuthRef } = require('../lib/core/yida-client');
 const { run } = require('../lib/app/create-app');
 const { resolveAppThemeState } = require('../lib/app/app-theme-state');
+const { t } = require('../lib/core/i18n');
 const auth = { baseUrl: 'https://example.com', corpId: 'dingTEST', userId: 'user-1', csrfToken: 'fixture' };
 const app = { appType: 'APP_TEST', corpId: auth.corpId, agentAppType: 'qwenwork',
   config: { CREATED_WITH_MODERN_THEME: 'y' } };
@@ -28,6 +30,8 @@ beforeEach(() => {
   jest.spyOn(console, 'log').mockImplementation(() => {});
   jest.spyOn(console, 'error').mockImplementation(() => {});
   jest.spyOn(process.stderr, 'write').mockReturnValue(true);
+  // Load real progress messages before disabling PRD filesystem discovery.
+  t('common.step_login');
   jest.spyOn(fs, 'existsSync').mockReturnValue(false);
 });
 afterEach(() => jest.restoreAllMocks());
@@ -37,11 +41,29 @@ test.each([
   ['Test app', 'Description', 'xian-yingyong', '#0089FF', '--json'],
   ['--name', 'Test app', '--desc', 'Description', '--json'],
 ])('creation emits one JSON result and performs one creation: %j', async (...args) => {
+  const output = [];
+  const previousQuiet = process.env.YIDA_QUIET;
+  process.env.YIDA_QUIET = '0';
+  console.log.mockImplementation(value => output.push(`${value}\n`));
+  console.error.mockImplementation(value => output.push(`${value}\n`));
+  process.stderr.write.mockImplementation(value => { output.push(value); return true; });
   const stdout = jest.spyOn(process.stdout, 'write').mockReturnValue(true);
-  await run(args);
+  try {
+    await run(args);
+  } finally {
+    if (previousQuiet === undefined) { delete process.env.YIDA_QUIET; }
+    else { process.env.YIDA_QUIET = previousQuiet; }
+  }
   expect(console.log).toHaveBeenCalledTimes(1);
   expect(JSON.parse(console.log.mock.calls[0][0])).toMatchObject({ success: true, appType: 'APP_TEST' });
   expect(stdout).not.toHaveBeenCalled();
+  // Hooks may observe merged stdout/stderr and parse each line as JSON.
+  const documents = stripVTControlCharacters(output.join('')).split(/\r?\n/).flatMap(line => {
+    try { return [JSON.parse(line)]; } catch { return []; }
+  });
+  expect(documents).toEqual([expect.objectContaining({
+    success: true, appType: 'APP_TEST', adminUrl: 'https://example.com/APP_TEST/admin',
+  })]);
   const requests = httpPost.mock.calls.filter(call => call[1] === '/query/app/registerApp.json');
   expect(requests).toHaveLength(1);
   expect(new URLSearchParams(requests[0][2]).has('json')).toBe(false);
