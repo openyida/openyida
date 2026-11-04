@@ -21,6 +21,19 @@ function cli(args) {
   return spawnSync(process.execPath, [path.resolve(__dirname, '../bin/yida.js'), ...args], { cwd: dir, env, encoding: 'utf8' });
 }
 
+test('fast-theme rejects a retained but unlisted theme before writing outputs', () => {
+  const output = path.join(dir, 'theme-output');
+  const result = cli(['sample', 'yida-app', 'fast-theme', '--style-id', 'app-amber',
+    '--primary-color', color, '--output', output, '--json']);
+  expect(result.status).not.toBe(0);
+  const error = JSON.parse(result.stderr);
+  expect(error.details).toMatchObject({ path: '--style-id', themeId: 'app-amber', reason: 'UNLISTED_TEMPLATE',
+    nextArgv: ['design-plan', 'catalog', '--compact'] });
+  expect(error.details.availableThemeIds).toEqual(loadThemeIndex().themes.map(theme => theme.themeId));
+  expect(error.details.availableThemeIds).not.toContain('app-amber');
+  expect(fs.existsSync(output)).toBe(false);
+});
+
 test('actual CLI generates only CSS despite invalid business/Plan files and has no document prerequisite', () => {
   for (const name of ['build-plan.json', 'fast-app.json', 'build-context.json']) {fs.writeFileSync(path.join(dir, name), '{"resources":[{"type":"form"}],"pages":null}');}
   const css = path.join(dir, 'app_theme.css');

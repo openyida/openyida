@@ -4,7 +4,7 @@ Fast、Plan 和单页设计共用 [主题索引](../templates/design-themes/inde
 
 ## 已选风格只确认一次
 
-每次进入设计或准备风格问题前，先检查用户原始需求与最新补充、参考网站或设计图/图片、`brief.visualSelection`、已有方案的 `visualStyle.internal.selectedTheme` 和当前应用 `design.md` 的 `themeProfile.sourceThemeId`。以同一任务中用户最新的明确意图为准；主题 ID 尚未生成不等于用户没有风格意向。
+每次进入设计或准备风格问题前，先检查用户原始需求与最新补充、参考网站或设计图/图片、`brief.visualSelection`、已有方案的 `visualStyle.internal.selectedTheme` 和当前应用 `design.md` 的 `themeProfile.sourceThemeId`。这些选择须属于当前目标与同一次搭建，或由用户本次明确指定沿用。新应用不把长期偏好、近期活动或另一应用的颜色和主题认作已选；行业相同也不继承旧方案。以同一任务中用户最新的明确意图为准；主题 ID 尚未生成不等于用户没有风格意向。
 
 **先识别意向，再决定是否提问。用户已描述风格或提供视觉参考时，直接推演，不再询问主题风格。** 不要求用户给出完整设计系统、主题名称、色值、字体、圆角或导航明暗，也不要求再说一次“就按这个做”。
 
@@ -61,13 +61,21 @@ Fast、Plan 和单页设计共用 [主题索引](../templates/design-themes/inde
 
 ## 先读摘要，再读选中主题
 
+以当前 CLI 的 `openyida design-plan catalog --compact` 或 `--json` 返回的主题 ID 为准，再读取该项的模板路径。已有当前目录结果时直接复用。
+
+遇到 `APPLICATION_STYLE_UNKNOWN`（也可能位于 `details.issues[].code`）时，按以下步骤恢复：
+
+1. 读取错误中的 `path`、`themeId`、`reason`、`availableThemeIds` 和 `nextArgv`。`UNLISTED_TEMPLATE` 表示磁盘上保留的旧模板未被当前目录收录。`UNKNOWN_THEME_ID` 表示当前目录和保留的模板中均未找到该 ID。
+2. 核对 CLI 与 Skill 来源。已有可核实的视觉选择时，从对应的当前目录模板重新导出或生成，保留项目定制。缺少选择记录时，按用户已明确的视觉意图选择，方案发生变化时再确认。`sourceThemeId` 记录真实模板来源。
+3. 修正输入后再校验。诊断留在执行记录，用户进度按[用户可见表达](../../../references/user-facing-summary.md)说明。
+
 1. 比较前只读取索引的 `themes[].styleSummary`，也可用 `openyida design-plan catalog --json` 获取同一摘要。主题名称用于识别，不代替摘要中的视觉事实；不预读候选模板全文。
 2. 对照摘要中的表面、轮廓、形状、文字、强调方式及偏离风险，选择最符合当前视觉要求的主题。不按关键词数量打分，不维护另一套权重或风格注册表。
 3. 保留摘要中的适用条件。图表、量表、记录栈等仅按真实内容启用；没有某种内容不代表主题不适用，也不能为体现风格新增业务模块。未写明的实现细节留到主题确定后处理。
 4. 选定后通过该索引记录的 `templatePath`，相对 `yida-design/` 读取一份完整主题。沿用已确认选择，不再重新推荐；用户要求比较时，按所在流程完成选择后再读全文。
 5. 首次选型时，排除不符合项目要求的主题；没有合适模板时使用自由创意。品牌色等允许的项目输入不构成更换主题的理由。用户明确的导航明暗与候选主题 `navTheme` 冲突时，改选符合要求的主题，不覆盖模板的导航明暗。
 
-主题 ID、模板路径和候选比较保留在内部实施记录；Plan 写 `visualStyle.internal.selectedTheme`，Fast 沿用 brief 的视觉选择。最终文档正文和用户可见方案只写当前项目的视觉效果、配色和使用理由，不展示模板路径或内部选择过程；design.md frontmatter 的 `themeProfile.sourceThemeId` 保留所选主题 ID，供 CLI 定位同目录配对 CSS；不把该内部字段展示为用户方案内容。实例化与验收按[模板来源约束](application-style-library.md#模板来源与重复生成)执行。
+主题 ID、模板路径和候选比较保留在内部实施记录；Plan 写 `visualStyle.internal.selectedTheme`，Fast 沿用当前任务已核实的视觉选择。最终文档正文和用户可见方案只写当前项目的视觉效果、配色和使用理由，不展示模板路径或内部选择过程；已有设计文档的 frontmatter 用 `themeProfile.sourceThemeId` 保留所选主题 ID，供 CLI 定位同目录配对 CSS；不把该内部字段展示为用户方案内容。实例化与验收按[模板来源约束](application-style-library.md#模板来源与重复生成)执行。
 
 ## 设计方向比较
 
@@ -143,7 +151,7 @@ openyida sample yida-design theme-preview --theme-ids <本轮实际候选ID，�
 
 | 流程 | 选择与执行 |
 | --- | --- |
-| Fast | 显式要求预览选型时卡片与问题同轮展示并等待选择；否则已有选择复用，已有风格意向或参考直接推演；均无时内部比较三套方向并写入 brief；命名模板读取选中模板，自由创意独立编写设计与 Token，直接维护项目 `design.md`，不增加方案确认步骤 |
+| Fast | 显式要求预览选型时卡片与问题同轮展示并等待选择；否则已有选择复用，已有风格意向或参考直接推演；均无时内部比较三套方向并在当前任务内交接选择；使用 [Fast 独立主题](../../yida-app/workflow/fast-build.md#2-同时准备主题与独立页面) 生成 CSS |
 | Plan | 已有选择复用，已有风格意向或参考直接推演；均无且未委托 AI 时按 [Plan 视觉候选规则](../sub_skill/yida-design-plan/references/visual-theme-selection.md) 询问三套方向；由 CLI 派生项目文档并保留整体方案确认 |
 | 单页设计 | 先读当前应用 `design.md` 和主题证据；沿用已确认主题，只补当前页面。尚无主题契约且需选型时读取同一索引，保持现有业务功能与应用主题 |
 | 已有应用/页面美化 | 由 [ui-improve](../sub_skill/ui-improve/SKILL.md) 编排；局部修改或已有满意主题直接复用。确实需要重新选型时才使用本文件的比较规则，随后确认具体美化方案；不因选型增加重复确认或重新搭建 |

@@ -29,6 +29,8 @@ async function runCli(baseUrl, workspace, mode = 'web', command = 'create-app') 
     env.QODER_WORKER_CWD = workspace;
   }
   let args = [BIN, 'create-app', '--name', 'Permission test'];
+  if (command === 'create-app-json') { args.push('--json'); }
+  if (command === 'create-app-quiet') { args.push('--quiet', '--no-open'); }
   if (command === 'import') {
     const filename = path.join(workspace, 'import.json');
     fs.writeFileSync(filename, JSON.stringify({ sourceAppType: 'APP_SOURCE', forms: [{ name: 'Form', formUuid: 'FORM_SOURCE' }] }));
@@ -50,8 +52,12 @@ test.each([
   ['desktop', 'legacy', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app'],
   ['codex', 'short', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app'],
   ['desktop', 'short', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app'],
+  ['desktop', 'opaque-code', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app-json'],
+  ['desktop', 'short-error-field', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'create-app-quiet'],
   ['web', 'unknown', 'YIDA_PERMISSION_REQUIRED', null, 'create-app'],
   ['desktop', 'config', 'YIDA_PLATFORM_ACCESS_REQUIRED', 'unauth', 'create-app'],
+  ['desktop', 'config-platform-denial', 'YIDA_PLATFORM_ACCESS_REQUIRED', 'unauth', 'create-app-quiet'],
+  ['desktop', 'registration-platform-denial', 'YIDA_PLATFORM_ACCESS_REQUIRED', 'unauth', 'create-app-json'],
   ['web', 'legacy', 'YIDA_APP_CREATE_PERMISSION_REQUIRED', 'noAppCreationAuth', 'import'],
 ])('app creation %s/%s outputs one actionable failure and stops', async (mode, scenario, code, type, command) => {
   const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-permission-cli-'));
@@ -60,11 +66,17 @@ test.each([
     calls.push(req.url.split('?')[0]);
     req.resume();
     res.setHeader('Content-Type', 'application/json');
-    if (req.url.startsWith('/query/exclusive/') && scenario !== 'config') {
+    if (req.url.startsWith('/query/exclusive/') && !scenario.startsWith('config')) {
       res.end(JSON.stringify({ success: true, content: {} }));
     } else if (scenario === 'redirect' || scenario === 'config' || scenario === 'create-redirect') {
       const permissionType = scenario === 'create-redirect' ? 'noAppCreationAuth' : 'unauth';
       res.writeHead(302, { Location: `/defaultPage.html?type=${permissionType}` }); res.end();
+    } else if (scenario === 'opaque-code') {
+      res.end(JSON.stringify({ success: false, errorCode: 'UNMAPPED_BUSINESS_CODE', errorMsg: '没有权限' }));
+    } else if (scenario === 'short-error-field') {
+      res.end(JSON.stringify({ error: '没有权限' }));
+    } else if (scenario.endsWith('platform-denial')) {
+      res.end(JSON.stringify({ errorCode: 'UNMAPPED_BUSINESS_CODE', error: '没有宜搭平台使用权限' }));
     } else {
       res.end(JSON.stringify({ success: false, errorCode: 'TIANSHU_000006',
         errorMsg: scenario === 'short' ? '没有权限' : scenario === 'legacy' ? '管理员暂未为您分配权限，请联系管理员授权' : 'Other permission denied' }));
@@ -85,12 +97,16 @@ test.each([
       const url = `${base}/defaultPage.html?type=${type}`;
       expect(payload.nextAction).toEqual({ type: 'open_url', label, url });
       expect(payload.nextStep).toContain(`[${label}](${url})`);
-      expect(payload.details.permissionLabel).toBe(label);
+      expect(payload.details).toMatchObject({
+        permissionLabel: label,
+        permissionLinkMarkdown: `[${label}](${url})`,
+      });
     } else {
       expect(payload.details.platformErrorCode).toBe('TIANSHU_000006');
       expect(payload).not.toHaveProperty('nextAction');
+      expect(payload.details).not.toHaveProperty('permissionLinkMarkdown');
     }
-    expect(calls.filter(p => p === '/query/app/registerApp.json')).toHaveLength(scenario === 'config' ? 0 : 1);
+    expect(calls.filter(p => p === '/query/app/registerApp.json')).toHaveLength(scenario.startsWith('config') ? 0 : 1);
     expect(calls).not.toContain('/openapi/cli/v1/auth/refresh');
     expect(calls).not.toContain('/query/card/send.json');
     expect(JSON.stringify(payload)).not.toContain('test-only-access');

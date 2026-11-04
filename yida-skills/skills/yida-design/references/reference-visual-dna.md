@@ -26,9 +26,9 @@
 
 ## 复用现有事实与生成链路
 
-- brief 的 `visualSelection.visualDirection.description` 保留用户意图、参考 URL 或图片标识与提取摘要；图片无需伪造 URL。从真实材料提取的方向标记 `material_extracted`，用户直接描述的方向标记 `user_explicit`。AI 补齐的主色等细节单独标记 `ai_default`。
+- 在当前任务中记录用户意图、参考 URL 或图片标识与提取摘要。使用 brief 时写入 `visualSelection.visualDirection.description`。从真实材料提取的方向标记 `material_extracted`，用户直接描述的方向标记 `user_explicit`。AI 补齐的主色等细节单独标记 `ai_default`。
 - 参考驱动设计优先用 `free-creative` 承载，避免模板默认材质覆盖参考。只有命名模板确实能保留参考的主要特征时，才内部匹配模板并填写差异；这一步不产生用户风格选择题。
-- Fast：按[唯一输出契约](../workflow/output-design.md)写项目 `design.md`，在正文保留来源和采用方式，在 `tokens` 中写实际 CSS 值，执行 `check-design`。然后执行 `openyida sample yida-design app-theme --design-file prd/<项目名>/design.md --output prd/<项目名>/app_theme.css`。已有项目沿用其记录的 CSS 路径。
+- Fast 新建应用按[独立主题流程](../../yida-app/workflow/fast-build.md#2-同时准备主题与独立页面)生成 CSS，并在当前任务中保留参考来源和采用方式。已有设计文档按[输出契约](../workflow/output-design.md)记录来源和 token、校验后沿用项目的 CSS 路径。
 - Plan：将来源与采用方式写入 `visual.json` 的 `facts.visualStyle.forUser.visualDirection.description`，具体色彩、材质写入 `facts.visualStyle.tokens`；逐页布局、响应式及验收写 `forUser.pageApplications`。自由创意还须完整填写既有 `creativeDirection` 契约与导航明暗，再通过 `materialize` 派生 `design.md` 与 `outputs.theme`。Plan 默认生成 `app-theme.css`，与 `app_theme.css` 用途一致，沿用返回路径，不另造第二份主题文件。
 - 核对产物的颜色、圆角、边界、密度与提取结果一致。Token 须有实际消费者；布局、图片和交互需页面实现，不能声称仅 CSS 可复制整站。
 - 不再选择风格；整体方案确认、美化实施确认及主题上传仍按原流程执行。产物校验不代替实际页面视觉验证。

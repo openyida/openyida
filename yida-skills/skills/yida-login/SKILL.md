@@ -9,6 +9,8 @@ description: 宜搭登录态管理。以 OpenYida auth snapshot 为准；默认 
 
 千问办公先执行[任务准备](../../references/setup-and-env.md#千问办公任务准备)，其中当前组织、一次受控流程和失败停止规则优先于下方普通本地 profile 选择规则。
 
+已登录但缺少宜搭使用权限时，按[平台权限处理](../../references/setup-and-env.md#宜搭平台使用权限不足)给出申请表并暂停。
+
 ## 模式
 
 - Codex、yida-agent 等宿主都使用同一套 OpenYida auth snapshot 规则。

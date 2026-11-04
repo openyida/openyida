@@ -13,7 +13,7 @@
 
 调用 `yida-requirement-analysis`，按 [首轮需求分析](../../yida-requirement-analysis/workflow/prepare-brief.md) 读取必需来源，尽早确认核心功能和关键用法。该技能统一负责提问、答案合并和需求记录；完成后进入规划准备。
 
-取得 `intake.confirmed=true` 的需求记录（Fast 可沿用原始需求与实际回答，无文件要求）后进入规划准备；已有确认记录且需求未变化时直接复用。
+取得 `intake.confirmed=true` 的需求记录（Fast 可沿用原始需求与实际回答，无文件要求）后进入规划准备；确认依据符合[需求分析与续做规则](../../yida-requirement-analysis/workflow/prepare-brief.md#适用阶段与续做)且范围未变化时直接复用。
 
 ### 规划准备
 
@@ -27,13 +27,13 @@
 
 进入视觉阶段前，先按[已选风格只确认一次](../../yida-design/references/theme-selection.md#已选风格只确认一次)复用用户已选结果；补充设计细节不重新选型。
 
-Fast / Plan 先按[已选风格只确认一次](../../yida-design/references/theme-selection.md#已选风格只确认一次)检查用户原始需求、最新补充与视觉参考：已有风格意向就直接推演，参考网站或设计图按[视觉 DNA 提取](../../yida-design/references/reference-visual-dna.md)读取后设计，不再询问主题风格。将结果和来源写回 brief，后续复用；缺少 themeId、色值或 Token 由 AI 补齐。仅没有风格意向、视觉参考或可复用选择时，按[设计方向比较](../../yida-design/references/theme-selection.md#设计方向比较)生成三套方向：Fast 内部选定；Plan 未获 AI 决策委托时按[宿主展示规则](../../yida-design/references/theme-selection.md#选择时展示名称与效果图)收集选择，用户明确要求时才展示预览。
+Fast / Plan 先按[已选风格只确认一次](../../yida-design/references/theme-selection.md#已选风格只确认一次)检查用户原始需求、最新补充与视觉参考：已有风格意向就直接推演，参考网站或设计图按[视觉 DNA 提取](../../yida-design/references/reference-visual-dna.md)读取后设计，不再询问主题风格。记录选型结果与来源，Fast 在当前任务中交接，Plan 写回 brief。按已确认的视觉意图补齐 themeId、主色和需要的变量。仅没有风格意向、视觉参考或可复用选择时，按[设计方向比较](../../yida-design/references/theme-selection.md#设计方向比较)生成三套方向：Fast 内部选定；Plan 未获 AI 决策委托时按[宿主展示规则](../../yida-design/references/theme-selection.md#选择时展示名称与效果图)收集选择，用户明确要求时才展示预览。
 
 进入 2.1 前校验规划字段完整性和 `intake.designMode`。页面、导航、主题等建议随整体搭建方案展示。
 
 执行规划前读取 `constraints.prohibitedActions`。PRD 与 design 必须把禁止项写成实现门禁：`theme-file` 禁止时沿用现有平台主题且不安排主题文件任务；`page-source` 禁止时只允许只读核查与非源码配置；`publish` 禁止时把发布明确标记为跳过。不得为了满足默认九步流程静默删除这些约束。
 
-按 [访问态入口契约](../references/entry-navigation.md) 为每个入口补齐角色、默认任务、菜单、资源/视图/操作权限。Fast PRD 与 Plan execution.entryRecommendation 共用契约；管理端按 [首页按任务选择](../../yida-requirement-analysis/references/experience-groups.md#首页按任务选择) 确定默认任务；需要汇集办事入口时设计业务工作台，无汇总价值时直接进入业务页。
+按 [访问态入口契约](../references/entry-navigation.md) 为每个入口补齐角色、默认任务、菜单、资源/视图/操作权限。Fast 在当前任务中交接，Plan 写入 `execution.entryRecommendation`；管理端按 [首页按任务选择](../../yida-requirement-analysis/references/experience-groups.md#首页按任务选择) 确定默认任务；需要汇集办事入口时设计业务工作台，无汇总价值时直接进入业务页。
 
 前台和后台都按 [首页与菜单顺序](../references/entry-navigation.md#每个入口都确定首页与菜单顺序) 确定默认页面、菜单及分组顺序、打开后的首屏任务。顺序写入各入口 `menu`，默认页写入 `defaultMenuKey`；不沿用资源创建顺序，不把前台首页自动放进后台，也不将自定义导航视为无需排序。
 

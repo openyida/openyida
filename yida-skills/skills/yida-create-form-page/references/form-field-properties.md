@@ -99,7 +99,7 @@ OpenYida 支持以下 **23 个可见样式**，不接受 `none`（无分割线�
 | 项目阶段、技术资料、赛事 | `arrow-right-title`、`square-blocks-title`、`multi-parallelograms-end`、`light-hexagon-title`、`hexagon-title` | 方向或几何形态强化分组；箭头不提供流程操作 |
 | 资质、荣誉、品牌专题或少量重点章节 | `badge-line`、`dark-bar`、`center-title-with-bar`、`thick` | 视觉权重强，避免密集重复 |
 
-在现有 `design.md` 的组件规则中记录“应用默认类型、业务理由、明确例外”，各表单每个 `Divider.dividerType` 显式填写同一默认值。Fast 与 Plan、并行生成、重试及后续新增表单都复用；无需新增状态文件或 CLI 参数。复合标题的配色与窄屏检查见 [内嵌标题与复合分割线](../../yida-design/references/native-form-styles.md#内嵌标题与复合分割线)。
+在本次任务的组件规则中记录“应用默认类型、业务理由、明确例外”，已有 `design.md` 时沿用其组件记录，各表单每个 `Divider.dividerType` 显式填写同一默认值。Fast 与 Plan、并行生成、重试及后续新增表单都复用；无需新增状态文件或 CLI 参数。复合标题的配色与窄屏检查见 [内嵌标题与复合分割线](../../yida-design/references/native-form-styles.md#内嵌标题与复合分割线)。
 
 `form-fields` 示例仅演示布局，分割线不是推荐默认值；复用时替换为应用已选类型。Canvas 分组标题按业务层级协调设计。
 
