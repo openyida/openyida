@@ -10,8 +10,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
-## [Unreleased]
-
 ## [2026.11.4] - 2026-11-04
 
 - **新建应用**：按本次需求和明确指定的参考搭建。千问办公默认使用当前组织，同名旧应用的资源、主题和 Fast / Plan 选择不会自动带入。续做时可沿用同一任务的确认和创建结果。
