@@ -835,6 +835,9 @@ describe('OpenYida skill contracts', () => {
     expect(navGroup).toContain('两种排序互斥，同一 Run 只执行一次');
     expect(navGroup).toContain('顺序已正确时返回 `changed=false` 且不写入');
     expect(navGroup).toContain('目标分组必须通过 `--to` 传入');
+    expect(navGroup).toContain('超过 8 个一级可见业务页面');
+    expect(step8).toContain('SKILL.md#完整应用收尾分组');
+    expect(readSkill('yida-skills/skills/yida-app/workflow/fast-build.md')).toContain('SKILL.md#完整应用收尾分组');
     expect(manifest).toContain('default_nav_order_policy');
     expect(manifest).toContain('openyida nav-group order <appType> <items...>');
     expect(manifest).toContain('openyida publish ... --auto-nav-order');
