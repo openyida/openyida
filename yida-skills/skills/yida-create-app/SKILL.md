@@ -14,18 +14,16 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 本技能不是完整搭建的默认第一步，只能在以下条件同时满足时加载/执行：
 
 1. 根技能或 `yida-app` 已完成 `resolve_resource_context`；
-2. 没有从本轮 prompt、应用 URL、已绑定资源上下文、workspace 配置/缓存或会话历史解析到目标 `appType`；
+2. 本次任务没有明确的既有目标，也没有本任务已创建或预创建的目标 `appType`；
 3. 用户明确要求从零创建应用，或完整搭建缺少 app 且 `allowCreate=true`。
 
-若已解析到 `appType`、应用 URL、已绑定 app 或 workspace 中可确认的 app，必须复用该 app 并继续后续表单/页面/发布步骤，不得调用 `openyida create-app`。若用户说“新建另一个应用”，先确认目标组织和新应用名，再执行本技能。
+按 [资源解析规则](../yida-app/workflow/step-1-resource-context.md#资源解析顺序) 判断复用目标。新建独立应用时，确认本次应用名后创建；千问办公默认使用当前组织，用户明确指定其他组织时按宿主规则处理。
 
 若该 app 是外部工具预创建的 app（上下文标记 `source=agent_bound` 或 `precreated=true`），也仍然视为“已有目标 app”：不得调用 `openyida create-app`，也不得在本技能中修改应用名称。本技能只负责在确实没有目标 app 且允许创建时新建应用。
 
 ## 严格禁止 (NEVER DO)
 - 不要编造 appType，必须从命令返回的 JSON 中提取
-- 不要在未确认 corpId 的情况下创建应用（先运行 `openyida env` 确认登录态）
 - 不要在同一轮已成功创建应用后重复创建。若接口明确返回名称冲突，单点任务先询问用户；`yida-app` 完整应用统一编排可追加短后缀重试一次，不要为了查重额外探测。
-- 已有 `appType`、应用 URL、已绑定 app 或 workspace app 时，不要创建新应用；除非用户明确要求新建另一个应用并确认。
 
 ## 严格要求 (MUST DO)
 
@@ -34,7 +32,7 @@ description: 创建宜搭应用并返回 appType；仅当没有目标 app 且用
 - 创建成功后，将 appType 记录到 `.cache/<项目名>-schema.json`
 - 千问办公保留 `adminUrl` 和 `linkPresentation` 待办，按[收尾检查](../../references/qwenwork-link-presentation.md#收尾必做检查)实际调用展示工具、核对回执后再总结；应用壳也适用。
 - 若完整搭建已确认 PRD 和视觉设计，创建成功后不得回写 `.cache/openyida/<项目名>/requirement-brief.json`，也不得仅因拿到真实 `appType` 重新生成或校验 PRD 和视觉设计；真实 `appType` 只写入 schema 或当前任务资源上下文。
-- 创建前确认当前登录的组织（corpId）与目标组织一致
+- 创建前沿用 [任务准备](../../references/setup-and-env.md) 的组织与登录结果，已有结果直接复用。
 - **本技能不读写 memory**：appType 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
 ## 适用场景

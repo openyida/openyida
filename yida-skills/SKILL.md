@@ -260,7 +260,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 1. **OpenYida CLI 统一执行**：所有宜搭资源操作通过 `openyida` CLI 执行；创建、修改、发布、查询都以 CLI 返回的 JSON、URL、`formUuid/appType` 作为证据。
 2. **技能加载唯一入口**：执行子技能前必须加载对应技能；单点任务按意图选 1 个主技能，完整应用由 `yida-app` workflow 分阶段加载当前步骤对应的子技能。
-3. **真实资源先确认**：写操作前解析本轮显式资源、已绑定资源上下文、workspace 配置/缓存和历史上下文；已有目标资源时默认修改、补齐或发布，只有目标缺失且意图允许创建时才加载 create 类技能。
+3. **真实资源先确认**：应用搭建先按 `yida-app` 的「本次搭建依据」区分新建和续做；其余写操作按本轮显式引用、已绑定上下文及同任务配置、缓存和回执解析目标资源。已有目标时修改、补齐或发布；意图允许且目标缺失时才加载 create 类技能。
 4. **corpId 一致性检查**：创建或发布页面前对比 PRD/resource context 与当前 auth snapshot 的 `corpId`；不一致时先让用户选择重新登录或确认继续。
 5. **页面源码修改必须发布闭环**：只要本轮 Write/Edit/Create 了页面源码 `project/pages/src/*.{canvas.jsx,canvas.tsx,oyd.jsx,jsx,tsx}`，final 前必须看到成功的 `openyida publish <source> <appType> <displayPageFormUuid>`；没有证据只能说“已完成修改，待发布”，禁止说“页面已更新 / 已重新发布 / 已上线”。
 6. **发布前本地校验**：平台 JSX 组件页面的 `check-page` / `compile` 归 `yida-custom-page` 执行；使用 `YidaCodeCanvas` 组件实现的自定义页面按本地快检或发布阶段校验；JSON 配置写盘后先解析校验，再调用平台命令。
