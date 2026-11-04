@@ -61,6 +61,14 @@ Fast、Plan 和单页设计共用 [主题索引](../templates/design-themes/inde
 
 ## 先读摘要，再读选中主题
 
+以当前 CLI 的 `openyida design-plan catalog --compact` 或 `--json` 返回的主题 ID 为准，再读取该项的模板路径。已有当前目录结果时直接复用。
+
+遇到 `APPLICATION_STYLE_UNKNOWN`（也可能位于 `details.issues[].code`）时，按以下步骤恢复：
+
+1. 读取错误中的 `path`、`themeId`、`reason`、`availableThemeIds` 和 `nextArgv`。`UNLISTED_TEMPLATE` 表示磁盘上保留的旧模板未被当前目录收录。`UNKNOWN_THEME_ID` 表示当前目录和保留的模板中均未找到该 ID。
+2. 核对 CLI 与 Skill 来源。已有可核实的视觉选择时，从对应的当前目录模板重新导出或生成，保留项目定制。缺少选择记录时，按用户已明确的视觉意图选择，方案发生变化时再确认。`sourceThemeId` 记录真实模板来源。
+3. 修正输入后再校验。诊断留在执行记录，用户进度按[用户可见表达](../../../references/user-facing-summary.md)说明。
+
 1. 比较前只读取索引的 `themes[].styleSummary`，也可用 `openyida design-plan catalog --json` 获取同一摘要。主题名称用于识别，不代替摘要中的视觉事实；不预读候选模板全文。
 2. 对照摘要中的表面、轮廓、形状、文字、强调方式及偏离风险，选择最符合当前视觉要求的主题。不按关键词数量打分，不维护另一套权重或风格注册表。
 3. 保留摘要中的适用条件。图表、量表、记录栈等仅按真实内容启用；没有某种内容不代表主题不适用，也不能为体现风格新增业务模块。未写明的实现细节留到主题确定后处理。

@@ -998,9 +998,10 @@ describe('OpenYida skill contracts', () => {
     expect(design).not.toContain('推荐模板');
     expect(output).toContain('## PRD 输出格式');
     expect(output).not.toContain('## design.md 输出格式');
-    // Fast and Plan share a document contract while keeping different authoring paths.
+    // Fast app builds use standalone CSS. Explicit design documents use the same contract as Plan.
     expect(outputDesign).toContain('fast-design-spec.md');
-    expect(outputDesign).toContain('各流程交付相同格式并使用同一校验');
+    expect(outputDesign).toContain('不以新建 design.md 或文档校验为前提');
+    expect(outputDesign).toContain('与 Plan 物化的文档使用同一格式和校验');
     expect(outputDesign).toContain('Plan 由 CLI 物化生成');
     expect(outputDesign).toContain('## frontmatter 规范');
     expect(outputDesign).toContain('## 稳定引用规则');
