@@ -8,7 +8,7 @@ module.exports = {
   data_seed: {
     optional_notes: '표준 쓰기 컴포넌트는 seed를 사용합니다. 주소는 기본 국내 ADDRESS만 지원합니다. 미지원 선택 필드는 skippedFields에 표시하며, 모두 생략되면 레코드를 생성하지 않습니다.',
     failed: '예제 데이터 작업이 중지되었습니다: {0}. 상세 정보를 확인하고 쓰기를 시도한 레코드를 다시 생성하지 마세요.',
-    notes: 'data seed form에는 --expect-form-name과 --records-file(1~30개 레코드)이 필요합니다. --check는 사전 검사만 수행합니다. 날짜는 밀리초 또는 ISO 문자열이며 기본 시차는 +08:00입니다. 각 레코드를 쓰고 다시 읽어 검증합니다. 입력 파일 옆에 결과를 저장하며 재실행 시 완료된 항목을 재사용하고 쓰기 결과가 불확실하면 중지합니다.',
+    notes: 'data seed form에는 --expect-form-name과 --records-file(1~30개 레코드)이 필요합니다. --check는 사전 검사만 수행합니다. 날짜는 밀리초 또는 ISO 문자열이며 기본 시차는 +08:00입니다. 각 레코드를 쓰고 다시 읽어 검증합니다. 입력 파일 옆에 결과를 저장하며 재실행 시 완료된 항목을 재사용하고 쓰기 결과가 불확실하면 중지합니다. 프로세스 seed는 data seed process와 --process-code를 사용하며 processInstanceIds를 반환하고 실제 승인을 시작합니다.',
   },
   corp_efficiency: {
     learning_completed: 'Yida 학습 완료 인원',
@@ -2476,6 +2476,7 @@ module.exports.batch = {
 };
 
 module.exports.data_verify = {
+  'binding_invalid': '페이지 데이터 바인딩이 실제 필드 또는 옵션과 일치하지 않습니다. details를 확인하세요.',
   "invalid_usage": "--verify-write는 일반 폼 create/update 전용 플래그입니다.",
   "preflight_failed": "데이터 쓰기 사전 검증 실패 ({0}개 문제).",
   "readback_failed": "쓰기가 수락되었지만 다시 읽은 결과를 검증할 수 없습니다. 기존 레코드를 확인하고 쓰기를 반복하지 마세요.",

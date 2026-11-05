@@ -1,52 +1,27 @@
-# Step 5：写入初始表单数据
+# Step 5：准备示例数据
 
-Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确认需求、真实回执和 app_theme.css，无创建前 JSON/方案门槛；下文 PRD/design.md 输入与相关文档检查只适用于 Plan/已有文档流程。Fast 不补写这些文件，业务实施与验收标准相同。
+使用本轮确认的业务范围、创建回执和真实字段映射。Fast 沿用短执行上下文；Plan 使用已确认的 PRD。核心普通表单默认 1–3 条；流程示例按已确认范围执行。
 
+## 执行
 
-完整应用默认给本轮新建或页面数据源依赖的核心普通表单写入 1-3 条业务化 seed records。流程表单仅在已确认真实 `processCode` 后按独立命令写入。
+1. 加载 `yida-data-management`。复用创建结果中的 appType、formUuid、类型与字段；缺少映射时一次读取 `get-schema --field-map-json`。
+2. 按业务填写名称、状态、金额、日期等，选项取真实配置，成员/部门取可确认的 ID。单对象 1 条、列表 2 条、排行或分布 3 条即可。
+3. 用结构化文件工具保存 `.cache/openyida/<任务名>/data-import/records.json` 顶层数组，日期可用 ISO 或毫秒，由 seed 按业务时区转换。
+4. 普通表单执行 `data seed form`；流程示例执行[临时本人审批 → seed 核验 → 编辑流程 → 最终发布](../../yida-data-management/references/process-seed-workflow.md)。新建流程直接使用 create-process，原普通表单转流程继续使用 --formUuid。
+5. 先写被关联表，再写依赖记录；关联定义按最终 receipt/process 类型，值使用对应 formInstId/processInstanceId 与真实名称。
+6. 保留完整回执，按 recordIndex 复用 verified ID。seed 已完成实例及字段回读；页面继续读取真实数据验证可见字段。其他写入按 ID 定向 get/query 业务抽查，未知结果先核实。
 
-## 输入
+```bash
+openyida data seed form <appType> <formUuid> --expect-form-name <名称> --records-file <绝对路径>/records.json --timezone +08:00 --json
+openyida data seed process <appType> <formUuid> --process-code <真实processCode> --expect-form-name <名称> --records-file <绝对路径>/records.json --timezone +08:00 --json
+```
 
-- 真实 `appType`；
-- 核心表单 `formUuid`、真实表单类型；
-- 流程表单已确认的真实 `processCode`；
-- `.cache/<项目名>-schema.json` 或字段 schema；
-- PRD 中的业务对象和示例数据语义。
+字段适配、可选字段省略、隐藏字段、锁和未知写入按[数据技能](../../yida-data-management/SKILL.md#一次写入普通表单示例记录)处理。CLI 保留目标与类型检查，写入串行，独立前置读取最多两路并发；回执恢复复用原输入和参数。
 
-## 操作
+## 产出与跳过
 
-1. 执行 `use_skill("yida-data-management", "为核心业务表单写入 1-3 条示例记录")`。
-2. 先执行 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实字段 ID。
-3. 生成当前业务语义的字段值，不写“测试1 / demo / mock”。
-4. 每个核心表单 1-3 条即可；列表/工作台通常 2 条，看板/排行/状态分布通常 3 条。
-5. 普通表单将 1-3 条业务记录一次写入 `.cache/openyida/<任务名>/data-import/records.json` 顶层数组，使用真实字段 ID；不再为日期转换、循环写入或提取 ID 生成临时脚本。`DateField` / `CascadeDateField` 可用毫秒或 ISO 日期，由下一条命令按时区转换。
-6. 每表执行一次 `openyida data seed form <appType> <formUuid> --expect-form-name <真实名称> --records-file <绝对路径>/records.json --timezone +08:00 --json`，使用业务时区。先写被关联表，再写依赖表；完整保留回执，按 recordIndex 使用 verified 条目的 ID，不为寻找已返回 ID 再 query。字段省略、失败与恢复统一按[数据技能](../../yida-data-management/SKILL.md#一次写入普通表单示例记录)及[回执规则](../../yida-data-management/SKILL.md#直接消费回执与关联-id)处理。最后用 `openyida data query form <appType> <formUuid> --inst-id <已核验ID> --json` 抽查至少一条。
-7. 流程表单只有在已确认真实 `processCode` 后，才执行 `openyida data create process <appType> <formUuid> --process-code <真实 processCode> --expect-form-name <真实名称> --expect-form-type process --data-file ...` 或 `--data-json ...`；最后执行 `openyida data query process` 抽查至少 1 条。
-8. 名称、UUID、类型或 `processCode` 不一致时停止，不得在 `form` 与 `process` 命令之间盲目重试。
-9. query 抽查核对目标实例 ID 和本次写入的可见字段值。CLI 查询不返回隐藏字段属于正常行为，全部字段隐藏时字段数据可能为空；按 [数据管理技能的隐藏字段规则](../../yida-data-management/SKILL.md#cli-查询隐藏字段) 验收，没有可见字段时说明隐藏字段无法通过 CLI 回读，不因字段数据为空而重复造数。
+输出记录数量、核验范围、实例 ID、流程阶段及页面依赖。用户要求不造数，或对象是配置字典、权限、敏感个人数据、纯附件表，或缺少可安全填写的值时，记录跳过原因并继续独立步骤。无流程实例时页面显示“暂无数据”。
 
-以下情况可以跳过，并在 final 说明原因：
-
-- 用户明确要求不要造数；
-- 表单是配置字典、权限表、敏感个人数据表或纯附件表；
-- 字段缺少可安全构造的有效值；
-- 流程表单没有确认 `processCode` 时禁止写入实例；若页面依赖流程实例，先补齐真实 `processCode`，否则说明跳过原因并保留空态。
-
-## 产出
-
-- 1-3 条真实普通表单或流程表单记录；
-- query 抽查结果；
-- 或明确跳过原因和页面空态方案。
-
-## Checklist
-
-- [ ] seed records 使用真实 `fieldId`；
-- [ ] 普通表单优先使用 `data seed form`，流程表单使用 `data create process`；
-- [ ] 流程实例创建前已确认真实 `processCode`；
-- [ ] 已按完整回执的 recordIndex 复用关联 ID，没有仅为取 ID 重复查询；
-- [ ] query 抽查已确认目标实例 ID 和可见字段值；没有可见字段时已说明隐藏字段无法通过 CLI 回读；
-- [ ] 跳过时已写明原因和页面空态方案。
-
-## 下一步
+CLI 隐藏字段缺失按权限解释；实例未确认、接口报错或回读不一致时保留未完成状态。回执 ID 用于后续关联和验收，页面与业务验证分别记录证据。
 
 → [Step 6：创建或复用主页面](step-6-main-page.md)

@@ -105,14 +105,20 @@ describe('skill resource boundary copy', () => {
       'SKILL.md'
     ), 'utf8');
 
-    expect(skill).toMatch(/流程定义最小 DSL 合约/);
-    expect(skill).toMatch(/"type": "approval"/);
-    expect(skill).toMatch(/不要.*startNode/);
-    expect(skill).toMatch(/不要.*endNode/);
-    expect(skill).toMatch(/不要.*approve/);
-    expect(skill).toMatch(/改成 `approval`/);
-    expect(skill).toMatch(/自动生成发起节点/);
-    expect(skill).toMatch(/自动生成结束节点/);
+    expect(skill).toMatch(/流程定义/);
+    const example = JSON.parse(skill.match(/```json\n([\s\S]*?)\n```/)[1]);
+    expect(example.nodes).toHaveLength(1);
+    expect(example.nodes[0]).toMatchObject({ type: 'approval', approver: 'originator',
+      formConfig: { behaviorList: [{ fieldId: '@label:采购金额', fieldBehavior: 'READONLY' }] } });
+    expect(skill).toContain('`nodes` 只填写业务节点');
+    expect(skill).toContain('CLI 自动生成发起和结束节点');
+    expect(skill).toContain('审批使用 `approval`');
+    expect(skill).toContain('办理 `operator`');
+    expect(skill).toContain('条件 `route`');
+    expect(skill).toContain('use_skill("yida-process-rule", "流程定义与发布约束")');
+    expect(skill).toContain('[生成规范](../yida-process-rule/references/process-ai-rules.md)');
+    expect(skill).toContain('覆盖全部字段；未归属字段默认 READONLY');
+    expect(skill).toContain('流程嵌套最多 3 层');
   });
 
 });

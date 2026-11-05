@@ -48,10 +48,10 @@ describe('OpenYida skill contracts', () => {
     const step = readSkill('yida-skills/skills/yida-app/workflow/step-5-seed-records.md');
     const fast = readSkill('yida-skills/skills/yida-app/workflow/fast-build.md');
     const format = readSkill('yida-skills/skills/yida-data-management/references/data-format-guide.md');
-    const section = data.split('### 直接消费回执与关联 ID\n')[1].split('## 严格禁止')[0];
+    const section = data.split('### 直接消费回执与关联 ID\n')[1].split('## 触发条件')[0];
     for (const signal of ['success=true', 'readbackVerified=true', 'status=verified', 'recordIndex',
       '0-based', 'receiptFile', 'pending', 'candidateIds', '--check', '未知写入不重放',
-      '--inst-id', '可见字段', '串行执行']) {expect(section).toContain(signal);}
+      '--inst-id', '可见字段', '写入保持串行']) {expect(section).toContain(signal);}
     expect(section).toContain('不接 `tail` / `head` / `grep`');
     expect(section).toContain('不为取得本次已返回的 ID 再执行 `data query form`');
     expect(section).toContain('不要按 ID 排序或按客户名称猜测对应关系');
@@ -65,11 +65,11 @@ describe('OpenYida skill contracts', () => {
       expect(text).toContain('被关联表');
       expect(text).toContain('抽查');
     }
-    expect(step).toContain('不为寻找已返回 ID 再 query');
-    expect(step).toContain('--inst-id <已核验ID> --json');
+    expect(step).toContain('按 recordIndex 复用 verified ID');
+    expect(data).toContain('--inst-id <回执中的formInstId> --json');
     expect(data).not.toContain('必须从查询结果中提取');
     expect(data).not.toContain('多条实例必须逐条/分批执行 `openyida data create ...`');
-    expect(data).toContain('`data seed form` 的日期字符串由 CLI 按业务时区转换');
+    expect(data).toContain('子表日期递归转换');
     expect(format).toContain('data seed form');
     expect(format).toContain('直接消费回执与关联-id');
   });
@@ -578,8 +578,8 @@ describe('OpenYida skill contracts', () => {
 
     expect(contractMatch).not.toBeNull();
     expect(skill).toContain('openyida data delete form <appType> <formUuid> --inst-id <formInstId> --expect-form-name <name> --expect-form-type receipt --confirm --json');
-    expect(skill).toContain('禁止生成 `openyida data delete process`');
-    expect(skill).toContain('禁止在 CLI 报不支持后探索一次性脚本、浏览器私有请求或底层 API');
+    expect(skill).toContain('DATA_PROCESS_DELETE_UNSUPPORTED');
+    expect(skill).toContain('不改用脚本或私有 API');
 
     const contract = JSON.parse(contractMatch[1]);
     expect(contract).toMatchObject({
@@ -871,7 +871,7 @@ describe('OpenYida skill contracts', () => {
     expect(fallbackNavCommands).toContain('nav-group auto-order');
     expect(fallbackNavCommands).not.toContain('openyida publish');
     expect(step8).toContain('不生成逐项 `move` 的 Bash/Python 循环');
-    expect(step4).toContain('PRD 包含审批、流程、申请、审核、工单等流程对象时');
+    expect(step4).toContain('新建审批、申请、审核或工单时');
     expect(publish).toContain('`--auto-nav-order`');
     expect(publish).toContain('PRD 已写明顺序时不要传本参数');
     expect(publish).toContain('结构化 `navOrder`');
@@ -1013,17 +1013,17 @@ describe('OpenYida skill contracts', () => {
     expect(pageGeneration).toContain('页面实现路径二选一');
     expect(pageGeneration).toContain('结构化实现工具提供可编译运行时结构');
     expect(skill).toContain('[写入初始表单数据](workflow/step-5-seed-records.md)');
-    expect(appStep5).toContain('use_skill("yida-data-management", "为核心业务表单写入 1-3 条示例记录")');
-    expect(appStep5).toContain('完整应用默认给本轮新建或页面数据源依赖的核心普通表单写入 1-3 条业务化 seed records');
+    expect(appStep5).toContain('加载 `yida-data-management`');
+    expect(appStep5).toContain('核心普通表单默认 1–3 条');
     expect(appStep5).toContain('openyida data seed form');
     expect(appStep5).toContain('--records-file <绝对路径>/records.json');
-    expect(appStep5).toContain('openyida data create process');
-    expect(appStep5).toContain('--process-code <真实 processCode>');
-    expect(appStep5).toContain('--expect-form-type process');
-    expect(appStep5).toContain('流程表单没有确认 `processCode` 时禁止写入实例');
+    expect(appStep5).toContain('openyida data seed process');
+    expect(appStep5).toContain('--process-code <真实processCode>');
+    expect(appStep5).toContain('关联定义按最终 receipt/process 类型');
+    expect(appStep5).toContain('临时本人审批 → seed 核验 → 编辑流程 → 最终发布');
     expect(appStep4).toContain('拿到真实 `formUuid` 后写入资源上下文');
     expect(appStep9).toContain('自定义页面只在 `YidaComp` 内消费对应 token');
-    expect(appStep9).toContain('新建或作为页面数据源的核心普通表单已写入 1-3 条真实示例记录并 query 抽查');
+    expect(appStep9).toContain('核心普通表单的 1–3 条真实示例已核验');
     expect(skill).not.toContain('## 模板优先');
     expect(skill).not.toContain('## Sample 与业务页边界');
     expect(skill).not.toContain('模板路由');
@@ -1179,15 +1179,15 @@ describe('OpenYida skill contracts', () => {
     expect(output).toContain('`themeFile`、`themeColor`、`navTheme`、`logoSource`、`layoutDirection`、`hideAppNav`');
     expect(output).toContain('| 4 | 初始示例数据 | 页面需要读取真实表单记录，完整应用默认写入 1-3 条核心业务记录 | 写入数量、抽查结果 |');
     expect(dataManagement).toContain('## 完整应用默认 seed records');
-    expect(dataManagement).toContain('`yida-app` 从零生成完整应用时，表单创建完成后默认加载本技能');
-    expect(dataManagement).toContain('普通表单示例数据优先用 `data seed form`');
-    expect(appStep5).toContain('不再为日期转换、循环写入或提取 ID 生成临时脚本');
-    expect(dataManagement).toContain('写完必须 `openyida data query form` 抽查至少 1 条');
+    expect(dataManagement).toContain('`yida-app` 为核心普通表单准备 1–3 条业务记录');
+    expect(dataManagement).toContain('记录数组使用对应 seed');
+    expect(appStep5).toContain('日期可用 ISO 或毫秒，由 seed 按业务时区转换');
+    expect(dataManagement).toContain('数量、回执与核验结果交给页面阶段');
     expect(formPage).toContain('完整应用生成场景中，create 成功并记录 formUuid 后，把核心普通表单交给 `yida-data-management` 默认写入 1-3 条业务化示例记录');
     expect(appStep4).toContain('## 字段配置文件示例');
     expect(appStep4).toContain('project/.cache/openyida/<项目名>/xxx-fields.json');
     expect(appStep4).toContain('"访客姓名": "textField_xxxxxxxx"');
-    expect(appStep5).toContain('列表/工作台通常 2 条，看板/排行/状态分布通常 3 条');
+    expect(appStep5).toContain('列表 2 条、排行或分布 3 条');
     expect(output).toContain('## 4. 页面与功能设计');
     expect(output).toContain('## 5. 应用主题与风格摘要');
     expect(output).toContain('| 设计文件 | `prd/<项目名>/design.md` |');

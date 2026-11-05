@@ -1,241 +1,93 @@
 ---
 name: yida-create-process
-description: 流程表单一体化创建（创建表单 → 转流程 → 配置流程）；仅当无既有流程/表单上下文且用户意图允许新建流程表单时使用。
+description: 新建带审批的流程表单，或将指定普通表单转成流程；create-process 一次完成字段创建、流程配置、发布和回读，支持 @label 字段引用。
 ---
-# 流程表单一体化创建
 
-> 资源边界：本技能只处理普通 OpenYida 流程表单创建；目标不明时先只读确认或询问用户。
+# 创建流程表单
 
-## Resource-First 使用门槛
-
-本技能不是“审批/流程”诉求的默认入口。执行前必须先解析 app/form/process context：
-
-- 已有流程表单、`processCode`、流程表单 URL 或 bound process 时，禁止从零创建，改用 `yida-process-rule` 配置/更新节点、分支、字段权限。
-- 已有普通表单 `formUuid` 且用户明确要把这张表单转成审批流程时，可使用用法 2（`--formUuid`）复用该表单；不得新建同名表单。
-- 只有没有目标表单/流程，且用户明确要新建带审批的数据入口或完整审批系统时，才使用用法 1 或推荐两步流程创建新表单再转流程。
-- 多个表单/流程候选按根技能来源优先级选择；同级冲突或无法判断要改哪条流程时才问用户。
-
-## 严格禁止 (NEVER DO)
-
-- 不要编造 processCode，必须从命令返回的 JSON 中提取
-- 不要在流程定义中使用猜测的 fieldId，必须先用 `yida-get-schema` 获取
-- 不要在流程定义 `nodes` 中声明 `start` / `startNode` / `end` / `endNode` / `finish` 节点；OpenYida 会自动生成发起和结束节点
-- 不要把审批节点写成 `approve`；CLI 支持的是 `approval`（名词），别名可用 `approver` / `approvalNode`
-- 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成字段定义、流程定义 JSON 文件
-- 已有流程表单、`processCode` 或 bound process 时，不要从零创建流程表单；改用 `yida-process-rule`。
-
-## 严格要求 (MUST DO)
-
-- **创建前必须确认**：执行创建命令前，必须向用户确认表单名称、流程配置和目标应用，获得用户明确同意后再执行
-- 优先使用用法 2（先创建表单获取字段 ID，再 `--formUuid` 转流程）
-- 创建成功后，将 formUuid 和 processCode 记录到 `.cache/<项目名>-schema.json`
-- 流程定义中字段 ≥ 3 且审批节点 ≥ 2 时，必须自动配置字段权限
-- 字段定义和流程定义文件必须用 agent 的结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`；不要在仓库根目录、系统临时目录或 `.cache/` 顶层生成 `fields.json`、`process-definition.json` 等临时文件
-- **本技能不读写 memory**：formUuid 和 processCode 输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
-- 创建或转换任何远程资源前，CLI 必须先完成字段和流程定义的纯本地编译；本地编译失败时远程写入数必须为 0
-- 复用普通表单时由 `configure-process` 统一执行表单模式只读 preflight、必要转换、发布与平台 view 回读，不要在外层先手动转换表单
-
-## 配置失败后的原表恢复
-
-- `create-process` 返回 `success:false` 且包含 `formUuid` 时，该表单已经存在，失败的是后续配置；新建模式与复用模式均适用。保存返回的 `appType/formUuid`，禁止去掉 `--formUuid`、再次 `create-form` 或另建同名表作为恢复手段。
-- 先按错误中的 `stage`、`nextStep` 和 `recovery` 检查原表状态及权限。修正明确原因后只能复用原 `formUuid`，使用返回的完整 `retryCommand`；不得自动补 `--replace` 绕过已绑定流程的保护。
-- `noWriteRetry:true`、`NON_IDEMPOTENT_RESULT_UNKNOWN` 或 `PUBLISHED_UNVERIFIED` 表示远程结果未确认：只读核实原表/流程，不能执行写重试，也不能新建替代资源。
-- 无法安全恢复时保留原表，并向用户报告原表链接、失败阶段和需处理的问题；不要宣称流程已完成。
-
-## 适用场景
-
-用户需要"创建审批流程"、"新建流程表单"、"搭建审批系统"，且 resource context 没有既有流程/表单目标时使用。
-
-**关键区分**：
-- 从零创建流程表单（含表单+流程配置）→ 本技能
-- 为已有表单或流程配置/修改审批规则 → `yida-process-rule`；已有普通表单要转流程时仅使用本技能的 `--formUuid` 复用模式
+目标不明时先只读确认或询问用户，按下表选择当前资源的入口。
 
 ## 触发条件
 
-**正向触发**：
-- "创建审批流程"、"新建流程表单"
-- "搭建审批系统"、"创建带审批的表单"
-- 需求中含「审批」「流程」「申请」「审核」「工单」等关键词，且尚无目标表单/流程
+| 当前资源与目标 | 操作 |
+| --- | --- |
+| 新建带审批的数据入口、申请、审核或工单 | 确认目标应用、表单名称和流程配置后，直接使用下方新建命令 |
+| 指定普通表单转流程 | 使用 `--formUuid` 复用原表，由 CLI 完成模式检查、转换和配置 |
+| 已有流程表单、processCode、流程 URL 或绑定流程 | 交给 `yida-process-rule` 读取并编辑原流程 |
+| 多个同级候选 | 按根技能的资源优先级定位；仍有歧义时确认目标 |
 
----
+完整应用沿用本轮已确认的资源和配置；新建流程默认一次调用 `create-process`。
 
+## 工作流
 
-## 用法 1：全新创建
+确认资源和配置 → 写入字段与流程定义 → 一次创建并回读 → 保存真实字段映射 → 按需执行流程 seed 编排。
+
+### 命令与输入
+
+字段定义沿用 `yida-create-form-page`；字段和流程 JSON 用结构化文件写入工具保存到 `<projectRoot>/.cache/openyida/<任务名>/`。
 
 ```bash
-openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace]
+openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>
+openyida create-process <appType> --formUuid <已有普通表单UUID> <processDefinitionFile>
 ```
 
-## 用法 2：复用已有表单（推荐）
+新建和复用模式均在创建或转换前完成流程定义的本地编译；编译错误先修正文件。字段按场景准备：
 
-```bash
-openyida create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace]
-```
+- **新建表单**：先准备字段定义，本表流程引用使用 `"fieldId":"@label:采购金额"`，子表使用 `"@label:明细/项目"`；CLI 按本地定义检查唯一匹配，创建后读取真实 Schema、绑定 ID 并为条件补齐组件类型。
+- **复用已有表单**：先用 `yida-get-schema` 查询该表的字段与子表路径，再编写定义并执行 `--formUuid` 转换；已有真实 ID 直接沿用，`@label` 引用由 CLI 按该表 Schema 解析。
 
-> **推荐用法 2**：先用 `openyida create-form create` 创建表单获取字段 ID，再用 `--formUuid` 转流程表单。
+跨表字段映射使用各目标表的真实字段 ID。缺失、歧义或类型冲突按 `PROCESS_FIELD_REFERENCE_INVALID` 的 details 修正。将创建回执的字段映射和流程标识保存到 `.cache/<项目名>-schema.json`，供 seed、关联和页面复用；资源 ID 以回执为准，本技能不使用跨会话 memory。
 
-| 参数 | 必填 | 说明 |
-|------|------|------|
-| `appType` | 是 | 应用 ID |
-| `formTitle` | 用法 1 必填 | 表单名称 |
-| `fieldsJsonFile` | 用法 1 必填 | 字段定义文件（格式同 `yida-create-form-page`） |
-| `--formUuid` | 用法 2 必填 | 已有表单 UUID |
-| `processDefinitionFile` | 是 | 流程定义文件（格式同 `yida-process-rule`） |
-| `--replace` | 条件必填 | 仅当目标已存在 PUBLISHED 流程或 SAVED 草稿，并已获得用户对整图替换的明确确认时传入 |
+参数不确定时读取 `openyida create-process --help`。`CREATE_PROCESS_INVALID_ARGUMENTS` 的 `details.argument/reason` 定位缺参、重复参数和未知选项；复用参数写作 `--formUuid`。
 
-参数不确定时先看 `openyida create-process --help`。缺参、重复参数或未知选项会在读文件和登录前返回 `CREATE_PROCESS_INVALID_ARGUMENTS`；按 `details.argument` 定位参数、`details.reason` 判断原因，修正后重试。复用参数写作 `--formUuid`。
+## 流程定义
 
-## 输出
-
-```json
-{"success":true,"formUuid":"FORM-YYY","formMode":"create","formTitle":"订单处理表","appType":"APP_XXX","fieldCount":6,"processCode":"TPROC--XXX","processId":"83145794990","processVersion":2,"verificationLevel":"PLATFORM_VIEW_VERIFIED","platformViewVerified":true,"url":"{base_url}/APP_XXX/workbench/FORM-YYY"}
-```
-
-`formMode` 区分新建（`create`）和复用（`reuse`）。复用模式不读取表单名称和字段数，`formTitle`、`fieldCount` 返回 `null`，表示未查询，不代表字段为空或转换失败；新建模式返回传入名称和创建结果中的字段数。配置失败时返回的表单信息也遵循此约定。流程是否成功以 `success` 和 `verificationLevel` 为准，不能根据字段数判断。
-
-## 流程定义最小 DSL 合约
-
-`processDefinitionFile` 只描述发起和结束之间的业务节点。OpenYida 编译器会自动注入发起节点和结束节点，`nodes` 数组里不要手写任何 start/end 节点。
-
-节点参数按需加载 `use_skill("yida-flow-node-config", "流程；所需节点类别或配置项")`。发起页字段权限用顶层 `startFormConfig`；谁能发起用表单 START 权限组。保存发布和整图替换仍遵循 `yida-process-rule`，不必为简单人员配置加载全部高级节点。
-
-合法基础节点类型只使用这些值：
-
-| 节点意图 | `type` 写法 |
-|------|------|
-| 审批 | `approval` |
-| 办理 / 填写 | `operator` |
-| 条件分支 | `route` |
-| 并行分支 | `parallel` |
-| 抄送 | `carbon` |
-| 多人审批 | `multiApproval`，并设置 `mode: all\|or\|oneByOne` 与必填 `approver` |
-
-常见误写必须修正：
-
-| 错误写法 | 正确处理 |
-|------|------|
-| `start`, `startNode`, `StartNode` | 删除该节点，CLI 自动生成发起节点 |
-| `end`, `endNode`, `finish`, `FinishNode` | 删除该节点，CLI 自动生成结束节点 |
-| `approve` | 改成 `approval` |
-
-最小合法流程定义示例：
+`nodes` 只填写业务节点；CLI 自动生成发起和结束节点。审批使用 `approval`（兼容 `approver/approvalNode`），办理 `operator`，条件 `route`，并行 `parallel`，抄送 `carbon`；多人审批使用 `multiApproval`，提供 `approver` 和 `mode: all|or|oneByOne`。
 
 ```json
 {
-  "nodes": [
-    {
-      "type": "approval",
-      "name": "主管审批",
-      "approver": "originator"
-    }
-  ]
+  "nodes": [{
+    "type": "approval", "name": "采购复核", "approver": "originator",
+    "formConfig": {"behaviorList": [{"fieldId":"@label:采购金额","fieldBehavior":"READONLY"}]}
+  }]
 }
 ```
 
-带条件分支示例：
+编写定义前用 `use_skill("yida-process-rule", "流程定义与发布约束")` 加载规则，并读取[生成规范](../yida-process-rule/references/process-ai-rules.md)；人员、节点和操作参数按需加载 `yida-flow-node-config`。
+
+- 发起字段权限用顶层 `startFormConfig`；谁能发起用表单 START 权限组。
+- 字段至少 3 个且审批节点至少 2 个时，为各节点配置业务所需字段权限，覆盖全部字段；未归属字段默认 READONLY。
+- 条件与并行分支按[流转控制](../yida-flow-node-config/references/control.md)填写 `rules/childNodes`；比较字段、类型和操作符按[条件与变量](../yida-flow-node-config/references/conditions-variables.md)确定。流程嵌套最多 3 层，默认“其他情况”由 CLI 补齐。
+- 有回退或循环语义时配置 `routeRules`；并行、办理和高级组件沿用流程规则契约。
+- 用户要求加签、转交时，配置 `nodes[].actions.normalActions/appendActions`；其余场景保持默认关闭。CLI 生成运行配置并校验操作权限。
+
+## 准备流程示例
+
+需要示例数据时，按[流程 seed 编排](../yida-data-management/references/process-seed-workflow.md)执行：**创建本人审批临时流程 → seed 并核验 → 编辑流程 → 发布最终审批流**。全程使用同一表单；示例会产生真实本人待办。旧示例保留旧版本，后续申请使用最终版本。
+
+## 输出与恢复
+
+成功以 `success=true`、`verificationLevel=PLATFORM_VIEW_VERIFIED`、`platformViewVerified=true` 为准。它证明平台配置回读通过；实际审批、字段编辑和通知按业务验收。
 
 ```json
-{
-  "nodes": [
-    {
-      "type": "route",
-      "name": "金额分支",
-      "conditions": [
-        {
-          "name": "5万以上",
-          "rules": [
-            {
-              "fieldId": "numberField_amount",
-              "fieldName": "采购金额",
-              "componentType": "NumberField",
-              "op": "GreaterThanOrEqual",
-              "value": 50000
-            }
-          ],
-          "childNodes": [
-            { "type": "approval", "name": "总经理审批", "approver": "originator" }
-          ]
-        },
-        {
-          "name": "5万以下",
-          "rules": [
-            {
-              "fieldId": "numberField_amount",
-              "fieldName": "采购金额",
-              "componentType": "NumberField",
-              "op": "LessThan",
-              "value": 50000
-            }
-          ],
-          "childNodes": [
-            { "type": "approval", "name": "部门经理审批", "approver": "originator" }
-          ]
-        }
-      ]
-    }
-  ]
-}
+{"success":true,"appType":"APP_XXX","formUuid":"FORM_XXX","formMode":"create","formTitle":"采购申请","fieldCount":1,"fields":[{"fieldId":"numberField_amount","label":"采购金额","componentName":"NumberField","parentFieldId":null,"labelPath":["采购金额"],"alias":""}],"processCode":"TPROC--XXX","processId":83145794990,"processVersion":1,"verificationLevel":"PLATFORM_VIEW_VERIFIED","platformViewVerified":true,"url":"https://<当前环境域名>/APP_XXX/workbench/FORM_XXX"}
 ```
 
-## 推荐两步流程
+| 输出 | 含义 |
+| --- | --- |
+| `formMode` | `create` 为新建，`reuse` 为复用原表；两者均返回真实 `appType/formUuid` |
+| `formTitle/fieldCount/fields` | 新建返回名称、字段数与映射；复用的前两项为 `null`、`fields` 不返回，表示未查询，字段映射沿用前置 Schema |
+| `processCode/processId/processVersion` | 流程编码、已发布定义 ID 与版本；`processId` 用于定位流程定义，申请实例使用 `processInstanceId` |
+| `url` | 当前环境中该流程表单的工作台入口 |
 
-1. 使用 create_file / Write / file edit tool 创建字段定义：
-   `<projectRoot>/.cache/openyida/order/order-fields.json`
-2. 执行表单创建命令，获取真实 `formUuid` 和 `fieldId`。
-3. 使用结构化文件写入工具创建流程定义：
-   `<projectRoot>/.cache/openyida/order/process-definition.json`
-4. 执行流程转换命令。
+| 回执 | 下一步 |
+| --- | --- |
+| 配置失败且已返回 formUuid | 保存原表和阶段信息，按 stage/nextStep/recovery 检查原表，修正后使用完整 retryCommand 复用原资源 |
+| 已有 PUBLISHED 流程或 SAVED 草稿 | 按 `yida-process-rule` 确认完整替换范围，再使用 `--replace`；本轮已确认的临时到最终流程编辑复用该授权 |
+| `CONFIGURE_PROCESS_OWNERSHIP_UNVERIFIED` | 核对原 appType/formUuid 与 binding，使用查询得到的 processCode |
+| `PROCESS_COMPILE_ACTION_CONFIG_INVALID` | 修正报错节点的加签位置、结果或按钮配置后重新编译 |
+| `noWriteRetry:true`、`NON_IDEMPOTENT_RESULT_UNKNOWN`、`PUBLISHED_UNVERIFIED` | 保留原资源，只读核实版本和平台状态，报告尚未确认的部分 |
+| 参数、字段或登录错误 | 按结构化详情修正参数/字段；认证恢复交给 `yida-login` |
+| 只读请求超时 | 检查网络后受控重试；写入超时按结果未知处理 |
 
-```bash
-# 以下命令默认在 OpenYida project 工作目录内执行；从 workspace 根执行时路径加 project/ 前缀。
-openyida create-form create "APP_XXX" "订单处理表" .cache/openyida/order/order-fields.json
-openyida create-process "APP_XXX" --formUuid "FORM-YYY" .cache/openyida/order/process-definition.json
-```
-
-> 流程定义中的 `fieldId` 需在表单创建后确定。如流程不含条件分支、字段权限或数据节点字段映射，可用用法 1 一步到位。
-
-## AI 自动生成流程特性
-
-生成流程定义 JSON 时，**必须自动分析并生成**：
-
-1. **🔐 字段权限**：当字段 ≥ 3 且审批节点 ≥ 2 时，每个节点只允许编辑相关字段
-2. **🔄 跳转规则**：存在回退/循环语义时，自动配置 `routeRules`
-3. **🔀 并行/办理/高级组件**：需要并行会审、办理节点或连接器/数据/消息等官方组件节点时，流程定义格式直接参考 `yida-process-rule`
-4. **加签/转交操作权限**：用户要求开启时，加载 `use_skill("yida-flow-node-config", "操作按钮")`，生成 `nodes[].actions.normalActions/appendActions`；未要求时保持默认关闭。`create-process` 与 `configure-process` 共用编译器，无需新增命令或手写运行字段。禁止仅修改 `hidden` 后提交原始运行 JSON。
-
-需要流程规则细节时，调用 `use_skill("yida-process-rule", "配置已有流程节点、分支和字段权限")`。
-
-## 异常处理
-
-| 异常场景 | 处理方式 |
-|---------|----------|
-| 命令返回失败 | 检查 appType 和 formUuid 是否正确，确认登录态有效 |
-| processCode 获取失败 | 确认表单已成功转为流程表单类型，重新执行 |
-| 流程定义 JSON 格式错误 | 加载 `yida-process-rule` 子技能，按其中的 JSON 格式说明修正 |
-| `PROCESS_COMPILE_ACTION_CONFIG_INVALID` | 本地编译已拦截无效操作权限，修正报错节点的加签位置、结果或按钮配置后再执行；不要通过删除校验或手动补运行 JSON 绕过 |
-| 返回 JSON 中无 processCode | 不要猜测 processCode，重新执行命令获取 |
-| 流程发布失败 | 检查流程定义中的 fieldId 是否为真实 ID（先 get-schema 获取） |
-| 登录态失效 | 执行 `openyida login` 重新登录后再试 |
-| appType 格式错误 | 确认格式为 `APP_` 开头的字符串 |
-| formUuid 格式错误 | 确认格式为 `FORM-` 开头的字符串 |
-| `CONFIGURE_PROCESS_REPLACE_REQUIRED` | 展示完整替换摘要并再次取得用户明确确认；确认后才可补 `--replace` 执行一次 |
-| `CONFIGURE_PROCESS_OWNERSHIP_UNVERIFIED` | 停止；核对 appType、formUuid 和 binding，不得猜测 processCode |
-| `NON_IDEMPOTENT_RESULT_UNKNOWN` | 写入结果未知；不得自动重试，先只读查询目标版本和平台状态 |
-| `PUBLISHED_UNVERIFIED` | 发布可能已生效但平台 view 未完整验证；不得宣称成功或 processJson verified，不得直接重试写入 |
-| 网络超时 | 若发生在只读 preflight 可检查网络后重试；若发生在写入边界按结果未知处理，先只读核对状态 |
-
-## Agent 错误处理策略
-
-当 Agent 执行本技能遇到错误时，必须遵循以下默认行为：
-
-| 错误类型 | 默认处理策略 |
-|---------|-------------|
-| 命令执行失败 | 停止执行，向用户展示完整错误信息，询问是否重试或调整参数 |
-| 参数格式错误 | 停止执行，提示正确的参数格式，引导用户修正 |
-| 登录态失效 | 提示用户执行 `openyida login` 重新登录 |
-| processCode 缺失 | 停止执行，不得编造，提示用户重新执行命令 |
-| 已有流程或草稿但缺少 `--replace` | 展示替换摘要并请求明确确认；未确认不执行写入 |
-| 写入结果未知或发布未验证 | 停止自动重试，只读核对平台状态并报告机器码 |
-| fieldId 不存在 | 停止执行，提示用户先执行 `yida-get-schema` 获取真实 ID |
-| 用户拒绝确认 | 停止执行，询问用户是否需要调整配置 |
-| 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |
+恢复沿用原 `formUuid` 和真实 `processCode`；未知写入不重放、不另建替代资源。无法完成时交付原表链接、失败阶段和剩余事项。用户拒绝操作时保留当前资源并等待调整。

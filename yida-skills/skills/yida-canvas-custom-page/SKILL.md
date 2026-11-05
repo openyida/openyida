@@ -121,7 +121,7 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 6. **副作用清理**：`useEffect` 注册事件、定时器、图表实例时必须返回 cleanup。
 7. **交互控件必须受控且真正驱动数据**：筛选 `Select`、搜索 `Input`/`Input.Search`、周期切换、`Tabs`/`Segmented`、批量/重置 `Button` 等控件都用 `useState` 建立受控状态，绑定 `onChange`/`onClick`，并让 `Table`/列表/卡片的数据源通过 `useMemo` 按状态派生后渲染。切换筛选后若当前选中项失效，回退选中态（如 `selected < filteredRows.length ? selected : 0`）。
 8. **视觉壳层必须消费 design.md**：写页面源码前，通过 `designRefs` 查询 `design.md` frontmatter 的 anchor 索引，读取当前页八项设计与对应共享组件、状态规则。页面外壳、焦点、布局、表面、动作、反馈和响应式都要落实，但不要求旧 `visualScaffold` 等字段。页面背景、组件样式和主题 Provider 只作用于 `YidaComp` 的组件子树，不修改平台容器；新页面的颜色映射由生成的 CanvasThemeProvider 负责。主题和当前页面明确的圆角、padding/gap、密度与分组节奏优先，通用数值只在未定义时兜底；同步到 CSS、antd 和真实布局，不用固定内距或大圆角覆盖已选主题。
-9. **按数据来源接入**：表单页面填写 `dataBinding.mode="form"`、真实 `appType/formUuid` 和字段 ID，通过 `useYidaData(binding)` / `DataBridge` 调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`。每行业务字段位于 `row.formData[fieldId]`；先按 `row.formData || row.data || row` 和真实字段 ID 转为页面行数据，再把表格 `dataIndex` 绑定到转换后的字段。根级工具使用 `window.__OPENYIDA_UTILS__`。连接器填写 `Http_*` 格式的 `connectorName`、`operationId`、`connectionId`，通过 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)` 调用，Body 传对象。密钥、Cookie 和签名由平台或后端保存。数据桥、同源接口兜底与字段映射见 [数据接入](references/data-bridge-guide.md)。
+9. **按数据来源接入**：普通表单页面填写 `dataBinding.mode="form"`、真实 `appType/formUuid` 和字段 ID，通过 `useYidaData(binding)` / `DataBridge` 调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`。流程页面使用 `dataBinding.mode="process"`，加载 `use_skill("yida-canvas-data-binding", "流程读取")`，复用公共读取骨架调用 `getProcessInstances`，保留真实流程 ID 和状态。每行业务字段位于 `row.formData[fieldId]`；先按 `row.formData || row.data || row` 和真实字段 ID 转为页面行数据，再把表格 `dataIndex` 绑定到转换后的字段。根级工具使用 `window.__OPENYIDA_UTILS__`。连接器填写 `Http_*` 格式的 `connectorName`、`operationId`、`connectionId`，通过 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)` 调用，Body 传对象。密钥、Cookie 和签名由平台或后端保存。数据桥、同源接口兜底与字段映射见 [数据接入](references/data-bridge-guide.md)。
 10. **表单排序只使用真实业务字段 ID**：`searchFormDatas` 的 `dynamicOrder` key 必须来自当前 `get-schema` 返回的真实业务字段 ID，禁止使用返回记录的元数据名 `gmtCreate`，不得生成 `dynamicOrder: { "gmtCreate": "-" }`。没有可排序的业务日期字段时删除 `dynamicOrder`；如仅需调整当前已取回页的展示顺序，可在响应解包后按 `row.createTime` 排序，但不能声称实现了跨页稳定排序。遇到 `selectListException 无法找到字段:gmtCreate` 时，先移除错误排序参数、重新回读 Schema 并使用真实字段 ID，再重新发布。
 11. **分页查询默认写 50**：表单、流程、任务、成员等分页查询参数一般显式写 `pageSize: 50` 或 `pageSize: '50'`。只有用户明确要求小页或大页时才改成其他值，且不得超过平台上限 100。
 12. **源码保持零未绑定标识符**：每个 import、辅助函数、Ref、状态、局部变量和函数参数都在同一文件声明后使用。非标准运行时能力通过 `window.<name>` 或 `parentWindow.<name>` 获取，调用前检查目标方法。`compileCanvasLocal` 报 `OPENYIDA_CANVAS_UNBOUND_IDENTIFIER` 时，一次修复 `details.issues` 中的全部名称，再重新编译。
@@ -178,8 +178,8 @@ antd 页面使用 CanvasThemeProvider，图表通过 useCanvasThemeContext 取�
 
 ## 接入真实数据
 
-- 完整应用或真实交付页先解析真实 `appType/formUuid/fieldId`，并在 `page-spec.json` 写入 `dataBinding.mode=form`。
-- 完整应用默认先用 `yida-data-management` 把 1-3 条业务化 seed records 写入核心普通表单并抽查，再让页面读取；前端静态数据只能用于明确标注的离线演示态。
+- 完整应用或真实交付页先解析真实 `appType/formUuid/fieldId`；普通表单使用 `dataBinding.mode=form`，流程表单使用 `dataBinding.mode=process`。已有 `page-spec.json` 时同步该绑定。
+- 完整应用默认先用 `yida-data-management` 把 1-3 条业务化 seed records 写入核心普通表单并抽查，再让页面读取；前端静态数据只能用于明确标注的离线演示态。流程示例沿用已确认的[流程 seed 编排](../yida-data-management/references/process-seed-workflow.md)，页面按目标类型读取。
 - 生成后如果 `.openyida-page.json` 的 `dataBinding.enabled !== true`，且页面仍展示列表/看板/详情业务记录，交付状态标为草稿；完整应用 final 只有在真实数据绑定已启用并验证后表述为“已接真实数据”。
 - 未接数据的交付页保留真实空态、登记入口、刷新按钮和数据接入提示。
 

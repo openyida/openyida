@@ -17,7 +17,7 @@
 
 ## 推荐：先写 dataBinding，再实现数据桥
 
-普通表单列表先执行 `openyida sample openyida-page-template canvas-data-source --output .cache/samples/canvas-data-source.jsx`，按[公共读取骨架](../../yida-canvas-data-binding/SKILL.md#普通表单读取骨架)接入。片段已包含同源 `getCanvasBridge`、严格响应解析及 Hook，不重复合并下方同名 helper。以下参考用于其他读取路径及明确需要的降级实现；普通表单查询优先复用提取的维护代码。
+普通表单与流程列表先执行 `openyida sample openyida-page-template canvas-data-source --output .cache/samples/canvas-data-source.jsx`，按[公共读取骨架](../../yida-canvas-data-binding/SKILL.md#普通表单读取骨架)接入。片段已包含同源 `getCanvasBridge`、严格响应解析及 Hook，不重复合并下方同名 helper。普通表单使用 `mode=form`，流程使用 `mode=process`。以下参考用于其他读取路径及明确需要的降级实现；表单与流程查询优先复用提取的维护代码。
 
 使用 `YidaCodeCanvas` 组件实现的页面先把数据契约写成结构化 `dataBinding`，再在页面实现里注入为 `OPENYIDA_DATA_BINDING_JSON` 或 `DATA_BINDING` 常量，并生成统一的数据桥状态、错误态和总数保护。
 
@@ -44,10 +44,10 @@
 
 数据绑定规则：
 
-- `mode=form` 使用真实 `appType/formUuid` 和字段 ID，字段来源为 `get-schema`、表单创建结果或已确认的业务 Schema。
+- `mode=form/process` 按目标类型选择，使用真实 `appType/formUuid` 和字段 ID，字段来源为 `get-schema`、表单创建结果或已确认的业务 Schema。
 - `mode=connector` 必须使用真实 `connectorName/operationId/connectionId`，其中 `connectorName` 以 `Http_` 开头；通过 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)` 调用，不得把连接器伪装成页面可配置 URL。
 - `mode=url` 只允许自定义同源业务端点；第三方密钥留在后端服务侧。
-- `mode=seed` 只用于离线预览或明确标注的演示页；完整应用/真实交付页默认先由 `yida-app` 调用 `yida-data-management` 把 1-3 条 demo records 写入真实表单，再用 `mode=form` 读取。
+- `mode=seed` 只用于离线预览或明确标注的演示页；完整应用/真实交付页默认先由 `yida-app` 调用 `yida-data-management` 把 1-3 条 demo records 写入真实表单。`data seed form/process` 写入的记录分别用 `mode=form/process` 读取，流程示例沿用[流程 seed 编排](../../yida-data-management/references/process-seed-workflow.md)。真实接口零条记录仍保留原模式并展示空态。
 - 页面生成或手写的 `DataBridge` 状态要保留，用于呈现“接口没通 / 结构没识别 / 权限不足”等运行时状态。
 
 `dataBinding.mode=form` 默认调用 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`。同一个桥还会暴露 `saveFormData`、`updateFormData`、`deleteFormData`、`startProcessInstance`、`updateProcessInstance`、`getProcessInstances`、`getProcessInstanceIds`、`getProcessInstanceById`、`request`、`searchUserList` 等 `this.utils.yida` 方法，并运行时枚举已有的额外函数；流程列表、流程详情或发起审批时优先使用这些桥接方法。根级 `toast`、`dialog`、`router.push`、`openPage`、`isMobile` 等工具通过 `window.__OPENYIDA_UTILS__` 访问，`window.__OPENYIDA_UTILS__.yida` 等于同一个 yida API 桥。表单查询参数至少包含 `formUuid`、`currentPage`、`pageSize` 和 `searchFieldJson`，`pageSize` 一般显式写 `50`；`appType` 可保留在 `dataBinding` 中用于校验和构造详情/提交链接。只有桥不存在时才同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json`；直连 query 至少包含 `formUuid`、`appType`、`currentPage`、`pageSize`、`searchFieldJson` 和 `_csrf_token`，并设置 `credentials: 'include'` 与 `global_csrf_token` 头。`/query/form/searchFormDatas.json` 不是可用表单数据端点。

@@ -8,7 +8,7 @@ module.exports = {
   data_seed: {
     optional_notes: '標準の書き込み可能コンポーネントは seed を使用します。住所は既定の国内 ADDRESS のみ。未対応の任意項目は skippedFields、全項目省略時はレコードを作成しません。',
     failed: 'サンプルデータ操作を停止しました：{0}。詳細を確認し、書き込み済みの可能性があるレコードを再作成しないでください。',
-    notes: 'data seed form は --expect-form-name と --records-file（1～30 件）が必須です。--check は事前検証のみ。日付はミリ秒または ISO 文字列、既定の時差は +08:00。各レコードを書き込み、読み戻して検証します。入力横の受領ファイルで完了済みを再利用し、不明な書き込みで停止します。',
+    notes: 'data seed form は --expect-form-name と --records-file（1～30 件）が必須です。--check は事前検証のみ。日付はミリ秒または ISO 文字列、既定の時差は +08:00。各レコードを書き込み、読み戻して検証します。入力横の受領ファイルで完了済みを再利用し、不明な書き込みで停止します。 フローの seed は data seed process と --process-code を使用し、processInstanceIds を返して実際の承認を開始します。',
   },
   corp_efficiency: {
     learning_completed: 'Yida 学習完了者数',
@@ -2404,6 +2404,7 @@ module.exports.batch = {
 };
 
 module.exports.data_verify = {
+  'binding_invalid': 'ページのデータ参照が実際の項目または選択肢と一致しません。details を確認してください。',
   "invalid_usage": "--verify-write は通常フォームの create/update 専用フラグです。",
   "preflight_failed": "データ書き込みの事前検証に失敗しました（{0} 件）。",
   "readback_failed": "書き込みは受理されましたが、読み戻しを検証できません。既存レコードを確認し、書き込みを繰り返さないでください。",

@@ -91,7 +91,9 @@ test('seed is app-bound, check emits no mutation, and unknown resources remain d
   expect(classifyManagedMutation('data', [...args, '--check'])).toBeNull();
   expect(() => run('data', ['seed', 'form', 'APP_OTHER', 'FORM-x']))
     .toThrow(expect.objectContaining({ code: 'MANAGED_APP_MISMATCH' }));
-  expect(() => run('data', ['seed', 'process', 'APP_BOUND', 'FORM-x']))
+  expect(run('data', ['seed', 'process', 'APP_BOUND', 'FORM-x'])).toMatchObject({ appType: 'APP_BOUND' });
+  expect(classifyManagedMutation('data', ['seed', 'process', 'APP_BOUND', 'FORM-x', '--check'])).toBeNull();
+  expect(() => run('data', ['seed', 'unknown', 'APP_BOUND', 'FORM-x']))
     .toThrow(expect.objectContaining({ code: 'MANAGED_COMMAND_UNSUPPORTED' }));
   expect(() => run('data', [...args, '--corp-id', 'other']))
     .toThrow(expect.objectContaining({ code: 'MANAGED_OVERRIDE_FORBIDDEN' }));

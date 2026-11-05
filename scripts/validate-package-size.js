@@ -245,7 +245,11 @@ const MAX_TARBALL_BYTES = 2736 * 1024;
 // retain the next 16 KiB boundary. Compressed and single-file caps stay unchanged.
 // Native view rename and action-column button commands add runtime and skill
 // content. Round the unpacked limit to the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 9984 * 1024;
+// Process seed, declared field bindings and opt-in empty subform reads add one
+// packaged workflow reference. Merged Node 23 measurement: 10,226,230 bytes /
+// 813 files, 2,614 bytes above the previous limit. Use the next 16 KiB boundary;
+// compressed, entry-count and individual-file limits stay unchanged.
+const MAX_UNPACKED_BYTES = 10000 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.

@@ -107,7 +107,7 @@ Plan 规划阶段的工作流入口只读取 `workflow/step-1-resource-context.m
 | 2 | [业务与视觉设计](workflow/step-2-design.md) | 整理需求后 Fast 直接交接明确需求并独立准备主题，不阻塞 Step 3，Plan 生成并确认方案 | Fast：已确认需求 + `app_theme.css` + 真实执行回执；Plan：需求、PRD 与设计文件 |
 | 3 | [创建或复用应用](workflow/step-3-create-or-reuse-app.md) | 已有 `appType` 直接复用；缺少 app 且允许创建时执行 `use_skill("yida-create-app")` | 真实目标 `appType` |
 | 4 | [创建或更新业务资源](workflow/step-4-forms-processes.md) | 执行 `use_skill("yida-create-form-page")`；按 PRD 执行 `use_skill("yida-create-process")`、`use_skill("yida-get-schema")`、`use_skill("yida-report")` 和 `use_skill("yida-integration")` | 真实 `formUuid`、`processCode`、必要 `fieldId/reportId` |
-| 5 | [写入初始表单数据](workflow/step-5-seed-records.md) | 执行 `use_skill("yida-data-management")`，为核心普通表单写入 1-3 条业务化 seed records 并 query 抽查 | 真实表单记录或明确跳过原因 |
+| 5 | [写入初始表单数据](workflow/step-5-seed-records.md) | 执行 `use_skill("yida-data-management")`，按数据技能准备普通/流程示例，核验回执和真实页面 | 真实表单记录或明确跳过原因 |
 | 6 | [创建或复用主页面](workflow/step-6-main-page.md) | 已有 display 页面直接复用；PRD 明确需要且缺失时执行 `use_skill("yida-create-page")` | 真实主页面 `formUuid` |
 | 7 | [编写或更新页面](workflow/step-7-page-code.md) | 按本模式 assetStrategy 加载素材、页面、看板和数据绑定技能 | 素材状态明确；页面源码和 dataBinding 通过校验 |
 | 8 | [发布页面并排序导航](workflow/step-8-publish-navigation.md) | 执行 `use_skill("yida-publish-page")`，发布本轮源码到主页面并执行轻量导航排序 | 已发布主页面 URL |
@@ -123,7 +123,7 @@ Fast 直接按短执行流程内的依赖与调度规则执行；Plan 与其他�
 2. **显式目标优先**：本轮用户给出的 `appType`、`formUuid`、URL、页面名或流程标识，优先级高于绑定上下文和历史缓存；同级冲突或无法唯一识别时才问用户。
 3. **业务与视觉输入**：Fast 从已确认名称、范围与授权直接创建/复用应用，按真实依赖独立生成 app_theme.css、业务资源及页面；不编写或校验创建前完整 JSON/方案。Plan/已有文档流程保留 PRD、设计物化与确认。两种模式均保留必要业务、权限、数据和发布检查。
 4. **阶段技能按需加载**：进入应用壳、表单、流程、页面、发布、数据写入等阶段时，才执行对应 `use_skill(...)`。
-5. **真实 ID 和真实数据**：不编造 `appType`、`formUuid`、`fieldId`、`processCode`、`reportId`。无显式窄范围的完整应用默认给核心普通表单写入 1-3 条业务化 seed records 并 query 抽查；`explicitScope.allowInferredResources=false` 时不得增加未点名的 seed records 或页面。
+5. **真实 ID 和真实数据**：不编造 `appType`、`formUuid`、`fieldId`、`processCode`、`reportId`。无显式窄范围的完整应用默认给核心普通表单准备 1–3 条记录，流程示例按已确认范围编排并核验；`explicitScope.allowInferredResources=false` 时不得增加未点名的 seed records 或页面。
 6. **自定义页面开发技能固定**：完整应用页面源码按 Step 7 执行；管理端仅需原生视图时不创建 display 首页。前后台按 [访问态入口契约](references/entry-navigation.md) 分别规划菜单及分组顺序、默认页面、首屏任务和权限；平台导航与自定义导航都要落实排序并验收。
 7. **删除必须确认**：用户要求删除应用时，先展示应用名称、应用 ID 和影响范围，等待明确“确认删除”后才能执行。
 8. **页面实现选择**：前台默认一个 coding 页承载已选任务的多个视图；后台按操作效率选择原生或 coding。平台数据管理满足任务时可复用，需要不同交互时由 AI 为已选功能规划自定义视图。
@@ -141,11 +141,11 @@ Fast 直接按短执行流程内的依赖与调度规则执行；Plan 与其他�
 ## 页面数据契约
 
 - 默认页面源码不得使用 `this.dataSourceMap.*`，除非本轮已经创建并绑定对应设计器数据源。
-- 真实表单数据默认通过页面数据桥或 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)` 读取；流程发起、流程列表、表单保存/更新等能力也通过发布层注入的同一个 yida API 桥调用；不要用前端 seedRows 冒充真实表单数据。
+- 普通表单数据默认通过页面数据桥或 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)` 读取；流程发起、流程列表、表单保存/更新等能力也通过发布层注入的同一个 yida API 桥调用；不要用前端 seedRows 冒充真实表单数据。
 - 页面根级运行态工具通过 `window.__OPENYIDA_UTILS__` 读取，`toast/dialog/openPage/router.push/isMobile` 等工具不能在 `YidaComp` 内直接写 `this.utils.*`。
 - 自定义页内普通表单新建/提交/详情必须接入 CLI 提供的 `FormOpenContainer` 抽屉模板，前台全码开发也不豁免；调用 `openForm` 并挂载 `formOpenContainer`，详情页从真实行数据解析 `formInstId`。不另写普通填写表单、直接跳转或简化弹层。
-- 用户明确要求的自定义列表、看板和详情页优先读取真实表单数据；页面源码使用真实 `appType/formUuid/fieldId` 和字段映射；只有使用 page-spec 的已有文档流程才填写 `dataBinding.mode=form`。表单数据管理页不另生成页面源码。
-- 完整应用默认先写入 1-3 条业务化 seed records 并 query 抽查；没写入成功时，页面展示空态、表单入口、刷新或登记按钮，并在 final 说明原因。
+- 用户明确要求的自定义列表、看板和详情页优先读取真实表单数据；页面源码使用真实 `appType/formUuid/fieldId` 和字段映射；按实际目标选择普通表单 `dataBinding.mode=form` 或流程 `dataBinding.mode=process`；使用 page-spec 的已有文档流程同步该绑定。表单数据管理页不另生成页面源码。
+- 完整应用按数据技能准备示例并核验；流程示例使用临时本人审批、seed、编辑和最终发布顺序。无数据时显示“暂无数据”，业务动作沿用已确认范围。
 - 若页面确实依赖 `this.dataSourceMap.*`，必须执行 `use_skill("yida-data-source-connectors")` 创建/绑定数据源，并在发布后确认页面 Schema 中存在对应数据源；发布输出出现 `No custom page data sources to preserve` 时，本次发布不能视为完成。
 
 ## 完成条件
