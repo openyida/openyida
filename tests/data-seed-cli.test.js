@@ -90,9 +90,10 @@ function invokeCommand(baseUrl, workspace, args) {
     }));
 }
 
-function invoke(baseUrl, workspace, source, extra = []) {
-  return invokeCommand(baseUrl, workspace, ['data', 'seed', 'form', 'APP_TEST', 'FORM-TEST',
-    '--expect-form-name', 'Customers', '--records-file', source, '--json', ...extra]);
+function invoke(baseUrl, workspace, source, extra = [], resource = 'form') {
+  return invokeCommand(baseUrl, workspace, ['data', 'seed', resource, 'APP_TEST', 'FORM-TEST',
+    '--expect-form-name', 'Customers', '--records-file', source, '--json',
+    ...(resource === 'process' ? ['--process-code', 'PROC'] : []), ...extra]);
 }
 
 test.each(['valid', 'omitted-empty-child', 'invalid-child', 'duplicate', 'wrong-readback-target'])(
@@ -182,7 +183,8 @@ test.each(['valid', 'omitted-empty-child', 'invalid-child', 'duplicate', 'wrong-
     }
   }, 30000);
 
-test.each(['verified', 'preflight', 'check', 'readback', 'timeout', 'duplicate-id'])('real CLI seed route and recovery: %s', async scenario => {
+test.each(['form', 'process'].flatMap(resource => ['verified', 'preflight', 'check', 'readback', 'timeout', 'duplicate-id']
+  .map(scenario => [resource, scenario])))('real CLI seed route and recovery: %s %s', async (resource, scenario) => {
   const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-seed-cli-'));
   const source = path.join(workspace, 'records.json');
   fs.writeFileSync(source, JSON.stringify([
@@ -198,35 +200,40 @@ test.each(['verified', 'preflight', 'check', 'readback', 'timeout', 'duplicate-i
     const route = url.pathname;
     const result = { success: true, content: {} };
     if (route.endsWith('getFormNavigationListByOrder.json')) {
-      result.content = [{ formUuid: 'FORM-TEST', title: 'Customers', formType: 'receipt' }];
+      result.content = [{ formUuid: 'FORM-TEST', title: 'Customers', formType: resource === 'process' ? 'process' : 'receipt' }];
+    } else if (route.endsWith('getBindingByFormUuid.json')) {
+      result.content = { formUuid: 'FORM-TEST', procCode: resource === 'process' ? 'PROC' : '' };
     } else if (route.endsWith('getFormSchema.json')) {
       result.content = { pages: [{ componentsTree: [
         { componentName: 'TextField', props: { fieldId: 'textField_name', label: 'Customer' } },
         { componentName: 'DateField', props: { fieldId: 'dateField_due' } },
       ] }] };
-    } else if (route.endsWith('saveFormData.json')) {
+    } else if (route.endsWith(resource === 'process' ? 'startInstance.json' : 'saveFormData.json')) {
       writes++;
       const id = `ID-${scenario === 'duplicate-id' ? 1 : writes}`;
       persisted.set(id, JSON.parse(new URLSearchParams(body).get('formDataJson')));
       if (scenario === 'timeout') {req.socket.destroy(); return;}
       result.content = id;
-    } else if (route.endsWith('getFormDataById.json')) {
+    } else if (route.endsWith(resource === 'process' ? 'getInstanceById.json' : 'getFormDataById.json')) {
       readbacks++;
-      const id = url.searchParams.get('formInstId');
-      result.content = { formInstId: id, modelUuid: 'FORM-TEST', formData: mismatch ? {} : persisted.get(id) };
+      const id = url.searchParams.get(resource === 'process' ? 'processInstanceId' : 'formInstId');
+      result.content = resource === 'process'
+        ? { processInstanceId: id, formUuid: 'FORM-TEST', processCode: 'PROC', data: mismatch ? {} : persisted.get(id) }
+        : { formInstId: id, modelUuid: 'FORM-TEST', formData: mismatch ? {} : persisted.get(id) };
     }
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(result));
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
+  const seed = (extra = []) => invoke(baseUrl, workspace, source, extra, resource);
   try {
-    const result = await invoke(baseUrl, workspace, source, scenario === 'check' ? ['--check'] : []);
+    const result = await seed(scenario === 'check' ? ['--check'] : []);
     if (['verified', 'check'].includes(scenario)) {
       expect(result.code).toBe(0);
       expect(JSON.parse(result.stdout)).toMatchObject(scenario === 'check'
         ? { checked: true, mutationPerformed: false }
-        : { completed: 2, readbackVerified: true, formInstIds: ['ID-1', 'ID-2'] });
+        : { completed: 2, readbackVerified: true, [resource === 'process' ? 'processInstanceIds' : 'formInstIds']: ['ID-1', 'ID-2'] });
     } else {
       expect(result.code).toBe(1);
       const start = result.stderr.indexOf('{\n  "success"');
@@ -241,20 +248,20 @@ test.each(['verified', 'preflight', 'check', 'readback', 'timeout', 'duplicate-i
     }
     if (scenario === 'verified') {
       expect(persisted.get('ID-1').dateField_due).toBe(Date.parse('2026-11-03T00:00:00+08:00'));
-      expect((await invoke(baseUrl, workspace, source)).code).toBe(0);
+      expect((await seed()).code).toBe(0);
       expect(writes).toBe(2);
       expect(readbacks).toBe(2);
     } else if (scenario === 'readback') {
       expect(writes).toBe(1);
       mismatch = false;
-      expect((await invoke(baseUrl, workspace, source)).code).toBe(0);
+      expect((await seed()).code).toBe(0);
       expect(writes).toBe(2);
       expect(readbacks).toBe(3);
     } else if (scenario === 'timeout') {
-      expect((await invoke(baseUrl, workspace, source)).code).toBe(1);
+      expect((await seed()).code).toBe(1);
       expect(writes).toBe(1);
     } else if (scenario === 'duplicate-id') {
-      expect((await invoke(baseUrl, workspace, source)).code).toBe(1);
+      expect((await seed()).code).toBe(1);
       expect(writes).toBe(2);
       expect(readbacks).toBe(1);
     } else {

@@ -8,7 +8,7 @@ module.exports = {
   data_seed: {
     optional_notes: 'Les composants standards modifiables utilisent seed. Adresses : mode national ADDRESS par défaut uniquement. Champs optionnels non adaptés : skippedFields ; aucun enregistrement si tous sont omis.',
     failed: 'Opération de données exemple arrêtée : {0}. Consultez les détails et ne répétez pas les écritures tentées.',
-    notes: 'data seed form exige --expect-form-name et --records-file (1 à 30 objets). --check valide sans écrire. Dates en millisecondes ou ISO, décalage par défaut +08:00. Chaque écriture est relue ; le reçu près du fichier permet de réutiliser les résultats vérifiés. Une écriture incertaine arrête le traitement.',
+    notes: 'data seed form exige --expect-form-name et --records-file (1 à 30 objets). --check valide sans écrire. Dates en millisecondes ou ISO, décalage par défaut +08:00. Chaque écriture est relue ; le reçu près du fichier permet de réutiliser les résultats vérifiés. Une écriture incertaine arrête le traitement. Le seed de processus utilise data seed process avec --process-code, renvoie processInstanceIds et lance de vraies approbations.',
   },
   corp_efficiency: {
     learning_completed: 'Nombre de personnes ayant terminé les cours Yida',
@@ -2522,6 +2522,7 @@ module.exports.batch = {
 };
 
 module.exports.data_verify = {
+  'binding_invalid': 'Les liaisons de données ne correspondent pas aux champs ou options réels. Consultez details.',
   "invalid_usage": "--verify-write est un indicateur réservé à create/update des formulaires ordinaires.",
   "preflight_failed": "Échec du contrôle préalable des données ({0} problèmes).",
   "readback_failed": "Écriture acceptée, mais relecture non vérifiée. Contrôlez le dossier existant sans répéter l’écriture.",

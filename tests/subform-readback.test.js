@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const { readCanvasSubformRows } = require('../lib/app/subform-readback');
+const { readCanvasSubformRows, isOmittedEmptySubformPage } = require('../lib/app/subform-readback');
 const { buildWriteContract, compareWriteData } = require('../lib/app/form-data-contract');
 const context = vm.createContext({});
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/canvas-data-source.jsx'), 'utf8')
@@ -23,6 +23,18 @@ const fields = [{ componentName: 'TableField', props: { fieldId: 'lines' }, chil
 ] }];
 const contract = buildWriteContract({ content: { pages: [{ componentsTree: fields }] } });
 const expected = { lines: [{ name: '设备', relation: [ref] }, { name: '培训', relation: [] }] };
+
+test.each([
+  [{ success: true, content: { currentPage: 1, totalCount: 0, idCursor: 0 } }, true],
+  [{ success: true, content: { currentPage: 1, totalCount: 0, data: [] } }, false],
+  [{ success: false, content: { currentPage: 1, totalCount: 0 } }, false],
+  [{ success: true, content: { currentPage: 1, totalCount: '0' } }, false],
+  [{ success: true, content: { currentPage: 1, totalCount: 1 } }, false],
+  [{ success: true, content: { currentPage: 1, totalCount: 0, hidden: true } }, false],
+])('CLI and Canvas agree on the exact omitted-empty contract: %j', (response, expected) => {
+  expect(isOmittedEmptySubformPage(response)).toBe(expected);
+  expect(context.isOmittedEmptySubformPage(response)).toBe(expected);
+});
 
 describe.each([
   ['backend', readCanvasSubformRows], ['standalone Canvas sample', context.readCanvasSubformRows],

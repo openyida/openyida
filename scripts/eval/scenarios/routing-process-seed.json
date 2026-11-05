@@ -1,0 +1,6 @@
+[
+  {"id":"process-seed-records","prompt":"给已创建的采购流程表单写两条业务示例数据，日期是 ISO 字符串，需要核验并拿到流程实例 ID。","expectedSkill":"yida-data-management","note":"流程数据 seed 与核验"},
+  {"id":"process-create-direct","prompt":"在指定应用里新建采购审批流程表单，包含采购金额字段和金额分支，直接创建流程表单。","expectedSkill":"yida-create-process","note":"新建流程使用 create-process"},
+  {"id":"existing-form-to-process","prompt":"把这个已有普通表单 FORM-EXISTING 转成审批流程，继续使用原来的表单。","expectedSkill":"yida-create-process","note":"保留普通表单转流程能力"},
+  {"id":"temporary-to-final-process","prompt":"本人审批的临时流程已经写完示例数据，现在编辑这个已有流程为最终业务审批流并发布。","expectedSkill":"yida-process-rule","note":"已有临时流程继续编辑和发布"}
+]

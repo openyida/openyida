@@ -46,7 +46,19 @@ const i18n = require('../lib/core/i18n');
 const configureProcess = require('../lib/process/configure-process');
 const createForm = require('../lib/app/create-form');
 const createProcess = require('../lib/process/create-process');
+test('create-process accepts JSON output for both creation and ordinary-form conversion', () => {
+  expect(createProcess.parseArgs(['APP_X', '申请', 'fields.json', 'process.json', '--json']).formTitle).toBe('申请');
+  expect(createProcess.parseArgs(['APP_X', '--formUuid', 'FORM-X', 'process.json', '--json']).existingFormUuid).toBe('FORM-X');
+});
 const previewProcess = require('../lib/process/preview-process');
+
+test('process recovery preserves remote trace IDs through a wrapped CLI error', () => {
+  const { summarizeRemoteResult } = require('../lib/process/process-diagnostics');
+  const response = summarizeRemoteResult({ success: false, errorCode: 'REMOTE_FAILED', traceId: 'trace-publish-1' });
+  expect(response).toMatchObject({ traceId: 'trace-publish-1' });
+  const error = new CliError('publish failed', { code: 'PUBLISH_FAILED', details: { cause: response } });
+  expect(summarizeRemoteResult(error)).toMatchObject({ code: 'PUBLISH_FAILED', traceId: 'trace-publish-1' });
+});
 
 const mockAuthData = {
   auth_mode: 'token',

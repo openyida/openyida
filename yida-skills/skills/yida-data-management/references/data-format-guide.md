@@ -8,7 +8,7 @@
 - `dynamicOrder` 传字符串，不直接传对象
 - 保存、更新和测试数据中，`DateField` 传毫秒时间戳数字，`CascadeDateField` 传开始、结束毫秒时间戳数组，空端点传 `""`
 
-`data seed form` 的 records-file 支持 ISO 日期字符串，由 CLI 转换后再保存；直接 `data create/update` 和 API 写入仍使用上述毫秒格式。seed 的 ID 回执消费、关联顺序与恢复规则见[技能正文](../SKILL.md#直接消费回执与关联-id)。
+`data seed form/process` 的 records-file 支持 ISO 日期字符串，由 CLI 转换后再保存；直接 `data create/update` 和 API 写入仍使用上述毫秒格式。seed 的 ID 回执消费、关联顺序与恢复规则见[技能正文](../SKILL.md#直接消费回执与关联-id)。
 
 ## 字段级写入核验
 
@@ -78,7 +78,16 @@
 
 ## 图片与附件
 
-seed 使用调用方已有的真实文件引用，例如 `[{"name":"说明.webp","downloadUrl":"https://example.test/files/guide.webp"}]`；示意地址必须替换为真实可访问地址。对象支持 `fileId`、`id`、`downloadUrl` 或 `url` 作为资源身份，核验优先文件 ID。seed 不上传文件、不生成文件地址；需要真实上传与文件绑定时按[文件上传](../../yida-canvas-custom-page/references/file-upload.md)执行。身份回读一致不代表文件内容、权限或所有文件类型均已验收。
+准备 mock 记录时，附件和图片统一使用以下默认文件引用；业务已指定文件时使用指定引用。字段 ID 替换为真实 Schema 中的 ID。
+
+```json
+{
+  "attachmentField_xxx": [{"name":"附件示例.jpg","downloadUrl":"https://img.alicdn.com/imgextra/i3/O1CN01unOuIwZRQ4J3OTaP_!!6000000005693-0-tps-1672-941.jpg"}],
+  "imageField_xxx": [{"name":"图片示例.jpg","downloadUrl":"https://img.alicdn.com/imgextra/i3/O1CN01unOuIwZRQ4J3OTaP_!!6000000005693-0-tps-1672-941.jpg"}]
+}
+```
+
+文件类型、大小按实际资源响应填写；CDN 可能根据请求将 JPG 转为 WebP。对象支持 `fileId`、`id`、`downloadUrl` 或 `url` 作为资源身份，核验优先文件 ID。seed 使用传入的引用；需要真实上传与文件绑定时按[文件上传](../../yida-canvas-custom-page/references/file-upload.md)执行。身份回读一致不代表文件内容、权限或所有文件类型均已验收。
 
 ## 保存 / 更新格式
 
@@ -145,7 +154,7 @@ openyida data query form APP_xxx FORM-xxx --search-json '[{"key":"dateField_xxx"
 
 ## 日期字段（DateField / CascadeDateField）
 
-直接使用 `data create/update` 或 API 录入、更新数据时，日期字段必须写入毫秒级时间戳；`data seed form` 的字符串转换由 CLI 完成：
+直接使用 `data create/update` 或 API 录入、更新数据时，日期字段必须写入毫秒级时间戳；`data seed form/process` 的字符串转换由 CLI 完成：
 
 ```json
 {
@@ -190,7 +199,7 @@ new Date('2026-10-18T00:00:00+08:00').getTime() // 1792252800000
 | `appType` | 被关联表单所属应用的 appType |
 | `formUuid` | 被关联表单的 formUuid |
 | `formType` | 被关联表单类型，普通表单 `receipt`，流程表单 `process`；以目标真实类型为准 |
-| `instanceId` | 被关联数据的 formInstId（注意：字段名是 instanceId，不是 formInstId） |
+| `instanceId` | 普通记录使用已核验 formInstId；流程实例使用已核验 processInstanceId。字段名统一为 instanceId，类型与目标匹配 |
 | `title` | 被关联记录在关联组件中展示的标题，应取真实记录标题字段值 |
 | `subTitle` | 可选的展示副标题；无值时传空字符串或省略 |
 
@@ -241,7 +250,7 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 | 回读一致性 | 校验全部实例 ID，忽略多选顺序和标题改名；返回了 appType/formUuid/formType 时必须与写入及 Schema 一致，不能只凭相同 ID 认定成功 |
 | 页面展示 | 主表复用 `readCanvasAssociation`；子表先 `readCanvasSubformRows` 再逐行读取关联；显式空值为 empty，缺失/隐藏、损坏、重复关联为 error；缺标题先用页面已加载名称字典，无法解析则报错 |
 
-Schema 约束只能在 Schema 已读取时检查；未开启 `--verify-write` 或别名解析的旧单条写入仍进行数组格式检查，不额外请求 Schema。返回只含 ID 时不能证明服务端省略的目标元数据，也不能证明权限、过滤规则、自动回填或流程状态正确。流程关联只接受真实允许关联的已有实例，seed 不负责发起流程。未知格式应显式报错并检查实际回执，不把任意对象/文本转成展示名称，也不因失败重复写入。
+Schema 约束只能在 Schema 已读取时检查；未开启 `--verify-write` 或别名解析的旧单条写入仍进行数组格式检查，不额外请求 Schema。返回只含 ID 时不能证明服务端省略的目标元数据，也不能证明权限、过滤规则、自动回填或流程状态正确。流程关联使用真实允许关联的已有实例；生成流程示例按[流程 seed 编排](process-seed-workflow.md)发起并核验。未知格式应显式报错并检查实际回执，不把任意对象/文本转成展示名称，也不因失败重复写入。
 
 ## 实现建议
 

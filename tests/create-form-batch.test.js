@@ -75,6 +75,15 @@ describe('dependency-aware form batches', () => {
     expect(validateFormFieldDefinitions(preflight)).toEqual([]);
   });
 
+  test('compact association reference retains target type and presentation metadata', () => {
+    const input = { type: 'AssociationFormField', associationForm: { $form: 'flow', field: '申请名称',
+      formType: 'process', formTitle: '申请', tableShowType: 'custom', customTableFields: ['textField_name'] } };
+    const result = normalizeAssociationReferences(input, 'APP_X');
+    expect(result.associationForm).toMatchObject({ formType: 'process', formTitle: '申请', tableShowType: 'custom',
+      customTableFields: ['textField_name'], formUuid: { $form: 'flow' } });
+    expect(mapReferences(result, (_, field) => field ? 'textField_real' : 'FORM-REAL').associationForm.formType).toBe('process');
+  });
+
   test('compact association reference infers a dependency and resolves real IDs', () => {
     write([
       form('customer'),

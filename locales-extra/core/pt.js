@@ -8,7 +8,7 @@ module.exports = {
   data_seed: {
     optional_notes: 'Componentes padrão graváveis usam seed. Endereços: apenas ADDRESS nacional padrão. Campos opcionais não adaptados aparecem em skippedFields; se todos forem omitidos, nenhum registro será criado.',
     failed: 'Operação de dados de exemplo interrompida: {0}. Consulte os detalhes e não repita as gravações tentadas.',
-    notes: 'data seed form exige --expect-form-name e --records-file (1–30 objetos). --check apenas valida. Datas em milissegundos ou ISO, deslocamento padrão +08:00. Grava e relê cada registro; salva um recibo junto ao arquivo e reutiliza resultados verificados. Uma gravação incerta interrompe o processo.',
+    notes: 'data seed form exige --expect-form-name e --records-file (1–30 objetos). --check apenas valida. Datas em milissegundos ou ISO, deslocamento padrão +08:00. Grava e relê cada registro; salva um recibo junto ao arquivo e reutiliza resultados verificados. Uma gravação incerta interrompe o processo. O seed de processos usa data seed process com --process-code, retorna processInstanceIds e inicia aprovações reais.',
   },
   corp_efficiency: {
     learning_completed: 'Pessoas que concluíram os cursos do Yida',
@@ -2522,6 +2522,7 @@ module.exports.batch = {
 };
 
 module.exports.data_verify = {
+  'binding_invalid': 'As vinculações de dados não correspondem aos campos ou opções reais. Consulte details.',
   "invalid_usage": "--verify-write é uma opção exclusiva de create/update de formulários comuns.",
   "preflight_failed": "Falha na validação prévia dos dados ({0} problemas).",
   "readback_failed": "Gravação aceita, mas a leitura não foi verificada. Confira o registro existente; não repita a gravação.",

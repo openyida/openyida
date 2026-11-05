@@ -18,7 +18,7 @@ beforeEach(() => {
   browser = { location: { origin: 'https://tenant.example' }, __OPENYIDA_YIDA_API__: bridge };
   browser.parent = browser;
   states = []; refs = []; previousDeps = undefined; cleanup = undefined;
-  context = { window: browser, setTimeout, clearTimeout, Date, React: {
+  context = { window: browser, setTimeout, clearTimeout, Date, URLSearchParams, AbortController, React: {
     useState(initial) {
       const index = stateIndex++;
       if (!(index in states)) {states[index] = typeof initial === 'function' ? initial() : initial;}
@@ -41,6 +41,34 @@ function render(config = binding, request = {}) {
   stateIndex = 0; refIndex = 0;
   return context.useCanvasFormData(config, request);
 }
+
+test('opted-in missing subforms verify exact targets sequentially and preserve the source response', async () => {
+  const records = [{ formInstId: 'ID-A', formData: {} }, { formInstId: 'ID-B', formData: { lines: [] } },
+    { formInstId: 'ID-C', formData: {} }];
+  bridge.searchFormDatas.mockResolvedValue({ success: true, content: { data: records, totalCount: 3 } });
+  browser.g_config = { csrfToken: 'test-csrf' };
+  browser.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({
+    success: true, content: { currentPage: 1, totalCount: 0, idCursor: 0 },
+  }) });
+  const page = await context.queryCanvasFormPage({ ...binding, subformFieldIds: ['lines'] });
+  expect(page.rows.every(item => Array.isArray(item.formData.lines))).toBe(true);
+  expect(records[0].formData).toEqual({});
+  expect(browser.fetch).toHaveBeenCalledTimes(2);
+  const [url, options] = browser.fetch.mock.calls[0];
+  expect(new URL(url, 'https://tenant.example').pathname)
+    .toBe('/dingtalk/web/APP_TEST/v1/form/listTableDataByFormInstIdAndTableId.json');
+  expect(new URL(url, 'https://tenant.example').searchParams.get('formInstanceId')).toBe('ID-A');
+  expect(options).toMatchObject({ credentials: 'include', headers: { global_csrf_token: 'test-csrf' } });
+});
+
+test.each([[[]], [[{ name: 'still stored' }]]])('filtered or conflicting subform data %j stays unavailable', async data => {
+  bridge.searchFormDatas.mockResolvedValue({ success: true, content: { data: [{ formInstId: 'ID-A', formData: {} }], totalCount: 1 } });
+  browser.g_config = { csrfToken: 'test-csrf' };
+  browser.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true,
+    content: { currentPage: 1, totalCount: data.length, data } }) });
+  const page = await context.queryCanvasFormPage({ ...binding, subformFieldIds: ['lines'] });
+  expect(context.readCanvasSubformRows(page.rows[0], 'lines').status).toBe('error');
+});
 
 test.each([0, 1, 2])('decodes association arrays with %i JSON envelopes without changing the source', depth => {
   const records = [
@@ -205,6 +233,20 @@ test('same-origin parent traversal stops before reading a foreign bridge', async
   Object.defineProperty(browser.parent, '__OPENYIDA_YIDA_API__', { get: readBridge });
   await expect(context.queryCanvasFormPage(binding)).rejects.toMatchObject({ code: 'DATA_BRIDGE_UNAVAILABLE' });
   expect(readBridge).not.toHaveBeenCalled();
+});
+
+test('process binding reads the workflow bridge and normalizes business data without inventing metadata', async () => {
+  bridge.getProcessInstances = jest.fn().mockResolvedValue({ data: [
+    { processInstanceId: 'PROC-1', instanceStatus: 'RUNNING', data: { numberField_total: 0 } },
+    { data: { textField_name: '历史记录' }, actioners: [] },
+  ], totalCount: 2 });
+  const result = await context.queryCanvasFormPage({ ...binding, mode: 'process', instanceStatus: 'RUNNING' });
+  expect(bridge.searchFormDatas).not.toHaveBeenCalled();
+  expect(bridge.getProcessInstances).toHaveBeenCalledWith(expect.objectContaining({ instanceStatus: 'RUNNING', pageSize: 50 }));
+  expect(result.rows[0]).toMatchObject({ processInstanceId: 'PROC-1', instanceStatus: 'RUNNING', formData: { numberField_total: 0 } });
+  expect(result.rows[1].formData).toEqual({ textField_name: '历史记录' });
+  expect(result.rows[1].processInstanceId).toBeUndefined();
+  expect(result.rows[1].instanceStatus).toBeUndefined();
 });
 
 test('refresh keeps previous rows, equal configurations do not requery, and failures release loading', async () => {

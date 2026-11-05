@@ -1030,7 +1030,7 @@
       "name": "yida-create-process",
       "path": "skills/yida-create-process/SKILL.md",
       "display_name": "创建流程表单",
-      "description": "流程表单一体化创建，覆盖创建表单、转流程、获取 processCode 和配置流程。",
+      "description": "一次创建带审批的流程表单、配置并发布，返回真实字段和流程 ID；保留指定普通表单转流程。",
       "category": "yida-skills/process",
       "tags": [
         "流程表单",
@@ -1121,7 +1121,7 @@
       "name": "yida-data-management",
       "path": "skills/yida-data-management/SKILL.md",
       "display_name": "宜搭数据管理",
-      "description": "查询、新增、更新宜搭表单、子表、流程和任务数据，按当前审批人查询流程实例或统计条数，精确删除普通表单单条记录，查询流程当前任务并执行管理员转交。查询包含日期为空、区间端点、业务计数、子表条件和服务端分页。",
+      "description": "查询和维护表单、流程、子表和任务数据；data seed form/process 写入示例、转换日期、核验并返回 ID；支持审批人统计、任务转交和普通记录删除。",
       "category": "yida-skills/form",
       "tags": [
         "数据查询",
@@ -1141,6 +1141,8 @@
         "新增记录",
         "更新记录",
         "批量导入",
+        "seed 示例数据",
+        "mock 数据",
         "表单实例",
         "子表数据",
         "任务中心",

@@ -124,6 +124,121 @@ test.each([
 });
 
 test('unknown seed resource stays unsupported', async () => {
-  await expect(run(['seed', 'process', 'APP_TEST', 'FORM-TEST'])).rejects.toMatchObject({ code: 'DATA_COMMAND_UNSUPPORTED' });
+  await expect(run(['seed', 'unknown', 'APP_TEST', 'FORM-TEST'])).rejects.toMatchObject({ code: 'DATA_COMMAND_UNSUPPORTED' });
   expect(utils.loadAuthData).not.toHaveBeenCalled();
+});
+
+function processSeed(extra = []) {
+  return run(['seed', 'process', 'APP_TEST', 'FORM-TEST', '--process-code', 'PROC',
+    '--expect-form-name', '客户', '--records-file', source, '--json', ...extra]);
+}
+
+function mockProcess() {
+  navigation.fetchFormPageList.mockResolvedValue([{ formUuid: 'FORM-TEST', formName: '客户', formType: 'process' }]);
+  modes.readFormMode.mockResolvedValue({ mode: 'process', processCode: 'PROC' });
+  utils.httpGet.mockImplementation(async (_base, url, params) => url.includes('getFormSchema') ? schema : {
+    success: true, content: { processInstanceId: params.processInstanceId, formUuid: 'FORM-TEST',
+      processCode: 'PROC', data: saved.get(params.processInstanceId) },
+  });
+}
+
+test('process seed converts dates, verifies process IDs and resumes without new applications', async () => {
+  mockProcess();
+  await processSeed();
+  expect(JSON.parse(log.mock.calls[0][0])).toMatchObject({ completed: 2, readbackVerified: true,
+    target: { formType: 'process', processCode: 'PROC' }, processInstanceIds: ['ID-1', 'ID-2'],
+    items: [expect.objectContaining({ processInstanceId: 'ID-1' }), expect.objectContaining({ processInstanceId: 'ID-2' })] });
+  expect(JSON.parse(log.mock.calls[0][0]).formInstIds).toBeUndefined();
+  expect(saved.get('ID-1').dateField_due).toBe(Date.parse('2026-11-03T00:00:00+08:00'));
+  expect(utils.httpPost.mock.calls.every(call => call[1].endsWith('/process/startInstance.json'))).toBe(true);
+  expect(utils.httpGet.mock.calls.filter(call => call[1].includes('getInstanceById'))).toHaveLength(2);
+  await processSeed();
+  expect(utils.httpPost).toHaveBeenCalledTimes(2);
+});
+
+test('process code and resource type must match before starting an application', async () => {
+  mockProcess();
+  modes.readFormMode.mockResolvedValue({ mode: 'process', processCode: 'OTHER' });
+  await expect(processSeed()).rejects.toMatchObject({ code: 'DATA_TARGET_IDENTITY_MISMATCH' });
+  expect(utils.httpPost).not.toHaveBeenCalled();
+});
+
+test('process readback checks both workflow binding and submitted business fields', async () => {
+  mockProcess();
+  const original = utils.httpGet.getMockImplementation();
+  utils.httpGet.mockImplementation(async (...args) => args[1].includes('getFormSchema') ? schema : {
+    success: true, content: { processInstanceId: args[2].processInstanceId, formUuid: 'FORM-TEST',
+      processCode: 'OTHER', data: saved.get(args[2].processInstanceId) },
+  });
+  await expect(processSeed()).rejects.toMatchObject({ code: 'DATA_SEED_INCOMPLETE', details: {
+    causeCode: 'DATA_WRITE_READBACK_UNVERIFIED', items: [expect.objectContaining({ processInstanceId: 'ID-1' }), expect.anything()],
+  } });
+  utils.httpGet.mockImplementation(original);
+  await processSeed();
+  expect(utils.httpPost).toHaveBeenCalledTimes(2);
+});
+
+test('process --check validates without starting applications or creating a receipt', async () => {
+  mockProcess();
+  await processSeed(['--check']);
+  expect(utils.httpPost).not.toHaveBeenCalled();
+  expect(fs.existsSync(`${source}.seed-receipt.json`)).toBe(false);
+});
+
+test('process seed requires a process code before auth', async () => {
+  await expect(run(['seed', 'process', 'APP_TEST', 'FORM-TEST', '--expect-form-name', '客户',
+    '--records-file', source])).rejects.toMatchObject({ code: 'DATA_SEED_INVALID_ARGUMENTS' });
+  expect(utils.loadAuthData).not.toHaveBeenCalled();
+});
+
+function emptyProcessTable(response) {
+  mockProcess();
+  schema.content.pages[0].componentsTree.push({ componentName: 'TableField', props: { fieldId: 'tableField_lines' }, children: [
+    { componentName: 'TextField', props: { fieldId: 'textField_item' } },
+  ] });
+  fs.writeFileSync(source, JSON.stringify([{ textField_name: '空计划', tableField_lines: [] }, { textField_name: '下一条' }]));
+  const original = utils.httpGet.getMockImplementation();
+  utils.httpGet.mockImplementation(async (...args) => {
+    if (args[1].includes('listTableData')) {return response;}
+    const result = await original(...args);
+    if (args[1].includes('getInstanceById')) {
+      result.content.data = { ...result.content.data };
+      delete result.content.data.tableField_lines;
+    }
+    return result;
+  });
+}
+
+test('missing empty process subform uses one exact read and resumes the accepted ID without replay', async () => {
+  const response = { success: true, content: { currentPage: 1, totalCount: 0, idCursor: 0, data: [] } };
+  emptyProcessTable(response);
+  await expect(processSeed()).rejects.toMatchObject({ code: 'DATA_SEED_INCOMPLETE' });
+  expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  // Platform's visible no-rows shape differs from its hidden-field scrub shape.
+  delete response.content.data;
+  await processSeed();
+  expect(utils.httpPost).toHaveBeenCalledTimes(2);
+  expect(JSON.parse(log.mock.calls[0][0])).toMatchObject({ completed: 2, readbackVerified: true,
+    processInstanceIds: ['ID-1', 'ID-2'] });
+  const reads = utils.httpGet.mock.calls.filter(call => call[1].includes('listTableData'));
+  expect(reads).toHaveLength(2);
+  expect(reads[1][2]).toMatchObject({ formUuid: 'FORM-TEST', formInstanceId: 'ID-1', tableFieldId: 'tableField_lines',
+    currentPage: '1', pageSize: '1' });
+});
+
+test.each([
+  { success: false, content: { currentPage: 1, totalCount: 0 } },
+  { success: true, content: { currentPage: 1 } },
+  { success: true, content: { currentPage: 1, totalCount: '0' } },
+  { success: true, content: { currentPage: 2, totalCount: 0 } },
+  { success: true, content: { currentPage: 1, totalCount: 1, data: [{ textField_item: '实际有值' }] } },
+  { success: true, content: { currentPage: 1, totalCount: 0, data: [] } },
+  { success: true, content: { currentPage: 1, totalCount: 0, hidden: true } },
+])('retains pending and stops further writes for ambiguous empty evidence: %j', async response => {
+  emptyProcessTable(response);
+  await expect(processSeed()).rejects.toMatchObject({ code: 'DATA_SEED_INCOMPLETE', details: {
+    causeCode: 'DATA_WRITE_READBACK_MISMATCH', items: [expect.objectContaining({ processInstanceId: 'ID-1' }), expect.anything()],
+  } });
+  await expect(processSeed()).rejects.toMatchObject({ code: 'DATA_SEED_INCOMPLETE' });
+  expect(utils.httpPost).toHaveBeenCalledTimes(1);
 });

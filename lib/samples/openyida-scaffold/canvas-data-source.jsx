@@ -93,6 +93,15 @@ function readCanvasAssociation(row, fieldId, titleById) {
 
 // Schema-confirmed TableField only. Preserve same-response raw cells so an
 // omitted empty association can be distinguished from a missing/hidden field.
+// Same contract as lib/app/subform-readback.js. Hidden filtering emits data:[].
+function isOmittedEmptySubformPage(response) {
+  const page = response && response.content;
+  return response?.success === true && page !== null && typeof page === 'object' && !Array.isArray(page)
+    && page.currentPage === 1 && page.totalCount === 0
+    && Object.keys(page).every(key => ['idCursor', 'currentPage', 'totalCount'].includes(key))
+    && !['data', 'dataList', 'rows'].some(key => Object.prototype.hasOwnProperty.call(page, key));
+}
+
 function readCanvasSubformRows(row, fieldId) {
   const own = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
   const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -146,6 +155,35 @@ function readCanvasSubformRows(row, fieldId) {
   return { status: 'ready', rows, error: null };
 }
 
+async function readCanvasMissingSubform(binding, row, fieldId, timeoutMs) {
+  const instanceId = binding.mode === 'process' ? row.processInstanceId : row.formInstId;
+  if (typeof instanceId !== 'string' || !instanceId.trim()
+    || row.formUuid !== undefined && row.formUuid !== binding.formUuid) return false;
+  const sources = [window.g_config, window.pageConfig, window.__YIDA__, window.__YIDA__?.config];
+  let csrf = '';
+  for (const source of sources) {
+    for (const key of ['_csrf_token', 'csrfToken', 'csrf_token', 'global_csrf_token']) {
+      if (typeof source?.[key] === 'string' && source[key]) {csrf = source[key]; break;}
+    }
+    if (csrf) break;
+  }
+  if (!csrf && typeof document !== 'undefined') {
+    const match = (document.cookie || '').match(/(?:^|;\s*)(?:tianshu_csrf_token|aliwork_csrf_token|XSRF-TOKEN|_csrf_token|csrfToken)=([^;]+)/);
+    if (match) {try {csrf = decodeURIComponent(match[1]);} catch {return false;}}
+  }
+  if (!csrf || typeof window.fetch !== 'function' || typeof AbortController !== 'function') return false;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const params = new URLSearchParams({ formUuid: binding.formUuid, formInstanceId: instanceId,
+      tableFieldId: fieldId, currentPage: '1', pageSize: '1', _csrf_token: csrf });
+    const response = await window.fetch(`/dingtalk/web/${binding.appType}/v1/form/listTableDataByFormInstIdAndTableId.json?${params}`, {
+      credentials: 'include', headers: { global_csrf_token: csrf }, signal: controller.signal,
+    });
+    return response.ok && isOmittedEmptySubformPage(await response.json());
+  } catch {return false;} finally {clearTimeout(timer);}
+}
+
 function normalizeCanvasFormPage(payload, currentPage = 1, pageSize = 50) {
   const queue = [payload], seen = new Set(), arrays = new Set(), counts = new Set();
   while (queue.length) {
@@ -190,25 +228,56 @@ async function queryCanvasFormPage(binding, request = {}) {
   const currentPage = request.currentPage === undefined ? 1 : request.currentPage;
   const pageSize = request.pageSize === undefined ? binding.pageSize === undefined ? 50 : binding.pageSize : request.pageSize;
   const query = request.query === undefined ? binding.query === undefined ? [] : binding.query : request.query;
-  if (binding.mode !== undefined && binding.mode !== 'form'
+  const subformDeadline = Date.now() + (request.timeoutMs || 15000);
+  if (binding.mode !== undefined && !['form', 'process'].includes(binding.mode)
     || !/^APP_[A-Za-z0-9_-]+$/.test(binding.appType || '')
     || typeof binding.formUuid !== 'string' || !binding.formUuid.trim()
     || !Number.isSafeInteger(currentPage) || currentPage < 1
     || !Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > 100
     || !query || typeof query !== 'object'
-    || binding.dynamicOrder !== undefined && typeof binding.dynamicOrder !== 'string') {
+    || binding.dynamicOrder !== undefined && typeof binding.dynamicOrder !== 'string'
+    || binding.subformFieldIds !== undefined && (!Array.isArray(binding.subformFieldIds)
+      || !binding.subformFieldIds.every(id => typeof id === 'string' && id.trim())
+      || new Set(binding.subformFieldIds).size !== binding.subformFieldIds.length)) {
     throw canvasDataError('DATA_BINDING_INVALID');
   }
-  const bridge = getCanvasBridge('__OPENYIDA_YIDA_API__', 'searchFormDatas');
+  const method = binding.mode === 'process' ? 'getProcessInstances' : 'searchFormDatas';
+  const bridge = getCanvasBridge('__OPENYIDA_YIDA_API__', method);
   if (!bridge) throw canvasDataError('DATA_BRIDGE_UNAVAILABLE');
   let payload;
   try {
-    payload = await bridge.searchFormDatas({
+    payload = await bridge[method]({
       appType: binding.appType, formUuid: binding.formUuid, currentPage, pageSize,
       searchFieldJson: JSON.stringify(query), dynamicOrder: binding.dynamicOrder || '',
+      ...(binding.mode === 'process' && binding.instanceStatus ? { instanceStatus: binding.instanceStatus } : {}),
     });
   } catch { throw canvasDataError('DATA_QUERY_FAILED'); }
-  return normalizeCanvasFormPage(payload, currentPage, pageSize);
+  const page = normalizeCanvasFormPage(payload, currentPage, pageSize);
+  if (binding.mode === 'process') {
+    page.rows = page.rows.map(row => {
+      let formData = row.formData === undefined ? row.data : row.formData;
+      if (typeof formData === 'string') {
+        try {formData = JSON.parse(formData);} catch {throw canvasDataError('DATA_ROWS_INVALID');}
+      }
+      // Retain original IDs/status; historical ordinary rows do not gain workflow metadata.
+      return { ...row, formData };
+    });
+  }
+  // Opt in with Schema-confirmed table IDs. Only missing tables cause reads,
+  // sequentially, so a page never fans out unbounded requests or retries.
+  if (binding.subformFieldIds?.length) {page.rows = [...page.rows];}
+  for (let index = 0; index < page.rows.length; index++) {
+    let row = page.rows[index];
+    for (const fieldId of binding.subformFieldIds || []) {
+      const remainingMs = subformDeadline - Date.now();
+      if (remainingMs > 0 && readCanvasSubformRows(row, fieldId).error?.code === 'DATA_SUBFORM_UNAVAILABLE'
+        && await readCanvasMissingSubform(binding, row, fieldId, remainingMs)) {
+        row = { ...row, formData: { ...row.formData, [fieldId]: [] } };
+      }
+    }
+    page.rows[index] = row;
+  }
+  return page;
 }
 
 function useCanvasFormData(binding, request = {}) {

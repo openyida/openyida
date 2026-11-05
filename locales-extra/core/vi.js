@@ -8,7 +8,7 @@ module.exports = {
   data_seed: {
     optional_notes: 'Các thành phần chuẩn có thể ghi dùng seed. Địa chỉ: chỉ chế độ ADDRESS nội địa mặc định. Trường tùy chọn chưa hỗ trợ nằm trong skippedFields; bỏ tất cả thì không tạo bản ghi.',
     failed: 'Đã dừng thao tác dữ liệu mẫu: {0}. Xem chi tiết và không lặp lại thao tác ghi đã thử.',
-    notes: 'data seed form yêu cầu --expect-form-name và --records-file (1–30 đối tượng). --check chỉ kiểm tra. Ngày dùng mili giây hoặc ISO, độ lệch mặc định +08:00. Ghi và đọc lại từng bản ghi; lưu biên nhận cạnh tệp đầu vào và tái sử dụng kết quả đã xác minh. Dừng khi kết quả ghi chưa rõ.',
+    notes: 'data seed form yêu cầu --expect-form-name và --records-file (1–30 đối tượng). --check chỉ kiểm tra. Ngày dùng mili giây hoặc ISO, độ lệch mặc định +08:00. Ghi và đọc lại từng bản ghi; lưu biên nhận cạnh tệp đầu vào và tái sử dụng kết quả đã xác minh. Dừng khi kết quả ghi chưa rõ. Seed quy trình dùng data seed process với --process-code, trả về processInstanceIds và khởi tạo phê duyệt thực tế.',
   },
   corp_efficiency: {
     learning_completed: 'Số người hoàn thành khóa học Yida',
@@ -2520,6 +2520,7 @@ module.exports.batch = {
 };
 
 module.exports.data_verify = {
+  'binding_invalid': 'Liên kết dữ liệu không khớp trường hoặc tùy chọn thực tế. Xem details.',
   "invalid_usage": "--verify-write chỉ là cờ dành cho create/update biểu mẫu thông thường.",
   "preflight_failed": "Kiểm tra dữ liệu trước khi ghi thất bại ({0} vấn đề).",
   "readback_failed": "Đã chấp nhận ghi nhưng chưa xác minh được dữ liệu đọc lại. Kiểm tra bản ghi hiện có; không ghi lại.",
