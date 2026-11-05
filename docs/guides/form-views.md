@@ -2,6 +2,8 @@
 
 `form-view` reads and updates the native data-management views of an existing form. It preserves the form schema, records and permissions.
 
+Creating a form with `create-form create` (including new forms in `batch`) automatically saves the first native table view's server-side default columns with the visible instance title last. Other column visibility and relative order, filters, sorting, widths and frozen columns are preserved. The creation receipt includes `defaultView.viewUuid`, `showFields` and `readbackVerified`. A failed view save or verification fails creation with the existing form ID; recover with `create-form resume` rather than creating another form. Explicitly reused forms are unchanged. Apply any user-specified column order with `form-view save` after creation. Browser-specific preferences can override server defaults and require separate UI verification.
+
 ```bash
 openyida form-view list APP_XXX FORM_XXX --with-config --json
 openyida form-view inspect APP_XXX FORM_XXX VIEW_XXX --json

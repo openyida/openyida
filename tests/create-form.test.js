@@ -6,6 +6,12 @@ const path = require('path');
 const querystring = require('querystring');
 const { spawnSync } = require('child_process');
 
+// Schema/field tests isolate the view boundary; transport and view failures are
+// exercised without this mock in create-form-default-view and scoped-cli tests.
+jest.mock('../lib/app/create-form/default-view', () => ({
+  configureCreatedFormView: jest.fn(async () => ({ viewUuid: 'VIEW_TEST', readbackVerified: true, changed: false })),
+}));
+
 const CREATE_FORM_PATH = path.join(__dirname, '..', 'lib', 'app', 'create-form.js');
 const BIN_PATH = path.join(__dirname, '..', 'bin', 'yida.js');
 const FORM_COMPILER_PATH = path.join(__dirname, '..', 'lib', 'app', 'services', 'form-compiler.js');
@@ -2206,6 +2212,7 @@ describe('create-form create recovery guardrails', () => {
         'add_missing_fields',
         'save_schema',
         'verify_final_schema',
+        'configure_default_view',
       ],
       url: 'https://example.test/APP_TEST/workbench/FORM_HALF_CREATED',
       formUrl: 'https://example.test/APP_TEST/workbench/FORM_HALF_CREATED',
@@ -2674,6 +2681,7 @@ describe('create-form create recovery guardrails', () => {
         'rebuild_blank_schema',
         'save_schema',
         'verify_final_schema',
+        'configure_default_view',
       ],
     });
     expect(mockHttpGet).toHaveBeenCalledTimes(2);

@@ -32,6 +32,7 @@ description: 表单页面创建与更新；可创建 19 种业务字段、Divide
 
 - 拿到或确认真实 `formUuid` 后，用于后续字段更新、数据绑定和页面入口配置。
 - create 成功后，将 formUuid 记录到 `.cache/<项目名>-schema.json`
+- `create`、`batch` 新建步骤和 `resume` 自动保存服务端默认数据视图，将已显示的实例标题置于最后一个数据列；核对回执 `defaultView.readbackVerified=true`。视图保存失败也算未完成，保留已创建的 formUuid 并 resume 恢复。用户指定列配置时，创建后再用 `yida-form-view` 保存并回读。
 - 完整应用生成场景中，create 成功并记录 formUuid 后，把核心普通表单交给 `yida-data-management` 默认写入 1-3 条业务化示例记录。
 - update / add-option / bind-datasource / validation / rule 等字段级操作不要求先执行外部 `get-schema`；直接提交 compact JSON 或字段 label/fieldId，CLI 会读取当前表单、定位字段，并在成功 JSON 中输出 compact `resolved`/`updatedProps` evidence。字段解析失败或歧义时，按 `diagnostics[].candidates` 补 `tableLabel`、修正 label，或再执行一次 compact `get-schema`。
 - 字段定义或变更定义需要落盘时，必须使用 agent 的结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`，例如 `<projectRoot>/.cache/openyida/pm/pm-fields-team.json`

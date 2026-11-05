@@ -43,12 +43,11 @@ description: 宜搭原生数据管理视图配置。读取视图，配置列、�
 
 ## 新建表单的默认列顺序
 
-完整搭建应用时，对本轮新建表单的默认表格视图应用以下规则。用户明确指定显示列或列顺序时，按用户配置执行；已有表单的视图按本轮明确要求调整。
+`create-form create`、`batch` 的新建步骤及 `resume` 会自动保存第一个原生表格视图的服务端默认显示列，将已显示的实例标题（`processInstanceTitle` 或 `formInstanceTitle`）排到最后一个数据列。其他列的显隐、相对顺序及筛选、排序、宽度、冻结等配置保留。默认列为 `"all"` 或未设置时，沿用平台可展示字段及 `showOrder`，保留可展示子表字段，排除平台不支持的组件。
 
-1. 用 `list` 读取按平台顺序返回的视图，取第一个 `viewType=table` 的视图，再用 `inspect` 读取配置和字段。
-2. 已有非空 `defaultConfig.showFields` 数组时保留已保存的列配置。值为 `"all"`、空数组或未设置时，从 `fields` 取 `supportVisible=true` 且 `showTerm="y"` 的可展示字段，按 `showOrder` 升序排列，同序保持接口顺序。保留可展示的子表字段，排除子表容器 `TableField` 和表格不支持的 `EditorField`、`TimeSelectField`、`RichText`、`Link`。
-3. 按实际返回的系统字段 ID 将实例标题移到最后（`processInstanceTitle` 或 `formInstanceTitle`）。标题不在可展示列中、只有这一列或已在末尾时，跳过保存。其他列（含实例 ID）的显隐和相对顺序沿用平台默认。
-4. 只写 `defaultConfig.showFields`，带上本次 `inspect` 的 `configHash` 执行 `save`。以 `readbackVerified=true` 和回读的最后一个字段 ID 为准。配置失败时记录视图和错误，继续不依赖此列顺序的搭建工作。
+创建回执中的 `defaultView` 返回真实 `viewUuid`、`showFields`、`changed` 和 `readbackVerified`。只有服务端保存并回读通过才返回创建成功；这项默认行为不依赖 Agent 额外执行命令，也不写浏览器本地偏好。视图配置失败时保留已创建的 `formUuid`，用原 ID 执行 `create-form resume` 恢复，不重复新建表单。
+
+用户明确指定显示列或列顺序时，在创建成功后用 `form-view save` 保存用户配置并回读。已有表单及批量计划中明确复用的 `formUuid` 不自动调整，按本轮要求操作。浏览器已有的个人偏好可能覆盖服务端默认值，页面验收需区分两者。
 
 ## 多视图
 
