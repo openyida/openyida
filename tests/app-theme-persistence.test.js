@@ -424,12 +424,14 @@ test('unknown theme capability requires human confirmation', async () => {
   expect(uploadCustomThemeFile).not.toHaveBeenCalled();
 });
 
-test.each([{ appType: 'APP_OTHER' }, { corpId: 'dingOTHER' }])('mismatched API identity %j blocks CSS', async flags => {
-  httpGet.mockResolvedValue(appInfo(flags));
+test.each([undefined, 'dingOTHER'])('CSS uploads and binds with response corpId %s', async corpId => {
+  httpGet.mockResolvedValueOnce(appInfo({ corpId }))
+    .mockResolvedValueOnce(appInfo({ corpId }))
+    .mockResolvedValue(response(saved));
   await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css' }, auth))
-    .rejects.toMatchObject({ code: 'APP_THEME_CONTEXT_UNVERIFIED' });
-  expect(uploadCustomThemeFile).not.toHaveBeenCalled();
-  expect(httpPost).not.toHaveBeenCalled();
+    .resolves.toMatchObject({ success: true, themeVerification: { verified: true } });
+  expect(uploadCustomThemeFile).toHaveBeenCalledTimes(1);
+  expect(httpPost).toHaveBeenCalledTimes(1);
 });
 
 test('direct stylesheet binding also requires runtime confirmation', async () => {
@@ -439,8 +441,8 @@ test('direct stylesheet binding also requires runtime confirmation', async () =>
   expect(httpPost).not.toHaveBeenCalled();
 });
 
-test('changed server organization after upload blocks binding without repeating upload', async () => {
-  httpGet.mockResolvedValueOnce(appInfo()).mockResolvedValueOnce(appInfo({ corpId: 'other-corp' }));
+test('mismatched appType after upload blocks binding without repeating upload', async () => {
+  httpGet.mockResolvedValueOnce(appInfo()).mockResolvedValueOnce(appInfo({ appType: 'APP_OTHER' }));
   await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css', confirmLegacyAppStyle: true }, auth))
     .rejects.toMatchObject({ code: 'APP_THEME_CONTEXT_UNVERIFIED' });
   expect(uploadCustomThemeFile).toHaveBeenCalledTimes(1);
@@ -549,7 +551,7 @@ test('disable detects unexpected navigation or logo changes after save', async (
 test.each([
   null, { __needLogin: true, __httpStatus: 302 },
   { success: false, content: { appType: 'APP_1', corpId: auth.corpId } },
-  { success: true, content: [] }, { success: true, content: { appType: 'APP_1' } },
+  { success: true, content: [] }, { success: true, content: { appThemeMode: 'modern' } },
 ])('invalid API response %j never uploads even with approval', async reply => {
   httpGet.mockResolvedValue(reply);
   await expect(applyCustomThemeUpdate('APP_1', { themeFile: './desert.css', confirmLegacyAppStyle: true }, auth))

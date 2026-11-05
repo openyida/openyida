@@ -109,7 +109,7 @@ test('native report configuration is app-bound with no dry-run mutation receipt'
 });
 
 test('native form views stay in the bound app and classify only actual mutation actions', () => {
-  for (const action of ['list', 'inspect', 'save', 'create', 'order']) {
+  for (const action of ['list', 'inspect', 'save', 'create', 'order', 'rename', 'add-button']) {
     expect(run('form-view', [action, 'APP_BOUND', 'FORM-x', 'VIEW-x'])).toMatchObject({ appType: 'APP_BOUND' });
     expect(() => run('form-view', [action, 'APP_OTHER', 'FORM-x'])).toThrow(expect.objectContaining({ code: 'MANAGED_APP_MISMATCH' }));
     expect(classifyManagedMutation('form-view', [action, 'APP_BOUND', 'FORM-x'])).toEqual(

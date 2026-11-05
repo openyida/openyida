@@ -135,9 +135,10 @@ function loadCategories(indexFile) {
  * `category` field, so we map by keyword overlap.
  *
  * @param {string} genDir
+ * @param {string} [indexFile]
  * @returns {Set<string>}
  */
-function loadGenerationCategories(genDir) {
+function loadGenerationCategories(genDir, indexFile) {
   const dir = genDir || DEFAULTS.generationDir;
   const covered = new Set();
   const files = listFiles(dir, '.json');
@@ -160,7 +161,7 @@ function loadGenerationCategories(genDir) {
   }
 
   // Map category keywords to full category strings
-  const allCategories = loadCategories(DEFAULTS.indexFile);
+  const allCategories = loadCategories(indexFile || DEFAULTS.indexFile);
   const categoryArray = Array.from(allCategories);
 
   // Build keyword map: extract the part after '/' and also the full category
@@ -227,7 +228,7 @@ function computeSkillCoverage(options) {
 function computeCategoryCoverage(options) {
   const opts = options || {};
   const allCategories = loadCategories(opts.indexFile);
-  const coveredCategories = loadGenerationCategories(opts.generationDir);
+  const coveredCategories = loadGenerationCategories(opts.generationDir, opts.indexFile);
 
   const allArray = Array.from(allCategories);
   const uncovered = [];
@@ -285,7 +286,7 @@ function computeCommandCoverage(_options) {
 
 /**
  * Compute reference coverage: how many shared reference .md files under
- * `yida-skills/references/` are actually referenced from any SKILL.md.
+ * `yida-skills/references/` are referenced by the root or a subskill's SKILL.md.
  *
  * @param {object} [options]
  * @returns {{used: number, total: number, rate: number, unusedFiles: string[]}}
@@ -302,12 +303,11 @@ function computeReferenceCoverage(options) {
     return { used: 0, total: 0, rate: 0, unusedFiles: [] };
   }
 
-  // Collect all SKILL.md content across all skills
-  const skillDirs = listDirs(skillsDir);
+  const skillFiles = [path.join(path.dirname(skillsDir), 'SKILL.md'),
+    ...listDirs(skillsDir).map(name => path.join(skillsDir, name, 'SKILL.md'))];
   let allSkillContent = '';
 
-  for (let i = 0; i < skillDirs.length; i++) {
-    const skillMdPath = path.join(skillsDir, skillDirs[i], 'SKILL.md');
+  for (const skillMdPath of skillFiles) {
     try {
       allSkillContent += fs.readFileSync(skillMdPath, 'utf8') + '\n';
     } catch {
