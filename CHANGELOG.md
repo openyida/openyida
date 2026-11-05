@@ -12,7 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [2026.11.5-1] - 2026-11-05
 
-- **闪记转 PRD**：`openyida flash-to-prd` 会分段处理较长的会议转写和摘要，再归并需求要点，降低单次请求超时的风险。生成中断时保留已有 PRD。
+- **闪记转 PRD**：在具备模型能力的 Agent 中，由当前 Agent 直接处理会议内容并生成 PRD，支持长材料分段整理。已有内容可直接生成文档；只提供听记任务 ID 时先读取听记。
+- **独立脚本生成**：保留 `openyida flash-to-prd` 调用宜搭 AI 的可选入口，改进长转写与长摘要的分段归并，并延长生成等待时间。生成失败时保留已有 PRD。
 
 ## [2026.11.5] - 2026-11-05
 

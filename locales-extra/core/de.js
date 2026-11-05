@@ -250,7 +250,7 @@ module.exports = {
     cmd_export_conversation: 'KI-Gesprächsaufzeichnungen exportieren',
     cmd_feedback: 'Lokale Problemberichte, Feedbackformulare und Erinnerungen verwalten',
     cmd_batch: 'OpenYida-Befehle im Batch ausführen',
-    cmd_flash_to_prd: 'Flash Notes oder Meeting Notes in PRD-Prompt umwandeln',
+    cmd_flash_to_prd: 'PRD aus Besprechungsnotizen mit YiDA AI erstellen (eigenständige Skripte)',
     cmd_ai: 'Call Yida AI text and image recognition APIs',
     cmd_asset: 'Materialfähigkeit prüfen / Bild-URLs verifizieren / Assets auflösen',
     cmd_cdn: 'CDN-Bildverwaltung (Konfiguration/Upload/Aktualisierung)',
@@ -1778,6 +1778,7 @@ module.exports = {
   flashNote: {
     toPrd: {
       title: '📋 DingTalk Flash-Notiz zu PRD',
+      help_agent_direct: 'In einer Agent-Umgebung erstellt der aktuelle Agent das PRD direkt. Dieser Befehl ruft YiDA AI für eigenständige Skripte auf und erfordert eine Anmeldung.',
       help_usage: 'Verwendung: openyida flash-to-prd --file <Pfad> [--name <Projektname>]',
       help_usage2: '            openyida flash-to-prd --name <Projektname>  (von stdin lesen)',
       help_args_title: 'Argumente:',

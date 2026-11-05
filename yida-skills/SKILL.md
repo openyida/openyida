@@ -193,8 +193,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
 | 将钉钉开放平台官方 API 接入宜搭或 Canvas | `yida-dingtalk-openapi`；密钥不进聊天，账号由用户在宜搭或本机 TTY 配置 |
 | 钉钉事件订阅、Stream 或 HTTP 回调 | OpenYida 不支持；直接说明能力边界并停止，不生成连接器动作 |
-| 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 生成 PRD |
-| 已有会议纪要/闪记内容转 PRD | `yida-flash-note-to-prd`，只处理已有内容，不负责按 taskUuid 拉取听记 |
+| 用户给 taskUuid 并要求转 PRD | 先用 `yida-tingji` 读取听记内容，再把已有内容交给 `yida-flash-note-to-prd` 由当前 Agent 直接生成 PRD |
+| 已有会议纪要/闪记内容转 PRD | `yida-flash-note-to-prd`，由当前 Agent 直接处理已有内容；生成阶段无需宜搭登录或远端 AI 接口 |
 | 只创建应用壳并拿 appType | `yida-create-app`；若随后继续完整搭建，已经确认的 `requirement-brief.json`、`prd.md` 与 `design.md` 保持不变，真实 `appType` 只写入 schema 或当前任务资源上下文 |
 | 明确强制要求 AI 老应用升级成新版主题 | `yida-upgrade-app-theme`；必须先取得针对目标应用的 ask_human 肯定回复，普通美化/换色/建应用不得触发 |
 | 启用/上线或停用/下线已有应用 | `yida-app-lifecycle`；只有用户明确要求时执行，`app-offline` 执行前需再次确认目标应用 |

@@ -235,6 +235,7 @@ describe('flash-to-prd CLI command', () => {
     expect(result).toContain('CRM');
     expect(utils.httpPost).toHaveBeenCalledTimes(1);
     expect(utils.httpPost.mock.calls[0][1]).toBe('/query/intelligent/txtFromAI.json');
+    expect(utils.httpPost.mock.calls[0][3]).toEqual({ timeout: 65000 });
     expect(querystring.parse(utils.httpPost.mock.calls[0][2])).toMatchObject({
       prompt: '生成 PRD',
       maxTokens: '2048',

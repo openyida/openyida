@@ -250,7 +250,7 @@ module.exports = {
     cmd_export_conversation: 'AI 会話記録をエクスポート',
     cmd_feedback: 'ローカル問題レポート、フィードバックフォームと通知を設定',
     cmd_batch: 'OpenYida コマンドを一括実行',
-    cmd_flash_to_prd: 'フラッシュノート/議事録を PRD prompt に変換',
+    cmd_flash_to_prd: '宜搭 AI で会議メモから PRD を生成（単独スクリプト用）',
     cmd_ai: 'Yida AI text and image recognition APIs',
     cmd_asset: '素材能力の検出 / 画像URLの検証 / 素材の解決',
     cmd_cdn: 'CDN 画像管理（設定/アップロード/リフレッシュ）',
@@ -1731,6 +1731,7 @@ module.exports = {
   flashNote: {
     toPrd: {
       title: '📋 DingTalk フラッシュノートを PRD に変換',
+      help_agent_direct: 'Agent 環境では現在の Agent が直接 PRD を生成します。このコマンドは単独スクリプト向けに宜搭 AI を呼び出し、ログインが必要です。',
       help_usage: '使用法：openyida flash-to-prd --file <パス> [--name <プロジェクト名>]',
       help_usage2: '        openyida flash-to-prd --name <プロジェクト名>（標準入力から読み取り）',
       help_args_title: '引数：',

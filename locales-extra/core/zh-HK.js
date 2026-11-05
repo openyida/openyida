@@ -252,7 +252,7 @@ module.exports = {
     cmd_export_conversation: '匯出 AI 對話記錄',
     cmd_feedback: '整理本機問題報告、設定回饋表單與提醒',
     cmd_batch: '批量執行 OpenYida 命令',
-    cmd_flash_to_prd: '閃記 / 會議紀要轉 PRD prompt',
+    cmd_flash_to_prd: '透過宜搭 AI 將閃記或會議記錄生成 PRD（獨立腳本）',
     cmd_ai: '調用宜搭 AI 文生文和識圖能力',
     cmd_asset: '偵測素材能力 / 校驗圖片 URL / 解析回填素材',
     cmd_cdn: 'CDN 圖片管理（設定/上傳/刷新）',
@@ -1720,6 +1720,7 @@ module.exports = {
   flashNote: {
     toPrd: {
       title: '📋 釘釘閃記轉 PRD',
+      help_agent_direct: '有 Agent 時由目前 Agent 直接生成 PRD。本命令供獨立腳本呼叫宜搭 AI，需要登入。',
       help_usage: '用法：openyida flash-to-prd --file <閃記檔案路徑> [--name <項目名>]',
       help_usage2: '      openyida flash-to-prd --name <項目名>  （從標準輸入讀取）',
       help_args_title: '參數：',

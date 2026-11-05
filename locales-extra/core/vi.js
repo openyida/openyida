@@ -250,7 +250,7 @@ module.exports = {
     cmd_export_conversation: 'Xuất bản ghi hội thoại AI',
     cmd_feedback: 'Chuẩn bị báo cáo cục bộ, biểu mẫu phản hồi và lời nhắc',
     cmd_batch: 'Run OpenYida commands in batch',
-    cmd_flash_to_prd: 'Convert flash notes or meeting notes to a PRD prompt',
+    cmd_flash_to_prd: 'Tạo PRD từ ghi chú cuộc họp bằng YiDA AI (tập lệnh độc lập)',
     cmd_ai: 'Call Yida AI text and image recognition APIs',
     cmd_asset: 'Detect asset capability / verify image URLs / resolve materials',
     cmd_cdn: 'Quản lý hình ảnh CDN (cấu hình/tải lên/làm mới)',
@@ -1778,6 +1778,7 @@ module.exports = {
   flashNote: {
     toPrd: {
       title: '📋 Ghi chu nhanh DingTalk sang PRD',
+      help_agent_direct: 'Trong môi trường Agent, Agent hiện tại trực tiếp tạo PRD. Lệnh này gọi YiDA AI cho tập lệnh độc lập và cần đăng nhập.',
       help_usage: 'Cach dung: openyida flash-to-prd --file <duong-dan> [--name <ten-du-an>]',
       help_usage2: '           openyida flash-to-prd --name <ten-du-an>  (doc tu stdin)',
       help_args_title: 'Tham so:',
