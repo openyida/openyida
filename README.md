@@ -278,6 +278,7 @@ openyida data query form APP_XXX FORM_XXX --dynamic-order '{"dateField_xxx":"-"}
 openyida data query process APP_XXX FORM_XXX --current-approver USER_ID --count
 openyida data create form APP_XXX FORM_XXX --expect-form-name 客户 --expect-form-type receipt --data-file .cache/openyida/data-import/record.json
 openyida data seed form APP_XXX FORM_XXX --expect-form-name 客户 --records-file .cache/openyida/data-import/customers.json --timezone +08:00 --json
+openyida data mock form APP_XXX FORM_XXX --expect-form-name 客户 --records-file .cache/openyida/customers/data-import/records.json --json
 openyida get-permission APP_XXX FORM_XXX
 ```
 
@@ -290,6 +291,8 @@ Seed supports the 18 writable business components created by default with `creat
 The input file gets a sibling `.seed-receipt.json`. Rerunning the unchanged command reuses verified records and reads back known pending IDs before continuing. An uncertain write without a trusted ID stops for inspection. Keep the receipt: changing the input, target, identity, schema or omission policy rejects reuse instead of silently creating duplicates. A `.lock` prevents concurrent use of the same receipt; after a process crash, confirm it has stopped and inspect its pending writes before removing the stale lock. Field verification covers submitted values; server-side permissions and business rules still apply.
 
 Keep the complete JSON result. After `success=true` and `readbackVerified=true`, match each verified `items[].formInstId` to the input by its zero-based `recordIndex`; `formInstIds` also preserves input order. Create referenced records first, then use those IDs in dependent association values. Avoid `tail/head/grep` on the JSON or list queries whose only purpose is rediscovering returned IDs. Keep the required business spot-check, using `data query form APP_XXX FORM_XXX --inst-id <verified-id> --json`. If output is truncated, read the current command's `receiptFile`; uncertain or cross-session recovery uses the unchanged seed command. Check-only output, pending entries and candidate IDs are not verified association targets. See the [receipt workflow](yida-skills/skills/yida-data-management/SKILL.md#直接消费回执与关联-id).
+
+`data mock form` is an explicit beta command for environments with the `/query/aiTool/mockRecords.json` endpoint deployed. It submits 1–3 records for one ordinary form in a single write request, using `[{"clientRecordId":"seed-1","data":{"textField_name":"Customer A"}}]`. The default app-building flow continues to use `data seed form` with its date conversion, readback and resumable receipts. Mock request IDs are for tracing only; every invocation creates a new request, with no automatic retry or fallback to single-record writes. Inspect `COMPLETED/UNKNOWN/REJECTED`, per-row states and counts; `COMPLETED` does not imply every row succeeded. Verify each created instance ID and visible fields separately (`readbackVerified=false`), and inspect existing data before any further write after an uncertain result.
 
 Append and forward permissions are configured in the process definition through `nodes[].actions.normalActions/appendActions`. Both `create-process` and `configure-process` compile these settings into matching designer and runtime properties. See [approval action configuration](yida-skills/skills/yida-flow-node-config/references/actions.md) for the JSON example, defaults, and verification limits.
 
@@ -558,7 +561,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 
 | Command | Description |
 |---------|-------------|
-| `openyida data <query\|get\|create\|update\|transfer\|seed> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | Unified data management (form/process/task/subform) |
+| `openyida data <query\|get\|create\|update\|transfer\|seed\|mock> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | Unified data management (form/process/task/subform) |
 | `openyida task-center <todo\|created\|done\|cc\|proxy\|capabilities\|link\|scaffold\|options\|inspect\|count> [--spec <file.json> --output <file.canvas.jsx>] [options]` | Global task center (todo/processed/cc etc.) |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, and domain settings |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | Fetch Markdown content from a DingTalk document |

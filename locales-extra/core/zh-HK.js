@@ -15,6 +15,7 @@ module.exports = {
     learning_completed: '宜搭學習完成人數',
     certified_developers: '宜搭開發者認證人數',
   },
+  mock_records: { stopped: '示例記錄操作已停止：{0}。請保留操作回執，並按返回的 nextStep 繼續。' },
   qwenwork: {
     organization_switch_success: '已透過千問辦公登入切換組織。',
     login_check_failed: 'Unable to verify the login session. Please retry.',

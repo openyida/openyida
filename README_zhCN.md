@@ -286,10 +286,13 @@ openyida process preview APP_XXX PROC_INST_XXX --output .cache/openyida/process/
 openyida data query form APP_XXX FORM_XXX --page 1 --size 20
 openyida data query process APP_XXX FORM_XXX --current-approver USER_ID --count
 openyida data create form APP_XXX FORM_XXX --data-file .cache/openyida/data-import/record.json
+openyida data mock form APP_XXX FORM_XXX --expect-form-name 客户 --records-file .cache/openyida/customers/data-import/records.json --json
 openyida data query subform APP_XXX FORM_XXX --inst-id FORM_INST_XXX --table-field-id tableField_xxx
 ```
 
 `--current-approver` 传真实 userId，不按显示名匹配。命令完整分页查询运行中的实例及当前 TODO 记录，每条流程只计数一次；去掉 `--count` 可返回匹配实例数据。查询沿用当前登录人的平台数据权限，不额外要求管理员角色；结果仅代表当前账号可见范围。分页不完整或权限失败会报错，不能当作 0 条或全应用统计。
+
+`data mock form` 是显式选用的 beta 命令，仅用于已部署 `/query/aiTool/mockRecords.json` 接口的环境。文件格式为 `[{"clientRecordId":"seed-1","data":{"textField_name":"客户 A"}}]`，同一普通表单的 1–3 条记录一次提交。完整应用默认继续使用 `data seed form` 的日期转换、逐条回读和恢复回执。Mock 的 `--request-id` 仅用于追踪，每次执行都会发送新的写请求；命令不自动重试或回退旧单条接口。检查 `COMPLETED/UNKNOWN/REJECTED`、计数及逐行状态，`COMPLETED` 不代表全部成功。成功回执仍为 `readbackVerified=false`，须按真实实例 ID 回读可见字段；结果未知先核对已有数据，不能把已成功或未知行重新提交。
 
 录入或更新数据前先用 `openyida get-schema` 获取真实 fieldId。`DateField` / `CascadeDateField` 使用 13 位毫秒时间戳，例如 `1719705600000`。
 
@@ -427,7 +430,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 | 命令 | 说明 |
 |------|------|
-| `openyida data <query\|get\|create\|update\|transfer\|seed> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | 统一数据管理（表单/流程/任务/子表单） |
+| `openyida data <query\|get\|create\|update\|transfer\|seed\|mock> <resource> ... \| delete form <appType> <formUuid> --inst-id <id> --expect-form-name <name> --expect-form-type receipt --confirm [--json]` | 统一数据管理（表单/流程/任务/子表单） |
 | `openyida task-center <todo\|created\|done\|cc\|proxy\|capabilities\|link\|scaffold\|options\|inspect\|count> [--spec <file.json> --output <file.canvas.jsx>] [options]` | 全局任务中心（待办/已处理/抄送等） |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | 查询组织基本信息、容量、额度和域名设置 |
 | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` | 获取钉钉文档的 Markdown 内容 |

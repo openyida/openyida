@@ -12,6 +12,7 @@ jest.mock('../lib/core/utils', () => ({
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
+  httpPostJson: jest.fn(),
   triggerLogin: jest.fn(),
   requestWithAutoLogin: jest.fn(),
 }));
@@ -237,6 +238,64 @@ beforeEach(() => {
 });
 
 // ── 参数校验 ──────────────────────────────────────────────────────────
+
+describe('mock records command integration', () => {
+  let directory;
+  let file;
+  let log;
+  const requestId = 'mock-integration-001';
+  const records = [1, 2, 3].map(index => ({ clientRecordId: `seed-${index}`, data: { textField_phone: `100${index}` } }));
+  const response = { success: true, content: { requestId, status: 'COMPLETED',
+    createdCount: 3, failedCount: 0, unknownCount: 0, notStartedCount: 0,
+    results: records.map((row, index) => ({ clientRecordId: row.clientRecordId, status: 'SUCCEEDED', formInstId: `FINST_${index}` })),
+  } };
+  beforeEach(() => {
+    directory = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-mock-route-'));
+    file = path.join(directory, 'records.json');
+    fs.writeFileSync(file, JSON.stringify(records));
+    utils.httpGet.mockReset();
+    utils.httpPost.mockReset();
+    utils.httpPostJson.mockReset().mockResolvedValue(response);
+    utils.requestWithAutoLogin.mockImplementation((fn, auth) => fn(auth));
+    log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    log.mockRestore();
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+  const args = () => ['mock', 'form', 'APP_XXX', 'FORM-XXX', '--records-file', file,
+    '--expect-form-name', '目标表单', '--request-id', requestId, '--json'];
+
+  test('public command submits all rows through one JSON call without navigation or mode reads', async () => {
+    await run(args());
+    expect(utils.httpPostJson).toHaveBeenCalledTimes(1);
+    expect(utils.httpPostJson).toHaveBeenCalledWith('https://www.aliwork.com',
+      '/dingtalk/web/APP_XXX/query/aiTool/mockRecords.json',
+      { requestId, formUuid: 'FORM-XXX', expectedFormName: '目标表单', expectedFormType: 'receipt', records },
+      { timeout: 100000, silentStatus: true });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+    expect(utils.httpGet).not.toHaveBeenCalled();
+    expect(utils.requestWithAutoLogin).not.toHaveBeenCalled();
+    expect(formNavigation.fetchFormPageList).not.toHaveBeenCalled();
+    expect(formModeService.readFormMode).not.toHaveBeenCalled();
+    expect(getLoggedJson(log).content.createdCount).toBe(3);
+  });
+
+  test('aliases resolve once for the complete batch', async () => {
+    fs.writeFileSync(file, JSON.stringify(records.map(row => ({ ...row, data: { phone: row.data.textField_phone } }))));
+    utils.httpGet.mockResolvedValueOnce(buildAliasSchema());
+    await run([...args(), '--resolve-aliases']);
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+    expect(utils.httpPostJson.mock.calls[0][2].records).toEqual(records);
+    expect(utils.httpPostJson).toHaveBeenCalledTimes(1);
+  });
+
+  test('unsupported options fail before authentication', async () => {
+    await expect(run([...args(), '--unsupported'])).rejects.toMatchObject({ code: 'AI_INVALID_ARGUMENT' });
+    expect(utils.loadAuthData).not.toHaveBeenCalled();
+    expect(utils.httpPostJson).not.toHaveBeenCalled();
+  });
+});
 
 describe('run() 参数校验', () => {
   test('参数不足时打印错误并以 exit code 1 退出', async () => {

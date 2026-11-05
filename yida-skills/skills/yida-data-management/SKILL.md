@@ -139,6 +139,33 @@ openyida data query form <appType> <客户formUuid> --inst-id <回执中的formI
 - [ ] 已用 `openyida data query form|process ...` 抽查至少 1 条目标记录，核对实例 ID 和可见字段值；没有可见字段时已说明隐藏字段无法通过 CLI 回读
 - [ ] 已向用户报告创建/更新数量、验收命令与结果摘要；未完成项必须如实说明
 
+## 显式调用三条 Mock（beta）
+
+完整应用默认继续使用 `data seed form`，按上文完成日期转换、逐条回读与回执恢复。本节仅用于显式选择 `data mock form`，且目标环境已部署 `/query/aiTool/mockRecords.json` 接口的场景。
+
+```bash
+openyida data mock form <appType> <formUuid> --expect-form-name <真实名称> --records-file <绝对路径>/records.json --json
+```
+
+records.json 使用以下结构，包含同一普通表单的 1–3 条记录：
+
+```json
+[
+  {
+    "clientRecordId": "seed-1",
+    "data": { "textField_name": "远山科技" }
+  }
+]
+```
+
+- 使用真实 `fieldId`；显式加 `--resolve-aliases` 时按已配置别名解析。名称、UUID、普通表单类型或 Schema 不匹配时停止；流程表单使用独立流程命令。
+- `clientRecordId` 同批唯一。可选 `--request-id` 仅用于追踪，不提供去重或幂等保证；本命令不持久化恢复回执，每次执行都会发送新的写请求。
+- 保存将 1–3 条记录一次提交，由服务端先整批预检再顺序写入。命令不自动重试或回退旧单条接口；接口未开放、权限拒绝或限流时按实际回执处理，不改用其他写命令补写。
+- 检查 `COMPLETED/UNKNOWN/REJECTED`、计数及每条结果，按 `clientRecordId` 对应输入。只有 `SUCCEEDED` 行计入已创建；`COMPLETED` 表示执行结束，并不保证全部成功。
+- 成功回执的 `readbackVerified=false` 表示尚未独立核验。按成功行真实 `formInstId` 执行 `data get form` 或 `data query form --inst-id` 回读实例与可见字段，再用于页面数据或关联记录；隐藏字段按本技能规则说明验证边界。
+- 断连或 `UNKNOWN` 先核对已有数据，保留成功与未知行的回执；结果未知不重发。失败或未开始行也先检查整批结果，不能把已成功或未知的行一并重提。
+- 日期按字段保存契约提供毫秒值，本命令不提供 seed 的日期字符串转换。超出 JavaScript 安全整数范围的数值会拒绝；需要完整保留有效位的高精度 NumberField 值用字符串传入。
+
 ## 适用场景
 
 用户需要"查询数据"、"新增记录"、"更新数据"、"查看表单实例"、"发起流程"时使用。

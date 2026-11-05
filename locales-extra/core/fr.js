@@ -14,6 +14,7 @@ module.exports = {
     learning_completed: 'Nombre de personnes ayant terminé les cours Yida',
     certified_developers: 'Nombre de développeurs Yida certifiés',
   },
+  mock_records: { stopped: 'L’opération des enregistrements d’exemple a été arrêtée : {0}. Conservez le reçu et suivez le nextStep retourné.' },
   qwenwork: {
     organization_switch_success: 'Organisation changée via la connexion QwenWork.',
     login_check_failed: 'Unable to verify the login session. Please retry.',

@@ -28,6 +28,22 @@ function isSampleRoutingGuidanceFile(file) {
 }
 
 describe('OpenYida skill contracts', () => {
+  test('explicit mock guidance keeps seed defaults and requires deployed RPC with independent readback', () => {
+    const data = readSkill('yida-skills/skills/yida-data-management/SKILL.md');
+    const mock = data.split('## 显式调用三条 Mock（beta）\n')[1].split('## 适用场景')[0];
+    for (const signal of ['目标环境已部署', '/query/aiTool/mockRecords.json', '1–3 条记录',
+      'clientRecordId', '不提供去重或幂等保证', '不持久化恢复回执', '不自动重试或回退旧单条接口',
+      'COMPLETED/UNKNOWN/REJECTED', 'readbackVerified=false', '真实 `formInstId`', '结果未知不重发']) {
+      expect(mock).toContain(signal);
+    }
+    expect(mock).toContain('完整应用默认继续使用 `data seed form`');
+    expect(mock).toContain('本命令不提供 seed 的日期字符串转换');
+    expect(readSkill('yida-skills/skills/yida-app/workflow/step-5-seed-records.md'))
+      .toContain('普通表单优先使用 `data seed form`');
+    expect(readSkill('yida-skills/skills/yida-create-form-page/SKILL.md'))
+      .toContain('按数据技能每表一次 `data seed form --json`');
+  });
+
   test('seed optional-field guidance keeps omitted values, no-data skips and safe fallback distinct', () => {
     const data = readSkill('yida-skills/skills/yida-data-management/SKILL.md');
     const section = data.split('### 组件支持与未适配配置\n')[1].split('### 直接消费回执')[0];

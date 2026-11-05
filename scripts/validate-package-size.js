@@ -243,7 +243,8 @@ const MAX_TARBALL_BYTES = 2736 * 1024;
 // Node 20 measures 10,131,579 unpacked bytes; retain the next 16 KiB boundary.
 // Fast/concurrency plus main file-upload support: Node 20 measures 10,198,629 bytes;
 // retain the next 16 KiB boundary. Compressed and single-file caps stay unchanged.
-const MAX_UNPACKED_BYTES = 9968 * 1024;
+// Mock 命令与独立说明：Node 24 实测 10,221,709 字节，按既有 16 KiB 分档上调一档。
+const MAX_UNPACKED_BYTES = 9984 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.

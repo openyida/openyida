@@ -14,6 +14,7 @@ module.exports = {
     learning_completed: 'Yida 学習完了者数',
     certified_developers: 'Yida 認定開発者数',
   },
+  mock_records: { stopped: 'サンプルレコードの操作を停止しました：{0}。操作の記録を保持し、返された nextStep に従ってください。' },
   qwenwork: {
     organization_switch_success: 'QwenWork ログインで組織を切り替えました。',
     login_check_failed: 'Unable to verify the login session. Please retry.',

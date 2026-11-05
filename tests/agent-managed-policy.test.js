@@ -216,6 +216,7 @@ test.each([
   ['app-theme', ['restore', 'APP_BOUND', '--confirm']],
   ['data', ['query', 'form', 'APP_BOUND', 'FORM-x']],
   ['data', ['create', 'form', 'APP_BOUND', 'FORM-x', 'data.json']],
+  ['data', ['mock', 'form', 'APP_BOUND', 'FORM-x', '--records-file', 'records.json', '--expect-form-name', '客户']],
   ['i18n', ['config', 'set', 'APP_BOUND']],
   ['i18n', ['overview', 'APP_BOUND']],
   ['asset', ['resolve', 'tasks.json', '--app-type', 'APP_BOUND']],

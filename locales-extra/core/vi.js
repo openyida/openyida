@@ -14,6 +14,7 @@ module.exports = {
     learning_completed: 'Số người hoàn thành khóa học Yida',
     certified_developers: 'Số nhà phát triển Yida được chứng nhận',
   },
+  mock_records: { stopped: 'Thao tác bản ghi mẫu đã dừng: {0}. Giữ biên nhận thao tác và làm theo nextStep được trả về.' },
   qwenwork: {
     organization_switch_success: 'Đã chuyển tổ chức thông qua đăng nhập QwenWork.',
     login_check_failed: 'Unable to verify the login session. Please retry.',

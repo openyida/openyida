@@ -14,6 +14,7 @@ module.exports = {
     learning_completed: 'Yida पाठ्यक्रम पूरा करने वालों की संख्या',
     certified_developers: 'प्रमाणित Yida डेवलपर की संख्या',
   },
+  mock_records: { stopped: 'उदाहरण रिकॉर्ड की कार्रवाई रुक गई: {0}। कार्रवाई की रसीद सुरक्षित रखें और लौटाए गए nextStep का पालन करें।' },
   qwenwork: {
     organization_switch_success: 'QwenWork लॉगिन के माध्यम से संगठन बदला गया।',
     login_check_failed: 'Unable to verify the login session. Please retry.',
