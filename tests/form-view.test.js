@@ -28,16 +28,34 @@ beforeEach(() => {
     defaultConfig: { showFields: ['name', 'status'], filter: { values: {}, conditionType: 'AND' }, widths: { name: 200 }, unknownPlatformSetting: true } };
   views = [view('VIEW_A'), view('VIEW_B')];
   client = {
-    get: jest.fn(async () => ({ success: true, content: { componentValueVoList: [
-      { id: 'name', componentName: 'TextField' }, { id: 'status', componentName: 'SelectField', operatorMap: [{ value: 'eq' }] },
-    ] } })),
+    get: jest.fn(async (endpoint, params) => {
+      if (endpoint.includes('listDataViewInForm')) {
+        return { success: true, content: views.map(item => ({ formUuid: 'FORM_TEST', ...item })) };
+      }
+      if (endpoint.includes('customButtonManage/list')) {
+        expect(params.formUuid).toBe('FORM_DATA');
+        return { success: true, content: [
+          { buttonUuid: 'BUTTON_A', formUuid: 'FORM_DATA', name: '{"type":"i18n","zh_CN":"跟进"}', actionConfig: '{}' },
+        ] };
+      }
+      return { success: true, content: { componentValueVoList: [
+        { id: 'name', componentName: 'TextField' }, { id: 'status', componentName: 'SelectField', operatorMap: [{ value: 'eq' }] },
+      ] } };
+    }),
     postForm: jest.fn(async (endpoint, params) => {
-      if (endpoint.includes('getFormSchemaInfo')) { return { success: true, content: { multiViewInfos: views } }; }
+      if (endpoint.includes('getFormSchemaInfo')) { return { success: true, content: { pageType: 'process', multiViewInfos: views } }; }
       if (endpoint.includes('getViewConfig')) { return { success: true, content: JSON.parse(JSON.stringify({ ...config, viewUuid: params.viewUuid })) }; }
       throw new Error(endpoint);
     }),
     postFormOnce: jest.fn(async (endpoint, params) => {
-      if (endpoint.includes('updateConfig')) { config = { viewUuid: params.viewUuid, staticConfig: JSON.parse(params.staticConfig), defaultConfig: JSON.parse(params.defaultConfig) }; }
+      if (endpoint.includes('updateConfig')) {
+        config = { viewUuid: params.viewUuid, staticConfig: JSON.parse(params.staticConfig),
+          defaultConfig: params.defaultConfig ? JSON.parse(params.defaultConfig) : config.defaultConfig };
+      }
+      if (endpoint.includes('updateBaseInfo')) {
+        const item = views.find(row => row.viewUuid === params.viewUuid);
+        Object.assign(item, { name: params.name, status: params.status, description: params.description });
+      }
       if (endpoint.includes('createView')) { views.push({ ...view('VIEW_C'), name: params.name }); }
       if (endpoint.includes('updateViewPageConfig')) { views = JSON.parse(params.viewConfig).map(id => views.find(v => v.viewUuid === id)); }
       return { success: true, content: true };
@@ -45,6 +63,67 @@ beforeEach(() => {
   };
 });
 afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
+
+test('renames an existing view in place and preserves its status and description', async () => {
+  views[0].description = '{"zh_CN":"业务视图"}';
+  const result = await execute(read('rename', ['VIEW_A', '--name', '待跟进', '--backup', backupPath]), client);
+  expect(result).toMatchObject({
+    viewUuid: 'VIEW_A', changed: true, readbackVerified: true,
+    view: { name: { zh_CN: '待跟进' }, description: '{"zh_CN":"业务视图"}', status: { PC: 'ACTIVATED' } },
+  });
+  expect(JSON.parse(fs.readFileSync(backupPath)).config.name).toEqual({ zh_CN: 'VIEW_A' });
+  expect(client.postFormOnce).toHaveBeenCalledTimes(1);
+  expect((await execute(read('rename', ['VIEW_A', '--name', '待跟进']), client)).changed).toBe(false);
+});
+
+test('refuses a view rename when native readback still has the old name', async () => {
+  client.postFormOnce.mockResolvedValueOnce({ success: true });
+  await expect(execute(read('rename', ['VIEW_A', '--name', '待跟进', '--backup', backupPath]), client))
+    .rejects.toMatchObject({ code: 'FORM_VIEW_READBACK_MISMATCH' });
+});
+
+test('appends a data-form button once, keeping existing operation order and view defaults', async () => {
+  views[0].dataFormUuid = 'FORM_DATA';
+  const previousButtons = config.staticConfig.buttonList;
+  const previousDefaults = config.defaultConfig;
+  const write = client.postFormOnce.getMockImplementation();
+  client.postFormOnce.mockImplementationOnce(async (endpoint, params) => {
+    const result = await write(endpoint, params);
+    const added = config.staticConfig.buttonList.at(-1);
+    added.name = { ...added.name, en_US: '跟进', pureEn_US: null, key: null, value: null };
+    return result;
+  });
+  const args = read('add-button', ['VIEW_A', '--button', 'BUTTON_A', '--backup', backupPath]);
+  const result = await execute(args, client);
+  expect(result.readbackVerified).toBe(true);
+  expect(result.config.staticConfig.buttonList).toEqual([...previousButtons,
+    { code: 'BUTTON_A', category: 'custom', name: { type: 'i18n', zh_CN: '跟进', en_US: '跟进', pureEn_US: null, key: null, value: null } }]);
+  expect(result.config.defaultConfig).toEqual(previousDefaults);
+  expect(client.postFormOnce.mock.calls[0][1]).not.toHaveProperty('defaultConfig');
+  expect((await execute(args, client)).changed).toBe(false);
+  expect(client.postFormOnce).toHaveBeenCalledTimes(1);
+});
+
+test('rejects stale settings or a write that fails to append the requested button', async () => {
+  views[0].dataFormUuid = 'FORM_DATA';
+  const args = ['VIEW_A', '--button', 'BUTTON_A', '--backup', backupPath];
+  await expect(execute(read('add-button', [...args, '--expected-hash', 'stale']), client))
+    .rejects.toMatchObject({ code: 'FORM_VIEW_CONFLICT' });
+  expect(client.postFormOnce).not.toHaveBeenCalled();
+  client.postFormOnce.mockResolvedValueOnce({ success: true });
+  await expect(execute(read('add-button', args), client))
+    .rejects.toMatchObject({ code: 'FORM_VIEW_READBACK_MISMATCH' });
+});
+
+test('keeps implicit process system buttons and rejects buttons from outside the data form', async () => {
+  views[0].dataFormUuid = 'FORM_DATA';
+  config.staticConfig.buttonList = [];
+  await expect(execute(read('add-button', ['VIEW_A', '--button', 'BUTTON_OTHER']), client))
+    .rejects.toMatchObject({ code: 'CUSTOM_BUTTON_NOT_FOUND' });
+  expect(client.postFormOnce).not.toHaveBeenCalled();
+  const result = await execute(read('add-button', ['VIEW_A', '--button', 'BUTTON_A', '--backup', backupPath]), client);
+  expect(result.config.staticConfig.buttonList.map(item => item.code)).toEqual(['detail', 'delete', 'log', 'var', 'BUTTON_A']);
+});
 
 test('lists all native views and optionally reads every configuration', async () => {
   const result = await execute(read('list', ['--with-config']), client);
@@ -63,6 +142,20 @@ test('inspect parses serialized configs and returns a stable content hash', asyn
   const result = await execute(read('inspect', ['VIEW_A']), client);
   expect(result.configHash).toBe(configHash(config));
   expect(configHash({ ...config, defaultConfig: { ...config.defaultConfig } })).toBe(result.configHash);
+});
+
+test('inspect preserves platform visibility and order for building an explicit default column list', async () => {
+  client.get.mockResolvedValueOnce({ success: true, content: { componentValueVoList: [
+    { id: 'title', componentId: 'processInstanceTitle', supportVisible: true, showTerm: 'y', showOrder: 0 },
+    { id: 'name', supportVisible: true, showTerm: 'y', showOrder: 2 },
+    { id: 'status', supportVisible: true, showTerm: 'n', showOrder: 1 },
+  ] } });
+  const result = await execute(read('inspect', ['VIEW_A']), client);
+  expect(JSON.parse(JSON.stringify(result.fields))).toMatchObject([
+    { id: 'processInstanceTitle', supportVisible: true, showTerm: 'y', showOrder: 0 },
+    { id: 'name', supportVisible: true, showTerm: 'y', showOrder: 2 },
+    { id: 'status', supportVisible: true, showTerm: 'n', showOrder: 1 },
+  ]);
 });
 
 test('patches visibility/order, width, frozen columns and default filter while preserving unrelated settings', async () => {

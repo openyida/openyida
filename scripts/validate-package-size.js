@@ -95,9 +95,8 @@ const path = require('path');
 // retain the next 16 KiB boundary, without changing file or entry caps.
 // Fast JSON execution context, mandatory CSS generator and shared input guidance add three runtime files.
 // Node 20 measures about 2,706 KiB compressed and 9,920 KiB unpacked; keep bounded headroom.
-// Process seed recovery, native condition verification and opt-in Canvas empty
-// subform reads: Node 23 measures 2,786,587 bytes / 812 files. Use the next
-// 16 KiB boundary; unpacked, entry and individual-file limits stay unchanged.
+// Form data seeding, schema guards, and the Canvas sample merged with main
+// measure 2,789,968 compressed bytes on Node 20.18.1. Use the next 16 KiB boundary.
 const MAX_TARBALL_BYTES = 2736 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
@@ -244,7 +243,13 @@ const MAX_TARBALL_BYTES = 2736 * 1024;
 // Node 20 measures 10,131,579 unpacked bytes; retain the next 16 KiB boundary.
 // Fast/concurrency plus main file-upload support: Node 20 measures 10,198,629 bytes;
 // retain the next 16 KiB boundary. Compressed and single-file caps stay unchanged.
-const MAX_UNPACKED_BYTES = 9968 * 1024;
+// Native view rename and action-column button commands add runtime and skill
+// content. Round the unpacked limit to the next 16 KiB boundary.
+// Process seed, declared field bindings and opt-in empty subform reads add one
+// packaged workflow reference. Merged Node 23 measurement: 10,226,230 bytes /
+// 813 files, 2,614 bytes above the previous limit. Use the next 16 KiB boundary;
+// compressed, entry-count and individual-file limits stay unchanged.
+const MAX_UNPACKED_BYTES = 10000 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.

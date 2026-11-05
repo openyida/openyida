@@ -86,4 +86,3 @@ test.each(['NumberField', 'SelectField', 'RadioField', 'DateField', 'EmployeeFie
     expect(result.processJson.nodes[1].childNodes[0].props.conditions.rules[0])
       .toMatchObject({ componentType, ruleType: 'rule_text', opCode: 'Equal' });
   });
-

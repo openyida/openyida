@@ -251,74 +251,45 @@ const MAINTAINABILITY_WEIGHTS = {
   isolation: 0.15,
 };
 
-/**
- * Recursively follow markdown link chains within yida-skills to measure depth.
- * Returns the maximum depth found from the starting file.
- */
-function measureRefDepth(startFile, visited, maxDepth) {
-  if (visited.has(startFile)) {
-    return maxDepth;
-  }
-  visited.add(startFile);
-
-  if (!fs.existsSync(startFile) || !fs.statSync(startFile).isFile()) {
-    return maxDepth;
-  }
-
-  const content = readText(startFile);
-  const links = extractMarkdownLinks(content);
-
-  for (let i = 0; i < links.length; i++) {
-    const target = links[i];
-    if (isExternalLink(target)) { continue; }
-    const absTarget = path.resolve(path.dirname(startFile), target);
-    if (!fs.existsSync(absTarget) || !fs.statSync(absTarget).isFile()) { continue; }
-    if (!absTarget.endsWith('.md')) { continue; }
-    const depth = measureRefDepth(absTarget, visited, maxDepth + 1);
-    if (depth > maxDepth) {
-      maxDepth = depth;
-    }
-  }
-
-  return maxDepth;
+function markdownReferences(file, skillsRootDir) {
+  return extractMarkdownLinks(readText(file)).filter(target => !isExternalLink(target))
+    .map(target => path.resolve(path.dirname(file), target))
+    .filter(target => {
+      const relative = path.relative(skillsRootDir, target);
+      return !path.isAbsolute(relative) && relative !== '..' && !relative.startsWith('..' + path.sep)
+        && target.endsWith('.md') && fs.existsSync(target) && fs.statSync(target).isFile();
+    });
 }
 
-/**
- * Detect circular references: follow markdown links within yida-skills, return
- * true if any cycle is found starting from startFile.
- */
-function hasCircularRefs(startFile, skillsRootDir) {
-  const stack = [startFile];
-  const visited = new Set();
-
-  while (stack.length > 0) {
-    const file = stack.pop();
-    if (visited.has(file)) {
-      return true;
-    }
-    visited.add(file);
-
-    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) { continue; }
-
-    const content = readText(file);
-    const links = extractMarkdownLinks(content);
-
-    for (let i = 0; i < links.length; i++) {
-      const target = links[i];
-      if (isExternalLink(target)) { continue; }
-      const absTarget = path.resolve(path.dirname(file), target);
-      if (!absTarget.endsWith('.md')) { continue; }
-      if (!fs.existsSync(absTarget)) { continue; }
-      // Only consider links within the skills root
-      if (absTarget.indexOf(skillsRootDir) !== 0) { continue; }
-      if (visited.has(absTarget)) {
-        return true;
-      }
-      stack.push(absTarget);
+// Count the most links a reader needs to follow to reach a referenced document.
+function measureRefDepth(startFile, skillsRootDir) {
+  const queue = [{ file: startFile, depth: 0 }];
+  const visited = new Set([startFile]);
+  for (let index = 0; index < queue.length; index++) {
+    const { file, depth } = queue[index];
+    for (const target of markdownReferences(file, skillsRootDir)) {
+      if (visited.has(target)) { continue; }
+      visited.add(target);
+      queue.push({ file: target, depth: depth + 1 });
     }
   }
+  return queue[queue.length - 1].depth;
+}
 
-  return false;
+// A shared reference is valid. Only a link back to a file on the active path is a cycle.
+function hasCircularRefs(startFile, skillsRootDir) {
+  const active = new Set();
+  const visited = new Set();
+  function visit(file) {
+    if (active.has(file)) { return true; }
+    if (visited.has(file)) { return false; }
+    active.add(file);
+    if (markdownReferences(file, skillsRootDir).some(visit)) { return true; }
+    active.delete(file);
+    visited.add(file);
+    return false;
+  }
+  return visit(startFile);
 }
 
 function checkMaintainability(skillDir, allSkillDirs) {
@@ -340,7 +311,7 @@ function checkMaintainability(skillDir, allSkillDirs) {
   });
 
   // --- refDepth (0.20) ---
-  const depth = measureRefDepth(skillFile, new Set(), 0);
+  const depth = measureRefDepth(skillFile, skillsRootDir);
   const depthScore = depth <= 3 ? 1 : 0;
   checks.push({
     key: 'refDepth',

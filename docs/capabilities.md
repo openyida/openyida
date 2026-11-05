@@ -113,7 +113,7 @@
 | 配置并发布流程规则 | `openyida configure-process <appType> ...` |
 | 检查流程设计器字段来源和子表路径 | `openyida process fields <appType> <formUuid> --json` |
 | 配置发起、审批和办理节点字段权限 | 发起页用顶层 `startFormConfig`，人工节点用 `formConfig`；见 [字段权限](../yida-skills/skills/yida-flow-node-config/references/fields.md) |
-| 人工节点条件选人 | `approver/executor/receiver.kind=conditional`；见 [条件选人](../yida-skills/skills/yida-flow-node-config/references/conditional-actors.md) |
+| 人工节点条件选人 | `approver/executor/receiver.kind=conditional`；见 [条件选人](../yida-skills/skills/yida-flow-node-config/references/actors.md#按条件选人) |
 | 配置审批节点的加签、转交 | 在流程定义的 `nodes[].actions.normalActions/appendActions` 中声明，由上述创建/配置命令编译；见 [操作权限配置](../yida-skills/skills/yida-flow-node-config/references/actions.md) |
 | 预览流程实例 | `openyida process preview <appType> <processInstanceId> [--output <path>]` |
 | 查询 AI 审批提示配置 | `openyida ai-form-setting get <appType> <formUuid>` |
@@ -133,7 +133,7 @@
 | 更新表单数据 | `openyida data update form <appType> <formUuid> <formInstId> --data-file <file>` |
 | 查询流程/任务/子表数据 | `openyida data <action> <resource> [args]` |
 | 查询表单权限 | `openyida get-permission <appType> <formUuid>` |
-| 通用数据权限 AND／OR 条件 | `save-permission ... --conditions-file conditions.json --dry-run`；见 [条件编排](../yida-skills/skills/yida-form-permission/references/conditions.md) |
+| 通用数据权限 AND／OR 条件 | `save-permission ... --conditions-file conditions.json --dry-run`；见 [条件编排](../yida-skills/skills/yida-form-permission/references/row-field-access.md) |
 | 权限组复制／重命名／删除及矩阵管理 | `permission-manage`、`matrix`；见 [管理说明](../yida-skills/skills/yida-form-permission/references/management.md) |
 | 保存表单权限 | `openyida save-permission <appType> <formUuid> ...` |
 | 权限组成员、数据范围和字段权限 | 完整配置用 `--data-permission`、`--field-permission`；角色和字段简写用 `--roles`、`--field-access`，先用 `--dry-run` 看差异；见 [配置说明](../yida-skills/skills/yida-form-permission/references/row-field-access.md) |
@@ -176,9 +176,9 @@
 | 获取数据节点按字段筛选 | `dataRetrieve.conditions` / `--data-condition`，目标字段与触发记录／上游单条节点字段比较；数字操作符别名转原生码；见 [条件与变量](../yida-skills/skills/yida-flow-node-config/references/conditions-variables.md) |
 | 开始节点触发过滤、分支的字段比较（待完成） | 与取数筛选是不同消费场域，尚未通过平台保存及运行验收；见 [条件与变量](../yida-skills/skills/yida-flow-node-config/references/conditions-variables.md) |
 | 按角色发送自动化消息 | spec 的 `sendMessage.toRoles`；见 [通知节点](../yida-skills/skills/yida-flow-node-config/references/notifications.md) |
-| 已有自动化安全增量修改 | `integration update ... --patch patch.json --dry-run`，可靠基线仅支持名称、描述和消息正文补丁；见 [安全更新](../yida-skills/skills/yida-integration/references/safe-update.md) |
+| 已有自动化安全增量修改 | `integration update ... --patch patch.json --dry-run`，可靠基线仅支持名称、描述和消息正文补丁；见 [安全更新](../yida-skills/skills/yida-integration/references/operations.md) |
 | 定时及字段变化触发 | spec `schedule`、`changedFields`；见 [触发配置](../yida-skills/skills/yida-integration/references/triggers.md) |
-| 并行及循环 | spec `parallel/cycle`；见 [控制节点](../yida-skills/skills/yida-integration/references/control-nodes.md) |
+| 并行及循环 | spec `parallel/cycle`；见 [控制节点](../yida-skills/skills/yida-flow-node-config/references/control.md) |
 | 节点日志、异常监听及自动化生命周期 | `integration detail-log/monitor/copy/rename/delete`；见 [操作说明](../yida-skills/skills/yida-integration/references/operations.md) |
 | 查询集成自动化 | `openyida integration list <appType> [--form-uuid <uuid>]` |
 | 启用集成自动化 | `openyida integration enable <appType> <formUuid> <processCode>` |
@@ -230,7 +230,7 @@
 | 静默 CLI 装饰输出 | `openyida --quiet ...` 或 `YIDA_QUIET=1` |
 | 禁用更新检查提示 | `OPENYIDA_SKIP_UPDATE_CHECK=1` / `NO_UPDATE_NOTIFIER=1` / `CI=1` |
 | 输出完整 Agent 能力诊断 | `openyida agent-capabilities --json` |
-| 运行技能评测 | `openyida eval --mode <mode> [--skill <name>] [--runs N]` |
+| 在源码仓库运行技能评测 | `npm run eval:routing` 等，见下文 |
 
 ## Agent 能力、评测与安全提示
 
@@ -239,8 +239,8 @@
 | 快速判断当前工作区、登录态、组织和命令能力 | `openyida agent-capabilities --summary-json` |
 | 获取完整 Agent 能力诊断（含完整环境、登录状态与命令 Manifest） | `openyida agent-capabilities --json` |
 | 获取完整命令 Manifest、副作用和权限元数据 | `openyida commands --json` |
-| 运行无副作用路由评测 | `openyida eval --mode routing [--skill <name>]` |
-| 运行文档质量 / 安全 / 覆盖率评测 | `openyida eval --mode <doc-quality\|safety\|coverage\|comprehensive>` |
-| 运行真实端到端评测 | `OPENYIDA_E2E=1 openyida eval --mode <e2e\|generate>` |
+| 运行无副作用路由评测 | `npm run eval:routing -- --skill <name>` |
+| 运行文档质量 / 安全 / 覆盖率评测 | `npm run eval:doc-quality`、`eval:safety`、`eval:coverage` 或 `eval:comprehensive` |
+| 运行真实端到端评测 | `OPENYIDA_E2E=1 npm run eval:e2e` 或 `OPENYIDA_E2E=1 npm run eval:generate` |
 
 `commands --json` 中的 `sideEffect` 和 `permission` 是 Agent 执行前的重要依据。`mixed` 命令需要继续查看具体子命令或参数：例如 `data query` 是读操作，`data delete` 是删除；`nav-group list` 是读操作，`nav-group delete` 需要确认。

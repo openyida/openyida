@@ -408,11 +408,11 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida list-forms <appType> [--keyword <text>]` | 列出应用下的表单/页面 |
 | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | 管理聚合表（virtualView） |
 | `openyida print-template <list\|inspect\|fields\|build\|create\|copy\|save\|restore\|settings\|status\|order\|render\|files> <appType> <formUuid> [templateId] [--config <file>] [--scene <order\|quotation\|delivery\|receipt\|approval\|codes>] [--bindings <file>] [--name <title>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--status START\|STOP] [--instance <id>] [--page <n>] [--size <n>] [--allow-permission-change] [--json] \| print-template <list\|render> --detail-url <url> [--template-id <id>] [--json]` | 管理宜搭原生打印模板、按字段生成多种单据、备份恢复与生成PDF |
-| `openyida form-view <list\|inspect\|save\|create\|order> <appType> <formUuid> [viewUuid] [--config <file>] [--name <title>] [--with-config] [--expected-hash <hash>] [--backup <file>] [--replace] [--json]` | 原生表单视图：查询、检查并配置显示列、列宽、冻结列和筛选 |
+| `openyida form-view <list\|inspect\|save\|create\|order\|rename\|add-button> <appType> <formUuid> [viewUuid] [--config <file>] [--name <title>] [--button <buttonUuid>] [--with-config] [--expected-hash <hash>] [--backup <file>] [--replace] [--json]` | 原生表单视图：查询、检查并配置显示列、列宽、冻结列和筛选 |
 | `openyida custom-button <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | 原生自定义按钮：查询、配置填写表单、自动化流及页面跳转 |
 | `openyida form-message <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | 原生表单消息通知：查询触发、接收对象与模板并安全维护配置 |
 | `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | 获取单个或全部表单 Schema |
-| `openyida check-prd-completeness [<prd.md> \| --build-spec <build-context.json> \| --manifest-only] --app-type <appType> [--build-manifest <file>] [--json]` | 检查资源数量、前台菜单隐藏及应用主题同步 |
+| `openyida check-prd-completeness (<prd.md> [--build-manifest <file>] \| --build-spec <build-context.json> [--build-manifest <file>] \| --manifest-only --build-manifest <file>) --app-type <appType> [--json]` | 检查资源数量、前台菜单隐藏及应用主题同步 |
 | `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | 检查设计文档、主题变量与 PRD 交接 |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | 导出应用实体关系图 |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义展示页面 |

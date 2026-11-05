@@ -24,7 +24,7 @@ openyida sample yida-design application-style --style-id free-creative --output 
 
 ## 旧主题应用的样式作用域与确认
 
-上传和绑定前，CLI 通过 `getAppIncludingAecpInfo.json` 核对应用及组织身份，不读取管理页 HTML。服务端返回 `appThemeEnable=y` 且 `appThemeMode=modern`，或保存了 `CREATED_WITH_MODERN_THEME=y` 且模式为 modern（模式未设置时须有服务端 AI 应用来源，包含 qwenwork），按新版配置执行上传和绑定，无需旧主题注入确认。显式禁用或 legacy 优先；只有主色、modern 名称或宿主名称不能作为依据。配置回读不等于页面已加载 CSS，仍按浏览器验收规则核验效果。
+上传和绑定前，CLI 通过 `getAppIncludingAecpInfo.json` 核对目标 `appType`，并检查查询前后登录身份是否一致。接口回包的 `corpId` 表示应用归属，缺失或与登录组织不同时，仍按目标应用的主题配置判断。服务端返回 `appThemeEnable=y` 且 `appThemeMode=modern`，或保存了 `CREATED_WITH_MODERN_THEME=y` 且模式为 modern（模式未设置时须有服务端 AI 应用来源，包含 qwenwork），按新版配置执行上传和绑定，无需旧主题注入确认。显式禁用或 legacy 优先；只有主色、modern 名称或宿主名称不能作为依据。配置回读不等于页面已加载 CSS，仍按浏览器验收规则核验效果。
 
 新建应用必须通过 CLI 的 modern 配置回读核验；`APP_CREATED_THEME_UNVERIFIED` 表示应用已经创建但主题未确认，保留返回的 `appType` 排查，不重复创建、不静默降级或仅设置主色。已有应用确认为旧主题或缺少判定依据时，默认保留平台主题并使用页面局部样式，不自动升级；应用级 CSS 注入仍需取得该应用和 CSS 范围的明确确认。
 
@@ -43,11 +43,12 @@ openyida sample yida-design application-style --style-id free-creative --output 
 | 步骤 | 命令与参数 | 输入与结果 |
 | --- | --- | --- |
 | 查询主题 | `openyida design-plan catalog --json` | 从 `themes[].themeId` 或 `creativeOption.themeId` 取值 |
+| Fast 独立主题 | `openyida sample yida-app fast-theme --style-id <themeId> --primary-color <HEX> --output <CSS路径> --json` | 生成并校验主题 CSS，返回导航明暗和应用主题配置 |
 | 导出三文件 | `openyida sample yida-design application-style --style-id <themeId> --output <目录>` | `--style-id` 必填，支持目录中的全部主题；`--output` 缺省为当前目录下 `.cache/samples/application-style` |
 | 生成或更新 CSS | `openyida sample yida-design app-theme --design-file <design.md> --output <CSS路径>` | 设计中的品牌色和派生颜色先填成实际值；同路径更新保留自定义 CSS，并维护旁边的 `<CSS路径>.tokens.md` 更新记录 |
 | 绑定新版主题应用（旧主题须先完成上述确认） | `openyida update-app <appType> --theme-file <CSS路径> --nav-theme <light或dark> --layout <side或top或l_shape> --show-app-nav` | 上传后分别核对主题和导航回读，再检查页面实际效果；应用级自绘导航改用 `--hide-app-nav` |
 
-`--style-id` 只用于三文件导出，`--design-file` 只用于主题生成。`--var KEY=VALUE` 用于其他代码示例的占位替换；应用主题的品牌色和导航值写入 `design.md`。`app-theme` 的 `--output` 缺省为 `.cache/samples/app-theme.css`；省略 `--design-file` 会用公共模板重置目标 CSS。三文件导出中的占位 CSS 先经过主题生成，再上传。
+`--style-id` 用于三文件导出和 Fast 独立主题。`--design-file` 用于根据设计文档生成主题。`--var KEY=VALUE` 用于其他代码示例的占位替换。Fast 通过 `--primary-color` 指定主色。文档任务在 `design.md` 中记录品牌色和导航值。`app-theme` 的 `--output` 缺省为 `.cache/samples/app-theme.css`；省略 `--design-file` 会用公共模板重置目标 CSS。三文件导出中的占位 CSS 先经过主题生成，再上传。
 
 `--nav-theme` 选择平台导航明暗，`--layout` 选择结构。平台兼容参数还接受 `white` / `gray`，正式设计使用模板派生的 `light` / `dark`。菜单圆角、普通/悬停/选中边框、选中阴影、项高、内距与间距是[导航 token](application-theme-consistency.md#导航与应用框架)，在 Fast 的设计 token 或 Plan 的 `visualStyle.tokens` 中填写。CLI 读取设计文件后生成消费样式；这些值没有单独的命令行开关。只有自由创意或历史公共骨架路径按 token 补齐菜单形状规则；命名模板保留原有选择器，不额外追加通用导航规则。四种差异明显的组合及访问态验收方式见[案例经验](application-theme-consistency.md#导航形状与密度的案例经验)。
 
@@ -57,10 +58,11 @@ openyida sample yida-design application-style --style-id free-creative --output 
 
 ## Fast 与 Plan 如何消费
 
-- **Fast**：选定方向后导出一套起点，按唯一输出契约补成最终 `design.md`；保留模板已有的 `applicationStyle` 消费标记，将模板 `themeId` 移入 `themeProfile.sourceThemeId`，填入真实项目、颜色、页面与引用，完成 `check-design`。然后运行 `openyida sample yida-design app-theme --design-file <design.md> --output <app_theme.css>`。共享生成器使用该主题目录的完整配对 CSS，后续同主题重生成保留项目定制。
+- **Fast 完整应用**：按 [Fast 直接搭建](../../yida-app/workflow/fast-build.md) 选择当前目录中的主题，使用 `sample yida-app fast-theme` 独立生成 CSS。CLI 使用配对模板并派生导航明暗，上传和配置回读按搭建步骤推进。
+- **单独设计或维护已有文档**：按设计输出契约生成或更新 `design.md`，用 `themeProfile.sourceThemeId` 记录真实模板来源。通过 `check-design` 后，使用 `sample yida-design app-theme --design-file <design.md> --output <app_theme.css>` 生成主题 CSS。同一主题重新生成时保留项目定制。来源校验失败时按[主题选择](theme-selection.md)核对。
 - **Plan**：`design-plan init` 使用目录中的 `themeId`（`--theme-id`），项目差异放 `visualStyle.tokens`，各页布局写入已有逐页设计。CLI 物化时生成正式 `design.md` 与返回路径中的 `app-theme.css`；文件名沿用 Plan 契约，不另生成第二份应用主题。
 - **实现**：应用级上传一次项目 CSS。导航读取完整的 `tokens.application-global.appearance.navigation`，平台导航保留原变量消费关系，自定义导航由组件明确引用。Canvas 读取设计里的 Token，并可使用 `.oyd-style-workspace`、`.oyd-style-intro`、`.oyd-style-section`；框架、表单和详情应用同一主题。自定义页面落实具体构图。
-- **表单**：先在 `design.md` 写清各区域使用的组件、列比例、间距、长字段整行和移动端重排。`form-layout.json` 提供字段与分栏的初始结构；在各列填入 PRD 字段，并按设计调整布局。`--theme compact` 等参数只设置密度，应用 CSS 负责视觉样式。
+- **表单**：按已确认的字段和布局决定明确组件、列比例、间距、长字段整行和移动端重排。Fast 在当前任务中交接这些决定，文档任务记录在 `design.md`。`form-layout.json` 提供字段与分栏的初始结构。`--theme compact` 等参数只设置密度，应用 CSS 负责视觉样式。
 
 表单支持在顶部、左侧、主体、右侧和字段之间放置 Tab、按钮组、图片或图形、标题与 `Divider`、分栏、状态区、辅助内容和字段。各组件分别负责导航切换、操作入口、视觉焦点、状态反馈、内容组织或数据采集。普通业务分组和章节分隔使用 `Divider`，横向字段组合使用 `ColumnContainer`。
 

@@ -23,7 +23,7 @@
 
 ## 实现职责与主题交付
 
-- **设计文件**：风格与页面布局写入 `design.md`；Fast 将 token 写入 `tokens.application-global`，Plan 通过 `visualStyle.tokens` 生成同一份 `design.md`。
+- **主题输入**：Fast 通过 `fast-theme --tokens-file` 的 `tokens` 对象传入项目覆盖。Plan 在 `visualStyle.tokens` 配置，已有设计文档在 `design.md` 中维护。
 - **应用样式**：颜色、字体、控件、状态、背景、详情表面与底栏样式统一进入当前应用的 `app_theme.css` / `app-theme.css`，以实际生成路径为准，通过应用主题设置加载。已有变量优先；需要边框形式、伪元素等额外表达时，仅在核实平台 DOM 后向同一应用 CSS 添加有限作用域规则，并在设计源记录用途。装饰不遮挡输入、不承载必要信息，不用全局 `.next-*` 覆盖所有组件。
 - **表单结构**：列数、字段排列和标签位置使用表单属性、`ColumnContainer` 和 `Divider` 配置；不同控件遵守自身能力。应用 CSS 不替代字段结构，也不重排 DOM、伪造字段或改变提交行为。
 
@@ -137,7 +137,7 @@
 
 `--pod-page-footer-bg-color` 根据应用主题选择与画布或内容表面协调的实色、半透明或透明；不统一强制透明，也不默认白底。`--pod-sticky-footer-box-shadow` 根据材质和层次选取，可为 `none`。区分外层固定区域与内层按钮容器，避免重复背景、双重阴影和无设计依据的边线。
 
-设计表单主题时，这两个变量必须与控件变量一起显式写入设计源并生成到应用 CSS，不能只在正文写“跟随主题”后沿用模板默认值。Fast 写入 `design.md` 的 `tokens.application-global`；Plan 写入 `visualStyle.tokens` 并物化到 `design.md`。正文说明底栏采用哪个表面及是否需要阴影。
+设计表单主题时，这两个变量必须与控件变量一起显式写入设计源并生成到应用 CSS，不能只在正文写“跟随主题”后沿用模板默认值。Fast 写入主题输入 JSON 的 `tokens`；Plan 写入 `visualStyle.tokens` 并物化到 `design.md`。正文说明底栏采用哪个表面及是否需要阴影。
 
 | 变量 | 设计决策 | 示例含义 |
 | --- | --- | --- |
@@ -184,7 +184,7 @@
 
 ## 写入现有主题源
 
-Fast 将以下变量合并到 `design.md` 的 `tokens.application-global`；Plan 合并到 `build-plan.json` 的 `visualStyle.tokens`，重新物化生成 `design.md` 和 CSS。原有品牌、导航、文字等 token 保留。以下只示范暖纸表单的项目差异，不是所有应用的默认主题：
+Fast 将以下变量合并到主题输入 JSON 的 `tokens`；Plan 合并到 `build-plan.json` 的 `visualStyle.tokens`，重新物化生成 `design.md` 和 CSS。原有品牌、导航、文字等 token 保留。以下只示范暖纸表单的项目差异，不是所有应用的默认主题：
 
 ```json
 {
@@ -221,7 +221,7 @@ Fast 将以下变量合并到 `design.md` 的 `tokens.application-global`；Plan
 }
 ```
 
-Fast 更新使用 `openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css>`；Plan 使用物化结果中的 `outputs.theme`。两条路径都复用现有主题生成器，不新增表单专属主题文件、CLI 参数或一套 preset。已有主题增量更新时保留未修改的变量和定制 CSS。
+Fast 按[独立主题流程](../../yida-app/workflow/fast-build.md#2-同时准备主题与独立页面)更新。已有设计文档使用 `openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css>`。Plan 使用物化结果中的 `outputs.theme`。这些路径复用现有主题生成器，不新增表单专属主题文件、CLI 参数或一套 preset。已有主题增量更新时保留未修改的变量和定制 CSS。
 
 增量更新不会将新版模板的所有选择器自动合并到旧 CSS。已有主题缺少上述提交页背景规则时，先确认实际 DOM，再将模板中的这一小段规则补入原主题文件；不能省略 `--design-file` 重置整份主题。新建主题已包含该规则。
 

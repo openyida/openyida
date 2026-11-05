@@ -133,7 +133,7 @@ CLI 校验源事实，使用预置模板整批生成 `prd.md`、`design.md` 和 
 
 ### 派生的页面导航策略
 
-PRD 实施交接中的 `pages[].navigationPolicy` 与 `pageSpecHandoff` 同级，由 CLI 生成，不是 build-plan.json、business.json、brief 或 page-spec.json 的输入字段。派发页面任务时一并传递；Fast 在 PRD/design.md 明确同样边界。
+PRD 实施交接中的 `pages[].navigationPolicy` 与 `pageSpecHandoff` 同级，由 CLI 生成，不是 build-plan.json、business.json、brief 或 page-spec.json 的输入字段。派发页面任务时一并传递；Fast 在当前页面交接中明确同样的边界。
 
 | 条件 | applicationMenuOwner | pageLayout | renderApplicationMenu | localTabs |
 | --- | --- | --- | --- | --- |

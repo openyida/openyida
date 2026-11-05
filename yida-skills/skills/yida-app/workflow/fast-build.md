@@ -2,17 +2,21 @@
 
 Fast 在应用名称、业务范围及创建授权明确后，立即创建或复用应用。没有创建前的 Plan、完整业务 JSON、build-context、PRD、design.md、page-spec 或统一物化门槛。主题、页面和业务资源按自己的依赖推进。已有明确需求直接复用，只有实际阻塞业务的缺项才澄清。
 
+按 [模式路由](../../yida-design/references/design-mode.md) 确认本次进入 Fast，按 [主题选择](../../yida-design/references/theme-selection.md) 确定本项目的风格和主色。
+
 本文件是 Fast 唯一默认 workflow 入口；其他模式沿用原流程。加载根技能和 `yida-app` 后，按操作加载子技能，不默认展开九阶段文件、`parallel-work.md` 或 `fast-context.md`。子技能明确要求的安全、实现和验收材料仍需读取；复用已读内容和回执，只补读缺项、冲突或变化。旧文档续做确需映射时再读 `fast-context.md`。
 
 ## 1. 创建或复用应用
 
-先按本轮真实资源上下文判断复用还是新建，不重复执行能力和登录探测。用户已经明确新建完整应用且目标不存在时，加载 `yida-create-app` 并单独调用：
+先按本轮真实资源上下文判断复用还是新建，不重复执行能力和登录探测。本次要新建完整应用且尚无本任务已创建或预创建的 app 时，加载 `yida-create-app` 并单独调用：
 
 ```bash
 openyida create-app --name "应用名称" --desc "本轮业务范围" --json
 ```
 
 完整保留原始回执和退出状态，不在创建命令前后拼接 date、管道、head/tail 或 JSON 筛选；计时另起只读命令，复用真实工具时间。记录真实 appType 与返回入口。复用已有应用时不调用创建。授权、当前组织和既有资源边界仍由原技能与 CLI 保护。未知写入先回读，不重复创建。
+
+创建权限不足时按 [创建权限处理](../../yida-create-app/SKILL.md#创建权限不足时的处理) 给出当前组织的申请表并暂停。
 
 ## 2. 同时准备主题与独立页面
 
@@ -24,7 +28,7 @@ openyida sample yida-app fast-theme --style-id app-platinum --primary-color '#2E
 
 示例风格和色值按本轮需求替换。命名主题自动读取配对模板及导航明暗，补齐品牌变量并校验 CSS/文字对比度，不验证业务资源、页面、章节或锚点。返回 `outputs.theme`、`theme.themeColor/navTheme`、`applicationTheme`，不生成任何方案文件。`--check` 只检查本次主题，不写文件；相同产物复用，不同内容保护已有文件，实质改版使用新输出路径。
 
-有明确自由创意需求时用 free-creative，`--tokens-file` 只写主题 tokens/creativeDirection，并传 `--nav-theme light|dark`；仍不需要业务或页面 JSON。app-pop 沿用明确风格/展示任务依据，不因 Fast 自动选择。主题 token 与 CSS 消费、旧主题全局作用域确认等规则仍适用。主题失败只暂缓主题应用，主流程继续已授权且独立的资源/页面工作。
+命名主题如需覆盖主题变量，可用 `--tokens-file` 传入含 `tokens` 对象的主题 JSON。有明确自由创意需求时使用 `free-creative`，在同一输入中提供 `creativeDirection`，并传 `--nav-theme light|dark`。app-pop 沿用明确风格/展示任务依据，不因 Fast 自动选择。主题 token 与 CSS 消费、旧主题全局作用域确认等规则仍适用。主题失败只暂缓主题应用，主流程继续已授权且独立的资源/页面工作。
 
 appType 和 CSS 各自就绪后，按 `yida-create-app` 的 update-app 参数上传主题并设置布局/导航，回读核对。将 applicationTheme 存入逐步积累的 build-manifest。页面直接编写 Canvas 源码并消费共享变量，不补造设计文件或 page-spec。
 
@@ -32,6 +36,8 @@ appType 和 CSS 各自就绪后，按 `yida-create-app` 的 update-app 参数上
 
 - 只有首页、案例展示/详情和联系我们的展示需求：直接实现页面、导航、联系方式与明确标注的示例内容，默认不创建案例表、留言表、后台或种子数据。用户明确要求提交保存、持续维护、数据库时才创建对应真实数据资源。
 - 有数据库、角色隔离、审批或自动化要求：保留全部范围；创建/更新表单前核对当前表的字段契约，配置权限时核对真实成员和服务端数据范围，审批按真实流程执行。失败只阻塞依赖该资源的工作，独立页面继续。前端隐藏和角色文字不算权限落地。
+- 本轮新建表单由 CLI 自动保存服务端默认数据视图并将实例标题置于最后一个数据列；核对创建回执 `defaultView.readbackVerified=true`。失败时用原表单 ID 恢复，见[新建表单的默认列顺序](../../yida-form-view/SKILL.md#新建表单的默认列顺序)。用户指定列配置时，创建后按用户要求保存并回读。
+- 用户要求重命名原生视图或向表格操作列添加按钮时，表单和目标资源就绪后用 `use_skill("yida-form-view", "配置视图名称或操作列按钮")` 执行并回读。
 - 普通表单执行 `data seed form --json`；流程示例按[流程 seed 编排](../../yida-data-management/references/process-seed-workflow.md)直接创建本人审批临时流程、seed 核验、编辑并发布最终流程。先被关联表、后依赖表，按 recordIndex 复用已核验 ID，按需业务抽查；字段与恢复规则见[数据技能](../../yida-data-management/SKILL.md#一次写入普通表单示例记录)。
 - 并行按下节依赖与调度规则执行，沿用 batch、资源锁和失败回读保护。
 - 缺图使用设计允许的明确状态，先发布已有授权的可用首版；素材独立运行，整次共享60秒、单请求15秒，不 sleep 重试。只有某页需要素材时写该页 asset draft（assets 和 assetStrategy），`asset resolve --input <绝对草稿路径> --manifest <绝对清单路径> --page-id <pageId>` 即可；无需 business context 或 design.md。来源与最终缺口按素材技能处理。
@@ -55,7 +61,7 @@ appType 和 CSS 各自就绪后，按 `yida-create-app` 的 update-app 参数上
 
 ## 4. 逐页发布与收尾
 
-每页就绪即检查、编译和发布，真实数据绑定、权限和主题未验证时保留缺口。统一核对导航与实际入口。build-manifest 只随真实执行增补资源 ID、字段映射、主题回执、素材任务和验收证据，不写预设完整方案，不作为创建门槛。
+每页就绪即检查、编译和发布，真实数据绑定、权限和主题未验证时保留缺口。统一核对导航与实际入口。完整应用的可见平台菜单按 [收尾分组](../../yida-nav-group/SKILL.md#完整应用收尾分组) 检查，超过 8 个一级业务页面时先分组并回读，再交付。build-manifest 只随真实执行增补资源 ID、字段映射、主题回执、素材任务和验收证据，不写预设完整方案，不作为创建门槛。
 
 ```bash
 openyida check-prd-completeness --manifest-only --build-manifest <绝对路径>/build-manifest.json --app-type <真实appType> --json

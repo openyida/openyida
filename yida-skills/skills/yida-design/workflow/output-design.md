@@ -1,6 +1,6 @@
 # 输出：design.md
 
-本文件是 Fast、Plan 和单页设计共同使用的唯一项目设计输出契约。Fast 优先按 [短设计输入](../references/fast-design-spec.md) 由 CLI 生成，特殊设计可手写；Plan 由 CLI 物化生成。各流程交付相同格式并使用同一校验。
+本文件用于 Plan、单页设计及已有设计文档的维护，规定唯一项目设计输出格式。Plan 由 CLI 物化生成。Fast 新建应用走 [直接搭建](../../yida-app/workflow/fast-build.md)，独立生成主题 CSS，不以新建 design.md 或文档校验为前提。单独生成设计文档时可使用[短设计输入](../references/fast-design-spec.md)，产物与 Plan 物化的文档使用同一格式和校验。
 
 业务对象、数据、流程、页面范围与操作由需求和 PRD 决定；主题选择按 [共享规则](../references/theme-selection.md) 执行。项目文件自包含，实现阶段读取 PRD 与 `design.md`，不再回到主题库推断规则。
 
@@ -52,7 +52,7 @@
 | `themeFile` | 当前主题 CSS 的实际交付路径；继承当前应用且没有本地主题文件时为空字符串 |
 | 既有导航配置 | 保留 navigationType、layoutDirection、hideAppNav、logoSource 等已确认配置，不重新推断入口范围 |
 
-应用导航按 [四类导航契约](../../yida-prd/workflow/output-prd.md#导航类型与执行配置) 与 PRD 保持一致。全应用自绘导航才交接应用级隐藏；独立前台自绘菜单只影响该入口，后台保留平台导航。页面全屏不自动改变应用导航。`colorMode` 如有保留，表示宜搭配色模式，不代表页面明暗。
+应用导航按 [四类导航契约](../../yida-prd/workflow/output-prd.md#agent-导航实施映射) 与 PRD 保持一致。全应用自绘导航才交接应用级隐藏；独立前台自绘菜单只影响该入口，后台保留平台导航。页面全屏不自动改变应用导航。`colorMode` 如有保留，表示宜搭配色模式，不代表页面明暗。
 
 ## 正文构成
 
@@ -87,13 +87,13 @@
 
 按 [阅读无障碍门禁](../references/page-quality-gates.md#阅读无障碍门禁) 将排版与可访问名称写入共享组件规则，将放大重排、完整信息获取和阅读顺序写入逐页响应式与验收项。使用已有正文与 Plan 字段，不新增一份无障碍配置；验收标准与已执行结果分开，设计阶段不得写成已通过实际页面验证。
 
-Fast 在 design.md 逐页写清背景范围、导航首屏/滚动态、对齐宽度、实际滚动容器、入口行为、返回状态及未保存策略；Plan 写入已有 pageApplications 的 visualApplication、surface、states 后物化，不另问实现字段。
+手写或维护设计文档时逐页写清背景范围、导航首屏/滚动态、对齐宽度、实际滚动容器、入口行为、返回状态及未保存策略；Plan 写入已有 pageApplications 的 visualApplication、surface、states 后物化，不另问实现字段。
 
 ## 稳定引用规则
 
 PRD 继续使用 `themeProfile`、`sceneRecipes.<sceneKey>`、`components.<componentName>` 和 `states.<stateName>` 这些 `designRefs`。引用先定位 frontmatter 索引，再进入对应正文；`themeProfile` 直接读取元数据。
 
-Fast 保留 PRD 的 Markdown 逐页块与 `pageSpecHandoff` 格式，display-page 显式填写共享的稳定 `pageId`；`check-design --prd` 按 `pageId`、`designFile` 和 `designRefs` 核对页面与引用。Plan 使用已有 JSON 交接记录；不要求 Fast 转换成 Plan PRD。
+已有 Markdown PRD 保留逐页块与 `pageSpecHandoff` 格式，display-page 显式填写共享的稳定 `pageId`；`check-design --prd` 按 `pageId`、`designFile` 和 `designRefs` 核对页面与引用。Plan 使用已有 JSON 交接记录；已有 Markdown PRD 可直接关联校验。
 
 - `sceneKey` 复用共享需求/计划的稳定场景 key，不翻译或重新命名。`sceneRecipes.<sceneKey>.pages[]` 每项仅保存 `pageId` 和 `anchor`，同一场景允许多个真实页面。
 - 页面使用 `#page-…`，组件使用 `#component-…`，状态使用 `#state-…`。正文相应位置显式写 `<a id="page-…"></a>` 等 HTML anchor；同一 anchor 唯一，索引值必须能够精确找到。
@@ -135,13 +135,13 @@ frontmatter 对应 `components.button.anchor: "#component-button"`、`sceneRecip
 
 图标配色按 [主题一致性门禁](../references/page-quality-gates.md#4-主题一致性门禁) 检查。有底盒、按钮背景或选中底色时，在 `iconSystem.colorPairs` 登记配色，例如 `{"name":"统计图标·默认","foreground":"var(--oyd-stat-icon-fg)","background":"var(--oyd-stat-icon-bg)"}`。优先引用已有变量，需要新角色时再加入 `tokens`；共享配色只记录一次，颜色不同的状态分别记录。
 
-Fast 写入 `design.md`；Plan 写入 `visualStyle.forUser.iconSystem.colorPairs`，变量写入 `visualStyle.tokens`。CLI 支持 HEX、rgb/rgba、black/white/transparent 及这些颜色的变量引用；半透明底色需补充实际不透明的 `surface`。低于 3:1、颜色无法解析或缺少底色信息时校验失败。
+维护设计文档时写入 `design.md`。Plan 写入 `visualStyle.forUser.iconSystem.colorPairs`，变量写入 `visualStyle.tokens`。CLI 支持 HEX、rgb/rgba、black/white/transparent 及这些颜色的变量引用；半透明底色需补充实际不透明的 `surface`。低于 3:1、颜色无法解析或缺少底色信息时校验失败。
 
 ## 用户配色与模板的优先级
 
 用户最新明确的风格、颜色要求优先；没有新要求时保留已选主题的配色与材质，模板示例色不替代用户选择。指定颜色写入项目 token，并协调页面、卡片、导航和交互；保留主题结构、文字可读性与独立状态语义，不只改按钮或统一染色。
 
-Fast 与 Plan 使用同一主题的颜色推导、组件规则和页面设计标准。只计算模板中已有的主色公式，固定值与变量引用按原设计保留；项目差异直接写入 token，不强制其他色阶跟随主色。Plan 输入使用 `visualStyle.tokens`，Fast 写入 `design.md.tokens`，最终设计相同。导航差异 token（未声明项沿用平台绑定） 沿用主题模板，并合入明确的项目差异；`navigationStyle.tone` 表示导航明暗，具体外观由这组 token 表达。导航明暗与内容画布分别设计。用户明确保留中性参考或只改强调色时尊重该范围。`--pod-nav-menu-item-selected-shadow` 作为方向无关的基础外观 Token 独立透传，`none` 表示关闭；CLI 不根据导航明暗生成替代配色。
+Fast 与 Plan 使用同一主题的颜色推导、组件规则和页面设计标准。只计算模板中已有的主色公式，固定值与变量引用按原设计保留；项目差异直接写入 token，不强制其他色阶跟随主色。Plan 输入使用 `visualStyle.tokens`，已有设计文档使用 `design.md.tokens`。Fast 新建应用的主题覆盖使用 `fast-theme --tokens-file` 的 `tokens` 对象。导航差异 token（未声明项沿用平台绑定） 沿用主题模板，并合入明确的项目差异；`navigationStyle.tone` 表示导航明暗，具体外观由这组 token 表达。导航明暗与内容画布分别设计。用户明确保留中性参考或只改强调色时尊重该范围。`--pod-nav-menu-item-selected-shadow` 作为方向无关的基础外观 Token 独立透传，`none` 表示关闭；CLI 不根据导航明暗生成替代配色。
 
 圆角、padding、gap、密度、背景与卡片关系按选中主题和真实任务执行，通用参考值仅补未定义项。同色画布与面板可通过边界、共容器和留白建立层次；渐变、玻璃、阴影、纹理不互相强制绑定。需要动效时提供 reduced motion 降级，装饰不覆盖内容与操作。
 
@@ -163,11 +163,11 @@ Fast 与 Plan 使用同一主题的颜色推导、组件规则和页面设计标
 
 主题准备与表单、页面开发按 [并行依赖](../../yida-app/workflow/parallel-work.md#主题与业务资源的依赖) 调度：计划或主题确认后即生成 CSS，不依赖表单或页面实现；appType 与 CSS 就绪便立即同步应用基础设置。页面先按已确认 token 开发，视觉验收再核对主题加载结果。
 
-页面背景统一使用 `--pod-page-bg-color`，卡片和面板使用 `--pod-card-bg-color`，默认回退 `--color-white`；抽屉外壳使用 `--pod-shell-theme-bg-color`，内部 iframe 继续加载表单或详情页主题，标题栏与正文容器透明承接，不用卡片底色铺满抽屉。导航归属不改变页面底色，隐藏导航不自动透明；深色或明确的应用背景通过同一平台 token 配置。Plan 和 Fast 将设计值写入 design.md 并生成 app-theme.css，Canvas 宿主、页面根和 antd 统一消费；渐变、纹理和素材作为页面局部装饰层。
+页面背景统一使用 `--pod-page-bg-color`，卡片和面板使用 `--pod-card-bg-color`，默认回退 `--color-white`；抽屉外壳使用 `--pod-shell-theme-bg-color`，内部 iframe 继续加载表单或详情页主题，标题栏与正文容器透明承接，不用卡片底色铺满抽屉。导航归属不改变页面底色，隐藏导航不自动透明；深色或明确的应用背景通过同一平台 token 配置。Plan 将设计值写入 design.md 并生成 app-theme.css，Fast 直接生成主题 CSS；Canvas 宿主、页面根和 antd 统一消费主题变量，渐变、纹理和素材作为页面局部装饰层。
 
 ### 背景颜色、渐变与图片
 
-Fast 与 Plan 按同一规则记录背景，先确定作用范围：
+应用级与页面级背景按以下作用范围记录：
 
 - 应用根背景：底色写 `--pod-app-root-bg-color`，渐变或图片写 `--pod-app-root-bg-image`，例如 `linear-gradient(135deg, #F4F8F5, #E8F0EC)`。主题 CSS 提供变量，由实际使用它们的应用根容器显示；不把根背景复制到卡片、输入框或表格。
 - 页面与卡片：`--pod-page-bg-color`、`--pod-card-bg-color` 保持颜色值。它们还会被 `background-color` 和组件颜色配置使用，不能填入渐变或图片。实心页面、卡片会遮住后面的根背景，不能认为根背景一改，所有内容面就会一起改变。
@@ -178,9 +178,9 @@ Fast 与 Plan 按同一规则记录背景，先确定作用范围：
 
 `tokens` 的格式与变量契约见 [frontmatter 规范](#frontmatter-规范)。需要改变平台表现的圆角、字体、间距等必须落实为 CSS token，不能只写正文。
 
-Fast 或单独更新主题时，执行 `openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css --design-file prd/<项目名>/design.md`。首次按 `themeProfile.sourceThemeId` 读取命名主题配对 CSS，保留其原有声明与规则，只实例化品牌及相对原模板的项目覆盖，不按设计默认值覆盖模板 CSS 的差异；自由创意使用公共骨架；同主题已有 CSS 只更新变化的 token，保留其他 token 和自定义样式。换主题或来源不明时使用新输出路径，按[模板来源约束](../references/application-style-library.md#模板来源与重复生成)迁移定制。CLI 自动保存更新记录，内容相同时跳过写入，写入失败回滚。省略 `--design-file` 会用公共模板重置目标 CSS。
+Fast 新建应用使用 [fast-theme](../../yida-app/workflow/fast-build.md) 直接生成 CSS。根据已有 design.md 更新主题时，执行 `openyida sample yida-design app-theme --output .cache/openyida/<项目名>/app-theme.css --design-file prd/<项目名>/design.md`。首次按 `themeProfile.sourceThemeId` 读取命名主题配对 CSS，保留其原有声明与规则，只实例化品牌及相对原模板的项目覆盖，不按设计默认值覆盖模板 CSS 的差异；自由创意使用公共骨架；同主题已有 CSS 只更新变化的 token，保留其他 token 和自定义样式。换主题或来源不明时使用新输出路径，按[模板来源约束](../references/application-style-library.md#模板来源与重复生成)迁移定制。CLI 自动保存更新记录，内容相同时跳过写入，写入失败回滚。省略 `--design-file` 会用公共模板重置目标 CSS。
 
-主题生成前校验输入 CSS 的括号、字符串和注释闭合，生成后与上传前复用同一检查；纯模板导出也须通过。出现 `THEME_CSS_STRUCTURE_INVALID` 时按错误行修复源模板或已有 CSS，再重试；生成失败保留原 CSS 和 token 更新记录，不能靠重置模板覆盖已有定制。新增全局及页面语义 token 写入包含顶层 `:root` 的统一声明块；light、dark、white、gray 选择器消费同一套项目颜色。
+主题生成前先确认 `sourceThemeId` 在当前 CLI 目录中。`APPLICATION_STYLE_UNKNOWN` 的 issues 给出字段和实际 ID，catalogCommand 给出查询方式；按[主题选择](../references/theme-selection.md#先读摘要再读选中主题)恢复，不用替换 ID 冒充模板来源。随后校验输入 CSS 的括号、字符串和注释闭合，生成后与上传前复用同一检查；纯模板导出也须通过。出现 `THEME_CSS_STRUCTURE_INVALID` 时按错误行修复源模板或已有 CSS，再重试；生成失败保留原 CSS 和 token 更新记录，不能靠重置模板覆盖已有定制。新增全局及页面语义 token 写入包含顶层 `:root` 的统一声明块；light、dark、white、gray 选择器消费同一套项目颜色。
 
 品牌色阶 `--color-brand1-1/2/3/5/6/9/10` 必须完整且在顶层 `:root` 可用。`THEME_BRAND_SCALE_INCOMPLETE` 表示缺档或作用域不满足，`THEME_BRAND_SCALE_INVALID` 表示最终颜色值或引用不可用，`THEME_CSS_UNRESOLVED_TOKEN` 表示残留模板占位或生成说明；按 details 修复 design.md 后重新生成，不能只替换主色或追加另一套默认色盘。
 
@@ -188,13 +188,13 @@ Fast 或单独更新主题时，执行 `openyida sample yida-design app-theme --
 
 主题文件只能由上述 OpenYida CLI 契约生成或更新。不得另写 Python、Node、Shell 或 `run_workspace_script` 临时脚本来生成、复制、整文件重写、正则替换或 retheme 主题 CSS；校验脚本只能读取并报告问题，不能改写主题文件。需要调整 CLI 未覆盖的精确 classname 覆盖时，只允许在现有文件末尾做小范围编辑，并重新通过 `update-app --theme-file` 上传完整文件。
 
-Plan 修改现有方案按 [局部调整](../../yida-app/workflow/plan/step-4-deliver.md#4-处理调整) 更新视觉字段与配色，使用返回的 `outputs.theme`。Fast 由 `yida-design` 直接维护 `design.md`。应用阶段由 `yida-app` 使用 `--theme-file` 应用同一份产物。
+Plan 修改现有方案按 [局部调整](../../yida-app/workflow/plan/step-4-deliver.md#4-处理调整) 更新视觉字段与配色，使用返回的 `outputs.theme`。单独修改已有 `design.md` 时由 `yida-design` 维护源文件。应用阶段由 `yida-app` 使用 `--theme-file` 应用同一份产物。
 
 整体暗色方案按 [浮层适配](../references/theme/theme-token-presets.md#暗色主题浮层适配) 补齐组件 token。实现阶段可在生成的应用主题 CSS 末尾追加精确 classname 覆盖，再上传完整主题文件。
 
 ## 校验与交接
 
-Fast 写完和更新 `design.md` 后执行：
+手写或更新 `design.md` 后执行：
 
 ```bash
 openyida check-design prd/<项目名>/design.md --json
@@ -210,7 +210,7 @@ PRD 的相对 `designFile` 默认相对命令的当前工作目录解析，必�
 
 Plan 物化内部使用同一校验，不另维护宽松标准。校验覆盖格式、变量、定位引用和跨文档一致性；真实界面的视觉、数据、交互与可访问性仍按 [页面质量门禁](../references/page-quality-gates.md) 检查。
 
-`check-design` 检查设计文档，不读取主题 CSS；CSS 结构检查由主题生成和 `update-app --theme-file` 执行。结构检查不等于完整 CSS 语义或浏览器效果验证。
+`check-design` 核对设计文档记录的主题来源，并使用对应模板的 CSS 检查配色。项目 CSS 的结构由主题生成和 `update-app --theme-file` 检查，浏览器效果按页面质量门禁验收。
 
 页面实现交给 `yida-canvas-custom-page`。
 

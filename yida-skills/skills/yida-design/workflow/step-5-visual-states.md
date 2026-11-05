@@ -35,4 +35,4 @@
 
 逐页落实其中的 [阅读无障碍门禁](../references/page-quality-gates.md#阅读无障碍门禁)，说明文字、放大重排、完整信息获取与辅助阅读的实现要求和验收方式；仅写“清晰易读”不能代替具体设计。
 
-随后进入 [写入与校验](step-6-handoff.md)：Fast 手写后执行公共 check-design；Plan 由 CLI 物化并执行相同校验。
+随后进入 [写入与校验](step-6-handoff.md)：手写或更新设计文档后执行公共 `check-design`。Plan 由 CLI 物化并执行相同校验。

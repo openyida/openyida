@@ -2,7 +2,7 @@
 
 ## 设计槽位
 
-Fast 和 Plan 在 `design.md` 的 frontmatter 保留主题等字段，并用一行 JSON 写 `assetStrategy`：
+Fast 将 `assetStrategy` 放入 `--input` 指定的素材草稿。Plan 和已有设计文档通过 `design.md` 的 frontmatter 提供同一字段：
 
 ```yaml
 ---
@@ -67,12 +67,15 @@ assetStrategy: {"pages":[{"pageId":"home","imageNeed":"required","slots":[{"slot
 ## 按页面执行
 
 ```bash
+# Fast 的素材草稿包含 assetStrategy
+openyida asset resolve --input asset-manifests/home.draft.json --manifest asset-manifests/home.json --page-id home --json
+# Plan 或已有设计文档
 openyida asset resolve --input asset-manifests/home.draft.json --manifest asset-manifests/home.json --design design.md --page-id home --json
 ```
 
-完整应用带 `--design` 校验槽位。`--page-id` 只处理指定页；省略时处理整份清单。各页使用不同的 `--manifest` 文件，同时运行、独立交接。第二轮更新失败项 input，再将页面清单同时作为输入和输出。轮次和并发规则见 [主流程](../SKILL.md#3-最多两轮按页面并发)。
+Plan 和已有文档任务使用 `--design` 校验槽位。Fast 将 `assetStrategy` 和 `assets` 一起放入草稿，省略 `--design`。`--page-id` 只处理指定页；省略时处理整份清单。各页使用不同的 `--manifest` 文件，同时运行、独立交接。第二轮更新失败项 input，再将页面清单同时作为输入和输出。轮次和并发规则见 [主流程](../SKILL.md#3-最多两轮按页面并发)。
 
-独立图片可用 `--slot home.hero=<图片> --source user` 检查；这只验证传入图片，完整应用仍需设计槽位校验。
+独立图片可用 `--slot home.hero=<图片> --source user` 检查；这只验证传入图片，完整应用仍按本节的对应输入校验槽位。
 
 ## 链接检查与上传
 

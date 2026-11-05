@@ -250,7 +250,7 @@ openyida data create form APP_xxx FORM-商机表 --expect-form-name 商机表 --
 | 回读一致性 | 校验全部实例 ID，忽略多选顺序和标题改名；返回了 appType/formUuid/formType 时必须与写入及 Schema 一致，不能只凭相同 ID 认定成功 |
 | 页面展示 | 主表复用 `readCanvasAssociation`；子表先 `readCanvasSubformRows` 再逐行读取关联；显式空值为 empty，缺失/隐藏、损坏、重复关联为 error；缺标题先用页面已加载名称字典，无法解析则报错 |
 
-Schema 约束只能在 Schema 已读取时检查；未开启 `--verify-write` 或别名解析的旧单条写入仍进行数组格式检查，不额外请求 Schema。返回只含 ID 时不能证明服务端省略的目标元数据，也不能证明权限、过滤规则、自动回填或流程状态正确。流程关联只接受真实允许关联的已有实例，seed 不负责发起流程。未知格式应显式报错并检查实际回执，不把任意对象/文本转成展示名称，也不因失败重复写入。
+Schema 约束只能在 Schema 已读取时检查；未开启 `--verify-write` 或别名解析的旧单条写入仍进行数组格式检查，不额外请求 Schema。返回只含 ID 时不能证明服务端省略的目标元数据，也不能证明权限、过滤规则、自动回填或流程状态正确。流程关联使用真实允许关联的已有实例；生成流程示例按[流程 seed 编排](process-seed-workflow.md)发起并核验。未知格式应显式报错并检查实际回执，不把任意对象/文本转成展示名称，也不因失败重复写入。
 
 ## 实现建议
 

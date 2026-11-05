@@ -98,11 +98,18 @@ test.each(['qwenwork', 'local', 'cloud', 'web_local'])('creation verifies modern
   expect(httpGet.mock.calls[0][1]).toBe('/APP_TEST/query/app/getAppIncludingAecpInfo.json');
 });
 
+test.each([undefined, 'other-org'])('creation verifies the theme with response corpId %s', async corpId => {
+  httpGet.mockResolvedValue({ success: true, content: { ...app, corpId } });
+  await run(['Test app']);
+  expect(JSON.parse(console.log.mock.calls[0][0])).toMatchObject({
+    success: true, appType: 'APP_TEST', themeVerification: { verified: true, appThemeMode: 'modern' },
+  });
+});
+
 test.each([
   { ...app, config: {} },
   { ...app, appThemeMode: 'legacy' },
   { ...app, appThemeEnable: 'n' },
-  { ...app, corpId: 'other-org' },
   { ...app, appType: 'APP_OTHER' },
 ])('a created app with unverified theme/identity is not reported as success or recreated: %j', async content => {
   httpGet.mockResolvedValue({ success: true, content });

@@ -1,12 +1,18 @@
 ---
 name: yida-app
-description: 创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。Fast 明确范围后立即创建或复用应用，独立生成 app_theme.css，Plan 物化并确认业务与视觉方案；随后创建或复用资源；表单/流程先于自定义页面。页面 UI 按已确认设计实现，代码示例按需参考；前后台都规划菜单顺序与默认页面，发布后分别验收实际入口。
+description: 创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。Fast 明确范围后立即创建或复用应用，独立生成 app_theme.css，按实际依赖推进资源和页面。Plan 物化并确认业务与视觉方案后实施。页面 UI 按已确认设计实现，代码示例按需参考；前后台都规划菜单顺序与默认页面，发布后分别验收实际入口。
 ---
 
 # yida-app
 
 完整应用编排技能。它负责把一次“创建/搭建/补齐应用”的需求拆成资源解析、产品设计、资源落地、页面发布和结果输出。全局 CLI、ID、存储、发布和输出规则以主入口 `SKILL.md` 为准；按步骤执行该步骤所需 `use_skill(...)`。
 
+## 本次搭建依据
+
+先判断是新应用还是同任务续做，再进入 Fast / Plan。新建独立应用只用本次输入和用户明确指定的参考。不主动查找旧应用，也不从历史任务、记忆或缓存带入组织、资源、需求、主题和模式；名称或业务相近也按新任务处理。同任务续做沿用当前目标的有效回答、明确委托和真实回执，不因恢复或切换技能重新提问。已有应用但未确认业务范围时先澄清。
+
+- 功能、角色、流程、视觉选择按 [需求分析](../yida-requirement-analysis/workflow/prepare-brief.md#适用阶段与续做) 核对本次依据，资源按 [上下文识别](workflow/step-1-resource-context.md) 解析。
+- 范围足以实施后按 [模式路由](../yida-design/references/design-mode.md) 选择 Fast 或 Plan。
 
 **Fast 输入分支**：以 [短执行流程](workflow/fast-build.md) 为唯一 workflow 入口，范围和授权明确即创建/复用应用，按依赖并行；不以 Plan、完整 JSON、build-context、PRD 或设计文档校验作为前置。保留 app_theme.css 和业务校验。按操作加载技能，不逐步读取九阶段或并行长文；旧文档缺项才读 [阶段映射](references/fast-context.md)。Plan 保留原流程。
 
@@ -40,7 +46,7 @@ Plan 规划阶段的工作流入口只读取 `workflow/step-1-resource-context.m
 
 ## 续做与恢复
 
-先判断本轮是否已有有效需求确认：历史回答或同任务 `intake.confirmed=true` 覆盖当前范围且未被撤回时，复用答案、PRD、设计和资源回执，从未完成阶段继续。刷新、恢复、压缩或用户说“继续”不触发重新首问；仅应用已存在也不代表需求已确认。状态不明时先只读核对当前任务材料；范围变更、材料缺失或冲突按 [需求分析的适用阶段与续做](../yida-requirement-analysis/workflow/prepare-brief.md#适用阶段与续做) 处理。
+按 [需求分析的适用阶段与续做](../yida-requirement-analysis/workflow/prepare-brief.md#适用阶段与续做) 核对当前任务的确认依据，复用有效回答、设计和资源回执，从未完成阶段继续。刷新、恢复、压缩或“继续”只补齐影响下一步的缺项。
 
 已发布但尚未完成本轮导航、验收或交付时，按缺项进入 [Step 8](workflow/step-8-publish-navigation.md) 或 [Step 9](workflow/step-9-output-finish.md)，不返回需求首问。发布成功回执不能替代实际验收。
 
