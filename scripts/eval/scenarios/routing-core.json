@@ -1,5 +1,17 @@
 [
   {
+    "id": "native-form-view-rename",
+    "prompt": "把客户表的「全部数据」表格视图重命名为「客户跟进」。",
+    "expectedSkill": "yida-form-view",
+    "note": "原地修改已有视图名称"
+  },
+  {
+    "id": "native-form-view-append-button",
+    "prompt": "把已建好的「分配」按钮添加到客户表「待跟进」视图的操作列末尾。",
+    "expectedSkill": "yida-form-view",
+    "note": "配置已有视图的操作列按钮引用"
+  },
+  {
     "id": "native-custom-button-current-form",
     "prompt": "给现有客户表单的页面设置加一个自定义分配按钮，点击后只允许改跟进人，并显示在表格视图和详情页。",
     "expectedSkill": "yida-custom-button",

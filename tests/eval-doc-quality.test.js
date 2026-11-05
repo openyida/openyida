@@ -200,6 +200,20 @@ describe('checkMaintainability', () => {
     expect(keys).toContain('naming');
     expect(keys).toContain('isolation');
   });
+
+  test('shared references do not inflate depth or count as circular', () => {
+    const graphDir = fs.mkdtempSync(path.join(tmpDir, 'skill-good', 'references', 'graph-'));
+    fs.writeFileSync(path.join(graphDir, 'SKILL.md'), '[A](a.md) [B](b.md)');
+    fs.writeFileSync(path.join(graphDir, 'a.md'), '[Shared](shared.md)');
+    fs.writeFileSync(path.join(graphDir, 'b.md'), '[Shared](shared.md)');
+    fs.writeFileSync(path.join(graphDir, 'shared.md'), '# Shared');
+    const checks = () => Object.fromEntries(checkMaintainability(graphDir, [graphDir]).checks.map(check => [check.key, check]));
+    expect(checks().refDepth.detail).toBe('max depth 2');
+    expect(checks().noCircular.score).toBe(20);
+
+    fs.writeFileSync(path.join(graphDir, 'shared.md'), '[Back to A](a.md)');
+    expect(checks().noCircular.score).toBe(0);
+  });
 });
 
 // ---------------------------------------------------------------------------

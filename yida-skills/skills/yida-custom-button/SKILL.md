@@ -14,7 +14,11 @@ description: 配置已有普通表单或流程表单的原生自定义按钮。�
 | 手动执行复杂业务处理 | `invokeFlow`，绑定当前表单已发布的自定义按钮手动触发流（type 6） |
 | 查看业务说明、进入应用页面或外部系统 | `linkToPage`，应用内页面或 HTTP(S) 链接 |
 
-先查目标表单的按钮和可选资源，按业务意图编写配置。不要仅凭表单名猜字段或资源 ID。
+## 步骤
+
+1. 查询目标表单的按钮、动作和可用资源，使用真实字段或资源 ID。
+2. 根据业务动作编写配置，创建或更新按钮定义并回读。
+3. 根据用户指定的显示位置验证。仅需向指定视图的操作列追加已有按钮时，使用 `form-view add-button`。
 
 ```bash
 openyida custom-button list <appType> <formUuid> --json
@@ -25,6 +29,8 @@ openyida custom-button update <appType> <formUuid> <buttonUuid> --config patch.j
 ```
 
 `options` 返回字段、筛选变量、被关联表单、页面、type 6 自动化流、表格视图和自定义详情页。没有符合条件的流时，用 `yida-integration` 配置按钮手动触发的自动化；本命令不会创建或执行自动化。
+
+需要通过「表格设置 → 自定义按钮」把定义追加到指定视图的操作列时，加载 `use_skill("yida-form-view", "向表格操作列添加按钮")`，使用 `form-view add-button`。创建新定义后使用回读返回的按钮 UUID。
 
 按钮名称的每种语言文案最长 10 个字符。平台会自动补齐备用翻译与空元数据；CLI 回读会核对显式设置和原有翻译，接受这些平台补充项。
 
@@ -63,6 +69,8 @@ openyida custom-button delete <appType> <formUuid> <buttonUuid> --expected-hash 
 ```
 
 删除定义与移除显示引用不同。备份包含原定义，但重建会得到新 UUID，不能自动恢复其他地方的旧引用。仅要求隐藏某处按钮时，调整对应引用。
+
+## 输出
 
 写入前自动备份，成功需返回 `readbackVerified: true`。超时、认证失败或回读不一致时，保留 `backupPath` 并只读检查，不直接重复创建/删除。hash 能检测读取后的变化，平台没有原子比较写入能力。
 

@@ -42,7 +42,8 @@
       "negative_signals": [
         "自定义页面React按钮",
         "仅修改按钮颜色",
-        "提交表单按钮文案"
+        "提交表单按钮文案",
+        "仅向指定表格视图的操作列追加已有按钮"
       ],
       "command_ids": [
         "custom-button"
@@ -199,7 +200,7 @@
       "name": "yida-form-view",
       "path": "skills/yida-form-view/SKILL.md",
       "display_name": "原生数据管理视图配置",
-      "description": "读取原生视图列表、显示列和表格设置，配置字段显隐与顺序、列宽、冻结列、默认筛选，新建表格视图和调整顺序。",
+      "description": "读取原生数据管理视图，配置显示列、默认筛选与排序，新建、重命名和排序视图，向表格操作列添加已有自定义按钮。",
       "category": "yida-skills/form",
       "tags": [
         "原生视图",
@@ -218,7 +219,9 @@
         "调整原生表格列宽",
         "冻结订单名称列",
         "新建待处理视图",
-        "配置默认筛选条件"
+        "配置默认筛选条件",
+        "重命名已有表格视图",
+        "把已有自定义按钮添加到指定视图的操作列"
       ],
       "negative_signals": [
         "仅美化颜色边框",
@@ -227,7 +230,8 @@
       ],
       "command_ids": [
         "form-view",
-        "get-schema"
+        "get-schema",
+        "custom-button"
       ],
       "requires_login": true
     },

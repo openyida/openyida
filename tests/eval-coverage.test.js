@@ -143,18 +143,15 @@ describe('loadCategories', () => {
 
 describe('loadGenerationCategories', () => {
   test('matches keywords from scenario text to categories', () => {
-    // loadGenerationCategories reads DEFAULTS.indexFile internally, so we
-    // only verify that it returns a Set (the real index file may or may not
-    // exist in the test environment).
     const genDir = mkdirs('generation');
+    const indexFile = writeFile('generation-index.json', JSON.stringify({
+      skills: [{ name: 'test-form', category: 'test/form' }],
+    }));
     writeFile('generation/gen.json', JSON.stringify([
       { id: 'form-test', prompt: '创建表单', note: '表单类' },
     ]));
 
-    const covered = loadGenerationCategories(genDir);
-    expect(covered).toBeInstanceOf(Set);
-    // Cannot assert exact contents because it depends on DEFAULTS.indexFile,
-    // but the function should not throw.
+    expect(loadGenerationCategories(genDir, indexFile)).toEqual(new Set(['test/form']));
   });
 
   test('returns empty set for empty directory', () => {
@@ -244,16 +241,14 @@ describe('computeCategoryCoverage', () => {
       ],
     }));
 
-    // computeCategoryCoverage calls loadGenerationCategories which uses
-    // DEFAULTS.indexFile internally, so the generation matching depends on
-    // the real project index. We can still verify the structure is correct
-    // and that all categories from our custom index are loaded.
-    const result = computeCategoryCoverage({ indexFile });
+    const generationDir = mkdirs('category-generation');
+    writeFile('category-generation/scenarios.json', JSON.stringify([{ id: 'report-scenario' }]));
+    const result = computeCategoryCoverage({ indexFile, generationDir });
 
     expect(result.total).toBe(3);
-    expect(typeof result.covered).toBe('number');
+    expect(result.covered).toBe(1);
     expect(typeof result.rate).toBe('number');
-    expect(Array.isArray(result.uncoveredCategories)).toBe(true);
+    expect(result.uncoveredCategories).toEqual(['yida/form', 'yida/dashboard']);
     expect(result.covered + result.uncoveredCategories.length).toBe(result.total);
   });
 });
@@ -284,18 +279,20 @@ describe('computeReferenceCoverage', () => {
     mkdirs('skills', 'skill-b');
     writeFile('skills/skill-a/SKILL.md', '# Skill A\n\nSee ref-used.md for details.');
     writeFile('skills/skill-b/SKILL.md', '# Skill B\n\nNo references here.');
+    writeFile('SKILL.md', '[Root reference](references/root-used.md)');
 
     writeFile('references/ref-used.md', '# Used Reference');
     writeFile('references/ref-unused.md', '# Unused Reference');
+    writeFile('references/root-used.md', '# Referenced by the root skill');
 
     const result = computeReferenceCoverage({
       referencesDir: path.join(tmpDir, 'references'),
       skillsDir: path.join(tmpDir, 'skills'),
     });
 
-    expect(result.used).toBe(1);
-    expect(result.total).toBe(2);
-    expect(result.rate).toBe(0.5);
+    expect(result.used).toBe(2);
+    expect(result.total).toBe(3);
+    expect(result.rate).toBe(0.6667);
     expect(result.unusedFiles).toEqual(['ref-unused.md']);
   });
 

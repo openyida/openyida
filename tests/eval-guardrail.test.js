@@ -13,7 +13,7 @@ describe('eval guardrail', () => {
     ['form-message', 'create'], ['form-message', 'update'], ['form-message', 'delete'],
     ['print-template', 'create'], ['print-template', 'save'], ['print-template', 'render'],
     ['custom-button', 'create'], ['custom-button', 'update'], ['custom-button', 'delete'],
-    ['form-view', 'create'], ['form-view', 'save'], ['form-view', 'order'],
+    ['form-view', 'create'], ['form-view', 'save'], ['form-view', 'order'], ['form-view', 'rename'], ['form-view', 'add-button'],
     ['data-card', 'save'], ['data-card', 'publish'], ['data-card', 'release-get'],
     ['cool-card', 'create'], ['data', 'transfer'], ['integration', 'delete'],
   ])('%s %s 必须有前置登录校验', (...args) => {

@@ -13,6 +13,8 @@ openyida custom-button delete APP_XXX FORM_XXX BUTTON_XXX --expected-hash HASH -
 
 `options` reads fields, condition variables/operators, associated forms, pages, manual custom-button automations (type 6), table views and custom detail pages. Use returned identifiers in JSON files.
 
+To add a button to the end of a specific table view's action column, use `openyida form-view add-button APP_XXX FORM_XXX VIEW_XXX --button BUTTON_XXX --json`. Use the view owner's form ID for `form-view` and the data form ID when finding or creating the button. See the [form view guide](form-views.md).
+
 Each translated button name is limited to 10 characters. Native responses add fallback translations and nullable i18n metadata; readback verifies every supplied or preserved translation while accepting those server additions.
 
 Filter rules are enriched with their native component type, rule parser, value, and group/item identifiers. These fields are required for runtime evaluation even when a minimal `id/op/value` rule can be displayed by the editor. Always verify both a matching and a nonmatching record when testing conditions.
