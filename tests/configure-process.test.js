@@ -7,6 +7,11 @@ const path = require('path');
 const configureProcess = require('../lib/process/configure-process');
 const { _private } = configureProcess;
 
+test('accepts the shared JSON output flag with an explicit process code and replacement', () => {
+  expect(configureProcess.parseArgs(['APP_X', 'FORM-X', 'final.json', 'PROC-X', '--replace', '--json']))
+    .toMatchObject({ appType: 'APP_X', formUuid: 'FORM-X', processCodeArg: 'PROC-X', replace: true });
+});
+
 function getApprovalNodes(result) {
   return result.processJson.nodes.filter(function (node) {
     return node.type === 'approval';
@@ -334,7 +339,10 @@ describe('configure-process parallel DSL', () => {
     expect(branchNode.props.calculate).toBe('condition');
     expect(branchNode.props.conditions.condition).toBe('OR');
     expect(branchNode.props.conditions.conditionCode).toBe('||');
-    expect(branchNode.props.conditions.rules[0].formula).toBe('${numberField_amount}>1000');
+    expect(branchNode.props.conditions.rules[0]).toMatchObject({
+      ruleType: 'rule_text', componentType: 'NumberField', opCode: 'Bigger', value: 1000,
+    });
+    expect(branchNode.props.conditions.rules[0]).not.toHaveProperty('formula');
   });
 });
 

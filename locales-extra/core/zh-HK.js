@@ -9,7 +9,7 @@ module.exports = {
   data_seed: {
     optional_notes: '標準可寫元件均使用 seed；地址限預設國內 ADDRESS。未適配的可選欄位見 skippedFields，全部省略時不建立記錄。',
     failed: '範例資料操作已停止：{0}。請查看詳情，不要重複建立已嘗試寫入的記錄。',
-    notes: 'data seed form 使用 --expect-form-name 與 --records-file，支援 1–30 條記錄；--check 僅預檢。日期支援毫秒或 ISO 字串，時區預設 +08:00。逐條寫入及回讀，回執保存於輸入檔旁；重跑復用成功記錄，未知寫入停止。',
+    notes: 'data seed form 使用 --expect-form-name 與 --records-file，支援 1–30 條記錄；--check 僅預檢。日期支援毫秒或 ISO 字串，時區預設 +08:00。逐條寫入及回讀，回執保存於輸入檔旁；重跑復用成功記錄，未知寫入停止。 流程 seed 使用 data seed process 及 --process-code，回傳 processInstanceIds，並實際發起審批。',
   },
   corp_efficiency: {
     learning_completed: '宜搭學習完成人數',
@@ -2475,6 +2475,7 @@ module.exports.batch = {
 };
 
 module.exports.data_verify = {
+  'binding_invalid': '頁面資料綁定與實際欄位或選項不符，請查看 details。',
   "invalid_usage": "--verify-write 僅支援普通表單 create/update，且不接受參數值。",
   "preflight_failed": "資料寫入預檢未通過（{0} 項問題）。",
   "readback_failed": "寫入已獲接受，但無法驗證回讀結果。請核實現有實例，勿重複寫入。",

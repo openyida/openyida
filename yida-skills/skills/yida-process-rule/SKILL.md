@@ -18,7 +18,7 @@ description: 配置已有宜搭流程的节点、分支、人员、字段权限�
 
 ## 严格禁止 (NEVER DO)
 
-- 不要在流程定义中使用猜测的 `fieldId`，必须先用 `yida-get-schema` 获取。
+- 已有表单的字段 ID 从 `yida-get-schema` 获取；新建表单由 `yida-create-process` 按字段定义校验 `@label`，创建后绑定真实 ID。
 - 不要在未加载本技能内容的情况下编写流程定义 JSON，格式复杂且易出错。
 - 不要用此技能创建流程表单，应使用 `yida-create-process`。
 - 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成流程定义 JSON。
@@ -34,10 +34,10 @@ description: 配置已有宜搭流程的节点、分支、人员、字段权限�
 - 根据需求生成流程定义时，必须阅读并遵守 [AI 自动生成流程规范](references/process-ai-rules.md)；达到上述字段和节点数量时，`behaviorList` 必须覆盖所有字段，未明确归属的字段默认只读。
 - 嵌套条件分支不超过 3 层；超过时拆分流程结构，不得省略条件。条件分支由 CLI 补“其他情况”默认分支，不手写猜测底层 `conditionNode`。
 - 流程必须先保存再发布，由 CLI 按顺序执行。本技能不读写 memory，资源 ID 以真实命令返回与当前平台查询为准。
-- 配置前先用 `yida-get-schema` 获取所有字段 ID。
+- 配置已有表单前，用 `yida-get-schema` 获取全部字段 ID 和子表路径；新建表单按 `yida-create-process` 的字段准备顺序执行，创建后复用其字段回执。
 - 流程定义 JSON 必须用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/`；不要写仓库根目录、系统临时目录或 `.cache/` 顶层。
 - 必须以表单 binding 只读结果证明 `processCode` 属于目标 `formUuid`；`CONFIGURE_PROCESS_OWNERSHIP_UNVERIFIED` 时停止，不得换一个 `processCode` 猜测重试。
-- 命令成功必须同时返回 `verificationLevel: "PLATFORM_VIEW_VERIFIED"` 和 `platformViewVerified: true`；它证明平台可见 view 的节点、组件、名称、顺序、审批模式、按钮权限及加签参数等已启用检查通过，不代表完整 `processJson` 已独立回读，也不代表运行结果已经验证。
+- 命令成功必须同时返回 `verificationLevel: "PLATFORM_VIEW_VERIFIED"` 和 `platformViewVerified: true`；它证明平台可见 view 的节点、条件、审批模式、字段和操作权限通过比对。实际流转验收使用已授权的少量申请，核对真实审批任务；数字分支覆盖零值和阈值边界，配置回读与运行结果分别记录。
 
 ## 节点选择
 
@@ -55,6 +55,8 @@ description: 配置已有宜搭流程的节点、分支、人员、字段权限�
 “可直接生成配置”指 CLI 有已明确的输入契约；“需要已有真实配置才能透传”只说明编译器可接收该结构，不代表能从一句需求补齐全部参数。按金额等条件选择审批人、办理人或抄送人，统一读取 [人员选择](../yida-flow-node-config/references/actors.md#按条件选人)。同一节点选谁处理，与改变处理路线的条件分支分别配置。
 
 ## 基本步骤
+
+本轮已确认“临时本人审批 → seed 核验 → 编辑 → 最终发布”时，在原表单上编辑完整最终定义，并复用该范围的发布与替换授权。阶段回执与恢复见[流程 seed 编排](../yida-data-management/references/process-seed-workflow.md)。
 
 涉及原生校验、业务关联或节点公式时，先通过 `use_skill` 加载 `yida-formula`，查看“写配置前先处理这些易错点”。校验保留原文、预处理内容、提示和阻断设置；节点表达式保留真实上游引用及编辑器内容。普通字段取值公式仍通过表单配置处理；当前简化 DSL 没有覆盖的全局规则或节点属性，沿用已读取的真实配置及明确支持的入口。
 

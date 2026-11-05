@@ -1,6 +1,6 @@
 ---
 name: yida-data-management
-description: 查询、新增、更新宜搭表单和流程数据，使用 data seed form 批量写入普通表单示例数据并转换日期、核验和汇总实例 ID，按当前审批人查询流程实例或统计条数，精确删除普通表单单条记录，查询指定流程当前任务并执行管理员转交。支持日期为空、日期区间端点、多选数量、子表条件及服务端分页；表单使用 /v1/form/，流程使用 /v1/process/。
+description: 查询和维护宜搭表单、流程、任务和子表数据；data seed form/process 批量写入示例、转换日期、核验并返回实例 ID；支持流程当前审批人统计、任务转交和普通记录删除。
 ---
 
 # 数据管理
@@ -17,28 +17,23 @@ description: 查询、新增、更新宜搭表单和流程数据，使用 data s
 
 涉及新增记录、生成测试数据、批量导入或发起流程时，必须连续完成下面 5 步；任一步断开都不算完成。
 
-1. **只读预检**：先确认目标 `appType`、资源名称、`formUuid`、`formType`；执行 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实 `fieldId`，必要时先 query 确认资源可读。
-2. **类型分流**：普通表单 `data seed form` 传 `--expect-form-name <真实名称>` 并固定校验 receipt；普通表单其余写操作传 `--expect-form-name <真实名称> --expect-form-type receipt`；流程写操作传 `--expect-form-name <真实名称> --expect-form-type process`。名称、UUID 或类型不一致时必须停止，不能改写成当前上下文里的其他资源。
-3. **写入即提交**：小 JSON 可直接用 `--data-json '<json>'`；长 JSON 或批量造数先用结构化文件写入工具创建到 `.cache/openyida/<项目名或任务名>/data-import/<name>.json`。普通表单示例记录数组创建后立即执行 `data seed form --records-file <path>`；单条记录或流程使用 `data create ... --data-file <path>`。
-4. **批量逐条创建**：普通表单示例数据优先使用 `data seed form`，由 CLI 在一次调用中逐条创建并回读；单次不超过 30 条。`openyida data create form/process` 每次只创建一条实例，不接受实例顶层数组。
-5. **写后验收**：seed/create/update 返回无报错后，必须执行 `openyida data query form|process <appType> <formUuid> ...` 抽查至少 1 条目标记录，核对实例 ID 和本次写入的可见字段值；普通表单优先用回执 ID 加 `--inst-id <formInstId> --json` 精确抽查。隐藏字段缺失或全部字段隐藏导致字段数据为空时，按上方“CLI 查询隐藏字段”规则验收。流程记录可再用返回的 `processInstanceId` 执行 `get process` 复核。已有可靠回执 ID 时，不再为了寻找 ID 查询列表。
+1. **预检目标**：确认 appType、名称、formUuid/formType，复用创建回执的真实字段映射；缺少映射时一次读取 `get-schema --field-map-json`。seed 内部核对实时目标和 Schema。
+2. **准备输入**：结构化写入 `.cache/openyida/<任务名>/data-import/records.json`，示例用 1–30 条对象数组。单条新增或修改使用 `data create/update ... --data-file <单条对象>`。
+3. **按类型执行**：示例使用 `data seed form|process --expect-form-name`，process 另传真实 `--process-code`。其余写操作提供 `--expect-form-name/--expect-form-type`，按实际目标类型执行。
+4. **核验回执**：seed 串行写入并逐条回读；读取 completed、readbackVerified、requestedFieldsVerified 和实例 ID。其他写操作按返回 ID 定向 get/query 抽查可见字段，隐藏字段按上节记录核验范围。
+5. **交接页面**：将真实字段、已核验 ID 和结果交给页面阶段，核对实际展示；额外查询用于业务验收或未知结果核实，已返回 ID 直接复用。
 
 ## 完整应用默认 seed records
 
-`yida-app` 从零生成完整应用时，表单创建完成后默认加载本技能，为核心业务普通表单写入 1-3 条业务化示例记录，再让自定义页面读取这些真实表单记录。
+`yida-app` 为核心普通表单准备 1–3 条业务记录；流程示例按已确认范围执行[流程 seed 编排](references/process-seed-workflow.md)。页面读取这些真实记录。
 
-执行规则：
-
-- 只对本轮新建或页面 `dataBinding.mode=form` 依赖的核心普通表单默认写入；配置字典表、权限表、敏感个人数据表、纯附件表或用户明确说不要造数时跳过，并在 final 说明原因。
-- 记录数量默认 1-3 条：单对象轻应用写 1 条；列表/工作台写 2 条；看板/排行/状态分布写 3 条。不要为了展示效果批量灌入大量数据。
-- 示例记录必须是当前业务语义，不写“测试1 / demo / mock”；例如客户、订单、学生、商品、工单、活动等对象要有合理名称、状态、金额、数量、负责人或日期。
-- 先执行 `openyida get-schema <appType> <formUuid> --field-map-json` 获取真实 `fieldId`；保存数据使用真实 fieldId 或 `--resolve-aliases` 可解析别名，禁止猜测字段 ID。
-- 普通表单示例数据优先用 `data seed form`，模型只写一份业务记录数组，不再为日期、循环写入或提取 ID 编写临时 JS/Python 脚本。CLI 依据真实 Schema 转换日期、预检整批记录、逐条写入并核验；见下节。
-- 单选/多选必须使用表单已配置选项；成员/部门字段只有可安全确认 userId/deptId 时才填，否则留空或跳过该字段。
-- 单条独立新增仍可用 `openyida data create form`；不要把 1-3 条记录作为顶层数组塞进一个 `--data-file`。
-- 写完必须 `openyida data query form` 抽查至少 1 条，并把写入数量和抽查结果交给 `yida-app` 页面阶段使用。
+- 单对象 1 条、列表/工作台 2 条、排行或状态分布 3 条，按业务生成合理名称、状态、金额、数量和日期。
+- 复用创建字段映射和已配置选项，成员/部门填可确认的真实 ID；文件与复杂字段按下方格式适配。记录数组使用对应 seed，日期转换、串行写入、核验和 ID 汇总由 CLI 完成。
+- 用户要求不造数，或对象是配置字典、权限、敏感个人数据、纯附件表，或缺少可安全构造的值时，记录跳过原因，页面显示真实空态。数量、回执与核验结果交给页面阶段。
 
 ## 一次写入普通表单示例记录
+
+流程示例使用 `data seed process` 并提供 `--process-code`，返回 `processInstanceIds`；顺序见[流程 seed 编排](references/process-seed-workflow.md)。日期、字段和回执恢复与下方普通 seed 共用规则。
 
 ```bash
 openyida data seed form <appType> <formUuid> --expect-form-name <真实名称> --records-file <绝对路径>/records.json --timezone +08:00 --json
@@ -46,8 +41,9 @@ openyida data seed form <appType> <formUuid> --expect-form-name <真实名称> -
 
 - records.json 顶层是 1–30 条业务对象数组，key 为真实 fieldId；显式加 `--resolve-aliases` 可用已配置别名，显示名称不自动匹配。`form` 已固定普通表单，不需要 `--expect-form-type`，流程表单会拒绝。
 - `DateField` 和 `CascadeDateField` 的端点可使用毫秒数字、`YYYY-MM-DD`、`YYYY-MM-DDTHH:mm:ss` 或带 `Z` / `±HH:mm` 的日期时间。没有偏移的日期使用 `--timezone`，默认 `+08:00`，只支持固定 UTC 偏移；区间空端点为 `""`，子表日期递归转换。不要把普通文本里的日期改成数字。原 `data create/update` 仍只接受毫秒日期。
-- `--check` 只读取 Schema 并返回转换后的 records，既不写记录也不保存回执；通过不代表已完成真实写入。正常执行返回 completed、formInstIds、readbackVerified 和 receiptFile。仍按原规则 query 抽查页面依赖的可见数据。
+- `--check` 只读取 Schema 并返回转换后的 records，既不写记录也不保存回执；通过不代表已完成真实写入。正常执行返回 completed、formInstIds 或 processInstanceIds、readbackVerified 和 receiptFile。页面继续核对实际展示。
 - 输入旁的 `.seed-receipt.json` 记录每条结果；相同输入、目标、身份和 Schema 重跑复用已核验条目，有 ID 的 pending 只回读后继续。未知写入不重试，保留 failedIndex 和 items 中的 ID/候选 ID；先核实已有实例，不删除回执或另换文件绕过。结果未验证不能宣称完成。
+- 空子表写作 `[]`。详情省略该字段时，CLI 仅补查该实例的该子表；按接口的明确无行返回核验，权限过滤和未知结构保留待核验状态。已有 ID 继续原回执恢复。
 - `.lock` 防止同一输入并发执行。进程崩溃后先确认没有在运行的命令，并核实 pending 记录，再清理遗留锁。未提交字段和动态业务规则不由本命令推断，权限与服务端校验照常生效。
 
 ### 组件支持与未适配配置
@@ -69,7 +65,7 @@ openyida data seed form <appType> <formUuid> --expect-form-name <真实名称> -
 3. 先 seed 客户等被关联表，再把已核验回执中的 ID 直接填入跟进、商机、合同等记录的关联字段，每张表一份数组、一次 seed。保留真实 appType、formUuid、formType 和业务标题；关联完整格式见 [关联字段](references/data-format-guide.md#关联表单字段associationformfield)。不生成额外提取 ID 脚本，不为取得本次已返回的 ID 再执行 `data query form`。
 4. 工具截断输出时，优先读取本次命令返回的 `receiptFile`，核对目标及条目 verified 状态。跨轮恢复、命令是否成功或文件归属不确定时，原参数重新执行 seed，由 CLI 校验输入/身份/Schema 并复用已核验记录；不要猜测回执路径或使用旧批次的 ID。
 5. `--check`、`DATA_SEED_INCOMPLETE`、pending 条目和 candidateIds 不代表成功，不能直接作为关联 ID 使用。先按回执恢复或对账已有实例，依赖这些记录的写入暂停，未知写入不重放。
-6. 写完必须按已知 ID 做至少一次业务抽查，核对实例身份与可见字段；查询用于业务验收或未知写入对账。逐条字段回读仍由 seed 执行，不用“减少查询”跳过核验。本流程保持原有串行执行和请求速率。
+6. seed 完成实例和逐条字段回读，页面继续核对实际展示与可见字段。业务抽查或对账按已知 ID 定向读取；写入保持串行，独立前置读取最多两路并发，限流按服务端回执降速。
 
 回执关键字段示例：输入依次为远山科技、青禾商贸，即使 ID 字典序与输入不同，也应由 recordIndex 定位。
 
@@ -91,74 +87,21 @@ openyida data seed form <appType> <formUuid> --expect-form-name <真实名称> -
 openyida data query form <appType> <客户formUuid> --inst-id <回执中的formInstId> --json
 ```
 
-## 严格禁止 (NEVER DO)
+## 触发条件
 
-- 不要混用表单接口和流程接口，两套接口完全独立，参数和返回结构不同
-- 不要省略写操作的目标名称与类型校验；`data seed form` 已固定 receipt，其余写操作携带 `--expect-form-name` / `--expect-form-type`；`create form` 不会自动改为发起流程
-- 不要编造 formInstId 或 processInstanceId，必须使用已核验创建回执或真实查询结果；普通表单 seed 的关联 ID 按上方回执规则直接消费
-- 不要用此命令修改表单结构（字段增删改），应使用 `yida-create-form-page`
-- **绝对禁止猜测或编造字段 ID（fieldId）**，宜搭字段 ID 由平台随机生成（如 `textField_eftt1aa5m`），无法预测，必须通过 `openyida get-schema` 获取
-- 不要用 shell heredoc、`cat`/`echo`/`printf`/`tee` 或重定向生成 `--data-file`、`--search-file`、CSV 或一次性脚本
-- 不要把顶层 JSON 数组当作 `openyida data create form/process` 的批量实例导入；顶层数组只适用于子表字段值等字段内部结构
+查询、录入、导入、更新普通/流程记录，查询个人任务、按审批人统计或管理员转交时使用本技能。字段结构交给 `yida-create-form-page`，外观交给 `yida-data-manage-ui`，页面数据接入交给 `yida-canvas-data-binding`。
 
-## 严格要求 (MUST DO)
+## 安全边界
 
-- 修改、删除或操作已有记录前，先用 query 确认目标数据存在；新增记录只做目标表单预检，不为尚未创建的记录查询 ID
-- 所有 create/update/delete/execute/transfer 写操作必须携带只读预检确认的资源名称和类型；CLI 校验不一致时停止，不得换目标重试
-- 新增记录、生成测试数据、批量导入或发起流程必须遵守上方“创建/录入数据强制闭环”
-- 批量操作单次不超过 30 条记录；普通表单示例数组一次执行 `data seed form`，CLI 内部逐条创建；流程及单条独立新增沿用 `data create ...`
-- 删除普通表单记录前，必须先执行 `openyida data get form <appType> --inst-id <formInstId> --form-uuid <formUuid> --json`，核对返回实例 ID 与目标表单，并向用户展示记录数量、标题/关键字段和实例 ID。宿主支持并会在执行删除命令前触发 runtime permission/approval 时，直接发起一次带 `--confirm` 的受保护删除命令，由该唯一权限卡完成用户确认；无需且不得预先调用 `ask_human` 或其他业务确认工具。宿主不支持 runtime permission/approval 时，必须先通过 `ask_human` 或等价交互工具获得用户明确确认；只有用户确认后才能执行删除，用户拒绝或未确认时不得执行
-- 删除完成只以 `deleted=true && readbackVerified=true` 为准；`alreadyAbsent=true` 表示本次未再次发删除请求，可按幂等成功处理
-- 当前不支持删除流程实例；禁止生成 `openyida data delete process`，禁止在 CLI 报不支持后探索一次性脚本、浏览器私有请求或底层 API 绕过正式能力
-- **录入/更新数据前，必须先执行 `openyida get-schema` 获取真实字段 ID，并将字段 ID 映射记录到 `.cache/<项目名>-schema.json`**
-- 普通表单示例数组使用 `data seed form ... --json`，已内置逐条字段核验；单条新增和更新使用 `data create/update form ... --verify-write --json`。字段省略与失败处理按上方规则，只有 `readbackVerified=true` 才计为字段核验完成；不去掉核验选项绕过错误，页面和业务抽查仍须执行。
-- 核验失败且 `mutationAccepted=true` 时，保留 `partial.formInstId`、候选 ID 与目标表单，先查询并核实已有记录，不重复 create/update。回读没有字段、身份不匹配或结果不一致均不算已验证。支持的值格式及限制见[字段级写入核验](references/data-format-guide.md#字段级写入核验)。
-- **`data seed form` 的日期字符串由 CLI 按业务时区转换；直接使用 `data create/update` 时，`DateField` 传毫秒时间戳数字（如 `1719705600000`），`CascadeDateField` 传开始、结束毫秒时间戳数组；半填区间的空端点传 `""`。格式见 [日期字段格式](references/data-format-guide.md#日期字段datefield--cascadedatefield)**
-- **录入数据后，必须执行 `openyida data query` 抽查至少 1 条目标记录，核对实例 ID 和本次写入的可见字段值；隐藏字段缺失或字段数据为空按“CLI 查询隐藏字段”规则处理，可见字段值不符合预期时再核对字段 ID 和写入参数**
-- **读取子表明细超过 50 行时，必须使用 `openyida data query subform` 或 `listTableDataByFormInstIdAndTableId` 分页查询完整子表；不要把 `searchFormDatas.currentPage` 当作子表分页**
-- **本技能不读写 memory**：数据操作通过 CLI 命令写入宜搭平台，不依赖跨会话的 memory 状态
-- 示例记录使用 seed 已支持的日期转换、逐条写入和 ID 回执，不编写一次性造数脚本。旧数据修正、字段迁移等 seed 以外的任务可使用 Python 或 JS；脚本、导入数据、查询条件文件必须由结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/` 下，并复用真实 appType/formUuid/fieldId/formInstId
-- **禁止在仓库根目录、系统临时目录或 `.cache/` 顶层生成导入用的 `*.json`、`*.js`、`*.py`、`*.csv` 临时文件**；推荐使用 `<projectRoot>/.cache/openyida/<项目名或任务名>/data-import/` 存放数据文件，`<projectRoot>/.cache/openyida/<项目名或任务名>/scripts/` 存放一次性执行脚本
-
-## 不可停在这些中间态 (NOT DONE)
-
-- 只执行 `mkdir` 或只创建 `.cache/openyida/.../*.json`
-- 只写了 `.json`、`.js`、`.py` 或 CSV 脚本/数据文件，但未执行 `openyida data create ...` 或 `data seed form`
-- 只跑了 `openyida auth status`、`openyida login --check-only`、`openyida agent-capabilities` 或 `openyida get-schema`
-- 只把导入命令交给用户自行运行，自己没有执行并拿到结果
-- seed/create 报错、无返回，或应写入的实例尚未实际创建、核验
-- 未执行 `openyida data query ...` 抽查、未命中目标实例，或本次写入的可见字段值不符合预期；隐藏字段缺失或全部字段隐藏导致字段数据为空不单独作为失败依据
+- 使用真实 Schema 字段、已核验实例 ID 和当前目标类型；类型或身份不匹配时核实原目标。
+- 配置和导入文件使用结构化写入工具创建到任务目录；shell heredoc、重定向及私有接口不作为替代路径。
+- 已有记录先按 ID 确认；单条普通新增/更新使用 `--verify-write --json`。示例数组使用对应 seed，按 readbackVerified 与 requestedFieldsVerified 记录范围。
+- 普通更新仅提交当前账号可编辑字段；权限不足反馈“您无更改该数据的权限”。
+- 流程实例支持查询、发起、更新及任务操作；`DATA_PROCESS_DELETE_UNSUPPORTED` 表示流程删除能力缺口，保留原实例，不改用脚本或私有 API。
 
 ## 完成检查清单
 
-- [ ] 已确认登录态、`appType`、`formUuid`；发起流程时确认 `processCode`，按当前审批人查询/计数不要求额外获取 `processCode` 或管理员专用 Schema
-- [ ] 已通过 schema/field map 使用真实 `fieldId`
-- [ ] 如使用 `--data-file`，文件位于 `.cache/openyida/<项目名或任务名>/data-import/`，且创建后已立即调用 `openyida data create ... --data-file ...`
-- [ ] 每条实例都通过 `data seed form` 或 `openyida data create form/process` 实际创建，且核验结果已确认
-- [ ] seed 回执完整保留，按 recordIndex 复用本批次已核验关联 ID，没有仅为寻找已返回 ID 重查列表
-- [ ] 已用 `openyida data query form|process ...` 抽查至少 1 条目标记录，核对实例 ID 和可见字段值；没有可见字段时已说明隐藏字段无法通过 CLI 回读
-- [ ] 已向用户报告创建/更新数量、验收命令与结果摘要；未完成项必须如实说明
-
-## 适用场景
-
-用户需要"查询数据"、"新增记录"、"更新数据"、"查看表单实例"、"发起流程"时使用。
-
-**关键区分**：
-- 操作表单数据记录（增删改查）→ 本技能
-- 修改表单结构（字段增删改）→ `yida-create-form-page`
-- 自定义页面调用连接器或外部 API 数据源 → `yida-data-source-connectors`
-- 表单接口（`/v1/form/`）vs 流程接口（`/v1/process/`）不能混用
-
-## 触发条件
-
-**正向触发**：
-- "查询数据"、"新增记录"、"更新数据"
-- "查看表单实例"、"发起流程"
-- "录入数据"、"批量导入"、"查询待办任务"
-- "查询流程当前任务"、"管理员转交"、"把这条流程转交给某人"
-- "按当前审批人统计"、"某人的待审批流程条数"、"查询指定审批人的流程实例"
-
-> ⚠️ 表单接口（`/v1/form/`）和流程接口（`/v1/process/`）不能混用。
+确认目标、真实字段、实际执行回执、已核验数量与实例 ID；seed/create/update 的字段核验和页面展示分别记录。准备文件、登录成功和参数预检属于前置步骤；结果未确认时报告剩余事项，继续按回执恢复。
 
 ## 危险操作确认
 
@@ -233,6 +176,8 @@ openyida data query subform <appType> <formUuid> --inst-id <formInstId> --table-
 
 ### 流程实例
 
+示例使用 `openyida data seed process <appType> <formUuid> --process-code <processCode> --expect-form-name <name> --records-file <绝对路径>/records.json --json`；该命令真实发起审批，编排见[流程 seed 编排](references/process-seed-workflow.md)。
+
 ```bash
 openyida data query process <appType> <formUuid> [--instance-status RUNNING] [--search-file .cache/openyida/<项目名或任务名>/data-import/process-search.json] [--resolve-aliases]
 openyida data get process <appType> --process-inst-id <processInstanceId>
@@ -294,45 +239,9 @@ openyida data transfer task <appType> --process-inst-id <processInstanceId> --fo
 
 接口、回读规则与错误恢复见 [流程任务查询与管理员转交](references/process-task-transfer.md)。
 
-## 接口总览
+## 接口与格式
 
-### 表单实例
-
-| 接口 | 方法 | 说明 |
-|------|------|------|
-| `searchFormDatas` | GET | 查询列表 |
-| `searchFormDataIds` | GET | 查询 ID 列表 |
-| `getFormDataById` | GET | 查询详情 |
-| `saveFormData` | POST | 新增 |
-| `updateFormData` | POST | 更新 |
-| `deleteFormData` | POST | 删除单个普通表单实例；CLI 删除后必须回读不存在 |
-| `listTableDataByFormInstIdAndTableId` | GET | 查询子表数据 |
-
-### 流程实例
-
-当前 CLI 仅支持流程实例的查询、发起和更新，不支持删除。不要尝试 `data delete process`；收到
-`DATA_PROCESS_DELETE_UNSUPPORTED` 后停止并交付能力缺口，不得改用脚本或私有 API。
-
-| 接口 | 方法 | 说明 |
-|------|------|------|
-| `startProcessInstance` | POST | 发起流程 |
-| `getInstanceIds` | GET | 查询 ID 列表 |
-| `getInstances` | GET | 查询列表 |
-| `getInstanceById` | GET | 查询详情 |
-| `updateInstance` | POST | 更新 |
-| `getOperationRecords` | GET | 审批记录 |
-| `executeTask` | POST | 执行任务 |
-| `getInstTaskDatas` | GET | 管理员查询指定流程任务，使用 query/formProcInstData 路径 |
-| `redirectTask` | POST | 管理员转交任务，使用 query/instance 路径，单次提交并回读 |
-
-### 任务中心
-
-| 接口 | 说明 |
-|------|------|
-| `getTodoTasksInApp` | 待办 |
-| `getDoneTasksInApp` | 已完成 |
-| `getMySubmitInApp` | 已提交 |
-| `getNotifyMeTasksInApp` | 抄送 |
+普通记录使用 `/v1/form/`，流程使用 `/v1/process/`；两者的主键和返回结构分别处理。完整命令参数以 `openyida data --help` 为准，API 参考见[共享接口](../../references/yida-api.md)。
 
 ## 数据格式
 
@@ -358,10 +267,6 @@ openyida data transfer task <appType> --process-inst-id <processInstanceId> --fo
 
 查询类型、保存格式、日期/空值条件及关联示例统一见[字段格式指南](references/data-format-guide.md)。seed 接收日期字符串并按业务时区转换；直接 create/update 仍按指南提交毫秒数字。关联记录 ID 优先消费已核验 seed 回执，已有记录没有回执时再查询。
 
-## 实现前准备
-
-按字段设计结果创建结构化表单配置，再执行表单创建、更新或数据写入命令。字段 ID 来自真实 Schema；关联记录 ID 来自已核验 seed 回执或真实查询结果。
-
 ## 注意事项
 
 - `pageSize` 一般写 50，最大 100；seed 写入串行执行，请求频率按当前环境的实际限流回执调整
@@ -370,34 +275,18 @@ openyida data transfer task <appType> --process-inst-id <processInstanceId> --fo
 - 字段 ID 通过 `openyida get-schema` 获取，不要手写猜测
 - seed 以外的导入/修正任务可用 Python `subprocess` 调用 `openyida data ...`，也可以用 JS 复用 Node 工具；脚本必须由结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/scripts/`，导入数据放在 `<projectRoot>/.cache/openyida/<项目名或任务名>/data-import/`
 
-## 异常处理
+## 异常恢复
 
-| 异常场景 | 处理方式 |
-|---------|----------|
-| 查询返回空结果 | 确认 formUuid 正确，检查查询条件是否过于严格 |
-| 子表只返回 50 行 | 不要翻 `searchFormDatas.currentPage`；使用 `query subform` / `listTableDataByFormInstIdAndTableId` 按 `formInstId + tableFieldId` 分页查询 |
-| 查询中隐藏字段缺失或全部字段隐藏导致字段数据为空 | 属于正常行为；确认目标实例 ID，核对可见字段，不把缺失字段自动补成 `null` 或空字符串 |
-| 新增数据后可见字段值不符合预期 | 先执行 `openyida get-schema` 核对真实 fieldId，再检查写入参数 |
-| 更新失败（formInstId 不存在） | 先用 query 命令确认记录存在，不要猜测 formInstId |
-| 接口返回 401/未登录 | 执行 `openyida login` 重新登录 |
-| QPS 超限（429） | 降低请求频率，批量操作单次不超过 30 条 |
-| 删除操作误删 | 删除前必须展示操作摘要并获得用户明确确认，不可逆操作 |
-| 流程接口用了表单接口路径 | 检查接口路径：表单用 `/v1/form/`，流程用 `/v1/process/` |
+| 回执或现象 | 下一步 |
+| --- | --- |
+| 参数或字段不匹配 | 按 details 与真实 Schema 修正，复用当前目标和已确认资源 |
+| 查询为空 | 核对环境、身份、目标、筛选和分页；隐藏字段按上方规则记录范围 |
+| 子表恰好 50 行 | 按“子表超过 50 行”使用专用分页读取 |
+| 401 或认证异常 | 交给 `yida-login` 恢复当前身份 |
+| 429 限流 | 降低频率；查询受控重试，写入先核实结果，seed 按回执接续 |
+| 查询超时 | 检查网络后受控重试一次 |
+| 写入超时、UNKNOWN、UNVERIFIED | 按 nextStep 只读核查已有实例或版本，保留回执，不重放写入 |
+| 权限不足 | 保留原数据，说明实际缺少的权限 |
+| 其他失败 | 保存结构化错误、阶段与 traceId，报告未完成项；依赖写入等待核实 |
 
-## Agent 错误处理策略
-
-当 Agent 执行本技能遇到错误时，必须遵循以下默认行为：
-
-| 错误类型 | 默认处理策略 |
-|---------|-------------|
-| 命令执行失败 | 优先按结构化错误的 nextStep 与上述回执规则恢复；参数错误先修正，缺少必要信息时再询问用户 |
-| 管理员转交失败或结果未验证 | 禁止自动重放转交；按 details.nextStep 只读核查并报告 mutationAccepted/readbackVerified，后续写入须重新核对当前任务和用户意图 |
-| 参数缺失（appType/formUuid/fieldId 等） | 主动询问用户补充，或引导用户使用 `yida-get-schema` 获取 |
-| 更新权限不足 | 停止执行，向用户反馈“您无更改该数据的权限” |
-| 登录态失效 | 提示通过 `openyida login` 登录 |
-| 字段 ID 无效 | 停止执行，引导用户执行 `openyida get-schema` 获取真实字段 ID |
-| 删除操作前 | 必须先展示操作摘要（数量 + 关键字段）；宿主支持 runtime permission/approval 时直接发起一次受保护命令，不得预先调用 `ask_human`；宿主不支持时，必须先通过 `ask_human` 或等价交互工具获得用户明确确认 |
-| QPS 超限 | 按服务端回执降低请求频率，单次批量不超过 30 条；查询可受控重试，写入先核实结果，seed 按回执恢复，不固定等 1 秒重发 |
-| 表单/流程接口混用 | 停止执行，提示用户检查接口类型（表单用 `/v1/form/`，流程用 `/v1/process/`） |
-| 网络超时 | 查询可重试 1 次；seed、create/update、转交等写入按 nextStep 只读核查，结果未知不重发；seed 已有回执按原输入恢复 |
-| 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |
+历史普通记录转流程后缺少流程实例 ID 时，CLI 全部流程查询可能在服务端字段过滤阶段失败；保留 traceId 排查该服务端契约，页面已有数据和真实审批实例分别验收。查询条件保持业务原意。

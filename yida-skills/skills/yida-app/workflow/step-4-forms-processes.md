@@ -26,7 +26,7 @@ Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确�
 4. 字段配置文件写入 `.cache/openyida/<项目名>/`。
 5. 拿到真实 `formUuid` 后写入资源上下文。
 6. 批量创建返回的字段映射直接复用。其他页面、数据、流程或公式确需多字段映射时，对每个目标表单最多一次性执行 `openyida get-schema <appType> <formUuid> --field-map-json`，合并写回 `.cache/<项目名>-schema.json`。
-7. PRD 包含审批、流程、申请、审核、工单等流程对象时，执行 `use_skill("yida-create-process", "创建带审批流程表单")`。
+7. 新建审批、申请、审核或工单时，加载 `yida-create-process` 并直接使用 `create-process`，字段引用用 `@label:字段名`。需要流程示例时按[流程 seed 编排](../../yida-data-management/references/process-seed-workflow.md)创建临时本人审批；流程目标就绪后创建依赖普通表单，关联类型显式使用 process。已有普通表单转流程保留 `--formUuid` 路径。
 8. 已有流程表单或 `processCode` 时，执行 `use_skill("yida-process-rule", "更新已有流程规则")`。
 9. 分析、复刻或迁移已有表单时，执行 `use_skill("yida-get-schema", "读取字段与行为语义")`，对每个核心表单读取一次 `--analysis-json`；把字段结构与 `actions/fieldBehaviors/associationRuleCount` 分开规划，字段事件动作使用 `yida-create-form-page` 的原子 `field-action`，数据源使用 `bind-datasource`。
 10. PRD 明确包含原生报表时，执行 `use_skill("yida-report", "按业务统计语义创建原生报表")`；地域分布、日历统计分别使用已支持的 `map`、`calendarHeatmap`，不得无声明退化成柱/饼图。

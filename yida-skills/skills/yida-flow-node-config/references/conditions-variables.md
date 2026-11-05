@@ -145,6 +145,8 @@ openyida integration create APP_XXX FORM_XXX "库存不足通知" \
 
 当前流程 DSL 的 `route.conditions[].rules` 按固定值编译；上述 `processVar` 字段比较写法适用于自动化，不能直接套入流程 DSL。
 
+流程条件由 CLI 按 `componentType/op/value` 生成原生规则；数字保留数值类型，包括 `0`。条件分支、并行条件和跳转条件使用同一比较协议，业务定义只填写上述 DSL 字段。
+
 ## 特有限制
 
 - 流程操作符按下表和字段真实类型选择；`value` 使用对应类型的固定值或选项数组。

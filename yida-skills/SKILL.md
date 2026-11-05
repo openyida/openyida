@@ -206,7 +206,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 权限组成员、通用 AND／OR 条件、操作权限、字段权限、权限组及矩阵本体管理 | `yida-form-permission`，组合配置时按需读取成员、数据范围与字段权限说明 |
 | 流程设计器字段列表空白 | `yida-process-rule`，先用 `process fields` 检查字段来源 |
 | 查字段 ID / 保存 Schema 证据 | `yida-get-schema`；凡涉及 fieldId 的数据、流程、公式、页面代码先取证 |
-| 改表单数据记录、写入普通表单示例数据 | `yida-data-management`；示例数据用 `data seed form` 一次提交数组、转换日期并核验，完整消费回执，按 recordIndex 复用关联 ID，不为找已有 ID 查询列表或编写造数脚本；不是 `yida-create-form-page` |
+| 改表单/流程数据记录、写入示例数据 | `yida-data-management`；示例数据用 `data seed form/process` 一次提交数组、转换日期并核验；流程示例按临时本人审批、seed、编辑及最终发布顺序，完整消费回执，按 recordIndex 复用关联 ID，不为找已有 ID 查询列表或编写造数脚本；不是 `yida-create-form-page` |
 | 查询流程当前任务、管理员转交已有流程任务 | `yida-data-management`；先查询 process-tasks，再 transfer task 并回读实际处理人 |
 | 查询指定应用/流程表单中当前审批人为某人的实例或条数 | `yida-data-management`；`data query process --current-approver <userId> [--count]`，仅统计当前登录人经服务端授权可见的实例 |
 | 配置或修改公式、字段计算、提交校验、节点筛选、报表计算 | 共用 `yida-formula`，按实际保存内容读取说明；查看字段公式、查参数和检查用 `yida-formula-evaluate` |

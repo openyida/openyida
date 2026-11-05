@@ -87,3 +87,31 @@ describe('published process platform view verifier', () => {
     });
   });
 });
+
+describe('published condition semantics', () => {
+  const route = () => view([{ componentName: 'ConditionContainer', props: {}, children: [
+    { componentName: 'ConditionNode', props: { conditions: { calculate: 'condition', isDefault: false,
+      priority: 1, conditions: { condition: 'AND', conditionCode: '&&', rules: [
+        { id: 'numberField_amount', componentType: 'NumberField', ruleType: 'rule_text',
+          opCode: 'Lesser', valueType: 'literal', value: 0, ruleValue: 0 },
+      ] } } } },
+    { componentName: 'ConditionNode', props: { isDefault: true } },
+  ] }]);
+
+  test.each(['ruleType', 'opCode', 'value', 'id', 'componentType'])('detects changed %s even when node names and structure match', key => {
+    const expected = route(), actual = JSON.parse(JSON.stringify(expected));
+    actual.schema.children[0].children[0].props.conditions.conditions.rules[0][key] = 'changed';
+    expect(verifyPlatformView(response(actual), expected, 'FORM_TEST')).toMatchObject({ valid: false,
+      errors: [expect.objectContaining({ code: 'PROCESS_PLATFORM_VIEW_CONDITION_MISMATCH' })] });
+  });
+  test('accepts generated IDs and display metadata but checks fallback and logical operators', () => {
+    const expected = route(), actual = JSON.parse(JSON.stringify(expected));
+    actual.schema.children[0].children[0].props.conditions.conditions.rules[0].ruleId = 'platform-id';
+    expect(verifyPlatformView(response(actual), expected, 'FORM_TEST').valid).toBe(true);
+    actual.schema.children[0].children[1].props.isDefault = false;
+    expect(verifyPlatformView(response(actual), expected, 'FORM_TEST').valid).toBe(false);
+    const brokenLogic = route();
+    brokenLogic.schema.children[0].children[0].props.conditions.conditions.conditionCode = '||';
+    expect(verifyPlatformView(response(brokenLogic), expected, 'FORM_TEST').valid).toBe(false);
+  });
+});

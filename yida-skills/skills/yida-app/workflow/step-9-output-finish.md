@@ -38,7 +38,7 @@ Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确�
 3. 本机 Agent 验收真实数据页面时，核对页面退出 loading、无业务错误，并显示至少一条已 query 确认的记录；看板还必须有至少一个 KPI 数量或列表记录与只读 query 结果一致。已知记录数大于 0 但页面 KPI 全 0、列表为空或显示“暂无数据”时必须失败或标记 `needs_review`；
 4. 获得可访问 URL；
 5. 各入口的菜单顺序、默认页面和首屏任务已按规划落实；平台导航有排序回读，自定义导航有页面验证。未完成项按入口明确列出，不能仅因平台命令不适用就将排序记为完成；
-6. 新建或作为页面数据源的核心普通表单已写入 1-3 条真实示例记录并 query 抽查，或明确说明跳过原因；
+6. 核心普通表单的 1–3 条真实示例已核验，范围内流程示例已完成 seed、编辑和最终发布，或明确说明跳过原因；
 7. 汇合主题任务，按[主题证据](../../../references/execution-rules.md#主题上传与绑定)按[新旧主题完成条件](../../../references/execution-rules.md#应用主题配置完成条件)核对 `themeCompletion.complete=true`，保存上传、绑定、主色与导航回执到 `build-manifest.themeEvidence`。已有主题记录复用；旧主题或能力未知时按[旧主题规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认)保留平台主题及页面局部样式。主题更新在前序完成，收尾只汇合；自定义页面只在 `YidaComp` 内消费对应 token。
 8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，Fast 运行 `openyida check-prd-completeness --manifest-only --app-type <appType> --build-manifest <build-manifest.json> --json`；Plan/已有文档再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；该命令检查页面/资源数量及已提供的素材执行记录一致性，不能替代运行态验收。`verdict=pass` 后按证据规则描述已完成范围；只有运行态证据通过才宣称页面验收通过。`needs_review` 时说明真实业务复核项，`fail` 时说明 `hardFailures` 对应未完成项；云端页面未验不转为用户补验任务；
 9. 未继续执行用户未要求的公开访问、额外截图报告、报表、大屏、数据源深接或精细导航分组。

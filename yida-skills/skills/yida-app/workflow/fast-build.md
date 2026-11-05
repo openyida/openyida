@@ -32,7 +32,7 @@ appType 和 CSS 各自就绪后，按 `yida-create-app` 的 update-app 参数上
 
 - 只有首页、案例展示/详情和联系我们的展示需求：直接实现页面、导航、联系方式与明确标注的示例内容，默认不创建案例表、留言表、后台或种子数据。用户明确要求提交保存、持续维护、数据库时才创建对应真实数据资源。
 - 有数据库、角色隔离、审批或自动化要求：保留全部范围；创建/更新表单前核对当前表的字段契约，配置权限时核对真实成员和服务端数据范围，审批按真实流程执行。失败只阻塞依赖该资源的工作，独立页面继续。前端隐藏和角色文字不算权限落地。
-- 核心普通表单按 [数据技能](../../yida-data-management/SKILL.md#一次写入普通表单示例记录) 执行 `data seed form --json`：先被关联表、后依赖表，完整保留回执，按 recordIndex 复用已核验 ID，并按已知 ID 业务抽查；字段省略、失败和恢复统一遵循该技能。
+- 普通表单执行 `data seed form --json`；流程示例按[流程 seed 编排](../../yida-data-management/references/process-seed-workflow.md)直接创建本人审批临时流程、seed 核验、编辑并发布最终流程。先被关联表、后依赖表，按 recordIndex 复用已核验 ID，按需业务抽查；字段与恢复规则见[数据技能](../../yida-data-management/SKILL.md#一次写入普通表单示例记录)。
 - 并行按下节依赖与调度规则执行，沿用 batch、资源锁和失败回读保护。
 - 缺图使用设计允许的明确状态，先发布已有授权的可用首版；素材独立运行，整次共享60秒、单请求15秒，不 sleep 重试。只有某页需要素材时写该页 asset draft（assets 和 assetStrategy），`asset resolve --input <绝对草稿路径> --manifest <绝对清单路径> --page-id <pageId>` 即可；无需 business context 或 design.md。来源与最终缺口按素材技能处理。
 - 使用固定工作根及绝对文件路径，不在 cd 后重复拼接相对路径。校验错误先读完整 issues，按实际值和允许类型一次修正；本地无写入错误不触发安装目录或 CLI 源码搜索。相同输入不重复调用。fast-build --help 可查询旧上下文的字段契约，但 fast-build/fast-spec 仅为已有文件兼容工具，默认 Fast 不运行它们。

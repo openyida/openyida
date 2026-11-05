@@ -64,6 +64,7 @@ description: 为 YidaCodeCanvas 自定义内容接入真实表单、个人流程
 | --- | --- | --- | --- |
 | `seed` | 演示兜底 / 本地预览 | 无 | 只用本地演示数据 |
 | `form` | 读宜搭表单数据 | `appType`、`formUuid`、`fields` | 默认 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；桥不存在时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json` |
+| `process` | 读流程业务记录 | `appType`、`formUuid`、`fields` | `getProcessInstances(params)`；维护的读取片段将返回的 data 归一到 formData，保留真实流程 ID 和状态 |
 | `connector` | 读平台连接器代理 | `connectorName`（`Http_*`）、`operationId`；鉴权连接器另需 `connectionId` | 调用 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)`，鉴权留在平台侧 |
 | `url` | 读同源业务接口 | `endpoint` | 同源 `fetch` |
 | `report` | 读报表或聚合结果 | 报表 schema 参数 | 使用平台聚合结果，不在前端拉全量猜聚合 |
@@ -103,12 +104,17 @@ const data = useCanvasFormData(DATA_BINDING, { currentPage, pageSize: 50, query 
 // data.error 时展示业务错误态和重试按钮；onClick={data.refetch}。
 ```
 
+普通与流程数据均可使用该片段，mode 分别为 form/process。字段映射和筛选选项消费真实创建回执或 Schema，展示从 `row.formData[fieldId]` 读取；流程详情使用 `row.processInstanceId`。历史普通记录缺少流程 ID 或状态时保持未确认，不默认计为审批中，也不根据属性名 formInstId 推断类型。
+
+源码中显式声明的 JSON `DATA_BINDING`（支持常量别名）在发布时按数据源读取一次 Schema，核对 fields。需要校验选项时声明 `optionValues: {status: ["待执行"]}`，其中 status 对应 fields 的语义名；值取配置选项。字段与选项检查复用一次 Schema，不查询业务全量数据。
+
 - `binding`、`request` 使用 JSON 数据。相同配置重渲染不重复查询，修改筛选时将 `currentPage` 归一为 1。`pageSize` 为整数 1–100，每次只取一页；不全量扫描做前端统计。
 - `loading` 表示首屏等待，`refreshing` 表示保留当前行的刷新。刷新按钮在请求中禁用，成功后更新 `lastUpdatedAt`；切换数据源或分页条件会清除前一来源的数据。按业务设计显示空态、旧数据提示和重试。
 - 片段兼容明确支持的 `data/result/content/list/records/values` 包裹，未知结构、冲突总数和业务失败会报错。合法空数组可以成功；总数缺失保留 `null`，不得把页长度当全表总数。正总数的有效页没有行会报错；越界页允许空列表并由页面提供返回入口。
 - Hook 默认 15 秒超时，可通过 `request.timeoutMs` 指定 1–60000 毫秒。超时、卸载和条件变化后忽略晚到结果，恢复 loading；平台桥没有取消契约，不能声称请求已取消。只有显式 `refetch()` 才重试，业务写入保持独立授权与去重。
 - 不填充 seed，不自动映射 label 或改写字段值；数字零使用 `??` 等保留语义的取值方式。核对返回记录的实际 `formData` 与字段 ID，隐藏字段缺失不伪装空字符串。片段不是字段、权限或业务验收。
 - `DATA_BRIDGE_UNAVAILABLE` 表示当前同源页面桥尚未可用；保留错误态，确认发布桥与运行上下文后重试。只在明确需要降级时按[数据桥指南](../yida-canvas-custom-page/references/data-bridge-guide.md)接入同源端点；片段不自动降级、不读取父窗口身份、不保存凭据。
+- 需要区分空子表与不可见字段时，在绑定中声明 Schema 已确认的 `subformFieldIds`。维护片段仅为缺失子表串行补查同一实例，按明确无行返回显示空态；权限过滤和未知返回继续显示读取异常，普通字段与非空子表不增加请求。
 
 ## yida JS-API 桥
 

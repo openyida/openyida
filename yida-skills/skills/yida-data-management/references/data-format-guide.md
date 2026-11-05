@@ -8,7 +8,7 @@
 - `dynamicOrder` 传字符串，不直接传对象
 - 保存、更新和测试数据中，`DateField` 传毫秒时间戳数字，`CascadeDateField` 传开始、结束毫秒时间戳数组，空端点传 `""`
 
-`data seed form` 的 records-file 支持 ISO 日期字符串，由 CLI 转换后再保存；直接 `data create/update` 和 API 写入仍使用上述毫秒格式。seed 的 ID 回执消费、关联顺序与恢复规则见[技能正文](../SKILL.md#直接消费回执与关联-id)。
+`data seed form/process` 的 records-file 支持 ISO 日期字符串，由 CLI 转换后再保存；直接 `data create/update` 和 API 写入仍使用上述毫秒格式。seed 的 ID 回执消费、关联顺序与恢复规则见[技能正文](../SKILL.md#直接消费回执与关联-id)。
 
 ## 字段级写入核验
 
@@ -78,7 +78,16 @@
 
 ## 图片与附件
 
-seed 使用调用方已有的真实文件引用，例如 `[{"name":"说明.webp","downloadUrl":"https://example.test/files/guide.webp"}]`；示意地址必须替换为真实可访问地址。对象支持 `fileId`、`id`、`downloadUrl` 或 `url` 作为资源身份，核验优先文件 ID。seed 不上传文件、不生成文件地址；需要真实上传与文件绑定时按[文件上传](../../yida-canvas-custom-page/references/file-upload.md)执行。身份回读一致不代表文件内容、权限或所有文件类型均已验收。
+准备 mock 记录时，附件和图片统一使用以下默认文件引用；业务已指定文件时使用指定引用。字段 ID 替换为真实 Schema 中的 ID。
+
+```json
+{
+  "attachmentField_xxx": [{"name":"附件示例.jpg","downloadUrl":"https://img.alicdn.com/imgextra/i3/O1CN01unOuIwZRQ4J3OTaP_!!6000000005693-0-tps-1672-941.jpg"}],
+  "imageField_xxx": [{"name":"图片示例.jpg","downloadUrl":"https://img.alicdn.com/imgextra/i3/O1CN01unOuIwZRQ4J3OTaP_!!6000000005693-0-tps-1672-941.jpg"}]
+}
+```
+
+文件类型、大小按实际资源响应填写；CDN 可能根据请求将 JPG 转为 WebP。对象支持 `fileId`、`id`、`downloadUrl` 或 `url` 作为资源身份，核验优先文件 ID。seed 使用传入的引用；需要真实上传与文件绑定时按[文件上传](../../yida-canvas-custom-page/references/file-upload.md)执行。身份回读一致不代表文件内容、权限或所有文件类型均已验收。
 
 ## 保存 / 更新格式
 
@@ -190,7 +199,7 @@ new Date('2026-10-18T00:00:00+08:00').getTime() // 1792252800000
 | `appType` | 被关联表单所属应用的 appType |
 | `formUuid` | 被关联表单的 formUuid |
 | `formType` | 被关联表单类型，普通表单 `receipt`，流程表单 `process`；以目标真实类型为准 |
-| `instanceId` | 被关联数据的 formInstId（注意：字段名是 instanceId，不是 formInstId） |
+| `instanceId` | 普通记录使用已核验 formInstId；流程实例使用已核验 processInstanceId。字段名统一为 instanceId，类型与目标匹配 |
 | `title` | 被关联记录在关联组件中展示的标题，应取真实记录标题字段值 |
 | `subTitle` | 可选的展示副标题；无值时传空字符串或省略 |
 
