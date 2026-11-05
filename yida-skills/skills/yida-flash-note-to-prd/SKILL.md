@@ -1,6 +1,6 @@
 ---
 name: yida-flash-note-to-prd
-description: 从已有钉钉闪记、会议记录或需求文档内容中提取产品需求，生成结构化 PRD。若用户只给 taskUuid，先用 yida-tingji 读取内容，再进入本技能。
+description: 从已有钉钉闪记、会议记录或需求文档内容中提取产品需求，生成结构化 PRD；CLI 支持长会议材料分段生成。若用户只给 taskUuid，先用 yida-tingji 读取内容，再进入本技能。
 ---
 
 # 闪记和会议内容转 PRD
@@ -185,19 +185,17 @@ cat meeting.txt | openyida flash-to-prd --name <项目名>
          - extractSpeakers：识别发言人及其角色标注
          - buildMeetingContext：组装会议上下文信息
            ↓
-[Step 4] 分段判断（splitIntoSegments）：
-         - ≤ 6000 字 → 单段模式
-         - > 6000 字 → 按段落边界智能分段
+[Step 4] CLI 按完整提示词判断是否分段：
+         - 模板、会议上下文和正文合计不超过 6000 字符：直接生成 Markdown PRD
+         - 超过预算：分别按段落、换行或句子切分会议上下文和正文
            ↓
-[Step 5] AI 提取（buildFlashNoteToPrdPrompt）：
-         - 会议上下文作为高优先级信息注入 Prompt
-         - 单段模式：三层 Prompt 架构，直接输出 Markdown PRD
-         - 多段模式：每段输出 JSON 结构化数据
+[Step 5] 逐段提取需求事实：
+         - 保留关键字段、数值、规则、验收、决策和待确认项
+         - 使用简洁的 Markdown 列表，区分会议摘要与原始转写
            ↓
-[Step 6]（仅多段模式）合并去重（buildMergePrompt）：
-         - 合并各段 JSON 结果
-         - 去重、解决冲突
-         - 生成完整 Markdown PRD
+[Step 6] 分批归并：
+         - 合并重复事实；有分歧且无法判断时列为待确认
+         - 归并结果能装入一次请求时，再生成完整的 Markdown PRD
            ↓
 [Step 7] 输出到 prd/<项目名>/prd.md
            ↓
@@ -302,7 +300,7 @@ cat meeting.txt | openyida flash-to-prd --name <项目名>
 ## 注意事项
 
 1. **闪记质量影响 PRD 质量**：如果闪记内容过于碎片化或口语化严重，生成的 PRD 可能需要用户手动补充完善
-2. **长文本分段处理**：闪记内容超过 6000 字时，建议分段提取后合并，避免超出 AI 模型 token 限制
+2. **长文本分段处理**：CLI 按拼装后的提示词分段提取与归并；6000 字符是单次请求的本地预算
 3. **待确认事项必须处理**：PRD 中的"待确认事项"需要用户逐一确认后，才能进入开发阶段
 4. **PRD 不记录技术 ID**：PRD 文档只记录业务语义信息（字段名、类型、说明），`formUuid`、`fieldId` 等技术 ID 写入 `.cache/` 临时文件
 5. **支持迭代优化**：用户可以对生成的 PRD 提出修改意见，AI 会基于反馈重新调整 PRD 内容

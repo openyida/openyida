@@ -154,42 +154,16 @@
 
 ### 分段处理 Prompt
 
-当闪记内容超过 6000 字时，自动分段处理。分段模式下使用不同的 prompt 策略：
+CLI 按模板、会议上下文和正文拼装后的完整提示词判断是否分段。6000 字符是单次请求的本地预算，包含模板开销。长单行没有合适的切分点时，按字符边界拆分，保留剩余内容。
 
-| 阶段 | Prompt 策略 | 输出格式 |
-|------|------------|---------|
-| **分段提取**（每段） | 从当前段提取需求信息 | JSON 结构化数据 |
-| **合并生成**（最终） | 将各段 JSON 合并去重，生成完整 PRD | Markdown PRD |
+| 阶段 | 处理方式 | 输出 |
+|------|----------|------|
+| 短材料 | 一次提交完整提示词 | Markdown PRD |
+| 分段提取 | 会议摘要和转写分别切分，保留各段需求事实 | 简洁的 Markdown 列表 |
+| 分批归并 | 提取结果超出一次请求预算时，分批合并和去重 | 归并后的需求事实 |
+| 最终生成 | 使用归并后的事实生成文档，无法判定的分歧列为待确认 | Markdown PRD |
 
-**分段提取 prompt 输出的 JSON 结构**：
-
-```json
-{
-  "projectName": "从内容中推断的项目名称",
-  "background": "项目背景描述",
-  "users": [{"role": "角色名", "description": "说明"}],
-  "features": [
-    {
-      "moduleName": "模块名",
-      "description": "功能描述",
-      "rules": ["业务规则1", "业务规则2"],
-      "fields": [
-        {"name": "字段名", "type": "宜搭字段类型", "required": true, "description": "说明"}
-      ]
-    }
-  ],
-  "processes": [{"name": "流程名", "steps": "流程描述"}],
-  "reports": [{"name": "报表名", "source": "数据来源", "chartType": "图表类型", "description": "说明"}],
-  "nonFunctional": ["非功能需求1"],
-  "unconfirmed": [{"content": "待确认内容", "description": "说明"}]
-}
-```
-
-**合并阶段的规则**：
-1. 相同功能模块的信息合并到一起
-2. 重复的字段、规则去重
-3. 冲突的信息以后面段落的为准（代表更新的讨论结论）
-4. 补充遗漏的关联信息（如提到审批但未设计审批流程，需补充）
+CLI 的中间请求最多生成 768 token；用户指定的输出上限更低时，使用更低的值。最终生成仍使用命令的输出上限。
 
 ### 调用方式
 
@@ -197,7 +171,7 @@
 // 引入 prompt 构建模块
 var promptBuilder = require('./build-flash-note-prompt');
 
-// 方式 1：单段模式（闪记内容 ≤ 6000 字）
+// 方式 1：只构建单段提示词；需要自动控制预算时用完整流程
 var prompt = promptBuilder.buildFlashNoteToPrdPrompt(cleanedContent, {
   projectName: '设备巡检系统',  // 可选
   industry: '制造业',           // 可选

@@ -23,6 +23,8 @@ const {
   extractSpeakers,
   buildMeetingContext,
   buildFlashNoteToPrdPrompt,
+  splitIntoSegments,
+  generatePrd,
   flashNoteToPrd,
 } = require('../lib/flash-note/build-flash-note-prompt');
 const {
@@ -127,6 +129,57 @@ describe('flash note to PRD prompt builder', () => {
     }
   });
 
+  test('splitting preserves sentence boundaries, whitespace and Unicode in long single lines', () => {
+    const source = '甲方确认审批。  乙方补充规则。' + '甲😀'.repeat(3000) + '\n\n末尾仍需导出';
+    const chunks = splitIntoSegments(source, 17);
+
+    expect(chunks[0]).toBe('甲方确认审批。  乙方补充规则。');
+    expect(chunks.join('')).toBe(source);
+    for (const chunk of chunks) {
+      expect(chunk.length).toBeLessThanOrEqual(17);
+      expect(chunk).not.toMatch(/[\uD800-\uDBFF]$|^[\uDC00-\uDFFF]/);
+    }
+  });
+
+  test('long material makes progress through multiple bounded reduction rounds', async () => {
+    const sent = [];
+    const output = await generatePrd({
+      dialogueText: '首项核对权限。'.repeat(1600) + '末项禁止越权。',
+      meetingContext: '会议摘要'.repeat(3000) + '摘要末尾确认留痕。',
+      projectName: '审计',
+      callAI: async (prompt, options) => {
+        sent.push({ prompt, options });
+        if (prompt.includes('请从以下')) {
+          const labels = ['末项禁止越权', '摘要末尾确认留痕'].filter(label => prompt.includes(label));
+          return '事实'.repeat(1250) + labels.join('、');
+        }
+        if (prompt.startsWith('请归并')) {
+          const labels = ['末项禁止越权', '摘要末尾确认留痕'].filter(label => prompt.includes(label));
+          return '归并'.repeat(600) + labels.join('、');
+        }
+        expect(prompt).toContain('末项禁止越权');
+        expect(prompt).toContain('摘要末尾确认留痕');
+        expect(prompt).toContain('项目名称为「审计」');
+        return '# 审计 PRD';
+      },
+    });
+
+    expect(output).toBe('# 审计 PRD');
+    expect(sent.filter(({ prompt }) => prompt.startsWith('请归并') && prompt.includes('归并归并'))).not.toHaveLength(0);
+    expect(sent.every(({ prompt }) => prompt.length <= 6000)).toBe(true);
+    expect(sent.slice(0, -1).every(({ options }) => options.maxTokens === 768)).toBe(true);
+    expect(sent.at(-1).options).toBeUndefined();
+  });
+
+  test('stops if an AI response does not get smaller during reduction', async () => {
+    const callAI = jest.fn(async () => '重复内容'.repeat(3000));
+
+    await expect(generatePrd({ dialogueText: '长正文'.repeat(3000), callAI }))
+      .rejects.toMatchObject({ reason: 'compact_failed' });
+    expect(callAI.mock.calls.every(([prompt]) => prompt.length <= 6000)).toBe(true);
+    expect(callAI.mock.calls.some(([prompt]) => prompt.startsWith('你是一名资深产品经理。以下是'))).toBe(false);
+  });
+
   test('flashNoteToPrd requires an AI caller', async () => {
     await expect(flashNoteToPrd('张三：需要客户档案')).rejects.toThrow('callAI');
   });
@@ -228,6 +281,72 @@ describe('flash-to-prd CLI command', () => {
       expect(result.prdFile).toBe(path.join(tmpDir, 'prd', 'CRM.md'));
       expect(fs.readFileSync(result.prdFile, 'utf8')).toContain('客户档案管理');
       expect(JSON.parse(logSpy.mock.calls[0][0])).toEqual(result);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('run does not resend a summary-only document as dialogue and keeps the final token setting', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-flash-to-prd-'));
+    const inputPath = path.join(tmpDir, 'meeting.md');
+    fs.writeFileSync(inputPath, '会议主题：需求评审\n\n📋 会议摘要\n' + '需保留审批记录。'.repeat(1100) + '摘要尾部确认导出限制。');
+    utils.findProjectRoot.mockReturnValue(tmpDir);
+    const prompts = [];
+    utils.httpPost.mockImplementation(async (_baseUrl, _path, body) => {
+      const request = querystring.parse(body);
+      prompts.push(request);
+      const content = request.prompt.includes('## 输出要求') ? '# 审批 PRD\n\n导出需授权。' : '- 导出需授权';
+      return { success: true, content: { content } };
+    });
+
+    try {
+      const result = await run(['--file', inputPath, '--name', '审批', '--max-tokens', '2048']);
+      const extractions = prompts.slice(0, -1);
+      expect(extractions.length).toBeGreaterThan(1);
+      expect(extractions.every(({ prompt, maxTokens }) => prompt.includes('请从以下会议上下文') && maxTokens === '768')).toBe(true);
+      expect(extractions.filter(({ prompt }) => prompt.includes('摘要尾部确认导出限制。'))).toHaveLength(1);
+      expect(prompts.every(({ prompt }) => prompt.length <= 6000)).toBe(true);
+      expect(prompts.at(-1).maxTokens).toBe('2048');
+      expect(fs.readFileSync(result.prdFile, 'utf8')).toContain('导出需授权');
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('run preserves an existing PRD when an intermediate request fails', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-flash-to-prd-'));
+    const inputPath = path.join(tmpDir, 'meeting.txt');
+    const prdPath = path.join(tmpDir, 'prd', 'CRM.md');
+    fs.mkdirSync(path.dirname(prdPath));
+    fs.writeFileSync(prdPath, '# 原始 PRD');
+    fs.writeFileSync(inputPath, '客户资料需审批。'.repeat(1200));
+    utils.findProjectRoot.mockReturnValue(tmpDir);
+    utils.httpPost
+      .mockResolvedValueOnce({ success: true, content: { content: '- 客户资料需审批' } })
+      .mockRejectedValueOnce(new Error('Request timeout'));
+
+    try {
+      await expect(run(['--file', inputPath, '--name', 'CRM'])).rejects.toThrow('Request timeout');
+      expect(utils.httpPost).toHaveBeenCalledTimes(2);
+      expect(fs.readFileSync(prdPath, 'utf8')).toBe('# 原始 PRD');
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('run reports a successful but empty model response as an AI error', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-flash-to-prd-'));
+    const inputPath = path.join(tmpDir, 'meeting.txt');
+    fs.writeFileSync(inputPath, '客户资料需审批。');
+    utils.findProjectRoot.mockReturnValue(tmpDir);
+    utils.httpPost.mockResolvedValue({ success: true, content: { content: '  ' } });
+
+    try {
+      await expect(run(['--file', inputPath, '--name', 'CRM'])).rejects.toMatchObject({
+        code: 'FLASH_NOTE_AI_ERROR',
+        details: { reason: 'empty_ai_response' },
+      });
+      expect(fs.existsSync(path.join(tmpDir, 'prd'))).toBe(false);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }

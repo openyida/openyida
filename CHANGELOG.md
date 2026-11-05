@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 海外版宜搭暂不适用当前 OAuth token 登录与创建应用链路；如需在海外版宜搭创建应用，请使用 `2026.7.14-2` 以前的版本，例如 `npm install -g openyida@2026.7.13`。
 
+## [2026.11.5-1] - 2026-11-05
+
+- **闪记转 PRD**：`openyida flash-to-prd` 会分段处理较长的会议转写和摘要，再归并需求要点，降低单次请求超时的风险。生成中断时保留已有 PRD。
+
 ## [2026.11.5] - 2026-11-05
 
 - **数据管理视图**：使用 `openyida form-view rename` 重命名已有视图，保留视图的描述和启用状态。
