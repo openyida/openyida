@@ -15,7 +15,7 @@ description: 从已有钉钉闪记、会议记录或需求文档内容中提取�
 - 材料无法读取或内容不足以确定任何需求时，说明缺少的内容并请用户补充。
 - Agent 生成 PRD 时，不调用 `openyida flash-to-prd`、`openyida ai` 或 `/query/intelligent/txtFromAI.json`。
 
-独立命令行脚本的远端 AI 入口见本文末尾；仅在用户明确选择该入口时使用。
+
 
 ## 生成步骤
 
@@ -49,19 +49,6 @@ description: 从已有钉钉闪记、会议记录或需求文档内容中提取�
 - 补充的字段、流程或实现建议必须标注为「建议，待确认」，不得作为已经确认的业务规则。
 - PRD 只写业务语义。真实 appType、formUuid、fieldId 由后续搭建回读取得，记录在对应 Schema 台账中。
 
-## 独立脚本的可选 CLI
+## 旧命令迁移
 
-用户明确要求独立脚本通过宜搭 AI 服务生成时，使用现有 CLI。这个命令需要 Node.js ≥ 18 和有效宜搭登录态，会调用 `/query/intelligent/txtFromAI.json`。
-
-```bash
-openyida flash-to-prd --file meeting.md --name "物料管理"
-cat meeting.txt | openyida flash-to-prd --name "物料管理"
-```
-
-| 参数 | 说明 |
-| --- | --- |
-| `--file`、`-f` | 文本文件路径，省略时读取标准输入 |
-| `--name`、`-n` | 项目名称，省略时从生成结果提取 |
-| `--max-tokens` | 最终生成的输出上限，默认 8000；过低可能截断文档 |
-
-CLI 输出为 `prd/<项目名>.md`。命令按完整提示词的 6000 字符预算分段提取和分批归并，中间输出最多 768 token，单次请求最多等待 65 秒。生成失败时保留已有 PRD。
+`openyida flash-to-prd` 已移除。将原来的输入文件或会议文本交给当前 Agent，按本文流程生成 `prd/<项目名>/prd.md`。原脚本中的宜搭 AI 生成步骤改由宿主 Agent 执行。

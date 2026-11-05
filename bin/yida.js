@@ -468,6 +468,9 @@ function formatSuggestionMessage(suggestion) {
 function throwUnknownCommand(commandName, commandArgs = []) {
   const suggestion = findCommandSuggestion([commandName, ...commandArgs]);
   const lines = [t('cli.unknown_command', commandName)];
+  if (commandName === 'flash-to-prd') {
+    lines.push(t('cli.flash_note_skill'));
+  }
   if (suggestion) {
     lines.push(t('cli.command_suggestion', suggestion.suggested_usage));
     const suggestionMessage = formatSuggestionMessage(suggestion);
@@ -1263,12 +1266,6 @@ async function main() {
     case 'agent-center': {
       const { run: runAgentCenter } = require('../lib/agent-center/agent-center');
       await runAgentCenter(args);
-      break;
-    }
-
-    case 'flash-to-prd': {
-      const { run: runFlashToPrd } = require('../lib/flash-note/flash-to-prd');
-      await runFlashToPrd(args);
       break;
     }
 

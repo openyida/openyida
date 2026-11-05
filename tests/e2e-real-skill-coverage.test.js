@@ -28,14 +28,14 @@ describe('real E2E skill coverage matrix', () => {
     expect(result.missing).toEqual(['yida-new-skill']);
   });
 
-  test('dashboard and AI-backed skills are classified deliberately', () => {
+  test('dashboard and agent-authored PRDs use different validation paths', () => {
     expect(SKILL_COVERAGE['yida-dashboard']).toMatchObject({
       level: 'real-e2e',
       stages: ['dashboard'],
     });
     expect(SKILL_COVERAGE['yida-flash-note-to-prd']).toMatchObject({
-      level: 'opt-in',
-      stages: ['ai'],
+      level: 'offline-unit',
+      tests: expect.arrayContaining(['routing eval scenarios']),
     });
   });
 

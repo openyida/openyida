@@ -332,7 +332,7 @@ npm run test:e2e:real:skills
 
 The runner creates a disposable app, form, and custom page with an `OY_E2E_*` prefix, then verifies token login, app listing, schema fetch, data query, and page publish. It writes a registry to `project/.cache/e2e-real/` so created resources can be audited later. Run `openyida login` for the target environment before starting the real E2E runner.
 
-`test:e2e:real:full` extends the smoke path into a broad deterministic feature matrix: auth/env, app update, form update and option mutation, page build/compile/generate/publish, data create/get/update/query, permission read, page config and short URL check, report create/append, dashboard skill verification, export/import, batch, task-center, formula/doctor/sample/CDN config, and local connector parsing/template generation. AI-backed commands such as `flash-to-prd` are available as the optional `ai` stage because they depend on remote model availability. Workflow mutation is available as the opt-in `process` stage; it creates and republishes a workflow on the disposable E2E form and records advanced official-node fixtures for review.
+`test:e2e:real:full` extends the smoke path into a broad deterministic feature matrix: auth/env, app update, form update and option mutation, page build/compile/generate/publish, data create/get/update/query, permission read, page config and short URL check, report create/append, dashboard skill verification, export/import, batch, task-center, formula/doctor/sample/CDN config, and local connector parsing/template generation. Meeting-note PRD generation is handled by the current agent through the `yida-flash-note-to-prd` skill and verified by reviewing its document output. Workflow mutation is available as the opt-in `process` stage; it creates and republishes a workflow on the disposable E2E form and records advanced official-node fixtures for review.
 
 `test:e2e:real:skills` enforces coverage for every directory under `yida-skills/skills/`. Each skill must be classified as real E2E, offline/unit, opt-in, or deprecated with an explicit reason. This prevents new skills from quietly bypassing the real-environment test plan.
 
@@ -657,7 +657,6 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida export-conversation [options]` | Export AI conversation records |
 | `openyida feedback <report\|github\|setup\|url\|dismiss\|status> [options]` | Prepare local issue reports, configure feedback forms and reminders |
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--concurrency 1..4] [--stop-on-error] [--json]` | Run OpenYida commands in batch |
-| `openyida flash-to-prd --file <path> --name "<project>"` | Generate a PRD from meeting notes with YiDA AI (standalone scripts) |
 | `openyida ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
 | `openyida asset <status\|resolve\|sources> [options]` | Detect asset capability / resolve materials |
 | `openyida cdn-config [options]` | Configure CDN / OSS upload |

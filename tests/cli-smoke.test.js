@@ -2045,6 +2045,9 @@ describe('CLI offline smoke', () => {
   });
 
   test.each([
+    ['flash-to-prd'],
+    ['flash-to-prd', '--help'],
+    ['flash-to-prd', '--file', 'meeting.md'],
     ['a2a'],
     ['a2a', 'agent-card'],
     ['a2a', 'serve'],
@@ -2067,6 +2070,16 @@ describe('CLI offline smoke', () => {
       errorCode: 'INVALID_ARGUMENTS',
       errorMsg: expect.stringContaining(`未知命令: ${args[0]}`),
     });
+  });
+
+  test('removed flash-to-prd directs callers to agent skill generation', () => {
+    const result = runAny(['flash-to-prd', '--file', 'meeting.md', '--json']);
+    const error = JSON.parse(result.jsonOutput);
+
+    expect(result.status).toBe(1);
+    expect(error.errorCode).toBe('INVALID_ARGUMENTS');
+    expect(error.errorMsg).toContain('yida-flash-note-to-prd');
+    expect(error.errorMsg).toContain('当前 Agent');
   });
 
   test('db-seq-fix help remains available without database access', () => {

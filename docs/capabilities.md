@@ -207,7 +207,7 @@
 | 重跑多组公式样例 | `openyida formula test <appType> <formUuid> --field <fieldId> --cases cases.json --json`；每组提供 `name/data/expect`，报告缺失值及类型转换问题 |
 | 读取钉钉文档并转为 Markdown | `openyida read-dingtalk-doc <docUrl> [--output <file>] [--json]` |
 | 按 taskUuid 读取钉钉听记 | `openyida read-dingtalk-tingji <taskUuid> [--json]` |
-| 闪记/会议纪要转 PRD | 由当前 Agent 直接读取内容并生成 PRD；独立脚本可选用 `openyida flash-to-prd --file <path> --name "<project>"` 调用宜搭 AI |
+| 闪记/会议纪要转 PRD | 当前 Agent 使用 `yida-flash-note-to-prd` 技能读取材料、生成并核对 PRD |
 | 导出 AI 对话记录 | `openyida export-conversation [options]` |
 | 整理 VOC 反馈材料 | 按故障、需求或性能问题整理成可提交材料 |
 | 配置体验反馈入口 | `openyida feedback <setup\|url\|dismiss\|status> [options]` |
