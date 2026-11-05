@@ -24,7 +24,7 @@ function invoke(baseUrl, cwd, args) {
     }));
 }
 
-test.each(['complete', 'missing-child'])('public batch create/readback/resume keeps main/table scopes: %s', async scenario => {
+test.each(['complete', 'missing-child', 'view-write-fails', 'view-readback-fails'])('public batch create/readback/resume keeps main/table scopes: %s', async scenario => {
   const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-scoped-form-cli-'));
   const source = path.join(workspace, 'forms.json');
   const relation = key => ({ key, type: 'AssociationFormField', label: '关联客户',
@@ -38,6 +38,7 @@ test.each(['complete', 'missing-child'])('public batch create/readback/resume ke
     { key: 'contract', title: '合同', fields: contractFields },
   ] }));
   const forms = new Map(), requests = [];
+  let viewFault = scenario.startsWith('view-');
   const server = http.createServer(async (req, res) => {
     let body = '';
     for await (const chunk of req) {body += chunk;}
@@ -53,7 +54,9 @@ test.each(['complete', 'missing-child'])('public batch create/readback/resume ke
         hidden: 'n', mobileHidden: 'n', formStatus: 'ONLINE', relateFormUuid: formUuid }));
     } else if (endpoint === 'saveFormSchemaInfo.json') {
       const formUuid = `FORM-LOCAL-${forms.size + 1}`;
-      forms.set(formUuid, { title: params.get('formTitle') || params.get('title') || '合同', icon: '', schema: null });
+      forms.set(formUuid, { title: params.get('formTitle') || params.get('title') || '合同', icon: '', schema: null,
+        view: { staticConfig: { columnFilter: ['all'], buttonList: [{ code: 'detail' }] },
+          defaultConfig: { showFields: 'all', widths: { name: 280 }, sort: [{ id: 'createTime', isAsc: 'n' }] } } });
       result.content = { formUuid };
     } else if (endpoint === 'saveFormSchema.json') {
       forms.get(id).schema = JSON.parse(params.get('content'));
@@ -63,6 +66,22 @@ test.each(['complete', 'missing-child'])('public batch create/readback/resume ke
           else if (node.children) {remove(node.children);}
         });
         remove(forms.get(id).schema.pages[0].componentsTree);
+      }
+    } else if (endpoint === 'getFormSchemaInfo.json') {
+      result.content = { multiViewInfos: [{ viewUuid: `VIEW-${id}`, viewType: 'table', name: '{}', status: '{}' }] };
+    } else if (endpoint === 'getViewConfig.json') {
+      result.content = { ...forms.get(id).view, viewUuid: `VIEW-${id}` };
+    } else if (endpoint === 'getDataViewPanel.json') {
+      result.content = { componentValueVoList: [
+        { id: 'processInstanceTitle', componentName: 'TextField', supportVisible: true, showTerm: 'y', showOrder: 0 },
+        { id: 'name', componentName: 'TextField', supportVisible: true, showTerm: 'y', showOrder: 1 },
+        { id: 'createTime', componentName: 'DateField', supportVisible: true, showTerm: 'y', showOrder: 2 },
+      ] };
+    } else if (endpoint === 'updateConfig.json') {
+      if (viewFault && scenario === 'view-write-fails') {
+        result.success = false; result.errorMsg = 'View write denied';
+      } else if (!viewFault || scenario !== 'view-readback-fails') {
+        forms.get(id).view = { staticConfig: JSON.parse(params.get('staticConfig')), defaultConfig: JSON.parse(params.get('defaultConfig')) };
       }
     } else if (endpoint === 'getFormSchema.json') {
       Object.assign(result, { appType: 'APP_TEST', formUuid: id, gmtModified: 101 });
@@ -82,6 +101,23 @@ test.each(['complete', 'missing-child'])('public batch create/readback/resume ke
     const result = await invoke(baseUrl, workspace, ['create-form', 'batch', 'APP_TEST', source, '--concurrency', '1', '--json']);
     // Batch JSON is always written to stdout, including a partial failure.
     const output = JSON.parse(result.stdout);
+    if (viewFault) {
+      expect(result.code).toBe(1);
+      expect(output.results.customer).toMatchObject({ status: 'failed', formUuid: 'FORM-LOCAL-1' });
+      expect(count('saveFormSchemaInfo.json')).toBe(1);
+      expect(count('updateConfig.json')).toBe(1);
+      expect(forms.get('FORM-LOCAL-1').view.defaultConfig.showFields).toBe('all');
+      // Recover the same remote form; never create a replacement after view failure.
+      viewFault = false;
+      const resumed = await invoke(baseUrl, workspace, ['create-form', 'resume', 'APP_TEST', 'FORM-LOCAL-1',
+        JSON.stringify([{ key: 'name', type: 'TextField', label: '客户名称' }]), '--json']);
+      expect(resumed.code).toBe(0);
+      expect(JSON.parse(resumed.stdout)).toMatchObject({ defaultView: {
+        readbackVerified: true, showFields: ['name', 'createTime', 'processInstanceTitle'],
+      } });
+      expect(count('saveFormSchemaInfo.json')).toBe(1);
+      return;
+    }
     expect(output).toMatchObject({ success: scenario === 'complete', results: {
       customer: { status: 'success', formUuid: 'FORM-LOCAL-1' },
       contract: { status: scenario === 'complete' ? 'success' : 'failed', formUuid: 'FORM-LOCAL-2' },
@@ -89,6 +125,8 @@ test.each(['complete', 'missing-child'])('public batch create/readback/resume ke
     expect(result.code).toBe(scenario === 'complete' ? 0 : 1);
     expect(count('saveFormSchemaInfo.json')).toBe(2);
     expect(count('saveFormSchema.json')).toBe(2);
+    expect(forms.get('FORM-LOCAL-1').view).toEqual({ staticConfig: { columnFilter: ['all'], buttonList: [{ code: 'detail' }] },
+      defaultConfig: { showFields: ['name', 'createTime', 'processInstanceTitle'], widths: { name: 280 }, sort: [{ id: 'createTime', isAsc: 'n' }] } });
     if (scenario === 'complete') {
       const fields = output.results.contract.fields.filter(field => field.label === '关联客户');
       expect(fields).toHaveLength(3);
