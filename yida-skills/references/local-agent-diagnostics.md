@@ -52,7 +52,9 @@ openyida agent diagnose --session "<URL>" --output <用户明确指定的目录>
 | `DEVICE_NOT_PAIRED` | 当前组织还没有这台电脑的有效 Connection | 从宜搭网页生成接入命令，或运行浏览器接入流程 |
 | `DEVICE_ACCESS_TOKEN_EXPIRED` | 短期设备 AccessToken 已过期，但 RefreshToken 仍有效 | 启动或恢复该组织的 Runtime，让它按正常链路自动刷新 |
 | `DEVICE_CREDENTIAL_EXPIRED` | Connection 存在但设备凭据已经过期 | 为当前组织重新连接，不影响其他组织 Connection |
-| `SESSION_NOT_SEEN_LOCALLY` | 本机最近 Journal 中没有该 Session | 继续看 `server.matched`，判断服务端是否投递到这条 Connection |
+| `SESSION_NOT_SEEN_LOCALLY` | 本机最近 Journal 中没有该 Session；不证明命令从未到达 | 继续看 `server.matched`、`latestRun` 和 `recentCommandFailures` |
+| `LOCAL_DISPATCH_DELAYED` | 服务端已受理，超过 60 秒仍未确认启动 | 查看命令接收诊断；不要重复发送或重放任务 |
+| `RECENT_COMMAND_CLAIM_FAILURE` | 该连接历史上出现命令拉取或解析错误，不代表当前会话必然失败 | 查看 `recentCommandFailures` 的阶段、时间与错误码，并结合服务端当前状态 |
 | `SESSION_NOT_ASSIGNED_TO_CONNECTION` | 会话不属于当前电脑的组织 Connection | 在网页核对组织、电脑和 CLI 选择，不重新配对其他组织 |
 | `SERVER_DIAGNOSTIC_UNAVAILABLE` | 本机状态可读，但设备鉴权的服务端关联查询失败 | 检查控制域名网络、设备是否过期；保留诊断 ID |
 | `RECENT_DEVICE_CREDENTIAL_REJECTION` | 最近两小时出现过连接/换证响应校验失败，不代表当前仍失败 | 查看 `recentConnectionFailures` 的时间、阶段和原因，再结合当前 Connection 判断 |
@@ -75,6 +77,8 @@ access/refresh 剩余秒数，不包含 Token。它不是当前连接在线状�
 客户端不限制设备凭据的最长 TTL；服务端签发时间和服务端鉴权是权威。
 若旧版本在刚连接时报告有效期过长而稍后重试成功，应更新 OpenYida/Runtime，
 不要让用户通过等待、反复重连或修改本机时间解决。
+
+命令通过 HTTPS 周期性拉取，WebSocket 只唤醒轮询；不能从断连记录推断命令丢失。`authorize_start` 是 Runtime 收到启动命令后的请求。无新任务 Journal 时仍需查看连接级 `recentCommandFailures`；它不能单独归因到目标会话。同一电脑的 Qoder/Codex 对应不同 Runtime，一方正常不能证明另一方正常。
 
 `server.matched=true` 后再看 `runtimeStatus`、`sessionActive` 和 `latestRun`：
 
