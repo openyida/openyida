@@ -141,10 +141,10 @@ Fast 直接按短执行流程内的依赖与调度规则执行；Plan 与其他�
 ## 页面数据契约
 
 - 默认页面源码不得使用 `this.dataSourceMap.*`，除非本轮已经创建并绑定对应设计器数据源。
-- 真实表单数据默认通过页面数据桥或 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)` 读取；流程发起、流程列表、表单保存/更新等能力也通过发布层注入的同一个 yida API 桥调用；不要用前端 seedRows 冒充真实表单数据。
+- 普通表单数据默认通过页面数据桥或 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)` 读取；流程发起、流程列表、表单保存/更新等能力也通过发布层注入的同一个 yida API 桥调用；不要用前端 seedRows 冒充真实表单数据。
 - 页面根级运行态工具通过 `window.__OPENYIDA_UTILS__` 读取，`toast/dialog/openPage/router.push/isMobile` 等工具不能在 `YidaComp` 内直接写 `this.utils.*`。
 - 自定义页内普通表单新建/提交/详情必须接入 CLI 提供的 `FormOpenContainer` 抽屉模板，前台全码开发也不豁免；调用 `openForm` 并挂载 `formOpenContainer`，详情页从真实行数据解析 `formInstId`。不另写普通填写表单、直接跳转或简化弹层。
-- 用户明确要求的自定义列表、看板和详情页优先读取真实表单数据；页面源码使用真实 `appType/formUuid/fieldId` 和字段映射；只有使用 page-spec 的已有文档流程才填写 `dataBinding.mode=form`。表单数据管理页不另生成页面源码。
+- 用户明确要求的自定义列表、看板和详情页优先读取真实表单数据；页面源码使用真实 `appType/formUuid/fieldId` 和字段映射；按实际目标选择普通表单 `dataBinding.mode=form` 或流程 `dataBinding.mode=process`；使用 page-spec 的已有文档流程同步该绑定。表单数据管理页不另生成页面源码。
 - 完整应用按数据技能准备示例并核验；流程示例使用临时本人审批、seed、编辑和最终发布顺序。无数据时显示“暂无数据”，业务动作沿用已确认范围。
 - 若页面确实依赖 `this.dataSourceMap.*`，必须执行 `use_skill("yida-data-source-connectors")` 创建/绑定数据源，并在发布后确认页面 Schema 中存在对应数据源；发布输出出现 `No custom page data sources to preserve` 时，本次发布不能视为完成。
 

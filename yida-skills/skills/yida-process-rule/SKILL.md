@@ -153,4 +153,4 @@ CLI 自动生成发起和结束节点；`nodes` 只写中间节点，不添加 `
 | 流程规则 | 已有流程使用本技能；`yida-create-process` 完成后仍可回到本技能补充复杂规则 |
 | 自定义页面 | 用户需要时才用 `yida-canvas-custom-page` 编写或更新源码，再用 `yida-publish-page` 发布 |
 
-从零创建流程表单可由 `yida-create-process` 编排表单与流程两步；该快捷入口不能绕过已有资源的复用限制。
+从零创建流程表单通过 `yida-create-process` 一次调用完成表单与流程；已有资源按上方入口复用。

@@ -43,7 +43,9 @@ description: 为 YidaCodeCanvas 自定义内容接入真实表单、个人流程
 
 ## dataBinding 契约
 
-`page-spec.json` 或生成命令中优先携带 `dataBinding`。没有真实数据时只能标记为 `seed`，不能声称已经接入线上数据。
+`page-spec.json` 或生成命令中优先携带 `dataBinding`。`mode=seed` 指本地演示数据；`data seed form/process` 写入平台的记录仍分别用 `mode=form/process` 读取。真实接口返回零条时保留对应模式并展示空态，本地演示使用 `mode=seed` 并明确标注。
+
+Plan 的 `build-plan.json/pageSpecHandoff` 中 `dataBinding:"form"` 是数据源分类；页面源码的 `DATA_BINDING.mode` 按真实普通/流程类型选择。
 
 ```json
 {
@@ -62,7 +64,7 @@ description: 为 YidaCodeCanvas 自定义内容接入真实表单、个人流程
 
 | mode | 用途 | 必填 | 运行方式 |
 | --- | --- | --- | --- |
-| `seed` | 演示兜底 / 本地预览 | 无 | 只用本地演示数据 |
+| `seed` | 离线预览 / 明确标注的演示页 | 无 | 只用本地演示数据 |
 | `form` | 读宜搭表单数据 | `appType`、`formUuid`、`fields` | 默认 `window.__OPENYIDA_YIDA_API__.searchFormDatas(params)`；桥不存在时才降级同源直连 `/dingtalk/web/<appType>/v1/form/searchFormDatas.json` |
 | `process` | 读流程业务记录 | `appType`、`formUuid`、`fields` | `getProcessInstances(params)`；维护的读取片段将返回的 data 归一到 formData，保留真实流程 ID 和状态 |
 | `connector` | 读平台连接器代理 | `connectorName`（`Http_*`）、`operationId`；鉴权连接器另需 `connectionId` | 调用 `window.__OPENYIDA_CONNECTOR_API__.invoke(binding, inputs)`，鉴权留在平台侧 |
@@ -83,7 +85,7 @@ description: 为 YidaCodeCanvas 自定义内容接入真实表单、个人流程
 2. 首屏可以显示 loading；后续轮询或手动刷新必须 silent，不清空旧列表，不重置整页。
 3. 返回体解析必须兼容多层包裹：`data`、`result.data`、`content.data`、`content.result.data`、`list`、`records`、`values`。
 4. 已知正总数的有效页缺少行时必须报错；分页已越界时允许空列表并提供返回入口。未知结构不能静默显示“暂无数据”。
-5. seed 数据只能作为接口失败时的低保真兜底，并在状态区标记“示例数据”或“接口异常”。
+5. 真实接口失败时展示错误态和重试入口；刷新失败可保留同一数据源上次成功的记录并标记过期。本地演示数据只用于明确的 `mode=seed`。
 6. `useEffect` 内请求要用 `AbortController` 或等价 cleanup，避免页面切换后继续 setState。
 7. 轮询间隔需要可控，常规业务页不低于 5 秒；实时大屏可更短，但必须避免重复并发请求。
 
@@ -171,7 +173,7 @@ return deliveries.rows.map((childRow, index) => {
 
 跨应用及流程关联保留目标元数据，重复实例或已提供但格式错误的目标元数据为 error。最多解码两层 JSON；编码后的 null/空字符串同样表示明确清空，超出层数或未知对象不猜测转换。支持范围见[关联格式场景矩阵](../yida-data-management/references/data-format-guide.md#场景与边界)；业务权限、过滤及回填结果仍按实际业务核验。
 
-compile/publish 在既有本地编译中拦截能确定的关联吞错和原值直接文本展示；不增加平台请求，不证明任意自定义渲染器正确。边界用例在CLI研发回归验证；搭建沿用已有写入回读、业务抽查，不为这项检查新增查询或模型自检轮次。
+关联渲染静态检查在 compile/publish 的本地编译中拦截能确定的吞错和原值直接文本展示，不增加平台请求；发布时声明绑定的 Schema 核验按前述每个数据源读取一次。两者不证明任意自定义渲染器正确。边界用例在 CLI 研发回归验证；搭建沿用已有写入回读和业务抽查。
 
 ## 生成与验收
 
@@ -180,7 +182,7 @@ compile/publish 在既有本地编译中拦截能确定的关联吞错和原值�
 生成真实数据页前必须确认：
 
 - 已拿到目标 `appType` 和 `formUuid`。
-- `fields` 中每个字段 ID 来自 `openyida get-schema` 或缓存 schema，不靠猜。
+- `fields` 中每个字段 ID 来自真实创建回执或已确认的 Schema，不靠猜。
 - 页面首屏 KPI、列表、图表至少有一个区域来自真实数据源。
 - 接口异常时页面有明确错误态，不用 demo seed 伪装成成功态。
 - 发布后回读页面，确认 `YidaCodeCanvas` 组件的 `runtimeCode` 非空。
@@ -205,5 +207,5 @@ openyida get-schema <appType> <formUuid> > .cache/openyida/dashboard-schema.json
 | 登录态存在但接口 403 | 优先改回 yida JS-API 桥；只有降级直连时才检查同源路径、CSRF 参数和 `global_csrf_token` 头 |
 | 公开页提交返回 `LOGIN FAILED` | 不以桥对象存在判断登录态；先识别 `FREELOGIN` / `FREEUSER`，匿名态改走 `RECEIPT_SAVE_FORM_DATA` |
 | 匿名网关返回成功但字段为空 | 把每项改为 `{ componentName, fieldId, fieldData: { value } }`，再按 `formInstId` 回读字段值 |
-| 接口失败后仍显示漂亮 demo 数据 | 改成错误态 + seed 标识，不能伪装真实成功 |
+| 接口失败后仍显示漂亮 demo 数据 | 展示真实错误态与重试入口；本地演示使用独立 `mode=seed` 并明确标注 |
 | 字段值全为空 | 回读 schema 校验字段 ID，确认字段映射没有使用 label |

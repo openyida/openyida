@@ -154,7 +154,7 @@ openyida data query form APP_xxx FORM-xxx --search-json '[{"key":"dateField_xxx"
 
 ## 日期字段（DateField / CascadeDateField）
 
-直接使用 `data create/update` 或 API 录入、更新数据时，日期字段必须写入毫秒级时间戳；`data seed form` 的字符串转换由 CLI 完成：
+直接使用 `data create/update` 或 API 录入、更新数据时，日期字段必须写入毫秒级时间戳；`data seed form/process` 的字符串转换由 CLI 完成：
 
 ```json
 {
