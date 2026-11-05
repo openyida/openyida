@@ -55,7 +55,7 @@ openyida update-app <appType> --theme-file <app-theme.css> --nav-theme <light|da
 
 ### 新建应用的主题结果
 
-CLI 默认申请新版主题，并在创建后回读应用、组织和 modern 配置；成功结果的 `themeVerification.appThemeMode` 为 `modern`。这是配置核验，CSS 是否加载仍按实际页面验收。遇到 `APP_CREATED_THEME_UNVERIFIED`，使用 `details.appType` 排查已创建应用，不重跑创建、不静默降级，也不把主题失败解释为登录或 302 问题。正常搭建继续主题上传，无需旧主题注入确认；主题校验过程不向用户播报。
+CLI 默认申请新版主题。创建后通过应用详情接口核对 `appType` 和 modern 配置，并确认查询前后登录身份一致。成功结果的 `themeVerification.appThemeMode` 为 `modern`。这是配置核验，CSS 是否加载仍按实际页面验收。遇到 `APP_CREATED_THEME_UNVERIFIED`，使用 `details.appType` 排查已创建应用，不重跑创建、不静默降级，也不把主题失败解释为登录或 302 问题。正常搭建继续主题上传，无需旧主题注入确认；主题校验过程不向用户播报。
 
 ### 千问办公调用约定
 

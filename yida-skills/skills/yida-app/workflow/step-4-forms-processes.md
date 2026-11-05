@@ -31,7 +31,7 @@ Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确�
 9. 分析、复刻或迁移已有表单时，执行 `use_skill("yida-get-schema", "读取字段与行为语义")`，对每个核心表单读取一次 `--analysis-json`；把字段结构与 `actions/fieldBehaviors/associationRuleCount` 分开规划，字段事件动作使用 `yida-create-form-page` 的原子 `field-action`，数据源使用 `bind-datasource`。
 10. PRD 明确包含原生报表时，执行 `use_skill("yida-report", "按业务统计语义创建原生报表")`；地域分布、日历统计分别使用已支持的 `map`、`calendarHeatmap`，不得无声明退化成柱/饼图。
 11. PRD 明确包含集成自动化时，执行 `use_skill("yida-integration", "按业务动作创建自动化")`；已有应用先用全类型 `integration list --json` 盘点，创建时区分通知、数据新增/更新、审批完成、定时和手动触发。CLI 不支持的触发类型输出 capability gap，不得用通知替代。
-12. PRD 已规划原生视图的显示列、列宽、冻结、默认筛选、视图名称、操作列按钮或多视图时，表单就绪后执行 `use_skill("yida-form-view", "配置原生数据管理视图")`。用 list/inspect 取得真实视图 UUID、字段与操作符，再按规划执行相应命令并回读。只调整本轮要求的视图配置。
+12. 完整搭建应用时，为本轮新建表单按 [新建表单的默认列顺序](../../yida-form-view/SKILL.md#新建表单的默认列顺序)配置默认数据管理视图。PRD 已规划原生视图的显示列、列宽、冻结、默认筛选、视图名称、操作列按钮或多视图时，表单就绪后执行 `use_skill("yida-form-view", "配置原生数据管理视图")`。用 list/inspect 取得真实视图 UUID、字段与操作符，再按规划执行相应命令并回读。已有表单及资源级任务只调整本轮要求的视图配置。
 
 ## 字段配置文件示例
 

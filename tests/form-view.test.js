@@ -144,6 +144,20 @@ test('inspect parses serialized configs and returns a stable content hash', asyn
   expect(configHash({ ...config, defaultConfig: { ...config.defaultConfig } })).toBe(result.configHash);
 });
 
+test('inspect preserves platform visibility and order for building an explicit default column list', async () => {
+  client.get.mockResolvedValueOnce({ success: true, content: { componentValueVoList: [
+    { id: 'title', componentId: 'processInstanceTitle', supportVisible: true, showTerm: 'y', showOrder: 0 },
+    { id: 'name', supportVisible: true, showTerm: 'y', showOrder: 2 },
+    { id: 'status', supportVisible: true, showTerm: 'n', showOrder: 1 },
+  ] } });
+  const result = await execute(read('inspect', ['VIEW_A']), client);
+  expect(JSON.parse(JSON.stringify(result.fields))).toMatchObject([
+    { id: 'processInstanceTitle', supportVisible: true, showTerm: 'y', showOrder: 0 },
+    { id: 'name', supportVisible: true, showTerm: 'y', showOrder: 2 },
+    { id: 'status', supportVisible: true, showTerm: 'n', showOrder: 1 },
+  ]);
+});
+
 test('patches visibility/order, width, frozen columns and default filter while preserving unrelated settings', async () => {
   const before = JSON.parse(JSON.stringify(config));
   const result = await execute(save({ defaultConfig: { showFields: ['status', 'name'], widths: { status: 150 }, lockFieldIds: ['status'], filter: { values: { status: 'open' } } } }), client);
