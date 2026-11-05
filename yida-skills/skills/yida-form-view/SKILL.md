@@ -41,6 +41,15 @@ description: 宜搭原生数据管理视图配置。读取视图，配置列、�
 
 对象递归合并，数组替换；`filter` 和 `dataRange` 整体替换。未指定的配置保留；不要提交从空对象重造的整套设置。服务端自动更新 `latestUpdateTime`，不能把它当成用户配置。
 
+## 新建表单的默认列顺序
+
+完整搭建应用时，对本轮新建表单的默认表格视图应用以下规则。用户明确指定显示列或列顺序时，按用户配置执行；已有表单的视图按本轮明确要求调整。
+
+1. 用 `list` 读取按平台顺序返回的视图，取第一个 `viewType=table` 的视图，再用 `inspect` 读取配置和字段。
+2. 已有非空 `defaultConfig.showFields` 数组时保留已保存的列配置。值为 `"all"`、空数组或未设置时，从 `fields` 取 `supportVisible=true` 且 `showTerm="y"` 的可展示字段，按 `showOrder` 升序排列，同序保持接口顺序。保留可展示的子表字段，排除子表容器 `TableField` 和表格不支持的 `EditorField`、`TimeSelectField`、`RichText`、`Link`。
+3. 按实际返回的系统字段 ID 将实例标题移到最后（`processInstanceTitle` 或 `formInstanceTitle`）。标题不在可展示列中、只有这一列或已在末尾时，跳过保存。其他列（含实例 ID）的显隐和相对顺序沿用平台默认。
+4. 只写 `defaultConfig.showFields`，带上本次 `inspect` 的 `configHash` 执行 `save`。以 `readbackVerified=true` 和回读的最后一个字段 ID 为准。配置失败时记录视图和错误，继续不依赖此列顺序的搭建工作。
+
 ## 多视图
 
 ```bash
