@@ -7,6 +7,17 @@ description: 查询和维护宜搭表单、流程、任务和子表数据；data
 
 
 仅调整数据管理页外观、换风格或突出操作时，转 `use_skill("yida-data-manage-ui")`，不执行本技能的数据写入。
+
+## 历史记录补新增字段
+
+给已有普通表单记录填写后来新增的字段时，第一次更新就使用 `--use-latest-version y --verify-write --json`，保留原实例 ID，只提交本次修改字段；关联、日期、文本等字段均适用。仅修改既有字段时不一律升级实例版本。
+
+```bash
+openyida data update form <appType> --inst-id <原formInstId> --form-uuid <formUuid> --expect-form-name <真实名称> --expect-form-type receipt --data-file <patch.json> --use-latest-version y --verify-write --json
+```
+
+`y` 请求按当前表单版本更新实例，不只是切换字段格式；先核对当前定义的字段行为、校验和业务规则。接口受理不代表字段已写入，必须回读核对。已带 `y` 仍缺字段时，不能把补参当作已验证修复：按回执只读核查原实例版本和字段，保留命令、payload、错误及 traceId，报告未完成；不自动重放、改走其他接口或删旧建新。字段格式见[格式指南](references/data-format-guide.md#保存--更新格式)。
+
 ## CLI 查询隐藏字段
 
 - 启用 CLI 隐藏字段过滤时，查询结果不返回表单配置或当前账号字段权限中隐藏的字段，字段 key 可能直接缺失；这属于正常行为，不代表原数据为空或写入失败。
@@ -147,8 +158,8 @@ openyida data get form <appType> --inst-id <formInstId>
 openyida data seed form <appType> <formUuid> --expect-form-name <name> --records-file <绝对路径>/records.json [--timezone +08:00] [--resolve-aliases] [--check] --json
 openyida data create form <appType> <formUuid> --expect-form-name <name> --expect-form-type receipt --data-json '<json>' [--resolve-aliases]
 openyida data create form <appType> <formUuid> --expect-form-name <name> --expect-form-type receipt --data-file .cache/openyida/<项目名或任务名>/data-import/record.json [--resolve-aliases]
-openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --expect-form-name <name> --expect-form-type receipt --data-json '<json>' [--resolve-aliases]
-openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --expect-form-name <name> --expect-form-type receipt --data-file .cache/openyida/<项目名或任务名>/data-import/patch.json [--resolve-aliases]
+openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --expect-form-name <name> --expect-form-type receipt --data-json '<json>' [--use-latest-version y] [--resolve-aliases] [--verify-write]
+openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --expect-form-name <name> --expect-form-type receipt --data-file .cache/openyida/<项目名或任务名>/data-import/patch.json [--use-latest-version y] [--resolve-aliases] [--verify-write]
 openyida data delete form <appType> <formUuid> --inst-id <formInstId> --expect-form-name <name> --expect-form-type receipt --confirm --json
 openyida data query subform <appType> <formUuid> --inst-id <formInstId> --table-field-id <fieldId|alias> [--page 1 --size 100] [--resolve-aliases]
 ```
@@ -280,6 +291,7 @@ openyida data transfer task <appType> --process-inst-id <processInstanceId> --fo
 | 回执或现象 | 下一步 |
 | --- | --- |
 | 参数或字段不匹配 | 按 details 与真实 Schema 修正，复用当前目标和已确认资源 |
+| 更新已受理但后加字段回读缺失 | 按[历史记录补新增字段](#历史记录补新增字段)核对版本、实际参数和原实例；已带版本参数仍失败时保留证据排查，不重复写入 |
 | 查询为空 | 核对环境、身份、目标、筛选和分页；隐藏字段按上方规则记录范围 |
 | 子表恰好 50 行 | 按“子表超过 50 行”使用专用分页读取 |
 | 401 或认证异常 | 交给 `yida-login` 恢复当前身份 |
