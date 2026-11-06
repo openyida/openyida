@@ -280,6 +280,7 @@ function getFirstPositionalArg(cliArgs, startIndex = 0) {
     '--login-url',
     '--profile',
     '--user-id',
+    '--dingtalk',
   ]);
   for (let index = startIndex; index < cliArgs.length; index++) {
     const arg = cliArgs[index];
@@ -370,6 +371,14 @@ function applyLoginTargetUrl(value) {
   return true;
 }
 
+function applyLoginEnvironmentName(envName) {
+  process.env.OPENYIDA_ENV = envName;
+  const { resolveEnvNameAlias, INTERNATIONAL_BASE_URL } = require('../lib/core/env-manager');
+  if (resolveEnvNameAlias(envName) === 'intl' && (command === 'login' || (command === 'auth' && rawArgs[0] === 'login'))) {
+    applyLoginTargetUrl(INTERNATIONAL_BASE_URL);
+  }
+}
+
 function applyLoginEnvironmentFlags(cliArgs, options = {}) {
   const envFlagMap = {
     '--public': 'public',
@@ -387,6 +396,7 @@ function applyLoginEnvironmentFlags(cliArgs, options = {}) {
     '--client-id',
     '--profile',
     '--user-id',
+    '--dingtalk',
   ]);
   const targetUrlFlags = new Set([
     '--endpoint',
@@ -401,7 +411,7 @@ function applyLoginEnvironmentFlags(cliArgs, options = {}) {
     if (arg === '--env') {
       const envName = cliArgs[index + 1];
       if (envName && !envName.startsWith('--')) {
-        process.env.OPENYIDA_ENV = envName;
+        applyLoginEnvironmentName(envName);
         index++;
       }
       continue;
@@ -422,7 +432,7 @@ function applyLoginEnvironmentFlags(cliArgs, options = {}) {
       continue;
     }
     if (envFlagMap[arg]) {
-      process.env.OPENYIDA_ENV = envFlagMap[arg];
+      applyLoginEnvironmentName(envFlagMap[arg]);
       continue;
     }
     if (inferTargetUrl && !arg.startsWith('--') && applyLoginTargetUrl(arg)) {
@@ -534,11 +544,17 @@ function printManifestCommandHelp(commandName) {
 }
 
 function printLoginHelp() {
-  printCommandUsage(t('cli.login_usage'), t('cli.login_example'));
+  printCommandUsage(t('cli.login_usage'), t('cli.login_example'), t('dingtalk_login.help'));
 }
 
 function buildTokenLoginOptions(loginArgs) {
+  const dingtalkIndex = loginArgs.indexOf('--dingtalk');
+  const dingtalkVersion = dingtalkIndex < 0 ? undefined : loginArgs[dingtalkIndex + 1];
+  if (dingtalkIndex >= 0 && !['domestic', 'intl'].includes(dingtalkVersion)) {
+    throwCliUsage(t('dingtalk_login.invalid_version'));
+  }
   return {
+    dingtalkVersion,
     clientId: getArgValue(loginArgs, '--client-id'),
     corpId: getArgValue(loginArgs, '--corp-id'),
     userId: getArgValue(loginArgs, '--user-id'),

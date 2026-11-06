@@ -116,7 +116,11 @@ openyida login --alibaba
 openyida login --intl
 ```
 
-海外 / international / global / Japan / Global YiDA 使用 `--intl` 或等价入口。
+海外 / international / global / Japan / Global YiDA 使用 `--intl` 或等价入口，目标站点为 `https://www.yidaapps.com`。站点与钉钉账号体系分别选择，不能因国际站、语言或地区自动使用 `.io`。
+
+用户尚未明确钉钉版本时，使用宿主的结构化提问提供两项：「钉钉国内版（宜搭海外，默认）」和「钉钉国际版（宜搭海外）」。确认后分别执行 `openyida login --intl --dingtalk domestic`（`.com`）或 `openyida login --intl --dingtalk intl`（`.io`），浏览器归属仍按快照添加 `--no-browser`。用户已明确选择时直接复用，不重复提问。
+
+CLI 的可交互终端也会展示同样两项，回车默认国内版；非交互调用默认国内版，不等待 stdin。显式 `--dingtalk` 跳过终端选择，优先于授权入口 URL 中的认证域名；仅明确选择国际版或明确提供 `.io` 授权入口时使用 `.io`。CLI 继续使用本机 OAuth 回调接收授权码，不用网页登录 Cookie 代替 CLI 登录态。
 
 ## 运行环境注入 Token 模式命令
 
