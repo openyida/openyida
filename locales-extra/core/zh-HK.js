@@ -6,6 +6,17 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  dingtalk_login: {
+    select_version: '請選擇登入宜搭海外站的釘釘版本：',
+    domestic: '釘釘國內版（宜搭海外，預設）',
+    international: '釘釘國際版（宜搭海外）',
+    choose: '請選擇 [1/2，預設 1]：',
+    invalid_version: '--dingtalk 必須為 domestic 或 intl。',
+    invalid_origin: '釘釘認證入口必須為 https://login.dingtalk.com 或 https://login.dingtalk.io。',
+    invalid_choice: '請輸入 1 或 2，直接按 Enter 使用國內版。',
+    cancelled: '已取消釘釘版本選擇，未發起授權。',
+    help: '--intl 登入 www.yidaapps.com；--dingtalk domestic 使用國內版（預設 .com），--dingtalk intl 使用國際版（.io）。互動終端會提供選擇，非互動預設國內版。',
+  },
   data_seed: {
     optional_notes: '標準可寫元件均使用 seed；地址限預設國內 ADDRESS。未適配的可選欄位見 skippedFields，全部省略時不建立記錄。',
     failed: '範例資料操作已停止：{0}。請查看詳情，不要重複建立已嘗試寫入的記錄。',
@@ -450,7 +461,7 @@ module.exports = {
     save_permission_usage: '用法：openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>] [--package-type <FORM_PACKAGE_VIEW|FORM_PACKAGE_START>]',
     save_permission_example: `範例：openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ 執行失敗：{0}',
-    login_usage: '用法：openyida login [--qwenwork] [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
+    login_usage: '用法：openyida login [--qwenwork] [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>] [--dingtalk <domestic|intl>]',
     login_example: '範例：\n  openyida login                         # 透過 OAuth loopback 自動開啟瀏覽器登入\n  openyida login --no-browser            # 不自動開啟瀏覽器，由調用方接管授權連結\n  openyida login --check-only --json     # 只檢查 token 登入態\n  openyida login --intl                  # 使用國際站環境登入\n  OPENYIDA_NO_BROWSER=1 openyida login   # 透過環境變數由調用方接管授權連結\n  openyida auth login                    # 登入入口別名',
     login_unsupported_option: '已刪除的舊登入參數不再支援：{0}。請使用 token/OAuth 登入；host 注入模式下只檢查宿主注入的 token。',
     first_run_title: '  🤖 OpenYida - AI 問答模式已開啟！                         ',

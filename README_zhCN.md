@@ -165,6 +165,8 @@ openyida login --alibaba
 openyida login --intl
 ```
 
+`--intl` 直接选择宜搭海外站 `https://www.yidaapps.com`。交互终端会提供「钉钉国内版（宜搭海外，默认）」和「钉钉国际版（宜搭海外）」两项；直接回车使用国内版 `.com`，只有选择国际版才使用 `.io`。非交互调用默认国内版，也可显式传入 `--dingtalk domestic` 或 `--dingtalk intl`。
+
 ### 4. 让 AI Agent 构建应用
 
 可以直接向 AI 编程助手提出业务目标：
@@ -349,7 +351,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 | 命令 | 说明 |
 |------|------|
-| `openyida login [--qwenwork] [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
+| `openyida login [--qwenwork] [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--dingtalk <domestic\|intl>] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | 登录（OAuth token 模式） |
 | `openyida logout` | 退出登录 / 解绑当前项目登录态 |
 | `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch\|qwenwork user-info> [--json]` | token 登录态与 profile 管理 |
 | `openyida org <list\|switch> [--json] [--corp-id <corpId>] [--no-browser]` | 组织管理（列表 / 优先按已有 profile 切换） |

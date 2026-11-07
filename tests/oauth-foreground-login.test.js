@@ -56,7 +56,8 @@ describe('千问办公公开登录复用前台 OAuth 生命周期', () => {
             res.writeHead(401).end('{}'); return;
           }
           res.end(JSON.stringify({ status: 'ok', access_token: ACCESS, refresh_token: REFRESH, expires_in: 1800,
-            client_id: 'suite9xvlxxerybljwheo', corp_id: 'fixture-corp', user_id: 'fixture-user', base_url: baseUrl }));
+            client_id: 'suite9xvlxxerybljwheo', corp_id: 'fixture-corp', user_id: 'fixture-user',
+            base_url: req.headers['x-openyida-test-site'] === 'https://www.yidaapps.com' ? 'https://www.yidaapps.com' : baseUrl }));
         }); return;
       }
       if (req.url === '/openapi/cli/v1/auth/status' && req.headers.authorization === `Bearer ${ACCESS}`) {
@@ -98,6 +99,47 @@ describe('千问办公公开登录复用前台 OAuth 生命周期', () => {
     expect(JSON.parse(result.stdout.trim())).toEqual({ ok: true, status: 'ok', can_auto_use: true, identity_type: 'ORGANIZATION', organization_type: 'DINGTALK' });
     expect(result.stdout + result.stderr).not.toMatch(new RegExp(`${ACCESS}|${REFRESH}|fixture-corp|fixture-user`));
     expect(loadTokenSession({ projectRoot: directory, env })).toMatchObject({ access_token: ACCESS, refresh_token: REFRESH });
+  });
+  test.each([
+    [['login', '--intl'], 'login.dingtalk.com'],
+    [['auth', 'login', '--intl'], 'login.dingtalk.com'],
+    [['login', '--env', 'intl'], 'login.dingtalk.com'],
+    [['login', '--overseas'], 'login.dingtalk.com'],
+    [['login', 'https://www.yidaapps.com/'], 'login.dingtalk.com'],
+    [['login', '--intl', '--dingtalk', 'domestic'], 'login.dingtalk.com'],
+    [['login', '--intl', '--dingtalk', 'intl'], 'login.dingtalk.io'],
+    [['login', 'https://login.dingtalk.com/oauth2/auth?redirect_uri=https%3A%2F%2Fwww.yidaapps.com%2Fdingtalk_sso_call_back'], 'login.dingtalk.com'],
+    [['login', 'https://login.dingtalk.io/oauth2/auth?redirect_uri=https%3A%2F%2Fwww.yidaapps.com%2Fdingtalk_sso_call_back'], 'login.dingtalk.io'],
+    [['login', 'https://login.dingtalk.io/oauth2/auth?redirect_uri=https%3A%2F%2Fwww.yidaapps.com%2Fdingtalk_sso_call_back', '--dingtalk', 'domestic'], 'login.dingtalk.com'],
+  ])('海外站命令 %j 选择 %s 并在海外服务完成换票', async (args, expectedHost) => {
+    env.OPENYIDA_TEST_SERVICE_URL = baseUrl;
+    env.NODE_OPTIONS = `${env.NODE_OPTIONS || ''} --require ${path.join(__dirname, 'fixtures/intl-login-preload.js')}`;
+    const invocation = startCli([...args, '--json', '--no-browser'], { cwd: directory, env });
+    authUrl = await invocation.ready;
+    const authorization = new URL(authUrl);
+    expect(authorization.hostname).toBe(expectedHost);
+    expect(authorization.searchParams.has('FEForceLogin')).toBe(expectedHost === 'login.dingtalk.io');
+    const callback = new URL(authorization.searchParams.get('redirect_uri'));
+    expect(callback.hostname).toBe('127.0.0.1');
+    callback.searchParams.set('state', authorization.searchParams.get('state'));
+    callback.searchParams.set('code', 'fixture-code');
+    expect(await callbackRequest(callback)).toBe(200);
+    const result = await invocation.done;
+    expect({ code: result.code, error: result.code ? result.stderr : null }).toEqual({ code: 0, error: null });
+    expect(JSON.parse(result.stdout.trim())).toMatchObject({ ok: true, can_auto_use: true });
+    expect(loadTokenSession({ projectRoot: directory, env: { ...env, OPENYIDA_ENDPOINT: 'https://www.yidaapps.com', OPENYIDA_ENV: 'intl' } })).toMatchObject({ base_url: 'https://www.yidaapps.com' });
+    expect(calls).toEqual(['/openapi/cli/v1/auth/dingtalk/token']);
+    expect(result.stdout + result.stderr).not.toContain(ACCESS);
+    expect(result.stdout + result.stderr).not.toContain(REFRESH);
+  });
+
+  test.each([[[]], [['unsupported']]])('无效 --dingtalk 参数 %j 不发起授权', async values => {
+    const invocation = startCli(['login', '--intl', '--dingtalk', ...values, '--json', '--no-browser'], { cwd: directory, env });
+    const result = await invocation.done;
+    expect(result.code).not.toBe(0);
+    expect(result.stderr).toContain('INVALID_ARGUMENTS');
+    expect(result.stderr).not.toContain('Open this URL to login:');
+    expect(calls).toEqual([]);
   });
   test('前台命令被终止后回调端口一并关闭，不遗留后台监听', async () => {
     const invocation = startCli(['login', '--qwenwork', '--json', '--no-browser'], { cwd: directory, env });

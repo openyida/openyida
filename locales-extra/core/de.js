@@ -5,6 +5,17 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  dingtalk_login: {
+    select_version: 'DingTalk-Version für YiDA außerhalb Chinas wählen:',
+    domestic: 'DingTalk China (YiDA außerhalb Chinas, Standard)',
+    international: 'DingTalk International (YiDA außerhalb Chinas)',
+    choose: 'Auswahl [1/2, Standard 1]: ',
+    invalid_version: '--dingtalk muss domestic oder intl sein.',
+    invalid_origin: 'Die Anmeldeadresse muss https://login.dingtalk.com oder https://login.dingtalk.io sein.',
+    invalid_choice: '1 oder 2 eingeben; Eingabe wählt DingTalk China.',
+    cancelled: 'Auswahl abgebrochen; keine Autorisierung gestartet.',
+    help: '--intl wählt www.yidaapps.com. --dingtalk domestic nutzt DingTalk China (.com, Standard), --dingtalk intl nutzt DingTalk International (.io). Ohne Interaktion gilt DingTalk China als Standard.',
+  },
   data_seed: {
     optional_notes: 'Standard-Schreibkomponenten verwenden seed. Adressen: nur der Standard-Inlandsmodus ADDRESS. Nicht unterstützte optionale Felder stehen in skippedFields; bei vollständiger Auslassung entstehen keine Datensätze.',
     failed: 'Beispieldaten-Vorgang gestoppt: {0}. Details prüfen und versuchte Schreibvorgänge nicht wiederholen.',
@@ -464,7 +475,7 @@ module.exports = {
     save_permission_usage: 'Usage: openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>] [--package-type <FORM_PACKAGE_VIEW|FORM_PACKAGE_START>]',
     save_permission_example: `Example: openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ Execution failed: {0}',
-    login_usage: 'Usage: openyida login [--qwenwork] [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
+    login_usage: 'Usage: openyida login [--qwenwork] [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>] [--dingtalk <domestic|intl>]',
     login_example: 'Examples:\n  openyida login                         # Automatically open the browser via OAuth loopback login\n  openyida login --no-browser            # Let the caller handle the authorization URL\n  openyida login --check-only --json     # Check token auth status only\n  openyida login --intl                  # Login against the international environment\n  OPENYIDA_NO_BROWSER=1 openyida login   # Let the caller handle the authorization URL via env variable\n  openyida auth login                    # Login alias',
     login_unsupported_option: 'Removed legacy login option is no longer supported: {0}. Use token/OAuth login; host-injected mode only checks the injected token.',
     first_run_title: '  🤖 OpenYida - AI Conversation Mode Activated!               ',

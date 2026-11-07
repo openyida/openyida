@@ -484,7 +484,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 
 | Command | Description |
 |---------|-------------|
-| `openyida login [--qwenwork] [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | Login with OAuth token mode |
+| `openyida login [--qwenwork] [target-url] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--dingtalk <domestic\|intl>] [--client-id <clientId>] [--endpoint <url>] [--no-browser]` | Login with OAuth token mode |
 | `openyida logout` | Logout / unbind current project auth |
 | `openyida auth <status\|login\|refresh\|logout\|profiles\|profile switch\|qwenwork user-info> [--json]` | Token login state and profile management |
 | `openyida org <list\|switch> [--json] [--corp-id <corpId>] [--no-browser]` | Organization management (list / switch existing profiles first) |
@@ -714,7 +714,7 @@ The opt-in `node scripts/e2e-real/connector/action-update-runner.js` regression 
 
 #### Environment and Localization
 
-Environment selectors such as `--env intl`, `--intl`, `--overseas`, `--global`, and `--yidaapps` can be used on login-required commands to choose the target Yida environment for that run. The `intl` preset uses `https://www.yidaapps.com` as the built-in Global YiDA entrypoint (not the bare `https://yidaapps.com` domain) and DingTalk International OAuth at `https://login.dingtalk.io`; business API requests still use the authenticated environment `baseUrl`, so customer custom subdomains are supported.
+Environment selectors such as `--env intl`, `--intl`, `--overseas`, `--global`, and `--yidaapps` choose the target YiDA environment for that run. `openyida login --intl` selects Global YiDA at `https://www.yidaapps.com`. In an interactive terminal, login offers domestic DingTalk for overseas YiDA (`login.dingtalk.com`, default) or DingTalk International for overseas YiDA (`login.dingtalk.io`). Press Enter to use domestic DingTalk, or pass `--dingtalk domestic` / `--dingtalk intl` explicitly. Non-interactive calls default to domestic DingTalk. Selecting the overseas YiDA site does not select the DingTalk account system. The CLI retains its local OAuth callback and token session; business API requests use the authenticated environment `baseUrl`, including supported customer custom subdomains.
 
 For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation commands, or set `OPENYIDA_CONTENT_LOCALE`. OpenYida writes YiDA resource names with `zh_CN`, `en_US`, and `ja_JP` values so Global YiDA does not fall back to Chinese-only metadata.
 
