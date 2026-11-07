@@ -235,7 +235,7 @@ describe('CLI offline smoke', () => {
     const output = runOk(['--help']);
     expect(output).toContain('OpenYida');
     expect(output).toContain('env [--json|setup|list|show|switch|add|remove] [options]');
-    expect(output).toContain('login [--qwenwork] [target-url] [--env <name>|--intl|--overseas|--global|--yidaapps|--alibaba] [--client-id <clientId>] [--endpoint <url>] [--no-browser]');
+    expect(output).toContain('login [--qwenwork] [target-url] [--env <name>|--intl|--overseas|--global|--yidaapps|--alibaba] [--dingtalk <domestic|intl>] [--client-id <clientId>] [--endpoint <url>] [--no-browser]');
     expect(output).toContain('org <list|switch> [--json] [--corp-id <corpId>]');
     expect(output).toContain('corp-efficiency');
     expect(output).toContain('create-form');

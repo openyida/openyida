@@ -5,6 +5,17 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  dingtalk_login: {
+    select_version: 'اختر إصدار DingTalk لتسجيل الدخول إلى YiDA خارج الصين:',
+    domestic: 'DingTalk الصين (YiDA خارج الصين، الافتراضي)',
+    international: 'DingTalk International (YiDA خارج الصين)',
+    choose: 'اختر [1/2، الافتراضي 1]: ',
+    invalid_version: 'يجب أن تكون قيمة --dingtalk هي domestic أو intl.',
+    invalid_origin: 'يجب أن يكون عنوان المصادقة https://login.dingtalk.com أو https://login.dingtalk.io.',
+    invalid_choice: 'أدخل 1 أو 2، أو اضغط Enter لاختيار DingTalk الصين.',
+    cancelled: 'أُلغي الاختيار؛ لم تبدأ المصادقة.',
+    help: 'يختار --intl الموقع www.yidaapps.com. يستخدم --dingtalk domestic إصدار الصين (.com، الافتراضي) ويستخدم --dingtalk intl الإصدار الدولي (.io). الاختيار الافتراضي دون تفاعل هو إصدار الصين.',
+  },
   data_seed: {
     optional_notes: 'تستخدم المكونات القياسية القابلة للكتابة seed. العناوين: وضع ADDRESS المحلي الافتراضي فقط. الحقول الاختيارية غير المدعومة في skippedFields؛ لا تُنشأ سجلات إذا حُذفت جميع الحقول.',
     failed: 'توقفت عملية بيانات المثال: {0}. راجع التفاصيل ولا تكرر محاولات الكتابة السابقة.',
@@ -464,7 +475,7 @@ module.exports = {
     save_permission_usage: 'Usage: openyida save-permission <appType> <formUuid> [--package-uuid <packageUuid>] [--data-permission <json>] [--action-permission <json>] [--package-type <FORM_PACKAGE_VIEW|FORM_PACKAGE_START>]',
     save_permission_example: `Example: openyida save-permission APP_XXX FORM-XXX --data-permission '{"role":"DEFAULT","dataRange":"SELF"}'`,
     exec_failed: '\n❌ Execution failed: {0}',
-    login_usage: 'Usage: openyida login [--qwenwork] [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>]',
+    login_usage: 'Usage: openyida login [--qwenwork] [entryUrl|--public|--alibaba|--intl] [--no-browser] [--check-only] [--json] [--client-id <clientId>] [--dingtalk <domestic|intl>]',
     login_example: 'Examples:\n  openyida login                         # Automatically open the browser via OAuth loopback login\n  openyida login --no-browser            # Let the caller handle the authorization URL\n  openyida login --check-only --json     # Check token auth status only\n  openyida login --intl                  # Login against the international environment\n  OPENYIDA_NO_BROWSER=1 openyida login   # Let the caller handle the authorization URL via env variable\n  openyida auth login                    # Login alias',
     login_unsupported_option: 'Removed legacy login option is no longer supported: {0}. Use token/OAuth login; host-injected mode only checks the injected token.',
     first_run_title: '  🤖 OpenYida - AI Conversation Mode Activated!               ',
