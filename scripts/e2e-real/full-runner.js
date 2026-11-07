@@ -41,7 +41,6 @@ const DEFAULT_STAGES = [
 ];
 
 const EXTENDED_STAGES = [
-  'ai',
   'process',
   'integration',
   'connector-real',
@@ -1630,11 +1629,6 @@ async function run(options = {}) {
       runStep('doctor', ['doctor'], { allowNoJson: true });
       runStep('sample-list', ['sample', '--list'], { allowNoJson: true });
       runStep('cdn-config-show', ['cdn-config', '--show'], { allowNoJson: true });
-    }
-
-    if (hasStage(config.stages, 'ai')) {
-      const flashNotePath = writeTextFile(path.join(workDir, 'flash-note.md'), '# E2E Meeting\n\nNeed build a test app.');
-      runStep('flash-to-prd', ['flash-to-prd', '--file', flashNotePath, '--name', `${config.prefix} PRD`], { allowNoJson: true });
     }
 
     if (hasStage(config.stages, 'process')) {
