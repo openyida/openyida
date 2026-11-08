@@ -38,7 +38,7 @@ const VALID_MODES = ['e2e', 'routing', 'generate', 'doc-quality', 'safety', 'cov
 const STAGE_ORDER = [
   'auth', 'app', 'form', 'page', 'data', 'permission', 'share', 'report', 'dashboard',
   'export', 'import', 'batch', 'task', 'offline', 'connector-local', 'skill-coverage',
-  'ai', 'process', 'integration', 'connector-real',
+  'process', 'integration', 'connector-real',
 ];
 
 // 每个 stage 运行前在 full-runner 里依赖的上游 stage：

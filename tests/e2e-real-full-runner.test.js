@@ -171,7 +171,7 @@ describe('full real E2E runner', () => {
     expect(parseStages('auth,app,data')).toEqual(['auth', 'app', 'data']);
     expect(parseStages('default')).toContain('form');
     expect(parseStages('all')).toContain('import');
-    expect(parseStages('all')).toContain('ai');
+    expect(parseStages('all')).not.toContain('ai');
   });
 
   test('collects Yida field metadata from schema trees', () => {

@@ -85,8 +85,6 @@ openyida/
 │   │   └── export-conversation.js  # 导出对话记录
 │   ├── feedback/            # 体验反馈收集（表单化反馈提交）
 │   │   └── feedback.js      # 反馈表单创建与提交（自动检测 AI 工具环境）
-│   ├── flash-note/          # 闪记转 PRD
-│   │   └── flash-to-prd.js  # 闪记转高质量 prompt（支持会议识别）
 │   ├── formula/             # 公式求值引擎（宜搭公式本地计算）
 │   │   └── evaluate.js      # 宜搭公式解析与求值（支持 60+ 内置函数）
 │   ├── dingtalk/            # 钉钉链接生成（AppLink / 页面链接构建）

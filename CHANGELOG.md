@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.11.8] - 2026-11-08
+
+- **Agent 闪记转 PRD**：明确由当前 Agent 直接处理会议材料并生成文档，适用于本地、远端和托管宿主。已有内容可直接处理，听记任务 ID 先读取内容再生成。
+- **长材料与事实核对**：按宿主上下文能力整理长材料，保存后核对首尾、权限、数值和业务时间，将未确认的推导列入待确认事项。
+- **旧命令迁移**：移除 `openyida flash-to-prd` 命令。请将原输入文件或会议文本交给当前 Agent，使用 `yida-flash-note-to-prd` 技能直接生成 PRD。
+
 ## [2026.11.7] - 2026-11-07
 
 - **宜搭海外站登录**：`openyida login --intl` 直接选择 `https://www.yidaapps.com`，不再根据宜搭站点自动切换钉钉认证体系。

@@ -101,7 +101,7 @@ describe('batch parseCommandLine', () => {
   });
 
   test('支持单引号内的空格', () => {
-    expect(parseCommandLine("flash-to-prd 'meeting notes.md'")).toEqual(['flash-to-prd', 'meeting notes.md']);
+    expect(parseCommandLine("compile 'page source.jsx'")).toEqual(['compile', 'page source.jsx']);
   });
 
   test('混合引号和普通参数', () => {

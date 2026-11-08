@@ -22,17 +22,11 @@
 
 ### 执行过程
 
-```bash
-# 方式 1：从文件读取
-# 先使用 create_file / Write / file edit tool 创建：
-# <projectRoot>/.cache/openyida/员工积分管理系统/flash-note/meeting.txt
-openyida flash-to-prd --file .cache/openyida/员工积分管理系统/flash-note/meeting.txt --name 员工积分管理系统
+1. 当前 Agent 读取用户提供的完整会议文本，按发言提取需求事实。
+2. 使用本技能的 PRD 模板组织内容，把未明确事项列为待确认。
+3. 使用宿主文件工具保存 `prd/员工积分管理系统/prd.md`，读取核对后返回文件位置。
 
-# 方式 2：直接发给 AI 智能体（推荐）
-# 将文本直接粘贴到对话框，AI 自动识别并触发本技能
-```
-
-### 输出文件：`prd/员工积分管理系统.md`
+### 输出文件：`prd/员工积分管理系统/prd.md`
 
 ```markdown
 # 员工积分管理系统 — 产品需求文档
