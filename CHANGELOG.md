@@ -12,6 +12,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.11.9] - 2026-11-09
+
+- **历史记录补新增字段**：已有普通表单记录需要填写后来新增的字段时，使用 `data update form --use-latest-version y --verify-write --json` 按当前表单版本更新并回读核验，同时保留原实例 ID、仅提交本次修改字段。
+- **失败恢复与适用范围**：关联、日期、文本等字段统一遵循实例版本升级规则；已带版本参数仍未回读到目标字段时保留实例版本、payload、错误和 traceId 继续排查，不自动重放、改走其他接口或删除重建。
+
 ## [2026.11.8] - 2026-11-08
 
 - **Agent 闪记转 PRD**：明确由当前 Agent 直接处理会议材料并生成文档，适用于本地、远端和托管宿主。已有内容可直接处理，听记任务 ID 先读取内容再生成。
