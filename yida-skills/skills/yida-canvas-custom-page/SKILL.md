@@ -178,6 +178,8 @@ antd 页面使用 CanvasThemeProvider，图表通过 useCanvasThemeContext 取�
 
 ## 接入真实数据
 
+已有聚合结果且需要在画布展示排行时，运行 `openyida sample openyida-page-template canvas-analysis-card --output pages/src/analysis-card.jsx`。把服务端排好序的结果传给 `aggregatedRows`，用 `fields.dimension` 和 `fields.metric` 指定维度与数值字段。需要联动时由调用方通过 `onSelect` 接收原始维度值。预览用的示例数据会标明来源，查询返回空数组时显示空态。
+
 - 完整应用或真实交付页先解析真实 `appType/formUuid/fieldId`；普通表单使用 `dataBinding.mode=form`，流程表单使用 `dataBinding.mode=process`。已有 `page-spec.json` 时同步该绑定。
 - 完整应用默认先用 `yida-data-management` 把 1-3 条业务化 seed records 写入核心普通表单并抽查，再让页面读取；前端静态数据只能用于明确标注的离线演示态。流程示例沿用已确认的[流程 seed 编排](../yida-data-management/references/process-seed-workflow.md)，页面按目标类型读取。
 - 生成后如果 `.openyida-page.json` 的 `dataBinding.enabled !== true`，且页面仍展示列表/看板/详情业务记录，交付状态标为草稿；完整应用 final 只有在真实数据绑定已启用并验证后表述为“已接真实数据”。

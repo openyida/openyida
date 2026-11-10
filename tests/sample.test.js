@@ -35,6 +35,45 @@ describe('sample templates', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
+  test('analysis card sample compiles and keeps live empty, zero and selection distinct from demo data', async () => {
+    const output = path.join(tmpDir, 'analysis-card.jsx');
+    await run(['openyida-page-template', 'canvas-analysis-card', '--output', output]);
+    const { runtimeCode, importedModules } = compileCanvasLocal(fs.readFileSync(output, 'utf8'));
+    expect(JSON.parse(importedModules)).toEqual(['react']);
+    const React = {
+      Fragment: 'fragment',
+      createElement(type, props, ...children) {
+        return typeof type === 'function' ? type(props || {}) : { type, props, children };
+      },
+    };
+    const render = new Function('window', `${runtimeCode}; return YidaComp;`)({ React });
+    const find = (node, type) => {
+      if (Array.isArray(node)) {return node.flatMap(child => find(child, type));}
+      if (!node || typeof node !== 'object') {return [];}
+      return [...(node.type === type ? [node] : []), ...find(node.children || [], type)];
+    };
+
+    expect(JSON.stringify(render({}))).toContain('示例数据');
+    const empty = render({ aggregatedRows: [] });
+    expect(JSON.stringify(empty)).toContain('当前筛选下没有数据');
+    expect(find(empty, 'li')).toHaveLength(0);
+
+    const onSelect = jest.fn();
+    const live = render({
+      aggregatedRows: [{ code: 27, total: 0 }, { code: 42, total: null }],
+      fields: { dimension: 'code', metric: 'total' },
+      onSelect,
+    });
+    const buttons = find(live, 'button');
+    expect(buttons).toHaveLength(2);
+    expect(JSON.stringify(buttons[0])).toContain(new Intl.NumberFormat('zh-CN', {
+      style: 'currency', currency: 'CNY', maximumFractionDigits: 0,
+    }).format(0));
+    expect(JSON.stringify(buttons[1])).toContain('—');
+    buttons[0].props.onClick();
+    expect(onSelect).toHaveBeenCalledWith(27);
+  });
+
   test('native cool-card sample emits an import payload with typed preview data and linked rich text', async () => {
     const output = path.join(tmpDir, 'project-brief.json');
     const appUrl = 'https://example.aliwork.com/APP_EXAMPLE?view=project&source=card';
