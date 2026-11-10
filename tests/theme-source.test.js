@@ -156,7 +156,9 @@ test.each(loadThemeIndex().themes.filter(theme => theme.mode === 'template'))('$
   const instantiated = paired.replace(/^([ \t]*)(--[\w-]+)(\s*:\s*)([^;\n]+);/gm,
     (line, indent, name, separator, value) => /\{\{|<生成实际色值：/.test(value)
       ? `${indent}${name}${separator}${tokens[name]};` : line);
-  expect(css).toBe(`/* openyida-theme-source: ${theme.themeId} */\n${instantiated}`);
+  expect(css.startsWith(`/* openyida-theme-source: ${theme.themeId} */\n${instantiated.trimEnd()}`)).toBe(true);
+  expect(css).toContain('--pod-chart-axis-line-color:');
+  expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-th-bg:/);
   const rules = topLevelRules(css);
   const compiledRules = topLevelRules(compiled);
   const canonical = value => value.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
@@ -198,4 +200,17 @@ test('paired generation retains external variables, transparent surfaces and ori
     if (id === 'ink-glow-soft-panels') {expect(css).toContain('--oyd-page-bg: rgba(255, 255, 255, 0);');}
     if (['soft-inset-surfaces', 'soft-outline-rhythm'].includes(id)) {expect(css).not.toContain('--color-group:');}
   }
+});
+
+test('report theme defaults preserve authored values and stay idempotent', () => {
+  const { applyReportThemeTokens } = require('../lib/app/report-theme-tokens');
+  const existing = ':root { --pod-card-padding: 0px; --pod-chart-font-size: 17px; }\n.custom { --table-th-bg: #fff; }';
+  const css = applyReportThemeTokens(existing);
+  expect(css.startsWith(existing)).toBe(true);
+  expect(css.match(/--pod-card-padding:/g)).toHaveLength(1);
+  expect(css.match(/--pod-chart-font-size:/g)).toHaveLength(1);
+  expect(css.match(/--table-th-bg:/g)).toHaveLength(1);
+  expect(css).toContain('--pod-chart-grid-line-color:');
+  expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-row-hover-bg:/);
+  expect(applyReportThemeTokens(css)).toBe(css);
 });
