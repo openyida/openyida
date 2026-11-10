@@ -198,7 +198,7 @@ test('paired generation retains external variables, transparent surfaces and ori
       expect(css).toContain('--pod-nav-menu-item-selected-shadow: var(--shadow-1);');
     }
     if (id === 'ink-glow-soft-panels') {expect(css).toContain('--oyd-page-bg: rgba(255, 255, 255, 0);');}
-    if (['soft-inset-surfaces', 'soft-outline-rhythm'].includes(id)) {expect(css).not.toContain('--color-group:');}
+    if (['soft-inset-surfaces', 'soft-outline-rhythm'].includes(id)) {expect(css).toContain('--color-group: var(--color-brand-3), #3471ea, #a55bf5, #da66c3, #fc7d29, #ffbc20;');}
   }
 });
 
@@ -216,5 +216,17 @@ test('report and portal theme defaults preserve authored values and stay idempot
   expect(css).toContain('--pod-card-mobile-padding: 12px;');
   expect(css).toContain('--pod-card-border-radius: 20px;');
   expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-row-hover-bg:/);
+  expect(applyReportThemeTokens(css)).toBe(css);
+});
+
+test('generated themes fill mobile aliases and keep authored categorical palettes', () => {
+  const { applyReportThemeTokens } = require('../lib/app/report-theme-tokens');
+  const input = ':root { --color-brand1-6: #147d73; --color-group: #147d73, #ffbc20; }';
+  const css = applyReportThemeTokens(input);
+  for (const [index, slot] of [10, 1, 6, 9].entries()) {
+    expect(css).toContain(`--color-brand-${index + 1}: var(--color-brand1-${slot});`);
+  }
+  expect(css.match(/--color-group:/g)).toHaveLength(1);
+  expect(css).toContain('--color-group: #147d73, #ffbc20;');
   expect(applyReportThemeTokens(css)).toBe(css);
 });
