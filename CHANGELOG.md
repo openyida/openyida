@@ -12,6 +12,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.11.10] - 2026-11-10
+
+- macOS 和 Windows 的本地 Agent 运行时升级至 `0.1.5`，修复了历史任务待核对时，新任务可能一直停在「已受理」的问题。
+- 升级本地 CLI 后，可在当前任务结束后重新检测，使空闲的运行时识别新的 CLI 启动程序。
+
 ## [2026.11.9] - 2026-11-09
 
 - **历史记录补新增字段**：已有普通表单记录需要填写后来新增的字段时，使用 `data update form --use-latest-version y --verify-write --json` 按当前表单版本更新并回读核验，同时保留原实例 ID、仅提交本次修改字段。
