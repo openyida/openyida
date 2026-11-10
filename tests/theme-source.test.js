@@ -202,15 +202,19 @@ test('paired generation retains external variables, transparent surfaces and ori
   }
 });
 
-test('report theme defaults preserve authored values and stay idempotent', () => {
+test('report and portal theme defaults preserve authored values and stay idempotent', () => {
   const { applyReportThemeTokens } = require('../lib/app/report-theme-tokens');
-  const existing = ':root { --pod-card-padding: 0px; --pod-chart-font-size: 17px; }\n.custom { --table-th-bg: #fff; }';
+  const existing = ':root { --pod-card-padding: 0px; --pod-chart-font-size: 17px; --pod-page-bg-image: linear-gradient(#eef8f2, #fff); --pod-page-bg-color: #fff; }\n.custom { --table-th-bg: #fff; }';
   const css = applyReportThemeTokens(existing);
   expect(css.startsWith(existing)).toBe(true);
   expect(css.match(/--pod-card-padding:/g)).toHaveLength(1);
   expect(css.match(/--pod-chart-font-size:/g)).toHaveLength(1);
   expect(css.match(/--table-th-bg:/g)).toHaveLength(1);
   expect(css).toContain('--pod-chart-grid-line-color:');
+  expect(css.match(/--pod-page-bg-image:/g)).toHaveLength(1);
+  expect(css.match(/--pod-page-bg-color:/g)).toHaveLength(1);
+  expect(css).toContain('--pod-card-mobile-padding: 12px;');
+  expect(css).toContain('--pod-card-border-radius: 20px;');
   expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-row-hover-bg:/);
   expect(applyReportThemeTokens(css)).toBe(css);
 });
