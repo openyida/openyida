@@ -12,6 +12,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.11.11-1] - 2026-11-11
+
+- **本地 Agent 连接恢复**：macOS 和 Windows 四个平台的运行时升级至 `0.1.6`。临时断网或服务端异常后保留后台退避重试能力；凭证刷新响应丢失并经历较长时间断网后，支持恢复连接。
+- **CLI 故障隔离**：单个本地 CLI 异常时，其他正常 CLI 仍可连接；修复异常 CLI 后可重新检测并恢复。已运行的本地 Agent 需使用新版 OpenYida 重新连接，才能使用新的运行时。
+
 ## [2026.11.11] - 2026-11-11
 
 - **连接器 API Key 鉴权**：新建 API Key 连接器会完整保存 Header/Query 的名称与位置；旧配置缺少鉴权字段时，可使用 `create-connection --repair-api-key-scheme` 显式修补并创建替代账号，不自动修改、删除或重绑已有账号。
