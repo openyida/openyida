@@ -5,6 +5,13 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  issue_fixes: {
+    invalid_api_key: 'La clé API exige un name valide et un emplacement header/query ; vérifiez le connecteur.',
+    repair_required: 'La configuration ancienne manque de type/in/location. Ajoutez --repair-api-key-scheme pour la réparer et créer un nouveau compte.',
+    replacement_notice: 'Les comptes existants restent inchangés ; associez les appels au nouvel ID de compte retourné.',
+    invalid_import: 'Paquet de migration invalide ; vérifiez les identifiants, Schema ou alias dans details.',
+    partial_import: 'Import incomplet. Vérifiez les ressources dans yida-migration-report.json et archivez le rapport avant un nouvel import.',
+  },
   dingtalk_login: {
     select_version: 'Choisissez une version de DingTalk pour YiDA hors de Chine :',
     domestic: 'DingTalk Chine (YiDA hors de Chine, par défaut)',

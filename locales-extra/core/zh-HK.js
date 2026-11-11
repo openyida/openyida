@@ -6,6 +6,13 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  issue_fixes: {
+    invalid_api_key: 'API Key 設定必須包含有效的 name 和 header/query 位置；請先檢查連接器。',
+    repair_required: '舊 API Key 設定缺少 type/in/location；確認後加 --repair-api-key-scheme 修補並建立新帳號。',
+    replacement_notice: '現有帳號保持不變；請將呼叫方綁定至本次傳回的新帳號 ID。',
+    invalid_import: '遷移套件無效；請檢查 details 中的表單識別碼、Schema 或 alias。',
+    partial_import: '匯入未完成。請先檢查 yida-migration-report.json 中的現有資源，核實並封存報告後再進行新的匯入。',
+  },
   dingtalk_login: {
     select_version: '請選擇登入宜搭海外站的釘釘版本：',
     domestic: '釘釘國內版（宜搭海外，預設）',

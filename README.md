@@ -616,7 +616,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida connector delete-action <id> <operation-id>` | Delete an action |
 | `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>] [--ignore-defaults]` | Test an action |
 | `openyida connector list-connections <id>` | List auth connections |
-| `openyida connector create-connection <id> <name> [--interactive]` | Create an auth connection |
+| `openyida connector create-connection <id> <name> [--interactive] [--repair-api-key-scheme]` | Create an auth connection |
 | `openyida connector smart-create --curl "..."` | Generate a redacted action draft from cURL (no remote create) |
 | `openyida connector parse-api [options]` | Parse API information |
 | `openyida connector gen-template [output]` | Generate API document template |
