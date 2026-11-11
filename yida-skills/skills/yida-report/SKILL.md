@@ -342,6 +342,10 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 
 ### 可编程数据卡片
 
-目标环境加载 `YoushuAnalysisCard` 后，可使用 `type: "analysis"`，数据配置沿用原生 `xField`、`yField` 和日期粒度。`view` 支持 `table`、`bar`、`kpi`；`renderCard` 是返回 React 元素的函数源码，参数为 `{ React, rows, columns, select, refresh, drillPath, back, details }`。源码只决定展示，字段公式、筛选、排序与下钻仍使用报表配置。CLI 传入函数使用 `React.createElement`；设计器 CodeSetter 可编辑并编译 JSX。
+目标环境加载新版 `YoushuAnalysisCard` 后，可使用 `type: "analysis"`。数据配置沿用原生 `xField`、`yField` 和日期粒度。`view` 支持 `table`、`bar`、`donut`、`kpi`。默认视图使用 Recharts 和 Ant Design。
+
+使用 `openyida sample openyida-page-template analysis-card-config` 获取单文件 JSX 示例。将源码写入 `renderCard.source`，用 `export default` 导出 React 组件，可以从 `react`、`antd`、`recharts` 导入。组件通过 `analysis` prop 读取 `rows`、`displayRows`、`columns`、`select`、`refresh`、`drillPath`、`back`、`details`。点击时将原始行传给 `select`，继续使用原生报表的联动和下钻。
+
+已有函数格式仍可使用 `renderCard` 字符串。函数参数同时提供 `React`、`antd`、`Recharts` 和上述数据及操作，适用于原生报表的函数编辑器。字段公式、筛选、排序和下钻继续在报表数据配置中管理。
 
 原生数据卡片可用 `openyida sample openyida-page-template analysis-card-config --output analysis-card.json` 生成配置模板；先将表单、字段替换为查询确认的真实 ID，再按原生数据卡片技能的 hash、备份和读回步骤保存。保存前确认目标组件资源已经集成。

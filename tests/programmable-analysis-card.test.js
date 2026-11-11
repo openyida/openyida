@@ -4,6 +4,7 @@ const path = require('path');
 const React = { createElement: (type, props, ...children) => ({ type, props, children }) };
 const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 const { buildChartNode } = require('../lib/report/chart-builder');
+const { validateChartConfigDetailed } = require('../lib/report/validation');
 
 test('analysis schema retains native formula and date grain alongside editable display code', () => {
   const renderCard = 'function renderCard({ React, rows }) { return React.createElement("div", null, rows.length); }';
@@ -43,6 +44,46 @@ test('CLI generates the editable native analysis config without a packaged templ
     const [chart] = JSON.parse(fs.readFileSync(output, 'utf8')).charts;
     expect(chart).toMatchObject({ type: 'analysis', formUuid: 'FORM-REPLACE', view: 'bar' });
     expect(chart.yField[0].aggregate).toBe('SUM');
-    expect(chart.renderCard).toContain('function renderCard');
+    const { renderCard } = buildChartNode({
+      ...chart,
+      cubeCode: 'FORM_TEST',
+      xField: { fieldCode: 'selectField_region' },
+      yField: [{ fieldCode: 'numberField_sales', aggregateType: 'SUM' }],
+    }).node.props.settings;
+    expect(renderCard.importedModules).toEqual(['antd', 'react', 'recharts']);
+    const Button = () => null;
+    const BarChart = () => null;
+    const reportModule = { exports: {} };
+    const dependencies = { react: React, antd: { Button }, recharts: { BarChart } };
+    new Function('require', 'module', 'exports', renderCard.runtimeCode)(
+      (name) => dependencies[name], reportModule, reportModule.exports
+    );
+    const Component = reportModule.exports.default;
+    const refresh = () => {};
+    const card = Component({ analysis: {
+      rows: [{ label: '华东', value: 30000 }],
+      columns: [{ key: 'label' }, { key: 'value', numeric: true }],
+      refresh,
+    } });
+    expect(card.children[0]).toMatchObject({ type: Button, props: { onClick: refresh } });
+    expect(card.children[1].children[0]).toMatchObject({
+      type: BarChart,
+      props: { data: [{ label: '华东', value: 30000, row: { label: '华东', value: 30000 } }] },
+    });
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('report validation rejects a Canvas dependency unavailable in the report host', () => {
+  const result = validateChartConfigDetailed({
+    type: 'analysis',
+    view: 'donut',
+    cubeCode: 'FORM_TEST',
+    xField: 'selectField_region',
+    yField: ['numberField_sales'],
+    renderCard: { source: "import { useRequest } from 'ahooks'; export default () => useRequest;" },
+  });
+  expect(result).toContainEqual(expect.objectContaining({
+    code: 'REPORT_ANALYSIS_CONFIG_INVALID',
+    message: expect.stringContaining('ahooks'),
+  }));
 });
