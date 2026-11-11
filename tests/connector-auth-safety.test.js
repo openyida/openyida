@@ -16,6 +16,18 @@ const {
 } = require('../lib/connector/connector-create-connection');
 
 describe('connector DingAuth credential safety', () => {
+  test.each(['HEADER', 'QUERY'])('API Key declares its native %s location and stores the value under the configured name', location => {
+    const schemes = JSON.parse(buildSecuritySchemes({ authType: 'API_KEY', apiKeyName: 'Authorization', apiKeyLocation: location }));
+    expect(schemes.ApiKeyAuth).toMatchObject({ name: 'Authorization', type: 'apiKey', in: location.toLowerCase(), location: location.toLowerCase() });
+    expect(JSON.parse(buildSecurityValue({ apiKey: 'FAKE_PROBE' }, 'ApiKeyAuth', schemes)))
+      .toEqual({ Authorization: 'FAKE_PROBE' });
+  });
+
+  test('API Key credentials fail closed if the configured key name is missing', () => {
+    expect(() => buildSecurityValue({ apiKey: 'FAKE_PROBE' }, 'ApiKeyAuth', { ApiKeyAuth: {} }))
+      .toThrow();
+  });
+
   test('connector definition contains only the DingAuth scheme and never credentials', () => {
     expect(buildSecuritySchemes({
       authType: 'DINGTALK',

@@ -5,6 +5,13 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  issue_fixes: {
+    invalid_api_key: 'API Key에는 유효한 name과 header/query 위치가 필요합니다. 연결기 정의를 확인하세요.',
+    repair_required: '이전 API Key 설정에 type/in/location이 없습니다. --repair-api-key-scheme으로 명시적으로 수정하고 새 계정을 만드세요.',
+    replacement_notice: '기존 계정은 변경되지 않습니다. 호출 대상을 반환된 새 계정 ID에 연결하세요.',
+    invalid_import: '잘못된 마이그레이션 패키지입니다. details의 양식 ID, Schema, alias를 확인하세요.',
+    partial_import: '가져오기가 완료되지 않았습니다. yida-migration-report.json의 기존 리소스를 확인하고 보고서를 보관한 후 새로 가져오세요.',
+  },
   dingtalk_login: {
     select_version: '해외 YiDA에 로그인할 DingTalk 버전을 선택하세요:',
     domestic: '중국 DingTalk (해외 YiDA, 기본값)',
