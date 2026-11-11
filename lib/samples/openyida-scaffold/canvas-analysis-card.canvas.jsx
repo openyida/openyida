@@ -86,5 +86,12 @@ function AnalysisCard({ aggregatedRows, fields = DEFAULT_FIELDS, title = '品类
 }
 
 export default function YidaComp(props) {
+  const { nativeCardCode, query, drillDimensions, detailSource, onSelect, title } = props;
+  if (nativeCardCode || query) {
+    const Card = window.__VcDeepYidaUtils__?.YidaAnalysisCard;
+    if (!Card) {return <p role="alert">{'当前页面尚未加载可编程数据卡片组件。'}</p>;}
+    return <Card cardCode={nativeCardCode} query={query} drillDimensions={drillDimensions}
+      detailSource={detailSource} onSelect={onSelect} title={title || '数据分析'} view="bar" />;
+  }
   return <AnalysisCard {...props} />;
 }

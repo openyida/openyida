@@ -1,0 +1,20 @@
+{
+  "charts": [
+    {
+      "type": "analysis",
+      "title": "销售额分析",
+      "formUuid": "FORM-REPLACE",
+      "xField": {
+        "fieldId": "selectField_region"
+      },
+      "yField": [
+        {
+          "fieldId": "numberField_sales",
+          "aggregate": "SUM"
+        }
+      ],
+      "view": "bar",
+      "renderCard": "function renderCard({ React, rows, columns, select }) { return React.createElement(\"ul\", null, rows.map(function(row, index) { return React.createElement(\"li\", { key: index }, React.createElement(\"button\", { onClick: function() { select(row); } }, String(row[columns[0].key]) + \": \" + String(row[columns[1].key]))); })); }"
+    }
+  ]
+}

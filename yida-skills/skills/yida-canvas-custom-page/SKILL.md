@@ -237,3 +237,5 @@ openyida get-schema <appType> <formUuid> --field-map-json
 | [waf-safe-authoring.md](references/waf-safe-authoring.md) | 按原始回执诊断发布异常，保留正常 JSX 事件写法 | 发布失败或需要解释原因时阅读，不预设 WAF |
 | [component-library-guide.md](references/component-library-guide.md) | 组件库推荐组合和页面选型建议 | 选择 UI/图表依赖时阅读 |
 | [canvas-authoring-examples.md](references/canvas-authoring-examples.md) | 最小组件、hooks、副作用、图表示例 | 手写 `.canvas.jsx` 代码时阅读 |
+
+已有原生可编程数据卡片或需要开箱即用的聚合运行时时，运行 `openyida sample openyida-page-template canvas-analysis-card --output pages/src/analysis.jsx`。传入 `nativeCardCode` 可直接消费已发布卡片，保留其原生公式、时间粒度、筛选及下钻。独立查询则传入 `query`（version、cubeCode、dimensions、metrics、filters、orderBy、limit）、`drillDimensions` 和可选 `detailSource`；宿主组件管理取数、刷新、错误、面包屑和权限明细。此模板要求宿主已加载新版 `YidaAnalysisCard`，组件缺失时会显示明确错误。

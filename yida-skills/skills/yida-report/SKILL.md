@@ -163,7 +163,7 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 
 宜搭原生组件库本身包含更多组件，但 OpenYida CLI 只开放已经接入并纳入确定性契约的类型。未知类型、未探测类型和缺失 `type` 均会在远端写入前失败，绝不静默回退成柱状图。Agent 应通过 `openyida create-report` 传入结构化图表配置，由 CLI 内部构建并发布 Schema，不要尝试读取或手写 `build-yida-report-schema.js`。
 
-<!-- runtime-supported-chart-types: bar, calendarheatmap, combo, funnel, gauge, indicator, line, map, pie, pivot, table -->
+<!-- runtime-supported-chart-types: analysis, bar, calendarheatmap, combo, funnel, gauge, indicator, line, map, pie, pivot, table -->
 
 - **组件库地址**：`//g.alicdn.com/code/npm/@ali/vc-yida-report/1.0.101/pc.js`
 - **全局挂载**：`window.YidaReport`
@@ -339,3 +339,9 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 ```
 
 指标卡（`indicator`）的 `userConfig` 也是数组格式，`name` 为 `youshuData`。
+
+### 可编程数据卡片
+
+目标环境加载 `YoushuAnalysisCard` 后，可使用 `type: "analysis"`，数据配置沿用原生 `xField`、`yField` 和日期粒度。`view` 支持 `table`、`bar`、`kpi`；`renderCard` 是返回 React 元素的函数源码，参数为 `{ React, rows, columns, select, refresh, drillPath, back, details }`。源码只决定展示，字段公式、筛选、排序与下钻仍使用报表配置。CLI 传入函数使用 `React.createElement`；设计器 CodeSetter 可编辑并编译 JSX。
+
+原生数据卡片可用 `openyida sample openyida-page-template analysis-card-config --output analysis-card.json` 生成配置模板；先将表单、字段替换为查询确认的真实 ID，再按原生数据卡片技能的 hash、备份和读回步骤保存。保存前确认目标组件资源已经集成。
