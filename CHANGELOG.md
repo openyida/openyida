@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.11.11] - 2026-11-11
+
+- **连接器 API Key 鉴权**：新建 API Key 连接器会完整保存 Header/Query 的名称与位置；旧配置缺少鉴权字段时，可使用 `create-connection --repair-api-key-scheme` 显式修补并创建替代账号，不自动修改、删除或重绑已有账号。
+- **应用迁移表单引用**：导出迁移包支持稳定的表单 `alias`，导入时先创建全部空表，再解析前向引用和循环关联并回读验证；中断或结果未知时保留 `yida-migration-report.json`，拒绝未经核实的直接重跑。
+- **命令级请求观测**：OpenYida 命令访问受信任的宜搭 HTTPS 服务时附带 Agent 来源、唯一命令 ID 与开始时间，便于跨请求定位同一次 CLI 操作；外部域名、非 HTTPS 与显式端口不会携带这些标识。
+
 ## [2026.11.10] - 2026-11-10
 
 - macOS 和 Windows 的本地 Agent 运行时升级至 `0.1.5`，修复了历史任务待核对时，新任务可能一直停在「已受理」的问题。
