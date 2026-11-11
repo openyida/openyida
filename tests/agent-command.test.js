@@ -232,7 +232,7 @@ describe('local agent thin launcher', () => {
     expect(spawn).not.toHaveBeenCalled();
   });
 
-  test.each(['RUNTIME_ACTION_FAILED', 'ENROLLMENT_EXPIRED', 'ENROLLMENT_REJECTED', 'ENROLLMENT_CONFLICT'])('records a bounded error code: %s', async code => {
+  test.each(['RUNTIME_ACTION_FAILED', 'ENROLLMENT_EXPIRED', 'ENROLLMENT_REJECTED', 'ENROLLMENT_CONFLICT', 'ENROLLMENT_ACTIVE_RUN', 'ENROLLMENT_EXECUTION_LEASE_ACTIVE'])('records a bounded error code: %s', async code => {
     const failingRuntime = path.join(root, 'failing-runtime.js');
     fs.writeFileSync(failingRuntime, `#!${process.execPath}\nconsole.log(JSON.stringify({type:'error',code:${JSON.stringify(code)},message:'unsafe upstream detail'}));\n`, { mode: 0o700 });
     const diagnostic = jest.fn();
