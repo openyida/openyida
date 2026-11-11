@@ -123,9 +123,9 @@
     "endpoint": "https://www.aliwork.com/openyida/agent-api"
   },
   "optionalDependencies": {
-    "@openyida/local-agent-runtime-darwin-arm64": "0.1.5",
-    "@openyida/local-agent-runtime-darwin-x64": "0.1.5",
-    "@openyida/local-agent-runtime-win32-x64": "0.1.5",
-    "@openyida/local-agent-runtime-win32-arm64": "0.1.5"
+    "@openyida/local-agent-runtime-darwin-arm64": "0.1.6",
+    "@openyida/local-agent-runtime-darwin-x64": "0.1.6",
+    "@openyida/local-agent-runtime-win32-x64": "0.1.6",
+    "@openyida/local-agent-runtime-win32-arm64": "0.1.6"
   }
 }
