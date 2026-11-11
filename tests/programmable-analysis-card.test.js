@@ -32,3 +32,17 @@ test('live Canvas template delegates queries and native card references to the i
   canvasWindow.__VcDeepYidaUtils__ = undefined;
   expect(Component({ query }).props.role).toBe('alert');
 });
+
+
+test('CLI generates the editable native analysis config without a packaged template file', async () => {
+  const os = require('os');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-analysis-card-'));
+  try {
+    const output = path.join(dir, 'analysis-card.json');
+    await require('../lib/core/sample').run(['openyida-page-template', 'analysis-card-config', '--output', output]);
+    const [chart] = JSON.parse(fs.readFileSync(output, 'utf8')).charts;
+    expect(chart).toMatchObject({ type: 'analysis', formUuid: 'FORM-REPLACE', view: 'bar' });
+    expect(chart.yField[0].aggregate).toBe('SUM');
+    expect(chart.renderCard).toContain('function renderCard');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
