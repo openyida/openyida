@@ -22,7 +22,7 @@
 
 同时配置设计态、运行态扩展；`config.componentNameList` 匹配 `addComponent` 注册名（日历 `OpenYidaCalendarView`，时间线 `OpenYidaStickyTimeline`）。发布后核对运行时 config 和真实页面。
 
-显式设置同名 `displayName`，如 `StickyTimeline.displayName = "OpenYidaStickyTimeline"`；检查压缩后设计器日志和组件面板。
+用同一个业务标识设置设计态和运行态视图的 `displayName`、Yida API 的 `componentName`、拖拽 Schema 的 `componentName` 和运行态 `componentNameList`。例如 `StickyTimeline.displayName = "OpenYidaStickyTimeline"`。在压缩后的产物中核对这些值。基础表单组件的配置及复用原生字段时的 Schema 写法见[基础表单组件开发规范](./form-component-development.md)。
 
 本地 `yida-plugin-sdk`（`b2277ef`）的实现证据，线上版本须另核：
 
