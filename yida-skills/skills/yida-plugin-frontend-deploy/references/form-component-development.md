@@ -2,6 +2,30 @@
 
 普通表单和流程表单使用基础表单组件扩展。先确定组件是展示已有数据、复用原生字段的存值能力，还是用多个字段组合采集数据。需要同时出现在自定义页面时，另行注册自定义页面的设计态和运行态扩展。
 
+## 开发前检查
+
+- 将 `renderControl` 中的输入控件拆成独立组件，由宿主通过 `value` 和 `onChange` 接入。筛选器、流程 setter 和集成自动化直接复用控件，避免嵌套完整表单字段导致白屏。只读渲染较复杂时，将 `renderView` 也拆成独立视图。
+- 展示文本与存值结构不同时，抽出共用的文本格式化函数。只读视图、表格和关联展示可复用它，`associationView.getViewText` 返回字符串。
+- 按消费场景启用对应开关，配置前先验证控件、回调和值结构。筛选、流程和关联的字段匹配从自身类型开始，验证后再扩大范围。复合字段按下文的 `CC_` 命名规则注册。
+- 级联和多控件组件需要实测半屏子表单、筛选器及流程面板。空间不足时采用纵向布局或弹层，检查弹层能否打开、选择和关闭。
+
+复杂组件可以按以下结构组织源码。按实际需要创建目录，构建时将各入口映射到相应的 Module Federation 暴露路径。
+
+```text
+app/
+  form/index.tsx            表单运行态注册
+  custom-page/index.tsx     自定义页面运行态注册
+designer/
+  form/index.tsx            表单设计态注册
+  custom-page/index.tsx     自定义页面设计态注册
+controls/                   可复用的输入控件
+views/                      复杂只读视图
+fields/                     对接宿主存值和提交的字段包装层
+setters/                    设计器或流程面板的设置器
+components/                 通用组件
+utils/                      值转换和文本格式化
+```
+
 ## 组件标识与字段 Schema
 
 - 命名与注册遵循[组件标识一致性](./frontend-contract.md#组件标识一致性)。表单设计态、运行态和移动端共用同一个组件标识。
@@ -99,9 +123,18 @@ Yida.app.form.addBasicComponent({
 
 ## 按实际使用场景配置
 
-把 `renderControl` 的交互抽成独立组件，需要复杂只读展示时也抽出 `renderView`。筛选器和流程设置面板可复用纯视图，避免在这些面板中嵌套完整的表单字段。使用 `configure` 定义设计器属性和 setter，有移动端要求时配置 `designerMobileView` 及运行态移动视图。
-
 组件自身存值时，按宿主契约传递 `value` 和 `onChange`。需要把结果写入其他原生字段时，从运行时上下文定位目标字段，按表单实际字段 ID 和值结构配置映射。上传票据并填充子表单时，上传、解析和写回由录入组件或业务流程完成，详情视图通过绑定读取已保存的明细。
+
+| 使用场景 | 相关配置与检查 |
+| --- | --- |
+| 表单存值与字段匹配 | 按需配置 `targetMetaDataFieldName` 或 `isCompositeFormField`。使用 `matchedFields` 声明已验证的匹配类型，初期只匹配自身。 |
+| 数据管理列表和视图 | 配置 `dataView`，并把实际存值字段加入目标视图。用已提交的记录核对列渲染，按需验收行内和批量编辑。 |
+| 表单、数据管理及流程筛选 | 按目标宿主支持的注册入口配置 `filterView` 和 `supportedOperators`，在各实际使用的场景验证操作符、值类型和校验。级联字段按操作符选择条件视图。 |
+| 公式 | 用 `formulaView` 声明 `valueTypes`、`fieldTagMap`，需要转换时实现 `parseValue`。在实际编辑器中验证字段选择、返回值和计算。 |
+| 流程设计器与集成自动化 | 用 `flowSetterView` 配置面板视图。根据需求逐项验证后开启 `enableUpdate`、`enableCondition`、`enablePermission`、`enableMatch` 等能力。流程匹配、过滤和数据节点分别核对 `operatorMapConfig` 的 `flowMatch`、`flowFilter` 和 `flowDataNode`。流程表单填写页的组件渲染与流程节点配置分别验收。 |
+| 关联、导入导出、消息与历史 | 分别按需配置 `associationView`、`importExport`、`messageView`、`modifyHistoryView`。关联填充核对 `fillableFields`，关联展示的 `getViewText` 返回字符串。仅开启已实现的能力。 |
+
+历史场域可能还使用组件类型清单或专有映射。组件未出现在某个场域时，先核对该扩展是否加载、能力开关是否生效，再确认宿主支持的字段匹配和操作符。
 
 ## 基础表单组件配置项
 
