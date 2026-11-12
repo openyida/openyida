@@ -26,7 +26,7 @@
 
 本地 `yida-plugin-sdk`（`b2277ef`）的实现证据，线上版本须另核：
 
-- `src/utils/plugin.helper.ts` 的 `isOfficialPlugin` 按 URL 是否包含 `yida-components` 或 `teambition-fe` 分类；这是字符串判定，不是身份或域名白名单，不应模仿官方目录。
+- `src/utils/plugin.helper.ts` 的 `isOfficialPlugin` 检查完整运行态 `cdnUrl` 是否包含 `yida-components` 或 `teambition-fe`。第三方托管域名和路径应避开这两个字符串。第三方新仓库和资源项目的命名见[托管命名建议](./frontend-hosting.md#开发环境与渠道)。
 - `src/plugin/runtime/plugin.ts` 的 `_generateRemoteConfigFromPlugin`：官方入口按宿主 CDN/group/id/version 拼接；第三方保留完整 `plugin.cdnUrl`，容器名为 `plugin.uuid.split("-")[1]`，与资产目录分开配置。
 - `src/plugin/runtime/plugin.executor.ts` 的 `_getContainerId`：自定义页面导出 `./app/custom-page`、`./designer/custom-page`；其他扩展点核对实际场景。
 - 本地 `yida-single-app` 的 `OpenPluginFacadeImpl` 将 `cdnEntry` 赋给 `cdnUrl`；不能凭编辑器前缀推断运行时拼官方 CDN。
