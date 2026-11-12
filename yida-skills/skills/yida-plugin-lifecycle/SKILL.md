@@ -9,6 +9,10 @@ description: 管理宜搭平台“插件管理”中的开发插件、版本配�
 
 连接类组件的服务、输入输出映射、参数与鉴权设计，先读[宜搭插件开发规范](./references/development-guide.md)。前端构建、托管或加载排查时，通过 `use_skill("yida-plugin-frontend-deploy", "构建、托管或排查插件前端资源")` 加载部署技能；本技能接收其真实资源地址并负责平台配置保存。CLI 生命周期接口不能替代官方编辑器中的组件设计和组织内真实测试。
 
+插件注册前端组件时，先按[组件标识一致性](../yida-plugin-frontend-deploy/references/frontend-contract.md#组件标识一致性)确定组件名，再编写源码或保存版本配置。
+
+开发普通表单或流程表单里的基础表单组件时，先读[基础表单组件开发规范](../yida-plugin-frontend-deploy/references/form-component-development.md)，确定字段元数据和使用场景。基础表单组件和自定义页面组件属于前端扩展，创建时使用 `--type other`。
+
 ## 没有开发插件权限时
 
 - 当前组织没有“开发插件”入口，或操作明确提示未开通插件开发权限时，先核对登录账号与目标组织；空列表或登录失效不能直接判定为没有权限。
