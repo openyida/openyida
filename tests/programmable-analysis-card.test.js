@@ -8,6 +8,35 @@ const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 const { buildChartNode } = require('../lib/report/chart-builder');
 const { validateChartConfigDetailed } = require('../lib/report/validation');
 
+test('metric component distinguishes zero, unknown, failure and a real target', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/analysis-metric.canvas.jsx'), 'utf8');
+  const { runtimeCode } = compileCanvasLocal(source);
+  const Metric = new Function('window', runtimeCode + '; return YidaComp;')({ React });
+  const value = tree => find(tree, 'div').find(node => node.props?.className === 'mc-value').children[0];
+  expect(value(Metric({ value: 0 }))).toBe('0');
+  expect(value(Metric({}))).toBe('—');
+  expect(find(Metric({ value: 20, target: 0 }), 'progress')).toHaveLength(0);
+  expect(find(Metric({ value: 120, target: 100 }), 'progress')[0].props.value).toBe(100);
+  expect(find(Metric({ value: 20, error: 'denied' }), 'div')).toHaveLength(0);
+});
+
+test('chart component exposes original rows for range and selection without modifying source data', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/analysis-chart.canvas.jsx'), 'utf8');
+  const { runtimeCode } = compileCanvasLocal(source);
+  const Brush = () => null; const Bar = () => null;
+  const react = { ...React, useEffect() {}, useMemo: fn => fn(), useState: initial => [initial, () => {}] };
+  const Chart = new Function('window', runtimeCode + '; return YidaComp;')({ React: react, Recharts: { Brush, Bar } });
+  const rows = Object.freeze([Object.freeze({ label: 'Jan', value: 10 }), Object.freeze({ label: 'Feb', value: 20 })]);
+  const onRangeChange = jest.fn(); const onSelect = jest.fn();
+  const tree = Chart({ rows, onRangeChange, range: { startIndex: 0, endIndex: 1 } });
+  find(tree, Brush)[0].props.onChange({ startIndex: 1, endIndex: 99 });
+  expect(onRangeChange).toHaveBeenCalledWith({ startIndex: 1, endIndex: 1 }, [rows[1]]);
+  find(tree, 'button').find(node => node.children.includes('重置区间')).props.onClick();
+  expect(onRangeChange).toHaveBeenLastCalledWith(null, rows);
+  find(Chart({ rows, kind: 'ranking', onSelect }), Bar)[0].props.onClick({ payload: { raw: rows[0] } });
+  expect(onSelect).toHaveBeenCalledWith(rows[0]);
+});
+
 test('explorer links selection, tabs, brush scope and safe CSV to the same raw rows', () => {
   const source = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/analysis-card-explorer.canvas.jsx'), 'utf8');
   const { runtimeCode } = compileCanvasLocal(source);

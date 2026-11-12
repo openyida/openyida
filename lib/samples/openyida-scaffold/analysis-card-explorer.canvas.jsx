@@ -21,6 +21,7 @@ export default function YidaComp({
   analysis = {},
   temporal = false,
   variant = 'overview',
+  appearance = 'light',
 }) {
   const {
     rows = [],
@@ -96,11 +97,12 @@ export default function YidaComp({
   const total = allValid.reduce((n, d) => n + d.value, 0);
   const chosen = data.find((d) => d.i === selected);
   const colors = [
-    'var(--color-brand1-6,#1677ff)',
-    'var(--pod-chart-color-2,#4d9d9b)',
-    'var(--pod-chart-color-3,#9572c9)',
-    'var(--pod-chart-color-4,#cb864e)',
+    'var(--accent)',
+    'var(--series-2)',
+    'var(--series-3)',
+    'var(--series-4)',
   ];
+  const tooltipStyle = { background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: 8 };
   const choose = (item) => {
     const d = item?.payload || item;
     if (d && Number.isInteger(d.i))
@@ -157,6 +159,11 @@ export default function YidaComp({
       );
     });
     clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    background.setAttribute('width', '100%');
+    background.setAttribute('height', '100%');
+    background.setAttribute('fill', window.getComputedStyle(svg.closest('[data-export-chart]')).backgroundColor);
+    clone.insertBefore(background, clone.firstChild);
     download(
       new window.XMLSerializer().serializeToString(clone),
       'image/svg+xml;charset=utf-8',
@@ -167,15 +174,16 @@ export default function YidaComp({
   return (
     <section
       ref={root}
-      className={'oy-explorer ' + variant}
+      className={'oy-explorer ' + variant + ' ' + appearance}
       aria-busy={!!loading}
     >
       <style>{`
-      .oy-explorer{container-type:inline-size;--accent:var(--color-brand1-6,#1677ff);color:var(--color-text1-4,#202b3d);font:14px/1.6 system-ui,sans-serif;min-width:0;background:var(--pod-card-bg-color,#fff);padding:24px;border:1px solid var(--color-line1-1,#e5e9ef);border-radius:18px}
-      .oy-explorer *{box-sizing:border-box}.oy-explorer h2,.oy-explorer h3,.oy-explorer p{margin:0}.oy-explorer h2{font-size:23px;letter-spacing:-.6px}.oy-explorer h3{font-size:15px}.oy-explorer .eyebrow{font-size:11px;letter-spacing:2px;color:var(--accent);font-weight:650}.oy-explorer .muted{font-size:12px;color:var(--color-text1-3,#687588)}
-      .oy-explorer .head,.oy-explorer .toolbar,.oy-explorer .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.oy-explorer .actions{display:flex;gap:6px;flex-wrap:wrap}.oy-explorer button,.oy-explorer select{font:inherit;font-size:12px;padding:6px 11px;border:1px solid var(--color-line1-1,#dde3ec);border-radius:7px;background:var(--pod-card-bg-color,#fff);color:inherit;cursor:pointer}.oy-explorer button:disabled{opacity:.4;cursor:not-allowed}.oy-explorer button[aria-pressed=true]{background:var(--color-brand1-2,#eaf3ff);color:var(--color-text1-4,#202b3d);border-color:var(--accent)}.oy-explorer button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-      .oy-explorer .kpis{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:16px;margin:24px 0}.oy-explorer .kpi{position:relative;overflow:hidden;min-width:0;padding:20px;background:var(--color-fill1-1,#f7f9fc);border-radius:12px}.oy-explorer .kpi:first-child{background:linear-gradient(120deg,var(--color-brand1-2,#eaf3ff),var(--pod-card-bg-color,#fff));border:1px solid var(--color-line1-1,#e5e9ef)}.oy-explorer .number{position:relative;font-size:32px;letter-spacing:-1px;font-weight:650;font-variant-numeric:tabular-nums;margin:8px 0;line-height:1.2}.oy-explorer .decor{position:absolute;right:-20px;bottom:-25px;width:155px;height:155px;color:var(--accent);opacity:.09;pointer-events:none}.oy-explorer .split{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:24px;margin-top:20px}.oy-explorer .panel{min-width:0}.oy-explorer .secondary{border-left:1px solid var(--color-line1-1,#e5e9ef);padding-left:24px}.oy-explorer .toolbar{padding-bottom:16px;border-bottom:1px solid var(--color-line1-1,#e5e9ef)}.oy-explorer .foot{margin-top:16px;padding:12px 16px;background:var(--color-fill1-1,#f7f9fc);border-radius:8px;font-size:12px}.oy-explorer .legend{display:flex;flex-wrap:wrap;gap:6px}.oy-explorer .legend button{display:flex;align-items:center;gap:6px}.oy-explorer .dot{height:7px;width:7px;border-radius:50%}.oy-explorer .table{overflow:auto}.oy-explorer table{width:100%;border-collapse:collapse;font-size:12px}.oy-explorer td,.oy-explorer th{padding:10px;border-bottom:1px solid var(--color-line1-1,#e5e9ef);white-space:nowrap;text-align:left}.oy-explorer .num{text-align:right;font-variant-numeric:tabular-nums}.oy-explorer .state{padding:28px 0}.oy-explorer .breadcrumb{display:flex;gap:6px;margin-top:12px}.oy-explorer.structure .split{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
-      @container(max-width:640px){.oy-explorer .kpis{grid-template-columns:1fr}.oy-explorer .split,.oy-explorer.structure .split{grid-template-columns:1fr}.oy-explorer .secondary{padding-left:0;border-left:0}.oy-explorer .number{font-size:28px}}
+      .oy-explorer{container-type:inline-size;--accent:var(--analysis-accent,var(--color-brand1-6,#148979));--series-2:var(--analysis-series-2,#e6a04b);--series-3:var(--analysis-series-3,#7199b5);--series-4:var(--analysis-series-4,#9b8abf);--surface:var(--analysis-surface,var(--pod-card-bg-color,#fff));--canvas:var(--analysis-canvas,#edf3f2);--ink:var(--analysis-ink,var(--color-text1-4,#203b38));--muted:var(--analysis-muted,#667d79);--line:var(--analysis-line,#dce8e4);--soft:var(--analysis-soft,#e5f1ed);--radius:var(--analysis-radius,12px);color:var(--ink);font:14px/1.6 system-ui,sans-serif;min-width:0;background:var(--canvas);padding:24px;border-radius:16px}
+      .oy-explorer.dark{color-scheme:dark;--accent:var(--analysis-accent,#41c6d4);--series-2:var(--analysis-series-2,#efb86b);--series-3:var(--analysis-series-3,#7396ef);--series-4:var(--analysis-series-4,#b29ae7);--surface:var(--analysis-surface,#192c46);--canvas:var(--analysis-canvas,#101e33);--ink:var(--analysis-ink,#edf5ff);--muted:var(--analysis-muted,#a4b6ce);--line:var(--analysis-line,#2b415d);--soft:var(--analysis-soft,#233c54)}
+      .oy-explorer *{box-sizing:border-box}.oy-explorer h2,.oy-explorer h3,.oy-explorer p{margin:0}.oy-explorer h2{color:var(--ink);font-size:24px;letter-spacing:-.6px}.oy-explorer h3{color:var(--ink);font-size:15px;display:flex;align-items:center;gap:8px}.oy-explorer h3:before{content:'';width:3px;height:14px;border-radius:2px;background:var(--accent)}.oy-explorer .eyebrow{font-size:10px;letter-spacing:2.5px;color:var(--accent);font-weight:700}.oy-explorer .muted{font-size:12px;color:var(--muted)}
+      .oy-explorer .head,.oy-explorer .toolbar,.oy-explorer .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.oy-explorer .head{padding:4px 0 8px}.oy-explorer .actions{display:flex;gap:6px;flex-wrap:wrap}.oy-explorer button,.oy-explorer select{font:inherit;font-size:12px;padding:7px 12px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:inherit;cursor:pointer}.oy-explorer button:hover{border-color:var(--accent)}.oy-explorer button:disabled{opacity:.4;cursor:not-allowed}.oy-explorer button[aria-pressed=true]{background:var(--soft);color:var(--ink);border-color:var(--accent)}.oy-explorer button:focus-visible,.oy-explorer select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+      .oy-explorer .kpis{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:16px;margin:20px 0}.oy-explorer .kpi{position:relative;overflow:hidden;min-width:0;padding:22px 24px;background:var(--surface);border-radius:var(--radius);box-shadow:0 3px 14px #0b342b05}.oy-explorer .kpi:first-child{background:linear-gradient(115deg,var(--analysis-hero-start,#126c61),var(--analysis-hero-end,#279b87));color:#fff}.oy-explorer.dark .kpi:first-child{background:linear-gradient(115deg,var(--analysis-hero-start,#235aa7),var(--analysis-hero-end,#198794))}.oy-explorer .kpi:first-child .muted{color:#ffffffd9}.oy-explorer .kpi:nth-child(2){border-top:3px solid var(--series-2)}.oy-explorer .kpi:nth-child(3){border-top:3px solid var(--series-3)}.oy-explorer .number{position:relative;font-size:36px;letter-spacing:-1px;font-weight:650;font-variant-numeric:tabular-nums;margin:12px 0;line-height:1.2}.oy-explorer .decor{position:absolute;right:-20px;bottom:-25px;width:170px;height:170px;color:#fff;opacity:.12;pointer-events:none}.oy-explorer .split{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px;margin-top:16px}.oy-explorer .panel{min-width:0;background:var(--surface);padding:22px;border-radius:var(--radius)}.oy-explorer .panel>p{margin:4px 0 18px}.oy-explorer .toolbar{padding:10px 12px;background:var(--surface);border-radius:var(--radius)}.oy-explorer .foot{margin-top:16px;padding:14px 16px;background:var(--surface);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;font-size:12px;color:var(--muted)}.oy-explorer .legend{display:flex;flex-wrap:wrap;gap:6px}.oy-explorer .legend button{display:flex;align-items:center;gap:6px}.oy-explorer .dot{height:7px;width:7px;border-radius:50%}.oy-explorer .table{overflow:auto;background:var(--surface);margin-top:16px;padding:12px;border-radius:var(--radius)}.oy-explorer table{width:100%;border-collapse:collapse;font-size:12px}.oy-explorer td,.oy-explorer th{padding:12px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left}.oy-explorer th{color:var(--muted);font-weight:500}.oy-explorer .num{text-align:right;font-variant-numeric:tabular-nums}.oy-explorer .state{padding:28px 0}.oy-explorer .breadcrumb{display:flex;gap:6px;margin-top:12px}.oy-explorer.structure .split{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}.oy-explorer .recharts-cartesian-axis-tick-value{fill:var(--muted);font-size:11px}.oy-explorer .recharts-cartesian-axis-line,.oy-explorer .recharts-cartesian-axis-tick-line{stroke:var(--line)}.oy-explorer .recharts-brush-texts text{fill:var(--ink)}
+      @container(max-width:640px){.oy-explorer .kpis{grid-template-columns:1fr}.oy-explorer .split,.oy-explorer.structure .split{grid-template-columns:1fr}.oy-explorer .number{font-size:28px}.oy-explorer .panel{padding:16px}}
     `}</style>
       <header className="head">
         <div>
@@ -391,11 +399,11 @@ export default function YidaComp({
                     <AreaChart data={data}>
                       <CartesianGrid
                         vertical={false}
-                        stroke="var(--color-line1-1,#e5e9ef)"
+                        stroke="var(--line)" strokeDasharray="3 4"
                       />
                       <XAxis dataKey="label" />
                       <YAxis tickFormatter={compact} width={55} />
-                      <Tooltip formatter={format} />
+                      <Tooltip formatter={format} contentStyle={tooltipStyle} itemStyle={{color:"var(--ink)"}} cursor={{ fill: "var(--soft)" }} />
                       <Area
                         dataKey="value"
                         name={metric?.title || metric?.key}
@@ -406,7 +414,10 @@ export default function YidaComp({
                       />
                       <Brush
                         dataKey="label"
-                        height={26}
+                        height={40}
+                        stroke={colors[0]}
+                        fill="var(--surface)"
+                        travellerWidth={9}
                         startIndex={range?.startIndex ?? 0}
                         endIndex={range?.endIndex ?? data.length - 1}
                         onChange={(next) => {
@@ -418,7 +429,11 @@ export default function YidaComp({
                             setSelected(null);
                           }
                         }}
-                      />
+                      >
+                        <AreaChart data={data}>
+                          <Area dataKey="value" stroke={colors[0]} fill={colors[0]} fillOpacity={0.15} isAnimationActive={false} />
+                        </AreaChart>
+                      </Brush>
                     </AreaChart>
                   ) : (
                     <BarChart
@@ -428,22 +443,23 @@ export default function YidaComp({
                     >
                       <CartesianGrid
                         horizontal={false}
-                        stroke="var(--color-line1-1,#e5e9ef)"
+                        stroke="var(--line)" strokeDasharray="3 4"
                       />
                       <XAxis type="number" tickFormatter={compact} />
                       <YAxis type="category" dataKey="label" width={92} />
-                      <Tooltip formatter={format} />
+                      <Tooltip formatter={format} contentStyle={tooltipStyle} itemStyle={{color:"var(--ink)"}} cursor={{ fill: "var(--soft)" }} />
                       <Bar
                         dataKey="value"
                         name={metric?.title || metric?.key}
-                        radius={[0, 5, 5, 0]}
+                        radius={[0, 4, 4, 0]}
+                        maxBarSize={32}
                         onClick={choose}
                         isAnimationActive={false}
                       >
                         {allValid.map((d, i) => (
                           <Cell
                             key={d.i}
-                            fill={colors[i % colors.length]}
+                            fill={colors[d.i % colors.length]}
                             fillOpacity={
                               selected === null || selected === d.i ? 1 : 0.25
                             }
@@ -475,14 +491,14 @@ export default function YidaComp({
                         {allValid.map((d, i) => (
                           <Cell
                             key={d.i}
-                            fill={colors[i % colors.length]}
+                            fill={colors[d.i % colors.length]}
                             fillOpacity={
                               selected === null || selected === d.i ? 1 : 0.25
                             }
                           />
                         ))}
                       </Pie>
-                      <Tooltip formatter={format} />
+                      <Tooltip formatter={format} contentStyle={tooltipStyle} itemStyle={{color:"var(--ink)"}} cursor={{ fill: "var(--soft)" }} />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
@@ -497,7 +513,7 @@ export default function YidaComp({
                     >
                       <span
                         className="dot"
-                        style={{ background: colors[i % colors.length] }}
+                        style={{ background: colors[d.i % colors.length] }}
                       />
                       {d.label}
                     </button>

@@ -22,6 +22,53 @@
 
 ## 指标与视觉
 
+### 组件优先，页面只是组合示例
+
+用 `openyida sample openyida-page-template analysis-metric` 提取单个指标卡，用 `openyida sample openyida-page-template analysis-chart` 提取单个图表组件。它们没有页面导航、查询常量或业务布局；复制进组合源码时将默认 `YidaComp` 分别重命名为 `MetricCard`、`AnalysisChart`，合并 import，最终只保留一个页面/卡片入口。不要在运行时 fetch 模板源码，不把这些设计固定进 yida-ui。
+
+| 组件 | 数据与展示参数 | 交互参数 |
+| --- | --- | --- |
+| 指标卡 | `title, value, unit, note`；可选真实 `delta`（小数比率）、`target`；`emphasis` 主指标强调 | `actions` 插槽、`onRetry`；loading/error；没有指标时显示 — |
+| 趋势图 | `kind="trend"`；`rows, labelKey, valueKey`；时间升序、同一粒度 | 带缩略图的 Brush；受控 `range`/`onRangeChange(window, visibleRows)`；`null` 表示全区间 |
+| 排行图 | `kind="ranking"`；服务端已排序分组结果 | `selectedKey`/`onSelect(rawRow)`；父级决定联动、下钻或明细 |
+| 环形图 | `kind="donut"`；仅非负、非全零、可比较的份额 | 与排行共享 `selectedKey` 和原始行回调；不会自行拉数据 |
+
+所有组件都有 `appearance="light|dark"`、`style`、loading/error；图表有 `height`、`onRefresh` 和 `actions`。类型只是起始源码，生成后可以替换图形、增加系列、SVG、Tab 和布局，不受枚举限制。下载/全量导出由动作插槽接入已验证能力，不预置无实现按钮。
+
+```jsx
+<MetricCard title="预算" value={budgetResult} unit="元" emphasis note="当前查询范围" />
+<AnalysisChart kind="trend" rows={monthlyRows} labelKey="month" valueKey="budget"
+  range={range} onRangeChange={(next, visible) => { setRange(next); setVisibleRows(visible); }} />
+<AnalysisChart kind="ranking" rows={businessRows} labelKey="business" valueKey="budget"
+  selectedKey={selection?.business} onSelect={setSelection} />
+```
+
+父级在数据源/指标/时间粒度变化时重置受控 range 和 selection；联动跨不同粒度需要转换，不可共享索引硬套。组件只展示已授权聚合结果；服务端筛选、鉴权和下钻仍由 `analysis.api`/宿主提供。
+
+### 颜色与圆角基线
+
+- 浅色经营分析：浅灰绿画布、白色图表面、青绿主色、暖橙辅助色；深色趋势分析：藏蓝画布、稍亮藏蓝面、青蓝主色、琥珀辅助色。主指标可用低跨度渐变与原创低透明度几何 SVG，不复制参考站点图片。
+- 层级用背景和留白形成：卡片 12px、组合区 16px、控件 6–8px、柱端 4px；卡间 16px、内边距 22–24px。避免整页大白框内再嵌多层边框；圆角不随卡片尺寸无限放大。
+- 每个组件可通过 `--analysis-accent/surface/ink/muted/line/radius` 覆盖，主指标还可设 `--analysis-hero-start/end`。默认浅色继承平台 token，深色是显式选择；不得覆盖应用全局变量。系列按原始分组保持颜色，图、图例、选中态一致。
+- 深色必须一起调整 tooltip、轴文字、网格、Brush 背景、原生 select 和焦点态；不能只改容器背景。装饰不表达虚构数据。
+
+### ECharts 与 Recharts 的时间选区
+
+网页默认复用运行时 Recharts，使用组件模板中的 Brush 缩略图、双端手柄和受控范围。ECharts 对应 `dataZoom` 的 `slider`（可见拖拽条）和 `inside`（图内缩放）；已有 ECharts 宿主可将以下配置合入 option：
+
+```js
+dataZoom: [
+  { id: 'window', type: 'slider', xAxisIndex: 0, height: 32, bottom: 12,
+    showDataShadow: true, start: 0, end: 100, brushSelect: false },
+  { type: 'inside', xAxisIndex: 0, start: 0, end: 100 }
+],
+grid: { left: 56, right: 24, top: 36, bottom: 88 }
+```
+
+从 `datazoom` 事件或 `getOption().dataZoom` 读取边界，再映射真实时间值；只在需要跨范围查询时防抖回写服务端 filters。销毁时解除监听与 dispose；普通更新不重建实例。ECharts Canvas 渲染器不识别 CSS `var()`，先用 `getComputedStyle` 解析颜色。复用已核实的宿主 CDN 加载器并固定版本，不逐卡插 script。`@wuba/react-native-echarts` 是原生移动端适配，宜搭 Web 不安装 Skia/react-native-svg，也不把它称作 Recharts。
+
+参考：[Recharts Brush](https://recharts.github.io/en-US/api/Brush/)、[React Native ECharts](https://github.com/wuba/react-native-echarts)。上述 ECharts option 是复用配方，当前富交互预发样例使用 Recharts；不能把配方写入当作 ECharts 运行验收通过。
+
 - 指标有大数字、单位、口径、时间范围和状态；有真实目标时提供进度，有真实历史时提供 sparkline/同比。没有历史或目标不得伪造增幅、目标达成率或趋势。
 - 同一指标行统一尺寸与字级，主指标可用跨列强调；页面通过分组、开放留白、轻边界和主次比例形成层次，不用四个空白大盒子代替设计。
 - 金额/数量紧凑显示，tooltip 与表格保留精确值；数值右对齐、tabular-nums。均值、比率和去重计数不能跨分组直接求和；模板的合计/份额仅适用于可加总指标。百分比明确分母，Top N/当前选区之和不能称为全量总额。

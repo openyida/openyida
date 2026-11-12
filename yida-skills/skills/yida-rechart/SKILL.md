@@ -52,6 +52,8 @@ description: 自定义页面 Recharts 高级图表技能。使用 `YidaCodeCanva
 
 ## 推荐实现结构
 
+需要快速复用单个指标卡、趋势图、排行图或环形图时，先读取[可编程卡片组件模板](../yida-dashboard/references/programmable-cards.md#组件优先页面只是组合示例)，提取 `analysis-metric` / `analysis-chart`。它们是组件源码；`analysis-card-explorer` 仅用于多组件组合参考，不能把整页模板当作唯一复用粒度。
+
 ```jsx
 import React, { useMemo, useState } from 'react';
 import { Segmented } from 'antd';
