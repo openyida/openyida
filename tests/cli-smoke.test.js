@@ -2934,13 +2934,13 @@ test('Plan CLI and design-file sample work locally without a login', () => {
     expect(readDesignTokens(patchedDesign)['--pod-nav-menu-item-selected-shadow']).toBe(selectedShadow);
     expect(patchedDesign).toContain(`| 选中项阴影 | --pod-nav-menu-item-selected-shadow | ${selectedShadow} |`);
     expect(css).toContain(`--pod-nav-menu-item-selected-shadow: ${selectedShadow};`);
-    // Named themes retain their authored scopes; only the requested project
-    // tokens change. The shared skeleton's flattened scopes are not the contract.
+    // Named themes retain their authored scopes in order, followed by the
+    // generated app-wide defaults and report-card table defaults.
     const sourceId = metadata.themeProfile.sourceThemeId;
     const paired = fs.readFileSync(path.join(ROOT,
       `yida-skills/skills/yida-design/templates/design-themes/${sourceId}/app_theme.css`), 'utf8');
     const selectors = text => topLevelRules(text).map(rule => rule.selector.replace(/\s+/g, ' ').trim());
-    expect(selectors(css)).toEqual(selectors(paired));
+    expect(selectors(css)).toEqual([...selectors(paired), ':root', '.report-theme-card']);
     expect(css).toContain(`openyida-theme-source: ${sourceId}`);
     runOk(['sample', 'yida-design', 'app-theme', '--design-file', path.join(dir, 'design.md'), '--output', cssPath]);
     expect(fs.readFileSync(cssPath, 'utf8')).toBe(css);
