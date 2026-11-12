@@ -9,7 +9,7 @@ const { buildChartNode } = require('../lib/report/chart-builder');
 const { validateChartConfigDetailed } = require('../lib/report/validation');
 
 test('metric component distinguishes zero, unknown, failure and a real target', () => {
-  const source = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/analysis-metric.canvas.jsx'), 'utf8');
+  const source = fs.readFileSync(path.join(__dirname, '../lib/samples/yida-custom-chart-comp/analysis-metric.canvas.jsx'), 'utf8');
   const { runtimeCode } = compileCanvasLocal(source);
   const Metric = new Function('window', runtimeCode + '; return YidaComp;')({ React });
   const value = tree => find(tree, 'div').find(node => node.props?.className === 'mc-value').children[0];
@@ -21,7 +21,7 @@ test('metric component distinguishes zero, unknown, failure and a real target', 
 });
 
 test('chart component exposes original rows for range and selection without modifying source data', () => {
-  const source = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/analysis-chart.canvas.jsx'), 'utf8');
+  const source = fs.readFileSync(path.join(__dirname, '../lib/samples/yida-custom-chart-comp/analysis-chart.canvas.jsx'), 'utf8');
   const { runtimeCode } = compileCanvasLocal(source);
   const Brush = () => null; const Bar = () => null;
   const react = { ...React, useEffect() {}, useMemo: fn => fn(), useState: initial => [initial, () => {}] };

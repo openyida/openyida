@@ -35,6 +35,16 @@ describe('sample templates', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
+  test.each(['analysis-metric', 'analysis-chart', 'analysis-echarts'])('extracts %s from the chart component group and its previous alias', async name => {
+    const component = path.join(tmpDir, 'component.jsx');
+    const alias = path.join(tmpDir, 'alias.jsx');
+    await run(['yida-custom-chart-comp', name, '--output', component]);
+    await run(['openyida-page-template', name, '--output', alias]);
+    const source = fs.readFileSync(component, 'utf8');
+    expect(source).toContain('export default function YidaComp');
+    expect(fs.readFileSync(alias, 'utf8')).toBe(source);
+  });
+
   test('analysis card sample compiles and keeps live empty, zero and selection distinct from demo data', async () => {
     const output = path.join(tmpDir, 'analysis-card.jsx');
     await run(['openyida-page-template', 'canvas-analysis-card', '--output', output]);

@@ -394,8 +394,10 @@ const REQUIRED_PACKAGE_FILES = [
   'lib/app/mobile-brand-tokens.js',
   'lib/app/report-theme-tokens.js',
   'lib/report/analysis-presentation.js',
-  ...['analysis-card-content', 'analysis-card-explorer', 'analysis-chart', 'analysis-echarts', 'analysis-metric', 'canvas-analysis-card']
+  ...['analysis-card-content', 'analysis-card-explorer', 'canvas-analysis-card']
     .map(name => `lib/samples/openyida-scaffold/${name}.canvas.jsx`),
+  ...['analysis-metric', 'analysis-chart', 'analysis-echarts']
+    .map(name => `lib/samples/yida-custom-chart-comp/${name}.canvas.jsx`),
   'yida-skills/skills/yida-dashboard/references/independent-query-api.md',
   'yida-skills/skills/yida-dashboard/references/programmable-cards.md',
   'lib/core/theme-widget.js',
