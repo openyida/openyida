@@ -105,9 +105,10 @@ export default function YidaComp(props = {}) {
   const demo = props.aggregatedRows === undefined;
   const rows = demo ? [{ category: '配件', sales: 82400 }, { category: '办公设备', sales: 61500 },
     { category: '耗材', sales: 43900 }] : props.aggregatedRows;
-  const fields = demo ? { dimension: 'category', metric: 'sales' } : props.fields;
+  const fields = demo || props.fields === undefined ? { dimension: 'category', metric: 'sales' } : props.fields;
   if (!Array.isArray(rows) || !fields?.dimension || !fields?.metric ||
-    rows.some(row => !row || (row[fields.metric] !== null && !Number.isFinite(row[fields.metric])))) {
+    rows.some(row => !row || (typeof row[fields.dimension] !== 'string' && !Number.isFinite(row[fields.dimension])) ||
+      (row[fields.metric] !== null && !Number.isFinite(row[fields.metric])))) {
     return <p role="alert">数据字段或数值类型与卡片配置不匹配。</p>;
   }
   return <AnalysisContent analysis={{

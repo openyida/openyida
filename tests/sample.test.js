@@ -56,7 +56,7 @@ describe('sample templates', () => {
     };
 
     expect(JSON.stringify(render({}))).toContain('示例数据');
-    const empty = render({ aggregatedRows: [], fields: { dimension: 'code', metric: 'total' } });
+    const empty = render({ aggregatedRows: [] });
     expect(JSON.stringify(empty)).toContain('当前筛选下暂无数据');
     expect(find(empty, 'li')).toHaveLength(0);
 
