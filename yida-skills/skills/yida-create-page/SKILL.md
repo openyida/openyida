@@ -51,8 +51,10 @@ description: 创建自定义展示页面（display 类型）并返回 pageId（�
 ## 命令
 
 ```bash
-openyida create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]
+openyida create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]
 ```
+
+传入 `--mode portal` 创建宜搭原生可播报门户。创建后回读 `formType=portal`，并输出 `designerUrl` 和 `workbenchUrl`。使用门户设计器编辑和发布门户。门户模式不支持 `--hide-nav`。原生报表使用 `create-report`。
 
 ### 千问办公调用约定
 
