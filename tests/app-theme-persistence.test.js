@@ -34,14 +34,15 @@ const argumentCases = {
 const optionCases = updateCommand.args.filter(arg => arg.source === 'option')
   .flatMap(arg => arg.builder_options.map(option => [option, arg]));
 const auth = { baseUrl: 'https://example.com', csrfToken: 'csrf', corpId: 'dingTEST' };
-const appInfo = (overrides = {}) => ({ success: true, content: { appType: 'APP_1', corpId: auth.corpId, appThemeMode: 'modern', config: { CREATED_WITH_MODERN_THEME: 'y' }, ...overrides } });
+const appInfo = (overrides = {}) => ({ success: true, content: { appName: { zh_CN: '应用' }, description: null, appType: 'APP_1', corpId: auth.corpId, appThemeMode: 'modern', config: { CREATED_WITH_MODERN_THEME: 'y' }, ...overrides } });
 const style = { enabled: true, iframePropagation: false, cssUrl: 'https://example.com/desert.css', cssFileName: 'desert.css' };
 const disabledStyle = { ...style, enabled: false, iframePropagation: false };
 const saved = { appThemeEnable: 'y', appThemeMode: 'modern', colour: 'custom', themeColor: '#C89B5A', customThemeStyle: JSON.stringify(style), hideAppNav: 'y' };
 const uploadEvidence = { requested: true, status: 'uploaded', uploadedThisRun: true, appType: 'APP_1',
   sourceFileName: 'desert.css', sourceBytes: 123, sourceSha256: 'a'.repeat(64),
   themeColor: '#C89B5A', cssUrl: style.cssUrl, cssFileName: style.cssFileName, resourceContentVerified: false };
-const response = (content) => ({ success: true, content });
+const response = (content) => ({ success: true, content: content && typeof content === 'object'
+  ? { appName: { zh_CN: '应用' }, description: null, ...content } : content });
 let errorSpy;
 let stderrSpy;
 
@@ -303,10 +304,12 @@ test('rename success response with unchanged persisted name does not report succ
 });
 
 test('failed rename readback cannot be treated as verified success', async () => {
-  httpGet.mockRejectedValue(new Error('readback unavailable'));
+  httpGet.mockResolvedValueOnce(response({ appName: { zh_CN: 'Original app' } }))
+    .mockRejectedValue(new Error('readback unavailable'));
   const log = jest.spyOn(console, 'log').mockImplementation(() => {});
   try {
-    await expect(run(['APP_1', '--name', 'Renamed app'])).rejects.toThrow('readback unavailable');
+    await expect(run(['APP_1', '--name', 'Renamed app'])).rejects.toMatchObject({ code: 'APP_NAME_NOT_PERSISTED',
+      details: { metadataVerification: { verified: false, readbackError: 'readback unavailable' }, mutationAccepted: true, retrySafe: false } });
     expect(httpPost).toHaveBeenCalledTimes(1);
   } finally { log.mockRestore(); }
 });

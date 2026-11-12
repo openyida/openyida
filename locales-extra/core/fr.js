@@ -1187,6 +1187,9 @@ module.exports = {
     err_open_url_empty: 'Le chemin openUrl ne peut pas être vide : {0}'
   },
   update_app: {
+    settings_incomplete: 'Les paramètres actuels sont incomplets. Enregistrement arrêté pour éviter leur remplacement par défaut. Vérifiez la page des paramètres.',
+    invalid_current_name: 'Le nom actuel est absent ou invalide. Les paramètres ne sont pas enregistrés. Corrigez-le avec --name.',
+    metadata_not_persisted: 'La requête a été acceptée, mais le nom, la description ou les paramètres conservés ne sont pas vérifiés. Consultez metadataVerification avant de réessayer.',
     name_not_persisted: 'Le nom enregistré ne correspond pas au nom demandé. Vérifiez le nom actuel avant de réessayer ; ne créez pas une autre application.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

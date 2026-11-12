@@ -1185,6 +1185,9 @@ module.exports = {
     err_open_url_empty: 'Đường dẫn openUrl không được để trống: {0}'
   },
   update_app: {
+    settings_incomplete: 'Cài đặt ứng dụng hiện tại chưa đầy đủ. Đã dừng lưu để tránh ghi đè bằng giá trị mặc định. Hãy kiểm tra trang cài đặt ứng dụng.',
+    invalid_current_name: 'Tên ứng dụng hiện tại bị thiếu hoặc không hợp lệ. Chưa lưu cài đặt. Hãy sửa tên bằng --name trước.',
+    metadata_not_persisted: 'Yêu cầu đã được chấp nhận nhưng chưa xác minh được tên, mô tả hoặc cài đặt cũ. Kiểm tra metadataVerification trước khi thử lại.',
     name_not_persisted: 'Tên ứng dụng đã lưu không khớp với tên yêu cầu. Hãy kiểm tra tên hiện tại trước khi thử lại; không tạo ứng dụng khác.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

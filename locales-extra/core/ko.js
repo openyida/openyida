@@ -1186,6 +1186,9 @@ module.exports = {
     err_open_url_empty: 'openUrl 경로가 비어 있습니다: {0}'
   },
   update_app: {
+    settings_incomplete: '현재 앱 설정이 불완전하여 저장을 중단했습니다. 기본값으로 덮어쓰지 않도록 앱 설정 페이지를 확인하세요.',
+    invalid_current_name: '현재 앱 이름이 없거나 잘못되었습니다. 설정을 저장하지 않았습니다. 먼저 --name으로 이름을 복구하세요.',
+    metadata_not_persisted: '쓰기 요청이 수락되었지만 이름, 설명 또는 기존 설정을 확인할 수 없습니다. 다시 제출하기 전에 metadataVerification을 확인하세요.',
     name_not_persisted: '저장된 앱 이름이 요청한 이름과 일치하지 않습니다. 다시 시도하기 전에 현재 이름을 확인하세요. 다른 앱을 만들지 마세요.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

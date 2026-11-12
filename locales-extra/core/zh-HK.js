@@ -1133,6 +1133,9 @@ module.exports = {
     err_open_url_chars: 'openUrl 路徑部分只支援 a-z A-Z 0-9 _ -，可用 / 分隔多級路徑，目前值：{0}'
   },
   update_app: {
+    settings_incomplete: '目前應用設定不完整，已停止儲存，避免預設值覆蓋現有設定。請在應用設定頁面核對。',
+    invalid_current_name: '目前應用名稱缺失或異常，已停止儲存設定。請先透過 --name 修復名稱，再更新其他設定。',
+    metadata_not_persisted: '寫入請求已被接受，但名稱、描述或原設定讀回失敗或不一致。請核對 metadataVerification，勿重複提交。',
     name_not_persisted: '應用名稱儲存後讀回不一致，尚未確認修改成功。請核對目前應用名稱，不要重複建立應用。',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
