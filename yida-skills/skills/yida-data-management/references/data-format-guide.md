@@ -91,6 +91,8 @@
 
 ## 保存 / 更新格式
 
+已有记录补后来新增的字段时，先按[历史记录补新增字段](../SKILL.md#历史记录补新增字段)处理实例版本，并核验本次写入；这条规则适用于所有字段类型。
+
 ```json
 {
   "textField_xxx": "文本",
@@ -171,11 +173,13 @@ openyida data query form APP_xxx FORM-xxx --search-json '[{"key":"dateField_xxx"
 new Date('2026-10-18T00:00:00+08:00').getTime() // 1792252800000
 ```
 
-时间统一按业务时区转换为毫秒。空值查询使用 `is` / `is_not`；区间按 `.start` / `.end` 查询，完整写法见[查询条件指南](../../../references/query-condition-guide.md)。新增字段写入历史记录时使用 `--use-latest-version y`，再回读确认实际值。
+时间统一按业务时区转换为毫秒。空值查询使用 `is` / `is_not`；区间按 `.start` / `.end` 查询，完整写法见[查询条件指南](../../../references/query-condition-guide.md)。历史记录补后加日期字段时，遵循[通用更新规则](../SKILL.md#历史记录补新增字段)。
 
 ## 关联表单字段（AssociationFormField）
 
 关联表单字段用于引用其他表单的数据记录，数据格式较为特殊。
+
+给已有记录补后来新增的关联字段时，先遵循[历史记录补新增字段](../SKILL.md#历史记录补新增字段)，再按下方数组格式写入；回读缺失时结合实例版本核查，不直接归因为关联格式错误。
 
 ### 保存格式
 

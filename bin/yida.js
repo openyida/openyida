@@ -661,6 +661,11 @@ async function main() {
     return;
   }
 
+  const { runWithCommandContext } = require('../lib/core/command-context');
+  return runWithCommandContext(dispatchCommand);
+}
+
+async function dispatchCommand() {
   switch (command) {
     case 'commands': {
       if (args[0] === 'validate' || args[0] === 'build') {

@@ -550,7 +550,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida check-prd-completeness (<prd.md> [--build-manifest <file>] \| --build-spec <build-context.json> [--build-manifest <file>] \| --manifest-only --build-manifest <file>) --app-type <appType> [--json]` | Check resources, frontend menu hiding and application theme delivery |
 | `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | Validate design documents, theme tokens and PRD handoff |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | Export app entity relationship diagram |
-| `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page |
+| `openyida create-page <appType> "<name>" [--mode dashboard\|portal] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom page or native portal |
 | `openyida build-page <sourceFile> [--output file\|--write]` | Build Yida-compatible page source |
 | `openyida check-page <src> [--compat] [--json]` | Check custom page standards |
 | `openyida compile <src> [--canvas] [--compat] [--skip-lint] [--strict-theme\|--allow-fixed-brand] [--json]` | Compile custom page locally |
@@ -616,7 +616,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida connector delete-action <id> <operation-id>` | Delete an action |
 | `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>] [--ignore-defaults]` | Test an action |
 | `openyida connector list-connections <id>` | List auth connections |
-| `openyida connector create-connection <id> <name> [--interactive]` | Create an auth connection |
+| `openyida connector create-connection <id> <name> [--interactive] [--repair-api-key-scheme]` | Create an auth connection |
 | `openyida connector smart-create --curl "..."` | Generate a redacted action draft from cURL (no remote create) |
 | `openyida connector parse-api [options]` | Parse API information |
 | `openyida connector gen-template [output]` | Generate API document template |

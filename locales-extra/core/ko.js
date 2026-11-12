@@ -5,6 +5,13 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  issue_fixes: {
+    invalid_api_key: 'API Key에는 유효한 name과 header/query 위치가 필요합니다. 연결기 정의를 확인하세요.',
+    repair_required: '이전 API Key 설정에 type/in/location이 없습니다. --repair-api-key-scheme으로 명시적으로 수정하고 새 계정을 만드세요.',
+    replacement_notice: '기존 계정은 변경되지 않습니다. 호출 대상을 반환된 새 계정 ID에 연결하세요.',
+    invalid_import: '잘못된 마이그레이션 패키지입니다. details의 양식 ID, Schema, alias를 확인하세요.',
+    partial_import: '가져오기가 완료되지 않았습니다. yida-migration-report.json의 기존 리소스를 확인하고 보고서를 보관한 후 새로 가져오세요.',
+  },
   dingtalk_login: {
     select_version: '해외 YiDA에 로그인할 DingTalk 버전을 선택하세요:',
     domestic: '중국 DingTalk (해외 YiDA, 기본값)',
@@ -189,7 +196,7 @@ module.exports = {
     cmd_get_schema: '양식 Schema 가져오기',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: '사용자 정의 표시 페이지 생성',
+    cmd_create_page: '사용자 정의 페이지 또는 기본 포털 생성',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -308,7 +315,7 @@ module.exports = {
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
       '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
-      '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
+      '  create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav]        Create a custom page or native portal, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
       '  list-forms <appType> [--keyword <text>]                      List forms/pages in an app\n' +
@@ -843,7 +850,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Yida 커스텀 페이지 생성 도구',
-    usage: '사용법: openyida create-page <appType> <페이지 이름> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: '사용법: openyida create-page <appType> <페이지 이름> [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: '예: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  앱 ID:    {0}',
     page_name: '  페이지 이름: {0}',
@@ -855,7 +862,9 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: '페이지가 생성되었지만 설정을 다시 읽어도 탐색 숨김이 확인되지 않았습니다. 반환된 pageId의 설정을 수정하고 확인하세요. 페이지를 다시 만들지 마세요.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    mode_hint: 'Available modes: default, dashboard. Navigation is visible by default; pass --hide-nav or --render-nav false to hide it.',
+    portal_hide_nav_unsupported: '--hide-nav 옵션은 사용자 정의 페이지에서만 지원됩니다.',
+    portal_unverified: '페이지를 만들었지만 기본 포털 유형을 확인할 수 없습니다. 다시 시도하기 전에 페이지 구성을 조회하세요.',
+    mode_hint: '사용 가능한 모드: default, dashboard, portal. 사용자 정의 페이지에서 탐색을 숨기려면 --hide-nav 또는 --render-nav false를 사용하세요.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ 커스텀 페이지 생성 실패: {0}',

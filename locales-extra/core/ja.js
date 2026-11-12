@@ -5,6 +5,13 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  issue_fixes: {
+    invalid_api_key: 'API Key には有効な name と header/query の場所が必要です。接続定義を確認してください。',
+    repair_required: '旧 API Key 設定に type/in/location がありません。--repair-api-key-scheme を指定して修復し、新規アカウントを作成してください。',
+    replacement_notice: '既存アカウントは変更されません。呼び出し元を返された新規アカウント ID に再設定してください。',
+    invalid_import: '移行パッケージが無効です。details のフォーム ID、Schema、alias を確認してください。',
+    partial_import: 'インポート未完了です。yida-migration-report.json の既存リソースを確認し、レポートを保存してから新しいインポートを開始してください。',
+  },
   dingtalk_login: {
     select_version: '海外 YiDA にログインする DingTalk の種類を選択：',
     domestic: '中国版 DingTalk（海外 YiDA、既定）',
@@ -189,7 +196,7 @@ module.exports = {
     cmd_get_schema: 'フォーム Schema を取得',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'カスタム表示ページを作成',
+    cmd_create_page: 'カスタムページまたはネイティブポータルを作成',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -308,7 +315,7 @@ module.exports = {
       '  login                                                        ログイン管理（キャッシュ優先、なければ QR コードスキャン）\n' +
       '  logout                                                       ログアウト / アカウント切り替え\n' +
       '  create-app "<名前>" [説明] [アイコン] [色] [テーマ] [ナビ] [レイアウト]  アプリを作成し appType を出力\n' +
-      '  create-page <appType> "<ページ名>" [--mode dashboard] [--hide-nav]        カスタムページを作成し pageId を出力\n' +
+      '  create-page <appType> "<ページ名>" [--mode dashboard|portal] [--hide-nav]        カスタムページまたはネイティブポータルを作成し pageId を出力\n' +
       '  create-form create <appType> "<フォーム名>" <フィールドJSON> [--layout <レイアウト>] [--theme <テーマ>] [--label-align <配置>]  フォームページを作成\n' +
       '  create-form update <appType> <formUuid> <変更JSON>           フォームページを更新\n' +
       '  get-schema <appType> <formUuid>                              フォーム Schema を取得\n' +
@@ -814,7 +821,7 @@ module.exports = {
   },
   create_page: {
     title: '  openyida create-page - Yida カスタムページ作成ツール',
-    usage: 'Usage: openyida create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'Usage: openyida create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: '例: openyida create-page "APP_XXX" "Dashboard" --mode dashboard',
     app_id: '  アプリ ID:   {0}',
     page_name: '  ページ名:   {0}',
@@ -826,7 +833,9 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  ダッシュボードモード設定に失敗しました: {0}',
     navigation_unverified: 'ページは作成されましたが、再取得した設定でナビゲーションの非表示を確認できませんでした。返された pageId の設定を修正して再確認してください。ページを再作成しないでください。',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    mode_hint: 'Available modes: default, dashboard. Navigation is visible by default; pass --hide-nav or --render-nav false to hide it.',
+    portal_hide_nav_unsupported: '--hide-nav はカスタムページでのみ使用できます。',
+    portal_unverified: 'ページは作成されましたが、ネイティブポータルであることを確認できませんでした。再試行する前にページの設定を取得してください。',
+    mode_hint: '使用できるモード: default、dashboard、portal。カスタムページのナビゲーションを非表示にするには --hide-nav または --render-nav false を指定します。',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ 作成に失敗しました: {0}'

@@ -2,6 +2,16 @@
 
 适用于已明确的宜搭平台插件。托管渠道与创建步骤见[部署引导](./frontend-hosting.md)，配置保存和组织级操作见[生命周期技能](../../yida-plugin-lifecycle/SKILL.md#开发与版本配置)。
 
+## 组件标识一致性
+
+凡宜搭插件注册前端组件，普通表单、流程表单、自定义页面和其他组件扩展点均遵循同一规则。为同一个组件定义一个共享的业务标识，所有用于注册或查找该组件的位置逐字一致，包含大小写。
+
+- Yida API 的 `componentName` 与组件视图的 `displayName` 一致。设计态、运行态及移动端注册同一个组件时都沿用该标识。
+- 拖拽片段和已保存 Schema 引用同一个组件标识。复用原生字段并覆盖视图时，`schema.componentName` 仍是原生字段类型，`schema.props.__viewName__` 才是插件组件标识。具体写法见[基础表单组件开发规范](./form-component-development.md)。
+- 扩展点支持 `config.componentNameList` 时，清单填写该扩展点实际注册的组件标识。一个插件注册多个独立组件时，每个组件分别核对；同一组件跨场域复用时沿用原标识。
+
+构建后核对压缩产物中的 `displayName` 和 API 注册参数。保存配置及页面后，回读版本配置和 Schema，再到各目标宿主验证设计态和运行态。
+
 ## 第三方前端配置与构建契约
 
 开发字段为 `frontEndDevInfo.cdnEntry`，运行时为 `cdnUrl`。以下地址、组件名需替换；后端和参数配置保留真实回读，不能照抄空对象：
@@ -22,11 +32,9 @@
 
 同时配置设计态、运行态扩展；`config.componentNameList` 匹配 `addComponent` 注册名（日历 `OpenYidaCalendarView`，时间线 `OpenYidaStickyTimeline`）。发布后核对运行时 config 和真实页面。
 
-显式设置同名 `displayName`，如 `StickyTimeline.displayName = "OpenYidaStickyTimeline"`；检查压缩后设计器日志和组件面板。
-
 本地 `yida-plugin-sdk`（`b2277ef`）的实现证据，线上版本须另核：
 
-- `src/utils/plugin.helper.ts` 的 `isOfficialPlugin` 按 URL 是否包含 `yida-components` 或 `teambition-fe` 分类；这是字符串判定，不是身份或域名白名单，不应模仿官方目录。
+- `src/utils/plugin.helper.ts` 的 `isOfficialPlugin` 检查完整运行态 `cdnUrl` 是否包含 `yida-components` 或 `teambition-fe`。第三方托管域名和路径应避开这两个字符串。第三方新仓库和资源项目的命名见[托管命名建议](./frontend-hosting.md#开发环境与渠道)。
 - `src/plugin/runtime/plugin.ts` 的 `_generateRemoteConfigFromPlugin`：官方入口按宿主 CDN/group/id/version 拼接；第三方保留完整 `plugin.cdnUrl`，容器名为 `plugin.uuid.split("-")[1]`，与资产目录分开配置。
 - `src/plugin/runtime/plugin.executor.ts` 的 `_getContainerId`：自定义页面导出 `./app/custom-page`、`./designer/custom-page`；其他扩展点核对实际场景。
 - 本地 `yida-single-app` 的 `OpenPluginFacadeImpl` 将 `cdnEntry` 赋给 `cdnUrl`；不能凭编辑器前缀推断运行时拼官方 CDN。

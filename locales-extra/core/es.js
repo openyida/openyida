@@ -5,6 +5,13 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  issue_fixes: {
+    invalid_api_key: 'API Key requiere un name válido y ubicación header/query; revise el conector.',
+    repair_required: 'Falta type/in/location en la configuración anterior. Use --repair-api-key-scheme para repararla explícitamente y crear otra cuenta.',
+    replacement_notice: 'Las cuentas existentes no cambian; vincule las llamadas al nuevo ID de cuenta devuelto.',
+    invalid_import: 'Paquete de migración inválido; revise identificadores, Schema o alias en details.',
+    partial_import: 'Importación incompleta. Revise los recursos en yida-migration-report.json y archive el informe antes de otra importación.',
+  },
   dingtalk_login: {
     select_version: 'Elige una versión de DingTalk para YiDA fuera de China:',
     domestic: 'DingTalk China (YiDA fuera de China, predeterminado)',
@@ -189,7 +196,7 @@ module.exports = {
     cmd_get_schema: 'Obtener Schema del formulario',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'Crear página de visualización personalizada',
+    cmd_create_page: 'Crear una página personalizada o un portal nativo',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -308,7 +315,7 @@ module.exports = {
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
       '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
-      '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
+      '  create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav]        Create a custom page or native portal, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
       '  list-forms <appType> [--keyword <text>]                      List forms/pages in an app\n' +
@@ -843,7 +850,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Herramienta de creación de páginas personalizadas Yida',
-    usage: 'Uso: openyida create-page <appType> <nombre de página> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'Uso: openyida create-page <appType> <nombre de página> [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: 'Ejemplo: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  ID de la app:    {0}',
     page_name: '  Nombre de página: {0}',
@@ -855,7 +862,9 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'La página se creó, pero la lectura posterior no confirmó que la navegación esté oculta. Corrija y verifique la pageId devuelta; no cree otra página.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    mode_hint: 'Available modes: default, dashboard. Navigation is visible by default; pass --hide-nav or --render-nav false to hide it.',
+    portal_hide_nav_unsupported: 'La opción --hide-nav solo es compatible con las páginas personalizadas.',
+    portal_unverified: 'Se creó la página, pero no se pudo verificar que fuera un portal nativo. Lee la configuración de la página antes de reintentar.',
+    mode_hint: 'Modos disponibles: default, dashboard y portal. Para ocultar la navegación en páginas personalizadas, usa --hide-nav o --render-nav false.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ Error al crear: {0}',

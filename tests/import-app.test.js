@@ -149,4 +149,13 @@ describe('import-app helpers', () => {
     expect(result.fields[0].label).toBe('APP_OLDER backup note');
     expect(result.fields[0].value).toBe('see FORM-OLD-archive for details');
   });
+
+  test('does not cascade remappings when a target happens to be another source ID', () => {
+    const schema = { pages: [{ id: 'FORM_A', props: { associationForm: { formUuid: 'FORM_B' } } }] };
+    const result = __test__.adaptSchemaIdentifiers(schema, 'APP_OLD', 'APP_NEW', new Map([
+      ['FORM_A', 'FORM_B'], ['FORM_B', 'FORM_C'],
+    ]));
+    expect(result.pages[0].id).toBe('FORM_B');
+    expect(result.pages[0].props.associationForm.formUuid).toBe('FORM_C');
+  });
 });

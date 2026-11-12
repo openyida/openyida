@@ -5,6 +5,13 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  issue_fixes: {
+    invalid_api_key: 'API Key exige name válido e localização header/query; verifique o conector.',
+    repair_required: 'A configuração antiga não tem type/in/location. Use --repair-api-key-scheme para corrigir explicitamente e criar outra conta.',
+    replacement_notice: 'As contas existentes não mudam; associe as chamadas ao novo ID de conta retornado.',
+    invalid_import: 'Pacote de migração inválido; verifique identificadores, Schema ou aliases em details.',
+    partial_import: 'Importação incompleta. Verifique os recursos em yida-migration-report.json e arquive o relatório antes de outra importação.',
+  },
   dingtalk_login: {
     select_version: 'Escolha uma versão do DingTalk para o YiDA fora da China:',
     domestic: 'DingTalk China (YiDA fora da China, padrão)',
@@ -189,7 +196,7 @@ module.exports = {
     cmd_get_schema: 'Obter Schema do formulário',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'Criar página de exibição personalizada',
+    cmd_create_page: 'Criar página personalizada ou portal nativo',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -308,7 +315,7 @@ module.exports = {
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
       '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
-      '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
+      '  create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav]        Create a custom page or native portal, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
       '  list-forms <appType> [--keyword <text>]                      List forms/pages in an app\n' +
@@ -843,7 +850,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Ferramenta de criação de páginas personalizadas Yida',
-    usage: 'Uso: openyida create-page <appType> <nome da página> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'Uso: openyida create-page <appType> <nome da página> [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: 'Exemplo: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  ID do app:    {0}',
     page_name: '  Nome da página: {0}',
@@ -855,7 +862,9 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'A página foi criada, mas a releitura não confirmou que a navegação está oculta. Corrija e verifique a pageId retornada; não crie outra página.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    mode_hint: 'Available modes: default, dashboard. Navigation is visible by default; pass --hide-nav or --render-nav false to hide it.',
+    portal_hide_nav_unsupported: 'A opção --hide-nav só é compatível com páginas personalizadas.',
+    portal_unverified: 'A página foi criada, mas não foi possível confirmar que é um portal nativo. Consulte a configuração da página antes de tentar novamente.',
+    mode_hint: 'Modos disponíveis: default, dashboard e portal. Para ocultar a navegação em páginas personalizadas, use --hide-nav ou --render-nav false.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ Falha na criação: {0}',

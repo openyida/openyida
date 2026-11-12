@@ -5,6 +5,13 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  issue_fixes: {
+    invalid_api_key: 'يتطلب API Key اسم name صالحًا وموقع header/query؛ افحص تعريف الموصل أولًا.',
+    repair_required: 'يفتقد إعداد API Key القديم type/in/location. أضف --repair-api-key-scheme لإصلاحه صراحةً وإنشاء حساب جديد.',
+    replacement_notice: 'الحسابات الحالية لا تتغير؛ اربط المستدعين بمعرف الحساب الجديد الذي أعاده الأمر.',
+    invalid_import: 'حزمة ترحيل غير صالحة؛ افحص معرفات النماذج وSchema وalias في details.',
+    partial_import: 'الاستيراد غير مكتمل. افحص الموارد في yida-migration-report.json واحفظ التقرير قبل بدء استيراد جديد.',
+  },
   dingtalk_login: {
     select_version: 'اختر إصدار DingTalk لتسجيل الدخول إلى YiDA خارج الصين:',
     domestic: 'DingTalk الصين (YiDA خارج الصين، الافتراضي)',
@@ -189,7 +196,7 @@ module.exports = {
     cmd_get_schema: 'الحصول على Schema النموذج',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'إنشاء صفحة عرض مخصصة',
+    cmd_create_page: 'إنشاء صفحة مخصصة أو بوابة أصلية',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -308,7 +315,7 @@ module.exports = {
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
       '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
-      '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
+      '  create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav]        Create a custom page or native portal, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
       '  list-forms <appType> [--keyword <text>]                      List forms/pages in an app\n' +
@@ -843,7 +850,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - أداة إنشاء صفحة مخصصة في Yida',
-    usage: 'الاستخدام: openyida create-page <appType> <اسم الصفحة> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'الاستخدام: openyida create-page <appType> <اسم الصفحة> [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: 'مثال: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  معرّف التطبيق: {0}',
     page_name: '  اسم الصفحة:    {0}',
@@ -855,7 +862,9 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'تم إنشاء الصفحة، لكن قراءة الإعدادات لم تؤكد إخفاء التنقل. أصلح إعدادات pageId المُعاد وتحقق منها؛ لا تنشئ صفحة أخرى.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    mode_hint: 'Available modes: default, dashboard. Navigation is visible by default; pass --hide-nav or --render-nav false to hide it.',
+    portal_hide_nav_unsupported: 'يتوفر الخيار --hide-nav للصفحات المخصصة فقط.',
+    portal_unverified: 'تم إنشاء الصفحة، لكن تعذّر التحقق من أنها بوابة أصلية. اقرأ إعدادات الصفحة قبل إعادة المحاولة.',
+    mode_hint: 'الأوضاع المتاحة: default وdashboard وportal. لإخفاء التنقل في صفحة مخصصة، استخدم --hide-nav أو --render-nav false.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ فشل الإنشاء: {0}',
