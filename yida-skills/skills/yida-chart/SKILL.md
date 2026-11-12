@@ -5,6 +5,10 @@ description: "ECharts 高级可视化报表。依赖宜搭原生报表 getDataAs
 
 # 宜搭 ECharts 高级报表技能
 
+## 可编程卡片
+
+新增/维护 React 可编程分析卡片时，使用 [高级组件与数据契约](../yida-dashboard/references/programmable-cards.md#图表组件库与数据契约) 和 `analysis-echarts` 源码模板。数据复用宿主的独立查询或原生 analysis，不需要为图形变化新建报表；下面的旧版 JSX 生命周期和报表绑定要求仅用于旧 ECharts 页面。
+
 ## 适用场景
 
 | 用户意图 | 正确处理 |

@@ -18,6 +18,10 @@ metadata:
 
 ## 核心定位
 
+可编程分析卡片、多图组合、指标设计、导出、时间选区与下钻，先读 [可编程卡片设计与交互](references/programmable-cards.md)。源码由 OpenYida 引导生成，平台只提供运行资源、数据与权限能力。多页面设计先写差异矩阵，按该参考文档的“多页面差异与分析闭环”验收，不能仅换颜色与标题。
+
+用户要求雷达、词云、箱型、面积、饼图等丰富卡片时，继续读其中的[图表组件库与数据契约](references/programmable-cards.md#图表组件库与数据契约)。用 `analysis-metric`、`analysis-chart`、`analysis-echarts` 组件模板按分析任务组合；每卡独立数据集与查询，一卡通常 1–3 个相关图形，页面负责布局。高级模板有 19 种图形配方和自定义 option 入口，不是整页模板或平台展示枚举。
+
 本技能负责完整 Dashboard 产品化交付：业务指标、真实数据、交互筛选、洞察、派单、截图和分享闭环。它决定“看什么、怎么组织、怎么验收”：
 
 - 页面容器、状态、筛选、响应式、副作用：`yida-canvas-custom-page`。
@@ -36,12 +40,12 @@ metadata:
 
 ## 默认交付物
 
-1. 单屏控制塔结构，见 `references/structure-and-layout.md`。
+1. 按分析问题选择版式；经营简报、预算对账、时间探索和明细工作台可以采用不同结构。控制塔只用于匹配的监控任务，见 `references/structure-and-layout.md`。
 2. 真实数据绑定：聚合指标走报表/聚合结果，明细走分页查询；禁止前端拉全量后聚合。
 3. 视觉主题和信息层级，见 `references/theme-presets.md`。按共享主题选择规则先拒绝第一直觉，再比较新候选；平台预置主题使用应用 `--theme`，自定义色盘使用应用级主题 CSS 文件，页面只消费运行时变量。
 4. 筛选与图表联动；控件必须受控并真实改变下方数据。
-5. 每元素可派单：`saveFormData → 集成自动化 → 待办2.0 ConnectorCall`。
-6. 卡片截图分享：真实可点击，截图时排除截图按钮本身。
+5. 用户需要派单时接入：`saveFormData → 集成自动化 → 待办2.0 ConnectorCall`。
+6. 用户需要截图分享时接入真实能力；截图排除操作按钮，不放无实现的分享入口。
 7. PC / 平板 / 手机响应式。
 8. 隐藏导航时的组织内分享 URL；需要页面内导航壳时调用 `yida-nav-shell`。
 9. loading / empty / error / freshness 状态与 1–3 条业务洞察。
@@ -60,7 +64,7 @@ metadata:
 ## 交付流程
 
 ```text
-[Step 1] 澄清业务范围 → 5–8 个经营维度、指标、角色与刷新频率
+[Step 1] 确定每页分析问题 → 对应指标、数据粒度、角色与下一步动作；不固定维度数量
    ↓
 [Step 2] 数据契约 → appType/formUuid/fieldId/report/connector endpoint
    ↓
@@ -74,9 +78,9 @@ metadata:
    ↓
 [Step 7] 常规图表交 yida-rechart；仅命中 ECharts 条件才交 yida-chart
    ↓
-[Step 8] compileCanvasLocal 快检；获用户确认后发布并回读 Schema
+[Step 8] compileCanvasLocal 快检；在用户授权范围内发布并回读 Schema
    ↓
-[Step 9] 隐藏导航、验证组织内 URL、截图、数据刷新和派单闭环
+[Step 9] 保留应用导航；仅明确投屏/沉浸需求时隐藏。验收 URL、截图、真实筛选、下钻和所需动作
 ```
 
 自定义页面入口：
@@ -114,7 +118,7 @@ metadata:
 3. 筛选、周期切换、Tabs、刷新按钮均为受控状态，并真实驱动列表/KPI/图表派生数据。
 4. 所有数据请求都有 loading / error / retry；静默刷新保留旧数据。
 5. 所有可见按钮必须有真实 handler 或显式 disabled。
-6. 截图按钮必须可用，并在截图时用 class/属性排除自身。
+6. 提供截图按钮时必须可用，并在截图时用 class/属性排除自身。
 7. 移动端 KPI 改 2 列或横向滚动，图表纵向堆叠。
 8. 隐藏应用导航后需要跨模块切换时，交 `yida-nav-shell`，默认用 React `useState` / hash。
 

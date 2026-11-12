@@ -196,7 +196,7 @@ module.exports = {
     cmd_get_schema: 'Lấy Schema biểu mẫu',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'Tạo trang hiển thị tùy chỉnh',
+    cmd_create_page: 'Tạo trang tùy chỉnh hoặc cổng thông tin gốc',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -315,7 +315,7 @@ module.exports = {
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
       '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
-      '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
+      '  create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav]        Create a custom page or native portal, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
       '  list-forms <appType> [--keyword <text>]                      List forms/pages in an app\n' +
@@ -850,7 +850,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Công cụ tạo trang tùy chỉnh Yida',
-    usage: 'Cách dùng: openyida create-page <appType> <tên trang> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'Cách dùng: openyida create-page <appType> <tên trang> [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: 'Ví dụ: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  ID ứng dụng:  {0}',
     page_name: '  Tên trang:    {0}',
@@ -862,7 +862,9 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'Trang đã được tạo nhưng việc đọc lại chưa xác nhận thanh điều hướng đã ẩn. Hãy sửa và kiểm tra cấu hình của pageId được trả về; không tạo trang khác.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    mode_hint: 'Available modes: default, dashboard. Navigation is visible by default; pass --hide-nav or --render-nav false to hide it.',
+    portal_hide_nav_unsupported: 'Tùy chọn --hide-nav chỉ được hỗ trợ trên trang tùy chỉnh.',
+    portal_unverified: 'Trang đã được tạo nhưng chưa xác minh được loại cổng thông tin gốc. Hãy đọc cấu hình trang trước khi thử lại.',
+    mode_hint: 'Chế độ khả dụng: default, dashboard và portal. Dùng --hide-nav hoặc --render-nav false để ẩn điều hướng trên trang tùy chỉnh.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ Tạo thất bại: {0}',

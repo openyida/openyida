@@ -197,7 +197,7 @@ module.exports = {
     cmd_get_schema: '取得表單 Schema',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: '導出應用實體關係圖',
-    cmd_create_page: '建立自訂展示頁面',
+    cmd_create_page: '建立自訂頁面或原生入口網站',
     cmd_generate_page: '基於高質素模板生成頁面',
     cmd_build_page: '构建宜搭兼容页面源码',
     cmd_check_page: '檢查自定義頁面規範',
@@ -317,7 +317,7 @@ module.exports = {
       '  login                                                        登入態管理（優先緩存，否則掃碼）\n' +
       '  logout                                                       登出 / 切換帳戶\n' +
       '  create-app "<名稱>" [描述] [圖示] [顏色] [主題色] [導航風格] [佈局]  建立應用程式，輸出 appType\n' +
-      '  create-page <appType> "<頁面名>" [--mode dashboard] [--hide-nav]          建立自訂頁面，輸出 pageId\n' +
+      '  create-page <appType> "<頁面名>" [--mode dashboard|portal] [--hide-nav]          建立自訂頁面或原生入口網站，輸出 pageId\n' +
       '  create-form create <appType> "<表單名>" <欄位JSON> [--layout <佈局>] [--theme <主題>] [--label-align <對齊>]  建立表單頁面\n' +
       '  create-form update <appType> <formUuid> <修改JSON>           更新表單頁面\n' +
       '  get-schema <appType> <formUuid>                              取得表單 Schema\n' +
@@ -815,7 +815,7 @@ module.exports = {
   },
   create_page: {
     title: '  openyida create-page - 宜搭自訂頁面建立工具',
-    usage: '用法：openyida create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: '用法：openyida create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: '範例：openyida create-page "APP_XXX" "駕駛艙" --mode dashboard',
     app_id: '  應用程式 ID：  {0}',
     page_name: '  頁面名稱：{0}',
@@ -827,7 +827,9 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  看板模式設定失敗：{0}',
     navigation_unverified: '頁面已建立，但未能回讀確認導覽已隱藏。請使用傳回的 pageId 修復設定並回讀，不要重複建立頁面。',
     err_mode_invalid: '不支援的頁面模式：{0}',
-    mode_hint: '可用模式：default, dashboard',
+    portal_hide_nav_unsupported: '--hide-nav 只適用於自訂頁面。',
+    portal_unverified: '頁面已建立，但未能確認是原生入口網站。請先讀取該頁面的設定，再重試。',
+    mode_hint: '可用模式：default、dashboard、portal。隱藏自訂頁面導覽時，請使用 --hide-nav 或 --render-nav false。',
     page_id_label: '  pageId：   {0}',
     url_label: '  訪問網址：{0}',
     failed: '  ❌ 建立失敗：{0}'

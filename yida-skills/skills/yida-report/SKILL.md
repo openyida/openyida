@@ -163,7 +163,7 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 
 宜搭原生组件库本身包含更多组件，但 OpenYida CLI 只开放已经接入并纳入确定性契约的类型。未知类型、未探测类型和缺失 `type` 均会在远端写入前失败，绝不静默回退成柱状图。Agent 应通过 `openyida create-report` 传入结构化图表配置，由 CLI 内部构建并发布 Schema，不要尝试读取或手写 `build-yida-report-schema.js`。
 
-<!-- runtime-supported-chart-types: bar, calendarheatmap, combo, funnel, gauge, indicator, line, map, pie, pivot, table -->
+<!-- runtime-supported-chart-types: analysis, bar, calendarheatmap, combo, funnel, gauge, indicator, line, map, pie, pivot, table -->
 
 - **组件库地址**：`//g.alicdn.com/code/npm/@ali/vc-yida-report/1.0.101/pc.js`
 - **全局挂载**：`window.YidaReport`
@@ -339,3 +339,19 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 ```
 
 指标卡（`indicator`）的 `userConfig` 也是数组格式，`name` 为 `youshuData`。
+
+### 可编程数据卡片
+
+富交互与多图组合先读 [可编程卡片设计与交互](../yida-dashboard/references/programmable-cards.md)，提取 `analysis-card-explorer` 源码。图表、表格、联动、导出与装饰均由源码编写，不要求在 yida-ui 内添加新预设。
+
+单组件复用使用 `analysis-metric`、`analysis-chart`；雷达、词云、箱型、热力、桑基等使用 `analysis-echarts`，按参考文档的数据契约生成 option。高级组件与本卡的 analysis 适配层一起放进 `renderCard.source`，不要把整页复制到单卡；每卡保留自己的数据集、字段别名和刷新/下钻状态。
+
+目标环境加载新版 `YoushuAnalysisCard` 后，可使用 `type: "analysis"`。数据配置沿用原生 `xField`、`yField` 和日期粒度。新卡片用源码设计展示；只有无源码的旧卡片才保留 `view`（table/bar/donut/kpi）的 Recharts 与 Ant Design 兼容视图，不给源码卡片生成这个设置项。
+
+使用 `openyida sample openyida-page-template analysis-card-config` 获取含 JSX 源码的报表配置；仅需内容源码时用 `openyida sample openyida-page-template analysis-card-content`。默认设计组合指标、分组对比、占比图和表格，可完全改写。将源码写入 `renderCard.source`，用 `export default` 导出 React 组件，从 `react`、`antd`、`recharts` 导入。源码拥有完整展示，包括标题、加载、错误、空态及刷新按钮；`view` 只用于无源码的旧卡片。
+
+组件通过 `analysis` prop 读取 `rows`、`displayRows`、`columns`、`loading`、`error`、`select`、`refresh`、`drillPath`、`back`、`details`。点击时将原始行传给 select，保留原生联动和下钻。`analysis.api` 另提供 query(config)、useQuery(config, drillDimensions) 和 queryDetails(source, filters, page, limit)，用于独立查询与自定义明细 UI；它们使用当前应用上下文和服务端权限，不自动继承报表筛选，需显式传入配置。多次 useQuery 在函数组件顶层调用，各自维护状态。
+
+已有函数格式仍可使用 `renderCard` 字符串。函数参数同时提供 `React`、`antd`、`Recharts` 和上述数据及操作，适用于原生报表的函数编辑器。字段公式、筛选、排序和下钻继续在报表数据配置中管理。
+
+原生数据卡片可用 `openyida sample openyida-page-template analysis-card-config --output analysis-card.json` 生成配置模板；先将表单、字段替换为查询确认的真实 ID，再按原生数据卡片技能的 hash、备份和读回步骤保存。保存前确认目标组件资源已经集成。

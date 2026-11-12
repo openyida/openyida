@@ -204,8 +204,8 @@ describe('create-page configuration readback', () => {
     jest.resetModules();
   });
 
-  test('creates a native portal and returns both verified entry points', async () => {
-    await setup([configResponse({ formType: 'portal' })])(['--mode', 'portal']);
+  test.each(['content', 'result', 'data'])('verifies a native portal from the %s response and returns both entry points', async key => {
+    await setup([{ success: true, [key]: { formType: 'portal' } }])(['--mode', 'portal']);
     expect(querystring.parse(httpPost.mock.calls[0][2]).formType).toBe('portal');
     expect(writes()).toHaveLength(0);
     expect(result()).toMatchObject({

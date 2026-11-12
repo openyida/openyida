@@ -35,6 +35,45 @@ describe('sample templates', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
+  test('analysis card sample compiles and keeps live empty, zero and selection distinct from demo data', async () => {
+    const output = path.join(tmpDir, 'analysis-card.jsx');
+    await run(['openyida-page-template', 'canvas-analysis-card', '--output', output]);
+    const { runtimeCode, importedModules } = compileCanvasLocal(fs.readFileSync(output, 'utf8'));
+    expect(JSON.parse(importedModules)).toEqual(['antd', 'react', 'recharts']);
+    const React = {
+      Fragment: 'fragment',
+      useState: () => [true, () => {}],
+      createElement(type, props, ...children) {
+        return typeof type === 'function' ? type(props || {}) : { type, props, children };
+      },
+    };
+    const widgets = new Proxy({}, { get: (_, key) => key });
+    const render = new Function('window', `${runtimeCode}; return YidaComp;`)({ React, antd: widgets, Recharts: widgets });
+    const find = (node, type) => {
+      if (Array.isArray(node)) {return node.flatMap(child => find(child, type));}
+      if (!node || typeof node !== 'object') {return [];}
+      return [...(node.type === type ? [node] : []), ...find(node.children || [], type)];
+    };
+
+    expect(JSON.stringify(render({}))).toContain('示例数据');
+    const empty = render({ aggregatedRows: [] });
+    expect(JSON.stringify(empty)).toContain('当前筛选下暂无数据');
+    expect(find(empty, 'li')).toHaveLength(0);
+
+    const onSelect = jest.fn();
+    const live = render({
+      aggregatedRows: [{ code: 27, total: 0 }, { code: 42, total: null }],
+      fields: { dimension: 'code', metric: 'total' },
+      onSelect,
+    });
+    const table = find(live, 'Table')[0];
+    const first = table.props.dataSource[0];
+    expect(table.props.columns[1].render(null, first)).toBe('0');
+    expect(table.props.columns[1].render(null, table.props.dataSource[1])).toBe('—');
+    table.props.columns[0].render(null, first).props.onClick();
+    expect(onSelect).toHaveBeenCalledWith(27);
+  });
+
   test('native cool-card sample emits an import payload with typed preview data and linked rich text', async () => {
     const output = path.join(tmpDir, 'project-brief.json');
     const appUrl = 'https://example.aliwork.com/APP_EXAMPLE?view=project&source=card';

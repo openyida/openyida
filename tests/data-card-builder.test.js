@@ -17,6 +17,7 @@ function client() { return { getAuthRef: () => ({ corpId: 'ding-test' }), get: j
 function chart(type, overrides = {}) {
   const dimensions = field('selectField_region'), measure = field('numberField_amount', 'SUM');
   const roles = {
+    analysis: { xField: dimensions, yField: [measure] },
     indicator: { kpi: [measure, field('numberField_amount', 'AVG')] },
     bar: { xField: dimensions, yField: [measure] }, line: { xField: field('dateField_time'), yField: [measure] },
     pie: { xField: dimensions, yField: [measure] }, table: { columnFields: [dimensions, field('numberField_amount')] },
