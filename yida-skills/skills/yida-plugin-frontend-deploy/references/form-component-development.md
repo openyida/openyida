@@ -103,15 +103,81 @@ Yida.app.form.addBasicComponent({
 
 组件自身存值时，按宿主契约传递 `value` 和 `onChange`。需要把结果写入其他原生字段时，从运行时上下文定位目标字段，按表单实际字段 ID 和值结构配置映射。上传票据并填充子表单时，上传、解析和写回由录入组件或业务流程完成，详情视图通过绑定读取已保存的明细。
 
-| 使用场景 | 相关配置与检查 |
-| --- | --- |
-| 表单存值与字段匹配 | 按需配置 `targetMetaDataFieldName` 或 `isCompositeFormField`。使用 `matchedFields` 声明已验证的匹配类型，初期只匹配自身。 |
-| 表单、数据管理及流程筛选 | 按目标宿主支持的注册入口配置 `filterView` 和 `supportedOperators`，在各实际使用的场景验证操作符、值类型和校验。级联字段按操作符选择条件视图。 |
-| 公式 | 用 `formulaView` 声明 `valueTypes`、`fieldTagMap`，需要转换时实现 `parseValue`。在实际编辑器中验证字段选择、返回值和计算。 |
-| 流程设计器与集成自动化 | 用 `flowSetterView` 配置面板视图。根据需求逐项验证后开启 `enableUpdate`、`enableCondition`、`enablePermission`、`enableMatch` 等能力。流程匹配、过滤和数据节点分别核对 `operatorMapConfig` 的 `flowMatch`、`flowFilter` 和 `flowDataNode`。流程表单填写页的组件渲染与流程节点配置分别验收。 |
-| 关联、导入导出、消息与历史 | 分别按需配置 `associationView`、`importExport`、`messageView`、`modifyHistoryView`。关联填充核对 `fillableFields`，关联展示的 `getViewText` 返回字符串。仅开启已实现的能力。 |
+## 基础表单组件配置项
 
-历史场域可能还使用组件类型清单或专有映射。组件未出现在某个场域时，先核对该扩展是否加载、能力开关是否生效，再确认宿主支持的字段匹配和操作符。
+以下字段用于 `Yida.designer.form.addBasicComponent` 或 `Yida.app.form.addBasicComponent` 的注册对象。先实现视图、回调和值转换，再启用目标场景的开关。
+
+### 基础配置
+
+| 配置项 | 类型 | 用途 |
+| --- | --- | --- |
+| `componentName` | `string` | 组件标识，与视图的 `displayName`、Schema 引用及运行态配置对应。 |
+| `targetMetaDataFieldName` | 组件类型名 | 复用原生字段的元数据与存值类型。 |
+| `isCompositeFormField` | `boolean` | 声明复合字段，组件名以 `CC_` 开头。 |
+| `matchedFields` | `string[]` | 允许在筛选等场景匹配的字段类型，初期可只声明自身类型。 |
+| `supportedOperators` | `string[]` 或操作符对象数组 | 声明宿主识别的操作符。对象以 `value` 标识操作符，`label` 用于展示。 |
+| `view`、`designerView`、`designerMobileView` | `ComponentType`，部分宿主接受 `ReactNode` | 分别用于运行态、设计态和移动设计态。移动运行态可按宿主支持配置 `mobileView`。 |
+
+流程的匹配、条件过滤、数据节点可分别使用 `operatorMapConfig.flowMatch`、`flowFilter`、`flowDataNode`。各项取字符串数组或操作符对象数组。核对宿主实际接受的操作符值，特别是使用历史中文标识的流程节点。
+
+### 数据管理和修改历史
+
+| 配置项 | 类型 | 用途 |
+| --- | --- | --- |
+| `dataView.icon` | `string` | 数据管理表头图标。 |
+| `dataView.meta` | `{ type, typeName }` | `type` 对齐 `componentName`，`typeName` 为类型展示名。 |
+| `dataView.gridFormatter` | `({ value, scenarioCode }) => ReactNode` | 渲染列值。用 `admin` 或 `app` 区分管理端与用户端，验证空值、零值和只读展示。 |
+| `dataView.gridEditor` | `(props, ref) => ReactNode` | 行内编辑器。宿主传入 `value`、`inputRef`、`onChange`、`options`。验证编辑后的实际存值。 |
+| `dataView.enableBatchEdit` | `boolean` | 批量编辑开关。完成批量保存与回读验证后再开启。 |
+| `modifyHistoryView.view` | `ReactNode` | 渲染实例详情中的字段变更历史。 |
+
+将实际存值字段加入目标数据管理视图后，再验证表格和详情。关联查询依赖 `dataView`，在设计态和运行态都加载相关配置。
+
+### 筛选和关联
+
+| 配置项 | 类型 | 用途 |
+| --- | --- | --- |
+| `filterView.view` | `ReactNode` | 筛选条件的输入视图。 |
+| `filterView.conditionView` | 操作符到视图的映射 | 为特定操作符指定渲染视图。键使用宿主的操作符标识。 |
+| `filterView.getExtraProps` | `(props) => object` | 补充筛选视图所需的属性。 |
+| `filterView.validateValue` | `(value) => boolean` | 校验筛选条件值。 |
+| `filterView.isCascade` | `boolean` | 声明级联字段，以便筛选器按级联值结构处理。 |
+| `associationView.enable` | `boolean` | 开启关联表单支持。 |
+| `associationView.enableAssociationQuery` | `boolean` | 开启关联查询支持。 |
+| `associationView.fillableFields` | `string[]` | 允许关联填充的组件类型。 |
+| `associationView.getViewText` | `({ value, options }) => string` | 返回关联展示的纯文本。 |
+
+筛选器在设计态和运行态都可能使用，两个入口均注册 `filterView`。流程设计器优先使用 `flowSetterView`，再回退到 `filterView` 或组件视图。使用独立控件复用输入能力，避免在流程 setter 中嵌套完整表单字段。
+
+### 流程面板 `flowSetterView`
+
+| 属性 | 类型 | 对应能力 |
+| --- | --- | --- |
+| `view` | `ReactNode` 或 `ComponentType` | 流程设置面板的输入视图。 |
+| `enableUpdate` | `boolean` | 允许更新字段值。 |
+| `enableCondition` | `boolean` | 允许作为条件项。 |
+| `enablePermission` | `boolean` | 允许配置字段权限。 |
+| `enableService` | `boolean` | 允许用于第三方服务配置。 |
+| `enableMessage` | `boolean` | 允许用于流程消息内容配置。 |
+| `enableMatch` | `boolean` | 允许用于字段匹配。 |
+| `updateMatchFields` | `string[]` | 允许在更新场景中匹配的字段类型。 |
+| `enableFilter` | `boolean` | 允许用于流程筛选。 |
+| `enableLiteral` | `boolean` | 允许配置字面量值。 |
+
+更新字段的运行时键为 `enableUpdate`。部分 SDK 类型和旧文档表格拼写为 `enableUpate`，以目标消费者实际读取的键为准。按本次业务需要开启开关，在流程或集成自动化中配置并执行一条对应规则。
+
+### 公式、消息和导入导出
+
+| 配置项 | 类型 | 用途 |
+| --- | --- | --- |
+| `formulaView.fieldTagMap` | `string` 或 `{ style, text }` | 定义公式编辑器中的字段标签。 |
+| `formulaView.valueTypes` | `string[]` | 声明该字段支持的公式返回类型。 |
+| `formulaView.parseValue` | `(value) => value` | 将公式结果转换为字段约定的值。 |
+| `messageView.enable` | `boolean` | 开启消息通知和消息卡片支持。 |
+| `importExport.view` | `ReactNode` | 导入导出场景的视图。 |
+| `importExport.enable` | `boolean` | 开启导入导出支持。 |
+
+组件在目标场景未出现时，检查设计态和运行态的注册、对应能力开关、字段匹配及操作符，再用实际记录验证渲染、写入和回读。
 
 ## 验收与排查
 
