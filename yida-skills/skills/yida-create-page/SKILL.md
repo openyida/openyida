@@ -27,7 +27,7 @@ description: 创建自定义展示页或宜搭原生门户，返回 pageId（for
 - 创建成功后，将 formUuid 记录到 `.cache/<项目名>-schema.json`
 - 由 `yida-app` 完整应用统一编排的首页/工作台/智能助手/门户门面页，可以先于业务表单创建；先占位记录 `formUuid`，待表单 ID 明确后再写源码并发布。
 - 单独新增自定义页面时，在编写源码前进入 [单页设计](../yida-design/sub_skill/page-design/SKILL.md)，核对主题和页面风格。
-- 自定义页面创建成功后，用真实 `formUuid` 交给 `yida-canvas-custom-page` 编写源码，再由 `yida-publish-page` 发布。原生门户在 `designerUrl` 对应的门户设计器中编辑和发布。
+- 自定义页面创建成功后，用真实 `formUuid` 交给 `yida-canvas-custom-page` 编写源码，再由 `yida-publish-page` 发布。本技能不使用 `yida-custom-page` 处理新建页面。原生门户在 `designerUrl` 对应的门户设计器中编辑和发布。
 - **本技能不读写 memory**：formUuid 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
 ## 适用场景
