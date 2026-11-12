@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.11.12] - 2026-11-12
+
 - **本地 Agent 重连提示**：明确区分“任务仍在运行”与“旧任务执行授权仍有效”两种重连保护原因，避免统一显示为连接授权状态冲突。
 - **本地 Agent 运行时**：macOS 和 Windows 四个平台的精确依赖及验签目录升级至 `0.1.7`，改善重连后的任务恢复与单个 CLI 的故障隔离，修复启动时尚未加载 CLI 能力导致任务被误判为不支持审批模式的问题。已运行的本地 Agent 需在新版 OpenYida 发布后重新连接，才能使用新的运行时。
 
