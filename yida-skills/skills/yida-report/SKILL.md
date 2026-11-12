@@ -352,6 +352,8 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 
 组件通过 `analysis` prop 读取 `rows`、`displayRows`、`columns`、`loading`、`error`、`select`、`refresh`、`drillPath`、`back`、`details`。点击时将原始行传给 select，保留原生联动和下钻。`analysis.api` 另提供 query(config)、useQuery(config, drillDimensions) 和 queryDetails(source, filters, page, limit)，用于独立查询与自定义明细 UI；它们使用当前应用上下文和服务端权限，不自动继承报表筛选，需显式传入配置。多次 useQuery 在函数组件顶层调用，各自维护状态。
 
+默认用 `analysis.columns` 的 `key`、`numeric`、`title` 从 `rows` 构造图表；分组或指标变化时重算系列，图例、单位和提示同步更新。雷达等多指标图也不固定字段名。需要脱离本卡数据配置查询时，按 [独立查询 API](../yida-dashboard/references/independent-query-api.md) 核对宿主与服务端 capabilities；V1 用查询属性或 Hook，V2 用全码调用。
+
 已有函数格式仍可使用 `renderCard` 字符串。函数参数同时提供 `React`、`antd`、`Recharts` 和上述数据及操作，适用于原生报表的函数编辑器。字段公式、筛选、排序和下钻继续在报表数据配置中管理。
 
 原生数据卡片可用 `openyida sample openyida-page-template analysis-card-config --output analysis-card.json` 生成配置模板；先将表单、字段替换为查询确认的真实 ID，再按原生数据卡片技能的 hash、备份和读回步骤保存。保存前确认目标组件资源已经集成。

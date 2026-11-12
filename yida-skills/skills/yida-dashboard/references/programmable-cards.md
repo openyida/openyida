@@ -200,17 +200,15 @@ grid: { left: 56, right: 24, top: 36, bottom: 88 }
 
 ### 统一主题样式与设置器
 
-每张卡片保留自己的数据配置。自定义页面通过数据集、字段选择器配置查询；报表继续使用原生分组、指标、筛选和公式设置器。报表源码入口在「其他 → 高级功能 → 卡片源码」，位于「返回数据处理」之前。编辑源码不改变数据集配置。
+每张卡片保留自己的数据配置。自定义页面通过数据集、字段选择器配置查询；报表继续使用原生分组、指标、筛选和公式设置器。新版报表选中卡片后，点击配置面板顶部的「编辑代码」。编辑源码不改变数据集配置。
 
-宿主提供 `analysis.appearance` 时，将它传给复用组件的 `cardAppearance`：
+宿主提供 `analysis.appearance` 时，可传给复用组件的 `cardAppearance`。独立渲染整卡时传完整外观；报表宿主已为外层应用 `cardStyle`，内层只传图例外观：
 
 ```jsx
-<AdvancedChart option={option} cardAppearance={analysis.appearance} />
-<AnalysisChart rows={rows} cardAppearance={analysis.appearance} />
-<MetricCard value={total} cardAppearance={analysis.appearance} />
+<AdvancedChart option={option} cardAppearance={{ echartsLegend: analysis.appearance?.echartsLegend }} />
 ```
 
-`cardAppearance` 与组件原有 `appearance="light|dark"` 风格参数分开。卡片根节点使用 `analysis.appearance?.cardStyle`；自写 HTML 图例使用 `legendMarkerStyle` 和 `legendTextStyle`；ECharts 图例使用 `echartsLegend`，保留原来的位置、选择状态及联动事件。组件的 `style` 可显式覆盖卡片样式，使用前说明它优先于设置器。
+`cardAppearance` 与组件原有 `appearance="light|dark"` 风格参数分开。自写 HTML 图例使用 `legendMarkerStyle` 和 `legendTextStyle`；ECharts 图例使用 `echartsLegend`，保留原来的位置、选择状态及联动事件。独立整卡的 `style` 可显式覆盖设置器。
 
 样式设置包含卡片背景、卡片圆角、图例字号、标记大小与标记圆角。每项复用设计器的 `ThemeTokenSetter`，提供「跟随主题 / 自定义」切换。`null` 或未设置表示跟随主题；切到自定义时读取当前主题值作为初值，之后保存字面值；切回主题保存 `null`。不要另造模式字段或用“清空输入框”替代模式切换。图例配置只影响实际存在的图例，不替代图表内的数据标记或整张卡片圆角。
 
