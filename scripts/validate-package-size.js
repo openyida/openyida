@@ -294,7 +294,8 @@ const MAX_UNPACKED_BYTES = 10000 * 1024;
 // Independent Fast theme generation adds one runtime module; byte budgets are unchanged.
 // Main file-upload support adds three packaged files.
 // The reusable analysis-card-content Canvas source adds exactly one packaged template.
-const MAX_ENTRY_COUNT = 815;
+// Main also adds lib/core/command-context.js; the PR merge measures 816 files on Node 20.
+const MAX_ENTRY_COUNT = 816;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
