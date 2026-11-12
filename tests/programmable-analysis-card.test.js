@@ -79,7 +79,9 @@ test('analysis schema retains native formula and date grain alongside editable d
     yField: [{ fieldCode: 'numberField_amount', dataType: 'DOUBLE', aggregateType: 'SUM', expression: 'SUM(amount)' }],
   });
   expect(result.node.componentName).toBe('YoushuAnalysisCard');
-  expect(result.node.props.settings).toMatchObject({ view: 'bar', renderCard });
+  expect(result.node.props.settings).toMatchObject({ renderCard });
+  expect(result.node.props.settings.view).toBeUndefined();
+  expect(buildChartNode({ type: 'analysis', cubeCode: 'FORM_TEST', view: 'bar', xField: { fieldCode: 'category' }, yField: [{ fieldCode: 'amount', aggregateType: 'SUM' }] }).node.props.settings.view).toBe('bar');
   const definitions = result.node.props.dataSetModelMap.chartData.dataViewQueryModel.fieldDefinitionList;
   expect(definitions[0]).toMatchObject({ timeGranularityType: 'MONTH' });
   expect(definitions[1]).toMatchObject({ expression: 'SUM(amount)' });
