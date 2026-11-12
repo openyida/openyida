@@ -97,7 +97,8 @@ const path = require('path');
 // Node 20 measures about 2,706 KiB compressed and 9,920 KiB unpacked; keep bounded headroom.
 // Form data seeding, schema guards, and the Canvas sample merged with main
 // measure 2,789,968 compressed bytes on Node 20.18.1. Use the next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2736 * 1024;
+// Component samples: PR merge measured 2,802,825 compressed / 10,249,905 unpacked bytes.
+const MAX_TARBALL_BYTES = 2740 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -249,7 +250,7 @@ const MAX_TARBALL_BYTES = 2736 * 1024;
 // packaged workflow reference. Merged Node 23 measurement: 10,226,230 bytes /
 // 813 files, 2,614 bytes above the previous limit. Use the next 16 KiB boundary;
 // compressed, entry-count and individual-file limits stay unchanged.
-const MAX_UNPACKED_BYTES = 10000 * 1024;
+const MAX_UNPACKED_BYTES = 10016 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -296,7 +297,7 @@ const MAX_UNPACKED_BYTES = 10000 * 1024;
 // The reusable analysis-card-content Canvas source adds exactly one packaged template.
 // Main also adds lib/core/command-context.js; the PR merge measures 816 files on Node 20.
 // The rich explorer template and its shared design guide add exactly two files.
-// Two independently reusable analysis component samples; retain the byte budget.
+// Two independently reusable analysis component samples; single-file cap is unchanged.
 const MAX_ENTRY_COUNT = 820;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
