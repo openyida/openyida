@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   issue_fixes: {
     invalid_api_key: 'API Key में वैध name और header/query स्थान आवश्यक है; पहले कनेक्टर की जाँच करें।',
     repair_required: 'पुरानी API Key सेटिंग में type/in/location नहीं है। सुधार और नया खाता बनाने के लिए --repair-api-key-scheme दें।',

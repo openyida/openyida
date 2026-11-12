@@ -77,6 +77,19 @@ function detail(overrides = {}) {
 }
 
 describe('connector action query-only update contract', () => {
+  test('accepts native plain HTTP mode/template sentinels without inventing definition fields', () => {
+    const native = detail({ connectorMode: null, category: '', templateId: '' });
+    delete native.tongxunluTemplateId;
+    delete native.faasTemplateId;
+    const before = createActionSnapshot(native);
+    expect(before.connector).toMatchObject({ connectorMode: '5', tongxunluTemplateId: '', faasTemplateId: '' });
+    expect(native.connectorMode).toBeNull();
+    expect(() => createActionSnapshot({ ...native, host: undefined }))
+      .toThrow(expect.objectContaining({ code: 'CONNECTOR_ACTION_PREFLIGHT_INCOMPLETE' }));
+    const missingMode = { ...native }; delete missingMode.connectorMode;
+    expect(() => createActionSnapshot(missingMode))
+      .toThrow(expect.objectContaining({ code: 'CONNECTOR_ACTION_PREFLIGHT_INCOMPLETE' }));
+  });
   test('changes exactly one declared query value and its mirrored input default', () => {
     const before = createActionSnapshot(detail());
     const expected = patchActionQuery(before, 'fixtureSearch', { currentPage: '1' });

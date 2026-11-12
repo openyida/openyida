@@ -6,6 +6,16 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/zh').connector_runtime,
+  connector_account: require('../../lib/core/locales/zh').connector_account,
+  data_upgrade: {
+    subform_choice_unverified: '無法確認子表的歷史欄位清單，未發起寫入。請核對是否需要升級此記錄，並明確選擇 --use-latest-version y 後再提交。',
+    invalid_choice: '請用 --use-latest-version y 或 n 明確選擇是否升級目前記錄。',
+    choice_required: '本次包含歷史實例中不存在的欄位，請明確選擇 --use-latest-version y 請求升級；未發起寫入。',
+    version_unverified: '無法確認已發佈的表單版本，未發起升級寫入。',
+    null_unsupported: '原生升級介面會忽略 null 值，本次未發起寫入；需要清空這些欄位時請使用原生編輯器。',
+    write_unverified: '無法確認升級寫入結果，請先回讀現有記錄再決定後續操作，不要自動重複寫入。',
+  },
   issue_fixes: {
     invalid_api_key: 'API Key 設定必須包含有效的 name 和 header/query 位置；請先檢查連接器。',
     repair_required: '舊 API Key 設定缺少 type/in/location；確認後加 --repair-api-key-scheme 修補並建立新帳號。',
@@ -2105,6 +2115,7 @@ module.exports.connector_test = {
 };
 
 module.exports.connector_contract = {
+  action_id_invalid: '新動作 {0} 的 id 須為以 operation- 開頭的非空字串；可省略 id 自動產生，不會改寫已有遠端動作 ID。',
   invalid_json: '連接器定義包含無效 JSON。',
   readback_mismatch: '連接器回讀結果與提交的定義不一致。',
   security_schemes_invalid: '連接器 securitySchemes 必須是 JSON 物件。',

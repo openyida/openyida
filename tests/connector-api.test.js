@@ -14,6 +14,7 @@ const utils = require('../lib/core/utils');
 const {
   createConnection,
   listConnections,
+  listAllConnections,
   saveConnector,
   testConnector,
 } = require('../lib/connector/api');
@@ -237,6 +238,18 @@ describe('connector frontend API contract', () => {
     expect(utils.httpPost.mock.calls[0][1]).toContain('/query/connection/listConnection.json');
     expect(utils.httpPost.mock.calls[0][2]).toContain('pageSize=100');
     expect(utils.httpPost.mock.calls[0][2]).toContain('pageNumber=1');
+    expect(utils.httpPost.mock.calls[0][2]).toContain('currentPage=1');
+  });
+
+  test('account pagination advances both native deployed page parameter names', async () => {
+    utils.httpPost
+      .mockResolvedValueOnce({ success: true, content: { data: Array.from({ length: 100 }, (_, id) => ({ id: id + 1 })), totalCount: 101 } })
+      .mockResolvedValueOnce({ success: true, content: { data: [{ id: 101 }], totalCount: 101 } });
+    expect(await listAllConnections('Http_owned', authRef)).toHaveLength(101);
+    expect(utils.httpPost).toHaveBeenCalledTimes(2);
+    const second = new URLSearchParams(utils.httpPost.mock.calls[1][2]);
+    expect(second.get('pageNumber')).toBe('2');
+    expect(second.get('currentPage')).toBe('2');
   });
 
   test('connection creation writes once and recovers the exact owned account by readback', async () => {
