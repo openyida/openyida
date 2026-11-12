@@ -238,7 +238,9 @@ describe('local agent thin launcher', () => {
     const diagnostic = jest.fn();
     await expect(launchRuntime({ executable: failingRuntime }, { command: 'status', node: { packageRoot: root } }, {
       diagnostic, signals: new EventEmitter(), stdout: { write: jest.fn() }, spawn: spawnFixture,
-    })).rejects.toMatchObject({ code, ...(code === 'ENROLLMENT_EXPIRED' ? { message: expect.stringMatching(/过期|expired/) } : {}) });
+    })).rejects.toMatchObject({ code, ...(code === 'ENROLLMENT_EXPIRED' ? { message: expect.stringMatching(/过期|expired/) } : {}),
+      ...(code === 'ENROLLMENT_ACTIVE_RUN' ? { message: expect.stringMatching(/任务结束|finish before reconnecting/) } : {}),
+      ...(code === 'ENROLLMENT_EXECUTION_LEASE_ACTIVE' ? { message: expect.stringMatching(/执行授权仍有效|execution lease is still valid/) } : {}) });
     expect(diagnostic).toHaveBeenCalledWith('error', 'runtime_action_failed', {
       command: 'status', component: 'node', errorCode: code, retryable: false,
     });
