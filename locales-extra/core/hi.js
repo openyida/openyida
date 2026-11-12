@@ -1185,6 +1185,9 @@ module.exports = {
     err_open_url_empty: 'openUrl पथ खाली नहीं हो सकता: {0}'
   },
   update_app: {
+    settings_incomplete: 'वर्तमान ऐप सेटिंग्स अधूरी हैं। डिफ़ॉल्ट मानों से बदलने से बचाने के लिए सहेजना रोक दिया गया। ऐप सेटिंग्स पृष्ठ जाँचें।',
+    invalid_current_name: 'वर्तमान ऐप नाम अनुपस्थित या अमान्य है। सेटिंग्स सहेजी नहीं गईं। पहले --name से नाम सुधारें।',
+    metadata_not_persisted: 'लेखन अनुरोध स्वीकार हुआ, लेकिन नाम, विवरण या पुरानी सेटिंग्स सत्यापित नहीं हुईं। दोबारा भेजने से पहले metadataVerification जाँचें।',
     name_not_persisted: 'सहेजा गया ऐप नाम अनुरोधित नाम से मेल नहीं खाता। दोबारा कोशिश करने से पहले वर्तमान नाम जाँचें; दूसरा ऐप न बनाएँ।',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

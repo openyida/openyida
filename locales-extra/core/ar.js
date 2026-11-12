@@ -1185,6 +1185,9 @@ module.exports = {
     err_open_url_empty: 'لا يمكن أن يكون مسار openUrl فارغاً: {0}'
   },
   update_app: {
+    settings_incomplete: 'إعدادات التطبيق الحالية غير مكتملة. تم إيقاف الحفظ لتجنب استبدالها بالقيم الافتراضية. تحقق من صفحة إعدادات التطبيق.',
+    invalid_current_name: 'اسم التطبيق الحالي مفقود أو غير صالح. لم يتم حفظ الإعدادات. أصلحه باستخدام --name أولاً.',
+    metadata_not_persisted: 'تم قبول الطلب، لكن تعذر التحقق من الاسم أو الوصف أو الإعدادات المحفوظة. تحقق من metadataVerification قبل إعادة المحاولة.',
     name_not_persisted: 'لم يتطابق اسم التطبيق المحفوظ مع الاسم المطلوب. تحقق من الاسم الحالي قبل إعادة المحاولة؛ لا تنشئ تطبيقًا آخر.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

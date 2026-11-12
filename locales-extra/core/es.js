@@ -1187,6 +1187,9 @@ module.exports = {
     err_open_url_empty: 'La ruta openUrl no puede estar vacía: {0}'
   },
   update_app: {
+    settings_incomplete: 'Los ajustes actuales están incompletos. Se detuvo el guardado para evitar sobrescribirlos con valores predeterminados. Revise la página de ajustes.',
+    invalid_current_name: 'El nombre actual falta o no es válido. No se guardaron los ajustes. Repárelo con --name.',
+    metadata_not_persisted: 'La solicitud fue aceptada, pero no se verificaron el nombre, la descripción o los ajustes conservados. Consulte metadataVerification antes de reintentar.',
     name_not_persisted: 'El nombre guardado no coincide con el solicitado. Verifica el nombre actual antes de reintentarlo; no crees otra aplicación.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
