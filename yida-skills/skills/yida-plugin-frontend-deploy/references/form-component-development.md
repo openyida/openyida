@@ -66,6 +66,13 @@ Yida.app.form.addBasicComponent({
 
 自定义页面增加 `yida.designer.custom-page.component` 和 `yida.app.custom-page.component`，分别暴露 `./designer/custom-page` 和 `./app/custom-page`，调用 `Yida.designer.customPage.addComponent` 和 `Yida.app.customPage.addComponent`。在自定义页面的运行态扩展配置中列出该场域的注册名。两种宿主可以共享纯视图组件，例如表单注册为 `SmartFinCurrencyField`，自定义页面注册为 `SmartFinCurrencyView`，各自场域内的注册、视图和 Schema 名保持一致。
 
+## 多场域和移动端的实现
+
+- 每个场域的设计态和运行态都用独立的 `run` 入口。设计态入口注册拖拽片段、预览视图和 setter，运行态入口注册实际视图和消费场景配置。共用的控件和值转换放在独立模块里。按 `isMobile` 选择运行视图，设计器有移动端画布时一并配置 `designerMobileView`。
+- 表单视图通过宿主字段契约收集数据，自定义页面、筛选器和流程 setter 通过各自传入的 `value` 和 `onChange` 复用控件。让控件只处理当前输入，表单包装层负责字段状态和提交。设计器和只读视图渲染时保持已保存值，默认值通过 Schema 或宿主允许的初始化逻辑设置。
+- 结构化字段在读入时统一处理对象、JSON 字符串和空值。保存时保留字段约定的值结构。只读视图、表格列和关联展示共用格式化函数，关联字段需要文本时返回字符串。普通值、空值和旧版本保存的值都要经过同一套读入逻辑。
+- 使用 `configure` 提供业务属性和默认值。拖拽片段、属性面板和控件的默认值保持一致。标题、说明等界面文案按项目的国际化契约配置，流程操作符使用宿主定义的标识。
+
 ## 数据管理与数据管理视图
 
 普通表单和流程表单的插件开发，默认把数据管理页和数据管理视图纳入配置与验收。
@@ -85,9 +92,9 @@ Yida.app.form.addBasicComponent({
 | 使用场景 | 相关配置与检查 |
 | --- | --- |
 | 表单存值与字段匹配 | 按需配置 `targetMetaDataFieldName` 或 `isCompositeFormField`。使用 `matchedFields` 声明已验证的匹配类型，初期只匹配自身。 |
-| 表单、数据管理及流程筛选 | 按需配置 `filterView` 和 `supportedOperators`。设计态与运行态都消费筛选器时，两端都注册对应配置。按实际支持的操作符验证条件视图、值类型和校验。 |
+| 表单、数据管理及流程筛选 | 按目标宿主支持的注册入口配置 `filterView` 和 `supportedOperators`，在各实际使用的场景验证操作符、值类型和校验。级联字段按操作符选择条件视图。 |
 | 公式 | 用 `formulaView` 声明 `valueTypes`、`fieldTagMap`，需要转换时实现 `parseValue`。在实际编辑器中验证字段选择、返回值和计算。 |
-| 流程设计器与集成自动化 | 用 `flowSetterView` 配置面板视图。根据需求逐项验证后开启 `enableUpdate`、`enableCondition`、`enablePermission`、`enableMatch` 等能力。流程表单填写页的组件渲染与流程节点配置分别验收。 |
+| 流程设计器与集成自动化 | 用 `flowSetterView` 配置面板视图。根据需求逐项验证后开启 `enableUpdate`、`enableCondition`、`enablePermission`、`enableMatch` 等能力。流程匹配、过滤和数据节点分别核对 `operatorMapConfig` 的 `flowMatch`、`flowFilter` 和 `flowDataNode`。流程表单填写页的组件渲染与流程节点配置分别验收。 |
 | 关联、导入导出、消息与历史 | 分别按需配置 `associationView`、`importExport`、`messageView`、`modifyHistoryView`。关联填充核对 `fillableFields`，关联展示的 `getViewText` 返回字符串。仅开启已实现的能力。 |
 
 历史场域可能还使用组件类型清单或专有映射。组件未出现在某个场域时，先核对该扩展是否加载、能力开关是否生效，再确认宿主支持的字段匹配和操作符。
@@ -99,3 +106,4 @@ Yida.app.form.addBasicComponent({
 3. 在真实普通表单和流程表单的填写页验证自动渲染、交互和只读状态。涉及数据写入时用测试表单提交并重新打开，核对原生字段或子表单的值。自定义页面及启用的其他场域逐一验收。
 4. 在数据管理列表和目标数据管理视图中分别检查测试记录的列和值。插件字段显示异常时，核对运行态注册中的 `dataView.meta.type` 和 `gridFormatter`，以及表单视图使用的字段 ID。
 5. 运行态缺少组件时核对启用版本、实际入口和分包请求、运行态 `componentNameList` 以及 `view.displayName`。同一组织有多个第三方插件使用同一资源主机时，如果其中一个没有发出脚本请求，检查目标宿主是否按相同运行时标识覆盖了插件。确认冲突后为各插件使用独立资源主机。
+6. 有移动端要求时，分别在移动设计器和移动填写页检查组件是否显示、弹层是否可操作、保存后值是否一致。启用筛选、流程 setter 或关联填充时，实际配置一条规则并验证结果。
