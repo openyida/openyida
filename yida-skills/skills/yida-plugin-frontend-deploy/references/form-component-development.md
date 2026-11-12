@@ -39,6 +39,13 @@ Yida.designer.form.addBasicComponent({
 Yida.app.form.addBasicComponent({
   componentName: COMPONENT_NAME,
   view: CurrencyView,
+  dataView: {
+    icon: "success",
+    meta: { type: COMPONENT_NAME, typeName: "财务金额" },
+    gridFormatter: ({ value }) =>
+      value == null || value === "" ? "—" : String(value),
+    enableBatchEdit: false,
+  },
 });
 ```
 
@@ -59,6 +66,16 @@ Yida.app.form.addBasicComponent({
 
 自定义页面增加 `yida.designer.custom-page.component` 和 `yida.app.custom-page.component`，分别暴露 `./designer/custom-page` 和 `./app/custom-page`，调用 `Yida.designer.customPage.addComponent` 和 `Yida.app.customPage.addComponent`。在自定义页面的运行态扩展配置中列出该场域的注册名。两种宿主可以共享纯视图组件，例如表单注册为 `SmartFinCurrencyField`，自定义页面注册为 `SmartFinCurrencyView`，各自场域内的注册、视图和 Schema 名保持一致。
 
+## 数据管理与数据管理视图
+
+普通表单和流程表单的插件开发，默认把数据管理页和数据管理视图纳入配置与验收。
+
+1. **插件运行态配置。** 在 `Yida.app.form.addBasicComponent` 中提供 `dataView`，用 `meta.type` 对齐组件标识，配置列标题图标和 `gridFormatter`。同一格式化函数可以处理管理端 `admin` 和用户端 `app`。两端展示有差异时按 `scenarioCode` 处理。只读列也提供格式化结果，核对空值、零值和实际业务值。
+2. **表单数据管理配置。** 在目标表单的数据管理页配置默认展示列。已有视图先读取真实配置，再将插件字段或实际承载数据的原生字段加入目标视图。配置步骤见[数据管理视图技能](../../yida-form-view/SKILL.md)。
+3. **视图验收。** 提交测试记录后打开数据管理列表和目标视图，确认字段可选、列标题正确、单元格能渲染。需要行内编辑时实现 `gridEditor` 并核对保存值，完成批量编辑验收后再开启 `enableBatchEdit`。
+
+只读展示组件通过绑定读取其他字段时，使用实际存值字段配置数据管理列。例如票据详情组件读取子表单时，按业务需要展示子表单字段或主表汇总字段。
+
 ## 按实际使用场景配置
 
 把 `renderControl` 的交互抽成独立组件，需要复杂只读展示时也抽出 `renderView`。筛选器和流程设置面板可复用纯视图，避免在这些面板中嵌套完整的表单字段。使用 `configure` 定义设计器属性和 setter，有移动端要求时配置 `designerMobileView` 及运行态移动视图。
@@ -69,7 +86,6 @@ Yida.app.form.addBasicComponent({
 | --- | --- |
 | 表单存值与字段匹配 | 按需配置 `targetMetaDataFieldName` 或 `isCompositeFormField`。使用 `matchedFields` 声明已验证的匹配类型，初期只匹配自身。 |
 | 表单、数据管理及流程筛选 | 按需配置 `filterView` 和 `supportedOperators`。设计态与运行态都消费筛选器时，两端都注册对应配置。按实际支持的操作符验证条件视图、值类型和校验。 |
-| 数据管理视图 | 用 `dataView` 配置展示与编辑。实现并验证批量编辑后再开启 `enableBatchEdit`。 |
 | 公式 | 用 `formulaView` 声明 `valueTypes`、`fieldTagMap`，需要转换时实现 `parseValue`。在实际编辑器中验证字段选择、返回值和计算。 |
 | 流程设计器与集成自动化 | 用 `flowSetterView` 配置面板视图。根据需求逐项验证后开启 `enableUpdate`、`enableCondition`、`enablePermission`、`enableMatch` 等能力。流程表单填写页的组件渲染与流程节点配置分别验收。 |
 | 关联、导入导出、消息与历史 | 分别按需配置 `associationView`、`importExport`、`messageView`、`modifyHistoryView`。关联填充核对 `fillableFields`，关联展示的 `getViewText` 返回字符串。仅开启已实现的能力。 |
@@ -81,4 +97,5 @@ Yida.app.form.addBasicComponent({
 1. 构建前核对共享标识和字段 Schema。构建后确认入口暴露目标模块，所有分包可访问，压缩产物中的 `displayName` 与注册及版本配置一致。
 2. 组织发布并启用后，在目标设计器拖入组件，检查画布、属性面板、保存和重开。组件库可见而画布提示「组件未找到」时，对照保存节点的 `componentName` 或 `__viewName__` 与实际注册的 `designerView.displayName`。
 3. 在真实普通表单和流程表单的填写页验证自动渲染、交互和只读状态。涉及数据写入时用测试表单提交并重新打开，核对原生字段或子表单的值。自定义页面及启用的其他场域逐一验收。
-4. 运行态缺少组件时核对启用版本、实际入口和分包请求、运行态 `componentNameList` 以及 `view.displayName`。同一组织有多个第三方插件使用同一资源主机时，如果其中一个没有发出脚本请求，检查目标宿主是否按相同运行时标识覆盖了插件。确认冲突后为各插件使用独立资源主机。
+4. 在数据管理列表和目标数据管理视图中分别检查测试记录的列和值。插件字段显示异常时，核对运行态注册中的 `dataView.meta.type` 和 `gridFormatter`，以及表单视图使用的字段 ID。
+5. 运行态缺少组件时核对启用版本、实际入口和分包请求、运行态 `componentNameList` 以及 `view.displayName`。同一组织有多个第三方插件使用同一资源主机时，如果其中一个没有发出脚本请求，检查目标宿主是否按相同运行时标识覆盖了插件。确认冲突后为各插件使用独立资源主机。
