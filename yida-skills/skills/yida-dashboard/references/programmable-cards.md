@@ -67,7 +67,7 @@ const filters = business ? [{ field: businessField, op: 'eq', values: [business]
 
 ### 组件优先，页面只是组合示例
 
-用 `openyida sample openyida-page-template analysis-metric` 提取单个指标卡，用 `openyida sample openyida-page-template analysis-chart` 提取单个图表组件。它们没有页面导航、查询常量或业务布局；复制进组合源码时将默认 `YidaComp` 分别重命名为 `MetricCard`、`AnalysisChart`，合并 import，最终只保留一个页面/卡片入口。不要在运行时 fetch 模板源码，不把这些设计固定进 yida-ui。
+独立图表组件模板放在 `lib/samples/yida-custom-chart-comp`，整页和组合示例使用 `openyida-page-template`。用 `openyida sample yida-custom-chart-comp analysis-metric` 提取单个指标卡，用 `openyida sample yida-custom-chart-comp analysis-chart` 提取单个图表组件。复制进组合源码时将默认 `YidaComp` 分别重命名为 `MetricCard`、`AnalysisChart`，合并 import，最终只保留一个页面或卡片入口。模板由 CLI 提取源码后在编辑阶段组合。
 
 | 组件 | 数据与展示参数 | 交互参数 |
 | --- | --- | --- |
@@ -97,7 +97,7 @@ const filters = business ? [{ field: businessField, op: 'eq', values: [business]
 
 ### 图表组件库与数据契约
 
-`openyida sample openyida-page-template analysis-echarts` 提取可编辑的高级图表组件。重命名默认组件为 `AdvancedChart`；`analysisChartOption(kind, data, config)` 只生成 option，不查询数据、不规定平台展示枚举。可以完全绕过配方传入自定义 option。指标卡继续用 `analysis-metric`，常规轻量图用 `analysis-chart`。
+`openyida sample yida-custom-chart-comp analysis-echarts` 提取可编辑的高级图表组件。重命名默认组件为 `AdvancedChart`；`analysisChartOption(kind, data, config)` 只生成 option，不查询数据、不规定平台展示枚举。可以完全绕过配方传入自定义 option。指标卡继续用 `analysis-metric`，常规轻量图用 `analysis-chart`。
 
 | 配方 | 必需数据 | 适合表达 |
 | --- | --- | --- |

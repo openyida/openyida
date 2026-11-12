@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { compileCanvasLocal } = require('../lib/app/canvas-compile');
-const source = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/analysis-echarts.canvas.jsx'), 'utf8');
+const source = fs.readFileSync(path.join(__dirname, '../lib/samples/yida-custom-chart-comp/analysis-echarts.canvas.jsx'), 'utf8');
 const { runtimeCode, importedModules } = compileCanvasLocal(source);
 const option = new Function('window', runtimeCode + ';return analysisChartOption;')({ React: {}, echarts: {} });
 
