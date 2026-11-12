@@ -169,6 +169,26 @@ test('current detail response can omit legacy appGroupId without blocking descri
   expect(output().at(-1)).toMatchObject({ success: true, metadataVerification: { verified: true } });
 });
 
+test.each([undefined, 'true', 'false'])('preserves raw SHOWAPPTITLE %j rather than the derived API Boolean', async stored => {
+  if (stored !== undefined) {state.config.SHOWAPPTITLE = stored;}
+  state.showAppTitle = stored !== 'false';
+  const update = httpPost.getMockImplementation();
+  httpPost.mockImplementation(async (...args) => {
+    const result = await update(...args);
+    const payload = querystring.parse(args[2]);
+    if (payload.showAppTitle) {state.config.SHOWAPPTITLE = payload.showAppTitle;}
+    state.showAppTitle = Object.hasOwn(state.config, 'SHOWAPPTITLE') ? state.config.SHOWAPPTITLE === 'true' : true;
+    return result;
+  });
+  await run(['APP_1', '--desc', '新描述']);
+  const payload = querystring.parse(httpPost.mock.calls[0][2]);
+  if (stored === undefined) {
+    expect(payload).not.toHaveProperty('showAppTitle');
+    expect(state.config).not.toHaveProperty('SHOWAPPTITLE');
+  } else {expect(payload.showAppTitle).toBe(stored);}
+  expect(output().at(-1)).toMatchObject({ success: true, metadataVerification: { checks: { showAppTitle: true } } });
+});
+
 test.each(['null', '{"literal":"description"}', '123'])('description %s is sent as literal user text', async desc => {
   await run(['APP_1', '--desc', desc]);
   expect(state.description.zh_CN).toBe(desc);
