@@ -8,7 +8,7 @@ import { Area, AreaChart, Bar, BarChart, Brush, CartesianGrid, Cell, Pie, PieCha
 // onRangeChange is local-window selection, NOT a server query. Parent owns cross-card state.
 export default function YidaComp({ rows = [], labelKey = 'label', valueKey = 'value',
   title = '趋势分析', kind = 'trend', appearance = 'light', height = 280,
-  selectedKey, onSelect, range, onRangeChange, loading, error, onRefresh, actions, style }) {
+  selectedKey, onSelect, range, onRangeChange, loading, error, onRefresh, actions, cardAppearance, style }) {
   const [localRange, setLocalRange] = useState(null);
   const points = useMemo(() => rows.map((row, index) => ({ raw: row, index,
     label: String(row[labelKey] ?? '—'), value: Number.isFinite(row[valueKey]) ? row[valueKey] : null,
@@ -33,7 +33,7 @@ export default function YidaComp({ rows = [], labelKey = 'label', valueKey = 'va
   const shareable = valid.length && valid.every(point => point.value >= 0) && valid.some(point => point.value > 0);
   const tooltip = <Tooltip formatter={format} contentStyle={{ background: 'var(--ch-bg)', color: 'var(--ch-ink)', border: '1px solid var(--ch-line)', borderRadius: 8 }} itemStyle={{ color: 'var(--ch-ink)' }} />;
   const cells = points.map(point => <Cell key={point.index} fill={color(point.index)} fillOpacity={selectedKey == null || selectedKey === point.raw[labelKey] ? 1 : .25} />);
-  return <article className={'oy-chart ' + appearance} style={style} aria-busy={!!loading}>
+  return <article className={'oy-chart ' + appearance} style={{ ...cardAppearance?.cardStyle, ...style }} aria-busy={!!loading}>
     <style>{`
       .oy-chart{--ch-bg:var(--analysis-surface,var(--pod-card-bg-color,#fff));--ch-ink:var(--analysis-ink,var(--color-text1-4,#203b38));--ch-muted:var(--analysis-muted,#667d79);--ch-line:var(--analysis-line,#dce8e4);--ch-accent:var(--analysis-accent,var(--color-brand1-6,#148979));--ch-second:var(--analysis-series-2,#e6a04b);min-width:0;padding:22px;border-radius:var(--analysis-radius,12px);background:var(--ch-bg);color:var(--ch-ink);font:13px/1.6 system-ui,sans-serif}
       .oy-chart.dark{color-scheme:dark;--ch-bg:var(--analysis-surface,#192c46);--ch-ink:var(--analysis-ink,#edf5ff);--ch-muted:var(--analysis-muted,#a4b6ce);--ch-line:var(--analysis-line,#2b415d);--ch-accent:var(--analysis-accent,#41c6d4);--ch-second:var(--analysis-series-2,#efb86b)}
@@ -54,5 +54,10 @@ export default function YidaComp({ rows = [], labelKey = 'label', valueKey = 'va
               <AreaChart data={points}><Area dataKey="value" stroke="var(--ch-accent)" fill="var(--ch-accent)" fillOpacity={.15} isAnimationActive={false}/></AreaChart>
             </Brush></AreaChart>}
       </ResponsiveContainer>}
+    {!loading && !error && valid.length > 0 && <div aria-label="图例" style={{ display:'flex', flexWrap:'wrap', gap:12, justifyContent:'center' }}>
+      {(kind === 'donut' ? valid : [{ label:title, index:0 }]).map(point => <span key={point.index} style={{ display:'inline-flex', alignItems:'center', gap:6, ...cardAppearance?.legendTextStyle }}>
+        <i aria-hidden="true" style={{ width:12, height:12, borderRadius:3, display:'inline-block', ...cardAppearance?.legendMarkerStyle, background:color(point.index) }} />{point.label}
+      </span>)}
+    </div>}
   </article>;
 }

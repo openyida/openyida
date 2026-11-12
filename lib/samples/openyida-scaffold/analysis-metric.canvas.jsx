@@ -4,13 +4,13 @@ import React from 'react';
 // value/delta/target must come from an authorized aggregate result; missing is not zero.
 export default function YidaComp({ title = '指标', value, unit = '', note,
   delta, deltaLabel = '较上期', target, loading, error, onRetry,
-  appearance = 'light', emphasis = false, actions, style }) {
+  appearance = 'light', emphasis = false, actions, cardAppearance, style }) {
   const valid = typeof value === 'number' && Number.isFinite(value);
   const hasDelta = typeof delta === 'number' && Number.isFinite(delta);
   const progress = valid && Number.isFinite(target) && target > 0 && value >= 0
     ? Math.min(100, value / target * 100) : null;
   return <article className={'oy-metric ' + appearance + (emphasis ? ' emphasis' : '')}
-    style={style} aria-busy={!!loading}>
+    style={{ ...cardAppearance?.cardStyle, ...style }} aria-busy={!!loading}>
     <style>{`
       .oy-metric{--mc-bg:var(--analysis-surface,var(--pod-card-bg-color,#fff));--mc-ink:var(--analysis-ink,var(--color-text1-4,#203b38));--mc-muted:var(--analysis-muted,#667d79);--mc-accent:var(--analysis-accent,var(--color-brand1-6,#148979));position:relative;isolation:isolate;overflow:hidden;min-width:0;padding:22px 24px;border-radius:var(--analysis-radius,12px);background:var(--mc-bg);color:var(--mc-ink);font:14px/1.6 system-ui,sans-serif}
       .oy-metric.dark{--mc-bg:var(--analysis-surface,#192c46);--mc-ink:var(--analysis-ink,#edf5ff);--mc-muted:var(--analysis-muted,#a4b6ce);--mc-accent:var(--analysis-accent,#41c6d4)}

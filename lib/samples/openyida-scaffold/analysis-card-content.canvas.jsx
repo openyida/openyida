@@ -20,7 +20,7 @@ export default function YidaComp({ analysis }) {
   const palette = ['var(--color-brand1-6, #1677ff)', '#4e9d9a', '#9272cb', '#d4844b', '#6588b4'];
   const choose = item => { const row = item?.payload?.row || item?.row; if (row) select?.(row); };
   return (
-    <section className="oy-programmable-analysis" aria-busy={!!loading}>
+    <section className="oy-programmable-analysis" style={analysis?.appearance?.cardStyle} aria-busy={!!loading}>
       <style>{`
         .oy-programmable-analysis { color:var(--color-text1-4,#1c2534); background:var(--pod-card-bg-color,#fff); border:1px solid var(--color-line1-1,#e8edf3); border-radius:var(--pod-card-border-radius,16px); padding:clamp(16px,3vw,24px); min-width:0; }
         .oy-programmable-analysis * { box-sizing:border-box; }

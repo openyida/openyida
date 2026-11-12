@@ -192,3 +192,22 @@ grid: { left: 56, right: 24, top: 36, bottom: 88 }
 交付至少检查正常、加载、空、错误、负值、零值、长名称；操作用真实事件验证。外部浏览器宽屏检查完整内容，再检查窄屏。发布读回、浏览器渲染、交互成功是三项独立证据。示例数据必须显著标注，不能展示为实际经营数据。
 
 设计依据：吸收 dingtalk-ai-app 的 web-app-dashboard-ui-design / frontend-design 中 DashboardCard 动作槽、MetricTrendCard、Brush、四态与组合联动，以及 ai-app-skills 的 dashboard-layout/warm-dashboard 的层级与材质经验；这里只迁移设计原则，不能引用那些项目私有组件或未经 OpenYida 验证的 Hook/Props。
+
+
+### 统一主题样式与设置器
+
+每张卡片保留自己的数据配置。自定义页面通过数据集、字段选择器配置查询；报表继续使用原生分组、指标、筛选和公式设置器。报表源码入口在「其他 → 高级功能 → 卡片源码」，位于「返回数据处理」之前。编辑源码不改变数据集配置。
+
+宿主提供 `analysis.appearance` 时，将它传给复用组件的 `cardAppearance`：
+
+```jsx
+<AdvancedChart option={option} cardAppearance={analysis.appearance} />
+<AnalysisChart rows={rows} cardAppearance={analysis.appearance} />
+<MetricCard value={total} cardAppearance={analysis.appearance} />
+```
+
+`cardAppearance` 与组件原有 `appearance="light|dark"` 风格参数分开。卡片根节点使用 `analysis.appearance?.cardStyle`；自写 HTML 图例使用 `legendMarkerStyle` 和 `legendTextStyle`；ECharts 图例使用 `echartsLegend`，保留原来的位置、选择状态及联动事件。组件的 `style` 可显式覆盖卡片样式，使用前说明它优先于设置器。
+
+样式设置包含卡片背景、卡片圆角、图例字号、标记大小与标记圆角。每项复用设计器的 `ThemeTokenSetter`，提供「跟随主题 / 自定义」切换。`null` 或未设置表示跟随主题；切到自定义时读取当前主题值作为初值，之后保存字面值；切回主题保存 `null`。不要另造模式字段或用“清空输入框”替代模式切换。图例配置只影响实际存在的图例，不替代图表内的数据标记或整张卡片圆角。
+
+旧宿主没有 `analysis.appearance` 时保留原有样式。更新既有源码时接入上述参数并验证效果，不只添加设置器入口。验收至少包括主题切换、单卡覆盖与恢复、两张卡片设置互不影响、图例点击与下钻仍可用，以及更换数据集后重新配置分组和指标。

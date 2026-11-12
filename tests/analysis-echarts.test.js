@@ -62,3 +62,17 @@ test('failed library loads are retryable and existing incompatible versions are 
   await expect(api.loadAnalysisCharts()).rejects.toThrow('版本不一致');
   expect(window.echarts.version).toBe('6.0.0');
 });
+
+test('shared legend appearance preserves interaction, layout and multiple legend groups', () => {
+  const withAppearance = new Function('window', runtimeCode + ';return withAnalysisAppearance;')({ React: {} });
+  const appearance = { echartsLegend: { itemWidth:20, itemHeight:20, icon:'path://M0,0H20V20Z', textStyle:{fontSize:16} } };
+  const original = { legend:[{ bottom:0, selected:{A:false}, textStyle:{color:'red'} }, {right:0}], series:[{name:'A'}] };
+  const result = withAppearance(original, appearance);
+  expect(result.legend[0].selected).toEqual({A:false});
+  expect(result.legend[0].bottom).toBe(0);
+  expect(result.legend[0].textStyle).toEqual({color:'red',fontSize:16});
+  expect(result.legend[1].itemHeight).toBe(20);
+  expect(original.legend[0].itemHeight).toBeUndefined();
+  expect(withAppearance(original,undefined)).toBe(original);
+  expect(withAppearance({series:[]},appearance).legend).toBeUndefined();
+});

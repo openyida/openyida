@@ -23,6 +23,14 @@ async function loadAnalysisCharts(wordCloud = false) {
   return window.echarts;
 }
 
+// Preserve legend position, selection and events while applying the shared card controls.
+function withAnalysisAppearance(option, appearance) {
+  if (!option?.legend || !appearance?.echartsLegend) return option;
+  const apply = legend => ({ ...legend, ...appearance.echartsLegend,
+    textStyle: { ...legend.textStyle, ...appearance.echartsLegend.textStyle } });
+  return { ...option, legend: Array.isArray(option.legend) ? option.legend.map(apply) : apply(option.legend) };
+}
+
 // Pure option recipes. Data is supplied by the caller; no fake values or implicit queries.
 // Replace/extend these recipes freely. They are not a platform chart-type restriction.
 function analysisChartOption(kind, data, config = {}) {
@@ -106,7 +114,7 @@ function analysisChartOption(kind, data, config = {}) {
 }
 
 export default function YidaComp({ option, title = '数据分析', note, height = 260, loading = false, error,
-  empty = false, onRefresh, onSelect, onRangeChange, actions, style }) {
+  empty = false, onRefresh, onSelect, onRangeChange, actions, cardAppearance, style }) {
   const element = useRef(null), chart = useRef(null), callbacks = useRef({ onSelect, onRangeChange });
   callbacks.current = { onSelect, onRangeChange };
   const [resourceError, setResourceError] = useState(''), [retry, setRetry] = useState(0), [ready, setReady] = useState(0);
@@ -127,11 +135,11 @@ export default function YidaComp({ option, title = '数据分析', note, height 
   }, [needsCloud, retry, hasOption]);
   useEffect(() => {
     if (!chart.current || !option) return;
-    try { chart.current.setOption(option, { notMerge: true }); setResourceError(''); }
+    try { chart.current.setOption(withAnalysisAppearance(option, cardAppearance), { notMerge: true }); setResourceError(''); }
     catch (e) { setResourceError(e.message); }
-  }, [option, ready]);
+  }, [option, cardAppearance, ready]);
   useEffect(() => { if (chart.current) loading ? chart.current.showLoading() : chart.current.hideLoading(); }, [loading, ready]);
-  return <article className="oy-advanced-chart" style={style} aria-busy={loading}>
+  return <article className="oy-advanced-chart" style={{ ...cardAppearance?.cardStyle, ...style }} aria-busy={loading}>
     <style>{`.oy-advanced-chart{min-width:0;max-width:100%;box-sizing:border-box;padding:18px 20px;background:var(--analysis-surface,#fff);color:var(--analysis-ink,#35445b);border-radius:var(--analysis-radius,12px);font:12px/1.5 system-ui,sans-serif}.oy-advanced-chart *{box-sizing:border-box}.oy-advanced-chart header{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:4px}.oy-advanced-chart header>div{display:flex;gap:5px;align-items:center;flex-wrap:wrap}.oy-advanced-chart h3{font-size:15px;color:inherit;margin:0}.oy-advanced-chart p{font-size:11px;color:var(--analysis-muted,#738095);margin:4px 0 12px}.oy-advanced-chart button{font:inherit;color:inherit;border:0;border-radius:6px;padding:5px 9px;background:#edf1f6;cursor:pointer}.oy-advanced-chart button:focus-visible{outline:2px solid #4e72b8;outline-offset:2px}.oy-advanced-chart .ec-refresh{position:relative;width:30px;height:30px;padding:6px;background:transparent}.oy-advanced-chart .ec-refresh:after{content:attr(data-tip);position:absolute;right:0;top:32px;white-space:nowrap;background:#35445b;color:#fff;padding:3px 7px;border-radius:4px;z-index:2;visibility:hidden}.oy-advanced-chart .ec-refresh:focus-visible:after,.oy-advanced-chart .ec-refresh:hover:after{visibility:visible}.oy-advanced-chart .ec-refresh:hover{background:#edf1f6}.oy-advanced-chart .ec-refresh:disabled{opacity:.4;cursor:wait}`}</style>
     <header><h3>{title}</h3><div>{actions}{onRefresh && <button className="ec-refresh" aria-label={'刷新'+title} title="刷新数据" data-tip="刷新数据" disabled={loading} onClick={onRefresh}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16M8 16H3v5"/></svg>
