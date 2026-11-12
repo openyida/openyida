@@ -19,7 +19,7 @@ description: 宜搭平台插件前端资源的构建、托管与加载排查；�
 1. 确认已有插件 ID/版本、目标宿主/扩展点、源码项目及本次执行范围；缺少插件或版本时交回生命周期技能，不凭展示名编造 ID。
 2. 核实集团/非集团开发环境、企业静态资源服务器、HTTPS 域名及发布权限。身份以用户说明与已核实权限为准，不能只凭宜搭域名、内网可达或本地仓库推断。
 3. 读取[创建与部署引导](./references/frontend-hosting.md)，复用现有企业渠道；没有现成渠道时国内推荐码云 + 阿里云 OSS，GitHub Actions + Pages 作为备选。逐步给出入口、填写项和完成后需要提供的信息。
-4. 读取[前端构建与加载契约](./references/frontend-contract.md)，检查真实项目的 Module Federation 配置、容器名、扩展点导出、publicPath 和依赖。表单组件按[基础表单组件开发规范](./references/form-component-development.md)校对 Schema、设计态和运行态的组件标识及发布配置。组合原生字段时，按该规范核对拖拽片段、附件回填和旧字段迁移。获准执行后才安装依赖、构建、上传完整产物；仅编译成功不能宣称宿主可加载。
+4. 读取[前端构建与加载契约](./references/frontend-contract.md)，检查真实项目的 Module Federation 配置、容器名、扩展点导出、publicPath 和依赖。所有前端组件扩展点按[组件标识一致性](./references/frontend-contract.md#组件标识一致性)核对注册、视图、Schema 和版本配置。表单组件按[基础表单组件开发规范](./references/form-component-development.md)核对字段元数据、拖拽片段、附件回填和旧字段迁移。获准执行后才安装依赖、构建、上传完整产物；仅编译成功不能宣称宿主可加载。
 5. 获得真实稳定 HTTPS 入口后，通过 `use_skill("yida-plugin-lifecycle", "保存插件开发版本配置")` 交接，基于版本回读保留三段配置、摘要和备份，再保存核对；资源部署不自动发布到组织。
 6. 用户授权验收后，通过 `use_skill("yida-plugin-lifecycle", "核对插件可用性的四层证据")` 分别记录持久化、资源可达、注册候选和真实消费。加载失败按契约排查；没有执行的层级明确标为未验证。
 

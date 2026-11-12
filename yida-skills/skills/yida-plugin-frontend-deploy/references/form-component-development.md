@@ -4,7 +4,7 @@
 
 ## 组件标识与字段 Schema
 
-- 从一个共享常量取组件标识，区分大小写。设计态 `designerView.displayName`、运行态 `view.displayName`、Yida API 注册的 `componentName`、运行态配置的 `componentNameList` 都使用这个标识。移动端视图也使用相同的注册标识。类或函数在源码中的名字可以描述其用途。
+- 命名与注册遵循[组件标识一致性](./frontend-contract.md#组件标识一致性)。表单设计态、运行态和移动端共用同一个组件标识。
 - 使用业务前缀避开官方组件和同一组织中已安装的组件，例如 `SmartFinCurrencyField`。复合表单组件用 `CC_` 开头并保留业务前缀，例如 `CC_SmartFinInvoiceField`，配置 `isCompositeFormField: true`。数据字段推荐以 `Field` 结尾，部分筛选器和流程字段工具按这个后缀识别字段。字段类型和提交能力由实际元数据及宿主支持决定。
 - 独立组件的拖拽片段用注册标识作 `schema.componentName`。复用原生字段时，`targetMetaDataFieldName` 和 `schema.componentName` 用实际原生类型，`schema.props.__viewName__` 用插件视图标识。例如原生 `NumberField` 的自定义视图使用 `SmartFinCurrencyField`。
 - 已使用的组件保留 Schema 引用的标识。升级时如确需改名，先盘点旧表单引用，再提供兼容注册或迁移。迁移后验证字段 ID、配置和历史数据。
@@ -64,7 +64,7 @@ Yida.app.form.addBasicComponent({
 }
 ```
 
-自定义页面增加 `yida.designer.custom-page.component` 和 `yida.app.custom-page.component`，分别暴露 `./designer/custom-page` 和 `./app/custom-page`，调用 `Yida.designer.customPage.addComponent` 和 `Yida.app.customPage.addComponent`。在自定义页面的运行态扩展配置中列出该场域的注册名。两种宿主可以共享纯视图组件，例如表单注册为 `SmartFinCurrencyField`，自定义页面注册为 `SmartFinCurrencyView`，各自场域内的注册、视图和 Schema 名保持一致。
+自定义页面增加 `yida.designer.custom-page.component` 和 `yida.app.custom-page.component`，分别暴露 `./designer/custom-page` 和 `./app/custom-page`，调用 `Yida.designer.customPage.addComponent` 和 `Yida.app.customPage.addComponent`。在自定义页面的运行态扩展配置中列出该场域的注册名。同一组件在两个宿主中使用同一个标识。需要独立注册表单字段与自定义页面展示组件时，可以共享内部控件，并分别使用 `SmartFinCurrencyField` 和 `SmartFinCurrencyView`。
 
 ## 多场域和移动端的实现
 

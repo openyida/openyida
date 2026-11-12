@@ -2,6 +2,16 @@
 
 适用于已明确的宜搭平台插件。托管渠道与创建步骤见[部署引导](./frontend-hosting.md)，配置保存和组织级操作见[生命周期技能](../../yida-plugin-lifecycle/SKILL.md#开发与版本配置)。
 
+## 组件标识一致性
+
+凡宜搭插件注册前端组件，普通表单、流程表单、自定义页面和其他组件扩展点均遵循同一规则。为同一个组件定义一个共享的业务标识，所有用于注册或查找该组件的位置逐字一致，包含大小写。
+
+- Yida API 的 `componentName` 与组件视图的 `displayName` 一致。设计态、运行态及移动端注册同一个组件时都沿用该标识。
+- 拖拽片段和已保存 Schema 引用同一个组件标识。复用原生字段并覆盖视图时，`schema.componentName` 仍是原生字段类型，`schema.props.__viewName__` 才是插件组件标识。具体写法见[基础表单组件开发规范](./form-component-development.md)。
+- 扩展点支持 `config.componentNameList` 时，清单填写该扩展点实际注册的组件标识。一个插件注册多个独立组件时，每个组件分别核对；同一组件跨场域复用时沿用原标识。
+
+构建后核对压缩产物中的 `displayName` 和 API 注册参数。保存配置及页面后，回读版本配置和 Schema，再到各目标宿主验证设计态和运行态。
+
 ## 第三方前端配置与构建契约
 
 开发字段为 `frontEndDevInfo.cdnEntry`，运行时为 `cdnUrl`。以下地址、组件名需替换；后端和参数配置保留真实回读，不能照抄空对象：
@@ -21,8 +31,6 @@
 ```
 
 同时配置设计态、运行态扩展；`config.componentNameList` 匹配 `addComponent` 注册名（日历 `OpenYidaCalendarView`，时间线 `OpenYidaStickyTimeline`）。发布后核对运行时 config 和真实页面。
-
-用同一个业务标识设置设计态和运行态视图的 `displayName`、Yida API 的 `componentName`、拖拽 Schema 的 `componentName` 和运行态 `componentNameList`。例如 `StickyTimeline.displayName = "OpenYidaStickyTimeline"`。在压缩后的产物中核对这些值。基础表单组件的配置及复用原生字段时的 Schema 写法见[基础表单组件开发规范](./form-component-development.md)。
 
 本地 `yida-plugin-sdk`（`b2277ef`）的实现证据，线上版本须另核：
 
