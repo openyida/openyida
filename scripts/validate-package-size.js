@@ -98,7 +98,9 @@ const path = require('path');
 // Form data seeding, schema guards, and the Canvas sample merged with main
 // measure 2,789,968 compressed bytes on Node 20.18.1. Use the next 16 KiB boundary.
 // Component samples: PR merge measured 2,802,825 compressed / 10,249,905 unpacked bytes.
-const MAX_TARBALL_BYTES = 2740 * 1024;
+// Advanced chart recipes plus current main: CI Node 20 measures 2,813,575
+// compressed bytes; keep the next 16 KiB boundary, without changing per-file caps.
+const MAX_TARBALL_BYTES = 2752 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -250,9 +252,9 @@ const MAX_TARBALL_BYTES = 2740 * 1024;
 // packaged workflow reference. Merged Node 23 measurement: 10,226,230 bytes /
 // 813 files, 2,614 bytes above the previous limit. Use the next 16 KiB boundary;
 // compressed, entry-count and individual-file limits stay unchanged.
-// Advanced chart component plus its data contracts: 10,261,457 unpacked bytes,
-// 820 files locally; the current PR merge adds one existing main file.
-const MAX_UNPACKED_BYTES = 10032 * 1024;
+// Advanced chart component plus current main: CI Node 20 measures 10,277,069
+// unpacked bytes; 820 files locally and one existing main file in the PR merge.
+const MAX_UNPACKED_BYTES = 10048 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
