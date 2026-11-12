@@ -75,7 +75,8 @@ Yida.app.form.addBasicComponent({
 
 ## 使用宜搭原生组件
 
-- 原生附件、子表单和数值需要随表单提交时，在表单 Schema 中保留真实的 `AttachmentField`、`TableField` 和 `NumberField`。在插件属性中绑定这些字段的真实 ID。运行态通过 `window.Yida.utils.getRuntimeContextFromComponentProps(props)` 获取当前表单上下文，再使用 `ctx.$(fieldId).getValue()` 或 `setValue()` 读写。保留宿主传入的上下文 props，写入前核对目标字段可编辑。
+- 原生附件、子表单和数值需要随表单提交时，在表单 Schema 中保留真实的 `AttachmentField`、`TableField` 和 `NumberField`。插件要作为一个完整组件拖入时，用 `isContainer: true` 注册布局容器，将原生字段放进 `snippets[].schema.children`，设计态和运行态都渲染宿主传入的 `children`。例如「发票分析」容器的两个直接子节点是附件和子表，子表下才放多行文本、数值。容器本身无需新增 Dictionary 字段。
+- 容器内读写字段时，从当前容器的 Schema 子树解析宿主生成的字段 ID；仅当插件消费独立存在的字段时，才通过插件属性配置外部字段 ID。运行态通过 `window.Yida.utils.getRuntimeContextFromComponentProps(props)` 获取当前表单上下文，再使用 `ctx.$(fieldId).getValue()` 或 `setValue()` 读写。保留宿主传入的上下文 props，写入前核对目标字段可编辑。测试同一表单插入两个容器时，每个实例只操作自己的子节点，并核对实际存值字段能在数据管理视图中选择。
 - 插件内部需要直接渲染原生控件时，沿用 Canvas 的探测思路，从当前页面的 `window.Deep`、`window.DeepYida` 或存在时的 `window.YidaNativeComponents` 查找宿主暴露的可渲染组件。按目标设计态、运行态和设备核实组件名、属性及值结构。确认所需的 React 和宿主全局对象后再声明 externals。缺少必需的原生组件时给出具体提示，保留原生字段的提交路径。
 - 插件视图本身可以用宿主提供的 `window.Deep.FormHelper` 接入字段状态。展示层嵌入的控件由插件负责绑定值，提交数据通过真实字段或宿主的字段回调保存。配置原生附件和子表单时，先验证上传后的附件值，再用真实子字段 ID 组装行对象。金额用数值字段并配置业务所需小数位。
 
