@@ -1,28 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
+import * as echarts from 'echarts';
+import 'echarts-wordcloud';
 
 // Refresh icon: Lucide (ISC), https://lucide.dev/license
 // Editable chart component, not a page or a data source. Keep one copy when composing.
-// Optional libraries are pinned and shared per window, including across report card instances.
-async function loadAnalysisCharts(wordCloud = false) {
-  const cache = window.__OPENYIDA_ANALYSIS_CHART_LOADS__ || (window.__OPENYIDA_ANALYSIS_CHART_LOADS__ = {});
-  const load = (key, url, ready) => {
-    if (ready()) return Promise.resolve();
-    if (!cache[key]) cache[key] = new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      const fail = () => { clearTimeout(timer); script.remove(); delete cache[key]; reject(new Error('图表资源加载失败，请重试')); };
-      const timer = setTimeout(fail, 20000);
-      script.src = url; script.async = true;
-      script.onload = () => { if (!ready()) return fail(); clearTimeout(timer); resolve(); };
-      script.onerror = fail; document.head.appendChild(script);
-    });
-    return cache[key];
-  };
-  if (window.echarts && window.echarts.version !== '5.6.0') throw new Error('已有 ECharts 版本不一致，请统一页面图表资源');
-  await load('echarts@5.6.0', 'https://g.alicdn.com/code/lib/echarts/5.6.0/echarts.min.js', () => !!window.echarts);
-  if (wordCloud) await load('echarts-wordcloud@2.1.0', 'https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js', () => !!window['echarts-wordcloud']);
-  return window.echarts;
-}
-
 // Preserve legend position, selection and events while applying the shared card controls.
 function withAnalysisAppearance(option, appearance) {
   if (!option?.legend || !appearance?.echartsLegend) return option;
@@ -117,36 +98,41 @@ export default function YidaComp({ option, title = '数据分析', note, height 
   empty = false, onRefresh, onSelect, onRangeChange, actions, cardAppearance, style }) {
   const element = useRef(null), chart = useRef(null), callbacks = useRef({ onSelect, onRangeChange });
   callbacks.current = { onSelect, onRangeChange };
-  const [resourceError, setResourceError] = useState(''), [retry, setRetry] = useState(0), [ready, setReady] = useState(0);
-  const needsCloud = !!option?.series?.some(s => s.type === 'wordCloud');
+  const [chartError, setChartError] = useState('');
   const hasOption = !!option;
   useEffect(() => {
-    if (!hasOption) return;
-    let active = true, instance, observer;
-    setResourceError('');
-    loadAnalysisCharts(needsCloud).then(engine => {
-      if (!active || !element.current) return;
-      instance = engine.init(element.current); chart.current = instance;
+    if (!hasOption || !element.current) return;
+    let instance, observer;
+    setChartError('');
+    try {
+      instance = echarts.init(element.current);
       instance.on('click', event => callbacks.current.onSelect?.(event.data?.raw ?? event.data, event));
       instance.on('datazoom', event => callbacks.current.onRangeChange?.(event));
-      observer = new ResizeObserver(() => instance.resize()); observer.observe(element.current); setReady(n => n + 1);
-    }).catch(e => { if (active) setResourceError(e.message); });
-    return () => { active = false; observer?.disconnect(); if (chart.current === instance) chart.current = null; instance?.dispose(); };
-  }, [needsCloud, retry, hasOption]);
+      observer = new ResizeObserver(() => instance.resize());
+      observer.observe(element.current);
+      chart.current = instance;
+    } catch (e) {
+      observer?.disconnect();
+      instance?.dispose();
+      setChartError(e.message);
+      return;
+    }
+    return () => { observer.disconnect(); chart.current = null; instance.dispose(); };
+  }, [hasOption]);
   useEffect(() => {
     if (!chart.current || !option) return;
-    try { chart.current.setOption(withAnalysisAppearance(option, cardAppearance), { notMerge: true }); setResourceError(''); }
-    catch (e) { setResourceError(e.message); }
-  }, [option, cardAppearance, ready]);
-  useEffect(() => { if (chart.current) loading ? chart.current.showLoading() : chart.current.hideLoading(); }, [loading, ready]);
+    try { chart.current.setOption(withAnalysisAppearance(option, cardAppearance), { notMerge: true }); setChartError(''); }
+    catch (e) { setChartError(e.message); }
+  }, [option, cardAppearance]);
+  useEffect(() => { if (chart.current) loading ? chart.current.showLoading() : chart.current.hideLoading(); }, [loading, hasOption]);
   return <article className="oy-advanced-chart" style={{ ...cardAppearance?.cardStyle, ...style }} aria-busy={loading}>
     <style>{`.oy-advanced-chart{min-width:0;max-width:100%;box-sizing:border-box;padding:18px 20px;background:var(--analysis-surface,#fff);color:var(--analysis-ink,#35445b);border-radius:var(--analysis-radius,12px);font:12px/1.5 system-ui,sans-serif}.oy-advanced-chart *{box-sizing:border-box}.oy-advanced-chart header{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:4px}.oy-advanced-chart header>div{display:flex;gap:5px;align-items:center;flex-wrap:wrap}.oy-advanced-chart h3{font-size:15px;color:inherit;margin:0}.oy-advanced-chart p{font-size:11px;color:var(--analysis-muted,#738095);margin:4px 0 12px}.oy-advanced-chart button{font:inherit;color:inherit;border:0;border-radius:6px;padding:5px 9px;background:#edf1f6;cursor:pointer}.oy-advanced-chart button:focus-visible{outline:2px solid #4e72b8;outline-offset:2px}.oy-advanced-chart .ec-refresh{position:relative;width:30px;height:30px;padding:6px;background:transparent}.oy-advanced-chart .ec-refresh:after{content:attr(data-tip);position:absolute;right:0;top:32px;white-space:nowrap;background:#35445b;color:#fff;padding:3px 7px;border-radius:4px;z-index:2;visibility:hidden}.oy-advanced-chart .ec-refresh:focus-visible:after,.oy-advanced-chart .ec-refresh:hover:after{visibility:visible}.oy-advanced-chart .ec-refresh:hover{background:#edf1f6}.oy-advanced-chart .ec-refresh:disabled{opacity:.4;cursor:wait}`}</style>
     <header><h3>{title}</h3><div>{actions}{onRefresh && <button className="ec-refresh" aria-label={'刷新'+title} title="刷新数据" data-tip="刷新数据" disabled={loading} onClick={onRefresh}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16M8 16H3v5"/></svg>
     </button>}</div></header>
     {note && <p>{note}</p>}
-    {(error || resourceError) && <p role="alert">{String(error?.message || error || resourceError)} {(resourceError || onRefresh) && <button onClick={() => resourceError ? setRetry(n => n + 1) : onRefresh?.()}>重试</button>}</p>}
+    {(error || chartError) && <p role="alert">{String(error?.message || error || chartError)} {onRefresh && <button onClick={onRefresh}>重试</button>}</p>}
     {!loading && (empty || !option) && <p>当前范围没有可绘制的数据</p>}
-    <div ref={element} role="img" aria-label={title} style={{ height, minWidth: 0, visibility: error || resourceError || empty ? 'hidden' : 'visible' }} />
+    <div ref={element} role="img" aria-label={title} style={{ height, minWidth: 0, visibility: error || chartError || empty ? 'hidden' : 'visible' }} />
   </article>;
 }

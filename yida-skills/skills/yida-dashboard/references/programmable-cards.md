@@ -93,7 +93,7 @@ const filters = business ? [{ field: businessField, op: 'eq', values: [business]
 - 刷新等通用操作用右上角弱化图标，图标约 16px、点击区域至少 30–32px；触屏按需扩大至 44px。图标有可访问名称、悬停/键盘焦点提示、禁用与加载态。
 - 图表/数据表使用紧凑分段切换，保持选中态；卡片没有第二种视图时不放切换。低频导出/下载放入更多菜单，只提供已接通的动作。
 - 下钻由图形点击触发，并提供语义明确的文字入口；当前层级与返回路径始终可发现。错误重试和关键业务操作保留文字，不将所有动作机械地替换为图标。
-- 图标优先使用宿主已有图标库；原生报表仅支持 react/antd/recharts 时，可内联带来源与许可证的标准图标 SVG，不用字符模拟图标、不逐卡加载脚本。普通工具栏避免高对比大描边，与标题、图例和主要数据保持视觉层级。
+- 图标优先使用宿主已有图标库。报表卡片可内联带来源与许可证的标准图标 SVG。普通工具栏与标题、图例和主要数据保持视觉层级。
 
 ### 图表组件库与数据契约
 
@@ -116,11 +116,11 @@ const filters = business ? [{ field: businessField, op: 'eq', values: [business]
 
 数据由每卡 Host/query 或原生 analysis 独立传入；库只负责绘图，权限和业务查询继续留在平台。有真实聚合数据即可使用高级图表，不要求为了换图形再建报表。数据不满足契约时说明缺失；实验室演示数据单独分区标记，不掺入业务合计。箱型图需要服务端五数摘要或明确授权的完整样本，禁止用分页片段/几个汇总值猜分位数。
 
-高级组件复用固定 ECharts 5.6.0 CDN，词云按需加载兼容的 echarts-wordcloud 2.1.0。源码提供窗口级 Promise 缓存，多个独立卡片共享加载、失败可重试；不向 yida-ui 塞业务模板。不要重复加载不同 ECharts 版本。词云依赖 jsDelivr，环境不可访问时展示加载错误，不静默换成词频文字列表。
+在可编程卡片和 CodeCanvas 中使用 `import * as echarts from 'echarts'`。词云另加 `import 'echarts-wordcloud'`。完整高级组件示例包含词云配方和这条导入。组件运行时根据导入加载 ECharts 5.6.0 和词云扩展，同一页面的卡片共享资源，资源加载错误由运行时展示。
 
 组件支持 ResizeObserver、卸载 dispose、点击回传原始行、dataZoom 回调、loading/error/empty 和动作插槽。点击回调由父级接入关联/下钻，图表库不会自动查询。option 用 useMemo 保持稳定；父级主题变更时提供实际颜色值，Canvas 图表不能直接消费 CSS var。正式交付逐图核对标题、单位、图例、原始数据及交互，不以“图形出现”代替数据验收。
 
-组合时保留模板中的 `loadAnalysisCharts` 与 `analysisChartOption`，合并 React import，默认导出改名后再写本卡业务适配层。例如已核实查询别名为 `business/budget`：
+组合时保留模板中的 ECharts import 和 `analysisChartOption`，合并 React import，默认导出改名后再写本卡业务适配层。例如已核实查询别名为 `business/budget`：
 
 ```jsx
 function BudgetCard({ analysis }) {

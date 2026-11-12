@@ -3,10 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 const source = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/analysis-echarts.canvas.jsx'), 'utf8');
-const { runtimeCode } = compileCanvasLocal(source);
-const load = (window = {}, document = {}) => new Function('window', 'document', 'setTimeout', 'clearTimeout',
-  runtimeCode + ';return {analysisChartOption,loadAnalysisCharts};')(Object.assign(window, { React: {} }), document, () => 1, () => {});
-const option = load().analysisChartOption;
+const { runtimeCode, importedModules } = compileCanvasLocal(source);
+const option = new Function('window', runtimeCode + ';return analysisChartOption;')({ React: {}, echarts: {} });
 
 test('boxplot requires an ordered five-number summary, never infers quantiles', () => {
   const row = { name: 'A', values: [1, 3, 4, 6, 9] };
@@ -39,32 +37,30 @@ test('all chart families produce their intended series', () => {
   expect(option('wordcloud', points).series[0].type).toBe('wordCloud');
   expect(option('sankey', { nodes: [{ name: 'A' }, { name: 'B' }], links: [{ source: 'A', target: 'B', value: 2 }] }).series[0].type).toBe('sankey');
 });
-test('concurrent cards share scripts and wordcloud loads after ECharts', async () => {
-  const scripts = [], window = {};
-  const document = { createElement: () => ({ remove() {} }), head: { appendChild: s => scripts.push(s) } };
-  const api = load(window, document);
-  const a = api.loadAnalysisCharts(true), b = api.loadAnalysisCharts(true);
-  expect(scripts).toHaveLength(1);
-  window.echarts = { version: '5.6.0' }; scripts[0].onload();
-  await Promise.resolve(); await Promise.resolve();
-  expect(scripts).toHaveLength(2);
-  window['echarts-wordcloud'] = {}; scripts[1].onload();
-  expect(await a).toBe(window.echarts); expect(await b).toBe(window.echarts);
+test('ECharts and word cloud imports work in both card compilation paths', () => {
+  const deps = ['echarts', 'echarts-wordcloud', 'react'];
+  expect(JSON.parse(importedModules)).toEqual(deps);
+  const { renderCard } = require('../lib/report/analysis-presentation').buildAnalysisPresentation({ renderCard: { source } });
+  expect(renderCard.importedModules).toEqual(deps);
+  const loaded = [];
+  const entry = { exports: {} };
+  new Function('require', 'module', 'exports', renderCard.runtimeCode)(id => {
+    loaded.push(id);
+    return {};
+  }, entry, entry.exports);
+  expect(loaded).toEqual(expect.arrayContaining(deps));
+  expect(typeof entry.exports.default).toBe('function');
+  expect(source).not.toMatch(/createElement\(['"]script|window\.echarts/);
 });
-test('failed library loads are retryable and existing incompatible versions are preserved', async () => {
-  const scripts = [], window = {};
-  const api = load(window, { createElement: () => ({ remove() {} }), head: { appendChild: s => scripts.push(s) } });
-  const pending = api.loadAnalysisCharts(); scripts[0].onerror();
-  await expect(pending).rejects.toThrow('加载失败');
-  const retry = api.loadAnalysisCharts(); expect(scripts).toHaveLength(2);
-  window.echarts = { version: '5.6.0' }; scripts[1].onload(); await retry;
-  window.echarts = { version: '6.0.0' };
-  await expect(api.loadAnalysisCharts()).rejects.toThrow('版本不一致');
-  expect(window.echarts.version).toBe('6.0.0');
+
+test('existing sources can still use their own ECharts global', () => {
+  const legacy = 'export default function Chart() { return window.echarts?.version || null; }';
+  expect(JSON.parse(compileCanvasLocal(legacy).importedModules)).not.toContain('echarts');
+  expect(JSON.parse(compileCanvasLocal(legacy, { reportAnalysis: true }).importedModules)).not.toContain('echarts');
 });
 
 test('shared legend appearance preserves interaction, layout and multiple legend groups', () => {
-  const withAppearance = new Function('window', runtimeCode + ';return withAnalysisAppearance;')({ React: {} });
+  const withAppearance = new Function('window', runtimeCode + ';return withAnalysisAppearance;')({ React: {}, echarts: {} });
   const appearance = { echartsLegend: { itemWidth:20, itemHeight:20, icon:'path://M0,0H20V20Z', textStyle:{fontSize:16} } };
   const original = { legend:[{ bottom:0, selected:{A:false}, textStyle:{color:'red'} }, {right:0}], series:[{name:'A'}] };
   const result = withAppearance(original, appearance);
