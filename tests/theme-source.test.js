@@ -214,9 +214,16 @@ test('report and portal theme defaults preserve authored values and stay idempot
   expect(css.match(/--pod-page-bg-image:/g)).toHaveLength(1);
   expect(css.match(/--pod-page-bg-color:/g)).toHaveLength(1);
   expect(css).toContain('--pod-card-mobile-padding: 12px;');
+  expect(css).toContain('--pod-page-mobile-margin: 12px;');
   expect(css).toContain('--pod-card-border-radius: 20px;');
+  expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--pod-table-border-radius: 6px;/);
   expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-row-hover-bg:/);
   expect(applyReportThemeTokens(css)).toBe(css);
+  const overrides = ':root { --pod-page-mobile-margin: 24px; --pod-table-border-radius: 0px; }';
+  const custom = applyReportThemeTokens(overrides);
+  expect(custom.startsWith(overrides)).toBe(true);
+  expect(custom.match(/--pod-page-mobile-margin:/g)).toHaveLength(1);
+  expect(custom.match(/--pod-table-border-radius:/g)).toHaveLength(1);
 });
 
 test('generated themes fill mobile aliases and keep authored categorical palettes', () => {
