@@ -91,6 +91,54 @@ const filters = business ? [{ field: businessField, op: 'eq', values: [business]
 - 下钻由图形点击触发，并提供语义明确的文字入口；当前层级与返回路径始终可发现。错误重试和关键业务操作保留文字，不将所有动作机械地替换为图标。
 - 图标优先使用宿主已有图标库；原生报表仅支持 react/antd/recharts 时，可内联带来源与许可证的标准图标 SVG，不用字符模拟图标、不逐卡加载脚本。普通工具栏避免高对比大描边，与标题、图例和主要数据保持视觉层级。
 
+### 图表组件库与数据契约
+
+`openyida sample openyida-page-template analysis-echarts` 提取可编辑的高级图表组件。重命名默认组件为 `AdvancedChart`；`analysisChartOption(kind, data, config)` 只生成 option，不查询数据、不规定平台展示枚举。可以完全绕过配方传入自定义 option。指标卡继续用 `analysis-metric`，常规轻量图用 `analysis-chart`。
+
+| 配方 | 必需数据 | 适合表达 |
+| --- | --- | --- |
+| line / area / bar | name + 指标；config.measures 定义多系列 | 趋势、量级、比较 |
+| stacked-area / stacked-bar | 同单位且可相加的系列 | 构成变化；预算与支出不可直接叠加 |
+| pie / donut / rose | name/value，非负、同口径 | 部分占整体；全零用空态 |
+| radar | indicators(name/max) + series(name/values) | 多维轮廓；统一量程或明确归一化依据 |
+| scatter / bubble | name/x/y；气泡另有非负 size | 关系、聚类；不暗示因果 |
+| heatmap | x/y 分类 + cells[x索引,y索引,值] | 时间×类别的密度分布 |
+| boxplot | name/values[下须,Q1,中位数,Q3,上须]，可配 outliers | 分布；声明样本范围、分位算法与须规则 |
+| wordcloud | name/value，明确是词频还是业务权重 | 关键词概览；不拿词云替代精确排行 |
+| treemap / sunburst | name/value/children 层级树 | 层级构成；不得虚构父子关系 |
+| funnel | 同一转化链路按阶段排列的非递增人数 | 转化；分类排行不是漏斗 |
+| sankey | nodes(name) + links(source/target/value) | 有依据的流向，核对流量守恒 |
+| gauge | value 为0–100、name | 有明确分母的百分比进度 |
+
+数据由每卡 Host/query 或原生 analysis 独立传入；库只负责绘图，权限和业务查询继续留在平台。有真实聚合数据即可使用高级图表，不要求为了换图形再建报表。数据不满足契约时说明缺失；实验室演示数据单独分区标记，不掺入业务合计。箱型图需要服务端五数摘要或明确授权的完整样本，禁止用分页片段/几个汇总值猜分位数。
+
+高级组件复用固定 ECharts 5.6.0 CDN，词云按需加载兼容的 echarts-wordcloud 2.1.0。源码提供窗口级 Promise 缓存，多个独立卡片共享加载、失败可重试；不向 yida-ui 塞业务模板。不要重复加载不同 ECharts 版本。词云依赖 jsDelivr，环境不可访问时展示加载错误，不静默换成词频文字列表。
+
+组件支持 ResizeObserver、卸载 dispose、点击回传原始行、dataZoom 回调、loading/error/empty 和动作插槽。点击回调由父级接入关联/下钻，图表库不会自动查询。option 用 useMemo 保持稳定；父级主题变更时提供实际颜色值，Canvas 图表不能直接消费 CSS var。正式交付逐图核对标题、单位、图例、原始数据及交互，不以“图形出现”代替数据验收。
+
+组合时保留模板中的 `loadAnalysisCharts` 与 `analysisChartOption`，合并 React import，默认导出改名后再写本卡业务适配层。例如已核实查询别名为 `business/budget`：
+
+```jsx
+function BudgetCard({ analysis }) {
+  const option = useMemo(() => analysisChartOption('pie', analysis.rows.map(row => ({
+    name: row.business, value: row.budget, raw: row,
+  }))), [analysis.rows]);
+  return <AdvancedChart title="业务线预算构成" note="当前查询范围 · 元"
+    option={option} loading={analysis.loading} error={analysis.error}
+    empty={!analysis.rows.length} onRefresh={analysis.refresh}
+    onSelect={analysis.canDrill ? row => analysis.select(row) : undefined} />;
+}
+// 每个区块独立 Host；外包一个 min-width:0 的布局节点，防止 renderContent
+// 返回 Fragment 时多个子元素直接进入父级 Grid、错占相邻卡片的格位。
+<div style={{ minWidth: 0 }}>
+  <Host query={budgetQuery} renderContent={a => <BudgetCard analysis={a} />} />
+</div>
+```
+
+图元回调有等效文字/键盘入口，且仅在支持下钻时调用 `select`；仅做关联时接页面共享筛选。时间必须按实际日期值或服务端时间字段排序，不能对 ISO 日期字符串直接 `Number()` 后排序。缺数值不填零，预算与支出不能堆叠成总额。复杂图形模板是组件起点，不是把所有配方同时塞进一张业务卡。
+
+参考：[ECharts 数据变换](https://echarts.apache.org/handbook/en/concepts/data-transform/)、[ECharts 词云扩展](https://github.com/ecomfe/echarts-wordcloud)。
+
 ### 颜色与圆角基线
 
 - 浅色经营分析：浅灰绿画布、白色图表面、青绿主色、暖橙辅助色；深色趋势分析：藏蓝画布、稍亮藏蓝面、青蓝主色、琥珀辅助色。主指标可用低跨度渐变与原创低透明度几何 SVG，不复制参考站点图片。
