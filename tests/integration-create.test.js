@@ -1030,9 +1030,9 @@ describe('integration create command', () => {
     );
     const saveParams = integrationApi.saveProcess.mock.calls[0][1];
     const processNode = saveParams.processJson.nodes.find(node => node.type === 'httpConnector');
-    expect(processNode.props.inputs.assignments).toEqual(expect.arrayContaining([
-      expect.objectContaining({ column: 'systemToken', value: 'secret-system-token' }),
-    ]));
+    const body = processNode.props.inputs.assignments.find(item => item.column === 'Body');
+    expect(body.valueType).toBe('literal');
+    expect(JSON.parse(body.value)).toEqual({ systemToken: 'secret-system-token' });
     expect(JSON.stringify(logSpy.mock.calls)).not.toContain('secret-system-token');
     expect(JSON.stringify(logSpy.mock.calls)).toContain('credentialExposed');
   });

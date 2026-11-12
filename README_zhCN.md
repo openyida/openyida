@@ -295,6 +295,8 @@ openyida data query subform APP_XXX FORM_XXX --inst-id FORM_INST_XXX --table-fie
 
 录入或更新数据前先用 `openyida get-schema` 获取真实 fieldId。`DateField` / `CascadeDateField` 使用 13 位毫秒时间戳，例如 `1719705600000`。
 
+历史普通表单记录默认不请求升级。需要写入后来新增的字段时，显式传入 `--use-latest-version y`；该选择会强制回读提交字段及实例版本，升级未生效会返回非零且不自动重写。详见[历史记录版本更新](docs/guides/form-version-update.md)。
+
 ### 报表和 ECharts
 
 ```bash
@@ -483,6 +485,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida connector delete-action <id> <operation-id>` | 删除执行动作 |
 | `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>] [--ignore-defaults]` | 测试执行动作 |
 | `openyida connector list-connections <id>` | 列出鉴权账号 |
+| `openyida connector connection <detail\|update> <connector-id> <connection-id> [--name <name>] [--confirm --interactive] [--json]` | 读取鉴权账号元数据，或通过终端隐藏输入完整替换凭据。 |
 | `openyida connector create-connection <id> <name> [--interactive] [--repair-api-key-scheme]` | 创建鉴权账号 |
 | `openyida connector smart-create --curl "..."` | 从 cURL 生成脱敏动作草稿（不创建远端资源） |
 | `openyida connector parse-api [options]` | 解析接口信息 |

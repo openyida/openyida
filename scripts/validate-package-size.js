@@ -97,7 +97,11 @@ const path = require('path');
 // Node 20 measures about 2,706 KiB compressed and 9,920 KiB unpacked; keep bounded headroom.
 // Form data seeding, schema guards, and the Canvas sample merged with main
 // measure 2,789,968 compressed bytes on Node 20.18.1. Use the next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2736 * 1024;
+// Nested connector JSON compilation, account maintenance and explicit historical
+// form upgrades combined with main: CI Node 20.20.2 measures 2,803,299 compressed
+// bytes / 10,248,580 unpacked bytes, 814 files. Advance byte ratchets one 16 KiB
+// step for this shipped content; entry and single-file limits stay unchanged.
+const MAX_TARBALL_BYTES = 2752 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -249,7 +253,7 @@ const MAX_TARBALL_BYTES = 2736 * 1024;
 // packaged workflow reference. Merged Node 23 measurement: 10,226,230 bytes /
 // 813 files, 2,614 bytes above the previous limit. Use the next 16 KiB boundary;
 // compressed, entry-count and individual-file limits stay unchanged.
-const MAX_UNPACKED_BYTES = 10000 * 1024;
+const MAX_UNPACKED_BYTES = 10016 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.

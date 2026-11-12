@@ -1238,6 +1238,7 @@ async function dispatchCommand() {
         'test':              '../lib/connector/connector-test',
         'list-connections':  '../lib/connector/connector-list-connections',
         'create-connection': '../lib/connector/connector-create-connection',
+        'connection':        '../lib/connector/connector-create-connection',
         'smart-create':      '../lib/connector/connector-smart-create',
         'parse-api':         '../lib/connector/connector-parse-api',
         'gen-template':      '../lib/connector/connector-gen-template',
@@ -1251,13 +1252,14 @@ async function dispatchCommand() {
   list                                         列出 HTTP 连接器
   create "名称" "域名" --operations <file>      创建连接器
   detail <connector-id>                        查看连接器详情
-  delete <connector-id> [--force]              删除连接器
+  delete <connector-id> [--force]              ${t('help.cmd_connector_delete')}
   add-action --operations <file> --connector-id <id>  添加执行动作
   update-action --connector-id <id> --action <id> --query-json <JSON> --confirm  安全更新动作 Query 默认值
   list-actions <connector-id>                  列出执行动作
   delete-action <connector-id> <operation-id>  删除执行动作
   test --connector-id <id> --action <actionId> [结构化 JSON 参数] 测试执行动作
   list-connections <connector-id>              列出鉴权账号
+  connection <detail|update> <connector-id> <account-id> [--confirm --interactive] 鉴权账号维护
   create-connection <connector-id> <name> [--interactive] 创建鉴权账号；钉钉凭据可在本机隐藏输入
   smart-create --curl "curl命令"               生成脱敏连接器动作草稿（不创建远端资源）
   parse-api [选项]                             解析接口信息
@@ -1273,7 +1275,8 @@ async function dispatchCommand() {
         throwCliUsage(`未知的 connector 子命令: ${subCommand}`, '使用 openyida connector --help 查看可用子命令');
       }
 
-      const { run: runConnector } = require(modulePath);
+      const connectorCommand = require(modulePath);
+      const runConnector = subCommand === 'connection' ? connectorCommand.runConnection : connectorCommand.run;
       await runConnector(subArgs);
       break;
     }

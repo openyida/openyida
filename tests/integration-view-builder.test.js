@@ -28,6 +28,58 @@ test('keeps nested body assignments on connector child rules', () => {
     parentId: 'Body',
     rules: [expect.objectContaining({ value: 'secret', valueType: 'literal' })],
   });
+  expect(rules[0].rules).toEqual([expect.objectContaining({ name: 'systemToken', valueType: 'literal', value: 'secret' })]);
+});
+
+test('native editor rules expose nested Object mappings instead of empty groups', () => {
+  const rules = buildConnectorRulesFromInputs([
+    { name: 'Headers', paramType: 'Object', childList: [{ name: 'Content-Type', componentName: 'TextField' }] },
+    { name: 'Body', paramType: 'Object', childList: [
+      { name: 'options', paramType: 'Object', childList: [{ name: 'count', componentName: 'NumberField' }] },
+      { name: 'tagName', componentName: 'TextField' },
+    ] },
+  ], [
+    { column: 'Headers.Content-Type', valueType: 'literal', value: 'application/json' },
+    { column: 'Body.options.count', valueType: 'literal', value: 7 },
+    { column: 'Body.tagName', valueType: 'processVar', value: 'textField_marker' },
+  ]);
+  // Pinned contract: flow-common generateSchema::processArr and
+  // ActionRulesEditorNest traverse only the rules collections.
+  const native = list => list.map(item => {
+    if (!item.childList?.length && item.rules?.[0]) {
+      const leaf = item.rules[0];
+      return { column: leaf.name, valueType: leaf.valueType, value: leaf.value, assignments: [] };
+    }
+    return { column: item.name, valueType: item.valueType || item.paramType, value: item.value || '', assignments: native(item.rules || []) };
+  });
+  expect(native(rules)).toEqual([
+    { column: 'Headers', valueType: 'Object', value: '', assignments: [
+      { column: 'Content-Type', valueType: 'literal', value: 'application/json', assignments: [] },
+    ] },
+    { column: 'Body', valueType: 'Object', value: '', assignments: [
+      { column: 'options', valueType: 'Object', value: '', assignments: [
+        { column: 'count', valueType: 'literal', value: 7, assignments: [] },
+      ] },
+      { column: 'tagName', valueType: 'processVar', value: 'textField_marker', assignments: [] },
+    ] },
+  ]);
+});
+
+test('native editors can display numeric and Boolean values from generic TextField schemas', () => {
+  const rules = buildConnectorRulesFromInputs([{ name: 'Body', childList: [
+    { name: 'count', paramType: 'Number', componentName: 'TextField' },
+    { name: 'enabled', paramType: 'Boolean', componentName: 'TextField' },
+    { name: 'code', paramType: 'String', componentName: 'TextField' },
+  ] }], [
+    { column: 'Body.count', valueType: 'literal', value: -2.25 },
+    { column: 'Body.enabled', valueType: 'literal', value: false },
+    { column: 'Body.code', valueType: 'literal', value: '0012' },
+  ]);
+  expect(rules[0].rules).toEqual([
+    expect.objectContaining({ name: 'count', componentName: 'NumberField', value: -2.25 }),
+    expect.objectContaining({ name: 'enabled', componentName: 'TextField', value: 'false' }),
+    expect.objectContaining({ name: 'code', componentName: 'TextField', value: '0012' }),
+  ]);
 });
 
 function getFlatMessagePair(options = {}) {
