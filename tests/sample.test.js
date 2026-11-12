@@ -39,14 +39,16 @@ describe('sample templates', () => {
     const output = path.join(tmpDir, 'analysis-card.jsx');
     await run(['openyida-page-template', 'canvas-analysis-card', '--output', output]);
     const { runtimeCode, importedModules } = compileCanvasLocal(fs.readFileSync(output, 'utf8'));
-    expect(JSON.parse(importedModules)).toEqual(['react']);
+    expect(JSON.parse(importedModules)).toEqual(['antd', 'react', 'recharts']);
     const React = {
       Fragment: 'fragment',
+      useState: () => [true, () => {}],
       createElement(type, props, ...children) {
         return typeof type === 'function' ? type(props || {}) : { type, props, children };
       },
     };
-    const render = new Function('window', `${runtimeCode}; return YidaComp;`)({ React });
+    const widgets = new Proxy({}, { get: (_, key) => key });
+    const render = new Function('window', `${runtimeCode}; return YidaComp;`)({ React, antd: widgets, Recharts: widgets });
     const find = (node, type) => {
       if (Array.isArray(node)) {return node.flatMap(child => find(child, type));}
       if (!node || typeof node !== 'object') {return [];}
@@ -54,8 +56,8 @@ describe('sample templates', () => {
     };
 
     expect(JSON.stringify(render({}))).toContain('示例数据');
-    const empty = render({ aggregatedRows: [] });
-    expect(JSON.stringify(empty)).toContain('当前筛选下没有数据');
+    const empty = render({ aggregatedRows: [], fields: { dimension: 'code', metric: 'total' } });
+    expect(JSON.stringify(empty)).toContain('当前筛选下暂无数据');
     expect(find(empty, 'li')).toHaveLength(0);
 
     const onSelect = jest.fn();
@@ -64,13 +66,11 @@ describe('sample templates', () => {
       fields: { dimension: 'code', metric: 'total' },
       onSelect,
     });
-    const buttons = find(live, 'button');
-    expect(buttons).toHaveLength(2);
-    expect(JSON.stringify(buttons[0])).toContain(new Intl.NumberFormat('zh-CN', {
-      style: 'currency', currency: 'CNY', maximumFractionDigits: 0,
-    }).format(0));
-    expect(JSON.stringify(buttons[1])).toContain('—');
-    buttons[0].props.onClick();
+    const table = find(live, 'Table')[0];
+    const first = table.props.dataSource[0];
+    expect(table.props.columns[1].render(null, first)).toBe('0');
+    expect(table.props.columns[1].render(null, table.props.dataSource[1])).toBe('—');
+    table.props.columns[0].render(null, first).props.onClick();
     expect(onSelect).toHaveBeenCalledWith(27);
   });
 

@@ -293,7 +293,8 @@ const MAX_UNPACKED_BYTES = 10000 * 1024;
 // The task-concurrency runtime adds exactly one packaged module.
 // Independent Fast theme generation adds one runtime module; byte budgets are unchanged.
 // Main file-upload support adds three packaged files.
-const MAX_ENTRY_COUNT = 814;
+// The reusable analysis-card-content Canvas source adds exactly one packaged template.
+const MAX_ENTRY_COUNT = 815;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

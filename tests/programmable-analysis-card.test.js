@@ -1,7 +1,9 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const React = { createElement: (type, props, ...children) => ({ type, props, children }) };
+const React = { createElement: (type, props, ...children) => ({ type, props, children }), useState: () => [true, () => {}] };
+const find = (node, type) => Array.isArray(node) ? node.flatMap(child => find(child, type)) :
+  !node || typeof node !== 'object' ? [] : [...(node.type === type ? [node] : []), ...find(node.children || [], type)];
 const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 const { buildChartNode } = require('../lib/report/chart-builder');
 const { validateChartConfigDetailed } = require('../lib/report/validation');
@@ -25,7 +27,7 @@ test('live Canvas template delegates queries and native card references to the i
   const source = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/canvas-analysis-card.canvas.jsx'), 'utf8');
   const { runtimeCode } = compileCanvasLocal(source);
   const host = props => React.createElement('div', null, props.cardCode);
-  const canvasWindow = { React, __VcDeepYidaUtils__: { YidaAnalysisCard: host } };
+  const canvasWindow = { React, antd: {}, Recharts: {}, __VcDeepYidaUtils__: { YidaAnalysisCard: host } };
   const Component = new Function('window', runtimeCode + '; return YidaComp;')(canvasWindow);
   const query = { version: 1, cubeCode: 'FORM_TEST' };
   const element = Component({ nativeCardCode: 'CARD-test', query });
@@ -35,7 +37,7 @@ test('live Canvas template delegates queries and native card references to the i
 });
 
 
-test('CLI generates the editable native analysis config without a packaged template file', async () => {
+test('CLI generates a multi-chart source shared by standalone and native report templates', async () => {
   const os = require('os');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-analysis-card-'));
   try {
@@ -54,7 +56,8 @@ test('CLI generates the editable native analysis config without a packaged templ
     const Button = () => null;
     const BarChart = () => null;
     const reportModule = { exports: {} };
-    const dependencies = { react: React, antd: { Button }, recharts: { BarChart } };
+    const PieChart = () => null;
+    const dependencies = { react: React, antd: { Button }, recharts: { BarChart, PieChart } };
     new Function('require', 'module', 'exports', renderCard.runtimeCode)(
       (name) => dependencies[name], reportModule, reportModule.exports
     );
@@ -65,11 +68,13 @@ test('CLI generates the editable native analysis config without a packaged templ
       columns: [{ key: 'label' }, { key: 'value', numeric: true }],
       refresh,
     } });
-    expect(card.children[0]).toMatchObject({ type: Button, props: { onClick: refresh } });
-    expect(card.children[1].children[0]).toMatchObject({
+    expect(find(card, Button).some(button => button.props.onClick === refresh)).toBe(true);
+    expect(find(card, BarChart)[0]).toMatchObject({
       type: BarChart,
-      props: { data: [{ label: '华东', value: 30000, row: { label: '华东', value: 30000 } }] },
+      props: { data: [{ index: 0, label: '华东', value: 30000, row: { label: '华东', value: 30000 } }] },
     });
+    expect(find(card, PieChart)).toHaveLength(1);
+    expect(chart.renderCard.source).toBe(fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/analysis-card-content.canvas.jsx'), 'utf8'));
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 

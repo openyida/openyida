@@ -178,7 +178,7 @@ antd 页面使用 CanvasThemeProvider，图表通过 useCanvasThemeContext 取�
 
 ## 接入真实数据
 
-已有聚合结果且需要在画布展示排行时，运行 `openyida sample openyida-page-template canvas-analysis-card --output pages/src/analysis-card.jsx`。把服务端排好序的结果传给 `aggregatedRows`，用 `fields.dimension` 和 `fields.metric` 指定维度与数值字段。需要联动时由调用方通过 `onSelect` 接收原始维度值。预览用的示例数据会标明来源，查询返回空数组时显示空态。
+需要可编程分析卡片时，运行 `openyida sample openyida-page-template canvas-analysis-card --output pages/src/analysis-card.jsx`。模板包含可编辑的指标、分组对比、占比图和表格组合，不限制最终图表或布局。已有聚合结果传给 `aggregatedRows`，用 `fields.dimension/metric` 指定字段；`onSelect` 接收原始维度值。示例数据明确标注，空结果不替换为示例数据。
 
 - 完整应用或真实交付页先解析真实 `appType/formUuid/fieldId`；普通表单使用 `dataBinding.mode=form`，流程表单使用 `dataBinding.mode=process`。已有 `page-spec.json` 时同步该绑定。
 - 完整应用默认先用 `yida-data-management` 把 1-3 条业务化 seed records 写入核心普通表单并抽查，再让页面读取；前端静态数据只能用于明确标注的离线演示态。流程示例沿用已确认的[流程 seed 编排](../yida-data-management/references/process-seed-workflow.md)，页面按目标类型读取。
@@ -238,4 +238,8 @@ openyida get-schema <appType> <formUuid> --field-map-json
 | [component-library-guide.md](references/component-library-guide.md) | 组件库推荐组合和页面选型建议 | 选择 UI/图表依赖时阅读 |
 | [canvas-authoring-examples.md](references/canvas-authoring-examples.md) | 最小组件、hooks、副作用、图表示例 | 手写 `.canvas.jsx` 代码时阅读 |
 
-已有原生可编程数据卡片或需要开箱即用的聚合运行时时，运行 `openyida sample openyida-page-template canvas-analysis-card --output pages/src/analysis.jsx`。传入 `nativeCardCode` 可直接消费已发布卡片，保留其原生公式、时间粒度、筛选及下钻。独立查询则传入 `query`（version、cubeCode、dimensions、metrics、filters、orderBy、limit）、`drillDimensions` 和可选 `detailSource`；宿主组件管理取数、刷新、错误、面包屑和权限明细。此模板要求宿主已加载新版 `YidaAnalysisCard`，组件缺失时会显示明确错误。
+传入 `nativeCardCode` 可消费已发布卡片，保留原生公式、时间粒度、筛选和下钻。独立查询传入 `query`（version、cubeCode、dimensions、metrics、filters、orderBy、limit）、`drillDimensions` 和可选 `detailSource`。模板通过 `YidaAnalysisCard.renderContent(analysis)` 提供完整自定义 UI；源码负责标题、布局、加载、错误和空态。组件缺失时显示错误，先确认目标资源已集成。
+
+普通自定义页面也可直接拖入“可编程数据卡片”，不需要 AI 画布。在源码编辑器使用 `openyida sample openyida-page-template analysis-card-content --output pages/src/card-content.jsx` 生成的内容源码。此入口要求设计器支持 YidaAnalysisCard 的组件列表、编辑、应用及保存。画布内通过 `window.__VcDeepYidaUtils__.YidaAnalysisCard` 使用同一组件；平台同时导出 `analysisApi`。
+
+源码通过 `analysis.api.query(config)` 查询，`analysis.api.useQuery(config, drillDimensions)` 管理独立加载、错误、下钻及刷新状态，`analysis.api.queryDetails(source, filters, page, limit)` 读取权限过滤后的分页明细。每个图表可在函数组件顶层调用一次 useQuery；不要在条件或循环中调用。筛选通过 state 更新 config，排序及聚合交给服务器，明细 filters 显式包含当前查询与所选行条件。用真实字段与数据源 ID，不在源码写登录凭据或伪造应用身份。设计时保留主题 token、窄屏堆叠、数值格式、原始行回调和完整状态；占比与最高值标明“当前结果”，不要把 Top N 结果当作全量。

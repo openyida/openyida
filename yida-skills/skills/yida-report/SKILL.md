@@ -344,7 +344,9 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 
 目标环境加载新版 `YoushuAnalysisCard` 后，可使用 `type: "analysis"`。数据配置沿用原生 `xField`、`yField` 和日期粒度。`view` 支持 `table`、`bar`、`donut`、`kpi`。默认视图使用 Recharts 和 Ant Design。
 
-使用 `openyida sample openyida-page-template analysis-card-config` 获取单文件 JSX 示例。将源码写入 `renderCard.source`，用 `export default` 导出 React 组件，可以从 `react`、`antd`、`recharts` 导入。组件通过 `analysis` prop 读取 `rows`、`displayRows`、`columns`、`select`、`refresh`、`drillPath`、`back`、`details`。点击时将原始行传给 `select`，继续使用原生报表的联动和下钻。
+使用 `openyida sample openyida-page-template analysis-card-config` 获取含 JSX 源码的报表配置；仅需内容源码时用 `openyida sample openyida-page-template analysis-card-content`。默认设计组合指标、分组对比、占比图和表格，可完全改写。将源码写入 `renderCard.source`，用 `export default` 导出 React 组件，从 `react`、`antd`、`recharts` 导入。源码拥有完整展示，包括标题、加载、错误、空态及刷新按钮；`view` 只用于无源码的旧卡片。
+
+组件通过 `analysis` prop 读取 `rows`、`displayRows`、`columns`、`loading`、`error`、`select`、`refresh`、`drillPath`、`back`、`details`。点击时将原始行传给 select，保留原生联动和下钻。`analysis.api` 另提供 query(config)、useQuery(config, drillDimensions) 和 queryDetails(source, filters, page, limit)，用于独立查询与自定义明细 UI；它们使用当前应用上下文和服务端权限，不自动继承报表筛选，需显式传入配置。多次 useQuery 在函数组件顶层调用，各自维护状态。
 
 已有函数格式仍可使用 `renderCard` 字符串。函数参数同时提供 `React`、`antd`、`Recharts` 和上述数据及操作，适用于原生报表的函数编辑器。字段公式、筛选、排序和下钻继续在报表数据配置中管理。
 
