@@ -57,6 +57,12 @@ openyida create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-na
 
 传入 `--mode portal` 创建宜搭原生门户。创建后回读 `formType=portal`，并输出 `designerUrl` 和 `workbenchUrl`。使用门户设计器编辑和发布门户。门户模式不支持 `--hide-nav`。原生报表使用 `create-report`。
 
+### 原生门户沿用应用主题
+
+- 开发前读取目标应用的主题模式、品牌色和已启用的主题 CSS。可在应用主题设置中查看，或使用 `openyida app-theme snapshot <appType> --output-dir <new-dir> --json` 只读获取应用主题配置和 CSS。
+- 应用已启用新版主题样式时，以现有应用配色为准。在门户设计器中将支持绑定的属性设为「跟随主题」，使用 `--color-brand1-6` 作为强调色，页面底色和背景图使用 `--pod-page-bg-color`、`--pod-page-bg-image`，卡片底色和圆角使用 `--pod-card-bg-color`、`--pod-card-border-radius`。布局和间距沿用应用主题值。
+- 保留既有门户明确配置的自定义值。应用主题状态不明时先在门户设计器核对实际可用的绑定。完成后分别检查 PC 和移动端的品牌色、背景及卡片文字对比度。
+
 ### 千问办公调用约定
 
 仅在当前宿主为千问办公（QwenWork）时执行以下约定；可复用已确认的宿主信息，需核实时单独执行 `openyida env --json`，以 `active.toolId=qwenwork` 为准。其他云端、Codex 等环境沿用各自的命令与浏览器交接方式。
