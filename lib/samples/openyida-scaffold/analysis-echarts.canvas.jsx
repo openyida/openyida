@@ -61,7 +61,7 @@ function analysisChartOption(kind, data, config = {}) {
   if (['scatter', 'bubble'].includes(kind)) {
     assert(data.every(r => finite(r.x) && finite(r.y) && (kind !== 'bubble' || finite(r.size) && r.size >= 0)), '散点坐标和气泡大小必须为有效数值');
     const max = Math.max(1, ...data.map(r => r.size || 0));
-    return { ...base, ...axis, xAxis: { type: 'value', name: config.xName || '' }, yAxis: { ...axis.yAxis, name: config.yName || '' },
+    return { ...base, ...axis, xAxis: { type: 'value', name: config.xName || '', nameLocation: 'middle', nameGap: 28 }, yAxis: { ...axis.yAxis, name: config.yName || '' },
       series: [{ type: 'scatter', symbolSize: v => kind === 'bubble' ? 8 + 30 * Math.sqrt(v[2] / max) : 12,
         itemStyle: { opacity: .7 }, data: data.map(r => ({ name: r.name, value: [r.x, r.y, r.size || 0], raw: r.raw || r })) }] };
   }
