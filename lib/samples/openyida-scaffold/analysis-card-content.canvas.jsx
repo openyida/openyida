@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, Empty, Alert, Skeleton, Table } from 'antd';
 import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-/** Editable composition: the platform supplies data/actions; this component owns every visible element. */
+/** The report host owns the card frame; this source owns the content. */
 export default function YidaComp({ analysis }) {
   const [showTable, setShowTable] = useState(false);
   const { rows = [], displayRows = rows, columns = [], loading, error, refresh, select, back,
@@ -20,9 +20,9 @@ export default function YidaComp({ analysis }) {
   const palette = ['var(--color-brand1-6, #1677ff)', '#4e9d9a', '#9272cb', '#d4844b', '#6588b4'];
   const choose = item => { const row = item?.payload?.row || item?.row; if (row) select?.(row); };
   return (
-    <section className="oy-programmable-analysis" style={analysis?.appearance?.cardStyle} aria-busy={!!loading}>
+    <section className="oy-programmable-analysis" aria-busy={!!loading}>
       <style>{`
-        .oy-programmable-analysis { color:var(--color-text1-4,#1c2534); background:var(--pod-card-bg-color,#fff); border:1px solid var(--color-line1-1,#e8edf3); border-radius:var(--pod-card-border-radius,16px); padding:clamp(16px,3vw,24px); min-width:0; }
+        .oy-programmable-analysis { color:var(--color-text1-4,#1c2534); min-width:0; }
         .oy-programmable-analysis * { box-sizing:border-box; }
         .oy-programmable-analysis .head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
         .oy-programmable-analysis h2 { margin:0; font-size:18px; }
