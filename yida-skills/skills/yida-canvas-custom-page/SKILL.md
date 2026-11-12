@@ -44,6 +44,8 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 
 ## 核心定位
 
+可编程分析卡片的指标设计、多图组合与交互使用 [可编程卡片设计与交互](../yida-dashboard/references/programmable-cards.md)，可提取 `analysis-card-explorer`；在 AI 画布中通过 `YidaAnalysisCard.renderContent` 组合，普通自定义页也可独立挂载同一分析组件。
+
 用 React18 函数组件编写 `.canvas.jsx` / `.canvas.tsx` 页面。适用于官网、工作台、列表、详情、门户、看板，以及含图表、表单入口和复杂交互的页面。
 
 从 `yida-prd` 的 `prd/<项目名>/prd.md` 读取业务目标、页面区块、交互和数据要求；从 `yida-design` 的 `prd/<项目名>/design.md` 读取主题、布局、材质、圆角、密度、组件和状态规则。单页任务读取对应 PRD 章节和设计说明。

@@ -8,6 +8,41 @@ const { compileCanvasLocal } = require('../lib/app/canvas-compile');
 const { buildChartNode } = require('../lib/report/chart-builder');
 const { validateChartConfigDetailed } = require('../lib/report/validation');
 
+test('explorer links selection, tabs, brush scope and safe CSV to the same raw rows', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/analysis-card-explorer.canvas.jsx'), 'utf8');
+  const { runtimeCode } = compileCanvasLocal(source);
+  const states = []; const memos = []; let memoCursor = 0; let cursor = 0; let downloaded;
+  const react = { ...React, useMemo(fn, deps) {
+    const i = memoCursor++; const previous = memos[i];
+    if (!previous || deps.some((value, index) => value !== previous.deps[index])) {memos[i] = { deps, value: fn() };}
+    return memos[i].value;
+  }, useEffect() {}, useRef: () => ({ current: null }), useState(initial) {
+    const i = cursor++; if (!(i in states)) {states[i] = initial;}
+    return [states[i], value => { states[i] = typeof value === 'function' ? value(states[i]) : value; }];
+  } };
+  const Brush = () => null; const AreaChart = () => null;
+  const win = { React: react, Recharts: { Brush, AreaChart }, Blob: class { constructor(parts) { downloaded = parts.join(''); } }, URL: { createObjectURL: () => 'blob:test', revokeObjectURL() {} }, setTimeout: fn => fn() };
+  const doc = { createElement: () => ({ click() {}, remove() {} }), body: { appendChild() {} } };
+  const Component = new Function('window', 'document', runtimeCode + '; return YidaComp;')(win, doc);
+  const raw = [{ label: '=SUM(A1)', value: 10 }, { label: 'B', value: 20 }];
+  const select = jest.fn();
+  const analysis = { rows: raw, columns: [{ key: 'label' }, { key: 'value', numeric: true }], select };
+  const render = () => { cursor = 0; memoCursor = 0; return Component({ analysis, temporal: true }); };
+  const button = (tree, label) => find(tree, 'button').find(node => node.children.includes(label));
+  let tree = render();
+  button(tree, '=SUM(A1)').props.onClick();
+  tree = render(); button(tree, '下钻所选分组').props.onClick();
+  expect(select).toHaveBeenCalledWith(raw[0]);
+  button(tree, '数据表').props.onClick();
+  tree = render(); expect(find(tree, 'tbody')[0].children[0]).toHaveLength(1);
+  button(tree, '导出当前结果').props.onClick();
+  expect(downloaded).toContain("'=SUM(A1)"); expect(downloaded).not.toContain('"B"');
+  button(tree, '清除选择').props.onClick(); button(tree, '图表').props.onClick();
+  tree = render(); const chartData = find(tree, AreaChart)[0].props.data; find(tree, Brush)[0].props.onChange({ startIndex: 1, endIndex: 1 });
+  tree = render(); expect(find(tree, AreaChart)[0].props.data).toBe(chartData); button(tree, '导出当前结果').props.onClick();
+  expect(downloaded).toContain('"B"'); expect(downloaded).not.toContain('SUM(A1)');
+});
+
 test('analysis schema retains native formula and date grain alongside editable display code', () => {
   const renderCard = 'function renderCard({ React, rows }) { return React.createElement("div", null, rows.length); }';
   const result = buildChartNode({ type: 'analysis', cubeCode: 'FORM_TEST', view: 'bar', renderCard,
@@ -45,7 +80,8 @@ test('CLI generates a multi-chart source shared by standalone and native report 
     await require('../lib/core/sample').run(['openyida-page-template', 'analysis-card-config', '--output', output]);
     const [chart] = JSON.parse(fs.readFileSync(output, 'utf8')).charts;
     expect(chart).toMatchObject({ type: 'analysis', formUuid: 'FORM-REPLACE', view: 'bar' });
-    expect(chart.yField[0].aggregate).toBe('SUM');
+    expect(chart.yField[0].aggregateType).toBe('SUM');
+    expect(validateChartConfigDetailed({ ...chart, cubeCode: 'FORM_TEST' })).toEqual([]);
     const { renderCard } = buildChartNode({
       ...chart,
       cubeCode: 'FORM_TEST',

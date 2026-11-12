@@ -295,7 +295,8 @@ const MAX_UNPACKED_BYTES = 10000 * 1024;
 // Main file-upload support adds three packaged files.
 // The reusable analysis-card-content Canvas source adds exactly one packaged template.
 // Main also adds lib/core/command-context.js; the PR merge measures 816 files on Node 20.
-const MAX_ENTRY_COUNT = 816;
+// The rich explorer template and its shared design guide add exactly two files.
+const MAX_ENTRY_COUNT = 818;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

@@ -342,6 +342,8 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 
 ### 可编程数据卡片
 
+富交互与多图组合先读 [可编程卡片设计与交互](../yida-dashboard/references/programmable-cards.md)，提取 `analysis-card-explorer` 源码。图表、表格、联动、导出与装饰均由源码编写，不要求在 yida-ui 内添加新预设。
+
 目标环境加载新版 `YoushuAnalysisCard` 后，可使用 `type: "analysis"`。数据配置沿用原生 `xField`、`yField` 和日期粒度。`view` 支持 `table`、`bar`、`donut`、`kpi`。默认视图使用 Recharts 和 Ant Design。
 
 使用 `openyida sample openyida-page-template analysis-card-config` 获取含 JSX 源码的报表配置；仅需内容源码时用 `openyida sample openyida-page-template analysis-card-content`。默认设计组合指标、分组对比、占比图和表格，可完全改写。将源码写入 `renderCard.source`，用 `export default` 导出 React 组件，从 `react`、`antd`、`recharts` 导入。源码拥有完整展示，包括标题、加载、错误、空态及刷新按钮；`view` 只用于无源码的旧卡片。
