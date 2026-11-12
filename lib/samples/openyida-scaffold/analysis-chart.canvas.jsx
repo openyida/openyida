@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Area, AreaChart, Bar, BarChart, Brush, CartesianGrid, Cell, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
+// Refresh icon: Lucide (ISC), https://lucide.dev/license
 // One chart component. Rename YidaComp to AnalysisChart when composing.
 // rows: chronological aggregate points for trend, grouped aggregate rows otherwise.
 // onRangeChange is local-window selection, NOT a server query. Parent owns cross-card state.
@@ -36,9 +37,12 @@ export default function YidaComp({ rows = [], labelKey = 'label', valueKey = 'va
     <style>{`
       .oy-chart{--ch-bg:var(--analysis-surface,var(--pod-card-bg-color,#fff));--ch-ink:var(--analysis-ink,var(--color-text1-4,#203b38));--ch-muted:var(--analysis-muted,#667d79);--ch-line:var(--analysis-line,#dce8e4);--ch-accent:var(--analysis-accent,var(--color-brand1-6,#148979));--ch-second:var(--analysis-series-2,#e6a04b);min-width:0;padding:22px;border-radius:var(--analysis-radius,12px);background:var(--ch-bg);color:var(--ch-ink);font:13px/1.6 system-ui,sans-serif}
       .oy-chart.dark{color-scheme:dark;--ch-bg:var(--analysis-surface,#192c46);--ch-ink:var(--analysis-ink,#edf5ff);--ch-muted:var(--analysis-muted,#a4b6ce);--ch-line:var(--analysis-line,#2b415d);--ch-accent:var(--analysis-accent,#41c6d4);--ch-second:var(--analysis-series-2,#efb86b)}
-      .oy-chart header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.oy-chart h3{color:var(--ch-ink);font-size:15px;margin:0;border-left:3px solid var(--ch-accent);padding-left:8px}.oy-chart p{font-size:12px;color:var(--ch-muted);margin:6px 0 16px}.oy-chart button{font:inherit;color:inherit;background:transparent;border:1px solid var(--ch-line);border-radius:6px;padding:5px 10px;cursor:pointer}.oy-chart button:focus-visible{outline:2px solid var(--ch-accent);outline-offset:2px}.oy-chart .recharts-cartesian-axis-tick-value,.oy-chart .recharts-brush-texts text{fill:var(--ch-muted);font-size:11px}.oy-chart .recharts-cartesian-axis-line,.oy-chart .recharts-cartesian-axis-tick-line{stroke:var(--ch-line)}
+      .oy-chart header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.oy-chart h3{color:var(--ch-ink);font-size:15px;margin:0;border-left:3px solid var(--ch-accent);padding-left:8px}.oy-chart p{font-size:12px;color:var(--ch-muted);margin:6px 0 16px}.oy-chart button{font:inherit;color:inherit;background:transparent;border:1px solid var(--ch-line);border-radius:6px;padding:5px 10px;cursor:pointer}.oy-chart .ch-refresh{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:0;opacity:.65}.oy-chart .ch-refresh:hover{background:var(--ch-line);opacity:1}.oy-chart .ch-refresh:disabled{opacity:.35;cursor:wait}.oy-chart button:focus-visible{outline:2px solid var(--ch-accent);outline-offset:2px}.oy-chart .recharts-cartesian-axis-tick-value,.oy-chart .recharts-brush-texts text{fill:var(--ch-muted);font-size:11px}.oy-chart .recharts-cartesian-axis-line,.oy-chart .recharts-cartesian-axis-tick-line{stroke:var(--ch-line)}
     `}</style>
-    <header><h3>{title}</h3><div>{actions} {onRefresh && <button disabled={loading} onClick={onRefresh}>刷新</button>}</div></header>
+    <header><h3>{title}</h3><div>{actions} {onRefresh && <button className="ch-refresh" type="button" title="刷新数据" aria-label="刷新数据" aria-busy={!!loading} disabled={loading} onClick={onRefresh}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+  <path d="M21 3v5h-5" />
+  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+  <path d="M8 16H3v5" /></svg></button>}</div></header>
     {kind === 'trend' && <p>拖动缩略图两端或选区 · 仅缩放当前返回结果 {activeRange && <button onClick={resetRange}>重置区间</button>}</p>}
     {error ? <p role="alert">数据加载失败：{String(error)}</p> : loading ? <p role="status">正在更新…</p>
       : !valid.length ? <p>当前条件下暂无数据</p> : kind === 'donut' && !shareable ? <p>负值或全零结果不展示份额</p>
