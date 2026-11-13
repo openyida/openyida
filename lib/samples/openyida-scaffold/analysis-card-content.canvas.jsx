@@ -8,7 +8,7 @@ function AnalysisAction({ label, kind, onClick, disabled }) {
     onClick={onClick} disabled={disabled}>
     <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24"
       fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      {kind === 'refresh' ? <path d="M20 7v5h-5M4 17v-5h5m-5 0a8 8 0 0 1 14-5l2 5M4 12l2 5a8 8 0 0 0 14-5" />
+      {kind === 'refresh' ? <path d="M4 4v6h6M20 20v-6h-6M20 10A8 8 0 0 0 6.34 6.34M4 14a8 8 0 0 0 13.66 3.66" />
         : kind === 'image' ? <path d="M4 4h16v16H4zM4 16l5-5 4 4 2-2 5 5" />
         : kind === 'drilldown' ? <>
           <path d="M12 2v8M2 10l10-4 10 4-10 4zM12 16v5" />
@@ -52,7 +52,7 @@ export default function YidaComp({ analysis }) {
   const chartData = data.filter(item => item.value !== null);
   const lead = chartData.reduce((best, item) => !best || item.value > best.value ? item : best, null);
   const canShare = chartData.length > 0 && chartData.every(item => item.value >= 0) && chartData.some(item => item.value > 0);
-  const palette = ['var(--color-brand1-6, #1677ff)', '#4e9d9a', '#9272cb', '#d4844b', '#6588b4'];
+  const palette = ['var(--analysis-series-1,#5455b8)', 'var(--analysis-series-2,#15807e)', 'var(--analysis-series-3,#b85e39)', 'var(--analysis-series-4,#9561a5)', 'var(--analysis-series-5,#417cb2)'];
   const choose = item => { const row = item?.payload?.row || item?.row; if (row && canDrill) select?.(row); };
   return (
     <section className="oy-programmable-analysis" aria-busy={!!loading}>

@@ -23,7 +23,7 @@ function AnalysisAction({ label, kind, onClick, disabled }) {
     onClick={onClick} disabled={disabled}>
     <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24"
       fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      {kind === 'refresh' ? <path d="M20 7v5h-5M4 17v-5h5m-5 0a8 8 0 0 1 14-5l2 5M4 12l2 5a8 8 0 0 0 14-5" />
+      {kind === 'refresh' ? <path d="M4 4v6h6M20 20v-6h-6M20 10A8 8 0 0 0 6.34 6.34M4 14a8 8 0 0 0 13.66 3.66" />
         : kind === 'image' ? <path d="M4 4h16v16H4zM4 16l5-5 4 4 2-2 5 5" />
         : kind === 'drilldown' ? <>
           <path d="M12 2v8M2 10l10-4 10 4-10 4zM12 16v5" />
@@ -114,7 +114,7 @@ export default function YidaComp({
   const total = allValid.reduce((n, d) => n + d.value, 0);
   const chosen = data.find((d) => d.i === selected);
   const colors = [
-    'var(--accent)',
+    'var(--analysis-series-1,#5455b8)',
     'var(--series-2)',
     'var(--series-3)',
     'var(--series-4)',
@@ -195,7 +195,7 @@ export default function YidaComp({
     >
       <style>{`
       .oy-explorer .actions button.oy-analysis-icon{display:inline-grid;place-items:center;min-width:36px;min-height:36px;padding:0;border:0;border-radius:8px;background:transparent;color:inherit;cursor:pointer;touch-action:manipulation}.oy-explorer .actions button.oy-analysis-icon:hover:not(:disabled),.oy-explorer .actions button.oy-analysis-icon:focus-visible{background:var(--color-fill1-2,#f2f5f5)}.oy-explorer .actions button.oy-analysis-icon:focus-visible{outline:2px solid var(--color-brand1-6,#147d73);outline-offset:2px}.oy-explorer .actions button.oy-analysis-icon:disabled{opacity:.45;cursor:default}@media(pointer:coarse){.oy-explorer .actions button.oy-analysis-icon{min-width:44px;min-height:44px}}
-      .oy-explorer{container-type:inline-size;--accent:var(--analysis-accent,var(--color-brand1-6,#148979));--series-2:var(--analysis-series-2,#e6a04b);--series-3:var(--analysis-series-3,#7199b5);--series-4:var(--analysis-series-4,#9b8abf);--surface:var(--analysis-surface,var(--pod-card-bg-color,#fff));--canvas:var(--analysis-canvas,#edf3f2);--ink:var(--analysis-ink,var(--color-text1-4,#203b38));--muted:var(--analysis-muted,#667d79);--line:var(--analysis-line,#dce8e4);--soft:var(--analysis-soft,#e5f1ed);--radius:var(--analysis-radius,12px);color:var(--ink);font:14px/1.6 system-ui,sans-serif;min-width:0;background:var(--canvas);padding:24px;border-radius:16px}
+      .oy-explorer{container-type:inline-size;--accent:var(--analysis-accent,var(--color-brand1-6,#148979));--series-2:var(--analysis-series-2,#15807e);--series-3:var(--analysis-series-3,#b85e39);--series-4:var(--analysis-series-4,#9561a5);--surface:var(--analysis-surface,var(--pod-card-bg-color,#fff));--canvas:var(--analysis-canvas,#edf3f2);--ink:var(--analysis-ink,var(--color-text1-4,#203b38));--muted:var(--analysis-muted,#667d79);--line:var(--analysis-line,#dce8e4);--soft:var(--analysis-soft,#e5f1ed);--radius:var(--analysis-radius,12px);color:var(--ink);font:14px/1.6 system-ui,sans-serif;min-width:0;background:var(--canvas);padding:24px;border-radius:16px}
       .oy-explorer.dark{color-scheme:dark;--accent:var(--analysis-accent,#41c6d4);--series-2:var(--analysis-series-2,#efb86b);--series-3:var(--analysis-series-3,#7396ef);--series-4:var(--analysis-series-4,#b29ae7);--surface:var(--analysis-surface,#192c46);--canvas:var(--analysis-canvas,#101e33);--ink:var(--analysis-ink,#edf5ff);--muted:var(--analysis-muted,#a4b6ce);--line:var(--analysis-line,#2b415d);--soft:var(--analysis-soft,#233c54)}
       .oy-explorer *{box-sizing:border-box}.oy-explorer h2,.oy-explorer h3,.oy-explorer p{margin:0}.oy-explorer h2{color:var(--ink);font-size:24px;letter-spacing:-.6px}.oy-explorer h3{color:var(--ink);font-size:15px;display:flex;align-items:center;gap:8px}.oy-explorer h3:before{content:'';width:3px;height:14px;border-radius:2px;background:var(--accent)}.oy-explorer .eyebrow{font-size:10px;letter-spacing:2.5px;color:var(--accent);font-weight:700}.oy-explorer .muted{font-size:12px;color:var(--muted)}
       .oy-explorer .head,.oy-explorer .toolbar,.oy-explorer .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.oy-explorer .head{padding:4px 0 8px}.oy-explorer .actions{display:flex;gap:6px;flex-wrap:wrap}.oy-explorer button,.oy-explorer select{font:inherit;font-size:12px;padding:7px 12px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:inherit;cursor:pointer}.oy-explorer button:hover{border-color:var(--accent)}.oy-explorer button:disabled{opacity:.4;cursor:not-allowed}.oy-explorer button[aria-pressed=true]{background:var(--soft);color:var(--ink);border-color:var(--accent)}.oy-explorer button:focus-visible,.oy-explorer select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -399,16 +399,16 @@ export default function YidaComp({
                 <p className="muted">
                   {temporal
                     ? '拖动底部选区缩放当前返回区间'
-                    : '选择图形或图例，联动指标与数据表'}
+                    : canDrill ? '选择分组，再点右上角下钻查看下一层' : '选择图形或图例，联动指标与数据表'}
                 </p>
                 <ResponsiveContainer width="100%" height={300} minWidth={1}>
                   {temporal ? (
-                    <AreaChart data={data}>
+                    <AreaChart data={data} margin={{ right: 22, bottom: 8 }}>
                       <CartesianGrid
                         vertical={false}
                         stroke="var(--line)" strokeDasharray="3 4"
                       />
-                      <XAxis dataKey="label" />
+                      <XAxis dataKey="label" minTickGap={18} tickMargin={8} padding={{ left: 8, right: 12 }} />
                       <YAxis tickFormatter={compact} width={55} />
                       <Tooltip formatter={format} contentStyle={tooltipStyle} itemStyle={{color:"var(--ink)"}} cursor={{ fill: "var(--soft)" }} />
                       <Area
@@ -421,10 +421,10 @@ export default function YidaComp({
                       />
                       <Brush
                         dataKey="label"
-                        height={40}
-                        stroke={colors[0]}
+                        height={32}
+                        stroke="var(--line)"
                         fill="var(--surface)"
-                        travellerWidth={9}
+                        travellerWidth={12}
                         startIndex={range?.startIndex ?? 0}
                         endIndex={range?.endIndex ?? data.length - 1}
                         onChange={(next) => {
