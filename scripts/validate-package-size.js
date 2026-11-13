@@ -97,7 +97,12 @@ const path = require('path');
 // Node 20 measures about 2,706 KiB compressed and 9,920 KiB unpacked; keep bounded headroom.
 // Form data seeding, schema guards, and the Canvas sample merged with main
 // measure 2,789,968 compressed bytes on Node 20.18.1. Use the next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2736 * 1024;
+// Component samples: PR merge measured 2,802,825 compressed / 10,249,905 unpacked bytes.
+// Advanced chart recipes plus current main: CI Node 20 measures 2,813,575
+// compressed bytes; keep the next 16 KiB boundary, without changing per-file caps.
+// The integrated native portal, report theme and analysis card package measures
+// 2,828,807 compressed bytes on Node 20.18.1. Leave one 16 KiB step for CI npm.
+const MAX_TARBALL_BYTES = 2784 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -249,7 +254,11 @@ const MAX_TARBALL_BYTES = 2736 * 1024;
 // packaged workflow reference. Merged Node 23 measurement: 10,226,230 bytes /
 // 813 files, 2,614 bytes above the previous limit. Use the next 16 KiB boundary;
 // compressed, entry-count and individual-file limits stay unchanged.
-const MAX_UNPACKED_BYTES = 10000 * 1024;
+// Advanced chart component plus current main: CI Node 20 measures 10,277,069
+// unpacked bytes; 820 files locally and one existing main file in the PR merge.
+// The integrated package measures 10,316,807 unpacked bytes. Round up to 16 KiB.
+// Standalone card samples embed their action and CSV code for the report editor.
+const MAX_UNPACKED_BYTES = 10096 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -293,7 +302,12 @@ const MAX_UNPACKED_BYTES = 10000 * 1024;
 // The task-concurrency runtime adds exactly one packaged module.
 // Independent Fast theme generation adds one runtime module; byte budgets are unchanged.
 // Main file-upload support adds three packaged files.
-const MAX_ENTRY_COUNT = 814;
+// The reusable analysis-card-content Canvas source adds exactly one packaged template.
+// Main also adds lib/core/command-context.js; the PR merge measures 816 files on Node 20.
+// The rich explorer template and its shared design guide add exactly two files.
+// Two independently reusable analysis component samples; single-file cap is unchanged.
+// The dashboard overview sample adds one shipped file to the combined package.
+const MAX_ENTRY_COUNT = 826;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -378,6 +392,15 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-data-manage-ui/references/column-emphasis.md',
   'lib/app/app-theme.js',
   'lib/app/theme-source.js',
+  'lib/app/mobile-brand-tokens.js',
+  'lib/app/report-theme-tokens.js',
+  'lib/report/analysis-presentation.js',
+  ...['analysis-card-content', 'analysis-card-explorer', 'canvas-analysis-card']
+    .map(name => `lib/samples/openyida-scaffold/${name}.canvas.jsx`),
+  ...['analysis-metric', 'analysis-chart', 'analysis-echarts']
+    .map(name => `lib/samples/yida-custom-chart-comp/${name}.canvas.jsx`),
+  'yida-skills/skills/yida-dashboard/references/independent-query-api.md',
+  'yida-skills/skills/yida-dashboard/references/programmable-cards.md',
   'lib/core/theme-widget.js',
   'lib/app/nav-group-create.js',
   'yida-skills/skills/yida-design/references/responsive-layout.md',

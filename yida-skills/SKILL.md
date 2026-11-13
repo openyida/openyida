@@ -199,6 +199,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 明确强制要求 AI 老应用升级成新版主题 | `yida-upgrade-app-theme`；必须先取得针对目标应用的 ask_human 肯定回复，普通美化/换色/建应用不得触发 |
 | 启用/上线或停用/下线已有应用 | `yida-app-lifecycle`；只有用户明确要求时执行，`app-offline` 执行前需再次确认目标应用 |
 | 创建自定义展示页资源 | `yida-create-page`，之后交给 `yida-canvas-custom-page` 编写页面源码，再交给 `yida-publish-page` 发布 |
+| 明确要求创建宜搭原生门户 | `yida-create-page` 使用 `--mode portal` 创建，之后在返回的门户设计器编辑和发布 |
 | 开发表单字段结构 / 增删改字段 | 使用 `yida-create-form-page` 落地字段结构 |
 | 创建带审批的流程表单 | `yida-create-process` |
 | 修改已有流程节点/分支/字段权限，配置加签/转交操作权限 | `yida-process-rule` 保存；人员、字段权限及按钮按需加载 `yida-flow-node-config` |

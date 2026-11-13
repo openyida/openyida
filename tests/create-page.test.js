@@ -153,7 +153,7 @@ describe('create-page non-idempotent auth handling', () => {
   });
 });
 
-describe('create-page hidden navigation readback', () => {
+describe('create-page configuration readback', () => {
   let logSpy;
   let httpPost;
 
@@ -187,7 +187,8 @@ describe('create-page hidden navigation readback', () => {
       c: { cyan: '', reset: '' }, banner: jest.fn(), step: jest.fn(), label: jest.fn(),
       info: jest.fn(), warn: jest.fn(), success: jest.fn(), result: jest.fn(),
     }));
-    return () => require('../lib/app/create-page').run(['APP_TEST', '预约前台', '--hide-nav', '--no-open']);
+    return (options = ['--hide-nav']) =>
+      require('../lib/app/create-page').run(['APP_TEST', '预约前台', ...options, '--no-open']);
   }
 
   const configResponse = content => ({ success: true, content });
@@ -201,6 +202,26 @@ describe('create-page hidden navigation readback', () => {
     jest.dontMock('../lib/core/yida-client');
     jest.dontMock('../lib/core/chalk');
     jest.resetModules();
+  });
+
+  test.each(['content', 'result', 'data'])('verifies a native portal from the %s response and returns both entry points', async key => {
+    await setup([{ success: true, [key]: { formType: 'portal' } }])(['--mode', 'portal']);
+    expect(querystring.parse(httpPost.mock.calls[0][2]).formType).toBe('portal');
+    expect(writes()).toHaveLength(0);
+    expect(result()).toMatchObject({
+      success: true, formType: 'portal', readbackVerified: true,
+      designerUrl: 'https://example.test/alibaba/web/APP_TEST/design/portalDesigner?formUuid=FORM_PAGE',
+      workbenchUrl: 'https://example.test/APP_TEST/workbench/FORM_PAGE',
+    });
+  });
+
+  test('keeps the created page ID and prevents replay when portal type is unverified', async () => {
+    await expect(setup([configResponse({ formType: 'display' })])(['--mode', 'portal']))
+      .rejects.toMatchObject({
+        code: 'CREATE_PAGE_PORTAL_NOT_VERIFIED',
+        details: { pageCreated: true, pageId: 'FORM_PAGE', actualType: 'display', retrySafe: false },
+      });
+    expect(writes()).toHaveLength(0);
   });
 
   test.each([

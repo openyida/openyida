@@ -1,18 +1,18 @@
 ---
 name: yida-create-page
-description: 创建自定义展示页面（display 类型）并返回 pageId（即 formUuid）；仅当目标 page 缺失且用户意图允许新增页面时使用。
+description: 创建自定义展示页或宜搭原生门户，返回 pageId（formUuid）。仅当目标页面缺失且用户意图允许新增时使用，原生门户需用户明确选择。
 ---
-# 创建自定义页面
+# 创建自定义页面和原生门户
 
-> 资源边界：本技能只处理普通 OpenYida 页面创建；目标不明时先只读确认或询问用户。
+目标不明时先只读确认或询问用户。
 
 ## Resource-First 使用门槛
 
-本技能只负责创建缺失的 display page，不负责优化、修改或重新发布已有页面。执行前必须已经解析 resource context：
+执行前先确认目标应用和页面资源。已有原生门户复用原页面，在门户设计器中编辑。
 
 - 如果本轮用户给了页面 URL、`formUuid`、bound page，或 workspace cache/config 中已有目标 display page，禁止调用 `openyida create-page`；改由 `yida-canvas-custom-page` 编写页面源码，再由 `yida-publish-page` 发布。已确认是历史平台 JSX 组件页面维护时，不由本技能创建或派发，改走根路由的“JSX 自定义页面开发”入口。
 - 如果用户给的是普通表单 `formUuid` 且诉求是改字段结构，改用 `yida-create-form-page`；不要把表单 ID 当作自定义页面创建目标。
-- 只有目标 app 已明确、目标 display page 缺失，并且用户意图允许新增页面（例如“在 APP_xxx 里增加回访页面”）时，才加载并执行本技能。
+- 目标 app 已明确、目标页面缺失且用户意图允许新增时，才执行创建。明确要求原生门户时使用 `--mode portal`。
 - 多个已有页面候选按根技能来源优先级选择；同级冲突或无法判断主页面时才问用户。
 
 ## 严格禁止 (NEVER DO)
@@ -26,8 +26,8 @@ description: 创建自定义展示页面（display 类型）并返回 pageId（�
 - **创建前必须确认**：单点创建页面时，执行创建命令前必须向用户确认页面名称和目标应用。由 `yida-app` 完整应用统一编排且用户已说“默认方案 / 不要追问 / 直接创建”时，合理命名并直接创建，不再二次追问。
 - 创建成功后，将 formUuid 记录到 `.cache/<项目名>-schema.json`
 - 由 `yida-app` 完整应用统一编排的首页/工作台/智能助手/门户门面页，可以先于业务表单创建；先占位记录 `formUuid`，待表单 ID 明确后再写源码并发布。
-- 单独新增页面在编写源码前进入 [单页设计](../yida-design/sub_skill/page-design/SKILL.md)，核对主题、确认页面风格范围并形成设计说明。
-- 创建成功后，将真实 `formUuid` 交给 `yida-canvas-custom-page` 编写页面源码，再交给 `yida-publish-page` 发布；本技能不使用 `yida-custom-page` 处理新建页面。
+- 单独新增自定义页面时，在编写源码前进入 [单页设计](../yida-design/sub_skill/page-design/SKILL.md)，核对主题和页面风格。
+- 自定义页面创建成功后，用真实 `formUuid` 交给 `yida-canvas-custom-page` 编写源码，再由 `yida-publish-page` 发布。本技能不使用 `yida-custom-page` 处理新建页面。原生门户在 `designerUrl` 对应的门户设计器中编辑和发布。
 - **本技能不读写 memory**：formUuid 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
 ## 适用场景
@@ -43,6 +43,7 @@ description: 创建自定义展示页面（display 类型）并返回 pageId（�
 **正向触发**：
 - "创建自定义展示页面"、"新建可视化大屏"
 - "创建自定义 UI 页面"、"新建一个页面"
+- "创建宜搭原生门户"
 - 完整应用开发流程中主页面缺失且允许创建的页面创建步骤（由 `yida-app` 编排调用）
 
 ---
@@ -51,8 +52,18 @@ description: 创建自定义展示页面（display 类型）并返回 pageId（�
 ## 命令
 
 ```bash
-openyida create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]
+openyida create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]
 ```
+
+传入 `--mode portal` 创建宜搭原生门户。创建后回读 `formType=portal`，并输出 `designerUrl` 和 `workbenchUrl`。使用门户设计器编辑和发布门户。门户模式不支持 `--hide-nav`。原生报表使用 `create-report`。
+
+### 原生门户沿用应用主题
+
+- 门户首屏优先展示来自已发布数据卡片的业务指标，再配快捷入口和经营提示。按[看板布局](../yida-dashboard/references/structure-and-layout.md#多卡页面排布)组织指标、主分析、快捷入口，手机按相同顺序纵向排列。指标卡设为「跟随门户主题」，发布后核对真实数值、入口跳转及双端顺序。
+
+- 开发前读取目标应用的主题模式、品牌色和已启用的主题 CSS。可在应用主题设置中查看，或使用 `openyida app-theme snapshot <appType> --output-dir <new-dir> --json` 只读获取应用主题配置和 CSS。
+- 应用已启用新版主题样式时，以现有应用配色为准。在门户设计器中将支持绑定的属性设为「跟随主题」，使用 `--color-brand1-6` 作为强调色，页面底色和背景图使用 `--pod-page-bg-color`、`--pod-page-bg-image`，卡片底色和圆角使用 `--pod-card-bg-color`、`--pod-card-border-radius`。布局和间距沿用应用主题值。
+- 新版样式由 `isUseNewAppThemeStyle()` 决定，应用仍是旧版主题但启用了 Pod Premium 时也走新版样式。保留既有门户的自定义值，移动端页边距跟随 `--pod-page-mobile-margin`。在门户设计器核对可用绑定，再分别检查 PC 和移动端的品牌色、背景和卡片文字对比度。
 
 ### 千问办公调用约定
 
@@ -62,7 +73,7 @@ openyida create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav] [--l
 - 命令直接以 `openyida create-page` 开头；工作目录通过工具参数指定。不要包装成脚本、命令替换或变量赋值，也不要拼接 `cd`、管道 `|`、重定向（如 `>`、`2>&1`）、分号、`&&`、`||` 或其他命令；不要追加 `echo`、`wc`、查询或验证命令。
 - 保留 Bash 返回的原始 stdout、stderr 和退出码，直接交给宿主 Hook；不要截断、过滤、重定向或用自行整理的文本替换工具输出。宿主 Hook 从成功结果的顶层 `url` 接管侧边栏开页，AI 不再主动调用浏览器重复打开。
 - `--no-open` 只关闭 `browser_handoff` 提示，成功结果仍包含 `url`、`pageId` 等字段。按真实 `pageId` 记录 `formUuid`；侧边栏开页不代表页面源码已发布或渲染已验收，也不要因未开页而重跑创建。
-- 原始工具输出保留后，继续编写和发布页面。Schema 文件使用文件写入工具保存，后续必要查询、导航修复或发布通过新的工具调用执行；`pageCreated:true` 的失败按下方恢复规则处理，复用原页面。
+- 原始工具输出保留后，按页面类型继续。原生门户交付 `designerUrl`，自定义页面继续编写并发布源码。`pageCreated:true` 的失败按下方恢复规则处理，复用原页面。
 
 千问办公示例（`APP_XXX` 替换为已确认的应用 ID，整行单独执行）：
 
@@ -77,6 +88,7 @@ openyida create-page APP_XXX "客户工作台" --quiet --no-open
 | `appType` | 是 | 应用 ID，如 `APP_XXX` |
 | `pageName` | 是 | 页面名称 |
 | `--mode dashboard` | 否 | 看板/驾驶舱页面推荐使用；只表达页面模式，不会自动隐藏导航 |
+| `--mode portal` | 否 | 创建原生门户，成功后返回设计器和访问链接 |
 | `--hide-nav` | 否 | 兼容已有的显式隐藏导航调用；命令自动配置并回读，未生效时在同一页面补写一次。确认隐藏后才输出 `hideNav=true` 和不带导航参数的 `/custom/<pageId>`。完整应用的前台用途由编排判断，创建后通过持久化页面配置完成，不要求用户传此开关；这不等同于应用导航隐藏 |
 | `--locale` | 否 | 页面内容语言：`zh_CN`、`en_US`、`ja_JP`；省略时按当前环境选择 |
 | `--open` / `--no-open` | 否 | 控制成功后是否返回浏览器打开提示，由宿主执行打开，不影响页面配置 |
@@ -96,6 +108,8 @@ openyida create-page APP_XXX "客户工作台" --quiet --no-open
 隐藏导航时，`navigationVerification` 记录 `requestedRenderNav:false`、实际 `renderNav`、`verified` 和配置次数 `attempts`。回读优先使用平台的 `renderNav`，缺少该字段时才读 `isRenderNav`；布尔值及字符串 `"true"` / `"false"` 均可识别，缺失值不会当成隐藏成功。
 
 补写后仍未确认时，命令以非零退出码返回 `success:false`、`pageCreated:true`、真实 `pageId` 和 `CREATE_PAGE_NAVIGATION_NOT_VERIFIED`。此时 `hideNav` 表示回读结果，未知为 `null`，`chromeless:false`；按 `recovery` 提供的参数对原页面执行 `update-form-config`，再用 `get-form-config --json` 确认。不要重跑创建命令，也不要用 URL 中的 `isRenderNav=false` 代替配置回读。
+
+原生门户回读确认后返回 `formType: "portal"`、`readbackVerified: true` 和 `designerUrl`。收到 `CREATE_PAGE_PORTAL_NOT_VERIFIED` 时，按返回的 `recovery` 对该 `pageId` 执行 `get-form-config`。
 
 > 如需创建表单页面（带字段的数据收集页），请使用 `yida-create-form-page`。
 
