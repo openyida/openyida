@@ -1,6 +1,37 @@
 import React, { useState } from 'react';
 import { Button, Empty, Alert, Skeleton, Table } from 'antd';
-import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, Cell, LabelList, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+
+// Icons based on Lucide (ISC): https://lucide.dev/license
+function AnalysisAction({ label, kind, onClick, disabled }) {
+  return <button type="button" className="oy-analysis-icon" aria-label={label} title={label}
+    onClick={onClick} disabled={disabled}>
+    <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {kind === 'refresh' ? <path d="M20 7v5h-5M4 17v-5h5m-5 0a8 8 0 0 1 14-5l2 5M4 12l2 5a8 8 0 0 0 14-5" />
+        : kind === 'image' ? <path d="M4 4h16v16H4zM4 16l5-5 4 4 2-2 5 5" />
+        : <path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4" />}
+    </svg>
+  </button>;
+}
+function exportVisibleRows(columns, rows) {
+  const cell = value => {
+    const text = String(value ?? '');
+    const safe = typeof value !== 'number' && /^[\s]*[=+@-]|^[\t\r\n]/.test(text) ? "'" + text : text;
+    return '"' + safe.replace(/"/g, '""') + '"';
+  };
+  const lines = [columns.map(c => cell(c.title || c.key)).join(','),
+    ...rows.map(row => columns.map(c => cell(row[c.key])).join(','))];
+  const url = window.URL.createObjectURL(new window.Blob(['\uFEFF' + lines.join('\r\n')], { type:'text/csv;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'analysis-current.csv';
+  document.body.appendChild(link);
+  try { link.click(); } finally {
+    link.remove();
+    window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+  }
+}
 
 /** Editable composition: the platform supplies data/actions; this component owns every visible element. */
 function AnalysisContent({ analysis }) {
@@ -22,6 +53,7 @@ function AnalysisContent({ analysis }) {
   return (
     <section className="oy-programmable-analysis" aria-busy={!!loading}>
       <style>{`
+        .oy-analysis-icon{display:inline-grid;place-items:center;min-width:36px;min-height:36px;padding:0;border:0;border-radius:8px;background:transparent;color:inherit;cursor:pointer;touch-action:manipulation}.oy-analysis-icon:hover:not(:disabled),.oy-analysis-icon:focus-visible{background:var(--color-fill1-2,#f2f5f5)}.oy-analysis-icon:focus-visible{outline:2px solid var(--color-brand1-6,#147d73);outline-offset:2px}.oy-analysis-icon:disabled{opacity:.45;cursor:default}@media(pointer:coarse){.oy-analysis-icon{min-width:44px;min-height:44px}}
         .oy-programmable-analysis { color:var(--color-text1-4,#1c2534); background:var(--pod-card-bg-color,#fff); border:1px solid var(--color-line1-1,#e8edf3); border-radius:var(--pod-card-border-radius,16px); padding:clamp(16px,3vw,24px); min-width:0; }
         .oy-programmable-analysis * { box-sizing:border-box; }
         .oy-programmable-analysis .head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
@@ -42,7 +74,9 @@ function AnalysisContent({ analysis }) {
         <div><h2>{title}</h2><p className="muted">按当前筛选与分组查看数据</p></div>
         <div className="actions">
           <Button onClick={() => setShowTable(value => !value)}>{showTable ? '收起表格' : '查看表格'}</Button>
-          {refresh && <Button onClick={refresh} loading={loading}>刷新</Button>}
+          {refresh && <AnalysisAction kind="refresh" label="刷新数据" disabled={loading} onClick={refresh} />}
+          <AnalysisAction kind="download" label="导出当前结果 CSV" disabled={loading || !!error || !columns.length || !rows.length}
+            onClick={() => exportVisibleRows(columns, rows)} />
         </div>
       </header>
       {!!drillPath.length && <nav aria-label="下钻路径">
@@ -66,7 +100,9 @@ function AnalysisContent({ analysis }) {
                 <BarChart data={chartData} layout="vertical" margin={{ left:0, right:12 }}>
                   <XAxis type="number" /><YAxis type="category" dataKey="label" width={80} />
                   <Tooltip /><Bar dataKey="value" name={metric.title || metric.key} radius={4}
-                    fill={palette[0]} onClick={choose} isAnimationActive={false} />
+                    fill={palette[0]} onClick={choose} isAnimationActive={false}>
+                    <LabelList dataKey="value" position="right" formatter={value => value === 0 ? '0' : ''} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>

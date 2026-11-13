@@ -191,6 +191,10 @@ grid: { left: 56, right: 24, top: 36, bottom: 88 }
 
 ## 生成与验收
 
+卡片标题右侧用图标放刷新、当前结果 CSV 和图形下载，提供 `title`、`aria-label`、可见焦点及加载禁用态。业务指标、维度切换保留文字。基础模板也提供当前结果 CSV，富交互模板按选中分组和缩放范围导出。实际下载文件并核对行数、零值和筛选范围；全量结果按服务端导出契约接入。
+
+先安排指标、趋势、结构、异常和明细，再分配原生与可编程组件。报表宿主已有整卡外框，内层只设计内容。零值保留类别和数值标签，缺失数据独立呈现。
+
 基础内容：`openyida sample openyida-page-template analysis-card-content`。富交互内容：`openyida sample openyida-page-template analysis-card-explorer`。内容可放入报表 `renderCard.source`；Canvas 使用 `YidaAnalysisCard` 的 `renderContent`，独立组件保存 source/runtimeCode，均保留完整源码自由。
 
 交付至少检查正常、加载、空、错误、负值、零值、长名称；操作用真实事件验证。外部浏览器宽屏检查完整内容，再检查窄屏。发布读回、浏览器渲染、交互成功是三项独立证据。示例数据必须显著标注，不能展示为实际经营数据。

@@ -199,6 +199,8 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 
 ## 报表 Schema 构建关键规则（chart-builder.js）
 
+同一报表用指标、趋势、结构和明细回答不同问题。显式显示业务零值，缺失数据另作说明。验证报表主题下的轴标签、图例、表头以及刷新、导出图标的可读性和实际行为。
+
 ### 命令调用格式
 
 ```bash
