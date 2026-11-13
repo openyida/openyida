@@ -17,6 +17,19 @@ import {
 
 // Editable content, shared by report renderCard.source and YidaAnalysisCard renderContent.
 // Set temporal only after binding a chronological date dimension. Export scope is explicit.
+// Icons based on Lucide (ISC): https://lucide.dev/license
+function AnalysisAction({ label, kind, onClick, disabled }) {
+  return <button type="button" className="oy-analysis-icon" aria-label={label} title={label}
+    onClick={onClick} disabled={disabled}>
+    <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {kind === 'refresh' ? <path d="M20 7v5h-5M4 17v-5h5m-5 0a8 8 0 0 1 14-5l2 5M4 12l2 5a8 8 0 0 0 14-5" />
+        : kind === 'image' ? <path d="M4 4h16v16H4zM4 16l5-5 4 4 2-2 5 5" />
+        : <path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4" />}
+    </svg>
+  </button>;
+}
+
 export default function YidaComp({
   analysis = {},
   temporal = false,
@@ -120,12 +133,11 @@ export default function YidaComp({
     a.remove();
     window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
   };
-  const csvCell = (value) =>
-    '"' +
-    String(value == null ? '' : value)
-      .replace(/^[\s]*[=+@-]/, (m) => "'" + m)
-      .replace(/"/g, '""') +
-    '"';
+  const csvCell = value => {
+    const text = String(value ?? '');
+    const safe = typeof value !== 'number' && /^[\s]*[=+@-]|^[\t\r\n]/.test(text) ? "'" + text : text;
+    return '"' + safe.replace(/"/g, '""') + '"';
+  };
   const exportCsv = () => {
     const lines = [
       columns.map((c) => csvCell(c.title || c.key)).join(','),
@@ -178,6 +190,7 @@ export default function YidaComp({
       aria-busy={!!loading}
     >
       <style>{`
+      .oy-explorer .actions button.oy-analysis-icon{display:inline-grid;place-items:center;min-width:36px;min-height:36px;padding:0;border:0;border-radius:8px;background:transparent;color:inherit;cursor:pointer;touch-action:manipulation}.oy-explorer .actions button.oy-analysis-icon:hover:not(:disabled),.oy-explorer .actions button.oy-analysis-icon:focus-visible{background:var(--color-fill1-2,#f2f5f5)}.oy-explorer .actions button.oy-analysis-icon:focus-visible{outline:2px solid var(--color-brand1-6,#147d73);outline-offset:2px}.oy-explorer .actions button.oy-analysis-icon:disabled{opacity:.45;cursor:default}@media(pointer:coarse){.oy-explorer .actions button.oy-analysis-icon{min-width:44px;min-height:44px}}
       .oy-explorer{container-type:inline-size;--accent:var(--analysis-accent,var(--color-brand1-6,#148979));--series-2:var(--analysis-series-2,#e6a04b);--series-3:var(--analysis-series-3,#7199b5);--series-4:var(--analysis-series-4,#9b8abf);--surface:var(--analysis-surface,var(--pod-card-bg-color,#fff));--canvas:var(--analysis-canvas,#edf3f2);--ink:var(--analysis-ink,var(--color-text1-4,#203b38));--muted:var(--analysis-muted,#667d79);--line:var(--analysis-line,#dce8e4);--soft:var(--analysis-soft,#e5f1ed);--radius:var(--analysis-radius,12px);color:var(--ink);font:14px/1.6 system-ui,sans-serif;min-width:0;background:var(--canvas);padding:24px;border-radius:16px}
       .oy-explorer.dark{color-scheme:dark;--accent:var(--analysis-accent,#41c6d4);--series-2:var(--analysis-series-2,#efb86b);--series-3:var(--analysis-series-3,#7396ef);--series-4:var(--analysis-series-4,#b29ae7);--surface:var(--analysis-surface,#192c46);--canvas:var(--analysis-canvas,#101e33);--ink:var(--analysis-ink,#edf5ff);--muted:var(--analysis-muted,#a4b6ce);--line:var(--analysis-line,#2b415d);--soft:var(--analysis-soft,#233c54)}
       .oy-explorer *{box-sizing:border-box}.oy-explorer h2,.oy-explorer h3,.oy-explorer p{margin:0}.oy-explorer h2{color:var(--ink);font-size:24px;letter-spacing:-.6px}.oy-explorer h3{color:var(--ink);font-size:15px;display:flex;align-items:center;gap:8px}.oy-explorer h3:before{content:'';width:3px;height:14px;border-radius:2px;background:var(--accent)}.oy-explorer .eyebrow{font-size:10px;letter-spacing:2.5px;color:var(--accent);font-weight:700}.oy-explorer .muted{font-size:12px;color:var(--muted)}
@@ -201,22 +214,12 @@ export default function YidaComp({
         </div>
         <div className="actions">
           {refresh && (
-            <button disabled={loading} onClick={refresh}>
-              刷新数据
-            </button>
+            <AnalysisAction kind="refresh" label="刷新数据" disabled={loading} onClick={refresh} />
           )}
-          <button
-            disabled={loading || !!error || !visible.length}
-            onClick={exportCsv}
-          >
-            导出当前结果
-          </button>
-          <button
-            disabled={loading || !!error || tab !== 'chart' || !valid.length}
-            onClick={exportSvg}
-          >
-            下载主图 SVG
-          </button>
+          <AnalysisAction kind="download" label="导出当前结果 CSV"
+            disabled={loading || !!error || !columns.length || !visible.length} onClick={exportCsv} />
+          <AnalysisAction kind="image" label="下载主图 SVG"
+            disabled={loading || !!error || tab !== 'chart' || !valid.length} onClick={exportSvg} />
         </div>
       </header>
       {!!drillPath.length && (

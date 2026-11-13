@@ -53,23 +53,36 @@ test('explorer links selection, tabs, brush scope and safe CSV to the same raw r
   const win = { React: react, Recharts: { Brush, AreaChart }, Blob: class { constructor(parts) { downloaded = parts.join(''); } }, URL: { createObjectURL: () => 'blob:test', revokeObjectURL() {} }, setTimeout: fn => fn() };
   const doc = { createElement: () => ({ click() {}, remove() {} }), body: { appendChild() {} } };
   const Component = new Function('window', 'document', runtimeCode + '; return YidaComp;')(win, doc);
-  const raw = [{ label: '=SUM(A1)', value: 10 }, { label: 'B', value: 20 }];
+  const raw = [{ label: '=SUM(A1)', value: 10 }, { label: 'B', value: -20 }];
   const select = jest.fn();
   const analysis = { rows: raw, columns: [{ key: 'label' }, { key: 'value', numeric: true }], select };
   const render = () => { cursor = 0; memoCursor = 0; return Component({ analysis, temporal: true }); };
-  const button = (tree, label) => find(tree, 'button').find(node => node.children.includes(label));
+  const button = (tree, label) => {
+    const native = find(tree, 'button').find(node => node.children.includes(label));
+    if (native) return native;
+    const findAction = node => {
+      if (Array.isArray(node)) return node.map(findAction).find(Boolean);
+      if (!node || typeof node !== 'object') return undefined;
+      if (typeof node.type === 'function' && node.props?.label === label) return node.type(node.props);
+      return findAction(node.children);
+    };
+    const action = findAction(tree);
+    expect(action?.props?.['aria-label']).toBe(label);
+    return action;
+  };
   let tree = render();
   button(tree, '=SUM(A1)').props.onClick();
   tree = render(); button(tree, '下钻所选分组').props.onClick();
   expect(select).toHaveBeenCalledWith(raw[0]);
   button(tree, '数据表').props.onClick();
   tree = render(); expect(find(tree, 'tbody')[0].children[0]).toHaveLength(1);
-  button(tree, '导出当前结果').props.onClick();
+  button(tree, '导出当前结果 CSV').props.onClick();
   expect(downloaded).toContain("'=SUM(A1)"); expect(downloaded).not.toContain('"B"');
   button(tree, '清除选择').props.onClick(); button(tree, '图表').props.onClick();
   tree = render(); const chartData = find(tree, AreaChart)[0].props.data; find(tree, Brush)[0].props.onChange({ startIndex: 1, endIndex: 1 });
-  tree = render(); expect(find(tree, AreaChart)[0].props.data).toBe(chartData); button(tree, '导出当前结果').props.onClick();
+  tree = render(); expect(find(tree, AreaChart)[0].props.data).toBe(chartData); button(tree, '导出当前结果 CSV').props.onClick();
   expect(downloaded).toContain('"B"'); expect(downloaded).not.toContain('SUM(A1)');
+  expect(downloaded).toContain('"-20"');
 });
 
 test('analysis schema retains native formula and date grain alongside editable display code', () => {
@@ -125,7 +138,7 @@ test('CLI generates a multi-chart source shared by standalone and native report 
     const reportModule = { exports: {} };
     const PieChart = () => null;
     const dependencies = { react: React, antd: { Button }, recharts: { BarChart, PieChart } };
-    new Function('require', 'module', 'exports', renderCard.runtimeCode)(
+    const Action = new Function('require', 'module', 'exports', renderCard.runtimeCode + '\nreturn AnalysisAction;')(
       (name) => dependencies[name], reportModule, reportModule.exports
     );
     const Component = reportModule.exports.default;
@@ -135,7 +148,10 @@ test('CLI generates a multi-chart source shared by standalone and native report 
       columns: [{ key: 'label' }, { key: 'value', numeric: true }],
       refresh,
     } });
-    expect(find(card, Button).some(button => button.props.onClick === refresh)).toBe(true);
+    const refreshAction = find(card, Action).find(button => button.props.kind === 'refresh');
+    expect(Action(refreshAction.props).props).toMatchObject({
+      'aria-label': '刷新数据', title: '刷新数据', onClick: refresh,
+    });
     expect(find(card, BarChart)[0]).toMatchObject({
       type: BarChart,
       props: { data: [{ index: 0, label: '华东', value: 30000, row: { label: '华东', value: 30000 } }] },
