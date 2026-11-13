@@ -52,7 +52,7 @@ export default function YidaComp({ analysis }) {
   const chartData = data.filter(item => item.value !== null);
   const lead = chartData.reduce((best, item) => !best || item.value > best.value ? item : best, null);
   const canShare = chartData.length > 0 && chartData.every(item => item.value >= 0) && chartData.some(item => item.value > 0);
-  const palette = ['var(--analysis-series-1,#5455b8)', 'var(--analysis-series-2,#15807e)', 'var(--analysis-series-3,#b85e39)', 'var(--analysis-series-4,#9561a5)', 'var(--analysis-series-5,#417cb2)'];
+  const palette = ['var(--analysis-series-1,var(--color-brand1-6,#17695f))', 'var(--analysis-series-2,color-mix(in oklab,var(--color-brand1-6,#17695f) 46%,var(--pod-card-bg-color,#fff)))', 'var(--analysis-series-3,#647d90)', 'var(--analysis-series-4,#8b8071)', 'var(--analysis-series-5,#a4afb6)'];
   const choose = item => { const row = item?.payload?.row || item?.row; if (row && canDrill) select?.(row); };
   return (
     <section className="oy-programmable-analysis" aria-busy={!!loading}>

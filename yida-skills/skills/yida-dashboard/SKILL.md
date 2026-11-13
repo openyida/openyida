@@ -33,7 +33,7 @@ metadata:
 
 经营总览运行 `openyida sample openyida-page-template dashboard-overview`，将生成组件合并进 Canvas 页面。依次填入筛选、关键指标、主分析、辅助对照和明细插槽，保留每张卡独立数据绑定。主图与对照按 2:1 排列，窄容器按阅读顺序堆叠。投屏按实际分辨率和监控任务编写布局。
 
-开工前为每张卡写一句业务问题，确定标题、数值单位、时间范围、比较对象与操作结果。按[视觉与交互验收](references/programmable-cards.md#视觉与交互验收)检查首屏和实际操作，再交付。
+先按[主题配色](references/theme-presets.md#从项目主题落实到图表)确定主系列、对照、分类与状态，再为每张卡写一句业务问题，确定标题、数值单位、时间范围、比较对象与操作结果。按[视觉与交互验收](references/programmable-cards.md#视觉与交互验收)检查首屏和实际操作，再交付。
 
 ## 何时触发
 
