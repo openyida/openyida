@@ -20,6 +20,22 @@ test('metric component distinguishes zero, unknown, failure and a real target', 
   expect(find(Metric({ value: 20, error: 'denied' }), 'div')).toHaveLength(0);
 });
 
+test('metric comparisons distinguish direction from whether the change is favorable', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../lib/samples/yida-custom-chart-comp/analysis-metric.canvas.jsx'), 'utf8');
+  const { runtimeCode } = compileCanvasLocal(source);
+  const Metric = new Function('window', runtimeCode + '; return YidaComp;')({ React });
+  const badge = tree => find(tree, 'span').find(node => node.props?.className?.startsWith('mc-badge'));
+  expect(badge(Metric({ value: 8, baseline: 10, higherIsBetter: false })).props).toMatchObject({
+    className: 'mc-badge positive', 'aria-label': '较上期下降 20.0%',
+  });
+  expect(badge(Metric({ value: 12, baseline: 10 })).props.className).toBe('mc-badge neutral');
+  expect(badge(Metric({ value: 10.001, baseline: 10 })).props['aria-label']).toBe('较上期持平 0.0%');
+  expect(badge(Metric({ value: 12, baseline: 0, delta: 0.25 }))).toBeUndefined();
+  expect(badge(Metric({ delta: 0.25 }))).toBeUndefined();
+  const svg = find(Metric({ value: 12, series: [0, 4, 12], emphasis: true }), 'svg');
+  expect(svg.map(node => node.props.className)).toEqual(['mc-spark', 'mc-decoration']);
+});
+
 test('chart component exposes original rows for range and selection without modifying source data', () => {
   const source = fs.readFileSync(path.join(__dirname, '../lib/samples/yida-custom-chart-comp/analysis-chart.canvas.jsx'), 'utf8');
   const { runtimeCode } = compileCanvasLocal(source);

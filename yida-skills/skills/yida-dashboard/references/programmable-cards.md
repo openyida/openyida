@@ -77,7 +77,7 @@ const filters = business ? [{ field: businessField, op: 'eq', values: [business]
 
 | 组件 | 数据与展示参数 | 交互参数 |
 | --- | --- | --- |
-| 指标卡 | `title, value, unit, note`；可选真实 `delta`（小数比率）、`target`；`emphasis` 主指标强调 | `actions` 插槽、`onRetry`；loading/error；没有指标时显示 — |
+| 指标卡 | `title, value, unit, note`；可选 `prefix, baseline, baselineLabel, deltaLabel, higherIsBetter, series, seriesLabel, target, icon`；也可传已算好的 `delta`（小数比率） | `actions` 插槽、`onRetry`；loading/error；没有指标时显示 — |
 | 趋势图 | `kind="trend"`；`rows, labelKey, valueKey`；时间升序、同一粒度 | 带缩略图的 Brush；受控 `range`/`onRangeChange(window, visibleRows)`；`null` 表示全区间 |
 | 排行图 | `kind="ranking"`；服务端已排序分组结果 | `selectedKey`/`onSelect(rawRow)`；父级决定联动、下钻或明细 |
 | 环形图 | `kind="donut"`；仅非负、非全零、可比较的份额 | 与排行共享 `selectedKey` 和原始行回调；不会自行拉数据 |
@@ -85,7 +85,9 @@ const filters = business ? [{ field: businessField, op: 'eq', values: [business]
 上述指标与轻量图表组件都有 `appearance="light|dark"`、`style`、loading/error；图表有 `height`、`onRefresh` 和 `actions`。类型只是起始源码，生成后可以替换图形、增加系列、SVG、Tab 和布局，不受枚举限制。下载/全量导出由动作插槽接入已验证能力，不预置无实现按钮。
 
 ```jsx
-<MetricCard title="预算" value={budgetResult} unit="元" emphasis note="当前查询范围" />
+<MetricCard title="今日实收" value={dailyRevenue} prefix="¥" emphasis
+  baseline={priorDayRevenue} baselineLabel="昨日" deltaLabel="较昨日" higherIsBetter
+  series={dailyRevenueSeries} seriesLabel="最近七日实收走势" />
 <AnalysisChart kind="trend" rows={monthlyRows} labelKey="month" valueKey="budget"
   range={range} onRangeChange={(next, visible) => { setRange(next); setVisibleRows(visible); }} />
 <AnalysisChart kind="ranking" rows={businessRows} labelKey="business" valueKey="budget"
@@ -93,6 +95,13 @@ const filters = business ? [{ field: businessField, op: 'eq', values: [business]
 ```
 
 父级在数据源/指标/时间粒度变化时重置受控 range 和 selection；联动跨不同粒度需要转换，不可共享索引硬套。组件只展示已授权聚合结果；服务端筛选、鉴权和下钻仍由 `analysis.api`/宿主提供。
+
+### 指标卡的配色和对比
+
+- 一组指标共用应用主题色。把 `emphasis` 留给一个主指标，配低对比装饰轮廓；次指标用默认白底或 `surface="tint"` 的主题浅底。用 `decoration="none"` 关闭强调卡的装饰。宿主已有外框时，指标内部沿用留白和圆角。
+- 变化率使用同口径的前一个完整周期。传入 `baseline` 与真实周期名称，组件显示变化率和基准值。基准缺失时省略比较，基准为零或负数时只显示基准值与原因。
+- 箭头表示数值变化方向，色彩表示业务好坏。实收、合格率用 `higherIsBetter={true}`，缺货、异常量用 `false`，中性指标省略此参数。小到四舍五入显示 0.0% 的变化标为持平。
+- `series` 传入按时间升序的同口径实数序列，`seriesLabel` 写明时间范围。目标达成用真实 `target`。指标和单位紧邻，辅助图形放在数值之后，窄卡优先保留数值、单位和对比口径。
 
 ### 卡片操作层级
 
