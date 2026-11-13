@@ -306,8 +306,8 @@ const MAX_UNPACKED_BYTES = 10096 * 1024;
 // Main also adds lib/core/command-context.js; the PR merge measures 816 files on Node 20.
 // The rich explorer template and its shared design guide add exactly two files.
 // Two independently reusable analysis component samples; single-file cap is unchanged.
-// The combined theme modules, chart templates and guides ship 825 files.
-const MAX_ENTRY_COUNT = 825;
+// The dashboard overview sample adds one shipped file to the combined package.
+const MAX_ENTRY_COUNT = 826;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
