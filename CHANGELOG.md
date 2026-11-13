@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+- **原生门户创建**：使用 `create-page --mode portal` 创建门户，回读确认页面类型后返回设计器和访问链接。
+
 ## [2026.11.12-1] - 2026-11-12
 
 - **宜搭插件开发规范**：统一普通表单、流程表单、自定义页面及其他前端组件扩展点的命名检查，覆盖组件注册、视图、页面引用和发布配置。
