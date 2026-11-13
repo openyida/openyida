@@ -71,8 +71,13 @@ test('explorer links selection, tabs, brush scope and safe CSV to the same raw r
     return action;
   };
   let tree = render();
+  expect(button(tree, '下钻所选分组').props.disabled).toBe(true);
   button(tree, '=SUM(A1)').props.onClick();
-  tree = render(); button(tree, '下钻所选分组').props.onClick();
+  tree = render();
+  const drill = button(tree, '下钻：=SUM(A1)');
+  expect(drill.props.disabled).toBe(false);
+  expect(find(drill, 'svg')).toHaveLength(1);
+  drill.props.onClick();
   expect(select).toHaveBeenCalledWith(raw[0]);
   button(tree, '数据表').props.onClick();
   tree = render(); expect(find(tree, 'tbody')[0].children[0]).toHaveLength(1);
@@ -123,7 +128,7 @@ test('CLI generates a multi-chart source shared by standalone and native report 
     const output = path.join(dir, 'analysis-card.json');
     await require('../lib/core/sample').run(['openyida-page-template', 'analysis-card-config', '--output', output]);
     const [chart] = JSON.parse(fs.readFileSync(output, 'utf8')).charts;
-    expect(chart).toMatchObject({ type: 'analysis', formUuid: 'FORM-REPLACE', view: 'bar' });
+    expect(chart).toMatchObject({ type: 'analysis', formUuid: 'FORM-REPLACE', view: 'bar', w: 6, h: 42 });
     expect(chart.yField[0].aggregateType).toBe('SUM');
     expect(validateChartConfigDetailed({ ...chart, cubeCode: 'FORM_TEST' })).toEqual([]);
     const { renderCard } = buildChartNode({

@@ -17,7 +17,7 @@ import {
 
 // Editable content, shared by report renderCard.source and YidaAnalysisCard renderContent.
 // Set temporal only after binding a chronological date dimension. Export scope is explicit.
-// Icons based on Lucide (ISC): https://lucide.dev/license
+// Common icons based on Lucide (ISC). Drilldown follows the dashboard layer-arrow icon.
 function AnalysisAction({ label, kind, onClick, disabled }) {
   return <button type="button" className="oy-analysis-icon" aria-label={label} title={label}
     onClick={onClick} disabled={disabled}>
@@ -25,6 +25,10 @@ function AnalysisAction({ label, kind, onClick, disabled }) {
       fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       {kind === 'refresh' ? <path d="M20 7v5h-5M4 17v-5h5m-5 0a8 8 0 0 1 14-5l2 5M4 12l2 5a8 8 0 0 0 14-5" />
         : kind === 'image' ? <path d="M4 4h16v16H4zM4 16l5-5 4 4 2-2 5 5" />
+        : kind === 'drilldown' ? <>
+          <path d="M12 2v8M2 10l10-4 10 4-10 4zM12 16v5" />
+          <path d="m9 19.5 3 3 3-3z" fill="currentColor" stroke="none" />
+        </>
         : <path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4" />}
     </svg>
   </button>;
@@ -218,6 +222,9 @@ export default function YidaComp({
           )}
           <AnalysisAction kind="download" label="导出当前结果 CSV"
             disabled={loading || !!error || !columns.length || !visible.length} onClick={exportCsv} />
+          {canDrill && select && <AnalysisAction kind="drilldown"
+            label={chosen ? '下钻：' + chosen.label : '下钻所选分组'}
+            disabled={loading || !!error || !chosen} onClick={() => select(chosen.raw)} />}
           <AnalysisAction kind="image" label="下载主图 SVG"
             disabled={loading || !!error || tab !== 'chart' || !valid.length} onClick={exportSvg} />
         </div>
@@ -352,9 +359,6 @@ export default function YidaComp({
                 >
                   清除选择
                 </button>
-              )}
-              {chosen && canDrill && select && (
-                <button onClick={() => select(chosen.raw)}>下钻所选分组</button>
               )}
               {chosen && details && (
                 <button onClick={() => details(chosen.raw)}>查看明细</button>
