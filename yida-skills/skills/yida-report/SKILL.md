@@ -346,7 +346,7 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 
 ### 可编程数据卡片
 
-富交互与多图组合先读 [可编程卡片设计与交互](../yida-dashboard/references/programmable-cards.md)，提取 `analysis-card-explorer` 源码。图表、表格、联动、导出与装饰均由源码编写，不要求在 yida-ui 内添加新预设。
+富交互与多图组合先读 [可编程卡片设计与交互](../yida-dashboard/references/programmable-cards.md)，提取 `analysis-card-explorer` 源码。图表、表格、联动、导出与装饰均由源码编写，不要求在 yida-ui 内添加新预设。 发布前按[视觉与交互验收](../yida-dashboard/references/programmable-cards.md#视觉与交互验收)检查首屏和真实操作。
 
 单组件复用使用 `analysis-metric`、`analysis-chart`；雷达、词云、箱型、热力、桑基等使用 `analysis-echarts`，按参考文档的数据契约生成 option。高级组件与本卡的 analysis 适配层一起放进 `renderCard.source`，不要把整页复制到单卡；每卡保留自己的数据集、字段别名和刷新/下钻状态。
 

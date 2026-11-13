@@ -45,6 +45,21 @@ describe('sample templates', () => {
     expect(fs.readFileSync(alias, 'utf8')).toBe(source);
   });
 
+  test('dashboard overview puts metrics before charts and preserves independent card content', async () => {
+    const output = path.join(tmpDir, 'dashboard-overview.canvas.jsx');
+    await run(['openyida-page-template', 'dashboard-overview', '--output', output]);
+    const { runtimeCode } = compileCanvasLocal(fs.readFileSync(output, 'utf8'));
+    const React = { createElement: (type, props, ...children) => ({ type, props, children }) };
+    const Dashboard = new Function('window', runtimeCode + '; return YidaComp;')({ React });
+    const primary = { type: 'trend' };
+    const comparison = { type: 'ranking' };
+    const page = Dashboard({ metrics: '营收', primary, comparison, detail: '明细' });
+    const body = page.children.at(-1);
+    expect(body.children[1].children).toEqual(['营收']);
+    expect(body.children[2].children.map(slot => slot.children[0])).toEqual([primary, comparison]);
+    expect(body.children[3].children).toEqual(['明细']);
+  });
+
   test('analysis card sample compiles and keeps live empty, zero and selection distinct from demo data', async () => {
     const output = path.join(tmpDir, 'analysis-card.jsx');
     await run(['openyida-page-template', 'canvas-analysis-card', '--output', output]);

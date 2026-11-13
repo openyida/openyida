@@ -21,7 +21,7 @@ DashboardPage
 └── TodoModal             派单交互，按需出现
 ```
 
-常规经营看板使用 `dashboard-overview`；强调投屏、中心态势和实时监控时使用 `data-screen`。页面需要跨模块导航且隐藏应用导航时，外层再套 `yida-nav-shell`。
+常规经营看板提取 `openyida sample openyida-page-template dashboard-overview`。投屏页面按目标分辨率和监控任务编写。页面需要跨模块导航且隐藏应用导航时，外层再套 `yida-nav-shell`。
 
 ## 多卡页面排布
 

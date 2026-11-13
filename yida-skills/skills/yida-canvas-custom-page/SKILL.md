@@ -44,7 +44,7 @@ description: 宜搭自定义页面开发规范，使用 `YidaCodeCanvas` 组件�
 
 ## 核心定位
 
-可编程分析卡片的指标设计、多图组合与交互使用 [可编程卡片设计与交互](../yida-dashboard/references/programmable-cards.md)，可提取 `analysis-card-explorer`；在 AI 画布中通过 `YidaAnalysisCard.renderContent` 组合，普通自定义页也可独立挂载同一分析组件。
+可编程分析卡片的指标设计、多图组合与交互使用 [可编程卡片设计与交互](../yida-dashboard/references/programmable-cards.md)，可提取 `analysis-card-explorer`；在 AI 画布中通过 `YidaAnalysisCard.renderContent` 组合，普通自定义页也可独立挂载同一分析组件。 发布前按[视觉与交互验收](../yida-dashboard/references/programmable-cards.md#视觉与交互验收)检查首屏和真实操作。
 
 按组件复用 `analysis-metric` / `analysis-chart` / `analysis-echarts`；高级图表含雷达、词云、箱型、面积、饼图等配方及自定义 option。每个区块独立 Host/query，组件只负责绘图；跨卡联动由页面显式映射筛选，不共享第一张卡的数据或用单个 Host 包住整个看板。
 
