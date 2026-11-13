@@ -158,7 +158,7 @@ test.each(loadThemeIndex().themes.filter(theme => theme.mode === 'template'))('$
       ? `${indent}${name}${separator}${tokens[name]};` : line);
   expect(css.startsWith(`/* openyida-theme-source: ${theme.themeId} */\n${instantiated.trimEnd()}`)).toBe(true);
   expect(css).toContain('--pod-chart-axis-line-color:');
-  expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-th-bg:/);
+  expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-th-bg: var\(--color-fill1-2, #f6f7f9\);/);
   const rules = topLevelRules(css);
   const compiledRules = topLevelRules(compiled);
   const canonical = value => value.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
