@@ -80,7 +80,9 @@ describe('sample templates', () => {
     const first = table.props.dataSource[0];
     expect(table.props.columns[1].render(null, first)).toBe('0');
     expect(table.props.columns[1].render(null, table.props.dataSource[1])).toBe('—');
-    table.props.columns[0].render(null, first).props.onClick();
+    const drill = find(table.props.columns[0].render(null, first), 'button')[0];
+    expect(drill.props['aria-label']).toBe('下钻：27');
+    drill.props.onClick();
     expect(onSelect).toHaveBeenCalledWith(27);
   });
 

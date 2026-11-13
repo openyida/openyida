@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Button, Empty, Alert, Skeleton, Table } from 'antd';
-import { Bar, BarChart, Cell, LabelList, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-// Icons based on Lucide (ISC): https://lucide.dev/license
+// Common icons based on Lucide (ISC). Drilldown follows the dashboard layer-arrow icon.
 function AnalysisAction({ label, kind, onClick, disabled }) {
   return <button type="button" className="oy-analysis-icon" aria-label={label} title={label}
     onClick={onClick} disabled={disabled}>
@@ -10,6 +10,10 @@ function AnalysisAction({ label, kind, onClick, disabled }) {
       fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       {kind === 'refresh' ? <path d="M20 7v5h-5M4 17v-5h5m-5 0a8 8 0 0 1 14-5l2 5M4 12l2 5a8 8 0 0 0 14-5" />
         : kind === 'image' ? <path d="M4 4h16v16H4zM4 16l5-5 4 4 2-2 5 5" />
+        : kind === 'drilldown' ? <>
+          <path d="M12 2v8M2 10l10-4 10 4-10 4zM12 16v5" />
+          <path d="m9 19.5 3 3 3-3z" fill="currentColor" stroke="none" />
+        </>
         : <path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4" />}
     </svg>
   </button>;
@@ -36,7 +40,7 @@ function exportVisibleRows(columns, rows) {
 /** The report host owns the card frame; this source owns the content. */
 export default function YidaComp({ analysis }) {
   const [showTable, setShowTable] = useState(false);
-  const { rows = [], displayRows = rows, columns = [], loading, error, refresh, select, back,
+  const { rows = [], displayRows = rows, columns = [], loading, error, refresh, select, canDrill = !!select, back,
     drillPath = [], title = '数据分析' } = analysis || {};
   const dimension = columns.find(column => !column.numeric);
   const metric = columns.find(column => column.numeric);
@@ -49,7 +53,7 @@ export default function YidaComp({ analysis }) {
   const lead = chartData.reduce((best, item) => !best || item.value > best.value ? item : best, null);
   const canShare = chartData.length > 0 && chartData.every(item => item.value >= 0) && chartData.some(item => item.value > 0);
   const palette = ['var(--color-brand1-6, #1677ff)', '#4e9d9a', '#9272cb', '#d4844b', '#6588b4'];
-  const choose = item => { const row = item?.payload?.row || item?.row; if (row) select?.(row); };
+  const choose = item => { const row = item?.payload?.row || item?.row; if (row && canDrill) select?.(row); };
   return (
     <section className="oy-programmable-analysis" aria-busy={!!loading}>
       <style>{`
@@ -65,7 +69,7 @@ export default function YidaComp({ analysis }) {
         .oy-programmable-analysis .summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin:24px 0; }
         .oy-programmable-analysis .stat { background:var(--color-fill1-2,#f7f9fc); padding:16px; border-radius:10px; min-width:0; }
         .oy-programmable-analysis .stat strong { display:block; font-size:26px; margin-top:6px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
-        .oy-programmable-analysis .charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:24px; }
+        .oy-programmable-analysis .charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:16px; }
         .oy-programmable-analysis .chart { min-width:0; }
         .oy-programmable-analysis .state { padding:28px 0; }
         .oy-programmable-analysis .table { margin-top:24px; overflow:auto; }
@@ -98,7 +102,9 @@ export default function YidaComp({ analysis }) {
             <div className="chart"><h3>{metric.title || metric.key} · 分组对比</h3>
               <ResponsiveContainer width="100%" height={260} minWidth={1}>
                 <BarChart data={chartData} layout="vertical" margin={{ left:0, right:12 }}>
-                  <XAxis type="number" /><YAxis type="category" dataKey="label" width={80} />
+                  <CartesianGrid horizontal={false} stroke="var(--color-line1-1,#e6e9ee)" />
+                  <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize:12 }} />
+                  <YAxis type="category" dataKey="label" width={88} axisLine={false} tickLine={false} tick={{ fontSize:12 }} />
                   <Tooltip /><Bar dataKey="value" name={metric.title || metric.key} radius={4}
                     fill={palette[0]} onClick={choose} isAnimationActive={false}>
                     <LabelList dataKey="value" position="right" formatter={value => value === 0 ? '0' : ''} />
@@ -111,15 +117,16 @@ export default function YidaComp({ analysis }) {
                 <PieChart><Pie data={chartData} dataKey="value" nameKey="label" innerRadius="56%" outerRadius="80%"
                   onClick={choose} isAnimationActive={false}>
                   {chartData.map((item,index) => <Cell key={item.index} fill={palette[index % palette.length]} />)}
-                </Pie><Tooltip /></PieChart>
+                </Pie><Tooltip /><Legend iconType="circle" iconSize={8} /></PieChart>
               </ResponsiveContainer> : <Empty description="占比图需要非负值，且至少一项大于 0" />}
             </div>
           </div>
           {showTable && <div className="table"><Table size="small" pagination={false} rowKey="index" dataSource={data}
             columns={columns.map(column => ({ key:column.key, title:column.title || column.key,
               align:column.numeric ? 'right' : 'left',
-              render:(_, item) => column.key === dimension?.key && select
-                ? <Button type="link" onClick={() => select(item.row)}>{item.label}</Button>
+              render:(_, item) => column.key === dimension?.key && canDrill && select
+                ? <span>{item.label} <AnalysisAction kind="drilldown" label={'下钻：' + item.label}
+                  onClick={() => select(item.row)} /></span>
                 : format((displayRows[item.index] || item.row)[column.key]),
             }))} /></div>}
         </>}

@@ -49,6 +49,8 @@ description: "创建和配置宜搭原生报表；仅在用户明确要求时动
 
 > ⚠️ 严禁在前端直接聚合表单数据，必须通过原生报表 `getDataAsync.json` 或 `getCacheData.json` 获取聚合数据。
 
+多卡报表先按[看板布局](../yida-dashboard/references/structure-and-layout.md#多卡页面排布)确定卡片顺序及 `w`、`h`，再写配置。
+
 ## 使用公式
 
 涉及计算表达式时，通过 `use_skill` 加载统一的 `yida-formula`，按其中的公式规则和示例配置。本技能提供当前数据集的真实字段、分组与聚合设置，以及报表配置保存和查询入口；表达式保存细节见 [数据集表达式](../yida-formula/references/expression-formats.md#数据集表达式)。
