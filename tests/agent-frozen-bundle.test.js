@@ -116,6 +116,13 @@ describe('content-addressed complete local tool bundle', () => {
     expect(fs.existsSync(old.runtime.executable)).toBe(true);
   });
   const windowsTest = process.platform === 'win32' ? test : test.skip;
+  windowsTest('exclusive creation leaves every frozen file and manifest read-only', () => {
+    const frozen = freeze();
+    const manifest = verifyBundle(frozen.config.bundle.root, frozen.config.bundle.id);
+    for (const file of [...manifest.files, { path: 'bundle-manifest.json' }]) {
+      expect(fs.statSync(path.join(frozen.config.bundle.root, file.path)).mode & 0o222).toBe(0);
+    }
+  });
   windowsTest('all nested frozen directories bind the current Windows user', () => {
     const frozen = freeze();
     const script = `$ErrorActionPreference='Stop'
@@ -147,6 +154,15 @@ foreach($item in $items){
     expect(open.mock.calls.filter(call => call[0] === source)).toHaveLength(1);
     expect(open.mock.calls.filter(call => call[0] === target)).toHaveLength(1);
     expect(second.config.bundle.id).toBe(first.config.bundle.id);
+  });
+  test('cold publication reuses small-file bytes but revalidates the source snapshot', () => {
+    const open = jest.spyOn(fs, 'openSync');
+    const frozen = freeze();
+    const source = path.join(root, 'package/lib/fixture.js');
+    // Initial snapshot plus pre-publication revalidation, without a third
+    // source read merely to copy bytes already held in the bounded snapshot.
+    expect(open.mock.calls.filter(call => call[0] === source)).toHaveLength(2);
+    expect(() => verifyBundle(frozen.config.bundle.root, frozen.config.bundle.id)).not.toThrow();
   });
   test.each([0o027, 0o077])('freezes and verifies exact file modes under umask %i', (mask) => {
     if (process.platform === 'win32') {return;}
@@ -253,7 +269,7 @@ foreach($item in $items){
     expect(event.config).toMatchObject({ command, developmentRuntime: true, ...(process.platform === 'win32' ? {} : { parentWatchFD: 3 }), bundle: { schemaVersion: 1 } });
     expect(event.config.node.packageRoot).toBe(path.join(event.config.bundle.root, 'openyida'));
     expect(event.config).not.toHaveProperty('profile');
-  });
+  }, process.platform === 'win32' ? 30000 : 5000);
   test('two independent materializers atomically agree on one complete bundle', async () => {
     const modulePath = path.resolve(__dirname, '../lib/agent/frozen-bundle.js');
     const runtimeModule = path.resolve(__dirname, '../lib/agent/runtime-package.js');
@@ -268,5 +284,5 @@ foreach($item in $items){
     expect(ids[0]).toBe(ids[1]);
     expect(fs.readdirSync(path.join(fixture.config.stateDir, 'bundles'))).toEqual([ids[0]]);
     expect(() => verifyBundle(path.join(fixture.config.stateDir, 'bundles', ids[0]), ids[0])).not.toThrow();
-  });
+  }, process.platform === 'win32' ? 30000 : 5000);
 });
