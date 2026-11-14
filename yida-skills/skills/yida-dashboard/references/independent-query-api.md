@@ -9,18 +9,18 @@
 | 需求 | API | 返回与边界 |
 | --- | --- | --- |
 | 聚合行 | query(config) | 仅 rows；保留旧调用行为 |
-| 聚合分页 | queryResult(config) | rows、offset、limit；V1 原始 paging，V2 totalCount |
-| 校验 | validate(config) | V1 结构/归属校验；V2 增加元数据和 1 行字段权限预检，公式仍需实际查询验证 |
+| 聚合分页 | queryResult(config) | rows、offset、limit、totalCount |
+| 校验 | validate(config) | 校验结构、数据源归属和元数据，执行 1 行字段权限预检，公式仍需实际查询验证 |
 | 异步执行 | startQuery(v2Config) | 直接结果或 continuePolling/taskId/retryAfterMs |
 | 读取任务 | poll(taskId) | 当前企业、应用和用户的任务，最长 300 秒 |
 | 导出筛选结果 | export(config) | CSV 的 fileName/mimeType/content/rowCount/scope |
 | 分页明细 | queryDetails({formUuid, viewUuid?}, filters, page, limit) | 保留视图和行列权限，limit 最大 100 |
 
-`useQuery(config, drillDimensions)`、组件 query 属性和可视化查询 setter 当前使用 V1。V2 使用全码 query/queryResult/startQuery/poll/export 调用；不能把 V2 塞进 V1 Hook 并宣称已支持。
+`useQuery(config, drillDimensions)`、组件 `query` 属性、可视化数据设置和源码查询 API 共用 V2 配置。
 
 ## 保存和传递筛选
 
-查询配置可随卡片保存，也可由源码 state 构造；提交的对象必须与实际显示的筛选一致。V1/V2 都使用真实 cubeCode、字段编码与稳定输出别名 as，不能使用字段显示名猜编码。
+查询配置可随卡片保存，也可由源码 state 构造；提交的对象必须与实际显示的筛选一致。统一使用真实 cubeCode、字段编码与稳定输出别名 as，不能使用字段显示名猜编码。
 
 filters 顶层按 AND 组合，叶子 `{field,op,values}` 支持 eq/ne/in/notIn/gt/gte/lt/lte/between/isNull/isNotNull/like。嵌套组使用 `{logicalOperator:'AND'|'OR',children:[...]}`。空值判断传 values:[]，其他值保持原始类型；like 使用字符串模式，具体匹配由查询引擎执行。最多 8 层、99 个节点；顶层和每组最多 50 项，in/notIn 最多 1000 个值。
 

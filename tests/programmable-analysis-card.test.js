@@ -75,11 +75,11 @@ test('explorer links selection, tabs, brush scope and safe CSV to the same raw r
   const render = () => { cursor = 0; memoCursor = 0; return Component({ analysis, temporal: true }); };
   const button = (tree, label) => {
     const native = find(tree, 'button').find(node => node.children.includes(label));
-    if (native) return native;
+    if (native) { return native; }
     const findAction = node => {
-      if (Array.isArray(node)) return node.map(findAction).find(Boolean);
-      if (!node || typeof node !== 'object') return undefined;
-      if (typeof node.type === 'function' && node.props?.label === label) return node.type(node.props);
+      if (Array.isArray(node)) { return node.map(findAction).find(Boolean); }
+      if (!node || typeof node !== 'object') { return undefined; }
+      if (typeof node.type === 'function' && node.props?.label === label) { return node.type(node.props); }
       return findAction(node.children);
     };
     const action = findAction(tree);
@@ -129,7 +129,7 @@ test('live Canvas template delegates queries and native card references to the i
   const host = props => React.createElement('div', null, props.cardCode);
   const canvasWindow = { React, antd: {}, Recharts: {}, __VcDeepYidaUtils__: { YidaAnalysisCard: host } };
   const Component = new Function('window', runtimeCode + '; return YidaComp;')(canvasWindow);
-  const query = { version: 1, cubeCode: 'FORM_TEST' };
+  const query = { version: 2, cubeCode: 'FORM_TEST' };
   const element = Component({ nativeCardCode: 'CARD-test', query });
   expect(element.type).toBe(host); expect(element.props.cardCode).toBe('CARD-test'); expect(element.props.query).toBe(query);
   canvasWindow.__VcDeepYidaUtils__ = undefined;
