@@ -5,6 +5,21 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  workflow_cycle: {
+    invalid: "반복 설정이 불완전하거나 제한을 초과했습니다.",
+    node_unavailable: "이 반복에서는 {0} 노드를 지원하지 않습니다. YiDA 디자이너에서 사용 가능한 노드를 확인하세요.",
+    unavailable: "이 YiDA 시나리오에서는 반복을 사용할 수 없습니다.",
+    unverified: "조직의 반복 이용 권한 또는 노드 설정을 확인할 수 없습니다. 로그인한 조직을 확인하고 다시 시도하세요.",
+    entitlement_required: "이 조직에는 반복 이용 권한이 없습니다. 조직 관리자에게 YiDA 공식 사이트에서 요금제를 확인하고 업그레이드하도록 요청하세요: {0}",
+    published_unverified: "게시된 자동화를 확인할 수 없습니다. YiDA 디자이너에서 게시 상태를 확인하세요.",
+  },
+  issue_fixes: {
+    invalid_api_key: 'API Key에는 유효한 name과 header/query 위치가 필요합니다. 연결기 정의를 확인하세요.',
+    repair_required: '이전 API Key 설정에 type/in/location이 없습니다. --repair-api-key-scheme으로 명시적으로 수정하고 새 계정을 만드세요.',
+    replacement_notice: '기존 계정은 변경되지 않습니다. 호출 대상을 반환된 새 계정 ID에 연결하세요.',
+    invalid_import: '잘못된 마이그레이션 패키지입니다. details의 양식 ID, Schema, alias를 확인하세요.',
+    partial_import: '가져오기가 완료되지 않았습니다. yida-migration-report.json의 기존 리소스를 확인하고 보고서를 보관한 후 새로 가져오세요.',
+  },
   dingtalk_login: {
     select_version: '해외 YiDA에 로그인할 DingTalk 버전을 선택하세요:',
     domestic: '중국 DingTalk (해외 YiDA, 기본값)',

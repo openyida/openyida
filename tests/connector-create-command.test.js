@@ -15,6 +15,7 @@ const { run } = require('../lib/connector/connector-create');
 
 describe('connector create machine-readable result', () => {
   test('creates a DingAuth definition without credentials and returns its configuration URL', async () => {
+    connectorApi.saveConnector.mockResolvedValue({ connectorId: 910244, connectorName: 'Http_SERVER', readbackVerified: true });
     const operationsFile = path.resolve(
       __dirname,
       '..',
@@ -36,6 +37,7 @@ describe('connector create machine-readable result', () => {
         success: true,
         connectorId: 910244,
         readbackVerified: true,
+        connectorName: 'Http_SERVER',
       });
       expect(result.detailUrl).toContain('customConnectorFactory/update?id=910244');
       const accountManageUrl = new URL(result.accountManageUrl);

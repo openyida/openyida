@@ -232,13 +232,15 @@ describe('local agent thin launcher', () => {
     expect(spawn).not.toHaveBeenCalled();
   });
 
-  test.each(['RUNTIME_ACTION_FAILED', 'ENROLLMENT_EXPIRED', 'ENROLLMENT_REJECTED', 'ENROLLMENT_CONFLICT'])('records a bounded error code: %s', async code => {
+  test.each(['RUNTIME_ACTION_FAILED', 'ENROLLMENT_EXPIRED', 'ENROLLMENT_REJECTED', 'ENROLLMENT_CONFLICT', 'ENROLLMENT_ACTIVE_RUN', 'ENROLLMENT_EXECUTION_LEASE_ACTIVE'])('records a bounded error code: %s', async code => {
     const failingRuntime = path.join(root, 'failing-runtime.js');
     fs.writeFileSync(failingRuntime, `#!${process.execPath}\nconsole.log(JSON.stringify({type:'error',code:${JSON.stringify(code)},message:'unsafe upstream detail'}));\n`, { mode: 0o700 });
     const diagnostic = jest.fn();
     await expect(launchRuntime({ executable: failingRuntime }, { command: 'status', node: { packageRoot: root } }, {
       diagnostic, signals: new EventEmitter(), stdout: { write: jest.fn() }, spawn: spawnFixture,
-    })).rejects.toMatchObject({ code, ...(code === 'ENROLLMENT_EXPIRED' ? { message: expect.stringMatching(/过期|expired/) } : {}) });
+    })).rejects.toMatchObject({ code, ...(code === 'ENROLLMENT_EXPIRED' ? { message: expect.stringMatching(/过期|expired/) } : {}),
+      ...(code === 'ENROLLMENT_ACTIVE_RUN' ? { message: expect.stringMatching(/任务结束|finish before reconnecting/) } : {}),
+      ...(code === 'ENROLLMENT_EXECUTION_LEASE_ACTIVE' ? { message: expect.stringMatching(/执行授权仍有效|execution lease is still valid/) } : {}) });
     expect(diagnostic).toHaveBeenCalledWith('error', 'runtime_action_failed', {
       command: 'status', component: 'node', errorCode: code, retryable: false,
     });

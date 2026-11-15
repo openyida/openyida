@@ -5,6 +5,21 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  workflow_cycle: {
+    invalid: "Cấu hình vòng lặp chưa đầy đủ hoặc vượt giới hạn.",
+    node_unavailable: "Nút {0} không khả dụng trong vòng lặp này. Hãy xem các nút khả dụng trong trình thiết kế YiDA.",
+    unavailable: "Vòng lặp không khả dụng trong trường hợp này của YiDA.",
+    unverified: "Không thể xác minh quyền sử dụng vòng lặp hoặc cấu hình nút. Hãy kiểm tra tổ chức đăng nhập rồi thử lại.",
+    entitlement_required: "Tổ chức chưa có quyền sử dụng vòng lặp. Hãy nhờ quản trị viên xem và nâng cấp gói trên trang YiDA chính thức: {0}",
+    published_unverified: "Không thể xác minh bản tự động hóa đã phát hành. Hãy kiểm tra trạng thái phát hành trong trình thiết kế YiDA.",
+  },
+  issue_fixes: {
+    invalid_api_key: 'API Key cần name hợp lệ và vị trí header/query; hãy kiểm tra cấu hình kết nối.',
+    repair_required: 'Cấu hình API Key cũ thiếu type/in/location. Dùng --repair-api-key-scheme để sửa rõ ràng và tạo tài khoản mới.',
+    replacement_notice: 'Tài khoản hiện có không đổi; hãy liên kết bên gọi với ID tài khoản mới được trả về.',
+    invalid_import: 'Gói di chuyển không hợp lệ; kiểm tra mã biểu mẫu, Schema hoặc alias trong details.',
+    partial_import: 'Nhập chưa hoàn tất. Kiểm tra tài nguyên trong yida-migration-report.json và lưu trữ báo cáo trước khi nhập mới.',
+  },
   dingtalk_login: {
     select_version: 'Chọn phiên bản DingTalk để đăng nhập YiDA ở nước ngoài:',
     domestic: 'DingTalk Trung Quốc (YiDA ở nước ngoài, mặc định)',

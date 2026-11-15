@@ -483,7 +483,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida connector delete-action <id> <operation-id>` | 删除执行动作 |
 | `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>] [--ignore-defaults]` | 测试执行动作 |
 | `openyida connector list-connections <id>` | 列出鉴权账号 |
-| `openyida connector create-connection <id> <name> [--interactive]` | 创建鉴权账号 |
+| `openyida connector create-connection <id> <name> [--interactive] [--repair-api-key-scheme]` | 创建鉴权账号 |
 | `openyida connector smart-create --curl "..."` | 从 cURL 生成脱敏动作草稿（不创建远端资源） |
 | `openyida connector parse-api [options]` | 解析接口信息 |
 | `openyida connector gen-template [output]` | 生成接口文档模板 |

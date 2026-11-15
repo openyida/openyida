@@ -35,6 +35,32 @@ describe('integration api', () => {
     });
   });
 
+  test('enabling validates the published flow definition before switching', async () => {
+    const postForm = jest.fn().mockResolvedValue({ success: true, content: true });
+    const get = jest.fn(async path => {
+      if (path.includes('listFlowByProcessCodes')) {
+        return { success: true, content: { data: [{ processCode: 'FLOW', formUuid: 'FORM', type: '1' }] } };
+      }
+      if (path.includes('pageProcessVersion')) {
+        return { success: true, content: { data: [{ id: '123', version: 1 }] } };
+      }
+      if (path.includes('getProcessById')) {
+        return { success: true, content: { schema: { componentName: 'CanvasEngine', children: [
+          { id: 'loop', componentName: 'CycleContainer', props: { cycleContainerRules: { sourceId: 'rows' } },
+            children: [{ id: 'update', componentName: 'UpdateDataNode' }] },
+        ] } } };
+      }
+      throw new Error('unexpected platform read');
+    });
+    createYidaClient.mockReturnValue({ get, postForm });
+    const { switchLogicflow } = require('../lib/integration/integration-api');
+    await expect(switchLogicflow({}, { appType: 'APP', formUuid: 'FORM', processCode: 'FLOW', enable: true }))
+      .rejects.toMatchObject({ code: 'WORKFLOW_CYCLE_NODE_UNAVAILABLE', details: { remoteWrites: 0 } });
+    const versionQuery = get.mock.calls.find(([path]) => path.includes('pageProcessVersion'))[1];
+    expect(versionQuery({})).toMatchObject({ status: 'PUBLISHED' });
+    expect(postForm).not.toHaveBeenCalled();
+  });
+
   test('timer switching uses its verified native binding type instead of form-event type', async () => {
     const get = jest.fn(async () => ({ success: true, content: { data: [
       { processCode: 'TIMER', formUuid: 'FORM', eventType: 3 },
