@@ -61,7 +61,7 @@ appType 和 CSS 各自就绪后，按 `yida-create-app` 的 update-app 参数上
 
 ## 4. 逐页发布与收尾
 
-每页就绪即检查、编译和发布，真实数据绑定、权限和主题未验证时保留缺口。统一核对导航与实际入口。完整应用的可见平台菜单按 [收尾分组](../../yida-nav-group/SKILL.md#完整应用收尾分组) 检查，超过 8 个一级业务页面时先分组并回读，再交付。build-manifest 只随真实执行增补资源 ID、字段映射、主题回执、素材任务和验收证据，不写预设完整方案，不作为创建门槛。
+一般门户按自定义页面创建和发布。明确选择宜搭原生门户或排除自定义页面时，加载 `yida-create-portal`，按原生门户流程创建、配置和验收，并以 `native-portal` 记入验收清单的 `resources`。自定义页面就绪即检查、编译和发布，真实数据绑定、权限和主题未验证时保留缺口。统一核对导航与实际入口。完整应用的可见平台菜单按 [收尾分组](../../yida-nav-group/SKILL.md#完整应用收尾分组) 检查，超过 8 个一级业务页面时先分组并回读，再交付。build-manifest 只随真实执行增补资源 ID、字段映射、主题回执、素材任务和验收证据，不写预设完整方案，不作为创建门槛。
 
 ```bash
 openyida check-prd-completeness --manifest-only --build-manifest <绝对路径>/build-manifest.json --app-type <真实appType> --json

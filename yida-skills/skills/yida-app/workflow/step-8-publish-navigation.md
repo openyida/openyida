@@ -29,7 +29,7 @@ PRD 的应用工作区导航 `execution.appConfig.navigationType=custom` 时，�
 
 若 `constraints.prohibitedActions` 含 `publish`，跳过本步骤的所有 `openyida publish` 写操作并记录“未发布”；不得以历史版本、编译成功或现有 URL 冒充本轮发布。若因 `page-source` 禁止而本轮没有源码变更，也不得用一次无变化发布伪造完成证据。
 
-1. 对本轮各页面执行 `use_skill("yida-publish-page", "发布已完成页面")`；`<source>` 使用本轮修改过的源码，`<displayPageFormUuid>` 使用该页真实 ID。逐页发布不触发导航排序：
+1. 对本轮有源码变更的 display 页面执行 `use_skill("yida-publish-page", "发布已完成页面")`；`<source>` 使用本轮修改过的源码，`<displayPageFormUuid>` 使用该页真实 ID。逐页发布不触发导航排序：
 
 ```text
 openyida publish <source> <appType> <displayPageFormUuid> --canvas --strict-theme --health-check
@@ -37,7 +37,7 @@ openyida publish <source> <appType> <displayPageFormUuid> --canvas --strict-them
 
 完整搭建使用 `--strict-theme` 检查可静态识别的 antd 品牌色硬覆盖；发现问题时回到应用主题变量和 CanvasThemeProvider 接入，不自动追加放行参数。该检查不覆盖所有局部 CSS、图片或动态样式，更不负责保存应用主题；Step 9 仍核验应用设置及真实页面。
 
-2. 主流程核对本轮全部页面已开发完成并发布成功、表单/流程等导航目标已创建。仍有任务未完成或失败时，继续处理对应任务，暂不排序。
+2. 核对有源码变更的 display 页面已发布、表单和流程等导航目标已创建。原生门户按 `yida-create-portal` 核验配置回读和实际工作台入口。仍有任务未完成或失败时，继续处理对应任务，暂不排序。
 3. 全部页面与资源汇合后，仅需配置平台导航时，根据 PRD 选择下列一个分支；只使用自定义导航的入口继续做页面排序验收，不调用平台排序命令：
 
 PRD 写明页面/表单清单顺序：

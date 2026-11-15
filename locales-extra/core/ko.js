@@ -204,7 +204,8 @@ module.exports = {
     cmd_get_schema: '양식 Schema 가져오기',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: '사용자 정의 페이지 또는 기본 포털 생성',
+    cmd_create_page: '사용자 정의 페이지 생성',
+    cmd_portal_create: '宜搭 네이티브 포털 생성',
     cmd_portal_inspect: '네이티브 포털 타일 및 버전 확인',
     cmd_portal_configure: '네이티브 포털 타일 및 레이아웃 설정',
     cmd_generate_page: 'Generate page from curated template',
@@ -325,7 +326,7 @@ module.exports = {
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
       '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
-      '  create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav]        Create a custom page or native portal, output pageId\n' +
+      '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
       '  list-forms <appType> [--keyword <text>]                      List forms/pages in an app\n' +
@@ -860,7 +861,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Yida 커스텀 페이지 생성 도구',
-    usage: '사용법: openyida create-page <appType> <페이지 이름> [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: '사용법: openyida create-page <appType> <페이지 이름> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: '예: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  앱 ID:    {0}',
     page_name: '  페이지 이름: {0}',
@@ -874,7 +875,7 @@ module.exports = {
     err_mode_invalid: 'Unsupported page mode: {0}',
     portal_hide_nav_unsupported: '--hide-nav 옵션은 사용자 정의 페이지에서만 지원됩니다.',
     portal_unverified: '페이지를 만들었지만 기본 포털 유형을 확인할 수 없습니다. 다시 시도하기 전에 페이지 구성을 조회하세요.',
-    mode_hint: '사용 가능한 모드: default, dashboard, portal. 사용자 정의 페이지에서 탐색을 숨기려면 --hide-nav 또는 --render-nav false를 사용하세요.',
+    mode_hint: '사용 가능한 모드: default, dashboard. 사용자 정의 페이지에서 탐색을 숨기려면 --hide-nav 또는 --render-nav false를 사용하세요.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ 커스텀 페이지 생성 실패: {0}',

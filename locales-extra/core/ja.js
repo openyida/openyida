@@ -204,7 +204,8 @@ module.exports = {
     cmd_get_schema: 'フォーム Schema を取得',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'カスタムページまたはネイティブポータルを作成',
+    cmd_create_page: 'カスタムページを作成',
+    cmd_portal_create: '宜搭ネイティブポータルを作成',
     cmd_portal_inspect: 'ネイティブポータルのタイルと版を確認',
     cmd_portal_configure: 'ネイティブポータルのタイルと配置を設定',
     cmd_generate_page: 'Generate page from curated template',
@@ -325,7 +326,7 @@ module.exports = {
       '  login                                                        ログイン管理（キャッシュ優先、なければ QR コードスキャン）\n' +
       '  logout                                                       ログアウト / アカウント切り替え\n' +
       '  create-app "<名前>" [説明] [アイコン] [色] [テーマ] [ナビ] [レイアウト]  アプリを作成し appType を出力\n' +
-      '  create-page <appType> "<ページ名>" [--mode dashboard|portal] [--hide-nav]        カスタムページまたはネイティブポータルを作成し pageId を出力\n' +
+      '  create-page <appType> "<ページ名>" [--mode dashboard] [--hide-nav]        カスタムページを作成し pageId を出力\n' +
       '  create-form create <appType> "<フォーム名>" <フィールドJSON> [--layout <レイアウト>] [--theme <テーマ>] [--label-align <配置>]  フォームページを作成\n' +
       '  create-form update <appType> <formUuid> <変更JSON>           フォームページを更新\n' +
       '  get-schema <appType> <formUuid>                              フォーム Schema を取得\n' +
@@ -831,7 +832,7 @@ module.exports = {
   },
   create_page: {
     title: '  openyida create-page - Yida カスタムページ作成ツール',
-    usage: 'Usage: openyida create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'Usage: openyida create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: '例: openyida create-page "APP_XXX" "Dashboard" --mode dashboard',
     app_id: '  アプリ ID:   {0}',
     page_name: '  ページ名:   {0}',
@@ -845,7 +846,7 @@ module.exports = {
     err_mode_invalid: 'Unsupported page mode: {0}',
     portal_hide_nav_unsupported: '--hide-nav はカスタムページでのみ使用できます。',
     portal_unverified: 'ページは作成されましたが、ネイティブポータルであることを確認できませんでした。再試行する前にページの設定を取得してください。',
-    mode_hint: '使用できるモード: default、dashboard、portal。カスタムページのナビゲーションを非表示にするには --hide-nav または --render-nav false を指定します。',
+    mode_hint: '使用できるモード: default、dashboard。カスタムページのナビゲーションを非表示にするには --hide-nav または --render-nav false を指定します。',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ 作成に失敗しました: {0}'

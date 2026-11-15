@@ -204,7 +204,8 @@ module.exports = {
     cmd_get_schema: 'Formular-Schema abrufen',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'Benutzerdefinierte Seite oder natives Portal erstellen',
+    cmd_create_page: 'Benutzerdefinierte Seite erstellen',
+    cmd_portal_create: 'Natives YiDA-Portal erstellen',
     cmd_portal_inspect: 'Kacheln und Revision des nativen Portals anzeigen',
     cmd_portal_configure: 'Kacheln und Layout des nativen Portals konfigurieren',
     cmd_generate_page: 'Generate page from curated template',
@@ -325,7 +326,7 @@ module.exports = {
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
       '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
-      '  create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav]        Create a custom page or native portal, output pageId\n' +
+      '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
       '  list-forms <appType> [--keyword <text>]                      List forms/pages in an app\n' +
@@ -860,7 +861,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Yida-Benutzerdefinierte-Seiten-Erstellungstool',
-    usage: 'Verwendung: openyida create-page <appType> <Seitenname> [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'Verwendung: openyida create-page <appType> <Seitenname> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: 'Beispiel: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  App-ID:       {0}',
     page_name: '  Seitenname:   {0}',
@@ -874,7 +875,7 @@ module.exports = {
     err_mode_invalid: 'Unsupported page mode: {0}',
     portal_hide_nav_unsupported: 'Die Option --hide-nav wird nur für benutzerdefinierte Seiten unterstützt.',
     portal_unverified: 'Die Seite wurde erstellt, aber ihr Typ als natives Portal konnte nicht bestätigt werden. Lesen Sie die Seitenkonfiguration vor einem erneuten Versuch.',
-    mode_hint: 'Verfügbare Modi: default, dashboard und portal. Verwenden Sie --hide-nav oder --render-nav false für benutzerdefinierte Seiten.',
+    mode_hint: 'Verfügbare Modi: default, dashboard. Verwenden Sie --hide-nav oder --render-nav false für benutzerdefinierte Seiten.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ Erstellung fehlgeschlagen: {0}',

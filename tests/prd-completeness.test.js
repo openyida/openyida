@@ -158,6 +158,26 @@ describe('prd completeness check', () => {
     expect(fetchOneFormRecordCount).not.toHaveBeenCalled();
   });
 
+  test.each([
+    ['portal', 'pass', 1],
+    ['display', 'needs_review', 0],
+  ])('checks native portal resources by type: %s', async (formType, verdict, matchedResources) => {
+    const prd = buildPrd().replace('display-page / main', '宜搭原生门户');
+    const manifest = buildManifest();
+    manifest.resources[0].type = 'native-portal';
+    expect(parsePrdMarkdown(prd).resources[0].kind).toBe('native-portal');
+    expect(parsePrdMarkdown(prd.replace('宜搭原生门户', '门户')).resources[0].kind).toBe('display-page');
+
+    const result = await evaluatePrdCompleteness(prd, { appType: 'APP_XXX', buildManifest: manifest }, {
+      fetchForms: jest.fn().mockResolvedValue([{ ...forms[0], formType }, forms[1]]),
+    });
+    expect(result.verdict).toBe(verdict);
+    expect(result.summary.checked).toMatchObject({ prdHintResources: 2, matchedResources: matchedResources + 1 });
+    if (formType === 'display') {
+      expect(result.items).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'resource_type_mismatch' })]));
+    }
+  });
+
   test('matches manifest resources by name and type when formUuid is absent', async () => {
     const result = await evaluatePrdCompleteness('', {
       appType: 'APP_XXX',

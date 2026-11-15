@@ -294,7 +294,8 @@ const MAX_UNPACKED_BYTES = 10016 * 1024;
 // The task-concurrency runtime adds exactly one packaged module.
 // Independent Fast theme generation adds one runtime module; byte budgets are unchanged.
 // Main file-upload support adds three packaged files.
-const MAX_ENTRY_COUNT = 817;
+// The dedicated native portal skill adds one packaged entry.
+const MAX_ENTRY_COUNT = 818;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

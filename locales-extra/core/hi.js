@@ -204,7 +204,8 @@ module.exports = {
     cmd_get_schema: 'फॉर्म Schema प्राप्त करें',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'कस्टम पेज या नेटिव पोर्टल बनाएं',
+    cmd_create_page: 'कस्टम पेज बनाएं',
+    cmd_portal_create: 'मूल YiDA पोर्टल बनाएं',
     cmd_portal_inspect: 'मूल पोर्टल की टाइलें और संस्करण देखें',
     cmd_portal_configure: 'मूल पोर्टल की टाइलें और लेआउट कॉन्फ़िगर करें',
     cmd_generate_page: 'Generate page from curated template',
@@ -325,7 +326,7 @@ module.exports = {
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
       '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
-      '  create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav]        Create a custom page or native portal, output pageId\n' +
+      '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
       '  list-forms <appType> [--keyword <text>]                      List forms/pages in an app\n' +
@@ -860,7 +861,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Yida कस्टम पेज निर्माण टूल',
-    usage: 'उपयोग: openyida create-page <appType> <पेज नाम> [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'उपयोग: openyida create-page <appType> <पेज नाम> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: 'उदाहरण: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  ऐप ID:    {0}',
     page_name: '  पेज नाम: {0}',
@@ -874,7 +875,7 @@ module.exports = {
     err_mode_invalid: 'Unsupported page mode: {0}',
     portal_hide_nav_unsupported: '--hide-nav विकल्प केवल कस्टम पेज के लिए उपलब्ध है।',
     portal_unverified: 'पेज बन गया, लेकिन उसके नेटिव पोर्टल प्रकार की पुष्टि नहीं हो सकी। दोबारा कोशिश करने से पहले पेज की कॉन्फ़िगरेशन देखें।',
-    mode_hint: 'उपलब्ध मोड: default, dashboard और portal। कस्टम पेज पर नेविगेशन छिपाने के लिए --hide-nav या --render-nav false का उपयोग करें।',
+    mode_hint: 'उपलब्ध मोड: default, dashboard। कस्टम पेज पर नेविगेशन छिपाने के लिए --hide-nav या --render-nav false का उपयोग करें।',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ निर्माण विफल: {0}',

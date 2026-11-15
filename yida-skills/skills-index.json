@@ -684,6 +684,7 @@
         "官网首页",
         "工作台",
         "办事门户",
+        "宜搭原生门户",
         "操作队列",
         "任务看板",
         "看板页面",
@@ -1008,7 +1009,7 @@
       "name": "yida-create-page",
       "path": "skills/yida-create-page/SKILL.md",
       "display_name": "创建自定义页面",
-      "description": "创建缺失的宜搭自定义展示页面，返回 pageId（即 formUuid）；已有页面改走开发和发布。",
+      "description": "创建缺失的宜搭自定义展示页面，默认承接一般门户、首页和工作台，返回 pageId。",
       "category": "yida-skills/page",
       "tags": [
         "自定义页面",
@@ -1017,14 +1018,40 @@
         "display"
       ],
       "aliases": [
-        "新建页面"
+        "新建页面",
+        "创建门户",
+        "用自定义页面做门户"
       ],
+      "negative_signals": ["宜搭原生门户", "不用自定义页面做门户"],
       "command_ids": [
         "create-page",
         "update-form-config",
         "get-form-config"
       ],
       "done_when": "取得真实 pageId；要求 --hide-nav 时还须 navigationVerification.verified=true。若 pageCreated=true 但隐藏未确认，按 recovery 修复原页面，不重复创建。"
+    },
+    {
+      "name": "yida-create-portal",
+      "path": "skills/yida-create-portal/SKILL.md",
+      "display_name": "宜搭原生门户",
+      "description": "用户明确选择宜搭原生门户、排除自定义页面方案，或维护已有原生门户时使用。创建原生门户并配置磁贴。",
+      "category": "yida-skills/page",
+      "tags": [
+        "宜搭原生门户",
+        "create-portal",
+        "原生门户磁贴"
+      ],
+      "aliases": [
+        "创建宜搭原生门户",
+        "不用自定义页面做门户",
+        "不要用自定义页面开发门户"
+      ],
+      "command_ids": [
+        "create-portal",
+        "portal.inspect",
+        "portal.configure"
+      ],
+      "done_when": "创建时回读确认 formType=portal 并返回 pageId 和页面链接。配置时核对磁贴回读及实际工作台入口。"
     },
     {
       "name": "yida-create-process",
@@ -1948,6 +1975,7 @@
       "signals": [
         "工作台",
         "办事门户",
+        "宜搭原生门户",
         "操作队列",
         "任务看板",
         "自定义页面",

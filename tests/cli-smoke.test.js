@@ -1900,6 +1900,9 @@ describe('CLI offline smoke', () => {
       'create-form.create',
       'create-form.icons',
       'create-page',
+      'create-portal',
+      'portal.inspect',
+      'portal.configure',
       'publish',
     ]));
     const builderCommands = new Map(parsed.builder_path.command_contract.canonical_builder_commands

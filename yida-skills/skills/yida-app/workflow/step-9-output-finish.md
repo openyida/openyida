@@ -93,7 +93,7 @@ Fast 将主题命令回执的 `applicationTheme` 写入 `build-manifest.json`。
 
 平台导航管理页需另外从实际 workbench 入口核对没有重复跨模块菜单；将页面配置回读与视觉检查分开记录，未打开页面时标记视觉待验证，不把 build-manifest 资源齐全或编译成功当作导航验收。
 
-资源检查消费 `display-page`、`normal-form`、`process-form` 资源项；另外核验当前输入已声明的 `navigationVisibility` 和 `applicationTheme`，Fast 从 manifest 读取，文档路径从 PRD 读取。不检查字段、必填、选项、seed records、导航顺序、默认页、页面 renderNav、表单 Schema、页面发布内容、截图或视觉体验。
+资源检查消费 `display-page`、`normal-form`、`process-form`、`native-portal` 资源项。原生门户记录真实 `formUuid` 与 `type: "native-portal"`。另外核验当前输入已声明的 `navigationVisibility` 和 `applicationTheme`，Fast 从 manifest 读取，文档路径从 PRD 读取。不检查字段、必填、选项、seed records、导航顺序、默认页、页面 renderNav、表单 Schema、页面发布内容、截图或视觉体验。
 
 最小示例：
 

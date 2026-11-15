@@ -181,6 +181,17 @@ describe('OpenYida skill contracts', () => {
     }
   });
 
+  test('default and explicit native portal routes use their own skills and commands', () => {
+    const { skills } = JSON.parse(readSkill('yida-skills/skills-index.json'));
+    const display = skills.find(skill => skill.name === 'yida-create-page');
+    const native = skills.find(skill => skill.name === 'yida-create-portal');
+    expect(display.aliases).toEqual(expect.arrayContaining(['创建门户', '用自定义页面做门户']));
+    expect(native.aliases).toEqual(expect.arrayContaining(['创建宜搭原生门户', '不用自定义页面做门户']));
+    expect(display.command_ids).toContain('create-page');
+    expect(display.command_ids).not.toContain('create-portal');
+    expect(native.command_ids).toEqual(['create-portal', 'portal.inspect', 'portal.configure']);
+  });
+
   test('public theme guidance describes choices without publishing a total', () => {
     for (const file of ['README.md', 'README_zhCN.md', 'CHANGELOG.md', 'yida-skills/skills/yida-design/templates/design-themes/README.md']) {
       expect(readSkill(file)).not.toMatch(/\b\d+\s+(?:套(?:应用)?主题|个主题(?!运行时模块)|themes\b)/i);
