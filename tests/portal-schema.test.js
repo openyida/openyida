@@ -15,13 +15,17 @@ const config = {
 };
 
 test('creates source-defined portal materials with the native grid and stable identities', () => {
-  const output = applyPortalConfig({ pages: [{}] }, config, target);
+  const dataSource = { online: [], offline: [], sync: true };
+  const blank = { pages: [{ componentsTree: [{ dataSource }] }] };
+  expect(inspectPortal(blank).tiles).toEqual([]);
+  const output = applyPortalConfig(blank, config, target);
+  expect(output.schema.pages[0].componentsTree[0].dataSource).toEqual(dataSource);
   const { tiles, theme } = inspectPortal(output.schema);
   expect(tiles.map(tile => tile.componentName)).toEqual(['QuickAccessCard', 'RecentlyUsedCard', 'DataManageViews']);
   expect(tiles[0].props.maxItems).toBe(4);
   expect(tiles[1].placement).toMatchObject({ x: 3, y: 0, w: 3, i: tiles[1].fieldId });
   expect(tiles[2].props).toMatchObject({ form: { value: 'FORM-OPERATIONS' }, visibility: ['PC'] });
-  expect(theme.follow).toBe(true);
+  expect(theme).toMatchObject({ portalTheme: 'blue', pageWidth: 'normal', pageBackground: 'auto', follow: true });
   expect(output.schema.pages[0].componentsMap).toEqual(expect.arrayContaining([
     expect.objectContaining({ componentName: 'DataManageViews', package: '@ali/vc-deep-yida' }),
   ]));
