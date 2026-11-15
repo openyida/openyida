@@ -85,7 +85,7 @@ openyida integration diagnose --file <异常文件> [--json]
 | --- | --- | --- |
 | 发起/触发 | 表单事件、流程完成或节点事件、定时 | 定时使用 spec schedule；不设置发起页字段权限；当前不创建应用或卡片触发 |
 | 人工处理 | 无审批、办理、抄送人工节点 | 需要审批时用 `initiateApproval` 发起目标流程，在目标流程中配置审批人 |
-| 流转控制 | `route/parallel/cycle` | 循环为单层，使用前检查当前组织权益与节点范围，格式见 [流转控制](../yida-flow-node-config/references/control.md) |
+| 流转控制 | `route/parallel/cycle` | 循环为单层，格式见 [流转控制](../yida-flow-node-config/references/control.md) |
 | 数据操作 | `getSelf/dataRetrieve/dataCreate/dataUpdate`，含批量取数/新增 | 当前 spec 不支持删除；流程表单新增用发起审批 |
 | 通知 | `sendMessage`，成员/角色/成员字段 | 当前 spec 不支持邮件或卡片 |
 | 扩展执行 | `connector/initiateApproval` | 连接器需发现真实 action schema；当前 spec 不支持代码或 AI |
@@ -148,6 +148,8 @@ openyida integration create APP_XXX FORM_XXX "替换已有自动化" --process-c
 
 ## 验证与异常
 
+循环自动化按正常配置流程提交，由 CLI 自动校验。成功时直接报告保存或启用结果，校验结果影响任务时再说明原因和下一步。
+
 发布成功要求列表中 `formUuid + processCode` 唯一匹配、状态为 `y`，且详情非空；返回 `verificationLevel=PLATFORM_LIST_EXACT_DETAIL_PRESENT`。角色、批量节点、赋值等已启用的投影校验也必须通过。此等级不证明完整运行图已回读，不能据此解锁 `integration update`。
 
 | 结果 | 处理 |
@@ -160,7 +162,8 @@ openyida integration create APP_XXX FORM_XXX "替换已有自动化" --process-c
 | 参数缺失、节点结构错误 | 停止，展示错误详情；从已有查询补齐真实参数，无法确定时询问用户，不猜测 |
 | 登录态失效或权限不足 | 停止，运行 `openyida auth status` 核对；刷新失败时按 CLI 提示重新登录 |
 | 未知错误 | 保留完整错误与资源 ID，停止；先只读核对是否已写入，再决定后续处理 |
-| 权益不足 | 保留服务端错误；有明确依据才说明所需版本、权益包或官方购买入口 |
+| CLI 明确返回权益不足 | 说明当前操作受阻，按返回结果告知所需权益或官方升级入口。 |
+| 循环配置不可用或校验结果无法确认 | 根据错误核对节点、目标应用或登录组织，再处理受阻的操作。 |
 
 安全更新、保存顺序、输出口径和运行验收限制见 [spec 编排的保存与验证规则](references/spec-authoring.md#保存与验证规则)。`PLATFORM_PROBE_REQUIRED` 时必须保持 `remoteWrites=0`，保留 probe artifact 和 blocker；仅有列表或详情存在性不足以解锁更新，也不得降级为通用 JSON Patch。
 

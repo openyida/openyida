@@ -155,6 +155,11 @@ describe('integration create command', () => {
       expect(integrationApi.createLogicflow).toHaveBeenCalledTimes(1);
       expect(integrationApi.saveProcess).toHaveBeenCalledTimes(1);
     }
+    const preflightCalls = httpGet.mock.calls.filter(([, url]) =>
+      ['/query/simpleProcess/getConfig.json', '/query/auth/list.json', '/query/compromiseDing/orgInGray.json']
+        .some(endpoint => url.endsWith(endpoint)));
+    expect(preflightCalls).toHaveLength(3);
+    expect(preflightCalls.every(([, , , options]) => options?.silentStatus === true)).toBe(true);
   });
 
   test.each([

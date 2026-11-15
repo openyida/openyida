@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | 条件分支 | 可直接生成：`route.conditions[]`，分支内用 `rules/childNodes` | 可直接生成：`route.branches[]`，分支内用 `conditions/nodes` |
 | 并行分支 | 可直接生成：`parallel.branches[]`，分支内用 `rules/childNodes` | 可直接生成：`parallel.branches[]`，分支内用 `conditions/nodes` |
-| 循环容器 | 审批流程使用宜搭设计器查看可用节点 | 支持 `cycle.source/nodes`，保存和启用前检查当前组织权益及节点范围 |
+| 循环容器 | 审批流程使用宜搭设计器查看可用节点 | 支持单层循环 `cycle.source/nodes` |
 | 拒绝后跳转 | 人工节点的 `routeRules` | 不适用，不是自动化分支 |
 
 比较规则和变量来源只读 [条件与变量](conditions-variables.md)。流程分支按数组顺序生成优先级；自动化指定至多一个 `default: true` 兜底分支。不要手写底层连线或 `conditionNode`。
@@ -192,9 +192,7 @@
 
 ### 循环逐条通知示例
 
-循环仅用于集成自动化的编排。审批完成后需要循环时，使用审批事件触发集成自动化。循环体可配置消息通知、发起审批和条件或并行分支，实际可用节点由平台核对。读取多条数据放在循环前。批量复制使用[批量数据节点](../../yida-integration/references/batch-data.md)。
-
-CLI 在创建、保存或启用循环自动化前检查当前登录组织的权益和节点配置。若确认缺少权益，请让组织管理员在[宜搭官方定价页](https://www.aliwork.com/pricing)查看适用版本并升级。若节点或场景不可用，请在目标应用的宜搭设计器核对可用操作。
+循环仅用于集成自动化的编排。审批完成后需要循环时，使用审批事件触发集成自动化。循环体可配置消息通知、发起审批和条件或并行分支，可用节点以目标应用为准。读取多条数据放在循环前。批量复制使用[批量数据节点](../../yida-integration/references/batch-data.md)。
 
 循环的 `source` 指向上游批量取数节点，`blockType` 可设为 `continue`（异常后跳过本条）或 `break`（退出循环）。每条自动化可配置一个循环，循环体最多五个计数节点。条件项和并行项本身不计数，分支内的动作仍计数。当前行字段使用 `${循环别名}.字段ID`。
 
