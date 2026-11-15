@@ -5,6 +5,14 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  workflow_cycle: {
+    invalid: "إعداد الحلقة غير مكتمل أو يتجاوز الحد.",
+    node_unavailable: "العقدة {0} غير متاحة في هذه الحلقة. تحقّق من العقد المتاحة في مصمم YiDA.",
+    unavailable: "الحلقات غير متاحة في هذا السيناريو في YiDA.",
+    unverified: "تعذّر التحقق من صلاحية الحلقة أو إعداد العقد. تحقّق من المؤسسة التي سجّلت الدخول إليها وحاول مجددًا.",
+    entitlement_required: "لا تملك المؤسسة صلاحية استخدام الحلقات. اطلب من مسؤول المؤسسة مراجعة الباقات والترقية على موقع YiDA الرسمي: {0}",
+    published_unverified: "تعذّر التحقق من الأتمتة المنشورة. تحقّق من حالة النشر في مصمم YiDA.",
+  },
   issue_fixes: {
     invalid_api_key: 'يتطلب API Key اسم name صالحًا وموقع header/query؛ افحص تعريف الموصل أولًا.',
     repair_required: 'يفتقد إعداد API Key القديم type/in/location. أضف --repair-api-key-scheme لإصلاحه صراحةً وإنشاء حساب جديد.',
