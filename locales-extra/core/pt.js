@@ -205,6 +205,8 @@ module.exports = {
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
     cmd_create_page: 'Criar página personalizada ou portal nativo',
+    cmd_portal_inspect: "Consultar blocos e revisão do portal nativo",
+    cmd_portal_configure: "Configurar blocos e layout do portal nativo",
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',

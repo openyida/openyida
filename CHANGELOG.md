@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 - **原生门户创建**：使用 `create-page --mode portal` 创建门户，回读确认页面类型后返回设计器和访问链接。
+- **门户磁贴配置**：查看已有磁贴，添加或更新快捷访问、最近使用、数据管理视图及其他原生门户组件，并配置六列磁贴布局。
 
 ## [2026.11.15-1] - 2026-11-15
 

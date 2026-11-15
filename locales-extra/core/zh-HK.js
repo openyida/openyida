@@ -206,6 +206,8 @@ module.exports = {
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: '導出應用實體關係圖',
     cmd_create_page: '建立自訂頁面或原生入口網站',
+    cmd_portal_inspect: "查看原生門戶磁貼與版本",
+    cmd_portal_configure: "設定原生門戶磁貼與版面",
     cmd_generate_page: '基於高質素模板生成頁面',
     cmd_build_page: '构建宜搭兼容页面源码',
     cmd_check_page: '檢查自定義頁面規範',

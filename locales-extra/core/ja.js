@@ -205,6 +205,8 @@ module.exports = {
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
     cmd_create_page: 'カスタムページまたはネイティブポータルを作成',
+    cmd_portal_inspect: "ネイティブポータルのタイルと版を確認",
+    cmd_portal_configure: "ネイティブポータルのタイルと配置を設定",
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
