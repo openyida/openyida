@@ -258,7 +258,8 @@ const MAX_TARBALL_BYTES = 2784 * 1024;
 // unpacked bytes; 820 files locally and one existing main file in the PR merge.
 // The integrated package measures 10,316,807 unpacked bytes. Round up to 16 KiB.
 // Standalone card samples embed their action and CSV code for the report editor.
-const MAX_UNPACKED_BYTES = 10096 * 1024;
+// Main plus the combined data display features measures 10,351,234 unpacked bytes.
+const MAX_UNPACKED_BYTES = 10112 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.

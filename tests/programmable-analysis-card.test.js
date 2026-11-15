@@ -75,11 +75,11 @@ test('explorer links selection, tabs, brush scope and safe CSV to the same raw r
   const render = () => { cursor = 0; memoCursor = 0; return Component({ analysis, temporal: true }); };
   const button = (tree, label) => {
     const native = find(tree, 'button').find(node => node.children.includes(label));
-    if (native) return native;
+    if (native) { return native; }
     const findAction = node => {
-      if (Array.isArray(node)) return node.map(findAction).find(Boolean);
-      if (!node || typeof node !== 'object') return undefined;
-      if (typeof node.type === 'function' && node.props?.label === label) return node.type(node.props);
+      if (Array.isArray(node)) { return node.map(findAction).find(Boolean); }
+      if (!node || typeof node !== 'object') { return undefined; }
+      if (typeof node.type === 'function' && node.props?.label === label) { return node.type(node.props); }
       return findAction(node.children);
     };
     const action = findAction(tree);
