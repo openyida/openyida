@@ -33,7 +33,7 @@ async function runCli(baseUrl, workspace, mode = 'web', command = 'create-app') 
   if (command === 'create-app-quiet') { args.push('--quiet', '--no-open'); }
   if (command === 'import') {
     const filename = path.join(workspace, 'import.json');
-    fs.writeFileSync(filename, JSON.stringify({ sourceAppType: 'APP_SOURCE', forms: [{ name: 'Form', formUuid: 'FORM_SOURCE' }] }));
+    fs.writeFileSync(filename, JSON.stringify({ sourceAppType: 'APP_SOURCE', forms: [{ name: 'Form', formUuid: 'FORM_SOURCE', schema: { pages: [] } }] }));
     args = [BIN, 'import', filename];
   }
   return new Promise((resolve, reject) => {

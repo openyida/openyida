@@ -5,6 +5,21 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  workflow_cycle: {
+    invalid: "ループの設定が不完全か、上限を超えています。",
+    node_unavailable: "このループでは {0} を使用できません。YiDA デザイナーで利用可能なノードを確認してください。",
+    unavailable: "この YiDA のシナリオではループを利用できません。",
+    unverified: "組織のループ権限またはノード設定を確認できません。組織を確認して再試行してください。",
+    entitlement_required: "この組織にはループの利用権限がありません。組織管理者に YiDA 公式サイトでプランを確認し、アップグレードするよう依頼してください：{0}",
+    published_unverified: "公開済みの自動化を確認できません。YiDA デザイナーで公開状態を確認してください。",
+  },
+  issue_fixes: {
+    invalid_api_key: 'API Key には有効な name と header/query の場所が必要です。接続定義を確認してください。',
+    repair_required: '旧 API Key 設定に type/in/location がありません。--repair-api-key-scheme を指定して修復し、新規アカウントを作成してください。',
+    replacement_notice: '既存アカウントは変更されません。呼び出し元を返された新規アカウント ID に再設定してください。',
+    invalid_import: '移行パッケージが無効です。details のフォーム ID、Schema、alias を確認してください。',
+    partial_import: 'インポート未完了です。yida-migration-report.json の既存リソースを確認し、レポートを保存してから新しいインポートを開始してください。',
+  },
   dingtalk_login: {
     select_version: '海外 YiDA にログインする DingTalk の種類を選択：',
     domestic: '中国版 DingTalk（海外 YiDA、既定）',

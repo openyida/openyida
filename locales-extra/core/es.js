@@ -5,6 +5,21 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  workflow_cycle: {
+    invalid: "La configuración del bucle está incompleta o supera el límite.",
+    node_unavailable: "El nodo {0} no está disponible en este bucle. Consulta los nodos disponibles en el diseñador de YiDA.",
+    unavailable: "Los bucles no están disponibles en este escenario de YiDA.",
+    unverified: "No se pudo verificar el acceso a los bucles o la configuración de nodos. Comprueba la organización e inténtalo de nuevo.",
+    entitlement_required: "La organización no tiene acceso a los bucles. Pide a su administrador que consulte los planes y actualice la suscripción en el sitio oficial de YiDA: {0}",
+    published_unverified: "No se pudo verificar la automatización publicada. Comprueba el estado de publicación en el diseñador de YiDA.",
+  },
+  issue_fixes: {
+    invalid_api_key: 'API Key requiere un name válido y ubicación header/query; revise el conector.',
+    repair_required: 'Falta type/in/location en la configuración anterior. Use --repair-api-key-scheme para repararla explícitamente y crear otra cuenta.',
+    replacement_notice: 'Las cuentas existentes no cambian; vincule las llamadas al nuevo ID de cuenta devuelto.',
+    invalid_import: 'Paquete de migración inválido; revise identificadores, Schema o alias en details.',
+    partial_import: 'Importación incompleta. Revise los recursos en yida-migration-report.json y archive el informe antes de otra importación.',
+  },
   dingtalk_login: {
     select_version: 'Elige una versión de DingTalk para YiDA fuera de China:',
     domestic: 'DingTalk China (YiDA fuera de China, predeterminado)',

@@ -6,6 +6,21 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  workflow_cycle: {
+    invalid: "循環配置不完整或超出限制。每條自動化可配置一個循環，循環體最多包含五個計數節點。",
+    node_unavailable: "OpenYida 在此循環場景不支援節點 {0}。請在宜搭設計器查看可用節點。",
+    unavailable: "目前宜搭場景未開放循環容器。請在目標應用的設計器確認。",
+    unverified: "無法確認目前組織的循環權益或節點配置。請核對登入組織後重試。",
+    entitlement_required: "目前組織缺少循環容器權益。請聯絡組織管理員到宜搭官方頁面查看版本並升級：{0}",
+    published_unverified: "無法確認已發佈的自動化。請在宜搭設計器檢查發佈狀態。",
+  },
+  issue_fixes: {
+    invalid_api_key: 'API Key 設定必須包含有效的 name 和 header/query 位置；請先檢查連接器。',
+    repair_required: '舊 API Key 設定缺少 type/in/location；確認後加 --repair-api-key-scheme 修補並建立新帳號。',
+    replacement_notice: '現有帳號保持不變；請將呼叫方綁定至本次傳回的新帳號 ID。',
+    invalid_import: '遷移套件無效；請檢查 details 中的表單識別碼、Schema 或 alias。',
+    partial_import: '匯入未完成。請先檢查 yida-migration-report.json 中的現有資源，核實並封存報告後再進行新的匯入。',
+  },
   dingtalk_login: {
     select_version: '請選擇登入宜搭海外站的釘釘版本：',
     domestic: '釘釘國內版（宜搭海外，預設）',
