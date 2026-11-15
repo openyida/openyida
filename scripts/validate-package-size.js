@@ -102,7 +102,8 @@ const path = require('path');
 // compressed bytes; keep the next 16 KiB boundary, without changing per-file caps.
 // PR merge with current main: CI Node 20 measures 2,825,763 bytes before the
 // chart component move. Use the next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2768 * 1024;
+// Main plus programmable cards measures 2,836,411 compressed bytes on Node 20.
+const MAX_TARBALL_BYTES = 2784 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -257,7 +258,8 @@ const MAX_TARBALL_BYTES = 2768 * 1024;
 // Advanced chart component plus current main: CI Node 20 measures 10,277,069
 // unpacked bytes; 820 files locally and one existing main file in the PR merge.
 // The current PR merge measures 10,308,949 unpacked bytes.
-const MAX_UNPACKED_BYTES = 10080 * 1024;
+// Main plus programmable cards measures 10,341,334 unpacked bytes.
+const MAX_UNPACKED_BYTES = 10112 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -306,7 +308,8 @@ const MAX_UNPACKED_BYTES = 10080 * 1024;
 // The rich explorer template and its shared design guide add exactly two files.
 // Two independently reusable analysis component samples; single-file cap is unchanged.
 // The PR merge ships 823 files. Moving the components does not add entries.
-const MAX_ENTRY_COUNT = 823;
+// Main plus programmable cards packages 824 required files.
+const MAX_ENTRY_COUNT = 824;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
