@@ -26,7 +26,7 @@
 | `--approval-node-ids <nodeId,...>` | 空 | 当 `--events activityTask` 时必填；审批节点 ID，多个用逗号分隔 |
 | `--trigger-condition <fieldId:fieldName:opCode:value[:componentType[:valueType]]>` | 空 | 触发过滤条件，可多次传入；固定值用 `literal`（默认），右侧为另一个字段时用 `processVar`，见 [字段比较示例](../../yida-flow-node-config/references/conditions-variables.md) |
 | `--trigger-recursively` | 关闭 | 允许自动触发，对应设计器里的“允许自动触发” |
-| `--spec <file.json>` | 不启用 | 使用结构化编排文件创建复杂自动化，支持 `getSelf`、`dataRetrieve`、`dataCreate`、`dataUpdate`、`route`、`parallel`、`cycle`、`sendMessage`、`connector`、`initiateApproval` |
+| `--spec <file.json>` | 不启用 | 使用结构化编排文件创建复杂自动化，支持 `getSelf`、`dataRetrieve`、`dataCreate`、`dataUpdate`、`route`、`parallel`、`cycle`、`sendMessage`、`connector`、`initiateApproval`。循环体受组织权益和节点范围限制，见 [流转控制](../../yida-flow-node-config/references/control.md#循环逐条通知示例) |
 | `--get-self` | 关闭 | 自动插入“获取自身”节点：流程表单运行态查询字段为 `pid`、设计器字段为 `proc_inst_id`；普通表单两侧使用 `form_inst_id`，均等于触发事件字段 `__masterdata_form_inst_id` |
 | `--get-self-field <field>` | `__masterdata_form_inst_id` | 覆盖右侧触发事件系统字段；仅在确认环境变量名不同后使用 |
 | `--get-self-query-field <field>` | 自动按来源表单类型选择 | 覆盖左侧查询系统字段；流程表单运行态使用 `pid` / `流程实例ID`、设计器使用 `proc_inst_id`，普通表单两侧使用 `form_inst_id` / `表单实例ID`；仅在确认平台字段名不同后使用 |
