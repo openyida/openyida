@@ -32,7 +32,7 @@ description: 配置流程和自动化里的处理步骤，包括审批、办理�
 
 配置人工节点的处理人和字段权限时，只读人工处理、人员选择、字段权限。需要加签或外部动作时，再加载对应说明。
 
-复杂配置直接从对应完整示例改起：[审批／办理／抄送条件选人](references/actors.md#审批办理抄送的完整配置)、[多规则同时选人](references/actors.md#多条条件同时命中时收集人员)、[自动化并行](references/control.md#自动化并行示例)、[循环逐行写入](references/control.md#循环逐行写入示例)、[取数时字段比较](references/conditions-variables.md)。只替换查询到的真实 ID、字段类型和业务值，按示例的预期结果验收。
+复杂配置直接从对应完整示例改起：[审批／办理／抄送条件选人](references/actors.md#审批办理抄送的完整配置)、[多规则同时选人](references/actors.md#多条条件同时命中时收集人员)、[自动化并行](references/control.md#自动化并行示例)、[循环逐条通知](references/control.md#循环逐条通知示例)、[取数时字段比较](references/conditions-variables.md)。只替换查询到的真实 ID、字段类型和业务值，按示例的预期结果验收。
 
 ## 分清配置能力
 

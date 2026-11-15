@@ -22,6 +22,7 @@ function documentedExamples(relativePath, section, select = example => Array.isA
     '<目标库存字段ID>': 'stock', '<上游库存下限字段ID>': 'minStock',
     '<真实字段ID>': 'name', '<真实成员字段ID>': 'owner', '<真实部门字段ID>': 'dept',
     '<真实数字字段ID>': 'amount', '<真实角色ID>': 'ROLE_REAL',
+    '<真实测试接收人ID>': 'USER_REAL', '<真实编号字段ID>': 'sourceCode',
     '<真实办理人ID>': 'USER_REAL', '<真实抄送人ID>': 'USER_REAL',
   };
   return [...markdown.matchAll(/```json\n([\s\S]*?)\n```/g)].map(match => JSON.parse(match[1])).filter(select).map(example => {
@@ -110,10 +111,10 @@ describe('complete configuration examples in skills', () => {
       if (spec.nodes.some(node => node.type === 'cycle')) {
         const loop = built.processJson.nodes.find(node => node.type === 'foreach');
         const body = loop.childNodes[0];
-        expect(body.type).toBe('dataCreate');
-        expect(body.props.assignments).toHaveLength(2);
-        expect(JSON.stringify(body.props.assignments)).toContain(loop.nodeId);
-        expect(JSON.stringify(body.props.assignments)).not.toContain('${loop}');
+        expect(body.type).toBe('sendMessage');
+        expect(body.props.toUsers).toEqual([{ userId: 'USER_REAL', userName: '' }]);
+        expect(body.props.messageInfo.content).toContain(loop.nodeId);
+        expect(body.props.messageInfo.content).not.toContain('${loop}');
       }
     }
   });
