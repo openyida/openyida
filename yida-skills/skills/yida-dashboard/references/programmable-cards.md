@@ -11,7 +11,7 @@
 
 ## 独立查询接口
 
-不依赖报表页面的筛选、分页、受限公式、日期粒度、缓存、异步轮询与服务端 CSV 导出，按 [独立查询 API](independent-query-api.md) 编写。先核对目标环境 capabilities 与宿主 API，区分 V1 Hook 和 V2 全码调用。
+不依赖报表页面的筛选、分页、受限公式、日期粒度、缓存、异步轮询与服务端 CSV 导出，按 [独立查询 API](independent-query-api.md) 编写。先核对目标环境 capabilities 与宿主 API，确认目标环境已提供 V2。
 
 ## 先选叙事，再选图形
 

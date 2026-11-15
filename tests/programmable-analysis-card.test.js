@@ -129,7 +129,7 @@ test('live Canvas template delegates queries and native card references to the i
   const host = props => React.createElement('div', null, props.cardCode);
   const canvasWindow = { React, antd: {}, Recharts: {}, __VcDeepYidaUtils__: { YidaAnalysisCard: host } };
   const Component = new Function('window', runtimeCode + '; return YidaComp;')(canvasWindow);
-  const query = { version: 1, cubeCode: 'FORM_TEST' };
+  const query = { version: 2, cubeCode: 'FORM_TEST' };
   const element = Component({ nativeCardCode: 'CARD-test', query });
   expect(element.type).toBe(host); expect(element.props.cardCode).toBe('CARD-test'); expect(element.props.query).toBe(query);
   canvasWindow.__VcDeepYidaUtils__ = undefined;
