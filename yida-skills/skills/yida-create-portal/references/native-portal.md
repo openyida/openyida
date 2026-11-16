@@ -14,7 +14,7 @@
 
 | 组件 | `componentName` | 配置与验收 |
 | --- | --- | --- |
-| 数据卡片 | `DataCard` | 先在同一应用准备并发布实际卡片，从门户卡片选择器或现有节点确认 `cardId`。将 `colorMode` 设为 `brand` 跟随门户主题，`default` 使用默认样式。打开工作台核对卡片的指标、时间口径和数据权限。应用门户设计器上限 5 张。 |
+| 数据卡片 | `DataCard` | 先在同一应用准备并发布实际卡片，从门户选择器或 `data-card list` 确认已发布的 `cardCode`。将 `colorMode` 设为 `brand` 跟随门户主题，`default` 使用默认样式。打开工作台核对卡片的指标、时间口径和数据权限。应用门户设计器上限 5 张。 |
 | AI 对话入口 | `AIChatEntry` | `title`、`componentStyle`、`showIcon`、`colorMode`、`gradientFrom`、`gradientTo`、`solidColor`、`radius`、`motion`。按钮文案控制在 8 字内，从当前版本样式库选择外观。图谱生成后用受限账号核对回答和来源权限。 |
 | 轮播图 | `CC_PortalCarouselView` | `titleConfig`、`styleConfig.zoomRule` 支持 `cover/contain` 等目标样式。静态项使用 `content`，每项有 `__sid`、`title`、`src` 及链接语义。动态配置通过目标设计器选择表单并回读 `dataConfig`，核对图片比例、链接和移动端裁切。 |
 | 资讯列表 | `CC_PortalNewsListView` | `theme`、`titleConfig`、`dataType`、`dataConfig`、`content`。静态项含标题、摘要 `subTitle`、`image`、作者、日期及链接。动态来源用实际表单字段映射及筛选，配图不足时选文字布局。 |

@@ -46,6 +46,14 @@ test('targets existing tiles by fieldId and preserves the theme and unrelated co
   expect(updated.schema.actions).toEqual(schema.actions);
 });
 
+test('binds published data cards by cardCode and accepts a legacy cardId', () => {
+  const tile = { key: 'operations', componentName: 'DataCard' };
+  const withCard = props => applyPortalConfig({ pages: [{}] }, { tiles: [{ ...tile, props }] }, target);
+  expect(withCard({ cardCode: 'CARD-operations' }).tiles[0].props.cardCode).toBe('CARD-operations');
+  expect(withCard({ cardId: 42 }).tiles[0].props.cardId).toBe(42);
+  expect(() => withCard({ cardCode: 'FORM-operations', cardId: 42 })).toThrow(/published cardCode/);
+});
+
 test('rejects overlapping positions, duplicate singleton tiles and cross-app form bindings', () => {
   const empty = { pages: [{}] };
   const overlapping = structuredClone(config);
