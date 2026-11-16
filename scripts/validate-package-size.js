@@ -251,7 +251,9 @@ const MAX_TARBALL_BYTES = 2752 * 1024;
 // 813 files, 2,614 bytes above the previous limit. Use the next 16 KiB boundary;
 // compressed, entry-count and individual-file limits stay unchanged.
 // Portal catalog, editable exports and theme patches add runtime and skill content.
-const MAX_UNPACKED_BYTES = 10032 * 1024;
+// After merging app metadata and agent runtime updates, Node 20 measures
+// 10,282,883 unpacked bytes. Use the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 10048 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
