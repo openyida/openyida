@@ -42,6 +42,7 @@ const SKILL_COVERAGE = {
   'yida-create-app': { level: 'real-e2e', stages: ['app'], commands: ['create-app'] },
   'yida-create-form-page': { level: 'real-e2e', stages: ['form'], commands: ['create-form create', 'create-form update', 'create-form add-option'] },
   'yida-create-page': { level: 'real-e2e', stages: ['page', 'dashboard'], commands: ['create-page --mode dashboard', 'create-page --mode dashboard --hide-nav'] },
+  'yida-create-portal': { level: 'offline-unit', commands: ['create-portal', 'portal inspect', 'portal configure'], tests: ['tests/create-page.test.js', 'tests/portal-schema.test.js', 'tests/skill-contracts.test.js'], reason: 'Tests cover native page creation, tile configuration, six-column placement and routing. Live portal writes and rendering use a dedicated test app.' },
   'yida-create-process': { level: 'opt-in-real-e2e', stages: ['process'], commands: ['create-process --formUuid'], reason: 'process stage mutates workflow definitions and is excluded from default full E2E unless explicitly requested' },
   'yida-custom-page': { level: 'real-e2e', stages: ['page'], commands: ['check-page', 'build-page', 'compile', 'publish'] },
   'yida-dashboard': { level: 'real-e2e', stages: ['dashboard'], commands: ['create-page --mode dashboard', 'create-page --mode dashboard --hide-nav', 'publish dashboard skill page'] },
