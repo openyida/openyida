@@ -206,6 +206,7 @@ module.exports = {
     cmd_er: 'Export app entity relationship diagram',
     cmd_create_page: 'Benutzerdefinierte Seite erstellen',
     cmd_portal_create: 'Natives YiDA-Portal erstellen',
+    cmd_portal_catalog: 'Konfigurierbare native Portal-Komponenten und Designoptionen anzeigen',
     cmd_portal_inspect: 'Kacheln und Revision des nativen Portals anzeigen',
     cmd_portal_configure: 'Kacheln und Layout des nativen Portals konfigurieren',
     cmd_generate_page: 'Generate page from curated template',

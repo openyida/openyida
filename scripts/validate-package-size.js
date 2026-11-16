@@ -250,7 +250,8 @@ const MAX_TARBALL_BYTES = 2752 * 1024;
 // packaged workflow reference. Merged Node 23 measurement: 10,226,230 bytes /
 // 813 files, 2,614 bytes above the previous limit. Use the next 16 KiB boundary;
 // compressed, entry-count and individual-file limits stay unchanged.
-const MAX_UNPACKED_BYTES = 10016 * 1024;
+// Portal catalog, editable exports and theme patches add runtime and skill content.
+const MAX_UNPACKED_BYTES = 10032 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.

@@ -207,6 +207,7 @@ module.exports = {
     cmd_er: '導出應用實體關係圖',
     cmd_create_page: '建立自訂頁面',
     cmd_portal_create: '建立宜搭原生入口網站',
+    cmd_portal_catalog: '查看原生入口網站可設定的元件和主題',
     cmd_portal_inspect: '查看原生門戶磁貼與版本',
     cmd_portal_configure: '設定原生門戶磁貼與版面',
     cmd_generate_page: '基於高質素模板生成頁面',

@@ -552,7 +552,8 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | Export app entity relationship diagram |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom page |
 | `openyida create-portal <appType> "<name>" [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a native YiDA portal |
-| `openyida portal inspect <appType> <formUuid> [--json]` | Inspect native portal tiles and revision |
+| `openyida portal catalog [componentName] [--json]` | List configurable native portal components and theme options |
+| `openyida portal inspect <appType> <formUuid> [--editable] [--json]` | Inspect native portal tiles and revision |
 | `openyida portal configure <appType> <formUuid> <file> [--expected-revision <revision>] [--dry-run] [--json]` | Configure native portal tiles and layout |
 | `openyida build-page <sourceFile> [--output file\|--write]` | Build Yida-compatible page source |
 | `openyida check-page <src> [--compat] [--json]` | Check custom page standards |

@@ -206,6 +206,7 @@ module.exports = {
     cmd_er: 'Export app entity relationship diagram',
     cmd_create_page: 'إنشاء صفحة مخصصة',
     cmd_portal_create: 'إنشاء بوابة YiDA أصلية',
+    cmd_portal_catalog: 'عرض مكونات البوابة الأصلية وخيارات مظهرها',
     cmd_portal_inspect: 'عرض بلاطات البوابة الأصلية وإصدارها',
     cmd_portal_configure: 'تهيئة بلاطات البوابة الأصلية وتخطيطها',
     cmd_generate_page: 'Generate page from curated template',

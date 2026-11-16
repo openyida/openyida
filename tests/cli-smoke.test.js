@@ -1901,6 +1901,7 @@ describe('CLI offline smoke', () => {
       'create-form.icons',
       'create-page',
       'create-portal',
+      'portal.catalog',
       'portal.inspect',
       'portal.configure',
       'publish',

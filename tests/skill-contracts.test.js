@@ -189,7 +189,7 @@ describe('OpenYida skill contracts', () => {
     expect(native.aliases).toEqual(expect.arrayContaining(['创建宜搭原生门户', '不用自定义页面做门户']));
     expect(display.command_ids).toContain('create-page');
     expect(display.command_ids).not.toContain('create-portal');
-    expect(native.command_ids).toEqual(['create-portal', 'portal.inspect', 'portal.configure']);
+    expect(native.command_ids).toEqual(['create-portal', 'portal.catalog', 'portal.inspect', 'portal.configure']);
   });
 
   test('public theme guidance describes choices without publishing a total', () => {

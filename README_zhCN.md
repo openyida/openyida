@@ -419,7 +419,8 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | 导出应用实体关系图 |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义页面 |
 | `openyida create-portal <appType> "<name>" [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建宜搭原生门户 |
-| `openyida portal inspect <appType> <formUuid> [--json]` | 查看原生门户磁贴与版本 |
+| `openyida portal catalog [componentName] [--json]` | 查看原生门户可配置的组件和主题 |
+| `openyida portal inspect <appType> <formUuid> [--editable] [--json]` | 查看原生门户磁贴与版本 |
 | `openyida portal configure <appType> <formUuid> <file> [--expected-revision <revision>] [--dry-run] [--json]` | 配置原生门户磁贴与布局 |
 | `openyida build-page <sourceFile> [--output file\|--write]` | 构建宜搭兼容页面源码 |
 | `openyida check-page <src> [--compat] [--json]` | 检查自定义页面规范 |

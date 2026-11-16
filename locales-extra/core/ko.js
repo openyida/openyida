@@ -206,6 +206,7 @@ module.exports = {
     cmd_er: 'Export app entity relationship diagram',
     cmd_create_page: '사용자 정의 페이지 생성',
     cmd_portal_create: '宜搭 네이티브 포털 생성',
+    cmd_portal_catalog: '기본 포털의 구성 요소와 테마 옵션 보기',
     cmd_portal_inspect: '네이티브 포털 타일 및 버전 확인',
     cmd_portal_configure: '네이티브 포털 타일 및 레이아웃 설정',
     cmd_generate_page: 'Generate page from curated template',

@@ -206,6 +206,7 @@ module.exports = {
     cmd_er: 'Export app entity relationship diagram',
     cmd_create_page: 'カスタムページを作成',
     cmd_portal_create: '宜搭ネイティブポータルを作成',
+    cmd_portal_catalog: 'ネイティブポータルの設定項目とテーマを確認',
     cmd_portal_inspect: 'ネイティブポータルのタイルと版を確認',
     cmd_portal_configure: 'ネイティブポータルのタイルと配置を設定',
     cmd_generate_page: 'Generate page from curated template',

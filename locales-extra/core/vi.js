@@ -206,6 +206,7 @@ module.exports = {
     cmd_er: 'Export app entity relationship diagram',
     cmd_create_page: 'Tạo trang tùy chỉnh',
     cmd_portal_create: 'Tạo cổng thông tin YiDA gốc',
+    cmd_portal_catalog: 'Xem thành phần và tùy chọn chủ đề của cổng thông tin gốc',
     cmd_portal_inspect: 'Xem ô và phiên bản cổng thông tin gốc',
     cmd_portal_configure: 'Cấu hình ô và bố cục cổng thông tin gốc',
     cmd_generate_page: 'Generate page from curated template',

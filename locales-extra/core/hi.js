@@ -206,6 +206,7 @@ module.exports = {
     cmd_er: 'Export app entity relationship diagram',
     cmd_create_page: 'कस्टम पेज बनाएं',
     cmd_portal_create: 'मूल YiDA पोर्टल बनाएं',
+    cmd_portal_catalog: 'मूल पोर्टल के घटक और थीम विकल्प देखें',
     cmd_portal_inspect: 'मूल पोर्टल की टाइलें और संस्करण देखें',
     cmd_portal_configure: 'मूल पोर्टल की टाइलें और लेआउट कॉन्फ़िगर करें',
     cmd_generate_page: 'Generate page from curated template',
