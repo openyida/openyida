@@ -838,7 +838,6 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  看板模式設定失敗：{0}',
     navigation_unverified: '頁面已建立，但未能回讀確認導覽已隱藏。請使用傳回的 pageId 修復設定並回讀，不要重複建立頁面。',
     err_mode_invalid: '不支援的頁面模式：{0}',
-    portal_hide_nav_unsupported: '--hide-nav 只適用於自訂頁面。',
     portal_unverified: '頁面已建立，但未能確認是原生入口網站。請先讀取該頁面的設定，再重試。',
     mode_hint: '可用模式：default、dashboard。隱藏自訂頁面導覽時，請使用 --hide-nav 或 --render-nav false。',
     page_id_label: '  pageId：   {0}',

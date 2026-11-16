@@ -873,7 +873,6 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'पेज बन गया है, लेकिन सेटिंग दोबारा पढ़ने पर नेविगेशन छिपा होने की पुष्टि नहीं हुई। लौटाई गई pageId की सेटिंग सुधारें और जाँचें; दूसरा पेज न बनाएँ।',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    portal_hide_nav_unsupported: '--hide-nav विकल्प केवल कस्टम पेज के लिए उपलब्ध है।',
     portal_unverified: 'पेज बन गया, लेकिन उसके नेटिव पोर्टल प्रकार की पुष्टि नहीं हो सकी। दोबारा कोशिश करने से पहले पेज की कॉन्फ़िगरेशन देखें।',
     mode_hint: 'उपलब्ध मोड: default, dashboard। कस्टम पेज पर नेविगेशन छिपाने के लिए --hide-nav या --render-nav false का उपयोग करें।',
     page_id_label: '  pageId: {0}',

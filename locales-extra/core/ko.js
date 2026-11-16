@@ -873,7 +873,6 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: '페이지가 생성되었지만 설정을 다시 읽어도 탐색 숨김이 확인되지 않았습니다. 반환된 pageId의 설정을 수정하고 확인하세요. 페이지를 다시 만들지 마세요.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    portal_hide_nav_unsupported: '--hide-nav 옵션은 사용자 정의 페이지에서만 지원됩니다.',
     portal_unverified: '페이지를 만들었지만 기본 포털 유형을 확인할 수 없습니다. 다시 시도하기 전에 페이지 구성을 조회하세요.',
     mode_hint: '사용 가능한 모드: default, dashboard. 사용자 정의 페이지에서 탐색을 숨기려면 --hide-nav 또는 --render-nav false를 사용하세요.',
     page_id_label: '  pageId: {0}',

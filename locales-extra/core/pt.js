@@ -873,7 +873,6 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'A página foi criada, mas a releitura não confirmou que a navegação está oculta. Corrija e verifique a pageId retornada; não crie outra página.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    portal_hide_nav_unsupported: 'A opção --hide-nav só é compatível com páginas personalizadas.',
     portal_unverified: 'A página foi criada, mas não foi possível confirmar que é um portal nativo. Consulte a configuração da página antes de tentar novamente.',
     mode_hint: 'Modos disponíveis: default, dashboard. Para ocultar a navegação em páginas personalizadas, use --hide-nav ou --render-nav false.',
     page_id_label: '  pageId: {0}',

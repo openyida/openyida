@@ -873,7 +873,6 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'Trang đã được tạo nhưng việc đọc lại chưa xác nhận thanh điều hướng đã ẩn. Hãy sửa và kiểm tra cấu hình của pageId được trả về; không tạo trang khác.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    portal_hide_nav_unsupported: 'Tùy chọn --hide-nav chỉ được hỗ trợ trên trang tùy chỉnh.',
     portal_unverified: 'Trang đã được tạo nhưng chưa xác minh được loại cổng thông tin gốc. Hãy đọc cấu hình trang trước khi thử lại.',
     mode_hint: 'Chế độ khả dụng: default, dashboard. Dùng --hide-nav hoặc --render-nav false để ẩn điều hướng trên trang tùy chỉnh.',
     page_id_label: '  pageId: {0}',

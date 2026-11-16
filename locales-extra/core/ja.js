@@ -844,7 +844,6 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  ダッシュボードモード設定に失敗しました: {0}',
     navigation_unverified: 'ページは作成されましたが、再取得した設定でナビゲーションの非表示を確認できませんでした。返された pageId の設定を修正して再確認してください。ページを再作成しないでください。',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    portal_hide_nav_unsupported: '--hide-nav はカスタムページでのみ使用できます。',
     portal_unverified: 'ページは作成されましたが、ネイティブポータルであることを確認できませんでした。再試行する前にページの設定を取得してください。',
     mode_hint: '使用できるモード: default、dashboard。カスタムページのナビゲーションを非表示にするには --hide-nav または --render-nav false を指定します。',
     page_id_label: '  pageId: {0}',

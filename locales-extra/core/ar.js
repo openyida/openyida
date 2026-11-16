@@ -873,7 +873,6 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'تم إنشاء الصفحة، لكن قراءة الإعدادات لم تؤكد إخفاء التنقل. أصلح إعدادات pageId المُعاد وتحقق منها؛ لا تنشئ صفحة أخرى.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    portal_hide_nav_unsupported: 'يتوفر الخيار --hide-nav للصفحات المخصصة فقط.',
     portal_unverified: 'تم إنشاء الصفحة، لكن تعذّر التحقق من أنها بوابة أصلية. اقرأ إعدادات الصفحة قبل إعادة المحاولة.',
     mode_hint: 'الأوضاع المتاحة: default وdashboard. لإخفاء التنقل في صفحة مخصصة، استخدم --hide-nav أو --render-nav false.',
     page_id_label: '  pageId: {0}',
