@@ -38,7 +38,7 @@ openyida publish <source> <appType> <displayPageFormUuid> --canvas --strict-them
 完整搭建使用 `--strict-theme` 检查可静态识别的 antd 品牌色硬覆盖；发现问题时回到应用主题变量和 CanvasThemeProvider 接入，不自动追加放行参数。该检查不覆盖所有局部 CSS、图片或动态样式，更不负责保存应用主题；Step 9 仍核验应用设置及真实页面。
 
 2. 核对有源码变更的 display 页面已发布、表单和流程等导航目标已创建。原生门户按 `yida-create-portal` 核验配置回读和实际工作台入口。仍有任务未完成或失败时，继续处理对应任务，暂不排序。
-3. 全部页面与资源汇合后，仅需配置平台导航时，根据 PRD 选择下列一个分支；只使用自定义导航的入口继续做页面排序验收，不调用平台排序命令：
+3. 全部页面与资源汇合后，先完成下文第 5 步的菜单显隐，再排序。平台菜单的排序、默认页候选仅使用后台实际可见的任务入口，前台专用页的 ID 不参与排序。只使用自定义导航的入口在页面内验收菜单。
 
 PRD 写明页面/表单清单顺序：
 
@@ -62,7 +62,7 @@ openyida nav-group auto-order <appType>
 
    从本轮交付的每个业务入口检查实际菜单顺序、默认页面、具体视图和首屏内容。平台排序 `readbackVerified=true` 不证明首页已正确；根入口仍打开错误任务时，继续处理平台支持的默认页配置，能力未验证时交付明确任务链接并标记根入口待验证。平台导航管理页只保留一套跨模块导航，重复时修正页面源码。
 7. 本步骤配置宜搭平台导航，不要求页面源码实现侧边栏或顶部应用导航；只有 PRD 已规划该入口自己的菜单时才实现，不因平台排序再回头补导航壳。
-8. 本轮已明确的前台自定义页面默认按 `entryMode=standalone` 处理；不能因 PRD 漏写字段而跳过。用户明确保留平台导航时沿用 `platform-shell` 和已验证的 `workbenchUrl`，不执行本项隐藏步骤。Step 6 在取得页面 ID 后隐藏页面导航；发布和健康检查通过后核对 `publish.navigationVerification`，必要时执行 `openyida get-form-config <appType> <displayPageFormUuid> --json`。配置缺失或变化时才执行 `openyida update-form-config <appType> <displayPageFormUuid> false "<页面标题>"` 并再次回读。只有回读明确为 `renderNav=false` 时，才将 CLI 返回的 `standaloneUrl` 交给 Step 9，格式为干净的 `{base_url}/{appType}/custom/{displayPageFormUuid}`；配置失败或结果未知时标记“前台入口未完成”，不能用工作台入口替代交付，也不用 `?isRenderNav=false` 猜测成功。
+8. 已确认的独立前台不能因 PRD 漏写字段而跳过导航显隐配置。从创建或复用起使用同一个页面 ID。核对 `publish.navigationVerification` 或执行 `openyida get-form-config <appType> <displayPageFormUuid> --json`。确认仍可见时，用 `openyida update-form-config <appType> <displayPageFormUuid> false "<页面标题>"` 修复原页的「页面设置」导航显隐，再回读，避免新建同名页。只有回读明确为 `renderNav=false` 才交付 `standaloneUrl`。结果未知时标记“前台入口未完成”。用户明确保留平台导航时沿用 `platform-shell` 和已验证的 `workbenchUrl`。
 9. 非前台页面明确采用 `entryMode=platform-shell`，或缺少入口用途依据时，不修改页面导航配置。用户已明确保留平台导航的要求优先；用途与规划冲突时先核对，不覆盖明确选择。
 
 ## 无自定义页面的管理端

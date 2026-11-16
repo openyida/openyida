@@ -67,6 +67,6 @@ appType 和 CSS 各自就绪后，按 `yida-create-app` 的 update-app 参数上
 openyida check-prd-completeness --manifest-only --build-manifest <绝对路径>/build-manifest.json --app-type <真实appType> --json
 ```
 
-此检查复用资源、导航和主题回读；业务规则、角色与浏览器交互仍按 Step 9 验收。禁止通过省略应交付资源或删除验收项制造通过。
+在 manifest 中记录已决定的导航显隐。应用设置用 `appConfig.hideAppNav`（全应用自绘为 `y`，后台保留平台导航为 `n`）；独立前台用 `pageNavigation` 记录实际页面 ID、名称、`type: "display-page"` 和 `isRenderNav: false`；混合前后台用 `navigationVisibility` 为同一前台专用页记录 `hidden: true`、`mobileHidden: true`。前台专用页不参与后台排序。先通过配置回读，再从 `standaloneUrl` 验收前台实际导航。
 
 分别记录需求路由、应用创建、主题、页面源码、编译发布、业务验收和素材的真实开始/结束时间，总耗时按墙钟计算，不累加并发区间。少量简单页面以五分钟为优化目标，实际以端到端记录为准；复杂数据、角色或审批按真实范围记录，不以本地 CLI 耗时宣称整次达标。

@@ -37,6 +37,67 @@ describe('prd completeness check', () => {
   ];
 
   test.each([
+    ['Plan', { renderNav: false }, 'pass'],
+    ['Fast', { isRenderNav: 'false' }, 'pass'],
+    ['Plan', { renderNav: true, isRenderNav: false }, 'fail'],
+    ['Fast', {}, 'fail'],
+  ])('checks the persisted standalone page navigation from %s: %j', async (mode, config, verdict) => {
+    const pageNavigation = [{ name: '销售工作台', type: 'display-page', isRenderNav: false }];
+    const isFast = mode === 'Fast';
+    const prd = isFast ? '' : buildPrd() + '\n```json\n' + JSON.stringify({ pageNavigation }) + '\n```\n';
+    const manifest = buildManifest(isFast ? { pageNavigation } : {});
+    const authRef = { baseUrl: 'https://example.test' };
+    const fetchPageConfig = jest.fn().mockResolvedValue({ success: true, content: config });
+    const result = await evaluatePrdCompleteness(prd, {
+      appType: 'APP_XXX', authRef, manifestOnly: isFast, buildManifest: manifest,
+    }, { fetchForms: jest.fn().mockResolvedValue(forms), fetchPageConfig });
+    expect(fetchPageConfig).toHaveBeenCalledTimes(1);
+    expect(fetchPageConfig).toHaveBeenCalledWith(authRef, 'APP_XXX', 'FORM-HOME');
+    expect(result.verdict).toBe(verdict);
+    expect(result.pageNavigationVerification).toEqual([expect.objectContaining({
+      formUuid: 'FORM-HOME', verified: verdict === 'pass',
+      standaloneUrl: verdict === 'pass' ? 'https://example.test/APP_XXX/custom/FORM-HOME' : null,
+    })]);
+    if (verdict === 'fail') {
+      expect(result.hardFailures).toContainEqual(expect.objectContaining({ code: 'standalone_page_navigation_unverified' }));
+    }
+  });
+
+  test.each([
+    ['y', 'n', 'fail'], ['y', 'y', 'pass'], ['n', 'y', 'fail'], ['n', null, 'pass'],
+  ])('checks application navigation settings independently: %s / %s', async (expected, stored, verdict) => {
+    const manifest = buildManifest({ appConfig: { hideAppNav: expected } });
+    const result = await evaluatePrdCompleteness('', {
+      appType: 'APP_XXX', manifestOnly: true, buildManifest: manifest,
+    }, {
+      fetchForms: jest.fn().mockResolvedValue(forms),
+      fetchApp: jest.fn().mockResolvedValue({ config: { HIDE_APP_NAV: stored } }),
+    });
+    expect(result.verdict).toBe(verdict);
+    expect(result.applicationNavigationVerification).toEqual({ expected, actual: stored ?? 'n', verified: verdict === 'pass' });
+  });
+
+  test.each([false, true])('rejects a stale menu page ID when handing off its replacement (also hides new page: %s)', async hideReplacement => {
+    const manifest = buildManifest({
+      pageNavigation: [{ name: '销售工作台', type: 'display-page', formUuid: 'FORM-HOME', isRenderNav: false }],
+      navigationVisibility: (hideReplacement ? ['FORM-OLD', 'FORM-HOME'] : ['FORM-OLD'])
+        .map(formUuid => ({ name: '销售工作台', formUuid, hidden: true, mobileHidden: true })),
+    });
+    const fetchPageConfig = jest.fn().mockResolvedValue({ content: { renderNav: false } });
+    const result = await evaluatePrdCompleteness('', {
+      appType: 'APP_XXX', authRef: { baseUrl: 'https://example.test' }, manifestOnly: true, buildManifest: manifest,
+    }, {
+      fetchForms: jest.fn().mockResolvedValue([
+        { ...forms[0], hidden: hideReplacement, mobileHidden: hideReplacement }, forms[1],
+        { ...forms[0], formUuid: 'FORM-OLD', hidden: true, mobileHidden: true },
+      ]),
+      fetchPageConfig,
+    });
+    expect(result.verdict).toBe('fail');
+    expect(result.hardFailures).toContainEqual(expect.objectContaining({ code: 'frontend_navigation_page_mismatch' }));
+  });
+
+  test.each([
     ['red theme', {}, 'pass'],
     ['equivalent CSS color', { themeColor: 'rgb(200, 37, 44)' }, 'pass'],
     ['platform blue', { colour: 'blue', themeColor: '#1677FF' }, 'fail'],

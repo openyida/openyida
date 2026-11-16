@@ -40,6 +40,8 @@ description: 为应用或独立前台页面编写自己的顶部、侧边等导�
 
 应用为 platform-top/platform-side/platform-l-shape、当前页为 standalone 时，只对该页面执行下面的 `update-form-config` 和回读；不调用 `update-app --hide-app-nav`，不批量隐藏后台表单或其他页面。需要应用级主题更新时继续保留平台导航。发布后分别验证前台页面链接与后台 workbench 链接；前台仍出现平台菜单时，先排查实际访问路径与页面配置，不能通过全局隐藏“修复”。
 
+独立自定义页用回读返回的 `standaloneUrl`（`/custom/{formUuid}`）交付和配置菜单链接。直接打开 `/workbench/{formUuid}` 时，工作台入口默认显示平台导航，即使该页已保存 `renderNav=false`。
+
 ### 整个应用自定义导航
 
 需求规划采用自定义导航后，就将应用导航隐藏纳入应用基础设置更新：新建应用时，等 `app-theme.css` 生成后，将 `--hide-app-nav` 与主题、Logo、布局等设置合并到同一次 `update-app`，按 [应用设置同步](../yida-app/workflow/step-3-create-or-reuse-app.md) 执行并回读。已有应用只需切换导航时执行：
