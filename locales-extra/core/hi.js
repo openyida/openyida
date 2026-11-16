@@ -5,6 +5,14 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  workflow_cycle: {
+    invalid: "लूप का कॉन्फ़िगरेशन अधूरा है या सीमा से अधिक है।",
+    node_unavailable: "इस लूप में {0} उपलब्ध नहीं है। YiDA डिज़ाइनर में उपलब्ध नोड देखें।",
+    unavailable: "इस YiDA परिदृश्य में लूप उपलब्ध नहीं हैं।",
+    unverified: "लूप की अनुमति या नोड कॉन्फ़िगरेशन की पुष्टि नहीं हो सकी। संगठन की जाँच कर फिर से कोशिश करें।",
+    entitlement_required: "संगठन को लूप का उपयोग करने की अनुमति नहीं है। व्यवस्थापक से आधिकारिक YiDA साइट पर प्लान देखकर अपग्रेड करने के लिए कहें: {0}",
+    published_unverified: "प्रकाशित ऑटोमेशन सत्यापित नहीं हो सका। YiDA डिज़ाइनर में प्रकाशन की स्थिति देखें।",
+  },
   issue_fixes: {
     invalid_api_key: 'API Key में वैध name और header/query स्थान आवश्यक है; पहले कनेक्टर की जाँच करें।',
     repair_required: 'पुरानी API Key सेटिंग में type/in/location नहीं है। सुधार और नया खाता बनाने के लिए --repair-api-key-scheme दें।',

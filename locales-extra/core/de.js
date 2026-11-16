@@ -5,6 +5,14 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  workflow_cycle: {
+    invalid: "Die Schleifenkonfiguration ist unvollständig oder überschreitet das Limit.",
+    node_unavailable: "Der Knoten {0} ist in dieser Schleife nicht verfügbar. Prüfen Sie die verfügbaren Knoten im YiDA-Designer.",
+    unavailable: "Schleifen sind in diesem YiDA-Szenario nicht verfügbar.",
+    unverified: "Die Schleifenberechtigung oder Knotenkonfiguration konnte nicht geprüft werden. Prüfen Sie die angemeldete Organisation und versuchen Sie es erneut.",
+    entitlement_required: "Ihre Organisation hat keinen Zugriff auf Schleifen. Bitten Sie die Organisationsverwaltung, die Tarife auf der offiziellen YiDA-Website zu prüfen und ein Upgrade vorzunehmen: {0}",
+    published_unverified: "Die veröffentlichte Automatisierung konnte nicht geprüft werden. Prüfen Sie den Veröffentlichungsstatus im YiDA-Designer.",
+  },
   issue_fixes: {
     invalid_api_key: 'API Key benötigt einen gültigen name und header/query als Ort; prüfen Sie den Konnektor.',
     repair_required: 'Der alten API-Key-Konfiguration fehlt type/in/location. Mit --repair-api-key-scheme ausdrücklich reparieren und ein neues Konto erstellen.',

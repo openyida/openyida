@@ -13,6 +13,8 @@ jest.mock('../lib/core/utils', () => ({
     base_url: 'https://example.com',
   })),
   triggerLogin: jest.fn(),
+  httpGet: jest.fn(),
+  requestWithAutoLogin: jest.fn((request, auth) => request(auth)),
   resolveBaseUrl: jest.fn(() => 'https://example.com'),
 }));
 
@@ -56,6 +58,7 @@ jest.mock('../lib/connector/yida-system-token', () => {
   return { ...actual, resolveYidaSystemToken: jest.fn() };
 });
 
+const { httpGet } = require('../lib/core/utils');
 const { fetchFormPageList } = require('../lib/app/form-navigation');
 const integrationApi = require('../lib/integration/integration-api');
 const integrationReadback = require('../lib/integration/integration-readback');
@@ -108,6 +111,55 @@ describe('integration create command', () => {
     logSpy.mockRestore();
     exitSpy.mockRestore();
     tempDirs.forEach((dir) => fs.rmSync(dir, { recursive: true, force: true }));
+  });
+
+  test.each([
+    [[], true, true, 'WORKFLOW_CYCLE_ENTITLEMENT_REQUIRED'],
+    [['LOOP_NODE'], true, true, 'WORKFLOW_CYCLE_ENTITLEMENT_REQUIRED'],
+    [['LOOP_NODE', 'ADVANCE_PROC'], false, true, 'WORKFLOW_CYCLE_UNAVAILABLE'],
+    [['LOOP_NODE', 'ADVANCE_PROC'], true, false, 'WORKFLOW_CYCLE_NODE_UNAVAILABLE'],
+    [['LOOP_NODE', 'ADVANCE_PROC'], null, true, 'WORKFLOW_CYCLE_UNVERIFIED'],
+    [['LOOP_NODE', 'ADVANCE_PROC'], true, true, null],
+  ])('checks cycle entitlement and available nodes before creating a binding (%#)', async (feature, rollout, allowMessage, code) => {
+    httpGet.mockImplementation(async (_baseUrl, url) => {
+      if (url.endsWith('/query/simpleProcess/getConfig.json')) {
+        return { success: true, content: JSON.stringify({
+          componentsList: [{ componentName: 'CycleContainer', isAdvance: true }, { componentName: 'SendMessageNode' }],
+          cycleValidComponents: allowMessage ? ['SendMessageNode'] : [],
+        }) };
+      }
+      if (url.endsWith('/query/auth/list.json')) { return { success: true, content: { feature } }; }
+      if (url.endsWith('/query/compromiseDing/orgInGray.json')) { return { success: true, content: rollout }; }
+      throw new Error('unexpected platform read');
+    });
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+    fetchFormPageList.mockResolvedValue([{ formUuid: 'FORM-A', formType: 'receipt', formName: '循环来源' }]);
+    integrationApi.getFormSchema.mockResolvedValue([{ componentName: 'TextField', props: { fieldId: 'textField_reference', label: '编号' } }]);
+    const file = writeTempSpec({ events: ['insert'], nodes: [
+      { id: 'rows', type: 'dataRetrieve', formUuid: 'FORM-A', retrieveType: 'batch', quantity: 3, filterType: 'all' },
+      { id: 'loop', type: 'cycle', source: 'rows', nodes: [
+        { id: 'notify', type: 'sendMessage', receivers: ['user-1'], content: 'Review the record' },
+      ] },
+    ] });
+    const result = run(['APP_TEST', 'FORM-A', '循环通知', '--spec', file]);
+    if (code) {
+      await expect(result).rejects.toMatchObject({ code, details: {
+        remoteWrites: 0,
+        ...(code === 'WORKFLOW_CYCLE_ENTITLEMENT_REQUIRED' && { upgradeUrl: 'https://www.aliwork.com/pricing' }),
+      } });
+      expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+      expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+    } else {
+      await result;
+      expect(integrationApi.createLogicflow).toHaveBeenCalledTimes(1);
+      expect(integrationApi.saveProcess).toHaveBeenCalledTimes(1);
+    }
+    const preflightCalls = httpGet.mock.calls.filter(([, url]) =>
+      ['/query/simpleProcess/getConfig.json', '/query/auth/list.json', '/query/compromiseDing/orgInGray.json']
+        .some(endpoint => url.endsWith(endpoint)));
+    expect(preflightCalls).toHaveLength(3);
+    expect(preflightCalls.every(([, , , options]) => options?.silentStatus === true)).toBe(true);
   });
 
   test.each([
