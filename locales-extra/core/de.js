@@ -126,7 +126,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: 'Die Frontend-Seite {0} muss vom Typ display sein. Für Formulare eine geprüfte vollständige URL verwenden.',
     page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
-    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+    page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
     confirmation_required: 'Die Bestätigung benötigt den aktuellen Planstand und seine Revision. Erzeugen Sie zuerst den Plan.',

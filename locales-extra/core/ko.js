@@ -126,7 +126,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: '프런트 페이지 {0}은 display 페이지여야 합니다. 양식에는 검증된 전체 URL을 사용하세요.',
     page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
-    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+    page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
     confirmation_required: '확인하려면 현재 계획 스냅샷과 버전이 필요합니다. 먼저 계획을 생성하세요.',

@@ -126,7 +126,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: 'يجب أن تكون الصفحة الأمامية {0} من نوع display. استخدم رابطًا كاملاً تم التحقق منه للنماذج.',
     page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
-    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+    page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
     confirmation_required: 'يتطلب التأكيد لقطة من الخطة الحالية ورقم مراجعتها. أنشئ الخطة أولاً.',

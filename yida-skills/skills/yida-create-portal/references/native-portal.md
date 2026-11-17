@@ -28,7 +28,7 @@
 | 资讯列表 | `CC_PortalNewsListView` | `theme`、`titleConfig`、`dataType`、`dataConfig`、`content`。静态项含标题、摘要 `subTitle`、`image`、作者、日期及链接。动态来源用实际表单字段映射及筛选，配图不足时选文字布局。 |
 | 公告栏 | `CC_PortalNoticeBoardView` | `titleConfig`、`theme`、`dataType`、`dataConfig`、`content`、`showBanner`、`banner`、`zoomRule`、配图 `link`。用少量有效公告核对日期排序、阅读入口及配图跳转。 |
 | 快捷入口 | `CC_PortalQuickEntryView` | `theme`、`columnConfig.pcCount/mobileCount`、`titleConfig`、`groupConfig`、`content`。每个静态项用 `linkType` 区分应用、页面和 URL，分别提供真实 `app`、`page` 选择器对象或 `url`，再配标题、说明、图标和分组。桌面与手机分别核对列数和跳转目标。 |
-| 待办指标 | `CC_PortalTodoIndicatorView` | `titleConfig`、`theme`、`backgroundImage`、`compConfig`。开关为 `taskTodo/taskCreated/taskDone/taskCopy`，保留实际 `dataSourceFrom` 和过滤条件。应用门户只有一张，对照真实待办计数。用 `portal catalog CC_PortalTodoIndicatorView` 查看 9 个外观。磁贴级 `"stylePreset":"transparentLight"` 选择「透明背景」，未配置背景时填入官方浅蓝图。用 `props.backgroundImage` 换图或传空串清空；切换其他样式保留已有背景。 |
+| 待办指标 | `CC_PortalTodoIndicatorView` | `titleConfig`、`theme`、`backgroundImage`、`compConfig`。开关为 `taskTodo/taskCreated/taskDone/taskCopy`，保留实际 `dataSourceFrom` 和过滤条件。应用门户只有一张，对照真实待办计数。用 `portal catalog CC_PortalTodoIndicatorView` 查看 9 个外观。磁贴级 `"stylePreset":"transparentLight"` 选择「透明背景」，同时省略 `props.theme`；未配置背景时填入官方浅蓝图。用 `props.backgroundImage` 换图或传空串清空；切换其他样式保留已有背景。 |
 | 待办清单 | `CC_PortalTodoListView` | `titleConfig`、`theme`、`compConfig`。可配置同一组状态、`taskCopyUnread`、过滤条件、`limit` 和 `displayFields`。应用门户只有一张，用同一账号核对数据、空态和详情跳转。 |
 | 钉钉日程 | `CC_PortalTodoOverviewView` | `titleConfig` 与显示设备，组件读取当前访问者钉钉日程。应用门户只有一张，在已获日历访问的环境看日程、空态和下钻。 |
 

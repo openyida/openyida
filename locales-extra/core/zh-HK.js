@@ -134,7 +134,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: '前台頁面 {0} 必須是 display 自訂頁面；表單入口請傳入已驗證的完整 URL。',
     page_not_in_app: '頁面 {0} 不屬於目前應用，無法登記為訪問入口；請用 list-forms 確認頁面歸屬。',
-    page_offline: '前台 custom 頁 {0} 尚未上線到獨立訪問地址，請先發布/上線後再登記。',
+    page_offline: '選單資料無法確認前台頁 {0} 已上線。如已發布且實測可存取，請用 --frontend 傳入完整網址。',
   },
   design_plan: {
     confirmation_required: '確認需要目前方案快照和版本，請先生成方案。',
