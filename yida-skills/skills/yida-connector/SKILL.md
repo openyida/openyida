@@ -42,7 +42,7 @@ CLI 不执行连接器删除。用户确需删除时，先确认并解除表单�
 |---------|----------|
 | 连接器不存在（connector-id 无效） | 重新执行 `openyida connector list` 获取有效 ID，不得编造 |
 | 鉴权失败（401/403） | 检查鉴权方式和凭证配置，重新创建连接器或更新鉴权账号 |
-| API 调用超时 | 检查目标域名是否可达，确认网络连通性后重试 |
+| API 调用超时 | 只读请求可在检查网络后重试；写请求先核对远端结果，结果未知时不重发 |
 | action-id 不存在 | 执行 `openyida connector list-actions <connector-id>` 重新获取有效 action-id |
 | 需要删除连接器 | 执行 `openyida connector delete <connector-id> --force` 仅查询目标并获取平台指引；确认并解除全部依赖后，在宜搭平台管理后台手工删除 |
 | 智能创建解析失败 | 改用 `openyida connector gen-template` 生成模板，手动填写后再创建 |
@@ -58,7 +58,7 @@ CLI 不执行连接器删除。用户确需删除时，先确认并解除表单�
 | 权限不足 / 登录态失效 | 停止执行，提示用户执行 `openyida auth status` 检查登录态 |
 | 鉴权配置错误 | 停止执行，引导用户检查鉴权方式和凭证配置 |
 | 智能创建解析失败 | 降级为模板创建方式，引导用户使用 `gen-template` |
-| 网络超时 | 重试 1 次，仍失败则停止并提示用户检查网络 |
+| 网络超时 | 只读请求最多重试 1 次；写请求保留身份并只读核对，结果未知时停止，不自动重发 |
 | 用户要求删除连接器 | 明确说明 CLI 不执行删除；仅查询目标并展示平台手工删除指引，不得宣称命令已删除资源 |
 | 未知错误 | 停止执行，完整展示错误信息，建议用户反馈问题 |
 
@@ -118,7 +118,9 @@ openyida connector test --connector-id <id> --action <operationId> \
   --body-json '{"name":"Ada"}'
 ```
 
-> `--params` 仍兼容旧调用，但每个字段只会按动作 Schema 分发到 path/query/header/body；未知或位置冲突字段会停止执行。需要鉴权时必须传属于当前连接器的 `--account-id`。只有 canonical `statusLine` 为 2xx 才算测试成功；测试前后可用 `list-actions` 确认动作未被修改。
+> `--params` 仍兼容旧调用，但每个字段只会按动作 Schema 分发到 path/query/header/body；未知或位置冲突字段会停止执行。需要鉴权时必须传属于当前连接器的 `--account-id`。测试成功要求 canonical `statusLine` 为 2xx，且没有 CLI 识别的明确业务失败；具体协议见[成功条件](references/connector-action-format.md#成功条件与运行验收)。测试前后可用 `list-actions` 确认动作未被修改。
+
+自动化调用时，先读取[扩展执行的 Body 类型规则](../yida-flow-node-config/references/extensions.md#http-body-赋值与类型)。CLI 测试直接传入 Body 与自动化字段赋值是两条路径，分别核对上游实际收到的值和类型。
 
 `add-action` 只允许追加新稳定 ID，发现既有 `operationId` 或 `id` 冲突时停止，不覆盖。编辑已有动作时使用 `update-action`；它只接受非空 `--query-json`，要求 Query 在 `inputs` 与 `parameters` 中各自唯一且可回读，完整集合 replace-all 后必须证明连接器非目标 fingerprint、动作数量、其他动作和稳定 ID 不变。写入结果 unknown 时不自动重试。
 
@@ -128,9 +130,17 @@ openyida connector test --connector-id <id> --action <operationId> \
 
 ```bash
 openyida connector list-connections <connector-id> --json
+
+# 查看账号元数据（不输出凭据）
+openyida connector connection detail <connector-id> <connection-id> --json
+
+# 预览账号更新；此时不写入
+openyida connector connection update <connector-id> <connection-id> --name "<新名称>" --json
 ```
 
 需要密钥的连接器创建完成后，把 `connector create --json` 返回的 `accountManageUrl` 交给用户，引导用户在宜搭页面自行添加授权账号；`detailUrl` 只用于查看连接器定义。用户只回复“已配置”，Agent 用配置前后的 `list-connections --json` 差异确定账号。不得要求用户回传凭据或账号 ID；多个候选时停止，不猜测。
+
+用户明确要求更新账号时，核对预览后可在其 TTY 终端执行同一 `connection update` 命令并加 `--confirm --interactive`，隐藏输入完整替换凭据。账号类型和已保存的鉴权定义必须匹配连接器当前定义；此命令不能修正类型或迁移绑定。回执 `metadataReadbackVerified` 只证明元数据匹配，`credentialsVerified: false` 需再用合适接口验证。当前 CLI 不执行账号删除。
 
 ### 智能生成动作草稿（推荐）
 
@@ -151,8 +161,8 @@ openyida connector gen-template
 # 无鉴权
 openyida connector create "测试API" "api.example.com"
 
-# 基本身份验证
-openyida connector create "内部系统" "internal.company.com" --auth "基本身份验证" --username admin --password 123456
+# 基本身份验证（创建后使用返回的 accountManageUrl 配置账号）
+openyida connector create "内部系统" "internal.company.com" --auth "基本身份验证" --operations <action-file> --json
 
 # 钉钉开放平台（凭据后续由用户自行配置）
 openyida connector create "钉钉API" "api.dingtalk.com" --auth "钉钉开放平台验证" --operations ./operations.json --json

@@ -97,13 +97,14 @@ const path = require('path');
 // Node 20 measures about 2,706 KiB compressed and 9,920 KiB unpacked; keep bounded headroom.
 // Form data seeding, schema guards, and the Canvas sample merged with main
 // measure 2,789,968 compressed bytes on Node 20.18.1. Use the next 16 KiB boundary.
-// Component samples: PR merge measured 2,802,825 compressed / 10,249,905 unpacked bytes.
-// Advanced chart recipes plus current main: CI Node 20 measures 2,813,575
-// compressed bytes; keep the next 16 KiB boundary, without changing per-file caps.
-// PR merge with current main: CI Node 20 measures 2,825,763 bytes before the
-// chart component move. Use the next 16 KiB boundary.
-// Main plus programmable cards measures 2,836,411 compressed bytes on Node 20.
-const MAX_TARBALL_BYTES = 2784 * 1024;
+// Nested connector JSON compilation, account maintenance and explicit historical
+// form upgrades combined with main: CI Node 20.20.2 measures 2,803,299 compressed
+// bytes / 10,248,580 unpacked bytes, 814 files. Advance byte ratchets one 16 KiB
+// step for this shipped content; entry and single-file limits stay unchanged.
+// Native portal configuration adds the schema builder, CLI and component guide.
+// Portal and PR #701 together measure 2,827,540 packed bytes on Node 20.18.1.
+// Main with programmable cards and reusable chart components measures 2,872,791 packed bytes on Node 20.18.1.
+const MAX_TARBALL_BYTES = 2816 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -255,11 +256,15 @@ const MAX_TARBALL_BYTES = 2784 * 1024;
 // packaged workflow reference. Merged Node 23 measurement: 10,226,230 bytes /
 // 813 files, 2,614 bytes above the previous limit. Use the next 16 KiB boundary;
 // compressed, entry-count and individual-file limits stay unchanged.
-// Advanced chart component plus current main: CI Node 20 measures 10,277,069
-// unpacked bytes; 820 files locally and one existing main file in the PR merge.
-// The current PR merge measures 10,308,949 unpacked bytes.
-// Main plus programmable cards measures 10,341,334 unpacked bytes.
-const MAX_UNPACKED_BYTES = 10112 * 1024;
+// PR #701 merged with main@742304e5 measures 10,272,799 unpacked bytes
+// before this budget note (814 files). Use the next 16 KiB boundary;
+// compressed, entry-count and single-file limits stay unchanged.
+// Portal catalog, editable exports and theme patches add runtime and skill content.
+// After merging app metadata and agent runtime updates, Node 20 measures
+// 10,282,883 unpacked bytes. Use the next 16 KiB boundary.
+// The same merge measures 10,333,800 unpacked bytes across 818 entries.
+// The same package measures 10,465,633 unpacked bytes before this budget note.
+const MAX_UNPACKED_BYTES = 10224 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -303,13 +308,9 @@ const MAX_UNPACKED_BYTES = 10112 * 1024;
 // The task-concurrency runtime adds exactly one packaged module.
 // Independent Fast theme generation adds one runtime module; byte budgets are unchanged.
 // Main file-upload support adds three packaged files.
-// The reusable analysis-card-content Canvas source adds exactly one packaged template.
-// Main also adds lib/core/command-context.js; the PR merge measures 816 files on Node 20.
-// The rich explorer template and its shared design guide add exactly two files.
-// Two independently reusable analysis component samples; single-file cap is unchanged.
-// The PR merge ships 823 files. Moving the components does not add entries.
-// Main plus programmable cards packages 824 required files.
-const MAX_ENTRY_COUNT = 824;
+// The dedicated native portal skill adds one packaged entry.
+// The combined package contains 828 entries.
+const MAX_ENTRY_COUNT = 828;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
