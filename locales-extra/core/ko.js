@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   workflow_cycle: {
     invalid: "반복 설정이 불완전하거나 제한을 초과했습니다.",
     node_unavailable: "이 반복에서는 {0} 노드를 지원하지 않습니다. YiDA 디자이너에서 사용 가능한 노드를 확인하세요.",
@@ -123,7 +126,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: '프런트 페이지 {0}은 display 페이지여야 합니다. 양식에는 검증된 전체 URL을 사용하세요.',
     page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
-    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+    page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
     confirmation_required: '확인하려면 현재 계획 스냅샷과 버전이 필요합니다. 먼저 계획을 생성하세요.',
@@ -204,7 +207,11 @@ module.exports = {
     cmd_get_schema: '양식 Schema 가져오기',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: '사용자 정의 표시 페이지 생성',
+    cmd_create_page: '사용자 정의 페이지 생성',
+    cmd_portal_create: '宜搭 네이티브 포털 생성',
+    cmd_portal_catalog: '기본 포털의 구성 요소와 테마 옵션 보기',
+    cmd_portal_inspect: '네이티브 포털 타일 및 버전 확인',
+    cmd_portal_configure: '네이티브 포털 타일 및 레이아웃 설정',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -870,7 +877,8 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: '페이지가 생성되었지만 설정을 다시 읽어도 탐색 숨김이 확인되지 않았습니다. 반환된 pageId의 설정을 수정하고 확인하세요. 페이지를 다시 만들지 마세요.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    mode_hint: 'Available modes: default, dashboard. Navigation is visible by default; pass --hide-nav or --render-nav false to hide it.',
+    portal_unverified: '페이지를 만들었지만 기본 포털 유형을 확인할 수 없습니다. 다시 시도하기 전에 페이지 구성을 조회하세요.',
+    mode_hint: '사용 가능한 모드: default, dashboard. 사용자 정의 페이지에서 탐색을 숨기려면 --hide-nav 또는 --render-nav false를 사용하세요.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ 커스텀 페이지 생성 실패: {0}',
@@ -1194,6 +1202,9 @@ module.exports = {
     err_open_url_empty: 'openUrl 경로가 비어 있습니다: {0}'
   },
   update_app: {
+    settings_incomplete: '현재 앱 설정이 불완전하여 저장을 중단했습니다. 기본값으로 덮어쓰지 않도록 앱 설정 페이지를 확인하세요.',
+    invalid_current_name: '현재 앱 이름이 없거나 잘못되었습니다. 설정을 저장하지 않았습니다. 먼저 --name으로 이름을 복구하세요.',
+    metadata_not_persisted: '쓰기 요청이 수락되었지만 이름, 설명 또는 기존 설정을 확인할 수 없습니다. 다시 제출하기 전에 metadataVerification을 확인하세요.',
     name_not_persisted: '저장된 앱 이름이 요청한 이름과 일치하지 않습니다. 다시 시도하기 전에 현재 이름을 확인하세요. 다른 앱을 만들지 마세요.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

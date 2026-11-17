@@ -53,7 +53,10 @@ test('dry run writes nothing; unchanged runs preserve files; changed output refu
 
 test('business resources, role data scopes, constraints and rules survive without claiming execution', () => {
   const spec = fixture();
-  spec.resources = [{ key: 'customers', name: '客户档案', type: 'normal-form', fields: [{ type: 'TextField', label: '客户名称' }] }];
+  spec.resources = [
+    { key: 'customers', name: '客户档案', type: 'normal-form', fields: [{ type: 'TextField', label: '客户名称' }] },
+    { key: 'native-portal', name: '客户门户', type: 'native-portal' },
+  ];
   spec.roles = [{ name: '销售', scope: '只维护本人负责的客户', operations: ['新增客户', '编辑本人客户'] }];
   spec.businessRules = ['同一客户可有多条跟进']; spec.pages[0].dataSources = ['customers'];
   spec.constraints = { prohibitedActions: ['publish'] }; spec.intake = { confirmed: true, designMode: 'fast' };

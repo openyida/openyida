@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   workflow_cycle: {
     invalid: "Die Schleifenkonfiguration ist unvollständig oder überschreitet das Limit.",
     node_unavailable: "Der Knoten {0} ist in dieser Schleife nicht verfügbar. Prüfen Sie die verfügbaren Knoten im YiDA-Designer.",
@@ -123,7 +126,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: 'Die Frontend-Seite {0} muss vom Typ display sein. Für Formulare eine geprüfte vollständige URL verwenden.',
     page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
-    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+    page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
     confirmation_required: 'Die Bestätigung benötigt den aktuellen Planstand und seine Revision. Erzeugen Sie zuerst den Plan.',
@@ -204,7 +207,11 @@ module.exports = {
     cmd_get_schema: 'Formular-Schema abrufen',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'Benutzerdefinierte Anzeigeseite erstellen',
+    cmd_create_page: 'Benutzerdefinierte Seite erstellen',
+    cmd_portal_create: 'Natives YiDA-Portal erstellen',
+    cmd_portal_catalog: 'Konfigurierbare native Portal-Komponenten und Designoptionen anzeigen',
+    cmd_portal_inspect: 'Kacheln und Revision des nativen Portals anzeigen',
+    cmd_portal_configure: 'Kacheln und Layout des nativen Portals konfigurieren',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -870,7 +877,8 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'Die Seite wurde erstellt, aber das Ausblenden der Navigation wurde beim erneuten Lesen nicht bestätigt. Korrigieren und prüfen Sie die zurückgegebene pageId; erstellen Sie keine weitere Seite.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    mode_hint: 'Available modes: default, dashboard. Navigation is visible by default; pass --hide-nav or --render-nav false to hide it.',
+    portal_unverified: 'Die Seite wurde erstellt, aber ihr Typ als natives Portal konnte nicht bestätigt werden. Lesen Sie die Seitenkonfiguration vor einem erneuten Versuch.',
+    mode_hint: 'Verfügbare Modi: default, dashboard. Verwenden Sie --hide-nav oder --render-nav false für benutzerdefinierte Seiten.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ Erstellung fehlgeschlagen: {0}',
@@ -1193,6 +1201,9 @@ module.exports = {
     err_open_url_empty: 'openUrl-Pfad darf nicht leer sein: {0}'
   },
   update_app: {
+    settings_incomplete: 'Die aktuellen App-Einstellungen sind unvollständig. Das Speichern wurde gestoppt, um Standardwerte zu vermeiden. Prüfen Sie die Einstellungsseite.',
+    invalid_current_name: 'Der aktuelle App-Name fehlt oder ist ungültig. Es wurde nichts gespeichert. Reparieren Sie den Namen mit --name.',
+    metadata_not_persisted: 'Die Anfrage wurde angenommen, aber Name, Beschreibung oder bisherige Einstellungen konnten nicht bestätigt werden. Prüfen Sie metadataVerification vor einem erneuten Versuch.',
     name_not_persisted: 'Der gespeicherte App-Name stimmt nicht mit dem gewünschten Namen überein. Prüfen Sie den aktuellen Namen vor einem erneuten Versuch; erstellen Sie keine weitere App.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

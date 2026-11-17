@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   workflow_cycle: {
     invalid: "إعداد الحلقة غير مكتمل أو يتجاوز الحد.",
     node_unavailable: "العقدة {0} غير متاحة في هذه الحلقة. تحقّق من العقد المتاحة في مصمم YiDA.",
@@ -123,7 +126,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: 'يجب أن تكون الصفحة الأمامية {0} من نوع display. استخدم رابطًا كاملاً تم التحقق منه للنماذج.',
     page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
-    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+    page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
     confirmation_required: 'يتطلب التأكيد لقطة من الخطة الحالية ورقم مراجعتها. أنشئ الخطة أولاً.',
@@ -204,7 +207,11 @@ module.exports = {
     cmd_get_schema: 'الحصول على Schema النموذج',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'إنشاء صفحة عرض مخصصة',
+    cmd_create_page: 'إنشاء صفحة مخصصة',
+    cmd_portal_create: 'إنشاء بوابة YiDA أصلية',
+    cmd_portal_catalog: 'عرض مكونات البوابة الأصلية وخيارات مظهرها',
+    cmd_portal_inspect: 'عرض بلاطات البوابة الأصلية وإصدارها',
+    cmd_portal_configure: 'تهيئة بلاطات البوابة الأصلية وتخطيطها',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -870,7 +877,8 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'تم إنشاء الصفحة، لكن قراءة الإعدادات لم تؤكد إخفاء التنقل. أصلح إعدادات pageId المُعاد وتحقق منها؛ لا تنشئ صفحة أخرى.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    mode_hint: 'Available modes: default, dashboard. Navigation is visible by default; pass --hide-nav or --render-nav false to hide it.',
+    portal_unverified: 'تم إنشاء الصفحة، لكن تعذّر التحقق من أنها بوابة أصلية. اقرأ إعدادات الصفحة قبل إعادة المحاولة.',
+    mode_hint: 'الأوضاع المتاحة: default وdashboard. لإخفاء التنقل في صفحة مخصصة، استخدم --hide-nav أو --render-nav false.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ فشل الإنشاء: {0}',
@@ -1193,6 +1201,9 @@ module.exports = {
     err_open_url_empty: 'لا يمكن أن يكون مسار openUrl فارغاً: {0}'
   },
   update_app: {
+    settings_incomplete: 'إعدادات التطبيق الحالية غير مكتملة. تم إيقاف الحفظ لتجنب استبدالها بالقيم الافتراضية. تحقق من صفحة إعدادات التطبيق.',
+    invalid_current_name: 'اسم التطبيق الحالي مفقود أو غير صالح. لم يتم حفظ الإعدادات. أصلحه باستخدام --name أولاً.',
+    metadata_not_persisted: 'تم قبول الطلب، لكن تعذر التحقق من الاسم أو الوصف أو الإعدادات المحفوظة. تحقق من metadataVerification قبل إعادة المحاولة.',
     name_not_persisted: 'لم يتطابق اسم التطبيق المحفوظ مع الاسم المطلوب. تحقق من الاسم الحالي قبل إعادة المحاولة؛ لا تنشئ تطبيقًا آخر.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
