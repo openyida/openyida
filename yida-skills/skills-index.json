@@ -1034,7 +1034,7 @@
       "name": "yida-create-portal",
       "path": "skills/yida-create-portal/SKILL.md",
       "display_name": "宜搭原生门户",
-      "description": "用户明确选择宜搭原生门户、排除自定义页面方案，或维护已有原生门户时使用。创建原生门户并配置磁贴。",
+      "description": "创建宜搭原生门户，配置磁贴、主题和双端布局。仅在用户明确要求原生门户、明确排除用自定义页面做门户或维护已有原生门户时使用。",
       "category": "yida-skills/page",
       "tags": [
         "宜搭原生门户",

@@ -868,7 +868,9 @@ describe('OpenYida skill contracts', () => {
     expect(root).toContain('默认完成即停止');
     expect(app).toContain('[Step 8：发布页面并排序导航]');
     expect(step8).toContain('发布本轮修改过的页面源码到真实 display 页面，并执行轻量导航排序');
-    expect(step8).toContain('PRD 写明页面/表单清单顺序：');
+    const hideStep = step8.indexOf('nav-group hide <appType> <formUuid>');
+    expect(hideStep).toBeGreaterThanOrEqual(0);
+    expect(hideStep).toBeLessThan(step8.indexOf('openyida nav-group order <appType>'));
     expect(step8).toContain('导航排序必须等待本轮全部页面开发、发布和相关资源创建完成');
     expect(step8).toContain('openyida nav-group order <appType> <页面/表单...>');
     expect(step8).toContain('entry-navigation.md#每个入口都确定首页与菜单顺序');

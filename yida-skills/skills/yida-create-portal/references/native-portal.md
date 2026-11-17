@@ -3,8 +3,8 @@
 ## 读、配、验
 
 1. 明确门户所在应用、使用人、第一屏任务及现有数据资源。已有原生门户先读回，缺少门户时用 `create-portal` 创建。目标应用的实际主题通过主题设置或 `app-theme snapshot` 读取。
-2. 用 `openyida portal catalog [componentName]` 查看可写字段、默认布局和实例上限。运行 `openyida portal inspect <appType> <formUuid> --editable`。记录 `revision`、现有 `fieldId`、布局、主题及使用中的物料。组件目录取决于当前应用场景、组织灰度和可用物料。已保存的门户样例可提供目标组织的真实实体选择器、动态数据源、链接和主题对象。
-3. 编写 `{"tiles":[...]}` JSON。每个磁贴填写稳定的 `key`、准确的 `componentName`、需要写入的 `props`、可选的 `layout`。编辑已有门户时，可将回执的 `config` 对象直接另存为配置文件。修改设计器创建的磁贴时传回读得到的 `fieldId` 并保持组件类型，避免添加重复节点。保留原 `key` 可安全重跑同一配置。
+2. 用 `openyida portal catalog [componentName]` 查看可写字段、默认布局和实例上限。运行 `openyida portal inspect <appType> <formUuid> --editable`。记录 `revision`、现有 `fieldId`、布局、主题及使用中的物料。`catalog` 是 CLI 的本地配置目录，无需登录。目标应用的实际物料和选择器以设计器或同场景门户的回读为准。
+3. 编写 `{"tiles":[...]}` JSON。每个磁贴填写稳定的 `key`、准确的 `componentName`、需要写入的 `props`、可选的 `layout`。编辑已有门户时，可将回执的 `config` 对象直接另存为配置文件。修改设计器创建的磁贴时传回读得到的 `fieldId` 并保持组件类型，避免添加重复节点。保留 `key` 以识别同一磁贴，重跑前重新读取版本。
 4. 用 `openyida portal configure <appType> <formUuid> portal.json --dry-run --json` 查看预计配置，再执行 `openyida portal configure <appType> <formUuid> portal.json --expected-revision <revision> --json`。版本冲突时重新 inspect，按最新布局重做变更。保存后使用设计器预览和工作台核对真实渲染、权限、链接及移动端顺序。
 5. 按门户设计器的页面发布流程核对访问范围。对外分享或配置播报是独立操作。只有用户明确指定门户为应用首页或调整导航顺序时才配置导航，并回读实际首屏入口。AI 对话入口依赖业务关系图谱。设计器首次保存可能提示生成图谱，生成中访问态可暂时隐藏入口，验收需等可用后再做。
 

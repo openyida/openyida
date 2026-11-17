@@ -40,7 +40,7 @@ Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确�
 5. 各入口的菜单顺序、默认页面和首屏任务已按规划落实；平台导航有排序回读，触发 [收尾分组](../../yida-nav-group/SKILL.md#完整应用收尾分组) 时核对实际分组及子项，自定义导航有页面验证。未完成项按入口明确列出，不能仅因平台命令不适用就将排序记为完成；
 6. 核心普通表单的 1–3 条真实示例已核验，范围内流程示例已完成 seed、编辑和最终发布，或明确说明跳过原因；
 7. 汇合主题任务，按[主题证据](../../../references/execution-rules.md#主题上传与绑定)按[新旧主题完成条件](../../../references/execution-rules.md#应用主题配置完成条件)核对 `themeCompletion.complete=true`，保存上传、绑定、主色与导航回执到 `build-manifest.themeEvidence`。已有主题记录复用；旧主题或能力未知时按[旧主题规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认)保留平台主题及页面局部样式。主题更新在前序完成，收尾只汇合；自定义页面只在 `YidaComp` 内消费对应 token。
-8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，Fast 运行 `openyida check-prd-completeness --manifest-only --app-type <appType> --build-manifest <build-manifest.json> --json`；Plan/已有文档再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；该命令检查页面/资源数量及已提供的素材执行记录一致性，不能替代运行态验收。`verdict=pass` 后按证据规则描述已完成范围；只有运行态证据通过才宣称页面验收通过。`needs_review` 时说明真实业务复核项，`fail` 时说明 `hardFailures` 对应未完成项；云端页面未验不转为用户补验任务；
+8. final 前先写入轻量 `prd/<项目名>/build-manifest.json`，Fast 运行 `openyida check-prd-completeness --manifest-only --app-type <appType> --build-manifest <build-manifest.json> --json`；Plan/已有文档再运行 `openyida check-prd-completeness prd/<项目名>/prd.md --app-type <appType> --build-manifest prd/<项目名>/build-manifest.json --json`；该命令回读资源及已声明的导航、主题配置，检查已提供的素材执行记录。`verdict=pass` 后按证据规则描述已完成范围；只有运行态证据通过才宣称页面验收通过。`needs_review` 时说明真实业务复核项，`fail` 时说明 `hardFailures` 对应未完成项；云端页面未验不转为用户补验任务；
 9. 未继续执行用户未要求的公开访问、额外截图报告、报表、大屏、数据源深接或超出收尾规则的精细导航调整。
 
 适用的页面检查按[跨页验收](../../yida-design/references/application-theme-consistency.md#验证主题是否真正一致)核对原生页、自定义页与抽屉；视觉结果单独记录。
@@ -75,9 +75,9 @@ Fast 将主题命令回执的 `applicationTheme` 写入 `build-manifest.json`。
 
 - 按入口规划的 `sceneKey`、`defaultMenuKey`、真实页面 ID 和视图建立前后台映射，不按页面创建/发布顺序或页面标题猜测。业务后台优先使用已验证的具体任务 `/workbench/{formUuid}?viewUuid=...`；只有确认根 `/workbench` 落到正确默认任务时才使用根入口。
 - 已有配置与本轮已验证目标一致时直接复用回读，不重复保存；不同且在本轮完整搭建范围内时局部更新。登记后以 `urls` 为最终入口事实源，保持完整域名、页面 ID、有效 query/hash 和公开地址。`verification.configurationReadback=true` 只证明配置保存，`runtimeVerified=false` 不能当访问成功。页面验收遵循本机 Agent 边界。
-- 用户明确保留平台导航的前台，使用已验证的 `workbenchUrl` 通过 `--frontend` 登记；`--frontend-page` 专用于独立前台，不适用这种例外。
+- 原生门户前台或明确保留平台导航的前台，用已验证的 `workbenchUrl` 通过 `--frontend` 登记。`--frontend-page` 只接受隐藏平台导航的 display 页面。
 - 前台地址必须来自已发布页面的成功返回及回读；独立前台核验持久化 `renderNav=false`，仅字段缺失时兼容 `isRenderNav`，不通过 URL 参数配置。
-- **登记 URL 必须是发布返回并回读确认的那条完整访问地址，原样传入 `app-entry set`**：直接复用 `publish` 成功返回的完整运行时 URL，并结合 `get-form-config` 核对页面配置和实际访问结果，保留其域名、路径段（如 `/workbench/{formUuid}` 或 `/custom/{formUuid}`）和有效参数。不得手工改写、截断或凭 `appType`/`formUuid` 拼接一条未经发布回读的路径来登记；保存后回读核对同一条完整 URL。完整 URL 参数不会截断工作台页面 ID。
+- **登记 URL 必须是发布返回并回读确认的那条完整访问地址，原样传入 `app-entry set`**：自定义页面使用 `publish` 返回的完整 URL，结合 `get-form-config` 核对配置；原生门户使用创建后回读并实测的 `workbenchUrl`，保留其域名、路径段（如 `/workbench/{formUuid}` 或 `/custom/{formUuid}`）和有效参数。不得手工改写、截断或凭 `appType`/`formUuid` 拼接一条未经发布回读的路径来登记；保存后回读核对同一条完整 URL。完整 URL 参数不会截断工作台页面 ID。
 - 只有已有明确页面 ID 且无需保留公开地址或参数时，才用 `--frontend-page <formUuid>` / `--management-page <formUuid>`。前者检查 display 类型、非空 pathName，并实际读取页面配置确认 `renderNav=false`（仅缺字段时兼容 `isRenderNav`），复用发布流程的 `standaloneUrl` 解析器；配置缺失、开启导航或资源不匹配时拒绝保存，不自动隐藏导航；后者检查页面归属，生成 `/workbench/<formUuid>`。生成路径与配置回读不代替实际访问验收；公开入口始终传已验证的完整 URL。
 - 已验证的公开地址按完整 URL 原样登记，保留所选入口的域名、路径和有效参数；不能替换成需要登录的长链接，也不能为了登记而自动开启公开访问。
 - 业务工作台使用已验证的访问态 URL，不能登记 `/admin` 或设计器地址。
