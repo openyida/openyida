@@ -25,7 +25,9 @@ test('creates source-defined portal materials with the native grid and stable id
   expect(tiles[0].props.maxItems).toBe(4);
   expect(tiles[1].placement).toMatchObject({ x: 3, y: 0, w: 3, i: tiles[1].fieldId });
   expect(tiles[2].props).toMatchObject({ form: { value: 'FORM-OPERATIONS' }, visibility: ['PC'] });
-  expect(theme).toMatchObject({ portalTheme: 'blue', pageWidth: 'normal', pageBackground: 'auto', follow: true });
+  expect(theme).toMatchObject({
+    portalTheme: 'blue', pageWidth: 'normal', pageBackground: 'auto', follow: true, themeContentTopMargin: null,
+  });
   expect(output.schema.pages[0].componentsMap).toEqual(expect.arrayContaining([
     expect.objectContaining({ componentName: 'DataManageViews', package: '@ali/vc-deep-yida' }),
   ]));
@@ -89,6 +91,43 @@ test('exports a reusable edit file and patches theme fields without changing til
   expect(inspectPortal(result.schema)).toEqual({ ...portal, theme: { ...portal.theme, topMargin: 'medium' } });
   expect(result.schema.actions).toEqual(schema.actions);
   expect(() => applyPortalConfig(schema, { theme: { topMargin: 'invalid' } }, target)).toThrow(/topMargin/);
+});
+
+test('round-trips portal token inheritance, zero spacing, transparent colors and independent device images', () => {
+  const { schema } = applyPortalConfig({ pages: [{}] }, config, target);
+  const custom = {
+    themePageWidth: 1440, themeContentTopMargin: 0, themeCardRadius: 0, themeCardMargin: 0,
+    themeCardPadding: 20, themeCardPaddingMobile: 8, themeTitleMargin: 0, themeInnerCardMargin: 12,
+    themeInnerCardPadding: 0, themePageBackground: 'transparent', themeCardBackground: 'transparent',
+    themeInfoColor: null, themeTitleColor: '#ffffff', themeCardTextColor: '#eeeeee',
+    topPcImg: { type: 'custom', name: 'banner', value: 'https://example.com/pc.png', mobile: 'https://example.com/mobile.png', fit: 'contain' },
+  };
+  const saved = applyPortalConfig(schema, { theme: custom }, target);
+  const editable = editablePortalConfig(inspectPortal(saved.schema)).config;
+  expect(editable.theme).toMatchObject(custom);
+  expect(applyPortalConfig(saved.schema, editable, target).changed).toBe(false);
+  const disabled = applyPortalConfig(saved.schema, { theme: { topPcImg: {} } }, target);
+  expect(editablePortalConfig(inspectPortal(disabled.schema)).config.theme.topPcImg).toEqual({});
+  const inherited = applyPortalConfig(disabled.schema, {
+    theme: { topPcImg: null, themeContentTopMargin: null, themePageBackground: null, themeCardPaddingMobile: null },
+  }, target);
+  expect(editablePortalConfig(inspectPortal(inherited.schema)).config.theme).toMatchObject({
+    topPcImg: null, themeContentTopMargin: null, themePageBackground: null, themeCardPaddingMobile: null,
+    themeTitleColor: custom.themeTitleColor, themeCardRadius: 0, themeCardPadding: 20,
+  });
+  expect(portalCatalog().theme.bindings.fields.themeCardPaddingMobile.token).toBe('--pod-card-mobile-padding');
+  for (const theme of [{ themePageWidth: 0 }, { themeCardPadding: -1 }, { themeCardRadius: '0' }, { topPcImg: [] }]) {
+    expect(() => applyPortalConfig(schema, { theme }, target)).toThrow(/Unsupported portal theme value/);
+  }
+});
+
+test('preserves existing legacy top-margin presets until explicitly rebound', () => {
+  const { schema } = applyPortalConfig({ pages: [{}] }, { ...config, theme: { topMargin: 'medium' } }, target);
+  expect(inspectPortal(schema).theme).not.toHaveProperty('themeContentTopMargin');
+  const patched = applyPortalConfig(schema, { theme: { themeCardRadius: 0 } }, target);
+  expect(inspectPortal(patched.schema).theme).not.toHaveProperty('themeContentTopMargin');
+  const rebound = applyPortalConfig(patched.schema, { theme: { themeContentTopMargin: null } }, target);
+  expect(inspectPortal(rebound.schema).theme).toMatchObject({ topMargin: 'medium', themeContentTopMargin: null });
 });
 
 test('uses RGL desktop order by default and can preserve a distinct mobile order', () => {
