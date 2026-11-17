@@ -16,6 +16,14 @@ module.exports = {
     null_unsupported: '原生升級介面會忽略 null 值，本次未發起寫入；需要清空這些欄位時請使用原生編輯器。',
     write_unverified: '無法確認升級寫入結果，請先回讀現有記錄再決定後續操作，不要自動重複寫入。',
   },
+  workflow_cycle: {
+    invalid: "循環配置不完整或超出限制。每條自動化可配置一個循環，循環體最多包含五個計數節點。",
+    node_unavailable: "OpenYida 在此循環場景不支援節點 {0}。請在宜搭設計器查看可用節點。",
+    unavailable: "目前宜搭場景未開放循環容器。請在目標應用的設計器確認。",
+    unverified: "無法確認目前組織的循環權益或節點配置。請核對登入組織後重試。",
+    entitlement_required: "目前組織缺少循環容器權益。請聯絡組織管理員到宜搭官方頁面查看版本並升級：{0}",
+    published_unverified: "無法確認已發佈的自動化。請在宜搭設計器檢查發佈狀態。",
+  },
   issue_fixes: {
     invalid_api_key: 'API Key 設定必須包含有效的 name 和 header/query 位置；請先檢查連接器。',
     repair_required: '舊 API Key 設定缺少 type/in/location；確認後加 --repair-api-key-scheme 修補並建立新帳號。',
@@ -1143,6 +1151,9 @@ module.exports = {
     err_open_url_chars: 'openUrl 路徑部分只支援 a-z A-Z 0-9 _ -，可用 / 分隔多級路徑，目前值：{0}'
   },
   update_app: {
+    settings_incomplete: '目前應用設定不完整，已停止儲存，避免預設值覆蓋現有設定。請在應用設定頁面核對。',
+    invalid_current_name: '目前應用名稱缺失或異常，已停止儲存設定。請先透過 --name 修復名稱，再更新其他設定。',
+    metadata_not_persisted: '寫入請求已被接受，但名稱、描述或原設定讀回失敗或不一致。請核對 metadataVerification，勿重複提交。',
     name_not_persisted: '應用名稱儲存後讀回不一致，尚未確認修改成功。請核對目前應用名稱，不要重複建立應用。',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

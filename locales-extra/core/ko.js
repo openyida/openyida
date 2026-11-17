@@ -8,6 +8,14 @@ module.exports = {
   connector_runtime: require('../../lib/core/locales/en').connector_runtime,
   connector_account: require('../../lib/core/locales/en').connector_account,
   data_upgrade: require('../../lib/core/locales/en').data_upgrade,
+  workflow_cycle: {
+    invalid: "반복 설정이 불완전하거나 제한을 초과했습니다.",
+    node_unavailable: "이 반복에서는 {0} 노드를 지원하지 않습니다. YiDA 디자이너에서 사용 가능한 노드를 확인하세요.",
+    unavailable: "이 YiDA 시나리오에서는 반복을 사용할 수 없습니다.",
+    unverified: "조직의 반복 이용 권한 또는 노드 설정을 확인할 수 없습니다. 로그인한 조직을 확인하고 다시 시도하세요.",
+    entitlement_required: "이 조직에는 반복 이용 권한이 없습니다. 조직 관리자에게 YiDA 공식 사이트에서 요금제를 확인하고 업그레이드하도록 요청하세요: {0}",
+    published_unverified: "게시된 자동화를 확인할 수 없습니다. YiDA 디자이너에서 게시 상태를 확인하세요.",
+  },
   issue_fixes: {
     invalid_api_key: 'API Key에는 유효한 name과 header/query 위치가 필요합니다. 연결기 정의를 확인하세요.',
     repair_required: '이전 API Key 설정에 type/in/location이 없습니다. --repair-api-key-scheme으로 명시적으로 수정하고 새 계정을 만드세요.',
@@ -1189,6 +1197,9 @@ module.exports = {
     err_open_url_empty: 'openUrl 경로가 비어 있습니다: {0}'
   },
   update_app: {
+    settings_incomplete: '현재 앱 설정이 불완전하여 저장을 중단했습니다. 기본값으로 덮어쓰지 않도록 앱 설정 페이지를 확인하세요.',
+    invalid_current_name: '현재 앱 이름이 없거나 잘못되었습니다. 설정을 저장하지 않았습니다. 먼저 --name으로 이름을 복구하세요.',
+    metadata_not_persisted: '쓰기 요청이 수락되었지만 이름, 설명 또는 기존 설정을 확인할 수 없습니다. 다시 제출하기 전에 metadataVerification을 확인하세요.',
     name_not_persisted: '저장된 앱 이름이 요청한 이름과 일치하지 않습니다. 다시 시도하기 전에 현재 이름을 확인하세요. 다른 앱을 만들지 마세요.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

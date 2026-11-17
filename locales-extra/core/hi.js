@@ -8,6 +8,14 @@ module.exports = {
   connector_runtime: require('../../lib/core/locales/en').connector_runtime,
   connector_account: require('../../lib/core/locales/en').connector_account,
   data_upgrade: require('../../lib/core/locales/en').data_upgrade,
+  workflow_cycle: {
+    invalid: "लूप का कॉन्फ़िगरेशन अधूरा है या सीमा से अधिक है।",
+    node_unavailable: "इस लूप में {0} उपलब्ध नहीं है। YiDA डिज़ाइनर में उपलब्ध नोड देखें।",
+    unavailable: "इस YiDA परिदृश्य में लूप उपलब्ध नहीं हैं।",
+    unverified: "लूप की अनुमति या नोड कॉन्फ़िगरेशन की पुष्टि नहीं हो सकी। संगठन की जाँच कर फिर से कोशिश करें।",
+    entitlement_required: "संगठन को लूप का उपयोग करने की अनुमति नहीं है। व्यवस्थापक से आधिकारिक YiDA साइट पर प्लान देखकर अपग्रेड करने के लिए कहें: {0}",
+    published_unverified: "प्रकाशित ऑटोमेशन सत्यापित नहीं हो सका। YiDA डिज़ाइनर में प्रकाशन की स्थिति देखें।",
+  },
   issue_fixes: {
     invalid_api_key: 'API Key में वैध name और header/query स्थान आवश्यक है; पहले कनेक्टर की जाँच करें।',
     repair_required: 'पुरानी API Key सेटिंग में type/in/location नहीं है। सुधार और नया खाता बनाने के लिए --repair-api-key-scheme दें।',
@@ -1188,6 +1196,9 @@ module.exports = {
     err_open_url_empty: 'openUrl पथ खाली नहीं हो सकता: {0}'
   },
   update_app: {
+    settings_incomplete: 'वर्तमान ऐप सेटिंग्स अधूरी हैं। डिफ़ॉल्ट मानों से बदलने से बचाने के लिए सहेजना रोक दिया गया। ऐप सेटिंग्स पृष्ठ जाँचें।',
+    invalid_current_name: 'वर्तमान ऐप नाम अनुपस्थित या अमान्य है। सेटिंग्स सहेजी नहीं गईं। पहले --name से नाम सुधारें।',
+    metadata_not_persisted: 'लेखन अनुरोध स्वीकार हुआ, लेकिन नाम, विवरण या पुरानी सेटिंग्स सत्यापित नहीं हुईं। दोबारा भेजने से पहले metadataVerification जाँचें।',
     name_not_persisted: 'सहेजा गया ऐप नाम अनुरोधित नाम से मेल नहीं खाता। दोबारा कोशिश करने से पहले वर्तमान नाम जाँचें; दूसरा ऐप न बनाएँ।',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

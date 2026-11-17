@@ -8,6 +8,14 @@ module.exports = {
   connector_runtime: require('../../lib/core/locales/en').connector_runtime,
   connector_account: require('../../lib/core/locales/en').connector_account,
   data_upgrade: require('../../lib/core/locales/en').data_upgrade,
+  workflow_cycle: {
+    invalid: "ループの設定が不完全か、上限を超えています。",
+    node_unavailable: "このループでは {0} を使用できません。YiDA デザイナーで利用可能なノードを確認してください。",
+    unavailable: "この YiDA のシナリオではループを利用できません。",
+    unverified: "組織のループ権限またはノード設定を確認できません。組織を確認して再試行してください。",
+    entitlement_required: "この組織にはループの利用権限がありません。組織管理者に YiDA 公式サイトでプランを確認し、アップグレードするよう依頼してください：{0}",
+    published_unverified: "公開済みの自動化を確認できません。YiDA デザイナーで公開状態を確認してください。",
+  },
   issue_fixes: {
     invalid_api_key: 'API Key には有効な name と header/query の場所が必要です。接続定義を確認してください。',
     repair_required: '旧 API Key 設定に type/in/location がありません。--repair-api-key-scheme を指定して修復し、新規アカウントを作成してください。',
@@ -1144,6 +1152,9 @@ module.exports = {
     err_open_url_chars: 'openUrl のパス部分は a-z A-Z 0-9 _ - と区切り文字 / のみ使用できます。現在の値: {0}'
   },
   update_app: {
+    settings_incomplete: '現在のアプリ設定が不完全なため保存を中止しました。既定値で上書きしないよう、アプリ設定画面を確認してください。',
+    invalid_current_name: '現在のアプリ名が未設定または無効です。設定は保存していません。先に --name で修復してください。',
+    metadata_not_persisted: '書き込みは受理されましたが、名前、説明、既存設定を確認できませんでした。再送信する前に metadataVerification を確認してください。',
     name_not_persisted: '保存されたアプリ名が指定した名前と一致しません。再試行する前に現在の名前を確認してください。別のアプリを作成しないでください。',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

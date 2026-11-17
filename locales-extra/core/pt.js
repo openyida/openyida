@@ -8,6 +8,14 @@ module.exports = {
   connector_runtime: require('../../lib/core/locales/en').connector_runtime,
   connector_account: require('../../lib/core/locales/en').connector_account,
   data_upgrade: require('../../lib/core/locales/en').data_upgrade,
+  workflow_cycle: {
+    invalid: "A configuração do ciclo está incompleta ou excede o limite.",
+    node_unavailable: "O nó {0} está indisponível neste ciclo. Veja os nós disponíveis no designer do YiDA.",
+    unavailable: "Os ciclos estão indisponíveis neste cenário do YiDA.",
+    unverified: "Não foi possível verificar o acesso ou a configuração do ciclo. Confira a organização conectada e tente novamente.",
+    entitlement_required: "A organização não tem acesso a ciclos. Peça a um administrador que consulte os planos e faça o upgrade no site oficial do YiDA: {0}",
+    published_unverified: "Não foi possível verificar a automação publicada. Confira o status da publicação no designer do YiDA.",
+  },
   issue_fixes: {
     invalid_api_key: 'API Key exige name válido e localização header/query; verifique o conector.',
     repair_required: 'A configuração antiga não tem type/in/location. Use --repair-api-key-scheme para corrigir explicitamente e criar outra conta.',
@@ -1190,6 +1198,9 @@ module.exports = {
     err_open_url_empty: 'O caminho openUrl não pode estar vazio: {0}'
   },
   update_app: {
+    settings_incomplete: 'As configurações atuais estão incompletas. O salvamento foi interrompido para evitar valores padrão. Confira a página de configurações.',
+    invalid_current_name: 'O nome atual está ausente ou inválido. As configurações não foram salvas. Corrija-o com --name.',
+    metadata_not_persisted: 'A solicitação foi aceita, mas o nome, a descrição ou as configurações preservadas não foram verificados. Confira metadataVerification antes de tentar novamente.',
     name_not_persisted: 'O nome salvo não corresponde ao solicitado. Verifique o nome atual antes de tentar novamente; não crie outro aplicativo.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

@@ -8,6 +8,14 @@ module.exports = {
   connector_runtime: require('../../lib/core/locales/en').connector_runtime,
   connector_account: require('../../lib/core/locales/en').connector_account,
   data_upgrade: require('../../lib/core/locales/en').data_upgrade,
+  workflow_cycle: {
+    invalid: "إعداد الحلقة غير مكتمل أو يتجاوز الحد.",
+    node_unavailable: "العقدة {0} غير متاحة في هذه الحلقة. تحقّق من العقد المتاحة في مصمم YiDA.",
+    unavailable: "الحلقات غير متاحة في هذا السيناريو في YiDA.",
+    unverified: "تعذّر التحقق من صلاحية الحلقة أو إعداد العقد. تحقّق من المؤسسة التي سجّلت الدخول إليها وحاول مجددًا.",
+    entitlement_required: "لا تملك المؤسسة صلاحية استخدام الحلقات. اطلب من مسؤول المؤسسة مراجعة الباقات والترقية على موقع YiDA الرسمي: {0}",
+    published_unverified: "تعذّر التحقق من الأتمتة المنشورة. تحقّق من حالة النشر في مصمم YiDA.",
+  },
   issue_fixes: {
     invalid_api_key: 'يتطلب API Key اسم name صالحًا وموقع header/query؛ افحص تعريف الموصل أولًا.',
     repair_required: 'يفتقد إعداد API Key القديم type/in/location. أضف --repair-api-key-scheme لإصلاحه صراحةً وإنشاء حساب جديد.',
@@ -1188,6 +1196,9 @@ module.exports = {
     err_open_url_empty: 'لا يمكن أن يكون مسار openUrl فارغاً: {0}'
   },
   update_app: {
+    settings_incomplete: 'إعدادات التطبيق الحالية غير مكتملة. تم إيقاف الحفظ لتجنب استبدالها بالقيم الافتراضية. تحقق من صفحة إعدادات التطبيق.',
+    invalid_current_name: 'اسم التطبيق الحالي مفقود أو غير صالح. لم يتم حفظ الإعدادات. أصلحه باستخدام --name أولاً.',
+    metadata_not_persisted: 'تم قبول الطلب، لكن تعذر التحقق من الاسم أو الوصف أو الإعدادات المحفوظة. تحقق من metadataVerification قبل إعادة المحاولة.',
     name_not_persisted: 'لم يتطابق اسم التطبيق المحفوظ مع الاسم المطلوب. تحقق من الاسم الحالي قبل إعادة المحاولة؛ لا تنشئ تطبيقًا آخر.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

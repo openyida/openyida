@@ -8,6 +8,14 @@ module.exports = {
   connector_runtime: require('../../lib/core/locales/en').connector_runtime,
   connector_account: require('../../lib/core/locales/en').connector_account,
   data_upgrade: require('../../lib/core/locales/en').data_upgrade,
+  workflow_cycle: {
+    invalid: "Die Schleifenkonfiguration ist unvollständig oder überschreitet das Limit.",
+    node_unavailable: "Der Knoten {0} ist in dieser Schleife nicht verfügbar. Prüfen Sie die verfügbaren Knoten im YiDA-Designer.",
+    unavailable: "Schleifen sind in diesem YiDA-Szenario nicht verfügbar.",
+    unverified: "Die Schleifenberechtigung oder Knotenkonfiguration konnte nicht geprüft werden. Prüfen Sie die angemeldete Organisation und versuchen Sie es erneut.",
+    entitlement_required: "Ihre Organisation hat keinen Zugriff auf Schleifen. Bitten Sie die Organisationsverwaltung, die Tarife auf der offiziellen YiDA-Website zu prüfen und ein Upgrade vorzunehmen: {0}",
+    published_unverified: "Die veröffentlichte Automatisierung konnte nicht geprüft werden. Prüfen Sie den Veröffentlichungsstatus im YiDA-Designer.",
+  },
   issue_fixes: {
     invalid_api_key: 'API Key benötigt einen gültigen name und header/query als Ort; prüfen Sie den Konnektor.',
     repair_required: 'Der alten API-Key-Konfiguration fehlt type/in/location. Mit --repair-api-key-scheme ausdrücklich reparieren und ein neues Konto erstellen.',
@@ -1188,6 +1196,9 @@ module.exports = {
     err_open_url_empty: 'openUrl-Pfad darf nicht leer sein: {0}'
   },
   update_app: {
+    settings_incomplete: 'Die aktuellen App-Einstellungen sind unvollständig. Das Speichern wurde gestoppt, um Standardwerte zu vermeiden. Prüfen Sie die Einstellungsseite.',
+    invalid_current_name: 'Der aktuelle App-Name fehlt oder ist ungültig. Es wurde nichts gespeichert. Reparieren Sie den Namen mit --name.',
+    metadata_not_persisted: 'Die Anfrage wurde angenommen, aber Name, Beschreibung oder bisherige Einstellungen konnten nicht bestätigt werden. Prüfen Sie metadataVerification vor einem erneuten Versuch.',
     name_not_persisted: 'Der gespeicherte App-Name stimmt nicht mit dem gewünschten Namen überein. Prüfen Sie den aktuellen Namen vor einem erneuten Versuch; erstellen Sie keine weitere App.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

@@ -37,6 +37,116 @@ const { createDefinitionReaders } = require('../lib/app/create-form/definition-r
 const formCompiler = require('../lib/app/services/form-compiler');
 const { verifyFieldBindings } = require('../lib/app/services/field-bindings');
 
+describe('server-generated serial numbers do not require frontend input', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
+  });
+
+  function fields() {
+    return [
+      { type: 'SerialNumberField', label: '申请编号', required: true, serialNumberRule: [
+        { ruleType: 'character', content: 'SQ' },
+        { ruleType: 'autoCount', digitCount: 4, initialValue: 1 },
+      ] },
+      { type: 'ColumnContainer', children: [[{ type: 'SerialNumberField', label: '布局编号', required: true }]] },
+      { type: 'TableField', label: '明细', children: [{ type: 'SerialNumberField', label: '明细编号',
+        validation: [{ type: 'required' }] }] },
+      { type: 'TextField', label: '申请部门', required: true },
+    ];
+  }
+
+  function serials(schema, componentName = 'SerialNumberField') {
+    const result = [];
+    function visit(node) {
+      if (node.componentName === componentName) { result.push(node); }
+      (node.children || []).forEach(visit);
+    }
+    schema.pages[0].componentsTree.forEach(visit);
+    return result;
+  }
+
+  test.each(['create', 'resume'])('%s saves serial fields without inline required rules', async mode => {
+    const formUuid = 'FORM_SERIAL_REQUIRED';
+    const mocks = createSuccessfulFormHttpMocks(formUuid);
+    const originalGet = mocks.httpGet;
+    mocks.httpGet = jest.fn(async (...args) => {
+      const response = await originalGet(...args);
+      return mode === 'resume' && args[1].includes('getFormSchema') && !response.content?.pages
+        ? { success: true, appType: 'APP_TEST', formUuid, gmtModified: 100,
+          content: { pages: [{ componentsTree: [] }] } }
+        : response;
+    });
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedCreateFormCommand(mocks);
+    try {
+      await isolatedCreateForm.run(mode === 'create'
+        ? ['create', 'APP_TEST', '流水号验证', JSON.stringify(fields()), '--no-open']
+        : ['resume', 'APP_TEST', formUuid, JSON.stringify(fields()), '--json']);
+      const saves = mockUtils.httpPost.mock.calls.filter(call => call[1].includes('/saveFormSchema.json'));
+      expect(saves).toHaveLength(1);
+      const schema = JSON.parse(querystring.parse(saves[0][2]).content);
+      expect(serials(schema)).toHaveLength(3);
+      expect(serials(schema)[0].props.serialNumberRule).toEqual(fields()[0].serialNumberRule);
+      for (const field of serials(schema)) {
+        expect(field.props.validation).toEqual([]);
+        expect(field.props.serialNumberRule.some(rule => rule.ruleType === 'autoCount')).toBe(true);
+        expect(field.props.formula).toEqual(expect.objectContaining({ expression: expect.any(String) }));
+      }
+      expect(serials(schema, 'TextField')[0].props.validation)
+        .toEqual(expect.arrayContaining([expect.objectContaining({ type: 'required' })]));
+    } finally { consoleSpy.mockRestore(); }
+  });
+
+  test.each(['required', 'conditionalRequired'])('explicit %s skips serials and preserves their formula', async type => {
+    const schema = createForm._private.buildFormSchema('流水号验证', fields(), 'FORM_TEST', 'corp', 'APP_TEST');
+    schema.gmtModified = 100;
+    const serial = serials(schema)[0];
+    const originalFormula = JSON.parse(JSON.stringify(serial.props.formula));
+    serial.props.validation = [{ type: 'required' }]; // Repair an already invalid definition too.
+    const { isolatedCreateForm, mockUtils, consoleSpy } = loadIsolatedLegacyForm(schema);
+    try {
+      await isolatedCreateForm.run(['validation', 'APP_TEST', 'FORM_TEST', JSON.stringify([
+        { field: serial.props.fieldId, type, ...(type === 'conditionalRequired'
+          ? { when: { field: '申请部门', operator: 'notEmpty' } } : {}) },
+        { field: '申请部门', type: 'required' },
+      ]), '--json']);
+      const save = mockUtils.httpPost.mock.calls.find(call => call[1].includes('/saveFormSchema.json'));
+      const saved = serials(JSON.parse(querystring.parse(save[2]).content))[0];
+      expect(saved.props.validation).toEqual([]);
+      expect(saved.props.formula).toEqual(originalFormula);
+    } finally { consoleSpy.mockRestore(); }
+  });
+
+  test.each(['update', 'field-props'])('%s cannot add required to serials or replace generation settings', action => {
+    const schema = createForm._private.buildFormSchema('流水号验证', fields(), 'FORM_TEST', 'corp', 'APP_TEST');
+    const serial = serials(schema)[2];
+    const originalFormula = JSON.parse(JSON.stringify(serial.props.formula));
+    const originalRules = JSON.parse(JSON.stringify(serial.props.serialNumberRule));
+    const props = { required: true, validation: [{ type: 'required' }] };
+    if (action === 'update') {
+      createForm._private.applyChangesToSchema(schema, [{ action, fieldId: serial.props.fieldId, changes: props }]);
+    } else {
+      createForm._private.applySchemaPatchOperations(schema, [{ action, fieldId: serial.props.fieldId, props }]);
+    }
+    expect(serial.props.validation).toEqual([]);
+    expect(serial.props.required).not.toBe(true);
+    expect(serial.props.formula).toEqual(originalFormula);
+    expect(serial.props.serialNumberRule).toEqual(originalRules);
+  });
+
+  test('updating a serial removes old required rules while retaining other validation', () => {
+    const schema = createForm._private.buildFormSchema('流水号验证', fields(), 'FORM_TEST', 'corp', 'APP_TEST');
+    const serial = serials(schema)[0];
+    const formatRule = { type: 'regex', param: '^SQ' };
+    serial.props.validation = [{ type: 'required' }, formatRule];
+    createForm._private.applyChangesToSchema(schema, [{ action: 'update', fieldId: serial.props.fieldId,
+      changes: { label: '新申请编号' } }]);
+    expect(serial.props.validation).toEqual([formatRule]);
+  });
+});
+
 describe('inline validation respects main and table field scopes', () => {
   afterEach(() => {
     jest.restoreAllMocks();

@@ -8,6 +8,14 @@ module.exports = {
   connector_runtime: require('../../lib/core/locales/en').connector_runtime,
   connector_account: require('../../lib/core/locales/en').connector_account,
   data_upgrade: require('../../lib/core/locales/en').data_upgrade,
+  workflow_cycle: {
+    invalid: "La configuration de la boucle est incomplète ou dépasse la limite.",
+    node_unavailable: "Le nœud {0} est indisponible dans cette boucle. Consultez les nœuds disponibles dans le concepteur YiDA.",
+    unavailable: "Les boucles sont indisponibles dans ce scénario YiDA.",
+    unverified: "Impossible de vérifier les droits ou la configuration de la boucle. Vérifiez votre organisation et réessayez.",
+    entitlement_required: "Votre organisation ne dispose pas du droit aux boucles. Demandez à son administrateur de consulter les offres et de changer de formule sur le site officiel YiDA : {0}",
+    published_unverified: "Impossible de vérifier la version publiée. Vérifiez son statut dans le concepteur YiDA.",
+  },
   issue_fixes: {
     invalid_api_key: 'La clé API exige un name valide et un emplacement header/query ; vérifiez le connecteur.',
     repair_required: 'La configuration ancienne manque de type/in/location. Ajoutez --repair-api-key-scheme pour la réparer et créer un nouveau compte.',
@@ -1190,6 +1198,9 @@ module.exports = {
     err_open_url_empty: 'Le chemin openUrl ne peut pas être vide : {0}'
   },
   update_app: {
+    settings_incomplete: 'Les paramètres actuels sont incomplets. Enregistrement arrêté pour éviter leur remplacement par défaut. Vérifiez la page des paramètres.',
+    invalid_current_name: 'Le nom actuel est absent ou invalide. Les paramètres ne sont pas enregistrés. Corrigez-le avec --name.',
+    metadata_not_persisted: 'La requête a été acceptée, mais le nom, la description ou les paramètres conservés ne sont pas vérifiés. Consultez metadataVerification avant de réessayer.',
     name_not_persisted: 'Le nom enregistré ne correspond pas au nom demandé. Vérifiez le nom actuel avant de réessayer ; ne créez pas une autre application.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

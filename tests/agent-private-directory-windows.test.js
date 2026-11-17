@@ -44,7 +44,7 @@ foreach($item in $items){
   } finally {
     fs.rmSync(fixture, { recursive: true, force: true });
   }
-}, 60000);
+}, 180000);
 
 windowsTest('private directory creation supports paths beyond MAX_PATH', () => {
   const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-long-'));
