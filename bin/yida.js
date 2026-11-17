@@ -854,6 +854,18 @@ async function dispatchCommand() {
       break;
     }
 
+    case 'create-portal': {
+      const { runPortal } = require('../lib/app/create-page');
+      await runPortal(args);
+      break;
+    }
+
+    case 'portal': {
+      const { run } = require('../lib/app/portal');
+      await run(args);
+      break;
+    }
+
     case 'create-form': {
       const { run } = require('../lib/app/create-form');
       await run(args);

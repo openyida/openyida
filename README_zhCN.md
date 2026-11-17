@@ -416,10 +416,14 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida custom-button <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | 原生自定义按钮：查询、配置填写表单、自动化流及页面跳转 |
 | `openyida form-message <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | 原生表单消息通知：查询触发、接收对象与模板并安全维护配置 |
 | `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | 获取单个或全部表单 Schema |
-| `openyida check-prd-completeness (<prd.md> [--build-manifest <file>] \| --build-spec <build-context.json> [--build-manifest <file>] \| --manifest-only --build-manifest <file>) --app-type <appType> [--json]` | 检查资源数量、前台菜单隐藏及应用主题同步 |
+| `openyida check-prd-completeness (<prd.md> [--build-manifest <file>] \| --build-spec <build-context.json> [--build-manifest <file>] \| --manifest-only --build-manifest <file>) --app-type <appType> [--json]` | 检查资源、导航显隐及应用主题 |
 | `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | 检查设计文档、主题变量与 PRD 交接 |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | 导出应用实体关系图 |
-| `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义展示页面 |
+| `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义页面 |
+| `openyida create-portal <appType> "<name>" [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建宜搭原生门户 |
+| `openyida portal catalog [componentName] [--json]` | 查看原生门户可配置的组件和主题 |
+| `openyida portal inspect <appType> <formUuid> [--editable] [--json]` | 查看原生门户磁贴与版本 |
+| `openyida portal configure <appType> <formUuid> <file> [--expected-revision <revision>] [--dry-run] [--json]` | 配置原生门户磁贴与布局 |
 | `openyida build-page <sourceFile> [--output file\|--write]` | 构建宜搭兼容页面源码 |
 | `openyida check-page <src> [--compat] [--json]` | 检查自定义页面规范 |
 | `openyida compile <src> [--canvas] [--compat] [--skip-lint] [--strict-theme\|--allow-fixed-brand] [--json]` | 本地编译自定义页面 |

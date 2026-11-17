@@ -6,6 +6,7 @@ const path = require('path');
 const { initialize } = require('../lib/design-plan/init');
 const { materialize, normalizePlan } = require('../lib/design-plan/materialize');
 const { collectIssues } = require('../lib/design-plan/validate');
+const { buildEntryNavigation } = require('../lib/design-plan/entry-navigation');
 
 const fixture = () => JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/design-plan.json'), 'utf8'));
 let dir;
@@ -113,6 +114,40 @@ test('does not add a custom homepage for an entry that uses only native business
   const plan = JSON.parse(fs.readFileSync(result.output, 'utf8'));
   expect(plan.pages.customPageDetails).toEqual([]);
   expect(plan.execution.entryRecommendation).toEqual(brief.entryRecommendation);
+});
+
+test.each([
+  [false, 'customers', /必须关联已规划的自定义业务工作台/],
+  [true, 'customers', /默认菜单必须指向业务工作台/],
+  [true, 'workspace', null],
+])('checks the CRM workbench and default menu (page: %s, default: %s)', (hasWorkbench, defaultMenuKey, error) => {
+  const formNames = ['客户', '跟进', '商机', '合同'];
+  const workbench = { name: '客户工作台', sceneKey: 'crm', pageSpecHandoff: { scene: 'workbench', entryMode: 'platform-shell' } };
+  const menuItem = (key, name) => ({ key, label: name, resource: name, targetType: 'page',
+    access: [{ resource: name, operation: 'OPERATE_VIEW', dataScope: '本人负责' }] });
+  brief.intake.sourceDetail = 'brief';
+  brief.explicitScope = { forms: formNames, allowInferredResources: true };
+  brief.pageScenes = hasWorkbench ? [{ key: workbench.sceneKey, name: workbench.name, kind: 'custom-page', scene: 'workbench' }] : [];
+  brief.entryRecommendation = { mode: 'unified', entries: [{
+    key: 'sales', name: '销售', role: 'workspace', presentationHint: 'workbench',
+    ...(hasWorkbench ? { sceneKey: workbench.sceneKey } : {}),
+    defaultMenuKey,
+    menu: [menuItem('customers', formNames[0]), ...(hasWorkbench ? [menuItem('workspace', workbench.name)] : [])],
+  }] };
+  save();
+  const plan = JSON.parse(fs.readFileSync(init().output, 'utf8'));
+  expect(plan.execution.explicitScope.allowInferredResources).toBe(true);
+  const resources = formNames.map(name => ({ name, type: 'normal-form' }));
+  const pages = plan.pages.customPageDetails.map(page => ({
+    name: page.name, sceneKey: page.sceneKey, pageSpecHandoff: { scene: page.scene, entryMode: 'platform-shell' },
+  }));
+  if (hasWorkbench) {resources.push({ name: workbench.name, type: 'display-page' });}
+  const makeNavigation = () => buildEntryNavigation(plan, resources, pages);
+  if (error) {
+    expect(makeNavigation).toThrow(error);
+  } else {
+    expect(makeNavigation().platformOrder[0]).toBe(workbench.name);
+  }
 });
 
 test.each(['visualDirection', 'navigationStyle'])('rejects string %s before creating draft files', field => {
@@ -387,6 +422,30 @@ test('resource-only execution excludes theme, seed and navigation work', () => {
   expect(prd).not.toContain('- 发布与导航排序');
   expect(prd).not.toContain('- 应用主题按 design.md 配置');
   expect(prd).toContain('本轮显式窄范围不执行导航排序');
+});
+
+test('materializes an explicitly requested native portal without treating it as a Canvas page', () => {
+  const plan = fixture();
+  const portal = { name: '采购门户', type: 'native-portal', purpose: '查看采购事项' };
+  plan.execution = {
+    resourceBlueprint: [
+      ...plan.dataModels.map(model => ({ name: model.name, type: model.formType.includes('流程') ? 'process-form' : 'normal-form' })),
+      ...plan.pages.customPageDetails.map(page => ({ name: page.name, type: 'display-page' })),
+      portal,
+    ],
+    entryRecommendation: { mode: 'frontend-only', entries: [{
+      key: 'supplier', role: 'service', name: '门户入口', defaultMenuKey: 'portal',
+      menu: [{ key: 'portal', label: portal.name, resource: portal.name, targetType: 'page',
+        access: [{ resource: portal.name, operation: 'OPERATE_VIEW', dataScope: '已授权访客' }] }],
+    }] },
+  };
+  const input = path.join(dir, 'native-portal-plan.json');
+  fs.writeFileSync(input, JSON.stringify(plan));
+  const result = materialize(input);
+  const prd = fs.readFileSync(result.outputs.prd, 'utf8');
+  expect(prd).toContain('| 采购门户 | native-portal | 查看采购事项 |');
+  expect(prd).toMatch(/^\s*- 采购门户$/m);
+  expect(prd).not.toMatch(/"type": "native-portal",\s*"isRenderNav"/);
 });
 
 test('normalizes omitted sample data to an explicit skip for resource-only plans', () => {

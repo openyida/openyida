@@ -68,7 +68,7 @@ Plan 在 `design-plan init` 前必须补齐合法的导航结构（见下节）�
 
 例如：报修前台为 standalone + custom，维修后台为根级 platform-side。Plan 初始化保留 pageSpecHandoff，PRD、design 和计划分别展示各入口方案。导航执行和验证按 [导航壳配置](../../yida-nav-shell/SKILL.md#必做配置) 完成；页面访问范围和数据权限按用户要求独立配置。
 
-规划阶段按 [访问态入口契约](../../yida-app/references/entry-navigation.md) 补齐 entryRecommendation.entries 的 role、menu、defaultMenuKey 和权限依赖。Plan 初始化保留建议并要求业务片段补齐；Fast 在当前任务中按同一结构交接。
+规划阶段按 [访问态入口契约](../../yida-app/references/entry-navigation.md) 补齐 entryRecommendation.entries 的 role、menu、defaultMenuKey 和权限依赖。Plan 初始化保留建议并要求业务片段补齐；Fast 在当前任务中按同一结构交接。入口为 `presentationHint: "workbench"` 时，先在 `pageScenes` 登记对应自定义页（`scene: "workbench"`），然后用同一个 `sceneKey` 关联，`defaultMenuKey` 指向工作台菜单。
 
 ## 保存校验
 

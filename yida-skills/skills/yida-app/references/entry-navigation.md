@@ -96,7 +96,7 @@ openyida nav-group list <appType> --flat
 
 逐项回读 PC `hidden=true` 与移动端 `mobileHidden=true`；页面配置的 `renderNav=false` 另行核验。排序不会删除或隐藏未列出的项；只给后台资源排序仍会把前台留在菜单中。共用业务表单、管理端明确引用的页面不自动隐藏，不用菜单隐藏代替权限。自定义前台菜单若仍需访问已隐藏资源，不能直接依赖 platform 模式的隐藏过滤；按下文 local/independent 的真实权限边界组织。
 
-将清单资源的真实 ID 写入 build-manifest，收尾 `check-prd-completeness` 从 PRD 清单与远端资源列表核验菜单隐藏：仍显示则 fail，配置或绑定未知则 needs_review。此检查不证明页面隐藏、后台首页、主题或阅读体验已通过。
+将真实页面 ID 写入 build-manifest。收尾用 `check-prd-completeness` 回读已声明的应用设置、独立页设置和后台菜单显隐。实际入口、首页和样式另行打开验收。
 
 遇到“后台侧栏包住前台”时先对比实际打开的 URL：`workbench` 打开前台页就核对管理默认任务与菜单隐藏；独立 `custom` 入口再核对页面配置。单应用可以同时支持独立前台与原生后台，不因双导航直接改成公开免登、全局隐藏平台导航或拆应用。公开访问改变访问范围，与视觉独立展示分开决定。
 

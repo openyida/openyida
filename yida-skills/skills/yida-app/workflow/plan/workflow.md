@@ -37,7 +37,7 @@
 
    初始化失败时，按 `expectedPath` 修正 `requirement-brief.json`，再按[本地校验修复](../../../../references/source-repair.md)重试。初始化和后续物化使用同一停止规则；不要更换项目名规避错误。初始化成功后进入下一步，不重复 init。
 
-4. **确定待补字段。** 按 init 返回的 `parallelTasks`、`dependsOn` 和 `authoring.pendingFields` 安排工作。待填项带文件、路径、错误码，以及适用的类型、枚举或示例；一次处理同批可独立修复的问题。保留两个片段中的 `base` 与已有事实；业务页面确定后再补视觉内容，可在同一轮中顺序填写两个文件。
+4. **确定待补字段。** 按 init 返回的 `parallelTasks`、`dependsOn` 和 `authoring.pendingFields` 安排工作。待填项带文件、路径、错误码，以及适用的类型、枚举或示例；一次处理同批可独立修复的问题。保留两个片段中的 `base` 与已有事实；业务页面确定后再补视觉内容。仅在用户明确要求原生门户或明确排除用自定义页面做门户时，将原生门户加入完整的 `facts.execution.resourceBlueprint`（`type: "native-portal"`）。入口用 `targetType: "page"` 指向门户资源，无需 `sceneKey`；Canvas 页面才写入 `customPageDetails`。
 5. **补齐业务事实。** init 已预填 `business.json`；读取该文件及 `context` 中的类型示例，在 facts 中补齐 overview、dataModels、businessFlows、pages 和可选 execution。一次补齐所有普通表单的 sampleDataPlan（窄范围不造数时写 skipReason）及所有自定义页面的 permissionSummary。
 6. **补齐视觉事实。** 在 `visual.json` 的 facts.visualStyle 中落实用户风格意向或已提取的参考视觉 DNA，填写具体 Token；自由创意补齐 creativeDirection 和导航明暗。补齐自定义页的焦点、布局、主操作、响应式和验收。仅在存在品牌稿、参考图、页面级特殊风格或用户明确要求精修时，执行 `optionalTasks.visual-refinement`。纯原生资源没有这些待补项时沿用 init 的视觉内容。
 7. **标记片段就绪。** 复核两个片段覆盖已确认需求且必填内容齐全，将已完成片段设为 `ready=true`。两个片段均已就绪后进入生成步骤。
