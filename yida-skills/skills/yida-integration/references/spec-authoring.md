@@ -8,6 +8,8 @@
 
 复杂自动化优先使用 `--spec`，不要手写 `saveProcess` payload。spec 的节点可以用 `id` 作为别名，后续用 `${别名}.fieldId` 引用上游节点输出，OpenYida 会在保存前替换成真实 `node_xxx`。
 
+HTTP 连接器的嵌套路径、Body 固定值与动态字段混用，按[扩展执行的类型规则](../../yida-flow-node-config/references/extensions.md#http-body-赋值与类型)填写；配置后需真实核对接口收到的值与类型。
+
 需要复杂计算或嵌套分支时，选 [完整取数 spec](../../yida-formula/references/node-examples.md#按编号字段嵌套公式和固定状态取数) 或 [两层 route spec](../../yida-formula/references/node-examples.md#嵌套分支先决定是否复核再决定级别)。节点放在 nodes，分支放在 branches，分支内的后续节点再放在该分支的 nodes；右侧公式对象放在对应条件的 value 中。取数 conditions 仍是平铺条件，不能把路由嵌套格式放进去。
 
 ```json

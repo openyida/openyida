@@ -269,6 +269,8 @@ For the current custom page native-component support matrix, see [Yida native co
 
 ### Workflow, Data, and Permissions
 
+Historical ordinary-form updates do not request an upgrade by default. Explicitly pass `--use-latest-version y` to request an upgrade; submitted fields and the instance version are then always verified. An ineffective upgrade fails without replaying the write. See [historical record updates](docs/guides/form-version-update.md).
+
 ```bash
 openyida create-process APP_XXX "Purchase Request" .cache/openyida/process/fields.json .cache/openyida/process/process.json
 openyida configure-process APP_XXX FORM_XXX .cache/openyida/process/process.json
@@ -616,6 +618,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida connector delete-action <id> <operation-id>` | Delete an action |
 | `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>] [--ignore-defaults]` | Test an action |
 | `openyida connector list-connections <id>` | List auth connections |
+| `openyida connector connection <detail\|update> <connector-id> <connection-id> [--name <name>] [--confirm --interactive] [--json]` | Read account metadata or replace complete credentials using hidden terminal input. |
 | `openyida connector create-connection <id> <name> [--interactive] [--repair-api-key-scheme]` | Create an auth connection |
 | `openyida connector smart-create --curl "..."` | Generate a redacted action draft from cURL (no remote create) |
 | `openyida connector parse-api [options]` | Parse API information |

@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   workflow_cycle: {
     invalid: "A configuração do ciclo está incompleta ou excede o limite.",
     node_unavailable: "O nó {0} está indisponível neste ciclo. Veja os nós disponíveis no designer do YiDA.",

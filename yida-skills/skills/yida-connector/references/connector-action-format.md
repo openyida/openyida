@@ -56,7 +56,7 @@ GET 接口没有 Body，所有业务参数放在 `Query` 分组中：
 ```json
 [
   {
-    "id": "operation-id",
+    "id": "operation-actionName",
     "operationId": "actionName",
     "summary": "动作名称",
     "description": "动作描述",
@@ -146,8 +146,8 @@ GET 接口没有 Body，所有业务参数放在 `Query` 分组中：
 |------|------|
 | `_key` | 格式为 `operationId%fieldName`，如 `sendServiceTxt%flag` |
 | `paramType` | 字段类型，`String` / `Number` / `Boolean`（注意：outputs 用 `paramType` 而非 `componentName`，两者不能混用） |
-| `children` | 固定为空数组 `[]` |
-| `childList` | 固定为空数组 `[]`（叶子节点无子字段） |
+| `children` | 对象或数组按真实结构递归声明；叶子节点为空数组 `[]` |
+| `childList` | 与 `children` 保持相同嵌套结构；叶子节点为空数组 `[]` |
 | `defaultValue` | 应填写接口返回的真实响应示例 JSON 字符串 |
 
 ## responses JSON Schema 说明
@@ -185,3 +185,11 @@ GET 接口没有 Body，所有业务参数放在 `Query` 分组中：
 ```json
 { "type": "object", "properties": {} }
 ```
+
+## 成功条件与运行验收
+
+`connector test` 检查 HTTP 非 2xx，以及响应体明确的非零 `errcode`、布尔 `success: false` / `hasError: true` 和钉钉 `AuthenticationFailed` 错误。其他业务 `code` 按接口契约判断，CLI 不猜测任意状态码的含义。
+
+生成动作时，`responses` 若明确声明顶层 `success` 为 Boolean，CLI 会生成原生成功条件 `successFlag: true`、`successCondition: isTrue`；显式提供的 `outputs` 保持原配置。其他业务协议需按真实接口配置成功条件。CLI 测试失败不等于平台自动化日志会标记异常；应实际触发，分别核对节点状态和接口结果。
+
+输出 Schema 不会裁剪平台保存的原始响应。调用含票据等敏感返回的接口时，先确认专用测试账号与平台日志留存范围；本地报告只记录状态、存在性和必要的非敏感字段。不要用未声明输出字段来冒充脱敏。
