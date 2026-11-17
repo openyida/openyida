@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   workflow_cycle: {
     invalid: "ループの設定が不完全か、上限を超えています。",
     node_unavailable: "このループでは {0} を使用できません。YiDA デザイナーで利用可能なノードを確認してください。",
@@ -123,7 +126,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: 'フロントページ {0} は display ページが必要です。フォームには検証済みの完全な URL を指定してください。',
     page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
-    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+    page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
     confirmation_required: '確認には現在の計画スナップショットと版が必要です。先に計画を生成してください。',
@@ -204,7 +207,11 @@ module.exports = {
     cmd_get_schema: 'フォーム Schema を取得',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'カスタムページまたはネイティブポータルを作成',
+    cmd_create_page: 'カスタムページを作成',
+    cmd_portal_create: '宜搭ネイティブポータルを作成',
+    cmd_portal_catalog: 'ネイティブポータルの設定項目とテーマを確認',
+    cmd_portal_inspect: 'ネイティブポータルのタイルと版を確認',
+    cmd_portal_configure: 'ネイティブポータルのタイルと配置を設定',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -323,7 +330,7 @@ module.exports = {
       '  login                                                        ログイン管理（キャッシュ優先、なければ QR コードスキャン）\n' +
       '  logout                                                       ログアウト / アカウント切り替え\n' +
       '  create-app "<名前>" [説明] [アイコン] [色] [テーマ] [ナビ] [レイアウト]  アプリを作成し appType を出力\n' +
-      '  create-page <appType> "<ページ名>" [--mode dashboard|portal] [--hide-nav]        カスタムページまたはネイティブポータルを作成し pageId を出力\n' +
+      '  create-page <appType> "<ページ名>" [--mode dashboard] [--hide-nav]        カスタムページを作成し pageId を出力\n' +
       '  create-form create <appType> "<フォーム名>" <フィールドJSON> [--layout <レイアウト>] [--theme <テーマ>] [--label-align <配置>]  フォームページを作成\n' +
       '  create-form update <appType> <formUuid> <変更JSON>           フォームページを更新\n' +
       '  get-schema <appType> <formUuid>                              フォーム Schema を取得\n' +
@@ -829,7 +836,7 @@ module.exports = {
   },
   create_page: {
     title: '  openyida create-page - Yida カスタムページ作成ツール',
-    usage: 'Usage: openyida create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'Usage: openyida create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: '例: openyida create-page "APP_XXX" "Dashboard" --mode dashboard',
     app_id: '  アプリ ID:   {0}',
     page_name: '  ページ名:   {0}',
@@ -841,9 +848,8 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  ダッシュボードモード設定に失敗しました: {0}',
     navigation_unverified: 'ページは作成されましたが、再取得した設定でナビゲーションの非表示を確認できませんでした。返された pageId の設定を修正して再確認してください。ページを再作成しないでください。',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    portal_hide_nav_unsupported: '--hide-nav はカスタムページでのみ使用できます。',
     portal_unverified: 'ページは作成されましたが、ネイティブポータルであることを確認できませんでした。再試行する前にページの設定を取得してください。',
-    mode_hint: '使用できるモード: default、dashboard、portal。カスタムページのナビゲーションを非表示にするには --hide-nav または --render-nav false を指定します。',
+    mode_hint: '使用できるモード: default、dashboard。カスタムページのナビゲーションを非表示にするには --hide-nav または --render-nav false を指定します。',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ 作成に失敗しました: {0}'
@@ -1151,6 +1157,9 @@ module.exports = {
     err_open_url_chars: 'openUrl のパス部分は a-z A-Z 0-9 _ - と区切り文字 / のみ使用できます。現在の値: {0}'
   },
   update_app: {
+    settings_incomplete: '現在のアプリ設定が不完全なため保存を中止しました。既定値で上書きしないよう、アプリ設定画面を確認してください。',
+    invalid_current_name: '現在のアプリ名が未設定または無効です。設定は保存していません。先に --name で修復してください。',
+    metadata_not_persisted: '書き込みは受理されましたが、名前、説明、既存設定を確認できませんでした。再送信する前に metadataVerification を確認してください。',
     name_not_persisted: '保存されたアプリ名が指定した名前と一致しません。再試行する前に現在の名前を確認してください。別のアプリを作成しないでください。',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

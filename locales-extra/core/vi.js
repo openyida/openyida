@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   workflow_cycle: {
     invalid: "Cấu hình vòng lặp chưa đầy đủ hoặc vượt giới hạn.",
     node_unavailable: "Nút {0} không khả dụng trong vòng lặp này. Hãy xem các nút khả dụng trong trình thiết kế YiDA.",
@@ -123,7 +126,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: 'Trang giao diện {0} phải có loại display. Với biểu mẫu, dùng URL đầy đủ đã xác minh.',
     page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
-    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+    page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
     confirmation_required: 'Xác nhận cần bản chụp và phiên bản của kế hoạch hiện tại. Hãy tạo kế hoạch trước.',
@@ -204,7 +207,11 @@ module.exports = {
     cmd_get_schema: 'Lấy Schema biểu mẫu',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'Tạo trang tùy chỉnh hoặc cổng thông tin gốc',
+    cmd_create_page: 'Tạo trang tùy chỉnh',
+    cmd_portal_create: 'Tạo cổng thông tin YiDA gốc',
+    cmd_portal_catalog: 'Xem thành phần và tùy chọn chủ đề của cổng thông tin gốc',
+    cmd_portal_inspect: 'Xem ô và phiên bản cổng thông tin gốc',
+    cmd_portal_configure: 'Cấu hình ô và bố cục cổng thông tin gốc',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -323,7 +330,7 @@ module.exports = {
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
       '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
-      '  create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav]        Create a custom page or native portal, output pageId\n' +
+      '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
       '  list-forms <appType> [--keyword <text>]                      List forms/pages in an app\n' +
@@ -858,7 +865,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Công cụ tạo trang tùy chỉnh Yida',
-    usage: 'Cách dùng: openyida create-page <appType> <tên trang> [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'Cách dùng: openyida create-page <appType> <tên trang> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: 'Ví dụ: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  ID ứng dụng:  {0}',
     page_name: '  Tên trang:    {0}',
@@ -870,9 +877,8 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'Trang đã được tạo nhưng việc đọc lại chưa xác nhận thanh điều hướng đã ẩn. Hãy sửa và kiểm tra cấu hình của pageId được trả về; không tạo trang khác.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    portal_hide_nav_unsupported: 'Tùy chọn --hide-nav chỉ được hỗ trợ trên trang tùy chỉnh.',
     portal_unverified: 'Trang đã được tạo nhưng chưa xác minh được loại cổng thông tin gốc. Hãy đọc cấu hình trang trước khi thử lại.',
-    mode_hint: 'Chế độ khả dụng: default, dashboard và portal. Dùng --hide-nav hoặc --render-nav false để ẩn điều hướng trên trang tùy chỉnh.',
+    mode_hint: 'Chế độ khả dụng: default, dashboard. Dùng --hide-nav hoặc --render-nav false để ẩn điều hướng trên trang tùy chỉnh.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ Tạo thất bại: {0}',
@@ -1195,6 +1201,9 @@ module.exports = {
     err_open_url_empty: 'Đường dẫn openUrl không được để trống: {0}'
   },
   update_app: {
+    settings_incomplete: 'Cài đặt ứng dụng hiện tại chưa đầy đủ. Đã dừng lưu để tránh ghi đè bằng giá trị mặc định. Hãy kiểm tra trang cài đặt ứng dụng.',
+    invalid_current_name: 'Tên ứng dụng hiện tại bị thiếu hoặc không hợp lệ. Chưa lưu cài đặt. Hãy sửa tên bằng --name trước.',
+    metadata_not_persisted: 'Yêu cầu đã được chấp nhận nhưng chưa xác minh được tên, mô tả hoặc cài đặt cũ. Kiểm tra metadataVerification trước khi thử lại.',
     name_not_persisted: 'Tên ứng dụng đã lưu không khớp với tên yêu cầu. Hãy kiểm tra tên hiện tại trước khi thử lại; không tạo ứng dụng khác.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

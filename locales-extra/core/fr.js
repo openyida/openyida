@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   workflow_cycle: {
     invalid: "La configuration de la boucle est incomplète ou dépasse la limite.",
     node_unavailable: "Le nœud {0} est indisponible dans cette boucle. Consultez les nœuds disponibles dans le concepteur YiDA.",
@@ -123,7 +126,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: 'La page publique {0} doit être de type display. Pour un formulaire, utilisez une URL complète vérifiée.',
     page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
-    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+    page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
     confirmation_required: 'La confirmation nécessite un instantané et une révision du plan actuel. Générez le plan au préalable.',
@@ -204,7 +207,11 @@ module.exports = {
     cmd_get_schema: 'Obtenir le Schema du formulaire',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'Créer une page personnalisée ou un portail natif',
+    cmd_create_page: 'Créer une page personnalisée',
+    cmd_portal_create: 'Créer un portail YiDA natif',
+    cmd_portal_catalog: 'Afficher les composants et thèmes du portail natif',
+    cmd_portal_inspect: 'Consulter les tuiles et la révision du portail natif',
+    cmd_portal_configure: 'Configurer les tuiles et la disposition du portail natif',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -323,7 +330,7 @@ module.exports = {
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
       '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
-      '  create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav]        Create a custom page or native portal, output pageId\n' +
+      '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
       '  list-forms <appType> [--keyword <text>]                      List forms/pages in an app\n' +
@@ -858,7 +865,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Outil de création de page personnalisée Yida',
-    usage: 'Utilisation : openyida create-page <appType> <nom de la page> [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'Utilisation : openyida create-page <appType> <nom de la page> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: 'Exemple : openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: "\n  ID de l'app :    {0}",
     page_name: '  Nom de la page : {0}',
@@ -870,9 +877,8 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'La page a été créée, mais la relecture ne confirme pas que la navigation est masquée. Corrigez et vérifiez la pageId renvoyée ; ne créez pas une autre page.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    portal_hide_nav_unsupported: 'L’option --hide-nav est réservée aux pages personnalisées.',
     portal_unverified: 'La page a été créée, mais son type de portail natif n’a pas pu être vérifié. Consultez la configuration de la page avant de réessayer.',
-    mode_hint: 'Modes disponibles : default, dashboard et portal. Pour masquer la navigation sur une page personnalisée, utilisez --hide-nav ou --render-nav false.',
+    mode_hint: 'Modes disponibles : default, dashboard. Pour masquer la navigation sur une page personnalisée, utilisez --hide-nav ou --render-nav false.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ Échec de la création : {0}',
@@ -1197,6 +1203,9 @@ module.exports = {
     err_open_url_empty: 'Le chemin openUrl ne peut pas être vide : {0}'
   },
   update_app: {
+    settings_incomplete: 'Les paramètres actuels sont incomplets. Enregistrement arrêté pour éviter leur remplacement par défaut. Vérifiez la page des paramètres.',
+    invalid_current_name: 'Le nom actuel est absent ou invalide. Les paramètres ne sont pas enregistrés. Corrigez-le avec --name.',
+    metadata_not_persisted: 'La requête a été acceptée, mais le nom, la description ou les paramètres conservés ne sont pas vérifiés. Consultez metadataVerification avant de réessayer.',
     name_not_persisted: 'Le nom enregistré ne correspond pas au nom demandé. Vérifiez le nom actuel avant de réessayer ; ne créez pas une autre application.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

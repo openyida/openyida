@@ -6,6 +6,16 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/zh').connector_runtime,
+  connector_account: require('../../lib/core/locales/zh').connector_account,
+  data_upgrade: {
+    subform_choice_unverified: '無法確認子表的歷史欄位清單，未發起寫入。請核對是否需要升級此記錄，並明確選擇 --use-latest-version y 後再提交。',
+    invalid_choice: '請用 --use-latest-version y 或 n 明確選擇是否升級目前記錄。',
+    choice_required: '本次包含歷史實例中不存在的欄位，請明確選擇 --use-latest-version y 請求升級；未發起寫入。',
+    version_unverified: '無法確認已發佈的表單版本，未發起升級寫入。',
+    null_unsupported: '原生升級介面會忽略 null 值，本次未發起寫入；需要清空這些欄位時請使用原生編輯器。',
+    write_unverified: '無法確認升級寫入結果，請先回讀現有記錄再決定後續操作，不要自動重複寫入。',
+  },
   workflow_cycle: {
     invalid: "循環配置不完整或超出限制。每條自動化可配置一個循環，循環體最多包含五個計數節點。",
     node_unavailable: "OpenYida 在此循環場景不支援節點 {0}。請在宜搭設計器查看可用節點。",
@@ -124,7 +134,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: '前台頁面 {0} 必須是 display 自訂頁面；表單入口請傳入已驗證的完整 URL。',
     page_not_in_app: '頁面 {0} 不屬於目前應用，無法登記為訪問入口；請用 list-forms 確認頁面歸屬。',
-    page_offline: '前台 custom 頁 {0} 尚未上線到獨立訪問地址，請先發布/上線後再登記。',
+    page_offline: '選單資料無法確認前台頁 {0} 已上線。如已發布且實測可存取，請用 --frontend 傳入完整網址。',
   },
   design_plan: {
     confirmation_required: '確認需要目前方案快照和版本，請先生成方案。',
@@ -205,7 +215,11 @@ module.exports = {
     cmd_get_schema: '取得表單 Schema',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: '導出應用實體關係圖',
-    cmd_create_page: '建立自訂頁面或原生入口網站',
+    cmd_create_page: '建立自訂頁面',
+    cmd_portal_create: '建立宜搭原生入口網站',
+    cmd_portal_catalog: '查看原生入口網站可設定的元件和主題',
+    cmd_portal_inspect: '查看原生門戶磁貼與版本',
+    cmd_portal_configure: '設定原生門戶磁貼與版面',
     cmd_generate_page: '基於高質素模板生成頁面',
     cmd_build_page: '构建宜搭兼容页面源码',
     cmd_check_page: '檢查自定義頁面規範',
@@ -325,7 +339,7 @@ module.exports = {
       '  login                                                        登入態管理（優先緩存，否則掃碼）\n' +
       '  logout                                                       登出 / 切換帳戶\n' +
       '  create-app "<名稱>" [描述] [圖示] [顏色] [主題色] [導航風格] [佈局]  建立應用程式，輸出 appType\n' +
-      '  create-page <appType> "<頁面名>" [--mode dashboard|portal] [--hide-nav]          建立自訂頁面或原生入口網站，輸出 pageId\n' +
+      '  create-page <appType> "<頁面名>" [--mode dashboard] [--hide-nav]          建立自訂頁面，輸出 pageId\n' +
       '  create-form create <appType> "<表單名>" <欄位JSON> [--layout <佈局>] [--theme <主題>] [--label-align <對齊>]  建立表單頁面\n' +
       '  create-form update <appType> <formUuid> <修改JSON>           更新表單頁面\n' +
       '  get-schema <appType> <formUuid>                              取得表單 Schema\n' +
@@ -823,7 +837,7 @@ module.exports = {
   },
   create_page: {
     title: '  openyida create-page - 宜搭自訂頁面建立工具',
-    usage: '用法：openyida create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: '用法：openyida create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: '範例：openyida create-page "APP_XXX" "駕駛艙" --mode dashboard',
     app_id: '  應用程式 ID：  {0}',
     page_name: '  頁面名稱：{0}',
@@ -835,9 +849,8 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  看板模式設定失敗：{0}',
     navigation_unverified: '頁面已建立，但未能回讀確認導覽已隱藏。請使用傳回的 pageId 修復設定並回讀，不要重複建立頁面。',
     err_mode_invalid: '不支援的頁面模式：{0}',
-    portal_hide_nav_unsupported: '--hide-nav 只適用於自訂頁面。',
     portal_unverified: '頁面已建立，但未能確認是原生入口網站。請先讀取該頁面的設定，再重試。',
-    mode_hint: '可用模式：default、dashboard、portal。隱藏自訂頁面導覽時，請使用 --hide-nav 或 --render-nav false。',
+    mode_hint: '可用模式：default、dashboard。隱藏自訂頁面導覽時，請使用 --hide-nav 或 --render-nav false。',
     page_id_label: '  pageId：   {0}',
     url_label: '  訪問網址：{0}',
     failed: '  ❌ 建立失敗：{0}'
@@ -1143,6 +1156,9 @@ module.exports = {
     err_open_url_chars: 'openUrl 路徑部分只支援 a-z A-Z 0-9 _ -，可用 / 分隔多級路徑，目前值：{0}'
   },
   update_app: {
+    settings_incomplete: '目前應用設定不完整，已停止儲存，避免預設值覆蓋現有設定。請在應用設定頁面核對。',
+    invalid_current_name: '目前應用名稱缺失或異常，已停止儲存設定。請先透過 --name 修復名稱，再更新其他設定。',
+    metadata_not_persisted: '寫入請求已被接受，但名稱、描述或原設定讀回失敗或不一致。請核對 metadataVerification，勿重複提交。',
     name_not_persisted: '應用名稱儲存後讀回不一致，尚未確認修改成功。請核對目前應用名稱，不要重複建立應用。',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
@@ -2115,6 +2131,7 @@ module.exports.connector_test = {
 };
 
 module.exports.connector_contract = {
+  action_id_invalid: '新動作 {0} 的 id 須為以 operation- 開頭的非空字串；可省略 id 自動產生，不會改寫已有遠端動作 ID。',
   invalid_json: '連接器定義包含無效 JSON。',
   readback_mismatch: '連接器回讀結果與提交的定義不一致。',
   security_schemes_invalid: '連接器 securitySchemes 必須是 JSON 物件。',

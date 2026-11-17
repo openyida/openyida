@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   workflow_cycle: {
     invalid: "La configuración del bucle está incompleta o supera el límite.",
     node_unavailable: "El nodo {0} no está disponible en este bucle. Consulta los nodos disponibles en el diseñador de YiDA.",
@@ -123,7 +126,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: 'La página pública {0} debe ser de tipo display. Para formularios, use una URL completa verificada.',
     page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
-    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+    page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
     confirmation_required: 'La confirmación requiere una instantánea y revisión del plan actual. Genere primero el plan.',
@@ -204,7 +207,11 @@ module.exports = {
     cmd_get_schema: 'Obtener Schema del formulario',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'Crear una página personalizada o un portal nativo',
+    cmd_create_page: 'Crear una página personalizada',
+    cmd_portal_create: 'Crear un portal nativo de YiDA',
+    cmd_portal_catalog: 'Ver los componentes y opciones de tema del portal nativo',
+    cmd_portal_inspect: 'Consultar mosaicos y revisión del portal nativo',
+    cmd_portal_configure: 'Configurar mosaicos y diseño del portal nativo',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -323,7 +330,7 @@ module.exports = {
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
       '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
-      '  create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav]        Create a custom page or native portal, output pageId\n' +
+      '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
       '  list-forms <appType> [--keyword <text>]                      List forms/pages in an app\n' +
@@ -858,7 +865,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Herramienta de creación de páginas personalizadas Yida',
-    usage: 'Uso: openyida create-page <appType> <nombre de página> [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'Uso: openyida create-page <appType> <nombre de página> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: 'Ejemplo: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  ID de la app:    {0}',
     page_name: '  Nombre de página: {0}',
@@ -870,9 +877,8 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'La página se creó, pero la lectura posterior no confirmó que la navegación esté oculta. Corrija y verifique la pageId devuelta; no cree otra página.',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    portal_hide_nav_unsupported: 'La opción --hide-nav solo es compatible con las páginas personalizadas.',
     portal_unverified: 'Se creó la página, pero no se pudo verificar que fuera un portal nativo. Lee la configuración de la página antes de reintentar.',
-    mode_hint: 'Modos disponibles: default, dashboard y portal. Para ocultar la navegación en páginas personalizadas, usa --hide-nav o --render-nav false.',
+    mode_hint: 'Modos disponibles: default, dashboard. Para ocultar la navegación en páginas personalizadas, usa --hide-nav o --render-nav false.',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ Error al crear: {0}',
@@ -1197,6 +1203,9 @@ module.exports = {
     err_open_url_empty: 'La ruta openUrl no puede estar vacía: {0}'
   },
   update_app: {
+    settings_incomplete: 'Los ajustes actuales están incompletos. Se detuvo el guardado para evitar sobrescribirlos con valores predeterminados. Revise la página de ajustes.',
+    invalid_current_name: 'El nombre actual falta o no es válido. No se guardaron los ajustes. Repárelo con --name.',
+    metadata_not_persisted: 'La solicitud fue aceptada, pero no se verificaron el nombre, la descripción o los ajustes conservados. Consulte metadataVerification antes de reintentar.',
     name_not_persisted: 'El nombre guardado no coincide con el solicitado. Verifica el nombre actual antes de reintentarlo; no crees otra aplicación.',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

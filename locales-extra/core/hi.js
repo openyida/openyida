@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   workflow_cycle: {
     invalid: "लूप का कॉन्फ़िगरेशन अधूरा है या सीमा से अधिक है।",
     node_unavailable: "इस लूप में {0} उपलब्ध नहीं है। YiDA डिज़ाइनर में उपलब्ध नोड देखें।",
@@ -123,7 +126,7 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: 'फ्रंटएंड पेज {0} का प्रकार display होना चाहिए। फॉर्म के लिए सत्यापित पूर्ण URL दें।',
     page_not_in_app: 'Page {0} does not belong to this application and cannot be registered as an entry; confirm ownership with list-forms.',
-    page_offline: 'The frontend custom page {0} is not yet published to a standalone address; publish it before registering.',
+    page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
     confirmation_required: 'पुष्टि के लिए वर्तमान योजना का स्नैपशॉट और संशोधन चाहिए। पहले योजना तैयार करें।',
@@ -204,7 +207,11 @@ module.exports = {
     cmd_get_schema: 'फॉर्म Schema प्राप्त करें',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: 'Export app entity relationship diagram',
-    cmd_create_page: 'कस्टम पेज या नेटिव पोर्टल बनाएं',
+    cmd_create_page: 'कस्टम पेज बनाएं',
+    cmd_portal_create: 'मूल YiDA पोर्टल बनाएं',
+    cmd_portal_catalog: 'मूल पोर्टल के घटक और थीम विकल्प देखें',
+    cmd_portal_inspect: 'मूल पोर्टल की टाइलें और संस्करण देखें',
+    cmd_portal_configure: 'मूल पोर्टल की टाइलें और लेआउट कॉन्फ़िगर करें',
     cmd_generate_page: 'Generate page from curated template',
     cmd_build_page: 'Build Yida-compatible page source',
     cmd_check_page: 'Check custom page standards',
@@ -323,7 +330,7 @@ module.exports = {
       '  login                                                        Manage login credentials (cache first, then QR scan)\n' +
       '  logout                                                       Logout / switch account\n' +
       '  create-app "<name>" [desc] [icon] [color] [nav] [layout]  Create an app, output appType\n' +
-      '  create-page <appType> "<pageName>" [--mode dashboard|portal] [--hide-nav]        Create a custom page or native portal, output pageId\n' +
+      '  create-page <appType> "<pageName>" [--mode dashboard] [--hide-nav]        Create a custom page, output pageId\n' +
       '  create-form create <appType> "<formName>" <fieldsJSON> [--layout <layout>] [--theme <theme>] [--label-align <align>]  Create a form page\n' +
       '  create-form update <appType> <formUuid> <changesJSON>        Update a form page\n' +
       '  list-forms <appType> [--keyword <text>]                      List forms/pages in an app\n' +
@@ -858,7 +865,7 @@ module.exports = {
   },
   create_page: {
     title: '  create-page - Yida कस्टम पेज निर्माण टूल',
-    usage: 'उपयोग: openyida create-page <appType> <पेज नाम> [--mode dashboard|portal] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
+    usage: 'उपयोग: openyida create-page <appType> <पेज नाम> [--mode dashboard] [--hide-nav] [--locale zh_CN|en_US|ja_JP] [--open|--no-open]',
     example: 'उदाहरण: openyida create-page APP_XXX "Dashboard" --mode dashboard',
     app_id: '\n  ऐप ID:    {0}',
     page_name: '  पेज नाम: {0}',
@@ -870,9 +877,8 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  Hidden navigation config failed: {0}',
     navigation_unverified: 'पेज बन गया है, लेकिन सेटिंग दोबारा पढ़ने पर नेविगेशन छिपा होने की पुष्टि नहीं हुई। लौटाई गई pageId की सेटिंग सुधारें और जाँचें; दूसरा पेज न बनाएँ।',
     err_mode_invalid: 'Unsupported page mode: {0}',
-    portal_hide_nav_unsupported: '--hide-nav विकल्प केवल कस्टम पेज के लिए उपलब्ध है।',
     portal_unverified: 'पेज बन गया, लेकिन उसके नेटिव पोर्टल प्रकार की पुष्टि नहीं हो सकी। दोबारा कोशिश करने से पहले पेज की कॉन्फ़िगरेशन देखें।',
-    mode_hint: 'उपलब्ध मोड: default, dashboard और portal। कस्टम पेज पर नेविगेशन छिपाने के लिए --hide-nav या --render-nav false का उपयोग करें।',
+    mode_hint: 'उपलब्ध मोड: default, dashboard। कस्टम पेज पर नेविगेशन छिपाने के लिए --hide-nav या --render-nav false का उपयोग करें।',
     page_id_label: '  pageId: {0}',
     url_label: '  URL: {0}',
     failed: '  ❌ निर्माण विफल: {0}',
@@ -1195,6 +1201,9 @@ module.exports = {
     err_open_url_empty: 'openUrl पथ खाली नहीं हो सकता: {0}'
   },
   update_app: {
+    settings_incomplete: 'वर्तमान ऐप सेटिंग्स अधूरी हैं। डिफ़ॉल्ट मानों से बदलने से बचाने के लिए सहेजना रोक दिया गया। ऐप सेटिंग्स पृष्ठ जाँचें।',
+    invalid_current_name: 'वर्तमान ऐप नाम अनुपस्थित या अमान्य है। सेटिंग्स सहेजी नहीं गईं। पहले --name से नाम सुधारें।',
+    metadata_not_persisted: 'लेखन अनुरोध स्वीकार हुआ, लेकिन नाम, विवरण या पुरानी सेटिंग्स सत्यापित नहीं हुईं। दोबारा भेजने से पहले metadataVerification जाँचें।',
     name_not_persisted: 'सहेजा गया ऐप नाम अनुरोधित नाम से मेल नहीं खाता। दोबारा कोशिश करने से पहले वर्तमान नाम जाँचें; दूसरा ऐप न बनाएँ।',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',

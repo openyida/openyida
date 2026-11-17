@@ -156,8 +156,10 @@ describe('create-page non-idempotent auth handling', () => {
 describe('create-page configuration readback', () => {
   let logSpy;
   let httpPost;
+  let expectedCreates;
 
   function setup(configs, updateResponse = { success: true }) {
+    expectedCreates = 1;
     jest.resetModules();
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     httpPost = jest.fn(async (_base, url) => {
@@ -187,8 +189,8 @@ describe('create-page configuration readback', () => {
       c: { cyan: '', reset: '' }, banner: jest.fn(), step: jest.fn(), label: jest.fn(),
       info: jest.fn(), warn: jest.fn(), success: jest.fn(), result: jest.fn(),
     }));
-    return (options = ['--hide-nav']) =>
-      require('../lib/app/create-page').run(['APP_TEST', '预约前台', ...options, '--no-open']);
+    return (options = ['--hide-nav'], method = 'run') =>
+      require('../lib/app/create-page')[method](['APP_TEST', '预约前台', ...options, '--no-open']);
   }
 
   const configResponse = content => ({ success: true, content });
@@ -196,7 +198,7 @@ describe('create-page configuration readback', () => {
   const writes = () => httpPost.mock.calls.filter(call => call[1].endsWith('/updateFormSchemaInfo.json'));
 
   afterEach(() => {
-    expect(httpPost.mock.calls.filter(call => call[1].endsWith('/saveFormSchemaInfo.json'))).toHaveLength(1);
+    expect(httpPost.mock.calls.filter(call => call[1].endsWith('/saveFormSchemaInfo.json'))).toHaveLength(expectedCreates);
     jest.restoreAllMocks();
     jest.dontMock('../lib/core/utils');
     jest.dontMock('../lib/core/yida-client');
@@ -204,8 +206,23 @@ describe('create-page configuration readback', () => {
     jest.resetModules();
   });
 
+  test.each([[['--mode', 'portal']], [['--mode=portal']]])('redirects the old explicit portal flag %j before any write', async options => {
+    const invoke = setup([]);
+    expectedCreates = 0;
+    await expect(invoke(options)).rejects.toMatchObject({
+      code: 'CREATE_PAGE_USE_PORTAL_COMMAND',
+      details: { recovery: { command: 'create-portal', args: ['APP_TEST', '预约前台'] } },
+    });
+    expect(httpPost).not.toHaveBeenCalled();
+  });
+
+  test('a workbench title uses a custom display page through create-page', async () => {
+    await setup([])([]);
+    expect(querystring.parse(httpPost.mock.calls[0][2]).formType).toBe('display');
+  });
+
   test.each(['content', 'result', 'data'])('verifies a native portal from the %s response and returns both entry points', async key => {
-    await setup([{ success: true, [key]: { formType: 'portal' } }])(['--mode', 'portal']);
+    await setup([{ success: true, [key]: { formType: 'portal' } }])([], 'runPortal');
     expect(querystring.parse(httpPost.mock.calls[0][2]).formType).toBe('portal');
     expect(writes()).toHaveLength(0);
     expect(result()).toMatchObject({
@@ -216,7 +233,7 @@ describe('create-page configuration readback', () => {
   });
 
   test('keeps the created page ID and prevents replay when portal type is unverified', async () => {
-    await expect(setup([configResponse({ formType: 'display' })])(['--mode', 'portal']))
+    await expect(setup([configResponse({ formType: 'display' })])([], 'runPortal'))
       .rejects.toMatchObject({
         code: 'CREATE_PAGE_PORTAL_NOT_VERIFIED',
         details: { pageCreated: true, pageId: 'FORM_PAGE', actualType: 'display', retrySafe: false },

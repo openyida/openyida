@@ -20,6 +20,8 @@ openyida create-app --name "应用名称" --desc "本轮业务范围" --json
 
 ## 2. 同时准备主题与独立页面
 
+按[入口交接](../../yida-requirement-analysis/references/handoff.md)核对入口场景和默认页；业务工作台列入待建页面，绑定实际业务资源，交付时打开默认入口验收。
+
 **必须生成并应用 `app_theme.css`**，明确禁止 theme-file 的范围除外。使用本轮已选主题和主色；主题未知时一次读取 `design-plan catalog --compact` 作为主题列表，复用已有结果，不运行 init/materialize/preview。目录命令不代表采用 Plan。
 
 ```bash
@@ -61,12 +63,14 @@ appType 和 CSS 各自就绪后，按 `yida-create-app` 的 update-app 参数上
 
 ## 4. 逐页发布与收尾
 
-每页就绪即检查、编译和发布，真实数据绑定、权限和主题未验证时保留缺口。统一核对导航与实际入口。完整应用的可见平台菜单按 [收尾分组](../../yida-nav-group/SKILL.md#完整应用收尾分组) 检查，超过 8 个一级业务页面时先分组并回读，再交付。build-manifest 只随真实执行增补资源 ID、字段映射、主题回执、素材任务和验收证据，不写预设完整方案，不作为创建门槛。
+自定义页面就绪即检查、编译和发布，真实数据绑定、权限和主题未验证时保留缺口。统一核对导航与实际入口。完整应用的可见平台菜单按 [收尾分组](../../yida-nav-group/SKILL.md#完整应用收尾分组) 检查，超过 8 个一级业务页面时先分组并回读，再交付。build-manifest 只随真实执行增补资源 ID、字段映射、主题回执、素材任务和验收证据，不写预设完整方案，不作为创建门槛。
+
+按 [build-manifest 约定](step-9-output-finish.md#build-manifest-约定) 记录本轮应交付的资源和导航显隐，再执行回读检查。
 
 ```bash
 openyida check-prd-completeness --manifest-only --build-manifest <绝对路径>/build-manifest.json --app-type <真实appType> --json
 ```
 
-此检查复用资源、导航和主题回读；业务规则、角色与浏览器交互仍按 Step 9 验收。禁止通过省略应交付资源或删除验收项制造通过。
+交付前打开实际入口，验证导航、角色和业务操作。
 
 分别记录需求路由、应用创建、主题、页面源码、编译发布、业务验收和素材的真实开始/结束时间，总耗时按墙钟计算，不累加并发区间。少量简单页面以五分钟为优化目标，实际以端到端记录为准；复杂数据、角色或审批按真实范围记录，不以本地 CLI 耗时宣称整次达标。
