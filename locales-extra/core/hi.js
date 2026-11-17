@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   workflow_cycle: {
     invalid: "लूप का कॉन्फ़िगरेशन अधूरा है या सीमा से अधिक है।",
     node_unavailable: "इस लूप में {0} उपलब्ध नहीं है। YiDA डिज़ाइनर में उपलब्ध नोड देखें।",

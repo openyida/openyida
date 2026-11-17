@@ -72,12 +72,15 @@ openyida integration disable APP_XXX FORM_XXX LPROC_XXX
 
 ```bash
 openyida integration check APP_XXX --json
+openyida integration check APP_XXX --status success --json
 openyida integration detail-log APP_XXX <真实procInstId> --json
 openyida integration detail-log APP_XXX <真实procInstId> --json --include-params
 openyida integration diagnose --text "<异常信息>" --json
 ```
 
-`check` 分页读取异常日志，可加 `--output result.xlsx`；`diagnose` 离线分析文本。没有异常日志还需检查业务条件是否命中、目标数据是否正确。
+`check` 默认只查询异常运行。验收成功调用时用 `--status success`，从目标流程的 `logs` 中取得真实 `procInstId`，再用 `detail-log --json --include-params` 核对节点和接口实际收到的值；按触发记录的 `formInstId` 精确匹配，不用 `processCode`、记录 ID 或裁剪后的片段代替运行实例 ID。检查运行中记录可用 `--status running`。不要把默认异常列表为空当作成功运行证据。
+
+`check` 按所选状态分页读取日志，可加 `--output result.xlsx`。为兼容旧输出，JSON 中的流程集合仍名为 `abnormalFlows`；使用 `--status success` 时，其中的 `logs` 是成功记录。`diagnose` 离线分析文本。
 
 `detail-log` 返回节点顺序、名称、类型、耗时和输入输出参数名；需要参数值时同时加 `--json --include-params`。Token、Cookie、密码等已知凭证字段会自动隐藏，业务字段值保留。命令按总数翻页，超过 100 页或 10,000 个节点、分页不完整时明确失败。空结果不证明运行 ID 无效，也不代表自动化运行成功。分享前检查业务数据；读取失败不能当作“没有异常”。
 

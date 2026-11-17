@@ -26,6 +26,17 @@ const {
 } = require('../lib/integration/integration-spec-builder');
 
 describe('integration spec builder', () => {
+  test('HTTP spec runtime compiles schema paths to nested object assignments', () => {
+    const built = buildSpecProcessAndViewJson({ processCode: 'LPROC-SPEC', appType: 'APP-SPEC', formUuid: 'FORM-SPEC',
+      flowName: 'HTTP nested', spec: { events: ['insert'], nodes: [{ type: 'connector', connectorId: 'Http_owned',
+        actionId: 'owned', connectorMode: 5, schemaVerificationLevel: 'FIXED_CONTRACT_FIXTURE', outputs: [],
+        inputs: [{ name: 'Body', paramLocation: 'body', childList: [
+          { name: 'options', childList: [{ name: 'enabled', paramType: 'Boolean' }] },
+        ] }], assignments: [{ column: 'Body.options.enabled', valueType: 'literal', value: false }] }] } });
+    const runtime = built.processJson.nodes.find(node => node.type === 'httpConnector').props.inputs.assignments;
+    expect(runtime).toEqual([{ column: 'Body', valueType: 'literal', value: '{"options":{"enabled":false}}', assignments: [] }]);
+  });
+
   test('rejects formulas in event filters and builds native expression branches', () => {
     expect(() => buildSpecProcessAndViewJson({
       spec: { events: ['insert'], triggerConditions: [{ fieldId: 'numberField_amount', valueType: 'column', value: 'ROUND(1,2)' }], nodes: [{ type: 'getSelf' }] },

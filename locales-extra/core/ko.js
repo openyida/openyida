@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   workflow_cycle: {
     invalid: "반복 설정이 불완전하거나 제한을 초과했습니다.",
     node_unavailable: "이 반복에서는 {0} 노드를 지원하지 않습니다. YiDA 디자이너에서 사용 가능한 노드를 확인하세요.",

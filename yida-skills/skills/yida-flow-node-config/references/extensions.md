@@ -15,6 +15,29 @@
 
 自动化连接器动作的 inputs/outputs 必须来自 CLI 平台只读发现或固定已证 preset。先调用 `use_skill("yida-connector")` 查到真实动作；嵌套参数用完整路径，如 `Body.userid`、`Path.unionId`，只有唯一叶子字段才用短名。
 
+### HTTP Body 赋值与类型
+
+以下规则用于 OpenYida 自动化连接器编译：
+
+- Body 全为 `literal` 时，按动作 Schema 填写 JSON 值；CLI 统一组包，保留数字、布尔、数组和对象类型。
+- `processVar` 可与固定数字、文本、布尔、数组及嵌套对象混用。按真实 JSON 类型填写固定值，例如数量写 `7`；CLI 自动构建保留类型的 Body，并安全序列化动态值中的引号、反斜杠和换行。用户文本不会被当作公式执行，也不需手写 JSON 拼接公式。
+- 字段引用使用真实字段 ID，上游节点用 `${别名}.字段ID`。不能将函数或任意文本放进 `processVar`；无法安全编译的引用在写前返回 `INTEGRATION_CONNECTOR_JSON_REFERENCE_INVALID`。显式公式仍用 `valueType: column`。
+- 自动化链路会省略对象中的 `null` 成员。当前 CLI 对固定 JSON 中的 `null` 统一在写前返回 `INTEGRATION_CONNECTOR_JSON_NULL_UNSUPPORTED`；不要把成员丢失当成已成功提交 null。直接 `value: null` 也会被参数必填校验拒绝。动态来源为空时同样需核对接口实际收到的成员；不能据配置断言保留 null。数字须为有限数值，不能使用 NaN 或 Infinity。
+- 同一对象和它的子字段不能同时赋值。配置回读后，真实触发并核对接口收到的值与 JSON 类型；节点成功状态不能代替参数验收。
+
+例如真实动作包含 `Body.options.enabled` 与 `Body.tagName` 时，可按下列方式混用对象固定值与字段引用：
+
+```json
+[
+  {"column":"Body.options","valueType":"literal","value":{"enabled":true}},
+  {"column":"Body.tagName","valueType":"processVar","value":"<真实文本字段ID>"}
+]
+```
+
+验收应证明接口收到 `options.enabled` 为布尔 `true`，`tagName` 为触发表单中的文本。示例路径必须替换为已发现的真实动作字段。
+
+固定数字与动态字段混用也可逐叶声明，例如给上例增加 `{"column":"Body.count","valueType":"literal","value":7}`；前提是动作 Schema 确实包含该字段。CLI 的运行参数编译与原生设计器重新保存是不同路径；已实测原生再次发布可把数字、布尔固定值转成字符串。原生修改并重新发布后，需独立验证接口收到的类型，不能沿用 CLI 发布时的通过结论，也不能宣称本次修复覆盖平台重新编译器。
+
 ## 最小示例
 
 自动化调用已查到的连接器动作；参数名和类型必须按该动作 schema 替换：

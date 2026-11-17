@@ -5,6 +5,9 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/en').connector_runtime,
+  connector_account: require('../../lib/core/locales/en').connector_account,
+  data_upgrade: require('../../lib/core/locales/en').data_upgrade,
   workflow_cycle: {
     invalid: "Die Schleifenkonfiguration ist unvollständig oder überschreitet das Limit.",
     node_unavailable: "Der Knoten {0} ist in dieser Schleife nicht verfügbar. Prüfen Sie die verfügbaren Knoten im YiDA-Designer.",

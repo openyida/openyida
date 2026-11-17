@@ -1,5 +1,7 @@
 'use strict';
 
+const vm = require('vm');
+
 jest.mock('../lib/integration/integration-node-ids', () => ({
   generateRuleGroupId: jest.fn(() => 'group-fixed'),
   generateRuleItemId: jest.fn(() => 'item-fixed'),
@@ -13,10 +15,172 @@ const {
   buildDataRetrieveCondition,
   buildDataCreateAssignments,
   buildInitiateApprovalAssignments,
+  buildConnectorCallAssignments,
   resolveConnectorMode,
   buildProcessJson,
 } = require('../lib/integration/integration-process-builder');
 const { buildViewJson } = require('../lib/integration/integration-view-builder');
+
+describe('HTTP connector runtime assignments', () => {
+  const inputs = [
+    { name: 'Headers', paramLocation: 'header', childList: [{ name: 'Content-Type' }] },
+    { name: 'Body', paramLocation: 'body', childList: [
+      { name: 'options', childList: [{ name: 'enabled', paramType: 'Boolean' }, { name: 'count', paramType: 'Number' }] },
+      { name: 'tagName' }, { name: 'metadata.key' },
+    ] },
+  ];
+  const assignments = [
+    { column: 'Headers.Content-Type', valueType: 'literal', value: 'application/json' },
+    { column: 'Body.options.enabled', valueType: 'literal', value: false },
+    { column: 'Body.options.count', valueType: 'literal', value: 7 },
+    { column: 'Body.tagName', valueType: 'literal', value: 'owned-tag' },
+    { column: 'Body.metadata.key', valueType: 'literal', value: 'literal-dot-name' },
+  ];
+  const readEngineAssignments = list => Object.fromEntries(list.map(item => [item.column,
+    item.valueType === 'object' ? readEngineAssignments(item.assignments)
+      : item.column === 'Body' && item.valueType === 'literal' ? JSON.parse(item.value) : item.value]));
+  // Model the native JSON-expression boundary; the Java/JEP and real-platform
+  // acceptance tests separately verify these native function contracts.
+  const evaluateBody = (body, values) => {
+    const expression = body.value.replace(/"(?:\\.|[^"\\])*"|#\{([^}]+)\}|\$\{([^}]+)\}((?:\.[A-Za-z_]\w*)+)/g,
+      (token, field, node, path) => token.startsWith('"') ? token : `values[${JSON.stringify(field || `${node}${path}`)}]`);
+    return JSON.parse(vm.runInNewContext(expression, {
+      values, CONCATENATE: (...parts) => parts.join(''), TEXT: value => value === null || value === undefined ? '' : JSON.stringify(value),
+      ISNULL: value => value === null || value === undefined, IF: (condition, yes, no) => condition ? yes : no,
+    }));
+  };
+
+  test('simple CLI runtime exposes actual Headers/Body objects consumed by the engine', () => {
+    const built = buildProcessJson({ processCode: 'LPROC-HTTP', appType: 'APP-HTTP', formUuid: 'FORM-HTTP',
+      nodeIds: ['trigger', 'connector', 'end'], formEventTypes: ['insert'], connectorId: 'Http_owned',
+      actionId: 'owned', connectorMode: 5, connectorInputs: inputs, connectorAssignments: assignments });
+    const native = built.nodes.find(node => node.type === 'httpConnector').props.inputs.assignments;
+    expect(readEngineAssignments(native)).toEqual({ Headers: { 'Content-Type': 'application/json' },
+      Body: { options: { enabled: false, count: 7 }, tagName: 'owned-tag', 'metadata.key': 'literal-dot-name' } });
+    expect(native[1].valueType).toBe('literal');
+  });
+
+  test('mixed variable/boolean mappings keep object structure and use only fixed boolean expressions', () => {
+    const native = buildConnectorCallAssignments([
+      assignments[1], { ...assignments[2], valueType: 'processVar', value: 'numberField_count' },
+      { ...assignments[3], valueType: 'processVar', value: 'textField_marker' },
+    ], new Map(), inputs);
+    expect(native[0]).toMatchObject({ column: 'Body', valueType: 'object' });
+    expect(native[0].assignments[0].assignments).toEqual([
+      { column: 'enabled', valueType: 'column', value: 'FALSE()', assignments: [] },
+      { column: 'count', valueType: 'processVar', value: 'numberField_count', assignments: [] },
+    ]);
+    expect(native[0].assignments[1]).toMatchObject({ column: 'tagName', valueType: 'processVar', value: 'textField_marker' });
+  });
+
+  test.each([0, 7, -2.25, 1e21])('mixed numeric constant %p stays a JSON number with escaped dynamic text', value => {
+    const native = buildConnectorCallAssignments([
+      { ...assignments[2], value }, { ...assignments[3], valueType: 'processVar', value: 'textField_marker' },
+    ], new Map(), inputs);
+    expect(native[0]).toMatchObject({ column: 'Body', valueType: 'column', assignments: [] });
+    const marker = 'quoted" slash\\ newline\n tab\t\u0000 中文😺';
+    expect(evaluateBody(native[0], { textField_marker: marker })).toEqual({ options: { count: value }, tagName: marker });
+  });
+
+  test('mixed literal objects preserve nested booleans and leave formula-looking text unevaluated', () => {
+    const native = buildConnectorCallAssignments([
+      { column: 'Body.options', valueType: 'literal', value: {
+        enabled: true, nested: { disabled: false, text: 'TRUE()', digits: '0012', empty: {} },
+      } },
+      { column: 'Body.tagName', valueType: 'processVar', value: 'textField_marker' },
+    ], new Map(), inputs);
+    expect(native[0].assignments).toEqual([
+      { column: 'options', valueType: 'object', value: '', assignments: [
+        { column: 'enabled', valueType: 'column', value: 'TRUE()', assignments: [] },
+        { column: 'nested', valueType: 'object', value: '', assignments: [
+          { column: 'disabled', valueType: 'column', value: 'FALSE()', assignments: [] },
+          { column: 'text', valueType: 'literal', value: 'TRUE()', assignments: [] },
+          { column: 'digits', valueType: 'literal', value: '0012', assignments: [] },
+          { column: 'empty', valueType: 'object', value: '', assignments: [] },
+        ] },
+      ] },
+      { column: 'tagName', valueType: 'processVar', value: 'textField_marker', assignments: [] },
+    ]);
+  });
+
+  test.each([7, []])('mixed object member %p retains its JSON value', value => {
+    const native = buildConnectorCallAssignments([
+      { column: 'Body.options', valueType: 'literal', value: { nested: { member: value } } },
+      { column: 'Body.tagName', valueType: 'processVar', value: 'textField_marker' },
+    ], new Map(), inputs);
+    expect(evaluateBody(native[0], { textField_marker: 'owned' })).toEqual({ options: { nested: { member: value } }, tagName: 'owned' });
+  });
+
+  test.each([false, true])('fixed null members reject before runtime can omit them (mixed=%p)', mixed => {
+    expect(() => buildConnectorCallAssignments([
+      { column: 'Body.options', valueType: 'literal', value: { nested: { empty: null } } },
+      { column: 'Body.tagName', valueType: mixed ? 'processVar' : 'literal', value: 'textField_marker' },
+    ], new Map(), inputs)).toThrow(expect.objectContaining({
+      code: 'INTEGRATION_CONNECTOR_JSON_NULL_UNSUPPORTED',
+      details: expect.objectContaining({ path: 'Body.options.nested.empty', remoteWrites: 0 }),
+    }));
+  });
+
+  test('raw JSON Body cannot bypass the fixed-null guard', () => {
+    expect(() => buildConnectorCallAssignments([{ column: 'Body', valueType: 'literal', value: '{"empty":null}' }], new Map(), inputs))
+      .toThrow(expect.objectContaining({ code: 'INTEGRATION_CONNECTOR_JSON_NULL_UNSUPPORTED', details: expect.objectContaining({ remoteWrites: 0 }) }));
+  });
+
+  test.each([null, '', 'null', false, 0, ['owned'], { owned: true }])('dynamic JSON value %p preserves type and null semantics', value => {
+    const native = buildConnectorCallAssignments([
+      assignments[2], { column: 'Body.tagName', valueType: 'processVar', value: 'textField_marker' },
+      { column: 'Body.metadata.key', valueType: 'literal', value: '"),DELETE(#{notAReference})' },
+    ], new Map(), inputs);
+    expect(evaluateBody(native[0], { textField_marker: value })).toEqual({ options: { count: 7 }, tagName: value,
+      'metadata.key': '"),DELETE(#{notAReference})' });
+  });
+
+  test.each(['TEXT(#{field})', '#{field}),DELETE(1)', 'invalid-field', ['field'], { field: 'field' }])('processVar %p cannot become executable code', value => {
+    expect(() => buildConnectorCallAssignments([
+      assignments[2], { column: 'Body.tagName', valueType: 'processVar', value },
+    ], new Map(), inputs)).toThrow(expect.objectContaining({
+      code: 'INTEGRATION_CONNECTOR_JSON_REFERENCE_INVALID', details: expect.objectContaining({ remoteWrites: 0 }),
+    }));
+  });
+
+  test('resolved upstream node references remain references in generated JSON', () => {
+    const native = buildConnectorCallAssignments([
+      assignments[2], { column: 'Body.tagName', valueType: 'processVar', value: '${node_owned}.textField_marker' },
+    ], new Map(), inputs);
+    expect(evaluateBody(native[0], { 'node_owned.textField_marker': 'upstream' })).toEqual({ options: { count: 7 }, tagName: 'upstream' });
+  });
+
+  test.each([NaN, Infinity, -Infinity])('non-finite nested JSON number %p rejects before serialization', value => {
+    expect(() => buildConnectorCallAssignments([
+      { column: 'Body.options', valueType: 'literal', value: { count: value } },
+    ], new Map(), inputs)).toThrow(expect.objectContaining({
+      code: 'INTEGRATION_CONNECTOR_LITERAL_TYPE_INVALID', details: expect.objectContaining({ path: 'Body.options.count', remoteWrites: 0 }),
+    }));
+  });
+
+  test('declared primitive strings normalize only as their proven Body schema types', () => {
+    const native = buildConnectorCallAssignments([
+      { ...assignments[1], value: 'false' }, { ...assignments[2], value: '7' }, assignments[4],
+    ], new Map(), inputs);
+    expect(JSON.parse(native[0].value)).toEqual({ options: { enabled: false, count: 7 }, 'metadata.key': 'literal-dot-name' });
+    expect(() => buildConnectorCallAssignments([{ ...assignments[1], value: 'not-a-boolean' }], new Map(), inputs))
+      .toThrow(expect.objectContaining({ code: 'INTEGRATION_CONNECTOR_LITERAL_TYPE_INVALID' }));
+  });
+
+  test('unknown and overlapping parent/child targets fail instead of silently losing fields', () => {
+    expect(() => buildConnectorCallAssignments([{ column: 'Body.missing', valueType: 'literal', value: 'x' }], new Map(), inputs))
+      .toThrow(expect.objectContaining({ code: 'INTEGRATION_CONNECTOR_INPUT_UNKNOWN' }));
+    expect(() => buildConnectorCallAssignments([
+      { column: 'Body.options', valueType: 'literal', value: '{}' }, assignments[1],
+    ], new Map(), inputs)).toThrow(expect.objectContaining({ code: 'INTEGRATION_CONNECTOR_ASSIGNMENT_DUPLICATE' }));
+  });
+
+  test('inner connector and callers without HTTP schema keep the original flat contract', () => {
+    expect(buildConnectorCallAssignments(assignments.slice(-1))).toEqual([
+      { ...assignments.at(-1), assignments: [] },
+    ]);
+  });
+});
 
 describe('integration process builder', () => {
   test('mapEventTypes normalizes supported aliases and rejects unknown events', () => {
