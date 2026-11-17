@@ -63,12 +63,14 @@ appType 和 CSS 各自就绪后，按 `yida-create-app` 的 update-app 参数上
 
 ## 4. 逐页发布与收尾
 
-一般门户按自定义页面创建和发布。用户明确要求宜搭原生门户或明确排除用自定义页面做门户时，加载 `yida-create-portal`，按原生门户流程创建、配置和验收，并以 `native-portal` 记入验收清单的 `resources`。自定义页面就绪即检查、编译和发布，真实数据绑定、权限和主题未验证时保留缺口。统一核对导航与实际入口。完整应用的可见平台菜单按 [收尾分组](../../yida-nav-group/SKILL.md#完整应用收尾分组) 检查，超过 8 个一级业务页面时先分组并回读，再交付。build-manifest 只随真实执行增补资源 ID、字段映射、主题回执、素材任务和验收证据，不写预设完整方案，不作为创建门槛。
+自定义页面就绪即检查、编译和发布，真实数据绑定、权限和主题未验证时保留缺口。统一核对导航与实际入口。完整应用的可见平台菜单按 [收尾分组](../../yida-nav-group/SKILL.md#完整应用收尾分组) 检查，超过 8 个一级业务页面时先分组并回读，再交付。build-manifest 只随真实执行增补资源 ID、字段映射、主题回执、素材任务和验收证据，不写预设完整方案，不作为创建门槛。
+
+按 [build-manifest 约定](step-9-output-finish.md#build-manifest-约定) 记录本轮应交付的资源和导航显隐，再执行回读检查。
 
 ```bash
 openyida check-prd-completeness --manifest-only --build-manifest <绝对路径>/build-manifest.json --app-type <真实appType> --json
 ```
 
-在 manifest 中记录已决定的导航显隐。应用设置用 `appConfig.hideAppNav`（全应用自绘为 `y`，后台保留平台导航为 `n`）；独立前台用 `pageNavigation` 记录实际页面 ID、名称、`type: "display-page"` 和 `isRenderNav: false`；混合前后台用 `navigationVisibility` 为同一前台专用页记录 `hidden: true`、`mobileHidden: true`。前台专用页不参与后台排序。先通过配置回读，再从 `standaloneUrl` 验收前台实际导航。
+交付前打开实际入口，验证导航、角色和业务操作。
 
 分别记录需求路由、应用创建、主题、页面源码、编译发布、业务验收和素材的真实开始/结束时间，总耗时按墙钟计算，不累加并发区间。少量简单页面以五分钟为优化目标，实际以端到端记录为准；复杂数据、角色或审批按真实范围记录，不以本地 CLI 耗时宣称整次达标。

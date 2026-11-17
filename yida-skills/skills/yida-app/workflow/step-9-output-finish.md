@@ -93,7 +93,13 @@ Fast 将主题命令回执的 `applicationTheme` 写入 `build-manifest.json`。
 
 平台导航管理页需另外从实际 workbench 入口核对没有重复跨模块菜单；将页面配置回读与视觉检查分开记录，未打开页面时标记视觉待验证，不把 build-manifest 资源齐全或编译成功当作导航验收。
 
-资源检查消费 `display-page`、`normal-form`、`process-form`、`native-portal`。导航分别核验应用设置 `appConfig.hideAppNav`、独立页设置 `pageNavigation`、后台菜单显隐 `navigationVisibility`，Fast 从 manifest 读取，Plan 从 PRD 读取。独立页回读确认隐藏后返回 `standaloneUrl`。打开交付链接验收实际导航和默认页。
+资源检查读取 `display-page`、`normal-form`、`process-form` 和 `native-portal`。原生门户以 `native-portal` 记入 `resources`，填写实际页面 ID。
+
+导航验收读取 Fast 的 manifest 或 Plan 的 PRD 交接：
+
+- `appConfig.hideAppNav` 记录应用导航显隐，全应用自绘记 `y`，后台保留平台导航记 `n`。
+- `pageNavigation` 记录独立前台的真实页面 ID、名称、`type: "display-page"` 和 `isRenderNav: false`。回读确认后打开 `standaloneUrl`。
+- `navigationVisibility` 为前台专用页记录同一页面 ID 及 `hidden: true`、`mobileHidden: true`。后台排序只使用后台可见任务。
 
 最小示例：
 
