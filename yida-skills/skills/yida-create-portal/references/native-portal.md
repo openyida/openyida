@@ -51,14 +51,19 @@
 ## 布局与应用主题
 
 - `portal configure` 可单独保存页面级 `theme`，也可与 `tiles` 一起保存。页面背景独立于横幅和磁贴。先读取应用配色，再为门户选同色系的底色和浅纹理，保证内容区对比度。
-- 在 `theme` 中用 `portalTheme:"diy"` 启用自定义样式，`chromatographer:"blue"` 选蓝色套色，`pageBackground:"color"` 与 `diyColor` 配底色。`topPcImg` 是图片对象，使用实际素材的 `type/name/value`，可提供 `mobile` 和 `fit`。透明纹理可用同色系 `bgLightColor/bgDarkColor` 衔接。按实际设计器和访问态确认。已有门户的未指定字段会保留。`follow` 表示报表跟随门户配色。
+- 新版主题的页面「默认风格」用 `themeAppearanceMode: "theme" / "custom"` 切换。自定义时首行为「页面样式 / 编辑 CSS」，保存于页面 `containerStyle`；`portal configure` 可通过 `theme` 提交这两个字段，例如 `{"theme":{"themeAppearanceMode":"custom","containerStyle":":root { padding: 16px; }"}}`。CSS 必须是字符串，`:root` 指向当前页面；清空旧 CSS 用 `:root {}`。只在目标应用启用新版主题时设置该模式，旧门户不自动补写。
+- 新版门户的设置器用 `null` 恢复跟随主题。`portal catalog` 的 `theme.bindings` 列出字段和对应 CSS token。页面底色用 `themePageBackground`，卡片底色、圆角用 `themeCardBackground`、`themeCardRadius`，内容上边距用 `themeContentTopMargin`。例如 `{"theme":{"themePageBackground":null,"themeContentTopMargin":null,"themeCardRadius":0}}` 让这些单项继承应用主题，并将圆角设为直角；已有页面明确处于跟随主题模式时，修改单项需同时设置 `themeAppearanceMode: "custom"` 才会生效。卡片内边距用 `themeCardPadding` 和 `themeCardPaddingMobile` 分别配置桌面和移动端。
+- 新版门户的 `topPcImg: null` 跟随应用背景图，`topPcImg: {}` 关闭背景图。独立配图时填写真实素材的 `type/name/value`，可另填 `mobile` 和 `fit`，并核对双端裁切。已有门户只提交本次调整的字段。旧版设计器的套色和自定义底色仍用 `portalTheme`、`chromatographer`、`pageBackground` 和 `diyColor`。`follow` 表示报表跟随门户配色。
 
 - 先确定访问者第一屏要判断什么、下一步去哪办事。只选有真实资源的磁贴，以主任务决定分区，磁贴清单不决定页面顺序。
+- 新版主题的「属性」页不展示空的「卡片样式」分组。门户数据卡片外框由外层容器负责，内嵌报表默认不叠加第二层外框；保留卡片本身明确自定义的 CSS，独立卡片样式不受影响。
 - 桌面是 6 列。用 **6** 列放数据管理视图，**4+2** 放主任务与辅助信息，**3+3** 放同类应用列表，**2+2+2** 放同口径指标。业务门户有多个页面时，统一品牌强调色、卡片样式和背景纹理，可用同色系深浅区分页面。素材应服务于内容，首屏优先留给主要动作。
 - RGL 会压缩纵向空位，自适应磁贴会按真实内容重算高度。不要靠空行留白，也别把两条快捷入口拉到待办列表高度。相同用途且内容相近的组件才等高。固定高度以 `portal catalog` 为准；表格验收是否能看到足够记录。数据卡片还有一层内部网格，单指标卡检查内部指标是否铺满，别只调外层磁贴。
 - `layout: {"x":0,"y":0,"w":4,"h":13}` 的坐标从零开始，`h` 是网格单位。新增磁贴省略坐标会追加到底部，设计完整首页时应先规划每个分区的宽、高和起点。RGL 垂直尺寸随主题间距变化，使用实际工作台核对裁切、滚动和间距。
 - 手机默认单列，顺序按桌面的 `y`、`x` 排。用顶层 `"mobileOrder":["entry","metrics","tasks"]` 将指定磁贴提前，接受本次配置的 `key` 或已有 `fieldId`。其余磁贴保持相对顺序；`"mobileOrder":"desktop"` 恢复按桌面坐标，PC 专用磁贴无需加入。回读 `mobileLayout` 并打开移动端预览。宽表可保留在 PC，手机用入口直达相应列表。
 - 新版应用主题由 `isUseNewAppThemeStyle()` 决定。已有门户保留页面主题和单项自定义值。组件支持「跟随主题」时优先使用平台选项。新门户以应用品牌色作强调色，背景、表面、边距和圆角走平台主题变量；创建 CLI 保存磁贴时保留主题属性。用实际工作台确认 CSS 已加载，尤其是背景图、移动边距和卡片文字对比度。
+
+- 应用启用 Pod Premium 时也按新版样式核对。强调色跟随 `--color-brand1-6`，移动端页边距跟随 `--pod-page-mobile-margin`。新版字段需要对应版本的门户设计器和运行时，在目标环境核对实际渲染。
 
 ### 两种常用搭配
 

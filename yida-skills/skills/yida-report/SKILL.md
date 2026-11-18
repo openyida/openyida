@@ -10,6 +10,8 @@ description: "创建和配置宜搭原生报表；仅在用户明确要求时动
 - 不得把不支持、冲突或状态不确定的任务改走 `create-report` 写入，不得按标题、组件类型或数组位置 adopt、猜 report/chart/filter ID。
 - 只有报表目标明确属于当前普通 OpenYida 资源时，以下示例、stdout/stderr 和返回行为才按本技能契约使用；所有权不明确时零远端写。
 
+新版主题的页面与图表外观按 [主题外观配置](references/schema-builder-details.md#新版主题的页面与图表外观) 操作，核对默认风格、CSS 作用域和旧主题兼容。
+
 ## 严格禁止 (NEVER DO)
 
 - 不要在前端直接聚合表单数据，必须通过宜搭原生报表的 `getDataAsync.json` 或 `getCacheData.json` 接口获取聚合数据
@@ -48,6 +50,8 @@ description: "创建和配置宜搭原生报表；仅在用户明确要求时动
 - 为 ECharts 可视化提供数据源
 
 > ⚠️ 严禁在前端直接聚合表单数据，必须通过原生报表 `getDataAsync.json` 或 `getCacheData.json` 获取聚合数据。
+
+多卡报表先按[看板布局](../yida-dashboard/references/structure-and-layout.md#多卡页面排布)确定卡片顺序及 `w`、`h`，再写配置。
 
 ## 使用公式
 
@@ -198,6 +202,8 @@ POST /alibaba/web/{appType}/visual/visualizationDataRpc/getDataAsync.json
 ---
 
 ## 报表 Schema 构建关键规则（chart-builder.js）
+
+同一报表用指标、趋势、结构和明细回答不同问题。显式显示业务零值，缺失数据另作说明。验证报表主题下的轴标签、图例、表头以及刷新、导出图标的可读性和实际行为。
 
 ### 命令调用格式
 
