@@ -11,7 +11,7 @@ const { fetchFormSchemaInfo } = require('../lib/app/get-form-config');
 const { run, parse } = require('../lib/app/datav');
 
 const app = 'APP_TEST';
-const form = 'FORM-SCREEN';
+const form = 'DATAV-SCREEN';
 let client;
 let output;
 
@@ -84,6 +84,23 @@ test('business failures preserve quota/entitlement errors without authorizing or
   expect(fetchFormSchemaInfo).not.toHaveBeenCalled();
 });
 
+test('an inner MVC ServiceResult failure is not treated as an accepted write', async () => {
+  client.postFormOnce.mockResolvedValue({ success: true, content: {
+    success: false, content: null, result: null, errorCode: '300112', errorMsg: 'DataV refused the rename',
+  } });
+  await expect(run(['rename', app, form, 'Rejected'])).rejects.toMatchObject({
+    code: 'DATAV_REQUEST_FAILED', details: { platformErrorCode: '300112' },
+  });
+  expect(client.postFormOnce).toHaveBeenCalledTimes(1);
+  expect(fetchFormSchemaInfo).toHaveBeenCalledTimes(1);
+});
+
+test('a false result from the publish ServiceResult is not a successful publication', async () => {
+  client.postFormOnce.mockResolvedValue({ success: true, content: null, result: false });
+  await expect(run(['publish', app, form, '--confirm'])).rejects.toMatchObject({ code: 'DATAV_WRITE_UNCERTAIN' });
+  expect(client.postFormOnce).toHaveBeenCalledTimes(1);
+});
+
 test.each(['copy', 'rename', 'publish'])('rejects %s on a custom page before any write', async action => {
   fetchFormSchemaInfo.mockResolvedValue({ success: true, content: { formType: 'display' } });
   const args = [action, app, form];
@@ -102,17 +119,17 @@ test('template pagination is read-only and does not return a false successful em
 });
 
 test('copy uses a verified source and returns the new resource identity', async () => {
-  client.postFormOnce.mockResolvedValue({ success: true, content: { formUuid: 'FORM-COPY' } });
+  client.postFormOnce.mockResolvedValue({ success: true, content: { formUuid: 'DATAV-COPY' } });
   fetchFormSchemaInfo.mockImplementation(async (ref, appType, formUuid) => ({ success: true, content: { formType: 'datav', formUuid } }));
   await run(['copy', app, form, 'Copy']);
   const [path, body] = client.postFormOnce.mock.calls[0];
   expect(path).toContain('/copyDatavScreen.json');
   expect(body({})).toMatchObject({ formUuid: form, appKey: app });
-  expect(receipt()).toMatchObject({ formUuid: 'FORM-COPY', created: true });
+  expect(receipt()).toMatchObject({ formUuid: 'DATAV-COPY', created: true });
 });
 
 test('rename derives the DataV ID, preserves unrelated language titles and verifies the result', async () => {
-  client.postFormOnce.mockResolvedValue({ success: true, content: true });
+  client.postFormOnce.mockResolvedValue({ success: true, content: { success: true, content: null, result: true } });
   fetchFormSchemaInfo.mockResolvedValueOnce({ success: true, content: {
     formType: 'datav', title: { zh_CN: 'Existing', en_US: 'Old', ja_JP: '保持' },
   } }).mockResolvedValue({ success: true, content: {
@@ -135,12 +152,12 @@ test('rename mismatch is reported as applied but unverified without a repair wri
 });
 
 test('explicit publish enables the screen but does not claim preview validation or expose share credentials', async () => {
-  client.postFormOnce.mockResolvedValue({ success: true, content: true });
+  client.postFormOnce.mockResolvedValue({ success: true, content: null, result: true });
   await run(['publish', app, form, '--confirm']);
   expect(client.postFormOnce.mock.calls[0][0]).toContain('/saveScreen.json');
   expect(receipt()).toMatchObject({ publishAccepted: true, enableRequested: true, layoutVerified: false, readbackVerified: false });
-  expect(receipt().designerUrl).toBe('https://example.test/alibaba/web/APP_TEST/datav/vigoDesigner.html?formUuid=FORM-SCREEN');
-  expect(receipt().previewUrl).toBe('https://example.test/alibaba/web/APP_TEST/datav/preview.html?formUuid=FORM-SCREEN');
+  expect(receipt().designerUrl).toBe('https://example.test/alibaba/web/APP_TEST/datav/vigoDesigner.html?formUuid=DATAV-SCREEN');
+  expect(receipt().previewUrl).toBe('https://example.test/alibaba/web/APP_TEST/datav/preview.html?formUuid=DATAV-SCREEN');
 });
 
 test.each([

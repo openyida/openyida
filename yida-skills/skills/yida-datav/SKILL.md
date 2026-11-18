@@ -8,7 +8,7 @@ description: 仅在用户明确要求宜搭原生数字大屏、原生数据大�
 ## 适用范围
 
 - 用户明确要求宜搭原生大屏或 DataV 大屏时使用；一般数字大屏、数据大屏、驾驶舱和投屏监控由 `yida-dashboard` 组织内容，并用 `yida-canvas-custom-page` 承载。
-- 继续已有原生大屏时使用其真实 `appType` 和 `formUuid`。先读取状态，确认 `formType=datav`。
+- 继续已有原生大屏时使用其真实 `appType` 和 `formUuid`。先读取状态，确认 `formType=datav`。原生大屏通常返回 `DATAV-...` 编号，后续命令原样使用该编号。
 - 平台权益、额度和企业数据授权沿用用户现有设置；CLI 不代用户开通权益或授权 DataV 访问企业数据。平台拒绝时反馈其错误及错误码。
 
 ## 查询模板和创建
