@@ -247,7 +247,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 自定义页面中的数据卡片、指标卡、统计卡 | 页面内组件随页面发布：新增/开发走页面技能，接数据走 `yida-canvas-data-binding`，仅外观走 `yida-design`；不自动创建原生 CARD 资源 |
 | 页面引用了原生 `CARD-xxx` | 按实际修改对象分流：页面外层或引用配置仍归页面；用户明确要求修改源卡片配置才用 `yida-data-card`，不能只凭 CARD/FORM 字样判断 |
 | 查询主题配置、业务前后台配置或数据卡片管理入口 | 使用 `openyida app-settings <appType> --section theme|basic|data-card|cool-card --json`，直接返回对应 url；只问入口不修改设置 |
-| 明确要求宜搭原生数字大屏、原生数据大屏或 DataV 大屏，或继续已有原生大屏操作 | `yida-datav`，使用 `datav templates/create/inspect/copy/rename/publish`；布局与数据源在原生设计器配置 |
+| 明确要求宜搭原生数字大屏、原生数据大屏或 DataV 大屏，或继续已有原生大屏操作 | `yida-datav`，使用 `datav templates/create/inspect/components/config/copy/rename/publish`；CLI 查询组件参数和已保存配置，布局与数据源在原生设计器编辑 |
 | 数字大屏、数据大屏、驾驶舱或投屏监控 | `yida-dashboard` 组织分析内容，默认用 `yida-canvas-custom-page` 承载；仅在用户明确要求宜搭原生大屏时转交 `yida-datav` |
 | 普通报表/统计、原生报表零值隐藏配置 | `yida-report`；隐藏数值 0 必须由用户明确要求，默认关闭 |
 | 聚合表 / 虚拟视图的读取、预览、草稿保存或发布 | `yida-aggregate-table`；save 验证 stash revision，publish 验证 live revision |

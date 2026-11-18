@@ -1,0 +1,147 @@
+# 原生大屏组件与配置
+
+## 先查询当前环境
+
+普通数字大屏默认由 `yida-dashboard` 配合 Canvas 自定义页面搭建；本指南用于用户明确选择宜搭原生 DataV 的场景。宜搭嵌入版经过裁剪，不能用阿里云完整版的组件目录推断企业已拥有全部组件。
+
+```bash
+openyida datav inspect <appType> <formUuid> --json
+openyida datav components <appType> <formUuid> --json
+openyida datav components <appType> <formUuid> --category analysis --json
+openyida datav components <appType> <formUuid> --search "飞线" --json
+openyida datav components <appType> <formUuid> --component bar-basic --json
+openyida datav config <appType> <formUuid> --json
+openyida datav config <appType> <formUuid> --component "<实际图层ID>" --json
+```
+
+两个查询都先验证目标应用、原生资源类型及就绪状态，沿宜搭设计器获取临时 DataV 会话。会话只保存在当前进程内存中。
+
+| 查询 | 输入标识 | 返回内容 | 如何使用 |
+| --- | --- | --- | --- |
+| `components` | 应用与大屏编号 | 目录中的 `name`、`title`、`version`、`categories`、接口名称 | 先选类别，再用真实 `name` 查询参数 |
+| `components --component` | 目录中的 `name`，如 `bar-basic` | `parameterDefinitions` 和完整 `definition` | 核对类型、范围、选项、默认值、显示条件、数据和事件协议 |
+| `config` | 应用与大屏编号 | `page` 和 `scenes[].layers[]` | 找到当前使用的组件及版本、父子关系和图层 ID |
+| `config --component` | 保存配置中的图层 `id` | 该图层的 `attr`、`config`、`dataInterfaces` | 对照实际样式和接口名称；不是目录组件名 |
+
+`components` 的类别可选 `chart`、`analysis`、`map`、`info`、`table`、`control`、`media`、`other`。类别根据目录类型标签及地图组件名称归类，原始 `type` 同时保留；它不等同于设计器的资产包菜单。一个组件可以属于多个类别，例如柱状图同时属于图表和 BI 分析。筛选组合为交集；`--search` 匹配组件名和中文名。
+
+目录来自 DataV 组件服务，不包含另行安装的商业组件包。`entitlementVerified=false`、`installedPackagesIncluded=false` 表示目录可见不等于权益可用，也不代表已在当前大屏使用。添加时以设计器显示的权限及平台返回为准。
+
+目录通常给出当前目录版本；已保存图层可能仍使用旧版本。先比较 `components` 的 `version` 与 `config` 图层的 `version`。版本不同时，在原生设计器中查看该图层对应版本的参数，不直接把新版本参数套到旧图层。
+
+## 配置项怎么读
+
+`components --component` 的每个 `parameterDefinitions` 条目提供实际 schema 路径以及平台定义中存在的 `name`、`type`、`default`、`min`、`max`、`range`、`options`、`show`、`showInPanel`。缺失默认值或范围时保持未指定，不猜数值。
+
+完整定义中的关键字段：
+
+| 字段 | 含义 |
+| --- | --- |
+| `definition.config` | 样式面板 schema；不同协议版本可能采用直接分组或 `options.children` 菜单结构 |
+| `definition.view` | 默认尺寸、最小尺寸等视图元信息 |
+| `definition.apis` | 组件的数据接口；每个接口包含字段、类型、`optional`、处理器等 |
+| `definition.events` | 组件会向外触发的事件及字段 |
+| `definition.publicHandler` | 蓝图可调用的动作，如显示、隐藏、选择、高亮、设置视图 |
+| `definition.children` | 地图等容器支持的子组件类型或名称 |
+| `definition.analysis` | BI 分析入口、使用哪个数据接口及分析配置能力 |
+
+查询结果是参数说明，不是可提交的配置模板。`parameterDefinitions.path` 描述 schema 的结构；写入路径和保存值应以当前版本保存协议为准。
+
+`config` 仅返回读取所需的页面和图层样式，省略数据值、分享设置、访问 Token，并对配置中凭据字段及 URL 中敏感参数脱敏。它不是完整备份、迁移或导入格式。
+
+## 支持的组件类别与选择
+
+下表用于选型；具体名称、版本和参数从 CLI 目录查询。官方 DataV 目录中的能力可能受到宜搭裁剪、企业权益、组件包或版本限制。
+
+| 类别 | 常见组件 | 配置重点 | 数据准备 |
+| --- | --- | --- | --- |
+| 基础图表 `chart` | 柱状、条形、折线、区域、饼环、散点、雷达、关系图 | 坐标轴、图例、系列、标签、配色、动画、提示框 | 分类/时间、数值、系列字段；先确定聚合粒度 |
+| BI 分析 `analysis` | 柱状、折线、区域、百分比柱/条、区间柱、瀑布、对称条、气泡、漏斗、词云、仪表盘、热力、分类玫瑰、雷达、玉珏图 | 维度、度量、聚合、排序、筛选、数值格式；根据组件的 `analysis` 定义配置 | 数据集真实字段；确认求和、计数或去重口径 |
+| 地图 `map` | 基础平面地图、地图容器与区域热力、飞线、呼吸气泡、散点、文字/轮播标签、轨迹、下钻等子层 | 地图版本、中心点、缩放、底图、图层顺序、子组件及交互 | 经纬度、区域 ID、GeoJSON 边界或起终点 |
+| 信息 `info` | 通用标题、数字翻牌器、业务指标趋势、倒计时、跑马灯、多行文本、二维码、状态卡片、时间器 | 字体、颜色、单位、精度、对齐、滚动/翻牌动画 | 单值或有明确结构的记录，不把明细列表直接当 KPI |
+| 表格 `table` | 轮播列表、键值表格、轮播列表柱状图、交叉透视表、进度条表格 | 列、行高、表头、序号、排序、分页/轮播、空值 | 稳定排序的明细或聚合结果；字段与列一一对应 |
+| 控件 `control` | Tab 列表、按钮、输入框、下拉/多选、时间/时间范围、级联、滑块、分页、导航、全屏切换、iframe、轮播页面 | 选项、默认值、选中样式、事件输出和目标动作 | 选项 ID 与显示文本；筛选参数类型须与目标一致 |
+| 媒体 `media` | 图片、轮播图、视频、音频、流播放器、图标、色块、边框、装饰 | 资源地址、比例、裁切、层级、播放方式 | 可访问的 HTTPS 资源，按浏览器实际播放能力验收 |
+| 其他 `other` | 目录中未归入上述类别的资产 | 通过 `--component` 查看实际定义 | 按该组件的数据接口准备 |
+
+DataV 的 BI 分析组件、宜搭原生报表、Canvas 中的图表是不同配置体系。不要把 ECharts `option`、Recharts JSX 或宜搭报表 schema 直接传给 DataV 组件。
+
+## 画布、布局和通用属性
+
+在原生设计器中，未选择组件时配置页面；选中组件后配置其样式、数据和交互。
+
+- 画布：宽、高、背景颜色/图片、栅格间距、缩放展示模式。先确定投屏实际比例，再排版。
+- 图层 `attr`：`x`、`y` 是左上角像素坐标，`w`、`h` 是像素尺寸；`deg` 为旋转角度，`opacity` 为 0–1 的透明度。当前组件可另外包含宽高锁定、水平/垂直翻转等属性。
+- 容器：通过 `parent`、`children` 核对父子关系；地图子层不是独立地图。层级同时受父容器和图层顺序控制。
+- 样式：按实际版本 schema 配置字体、颜色、轴线、间距、标签、动画；`showInPanel` 等条件会影响设置项显示。
+
+缩放模式的保存值可能是枚举数字。`config` 原样保留服务器值，不把未核实的数字自行解释为某个模式。应在设计器选择具名模式并在目标屏幕预览。
+
+## 图表、指标和 BI 配置
+
+1. 先用 `config` 确认当前图层组件名和版本，用 `components --component` 查数据接口与参数。
+2. 在组件右侧的“数据”面板选择“配置数据源”，选宜搭数据源并进入配置。
+3. 选择实际数据集，将真实字段拖到图表的维度、度量或对应接口字段中；指定聚合、排序、筛选和返回条数。
+4. 用预览核对总量、时间粒度、系列和空值；再调整样式。时间轴输入需符合组件要求的时间格式，显示格式另行配置。
+5. 根据 `definition.events`、`publicHandler` 配置交互；缺少某动作时不编造事件名。
+
+当前目录中可查询的字段示例（使用前核对返回版本）：
+
+| 组件名 | 接口/字段 | 配置说明 |
+| --- | --- | --- |
+| `bar-basic` 柱状图 | `source.x` 分类字符串、`source.y` 数值；`colorField` 和 `trace` 为可选字段 | 分类字段映射 X，聚合数值映射 Y；按需用颜色字段或拆分字段细分数据 |
+| `ml-line-basic` 折线图 | `source.x`、`source.y`、可选 `colorField` | 确认 X 的时间/类目类型和顺序，再配系列与提示框 |
+| `pie-ranking` 轮播饼图 | `source.type`、`source.value` | 分类与数值；轮播规则属于该组件配置，不等同普通饼图 |
+| `number-title-flop` 数字翻牌器 | `source.value` 数值；可选 `name`、`prefix`、`suffix` | 先聚合成期望 KPI，前后缀表示货币/单位，不改变数值口径 |
+| `main-title` 通用标题 | 查 `definition.apis.source.fields`；样式可有标题内容及链接配置 | 静态标题和数据标题都可存在，最终显示受当前绑定影响 |
+
+宜搭数据集可涵盖跨应用、子表、视图表、数据准备和外部数据源；是否可选取决于当前环境及权限。外部 API、数据库等完整 DataV 数据源能力要在宜搭嵌入版实际确认，不因官方完整版有文档就声称 CLI 已接入。
+
+## 地图和子图层
+
+先确认地图类型与版本，再添加它支持的子层：选择地图 → 数据面板 → 子组件管理 → 添加目标子层 → 进入该子层设置。不可混用 1.x、2.x、3D 平面地图的子组件和字段。
+
+| 地图内容 | 配置入口 | 数据及关键约束 |
+| --- | --- | --- |
+| 地图容器 | 中心、缩放、底图、拖拽/滚轮/交互 | 经度通常在 -180–180、纬度在 -90–90；以该版本 schema 的实际范围为准 |
+| 区域热力 | 区域边界、填色、描边、标注、色带、事件 | 边界 GeoJSON 与业务区域 ID 必须匹配；地区名称不能直接代替未映射的行政 ID |
+| 呼吸气泡/散点 | 坐标、尺寸映射、颜色、动画、类型 | 经纬度必须为数值；核实坐标系，避免经纬度对调 |
+| 飞线 | 起点、终点、频率、速度、曲线和样式 | 先查看接口要求是坐标字符串、名称还是经纬度字段，不能通用套格式 |
+| 下钻/轮播标签 | 地区层级、事件、标签字段、轮播间隔 | 地区父子关系完整；选择事件与目标组件动作匹配 |
+| 3D 地图/模型 | 查询目录并在设计器核对权益和子层 | 与基础平面地图分开配置；目录存在不代表该企业已启用 |
+
+旧版 `datavmap-2d` 的实际接口示例：`mapstate` 接受 `zoom`、`lng`、`lat`；其飞线子层 `datavmap-2d-layer-flyingline` 的 `source` 使用字符串 `from`、`to`；呼吸气泡层使用 `lng`、`lat`、`value`、`type`；区域热力层分别有 `geojson` 和 `data` 接口，业务数据包含 `area_id`、`value`、可选 `info`。这些是该组件版本的协议，不代表新版地图也采用相同结构。
+
+边界数据可通过官方 GeoAtlas 查询；生产地图应核对区域编码、边界版本及坐标系。地理信息、数值统计与目标地区有一项不匹配时先处理数据，再调整视觉。
+
+## 控件筛选和联动
+
+控件添加后不会自动成为业务筛选器。先查询事件/动作定义，再在蓝图中连接：
+
+1. 配置选项数据、默认选项和显示字段。
+2. 将控件和目标图表导出到蓝图，连接控件事件与目标的数据请求、选择、高亮或显示动作。
+3. 将选项 ID 映射到目标使用的参数，核对字符串、数字、时间或时间区间类型。
+4. 用至少两个不同选项以及清空/重置动作检查数据确实变化。
+
+例如目录中的 `tab-list` 数据接口为 `source`，字段包含 `id`、`content`、`imgSrc`；事件 `handleClick` 与动作 `select`、`autoCarousel`、`closeAutoCarousel` 由该版本定义提供。不要把普通网页的 `onChange` 名称当作 DataV 蓝图事件。
+
+## CLI 与设计器操作边界
+
+| 操作 | 使用方式 | 结果核对 |
+| --- | --- | --- |
+| 查模板、创建、复制、改名、查就绪状态 | `datav templates/create/copy/rename/inspect` | 查资源真实编号、标题和就绪状态 |
+| 查组件种类、参数、接口及事件定义 | `datav components` | 核对名称、版本、分类和字段类型 |
+| 查画布与现有图层样式 | `datav config` | 核对尺寸、位置、父子关系、组件版本及保存值 |
+| 添加/删除组件、保存样式、配置数据源与蓝图 | 当前使用原生设计器 | 保存后再次执行 `config` 并在预览核对数据与交互 |
+| 明确发布启用 | `datav publish --confirm` | CLI 受理回执后，再检查访问和显示 |
+| 一般自定义大屏 | Canvas 编写与 `publish` 自定义页面命令 | 编译、页面回读、浏览器内容和交互 |
+
+当前 CLI 未提供组件配置写入命令。DataV 编辑器使用独立的组件、数据源、蓝图保存协议，宜搭 `datav publish` 只触发发布启用；不能把组件配置 JSON 塞进该命令，也不能用整屏旧快照覆盖最新内容。需要确定性全代码布局、交互或自定义图表时，按默认规则选择 Canvas 自定义页面。
+
+## 官方说明
+
+- [宜搭大屏设计简介](https://docs.aliwork.com/docs/yida_support/_7/vvgk1m)：宜搭适配、数据源、地图飞线与访问限制。页面存在不同时期的权限说明，以当前平台校验和实际访问为准。
+- [宜搭模板大屏配置](https://help.aliyun.com/zh/datav/datav-6-0/use-cases/use-a-template-to-create-a-datav-dashboard)：组件数据源、字段映射及蓝图步骤。
+- [组件通用配置](https://help.aliyun.com/zh/datav/datav-6-0/user-guide/configure-item-description)：样式、数据和交互面板。
+- [BI 分析组件](https://help.aliyun.com/zh/datav/datav-6-0/user-guide/bi-analysis-widgets/)、[图表组件](https://help.aliyun.com/zh/datav/datav-6-0/user-guide/charts/)、[控件](https://help.aliyun.com/zh/datav/datav-6-0/user-guide/control/)、[信息](https://help.aliyun.com/zh/datav/datav-6-0/user-guide/information-1/)、[表格](https://help.aliyun.com/zh/datav/datav-6-0/user-guide/table-1/)、[媒体](https://help.aliyun.com/zh/datav/datav-6-0/user-guide/media/)：目录说明，使用前核对宜搭实际版本及权限。
+- [地图子组件](https://help.aliyun.com/zh/datav/datav-6-0/user-guide/manage-child-widgets-of-a-map-widget)：地图容器和子层关系。

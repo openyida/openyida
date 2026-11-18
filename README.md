@@ -557,6 +557,8 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida datav templates <appType> [--page <value>] [--page-size <value>] [--json]` | List native DataV screen templates |
 | `openyida datav create <appType> <name> [--template <value>] [--locale <value>] [--wait-seconds <value>] [--json]` | Create a native YiDA DataV screen |
 | `openyida datav inspect <appType> <formUuid> [--json]` | Inspect native DataV status and URLs |
+| `openyida datav components <appType> <formUuid> [--component <value>] [--category <value>] [--search <value>] [--json]` | List DataV components and parameter definitions |
+| `openyida datav config <appType> <formUuid> [--component <value>] [--json]` | Read DataV canvas and layer configuration |
 | `openyida datav copy <appType> <formUuid> <name> [--locale <value>] [--wait-seconds <value>] [--json]` | Copy a native DataV screen |
 | `openyida datav rename <appType> <formUuid> <name> [--locale <value>] [--json]` | Rename a native DataV screen |
 | `openyida datav publish <appType> <formUuid> --confirm [--json]` | Publish and enable a native DataV screen |

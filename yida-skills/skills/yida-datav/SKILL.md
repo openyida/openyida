@@ -1,6 +1,6 @@
 ---
 name: yida-datav
-description: 仅在用户明确要求宜搭原生数字大屏、原生数据大屏或 DataV 大屏时使用。查询模板、创建、复制、回读状态、改名和显式发布，提供原生设计器和预览入口。普通大屏默认使用自定义页面。
+description: 仅在用户明确要求宜搭原生数字大屏、原生数据大屏或 DataV 大屏时使用。查询模板、组件目录与参数、画布与图层配置，创建、复制、回读状态、改名和显式发布。普通大屏默认使用自定义页面。
 ---
 
 # 宜搭原生 DataV 大屏
@@ -36,8 +36,19 @@ openyida datav rename <appType> <formUuid> "经营驾驶舱" --json
 
 ## 配置和发布
 
-1. 打开回读的 `designerUrl`，在原生设计器内配置图表、布局和数据源。
-2. 用户在设计器完成编辑并明确要求发布、启用大屏时执行：
+1. 先读取[组件与配置指南](references/components-and-configuration.md)，根据目标查询图表、BI 分析、地图、信息、表格、控件或媒体的实际目录：
+
+```bash
+openyida datav components <appType> <formUuid> --category analysis --json
+openyida datav components <appType> <formUuid> --component bar-basic --json
+openyida datav config <appType> <formUuid> --json
+openyida datav config <appType> <formUuid> --component "<实际图层ID>" --json
+```
+
+`components --component` 使用目录组件名，返回参数类型、范围、选项、默认值和数据/事件定义；`config --component` 使用保存图层的真实 ID，返回当前样式。先核对组件版本。目录可见不代表企业拥有权益或已安装商业组件包，返回 `entitlementVerified=false`。配置查询排除数据值与分享设置，不是完整备份。
+
+2. 打开回读的 `designerUrl`，按实际版本在原生设计器内配置组件样式、地图子层、数据源与字段映射，以及蓝图中的筛选联动。当前 CLI 对组件配置提供查询，不提供组件、数据源或蓝图写入。
+3. 保存后用 `config` 核对样式；在预览检查数据、指标口径、地图位置和控件联动。用户明确要求发布、启用大屏时执行：
 
 ```bash
 openyida datav publish <appType> <formUuid> --confirm --json

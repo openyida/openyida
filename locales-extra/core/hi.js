@@ -211,6 +211,8 @@ module.exports = {
     cmd_datav_templates: 'मूल DataV स्क्रीन टेम्पलेट सूचीबद्ध करें',
     cmd_datav_create: 'YiDA मूल DataV स्क्रीन बनाएँ',
     cmd_datav_inspect: 'DataV स्थिति और URL देखें',
+    cmd_datav_components: 'DataV घटक और पैरामीटर परिभाषाएँ देखें',
+    cmd_datav_config: 'DataV कैनवास और लेयर कॉन्फ़िगरेशन पढ़ें',
     cmd_datav_copy: 'मूल DataV स्क्रीन कॉपी करें',
     cmd_datav_rename: 'मूल DataV स्क्रीन का नाम बदलें',
     cmd_datav_publish: 'मूल DataV स्क्रीन प्रकाशित और सक्रिय करें',

@@ -265,7 +265,9 @@ const MAX_TARBALL_BYTES = 2784 * 1024;
 // After merging app metadata and agent runtime updates, Node 20 measures
 // 10,282,883 unpacked bytes. Use the next 16 KiB boundary.
 // The same merge measures 10,333,800 unpacked bytes across 818 entries.
-const MAX_UNPACKED_BYTES = 10128 * 1024;
+// DataV catalogue/config reader and its component guide measure 10,392,845
+// unpacked bytes on Node 20; retain the next 16 KiB boundary. Gzip cap stays fixed.
+const MAX_UNPACKED_BYTES = 10160 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -311,11 +313,14 @@ const MAX_UNPACKED_BYTES = 10128 * 1024;
 // Main file-upload support adds three packaged files.
 // The dedicated native portal skill adds one packaged entry.
 // DataV adds exactly one runtime module and one skill document.
-const MAX_ENTRY_COUNT = 820;
+// One DataV reader module and one configuration reference add two package files.
+const MAX_ENTRY_COUNT = 822;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
   'lib/app/datav.js',
+  'lib/app/datav-designer.js',
+  'yida-skills/skills/yida-datav/references/components-and-configuration.md',
   'yida-skills/skills/yida-datav/SKILL.md',
   'lib/core/babel.js',
   'yida-skills/references/user-facing-summary.md',

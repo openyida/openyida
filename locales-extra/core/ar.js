@@ -211,6 +211,8 @@ module.exports = {
     cmd_datav_templates: 'عرض قوالب شاشات DataV الأصلية',
     cmd_datav_create: 'إنشاء شاشة DataV أصلية في YiDA',
     cmd_datav_inspect: 'فحص حالة DataV وروابطها',
+    cmd_datav_components: 'عرض مكونات DataV وتعريفات المعلمات',
+    cmd_datav_config: 'قراءة إعدادات لوحة DataV والطبقات',
     cmd_datav_copy: 'نسخ شاشة DataV أصلية',
     cmd_datav_rename: 'إعادة تسمية شاشة DataV أصلية',
     cmd_datav_publish: 'نشر شاشة DataV أصلية وتمكينها',

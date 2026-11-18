@@ -5,10 +5,12 @@ jest.mock('../lib/core/yida-client', () => {
   return { ...actual, createYidaClient: jest.fn() };
 });
 jest.mock('../lib/app/get-form-config', () => ({ fetchFormSchemaInfo: jest.fn() }));
+jest.mock('../lib/app/datav-designer', () => ({ read: jest.fn() }));
 
 const { createYidaClient } = require('../lib/core/yida-client');
 const { fetchFormSchemaInfo } = require('../lib/app/get-form-config');
 const { run, parse } = require('../lib/app/datav');
+const { read } = require('../lib/app/datav-designer');
 
 const app = 'APP_TEST';
 const form = 'DATAV-SCREEN';
@@ -194,4 +196,19 @@ test('managed mutations use the target app and preserve the screen identity for 
 test('publish requires confirmation before authentication or enabling a screen', async () => {
   await expect(run(['publish', app, form])).rejects.toMatchObject({ code: 'DATAV_PUBLISH_CONFIRM_REQUIRED' });
   expect(createYidaClient).not.toHaveBeenCalled();
+});
+
+test.each(['components', 'config'])('%s reads designer configuration only after verifying the app resource', async action => {
+  read.mockResolvedValue({ total: 0, entitlementVerified: false });
+  await run([action, app, form, '--json']);
+  expect(read).toHaveBeenCalledWith(client, expect.objectContaining({ appType: app, formUuid: form, datavId: 37 }),
+    expect.objectContaining({ action }));
+  expect(client.postFormOnce).not.toHaveBeenCalled();
+  expect(receipt()).toMatchObject({ success: true, entitlementVerified: false });
+});
+
+test('designer reads reject a non-DataV target before opening its integration session', async () => {
+  fetchFormSchemaInfo.mockResolvedValue({ success: true, content: { formType: 'display' } });
+  await expect(run(['config', app, form])).rejects.toMatchObject({ code: 'DATAV_TYPE_REQUIRED' });
+  expect(read).not.toHaveBeenCalled();
 });

@@ -211,6 +211,8 @@ module.exports = {
     cmd_datav_templates: 'Liệt kê mẫu màn hình DataV gốc',
     cmd_datav_create: 'Tạo màn hình DataV gốc YiDA',
     cmd_datav_inspect: 'Kiểm tra trạng thái và URL DataV',
+    cmd_datav_components: 'Liệt kê thành phần DataV và định nghĩa tham số',
+    cmd_datav_config: 'Đọc cấu hình khung vẽ và lớp DataV',
     cmd_datav_copy: 'Sao chép màn hình DataV gốc',
     cmd_datav_rename: 'Đổi tên màn hình DataV gốc',
     cmd_datav_publish: 'Xuất bản và bật màn hình DataV gốc',

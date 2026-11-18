@@ -211,6 +211,8 @@ module.exports = {
     cmd_datav_templates: '기본 대시보드 템플릿 조회',
     cmd_datav_create: 'YiDA 기본 대시보드 생성',
     cmd_datav_inspect: '대시보드 상태 및 URL 확인',
+    cmd_datav_components: 'DataV 구성 요소 및 매개변수 정의 조회',
+    cmd_datav_config: 'DataV 캔버스 및 레이어 설정 조회',
     cmd_datav_copy: '기본 대시보드 복사',
     cmd_datav_rename: '기본 대시보드 이름 변경',
     cmd_datav_publish: '기본 DataV 대시보드 게시 및 활성화',
