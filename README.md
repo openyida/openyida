@@ -554,6 +554,14 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | Export app entity relationship diagram |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom page |
 | `openyida create-portal <appType> "<name>" [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a native YiDA portal |
+| `openyida datav templates <appType> [--page <value>] [--page-size <value>] [--json]` | List native DataV screen templates |
+| `openyida datav create <appType> <name> [--template <value>] [--locale <value>] [--wait-seconds <value>] [--json]` | Create a native YiDA DataV screen |
+| `openyida datav inspect <appType> <formUuid> [--json]` | Inspect native DataV status and URLs |
+| `openyida datav components <appType> <formUuid> [--component <value>] [--category <value>] [--search <value>] [--json]` | List DataV components and parameter definitions |
+| `openyida datav config <appType> <formUuid> [--component <value>] [--json]` | Read DataV canvas and layer configuration |
+| `openyida datav copy <appType> <formUuid> <name> [--locale <value>] [--wait-seconds <value>] [--json]` | Copy a native DataV screen |
+| `openyida datav rename <appType> <formUuid> <name> [--locale <value>] [--json]` | Rename a native DataV screen |
+| `openyida datav publish <appType> <formUuid> --confirm [--json]` | Publish and enable a native DataV screen |
 | `openyida portal catalog [componentName] [--json]` | List configurable native portal components and theme options |
 | `openyida portal inspect <appType> <formUuid> [--editable] [--json]` | Inspect native portal tiles and revision |
 | `openyida portal configure <appType> <formUuid> <file> [--expected-revision <revision>] [--dry-run] [--json]` | Configure native portal tiles and layout |
