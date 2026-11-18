@@ -16,6 +16,8 @@ Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确�
 
 主入口叫“门户”“首页”或“工作台”时，默认按自定义页面处理。用户明确要求宜搭原生门户或明确排除用自定义页面做门户时，通过 `use_skill("yida-create-portal", "创建或复用宜搭原生门户")` 处理该页，并交付门户设计器与访问入口。以下自定义页面步骤用于 display 页面。
 
+数字大屏、数据大屏、驾驶舱和投屏监控同样默认创建或复用 display 自定义页面，加载 `yida-dashboard` 组织分析内容。仅在用户明确要求宜搭原生大屏时加载 `yida-datav`，选择原生承载，并先核实平台能力与操作入口。
+
 1. 已有页面 URL、`formUuid` 或已绑定 display 页面 → 直接作为主页面，不执行 `use_skill("yida-create-page")`。
 2. PRD 明确需要自定义业务页面、该页缺失，且 Step 1 允许创建 → 执行 `use_skill("yida-create-page", "创建主入口自定义页面")`。
 3. 创建页面前核对 PRD/resource context 与 auth snapshot 的 `corpId`。

@@ -103,8 +103,8 @@ const path = require('path');
 // step for this shipped content; entry and single-file limits stay unchanged.
 // Native portal configuration adds the schema builder, CLI and component guide.
 // Portal and PR #701 together measure 2,827,540 packed bytes on Node 20.18.1.
-// Main with programmable cards and reusable chart components measures 2,872,791 packed bytes on Node 20.18.1.
-const MAX_TARBALL_BYTES = 2816 * 1024;
+// Merged card + DataV package, Node 20.20.2 / npm 10.9.9: 2897108 bytes; round to the next 16 KiB boundary.
+const MAX_TARBALL_BYTES = 2832 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -263,8 +263,8 @@ const MAX_TARBALL_BYTES = 2816 * 1024;
 // After merging app metadata and agent runtime updates, Node 20 measures
 // 10,282,883 unpacked bytes. Use the next 16 KiB boundary.
 // The same merge measures 10,333,800 unpacked bytes across 818 entries.
-// The same package measures 10,465,633 unpacked bytes before this budget note.
-const MAX_UNPACKED_BYTES = 10224 * 1024;
+// Merged card + DataV package, Node 20.20.2 / npm 10.9.9: 10537452 bytes; round to the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 10304 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -309,13 +309,17 @@ const MAX_UNPACKED_BYTES = 10224 * 1024;
 // Independent Fast theme generation adds one runtime module; byte budgets are unchanged.
 // Main file-upload support adds three packaged files.
 // The dedicated native portal skill adds one packaged entry.
-// The combined package contains 828 entries.
-const MAX_ENTRY_COUNT = 828;
+// Merged card + DataV package, Node 20.20.2 / npm 10.9.9: 832 required package entries.
+const MAX_ENTRY_COUNT = 832;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
   ...['analysis-metric', 'analysis-chart', 'analysis-echarts']
     .map(name => `lib/samples/yida-custom-chart-comp/${name}.canvas.jsx`),
+  'lib/app/datav.js',
+  'lib/app/datav-designer.js',
+  'yida-skills/skills/yida-datav/references/components-and-configuration.md',
+  'yida-skills/skills/yida-datav/SKILL.md',
   'lib/core/babel.js',
   'yida-skills/references/user-facing-summary.md',
   'lib/navigation/page-navigation.js',

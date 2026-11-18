@@ -54,8 +54,10 @@ description: 自定义页面 Recharts 高级图表技能。使用 `YidaCodeCanva
 
 需要快速复用单个指标卡、趋势图、排行图或环形图时，先读取[可编程卡片组件模板](../yida-dashboard/references/programmable-cards.md#组件优先页面只是组合示例)，提取 `analysis-metric` / `analysis-chart`。它们是组件源码；`analysis-card-explorer` 仅用于多组件组合参考，不能把整页模板当作唯一复用粒度。
 
+先按[标准主题桥](../yida-canvas-custom-page/references/canvas-theme-provider.md)接入应用主题。下例采用脚本装配标记，合并业务后用真实主题 CSS 生成独立输出文件，再编译该输出；已有 Provider 时保留它，只替换业务部分。多业务系列使用项目分类色盘，目标参考线可用中性文字色和虚线区分。
+
 ```jsx
-import React, { useMemo, useState } from 'react';
+/* @canvas-theme-provider */
 import { Segmented } from 'antd';
 import {
   Bar,
@@ -68,31 +70,36 @@ import {
   YAxis,
 } from 'recharts';
 
-function YidaComp(props) {
-  const [windowSize, setWindowSize] = useState(7);
+function PageContent(props) {
+  const { token } = useCanvasThemeContext();
+  const [windowSize, setWindowSize] = React.useState(7);
   const aggregatedRows = Array.isArray(props.aggregatedRows)
     ? props.aggregatedRows
     : [];
-  const visibleRows = useMemo(
+  const visibleRows = React.useMemo(
     () => aggregatedRows.slice(-windowSize),
     [aggregatedRows, windowSize]
   );
 
   return (
-    <div>
+    <div style={{ color: token.colorText, background: token.colorBgContainer }}>
       <Segmented value={windowSize} onChange={setWindowSize} options={[7, 30]} />
       <ResponsiveContainer width="100%" height={320}>
         <ComposedChart data={visibleRows}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="label" />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="amount" fill="#1677ff" />
-          <Line dataKey="target" stroke="#fa8c16" />
+          <CartesianGrid stroke={token.colorBorderSecondary} strokeDasharray="3 3" />
+          <XAxis dataKey="label" tick={{ fill: token.colorTextSecondary }} stroke={token.colorBorder} />
+          <YAxis tick={{ fill: token.colorTextSecondary }} stroke={token.colorBorder} />
+          <Tooltip contentStyle={{ background: token.colorBgElevated, color: token.colorText, borderColor: token.colorBorder }} />
+          <Bar dataKey="amount" fill={token.colorPrimary} />
+          <Line dataKey="target" stroke={token.colorTextSecondary} strokeDasharray="4 4" />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
   );
+}
+
+function YidaComp(props) {
+  return <CanvasThemeProvider><PageContent {...props} /></CanvasThemeProvider>;
 }
 
 export default YidaComp;
@@ -123,6 +130,7 @@ openyida publish project/pages/src/trend-combo.canvas.jsx <appType> <displayPage
 - [ ] 筛选控件受控，并真正改变展示数据或请求参数。
 - [ ] loading、空态、错误态、无权限状态可区分。
 - [ ] 响应式容器有明确高度，Tooltip、坐标轴和图例可读。
+- [ ] 控件、图表和浮层消费应用主题；分类色与状态色分开，换主题后轴线、图例、提示框和选中态仍可读。未实测换肤时不声明主题验收通过。
 - [ ] seed 数据有可见标识；真实交付不把 seed 当真实数据。
 - [ ] 只有真实 `publish` 成功后才声明页面已发布。
 

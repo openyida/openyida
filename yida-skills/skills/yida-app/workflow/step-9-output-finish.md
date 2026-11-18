@@ -45,6 +45,8 @@ Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确�
 
 适用的页面检查按[跨页验收](../../yida-design/references/application-theme-consistency.md#验证主题是否真正一致)核对原生页、自定义页与抽屉；视觉结果单独记录。
 
+范围内包含大屏时，核对其品牌色、明暗、画布、图表、地图和控件与当前应用主题搭配，并检查实际入口的导航衔接。原生 DataV 单独按 [主题与应用一致](../../yida-datav/references/components-and-configuration.md#主题与应用一致)回读样式并验收；未检查运行画面时明确保留视觉待验收状态，不能用应用主题完成或大屏创建成功替代。
+
 Fast 将主题命令回执的 `applicationTheme` 写入 `build-manifest.json`。Plan 的 `applicationTheme` 由 CLI 写入 PRD。`check-prd-completeness` 读取当前配置；品牌、CSS 启用或资源不符为 fail，无法读取为 needs_review。局部修改保持原换肤范围。
 
 本地验收前后台入口：前台仅页面内导航，后台保留原生导航、管理任务及正确默认页；前台专用页在后台 PC/移动菜单隐藏。`build-manifest` 写入真实资源 ID 后，完整性检查核验 PRD `navigationVisibility`：仍可见为 fail，配置或 ID 未知为 needs_review。历史 PRD 缺字段不算通过，须补清单或回读。
