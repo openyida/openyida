@@ -106,7 +106,9 @@ const path = require('path');
 // Native DataV lifecycle CLI and its dedicated skill: Node 20.18.1 measures
 // 2,836,272 compressed / 10,363,078 unpacked bytes, 820 files.
 // Advance to the next 16 KiB boundaries; keep the per-file cap unchanged.
-const MAX_TARBALL_BYTES = 2784 * 1024;
+// DataV component/interaction and application-theme guidance: Node 20.18.1
+// measures 2,852,227 compressed bytes; retain the next 16 KiB boundary.
+const MAX_TARBALL_BYTES = 2800 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -267,7 +269,9 @@ const MAX_TARBALL_BYTES = 2784 * 1024;
 // The same merge measures 10,333,800 unpacked bytes across 818 entries.
 // DataV catalogue/config reader and its component guide measure 10,392,845
 // unpacked bytes on Node 20; retain the next 16 KiB boundary. Gzip cap stays fixed.
-const MAX_UNPACKED_BYTES = 10160 * 1024;
+// DataV theme creation/editing and capability guidance measures 10,406,101
+// unpacked bytes / 822 files; retain the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 10176 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
