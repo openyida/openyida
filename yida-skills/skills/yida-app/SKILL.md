@@ -14,7 +14,7 @@ description: 创建完整宜搭应用，或补齐已有应用时使用。先确�
 - 功能、角色、流程、视觉选择按 [需求分析](../yida-requirement-analysis/workflow/prepare-brief.md#适用阶段与续做) 核对本次依据，资源按 [上下文识别](workflow/step-1-resource-context.md) 解析。
 - 范围足以实施后按 [模式路由](../yida-design/references/design-mode.md) 选择 Fast 或 Plan。
 
-**Fast 输入分支**：以 [短执行流程](workflow/fast-build.md) 为唯一 workflow 入口，范围和授权明确即创建/复用应用，按依赖并行；不以 Plan、完整 JSON、build-context、PRD 或设计文档校验作为前置。保留 app_theme.css 和业务校验。按操作加载技能，不逐步读取九阶段或并行长文；旧文档缺项才读 [阶段映射](references/fast-context.md)。Plan 保留原流程。
+**Fast 输入分支**：以 [短执行流程](workflow/fast-build.md) 为唯一 workflow 入口，范围和授权明确即创建/复用应用，按依赖并行；不以 Plan、完整 JSON、build-context、PRD 或设计文档校验作为前置。保留 app_theme.css 和业务校验。主题生成前按[共享主题选择](../yida-design/references/theme-selection.md)确定本轮风格与主色，读取所选模板的真实配色；Fast 没有固定默认主题，不直接沿用命令或样例文件里的主题值。按操作加载技能，不逐步读取九阶段或并行长文；旧文档缺项才读 [阶段映射](references/fast-context.md)。Plan 保留原流程。
 
 图片采集不作为创建应用、页面实现或首版预览的前置依赖。布局和交互就绪即按已有发布授权提供可用预览，缺图使用设计允许的明确状态；素材到位仅更新图片绑定。整次采集默认共用60秒截止时间，失败来源立即切换，不 sleep 退避重试；必需图片未齐仍保留最终验收缺口。执行细则见 [素材调度](workflow/parallel-work.md#素材与页面同时推进)。
 
@@ -135,6 +135,8 @@ Fast 直接按短执行流程内的依赖与调度规则执行；Plan 与其他�
 - 需要收集或存储数据：先创建或复用核心普通表单，再生成页面；纯展示或静态内容可跳过表单创建。
 - 需要审批、申请、审核、工单流转：先创建或复用流程表单，再生成页面。
 - 需要标准统计：优先创建原生报表；明确高级图表或大屏时，再选择 `yida-rechart` / `yida-chart`。
+- 数字大屏、数据大屏、驾驶舱和投屏监控默认使用自定义页面承载，由 `yida-dashboard` 组织分析内容、`yida-canvas-custom-page` 实现页面。仅在用户明确要求宜搭原生大屏时加载 `yida-datav`，选择原生承载，并先核实平台能力与操作入口。
+- 创建或编辑大屏前读取本轮应用主题，默认让大屏与应用的品牌色及明暗搭配；浅色应用不直接套用深色模板。原生 DataV 使用 `use_skill("yida-datav", "按当前应用主题创建或编辑原生大屏")` 执行主题前置检查并配置具体样式，自定义页面消费应用主题变量；两种承载均在实际入口连同导航验收，应用主题落地不能代替大屏主题验收。
 - 用户明确要求宜搭原生门户，或明确排除用自定义页面做门户时，加载 `yida-create-portal`。一般门户、首页和工作台沿用自定义页面流程。
 - 按页面主任务选技能：经营分析、指标判断或投屏监控页面加载 `yida-dashboard`；综合工作台由 `yida-canvas-custom-page` 实现，按 PRD 组织内容；其中的分析、洞察及快捷操作按实际需要实现，不能仅凭“工作台”或“看板”名称加载经营看板技能。页面读取任何表单业务数据时继续加载 `yida-canvas-data-binding`。
 - PRD 明确包含报表或集成自动化时，它们属于 Step 4 主流程资源，不得推迟到 final 后置建议；自动化动作必须按通知、数据新增/更新、审批完成、定时或手动触发分别建模，不得统一退化成新增通知。

@@ -860,6 +860,12 @@ async function dispatchCommand() {
       break;
     }
 
+    case 'datav': {
+      const { run } = require('../lib/app/datav');
+      await run(args);
+      break;
+    }
+
     case 'portal': {
       const { run } = require('../lib/app/portal');
       await run(args);

@@ -174,7 +174,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | `yida-skills/form` | 表单字段、公式、校验、业务关联规则、原生自定义按钮、消息通知、打印模板、批量录入、数据记录 | `yida-create-form-page`、`yida-custom-button`、`yida-form-message`、`yida-print-template`、`yida-form-view`、`yida-formula`、`yida-formula-evaluate`、`yida-business-rule`、`yida-canvas-table-form`、`yida-table-form`、`yida-data-management` |
 | `yida-skills/process` | 审批、流程表单、流程规则、节点/分支/字段权限、流程代理 | `yida-create-process`、`yida-process-rule`、`yida-flow-node-config`、`yida-agent-center` |
 | `yida-skills/page` | 工作台、办事门户、任务看板、自定义展示页、页面源码开发、平台 JSX 组件页面维护、页面发布、页面内导航、PPT 页面 | `yida-create-page`、`yida-create-portal`、`yida-canvas-custom-page`、`yida-custom-page`、`yida-canvas-data-binding`、`yida-task-center`（仅显式选择自定义待办）、`yida-canvas-upgrade`、`yida-publish-page`、`yida-openyida-publish-guard`、`yida-density`、`yida-nav-shell`、`yida-ppt-slider` |
-| `yida-skills/analytics` | 用户显式指定宜搭原生数据卡片（含其投放播报）；聚合表、虚拟视图、报表、统计、图表、Recharts、ECharts、经营分析看板、驾驶舱、大屏 | `yida-data-card`、`yida-aggregate-table`、`yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard` |
+| `yida-skills/analytics` | 用户显式指定宜搭原生数据卡片（含其投放播报）；聚合表、虚拟视图、报表、统计、图表、Recharts、ECharts、经营分析看板、驾驶舱、大屏 | `yida-data-card`、`yida-aggregate-table`、`yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard`、`yida-datav`（仅显式原生大屏） |
 | `yida-skills/integration` | 用户明确指定宜搭平台插件或原生酷卡片；连接器、钉钉开放平台、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-plugin-lifecycle`、`yida-plugin-frontend-deploy`、`yida-cool-card`、`yida-integration`、`yida-flow-node-config`、`yida-dingtalk-openapi`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
 | `yida-skills/access` | 平台/应用/表单/页面权限、公开访问、分享 | `yida-corp-manager`、`yida-app-permission`、`yida-form-permission`、`yida-page-config` |
 | `yida-skills/ops` | Sequence、主键冲突、VOC、OpenYida 本地故障、Issue/Fork PR | `yida-db-seq-fix`、`yida-voc`、`yida-feedback` |
@@ -247,6 +247,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 自定义页面中的数据卡片、指标卡、统计卡 | 页面内组件随页面发布：新增/开发走页面技能，接数据走 `yida-canvas-data-binding`，仅外观走 `yida-design`；不自动创建原生 CARD 资源 |
 | 页面引用了原生 `CARD-xxx` | 按实际修改对象分流：页面外层或引用配置仍归页面；用户明确要求修改源卡片配置才用 `yida-data-card`，不能只凭 CARD/FORM 字样判断 |
 | 查询主题配置、业务前后台配置或数据卡片管理入口 | 使用 `openyida app-settings <appType> --section theme|basic|data-card|cool-card --json`，直接返回对应 url；只问入口不修改设置 |
+| 明确要求宜搭原生数字大屏、原生数据大屏或 DataV 大屏，或继续已有原生大屏操作 | `yida-datav`，使用 `datav templates/create/inspect/components/config/copy/rename/publish`；CLI 查询组件参数和已保存配置，布局与数据源在原生设计器编辑 |
+| 数字大屏、数据大屏、驾驶舱或投屏监控 | `yida-dashboard` 组织分析内容，默认用 `yida-canvas-custom-page` 承载；仅在用户明确要求宜搭原生大屏时转交 `yida-datav` |
 | 普通报表/统计、原生报表零值隐藏配置 | `yida-report`；隐藏数值 0 必须由用户明确要求，默认关闭 |
 | 聚合表 / 虚拟视图的读取、预览、草稿保存或发布 | `yida-aggregate-table`；save 验证 stash revision，publish 验证 live revision |
 | PPT 页面 | `yida-ppt-slider` |
