@@ -10,6 +10,8 @@ description: "创建和配置宜搭原生报表；仅在用户明确要求时动
 - 不得把不支持、冲突或状态不确定的任务改走 `create-report` 写入，不得按标题、组件类型或数组位置 adopt、猜 report/chart/filter ID。
 - 只有报表目标明确属于当前普通 OpenYida 资源时，以下示例、stdout/stderr 和返回行为才按本技能契约使用；所有权不明确时零远端写。
 
+新版主题的页面与图表外观按 [主题外观配置](references/theme-appearance.md) 操作，核对默认风格、CSS 作用域和旧主题兼容。
+
 ## 严格禁止 (NEVER DO)
 
 - 不要在前端直接聚合表单数据，必须通过宜搭原生报表的 `getDataAsync.json` 或 `getCacheData.json` 接口获取聚合数据

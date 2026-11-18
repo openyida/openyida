@@ -165,3 +165,23 @@ test('selects a native todo indicator style and preserves explicit background ch
   expect(apply(result.schema, { props: { backgroundImage: '' } }).tiles[0].props.backgroundImage).toBe('');
   expect(() => apply(result.schema, { stylePreset: 'unknown' })).toThrow(/stylePreset/);
 });
+
+
+test('round-trips new-theme appearance mode and page CSS without changing legacy defaults or tiles', () => {
+  const { schema } = applyPortalConfig({ pages: [{}] }, config, target);
+  const before = inspectPortal(schema);
+  expect(before.theme).not.toHaveProperty('themeAppearanceMode');
+  expect(before.theme).not.toHaveProperty('containerStyle');
+  const css = ':root { background: linear-gradient(90deg, #fff, #eee); }';
+  const custom = applyPortalConfig(schema, { theme: { themeAppearanceMode: 'custom', containerStyle: css } }, target);
+  const editable = editablePortalConfig(inspectPortal(custom.schema)).config;
+  expect(editable.theme).toMatchObject({ themeAppearanceMode: 'custom', containerStyle: css });
+  expect(applyPortalConfig(custom.schema, editable, target).changed).toBe(false);
+  const follow = applyPortalConfig(custom.schema, { theme: { themeAppearanceMode: 'theme' } }, target);
+  expect(inspectPortal(follow.schema).tiles).toEqual(before.tiles);
+  expect(inspectPortal(follow.schema).theme.containerStyle).toBe(css);
+  expect(portalCatalog().theme.choices.themeAppearanceMode).toEqual(['theme', 'custom']);
+  for (const theme of [{ themeAppearanceMode: 'invalid' }, { containerStyle: {} }, { containerStyle: null }]) {
+    expect(() => applyPortalConfig(schema, { theme }, target)).toThrow(/Unsupported portal theme value/);
+  }
+});
