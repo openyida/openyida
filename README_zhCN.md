@@ -421,6 +421,14 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | 导出应用实体关系图 |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义页面 |
 | `openyida create-portal <appType> "<name>" [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建宜搭原生门户 |
+| `openyida datav templates <appType> [--page <value>] [--page-size <value>] [--json]` | 查询原生大屏模板 |
+| `openyida datav create <appType> <name> [--template <value>] [--locale <value>] [--wait-seconds <value>] [--json]` | 创建宜搭原生大屏 |
+| `openyida datav inspect <appType> <formUuid> [--json]` | 回读原生大屏状态与入口 |
+| `openyida datav components <appType> <formUuid> [--component <value>] [--category <value>] [--search <value>] [--json]` | 查询大屏组件目录与参数定义 |
+| `openyida datav config <appType> <formUuid> [--component <value>] [--json]` | 读取大屏画布与图层配置 |
+| `openyida datav copy <appType> <formUuid> <name> [--locale <value>] [--wait-seconds <value>] [--json]` | 复制宜搭原生大屏 |
+| `openyida datav rename <appType> <formUuid> <name> [--locale <value>] [--json]` | 修改原生大屏名称 |
+| `openyida datav publish <appType> <formUuid> --confirm [--json]` | 发布并启用原生 DataV 大屏 |
 | `openyida portal catalog [componentName] [--json]` | 查看原生门户可配置的组件和主题 |
 | `openyida portal inspect <appType> <formUuid> [--editable] [--json]` | 查看原生门户磁贴与版本 |
 | `openyida portal configure <appType> <formUuid> <file> [--expected-revision <revision>] [--dry-run] [--json]` | 配置原生门户磁贴与布局 |

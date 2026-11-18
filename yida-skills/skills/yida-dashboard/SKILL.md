@@ -1,6 +1,6 @@
 ---
 name: yida-dashboard
-description: "经营分析看板/驾驶舱/数据大屏产品化交付；用于指标判断、趋势分析或投屏监控，不用于普通待办工作台和办事门户。含真实数据、筛选联动、卡片截图、组织内短链和钉钉待办闭环。常规图表使用 yida-rechart；明确 ECharts、复杂 ECharts option 或维护旧图表时使用 yida-chart。普通统计优先 yida-report。"
+description: "经营分析看板/驾驶舱/数字大屏/数据大屏产品化交付，默认用自定义页面承载；用于指标判断、趋势分析或投屏监控，不用于普通待办工作台和办事门户。含真实数据、筛选联动、卡片截图、组织内短链和钉钉待办闭环。常规图表使用 yida-rechart；明确 ECharts、复杂 ECharts option 或维护旧图表时使用 yida-chart。普通统计优先 yida-report。"
 license: MIT
 metadata:
   audience: developers
@@ -34,11 +34,17 @@ metadata:
 
 单个普通统计报表优先 `yida-report`；只解决单张图的实现问题时按“图表路由边界”选择 `yida-rechart` 或 `yida-chart`。
 
+## 页面承载
+
+- 数字大屏、数据大屏、驾驶舱和投屏监控默认使用自定义页面，由 `yida-canvas-custom-page` 创建页面源码并发布。`screen` 只表示自定义页面的展示场景。
+- 仅在用户明确要求宜搭原生大屏时加载 `yida-datav`，选择原生承载；先核实目标平台的原生大屏能力和操作入口，沿用用户指定的承载方式。
+- 报表或聚合表可以作为自定义大屏的数据来源，数据来源不改变页面承载类型。
+
 ## 默认交付物
 
 1. 单屏控制塔结构，见 `references/structure-and-layout.md`。
 2. 真实数据绑定：聚合指标走报表/聚合结果，明细走分页查询；禁止前端拉全量后聚合。
-3. 视觉主题和信息层级，见 `references/theme-presets.md`。按共享主题选择规则先拒绝第一直觉，再比较新候选；平台预置主题使用应用 `--theme`，自定义色盘使用应用级主题 CSS 文件，页面只消费运行时变量。
+3. 视觉主题和信息层级，见 `references/theme-presets.md`。先读取应用当前主题与项目设计，已有主题直接沿用；尚无主题时按共享主题选择规则比较候选。平台预置主题使用应用 `--theme`，自定义色盘使用应用级主题 CSS 文件，页面只消费运行时变量。大屏的图表、地图、筛选和浮层一起配套，不因“大屏”自动改为深色科技风。
 4. 筛选与图表联动；控件必须受控并真实改变下方数据。
 5. 每元素可派单：`saveFormData → 集成自动化 → 待办2.0 ConnectorCall`。
 6. 卡片截图分享：真实可点击，截图时排除截图按钮本身。
@@ -81,7 +87,7 @@ metadata:
 
 自定义页面入口：
 
-- `prd.md` 决定页面目标、指标、区块和交互，`design.md` 决定主题、布局和视觉状态；`page-spec.json` 只作为生成器需要时的派生输入。
+- Plan 与已有文档任务由 `prd.md` 决定页面目标、指标、区块和交互，`design.md` 决定主题、布局和视觉状态；`page-spec.json` 只作为生成器需要时的派生输入。Fast 直接沿用已确认业务、当前任务的主题与页面安排，不为看板补造这些文件。
 - 主题与配色统一由 `yida-design` 确定，沿用已确认的项目设计；不得按业务关键词套固定看板色盘。
 - 用户强调“大屏 / 指挥舱 / 实时监控”时使用 `screen` 场景；普通经营看板使用 `dashboard` 场景。
 - `.canvas.jsx` 编译与发布细节以 `yida-canvas-custom-page` 为准；不要把 `openyida check-page`、`.oyd.jsx` 或 `renderJsx` 写成默认步骤。
@@ -182,6 +188,7 @@ use_skill("yida-chart", "实现明确要求的 ECharts 或维护旧 native 图�
 - 发布后回读到 `YidaCodeCanvas` 与非空 `runtimeCode`。
 - 至少一个 KPI/列表/图表来自真实数据契约；否则标记 draft。
 - 筛选、刷新、移动端、截图、空/载/错态实际可用。
+- 画布、卡片、图表、地图、控件和浮层符合应用主题；分类色、数值渐变与状态色分别核对，同一业务对象跨图同色。主题切换后重新检查，未实测时保留视觉待验收状态。
 - 常规图表已使用 `yida-rechart`；使用 `yida-chart` 时交付说明明确命中了哪条 ECharts 例外。
 - 需要派单时，真实待办 ConnectorCall 和字段映射验证通过。
 - 隐藏导航时，最终组织内 URL 保留 `isRenderNav=false`。
