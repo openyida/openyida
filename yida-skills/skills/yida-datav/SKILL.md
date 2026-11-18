@@ -47,7 +47,7 @@ openyida datav config <appType> <formUuid> --component "<实际图层ID>" --json
 
 `components --component` 使用目录组件名，返回参数类型、范围、选项、默认值和数据/事件定义；`config --component` 使用保存图层的真实 ID，返回当前样式。先核对组件版本。目录可见不代表企业拥有权益或已安装商业组件包，返回 `entitlementVerified=false`。配置查询排除数据值与分享设置，不是完整备份。
 
-2. 打开回读的 `designerUrl`，按实际版本在原生设计器内配置组件样式、地图子层、数据源与字段映射，以及蓝图中的筛选联动。当前 CLI 对组件配置提供查询，不提供组件、数据源或蓝图写入。
+2. 先按[主题与应用一致](references/components-and-configuration.md#主题与应用一致)核对应用主题，将画布、面板、图表、地图、控件和浮层的颜色角色配套。打开回读的 `designerUrl`，按实际版本在原生设计器内配置样式、地图子层、数据源与字段映射，以及蓝图中的筛选联动。当前 CLI 对组件配置提供查询，不提供组件、数据源或蓝图写入；应用主题 CSS 不会被 CLI 自动同步为 DataV 组件配置。
 3. 保存后用 `config` 核对样式；在预览检查数据、指标口径、地图位置和控件联动。用户明确要求发布、启用大屏时执行：
 
 ```bash
