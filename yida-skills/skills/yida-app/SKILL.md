@@ -14,7 +14,7 @@ description: 创建完整宜搭应用，或补齐已有应用时使用。先确�
 - 功能、角色、流程、视觉选择按 [需求分析](../yida-requirement-analysis/workflow/prepare-brief.md#适用阶段与续做) 核对本次依据，资源按 [上下文识别](workflow/step-1-resource-context.md) 解析。
 - 范围足以实施后按 [模式路由](../yida-design/references/design-mode.md) 选择 Fast 或 Plan。
 
-**Fast 输入分支**：以 [短执行流程](workflow/fast-build.md) 为唯一 workflow 入口，范围和授权明确即创建/复用应用，按依赖并行；不以 Plan、完整 JSON、build-context、PRD 或设计文档校验作为前置。保留 app_theme.css 和业务校验。按操作加载技能，不逐步读取九阶段或并行长文；旧文档缺项才读 [阶段映射](references/fast-context.md)。Plan 保留原流程。
+**Fast 输入分支**：以 [短执行流程](workflow/fast-build.md) 为唯一 workflow 入口，范围和授权明确即创建/复用应用，按依赖并行；不以 Plan、完整 JSON、build-context、PRD 或设计文档校验作为前置。保留 app_theme.css 和业务校验。主题生成前按[共享主题选择](../yida-design/references/theme-selection.md)确定本轮风格与主色，读取所选模板的真实配色；Fast 没有固定默认主题，不直接沿用命令或样例文件里的主题值。按操作加载技能，不逐步读取九阶段或并行长文；旧文档缺项才读 [阶段映射](references/fast-context.md)。Plan 保留原流程。
 
 图片采集不作为创建应用、页面实现或首版预览的前置依赖。布局和交互就绪即按已有发布授权提供可用预览，缺图使用设计允许的明确状态；素材到位仅更新图片绑定。整次采集默认共用60秒截止时间，失败来源立即切换，不 sleep 退避重试；必需图片未齐仍保留最终验收缺口。执行细则见 [素材调度](workflow/parallel-work.md#素材与页面同时推进)。
 

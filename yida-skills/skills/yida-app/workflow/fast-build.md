@@ -22,13 +22,17 @@ openyida create-app --name "应用名称" --desc "本轮业务范围" --json
 
 按[入口交接](../../yida-requirement-analysis/references/handoff.md)核对入口场景和默认页；业务工作台列入待建页面，绑定实际业务资源，交付时打开默认入口验收。
 
-**必须生成并应用 `app_theme.css`**，明确禁止 theme-file 的范围除外。使用本轮已选主题和主色；主题未知时一次读取 `design-plan catalog --compact` 作为主题列表，复用已有结果，不运行 init/materialize/preview。目录命令不代表采用 Plan。
+**必须生成并应用 `app_theme.css`**，明确禁止 theme-file 的范围除外。生成前完成本轮选型：
+
+1. 按[共享主题选择](../../yida-design/references/theme-selection.md)复用当前任务的已选风格，或按用户的风格、品牌与参考直接推演；均无时，在内部比较三套方向后选定。Fast 没有固定推荐主题或主色，命令示例和其他应用的选择不作为本轮依据。默认不增加风格问答；用户明确要求预览选型时按其请求执行。
+2. 需要主题目录时一次读取 `openyida design-plan catalog --json`，按摘要和导航布局兼容性选择，复用已有结果。命名主题选定后读取索引 `templatePath` 的完整主题及 `cssTemplatePath` 的配对 CSS，核对真实表面、文字、强调色和导航明暗，再确定主色；不按主题名称猜测冷暖或材质。目录与模板读取不代表采用 Plan，不运行 init/materialize/preview。
+3. 在当前任务上下文保留选定主题、主色、选择来源和一句业务理由，沿用共享规则的 `visualDirection.description` 与 `colorStrategy.usage` 说明配色关系。直接用于下面的参数和页面实现，无需新增 JSON、设计文档或确认门槛。
 
 ```bash
-openyida sample yida-app fast-theme --style-id app-platinum --primary-color '#2E6E8E' --output <绝对路径>/app_theme.css --json
+openyida sample yida-app fast-theme --style-id <本轮选定themeId> --primary-color '<本轮确定的主色>' --output <绝对路径>/app_theme.css --json
 ```
 
-示例风格和色值按本轮需求替换。命名主题自动读取配对模板及导航明暗，补齐品牌变量并校验 CSS/文字对比度，不验证业务资源、页面、章节或锚点。返回 `outputs.theme`、`theme.themeColor/navTheme`、`applicationTheme`，不生成任何方案文件。`--check` 只检查本次主题，不写文件；相同产物复用，不同内容保护已有文件，实质改版使用新输出路径。
+命令中的占位参数须替换为本轮已确定的实际值。命名主题自动读取配对模板及导航明暗，补齐品牌变量并校验 CSS/文字对比度，不验证业务资源、页面、章节或锚点。`--primary-color` 调整品牌色，不会自动把模板中固定的背景、材质和控件颜色整体重配；按[配色协调规则](../../yida-design/references/theme-selection.md#主色与模板表面的协调)判断是否需要 token 覆盖。返回 `outputs.theme`、`theme.themeColor/navTheme`、`applicationTheme`，不生成任何方案文件。`--check` 只检查本次主题，不写文件；相同产物复用，不同内容保护已有文件，实质改版使用新输出路径。
 
 命名主题如需覆盖主题变量，可用 `--tokens-file` 传入含 `tokens` 对象的主题 JSON。有明确自由创意需求时使用 `free-creative`，在同一输入中提供 `creativeDirection`，并传 `--nav-theme light|dark`。app-pop 沿用明确风格/展示任务依据，不因 Fast 自动选择。主题 token 与 CSS 消费、旧主题全局作用域确认等规则仍适用。主题失败只暂缓主题应用，主流程继续已授权且独立的资源/页面工作。
 
