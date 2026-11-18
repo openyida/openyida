@@ -1,6 +1,6 @@
 ---
 name: yida-dashboard
-description: "经营分析看板/驾驶舱/数据大屏产品化交付；用于指标判断、趋势分析或投屏监控，不用于普通待办工作台和办事门户。含真实数据、筛选联动、卡片截图、组织内短链和钉钉待办闭环。常规图表使用 yida-rechart；明确 ECharts、复杂 ECharts option 或维护旧图表时使用 yida-chart。普通统计优先 yida-report。"
+description: "经营分析看板/驾驶舱/数字大屏/数据大屏产品化交付，默认用自定义页面承载；用于指标判断、趋势分析或投屏监控，不用于普通待办工作台和办事门户。含真实数据、筛选联动、卡片截图、组织内短链和钉钉待办闭环。常规图表使用 yida-rechart；明确 ECharts、复杂 ECharts option 或维护旧图表时使用 yida-chart。普通统计优先 yida-report。"
 license: MIT
 metadata:
   audience: developers
@@ -33,6 +33,12 @@ metadata:
 按页面主任务判断，不按名称触发：综合工作台由 `yida-canvas-custom-page` 实现，可包含业务分析、洞察与快捷操作；这些区块按 PRD 组织，常规图表使用 `yida-rechart`。含图表、管理者身份或隐藏导航不足以触发整页 Dashboard 流程；经营分析本身为页面主任务时使用本技能。首页选择遵循 [首页按任务选择](../yida-requirement-analysis/references/experience-groups.md#首页按任务选择)。
 
 单个普通统计报表优先 `yida-report`；只解决单张图的实现问题时按“图表路由边界”选择 `yida-rechart` 或 `yida-chart`。
+
+## 页面承载
+
+- 数字大屏、数据大屏、驾驶舱和投屏监控默认使用自定义页面，由 `yida-canvas-custom-page` 创建页面源码并发布。`screen` 只表示自定义页面的展示场景。
+- 仅在用户明确要求宜搭原生大屏时加载 `yida-datav`，选择原生承载；先核实目标平台的原生大屏能力和操作入口，沿用用户指定的承载方式。
+- 报表或聚合表可以作为自定义大屏的数据来源，数据来源不改变页面承载类型。
 
 ## 默认交付物
 

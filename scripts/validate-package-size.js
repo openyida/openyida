@@ -103,7 +103,10 @@ const path = require('path');
 // step for this shipped content; entry and single-file limits stay unchanged.
 // Native portal configuration adds the schema builder, CLI and component guide.
 // Portal and PR #701 together measure 2,827,540 packed bytes on Node 20.18.1.
-const MAX_TARBALL_BYTES = 2768 * 1024;
+// Native DataV lifecycle CLI and its dedicated skill: Node 20.18.1 measures
+// 2,836,008 compressed / 10,362,269 unpacked bytes, 820 files.
+// Advance to the next 16 KiB boundaries; keep the per-file cap unchanged.
+const MAX_TARBALL_BYTES = 2784 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -262,7 +265,7 @@ const MAX_TARBALL_BYTES = 2768 * 1024;
 // After merging app metadata and agent runtime updates, Node 20 measures
 // 10,282,883 unpacked bytes. Use the next 16 KiB boundary.
 // The same merge measures 10,333,800 unpacked bytes across 818 entries.
-const MAX_UNPACKED_BYTES = 10096 * 1024;
+const MAX_UNPACKED_BYTES = 10128 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -307,10 +310,13 @@ const MAX_UNPACKED_BYTES = 10096 * 1024;
 // Independent Fast theme generation adds one runtime module; byte budgets are unchanged.
 // Main file-upload support adds three packaged files.
 // The dedicated native portal skill adds one packaged entry.
-const MAX_ENTRY_COUNT = 818;
+// DataV adds exactly one runtime module and one skill document.
+const MAX_ENTRY_COUNT = 820;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'lib/app/datav.js',
+  'yida-skills/skills/yida-datav/SKILL.md',
   'lib/core/babel.js',
   'yida-skills/references/user-facing-summary.md',
   'lib/navigation/page-navigation.js',

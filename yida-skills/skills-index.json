@@ -1110,7 +1110,7 @@
       "name": "yida-dashboard",
       "path": "skills/yida-dashboard/SKILL.md",
       "display_name": "经营看板产品化交付",
-      "description": "经营分析看板、驾驶舱和数据大屏交付，用于指标判断、趋势分析和投屏监控；普通待办工作台、操作队列和办事门户使用自定义页面技能。",
+      "description": "经营分析看板、驾驶舱、数字大屏和数据大屏交付，用于指标判断、趋势分析和投屏监控，默认使用自定义页面承载；仅在用户明确要求宜搭原生大屏时选择原生承载。普通待办工作台、操作队列和办事门户使用自定义页面技能。",
       "category": "yida-skills/analytics",
       "tags": [
         "看板",
@@ -1870,6 +1870,42 @@
         "feedback"
       ],
       "requires_login": false
+    },
+    {
+      "name": "yida-datav",
+      "path": "skills/yida-datav/SKILL.md",
+      "display_name": "宜搭原生大屏",
+      "description": "仅显式宜搭原生数字大屏、原生数据大屏或 DataV 大屏时使用：模板查询、异步创建、复制、状态回读、改名、保存和设计器入口。普通大屏使用自定义页面。",
+      "category": "yida-skills/analytics",
+      "tags": [
+        "原生大屏",
+        "DataV"
+      ],
+      "aliases": [
+        "宜搭原生数字大屏",
+        "原生数据大屏",
+        "DataV 大屏"
+      ],
+      "positive_signals": [
+        "宜搭原生大屏",
+        "DataV 大屏",
+        "原生数字大屏"
+      ],
+      "negative_signals": [
+        "普通数字大屏",
+        "自定义大屏",
+        "自定义页面",
+        "经营看板"
+      ],
+      "command_ids": [
+        "datav.templates",
+        "datav.create",
+        "datav.inspect",
+        "datav.copy",
+        "datav.rename",
+        "datav.save"
+      ],
+      "done_when": "原生大屏资源状态、设计器和预览入口已回读；布局与数据交互按实际预览结果验收。"
     }
   ],
   "route_groups": [
