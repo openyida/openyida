@@ -1875,7 +1875,7 @@
       "name": "yida-datav",
       "path": "skills/yida-datav/SKILL.md",
       "display_name": "宜搭原生大屏",
-      "description": "仅显式宜搭原生数字大屏、原生数据大屏或 DataV 大屏时使用：模板查询、异步创建、复制、状态回读、改名、保存和设计器入口。普通大屏使用自定义页面。",
+      "description": "仅显式宜搭原生数字大屏、原生数据大屏或 DataV 大屏时使用：模板查询、异步创建、复制、状态回读、改名、发布和设计器入口。普通大屏使用自定义页面。",
       "category": "yida-skills/analytics",
       "tags": [
         "原生大屏",
@@ -1903,7 +1903,7 @@
         "datav.inspect",
         "datav.copy",
         "datav.rename",
-        "datav.save"
+        "datav.publish"
       ],
       "done_when": "原生大屏资源状态、设计器和预览入口已回读；布局与数据交互按实际预览结果验收。"
     }

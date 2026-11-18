@@ -213,7 +213,7 @@ module.exports = {
     cmd_datav_inspect: '大画面の状態と URL を確認',
     cmd_datav_copy: 'ネイティブ大画面をコピー',
     cmd_datav_rename: 'ネイティブ大画面の名前を変更',
-    cmd_datav_save: 'ネイティブ大画面を保存',
+    cmd_datav_publish: 'ネイティブ DataV 大画面を公開して有効化',
     cmd_portal_create: '宜搭ネイティブポータルを作成',
     cmd_portal_catalog: 'ネイティブポータルの設定項目とテーマを確認',
     cmd_portal_inspect: 'ネイティブポータルのタイルと版を確認',

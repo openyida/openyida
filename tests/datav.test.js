@@ -84,10 +84,10 @@ test('business failures preserve quota/entitlement errors without authorizing or
   expect(fetchFormSchemaInfo).not.toHaveBeenCalled();
 });
 
-test.each(['copy', 'rename', 'save'])('rejects %s on a custom page before any write', async action => {
+test.each(['copy', 'rename', 'publish'])('rejects %s on a custom page before any write', async action => {
   fetchFormSchemaInfo.mockResolvedValue({ success: true, content: { formType: 'display' } });
   const args = [action, app, form];
-  if (action !== 'save') {args.push('Name');}
+  if (action !== 'publish') {args.push('Name');} else {args.push('--confirm');}
   await expect(run(args)).rejects.toMatchObject({ code: 'DATAV_TYPE_REQUIRED' });
   expect(client.postFormOnce).not.toHaveBeenCalled();
 });
@@ -134,18 +134,18 @@ test('rename mismatch is reported as applied but unverified without a repair wri
   expect(client.postFormOnce).toHaveBeenCalledTimes(1);
 });
 
-test('save does not claim layout validation, publish or expose embedded share credentials', async () => {
+test('explicit publish enables the screen but does not claim preview validation or expose share credentials', async () => {
   client.postFormOnce.mockResolvedValue({ success: true, content: true });
-  await run(['save', app, form]);
+  await run(['publish', app, form, '--confirm']);
   expect(client.postFormOnce.mock.calls[0][0]).toContain('/saveScreen.json');
-  expect(receipt()).toMatchObject({ saveAccepted: true, layoutVerified: false, readbackVerified: false });
+  expect(receipt()).toMatchObject({ publishAccepted: true, enableRequested: true, layoutVerified: false, readbackVerified: false });
   expect(receipt().designerUrl).toBe('https://example.test/alibaba/web/APP_TEST/datav/vigoDesigner.html?formUuid=FORM-SCREEN');
   expect(receipt().previewUrl).toBe('https://example.test/alibaba/web/APP_TEST/datav/preview.html?formUuid=FORM-SCREEN');
 });
 
 test.each([
   ['create', app, 'Screen', '--template', 'abc'], ['create', app, 'Screen', '--wait-seconds', '61'],
-  ['templates', app, '--page', '0'], ['save', app, form, '--template', '1'], ['create', app, ' '],
+  ['templates', app, '--page', '0'], ['publish', app, form, '--confirm', '--template', '1'], ['create', app, ' '],
   ['create', app, 'Screen', '--locale', 'xx'], ['rename', app, 'FORM-../bad', 'Name'],
 ])('rejects malformed options before authentication: %j', async (...args) => {
   expect(() => parse(args)).toThrow();
@@ -171,4 +171,10 @@ test('managed mutations use the target app and preserve the screen identity for 
     env: { OPENYIDA_MANAGED_RUN: '1', OPENYIDA_AGENT_APP_TYPE: app } });
   await run(['create', app, 'Name']);
   expect(capture.commit()).toMatchObject({ operation: 'create_page', appType: app, formUuid: form, pageType: 'datav' });
+});
+
+
+test('publish requires confirmation before authentication or enabling a screen', async () => {
+  await expect(run(['publish', app, form])).rejects.toMatchObject({ code: 'DATAV_PUBLISH_CONFIRM_REQUIRED' });
+  expect(createYidaClient).not.toHaveBeenCalled();
 });

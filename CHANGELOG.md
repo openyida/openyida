@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [2026.11.18] - 2026-11-18
 
-- **支持宜搭原生 DataV 大屏**：可通过 `datav templates/create/inspect/copy/rename/save` 查询模板、异步创建、复制、回读状态、改名和触发保存，并获取原生设计器与预览入口。图表布局和数据源在原生设计器内配置。
+- **支持宜搭原生 DataV 大屏**：可通过 `datav templates/create/inspect/copy/rename/publish` 查询模板、异步创建、复制、回读状态、改名和显式发布（`publish --confirm` 会发布并启用大屏），并获取原生设计器与预览入口。图表布局和数据源在原生设计器内配置。
 
 - **明确数字大屏的默认承载方式**：一般数字大屏、数据大屏、驾驶舱和投屏监控默认使用自定义页面，由经营看板技能组织指标、图表和数据交互；仅在用户明确要求宜搭原生大屏时选择原生承载。
 

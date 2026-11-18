@@ -426,7 +426,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida datav inspect <appType> <formUuid> [--json]` | 回读原生大屏状态与入口 |
 | `openyida datav copy <appType> <formUuid> <name> [--locale <value>] [--wait-seconds <value>] [--json]` | 复制宜搭原生大屏 |
 | `openyida datav rename <appType> <formUuid> <name> [--locale <value>] [--json]` | 修改原生大屏名称 |
-| `openyida datav save <appType> <formUuid> [--json]` | 触发原生大屏保存 |
+| `openyida datav publish <appType> <formUuid> --confirm [--json]` | 发布并启用原生 DataV 大屏 |
 | `openyida portal catalog [componentName] [--json]` | 查看原生门户可配置的组件和主题 |
 | `openyida portal inspect <appType> <formUuid> [--editable] [--json]` | 查看原生门户磁贴与版本 |
 | `openyida portal configure <appType> <formUuid> <file> [--expected-revision <revision>] [--dry-run] [--json]` | 配置原生门户磁贴与布局 |

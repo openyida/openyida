@@ -213,7 +213,7 @@ module.exports = {
     cmd_datav_inspect: '대시보드 상태 및 URL 확인',
     cmd_datav_copy: '기본 대시보드 복사',
     cmd_datav_rename: '기본 대시보드 이름 변경',
-    cmd_datav_save: '기본 대시보드 저장 실행',
+    cmd_datav_publish: '기본 DataV 대시보드 게시 및 활성화',
     cmd_portal_create: '宜搭 네이티브 포털 생성',
     cmd_portal_catalog: '기본 포털의 구성 요소와 테마 옵션 보기',
     cmd_portal_inspect: '네이티브 포털 타일 및 버전 확인',

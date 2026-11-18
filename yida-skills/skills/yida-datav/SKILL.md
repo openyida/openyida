@@ -1,6 +1,6 @@
 ---
 name: yida-datav
-description: 仅在用户明确要求宜搭原生数字大屏、原生数据大屏或 DataV 大屏时使用。查询模板、创建、复制、回读状态、改名和触发保存，提供原生设计器和预览入口。普通大屏默认使用自定义页面。
+description: 仅在用户明确要求宜搭原生数字大屏、原生数据大屏或 DataV 大屏时使用。查询模板、创建、复制、回读状态、改名和显式发布，提供原生设计器和预览入口。普通大屏默认使用自定义页面。
 ---
 
 # 宜搭原生 DataV 大屏
@@ -34,19 +34,19 @@ openyida datav rename <appType> <formUuid> "经营驾驶舱" --json
 
 复制仅在同一应用内进行，返回新资源编号；源大屏必须已就绪。复制超时按新编号继续查询，保留源资源。改名前回读真实 DataV 编号，不要求用户手填 `datavId`；改名后核对标题。`--locale` 改动目标语言标题，同时按平台约定更新 `zh_CN` 作为 DataV 底层名称，其余语言保留。
 
-## 配置和保存
+## 配置和发布
 
 1. 打开回读的 `designerUrl`，在原生设计器内配置图表、布局和数据源。
-2. 用户完成编辑并要求触发保存时执行：
+2. 用户在设计器完成编辑并明确要求发布、启用大屏时执行：
 
 ```bash
-openyida datav save <appType> <formUuid> --json
+openyida datav publish <appType> <formUuid> --confirm --json
 ```
 
-`save` 是平台的保存触发接口，不接受布局 JSON，不代表发布、公开分享或数据源已接通。返回 `saveAccepted=true` 只表示保存触发已被接受；`layoutVerified=false`、`readbackVerified=false` 保留内容验收缺口。在 `previewUrl` 验证布局、真实数据、交互和投屏效果后，再反馈完成结果。
+`publish --confirm` 调用平台 `saveScreen` 接口，实际会发布并启用大屏，保留平台的 Token 和人员权限校验；不能把它当作保存草稿。不接受布局 JSON，不自动配置公开分享。返回 `publishAccepted=true`、`enableRequested=true` 表示平台接受了发布启用操作；`layoutVerified=false`、`readbackVerified=false` 保留内容验收缺口。在 `previewUrl` 验证布局、真实数据、交互和投屏效果后，再反馈完成结果。
 
 ## 交付与恢复
 
 - 返回资源名称、真实编号和本轮需要的设计器/预览入口；只操作单个大屏时保持单资源交付。
 - 写入请求只发一次。网络异常或回读不匹配时保留 `appType`、`formUuid`、`retrySafe=false` 和恢复命令，先查询现状，不重复写入。
-- 不自动删除大屏，不发起公开分享，不因创建资源而启动保存、发布或发送。
+- 不自动删除大屏，不发起公开分享，不因创建资源而启动发布、启用或发送。

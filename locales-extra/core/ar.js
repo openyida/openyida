@@ -213,7 +213,7 @@ module.exports = {
     cmd_datav_inspect: 'فحص حالة DataV وروابطها',
     cmd_datav_copy: 'نسخ شاشة DataV أصلية',
     cmd_datav_rename: 'إعادة تسمية شاشة DataV أصلية',
-    cmd_datav_save: 'تشغيل حفظ شاشة DataV',
+    cmd_datav_publish: 'نشر شاشة DataV أصلية وتمكينها',
     cmd_portal_create: 'إنشاء بوابة YiDA أصلية',
     cmd_portal_catalog: 'عرض مكونات البوابة الأصلية وخيارات مظهرها',
     cmd_portal_inspect: 'عرض بلاطات البوابة الأصلية وإصدارها',

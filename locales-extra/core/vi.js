@@ -213,7 +213,7 @@ module.exports = {
     cmd_datav_inspect: 'Kiểm tra trạng thái và URL DataV',
     cmd_datav_copy: 'Sao chép màn hình DataV gốc',
     cmd_datav_rename: 'Đổi tên màn hình DataV gốc',
-    cmd_datav_save: 'Kích hoạt lưu màn hình DataV',
+    cmd_datav_publish: 'Xuất bản và bật màn hình DataV gốc',
     cmd_portal_create: 'Tạo cổng thông tin YiDA gốc',
     cmd_portal_catalog: 'Xem thành phần và tùy chọn chủ đề của cổng thông tin gốc',
     cmd_portal_inspect: 'Xem ô và phiên bản cổng thông tin gốc',

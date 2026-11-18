@@ -213,7 +213,7 @@ module.exports = {
     cmd_datav_inspect: 'DataV स्थिति और URL देखें',
     cmd_datav_copy: 'मूल DataV स्क्रीन कॉपी करें',
     cmd_datav_rename: 'मूल DataV स्क्रीन का नाम बदलें',
-    cmd_datav_save: 'मूल DataV स्क्रीन सहेजें',
+    cmd_datav_publish: 'मूल DataV स्क्रीन प्रकाशित और सक्रिय करें',
     cmd_portal_create: 'मूल YiDA पोर्टल बनाएं',
     cmd_portal_catalog: 'मूल पोर्टल के घटक और थीम विकल्प देखें',
     cmd_portal_inspect: 'मूल पोर्टल की टाइलें और संस्करण देखें',

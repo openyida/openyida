@@ -559,7 +559,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida datav inspect <appType> <formUuid> [--json]` | Inspect native DataV status and URLs |
 | `openyida datav copy <appType> <formUuid> <name> [--locale <value>] [--wait-seconds <value>] [--json]` | Copy a native DataV screen |
 | `openyida datav rename <appType> <formUuid> <name> [--locale <value>] [--json]` | Rename a native DataV screen |
-| `openyida datav save <appType> <formUuid> [--json]` | Trigger native DataV save |
+| `openyida datav publish <appType> <formUuid> --confirm [--json]` | Publish and enable a native DataV screen |
 | `openyida portal catalog [componentName] [--json]` | List configurable native portal components and theme options |
 | `openyida portal inspect <appType> <formUuid> [--editable] [--json]` | Inspect native portal tiles and revision |
 | `openyida portal configure <appType> <formUuid> <file> [--expected-revision <revision>] [--dry-run] [--json]` | Configure native portal tiles and layout |

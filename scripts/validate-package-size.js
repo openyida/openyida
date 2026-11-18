@@ -104,7 +104,7 @@ const path = require('path');
 // Native portal configuration adds the schema builder, CLI and component guide.
 // Portal and PR #701 together measure 2,827,540 packed bytes on Node 20.18.1.
 // Native DataV lifecycle CLI and its dedicated skill: Node 20.18.1 measures
-// 2,836,008 compressed / 10,362,269 unpacked bytes, 820 files.
+// 2,836,272 compressed / 10,363,078 unpacked bytes, 820 files.
 // Advance to the next 16 KiB boundaries; keep the per-file cap unchanged.
 const MAX_TARBALL_BYTES = 2784 * 1024;
 // Round unpacked content to the next 16 KiB boundary.

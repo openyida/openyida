@@ -221,7 +221,7 @@ module.exports = {
     cmd_datav_inspect: '讀取原生大屏狀態及入口',
     cmd_datav_copy: '複製宜搭原生大屏',
     cmd_datav_rename: '修改原生大屏名稱',
-    cmd_datav_save: '觸發原生大屏儲存',
+    cmd_datav_publish: '發佈並啟用原生 DataV 大屏',
     cmd_portal_create: '建立宜搭原生入口網站',
     cmd_portal_catalog: '查看原生入口網站可設定的元件和主題',
     cmd_portal_inspect: '查看原生門戶磁貼與版本',

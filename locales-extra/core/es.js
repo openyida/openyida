@@ -213,7 +213,7 @@ module.exports = {
     cmd_datav_inspect: 'Consultar estado y URL de DataV',
     cmd_datav_copy: 'Copiar una pantalla DataV nativa',
     cmd_datav_rename: 'Renombrar una pantalla DataV nativa',
-    cmd_datav_save: 'Guardar una pantalla DataV nativa',
+    cmd_datav_publish: 'Publicar y activar una pantalla DataV nativa',
     cmd_portal_create: 'Crear un portal nativo de YiDA',
     cmd_portal_catalog: 'Ver los componentes y opciones de tema del portal nativo',
     cmd_portal_inspect: 'Consultar mosaicos y revisión del portal nativo',
