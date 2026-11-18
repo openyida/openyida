@@ -252,7 +252,7 @@ describe('run() API 失败场景', () => {
 // ── --size 参数 ───────────────────────────────────────────────────────
 
 describe('run() 查询范围与分页参数', () => {
-  test('默认查询我管理的第 1 页，每页 16 条', async () => {
+  test.each([{ args: [] }, { args: ['--type', 'managed'] }])('查询我管理的应用不附加创建人过滤：$args', async ({ args }) => {
     utils.httpGet.mockResolvedValueOnce({
       success: true,
       content: { data: [makeApp()], totalCount: 1 },
@@ -261,14 +261,14 @@ describe('run() 查询范围与分页参数', () => {
     const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
     const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    await run([]);
+    await run(args);
 
     expect(utils.httpGet.mock.calls[0][2]).toMatchObject({
       pageIndex: 1,
       pageSize: 16,
-      creator: 'user001',
       isAdmin: true,
     });
+    expect(utils.httpGet.mock.calls[0][2]).not.toHaveProperty('creator');
 
     mockLog.mockRestore();
     mockError.mockRestore();
@@ -285,10 +285,33 @@ describe('run() 查询范围与分页参数', () => {
 
     await run(['--type', 'created']);
 
-    expect(utils.httpGet.mock.calls[0][2]).toMatchObject({ isAdmin: false });
+    expect(utils.httpGet.mock.calls[0][2]).toMatchObject({ isAdmin: false, creator: 'user001' });
 
     mockLog.mockRestore();
     mockError.mockRestore();
+  });
+
+  test('管理四个应用、只创建一个时，默认返回全部四个，created 只返回本人创建的', async () => {
+    const apps = ['user001', 'user002', 'user003', 'user004'].map((creator, index) => ({
+      ...makeApp({ appType: `APP_${index}` }), creator,
+    }));
+    const query = async (_baseUrl, _path, params) => {
+      const data = params.creator ? apps.filter(app => app.creator === params.creator) : apps;
+      return { success: true, content: { data, totalCount: data.length } };
+    };
+    utils.httpGet.mockImplementationOnce(query).mockImplementationOnce(query);
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await run([]);
+      expect(JSON.parse(mockLog.mock.calls[0][0]).map(app => app.appType))
+        .toEqual(['APP_0', 'APP_1', 'APP_2', 'APP_3']);
+      await run(['--type', 'created']);
+      expect(JSON.parse(mockLog.mock.calls[1][0]).map(app => app.appType)).toEqual(['APP_0']);
+    } finally {
+      mockLog.mockRestore();
+      mockError.mockRestore();
+    }
   });
 
   test('--page 3 只查询第 3 页', async () => {
