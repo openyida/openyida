@@ -1141,6 +1141,10 @@ describe('design-plan materialize', () => {
     fs.copyFileSync(FIXTURE, input);
     const before = JSON.parse(fs.readFileSync(input, 'utf8'));
 
+    before.meta.planState = { ...before.meta.planState, presentedRevision: before.meta.revision,
+      confirmationContext: { revision: before.meta.revision, snapshotSha256: 'old-snapshot', answer: 'confirm_build' } };
+    fs.writeFileSync(input, JSON.stringify(before));
+
     const result = patchPlan(input, [
       'visualStyle.forUser.colorStrategy.primaryColor=#8B5E3C',
       'visualStyle.forUser.colorStrategy.primaryColorName=暖咖啡棕',
@@ -1159,6 +1163,7 @@ describe('design-plan materialize', () => {
       confirmationInteractionId: '',
       confirmedAt: '',
     });
+    expect(after.meta.planState).not.toHaveProperty('confirmationContext');
     expect(after.dataModels).toEqual(before.dataModels);
     expect(design).toContain('"--color-brand1-6": "#8B5E3C"');
     expect(html).toContain('#8B5E3C');
@@ -1197,6 +1202,7 @@ describe('design-plan materialize', () => {
       planConfirmed: confirmed, presentedRevision: plan.meta.revision,
       confirmedRevision: confirmed ? plan.meta.revision : null,
       confirmationInteractionId: confirmed ? 'human-approved' : '',
+      confirmationContext: { revision: plan.meta.revision, snapshotSha256: 'approved-snapshot', tool: 'AskUserQuestion' },
     };
     plan.visualStyle.forUser.assetStrategy.materialStatus = 'draft';
     plan.visualStyle.forUser.assetStrategy.missingAssets = ['待补封面'];
@@ -1483,7 +1489,7 @@ describe('Plan contract and file consistency', () => {
     expect(workflow).toContain('presentedRevision=meta.revision');
   });
 
-  test('plan confirmation atomically delivers the workspace preview and revision', () => {
+  test('plan confirmation supports native attachments and client question bindings', () => {
     const interactionContract = fs.readFileSync(
       path.join(
         ROOT,
@@ -1506,6 +1512,8 @@ describe('Plan contract and file consistency', () => {
     }
     expect(interactionContract).toContain('同一次 `ask_human`');
     expect(interactionContract).toContain('附件、问题与 `revision` 是一个原子交互');
+    expect(interactionContract).toContain('### 客户端问答确认');
+    expect(interactionContract).toContain('宿主无需回传 `revision`');
     expect(workflow).toContain('实际调用 `ask_human` 创建结构化提问');
     expect(workflow).toContain('调用成功只表示问题已创建');
     expect(interactionContract).toContain('方案执行确认不适用此降级');
@@ -1516,7 +1524,7 @@ describe('Plan contract and file consistency', () => {
     expect(beautify).not.toContain('用对话展示同一方案并明确提问');
   });
 
-  test('plan final confirmation uses the callable single-select ask_human schema only', () => {
+  test('plan final confirmation preserves cloud schema and documents the callable client schema', () => {
     const interactionContract = fs.readFileSync(
       path.join(
         ROOT,
@@ -1570,7 +1578,18 @@ describe('Plan contract and file consistency', () => {
       expect(content).toContain('下一次交互');
     }
     expect(interactionContract).toContain('顶层字段集合固定为');
-    expect(workflow).toContain('唯一 payload schema');
+    expect(workflow).toContain('按实际工具 schema');
+    const clientExample = interactionContract.match(/### 客户端问答确认[\s\S]*?```json\n([\s\S]*?)\n```/);
+    expect(clientExample).not.toBeNull();
+    const client = JSON.parse(clientExample[1]);
+    expect(Object.keys(client)).toEqual(['questions']);
+    expect(client.questions[0].multiSelect).toBe(false);
+    expect(client.questions[0].options.map(option => option.label)).toEqual(['确认并开始搭建', '继续调整']);
+    for (const content of [interactionContract, workflow]) {
+      expect(content).toContain('confirmationAdapters.AskUserQuestion.input');
+      expect(content).toContain('SHA-256');
+      expect(content).toContain('meta.planState');
+    }
   });
 
   test('staging failure changes no source or artifact', () => {

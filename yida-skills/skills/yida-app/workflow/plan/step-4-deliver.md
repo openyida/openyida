@@ -35,10 +35,10 @@ HTML 四章与视觉展示遵守 [HTML 内容契约](../../../yida-design/sub_sk
 按 [用户交互契约](../../../yida-design/references/ask-human-interaction-contract.md) 执行：
 
 1. 展示“当前方案”和 3–7 条业务摘要；导航归属随整体确认，不另设技术选型题。
-2. 云端实际调用 `ask_human` 创建结构化提问；managed Local 使用下述 CLI 封装。遵守交互契约的唯一 payload schema，绑定当前快照与 revision，选项为 `confirm_build` 和 `continue_editing`。调用成功只表示问题已创建，收到匹配回答后才获批。
-优先原样传入本次 materialize 或 patch --materialize 返回的 `confirmation`；同级 `confirmationPolicy` 是执行规则，不放入工具 payload。不要用 `fields` 包装最终选择，也不自行拼接附件路径。生成 JSON、打开 HTML、文字问“是否执行”均不等于实际调用。工具不可用或失败时保留 `awaiting_confirmation`，说明阻塞，不能直接开始搭建或切换 Fast。
+2. 云端实际调用 `ask_human` 创建结构化提问；千问办公客户端直接使用 `AskUserQuestion`，仅已核实的 managed Local 使用下述 CLI 封装。按实际工具 schema 绑定当前快照与 revision，选项为 `confirm_build` 和 `continue_editing`。调用成功只表示问题已创建，收到匹配回答后才获批。
+支持附件与版本的工具原样使用 `confirmation`；千问办公客户端按交互契约的“客户端问答确认”路径，先在成果中展示 `outputs.confirmationHtml`，记录 revision、快照 SHA-256 和展示证据，再调用 `confirmationAdapters.AskUserQuestion.input`。`context` 写入 `meta.planState.confirmationContext`，不传给工具；工具无需新增 attachments/revision 参数。`confirmationPolicy` 是执行规则，不放入工具 payload。不要用 `fields` 包装最终选择，也不自行拼接附件路径。生成 JSON、打开 HTML、文字问“是否执行”均不等于实际调用。先核对宿主原生问答能力，不能仅凭 MCP 搜索为空判定不可用。工具不可用或失败时保留 `awaiting_confirmation`，说明阻塞，不能直接开始搭建或切换 Fast；不打开浏览器寻找确认入口，不另建网页搭建任务。
 
-3. 交互创建成功后写回 `meta.planState.presentedRevision=meta.revision`，不重复物化；queued/pending 仅表示等待。收到该次交互的 `confirm_build` 且回传 revision 匹配当前方案，才记录真实交互 ID、回答和时间，设置 `meta.status=confirmed`、`meta.planState.planConfirmed=true`、`meta.revision=presentedRevision=confirmedRevision`。无回答、超时、取消、旧版本回调和自行写入的状态都不能授权实施。
+3. 交互创建成功后写回 `meta.planState.presentedRevision=meta.revision`，不重复物化；queued/pending 仅表示等待。收到该次交互的 `confirm_build`（客户端按 context.answerMap 映射真实选项）且回传或 Agent 关联的 revision 匹配当前方案、快照内容未变，才记录真实交互 ID、回答和时间，设置 `meta.status=confirmed`、`meta.planState.planConfirmed=true`、`meta.revision=presentedRevision=confirmedRevision`。元数据直接写回源 JSON，不通过受保护字段的 patch --set；确认后返回 yida-app 继续 CLI 创建与配置。无回答、超时、取消、旧版本回调和自行写入的状态都不能授权实施。
 
 恢复时核验真实问答与当前方案，同版已有效确认则复用。主题、需求确认和泛指“继续”均不替代执行批准。获批后派发 `assetTasks` 并实施；`explicitScope.allowInferredResources=false` 仅执行范围内资源。
 

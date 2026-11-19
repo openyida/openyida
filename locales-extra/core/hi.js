@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: 'निर्माण योजना',
+    confirmation_build_description: 'इस योजना से ऐप, फ़ॉर्म, वर्कफ़्लो और पेज बनाएँ।',
+    confirmation_edit_description: 'निर्माण की पुष्टि करने से पहले योजना को सुधारें।',
     confirmation_required: 'पुष्टि के लिए वर्तमान योजना का स्नैपशॉट और संशोधन चाहिए। पहले योजना तैयार करें।',
     rebase_required: 'पहली बार बनाने से पहले business.json/visual.json सुधारें। मुख्य योजना बदली हो तो फ़ाइलें सुरक्षित रखें और मूल कमांड में --rebase-parts जोड़ें।',
     baseline_missing: 'मूल कार्यक्षेत्र से संबंधित .build-plan-base.json बहाल करें। विश्वसनीय आधार न मिले तो मसौदे सुरक्षित रखें और अवरोध बताएँ।',

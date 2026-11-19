@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: '구축 계획',
+    confirmation_build_description: '이 계획에 따라 앱, 양식, 워크플로 및 페이지를 만듭니다.',
+    confirmation_edit_description: '계획을 수정한 후 구축을 승인합니다.',
     confirmation_required: '확인하려면 현재 계획 스냅샷과 버전이 필요합니다. 먼저 계획을 생성하세요.',
     rebase_required: '최초 생성 전에는 business.json/visual.json을 수정하세요. 원본 계획이 변경되었다면 파일을 유지하고 기존 명령에 --rebase-parts를 추가하세요.',
     baseline_missing: '원래 작업 공간에서 일치하는 .build-plan-base.json을 복원하세요. 신뢰할 기준이 없으면 초안을 유지하고 차단 사유를 보고하세요.',

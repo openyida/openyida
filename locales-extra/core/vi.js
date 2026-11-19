@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: 'Kế hoạch',
+    confirmation_build_description: 'Tạo ứng dụng, biểu mẫu, quy trình và trang theo kế hoạch này.',
+    confirmation_edit_description: 'Điều chỉnh kế hoạch trước khi xác nhận tạo ứng dụng.',
     confirmation_required: 'Xác nhận cần bản chụp và phiên bản của kế hoạch hiện tại. Hãy tạo kế hoạch trước.',
     rebase_required: 'Trước lần tạo đầu tiên, sửa business.json/visual.json. Nếu kế hoạch chính đã thay đổi, giữ các tệp và thêm --rebase-parts vào lệnh ban đầu.',
     baseline_missing: 'Khôi phục .build-plan-base.json tương ứng từ không gian làm việc gốc. Nếu thiếu bản gốc đáng tin cậy, giữ bản nháp và báo nguyên nhân bị chặn.',
