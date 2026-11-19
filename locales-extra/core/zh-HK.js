@@ -137,6 +137,9 @@ module.exports = {
     page_offline: '選單資料無法確認前台頁 {0} 已上線。如已發布且實測可存取，請用 --frontend 傳入完整網址。',
   },
   design_plan: {
+    confirmation_header: '搭建方案',
+    confirmation_build_description: '按目前方案建立應用程式、表單、流程及頁面。',
+    confirmation_edit_description: '繼續完善目前方案，確認後再開始搭建。',
     confirmation_required: '確認需要目前方案快照和版本，請先生成方案。',
     rebase_required: '首次物化前請修正 business.json/visual.json；主計劃已變更時，保留現有檔案並在原命令加入 --rebase-parts。',
     baseline_missing: '請從原工作區恢復匹配的 .build-plan-base.json；缺少可信基線時保留草稿並報告阻塞。',

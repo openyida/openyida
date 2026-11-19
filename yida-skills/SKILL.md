@@ -38,6 +38,10 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 `runId`、`runtimeId` 或日志文件。排障通常发生在另一个普通本地 Agent 会话中，
 不能只依据 `OPENYIDA_MANAGED_RUN` 判断是否属于云端关联本地 Agent 场景。
 
+## 普通客户端的 Plan 确认
+
+普通千问办公客户端使用宿主原生 `AskUserQuestion` 确认当前方案；`ask_human` 是逻辑动作，不要求存在同名 MCP 工具。按 [Plan 交付](skills/yida-app/workflow/plan/step-4-deliver.md) 展示不可变方案快照，再调用 CLI 返回的 `confirmationAdapters.AskUserQuestion.input`，由 Agent 关联版本、内容摘要与真实回答。工具无需 attachments/revision 参数；核对当前方案未变且用户选择确认后，继续通过 CLI 搭建。不转浏览器找确认入口，不另建网页任务，也不调用下方仅限受管任务的命令。
+
 ## 云端关联本地 Agent 的业务澄清
 
 只有当前工作区 `AGENTS.md` 明确声明这是 OpenYida managed local-agent Run 时，才可使用

@@ -18,7 +18,10 @@ test('confirmation payload uses the immutable snapshot and keeps policy outside 
     revision: '2',
   });
   expect(result.confirmationPolicy).toMatchObject({ tool: 'ask_human', requiredBeforeExecution: true, payloadField: 'confirmation' });
-  expect(result.confirmationPolicy.policy).toMatch(/structured ask_human.*snapshot\/revision.*wait/);
+  expect(result.confirmationPolicy.policy).toMatch(/structured host tool and wait/);
+  expect(result.confirmationPolicy.policy).toContain('AskUserQuestion');
+  expect(result.confirmationPolicy.hostAdapter).toMatchObject({ tool: 'AskUserQuestion',
+    payloadField: 'confirmationAdapters.AskUserQuestion.input', recordPath: 'meta.planState.confirmationContext' });
   expect(result.confirmationPolicy.approval).toMatch(/confirm_build.*interaction and revision/);
   expect(result.confirmationPolicy.approval).toContain('queued/pending is not consent');
   expect(result.confirmationPolicy.unavailable).toMatch(/awaiting_confirmation.*Do not.*prose approval.*switch to Fast/);
@@ -31,7 +34,7 @@ test.each([
   { QWENWORKCN_INTEGRATION_MODE: 'desktop' },
   { QODER_WORK_INTEGRATION_PRODUCT: 'qwenworkcn', QODERCLI_INTEGRATION_MODE: 'qoder_work' },
 ])('QwenWork receives the same snapshot confirmation contract as other hosts: %j', env => {
-  expect(confirmationHandoff(outputs, '2', { env })).toEqual({
+  expect(confirmationHandoff(outputs, '2', { env })).toMatchObject({
     confirmation: confirmationPayload(outputs, '2'),
     confirmationPolicy: require('../lib/design-plan/confirmation').confirmationPolicy,
   });
@@ -40,10 +43,36 @@ test.each([
 test.each([{}, { CODEX_THREAD_ID: 'thread' }, { CLAUDE_CODE: '1' },
   { QODERCLI_INTEGRATION_MODE: 'qoder_work' }, { __CFBundleIdentifier: 'com.qoder.ide' },
 ])('other hosts keep their confirmation contract unchanged: %j', env => {
-  expect(confirmationHandoff(outputs, '2', { env })).toEqual({
+  expect(confirmationHandoff(outputs, '2', { env })).toMatchObject({
     confirmation: confirmationPayload(outputs, '2'),
     confirmationPolicy: require('../lib/design-plan/confirmation').confirmationPolicy,
   });
+});
+
+test('AskUserQuestion adapter maps both host answers to the exact snapshot and revision without unsupported fields', () => {
+  const { input, context } = confirmationHandoff(outputs, '2').confirmationAdapters.AskUserQuestion;
+  expect(Object.keys(input)).toEqual(['questions']);
+  expect(input.questions).toHaveLength(1);
+  const question = input.questions[0];
+  expect(Object.keys(question).sort()).toEqual(['header', 'multiSelect', 'options', 'question']);
+  expect(question.multiSelect).toBe(false);
+  expect(context).toEqual({ revision: '2', snapshotPath: snapshot, question: question.question,
+    answerMap: { '确认并开始搭建': 'confirm_build', '继续调整': 'continue_editing' } });
+  expect(question.options.map(option => context.answerMap[option.label])).toEqual(['confirm_build', 'continue_editing']);
+  expect(context.answerMap['取消']).toBeUndefined();
+  expect(context.answerMap['']).toBeUndefined();
+  expect(JSON.stringify(input)).not.toMatch(/"(?:attachments|revision|submitLabel|value|context)":/);
+  expect(confirmationHandoff({ ...outputs, confirmationHtml: 'prd/example/new-snapshot.html' }, '3')
+    .confirmationAdapters.AskUserQuestion.context).toMatchObject({ revision: '3', snapshotPath: 'prd/example/new-snapshot.html' });
+});
+
+test('host adaptation preserves approval boundaries and forbids browser task detours', () => {
+  const { confirmationPolicy: policy } = confirmationHandoff(outputs, '2');
+  expect(policy.approval).toContain('current revision and snapshot content still match');
+  expect(policy.approval).toContain('stale/cancelled/empty/timed-out');
+  expect(policy.unavailable).toContain('lack of attachments/revision parameters is not a blocker');
+  expect(policy.unavailable).toContain('open a browser to find approval');
+  expect(policy.unavailable).toContain('create another web build task');
 });
 
 test.each([

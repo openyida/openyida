@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: 'Plano',
+    confirmation_build_description: 'Criar o aplicativo, formulários, fluxos e páginas conforme este plano.',
+    confirmation_edit_description: 'Ajustar este plano antes de confirmar a criação.',
     confirmation_required: 'A confirmação exige uma cópia e revisão do plano atual. Gere o plano primeiro.',
     rebase_required: 'Antes da primeira geração, corrija business.json/visual.json. Se o plano principal mudou, preserve os arquivos e adicione --rebase-parts ao comando original.',
     baseline_missing: 'Restaure o .build-plan-base.json correspondente do espaço original. Sem uma base confiável, preserve os rascunhos e informe o bloqueio.',

@@ -46,7 +46,7 @@
 
 需要集中预检时，执行 init 返回的 `materialize.checkCommand`。已有 `--check` 会聚合字段、菜单、素材结构和字面主色不一致等独立问题，返回 `details.issues`，不写方案产物，也不返回确认附件。按每项路径修正源文件后正式生成；变量引用、复杂资源关系和后续渲染仍执行原有完整校验。预检不计入首版正式生成次数。
 8. **生成首版产物。** 直接执行 init 返回的 `materialize.command`。成功后进入展示步骤；`maxSuccessfulCalls: 1` 表示首版成功后不重复物化。失败按 `repairPolicy` 修复，不能重复提交未修改的输入，具体停止条件见[本地校验修复](../../../../references/source-repair.md)。标准首版不先试 `--from-preview`、`preview`、`--check` 或无参数 materialize。
-9. **实际提问并等待。** 按返回的 `confirmationPolicy` 和 [Plan 交付](step-4-deliver.md) 实际调用 `ask_human`，传入 `confirmation`；managed Local 用 `agent ask-human` 封装。生成成功不代表用户同意。只有当前交互与 revision 匹配的 `confirm_build` 才能实施；queued/pending 时等待，无工具或失败时保留待确认，不能用普通对话、文件链接或状态标记代替。已有同版有效确认直接复用。
+9. **实际提问并等待。** 按返回的 `confirmationPolicy` 和 [Plan 交付](step-4-deliver.md) 使用宿主实际问答工具；千问办公客户端展示不可变方案后调用 `confirmationAdapters.AskUserQuestion.input`，由 Agent 记录快照、版本与真实问答的关联，工具无需 attachments/revision 参数。支持附件与版本的工具使用 `confirmation`；仅已核实的 managed Local 用 `agent ask-human` 封装。生成成功不代表用户同意。只有当前交互与 revision、快照内容匹配的 `confirm_build` 才能返回 yida-app 继续 CLI 搭建；queued/pending 时等待，无工具或失败时保留待确认，不能用普通对话、文件链接或状态标记代替。已有同版有效确认直接复用。不转浏览器找入口，不另建网页搭建任务。
 
 超大需求需要展示中间进展或用户明确要求边生成边查看时，使用[按模块更新方案](../incremental-preview.md)。普通首版按上述步骤完成，不逐模块预览和重复渲染。
 
