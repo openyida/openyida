@@ -35,6 +35,72 @@ describe('sample templates', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
+  test.each(['analysis-metric', 'analysis-chart', 'analysis-echarts'])('extracts %s from the chart component group and its previous alias', async name => {
+    const component = path.join(tmpDir, 'component.jsx');
+    const alias = path.join(tmpDir, 'alias.jsx');
+    await run(['yida-custom-chart-comp', name, '--output', component]);
+    await run(['openyida-page-template', name, '--output', alias]);
+    const source = fs.readFileSync(component, 'utf8');
+    expect(source).toContain('export default function YidaComp');
+    expect(fs.readFileSync(alias, 'utf8')).toBe(source);
+  });
+
+  test('dashboard overview puts metrics before charts and preserves independent card content', async () => {
+    const output = path.join(tmpDir, 'dashboard-overview.canvas.jsx');
+    await run(['openyida-page-template', 'dashboard-overview', '--output', output]);
+    const { runtimeCode } = compileCanvasLocal(fs.readFileSync(output, 'utf8'));
+    const React = { createElement: (type, props, ...children) => ({ type, props, children }) };
+    const Dashboard = new Function('window', runtimeCode + '; return YidaComp;')({ React });
+    const primary = { type: 'trend' };
+    const comparison = { type: 'ranking' };
+    const page = Dashboard({ metrics: '营收', primary, comparison, detail: '明细' });
+    const body = page.children.at(-1);
+    expect(body.children[1].children).toEqual(['营收']);
+    expect(body.children[2].children.map(slot => slot.children[0])).toEqual([primary, comparison]);
+    expect(body.children[3].children).toEqual(['明细']);
+  });
+
+  test('analysis card sample compiles and keeps live empty, zero and selection distinct from demo data', async () => {
+    const output = path.join(tmpDir, 'analysis-card.jsx');
+    await run(['openyida-page-template', 'canvas-analysis-card', '--output', output]);
+    const { runtimeCode, importedModules } = compileCanvasLocal(fs.readFileSync(output, 'utf8'));
+    expect(JSON.parse(importedModules)).toEqual(['antd', 'react', 'recharts']);
+    const React = {
+      Fragment: 'fragment',
+      useState: () => [true, () => {}],
+      createElement(type, props, ...children) {
+        return typeof type === 'function' ? type(props || {}) : { type, props, children };
+      },
+    };
+    const widgets = new Proxy({}, { get: (_, key) => key });
+    const render = new Function('window', `${runtimeCode}; return YidaComp;`)({ React, antd: widgets, Recharts: widgets });
+    const find = (node, type) => {
+      if (Array.isArray(node)) {return node.flatMap(child => find(child, type));}
+      if (!node || typeof node !== 'object') {return [];}
+      return [...(node.type === type ? [node] : []), ...find(node.children || [], type)];
+    };
+
+    expect(JSON.stringify(render({}))).toContain('示例数据');
+    const empty = render({ aggregatedRows: [] });
+    expect(JSON.stringify(empty)).toContain('当前筛选下暂无数据');
+    expect(find(empty, 'li')).toHaveLength(0);
+
+    const onSelect = jest.fn();
+    const live = render({
+      aggregatedRows: [{ code: 27, total: 0 }, { code: 42, total: null }],
+      fields: { dimension: 'code', metric: 'total' },
+      onSelect,
+    });
+    const table = find(live, 'Table')[0];
+    const first = table.props.dataSource[0];
+    expect(table.props.columns[1].render(null, first)).toBe('0');
+    expect(table.props.columns[1].render(null, table.props.dataSource[1])).toBe('—');
+    const drill = find(table.props.columns[0].render(null, first), 'button')[0];
+    expect(drill.props['aria-label']).toBe('下钻：27');
+    drill.props.onClick();
+    expect(onSelect).toHaveBeenCalledWith(27);
+  });
+
   test('native cool-card sample emits an import payload with typed preview data and linked rich text', async () => {
     const output = path.join(tmpDir, 'project-brief.json');
     const appUrl = 'https://example.aliwork.com/APP_EXAMPLE?view=project&source=card';
