@@ -7,7 +7,7 @@
   "templates": [
     {
       "themeId": "ink-glow-soft-panels",
-      "sourceHash": "eadbfd3cab486334d60ae283f188bd1133b44e9336f5cc50f5d5378161a4e3e4",
+      "sourceHash": "d9c5e8e6542a8da0740f4a7611fb99c0b1f2c65dce45af6cb9974856ae2944ce",
       "issues": [],
       "unresolved": [
         {
@@ -21,7 +21,7 @@
     },
     {
       "themeId": "inset-frame-pixel-rhythm",
-      "sourceHash": "55e34217b4e8f9d8f41e5f65b684db8398779860bc0b7b671c8f61da56068b03",
+      "sourceHash": "3f57514553a051b6cdcb31303737197c61e774ae8e03f876080597e4341877eb",
       "issues": [],
       "unresolved": [
         {
@@ -49,7 +49,7 @@
     },
     {
       "themeId": "outlined-texture-duotone",
-      "sourceHash": "e166bfd2677d62b7f581936409259e5be915ae988a6ed0d2fe71f3c28880af15",
+      "sourceHash": "5bc7d27f5c54b9859b5780cb74793dbc78ea1602cc6887020114497da5c58374",
       "issues": [
         {
           "role": "page.secondary",
@@ -70,7 +70,7 @@
     },
     {
       "themeId": "soft-inset-surfaces",
-      "sourceHash": "343a8626c683cccbc70445559920a2554d84da273818e24effd0c11a5a642ef1",
+      "sourceHash": "91eecb94f5c2c1380e78bb65fe81872fd680feef3abaef86671725cd01d551d0",
       "issues": [
         {
           "role": "nav.selected",
@@ -202,7 +202,7 @@
     },
     {
       "themeId": "soft-rail-bold-band",
-      "sourceHash": "55812b07ab4c7eaaec776d2a9893f7d81847b448d5a50419fac1dada902be4dc",
+      "sourceHash": "03a697ad710cb5a1f83ddcfea286b613699978063cda7a9cae7e25f01a903116",
       "issues": [
         {
           "role": "search.placeholder",
@@ -230,7 +230,7 @@
     },
     {
       "themeId": "warm-canvas-contrast-panels",
-      "sourceHash": "c4be391815816364fa59f8c6520380e5c8121c929766662e5fd85d6c2dc5c3c5",
+      "sourceHash": "ca527e1d3baa22a23045578c4c821eb40a16767252a603e3fa1518974a1f965d",
       "issues": [
         {
           "role": "search.value",

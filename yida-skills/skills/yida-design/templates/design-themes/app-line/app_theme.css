@@ -811,3 +811,9 @@ body.pod-premium .flow-steps .next-step-dot
   .pod-premium .oyd-style-intro h1 { font-size: min(32px, var(--oyd-heading-size)); }
 }
 /* OPENYIDA APPLICATION STYLE RECIPES END */
+
+/* openyida-mobile-card-surface:start */
+:root {
+  --pod-card-mobile-border: none;
+}
+/* openyida-mobile-card-surface:end */

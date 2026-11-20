@@ -918,3 +918,9 @@ body.pod-premium .flow-steps .next-step-dot
   }
 }
 /* 植物浮雕 · 组件实现基线 END */
+
+/* openyida-mobile-card-surface:start */
+:root {
+  --pod-card-mobile-border: none;
+}
+/* openyida-mobile-card-surface:end */
