@@ -12,6 +12,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.11.20] - 2026-11-20
+
+- **导出已有 Canvas 页面源码**：使用 `openyida get-schema <appType> <formUuid> --canvas-source-dir <dir> --json`，一次将可编辑的 `page.canvas.jsx` 和完整的 `schema.json` 保存到新目录，并返回两个文件的路径。
+- **简化存量页面编辑**：本地缺少源码时，可从目标页面导出源码，并用同次导出的 Schema 核对数据源和页面配置，再对目标组件做局部修改。
+
 ## [2026.11.19] - 2026-11-19
 
 - **修复千问办公客户端 Plan 确认阻塞**：展示当前搭建方案后，可通过客户端的问答选项确认并继续使用 OpenYida CLI 搭建，无需跳转浏览器寻找确认入口或另建搭建任务。
