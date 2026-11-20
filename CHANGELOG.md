@@ -14,8 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [2026.11.20] - 2026-11-20
 
-- **导出已有 Canvas 页面源码**：使用 `openyida get-schema <appType> <formUuid> --canvas-source-dir <dir> --json`，一次将可编辑的 `page.canvas.jsx` 和完整的 `schema.json` 保存到新目录，并返回两个文件的路径。
-- **简化存量页面编辑**：本地缺少源码时，可从目标页面导出源码，并用同次导出的 Schema 核对数据源和页面配置，再对目标组件做局部修改。
+- **可以从已有自定义页面接着改**。给工作台加按钮、调整表单入口或修改某个区块时，即使本地没有保存原来的页面文件，OpenYida 也可以读取页面的当前版本，并以现有内容和配置为基础做局部修改。
 
 ## [2026.11.19] - 2026-11-19
 
