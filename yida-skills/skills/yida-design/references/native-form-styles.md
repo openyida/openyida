@@ -242,7 +242,7 @@ Fast 按[独立主题流程](../../yida-app/workflow/fast-build.md#2-同时准�
 | 详情卡片 / 自定义详情 | `--pod-card-bg-color`、`--pod-card-border`、`--pod-card-border-radius`、`--pod-page-inner-group-spacing`、`--pod-page-auto-width-margin` | PC 详情仍有固定最小宽度，不把提交页断点视为详情已支持移动布局 |
 | 详情记录历史 | `--pod-card-padding`、`--pod-card-bg-color`、`--pod-card-border`、`--pod-card-border-radius` | 历史面板仍有固定 max-width，源码中注释掉的内容宽度 token 不算有效消费 |
 | 门户 / 展示页卡片 | `--pod-card-*`、`--pod-page-inner-group-spacing` | 门户会在特定场景局部重新声明卡片边框，需检查实际作用域 |
-| 移动表单 / 移动详情 | `--pod-form-label-color`、`--pod-page-mobile-margin`（默认 16px）、`--pod-card-mobile-padding`（默认 16px）、`--pod-card-mobile-spacing`（默认 10px）、`--pod-form-mobile-row-gap`（默认 16px）；详情还用页面背景、组间距和外边距 | 新版移动表单由卡片统一 padding、容器统一字段 gap，保留显式 0 和自定义值；`--pod-page-mobile-padding` 是独立的页面内距，不代替卡片内距。Meet 控件与安全区有自己的消费路径，不把 PC StickyFooter 规则复制过去 |
+| 移动表单 / 移动详情 | `--pod-form-label-color`、`--pod-page-mobile-margin`（默认 16px）、`--pod-card-mobile-padding`（默认 16px）、`--pod-card-mobile-spacing`（默认 10px）、`--pod-form-mobile-row-gap`（默认 16px）、`--pod-card-mobile-border-radius`（默认 16px）；详情还用页面背景、组间距和外边距 | 新版移动表单由卡片统一 padding、容器统一字段 gap，保留显式 0 和自定义值；移动圆角独立于桌面 `--pod-card-border-radius`。`--pod-page-mobile-padding` 是独立的页面内距，不代替卡片内距。Meet 控件与安全区有自己的消费路径，不把 PC StickyFooter 规则复制过去 |
 
 公共定义中的 `--pod-detail-*`、`--pod-field-preview-*` 继续保留，但完整只读详情还涉及访问态 owner；不能仅凭本仓库的卡片样式就宣布所有详情字段已覆盖。同样，`--form-element-table-padding`、`--form-icon-scale` 等在本次页面扫描中落在 legacy 路径，不为“补齐 token”而迁到全局新主题。
 

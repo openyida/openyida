@@ -97,7 +97,7 @@ test('round-trips portal token inheritance, zero spacing, transparent colors and
   const { schema } = applyPortalConfig({ pages: [{}] }, config, target);
   const custom = {
     themePageWidth: 1440, themeContentTopMargin: 0, themeCardRadius: 0, themeCardMargin: 0,
-    themeCardPadding: 20, themeCardPaddingMobile: 8, themeTitleMargin: 0, themeInnerCardMargin: 12,
+    themeCardPadding: 20, themeCardPaddingMobile: 8, themeCardRadiusMobile: 0, themeTitleMargin: 0, themeInnerCardMargin: 12,
     themeInnerCardPadding: 0, themePageBackground: 'transparent', themeCardBackground: 'transparent',
     themeInfoColor: null, themeTitleColor: '#ffffff', themeCardTextColor: '#eeeeee',
     topPcImg: { type: 'custom', name: 'banner', value: 'https://example.com/pc.png', mobile: 'https://example.com/mobile.png', fit: 'contain' },
@@ -109,13 +109,14 @@ test('round-trips portal token inheritance, zero spacing, transparent colors and
   const disabled = applyPortalConfig(saved.schema, { theme: { topPcImg: {} } }, target);
   expect(editablePortalConfig(inspectPortal(disabled.schema)).config.theme.topPcImg).toEqual({});
   const inherited = applyPortalConfig(disabled.schema, {
-    theme: { topPcImg: null, themeContentTopMargin: null, themePageBackground: null, themeCardPaddingMobile: null },
+    theme: { topPcImg: null, themeContentTopMargin: null, themePageBackground: null, themeCardPaddingMobile: null, themeCardRadiusMobile: null },
   }, target);
   expect(editablePortalConfig(inspectPortal(inherited.schema)).config.theme).toMatchObject({
-    topPcImg: null, themeContentTopMargin: null, themePageBackground: null, themeCardPaddingMobile: null,
+    topPcImg: null, themeContentTopMargin: null, themePageBackground: null, themeCardPaddingMobile: null, themeCardRadiusMobile: null,
     themeTitleColor: custom.themeTitleColor, themeCardRadius: 0, themeCardPadding: 20,
   });
   expect(portalCatalog().theme.bindings.fields.themeCardPaddingMobile.token).toBe('--pod-card-mobile-padding');
+  expect(portalCatalog().theme.bindings.fields.themeCardRadiusMobile.token).toBe('--pod-card-mobile-border-radius');
   for (const theme of [{ themePageWidth: 0 }, { themeCardPadding: -1 }, { themeCardRadius: '0' }, { topPcImg: [] }]) {
     expect(() => applyPortalConfig(schema, { theme }, target)).toThrow(/Unsupported portal theme value/);
   }
