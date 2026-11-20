@@ -130,6 +130,24 @@ test('preserves existing legacy top-margin presets until explicitly rebound', ()
   expect(inspectPortal(rebound.schema).theme).toMatchObject({ topMargin: 'medium', themeContentTopMargin: null });
 });
 
+test('mobile card spacing round-trips independently and preserves omitted legacy values', () => {
+  const { schema } = applyPortalConfig({ pages: [{}] }, {
+    ...config, theme: { themeAppearanceMode: 'custom', themeCardMargin: 24 },
+  }, target);
+  expect(inspectPortal(schema).theme).not.toHaveProperty('themeCardMarginMobile');
+  expect(portalCatalog().theme.bindings.fields.themeCardMarginMobile.token).toBe('--pod-card-mobile-spacing');
+  for (const value of [0, 6, null]) {
+    const patched = applyPortalConfig(schema, { theme: { themeCardMarginMobile: value } }, target);
+    const editable = editablePortalConfig(inspectPortal(patched.schema)).config;
+    expect(editable.theme).toMatchObject({ themeCardMargin: 24, themeCardMarginMobile: value });
+    expect(applyPortalConfig(patched.schema, editable, target).changed).toBe(false);
+  }
+  for (const value of [-1, '10', {}, Infinity]) {
+    expect(() => applyPortalConfig(schema, { theme: { themeCardMarginMobile: value } }, target))
+      .toThrow(/Unsupported portal theme value/);
+  }
+});
+
 test('uses RGL desktop order by default and can preserve a distinct mobile order', () => {
   const { schema, tiles } = applyPortalConfig({ pages: [{}] }, config, target);
   const [favorites, recent, records] = tiles;

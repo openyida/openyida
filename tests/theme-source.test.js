@@ -213,17 +213,46 @@ test('report and portal theme defaults preserve authored values and stay idempot
   expect(css).toContain('--pod-chart-grid-line-color:');
   expect(css.match(/--pod-page-bg-image:/g)).toHaveLength(1);
   expect(css.match(/--pod-page-bg-color:/g)).toHaveLength(1);
-  expect(css).toContain('--pod-card-mobile-padding: 12px;');
-  expect(css).toContain('--pod-page-mobile-margin: 12px;');
+  expect(css).toContain('--pod-card-mobile-padding: 16px;');
+  expect(css).toContain('--pod-page-mobile-margin: 16px;');
+  expect(css).toContain('--pod-card-mobile-spacing: 10px;');
+  expect(css).toContain('--pod-form-mobile-row-gap: 16px;');
   expect(css).toContain('--pod-card-border-radius: 20px;');
   expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--pod-table-border-radius: 6px;/);
   expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-row-hover-bg:/);
   expect(applyReportThemeTokens(css)).toBe(css);
-  const overrides = ':root { --pod-page-mobile-margin: 24px; --pod-table-border-radius: 0px; }';
+  const overrides = ':root { --pod-page-mobile-margin: 24px; --pod-card-mobile-padding: 0px; --pod-card-mobile-spacing: 6px; --pod-form-mobile-row-gap: 0px; --pod-table-border-radius: 0px; }';
   const custom = applyReportThemeTokens(overrides);
   expect(custom.startsWith(overrides)).toBe(true);
   expect(custom.match(/--pod-page-mobile-margin:/g)).toHaveLength(1);
   expect(custom.match(/--pod-table-border-radius:/g)).toHaveLength(1);
+  for (const name of ['--pod-card-mobile-padding', '--pod-card-mobile-spacing', '--pod-form-mobile-row-gap']) {
+    expect(custom.match(new RegExp(name + ':', 'g'))).toHaveLength(1);
+  }
+  expect(applyReportThemeTokens(custom)).toBe(custom);
+});
+
+test('all paired themes generate current mobile spacing while retaining authored overrides', () => {
+  for (const theme of loadThemeIndex().themes.filter(item => item.mode === 'template')) {
+    const markdown = resolveThemeColors(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8')
+      .replaceAll('{{PRIMARY_COLOR}}', '#245B57'));
+    const css = generateThemeCss(markdown);
+    for (const [name, value] of Object.entries({
+      '--pod-page-mobile-margin': '16px', '--pod-card-mobile-padding': '16px',
+      '--pod-card-mobile-spacing': '10px', '--pod-form-mobile-row-gap': '16px',
+    })) {
+      expect(css).toContain(`${name}: ${value};`);
+    }
+    const { metadata, body } = parseDesignDocument(markdown);
+    metadata.tokens.mobileSpacing = {
+      '--pod-page-mobile-margin': '24px', '--pod-card-mobile-padding': '0px',
+      '--pod-card-mobile-spacing': '6px', '--pod-form-mobile-row-gap': '0px',
+    };
+    const updated = generateThemeCss(serializeDesignDocument(metadata, body), css, markdown);
+    for (const [name, value] of Object.entries(metadata.tokens.mobileSpacing)) {
+      expect(updated).toContain(`${name}: ${value};`);
+    }
+  }
 });
 
 test('generated themes fill mobile aliases and keep authored categorical palettes', () => {
