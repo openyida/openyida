@@ -897,6 +897,7 @@ module.exports = {
     error: '\n❌ Lỗi tạo trang: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'Để xuất, trang phải có một thành phần YidaCodeCanvas và mã nguồn có thể chỉnh sửa. Hãy kiểm tra loại trang và mã nguồn trong trình thiết kế.',
     title: '  get-schema - Công cụ lấy schema biểu mẫu Yida',
     usage: 'Cách dùng: openyida get-schema <appType> <formUuid>',
     example: 'Example: openyida get-schema "APP_XXX" "FORM-XXX"; openyida get-schema "APP_XXX" --all --output-dir .cache/schemas',

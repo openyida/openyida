@@ -897,6 +897,7 @@ module.exports = {
     error: '\n❌ Error de creación: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'Para exportar, la página debe incluir un único componente YidaCodeCanvas y código fuente editable. Compruebe el tipo de página y el código en el diseñador.',
     title: '  get-schema - Herramienta de obtención de esquema Yida',
     usage: 'Uso: openyida get-schema <appType> <formUuid>',
     example: 'Example: openyida get-schema "APP_XXX" "FORM-XXX"; openyida get-schema "APP_XXX" --all --output-dir .cache/schemas',

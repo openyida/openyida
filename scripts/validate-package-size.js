@@ -271,7 +271,9 @@ const MAX_TARBALL_BYTES = 2800 * 1024;
 // unpacked bytes on Node 20; retain the next 16 KiB boundary. Gzip cap stays fixed.
 // DataV theme creation/editing and capability guidance measures 10,406,101
 // unpacked bytes / 822 files; retain the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 10176 * 1024;
+// Canvas source export and its skill guidance measure 10,421,638 bytes on Node 20.
+// Round to the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 10192 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.

@@ -897,6 +897,7 @@ module.exports = {
     error: '\n❌ 커스텀 페이지 생성 오류: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: '내보내려면 페이지에 YidaCodeCanvas 구성요소 하나와 편집 가능한 소스가 필요합니다. 디자이너에서 페이지 유형과 소스를 확인하세요.',
     title: '  get-schema - Yida 폼 스키마 조회 도구',
     usage: '사용법: openyida get-schema <appType> <formUuid>',
     example: '예시: openyida get-schema "APP_XXX" "FORM-XXX"',

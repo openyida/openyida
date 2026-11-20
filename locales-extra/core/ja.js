@@ -866,6 +866,7 @@ module.exports = {
     failed: '  ❌ 作成に失敗しました: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'エクスポートには、YidaCodeCanvas コンポーネントが 1 つあり、編集可能なソースが必要です。デザイナーでページの種類とソースを確認してください。',
     title: '  openyida get-schema - Yida フォーム Schema 取得ツール',
     usage: 'Usage: openyida get-schema <appType> <formUuid>',
     example: '例: openyida get-schema "APP_XXX" "FORM-XXX"',

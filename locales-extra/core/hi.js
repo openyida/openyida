@@ -897,6 +897,7 @@ module.exports = {
     error: '\n❌ निर्माण त्रुटि: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'निर्यात के लिए पेज में एक YidaCodeCanvas घटक और संपादन योग्य स्रोत कोड होना चाहिए। डिज़ाइनर में पेज का प्रकार और स्रोत कोड जाँचें।',
     title: '  get-schema - Yida फॉर्म स्कीमा प्राप्ति टूल',
     usage: 'उपयोग: openyida get-schema <appType> <formUuid>',
     example: 'Example: openyida get-schema "APP_XXX" "FORM-XXX"; openyida get-schema "APP_XXX" --all --output-dir .cache/schemas',

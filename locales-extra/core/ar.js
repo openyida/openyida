@@ -897,6 +897,7 @@ module.exports = {
     error: '\n❌ خطأ في الإنشاء: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'يتطلب التصدير صفحة تحتوي على مكوّن YidaCodeCanvas واحد وشفرة مصدر قابلة للتحرير. تحقّق من نوع الصفحة والشفرة في المصمم.',
     title: '  get-schema - أداة استرداد مخطط النموذج في Yida',
     usage: 'الاستخدام: openyida get-schema <appType> <formUuid>',
     example: 'Example: openyida get-schema "APP_XXX" "FORM-XXX"; openyida get-schema "APP_XXX" --all --output-dir .cache/schemas',
