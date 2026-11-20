@@ -63,7 +63,7 @@
 - 手机默认单列，顺序按桌面的 `y`、`x` 排。用顶层 `"mobileOrder":["entry","metrics","tasks"]` 将指定磁贴提前，接受本次配置的 `key` 或已有 `fieldId`。其余磁贴保持相对顺序；`"mobileOrder":"desktop"` 恢复按桌面坐标，PC 专用磁贴无需加入。回读 `mobileLayout` 并打开移动端预览。宽表可保留在 PC，手机用入口直达相应列表。
 - 新版应用主题由 `isUseNewAppThemeStyle()` 决定。已有门户保留页面主题和单项自定义值。组件支持「跟随主题」时优先使用平台选项。新门户以应用品牌色作强调色，背景、表面、边距和圆角走平台主题变量；创建 CLI 保存磁贴时保留主题属性。用实际工作台确认 CSS 已加载，尤其是背景图、移动边距和卡片文字对比度。
 
-- 新版移动主题页边距跟随 `--pod-page-mobile-margin`（默认 16px），卡片内边距跟随 `--pod-card-mobile-padding`（默认 16px），卡片间距跟随 `--pod-card-mobile-spacing`（默认 10px）。通过 `themeCardMarginMobile` 单独配置移动端卡片间距，传 `null` 恢复主题继承；历史页面未设置该字段时，运行时保留显式 `themeCardMargin` 的兼容语义。强调色跟随 `--color-brand1-6`。新版字段需要对应版本的门户设计器和运行时，在目标环境核对实际渲染。
+- 新版移动主题页边距跟随 `--pod-page-mobile-margin`（默认 16px），卡片内边距跟随 `--pod-card-mobile-padding`（默认 16px），卡片间距跟随 `--pod-card-mobile-spacing`（默认 10px），卡片圆角跟随 `--pod-card-mobile-border-radius`（默认 16px）。通过 `themeCardMarginMobile`、`themeCardRadiusMobile` 单独配置移动端卡片间距与圆角，传 `null` 恢复主题继承；历史页面未设置移动端字段时，运行时保留原共用配置。强调色跟随 `--color-brand1-6`。新版字段需要对应版本的门户设计器和运行时，在目标环境核对实际渲染。
 
 ### 两种常用搭配
 

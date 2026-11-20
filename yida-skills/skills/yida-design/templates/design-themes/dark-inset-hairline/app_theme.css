@@ -156,6 +156,7 @@
   /* 卡片 */
   --pod-card-padding: 20px;
   --pod-card-mobile-padding: 16px;
+  --pod-card-mobile-border-radius: 16px;
   --pod-card-mobile-spacing: 10px;
   --pod-form-mobile-row-gap: 16px;
   --pod-card-border-radius: var(--pod-xl-border-radius, 20px);

@@ -214,6 +214,7 @@ test('report and portal theme defaults preserve authored values and stay idempot
   expect(css.match(/--pod-page-bg-image:/g)).toHaveLength(1);
   expect(css.match(/--pod-page-bg-color:/g)).toHaveLength(1);
   expect(css).toContain('--pod-card-mobile-padding: 16px;');
+  expect(css).toContain('--pod-card-mobile-border-radius: 16px;');
   expect(css).toContain('--pod-page-mobile-margin: 16px;');
   expect(css).toContain('--pod-card-mobile-spacing: 10px;');
   expect(css).toContain('--pod-form-mobile-row-gap: 16px;');
@@ -240,6 +241,7 @@ test('all paired themes generate current mobile spacing while retaining authored
     for (const [name, value] of Object.entries({
       '--pod-page-mobile-margin': '16px', '--pod-card-mobile-padding': '16px',
       '--pod-card-mobile-spacing': '10px', '--pod-form-mobile-row-gap': '16px',
+      '--pod-card-mobile-border-radius': '16px',
     })) {
       expect(css).toContain(`${name}: ${value};`);
     }
@@ -247,6 +249,7 @@ test('all paired themes generate current mobile spacing while retaining authored
     metadata.tokens.mobileSpacing = {
       '--pod-page-mobile-margin': '24px', '--pod-card-mobile-padding': '0px',
       '--pod-card-mobile-spacing': '6px', '--pod-form-mobile-row-gap': '0px',
+      '--pod-card-mobile-border-radius': '0px',
     };
     const updated = generateThemeCss(serializeDesignDocument(metadata, body), css, markdown);
     for (const [name, value] of Object.entries(metadata.tokens.mobileSpacing)) {
