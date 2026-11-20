@@ -867,6 +867,7 @@ module.exports = {
     failed: '  ❌ 建立失敗：{0}'
   },
   get_schema: {
+    canvas_source_unavailable: '匯出需要頁面包含一個 YidaCodeCanvas 元件，且平台傳回可編輯的原始碼。請確認頁面類型和設計器中的原始碼。',
     title: '  openyida get-schema - 宜搭表單 Schema 取得工具',
     usage: '用法：openyida get-schema <appType> <formUuid>',
     example: '範例：openyida get-schema "APP_XXX" "FORM-XXX"',

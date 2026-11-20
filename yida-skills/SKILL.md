@@ -220,6 +220,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 提交后跨表写入/更新/删除 | 默认 `yida-integration`；用户明确要业务关联规则/高级函数时用 `yida-business-rule` |
 | 集成自动化定时、字段变化触发、并行循环、批量取数及生命周期管理 | `yida-integration` 的 `--spec` 路径，读取 `references/batch-data.md`；已有自动化按其更新能力处理 |
 | 自定义页面开发 | `yida-canvas-custom-page`，新建和默认页面源码开发入口，源码使用 `.canvas.jsx`；Canvas 发布层会自动注入 `window.__OPENYIDA_YIDA_API__` 和 `window.__OPENYIDA_UTILS__` |
+| 给已有 Canvas 页面加按钮、改交互或恢复本地缺失的源码 | 先用 `yida-openyida-publish-guard` 导出目标页源码和 Schema，再用 `yida-canvas-custom-page` 做局部修改 |
 | JSX 自定义页面开发 | `yida-custom-page`，仅用于已检测到的 `.oyd.jsx` / `.oyb.jsx` / `renderJsx` / 平台 `Jsx` 组件页面维护 |
 | `.canvas.jsx` 页面使用成员/部门/门户等宜搭运行态组件 | `yida-canvas-custom-page`，读取 `native-components-bridge.md` |
 | 自定义页面需要上传附件或图片 | `yida-canvas-custom-page`，必读 `references/file-upload.md`，提取 `canvas-file-upload` 示例；使用 OpenAPI 文件桥完成真实上传、确认和保存后绑定，仅支持登录用户 |
