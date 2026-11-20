@@ -752,3 +752,9 @@ body.pod-premium .flow-steps .next-step-dot
 .pod-premium .view-detail-footer .next-tabs-bar.detail-segmented-tabs {
   background: var(--color-fill1-1,);
 }
+
+/* openyida-mobile-card-surface:start */
+:root {
+  --pod-card-mobile-border: none;
+}
+/* openyida-mobile-card-surface:end */

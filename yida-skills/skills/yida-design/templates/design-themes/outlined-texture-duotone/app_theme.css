@@ -877,3 +877,9 @@ vc-deep-container-entry vc-rootcontent {
 
 
 /* openyida-navigation-shape:end */
+
+/* openyida-mobile-card-surface:start */
+:root {
+  --pod-card-mobile-border: var(--pod-card-border);
+}
+/* openyida-mobile-card-surface:end */

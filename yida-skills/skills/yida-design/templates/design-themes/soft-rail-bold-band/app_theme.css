@@ -897,3 +897,9 @@ body.pod-premium .flow-steps .next-step-dot
 }
 
 /* openyida-navigation-shape:end */
+
+/* openyida-mobile-card-surface:start */
+:root {
+  --pod-card-mobile-border: var(--pod-card-border);
+}
+/* openyida-mobile-card-surface:end */

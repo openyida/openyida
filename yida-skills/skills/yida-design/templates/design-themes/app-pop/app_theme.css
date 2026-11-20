@@ -1000,3 +1000,9 @@ body.pod-premium.page-type-detail .next-btn.actionBtnDisabled {
   opacity: .45;
   transform: none !important;
 }
+
+/* openyida-mobile-card-surface:start */
+:root {
+  --pod-card-mobile-border: none;
+}
+/* openyida-mobile-card-surface:end */

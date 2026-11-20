@@ -770,3 +770,9 @@ body.pod-premium .flow-steps .next-step-dot
 .pod-premium :is(.next-shell-content, .yida-data-manage-drawer, .drawer-container) {
   --pod-shell-theme-bg-color: var(--pod-page-bg-color);
 }
+
+/* openyida-mobile-card-surface:start */
+:root {
+  --pod-card-mobile-border: var(--pod-card-border);
+}
+/* openyida-mobile-card-surface:end */
