@@ -1872,10 +1872,24 @@
       "requires_login": false
     },
     {
+      "name": "report-to-native-datav",
+      "path": "skills/report-to-native-datav/SKILL.md",
+      "display_name": "报表转原生大屏",
+      "description": "将宜搭原生报表的分析口径搭建为对应的原生 DataV 大屏，保留两端入口，逐图对照维度、指标、聚合、时间粒度和筛选。图层创建和首次绑定通过原生设计器完成。",
+      "category": "yida-skills/analytics",
+      "tags": ["原生报表", "原生大屏", "DataV", "对照验证"],
+      "aliases": ["report-to-native-datav", "报表转原生大屏", "原生报表与大屏对照"],
+      "positive_signals": ["原生报表转原生大屏", "基于报表搭建DataV", "报表和原生大屏都搭建", "对照报表与原生大屏"],
+      "negative_signals": ["仅创建报表", "自定义大屏", "仅修改大屏名称"],
+      "command_ids": ["report.inspect", "get-schema", "create-report", "app-theme.snapshot", "datav.create", "datav.inspect", "datav.components", "datav.config", "datav.data", "datav.configure-data"],
+      "done_when": "原生报表和原生大屏均可访问，要求的图表已配置，实际查询结果按维度和指标逐项对照，明确未支持项。",
+      "requires_login": true
+    },
+    {
       "name": "yida-datav",
       "path": "skills/yida-datav/SKILL.md",
       "display_name": "宜搭原生大屏",
-      "description": "仅显式宜搭原生数字大屏、原生数据大屏或 DataV 大屏时使用：模板、组件目录与参数、图层配置查询，异步创建、复制、状态回读、改名和发布。普通大屏使用自定义页面。",
+      "description": "仅显式宜搭原生数字大屏、原生数据大屏或 DataV 大屏时使用：模板、组件参数与图层配置查询，异步创建、复制、状态回读、改名、发布，以及已有图层的宜搭数据查询读取和更新。普通大屏使用自定义页面。",
       "category": "yida-skills/analytics",
       "tags": [
         "原生大屏",
@@ -1901,6 +1915,10 @@
         "datav.templates",
         "datav.create",
         "datav.inspect",
+        "datav.components",
+        "datav.config",
+        "datav.data",
+        "datav.configure-data",
         "datav.copy",
         "datav.rename",
         "datav.publish"

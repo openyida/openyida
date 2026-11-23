@@ -6,6 +6,7 @@ jest.mock('../lib/core/yida-client', () => {
 });
 jest.mock('../lib/app/get-form-config', () => ({ fetchFormSchemaInfo: jest.fn() }));
 jest.mock('../lib/app/datav-designer', () => ({ read: jest.fn() }));
+jest.mock('../lib/app/datav-data', () => ({ run: jest.fn() }));
 
 const { createYidaClient } = require('../lib/core/yida-client');
 const { fetchFormSchemaInfo } = require('../lib/app/get-form-config');
@@ -32,6 +33,17 @@ beforeEach(() => {
 afterEach(() => {jest.restoreAllMocks();});
 
 function receipt() {return JSON.parse(output.mock.calls.at(-1)[0]);}
+
+test.each(['data', 'configure-data'])('routes %s through the verified native resource', async action => {
+  const data = require('../lib/app/datav-data');
+  data.run.mockResolvedValue({ component: 'bar_1', query: {}, runtimeVerified: false });
+  const extra = action === 'configure-data' ? ['--query-file', 'query.json', '--expected-hash', 'sha256:' + 'a'.repeat(64)] : [];
+  await run([action, app, form, '--component', 'bar_1', ...extra, '--json']);
+  expect(data.run).toHaveBeenCalledWith(client, expect.objectContaining({ appType: app, formUuid: form, datavId: 37 }),
+    expect.objectContaining({ action, component: 'bar_1' }));
+  expect(receipt()).toMatchObject({ success: true, component: 'bar_1', runtimeVerified: false });
+  expect(client.postFormOnce).not.toHaveBeenCalled();
+});
 
 test('creation matches the platform template payload and verifies async readiness', async () => {
   await run(['create', app, 'Operations', '--template', '123', '--locale', 'en_US', '--json']);

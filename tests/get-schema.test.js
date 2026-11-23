@@ -70,6 +70,7 @@ describe('parseArgs', () => {
       formUuid: '',
       all: true,
       outputDir: '.cache/schemas',
+      canvasSourceDir: '',
       concurrency: 6,
       retries: 2,
       keyword: '客户',
@@ -116,6 +117,117 @@ describe('parseArgs', () => {
     expect(parseArgs(['APP_XXX', 'FORM-AAA', '--field-map-json']).summaryJson).toBe(true);
     expect(parseArgs(['APP_XXX', 'FORM-AAA', '--field-map']).summaryJson).toBe(false);
     expect(parseArgs(['APP_XXX', 'FORM-AAA', '--analysis-json']).analysisJson).toBe(true);
+  });
+});
+
+describe('run --canvas-source-dir', () => {
+  const source = 'export default function Page() { return <main>任务反馈</main>; }\r\n';
+  const runtime = 'function YidaComp() { return null; }';
+  const canvas = props => ({ componentName: 'YidaCodeCanvas', id: 'canvas-1', props });
+  const makeSchema = (...children) => ({
+    success: true,
+    content: JSON.stringify({
+      pages: [{ componentsTree: [{ componentName: 'Page', children }], dataSource: { online: [{ id: 'tasks' }] } }],
+    }),
+  });
+  let root;
+  let outputDir;
+  let stdout;
+
+  beforeEach(() => {
+    root = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-canvas-source-'));
+    outputDir = path.join(root, 'cache', 'current');
+    stdout = jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(process.stderr, 'write').mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  test('exports inline source byte-for-byte and returns only the local file receipt', async () => {
+    const result = makeSchema(canvas({ code: source, runtimeCode: runtime }));
+    utils.httpGet.mockResolvedValue(result);
+
+    await run(['APP_XXX', 'FORM-XXX', '--canvas-source-dir', outputDir, '--json']);
+
+    const receipt = JSON.parse(stdout.mock.calls[0][0]);
+    expect(receipt).toEqual({
+      success: true, appType: 'APP_XXX', formUuid: 'FORM-XXX',
+      schemaFile: path.join(outputDir, 'schema.json'),
+      sourceFile: path.join(outputDir, 'page.canvas.jsx'),
+    });
+    expect(stdout).toHaveBeenCalledTimes(1);
+    expect(fs.readFileSync(receipt.sourceFile, 'utf8')).toBe(source);
+    expect(JSON.parse(fs.readFileSync(receipt.schemaFile, 'utf8'))).toEqual(result);
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+    expect(utils.httpGetCodeBundleText).not.toHaveBeenCalled();
+  });
+
+  test('exports verified CodeBundle source with the same resolved schema', async () => {
+    const artifact = text => ({
+      size: Buffer.byteLength(text, 'utf8'),
+      sha256: crypto.createHash('sha256').update(text).digest('hex'),
+    });
+    utils.httpGet.mockResolvedValue(makeSchema(canvas({
+      codeBundle: { bundleId: 'a'.repeat(64), source: artifact(source), runtime: artifact(runtime) },
+    })));
+    utils.httpGetCodeBundleText.mockResolvedValueOnce(source).mockResolvedValueOnce(runtime);
+
+    await run(['APP_XXX', 'FORM-XXX', `--canvas-source-dir=${outputDir}`]);
+
+    const { sourceFile, schemaFile } = JSON.parse(stdout.mock.calls[0][0]);
+    expect(fs.readFileSync(sourceFile, 'utf8')).toBe(source);
+    const schema = JSON.parse(JSON.parse(fs.readFileSync(schemaFile, 'utf8')).content);
+    expect(schema.pages[0].dataSource.online).toEqual([{ id: 'tasks' }]);
+    expect(schema.pages[0].componentsTree[0].children[0].props).toEqual({ code: source, runtimeCode: runtime });
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+    expect(utils.httpGetCodeBundleText).toHaveBeenCalledTimes(2);
+  });
+
+  test.each([
+    [[], 0],
+    [[canvas({ runtimeCode: runtime })], 1],
+    [[canvas({ code: source }), canvas({ code: source })], 2],
+  ])('rejects unavailable or ambiguous source without writing files', async (children, canvasCount) => {
+    utils.httpGet.mockResolvedValue(makeSchema(...children));
+    await expect(run(['APP_XXX', 'FORM-XXX', '--canvas-source-dir', outputDir]))
+      .rejects.toMatchObject({ code: 'CANVAS_SOURCE_UNAVAILABLE', details: { canvasCount } });
+    expect(fs.existsSync(outputDir)).toBe(false);
+    expect(stdout).not.toHaveBeenCalled();
+  });
+
+  test('preserves an existing directory and its source file', async () => {
+    fs.mkdirSync(outputDir, { recursive: true });
+    const existing = path.join(outputDir, 'page.canvas.jsx');
+    fs.writeFileSync(existing, 'local edits');
+    utils.httpGet.mockResolvedValue(makeSchema(canvas({ code: source })));
+
+    await expect(run(['APP_XXX', 'FORM-XXX', '--canvas-source-dir', outputDir]))
+      .rejects.toMatchObject({ code: 'EEXIST' });
+    expect(fs.readFileSync(existing, 'utf8')).toBe('local edits');
+    expect(fs.existsSync(path.join(outputDir, 'schema.json'))).toBe(false);
+  });
+
+  test('removes a partial export when writing the source fails', async () => {
+    utils.httpGet.mockResolvedValue(makeSchema(canvas({ code: source })));
+    const writeFile = fs.writeFileSync;
+    jest.spyOn(fs, 'writeFileSync').mockImplementation((file, ...args) => {
+      if (file === path.join(outputDir, 'page.canvas.jsx')) {throw new Error('write failed');}
+      return writeFile(file, ...args);
+    });
+
+    await expect(run(['APP_XXX', 'FORM-XXX', '--canvas-source-dir', outputDir])).rejects.toThrow('write failed');
+    expect(fs.existsSync(outputDir)).toBe(false);
+    expect(stdout).not.toHaveBeenCalled();
+  });
+
+  test.each(['--all', '--compact', '--summary-json', '--analysis-json'])('rejects %s with source export before a request', async (flag) => {
+    await expect(run(['APP_XXX', 'FORM-XXX', '--canvas-source-dir', outputDir, flag]))
+      .rejects.toMatchObject({ code: 'CLI_INVALID_ARGUMENTS' });
+    expect(utils.loadAuthData).not.toHaveBeenCalled();
   });
 });
 

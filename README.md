@@ -548,7 +548,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida form-view <list\|inspect\|save\|create\|order\|rename\|add-button> <appType> <formUuid> [viewUuid] [--config <file>] [--name <title>] [--button <buttonUuid>] [--with-config] [--expected-hash <hash>] [--backup <file>] [--replace] [--json]` | Native form views: list, inspect and configure columns, widths, frozen columns and filters |
 | `openyida custom-button <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | Native custom buttons: inspect and configure form edits, automation flows and page links |
 | `openyida form-message <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | Native form notifications: inspect triggers, recipients and templates, then safely maintain bindings |
-| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | Get one form Schema or all form Schemas |
+| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json\|--canvas-source-dir <dir>]` | Get one form Schema or all form Schemas |
 | `openyida check-prd-completeness (<prd.md> [--build-manifest <file>] \| --build-spec <build-context.json> [--build-manifest <file>] \| --manifest-only --build-manifest <file>) --app-type <appType> [--json]` | Check resources, navigation visibility and application theme |
 | `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | Validate design documents, theme tokens and PRD handoff |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | Export app entity relationship diagram |
@@ -559,6 +559,8 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida datav inspect <appType> <formUuid> [--json]` | Inspect native DataV status and URLs |
 | `openyida datav components <appType> <formUuid> [--component <value>] [--category <value>] [--search <value>] [--json]` | List DataV components and parameter definitions |
 | `openyida datav config <appType> <formUuid> [--component <value>] [--json]` | Read DataV canvas and layer configuration |
+| `openyida datav data <appType> <formUuid> --component <value> [--json]` | Read a native DataV YiDA query and configuration hash |
+| `openyida datav configure-data <appType> <formUuid> --component <value> --query-file <value> --expected-hash <value> [--json]` | Update the YiDA query of an existing DataV layer |
 | `openyida datav copy <appType> <formUuid> <name> [--locale <value>] [--wait-seconds <value>] [--json]` | Copy a native DataV screen |
 | `openyida datav rename <appType> <formUuid> <name> [--locale <value>] [--json]` | Rename a native DataV screen |
 | `openyida datav publish <appType> <formUuid> --confirm [--json]` | Publish and enable a native DataV screen |
