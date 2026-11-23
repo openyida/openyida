@@ -117,6 +117,7 @@
   --pod-app-root-bg-color: #ffffff;
   --pod-app-root-bg-image: none;
   --pod-page-bg-color: #ffffff;
+  --pod-page-mobile-bg-color: var(--pod-page-bg-color);
   --pod-card-bg-color: #ffffff;
   --pod-table-cell-color: var(--pod-card-bg-color);
   --color-white: var(--pod-card-bg-color);
@@ -421,10 +422,14 @@ body.pod-premium.page-type-submit .vc-shell-without-nav.pod-premium {
   background-size: cover;
 }
 
-/* 原生详情属于内容区，独立页面和抽屉内都沿用内容画布与前景。 */
+/* 详情壳层：PC 应用外衬，移动端独立底色。 */
 body.pod-premium.page-type-detail .vc-shell-without-nav.pod-premium {
-  background-color: var(--pod-page-bg-color, var(--color-white, #fff));
+  background-color: var(--pod-app-root-bg-color, var(--pod-page-bg-color, #fff));
   --pod-theme-text-color: var(--color-text1-4, #202020);
+}
+
+body.pod-premium.page-type-detail .vc-shell-without-nav.is-phone {
+  background-color: var(--pod-page-mobile-bg-color, var(--pod-page-bg-color, #fff));
 }
 
 /* 详情顶栏的独立图标使用内容文字色，保留按钮自身的禁用状态。 */
