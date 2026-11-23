@@ -415,7 +415,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida form-view <list\|inspect\|save\|create\|order\|rename\|add-button> <appType> <formUuid> [viewUuid] [--config <file>] [--name <title>] [--button <buttonUuid>] [--with-config] [--expected-hash <hash>] [--backup <file>] [--replace] [--json]` | 原生表单视图：查询、检查并配置显示列、列宽、冻结列和筛选 |
 | `openyida custom-button <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | 原生自定义按钮：查询、配置填写表单、自动化流及页面跳转 |
 | `openyida form-message <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | 原生表单消息通知：查询触发、接收对象与模板并安全维护配置 |
-| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | 获取单个或全部表单 Schema |
+| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json\|--canvas-source-dir <dir>]` | 获取单个或全部表单 Schema |
 | `openyida check-prd-completeness (<prd.md> [--build-manifest <file>] \| --build-spec <build-context.json> [--build-manifest <file>] \| --manifest-only --build-manifest <file>) --app-type <appType> [--json]` | 检查资源、导航显隐及应用主题 |
 | `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | 检查设计文档、主题变量与 PRD 交接 |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | 导出应用实体关系图 |
@@ -426,6 +426,8 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida datav inspect <appType> <formUuid> [--json]` | 回读原生大屏状态与入口 |
 | `openyida datav components <appType> <formUuid> [--component <value>] [--category <value>] [--search <value>] [--json]` | 查询大屏组件目录与参数定义 |
 | `openyida datav config <appType> <formUuid> [--component <value>] [--json]` | 读取大屏画布与图层配置 |
+| `openyida datav data <appType> <formUuid> --component <value> [--json]` | 读取大屏宜搭数据查询与配置哈希 |
+| `openyida datav configure-data <appType> <formUuid> --component <value> --query-file <value> --expected-hash <value> [--json]` | 更新已有大屏图层的宜搭数据查询 |
 | `openyida datav copy <appType> <formUuid> <name> [--locale <value>] [--wait-seconds <value>] [--json]` | 复制宜搭原生大屏 |
 | `openyida datav rename <appType> <formUuid> <name> [--locale <value>] [--json]` | 修改原生大屏名称 |
 | `openyida datav publish <appType> <formUuid> --confirm [--json]` | 发布并启用原生 DataV 大屏 |

@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: 'Plan',
+    confirmation_build_description: 'Créer l’application, les formulaires, les processus et les pages selon ce plan.',
+    confirmation_edit_description: 'Affiner ce plan avant de confirmer la création.',
     confirmation_required: 'La confirmation nécessite un instantané et une révision du plan actuel. Générez le plan au préalable.',
     rebase_required: 'Avant la première génération, corrigez business.json/visual.json. Si le plan principal a changé, conservez les fichiers et ajoutez --rebase-parts à la commande initiale.',
     baseline_missing: 'Restaurez le fichier .build-plan-base.json correspondant depuis son espace initial. Sans base fiable, conservez les brouillons et signalez le blocage.',
@@ -213,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: 'Inspecter le statut et les URL DataV',
     cmd_datav_components: 'Lister les composants DataV et leurs paramètres',
     cmd_datav_config: 'Lire la configuration du canevas et des calques DataV',
+    cmd_datav_data: 'Lire la requête YiDA et le hachage de configuration DataV',
+    cmd_datav_configure_data: 'Mettre à jour la requête YiDA d’un calque DataV existant',
     cmd_datav_copy: 'Copier un écran DataV natif',
     cmd_datav_rename: 'Renommer un écran DataV natif',
     cmd_datav_publish: 'Publier et activer un écran DataV natif',
@@ -894,6 +899,7 @@ module.exports = {
     error: '\n❌ Erreur de création : {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'L’export exige une page contenant un seul composant YidaCodeCanvas et un code source modifiable. Vérifiez le type de page et le code dans le concepteur.',
     title: '  get-schema - Outil de récupération du schéma Yida',
     usage: 'Utilisation : openyida get-schema <appType> <formUuid>',
     example: 'Example: openyida get-schema "APP_XXX" "FORM-XXX"; openyida get-schema "APP_XXX" --all --output-dir .cache/schemas',

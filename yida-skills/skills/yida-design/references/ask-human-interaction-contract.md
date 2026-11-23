@@ -116,9 +116,9 @@ Fast / Plan 是面向用户的模式名称，仅在首轮澄清后的模式路�
 
 技能文档使用 `ask_human` 表示“向用户提问并等待回答”的逻辑动作。所有环境都用它收集风格选择；只有用户明确要求时才按[预览规则](theme-selection.md#选择时展示名称与效果图)展示卡片或图文，预览不提交答案。按[交互顺序](theme-selection.md#交互顺序)将已准备好的风格题与当前必要问题合并到同一次问答，同一任务最多一个待答交互：
 
-1. 使用当前宿主实际可用、当前模式允许的结构化工具；同步工具受限时优先使用可用且允许的异步工具。不能因为工具存在就调用模式禁止的能力。
+1. 使用当前宿主实际可用、当前模式允许的结构化工具；千问办公客户端可直接使用 `AskUserQuestion`，其他宿主使用其等价工具，同步工具受限时优先使用允许的异步工具。先检查宿主原生工具；MCP 搜索不到名为 `ask_human` 的工具不代表没有问答能力。不能因为工具存在就调用模式禁止的能力。
 2. 一般需求澄清在无可用工具或工具失败时可按宿主规则在对话中补问；**方案执行确认不适用此降级**：必须实际调用 `ask_human` 或宿主允许的等价结构化工具。工具不可用或失败时保留 `awaiting_confirmation` 并说明阻塞，不用普通文字代替、不切换 Fast、不创建/更新/发布业务资源。
-3. 工具名称与参数以实际 schema 为准。下面的逻辑字段用于表达意图，不强行传入宿主不支持的字段；多选能力不存在时使用用途清楚的功能组合或自由输入，不伪造 multi_choice。
+3. 工具名称与参数以实际 schema 为准。下面的逻辑字段用于表达意图，不强行传入宿主不支持的字段；缺少 `attachments` 或 `revision` 参数时按下方客户端确认路径关联方案，不将其判为工具不可用。多选能力不存在时使用用途清楚的功能组合或自由输入，不伪造 multi_choice。
 4. 异步返回、默认勾选、未回复和超时都不是答案。收到有效回答后才写回对应业务字段；用户委托时保留依据，AI 决定不记成用户选择。
 5. 一题一个决定，同一次调用可包含多个独立问题。风格候选已准备好时与需求、模式题同轮提交；只因真实答案依赖或宿主限制拆分，不机械追加风格轮次。工具已有自由输入时不另设“其他”，不为问题数量限制合并模式、功能、风格等无关决定。首轮通常 1–3 题，删去低价值扩展，不机械拆轮。
 
@@ -151,14 +151,14 @@ Fast / Plan 是面向用户的模式名称，仅在首轮澄清后的模式路�
 
 下面的附件与版本约束用于搭建、美化方案等执行审批。用户主动索取的风格效果参考不属于执行审批，可先独立展示，再沿用同一轮风格问题收集选择。
 
-需要让用户查看待批准的 workspace 产物后再回答时，同一次 `ask_human` 还必须携带：
+宿主支持附件和版本参数时，在同一次 `ask_human` 中携带：
 
 - `attachments`：待查看文件列表；workspace 文件使用 `{ "name": "搭建方案", "path": "prd/<项目名>/build-plan-<content-sha256>.html" }`。路径必须位于当前项目工作区，不能传运行时内部路径或外部绝对路径。
 - `revision`：本次问题绑定的事实版本。宿主提交回答时必须原样回传；版本已变化时拒绝旧回答并重新展示最新版本。
 
-附件、问题与 `revision` 是一个原子交互。不得先发普通文本附件、再单独调用 `ask_human`，也不得只在问题文案中写文件路径；否则实时界面和历史回放无法可靠证明用户确认的是哪一版方案。
+这条路径中附件、问题与 `revision` 是一个原子交互。普通客户端使用下方“客户端问答确认”路径，由 Agent 将方案快照、版本与真实问答关联；无需为此扩展宿主工具参数。
 
-已有资源美化使用 [ui-improve](../sub_skill/ui-improve/SKILL.md) 的视觉方案和验收流程，不使用下文首次搭建的固定两选项 payload。宿主缺少附件或 revision 能力时，仅按该流程的降级契约在同次问题提供不可变方案链接，并保存真实交互与版本关联；不得伪造附件、回答或版本字段，未取得明确同意不得写入。首次搭建的原子附件契约保持不变。
+已有资源美化使用 [ui-improve](../sub_skill/ui-improve/SKILL.md) 的视觉方案和验收流程，不使用下文首次搭建的固定两选项 payload。其缺少附件或 revision 能力时的处理仍按该流程执行，不得伪造附件、回答或版本字段，未取得明确同意不得写入。
 
 ## 首次搭建确认
 
@@ -173,15 +173,15 @@ Fast / Plan 是面向用户的模式名称，仅在首轮澄清后的模式路�
 Plan Design 完成当前版本后必须实际发起结构化确认；明确风格、关闭主题预览、需求已确认均不免除方案确认。生成 HTML、展示链接、输出确认文案或 JSON、手写 confirmed 字段都不是调用证据。异步 queued/pending 后等待真实回答，不启动实施任务；仅已有同版有效确认时复用。按以下顺序执行：
 
 1. 在会话中使用“搭建方案”或“当前方案”，给出 3-7 条业务摘要。用户可见的 PRD / HTML 标题、摘要、附件名称和确认问题都不展示修订序号或原始 `meta.revision`；修订标识仅保留在内部元数据和确认字段中。
-2. 在“最新搭建计划确认”的同一次 `ask_human` 中，通过 `attachments` 原样使用 CLI 返回的 `confirmation.attachments` 展示可打开的内容快照，并以 `revision` 绑定当前 `meta.revision`。
+2. 按实际工具能力选择确认路径：支持附件与版本时，在同一次 `ask_human` 中原样使用 `confirmation.attachments` 和 `revision`；千问办公客户端使用下方 `AskUserQuestion` 路径展示同一快照并记录关联。已有明确的搭建授权时只确认当前方案，不重问需求或平台选择。
 3. 结构化交互成功创建后将 `meta.planState.presentedRevision=meta.revision` 写回源 JSON，不再物化；awaiting_confirmation 在生成前写入。
 4. 提供“确认并开始搭建”和“继续调整”两个选择，并等待用户回答。
 
 `build-plan.html` 是可更新的编辑产物；确认附件必须使用 `materialize` 或 `patch --materialize` 返回的 `confirmation.attachments`（路径等于 `outputs.confirmationHtml`），不能自行拼接 canonical 路径或覆盖快照。快照包含最终合并后的 HTML，本地补充和素材变化也会产生新内容地址。HTML 不承载对话控件或确认按钮；用户在会话中完成确认。
 
-managed Local Agent 通过 `openyida agent ask-human` 提问时，必须将下方云端 payload 封装为本地 CLI 问题文件：`title/revision/attachments` 保留在顶层，`question/options` 放入 `questions` 数组中的一个 `single_select` 问题，并提供 `id: "plan_decision"`、`header`。问题文件不携带 `submitLabel`；完整示例见 [Plan 交付](../../yida-app/workflow/plan/step-4-deliver.md) 或 `openyida agent ask-human --help`。
+只有工作区明确声明为宜搭发起的 managed Local Run 时，才通过 `openyida agent ask-human` 提问：将下方云端 payload 封装为本地 CLI 问题文件，`title/revision/attachments` 保留在顶层，`question/options` 放入 `questions` 数组中的一个 `single_select` 问题，并提供 `id: "plan_decision"`、`header`。问题文件不携带 `submitLabel`；完整示例见 [Plan 交付](../../yida-app/workflow/plan/step-4-deliver.md) 或 `openyida agent ask-human --help`。普通千问办公客户端不调用该命令，不打开浏览器寻找确认入口或另建网页搭建任务。
 
-最终确认是一个 `single_select` 语义问题。它只有下面这一份可调用 schema；顶层字段集合固定为 `question`、`title`、`options`、`attachments`、`revision`、`submitLabel`。将路径和 `{revision}` 替换为本次 materialize 返回的真实值：
+最终确认是一个 `single_select` 语义问题。下列 schema 用于支持附件与版本的工具，顶层字段集合固定为 `question`、`title`、`options`、`attachments`、`revision`、`submitLabel`。其他宿主按其实际 schema 调用，不照搬这些字段。将路径和 `{revision}` 替换为本次 materialize 返回的真实值：
 
 #### 最终确认 `ask_human` payload
 
@@ -214,6 +214,34 @@ managed Local Agent 通过 `openyida agent ask-human` 提问时，必须将下�
 
 `options` 固定为 `confirm_build`、`continue_editing` 两项。最终确认只收集当前 revision 的去向；调整内容在下一次交互中收集。内部交互身份使用 `plan_confirm_r{revision}`，回答写入 `meta.planState`。
 
+### 客户端问答确认
+
+千问办公客户端已有 `AskUserQuestion` 时直接使用，不需要名为 `ask_human` 的 MCP 工具。`materialize` 与 `patch --materialize` 返回 `confirmationAdapters.AskUserQuestion`，其中只有 `input` 是工具参数，`context` 是 Agent 保存的版本关联，不传给工具。
+
+1. 通过当前会话的成果展示能力展示 `outputs.confirmationHtml` 的不可变快照，附 3–7 条业务摘要，并确认用户可打开该文件。只展示编辑稿、路径字符串或未成功展示的链接不能进入确认；没有成果工具时可使用宿主支持的可打开 workspace 附件或链接，不为确认启动浏览器。
+2. 读取当前 `meta.revision` 与快照内容，计算 SHA-256；将 `context`、`snapshotSha256` 和展示记录保存到 `meta.planState.confirmationContext`。同一任务只保留一个待答问题，待答期间不改方案。
+3. 实际调用 `AskUserQuestion`，只传 `confirmationAdapters.AskUserQuestion.input`。它的参数形状如下；其他等价工具按其 schema 适配：
+
+```json
+{
+  "questions": [{
+    "question": "请确认当前搭建方案",
+    "header": "搭建方案",
+    "options": [
+      {"label": "确认并开始搭建", "description": "按当前方案创建应用、表单、流程和页面。"},
+      {"label": "继续调整", "description": "继续完善当前方案，确认后再开始搭建。"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+4. 将真实工具调用 ID 写入 `confirmationInteractionId`，将 `presentedRevision=meta.revision` 写回源 JSON。工具支持异步时保存真实请求 ID 并等待；不自行编造 ID 或把 queued 当回答。
+5. 收到该次交互的答案后，按保存的 `answerMap` 将选项 label 映射为 `confirm_build` 或 `continue_editing`；不将任意自由输入、用户未回答、取消或超时推断为批准。核对回答属于记录的问题，再重新读取当前方案、版本和快照：`meta.revision` 必须等于记录版本，快照路径及 SHA-256 必须保持一致。不能只检查文件名，也不把当前版本补写到旧回答上。
+6. 匹配的 `confirm_build` 才按下方状态规则记录批准，在 `confirmationContext` 保存真实答案与展示、问答证据，并回到 `yida-app` 继续通过 CLI 搭建；不重新初始化方案或改用 Fast。`continue_editing` 只进入下一次交互修改方案。内容变化、旧版或无法恢复关联时保持待确认，展示最新方案后重新提问。
+
+宿主无需回传 `revision`：版本由 Agent 记录并核对。找不到任何允许的结构化问答工具、展示失败或调用失败时才报告具体阻塞，保留产物；不转浏览器寻找入口、不要求用户到网页新建任务。
+
 ## 版本与确认状态
 
 `build-plan.json` 使用 `meta.revision`、`meta.status` 和 `meta.planState` 共同记录当前计划状态：
@@ -237,7 +265,7 @@ managed Local Agent 通过 `openyida agent ask-human` 提问时，必须将下�
 1. 首次生成计划时创建 `meta.revision`，设置 `meta.status=draft`、`meta.planState.planConfirmed=false`。
 2. 业务方案或视觉方案变化时生成新的 `meta.revision`，并清空旧确认信息。素材采集后的进度同步保留版本与已有确认，直接继续搭建。
 3. 计划展示成功后向源 JSON 写回 `meta.status=awaiting_confirmation` 和 `presentedRevision=meta.revision`。
-4. 用户在最终确认交互中选择 `confirm_build`（确认并开始搭建）且回传 revision 等于展示 revision 时，设置 `meta.status=confirmed`、`planConfirmed=true`、`confirmedRevision=meta.revision`，同时记录交互 ID 和确认时间。
+4. 用户在最终确认交互中选择 `confirm_build`（确认并开始搭建），且工具回传或 Agent 关联核验的 revision 等于展示 revision、当前快照内容未变时，设置 `meta.status=confirmed`、`planConfirmed=true`、`confirmedRevision=meta.revision`，同时记录真实交互 ID、答案和确认时间。客户端还保留 `confirmationContext` 的快照、摘要、展示与问答证据。元数据写回源 JSON，不使用受保护字段的 `patch --set`，不重新 materialize 产生另一份待确认产物。
 5. 只有 `meta.status=confirmed`、`planConfirmed=true` 且 `meta.revision=presentedRevision=confirmedRevision` 时，Plan Design 才能返回 `yida-app` Step 3。
 6. 用户选择“继续调整”时保持在 Plan Design，本轮不创建应用资源；下一轮单独收集调整内容，生成新 revision 并重新确认。用户取消或关闭交互时停止执行，不创建应用资源。
 

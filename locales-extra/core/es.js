@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: 'Plan',
+    confirmation_build_description: 'Crear la aplicación, formularios, flujos y páginas según este plan.',
+    confirmation_edit_description: 'Ajustar este plan antes de confirmar la creación.',
     confirmation_required: 'La confirmación requiere una instantánea y revisión del plan actual. Genere primero el plan.',
     rebase_required: 'Antes de la primera generación, corrija business.json/visual.json. Si cambió el plan principal, conserve los archivos y añada --rebase-parts al comando original.',
     baseline_missing: 'Restaure el .build-plan-base.json correspondiente desde el espacio original. Sin una base fiable, conserve los borradores e informe del bloqueo.',
@@ -213,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: 'Consultar estado y URL de DataV',
     cmd_datav_components: 'Listar componentes DataV y definiciones de parámetros',
     cmd_datav_config: 'Leer la configuración del lienzo y las capas DataV',
+    cmd_datav_data: 'Leer la consulta YiDA y el hash de configuración de DataV',
+    cmd_datav_configure_data: 'Actualizar la consulta YiDA de una capa DataV existente',
     cmd_datav_copy: 'Copiar una pantalla DataV nativa',
     cmd_datav_rename: 'Renombrar una pantalla DataV nativa',
     cmd_datav_publish: 'Publicar y activar una pantalla DataV nativa',
@@ -894,6 +899,7 @@ module.exports = {
     error: '\n❌ Error de creación: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'Para exportar, la página debe incluir un único componente YidaCodeCanvas y código fuente editable. Compruebe el tipo de página y el código en el diseñador.',
     title: '  get-schema - Herramienta de obtención de esquema Yida',
     usage: 'Uso: openyida get-schema <appType> <formUuid>',
     example: 'Example: openyida get-schema "APP_XXX" "FORM-XXX"; openyida get-schema "APP_XXX" --all --output-dir .cache/schemas',

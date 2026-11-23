@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: 'निर्माण योजना',
+    confirmation_build_description: 'इस योजना से ऐप, फ़ॉर्म, वर्कफ़्लो और पेज बनाएँ।',
+    confirmation_edit_description: 'निर्माण की पुष्टि करने से पहले योजना को सुधारें।',
     confirmation_required: 'पुष्टि के लिए वर्तमान योजना का स्नैपशॉट और संशोधन चाहिए। पहले योजना तैयार करें।',
     rebase_required: 'पहली बार बनाने से पहले business.json/visual.json सुधारें। मुख्य योजना बदली हो तो फ़ाइलें सुरक्षित रखें और मूल कमांड में --rebase-parts जोड़ें।',
     baseline_missing: 'मूल कार्यक्षेत्र से संबंधित .build-plan-base.json बहाल करें। विश्वसनीय आधार न मिले तो मसौदे सुरक्षित रखें और अवरोध बताएँ।',
@@ -213,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: 'DataV स्थिति और URL देखें',
     cmd_datav_components: 'DataV घटक और पैरामीटर परिभाषाएँ देखें',
     cmd_datav_config: 'DataV कैनवास और लेयर कॉन्फ़िगरेशन पढ़ें',
+    cmd_datav_data: 'DataV की YiDA क्वेरी और कॉन्फ़िगरेशन हैश पढ़ें',
+    cmd_datav_configure_data: 'मौजूदा DataV लेयर की YiDA क्वेरी अपडेट करें',
     cmd_datav_copy: 'मूल DataV स्क्रीन कॉपी करें',
     cmd_datav_rename: 'मूल DataV स्क्रीन का नाम बदलें',
     cmd_datav_publish: 'मूल DataV स्क्रीन प्रकाशित और सक्रिय करें',
@@ -894,6 +899,7 @@ module.exports = {
     error: '\n❌ निर्माण त्रुटि: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'निर्यात के लिए पेज में एक YidaCodeCanvas घटक और संपादन योग्य स्रोत कोड होना चाहिए। डिज़ाइनर में पेज का प्रकार और स्रोत कोड जाँचें।',
     title: '  get-schema - Yida फॉर्म स्कीमा प्राप्ति टूल',
     usage: 'उपयोग: openyida get-schema <appType> <formUuid>',
     example: 'Example: openyida get-schema "APP_XXX" "FORM-XXX"; openyida get-schema "APP_XXX" --all --output-dir .cache/schemas',

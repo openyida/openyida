@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: '構築計画',
+    confirmation_build_description: 'この計画からアプリ、フォーム、ワークフロー、ページを作成します。',
+    confirmation_edit_description: '計画を調整してから構築を承認します。',
     confirmation_required: '確認には現在の計画スナップショットと版が必要です。先に計画を生成してください。',
     rebase_required: '初回生成前は business.json/visual.json を修正してください。元計画が変わった場合はファイルを保持し、元コマンドに --rebase-parts を追加してください。',
     baseline_missing: '元の作業領域から対応する .build-plan-base.json を復元してください。信頼できる基準がなければ下書きを保持して問題を報告してください。',
@@ -213,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: '大画面の状態と URL を確認',
     cmd_datav_components: 'DataVコンポーネントとパラメータ定義を一覧表示',
     cmd_datav_config: 'DataVキャンバスとレイヤー設定を取得',
+    cmd_datav_data: 'DataVの宜搭データクエリと設定ハッシュを取得',
+    cmd_datav_configure_data: '既存DataVレイヤーの宜搭データクエリを更新',
     cmd_datav_copy: 'ネイティブ大画面をコピー',
     cmd_datav_rename: 'ネイティブ大画面の名前を変更',
     cmd_datav_publish: 'ネイティブ DataV 大画面を公開して有効化',
@@ -863,6 +868,7 @@ module.exports = {
     failed: '  ❌ 作成に失敗しました: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'エクスポートには、YidaCodeCanvas コンポーネントが 1 つあり、編集可能なソースが必要です。デザイナーでページの種類とソースを確認してください。',
     title: '  openyida get-schema - Yida フォーム Schema 取得ツール',
     usage: 'Usage: openyida get-schema <appType> <formUuid>',
     example: '例: openyida get-schema "APP_XXX" "FORM-XXX"',

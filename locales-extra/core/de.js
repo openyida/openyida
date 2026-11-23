@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: 'Bauplan',
+    confirmation_build_description: 'App, Formulare, Workflows und Seiten nach diesem Plan erstellen.',
+    confirmation_edit_description: 'Diesen Plan vor der Bestätigung weiter anpassen.',
     confirmation_required: 'Die Bestätigung benötigt den aktuellen Planstand und seine Revision. Erzeugen Sie zuerst den Plan.',
     rebase_required: 'Vor der ersten Ausgabe business.json/visual.json korrigieren. Bei geänderter Hauptplanung Dateien behalten und --rebase-parts zum ursprünglichen Befehl ergänzen.',
     baseline_missing: 'Passende .build-plan-base.json aus dem ursprünglichen Arbeitsbereich wiederherstellen. Ohne verlässliche Basis Entwürfe behalten und die Blockade melden.',
@@ -213,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: 'DataV-Status und URLs prüfen',
     cmd_datav_components: 'DataV-Komponenten und Parameterdefinitionen auflisten',
     cmd_datav_config: 'DataV-Canvas- und Ebenenkonfiguration lesen',
+    cmd_datav_data: 'YiDA-Abfrage und Konfigurationshash von DataV lesen',
+    cmd_datav_configure_data: 'YiDA-Abfrage einer vorhandenen DataV-Ebene aktualisieren',
     cmd_datav_copy: 'Nativen DataV-Bildschirm kopieren',
     cmd_datav_rename: 'Nativen DataV-Bildschirm umbenennen',
     cmd_datav_publish: 'Nativen DataV-Bildschirm veröffentlichen und aktivieren',
@@ -894,6 +899,7 @@ module.exports = {
     error: '\n❌ Erstellungsfehler: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'Für den Export muss die Seite genau eine YidaCodeCanvas-Komponente und bearbeitbaren Quellcode enthalten. Prüfen Sie den Seitentyp und den Quellcode im Designer.',
     title: '  get-schema - Yida-Formular-Schema-Abruftool',
     usage: 'Verwendung: openyida get-schema <appType> <formUuid>',
     example: 'Example: openyida get-schema "APP_XXX" "FORM-XXX"; openyida get-schema "APP_XXX" --all --output-dir .cache/schemas',

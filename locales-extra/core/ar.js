@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: 'خطة البناء',
+    confirmation_build_description: 'إنشاء التطبيق والنماذج ومسارات العمل والصفحات وفق هذه الخطة.',
+    confirmation_edit_description: 'تحسين هذه الخطة قبل تأكيد البناء.',
     confirmation_required: 'يتطلب التأكيد لقطة من الخطة الحالية ورقم مراجعتها. أنشئ الخطة أولاً.',
     rebase_required: 'قبل الإنشاء الأول، صحح business.json/visual.json. إذا تغيرت الخطة الرئيسية، احتفظ بالملفات وأضف --rebase-parts إلى الأمر الأصلي.',
     baseline_missing: 'استعد ملف .build-plan-base.json المطابق من مساحة العمل الأصلية. عند غياب أساس موثوق، احتفظ بالمسودات وأبلغ عن العائق.',
@@ -213,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: 'فحص حالة DataV وروابطها',
     cmd_datav_components: 'عرض مكونات DataV وتعريفات المعلمات',
     cmd_datav_config: 'قراءة إعدادات لوحة DataV والطبقات',
+    cmd_datav_data: 'قراءة استعلام YiDA وبصمة إعدادات DataV',
+    cmd_datav_configure_data: 'تحديث استعلام YiDA لطبقة DataV موجودة',
     cmd_datav_copy: 'نسخ شاشة DataV أصلية',
     cmd_datav_rename: 'إعادة تسمية شاشة DataV أصلية',
     cmd_datav_publish: 'نشر شاشة DataV أصلية وتمكينها',
@@ -894,6 +899,7 @@ module.exports = {
     error: '\n❌ خطأ في الإنشاء: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'يتطلب التصدير صفحة تحتوي على مكوّن YidaCodeCanvas واحد وشفرة مصدر قابلة للتحرير. تحقّق من نوع الصفحة والشفرة في المصمم.',
     title: '  get-schema - أداة استرداد مخطط النموذج في Yida',
     usage: 'الاستخدام: openyida get-schema <appType> <formUuid>',
     example: 'Example: openyida get-schema "APP_XXX" "FORM-XXX"; openyida get-schema "APP_XXX" --all --output-dir .cache/schemas',
