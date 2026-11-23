@@ -332,13 +332,33 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 ### 遇到问题与贡献修复
 
+所在组织开放反馈后，使用 `openyida login` 登录，再运行 `openyida feedback submit`。按终端提示填写问题，可选择相关截图或日志片段，核对清单后确认发送。`openyida feedback url` 可查看指引。
+
+脚本提交可以把要发送的反馈保存为 `feedback.json`。
+
+```json
+{"type":"error","description":"页面保存成功，发布时报错","reproduction":"先保存，再发布"}
+```
+
+`type` 支持 `slow`（慢）、`error`（报错）、`unexpected_result`（结果不符）、`hard_to_use`（难用）和 `suggestion`（建议）。也可填写 `title` 标题、`expected` 期望结果、`reproduction` 复现步骤、带时区的 ISO 8601 `occurredAt` 发生时间、作为 `diagnosticRef` 的命令 UUID。可选 `host`、`channel` 描述出错时的宿主和版本渠道，`commandExecutionId`、`traceId`、`errorCode` 保留原生关联值，每项字符串最多 128 字符。`domain` 可取 `auth`、`app`、`page`、`data`、`workflow`、`cli`、`other`，`impact` 可取 `blocked`、`workaround`、`minor`、`unknown`。
+
+```bash
+request_id=$(node -p "require('node:crypto').randomUUID()")
+printf '%s\n' "$request_id"
+openyida feedback submit --input feedback.json --request-id "$request_id" --confirm
+```
+
+需要附加证据时，可用 `--screenshot <文件>`、`--log <文件>` 分别选择具体文件，或加 `--include-environment` 附带当前 OpenYida 版本、系统平台、架构和 Node.js 版本。先把 `--confirm` 换成 `--preview` 核对清单。再用同一组参数加 `--confirm --review-digest <审阅码>` 发送。最多三张 PNG/JPEG 截图（每张 2 MiB）和一份 UTF-8 文本日志（512 KiB），合计最多 4 MiB。确认前请自行检查文字、文件内容及图片元数据是否含凭据或客户数据。
+
+保留生成的请求编号和反馈文件。结果待确认或未知时，保留同一请求编号、内容、账号和组织，先核对收件结果，再决定是否继续提交。落表确认后，命令返回反馈编号。
+
 直接告诉 AI：“OpenYida 反复报错，帮我分析原因并整理反馈”。无需 GitHub 账号或本地源码，即可生成脱敏报告和复现步骤；生成材料不代表已提交。
 
 ```bash
 openyida feedback report --input summary.json --output-dir feedback-draft-001
 ```
 
-报告摘要由 AI 根据当前证据整理，也可加入用户明确选择的复现截图；PR 附修复前后测试对比。提交前会展示最终正文和图片，确认有无敏感信息或不想公开的内容，允许删改后再提交。输入格式见 [反馈报告说明](yida-skills/skills/yida-feedback/references/report-input.md)。分享前请检查业务信息。有 GitHub 账号时，可授权 AI 帮助提交 Issue；修复公开 OpenYida 代码或技能时，通过你自己的 Fork 提交 PR。无账号时先引导创建 GitHub 账号；实在不行，反馈到AI开发者群。
+报告摘要由 AI 根据当前证据整理，也可加入用户明确选择的复现截图；PR 附修复前后测试对比。提交前会展示最终正文和图片，确认有无敏感信息或不想公开的内容，允许删改后再提交。输入格式见 [反馈报告说明](yida-skills/skills/yida-feedback/references/report-input.md)。分享前请检查业务信息。有 GitHub 账号时，可授权 AI 帮助提交 Issue；修复公开 OpenYida 代码或技能时，通过你自己的 Fork 提交 PR。没有 GitHub 账号时使用上面的宜搭反馈链路。
 
 需要配置提交工具时，AI 可先执行 `openyida feedback github setup --json`，检测 gh 和当前账号；用户同意安装计划后再执行 `openyida feedback github setup --install --confirm --json`。macOS/Linux 复用已有 Homebrew，Windows 复用已有 WinGet；没有支持的包管理器时提供官方说明或网页方式。安装后单独引导用户在浏览器授权，不自动登录、不获取密码或 Token，安装同意也不代替公开内容确认。工具就绪后继续原草稿，详见[账号与工具准备](yida-skills/skills/yida-feedback/references/github-setup.md)。
 
@@ -526,7 +546,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida formula test <appType> <formUuid> [formula\|file] [--data-file file \| --cases file] [--field fieldId] [--timezone-offset minutes] [--context form\|validation] [--binding platform\|numeric-literals] [--expect JSON] [--json]` | 带入数据在宜搭试算公式并核对结果 |
 | `openyida update` | 检查并更新到最新版本 |
 | `openyida export-conversation [options]` | 导出 AI 对话记录 |
-| `openyida feedback <report\|github\|setup\|url\|dismiss\|status> [options]` | 整理本地问题报告、配置反馈表单与提醒 |
+| `openyida feedback <report\|github\|url\|submit\|dismiss\|status> [options]` | 提交体验反馈、整理本地问题报告及管理提醒 |
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--concurrency 1..4] [--stop-on-error] [--json]` | 批量执行 OpenYida 命令 |
 | `openyida ai <text\|image> [options]` | 调用 AI 文生文和识图能力 |
 | `openyida asset <status\|resolve\|sources> [options]` | 检测素材能力 / 解析回填素材 |
@@ -614,3 +634,5 @@ npm run check:skills
 ## 许可证
 
 [MIT](./LICENSE)
+
+反馈附件通过当前登录环境的 `/openyida/feedback/submit.json` 以 JSON 提交。`evidence` 每项包含 `kind`、通用 `name`、`contentType` 和带 padding 的 `contentBase64`。gzip 日志解压后也必须是最多 512 KiB 的 UTF-8 文本，完整请求最多 6 MiB。提交返回 pending 或网络中断时保留原请求编号，先核对收件结果，再决定是否继续提交。

@@ -1,11 +1,11 @@
 ---
 name: yida-feedback
-description: 帮用户描述 OpenYida 使用问题或体验建议，整理脱敏 Issue，并在用户愿意时协助个人 Fork PR。适用于反复报错、技能误用、不会提 issue/PR 或没有账号和源码时；普通宜搭产品 VOC 清单用 yida-voc。
+description: 帮用户整理 OpenYida 使用问题或体验建议，核对描述和证据后提交宜搭反馈；用户明确选择时再协助 GitHub Issue 或个人 Fork PR。适用于反复报错、技能误用、不会提 issue/PR 或没有账号和源码时；普通宜搭产品 VOC 清单用 yida-voc。
 ---
 
-# 本地问题反馈与修复贡献
+# 问题反馈与修复贡献
 
-用户描述问题，Agent 帮忙整理；用户愿意时，再一起尝试修复。默认用户通过 npm/插件安装，没有 OpenYida 源码、上游写权限或 GitHub 账号。整理反馈无需 Git、gh、源码或宜搭登录。
+用户描述问题，Agent 复用当前现场整理并提交宜搭反馈。普通反馈沿用现有宜搭登录，使用当前登录环境的反馈接口。登录本身出现问题时，通过 `openyida feedback url --json` 获取反馈入口，由用户在浏览器使用登录问题反馈。材料整理可离线完成。
 
 ## 何时进入
 
@@ -13,7 +13,7 @@ description: 帮用户描述 OpenYida 使用问题或体验建议，整理脱敏
 - 当前会话同一操作已重复失败，或明确的 CLI/技能缺陷导致反复绕路时，停止无修改重试，先处理原任务，再简短建议整理反馈。自动进入只允许本地分析/草稿；不得自动登录、安装工具、联网提交或不断提醒。
 - 反馈建议前可读取 `openyida feedback status`；尊重当天/永久关闭。用户主动要求反馈不受提醒开关限制。同一会话同一问题只建议一次；当前上下文之外的发生频次写未知，不扫描完整历史。
 
-先读取 [用户友好的交互与公开确认](references/user-interaction.md)，按其步骤引导用户、准备复现截图、展示最终内容并收集隐私确认；这是所有 Issue/PR 提交路径的共同前置。
+先读取 [宜搭反馈提交](references/intake-submit.md)，整理描述、期望、复现情况和用户选定的证据，展示实际将提交的内容并取得一次确认。用户明确选择 GitHub 时，再读取 [用户友好的交互与公开确认](references/user-interaction.md)。
 
 ## 收集与根因分析
 
@@ -22,7 +22,11 @@ description: 帮用户描述 OpenYida 使用问题或体验建议，整理脱敏
 3. 区分 CLI、skill、本地环境、平台接口或未知。逐项写“观察事实 → 根因假设 → 支持/反对证据 → 下一步验证”。能解释一个错误不代表已证明根因；没有复现/对照证据保留 hypothesis/unknown，缺失信息写未知。记录用户已验证的绕法和剩余影响。
 4. 平台接口拒绝、权限或版本限制按可观察响应反馈。用户不具备平台源码访问权限；不得寻找、索取、下载或暴露内部仓库名称、链接、源码、文件路径、内部处理人或工具。无公开可验证修复点时提交问题材料，不生成虚构 PR。用户自己的应用业务代码错误先修应用，不自动当作 OpenYida 缺陷。
 
-## 生成材料
+## 宜搭主动反馈
+
+普通反馈优先按 [宜搭反馈提交](references/intake-submit.md) 执行 `feedback submit --preview`，展示后按同一目标、请求编号和文件摘要提交。页面有弹窗、卡住或显示异常时，推荐补充遮住客户内容的截图，截图选填。202/pending、网络中断或无法确认回执时，保留原请求编号，先核对收件结果，不自动重发。
+
+## 离线或 GitHub 材料
 
 按 [报告输入与脱敏](references/report-input.md) 在本地写最小摘要 JSON，执行：
 
@@ -38,7 +42,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 用户选择 GitHub 后，按 [账号与工具准备](references/github-setup.md) 复用已有工具、引导注册/登录。缺少工具且宿主支持终端时，推荐用 `openyida feedback github setup --json` 检测，再经用户同意安装 gh、单独引导浏览器授权；不愿安装时可用网页，不把安装作为反馈门槛。工具就绪后继续原草稿，公开确认仍按原流程执行。
 
-- **无 GitHub 账号**：先引导用户创建 GitHub 账号，由用户自行完成注册和登录。实在不行，只提示“反馈到AI开发者群”，附上已整理的脱敏报告。不索取群链接或群 ID，不编造入群入口，不替用户发送群消息。离线或暂不愿注册时同样交付报告，明确“材料已生成，尚未提交”。
+- **无 GitHub 账号**：使用宜搭反馈路径。无法联网时交付脱敏草稿，明确“材料已生成，尚未提交”。
 - **有 GitHub 账号，提交 Issue**：无需 clone/fork；按 [GitHub 提交](references/github-contribution.md) 查重、提交已确认内容并读回。成功后按交互规范给一次可选 PR 邀请；登录由用户在可信本机流程完成，不索取 Token。
 - **有账号，希望提交修复 PR**：仅适用于公开 OpenYida CLI/skill/docs 的可验证问题。先准备最小修复和验证，再通过用户自己的 Fork 提交到公开上游，详见同一参考。没有源码时由 Agent 在独立目录准备公开源码，不修改 npm 全局安装或用户业务目录。无法定位/验证时如实写入测试对比，优先交付 Issue 草稿；不要承诺未经验证的修复。
 
@@ -56,6 +60,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 | 文件 | 读取时机 |
 | --- | --- |
+| [宜搭提交](references/intake-submit.md) | 默认反馈、证据预览和回执核对 |
 | [用户交互](references/user-interaction.md) | 进入技能时；含成功后的可选 PR 邀请 |
 | [报告输入](references/report-input.md) | 准备脱敏摘要、环境和测试证据时 |
 | [GitHub 提交](references/github-contribution.md) | 用户选择公开提交或贡献代码时 |
