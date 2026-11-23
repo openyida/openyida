@@ -273,7 +273,8 @@ const MAX_TARBALL_BYTES = 2800 * 1024;
 // unpacked bytes / 822 files; retain the next 16 KiB boundary.
 // Canvas source export and its skill guidance measure 10,421,638 bytes on Node 20.
 // Round to the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 10192 * 1024;
+// The native report/DataV orchestration skill and its routing metadata add ~8 KiB.
+const MAX_UNPACKED_BYTES = 10208 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -323,10 +324,12 @@ const MAX_UNPACKED_BYTES = 10192 * 1024;
 // Native DataV query updates add one runtime module and one focused skill guide.
 // Measured on Node 26: 2,834,173 packed / 10,436,340 unpacked bytes, 824 files.
 // Byte and per-file budgets remain unchanged; account only for these two shipped files.
-const MAX_ENTRY_COUNT = 824;
+// The report-to-native-datav orchestration skill adds one packaged entry.
+const MAX_ENTRY_COUNT = 825;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'yida-skills/skills/report-to-native-datav/SKILL.md',
   'lib/app/datav.js',
   'lib/app/datav-designer.js',
   'yida-skills/skills/yida-datav/references/components-and-configuration.md',
