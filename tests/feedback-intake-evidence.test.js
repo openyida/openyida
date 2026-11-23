@@ -251,10 +251,14 @@ describe('feedback evidence review', () => {
     };
     fs.writeFileSync(input, JSON.stringify(data));
     const reviewed = await preview();
-    expect(reviewed.feedback).toEqual(data);
+    const normalized = {
+      type: data.type, description: data.description, commandExecutionId: data.commandExecutionId,
+      traceId: data.traceId, errorCode: data.errorCode, environment: { host: data.host, releaseChannel: data.channel },
+    };
+    expect(reviewed.feedback).toEqual(normalized);
     reply(201, { status: 'submitted', feedbackId: FEEDBACK_ID });
     await run([...args, '--confirm', '--review-digest', reviewed.reviewDigest]);
-    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(data);
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(normalized);
     fs.writeFileSync(input, JSON.stringify({ ...data, errorCode: 'x'.repeat(129) }));
     await expect(preview()).rejects.toMatchObject({ code: 'FEEDBACK_INPUT_INVALID' });
     fs.writeFileSync(input, JSON.stringify({ ...data, errorCode: 500 }));
@@ -271,6 +275,43 @@ describe('feedback evidence review', () => {
     await expect(run([...args, '--log', logFile, '--confirm', '--review-digest', reviewed.reviewDigest]))
       .rejects.toMatchObject({ code: outcome === 'pending' ? 'FEEDBACK_PENDING' : 'FEEDBACK_OUTCOME_UNKNOWN' });
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+
+  test('accepts the server environment contract verbatim and omits optional nulls', async () => {
+    const environment = {
+      cliVersion: 'native build with a custom suffix', nodeVersion: 'custom node runtime',
+      platform: 'a future platform', arch: 'a future architecture', host: 'QwenWork Desktop',
+      releaseChannel: 'x'.repeat(128),
+    };
+    fs.writeFileSync(input, JSON.stringify({ type: 'error', description: 'Failed', environment }));
+    const reviewed = await preview();
+    expect(reviewed.feedback.environment).toEqual(environment);
+    reply(201, { status: 'submitted', feedbackId: FEEDBACK_ID });
+    await run([...args, '--confirm', '--review-digest', reviewed.reviewDigest]);
+    expect(JSON.parse(fetch.mock.calls[0][1].body).environment).toEqual(environment);
+    fs.writeFileSync(input, JSON.stringify({ type: 'error', description: 'Failed', environment: { host: null, releaseChannel: 'beta' } }));
+    expect((await preview()).feedback.environment).toEqual({ releaseChannel: 'beta' });
+    fs.writeFileSync(input, JSON.stringify({ type: 'error', description: 'Failed', environment: null, host: null, channel: null }));
+    expect((await preview()).feedback).toEqual({ type: 'error', description: 'Failed' });
+  });
+
+  test.each([
+    { host: 'x'.repeat(129) }, { arch: 64 }, { hostname: 'private-host' }, { releaseChannel: false },
+  ])('rejects malformed environment values %j', async environment => {
+    fs.writeFileSync(input, JSON.stringify({ type: 'error', description: 'Failed', environment }));
+    await expect(preview()).rejects.toMatchObject({ code: 'FEEDBACK_INPUT_INVALID' });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  test('normalizes root aliases and rejects conflicting environment values', async () => {
+    fs.writeFileSync(input, JSON.stringify({ type: 'error', description: 'Failed', host: 'QwenWork', channel: 'beta', environment: { host: 'QwenWork', cliVersion: 'native build' } }));
+    expect((await preview()).feedback).toEqual({
+      type: 'error', description: 'Failed', environment: { host: 'QwenWork', releaseChannel: 'beta', cliVersion: 'native build' },
+    });
+    fs.writeFileSync(input, JSON.stringify({ type: 'error', description: 'Failed', host: 'QwenWork', environment: { host: 'Terminal' } }));
+    await expect(preview()).rejects.toMatchObject({ code: 'FEEDBACK_INPUT_INVALID' });
+    expect(fetch).not.toHaveBeenCalled();
   });
 
 });

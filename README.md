@@ -473,7 +473,7 @@ For scripts, save the feedback you want to share in `feedback.json`.
 {"type":"error","description":"Publishing showed an error after saving the page","reproduction":"Save, then publish"}
 ```
 
-Supported types are `slow`, `error`, `unexpected_result`, `hard_to_use`, and `suggestion`. Optional fields include `title`, `expected`, `reproduction`, `occurredAt` (ISO 8601 with a time zone), and `diagnosticRef` (a command UUID). The optional `host` and `channel` fields describe the incident host and release channel. `commandExecutionId`, `traceId`, and `errorCode` preserve native correlation values as strings of up to 128 characters. For `domain`, use `auth`, `app`, `page`, `data`, `workflow`, `cli`, or `other`. For `impact`, use `blocked`, `workaround`, `minor`, or `unknown`.
+Supported types are `slow`, `error`, `unexpected_result`, `hard_to_use`, and `suggestion`. Optional fields include `title`, `expected`, `reproduction`, `occurredAt` (ISO 8601 with a time zone), and `diagnosticRef` (a command UUID). Optional `environment` fields are `cliVersion`, `platform`, `arch`, `nodeVersion`, `host`, and `releaseChannel`. Each preserves a native string of up to 128 characters. Null fields are omitted. Root `host` and `channel` inputs are compatible aliases normalized into `environment.host` and `environment.releaseChannel`. `commandExecutionId`, `traceId`, and `errorCode` preserve native correlation values as strings of up to 128 characters. For `domain`, use `auth`, `app`, `page`, `data`, `workflow`, `cli`, or `other`. For `impact`, use `blocked`, `workaround`, `minor`, or `unknown`.
 
 ```bash
 request_id=$(node -p "require('node:crypto').randomUUID()")

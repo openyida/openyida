@@ -115,6 +115,7 @@ describe('feedback customer intake', () => {
     [403, 'feedback_credential_not_allowed', 'FEEDBACK_CREDENTIAL_NOT_ALLOWED'],
     [429, 'rate_limited', 'FEEDBACK_RATE_LIMITED'],
     [409, 'idempotency_conflict', 'FEEDBACK_IDEMPOTENCY_CONFLICT'],
+    [409, 'feedback_request_conflict', 'FEEDBACK_IDEMPOTENCY_CONFLICT'],
   ])('reports controlled error %s %s without an extra request', async (status, code, expected) => {
     reply(status, { status: 'error', code, message: 'do-not-output' });
     await expect(run(args)).rejects.toMatchObject({ code: expected });

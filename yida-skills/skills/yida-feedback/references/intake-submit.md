@@ -7,9 +7,9 @@
 - `type` 使用 `slow`、`error`、`unexpected_result`、`hard_to_use`、`suggestion`。
 - `description` 写本次目标和实际发生的情况，`expected` 写期望结果，`reproduction` 写已确认的步骤及频率。
 - `title` 可由 Agent 从描述生成。`occurredAt` 已知时使用带时区的 ISO 8601 时间。
-- `host`、`channel` 只填出错时已确认的宿主和版本渠道。当前版本与出错版本不同要在描述中说明。
+- `environment.host`、`environment.releaseChannel` 只填出错时已确认的宿主和版本渠道。当前版本与出错版本不同要在描述中说明。
 - `commandExecutionId`、`traceId`、`errorCode` 填原失败命令的原生值，每项字符串最多 128 字符。数值错误码只按原值转字符串，不映射或改写。`diagnosticRef` 保留已有 UUID 兼容输入。
-- `environment` 可显式提供 `cliVersion`、`nodeVersion`、`platform`、`arch`。只有用户同意附带当前环境时才用 `--include-environment`。报告生成环境不能冒充出错环境。
+- `environment` 可显式提供 `cliVersion`、`nodeVersion`、`platform`、`arch`、`host`、`releaseChannel`，每项保留原生字符串，最多 128 字符，null 值省略。只有用户同意附带当前环境时才用 `--include-environment`。报告生成环境不能冒充出错环境。
 
 调用 `feedback submit` 会产生新的执行上下文，不能拿它自己的 ID 补原失败命令的 ID。前序成功步骤和重试仍可帮助还原本次现场。
 

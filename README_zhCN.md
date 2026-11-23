@@ -340,7 +340,7 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 {"type":"error","description":"页面保存成功，发布时报错","reproduction":"先保存，再发布"}
 ```
 
-`type` 支持 `slow`（慢）、`error`（报错）、`unexpected_result`（结果不符）、`hard_to_use`（难用）和 `suggestion`（建议）。也可填写 `title` 标题、`expected` 期望结果、`reproduction` 复现步骤、带时区的 ISO 8601 `occurredAt` 发生时间、作为 `diagnosticRef` 的命令 UUID。可选 `host`、`channel` 描述出错时的宿主和版本渠道，`commandExecutionId`、`traceId`、`errorCode` 保留原生关联值，每项字符串最多 128 字符。`domain` 可取 `auth`、`app`、`page`、`data`、`workflow`、`cli`、`other`，`impact` 可取 `blocked`、`workaround`、`minor`、`unknown`。
+`type` 支持 `slow`（慢）、`error`（报错）、`unexpected_result`（结果不符）、`hard_to_use`（难用）和 `suggestion`（建议）。也可填写 `title` 标题、`expected` 期望结果、`reproduction` 复现步骤、带时区的 ISO 8601 `occurredAt` 发生时间、作为 `diagnosticRef` 的命令 UUID。`environment` 可选字段为 `cliVersion`、`platform`、`arch`、`nodeVersion`、`host` 和 `releaseChannel`，各字段保留最多 128 字符的原生字符串，null 值省略。顶层 `host`、`channel` 输入兼容归一为 `environment.host`、`environment.releaseChannel`。`commandExecutionId`、`traceId`、`errorCode` 保留原生关联值，每项字符串最多 128 字符。`domain` 可取 `auth`、`app`、`page`、`data`、`workflow`、`cli`、`other`，`impact` 可取 `blocked`、`workaround`、`minor`、`unknown`。
 
 ```bash
 request_id=$(node -p "require('node:crypto').randomUUID()")
