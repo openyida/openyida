@@ -1,39 +1,48 @@
 'use strict';
 
-const { applyMobileCardSurface } = require('../lib/app/report-theme-tokens');
+const { applyMobileCardSurface, applyReportThemeTokens } = require('../lib/app/report-theme-tokens');
 const { rootDeclarations } = require('../lib/core/theme-brand-scale');
 
-const border = css => rootDeclarations(css.replace(/\/\*[\s\S]*?\*\//g, ''))['--pod-card-mobile-border'];
+const tokens = css => rootDeclarations(css.replace(/\/\*[\s\S]*?\*\//g, ''));
+const border = css => tokens(css)['--pod-card-mobile-border'];
 
 test.each([
-  ['#fff', '#fff', true], ['white', 'rgb(255 255 255)', true],
-  ['#f2f3f5', '#fff', false], ['#fff', '#f2f3f5', false],
-  ['#192221', '#25312f', false], ['#fff', 'transparent', false],
-  ['var(--missing)', '#fff', false],
-])('mobile border follows page %s and card %s', (page, card, expected) => {
+  ['#fff', '#fff'], ['white', 'rgb(255 255 255)'], ['#f2f3f5', '#fff'],
+  ['#fff', '#f2f3f5'], ['#192221', '#25312f'], ['#fff', 'transparent'], ['var(--missing)', '#fff'],
+])('mobile cards have no default border on page %s and card %s', (page, card) => {
   const css = `:root { --pod-page-bg-color: ${page}; --pod-card-bg-color: ${card}; --pod-card-border: none; }`;
   const result = applyMobileCardSurface(css);
   expect(result).toContain(css);
-  expect(border(result).startsWith('0.5px solid')).toBe(expected);
-  expect(border(result)).toBe(expected ? '0.5px solid var(--color-line1-1, rgba(24, 28, 31, 0.08))' : 'none');
+  expect(border(result)).toBe('none');
   expect(applyMobileCardSurface(result)).toBe(result);
 });
 
-test('generated defaults follow palette edits while preserving explicit overrides', () => {
-  const original = ':root { --pod-page-bg-color: #fff; --pod-card-bg-color: var(--color-white, #fff); }';
-  const white = applyMobileCardSurface(original);
-  expect(border(white)).toContain('0.5px');
-  const gray = applyMobileCardSurface(white.replace('--pod-page-bg-color: #fff', '--pod-page-bg-color: #f2f3f5'));
-  expect(border(gray)).toBe('none');
-  expect(border(applyMobileCardSurface(gray.replace('#f2f3f5', '#fff')))).toContain('0.5px');
+test('removes obsolete automatic borders and preserves authored overrides', () => {
+  const original = ':root { --pod-page-bg-color: #fff; --pod-card-bg-color: #fff; }';
+  const old = original + '\n/* openyida-mobile-card-surface:start */\n:root { --pod-card-mobile-border: 0.5px solid gray; }\n/* openyida-mobile-card-surface:end */\n';
+  const refreshed = applyMobileCardSurface(old);
+  expect(border(refreshed)).toBe('none');
+  expect(applyMobileCardSurface(refreshed)).toBe(refreshed);
   for (const custom of ['none', '0', '1px dashed red']) {
-    expect(border(applyMobileCardSurface(white + `\n:root { --pod-card-mobile-border: ${custom}; }`))).toBe(custom);
+    expect(border(applyMobileCardSurface(old + `\n:root { --pod-card-mobile-border: ${custom}; }`))).toBe(custom);
   }
   expect(border(applyMobileCardSurface(original + '\n:root { --pod-card-border: 1px solid red; }')))
     .toBe('var(--pod-card-border)');
 });
 
-test('image or gradient canvases do not acquire a guessed white border', () => {
-  const css = ':root { --pod-page-bg-color: #fff; --pod-card-bg-color: #fff; --pod-page-bg-image: linear-gradient(#fff, #f2f3f5); }';
-  expect(border(applyMobileCardSurface(css))).toBe('none');
+test('generated defaults follow platform palette and glass footer while preserving overrides', () => {
+  const input = ':root { --color-group: #00A532, #FF9200; }';
+  const result = applyReportThemeTokens(input);
+  expect(tokens(result)['--pod-chart-colors']).toBe('var(--color-group)');
+  expect(tokens(result)['--color-group']).toBe('#00A532, #FF9200');
+  expect(tokens(result)['--pod-page-footer-mobile-border']).toBe('none');
+  expect(tokens(result)['--pod-page-footer-bg-opacity']).toBe('90%');
+  expect(tokens(result)['--pod-page-footer-backdrop-filter']).toBe('blur(16px)');
+  expect(tokens(result)['--pod-drawer-border-radius']).toBe('20px');
+  const overrides = ':root { --pod-chart-colors: red, blue; --pod-page-footer-mobile-border: 1px solid red; --pod-page-footer-bg-opacity: 70%; --pod-page-footer-backdrop-filter: none; }';
+  const custom = tokens(applyReportThemeTokens(overrides));
+  expect(custom['--pod-chart-colors']).toBe('red, blue');
+  expect(custom['--pod-page-footer-mobile-border']).toBe('1px solid red');
+  expect(custom['--pod-page-footer-bg-opacity']).toBe('70%');
+  expect(custom['--pod-page-footer-backdrop-filter']).toBe('none');
 });

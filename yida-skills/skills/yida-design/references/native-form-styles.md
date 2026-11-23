@@ -248,9 +248,11 @@ Fast 按[独立主题流程](../../yida-app/workflow/fast-build.md#2-同时准�
 
 ### 移动端卡片边界
 
-新版移动端使用 `--pod-card-mobile-border` 独立控制边框。白底页面配白色卡片时使用 `0.5px solid var(--color-line1-1, rgba(24, 28, 31, 0.08))`；灰底页面或灰色卡片通过底色和间距区分，默认 `none`。保留现有显式边框，不靠加深阴影弥补层级。
+新版移动端使用 `--pod-card-mobile-border` 独立控制边框，默认 `none`。页面灰底使用 `--color-fill1-1`，以底色和间距区分卡片；不按白底自动增加边框。保留显式移动边框和已配置的卡片边框。
 
-生成 `app_theme.css` 时按实际页面、卡片底色设置移动边框；修改主题配色后同步检查。CLI 会重新计算标记为自动的默认块，文件中显式配置的 `--pod-card-mobile-border` 优先保留。图片、渐变或无法解析的底色不自动推断为白底，按真实页面验收后设置。
+生成 `app_theme.css` 时更新 CLI 管理的默认块，已有显式移动边框优先保留。移动页面背景与 PC 应用外衬分别配置，不把移动灰底写入 PC 壳层。
+
+新版移动底栏使用 `--pod-page-footer-mobile-border`（默认 `none`）、`--pod-sticky-footer-box-shadow`、`--pod-page-footer-bg-opacity`（默认 `90%`）与 `--pod-page-footer-backdrop-filter`（默认 `blur(16px)`），保留显式主题覆盖。
 
 ### 场景验收
 

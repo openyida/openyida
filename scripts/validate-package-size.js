@@ -104,7 +104,10 @@ const path = require('path');
 // Native portal configuration adds the schema builder, CLI and component guide.
 // Portal and PR #701 together measure 2,827,540 packed bytes on Node 20.18.1.
 // Merged theme + DataV package, Node 20.20.2 / npm 10.9.9: 2857979 bytes; round to the next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2800 * 1024;
+// Theme branch baseline on Node 22: 2,882,565 compressed bytes (already above the old cap).
+// Mobile defaults update 34 shipped CSS files; measured 2,891,517 bytes, with no new entries.
+// Keep the next 16 KiB boundary; entry and per-file limits remain unchanged.
+const MAX_TARBALL_BYTES = 2832 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.

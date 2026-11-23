@@ -3,11 +3,11 @@
   "sourceCommit": "9c33e492c30d5cd1b7550e5864ae94f2b3f4c5db",
   "brandSeed": "#2C73A9",
   "minimum": 4.5,
-  "reviewNote": "Approved main template palette baseline. Source hashes include the reviewed mobile spacing update; colors, selectors and known findings are unchanged. Known static findings remain reported, not runtime acceptance. Changed risk sources require review.",
+  "reviewNote": "Approved main palette findings retained. Source hashes refreshed after reviewing mobile radius, border defaults and glass footer tokens: all issue pairs, ratios and unresolved findings are identical; no exceptions or thresholds changed. This is not runtime acceptance.",
   "templates": [
     {
       "themeId": "ink-glow-soft-panels",
-      "sourceHash": "d9c5e8e6542a8da0740f4a7611fb99c0b1f2c65dce45af6cb9974856ae2944ce",
+      "sourceHash": "8c0d1da6d9fd6c7e515da72a4263262d9ede1ecfc6de20bc6706a4cace6f0bbe",
       "issues": [],
       "unresolved": [
         {
@@ -21,7 +21,7 @@
     },
     {
       "themeId": "inset-frame-pixel-rhythm",
-      "sourceHash": "3f57514553a051b6cdcb31303737197c61e774ae8e03f876080597e4341877eb",
+      "sourceHash": "bcee0e75b3fc9c293555eedde6153bcd19719e3b2492c50b3123f2ccd77b5f81",
       "issues": [],
       "unresolved": [
         {
@@ -49,7 +49,7 @@
     },
     {
       "themeId": "outlined-texture-duotone",
-      "sourceHash": "5bc7d27f5c54b9859b5780cb74793dbc78ea1602cc6887020114497da5c58374",
+      "sourceHash": "26e34bc42464ecee89ccab0f41982f6ba8b5e5d354eaa349bfe63509ec70206d",
       "issues": [
         {
           "role": "page.secondary",
@@ -70,7 +70,7 @@
     },
     {
       "themeId": "soft-inset-surfaces",
-      "sourceHash": "91eecb94f5c2c1380e78bb65fe81872fd680feef3abaef86671725cd01d551d0",
+      "sourceHash": "288392faf0689d5712338b9ded5239b6e41cb319fe1c58bf108f623fa3c31d54",
       "issues": [
         {
           "role": "nav.selected",
@@ -202,7 +202,7 @@
     },
     {
       "themeId": "soft-rail-bold-band",
-      "sourceHash": "03a697ad710cb5a1f83ddcfea286b613699978063cda7a9cae7e25f01a903116",
+      "sourceHash": "8241a35252d8d7e7d3a3d46d0e1b7429cba194cf6dd9f43189f613429e0f897e",
       "issues": [
         {
           "role": "search.placeholder",
@@ -230,7 +230,7 @@
     },
     {
       "themeId": "warm-canvas-contrast-panels",
-      "sourceHash": "ca527e1d3baa22a23045578c4c821eb40a16767252a603e3fa1518974a1f965d",
+      "sourceHash": "a9eb7051eede4dcac396d8a080c2b7ad64e697acb1464ec88b44c07a3f7fb384",
       "issues": [
         {
           "role": "search.value",

@@ -117,7 +117,6 @@
   --pod-app-root-bg-color: #ffffff;
   --pod-app-root-bg-image: none;
   --pod-page-bg-color: #ffffff;
-  --pod-page-mobile-bg-color: var(--pod-page-bg-color);
   --pod-card-bg-color: #ffffff;
   --pod-table-cell-color: var(--pod-card-bg-color);
   --color-white: var(--pod-card-bg-color);
@@ -161,7 +160,8 @@
   --pod-card-mobile-border-radius: 16px;
   --pod-card-mobile-spacing: 10px;
   --pod-form-mobile-row-gap: 16px;
-  --pod-card-border-radius: var(--pod-xl-border-radius, 20px);
+  --pod-card-border-radius: 20px;
+  --pod-card-mobile-border: var(--pod-card-border, none);
   --pod-card-border: none;
   --pod-card-spacing: var(--pod-md-gap-pad-margin);
 
@@ -339,6 +339,9 @@
     --pod-card-bg-color,
     var(--color-white, #fff)
   );
+  --pod-page-footer-mobile-border: none;
+  --pod-page-footer-bg-opacity: 90%;
+  --pod-page-footer-backdrop-filter: blur(16px);
   --pod-page-footer-border-radius: var(--corner-semicircle, 500px);
 
   /* 数据管理与表格 */
@@ -429,7 +432,7 @@ body.pod-premium.page-type-detail .vc-shell-without-nav.pod-premium {
 }
 
 body.pod-premium.page-type-detail .vc-shell-without-nav.is-phone {
-  background-color: var(--pod-page-mobile-bg-color, var(--pod-page-bg-color, #fff));
+  background-color: var(--color-fill1-1, #f1f2f3);
 }
 
 /* 详情顶栏的独立图标使用内容文字色，保留按钮自身的禁用状态。 */
@@ -846,9 +849,3 @@ body.pod-premium .flow-steps .next-step-dot
   margin-bottom: 8px;
 }
 /* openyida-navigation-shape:end */
-
-/* openyida-mobile-card-surface:start */
-:root {
-  --pod-card-mobile-border: 0.5px solid var(--color-line1-1, rgba(24, 28, 31, 0.08));
-}
-/* openyida-mobile-card-surface:end */
