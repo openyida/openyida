@@ -1,11 +1,13 @@
 ---
 name: yida-datav
-description: 仅在用户明确要求宜搭原生数字大屏、原生数据大屏或 DataV 大屏时使用。创建、复制和编辑前读取当前应用主题，配置配套的明暗与组件样式；查询模板、组件参数和图层配置，回读状态、改名和显式发布。普通大屏默认使用自定义页面。
+description: 仅在用户明确要求宜搭原生数字大屏、原生数据大屏或 DataV 大屏时使用。创建和管理大屏，查询组件与图层，读取和更新已有图层的原生宜搭数据查询；创建和编辑前读取应用主题，显式发布。普通大屏默认使用自定义页面。
 ---
 
 # 宜搭原生 DataV 大屏
 
 ## 适用范围
+
+- 基于原生报表搭建对应的大屏并核对两端分析口径时，通过 `use_skill` 加载 `report-to-native-datav` 编排，本技能负责原生大屏资源与配置。
 
 - 用户明确要求宜搭原生大屏或 DataV 大屏时使用；一般数字大屏、数据大屏、驾驶舱和投屏监控由 `yida-dashboard` 组织内容，并用 `yida-canvas-custom-page` 承载。
 - 继续已有原生大屏时使用其真实 `appType` 和 `formUuid`。先读取状态，确认 `formType=datav`。原生大屏通常返回 `DATAV-...` 编号，后续命令原样使用该编号。
@@ -62,7 +64,7 @@ openyida datav config <appType> <formUuid> --component "<实际图层ID>" --json
 
 组件选型覆盖图表、地图、BI、指标、表格和控件，具体字段及交互按指南查询当前版本。交付时区分目录可见、权益确认、配置已保存和运行已验收；目录总数包含不同版本资产、地图子层和工具项，不能当作已实测组件数。
 
-2. 按前置主题决策，将画布、面板、图表、地图、控件和浮层的颜色角色配套。浅色适配同时处理深色背景图、装饰边框、背景柱、文字和浮层，不能只改画布底色。打开回读的 `designerUrl`，按实际版本在原生设计器内配置样式、地图子层、数据源与字段映射，以及蓝图中的筛选联动。当前 CLI 对组件配置提供查询，不提供组件、数据源或蓝图写入；应用主题 CSS 不会被 CLI 自动同步为 DataV 组件配置。
+2. 按前置主题决策，将画布、面板、图表、地图、控件和浮层的颜色角色配套。浅色适配同时处理深色背景图、装饰边框、背景柱、文字和浮层，不能只改画布底色。打开回读的 `designerUrl`，在原生设计器添加组件并完成首次宜搭数据源绑定。已有原生宜搭数据查询可按下节通过 CLI 更新；样式、地图子层、首次绑定和蓝图仍在设计器中配置。应用主题 CSS 不会被 CLI 自动同步为 DataV 组件配置。
 
 支持配置浅色样式，不代表当前宜搭环境提供内置浅色主题系列或全局一键切换；按指南的[主题能力核验](references/components-and-configuration.md#主题能力核验)检查模板与设计器真实入口，不把模板默认深色当作能力限制。
 
@@ -73,6 +75,21 @@ openyida datav publish <appType> <formUuid> --confirm --json
 ```
 
 `publish --confirm` 调用平台 `saveScreen` 接口，实际会发布并启用大屏，保留平台的 Token 和人员权限校验；不能把它当作保存草稿。不接受布局 JSON，不自动配置公开分享。返回 `publishAccepted=true`、`enableRequested=true` 表示平台接受了发布启用操作；`layoutVerified=false`、`readbackVerified=false` 保留内容验收缺口。在 `previewUrl` 验证布局、真实数据、交互和投屏效果后，再反馈完成结果。
+
+## 读取和更新原生宜搭数据查询
+
+用于已有图层 `source` 接口绑定的“宜搭数据源”，按[原生数据查询指南](references/native-data-query.md)操作。CLI 不创建图层、不进行首次绑定、不切换应用数据源或数据集，也不执行报表一键转换。
+
+```bash
+openyida datav data <appType> <formUuid> --component "<真实图层ID>" --json
+openyida datav configure-data <appType> <formUuid> --component "<真实图层ID>" --query-file <query.json> --expected-hash <上次读取的expectedHash> --json
+```
+
+`data` 返回现有 `query`、`expectedHash`，不返回数据值和数据源认证信息。将完整 `query` 用结构化文件工具写到任务缓存目录，只修改本轮确认的字段、聚合、筛选、排序或分页；保留原 `datasetId` 和无关属性。报表分析口径需依据完整原生报表 Schema 中的真实字段与查询模型逐项映射，不把报表 `dataSetModelMap` 直接传给本命令。
+
+`configure-data` 只替换该接口的 `yidaQuery`，保留数据源认证和其他配置；写前核对哈希并重新读取，写后回读完整数据源配置。哈希核对是客户端检查，平台没有原子版本锁；执行期间避免在设计器或其他终端同时编辑。冲突或未知结果先读取同一个图层，不自动重试。
+
+成功的 `readbackVerified=true` 证明配置已保存，`runtimeVerified=false` 表示还需在原生设计器或预览核对真实结果、聚合口径、空值、时间粒度和筛选效果。命令不发布启用大屏、不配置公开访问。
 
 ## 交付与恢复
 

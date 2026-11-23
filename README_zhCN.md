@@ -426,6 +426,8 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida datav inspect <appType> <formUuid> [--json]` | 回读原生大屏状态与入口 |
 | `openyida datav components <appType> <formUuid> [--component <value>] [--category <value>] [--search <value>] [--json]` | 查询大屏组件目录与参数定义 |
 | `openyida datav config <appType> <formUuid> [--component <value>] [--json]` | 读取大屏画布与图层配置 |
+| `openyida datav data <appType> <formUuid> --component <value> [--json]` | 读取大屏宜搭数据查询与配置哈希 |
+| `openyida datav configure-data <appType> <formUuid> --component <value> --query-file <value> --expected-hash <value> [--json]` | 更新已有大屏图层的宜搭数据查询 |
 | `openyida datav copy <appType> <formUuid> <name> [--locale <value>] [--wait-seconds <value>] [--json]` | 复制宜搭原生大屏 |
 | `openyida datav rename <appType> <formUuid> <name> [--locale <value>] [--json]` | 修改原生大屏名称 |
 | `openyida datav publish <appType> <formUuid> --confirm [--json]` | 发布并启用原生 DataV 大屏 |
