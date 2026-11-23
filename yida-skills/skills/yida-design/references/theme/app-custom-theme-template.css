@@ -362,7 +362,7 @@
     rgba(255, 255, 255, 0.37) 0%,
     rgba(255, 255, 255, 0.43) 72%
   );
-  --pod-drawer-border-radius: var(--pod-xl-border-radius, 20px);
+  --pod-drawer-border-radius: 20px;
   --pod-drawer-shadow: 0 0 32px 0 rgba(0, 0, 0, 0.1);
   --dialog-corner: var(--corner-4);
 
