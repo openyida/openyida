@@ -84,12 +84,29 @@ describe('feedback customer intake', () => {
     expect(request).toMatchObject({
       method: 'POST',
       redirect: 'error',
-      headers: { Authorization: 'Bearer test-bearer', 'Idempotency-Key': REQUEST_ID },
+      headers: { Authorization: 'Bearer test-bearer', Referer: BASE_URL + '/openyida/feedback', 'Idempotency-Key': REQUEST_ID },
     });
     expect(JSON.parse(request.body)).toEqual(body);
     expect(JSON.parse(log.mock.calls[0][0])).toEqual({
       success: true, status: 'submitted', feedbackId: FEEDBACK_ID, requestId: REQUEST_ID,
     });
+  });
+
+  test('binds the feedback Referer and credential to the same captured session target', async () => {
+    const target = 'https://tenant-feedback.example.org:8443';
+    loadTokenSession.mockClear().mockReturnValueOnce({ ...SESSION, base_url: target, access_token: 'target-bearer' })
+      .mockReturnValue({ ...SESSION, base_url: 'https://changed-profile.example.org', access_token: 'other-bearer' });
+    reply(201, { status: 'submitted', feedbackId: FEEDBACK_ID });
+
+    await run(args);
+
+    expect(loadTokenSession).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const [url, request] = fetch.mock.calls[0];
+    expect(url).toBe(target + '/openyida/feedback/submit.json');
+    expect(request.headers).toMatchObject({ Authorization: 'Bearer target-bearer', Referer: target + '/openyida/feedback' });
+    expect(new URL(request.headers.Referer).origin).toBe(new URL(url).origin);
+    expect(request.redirect).toBe('error');
   });
 
   test('preserves valid pending feedback IDs and the request key without automatic retries', async () => {
