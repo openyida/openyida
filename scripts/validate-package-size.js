@@ -107,7 +107,8 @@ const path = require('path');
 // Theme branch baseline on Node 22: 2,882,565 compressed bytes (already above the old cap).
 // Mobile defaults update 34 shipped CSS files; measured 2,891,517 bytes, with no new entries.
 // Keep the next 16 KiB boundary; entry and per-file limits remain unchanged.
-const MAX_TARBALL_BYTES = 2832 * 1024;
+// main integration on Node 22 measured 2902037 compressed bytes; next 16 KiB boundary.
+const MAX_TARBALL_BYTES = 2848 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -267,7 +268,15 @@ const MAX_TARBALL_BYTES = 2832 * 1024;
 // 10,282,883 unpacked bytes. Use the next 16 KiB boundary.
 // The same merge measures 10,333,800 unpacked bytes across 818 entries.
 // Merged theme + DataV package, Node 20.20.2 / npm 10.9.9: 10422372 bytes; round to the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 10192 * 1024;
+// DataV catalogue/config reader and its component guide measure 10,392,845
+// unpacked bytes on Node 20; retain the next 16 KiB boundary. Gzip cap stays fixed.
+// DataV theme creation/editing and capability guidance measures 10,406,101
+// unpacked bytes / 822 files; retain the next 16 KiB boundary.
+// Canvas source export and its skill guidance measure 10,421,638 bytes on Node 20.
+// Round to the next 16 KiB boundary.
+// The native report/DataV orchestration skill and its routing metadata add ~8 KiB.
+// Integrated package measured 10470943 unpacked bytes; next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 10240 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -313,10 +322,18 @@ const MAX_UNPACKED_BYTES = 10192 * 1024;
 // Main file-upload support adds three packaged files.
 // The dedicated native portal skill adds one packaged entry.
 // Merged theme + DataV package, Node 20.20.2 / npm 10.9.9: 824 required package entries.
-const MAX_ENTRY_COUNT = 824;
+// DataV adds exactly one runtime module and one skill document.
+// One DataV reader module and one configuration reference add two package files.
+// Native DataV query updates add one runtime module and one focused skill guide.
+// Measured on Node 26: 2,834,173 packed / 10,436,340 unpacked bytes, 824 files.
+// Byte and per-file budgets remain unchanged; account only for these two shipped files.
+// The report-to-native-datav orchestration skill adds one packaged entry.
+// Integrated package contains 827 required entries.
+const MAX_ENTRY_COUNT = 827;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'yida-skills/skills/report-to-native-datav/SKILL.md',
   'lib/app/datav.js',
   'lib/app/datav-designer.js',
   'yida-skills/skills/yida-datav/references/components-and-configuration.md',

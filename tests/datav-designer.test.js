@@ -115,6 +115,14 @@ test('refuses external login redirects without leaking the signed ticket or cook
   expect(net.calls).toHaveLength(1);
 });
 
+test('native data writes send one PUT with DataV CSRF and never follow redirects', async () => {
+  const net = transport([{ status: 302, headers: { location: '/login' } }]);
+  await expect(session(net.request).put('/api/admin/v2/data_source/1?screenId=12', { rawJSON: '{}' }, 'private-csrf')).rejects.toThrow();
+  expect(net.calls).toHaveLength(1);
+  expect(net.calls[0].options).toMatchObject({ method: 'PUT', headers: { 'xsrf-token': 'private-csrf' } });
+  expect(net.calls[0].options.headers.Authorization).toBeUndefined();
+});
+
 test('opens the verified screen through a fresh ticket and only issues GET requests', async () => {
   const net = transport([{ body: 'var configJSPath = "current";' }, { body: envelope(config) }]);
   const request = jest.spyOn(require('node:https'), 'request').mockImplementation(net.request);

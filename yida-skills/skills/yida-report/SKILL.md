@@ -7,6 +7,8 @@ description: "创建和配置宜搭原生报表；仅在用户明确要求时动
 
 ## 适用范围
 
+- 原生报表转原生 DataV 大屏、或同时搭建两端用于对照时，通过 `use_skill` 加载 `report-to-native-datav` 编排，本技能负责源报表与查询证据。
+
 - 不得把不支持、冲突或状态不确定的任务改走 `create-report` 写入，不得按标题、组件类型或数组位置 adopt、猜 report/chart/filter ID。
 - 只有报表目标明确属于当前普通 OpenYida 资源时，以下示例、stdout/stderr 和返回行为才按本技能契约使用；所有权不明确时零远端写。
 

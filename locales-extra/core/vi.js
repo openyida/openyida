@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: 'Kế hoạch',
+    confirmation_build_description: 'Tạo ứng dụng, biểu mẫu, quy trình và trang theo kế hoạch này.',
+    confirmation_edit_description: 'Điều chỉnh kế hoạch trước khi xác nhận tạo ứng dụng.',
     confirmation_required: 'Xác nhận cần bản chụp và phiên bản của kế hoạch hiện tại. Hãy tạo kế hoạch trước.',
     rebase_required: 'Trước lần tạo đầu tiên, sửa business.json/visual.json. Nếu kế hoạch chính đã thay đổi, giữ các tệp và thêm --rebase-parts vào lệnh ban đầu.',
     baseline_missing: 'Khôi phục .build-plan-base.json tương ứng từ không gian làm việc gốc. Nếu thiếu bản gốc đáng tin cậy, giữ bản nháp và báo nguyên nhân bị chặn.',
@@ -213,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: 'Kiểm tra trạng thái và URL DataV',
     cmd_datav_components: 'Liệt kê thành phần DataV và định nghĩa tham số',
     cmd_datav_config: 'Đọc cấu hình khung vẽ và lớp DataV',
+    cmd_datav_data: 'Đọc truy vấn YiDA và mã băm cấu hình DataV',
+    cmd_datav_configure_data: 'Cập nhật truy vấn YiDA của lớp DataV hiện có',
     cmd_datav_copy: 'Sao chép màn hình DataV gốc',
     cmd_datav_rename: 'Đổi tên màn hình DataV gốc',
     cmd_datav_publish: 'Xuất bản và bật màn hình DataV gốc',
@@ -894,6 +899,7 @@ module.exports = {
     error: '\n❌ Lỗi tạo trang: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'Để xuất, trang phải có một thành phần YidaCodeCanvas và mã nguồn có thể chỉnh sửa. Hãy kiểm tra loại trang và mã nguồn trong trình thiết kế.',
     title: '  get-schema - Công cụ lấy schema biểu mẫu Yida',
     usage: 'Cách dùng: openyida get-schema <appType> <formUuid>',
     example: 'Example: openyida get-schema "APP_XXX" "FORM-XXX"; openyida get-schema "APP_XXX" --all --output-dir .cache/schemas',

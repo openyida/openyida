@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: '구축 계획',
+    confirmation_build_description: '이 계획에 따라 앱, 양식, 워크플로 및 페이지를 만듭니다.',
+    confirmation_edit_description: '계획을 수정한 후 구축을 승인합니다.',
     confirmation_required: '확인하려면 현재 계획 스냅샷과 버전이 필요합니다. 먼저 계획을 생성하세요.',
     rebase_required: '최초 생성 전에는 business.json/visual.json을 수정하세요. 원본 계획이 변경되었다면 파일을 유지하고 기존 명령에 --rebase-parts를 추가하세요.',
     baseline_missing: '원래 작업 공간에서 일치하는 .build-plan-base.json을 복원하세요. 신뢰할 기준이 없으면 초안을 유지하고 차단 사유를 보고하세요.',
@@ -213,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: '대시보드 상태 및 URL 확인',
     cmd_datav_components: 'DataV 구성 요소 및 매개변수 정의 조회',
     cmd_datav_config: 'DataV 캔버스 및 레이어 설정 조회',
+    cmd_datav_data: 'DataV YiDA 데이터 쿼리 및 설정 해시 조회',
+    cmd_datav_configure_data: '기존 DataV 레이어의 YiDA 데이터 쿼리 업데이트',
     cmd_datav_copy: '기본 대시보드 복사',
     cmd_datav_rename: '기본 대시보드 이름 변경',
     cmd_datav_publish: '기본 DataV 대시보드 게시 및 활성화',
@@ -894,6 +899,7 @@ module.exports = {
     error: '\n❌ 커스텀 페이지 생성 오류: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: '내보내려면 페이지에 YidaCodeCanvas 구성요소 하나와 편집 가능한 소스가 필요합니다. 디자이너에서 페이지 유형과 소스를 확인하세요.',
     title: '  get-schema - Yida 폼 스키마 조회 도구',
     usage: '사용법: openyida get-schema <appType> <formUuid>',
     example: '예시: openyida get-schema "APP_XXX" "FORM-XXX"',

@@ -137,6 +137,9 @@ module.exports = {
     page_offline: '選單資料無法確認前台頁 {0} 已上線。如已發布且實測可存取，請用 --frontend 傳入完整網址。',
   },
   design_plan: {
+    confirmation_header: '搭建方案',
+    confirmation_build_description: '按目前方案建立應用程式、表單、流程及頁面。',
+    confirmation_edit_description: '繼續完善目前方案，確認後再開始搭建。',
     confirmation_required: '確認需要目前方案快照和版本，請先生成方案。',
     rebase_required: '首次物化前請修正 business.json/visual.json；主計劃已變更時，保留現有檔案並在原命令加入 --rebase-parts。',
     baseline_missing: '請從原工作區恢復匹配的 .build-plan-base.json；缺少可信基線時保留草稿並報告阻塞。',
@@ -221,6 +224,8 @@ module.exports = {
     cmd_datav_inspect: '讀取原生大屏狀態及入口',
     cmd_datav_components: '查詢大屏元件目錄與參數定義',
     cmd_datav_config: '讀取大屏畫布與圖層設定',
+    cmd_datav_data: '讀取大屏宜搭資料查詢與設定雜湊',
+    cmd_datav_configure_data: '更新已有大屏圖層的宜搭資料查詢',
     cmd_datav_copy: '複製宜搭原生大屏',
     cmd_datav_rename: '修改原生大屏名稱',
     cmd_datav_publish: '發佈並啟用原生 DataV 大屏',
@@ -864,6 +869,7 @@ module.exports = {
     failed: '  ❌ 建立失敗：{0}'
   },
   get_schema: {
+    canvas_source_unavailable: '匯出需要頁面包含一個 YidaCodeCanvas 元件，且平台傳回可編輯的原始碼。請確認頁面類型和設計器中的原始碼。',
     title: '  openyida get-schema - 宜搭表單 Schema 取得工具',
     usage: '用法：openyida get-schema <appType> <formUuid>',
     example: '範例：openyida get-schema "APP_XXX" "FORM-XXX"',

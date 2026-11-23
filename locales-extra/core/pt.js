@@ -129,6 +129,9 @@ module.exports = {
     page_offline: 'Menu data cannot confirm page {0} is live. If its published URL opens, pass the full URL with --frontend.',
   },
   design_plan: {
+    confirmation_header: 'Plano',
+    confirmation_build_description: 'Criar o aplicativo, formulários, fluxos e páginas conforme este plano.',
+    confirmation_edit_description: 'Ajustar este plano antes de confirmar a criação.',
     confirmation_required: 'A confirmação exige uma cópia e revisão do plano atual. Gere o plano primeiro.',
     rebase_required: 'Antes da primeira geração, corrija business.json/visual.json. Se o plano principal mudou, preserve os arquivos e adicione --rebase-parts ao comando original.',
     baseline_missing: 'Restaure o .build-plan-base.json correspondente do espaço original. Sem uma base confiável, preserve os rascunhos e informe o bloqueio.',
@@ -213,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: 'Consultar estado e URLs do DataV',
     cmd_datav_components: 'Listar componentes DataV e definições de parâmetros',
     cmd_datav_config: 'Ler a configuração da tela e das camadas DataV',
+    cmd_datav_data: 'Ler a consulta YiDA e o hash de configuração do DataV',
+    cmd_datav_configure_data: 'Atualizar a consulta YiDA de uma camada DataV existente',
     cmd_datav_copy: 'Copiar uma tela DataV nativa',
     cmd_datav_rename: 'Renomear uma tela DataV nativa',
     cmd_datav_publish: 'Publicar e ativar uma tela DataV nativa',
@@ -894,6 +899,7 @@ module.exports = {
     error: '\n❌ Erro de criação: {0}'
   },
   get_schema: {
+    canvas_source_unavailable: 'Para exportar, a página deve ter um único componente YidaCodeCanvas e código-fonte editável. Verifique o tipo de página e o código no editor.',
     title: '  get-schema - Ferramenta de obtenção de esquema Yida',
     usage: 'Uso: openyida get-schema <appType> <formUuid>',
     example: 'Example: openyida get-schema "APP_XXX" "FORM-XXX"; openyida get-schema "APP_XXX" --all --output-dir .cache/schemas',
