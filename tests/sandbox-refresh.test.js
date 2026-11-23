@@ -187,7 +187,7 @@ describe('cloud sandbox token refresh', () => {
     expect(result).toMatchObject({
       code: 'TOKEN_REFRESH_FAILED',
       message: expect.stringContaining('token_refresh_failed'),
-      details: { refreshPath: REFRESH_PATH, refreshHttpStatus: 503, refreshErrorCode: 'service_unavailable' },
+      details: { refreshFailure: { refreshPath: REFRESH_PATH, refreshHttpStatus: 503, refreshErrorCode: 'service_unavailable' } },
     });
     expect(result.message).not.toContain(secret);
     expect(JSON.stringify(result)).not.toContain(secret);
@@ -216,7 +216,7 @@ describe('cloud sandbox token refresh', () => {
     });
     const refresh = () => tokenRefresh({ projectRoot, timeoutMs: 250 }).catch(error => error);
     const [first, second] = await Promise.all([refresh(), refresh()]);
-    expect(first.details.refreshErrorCode).toBe(refreshErrorCode);
+    expect(first.details.refreshFailure.refreshErrorCode).toBe(refreshErrorCode);
     expect(second).toMatchObject({ code: 'TOKEN_AUTH_REQUIRED' });
     expect(refreshTokens).toEqual([OLD_REFRESH, OLD_REFRESH]);
   });
