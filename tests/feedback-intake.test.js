@@ -92,20 +92,21 @@ describe('feedback customer intake', () => {
     });
   });
 
-  test('preserves the request key for pending and uncertain results, with no feedback number', async () => {
+  test('preserves valid pending feedback IDs and the request key without automatic retries', async () => {
     reply(202, { status: 'pending', feedbackId: FEEDBACK_ID });
+    reply(202, { status: 'pending', feedbackId: 'untrusted-feedback-id' });
     fetch.mockRejectedValueOnce(new Error('network timeout'));
     reply(200, { status: 'submitted', feedbackId: FEEDBACK_ID });
 
     await expect(run(args)).rejects.toMatchObject({
-      code: 'FEEDBACK_PENDING', details: { requestId: REQUEST_ID, status: 'pending' },
+      code: 'FEEDBACK_PENDING', details: { requestId: REQUEST_ID, status: 'pending', feedbackId: FEEDBACK_ID },
     });
-    await expect(run(args)).rejects.toMatchObject({
-      code: 'FEEDBACK_OUTCOME_UNKNOWN', details: { requestId: REQUEST_ID, status: 'unknown' },
-    });
+    await expect(run(args)).rejects.toHaveProperty('details', { requestId: REQUEST_ID, status: 'pending' });
+    await expect(run(args)).rejects.toHaveProperty('details', { requestId: REQUEST_ID, status: 'unknown' });
+    expect(fetch).toHaveBeenCalledTimes(3);
     expect(log).not.toHaveBeenCalled();
     await run(args);
-    expect(fetch.mock.calls.map(([, request]) => request.headers['Idempotency-Key'])).toEqual(Array(3).fill(REQUEST_ID));
+    expect(fetch.mock.calls.map(([, request]) => request.headers['Idempotency-Key'])).toEqual(Array(4).fill(REQUEST_ID));
     expect(JSON.parse(log.mock.calls[0][0])).toMatchObject({ feedbackId: FEEDBACK_ID });
   });
 
