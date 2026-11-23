@@ -34,7 +34,13 @@ function invoke(sandbox, args, options = {}) {
   if (!options.refreshOnly) { env.OPENYIDA_ACCESS_TOKEN = OLD_ACCESS; }
   if (options.cwd) {
     env.QWENWORK_SANDBOX_ID = 'fixture-sandbox';
-    env.QWENWORK_WORKSPACE_DIR = workspace;
+    if (!options.independentRoots) {env.QWENWORK_WORKSPACE_DIR = workspace;}
+  }
+  if (options.ordinaryOAuth) {
+    delete env.OPENYIDA_AUTH_MODE;
+    delete env.OPENYIDA_SANDBOX_BINDING_ID;
+    delete env.OPENYIDA_ACCESS_TOKEN;
+    delete env.OPENYIDA_REFRESH_TOKEN;
   }
   return new Promise((resolve, reject) => execFile(process.execPath, [BIN, ...args, '--json'], {
     cwd: options.cwd || workspace, env, encoding: 'utf8', timeout: 15000,
@@ -188,11 +194,49 @@ test('seed preserves bounded refresh diagnostics and sends no writes when refres
   }, { failRefresh: true });
 }, 20000);
 
-test.each([false, true])('independent CLI processes in the same sandbox refresh once (refresh-only=%s)', async refreshOnly => {
+test('seed preserves refresh-only failure details without a business request', async () => {
+  await withSandbox(readFormList, async sandbox => {
+    const result = await invoke(sandbox, seedArgs(sandbox.workspace), { refreshOnly: true });
+    expect(result.code).toBe(1);
+    const payload = JSON.parse(result.stderr.slice(result.stderr.indexOf('{\n  "success"')));
+    expect(payload.details.refreshFailure).toEqual({
+      refreshPath: '/openapi/cli/v1/auth/refresh',
+      refreshHttpStatus: 503,
+      refreshErrorCode: 'service_unavailable',
+    });
+    expect(sandbox.requests).toHaveLength(0);
+  }, { failRefresh: true });
+}, 20000);
+
+test('list-forms keeps its ordinary OAuth top-level error code', async () => {
+  await withSandbox(readFormList, async sandbox => {
+    const {workspace, baseUrl} = sandbox;
+    const {saveTokenSession} = require('../lib/auth/token-store');
+    const session = saveTokenSession({
+      base_url: baseUrl, client_id: 'fixture-client', corp_id: 'ding-test', user_id: 'user-test',
+      access_token: OLD_ACCESS, refresh_token: OLD_REFRESH,
+    }, { projectRoot: workspace, authDir: path.join(workspace, 'auth'), env: {} });
+    expect(session.auth_profile).toBeTruthy();
+    const results = await Promise.all([1, 2].map(() => invoke(sandbox, ['list-forms', APP], { ordinaryOAuth: true })));
+    for (const result of results) {
+      expect(result.code).toBe(1);
+      const payload = JSON.parse(result.stderr.slice(result.stderr.indexOf('{\n  "success"')));
+      expect(payload.errorCode).toBe('CLI_COMMAND_FAILED');
+      expect(payload.details?.refreshFailure).toBeUndefined();
+    }
+  }, { failRefresh: true });
+}, 20000);
+
+test.each([
+  [false, false], [true, false], [false, true], [true, true],
+])('independent CLI processes refresh once (refresh-only=%s, independent roots=%s)', async (refreshOnly, independentRoots) => {
   await withSandbox(readFormList, async sandbox => {
     const workdirs = ['first', 'second'].map(name => path.join(sandbox.workspace, name));
-    workdirs.forEach(dir => fs.mkdirSync(dir));
-    const results = await Promise.all(workdirs.map(cwd => invoke(sandbox, ['list-forms', APP], { refreshOnly, cwd })));
+    workdirs.forEach(dir => {
+      fs.mkdirSync(dir);
+      if (independentRoots) {fs.writeFileSync(path.join(dir, 'config.json'), '{}');}
+    });
+    const results = await Promise.all(workdirs.map(cwd => invoke(sandbox, ['list-forms', APP], { refreshOnly, cwd, independentRoots })));
     expect(sandbox.refreshTokens).toEqual([OLD_REFRESH]);
     for (const result of results) {
       expect(result).toMatchObject({ code: 0 });

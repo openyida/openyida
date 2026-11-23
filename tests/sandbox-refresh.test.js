@@ -9,7 +9,7 @@ const { ensureQwenWorkLogin } = require('../lib/auth/qwenwork-login');
 const { createYidaClient } = require('../lib/core/yida-client');
 
 const OLD_ACCESS = 'fixture-old-access';
-const OLD_REFRESH = 'fixture-old-refresh';
+const OLD_REFRESH = 'fixture_private_refresh_token';
 const NEW_ACCESS = 'fixture-new-access';
 const NEW_REFRESH = 'fixture-new-refresh';
 const REFRESH_PATH = '/openapi/cli/v1/auth/refresh';
@@ -191,6 +191,34 @@ describe('cloud sandbox token refresh', () => {
     });
     expect(result.message).not.toContain(secret);
     expect(JSON.stringify(result)).not.toContain(secret);
+  });
+
+  test('rejects error codes that contain the refresh credential', async () => {
+    const get = await startServer({
+      onRead: (_request, response) => reply(response, 401, {}),
+      onRefresh: response => reply(response, 503, { errorCode: OLD_REFRESH, error: OLD_REFRESH }),
+    });
+    const result = await get('/form/list');
+    expect(result.details).toMatchObject({ refreshHttpStatus: 503 });
+    expect(result.details).not.toHaveProperty('refreshErrorCode');
+    expect(JSON.stringify(result)).not.toContain(OLD_REFRESH);
+  });
+
+  test.each(['refresh_timeout', 'refresh_interrupted'])('releases the lock after %s', async refreshErrorCode => {
+    await startServer({
+      onRead: (_request, response) => reply(response, 404, {}),
+      onRefresh(response) {
+        if (refreshErrorCode === 'refresh_timeout') {return;}
+        response.writeHead(200, { 'Content-Length': '100' });
+        response.write('{');
+        setTimeout(() => response.destroy(), 10);
+      },
+    });
+    const refresh = () => tokenRefresh({ projectRoot, timeoutMs: 250 }).catch(error => error);
+    const [first, second] = await Promise.all([refresh(), refresh()]);
+    expect(first.details.refreshErrorCode).toBe(refreshErrorCode);
+    expect(second).toMatchObject({ code: 'TOKEN_AUTH_REQUIRED' });
+    expect(refreshTokens).toEqual([OLD_REFRESH, OLD_REFRESH]);
   });
 
   test('QwenWork env login retains its refresh failure code and safe diagnostics', async () => {
