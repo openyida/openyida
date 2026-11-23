@@ -320,7 +320,10 @@ const MAX_UNPACKED_BYTES = 10192 * 1024;
 // The dedicated native portal skill adds one packaged entry.
 // DataV adds exactly one runtime module and one skill document.
 // One DataV reader module and one configuration reference add two package files.
-const MAX_ENTRY_COUNT = 822;
+// Native DataV query updates add one runtime module and one focused skill guide.
+// Measured on Node 26: 2,834,173 packed / 10,436,340 unpacked bytes, 824 files.
+// Byte and per-file budgets remain unchanged; account only for these two shipped files.
+const MAX_ENTRY_COUNT = 824;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

@@ -216,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: 'DataV-Status und URLs prüfen',
     cmd_datav_components: 'DataV-Komponenten und Parameterdefinitionen auflisten',
     cmd_datav_config: 'DataV-Canvas- und Ebenenkonfiguration lesen',
+    cmd_datav_data: 'YiDA-Abfrage und Konfigurationshash von DataV lesen',
+    cmd_datav_configure_data: 'YiDA-Abfrage einer vorhandenen DataV-Ebene aktualisieren',
     cmd_datav_copy: 'Nativen DataV-Bildschirm kopieren',
     cmd_datav_rename: 'Nativen DataV-Bildschirm umbenennen',
     cmd_datav_publish: 'Nativen DataV-Bildschirm veröffentlichen und aktivieren',

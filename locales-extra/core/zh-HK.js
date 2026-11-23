@@ -224,6 +224,8 @@ module.exports = {
     cmd_datav_inspect: '讀取原生大屏狀態及入口',
     cmd_datav_components: '查詢大屏元件目錄與參數定義',
     cmd_datav_config: '讀取大屏畫布與圖層設定',
+    cmd_datav_data: '讀取大屏宜搭資料查詢與設定雜湊',
+    cmd_datav_configure_data: '更新已有大屏圖層的宜搭資料查詢',
     cmd_datav_copy: '複製宜搭原生大屏',
     cmd_datav_rename: '修改原生大屏名稱',
     cmd_datav_publish: '發佈並啟用原生 DataV 大屏',

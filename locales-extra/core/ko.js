@@ -216,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: '대시보드 상태 및 URL 확인',
     cmd_datav_components: 'DataV 구성 요소 및 매개변수 정의 조회',
     cmd_datav_config: 'DataV 캔버스 및 레이어 설정 조회',
+    cmd_datav_data: 'DataV YiDA 데이터 쿼리 및 설정 해시 조회',
+    cmd_datav_configure_data: '기존 DataV 레이어의 YiDA 데이터 쿼리 업데이트',
     cmd_datav_copy: '기본 대시보드 복사',
     cmd_datav_rename: '기본 대시보드 이름 변경',
     cmd_datav_publish: '기본 DataV 대시보드 게시 및 활성화',

@@ -216,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: '大画面の状態と URL を確認',
     cmd_datav_components: 'DataVコンポーネントとパラメータ定義を一覧表示',
     cmd_datav_config: 'DataVキャンバスとレイヤー設定を取得',
+    cmd_datav_data: 'DataVの宜搭データクエリと設定ハッシュを取得',
+    cmd_datav_configure_data: '既存DataVレイヤーの宜搭データクエリを更新',
     cmd_datav_copy: 'ネイティブ大画面をコピー',
     cmd_datav_rename: 'ネイティブ大画面の名前を変更',
     cmd_datav_publish: 'ネイティブ DataV 大画面を公開して有効化',

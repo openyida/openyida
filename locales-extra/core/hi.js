@@ -216,6 +216,8 @@ module.exports = {
     cmd_datav_inspect: 'DataV स्थिति और URL देखें',
     cmd_datav_components: 'DataV घटक और पैरामीटर परिभाषाएँ देखें',
     cmd_datav_config: 'DataV कैनवास और लेयर कॉन्फ़िगरेशन पढ़ें',
+    cmd_datav_data: 'DataV की YiDA क्वेरी और कॉन्फ़िगरेशन हैश पढ़ें',
+    cmd_datav_configure_data: 'मौजूदा DataV लेयर की YiDA क्वेरी अपडेट करें',
     cmd_datav_copy: 'मूल DataV स्क्रीन कॉपी करें',
     cmd_datav_rename: 'मूल DataV स्क्रीन का नाम बदलें',
     cmd_datav_publish: 'मूल DataV स्क्रीन प्रकाशित और सक्रिय करें',
