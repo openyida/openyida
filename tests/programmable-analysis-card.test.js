@@ -137,47 +137,64 @@ test('live Canvas template delegates queries and native card references to the i
 });
 
 
-test('CLI generates a multi-chart source shared by standalone and native report templates', async () => {
+test('CLI generates an ECharts source with theme, original-row actions and cleanup', async () => {
+  const button = (tree, label) => find(tree, 'button').find(node => node.children.includes(label));
   const os = require('os');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-analysis-card-'));
   try {
     const output = path.join(dir, 'analysis-card.json');
     await require('../lib/core/sample').run(['openyida-page-template', 'analysis-card-config', '--output', output]);
     const [chart] = JSON.parse(fs.readFileSync(output, 'utf8')).charts;
-    expect(chart).toMatchObject({ type: 'analysis', formUuid: 'FORM-REPLACE', view: 'bar', w: 6, h: 42 });
-    expect(chart.yField[0].aggregateType).toBe('SUM');
+    expect(chart).toMatchObject({ type: 'analysis', formUuid: 'FORM-REPLACE', w: 6, h: 42 });
+    expect(chart.view).toBeUndefined();
     expect(validateChartConfigDetailed({ ...chart, cubeCode: 'FORM_TEST' })).toEqual([]);
-    const { renderCard } = buildChartNode({
-      ...chart,
-      cubeCode: 'FORM_TEST',
-      xField: { fieldCode: 'selectField_region' },
-      yField: [{ fieldCode: 'numberField_sales', aggregateType: 'SUM' }],
-    }).node.props.settings;
-    expect(renderCard.importedModules).toEqual(['antd', 'react', 'recharts']);
-    const Button = () => null;
-    const BarChart = () => null;
+    const { renderCard } = buildChartNode({ ...chart, cubeCode: 'FORM_TEST' }).node.props.settings;
+    expect(renderCard.importedModules).toEqual(['echarts', 'react']);
     const reportModule = { exports: {} };
-    const PieChart = () => null;
-    const dependencies = { react: React, antd: { Button }, recharts: { BarChart, PieChart } };
-    const Action = new Function('require', 'module', 'exports', renderCard.runtimeCode + '\nreturn AnalysisAction;')(
-      (name) => dependencies[name], reportModule, reportModule.exports
-    );
+    const effects = [];
+    const state = [];
+    let cursor = 0;
+    const react = { ...React, useRef: () => ({ current: {} }), useEffect: fn => effects.push(fn),
+      useState: initial => { const i = cursor++; if (!(i in state)) { state[i] = initial; }
+        return [state[i], value => { state[i] = value; }]; } };
+    const instance = { setOption: jest.fn(), on: jest.fn(), resize: jest.fn(), dispose: jest.fn() };
+    const echarts = { init: jest.fn(() => instance) };
+    new Function('require', 'module', 'exports', renderCard.runtimeCode)(
+      name => ({ react, echarts })[name], reportModule, reportModule.exports);
     const Component = reportModule.exports.default;
-    const refresh = () => {};
-    const card = Component({ analysis: {
-      rows: [{ label: '华东', value: 30000 }],
+    const row = { label: 'raw-region', value: 30000 };
+    const analysis = { rows: [row], displayRows: [{ label: '华东' }],
       columns: [{ key: 'label' }, { key: 'value', numeric: true }],
-      refresh,
-    } });
-    const refreshAction = find(card, Action).find(button => button.props.kind === 'refresh');
-    expect(Action(refreshAction.props).props).toMatchObject({
-      'aria-label': '刷新数据', title: '刷新数据', onClick: refresh,
-    });
-    expect(find(card, BarChart)[0]).toMatchObject({
-      type: BarChart,
-      props: { data: [{ index: 0, label: '华东', value: 30000, row: { label: '华东', value: 30000 } }] },
-    });
-    expect(find(card, PieChart)).toHaveLength(1);
+      appearance: { echartsLegend: { itemWidth: 22 } }, canDrill: true, select: jest.fn(), details: jest.fn(), refresh: jest.fn() };
+    const card = Component({ analysis });
+    button(card, '刷新').props.onClick();
+    expect(analysis.refresh).toHaveBeenCalledTimes(1);
+    const child = card.children.find(node => typeof node?.type === 'function');
+    cursor = 0;
+    let content = child.type(child.props);
+    expect(button(content, '下钻').props.disabled).toBe(true);
+    const priorStyle = global.getComputedStyle;
+    const priorWindow = global.window;
+    global.getComputedStyle = () => ({ getPropertyValue: () => '#123456' });
+    global.window = { addEventListener: jest.fn(), removeEventListener: jest.fn() };
+    try {
+      const cleanup = effects[0]();
+      expect(instance.setOption.mock.calls[0][0]).toMatchObject({ color: ['#123456'],
+        xAxis: { data: ['华东'] }, legend: { itemWidth: 22 }, series: [{ data: [30000] }] });
+      instance.on.mock.calls[0][1]({ componentType: 'series', dataIndex: 0 });
+      cursor = 0;
+      content = child.type(child.props);
+      button(content, '下钻').props.onClick();
+      button(content, '查看明细').props.onClick();
+      expect(analysis.select).toHaveBeenCalledWith(row);
+      expect(analysis.details).toHaveBeenCalledWith(row);
+      cleanup();
+      expect(instance.dispose).toHaveBeenCalledTimes(1);
+      expect(global.window.removeEventListener).toHaveBeenCalledWith('resize', expect.any(Function));
+    } finally {
+      if (priorStyle === undefined) { delete global.getComputedStyle; } else { global.getComputedStyle = priorStyle; }
+      if (priorWindow === undefined) { delete global.window; } else { global.window = priorWindow; }
+    }
     expect(chart.renderCard.source).toBe(fs.readFileSync(path.join(__dirname, '../lib/samples/openyida-scaffold/analysis-card-content.canvas.jsx'), 'utf8'));
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
@@ -195,4 +212,10 @@ test('report validation rejects a Canvas dependency unavailable in the report ho
     code: 'REPORT_ANALYSIS_CONFIG_INVALID',
     message: expect.stringContaining('ahooks'),
   }));
+});
+
+test('unauthored analysis cards do not receive a default table presentation', () => {
+  const chart = buildChartNode({ type: 'analysis', cubeCode: 'FORM_TEST',
+    xField: { fieldCode: 'category' }, yField: [{ fieldCode: 'amount', aggregateType: 'SUM' }] });
+  expect(chart.node.props.settings).toEqual({ container: { height: 248 } });
 });
