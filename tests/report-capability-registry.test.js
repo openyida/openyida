@@ -19,6 +19,7 @@ const { validateChartConfig, buildReportSchema } = chartBuilder;
 const { buildDataSetModelMap } = require('../lib/report/data-model');
 
 const SUPPORTED_TYPES = [
+  'analysis',
   'bar',
   'calendarheatmap',
   'combo',
