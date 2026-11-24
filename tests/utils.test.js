@@ -447,7 +447,10 @@ describe('requestNonIdempotentWithAuthPreflight', () => {
   test.each([false, true])('bootstrap business origin is synchronized before mutation; identityChanged=%s', async identityChanged => {
     jest.resetModules();
     const session = { refresh_token: 'test-refresh', corp_id: 'corp', user_id: 'user', base_url: 'https://seed.test' };
-    jest.doMock('../lib/auth/token-store', () => ({ loadTokenSession: () => session }));
+    jest.doMock('../lib/auth/token-store', () => ({
+      ...jest.requireActual('../lib/auth/token-store'),
+      loadTokenSession: () => session,
+    }));
     const utils = require('../lib/core/utils');
     const auth = { authMode: 'token', authData: { corp_id: 'corp', user_id: 'user' }, baseUrl: session.base_url }; // Real createAuthRef has no projectRoot.
     const mutate = jest.fn(ref => Promise.resolve({ success: true, origin: ref.baseUrl }));
