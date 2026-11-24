@@ -274,7 +274,9 @@ const MAX_TARBALL_BYTES = 2800 * 1024;
 // Canvas source export and its skill guidance measure 10,421,638 bytes on Node 20.
 // Round to the next 16 KiB boundary.
 // The native report/DataV orchestration skill and its routing metadata add ~8 KiB.
-const MAX_UNPACKED_BYTES = 10208 * 1024;
+// 沙箱并发刷新修复合入后，Node 20 CI 实测解包为 10,453,913 字节。
+// 取下一档 16 KiB 边界，保留现有压缩包、文件数与单文件限制。
+const MAX_UNPACKED_BYTES = 10224 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
