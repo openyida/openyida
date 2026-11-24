@@ -35,8 +35,6 @@ module.exports = {
     help: '--intl chọn www.yidaapps.com. --dingtalk domestic dùng DingTalk Trung Quốc (.com, mặc định); --dingtalk intl dùng DingTalk Quốc tế (.io). Chế độ không tương tác mặc định dùng DingTalk Trung Quốc.',
   },
   data_seed: {
-    process_unverified: 'Không xác minh được một phiên bản quy trình đã xuất bản duy nhất. Đã dừng gửi yêu cầu mẫu.',
-    process_not_self_approval: 'Quy trình đã xuất bản không giới hạn người phê duyệt ở người khởi tạo. Đã dừng gửi yêu cầu mẫu.',
     optional_notes: 'Các thành phần chuẩn có thể ghi dùng seed. Địa chỉ: chỉ chế độ ADDRESS nội địa mặc định. Trường tùy chọn chưa hỗ trợ nằm trong skippedFields; bỏ tất cả thì không tạo bản ghi.',
     failed: 'Đã dừng thao tác dữ liệu mẫu: {0}. Xem chi tiết và không lặp lại thao tác ghi đã thử.',
     notes: 'data seed form yêu cầu --expect-form-name và --records-file (1–30 đối tượng). --check chỉ kiểm tra. Ngày dùng mili giây hoặc ISO, độ lệch mặc định +08:00. Ghi và đọc lại từng bản ghi; lưu biên nhận cạnh tệp đầu vào và tái sử dụng kết quả đã xác minh. Dừng khi kết quả ghi chưa rõ. Seed quy trình dùng data seed process với --process-code, trả về processInstanceIds và khởi tạo phê duyệt thực tế.',

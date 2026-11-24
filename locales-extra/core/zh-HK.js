@@ -43,8 +43,6 @@ module.exports = {
     help: '--intl 登入 www.yidaapps.com；--dingtalk domestic 使用國內版（預設 .com），--dingtalk intl 使用國際版（.io）。互動終端會提供選擇，非互動預設國內版。',
   },
   data_seed: {
-    process_unverified: '無法核實唯一已發佈的流程版本，已停止寫入流程示例。',
-    process_not_self_approval: '目前已發佈的流程不符合臨時本人審批定義，已停止寫入流程示例。',
     optional_notes: '標準可寫元件均使用 seed；地址限預設國內 ADDRESS。未適配的可選欄位見 skippedFields，全部省略時不建立記錄。',
     failed: '範例資料操作已停止：{0}。請查看詳情，不要重複建立已嘗試寫入的記錄。',
     notes: 'data seed form 使用 --expect-form-name 與 --records-file，支援 1–30 條記錄；--check 僅預檢。日期支援毫秒或 ISO 字串，時區預設 +08:00。逐條寫入及回讀，回執保存於輸入檔旁；重跑復用成功記錄，未知寫入停止。 流程 seed 使用 data seed process 及 --process-code，回傳 processInstanceIds，並實際發起審批。',

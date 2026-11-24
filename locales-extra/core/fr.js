@@ -35,8 +35,6 @@ module.exports = {
     help: '--intl sélectionne www.yidaapps.com. --dingtalk domestic utilise DingTalk Chine (.com, par défaut), --dingtalk intl utilise DingTalk International (.io). Sans interaction, DingTalk Chine est utilisé par défaut.',
   },
   data_seed: {
-    process_unverified: 'Impossible de vérifier une version publiée unique du processus. L’envoi de demandes d’exemple a été interrompu.',
-    process_not_self_approval: 'Le processus publié ne limite pas l’approbation à la personne à l’origine de la demande. L’envoi de demandes d’exemple a été interrompu.',
     optional_notes: 'Les composants standards modifiables utilisent seed. Adresses : mode national ADDRESS par défaut uniquement. Champs optionnels non adaptés : skippedFields ; aucun enregistrement si tous sont omis.',
     failed: 'Opération de données exemple arrêtée : {0}. Consultez les détails et ne répétez pas les écritures tentées.',
     notes: 'data seed form exige --expect-form-name et --records-file (1 à 30 objets). --check valide sans écrire. Dates en millisecondes ou ISO, décalage par défaut +08:00. Chaque écriture est relue ; le reçu près du fichier permet de réutiliser les résultats vérifiés. Une écriture incertaine arrête le traitement. Le seed de processus utilise data seed process avec --process-code, renvoie processInstanceIds et lance de vraies approbations.',

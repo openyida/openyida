@@ -108,7 +108,8 @@ const path = require('path');
 // Advance to the next 16 KiB boundaries; keep the per-file cap unchanged.
 // DataV component/interaction and application-theme guidance: Node 20.18.1
 // measures 2,852,227 compressed bytes; retain the next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2800 * 1024;
+// Process sample guards and sandbox refresh together measure 2,867,335 packed bytes on Node 23.
+const MAX_TARBALL_BYTES = 2816 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -274,7 +275,8 @@ const MAX_TARBALL_BYTES = 2800 * 1024;
 // Canvas source export and its skill guidance measure 10,421,638 bytes on Node 20.
 // Round to the next 16 KiB boundary.
 // The native report/DataV orchestration skill and its routing metadata add ~8 KiB.
-const MAX_UNPACKED_BYTES = 10208 * 1024;
+// The combined process sample and sandbox refresh changes measure 10,455,792 unpacked bytes.
+const MAX_UNPACKED_BYTES = 10224 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
